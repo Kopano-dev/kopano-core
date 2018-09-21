@@ -1209,19 +1209,10 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 	       m_lpEntryId, EC_SUBMIT_MASTER | EC_SUBMIT_DOSENTMAIL);
 }
 
-HRESULT ECMessage::SetReadFlag(ULONG ulFlags)
+HRESULT ECMessage::SetReadFlag2(unsigned int ulFlags)
 {
-	if ((ulFlags & ~(CLEAR_READ_FLAG | CLEAR_NRN_PENDING | CLEAR_RN_PENDING | GENERATE_RECEIPT_ONLY | MAPI_DEFERRED_ERRORS | SUPPRESS_RECEIPT)) != 0 ||
-	    (ulFlags & (SUPPRESS_RECEIPT | CLEAR_READ_FLAG)) == (SUPPRESS_RECEIPT | CLEAR_READ_FLAG) ||
-	    (ulFlags & (SUPPRESS_RECEIPT | CLEAR_READ_FLAG | GENERATE_RECEIPT_ONLY)) == (SUPPRESS_RECEIPT | CLEAR_READ_FLAG | GENERATE_RECEIPT_ONLY) ||
-	    (ulFlags & (CLEAR_READ_FLAG | GENERATE_RECEIPT_ONLY)) == (CLEAR_READ_FLAG | GENERATE_RECEIPT_ONLY))
-		return MAPI_E_INVALID_PARAMETER;
-	if (m_lpParentID != nullptr)
-		/* Unsaved message, ignore (FIXME ?) */
-		return hrSuccess;
-
 	ecmem_ptr<SPropValue> lpReadReceiptRequest;
-	memory_ptr<SPropValue> lpPropFlags, lpsPropUserName;
+	memory_ptr<SPropValue> lpsPropUserName;
 	SPropValue		sProp;
 	object_ptr<IMAPIFolder> lpRootFolder;
 	object_ptr<IMessage> lpNewMessage, lpThisMessage;
@@ -1282,12 +1273,29 @@ HRESULT ECMessage::SetReadFlag(ULONG ulFlags)
 		}
 	}
 
-	hr = GetMsgStore()->lpTransport->HrSetReadFlag(m_cbEntryId, m_lpEntryId, ulFlags, 0);
-	if(hr != hrSuccess)
-		return hr;
+	return GetMsgStore()->lpTransport->HrSetReadFlag(m_cbEntryId, m_lpEntryId, ulFlags, 0);
+}
+
+HRESULT ECMessage::SetReadFlag(ULONG ulFlags)
+{
+	if ((ulFlags & ~(CLEAR_READ_FLAG | CLEAR_NRN_PENDING | CLEAR_RN_PENDING | GENERATE_RECEIPT_ONLY | MAPI_DEFERRED_ERRORS | SUPPRESS_RECEIPT)) != 0 ||
+	    (ulFlags & (SUPPRESS_RECEIPT | CLEAR_READ_FLAG)) == (SUPPRESS_RECEIPT | CLEAR_READ_FLAG) ||
+	    (ulFlags & (SUPPRESS_RECEIPT | CLEAR_READ_FLAG | GENERATE_RECEIPT_ONLY)) == (SUPPRESS_RECEIPT | CLEAR_READ_FLAG | GENERATE_RECEIPT_ONLY) ||
+	    (ulFlags & (CLEAR_READ_FLAG | GENERATE_RECEIPT_ONLY)) == (CLEAR_READ_FLAG | GENERATE_RECEIPT_ONLY))
+		return MAPI_E_INVALID_PARAMETER;
+	/*
+	 * parent!=nullptr is an unsaved message for which read receipt
+	 * handling probably makes no sense.
+	 */
+	if (m_lpParentID == nullptr) {
+		auto ret = SetReadFlag2(ulFlags);
+		if (ret != hrSuccess)
+			return ret;
+	}
 
     // Server update OK, change local flags also
-	hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropFlags);
+	memory_ptr<SPropValue> lpPropFlags;
+	auto hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropFlags);
 	if (hr != hrSuccess)
 		return hr;
     hr = HrGetRealProp(PR_MESSAGE_FLAGS, ulFlags, lpPropFlags, lpPropFlags);

@@ -1208,7 +1208,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 		else
 			strRule = "(no name)";
 
-		ec_log_debug("Processing rule %s for %s", strRule.c_str(), recip.c_str());
+		ec_log_debug("Processing rule \"%s\" for \"%s\"", strRule.c_str(), recip.c_str());
 		auto lpRuleState = lpRowSet[0].cfind(PR_RULE_STATE);
 		if (lpRuleState == nullptr) {
 			ec_log_warn("Rule '%s' for '%s' skipped, having no PR_RULE_STATE property.", strRule.c_str(), recip.c_str());
@@ -1230,7 +1230,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 			// NOTE: object is placed in Value.lpszA, not Value.x
 			lpCondition = (LPSRestriction)lpProp->Value.lpszA;
 		if (!lpCondition) {
-			ec_log_debug("Rule '%s' has no contition, skipping...", strRule.c_str());
+			ec_log_debug("Rule \"%s\" has no condition, skipping...", strRule.c_str());
 			continue;
 		}
 		lpProp = lpRowSet[0].cfind(PR_RULE_ACTIONS);

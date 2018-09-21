@@ -130,6 +130,7 @@ private:
 class _kc_export KServerContext {
 	public:
 	HRESULT logon(const char *user = nullptr, const char *password = nullptr);
+	HRESULT inbox(IMAPIFolder **) const;
 
 	const char *m_app_misc = nullptr, *m_app_ver = PROJECT_VERSION, *m_host = nullptr;
 	const char *m_ssl_keyfile = nullptr, *m_ssl_keypass = nullptr;

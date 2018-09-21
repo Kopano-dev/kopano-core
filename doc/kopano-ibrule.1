@@ -1,0 +1,57 @@
+.TH kopano\-ibrule 1 2018-09-13 "Kopano 8" "Kopano Core user reference"
+.SH Name
+.PP
+kopano\-ibrule \(em Inbox rule inspection and manipulation utility
+.SH Synopsis
+.PP
+\fBkopano\-ibrule\fP [\fB\-AP\fP] [\fB-D\fP \fIindex\fP] [\fB\-S\fP] [\fB\-u\fP
+\fIusername\fP] [\fIrule-spec\fP...]
+.SH Description
+.PP
+This program can be used to inspect or change the so-called "inbox rules" of a
+user's inbox. This is a mechanism by which they can instruct kopano\-dagent to,
+for example, move, copy, forward, or reply to, messages upon reception.
+.SH Options
+.TP
+\fB\-A\fP (with rule-spec)
+Add a new rule to the inbox rules table.
+.TP
+\fB\-D\fP \fIseqno\fP
+Delete the rule with the given sequence number.
+.TP
+\fB\-P\fP
+Interactively prompt for the connection password.
+.TP
+\fB\-S\fP
+Show the inbox rule table for the particular user.
+.SH Rule specification
+.PP
+cond-spec := \fBcond\fP exists-rst
+.PP
+exists-rst := \fBexists\fP proptag
+.PP
+proptag := \fIhex-value\fP | \fBmessage-class\fP
+.PP
+act-spec := \fBact\fP { \fBdelete\fP | \fBmark\-as\-read\fP |
+\fBcopy store\fP \fIguid\fP \fBfolder\fP \fIguid\fP |
+\fBmove store\fP \fIguid\fP \fBfolder\fP \fIguid\fP }
+.PP
+rule-spec := \fBseq\fP \fInumber\fP | cond-spec | act-spec | \fBstop\fP
+.SH Usage examples
+.PP
+Log in and show table:
+.RS 4
+.nf
+IBR_PASSWORD=xfoo kopano\-ibrule \-u foo \-S
+.fi
+.RE
+.PP
+Marking all mails as read that were sent to oneself, and cease processing of
+rules afterwards:
+.PP
+.RS 4
+IBR_PASSWORD=xfoo kopano\-ibrule \-u foo \-A
+cond exists message-class
+content received\-from = kopano:foo ]
+act mark\-as\-read stop
+.RE
