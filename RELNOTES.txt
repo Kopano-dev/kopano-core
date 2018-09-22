@@ -7,6 +7,8 @@ Enhancements:
 * server: support for Unicode supplemental plane (Emojis) [KC-725]
 * spooler: support for process_model=thread mode [KC-1235]
 * spooler: add copy_delegate_mails=move-to-rep config directive [KC-412]
+* dagent: "mark mail as read" rule action support [KC-1080]
+* kopano-ibrule: new utility for MAPI rules [KC-1229]
 Changes:
 * dagent: ignore OP_REPLY/OP_FORWARD for autoreplies [KC-1244]
 * daemons: to use the new socket spec ("ical_listen", "imap_listen",
@@ -26,7 +28,6 @@ Enhancements:
 * dagent: modern socket specification in dagent.cfg with lmtp_listen= [KC-1174]
 * dagent: PF_LOCAL socket support for communicating with postfix [KC-1131]
 * dagent: limited support for RFC 6531 (SMTPUTF8) [KC-833]
-* dagent: "mark mail as read" rule action support [KC-1080]
 * gateway: modern socket specification in gateway.cfg with
   imap_listen=, pop3_listen=, etc. [KC-1130]
 * ical: "coredump_enable" config directive now recognized [ZCP-11696]
