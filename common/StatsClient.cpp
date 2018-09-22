@@ -13,6 +13,8 @@
 #	include <curl/curl.h>
 #	include <json/writer.h>
 #endif
+#include <libHX/map.h>
+#include <libHX/option.h>
 #include <kopano/platform.h>
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
@@ -75,6 +77,39 @@ static size_t curl_dummy_write(char *, size_t z, size_t n, void *)
 }
 #endif
 
+static bool sc_proxy_from_env(CURL *ch, const char *url)
+{
+	auto ssl = url != nullptr && strncmp(url, "https:", 6) == 0;
+	const char *v = getenv(ssl ? "https_proxy" : "http_proxy");
+	if (v == nullptr)
+		return false;
+	curl_easy_setopt(ch, CURLOPT_PROXY, v);
+	v = getenv("no_proxy");
+	if (v != nullptr)
+		curl_easy_setopt(ch, CURLOPT_NOPROXY, v);
+	return true;
+}
+
+#ifdef HAVE_CURL_CURL_H
+static void sc_proxy_from_sysconfig(CURL *ch, const char *url)
+{
+	struct mapfree { void operator()(struct HXmap *m) { HXmap_free(m); } };
+	std::unique_ptr<HXmap, mapfree> map(HX_shconfig_map("/etc/sysconfig/proxy"));
+	if (map == nullptr)
+		return;
+	auto v = HXmap_get<const char *>(map.get(), "PROXY_ENABLED");
+	if (v == nullptr || strcasecmp(v, "yes") != 0)
+		return;
+	auto ssl = url != nullptr && strncmp(url, "https:", 6) == 0;
+	v = HXmap_get<const char *>(map.get(), ssl ? "HTTPS_PROXY" : "HTTP_PROXY");
+	if (v != nullptr)
+		curl_easy_setopt(ch, CURLOPT_PROXY, v);
+	v = HXmap_get<const char *>(map.get(), "NO_PROXY");
+	if (v != nullptr)
+		curl_easy_setopt(ch, CURLOPT_NOPROXY, v);
+}
+#endif
+
 void StatsClient::submit(std::string &&url)
 {
 #ifdef HAVE_CURL_CURL_H
@@ -92,6 +127,8 @@ void StatsClient::submit(std::string &&url)
 	auto text = Json::writeString(Json::StreamWriterBuilder(), std::move(root));
 	auto ch = curl_easy_init();
 	std::unique_ptr<curl_slist, slfree> hl(curl_slist_append(nullptr, "Content-Type: application/json"));
+	if (!sc_proxy_from_env(ch, url.c_str()))
+		sc_proxy_from_sysconfig(ch, url.c_str());
 	curl_easy_setopt(ch, CURLOPT_NOPROGRESS, 1L);
 	curl_easy_setopt(ch, CURLOPT_NOSIGNAL, 1L);
 	curl_easy_setopt(ch, CURLOPT_TCP_NODELAY, 0L);
