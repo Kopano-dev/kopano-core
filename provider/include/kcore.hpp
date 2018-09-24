@@ -6,6 +6,7 @@
 #ifndef KC_KCORE_HPP
 #define KC_KCORE_HPP 1
 
+#include <cstdint>
 #include <mapi.h>
 #include <mapidefs.h>
 #include <kopano/ECTags.h>
@@ -37,69 +38,43 @@
 // Entryid from version 6
 // Entryid version 1 (48 bytes)
 struct EID {
-	BYTE	abFlags[4];
-	GUID	guid;			// StoreGuid
-	ULONG	ulVersion;
-	USHORT	usType;
-	USHORT  usFlags;		// Before Zarafa 7.1, ulFlags did not exist, and ulType was ULONG
-	GUID	uniqueId;		// Unique id
-	CHAR	szServer[1];
-	CHAR	szPadding[3];
+	BYTE abFlags[4]{};
+	GUID guid{}; /* StoreGuid */
+	uint32_t ulVersion = 1;
+	uint16_t usType = 0;
+	uint16_t usFlags = 0; /* Before Zarafa 7.1, ulFlags did not exist, and ulType was ULONG */
+	GUID uniqueId{};
+	char szServer[1]{}, szPadding[3]{};
 
-	EID(USHORT type, const GUID &g, const GUID &id, USHORT flags = 0)
-	{
-		memset(this, 0, sizeof(EID));
-		ulVersion = 1; /* Always latest version */
-		usType = type;
-		usFlags = flags;
-		guid = g;
-		uniqueId = id;
-	}
-
-	EID() {
-		memset(this, 0, sizeof(EID));
-		ulVersion = 1;
-	}
+	EID() = default;
+	EID(unsigned short type, const GUID &g, const GUID &id, unsigned short flags = 0) :
+		guid(g), usType(type), usFlags(flags), uniqueId(id)
+	{}
 };
 
 // The entryid from the begin of zarafa till 5.20
 // Entryid version is zero (36 bytes)
 struct EID_V0 {
-	BYTE	abFlags[4];
-	GUID	guid;			// StoreGuid
-	ULONG	ulVersion;
-	USHORT	usType;
-	USHORT  usFlags;		// Before Zarafa 7.1, ulFlags did not exist, and ulType was ULONG
-	ULONG	ulId;
-	CHAR	szServer[1];
-	CHAR	szPadding[3];
-
-	EID_V0() {
-		memset(this, 0, sizeof(EID_V0));
-	}
+	BYTE abFlags[4]{};
+	GUID guid{}; /* StoreGuid */
+	uint32_t ulVersion = 0;
+	uint16_t usType = 0;
+	uint16_t usFlags = 0; /* Before Zarafa 7.1, ulFlags did not exist, and ulType was ULONG */
+	uint32_t ulId = 0;
+	char szServer[1]{}, szPadding[3]{};
 };
 
 /* 36 bytes */
 struct ABEID {
-	BYTE	abFlags[4];
-	GUID	guid;
-	ULONG	ulVersion;
-	ULONG	ulType;
-	ULONG	ulId;
-	CHAR	szExId[1];
-	CHAR	szPadding[3];
+	BYTE abFlags[4]{};
+	GUID guid{};
+	uint32_t ulVersion = 0, ulType = 0, ulId = 0;
+	char szExId[1]{}, szPadding[3]{};
 
-	ABEID(ULONG type, const GUID &g, ULONG id)
-	{
-		memset(this, 0, sizeof(ABEID));
-		ulType = type;
-		guid = g;
-		ulId = id;
-	}
-
-	ABEID() {
-		memset(this, 0, sizeof(ABEID));
-	}
+	ABEID() = default;
+	ABEID(unsigned int type, const GUID &g, ULONG id) :
+		guid(g), ulType(type), ulId(id)
+	{}
 };
 typedef struct ABEID *PABEID;
 #define CbABEID_2(p) ((sizeof(ABEID) + strlen((char *)(p)->szExId)) & ~3)
