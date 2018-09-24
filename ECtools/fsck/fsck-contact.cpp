@@ -28,7 +28,6 @@ HRESULT FsckContact::ValidateContactNames(LPMESSAGE lpMessage)
 		E_SUFFIX,
 		TAG_COUNT
 	};
-
 	static const ULONG ulTags[] = {
 		PR_SUBJECT_A,
 		PR_DISPLAY_NAME_A,
@@ -38,10 +37,8 @@ HRESULT FsckContact::ValidateContactNames(LPMESSAGE lpMessage)
 		PR_SURNAME_A,
 		PR_GENERATION_A,
 	};
-
 	memory_ptr<SPropValue> lpPropertyArray;
 	std::string result[TAG_COUNT];
-
 	auto hr = ReadProperties(lpMessage, TAG_COUNT, ulTags, &~lpPropertyArray);
 	/* Ignore error, we are going to fix this :) */
 	if (!lpPropertyArray)
@@ -63,7 +60,6 @@ HRESULT FsckContact::ValidateContactNames(LPMESSAGE lpMessage)
 		for (ULONG j = E_PREFIX; j < (ULONG)E_SUFFIX + 1; ++j) {
 			if (!result[E_FULLNAME].empty() && !result[j].empty())
 				result[E_FULLNAME] += " ";
-
 			result[E_FULLNAME] += result[j];
 		}
 
@@ -71,7 +67,6 @@ HRESULT FsckContact::ValidateContactNames(LPMESSAGE lpMessage)
 		if (result[E_FULLNAME].empty())
 			return E_INVALIDARG;
 		Value.lpszA = const_cast<char *>(result[E_FULLNAME].c_str());
-
 		hr = ReplaceProperty(lpMessage, "PR_DISPLAY_NAME", PR_DISPLAY_NAME_A, "No display name was provided", Value);
 		if (hr != hrSuccess)
 			return hr;
@@ -124,7 +119,6 @@ HRESULT FsckContact::ValidateContactNames(LPMESSAGE lpMessage)
 	}
 
 	Value.lpszA = const_cast<char *>(result[E_FIRSTNAME].c_str());
-
 	hr = ReplaceProperty(lpMessage, "PR_GIVEN_NAME", PR_GIVEN_NAME_A, "No given name was provided", Value);
 	if (hr != hrSuccess)
 		return hr;
@@ -140,7 +134,6 @@ HRESULT FsckContact::ValidateItem(LPMESSAGE lpMessage,
 		std::cout << "Illegal class: \"" << strClass << "\"" << std::endl;
 		return E_INVALIDARG;
 	}
-
 	if (strClass == "IPM.Contact")
 		return ValidateContactNames(lpMessage);
 	// else: @todo distlist validation

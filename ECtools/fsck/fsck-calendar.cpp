@@ -118,7 +118,6 @@ HRESULT FsckCalendar::ValidateTimestamps(LPMESSAGE lpMessage)
 	     &~lpPropertyTagArray, &~lpPropertyArray);
 	if (FAILED(hr))
 		return hr;
-
 	/*
 	 * Validate parameters:
 	 * If E_START is missing it can be substituted with E_CSTART and vice versa
@@ -290,7 +289,6 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 
 	if (PROP_TYPE(lpPropertyArray[E_RECURRENCE].ulPropTag) == PT_ERROR) {
 		__UPV Value;
-
 		/*
 		 * Check if the recurrence type is set, and if this is the case,
 		 * if the type indicates recurrence.
@@ -330,7 +328,6 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 	if (!bRecurring && ulType > 0) {
 		__UPV Value;
 		Value.l = 0;
-
 		hr = ReplaceProperty(lpMessage, "dispidRecurrenceType",
 				     CHANGE_PROP_TYPE(lpPropertyTagArray->aulPropTag[E_RECURRENCE_TYPE], PT_LONG),
 				     "No recurrence, but recurrence type is > 0.",
@@ -340,7 +337,6 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 	} else if (bRecurring && ulType == 0) {
 		__UPV Value;
 		Value.b = false;
-
 		hr = ReplaceProperty(lpMessage, "dispidRecurring",
 				     CHANGE_PROP_TYPE(lpPropertyTagArray->aulPropTag[E_RECURRENCE], PT_BOOLEAN),
 				     "Recurrence has been set, but type indicates no recurrence.",
@@ -353,7 +349,6 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 		if (bRecurring) {
 			Value.b = false;
 			bRecurring = false;
-
 			hr = ReplaceProperty(lpMessage, "dispidRecurring",
 					     CHANGE_PROP_TYPE(lpPropertyTagArray->aulPropTag[E_RECURRENCE], PT_BOOLEAN),
 					     "Invalid recurrence type, disabling recurrence.",
@@ -364,7 +359,6 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 
 		Value.l = 0;
 		ulType = 0;
-
 		hr = ReplaceProperty(lpMessage, "dispidRecurrenceType",
 				     CHANGE_PROP_TYPE(lpPropertyTagArray->aulPropTag[E_RECURRENCE], PT_LONG),
 				     "Invalid recurrence type, disabling recurrence.",
@@ -502,4 +496,3 @@ HRESULT FsckCalendar::ValidateItem(LPMESSAGE lpMessage,
 		return hr;
 	return ValidateRecursiveDuplicateRecipients(lpMessage, bChanged);
 }
-

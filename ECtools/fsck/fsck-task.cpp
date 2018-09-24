@@ -17,14 +17,13 @@ using namespace KC;
 
 HRESULT FsckTask::ValidateMinimalNamedFields(LPMESSAGE lpMessage)
 {
-	memory_ptr<SPropValue> lpPropertyArray;
-	memory_ptr<SPropTagArray> lpPropertyTagArray;
-
 	enum {
 		E_REMINDER,
 		TAG_COUNT
 	};
 
+	memory_ptr<SPropValue> lpPropertyArray;
+	memory_ptr<SPropTagArray> lpPropertyTagArray;
 	memory_ptr<MAPINAMEID *> ta;
 	std::string strTagName[TAG_COUNT];
 
