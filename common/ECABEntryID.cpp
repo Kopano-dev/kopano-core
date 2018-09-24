@@ -6,25 +6,9 @@
 #include <kopano/ECABEntryID.h>
 #include <kopano/ECGuid.h>
 #include <mapicode.h>
+#include "../provider/include/kcore.hpp"
 
 namespace KC {
-
-/* This is a copy from the definition in kcore.hpp. It's for internal use only as we
- * don't want to expose the format of the entry id. */
-struct ABEID {
-	BYTE	abFlags[4];
-	GUID	guid;
-	ULONG ulVersion, ulType, ulId;
-	char szExId[1], szPadding[3];
-
-	ABEID(ULONG t, GUID g, ULONG id)
-	{
-		memset(this, 0, sizeof(ABEID));
-		ulType = t;
-		guid = g;
-		ulId = id;
-	}
-};
 
 static ABEID		g_sDefaultEid(MAPI_MAILUSER, MUIDECSAB, 0);
 unsigned char		*g_lpDefaultEid = (unsigned char*)&g_sDefaultEid;
