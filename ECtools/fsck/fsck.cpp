@@ -291,15 +291,13 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 	LPMDB lpReadStore = NULL;
 	object_ptr<IMAPIFolder> lpRootFolder;
 	object_ptr<IMAPITable> lpHierarchyTable;
-	ULONG ulObjectType;
-	ULONG ulCount;
+	unsigned int ulObjectType, ulCount;
 	object_ptr<IExchangeManageStore> lpIEMS;
     // user
-    ULONG			cbUserStoreEntryID = 0;
 	memory_ptr<ENTRYID> lpUserStoreEntryID, lpEntryIDSrc;
 	std::set<std::string> setFolderIgnore;
 	memory_ptr<SPropValue> lpAddRenProp;
-	ULONG cbEntryIDSrc = 0;
+	unsigned int cbUserStoreEntryID = 0, cbEntryIDSrc = 0;
 
 	auto hr = mapiinit.Initialize();
 	if (hr != hrSuccess) {
@@ -403,14 +401,10 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 int main(int argc, char **argv) try
 {
 	CHECKMAP checkmap;
-	char* strUser = NULL;
+	char *strUser = nullptr, *strAltUser = nullptr;
 	const char *strPass = "";
-	char* strAltUser = NULL;
 	int c;
-	bool bAll = false;
-	bool bPrompt = false;
-	bool bPublic = false;
-	bool acceptDisclaimer = false;
+	bool bAll = false, bPrompt = false, bPublic = false, acceptDisclaimer = false;
 
 	setlocale(LC_MESSAGES, "");
 	if (!forceUTF8Locale(true))

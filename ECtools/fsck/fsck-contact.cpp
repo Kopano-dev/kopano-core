@@ -18,8 +18,6 @@ using namespace KC;
 
 HRESULT FsckContact::ValidateContactNames(LPMESSAGE lpMessage)
 {
-	memory_ptr<SPropValue> lpPropertyArray;
-
 	enum {
 		E_SUBJECT,
 		E_FULLNAME,
@@ -41,6 +39,7 @@ HRESULT FsckContact::ValidateContactNames(LPMESSAGE lpMessage)
 		PR_GENERATION_A,
 	};
 
+	memory_ptr<SPropValue> lpPropertyArray;
 	std::string result[TAG_COUNT];
 
 	auto hr = ReadProperties(lpMessage, TAG_COUNT, ulTags, &~lpPropertyArray);

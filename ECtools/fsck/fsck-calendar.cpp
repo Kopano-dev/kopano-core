@@ -27,9 +27,6 @@ static time_t operator-(const FILETIME &a, const FILETIME &b)
 
 HRESULT FsckCalendar::ValidateMinimalNamedFields(LPMESSAGE lpMessage)
 {
-	memory_ptr<SPropValue> lpPropertyArray;
-	memory_ptr<SPropTagArray> lpPropertyTagArray;
-	memory_ptr<MAPINAMEID *> ta;
 
 	enum {
 		E_REMINDER,
@@ -37,8 +34,10 @@ HRESULT FsckCalendar::ValidateMinimalNamedFields(LPMESSAGE lpMessage)
 		TAG_COUNT
 	};
 
+	memory_ptr<SPropValue> lpPropertyArray;
+	memory_ptr<SPropTagArray> lpPropertyTagArray;
+	memory_ptr<MAPINAMEID *> ta;
 	std::string strTagName[TAG_COUNT];
-
 	/*
 	 * Allocate the NamedID list and initialize it to all
 	 * properties which could give us some information about the name.

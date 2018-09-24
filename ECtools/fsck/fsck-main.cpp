@@ -131,8 +131,7 @@ static HRESULT ProcessFolderEntry(Fsck *lpFsck, LPMAPIFOLDER lpFolder,
 	HRESULT hr = hrSuccess;
 	object_ptr<IMessage> lpMessage;
 	ULONG ulObjectType = 0;
-	string strName;
-	string strClass;
+	std::string strName, strClass;
 
 	auto lpItemProperty = lpRow->cfind(PR_ENTRYID);
 	if (!lpItemProperty) {
