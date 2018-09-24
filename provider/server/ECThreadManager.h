@@ -26,7 +26,7 @@ struct ACTIVESOCKET _kc_final {
     struct soap *soap;
     time_t ulLastActivity;
 
-	bool operator<(const ACTIVESOCKET &a) const noexcept { return a.soap->socket < this->soap->socket; };
+	bool operator<(const ACTIVESOCKET &a) const noexcept { return a.soap->socket < soap->socket; };
 };
 
 class FindSocket _kc_final {

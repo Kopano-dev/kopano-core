@@ -59,15 +59,15 @@ struct EID {
 	EID(const EID *oldEID)
 	{
 		memset(this, 0, sizeof(EID));
-		this->ulVersion = oldEID->ulVersion;
-		this->usType = oldEID->usType;
-		this->guid = oldEID->guid;
-		this->uniqueId = oldEID->uniqueId;
+		ulVersion = oldEID->ulVersion;
+		usType = oldEID->usType;
+		guid = oldEID->guid;
+		uniqueId = oldEID->uniqueId;
 	}
 
 	EID() {
 		memset(this, 0, sizeof(EID));
-		this->ulVersion = 1;
+		ulVersion = 1;
 	}
 };
 
@@ -94,9 +94,9 @@ struct EID_V0 {
 	EID_V0(const EID_V0 *oldEID)
 	{
 		memset(this, 0, sizeof(EID_V0));
-		this->usType = oldEID->usType;
-		this->guid = oldEID->guid;
-		this->ulId = oldEID->ulId;
+		usType = oldEID->usType;
+		guid = oldEID->guid;
+		ulId = oldEID->ulId;
 	}
 
 	EID_V0() {
@@ -125,9 +125,9 @@ struct ABEID {
 	ABEID(const ABEID *oldEID)
 	{
 		memset(this, 0, sizeof(ABEID));
-		this->ulType = oldEID->ulType;
-		this->guid = oldEID->guid;
-		this->ulId = oldEID->ulId;
+		ulType = oldEID->ulType;
+		guid = oldEID->guid;
+		ulId = oldEID->ulId;
 	}
 
 	ABEID() {
@@ -171,9 +171,9 @@ struct SIEID {
 	SIEID(const SIEID *oldEID)
 	{
 		memset(this, 0, sizeof(SIEID));
-		this->ulType = oldEID->ulType;
-		this->guid = oldEID->guid;
-		this->ulId = oldEID->ulId;
+		ulType = oldEID->ulType;
+		guid = oldEID->guid;
+		ulId = oldEID->ulId;
 	}
 
 	SIEID() {

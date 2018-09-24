@@ -316,7 +316,7 @@ HRESULT POP3::HrCmdPass(const string &strPass) {
 		return HrResponse(POP3_RESP_ERR, "Give username first");
 	}
 
-	auto hr = this->HrLogin(szUser, strPass);
+	auto hr = HrLogin(szUser, strPass);
 	if (hr != hrSuccess) {
 		if (hr == MAPI_E_LOGON_FAILED)
 			HrResponse(POP3_RESP_AUTH_ERROR, "Wrong username or password");
@@ -324,7 +324,7 @@ HRESULT POP3::HrCmdPass(const string &strPass) {
 			HrResponse(POP3_RESP_TEMPFAIL, "Internal error: HrLogin failed");
 		return hr;
 	}
-	hr = this->HrMakeMailList();
+	hr = HrMakeMailList();
 	if (hr != hrSuccess) {
 		HrResponse(POP3_RESP_ERR, "Can't get mail list");
 		return hr;

@@ -929,7 +929,7 @@ HRESULT ZCABContainer::ResolveNames(const SPropTagArray *lpPropTagArray,
 
 		if (m_lpFolders->empty())
 			return hrSuccess;
-		hr = this->GetHierarchyTable(0, &~ptrHierarchy);
+		hr = GetHierarchyTable(0, &~ptrHierarchy);
 		if (hr != hrSuccess)
 			return hr;
 		hr = ptrHierarchy->QueryRows(m_lpFolders->size(), 0, &~ptrRows);
@@ -945,7 +945,7 @@ HRESULT ZCABContainer::ResolveNames(const SPropTagArray *lpPropTagArray,
 				continue;
 
 			// this? provider?
-			hr = this->OpenEntry(lpEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryID->Value.bin.lpb),
+			hr = OpenEntry(lpEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryID->Value.bin.lpb),
 			     &iid_of(ptrContainer), 0, &ulObjType, &~ptrContainer);
 			if (hr != hrSuccess)
 				return hr;
@@ -969,7 +969,7 @@ HRESULT ZCABContainer::ResolveNames(const SPropTagArray *lpPropTagArray,
 		ptrColumns->cValues = stProps.size();
 		std::copy(stProps.begin(), stProps.end(), ptrColumns->aulPropTag);
 
-		hr = this->GetContentsTable(ulFlags & MAPI_UNICODE, &~ptrContents);
+		hr = GetContentsTable(ulFlags & MAPI_UNICODE, &~ptrContents);
 		if (hr != hrSuccess)
 			return hr;
 		hr = ptrContents->SetColumns(ptrColumns, 0);
