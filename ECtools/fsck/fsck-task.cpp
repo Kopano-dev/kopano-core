@@ -25,24 +25,23 @@ HRESULT FsckTask::ValidateMinimalNamedFields(LPMESSAGE lpMessage)
 		TAG_COUNT
 	};
 
-	memory_ptr<MAPINAMEID *> lppTagArray;
+	memory_ptr<MAPINAMEID *> ta;
 	std::string strTagName[TAG_COUNT];
 
 	/*
 	 * Allocate the NamedID list and initialize it to all
 	 * properties which could give us some information about the name.
 	 */
-	auto hr = allocNamedIdList(TAG_COUNT, &~lppTagArray);
+	auto hr = allocNamedIdList(TAG_COUNT, &~ta);
 	if (hr != hrSuccess)
 		return hr;
 
-	lppTagArray[E_REMINDER]->lpguid = (LPGUID)&PSETID_Common;
-	lppTagArray[E_REMINDER]->ulKind = MNID_ID;
-	lppTagArray[E_REMINDER]->Kind.lID = dispidReminderSet;
-
+	ta[E_REMINDER]->lpguid = const_cast<GUID *>(&PSETID_Common);
+	ta[E_REMINDER]->ulKind = MNID_ID;
+	ta[E_REMINDER]->Kind.lID = dispidReminderSet;
 	strTagName[E_REMINDER] = "dispidReminderSet";
 
-	hr = ReadNamedProperties(lpMessage, TAG_COUNT, lppTagArray,
+	hr = ReadNamedProperties(lpMessage, TAG_COUNT, ta,
 	     &~lpPropertyTagArray, &~lpPropertyArray);
 	if (FAILED(hr))
 		return hr;
@@ -65,7 +64,7 @@ HRESULT FsckTask::ValidateTimestamps(LPMESSAGE lpMessage)
 {
 	memory_ptr<SPropValue> lpPropertyArray;
 	memory_ptr<SPropTagArray> lpPropertyTagArray;
-	memory_ptr<MAPINAMEID *> lppTagArray;
+	memory_ptr<MAPINAMEID *> ta;
 
 	enum {
 		E_START_DATE,
@@ -77,19 +76,18 @@ HRESULT FsckTask::ValidateTimestamps(LPMESSAGE lpMessage)
 	 * Allocate the NameID list and initialize it to all
 	 * properties which could give us some information about the timestamps.
 	 */
-	auto hr = allocNamedIdList(TAG_COUNT, &~lppTagArray);
+	auto hr = allocNamedIdList(TAG_COUNT, &~ta);
 	if (hr != hrSuccess)
 		return hr;
 
-	lppTagArray[E_START_DATE]->lpguid = (LPGUID)&PSETID_Task;
-	lppTagArray[E_START_DATE]->ulKind = MNID_ID;
-	lppTagArray[E_START_DATE]->Kind.lID = dispidTaskStartDate;
+	ta[E_START_DATE]->lpguid = const_cast<GUID *>(&PSETID_Task);
+	ta[E_START_DATE]->ulKind = MNID_ID;
+	ta[E_START_DATE]->Kind.lID = dispidTaskStartDate;
+	ta[E_DUE_DATE]->lpguid = const_cast<GUID *>(&PSETID_Task);
+	ta[E_DUE_DATE]->ulKind = MNID_ID;
+	ta[E_DUE_DATE]->Kind.lID = dispidTaskDueDate;
 
-	lppTagArray[E_DUE_DATE]->lpguid = (LPGUID)&PSETID_Task;
-	lppTagArray[E_DUE_DATE]->ulKind = MNID_ID;
-	lppTagArray[E_DUE_DATE]->Kind.lID = dispidTaskDueDate;
-
-	hr = ReadNamedProperties(lpMessage, TAG_COUNT, lppTagArray,
+	hr = ReadNamedProperties(lpMessage, TAG_COUNT, ta,
 	     &~lpPropertyTagArray, &~lpPropertyArray);
 	if (FAILED(hr))
 		return hr;
@@ -123,7 +121,7 @@ HRESULT FsckTask::ValidateCompletion(LPMESSAGE lpMessage)
 {
 	memory_ptr<SPropValue> lpPropertyArray;
 	memory_ptr<SPropTagArray> lpPropertyTagArray;
-	memory_ptr<MAPINAMEID *> lppTagArray;
+	memory_ptr<MAPINAMEID *> ta;
 	bool bCompleted;
 
 	enum {
@@ -137,23 +135,21 @@ HRESULT FsckTask::ValidateCompletion(LPMESSAGE lpMessage)
 	 * Allocate the NamedID list and initialize it to all
 	 * properties which could give us some information about the completion.
 	 */
-	auto hr = allocNamedIdList(TAG_COUNT, &~lppTagArray);
+	auto hr = allocNamedIdList(TAG_COUNT, &~ta);
 	if (hr != hrSuccess)
 		return hr;
 
-	lppTagArray[E_COMPLETE]->lpguid = (LPGUID)&PSETID_Task;
-	lppTagArray[E_COMPLETE]->ulKind = MNID_ID;
-	lppTagArray[E_COMPLETE]->Kind.lID = dispidTaskComplete;
+	ta[E_COMPLETE]->lpguid = const_cast<GUID *>(&PSETID_Task);
+	ta[E_COMPLETE]->ulKind = MNID_ID;
+	ta[E_COMPLETE]->Kind.lID = dispidTaskComplete;
+	ta[E_PERCENT_COMPLETE]->lpguid = const_cast<GUID *>(&PSETID_Task);
+	ta[E_PERCENT_COMPLETE]->ulKind = MNID_ID;
+	ta[E_PERCENT_COMPLETE]->Kind.lID = dispidTaskPercentComplete;
+	ta[E_COMPLETION_DATE]->lpguid = const_cast<GUID *>(&PSETID_Task);
+	ta[E_COMPLETION_DATE]->ulKind = MNID_ID;
+	ta[E_COMPLETION_DATE]->Kind.lID = dispidTaskDateCompleted;
 
-	lppTagArray[E_PERCENT_COMPLETE]->lpguid = (LPGUID)&PSETID_Task;
-	lppTagArray[E_PERCENT_COMPLETE]->ulKind = MNID_ID;
-	lppTagArray[E_PERCENT_COMPLETE]->Kind.lID = dispidTaskPercentComplete;
-
-	lppTagArray[E_COMPLETION_DATE]->lpguid = (LPGUID)&PSETID_Task;
-	lppTagArray[E_COMPLETION_DATE]->ulKind = MNID_ID;
-	lppTagArray[E_COMPLETION_DATE]->Kind.lID = dispidTaskDateCompleted;
-
-	hr = ReadNamedProperties(lpMessage, TAG_COUNT, lppTagArray,
+	hr = ReadNamedProperties(lpMessage, TAG_COUNT, ta,
 	     &~lpPropertyTagArray, &~lpPropertyArray);
 	if (FAILED(hr))
 		return hr;

@@ -29,7 +29,7 @@ HRESULT FsckCalendar::ValidateMinimalNamedFields(LPMESSAGE lpMessage)
 {
 	memory_ptr<SPropValue> lpPropertyArray;
 	memory_ptr<SPropTagArray> lpPropertyTagArray;
-	memory_ptr<MAPINAMEID *> lppTagArray;
+	memory_ptr<MAPINAMEID *> ta;
 
 	enum {
 		E_REMINDER,
@@ -43,22 +43,21 @@ HRESULT FsckCalendar::ValidateMinimalNamedFields(LPMESSAGE lpMessage)
 	 * Allocate the NamedID list and initialize it to all
 	 * properties which could give us some information about the name.
 	 */
-	auto hr = allocNamedIdList(TAG_COUNT, &~lppTagArray);
+	auto hr = allocNamedIdList(TAG_COUNT, &~ta);
 	if (hr != hrSuccess)
 		return hr;
 
-	lppTagArray[E_REMINDER]->lpguid = (LPGUID)&PSETID_Common;
-	lppTagArray[E_REMINDER]->ulKind = MNID_ID;
-	lppTagArray[E_REMINDER]->Kind.lID = dispidReminderSet;
-
-	lppTagArray[E_ALLDAYEVENT]->lpguid = (LPGUID)&PSETID_Appointment;
-	lppTagArray[E_ALLDAYEVENT]->ulKind = MNID_ID;
-	lppTagArray[E_ALLDAYEVENT]->Kind.lID = dispidAllDayEvent;
+	ta[E_REMINDER]->lpguid = const_cast<GUID *>(&PSETID_Common);
+	ta[E_REMINDER]->ulKind = MNID_ID;
+	ta[E_REMINDER]->Kind.lID = dispidReminderSet;
+	ta[E_ALLDAYEVENT]->lpguid = const_cast<GUID *>(&PSETID_Appointment);
+	ta[E_ALLDAYEVENT]->ulKind = MNID_ID;
+	ta[E_ALLDAYEVENT]->Kind.lID = dispidAllDayEvent;
 
 	strTagName[E_REMINDER] = "dispidReminderSet";
 	strTagName[E_ALLDAYEVENT] = "dispidAllDayEvent";
 
-	hr = ReadNamedProperties(lpMessage, TAG_COUNT, lppTagArray,
+	hr = ReadNamedProperties(lpMessage, TAG_COUNT, ta,
 	     &~lpPropertyTagArray, &~lpPropertyArray);
 	if (FAILED(hr))
 		return hr;
@@ -81,7 +80,7 @@ HRESULT FsckCalendar::ValidateTimestamps(LPMESSAGE lpMessage)
 {
 	memory_ptr<SPropValue> lpPropertyArray;
 	memory_ptr<SPropTagArray> lpPropertyTagArray;
-	memory_ptr<MAPINAMEID *> lppTagArray;
+	memory_ptr<MAPINAMEID *> ta;
 	const FILETIME *lpStart, *lpEnd, *lpCommonStart, *lpCommonEnd;
 
 	enum {
@@ -96,31 +95,27 @@ HRESULT FsckCalendar::ValidateTimestamps(LPMESSAGE lpMessage)
 	 * Allocate the NamedID list and initialize it to all
 	 * properties which could give us some information about the name.
 	 */
-	auto hr = allocNamedIdList(TAG_COUNT, &~lppTagArray);
+	auto hr = allocNamedIdList(TAG_COUNT, &~ta);
 	if (hr != hrSuccess)
 		return hr;
 
-	lppTagArray[E_START]->lpguid = (LPGUID)&PSETID_Appointment;
-	lppTagArray[E_START]->ulKind = MNID_ID;
-	lppTagArray[E_START]->Kind.lID = dispidApptStartWhole;
+	ta[E_START]->lpguid = const_cast<GUID *>(&PSETID_Appointment);
+	ta[E_START]->ulKind = MNID_ID;
+	ta[E_START]->Kind.lID = dispidApptStartWhole;
+	ta[E_END]->lpguid = const_cast<GUID *>(&PSETID_Appointment);
+	ta[E_END]->ulKind = MNID_ID;
+	ta[E_END]->Kind.lID = dispidApptEndWhole;
+	ta[E_CSTART]->lpguid = const_cast<GUID *>(&PSETID_Common);
+	ta[E_CSTART]->ulKind = MNID_ID;
+	ta[E_CSTART]->Kind.lID = dispidCommonStart;
+	ta[E_CEND]->lpguid = const_cast<GUID *>(&PSETID_Common);
+	ta[E_CEND]->ulKind = MNID_ID;
+	ta[E_CEND]->Kind.lID = dispidCommonEnd;
+	ta[E_DURATION]->lpguid = const_cast<GUID *>(&PSETID_Appointment);
+	ta[E_DURATION]->ulKind = MNID_ID;
+	ta[E_DURATION]->Kind.lID = dispidApptDuration;
 
-	lppTagArray[E_END]->lpguid = (LPGUID)&PSETID_Appointment;
-	lppTagArray[E_END]->ulKind = MNID_ID;
-	lppTagArray[E_END]->Kind.lID = dispidApptEndWhole;
-
-	lppTagArray[E_CSTART]->lpguid = (LPGUID)&PSETID_Common;
-	lppTagArray[E_CSTART]->ulKind = MNID_ID;
-	lppTagArray[E_CSTART]->Kind.lID = dispidCommonStart;
-
-	lppTagArray[E_CEND]->lpguid = (LPGUID)&PSETID_Common;
-	lppTagArray[E_CEND]->ulKind = MNID_ID;
-	lppTagArray[E_CEND]->Kind.lID = dispidCommonEnd;
-
-	lppTagArray[E_DURATION]->lpguid = (LPGUID)&PSETID_Appointment;
-	lppTagArray[E_DURATION]->ulKind = MNID_ID;
-	lppTagArray[E_DURATION]->Kind.lID = dispidApptDuration;
-
-	hr = ReadNamedProperties(lpMessage, TAG_COUNT, lppTagArray,
+	hr = ReadNamedProperties(lpMessage, TAG_COUNT, ta,
 	     &~lpPropertyTagArray, &~lpPropertyArray);
 	if (FAILED(hr))
 		return hr;
@@ -258,7 +253,7 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 	BOOL bRecurring = FALSE;
 	LONG ulType = 0;
 	memory_ptr<char> lpData;
-	memory_ptr<MAPINAMEID *> lppTagArray;
+	memory_ptr<MAPINAMEID *> ta;
 	unsigned int ulLen = 0;
 
 	enum {
@@ -272,27 +267,24 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 	 * Allocate the NamedID list and initialize it to all
 	 * properties which could give us some information about the name.
 	 */
-	auto hr = allocNamedIdList(TAG_COUNT, &~lppTagArray);
+	auto hr = allocNamedIdList(TAG_COUNT, &~ta);
 	if (hr != hrSuccess)
 		return hr;
 
-	lppTagArray[E_RECURRENCE]->lpguid = (LPGUID)&PSETID_Appointment;
-	lppTagArray[E_RECURRENCE]->ulKind = MNID_ID;
-	lppTagArray[E_RECURRENCE]->Kind.lID = dispidRecurring;
+	ta[E_RECURRENCE]->lpguid = const_cast<GUID *>(&PSETID_Appointment);
+	ta[E_RECURRENCE]->ulKind = MNID_ID;
+	ta[E_RECURRENCE]->Kind.lID = dispidRecurring;
+	ta[E_RECURRENCE_TYPE]->lpguid = const_cast<GUID *>(&PSETID_Appointment);
+	ta[E_RECURRENCE_TYPE]->ulKind = MNID_ID;
+	ta[E_RECURRENCE_TYPE]->Kind.lID = dispidRecurrenceType;
+	ta[E_RECURRENCE_PATTERN]->lpguid = const_cast<GUID *>(&PSETID_Appointment);
+	ta[E_RECURRENCE_PATTERN]->ulKind = MNID_ID;
+	ta[E_RECURRENCE_PATTERN]->Kind.lID = dispidRecurrencePattern;
+	ta[E_RECURRENCE_STATE]->lpguid = const_cast<GUID *>(&PSETID_Appointment);
+	ta[E_RECURRENCE_STATE]->ulKind = MNID_ID;
+	ta[E_RECURRENCE_STATE]->Kind.lID = dispidRecurrenceState;
 
-	lppTagArray[E_RECURRENCE_TYPE]->lpguid = (LPGUID)&PSETID_Appointment;
-	lppTagArray[E_RECURRENCE_TYPE]->ulKind = MNID_ID;
-	lppTagArray[E_RECURRENCE_TYPE]->Kind.lID = dispidRecurrenceType;
-
-	lppTagArray[E_RECURRENCE_PATTERN]->lpguid = (LPGUID)&PSETID_Appointment;
-	lppTagArray[E_RECURRENCE_PATTERN]->ulKind = MNID_ID;
-	lppTagArray[E_RECURRENCE_PATTERN]->Kind.lID = dispidRecurrencePattern;
-
-	lppTagArray[E_RECURRENCE_STATE]->lpguid = (LPGUID)&PSETID_Appointment;
-	lppTagArray[E_RECURRENCE_STATE]->ulKind = MNID_ID;
-	lppTagArray[E_RECURRENCE_STATE]->Kind.lID = dispidRecurrenceState;
-
-	hr = ReadNamedProperties(lpMessage, TAG_COUNT, lppTagArray,
+	hr = ReadNamedProperties(lpMessage, TAG_COUNT, ta,
 	     &~lpPropertyTagArray, &~lpPropertyArray);
 	if (FAILED(hr))
 		return hr;
