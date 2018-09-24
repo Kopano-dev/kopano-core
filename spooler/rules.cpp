@@ -842,7 +842,7 @@ static struct actresult proc_op_copy(IMAPISession *ses, const ACTION &action,
     const std::string &rule, StatsClient *sc, IMessage **msg)
 {
 	const auto &cmov = action.actMoveCopy;
-	sc->countInc("rules", "copy_move");
+	sc->inc(SCN_RULES_COPYMOVE);
 	if (action.acttype == OP_COPY)
 		ec_log_debug("Rule action: copying e-mail");
 	else
@@ -909,7 +909,7 @@ static struct actresult proc_op_reply(IMAPISession *ses, IMsgStore *store,
     StatsClient *sc, IMessage **msg)
 {
 	const auto &repl = action.actReply;
-	sc->countInc("rules", "reply_and_oof");
+	sc->inc(SCN_RULES_REPLY_AND_OOF);
 
 	memory_ptr<SPropValue> pv;
 	if (HrGetOneProp(*msg, PR_TRANSPORT_MESSAGE_HEADERS_A, &~pv) == hrSuccess &&
@@ -953,7 +953,7 @@ static struct actresult proc_op_fwd(IAddrBook *abook, IMsgStore *orig_store,
 {
 	object_ptr<IMessage> lpFwdMsg;
 
-	sc->countInc("rules", "forward");
+	sc->inc(SCN_RULES_FORWARD);
 	// TODO: test act.lpAction[n].ulActionFlavor
 	// FWD_PRESERVE_SENDER			1
 	// FWD_DO_NOT_MUNGE_MSG			2
@@ -1007,7 +1007,7 @@ static struct actresult proc_op_delegate(IAddrBook *abk, IMsgStore *store,
     const ACTION &action, const std::string &rule, StatsClient *sc,
     IMessage **msg)
 {
-	sc->countInc("rules", "delegate");
+	sc->inc(SCN_RULES_DELEGATE);
 	if (action.lpadrlist->cEntries == 0) {
 		ec_log_debug("Delegating rule doesn't have recipients");
 		return {ROP_NOOP};
@@ -1041,7 +1041,7 @@ static struct actresult proc_op_delegate(IAddrBook *abk, IMsgStore *store,
 static struct actresult proc_op_markread(IMessage *msg,
     StatsClient *sc)
 {
-	sc->countInc("rules", "mark_read");
+	sc->inc(SCN_RULES_MARKREAD);
 	auto ret = msg->SetReadFlag(SUPPRESS_RECEIPT);
 	if (ret == hrSuccess)
 		return {ROP_SUCCESS};
@@ -1071,7 +1071,7 @@ static struct actresult proc_op_act(IMAPISession *ses, IMsgStore *store,
 		return ret;
 	}
 	case OP_BOUNCE:
-		sc->countInc("rules", "bounce");
+		sc->inc(SCN_RULES_BOUNCE);
 		/*
 		 * scBounceCode?
 		 * TODO:
@@ -1085,15 +1085,15 @@ static struct actresult proc_op_act(IMAPISession *ses, IMsgStore *store,
 		return proc_op_delegate(abk, store, action, rule, sc, msg);
 
 	case OP_DEFER_ACTION:
-		sc->countInc("rules", "defer");
+		sc->inc(SCN_RULES_DEFER);
 		ec_log_warn("Rule \"%s\": DEFER client actions are currently unsupported", rule.c_str());
 		break;
 	case OP_TAG:
-		sc->countInc("rules", "tag");
+		sc->inc(SCN_RULES_TAG);
 		ec_log_warn("Rule \"%s\": TAG actions are currently unsupported", rule.c_str());
 		break;
 	case OP_DELETE:
-		sc->countInc("rules", "delete");
+		sc->inc(SCN_RULES_DELETE);
 		/*
 		 * Since *msg wasn't yet saved in the server, we can just
 		 * return a special MAPI Error code here, this will trigger the
@@ -1134,7 +1134,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 	SPropValue sForwardProps[4];
 	object_ptr<IECExchangeModifyTable> lpECModifyTable;
 
-	sc -> countInc("rules", "invocations");
+	sc->inc(SCN_RULES_INVOKES);
 	auto hr = lpOrigInbox->OpenProperty(PR_RULES_TABLE, &IID_IExchangeModifyTable, 0, 0, &~lpTable);
 	if (hr != hrSuccess) {
 		kc_perrorf("OpenProperty failed", hr);
@@ -1201,7 +1201,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 	        if (lpRowSet->cRows == 0)
 			break;
 
-		sc -> countAdd("rules", "n_rules", int64_t(lpRowSet->cRows));
+		sc->inc(SCN_RULES_NRULES, static_cast<int64_t>(lpRowSet->cRows));
 		auto lpRuleName = lpRowSet[0].cfind(CHANGE_PROP_TYPE(PR_RULE_NAME, PT_STRING8));
 		if (lpRuleName)
 			strRule = lpRuleName->Value.lpszA;
@@ -1251,7 +1251,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 			continue;
 		}
 		ec_log_info("Rule "s + strRule + " matches");
-		sc -> countAdd("rules", "n_actions", int64_t(lpActions->cActions));
+		sc->inc(SCN_RULES_NACTIONS, static_cast<int64_t>(lpActions->cActions));
 
 		for (ULONG n = 0; n < lpActions->cActions; ++n) {
 			const auto &action = lpActions->lpAction[n];
@@ -1290,6 +1290,6 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 	if (hr == hrSuccess && bMoved)
 		hr = MAPI_E_CANCEL;
 	if (hr != hrSuccess)
-		sc -> countInc("rules", "invocations_fail");
+		sc->inc(SCN_RULES_INVOKES_FAIL);
 	return hr;
 }

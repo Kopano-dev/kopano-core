@@ -41,7 +41,59 @@ enum SCName {
 	SCN_LDAP_AUTH_LOGINS, SCN_LDAP_AUTH_DENIED, SCN_LDAP_AUTH_TIME, SCN_LDAP_AUTH_TIME_MAX, SCN_LDAP_AUTH_TIME_AVG,
 	SCN_LDAP_SEARCH, SCN_LDAP_SEARCH_FAILED, SCN_LDAP_SEARCH_TIME, SCN_LDAP_SEARCH_TIME_MAX,
 	/* indexer stats */
-	SCN_INDEXER_SEARCH_ERRORS, SCN_INDEXER_SEARCH_MAX, SCN_INDEXER_SEARCH_AVG, SCN_INDEXED_SEARCHES, SCN_DATABASE_SEARCHES
+	SCN_INDEXER_SEARCH_ERRORS, SCN_INDEXER_SEARCH_MAX, SCN_INDEXER_SEARCH_AVG, SCN_INDEXED_SEARCHES, SCN_DATABASE_SEARCHES,
+
+	SCN_DAGENT_ATTACHMENT_COUNT,
+	SCN_DAGENT_AUTOACCEPT,
+	SCN_DAGENT_AUTOPROCESS,
+	SCN_DAGENT_DELIVER_INBOX,
+	SCN_DAGENT_DELIVER_JUNK,
+	SCN_DAGENT_DELIVER_PUBLIC,
+	SCN_DAGENT_FALLBACKDELIVERY,
+	SCN_DAGENT_INCOMING_SESSION,
+	SCN_DAGENT_IS_HAM,
+	SCN_DAGENT_IS_SPAM,
+	SCN_DAGENT_MAX_THREAD_COUNT,
+	SCN_DAGENT_MSG_EXPIRED,
+	SCN_DAGENT_MSG_NOT_EXPIRED,
+	SCN_DAGENT_NWITHATTACHMENT,
+	SCN_DAGENT_OUTOFOFFICE,
+	SCN_DAGENT_RECIPS,
+	SCN_DAGENT_STDIN_RECEIVED,
+	SCN_DAGENT_STRINGTOMAPI,
+	SCN_DAGENT_TO_COMPANY,
+	SCN_DAGENT_TO_LIST,
+	SCN_DAGENT_TO_SERVER,
+	SCN_DAGENT_TO_SINGLE_RECIP,
+	SCN_LMTP_BAD_RECIP_ADDR,
+	SCN_LMTP_BAD_SENDER_ADDRESS,
+	SCN_LMTP_INTERNAL_ERROR,
+	SCN_LMTP_LHLO_FAIL,
+	SCN_LMTP_NO_RECIP,
+	SCN_LMTP_RECEIVED,
+	SCN_LMTP_SESSIONS,
+	SCN_LMTP_TMPFILEFAIL,
+	SCN_LMTP_UNKNOWN_COMMAND,
+	SCN_RULES_BOUNCE,
+	SCN_RULES_COPYMOVE,
+	SCN_RULES_DEFER,
+	SCN_RULES_DELEGATE,
+	SCN_RULES_DELETE,
+	SCN_RULES_FORWARD,
+	SCN_RULES_INVOKES,
+	SCN_RULES_INVOKES_FAIL,
+	SCN_RULES_MARKREAD,
+	SCN_RULES_NACTIONS,
+	SCN_RULES_NRULES,
+	SCN_RULES_REPLY_AND_OOF,
+	SCN_RULES_TAG,
+	SCN_SPOOLER_ABNORM_TERM,
+	SCN_SPOOLER_BATCH_COUNT,
+	SCN_SPOOLER_BATCH_INVOKES,
+	SCN_SPOOLER_EXIT_WAIT,
+	SCN_SPOOLER_SEND_FAILED,
+	SCN_SPOOLER_SENT,
+	SCN_SPOOLER_SIGKILLED,
 };
 
 union SCData {
@@ -66,9 +118,8 @@ struct ECStrings {
 	std::string description, value;
 };
 
-class _kc_export ECStatsCollector _kc_final {
+class _kc_export ECStatsCollector {
 	public:
-	ECStatsCollector();
 	void inc(enum SCName, float inc);
 	void inc(enum SCName, int inc = 1);
 	void inc(enum SCName, LONGLONG inc);
@@ -83,16 +134,18 @@ class _kc_export ECStatsCollector _kc_final {
 	std::string GetValue(const SCMap::const_iterator::value_type &);
 	std::string GetValue(const SCName &name);
 	void ForEachStat(void (*cb)(const std::string &, const std::string &, const std::string &, void *), void *obj);
-	void ForEachString(void (*cb)(const std::string &, const std::string &, const std::string &, void *), void *obj);
 	void Reset();
 	void Reset(SCName name);
 
-	private:
-	_kc_hidden void AddStat(SCName index, SCType type, const char *name, const char *desc);
+	protected:
+	/*
+	 * The "name" parameter may not be longer than 19 characters, since we
+	 * want to use those in RRDtool.
+	 */
+	void AddStat(enum SCName index, SCType type, const char *name, const char *desc);
 
+	private:
 	SCMap m_StatData;
-	std::mutex m_StringsLock;
-	std::map<std::string, ECStrings> m_StatStrings;
 };
 
 class _kc_export StatsClient _kc_final {
@@ -111,9 +164,9 @@ public:
 	~StatsClient();
 
 	int startup(const std::string &collector);
-	void countInc(const std::string & key, const std::string & key_sub);
-	_kc_hidden void countAdd(const std::string &key, const std::string &key_sub, double n);
-	void countAdd(const std::string & key, const std::string & key_sub, const int64_t n);
+	void inc(enum SCName, double v);
+	void inc(enum SCName, int64_t v);
+	void inc(enum SCName k, int v = 1) { return inc(k, static_cast<int64_t>(v)); }
 	_kc_hidden void submit(const std::string &key, time_t ts, double value);
 	_kc_hidden void submit(const std::string &key, time_t ts, int64_t value);
 };

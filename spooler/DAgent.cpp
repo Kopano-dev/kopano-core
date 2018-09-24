@@ -368,8 +368,7 @@ static HRESULT HrAutoAccept(StatsClient *sc, ECRecipient *lpRecip,
 	ULONG ulType = 0;
 	ENTRYLIST sEntryList;
 
-	sc -> countInc("DAgent", "AutoAccept");
-
+	sc->inc(SCN_DAGENT_AUTOACCEPT);
 	// Our autoaccepter is an external script. This means that the message it is working on must be
 	// saved so that it can find the message to open. Since we can't save the passed lpMessage (it
 	// must be processed by the rules engine first), we make a copy, and let the autoaccept script
@@ -432,8 +431,7 @@ static HRESULT HrAutoProcess(StatsClient *sc, ECRecipient *lpRecip,
 	ULONG ulType = 0;
 	ENTRYLIST sEntryList;
 
-	sc -> countInc("DAgent", "AutoProcess");
-
+	sc->inc(SCN_DAGENT_AUTOPROCESS);
 	// Pass a copy to the external script
 	auto hr = lpStore->OpenEntry(0, nullptr, &iid_of(lpRootFolder), MAPI_MODIFY, &ulType, &~lpRootFolder);
 	if (hr != hrSuccess)
@@ -906,10 +904,10 @@ static HRESULT HrGetDeliveryStoreAndFolder(IMAPISession *lpSession,
 	switch (lpArgs->ulDeliveryMode) {
 	case DM_STORE:
 		ec_log_info("Mail will be delivered in Inbox");
-		lpArgs->sc->countInc("DAgent", "deliver_inbox");
+		lpArgs->sc->inc(SCN_DAGENT_DELIVER_INBOX);
 		break;
 	case DM_JUNK:
-		lpArgs->sc->countInc("DAgent", "deliver_junk");
+		lpArgs->sc->inc(SCN_DAGENT_DELIVER_JUNK);
 		hr = HrGetOneProp(lpInbox, PR_ADDITIONAL_REN_ENTRYIDS, &~lpJunkProp);
 		if (hr != hrSuccess || lpJunkProp->Value.MVbin.lpbin[4].cb == 0) {
 			ec_log_warn("Unable to resolve junk folder, using normal Inbox: %s (%x)",
@@ -930,7 +928,7 @@ static HRESULT HrGetDeliveryStoreAndFolder(IMAPISession *lpSession,
 		lpDeliveryFolder = lpJunkFolder;
 		break;
 	case DM_PUBLIC:
-		lpArgs->sc->countInc("DAgent", "deliver_public");
+		lpArgs->sc->inc(SCN_DAGENT_DELIVER_PUBLIC);
 		hr = HrOpenECPublicStore(lpSession, &~lpPublicStore);
 		if (hr != hrSuccess) {
 			kc_perror("Unable to open public store", hr);
@@ -992,7 +990,7 @@ static HRESULT FallbackDelivery(StatsClient *sc, IMessage *lpMessage,
 	unsigned int ulAttachNum, m = 0, n = 0;
 	object_ptr<IStream> lpStream;
 
-	sc -> countInc("DAgent", "FallbackDelivery");
+	sc->inc(SCN_DAGENT_FALLBACKDELIVERY);
 	pm[m].ulPropTag     = PR_SUBJECT_W;
 	pm[m++].Value.lpszW = const_cast<wchar_t *>(L"Fallback delivery");
 	pm[m].ulPropTag     = PR_MESSAGE_FLAGS;
@@ -1136,8 +1134,7 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 	size_t s = 0;
 	std::string strTmpFile, strTmpFileEnv;
 
-	sc -> countInc("DAgent", "OutOfOffice");
-
+	sc->inc(SCN_DAGENT_OUTOFOFFICE);
 	// @fixme need to stream PR_TRANSPORT_MESSAGE_HEADERS_A and PR_EC_OUTOFOFFICE_MSG_W if they're > 8Kb
 	auto hr = lpMDB->GetProps(sptaStoreProps, 0, &cValues, &~lpStoreProps);
 	if (FAILED(hr))
@@ -1416,7 +1413,7 @@ static HRESULT HrStringToMAPIMessage(const string &strMail,
 	}
 	*lpbFallbackDelivery = bFallback;
 exit:
-	lpArgs->sc->countInc("DAgent", "string_to_mapi");
+	lpArgs->sc->inc(SCN_DAGENT_STRINGTOMAPI);
 	// count attachments
 	object_ptr<IMAPITable> lppAttTable;
 	if (lpMessage->GetAttachmentTable(0, &~lppAttTable) == hrSuccess &&
@@ -1424,8 +1421,8 @@ exit:
 		ULONG countAtt = 0;
 		if (lppAttTable->GetRowCount(0, &countAtt) == hrSuccess &&
 		    countAtt > 0) {
-			lpArgs->sc->countInc("DAgent", "n_with_attachment");
-			lpArgs->sc->countAdd("DAgent", "attachment_count", static_cast<int64_t>(countAtt));
+			lpArgs->sc->inc(SCN_DAGENT_NWITHATTACHMENT);
+			lpArgs->sc->inc(SCN_DAGENT_ATTACHMENT_COUNT, static_cast<int64_t>(countAtt));
 		}
 	}
 
@@ -1435,7 +1432,7 @@ exit:
 	    lppRecipTable != nullptr) {
 		ULONG countRecip = 0;
 		if (lppRecipTable->GetRowCount(0, &countRecip) == hrSuccess)
-			lpArgs->sc->countAdd("DAgent", "recipients", static_cast<int64_t>(countRecip));
+			lpArgs->sc->inc(SCN_DAGENT_RECIPS, static_cast<int64_t>(countRecip));
 	}
 	return hr;
 }
@@ -1452,7 +1449,7 @@ static HRESULT HrMessageExpired(StatsClient *sc, IMessage *lpMessage, bool *bExp
 {
 	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpsExpiryTime;
-	auto laters = make_scope_success([&]() { sc->countInc("DAgent", *bExpired ? "msg_expired" : "msg_not_expired"); });
+	auto laters = make_scope_success([&]() { sc->inc(*bExpired ? SCN_DAGENT_MSG_EXPIRED : SCN_DAGENT_MSG_NOT_EXPIRED); });
 	/*
 	 * If the message has an expiry date, and it is past that time,
 	 * skip delivering the email.
@@ -1877,7 +1874,7 @@ static HRESULT FindSpamMarker(const std::string &strMail,
 	const char *szHeader = g_lpConfig->GetSetting("spam_header_name", "", NULL);
 	const char *szValue = g_lpConfig->GetSetting("spam_header_value", "", NULL);
 	std::string strHeaders;
-	auto laters = make_scope_success([&]() { lpArgs->sc->countInc("DAgent", lpArgs->ulDeliveryMode == DM_JUNK ? "is_spam" : "is_ham"); });
+	auto laters = make_scope_success([&]() { lpArgs->sc->inc(lpArgs->ulDeliveryMode == DM_JUNK ? SCN_DAGENT_IS_SPAM : SCN_DAGENT_IS_HAM); });
 
 	if (!szHeader || !szValue)
 		return hr;
@@ -2158,8 +2155,7 @@ static HRESULT ProcessDeliveryToServer(pym_plugin_intf *lppyMapiPlugin,
 	bool bFallbackDeliveryTmp = false;
 	convert_context converter;
 
-	lpArgs->sc->countInc("DAgent", "to_server");
-
+	lpArgs->sc->inc(SCN_DAGENT_TO_SERVER);
 	// if we already had a message, we can create a copy.
 	if (lpMessage)
 		lpMessage->QueryInterface(IID_IMessage, &~lpOrigMessage);
@@ -2259,7 +2255,7 @@ static HRESULT ProcessDeliveryToSingleRecipient(pym_plugin_intf *lppyMapiPlugin,
     recipients_t &lstSingleRecip, DeliveryArgs *lpArgs)
 {
 	std::string strMail;
-	lpArgs->sc->countInc("DAgent", "to_single_recipient");
+	lpArgs->sc->inc(SCN_DAGENT_TO_SINGLE_RECIP);
 
 	/* Always start at the beginning of the file */
 	rewind(fp);
@@ -2297,7 +2293,7 @@ static HRESULT ProcessDeliveryToCompany(pym_plugin_intf *lppyMapiPlugin,
 	serverrecipients_t listServerPathRecips;
 	bool bFallbackDelivery = false, bExpired = false;
 
-	lpArgs->sc->countInc("DAgent", "to_company");
+	lpArgs->sc->inc(SCN_DAGENT_TO_COMPANY);
 	if (lpServerNameRecips == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
@@ -2416,8 +2412,7 @@ static HRESULT ProcessDeliveryToList(pym_plugin_intf *lppyMapiPlugin,
     DeliveryArgs *lpArgs)
 {
 	HRESULT hr = hrSuccess;
-	lpArgs->sc->countInc("DAgent", "to_list");
-
+	lpArgs->sc->inc(SCN_DAGENT_TO_LIST);
 	/*
 	 * Find user with lowest adminlevel, we will use the addressbook for this
 	 * user to make sure the recipient resolving for all recipients for the company
@@ -2511,7 +2506,7 @@ static void *HandlerLMTP(void *lpArg)
 		ec_log_info("LMTP thread exiting");
 	});
 
-	lpArgs->sc->countInc("DAgent::LMTP", "sessions");
+	lpArgs->sc->inc(SCN_LMTP_SESSIONS);
 	ec_log_info("Starting worker for LMTP request pid %d", getpid());
 	const char *lpEnvGDB  = getenv("GDB");
 	if (lpEnvGDB && parseBool(lpEnvGDB)) {
@@ -2581,7 +2576,7 @@ static void *HandlerLMTP(void *lpArg)
 		hr = lmtp.HrGetCommand(inBuffer, eCommand);
 		if (hr != hrSuccess) {
 			lmtp.HrResponse("555 5.5.4 Command not recognized");
-			lpArgs->sc->countInc("DAgent::LMTP", "unknown_command");
+			lpArgs->sc->inc(SCN_LMTP_UNKNOWN_COMMAND);
 			continue;
 		}
 
@@ -2596,7 +2591,7 @@ static void *HandlerLMTP(void *lpArg)
 				lmtp.HrResponse("250 SMTPUTF8");
 			} else {
 				lmtp.HrResponse("501 5.5.4 Syntax: LHLO hostname");
-				lpArgs->sc->countInc("DAgent::LMTP", "LHLO_fail");
+				lpArgs->sc->inc(SCN_LMTP_LHLO_FAIL);
 			}
 			break;
 
@@ -2604,7 +2599,7 @@ static void *HandlerLMTP(void *lpArg)
 			// @todo, if this command is received a second time, repond: 503 5.5.1 Error: nested MAIL command
 			if (lmtp.HrCommandMAILFROM(inBuffer, curFrom) != hrSuccess) {
 				lmtp.HrResponse("503 5.1.7 Bad sender's mailbox address syntax");
-				lpArgs->sc->countInc("DAgent::LMTP", "bad_sender_address");
+				lpArgs->sc->inc(SCN_LMTP_BAD_SENDER_ADDRESS);
 			}
 			else {
 				lmtp.HrResponse("250 2.1.0 Ok");
@@ -2614,7 +2609,7 @@ static void *HandlerLMTP(void *lpArg)
 		case LMTP_Command_RCPT_TO: {
 			if (lmtp.HrCommandRCPTTO(inBuffer, strMailAddress) != hrSuccess) {
 				lmtp.HrResponse("503 5.1.3 Bad destination mailbox address syntax");
-				lpArgs->sc->countInc("DAgent::LMTP", "bad_recipient_address");
+				lpArgs->sc->inc(SCN_LMTP_BAD_RECIP_ADDR);
 				break;
 			}
 			auto lpRecipient = new ECRecipient(strMailAddress);
@@ -2656,7 +2651,7 @@ static void *HandlerLMTP(void *lpArg)
 		case LMTP_Command_DATA: {
 			if (mapRCPT.empty()) {
 				lmtp.HrResponse("503 5.1.1 No recipients");
-				lpArgs->sc->countInc("DAgent::LMTP", "no_recipients");
+				lpArgs->sc->inc(SCN_LMTP_NO_RECIP);
 				break;
 			}
 
@@ -2664,7 +2659,7 @@ static void *HandlerLMTP(void *lpArg)
 			if (!tmp) {
 				lmtp.HrResponse("503 5.1.1 Internal error during delivery");
 				ec_log_err("Unable to create temp file for email delivery. Please check write-access in /tmp directory. Error: %s", strerror(errno));
-				lpArgs->sc->countInc("DAgent::LMTP", "tmp_file_fail");
+				lpArgs->sc->inc(SCN_LMTP_TMPFILEFAIL);
 				break;
 			}
 
@@ -2677,7 +2672,7 @@ static void *HandlerLMTP(void *lpArg)
 					ec_log_crit("K-1731: Unable to initialize the dagent plugin manager: %s (%x).",
 						GetMAPIErrorMessage(hr), hr);
 					lmtp.HrResponse("503 5.1.1 Internal error during delivery");
-					lpArgs->sc->countInc("DAgent::LMTP", "internal_error");
+					lpArgs->sc->inc(SCN_LMTP_INTERNAL_ERROR);
 					fclose(tmp);
 					hr = hrSuccess;
 					break;
@@ -2727,7 +2722,7 @@ static void *HandlerLMTP(void *lpArg)
 					// FIXME if a following item from lORderedRecipients does succeed, then this error status
 					// is forgotten. is that ok? (FvH)
 					hr = lmtp.HrResponse("503 5.1.1 Internal error while searching recipient delivery status");
-					lpArgs->sc->countInc("DAgent::LMTP", "internal_error");
+					lpArgs->sc->inc(SCN_LMTP_INTERNAL_ERROR);
 				}
 				else {
 					hr = lmtp.HrResponse(r->second);
@@ -2736,7 +2731,7 @@ static void *HandlerLMTP(void *lpArg)
 					break;
 			}
 
-			lpArgs->sc->countInc("DAgent::LMTP", "received");
+			lpArgs->sc->inc(SCN_LMTP_RECEIVED);
 			// Reset RCPT TO list now
 			FreeServerRecipients(&mapRCPT);
 			lOrderedRecipients.clear();
@@ -2903,7 +2898,7 @@ static HRESULT running_service(char **argv, bool bDaemonize,
 
 			// don't start more "threads" that lmtp_max_threads config option
 			if (g_nLMTPThreads == nMaxThreads) {
-				sc->countInc("DAgent", "max_thread_count");
+				sc->inc(SCN_DAGENT_MAX_THREAD_COUNT);
 				Sleep(100);
 				break;
 			}
@@ -2916,7 +2911,7 @@ static HRESULT running_service(char **argv, bool bDaemonize,
 				hr = hrSuccess;
 				continue;
 			}
-			sc->countInc("DAgent", "incoming_session");
+			sc->inc(SCN_DAGENT_INCOMING_SESSION);
 			da->sc = sc;
 			if (!g_use_threads) {
 				++g_nLMTPThreads;
@@ -3048,7 +3043,7 @@ static HRESULT deliver_recipients(pym_plugin_intf *py_plugin,
     DeliveryArgs *args)
 {
 	HRESULT func_ret = hrSuccess;
-	args->sc->countInc("DAgent::STDIN", "received");
+	args->sc->inc(SCN_DAGENT_STDIN_RECEIVED);
 	FILE *fpmail = nullptr;
 	auto ret = HrFileLFtoCRLF(file, &fpmail);
 	if (ret != hrSuccess) {

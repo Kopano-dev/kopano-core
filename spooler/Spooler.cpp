@@ -442,7 +442,7 @@ static HRESULT handle_child_exit(IMAPISession *lpAdminSession,
 		if (status == EXIT_WAIT) {
 			// timed message, try again later
 			ec_log_info("Message for user %ls will be tried again later", sSendData.strUsername.c_str());
-			sc->countInc("Spooler", "exit_wait");
+			sc->inc(SCN_SPOOLER_EXIT_WAIT);
 		} else if (status == EXIT_SUCCESS || status == EXIT_FAILURE) {
 			// message was sent, or the user already received an error mail.
 			ec_log_info("Processed message for user %ls", sSendData.strUsername.c_str());
@@ -456,17 +456,17 @@ static HRESULT handle_child_exit(IMAPISession *lpAdminSession,
 		bErrorMail = true;
 		ec_log_notice("Spooler process %d was killed by signal %d", pid, status);
 		ec_log_warn("Message for user %ls will be removed from queue", sSendData.strUsername.c_str());
-		sc->countInc("Spooler", "sig_killed");
+		sc->inc(SCN_SPOOLER_SIGKILLED);
 	} else { /* Something strange happened */
 		bErrorMail = true;
 		ec_log_notice("Spooler process %d terminated abnormally", pid);
 		ec_log_warn("Message for user %ls will be removed from queue", sSendData.strUsername.c_str());
-		sc->countInc("Spooler", "abnormal_terminate");
+		sc->inc(SCN_SPOOLER_ABNORM_TERM);
 	}
 	if (wasSent)
-		sc->countInc("Spooler", "sent");
+		sc->inc(SCN_SPOOLER_SENT);
 	else if (bErrorMail)
-		sc->countInc("Spooler", "send_failed");
+		sc->inc(SCN_SPOOLER_SEND_FAILED);
 
 	if (!bErrorMail)
 		return hrSuccess;
@@ -528,8 +528,8 @@ static HRESULT ProcessAllEntries2(IMAPISession *lpAdminSession,
 		return kc_perror("Unable to get outgoing queue count", hr);
 	if (ulRowCount) {
 		ec_log_debug("Number of messages in the queue: %d", ulRowCount);
-		sc -> countInc("Spooler", "batch_invokes");
-		sc -> countAdd("Spooler", "batch_count", int64_t(ulRowCount));
+		sc->inc(SCN_SPOOLER_BATCH_INVOKES);
+		sc->inc(SCN_SPOOLER_BATCH_COUNT, static_cast<int64_t>(ulRowCount));
 	}
 
 	auto ulMaxThreads = atoi(g_lpConfig->GetSetting("max_threads"));
