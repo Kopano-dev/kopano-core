@@ -10,6 +10,7 @@
 #include <atomic>
 #include <condition_variable>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <cstdint>
@@ -119,6 +120,10 @@ struct ECStrings {
 
 class _kc_export ECStatsCollector {
 	public:
+	ECStatsCollector(std::shared_ptr<ECConfig>);
+	~ECStatsCollector();
+	void mainloop();
+	void submit(std::string &&);
 	void inc(enum SCName, double inc);
 	void inc(enum SCName, int inc = 1);
 	void inc(enum SCName, LONGLONG inc);
@@ -143,25 +148,16 @@ class _kc_export ECStatsCollector {
 	 */
 	void AddStat(enum SCName index, SCType type, const char *name, const char *desc = "");
 
-	SCMap m_StatData;
-};
-
-class _kc_export StatsClient : public ECStatsCollector {
-private:
-	bool thread_running = false;
-	pthread_t countsSubmitThread{};
-	std::atomic<bool> terminate{false};
-
-	public:
-	StatsClient(std::shared_ptr<ECConfig>);
-	~StatsClient();
-	void mainloop();
-	void submit(std::string &&);
-
 	private:
+	SCMap m_StatData;
+	bool thread_running = false;
+	std::atomic<bool> terminate{false};
+	pthread_t countsSubmitThread{};
 	std::shared_ptr<ECConfig> m_config;
 	std::condition_variable m_exitsig;
 };
+
+typedef ECStatsCollector StatsClient;
 
 } /* namespace */
 

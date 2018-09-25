@@ -33,7 +33,7 @@ static void *submitThread(void *p)
 	return NULL;
 }
 
-StatsClient::~StatsClient() {
+ECStatsCollector::~ECStatsCollector() {
 	ec_log_debug("StatsClient terminating");
 	terminate = true;
 	m_exitsig.notify_one();
@@ -86,7 +86,7 @@ static void sc_proxy_from_sysconfig(CURL *ch, const char *url)
 }
 #endif
 
-void StatsClient::submit(std::string &&url)
+void ECStatsCollector::submit(std::string &&url)
 {
 #ifdef HAVE_CURL_CURL_H
 	struct slfree { void operator()(curl_slist *s) { curl_slist_free_all(s); } };
@@ -137,7 +137,7 @@ void StatsClient::submit(std::string &&url)
 #endif
 }
 
-void StatsClient::mainloop()
+void ECStatsCollector::mainloop()
 {
 #ifdef HAVE_CURL_CURL_H
 	std::mutex mtx;
@@ -158,7 +158,7 @@ void StatsClient::mainloop()
 #endif
 }
 
-StatsClient::StatsClient(std::shared_ptr<ECConfig> config) :
+ECStatsCollector::ECStatsCollector(std::shared_ptr<ECConfig> config) :
 	m_config(std::move(config))
 {
 	if (m_config == nullptr)

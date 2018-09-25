@@ -70,9 +70,9 @@ using std::cout;
 using std::endl;
 using std::string;
 
-class server_stats : public ECStatsCollector {
+class server_stats final : public ECStatsCollector {
 	public:
-	server_stats();
+	server_stats(std::shared_ptr<ECConfig>);
 };
 
 static const char upgrade_lock_file[] = "/tmp/kopano-upgrade-lock";
@@ -95,7 +95,8 @@ static bool g_dump_config;
 
 static int running_server(char *, const char *, bool, int, char **, int, char **);
 
-server_stats::server_stats()
+server_stats::server_stats(std::shared_ptr<ECConfig> cfg) :
+	ECStatsCollector(std::move(cfg))
 {
 	AddStat(SCN_SERVER_STARTTIME, SCDT_TIMESTAMP, "server_start_date", "Time when the server was started");
 	AddStat(SCN_SERVER_LAST_CACHECLEARED, SCDT_TIMESTAMP, "cache_purge_date", "Time when the cache was cleared");
@@ -1200,7 +1201,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 #endif
 
 	// Test database settings
-	std::shared_ptr<ECStatsCollector> stats = std::make_unique<server_stats>();
+	std::shared_ptr<ECStatsCollector> stats = std::make_unique<server_stats>(g_lpConfig);
 	lpDatabaseFactory.reset(new(std::nothrow) ECDatabaseFactory(g_lpConfig, stats));
 	// open database
 	er = lpDatabaseFactory->CreateDatabaseObject(&unique_tie(lpDatabase), dbError);
