@@ -15,9 +15,6 @@
 
 namespace KC {
 
-static ECStatsCollector main_collector;
-ECStatsCollector *const g_lpStatsCollector = &main_collector;
-
 static void submitThreadDo(void *p)
 {
 	auto psc = static_cast<StatsClient *>(p);
