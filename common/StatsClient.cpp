@@ -177,6 +177,8 @@ void StatsClient::mainloop()
 StatsClient::StatsClient(std::shared_ptr<ECConfig> config) :
 	m_config(std::move(config))
 {
+	if (m_config == nullptr)
+		return;
 	auto ret = pthread_create(&countsSubmitThread, nullptr, submitThread, this);
 	if (ret == 0)
 		thread_running = true;
