@@ -51,10 +51,7 @@ ECRESULT ECSearchClient::Scope(const std::string &strServer,
 	auto er = Connect();
 	if (er != erSuccess)
 		return er;
-	auto strScope = "SCOPE " + strServer + " " + strStore;
-	for (const auto i : lstFolders)
-		strScope += " " + stringify(i);
-
+	auto strScope = "SCOPE " + strServer + " " + strStore + " " + kc_join(lstFolders, " ", stringify);
 	er = DoCmd(strScope, lstResponse);
 	if (er != erSuccess)
 		return er;
@@ -77,13 +74,7 @@ ECRESULT ECSearchClient::Find(const std::set<unsigned int> &setFields,
     const std::string &strTerm)
 {
 	std::vector<std::string> lstResponse;
-	std::string strFind = "FIND";
-	for (const auto i : setFields)
-		strFind += " " + stringify(i);
-		
-	strFind += ":";
-	
-	strFind += strTerm;
+	auto strFind = "FIND " + kc_join(setFields, " ", stringify) + ":" + strTerm;
 	auto er = DoCmd(strFind, lstResponse);
 	if (er != erSuccess)
 		return er;
