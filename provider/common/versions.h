@@ -26,7 +26,6 @@
 #define KOPANO_GET_GENERAL(version)	\
 	((version) & KOPANO_GENERAL_MASK)
 
-
 // Current thing
 #define KOPANO_CUR_MAJOR		MAKE_KOPANO_MAJOR(PROJECT_VERSION_MAJOR, PROJECT_VERSION_MINOR)
 #define KOPANO_CUR_GENERAL		MAKE_KOPANO_GENERAL(PROJECT_VERSION_MAJOR)
@@ -34,12 +33,10 @@
 // Important version(s) we check for
 #define KOPANO_VERSION_UNKNOWN	MAKE_KOPANO_VERSION(0xff, 0xff, 0xffff)
 
-
 #define KOPANO_COMPARE_VERSION_TO_MAJOR(version, major)	\
 	((version) < (major) ? -1 : (KOPANO_GET_MAJOR(version) > (major) ? 1 : 0))
 
 #define KOPANO_COMPARE_VERSION_TO_GENERAL(version, general) \
 	((version) < (general) ? -1 : (KOPANO_GET_GENERAL(version) > (general) ? 1 : 0))
-
 
 #endif /* KC_VERSIONS_H */

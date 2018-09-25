@@ -24,7 +24,6 @@ ECRESULT ECSearchClient::GetProperties(setindexprops_t &setProps)
 	auto er = DoCmd("PROPS", lstResponse);
 	if (er != erSuccess)
 		return er;
-
 	setProps.clear();
 	if (lstResponse.empty())
 		return erSuccess; // No properties
@@ -96,7 +95,6 @@ ECRESULT ECSearchClient::Query(std::list<unsigned int> &lstMatches)
 	auto er = DoCmd("QUERY", lstResponse);
 	if (er != erSuccess)
 		return er;
-		
 	if (lstResponse.empty())
 		return erSuccess; /* no matches */
 	for (const auto &i : tokenize(lstResponse[0], " "))
@@ -128,14 +126,11 @@ ECRESULT ECSearchClient::Query(GUID *lpServerGuid, GUID *lpStoreGuid, std::list<
 	auto er = Scope(strServer, strStore, lstFolders);
 	if (er != erSuccess)
 		return er;
-
 	for (const auto &i : lstSearches)
 		Find(i.setFields, i.strTerm);
-
 	er = Suggest(suggestion);
 	if (er != erSuccess)
 		return er;
-
 	return Query(lstMatches);
 }
 

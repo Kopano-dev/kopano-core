@@ -66,7 +66,6 @@ ECRESULT GetStoreGuidFromEntryId(ULONG cb, const BYTE *lpEntryId,
 	if(!((cb == sizeof(EID) && peid->ulVersion == 1) ||
 		 (cb == sizeof(EID_V0) && peid->ulVersion == 0 )) )
 		return KCERR_INVALID_ENTRYID;
-
 	memcpy(lpguidStore, &peid->guid, sizeof(GUID));
 	return erSuccess;
 }
@@ -133,9 +132,7 @@ ECRESULT ABEntryIDToID(ULONG cb, const BYTE *lpEntryId, unsigned int *lpulID,
 
 	if (lpABEID->ulVersion == 1)
 		sExternId = objectid_t(base64_decode(reinterpret_cast<const char *>(lpABEID->szExId)), sClass);
-
 	*lpulID = ulID;
-
 	if (lpsExternId)
 		*lpsExternId = std::move(sExternId);
 	if (lpulMapiType)
@@ -270,7 +267,6 @@ ECRESULT ABIDToEntryID(struct soap *soap, unsigned int ulID, const objectid_t& s
 		// avoid FORTIFY_SOURCE checks in strcpy to an address that the compiler thinks is 1 size large
 		memcpy(lpUserEid->szExId, strEncExId.c_str(), strEncExId.length()+1);
 	}
-
 	lpsEntryId->__size = ulLen;
 	lpsEntryId->__ptr = (unsigned char*)lpUserEid;
 	return erSuccess;
@@ -285,14 +281,12 @@ ECRESULT SIIDToEntryID(struct soap *soap, const GUID *guidServer,
 
 	ULONG ulSize = sizeof(SIEID) + sizeof(GUID);
 	auto lpInstanceEid = reinterpret_cast<SIEID *>(s_alloc<char>(soap, ulSize));
-	memset(lpInstanceEid, 0, ulSize);
 
+	memset(lpInstanceEid, 0, ulSize);
 	lpInstanceEid->ulId = ulInstanceId;
 	lpInstanceEid->ulType = ulPropId;
 	memcpy(&lpInstanceEid->guid, MUIDECSI_SERVER, sizeof(GUID));
-
 	memcpy((char *)lpInstanceEid + sizeof(SIEID), guidServer, sizeof(GUID));
-
 	lpsInstanceId->__size = ulSize;
 	lpsInstanceId->__ptr = (unsigned char *)lpInstanceEid;
 	return erSuccess;

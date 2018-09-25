@@ -78,13 +78,11 @@ static int gsoap_connect_pipe(struct soap *soap, const char *endpoint,
 
  	soap->sendfd = soap->recvfd = SOAP_INVALID_SOCKET;
 	soap->socket = fd;
-
 	// Because 'file:///var/run/file' will be parsed into host='', path='/var/run/file',
 	// the gSOAP code doesn't set the soap->status variable. (see soap_connect_command in
 	// stdsoap2.cpp:12278) This could possibly lead to
 	// soap->status accidentally being set to SOAP_GET, which would break things. The
 	// chances of this happening are, of course, small, but also very real.
-
 	soap->status = SOAP_POST;
 	/* Do like gsoap's tcp_connect would */
 	soap->keep_alive = -((soap->omode & SOAP_IO_KEEPALIVE) != 0);
@@ -113,7 +111,6 @@ HRESULT CreateSoapTransport(ULONG ulUIFlags,
 	lpCmd->soap_endpoint = strdup(strServerPath);
 	lpCmd->soap->sndbuf = lpCmd->soap->rcvbuf = 0;
 	lpCmd->soap->maxoccurs = SIZE_MAX; // override default limit of 100000, as this breaks ICS for large folders at least
-
 	// default allow SSLv3, TLSv1, TLSv1.1 and TLSv1.2
 	lpCmd->soap->ctx = SSL_CTX_new(SSLv23_method());
 
@@ -147,7 +144,6 @@ HRESULT CreateSoapTransport(ULONG ulUIFlags,
 			if (strProxyPassword != NULL && *strProxyPassword != '\0')
 				lpCmd->soap->proxy_passwd = strdup(strProxyPassword);
 		}
-
 		lpCmd->soap->connect_timeout = ulConnectionTimeOut;
 	}
 	*lppCmd = lpCmd;
@@ -158,7 +154,6 @@ void DestroySoapTransport(KCmdProxy *lpCmd)
 {
 	if (!lpCmd)
 		return;
-
 	/* strdup'd all of them earlier */
 	free(const_cast<char *>(lpCmd->soap_endpoint));
 	free(const_cast<char *>(lpCmd->soap->proxy_host));

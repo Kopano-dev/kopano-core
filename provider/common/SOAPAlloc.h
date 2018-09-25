@@ -40,17 +40,13 @@ template<typename Type> Type *s_alloc(struct soap *soap)
 
 inline char *s_strcpy(struct soap *soap, const char *str) {
 	char *s = s_alloc<char>(soap, strlen(str)+1);
-
 	strcpy(s, str);
-
 	return s;
 }
 
 inline char *s_memcpy(struct soap *soap, const char *str, unsigned int len) {
 	char *s = s_alloc<char>(soap, len);
-
 	memcpy(s, str, len);
-
 	return s;
 }
 
