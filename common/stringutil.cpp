@@ -44,7 +44,8 @@ std::string stringify_int64(int64_t x, bool usehex) {
 	return s.str();
 }
 
-std::string stringify_float(float x) {
+std::string stringify_float(double x)
+{
 	std::ostringstream s;
 	s << x;
 	return s.str();
