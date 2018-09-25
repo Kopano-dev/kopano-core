@@ -143,28 +143,20 @@ class _kc_export ECStatsCollector {
 	 */
 	void AddStat(enum SCName index, SCType type, const char *name, const char *desc = "");
 
-	private:
 	SCMap m_StatData;
 };
 
-class _kc_export StatsClient _kc_final {
+class _kc_export StatsClient : public ECStatsCollector {
 private:
 	bool thread_running = false;
 	pthread_t countsSubmitThread{};
 	std::atomic<bool> terminate{false};
-	std::mutex mapsLock;
-	std::map<std::string, double> countsMapDouble;
-	std::map<std::string, int64_t> countsMapInt64;
 
 	public:
 	StatsClient(std::shared_ptr<ECConfig>);
 	~StatsClient();
 	void mainloop();
 	void submit(std::string &&);
-
-	void inc(enum SCName, double v);
-	void inc(enum SCName, int64_t v);
-	void inc(enum SCName k, int v = 1) { return inc(k, static_cast<int64_t>(v)); }
 
 	private:
 	std::shared_ptr<ECConfig> m_config;

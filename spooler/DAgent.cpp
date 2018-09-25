@@ -219,9 +219,9 @@ public:
 	bool bHasIMAP = false;
 };
 
-class dagent_stats final : public ECStatsCollector {
+class dagent_stats final : public StatsClient {
 	public:
-	dagent_stats();
+	dagent_stats(std::shared_ptr<ECConfig>);
 };
 
 //Global variables
@@ -2872,7 +2872,7 @@ static HRESULT running_service(char **argv, bool bDaemonize,
 		return hr;
 	}
 
-	auto sc = std::make_shared<StatsClient>(g_lpConfig);
+	auto sc = std::make_shared<dagent_stats>(g_lpConfig);
 	pthread_attr_t thr_attr;
 	pthread_attr_init(&thr_attr);
 	pthread_attr_setdetachstate(&thr_attr, PTHREAD_CREATE_DETACHED);
@@ -3076,7 +3076,7 @@ static HRESULT direct_delivery(int argc, char **argv,
 			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
-	auto sc = std::make_shared<StatsClient>(g_lpConfig);
+	auto sc = std::make_shared<dagent_stats>(g_lpConfig);
 	sDeliveryArgs.sc = std::move(sc);
 	hr = pyMapiPluginFactory.create_plugin(g_lpConfig.get(), "DAgentPluginManager", &unique_tie(ptrPyMapiPlugin));
 	if (hr != hrSuccess) {
@@ -3497,7 +3497,8 @@ int main(int argc, char **argv) try {
 	std::terminate();
 }
 
-dagent_stats::dagent_stats()
+dagent_stats::dagent_stats(std::shared_ptr<ECConfig> cfg) :
+	StatsClient(std::move(cfg))
 {
 	AddStat(SCN_DAGENT_ATTACHMENT_COUNT, SCDT_LONGLONG, "dagent_attachment_count", "Number of attachments processed");
 	AddStat(SCN_DAGENT_AUTOACCEPT, SCDT_LONGLONG, "dagent_autoaccept", "Number of meeting requests that underwent autoacceptance");

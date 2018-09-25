@@ -46,30 +46,6 @@ StatsClient::~StatsClient() {
 	ec_log_debug("StatsClient terminated");
 }
 
-void StatsClient::inc(enum SCName k, double n)
-{
-	auto kp = std::to_string(k);
-	scoped_lock l_map(mapsLock);
-
-	auto doubleIterator = countsMapDouble.find(kp);
-	if (doubleIterator == countsMapDouble.cend())
-		countsMapDouble.emplace(kp, n);
-	else
-		doubleIterator -> second += n;
-}
-
-void StatsClient::inc(enum SCName k, int64_t n)
-{
-	auto kp = std::to_string(k);
-	scoped_lock l_map(mapsLock);
-
-	auto int64Iterator = countsMapInt64.find(kp);
-	if (int64Iterator == countsMapInt64.cend())
-		countsMapInt64.emplace(kp, n);
-	else
-		int64Iterator -> second += n;
-}
-
 #ifdef HAVE_CURL_CURL_H
 static size_t curl_dummy_write(char *, size_t z, size_t n, void *)
 {
@@ -117,12 +93,20 @@ void StatsClient::submit(std::string &&url)
 	Json::Value root;
 	root["version"] = 1;
 
-	std::unique_lock<std::mutex> lk(mapsLock);
-	for (const auto &p : countsMapInt64)
-		root[p.first] = static_cast<Json::Value::Int64>(p.second);
-	for (const auto &p : countsMapDouble)
-		root[p.first] = p.second;
-	lk.unlock();
+	for (auto &i : m_StatData) {
+		scoped_lock lk(i.second.lock);
+		switch (i.second.type) {
+		case SCDT_FLOAT:
+			root[i.second.name] = i.second.data.f;
+			break;
+		case SCDT_LONGLONG:
+			root[i.second.name] = static_cast<Json::Value::Int64>(i.second.data.ll);
+			break;
+		case SCDT_TIMESTAMP:
+			root[i.second.name] = static_cast<Json::Value::Int64>(i.second.data.ts);
+			break;
+		}
+	}
 
 	auto text = Json::writeString(Json::StreamWriterBuilder(), std::move(root));
 	auto ch = curl_easy_init();

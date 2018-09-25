@@ -90,9 +90,9 @@ enum {
 	SPC_ABNORMAL,
 };
 
-class spooler_stats final : public ECStatsCollector {
+class spooler_stats final : public StatsClient {
 	public:
-	spooler_stats();
+	spooler_stats(std::shared_ptr<ECConfig>);
 };
 
 static std::unique_ptr<StatsClient> sc;
@@ -1133,7 +1133,7 @@ int main(int argc, char **argv) try
 		goto exit;
 	}
 
-	sc.reset(new StatsClient(g_lpConfig));
+	sc.reset(new spooler_stats(g_lpConfig));
 	if (bForked)
 		hr = ProcessMessageForked(strUsername.c_str(), szSMTP, ulPort,
 		     szPath, strMsgEntryId.length(), reinterpret_cast<const ENTRYID *>(strMsgEntryId.data()),
@@ -1158,7 +1158,8 @@ exit:
 	std::terminate();
 }
 
-spooler_stats::spooler_stats()
+spooler_stats::spooler_stats(std::shared_ptr<ECConfig> cfg) :
+	StatsClient(std::move(cfg))
 {
 	AddStat(SCN_SPOOLER_EXIT_WAIT, SCDT_LONGLONG, "spooler_exit_wait");
 	AddStat(SCN_SPOOLER_SIGKILLED, SCDT_LONGLONG, "spooler_sigkilled");
