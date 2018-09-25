@@ -4,15 +4,16 @@ msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-02-12 00:03+0100\n"
-"PO-Revision-Date: 2010-08-19 15:51+0200\n"
-"Last-Translator: Cies <cies@kopano.com>\n"
-"Language-Team: pt_PT <pt@li.org>\n"
+"PO-Revision-Date: 2018-07-02 13:41+0000\n"
+"Last-Translator: Nuno Jerónimo <nuno.jeronimo@valsousa.pt>\n"
+"Language-Team: Portuguese <http://translate.kopano.io/projects/kopano/kopano-"
+"core/pt/>\n"
 "Language: pt\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Pootle 2.1.5\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 2.4\n"
 "X-Poedit-KeywordsList: KC_TX;KC_A;KC_W\n"
 "X-Poedit-Basepath: ..\n"
 "X-Poedit-SourceCharset: UTF-8\n"
@@ -20,46 +21,47 @@ msgstr ""
 
 #: ECtools/kopano-archiver/helpers/archivehelper.cpp:922
 msgid "Kopano Archive"
-msgstr ""
+msgstr "Arquivo Kopano"
 
 #: ECtools/kopano-archiver/helpers/archivehelper.cpp:923
 msgid "This folder contains the special archive folders."
-msgstr ""
+msgstr "Esta pasta contém as pastas especiais de arquivo."
 
 #: ECtools/kopano-archiver/helpers/archivehelper.cpp:928
 msgid "History"
-msgstr ""
+msgstr "Histórico"
 
 #: ECtools/kopano-archiver/helpers/archivehelper.cpp:929
 msgid ""
 "This folder contains archives that have been replaced by a newer version."
 msgstr ""
+"Esta pasta contém arquivos que foram substituídos por uma versão mais "
+"recente."
 
 #: ECtools/kopano-archiver/helpers/archivehelper.cpp:933
 msgid "Outgoing"
-msgstr ""
+msgstr "De saída"
 
 #: ECtools/kopano-archiver/helpers/archivehelper.cpp:934
 msgid "This folder contains archives of all outgoing messages."
-msgstr ""
+msgstr "Esta pasta contém arquivos de todas as mensagens de saída."
 
 # 85%
 #: ECtools/kopano-archiver/helpers/archivehelper.cpp:938
-#, fuzzy
 msgid "Deleted"
-msgstr "Excluir"
+msgstr "Apagado"
 
 #: ECtools/kopano-archiver/helpers/archivehelper.cpp:939
 msgid "This folder contains archives of messages that have been deleted."
-msgstr ""
+msgstr "Esta pasta contém arquivos de mensagens que foram apagadas."
 
 #: common/Util.cpp:1783
 msgid "End of Session"
-msgstr "Fim da Sessão"
+msgstr "Fim de sessão"
 
 #: common/Util.cpp:1786
 msgid "Connection lost"
-msgstr "Conexão perdida"
+msgstr "Ligação perdida"
 
 #: common/Util.cpp:1789
 msgid "Access denied"
@@ -72,11 +74,11 @@ msgid ""
 "permissions for the folder. To check your permissions for the folder, right-"
 "click the folder, and then click Properties on the shortcut menu."
 msgstr ""
-"Não foi possível mover ou copiar pastas. Não é possível copiar a pasta. Uma "
-"pasta não pode ser copiada para uma de suas sub-pastas ou você pode não "
-"possuir as permissões necessárias para acessar esta pasta. Para rever as "
-"suas permissões para esta pasta, clique com o botão direito na pasta e "
-"depois clique em Propriedades."
+"Não foi possível mover ou copiar pastas. Um nível de topo não pode ser "
+"copiado para uma das suas sub-pastas, ou poderá não ter as permissões "
+"necessárias na pasta. Para verificar as suas permissões na pasta, use o "
+"botão do lado direito do rato sobre a pasta e depois selecione \""
+"Propriedades\" no menu."
 
 #: common/Util.cpp:1795
 msgid ""
@@ -84,20 +86,21 @@ msgid ""
 "in this message store, select some items that you no longer need, and "
 "permanently (SHIFT + DEL) delete them."
 msgstr ""
-"A caixa postal atingiu o tamanho máximo permitido. Para reduzir a quantidade "
-"de dados na caixa postal, selecione alguns itens que você não necessita mais "
-"e delete-os permanentemente usando CTRL + DEL."
+"A caixa alcançou o seu tamanho máximo. De forma a reduzir o tamanho da "
+"caixa, selecione alguns itens que já não necessite, e apague-os "
+"definitivamente (SHIFT + DEL)."
 
 #: common/Util.cpp:1798
 msgid ""
 "The user canceled the operation, typically by clicking the Cancel button in "
 "a dialog box."
 msgstr ""
-"O usuário cancelou a operação, clicando o botão Cancelar na caixa de diálogo."
+"O utilizador cancelou a operação, tipicamente selecionando o botão \""
+"Cancelar\" numa caixa de diálogo."
 
 #: common/Util.cpp:1801
 msgid "A logon session could not be established."
-msgstr "Não foi possível estabelecer uma sessão logada."
+msgstr "Não foi possível estabelecer uma sessão."
 
 #: common/Util.cpp:1804
 msgid ""
@@ -105,53 +108,53 @@ msgid ""
 "subfolder in the destination folder. The message store provider requires "
 "that folder names be unique. The operation stops without completing."
 msgstr ""
-"O nome da pasta a ser copiada ou movida já existe na pasta ou sub-pasta de "
-"destino. O servidor exige que os nomes sejam únicos. A operação está "
-"incompleta."
+"O nome da pasta a ser movida ou copiada é igual a uma sub-pasta na pasta de "
+"destino. O fornecedor de armazenamento de mensagens requer que o nome das "
+"pastas seja único. A operação não irá continuar."
 
 #: common/Util.cpp:1807
 msgid ""
 "The operation succeeded, but not all entries were successfully processed, "
 "copied, deleted or moved"
 msgstr ""
-"A operação foi efetuada, mas nem todos os itens puderam ser processados, "
-"copiados, deletados ou movidos com sucesso."
+"A operação concluiu com sucesso, mas nem todas as entradas foram "
+"processadas, copiadas, eliminadas ou movidas com sucesso"
 
 #: common/Util.cpp:1810
 msgid ""
 "The provider does not have enough information to complete the logon. Or, the "
 "service provider has not been configured."
 msgstr ""
-"Não existem informações suficientes para completar o login, ou o serviço não "
-"foi configurado."
+"O fornecedor não tem informação suficiente para completar o ínico de sessão, "
+"ou não foi configurado."
 
 #: common/Util.cpp:1813
 msgid ""
 "One of the providers cannot log on, but this error should not disable the "
 "other services."
 msgstr ""
-"Um dos serviços não pôde ser logado, mas esse erro não deverá afetar o "
-"funcionamento dos outros serviços."
+"Um dos fornecedores não consegui iniciar sessão, mas este erro não deverá "
+"desativar os outros serviços."
 
 #: common/Util.cpp:1816
 msgid "A database error or I/O error has occurred."
-msgstr ""
+msgstr "Ocorreu um erro de I/O ou de base de dados."
 
 #: common/Util.cpp:1819
 msgid "The subfolder being deleted contains subfolders."
-msgstr ""
+msgstr "A sub-pasta a ser apagada contém sub-pastas."
 
 #: common/Util.cpp:1822
 msgid "The subfolder being deleted contains messages."
-msgstr ""
+msgstr "A sub-pasta a ser apagada contém mensagens."
 
 #: common/Util.cpp:1825
 msgid "No description available."
-msgstr ""
+msgstr "Nenhuma descrição disponível."
 
 #: common/Util.cpp:1827
 msgid "MAPI error code:"
-msgstr ""
+msgstr "Código do erro MAPI:"
 
 #: provider/ECProps/Addin.cpp:957 provider/client/ECMsgStorePublic.cpp:547
 #: provider/client/ECMAPIFolderPublic.cpp:164
@@ -190,7 +193,7 @@ msgstr "Tarefas"
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:136
 #: provider/client/ECMsgStore.cpp:2420 provider/libserver/ECGenProps.cpp:947
 msgid "Inbox"
-msgstr "Caixa de Entrada"
+msgstr "Caixa de entrada"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:137
 #: provider/client/ECMsgStore.cpp:2468
@@ -213,20 +216,18 @@ msgstr "Assunto:"
 
 # 75%
 #: provider/client/ECABContainer.cpp:246 provider/client/ECABContainer.cpp:301
-#, fuzzy
 msgid "Global Address Lists"
-msgstr "Livro Global de Endereços"
+msgstr "Listas de endereço globais"
 
 # 75%
 # 80%
 #: provider/client/ECABContainer.cpp:248 provider/client/ECABContainer.cpp:303
-#, fuzzy
 msgid "All Address Lists"
-msgstr "Livro Global de Endereços"
+msgstr "Todas as listas de endereços"
 
 #: provider/client/ECExchangeImportContentsChanges.cpp:842
 msgid "Sync Issues"
-msgstr "Problemas de sincronização"
+msgstr "Erros de sincronização"
 
 #: provider/client/ECExchangeImportContentsChanges.cpp:848
 msgid "Conflicts"
@@ -234,27 +235,27 @@ msgstr "Conflitos"
 
 #: provider/client/ECExchangeImportContentsChanges.cpp:854
 msgid "Local Failures"
-msgstr "Erros locais"
+msgstr "Falhas locais"
 
 #: provider/client/ECExchangeImportContentsChanges.cpp:860
 msgid "Server Failures"
-msgstr "Erros no servidor"
+msgstr "Falhas do servidor"
 
 #: provider/client/ClientUtil.cpp:81
 msgid "Available"
-msgstr ""
+msgstr "Disponível"
 
 #: provider/client/ClientUtil.cpp:301
 msgid "Not read:"
-msgstr "Não lido:"
+msgstr "Não lida:"
 
 #: provider/client/ClientUtil.cpp:302
 msgid "was not read because it expired before reading at time"
-msgstr "não foi lida porque expirou antes do tempo de ser lida."
+msgstr "não foi lida porque expirou antes de ser lida a tempo"
 
 #: provider/client/ClientUtil.cpp:305
 msgid "Read:"
-msgstr "Ler:"
+msgstr "Lida:"
 
 #: provider/client/ClientUtil.cpp:306
 msgid "was read on"
@@ -262,7 +263,7 @@ msgstr "foi lida em"
 
 #: provider/client/ClientUtil.cpp:321
 msgid "Your message"
-msgstr "Sua mensagem"
+msgstr "A sua mensagem"
 
 #: provider/client/ClientUtil.cpp:326
 msgid "To:"
@@ -274,39 +275,40 @@ msgstr "Cc:"
 
 #: provider/client/ClientUtil.cpp:349
 msgid "Sent on:"
-msgstr "Enviada em:"
+msgstr "Enviado em:"
 
 #: provider/client/ECArchiveAwareMessage.cpp:473
 msgid "An error has occurred while fetching the message from the archive."
-msgstr ""
+msgstr "Ocorreu um erro enquanto recolhia a mensagem do arquivo."
 
 #: provider/client/ECArchiveAwareMessage.cpp:475
 msgid "Please contact your system administrator."
-msgstr ""
+msgstr "Por favor contacte o seu administrador de sistema."
 
 #: provider/client/ECArchiveAwareMessage.cpp:478 spooler/archive.cpp:335
 msgid "Error code:"
-msgstr ""
+msgstr "Código de erro:"
 
 #: provider/client/ECArchiveAwareMessage.cpp:487
 msgid "It seems no valid archiver license is installed."
-msgstr ""
+msgstr "Aparentemente nenhuma licença válida de arquivo está instalada."
 
 #: provider/client/ECArchiveAwareMessage.cpp:491
 msgid "The archive could not be found."
-msgstr ""
+msgstr "Não foi possível encontrar o arquivo."
 
 #: provider/client/ECArchiveAwareMessage.cpp:495
 msgid "You don't have sufficient access to the archive."
-msgstr ""
+msgstr "Não tem acesso suficiente ao arquivo."
 
 #: provider/client/ECArchiveAwareMessage.cpp:502 spooler/archive.cpp:339
 msgid "Error description:"
-msgstr ""
+msgstr "Descrição do erro:"
 
 #: provider/client/ECArchiveAwareMessage.cpp:531
 msgid "Archives can not be destubbed when working offline."
 msgstr ""
+"Arquivos não podem ser reconstituídos enquando trabalha em modo offline."
 
 #: provider/client/ECMsgStorePublic.cpp:653
 #: provider/client/ECMAPIFolderPublic.cpp:162
@@ -320,7 +322,7 @@ msgstr "Caixa de Saída"
 
 #: provider/client/ECMsgStore.cpp:2456
 msgid "Deleted Items"
-msgstr "Itens Excluídos"
+msgstr "Itens Eliminados"
 
 #: provider/client/ECMsgStore.cpp:2462
 msgid "Sent Items"
@@ -332,322 +334,327 @@ msgstr "Rascunhos"
 
 #: provider/client/ECMsgStore.cpp:2538
 msgid "Junk E-mail"
-msgstr "Lixo Eletrônico"
+msgstr "Pasta de SPAM"
 
 #: provider/client/ECMsgStore.cpp:2560
 msgid "RSS Feeds"
-msgstr "Feeds RSS"
+msgstr "Fluxos RSS"
 
 #: provider/client/ECMsgStore.cpp:2560
 msgid "RSS Feed comment"
-msgstr "Comentário RSS Feed"
+msgstr "Comentário de fluxo RSS"
 
 #: provider/client/ECMsgStore.cpp:2564
 msgid "Conversation Action Settings"
-msgstr ""
+msgstr "Definições de ação da conversa"
 
 #: provider/client/ECMsgStore.cpp:2568
 msgid "Quick Step Settings"
-msgstr ""
+msgstr "Definições rápidas"
 
 #: provider/client/ECMsgStore.cpp:2572
 msgid "Suggested Contacts"
-msgstr ""
+msgstr "Contatos sugeridos"
 
 #: provider/contacts/ZCABContainer.cpp:761
 msgid "Kopano Contacts Folders"
-msgstr ""
+msgstr "Pasta de contatos Kopano"
 
 #: provider/libserver/ECGenProps.cpp:949
 msgid "Archive"
-msgstr ""
+msgstr "Arquivo"
 
 #: spooler/Spooler.cpp:485
 msgid ""
 "A fatal error occurred while processing your message, and Kopano is unable "
 "to send your email."
 msgstr ""
+"Ocorreu um erro fatal a processar a sua mensagem e o Kopano será incapaz de "
+"a enviar."
 
 #: spooler/archive.cpp:241
 msgid "Unable to obtain list of attached archives."
-msgstr ""
+msgstr "Não foi possível obter a lista de arquivos anexados."
 
 #: spooler/archive.cpp:272
 msgid "Unable to open archive."
-msgstr ""
+msgstr "Não foi possível abrir o arquivo."
 
 #: spooler/archive.cpp:279
 msgid "Unable to get outgoing archive folder."
-msgstr ""
+msgstr "Não foi possível obter a pasta de saída do arquivo."
 
 #: spooler/archive.cpp:286
 msgid "Unable to create archive message in outgoing archive folder."
-msgstr ""
+msgstr "Não foi possível criar a mensagem na pasta de saída do arquivo."
 
 #: spooler/archive.cpp:292
 msgid "Unable to copy message data."
-msgstr ""
+msgstr "Não foi possível copiar os dados da mensagem."
 
 #: spooler/archive.cpp:305
 msgid "Unable to save archived message."
-msgstr ""
+msgstr "Não foi possível guardar a mensagem arquivada."
 
 #: spooler/mailer.cpp:1717
 msgid "You are not allowed to send as user or group "
-msgstr ""
+msgstr "Não tem permissão para enviar em nome do utilizador ou grupo "
 
 #: spooler/mailer.cpp:1719
 msgid "The user or group you try to send as could not be found."
 msgstr ""
+"Não foi possível encontar o utilizador ou grupo que está a tentar enviar em "
+"nome de."
 
 #: spooler/mailer.cpp:2554
 msgid "Error found while trying to send your message. Error code: "
-msgstr ""
+msgstr "Erro ao tentar enviar a sua mensagem: Código do erro: "
 
 #: installer/linux/kopano-mr-accept:403
 msgid "Recurring meetings are not allowed"
-msgstr ""
+msgstr "Reuniões recorrentes não são permitidas"
 
 #: installer/linux/kopano-mr-accept:453
 msgid "The requested time slot is unavailable"
-msgstr ""
+msgstr "O intervalo de tempo escolhido não está disponível"
 
 #: installer/linux/kopano-mr-accept:455
 msgid "The requested time slots are unavailble on the following dates:"
 msgstr ""
+"Os intervalos de tempo escolhidos não estão disponíveis nas seguintes datas:"
 
 #: installer/linux/kopano-mr-accept:458
 #, php-format
 msgid "%x %X"
-msgstr ""
+msgstr "%x %X"
 
 #: php-ext/include/mapi/class.recurrence.php:528
 msgid "workday"
-msgstr ""
+msgstr "dia de trabalho"
 
 #: php-ext/include/mapi/class.recurrence.php:531
 msgid "day"
-msgstr ""
+msgstr "dia"
 
 #: php-ext/include/mapi/class.recurrence.php:535
 msgid "days"
-msgstr ""
+msgstr "dias"
 
 #: php-ext/include/mapi/class.recurrence.php:542
 msgid "week"
-msgstr ""
+msgstr "semana"
 
 #: php-ext/include/mapi/class.recurrence.php:545
 msgid "weeks"
-msgstr ""
+msgstr "semanas"
 
 #: php-ext/include/mapi/class.recurrence.php:552
 msgid "month"
-msgstr ""
+msgstr "mês"
 
 #: php-ext/include/mapi/class.recurrence.php:555
 msgid "months"
-msgstr ""
+msgstr "meses"
 
 #: php-ext/include/mapi/class.recurrence.php:563
 msgid "year"
-msgstr ""
+msgstr "ano"
 
 #: php-ext/include/mapi/class.recurrence.php:567
 msgid "years"
-msgstr ""
+msgstr "anos"
 
 #: php-ext/include/mapi/class.recurrence.php:577
 #: php-ext/include/mapi/class.recurrence.php:578
 msgid "d-m-Y"
-msgstr ""
+msgstr "d-m-Y"
 
 #: php-ext/include/mapi/class.recurrence.php:579
 #: php-ext/include/mapi/class.recurrence.php:580
 msgid "G:i"
-msgstr ""
+msgstr "G:i"
 
 #: php-ext/include/mapi/class.recurrence.php:593
 #, php-format
 msgid "Occurs every %s effective %s from %s to %s."
-msgstr ""
+msgstr "Acontece a cada %s a partir de %s de %s até %s."
 
 #: php-ext/include/mapi/class.recurrence.php:595
 #, php-format
 msgid "Occurs every %s %s effective %s from %s to %s."
-msgstr ""
+msgstr "Acontece a cada %s %s a partir de %s de %s até %s."
 
 #: php-ext/include/mapi/class.recurrence.php:599
 #, php-format
 msgid "Occurs every %s effective %s."
-msgstr ""
+msgstr "Acontece a cada %s a partir de %s."
 
 #: php-ext/include/mapi/class.recurrence.php:601
 #, php-format
 msgid "Occurs every %s %s effective %s."
-msgstr ""
+msgstr "Acontece a cada %s %s a partir de %s."
 
 #: php-ext/include/mapi/class.recurrence.php:608
 #, php-format
 msgid "Occurs every %s effective %s for %s occurence from %s to %s."
 msgid_plural "Occurs every %s effective %s for %s occurences from %s to %s."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Acontece a cada %s a partir de %s por %s vez de %s até %s."
+msgstr[1] "Acontece a cada %s a partir de %s por %s vezes de %s até %s."
 
 #: php-ext/include/mapi/class.recurrence.php:611
 #, php-format
 msgid "Occurs every %s %s effective %s for %s occurence from %s to %s."
 msgid_plural "Occurs every %s %s effective %s for %s occurences %s to %s."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Acontece a cada %s %s a partir de %s por %s vez de %s até %s."
+msgstr[1] "Acontece a cada %s %s a partir de %s por %s vezes de %s até %s."
 
 #: php-ext/include/mapi/class.recurrence.php:616
 #, php-format
 msgid "Occurs every %s effective %s for %s occurence."
 msgid_plural "Occurs every %s effective %s for %s occurences."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Acontece a cada %s a partir de %s por %s vez."
+msgstr[1] "Acontece a cada %s a partir de %s por %s vezes."
 
 #: php-ext/include/mapi/class.recurrence.php:619
 #, php-format
 msgid "Occurs every %s %s effective %s for %s occurence."
 msgid_plural "Occurs every %s %s effective %s for %s occurences."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Acontece a cada %s %s a partir de %s por %s vez."
+msgstr[1] "Acontece a cada %s %s a partir de %s por %s vezes."
 
 #: php-ext/include/mapi/class.recurrence.php:627
 #, php-format
 msgid "Occurs every %s effective %s until %s from %s to %s."
-msgstr ""
+msgstr "Acontece %s a cada %s a partir de %s de %s até %s."
 
 #: php-ext/include/mapi/class.recurrence.php:629
 #, php-format
 msgid "Occurs every %s %s effective %s until %s from %s to %s."
-msgstr ""
+msgstr "Acontece %s a cada %s %s a partir de %s de %s até %s."
 
 #: php-ext/include/mapi/class.recurrence.php:633
 #, php-format
 msgid "Occurs every %s effective %s until %s."
-msgstr ""
+msgstr "Acontece a cada %s a partir de %s até %s."
 
 #: php-ext/include/mapi/class.recurrence.php:635
 #, php-format
 msgid "Occurs every %s %s effective %s until %s."
-msgstr ""
+msgstr "Acontece a cada %s %s a partir de %s até %s."
 
 #: php-ext/include/mapi/class.meetingrequest.php:1659
 msgid "Accepted"
-msgstr ""
+msgstr "Aceite"
 
 #: php-ext/include/mapi/class.meetingrequest.php:1663
 msgid "Declined"
-msgstr ""
+msgstr "Recusado"
 
 #: php-ext/include/mapi/class.meetingrequest.php:1667
 msgid "Tentatively accepted"
-msgstr ""
+msgstr "Aceite em modo tentativa"
 
 #: php-ext/include/mapi/class.meetingrequest.php:1673
 msgid "New Time Proposed"
-msgstr ""
+msgstr "Nova data proposta"
 
 # 75%
 #: php-ext/include/mapi/class.meetingrequest.php:2692
-#, fuzzy
 msgid "Canceled"
-msgstr "Cancelar"
+msgstr "Cancelado"
 
 #: php-ext/include/mapi/class.mapiexception.php:24
 msgid "You have insufficient privileges to open this object."
-msgstr ""
+msgstr "Não tem permissões suficientes para abrir este objeto."
 
 #: php-ext/include/mapi/class.mapiexception.php:27
 msgid "Logon Failed. Please check your name/password."
 msgstr ""
+"Falha ao iniciar sessão. Por favor verifique o seu utilizador/palavra-passe."
 
 #: php-ext/include/mapi/class.mapiexception.php:29
 msgid "Can not connect to Kopano server."
-msgstr ""
+msgstr "Não foi possível ligar ao servidor Kopano."
 
 #: php-ext/include/mapi/class.mapiexception.php:31
 msgid "Can not open object with provided id."
-msgstr ""
+msgstr "Não foi possível abrir o objeto com o id fornecido."
 
 #: php-ext/include/mapi/class.mapiexception.php:33
 msgid "There are no recipients in the message."
-msgstr ""
+msgstr "Não existem destinatários na mensagem."
 
 #: php-ext/include/mapi/class.mapiexception.php:35
 msgid "Can not find object."
-msgstr ""
+msgstr "Objeto não encontrado."
 
 #: php-ext/include/mapi/class.mapiexception.php:47
 #, php-format
 msgid "Unknown MAPI Error: %s"
-msgstr ""
+msgstr "Erro MAPI desconhecido: %s"
 
 #: php-ext/include/mapi/class.taskrequest.php:881
 msgid "Start Date"
-msgstr ""
+msgstr "Data de início"
 
 #: php-ext/include/mapi/class.taskrequest.php:881
 #: php-ext/include/mapi/class.taskrequest.php:882
 msgid "%A, %B %d, %Y"
-msgstr ""
+msgstr "%A, %B %d, %Y"
 
 #: php-ext/include/mapi/class.taskrequest.php:882
 msgid "Due Date"
-msgstr ""
+msgstr "Data de término"
 
 #: php-ext/include/mapi/class.taskrequest.php:886
 msgid "Status"
-msgstr ""
+msgstr "Estado"
 
 #: php-ext/include/mapi/class.taskrequest.php:887
 msgid "Not Started"
-msgstr ""
+msgstr "Não Iniciado"
 
 #: php-ext/include/mapi/class.taskrequest.php:888
 msgid "In Progress"
-msgstr ""
+msgstr "Em progresso"
 
 #: php-ext/include/mapi/class.taskrequest.php:889
 msgid "Complete"
-msgstr ""
+msgstr "Completo"
 
 #: php-ext/include/mapi/class.taskrequest.php:890
 msgid "Wait for other person"
-msgstr ""
+msgstr "Aguarde por outra pessoa"
 
 #: php-ext/include/mapi/class.taskrequest.php:891
 msgid "Deferred"
-msgstr ""
+msgstr "Diferido"
 
 #: php-ext/include/mapi/class.taskrequest.php:895
 msgid "Percent Complete"
-msgstr ""
+msgstr "Percentagem Completa"
 
 #: php-ext/include/mapi/class.taskrequest.php:898
 msgid "Date Completed"
-msgstr ""
+msgstr "Data término"
 
 #: php-ext/include/mapi/class.taskrequest.php:902
 msgid "Total Work"
-msgstr ""
+msgstr "Trabalho Total"
 
 #: php-ext/include/mapi/class.taskrequest.php:902
 #: php-ext/include/mapi/class.taskrequest.php:903
 msgid "hours"
-msgstr ""
+msgstr "horas"
 
 #: php-ext/include/mapi/class.taskrequest.php:903
 msgid "Actual Work"
-msgstr ""
+msgstr "Trabalho Efetivo"
 
 #: php-ext/include/mapi/class.taskrequest.php:911
 msgid "Billing Information"
-msgstr ""
+msgstr "Informação de faturação"
 
 #: php-ext/include/mapi/class.taskrequest.php:912
 msgid "Mileage"
-msgstr ""
+msgstr "Distância"

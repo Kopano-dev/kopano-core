@@ -7,15 +7,16 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-01-17 00:03+0100\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"PO-Revision-Date: 2017-01-11 14:46+0000\n"
+"Last-Translator: Smart <sadi.tanis@smartdata.com.tr>\n"
+"Language-Team: Turkish <http://translate.kopano.io/projects/kopano/kopano-"
+"core/tr/>\n"
 "Language: tr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
-"X-Generator: Translate Toolkit 1.8.1\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 2.4\n"
 "X-Poedit-KeywordsList: KC_TX;KC_A;KC_W\n"
 "X-Poedit-Basepath: ..\n"
 "X-Poedit-SourceCharset: UTF-8\n"
@@ -454,38 +455,38 @@ msgid "G:i"
 msgstr ""
 
 #: php-ext/include/mapi/class.recurrence.php:593
-#, php-format
+#, fuzzy, php-format
 msgid "Occurs every %s effective %s from %s to %s."
-msgstr ""
+msgstr "Her %s gerçekleşir, efektif %s, başlangıç: %s, bitiş: %s."
 
 #: php-ext/include/mapi/class.recurrence.php:595
-#, php-format
+#, fuzzy, php-format
 msgid "Occurs every %s %s effective %s from %s to %s."
-msgstr ""
+msgstr "Her %s %s gerçekleşir, efektif %s, başlangıç: %s, bitiş: %s."
 
 #: php-ext/include/mapi/class.recurrence.php:599
 #, php-format
 msgid "Occurs every %s effective %s."
-msgstr ""
+msgstr "Her %s gerçekleşir, efektif %s."
 
 #: php-ext/include/mapi/class.recurrence.php:601
 #, php-format
 msgid "Occurs every %s %s effective %s."
-msgstr ""
+msgstr "Her %s %s gerçekleşir, efektif %s."
 
 #: php-ext/include/mapi/class.recurrence.php:608
-#, php-format
+#, fuzzy, php-format
 msgid "Occurs every %s effective %s for %s occurence from %s to %s."
 msgid_plural "Occurs every %s effective %s for %s occurences from %s to %s."
 msgstr[0] ""
-msgstr[1] ""
+"Her {0} gerçekleşir, başlangıç: {1} {2} oluşum var, saat {3} - {4} arası."
 
 #: php-ext/include/mapi/class.recurrence.php:611
-#, php-format
+#, fuzzy, php-format
 msgid "Occurs every %s %s effective %s for %s occurence from %s to %s."
 msgid_plural "Occurs every %s %s effective %s for %s occurences %s to %s."
 msgstr[0] ""
-msgstr[1] ""
+"Her {0} gerçekleşir, başlangıç: {1} {2} oluşum var, saat {3} - {4} arası."
 
 #: php-ext/include/mapi/class.recurrence.php:616
 #, php-format
@@ -531,11 +532,11 @@ msgstr ""
 
 #: php-ext/include/mapi/class.meetingrequest.php:1667
 msgid "Tentatively accepted"
-msgstr ""
+msgstr "Geçici olarak kabul edildi"
 
 #: php-ext/include/mapi/class.meetingrequest.php:1673
 msgid "New Time Proposed"
-msgstr ""
+msgstr "yeni zaman önerildi"
 
 #: php-ext/include/mapi/class.meetingrequest.php:2692
 msgid "Canceled"
@@ -543,11 +544,11 @@ msgstr ""
 
 #: php-ext/include/mapi/class.mapiexception.php:24
 msgid "You have insufficient privileges to open this object."
-msgstr ""
+msgstr "Bu nesneyi açmak için yeterli yetkiye sahip değilsiniz."
 
 #: php-ext/include/mapi/class.mapiexception.php:27
 msgid "Logon Failed. Please check your name/password."
-msgstr ""
+msgstr "Oturum açma başarısız. Lütfen adınızı / şifrenizi kontrol edin."
 
 #: php-ext/include/mapi/class.mapiexception.php:29
 msgid "Can not connect to Kopano server."
@@ -555,20 +556,20 @@ msgstr ""
 
 #: php-ext/include/mapi/class.mapiexception.php:31
 msgid "Can not open object with provided id."
-msgstr ""
+msgstr "nesne paylaşılan id ile açılamıyor."
 
 #: php-ext/include/mapi/class.mapiexception.php:33
 msgid "There are no recipients in the message."
-msgstr ""
+msgstr "Mesajda alıcı yok."
 
 #: php-ext/include/mapi/class.mapiexception.php:35
 msgid "Can not find object."
-msgstr ""
+msgstr "Nesne bulunamıyor."
 
 #: php-ext/include/mapi/class.mapiexception.php:47
 #, php-format
 msgid "Unknown MAPI Error: %s"
-msgstr ""
+msgstr "Bilinmeyen MAPI hatası: %s"
 
 #: php-ext/include/mapi/class.taskrequest.php:881
 msgid "Start Date"
@@ -577,7 +578,7 @@ msgstr ""
 #: php-ext/include/mapi/class.taskrequest.php:881
 #: php-ext/include/mapi/class.taskrequest.php:882
 msgid "%A, %B %d, %Y"
-msgstr ""
+msgstr "%A, %B %d, %Y"
 
 #: php-ext/include/mapi/class.taskrequest.php:882
 msgid "Due Date"
@@ -609,7 +610,7 @@ msgstr ""
 
 #: php-ext/include/mapi/class.taskrequest.php:895
 msgid "Percent Complete"
-msgstr ""
+msgstr "tamamlanma yüzdesi"
 
 #: php-ext/include/mapi/class.taskrequest.php:898
 msgid "Date Completed"

@@ -3,8 +3,8 @@ msgstr ""
 "Project-Id-Version: KC-8\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-02-12 00:03+0100\n"
-"PO-Revision-Date: 2018-02-06 16:27+0000\n"
-"Last-Translator: jengelh <jengelh@inai.de>\n"
+"PO-Revision-Date: 2018-05-03 08:14+0000\n"
+"Last-Translator: Felix <f.bartels@kopano.com>\n"
 "Language-Team: German <http://translate.kopano.io/projects/kopano/kopano-"
 "core/de/>\n"
 "Language: de\n"
@@ -335,7 +335,7 @@ msgstr "Entwürfe"
 
 #: provider/client/ECMsgStore.cpp:2538
 msgid "Junk E-mail"
-msgstr "Spam"
+msgstr "Junk E-Mail"
 
 #: provider/client/ECMsgStore.cpp:2560
 msgid "RSS Feeds"
@@ -571,7 +571,7 @@ msgstr "Abgebrochen"
 
 #: php-ext/include/mapi/class.mapiexception.php:24
 msgid "You have insufficient privileges to open this object."
-msgstr "Sie haben nicht genügend Berechtigungen um dieses Objekt zu öffnen."
+msgstr "Sie haben nicht genügend Berechtigungen, um dieses Objekt zu öffnen."
 
 #: php-ext/include/mapi/class.mapiexception.php:27
 msgid "Logon Failed. Please check your name/password."
