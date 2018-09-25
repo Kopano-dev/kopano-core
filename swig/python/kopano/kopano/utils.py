@@ -32,6 +32,10 @@ from MAPI.Struct import (
     MAPIErrorNoAccess, MAPIErrorDiskError
 )
 
+TESTING = False
+if os.getenv('PYKO_TESTING'): # env variable used in testset
+    TESTING = True
+
 MAX_SAVE_RETRIES = int(os.getenv('PYKO_MAPI_SAVE_MAX_RETRIES', 3))
 
 from .compat import bdec as _bdec
@@ -154,7 +158,10 @@ def human_to_bytes(s):
     while s and s[0:1].isdigit() or s[0:1] == '.':
         num += s[0]
         s = s[1:]
-    num = float(num)
+    try:
+        num = float(num)
+    except ValueError:
+        raise ArgumentError('invalid size: %r' % init)
     letter = s.strip()
     for sset in [('b', 'k', 'm', 'g', 't', 'p', 'e', 'z', 'y'),
                  ('b', 'kb', 'mb', 'gb', 'tb', 'pb', 'eb', 'zb', 'yb'),
@@ -162,7 +169,7 @@ def human_to_bytes(s):
         if letter in sset:
             break
     else:
-        raise ValueError("can't interpret %r" % init)
+        raise ArgumentError('invalid size: %r' % init)
     prefix = {sset[0]: 1}
     for i, s in enumerate(sset[1:]):
         prefix[s] = 1 << (i + 1) * 10
@@ -182,8 +189,6 @@ def arg_objects(arg, supported_classes, method_name):
     return objects
 
 def _bdec_eid(entryid):
-    if not entryid:
-        raise ArgumentError("invalid entryid: %r" % entryid)
     try:
         return _bdec(entryid)
     except (TypeError, AttributeError, binascii.Error):
@@ -195,11 +200,13 @@ def _save(mapiobj):
     retry = 0
     while True:
         try:
+            if TESTING and os.getenv('PYKO_TEST_DISK_ERROR'): # test coverage
+                raise MAPIErrorDiskError()
             mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
             break
         except MAPIErrorDiskError:
             if retry >= MAX_SAVE_RETRIES:
-                raise
+                raise Error('could not save object')
             else:
                 retry += 1
                 time.sleep(t)

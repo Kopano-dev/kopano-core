@@ -66,7 +66,7 @@ class ItemResource(Resource):
     }
 
     def delta(self, req, resp, folder):
-        args = urlparse.parse_qs(req.query_string)
+        args = self.parse_qs(req)
         token = args['$deltatoken'][0] if '$deltatoken' in args else None
         filter_ = args['$filter'][0] if '$filter' in args else None
         begin = None

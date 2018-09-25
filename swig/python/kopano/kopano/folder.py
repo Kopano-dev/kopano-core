@@ -307,6 +307,9 @@ class Folder(Properties):
                 raise NotFoundError("no item with sourcekey '%s'" % sourcekey)
             eid = rows[0][0].Value
 
+        else:
+            raise ArgumentError("no entryid or sourcekey specified")
+
         # open message with entryid
         try:
             mapiobj = _utils.openentry_raw(self.store.mapiobj, eid, self.content_flag)

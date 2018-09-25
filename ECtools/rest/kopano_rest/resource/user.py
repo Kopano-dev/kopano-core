@@ -4,7 +4,9 @@ import datetime
 
 import falcon
 
-from ..utils import _server_store
+from ..utils import (
+    _server_store, HTTPBadRequest
+)
 from .resource import (
     DEFAULT_TOP, Resource, urlparse, _start_end, json, _date
 )
@@ -53,7 +55,7 @@ class UserResource(Resource):
     }
 
     def delta(self, req, resp, server):
-        args = urlparse.parse_qs(req.query_string)
+        args = self.parse_qs(req)
         token = args['$deltatoken'][0] if '$deltatoken' in args else None
         importer = UserImporter()
         newstate = server.sync_gab(importer, token)
@@ -83,7 +85,7 @@ class UserResource(Resource):
                 else:
                     data = server.user(userid=userid)
             else:
-                args = urlparse.parse_qs(req.query_string)
+                args = self.parse_qs(req)
                 if '$search' in args:
                     query = args['$search'][0]
                     def yielder(**kwargs):
@@ -152,7 +154,7 @@ class UserResource(Resource):
             self.respond(req, resp, data, ProfilePhotoResource.fields)
 
         elif method:
-            raise falcon.HTTPBadRequest(None, "Unsupported segment '%s'" % method)
+            raise HTTPBadRequest("Unsupported segment '%s'" % method)
 
     # TODO redirect to other resources?
     def on_post(self, req, resp, userid=None, method=None):

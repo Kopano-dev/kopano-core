@@ -6,6 +6,7 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
+import os
 import struct
 import sys
 import traceback
@@ -33,7 +34,7 @@ from MAPI.Tags import (
 )
 from MAPI.Struct import (
     MAPIError, MAPIErrorNotFound, MAPIErrorNoAccess, SPropValue,
-    SPropertyRestriction, SAndRestriction,
+    SPropertyRestriction, SAndRestriction, MAPIErrorNetworkError,
 )
 from MAPI.Time import (
     unixtime
@@ -62,6 +63,10 @@ else: # pragma: no cover
     import store as _store
     import utils as _utils
     import user as _user
+
+TESTING = False
+if os.getenv('PYKO_TESTING'): # env variable used in testset
+    TESTING = True
 
 class TrackingHierarchyImporter(ECImportHierarchyChanges):
     def __init__(self, server, importer, stats):
@@ -240,6 +245,8 @@ def sync(server, syncobj, importer, state, max_changes, associated=False, window
     if associated:
         flags |= SYNC_ASSOCIATED
     try:
+        if TESTING and os.getenv('PYKO_TEST_NOT_FOUND'):
+            raise MAPIErrorNotFound()
         exporter.Config(stream, flags, importer, restriction, None, None, 0)
     except MAPIErrorNotFound: # syncid purged because of 'sync_lifetime' option in server.cfg: get new syncid.
         log.warn("Sync state does not exist on server (anymore); requesting new one")
@@ -257,6 +264,8 @@ def sync(server, syncobj, importer, state, max_changes, associated=False, window
     while True:
         try:
             try:
+                if TESTING and os.getenv('PYKO_TEST_NETWORK_ERROR') and not importer.skip:
+                    raise MAPIErrorNetworkError()
                 (steps, step) = exporter.Synchronize(step)
             finally:
                 importer.skip = False
@@ -279,7 +288,7 @@ def sync(server, syncobj, importer, state, max_changes, associated=False, window
                 retry += 1
             else:
                 log.error("Too many retries, skipping change")
-                if stats:
+                if stats is not None:
                     stats['errors'] += 1
 
                 importer.skip = True # in case of a timeout or other issue, try to skip the change after trying several times

@@ -42,7 +42,7 @@ class FolderResource(Resource):
         self.respond_204(resp)
 
     def delta(self, req, resp, store): # TODO contactfolders, calendars.. use restriction?
-        args = urlparse.parse_qs(req.query_string)
+        args = self.parse_qs(req)
         token = args['$deltatoken'][0] if '$deltatoken' in args else None
         importer = FolderImporter()
         newstate = store.subtree.sync_hierarchy(importer, token)

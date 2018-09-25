@@ -16,6 +16,8 @@ import pytz
 import dateutil
 from jsonschema import ValidationError
 
+from ..utils import HTTPBadRequest
+
 UTC = dateutil.tz.tzutc()
 
 INDENT = True
@@ -74,7 +76,7 @@ def _tzdate(d, req):
         try:
             tzinfo = pytz.timezone(pref_timezone)
         except Exception as e:
-            raise falcon.HTTPBadRequest(None, "A valid TimeZone value must be specified. The following TimeZone value is not supported: '%s'." % pref_timezone)
+            raise HTTPBadRequest("A valid TimeZone value must be specified. The following TimeZone value is not supported: '%s'." % pref_timezone)
         d = d.replace(tzinfo=UTC).astimezone(tzinfo).replace(tzinfo=None)
     else:
         pref_timezone = 'UTC'
@@ -96,14 +98,33 @@ def set_date(item, field, arg):
     d = datetime.datetime.fromtimestamp(seconds)
     setattr(item, field, d)
 
-def _start_end(req):
+def _parse_qs(req):
     args = urlparse.parse_qs(req.query_string)
+    for arg, values in args.items():
+        if len(values) > 1:
+            raise HTTPBadRequest("Query option '%s' was specified more than once, but it must be specified at most once." % arg)
+
+    for key in ('$top', '$skip'):
+        if key in args:
+            value = args[key][0]
+            if not value.isdigit():
+                raise HTTPBadRequest("Invalid value '%s' for %s query option found. The %s query option requires a non-negative integer value." % (value, key, key))
+
+    return args
+
+def _parse_date(args, key):
     try:
-        start = _naive_local(dateutil.parser.parse(args['startDateTime'][0]))
-        end = _naive_local(dateutil.parser.parse(args['endDateTime'][0]))
-        return start, end
+        value = args[key][0]
     except KeyError:
-        raise falcon.HTTPBadRequest(None, 'This request requires a time window specified by the query string parameters StartDateTime and EndDateTime.')
+        raise HTTPBadRequest('This request requires a time window specified by the query string parameters StartDateTime and EndDateTime.')
+    try:
+        return _naive_local(dateutil.parser.parse(value))
+    except ValueError:
+        raise HTTPBadRequest("The value '%s' of parameter '%s' is invalid." % (value, key))
+
+def _start_end(req):
+    args = _parse_qs(req)
+    return _parse_date(args, 'startDateTime'), _parse_date(args, 'endDateTime')
 
 class Resource(object):
     def __init__(self, options):
@@ -145,7 +166,7 @@ class Resource(object):
         else:
             path = req.path
             if req.query_string:
-                args = urlparse.parse_qs(req.query_string)
+                args = _parse_qs(req)
                 if '$skip' in args:
                     del args['$skip']
                 path += '?'+'&'.join(a+'='+','.join(b) for (a,b) in args.items())
@@ -166,7 +187,7 @@ class Resource(object):
 
     def respond(self, req, resp, obj, all_fields=None, deltalink=None):
         # determine fields
-        args = urlparse.parse_qs(req.query_string)
+        args = _parse_qs(req)
         if '$select' in args:
             fields = set(args['$select'][0].split(',') + ['@odata.type', '@odata.etag', 'id'])
         else:
@@ -210,7 +231,7 @@ class Resource(object):
 
     def generator(self, req, generator, count=0):
         # determine pagination and ordering
-        args = urlparse.parse_qs(req.query_string)
+        args = _parse_qs(req)
         top = int(args['$top'][0]) if '$top' in args else DEFAULT_TOP
         skip = int(args['$skip'][0]) if '$skip' in args else 0
         order = args['$orderby'][0].split(',') if '$orderby' in args else None
@@ -229,7 +250,7 @@ class Resource(object):
         return item
 
     def folder_gen(self, req, folder):
-        args = urlparse.parse_qs(req.query_string) # TODO generalize
+        args = _parse_qs(req) # TODO generalize
         if '$search' in args:
             query = args['$search'][0]
             def yielder(**kwargs):
@@ -239,14 +260,17 @@ class Resource(object):
         else:
             return self.generator(req, folder.items, folder.count)
 
+    def parse_qs(self, req):
+        return _parse_qs(req)
+
     def load_json(self, req):
         try:
             return json.loads(req.stream.read().decode('utf-8'))
         except ValueError as e:
-            raise falcon.HTTPBadRequest(None, "Invalid JSON")
+            raise HTTPBadRequest("Invalid JSON")
 
     def validate_json(self, schema, fields):
         try:
             schema.validate(fields)
         except ValidationError as e:
-            raise falcon.HTTPBadRequest(None, "JSON schema violation: %s " % e.message)
+            raise HTTPBadRequest("JSON schema violation: %s " % e.message)

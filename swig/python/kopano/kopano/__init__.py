@@ -68,7 +68,7 @@ from .folder import Folder
 from .freebusy import FreeBusyBlock, FreeBusy
 from .group import Group
 from .item import Item
-from .log import log_exc, QueueListener
+from .log import log_exc, QueueListener, logger
 from .meetingrequest import MeetingRequest
 from .outofoffice import OutOfOffice
 from .property_ import Property

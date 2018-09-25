@@ -132,6 +132,9 @@ else: # pragma: no cover
     import utils as _utils
     import property_ as _prop
 
+TESTING = False
+if os.getenv('PYKO_TESTING'): # env variable used in testset
+    TESTING = True
 
 class PersistentList(list):
     def __init__(self, mapiobj, proptag, *args, **kwargs):
@@ -1099,6 +1102,8 @@ class Item(Properties, Contact, Appointment):
         # XXX optimize by looking at PR_MESSAGE_FLAGS?
         for row in self.table(PR_MESSAGE_ATTACHMENTS).dict_rows(): # XXX should we use GetAttachmentTable?
             try:
+                if TESTING and os.getenv('PYKO_TEST_KEY_ERROR'):
+                    raise KeyError()
                 num = row[PR_ATTACH_NUM]
                 method = row.get(PR_ATTACH_METHOD, ATTACH_BY_VALUE)
                 att = self.mapiobj.OpenAttach(num, IID_IAttachment, 0)
@@ -1115,6 +1120,8 @@ class Item(Properties, Contact, Appointment):
                     atts.append(([[a, b, None] for a, b in row.items()], data))
                 elif method == ATTACH_BY_VALUE and attachments:
                     try:
+                        if TESTING and os.getenv('PYKO_TEST_NOT_FOUND'):
+                            raise MAPIErrorNotFound()
                         data = _utils.stream(att, PR_ATTACH_DATA_BIN)
                     except MAPIErrorNotFound:
                         log.warn("no data found for attachment of item with entryid %s" % _main_item.entryid)
@@ -1124,6 +1131,7 @@ class Item(Properties, Contact, Appointment):
                 log.error('could not serialize attachment for item with entryid %s' % _main_item.entryid)
                 if skip_broken:
                     log.error(traceback.format_exc())
+                    service = self.server.service
                     if service and service.stats:
                         service.stats['errors'] += 1
                 else:

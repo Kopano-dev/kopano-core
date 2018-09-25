@@ -452,11 +452,14 @@ class Store(Properties):
         item.store = self
         item.server = self.server
 
-        if guid:
+        if guid is not None:
             # 01 -> entryid format version, 05 -> object type (message)
             entryid = '00000000' + self.guid + '0100000005000000' + guid + '00000000'
 
-        eid = _utils._bdec_eid(entryid)
+        if entryid is not None:
+            eid = _utils._bdec_eid(entryid)
+        else:
+            raise ArgumentError("no guid or entryid specified")
 
         try:
             item.mapiobj = _utils.openentry_raw(self.mapiobj, eid, 0) # XXX soft-deleted item?
@@ -494,10 +497,18 @@ class Store(Properties):
         """Return :datetime Last logon of a user on this store."""
         return self.get(PR_LAST_LOGON_TIME)
 
+    @last_logon.setter
+    def last_logon(self, value):
+        self[PR_LAST_LOGON_TIME] = value
+
     @property
     def last_logoff(self):
         """Return :datetime of the last logoff of a user on this store."""
         return self.get(PR_LAST_LOGOFF_TIME)
+
+    @last_logoff.setter
+    def last_logoff(self, value):
+        self[PR_LAST_LOGOFF_TIME] = value
 
     @property
     def outofoffice(self):

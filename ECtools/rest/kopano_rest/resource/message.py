@@ -4,7 +4,7 @@ import base64
 import falcon
 
 from ..utils import (
-    _server_store, _folder, _item
+    _server_store, _folder, _item, HTTPBadRequest
 )
 from .resource import (
     DEFAULT_TOP, _date, json
@@ -86,7 +86,7 @@ class MessageResource(ItemResource):
             return
 
         elif method:
-            raise falcon.HTTPBadRequest(None, "Unsupported segment '%s'" % method)
+            raise HTTPBadRequest("Unsupported segment '%s'" % method)
 
         self.respond(req, resp, item)
 
@@ -124,7 +124,7 @@ class MessageResource(ItemResource):
             resp.status = falcon.HTTP_202
 
         else:
-            raise falcon.HTTPBadRequest(None, "Unsupported segment type")
+            raise HTTPBadRequest("Unsupported segment type")
 
     def on_patch(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
         server, store = _server_store(req, userid, self.options)

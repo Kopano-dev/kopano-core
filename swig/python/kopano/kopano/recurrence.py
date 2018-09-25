@@ -717,7 +717,7 @@ class Recurrence(object):
         if self._pattern_type == PATTERN_DAILY:
             rule.rrule(rrule(DAILY, dtstart=start, until=end, interval=self._period // (24 * 60)))
 
-        if self._pattern_type == PATTERN_WEEKLY:
+        elif self._pattern_type == PATTERN_WEEKLY:
             byweekday = () # Set
             for index, week in RRULE_WEEKDAYS.items():
                 if (self._pattern_type_specific[0] >> index ) & 1:
@@ -740,9 +740,6 @@ class Recurrence(object):
                         byweekday += (week(self._pattern_type_specific[1]),)
             # Yearly, the last XX of YY
             rule.rrule(rrule(MONTHLY, dtstart=start, until=end, interval=self._period, byweekday=byweekday))
-
-        elif self._pattern_type != PATTERN_DAILY: # XXX check 0
-            raise NotSupportedError('Unsupported recurrence pattern: %d' % self._pattern_type)
 
         # add exceptions
         exc_starts = set()
@@ -916,6 +913,9 @@ class Recurrence(object):
 
         if 'location' in kwargs:
             message[PidLidLocation] = kwargs['location']
+
+        if 'color' in kwargs:
+            message.color = kwargs['color']
 
         if item is None: # TODO pick up kwargs['start/end']
             start = basetime
@@ -1159,6 +1159,15 @@ class Occurrence(object):
         value = _unicode(value)
         self._update(subject=value)
         self._subject = value
+
+    @property
+    def color(self): # property used by old clients
+        return self._color or self.item.color
+
+    @color.setter
+    def color(self, value):
+        self._update(color=value)
+        self._color = value
 
     def _update(self, **kwargs):
         if self.item.recurring:
