@@ -214,10 +214,8 @@ HRESULT Fsck::ValidateMessage(LPMESSAGE lpMessage,
     const std::string &strName, const std::string &strClass)
 {
 	cout << "Validating entry: \"" << strName << "\"" << endl;
-
-	++this->ulEntries;
-	HRESULT hr = this->ValidateItem(lpMessage, strClass);
-
+	++ulEntries;
+	auto hr = ValidateItem(lpMessage, strClass);
 	cout << "Validating of entry \"" << strName << "\" ended" << endl;
 
 	return hr;
@@ -227,8 +225,7 @@ HRESULT Fsck::ValidateFolder(LPMAPIFOLDER lpFolder,
     const std::string &strName)
 {
 	cout << "Validating folder \"" << strName << "\"" << endl;
-
-	++this->ulFolders;
+	++ulFolders;
 	HRESULT hr = ProcessFolder(this, lpFolder, strName);
 	cout << "Validating of folder \"" << strName << "\" ended" << endl;
 
@@ -239,13 +236,12 @@ HRESULT Fsck::AddMissingProperty(LPMESSAGE lpMessage,
     const std::string &strName, ULONG ulTag, __UPV Value)
 {
 	cout << "Missing property " << strName << endl;
-
-	++this->ulProblems;
+	++ulProblems;
 	if (!ReadYesNoMessage("Add missing property?", auto_fix))
 		return hrSuccess;
 	auto hr = FixProperty(lpMessage, strName, ulTag, Value);
 	if (hr == hrSuccess)
-		++this->ulFixed;
+		++ulFixed;
 	return hr;
 }
 
@@ -254,19 +250,18 @@ HRESULT Fsck::ReplaceProperty(LPMESSAGE lpMessage,
     __UPV Value)
 {
 	cout << "Invalid property " << strName << " - " << strError << endl;
-
-	++this->ulProblems;
+	++ulProblems;
 	if (!ReadYesNoMessage("Fix broken property?", auto_fix))
 		return hrSuccess;
 	auto hr = FixProperty(lpMessage, strName, ulTag, Value);
 	if (hr == hrSuccess)
-		++this->ulFixed;
+		++ulFixed;
 	return hr;
 }
 
 HRESULT Fsck::DeleteRecipientList(LPMESSAGE lpMessage, std::list<unsigned int> &mapiReciptDel, bool &bChanged)
 {
-	++this->ulProblems;
+	++ulProblems;
 	cout << mapiReciptDel.size() << " duplicate or invalid recipients found. " << endl;
 	if (!ReadYesNoMessage("Remove duplicate or invalid recipients?", auto_fix))
 		return hrSuccess;
@@ -294,7 +289,7 @@ HRESULT Fsck::DeleteRecipientList(LPMESSAGE lpMessage, std::list<unsigned int> &
 	if (hr != hrSuccess)
 		return hr;
 	bChanged = true;
-	++this->ulFixed;
+	++ulFixed;
 	return hrSuccess;
 }
 
@@ -305,7 +300,7 @@ HRESULT Fsck::DeleteMessage(LPMAPIFOLDER lpFolder,
 		return hrSuccess;
 	auto hr = DeleteEntry(lpFolder, lpItemProperty);
 	if (hr == hrSuccess)
-		++this->ulDeleted;
+		++ulDeleted;
 	return hr;
 }
 

@@ -198,10 +198,10 @@ public:
 
 	// sort recipients on imap data flag, then on username so find() for combine() works correctly.
 	bool operator <(const ECRecipient &r) const {
-		if (this->bHasIMAP == r.bHasIMAP)
-			return this->wstrUsername < r.wstrUsername;
+		if (bHasIMAP == r.bHasIMAP)
+			return wstrUsername < r.wstrUsername;
 		else
-			return this->bHasIMAP && !r.bHasIMAP;
+			return bHasIMAP && !r.bHasIMAP;
 	}
 
 	ULONG ulResolveFlags = MAPI_UNRESOLVED;

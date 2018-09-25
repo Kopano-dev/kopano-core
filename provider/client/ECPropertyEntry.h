@@ -19,7 +19,7 @@ template<typename Type> class ECInvariantChecker final {
 };
 
 #ifdef KNOB144
-#	define DEBUG_CHECK_INVARIANT do { this->CheckInvariant(); } while (false)
+#	define DEBUG_CHECK_INVARIANT do { CheckInvariant(); } while (false)
 #	define DEBUG_GUARD guard __g(this);
 #else
 #	define DEBUG_CHECK_INVARIANT do { } while (false)

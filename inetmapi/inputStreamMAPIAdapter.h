@@ -21,7 +21,7 @@ public:
 	virtual size_t read(vmime::byte_t *, size_t) _kc_override;
 	virtual size_t skip(size_t) _kc_override;
 	virtual void reset(void) _kc_override;
-	virtual bool eof(void) const _kc_override { return this->ateof; }
+	virtual bool eof(void) const _kc_override { return ateof; }
 
 private:
 	bool ateof = false;

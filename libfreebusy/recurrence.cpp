@@ -1270,10 +1270,9 @@ bool recurrence::isException(time_t tsOccDate) const
 ULONG recurrence::countDaysOfMonth(time_t tsDate) const
 {
 	static const ULONG ulDaysArray[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-
-	auto ulYear = this->YearFromTime(tsDate);
-	auto ulMonth = this->MonthFromTime(tsDate);
-	if(this->isLeapYear(ulYear)  && ulMonth == 2 )
+	auto ulYear = YearFromTime(tsDate);
+	auto ulMonth = MonthFromTime(tsDate);
+	if (isLeapYear(ulYear) && ulMonth == 2)
 		return 29;
 	return ulDaysArray[ulMonth -1];
 }

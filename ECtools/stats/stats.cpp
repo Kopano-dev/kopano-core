@@ -112,7 +112,7 @@ struct SESSION {
 
     bool operator <(const SESSION &b) const
     {
-        return this->dtimes.dblReal > b.dtimes.dblReal;
+		return dtimes.dblReal > b.dtimes.dblReal;
     }
 };
 

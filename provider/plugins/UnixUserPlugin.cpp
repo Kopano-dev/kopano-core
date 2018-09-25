@@ -816,7 +816,7 @@ UnixUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 
 	for (const auto &id : objectids) {
 		try {
-			mapdetails[id] = this->getObjectDetails(id);
+			mapdetails[id] = getObjectDetails(id);
 		} catch (const objectnotfound &e) {
 			// ignore not found error
 		}
