@@ -96,7 +96,7 @@ enum SCName {
 };
 
 union SCData {
-	float f;
+	double f;
 	LONGLONG ll;
 	time_t ts;
 };
@@ -119,14 +119,14 @@ struct ECStrings {
 
 class _kc_export ECStatsCollector {
 	public:
-	void inc(enum SCName, float inc);
+	void inc(enum SCName, double inc);
 	void inc(enum SCName, int inc = 1);
 	void inc(enum SCName, LONGLONG inc);
-	void Set(SCName name, float set);
+	void Set(SCName name, double set);
 	void Set(SCName name, LONGLONG set);
 	void SetTime(SCName name, time_t set);
 	void Max(SCName name, LONGLONG max);
-	void Avg(SCName name, float add);
+	void Avg(SCName name, double add);
 	void Avg(SCName name, LONGLONG add);
 
 	/* strings are separate, used by ECSerial */

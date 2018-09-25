@@ -194,7 +194,7 @@ void ECStatsCollector::AddStat(SCName index, SCType type, const char *name,
 	newStat.description = description;
 }
 
-void ECStatsCollector::inc(SCName name, float inc)
+void ECStatsCollector::inc(SCName name, double inc)
 {
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
@@ -219,7 +219,7 @@ void ECStatsCollector::inc(SCName name, LONGLONG inc)
 	iSD->second.data.ll += inc;
 }
 
-void ECStatsCollector::Set(SCName name, float set)
+void ECStatsCollector::Set(SCName name, double set)
 {
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
@@ -260,7 +260,7 @@ void ECStatsCollector::Max(SCName name, LONGLONG max)
 		iSD->second.data.ll = max;
 }
 
-void ECStatsCollector::Avg(SCName name, float add)
+void ECStatsCollector::Avg(SCName name, double add)
 {
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
@@ -290,7 +290,7 @@ std::string ECStatsCollector::GetValue(const SCMap::const_iterator::value_type &
 {
 	switch (iSD.second.type) {
 	case SCDT_FLOAT:
-		return stringify_float(iSD.second.data.f);
+		return stringify_double(iSD.second.data.f);
 	case SCDT_LONGLONG:
 		return stringify_int64(iSD.second.data.ll);
 	case SCDT_TIMESTAMP: {
