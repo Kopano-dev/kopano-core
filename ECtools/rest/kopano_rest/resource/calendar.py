@@ -4,9 +4,11 @@ import falcon
 from .resource import (
     DEFAULT_TOP, json, _start_end,
 )
+
 from ..utils import (
-    _server_store, _folder
+    _server_store, _folder, HTTPBadRequest
 )
+
 from .folder import FolderResource
 
 class CalendarResource(FolderResource):
@@ -33,7 +35,7 @@ class CalendarResource(FolderResource):
             fields = EventResource.fields
 
         elif method:
-            raise falcon.HTTPBadRequest(None, "Unsupported segment '%s'" % method)
+            raise HTTPBadRequest("Unsupported segment '%s'" % method)
 
         else:
             data = folder

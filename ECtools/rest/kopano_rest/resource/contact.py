@@ -2,7 +2,7 @@
 import falcon
 
 from ..utils import (
-    _server_store, _folder, _item
+    _server_store, _folder, _item, HTTPBadRequest
 )
 from .resource import (
     _date,
@@ -80,7 +80,7 @@ class ContactResource(ItemResource):
         folder = _folder(store, folderid or 'contacts') # TODO all folders?
 
         if method:
-            raise falcon.HTTPBadRequest(None, "Unsupported segment '%s'" % method)
+            raise HTTPBadRequest("Unsupported segment '%s'" % method)
 
         if itemid == 'delta':
             req.context['deltaid'] = '{itemid}'

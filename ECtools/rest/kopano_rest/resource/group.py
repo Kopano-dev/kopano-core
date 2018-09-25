@@ -1,7 +1,10 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import falcon
 
-from ..utils import _server_store
+from ..utils import (
+    _server_store, HTTPBadRequest
+)
+
 from .resource import (
     DEFAULT_TOP, Resource
 )
@@ -28,7 +31,7 @@ class GroupResource(Resource):
             self.respond(req, resp, data, UserResource.fields)
 
         elif method:
-            raise falcon.HTTPBadRequest(None, "Unsupported segment '%s'" % method)
+            raise HTTPBadRequest("Unsupported segment '%s'" % method)
 
         else:
             self.respond(req, resp, data)

@@ -7,7 +7,7 @@ import falcon
 import kopano
 
 from ..utils import (
-    _server_store, _folder
+    _server_store, _folder, HTTPBadRequest
 )
 from .resource import (
     DEFAULT_TOP, json, _date, _tzdate, set_date, _start_end
@@ -189,7 +189,7 @@ class EventResource(ItemResource):
             self.respond(req, resp, data)
 
         elif method:
-            raise falcon.HTTPBadRequest(None, "Unsupported segment '%s'" % method)
+            raise HTTPBadRequest("Unsupported segment '%s'" % method)
 
         else:
             self.respond(req, resp, event)
@@ -219,7 +219,7 @@ class EventResource(ItemResource):
                 resp.status = falcon.HTTP_201
 
         elif method:
-            raise falcon.HTTPBadRequest(None, "Unsupported segment '%s'" % method)
+            raise HTTPBadRequest("Unsupported segment '%s'" % method)
 
     def on_patch(self, req, resp, userid=None, folderid=None, eventid=None, method=None):
         server, store = _server_store(req, userid, self.options)

@@ -175,13 +175,13 @@ class SubscriptionResource:
             logging.debug('Subscription validation: %s' % fields['notificationUrl'])
             r = requests.post(fields['notificationUrl']+'?validationToken='+validationToken, timeout=10, verify=verify)
             if r.text != validationToken:
-                raise falcon.HTTPBadRequest(None, "Subscription validation request failed.")
+                raise utils.HTTPBadRequest("Subscription validation request failed.")
         except Exception:
-            raise falcon.HTTPBadRequest(None, "Subscription validation request failed.")
+            raise utils.HTTPBadRequest("Subscription validation request failed.")
 
         subscription_object = _subscription_object(store, fields['resource'])
         if not subscription_object:
-            raise falcon.HTTPBadRequest(None, "Subscription object invalid.")
+            raise utils.HTTPBadRequest("Subscription object invalid.")
         target, folder_types, data_type = subscription_object
 
         # create subscription

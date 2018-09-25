@@ -16,6 +16,8 @@ import pytz
 import dateutil
 from jsonschema import ValidationError
 
+from ..utils import HTTPBadRequest
+
 UTC = dateutil.tz.tzutc()
 
 INDENT = True
@@ -74,7 +76,7 @@ def _tzdate(d, req):
         try:
             tzinfo = pytz.timezone(pref_timezone)
         except Exception as e:
-            raise falcon.HTTPBadRequest(None, "A valid TimeZone value must be specified. The following TimeZone value is not supported: '%s'." % pref_timezone)
+            raise HTTPBadRequest("A valid TimeZone value must be specified. The following TimeZone value is not supported: '%s'." % pref_timezone)
         d = d.replace(tzinfo=UTC).astimezone(tzinfo).replace(tzinfo=None)
     else:
         pref_timezone = 'UTC'
@@ -100,13 +102,13 @@ def _parse_qs(req):
     args = urlparse.parse_qs(req.query_string)
     for arg, values in args.items():
         if len(values) > 1:
-            raise falcon.HTTPBadRequest(None, "Query option '%s' was specified more than once, but it must be specified at most once." % arg)
+            raise HTTPBadRequest("Query option '%s' was specified more than once, but it must be specified at most once." % arg)
 
     for key in ('$top', '$skip'):
         if key in args:
             value = args[key][0]
             if not value.isdigit():
-                raise falcon.HTTPBadRequest(None, "Invalid value '%s' for %s query option found. The %s query option requires a non-negative integer value." % (value, key, key))
+                raise HTTPBadRequest("Invalid value '%s' for %s query option found. The %s query option requires a non-negative integer value." % (value, key, key))
 
     return args
 
@@ -114,11 +116,11 @@ def _parse_date(args, key):
     try:
         value = args[key][0]
     except KeyError:
-        raise falcon.HTTPBadRequest(None, 'This request requires a time window specified by the query string parameters StartDateTime and EndDateTime.')
+        raise HTTPBadRequest('This request requires a time window specified by the query string parameters StartDateTime and EndDateTime.')
     try:
         return _naive_local(dateutil.parser.parse(value))
     except ValueError:
-        raise falcon.HTTPBadRequest(None, "The value '%s' of parameter '%s' is invalid." % (value, key))
+        raise HTTPBadRequest("The value '%s' of parameter '%s' is invalid." % (value, key))
 
 def _start_end(req):
     args = _parse_qs(req)
@@ -265,10 +267,10 @@ class Resource(object):
         try:
             return json.loads(req.stream.read().decode('utf-8'))
         except ValueError as e:
-            raise falcon.HTTPBadRequest(None, "Invalid JSON")
+            raise HTTPBadRequest("Invalid JSON")
 
     def validate_json(self, schema, fields):
         try:
             schema.validate(fields)
         except ValidationError as e:
-            raise falcon.HTTPBadRequest(None, "JSON schema violation: %s " % e.message)
+            raise HTTPBadRequest("JSON schema violation: %s " % e.message)

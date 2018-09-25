@@ -2,6 +2,7 @@
 import codecs
 from contextlib import closing
 import fcntl
+import html
 import sys
 import time
 
@@ -154,10 +155,15 @@ def _folder(store, folderid):
     else:
         return store.folder(entryid=folderid)
 
+class HTTPBadRequest(falcon.HTTPBadRequest):
+    def __init__(self, msg):
+        msg = html.escape(msg)
+        super().__init__(None, msg)
+
 def _item(parent, entryid):
     try:
         return parent.item(entryid)
     except kopano.NotFoundError:
         raise falcon.HTTPNotFound(description=None)
     except kopano.ArgumentError:
-        raise falcon.HTTPBadRequest(None, 'Id is malformed')
+        raise HTTPBadRequest('Id is malformed')

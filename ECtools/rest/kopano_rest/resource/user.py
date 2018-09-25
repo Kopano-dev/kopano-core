@@ -4,7 +4,9 @@ import datetime
 
 import falcon
 
-from ..utils import _server_store
+from ..utils import (
+    _server_store, HTTPBadRequest
+)
 from .resource import (
     DEFAULT_TOP, Resource, urlparse, _start_end, json, _date
 )
@@ -152,7 +154,7 @@ class UserResource(Resource):
             self.respond(req, resp, data, ProfilePhotoResource.fields)
 
         elif method:
-            raise falcon.HTTPBadRequest(None, "Unsupported segment '%s'" % method)
+            raise HTTPBadRequest("Unsupported segment '%s'" % method)
 
     # TODO redirect to other resources?
     def on_post(self, req, resp, userid=None, method=None):

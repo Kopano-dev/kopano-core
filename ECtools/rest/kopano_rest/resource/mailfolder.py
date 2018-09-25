@@ -3,7 +3,7 @@ import falcon
 
 from .resource import json
 from ..utils import (
-    _server_store, _folder
+    _server_store, _folder, HTTPBadRequest
 )
 from .message import MessageResource
 from .folder import FolderResource
@@ -55,7 +55,7 @@ class MailFolderResource(FolderResource):
             self.respond(req, resp, data, MessageResource.fields)
 
         else:
-            raise falcon.HTTPBadRequest(None, "Unsupported segment '%s'" % method)
+            raise HTTPBadRequest("Unsupported segment '%s'" % method)
 
     def on_post(self, req, resp, userid=None, folderid=None, method=None):
         server, store = _server_store(req, userid, self.options)
