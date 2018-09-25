@@ -65,7 +65,7 @@ else: # pragma: no cover
     import user as _user
 
 TESTING = False
-if os.getenv('KOPANO_SOCKET'): # env variable used in testset
+if os.getenv('PYKO_TESTING'): # env variable used in testset
     TESTING = True
 
 class TrackingHierarchyImporter(ECImportHierarchyChanges):

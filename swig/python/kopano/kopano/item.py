@@ -133,7 +133,7 @@ else: # pragma: no cover
     import property_ as _prop
 
 TESTING = False
-if os.getenv('KOPANO_SOCKET'): # env variable used in testset
+if os.getenv('PYKO_TESTING'): # env variable used in testset
     TESTING = True
 
 class PersistentList(list):

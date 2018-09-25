@@ -33,7 +33,7 @@ from MAPI.Struct import (
 )
 
 TESTING = False
-if os.getenv('KOPANO_SOCKET'): # env variable used in testset
+if os.getenv('PYKO_TESTING'): # env variable used in testset
     TESTING = True
 
 MAX_SAVE_RETRIES = int(os.getenv('PYKO_MAPI_SAVE_MAX_RETRIES', 3))
