@@ -94,7 +94,7 @@ size_t NotificationStructSize(const notification *);
 size_t PropTagArraySize(const struct propTagArray *);
 size_t SortOrderArraySize(const struct sortOrderArray *);
 
-class DynamicPropValArray _kc_final {
+class DynamicPropValArray final {
 public:
     DynamicPropValArray(struct soap *soap, unsigned int ulHint = 10);
     ~DynamicPropValArray();
@@ -112,7 +112,7 @@ private:
 	unsigned int m_ulPropCount = 0;
 };
 
-class DynamicPropTagArray _kc_final {
+class DynamicPropTagArray final {
 public:
     DynamicPropTagArray(struct soap *soap);
     ECRESULT AddPropTag(unsigned int ulPropTag);

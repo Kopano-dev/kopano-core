@@ -23,7 +23,7 @@ struct SIndexedTerm {
 
 typedef std::set<unsigned int> setindexprops_t;
 
-class ECSearchClient _kc_final : public ECChannelClient {
+class ECSearchClient final : public ECChannelClient {
 public:
 	ECSearchClient(const char *szIndexerPath, unsigned int ulTimeOut);
 	ECRESULT GetProperties(setindexprops_t &mapProps);
