@@ -219,6 +219,11 @@ public:
 	bool bHasIMAP = false;
 };
 
+class dagent_stats final : public ECStatsCollector {
+	public:
+	dagent_stats();
+};
+
 //Global variables
 static bool g_bQuit = false, g_use_threads, g_dump_config;
 static bool g_bTempfail = true; // Most errors are tempfails
@@ -3490,4 +3495,52 @@ int main(int argc, char **argv) try {
 	return get_return_value(hr, bListenLMTP, qmail);
 } catch (...) {
 	std::terminate();
+}
+
+dagent_stats::dagent_stats()
+{
+	AddStat(SCN_DAGENT_ATTACHMENT_COUNT, SCDT_LONGLONG, "dagent_attachment_count", "Number of attachments processed");
+	AddStat(SCN_DAGENT_AUTOACCEPT, SCDT_LONGLONG, "dagent_autoaccept", "Number of meeting requests that underwent autoacceptance");
+	AddStat(SCN_DAGENT_AUTOPROCESS, SCDT_LONGLONG, "dagent_autoprocess", "Number of meeting requests that underwent autoprocessing");
+	AddStat(SCN_DAGENT_DELIVER_INBOX, SCDT_LONGLONG, "dagent_deliver_inbox", "Number of messages delivered to inboxes");
+	AddStat(SCN_DAGENT_DELIVER_JUNK, SCDT_LONGLONG, "dagent_deliver_junk", "Number of messages delivered to junk folders");
+	AddStat(SCN_DAGENT_DELIVER_PUBLIC, SCDT_LONGLONG, "dagent_deliver_public", "Number of messages delivered to public folders");
+	AddStat(SCN_DAGENT_FALLBACKDELIVERY, SCDT_LONGLONG, "dagent_fallbackdelivery", "Number of messages that could not be parsed");
+	AddStat(SCN_DAGENT_INCOMING_SESSION, SCDT_LONGLONG, "dagent_incoming_session", "Socket connections accepted");
+	AddStat(SCN_DAGENT_IS_HAM, SCDT_LONGLONG, "dagent_is_ham", "Messages classified as ham");
+	AddStat(SCN_DAGENT_IS_SPAM, SCDT_LONGLONG, "dagent_is_spam", "Messages classified as spam");
+	AddStat(SCN_DAGENT_MAX_THREAD_COUNT, SCDT_LONGLONG, "dagent_thread_maxed");
+	AddStat(SCN_DAGENT_MSG_EXPIRED, SCDT_LONGLONG, "dagent_msg_expired", "Messages that have expired at the time of processing");
+	AddStat(SCN_DAGENT_MSG_NOT_EXPIRED, SCDT_LONGLONG, "dagent_msg_not_expired", "Messages that have not expired at the time of processing");
+	AddStat(SCN_DAGENT_NWITHATTACHMENT, SCDT_LONGLONG, "dagent_nwithattachment", "Messages with attachments");
+	AddStat(SCN_DAGENT_OUTOFOFFICE, SCDT_LONGLONG, "dagent_outofoffice", "Messages that triggered OOF");
+	AddStat(SCN_DAGENT_RECIPS, SCDT_LONGLONG, "dagent_recips", "Number of recipients processed");
+	AddStat(SCN_DAGENT_STDIN_RECEIVED, SCDT_LONGLONG, "dagent_stdin_received", "Number of mails processed from stdin");
+	AddStat(SCN_DAGENT_STRINGTOMAPI, SCDT_LONGLONG, "dagent_stringtomapi");
+	AddStat(SCN_DAGENT_TO_COMPANY, SCDT_LONGLONG, "dagent_to_company");
+	AddStat(SCN_DAGENT_TO_LIST, SCDT_LONGLONG, "dagent_to_list");
+	AddStat(SCN_DAGENT_TO_SERVER, SCDT_LONGLONG, "dagent_to_server");
+	AddStat(SCN_DAGENT_TO_SINGLE_RECIP, SCDT_LONGLONG, "dagent_to_single_recip");
+	AddStat(SCN_LMTP_BAD_RECIP_ADDR, SCDT_LONGLONG, "lmtp_bad_recip_addr", "Bad RCPT commands");
+	AddStat(SCN_LMTP_BAD_SENDER_ADDRESS, SCDT_LONGLONG, "lmtp_bad_sender_addr", "Bad FROM commands");
+	AddStat(SCN_LMTP_INTERNAL_ERROR, SCDT_LONGLONG, "lmtp_internal_error");
+	AddStat(SCN_LMTP_LHLO_FAIL, SCDT_LONGLONG, "lmtp_lhlo_fail", "Bad LHLO commands");
+	AddStat(SCN_LMTP_NO_RECIP, SCDT_LONGLONG, "lmtp_no_recip", "DATA without RCPT");
+	AddStat(SCN_LMTP_RECEIVED, SCDT_LONGLONG, "lmtp_received");
+	AddStat(SCN_LMTP_SESSIONS, SCDT_LONGLONG, "lmtp_session");
+	AddStat(SCN_LMTP_TMPFILEFAIL, SCDT_LONGLONG, "lmtp_tmpfilefail");
+	AddStat(SCN_LMTP_UNKNOWN_COMMAND, SCDT_LONGLONG, "lmtp_unknown_command", "Unknown commands issued");
+	AddStat(SCN_RULES_BOUNCE, SCDT_LONGLONG, "rules_bounce", "OP_BOUNCE actions processed");
+	AddStat(SCN_RULES_COPYMOVE, SCDT_LONGLONG, "rules_copymove", "OP_COPY/OP_MOVE actions processed");
+	AddStat(SCN_RULES_DEFER, SCDT_LONGLONG, "rules_defer", "OP_DEFERs processed");
+	AddStat(SCN_RULES_DELEGATE, SCDT_LONGLONG, "rules_delegate", "OP_DELEGATE actions processed");
+	AddStat(SCN_RULES_DELETE, SCDT_LONGLONG, "rules_delete", "OP_DELETE actions processed");
+	AddStat(SCN_RULES_FORWARD, SCDT_LONGLONG, "rules_forward", "OP_FORWARD actions processed");
+	AddStat(SCN_RULES_INVOKES, SCDT_LONGLONG, "rules_invokes", "Messages subject to inbox rule processing");
+	AddStat(SCN_RULES_INVOKES_FAIL, SCDT_LONGLONG, "rules_invokes_fail", "Messages with inbox rule processing errors");
+	AddStat(SCN_RULES_MARKREAD, SCDT_LONGLONG, "rules_markread", "OP_MARK_READ actions processed");
+	AddStat(SCN_RULES_NACTIONS, SCDT_LONGLONG, "rules_nactions", "Actions evaluated");
+	AddStat(SCN_RULES_NRULES, SCDT_LONGLONG, "rules_nrules", "Rules evaluated");
+	AddStat(SCN_RULES_REPLY_AND_OOF, SCDT_LONGLONG, "rules_reply_oof", "OP_REPLY/OP_REPLY_OOF actions processed");
+	AddStat(SCN_RULES_TAG, SCDT_LONGLONG, "rules_tag", "OP_TAG actions processed");
 }

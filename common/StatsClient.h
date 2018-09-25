@@ -141,7 +141,7 @@ class _kc_export ECStatsCollector {
 	 * The "name" parameter may not be longer than 19 characters, since we
 	 * want to use those in RRDtool.
 	 */
-	void AddStat(enum SCName index, SCType type, const char *name, const char *desc);
+	void AddStat(enum SCName index, SCType type, const char *name, const char *desc = "");
 
 	private:
 	SCMap m_StatData;
