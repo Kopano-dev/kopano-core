@@ -38,7 +38,7 @@ public:
 	void PrintStatistics(const std::string &title);
 };
 
-class FsckCalendar _kc_final : public Fsck {
+class FsckCalendar final : public Fsck {
 private:
 	HRESULT ValidateItem(LPMESSAGE lpMessage, const std::string &strClass) _kc_override;
 	HRESULT ValidateMinimalNamedFields(LPMESSAGE lpMessage);
@@ -46,13 +46,13 @@ private:
 	HRESULT ValidateRecurrence(LPMESSAGE lpMessage);
 };
 
-class FsckContact _kc_final : public Fsck {
+class FsckContact final : public Fsck {
 private:
 	HRESULT ValidateItem(LPMESSAGE lpMessage, const std::string &strClass) _kc_override;
 	HRESULT ValidateContactNames(LPMESSAGE lpMessage);
 };
 
-class FsckTask _kc_final : public Fsck {
+class FsckTask final : public Fsck {
 private:
 	HRESULT ValidateItem(LPMESSAGE lpMessage, const std::string &strClass) _kc_override;
 	HRESULT ValidateMinimalNamedFields(LPMESSAGE lpMessage);
