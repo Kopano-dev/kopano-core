@@ -18,7 +18,7 @@ Environment=socket_path=/var/run/kopano-grapi
 EnvironmentFile=-/etc/sysconfig/kopano
 EnvironmentFile=-/etc/default/kopano
 EnvironmentFile=/etc/kopano/grapi.cfg
-ExecStartPre=-/usr/bin/mkdir $socket_path
+ExecStartPre=-/bin/mkdir $socket_path
 ExecStartPre=/bin/chown -R kapi:kopano $socket_path
 ExecStart=/usr/sbin/kopano-grapi serve
 
