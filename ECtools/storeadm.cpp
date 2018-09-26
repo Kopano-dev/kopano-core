@@ -4,6 +4,7 @@
  * Copyright 2018, Kopano and its licensors
  */
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <clocale>
 #include <cstdio>
@@ -780,7 +781,7 @@ static bool adm_parse_options(int &argc, const char **&argv)
 	return true;
 }
 
-int main(int argc, const char **argv)
+int main(int argc, const char **argv) try
 {
 	setlocale(LC_ALL, "");
 	ec_log_get()->SetLoglevel(EC_LOGLEVEL_INFO);
@@ -791,4 +792,6 @@ int main(int argc, const char **argv)
 		return EXIT_FAILURE;
 	}
 	return adm_perform() == hrSuccess ? EXIT_SUCCESS : EXIT_FAILURE;
+} catch (...) {
+	std::terminate();
 }
