@@ -2774,15 +2774,7 @@ static int dagent_listen(ECConfig *cfg, std::vector<struct pollfd> &pollers,
     std::vector<int> &closefd)
 {
 	std::set<std::string, ec_bindaddr_less> lmtp_sock;
-	auto ss = cfg->GetSetting("socketspec");
-	if (strcmp(ss, "v2") == 0) {
-		lmtp_sock = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("lmtp_listen"), ' ', true));
-	} else if (strcmp(ss, "v1") == 0) {
-		auto addr = cfg->GetSetting("server_bind");
-		auto port = cfg->GetSetting("lmtp_port");
-		if (port[0] != '\0')
-			lmtp_sock.emplace("["s + addr + "]:" + stringify(strtoul(port, nullptr, 10)));
-	}
+	lmtp_sock = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("lmtp_listen"), ' ', true));
 
 	auto intf = cfg->GetSetting("server_bind_intf");
 	struct pollfd x;
@@ -3189,15 +3181,13 @@ int main(int argc, char **argv) try {
 	};
 	// Default settings
 	static const configsetting_t lpDefaults[] = {
-		{"server_bind", "", CONFIGSETTING_OBSOLETE},
 		{ "server_bind_intf", "" },
 		{ "run_as_user", "kopano" },
 		{ "run_as_group", "kopano" },
 		{ "pid_file", "/var/run/kopano/dagent.pid" },
 		{"coredump_enabled", "systemdefault"},
-		{"socketspec", "v1", CONFIGSETTING_NONEMPTY},
+		{"socketspec", "", CONFIGSETTING_OBSOLETE},
 		{"lmtp_listen", "*:2003"},
-		{"lmtp_port", "2003", CONFIGSETTING_OBSOLETE},
 		{ "lmtp_max_threads", "20" },
 		{"process_model", "fork", CONFIGSETTING_NONEMPTY},
 		{"log_method", "auto", CONFIGSETTING_NONEMPTY},

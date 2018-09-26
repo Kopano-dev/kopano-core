@@ -210,15 +210,10 @@ int main(int argc, char **argv) {
 		{ "pid_file", "/var/run/kopano/ical.pid" },
 		{"running_path", "/var/lib/kopano/empty", CONFIGSETTING_OBSOLETE},
 		{ "process_model", "thread" },
-		{ "server_bind", "" },
 		{"coredump_enabled", "systemdefault"},
-		{"socketspec", "v1", CONFIGSETTING_NONEMPTY},
+		{"socketspec", "", CONFIGSETTING_OBSOLETE},
 		{"ical_listen", "*:8080"},
 		{"icals_listen", ""},
-		{"ical_port", "8080", CONFIGSETTING_NONEMPTY | CONFIGSETTING_OBSOLETE},
-		{"ical_enable", "yes", CONFIGSETTING_NONEMPTY | CONFIGSETTING_OBSOLETE},
-		{"icals_port", "8443", CONFIGSETTING_NONEMPTY | CONFIGSETTING_OBSOLETE},
-		{"icals_enable", "no", CONFIGSETTING_NONEMPTY | CONFIGSETTING_OBSOLETE},
 		{ "enable_ical_get", "yes", CONFIGSETTING_RELOADABLE },
 		{ "server_socket", "http://localhost:236/" },
 		{ "server_timezone","Europe/Amsterdam"},
@@ -332,23 +327,8 @@ exit:
 static HRESULT ical_listen(ECConfig *cfg)
 {
 	std::set<std::string, ec_bindaddr_less> ical_sock, icals_sock;
-	auto ss = cfg->GetSetting("socketspec");
-	if (strcmp(ss, "v2") == 0) {
-		ical_sock  = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("ical_listen"), ' ', true));
-		icals_sock = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("icals_listen"), ' ', true));
-	} else if (strcmp(ss, "v1") == 0) {
-		auto addr = cfg->GetSetting("server_bind");
-		if (parseBool(cfg->GetSetting("ical_enable"))) {
-			auto port = cfg->GetSetting("ical_port");
-			if (port[0] != '\0')
-				ical_sock.emplace("["s + addr + "]:" + port);
-		}
-		if (parseBool(cfg->GetSetting("icals_enable"))) {
-			auto port = cfg->GetSetting("icals_port");
-			if (port[0] != '\0')
-				icals_sock.emplace("["s + addr + "]:" + port);
-		}
-	}
+	ical_sock  = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("ical_listen"), ' ', true));
+	icals_sock = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("icals_listen"), ' ', true));
 
 	if (!icals_sock.empty()) {
 		auto hr = ECChannel::HrSetCtx(g_lpConfig.get());

@@ -11,10 +11,18 @@ Enhancements:
 * kopano-ibrule: new utility for MAPI rules [KC-1229]
 Changes:
 * dagent: ignore OP_REPLY/OP_FORWARD for autoreplies [KC-1244]
-* daemons: to use the new socket spec ("ical_listen", "imap_listen",
-  "server_listen", etc.), config files need "socketspec=v2" now to
-  clearly disambiguate the mode of operation against the old "ical_port",
-  "imap_port", etc.)
+* server: the directives "socketspec", "server_tcp_enabled", "server_tcp_port",
+  "server_ssl_enabled", "server_ssl_port" and "server_bind" have been removed
+  in favor of "server_listen" and "server_listen_tls".
+* dagent: the directives "socketspec", "lmtp_port" and "server_bind" have been
+  removed in favor of "lmtp_listen".
+* gateway: the directives "socketspec", "imap_enabled", "imap_port",
+  "imaps_enabled", "imaps_port", "pop3_enabled", "pop3_port", "pop3s_enabled",
+  "pop3s_port" and "server_bind" have been removed in favor of "imap_listen",
+  "imaps_listen", "pop3_listen" and "pop3s_listen".
+* ical: the directives "socketspec", "ical_enable", "ical_port",
+  "icals_enable", "icals_port" and "server_bind" have been removed in favor of
+  "ical_listen" and "icals_listen".
 Packaging changes:
 * The MySQL 8 C API is now supported at build time [KC-1237]
 

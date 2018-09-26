@@ -66,11 +66,6 @@ Include and process
 Example: !include common.cfg
 .RE
 .SH "EXPLANATION OF EACH PARAMETER"
-.SS server_bind
-.PP
-Bind to a particular IP address. Leave empty to bind to all addresses.
-.PP
-Default: (empty)
 .SS server_socket
 .PP
 Unix socket to find the connection to the Kopano server.
@@ -118,13 +113,6 @@ Default: value not set.
 The password of the SSL key file that is set in sslkey_file.
 .PP
 Default: value not set.
-.SS socketspec
-.PP
-This directive is for the purpose of backwards compatibility with old config
-files. It selects whether listening sockets are defined by the historic or
-modern directives. (Old config files do not have this directive, and that is
-how they are detected.) This directive ought to be set to \fBv2\fP so that
-\fBlmtp_listen\fP is used.
 .SS lmtp_listen
 .PP
 A space-separated list of address:port specifiers for where the server should
@@ -152,12 +140,6 @@ And in postfix's main.cf, a transport line might look like:
 .nf
 	virtual_transport = lmtp:unix:/var/spool/kopano/dagent.sock
 .fi
-.SS lmtp_port
-.PP
-This historic directive specifies a single TCP port to bind to, on the
-wildcard address. It is obsoleted by lmtp_listen.
-.PP
-Default: (none)
 .SS lmtp_max_threads
 .PP
 The maximum number of LMTP threads that can be running simultaneously. This is also limited by your SMTP server. (20 is the postfix default concurrency limit)

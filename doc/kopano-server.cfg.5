@@ -66,29 +66,12 @@ Include and process
 Example: !include common.cfg
 .RE
 .SH "EXPLANATION OF THE SERVER SETTINGS PARAMETERS"
-.SS socketspec
-.PP
-This directive is for the purpose of backwards compatibility with old config
-files. It selects whether listening sockets are defined by the historic or
-modern directives. (Old config files do not have this directive, and that is
-how they are detected.) This directive ought to be set to \fBv2\fP so that
-\fBserver_listen\fP and \fBserver_listen_tls\fP are used.
-.PP
-Default: \fIv1\fP
 .SS server_listen
 .PP
 A space-separated list of address:port specifiers for where the server should
 listen for unencrypted connections. IPv6 addresses need to be enclosed in
 brackets (as in \fB[2001:db8::1]:236\fP), and the asterisk is the
 multi-protocol address wildcard.
-.SS server_bind
-.PP
-This historic directive specifies a single IPv4/IPv6 address to bind to. Its
-use is discouraged in favor of \fBserver_listen\fP and \fBserver_listen_tls\fP.
-.SS server_tcp_enabled, server_tcp_port
-These historic directive specify the single port to bind to for unencrypted
-connections. Their use is discouraged in favor of \fBserver_listen\fP. The
-address is mandated by \fBserver_bind\fP.
 .SS server_pipe_enabled
 .PP
 Enable Unix pipe connections. Should not be disabled.
@@ -414,10 +397,6 @@ listen for TLS connections, similar to the \fBserver_listen\fP directive. The
 default value is empty, which means no ports will be listened on for TLS. When
 this option is used, you must set the SSL key options correctly, otherwise the
 server not start.
-.SS server_ssl_enabled, server_ssl_port
-These historic directive specify the single port to bind to for SSL
-connections. Their use is discouraged in favor of \fBserver_listen_tls\fP. The
-address is mandated by \fBserver_bind\fP.
 .SS server_ssl_key_file
 .PP
 The file containing the private key and certificate. Please read the SSL section in the
