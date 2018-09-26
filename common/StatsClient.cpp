@@ -105,6 +105,9 @@ void ECStatsCollector::submit(std::string &&url)
 		case SCDT_TIMESTAMP:
 			root[i.second.name] = static_cast<Json::Value::Int64>(i.second.data.ts);
 			break;
+		case SCDT_STRING:
+			root[i.second.name] = i.second.strdata;
+			break;
 		}
 	}
 
@@ -235,6 +238,16 @@ void ECStatsCollector::SetTime(SCName name, time_t set)
 	iSD->second.data.ts = set;
 }
 
+void ECStatsCollector::set(SCName name, const std::string &s)
+{
+	auto i = m_StatData.find(name);
+	if (i == m_StatData.cend())
+		return;
+	assert(i->second.type == SCDT_STRING);
+	scoped_lock lk(i->second.lock);
+	i->second.strdata = s;
+}
+
 void ECStatsCollector::Max(SCName name, LONGLONG max)
 {
 	auto iSD = m_StatData.find(name);
@@ -287,6 +300,8 @@ std::string ECStatsCollector::GetValue(const SCMap::const_iterator::value_type &
 		strftime(timestamp, sizeof timestamp, "%a %b %e %T %Y", tm);
 		return timestamp;
 	}
+	case SCDT_STRING:
+		return iSD.second.strdata;
 	}
 	return "";
 }

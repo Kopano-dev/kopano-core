@@ -102,7 +102,7 @@ union SCData {
 	time_t ts;
 };
 
-enum SCType { SCDT_FLOAT, SCDT_LONGLONG, SCDT_TIMESTAMP };
+enum SCType { SCDT_FLOAT, SCDT_LONGLONG, SCDT_TIMESTAMP, SCDT_STRING };
 
 struct ECStat {
 	SCData data;
@@ -110,6 +110,7 @@ struct ECStat {
 	SCType type;
 	const char *name, *description;
 	std::mutex lock;
+	std::string strdata;
 };
 
 typedef std::map<SCName, ECStat> SCMap;
@@ -130,6 +131,7 @@ class _kc_export ECStatsCollector {
 	void Set(SCName name, double set);
 	void Set(SCName name, LONGLONG set);
 	void SetTime(SCName name, time_t set);
+	void set(SCName, const std::string &);
 	void Max(SCName name, LONGLONG max);
 	void Avg(SCName name, double add);
 	void Avg(SCName name, LONGLONG add);
