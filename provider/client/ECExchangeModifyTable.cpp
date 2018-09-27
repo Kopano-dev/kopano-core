@@ -397,7 +397,7 @@ HRESULT	ECExchangeModifyTable::HrSerializeTable(ECMemTable *lpTable, char **lppS
 
 	auto laters = make_scope_success([&]() {
 		if(lpSOAPRowSet)
-			FreeRowSet(lpSOAPRowSet, true);
+			FreeRowSet(lpSOAPRowSet);
 		soap_destroy(&soap);
 		soap_end(&soap); // clean up allocated temporaries
 	});

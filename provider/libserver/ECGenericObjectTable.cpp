@@ -240,7 +240,7 @@ ECRESULT ECGenericObjectTable::FindRow(struct restrictTable *rt,
 
 		// Get the rowdata from the QueryRowData function
 		struct rowSet *lpRowSet = nullptr;
-		auto rowset_clean = make_scope_success([&]() { FreeRowSet(lpRowSet, true); });
+		auto rowset_clean = make_scope_success([&]() { FreeRowSet(lpRowSet); });
 		er = m_lpfnQueryRowData(this, NULL, lpSession, &ecRowList, lpPropTags, m_lpObjectData, &lpRowSet, true, false);
 		if(er != erSuccess)
 			return er;
@@ -853,7 +853,7 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 			++ulLoaded;
 		}
 
-		FreeRowSet(lpRowSet, true);
+		FreeRowSet(lpRowSet);
 		lpRowSet = NULL;
 	}
 
@@ -861,7 +861,7 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 		*lpulLoaded = ulLoaded;
 exit:
 	biglock.unlock();
-	FreeRowSet(lpRowSet, true);
+	FreeRowSet(lpRowSet);
 	if(lpsRestrictPropTagArray != NULL)
 		s_free(nullptr, lpsRestrictPropTagArray->__ptr);
 	s_free(nullptr, lpsRestrictPropTagArray);
@@ -907,7 +907,7 @@ ECRESULT ECGenericObjectTable::AddTableNotif(ECKeyTable::UpdateType ulAction, sO
 
     if(ulAction == ECKeyTable::TABLE_ROW_ADD || ulAction == ECKeyTable::TABLE_ROW_MODIFY) {
 		lstItems.emplace_back(sRowItem);
-		auto cleanup = make_scope_success([&]() { FreeRowSet(lpRowSetNotif, true); });
+		auto cleanup = make_scope_success([&]() { FreeRowSet(lpRowSetNotif); });
 		er = m_lpfnQueryRowData(this, nullptr, lpSession, &lstItems, lpsPropTagArray, m_lpObjectData, &lpRowSetNotif, true, true);
         if(er != erSuccess)
 			return er;

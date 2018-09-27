@@ -28,7 +28,7 @@ extern ECRESULT CopyPropTagArray(struct soap *soap, const struct propTagArray* l
 extern void FreePropTagArray(struct propTagArray *lpsPropTags, bool bFreeBase = true);
 
 // RowSets
-void				FreeRowSet(struct rowSet *lpRowSet, bool bBasePointerDel);
+extern void FreeRowSet(struct rowSet *);
 
 // Restrictions
 extern ECRESULT FreeRestrictTable(struct restrictTable *lpRestrict, bool base = true);

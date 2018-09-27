@@ -218,7 +218,7 @@ static ECRESULT RunSubRestriction(ECSession *lpSession, const void *lpECODStore,
 
 exit:
     if(lpRowSet)
-        FreeRowSet(lpRowSet, true);
+		FreeRowSet(lpRowSet);
     if(lpPropTags)
         FreePropTagArray(lpPropTags);
 

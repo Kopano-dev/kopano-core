@@ -1010,7 +1010,7 @@ HRESULT CopyMAPIRowSetToSOAPRowSet(const SRowSet *lpRowSetSrc,
 		for (unsigned int i = 0; i < lpRowSetSrc->cRows; ++i) {
 			auto hr = CopyMAPIRowToSOAPRow(&lpRowSetSrc->aRow[i], &lpsRowSetDst->__ptr[i], lpConverter);
 			if (hr != hrSuccess) {
-				FreeRowSet(lpsRowSetDst, true);
+				FreeRowSet(lpsRowSetDst);
 				return hr;
 			}
 			++lpsRowSetDst->__size;
