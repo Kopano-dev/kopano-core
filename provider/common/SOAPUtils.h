@@ -64,7 +64,6 @@ ECRESULT			FreeEntryId(entryId* lpEntryId, bool bFreeBase);
 // Notification
 ECRESULT			FreeNotificationStruct(notification *lpNotification, bool bFreeBase=true);
 ECRESULT			CopyNotificationStruct(struct soap *, const notification *from, notification &to);
-
 ECRESULT			FreeNotificationArrayStruct(notificationArray *lpNotifyArray, bool bFreeBase);
 ECRESULT			CopyNotificationArrayStruct(notificationArray *lpNotifyArrayFrom, notificationArray *lpNotifyArrayTo);
 
@@ -83,11 +82,9 @@ ECRESULT			CopyCompanyDetailsToSoap(unsigned int ulId, entryId *lpCompanyEid, un
 											 const objectdetails_t &details, bool bCopyBinary, struct soap *soap, struct company *lpCompany);
 ECRESULT			CopyCompanyDetailsFromSoap(struct company *lpCompany, std::string *lpstrExternId, unsigned int ulAdmin,
 											   objectdetails_t *details, struct soap *soap);
-
 ULONG 				NormalizePropTag(ULONG ulPropTag);
 
 const char *GetSourceAddr(struct soap *soap);
-
 size_t SearchCriteriaSize(const struct searchCriteria *);
 size_t RestrictTableSize(const struct restrictTable *);
 size_t PropValArraySize(const struct propValArray *);
@@ -97,14 +94,12 @@ size_t NotificationStructSize(const notification *);
 size_t PropTagArraySize(const struct propTagArray *);
 size_t SortOrderArraySize(const struct sortOrderArray *);
 
-class DynamicPropValArray _kc_final {
+class DynamicPropValArray final {
 public:
     DynamicPropValArray(struct soap *soap, unsigned int ulHint = 10);
     ~DynamicPropValArray();
-    
     // Copies the passed propVal
     ECRESULT AddPropVal(struct propVal &propVal);
-    
     // Return a propvalarray of all properties passed
     ECRESULT GetPropValArray(struct propValArray *lpPropValArray, bool release = true);
 
@@ -117,12 +112,11 @@ private:
 	unsigned int m_ulPropCount = 0;
 };
 
-class DynamicPropTagArray _kc_final {
+class DynamicPropTagArray final {
 public:
     DynamicPropTagArray(struct soap *soap);
     ECRESULT AddPropTag(unsigned int ulPropTag);
     BOOL HasPropTag(unsigned int ulPropTag) const;
-    
     ECRESULT GetPropTagArray(struct propTagArray *lpPropTagArray);
     
 private:
