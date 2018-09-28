@@ -119,6 +119,7 @@ ECRESULT ECSessionManager::LoadSettings(){
 		return KCERR_NOT_FOUND;
 
 	memcpy(&m_ullSourceKeyAutoIncrement, lpDBRow[0], sizeof(m_ullSourceKeyAutoIncrement));
+	m_ullSourceKeyAutoIncrement = le64_to_cpu(m_ullSourceKeyAutoIncrement);
 	m_sguid_set = true;
 
 	er = ECAttachmentConfig::create(m_server_guid, m_lpConfig, &unique_tie(m_atxconfig));
@@ -1048,6 +1049,7 @@ ECRESULT ECSessionManager::SaveSourceKeyAutoIncrement(unsigned long long ullNewS
 	auto er = CreateDatabaseConnection();
 	if(er != erSuccess)
 		return er;
+	ullNewSourceKeyAutoIncrement = cpu_to_le64(ullNewSourceKeyAutoIncrement);
 	std::string strQuery = "UPDATE `settings` SET `value` = " + m_lpDatabase->EscapeBinary(reinterpret_cast<unsigned char *>(&ullNewSourceKeyAutoIncrement), 8) + " WHERE `name` = 'source_key_auto_increment'";
 	return m_lpDatabase->DoUpdate(strQuery);
 	// @TODO if this failed we want to retry this
