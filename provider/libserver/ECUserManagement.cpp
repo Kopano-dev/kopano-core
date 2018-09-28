@@ -350,8 +350,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 	// Extern -> Local
 	std::map<objectid_t, unsigned int> mapExternIdToLocal;
 	std::map<objectid_t, std::pair<unsigned int, std::string> > mapSignatureIdToLocal;
-	objectid_t extcompany;
-	objectid_t externid;
+	objectid_t extcompany, externid;
 	std::string signature;
 	unsigned ulObjectId = 0;
 	bool bMoved = false;
@@ -812,8 +811,7 @@ ECRESULT ECUserManagement::CreateOrModifyObject(const objectid_t &sExternId, con
  */
 ECRESULT ECUserManagement::AddSubObjectToObjectAndSync(userobject_relation_t relation, unsigned int ulParentId, unsigned int ulChildId) {
 	ABEID eid(MAPI_ABCONT, MUIDECSAB, 1);
-	objectid_t parentid;
-	objectid_t childid;
+	objectid_t parentid, childid;
 	SOURCEKEY sSourceKey;
 	UserPlugin *lpPlugin = NULL;
 
@@ -869,8 +867,7 @@ ECRESULT ECUserManagement::AddSubObjectToObjectAndSync(userobject_relation_t rel
 
 ECRESULT ECUserManagement::DeleteSubObjectFromObjectAndSync(userobject_relation_t relation, unsigned int ulParentId, unsigned int ulChildId) {
 	ABEID eid(MAPI_ABCONT, MUIDECSAB, 1);
-	objectid_t parentid;
-	objectid_t childid;
+	objectid_t parentid, childid;
 	SOURCEKEY sSourceKey;
 	UserPlugin *lpPlugin = NULL;
 
@@ -1072,8 +1069,7 @@ ECRESULT ECUserManagement::GetLocalObjectDetails(unsigned int ulId,
     objectdetails_t *lpDetails) const
 {
 	ECRESULT er = erSuccess;
-	objectdetails_t sDetails;
-	objectdetails_t	sPublicStoreDetails;
+	objectdetails_t sDetails, sPublicStoreDetails;
 	ECSecurity *lpSecurity = NULL;
 
 	if(ulId == KOPANO_UID_SYSTEM) {
@@ -1789,8 +1785,7 @@ ECRESULT ECUserManagement::GetUserAndCompanyFromLoginName(const std::string &str
 	ECRESULT er = erSuccess;
 	std::string format = m_lpConfig->GetSetting("loginname_format");
 	bool bHosted = m_lpSession->GetSessionManager()->IsHostedSupported();
-	size_t pos_u = format.find("%u");
-	size_t pos_c = format.find("%c");
+	size_t pos_u = format.find("%u"), pos_c = format.find("%c");
 
 	if (!bHosted || pos_u == std::string::npos || pos_c == std::string::npos) {
 		/* When hosted is enabled, return a warning. Otherwise,

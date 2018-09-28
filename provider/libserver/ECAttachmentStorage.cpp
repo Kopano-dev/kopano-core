@@ -846,9 +846,7 @@ ECRESULT ECDatabaseAttachment::SaveAttachmentInstance(const ext_siid &ulInstance
     ULONG ulPropId, size_t iSize, unsigned char *lpData)
 {
 	// make chunks of 393216 bytes (384*1024)
-	size_t iSizeLeft = iSize;
-	size_t iPtr = 0;
-	size_t ulChunk = 0;
+	size_t iSizeLeft = iSize, iPtr = 0, ulChunk = 0;
 
 	do {
 		size_t iChunkSize = iSizeLeft < CHUNK_SIZE ? iSizeLeft : CHUNK_SIZE;
@@ -888,8 +886,7 @@ ECRESULT ECDatabaseAttachment::SaveAttachmentInstance(const ext_siid &ulInstance
 	unsigned char szBuffer[CHUNK_SIZE] = {0};
 
 	// make chunks of 393216 bytes (384*1024)
-	size_t iSizeLeft = iSize;
-	size_t ulChunk = 0;
+	size_t iSizeLeft = iSize, ulChunk = 0;
 
 	while (iSizeLeft > 0) {
 		size_t iChunkSize = iSizeLeft < CHUNK_SIZE ? iSizeLeft : CHUNK_SIZE;
@@ -1031,8 +1028,7 @@ static ssize_t gzread_retry(gzFile fp, void *data, size_t uclen)
 		 * Save @errno now, since gzerror() code looks prone to
 		 * reset it.
 		 */
-		int saved_errno = errno;
-		int zerror;
+		int saved_errno = errno, zerror;
 		const char *zerrstr = gzerror(fp, &zerror);
 
 		if (ret < 0 && zerror == Z_ERRNO &&
@@ -1073,8 +1069,7 @@ static ssize_t gzwrite_retry(gzFile fp, const void *data, size_t uclen)
 	while (uclen > 0) {
 		int chunk_size = (uclen > INT_MAX) ? INT_MAX : uclen;
 		int ret = gzwrite(fp, buf, chunk_size);
-		int saved_errno = errno;
-		int zerror;
+		int saved_errno = errno, zerror;
 		const char *zerrstr = gzerror(fp, &zerror);
 
 		if (ret < 0 && zerror == Z_ERRNO &&
@@ -1609,8 +1604,7 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(const ext_siid &ulInstanceId,
 
 		if (er == erSuccess) {
 			if (gzflush(gzfp, 0)) {
-				int saved_errno = errno;
-				int zerror;
+				int saved_errno = errno, zerror;
 				const char *zstrerr = gzerror(gzfp, &zerror);
 				ec_log_err("gzflush failed: %s (%d)", zstrerr, zerror);
 				if (zerror == Z_ERRNO)
@@ -1661,11 +1655,9 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(const ext_siid &ulInstanceId,
 			iSizeLeft -= iChunkSize;
 		}
 
-		if (er == erSuccess) {
-			if (force_changes_to_disk && !force_buffers_to_disk(fd)) {
-				ec_log_warn("Problem syncing file \"%s\": %s", filename.c_str(), strerror(errno));
-				er = KCERR_DATABASE_ERROR;
-			}
+		if (er == erSuccess && force_changes_to_disk && !force_buffers_to_disk(fd)) {
+			ec_log_warn("Problem syncing file \"%s\": %s", filename.c_str(), strerror(errno));
+			er = KCERR_DATABASE_ERROR;
 		}
 
 		close(fd);

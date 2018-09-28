@@ -339,8 +339,7 @@ ECRESULT ECABObjectTable::Load()
 
 	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
 	std::list<unsigned int> lstObjects;
-	unsigned int ulObjectId = 0;
-	unsigned int ulObjectFilter = 0;
+	unsigned int ulObjectId = 0, ulObjectFilter = 0;
 	objectid_t objectid;
 
 	// If the GAB is disabled, don't show any entries except the top-level object

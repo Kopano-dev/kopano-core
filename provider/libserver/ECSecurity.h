@@ -85,8 +85,7 @@ protected:
 	unsigned int m_ulUserID = 0; // current user id
 	unsigned int m_ulImpersonatorID = 0; // id of user that is impersonating the current user
 	unsigned int m_ulCompanyID = 0; // Company to which the user belongs to
-	objectdetails_t		m_details;
-    objectdetails_t 	m_impersonatorDetails;
+	objectdetails_t m_details, m_impersonatorDetails;
 	bool				m_bRestrictedAdmin; // True if restricted admin permissions enabled
 	bool 				m_bOwnerAutoFullAccess;
 	std::unique_ptr<std::list<localobjectdetails_t>> m_lpGroups; // current user groups

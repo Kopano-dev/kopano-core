@@ -17,9 +17,7 @@
 namespace KC {
 
 struct statstrings {
-	std::string name;
-	std::string description;
-	std::string value;
+	std::string name, description, value;
 };
 
 class ECSystemStatsTable final : public ECGenericObjectTable {
@@ -43,20 +41,12 @@ private:
 struct sessiondata {
 	ECSESSIONID sessionid;
 	ECSESSIONGROUPID sessiongroupid;
-	std::string srcaddress;
-	unsigned int port;
-	unsigned int idletime;
-	unsigned int capability;
+	unsigned int port, idletime, capability, requests;
 	bool locked;
 	int peerpid;
-	std::string username;
 	std::list<BUSYSTATE> busystates;
 	double dblUser, dblSystem, dblReal;
-	std::string version;
-	std::string clientapp;
-	unsigned int requests;
-	std::string url;
-	std::string proxyhost;
+	std::string srcaddress, username, version, clientapp, url, proxyhost;
 	std::string client_application_version, client_application_misc;
 };
 

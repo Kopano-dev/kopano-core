@@ -2031,8 +2031,7 @@ ECRESULT ECGenericObjectTable::SetSortKey(sObjectTableKey* lpsRowItem, unsigned 
 ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, struct propVal *lpProps, unsigned int cProps, unsigned int ulFlags, bool fUnread, bool *lpfHidden, ECCategory **lppCategory)
 {
     ECRESULT er = erSuccess;
-    bool fPrevUnread = false;
-    bool fNewLeaf = false;
+	bool fPrevUnread = false, fNewLeaf = false, fCollapsed = false, fHidden = false;
     unsigned int i = 0;
     sObjectTableKey sPrevRow(0,0);
     ECCategory *lpCategory = NULL;
@@ -2042,8 +2041,6 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
     sObjectTableKey sCatRow;
     ECLeafMap::const_iterator iterLeafs;
     int fResult = 0;
-    bool fCollapsed = false;
-    bool fHidden = false;
 
     if(m_ulCategories == 0)
 		return erSuccess;

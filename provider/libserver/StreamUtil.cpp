@@ -649,8 +649,7 @@ static ECRESULT SerializePropVal(const StreamCaps *lpStreamCaps,
     const struct propVal &sPropVal, ECSerializer *lpSink,
     const NamedPropDefMap *lpNamedPropDefs)
 {
-	unsigned int type = PROP_TYPE(sPropVal.ulPropTag);
-	unsigned int ulPropTag = sPropVal.ulPropTag;
+	unsigned int type = PROP_TYPE(sPropVal.ulPropTag), ulPropTag = sPropVal.ulPropTag;
 	convert_context converter;
 	NamedPropDefMap::const_iterator iNamedPropDef;
 
@@ -968,8 +967,7 @@ exit:
 ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, ECAttachmentStorage *lpAttachmentStorage, LPCSTREAMCAPS lpStreamCaps, unsigned int ulObjId, unsigned int ulObjType, unsigned int ulStoreId, GUID *lpsGuid, ULONG ulFlags, ECSerializer *lpSink, bool bTop)
 {
 	ECRESULT		er = erSuccess;
-	unsigned int	ulStreamVersion = STREAM_VERSION;
-	unsigned int	ulCount = 0;
+	unsigned int ulStreamVersion = STREAM_VERSION, ulCount = 0;
 	ChildPropsMap	mapChildProps;
 	NamedPropDefMap	mapNamedPropDefs;
 	DB_RESULT lpDBResult, lpDBResultAttachment;

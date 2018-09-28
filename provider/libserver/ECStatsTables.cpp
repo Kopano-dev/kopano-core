@@ -95,10 +95,8 @@ void ECSystemStatsTable::load_tcmalloc(void)
 
 ECRESULT ECSystemStatsTable::Load()
 {
-	unsigned int ulQueueLen = 0;
+	unsigned int ulQueueLen = 0, ulThreads = 0, ulIdleThreads = 0;
 	KC::time_duration age(0);
-	unsigned int ulThreads = 0;
-	unsigned int ulIdleThreads = 0;
 	usercount_t userCount;
 
 	id = 0;

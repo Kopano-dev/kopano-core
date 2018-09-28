@@ -43,13 +43,10 @@ struct TABLE_ENTRY {
 
 	union {
 		struct {
-			unsigned int ulParentId;
-			unsigned int ulObjectType;
-			unsigned int ulObjectFlags;
+			unsigned int ulParentId, ulObjectType, ulObjectFlags;
 		} sGeneric ;
 		struct {
-			unsigned int ulStoreId;
-			unsigned int ulFlags;
+			unsigned int ulStoreId, ulFlags;
 		} sOutgoingQueue;
 	} sTable;
 	ECGenericObjectTable *lpTable; // Actual table object
