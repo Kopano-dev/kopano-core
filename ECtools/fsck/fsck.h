@@ -29,19 +29,16 @@ public:
 	virtual ~Fsck(void) = default;
 	HRESULT ValidateMessage(LPMESSAGE lpMessage, const std::string &strName, const std::string &strClass);
 	HRESULT ValidateFolder(LPMAPIFOLDER lpFolder, const std::string &strName);
-
 	HRESULT AddMissingProperty(LPMESSAGE lpMessage, const std::string &strName, ULONG ulTag, __UPV Value);
 	HRESULT ReplaceProperty(LPMESSAGE lpMessage, const std::string &strName, ULONG ulTag, const std::string &strError, __UPV Value);
-
 	HRESULT DeleteRecipientList(LPMESSAGE lpMessage, std::list<unsigned int> &mapiReciptDel, bool &bChanged);
 	HRESULT DeleteMessage(LPMAPIFOLDER folder, const SPropValue *prop);
 	HRESULT ValidateRecursiveDuplicateRecipients(LPMESSAGE lpMessage, bool &bChanged);
 	HRESULT ValidateDuplicateRecipients(LPMESSAGE lpMessage, bool &bChanged);
-
 	void PrintStatistics(const std::string &title);
 };
 
-class FsckCalendar _kc_final : public Fsck {
+class FsckCalendar final : public Fsck {
 private:
 	HRESULT ValidateItem(LPMESSAGE lpMessage, const std::string &strClass) _kc_override;
 	HRESULT ValidateMinimalNamedFields(LPMESSAGE lpMessage);
@@ -49,13 +46,13 @@ private:
 	HRESULT ValidateRecurrence(LPMESSAGE lpMessage);
 };
 
-class FsckContact _kc_final : public Fsck {
+class FsckContact final : public Fsck {
 private:
 	HRESULT ValidateItem(LPMESSAGE lpMessage, const std::string &strClass) _kc_override;
 	HRESULT ValidateContactNames(LPMESSAGE lpMessage);
 };
 
-class FsckTask _kc_final : public Fsck {
+class FsckTask final : public Fsck {
 private:
 	HRESULT ValidateItem(LPMESSAGE lpMessage, const std::string &strClass) _kc_override;
 	HRESULT ValidateMinimalNamedFields(LPMESSAGE lpMessage);

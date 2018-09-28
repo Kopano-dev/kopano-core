@@ -29,14 +29,12 @@ static bool ReadYesNoMessage(const std::string &strMessage,
 	string strReply;
 
 	cout << strMessage << " [yes/no]: ";
-
 	if (strAuto.empty())
 		getline(cin, strReply);
 	else {
 		cout << strAuto << endl;
 		strReply = strAuto;
 	}
-
 	return (strReply[0] == 'y' || strReply[0] == 'Y');
 }
 
@@ -47,11 +45,9 @@ static HRESULT DeleteEntry(LPMAPIFOLDER lpFolder,
 	HRESULT hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~lpEntryList);
 	if (hr != hrSuccess)
 		goto exit;
-
 	hr = MAPIAllocateMore(sizeof(SBinary), lpEntryList, (void**)&lpEntryList->lpbin);
 	if (hr != hrSuccess)
 		goto exit;
-
 	lpEntryList->cValues = 1;
 	lpEntryList->lpbin[0] = lpItemProperty->Value.bin;
 	hr = lpFolder->DeleteMessages(lpEntryList, 0, NULL, 0);
@@ -61,7 +57,6 @@ exit:
 		cout << "Item deleted." << endl;
 	else
 		cout << "Failed to delete entry." << endl;
-
 	return hr;
 }
 
@@ -131,8 +126,7 @@ static HRESULT ProcessFolderEntry(Fsck *lpFsck, LPMAPIFOLDER lpFolder,
 	HRESULT hr = hrSuccess;
 	object_ptr<IMessage> lpMessage;
 	ULONG ulObjectType = 0;
-	string strName;
-	string strClass;
+	std::string strName, strClass;
 
 	auto lpItemProperty = lpRow->cfind(PR_ENTRYID);
 	if (!lpItemProperty) {
@@ -146,19 +140,15 @@ static HRESULT ProcessFolderEntry(Fsck *lpFsck, LPMAPIFOLDER lpFolder,
 		cout << "Failed to open EntryID." << endl;
 		goto exit;
 	}
-
 	hr = DetectFolderEntryDetails(lpMessage, &strName, &strClass);
 	if (hr != hrSuccess)
 		goto exit;
-
 	hr = lpFsck->ValidateMessage(lpMessage, strName, strClass);
 	if (hr != hrSuccess)
 		goto exit;
-
 exit:
 	if (hr != hrSuccess)
 		hr = lpFsck->DeleteMessage(lpFolder, lpItemProperty);
-
 	return hr;
 }
 
@@ -167,13 +157,11 @@ static HRESULT ProcessFolder(Fsck *lpFsck, LPMAPIFOLDER lpFolder,
 {
 	object_ptr<IMAPITable> lpTable;
 	ULONG ulCount;
-
 	HRESULT hr = lpFolder->GetContentsTable(0, &~lpTable);
  	if(hr != hrSuccess) {
 		cout << "Failed to open Folder table." << endl;
 		return hr;
 	}
-
 	/*
 	 * Check if we have found at least *something*.
 	 */
@@ -196,7 +184,6 @@ static HRESULT ProcessFolder(Fsck *lpFsck, LPMAPIFOLDER lpFolder,
 			return hr;
 		if (lpRows->cRows == 0)
 			break;
-
 		for (ULONG i = 0; i < lpRows->cRows; ++i) {
 			hr = ProcessFolderEntry(lpFsck, lpFolder, &lpRows[i]);
 			if (hr != hrSuccess)
@@ -217,7 +204,6 @@ HRESULT Fsck::ValidateMessage(LPMESSAGE lpMessage,
 	++ulEntries;
 	auto hr = ValidateItem(lpMessage, strClass);
 	cout << "Validating of entry \"" << strName << "\" ended" << endl;
-
 	return hr;
 }
 
@@ -228,7 +214,6 @@ HRESULT Fsck::ValidateFolder(LPMAPIFOLDER lpFolder,
 	++ulFolders;
 	HRESULT hr = ProcessFolder(this, lpFolder, strName);
 	cout << "Validating of folder \"" << strName << "\" ended" << endl;
-
 	return hr;
 }
 
@@ -404,7 +389,6 @@ HRESULT Fsck::ValidateDuplicateRecipients(LPMESSAGE lpMessage, bool &bChanged)
 				mapiReciptDel.emplace_back(pRows[i].lpProps[0].Value.ul);
 				continue;
 			}
-
 			// Invalid or missing entryid
 			if (pRows[i].lpProps[4].ulPropTag != PR_ENTRYID ||
 			    pRows[i].lpProps[4].Value.bin.cb == 0) {
