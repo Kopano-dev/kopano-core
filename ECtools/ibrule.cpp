@@ -192,9 +192,9 @@ static void ibr_show_actions(unsigned int level, const ACTIONS &al)
 static void ibr_show_res_content(unsigned int level, const SContentRestriction &ct)
 {
 	switch (ct.ulFuzzyLevel & 0xffff) {
-	case FL_FULLSTRING: printf(" FL_FULLSTRING");
-	case FL_SUBSTRING: printf(" FL_SUBSTRING");
-	case FL_PREFIX: printf(" FL_PREFIX");
+	case FL_FULLSTRING: printf(" FL_FULLSTRING"); break;
+	case FL_SUBSTRING: printf(" FL_SUBSTRING"); break;
+	case FL_PREFIX: printf(" FL_PREFIX"); break;
 	}
 	if (ct.ulFuzzyLevel & FL_IGNORECASE)
 		printf(" FL_IGNORECASE");
