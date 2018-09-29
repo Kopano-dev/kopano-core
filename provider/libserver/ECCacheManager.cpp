@@ -274,7 +274,7 @@ ECRESULT ECCacheManager::SetObject(unsigned int ulObjId, unsigned int ulParent, 
 	sObjects.ulType		= ulType;
 
 	scoped_rlock lock(m_hCacheObjectMutex);
-	auto er = m_ObjectsCache.AddCacheItem(ulObjId, sObjects);
+	auto er = m_ObjectsCache.AddCacheItem(ulObjId, std::move(sObjects));
 	LOG_CACHE_DEBUG("Set cache object id %d, parent %d, owner %d, flags %d, type %d", ulObjId, ulParent, ulOwner, ulFlags, ulType);
 	return er;
 }
@@ -312,7 +312,7 @@ ECRESULT ECCacheManager::SetStore(unsigned int ulObjId, unsigned int ulStore,
 	sStores.ulType = ulType;
 
 	scoped_rlock lock(m_hCacheStoreMutex);
-	auto er = m_StoresCache.AddCacheItem(ulObjId, sStores);
+	auto er = m_StoresCache.AddCacheItem(ulObjId, std::move(sStores));
 	LOG_CACHE_DEBUG("Set store cache id %d, store %d, type %d, guid %s", ulObjId, ulStore, ulType, (lpGuid != nullptr ? bin2hex(sizeof(GUID), lpGuid).c_str() : "NULL"));
 	return er;
 }
@@ -854,7 +854,7 @@ ECRESULT ECCacheManager::I_AddUserObject(unsigned int ulUserId,
 	sData.ulCompanyId = ulCompanyId;
 	sData.strExternId = strExternId;
 	sData.strSignature = strSignature;
-	return m_UserObjectCache.AddCacheItem(ulUserId, sData);
+	return m_UserObjectCache.AddCacheItem(ulUserId, std::move(sData));
 }
 
 ECRESULT ECCacheManager::I_GetUserObject(unsigned int ulUserId,
@@ -897,7 +897,7 @@ ECRESULT ECCacheManager::I_AddUserObjectDetails(unsigned int ulUserId,
 	scoped_rlock lock(m_hCacheMutex);
 	LOG_USERCACHE_DEBUG("_Add user details. userid %d, %s", ulUserId, details.ToStr().c_str());
 	sObjectDetails.sDetails = details;
-	return m_UserObjectDetailsCache.AddCacheItem(ulUserId, sObjectDetails);
+	return m_UserObjectDetailsCache.AddCacheItem(ulUserId, std::move(sObjectDetails));
 }
 
 ECRESULT ECCacheManager::I_GetUserObjectDetails(unsigned int ulUserId, objectdetails_t *details)
@@ -941,7 +941,7 @@ ECRESULT ECCacheManager::I_AddUEIdObject(const std::string &strExternId,
 
 	sKey.ulClass = ulClass;
 	sKey.strExternId = strExternId;
-	return m_UEIdObjectCache.AddCacheItem(sKey, sData);
+	return m_UEIdObjectCache.AddCacheItem(sKey, std::move(sData));
 }
 
 ECRESULT ECCacheManager::I_GetUEIdObject(const std::string &strExternId,
@@ -1086,7 +1086,7 @@ ECRESULT ECCacheManager::SetACLs(unsigned int ulObjId,
     }
 
 	scoped_rlock lock(m_hCacheMutex);
-	return m_AclCache.AddCacheItem(ulObjId, sACLs);
+	return m_AclCache.AddCacheItem(ulObjId, std::move(sACLs));
 }
 
 ECRESULT ECCacheManager::I_DelACLs(unsigned int ulObjId)
@@ -1110,8 +1110,8 @@ ECRESULT ECCacheManager::SetQuota(unsigned int ulUserId, bool bIsDefaultQuota,
 	sQuota.quota = quota;
 	scoped_rlock lock(m_hCacheMutex);
 	if (bIsDefaultQuota)
-		return m_QuotaUserDefaultCache.AddCacheItem(ulUserId, sQuota);
-	return m_QuotaCache.AddCacheItem(ulUserId, sQuota);
+		return m_QuotaUserDefaultCache.AddCacheItem(ulUserId, std::move(sQuota));
+	return m_QuotaCache.AddCacheItem(ulUserId, std::move(sQuota));
 }
 
 ECRESULT ECCacheManager::I_GetQuota(unsigned int ulUserId, bool bIsDefaultQuota, quotadetails_t *quota)
@@ -1266,7 +1266,7 @@ ECRESULT ECCacheManager::SetCell(const sObjectTableKey *lpsRowItem,
     } else {
         ECsCells sNewCell;
         sNewCell.AddPropVal(ulPropTag, lpSrc);
-		er = m_CellCache.AddCacheItem(lpsRowItem->ulObjId, sNewCell);
+		er = m_CellCache.AddCacheItem(lpsRowItem->ulObjId, std::move(sNewCell));
     }
 	if (er != erSuccess)
 		LOG_CELLCACHE_DEBUG("Set cell object %d tag 0x%08X error 0x%08X", lpsRowItem->ulObjId, ulPropTag, er);
@@ -1384,7 +1384,7 @@ ECRESULT ECCacheManager::SetServerDetails(const std::string &strServerId, const 
 	sEntry.sDetails = sDetails;
 
 	scoped_rlock lock(m_hCacheMutex);
-	return m_ServerDetailsCache.AddCacheItem(strToLower(strServerId), sEntry);
+	return m_ServerDetailsCache.AddCacheItem(strToLower(strServerId), std::move(sEntry));
 }
 
 ECRESULT ECCacheManager::RemoveIndexData(unsigned int ulObjId)
