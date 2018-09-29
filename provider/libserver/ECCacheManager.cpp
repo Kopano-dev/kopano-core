@@ -1775,4 +1775,127 @@ void ECCacheManager::EnableCellCache()
 	m_bCellCacheDisabled = false;
 }
 
+ECsCells::ECsCells(const ECsCells &src)
+{
+	struct propVal val;
+	for (const auto &p : src.mapPropVals) {
+		CopyPropVal(const_cast<struct propVal *>(&p.second), &val);
+		mapPropVals[p.first] = val;
+	}
+	m_bComplete = src.m_bComplete;
+}
+
+ECsCells::~ECsCells() {
+	for (auto &p : mapPropVals)
+		FreePropVal(&p.second, false);
+}
+
+ECsCells &ECsCells::operator=(const ECsCells &src)
+{
+	struct propVal val;
+	for (auto &p : mapPropVals)
+		FreePropVal(&p.second, false);
+	mapPropVals.clear();
+	for (const auto &p : src.mapPropVals) {
+		CopyPropVal(const_cast<struct propVal *>(&p.second), &val);
+		mapPropVals[p.first] = val;
+	}
+	m_bComplete = src.m_bComplete;
+	return *this;
+}
+
+/* Add a property value for this object */
+void ECsCells::AddPropVal(unsigned int ulPropTag, const struct propVal *lpPropVal)
+{
+	struct propVal val;
+	ulPropTag = NormalizeDBPropTag(ulPropTag); /* Only cache PT_STRING8 */
+	CopyPropVal(lpPropVal, &val, nullptr, false);
+	val.ulPropTag = NormalizeDBPropTag(val.ulPropTag);
+	auto res = mapPropVals.emplace(ulPropTag, val);
+	if (!res.second) {
+		FreePropVal(&res.first->second, false);
+		res.first->second = val; /* reassign */
+	}
+}
+
+/* get a property value for this object */
+bool ECsCells::GetPropVal(unsigned int ulPropTag, struct propVal *lpPropVal,
+    struct soap *soap, bool truncate) const
+{
+	auto i = mapPropVals.find(NormalizeDBPropTag(ulPropTag));
+	if (i == mapPropVals.cend())
+		return false;
+	CopyPropVal(&i->second, lpPropVal, soap, truncate);
+	if (NormalizeDBPropTag(ulPropTag) == lpPropVal->ulPropTag)
+		/* Switch back to requested type (not on PT_ERROR of course) */
+		lpPropVal->ulPropTag = ulPropTag;
+	return true;
+}
+
+std::vector<unsigned int> ECsCells::GetPropTags() const
+{
+	std::vector<unsigned int> result;
+	result.reserve(mapPropVals.size());
+	for (const auto &p : mapPropVals)
+		result.push_back(p.first);
+	return result;
+}
+
+/* Updates a LONG type property */
+void ECsCells::UpdatePropVal(unsigned int ulPropTag, int lDelta)
+{
+	if (PROP_TYPE(ulPropTag) != PT_LONG && PROP_TYPE(ulPropTag) != PT_LONGLONG)
+		return;
+	auto i = mapPropVals.find(ulPropTag);
+	if (i == mapPropVals.cend())
+		return;
+	if (PROP_TYPE(i->second.ulPropTag) == PT_LONG)
+		i->second.Value.ul += lDelta;
+	if (PROP_TYPE(i->second.ulPropTag) == PT_LONGLONG)
+		i->second.Value.li += lDelta;
+}
+
+/* Updates a LONG type property */
+void ECsCells::UpdatePropVal(unsigned int ulPropTag, unsigned int ulMask,
+    unsigned int ulValue)
+{
+	if (PROP_TYPE(ulPropTag) != PT_LONG && PROP_TYPE(ulPropTag) != PT_LONGLONG)
+		return;
+	auto i = mapPropVals.find(ulPropTag);
+	if (i == mapPropVals.cend())
+		return;
+	if (PROP_TYPE(i->second.ulPropTag) == PT_LONG) {
+		i->second.Value.ul &= ~ulMask;
+		i->second.Value.ul |= ulValue & ulMask;
+	}
+	if (PROP_TYPE(i->second.ulPropTag) == PT_LONGLONG) {
+		i->second.Value.li &= ~ulMask;
+		i->second.Value.li |= ulValue & ulMask;
+	}
+}
+
+size_t ECsCells::GetSize() const
+{
+	size_t ulSize = 0;
+
+	for (const auto &p : mapPropVals) {
+		switch (p.second.__union) {
+		case SOAP_UNION_propValData_lpszA:
+			ulSize += p.second.Value.lpszA != nullptr ? strlen(p.second.Value.lpszA) : 0;
+			break;
+		case SOAP_UNION_propValData_bin:
+			ulSize += p.second.Value.bin != nullptr ? p.second.Value.bin->__size + sizeof(p.second.Value.bin[0]) : 0;
+			break;
+		case SOAP_UNION_propValData_hilo:
+			ulSize += sizeof(p.second.Value.hilo[0]);
+			break;
+		default:
+			break;
+		}
+		ulSize += sizeof(std::map<unsigned int, struct propVal>::value_type);
+	}
+	ulSize += sizeof(*this);
+	return ulSize;
+}
+
 } /* namespace */
