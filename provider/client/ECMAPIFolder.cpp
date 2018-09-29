@@ -12,6 +12,7 @@
 #include "ECMessage.h"
 #include "ECMAPIFolder.h"
 #include "ECMAPITable.h"
+#include "ECMsgStorePublic.h"
 #include "ECExchangeModifyTable.h"
 #include "ECExchangeImportHierarchyChanges.h"
 #include "ECExchangeImportContentsChanges.h"
@@ -403,6 +404,14 @@ HRESULT ECMAPIFolder::CreateMessageWithEntryID(const IID *lpInterface,
 
 HRESULT ECMAPIFolder::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, LPVOID lpDestFolder, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags)
 {
+	return CopyMessages2(ECSTORE_TYPE_PRIVATE, lpMsgList, lpInterface,
+	       lpDestFolder, ulUIParam, lpProgress, ulFlags);
+}
+
+HRESULT ECMAPIFolder::CopyMessages2(unsigned int ftype, ENTRYLIST *lpMsgList,
+    const IID *lpInterface, void *lpDestFolder, unsigned int ulUIParam,
+    IMAPIProgress *lpProgress, unsigned int ulFlags)
+{
 	if (lpMsgList == nullptr || lpMsgList->cValues == 0)
 		return hrSuccess;
 	if (lpMsgList->lpbin == nullptr)
@@ -430,11 +439,18 @@ HRESULT ECMAPIFolder::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, LP
 		return hr;
 
 	// Get the destination entry ID, and check for favories public folders, so get PR_ORIGINAL_ENTRYID first.
-	hr = HrGetOneProp(lpMapiFolder, PR_ORIGINAL_ENTRYID, &~lpDestPropArray);
-	if (hr != hrSuccess)
+	if (ftype == ECSTORE_TYPE_PRIVATE)
+		hr = HrGetOneProp(lpMapiFolder, PR_ORIGINAL_ENTRYID, &~lpDestPropArray);
+	if (hr != hrSuccess || ftype == ECSTORE_TYPE_PUBLIC)
 		hr = HrGetOneProp(lpMapiFolder, PR_ENTRYID, &~lpDestPropArray);
 	if (hr != hrSuccess)
 		return hr;
+	unsigned int result = false;
+	if (ftype == ECSTORE_TYPE_PUBLIC &&
+	    static_cast<ECMsgStorePublic *>(GetMsgStore())->ComparePublicEntryId(ePE_PublicFolders,
+	    lpDestPropArray[0].Value.bin.cb, reinterpret_cast<const ENTRYID *>(lpDestPropArray[0].Value.bin.lpb), &result) == hrSuccess &&
+	    result == true)
+		return MAPI_E_NO_ACCESS;
 
 	// Check if the destination entryid is a kopano entryid and if there is a folder transport
 	if (!IsKopanoEntryId(lpDestPropArray[0].Value.bin.cb, lpDestPropArray[0].Value.bin.lpb) ||

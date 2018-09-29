@@ -426,38 +426,8 @@ HRESULT ECMAPIFolderPublic::DeleteFolder(ULONG cbEntryID,
 
 HRESULT ECMAPIFolderPublic::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, LPVOID lpDestFolder, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags)
 {
-	if (lpMsgList == nullptr || lpMsgList->cValues == 0)
-		return hrSuccess;
-	if (lpMsgList->lpbin == nullptr)
-		return MAPI_E_INVALID_PARAMETER;
-
-	HRESULT hr = hrSuccess;
-	ULONG ulResult = 0;
-	object_ptr<IMAPIFolder> lpMapiFolder;
-	memory_ptr<SPropValue> lpPropArray;
-
-	//Get the interface of destinationfolder
-	if(lpInterface == NULL || *lpInterface == IID_IMAPIFolder)
-		lpMapiFolder.reset(static_cast<IMAPIFolder *>(lpDestFolder));
-	else if(*lpInterface == IID_IMAPIContainer)
-		hr = ((IMAPIContainer*)lpDestFolder)->QueryInterface(IID_IMAPIFolder, &~lpMapiFolder);
-	else if(*lpInterface == IID_IUnknown)
-		hr = ((IUnknown*)lpDestFolder)->QueryInterface(IID_IMAPIFolder, &~lpMapiFolder);
-	else if(*lpInterface == IID_IMAPIProp)
-		hr = ((IMAPIProp*)lpDestFolder)->QueryInterface(IID_IMAPIFolder, &~lpMapiFolder);
-	else
-		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
-	if(hr != hrSuccess)
-		return hr;
-
-	// Get the destination entry ID
-	hr = HrGetOneProp(lpMapiFolder, PR_ENTRYID, &~lpPropArray);
-	if(hr != hrSuccess)
-		return hr;
-	// if the destination is the publicfolders entryid, just block
-	if(((ECMsgStorePublic*)GetMsgStore())->ComparePublicEntryId(ePE_PublicFolders, lpPropArray[0].Value.bin.cb, (LPENTRYID)lpPropArray[0].Value.bin.lpb, &ulResult) == hrSuccess && ulResult == TRUE)
-		return MAPI_E_NO_ACCESS;
-	return ECMAPIFolder::CopyMessages(lpMsgList, lpInterface, lpDestFolder, ulUIParam, lpProgress, ulFlags);
+	return ECMAPIFolder::CopyMessages2(ECSTORE_TYPE_PUBLIC, lpMsgList,
+	       lpInterface, lpDestFolder, ulUIParam, lpProgress, ulFlags);
 }
 
 HRESULT ECMAPIFolderPublic::CreateMessage(LPCIID lpInterface, ULONG ulFlags, LPMESSAGE *lppMessage)

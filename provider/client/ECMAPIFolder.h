@@ -71,6 +71,8 @@ public:
 	virtual HRESULT UpdateMessageFromStream(ULONG sync_id, ULONG eid_size, const ENTRYID *eid, const SPropValue *conflict, WSMessageStreamImporter **);
 
 protected:
+	HRESULT CopyMessages2(unsigned int ftype, ENTRYLIST *, const IID *intf, void *dst_fld, unsigned int ui_param, IMAPIProgress *, unsigned int flags);
+
 	KC::object_ptr<IMAPIAdviseSink> m_lpFolderAdviseSink;
 	KC::object_ptr<WSMAPIFolderOps> lpFolderOps;
 	ULONG m_ulConnection = 0;
