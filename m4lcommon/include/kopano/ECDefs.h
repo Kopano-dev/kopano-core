@@ -153,10 +153,7 @@ typedef struct MVPROPMAP *LPMVPROPMAP;
 
 struct ECUSER {
 	LPTSTR			lpszUsername;	// username@companyname
-	LPTSTR			lpszPassword;
-	LPTSTR			lpszMailAddress;
-	LPTSTR			lpszFullName;
-	LPTSTR			lpszServername;
+	TCHAR *lpszPassword, *lpszMailAddress, *lpszFullName, *lpszServername;
 	objectclass_t	ulObjClass;
 	unsigned int	ulIsAdmin;		// See userobject_admin_level_t
 	unsigned int	ulIsABHidden;	// Is user hidden from address book
@@ -168,8 +165,7 @@ struct ECUSER {
 
 struct ECGROUP {
 	LPTSTR			lpszGroupname; // groupname@companyname
-	LPTSTR			lpszFullname;
-	LPTSTR			lpszFullEmail;
+	TCHAR *lpszFullname, *lpszFullEmail;
 	SBinary sGroupId;
 	unsigned int	ulIsABHidden;	// Is group hidden from address book
 	SPROPMAP		sPropmap;		// Extra anonymous properties for addressbook
@@ -178,8 +174,7 @@ struct ECGROUP {
 
 struct ECCOMPANY {
 	SBinary sAdministrator; // userid of the administrator
-	LPTSTR			lpszCompanyname;
-	LPTSTR			lpszServername;
+	TCHAR *lpszCompanyname, *lpszServername;
 	SBinary sCompanyId;
 	unsigned int	ulIsABHidden;	// Is company hidden from address book
 	SPROPMAP		sPropmap;		// Extra anonymous properties for addressbook
@@ -201,18 +196,14 @@ struct ECUSERCLIENTUPDATESTATUS {
 #define UPDATE_STATUS_FAILED    3
 
 struct ECPERMISSION {
-	unsigned int	ulType;
-	unsigned int	ulRights;
-	unsigned int	ulState;
+	unsigned int ulType, ulRights, ulState;
 	SBinary sUserId;
 };
 
 struct ECQUOTA {
 	bool			bUseDefaultQuota;
 	bool			bIsUserDefaultQuota; // Default quota for users within company
-	int64_t		llWarnSize;
-	int64_t		llSoftSize;
-	int64_t		llHardSize;
+	int64_t llWarnSize, llSoftSize, llHardSize;
 };
 
 struct ECQUOTASTATUS {
@@ -221,11 +212,7 @@ struct ECQUOTASTATUS {
 };
 
 struct ECSERVER {
-	LPTSTR	lpszName;
-	LPTSTR	lpszFilePath;
-	LPTSTR	lpszHttpPath;
-	LPTSTR	lpszSslPath;
-	LPTSTR	lpszPreferedPath;
+	TCHAR *lpszName, *lpszFilePath, *lpszHttpPath, *lpszSslPath, *lpszPreferedPath;
 	ULONG	ulFlags;
 };
 
