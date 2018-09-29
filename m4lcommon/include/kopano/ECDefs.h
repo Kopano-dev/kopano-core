@@ -186,15 +186,6 @@ struct ECCOMPANY {
 	MVPROPMAP		sMVPropmap;		// Extra anonymous MV properties for addressbook
 };
 
-struct ECUSERCLIENTUPDATESTATUS {
-	unsigned int	ulTrackId;
-	time_t			tUpdatetime;
-	LPTSTR			lpszCurrentversion;
-	LPTSTR			lpszLatestversion;
-	LPTSTR			lpszComputername;
-	unsigned int 	ulStatus;
-};
-
 #define UPDATE_STATUS_UNKNOWN	0
 #define UPDATE_STATUS_SUCCESS   1
 #define UPDATE_STATUS_PENDING   2

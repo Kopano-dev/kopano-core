@@ -121,7 +121,6 @@ void Init()
 	PyTypeECGroup = PyObject_GetAttrString(lpMAPIStruct, "ECGROUP");
 	PyTypeECCompany = PyObject_GetAttrString(lpMAPIStruct, "ECCOMPANY");
 	PyTypeECQuota = PyObject_GetAttrString(lpMAPIStruct, "ECQUOTA");
-	PyTypeECUserClientUpdateStatus = PyObject_GetAttrString(lpMAPIStruct, "ECUSERCLIENTUPDATESTATUS");
 	PyTypeECServer = PyObject_GetAttrString(lpMAPIStruct, "ECSERVER");
 	PyTypeECQuotaStatus = PyObject_GetAttrString(lpMAPIStruct, "ECQUOTASTATUS");
 
@@ -2263,12 +2262,6 @@ PyObject *List_from_LPECCOMPANY(ECCOMPANY *lpCompany, ULONG cElements,
 		PyList_Append(list, item);
 	}
 	return list.release();
-}
-
-PyObject *Object_from_LPECUSERCLIENTUPDATESTATUS(ECUSERCLIENTUPDATESTATUS *lpECUCUS)
-{
-	// @todo charset conversion ?
-	return PyObject_CallFunction(PyTypeECUserClientUpdateStatus, "(llsssl)", lpECUCUS->ulTrackId, lpECUCUS->tUpdatetime, lpECUCUS->lpszCurrentversion, lpECUCUS->lpszLatestversion, lpECUCUS->lpszComputername, lpECUCUS->ulStatus);
 }
 
 LPROWLIST List_to_LPROWLIST(PyObject *object, ULONG ulFlags)
