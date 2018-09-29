@@ -743,10 +743,9 @@ HRESULT ECQuotaMonitor::CreateRecipientList(ULONG cToUsers, ECUSER *lpToUsers,
 		return hr;
 	lpAddrList->cEntries = 0;
 	for (ULONG i = 0; i < cToUsers; ++i) {
-		lpAddrList->aEntries[i].cValues = 7;
-
-		hr = MAPIAllocateBuffer(sizeof(SPropValue) * lpAddrList->aEntries[i].cValues,
-						  (void**)&lpAddrList->aEntries[i].rgPropVals);
+		auto &ent = lpAddrList->aEntries[i];
+		ent.cValues = 7;
+		hr = MAPIAllocateBuffer(sizeof(SPropValue) * ent.cValues, reinterpret_cast<void **>(&ent.rgPropVals));
 		if (hr != hrSuccess)
 			return hr;
 
@@ -760,28 +759,25 @@ HRESULT ECQuotaMonitor::CreateRecipientList(ULONG cToUsers, ECUSER *lpToUsers,
 		if (hr != hrSuccess)
 			return kc_perror("Failed creating email searchkey", hr);
 
-		lpAddrList->aEntries[i].rgPropVals[0].ulPropTag = PR_ROWID;
-		lpAddrList->aEntries[i].rgPropVals[0].Value.l = 0;
-
-		lpAddrList->aEntries[i].rgPropVals[1].ulPropTag = PR_RECIPIENT_TYPE;
-		lpAddrList->aEntries[i].rgPropVals[1].Value.l = ((i == 0) ? MAPI_TO : MAPI_CC);
-
-		lpAddrList->aEntries[i].rgPropVals[2].ulPropTag = PR_DISPLAY_NAME_A;
-		lpAddrList->aEntries[i].rgPropVals[2].Value.lpszA = (LPSTR)(lpToUsers[i].lpszFullName ? lpToUsers[i].lpszFullName : lpToUsers[i].lpszUsername);
-
-		lpAddrList->aEntries[i].rgPropVals[3].ulPropTag = PR_EMAIL_ADDRESS_A;
-		lpAddrList->aEntries[i].rgPropVals[3].Value.lpszA = (lpToUsers[i].lpszMailAddress ? (LPSTR)lpToUsers[i].lpszMailAddress : (LPSTR)"");
-
-		lpAddrList->aEntries[i].rgPropVals[4].ulPropTag = PR_ADDRTYPE_A;
-		lpAddrList->aEntries[i].rgPropVals[4].Value.lpszA = const_cast<char *>("SMTP");
-		lpAddrList->aEntries[i].rgPropVals[5].ulPropTag = PR_ENTRYID;
-		lpAddrList->aEntries[i].rgPropVals[5].Value.bin.cb = cbUserEntryid;
-		hr = KAllocCopy(lpUserEntryid, cbUserEntryid, reinterpret_cast<void **>(&lpAddrList->aEntries[i].rgPropVals[5].Value.bin.lpb), lpAddrList->aEntries[i].rgPropVals);
+		auto &pv = ent.rgPropVals;
+		pv[0].ulPropTag    = PR_ROWID;
+		pv[0].Value.l      = 0;
+		pv[1].ulPropTag    = PR_RECIPIENT_TYPE;
+		pv[1].Value.l      = (i == 0) ? MAPI_TO : MAPI_CC;
+		pv[2].ulPropTag    = PR_DISPLAY_NAME_A;
+		pv[2].Value.lpszA  = reinterpret_cast<char *>(lpToUsers[i].lpszFullName != nullptr ? lpToUsers[i].lpszFullName : lpToUsers[i].lpszUsername);
+		pv[3].ulPropTag    = PR_EMAIL_ADDRESS_A;
+		pv[3].Value.lpszA  = (lpToUsers[i].lpszMailAddress != nullptr) ? reinterpret_cast<char *>(lpToUsers[i].lpszMailAddress) : const_cast<char *>("");
+		pv[4].ulPropTag    = PR_ADDRTYPE_A;
+		pv[4].Value.lpszA  = const_cast<char *>("SMTP");
+		pv[5].ulPropTag    = PR_ENTRYID;
+		pv[5].Value.bin.cb = cbUserEntryid;
+		hr = KAllocCopy(lpUserEntryid, cbUserEntryid, reinterpret_cast<void **>(&pv[5].Value.bin.lpb), pv);
 		if (hr != hrSuccess)
 			return hr;
-		lpAddrList->aEntries[i].rgPropVals[6].ulPropTag = PR_SEARCH_KEY;
-		lpAddrList->aEntries[i].rgPropVals[6].Value.bin.cb = cbUserSearchKey;
-		hr = KAllocCopy(lpUserSearchKey, cbUserSearchKey, reinterpret_cast<void **>(&lpAddrList->aEntries[i].rgPropVals[6].Value.bin.lpb), lpAddrList->aEntries[i].rgPropVals);
+		pv[6].ulPropTag = PR_SEARCH_KEY;
+		pv[6].Value.bin.cb = cbUserSearchKey;
+		hr = KAllocCopy(lpUserSearchKey, cbUserSearchKey, reinterpret_cast<void **>(&pv[6].Value.bin.lpb), pv);
 		if (hr != hrSuccess)
 			return hr;
 	}
