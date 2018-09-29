@@ -176,14 +176,10 @@ public:
  */
 class ECRecipient {
 public:
-	ECRecipient(const std::string &wstrName) : wstrRCPT(wstrName)
+	ECRecipient(const std::string &wstrName) :
+		wstrRCPT(wstrName), vwstrRecipients{wstrName}
 	{
 		/* strRCPT must match recipient string from LMTP caller */
-		vwstrRecipients.emplace_back(wstrName);
-		sEntryId.cb = 0;
-		sEntryId.lpb = NULL;
-		sSearchKey.cb = 0;
-		sSearchKey.lpb = NULL;
 	}
 
 	~ECRecipient()
@@ -215,7 +211,7 @@ public:
 	std::wstring wstrServerDisplayName;
 	std::string wstrDeliveryStatus, strAddrType, strSMTP;
 	unsigned int ulDisplayType = 0, ulAdminLevel = 0;
-	SBinary sEntryId, sSearchKey;
+	SBinary sEntryId{}, sSearchKey{};
 	bool bHasIMAP = false;
 };
 
@@ -708,10 +704,7 @@ static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
  */
 static HRESULT ResolveUser(IABContainer *lpAddrFolder, ECRecipient *lpRecip)
 {
-	recipients_t list;
-
-	/* Simple wrapper around ResolveUsers */
-	list.emplace(lpRecip);
+	recipients_t list = {lpRecip};
 	auto hr = ResolveUsers(lpAddrFolder, &list);
 	if (hr != hrSuccess)
 		return kc_perrorf("ResolveUsers failed", hr);
