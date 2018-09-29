@@ -381,19 +381,6 @@ static int parse_yesno(const char *opt)
 	return opt[0] == 'y' || opt[0] == '1';
 }
 
-static std::string UnixtimeToString(time_t timestamp)
-{
-	tm local;
-	char d[64];
-
-	memset(d, 0, sizeof(d));
-
-	localtime_r(&timestamp, &local);
-	strftime(d, sizeof(d), "%c", &local);
-
-	return d;
-}
-
 /**
  * Print quota levels and/or store size.
  *
@@ -795,7 +782,7 @@ static void adm_oof_status(const SPropValue *const prop)
  */
 static void print_user_settings(IMsgStore *lpStore, const ECUSER *lpECUser,
     bool bAutoAccept, bool bDeclineConflict, bool bDeclineRecur,
-    const ArchiveList &lstArchives, const ECUSERCLIENTUPDATESTATUS *lpECUCUS)
+    const ArchiveList &lstArchives)
 {
 	memory_ptr<SPropValue> lpProps;
 	static constexpr const SizedSPropTagArray(6, sptaProps) =
@@ -866,24 +853,6 @@ static void print_user_settings(IMsgStore *lpStore, const ECUSER *lpECUser,
 			cout << endl;
 		}
 	}
-
-	if (lpECUCUS == nullptr || lpECUCUS->ulTrackId <= 0)
-		return;
-
-	cout << "Client update Information:" << endl;
-	cout << " Trackid:\t\t" << (lpECUCUS->ulTrackId != 0 ? stringify_hex(lpECUCUS->ulTrackId).c_str() : "-" ) << endl;
-	cout << " Last update:\t\t" << ( (lpECUCUS->tUpdatetime>0) ? UnixtimeToString(lpECUCUS->tUpdatetime) : "-" ) << endl;
-	cout << " From version:\t\t" << ( (lpECUCUS->lpszCurrentversion) ? (LPSTR)lpECUCUS->lpszCurrentversion : "-" ) << endl;
-	cout << " To version:\t\t" << ( (lpECUCUS->lpszLatestversion) ? (LPSTR)lpECUCUS->lpszLatestversion : "-" ) << endl;
-	cout << " Computername:\t\t" << ( (lpECUCUS->lpszComputername) ? (LPSTR)lpECUCUS->lpszComputername : "-" ) << endl;
-	if (lpECUCUS->ulStatus == UPDATE_STATUS_SUCCESS)
-		cout << " Update:\t\tSuccess" << endl;
-	else if (lpECUCUS->ulStatus == UPDATE_STATUS_PENDING)
-		cout << " Update:\t\tPending" << endl;
-	else if (lpECUCUS->ulStatus == UPDATE_STATUS_UNKNOWN)
-		cout << " Update: \t\tUnknown" << endl;
-	else
-		cout << " Update:\t\tFailed" << endl;
 }
 
 /**
@@ -963,7 +932,6 @@ static HRESULT print_details(LPMAPISESSION lpSession,
 	memory_ptr<ENTRYID> lpObjectId;
 	ArchiveManagePtr ptrArchiveManage;
 	ArchiveList lstArchives;
-	memory_ptr<ECUSERCLIENTUPDATESTATUS> lpECUCUS;
 	convert_context converter;
 	HRESULT hr = hrSuccess;
 
@@ -1094,14 +1062,7 @@ static HRESULT print_details(LPMAPISESSION lpSession,
 				hr = hrSuccess; /* Don't make error fatal */
 			}
 		}
-		hr = lpServiceAdmin->GetUserClientUpdateStatus(cbObjectId, lpObjectId, 0, &~lpECUCUS);
-		if (hr != hrSuccess) {
-			cerr << "Unable to get auto update status: " <<
-				GetMAPIErrorMessage(hr) << " (" <<
-				stringify_hex(hr) << ")" << endl;
-			hr = hrSuccess;
-		}
-		print_user_settings(lpStore, lpECUser, bAutoAccept, bDeclineConflict, bDeclineRecurring, lstArchives, lpECUCUS);
+		print_user_settings(lpStore, lpECUser, bAutoAccept, bDeclineConflict, bDeclineRecurring, lstArchives);
 		break;
 	}
 

@@ -2103,13 +2103,6 @@ HRESULT ECMsgStore::DelSendAsUser(ULONG cbUserId, const ENTRYID *lpUserId,
 	return lpTransport->HrDelSendAsUser(cbUserId, lpUserId, cbSenderId, lpSenderId);
 }
 
-HRESULT ECMsgStore::GetUserClientUpdateStatus(ULONG cbUserId,
-    const ENTRYID *lpUserId, ULONG ulFlags,
-    ECUSERCLIENTUPDATESTATUS **lppECUCUS)
-{
-	return lpTransport->HrGetUserClientUpdateStatus(cbUserId, lpUserId, ulFlags, lppECUCUS);
-}
-
 HRESULT ECMsgStore::RemoveAllObjects(ULONG cbUserId, const ENTRYID *lpUserId)
 {
 	return lpTransport->HrRemoveAllObjects(cbUserId, lpUserId);

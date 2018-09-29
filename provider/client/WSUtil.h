@@ -33,7 +33,6 @@ HRESULT CopySOAPEntryIdToMAPIEntryId(const entryId *lpSrc, ULONG ulObjId, ULONG 
 HRESULT CopySOAPEntryIdToMAPIEntryId(const entryId *lpSrc, ULONG ulObjId, ULONG ulType, ULONG *lpcbDest, LPENTRYID *lppEntryIdDest, void *lpBase = NULL);
 HRESULT CopyMAPIEntryListToSOAPEntryList(const ENTRYLIST *lpMsgList, struct entryList *lpsEntryList);
 HRESULT CopySOAPEntryListToMAPIEntryList(const struct entryList *lpsEntryList, LPENTRYLIST *lppMsgList);
-extern HRESULT CopyUserClientUpdateStatusFromSOAP(struct userClientUpdateStatusResponse &, ULONG flags, KC::ECUSERCLIENTUPDATESTATUS **);
 HRESULT FreeABProps(struct propmapPairArray *lpsoapPropmap, struct propmapMVPairArray *lpsoapMVPropmap);
 extern HRESULT CopyABPropsToSoap(const KC::SPROPMAP *, const KC::MVPROPMAP *, ULONG flags, struct propmapPairArray **, struct propmapMVPairArray **);
 extern HRESULT CopyABPropsFromSoap(const struct propmapPairArray *, const struct propmapMVPairArray *, KC::SPROPMAP *, KC::MVPROPMAP *, void *base, ULONG flags);

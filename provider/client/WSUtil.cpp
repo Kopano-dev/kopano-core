@@ -2233,36 +2233,6 @@ HRESULT CopyICSChangeToSOAPSourceKeys(ULONG cbChanges,
 	return hrSuccess;
 }
 
-HRESULT CopyUserClientUpdateStatusFromSOAP(struct userClientUpdateStatusResponse &sUCUS,
-    ULONG ulFlags, ECUSERCLIENTUPDATESTATUS **lppECUCUS)
-{
-	memory_ptr<ECUSERCLIENTUPDATESTATUS> lpECUCUS;
-	convert_context converter;
-
-	auto hr = MAPIAllocateBuffer(sizeof(ECUSERCLIENTUPDATESTATUS), &~lpECUCUS);
-	if (hr != hrSuccess)
-		return hr;
-
-	memset(lpECUCUS, 0, sizeof(ECUSERCLIENTUPDATESTATUS));
-	lpECUCUS->ulTrackId = sUCUS.ulTrackId;
-	lpECUCUS->tUpdatetime = sUCUS.tUpdatetime;
-	lpECUCUS->ulStatus = sUCUS.ulStatus;
-
-	if (sUCUS.lpszCurrentversion)
-		hr = Utf8ToTString(sUCUS.lpszCurrentversion, ulFlags, lpECUCUS, &converter, &lpECUCUS->lpszCurrentversion);
-
-	if (hr == hrSuccess && sUCUS.lpszLatestversion)
-		hr = Utf8ToTString(sUCUS.lpszLatestversion, ulFlags, lpECUCUS, &converter, &lpECUCUS->lpszLatestversion);
-
-	if (hr == hrSuccess && sUCUS.lpszComputername)
-		hr = Utf8ToTString(sUCUS.lpszComputername,  ulFlags, lpECUCUS, &converter, &lpECUCUS->lpszComputername);
-
-	if (hr != hrSuccess)
-		return hr;
-	*lppECUCUS = lpECUCUS.release();
-	return hrSuccess;
-}
-
 static HRESULT ConvertString8ToUnicode(const char *lpszA, WCHAR **lppszW,
     void *base, convert_context &converter)
 {
