@@ -1561,7 +1561,8 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId, unsigned i
  * @param[in] cbSize Bytes in lpData
  * @return result
  */
-ECRESULT RemoveStaleIndexedProp(ECDatabase *lpDatabase, unsigned int ulPropTag, unsigned char *lpData, unsigned int cbSize)
+ECRESULT RemoveStaleIndexedProp(ECDatabase *lpDatabase, unsigned int ulPropTag,
+    const unsigned char *lpData, unsigned int cbSize)
 {
 	DB_RESULT lpDBResult;
 	unsigned int ulObjId = 0, ulStoreId = 0;

@@ -289,16 +289,16 @@ public:
 
 	// Read-through
 	ECRESULT GetPropFromObject(unsigned int ulTag, unsigned int ulObjId, struct soap *soap, unsigned int* lpcbData, unsigned char** lppData);
-	ECRESULT GetObjectFromProp(unsigned int ulTag, unsigned int cbData, unsigned char* lpData, unsigned int* lpulObjId);
+	ECRESULT GetObjectFromProp(unsigned int tag, unsigned int dsize, const unsigned char *data, unsigned int *objid);
 
 	ECRESULT RemoveIndexData(unsigned int ulObjId);
-	ECRESULT RemoveIndexData(unsigned int ulPropTag, unsigned int cbData, unsigned char *lpData);
+	ECRESULT RemoveIndexData(unsigned int ulPropTag, unsigned int cbData, const unsigned char *lpData);
 	ECRESULT RemoveIndexData(unsigned int ulPropTag, unsigned int ulObjId);
 
 	// Read cache only
-	ECRESULT QueryObjectFromProp(unsigned int ulTag, unsigned int cbData, unsigned char* lpData, unsigned int* lpulObjId);
+	ECRESULT QueryObjectFromProp(unsigned int tag, unsigned int dsize, const unsigned char *data, unsigned int *objid);
 
-	ECRESULT SetObjectProp(unsigned int ulTag, unsigned int cbData, unsigned char* lpData, unsigned int ulObjId);
+	ECRESULT SetObjectProp(unsigned int tag, unsigned int dsize, const unsigned char *data, unsigned int obj_id);
 	void ForEachCacheItem(void(callback)(const std::string &, const std::string &, const std::string &, void*), void *obj);
 	ECRESULT DumpStats();
 

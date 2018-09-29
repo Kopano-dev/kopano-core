@@ -1407,7 +1407,8 @@ ECRESULT ECCacheManager::RemoveIndexData(unsigned int ulObjId)
 	return er;
 }
 
-ECRESULT ECCacheManager::RemoveIndexData(unsigned int ulPropTag, unsigned int cbData, unsigned char *lpData)
+ECRESULT ECCacheManager::RemoveIndexData(unsigned int ulPropTag,
+    unsigned int cbData, const unsigned char *lpData)
 {
 	ECsIndexProp	sObject;
 	ECsIndexObject	*sObjectId;
@@ -1418,7 +1419,7 @@ ECRESULT ECCacheManager::RemoveIndexData(unsigned int ulPropTag, unsigned int cb
 	LOG_CACHE_DEBUG("Remove indexdata proptag 0x%08X, data %s", ulPropTag, bin2hex(cbData, lpData).c_str());
 	sObject.ulTag = PROP_ID(ulPropTag);
 	sObject.cbData = cbData;
-	sObject.lpData = lpData; // Cheap copy, Set this item on NULL before you exit
+	sObject.lpData = const_cast<unsigned char *>(lpData); /* Cheap copy, set this item to nullptr before exiting */
 
 	scoped_rlock lock(m_hCacheIndPropMutex);
         if(m_PropToObjectCache.GetCacheItem(sObject, &sObjectId) == erSuccess) {
@@ -1526,7 +1527,8 @@ exit:
 	return er;
 }
 
-ECRESULT ECCacheManager::GetObjectFromProp(unsigned int ulTag, unsigned int cbData, unsigned char* lpData, unsigned int* lpulObjId)
+ECRESULT ECCacheManager::GetObjectFromProp(unsigned int ulTag, unsigned int cbData,
+    const unsigned char *lpData, unsigned int *lpulObjId)
 {
 	ECRESULT		er = erSuccess;
 	DB_RESULT lpDBResult;
@@ -1565,7 +1567,7 @@ ECRESULT ECCacheManager::GetObjectFromProp(unsigned int ulTag, unsigned int cbDa
     sNewIndexObject.ulObjId = atoui(lpDBRow[0]);
 	sObject.ulTag = ulTag;
 	sObject.cbData = cbData;
-	sObject.lpData = lpData; // Cheap copy, Set this item on NULL before you exit
+	sObject.lpData = const_cast<unsigned char *>(lpData); /* Cheap copy, set this item to nullptr before exiting */
 	er = I_AddIndexData(sNewIndexObject, sObject);
 	if (er != erSuccess)
 		goto exit;
@@ -1579,7 +1581,8 @@ exit:
 	return er;
 }
 
-ECRESULT ECCacheManager::QueryObjectFromProp(unsigned int ulTag, unsigned int cbData, unsigned char* lpData, unsigned int* lpulObjId)
+ECRESULT ECCacheManager::QueryObjectFromProp(unsigned int ulTag, unsigned int cbData,
+    const unsigned char *lpData, unsigned int *lpulObjId)
 {
 	ECsIndexProp	sObject;
 	ECsIndexObject	*sIndexObject;
@@ -1589,7 +1592,7 @@ ECRESULT ECCacheManager::QueryObjectFromProp(unsigned int ulTag, unsigned int cb
 
 	sObject.ulTag = ulTag;
 	sObject.cbData = cbData;
-	sObject.lpData = lpData; // Cheap copy, Set this item on NULL before you exit
+	sObject.lpData = const_cast<unsigned char *>(lpData); /* Cheap copy, set this item to nullptr before exiting */
 
 	scoped_rlock lock(m_hCacheIndPropMutex);
 	auto er = m_PropToObjectCache.GetCacheItem(sObject, &sIndexObject);
@@ -1599,7 +1602,8 @@ ECRESULT ECCacheManager::QueryObjectFromProp(unsigned int ulTag, unsigned int cb
     return er;
 }
 
-ECRESULT ECCacheManager::SetObjectProp(unsigned int ulTag, unsigned int cbData, unsigned char *lpData, unsigned int ulObjId)
+ECRESULT ECCacheManager::SetObjectProp(unsigned int ulTag, unsigned int cbData,
+    const unsigned char *lpData, unsigned int ulObjId)
 {
     ECsIndexObject sObject;
     ECsIndexProp sProp;
