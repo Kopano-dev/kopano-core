@@ -389,20 +389,6 @@ namespace std {
 
 namespace KC {
 
-typedef std::unordered_map<unsigned int, ECsObjects> ECMapObjects;
-typedef std::unordered_map<unsigned int, ECsStores> ECMapStores;
-typedef std::unordered_map<unsigned int, ECsACLs> ECMapACLs;
-typedef std::unordered_map<unsigned int, ECsQuota> ECMapQuota;
-typedef std::unordered_map<unsigned int, ECsUserObject> ECMapUserObject; // userid to user object
-typedef std::map<ECsUEIdKey, ECsUEIdObject> ECMapUEIdObject; // user type + externid to user object
-typedef std::unordered_map<unsigned int, ECsUserObjectDetails> ECMapUserObjectDetails; // userid to user object data
-typedef std::map<std::string, ECsServerDetails> ECMapServerDetails;
-typedef std::unordered_map<unsigned int, ECsCells> ECMapCells;
-
-// Index properties
-typedef std::map<ECsIndexObject, ECsIndexProp> ECMapObjectToProp;
-typedef std::unordered_map<ECsIndexProp, ECsIndexObject> ECMapPropToObject;
-
 #define CACHE_NO_PARENT 0xFFFFFFFF
 
 class ECCacheManager final {
@@ -485,6 +471,9 @@ public:
 	void EnableCellCache();
 
 private:
+	typedef std::unordered_map<unsigned int, ECsQuota> ECMapQuota;
+	typedef std::map<ECsIndexObject, ECsIndexProp> ECMapObjectToProp;
+
 	// cache functions
 	ECRESULT I_GetACLs(unsigned int obj_id, struct rightsArray **);
 	ECRESULT I_DelACLs(unsigned int obj_id);
@@ -521,22 +510,22 @@ private:
 	ECCache<ECMapQuota>			m_QuotaCache;
 	ECCache<ECMapQuota>			m_QuotaUserDefaultCache;
 	// Object cache, (hierarchy table)
-	ECCache<ECMapObjects>		m_ObjectsCache;
+	ECCache<std::unordered_map<unsigned int, ECsObjects>> m_ObjectsCache;
 	// Store cache
-	ECCache<ECMapStores>		m_StoresCache;
+	ECCache<std::unordered_map<unsigned int, ECsStores>> m_StoresCache;
 	// User cache
-	ECCache<ECMapUserObject>	m_UserObjectCache;
-	ECCache<ECMapUEIdObject>	m_UEIdObjectCache;
-	ECCache<ECMapUserObjectDetails>	m_UserObjectDetailsCache;
+	ECCache<std::unordered_map<unsigned int, ECsUserObject>> m_UserObjectCache; /* userid to user object */
+	ECCache<std::map<ECsUEIdKey, ECsUEIdObject>> m_UEIdObjectCache; /* user type + externid to user object */
+	ECCache<std::unordered_map<unsigned int, ECsUserObjectDetails>>	m_UserObjectDetailsCache; /* userid to user obejct data */
 	// ACL cache
-	ECCache<ECMapACLs>			m_AclCache;
+	ECCache<std::unordered_map<unsigned int, ECsACLs>> m_AclCache;
 	// Cell cache, include the column data of a loaded table
-	ECCache<ECMapCells>			m_CellCache;
+	ECCache<std::unordered_map<unsigned int, ECsCells>> m_CellCache;
 	// Server cache
-	ECCache<ECMapServerDetails>	m_ServerDetailsCache;
+	ECCache<std::map<std::string, ECsServerDetails>> m_ServerDetailsCache;
 	//Index properties
-	ECCache<ECMapPropToObject>	m_PropToObjectCache;
-	ECCache<ECMapObjectToProp>	m_ObjectToPropCache;
+	ECCache<std::unordered_map<ECsIndexProp, ECsIndexObject>> m_PropToObjectCache;
+	ECCache<ECMapObjectToProp> m_ObjectToPropCache;
 	// Properties from kopano-search
 	std::set<unsigned int> 		m_setExcludedIndexProperties;
 	std::mutex m_hExcludedIndexPropertiesMutex;
