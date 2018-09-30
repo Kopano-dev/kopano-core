@@ -52,5 +52,6 @@ setup(name='kopano-search',
       packages=find_packages(),
       install_requires=[
       ],
-      cmdclass={'build_py': my_build_py}
+      cmdclass={'build_py': my_build_py},
+      data_files=[('kopano_search', ['kopano_search/xmltotext.xslt'])]
 )
