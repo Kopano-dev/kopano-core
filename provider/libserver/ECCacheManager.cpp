@@ -1943,17 +1943,17 @@ void ECsIndexProp::SetValue(unsigned int tag, const unsigned char *data, unsigne
 	memcpy(lpData, data, z);
 }
 
-void ECsIndexProp::Copy(const ECsIndexProp *src, ECsIndexProp *dst)
+void ECsIndexProp::Copy(const ECsIndexProp &src, ECsIndexProp &dst)
 {
-	if (src->lpData != nullptr && src->cbData > 0) {
-		dst->lpData = new unsigned char[src->cbData];
-		memcpy(dst->lpData, src->lpData, src->cbData);
-		dst->cbData = src->cbData;
+	if (src.lpData != nullptr && src.cbData > 0) {
+		dst.lpData = new unsigned char[src.cbData];
+		memcpy(dst.lpData, src.lpData, src.cbData);
+		dst.cbData = src.cbData;
 	} else {
-		dst->lpData = nullptr;
-		dst->cbData = 0;
+		dst.lpData = nullptr;
+		dst.cbData = 0;
 	}
-	dst->ulTag = src->ulTag;
+	dst.ulTag = src.ulTag;
 }
 
 } /* namespace */

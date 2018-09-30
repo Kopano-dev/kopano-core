@@ -105,9 +105,8 @@ public:
 	}
 
     ECsIndexProp(const ECsIndexProp &src) {
-        if(this == &src)
-            return;
-        Copy(&src, this);
+		if (this != &src)
+			Copy(src, *this);
     }
 
 	ECsIndexProp(ECsIndexProp &&o) :
@@ -126,7 +125,7 @@ public:
 		if (this == &src)
 			return *this;
 		Free();
-		Copy(&src, this);
+		Copy(src, *this);
 		return *this;
     }
 
@@ -142,7 +141,7 @@ protected:
 		lpData = NULL;
 	}
 
-	void Copy(const ECsIndexProp *src, ECsIndexProp *dst);
+	void Copy(const ECsIndexProp &src, ECsIndexProp &dst);
 
 public:
 	unsigned int ulTag = 0, cbData = 0;
