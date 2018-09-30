@@ -1898,4 +1898,62 @@ size_t ECsCells::GetSize() const
 	return ulSize;
 }
 
+/* @todo check this function, is this really ok? */
+bool ECsIndexProp::operator<(const ECsIndexProp &other) const noexcept
+{
+	if (cbData < other.cbData)
+		return true;
+	if (cbData != other.cbData)
+		return false;
+	if (lpData == nullptr && other.lpData)
+		return true;
+	else if (lpData != nullptr && other.lpData == nullptr)
+		return false;
+	else if (lpData == nullptr && other.lpData == nullptr)
+		return false;
+	int c = memcmp(lpData, other.lpData, cbData);
+	if (c < 0)
+		return true;
+	else if (c == 0 && ulTag < other.ulTag)
+		return true;
+	return false;
+}
+
+bool ECsIndexProp::operator==(const ECsIndexProp &other) const noexcept
+{
+	if (cbData != other.cbData || ulTag != other.ulTag)
+		return false;
+	if (lpData == other.lpData)
+		return true;
+	if (lpData == nullptr || other.lpData == nullptr)
+		return false;
+	if (memcmp(lpData, other.lpData, cbData) == 0)
+		return true;
+	return false;
+}
+
+void ECsIndexProp::SetValue(unsigned int tag, const unsigned char *data, unsigned int z)
+{
+	if (data == nullptr || z == 0)
+		return;
+	Free();
+	lpData = new unsigned char[z];
+	cbData = z;
+	ulTag = tag;
+	memcpy(lpData, data, z);
+}
+
+void ECsIndexProp::Copy(const ECsIndexProp *src, ECsIndexProp *dst)
+{
+	if (src->lpData != nullptr && src->cbData > 0) {
+		dst->lpData = new unsigned char[src->cbData];
+		memcpy(dst->lpData, src->lpData, src->cbData);
+		dst->cbData = src->cbData;
+	} else {
+		dst->lpData = nullptr;
+		dst->cbData = 0;
+	}
+	dst->ulTag = src->ulTag;
+}
+
 } /* namespace */

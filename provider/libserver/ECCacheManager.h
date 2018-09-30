@@ -130,50 +130,9 @@ public:
 		return *this;
     }
 
-	// @todo check this function, is this really ok?
-	inline bool operator<(const ECsIndexProp &other) const noexcept
-	{
-		if(cbData < other.cbData)
-			return true;
-		if (cbData != other.cbData)
-			return false;
-		if (lpData == NULL && other.lpData)
-			return true;
-		else if (lpData != NULL && other.lpData == NULL)
-			return false;
-		else if (lpData == NULL && other.lpData == NULL)
-			return false;
-		int c = memcmp(lpData, other.lpData, cbData);
-		if (c < 0)
-			return true;
-		else if (c == 0 && ulTag < other.ulTag)
-			return true;
-		return false;
-	}
-
-	inline bool operator==(const ECsIndexProp &other) const noexcept
-	{
-		if(cbData != other.cbData || ulTag != other.ulTag)
-			return false;
-		if (lpData == other.lpData)
-			return true;
-		if (lpData == NULL || other.lpData == NULL)
-			return false;
-		if(memcmp(lpData, other.lpData, cbData) == 0)
-			return true;
-		return false;
-	}
-
-	void SetValue(unsigned int tag, const unsigned char *data, unsigned int z)
-	{
-		if (data == nullptr || z == 0)
-			return;
-		Free();
-		lpData = new unsigned char[z];
-		cbData = z;
-		ulTag = tag;
-		memcpy(lpData, data, z);
-	}
+	bool operator<(const ECsIndexProp &) const noexcept;
+	bool operator==(const ECsIndexProp &) const noexcept;
+	void SetValue(unsigned int tag, const unsigned char *data, unsigned int z);
 
 protected:
 	void Free() {
@@ -183,18 +142,7 @@ protected:
 		lpData = NULL;
 	}
 
-	void Copy(const ECsIndexProp* src, ECsIndexProp* dst) {
-		if(src->lpData != NULL && src->cbData>0) {
-			dst->lpData = new unsigned char[src->cbData];
-			memcpy(dst->lpData, src->lpData, (size_t)src->cbData);
-			dst->cbData = src->cbData;
-		} else {
-			dst->lpData = NULL;
-			dst->cbData = 0;
-		}
-
-		dst->ulTag = src->ulTag;
-	}
+	void Copy(const ECsIndexProp *src, ECsIndexProp *dst);
 
 public:
 	unsigned int ulTag = 0, cbData = 0;
