@@ -3903,7 +3903,7 @@ ECRESULT ECUserManagement::GetUserCount(usercount_t *lpUserCount)
 		lpUserCount->assign(ulActive, ulNonActiveUser, ulRoom, ulEquipment, ulContact);
 	std::lock_guard<std::recursive_mutex> lock(m_hMutex);
 	m_userCount.assign(ulActive, ulNonActiveUser, ulRoom, ulEquipment, ulContact);
-	m_usercount_ts = time(NULL);
+	m_usercount_ts = decltype(m_usercount_ts)::clock::now();
 	return erSuccess;
 }
 
@@ -3911,7 +3911,7 @@ ECRESULT ECUserManagement::GetCachedUserCount(usercount_t *lpUserCount)
 {
 	std::lock_guard<std::recursive_mutex> lock(m_hMutex);
 
-	if (!m_userCount.isValid() || m_usercount_ts - time(NULL) > 5*60)
+	if (!m_userCount.isValid() || m_usercount_ts - decltype(m_usercount_ts)::clock::now() > std::chrono::seconds(5))
 		return GetUserCount(lpUserCount);
 	if (lpUserCount)
 		*lpUserCount = m_userCount;

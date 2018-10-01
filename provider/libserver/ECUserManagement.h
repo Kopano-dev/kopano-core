@@ -11,7 +11,6 @@
 #include <map>
 #include <memory>
 #include <mutex>
-#include <ctime>
 #include <kopano/kcodes.h>
 #include <kopano/pcuser.hpp>
 #include <kopano/ECConfig.h>
@@ -231,7 +230,7 @@ protected:
 private:
 	std::recursive_mutex m_hMutex;
 	usercount_t 				m_userCount;
-	time_t m_usercount_ts = 0;
+	KC::time_point m_usercount_ts;
 };
 
 #define KOPANO_UID_EVERYONE 1
