@@ -347,7 +347,7 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig,
 	er = lpSearchClient->Query(guidServer, guidStore, lstFolders, lstMultiSearches, lstMatches, suggestion);
 	llelapsedtime = std::chrono::duration_cast<std::chrono::milliseconds>(decltype(tstart)::clock::now() - tstart).count();
 	g_lpSessionManager->m_stats->Max(SCN_INDEXER_SEARCH_MAX, llelapsedtime);
-	g_lpSessionManager->m_stats->Avg(SCN_INDEXER_SEARCH_AVG, llelapsedtime);
+	g_lpSessionManager->m_stats->avg(SCN_INDEXER_SEARCH_AVG, llelapsedtime);
 
 	if (er != erSuccess) {
 		g_lpSessionManager->m_stats->inc(SCN_INDEXER_SEARCH_ERRORS);

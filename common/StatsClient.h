@@ -128,13 +128,13 @@ class _kc_export ECStatsCollector {
 	void inc(enum SCName, double inc);
 	void inc(enum SCName, int inc = 1);
 	void inc(enum SCName, LONGLONG inc);
-	void Set(SCName name, double set);
-	void Set(SCName name, LONGLONG set);
+	void set_dbl(enum SCName, double set);
+	void set(enum SCName, LONGLONG set);
 	void SetTime(SCName name, time_t set);
 	void set(SCName, const std::string &);
 	void Max(SCName name, LONGLONG max);
-	void Avg(SCName name, double add);
-	void Avg(SCName name, LONGLONG add);
+	void avg_dbl(enum SCName, double add);
+	void avg(enum SCName, LONGLONG add);
 
 	/* strings are separate, used by ECSerial */
 	std::string GetValue(const SCMap::const_iterator::value_type &);

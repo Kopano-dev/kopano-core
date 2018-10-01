@@ -208,7 +208,7 @@ void ECStatsCollector::inc(SCName name, LONGLONG inc)
 	iSD->second.data.ll += inc;
 }
 
-void ECStatsCollector::Set(SCName name, double set)
+void ECStatsCollector::set_dbl(enum SCName name, double set)
 {
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
@@ -218,7 +218,7 @@ void ECStatsCollector::Set(SCName name, double set)
 	iSD->second.data.f = set;
 }
 
-void ECStatsCollector::Set(SCName name, LONGLONG set)
+void ECStatsCollector::set(enum SCName name, LONGLONG set)
 {
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
@@ -228,7 +228,7 @@ void ECStatsCollector::Set(SCName name, LONGLONG set)
 	iSD->second.data.ll = set;
 }
 
-void ECStatsCollector::SetTime(SCName name, time_t set)
+void ECStatsCollector::SetTime(enum SCName name, time_t set)
 {
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
@@ -259,7 +259,7 @@ void ECStatsCollector::Max(SCName name, LONGLONG max)
 		iSD->second.data.ll = max;
 }
 
-void ECStatsCollector::Avg(SCName name, double add)
+void ECStatsCollector::avg_dbl(SCName name, double add)
 {
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
@@ -272,7 +272,7 @@ void ECStatsCollector::Avg(SCName name, double add)
 		iSD->second.avginc = 1;
 }
 
-void ECStatsCollector::Avg(SCName name, LONGLONG add)
+void ECStatsCollector::avg(SCName name, LONGLONG add)
 {
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
