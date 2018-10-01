@@ -70,6 +70,60 @@ struct sSessionManagerStats {
 	ULONG ulObjectSubscriptions, ulObjectSubscriptionSize;
 };
 
+class usercount_t final {
+	public:
+	enum ucIndex {
+		ucActiveUser = 0,
+		ucNonActiveUser,
+		ucRoom,
+		ucEquipment,
+		ucContact,
+		ucNonActiveTotal, /* Must be right before ucMAX */
+		ucMAX = ucNonActiveTotal, /* Must be very last */
+	};
+
+	usercount_t() = default;
+
+	usercount_t(unsigned int a, unsigned int n, unsigned int r, unsigned int e, unsigned int c) :
+		m_valid(true)
+	{
+		m_counts[ucActiveUser] = a;
+		m_counts[ucNonActiveUser] = n;
+		m_counts[ucRoom] = r;
+		m_counts[ucEquipment] = e;
+		m_counts[ucContact] = c;
+	}
+
+	void assign(unsigned int a, unsigned int n, unsigned int r, unsigned int e, unsigned int c)
+	{
+		*this = usercount_t(a, n, r, e, c);
+	}
+
+	bool is_valid() const { return m_valid; }
+
+	void set(ucIndex index, unsigned int value)
+	{
+		if (index == ucNonActiveTotal)
+			return;
+		assert(index >= 0 && index < ucMAX);
+		m_counts[index] = value;
+		m_valid = true;
+	}
+
+	unsigned int operator[](ucIndex index) const
+	{
+		if (index == ucNonActiveTotal)
+			/* Contacts do not count for non-active stores. */
+			return m_counts[ucNonActiveUser] + m_counts[ucRoom] + m_counts[ucEquipment];
+		assert(index >= 0 && index < ucMAX);
+		return m_counts[index];
+	}
+
+	private:
+	bool m_valid = false;
+	unsigned int m_counts[ucMAX]{};
+};
+
 class SOURCEKEY;
 
 class _kc_export ECSessionManager final {
@@ -147,6 +201,8 @@ public:
 	_kc_hidden ECPluginFactory *GetPluginFactory() const { return m_lpPluginFactory.get(); }
 	_kc_hidden ECLockManager *GetLockManager() const { return m_ptrLockManager.get(); }
 	_kc_hidden ECAttachmentConfig *get_atxconfig() const { return m_atxconfig.get(); }
+	_kc_hidden ECRESULT get_user_count(usercount_t *);
+	_kc_hidden ECRESULT get_user_count_cached(usercount_t *);
 
 	std::shared_ptr<ECStatsCollector> m_stats;
 
@@ -196,6 +252,10 @@ protected:
 	std::unique_ptr<ECNotificationManager> m_lpNotificationManager;
 	std::unique_ptr<ECDatabase> m_lpDatabase;
 	std::unique_ptr<ECAttachmentConfig> m_atxconfig;
+
+	std::recursive_mutex m_usercount_mtx;
+	KC::time_point m_usercount_ts;
+	usercount_t m_usercount;
 };
 
 extern _kc_export ECSessionManager *g_lpSessionManager;

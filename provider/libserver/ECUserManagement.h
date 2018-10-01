@@ -34,59 +34,6 @@ public:
 	unsigned int ulId = 0;
 };
 
-class usercount_t final {
-public:
-	enum ucIndex {
-		ucActiveUser = 0,
-		ucNonActiveUser,
-		ucRoom,
-		ucEquipment,
-		ucContact,
-		ucNonActiveTotal,			// Must be right before ucMAX
-		ucMAX = ucNonActiveTotal	// Must be very last
-	};
-
-	usercount_t(void)
-	{
-		memset(m_ulCounts, 0, sizeof(m_ulCounts));
-	}
-
-	usercount_t(unsigned int ulActiveUser, unsigned int ulNonActiveUser, unsigned int ulRoom, unsigned int ulEquipment, unsigned int ulContact): m_bValid(true) {
-		m_ulCounts[ucActiveUser]	= ulActiveUser;
-		m_ulCounts[ucNonActiveUser]	= ulNonActiveUser;
-		m_ulCounts[ucRoom]			= ulRoom;
-		m_ulCounts[ucEquipment]		= ulEquipment;
-		m_ulCounts[ucContact]		= ulContact;
-	}
-
-	void assign(unsigned int ulActiveUser, unsigned int ulNonActiveUser, unsigned int ulRoom, unsigned int ulEquipment, unsigned int ulContact) {
-		*this = usercount_t(ulActiveUser, ulNonActiveUser, ulRoom, ulEquipment, ulContact);
-	}
-
-	bool isValid() const {
-		return m_bValid;
-	}
-
-	void set(ucIndex index, unsigned int ulValue) {
-		if (index != ucNonActiveTotal) {
-			assert(index >= 0 && index < ucMAX);
-			m_ulCounts[index] = ulValue;
-			m_bValid = true;
-		}
-	}
-
-	unsigned int operator[](ucIndex index) const {
-		if (index == ucNonActiveTotal)
-			return m_ulCounts[ucNonActiveUser] + m_ulCounts[ucRoom] + m_ulCounts[ucEquipment];	// Contacts don't count for non-active stores.
-		assert(index >= 0 && index < ucMAX);
-		return m_ulCounts[index];
-	}
-
-private:
-	bool m_bValid = false;
-	unsigned int	m_ulCounts[ucMAX];
-};
-
 // Use for ulFlags
 #define USERMANAGEMENT_IDS_ONLY			0x1		// Return only local userID (the ulId field). 'details' is undefined in this case
 #define USERMANAGEMENT_ADDRESSBOOK		0x2		// Return only objects which should be visible in the address book
@@ -136,8 +83,6 @@ public:
 	// Do the same for a whole set of items
 	_kc_hidden virtual ECRESULT QueryContentsRowData(struct soap *, const ECObjectTableList *, const struct propTagArray *, struct rowSet **);
 	_kc_hidden virtual ECRESULT QueryHierarchyRowData(struct soap *, const ECObjectTableList *, const struct propTagArray *, struct rowSet **);
-	_kc_hidden virtual ECRESULT GetUserCount(usercount_t *);
-	_kc_hidden virtual ECRESULT GetCachedUserCount(usercount_t *);
 	_kc_hidden virtual ECRESULT GetPublicStoreDetails(objectdetails_t *) const;
 	virtual ECRESULT GetServerDetails(const std::string &server, serverdetails_t *);
 	_kc_hidden virtual ECRESULT GetServerList(serverlist_t *);
@@ -226,11 +171,6 @@ protected:
 	ECPluginFactory 	*m_lpPluginFactory;
 	BTSession			*m_lpSession;
 	std::shared_ptr<ECConfig> m_lpConfig;
-
-private:
-	std::recursive_mutex m_hMutex;
-	usercount_t 				m_userCount;
-	KC::time_point m_usercount_ts;
 };
 
 #define KOPANO_UID_EVERYONE 1
