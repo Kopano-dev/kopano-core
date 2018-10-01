@@ -30,11 +30,13 @@
 #include "ECSessionGroup.h"
 #include "ECNotificationManager.h"
 #include "ECLockManager.h"
+#include "StatsClient.h"
 
 struct soap;
 
 namespace KC {
 
+class ECConfig;
 class ECLogger;
 class ECTPropsPurge;
 
@@ -124,11 +126,16 @@ class usercount_t final {
 	unsigned int m_counts[ucMAX]{};
 };
 
+class server_stats final : public ECStatsCollector {
+	public:
+	server_stats(std::shared_ptr<ECConfig>);
+};
+
 class SOURCEKEY;
 
 class _kc_export ECSessionManager final {
 public:
-	_kc_hidden ECSessionManager(std::shared_ptr<ECConfig>, std::shared_ptr<ECLogger> audit, std::shared_ptr<ECStatsCollector>, bool hosted, bool distributed);
+	_kc_hidden ECSessionManager(std::shared_ptr<ECConfig>, std::shared_ptr<ECLogger> audit, std::shared_ptr<server_stats>, bool hosted, bool distributed);
 	_kc_hidden virtual ~ECSessionManager(void);
 	_kc_hidden virtual ECRESULT CreateAuthSession(struct soap *, unsigned int caps, ECSESSIONID *, ECAuthSession **, bool register_ses, bool lock_ses);
 	// Creates a session based on passed credentials
@@ -203,7 +210,7 @@ public:
 	_kc_hidden ECRESULT get_user_count(usercount_t *);
 	_kc_hidden ECRESULT get_user_count_cached(usercount_t *);
 
-	std::shared_ptr<ECStatsCollector> m_stats;
+	std::shared_ptr<server_stats> m_stats;
 
 protected:
 	_kc_hidden BTSession *GetSession(ECSESSIONID, bool lock_ses = false);
@@ -257,6 +264,7 @@ protected:
 	usercount_t m_usercount;
 };
 
+extern _kc_export void (*kopano_get_server_stats)(unsigned int *qlen, KC::time_duration *qage, unsigned int *nthr, unsigned int *nidlethr);
 extern _kc_export ECSessionManager *g_lpSessionManager;
 
 } /* namespace */

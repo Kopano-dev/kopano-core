@@ -41,8 +41,6 @@
 
 namespace KC {
 
-void (*kopano_get_server_stats)(unsigned int *qlen, KC::time_duration *qage, unsigned int *nthr, unsigned int *idlthr) = [](unsigned int *, KC::time_duration *, unsigned int *, unsigned int *) {};
-
 ECSystemStatsTable::ECSystemStatsTable(ECSession *ses, unsigned int ulFlags,
     const ECLocale &locale) :
 	ECGenericObjectTable(ses, MAPI_STATUS, ulFlags, locale)

@@ -93,7 +93,7 @@ ECRESULT kopano_unloadlibrary(void)
 }
 
 ECRESULT kopano_init(std::shared_ptr<ECConfig> cfg, std::shared_ptr<ECLogger> ad,
-    std::shared_ptr<ECStatsCollector> sc, bool bHostedKopano, bool bDistributedKopano)
+    std::shared_ptr<server_stats> sc, bool bHostedKopano, bool bDistributedKopano)
 {
 	if (!g_bInitLib)
 		return KCERR_NOT_INITIALIZED;

@@ -70,11 +70,6 @@ using std::cout;
 using std::endl;
 using std::string;
 
-class server_stats final : public ECStatsCollector {
-	public:
-	server_stats(std::shared_ptr<ECConfig>);
-};
-
 static const char upgrade_lock_file[] = "/tmp/kopano-upgrade-lock";
 static int g_Quit = 0;
 static int daemonize = 1;
@@ -1184,7 +1179,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 #endif
 
 	// Test database settings
-	std::shared_ptr<ECStatsCollector> stats = std::make_unique<server_stats>(g_lpConfig);
+	auto stats = std::make_shared<server_stats>(g_lpConfig);
 	lpDatabaseFactory.reset(new(std::nothrow) ECDatabaseFactory(g_lpConfig, stats));
 	// open database
 	er = lpDatabaseFactory->CreateDatabaseObject(&unique_tie(lpDatabase), dbError);
