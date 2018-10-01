@@ -164,6 +164,16 @@ void ECStatsCollector::mainloop()
 ECStatsCollector::ECStatsCollector(std::shared_ptr<ECConfig> config) :
 	m_config(std::move(config))
 {
+	AddStat(SCN_MACHINE_ID, SCDT_STRING, "machine_id");
+	std::unique_ptr<FILE, file_deleter> fp(fopen("/etc/machine-id", "r"));
+	if (fp != nullptr) {
+		std::string mid;
+		HrMapFileToString(fp.get(), &mid);
+		auto pos = mid.find('\n');
+		if (pos != std::string::npos)
+			mid.erase(pos);
+		set(SCN_MACHINE_ID, mid);
+	}
 	if (m_config == nullptr)
 		return;
 	auto ret = pthread_create(&countsSubmitThread, nullptr, submitThread, this);
