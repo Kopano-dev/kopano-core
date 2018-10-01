@@ -108,6 +108,8 @@ ECRESULT ECSessionManager::LoadSettings(){
 		return KCERR_NOT_FOUND;
 
 	memcpy(&m_server_guid, lpDBRow[0], sizeof(m_server_guid));
+	/* ECStatsCollector may decide to send before the guid has been set. That's normal. */
+	m_stats->set(SCN_SERVER_GUID, bin2hex(sizeof(m_server_guid), &m_server_guid));
 	strQuery = "SELECT `value` FROM settings WHERE `name` = 'source_key_auto_increment' LIMIT 1";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)

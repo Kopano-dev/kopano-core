@@ -98,6 +98,7 @@ static int running_server(char *, const char *, bool, int, char **, int, char **
 server_stats::server_stats(std::shared_ptr<ECConfig> cfg) :
 	ECStatsCollector(std::move(cfg))
 {
+	AddStat(SCN_SERVER_GUID, SCDT_STRING, "server_guid");
 	AddStat(SCN_SERVER_STARTTIME, SCDT_TIMESTAMP, "server_start_date", "Time when the server was started");
 	AddStat(SCN_SERVER_LAST_CACHECLEARED, SCDT_TIMESTAMP, "cache_purge_date", "Time when the cache was cleared");
 	AddStat(SCN_SERVER_LAST_CONFIGRELOAD, SCDT_TIMESTAMP, "config_reload_date", "Time when the configuration file was reloaded / logrotation (SIGHUP)");
