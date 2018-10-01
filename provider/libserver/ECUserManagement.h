@@ -60,15 +60,9 @@ public:
 		m_ulCounts[ucContact]		= ulContact;
 	}
 
-	usercount_t(const usercount_t &) = default;
-	usercount_t(usercount_t &&) = default;
-
 	void assign(unsigned int ulActiveUser, unsigned int ulNonActiveUser, unsigned int ulRoom, unsigned int ulEquipment, unsigned int ulContact) {
 		*this = usercount_t(ulActiveUser, ulNonActiveUser, ulRoom, ulEquipment, ulContact);
 	}
-
-	usercount_t &operator=(const usercount_t &) = default;
-	usercount_t &operator=(usercount_t &&) = default;
 
 	bool isValid() const {
 		return m_bValid;
