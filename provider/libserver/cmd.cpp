@@ -7512,6 +7512,17 @@ SOAP_ENTRY_START(copyFolder, *result, const entryId &sEntryId,
 		ec_log_err("SOAP::copyFolder(): ECTPropsPurge::AddDeferredUpdate failed: %s (%x)", GetMAPIErrorMessage(er), er);
 		return er;
 	}
+
+	// Cache update for objects
+	// Duplicated from below to avoid the cache being temporarily inconsistent
+	// with the database between transaction commit and cache invalidation.
+	// This is a problem for example when making use of the changes table, where
+	// we sync a change, but as the cache is inconsistent with the database, we
+	// don't get the latest state (in case of MSR and copyFolder), resulting in
+	// subtle issues, potentially leading to data loss..
+	// TODO find general solution
+	gcache->Update(fnevObjectMoved, ulFolderId);
+
 	er = dtx.commit();
 	if(er != erSuccess) {
 		ec_log_err("SOAP::copyFolder(): database commit failed: %s (%x)", GetMAPIErrorMessage(er), er);
