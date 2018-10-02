@@ -2183,36 +2183,6 @@ HRESULT WSTransport::HrDelSendAsUser(ULONG cbUserId, const ENTRYID *lpUserId,
 	return hr;
 }
 
-HRESULT WSTransport::HrGetUserClientUpdateStatus(ULONG cbUserId,
-    const ENTRYID *lpUserId, ULONG ulFlags, ECUSERCLIENTUPDATESTATUS **lppECUCUS)
-{
-	if (cbUserId < CbNewABEID("") || lpUserId == nullptr)
-		return MAPI_E_INVALID_PARAMETER;
-
-	ECRESULT er = erSuccess;
-	HRESULT hr = hrSuccess;
-	entryId sUserId;
-	struct userClientUpdateStatusResponse sResponse;
-	soap_lock_guard spg(*this);
-
-	hr = CopyMAPIEntryIdToSOAPEntryId(cbUserId, lpUserId, &sUserId, true);
-	if (hr != hrSuccess)
-		goto exitm;
-
-	START_SOAP_CALL
-	{
-		if (m_lpCmd->getUserClientUpdateStatus(m_ecSessionId, sUserId, &sResponse) != SOAP_OK)
-			er = KCERR_NETWORK_ERROR;
-	}
-	END_SOAP_CALL
-
-	hr = CopyUserClientUpdateStatusFromSOAP(sResponse, ulFlags, lppECUCUS);
-	if (hr != hrSuccess)
-		goto exitm;
- exitm:
-	return hr;
-}
-
 HRESULT WSTransport::HrRemoveAllObjects(ULONG cbUserId, const ENTRYID *lpUserId)
 {
 	if (cbUserId < CbNewABEID("") || lpUserId == nullptr)

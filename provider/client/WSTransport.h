@@ -148,7 +148,6 @@ public:
 	virtual HRESULT HrAddSendAsUser(ULONG ueid_size, const ENTRYID *user_eid, ULONG seid_size, const ENTRYID *sender_eid);
 	virtual HRESULT HrDelSendAsUser(ULONG ueid_size, const ENTRYID *user_eid, ULONG seid_size, const ENTRYID *sender_eid);
 	virtual HRESULT HrRemoveAllObjects(ULONG ueid_size, const ENTRYID *user_eid);
-	virtual HRESULT HrGetUserClientUpdateStatus(ULONG ueid_size, const ENTRYID *user_eid, ULONG flags, KC::ECUSERCLIENTUPDATESTATUS **);
 
 	// Quota
 	virtual HRESULT GetQuota(ULONG ueid_size, const ENTRYID *user_eid, bool get_dfl, KC::ECQUOTA **);

@@ -175,7 +175,6 @@ class IECServiceAdmin : public virtual IECSecSvcAdm_base {
 	virtual HRESULT GetSendAsList(ULONG ueid_size, const ENTRYID *user_eid, ULONG flags, ULONG *nsenders, ECUSER **) = 0;
 	virtual HRESULT AddSendAsUser(ULONG ueid_size, const ENTRYID *user_eid, ULONG seid_size, const ENTRYID *sender_eid) = 0;
 	virtual HRESULT DelSendAsUser(ULONG ueid_size, const ENTRYID *user_eid, ULONG seid_size, const ENTRYID *sender_eid) = 0;
-	virtual HRESULT GetUserClientUpdateStatus(ULONG ueid_size, const ENTRYID *user_eid, ULONG flags, ECUSERCLIENTUPDATESTATUS **) = 0;
 
 	/* Remove all users EXCEPT the passed user */
 	virtual HRESULT RemoveAllObjects(ULONG ueid_size, const ENTRYID *user_eid) = 0;

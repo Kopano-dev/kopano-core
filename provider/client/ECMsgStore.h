@@ -91,7 +91,6 @@ public:
 	virtual HRESULT GetSendAsList(ULONG ueid_size, const ENTRYID *user_eid, ULONG flags, ULONG *nsenders, KC::ECUSER **senders) override;
 	virtual HRESULT AddSendAsUser(ULONG ueid_size, const ENTRYID *user_eid, ULONG seid_size, const ENTRYID *sender_eid) override;
 	virtual HRESULT DelSendAsUser(ULONG ueid_size, const ENTRYID *user_eid, ULONG seid_size, const ENTRYID *sender_eid) override;
-	virtual HRESULT GetUserClientUpdateStatus(ULONG ueid_size, const ENTRYID *user_eid, ULONG flags, KC::ECUSERCLIENTUPDATESTATUS **) override;
 	virtual HRESULT RemoveAllObjects(ULONG ueid_size, const ENTRYID *user_eid) override;
 	virtual HRESULT CreateGroup(KC::ECGROUP *, ULONG flags, ULONG *geid_eisze, ENTRYID **grp_eid) override;
 	virtual HRESULT DeleteGroup(ULONG geid_size, const ENTRYID *grp_eid) override;
