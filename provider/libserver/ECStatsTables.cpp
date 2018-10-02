@@ -122,6 +122,8 @@ void server_stats::fill_odm()
 	set("usercnt_equipment", "Number of equipment", uc[usercount_t::ucEquipment]);
 	set("usercnt_contact", "Number of contacts", uc[usercount_t::ucContact]);
 	set("userplugin", "Plugin for the user backend", g_lpSessionManager->GetConfig()->GetSetting("user_plugin"));
+
+	g_lpSessionManager->update_extra_stats();
 }
 
 ECRESULT ECSystemStatsTable::Load()
@@ -131,9 +133,6 @@ ECRESULT ECSystemStatsTable::Load()
 	g_lpSessionManager->m_stats->ForEachStat(GetStatsCollectorData, this);
 	auto sesmgr = lpSession->GetSessionManager();
 	sesmgr->GetCacheManager()->ForEachCacheItem(GetStatsCollectorData, this);
-
-	// Receive session stats
-	sesmgr->GetStats(GetStatsCollectorData, this);
 
 	// add all items to the keytable
 	for (unsigned int i = 0; i < id; ++i)

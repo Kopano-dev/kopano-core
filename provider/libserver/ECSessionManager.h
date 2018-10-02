@@ -179,7 +179,7 @@ public:
 	_kc_hidden ECRESULT AddNotification(notification *item, unsigned int key, unsigned int store_id = 0, unsigned int folder_id = 0, unsigned int flags = 0);
 	_kc_hidden ECRESULT DeferNotificationProcessing(ECSESSIONID, struct soap *);
 	_kc_hidden ECRESULT NotifyNotificationReady(ECSESSIONID);
-	_kc_hidden void GetStats(void (*cb)(const std::string &, const std::string &, const std::string &, void *), void *obj);
+	_kc_hidden void update_extra_stats();
 	_kc_hidden sSessionManagerStats get_stats();
 	_kc_hidden bool IsHostedSupported() const { return m_bHostedKopano; }
 	_kc_hidden bool IsDistributedSupported() const { return m_bDistributedKopano; }

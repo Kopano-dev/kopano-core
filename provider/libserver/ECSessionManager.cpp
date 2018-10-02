@@ -919,29 +919,28 @@ ECRESULT ECSessionManager::NotificationChange(const std::set<unsigned int> &sync
  * @param[in] callback	Callback to the statistics collector
  * @param[in] obj pointer to the statistics collector
  */
-void ECSessionManager::GetStats(void(callback)(const std::string &, const std::string &, const std::string &, void*), void *obj)
+void ECSessionManager::update_extra_stats()
 {
+	auto &s = *m_stats;
 	auto sSessionStats = get_stats();
-	callback("sessions", "Number of sessions", stringify(sSessionStats.session.ulItems), obj);
-	callback("sessions_size", "Memory usage of sessions", stringify_int64(sSessionStats.session.ullSize), obj);
-	callback("sessiongroups", "Number of session groups", stringify(sSessionStats.group.ulItems), obj);
-	callback("sessiongroups_size", "Memory usage of session groups", stringify_int64(sSessionStats.group.ullSize), obj);
-
-	callback("persist_conn", "Persistent connections", stringify(sSessionStats.ulPersistentByConnection), obj);
-	callback("persist_conn_size", "Memory usage of persistent connections", stringify(sSessionStats.ulPersistentByConnectionSize), obj);
-	callback("persist_sess", "Persistent sessions", stringify(sSessionStats.ulPersistentBySession), obj);
-	callback("persist_sess_size", "Memory usage of persistent sessions", stringify(sSessionStats.ulPersistentBySessionSize), obj);
-
-	callback("tables_subscr", "Tables subscribed", stringify(sSessionStats.ulTableSubscriptions), obj);
-	callback("tables_subscr_size", "Memory usage of subscribed tables", stringify(sSessionStats.ulTableSubscriptionSize), obj);
-	callback("object_subscr", "Objects subscribed", stringify(sSessionStats.ulObjectSubscriptions), obj);
-	callback("object_subscr_size", "Memory usage of subscribed objects", stringify(sSessionStats.ulObjectSubscriptionSize), obj);
+	s.set("sessions", "Number of sessions", sSessionStats.session.ulItems);
+	s.set("sessions_size", "Memory usage of sessions", sSessionStats.session.ullSize);
+	s.set("sessiongroups", "Number of session groups", sSessionStats.group.ulItems);
+	s.set("sessiongroups_size", "Memory usage of session groups", sSessionStats.group.ullSize);
+	s.set("persist_conn", "Persistent connections", sSessionStats.ulPersistentByConnection);
+	s.set("persist_conn_size", "Memory usage of persistent connections", sSessionStats.ulPersistentByConnectionSize);
+	s.set("persist_sess", "Persistent sessions", sSessionStats.ulPersistentBySession);
+	s.set("persist_sess_size", "Memory usage of persistent sessions", sSessionStats.ulPersistentBySessionSize);
+	s.set("tables_subscr", "Tables subscribed", sSessionStats.ulTableSubscriptions);
+	s.set("tables_subscr_size", "Memory usage of subscribed tables", sSessionStats.ulTableSubscriptionSize);
+	s.set("object_subscr", "Objects subscribed", sSessionStats.ulObjectSubscriptions);
+	s.set("object_subscr_size", "Memory usage of subscribed objects", sSessionStats.ulObjectSubscriptionSize);
 
 	auto sSearchStats = m_lpSearchFolders->get_stats();
-	callback("searchfld_stores", "Number of stores in use by search folders", stringify(sSearchStats.ulStores), obj);
-	callback("searchfld_folders", "Number of folders in use by search folders", stringify(sSearchStats.ulFolders), obj);
-	callback("searchfld_events", "Number of events waiting for searchfolder updates", stringify(sSearchStats.ulEvents), obj);
-	callback("searchfld_size", "Memory usage of search folders", stringify_int64(sSearchStats.ullSize), obj);
+	s.set("searchfld_stores", "Number of stores in use by search folders", sSearchStats.ulStores);
+	s.set("searchfld_folders", "Number of folders in use by search folders", sSearchStats.ulFolders);
+	s.set("searchfld_events", "Number of events waiting for searchfolder updates", sSearchStats.ulEvents);
+	s.set("searchfld_size", "Memory usage of search folders", sSearchStats.ullSize);
 }
 
 /**
