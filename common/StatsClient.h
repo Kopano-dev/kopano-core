@@ -8,17 +8,17 @@
 
 #include <kopano/zcdefs.h>
 #include <atomic>
+#include <condition_variable>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <string>
-#include <ctime>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <sys/un.h>
-#include <kopano/ECLogger.h>
-#include <kopano/memory.hpp>
+#include <cstdint>
+#include <pthread.h>
 
 namespace KC {
+
+class ECConfig;
 
 enum SCName {
 	/* server stats */
@@ -94,15 +94,17 @@ enum SCName {
 	SCN_SPOOLER_SEND_FAILED,
 	SCN_SPOOLER_SENT,
 	SCN_SPOOLER_SIGKILLED,
+	SCN_MACHINE_ID,
+	SCN_SERVER_GUID,
 };
 
 union SCData {
-	float f;
+	double f;
 	LONGLONG ll;
 	time_t ts;
 };
 
-enum SCType { SCDT_FLOAT, SCDT_LONGLONG, SCDT_TIMESTAMP };
+enum SCType { SCDT_FLOAT, SCDT_LONGLONG, SCDT_TIMESTAMP, SCDT_STRING };
 
 struct ECStat {
 	SCData data;
@@ -110,6 +112,7 @@ struct ECStat {
 	SCType type;
 	const char *name, *description;
 	std::mutex lock;
+	std::string strdata;
 };
 
 typedef std::map<SCName, ECStat> SCMap;
@@ -120,15 +123,20 @@ struct ECStrings {
 
 class _kc_export ECStatsCollector {
 	public:
-	void inc(enum SCName, float inc);
+	ECStatsCollector(std::shared_ptr<ECConfig>);
+	~ECStatsCollector();
+	void mainloop();
+	void submit(std::string &&);
+	void inc(enum SCName, double inc);
 	void inc(enum SCName, int inc = 1);
 	void inc(enum SCName, LONGLONG inc);
-	void Set(SCName name, float set);
-	void Set(SCName name, LONGLONG set);
+	void set_dbl(enum SCName, double set);
+	void set(enum SCName, LONGLONG set);
 	void SetTime(SCName name, time_t set);
+	void set(SCName, const std::string &);
 	void Max(SCName name, LONGLONG max);
-	void Avg(SCName name, float add);
-	void Avg(SCName name, LONGLONG add);
+	void avg_dbl(enum SCName, double add);
+	void avg(enum SCName, LONGLONG add);
 
 	/* strings are separate, used by ECSerial */
 	std::string GetValue(const SCMap::const_iterator::value_type &);
@@ -142,34 +150,18 @@ class _kc_export ECStatsCollector {
 	 * The "name" parameter may not be longer than 19 characters, since we
 	 * want to use those in RRDtool.
 	 */
-	void AddStat(enum SCName index, SCType type, const char *name, const char *desc);
+	void AddStat(enum SCName index, SCType type, const char *name, const char *desc = "");
 
 	private:
 	SCMap m_StatData;
-};
-
-class _kc_export StatsClient _kc_final {
-private:
-	int fd = -1;
-	struct sockaddr_un addr{};
-	int addr_len = 0;
 	bool thread_running = false;
-	pthread_t countsSubmitThread{};
-public:
 	std::atomic<bool> terminate{false};
-	std::mutex mapsLock;
-	std::map<std::string, double> countsMapDouble;
-	std::map<std::string, int64_t> countsMapInt64;
-
-	~StatsClient();
-
-	int startup(const std::string &collector);
-	void inc(enum SCName, double v);
-	void inc(enum SCName, int64_t v);
-	void inc(enum SCName k, int v = 1) { return inc(k, static_cast<int64_t>(v)); }
-	_kc_hidden void submit(const std::string &key, time_t ts, double value);
-	_kc_hidden void submit(const std::string &key, time_t ts, int64_t value);
+	pthread_t countsSubmitThread{};
+	std::shared_ptr<ECConfig> m_config;
+	std::condition_variable m_exitsig;
 };
+
+typedef ECStatsCollector StatsClient;
 
 } /* namespace */
 

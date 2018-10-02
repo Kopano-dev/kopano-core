@@ -1444,8 +1444,7 @@ objectsignature_t LDAPUserPlugin::authenticateUser(const string &username, const
 	m_lpStatsCollector->inc(SCN_LDAP_AUTH_LOGINS);
 	m_lpStatsCollector->inc(SCN_LDAP_AUTH_TIME, llelapsedtime);
 	m_lpStatsCollector->Max(SCN_LDAP_AUTH_TIME_MAX, llelapsedtime);
-	m_lpStatsCollector->Avg(SCN_LDAP_AUTH_TIME_AVG, llelapsedtime);
-
+	m_lpStatsCollector->avg(SCN_LDAP_AUTH_TIME_AVG, llelapsedtime);
 	return id;
 }
 

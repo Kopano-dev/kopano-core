@@ -69,7 +69,7 @@ static inline std::wstring wstringify(unsigned int x)
 extern _kc_export std::string stringify_hex(unsigned int);
 extern _kc_export std::string stringify_signed(int);
 extern _kc_export std::string stringify_int64(int64_t, bool usehex = false);
-extern _kc_export std::string stringify_float(float);
+extern _kc_export std::string stringify_float(double);
 extern _kc_export std::string stringify_double(double, int prec = 18, bool locale = false);
 extern _kc_export std::wstring wstringify_hex(unsigned int);
 

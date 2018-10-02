@@ -33,6 +33,7 @@
 #include "StorageUtil.h"
 
 using namespace std::chrono_literals;
+using namespace std::string_literals;
 
 namespace KC {
 
@@ -108,6 +109,8 @@ ECRESULT ECSessionManager::LoadSettings(){
 		return KCERR_NOT_FOUND;
 
 	memcpy(&m_server_guid, lpDBRow[0], sizeof(m_server_guid));
+	/* ECStatsCollector may decide to send before the guid has been set. That's normal. */
+	m_stats->set(SCN_SERVER_GUID, bin2hex(sizeof(m_server_guid), &m_server_guid));
 	strQuery = "SELECT `value` FROM settings WHERE `name` = 'source_key_auto_increment' LIMIT 1";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
@@ -1352,6 +1355,54 @@ bool ECLockManager::IsLocked(unsigned int objid, ECSESSIONID *sid)
 	if (i != m_mapLocks.cend() && sid != nullptr)
 		*sid = i->second;
 	return i != m_mapLocks.end();
+}
+
+ECRESULT ECSessionManager::get_user_count(usercount_t *uc)
+{
+	ECDatabase *db = nullptr;
+	DB_RESULT result;
+	DB_ROW row;
+	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory.get(), &db);
+	if (er != erSuccess)
+		return er;
+	auto query =
+		"SELECT COUNT(*), objectclass FROM users "
+		"WHERE externid IS NOT NULL " /* Keep local entries outside of COUNT() */
+		"AND "s + OBJECTCLASS_COMPARE_SQL("objectclass", OBJECTCLASS_USER) + " "
+		"GROUP BY objectclass";
+	er = db->DoSelect(query, &result);
+	if (er != erSuccess)
+		return er;
+
+	unsigned int act = 0, nonact = 0, room = 0, eqp = 0, contact = 0;
+	while ((row = result.fetch_row()) != nullptr) {
+		if (row[0] == nullptr || row[1] == nullptr)
+			continue;
+		switch (atoi(row[1])) {
+		case ACTIVE_USER: act = atoi(row[0]); break;
+		case NONACTIVE_USER: nonact = atoi(row[0]); break;
+		case NONACTIVE_ROOM: room = atoi(row[0]); break;
+		case NONACTIVE_EQUIPMENT: eqp = atoi(row[0]); break;
+		case NONACTIVE_CONTACT: contact = atoi(row[0]); break;
+		}
+	}
+
+	if (uc != nullptr)
+		uc->assign(act, nonact, room, eqp, contact);
+	std::lock_guard<std::recursive_mutex> lock(m_usercount_mtx);
+	m_usercount.assign(act, nonact, room, eqp, contact);
+	m_usercount_ts = decltype(m_usercount_ts)::clock::now();
+	return erSuccess;
+}
+
+ECRESULT ECSessionManager::get_user_count_cached(usercount_t *uc)
+{
+	std::lock_guard<std::recursive_mutex> lock(m_usercount_mtx);
+	if (!m_usercount.is_valid() || m_usercount_ts - decltype(m_usercount_ts)::clock::now() > std::chrono::seconds(5))
+		return get_user_count(uc);
+	if (uc != nullptr)
+		*uc = m_usercount;
+	return erSuccess;
 }
 
 } /* namespace */

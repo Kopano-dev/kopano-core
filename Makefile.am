@@ -639,7 +639,8 @@ libkcutil_la_SOURCES = \
 	common/ustringutil.cpp common/charset/convert.cpp \
 	common/charset/convstring.cpp common/charset/localeutil.cpp
 libkcutil_la_LIBADD = \
-	-lpthread -lz ${CRYPTO_LIBS} ${icu_i18n_LIBS} ${icu_uc_LIBS} \
+	-lpthread -lz ${CRYPTO_LIBS} ${curl_LIBS} \
+	${icu_i18n_LIBS} ${icu_uc_LIBS} ${jsoncpp_LIBS} ${libHX_LIBS} \
 	${SSL_LIBS} ${UUID_LIBS}
 libkcutil_la_SYFLAGS = -Wl,--version-script=common/libkcutil.sym
 libkcutil_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \

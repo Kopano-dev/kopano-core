@@ -2,182 +2,183 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#include <kopano/platform.h>
-#include <cerrno>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <ctime>
+#include "config.h"
+#include <mutex>
+#include <string>
+#include <pthread.h>
 #include <unistd.h>
+#ifdef HAVE_CURL_CURL_H
+#	include <condition_variable>
+#	include <thread>
+#	include <curl/curl.h>
+#	include <json/writer.h>
+#endif
+#include <libHX/map.h>
+#include <libHX/option.h>
+#include <kopano/platform.h>
+#include <kopano/ECConfig.h>
+#include <kopano/ECLogger.h>
 #include <kopano/stringutil.h>
 #include "StatsClient.h"
 #include "fileutil.h"
 
 namespace KC {
 
-static ECStatsCollector main_collector;
-ECStatsCollector *const g_lpStatsCollector = &main_collector;
-
-static void submitThreadDo(void *p)
-{
-	auto psc = static_cast<StatsClient *>(p);
-	time_t now = time(NULL);
-
-	scoped_lock l_map(psc->mapsLock);
-	for (const auto &it : psc->countsMapDouble)
-		psc->submit(it.first, now, it.second);
-	psc->countsMapDouble.clear();
-	for (const auto &it : psc->countsMapInt64)
-		psc->submit(it.first, now, it.second);
-	psc->countsMapInt64.clear();
-}
-
 static void *submitThread(void *p)
 {
 	kcsrv_blocksigs();
-	auto psc = static_cast<StatsClient *>(p);
 	ec_log_debug("Submit thread started");
-	pthread_cleanup_push(submitThreadDo, p);
-
-	while(!psc -> terminate) {
-		sleep(300);
-
-		submitThreadDo(p);
-	}
-
-	pthread_cleanup_pop(1);
+	static_cast<StatsClient *>(p)->mainloop();
 	ec_log_debug("Submit thread stopping");
 	return NULL;
 }
 
-int StatsClient::startup(const std::string &collectorSocket)
-{
-	int ret = -1;
-
-	fd = socket(AF_UNIX, SOCK_DGRAM, 0);
-	if (fd == -1) {
-		ec_log_err("StatsClient cannot create socket: %s", strerror(errno));
-		return -errno; /* maybe log a bit */
-	}
-
-	rand_init();
-	ec_log_debug("StatsClient binding socket");
-
-	for (unsigned int retry = 3; retry > 0; --retry) {
-		struct sockaddr_un laddr;
-		memset(&laddr, 0, sizeof(laddr));
-		laddr.sun_family = AF_UNIX;
-		ret = snprintf(laddr.sun_path, sizeof(laddr.sun_path), "%s/.%x%x.sock", TmpPath::instance.getTempPath().c_str(), rand(), rand());
-		if (ret >= 0 &&
-		    static_cast<size_t>(ret) >= sizeof(laddr.sun_path)) {
-			ec_log_err("%s: Random path too long (%s...) for AF_UNIX socket",
-				__func__, laddr.sun_path);
-			return -ENAMETOOLONG;
-		}
-
-		ret = bind(fd, reinterpret_cast<const struct sockaddr *>(&laddr),
-		      sizeof(laddr));
-		if (ret == 0) {
-			ec_log_debug("StatsClient bound socket to %s", laddr.sun_path);
-			unlink(laddr.sun_path);
-			break;
-		}
-		ret = -errno;
-		ec_log_err("StatsClient bind %s: %s", laddr.sun_path, strerror(errno));
-		if (ret == -EADDRINUSE)
-			return ret;
-	}
-	if (ret != 0)
-		return ret;
-
-	memset(&addr, 0, sizeof(addr));
-	addr.sun_family = AF_UNIX;
-	ret = snprintf(addr.sun_path, sizeof(addr.sun_path), "%s", collectorSocket.c_str());
-	if (ret >= 0 && static_cast<size_t>(ret) >= sizeof(addr.sun_path)) {
-		ec_log_err("%s: Path \"%s\" too long for AF_UNIX socket",
-			__func__, collectorSocket.c_str());
-		return -ENAMETOOLONG;
-	}
-
-	addr_len = sizeof(addr);
-	ret = pthread_create(&countsSubmitThread, nullptr, submitThread, this);
-	if (ret != 0) {
-		ec_log_err("Could not create StatsClient submit thread: %s", strerror(ret));
-		return -ret;
-	}
-	thread_running = true;
-	set_thread_name(countsSubmitThread, "StatsClient");
-	ec_log_debug("StatsClient thread started");
-	return 0;
-}
-
-StatsClient::~StatsClient() {
+ECStatsCollector::~ECStatsCollector() {
 	ec_log_debug("StatsClient terminating");
 	terminate = true;
+	m_exitsig.notify_one();
 	if (thread_running) {
 		// interrupt sleep()
 		pthread_cancel(countsSubmitThread);
 		void *dummy = NULL;
 		pthread_join(countsSubmitThread, &dummy);
 	}
-	close(fd);
 	ec_log_debug("StatsClient terminated");
 }
 
-void StatsClient::submit(const std::string & key, const time_t ts, const double value) {
-	if (fd == -1)
-		return;
-
-	char msg[4096];
-	int len = snprintf(msg, sizeof msg, "ADD float %s %ld %f", key.c_str(), ts, value);
-
-	// in theory snprintf can return -1
-	if (len <= 0)
-		return;
-	int rc = sendto(fd, msg, len, 0, (struct sockaddr *)&addr, addr_len);
-	if (rc == -1)
-		ec_log_debug("StatsClient submit float failed: %s", strerror(errno));
-}
-
-void StatsClient::submit(const std::string & key, const time_t ts, const int64_t value) {
-	if (fd == -1)
-		return;
-
-	char msg[4096];
-	int len = snprintf(msg, sizeof msg, "ADD int %s %ld %zd",
-	          key.c_str(), static_cast<long>(ts),
-	          static_cast<size_t>(value));
-
-	// in theory snprintf can return -1
-	if (len <= 0)
-		return;
-	int rc = sendto(fd, msg, len, 0, (struct sockaddr *)&addr, addr_len);
-	if (rc == -1)
-		ec_log_debug("StatsClient submit int failed: %s", strerror(errno));
-}
-
-void StatsClient::inc(enum SCName k, double n)
+#ifdef HAVE_CURL_CURL_H
+static size_t curl_dummy_write(char *, size_t z, size_t n, void *)
 {
-	auto kp = std::to_string(k);
-	scoped_lock l_map(mapsLock);
+	return z * n;
+}
+#endif
 
-	auto doubleIterator = countsMapDouble.find(kp);
-	if (doubleIterator == countsMapDouble.cend())
-		countsMapDouble.emplace(kp, n);
-	else
-		doubleIterator -> second += n;
+static bool sc_proxy_from_env(CURL *ch, const char *url)
+{
+	auto ssl = url != nullptr && strncmp(url, "https:", 6) == 0;
+	const char *v = getenv(ssl ? "https_proxy" : "http_proxy");
+	if (v == nullptr)
+		return false;
+	curl_easy_setopt(ch, CURLOPT_PROXY, v);
+	v = getenv("no_proxy");
+	if (v != nullptr)
+		curl_easy_setopt(ch, CURLOPT_NOPROXY, v);
+	return true;
 }
 
-void StatsClient::inc(enum SCName k, int64_t n)
+#ifdef HAVE_CURL_CURL_H
+static void sc_proxy_from_sysconfig(CURL *ch, const char *url)
 {
-	auto kp = std::to_string(k);
-	scoped_lock l_map(mapsLock);
+	struct mapfree { void operator()(struct HXmap *m) { HXmap_free(m); } };
+	std::unique_ptr<HXmap, mapfree> map(HX_shconfig_map("/etc/sysconfig/proxy"));
+	if (map == nullptr)
+		return;
+	auto v = HXmap_get<const char *>(map.get(), "PROXY_ENABLED");
+	if (v == nullptr || strcasecmp(v, "yes") != 0)
+		return;
+	auto ssl = url != nullptr && strncmp(url, "https:", 6) == 0;
+	v = HXmap_get<const char *>(map.get(), ssl ? "HTTPS_PROXY" : "HTTP_PROXY");
+	if (v != nullptr)
+		curl_easy_setopt(ch, CURLOPT_PROXY, v);
+	v = HXmap_get<const char *>(map.get(), "NO_PROXY");
+	if (v != nullptr)
+		curl_easy_setopt(ch, CURLOPT_NOPROXY, v);
+}
+#endif
 
-	auto int64Iterator = countsMapInt64.find(kp);
-	if (int64Iterator == countsMapInt64.cend())
-		countsMapInt64.emplace(kp, n);
-	else
-		int64Iterator -> second += n;
+void ECStatsCollector::submit(std::string &&url)
+{
+#ifdef HAVE_CURL_CURL_H
+	struct slfree { void operator()(curl_slist *s) { curl_slist_free_all(s); } };
+	Json::Value root;
+	root["version"] = 1;
+
+	for (auto &i : m_StatData) {
+		scoped_lock lk(i.second.lock);
+		switch (i.second.type) {
+		case SCDT_FLOAT:
+			root[i.second.name] = i.second.data.f;
+			break;
+		case SCDT_LONGLONG:
+			root[i.second.name] = static_cast<Json::Value::Int64>(i.second.data.ll);
+			break;
+		case SCDT_TIMESTAMP:
+			root[i.second.name] = static_cast<Json::Value::Int64>(i.second.data.ts);
+			break;
+		case SCDT_STRING:
+			root[i.second.name] = i.second.strdata;
+			break;
+		}
+	}
+
+	auto text = Json::writeString(Json::StreamWriterBuilder(), std::move(root));
+	auto ch = curl_easy_init();
+	std::unique_ptr<curl_slist, slfree> hl(curl_slist_append(nullptr, "Content-Type: application/json"));
+	if (!sc_proxy_from_env(ch, url.c_str()))
+		sc_proxy_from_sysconfig(ch, url.c_str());
+	curl_easy_setopt(ch, CURLOPT_NOPROGRESS, 1L);
+	curl_easy_setopt(ch, CURLOPT_NOSIGNAL, 1L);
+	curl_easy_setopt(ch, CURLOPT_TCP_NODELAY, 0L);
+	curl_easy_setopt(ch, CURLOPT_SSL_VERIFYHOST, 0L);
+	curl_easy_setopt(ch, CURLOPT_SSL_VERIFYPEER, 0L);
+	if (strncmp(url.c_str(), "unix:", 5) == 0) {
+#if LIBCURL_VERSION_MAJOR >= 7 || (LIBCURL_VERSION_MAJOR == 7 && LIBCURL_VERSION_MINOR >= 40)
+		curl_easy_setopt(ch, CURLOPT_UNIX_SOCKET_PATH, url.c_str() + 5);
+		curl_easy_setopt(ch, CURLOPT_URL, "http://localhost/");
+#else
+		return;
+#endif
+	} else {
+		curl_easy_setopt(ch, CURLOPT_URL, url.c_str());
+	}
+	curl_easy_setopt(ch, CURLOPT_FOLLOWLOCATION, 1L);
+	curl_easy_setopt(ch, CURLOPT_HTTPHEADER, hl.get());
+	curl_easy_setopt(ch, CURLOPT_POSTFIELDSIZE_LARGE, static_cast<curl_off_t>(text.size()));
+	curl_easy_setopt(ch, CURLOPT_POSTFIELDS, text.c_str());
+	curl_easy_setopt(ch, CURLOPT_WRITEFUNCTION, curl_dummy_write);
+	curl_easy_perform(ch);
+#endif
+}
+
+void ECStatsCollector::mainloop()
+{
+#ifdef HAVE_CURL_CURL_H
+	std::mutex mtx;
+	do {
+		auto url1 = m_config->GetSetting("statsclient_url");
+		auto interval1 = m_config->GetSetting("statsclient_interval");
+		if (url1 == nullptr || interval1 == nullptr)
+			return;
+		auto interval = atoui(interval1);
+		if (interval > 0)
+			submit(url1);
+		else
+			interval = 60;
+		ulock_normal blah(mtx);
+		if (m_exitsig.wait_for(blah, std::chrono::seconds(interval)) != std::cv_status::timeout)
+			break;
+	} while (!terminate);
+#endif
+}
+
+ECStatsCollector::ECStatsCollector(std::shared_ptr<ECConfig> config) :
+	m_config(std::move(config))
+{
+	AddStat(SCN_MACHINE_ID, SCDT_STRING, "machine_id");
+	std::unique_ptr<FILE, file_deleter> fp(fopen("/etc/machine-id", "r"));
+	if (fp != nullptr) {
+		std::string mid;
+		HrMapFileToString(fp.get(), &mid);
+		auto pos = mid.find('\n');
+		if (pos != std::string::npos)
+			mid.erase(pos);
+		set(SCN_MACHINE_ID, mid);
+	}
+	if (m_config == nullptr)
+		return;
+	auto ret = pthread_create(&countsSubmitThread, nullptr, submitThread, this);
+	if (ret == 0)
+		thread_running = true;
 }
 
 void ECStatsCollector::AddStat(SCName index, SCType type, const char *name,
@@ -192,7 +193,7 @@ void ECStatsCollector::AddStat(SCName index, SCType type, const char *name,
 	newStat.description = description;
 }
 
-void ECStatsCollector::inc(SCName name, float inc)
+void ECStatsCollector::inc(SCName name, double inc)
 {
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
@@ -217,7 +218,7 @@ void ECStatsCollector::inc(SCName name, LONGLONG inc)
 	iSD->second.data.ll += inc;
 }
 
-void ECStatsCollector::Set(SCName name, float set)
+void ECStatsCollector::set_dbl(enum SCName name, double set)
 {
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
@@ -227,7 +228,7 @@ void ECStatsCollector::Set(SCName name, float set)
 	iSD->second.data.f = set;
 }
 
-void ECStatsCollector::Set(SCName name, LONGLONG set)
+void ECStatsCollector::set(enum SCName name, LONGLONG set)
 {
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
@@ -237,7 +238,7 @@ void ECStatsCollector::Set(SCName name, LONGLONG set)
 	iSD->second.data.ll = set;
 }
 
-void ECStatsCollector::SetTime(SCName name, time_t set)
+void ECStatsCollector::SetTime(enum SCName name, time_t set)
 {
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
@@ -245,6 +246,16 @@ void ECStatsCollector::SetTime(SCName name, time_t set)
 	assert(iSD->second.type == SCDT_TIMESTAMP);
 	scoped_lock lk(iSD->second.lock);
 	iSD->second.data.ts = set;
+}
+
+void ECStatsCollector::set(SCName name, const std::string &s)
+{
+	auto i = m_StatData.find(name);
+	if (i == m_StatData.cend())
+		return;
+	assert(i->second.type == SCDT_STRING);
+	scoped_lock lk(i->second.lock);
+	i->second.strdata = s;
 }
 
 void ECStatsCollector::Max(SCName name, LONGLONG max)
@@ -258,7 +269,7 @@ void ECStatsCollector::Max(SCName name, LONGLONG max)
 		iSD->second.data.ll = max;
 }
 
-void ECStatsCollector::Avg(SCName name, float add)
+void ECStatsCollector::avg_dbl(SCName name, double add)
 {
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
@@ -271,7 +282,7 @@ void ECStatsCollector::Avg(SCName name, float add)
 		iSD->second.avginc = 1;
 }
 
-void ECStatsCollector::Avg(SCName name, LONGLONG add)
+void ECStatsCollector::avg(SCName name, LONGLONG add)
 {
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
@@ -288,7 +299,7 @@ std::string ECStatsCollector::GetValue(const SCMap::const_iterator::value_type &
 {
 	switch (iSD.second.type) {
 	case SCDT_FLOAT:
-		return stringify_float(iSD.second.data.f);
+		return stringify_double(iSD.second.data.f);
 	case SCDT_LONGLONG:
 		return stringify_int64(iSD.second.data.ll);
 	case SCDT_TIMESTAMP: {
@@ -299,6 +310,8 @@ std::string ECStatsCollector::GetValue(const SCMap::const_iterator::value_type &
 		strftime(timestamp, sizeof timestamp, "%a %b %e %T %Y", tm);
 		return timestamp;
 	}
+	case SCDT_STRING:
+		return iSD.second.strdata;
 	}
 	return "";
 }

@@ -70,9 +70,9 @@ using std::cout;
 using std::endl;
 using std::string;
 
-class server_stats : public ECStatsCollector {
+class server_stats final : public ECStatsCollector {
 	public:
-	server_stats();
+	server_stats(std::shared_ptr<ECConfig>);
 };
 
 static const char upgrade_lock_file[] = "/tmp/kopano-upgrade-lock";
@@ -95,8 +95,10 @@ static bool g_dump_config;
 
 static int running_server(char *, const char *, bool, int, char **, int, char **);
 
-server_stats::server_stats()
+server_stats::server_stats(std::shared_ptr<ECConfig> cfg) :
+	ECStatsCollector(std::move(cfg))
 {
+	AddStat(SCN_SERVER_GUID, SCDT_STRING, "server_guid");
 	AddStat(SCN_SERVER_STARTTIME, SCDT_TIMESTAMP, "server_start_date", "Time when the server was started");
 	AddStat(SCN_SERVER_LAST_CACHECLEARED, SCDT_TIMESTAMP, "cache_purge_date", "Time when the cache was cleared");
 	AddStat(SCN_SERVER_LAST_CONFIGRELOAD, SCDT_TIMESTAMP, "config_reload_date", "Time when the configuration file was reloaded / logrotation (SIGHUP)");
@@ -1003,6 +1005,8 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{ "attachment_files_fsync", "yes", 0 },
 		{ "tmp_path", "/tmp" },
 		{ "shared_reminders", "yes", CONFIGSETTING_RELOADABLE }, // enable/disable reminders for shared stores
+		{"statsclient_url", "unix:/var/run/kopano/statsd.sock", CONFIGSETTING_RELOADABLE},
+		{"statsclient_interval", "3600", CONFIGSETTING_RELOADABLE},
 #ifdef HAVE_KCOIDC_H
 		{ "kcoidc_issuer_identifier", "", 0},
 		{ "kcoidc_insecure_skip_verify", "no", 0},
@@ -1180,7 +1184,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 #endif
 
 	// Test database settings
-	std::shared_ptr<ECStatsCollector> stats = std::make_unique<server_stats>();
+	std::shared_ptr<ECStatsCollector> stats = std::make_unique<server_stats>(g_lpConfig);
 	lpDatabaseFactory.reset(new(std::nothrow) ECDatabaseFactory(g_lpConfig, stats));
 	// open database
 	er = lpDatabaseFactory->CreateDatabaseObject(&unique_tie(lpDatabase), dbError);

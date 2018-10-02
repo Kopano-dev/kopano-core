@@ -3851,68 +3851,6 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap,
 	return erSuccess;
 }
 
-ECRESULT ECUserManagement::GetUserCount(usercount_t *lpUserCount)
-{
-    ECDatabase *lpDatabase = NULL;
-	DB_RESULT lpResult;
-    DB_ROW lpRow = NULL;
-	unsigned int ulActive = 0, ulNonActiveUser = 0;
-	unsigned int ulRoom = 0, ulEquipment = 0, ulContact = 0;
-	auto er = m_lpSession->GetDatabase(&lpDatabase);
-	if (er != erSuccess)
-		return er;
-	std::string strQuery =
-		"SELECT COUNT(*), objectclass "
-		"FROM users "
-		"WHERE externid IS NOT NULL " // Keep local entries outside of COUNT()
-			"AND " + OBJECTCLASS_COMPARE_SQL("objectclass", OBJECTCLASS_USER) + " "
-		"GROUP BY objectclass";
-	er = lpDatabase->DoSelect(strQuery, &lpResult);
-	if (er != erSuccess)
-		return er;
-
-	while ((lpRow = lpResult.fetch_row()) != nullptr) {
-		if(lpRow[0] == NULL || lpRow[1] == NULL)
-			continue;
-
-		switch (atoi(lpRow[1])) {
-		case ACTIVE_USER:
-			ulActive = atoi(lpRow[0]);
-			break;
-		case NONACTIVE_USER:
-			ulNonActiveUser = atoi(lpRow[0]);
-			break;
-		case NONACTIVE_ROOM:
-			ulRoom = atoi(lpRow[0]);
-			break;
-		case NONACTIVE_EQUIPMENT:
-			ulEquipment = atoi(lpRow[0]);
-			break;
-		case NONACTIVE_CONTACT:
-			ulContact= atoi(lpRow[0]);
-			break;
-		}
-	}
-
-	if (lpUserCount)
-		lpUserCount->assign(ulActive, ulNonActiveUser, ulRoom, ulEquipment, ulContact);
-	std::lock_guard<std::recursive_mutex> lock(m_hMutex);
-	m_userCount.assign(ulActive, ulNonActiveUser, ulRoom, ulEquipment, ulContact);
-	m_usercount_ts = time(NULL);
-	return erSuccess;
-}
-
-ECRESULT ECUserManagement::GetCachedUserCount(usercount_t *lpUserCount)
-{
-	std::lock_guard<std::recursive_mutex> lock(m_hMutex);
-
-	if (!m_userCount.isValid() || m_usercount_ts - time(NULL) > 5*60)
-		return GetUserCount(lpUserCount);
-	if (lpUserCount)
-		*lpUserCount = m_userCount;
-	return erSuccess;
-}
-
 ECRESULT ECUserManagement::GetPublicStoreDetails(objectdetails_t *lpDetails) const
 {
 	objectdetails_t details;

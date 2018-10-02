@@ -90,6 +90,11 @@ enum {
 	SPC_ABNORMAL,
 };
 
+class spooler_stats final : public StatsClient {
+	public:
+	spooler_stats(std::shared_ptr<ECConfig>);
+};
+
 static std::unique_ptr<StatsClient> sc;
 
 // spooler exit codes
@@ -935,7 +940,8 @@ int main(int argc, char **argv) try
         { "plugin_enabled", "yes" },
         { "plugin_path", "/var/lib/kopano/spooler/plugins" },
         { "plugin_manager_path", "/usr/share/kopano-spooler/python" },
-		{ "z_statsd_stats", "/var/run/kopano/statsd.sock" },
+		{"statsclient_url", "unix:/var/run/kopano/statsd.sock", CONFIGSETTING_RELOADABLE},
+		{"statsclient_interval", "3600", CONFIGSETTING_RELOADABLE},
 		{ "tmp_path", "/tmp" },
 		{"log_raw_message_path", "/var/lib/kopano", CONFIGSETTING_RELOADABLE},
 		{"log_raw_message_stage1", "no", CONFIGSETTING_RELOADABLE},
@@ -1127,8 +1133,7 @@ int main(int argc, char **argv) try
 		goto exit;
 	}
 
-	sc.reset(new StatsClient);
-	sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
+	sc.reset(new spooler_stats(g_lpConfig));
 	if (bForked)
 		hr = ProcessMessageForked(strUsername.c_str(), szSMTP, ulPort,
 		     szPath, strMsgEntryId.length(), reinterpret_cast<const ENTRYID *>(strMsgEntryId.data()),
@@ -1151,4 +1156,16 @@ exit:
 	return EXIT_FAILURE;
 } catch (...) {
 	std::terminate();
+}
+
+spooler_stats::spooler_stats(std::shared_ptr<ECConfig> cfg) :
+	StatsClient(std::move(cfg))
+{
+	AddStat(SCN_SPOOLER_EXIT_WAIT, SCDT_LONGLONG, "spooler_exit_wait");
+	AddStat(SCN_SPOOLER_SIGKILLED, SCDT_LONGLONG, "spooler_sigkilled");
+	AddStat(SCN_SPOOLER_ABNORM_TERM, SCDT_LONGLONG, "spooler_abnormal_termination");
+	AddStat(SCN_SPOOLER_SENT, SCDT_LONGLONG, "spooler_sent");
+	AddStat(SCN_SPOOLER_SEND_FAILED, SCDT_LONGLONG, "spooler_send_failed");
+	AddStat(SCN_SPOOLER_BATCH_INVOKES, SCDT_LONGLONG, "spooler_batch_invokes");
+	AddStat(SCN_SPOOLER_BATCH_COUNT, SCDT_LONGLONG, "spooler_batch_count");
 }

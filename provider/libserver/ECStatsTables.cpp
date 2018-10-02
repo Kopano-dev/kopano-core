@@ -112,7 +112,7 @@ ECRESULT ECSystemStatsTable::Load()
 	GetStatsCollectorData("queueage", "Age of the front queue item", stringify_double(dur2dbl(age), 3), this);
 	GetStatsCollectorData("threads", "Number of threads running to process items", stringify(ulThreads), this);
 	GetStatsCollectorData("threads_idle", "Number of idle threads", stringify(ulIdleThreads), this);
-	lpSession->GetUserManagement()->GetCachedUserCount(&userCount);
+	lpSession->GetSessionManager()->get_user_count_cached(&userCount);
 	GetStatsCollectorData("usercnt_active", "Number of active users", stringify(userCount[usercount_t::ucActiveUser]), this);
 	GetStatsCollectorData("usercnt_nonactive", "Number of total non-active objects", stringify(userCount[usercount_t::ucNonActiveTotal]), this);
 	GetStatsCollectorData("usercnt_na_user", "Number of non-active users", stringify(userCount[usercount_t::ucNonActiveUser]), this);
