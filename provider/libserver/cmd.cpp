@@ -2370,20 +2370,22 @@ static unsigned int SaveObject(struct soap *soap, ECSession *lpecSession,
 
 	// PR_LAST_MODIFICATION_TIME
 	lpsReturnObj->delProps.__ptr[n] = PR_LAST_MODIFICATION_TIME;
-	lpsReturnObj->modProps.__ptr[n].__union = SOAP_UNION_propValData_hilo;
-	lpsReturnObj->modProps.__ptr[n].ulPropTag = PR_LAST_MODIFICATION_TIME;
-	lpsReturnObj->modProps.__ptr[n].Value.hilo = s_alloc<hiloLong>(soap);
-	lpsReturnObj->modProps.__ptr[n].Value.hilo->hi = ftModified.dwHighDateTime;
-	lpsReturnObj->modProps.__ptr[n].Value.hilo->lo = ftModified.dwLowDateTime;
+	auto mod = &lpsReturnObj->modProps.__ptr[n];
+	mod->__union = SOAP_UNION_propValData_hilo;
+	mod->ulPropTag = PR_LAST_MODIFICATION_TIME;
+	mod->Value.hilo = s_alloc<hiloLong>(soap);
+	mod->Value.hilo->hi = ftModified.dwHighDateTime;
+	mod->Value.hilo->lo = ftModified.dwLowDateTime;
 	++n;
 	if (fNewItem)
 	{
 		lpsReturnObj->delProps.__ptr[n] = PR_CREATION_TIME;
-		lpsReturnObj->modProps.__ptr[n].__union = SOAP_UNION_propValData_hilo;
-		lpsReturnObj->modProps.__ptr[n].ulPropTag = PR_CREATION_TIME;
-		lpsReturnObj->modProps.__ptr[n].Value.hilo = s_alloc<hiloLong>(soap);
-		lpsReturnObj->modProps.__ptr[n].Value.hilo->hi = ftCreated.dwHighDateTime;
-		lpsReturnObj->modProps.__ptr[n].Value.hilo->lo = ftCreated.dwLowDateTime;
+		mod = &lpsReturnObj->modProps.__ptr[n];
+		mod->__union = SOAP_UNION_propValData_hilo;
+		mod->ulPropTag = PR_CREATION_TIME;
+		mod->Value.hilo = s_alloc<hiloLong>(soap);
+		mod->Value.hilo->hi = ftCreated.dwHighDateTime;
+		mod->Value.hilo->lo = ftCreated.dwLowDateTime;
 		++n;
 	}
 
@@ -2582,24 +2584,26 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er,
 		if(!strChangeKey.empty()){
 			sReturnObject.delProps.__ptr[sReturnObject.delProps.__size] = PR_CHANGE_KEY;
 			++sReturnObject.delProps.__size;
-			sReturnObject.modProps.__ptr[sReturnObject.modProps.__size].ulPropTag = PR_CHANGE_KEY;
-			sReturnObject.modProps.__ptr[sReturnObject.modProps.__size].__union = SOAP_UNION_propValData_bin;
-			sReturnObject.modProps.__ptr[sReturnObject.modProps.__size].Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-			sReturnObject.modProps.__ptr[sReturnObject.modProps.__size].Value.bin->__size = strChangeKey.size();
-			sReturnObject.modProps.__ptr[sReturnObject.modProps.__size].Value.bin->__ptr = s_alloc<unsigned char>(soap, strChangeKey.size());
-			memcpy(sReturnObject.modProps.__ptr[sReturnObject.modProps.__size].Value.bin->__ptr, strChangeKey.c_str(), strChangeKey.size());
+			auto &mod = sReturnObject.modProps.__ptr[sReturnObject.modProps.__size];
+			mod.ulPropTag = PR_CHANGE_KEY;
+			mod.__union = SOAP_UNION_propValData_bin;
+			mod.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+			mod.Value.bin->__size = strChangeKey.size();
+			mod.Value.bin->__ptr = s_alloc<unsigned char>(soap, strChangeKey.size());
+			memcpy(mod.Value.bin->__ptr, strChangeKey.c_str(), strChangeKey.size());
 			++sReturnObject.modProps.__size;
 		}
 
 		if(!strChangeList.empty()){
 			sReturnObject.delProps.__ptr[sReturnObject.delProps.__size] = PR_PREDECESSOR_CHANGE_LIST;
 			++sReturnObject.delProps.__size;
-			sReturnObject.modProps.__ptr[sReturnObject.modProps.__size].ulPropTag = PR_PREDECESSOR_CHANGE_LIST;
-			sReturnObject.modProps.__ptr[sReturnObject.modProps.__size].__union = SOAP_UNION_propValData_bin;
-			sReturnObject.modProps.__ptr[sReturnObject.modProps.__size].Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-			sReturnObject.modProps.__ptr[sReturnObject.modProps.__size].Value.bin->__size = strChangeList.size();
-			sReturnObject.modProps.__ptr[sReturnObject.modProps.__size].Value.bin->__ptr = s_alloc<unsigned char>(soap, strChangeList.size());
-			memcpy(sReturnObject.modProps.__ptr[sReturnObject.modProps.__size].Value.bin->__ptr, strChangeList.c_str(), strChangeList.size());
+			auto &mod = sReturnObject.modProps.__ptr[sReturnObject.modProps.__size];
+			mod.ulPropTag = PR_PREDECESSOR_CHANGE_LIST;
+			mod.__union = SOAP_UNION_propValData_bin;
+			mod.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+			mod.Value.bin->__size = strChangeList.size();
+			mod.Value.bin->__ptr = s_alloc<unsigned char>(soap, strChangeList.size());
+			memcpy(mod.Value.bin->__ptr, strChangeList.c_str(), strChangeList.size());
 			++sReturnObject.modProps.__size;
 		}
 	}

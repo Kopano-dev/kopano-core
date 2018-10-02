@@ -274,7 +274,7 @@ ECRESULT ECCacheManager::SetObject(unsigned int ulObjId, unsigned int ulParent, 
 	sObjects.ulType		= ulType;
 
 	scoped_rlock lock(m_hCacheObjectMutex);
-	auto er = m_ObjectsCache.AddCacheItem(ulObjId, sObjects);
+	auto er = m_ObjectsCache.AddCacheItem(ulObjId, std::move(sObjects));
 	LOG_CACHE_DEBUG("Set cache object id %d, parent %d, owner %d, flags %d, type %d", ulObjId, ulParent, ulOwner, ulFlags, ulType);
 	return er;
 }
@@ -312,7 +312,7 @@ ECRESULT ECCacheManager::SetStore(unsigned int ulObjId, unsigned int ulStore,
 	sStores.ulType = ulType;
 
 	scoped_rlock lock(m_hCacheStoreMutex);
-	auto er = m_StoresCache.AddCacheItem(ulObjId, sStores);
+	auto er = m_StoresCache.AddCacheItem(ulObjId, std::move(sStores));
 	LOG_CACHE_DEBUG("Set store cache id %d, store %d, type %d, guid %s", ulObjId, ulStore, ulType, (lpGuid != nullptr ? bin2hex(sizeof(GUID), lpGuid).c_str() : "NULL"));
 	return er;
 }
@@ -854,7 +854,7 @@ ECRESULT ECCacheManager::I_AddUserObject(unsigned int ulUserId,
 	sData.ulCompanyId = ulCompanyId;
 	sData.strExternId = strExternId;
 	sData.strSignature = strSignature;
-	return m_UserObjectCache.AddCacheItem(ulUserId, sData);
+	return m_UserObjectCache.AddCacheItem(ulUserId, std::move(sData));
 }
 
 ECRESULT ECCacheManager::I_GetUserObject(unsigned int ulUserId,
@@ -897,7 +897,7 @@ ECRESULT ECCacheManager::I_AddUserObjectDetails(unsigned int ulUserId,
 	scoped_rlock lock(m_hCacheMutex);
 	LOG_USERCACHE_DEBUG("_Add user details. userid %d, %s", ulUserId, details.ToStr().c_str());
 	sObjectDetails.sDetails = details;
-	return m_UserObjectDetailsCache.AddCacheItem(ulUserId, sObjectDetails);
+	return m_UserObjectDetailsCache.AddCacheItem(ulUserId, std::move(sObjectDetails));
 }
 
 ECRESULT ECCacheManager::I_GetUserObjectDetails(unsigned int ulUserId, objectdetails_t *details)
@@ -941,7 +941,7 @@ ECRESULT ECCacheManager::I_AddUEIdObject(const std::string &strExternId,
 
 	sKey.ulClass = ulClass;
 	sKey.strExternId = strExternId;
-	return m_UEIdObjectCache.AddCacheItem(sKey, sData);
+	return m_UEIdObjectCache.AddCacheItem(sKey, std::move(sData));
 }
 
 ECRESULT ECCacheManager::I_GetUEIdObject(const std::string &strExternId,
@@ -1086,7 +1086,7 @@ ECRESULT ECCacheManager::SetACLs(unsigned int ulObjId,
     }
 
 	scoped_rlock lock(m_hCacheMutex);
-	return m_AclCache.AddCacheItem(ulObjId, sACLs);
+	return m_AclCache.AddCacheItem(ulObjId, std::move(sACLs));
 }
 
 ECRESULT ECCacheManager::I_DelACLs(unsigned int ulObjId)
@@ -1110,8 +1110,8 @@ ECRESULT ECCacheManager::SetQuota(unsigned int ulUserId, bool bIsDefaultQuota,
 	sQuota.quota = quota;
 	scoped_rlock lock(m_hCacheMutex);
 	if (bIsDefaultQuota)
-		return m_QuotaUserDefaultCache.AddCacheItem(ulUserId, sQuota);
-	return m_QuotaCache.AddCacheItem(ulUserId, sQuota);
+		return m_QuotaUserDefaultCache.AddCacheItem(ulUserId, std::move(sQuota));
+	return m_QuotaCache.AddCacheItem(ulUserId, std::move(sQuota));
 }
 
 ECRESULT ECCacheManager::I_GetQuota(unsigned int ulUserId, bool bIsDefaultQuota, quotadetails_t *quota)
@@ -1266,7 +1266,7 @@ ECRESULT ECCacheManager::SetCell(const sObjectTableKey *lpsRowItem,
     } else {
         ECsCells sNewCell;
         sNewCell.AddPropVal(ulPropTag, lpSrc);
-		er = m_CellCache.AddCacheItem(lpsRowItem->ulObjId, sNewCell);
+		er = m_CellCache.AddCacheItem(lpsRowItem->ulObjId, std::move(sNewCell));
     }
 	if (er != erSuccess)
 		LOG_CELLCACHE_DEBUG("Set cell object %d tag 0x%08X error 0x%08X", lpsRowItem->ulObjId, ulPropTag, er);
@@ -1384,7 +1384,7 @@ ECRESULT ECCacheManager::SetServerDetails(const std::string &strServerId, const 
 	sEntry.sDetails = sDetails;
 
 	scoped_rlock lock(m_hCacheMutex);
-	return m_ServerDetailsCache.AddCacheItem(strToLower(strServerId), sEntry);
+	return m_ServerDetailsCache.AddCacheItem(strToLower(strServerId), std::move(sEntry));
 }
 
 ECRESULT ECCacheManager::RemoveIndexData(unsigned int ulObjId)
@@ -1407,7 +1407,8 @@ ECRESULT ECCacheManager::RemoveIndexData(unsigned int ulObjId)
 	return er;
 }
 
-ECRESULT ECCacheManager::RemoveIndexData(unsigned int ulPropTag, unsigned int cbData, unsigned char *lpData)
+ECRESULT ECCacheManager::RemoveIndexData(unsigned int ulPropTag,
+    unsigned int cbData, const unsigned char *lpData)
 {
 	ECsIndexProp	sObject;
 	ECsIndexObject	*sObjectId;
@@ -1418,7 +1419,7 @@ ECRESULT ECCacheManager::RemoveIndexData(unsigned int ulPropTag, unsigned int cb
 	LOG_CACHE_DEBUG("Remove indexdata proptag 0x%08X, data %s", ulPropTag, bin2hex(cbData, lpData).c_str());
 	sObject.ulTag = PROP_ID(ulPropTag);
 	sObject.cbData = cbData;
-	sObject.lpData = lpData; // Cheap copy, Set this item on NULL before you exit
+	sObject.lpData = const_cast<unsigned char *>(lpData); /* Cheap copy, set this item to nullptr before exiting */
 
 	scoped_rlock lock(m_hCacheIndPropMutex);
         if(m_PropToObjectCache.GetCacheItem(sObject, &sObjectId) == erSuccess) {
@@ -1526,7 +1527,8 @@ exit:
 	return er;
 }
 
-ECRESULT ECCacheManager::GetObjectFromProp(unsigned int ulTag, unsigned int cbData, unsigned char* lpData, unsigned int* lpulObjId)
+ECRESULT ECCacheManager::GetObjectFromProp(unsigned int ulTag, unsigned int cbData,
+    const unsigned char *lpData, unsigned int *lpulObjId)
 {
 	ECRESULT		er = erSuccess;
 	DB_RESULT lpDBResult;
@@ -1565,7 +1567,7 @@ ECRESULT ECCacheManager::GetObjectFromProp(unsigned int ulTag, unsigned int cbDa
     sNewIndexObject.ulObjId = atoui(lpDBRow[0]);
 	sObject.ulTag = ulTag;
 	sObject.cbData = cbData;
-	sObject.lpData = lpData; // Cheap copy, Set this item on NULL before you exit
+	sObject.lpData = const_cast<unsigned char *>(lpData); /* Cheap copy, set this item to nullptr before exiting */
 	er = I_AddIndexData(sNewIndexObject, sObject);
 	if (er != erSuccess)
 		goto exit;
@@ -1579,7 +1581,8 @@ exit:
 	return er;
 }
 
-ECRESULT ECCacheManager::QueryObjectFromProp(unsigned int ulTag, unsigned int cbData, unsigned char* lpData, unsigned int* lpulObjId)
+ECRESULT ECCacheManager::QueryObjectFromProp(unsigned int ulTag, unsigned int cbData,
+    const unsigned char *lpData, unsigned int *lpulObjId)
 {
 	ECsIndexProp	sObject;
 	ECsIndexObject	*sIndexObject;
@@ -1589,7 +1592,7 @@ ECRESULT ECCacheManager::QueryObjectFromProp(unsigned int ulTag, unsigned int cb
 
 	sObject.ulTag = ulTag;
 	sObject.cbData = cbData;
-	sObject.lpData = lpData; // Cheap copy, Set this item on NULL before you exit
+	sObject.lpData = const_cast<unsigned char *>(lpData); /* Cheap copy, set this item to nullptr before exiting */
 
 	scoped_rlock lock(m_hCacheIndPropMutex);
 	auto er = m_PropToObjectCache.GetCacheItem(sObject, &sIndexObject);
@@ -1599,7 +1602,8 @@ ECRESULT ECCacheManager::QueryObjectFromProp(unsigned int ulTag, unsigned int cb
     return er;
 }
 
-ECRESULT ECCacheManager::SetObjectProp(unsigned int ulTag, unsigned int cbData, unsigned char *lpData, unsigned int ulObjId)
+ECRESULT ECCacheManager::SetObjectProp(unsigned int ulTag, unsigned int cbData,
+    const unsigned char *lpData, unsigned int ulObjId)
 {
     ECsIndexObject sObject;
     ECsIndexProp sProp;
@@ -1773,6 +1777,187 @@ void ECCacheManager::EnableCellCache()
 {
 	LOG_CELLCACHE_DEBUG("Enable cell cache");
 	m_bCellCacheDisabled = false;
+}
+
+ECsCells::ECsCells(const ECsCells &src)
+{
+	struct propVal val;
+	for (const auto &p : src.mapPropVals) {
+		CopyPropVal(const_cast<struct propVal *>(&p.second), &val);
+		mapPropVals[p.first] = val;
+	}
+	m_bComplete = src.m_bComplete;
+}
+
+ECsCells::~ECsCells() {
+	for (auto &p : mapPropVals)
+		FreePropVal(&p.second, false);
+}
+
+ECsCells &ECsCells::operator=(const ECsCells &src)
+{
+	struct propVal val;
+	for (auto &p : mapPropVals)
+		FreePropVal(&p.second, false);
+	mapPropVals.clear();
+	for (const auto &p : src.mapPropVals) {
+		CopyPropVal(const_cast<struct propVal *>(&p.second), &val);
+		mapPropVals[p.first] = val;
+	}
+	m_bComplete = src.m_bComplete;
+	return *this;
+}
+
+/* Add a property value for this object */
+void ECsCells::AddPropVal(unsigned int ulPropTag, const struct propVal *lpPropVal)
+{
+	struct propVal val;
+	ulPropTag = NormalizeDBPropTag(ulPropTag); /* Only cache PT_STRING8 */
+	CopyPropVal(lpPropVal, &val, nullptr, false);
+	val.ulPropTag = NormalizeDBPropTag(val.ulPropTag);
+	auto res = mapPropVals.emplace(ulPropTag, val);
+	if (!res.second) {
+		FreePropVal(&res.first->second, false);
+		res.first->second = val; /* reassign */
+	}
+}
+
+/* get a property value for this object */
+bool ECsCells::GetPropVal(unsigned int ulPropTag, struct propVal *lpPropVal,
+    struct soap *soap, bool truncate) const
+{
+	auto i = mapPropVals.find(NormalizeDBPropTag(ulPropTag));
+	if (i == mapPropVals.cend())
+		return false;
+	CopyPropVal(&i->second, lpPropVal, soap, truncate);
+	if (NormalizeDBPropTag(ulPropTag) == lpPropVal->ulPropTag)
+		/* Switch back to requested type (not on PT_ERROR of course) */
+		lpPropVal->ulPropTag = ulPropTag;
+	return true;
+}
+
+std::vector<unsigned int> ECsCells::GetPropTags() const
+{
+	std::vector<unsigned int> result;
+	result.reserve(mapPropVals.size());
+	for (const auto &p : mapPropVals)
+		result.push_back(p.first);
+	return result;
+}
+
+/* Updates a LONG type property */
+void ECsCells::UpdatePropVal(unsigned int ulPropTag, int lDelta)
+{
+	if (PROP_TYPE(ulPropTag) != PT_LONG && PROP_TYPE(ulPropTag) != PT_LONGLONG)
+		return;
+	auto i = mapPropVals.find(ulPropTag);
+	if (i == mapPropVals.cend())
+		return;
+	if (PROP_TYPE(i->second.ulPropTag) == PT_LONG)
+		i->second.Value.ul += lDelta;
+	if (PROP_TYPE(i->second.ulPropTag) == PT_LONGLONG)
+		i->second.Value.li += lDelta;
+}
+
+/* Updates a LONG type property */
+void ECsCells::UpdatePropVal(unsigned int ulPropTag, unsigned int ulMask,
+    unsigned int ulValue)
+{
+	if (PROP_TYPE(ulPropTag) != PT_LONG && PROP_TYPE(ulPropTag) != PT_LONGLONG)
+		return;
+	auto i = mapPropVals.find(ulPropTag);
+	if (i == mapPropVals.cend())
+		return;
+	if (PROP_TYPE(i->second.ulPropTag) == PT_LONG) {
+		i->second.Value.ul &= ~ulMask;
+		i->second.Value.ul |= ulValue & ulMask;
+	}
+	if (PROP_TYPE(i->second.ulPropTag) == PT_LONGLONG) {
+		i->second.Value.li &= ~ulMask;
+		i->second.Value.li |= ulValue & ulMask;
+	}
+}
+
+size_t ECsCells::GetSize() const
+{
+	size_t ulSize = 0;
+
+	for (const auto &p : mapPropVals) {
+		switch (p.second.__union) {
+		case SOAP_UNION_propValData_lpszA:
+			ulSize += p.second.Value.lpszA != nullptr ? strlen(p.second.Value.lpszA) : 0;
+			break;
+		case SOAP_UNION_propValData_bin:
+			ulSize += p.second.Value.bin != nullptr ? p.second.Value.bin->__size + sizeof(p.second.Value.bin[0]) : 0;
+			break;
+		case SOAP_UNION_propValData_hilo:
+			ulSize += sizeof(p.second.Value.hilo[0]);
+			break;
+		default:
+			break;
+		}
+		ulSize += sizeof(std::map<unsigned int, struct propVal>::value_type);
+	}
+	ulSize += sizeof(*this);
+	return ulSize;
+}
+
+/* @todo check this function, is this really ok? */
+bool ECsIndexProp::operator<(const ECsIndexProp &other) const noexcept
+{
+	if (cbData < other.cbData)
+		return true;
+	if (cbData != other.cbData)
+		return false;
+	if (lpData == nullptr && other.lpData)
+		return true;
+	else if (lpData != nullptr && other.lpData == nullptr)
+		return false;
+	else if (lpData == nullptr && other.lpData == nullptr)
+		return false;
+	int c = memcmp(lpData, other.lpData, cbData);
+	if (c < 0)
+		return true;
+	else if (c == 0 && ulTag < other.ulTag)
+		return true;
+	return false;
+}
+
+bool ECsIndexProp::operator==(const ECsIndexProp &other) const noexcept
+{
+	if (cbData != other.cbData || ulTag != other.ulTag)
+		return false;
+	if (lpData == other.lpData)
+		return true;
+	if (lpData == nullptr || other.lpData == nullptr)
+		return false;
+	if (memcmp(lpData, other.lpData, cbData) == 0)
+		return true;
+	return false;
+}
+
+void ECsIndexProp::SetValue(unsigned int tag, const unsigned char *data, unsigned int z)
+{
+	if (data == nullptr || z == 0)
+		return;
+	Free();
+	lpData = new unsigned char[z];
+	cbData = z;
+	ulTag = tag;
+	memcpy(lpData, data, z);
+}
+
+void ECsIndexProp::Copy(const ECsIndexProp &src, ECsIndexProp &dst)
+{
+	if (src.lpData != nullptr && src.cbData > 0) {
+		dst.lpData = new unsigned char[src.cbData];
+		memcpy(dst.lpData, src.lpData, src.cbData);
+		dst.cbData = src.cbData;
+	} else {
+		dst.lpData = nullptr;
+		dst.cbData = 0;
+	}
+	dst.ulTag = src.ulTag;
 }
 
 } /* namespace */

@@ -3483,7 +3483,7 @@ HRESULT WSTransport::HrResolvePseudoUrl(const char *lpszPseudoUrl, char **lppszS
 
 	{
 		scoped_rlock lock(m_ResolveResultCacheMutex);
-		m_ResolveResultCache.AddCacheItem(lpszPseudoUrl, cachedResult);
+		m_ResolveResultCache.AddCacheItem(lpszPseudoUrl, std::move(cachedResult));
 	}
 
 	ulLen = strlen(sResponse.lpszServerPath) + 1;

@@ -105,9 +105,8 @@ public:
 	}
 
     ECsIndexProp(const ECsIndexProp &src) {
-        if(this == &src)
-            return;
-        Copy(&src, this);
+		if (this != &src)
+			Copy(src, *this);
     }
 
 	ECsIndexProp(ECsIndexProp &&o) :
@@ -126,54 +125,13 @@ public:
 		if (this == &src)
 			return *this;
 		Free();
-		Copy(&src, this);
+		Copy(src, *this);
 		return *this;
     }
 
-	// @todo check this function, is this really ok?
-	inline bool operator<(const ECsIndexProp &other) const noexcept
-	{
-		if(cbData < other.cbData)
-			return true;
-		if (cbData != other.cbData)
-			return false;
-		if (lpData == NULL && other.lpData)
-			return true;
-		else if (lpData != NULL && other.lpData == NULL)
-			return false;
-		else if (lpData == NULL && other.lpData == NULL)
-			return false;
-		int c = memcmp(lpData, other.lpData, cbData);
-		if (c < 0)
-			return true;
-		else if (c == 0 && ulTag < other.ulTag)
-			return true;
-		return false;
-	}
-
-	inline bool operator==(const ECsIndexProp &other) const noexcept
-	{
-		if(cbData != other.cbData || ulTag != other.ulTag)
-			return false;
-		if (lpData == other.lpData)
-			return true;
-		if (lpData == NULL || other.lpData == NULL)
-			return false;
-		if(memcmp(lpData, other.lpData, cbData) == 0)
-			return true;
-		return false;
-	}
-
-	void SetValue(unsigned int tag, const unsigned char *data, unsigned int z)
-	{
-		if (data == nullptr || z == 0)
-			return;
-		Free();
-		lpData = new unsigned char[z];
-		cbData = z;
-		ulTag = tag;
-		memcpy(lpData, data, z);
-	}
+	bool operator<(const ECsIndexProp &) const noexcept;
+	bool operator==(const ECsIndexProp &) const noexcept;
+	void SetValue(unsigned int tag, const unsigned char *data, unsigned int z);
 
 protected:
 	void Free() {
@@ -183,18 +141,7 @@ protected:
 		lpData = NULL;
 	}
 
-	void Copy(const ECsIndexProp* src, ECsIndexProp* dst) {
-		if(src->lpData != NULL && src->cbData>0) {
-			dst->lpData = new unsigned char[src->cbData];
-			memcpy(dst->lpData, src->lpData, (size_t)src->cbData);
-			dst->cbData = src->cbData;
-		} else {
-			dst->lpData = NULL;
-			dst->cbData = 0;
-		}
-
-		dst->ulTag = src->ulTag;
-	}
+	void Copy(const ECsIndexProp &src, ECsIndexProp &dst);
 
 public:
 	unsigned int ulTag = 0, cbData = 0;
@@ -204,124 +151,18 @@ public:
 class ECsCells final : public ECsCacheEntry {
 public:
 	ECsCells(void) = default;
-    ~ECsCells() {
-		for (auto &p : mapPropVals)
-			FreePropVal(&p.second, false);
-    };
-
-    ECsCells(const ECsCells &src) {
-        struct propVal val;
-		for (const auto &p : src.mapPropVals) {
-			CopyPropVal(const_cast<struct propVal *>(&p.second), &val);
-			mapPropVals[p.first] = val;
-        }
-        m_bComplete = src.m_bComplete;
-    }
-
-    ECsCells& operator=(const ECsCells &src) {
-        struct propVal val;
-		for (auto &p : mapPropVals)
-			FreePropVal(&p.second, false);
-        mapPropVals.clear();
-		for (const auto &p : src.mapPropVals) {
-			CopyPropVal(const_cast<struct propVal *>(&p.second), &val);
-			mapPropVals[p.first] = val;
-        }
-        m_bComplete = src.m_bComplete;
-		return *this;
-    }
-
-    // Add a property value for this object
-    void AddPropVal(unsigned int ulPropTag, const struct propVal *lpPropVal) {
-        struct propVal val;
-        ulPropTag = NormalizeDBPropTag(ulPropTag); // Only cache PT_STRING8
-		CopyPropVal(lpPropVal, &val, nullptr, false);
-        val.ulPropTag = NormalizeDBPropTag(val.ulPropTag);
-		auto res = mapPropVals.emplace(ulPropTag, val);
-		if (!res.second) {
-            FreePropVal(&res.first->second, false);
-            res.first->second = val;	// reassign
-        }
-    }
-
-    // get a property value for this object
-    bool GetPropVal(unsigned int ulPropTag, struct propVal *lpPropVal, struct soap *soap, bool truncate) {
-		auto i = mapPropVals.find(NormalizeDBPropTag(ulPropTag));
-		if (i == mapPropVals.cend())
-			return false;
-        CopyPropVal(&i->second, lpPropVal, soap, truncate);
-        if(NormalizeDBPropTag(ulPropTag) == lpPropVal->ulPropTag)
-	        lpPropVal->ulPropTag = ulPropTag; // Switch back to requested type (not on PT_ERROR of course)
-        return true;
-    }
-
-	std::vector<unsigned int> GetPropTags() {
-		std::vector<unsigned int> result;
-		result.reserve(mapPropVals.size());
-		for (const auto &p : mapPropVals)
-			result.push_back(p.first);
-		return result;
-	}
-
-    // Updates a LONG type property
-    void UpdatePropVal(unsigned int ulPropTag, int lDelta) {
-        if(PROP_TYPE(ulPropTag) != PT_LONG && PROP_TYPE(ulPropTag) != PT_LONGLONG)
-            return;
-		auto i = mapPropVals.find(ulPropTag);
-		if (i == mapPropVals.cend())
-			return;
-		if (PROP_TYPE(i->second.ulPropTag) == PT_LONG)
-			i->second.Value.ul += lDelta;
-		if (PROP_TYPE(i->second.ulPropTag) == PT_LONGLONG)
-			i->second.Value.li += lDelta;
-    }
-
-    // Updates a LONG type property
-    void UpdatePropVal(unsigned int ulPropTag, unsigned int ulMask, unsigned int ulValue) {
-        if(PROP_TYPE(ulPropTag) != PT_LONG && PROP_TYPE(ulPropTag) != PT_LONGLONG)
-            return;
-		auto i = mapPropVals.find(ulPropTag);
-		if (i == mapPropVals.cend())
-			return;
-		if (PROP_TYPE(i->second.ulPropTag) == PT_LONG) {
-			i->second.Value.ul &= ~ulMask;
-			i->second.Value.ul |= ulValue & ulMask;
-		}
-		if (PROP_TYPE(i->second.ulPropTag) == PT_LONGLONG) {
-			i->second.Value.li &= ~ulMask;
-			i->second.Value.li |= ulValue & ulMask;
-		}
-    }
+	~ECsCells();
+	ECsCells(const ECsCells &);
+	ECsCells &operator=(const ECsCells &);
+	void AddPropVal(unsigned int tag, const struct propVal *);
+	bool GetPropVal(unsigned int tag, struct propVal *, struct soap *, bool trunc) const;
+	std::vector<unsigned int> GetPropTags() const;
+	void UpdatePropVal(unsigned int tag, int delta);
+	void UpdatePropVal(unsigned int tag, unsigned int mask, unsigned int value);
 
 	void SetComplete(bool bComplete) { m_bComplete = bComplete; }
 	bool GetComplete() const { return m_bComplete; }
-
-    // Gets the amount of memory used by this object
-    size_t GetSize() const {
-        size_t ulSize = 0;
-
-        for (const auto &p : mapPropVals) {
-            switch (p.second.__union) {
-                case SOAP_UNION_propValData_lpszA:
-                    ulSize += p.second.Value.lpszA != NULL ?
-                              strlen(p.second.Value.lpszA) : 0;
-					break;
-                case SOAP_UNION_propValData_bin:
-                    ulSize += p.second.Value.bin != NULL ?
-                              p.second.Value.bin->__size +
-                              sizeof(p.second.Value.bin[0]) : 0;
-					break;
-                case SOAP_UNION_propValData_hilo:
-                    ulSize += sizeof(p.second.Value.hilo[0]);
-					break;
-                default:
-                    break;
-            }
-            ulSize += sizeof(std::map<unsigned int, struct propVal>::value_type);
-        }
-        ulSize += sizeof(*this);
-        return ulSize;
-    }
+	size_t GetSize() const;
 
     // All properties for this object; propTag => propVal
     std::map<unsigned int, struct propVal> mapPropVals;
@@ -356,23 +197,22 @@ struct ECsSortKeyKey {
 	unsigned int	ulPropTag;
 };
 
-inline unsigned int IPRSHash(const ECsIndexProp &_Keyval1) noexcept
-{
-	unsigned int b = 378551, a = 63689, hash = 0;
-	for (std::size_t i = 0; i < _Keyval1.cbData; ++i) {
-		hash = hash * a + _Keyval1.lpData[i];
-		a *= b;
-	}
-	return hash;
-}
-
 } /* namespace KC */
 
 namespace std {
 	// hash function for type ECsIndexProp
 	template<> struct hash<KC::ECsIndexProp> {
 		public:
-		size_t operator()(const KC::ECsIndexProp &value) const noexcept { return KC::IPRSHash(value); }
+		size_t operator()(const KC::ECsIndexProp &value) const noexcept
+		{
+			/* Robert Sedgewick string hash function */
+			unsigned int a = 63689, b = 378551, hash = 0;
+			for (size_t i = 0; i < value.cbData; ++i) {
+				hash = hash * a + value.lpData[i];
+				a *= b;
+			}
+			return hash;
+		}
 	};
 
 	// hash function for type ECsIndexObject
@@ -388,20 +228,6 @@ namespace std {
 }
 
 namespace KC {
-
-typedef std::unordered_map<unsigned int, ECsObjects> ECMapObjects;
-typedef std::unordered_map<unsigned int, ECsStores> ECMapStores;
-typedef std::unordered_map<unsigned int, ECsACLs> ECMapACLs;
-typedef std::unordered_map<unsigned int, ECsQuota> ECMapQuota;
-typedef std::unordered_map<unsigned int, ECsUserObject> ECMapUserObject; // userid to user object
-typedef std::map<ECsUEIdKey, ECsUEIdObject> ECMapUEIdObject; // user type + externid to user object
-typedef std::unordered_map<unsigned int, ECsUserObjectDetails> ECMapUserObjectDetails; // userid to user object data
-typedef std::map<std::string, ECsServerDetails> ECMapServerDetails;
-typedef std::unordered_map<unsigned int, ECsCells> ECMapCells;
-
-// Index properties
-typedef std::map<ECsIndexObject, ECsIndexProp> ECMapObjectToProp;
-typedef std::unordered_map<ECsIndexProp, ECsIndexObject> ECMapPropToObject;
 
 #define CACHE_NO_PARENT 0xFFFFFFFF
 
@@ -463,16 +289,16 @@ public:
 
 	// Read-through
 	ECRESULT GetPropFromObject(unsigned int ulTag, unsigned int ulObjId, struct soap *soap, unsigned int* lpcbData, unsigned char** lppData);
-	ECRESULT GetObjectFromProp(unsigned int ulTag, unsigned int cbData, unsigned char* lpData, unsigned int* lpulObjId);
+	ECRESULT GetObjectFromProp(unsigned int tag, unsigned int dsize, const unsigned char *data, unsigned int *objid);
 
 	ECRESULT RemoveIndexData(unsigned int ulObjId);
-	ECRESULT RemoveIndexData(unsigned int ulPropTag, unsigned int cbData, unsigned char *lpData);
+	ECRESULT RemoveIndexData(unsigned int ulPropTag, unsigned int cbData, const unsigned char *lpData);
 	ECRESULT RemoveIndexData(unsigned int ulPropTag, unsigned int ulObjId);
 
 	// Read cache only
-	ECRESULT QueryObjectFromProp(unsigned int ulTag, unsigned int cbData, unsigned char* lpData, unsigned int* lpulObjId);
+	ECRESULT QueryObjectFromProp(unsigned int tag, unsigned int dsize, const unsigned char *data, unsigned int *objid);
 
-	ECRESULT SetObjectProp(unsigned int ulTag, unsigned int cbData, unsigned char* lpData, unsigned int ulObjId);
+	ECRESULT SetObjectProp(unsigned int tag, unsigned int dsize, const unsigned char *data, unsigned int obj_id);
 	void ForEachCacheItem(void(callback)(const std::string &, const std::string &, const std::string &, void*), void *obj);
 	ECRESULT DumpStats();
 
@@ -485,6 +311,9 @@ public:
 	void EnableCellCache();
 
 private:
+	typedef std::unordered_map<unsigned int, ECsQuota> ECMapQuota;
+	typedef std::map<ECsIndexObject, ECsIndexProp> ECMapObjectToProp;
+
 	// cache functions
 	ECRESULT I_GetACLs(unsigned int obj_id, struct rightsArray **);
 	ECRESULT I_DelACLs(unsigned int obj_id);
@@ -521,22 +350,22 @@ private:
 	ECCache<ECMapQuota>			m_QuotaCache;
 	ECCache<ECMapQuota>			m_QuotaUserDefaultCache;
 	// Object cache, (hierarchy table)
-	ECCache<ECMapObjects>		m_ObjectsCache;
+	ECCache<std::unordered_map<unsigned int, ECsObjects>> m_ObjectsCache;
 	// Store cache
-	ECCache<ECMapStores>		m_StoresCache;
+	ECCache<std::unordered_map<unsigned int, ECsStores>> m_StoresCache;
 	// User cache
-	ECCache<ECMapUserObject>	m_UserObjectCache;
-	ECCache<ECMapUEIdObject>	m_UEIdObjectCache;
-	ECCache<ECMapUserObjectDetails>	m_UserObjectDetailsCache;
+	ECCache<std::unordered_map<unsigned int, ECsUserObject>> m_UserObjectCache; /* userid to user object */
+	ECCache<std::map<ECsUEIdKey, ECsUEIdObject>> m_UEIdObjectCache; /* user type + externid to user object */
+	ECCache<std::unordered_map<unsigned int, ECsUserObjectDetails>>	m_UserObjectDetailsCache; /* userid to user obejct data */
 	// ACL cache
-	ECCache<ECMapACLs>			m_AclCache;
+	ECCache<std::unordered_map<unsigned int, ECsACLs>> m_AclCache;
 	// Cell cache, include the column data of a loaded table
-	ECCache<ECMapCells>			m_CellCache;
+	ECCache<std::unordered_map<unsigned int, ECsCells>> m_CellCache;
 	// Server cache
-	ECCache<ECMapServerDetails>	m_ServerDetailsCache;
+	ECCache<std::map<std::string, ECsServerDetails>> m_ServerDetailsCache;
 	//Index properties
-	ECCache<ECMapPropToObject>	m_PropToObjectCache;
-	ECCache<ECMapObjectToProp>	m_ObjectToPropCache;
+	ECCache<std::unordered_map<ECsIndexProp, ECsIndexObject>> m_PropToObjectCache;
+	ECCache<ECMapObjectToProp> m_ObjectToPropCache;
 	// Properties from kopano-search
 	std::set<unsigned int> 		m_setExcludedIndexProperties;
 	std::mutex m_hExcludedIndexPropertiesMutex;
