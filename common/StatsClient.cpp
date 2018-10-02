@@ -122,7 +122,7 @@ void ECStatsCollector::submit(std::string &&url)
 	curl_easy_setopt(ch, CURLOPT_SSL_VERIFYHOST, 0L);
 	curl_easy_setopt(ch, CURLOPT_SSL_VERIFYPEER, 0L);
 	if (strncmp(url.c_str(), "unix:", 5) == 0) {
-#if LIBCURL_VERSION_MAJOR >= 7 || (LIBCURL_VERSION_MAJOR == 7 && LIBCURL_VERSION_MINOR >= 40)
+#if LIBCURL_VERSION_MAJOR > 7 || (LIBCURL_VERSION_MAJOR == 7 && LIBCURL_VERSION_MINOR >= 40)
 		curl_easy_setopt(ch, CURLOPT_UNIX_SOCKET_PATH, url.c_str() + 5);
 		curl_easy_setopt(ch, CURLOPT_URL, "http://localhost/");
 #else
