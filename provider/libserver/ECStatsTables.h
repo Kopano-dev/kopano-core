@@ -27,7 +27,6 @@ protected:
 public:
 	static ECRESULT Create(ECSession *, unsigned int flags, const ECLocale &, ECGenericObjectTable **);
 	virtual ECRESULT Load();
-	void load_tcmalloc(void);
 	static ECRESULT QueryRowData(ECGenericObjectTable *, struct soap *, ECSession *, const ECObjectTableList *, const struct propTagArray *, const void *priv, struct rowSet **, bool cache_table_data, bool table_limit);
 
 private:
@@ -105,9 +104,6 @@ private:
 	std::map<unsigned int, std::string> m_mapServers;
 	ALLOC_WRAP_FRIEND;
 };
-
-// Link to provider/server
-extern _kc_export void (*kopano_get_server_stats)(unsigned int *qlen, KC::time_duration *qage, unsigned int *nthr, unsigned int *nidlethr);
 
 } /* namespace */
 

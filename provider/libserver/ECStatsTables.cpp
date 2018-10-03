@@ -55,7 +55,7 @@ ECRESULT ECSystemStatsTable::Create(ECSession *lpSession, unsigned int ulFlags,
 	return alloc_wrap<ECSystemStatsTable>(lpSession, ulFlags, locale).put(lppTable);
 }
 
-void ECSystemStatsTable::load_tcmalloc(void)
+void server_stats::update_tcmalloc_stats()
 {
 #ifdef HAVE_TCMALLOC
 	size_t value = 0;
@@ -64,67 +64,76 @@ void ECSystemStatsTable::load_tcmalloc(void)
 		return;
 
 	gnp("generic.current_allocated_bytes", &value);
-	GetStatsCollectorData("tc_allocated", "Current allocated memory by TCMalloc", stringify_int64(value), this); // Bytes in use by application
+	set("tc_allocated", "Current allocated memory by TCMalloc", value);
 	value = 0;
 	gnp("generic.heap_size", &value);
-	GetStatsCollectorData("tc_reserved", "Bytes of system memory reserved by TCMalloc", stringify_int64(value), this);
+	set("tc_reserved", "Bytes of system memory reserved by TCMalloc", value);
 	value = 0;
 	gnp("tcmalloc.pageheap_free_bytes", &value);
-	GetStatsCollectorData("tc_page_map_free", "Number of bytes in free, mapped pages in page heap", stringify_int64(value), this);
+	set("tc_page_map_free", "Number of bytes in free, mapped pages in page heap", value);
 	value = 0;
 	gnp("tcmalloc.pageheap_unmapped_bytes", &value);
-	GetStatsCollectorData("tc_page_unmap_free", "Number of bytes in free, unmapped pages in page heap (released to OS)", stringify_int64(value), this);
+	set("tc_page_unmap_free", "Number of bytes in free, unmapped pages in page heap (released to OS)", value);
 	value = 0;
 	gnp("tcmalloc.max_total_thread_cache_bytes", &value);
-	GetStatsCollectorData("tc_threadcache_max", "A limit to how much memory TCMalloc dedicates for small objects", stringify_int64(value), this);
+	set("tc_threadcache_max", "A limit to how much memory TCMalloc dedicates for small objects", value);
 	value = 0;
 	gnp("tcmalloc.current_total_thread_cache_bytes", &value);
-	GetStatsCollectorData("tc_threadcache_cur", "Current allocated memory in bytes for thread cache", stringify_int64(value), this);
+	set("tc_threadcache_cur", "Current allocated memory in bytes for thread cache", value);
 #ifdef KNOB144
 	char test[2048] = {0};
 	auto getstat = reinterpret_cast<decltype(MallocExtension_GetStats) *>(dlsym(NULL, "MallocExtension_GetStats"));
 	if (getstat != NULL) {
 		getstat(test, sizeof(test));
-		GetStatsCollectorData("tc_stats_string", "TCMalloc memory debug data", test, this);
+		set("tc_stats_string", "TCMalloc memory debug data", test);
 	}
 #endif
 #endif
 }
 
+void server_stats::fill_odm()
+{
+	update_tcmalloc_stats();
+#ifdef HAVE_MALLINFO
+	/* parallel threaded allocator */
+	struct mallinfo malloc_info = mallinfo();
+	set("pt_allocated", "Current allocated memory by libc ptmalloc, in bytes", malloc_info.uordblks);
+#endif
+
+	unsigned int qlen = 0, nthr = 0, ithr = 0;
+	KC::time_duration qage;
+
+	kopano_get_server_stats(&qlen, &qage, &nthr, &ithr);
+	set("queuelen", "Current queue length", qlen);
+	set_dbl("queueage", "Age of the front queue item", dur2dbl(qage));
+	set("threads", "Number of threads running to process items", nthr);
+	set("threads_idle", "Number of idle threads", ithr);
+
+	if (g_lpSessionManager == nullptr)
+		return;
+	assert(g_lpSessionManager->m_stats.get() == this);
+
+	usercount_t uc;
+	g_lpSessionManager->get_user_count_cached(&uc);
+	set("usercnt_active", "Number of active users", uc[usercount_t::ucActiveUser]);
+	set("usercnt_nonactive", "Number of total non-active objects", uc[usercount_t::ucNonActiveTotal]);
+	set("usercnt_na_user", "Number of non-active users", uc[usercount_t::ucNonActiveUser]);
+	set("usercnt_room", "Number of rooms", uc[usercount_t::ucRoom]);
+	set("usercnt_equipment", "Number of equipment", uc[usercount_t::ucEquipment]);
+	set("usercnt_contact", "Number of contacts", uc[usercount_t::ucContact]);
+	set("userplugin", "Plugin for the user backend", g_lpSessionManager->GetConfig()->GetSetting("user_plugin"));
+}
+
 ECRESULT ECSystemStatsTable::Load()
 {
-	unsigned int ulQueueLen = 0, ulThreads = 0, ulIdleThreads = 0;
-	KC::time_duration age(0);
-	usercount_t userCount;
-
 	id = 0;
+	g_lpSessionManager->m_stats->fill_odm();
 	g_lpSessionManager->m_stats->ForEachStat(GetStatsCollectorData, this);
 	auto sesmgr = lpSession->GetSessionManager();
 	sesmgr->GetCacheManager()->ForEachCacheItem(GetStatsCollectorData, this);
 
 	// Receive session stats
 	sesmgr->GetStats(GetStatsCollectorData, this);
-	kopano_get_server_stats(&ulQueueLen, &age, &ulThreads, &ulIdleThreads);
-
-	GetStatsCollectorData("queuelen", "Current queue length", stringify(ulQueueLen), this);
-	GetStatsCollectorData("queueage", "Age of the front queue item", stringify_double(dur2dbl(age), 3), this);
-	GetStatsCollectorData("threads", "Number of threads running to process items", stringify(ulThreads), this);
-	GetStatsCollectorData("threads_idle", "Number of idle threads", stringify(ulIdleThreads), this);
-	lpSession->GetSessionManager()->get_user_count_cached(&userCount);
-	GetStatsCollectorData("usercnt_active", "Number of active users", stringify(userCount[usercount_t::ucActiveUser]), this);
-	GetStatsCollectorData("usercnt_nonactive", "Number of total non-active objects", stringify(userCount[usercount_t::ucNonActiveTotal]), this);
-	GetStatsCollectorData("usercnt_na_user", "Number of non-active users", stringify(userCount[usercount_t::ucNonActiveUser]), this);
-	GetStatsCollectorData("usercnt_room", "Number of rooms", stringify(userCount[usercount_t::ucRoom]), this);
-	GetStatsCollectorData("usercnt_equipment", "Number of equipment", stringify(userCount[usercount_t::ucEquipment]), this);
-	GetStatsCollectorData("usercnt_contact", "Number of contacts", stringify(userCount[usercount_t::ucContact]), this);
-	load_tcmalloc();
-#ifdef HAVE_MALLINFO
-	/* parallel threaded allocator */
-	struct mallinfo malloc_info = mallinfo();
-	GetStatsCollectorData("pt_allocated", "Current allocated memory by libc ptmalloc, in bytes", stringify_int64(malloc_info.uordblks), this);
-#endif
-	/* Configuration data */
-	GetStatsCollectorData("userplugin", "User plugin used", sesmgr->GetConfig()->GetSetting("user_plugin"), this);
 
 	// add all items to the keytable
 	for (unsigned int i = 0; i < id; ++i)

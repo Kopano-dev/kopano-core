@@ -126,9 +126,13 @@ class usercount_t final {
 	unsigned int m_counts[ucMAX]{};
 };
 
-class server_stats final : public ECStatsCollector {
+class _kc_export server_stats final : public ECStatsCollector {
 	public:
-	server_stats(std::shared_ptr<ECConfig>);
+	_kc_hidden server_stats(std::shared_ptr<ECConfig>);
+	void fill_odm() override;
+
+	private:
+	_kc_hidden void update_tcmalloc_stats();
 };
 
 class SOURCEKEY;
