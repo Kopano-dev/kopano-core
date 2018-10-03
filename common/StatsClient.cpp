@@ -96,42 +96,48 @@ void ECStatsCollector::submit(std::string &&url)
 		void operator()(curl_slist *s) { curl_slist_free_all(s); }
 	};
 	Json::Value root;
-	root["version"] = 1;
+	root["version"] = 2;
 	fill_odm();
 
 	for (auto &i : m_StatData) {
 		scoped_lock lk(i.second.lock);
+		Json::Value leaf;
+		leaf["desc"] = i.second.description;
 		switch (i.second.type) {
 		case SCDT_FLOAT:
-			root[i.second.name] = i.second.data.f;
+			leaf["value"] = i.second.data.f;
 			break;
 		case SCDT_LONGLONG:
-			root[i.second.name] = static_cast<Json::Value::Int64>(i.second.data.ll);
+			leaf["value"] = static_cast<Json::Value::Int64>(i.second.data.ll);
 			break;
 		case SCDT_TIMESTAMP:
-			root[i.second.name] = static_cast<Json::Value::Int64>(i.second.data.ts);
+			leaf["value"] = static_cast<Json::Value::Int64>(i.second.data.ts);
 			break;
 		case SCDT_STRING:
-			root[i.second.name] = i.second.strdata;
+			leaf["value"] = i.second.strdata;
 			break;
 		}
+		root["stats"][i.second.name] = leaf;
 	}
 	std::unique_lock<std::mutex> lk(m_odm_lock);
 	for (auto &i : m_ondemand) {
+		Json::Value leaf;
+		leaf["desc"] = i.second.desc;
 		switch (i.second.type) {
 		case SCDT_FLOAT:
-			root[i.first] = i.second.data.f;
+			leaf["value"] = i.second.data.f;
 			break;
 		case SCDT_LONGLONG:
-			root[i.first] = static_cast<Json::Value::Int64>(i.second.data.ll);
+			leaf["value"] = static_cast<Json::Value::Int64>(i.second.data.ll);
 			break;
 		case SCDT_TIMESTAMP:
-			root[i.first] = static_cast<Json::Value::Int64>(i.second.data.ts);
+			leaf["value"] = static_cast<Json::Value::Int64>(i.second.data.ts);
 			break;
 		case SCDT_STRING:
-			root[i.first] = i.second.strdata;
+			leaf["value"] = i.second.strdata;
 			break;
 		}
+		root["stats"][i.first] = leaf;
 	}
 	lk.unlock();
 
