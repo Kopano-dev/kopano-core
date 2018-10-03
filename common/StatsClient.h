@@ -117,10 +117,6 @@ struct ECStat {
 
 typedef std::map<SCName, ECStat> SCMap;
 
-struct ECStrings {
-	std::string description, value;
-};
-
 class _kc_export ECStatsCollector {
 	public:
 	ECStatsCollector(std::shared_ptr<ECConfig>);
