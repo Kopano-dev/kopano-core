@@ -92,6 +92,7 @@ void ECStatsCollector::submit(std::string &&url)
 	struct slfree { void operator()(curl_slist *s) { curl_slist_free_all(s); } };
 	Json::Value root;
 	root["version"] = 1;
+	fill_odm();
 
 	for (auto &i : m_StatData) {
 		scoped_lock lk(i.second.lock);
@@ -110,6 +111,24 @@ void ECStatsCollector::submit(std::string &&url)
 			break;
 		}
 	}
+	std::unique_lock<std::mutex> lk(m_odm_lock);
+	for (auto &i : m_ondemand) {
+		switch (i.second.type) {
+		case SCDT_FLOAT:
+			root[i.first] = i.second.data.f;
+			break;
+		case SCDT_LONGLONG:
+			root[i.first] = static_cast<Json::Value::Int64>(i.second.data.ll);
+			break;
+		case SCDT_TIMESTAMP:
+			root[i.first] = static_cast<Json::Value::Int64>(i.second.data.ts);
+			break;
+		case SCDT_STRING:
+			root[i.first] = i.second.strdata;
+			break;
+		}
+	}
+	lk.unlock();
 
 	auto text = Json::writeString(Json::StreamWriterBuilder(), std::move(root));
 	auto ch = curl_easy_init();
@@ -316,6 +335,27 @@ std::string ECStatsCollector::GetValue(const SCMap::const_iterator::value_type &
 	return "";
 }
 
+std::string ECStatsCollector::GetValue(const ECStat2 &i)
+{
+	switch (i.type) {
+	case SCDT_FLOAT:
+		return stringify_double(i.data.f);
+	case SCDT_LONGLONG:
+		return stringify_int64(i.data.ll);
+	case SCDT_TIMESTAMP: {
+		if (i.data.ts <= 0)
+			break;
+		char timestamp[128] = { 0 };
+		struct tm *tm = localtime(&i.data.ts);
+		strftime(timestamp, sizeof(timestamp), "%a %b %e %T %Y", tm);
+		return timestamp;
+	}
+	case SCDT_STRING:
+		return i.strdata;
+	}
+	return "";
+}
+
 std::string ECStatsCollector::GetValue(const SCName &name)
 {
 	auto iSD = m_StatData.find(name);
@@ -330,6 +370,9 @@ void ECStatsCollector::ForEachStat(void(callback)(const std::string &, const std
 		scoped_lock lk(i.second.lock);
 		callback(i.second.name, i.second.description, GetValue(i), obj);
 	}
+	std::lock_guard<std::mutex> lk(m_odm_lock);
+	for (const auto &i : m_ondemand)
+		callback(i.first, i.second.desc, GetValue(i.second), obj);
 }
 
 void ECStatsCollector::Reset()
@@ -349,6 +392,47 @@ void ECStatsCollector::Reset(SCName name)
 	/* reset largest var in union */
 	scoped_lock lk(iSD->second.lock);
 	iSD->second.data.ll = 0;
+}
+
+void ECStatsCollector::set(const std::string &name, const std::string &desc, int64_t v)
+{
+	scoped_lock lk(m_odm_lock);
+	auto i = m_ondemand.find(name);
+	if (i != m_ondemand.cend()) {
+		assert(i->second.type == SCDT_LONGLONG);
+		i->second.data.ll = v;
+		return;
+	}
+	ECStat2 st{desc, {}, SCDT_LONGLONG};
+	st.data.ll = v;
+	m_ondemand.emplace(name, std::move(st));
+}
+
+void ECStatsCollector::set_dbl(const std::string &name, const std::string &desc, double v)
+{
+	scoped_lock lk(m_odm_lock);
+	auto i = m_ondemand.find(name);
+	if (i != m_ondemand.cend()) {
+		assert(i->second.type == SCDT_FLOAT);
+		i->second.data.f = v;
+		return;
+	}
+	ECStat2 st{desc, {}, SCDT_FLOAT};
+	st.data.f = v;
+	m_ondemand.emplace(name, std::move(st));
+}
+
+void ECStatsCollector::set(const std::string &name, const std::string &desc,
+    const std::string &v)
+{
+	scoped_lock lk(m_odm_lock);
+	auto i = m_ondemand.find(name);
+	if (i == m_ondemand.cend()) {
+		m_ondemand.emplace(name, ECStat2{desc, v, SCDT_STRING});
+		return;
+	}
+	assert(i->second.type == SCDT_STRING);
+	i->second.strdata = v;
 }
 
 } /* namespace */

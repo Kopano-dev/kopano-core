@@ -13,6 +13,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <unordered_map>
 #include <cstdint>
 #include <pthread.h>
 
@@ -107,12 +108,18 @@ union SCData {
 enum SCType { SCDT_FLOAT, SCDT_LONGLONG, SCDT_TIMESTAMP, SCDT_STRING };
 
 struct ECStat {
+	const char *name, *description;
 	SCData data;
 	LONGLONG avginc;
 	SCType type;
-	const char *name, *description;
 	std::mutex lock;
 	std::string strdata;
+};
+
+struct ECStat2 {
+	std::string desc, strdata;
+	SCType type;
+	SCData data;
 };
 
 typedef std::map<SCName, ECStat> SCMap;
@@ -121,15 +128,19 @@ class _kc_export ECStatsCollector {
 	public:
 	ECStatsCollector(std::shared_ptr<ECConfig>);
 	~ECStatsCollector();
+	virtual void fill_odm() {}
 	void mainloop();
 	void submit(std::string &&);
 	void inc(enum SCName, double inc);
 	void inc(enum SCName, int inc = 1);
 	void inc(enum SCName, LONGLONG inc);
 	void set_dbl(enum SCName, double set);
+	void set_dbl(const std::string &, const std::string &, double);
+	void set(const std::string &, const std::string &, int64_t);
 	void set(enum SCName, LONGLONG set);
 	void SetTime(SCName name, time_t set);
 	void set(SCName, const std::string &);
+	void set(const std::string &, const std::string &, const std::string &);
 	void Max(SCName name, LONGLONG max);
 	void avg_dbl(enum SCName, double add);
 	void avg(enum SCName, LONGLONG add);
@@ -147,14 +158,17 @@ class _kc_export ECStatsCollector {
 	 * want to use those in RRDtool.
 	 */
 	void AddStat(enum SCName index, SCType type, const char *name, const char *desc = "");
+	std::string GetValue(const ECStat2 &);
 
 	private:
 	SCMap m_StatData;
+	std::unordered_map<std::string, ECStat2> m_ondemand;
 	bool thread_running = false;
 	std::atomic<bool> terminate{false};
 	pthread_t countsSubmitThread{};
 	std::shared_ptr<ECConfig> m_config;
 	std::condition_variable m_exitsig;
+	std::mutex m_odm_lock;
 };
 
 typedef ECStatsCollector StatsClient;
