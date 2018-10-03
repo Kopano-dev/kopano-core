@@ -12,6 +12,7 @@
 #include <vector>
 #include <utility>
 #include <cassert>
+#include <cstdint>
 #include <kopano/platform.h>
 
 namespace KC {
@@ -37,6 +38,11 @@ public:
 	time_t ulLastAccess = 0;
 };
 
+struct ECCacheStat {
+	std::string name;
+	uint64_t items, size, maxsize, req, hit;
+};
+
 class _kc_export ECCacheBase {
 public:
 	typedef unsigned long		count_type;
@@ -58,7 +64,7 @@ public:
 	}
 
 	// Call the provided callback with some statistics.
-	void RequestStats(void(callback)(const std::string &, const std::string &, const std::string &, void*), void *obj);
+	ECCacheStat get_stats() const;
 
 	// Dump statistics
 	void SetMaxSize(size_type ulMaxSize)

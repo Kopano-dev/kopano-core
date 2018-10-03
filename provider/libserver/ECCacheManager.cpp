@@ -1142,31 +1142,38 @@ ECRESULT ECCacheManager::I_DelQuota(unsigned int ulUserId, bool bIsDefaultQuota)
 
 void ECCacheManager::ForEachCacheItem(void(callback)(const std::string &, const std::string &, const std::string &, void*), void *obj)
 {
+	auto f = [=](ECCacheStat &&s) {
+		callback("cache_" + s.name + "_items", "Cache " + s.name + " items", stringify_int64(s.items), obj);
+		callback("cache_" + s.name + "_size", "Cache " + s.name + " size", stringify_int64(s.size), obj);
+		callback("cache_" + s.name + "_maxsz", "Cache " + s.name + " maximum size", stringify_int64(s.maxsize), obj);
+		callback("cache_" + s.name + "_req", "Cache " + s.name + " requests", stringify_int64(s.req), obj);
+		callback("cache_" + s.name + "_hit", "Cache " + s.name + " hits", stringify_int64(s.hit), obj);
+	};
 	ulock_rec l_cache(m_hCacheMutex);
-	m_AclCache.RequestStats(callback, obj);
-	m_QuotaCache.RequestStats(callback, obj);
-	m_QuotaUserDefaultCache.RequestStats( callback, obj);
-	m_UEIdObjectCache.RequestStats(callback, obj);
-	m_UserObjectCache.RequestStats(callback, obj);
-	m_UserObjectDetailsCache.RequestStats(callback, obj);
-	m_ServerDetailsCache.RequestStats(callback, obj);
+	f(m_AclCache.get_stats());
+	f(m_QuotaCache.get_stats());
+	f(m_QuotaUserDefaultCache.get_stats());
+	f(m_UEIdObjectCache.get_stats());
+	f(m_UserObjectCache.get_stats());
+	f(m_UserObjectDetailsCache.get_stats());
+	f(m_ServerDetailsCache.get_stats());
 	l_cache.unlock();
 
 	ulock_rec l_store(m_hCacheStoreMutex);
-	m_StoresCache.RequestStats(callback, obj);
+	f(m_StoresCache.get_stats());
 	l_store.unlock();
 
 	ulock_rec l_object(m_hCacheObjectMutex);
-	m_ObjectsCache.RequestStats(callback, obj);
+	f(m_ObjectsCache.get_stats());
 	l_object.unlock();
 
 	ulock_rec l_cell(m_hCacheCellsMutex);
-	m_CellCache.RequestStats(callback, obj);
+	f(m_CellCache.get_stats());
 	l_cell.unlock();
 
 	ulock_rec l_prop(m_hCacheIndPropMutex);
-	m_PropToObjectCache.RequestStats(callback, obj);
-	m_ObjectToPropCache.RequestStats(callback, obj);
+	f(m_PropToObjectCache.get_stats());
+	f(m_ObjectToPropCache.get_stats());
 	l_prop.unlock();
 }
 
