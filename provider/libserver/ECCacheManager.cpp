@@ -1140,14 +1140,14 @@ ECRESULT ECCacheManager::I_DelQuota(unsigned int ulUserId, bool bIsDefaultQuota)
 	return m_QuotaCache.RemoveCacheItem(ulUserId);
 }
 
-void ECCacheManager::ForEachCacheItem(void(callback)(const std::string &, const std::string &, const std::string &, void*), void *obj)
+void ECCacheManager::update_extra_stats(ECStatsCollector &sc)
 {
-	auto f = [=](ECCacheStat &&s) {
-		callback("cache_" + s.name + "_items", "Cache " + s.name + " items", stringify_int64(s.items), obj);
-		callback("cache_" + s.name + "_size", "Cache " + s.name + " size", stringify_int64(s.size), obj);
-		callback("cache_" + s.name + "_maxsz", "Cache " + s.name + " maximum size", stringify_int64(s.maxsize), obj);
-		callback("cache_" + s.name + "_req", "Cache " + s.name + " requests", stringify_int64(s.req), obj);
-		callback("cache_" + s.name + "_hit", "Cache " + s.name + " hits", stringify_int64(s.hit), obj);
+	auto f = [&](ECCacheStat &&s) {
+		sc.set("cache_" + s.name + "_items", "Cache " + s.name + " items", s.items);
+		sc.set("cache_" + s.name + "_size", "Cache " + s.name + " size", s.size);
+		sc.set("cache_" + s.name + "_maxsz", "Cache " + s.name + " maximum size", s.maxsize);
+		sc.set("cache_" + s.name + "_req", "Cache " + s.name + " requests", s.req);
+		sc.set("cache_" + s.name + "_hit", "Cache " + s.name + " hits", s.hit);
 	};
 	ulock_rec l_cache(m_hCacheMutex);
 	f(m_AclCache.get_stats());

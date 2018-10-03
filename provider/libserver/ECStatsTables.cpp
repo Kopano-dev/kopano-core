@@ -131,8 +131,6 @@ ECRESULT ECSystemStatsTable::Load()
 	id = 0;
 	g_lpSessionManager->m_stats->fill_odm();
 	g_lpSessionManager->m_stats->ForEachStat(GetStatsCollectorData, this);
-	auto sesmgr = lpSession->GetSessionManager();
-	sesmgr->GetCacheManager()->ForEachCacheItem(GetStatsCollectorData, this);
 
 	// add all items to the keytable
 	for (unsigned int i = 0; i < id; ++i)
