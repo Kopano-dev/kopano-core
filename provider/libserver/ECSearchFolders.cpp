@@ -1514,13 +1514,14 @@ ECRESULT ECSearchFolders::FlushEvents()
  *
  * @return This functions return always success
  */
-ECRESULT ECSearchFolders::GetStats(sSearchFolderStats &sStats)
+sSearchFolderStats ECSearchFolders::get_stats()
 {
-	memset(&sStats, 0, sizeof(sSearchFolderStats));
+	sSearchFolderStats sStats;
 	ulock_rec l_sf(m_mutexMapSearchFolders);
 
 	sStats.ulStores = m_mapSearchFolders.size();
 	sStats.ullSize = sStats.ulStores * sizeof(STOREFOLDERIDSEARCH::value_type);
+	sStats.ulFolders = 0;
 
 	for (const auto &storefolder : m_mapSearchFolders) {
 		sStats.ulFolders += storefolder.second.size();
@@ -1534,7 +1535,7 @@ ECRESULT ECSearchFolders::GetStats(sSearchFolderStats &sStats)
 	sStats.ulEvents = m_lstEvents.size();
 	l_ev.unlock();
 	sStats.ullSize += sStats.ulEvents * sizeof(EVENT);
-	return erSuccess;
+	return sStats;
 }
 
 } /* namespace */

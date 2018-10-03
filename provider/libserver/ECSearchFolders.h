@@ -171,7 +171,7 @@ public:
 	/**
 	 * Get the searchfolder statistics
 	 */
-	_kc_hidden virtual ECRESULT GetStats(sSearchFolderStats &);
+	_kc_hidden sSearchFolderStats get_stats();
 
 	/**
 	 * Kick search thread to flush events, and wait for the results.

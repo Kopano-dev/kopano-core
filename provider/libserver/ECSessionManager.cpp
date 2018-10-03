@@ -919,11 +919,7 @@ ECRESULT ECSessionManager::NotificationChange(const std::set<unsigned int> &sync
  */
 void ECSessionManager::GetStats(void(callback)(const std::string &, const std::string &, const std::string &, void*), void *obj)
 {
-	sSessionManagerStats sSessionStats;
-	sSearchFolderStats sSearchStats;
-
-	GetStats(sSessionStats);
-
+	auto sSessionStats = get_stats();
 	callback("sessions", "Number of sessions", stringify(sSessionStats.session.ulItems), obj);
 	callback("sessions_size", "Memory usage of sessions", stringify_int64(sSessionStats.session.ullSize), obj);
 	callback("sessiongroups", "Number of session groups", stringify(sSessionStats.group.ulItems), obj);
@@ -939,8 +935,7 @@ void ECSessionManager::GetStats(void(callback)(const std::string &, const std::s
 	callback("object_subscr", "Objects subscribed", stringify(sSessionStats.ulObjectSubscriptions), obj);
 	callback("object_subscr_size", "Memory usage of subscribed objects", stringify(sSessionStats.ulObjectSubscriptionSize), obj);
 
-	m_lpSearchFolders->GetStats(sSearchStats);
-
+	auto sSearchStats = m_lpSearchFolders->get_stats();
 	callback("searchfld_stores", "Number of stores in use by search folders", stringify(sSearchStats.ulStores), obj);
 	callback("searchfld_folders", "Number of folders in use by search folders", stringify(sSearchStats.ulFolders), obj);
 	callback("searchfld_events", "Number of events waiting for searchfolder updates", stringify(sSearchStats.ulEvents), obj);
@@ -953,17 +948,17 @@ void ECSessionManager::GetStats(void(callback)(const std::string &, const std::s
  * @param[out] sStats	The statistics
  *
  */
-void ECSessionManager::GetStats(sSessionManagerStats &sStats)
+sSessionManagerStats ECSessionManager::get_stats()
 {
-	std::list<ECSession *> vSessions;
-
-	memset(&sStats, 0, sizeof(sSessionManagerStats));
+	sSessionManagerStats sStats;
 
 	// Get session data
 	std::shared_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
 	sStats.session.ulItems = m_mapSessions.size();
 	sStats.session.ullSize = MEMORY_USAGE_MAP(sStats.session.ulItems, SESSIONMAP);
 	l_cache.unlock();
+	sStats.session.ulLocked = 0;
+	sStats.session.ulOpenTables = 0;
 
 	// Get group data
 	std::shared_lock<KC::shared_mutex> l_group(m_hGroupLock);
@@ -993,6 +988,8 @@ void ECSessionManager::GetStats(sSessionManagerStats &sStats)
 	sStats.ulObjectSubscriptions = m_mapObjectSubscriptions.size();
 	sStats.ulObjectSubscriptionSize = MEMORY_USAGE_MULTIMAP(sStats.ulObjectSubscriptions, OBJECTSUBSCRIPTIONSMULTIMAP);
 	l_objsub.unlock();
+
+	return sStats;
 }
 
 ECRESULT ECSessionManager::GetServerGUID(GUID* lpServerGuid){
