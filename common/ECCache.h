@@ -61,8 +61,6 @@ public:
 	void RequestStats(void(callback)(const std::string &, const std::string &, const std::string &, void*), void *obj);
 
 	// Dump statistics
-	void DumpStats(void) const;
-
 	void SetMaxSize(size_type ulMaxSize)
 	{
 		m_ulMaxSize = ulMaxSize;

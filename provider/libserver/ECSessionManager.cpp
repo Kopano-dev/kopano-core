@@ -995,35 +995,6 @@ void ECSessionManager::GetStats(sSessionManagerStats &sStats)
 	l_objsub.unlock();
 }
 
-/**
- * Dump statistics
- */
-ECRESULT ECSessionManager::DumpStats()
-{
-	sSessionManagerStats sSessionStats;
-	sSearchFolderStats sSearchStats;
-
-	GetStats(sSessionStats);
-	ec_log_info("Session stats:");
-	ec_log_info("  Sessions : %u (%llu bytes)", sSessionStats.session.ulItems, static_cast<unsigned long long>(sSessionStats.session.ullSize));
-	ec_log_info("  Locked   : %d", sSessionStats.session.ulLocked);
-	ec_log_info("  Groups   : %u (%llu bytes)" ,sSessionStats.group.ulItems, static_cast<unsigned long long>(sSessionStats.group.ullSize));
-	ec_log_info("  PersistentByConnection : %u (%u bytes)" ,sSessionStats.ulPersistentByConnection, sSessionStats.ulPersistentByConnectionSize);
-	ec_log_info("  PersistentBySession    : %u (%u bytes)" , sSessionStats.ulPersistentBySession, sSessionStats.ulPersistentBySessionSize);
-	ec_log_info("Subscription stats:");
-	ec_log_info("  Table : %u (%u bytes)", sSessionStats.ulTableSubscriptions,  sSessionStats.ulTableSubscriptionSize);
-	ec_log_info("  Object: %u (%u bytes)", sSessionStats.ulObjectSubscriptions, sSessionStats.ulObjectSubscriptionSize);
-	ec_log_info("Table stats:");
-	ec_log_info("  Open tables: %u (%llu bytes)", sSessionStats.session.ulOpenTables, static_cast<unsigned long long>(sSessionStats.session.ulTableSize));
-	m_lpSearchFolders->GetStats(sSearchStats);
-	ec_log_info("SearchFolders:");
-	ec_log_info("  Stores    : %u", sSearchStats.ulStores);
-	ec_log_info("  Folders   : %u", sSearchStats.ulFolders);
-	ec_log_info("  Queue     : %u", sSearchStats.ulEvents);
-	ec_log_info("  Mem usage : %llu Bytes", static_cast<unsigned long long>(sSearchStats.ullSize));
-	return m_lpECCacheManager->DumpStats();
-}
-
 ECRESULT ECSessionManager::GetServerGUID(GUID* lpServerGuid){
 	if (lpServerGuid == NULL)
 		return KCERR_INVALID_PARAMETER;

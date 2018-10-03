@@ -170,7 +170,6 @@ public:
 	_kc_hidden ECRESULT NotifyNotificationReady(ECSESSIONID);
 	_kc_hidden void GetStats(void (*cb)(const std::string &, const std::string &, const std::string &, void *), void *obj);
 	_kc_hidden void GetStats(sSessionManagerStats &);
-	_kc_hidden ECRESULT DumpStats(void);
 	_kc_hidden bool IsHostedSupported() const { return m_bHostedKopano; }
 	_kc_hidden bool IsDistributedSupported() const { return m_bDistributedKopano; }
 	_kc_hidden ECRESULT GetServerGUID(GUID *);

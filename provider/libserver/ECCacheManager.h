@@ -300,7 +300,6 @@ public:
 
 	ECRESULT SetObjectProp(unsigned int tag, unsigned int dsize, const unsigned char *data, unsigned int obj_id);
 	void ForEachCacheItem(void(callback)(const std::string &, const std::string &, const std::string &, void*), void *obj);
-	ECRESULT DumpStats();
 
 	// Cache list of properties indexed by kopano-search
 	ECRESULT GetExcludedIndexProperties(std::set<unsigned int>& set);

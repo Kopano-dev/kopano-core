@@ -28,18 +28,4 @@ void ECCacheBase::RequestStats(void(callback)(const std::string &, const std::st
 	callback("cache_"s + m_strCachename + "_hit", "Cache "s + m_strCachename + " hits", stringify_int64(ValidCount()), obj);
 }
 
-void ECCacheBase::DumpStats(void) const
-{
-	auto strName = m_strCachename + " cache size:";
-	unsigned long long z = Size();
-	ec_log_info(
-		"  %-30s  %8lu (%8llu bytes) (usage %.02f%%)",
-		strName.c_str(), ItemCount(), z, z / (double)MaxSize() * 100.0);
-	strName = m_strCachename + " cache hits:";
-	z = ValidCount();
-	ec_log_info("  %-30s  %8llu / %llu (%.02f%%)",
-		strName.c_str(), z, static_cast<unsigned long long>(HitCount()),
-		z / (double)HitCount() * 100.0);
-}
-
 } /* namespace */

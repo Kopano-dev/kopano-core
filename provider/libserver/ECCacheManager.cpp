@@ -1170,39 +1170,6 @@ void ECCacheManager::ForEachCacheItem(void(callback)(const std::string &, const 
 	l_prop.unlock();
 }
 
-ECRESULT ECCacheManager::DumpStats()
-{
-	ec_log_info("Dumping cache stats:");
-
-	ulock_rec l_cache(m_hCacheMutex);
-	m_AclCache.DumpStats();
-	m_QuotaCache.DumpStats();
-	m_QuotaUserDefaultCache.DumpStats();
-	m_UEIdObjectCache.DumpStats();
-	m_UserObjectCache.DumpStats();
-	m_UserObjectDetailsCache.DumpStats();
-	m_ServerDetailsCache.DumpStats();
-	l_cache.unlock();
-
-	ulock_rec l_object(m_hCacheObjectMutex);
-	m_ObjectsCache.DumpStats();
-	l_object.unlock();
-
-	ulock_rec l_store(m_hCacheStoreMutex);
-	m_StoresCache.DumpStats();
-	l_store.unlock();
-
-	ulock_rec l_cells(m_hCacheCellsMutex);
-	m_CellCache.DumpStats();
-	l_cells.unlock();
-
-	ulock_rec l_prop(m_hCacheIndPropMutex);
-	m_PropToObjectCache.DumpStats();
-	m_ObjectToPropCache.DumpStats();
-	l_prop.unlock();
-	return erSuccess;
-}
-
 ECRESULT ECCacheManager::GetObjectFlags(unsigned int ulObjId, unsigned int *ulFlags)
 {
 	return GetObject(ulObjId, NULL, NULL, ulFlags);
