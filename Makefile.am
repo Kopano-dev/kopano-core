@@ -35,8 +35,8 @@ AM_CPPFLAGS = ${ZCPPFLAGS} -DLDAP_THREAD_SAFE \
 	-I${top_srcdir}/ECtools/archiver \
 	${CRYPTO_CFLAGS} ${curl_CFLAGS} ${GSOAP_CFLAGS} ${ICAL_CFLAGS} \
 	${jsoncpp_CFLAGS} \
-	${KRB5_CFLAGS} ${LDAP_FLAGS} ${libHX_CFLAGS} ${MYSQL_INCLUDES} \
-	${SSL_CFLAGS} \
+	${KRB5_CFLAGS} ${LDAP_FLAGS} ${libHX_CFLAGS} ${mhttpd_CFLAGS} \
+	${MYSQL_INCLUDES} ${SSL_CFLAGS} \
 	${s3_CFLAGS} ${kcoidc_CFLAGS} ${TCMALLOC_CFLAGS} ${tidy_CPPFLAGS} \
 	${VMIME_CFLAGS} ${XML2_CFLAGS}
 AM_CXXFLAGS = ${ZCXXFLAGS} -Wno-sign-compare
@@ -105,6 +105,12 @@ noinst_DATA = \
 if ENABLE_PYTHON
 lib_LTLIBRARIES += libkcpyplug.la
 noinst_DATA += libkcpyplug.ldd
+endif
+if HAVE_MHTTPD
+if HAVE_RRD
+pkglibexec_PROGRAMS += kopano-statsd
+noinst_DATA += kopano-statsd.ldx
+endif
 endif
 # Undefined references
 #noinst_DATA += libkcsoap.ldd
@@ -268,6 +274,13 @@ kopano_stats_LDADD = ${NCURSES_LIBS} libmapi.la libkcutil.la ${PROG_LIBS}
 
 kopano_storeadm_SOURCES = ECtools/storeadm.cpp
 kopano_storeadm_LDADD = ${jsoncpp_LIBS} ${libHX_LIBS} libmapi.la libkcutil.la
+
+
+#
+# kopano-statsd
+#
+kopano_statsd_SOURCES = ECtools/statsd.cpp
+kopano_statsd_LDADD = libkcutil.la ${mhttpd_LIBS} ${rrd_LIBS}
 
 
 #
@@ -884,7 +897,7 @@ dist_man_MANS = \
 	doc/kopano-server.8 doc/kopano-server.cfg.5 \
 	doc/kopano-set-oof.1 \
 	doc/kopano-spamd.8 doc/kopano-spamd.cfg.5 \
-	doc/kopano-spooler.8 doc/kopano-spooler.cfg.5 \
+	doc/kopano-spooler.8 doc/kopano-spooler.cfg.5 doc/kopano-statsd.8 \
 	doc/kopano-backup.8 doc/kopano-backup.cfg.5 \
 	doc/kopano-srvadm.8 doc/kopano-stats.1 doc/kopano-storeadm.8 \
 	doc/kopano-unix.cfg.5 \
