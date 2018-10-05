@@ -25,9 +25,9 @@ def parse_list_str(option, opt_str, value, parser):
     getattr(parser.values, option.dest).append(_decode(value))
 
 def parse_bool(option, opt_str, value, parser):
-    if value not in ('yes', 'no'):
-        raise Exception("error: %s option requires 'yes' or 'no'" % opt_str)
-    setattr(parser.values, option.dest, value == 'yes')
+    if value.lower() not in ('yes', 'no', 'true', 'false'):
+        raise Exception("error: %s option requires 'yes', 'no', 'true' or 'false'" % opt_str)
+    setattr(parser.values, option.dest, value.lower() in ('yes', 'true'))
 
 def show_version(*args):
     import __main__
