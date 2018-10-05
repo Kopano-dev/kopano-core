@@ -9,7 +9,7 @@ import sys
 
 from MAPI import (
     ROW_REMOVE, FL_PREFIX, RELOP_NE, ROW_ADD, MAPI_BEST_ACCESS,
-    MAPI_UNICODE,
+    MAPI_UNICODE, MAPI_TO,
 )
 from MAPI.Tags import (
     PR_RULE_CONDITION, PR_RULE_ACTIONS, PR_RULE_PROVIDER_W, ACTTYPE, PR_ENTRYID,
@@ -49,7 +49,6 @@ USERPROPS = [
     PR_SMTP_ADDRESS_W,
     PR_OBJECT_TYPE,
     PR_DISPLAY_TYPE,
-    PR_RECIPIENT_TYPE,
 ]
 
 class Delegation(object):
@@ -121,7 +120,10 @@ class Delegation(object):
         userprops = []
         for userid in userids:
             user = store.server.gab.OpenEntry(userid, None, MAPI_BEST_ACCESS)
-            userprops.append(user.GetProps(USERPROPS, MAPI_UNICODE))
+            props = user.GetProps(USERPROPS, MAPI_UNICODE)
+            # Hardcode recipient type to TO
+            props.append(SPropValue(PR_RECIPIENT_TYPE, MAPI_TO))
+            userprops.append(props)
 
         actions.append(ACTION(ACTTYPE.OP_DELEGATE, 0, None, None, 0, actFwdDelegate(userprops)))
         if deletion:
