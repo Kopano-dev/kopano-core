@@ -48,7 +48,10 @@ if sys.hexversion >= 0x03000000:
         from . import folder as _folder
     except ImportError: # pragma: no cover
         _folder = sys.modules[__package__+'.folder']
-    from . import user as _user
+    try:
+        from . import user as _user
+    except ImportError: # pragma: no cover
+        _user = sys.modules[__package__ + '.user']
     try:
         from . import store as _store
     except ImportError: # pragma: no cover
