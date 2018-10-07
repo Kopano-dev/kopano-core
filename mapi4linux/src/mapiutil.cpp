@@ -138,8 +138,7 @@ static HRESULT RTFCommitFunc(IStream *lpUncompressedStream, void *lpData)
 	lpCompressedStream->Seek(front,SEEK_SET,NULL);
 
 	while(ulCompressedSize) {
-		hr = lpCompressedStream->Write(lpReadPtr, ulCompressedSize > 16384 ? 16384 : ulCompressedSize, &ulWritten);
-
+		hr = lpCompressedStream->Write(lpReadPtr, std::min(ulCompressedSize, 16384U), &ulWritten);
 		if(hr != hrSuccess)
 			return hr;
 		lpReadPtr += ulWritten;

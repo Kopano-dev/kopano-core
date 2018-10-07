@@ -3145,9 +3145,9 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 
 	unsigned int ulReadAhead;
 	if (big_payload)
-		ulReadAhead = lstMails.size() > ROWS_PER_REQUEST_SMALL ? ROWS_PER_REQUEST_SMALL : lstMails.size();
+		ulReadAhead = std::min(lstMails.size(), ROWS_PER_REQUEST_SMALL);
 	else
-		ulReadAhead = lstMails.size() > ROWS_PER_REQUEST_BIG ? ROWS_PER_REQUEST_BIG : lstMails.size();
+		ulReadAhead = std::min(lstMails.size(), ROWS_PER_REQUEST_BIG);
 
 	if(!setProps.empty() && m_vTableDataColumns != lstDataItems) {
 		ReleaseContentsCache();

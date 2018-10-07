@@ -63,12 +63,12 @@ public:
 
 	int ReadString(std::string *lpData, size_t len)
 	{
-		auto reallen = len > m_ulLen - m_ulCursor ? m_ulLen - m_ulCursor : len;
+		auto reallen = std::min(len, m_ulLen - m_ulCursor);
         if(m_ulCursor + reallen > m_ulLen)
             return -1;
 
-        if(reallen)      
-			DEBUGPRINT("%s ", bin2hex(len > m_ulLen - m_ulCursor ? m_ulLen - m_ulCursor : len, m_lpData+m_ulCursor).c_str());
+		if (reallen != 0)
+			DEBUGPRINT("%s ", bin2hex(reallen, m_lpData+m_ulCursor).c_str());
         
         lpData->assign(&m_lpData[m_ulCursor], reallen);
         

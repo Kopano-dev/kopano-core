@@ -158,8 +158,8 @@ bool ECTableRow::rowcompare(const ECSortColView &a, const ECSortColView &b,
 bool ECTableRow::rowcompareprefix(size_t prefix,
     const std::vector<ECSortCol> &a, const std::vector<ECSortCol> &b)
 {
-	return rowcompare(ECSortColView(a, 0, a.size() > prefix ? prefix : a.size()),
-	                  ECSortColView(b, 0, b.size() > prefix ? prefix : b.size()));
+	return rowcompare(ECSortColView(a, 0, std::min(a.size(), prefix)),
+	                  ECSortColView(b, 0, std::min(b.size(), prefix)));
 }
 
 bool ECTableRow::operator <(const ECTableRow &other) const
@@ -221,7 +221,7 @@ ECRESULT ECKeyTable::UpdateCounts(ECTableRow *lpRow)
 		if(lpRow->lpLeft)
 			ulHeight = lpRow->lpLeft->ulHeight;
 		if(lpRow->lpRight)
-			ulHeight = lpRow->lpRight->ulHeight > ulHeight ? lpRow->lpRight->ulHeight : ulHeight;
+			ulHeight = std::max(lpRow->lpRight->ulHeight, ulHeight);
 
 		// Our height is highest subtree plus one
 		lpRow->ulHeight += ulHeight;
@@ -737,7 +737,7 @@ ECRESULT ECKeyTable::QueryRows(unsigned int ulRows, ECObjectTableList* lpRowList
 		SeekRow(EC_SEEK_SET, 0 , NULL);
 
 	// Cap to max. table length. (probably smaller due to cursor position not at start)
-	ulRows = ulRows > lpRoot->ulBranchCount ? lpRoot->ulBranchCount : ulRows;
+	ulRows = std::min(ulRows, lpRoot->ulBranchCount);
 
 	while(ulRows && lpCurrent) {
 		if(!lpCurrent->fHidden || bShowHidden) {

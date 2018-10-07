@@ -389,7 +389,7 @@ HRESULT ECChannel::HrReadAndDiscardBytes(size_t ulByteCount)
 
 	while (ulTotRead < ulByteCount) {
 		size_t ulBytesLeft = ulByteCount - ulTotRead;
-		size_t ulRead = ulBytesLeft > sizeof(szBuffer) ? sizeof(szBuffer) : ulBytesLeft;
+		auto ulRead = std::min(ulBytesLeft, sizeof(szBuffer));
 
 		if (lpSSL)
 			ulRead = SSL_read(lpSSL, szBuffer, ulRead);

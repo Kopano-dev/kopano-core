@@ -736,7 +736,7 @@ HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 					continue;
 				if (obj->bDelete)
 					continue;
-				ulNextAttUniqueId = obj->ulUniqueId > ulNextAttUniqueId ? obj->ulUniqueId : ulNextAttUniqueId;
+				ulNextAttUniqueId = std::max(obj->ulUniqueId, ulNextAttUniqueId);
 				++ulNextAttUniqueId;
 
 				unsigned int i = 0, ulProps = obj->lstProperties.size();
@@ -958,7 +958,7 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 					continue;
 				if (obj->bDelete)
 					continue;
-				ulNextRecipUniqueId = obj->ulUniqueId > ulNextRecipUniqueId ? obj->ulUniqueId : ulNextRecipUniqueId;
+				ulNextRecipUniqueId = std::max(obj->ulUniqueId, ulNextRecipUniqueId);
 				++ulNextRecipUniqueId;
 
 				unsigned int i = 0, ulProps = obj->lstProperties.size();

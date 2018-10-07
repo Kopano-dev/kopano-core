@@ -199,7 +199,7 @@ HRESULT ECMemStream::Read(void *pv, ULONG cb, ULONG *pcbRead)
 	ULONG ulRead = 0;
 
 	// FIXME we currently accept any block size for reading, should this be capped at say 64k ?
-	// cb = cb > 65536 ? 65536 : cb;
+	// cb = std::min(cb, 65536);
 	// Outlookspy tries to read the whole thing into a small textbox in one go which takes rather long
 	// so I suspect PST files and Exchange have some kind of limit here (it should never be a problem
 	// if the client is correctly coded, but hey ...)
