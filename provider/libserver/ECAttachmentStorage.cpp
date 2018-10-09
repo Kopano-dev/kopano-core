@@ -58,8 +58,8 @@ class ECFileAttachment : public ECAttachmentStorage {
 	/* Single Instance Attachment handlers */
 	virtual ECRESULT LoadAttachmentInstance(struct soap *, const ext_siid &, size_t *, unsigned char **) override;
 	virtual ECRESULT LoadAttachmentInstance(const ext_siid &, size_t *, ECSerializer *) override;
-	virtual ECRESULT SaveAttachmentInstance(const ext_siid &, ULONG propid, size_t, unsigned char *) override;
-	virtual ECRESULT SaveAttachmentInstance(const ext_siid &, ULONG propid, size_t, ECSerializer *) override;
+	virtual ECRESULT SaveAttachmentInstance(ext_siid &, ULONG propid, size_t, unsigned char *) override;
+	virtual ECRESULT SaveAttachmentInstance(ext_siid &, ULONG propid, size_t, ECSerializer *) override;
 	virtual ECRESULT DeleteAttachmentInstances(const std::list<ext_siid> &, bool replace) override;
 	virtual ECRESULT DeleteAttachmentInstance(const ext_siid &, bool replace) override;
 	virtual ECRESULT GetSizeInstance(const ext_siid &, size_t *size, bool *compr = nullptr) override;
@@ -486,6 +486,10 @@ ECRESULT ECAttachmentStorage::SaveAttachment(ULONG ulObjId, ULONG ulPropId, bool
 	er = SaveAttachmentInstance(esid, ulPropId, iSize, lpData);
 	if (er != erSuccess)
 		return er;
+	strQuery = "UPDATE `singleinstances` SET `filename`='" + m_lpDatabase->Escape(esid.filename) + "' WHERE `instanceid`=" + stringify(esid.siid);
+	er = m_lpDatabase->DoUpdate(strQuery);
+	if (er != erSuccess)
+		return er;
 	if (lpulInstanceId)
 		*lpulInstanceId = esid.siid;
 	return erSuccess;
@@ -526,6 +530,10 @@ ECRESULT ECAttachmentStorage::SaveAttachment(ULONG ulObjId, ULONG ulPropId, bool
 	if (er != erSuccess)
 		return ec_perror("ECAttachmentStorage::SaveAttachment(): DoInsert failed", er);
 	er = SaveAttachmentInstance(esid, ulPropId, iSize, lpSource);
+	if (er != erSuccess)
+		return er;
+	strQuery = "UPDATE `singleinstances` SET `filename`='" + m_lpDatabase->Escape(esid.filename) + "' WHERE `instanceid`=" + stringify(esid.siid);
+	er = m_lpDatabase->DoUpdate(strQuery);
 	if (er != erSuccess)
 		return er;
 	if (lpulInstanceId)
@@ -845,7 +853,7 @@ ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(const ext_siid &ulInstance
  *
  * @return Kopano error code
  */
-ECRESULT ECDatabaseAttachment::SaveAttachmentInstance(const ext_siid &ulInstanceId,
+ECRESULT ECDatabaseAttachment::SaveAttachmentInstance(ext_siid &ulInstanceId,
     ULONG ulPropId, size_t iSize, unsigned char *lpData)
 {
 	// make chunks of 393216 bytes (384*1024)
@@ -883,7 +891,7 @@ ECRESULT ECDatabaseAttachment::SaveAttachmentInstance(const ext_siid &ulInstance
  *
  * @return Kopano error code
  */
-ECRESULT ECDatabaseAttachment::SaveAttachmentInstance(const ext_siid &ulInstanceId,
+ECRESULT ECDatabaseAttachment::SaveAttachmentInstance(ext_siid &ulInstanceId,
     ULONG ulPropId, size_t iSize, ECSerializer *lpSource)
 {
 	unsigned char szBuffer[CHUNK_SIZE] = {0};
@@ -1528,7 +1536,7 @@ exit:
 	return er;
 }
 
-ECRESULT ECFileAttachment::SaveAttachmentInstance(const ext_siid &instance,
+ECRESULT ECFileAttachment::SaveAttachmentInstance(ext_siid &instance,
     unsigned int propid, size_t dsize, unsigned char *data)
 {
 	auto comp = EvaluateCompressibleness(data, dsize) ? m_bFileCompression && dsize > 0 : false;
@@ -1555,7 +1563,7 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(const ext_siid &instance,
  *
  * @return Kopano error code
  */
-ECRESULT ECFileAttachment::SaveAttachmentInstance(const ext_siid &ulInstanceId,
+ECRESULT ECFileAttachment::SaveAttachmentInstance(ext_siid &ulInstanceId,
     ULONG ulPropId, size_t iSize, ECSerializer *lpSource)
 {
 	ECRESULT er = erSuccess;

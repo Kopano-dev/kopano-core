@@ -547,7 +547,7 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(const ext_siid &ins_id,
  *
  * @return Kopano error code
  */
-ECRESULT ECS3Attachment::SaveAttachmentInstance(const ext_siid &ins_id,
+ECRESULT ECS3Attachment::SaveAttachmentInstance(ext_siid &ins_id,
     ULONG propid, size_t size, unsigned char *data)
 {
 	ECRESULT ret = KCERR_NOT_FOUND;
@@ -603,7 +603,7 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(const ext_siid &ins_id,
  *
  * @return Kopano error code
  */
-ECRESULT ECS3Attachment::SaveAttachmentInstance(const ext_siid &ins_id,
+ECRESULT ECS3Attachment::SaveAttachmentInstance(ext_siid &ins_id,
     ULONG propid, size_t size, ECSerializer *source)
 {
 	ECRESULT ret = KCERR_NOT_FOUND;
