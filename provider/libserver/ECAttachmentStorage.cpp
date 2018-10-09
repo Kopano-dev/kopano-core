@@ -113,6 +113,8 @@ class ECFileAttachment2 final : public ECFileAttachment {
 	virtual ECRESULT SaveAttachmentInstance(ext_siid &, ULONG propid, size_t, ECSerializer *) override;
 	virtual ECRESULT GetSizeInstance(const ext_siid &, size_t *, bool *) override;
 	virtual ECRESULT DeleteAttachmentInstance(const ext_siid &, bool replace) override;
+	virtual ECRESULT LoadAttachmentInstance(struct soap *, const ext_siid &, size_t *, unsigned char **) override;
+	virtual ECRESULT LoadAttachmentInstance(const ext_siid &, size_t *, ECSerializer *) override;
 	ECFileAttachmentConfig2 &m_config;
 };
 
@@ -2385,6 +2387,70 @@ ECRESULT ECFileAttachment2::DeleteAttachmentInstance(const ext_siid &i, bool rep
 		return erSuccess;
 	}
 	HX_rrmdir(hl.base_dir.c_str());
+	return erSuccess;
+}
+
+ECRESULT ECFileAttachment2::LoadAttachmentInstance(struct soap *soap,
+    const ext_siid &instance, size_t *dsize, unsigned char **data)
+{
+	*dsize = 0;
+	auto ctf = m_basepath + "/" + instance.filename.c_str() + "/content";
+	int fd = open(ctf.c_str(), O_RDONLY);
+	if (fd < 0) {
+		ec_log_err("K-1286: open \"%s\": %s", ctf.c_str(), strerror(errno));
+		return KCERR_NO_ACCESS;
+	}
+	my_readahead(fd);
+	struct stat sb;
+	if (fstat(fd, &sb) < 0) {
+		ec_log_err("K-1285: fstat: %s", strerror(errno));
+		close(fd);
+		*dsize = 0;
+		*data  = s_alloc<unsigned char>(soap, 0);
+		return KCERR_NO_ACCESS;
+	}
+	*data = s_alloc<unsigned char>(soap, sb.st_size);
+	auto rd = read_retry(fd, *data, sb.st_size);
+	if (rd < 0) {
+		ec_log_err("K-1284: read: %s", strerror(errno));
+		*dsize = 0;
+		close(fd);
+		return KCERR_NO_ACCESS;
+	} else if (rd < static_cast<ssize_t>(std::min(sb.st_size, SSIZE_MAX))) {
+		ec_log_err("K-1283: short read on \"%s\"", instance.filename.c_str());
+		*dsize = rd;
+	} else {
+		*dsize = sb.st_size;
+	}
+	return erSuccess;
+}
+
+ECRESULT ECFileAttachment2::LoadAttachmentInstance(const ext_siid &instance,
+    size_t *dsize, ECSerializer *sink)
+{
+	*dsize = 0;
+	auto ctf = m_basepath + "/" + instance.filename.c_str() + "/content";
+	int fd = open(ctf.c_str(), O_RDONLY);
+	if (fd < 0 && errno != ENOENT) {
+		/* Access problems */
+		ec_log_err("K-1286: open \"%s\": %s", ctf.c_str(), strerror(errno));
+		return KCERR_NO_ACCESS;
+	}
+	my_readahead(fd);
+	while (true) {
+		char buffer[CHUNK_SIZE];
+		ssize_t rd = read_retry(fd, buffer, sizeof(buffer));
+		if (rd < 0) {
+			ec_log_err("K-1284: read: %s", strerror(errno));
+			close(fd);
+			return KCERR_DATABASE_ERROR;
+		} else if (rd == 0) {
+			break;
+		}
+		sink->Write(buffer, 1, rd);
+		*dsize += rd;
+	}
+	close(fd);
 	return erSuccess;
 }
 
