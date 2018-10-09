@@ -64,25 +64,28 @@ class ECFileAttachment : public ECAttachmentStorage {
 	virtual ECRESULT DeleteAttachmentInstance(const ext_siid &, bool replace) override;
 	virtual ECRESULT GetSizeInstance(const ext_siid &, size_t *size, bool *compr = nullptr) override;
 	virtual kd_trans Begin(ECRESULT &) override;
-	std::string CreateAttachmentFilename(const ext_siid &, bool compressed);
 	virtual ECRESULT Commit() override;
 	virtual ECRESULT Rollback() override;
 	ECRESULT save_instance_data(const std::string &filename, int fd, unsigned int propid, size_t z, unsigned char *data, bool comp);
 
 	size_t attachment_size_safety_limit;
-	int m_dirFd = -1;
-	DIR *m_dirp = nullptr;
 	bool force_changes_to_disk;
 
 	/* helper functions for transacted deletion */
-	ECRESULT MarkAttachmentForDeletion(const ext_siid &);
-	ECRESULT DeleteMarkedAttachment(const ext_siid &);
-	ECRESULT RestoreMarkedAttachment(const ext_siid &);
 	bool VerifyInstanceSize(const ext_siid &, size_t expected_size, const std::string &filename);
 	void give_filesize_hint(const int fd, const off_t len);
 	void my_readahead(int fd);
 
 	std::string m_basepath;
+
+	private:
+	std::string CreateAttachmentFilename(const ext_siid &, bool compressed);
+	ECRESULT MarkAttachmentForDeletion(const ext_siid &);
+	ECRESULT DeleteMarkedAttachment(const ext_siid &);
+	ECRESULT RestoreMarkedAttachment(const ext_siid &);
+
+	int m_dirFd = -1;
+	DIR *m_dirp = nullptr;
 	bool m_bTransaction = false;
 	std::set<ext_siid> m_setNewAttachment, m_setDeletedAttachment, m_setMarkedAttachment;
 };
