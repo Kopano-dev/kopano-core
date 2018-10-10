@@ -22,6 +22,7 @@
 #include <sys/file.h>
 #include <sys/resource.h>
 #include <string>
+#include <libHX/string.h>
 
 namespace KC {
 
@@ -114,7 +115,7 @@ int unix_chown(const char *filename, const char *username, const char *groupname
 	return chown(filename, uid, gid);
 }
 
-static int linux_sysctl1(const char *tunable)
+static char *read_one_line(const char *tunable)
 {
 	/*
 	 * Read one byte from a sysctl file. No effect on non-Linux or
@@ -122,10 +123,11 @@ static int linux_sysctl1(const char *tunable)
 	 */
 	auto fp = fopen(tunable, "r");
 	if (fp == nullptr)
-		return -1; /* indeterminate */
-	auto c = fgetc(fp);
+		return nullptr;
+	hxmc_t *ret = nullptr;
+	HX_getl(&ret, fp);
 	fclose(fp);
-	return c == EOF ? '\0' : c;
+	return ret;
 }
 
 void unix_coredump_enable(const char *mode)
@@ -141,8 +143,16 @@ void unix_coredump_enable(const char *mode)
 			ec_log_notice("Coredumps are disabled via configuration file.");
 		return;
 	}
-	if (linux_sysctl1("/proc/sys/kernel/core_pattern") == '\0')
+	auto pattern = read_one_line("/proc/sys/kernel/core_pattern");
+	if (pattern == nullptr || *pattern == '\0') {
 		ec_log_err("Coredumps are not enabled in the OS: sysctl kernel.core_pattern is empty.");
+	} else if (*pattern == '/') {
+		HX_chomp(pattern);
+		std::unique_ptr<char[], cstdlib_deleter> path(HX_dirname(pattern));
+		if (access(path.get(), W_OK) < 0)
+			ec_log_err("Coredump path \"%s\" is inaccessible: %s.", path.get(), strerror(errno));
+	}
+	HXmc_free(pattern);
 	limit.rlim_cur = RLIM_INFINITY;
 	limit.rlim_max = RLIM_INFINITY;
 	if (setrlimit(RLIMIT_CORE, &limit) < 0) {
