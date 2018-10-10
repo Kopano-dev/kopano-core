@@ -110,12 +110,12 @@ template<typename T> static void setleaf(Json::Value &leaf, const T &elem)
 		leaf["type"] = "int";
 		leaf["mode"] = "gauge";
 		break;
-	case SCDT_TIMESTAMP:
+	case SCT_TIME:
 		leaf["value"] = static_cast<Json::Value::Int64>(elem.data.ts);
 		leaf["type"] = "unixtime";
 		leaf["mode"] = "counter";
 		break;
-	case SCDT_STRING:
+	case SCT_STRING:
 		leaf["value"] = elem.strdata;
 		leaf["type"] = "string";
 		break;
@@ -206,7 +206,7 @@ void ECStatsCollector::mainloop()
 ECStatsCollector::ECStatsCollector(std::shared_ptr<ECConfig> config) :
 	m_config(std::move(config))
 {
-	AddStat(SCN_MACHINE_ID, SCDT_STRING, "machine_id");
+	AddStat(SCN_MACHINE_ID, SCT_STRING, "machine_id");
 	std::unique_ptr<FILE, file_deleter> fp(fopen("/etc/machine-id", "r"));
 	if (fp != nullptr) {
 		std::string mid;
@@ -291,7 +291,7 @@ void ECStatsCollector::SetTime(enum SCName name, time_t set)
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
 		return;
-	assert(iSD->second.type == SCDT_TIMESTAMP);
+	assert(iSD->second.type == SCT_TIME);
 	scoped_lock lk(iSD->second.lock);
 	iSD->second.data.ts = set;
 }
@@ -301,7 +301,7 @@ void ECStatsCollector::set(SCName name, const std::string &s)
 	auto i = m_StatData.find(name);
 	if (i == m_StatData.cend())
 		return;
-	assert(i->second.type == SCDT_STRING);
+	assert(i->second.type == SCT_STRING);
 	scoped_lock lk(i->second.lock);
 	i->second.strdata = s;
 }
@@ -352,7 +352,7 @@ std::string ECStatsCollector::GetValue(const SCMap::const_iterator::value_type &
 	case SCT_INTEGER:
 	case SCT_INTGAUGE:
 		return stringify_int64(iSD.second.data.ll);
-	case SCDT_TIMESTAMP: {
+	case SCT_TIME: {
 		if (iSD.second.data.ts <= 0)
 			break;
 		char timestamp[128] = { 0 };
@@ -360,7 +360,7 @@ std::string ECStatsCollector::GetValue(const SCMap::const_iterator::value_type &
 		strftime(timestamp, sizeof timestamp, "%a %b %e %T %Y", tm);
 		return timestamp;
 	}
-	case SCDT_STRING:
+	case SCT_STRING:
 		return iSD.second.strdata;
 	}
 	return "";
@@ -375,7 +375,7 @@ std::string ECStatsCollector::GetValue(const ECStat2 &i)
 	case SCT_INTEGER:
 	case SCT_INTGAUGE:
 		return stringify_int64(i.data.ll);
-	case SCDT_TIMESTAMP: {
+	case SCT_TIME: {
 		if (i.data.ts <= 0)
 			break;
 		char timestamp[128] = { 0 };
@@ -383,7 +383,7 @@ std::string ECStatsCollector::GetValue(const ECStat2 &i)
 		strftime(timestamp, sizeof(timestamp), "%a %b %e %T %Y", tm);
 		return timestamp;
 	}
-	case SCDT_STRING:
+	case SCT_STRING:
 		return i.strdata;
 	}
 	return "";
@@ -475,10 +475,10 @@ void ECStatsCollector::set(const std::string &name, const std::string &desc,
 	scoped_lock lk(m_odm_lock);
 	auto i = m_ondemand.find(name);
 	if (i == m_ondemand.cend()) {
-		m_ondemand.emplace(name, ECStat2{desc, v, SCDT_STRING});
+		m_ondemand.emplace(name, ECStat2{desc, v, SCT_STRING});
 		return;
 	}
-	assert(i->second.type == SCDT_STRING);
+	assert(i->second.type == SCT_STRING);
 	i->second.strdata = v;
 }
 

@@ -93,79 +93,79 @@ static int running_server(char *, const char *, bool, int, char **, int, char **
 server_stats::server_stats(std::shared_ptr<ECConfig> cfg) :
 	ECStatsCollector(std::move(cfg))
 {
-	AddStat(SCN_SERVER_GUID, SCDT_STRING, "server_guid");
-	AddStat(SCN_SERVER_STARTTIME, SCDT_TIMESTAMP, "server_start_date", "Time when the server was started");
-	AddStat(SCN_SERVER_LAST_CACHECLEARED, SCDT_TIMESTAMP, "cache_purge_date", "Time when the cache was cleared");
-	AddStat(SCN_SERVER_LAST_CONFIGRELOAD, SCDT_TIMESTAMP, "config_reload_date", "Time when the configuration file was reloaded / logrotation (SIGHUP)");
-	AddStat(SCN_SERVER_CONNECTIONS, SCDT_LONGLONG, "connections", "Number of handled incoming connections");
+	AddStat(SCN_SERVER_GUID, SCT_STRING, "server_guid");
+	AddStat(SCN_SERVER_STARTTIME, SCT_TIME, "server_start_date", "Time when the server was started");
+	AddStat(SCN_SERVER_LAST_CACHECLEARED, SCT_TIME, "cache_purge_date", "Time when the cache was cleared");
+	AddStat(SCN_SERVER_LAST_CONFIGRELOAD, SCT_TIME, "config_reload_date", "Time when the configuration file was reloaded / logrotation (SIGHUP)");
+	AddStat(SCN_SERVER_CONNECTIONS, SCT_INTEGER, "connections", "Number of handled incoming connections");
 	AddStat(SCN_MAX_SOCKET_NUMBER, SCT_INTGAUGE, "max_socket", "Highest socket number used");
-	AddStat(SCN_REDIRECT_COUNT, SCDT_LONGLONG, "redirections", "Number of redirected requests");
+	AddStat(SCN_REDIRECT_COUNT, SCT_INTEGER, "redirections", "Number of redirected requests");
 	AddStat(SCN_SEARCHFOLDER_COUNT, SCT_INTGAUGE, "searchfld_loaded", "Total number of searchfolders");
 	AddStat(SCN_SEARCHFOLDER_THREADS, SCT_INTGAUGE, "searchfld_threads", "Current number of running searchfolder threads");
-	AddStat(SCN_SEARCHFOLDER_UPDATE_RETRY, SCDT_LONGLONG, "searchupd_retry", "The number of times a search folder update was restarted");
-	AddStat(SCN_SEARCHFOLDER_UPDATE_FAIL, SCDT_LONGLONG, "searchupd_fail", "The number of failed search folder updates after retrying");
-	AddStat(SCN_SOAP_REQUESTS, SCDT_LONGLONG, "soap_request", "Number of soap requests handled by server");
-	AddStat(SCN_RESPONSE_TIME, SCDT_LONGLONG, "response_time", "Response time of soap requests handled in milliseconds (includes time in queue)");
-	AddStat(SCN_PROCESSING_TIME, SCDT_LONGLONG, "processing_time", "Time taken to process soap requests in milliseconds (wallclock time)");
+	AddStat(SCN_SEARCHFOLDER_UPDATE_RETRY, SCT_INTEGER, "searchupd_retry", "The number of times a search folder update was restarted");
+	AddStat(SCN_SEARCHFOLDER_UPDATE_FAIL, SCT_INTEGER, "searchupd_fail", "The number of failed search folder updates after retrying");
+	AddStat(SCN_SOAP_REQUESTS, SCT_INTEGER, "soap_request", "Number of soap requests handled by server");
+	AddStat(SCN_RESPONSE_TIME, SCT_INTEGER, "response_time", "Response time of soap requests handled in milliseconds (includes time in queue)");
+	AddStat(SCN_PROCESSING_TIME, SCT_INTEGER, "processing_time", "Time taken to process soap requests in milliseconds (wallclock time)");
 
-	AddStat(SCN_DATABASE_CONNECTS, SCDT_LONGLONG, "sql_connect", "Number of connections made to SQL server");
-	AddStat(SCN_DATABASE_SELECTS, SCDT_LONGLONG, "sql_select", "Number of SQL Select commands executed");
-	AddStat(SCN_DATABASE_INSERTS, SCDT_LONGLONG, "sql_insert", "Number of SQL Insert commands executed");
-	AddStat(SCN_DATABASE_UPDATES, SCDT_LONGLONG, "sql_update", "Number of SQL Update commands executed");
-	AddStat(SCN_DATABASE_DELETES, SCDT_LONGLONG, "sql_delete", "Number of SQL Delete commands executed");
-	AddStat(SCN_DATABASE_FAILED_CONNECTS, SCDT_LONGLONG, "sql_connect_fail", "Number of failed connections made to SQL server");
-	AddStat(SCN_DATABASE_FAILED_SELECTS, SCDT_LONGLONG, "sql_select_fail", "Number of failed SQL Select commands");
-	AddStat(SCN_DATABASE_FAILED_INSERTS, SCDT_LONGLONG, "sql_insert_fail", "Number of failed SQL Insert commands");
-	AddStat(SCN_DATABASE_FAILED_UPDATES, SCDT_LONGLONG, "sql_update_fail", "Number of failed SQL Update commands");
-	AddStat(SCN_DATABASE_FAILED_DELETES, SCDT_LONGLONG, "sql_delete_fail", "Number of failed SQL Delete commands");
-	AddStat(SCN_DATABASE_LAST_FAILED, SCDT_TIMESTAMP, "sql_last_fail_time", "Timestamp of last failed SQL command");
-	AddStat(SCN_DATABASE_MWOPS, SCDT_LONGLONG, "mwops", "MAPI Write Operations");
-	AddStat(SCN_DATABASE_MROPS, SCDT_LONGLONG, "mrops", "MAPI Read Operations");
-	AddStat(SCN_DATABASE_DEFERRED_FETCHES, SCDT_LONGLONG, "deferred_fetches", "Number rows retrieved via deferred write table");
-	AddStat(SCN_DATABASE_MERGES, SCDT_LONGLONG, "deferred_merges", "Number of merges applied to the deferred write table");
-	AddStat(SCN_DATABASE_MERGED_RECORDS, SCDT_LONGLONG, "deferred_records", "Number records merged in the deferred write table");
-	AddStat(SCN_DATABASE_ROW_READS, SCDT_LONGLONG, "row_reads", "Number of table rows read in row order");
-	AddStat(SCN_DATABASE_COUNTER_RESYNCS, SCDT_LONGLONG, "counter_resyncs", "Number of time a counter resync was required");
+	AddStat(SCN_DATABASE_CONNECTS, SCT_INTEGER, "sql_connect", "Number of connections made to SQL server");
+	AddStat(SCN_DATABASE_SELECTS, SCT_INTEGER, "sql_select", "Number of SQL Select commands executed");
+	AddStat(SCN_DATABASE_INSERTS, SCT_INTEGER, "sql_insert", "Number of SQL Insert commands executed");
+	AddStat(SCN_DATABASE_UPDATES, SCT_INTEGER, "sql_update", "Number of SQL Update commands executed");
+	AddStat(SCN_DATABASE_DELETES, SCT_INTEGER, "sql_delete", "Number of SQL Delete commands executed");
+	AddStat(SCN_DATABASE_FAILED_CONNECTS, SCT_INTEGER, "sql_connect_fail", "Number of failed connections made to SQL server");
+	AddStat(SCN_DATABASE_FAILED_SELECTS, SCT_INTEGER, "sql_select_fail", "Number of failed SQL Select commands");
+	AddStat(SCN_DATABASE_FAILED_INSERTS, SCT_INTEGER, "sql_insert_fail", "Number of failed SQL Insert commands");
+	AddStat(SCN_DATABASE_FAILED_UPDATES, SCT_INTEGER, "sql_update_fail", "Number of failed SQL Update commands");
+	AddStat(SCN_DATABASE_FAILED_DELETES, SCT_INTEGER, "sql_delete_fail", "Number of failed SQL Delete commands");
+	AddStat(SCN_DATABASE_LAST_FAILED, SCT_TIME, "sql_last_fail_time", "Timestamp of last failed SQL command");
+	AddStat(SCN_DATABASE_MWOPS, SCT_INTEGER, "mwops", "MAPI Write Operations");
+	AddStat(SCN_DATABASE_MROPS, SCT_INTEGER, "mrops", "MAPI Read Operations");
+	AddStat(SCN_DATABASE_DEFERRED_FETCHES, SCT_INTEGER, "deferred_fetches", "Number rows retrieved via deferred write table");
+	AddStat(SCN_DATABASE_MERGES, SCT_INTEGER, "deferred_merges", "Number of merges applied to the deferred write table");
+	AddStat(SCN_DATABASE_MERGED_RECORDS, SCT_INTEGER, "deferred_records", "Number records merged in the deferred write table");
+	AddStat(SCN_DATABASE_ROW_READS, SCT_INTEGER, "row_reads", "Number of table rows read in row order");
+	AddStat(SCN_DATABASE_COUNTER_RESYNCS, SCT_INTEGER, "counter_resyncs", "Number of time a counter resync was required");
 
-	AddStat(SCN_LOGIN_PASSWORD, SCDT_LONGLONG, "login_password", "Number of logins through password authentication");
-	AddStat(SCN_LOGIN_SSL, SCDT_LONGLONG, "login_ssl", "Number of logins through SSL certificate authentication");
-	AddStat(SCN_LOGIN_SSO, SCDT_LONGLONG, "login_sso", "Number of logins through Single Sign-on");
-	AddStat(SCN_LOGIN_SOCKET, SCDT_LONGLONG, "login_unix", "Number of logins through Unix socket");
-	AddStat(SCN_LOGIN_DENIED, SCDT_LONGLONG, "login_failed", "Number of failed logins");
+	AddStat(SCN_LOGIN_PASSWORD, SCT_INTEGER, "login_password", "Number of logins through password authentication");
+	AddStat(SCN_LOGIN_SSL, SCT_INTEGER, "login_ssl", "Number of logins through SSL certificate authentication");
+	AddStat(SCN_LOGIN_SSO, SCT_INTEGER, "login_sso", "Number of logins through Single Sign-on");
+	AddStat(SCN_LOGIN_SOCKET, SCT_INTEGER, "login_unix", "Number of logins through Unix socket");
+	AddStat(SCN_LOGIN_DENIED, SCT_INTEGER, "login_failed", "Number of failed logins");
 
-	AddStat(SCN_SESSIONS_CREATED, SCDT_LONGLONG, "sessions_created", "Number of created sessions");
-	AddStat(SCN_SESSIONS_DELETED, SCDT_LONGLONG, "sessions_deleted", "Number of deleted sessions");
-	AddStat(SCN_SESSIONS_TIMEOUT, SCDT_LONGLONG, "sessions_timeout", "Number of timed-out sessions");
+	AddStat(SCN_SESSIONS_CREATED, SCT_INTEGER, "sessions_created", "Number of created sessions");
+	AddStat(SCN_SESSIONS_DELETED, SCT_INTEGER, "sessions_deleted", "Number of deleted sessions");
+	AddStat(SCN_SESSIONS_TIMEOUT, SCT_INTEGER, "sessions_timeout", "Number of timed-out sessions");
 
-	AddStat(SCN_SESSIONS_INTERNAL_CREATED, SCDT_LONGLONG, "sess_int_created", "Number of created internal sessions");
-	AddStat(SCN_SESSIONS_INTERNAL_DELETED, SCDT_LONGLONG, "sess_int_deleted", "Number of deleted internal sessions");
+	AddStat(SCN_SESSIONS_INTERNAL_CREATED, SCT_INTEGER, "sess_int_created", "Number of created internal sessions");
+	AddStat(SCN_SESSIONS_INTERNAL_DELETED, SCT_INTEGER, "sess_int_deleted", "Number of deleted internal sessions");
 
-	AddStat(SCN_SESSIONGROUPS_CREATED, SCDT_LONGLONG, "sess_grp_created", "Number of created sessiongroups");
-	AddStat(SCN_SESSIONGROUPS_DELETED, SCDT_LONGLONG, "sess_grp_deleted", "Number of deleted sessiongroups");
+	AddStat(SCN_SESSIONGROUPS_CREATED, SCT_INTEGER, "sess_grp_created", "Number of created sessiongroups");
+	AddStat(SCN_SESSIONGROUPS_DELETED, SCT_INTEGER, "sess_grp_deleted", "Number of deleted sessiongroups");
 
-	AddStat(SCN_LDAP_CONNECTS, SCDT_LONGLONG, "ldap_connect", "Number of connections made to LDAP server");
-	AddStat(SCN_LDAP_RECONNECTS, SCDT_LONGLONG, "ldap_reconnect", "Number of re-connections made to LDAP server");
-	AddStat(SCN_LDAP_CONNECT_FAILED, SCDT_LONGLONG, "ldap_connect_fail", "Number of failed connections made to LDAP server");
-	AddStat(SCN_LDAP_CONNECT_TIME, SCDT_LONGLONG, "ldap_connect_time", "Total duration of connections made to LDAP server");
+	AddStat(SCN_LDAP_CONNECTS, SCT_INTEGER, "ldap_connect", "Number of connections made to LDAP server");
+	AddStat(SCN_LDAP_RECONNECTS, SCT_INTEGER, "ldap_reconnect", "Number of re-connections made to LDAP server");
+	AddStat(SCN_LDAP_CONNECT_FAILED, SCT_INTEGER, "ldap_connect_fail", "Number of failed connections made to LDAP server");
+	AddStat(SCN_LDAP_CONNECT_TIME, SCT_INTEGER, "ldap_connect_time", "Total duration of connections made to LDAP server");
 	AddStat(SCN_LDAP_CONNECT_TIME_MAX, SCT_INTGAUGE, "ldap_max_connect", "Longest connection time made to LDAP server");
 
 	/* potentially useless because of SCN_LOGIN_* */
-	AddStat(SCN_LDAP_AUTH_LOGINS, SCDT_LONGLONG, "ldap_auth", "Number of LDAP authentications");
-	AddStat(SCN_LDAP_AUTH_DENIED, SCDT_LONGLONG, "ldap_auth_fail", "Number of failed authentications");
-	AddStat(SCN_LDAP_AUTH_TIME, SCDT_LONGLONG, "ldap_auth_time", "Total authentication time");
+	AddStat(SCN_LDAP_AUTH_LOGINS, SCT_INTEGER, "ldap_auth", "Number of LDAP authentications");
+	AddStat(SCN_LDAP_AUTH_DENIED, SCT_INTEGER, "ldap_auth_fail", "Number of failed authentications");
+	AddStat(SCN_LDAP_AUTH_TIME, SCT_INTEGER, "ldap_auth_time", "Total authentication time");
 	AddStat(SCN_LDAP_AUTH_TIME_MAX, SCT_INTGAUGE, "ldap_max_auth", "Longest duration of authentication made to LDAP server");
 	AddStat(SCN_LDAP_AUTH_TIME_AVG, SCT_INTGAUGE, "ldap_avg_auth", "Average duration of authentication made to LDAP server");
 
-	AddStat(SCN_LDAP_SEARCH, SCDT_LONGLONG, "ldap_search", "Number of searches made to LDAP server");
-	AddStat(SCN_LDAP_SEARCH_FAILED, SCDT_LONGLONG, "ldap_search_fail", "Number of failed searches made to LDAP server");
-	AddStat(SCN_LDAP_SEARCH_TIME, SCDT_LONGLONG, "ldap_search_time", "Total duration of LDAP searches");
+	AddStat(SCN_LDAP_SEARCH, SCT_INTEGER, "ldap_search", "Number of searches made to LDAP server");
+	AddStat(SCN_LDAP_SEARCH_FAILED, SCT_INTEGER, "ldap_search_fail", "Number of failed searches made to LDAP server");
+	AddStat(SCN_LDAP_SEARCH_TIME, SCT_INTEGER, "ldap_search_time", "Total duration of LDAP searches");
 	AddStat(SCN_LDAP_SEARCH_TIME_MAX, SCT_INTGAUGE, "ldap_max_search", "Longest duration of LDAP search");
 
-	AddStat(SCN_INDEXER_SEARCH_ERRORS, SCDT_LONGLONG, "index_search_errors", "Number of failed indexer queries");
+	AddStat(SCN_INDEXER_SEARCH_ERRORS, SCT_INTEGER, "index_search_errors", "Number of failed indexer queries");
 	AddStat(SCN_INDEXER_SEARCH_MAX, SCT_INTGAUGE, "index_search_max", "Maximum duration of an indexed search query");
 	AddStat(SCN_INDEXER_SEARCH_AVG, SCT_INTGAUGE, "index_search_avg", "Average duration of an indexed search query");
-	AddStat(SCN_INDEXED_SEARCHES, SCDT_LONGLONG, "search_indexed", "Number of indexed searches performed");
-	AddStat(SCN_DATABASE_SEARCHES, SCDT_LONGLONG, "search_database", "Number of database searches performed");
+	AddStat(SCN_INDEXED_SEARCHES, SCT_INTEGER, "search_indexed", "Number of indexed searches performed");
+	AddStat(SCN_DATABASE_SEARCHES, SCT_INTEGER, "search_database", "Number of database searches performed");
 }
 
 // This is the callback function for libserver/* so that it can notify that a delayed soap

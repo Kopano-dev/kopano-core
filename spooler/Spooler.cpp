@@ -1161,11 +1161,11 @@ exit:
 spooler_stats::spooler_stats(std::shared_ptr<ECConfig> cfg) :
 	StatsClient(std::move(cfg))
 {
-	AddStat(SCN_SPOOLER_EXIT_WAIT, SCDT_LONGLONG, "spooler_exit_wait");
-	AddStat(SCN_SPOOLER_SIGKILLED, SCDT_LONGLONG, "spooler_sigkilled");
-	AddStat(SCN_SPOOLER_ABNORM_TERM, SCDT_LONGLONG, "spooler_abnormal_termination");
-	AddStat(SCN_SPOOLER_SENT, SCDT_LONGLONG, "spooler_sent");
-	AddStat(SCN_SPOOLER_SEND_FAILED, SCDT_LONGLONG, "spooler_send_failed");
-	AddStat(SCN_SPOOLER_BATCH_INVOKES, SCDT_LONGLONG, "spooler_batch_invokes");
-	AddStat(SCN_SPOOLER_BATCH_COUNT, SCDT_LONGLONG, "spooler_batch_count");
+	AddStat(SCN_SPOOLER_EXIT_WAIT, SCT_INTEGER, "spooler_exit_wait");
+	AddStat(SCN_SPOOLER_SIGKILLED, SCT_INTEGER, "spooler_sigkilled");
+	AddStat(SCN_SPOOLER_ABNORM_TERM, SCT_INTEGER, "spooler_abnormal_termination");
+	AddStat(SCN_SPOOLER_SENT, SCT_INTEGER, "spooler_sent");
+	AddStat(SCN_SPOOLER_SEND_FAILED, SCT_INTEGER, "spooler_send_failed");
+	AddStat(SCN_SPOOLER_BATCH_INVOKES, SCT_INTEGER, "spooler_batch_invokes");
+	AddStat(SCN_SPOOLER_BATCH_COUNT, SCT_INTEGER, "spooler_batch_count");
 }
