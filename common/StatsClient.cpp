@@ -27,23 +27,25 @@ namespace KC {
 static void *submitThread(void *p)
 {
 	kcsrv_blocksigs();
-	ec_log_debug("Submit thread started");
 	static_cast<StatsClient *>(p)->mainloop();
-	ec_log_debug("Submit thread stopping");
 	return NULL;
 }
 
-ECStatsCollector::~ECStatsCollector() {
-	ec_log_debug("StatsClient terminating");
+void ECStatsCollector::stop()
+{
+	if (!thread_running)
+		return;
 	terminate = true;
 	m_exitsig.notify_one();
-	if (thread_running) {
-		// interrupt sleep()
-		pthread_cancel(countsSubmitThread);
-		void *dummy = NULL;
-		pthread_join(countsSubmitThread, &dummy);
-	}
-	ec_log_debug("StatsClient terminated");
+	void *dummy = nullptr;
+	pthread_join(countsSubmitThread, &dummy);
+	thread_running = false;
+	terminate = false;
+}
+
+ECStatsCollector::~ECStatsCollector()
+{
+	stop();
 }
 
 #ifdef HAVE_CURL_CURL_H
@@ -194,6 +196,12 @@ ECStatsCollector::ECStatsCollector(std::shared_ptr<ECConfig> config) :
 		set(SCN_MACHINE_ID, mid);
 	}
 	if (m_config == nullptr)
+		return;
+}
+
+void ECStatsCollector::start()
+{
+	if (thread_running)
 		return;
 	auto ret = pthread_create(&countsSubmitThread, nullptr, submitThread, this);
 	if (ret == 0)

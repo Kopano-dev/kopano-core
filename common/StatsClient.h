@@ -129,6 +129,8 @@ class _kc_export ECStatsCollector {
 	ECStatsCollector(std::shared_ptr<ECConfig>);
 	~ECStatsCollector();
 	virtual void fill_odm() {}
+	void start();
+	void stop();
 	void mainloop();
 	void submit(std::string &&);
 	void inc(enum SCName, double inc);

@@ -942,7 +942,9 @@ void ECSessionManager::update_extra_stats()
 	s.set("searchfld_events", "Number of events waiting for searchfolder updates", sSearchStats.ulEvents);
 	s.set("searchfld_size", "Memory usage of search folders", sSearchStats.ullSize);
 
-	GetCacheManager()->update_extra_stats(s);
+	auto cm = GetCacheManager();
+	if (cm != nullptr)
+		cm->update_extra_stats(s);
 }
 
 /**
