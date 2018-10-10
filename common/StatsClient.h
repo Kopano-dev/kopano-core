@@ -105,7 +105,18 @@ union SCData {
 	time_t ts;
 };
 
-enum SCType { SCDT_FLOAT, SCDT_LONGLONG, SCDT_TIMESTAMP, SCDT_STRING };
+enum SCType {
+	SCT_INTEGER,
+	SCT_INTGAUGE,
+	SCT_REAL,
+	SCT_REALGAUGE,
+	SCT_TIME,
+	SCT_STRING,
+	SCDT_FLOAT = SCT_REAL,
+	SCDT_LONGLONG = SCT_INTEGER,
+	SCDT_TIMESTAMP = SCT_TIME,
+	SCDT_STRING = SCT_STRING,
+};
 
 struct ECStat {
 	const char *name, *description;
@@ -137,8 +148,9 @@ class _kc_export ECStatsCollector {
 	void inc(enum SCName, int inc = 1);
 	void inc(enum SCName, LONGLONG inc);
 	void set_dbl(enum SCName, double set);
-	void set_dbl(const std::string &, const std::string &, double);
+	void setg_dbl(const std::string &, const std::string &, double);
 	void set(const std::string &, const std::string &, int64_t);
+	void setg(const std::string &, const std::string &, int64_t);
 	void set(enum SCName, LONGLONG set);
 	void SetTime(SCName name, time_t set);
 	void set(SCName, const std::string &);

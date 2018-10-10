@@ -64,22 +64,22 @@ void server_stats::update_tcmalloc_stats()
 		return;
 
 	gnp("generic.current_allocated_bytes", &value);
-	set("tc_allocated", "Current allocated memory by TCMalloc", value);
+	setg("tc_allocated", "Current allocated memory by TCMalloc", value);
 	value = 0;
 	gnp("generic.heap_size", &value);
-	set("tc_reserved", "Bytes of system memory reserved by TCMalloc", value);
+	setg("tc_reserved", "Bytes of system memory reserved by TCMalloc", value);
 	value = 0;
 	gnp("tcmalloc.pageheap_free_bytes", &value);
-	set("tc_page_map_free", "Number of bytes in free, mapped pages in page heap", value);
+	setg("tc_page_map_free", "Number of bytes in free, mapped pages in page heap", value);
 	value = 0;
 	gnp("tcmalloc.pageheap_unmapped_bytes", &value);
-	set("tc_page_unmap_free", "Number of bytes in free, unmapped pages in page heap (released to OS)", value);
+	setg("tc_page_unmap_free", "Number of bytes in free, unmapped pages in page heap (released to OS)", value);
 	value = 0;
 	gnp("tcmalloc.max_total_thread_cache_bytes", &value);
-	set("tc_threadcache_max", "A limit to how much memory TCMalloc dedicates for small objects", value);
+	setg("tc_threadcache_max", "A limit to how much memory TCMalloc dedicates for small objects", value);
 	value = 0;
 	gnp("tcmalloc.current_total_thread_cache_bytes", &value);
-	set("tc_threadcache_cur", "Current allocated memory in bytes for thread cache", value);
+	setg("tc_threadcache_cur", "Current allocated memory in bytes for thread cache", value);
 #ifdef KNOB144
 	char test[2048] = {0};
 	auto getstat = reinterpret_cast<decltype(MallocExtension_GetStats) *>(dlsym(NULL, "MallocExtension_GetStats"));
@@ -97,17 +97,17 @@ void server_stats::fill_odm()
 #ifdef HAVE_MALLINFO
 	/* parallel threaded allocator */
 	struct mallinfo malloc_info = mallinfo();
-	set("pt_allocated", "Current allocated memory by libc ptmalloc, in bytes", malloc_info.uordblks);
+	setg("pt_allocated", "Current allocated memory by libc ptmalloc, in bytes", malloc_info.uordblks);
 #endif
 
 	unsigned int qlen = 0, nthr = 0, ithr = 0;
 	KC::time_duration qage;
 
 	kopano_get_server_stats(&qlen, &qage, &nthr, &ithr);
-	set("queuelen", "Current queue length", qlen);
-	set_dbl("queueage", "Age of the front queue item", dur2dbl(qage));
-	set("threads", "Number of threads running to process items", nthr);
-	set("threads_idle", "Number of idle threads", ithr);
+	setg("queuelen", "Current queue length", qlen);
+	setg_dbl("queueage", "Age of the front queue item", dur2dbl(qage));
+	setg("threads", "Number of threads running to process items", nthr);
+	setg("threads_idle", "Number of idle threads", ithr);
 
 	if (g_lpSessionManager == nullptr)
 		return;
@@ -115,12 +115,12 @@ void server_stats::fill_odm()
 
 	usercount_t uc;
 	g_lpSessionManager->get_user_count_cached(&uc);
-	set("usercnt_active", "Number of active users", uc[usercount_t::ucActiveUser]);
-	set("usercnt_nonactive", "Number of total non-active objects", uc[usercount_t::ucNonActiveTotal]);
-	set("usercnt_na_user", "Number of non-active users", uc[usercount_t::ucNonActiveUser]);
-	set("usercnt_room", "Number of rooms", uc[usercount_t::ucRoom]);
-	set("usercnt_equipment", "Number of equipment", uc[usercount_t::ucEquipment]);
-	set("usercnt_contact", "Number of contacts", uc[usercount_t::ucContact]);
+	setg("usercnt_active", "Number of active users", uc[usercount_t::ucActiveUser]);
+	setg("usercnt_nonactive", "Number of total non-active objects", uc[usercount_t::ucNonActiveTotal]);
+	setg("usercnt_na_user", "Number of non-active users", uc[usercount_t::ucNonActiveUser]);
+	setg("usercnt_room", "Number of rooms", uc[usercount_t::ucRoom]);
+	setg("usercnt_equipment", "Number of equipment", uc[usercount_t::ucEquipment]);
+	setg("usercnt_contact", "Number of contacts", uc[usercount_t::ucContact]);
 	set("userplugin", "Plugin for the user backend", g_lpSessionManager->GetConfig()->GetSetting("user_plugin"));
 
 	g_lpSessionManager->update_extra_stats();

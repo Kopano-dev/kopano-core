@@ -90,17 +90,34 @@ static void sc_proxy_from_sysconfig(CURL *ch, const char *url)
 template<typename T> static void setleaf(Json::Value &leaf, const T &elem)
 {
 	switch (elem.type) {
-	case SCDT_FLOAT:
+	case SCT_REAL:
 		leaf["value"] = elem.data.f;
+		leaf["type"] = "real";
+		leaf["mode"] = "counter";
 		break;
-	case SCDT_LONGLONG:
+	case SCT_REALGAUGE:
+		leaf["value"] = elem.data.f;
+		leaf["type"] = "real";
+		leaf["mode"] = "gauge";
+		break;
+	case SCT_INTEGER:
 		leaf["value"] = static_cast<Json::Value::Int64>(elem.data.ll);
+		leaf["type"] = "int";
+		leaf["mode"] = "counter";
+		break;
+	case SCT_INTGAUGE:
+		leaf["value"] = static_cast<Json::Value::Int64>(elem.data.ll);
+		leaf["type"] = "int";
+		leaf["mode"] = "gauge";
 		break;
 	case SCDT_TIMESTAMP:
 		leaf["value"] = static_cast<Json::Value::Int64>(elem.data.ts);
+		leaf["type"] = "unixtime";
+		leaf["mode"] = "counter";
 		break;
 	case SCDT_STRING:
 		leaf["value"] = elem.strdata;
+		leaf["type"] = "string";
 		break;
 	default:
 		break;
@@ -229,7 +246,7 @@ void ECStatsCollector::inc(SCName name, double inc)
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
 		return;
-	assert(iSD->second.type == SCDT_FLOAT);
+	assert(iSD->second.type == SCT_REAL || iSD->second.type == SCT_REALGAUGE);
 	scoped_lock lk(iSD->second.lock);
 	iSD->second.data.f += inc;
 }
@@ -244,7 +261,7 @@ void ECStatsCollector::inc(SCName name, LONGLONG inc)
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
 		return;
-	assert(iSD->second.type == SCDT_LONGLONG);
+	assert(iSD->second.type == SCT_INTEGER || iSD->second.type == SCT_INTGAUGE);
 	scoped_lock lk(iSD->second.lock);
 	iSD->second.data.ll += inc;
 }
@@ -254,7 +271,7 @@ void ECStatsCollector::set_dbl(enum SCName name, double set)
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
 		return;
-	assert(iSD->second.type == SCDT_FLOAT);
+	assert(iSD->second.type == SCT_REAL || iSD->second.type == SCT_REALGAUGE);
 	scoped_lock lk(iSD->second.lock);
 	iSD->second.data.f = set;
 }
@@ -264,7 +281,7 @@ void ECStatsCollector::set(enum SCName name, LONGLONG set)
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
 		return;
-	assert(iSD->second.type == SCDT_LONGLONG);
+	assert(iSD->second.type == SCT_INTEGER || iSD->second.type == SCT_INTGAUGE);
 	scoped_lock lk(iSD->second.lock);
 	iSD->second.data.ll = set;
 }
@@ -294,7 +311,7 @@ void ECStatsCollector::Max(SCName name, LONGLONG max)
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
 		return;
-	assert(iSD->second.type == SCDT_LONGLONG);
+	assert(iSD->second.type == SCT_INTEGER || iSD->second.type == SCT_INTGAUGE);
 	scoped_lock lk(iSD->second.lock);
 	if (iSD->second.data.ll < max)
 		iSD->second.data.ll = max;
@@ -305,7 +322,7 @@ void ECStatsCollector::avg_dbl(SCName name, double add)
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
 		return;
-	assert(iSD->second.type == SCDT_FLOAT);
+	assert(iSD->second.type == SCT_REALGAUGE);
 	scoped_lock lk(iSD->second.lock);
 	iSD->second.data.f = ((add - iSD->second.data.f) / iSD->second.avginc) + iSD->second.data.f;
 	++iSD->second.avginc;
@@ -318,7 +335,7 @@ void ECStatsCollector::avg(SCName name, LONGLONG add)
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
 		return;
-	assert(iSD->second.type == SCDT_LONGLONG);
+	assert(iSD->second.type == SCT_INTGAUGE);
 	scoped_lock lk(iSD->second.lock);
 	iSD->second.data.ll = ((add - iSD->second.data.ll) / iSD->second.avginc) + iSD->second.data.ll;
 	++iSD->second.avginc;
@@ -329,9 +346,11 @@ void ECStatsCollector::avg(SCName name, LONGLONG add)
 std::string ECStatsCollector::GetValue(const SCMap::const_iterator::value_type &iSD)
 {
 	switch (iSD.second.type) {
-	case SCDT_FLOAT:
+	case SCT_REAL:
+	case SCT_REALGAUGE:
 		return stringify_double(iSD.second.data.f);
-	case SCDT_LONGLONG:
+	case SCT_INTEGER:
+	case SCT_INTGAUGE:
 		return stringify_int64(iSD.second.data.ll);
 	case SCDT_TIMESTAMP: {
 		if (iSD.second.data.ts <= 0)
@@ -350,9 +369,11 @@ std::string ECStatsCollector::GetValue(const SCMap::const_iterator::value_type &
 std::string ECStatsCollector::GetValue(const ECStat2 &i)
 {
 	switch (i.type) {
-	case SCDT_FLOAT:
+	case SCT_REAL:
+	case SCT_REALGAUGE:
 		return stringify_double(i.data.f);
-	case SCDT_LONGLONG:
+	case SCT_INTEGER:
+	case SCT_INTGAUGE:
 		return stringify_int64(i.data.ll);
 	case SCDT_TIMESTAMP: {
 		if (i.data.ts <= 0)
@@ -411,25 +432,39 @@ void ECStatsCollector::set(const std::string &name, const std::string &desc, int
 	scoped_lock lk(m_odm_lock);
 	auto i = m_ondemand.find(name);
 	if (i != m_ondemand.cend()) {
-		assert(i->second.type == SCDT_LONGLONG);
+		assert(i->second.type == SCT_INTEGER);
 		i->second.data.ll = v;
 		return;
 	}
-	ECStat2 st{desc, {}, SCDT_LONGLONG};
+	ECStat2 st{desc, {}, SCT_INTEGER};
 	st.data.ll = v;
 	m_ondemand.emplace(name, std::move(st));
 }
 
-void ECStatsCollector::set_dbl(const std::string &name, const std::string &desc, double v)
+void ECStatsCollector::setg(const std::string &name, const std::string &desc, int64_t v)
 {
 	scoped_lock lk(m_odm_lock);
 	auto i = m_ondemand.find(name);
 	if (i != m_ondemand.cend()) {
-		assert(i->second.type == SCDT_FLOAT);
+		assert(i->second.type == SCT_INTGAUGE);
+		i->second.data.ll = v;
+		return;
+	}
+	ECStat2 st{desc, {}, SCT_INTGAUGE};
+	st.data.ll = v;
+	m_ondemand.emplace(name, std::move(st));
+}
+
+void ECStatsCollector::setg_dbl(const std::string &name, const std::string &desc, double v)
+{
+	scoped_lock lk(m_odm_lock);
+	auto i = m_ondemand.find(name);
+	if (i != m_ondemand.cend()) {
+		assert(i->second.type == SCT_REALGAUGE);
 		i->second.data.f = v;
 		return;
 	}
-	ECStat2 st{desc, {}, SCDT_FLOAT};
+	ECStat2 st{desc, {}, SCT_REALGAUGE};
 	st.data.f = v;
 	m_ondemand.emplace(name, std::move(st));
 }

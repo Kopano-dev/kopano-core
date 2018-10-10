@@ -923,24 +923,24 @@ void ECSessionManager::update_extra_stats()
 {
 	auto &s = *m_stats;
 	auto sSessionStats = get_stats();
-	s.set("sessions", "Number of sessions", sSessionStats.session.ulItems);
-	s.set("sessions_size", "Memory usage of sessions", sSessionStats.session.ullSize);
-	s.set("sessiongroups", "Number of session groups", sSessionStats.group.ulItems);
-	s.set("sessiongroups_size", "Memory usage of session groups", sSessionStats.group.ullSize);
-	s.set("persist_conn", "Persistent connections", sSessionStats.ulPersistentByConnection);
-	s.set("persist_conn_size", "Memory usage of persistent connections", sSessionStats.ulPersistentByConnectionSize);
-	s.set("persist_sess", "Persistent sessions", sSessionStats.ulPersistentBySession);
-	s.set("persist_sess_size", "Memory usage of persistent sessions", sSessionStats.ulPersistentBySessionSize);
-	s.set("tables_subscr", "Tables subscribed", sSessionStats.ulTableSubscriptions);
-	s.set("tables_subscr_size", "Memory usage of subscribed tables", sSessionStats.ulTableSubscriptionSize);
-	s.set("object_subscr", "Objects subscribed", sSessionStats.ulObjectSubscriptions);
-	s.set("object_subscr_size", "Memory usage of subscribed objects", sSessionStats.ulObjectSubscriptionSize);
+	s.setg("sessions", "Number of sessions", sSessionStats.session.ulItems);
+	s.setg("sessions_size", "Memory usage of sessions", sSessionStats.session.ullSize);
+	s.setg("sessiongroups", "Number of session groups", sSessionStats.group.ulItems);
+	s.setg("sessiongroups_size", "Memory usage of session groups", sSessionStats.group.ullSize);
+	s.setg("persist_conn", "Persistent connections", sSessionStats.ulPersistentByConnection);
+	s.setg("persist_conn_size", "Memory usage of persistent connections", sSessionStats.ulPersistentByConnectionSize);
+	s.setg("persist_sess", "Persistent sessions", sSessionStats.ulPersistentBySession);
+	s.setg("persist_sess_size", "Memory usage of persistent sessions", sSessionStats.ulPersistentBySessionSize);
+	s.setg("tables_subscr", "Tables subscribed", sSessionStats.ulTableSubscriptions);
+	s.setg("tables_subscr_size", "Memory usage of subscribed tables", sSessionStats.ulTableSubscriptionSize);
+	s.setg("object_subscr", "Objects subscribed", sSessionStats.ulObjectSubscriptions);
+	s.setg("object_subscr_size", "Memory usage of subscribed objects", sSessionStats.ulObjectSubscriptionSize);
 
 	auto sSearchStats = m_lpSearchFolders->get_stats();
-	s.set("searchfld_stores", "Number of stores in use by search folders", sSearchStats.ulStores);
-	s.set("searchfld_folders", "Number of folders in use by search folders", sSearchStats.ulFolders);
-	s.set("searchfld_events", "Number of events waiting for searchfolder updates", sSearchStats.ulEvents);
-	s.set("searchfld_size", "Memory usage of search folders", sSearchStats.ullSize);
+	s.setg("searchfld_stores", "Number of stores in use by search folders", sSearchStats.ulStores);
+	s.setg("searchfld_folders", "Number of folders in use by search folders", sSearchStats.ulFolders);
+	s.setg("searchfld_events", "Number of events waiting for searchfolder updates", sSearchStats.ulEvents);
+	s.setg("searchfld_size", "Memory usage of search folders", sSearchStats.ullSize);
 
 	auto cm = GetCacheManager();
 	if (cm != nullptr)

@@ -98,10 +98,10 @@ server_stats::server_stats(std::shared_ptr<ECConfig> cfg) :
 	AddStat(SCN_SERVER_LAST_CACHECLEARED, SCDT_TIMESTAMP, "cache_purge_date", "Time when the cache was cleared");
 	AddStat(SCN_SERVER_LAST_CONFIGRELOAD, SCDT_TIMESTAMP, "config_reload_date", "Time when the configuration file was reloaded / logrotation (SIGHUP)");
 	AddStat(SCN_SERVER_CONNECTIONS, SCDT_LONGLONG, "connections", "Number of handled incoming connections");
-	AddStat(SCN_MAX_SOCKET_NUMBER, SCDT_LONGLONG, "max_socket", "Highest socket number used");
+	AddStat(SCN_MAX_SOCKET_NUMBER, SCT_INTGAUGE, "max_socket", "Highest socket number used");
 	AddStat(SCN_REDIRECT_COUNT, SCDT_LONGLONG, "redirections", "Number of redirected requests");
-	AddStat(SCN_SEARCHFOLDER_COUNT, SCDT_LONGLONG, "searchfld_loaded", "Total number of searchfolders");
-	AddStat(SCN_SEARCHFOLDER_THREADS, SCDT_LONGLONG, "searchfld_threads", "Current number of running searchfolder threads");
+	AddStat(SCN_SEARCHFOLDER_COUNT, SCT_INTGAUGE, "searchfld_loaded", "Total number of searchfolders");
+	AddStat(SCN_SEARCHFOLDER_THREADS, SCT_INTGAUGE, "searchfld_threads", "Current number of running searchfolder threads");
 	AddStat(SCN_SEARCHFOLDER_UPDATE_RETRY, SCDT_LONGLONG, "searchupd_retry", "The number of times a search folder update was restarted");
 	AddStat(SCN_SEARCHFOLDER_UPDATE_FAIL, SCDT_LONGLONG, "searchupd_fail", "The number of failed search folder updates after retrying");
 	AddStat(SCN_SOAP_REQUESTS, SCDT_LONGLONG, "soap_request", "Number of soap requests handled by server");
@@ -147,23 +147,23 @@ server_stats::server_stats(std::shared_ptr<ECConfig> cfg) :
 	AddStat(SCN_LDAP_RECONNECTS, SCDT_LONGLONG, "ldap_reconnect", "Number of re-connections made to LDAP server");
 	AddStat(SCN_LDAP_CONNECT_FAILED, SCDT_LONGLONG, "ldap_connect_fail", "Number of failed connections made to LDAP server");
 	AddStat(SCN_LDAP_CONNECT_TIME, SCDT_LONGLONG, "ldap_connect_time", "Total duration of connections made to LDAP server");
-	AddStat(SCN_LDAP_CONNECT_TIME_MAX, SCDT_LONGLONG, "ldap_max_connect", "Longest connection time made to LDAP server");
+	AddStat(SCN_LDAP_CONNECT_TIME_MAX, SCT_INTGAUGE, "ldap_max_connect", "Longest connection time made to LDAP server");
 
 	/* potentially useless because of SCN_LOGIN_* */
 	AddStat(SCN_LDAP_AUTH_LOGINS, SCDT_LONGLONG, "ldap_auth", "Number of LDAP authentications");
 	AddStat(SCN_LDAP_AUTH_DENIED, SCDT_LONGLONG, "ldap_auth_fail", "Number of failed authentications");
 	AddStat(SCN_LDAP_AUTH_TIME, SCDT_LONGLONG, "ldap_auth_time", "Total authentication time");
-	AddStat(SCN_LDAP_AUTH_TIME_MAX, SCDT_LONGLONG, "ldap_max_auth", "Longest duration of authentication made to LDAP server");
-	AddStat(SCN_LDAP_AUTH_TIME_AVG, SCDT_LONGLONG, "ldap_avg_auth", "Average duration of authentication made to LDAP server");
+	AddStat(SCN_LDAP_AUTH_TIME_MAX, SCT_INTGAUGE, "ldap_max_auth", "Longest duration of authentication made to LDAP server");
+	AddStat(SCN_LDAP_AUTH_TIME_AVG, SCT_INTGAUGE, "ldap_avg_auth", "Average duration of authentication made to LDAP server");
 
 	AddStat(SCN_LDAP_SEARCH, SCDT_LONGLONG, "ldap_search", "Number of searches made to LDAP server");
 	AddStat(SCN_LDAP_SEARCH_FAILED, SCDT_LONGLONG, "ldap_search_fail", "Number of failed searches made to LDAP server");
 	AddStat(SCN_LDAP_SEARCH_TIME, SCDT_LONGLONG, "ldap_search_time", "Total duration of LDAP searches");
-	AddStat(SCN_LDAP_SEARCH_TIME_MAX, SCDT_LONGLONG, "ldap_max_search", "Longest duration of LDAP search");
+	AddStat(SCN_LDAP_SEARCH_TIME_MAX, SCT_INTGAUGE, "ldap_max_search", "Longest duration of LDAP search");
 
 	AddStat(SCN_INDEXER_SEARCH_ERRORS, SCDT_LONGLONG, "index_search_errors", "Number of failed indexer queries");
-	AddStat(SCN_INDEXER_SEARCH_MAX, SCDT_LONGLONG, "index_search_max", "Maximum duration of an indexed search query");
-	AddStat(SCN_INDEXER_SEARCH_AVG, SCDT_LONGLONG, "index_search_avg", "Average duration of an indexed search query");
+	AddStat(SCN_INDEXER_SEARCH_MAX, SCT_INTGAUGE, "index_search_max", "Maximum duration of an indexed search query");
+	AddStat(SCN_INDEXER_SEARCH_AVG, SCT_INTGAUGE, "index_search_avg", "Average duration of an indexed search query");
 	AddStat(SCN_INDEXED_SEARCHES, SCDT_LONGLONG, "search_indexed", "Number of indexed searches performed");
 	AddStat(SCN_DATABASE_SEARCHES, SCDT_LONGLONG, "search_database", "Number of database searches performed");
 }
