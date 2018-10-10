@@ -86,6 +86,26 @@ static void sc_proxy_from_sysconfig(CURL *ch, const char *url)
 	if (v != nullptr)
 		curl_easy_setopt(ch, CURLOPT_NOPROXY, v);
 }
+
+template<typename T> static void setleaf(Json::Value &leaf, const T &elem)
+{
+	switch (elem.type) {
+	case SCDT_FLOAT:
+		leaf["value"] = elem.data.f;
+		break;
+	case SCDT_LONGLONG:
+		leaf["value"] = static_cast<Json::Value::Int64>(elem.data.ll);
+		break;
+	case SCDT_TIMESTAMP:
+		leaf["value"] = static_cast<Json::Value::Int64>(elem.data.ts);
+		break;
+	case SCDT_STRING:
+		leaf["value"] = elem.strdata;
+		break;
+	default:
+		break;
+	}
+}
 #endif
 
 void ECStatsCollector::submit(std::string &&url)
@@ -103,40 +123,14 @@ void ECStatsCollector::submit(std::string &&url)
 		scoped_lock lk(i.second.lock);
 		Json::Value leaf;
 		leaf["desc"] = i.second.description;
-		switch (i.second.type) {
-		case SCDT_FLOAT:
-			leaf["value"] = i.second.data.f;
-			break;
-		case SCDT_LONGLONG:
-			leaf["value"] = static_cast<Json::Value::Int64>(i.second.data.ll);
-			break;
-		case SCDT_TIMESTAMP:
-			leaf["value"] = static_cast<Json::Value::Int64>(i.second.data.ts);
-			break;
-		case SCDT_STRING:
-			leaf["value"] = i.second.strdata;
-			break;
-		}
+		setleaf(leaf, i.second);
 		root["stats"][i.second.name] = leaf;
 	}
 	std::unique_lock<std::mutex> lk(m_odm_lock);
-	for (auto &i : m_ondemand) {
+	for (const auto &i : m_ondemand) {
 		Json::Value leaf;
 		leaf["desc"] = i.second.desc;
-		switch (i.second.type) {
-		case SCDT_FLOAT:
-			leaf["value"] = i.second.data.f;
-			break;
-		case SCDT_LONGLONG:
-			leaf["value"] = static_cast<Json::Value::Int64>(i.second.data.ll);
-			break;
-		case SCDT_TIMESTAMP:
-			leaf["value"] = static_cast<Json::Value::Int64>(i.second.data.ts);
-			break;
-		case SCDT_STRING:
-			leaf["value"] = i.second.strdata;
-			break;
-		}
+		setleaf(leaf, i.second);
 		root["stats"][i.first] = leaf;
 	}
 	lk.unlock();
