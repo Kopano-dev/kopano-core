@@ -105,7 +105,7 @@ static void sigsegv(int signr, siginfo_t *si, void *uc)
 
 static HRESULT running_service(char **argv)
 {
-	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-ical version " PROJECT_VERSION " (pid %d uid %u)", getpid(), getuid());
+	ec_log_always("Starting kopano-ical version " PROJECT_VERSION " (pid %d uid %u)", getpid(), getuid());
 	unix_coredump_enable(g_lpConfig->GetSetting("coredump_enabled"));
 	auto hr = ical_listen(g_lpConfig.get());
 	if (hr != hrSuccess)

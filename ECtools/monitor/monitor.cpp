@@ -242,7 +242,7 @@ static ECRESULT main2(int argc, char **argv)
 	if (!szPath)
 		szPath = m_lpThreadMonitor->lpConfig->GetSetting("server_socket");
 
-	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-monitor version " PROJECT_VERSION " (pid %d uid %u)", getpid(), getuid());
+	ec_log_always("Starting kopano-monitor version " PROJECT_VERSION " (pid %d uid %u)", getpid(), getuid());
 	if (unix_runas(m_lpThreadMonitor->lpConfig.get()))
 		return E_FAIL;
 	auto ret = ec_reexec(argv);

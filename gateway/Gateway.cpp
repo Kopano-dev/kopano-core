@@ -602,7 +602,7 @@ static HRESULT handler_client(size_t i)
 static HRESULT running_service(char **argv)
 {
 	int err = 0;
-	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-gateway version " PROJECT_VERSION " (pid %d uid %u)", getpid(), getuid());
+	ec_log_always("Starting kopano-gateway version " PROJECT_VERSION " (pid %d uid %u)", getpid(), getuid());
 
 	struct rlimit file_limit;
 	file_limit.rlim_cur = KC_DESIRED_FILEDES;
@@ -686,7 +686,7 @@ static HRESULT running_service(char **argv)
 		}
 	}
 
-	ec_log(EC_LOGLEVEL_ALWAYS, "POP3/IMAP Gateway will now exit");
+	ec_log_always("POP3/IMAP Gateway will now exit");
 	// in forked mode, send all children the exit signal
 	if (!bThreads) {
 		signal(SIGTERM, SIG_IGN);

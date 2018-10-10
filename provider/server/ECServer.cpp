@@ -1072,7 +1072,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	else
 		ec_log_info("Audit logging not enabled.");
 
-	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-server version " PROJECT_VERSION " (pid %d uid %u)", getpid(), getuid());
+	ec_log_always("Starting kopano-server version " PROJECT_VERSION " (pid %d uid %u)", getpid(), getuid());
 	if (g_lpConfig->HasWarnings())
 		LogConfigErrors(g_lpConfig.get());
 
