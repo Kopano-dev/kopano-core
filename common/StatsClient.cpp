@@ -167,7 +167,8 @@ std::string ECStatsCollector::survey_as_text()
 		root["stats"][i->second.name] = leaf;
 	}
 	std::unique_lock<std::mutex> lk(m_odm_lock);
-	for (const auto &key : {"usercnt_active", "usercnt_contact", "usercnt_equipment", "usercnt_na_user", "usercnt_nonactive", "usercnt_room"}) {
+	for (const auto &key : {"userplugin", "usercnt_active", "usercnt_contact",
+	    "usercnt_equipment", "usercnt_na_user", "usercnt_nonactive", "usercnt_room"}) {
 		auto i = m_ondemand.find(key);
 		if (i == m_ondemand.cend())
 			continue;
