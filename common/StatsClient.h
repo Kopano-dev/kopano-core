@@ -139,7 +139,7 @@ class _kc_export ECStatsCollector {
 	void start();
 	void stop();
 	void mainloop();
-	void submit(std::string &&);
+	void submit(std::string &&, bool sslverify = true);
 	void inc(enum SCName, double inc);
 	void inc(enum SCName, int inc = 1);
 	void inc(enum SCName, LONGLONG inc);

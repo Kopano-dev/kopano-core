@@ -3211,6 +3211,7 @@ int main(int argc, char **argv) try {
 		{ "no_double_forward", "yes", CONFIGSETTING_RELOADABLE },
 		{"statsclient_url", "unix:/var/run/kopano/statsd.sock", CONFIGSETTING_RELOADABLE},
 		{"statsclient_interval", "3600", CONFIGSETTING_RELOADABLE},
+		{"statsclient_ssl_verify", "yes", CONFIGSETTING_RELOADABLE},
 		{ "tmp_path", "/tmp" },
 		{"forward_whitelist_domains", "*"},
 		{"forward_whitelist_domain_message", "The Kopano mail system has rejected your "

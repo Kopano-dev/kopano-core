@@ -125,7 +125,7 @@ template<typename T> static void setleaf(Json::Value &leaf, const T &elem)
 }
 #endif
 
-void ECStatsCollector::submit(std::string &&url)
+void ECStatsCollector::submit(std::string &&url, bool sslverify)
 {
 #ifdef HAVE_CURL_CURL_H
 	struct slfree {
@@ -161,8 +161,8 @@ void ECStatsCollector::submit(std::string &&url)
 	curl_easy_setopt(ch, CURLOPT_NOPROGRESS, 1L);
 	curl_easy_setopt(ch, CURLOPT_NOSIGNAL, 1L);
 	curl_easy_setopt(ch, CURLOPT_TCP_NODELAY, 0L);
-	curl_easy_setopt(ch, CURLOPT_SSL_VERIFYHOST, 0L);
-	curl_easy_setopt(ch, CURLOPT_SSL_VERIFYPEER, 0L);
+	curl_easy_setopt(ch, CURLOPT_SSL_VERIFYHOST, sslverify);
+	curl_easy_setopt(ch, CURLOPT_SSL_VERIFYPEER, sslverify);
 	if (strncmp(url.c_str(), "unix:", 5) == 0) {
 #if LIBCURL_VERSION_MAJOR > 7 || (LIBCURL_VERSION_MAJOR == 7 && LIBCURL_VERSION_MINOR >= 40)
 		curl_easy_setopt(ch, CURLOPT_UNIX_SOCKET_PATH, url.c_str() + 5);
@@ -193,7 +193,7 @@ void ECStatsCollector::mainloop()
 			return;
 		auto interval = atoui(interval1);
 		if (interval > 0)
-			submit(url1);
+			submit(url1, parseBool(m_config->GetSetting("statsclient_ssl_verify")));
 		else
 			interval = 60;
 		ulock_normal blah(mtx);

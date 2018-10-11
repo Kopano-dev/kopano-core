@@ -942,6 +942,7 @@ int main(int argc, char **argv) try
         { "plugin_manager_path", "/usr/share/kopano-spooler/python" },
 		{"statsclient_url", "unix:/var/run/kopano/statsd.sock", CONFIGSETTING_RELOADABLE},
 		{"statsclient_interval", "3600", CONFIGSETTING_RELOADABLE},
+		{"statsclient_ssl_verify", "yes", CONFIGSETTING_RELOADABLE},
 		{ "tmp_path", "/tmp" },
 		{"log_raw_message_path", "/var/lib/kopano", CONFIGSETTING_RELOADABLE},
 		{"log_raw_message_stage1", "no", CONFIGSETTING_RELOADABLE},
