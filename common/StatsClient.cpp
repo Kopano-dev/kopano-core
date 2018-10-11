@@ -91,7 +91,10 @@ static void sc_proxy_from_sysconfig(CURL *ch, const char *url)
 void ECStatsCollector::submit(std::string &&url)
 {
 #ifdef HAVE_CURL_CURL_H
-	struct slfree { void operator()(curl_slist *s) { curl_slist_free_all(s); } };
+	struct slfree {
+		void operator()(CURL *p) { curl_easy_cleanup(p); }
+		void operator()(curl_slist *s) { curl_slist_free_all(s); }
+	};
 	Json::Value root;
 	root["version"] = 1;
 	fill_odm();
@@ -133,8 +136,9 @@ void ECStatsCollector::submit(std::string &&url)
 	lk.unlock();
 
 	auto text = Json::writeString(Json::StreamWriterBuilder(), std::move(root));
-	auto ch = curl_easy_init();
+	std::unique_ptr<CURL, slfree> chp(curl_easy_init());
 	std::unique_ptr<curl_slist, slfree> hl(curl_slist_append(nullptr, "Content-Type: application/json"));
+	CURL *ch = chp.get();
 	if (!sc_proxy_from_env(ch, url.c_str()))
 		sc_proxy_from_sysconfig(ch, url.c_str());
 	curl_easy_setopt(ch, CURLOPT_NOPROGRESS, 1L);
