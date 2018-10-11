@@ -90,18 +90,22 @@ lib_LTLIBRARIES = \
 	libkcicalmapi.la ${COND_libkcrosie_la} libkcinetmapi.la \
 	libkcarchiver.la libkcarchivercore.la
 noinst_LTLIBRARIES =
-if ENABLE_PYTHON
-lib_LTLIBRARIES += libkcpyplug.la
-endif
 noinst_DATA = \
+	kopano-admin.ldx \
 	kopano-archiver.ldx kopano-cfgchecker.ldx kopano-dagent.ldx \
-	kopano-gateway.ldx kopano-ical.ldx kopano-monitor.ldx \
+	kopano-dbadm.ldx kopano-fsck.ldx \
+	kopano-gateway.ldx kopano-ibrule.ldx kopano-ical.ldx \
+	kopano-monitor.ldx kopano-oof.ldx \
 	kopano-passwd.ldx kopano-server.ldx kopano-spooler.ldx \
-	kopano-stats.ldx \
+	kopano-srvadm.ldx kopano-storeadm.ldx kopano-stats.ldx \
 	libkcarchiver.ldd libkcarchivercore.ldd libkcclient.ldd \
 	libkccontacts.ldd libkcfreebusy.ldd libkcicalmapi.ldd \
 	libkcinetmapi.ldd ${COND_libkcrosie_ldd} \
 	libkcserver.ldd libkcutil.ldd libmapi.ldd
+if ENABLE_PYTHON
+lib_LTLIBRARIES += libkcpyplug.la
+noinst_DATA += libkcpyplug.ldd
+endif
 # Undefined references
 #noinst_DATA += libkcsoap.ldd
 pkglib_LTLIBRARIES = libkcclient.la libkccontacts.la
