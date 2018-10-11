@@ -172,6 +172,7 @@ class _kc_export ECStatsCollector {
 
 	private:
 	std::string stats_as_text();
+	std::string survey_as_text();
 
 	SCMap m_StatData;
 	std::unordered_map<std::string, ECStat2> m_ondemand;

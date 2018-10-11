@@ -1001,8 +1001,11 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{ "tmp_path", "/tmp" },
 		{ "shared_reminders", "yes", CONFIGSETTING_RELOADABLE }, // enable/disable reminders for shared stores
 		{"statsclient_url", "unix:/var/run/kopano/statsd.sock", CONFIGSETTING_RELOADABLE},
-		{"statsclient_interval", "3600", CONFIGSETTING_RELOADABLE},
+		{"statsclient_interval", "0", CONFIGSETTING_RELOADABLE},
 		{"statsclient_ssl_verify", "yes", CONFIGSETTING_RELOADABLE},
+		{"surveyclient_url", "https://stats.kopano.io/api/stats/v1/submit", CONFIGSETTING_RELOADABLE},
+		{"surveyclient_interval", "3600", CONFIGSETTING_RELOADABLE},
+		{"surveyclient_ssl_verify", "yes", CONFIGSETTING_RELOADABLE},
 #ifdef HAVE_KCOIDC_H
 		{ "kcoidc_issuer_identifier", "", 0},
 		{ "kcoidc_insecure_skip_verify", "no", 0},

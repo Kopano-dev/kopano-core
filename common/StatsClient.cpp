@@ -148,6 +148,35 @@ std::string ECStatsCollector::stats_as_text()
 	return Json::writeString(Json::StreamWriterBuilder(), std::move(root));
 }
 
+std::string ECStatsCollector::survey_as_text()
+{
+	Json::Value root, leaf;
+	root["version"] = 2;
+
+	for (const auto &key : {SCN_MACHINE_ID, SCN_SERVER_GUID}) {
+		auto i = m_StatData.find(key);
+		if (i == m_StatData.cend())
+			continue;
+		scoped_lock lk(i->second.lock);
+		Json::Value leaf;
+		leaf["desc"] = i->second.description;
+		setleaf(leaf, i->second);
+		root["stats"][i->second.name] = leaf;
+	}
+	std::unique_lock<std::mutex> lk(m_odm_lock);
+	for (const auto &key : {"usercnt_active", "usercnt_contact", "usercnt_equipment", "usercnt_na_user", "usercnt_nonactive", "usercnt_room"}) {
+		auto i = m_ondemand.find(key);
+		if (i == m_ondemand.cend())
+			continue;
+		Json::Value leaf;
+		leaf["desc"] = i->second.desc;
+		setleaf(leaf, i->second);
+		root["stats"][i->first] = leaf;
+	}
+	lk.unlock();
+	return Json::writeString(Json::StreamWriterBuilder(), std::move(root));
+}
+
 void ECStatsCollector::submit(std::string &&url, std::string &&text, bool sslverify)
 {
 #ifdef HAVE_CURL_CURL_H
@@ -187,21 +216,32 @@ void ECStatsCollector::submit(std::string &&url, std::string &&text, bool sslver
 void ECStatsCollector::mainloop()
 {
 #ifdef HAVE_CURL_CURL_H
+	KC::time_point next_sc, next_sv;
 	std::mutex mtx;
 	do {
-		auto url1 = m_config->GetSetting("statsclient_url");
-		auto interval1 = m_config->GetSetting("statsclient_interval");
-		if (url1 == nullptr || interval1 == nullptr)
-			return;
-		auto interval = atoui(interval1);
-		if (interval > 0) {
+		auto zsc_url = m_config->GetSetting("statsclient_url");
+		auto zsc_int = m_config->GetSetting("statsclient_interval");
+		auto zsv_url = m_config->GetSetting("surveyclient_url");
+		auto zsv_int = m_config->GetSetting("surveyclient_interval");
+		auto sc_int = zsc_int != nullptr ? atoui(zsc_int) : 86400;
+		auto sv_int = zsv_int != nullptr ? atoui(zsv_int) : 86400;
+		auto now = decltype(next_sc)::clock::now();
+		auto do_sc = zsc_url != nullptr && sc_int > 0 && now > next_sc;
+		auto do_sv = zsv_url != nullptr && sv_int > 0 && now > next_sv;
+
+		if (do_sc || do_sv)
 			fill_odm();
-			submit(url1, stats_as_text(), parseBool(m_config->GetSetting("statsclient_ssl_verify")));
-		} else {
-			interval = 60;
+		if (do_sc) {
+			submit(zsc_url, stats_as_text(), parseBool(m_config->GetSetting("statsclient_ssl_verify")));
+			next_sc = now + std::chrono::seconds(sc_int);
 		}
+		if (do_sv) {
+			submit(zsv_url, survey_as_text(), parseBool(m_config->GetSetting("surveyclient_ssl_verify")));
+			next_sv = now + std::chrono::seconds(sv_int);
+		}
+
 		ulock_normal blah(mtx);
-		if (m_exitsig.wait_for(blah, std::chrono::seconds(interval)) != std::cv_status::timeout)
+		if (m_exitsig.wait_until(blah, std::min(next_sc, next_sv)) != std::cv_status::timeout)
 			break;
 	} while (!terminate);
 #endif

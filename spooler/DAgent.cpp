@@ -3210,7 +3210,7 @@ int main(int argc, char **argv) try {
 		{ "set_rule_headers", "yes", CONFIGSETTING_RELOADABLE },
 		{ "no_double_forward", "yes", CONFIGSETTING_RELOADABLE },
 		{"statsclient_url", "unix:/var/run/kopano/statsd.sock", CONFIGSETTING_RELOADABLE},
-		{"statsclient_interval", "3600", CONFIGSETTING_RELOADABLE},
+		{"statsclient_interval", "0", CONFIGSETTING_RELOADABLE},
 		{"statsclient_ssl_verify", "yes", CONFIGSETTING_RELOADABLE},
 		{ "tmp_path", "/tmp" },
 		{"forward_whitelist_domains", "*"},
