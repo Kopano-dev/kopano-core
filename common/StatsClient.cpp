@@ -125,16 +125,10 @@ template<typename T> static void setleaf(Json::Value &leaf, const T &elem)
 }
 #endif
 
-void ECStatsCollector::submit(std::string &&url, bool sslverify)
+std::string ECStatsCollector::stats_as_text()
 {
-#ifdef HAVE_CURL_CURL_H
-	struct slfree {
-		void operator()(CURL *p) { curl_easy_cleanup(p); }
-		void operator()(curl_slist *s) { curl_slist_free_all(s); }
-	};
 	Json::Value root;
 	root["version"] = 2;
-	fill_odm();
 
 	for (auto &i : m_StatData) {
 		scoped_lock lk(i.second.lock);
@@ -151,8 +145,16 @@ void ECStatsCollector::submit(std::string &&url, bool sslverify)
 		root["stats"][i.first] = leaf;
 	}
 	lk.unlock();
+	return Json::writeString(Json::StreamWriterBuilder(), std::move(root));
+}
 
-	auto text = Json::writeString(Json::StreamWriterBuilder(), std::move(root));
+void ECStatsCollector::submit(std::string &&url, std::string &&text, bool sslverify)
+{
+#ifdef HAVE_CURL_CURL_H
+	struct slfree {
+		void operator()(CURL *s) { curl_easy_cleanup(s); }
+		void operator()(curl_slist *s) { curl_slist_free_all(s); }
+	};
 	std::unique_ptr<CURL, slfree> chp(curl_easy_init());
 	std::unique_ptr<curl_slist, slfree> hl(curl_slist_append(nullptr, "Content-Type: application/json"));
 	CURL *ch = chp.get();
@@ -192,10 +194,12 @@ void ECStatsCollector::mainloop()
 		if (url1 == nullptr || interval1 == nullptr)
 			return;
 		auto interval = atoui(interval1);
-		if (interval > 0)
-			submit(url1, parseBool(m_config->GetSetting("statsclient_ssl_verify")));
-		else
+		if (interval > 0) {
+			fill_odm();
+			submit(url1, stats_as_text(), parseBool(m_config->GetSetting("statsclient_ssl_verify")));
+		} else {
 			interval = 60;
+		}
 		ulock_normal blah(mtx);
 		if (m_exitsig.wait_for(blah, std::chrono::seconds(interval)) != std::cv_status::timeout)
 			break;

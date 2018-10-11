@@ -139,7 +139,7 @@ class _kc_export ECStatsCollector {
 	void start();
 	void stop();
 	void mainloop();
-	void submit(std::string &&, bool sslverify = true);
+	void submit(std::string &&url, std::string &&data, bool sslverify = true);
 	void inc(enum SCName, double inc);
 	void inc(enum SCName, int inc = 1);
 	void inc(enum SCName, LONGLONG inc);
@@ -171,6 +171,8 @@ class _kc_export ECStatsCollector {
 	std::string GetValue(const ECStat2 &);
 
 	private:
+	std::string stats_as_text();
+
 	SCMap m_StatData;
 	std::unordered_map<std::string, ECStat2> m_ondemand;
 	bool thread_running = false;
