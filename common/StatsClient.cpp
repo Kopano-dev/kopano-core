@@ -7,6 +7,7 @@
 #include <string>
 #include <pthread.h>
 #include <unistd.h>
+#include <sys/utsname.h>
 #ifdef HAVE_CURL_CURL_H
 #	include <condition_variable>
 #	include <thread>
@@ -21,6 +22,8 @@
 #include <kopano/stringutil.h>
 #include "StatsClient.h"
 #include "fileutil.h"
+
+using namespace std::string_literals;
 
 namespace KC {
 
@@ -153,7 +156,7 @@ std::string ECStatsCollector::survey_as_text()
 	Json::Value root, leaf;
 	root["version"] = 2;
 
-	for (const auto &key : {SCN_MACHINE_ID, SCN_SERVER_GUID}) {
+	for (const auto &key : {SCN_MACHINE_ID, SCN_SERVER_GUID, SCN_UTSNAME, SCN_OSRELEASE}) {
 		auto i = m_StatData.find(key);
 		if (i == m_StatData.cend())
 			continue;
@@ -251,6 +254,8 @@ ECStatsCollector::ECStatsCollector(std::shared_ptr<ECConfig> config) :
 	m_config(std::move(config))
 {
 	AddStat(SCN_MACHINE_ID, SCT_STRING, "machine_id");
+	AddStat(SCN_UTSNAME, SCT_STRING, "utsname", "Pretty platform name"); /* not for parsing */
+	AddStat(SCN_OSRELEASE, SCT_STRING, "osrelease", "Pretty operating system name"); /* not for parsing either */
 	std::unique_ptr<FILE, file_deleter> fp(fopen("/etc/machine-id", "r"));
 	if (fp != nullptr) {
 		std::string mid;
@@ -259,6 +264,16 @@ ECStatsCollector::ECStatsCollector(std::shared_ptr<ECConfig> config) :
 		if (pos != std::string::npos)
 			mid.erase(pos);
 		set(SCN_MACHINE_ID, mid);
+	}
+	struct utsname uts;
+	if (uname(&uts) == 0)
+		set(SCN_UTSNAME, uts.sysname + " "s + uts.machine + " " + uts.release);
+	struct mpfree { void operator()(struct HXmap *m) { HXmap_free(m); } };
+	std::unique_ptr<HXmap, mpfree> os_rel(HX_shconfig_map("/etc/os-release"));
+	if (os_rel != nullptr) {
+		auto os_pretty = HXmap_get<char *>(os_rel.get(), "PRETTY_NAME");
+		if (os_pretty != nullptr)
+			set(SCN_OSRELEASE, os_pretty);
 	}
 	if (m_config == nullptr)
 		return;
