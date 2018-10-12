@@ -2416,7 +2416,7 @@ ECRESULT ECFileAttachment2::LoadAttachmentInstance(struct soap *soap,
 		*dsize = 0;
 		close(fd);
 		return KCERR_NO_ACCESS;
-	} else if (rd < static_cast<ssize_t>(std::min(sb.st_size, SSIZE_MAX))) {
+	} else if (rd < std::min(static_cast<ssize_t>(sb.st_size), static_cast<ssize_t>(SSIZE_MAX))) {
 		ec_log_err("K-1283: short read on \"%s\"", instance.filename.c_str());
 		*dsize = rd;
 	} else {
