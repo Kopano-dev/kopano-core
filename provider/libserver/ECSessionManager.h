@@ -269,7 +269,7 @@ protected:
 };
 
 extern _kc_export void (*kopano_get_server_stats)(unsigned int *qlen, KC::time_duration *qage, unsigned int *nthr, unsigned int *nidlethr);
-extern _kc_export ECSessionManager *g_lpSessionManager;
+extern _kc_export std::unique_ptr<ECSessionManager> g_lpSessionManager;
 
 } /* namespace */
 

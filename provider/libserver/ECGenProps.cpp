@@ -28,8 +28,6 @@ using namespace std::string_literals;
 
 namespace KC {
 
-extern ECSessionManager*	g_lpSessionManager;
-
 ECRESULT ECGenProps::GetMVPropSubquery(unsigned int ulPropTagRequested, std::string &subquery)
 {
 	unsigned int ulType = PROP_TYPE(ulPropTagRequested);

@@ -26,8 +26,6 @@ namespace KC {
 
 extern std::shared_ptr<ECLogger> g_lpLogger;
 
-extern ECSessionManager*	g_lpSessionManager;
-
 /**
  * IDbQueryCreator: Interface to the database query creators
  **/

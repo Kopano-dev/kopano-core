@@ -45,8 +45,6 @@ using namespace std::string_literals;
 
 namespace KC {
 
-extern ECSessionManager*	g_lpSessionManager;
-
 static bool execute_script(const char *scriptname, ...)
 {
 	va_list v;

@@ -23,9 +23,6 @@
 
 namespace KC {
 
-// External objects
-extern ECSessionManager *g_lpSessionManager;	// ECServerEntrypoint.cpp
-
 static std::unordered_map<unsigned int, FILETIME> ltm_ontime_cache, ltm_offtime_cache;
 static std::mutex ltm_ontime_mutex, ltm_offtime_mutex;
 

@@ -37,8 +37,6 @@
 
 namespace KC {
 
-extern ECSessionManager*    g_lpSessionManager; // FIXME: remove this global and change the depended source code!
-
 static void FreeDeleteItem(DELETEITEM *);
 
 ECRESULT GetSourceKey(unsigned int ulObjId, SOURCEKEY *lpSourceKey)
