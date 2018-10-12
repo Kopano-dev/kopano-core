@@ -1,5 +1,9 @@
 8.7.dev
 =======
+
+
+8.6.82 (8.7 Milestone 2)
+========================
 Fixes:
 * server: logon/logoff times were not reported correctly [KC-1257]
 Enhancements:
@@ -9,6 +13,7 @@ Enhancements:
 * spooler: add copy_delegate_mails=move-to-rep config directive [KC-412]
 * dagent: "mark mail as read" rule action support [KC-1080]
 * kopano-ibrule: new utility for MAPI rules [KC-1229]
+* server: experimental "files_v2" attachment storage [KC-567]
 Changes:
 * dagent: ignore OP_REPLY/OP_FORWARD for autoreplies [KC-1244]
 * server: the directives "socketspec", "server_tcp_enabled", "server_tcp_port",
