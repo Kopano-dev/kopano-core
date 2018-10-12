@@ -1906,7 +1906,7 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 		lpsPropValue->Value.x = 1;
 		break;
 	case PROP_ID(PR_EC_BODY_FILTERED): {
-#ifdef HAVE_TIDY_H
+#ifdef HAVE_TIDYBUFFIO_H
 		// does it already exist? (e.g. inserted by dagent/gateway)
 		hr = lpMessage->HrGetRealProp(PR_EC_BODY_FILTERED, ulFlags, lpBase, lpsPropValue);
 		if (hr == hrSuccess) // yes, then use that
