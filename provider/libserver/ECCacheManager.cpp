@@ -96,26 +96,26 @@ ECCacheManager::ECCacheManager(std::shared_ptr<ECConfig> lpConfig,
 	auto cell_cache_size = m_CellCache.MaxSize();
 
 	if (atoll(lpConfig->GetSetting("cache_object_size")) == 0) {
-		m_ObjectsCache.SetMaxSize(std::min(size_t(16 << 20), cell_cache_size / 16));
+		m_ObjectsCache.SetMaxSize(std::min(static_cast<size_t>(16 << 20), cell_cache_size / 16));
 		ec_log_info("Setting object cache size: %zu", m_ObjectsCache.MaxSize());
 	}
 
 	if (atoll(lpConfig->GetSetting("cache_indexedobject_size")) == 0) {
-		m_PropToObjectCache.SetMaxSize(std::min(size_t(32 << 20), cell_cache_size / 8));
-		m_ObjectToPropCache.SetMaxSize(std::min(size_t(32 << 20), cell_cache_size / 8));
+		m_PropToObjectCache.SetMaxSize(std::min(static_cast<size_t>(32 << 20), cell_cache_size / 8));
+		m_ObjectToPropCache.SetMaxSize(std::min(static_cast<size_t>(32 << 20), cell_cache_size / 8));
 		ec_log_info("Setting indexedobject cache size: %zu", m_PropToObjectCache.MaxSize());
 	}
 
 	if (atoll(lpConfig->GetSetting("cache_quota_size")) == 0) {
-		m_QuotaCache.SetMaxSize(std::min(size_t(1 << 20), cell_cache_size / 256));
-		m_QuotaUserDefaultCache.SetMaxSize(std::min(size_t(1 << 20), cell_cache_size / 256));
+		m_QuotaCache.SetMaxSize(std::min(static_cast<size_t>(1 << 20), cell_cache_size / 256));
+		m_QuotaUserDefaultCache.SetMaxSize(std::min(static_cast<size_t>(1 << 20), cell_cache_size / 256));
 		ec_log_info("Setting quota cache size: %zu", m_QuotaCache.MaxSize());
 	}
 
 	if (atoll(lpConfig->GetSetting("cache_userdetails_size")) == 0) {
-		m_UserObjectCache.SetMaxSize(std::min(size_t(25 << 20), cell_cache_size / 10));
-		m_UEIdObjectCache.SetMaxSize(std::min(size_t(25 << 20), cell_cache_size / 10));
-		m_UserObjectDetailsCache.SetMaxSize(std::min(size_t(25 << 20), cell_cache_size / 10));
+		m_UserObjectCache.SetMaxSize(std::min(static_cast<size_t>(25 << 20), cell_cache_size / 10));
+		m_UEIdObjectCache.SetMaxSize(std::min(static_cast<size_t>(25 << 20), cell_cache_size / 10));
+		m_UserObjectDetailsCache.SetMaxSize(std::min(static_cast<size_t>(25 << 20), cell_cache_size / 10));
 		ec_log_info("Setting userdetails cache size: %zu", m_UserObjectCache.MaxSize());
 	}
 

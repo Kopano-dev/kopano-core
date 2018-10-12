@@ -221,7 +221,7 @@ size_t ECConfigImpl::GetSize(const char *szValue)
 void ECConfigImpl::InsertOrReplace(settingmap_t *lpMap, const settingkey_t &s, const char* szValue, bool bIsSize)
 {
 	char* data = NULL;
-	size_t len = std::min((size_t)1023, strlen(szValue));
+	size_t len = std::min(static_cast<size_t>(1023), strlen(szValue));
 
 	auto i = lpMap->find(s);
 	if (i == lpMap->cend()) {
