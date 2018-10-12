@@ -79,10 +79,10 @@ static bool sd_create_rrd(const Json::Value &node, const char *file)
 		return false;
 	auto ds = "DS:value:"s + sd_member_to_dstype(node) + ":120:0:18446744073709551615";
 	const char *args[] = {ds.c_str(), "RRA:LAST:0.5:1:10080", nullptr};
-	auto rc = rrd_create_r2(file, 60, -1, 1, nullptr, nullptr, 2, args);
+	auto rc = rrd_create_r(file, 60, -1, 2, args);
 	if (rc == EXIT_SUCCESS)
 		return true;
-	ec_log_warn("rrd_create_r2 \"%s\" failed: %s", file, rrd_get_error());
+	ec_log_warn("rrd_create_r \"%s\" failed: %s", file, rrd_get_error());
 	return false;
 }
 
@@ -177,7 +177,7 @@ static void sd_req_complete(void *cls, struct MHD_Connection *conn,
 static HRESULT sd_mainloop(int sockfd)
 {
 	unsigned int flags = MHD_USE_POLL;
-#ifdef HAVE_EPOLL_CREATE
+#if defined(HAVE_EPOLL_CREATE) && defined(MHD_VERSION) && MHD_VERSION >= 0x00095000
 	flags = MHD_USE_EPOLL;
 #endif
 	flags |= MHD_USE_SELECT_INTERNALLY | MHD_USE_DEBUG;
