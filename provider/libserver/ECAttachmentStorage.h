@@ -73,8 +73,8 @@ protected:
 	/* Single Instance Attachment handlers (must be overridden by subclasses) */
 	virtual ECRESULT LoadAttachmentInstance(struct soap *, const ext_siid &, size_t *size, unsigned char **data) = 0;
 	virtual ECRESULT LoadAttachmentInstance(const ext_siid &, size_t *size, ECSerializer *sink) = 0;
-	virtual ECRESULT SaveAttachmentInstance(const ext_siid &, ULONG propid, size_t, unsigned char *) = 0;
-	virtual ECRESULT SaveAttachmentInstance(const ext_siid &, ULONG propid, size_t, ECSerializer *) = 0;
+	virtual ECRESULT SaveAttachmentInstance(ext_siid &, ULONG propid, size_t, unsigned char *) = 0;
+	virtual ECRESULT SaveAttachmentInstance(ext_siid &, ULONG propid, size_t, ECSerializer *) = 0;
 	virtual ECRESULT DeleteAttachmentInstances(const std::list<ext_siid> &, bool replace) = 0;
 	virtual ECRESULT DeleteAttachmentInstance(const ext_siid &, bool replace) = 0;
 	virtual ECRESULT GetSizeInstance(const ext_siid &, size_t *size, bool *comp = nullptr) = 0;
@@ -100,8 +100,8 @@ protected:
 	/* Single Instance Attachment handlers */
 	virtual ECRESULT LoadAttachmentInstance(struct soap *soap, const ext_siid &, size_t *size, unsigned char **data) override;
 	virtual ECRESULT LoadAttachmentInstance(const ext_siid &, size_t *size, ECSerializer *sink) override;
-	virtual ECRESULT SaveAttachmentInstance(const ext_siid &, ULONG propid, size_t, unsigned char *) override;
-	virtual ECRESULT SaveAttachmentInstance(const ext_siid &, ULONG propid, size_t, ECSerializer *) override;
+	virtual ECRESULT SaveAttachmentInstance(ext_siid &, ULONG propid, size_t, unsigned char *) override;
+	virtual ECRESULT SaveAttachmentInstance(ext_siid &, ULONG propid, size_t, ECSerializer *) override;
 	virtual ECRESULT DeleteAttachmentInstances(const std::list<ext_siid> &, bool replace) override;
 	virtual ECRESULT DeleteAttachmentInstance(const ext_siid &, bool replace) override;
 	virtual ECRESULT GetSizeInstance(const ext_siid &, size_t *size, bool *comp = nullptr) override;
