@@ -105,12 +105,6 @@ ECRESULT kopano_init(std::shared_ptr<ECConfig> cfg, std::shared_ptr<ECLogger> ad
 	return g_lpSessionManager->LoadSettings();
 }
 
-void kopano_removeallsessions()
-{
-	if (g_lpSessionManager != nullptr)
-		g_lpSessionManager->RemoveAllSessions();
-}
-
 ECRESULT kopano_exit()
 {
 	if (!g_bInitLib)

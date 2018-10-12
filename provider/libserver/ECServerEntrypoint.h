@@ -35,7 +35,6 @@ static inline bool SOAP_CONNECTION_TYPE_NAMED_PIPE(struct soap *soap)
 
 extern _kc_export ECRESULT kopano_init(std::shared_ptr<ECConfig>, std::shared_ptr<ECLogger> audit, std::shared_ptr<server_stats>, bool hosted_kopano, bool distr_kopano);
 extern _kc_export ECRESULT kopano_exit(void);
-extern _kc_export void kopano_removeallsessions(void);
 
 //Internal used functions
 void AddDatabaseObject(ECDatabase* lpDatabase);

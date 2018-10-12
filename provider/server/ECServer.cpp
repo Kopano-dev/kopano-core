@@ -1353,7 +1353,6 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 			continue;
 		}
 	}
-	// Close All sessions
-	kopano_removeallsessions();
+	g_lpSessionManager->RemoveAllSessions();
 	return retval;
 }
