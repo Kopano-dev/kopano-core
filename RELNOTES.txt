@@ -1,5 +1,5 @@
-8.6.x
-=====
+8.6.8 (2018-10-03)
+==================
 Fixes:
 * dagent/client: fixed broken umlauts in PR_EC_BODY_FILTERED
   when input was not UTF-8 [KC-1225]
