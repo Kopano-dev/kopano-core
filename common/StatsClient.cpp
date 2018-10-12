@@ -191,6 +191,7 @@ void ECStatsCollector::submit(std::string &&url, std::string &&text, bool sslver
 	};
 	std::unique_ptr<CURL, slfree> chp(curl_easy_init());
 	std::unique_ptr<curl_slist, slfree> hl(curl_slist_append(nullptr, "Content-Type: application/json"));
+	curl_slist_append(hl.get(), "X-Kopano-Stats-Request: 1");
 	CURL *ch = chp.get();
 	if (!sc_proxy_from_env(ch, url.c_str()))
 		sc_proxy_from_sysconfig(ch, url.c_str());
