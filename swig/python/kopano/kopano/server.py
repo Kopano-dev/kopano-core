@@ -142,20 +142,37 @@ def instance_method_lru_cache(*cache_args, **cache_kwargs):
 #
 # https://bugs.python.org/issue9072
 #
-# this seems to cause arbitrary stuff kept in memory (referenced by these
-# modules), in our case causing non-zero reference counts on the C side,
-# finally making valgrind go nuts.
+# also, for the tests we've seen SWIG objects end up here:
 #
-# so for now we just clear all server/store internals, to try and clean up all
-# open mapi stores before final shutdown, but only in development mode, as it's
-# just a shutdown issue.
+# https://docs.python.org/2/library/gc.html#gc.garbage
 #
-# TODO investigate further; check python3
+# in both cases, store objects are not finalized, so the associated memory
+# on the C side is not released, causing valgrind to report many leaks.
+#
+# to avoid valgrind going nuts, we manually clean up references at shutdown.
+# for the second case, this may only be a work-around as it may be too late.
+#
+# for python3, both problems may have been solved already:
+#
+# https://www.python.org/dev/peps/pep-0442/
+#
+# and if not, python3 provides a work-around we could use, so manual
+# clearing can be done each collection:
+#
+# https://docs.python.org/3/library/gc.html#gc.callbacks
+#
+# of course we might also try to prevent cycles in the first place.
+#
+# TODO valgrind python3
 
 def _cleanup_mapistores():
     for obj in gc.get_objects():
         if isinstance(obj, (Server, _store.Store)):
             obj.__dict__.clear()
+        elif hasattr(obj, '__class__') and obj.__class__.__name__ in ('IMAPISession', 'IMsgStore', 'IECServiceAdmin', 'IExchangeManageStore'):
+            obj.__dict__.clear()
+
+    del gc.garbage[:]
     gc.collect()
 
 if os.getenv('ZCPSRCDIR'):
