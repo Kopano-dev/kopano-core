@@ -1162,6 +1162,7 @@ exit:
 spooler_stats::spooler_stats(std::shared_ptr<ECConfig> cfg) :
 	StatsClient(std::move(cfg))
 {
+	set(SCN_PROGRAM_NAME, "kopano-spooler");
 	AddStat(SCN_SPOOLER_EXIT_WAIT, SCT_INTEGER, "spooler_exit_wait");
 	AddStat(SCN_SPOOLER_SIGKILLED, SCT_INTEGER, "spooler_sigkilled");
 	AddStat(SCN_SPOOLER_ABNORM_TERM, SCT_INTEGER, "spooler_abnormal_termination");

@@ -3484,6 +3484,7 @@ int main(int argc, char **argv) try {
 dagent_stats::dagent_stats(std::shared_ptr<ECConfig> cfg) :
 	StatsClient(std::move(cfg))
 {
+	set(SCN_PROGRAM_NAME, "kopano-dagent");
 	AddStat(SCN_DAGENT_ATTACHMENT_COUNT, SCT_INTEGER, "dagent_attachment_count", "Number of attachments processed");
 	AddStat(SCN_DAGENT_AUTOACCEPT, SCT_INTEGER, "dagent_autoaccept", "Number of meeting requests that underwent autoacceptance");
 	AddStat(SCN_DAGENT_AUTOPROCESS, SCT_INTEGER, "dagent_autoprocess", "Number of meeting requests that underwent autoprocessing");

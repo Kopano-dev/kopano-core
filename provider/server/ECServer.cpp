@@ -93,6 +93,7 @@ static int running_server(char *, const char *, bool, int, char **, int, char **
 server_stats::server_stats(std::shared_ptr<ECConfig> cfg) :
 	ECStatsCollector(std::move(cfg))
 {
+	set(SCN_PROGRAM_NAME, "kopano-server");
 	AddStat(SCN_SERVER_GUID, SCT_STRING, "server_guid");
 	AddStat(SCN_SERVER_STARTTIME, SCT_TIME, "server_start_date", "Time when the server was started");
 	AddStat(SCN_SERVER_LAST_CACHECLEARED, SCT_TIME, "cache_purge_date", "Time when the cache was cleared");

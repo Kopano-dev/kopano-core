@@ -156,7 +156,8 @@ std::string ECStatsCollector::survey_as_text()
 	Json::Value root, leaf;
 	root["version"] = 2;
 
-	for (const auto &key : {SCN_MACHINE_ID, SCN_SERVER_GUID, SCN_UTSNAME, SCN_OSRELEASE}) {
+	for (const auto &key : {SCN_MACHINE_ID, SCN_PROGRAM_NAME, SCN_PROGRAM_VERSION,
+	    SCN_SERVER_GUID, SCN_UTSNAME, SCN_OSRELEASE}) {
 		auto i = m_StatData.find(key);
 		if (i == m_StatData.cend())
 			continue;
@@ -257,6 +258,9 @@ ECStatsCollector::ECStatsCollector(std::shared_ptr<ECConfig> config) :
 	AddStat(SCN_MACHINE_ID, SCT_STRING, "machine_id");
 	AddStat(SCN_UTSNAME, SCT_STRING, "utsname", "Pretty platform name"); /* not for parsing */
 	AddStat(SCN_OSRELEASE, SCT_STRING, "osrelease", "Pretty operating system name"); /* not for parsing either */
+	AddStat(SCN_PROGRAM_NAME, SCT_STRING, "program_name", "Program name");
+	AddStat(SCN_PROGRAM_VERSION, SCT_STRING, "program_version", "Program version");
+	set(SCN_PROGRAM_VERSION, PACKAGE_VERSION);
 	std::unique_ptr<FILE, file_deleter> fp(fopen("/etc/machine-id", "r"));
 	if (fp != nullptr) {
 		std::string mid;
