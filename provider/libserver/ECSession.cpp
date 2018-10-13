@@ -664,7 +664,11 @@ ECRESULT ECAuthSession::ValidateUserLogon(const char* lpszName, const char* lpsz
 static ECRESULT kc_peer_cred(int fd, uid_t *uid, pid_t *pid)
 {
 #if defined(SO_PEERCRED)
+#ifdef HAVE_SOCKPEERCRED_UID
+	struct sockpeercred cr;
+#else
 	struct ucred cr;
+#endif
 	unsigned int cr_len = sizeof(cr);
 	if (getsockopt(fd, SOL_SOCKET, SO_PEERCRED, &cr, &cr_len) != 0 || cr_len != sizeof(cr))
 		return KCERR_LOGON_FAILED;
