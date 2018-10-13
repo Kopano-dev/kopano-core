@@ -661,16 +661,33 @@ ECRESULT ECAuthSession::ValidateUserLogon(const char* lpszName, const char* lpsz
 	return erSuccess;
 }
 
+static ECRESULT kc_peer_cred(int fd, uid_t *uid, pid_t *pid)
+{
+#if defined(SO_PEERCRED)
+	struct ucred cr;
+	unsigned int cr_len = sizeof(cr);
+	if (getsockopt(fd, SOL_SOCKET, SO_PEERCRED, &cr, &cr_len) != 0 || cr_len != sizeof(cr))
+		return KCERR_LOGON_FAILED;
+	*uid = cr.uid; /* uid is the uid of the user that is connecting */
+	*pid = cr.pid;
+#elif defined(HAVE_GETPEEREID)
+	gid_t gid;
+	if (getpeereid(fd, uid, &gid) != 0)
+		return KCERR_LOGON_FAILED;
+#else
+#	error I have no way to find out the remote user and I want to cry
+#endif
+	return erSuccess;
+}
+
 // Validate a user through the socket they are connecting through. This has the special feature
 // that you can connect as a different user than you are specifying in the username. For example,
 // you could be connecting as 'root' and being granted access because the kopano-server process
 // is also running as 'root', but you are actually loggin in as user 'user1'.
 ECRESULT ECAuthSession::ValidateUserSocket(int socket, const char* lpszName, const char* lpszImpersonateUser)
 {
-	ECRESULT 		er = erSuccess;
 	const char *p = NULL;
 	bool			allowLocalUsers = false;
-	int				pid = 0;
 	char			*ptr = NULL;
 	std::unique_ptr<char[], cstdlib_deleter> localAdminUsers;
 
@@ -692,29 +709,12 @@ ECRESULT ECAuthSession::ValidateUserSocket(int socket, const char* lpszName, con
 
 	struct passwd pwbuf;
 	struct passwd *pw;
-	uid_t uid;
+	auto uid = ~static_cast<uid_t>(0);
+	pid_t pid = 0;
 	char strbuf[1024];
-#ifdef SO_PEERCRED
-	struct ucred cr;
-	unsigned int cr_len;
-
-	cr_len = sizeof(struct ucred);
-	if (getsockopt(socket, SOL_SOCKET, SO_PEERCRED, &cr, &cr_len) != 0 || cr_len != sizeof(struct ucred))
-		return KCERR_LOGON_FAILED;
-
-	uid = cr.uid; // uid is the uid of the user that is connecting
-	pid = cr.pid;
-#else // SO_PEERCRED
-#ifdef HAVE_GETPEEREID
-	gid_t gid;
-
-	if (getpeereid(socket, &uid, &gid) != 0)
-		return KCERR_LOGON_FAILED;
-#else // HAVE_GETPEEREID
-#error I have no way to find out the remote user and I want to cry
-#endif // HAVE_GETPEEREID
-#endif // SO_PEERCRED
-
+	auto er = kc_peer_cred(socket, &uid, &pid);
+	if (er != erSuccess)
+		return er;
 	if (geteuid() == uid)
 		// User connecting is connecting under same UID as the server is running under, allow this
 		goto userok;
