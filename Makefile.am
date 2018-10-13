@@ -245,7 +245,8 @@ kopano_spooler_SOURCES = \
 	spooler/mailer.cpp spooler/mailer.h
 kopano_spooler_LDADD = \
 	libkcinetmapi.la libmapi.la libkcutil.la libkcarchiver.la \
-	libkcarchivercore.la -lpthread ${DL_LIBS} ${PROG_LIBS} ${XML2_LIBS}
+	libkcarchivercore.la -lpthread ${DL_LIBS} \
+	${INTL_LIBS} ${PROG_LIBS} ${XML2_LIBS}
 
 
 kopano_srvadm_SOURCES = ECtools/srvadm.cpp
@@ -300,7 +301,7 @@ libkcarchiver_la_SOURCES = \
 	ECtools/archiver/ECIterators.cpp ECtools/archiver/ECIterators.h
 libkcarchiver_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	${default_SYFLAGS${NO_VSYM}}
-libkcarchiver_la_LIBADD = libmapi.la libkcutil.la
+libkcarchiver_la_LIBADD = libmapi.la libkcutil.la ${INTL_LIBS}
 EXTRA_libkcarchiver_la_DEPENDENCIES = ${default_sym}
 
 
@@ -400,7 +401,7 @@ libkcclient_la_SOURCES = \
 libkcclient_la_LIBADD = \
 	libkcutil.la libkcfreebusy.la \
 	libmapi.la ${COND_libkcrosie_la} libkcsoap.la -lstdc++ \
-	${GSOAP_LIBS} ${ICU_LIBS} ${SSL_LIBS} ${KRB5_LIBS}
+	${GSOAP_LIBS} ${ICU_LIBS} ${INTL_LIBS} ${SSL_LIBS} ${KRB5_LIBS}
 libkcclient_la_SYFLAGS = -Wl,--version-script=provider/provider.sym
 libkcclient_la_LDFLAGS = ${AM_LDFLAGS} -avoid-version -module \
 	${libkcclient_la_SYFLAGS${NO_VSYM}}
@@ -668,7 +669,7 @@ libmapi_la_SOURCES = \
 	m4lcommon/Util.cpp \
 	m4lcommon/mapicontact.h
 libmapi_la_LIBADD = \
-	libkcutil.la -lpthread ${DL_LIBS} ${ICONV_LIBS} ${PROG_LIBS}
+	libkcutil.la -lpthread ${DL_LIBS} ${ICONV_LIBS} ${INTL_LIBS} ${PROG_LIBS}
 libmapi_la_SYFLAGS = -Wl,--version-script=mapi4linux/src/libmapi.sym
 libmapi_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined -version-info 1:0:0 \
 	${libmapi_la_SYFLAGS${NO_VSYM}}
