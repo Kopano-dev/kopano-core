@@ -1,7 +1,9 @@
 #ifndef EC_S3_ATTACHMENT
 #define EC_S3_ATTACHMENT
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+#	include "config.h"
+#endif
 #ifdef HAVE_LIBS3_H
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
