@@ -15,12 +15,14 @@ case "$input" in #((
 		fi
 		real=$(dirname "$input")"/.libs/$dlname"
 		if ldd -r "$real" | c++filt | grep "undefined symbol"; then
+			rm "$output"
 			exit 1
 		fi
 		;;
 	*)
 		if "${libtool}" --mode=execute ldd -r "$input" | c++filt | \
 		   grep "undefined symbol"; then
+			rm "$output"
 			exit 1
 		fi
 		;;
