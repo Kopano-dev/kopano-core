@@ -30,7 +30,6 @@
 #	include <uuid.h>
 #endif
 #if defined(__linux__) && defined(__GLIBC__)
-#	include <cxxabi.h>
 #	include <execinfo.h>
 #endif
 #include "fileutil.h"
