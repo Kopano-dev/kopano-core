@@ -29,8 +29,9 @@
 #else
 #	include <uuid.h>
 #endif
-#if defined(__linux__) && defined(__GLIBC__)
+#if defined(__GLIBC__) || defined(OPENBSD)
 #	include <execinfo.h>
+#	define WITH_BACKTRACE 1
 #endif
 #include "fileutil.h"
 
@@ -185,6 +186,7 @@ std::vector<std::string> get_backtrace(void)
 {
 #define BT_MAX 256
 	std::vector<std::string> result;
+#ifdef WITH_BACKTRACE
 	void *addrlist[BT_MAX];
 	int addrlen = backtrace(addrlist, BT_MAX);
 	if (addrlen == 0)
@@ -193,6 +195,7 @@ std::vector<std::string> get_backtrace(void)
 	for (int i = 0; i < addrlen; ++i)
 		result.emplace_back(symbollist[i]);
 	free(symbollist);
+#endif
 	return result;
 #undef BT_MAX
 }
