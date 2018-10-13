@@ -17,7 +17,7 @@ namespace KC {
 
 static std::recursive_mutex *ssl_locks;
 
-#if defined(OPENSSL_VERSION_NUMBER) && OPENSSL_VERSION_NUMBER < 0x1010000fL
+#if defined(LIBRESSL_VERSION_NUMBER) || (defined(OPENSSL_VERSION_NUMBER) && OPENSSL_VERSION_NUMBER < 0x1010000fL)
 #	define OLD_API 1
 #endif
 
