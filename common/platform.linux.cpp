@@ -52,22 +52,10 @@ HRESULT CoCreateGuid(LPGUID pNewGUID) {
 		return MAPI_E_INVALID_PARAMETER;
 
 #if HAVE_UUID_CREATE
-#ifdef OPENBSD
-	uuid_t *g = NULL;
-	void *vp = NULL;
-	size_t n = 0;
-	// error codes are not checked!
-	uuid_create(&g);
-	uuid_make(g, UUID_MAKE_V1);
-	uuid_export(g, UUID_FMT_BIN, &vp, &n);
-	memcpy(pNewGUID, &vp, UUID_LEN_BIN);
-	uuid_destroy(g);
-#else
 	uuid_t g;
 	uint32_t uid_ret;
 	uuid_create(&g, &uid_ret);
 	memcpy(pNewGUID, &g, sizeof(g));
-#endif // OPENBSD
 #else
 	uuid_t g;
 	uuid_generate(g);
