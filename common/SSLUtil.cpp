@@ -17,7 +17,11 @@ namespace KC {
 
 static std::recursive_mutex *ssl_locks;
 
-#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+#if defined(OPENSSL_VERSION_NUMBER) && OPENSSL_VERSION_NUMBER < 0x1010000fL
+#	define OLD_API 1
+#endif
+
+#ifdef OLD_API
 static void ssl_lock(int mode, int n, const char *file, int line)
 {
 	if (mode & CRYPTO_LOCK)
@@ -61,13 +65,13 @@ void ssl_threading_cleanup() {
  */
 void SSL_library_cleanup()
 {
-	#ifndef OPENSSL_NO_ENGINE
-		ENGINE_cleanup();
-	#endif
+#ifndef OPENSSL_NO_ENGINE
+	ENGINE_cleanup();
+#endif
 	ERR_free_strings();
-	#if OPENSSL_VERSION_NUMBER < 0x10100000L
-		ERR_remove_state(0);
-	#endif
+#ifdef OLD_API
+	ERR_remove_state(0);
+#endif
 	EVP_cleanup();
 	CRYPTO_cleanup_all_ex_data();
 	CONF_modules_unload(0);
@@ -85,11 +89,11 @@ void ssl_random_init()
 
 void ssl_random(bool b64bit, uint64_t *id)
 {
-	#if OPENSSL_VERSION_NUMBER >= 0x10100000L
-	int ret = RAND_bytes(reinterpret_cast<unsigned char *>(id), sizeof(*id));
-	#else
+#ifdef OLD_API
 	int ret = RAND_pseudo_bytes(reinterpret_cast<unsigned char *>(id), sizeof(*id));
-	#endif
+#else
+	int ret = RAND_bytes(reinterpret_cast<unsigned char *>(id), sizeof(*id));
+#endif
 	if (ret < 0) {
 		ec_log_crit("RAND_bytes < 0: %s\n", ERR_reason_error_string(ERR_get_error()));
 		abort();
