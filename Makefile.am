@@ -151,7 +151,7 @@ kopano_cfgchecker_SOURCES = \
 	ECtools/cfgchecker/LDAPConfigCheck.cpp \
 	ECtools/cfgchecker/ServerConfigCheck.cpp \
 	ECtools/cfgchecker/cfg.cpp
-kopano_cfgchecker_LDADD = libkcutil.la libmapi.la ${PROG_LIBS}
+kopano_cfgchecker_LDADD = libkcutil.la libmapi.la ${ICONV_LIBS} ${PROG_LIBS}
 
 
 #
@@ -500,7 +500,7 @@ libkcinetmapi_la_SOURCES = \
 # resulting in a crash in __cxa_finalize during unload of mapi.so
 libkcinetmapi_la_LIBADD = \
 	libmapi.la libkcutil.la libkcicalmapi.la \
-	${COND_libkcrosie_la} ${VMIME_LIBS} ${XML2_LIBS}
+	${COND_libkcrosie_la} ${ICONV_LIBS} ${VMIME_LIBS} ${XML2_LIBS}
 libkcinetmapi_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	-version-info 0:0:0 -Wl,-z -Wl,now ${default_SYFLAGS${NO_VSYM}}
 EXTRA_libkcinetmapi_la_DEPENDENCIES = ${default_sym}
@@ -639,7 +639,7 @@ libkcutil_la_SOURCES = \
 	common/ustringutil.cpp common/charset/convert.cpp \
 	common/charset/convstring.cpp common/charset/localeutil.cpp
 libkcutil_la_LIBADD = \
-	-lpthread -lz ${CRYPTO_LIBS} ${curl_LIBS} ${GZ_LIBS} \
+	-lpthread -lz ${CRYPTO_LIBS} ${curl_LIBS} ${GZ_LIBS} ${iconv_LIBS} \
 	${icu_i18n_LIBS} ${icu_uc_LIBS} ${jsoncpp_LIBS} ${libHX_LIBS} \
 	${SSL_LIBS} ${UUID_LIBS}
 libkcutil_la_SYFLAGS = -Wl,--version-script=common/libkcutil.sym
@@ -668,7 +668,7 @@ libmapi_la_SOURCES = \
 	m4lcommon/Util.cpp \
 	m4lcommon/mapicontact.h
 libmapi_la_LIBADD = \
-	libkcutil.la -lpthread ${PROG_LIBS} ${DL_LIBS}
+	libkcutil.la -lpthread ${DL_LIBS} ${ICONV_LIBS} ${PROG_LIBS}
 libmapi_la_SYFLAGS = -Wl,--version-script=mapi4linux/src/libmapi.sym
 libmapi_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined -version-info 1:0:0 \
 	${libmapi_la_SYFLAGS${NO_VSYM}}
