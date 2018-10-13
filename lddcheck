@@ -14,13 +14,14 @@ case "$input" in #((
 			exit 0
 		fi
 		real=$(dirname "$input")"/.libs/$dlname"
-		if ldd -r "$real" | c++filt | grep "undefined symbol"; then
+		# ldd loads all dependencies, which nm would not do.
+		if ldd -r "$real" 2>/dev/null | c++filt | grep "undefined symbol"; then
 			rm "$output"
 			exit 1
 		fi
 		;;
 	*)
-		if "${libtool}" --mode=execute ldd -r "$input" | c++filt | \
+		if "${libtool}" --mode=execute ldd -r "$input" 2>/dev/null | c++filt | \
 		   grep "undefined symbol"; then
 			rm "$output"
 			exit 1
