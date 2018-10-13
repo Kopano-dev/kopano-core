@@ -400,7 +400,7 @@ libkcclient_la_SOURCES = \
 libkcclient_la_LIBADD = \
 	libkcutil.la libkcfreebusy.la \
 	libmapi.la ${COND_libkcrosie_la} libkcsoap.la -lstdc++ \
-	${GSOAP_LIBS} ${ICU_LIBS} ${SSL_LIBS} ${UUID_LIBS} ${KRB5_LIBS}
+	${GSOAP_LIBS} ${ICU_LIBS} ${SSL_LIBS} ${KRB5_LIBS}
 libkcclient_la_SYFLAGS = -Wl,--version-script=provider/provider.sym
 libkcclient_la_LDFLAGS = ${AM_LDFLAGS} -avoid-version -module \
 	${libkcclient_la_SYFLAGS${NO_VSYM}}
@@ -417,7 +417,7 @@ libkccontacts_la_SOURCES = \
 	provider/contacts/ZCABProvider.h provider/contacts/ZCABProvider.cpp \
 	provider/contacts/ZCMAPIProp.h provider/contacts/ZCMAPIProp.cpp
 libkccontacts_la_LIBADD = \
-	libkcutil.la libmapi.la -lstdc++ ${UUID_LIBS} ${ICU_LIBS}
+	libkcutil.la libmapi.la -lstdc++ ${ICU_LIBS}
 libkccontacts_la_SYFLAGS = -Wl,--version-script=provider/provider.sym
 libkccontacts_la_LDFLAGS = ${AM_LDFLAGS} -avoid-version -module \
 	${libkccontacts_la_SYFLAGS${NO_VSYM}}

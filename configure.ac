@@ -647,7 +647,7 @@ AS_IF([test "$have_icu" = 0], [
 ZCPPFLAGS="$ZCPPFLAGS $icu_uc_CFLAGS $icu_i18n_CFLAGS"
 
 # all libs for programs, because functions are in static common stuff
-PROG_LIBS="$UUID_LIBS $INTL_LIBS $ICONV_LIBS $GZ_LIBS"
+PROG_LIBS="$INTL_LIBS $ICONV_LIBS $GZ_LIBS"
 AC_SUBST(PROG_LIBS)
 
 # done testing C++ requirements
