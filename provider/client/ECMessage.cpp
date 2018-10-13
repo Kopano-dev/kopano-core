@@ -2,6 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
+#include "config.h"
 #include <new>
 #include <string>
 #include <utility>
@@ -31,7 +32,6 @@
 #include "ECMemStream.h"
 #include <kopano/charset/convert.h>
 #include <librosie.h>
-#include "config.h"
 
 using namespace KC;
 

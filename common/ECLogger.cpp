@@ -22,7 +22,6 @@
 #include <kopano/scope.hpp>
 #include <kopano/stringutil.h>
 #include "charset/localeutil.h"
-#include "config.h"
 #include <poll.h>
 #if HAVE_SYSLOG_H
 #include <syslog.h>
