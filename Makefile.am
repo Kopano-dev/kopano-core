@@ -131,7 +131,7 @@ plugin_SYFLAGS = -Wl,--version-script=provider/plugin.sym
 #
 kopano_admin_SOURCES = ECtools/admin/admin.cpp
 kopano_admin_LDADD = \
-	libmapi.la libkcutil.la libkcarchiver.la ${PROG_LIBS} ${SSL_LIBS}
+	libmapi.la libkcutil.la libkcarchiver.la ${SSL_LIBS}
 
 
 #
@@ -139,8 +139,7 @@ kopano_admin_LDADD = \
 #
 kopano_archiver_SOURCES = ECtools/archiver/main.cpp
 kopano_archiver_LDADD = \
-	libmapi.la libkcutil.la libkcarchiver.la \
-	libkcarchivercore.la ${PROG_LIBS}
+	libmapi.la libkcutil.la libkcarchiver.la libkcarchivercore.la
 
 
 #
@@ -151,7 +150,7 @@ kopano_cfgchecker_SOURCES = \
 	ECtools/cfgchecker/LDAPConfigCheck.cpp \
 	ECtools/cfgchecker/ServerConfigCheck.cpp \
 	ECtools/cfgchecker/cfg.cpp
-kopano_cfgchecker_LDADD = libkcutil.la libmapi.la ${ICONV_LIBS} ${PROG_LIBS}
+kopano_cfgchecker_LDADD = libkcutil.la libmapi.la ${ICONV_LIBS}
 
 
 #
@@ -164,7 +163,7 @@ kopano_dagent_SOURCES = \
 kopano_dagent_LDADD = \
 	libkcinetmapi.la libmapi.la libkcutil.la \
 	libkcarchiver.la libkcarchivercore.la -lpthread \
-	${DL_LIBS} ${PROG_LIBS} ${SSL_LIBS} ${XML2_LIBS} ${icu_uc_LIBS}
+	${DL_LIBS} ${SSL_LIBS} ${XML2_LIBS} ${icu_uc_LIBS}
 
 
 #
@@ -182,7 +181,7 @@ kopano_dbadm_LDADD = libkcutil.la ${MYSQL_LIBS}
 kopano_fsck_SOURCES = \
 	ECtools/fsck/fsck.cpp ECtools/fsck/fsck-main.cpp ECtools/fsck/fsck-calendar.cpp \
 	ECtools/fsck/fsck-contact.cpp ECtools/fsck/fsck-task.cpp ECtools/fsck/fsck.h
-kopano_fsck_LDADD = libmapi.la libkcutil.la ${PROG_LIBS}
+kopano_fsck_LDADD = libmapi.la libkcutil.la
 
 
 #
@@ -194,7 +193,7 @@ kopano_gateway_SOURCES = \
 	gateway/POP3.cpp gateway/POP3.h
 kopano_gateway_LDADD = \
 	libkcinetmapi.la libmapi.la libkcutil.la -lpthread \
-	${PROG_LIBS} ${CRYPTO_LIBS} ${SSL_LIBS} ${XML2_LIBS} ${icu_uc_LIBS}
+	${CRYPTO_LIBS} ${SSL_LIBS} ${XML2_LIBS} ${icu_uc_LIBS}
 
 
 kopano_ibrule_SOURCES = ECtools/ibrule.cpp
@@ -212,8 +211,7 @@ kopano_ical_SOURCES = \
 	caldav/WebDav.cpp caldav/WebDav.h caldav/iCal.cpp caldav/iCal.h
 kopano_ical_LDADD = \
 	libmapi.la libkcutil.la libkcicalmapi.la libkcfreebusy.la -lpthread \
-	${PROG_LIBS} ${SSL_LIBS} ${ICONV_LIBS} ${XML2_LIBS} \
-	${ICAL_LIBS} ${icu_uc_LIBS}
+	${ICAL_LIBS} ${ICONV_LIBS} ${icu_uc_LIBS} ${SSL_LIBS} ${XML2_LIBS}
 
 
 #
@@ -223,7 +221,7 @@ kopano_monitor_SOURCES = \
 	ECtools/monitor/ECMonitorDefs.h \
 	ECtools/monitor/ECQuotaMonitor.cpp ECtools/monitor/ECQuotaMonitor.h \
 	ECtools/monitor/monitor.cpp
-kopano_monitor_LDADD = libmapi.la libkcutil.la ${PROG_LIBS}
+kopano_monitor_LDADD = libmapi.la libkcutil.la
 
 
 kopano_oof_SOURCES = ECtools/oof.cpp
@@ -234,7 +232,7 @@ kopano_oof_LDADD = ${jsoncpp_LIBS} ${libHX_LIBS} libmapi.la libkcutil.la
 # kopano-passwd
 #
 kopano_passwd_SOURCES = ECtools/passwd/passwd.cpp
-kopano_passwd_LDADD = libmapi.la libkcutil.la ${PROG_LIBS}
+kopano_passwd_LDADD = libmapi.la libkcutil.la
 
 
 #
@@ -245,8 +243,7 @@ kopano_spooler_SOURCES = \
 	spooler/mailer.cpp spooler/mailer.h
 kopano_spooler_LDADD = \
 	libkcinetmapi.la libmapi.la libkcutil.la libkcarchiver.la \
-	libkcarchivercore.la -lpthread ${DL_LIBS} \
-	${INTL_LIBS} ${PROG_LIBS} ${XML2_LIBS}
+	libkcarchivercore.la -lpthread ${DL_LIBS} ${INTL_LIBS} ${XML2_LIBS}
 
 
 kopano_srvadm_SOURCES = ECtools/srvadm.cpp
@@ -260,7 +257,7 @@ kopano_stats_SOURCES = ECtools/stats/stats.cpp
 kopano_stats_CPPFLAGS = ${AM_CPPFLAGS} ${NCURSES_FLAGS}
 # ncurses needs to come first, because ICU_LIBS erroneously has -L/usr/lib64
 # which overrides the ncurses lib selection >:-(
-kopano_stats_LDADD = ${NCURSES_LIBS} libmapi.la libkcutil.la ${PROG_LIBS}
+kopano_stats_LDADD = ${NCURSES_LIBS} libmapi.la libkcutil.la
 
 
 kopano_storeadm_SOURCES = ECtools/storeadm.cpp
@@ -276,8 +273,7 @@ kopano_server_SOURCES = \
 	provider/server/ECThreadManager.cpp provider/server/ECThreadManager.h
 kopano_server_LDADD = \
 	libkcutil.la libkcserver.la libkcsoap.la ${GSOAP_LIBS} \
-	${PROG_LIBS} ${clock_LIBS} \
-	${CRYPTO_LIBS} ${icu_uc_LIBS} ${icu_i18n_LIBS} ${DL_LIBS} \
+	${clock_LIBS} ${CRYPTO_LIBS} ${icu_uc_LIBS} ${icu_i18n_LIBS} ${DL_LIBS} \
 	${MYSQL_LIBS} ${SSL_LIBS} ${PAM_LIBS} ${KRB5_LIBS} ${kcoidc_LIBS} -lpthread
 kopano_server_LDFLAGS = ${AM_LDFLAGS}
 
@@ -335,7 +331,7 @@ libkcarchivercore_la_SOURCES = \
 libkcarchivercore_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	${default_SYFLAGS${NO_VSYM}}
 libkcarchivercore_la_LIBADD = \
-	libmapi.la libkcarchiver.la ${PROG_LIBS} ${SSL_LIBS} ${MYSQL_LIBS}
+	libmapi.la libkcarchiver.la ${SSL_LIBS} ${MYSQL_LIBS}
 EXTRA_libkcarchivercore_la_DEPENDENCIES = ${default_sym}
 
 
@@ -669,7 +665,7 @@ libmapi_la_SOURCES = \
 	m4lcommon/Util.cpp \
 	m4lcommon/mapicontact.h
 libmapi_la_LIBADD = \
-	libkcutil.la -lpthread ${DL_LIBS} ${ICONV_LIBS} ${INTL_LIBS} ${PROG_LIBS}
+	libkcutil.la -lpthread ${DL_LIBS} ${ICONV_LIBS} ${INTL_LIBS}
 libmapi_la_SYFLAGS = -Wl,--version-script=mapi4linux/src/libmapi.sym
 libmapi_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined -version-info 1:0:0 \
 	${libmapi_la_SYFLAGS${NO_VSYM}}
@@ -728,7 +724,7 @@ mapi_la_SOURCES += \
 	php-ext/util.cpp php-ext/util.h
 endif
 mapi_la_LIBADD = libmapi.la libkcutil.la libkcfreebusy.la \
-	libkcinetmapi.la libkcicalmapi.la ${PROG_LIBS} -lpthread
+	libkcinetmapi.la libkcicalmapi.la -lpthread
 mapi_la_SYFLAGS = -Wl,--version-script=${srcdir}/php-ext/mapi.sym
 mapi_la_LDFLAGS = ${AM_LDFLAGS} -avoid-version -module ${PHP_LDFLAGS} \
 	${mapi_la_SYFLAGS${NO_VSYM}}
