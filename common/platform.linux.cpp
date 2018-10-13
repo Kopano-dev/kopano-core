@@ -35,17 +35,6 @@
 #endif
 #include "fileutil.h"
 
-#ifdef __APPLE__
-// bsd
-#define ICONV_CONST const
-#elif OPENBSD
-// bsd
-#define ICONV_CONST const
-#else
-// linux
-#define ICONV_CONST
-#endif
-
 static bool rand_init_done = false;
 
 bool operator!=(const GUID &a, const GUID &b) noexcept
