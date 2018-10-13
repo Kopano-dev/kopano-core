@@ -51,6 +51,7 @@ HRESULT CoCreateGuid(LPGUID pNewGUID) {
 	if (!pNewGUID)
 		return MAPI_E_INVALID_PARAMETER;
 
+	static_assert(sizeof(GUID) == sizeof(uuid_t), "UUID type sizes mismatch");
 #if HAVE_UUID_CREATE
 	uuid_t g;
 	uint32_t uid_ret;
