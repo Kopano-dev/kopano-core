@@ -15,6 +15,7 @@
 #include <csignal>
 #include <netdb.h>
 #include <poll.h>
+#include <sys/resource.h>
 #include <inetmapi/inetmapi.h>
 #include <mapi.h>
 #include <mapix.h>

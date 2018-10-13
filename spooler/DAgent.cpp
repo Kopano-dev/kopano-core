@@ -45,6 +45,7 @@
 #include <algorithm>
 #include <map>
 #include <poll.h>
+#include <sys/resource.h>
 #include <kopano/ECRestriction.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/automapi.hpp>

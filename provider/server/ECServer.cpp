@@ -12,6 +12,7 @@
 #include <string>
 #include <cerrno>
 #include <cstring>
+#include <sys/resource.h>
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <kopano/ECChannel.h>
