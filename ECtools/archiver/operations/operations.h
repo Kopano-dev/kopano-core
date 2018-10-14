@@ -7,7 +7,6 @@
 #define operations_INCLUDED
 
 #include <memory>
-#include <kopano/zcdefs.h>
 #include "operations_fwd.h"
 #include <mapix.h>
 #include <kopano/mapi_ptr.h>
@@ -71,8 +70,8 @@ public:
 class ArchiveOperationBase : public IArchiveOperation {
 public:
 	ArchiveOperationBase(std::shared_ptr<ECArchiverLogger>, int ulAge, bool bProcessUnread, ULONG ulInhibitMask);
-	HRESULT GetRestriction(LPMAPIPROP LPMAPIPROP, LPSRestriction *lppRestriction) _kc_override;
-	HRESULT VerifyRestriction(LPMESSAGE lpMessage) _kc_override;
+	HRESULT GetRestriction(IMAPIProp *, SRestriction **) override;
+	HRESULT VerifyRestriction(IMessage *) override;
 
 protected:
 	std::shared_ptr<ECArchiverLogger> Logger() const { return m_lpLogger; }

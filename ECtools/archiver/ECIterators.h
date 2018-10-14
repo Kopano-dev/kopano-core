@@ -45,7 +45,7 @@ private:
 	MAPIContainerPtr	m_ptrCurrent;
 };
 
-template<typename ContainerPtrType> class ECHierarchyIterator _kc_final :
+template<typename ContainerPtrType> class ECHierarchyIterator final :
     public ECHierarchyIteratorBase
 {
 public:

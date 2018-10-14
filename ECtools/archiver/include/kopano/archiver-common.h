@@ -51,7 +51,7 @@ namespace KC {
 /**
  * Utility class for easy handling of non-addressbook entryids.
  */
-class _kc_export entryid_t _kc_final {
+class _kc_export entryid_t final {
 public:
 	/**
 	 * Constructs an empty entryid.
@@ -249,7 +249,7 @@ private:
 /**
  * Utility class for easy handling of addressbook entryids.
  */
-class abentryid_t _kc_final {
+class abentryid_t final {
 public:
 	/**
 	 * Constructs an empty entryid.
@@ -455,7 +455,7 @@ static inline bool operator<(const SObjectEntry &lhs, const SObjectEntry &rhs) {
  * This class is used as the predicate argument in find_if. If one of the
  * entryids is wrapped, it will be unwrapped before the comparison.
  */
-class StoreCompare _kc_final {
+class StoreCompare final {
 public:
 	/**
 	 * This constructor takes the store entryid from an SObjectEntry.

@@ -21,7 +21,7 @@ class ECLogger;
  * The ArchiverSession class wraps the MAPISession and provides commonly used operations. It also
  * checks the license. This way the license doesn't need to be checked all over the place.
  */
-class _kc_export ArchiverSession _kc_final {
+class _kc_export ArchiverSession final {
 public:
 	static HRESULT Create(ECConfig *lpConfig, std::shared_ptr<ECLogger>, ArchiverSessionPtr *lpptrSession);
 	static HRESULT Create(const MAPISessionPtr &ptrSession, std::shared_ptr<ECLogger>, ArchiverSessionPtr *lpptrSession);

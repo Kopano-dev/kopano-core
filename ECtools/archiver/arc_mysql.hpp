@@ -5,7 +5,6 @@
 #ifndef ARC_MYSQL_HPP
 #define ARC_MYSQL_HPP 1
 
-#include <kopano/zcdefs.h>
 #include <kopano/database.hpp>
 #include <string>
 
@@ -13,11 +12,11 @@ namespace KC {
 
 class ECConfig;
 
-class KCMDatabaseMySQL _kc_final : public KDatabase {
+class KCMDatabaseMySQL final : public KDatabase {
 public:
 	virtual ~KCMDatabaseMySQL(void);
 	ECRESULT		Connect(ECConfig *lpConfig);
-	virtual const struct sSQLDatabase_t *GetDatabaseDefs(void) _kc_override;
+	virtual const struct sSQLDatabase_t *GetDatabaseDefs() override;
 };
 
 } /* namespace */
