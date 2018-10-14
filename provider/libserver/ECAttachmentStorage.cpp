@@ -2279,12 +2279,12 @@ ECRESULT ECFileAttachment2::SaveAttachmentInstance(ext_siid &instance,
 			if (did_write != static_cast<ssize_t>(chunk_size)) {
 				ec_log_err("K-1289: Unable to write bytes to attachment \"%s\": %s.",
 					sl.content_file.c_str(), strerror(errno));
-				ret = KCERR_DATABASE_ERROR;
 				close(fd);
-				break;
+				return KCERR_DATABASE_ERROR;
 			}
 			dsize -= chunk_size;
 		}
+		close(fd);
 		unsigned char shasum[SHA256_DIGEST_LENGTH];
 		SHA256_Final(shasum, &shactx);
 		instance.filename = uas_md_to_ident(std::string(reinterpret_cast<char *>(shasum), sizeof(shasum)));
@@ -2422,6 +2422,7 @@ ECRESULT ECFileAttachment2::LoadAttachmentInstance(struct soap *soap,
 	} else {
 		*dsize = sb.st_size;
 	}
+	close(fd);
 	return erSuccess;
 }
 
@@ -2431,7 +2432,9 @@ ECRESULT ECFileAttachment2::LoadAttachmentInstance(const ext_siid &instance,
 	*dsize = 0;
 	auto ctf = m_basepath + "/" + instance.filename.c_str() + "/content";
 	int fd = open(ctf.c_str(), O_RDONLY);
-	if (fd < 0 && errno != ENOENT) {
+	if (fd < 0 && errno == ENOENT) {
+		return KCERR_NOT_FOUND;
+	} else if (fd < 0) {
 		/* Access problems */
 		ec_log_err("K-1286: open \"%s\": %s", ctf.c_str(), strerror(errno));
 		return KCERR_NO_ACCESS;
