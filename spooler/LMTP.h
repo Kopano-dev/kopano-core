@@ -8,13 +8,12 @@
 
 #include <string>
 #include <vector>
-#include <kopano/zcdefs.h>
 #include <kopano/ECChannel.h>
 #include <kopano/ECConfig.h>
 
 enum LMTP_Command {LMTP_Command_LHLO, LMTP_Command_MAIL_FROM, LMTP_Command_RCPT_TO, LMTP_Command_DATA, LMTP_Command_RSET, LMTP_Command_QUIT };
 
-class LMTP _kc_final {
+class LMTP final {
 public:
 	LMTP(KC::ECChannel *, const char *path, KC::ECConfig *);
 	HRESULT HrGetCommand(const std::string &strCommand, LMTP_Command &eCommand);

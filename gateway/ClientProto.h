@@ -5,7 +5,6 @@
 #ifndef GATEWAY_COMMON_H
 #define GATEWAY_COMMON_H
 
-#include <kopano/zcdefs.h>
 #include <memory>
 #include <string>
 #include <utility>

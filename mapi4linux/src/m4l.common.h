@@ -6,7 +6,6 @@
 #ifndef __M4L_COMMON_IMPL_H
 #define __M4L_COMMON_IMPL_H
 
-#include <kopano/zcdefs.h>
 #include <atomic>
 #include <mapidefs.h>
 
@@ -16,9 +15,9 @@ private:
     
 public:
 	virtual ~M4LUnknown(void) = default;
-	virtual ULONG AddRef(void) _kc_override;
-	virtual ULONG Release(void) _kc_override;
-	virtual HRESULT QueryInterface(REFIID refiid, void **lpvoid) _kc_override;
+	virtual ULONG AddRef() override;
+	virtual ULONG Release() override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
 };
 
 #endif

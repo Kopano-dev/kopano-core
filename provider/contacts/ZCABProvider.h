@@ -6,18 +6,17 @@
 #ifndef ECABPROVIDER
 #define ECABPROVIDER
 
-#include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
 #include <kopano/Util.h>
 #include <mapispi.h>
 
-class ZCABProvider _kc_final : public KC::ECUnknown, public IABProvider {
+class ZCABProvider final : public KC::ECUnknown, public IABProvider {
 protected:
 	ZCABProvider(ULONG ulFlags, const char *szClassName);
 
 public:
 	static  HRESULT Create(ZCABProvider **lppZCABProvider);
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
     virtual HRESULT Shutdown(ULONG * lpulFlags);
 	virtual HRESULT Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam, const TCHAR *lpszProfileName, ULONG ulFlags, ULONG *lpulcbSecurity, LPBYTE *lppbSecurity, LPMAPIERROR *lppMAPIError, LPABLOGON *lppABLogon);
 

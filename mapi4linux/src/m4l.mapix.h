@@ -6,7 +6,6 @@
 #ifndef __M4L_MAPIX_IMPL_H
 #define __M4L_MAPIX_IMPL_H
 
-#include <kopano/zcdefs.h>
 #include <memory>
 #include <mutex>
 #include "m4l.common.h"
@@ -44,7 +43,7 @@ struct profEntry {
 	KC::object_ptr<M4LMsgServiceAdmin> serviceadmin;
 };
 
-class M4LProfAdmin _kc_final : public M4LUnknown, public IProfAdmin {
+class M4LProfAdmin final : public M4LUnknown, public IProfAdmin {
 private:
     // variables
 	std::list<std::unique_ptr<profEntry> > profiles;
@@ -63,12 +62,12 @@ public:
 	virtual HRESULT RenameProfile(const TCHAR *oldname, const TCHAR *oldpw, const TCHAR *newname, ULONG_PTR ui_param, ULONG flags);
 	virtual HRESULT SetDefaultProfile(const TCHAR *name, ULONG flags);
 	virtual HRESULT AdminServices(const TCHAR *name, const TCHAR *password, ULONG_PTR ui_param, ULONG flags, IMsgServiceAdmin **);
-	virtual HRESULT QueryInterface(REFIID refiid, void **lpvoid) _kc_override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
 
 	friend class KC::SessionRestorer;
 };
 
-class M4LMsgServiceAdmin _kc_final : public M4LUnknown, public IMsgServiceAdmin2 {
+class M4LMsgServiceAdmin final : public M4LUnknown, public IMsgServiceAdmin2 {
 private:
 	std::list<std::unique_ptr<providerEntry> > providers;
 	std::list<std::unique_ptr<serviceEntry> > services;
@@ -97,7 +96,7 @@ public:
 	virtual HRESULT AdminProviders(const MAPIUID *uid, ULONG flags, IProviderAdmin **);
 	virtual HRESULT SetPrimaryIdentity(const MAPIUID *uid, ULONG flags);
 	virtual HRESULT GetProviderTable(ULONG ulFlags, LPMAPITABLE *lppTable);
-	virtual HRESULT QueryInterface(REFIID refiid, void **lpvoid) _kc_override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
 
 	friend class M4LProviderAdmin;
 	friend class M4LMAPISession;
@@ -109,7 +108,7 @@ inline bool operator<(const GUID &a, const GUID &b) noexcept
     return memcmp(&a, &b, sizeof(GUID)) < 0;
 }
 
-class M4LMAPISession _kc_final : public M4LUnknown, public IMAPISession {
+class M4LMAPISession final : public M4LUnknown, public IMAPISession {
 private:
 	// variables
 	std::string profileName;
@@ -136,7 +135,7 @@ public:
 	virtual HRESULT AdminServices(ULONG ulFlags, LPSERVICEADMIN *lppServiceAdmin);
 	virtual HRESULT ShowForm(ULONG_PTR ui_param, IMsgStore *, IMAPIFolder *parent, const IID *intf, ULONG msg_token, IMessage *sesnt, ULONG flags, ULONG msg_status, ULONG msg_flags, ULONG access, const char *msg_class) override;
 	virtual HRESULT PrepareForm(LPCIID lpInterface, LPMESSAGE lpMessage, ULONG *lpulMessageToken);
-	virtual HRESULT QueryInterface(REFIID refiid, void **lpvoid) _kc_override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
 
 private:
 	std::map<GUID, KC::object_ptr<IMsgStore>> mapStores;
@@ -149,7 +148,7 @@ public:
 	HRESULT setStatusRow(ULONG nvals, const SPropValue *);
 };
 
-class M4LAddrBook _kc_final : public M4LMAPIProp, public IAddrBook {
+class M4LAddrBook final : public M4LMAPIProp, public IAddrBook {
 public:
 	M4LAddrBook(M4LMsgServiceAdmin *new_serviceAdmin, LPMAPISUP newlpMAPISup);
 	virtual ~M4LAddrBook();
@@ -171,7 +170,7 @@ public:
 	virtual HRESULT GetSearchPath(ULONG ulFlags, LPSRowSet *lppSearchPath);
 	virtual HRESULT SetSearchPath(ULONG flags, const SRowSet *) override;
 	virtual HRESULT PrepareRecips(ULONG ulFlags, const SPropTagArray *lpPropTagArray, LPADRLIST lpRecipList);
-	virtual HRESULT QueryInterface(REFIID refiid, void **lpvoid) _kc_override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
 
 private:
 	// variables

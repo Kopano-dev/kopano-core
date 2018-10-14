@@ -6,7 +6,6 @@
 #ifndef ECQUOTAMONITOR
 #define ECQUOTAMONITOR
 
-#include <kopano/zcdefs.h>
 #include <kopano/ECDefs.h>
 
 #define TEMPLATE_LINE_LENGTH		1024
@@ -23,7 +22,7 @@ struct TemplateVariables {
 	std::string strHardSize;
 };
 
-class ECQuotaMonitor _kc_final {
+class ECQuotaMonitor final {
 private:
 	ECQuotaMonitor(ECTHREADMONITOR *lpThreadMonitor, LPMAPISESSION lpMAPIAdminSession, LPMDB lpMDBAdmin);
 

@@ -6,19 +6,18 @@
 #ifndef ECRULESTABLEPROXY_INCLUDED
 #define ECRULESTABLEPROXY_INCLUDED
 
-#include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
 #include <kopano/Util.h>
 #include <mapidefs.h>
 
-class ECRulesTableProxy _kc_final : public KC::ECUnknown, public IMAPITable {
+class ECRulesTableProxy final : public KC::ECUnknown, public IMAPITable {
 protected:
 	ECRulesTableProxy(LPMAPITABLE lpTable);
 	virtual ~ECRulesTableProxy();
     
 public:
 	static  HRESULT Create(LPMAPITABLE lpTable, ECRulesTableProxy **lppRulesTableProxy);
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
 	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
 	virtual HRESULT Advise(ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection);
 	virtual HRESULT Unadvise(ULONG ulConnection);

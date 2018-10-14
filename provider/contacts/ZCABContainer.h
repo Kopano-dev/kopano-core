@@ -7,7 +7,6 @@
 #define ZCABCONTAINER_H
 
 #include <kopano/memory.hpp>
-#include <kopano/zcdefs.h>
 #include <kopano/Util.h>
 #include <mapispi.h>
 #include <mapidefs.h>
@@ -16,7 +15,7 @@
 #include "ZCMAPIProp.h"
 
 /* should be derived from IMAPIProp, but since we don't do anything with those functions, let's skip the red tape. */
-class ZCABContainer _kc_final :
+class ZCABContainer final :
     public KC::ECUnknown, public IABContainer, public IDistList {
 protected:
 	ZCABContainer(const std::vector<zcabFolderEntry> *folders, IMAPIFolder *contacts, IMAPISupport *, void *provider, const char *class_name);
@@ -32,7 +31,7 @@ public:
 	HRESULT GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable);
 
 	// IUnknown
-	virtual HRESULT	QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual HRESULT	QueryInterface(const IID &, void **) override;
 
 	// IABContainer
 	virtual HRESULT CreateEntry(ULONG eid_size, const ENTRYID *eid, ULONG flags, IMAPIProp **);
@@ -50,15 +49,15 @@ public:
 	// very limited IMAPIProp, passed to ZCMAPIProp for m_lpDistList.
 	virtual HRESULT GetProps(const SPropTagArray *lpPropTagArray, ULONG ulFlags, ULONG *lpcValues, LPSPropValue *lppPropArray);
 	virtual HRESULT GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArray);
-	virtual HRESULT GetLastError(HRESULT, ULONG, MAPIERROR **) _kc_override;
-	virtual HRESULT SaveChanges(ULONG) _kc_override;
-	virtual HRESULT OpenProperty(ULONG, const IID *, ULONG, ULONG, IUnknown **) _kc_override;
-	virtual HRESULT SetProps(ULONG, const SPropValue *, SPropProblemArray **) _kc_override;
-	virtual HRESULT DeleteProps(const SPropTagArray *, SPropProblemArray **) _kc_override;
-	virtual HRESULT CopyTo(ULONG, const IID *, const SPropTagArray *, ULONG, IMAPIProgress *, const IID *, void *, ULONG, SPropProblemArray **) _kc_override;
-	virtual HRESULT CopyProps(const SPropTagArray *, ULONG, IMAPIProgress *, const IID *, void *, ULONG, SPropProblemArray **) _kc_override;
+	virtual HRESULT GetLastError(HRESULT result, unsigned int flags, MAPIERROR **) override;
+	virtual HRESULT SaveChanges(unsigned int) override;
+	virtual HRESULT OpenProperty(unsigned int, const IID *, unsigned int, unsigned int, IUnknown **) override;
+	virtual HRESULT SetProps(unsigned int, const SPropValue *, SPropProblemArray **) override;
+	virtual HRESULT DeleteProps(const SPropTagArray *, SPropProblemArray **) override;
+	virtual HRESULT CopyTo(unsigned int, const IID *, const SPropTagArray *, unsigned int, IMAPIProgress *, const IID *, void *, unsigned int, SPropProblemArray **) override;
+	virtual HRESULT CopyProps(const SPropTagArray *, unsigned int, IMAPIProgress *, const IID *, void *, unsigned int, SPropProblemArray **) override;
 	virtual HRESULT GetNamesFromIDs(SPropTagArray **tags, const GUID *propset, ULONG flags, ULONG *nvals, MAPINAMEID ***names) override;
-	virtual HRESULT GetIDsFromNames(ULONG, MAPINAMEID **, ULONG, SPropTagArray **) _kc_override;
+	virtual HRESULT GetIDsFromNames(unsigned int, MAPINAMEID **, unsigned int, SPropTagArray **) override;
 
 private:
 	/* reference to ZCABLogon .. ZCABLogon needs to live because of this, so AddChild */

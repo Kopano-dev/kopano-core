@@ -7,7 +7,6 @@
 #define ECSYNCCONTEXT_H
 
 #include <mutex>
-#include <kopano/zcdefs.h>
 #include <mapidefs.h>
 #include "../provider/client/ics_client.hpp"
 #include <map>
@@ -28,7 +27,7 @@ class ECSyncSettings;
  * ECSyncContext:	This class encapsulates all synchronization related information that is
  *					only related to one side of the sync process (online or offline).
  */
-class ECSyncContext _kc_final {
+class ECSyncContext final {
 public:
 	/**
 	 * Construct a sync context.

@@ -5,7 +5,6 @@
 #ifndef _HTTP_H_
 #define _HTTP_H_
 
-#include <kopano/zcdefs.h>
 #include <mapidefs.h>
 #include <mapicode.h>
 #include <kopano/stringutil.h>
@@ -28,7 +27,7 @@
 
 HRESULT HrParseURL(const std::string &stUrl, ULONG *lpulFlag, std::string *lpstrUrlUser = NULL, std::string *lpstrFolder = NULL);
 
-class Http _kc_final {
+class Http final {
 public:
 	Http(KC::ECChannel *, std::shared_ptr<KC::ECConfig>);
 	HRESULT HrReadHeaders();

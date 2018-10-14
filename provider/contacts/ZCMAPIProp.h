@@ -26,7 +26,7 @@ protected:
 
 public:
 	static HRESULT Create(IMAPIProp *lpContact, ULONG eid_size, const ENTRYID *eid, ZCMAPIProp **);
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
 
 	// From IMAPIProp
 	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR * lppMAPIError);
