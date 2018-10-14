@@ -5,7 +5,6 @@
 #ifndef ECGENERICPROP_H
 #define ECGENERICPROP_H
 
-#include <kopano/zcdefs.h>
 #include <memory>
 #include <mutex>
 #include <kopano/ECUnknown.h>
@@ -48,7 +47,7 @@ protected:
 	virtual ~ECGenericProp() = default;
 
 public:
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
 
 	HRESULT SetProvider(void* lpProvider);
 	HRESULT SetEntryId(ULONG eid_size, const ENTRYID *eid);

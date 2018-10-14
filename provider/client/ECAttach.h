@@ -5,7 +5,6 @@
 #ifndef ECATTACH_H
 #define ECATTACH_H
 
-#include <kopano/zcdefs.h>
 #include <mapidefs.h>
 #include <kopano/Util.h>
 #include "ECMessage.h"
@@ -19,7 +18,7 @@ protected:
 	ECAttach(ECMsgStore *, ULONG obj_type, BOOL modify, ULONG attach_num, const ECMAPIProp *root);
 	virtual ~ECAttach(void) = default;
 public:
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
 	static HRESULT Create(ECMsgStore *, ULONG obj_type, BOOL modify, ULONG attach_num, const ECMAPIProp *root, ECAttach **);
 
 	// Override for SaveChanges

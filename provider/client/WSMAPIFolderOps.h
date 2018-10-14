@@ -6,7 +6,6 @@
 #define WSMAPIFOLDEROPS_H
 
 #include <kopano/ECUnknown.h>
-#include <kopano/zcdefs.h>
 #include <mutex>
 #include "kcore.hpp"
 #include <kopano/kcodes.h>
@@ -30,7 +29,7 @@ protected:
 
 public:
 	static HRESULT Create(KC::ECSESSIONID, ULONG eid_size, const ENTRYID *, WSTransport *, WSMAPIFolderOps **);
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
 
 	// Creates a folder object with only a PR_DISPLAY_NAME and type
 	virtual HRESULT HrCreateFolder(ULONG fl_type, const KC::utf8string &name, const KC::utf8string &comment, BOOL fOpenIfExists, ULONG sync_id, const SBinary *srckey, ULONG neweid_size, ENTRYID *neweid, ULONG *eid_size, ENTRYID **eid);

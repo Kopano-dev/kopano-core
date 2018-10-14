@@ -5,7 +5,6 @@
 #ifndef ECMAPITABLE_H
 #define ECMAPITABLE_H
 
-#include <kopano/zcdefs.h>
 #include <mutex>
 #include <kopano/ECUnknown.h>
 #include <kopano/Util.h>
@@ -27,7 +26,7 @@ protected:
 public:
 	static HRESULT Create(const std::string &name, ECNotifyClient *, ULONG flags, ECMAPITable **);
 	virtual HRESULT HrSetTableOps(WSTableView *lpTableOps, bool fLoad);
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
 	virtual BOOL IsDeferred();
 	virtual HRESULT FlushDeferred(LPSRowSet *lppRowSet = NULL);
 	virtual HRESULT GetLastError(HRESULT, ULONG flags, MAPIERROR **) override;

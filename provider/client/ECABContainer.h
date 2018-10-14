@@ -5,7 +5,6 @@
 #ifndef ECABCONTAINER_H
 #define ECABCONTAINER_H
 
-#include <kopano/zcdefs.h>
 #include <kopano/Util.h>
 #include <kopano/ECUnknown.h>
 #include <kopano/IECInterfaces.hpp>
@@ -24,7 +23,7 @@ class ECABLogon final : public KC::ECUnknown, public IABLogon {
 
 	public:
 	static  HRESULT Create(IMAPISupport *, WSTransport *, ULONG profile_flags, const GUID *, ECABLogon **);
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
 	virtual HRESULT GetLastError(HRESULT, ULONG flags, MAPIERROR **) override;
 	virtual HRESULT Logoff(ULONG flags) override;
 	virtual HRESULT OpenEntry(ULONG eid_size, const ENTRYID *eid, const IID *intf, ULONG flags, ULONG *obj_type, IUnknown **) override;
@@ -49,7 +48,7 @@ class ECABProp : public ECGenericProp {
 	virtual ~ECABProp() = default;
 
 	public:
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
 	static HRESULT DefaultABGetProp(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase);
 	static HRESULT TableRowGetProp(void *prov, const struct propVal *src, SPropValue *dst, void **base, ULONG type);
 	ECABLogon *GetABStore() const { return static_cast<ECABLogon *>(lpProvider); }
@@ -65,7 +64,7 @@ public:
 	static HRESULT TableRowGetProp(void *prov, const struct propVal *src, SPropValue *dst, void **base, ULONG type);
 
 	// IUnknown
-	virtual HRESULT	QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual HRESULT	QueryInterface(const IID &, void **) override;
 
 	// IABContainer
 	virtual HRESULT CreateEntry(ULONG eid_size, const ENTRYID *eid, ULONG flags, IMAPIProp **) override;
@@ -96,7 +95,7 @@ class ECABProvider final : public KC::ECUnknown, public IABProvider {
 
 	public:
 	static  HRESULT Create(ECABProvider **lppECABProvider);
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
 	virtual HRESULT Shutdown(ULONG *flags) override;
 	virtual HRESULT Logon(IMAPISupport *, ULONG_PTR ui_param, const TCHAR *profile, ULONG flags, ULONG *sec_size, BYTE **sec, MAPIERROR **, IABLogon **) override;
 
@@ -110,7 +109,7 @@ class ECABProviderSwitch final : public KC::ECUnknown, public IABProvider {
 
 	public:
 	static  HRESULT Create(ECABProviderSwitch **lppECABProvider);
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
 	virtual HRESULT Shutdown(ULONG *flags) override;
 	virtual HRESULT Logon(IMAPISupport *, ULONG_PTR ui_param, const TCHAR *profile, ULONG flags, ULONG *sec_size, BYTE **sec, MAPIERROR **, IABLogon **) override;
 	ALLOC_WRAP_FRIEND;

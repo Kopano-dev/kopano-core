@@ -5,7 +5,6 @@
 #ifndef ECCHANGEADVISOR_H
 #define ECCHANGEADVISOR_H
 
-#include <kopano/zcdefs.h>
 #include <memory>
 #include <mutex>
 #include <mapidefs.h>
@@ -60,7 +59,7 @@ public:
 	 * @param[out]	lpvoid
 	 *					Pointer to a pointer of the requested type, casted to a void pointer.
 	 */
-	virtual HRESULT QueryInterface(REFIID refiid, void **lpvoid) _kc_override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
 
 	// IECChangeAdvisor
 	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);

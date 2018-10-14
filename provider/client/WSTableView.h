@@ -5,7 +5,6 @@
 #ifndef WSTABLEVIEW_H
 #define WSTABLEVIEW_H
 
-#include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
 #include <mutex>
 #include "soapH.h"
@@ -24,7 +23,7 @@ protected:
 	virtual ~WSTableView();
 
 public:
-	virtual	HRESULT	QueryInterface(REFIID refiid, void **lppInstanceID) _kc_override;
+	virtual	HRESULT	QueryInterface(const IID &, void **) override;
 	virtual HRESULT HrOpenTable();
 	virtual HRESULT HrCloseTable();
 

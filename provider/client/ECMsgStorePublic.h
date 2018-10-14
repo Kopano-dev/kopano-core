@@ -5,7 +5,6 @@
 #ifndef ECMSGSTOREPUBLIC_H
 #define ECMSGSTOREPUBLIC_H
 
-#include <kopano/zcdefs.h>
 #include <mapidefs.h>
 #include <mapispi.h>
 #include <edkmdb.h>
@@ -22,7 +21,7 @@ public:
 	static HRESULT GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase);
 	static HRESULT SetPropHandler(ULONG ulPropTag, void *lpProvider, const SPropValue *lpsPropValue, void *lpParam);
 	static HRESULT Create(const char *profile, IMAPISupport *, WSTransport *, BOOL modify, ULONG profile_flags, BOOL is_spooler, BOOL offline_store, ECMsgStore **);
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
 	virtual HRESULT OpenEntry(ULONG eid_size, const ENTRYID *eid, const IID *intf, ULONG flags, ULONG *obj_type, IUnknown **);
 	virtual HRESULT SetEntryId(ULONG eid_size, const ENTRYID *eid);
 	HRESULT InitEntryIDs();

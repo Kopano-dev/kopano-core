@@ -6,7 +6,6 @@
 #define ECMAPIPROP_H
 
 #include <kopano/memory.hpp>
-#include <kopano/zcdefs.h>
 #include "kcore.hpp"
 #include <kopano/IECInterfaces.hpp>
 #include "ECGenericProp.h"
@@ -28,7 +27,7 @@ public:
 	 *
 	 * See ECUnkown::QueryInterface.
 	 */
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
 	static HRESULT TableRowGetProp(void *prov, const struct propVal *src, SPropValue *dst, void **base, ULONG type);
 
 	// Callback for Commit() on streams

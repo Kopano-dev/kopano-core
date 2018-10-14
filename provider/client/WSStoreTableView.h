@@ -6,7 +6,6 @@
 #define WSSTORETABLEVIEW_H
 
 #include <mutex>
-#include <kopano/zcdefs.h>
 #include <kopano/Util.h>
 #include "WSTableView.h"
 
@@ -16,7 +15,7 @@ protected:
 	virtual ~WSStoreTableView(void) = default;
 public:
 	static HRESULT Create(ULONG type, ULONG flags, KC::ECSESSIONID, ULONG eid_size, const ENTRYID *eid, ECMsgStore *, WSTransport *, WSTableView **);
-	virtual	HRESULT	QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual	HRESULT	QueryInterface(const IID &, void **) override;
 	ALLOC_WRAP_FRIEND;
 };
 
@@ -26,7 +25,7 @@ protected:
 
 public:
 	static HRESULT Create(KC::ECSESSIONID, ULONG eid_size, const ENTRYID *, ECMsgStore *, WSTransport *, WSTableOutGoingQueue **);
-	virtual	HRESULT	QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual	HRESULT	QueryInterface(const IID &, void **) override;
 	virtual HRESULT HrOpenTable() override;
 	ALLOC_WRAP_FRIEND;
 };
