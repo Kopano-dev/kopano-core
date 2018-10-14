@@ -26,6 +26,7 @@
 #include <kopano/ECLogger.h>
 #include <kopano/MAPIErrors.h>
 #include <mapitags.h>
+#include <kopano/scope.hpp>
 #include <kopano/stringutil.h>
 #include <openssl/sha.h>
 #include "StreamUtil.h"
@@ -2143,7 +2144,10 @@ ECRESULT ECFileAttachment2::SaveAttachmentInstance(ext_siid &instance,
 	auto sl = uas_server_layout(m_basepath, m_config.m_server_guid, instance);
 	auto hl = uas_hash_layout(m_basepath, m_config.m_server_guid, instance);
 	int retries  = 3;
-	ECRESULT ret = erSuccess;
+	auto cleanup = make_scope_success([&]() {
+		if (uploaded)
+			HX_rrmdir(sl.base_dir.c_str());
+	});
 
 	do {
 		int x = open(hl.intent_ref.c_str(), O_WRONLY | O_CREAT | O_EXCL, S_IRWUG);
@@ -2167,40 +2171,38 @@ ECRESULT ECFileAttachment2::SaveAttachmentInstance(ext_siid &instance,
 			auto ret = CreatePath(sl.intent_dir.c_str(), S_IRWXUG);
 			if (ret != 0 && errno != EEXIST) {
 				ec_log_err("K-1299: mkdir -p \"%s\": %s", sl.intent_dir.c_str(), GetMAPIErrorMessage(ret));
-				break;
+				return ret;
 			}
 			uploaded = true;
 			ret = CreatePath(sl.holder_dir.c_str(), S_IRWXUG);
 			if (ret != 0 && errno != EEXIST) {
 				ec_log_err("K-1298: mkdir -p \"%s\": %s", sl.holder_dir.c_str(), GetMAPIErrorMessage(ret));
-				break;
+				return ret;
 			}
 			int fd = open(sl.content_file.c_str(), O_WRONLY | O_CREAT, S_IRWUG);
 			if (fd < 0) {
 				ec_log_err("K-1297: open \"%s\": %s", sl.content_file.c_str(), strerror(errno));
-				ret = KCERR_DATABASE_ERROR;
-				break;
+				return KCERR_DATABASE_ERROR;
 			}
 			ret = save_instance_data(sl.content_file, fd, propid, dsize, data, false); /* closes fd */
-			if (ret != hrSuccess) {
+			if (ret != erSuccess) {
 				ec_log_err("K-1296: save_instance_data \"%s\": %s", sl.content_file.c_str(), GetMAPIErrorMessage(ret));
 				close(fd);
-				break;
+				return ret;
 			}
 			fd = open(sl.holder_ref.c_str(), O_WRONLY | O_CREAT, S_IRWUG);
 			if (fd < 0) {
 				ec_log_err("K-1295: open \"%s\": %s", sl.holder_ref.c_str(), strerror(errno));
-				ret = KCERR_DATABASE_ERROR;
-				break;
+				return KCERR_DATABASE_ERROR;
 			}
 			close(fd);
 		}
 
 		std::unique_ptr<char[], cstdlib_deleter> enclosing_dir(HX_dirname(hl.base_dir.c_str()));
-		ret = CreatePath(enclosing_dir.get());
+		auto ret = CreatePath(enclosing_dir.get());
 		if (ret != hrSuccess) {
 			ec_log_err("K-1294: mkdir -p \"%s\": %s", enclosing_dir.get(), GetMAPIErrorMessage(ret));
-			break;
+			return ret;
 		}
 		x = rename(sl.base_dir.c_str(), hl.base_dir.c_str());
 		if (x == 0) {
@@ -2210,20 +2212,15 @@ ECRESULT ECFileAttachment2::SaveAttachmentInstance(ext_siid &instance,
 		if (errno != EEXIST) {
 			ec_log_debug("K-1293: rename \"%s\" -> \"%s\": %s",
 				sl.base_dir.c_str(), hl.base_dir.c_str(), strerror(errno));
-			break;
+			return KCERR_DATABASE_ERROR;
 		}
 		pthread_yield();
 		if (--retries == 0)
 			break;
 	} while (true);
 
-	if (ret == erSuccess) {
-		instance.filename = (uploaded && retries <= 0) ? std::move(sl.ident) : std::move(hl.ident);
-		return hrSuccess;
-	}
-	if (uploaded)
-		HX_rrmdir(sl.base_dir.c_str());
-	return ret;
+	instance.filename = (uploaded && retries <= 0) ? std::move(sl.ident) : std::move(hl.ident);
+	return erSuccess;
 }
 
 /**
@@ -2237,32 +2234,33 @@ ECRESULT ECFileAttachment2::SaveAttachmentInstance(ext_siid &instance,
 	bool uploaded = false;
 	auto sl = uas_server_layout(m_basepath, m_config.m_server_guid, instance);
 	decltype(sl) hl;
-	ECRESULT ret = erSuccess;
 
 	/*
 	 * Data is just arriving. It is put into a file (lest it would have to
 	 * be held in memory) while the hash is being computed.
 	 */
-	do {
 		SHA256_CTX shactx;
 		SHA256_Init(&shactx);
 
 		auto ret = CreatePath(sl.intent_dir.c_str(), S_IRWXUG);
 		if (ret != 0 && errno != EEXIST) {
 			ec_log_err("K-1292: mkdir \"%s\": %s", sl.intent_dir.c_str(), strerror(errno));
-			break;
+			return ret;
 		}
 		uploaded = true;
+		auto cleanup = make_scope_success([&]() {
+			if (uploaded)
+				HX_rrmdir(sl.base_dir.c_str());
+		});
 		ret = CreatePath(sl.holder_dir.c_str(), S_IRWXUG);
 		if (ret != 0 && errno != EEXIST) {
 			ec_log_err("K-1291: mkdir \"%s\": %s", sl.holder_dir.c_str(), strerror(errno));
-			break;
+			return ret;
 		}
 		int fd = open(sl.content_file.c_str(), O_WRONLY | O_CREAT, S_IRWUG);
 		if (fd < 0) {
 			ec_log_err("K-1290: open \"%s\": %s", sl.content_file.c_str(), strerror(errno));
-			ret = MAPI_E_DISK_ERROR;
-			break;
+			return MAPI_E_DISK_ERROR;
 		}
 
 		give_filesize_hint(fd, dsize);
@@ -2293,11 +2291,9 @@ ECRESULT ECFileAttachment2::SaveAttachmentInstance(ext_siid &instance,
 		fd = open(sl.holder_ref.c_str(), O_WRONLY | O_CREAT, S_IRWUG);
 		if (fd < 0) {
 			ec_log_err("K-1288: open \"%s\": %s", sl.holder_ref.c_str(), strerror(errno));
-			ret = MAPI_E_DISK_ERROR;
-			break;
+			return MAPI_E_DISK_ERROR;
 		}
 		close(fd);
-	} while (false);
 
 	std::unique_ptr<char[], cstdlib_deleter> enclosing_dir(HX_dirname(hl.base_dir.c_str()));
 	ret = CreatePath(enclosing_dir.get());
@@ -2308,15 +2304,15 @@ ECRESULT ECFileAttachment2::SaveAttachmentInstance(ext_siid &instance,
 
 	int retries = 3;
 	do {
-		ret = rename(sl.base_dir.c_str(), hl.base_dir.c_str());
-		if (ret == 0) {
+		int x = rename(sl.base_dir.c_str(), hl.base_dir.c_str());
+		if (x == 0) {
 			uploaded = false;
 			break;
 		}
-		if (ret != EEXIST) {
+		if (errno != EEXIST) {
 			ec_log_debug("K-1286: rename \"%s\" -> \"%s\": %s",
 				sl.base_dir.c_str(), hl.base_dir.c_str(), strerror(errno));
-			break;
+			return KCERR_DATABASE_ERROR;
 		}
 		pthread_yield();
 		if (--retries == 0)
@@ -2334,13 +2330,8 @@ ECRESULT ECFileAttachment2::SaveAttachmentInstance(ext_siid &instance,
 		}
 	} while (true);
 
-	if (ret == erSuccess) {
-		instance.filename = (uploaded && retries <= 0) ? std::move(sl.ident) : std::move(hl.ident);
-		return hrSuccess;
-	}
-	if (uploaded)
-		HX_rrmdir(sl.base_dir.c_str());
-	return ret;
+	instance.filename = (uploaded && retries <= 0) ? std::move(sl.ident) : std::move(hl.ident);
+	return erSuccess;
 }
 
 ECRESULT ECFileAttachment2::GetSizeInstance(const ext_siid &inst,
