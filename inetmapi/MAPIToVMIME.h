@@ -6,7 +6,6 @@
 #ifndef MAPITOVMIME
 #define MAPITOVMIME
 
-#include <kopano/zcdefs.h>
 #include <memory>
 #include <mapix.h>
 #include <string>
@@ -29,7 +28,7 @@ enum {
 	MTV_SKIP_CONTENT = 1 << 1,
 };
 
-class MAPIToVMIME _kc_final {
+class MAPIToVMIME final {
 public:
 	MAPIToVMIME();
 	MAPIToVMIME(IMAPISession *, IAddrBook *, sending_options);

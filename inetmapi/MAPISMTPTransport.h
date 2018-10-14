@@ -32,7 +32,6 @@
 #ifndef MAPI_NET_SMTP_SMTPTRANSPORT_HPP_INCLUDED
 #define MAPI_NET_SMTP_SMTPTRANSPORT_HPP_INCLUDED
 
-#include <kopano/zcdefs.h>
 #include <vmime/config.hpp>
 #include <vmime/net/transport.hpp>
 #include <vmime/net/socket.hpp>
@@ -51,8 +50,7 @@ class SMTPResponse;
 
 /** SMTP transport service.
   */
-
-class MAPISMTPTransport _kc_final : public transport {
+class MAPISMTPTransport final : public transport {
 public:
 
 	MAPISMTPTransport(vmime::shared_ptr<session> sess, vmime::shared_ptr<security::authenticator> auth, const bool secured = false);

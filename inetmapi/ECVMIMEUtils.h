@@ -15,7 +15,7 @@
 
 namespace KC {
 
-class _kc_export_dycast ECVMIMESender _kc_final : public ECSender {
+class _kc_export_dycast ECVMIMESender final : public ECSender {
 private:
 	_kc_hidden HRESULT HrMakeRecipientsList(LPADRBOOK, LPMESSAGE, vmime::shared_ptr<vmime::message>, vmime::mailboxList &recips, bool allow_everyone, bool always_expand_distlist);
 	_kc_hidden HRESULT HrExpandGroup(LPADRBOOK, const SPropValue *grp_name, const SPropValue *grp_eid, vmime::mailboxList &recips, std::set<std::wstring> &s_groups, std::set<std::wstring> &s_recips, bool allow_everyone);

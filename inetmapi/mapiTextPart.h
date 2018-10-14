@@ -32,7 +32,6 @@
 #ifndef VMIME_MAPITEXTPART_HPP_INCLUDED
 #define VMIME_MAPITEXTPART_HPP_INCLUDED
 
-#include <kopano/zcdefs.h>
 #include <memory>
 #include <vmime/textPart.hpp>
 #include <vmime/messageId.hpp>
@@ -44,13 +43,13 @@ namespace vmime {
 /** Text part of type 'text/html'.
   */
 
-class mapiTextPart _kc_final : public textPart {
+class mapiTextPart final : public textPart {
 public:
 
 	mapiTextPart();
-	const mediaType getType(void) const _kc_override;
-	const charset &getCharset(void) const _kc_override { return m_charset; }
-	void setCharset(const charset &ch) _kc_override;
+	const mediaType getType() const override;
+	const charset &getCharset() const override { return m_charset; }
+	void setCharset(const charset &ch) override;
 
 	/* plain text */
 	vmime::shared_ptr<const contentHandler> getPlainText(void) const { return m_plainText; }
@@ -66,12 +65,12 @@ public:
 	void setOtherCharset(const charset& ch);
 
 	/* html + plain + 'other' text */
-	const vmime::shared_ptr<const contentHandler> getText(void) const _kc_override { return m_text; }
-	void setText(vmime::shared_ptr<contentHandler> text) _kc_override;
+	const vmime::shared_ptr<const contentHandler> getText() const override { return m_text; }
+	void setText(vmime::shared_ptr<contentHandler> text) override;
 
 	/** Embedded object (eg: image for &lt;IMG> tag).
 	  */
-	class embeddedObject _kc_final : public object {
+	class embeddedObject final : public object {
 	public:
 		embeddedObject(vmime::shared_ptr<contentHandler> data, const encoding &enc, const string &id, const mediaType &type, const string &name, const string &loc);
 
@@ -202,10 +201,9 @@ public:
 	 */
 	const string addObject(vmime::shared_ptr<contentHandler> data, const encoding &enc, const mediaType &type, const string &id, const string &name = string(), const string &loc = string());
 
-	size_t getPartCount() const _kc_override;
-
-	void generateIn(vmime::shared_ptr<bodyPart> message, vmime::shared_ptr<bodyPart> parent) const _kc_override;
-	void parse(vmime::shared_ptr<const bodyPart> message, vmime::shared_ptr<const bodyPart> parent, vmime::shared_ptr<const bodyPart> textPart) _kc_override;
+	size_t getPartCount() const override;
+	void generateIn(vmime::shared_ptr<bodyPart> message, vmime::shared_ptr<bodyPart> parent) const override;
+	void parse(vmime::shared_ptr<const bodyPart> message, vmime::shared_ptr<const bodyPart> parent, vmime::shared_ptr<const bodyPart> textPart) override;
 
 private:
 	vmime::shared_ptr<contentHandler> m_plainText;
