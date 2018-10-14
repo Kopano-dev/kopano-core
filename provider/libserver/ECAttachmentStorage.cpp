@@ -2239,61 +2239,61 @@ ECRESULT ECFileAttachment2::SaveAttachmentInstance(ext_siid &instance,
 	 * Data is just arriving. It is put into a file (lest it would have to
 	 * be held in memory) while the hash is being computed.
 	 */
-		SHA256_CTX shactx;
-		SHA256_Init(&shactx);
+	SHA256_CTX shactx;
+	SHA256_Init(&shactx);
 
-		auto ret = CreatePath(sl.intent_dir.c_str(), S_IRWXUG);
-		if (ret != 0 && errno != EEXIST) {
-			ec_log_err("K-1292: mkdir \"%s\": %s", sl.intent_dir.c_str(), strerror(errno));
+	auto ret = CreatePath(sl.intent_dir.c_str(), S_IRWXUG);
+	if (ret != 0 && errno != EEXIST) {
+		ec_log_err("K-1292: mkdir \"%s\": %s", sl.intent_dir.c_str(), strerror(errno));
+		return ret;
+	}
+	uploaded = true;
+	auto cleanup = make_scope_success([&]() {
+		if (uploaded)
+			HX_rrmdir(sl.base_dir.c_str());
+	});
+	ret = CreatePath(sl.holder_dir.c_str(), S_IRWXUG);
+	if (ret != 0 && errno != EEXIST) {
+		ec_log_err("K-1291: mkdir \"%s\": %s", sl.holder_dir.c_str(), strerror(errno));
+		return ret;
+	}
+	int fd = open(sl.content_file.c_str(), O_WRONLY | O_CREAT, S_IRWUG);
+	if (fd < 0) {
+		ec_log_err("K-1290: open \"%s\": %s", sl.content_file.c_str(), strerror(errno));
+		return MAPI_E_DISK_ERROR;
+	}
+
+	give_filesize_hint(fd, dsize);
+	while (dsize > 0) {
+		size_t chunk_size = std::min(static_cast<size_t>(CHUNK_SIZE), dsize);
+		char buffer[CHUNK_SIZE];
+		ret = src->Read(buffer, 1, chunk_size);
+		if (ret != erSuccess) {
+			close(fd);
 			return ret;
 		}
-		uploaded = true;
-		auto cleanup = make_scope_success([&]() {
-			if (uploaded)
-				HX_rrmdir(sl.base_dir.c_str());
-		});
-		ret = CreatePath(sl.holder_dir.c_str(), S_IRWXUG);
-		if (ret != 0 && errno != EEXIST) {
-			ec_log_err("K-1291: mkdir \"%s\": %s", sl.holder_dir.c_str(), strerror(errno));
-			return ret;
+		SHA256_Update(&shactx, buffer, chunk_size);
+		ssize_t did_write = write_retry(fd, buffer, chunk_size);
+		if (did_write != static_cast<ssize_t>(chunk_size)) {
+			ec_log_err("K-1289: Unable to write bytes to attachment \"%s\": %s.",
+				sl.content_file.c_str(), strerror(errno));
+			close(fd);
+			return KCERR_DATABASE_ERROR;
 		}
-		int fd = open(sl.content_file.c_str(), O_WRONLY | O_CREAT, S_IRWUG);
-		if (fd < 0) {
-			ec_log_err("K-1290: open \"%s\": %s", sl.content_file.c_str(), strerror(errno));
-			return MAPI_E_DISK_ERROR;
-		}
+		dsize -= chunk_size;
+	}
 
-		give_filesize_hint(fd, dsize);
-		while (dsize > 0) {
-			size_t chunk_size = std::min(static_cast<size_t>(CHUNK_SIZE), dsize);
-			char buffer[CHUNK_SIZE];
-			ret = src->Read(buffer, 1, chunk_size);
-			if (ret != erSuccess) {
-				close(fd);
-				return ret;
-			}
-			SHA256_Update(&shactx, buffer, chunk_size);
-			ssize_t did_write = write_retry(fd, buffer, chunk_size);
-			if (did_write != static_cast<ssize_t>(chunk_size)) {
-				ec_log_err("K-1289: Unable to write bytes to attachment \"%s\": %s.",
-					sl.content_file.c_str(), strerror(errno));
-				close(fd);
-				return KCERR_DATABASE_ERROR;
-			}
-			dsize -= chunk_size;
-		}
-		close(fd);
-		unsigned char shasum[SHA256_DIGEST_LENGTH];
-		SHA256_Final(shasum, &shactx);
-		instance.filename = uas_md_to_ident(std::string(reinterpret_cast<char *>(shasum), sizeof(shasum)));
-		hl = uas_hash_layout(m_basepath, m_config.m_server_guid, instance);
-
-		fd = open(sl.holder_ref.c_str(), O_WRONLY | O_CREAT, S_IRWUG);
-		if (fd < 0) {
-			ec_log_err("K-1288: open \"%s\": %s", sl.holder_ref.c_str(), strerror(errno));
-			return MAPI_E_DISK_ERROR;
-		}
-		close(fd);
+	close(fd);
+	unsigned char shasum[SHA256_DIGEST_LENGTH];
+	SHA256_Final(shasum, &shactx);
+	instance.filename = uas_md_to_ident(std::string(reinterpret_cast<char *>(shasum), sizeof(shasum)));
+	hl = uas_hash_layout(m_basepath, m_config.m_server_guid, instance);
+	fd = open(sl.holder_ref.c_str(), O_WRONLY | O_CREAT, S_IRWUG);
+	if (fd < 0) {
+		ec_log_err("K-1288: open \"%s\": %s", sl.holder_ref.c_str(), strerror(errno));
+		return MAPI_E_DISK_ERROR;
+	}
+	close(fd);
 
 	std::unique_ptr<char[], cstdlib_deleter> enclosing_dir(HX_dirname(hl.base_dir.c_str()));
 	ret = CreatePath(enclosing_dir.get());
