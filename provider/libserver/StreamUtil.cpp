@@ -71,12 +71,12 @@ enum {
 class ECStreamSerializer final : public ECSerializer {
 	public:
 	ECStreamSerializer(IStream *lpBuffer);
-	virtual ECRESULT SetBuffer(void *) _kc_override;
-	virtual ECRESULT Write(const void *ptr, size_t size, size_t nmemb) _kc_override;
-	virtual ECRESULT Read(void *ptr, size_t size, size_t nmemb) _kc_override;
-	virtual ECRESULT Skip(size_t size, size_t nmemb) _kc_override;
-	virtual ECRESULT Flush(void) _kc_override;
-	virtual ECRESULT Stat(ULONG *have_read, ULONG *have_written) _kc_override;
+	virtual ECRESULT SetBuffer(void *) override;
+	virtual ECRESULT Write(const void *ptr, size_t size, size_t nmemb) override;
+	virtual ECRESULT Read(void *ptr, size_t size, size_t nmemb) override;
+	virtual ECRESULT Skip(size_t size, size_t nmemb) override;
+	virtual ECRESULT Flush() override;
+	virtual ECRESULT Stat(unsigned int *have_read, unsigned int *have_written) override;
 
 	private:
 	IStream *m_lpBuffer;

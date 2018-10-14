@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <exception>
 #include <cwctype>
@@ -40,7 +39,7 @@ namespace KC {
 // HACK: prototypes may differ depending on the compiler and/or system (the
 // second parameter may or may not be 'const'). This redeclaration is a hack
 // to have a common prototype "iconv_cast".
-class iconv_HACK _kc_final {
+class iconv_HACK final {
 public:
 	iconv_HACK(const char** ptr) : m_ptr(ptr) { }
 
@@ -52,7 +51,7 @@ private:
 	const char** m_ptr;
 };
 
-class PropTagCompare _kc_final {
+class PropTagCompare final {
 public:
 	bool operator()(ULONG lhs, ULONG rhs) const { 
 		if (PROP_TYPE(lhs) == PT_UNSPECIFIED || PROP_TYPE(rhs) == PT_UNSPECIFIED)

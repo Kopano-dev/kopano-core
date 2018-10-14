@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#include <kopano/zcdefs.h>
 #include <new>
 #include <utility>
 #include <kopano/memory.hpp>
@@ -23,11 +22,11 @@ namespace KC {
  * Subclass of DataCollector that is used to get the current state
  * through the MailboxTable.
  */
-class MailboxDataCollector _kc_final : public DataCollector {
+class MailboxDataCollector final : public DataCollector {
 public:
 	MailboxDataCollector(ArchiveStateCollector::ArchiveInfoMap &mapArchiveInfo, std::shared_ptr<ECLogger>);
-	HRESULT GetRequiredPropTags(LPMAPIPROP lpProp, LPSPropTagArray *lppPropTagArray) const _kc_override;
-	HRESULT CollectData(LPMAPITABLE lpStoreTable) _kc_override;
+	HRESULT GetRequiredPropTags(IMAPIProp *, SPropTagArray **) const override;
+	HRESULT CollectData(IMAPITable *store_table) override;
 
 private:
 	ArchiveStateCollector::ArchiveInfoMap &m_mapArchiveInfo;

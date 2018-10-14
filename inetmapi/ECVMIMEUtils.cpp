@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <exception>
 #include <memory>
@@ -37,10 +36,9 @@ public:
 	virtual ~mapiTimeoutHandler(void) = default;
 
 	// @todo add logging
-	virtual bool isTimeOut() _kc_override { return getTime() >= (m_last + 5*60); };
-	virtual void resetTimeOut() _kc_override { m_last = getTime(); };
-	virtual bool handleTimeOut() _kc_override { return false; };
-
+	virtual bool isTimeOut() override { return getTime() >= (m_last + 5*60); };
+	virtual void resetTimeOut() override { m_last = getTime(); };
+	virtual bool handleTimeOut() override { return false; };
 	const unsigned int getTime() const {
 		return vmime::platform::getHandler()->getUnixTime();
 	}

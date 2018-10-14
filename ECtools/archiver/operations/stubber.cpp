@@ -23,7 +23,7 @@ namespace KC {
  *
  * This class is used as the predicate argument in find_if.
  */
-class IsNotWrapped _kc_final {
+class IsNotWrapped final {
 	public:
 	/**
 	 * This method is called for each SObjectEntry for which the store entryid needs to be

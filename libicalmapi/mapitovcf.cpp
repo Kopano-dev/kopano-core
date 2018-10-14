@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2017 - Kopano and its licensors
  */
-#include <kopano/zcdefs.h>
 #include <memory>
 #include <new>
 #include <cstdlib>
@@ -26,10 +25,10 @@
 
 namespace KC {
 
-class mapitovcf_impl _kc_final : public mapitovcf {
+class mapitovcf_impl final : public mapitovcf {
 	public:
-	HRESULT add_message(IMessage *) _kc_override;
-	HRESULT finalize(std::string *) _kc_override;
+	HRESULT add_message(IMessage *) override;
+	HRESULT finalize(std::string *) override;
 
 	private:
 	bool prop_is_empty(const SPropValue &s) const;

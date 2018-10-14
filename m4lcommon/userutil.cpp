@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <string>
 #include <utility>
@@ -28,7 +27,7 @@
 
 namespace KC {
 
-class servername _kc_final {
+class servername final {
 public:
 	servername(LPCTSTR lpszName): m_strName(lpszName) {}
 	servername(const servername &other): m_strName(other.m_strName) {}
@@ -57,11 +56,11 @@ static HRESULT GetMailboxDataPerServer(IMAPISession *lpSession, const char *lpsz
 static HRESULT UpdateServerList(IABContainer *lpContainer, std::set<servername> &listServers);
 
 template <typename string_type, ULONG prAccount>
-class UserListCollector _kc_final : public DataCollector {
+class UserListCollector final : public DataCollector {
 public:
 	UserListCollector(IMAPISession *lpSession);
-	virtual HRESULT GetRequiredPropTags(LPMAPIPROP prop, LPSPropTagArray *) const _kc_override;
-	virtual HRESULT CollectData(LPMAPITABLE store_table) _kc_override;
+	virtual HRESULT GetRequiredPropTags(IMAPIProp *, SPropTagArray **) const override;
+	virtual HRESULT CollectData(IMAPITable *store_table) override;
 	void move_result(std::list<string_type> *lplstUsers);
 
 private:

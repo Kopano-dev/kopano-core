@@ -40,7 +40,7 @@
 
 namespace KC {
 
-class SessionRestorer _kc_final {
+class SessionRestorer final {
 	public:
 	HRESULT restore_profile(const std::string &, IMAPISession **);
 
@@ -55,7 +55,7 @@ class SessionRestorer _kc_final {
 	object_ptr<M4LMsgServiceAdmin> m_svcadm;
 };
 
-class SessionSaver _kc_final {
+class SessionSaver final {
 	public:
 	static HRESULT save_profile(IMAPISession *, std::string &);
 };

@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <string>
 #include <memory>
@@ -989,16 +988,16 @@ HRESULT DoSentMail(IMAPISession *lpSession, IMsgStore *lpMDBParam,
 
 // This is a class that implements IMAPIProp's GetProps(), and nothing else. Its data
 // is retrieved from the passed lpProps/cValues property array
-class ECRowWrapper _kc_final : public IMAPIProp {
+class ECRowWrapper final : public IMAPIProp {
 public:
 	ECRowWrapper(const SPropValue *lpProps, ULONG cValues) : m_cValues(cValues), m_lpProps(lpProps) {}
-	ULONG AddRef(void) _kc_override { return 1; } // no ref counting
-	ULONG Release(void) _kc_override { return 1; }
-	HRESULT QueryInterface(const IID &iid, LPVOID *lpvoid) _kc_override { return MAPI_E_INTERFACE_NOT_SUPPORTED; }
+	ULONG AddRef() override { return 1; } /* no ref counting */
+	ULONG Release() override { return 1; }
+	HRESULT QueryInterface(const IID &, void **) override { return MAPI_E_INTERFACE_NOT_SUPPORTED; }
 
-	HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) _kc_override { return MAPI_E_NOT_FOUND; }
-	HRESULT SaveChanges(ULONG ulFlags) _kc_override { return MAPI_E_NO_SUPPORT; }
-	HRESULT GetProps(const SPropTagArray *lpTags, ULONG ulFlags, ULONG *lpcValues, SPropValue **lppProps) _kc_override
+	HRESULT GetLastError(HRESULT result, unsigned int flags, MAPIERROR **) override { return MAPI_E_NOT_FOUND; }
+	HRESULT SaveChanges(unsigned int flags) override { return MAPI_E_NO_SUPPORT; }
+	HRESULT GetProps(const SPropTagArray *lpTags, ULONG ulFlags, ULONG *lpcValues, SPropValue **lppProps) override
 	{
 		memory_ptr<SPropValue> lpProps;
 		convert_context converter;
@@ -1045,14 +1044,14 @@ public:
 
 		return hr;
 	};
-	HRESULT GetPropList(ULONG ulFlags, LPSPropTagArray *lppTags) _kc_override { return MAPI_E_NO_SUPPORT; }
-	HRESULT OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk) _kc_override { return MAPI_E_NO_SUPPORT; }
-	HRESULT SetProps(ULONG cValues, const SPropValue *lpProps, SPropProblemArray **lppProblems) _kc_override { return MAPI_E_NO_SUPPORT; }
-	HRESULT DeleteProps(const SPropTagArray *, SPropProblemArray **) _kc_override { return MAPI_E_NO_SUPPORT; }
-	HRESULT CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, const SPropTagArray *lpExcludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, void *lpDestObj, ULONG ulFlags, SPropProblemArray **lppProblems) _kc_override { return MAPI_E_NO_SUPPORT; }
-	HRESULT CopyProps(const SPropTagArray *lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems) _kc_override { return MAPI_E_NO_SUPPORT; }
-	HRESULT GetNamesFromIDs(SPropTagArray **tags, const GUID *propset, ULONG flags, ULONG *nvals, MAPINAMEID ***names) override { return MAPI_E_NO_SUPPORT; }
-	HRESULT GetIDsFromNames( ULONG cPropNames, LPMAPINAMEID *lppPropNames, ULONG ulFlags, LPSPropTagArray *lppPropTags) _kc_override { return MAPI_E_NO_SUPPORT; }
+	HRESULT GetPropList(unsigned int flags, SPropTagArray **tags) override { return MAPI_E_NO_SUPPORT; }
+	HRESULT OpenProperty(unsigned int tag, const IID *, unsigned int intf_opts, unsigned int flags, IUnknown **) override { return MAPI_E_NO_SUPPORT; }
+	HRESULT SetProps(unsigned int nval, const SPropValue *props, SPropProblemArray **) override { return MAPI_E_NO_SUPPORT; }
+	HRESULT DeleteProps(const SPropTagArray *, SPropProblemArray **) override { return MAPI_E_NO_SUPPORT; }
+	HRESULT CopyTo(unsigned int nexcl, const IID *excliid, const SPropTagArray *exclprop, ULONG ui_param, IMAPIProgress *, const IID *intf, void *dest, unsigned int flags, SPropProblemArray **) override { return MAPI_E_NO_SUPPORT; }
+	HRESULT CopyProps(const SPropTagArray *inclprop, ULONG ui_param, IMAPIProgress *, const IID *intf, void *dest, unsigned int flags, SPropProblemArray **) override { return MAPI_E_NO_SUPPORT; }
+	HRESULT GetNamesFromIDs(SPropTagArray **tags, const GUID *propset, unsigned int flags, unsigned int *nvals, MAPINAMEID ***names) override { return MAPI_E_NO_SUPPORT; }
+	HRESULT GetIDsFromNames(unsigned int n, MAPINAMEID **propnames, unsigned int flags, SPropTagArray **proptags) override { return MAPI_E_NO_SUPPORT; }
 private:
 	ULONG			m_cValues;
 	const SPropValue *m_lpProps;

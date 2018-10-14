@@ -42,7 +42,7 @@
 using namespace KC;
 typedef pyobj_ptr PyObjectAPtr;
 
-class PyMapiPlugin _kc_final : public pym_plugin_intf {
+class PyMapiPlugin final : public pym_plugin_intf {
 	public:
 	PyMapiPlugin(void) = default;
 	HRESULT Init(PyObject *lpModMapiPlugin, const char* lpPluginManagerClassName, const char *lpPluginPath);

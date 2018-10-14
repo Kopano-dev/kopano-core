@@ -26,7 +26,7 @@
 
 namespace KC {
 
-class PublishFreeBusy _kc_final {
+class PublishFreeBusy final {
 	public:
 	PublishFreeBusy(IMAPISession *, IMsgStore *defstore, time_t start, ULONG months);
 	HRESULT HrInit();
