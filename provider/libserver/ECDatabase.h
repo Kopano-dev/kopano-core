@@ -23,20 +23,20 @@ public:
 	virtual ~ECDatabase(void);
 	static ECRESULT	InitLibrary(const char *dir, const char *config_file);
 	static void UnloadLibrary(void);
-	virtual kd_trans Begin(ECRESULT &) _kc_override;
-	virtual ECRESULT Commit(void) _kc_override;
+	virtual kd_trans Begin(ECRESULT &) override;
+	virtual ECRESULT Commit() override;
 	ECRESULT Connect(void);
 	ECRESULT CreateDatabase(void);
-	virtual ECRESULT DoSelect(const std::string &query, DB_RESULT *result, bool stream_result = false) _kc_override;
+	virtual ECRESULT DoSelect(const std::string &query, DB_RESULT *result, bool stream_result = false) override;
 	ECRESULT DoSelectMulti(const std::string &query);
-	virtual ECRESULT DoDelete(const std::string &query, unsigned int *affected_rows = nullptr) _kc_override;
-	virtual ECRESULT DoInsert(const std::string &query, unsigned int *insert_id = nullptr, unsigned int *affected_rows = nullptr) _kc_override;
-	virtual ECRESULT DoSequence(const std::string &seqname, unsigned int ulCount, unsigned long long *first_id) _kc_override;
-	virtual ECRESULT DoUpdate(const std::string &query, unsigned int *affected_rows = nullptr) _kc_override;
+	virtual ECRESULT DoDelete(const std::string &query, unsigned int *affected_rows = nullptr) override;
+	virtual ECRESULT DoInsert(const std::string &query, unsigned int *insert_id = nullptr, unsigned int *affected_rows = nullptr) override;
+	virtual ECRESULT DoSequence(const std::string &seqname, unsigned int ulCount, unsigned long long *first_id) override;
+	virtual ECRESULT DoUpdate(const std::string &query, unsigned int *affected_rows = nullptr) override;
 	ECRESULT FinalizeMulti(void);
 	ECRESULT GetNextResult(DB_RESULT *);
 	ECRESULT InitializeDBState(void);
-	virtual ECRESULT Rollback(void) _kc_override;
+	virtual ECRESULT Rollback() override;
 	bool SuppressLockErrorLogging(bool suppress);
 	void ThreadEnd(void);
 	void ThreadInit(void);
@@ -45,11 +45,11 @@ public:
 
 	private:
 	ECRESULT InitializeDBStateInner(void);
-	virtual const struct sSQLDatabase_t *GetDatabaseDefs(void) _kc_override;
+	virtual const struct sSQLDatabase_t *GetDatabaseDefs() override;
 	ECRESULT GetDatabaseVersion(zcp_versiontuple *);
 	ECRESULT GetFirstUpdate(unsigned int *lpulDatabaseRevision);
 	ECRESULT UpdateDatabaseVersion(unsigned int ulDatabaseRevision);
-	virtual ECRESULT Query(const std::string &q) _kc_override;
+	virtual ECRESULT Query(const std::string &q) override;
 
 	std::string error, m_dbname;
 	bool m_bForceUpdate = false, m_bFirstResult = false;
