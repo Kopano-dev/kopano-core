@@ -97,7 +97,7 @@ typedef __int64_t __int64;
 #endif
 
 /* This is a workaround for warnings in offsetof from stddef.h */
-#define offsetof_static(TYPE, MEMBER) ((size_t) (&((TYPE *)1)->MEMBER)-1)
+#define offsetof_static(TYPE, MEMBER) (reinterpret_cast<uintptr_t>(&((TYPE *)1)->MEMBER)-1)
 
 #define container_of(ptr, type, member) \
 	reinterpret_cast<type *>(reinterpret_cast<char *>(ptr) - offsetof_static(type, member))

@@ -947,7 +947,7 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage,
 
 			vmMessage->getHeader()->ContentType()->parse(m_parsectx, lpszContentType);
 			// copy via string so we can set the size of the string since it's binary
-			vmime::string inString(lpszRawSMTP.get(), (size_t)sStreamStat.cbSize.QuadPart);
+			vmime::string inString(lpszRawSMTP.get(), static_cast<size_t>(sStreamStat.cbSize.QuadPart));
 			vmMessage->getBody()->setContents(vmime::make_shared<vmime::stringContentHandler>(inString));
 
 			// vmime now encodes the body too, so I don't have to
