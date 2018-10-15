@@ -29,7 +29,7 @@ namespace KC {
 
 class BinReader final {
 public:
-	BinReader(const char *lpData, unsigned int ulLen) :
+	BinReader(const char *lpData, size_t ulLen) :
 		m_lpData(lpData), m_ulLen(ulLen)
 	{}
     
@@ -61,9 +61,9 @@ public:
         return 4;
     };
 
-    int ReadString(std::string *lpData, unsigned int len) {
-        unsigned int reallen = len > m_ulLen - m_ulCursor ? m_ulLen - m_ulCursor : len;
-        
+	int ReadString(std::string *lpData, size_t len)
+	{
+		auto reallen = len > m_ulLen - m_ulCursor ? m_ulLen - m_ulCursor : len;
         if(m_ulCursor + reallen > m_ulLen)
             return -1;
 
@@ -83,7 +83,7 @@ public:
     
 private:
 	const char *m_lpData;
-	unsigned int m_ulLen, m_ulCursor = 0;
+	size_t m_ulLen, m_ulCursor = 0;
 };
 
 class BinWriter final {
@@ -172,7 +172,7 @@ private:
  * @param[in]	ulLen	length of lpData
  * @param[in]	ulFlags	possible task flag
  */
-HRESULT RecurrenceState::ParseBlob(const char *lpData, unsigned int ulLen,
+HRESULT RecurrenceState::ParseBlob(const char *lpData, size_t ulLen,
     ULONG ulFlags)
 {
     HRESULT hr = hrSuccess;

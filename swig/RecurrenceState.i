@@ -20,7 +20,7 @@
 
 %cstring_output_allocate_size(char **lpData, size_t *lpulLen, MAPIFreeBuffer(*$1));
 
-%typemap(in) (const char *lpData, unsigned int ulLen) (char *buf = NULL, Py_ssize_t size)
+%typemap(in) (const char *lpData, size_t ulLen) (char *buf = NULL, Py_ssize_t size)
 {
   if(PyBytes_AsStringAndSize($input, &buf, &size) == -1)
     %argument_fail(SWIG_ERROR,"$type",$symname, $argnum);
