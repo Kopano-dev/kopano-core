@@ -12,6 +12,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <csignal>
+#include <getopt.h>
 #include <mapi.h>
 #include <mapix.h>
 #include <mapiutil.h>
@@ -20,7 +21,7 @@
 #include <kopano/ECScheduler.h>
 #include <kopano/automapi.hpp>
 #include <kopano/memory.hpp>
-#include <kopano/my_getopt.h>
+#include <kopano/stringutil.h>
 #include "ECMonitorDefs.h"
 #include "ECQuotaMonitor.h"
 #include <kopano/CommonUtil.h>

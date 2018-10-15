@@ -32,6 +32,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <csignal>
+#include <getopt.h>
 #include <time.h>
 #include <sys/stat.h>
 
@@ -56,7 +57,6 @@
 #include <kopano/UnixUtil.h>
 #include <kopano/automapi.hpp>
 #include <kopano/memory.hpp>
-#include <kopano/my_getopt.h>
 #include <kopano/ecversion.h>
 #include <kopano/Util.h>
 #include <kopano/scope.hpp>

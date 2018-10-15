@@ -34,10 +34,10 @@
 #include <algorithm>
 #include <cstdlib>
 #include <cerrno>
+#include <getopt.h>
 #include <kopano/ECLogger.h>
 #include <kopano/ECConfig.h>
 #include <kopano/MAPIErrors.h>
-#include <kopano/my_getopt.h>
 #include <kopano/ECChannel.h>
 #include "charset/localeutil.h"
 #include "POP3.h"

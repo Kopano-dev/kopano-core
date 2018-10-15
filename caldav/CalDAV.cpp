@@ -27,12 +27,13 @@
 #include <csignal>
 #include <iostream>
 #include <string>
+#include <getopt.h>
 #include <kopano/ECLogger.h>
 #include <kopano/ECChannel.h>
 #include <kopano/memory.hpp>
-#include <kopano/my_getopt.h>
 #include <kopano/ecversion.h>
 #include <kopano/CommonUtil.h>
+#include <kopano/stringutil.h>
 #include "charset/localeutil.h"
 #include "SSLUtil.h"
 #include "fileutil.h"

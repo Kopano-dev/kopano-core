@@ -12,6 +12,7 @@
 #include <string>
 #include <cerrno>
 #include <cstring>
+#include <getopt.h>
 #include <sys/resource.h>
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
@@ -39,7 +40,6 @@
 #include <sys/stat.h>
 #include <kopano/ECScheduler.h>
 #include <kopano/kcodes.h>
-#include <kopano/my_getopt.h>
 #include <kopano/tie.hpp>
 #include "charset/localeutil.h"
 #include "cmd.hpp"

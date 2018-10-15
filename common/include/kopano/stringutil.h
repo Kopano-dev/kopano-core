@@ -19,6 +19,7 @@
 #include <openssl/md5.h>
 
 struct SBinary;
+struct option;
 
 namespace KC {
 
@@ -217,6 +218,8 @@ extern _kc_export std::string string_strip_crlf(const char *);
 extern _kc_export bool SymmetricIsCrypted(const char *);
 extern _kc_export std::string SymmetricDecrypt(const char *);
 extern _kc_export std::string content_type_get_charset(const char *in, const char *dflt);
+/* Permit unknown long options, move them to end of argv like arguments */
+extern _kc_export int my_getopt_long_permissive(int, char **, const char *, const struct option *, int *);
 
 } /* namespace */
 
