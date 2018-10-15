@@ -21,8 +21,25 @@
 #include <kopano/ECLogger.h>
 #include <openssl/md5.h>
 #include <mapidefs.h>
+#include "ECACL.h"
 
 namespace KC {
+
+struct acl_right_name {
+	/* The data in this array must be sorted on the n_right field. */
+	unsigned int n_right;
+	const char *tx_right;
+
+	bool operator<(const acl_right_name &r) const { return n_right < r.n_right; }
+};
+
+struct acl_role_name {
+	/* The data in this array must be sorted on the n_rights field. */
+	unsigned int n_rights;
+	const char *tx_role;
+
+	bool operator<(const acl_role_name &r) const { return n_rights < r.n_rights; }
+};
 
 /**
  * This class performs the actual conversion and caching of the translated
@@ -833,6 +850,84 @@ int my_getopt_long_permissive(int argc, char **argv, const char *shortopts,
 			/* ignore return value */;
 	}
 	return c;
+}
+
+static const acl_right_name acl_rights[] = {
+	{RIGHTS_READ_ITEMS, "item read"},
+	{RIGHTS_CREATE_ITEMS, "item create"},
+	{RIGHTS_EDIT_OWN, "edit own"},
+	{RIGHTS_DELETE_OWN, "delete own"},
+	{RIGHTS_EDIT_ALL, "edit all"},
+	{RIGHTS_DELETE_ALL, "delete all"},
+	{RIGHTS_CREATE_SUBFOLDERS, "create sub"},
+	{RIGHTS_FOLDER_OWNER, "own"},
+	{RIGHTS_FOLDER_CONTACT, "contact"},
+	{RIGHTS_FOLDER_VISIBLE, "view"}
+};
+
+static const acl_role_name acl_roles[] = {
+	{RIGHTS_NONE, "none"}, /* Actually a right, but not seen as such by is_right */
+	{ROLE_NONE, "none"}, /* This might be confusing */
+	{ROLE_REVIEWER, "reviewer"},
+	{ROLE_CONTRIBUTOR, "contributor"},
+	{ROLE_NONEDITING_AUTHOR, "non-editting author"},
+	{ROLE_AUTHOR, "author"},
+	{ROLE_EDITOR, "editor"},
+	{ROLE_PUBLISH_EDITOR, "publish editor"},
+	{ROLE_PUBLISH_AUTHOR, "publish author"},
+	{ROLE_OWNER, "owner"}
+};
+
+static inline bool is_right(unsigned int ror)
+{
+	/* A right has exactly 1 bit set. Otherwise, it is a role. */
+	return (ror ^ (ror - 1)) == 0;
+}
+
+static const struct acl_right_name *find_acl_right(unsigned int rightnum)
+{
+	const struct acl_right_name k = {rightnum, nullptr};
+	auto e = std::lower_bound(acl_rights, ARRAY_END(acl_rights), k);
+	if (e != ARRAY_END(acl_rights) && e->n_right == rightnum)
+		return e;
+	return nullptr;
+}
+
+static const struct acl_role_name *find_acl_role(unsigned int rolenum)
+{
+	const struct acl_role_name k = {rolenum, nullptr};
+	auto e = std::lower_bound(acl_roles, ARRAY_END(acl_roles), k);
+	if (e != ARRAY_END(acl_roles) && e->n_rights == rolenum)
+		return e;
+	return nullptr;
+}
+
+std::string AclRightsToString(unsigned int ror)
+{
+	if (ror == static_cast<unsigned int>(-1))
+		return "missing or invalid";
+	if (is_right(ror)) {
+		auto r = find_acl_right(ror);
+		if (r == nullptr)
+			return stringify_hex(ror);
+		return r->tx_right;
+	}
+
+	auto role = find_acl_role(ror);
+	if (role != nullptr)
+		return role->tx_role;
+
+	std::ostringstream ostr;
+	bool empty = true;
+	for (unsigned bit = 0, mask = 1; bit < 32; ++bit, mask <<= 1) {
+		if (ror & mask) {
+			if (!empty)
+				ostr << ",";
+			empty = false;
+			ostr << AclRightsToString(mask);
+		}
+	}
+	return ostr.str();
 }
 
 } /* namespace */
