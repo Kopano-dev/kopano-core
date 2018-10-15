@@ -511,14 +511,12 @@ int main(int argc, char **argv) try
 	/*
 	 * Cleanup
 	 */
-	if (hr == hrSuccess) {
-		cout << endl << "Statistics:" << endl;
-		for (const auto &i : checkmap)
-			i.second->PrintStatistics(i.first);
-		return 0;
-	} else {
+	if (hr != hrSuccess)
 		return 1;
-	}
+	cout << endl << "Statistics:" << endl;
+	for (const auto &i : checkmap)
+		i.second->PrintStatistics(i.first);
+	return 0;
 } catch (...) {
 	std::terminate();
 }
