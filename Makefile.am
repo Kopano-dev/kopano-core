@@ -645,7 +645,7 @@ libkcutil_la_SOURCES = \
 	common/ECMemStream.cpp \
 	common/ECScheduler.cpp common/ECThreadPool.cpp \
 	common/ECUnknown.cpp common/HtmlEntity.cpp common/HtmlToTextParser.cpp \
-	common/IStreamAdapter.cpp common/MAPIErrors.cpp common/SSLUtil.cpp \
+	common/MAPIErrors.cpp common/SSLUtil.cpp \
 	common/StatsClient.cpp common/TimeUtil.cpp \
 	common/UnixUtil.cpp common/codepage.cpp common/fileutil.cpp \
 	common/my_getopt.cpp common/platform.cpp \
