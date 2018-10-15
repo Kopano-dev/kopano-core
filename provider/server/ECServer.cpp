@@ -2,6 +2,9 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
+#ifdef HAVE_CONFIG_H
+#	include "config.h"
+#endif
 #include <iostream>
 #include <memory>
 #include <new>
@@ -9,7 +12,7 @@
 #include <string>
 #include <cerrno>
 #include <cstring>
-#include "config.h"
+#include <sys/resource.h>
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <kopano/ECChannel.h>

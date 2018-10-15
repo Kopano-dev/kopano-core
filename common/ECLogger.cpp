@@ -2,7 +2,9 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+#	include "config.h"
+#endif
 #include <kopano/platform.h>
 #include <kopano/ECLogger.h>
 #include <algorithm>
@@ -22,7 +24,6 @@
 #include <kopano/scope.hpp>
 #include <kopano/stringutil.h>
 #include "charset/localeutil.h"
-#include "config.h"
 #include <poll.h>
 #if HAVE_SYSLOG_H
 #include <syslog.h>

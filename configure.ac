@@ -650,10 +650,6 @@ AS_IF([test "$have_icu" = 0], [
 ])
 ZCPPFLAGS="$ZCPPFLAGS $icu_uc_CFLAGS $icu_i18n_CFLAGS"
 
-# all libs for programs, because functions are in static common stuff
-PROG_LIBS="$UUID_LIBS $INTL_LIBS $ICONV_LIBS $GZ_LIBS"
-AC_SUBST(PROG_LIBS)
-
 # done testing C++ requirements
 AC_LANG_POP
 dnl Set default project flags. On overriding AM_CXXFLAGS, include ${ZCXXFLAGS}
@@ -783,7 +779,6 @@ XML2 libs	:	$XML2_LIBS
 ICal flags	:	$ICAL_CFLAGS
 ICal libs	:	$ICAL_LIBS
 ncurses libs	:	$NCURSES_LIBS
-Clients libs	:	$PROG_LIBS
 LDAP support	:	$want_ldap
 LDAP flags	:	$LDAP_FLAGS
 LDAP libs	:	$LDAP_LIBS

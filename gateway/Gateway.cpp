@@ -2,7 +2,9 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+#	include "config.h"
+#endif
 #include <atomic>
 #include <kopano/platform.h>
 #include <memory>
@@ -13,6 +15,7 @@
 #include <csignal>
 #include <netdb.h>
 #include <poll.h>
+#include <sys/resource.h>
 #include <inetmapi/inetmapi.h>
 #include <mapi.h>
 #include <mapix.h>

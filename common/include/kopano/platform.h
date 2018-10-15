@@ -5,16 +5,11 @@
 #ifndef PLATFORM_H
 #define PLATFORM_H
 
-#include <kopano/zcdefs.h>
-
-enum {
-	KC_DESIRED_FILEDES = 8192,
-};
-
   #ifdef HAVE_CONFIG_H
   #include "config.h"
   #endif
   #include <kopano/platform.linux.h>
+#include <kopano/zcdefs.h>
 #include <chrono>
 #include <mutex>
 #include <shared_mutex>
@@ -25,6 +20,10 @@ enum {
 #include <cstddef>
 #include <endian.h>
 #include <pthread.h>
+
+enum {
+	KC_DESIRED_FILEDES = 8192,
+};
 
 namespace KC {
 

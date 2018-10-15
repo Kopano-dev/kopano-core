@@ -47,7 +47,9 @@ performed on the complete strings before the actual comparison is even started.
 
 At some point we need to rewqrite these functions to do all the conversion on the fly to minimize processing.
 */
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+#	include "config.h"
+#endif
 #include <kopano/platform.h>
 #include <kopano/ustringutil.h>
 #include <kopano/CommonUtil.h>
