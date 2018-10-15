@@ -35,8 +35,6 @@ ECScheduler::~ECScheduler(void)
 
 HRESULT ECScheduler::AddSchedule(eSchedulerType eType, unsigned int ulBeginCycle, void* (*lpFunction)(void*), void* lpData)
 {
-	scoped_rlock l_sched(m_hSchedulerMutex);
-
 	if (lpFunction == NULL)
 		return E_INVALIDARG;
 
@@ -46,6 +44,7 @@ HRESULT ECScheduler::AddSchedule(eSchedulerType eType, unsigned int ulBeginCycle
 	sECSchedule.lpFunction = lpFunction;
 	sECSchedule.lpData = lpData;
 	sECSchedule.tLastRunTime = 0;
+	scoped_rlock l_sched(m_hSchedulerMutex);
 	m_listScheduler.emplace_back(std::move(sECSchedule));
 	return S_OK;
 }
