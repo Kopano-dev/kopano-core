@@ -23,7 +23,7 @@
 #include <kopano/MAPIErrors.h>
 #include <kopano/memory.hpp>
 #include <kopano/scope.hpp>
-#include "TimeUtil.h"
+#include <kopano/timeutil.hpp>
 #include "common/fileutil.h"
 
 using namespace KC;

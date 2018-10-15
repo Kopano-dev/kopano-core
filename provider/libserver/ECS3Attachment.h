@@ -12,7 +12,7 @@
 #include <set>
 #include <string>
 #include <libs3.h>
-#include "TimeUtil.h"
+#include <kopano/timeutil.hpp>
 #include "ECAttachmentStorage.h"
 
 struct soap;

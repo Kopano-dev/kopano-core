@@ -62,7 +62,7 @@
 #include <kopano/scope.hpp>
 #include <kopano/stringutil.h>
 #include <kopano/tie.hpp>
-#include "TimeUtil.h"
+#include <kopano/timeutil.hpp>
 #include <kopano/mapiext.h>
 #include <edkmdb.h>
 #include <edkguid.h>

@@ -53,7 +53,7 @@
 #include <kopano/memory.hpp>
 #include <kopano/scope.hpp>
 #include <kopano/tie.hpp>
-#include "TimeUtil.h"
+#include <kopano/timeutil.hpp>
 #include "charset/localeutil.h"
 #include "fileutil.h"
 #include "PyMapiPlugin.h"

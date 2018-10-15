@@ -5,7 +5,7 @@
 #include <new>
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
-#include "TimeUtil.h"
+#include <kopano/timeutil.hpp>
 #include "ECFreeBusyData.h"
 #include "ECEnumFBBlock.h"
 

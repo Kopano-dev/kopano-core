@@ -12,7 +12,7 @@
 #include <mapix.h>
 #include <kopano/Util.h>
 #include <list>
-#include "TimeUtil.h"
+#include <kopano/timeutil.hpp>
 #include "freebusy.h"
 #include "freebusyutil.h"
 

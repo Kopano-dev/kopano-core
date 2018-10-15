@@ -6,7 +6,7 @@
 #include <kopano/platform.h>
 #include <cmath>
 #include <mapiutil.h>
-#include "TimeUtil.h"
+#include <kopano/timeutil.hpp>
 
 extern "C" {
 	// Remove these defines to remove warnings

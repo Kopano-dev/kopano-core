@@ -7,7 +7,7 @@
 #include <mapix.h>
 #include <ctime>
 #include <iostream>
-#include "TimeUtil.h"
+#include <kopano/timeutil.hpp>
 #include "ECMapiUtils.h"
 
 namespace KC {

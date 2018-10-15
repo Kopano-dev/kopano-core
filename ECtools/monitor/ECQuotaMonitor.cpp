@@ -28,7 +28,7 @@
 #include <kopano/IECInterfaces.hpp>
 #include <kopano/CommonUtil.h>
 #include <kopano/stringutil.h>
-#include "TimeUtil.h"
+#include <kopano/timeutil.hpp>
 #include <kopano/mapiext.h>
 #include "ECMonitorDefs.h"
 #include "ECQuotaMonitor.h"

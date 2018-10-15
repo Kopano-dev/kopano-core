@@ -8,7 +8,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
-#include "TimeUtil.h"
+#include <kopano/timeutil.hpp>
 
 namespace KC {
 

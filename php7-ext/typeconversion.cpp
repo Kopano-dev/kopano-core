@@ -5,7 +5,7 @@
 #include <kopano/platform.h>
 #include <cmath>
 #include <mapiutil.h>
-#include "TimeUtil.h"
+#include <kopano/timeutil.hpp>
 #include "php-ext/phpconfig.h"
 #if __GNUC_PREREQ(5, 0) && !__GNUC_PREREQ(6, 0)
 using std::isfinite;

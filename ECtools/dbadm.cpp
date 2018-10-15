@@ -15,7 +15,7 @@
 #include <kopano/MAPIErrors.h>
 #include <kopano/scope.hpp>
 #include <kopano/stringutil.h>
-#include "TimeUtil.h"
+#include <kopano/timeutil.hpp>
 
 using namespace KC;
 

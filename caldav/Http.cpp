@@ -9,7 +9,7 @@
 #include "Http.h"
 #include <kopano/mapi_ptr.h>
 #include <kopano/stringutil.h>
-#include "TimeUtil.h"
+#include <kopano/timeutil.hpp>
 #include <kopano/MAPIErrors.h>
 #include <kopano/ECConfig.h>
 

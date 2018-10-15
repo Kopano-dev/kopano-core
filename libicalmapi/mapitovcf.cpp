@@ -19,7 +19,7 @@
 #include <kopano/ecversion.h>
 #include <kopano/ECRestriction.h>
 #include <kopano/mapiext.h>
-#include "TimeUtil.h"
+#include <kopano/timeutil.hpp>
 #include <kopano/Util.h>
 #include "mapitovcf.hpp"
 #include "icaluid.h"

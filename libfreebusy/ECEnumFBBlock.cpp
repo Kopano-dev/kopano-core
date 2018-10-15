@@ -7,7 +7,7 @@
 #include "ECEnumFBBlock.h"
 #include "freebusyutil.h"
 #include <kopano/stringutil.h>
-#include "TimeUtil.h"
+#include <kopano/timeutil.hpp>
 
 namespace KC {
 

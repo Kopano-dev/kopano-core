@@ -28,7 +28,7 @@
 #include <kopano/MAPIErrors.h>
 #include <kopano/Util.h>
 #include <kopano/scope.hpp>
-#include "TimeUtil.h"
+#include <kopano/timeutil.hpp>
 #include <inetmapi/inetmapi.h>
 #include <kopano/mapiext.h>
 #include <vector>

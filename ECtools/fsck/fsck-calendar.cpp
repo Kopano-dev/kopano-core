@@ -16,7 +16,7 @@
 #include <kopano/namedprops.h>
 #include <kopano/charset/convert.h>
 #include <kopano/RecurrenceState.h>
-#include "TimeUtil.h"
+#include <kopano/timeutil.hpp>
 #include "fsck.h"
 
 using namespace KC;

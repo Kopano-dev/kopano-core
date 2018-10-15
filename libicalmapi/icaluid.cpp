@@ -8,7 +8,7 @@
 #include "icaluid.h"
 #include <mapix.h>
 #include <kopano/stringutil.h>
-#include "TimeUtil.h"
+#include <kopano/timeutil.hpp>
 
 namespace KC {
 

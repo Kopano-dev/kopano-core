@@ -24,7 +24,7 @@
 #include "ECTableManager.h"
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
-#include "TimeUtil.h"
+#include <kopano/timeutil.hpp>
 #include "ECDatabaseFactory.h"
 #include "ECPluginFactory.h"
 #include "ECSessionGroup.h"

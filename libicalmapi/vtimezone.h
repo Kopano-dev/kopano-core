@@ -10,7 +10,7 @@
 #include <mapidefs.h>
 #include <string>
 #include <map>
-#include "TimeUtil.h"
+#include <kopano/timeutil.hpp>
 #include <libical/ical.h>
 
 namespace KC {

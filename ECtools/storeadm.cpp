@@ -23,7 +23,7 @@
 #include <kopano/MAPIErrors.h>
 #include <kopano/platform.h>
 #include <kopano/stringutil.h>
-#include "TimeUtil.h"
+#include <kopano/timeutil.hpp>
 #include <kopano/memory.hpp>
 #include <kopano/charset/convert.h>
 #include "ConsoleTable.h"

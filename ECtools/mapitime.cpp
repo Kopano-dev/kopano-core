@@ -21,7 +21,7 @@
 #include <kopano/ecversion.h>
 #include <kopano/memory.hpp>
 #include <kopano/stringutil.h>
-#include "TimeUtil.h"
+#include <kopano/timeutil.hpp>
 #include <kopano/IECInterfaces.hpp>
 #ifdef HAVE_CURL_CURL_H
 #	include <curl/curl.h>
