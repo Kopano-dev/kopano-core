@@ -252,7 +252,7 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 	LONG ulType = 0;
 	memory_ptr<char> lpData;
 	memory_ptr<MAPINAMEID *> ta;
-	unsigned int ulLen = 0;
+	size_t ulLen = 0;
 
 	enum {
 		E_RECURRENCE,

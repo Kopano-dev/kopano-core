@@ -28,7 +28,7 @@ namespace KC {
  * @param[out]	lpulLen	Length of returned data in lppData.
  * @param[in]	base	base pointer to MAPIAllocateMore() for lppData allocation. NULL to use MAPIAllocateBuffer().
  */
-HRESULT recurrence::HrGetRecurrenceState(char **lppData, unsigned int *lpulLen, void *base)
+HRESULT recurrence::HrGetRecurrenceState(char **lppData, size_t *lpulLen, void *base)
 {
 	struct tm tm;
 

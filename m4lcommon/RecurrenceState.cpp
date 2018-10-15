@@ -88,7 +88,8 @@ private:
 
 class BinWriter final {
 public:
-    void GetData(char **lppData, unsigned int *lpulLen, void *base) {
+	void GetData(char **lppData, size_t *lpulLen, void *base)
+	{
         char *lpData;
 		auto hr = MAPIAllocateMore(m_strData.size(), base, reinterpret_cast<void **>(&lpData));
 	if (hr == hrSuccess)
@@ -115,7 +116,8 @@ public:
         return 4;
     }
     
-    int WriteString(const char *data, unsigned int len) {
+	int WriteString(const char *data, size_t len)
+	{
         std::string s(data, len);
         
         m_strData += s;
@@ -367,7 +369,7 @@ exit:
  * @param[out]	lpulLen	lenght of lppData
  * @parampin]	base	base pointer for allocation, may be NULL to start new chainn of MAPIAllocateBuffer
  */
-HRESULT RecurrenceState::GetBlob(char **lppData, unsigned int *lpulLen, void *base)
+HRESULT RecurrenceState::GetBlob(char **lppData, size_t *lpulLen, void *base)
 {
     BinWriter data;
     std::vector<Exception>::const_iterator j = lstExceptions.begin();

@@ -18,7 +18,7 @@
 %include "std_vector.i"
 %include "std_wstring.i"
 
-%cstring_output_allocate_size(char **lpData, unsigned int *lpulLen, MAPIFreeBuffer(*$1));
+%cstring_output_allocate_size(char **lpData, size_t *lpulLen, MAPIFreeBuffer(*$1));
 
 %typemap(in) (const char *lpData, unsigned int ulLen) (char *buf = NULL, Py_ssize_t size)
 {
