@@ -236,6 +236,7 @@ LIBNCURSES_WITH_CONFIG
 AC_CHECK_HEADERS([syslog.h sys/un.h sys/stat.h malloc.h])
 AC_CHECK_FUNCS([mallinfo timegm getpeereid getpwnam_r vsyslog vsnprintf_l])
 AC_CHECK_MEMBERS([siginfo_t.si_fd siginfo_t.si_utime], [], [], [#include <csignal>])
+AC_CHECK_MEMBERS([sockpeercred.uid], [], [], [#include <sys/socket.h>])
 
 #
 # find required/optional libraries

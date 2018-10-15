@@ -29,22 +29,11 @@
 #else
 #	include <uuid.h>
 #endif
-#if defined(__linux__) && defined(__GLIBC__)
-#	include <cxxabi.h>
+#if defined(__GLIBC__) || defined(OPENBSD)
 #	include <execinfo.h>
+#	define WITH_BACKTRACE 1
 #endif
 #include "fileutil.h"
-
-#ifdef __APPLE__
-// bsd
-#define ICONV_CONST const
-#elif OPENBSD
-// bsd
-#define ICONV_CONST const
-#else
-// linux
-#define ICONV_CONST
-#endif
 
 static bool rand_init_done = false;
 
@@ -62,23 +51,12 @@ HRESULT CoCreateGuid(LPGUID pNewGUID) {
 	if (!pNewGUID)
 		return MAPI_E_INVALID_PARAMETER;
 
+	static_assert(sizeof(GUID) == sizeof(uuid_t), "UUID type sizes mismatch");
 #if HAVE_UUID_CREATE
-#ifdef OPENBSD
-	uuid_t *g = NULL;
-	void *vp = NULL;
-	size_t n = 0;
-	// error codes are not checked!
-	uuid_create(&g);
-	uuid_make(g, UUID_MAKE_V1);
-	uuid_export(g, UUID_FMT_BIN, &vp, &n);
-	memcpy(pNewGUID, &vp, UUID_LEN_BIN);
-	uuid_destroy(g);
-#else
 	uuid_t g;
 	uint32_t uid_ret;
 	uuid_create(&g, &uid_ret);
 	memcpy(pNewGUID, &g, sizeof(g));
-#endif // OPENBSD
 #else
 	uuid_t g;
 	uuid_generate(g);
@@ -186,6 +164,7 @@ std::vector<std::string> get_backtrace(void)
 {
 #define BT_MAX 256
 	std::vector<std::string> result;
+#ifdef WITH_BACKTRACE
 	void *addrlist[BT_MAX];
 	int addrlen = backtrace(addrlist, BT_MAX);
 	if (addrlen == 0)
@@ -194,6 +173,7 @@ std::vector<std::string> get_backtrace(void)
 	for (int i = 0; i < addrlen; ++i)
 		result.emplace_back(symbollist[i]);
 	free(symbollist);
+#endif
 	return result;
 #undef BT_MAX
 }
