@@ -299,6 +299,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 				break;
 			case OP_DELETE:
 			case OP_MARK_AS_READ:
+				da->__union = INT_MAX; /* serialize neither member */
 				// no other data needed
 				break;
 			}
