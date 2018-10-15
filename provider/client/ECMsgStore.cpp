@@ -1022,6 +1022,7 @@ HRESULT	ECMsgStore::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFl
 		}
 		break;
 	case PROP_ID(PR_EC_SERVER_VERSION): {
+		lpsPropValue->ulPropTag = ulPropTag;
 		auto &ver = lpStore->lpTransport->m_server_version;
 		if (PROP_TYPE(ulPropTag) == PT_STRING8) {
 			hr = ECAllocateMore(ver.size() + 1, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.lpszA));
