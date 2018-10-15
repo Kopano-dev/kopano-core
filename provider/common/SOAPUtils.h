@@ -11,6 +11,7 @@
 #include <kopano/zcdefs.h>
 #include <kopano/kcodes.h>
 #include <kopano/pcuser.hpp>
+#include "TimeUtil.h"
 #include <kopano/ustringutil.h>
 #include <list>
 #include <string>

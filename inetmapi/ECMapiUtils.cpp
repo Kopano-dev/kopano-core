@@ -7,6 +7,7 @@
 #include <mapix.h>
 #include <ctime>
 #include <iostream>
+#include "TimeUtil.h"
 #include "ECMapiUtils.h"
 
 namespace KC {

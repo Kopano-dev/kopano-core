@@ -34,6 +34,7 @@
 #include <kopano/stringutil.h>
 #include <kopano/ecversion.h>
 #include <kopano/mapiext.h>
+#include "TimeUtil.h"
 #include <kopano/Util.h>
 #include <kopano/ECRestriction.h>
 #include <kopano/charset/convert.h>

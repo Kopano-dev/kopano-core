@@ -17,6 +17,7 @@
 #include <edkguid.h>
 #include <kopano/ECGetText.h>
 #include <kopano/stringutil.h>
+#include "TimeUtil.h"
 #include <kopano/Util.h>
 #include <kopano/CommonUtil.h>
 #include <kopano/ECLogger.h>

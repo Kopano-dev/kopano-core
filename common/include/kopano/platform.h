@@ -10,7 +10,6 @@
   #endif
   #include <kopano/platform.linux.h>
 #include <kopano/zcdefs.h>
-#include <chrono>
 #include <mutex>
 #include <shared_mutex>
 #include <string>
@@ -39,26 +38,6 @@ typedef int gsoap_size_t;
 /*
  * Platform independent functions
  */
-extern _kc_export FILETIME UnixTimeToFileTime(time_t);
-extern _kc_export time_t FileTimeToUnixTime(const FILETIME &);
-extern _kc_export void UnixTimeToFileTime(time_t, int *hi, unsigned int *lo);
-extern _kc_export LONG FileTimeToRTime(const FILETIME &);
-extern _kc_export int FileTimeToTimestamp(const FILETIME &, time_t &, char *, size_t);
-extern _kc_export LONG UnixTimeToRTime(time_t);
-extern _kc_export time_t RTimeToUnixTime(LONG rtime);
-extern _kc_export struct tm *gmtime_safe(time_t, struct tm *);
-extern _kc_export double timespec2dbl(const struct timespec &);
-extern bool operator==(const FILETIME &, const FILETIME &) noexcept;
-extern _kc_export bool operator >(const FILETIME &, const FILETIME &) noexcept;
-extern bool operator>=(const FILETIME &, const FILETIME &) noexcept;
-extern _kc_export bool operator <(const FILETIME &, const FILETIME &) noexcept;
-extern bool operator<=(const FILETIME &, const FILETIME &) noexcept;
-
-/* convert struct tm to time_t in timezone UTC0 (GM time) */
-#ifndef HAVE_TIMEGM
-time_t timegm(struct tm *t);
-#endif
-
 // mkdir -p
 extern _kc_export int CreatePath(std::string, unsigned int = 0770);
 
@@ -97,14 +76,6 @@ template<typename T> constexpr const IID &iid_of();
 template<typename T> static inline constexpr const IID &iid_of(const T &)
 {
 	return iid_of<typename std::remove_cv<typename std::remove_pointer<T>::type>::type>();
-}
-
-using time_point = std::chrono::time_point<std::chrono::steady_clock>;
-using time_duration = std::chrono::steady_clock::duration;
-
-template<typename T> static constexpr inline double dur2dbl(const T &t)
-{
-	return std::chrono::duration_cast<std::chrono::duration<double>>(t).count();
 }
 
 #if (defined(__BYTE_ORDER) && __BYTE_ORDER == __BIG_ENDIAN) || \

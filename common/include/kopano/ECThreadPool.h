@@ -12,6 +12,7 @@
 #include <set>
 #include <list>
 #include <kopano/zcdefs.h>
+#include "TimeUtil.h"
 
 namespace KC {
 

@@ -7,6 +7,7 @@
 #include "vfreebusy.h"
 #include <mapiutil.h>
 #include <kopano/mapiext.h>
+#include "TimeUtil.h"
 #include "nameids.h"
 
 namespace KC {

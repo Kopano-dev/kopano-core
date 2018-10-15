@@ -8,6 +8,7 @@
 #include <kopano/memory.hpp>
 #include "ProtocolBase.h"
 #include <kopano/stringutil.h>
+#include "TimeUtil.h"
 #include <kopano/CommonUtil.h>
 #include <kopano/MAPIErrors.h>
 #include "CalDavUtil.h"

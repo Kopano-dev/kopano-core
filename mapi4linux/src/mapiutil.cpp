@@ -18,6 +18,7 @@
 #include <kopano/memory.hpp>
 #include <kopano/stringutil.h>
 #include <kopano/tie.hpp>
+#include "TimeUtil.h"
 #include <kopano/Util.h>
 #include "ECMemStream.h"
 #include <kopano/mapiguidext.h>

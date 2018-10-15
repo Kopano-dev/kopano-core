@@ -8,6 +8,7 @@
 #include <kopano/mapiext.h>
 #include <kopano/mapiguidext.h>
 #include <kopano/memory.hpp>
+#include "TimeUtil.h"
 #include <mapiutil.h>
 #include <mapix.h>
 #include <kopano/namedprops.h>

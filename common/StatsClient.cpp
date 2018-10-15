@@ -22,6 +22,7 @@
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
 #include <kopano/stringutil.h>
+#include "TimeUtil.h"
 #include "StatsClient.h"
 #include "fileutil.h"
 

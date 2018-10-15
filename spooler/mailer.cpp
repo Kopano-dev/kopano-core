@@ -28,6 +28,7 @@
 #include <kopano/CommonUtil.h>
 #include <kopano/Util.h>
 #include <kopano/stringutil.h>
+#include "TimeUtil.h"
 #include "mapicontact.h"
 #include <kopano/mapiguidext.h>
 #include <kopano/EMSAbTag.h>

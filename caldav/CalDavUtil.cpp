@@ -13,6 +13,7 @@
 #include <kopano/charset/convert.h>
 #include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
+#include "TimeUtil.h"
 
 using namespace KC;
 

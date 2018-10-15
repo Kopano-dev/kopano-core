@@ -22,6 +22,7 @@
 #include <kopano/memory.hpp>
 #include "Mem.h"
 #include <kopano/stringutil.h>
+#include "TimeUtil.h"
 #include <kopano/charset/convstring.h>
 #include "EntryPoint.h"
 #include "soapKCmdProxy.h"

@@ -20,6 +20,7 @@
 #include <set>
 #include <pthread.h>
 #include <kopano/platform.h>
+#include "TimeUtil.h"
 #include "ECAttachmentStorage.h"
 #include "ECUserManagement.h"
 #include "ECSearchFolders.h"

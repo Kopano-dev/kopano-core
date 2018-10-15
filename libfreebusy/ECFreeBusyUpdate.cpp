@@ -5,6 +5,7 @@
 #include <new>
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
+#include "TimeUtil.h"
 #include "ECFreeBusyUpdate.h"
 #include "freebusytags.h"
 #include "freebusyutil.h"
