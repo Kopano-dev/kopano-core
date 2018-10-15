@@ -370,7 +370,7 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
 		ObjectEntryList::iterator iNextArchive(iArchive);
 		++iNextArchive;
 
-		if (find_if(iNextArchive, lstArchives.end(), StoreCompare(ptrArchiveStoreEntryId->Value.bin)) != lstArchives.end()) {
+		if (std::any_of(iNextArchive, lstArchives.end(), StoreCompare(ptrArchiveStoreEntryId->Value.bin))) {
 			m_lpLogger->logf(EC_LOGLEVEL_FATAL, "\"" TSTRING_PRINTF "\" has multiple archives on \"" TSTRING_PRINTF "\"", m_strUser.c_str(), lpszArchive);
 			return MAPIErrorToArchiveError(MAPI_E_COLLISION);
 		}

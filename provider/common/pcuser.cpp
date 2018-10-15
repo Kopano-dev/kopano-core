@@ -166,14 +166,14 @@ bool objectdetails_t::PropListStringContains(property_key_t propname,
 {
 	const std::list<std::string> list = GetPropListString(propname);
 	if (ignoreCase)
-		return std::find_if(list.begin(), list.end(),
+		return std::any_of(list.begin(), list.end(),
 			[&](const std::string &o) {
 				return value.size() == o.size() && strcasecmp(value.c_str(), o.c_str()) == 0;
-			}) != list.end();
-	return std::find_if(list.begin(), list.end(),
+			});
+	return std::any_of(list.begin(), list.end(),
 		[&](const std::string &o) {
 			return value.size() == o.size() && strcmp(value.c_str(), o.c_str()) == 0;
-		}) != list.end();
+		});
 }
 
 void objectdetails_t::ClearPropList(property_key_t propname)

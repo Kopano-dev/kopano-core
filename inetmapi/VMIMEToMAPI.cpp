@@ -932,8 +932,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			// exclusion list?
 			const auto &ih = m_dopt.indexed_headers;
 			if (name == "X-Priority" ||
-			    std::find_if(ih.cbegin(), ih.cend(),
-			    [&](const std::string &item) { return strcasecmp(name.c_str(), item.c_str()) == 0; }) == ih.cend())
+			    std::none_of(ih.cbegin(), ih.cend(), [&](const auto &i) { return strcasecmp(name.c_str(), i.c_str()) == 0; }))
 				continue;
 
 			name = strToLower(name);
