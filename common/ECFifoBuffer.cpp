@@ -51,16 +51,13 @@ ECRESULT ECFifoBuffer::Write(const void *lpBuf, size_type cbBuf, unsigned int ul
 				er = KCERR_NETWORK_ERROR;
 				goto exit;
 			}
-
-			if (ulTimeoutMs > 0) {
-				if (m_hCondNotFull.wait_for(locker,
-				    std::chrono::milliseconds(ulTimeoutMs)) ==
-				    std::cv_status::timeout) {
-					er = KCERR_TIMEOUT;
-					goto exit;
-				}
-			} else
+			if (ulTimeoutMs == 0) {
 				m_hCondNotFull.wait(locker);
+			} else if (m_hCondNotFull.wait_for(locker,
+			    std::chrono::milliseconds(ulTimeoutMs)) == std::cv_status::timeout) {
+				er = KCERR_TIMEOUT;
+				goto exit;
+			}
 		}
 
 		const size_type cbNow = std::min(cbBuf - cbWritten, m_ulMaxSize - m_storage.size());
@@ -117,15 +114,13 @@ ECRESULT ECFifoBuffer::Read(void *lpBuf, size_type cbBuf, unsigned int ulTimeout
 			if (IsClosed(cfWrite))
 				goto exit;
 
-			if (ulTimeoutMs > 0) {
-				if (m_hCondNotEmpty.wait_for(locker,
-				    std::chrono::milliseconds(ulTimeoutMs)) ==
-				    std::cv_status::timeout) {
-					er = KCERR_TIMEOUT;
-					goto exit;
-				}
-			} else
+			if (ulTimeoutMs == 0) {
 				m_hCondNotEmpty.wait(locker);
+			} else if (m_hCondNotEmpty.wait_for(locker,
+			    std::chrono::milliseconds(ulTimeoutMs)) == std::cv_status::timeout) {
+				er = KCERR_TIMEOUT;
+				goto exit;
+			}
 		}
 
 		const size_type cbNow = std::min(cbBuf - cbRead, m_storage.size());
