@@ -513,9 +513,8 @@ int main(int argc, char **argv) try
 	 */
 	if (hr == hrSuccess) {
 		cout << endl << "Statistics:" << endl;
-		for (auto i = checkmap.begin(); i != checkmap.end(); ++i) {
-			i->second->PrintStatistics(i->first);
-		}
+		for (const auto &i : checkmap)
+			i.second->PrintStatistics(i.first);
 		return 0;
 	} else {
 		return 1;
