@@ -67,7 +67,7 @@ std::unique_ptr<converter> converter::s_lpInstance;
  *
  * @return	The converted, translated string.
  */
-LPWSTR kopano_dcgettext_wide(const char *domainname, const char *msgid)
+const wchar_t *kopano_dcgettext_wide(const char *domainname, const char *msgid)
 {
 	static bool init;
 	if (!init) {
@@ -79,7 +79,7 @@ LPWSTR kopano_dcgettext_wide(const char *domainname, const char *msgid)
 		bind_textdomain_codeset("kopano", "utf-8");
 		init = true;
 	}
-	return const_cast<wchar_t *>(converter::getInstance()->convert(dcgettext(domainname, msgid, LC_MESSAGES)));
+	return converter::getInstance()->convert(dcgettext(domainname, msgid, LC_MESSAGES));
 }
 
 } /* namespace */
