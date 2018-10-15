@@ -1143,11 +1143,12 @@ ECRESULT ECCacheManager::I_DelQuota(unsigned int ulUserId, bool bIsDefaultQuota)
 void ECCacheManager::update_extra_stats(ECStatsCollector &sc)
 {
 	auto f = [&](ECCacheStat &&s) {
-		sc.set("cache_" + s.name + "_items", "Cache " + s.name + " items", s.items);
-		sc.set("cache_" + s.name + "_size", "Cache " + s.name + " size", s.size);
-		sc.set("cache_" + s.name + "_maxsz", "Cache " + s.name + " maximum size", s.maxsize);
+		sc.setg("cache_" + s.name + "_items", "Cache " + s.name + " items", s.items);
+		sc.setg("cache_" + s.name + "_size", "Cache " + s.name + " size", s.size);
+		sc.setg("cache_" + s.name + "_maxsz", "Cache " + s.name + " maximum size", s.maxsize);
 		sc.set("cache_" + s.name + "_req", "Cache " + s.name + " requests", s.req);
-		sc.set("cache_" + s.name + "_hit", "Cache " + s.name + " hits", s.hit);
+		/* Not quite clear about hit; looks like a counter, but is decremented sometimes */
+		sc.setg("cache_" + s.name + "_hit", "Cache " + s.name + " hits", s.hit);
 	};
 	ulock_rec l_cache(m_hCacheMutex);
 	f(m_AclCache.get_stats());

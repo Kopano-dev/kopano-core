@@ -7,6 +7,7 @@
 #include <string>
 #include <pthread.h>
 #include <unistd.h>
+#include <sys/utsname.h>
 #ifdef HAVE_CURL_CURL_H
 #	include <condition_variable>
 #	include <thread>
@@ -21,6 +22,8 @@
 #include <kopano/stringutil.h>
 #include "StatsClient.h"
 #include "fileutil.h"
+
+using namespace std::string_literals;
 
 namespace KC {
 
@@ -86,66 +89,117 @@ static void sc_proxy_from_sysconfig(CURL *ch, const char *url)
 	if (v != nullptr)
 		curl_easy_setopt(ch, CURLOPT_NOPROXY, v);
 }
+
+template<typename T> static void setleaf(Json::Value &leaf, const T &elem)
+{
+	switch (elem.type) {
+	case SCT_REAL:
+		leaf["value"] = elem.data.f;
+		leaf["type"] = "real";
+		leaf["mode"] = "counter";
+		break;
+	case SCT_REALGAUGE:
+		leaf["value"] = elem.data.f;
+		leaf["type"] = "real";
+		leaf["mode"] = "gauge";
+		break;
+	case SCT_INTEGER:
+		leaf["value"] = static_cast<Json::Value::Int64>(elem.data.ll);
+		leaf["type"] = "int";
+		leaf["mode"] = "counter";
+		break;
+	case SCT_INTGAUGE:
+		leaf["value"] = static_cast<Json::Value::Int64>(elem.data.ll);
+		leaf["type"] = "int";
+		leaf["mode"] = "gauge";
+		break;
+	case SCT_TIME:
+		leaf["value"] = static_cast<Json::Value::Int64>(elem.data.ts);
+		leaf["type"] = "unixtime";
+		leaf["mode"] = "counter";
+		break;
+	case SCT_STRING:
+		leaf["value"] = elem.strdata;
+		leaf["type"] = "string";
+		break;
+	default:
+		break;
+	}
+}
 #endif
 
-void ECStatsCollector::submit(std::string &&url)
+std::string ECStatsCollector::stats_as_text()
 {
-#ifdef HAVE_CURL_CURL_H
-	struct slfree {
-		void operator()(CURL *p) { curl_easy_cleanup(p); }
-		void operator()(curl_slist *s) { curl_slist_free_all(s); }
-	};
 	Json::Value root;
-	root["version"] = 1;
-	fill_odm();
+	root["version"] = 2;
 
 	for (auto &i : m_StatData) {
 		scoped_lock lk(i.second.lock);
-		switch (i.second.type) {
-		case SCDT_FLOAT:
-			root[i.second.name] = i.second.data.f;
-			break;
-		case SCDT_LONGLONG:
-			root[i.second.name] = static_cast<Json::Value::Int64>(i.second.data.ll);
-			break;
-		case SCDT_TIMESTAMP:
-			root[i.second.name] = static_cast<Json::Value::Int64>(i.second.data.ts);
-			break;
-		case SCDT_STRING:
-			root[i.second.name] = i.second.strdata;
-			break;
-		}
+		Json::Value leaf;
+		leaf["desc"] = i.second.description;
+		setleaf(leaf, i.second);
+		root["stats"][i.second.name] = leaf;
 	}
 	std::unique_lock<std::mutex> lk(m_odm_lock);
-	for (auto &i : m_ondemand) {
-		switch (i.second.type) {
-		case SCDT_FLOAT:
-			root[i.first] = i.second.data.f;
-			break;
-		case SCDT_LONGLONG:
-			root[i.first] = static_cast<Json::Value::Int64>(i.second.data.ll);
-			break;
-		case SCDT_TIMESTAMP:
-			root[i.first] = static_cast<Json::Value::Int64>(i.second.data.ts);
-			break;
-		case SCDT_STRING:
-			root[i.first] = i.second.strdata;
-			break;
-		}
+	for (const auto &i : m_ondemand) {
+		Json::Value leaf;
+		leaf["desc"] = i.second.desc;
+		setleaf(leaf, i.second);
+		root["stats"][i.first] = leaf;
 	}
 	lk.unlock();
+	return Json::writeString(Json::StreamWriterBuilder(), std::move(root));
+}
 
-	auto text = Json::writeString(Json::StreamWriterBuilder(), std::move(root));
+std::string ECStatsCollector::survey_as_text()
+{
+	Json::Value root, leaf;
+	root["version"] = 2;
+
+	for (const auto &key : {SCN_MACHINE_ID, SCN_PROGRAM_NAME, SCN_PROGRAM_VERSION,
+	    SCN_SERVER_GUID, SCN_UTSNAME, SCN_OSRELEASE}) {
+		auto i = m_StatData.find(key);
+		if (i == m_StatData.cend())
+			continue;
+		scoped_lock lk(i->second.lock);
+		Json::Value leaf;
+		leaf["desc"] = i->second.description;
+		setleaf(leaf, i->second);
+		root["stats"][i->second.name] = leaf;
+	}
+	std::unique_lock<std::mutex> lk(m_odm_lock);
+	for (const auto &key : {"userplugin", "usercnt_active", "usercnt_contact",
+	    "usercnt_equipment", "usercnt_na_user", "usercnt_nonactive", "usercnt_room"}) {
+		auto i = m_ondemand.find(key);
+		if (i == m_ondemand.cend())
+			continue;
+		Json::Value leaf;
+		leaf["desc"] = i->second.desc;
+		setleaf(leaf, i->second);
+		root["stats"][i->first] = leaf;
+	}
+	lk.unlock();
+	return Json::writeString(Json::StreamWriterBuilder(), std::move(root));
+}
+
+void ECStatsCollector::submit(std::string &&url, std::string &&text, bool sslverify)
+{
+#ifdef HAVE_CURL_CURL_H
+	struct slfree {
+		void operator()(CURL *s) { curl_easy_cleanup(s); }
+		void operator()(curl_slist *s) { curl_slist_free_all(s); }
+	};
 	std::unique_ptr<CURL, slfree> chp(curl_easy_init());
 	std::unique_ptr<curl_slist, slfree> hl(curl_slist_append(nullptr, "Content-Type: application/json"));
+	curl_slist_append(hl.get(), "X-Kopano-Stats-Request: 1");
 	CURL *ch = chp.get();
 	if (!sc_proxy_from_env(ch, url.c_str()))
 		sc_proxy_from_sysconfig(ch, url.c_str());
 	curl_easy_setopt(ch, CURLOPT_NOPROGRESS, 1L);
 	curl_easy_setopt(ch, CURLOPT_NOSIGNAL, 1L);
 	curl_easy_setopt(ch, CURLOPT_TCP_NODELAY, 0L);
-	curl_easy_setopt(ch, CURLOPT_SSL_VERIFYHOST, 0L);
-	curl_easy_setopt(ch, CURLOPT_SSL_VERIFYPEER, 0L);
+	curl_easy_setopt(ch, CURLOPT_SSL_VERIFYHOST, sslverify);
+	curl_easy_setopt(ch, CURLOPT_SSL_VERIFYPEER, sslverify);
 	if (strncmp(url.c_str(), "unix:", 5) == 0) {
 #if LIBCURL_VERSION_MAJOR > 7 || (LIBCURL_VERSION_MAJOR == 7 && LIBCURL_VERSION_MINOR >= 40)
 		curl_easy_setopt(ch, CURLOPT_UNIX_SOCKET_PATH, url.c_str() + 5);
@@ -168,19 +222,32 @@ void ECStatsCollector::submit(std::string &&url)
 void ECStatsCollector::mainloop()
 {
 #ifdef HAVE_CURL_CURL_H
+	KC::time_point next_sc, next_sv;
 	std::mutex mtx;
 	do {
-		auto url1 = m_config->GetSetting("statsclient_url");
-		auto interval1 = m_config->GetSetting("statsclient_interval");
-		if (url1 == nullptr || interval1 == nullptr)
-			return;
-		auto interval = atoui(interval1);
-		if (interval > 0)
-			submit(url1);
-		else
-			interval = 60;
+		auto zsc_url = m_config->GetSetting("statsclient_url");
+		auto zsc_int = m_config->GetSetting("statsclient_interval");
+		auto zsv_url = m_config->GetSetting("surveyclient_url");
+		auto zsv_int = m_config->GetSetting("surveyclient_interval");
+		auto sc_int = zsc_int != nullptr ? atoui(zsc_int) : 86400;
+		auto sv_int = zsv_int != nullptr ? atoui(zsv_int) : 86400;
+		auto now = decltype(next_sc)::clock::now();
+		auto do_sc = zsc_url != nullptr && sc_int > 0 && now > next_sc;
+		auto do_sv = zsv_url != nullptr && sv_int > 0 && now > next_sv;
+
+		if (do_sc || do_sv)
+			fill_odm();
+		if (do_sc) {
+			submit(zsc_url, stats_as_text(), parseBool(m_config->GetSetting("statsclient_ssl_verify")));
+			next_sc = now + std::chrono::seconds(sc_int);
+		}
+		if (do_sv) {
+			submit(zsv_url, survey_as_text(), parseBool(m_config->GetSetting("surveyclient_ssl_verify")));
+			next_sv = now + std::chrono::seconds(sv_int);
+		}
+
 		ulock_normal blah(mtx);
-		if (m_exitsig.wait_for(blah, std::chrono::seconds(interval)) != std::cv_status::timeout)
+		if (m_exitsig.wait_until(blah, std::min(next_sc, next_sv)) != std::cv_status::timeout)
 			break;
 	} while (!terminate);
 #endif
@@ -189,7 +256,12 @@ void ECStatsCollector::mainloop()
 ECStatsCollector::ECStatsCollector(std::shared_ptr<ECConfig> config) :
 	m_config(std::move(config))
 {
-	AddStat(SCN_MACHINE_ID, SCDT_STRING, "machine_id");
+	AddStat(SCN_MACHINE_ID, SCT_STRING, "machine_id");
+	AddStat(SCN_UTSNAME, SCT_STRING, "utsname", "Pretty platform name"); /* not for parsing */
+	AddStat(SCN_OSRELEASE, SCT_STRING, "osrelease", "Pretty operating system name"); /* not for parsing either */
+	AddStat(SCN_PROGRAM_NAME, SCT_STRING, "program_name", "Program name");
+	AddStat(SCN_PROGRAM_VERSION, SCT_STRING, "program_version", "Program version");
+	set(SCN_PROGRAM_VERSION, PACKAGE_VERSION);
 	std::unique_ptr<FILE, file_deleter> fp(fopen("/etc/machine-id", "r"));
 	if (fp != nullptr) {
 		std::string mid;
@@ -198,6 +270,16 @@ ECStatsCollector::ECStatsCollector(std::shared_ptr<ECConfig> config) :
 		if (pos != std::string::npos)
 			mid.erase(pos);
 		set(SCN_MACHINE_ID, mid);
+	}
+	struct utsname uts;
+	if (uname(&uts) == 0)
+		set(SCN_UTSNAME, uts.sysname + " "s + uts.machine + " " + uts.release);
+	struct mpfree { void operator()(struct HXmap *m) { HXmap_free(m); } };
+	std::unique_ptr<HXmap, mpfree> os_rel(HX_shconfig_map("/etc/os-release"));
+	if (os_rel != nullptr) {
+		auto os_pretty = HXmap_get<char *>(os_rel.get(), "PRETTY_NAME");
+		if (os_pretty != nullptr)
+			set(SCN_OSRELEASE, os_pretty);
 	}
 	if (m_config == nullptr)
 		return;
@@ -229,7 +311,7 @@ void ECStatsCollector::inc(SCName name, double inc)
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
 		return;
-	assert(iSD->second.type == SCDT_FLOAT);
+	assert(iSD->second.type == SCT_REAL || iSD->second.type == SCT_REALGAUGE);
 	scoped_lock lk(iSD->second.lock);
 	iSD->second.data.f += inc;
 }
@@ -244,7 +326,7 @@ void ECStatsCollector::inc(SCName name, LONGLONG inc)
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
 		return;
-	assert(iSD->second.type == SCDT_LONGLONG);
+	assert(iSD->second.type == SCT_INTEGER || iSD->second.type == SCT_INTGAUGE);
 	scoped_lock lk(iSD->second.lock);
 	iSD->second.data.ll += inc;
 }
@@ -254,7 +336,7 @@ void ECStatsCollector::set_dbl(enum SCName name, double set)
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
 		return;
-	assert(iSD->second.type == SCDT_FLOAT);
+	assert(iSD->second.type == SCT_REAL || iSD->second.type == SCT_REALGAUGE);
 	scoped_lock lk(iSD->second.lock);
 	iSD->second.data.f = set;
 }
@@ -264,7 +346,7 @@ void ECStatsCollector::set(enum SCName name, LONGLONG set)
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
 		return;
-	assert(iSD->second.type == SCDT_LONGLONG);
+	assert(iSD->second.type == SCT_INTEGER || iSD->second.type == SCT_INTGAUGE);
 	scoped_lock lk(iSD->second.lock);
 	iSD->second.data.ll = set;
 }
@@ -274,7 +356,7 @@ void ECStatsCollector::SetTime(enum SCName name, time_t set)
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
 		return;
-	assert(iSD->second.type == SCDT_TIMESTAMP);
+	assert(iSD->second.type == SCT_TIME);
 	scoped_lock lk(iSD->second.lock);
 	iSD->second.data.ts = set;
 }
@@ -284,7 +366,7 @@ void ECStatsCollector::set(SCName name, const std::string &s)
 	auto i = m_StatData.find(name);
 	if (i == m_StatData.cend())
 		return;
-	assert(i->second.type == SCDT_STRING);
+	assert(i->second.type == SCT_STRING);
 	scoped_lock lk(i->second.lock);
 	i->second.strdata = s;
 }
@@ -294,7 +376,7 @@ void ECStatsCollector::Max(SCName name, LONGLONG max)
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
 		return;
-	assert(iSD->second.type == SCDT_LONGLONG);
+	assert(iSD->second.type == SCT_INTEGER || iSD->second.type == SCT_INTGAUGE);
 	scoped_lock lk(iSD->second.lock);
 	if (iSD->second.data.ll < max)
 		iSD->second.data.ll = max;
@@ -305,7 +387,7 @@ void ECStatsCollector::avg_dbl(SCName name, double add)
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
 		return;
-	assert(iSD->second.type == SCDT_FLOAT);
+	assert(iSD->second.type == SCT_REALGAUGE);
 	scoped_lock lk(iSD->second.lock);
 	iSD->second.data.f = ((add - iSD->second.data.f) / iSD->second.avginc) + iSD->second.data.f;
 	++iSD->second.avginc;
@@ -318,7 +400,7 @@ void ECStatsCollector::avg(SCName name, LONGLONG add)
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
 		return;
-	assert(iSD->second.type == SCDT_LONGLONG);
+	assert(iSD->second.type == SCT_INTGAUGE);
 	scoped_lock lk(iSD->second.lock);
 	iSD->second.data.ll = ((add - iSD->second.data.ll) / iSD->second.avginc) + iSD->second.data.ll;
 	++iSD->second.avginc;
@@ -329,11 +411,13 @@ void ECStatsCollector::avg(SCName name, LONGLONG add)
 std::string ECStatsCollector::GetValue(const SCMap::const_iterator::value_type &iSD)
 {
 	switch (iSD.second.type) {
-	case SCDT_FLOAT:
+	case SCT_REAL:
+	case SCT_REALGAUGE:
 		return stringify_double(iSD.second.data.f);
-	case SCDT_LONGLONG:
+	case SCT_INTEGER:
+	case SCT_INTGAUGE:
 		return stringify_int64(iSD.second.data.ll);
-	case SCDT_TIMESTAMP: {
+	case SCT_TIME: {
 		if (iSD.second.data.ts <= 0)
 			break;
 		char timestamp[128] = { 0 };
@@ -341,7 +425,7 @@ std::string ECStatsCollector::GetValue(const SCMap::const_iterator::value_type &
 		strftime(timestamp, sizeof timestamp, "%a %b %e %T %Y", tm);
 		return timestamp;
 	}
-	case SCDT_STRING:
+	case SCT_STRING:
 		return iSD.second.strdata;
 	}
 	return "";
@@ -350,11 +434,13 @@ std::string ECStatsCollector::GetValue(const SCMap::const_iterator::value_type &
 std::string ECStatsCollector::GetValue(const ECStat2 &i)
 {
 	switch (i.type) {
-	case SCDT_FLOAT:
+	case SCT_REAL:
+	case SCT_REALGAUGE:
 		return stringify_double(i.data.f);
-	case SCDT_LONGLONG:
+	case SCT_INTEGER:
+	case SCT_INTGAUGE:
 		return stringify_int64(i.data.ll);
-	case SCDT_TIMESTAMP: {
+	case SCT_TIME: {
 		if (i.data.ts <= 0)
 			break;
 		char timestamp[128] = { 0 };
@@ -362,7 +448,7 @@ std::string ECStatsCollector::GetValue(const ECStat2 &i)
 		strftime(timestamp, sizeof(timestamp), "%a %b %e %T %Y", tm);
 		return timestamp;
 	}
-	case SCDT_STRING:
+	case SCT_STRING:
 		return i.strdata;
 	}
 	return "";
@@ -411,25 +497,39 @@ void ECStatsCollector::set(const std::string &name, const std::string &desc, int
 	scoped_lock lk(m_odm_lock);
 	auto i = m_ondemand.find(name);
 	if (i != m_ondemand.cend()) {
-		assert(i->second.type == SCDT_LONGLONG);
+		assert(i->second.type == SCT_INTEGER);
 		i->second.data.ll = v;
 		return;
 	}
-	ECStat2 st{desc, {}, SCDT_LONGLONG};
+	ECStat2 st{desc, {}, SCT_INTEGER};
 	st.data.ll = v;
 	m_ondemand.emplace(name, std::move(st));
 }
 
-void ECStatsCollector::set_dbl(const std::string &name, const std::string &desc, double v)
+void ECStatsCollector::setg(const std::string &name, const std::string &desc, int64_t v)
 {
 	scoped_lock lk(m_odm_lock);
 	auto i = m_ondemand.find(name);
 	if (i != m_ondemand.cend()) {
-		assert(i->second.type == SCDT_FLOAT);
+		assert(i->second.type == SCT_INTGAUGE);
+		i->second.data.ll = v;
+		return;
+	}
+	ECStat2 st{desc, {}, SCT_INTGAUGE};
+	st.data.ll = v;
+	m_ondemand.emplace(name, std::move(st));
+}
+
+void ECStatsCollector::setg_dbl(const std::string &name, const std::string &desc, double v)
+{
+	scoped_lock lk(m_odm_lock);
+	auto i = m_ondemand.find(name);
+	if (i != m_ondemand.cend()) {
+		assert(i->second.type == SCT_REALGAUGE);
 		i->second.data.f = v;
 		return;
 	}
-	ECStat2 st{desc, {}, SCDT_FLOAT};
+	ECStat2 st{desc, {}, SCT_REALGAUGE};
 	st.data.f = v;
 	m_ondemand.emplace(name, std::move(st));
 }
@@ -440,10 +540,10 @@ void ECStatsCollector::set(const std::string &name, const std::string &desc,
 	scoped_lock lk(m_odm_lock);
 	auto i = m_ondemand.find(name);
 	if (i == m_ondemand.cend()) {
-		m_ondemand.emplace(name, ECStat2{desc, v, SCDT_STRING});
+		m_ondemand.emplace(name, ECStat2{desc, v, SCT_STRING});
 		return;
 	}
-	assert(i->second.type == SCDT_STRING);
+	assert(i->second.type == SCT_STRING);
 	i->second.strdata = v;
 }
 

@@ -95,8 +95,8 @@ enum SCName {
 	SCN_SPOOLER_SEND_FAILED,
 	SCN_SPOOLER_SENT,
 	SCN_SPOOLER_SIGKILLED,
-	SCN_MACHINE_ID,
-	SCN_SERVER_GUID,
+	SCN_MACHINE_ID, SCN_UTSNAME, SCN_OSRELEASE,
+	SCN_PROGRAM_NAME, SCN_PROGRAM_VERSION, SCN_SERVER_GUID,
 };
 
 union SCData {
@@ -105,7 +105,14 @@ union SCData {
 	time_t ts;
 };
 
-enum SCType { SCDT_FLOAT, SCDT_LONGLONG, SCDT_TIMESTAMP, SCDT_STRING };
+enum SCType {
+	SCT_INTEGER,
+	SCT_INTGAUGE,
+	SCT_REAL,
+	SCT_REALGAUGE,
+	SCT_TIME,
+	SCT_STRING,
+};
 
 struct ECStat {
 	const char *name, *description;
@@ -132,13 +139,14 @@ class _kc_export ECStatsCollector {
 	void start();
 	void stop();
 	void mainloop();
-	void submit(std::string &&);
+	void submit(std::string &&url, std::string &&data, bool sslverify = true);
 	void inc(enum SCName, double inc);
 	void inc(enum SCName, int inc = 1);
 	void inc(enum SCName, LONGLONG inc);
 	void set_dbl(enum SCName, double set);
-	void set_dbl(const std::string &, const std::string &, double);
+	void setg_dbl(const std::string &, const std::string &, double);
 	void set(const std::string &, const std::string &, int64_t);
+	void setg(const std::string &, const std::string &, int64_t);
 	void set(enum SCName, LONGLONG set);
 	void SetTime(SCName name, time_t set);
 	void set(SCName, const std::string &);
@@ -163,6 +171,9 @@ class _kc_export ECStatsCollector {
 	std::string GetValue(const ECStat2 &);
 
 	private:
+	std::string stats_as_text();
+	std::string survey_as_text();
+
 	SCMap m_StatData;
 	std::unordered_map<std::string, ECStat2> m_ondemand;
 	bool thread_running = false;

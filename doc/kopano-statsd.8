@@ -1,0 +1,38 @@
+.TH kopano\-statsd 8 "2018-10-05" "Kopano 8" "Kopano Groupware Core reference"
+.SH Name
+kopano\-statsd \(em statistics collection daemon
+.SH Synopsis
+\fBkopano\-statsd\fP [\fB\-c\fP \fIconfigfile\fP]
+.SH Description
+.PP
+This service receives statistics submissions from kopano-dagent, kopano-spooler
+and kopano-server and stores them in a round-robin database from which graphs
+can be created at a later time with rrdgraph(1).
+.SH Options
+.TP
+\fB\-c\fP \fIconfigfile\fP
+Load an alternate config file. If none is specified, statsd.cfg will be sourced
+if available.
+.SH Configuration file
+.PP
+The format of the configuration file follows the same key=value scheme from
+other Kopano config files.
+.SS stats_listen
+.PP
+One address:port specifier for where the service should listen for connections.
+listen for connections. IPv6 addresses need to be enclosed in brackets (as in
+\fB[2001:db8::1]:236\fP). The asterisk is the multi-protocol address
+("*:2003"). Local sockets are supported with "\fBunix:\fP\fI/path\fP".
+Hostnames are not allowed.
+.PP
+Default: \fIunix:/var/run/kopano/statsd.sock\fP
+.SS stats_rrd
+.PP
+Directory where round-robin database files are kept.
+.PP
+Default: \fI/var/lib/kopano/rrd\fP
+.SS run_as_user, run_as_group
+.PP
+User identity to switch to on startup.
+.PP
+Default: \fIkopano\fP, \fIkopano\fP

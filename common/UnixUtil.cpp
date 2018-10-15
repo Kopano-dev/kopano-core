@@ -436,7 +436,7 @@ bool unix_system(const char *lpszLogName, const std::vector<std::string> &cmd,
 	return rv;
 }
 
-int ec_reexec(char **argv)
+int ec_reexec(const char *const *argv)
 {
 	if (getenv("KC_AVOID_REEXEC") != nullptr)
 		return 0;
@@ -474,7 +474,7 @@ int ec_reexec(char **argv)
 	}
 	linkbuf[linklen] = '\0';
 	ec_log_debug("Reexecing %s", &linkbuf[0]);
-	execv(&linkbuf[0], argv);
+	execv(&linkbuf[0], const_cast<char **>(argv));
 	return -errno;
 }
 

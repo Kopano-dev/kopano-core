@@ -47,6 +47,7 @@ stamp-h2
 /kopano-spooler
 /kopano-srvadm
 /kopano-stats
+/kopano-statsd
 /kopano-storeadm
 /kscriptrun
 /mapitime

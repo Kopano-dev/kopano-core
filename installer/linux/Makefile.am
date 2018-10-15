@@ -8,7 +8,7 @@ dist_systemunit_DATA = kopano-dagent.service kopano-gateway.service \
                   kopano-ical.service kopano-monitor.service \
                   kopano-presence.service kopano-search.service \
                   kopano-server.service kopano-spooler.service \
-                  kopano-spamd.service
+                  kopano-spamd.service kopano-statsd.service
 if WITH_PYTHON3
 dist_systemunit_DATA += kopano-grapi.service
 endif
@@ -21,7 +21,7 @@ config_files = \
 	admin.cfg server.cfg unix.cfg presence.cfg \
 	spooler.cfg gateway.cfg monitor.cfg dagent.cfg ical.cfg search.cfg \
 	autorespond archiver.cfg backup.cfg migration-pst.cfg \
-	autorespond.cfg spamd.cfg
+	autorespond.cfg spamd.cfg statsd.cfg
 if WITH_PYTHON3
 config_files += grapi.cfg
 endif
