@@ -345,6 +345,28 @@ within the MAPI message, the indexed_headers directive may be used to list
 the header fields to keep.
 .PP
 Default: (empty)
+.SS statsclient_url
+.PP
+A HTTP URL or filesystem-local socket specification for a kopano-statsd
+compatible web service that ingests service statistics such as memory usage or
+mail processing counters.
+.PP
+Example: \fIhttps://my.local.org/collector.php\fP
+.PP
+Default: \fIunix:/var/run/kopano/statsd.sock\fP
+.SS statsclient_interval
+.PP
+The time interval at which the statsd service is to be contacted, in seconds.
+When "statsclient_url" points to a kopano-statsd instance, the value should be
+\fI60\fP (for now), because its rrdtool archives are set to expect data at this
+rate.
+.PP
+Default: \fI0\fP (submission service is deactivated)
+.SS statsclient_ssl_verify
+.PP
+This setting can be used to control SSL certificate validation.
+.PP
+Default: \fIyes\fP
 .RE
 .SH "RELOADING"
 .PP

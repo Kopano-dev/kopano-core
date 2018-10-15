@@ -8,6 +8,12 @@ kopano\-statsd \(em statistics collection daemon
 This service receives statistics submissions from kopano-dagent, kopano-spooler
 and kopano-server and stores them in a round-robin database from which graphs
 can be created at a later time with rrdgraph(1).
+.PP
+PNG image creation is not part of kopano-statsd. This is presently left in the
+hands of the administrator, because styling is a user preference, and because
+some environments may want to use an on-demand _or_ a gratitious periodic image
+generation, depending on the system's purpose and expected performance
+characteristics.
 .SH Options
 .TP
 \fB\-c\fP \fIconfigfile\fP

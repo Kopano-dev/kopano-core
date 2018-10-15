@@ -1,5 +1,15 @@
 8.7.dev
 =======
+Enhancements:
+* kopano-statsd: new daemon that records dagent/server/spooler stats
+  (memory use, items processed, etc.) in RRD files.
+  This constitutes a preview. RRA parameters are currently hardcoded (7-day
+  window, 60-second step). PNG image generation is not included (CPU intensive,
+  and styling depends on user taste).
+  To enable, set statsclient_interval=60 in dagent.cfg/server.cfg/spooler.cfg.
+Changes:
+* dagent/spooler: the custom plaintext protocol of StatsClient is
+  replaced by a JSON variant [KC-1264]
 
 
 8.6.82 (8.7 Milestone 2)
