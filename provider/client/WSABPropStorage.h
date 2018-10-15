@@ -5,7 +5,6 @@
 #ifndef WSABPROPSTORAGE_H
 #define WSABPROPSTORAGE_H
 
-#include <kopano/zcdefs.h>
 #include <mutex>
 #include <kopano/ECUnknown.h>
 #include <kopano/Util.h>
@@ -24,7 +23,7 @@ protected:
 
 public:
 	static HRESULT Create(ULONG eid_size, const ENTRYID *, KC::ECSESSIONID, WSTransport *, WSABPropStorage **);
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
 	static HRESULT Reload(void *parm, KC::ECSESSIONID);
 
 private:
@@ -47,7 +46,7 @@ private:
 class WSABTableView final : public WSTableView {
 	public:
 	static HRESULT Create(ULONG type, ULONG flags, KC::ECSESSIONID, ULONG eid_size, const ENTRYID *, ECABLogon *, WSTransport *, WSTableView **);
-	virtual	HRESULT	QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual	HRESULT	QueryInterface(const IID &, void **) override;
 
 	protected:
 	WSABTableView(ULONG type, ULONG flags, KC::ECSESSIONID, ULONG eid_size, const ENTRYID *, ECABLogon *, WSTransport *);

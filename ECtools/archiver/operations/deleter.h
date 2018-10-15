@@ -7,7 +7,6 @@
 #define deleter_INCLUDED
 
 #include <memory>
-#include <kopano/zcdefs.h>
 #include "operations.h"
 #include <kopano/archiver-common.h>
 #include <list>
@@ -17,14 +16,14 @@ namespace KC { namespace operations {
 /**
  * Performs the delete part of the archive operation.
  */
-class Deleter _kc_final : public ArchiveOperationBaseEx {
+class Deleter final : public ArchiveOperationBaseEx {
 public:
 	Deleter(std::shared_ptr<ECArchiverLogger>, int ulAge, bool bProcessUnread);
 	~Deleter();
 
 private:
-	HRESULT EnterFolder(LPMAPIFOLDER)_kc_override { return hrSuccess; }
-	HRESULT LeaveFolder(void) _kc_override;
+	HRESULT EnterFolder(IMAPIFolder *) override { return hrSuccess; }
+	HRESULT LeaveFolder() override;
 	HRESULT DoProcessEntry(const SRow &proprow) override;
 	HRESULT PurgeQueuedMessages();
 

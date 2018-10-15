@@ -6,7 +6,6 @@
 #ifndef ZCABLOGON_H
 #define ZCABLOGON_H
 
-#include <kopano/zcdefs.h>
 #include <vector>
 #include <mapispi.h>
 #include <kopano/ECUnknown.h>
@@ -20,14 +19,14 @@ struct zcabFolderEntry {
 	std::wstring strwDisplayName;
 };
 
-class ZCABLogon _kc_final : public KC::ECUnknown, public IABLogon {
+class ZCABLogon final : public KC::ECUnknown, public IABLogon {
 protected:
 	ZCABLogon(IMAPISupport *, ULONG profile_flags, const GUID *);
 	virtual ~ZCABLogon();
 
 public:
 	static HRESULT Create(IMAPISupport *, ULONG profile_flags, const GUID *, ZCABLogon **);
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
 	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
 	virtual HRESULT Logoff(ULONG ulFlags);
 	virtual HRESULT OpenEntry(ULONG eid_size, const ENTRYID *eid, const IID *intf, ULONG flags, ULONG *obj_type, IUnknown **);

@@ -17,7 +17,7 @@ class ECExchangeModifyTable final :
     public KC::ECUnknown, public KC::IECExchangeModifyTable {
 public:
 	ECExchangeModifyTable(ULONG unique_tag, KC::ECMemTable *table, ECMAPIProp *parent, ULONG start_rule, ULONG flags);
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
 	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
 	virtual HRESULT GetTable(ULONG ulFlags, LPMAPITABLE *lppTable);
 	virtual HRESULT ModifyTable(ULONG ulFlags, LPROWLIST lpMods);

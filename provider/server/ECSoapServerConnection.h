@@ -7,7 +7,6 @@
 #define ECSOAPSERVERCONNECTION_H
 
 #include <memory>
-#include <kopano/zcdefs.h>
 #include <kopano/kcodes.h>
 #include "ECThreadManager.h"
 #include "soapH.h"
@@ -16,7 +15,7 @@
 using KC::ECRESULT;
 extern int kc_ssl_options(struct soap *, char *protos, const char *ciphers, const char *prefciphers, const char *curves);
 
-class ECSoapServerConnection _kc_final {
+class ECSoapServerConnection final {
 public:
 	ECSoapServerConnection(std::shared_ptr<KC::ECConfig>);
 	~ECSoapServerConnection();

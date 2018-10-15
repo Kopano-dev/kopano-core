@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#include <kopano/zcdefs.h>
 #include <memory>
 #include <mutex>
 #include <utility>
@@ -33,7 +32,7 @@ typedef object_ptr<IECChangeAdvisor> ECChangeAdvisorPtr;
 #define EC_SYNC_STATUS_VERSION			1
 
 #define CALL_MEMBER_FN(object,ptrToMember)  ((object).*(ptrToMember))
-class ECChangeAdviseSink _kc_final :
+class ECChangeAdviseSink final :
     public ECUnknown, public IECChangeAdviseSink {
 public:
 	typedef ULONG(ECSyncContext::*NOTIFYCALLBACK)(ULONG,LPENTRYLIST);
@@ -44,7 +43,7 @@ public:
 	{ }
 
 	// IUnknown
-	HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override
+	HRESULT QueryInterface(const IID &refiid, void **lppInterface) override
 	{
 		REGISTER_INTERFACE2(ECChangeAdviseSink, this);
 		REGISTER_INTERFACE2(ECUnknown, this);

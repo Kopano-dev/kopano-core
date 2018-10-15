@@ -9,7 +9,6 @@
 #include <memory>
 #include <set>
 #include <kopano/memory.hpp>
-#include <kopano/zcdefs.h>
 #include "operations/operations_fwd.h"
 #include "helpers/ArchiveHelper.h"
 
@@ -97,14 +96,14 @@ class ECArchiverLogger;
  * This way necessary steps will be executed on a message, regardless of searchfolder
  * timing.
  */
-class ArchiveControlImpl _kc_final : public ArchiveControl {
+class ArchiveControlImpl final : public ArchiveControl {
 public:
 	static HRESULT Create(ArchiverSessionPtr ptrSession, ECConfig *lpConfig, std::shared_ptr<ECLogger>, bool bForceCleanup, ArchiveControlPtr *lpptrArchiveControl);
-	eResult ArchiveAll(bool bLocalOnly, bool bAutoAttach, unsigned int ulFlags) _kc_override;
+	eResult ArchiveAll(bool local_only, bool auto_attach, unsigned int flags) override;
 	HRESULT Archive2(const tstring &user, bool auto_attach, unsigned int flags);
-	eResult Archive(const tstring &strUser, bool bAutoAttach, unsigned int ulFlags) _kc_override;
-	eResult CleanupAll(bool bLocalOnly) _kc_override;
-	eResult Cleanup(const tstring &strUser) _kc_override;
+	eResult Archive(const tstring &user, bool auto_attach, unsigned int flags) override;
+	eResult CleanupAll(bool local_only) override;
+	eResult Cleanup(const tstring &user) override;
 
 private:
 	class ReferenceLessCompare {

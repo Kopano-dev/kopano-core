@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#include <kopano/zcdefs.h>
 #include <memory>
 #include <new>
 #include <kopano/platform.h>
@@ -30,18 +29,18 @@
 
 namespace KC {
 
-class ICalToMapiImpl _kc_final : public ICalToMapi {
+class ICalToMapiImpl final : public ICalToMapi {
 public:
 	/*
 	    - lpPropObj to lookup named properties
 	    - Addressbook (Global AddressBook for looking up users)
 	 */
 	ICalToMapiImpl(IMAPIProp *lpPropObj, LPADRBOOK lpAdrBook, bool bNoRecipients);
-	HRESULT ParseICal(const std::string& strIcal, const std::string& strCharset, const std::string& strServerTZ, IMailUser *lpMailUser, ULONG ulFlags) _kc_override;
-	ULONG GetItemCount(void) _kc_override;
-	HRESULT GetItemInfo(ULONG ulPosition, eIcalType *lpType, time_t *lptLastModified, SBinary *lpUid) _kc_override;
-	HRESULT GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMessage) _kc_override;
-	HRESULT GetFreeBusyInfo(time_t *lptstart, time_t *lptend, std::string *lpstrUId, std::list<std::string> **lplstUsers) _kc_override;
+	HRESULT ParseICal(const std::string &ical, const std::string &cset, const std::string &server_tz, IMailUser *, unsigned int flags) override;
+	unsigned int GetItemCount() override;
+	HRESULT GetItemInfo(unsigned int pos, eIcalType *, time_t *last_mod, SBinary *uid) override;
+	HRESULT GetItem(unsigned int pos, unsigned int flags, IMessage *) override;
+	HRESULT GetFreeBusyInfo(time_t *start, time_t *end, std::string *uid, std::list<std::string> **users) override;
 
 private:
 	void Clean();

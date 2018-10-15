@@ -6,7 +6,6 @@
 #ifndef __MAPI_SVC_H
 #define __MAPI_SVC_H
 
-#include <kopano/zcdefs.h>
 #include <map>
 #include <set>
 #include <vector>
@@ -22,7 +21,7 @@ typedef HRESULT (*SVC_MSGServiceEntry)(HINSTANCE, IMalloc *, IMAPISupport *, ULO
 typedef HRESULT (*SVC_MSProviderInit)(HINSTANCE hInstance, LPMALLOC pmalloc, LPALLOCATEBUFFER pfnAllocBuf, LPALLOCATEMORE pfnAllocMore, LPFREEBUFFER pfnFreeBuf, ULONG ulFlags, ULONG ulMAPIVersion, ULONG *pulMDBVersion, LPMSPROVIDER *ppmsp);
 typedef HRESULT (*SVC_ABProviderInit)(HINSTANCE hInstance, LPMALLOC lpMalloc, LPALLOCATEBUFFER lpAllocateBuffer, LPALLOCATEMORE lpAllocateMore, LPFREEBUFFER lpFreeBuffer, ULONG ulFlags, ULONG ulMAPIVer, ULONG *lpulProviderVer, LPABPROVIDER *lppABProvider);
 
-class INFLoader _kc_final {
+class INFLoader final {
 public:
 	INFLoader();
 	HRESULT LoadINFs();
@@ -39,7 +38,7 @@ private:
 	std::map<std::string, unsigned int> m_mapDefs;
 };
 
-class SVCProvider _kc_final {
+class SVCProvider final {
 public:
 	/* ZARAFA6_ABP, ZARAFA6_MSMDB_private, ZARAFA6_MSMDB_public */
 	~SVCProvider();
@@ -52,7 +51,7 @@ private:
 	SPropValue *m_lpProps = nullptr; /* PR_* tags from file */
 };
 
-class SVCService _kc_final {
+class SVCService final {
 public:
 	/* ZARAFA6, ZCONTACTS */
 	~SVCService();
@@ -81,7 +80,7 @@ private:
 	std::map<std::string, SVCProvider*> m_sProviders;
 };
 
-class MAPISVC _kc_final {
+class MAPISVC final {
 public:
 	~MAPISVC();
 

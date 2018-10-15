@@ -5,7 +5,6 @@
 #ifndef ECEXCHANGEIMPORTCHIERARCHYCHANGES_H
 #define ECEXCHANGEIMPORTCHIERARCHYCHANGES_H
 
-#include <kopano/zcdefs.h>
 #include <mapidefs.h>
 #include "ECMAPIFolder.h"
 #include <kopano/ECUnknown.h>
@@ -18,7 +17,7 @@ protected:
 	ECExchangeImportHierarchyChanges(ECMAPIFolder *lpFolder);
 public:
 	static	HRESULT Create(ECMAPIFolder *lpFolder, LPEXCHANGEIMPORTHIERARCHYCHANGES* lppExchangeImportHierarchyChanges);
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
 	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
 	virtual HRESULT Config(LPSTREAM lpStream, ULONG ulFlags);
 	virtual HRESULT UpdateState(LPSTREAM lpStream);

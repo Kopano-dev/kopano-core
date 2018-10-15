@@ -3,7 +3,6 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <utility>
-#include <kopano/zcdefs.h>
 #include <memory>
 #include <new>
 #include <kopano/platform.h>
@@ -224,14 +223,14 @@ public:
 class NonLegacyIncrementalProcessor final : public IMessageProcessor {
 public:
 	NonLegacyIncrementalProcessor(unsigned int ulMaxChangeId);
-	ECRESULT ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags) _kc_override;
-	ECRESULT ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType) _kc_override;
-	ECRESULT GetResidualMessages(LPMESSAGESET lpsetResiduals) _kc_override
+	ECRESULT ProcessAccepted(DB_ROW, DB_LENGTHS, unsigned int *change_type, unsigned int *flags) override;
+	ECRESULT ProcessRejected(DB_ROW, DB_LENGTHS, unsigned int *change_type) override;
+	ECRESULT GetResidualMessages(MESSAGESET *res) override
 	{
 		/* No legacy, no residuals. */
 		return erSuccess;
 	}
-	unsigned int GetMaxChangeId(void) const _kc_override { return m_ulMaxChangeId; }
+	unsigned int GetMaxChangeId() const override { return m_ulMaxChangeId; }
 
 private:
 	unsigned int m_ulMaxChangeId;
@@ -273,14 +272,14 @@ ECRESULT NonLegacyIncrementalProcessor::ProcessRejected(DB_ROW lpDBRow, DB_LENGT
 class NonLegacyFullProcessor final : public IMessageProcessor {
 public:
 	NonLegacyFullProcessor(unsigned int ulChangeId, unsigned int ulSyncId);
-	ECRESULT ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags) _kc_override;
-	ECRESULT ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType) _kc_override;
-	ECRESULT GetResidualMessages(LPMESSAGESET lpsetResiduals) _kc_override
+	ECRESULT ProcessAccepted(DB_ROW, DB_LENGTHS, unsigned int *change_type, unsigned int *flags) override;
+	ECRESULT ProcessRejected(DB_ROW, DB_LENGTHS, unsigned int *change_type) override;
+	ECRESULT GetResidualMessages(MESSAGESET *res) override
 	{
 		/* No legacy, no residuals. */
 		return erSuccess;
 	}
-	unsigned int GetMaxChangeId(void) const _kc_override { return m_ulMaxChangeId; }
+	unsigned int GetMaxChangeId() const override { return m_ulMaxChangeId; }
 
 private:
 	unsigned int m_ulChangeId, m_ulSyncId, m_ulMaxChangeId;
@@ -339,10 +338,10 @@ ECRESULT NonLegacyFullProcessor::ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDB
 class LegacyProcessor final : public IMessageProcessor {
 public:
 	LegacyProcessor(unsigned int ulChangeId, unsigned int ulSyncId, const MESSAGESET &setMessages, unsigned int ulMaxFolderChange);
-	ECRESULT ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags) _kc_override;
-	ECRESULT ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType) _kc_override;
-	ECRESULT GetResidualMessages(LPMESSAGESET lpsetResiduals) _kc_override;
-	unsigned int GetMaxChangeId(void) const _kc_override { return m_ulMaxChangeId; }
+	ECRESULT ProcessAccepted(DB_ROW, DB_LENGTHS, unsigned int *change_type, unsigned int *flags) override;
+	ECRESULT ProcessRejected(DB_ROW, DB_LENGTHS, unsigned int *change_type) override;
+	ECRESULT GetResidualMessages(MESSAGESET *res) override;
+	unsigned int GetMaxChangeId() const override { return m_ulMaxChangeId; }
 
 private:
 	MESSAGESET		m_setMessages;
@@ -449,14 +448,14 @@ ECRESULT LegacyProcessor::GetResidualMessages(LPMESSAGESET lpsetResiduals)
 class FirstSyncProcessor final : public IMessageProcessor {
 public:
 	FirstSyncProcessor(unsigned int ulMaxFolderChange);
-	ECRESULT ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags) _kc_override;
-	ECRESULT ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType) _kc_override;
-	ECRESULT GetResidualMessages(LPMESSAGESET lpsetResiduals) _kc_override
+	ECRESULT ProcessAccepted(DB_ROW, DB_LENGTHS, unsigned int *change_type, unsigned int *flags) override;
+	ECRESULT ProcessRejected(DB_ROW, DB_LENGTHS, unsigned int *change_type) override;
+	ECRESULT GetResidualMessages(MESSAGESET *res) override
 	{
 		/* No legacy, no residuals. */
 		return erSuccess;
 	}
-	unsigned int GetMaxChangeId(void) const _kc_override { return m_ulMaxFolderChange; }
+	unsigned int GetMaxChangeId() const override { return m_ulMaxFolderChange; }
 
 private:
 	unsigned int m_ulMaxFolderChange;

@@ -10,7 +10,6 @@
 #define ARCHIVERIMPL_H_INCLUDED
 
 #include <memory>
-#include <kopano/zcdefs.h>
 #include <kopano/automapi.hpp>
 #include <kopano/ECLogger.h>
 #include "Archiver.h"               // for declaration of class Archiver
@@ -18,14 +17,14 @@
 
 namespace KC {
 
-class ArchiverImpl _kc_final : public Archiver {
+class ArchiverImpl final : public Archiver {
 public:
-	eResult Init(const char *lpszAppName, const char *lpszConfig, const configsetting_t *lpExtraSettings, unsigned int ulFlags) _kc_override;
-	eResult GetControl(ArchiveControlPtr *lpptrControl, bool bForceCleanup) _kc_override;
-	eResult GetManage(const TCHAR *lpszUser, ArchiveManagePtr *lpptrManage) _kc_override;
-	eResult AutoAttach(unsigned int ulFlags) _kc_override;
-	ECConfig *GetConfig(void) const _kc_override { return m_lpsConfig.get(); }
-	ECLogger *GetLogger(eLogType which) const _kc_override; // Inherits default (which = DefaultLog) from Archiver::GetLogger
+	eResult Init(const char *progname, const char *config, const configsetting_t *extra, unsigned int flags) override;
+	eResult GetControl(ArchiveControlPtr *, bool force_cleanup) override;
+	eResult GetManage(const TCHAR *user, ArchiveManagePtr *) override;
+	eResult AutoAttach(unsigned int flags) override;
+	ECConfig *GetConfig() const override { return m_lpsConfig.get(); }
+	ECLogger *GetLogger(eLogType which) const override; /* Inherits default (which = DefaultLog) from Archiver::GetLogger */
 
 private:
 	configsetting_t* ConcatSettings(const configsetting_t *lpSettings1, const configsetting_t *lpSettings2);

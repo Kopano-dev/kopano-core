@@ -6,7 +6,6 @@
 #ifndef LDAPCACHE_H
 #define LDAPCACHE_H
 
-#include <kopano/zcdefs.h>
 #include <memory>
 #include <list>
 #include <map>
@@ -33,7 +32,7 @@ typedef std::list<std::string> dn_list_t;
  * LDAP Cache which collects DNs with the matching
  * objectid and name.
  */
-class LDAPCache _kc_final {
+class LDAPCache final {
 private:
 	/* Protect mutex from being overriden */
 	std::recursive_mutex m_hMutex;

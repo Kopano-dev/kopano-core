@@ -6,7 +6,6 @@
 #define ECMAPIFOLDER_H
 
 #include <kopano/memory.hpp>
-#include <kopano/zcdefs.h>
 #include <mapidefs.h>
 #include <kopano/Util.h>
 #include "WSTransport.h"
@@ -30,16 +29,16 @@ public:
 
 	// Our table-row getprop handler (handles client-side generation of table columns)
 	static HRESULT TableRowGetProp(void *prov, const struct propVal *src, SPropValue *dst, void **base, ULONG type);
-	virtual HRESULT	QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual HRESULT	QueryInterface(const IID &, void **) override;
 	virtual HRESULT OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk);
 
 	// Override IMAPIProp
-	virtual HRESULT SaveChanges(ULONG ulFlags) _kc_override;
-	virtual HRESULT CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, const SPropTagArray *lpExcludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems) _kc_override;
-	virtual HRESULT CopyProps(const SPropTagArray *lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems) _kc_override;
-	virtual HRESULT GetProps(const SPropTagArray *lpPropTagArray, ULONG ulFlags, ULONG *lpcValues, LPSPropValue *lppPropArray) _kc_override;
-	virtual HRESULT SetProps(ULONG cValues, const SPropValue *lpPropArray, LPSPropProblemArray *lppProblems) _kc_override;
-	virtual HRESULT DeleteProps(const SPropTagArray *lpPropTagArray, LPSPropProblemArray *lppProblems) _kc_override;
+	virtual HRESULT SaveChanges(unsigned int flags) override;
+	virtual HRESULT CopyTo(unsigned int nexcl, const IID *excliid, const SPropTagArray *exclprop, ULONG ui_param, IMAPIProgress *, const IID *intf, void *dest_obj, unsigned int flags, SPropProblemArray **) override;
+	virtual HRESULT CopyProps(const SPropTagArray *inclprop, ULONG ui_param, IMAPIProgress *, const IID *intf, void *dest_obj, unsigned int flags, SPropProblemArray **) override;
+	virtual HRESULT GetProps(const SPropTagArray *, unsigned int flags, unsigned int *nprops, SPropValue **) override;
+	virtual HRESULT SetProps(unsigned int nvals, const SPropValue *, SPropProblemArray **) override;
+	virtual HRESULT DeleteProps(const SPropTagArray *, SPropProblemArray **) override;
 
 	// We override from IMAPIContainer
 	virtual HRESULT SetSearchCriteria(const SRestriction *, const ENTRYLIST *container, ULONG flags) override;

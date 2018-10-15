@@ -6,10 +6,9 @@
 #ifndef ECIMPORTCONTENTSCHANGESPROXY_H
 #define ECIMPORTCONTENTSCHANGESPROXY_H
 
-#include <kopano/zcdefs.h>
 #include <edkmdb.h>
 
-class ECImportContentsChangesProxy _kc_final :
+class ECImportContentsChangesProxy final :
     public IExchangeImportContentsChanges {
 private:
     ULONG m_cRef;
@@ -18,17 +17,17 @@ public:
 	ECImportContentsChangesProxy(const zval *v TSRMLS_DC);
     ~ECImportContentsChangesProxy();
 
-	virtual ULONG AddRef(void) _kc_override;
-	virtual ULONG Release(void) _kc_override;
-	virtual HRESULT QueryInterface(REFIID iid, void **lpvoid) _kc_override;
+	virtual ULONG AddRef() override;
+	virtual ULONG Release() override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
     
-	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) _kc_override;
-	virtual HRESULT Config(LPSTREAM lpStream, ULONG ulFlags) _kc_override;
-	virtual HRESULT UpdateState(LPSTREAM lpStream) _kc_override;
-	virtual HRESULT ImportMessageChange(ULONG cValue, LPSPropValue lpPropArray, ULONG ulFlags, LPMESSAGE *lppMessage) _kc_override;
-	virtual HRESULT ImportMessageDeletion(ULONG ulFlags, LPENTRYLIST lpSourceEntryList) _kc_override;
-	virtual HRESULT ImportPerUserReadStateChange(ULONG cElements, LPREADSTATE lpReadState) _kc_override;
-	virtual HRESULT ImportMessageMove(ULONG cbSourceKeySrcFolder, BYTE *pbSourceKeySrcFolder, ULONG cbSourceKeySrcMessage, BYTE *pbSourceKeySrcMessage, ULONG cbPCLMessage, BYTE *pbPCLMessage, ULONG cbSourceKeyDestMessage, BYTE *pbSourceKeyDestMessage, ULONG cbChangeNumDestMessage, BYTE *pbChangeNumDestMessage) _kc_override;
+	virtual HRESULT GetLastError(HRESULT result, unsigned int flags, MAPIERROR **) override;
+	virtual HRESULT Config(IStream *, unsigned int flags) override;
+	virtual HRESULT UpdateState(IStream *) override;
+	virtual HRESULT ImportMessageChange(unsigned int nvals, SPropValue *, unsigned int flags, IMessage **) override;
+	virtual HRESULT ImportMessageDeletion(unsigned int flags, ENTRYLIST *source_entry) override;
+	virtual HRESULT ImportPerUserReadStateChange(unsigned int nelem, READSTATE *) override;
+	virtual HRESULT ImportMessageMove(unsigned int srcfld_size, BYTE *sk_srcfld, unsigned int msg_size, BYTE *sk_msg, unsigned int pclmsg_size, BYTE *pclmsg, unsigned int dstmsg_size, BYTE *sk_dstmsg, unsigned int cbChangeNumDestMessage, BYTE *pbChangeNumDestMessage) override;
 };
 
 #endif

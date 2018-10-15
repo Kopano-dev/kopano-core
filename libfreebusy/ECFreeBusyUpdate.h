@@ -14,7 +14,6 @@
 #ifndef ECFREEBUSYUPDATE_H
 #define ECFREEBUSYUPDATE_H
 
-#include <kopano/zcdefs.h>
 #include "freebusy.h"
 #include "freebusyguid.h"
 #include <kopano/ECUnknown.h>
@@ -30,12 +29,12 @@ namespace KC {
 /**
  * Implementatie of the IFreeBusyUpdate interface
  */
-class ECFreeBusyUpdate _kc_final : public ECUnknown, public IFreeBusyUpdate {
+class ECFreeBusyUpdate final : public ECUnknown, public IFreeBusyUpdate {
 private:
 	ECFreeBusyUpdate(IMessage* lpMessage);
 public:
 	static HRESULT Create(IMessage* lpMessage, ECFreeBusyUpdate **lppECFreeBusyUpdate);
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
 	virtual HRESULT Reload(void) { return S_OK; }
 	virtual HRESULT PublishFreeBusy(const FBBlock_1 *, ULONG nblks);
 	virtual HRESULT RemoveAppt(void) { return S_OK; }

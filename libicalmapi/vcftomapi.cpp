@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2017 - Kopano and its licensors
  */
-#include <kopano/zcdefs.h>
 #include <algorithm>
 #include <memory>
 #include <new>
@@ -27,15 +26,15 @@
 
 namespace KC {
 
-class vcftomapi_impl _kc_final : public vcftomapi {
+class vcftomapi_impl final : public vcftomapi {
 	public:
 	/*
 	 * - lpPropObj to lookup named properties
 	 * - Addressbook (Global AddressBook for looking up users)
 	 */
 	vcftomapi_impl(IMAPIProp *o) : vcftomapi(o) {}
-	HRESULT parse_vcf(const std::string &) _kc_override;
-	HRESULT get_item(IMessage *) _kc_override;
+	HRESULT parse_vcf(const std::string &) override;
+	HRESULT get_item(IMessage *) override;
 
 	private:
 	HRESULT save_photo(IMessage *);

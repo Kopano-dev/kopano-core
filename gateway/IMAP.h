@@ -12,7 +12,6 @@
 #include <list>
 #include <set>
 #include <cstring>
-#include <kopano/zcdefs.h>
 #include <kopano/ECChannel.h>
 #include <kopano/memory.hpp>
 #include <kopano/hl.hpp>
@@ -42,7 +41,7 @@ class ECRestriction;
 /**
  * An ownership-indicating wrapper atop SBinary.
  */
-class BinaryArray _kc_final : public SBinary {
+class BinaryArray final : public SBinary {
 public:
 	BinaryArray() : SBinary() {}
 	BinaryArray(const void *lpData, ULONG cbData, bool b = false) :
@@ -125,7 +124,7 @@ public:
 };
 
 // FLAGS: \Seen \Answered \Flagged \Deleted \Draft \Recent
-class IMAP _kc_final : public ClientProto {
+class IMAP final : public ClientProto {
 public:
 	IMAP(const char *path, std::shared_ptr<KC::ECChannel>, std::shared_ptr<KC::ECConfig>);
 	~IMAP();

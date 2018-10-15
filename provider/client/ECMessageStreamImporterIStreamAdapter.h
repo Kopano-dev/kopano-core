@@ -5,7 +5,6 @@
 #ifndef ECMessageStreamImporterIStreamAdapter_INCLUDED
 #define ECMessageStreamImporterIStreamAdapter_INCLUDED
 
-#include <kopano/zcdefs.h>
 #include <kopano/memory.hpp>
 #include <kopano/ECUnknown.h>
 #include <kopano/Util.h>
@@ -24,7 +23,7 @@ public:
 	static HRESULT Create(WSMessageStreamImporter *lpStreamImporter, IStream **lppStream);
 
 	// IUnknown
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
 
 	// ISequentialStream
 	virtual HRESULT Read(void *pv, ULONG cb, ULONG *pcbRead);

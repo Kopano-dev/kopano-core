@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#include <kopano/zcdefs.h>
 #include <map>
 #include <memory>
 #include <new>
@@ -27,7 +26,7 @@ namespace KC {
 
 static constexpr const SizedSSortOrderSet(1, sSortDefault) = { 0, 0, 0, {} } ;
 
-class FixStringType _kc_final {
+class FixStringType final {
 public:
 	FixStringType(ULONG ulFlags) : m_ulFlags(ulFlags) { assert((m_ulFlags & ~MAPI_UNICODE) == 0); }
 	ULONG operator()(ULONG ulPropTag) const

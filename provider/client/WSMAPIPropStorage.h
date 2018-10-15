@@ -5,7 +5,6 @@
 #ifndef WSMAPIPROPSTORAGE_H
 #define WSMAPIPROPSTORAGE_H
 
-#include <kopano/zcdefs.h>
 #include <mutex>
 #include <kopano/ECUnknown.h>
 #include <kopano/Util.h>
@@ -26,7 +25,7 @@ protected:
 
 public:
 	static HRESULT Create(ULONG peid_size, const ENTRYID *parent_eid, ULONG eid_size, const ENTRYID *eid, ULONG flags, KC::ECSESSIONID, unsigned int srv_caps, WSTransport *, WSMAPIPropStorage **);
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
 
 	// For ICS
 	virtual HRESULT HrSetSyncId(ULONG ulSyncId);

@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <kopano/ECGetText.h>
 #include <kopano/charset/convert.h>
@@ -24,7 +23,7 @@ namespace KC {
  *    this assumption is false, this will lead to more conversions, and more memory usage
  *    by the cache.
  */
-class converter _kc_final {
+class converter final {
 	public:
 	static std::unique_ptr<converter> &getInstance()
 	{

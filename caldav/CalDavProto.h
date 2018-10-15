@@ -8,17 +8,16 @@
 #include "WebDav.h"
 #include "CalDavUtil.h"
 #include <libxml/uri.h>
-#include <kopano/zcdefs.h>
 #include <kopano/mapiext.h>
 #include "MAPIToICal.h"
 #include "ICalToMAPI.h"
 #include "icaluid.h"
 #define FB_PUBLISH_DURATION 6
 
-class CalDAV _kc_final : public WebDav {
+class CalDAV final : public WebDav {
 public:
 	CalDAV(Http &, IMAPISession *, const std::string &srv_tz, const std::string &charset);
-	HRESULT HrHandleCommand(const std::string &strMethod) _kc_override;
+	HRESULT HrHandleCommand(const std::string &method) override;
 
 protected:
 	/* entry points in webdav class */
@@ -30,14 +29,14 @@ protected:
 	HRESULT HrMove();
 	HRESULT HrHandleMeeting(KC::ICalToMapi *);
 	HRESULT HrHandleFreebusy(KC::ICalToMapi *);
-	virtual HRESULT HrHandlePropfind(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lpsDavMulStatus) _kc_override;
-	virtual HRESULT HrListCalEntries(WEBDAVREQSTPROPS *sWebRCalQry,WEBDAVMULTISTATUS *sWebMStatus) _kc_override; // Used By both PROPFIND & Report Calendar-query
-	virtual	HRESULT HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWebMStatus) _kc_override;
-	virtual HRESULT HrHandlePropPatch(WEBDAVPROP *lpsDavProp, WEBDAVMULTISTATUS *sWebMStatus) _kc_override;
-	virtual HRESULT HrHandleMkCal(WEBDAVPROP *lpsDavProp) _kc_override;
-	virtual HRESULT HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWebMStatus) _kc_override;
-	virtual HRESULT HrHandlePropertySearchSet(WEBDAVMULTISTATUS *sWebMStatus) _kc_override;
-	virtual HRESULT HrHandleDelete(void) _kc_override;
+	virtual HRESULT HrHandlePropfind(WEBDAVREQSTPROPS *davprop, WEBDAVMULTISTATUS *) override;
+	virtual HRESULT HrListCalEntries(WEBDAVREQSTPROPS *webrcal_query, WEBDAVMULTISTATUS *) override; /* Used by both PROPFIND & Report Calendar-query */
+	virtual	HRESULT HrHandleReport(WEBDAVRPTMGET *, WEBDAVMULTISTATUS *) override;
+	virtual HRESULT HrHandlePropPatch(WEBDAVPROP *, WEBDAVMULTISTATUS *) override;
+	virtual HRESULT HrHandleMkCal(WEBDAVPROP *) override;
+	virtual HRESULT HrHandlePropertySearch(WEBDAVRPTMGET *, WEBDAVMULTISTATUS *) override;
+	virtual HRESULT HrHandlePropertySearchSet(WEBDAVMULTISTATUS *) override;
+	virtual HRESULT HrHandleDelete() override;
 	HRESULT HrHandlePost();
 
 private:

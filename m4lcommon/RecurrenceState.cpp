@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <utility>
 #include <cstdio>
@@ -28,7 +27,7 @@
 
 namespace KC {
 
-class BinReader _kc_final {
+class BinReader final {
 public:
 	BinReader(const char *lpData, unsigned int ulLen) :
 		m_lpData(lpData), m_ulLen(ulLen)
@@ -87,7 +86,7 @@ private:
 	unsigned int m_ulLen, m_ulCursor = 0;
 };
 
-class BinWriter _kc_final {
+class BinWriter final {
 public:
     void GetData(char **lppData, unsigned int *lpulLen, void *base) {
         char *lpData;

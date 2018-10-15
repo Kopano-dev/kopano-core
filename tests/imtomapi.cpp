@@ -5,7 +5,6 @@
  *	derivation and transformation.
  */
 #define _GNU_SOURCE 1 /* memmem */
-#include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <cerrno>
 #include <cstdlib>
@@ -39,7 +38,7 @@ enum {
 static const char *t_ascii_upgrade = "utf-8";
 ECLogger_File t_logger(EC_LOGLEVEL_DEBUG, false, "-", 0);
 
-class ictx _kc_final {
+class ictx final {
 	public:
 	void complete_init(void);
 	const SPropValue *find(unsigned int) const;
@@ -188,7 +187,7 @@ static int test_mimecset01(const struct ictx &ctx)
 	        wcscmp(ctx.data, L"t\xE6st") == 0) ? TEST_OK : TEST_FAIL;
 }
 
-class test_mimecset03 _kc_final : public t_base {
+class test_mimecset03 final : public t_base {
 	public:
 	void setup(void) { m_dopt.ascii_upgrade = nullptr; }
 	int verify(const struct ictx &ctx);
@@ -332,7 +331,7 @@ static int test_html_cset_01(const struct ictx &ctx)
 	return TEST_OK;
 }
 
-class test_html_cset_02 _kc_final : public t_base {
+class test_html_cset_02 final : public t_base {
 	public:
 	void setup(void) { m_dopt.charset_strict_rfc = false; };
 	int verify(const struct ictx &);
@@ -344,7 +343,7 @@ int test_html_cset_02::verify(const struct ictx &ctx)
 	       TEST_OK : TEST_FAIL;
 }
 
-class test_cset_big5 _kc_final : public t_base {
+class test_cset_big5 final : public t_base {
 	public:
 	void setup(void) { m_dopt.ascii_upgrade = "big5"; };
 	int verify(const struct ictx &);
@@ -403,7 +402,7 @@ static int test_zcp_11699(const struct ictx &ctx)
 	return TEST_OK;
 }
 
-class test_zcp_11713 _kc_final : public t_base {
+class test_zcp_11713 final : public t_base {
 	public:
 	void setup(void) { m_dopt.charset_strict_rfc = false; }
 	int verify(const struct ictx &ctx);
@@ -430,7 +429,7 @@ int test_zcp_11713::verify(const struct ictx &ctx)
 	return TEST_OK;
 }
 
-class test_zcp_12930 _kc_final : public t_base {
+class test_zcp_12930 final : public t_base {
 	public:
 	void setup(void) { m_dopt.ascii_upgrade = nullptr; }
 	int verify(const struct ictx &ctx);
@@ -469,7 +468,7 @@ static int test_zcp_13036_lh(const struct ictx &ctx)
 	        TEST_OK : TEST_FAIL;
 }
 
-class test_zcp_13175 _kc_final : public t_base {
+class test_zcp_13175 final : public t_base {
 	public:
 	void setup(void) { m_dopt.charset_strict_rfc = false; }
 	int verify(const struct ictx &);
@@ -504,7 +503,7 @@ static int test_zcp_13439_nl(const struct ictx &ctx)
 	return TEST_OK;
 }
 
-class test_zcp_13449_meca _kc_final : public t_base {
+class test_zcp_13449_meca final : public t_base {
 	public:
 	void setup(void) { m_dopt.charset_strict_rfc = false; }
 	int verify(const struct ictx &ctx);
@@ -542,7 +541,7 @@ int test_zcp_13449_meca::verify(const struct ictx &ctx)
 	return TEST_FAIL;
 }
 
-class test_zcp_13449_na _kc_final : public t_base {
+class test_zcp_13449_na final : public t_base {
 	public:
 	void setup(void) { m_dopt.ascii_upgrade = nullptr; }
 	int verify(const struct ictx &ctx);

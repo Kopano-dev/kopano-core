@@ -60,7 +60,7 @@ private:
 	PROPMAP_DEF_NAMED_ID(REF_PREV_ENTRYID)
 };
 
-class MessageState _kc_final {
+class MessageState final {
 public:
 	bool isStubbed() const { return m_ulState & msStubbed; }
 	bool isDirty() const { return m_ulState & msDirty; }

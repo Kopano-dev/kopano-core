@@ -6,7 +6,6 @@
 #ifndef ECMAPICONTAINER
 #define ECMAPICONTAINER
 
-#include <kopano/zcdefs.h>
 #include <mapidefs.h>
 #include "WSTransport.h"
 #include "ECMsgStore.h"
@@ -18,7 +17,7 @@ public:
 	virtual ~ECMAPIContainer(void) = default;
 
 	// IUnknown
-	virtual HRESULT	QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual HRESULT	QueryInterface(const IID &, void **) override;
 
 	// IMAPIContainer
 	virtual HRESULT GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable);

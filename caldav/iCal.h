@@ -5,7 +5,6 @@
 #ifndef _ICAL_H_
 #define _ICAL_H_
 
-#include <kopano/zcdefs.h>
 #include "Http.h"
 #include <mapi.h>
 #include <kopano/CommonUtil.h>
@@ -13,10 +12,10 @@
 #include "ICalToMAPI.h"
 #include "CalDavProto.h"
 
-class iCal _kc_final : public ProtocolBase {
+class iCal final : public ProtocolBase {
 public:
 	iCal(Http &, IMAPISession *, const std::string &srv_tz, const std::string &charset);
-	HRESULT HrHandleCommand(const std::string &strMethod) _kc_override;
+	HRESULT HrHandleCommand(const std::string &method) override;
 
 private:
 	HRESULT HrHandleIcalGet(const std::string &strMethod);

@@ -14,7 +14,6 @@
 #ifndef ECENUMFBBLOCK_H
 #define ECENUMFBBLOCK_H
 
-#include <kopano/zcdefs.h>
 #include "freebusy.h"
 #include <kopano/ECUnknown.h>
 #include <kopano/ECGuid.h>
@@ -27,12 +26,12 @@ namespace KC {
 /**
  * Implementatie of the IEnumFBBlock interface
  */
-class ECEnumFBBlock _kc_final : public ECUnknown, public IEnumFBBlock {
+class ECEnumFBBlock final : public ECUnknown, public IEnumFBBlock {
 private:
 	ECEnumFBBlock(ECFBBlockList* lpFBBlock);
 public:
 	static HRESULT Create(ECFBBlockList* lpFBBlock, ECEnumFBBlock **lppECEnumFBBlock);
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
 	virtual HRESULT Next(LONG celt, FBBlock_1 *pblk, LONG *pcfetch);
 	virtual HRESULT Skip(LONG celt) { return m_FBBlock.Skip(celt); }
 	virtual HRESULT Reset() { return m_FBBlock.Reset(); }

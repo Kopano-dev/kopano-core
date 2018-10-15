@@ -6,7 +6,6 @@
 #ifndef SMIMEMESSAGE_H
 #define SMIMEMESSAGE_H
 
-#include <kopano/zcdefs.h>
 #include <string>
 #include <vmime/message.hpp>
 #include <vmime/utility/stream.hpp>
@@ -35,9 +34,9 @@ namespace KC {
  * Note that any other body data set will be override by the SMIMEBody.
  *
  */
-class SMIMEMessage _kc_final : public vmime::message {
+class SMIMEMessage final : public vmime::message {
 public:
-	void generateImpl(const vmime::generationContext &, vmime::utility::outputStream &, size_t curLinePos = 0, size_t *newLinePos = NULL) const _kc_override;
+	void generateImpl(const vmime::generationContext &, vmime::utility::outputStream &, size_t cur_line_pos = 0, size_t *newline_pos = nullptr) const override;
 	void setSMIMEBody(const char *body) { m_body = body; }
 private:
     std::string m_body;

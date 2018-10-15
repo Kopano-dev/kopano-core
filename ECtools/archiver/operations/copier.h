@@ -26,7 +26,7 @@ namespace operations {
 /**
  * Performs the copy part of the archive operation.
  */
-class _kc_export Copier _kc_final : public ArchiveOperationBaseEx {
+class _kc_export Copier final : public ArchiveOperationBaseEx {
 public:
 	_kc_hidden Copier(ArchiverSessionPtr, ECConfig *, std::shared_ptr<ECArchiverLogger>, const ObjectEntryList &archives, const SPropTagArray *exclprop, int age, bool process_unread);
 	_kc_hidden ~Copier(void);
@@ -102,8 +102,8 @@ public:
 	};
 
 private:
-	_kc_hidden HRESULT EnterFolder(LPMAPIFOLDER) _kc_override;
-	_kc_hidden HRESULT LeaveFolder(void) _kc_override;
+	_kc_hidden HRESULT EnterFolder(IMAPIFolder *) override;
+	_kc_hidden HRESULT LeaveFolder() override;
 	_kc_hidden HRESULT DoProcessEntry(const SRow &proprow) override;
 
 	/**

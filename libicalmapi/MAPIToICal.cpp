@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <memory>
 #include <new>
@@ -23,13 +22,13 @@
 
 namespace KC {
 
-class MapiToICalImpl _kc_final : public MapiToICal {
+class MapiToICalImpl final : public MapiToICal {
 public:
 	MapiToICalImpl(LPADRBOOK lpAdrBook, const std::string &strCharset);
-	HRESULT AddMessage(LPMESSAGE lpMessage, const std::string &strSrvTZ, ULONG ulFlags) _kc_override;
-	HRESULT AddBlocks(FBBlock_1 *pblk, LONG ulblocks, time_t tStart, time_t tEnd, const std::string &strOrganiser, const std::string &strUser, const std::string &strUID) _kc_override;
-	HRESULT Finalize(ULONG ulFlags, std::string *strMethod, std::string *strIcal) _kc_override;
-	HRESULT ResetObject(void) _kc_override;
+	HRESULT AddMessage(IMessage *, const std::string &tz, unsigned int flags) override;
+	HRESULT AddBlocks(FBBlock_1 *, int nblk, time_t start, time_t end, const std::string &organizer, const std::string &user, const std::string &uid) override;
+	HRESULT Finalize(unsigned int flags, std::string *method, std::string *ical) override;
+	HRESULT ResetObject() override;
 	
 private:
 	LPADRBOOK m_lpAdrBook;

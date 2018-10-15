@@ -34,7 +34,7 @@ using KC::userobject_relation_t;
  *
  * User management based on Mysql. This is the build-in user management system
  */
-class DBUserPlugin _kc_final : public KC::DBPlugin {
+class DBUserPlugin final : public KC::DBPlugin {
 public:
     /**
 	 * @param[in]	pluginlock

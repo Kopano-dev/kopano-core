@@ -10,7 +10,6 @@
 #include <string>
 #include <list>
 #include <set>
-#include <kopano/zcdefs.h>
 #include <mapidefs.h>
 
 /*
@@ -40,7 +39,7 @@ public:
 
 class FsckCalendar final : public Fsck {
 private:
-	HRESULT ValidateItem(LPMESSAGE lpMessage, const std::string &strClass) _kc_override;
+	HRESULT ValidateItem(IMessage *, const std::string &cls) override;
 	HRESULT ValidateMinimalNamedFields(LPMESSAGE lpMessage);
 	HRESULT ValidateTimestamps(LPMESSAGE lpMessage);
 	HRESULT ValidateRecurrence(LPMESSAGE lpMessage);
@@ -48,13 +47,13 @@ private:
 
 class FsckContact final : public Fsck {
 private:
-	HRESULT ValidateItem(LPMESSAGE lpMessage, const std::string &strClass) _kc_override;
+	HRESULT ValidateItem(IMessage *, const std::string &cls) override;
 	HRESULT ValidateContactNames(LPMESSAGE lpMessage);
 };
 
 class FsckTask final : public Fsck {
 private:
-	HRESULT ValidateItem(LPMESSAGE lpMessage, const std::string &strClass) _kc_override;
+	HRESULT ValidateItem(IMessage *, const std::string &cls) override;
 	HRESULT ValidateMinimalNamedFields(LPMESSAGE lpMessage);
 	HRESULT ValidateTimestamps(LPMESSAGE lpMessage);
 	HRESULT ValidateCompletion(LPMESSAGE lpMessage);

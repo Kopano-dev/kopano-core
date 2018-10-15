@@ -15,7 +15,7 @@ namespace KC {
 /**
  * This class updates the current archive state to the should-be state.
  */
-class _kc_export ArchiveStateUpdater _kc_final {
+class _kc_export ArchiveStateUpdater final {
 public:
 	typedef ArchiveStateCollector::ArchiveInfo		ArchiveInfo;
 	typedef ArchiveStateCollector::ArchiveInfoMap	ArchiveInfoMap;

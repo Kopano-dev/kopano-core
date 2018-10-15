@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <chrono>
 #include <exception>
@@ -179,7 +178,7 @@ typedef memory_ptr<struct berval *, ldap_deleter> auto_free_ldap_berval;
 	}\
 }
 
-class attrArray _kc_final {
+class attrArray final {
 public:
 	attrArray(unsigned int ulSize) :
 		ulAttrs(0), ulMaxAttrs(ulSize),

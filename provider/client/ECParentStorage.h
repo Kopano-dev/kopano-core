@@ -8,7 +8,6 @@
 /* This PropStorate class writes the data to the parent object, so this is only used in attachments and msg-in-msg objects
    It reads from the saved data in the parent
 */
-#include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
 #include <kopano/Util.h>
 #include <kopano/memory.hpp>
@@ -31,7 +30,7 @@ protected:
 
 public:
 	static HRESULT Create(ECGenericProp *lpParentObject, ULONG ulUniqueId, ULONG ulObjId, IECPropStorage *lpServerStorage, ECParentStorage **lppParentStorage);
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
 
 private:
 	// Get a single (large) property

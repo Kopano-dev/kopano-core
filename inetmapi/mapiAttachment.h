@@ -7,13 +7,12 @@
 #ifndef MAPIATTACHMENT_H
 #define MAPIATTACHMENT_H
 
-#include <kopano/zcdefs.h>
 #include <vmime/defaultAttachment.hpp>
 #include <string>
 
 namespace KC {
 
-class mapiAttachment _kc_final : public vmime::defaultAttachment {
+class mapiAttachment final : public vmime::defaultAttachment {
 public:
 
 	mapiAttachment(vmime::shared_ptr<const vmime::contentHandler> data,
@@ -33,7 +32,7 @@ private:
 	bool m_hasCharset = false;
 	vmime::charset m_charset;
 
-	void generatePart(vmime::shared_ptr<vmime::bodyPart> part) const _kc_override;
+	void generatePart(vmime::shared_ptr<vmime::bodyPart>) const override;
 };
 
 } /* namespace */

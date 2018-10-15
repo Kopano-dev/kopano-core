@@ -7,7 +7,6 @@
 #define __M4L_MAPISPI_IMPL_H
 
 #include <kopano/memory.hpp>
-#include <kopano/zcdefs.h>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -38,8 +37,8 @@ public:
 	M4LMAPIGetSession(LPMAPISESSION new_session);
 
 	// IMAPIGetSession
-	virtual HRESULT GetMAPISession(LPUNKNOWN *lppSession) _kc_override;
-	virtual HRESULT QueryInterface(REFIID refiid, void **lpvoid) _kc_override;
+	virtual HRESULT GetMAPISession(IUnknown **ses) override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
 };
 
 class M4LMAPISupport : public M4LUnknown, public IMAPISupport {
@@ -97,7 +96,7 @@ public:
 
 	virtual HRESULT IStorageFromStream(LPUNKNOWN lpUnkIn, LPCIID lpInterface, ULONG ulFlags, LPSTORAGE *lppStorageOut);
 	virtual HRESULT GetSvcConfigSupportObj(ULONG ulFlags, LPMAPISUP *lppSvcSupport);
-	virtual HRESULT QueryInterface(REFIID refiid, void **lpvoid) _kc_override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
 };
 
 

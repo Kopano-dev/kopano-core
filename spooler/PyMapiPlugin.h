@@ -33,7 +33,7 @@ class pym_plugin_intf {
 	virtual HRESULT RequestCallExecution(const char *func, IMAPISession *, IAddrBook *, IMsgStore *, IMAPIFolder *, IMessage *, ULONG *do_callexe, ULONG *result) { return hrSuccess; }
 };
 
-class PyMapiPluginFactory _kc_final {
+class PyMapiPluginFactory final {
 public:
 	PyMapiPluginFactory() = default;
 	~PyMapiPluginFactory();

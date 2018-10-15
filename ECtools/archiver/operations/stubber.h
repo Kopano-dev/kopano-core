@@ -7,7 +7,6 @@
 #define stubber_INCLUDED
 
 #include <memory>
-#include <kopano/zcdefs.h>
 #include "operations.h"
 
 namespace KC { namespace operations {
@@ -15,7 +14,7 @@ namespace KC { namespace operations {
 /**
  * Performs the stub part of the archive oepration.
  */
-class Stubber _kc_final : public ArchiveOperationBase {
+class Stubber final : public ArchiveOperationBase {
 public:
 	Stubber(std::shared_ptr<ECArchiverLogger>, ULONG ulptStubbed, int ulAge, bool bProcessUnread);
 	HRESULT ProcessEntry(IMAPIFolder *, const SRow &proprow) override;

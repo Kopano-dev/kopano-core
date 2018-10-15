@@ -12,7 +12,7 @@
 
 namespace KC {
 
-class _kc_export ECArchiverLogger _kc_final : public ECLogger {
+class _kc_export ECArchiverLogger final : public ECLogger {
 public:
 	ECArchiverLogger(std::shared_ptr<ECLogger>);
 	_kc_hidden tstring SetUser(tstring = tstring());
@@ -35,7 +35,7 @@ private:
 	tstring		m_strFolder;
 };
 
-class _kc_export ScopedUserLogging _kc_final {
+class _kc_export ScopedUserLogging final {
 public:
 	ScopedUserLogging(std::shared_ptr<ECArchiverLogger>, const tstring &strUser);
 	~ScopedUserLogging();
@@ -48,7 +48,7 @@ private:
 	const tstring m_strPrevUser;
 };
 
-class _kc_export ScopedFolderLogging _kc_final {
+class _kc_export ScopedFolderLogging final {
 public:
 	ScopedFolderLogging(std::shared_ptr<ECArchiverLogger>, const tstring &strFolder);
 	~ScopedFolderLogging();

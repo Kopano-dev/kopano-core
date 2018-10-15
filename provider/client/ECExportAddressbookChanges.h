@@ -6,7 +6,6 @@
 #define ECEXPORTADDRESSBOOKCHANGES_H
 
 #include <memory>
-#include <kopano/zcdefs.h>
 #include <set>
 #include <kopano/memory.hpp>
 #include "ECABContainer.h"
@@ -22,7 +21,7 @@ class ECExportAddressbookChanges final :
     public KC::ECUnknown, public KC::IECExportAddressbookChanges {
 public:
 	ECExportAddressbookChanges(ECMsgStore *lpContainer);
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
 	// IECExportAddressbookChanges
 	virtual HRESULT Config(IStream *state, ULONG flags, KC::IECImportAddressbookChanges *collector);
 	virtual HRESULT Synchronize(ULONG *lpulSteps, ULONG *lpulProgress);

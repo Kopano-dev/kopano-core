@@ -5,7 +5,6 @@
 #ifndef ECMESSAGE_H
 #define ECMESSAGE_H
 
-#include <kopano/zcdefs.h>
 #include <kopano/ECMemTable.h>
 #include <kopano/Util.h>
 #include <kopano/memory.hpp>
@@ -87,7 +86,7 @@ public:
 	 * \return hrSuccess on success.
 	 */
 	static HRESULT SetPropHandler(ULONG ulPropTag, void *lpProvider, const SPropValue *lpsPropValue, void *lpParam);
-	virtual HRESULT	QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual HRESULT	QueryInterface(const IID &, void **) override;
 	virtual HRESULT OpenProperty(ULONG proptag, const IID *intf, ULONG iface_opts, ULONG flags, IUnknown **) override;
 	virtual HRESULT GetAttachmentTable(ULONG flags, IMAPITable **) override;
 	virtual HRESULT OpenAttach(ULONG atnum, const IID *intf, ULONG flags, IAttach **) override;

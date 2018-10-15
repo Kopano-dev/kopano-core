@@ -7,7 +7,6 @@
 
 #include <memory>
 #include <mutex>
-#include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
 #include <kopano/IECInterfaces.hpp>
 #include <kopano/Util.h>
@@ -32,7 +31,7 @@ protected:
 	virtual ~ECNotifyClient();
 public:
 	static HRESULT Create(ULONG ulProviderType, void *lpProvider, ULONG ulFlags, LPMAPISUP lpSupport, ECNotifyClient**lppNotifyClient);
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
 	virtual HRESULT Advise(ULONG cbKey, LPBYTE lpKey, ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection);
 	virtual HRESULT Advise(const ECLISTSYNCSTATE &, KC::IECChangeAdviseSink *, ECLISTCONNECTION *);
 	virtual HRESULT Unadvise(ULONG ulConnection);

@@ -5,7 +5,6 @@
 #ifndef WSTRANSPORT_H
 #define WSTRANSPORT_H
 
-#include <kopano/zcdefs.h>
 #include <mapi.h>
 #include <mapispi.h>
 #include <map>
@@ -61,7 +60,7 @@ protected:
 
 public:
 	static HRESULT Create(ULONG ulUIFlags, WSTransport **lppTransport);
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
 	virtual HRESULT HrLogon2(const struct sGlobalProfileProps &);
 	virtual HRESULT HrLogon(const struct sGlobalProfileProps &);
 	virtual HRESULT HrReLogon();

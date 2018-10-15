@@ -5,7 +5,6 @@
 #ifndef ECMAILUSER
 #define ECMAILUSER
 
-#include <kopano/zcdefs.h>
 #include <kopano/Util.h>
 #include <mapidefs.h>
 #include "ECABContainer.h"
@@ -23,7 +22,7 @@ class ECDistList final : public ECABContainer, public IDistList {
 	virtual HRESULT CopyProps(const SPropTagArray *inclprop, ULONG ui_param, IMAPIProgress *, const IID *intf, void *dest, ULONG flags, SPropProblemArray **) override;
 
 	// override IUnknown
-	virtual HRESULT	QueryInterface(REFIID refiid, void **) _kc_override;
+	virtual HRESULT	QueryInterface(const IID &, void **) override;
 
 	protected:
 	ECDistList(ECABLogon *prov, BOOL modify);
@@ -39,7 +38,7 @@ public:
 	static HRESULT TableRowGetProp(void *prov, const struct propVal *src, SPropValue *dst, void **base, ULONG type);
 	static HRESULT DefaultGetProp(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase);
 
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
 	virtual HRESULT OpenProperty(ULONG proptag, const IID *intf, ULONG iface_opts, ULONG flags, IUnknown **) override;
 	virtual HRESULT CopyTo(ULONG nexcl, const IID *excl, const SPropTagArray *exclprop, ULONG ui_param, IMAPIProgress *, const IID *intf, void *dest, ULONG flags, SPropProblemArray **) override;
 	virtual HRESULT CopyProps(const SPropTagArray *inclprop, ULONG ui_param, IMAPIProgress *, const IID *intf, void *dest, ULONG flags, SPropProblemArray **) override;

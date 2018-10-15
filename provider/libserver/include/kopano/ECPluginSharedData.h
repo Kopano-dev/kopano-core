@@ -23,7 +23,7 @@ class ECStatsCollector;
  * Each instance of the UserPlugin share the contents
  * of ECPluginSharedData.
  */
-class _kc_export ECPluginSharedData _kc_final {
+class _kc_export ECPluginSharedData final {
 private:
 	/**
 	 * Singleton instance of ECPluginSharedData

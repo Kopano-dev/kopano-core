@@ -7,7 +7,6 @@
 
 #include <memory>
 #include <kopano/memory.hpp>
-#include <kopano/zcdefs.h>
 #include <mapidefs.h>
 #include "ECMAPIFolder.h"
 #include <kopano/ECUnknown.h>
@@ -25,7 +24,7 @@ public:
 	static	HRESULT Create(ECMAPIFolder *lpFolder, LPEXCHANGEIMPORTCONTENTSCHANGES* lppExchangeImportContentsChanges);
 
 	// IUnknown
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
 
 	// IExchangeImportContentsChanges
 	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);

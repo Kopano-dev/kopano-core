@@ -6,7 +6,6 @@
 #ifndef ECTHREADMANAGER_H
 #define ECTHREADMANAGER_H
 
-#include <kopano/zcdefs.h>
 #include <atomic>
 #include <condition_variable>
 #include <memory>
@@ -22,14 +21,14 @@
 
 using KC::ECRESULT;
 
-struct ACTIVESOCKET _kc_final {
+struct ACTIVESOCKET final {
     struct soap *soap;
     time_t ulLastActivity;
 
 	bool operator<(const ACTIVESOCKET &a) const noexcept { return a.soap->socket < soap->socket; };
 };
 
-class FindSocket _kc_final {
+class FindSocket final {
 public:
 	FindSocket(SOAP_SOCKET sk) : s(sk) {}
 	bool operator()(const ACTIVESOCKET &a) const noexcept { return a.soap->socket == s; }
@@ -37,7 +36,7 @@ private:
 	SOAP_SOCKET s;
 };
 
-class FindListenSocket _kc_final {
+class FindListenSocket final {
 public:
 	FindListenSocket(SOAP_SOCKET sk) : s(sk) {}
 	bool operator()(struct soap *soap) const noexcept { return soap->socket == s; }
@@ -55,7 +54,7 @@ class ECDispatcher;
  *
  * Thread deletion is done by the Thread Manager.
  */
-class ECWatchDog _kc_final {
+class ECWatchDog final {
 public:
 	ECWatchDog(KC::ECConfig *, ECDispatcher *);
     ~ECWatchDog();
@@ -116,7 +115,7 @@ protected:
 	int m_nRecvTimeout, m_nReadTimeout, m_nSendTimeout;
 };
 
-class ECDispatcherSelect _kc_final : public ECDispatcher {
+class ECDispatcherSelect final : public ECDispatcher {
 private:
 	int m_fdRescanRead, m_fdRescanWrite;
 
@@ -128,7 +127,7 @@ public:
 };
 
 #ifdef HAVE_EPOLL_CREATE
-class ECDispatcherEPoll _kc_final : public ECDispatcher {
+class ECDispatcherEPoll final : public ECDispatcher {
 private:
 	int m_fdMax, m_epFD;
 
