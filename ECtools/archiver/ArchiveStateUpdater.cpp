@@ -117,9 +117,8 @@ HRESULT ArchiveStateUpdater::Update(const tstring &userName, unsigned int ulAtta
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveStateUpdater::Update(): function entry");
 
 	// First see if the username can be found in the map.
-	auto i = std::find_if(m_mapArchiveInfo.cbegin(),
-	         m_mapArchiveInfo.cend(),
-	         [&](const decltype(m_mapArchiveInfo)::value_type &p) { return userName.compare(p.second.userName) == 0; });
+	auto i = std::find_if(m_mapArchiveInfo.cbegin(), m_mapArchiveInfo.cend(),
+	         [&](const auto &p) { return userName.compare(p.second.userName) == 0; });
 	if (i == m_mapArchiveInfo.end()) {
 		// Resolve the username and search by entryid.
 		abentryid_t userId;

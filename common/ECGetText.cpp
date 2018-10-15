@@ -44,18 +44,15 @@ class converter final {
 		auto insResult = m_cache.emplace(lpsz, L"");
 		if (insResult.second) /* successful insert, so not found in cache */
 			insResult.first->second.assign(m_converter.convert_to<std::wstring>(lpsz, strlen(lpsz), "UTF-8"));
-
-		const wchar_t *lpszW = insResult.first->second.c_str();
-		return lpszW;
+		return insResult.first->second.c_str();
 	}
 
 	private:
 	static std::unique_ptr<converter> s_lpInstance;
 	static std::mutex s_hInstanceLock;
 
-	typedef std::map<const char *, std::wstring>	cache_type;
 	convert_context	m_converter;
-	cache_type		m_cache;
+	std::map<const char *, std::wstring> m_cache;
 	std::mutex m_hCacheLock;
 };
 
@@ -82,8 +79,7 @@ LPWSTR kopano_dcgettext_wide(const char *domainname, const char *msgid)
 		bind_textdomain_codeset("kopano", "utf-8");
 		init = true;
 	}
-	const char *lpsz = dcgettext(domainname, msgid, LC_MESSAGES);
-	return const_cast<wchar_t *>(converter::getInstance()->convert(lpsz));
+	return const_cast<wchar_t *>(converter::getInstance()->convert(dcgettext(domainname, msgid, LC_MESSAGES)));
 }
 
 } /* namespace */

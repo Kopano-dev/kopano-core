@@ -47,14 +47,13 @@ static time_t getDateByYearMonthWeekDayHour(WORD year, WORD month, WORD week,
 static LONG getTZOffset(time_t date, const TIMEZONE_STRUCT &sTimeZone)
 {
 	struct tm tm;
-	time_t dststart, dstend;
 	bool dst = false;
 
 	if (sTimeZone.lStdBias == sTimeZone.lDstBias || sTimeZone.stDstDate.wMonth == 0 || sTimeZone.stStdDate.wMonth == 0)
 		return -(sTimeZone.lBias) * 60;
 	gmtime_safe(date, &tm);
-	dststart = getDateByYearMonthWeekDayHour(tm.tm_year, sTimeZone.stDstDate.wMonth, sTimeZone.stDstDate.wDay, sTimeZone.stDstDate.wDayOfWeek, sTimeZone.stDstDate.wHour);
-	dstend = getDateByYearMonthWeekDayHour(tm.tm_year, sTimeZone.stStdDate.wMonth, sTimeZone.stStdDate.wDay, sTimeZone.stStdDate.wDayOfWeek, sTimeZone.stStdDate.wHour);
+	auto dststart = getDateByYearMonthWeekDayHour(tm.tm_year, sTimeZone.stDstDate.wMonth, sTimeZone.stDstDate.wDay, sTimeZone.stDstDate.wDayOfWeek, sTimeZone.stDstDate.wHour);
+	auto dstend = getDateByYearMonthWeekDayHour(tm.tm_year, sTimeZone.stStdDate.wMonth, sTimeZone.stStdDate.wDay, sTimeZone.stStdDate.wDayOfWeek, sTimeZone.stStdDate.wHour);
 
 	if (dststart <= dstend) {
 		// Northern hemisphere, eg DST is during Mar-Oct

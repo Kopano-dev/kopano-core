@@ -69,9 +69,7 @@ HRESULT ECSessionGroupManager::DeleteSessionGroupDataIfOrphan(ECSESSIONGROUPID e
 	SessionGroupData *lpSessionGroupData = NULL;
 	ulock_rec biglock(m_hMutex);
 	auto iter = std::find_if(m_mapSessionGroups.cbegin(), m_mapSessionGroups.cend(),
-		[&](const SESSIONGROUPMAP::value_type &e) {
-			return e.second->GetSessionGroupId() == ecSessionGroupId;
-		});
+		[&](const auto &e) { return e.second->GetSessionGroupId() == ecSessionGroupId; });
 	if (iter != m_mapSessionGroups.cend()) {
         if(iter->second->IsOrphan()) {
             // If the group is an orphan now, we can delete it safely since the only way

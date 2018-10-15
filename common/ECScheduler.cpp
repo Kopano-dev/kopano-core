@@ -100,7 +100,6 @@ bool ECScheduler::hasExpired(time_t ttime, ECSCHEDULE *lpSchedule)
 void* ECScheduler::ScheduleThread(void* lpTmpScheduler)
 {
 	kcsrv_blocksigs();
-	ECScheduleList::iterator	iterScheduleList;
 	auto lpScheduler = static_cast<ECScheduler *>(lpTmpScheduler);
 	HRESULT*			lperThread = NULL;
 	pthread_t			hThread;
@@ -126,10 +125,8 @@ void* ECScheduler::ScheduleThread(void* lpTmpScheduler)
 			//TODO If load on server high, check only items with a high priority
 			time(&ttime);
 			if (hasExpired(ttime, &sl)) {
-				//Create task thread
-				int err = 0;
-
-				if((err = pthread_create(&hThread, NULL, sl.lpFunction, static_cast<void *>(sl.lpData))) != 0) {
+				auto err = pthread_create(&hThread, nullptr, sl.lpFunction, static_cast<void *>(sl.lpData));
+				if (err != 0) {
 					ec_log_err("Could not create ECScheduler worker thread: %s", strerror(err));
 					goto task_fail;
 				}
