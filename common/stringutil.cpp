@@ -4,6 +4,9 @@
  */
 #include <kopano/platform.h>
 #include <algorithm>
+#include <map>
+#include <memory>
+#include <mutex>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -14,11 +17,79 @@
 #include <getopt.h>
 #include <kopano/stringutil.h>
 #include <kopano/charset/convert.h>
+#include <kopano/ECGetText.h>
 #include <kopano/ECLogger.h>
 #include <openssl/md5.h>
 #include <mapidefs.h>
 
 namespace KC {
+
+/**
+ * This class performs the actual conversion and caching of the translated
+ * messages. Results are cached based on the pointer value, not the string
+ * content. This implies two assumptions:
+ * 1. Gettext always returns the same pointer for a particular translation.
+ * 2. If there is no translation, the original pointer is returned. So we
+ *    assume that the compiler optimized string literals to have the same
+ *    address if they are equal. If this assumption is false, this will lead to
+ *    more conversions, and more memory usage by the cache.
+ */
+class gtconv final {
+	public:
+	static std::unique_ptr<gtconv> &get_instance()
+	{
+		scoped_lock locker(m_lock);
+		if (m_instance == nullptr)
+			m_instance.reset(new gtconv);
+		return m_instance;
+	}
+
+	/**
+	 * Perform the actual cache lookup or conversion.
+	 *
+	 * @param[in]	lpsz	The string to convert.
+	 * @return	The converted string.
+	 */
+	const wchar_t *convert(const char *lpsz) {
+		scoped_lock l_cache(m_hCacheLock);
+		auto insResult = m_cache.emplace(lpsz, L"");
+		if (insResult.second) /* successful insert, so not found in cache */
+			insResult.first->second.assign(m_converter.convert_to<std::wstring>(lpsz, strlen(lpsz), "UTF-8"));
+		return insResult.first->second.c_str();
+	}
+
+	private:
+	static std::unique_ptr<gtconv> m_instance;
+	static std::mutex m_lock;
+
+	convert_context	m_converter;
+	std::map<const char *, std::wstring> m_cache;
+	std::mutex m_hCacheLock;
+};
+
+std::mutex gtconv::m_lock;
+std::unique_ptr<gtconv> gtconv::m_instance;
+
+/**
+ * Performs a "regular" gettext and converts the result to a wide character string.
+ * @domain:	The domain to use for the translation
+ * @msg:	The msgid of the message to be translated.
+ * Retruns the converted, translated string.
+ */
+const wchar_t *kopano_dcgettext_wide(const char *domain, const char *msg)
+{
+	static bool init;
+	if (!init) {
+		/*
+		 * Avoid gettext doing the downconversion to LC_CTYPE and
+		 * killing all the Unicode characters before we had a chance of
+		 * seeing them.
+		 */
+		bind_textdomain_codeset("kopano", "utf-8");
+		init = true;
+	}
+	return gtconv::get_instance()->convert(dcgettext(domain, msg, LC_MESSAGES));
+}
 
 std::string stringify_hex(unsigned int x)
 {
