@@ -45,11 +45,15 @@ and the softdelete mechanism will remove it later on.
 \fB\-V\fP
 Display the program version.
 .TP
-\fB\-c\fP \fIfile\fP
-Read config file.
+\fB\-c\fP \fIconfig-file\fP
+Location of a config file to read.
+.PP
+Default: \fI/etc/kopano/admin.cfg\fP
 .TP
-\fB\-h\fP \fIuri\fP
-Specify an alternate URI for connecting to a Kopano server.
+\fB\-h\fP \fIhost\fP
+URI for a specific server to connect to and execute the action on.
+.PP
+Default: \fIdefault:\fP
 .TP
 \fB\-k\fP \fIcompany-name\fP
 This sets the company name for the \fB\-P\fP action. This option is only

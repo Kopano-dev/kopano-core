@@ -1180,6 +1180,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 
 	// Test database settings
 	auto stats = std::make_shared<server_stats>(g_lpConfig);
+	auto scleanup = make_scope_success([&]() { stats->stop(); });
 	lpDatabaseFactory.reset(new(std::nothrow) ECDatabaseFactory(g_lpConfig, stats));
 	// open database
 	er = lpDatabaseFactory->CreateDatabaseObject(&unique_tie(lpDatabase), dbError);
@@ -1332,6 +1333,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	stats->SetTime(SCN_SERVER_STARTTIME, time(nullptr));
 
 	// Enter main accept loop
+	stats->start();
 	retval = 0;
 	while(!g_Quit) {
 		// Select on the sockets

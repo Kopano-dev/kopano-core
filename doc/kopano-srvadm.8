@@ -2,13 +2,24 @@
 .SH Name
 kopano\-srvadm \(em server management utility
 .SH Synopsis
-\fBkopano\-srvadm\fP {\fB\-\-clear\-cache\fP
+\fBkopano\-srvadm\fP [\fB\-c\fP \fIconfig\fP] [\fB\-h\fP \fIhost\fP]
+{\fB\-\-clear\-cache\fP
 \fItype\fP|\fB\-\-purge\-deferred\fP|\fB\-\-purge\-softdelete\fP \fIdays\fP}
 .SH Description
 .PP
 This tool is used to control certain aspects of the Kopano server, specifically
 internal state.
 .SH Options
+.TP
+\fB\-c\fP \fIconfig-file\fP
+Location of a config file to read.
+.PP
+Default: \fI/etc/kopano/admin.cfg\fP
+.TP
+\fB\-h\fP \fIhost\fP
+URI for a specific server to connect to and execute the action on.
+.PP
+Default: \fIdefault:\fP
 .TP
 \fB\-\-clear\-cache \fP\fIpool\fP[\fB,\fP\fIpool\fP...]
 Flushes one or more of the server's cache pools. The argument shall be a

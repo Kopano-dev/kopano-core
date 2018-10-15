@@ -27,23 +27,25 @@ namespace KC {
 static void *submitThread(void *p)
 {
 	kcsrv_blocksigs();
-	ec_log_debug("Submit thread started");
 	static_cast<StatsClient *>(p)->mainloop();
-	ec_log_debug("Submit thread stopping");
 	return NULL;
 }
 
-ECStatsCollector::~ECStatsCollector() {
-	ec_log_debug("StatsClient terminating");
+void ECStatsCollector::stop()
+{
+	if (!thread_running)
+		return;
 	terminate = true;
 	m_exitsig.notify_one();
-	if (thread_running) {
-		// interrupt sleep()
-		pthread_cancel(countsSubmitThread);
-		void *dummy = NULL;
-		pthread_join(countsSubmitThread, &dummy);
-	}
-	ec_log_debug("StatsClient terminated");
+	void *dummy = nullptr;
+	pthread_join(countsSubmitThread, &dummy);
+	thread_running = false;
+	terminate = false;
+}
+
+ECStatsCollector::~ECStatsCollector()
+{
+	stop();
 }
 
 #ifdef HAVE_CURL_CURL_H
@@ -89,7 +91,10 @@ static void sc_proxy_from_sysconfig(CURL *ch, const char *url)
 void ECStatsCollector::submit(std::string &&url)
 {
 #ifdef HAVE_CURL_CURL_H
-	struct slfree { void operator()(curl_slist *s) { curl_slist_free_all(s); } };
+	struct slfree {
+		void operator()(CURL *p) { curl_easy_cleanup(p); }
+		void operator()(curl_slist *s) { curl_slist_free_all(s); }
+	};
 	Json::Value root;
 	root["version"] = 1;
 	fill_odm();
@@ -131,8 +136,9 @@ void ECStatsCollector::submit(std::string &&url)
 	lk.unlock();
 
 	auto text = Json::writeString(Json::StreamWriterBuilder(), std::move(root));
-	auto ch = curl_easy_init();
+	std::unique_ptr<CURL, slfree> chp(curl_easy_init());
 	std::unique_ptr<curl_slist, slfree> hl(curl_slist_append(nullptr, "Content-Type: application/json"));
+	CURL *ch = chp.get();
 	if (!sc_proxy_from_env(ch, url.c_str()))
 		sc_proxy_from_sysconfig(ch, url.c_str());
 	curl_easy_setopt(ch, CURLOPT_NOPROGRESS, 1L);
@@ -194,6 +200,12 @@ ECStatsCollector::ECStatsCollector(std::shared_ptr<ECConfig> config) :
 		set(SCN_MACHINE_ID, mid);
 	}
 	if (m_config == nullptr)
+		return;
+}
+
+void ECStatsCollector::start()
+{
+	if (thread_running)
 		return;
 	auto ret = pthread_create(&countsSubmitThread, nullptr, submitThread, this);
 	if (ret == 0)
