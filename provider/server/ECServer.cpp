@@ -5,6 +5,7 @@
 #ifdef HAVE_CONFIG_H
 #	include "config.h"
 #endif
+#include <algorithm>
 #include <iostream>
 #include <memory>
 #include <new>
@@ -490,7 +491,6 @@ static ECRESULT check_server_configuration(void)
 	std::string		strServerName;
 	ECSession		*lpecSession = NULL;
 	serverdetails_t	sServerDetails;
-	unsigned		ulPort = 0;
 
 	// Upgrade 'enable_sso_ntlmauth' to 'enable_sso'
 	bCheck = parseBool(g_lpConfig->GetSetting("enable_sso_ntlmauth"));
@@ -546,36 +546,37 @@ static ECRESULT check_server_configuration(void)
 		bHaveErrors = true;
 	}
 
-	if (g_listen_http) {
+	auto http = tokenize(g_lpConfig->GetSetting("server_listen"), ' ', true);
+	auto https = tokenize(g_lpConfig->GetSetting("server_listen_tls"), ' ', true);
+	auto http_ok = http.size() == 0 || std::any_of(http.cbegin(), http.cend(),
+		[&](const auto &i) { return sServerDetails.GetHttpPort() == ec_parse_bindaddr(i.c_str()).second; });
+	auto https_ok = https.size() == 0 || std::any_of(https.cbegin(), https.cend(),
+		[&](const auto &i) { return sServerDetails.GetSslPort() == ec_parse_bindaddr(i.c_str()).second; });
+	if (http.size() > 0) {
 		if (sServerDetails.GetHttpPath().empty()) {
-			ec_log_warn("WARNING: 'server_tcp_enabled' is set, but LDAP returns nothing");
+			ec_log_warn("WARNING: \"server_listen\" is set, but LDAP host entry contains nothing.");
 			bHaveErrors = true;
 		}
-
-		ulPort = atoui(g_lpConfig->GetSetting("server_tcp_port"));
-		if (sServerDetails.GetHttpPort() != ulPort &&
-		    strcmp(g_lpConfig->GetSetting("server_tcp_enabled"), "yes") == 0) {
-			ec_log_warn("WARNING: 'server_tcp_port' is set to '%u', but LDAP returns '%u'", ulPort, sServerDetails.GetHttpPort());
+		if (!http_ok) {
+			ec_log_warn("WARNING: No entry in \"server_listen\" matches LDAP host entry port %u", sServerDetails.GetHttpPort());
 			bHaveErrors = true;
 		}
 	} else if (!sServerDetails.GetHttpPath().empty()) {
-		ec_log_warn("WARNING: 'server_tcp_enabled' is unset, but LDAP returns '%s'", sServerDetails.GetHttpPath().c_str());
+		ec_log_warn("WARNING: \"server_listen\" is empty, but LDAP returns \"%s\"", sServerDetails.GetHttpPath().c_str());
 		bHaveErrors = true;
 	}
 
-	if (g_listen_https) {
+	if (https.size() > 0) {
 		if (sServerDetails.GetSslPath().empty()) {
-			ec_log_warn("WARNING: 'server_ssl_enabled' is set, but LDAP returns nothing");
+			ec_log_warn("WARNING: \"server_listen_tls\" is set, but LDAP host entry contains nothing.");
 			bHaveErrors = true;
 		}
-		ulPort = atoui(g_lpConfig->GetSetting("server_ssl_port"));
-		if (sServerDetails.GetSslPort() != ulPort &&
-		    strcmp(g_lpConfig->GetSetting("server_ssl_enabled"), "yes") == 0) {
-			ec_log_warn("WARNING: 'server_ssl_port' is set to '%u', but LDAP returns '%u'", ulPort, sServerDetails.GetSslPort());
+		if (!https_ok) {
+			ec_log_warn("WARNING: No entry in \"server_listen_tls\" matches LDAP host entry port %u", sServerDetails.GetSslPort());
 			bHaveErrors = true;
 		}
 	} else if (!sServerDetails.GetSslPath().empty()) {
-		ec_log_warn("WARNING: 'server_ssl_enabled' is unset, but LDAP returns '%s'", sServerDetails.GetSslPath().c_str());
+		ec_log_warn("WARNING: \"server_listen_tls\" is empty, but LDAP returns \"%s\"", sServerDetails.GetSslPath().c_str());
 		bHaveErrors = true;
 	}
 	return erSuccess;
