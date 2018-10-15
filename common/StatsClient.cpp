@@ -231,25 +231,28 @@ void ECStatsCollector::mainloop()
 		auto zsc_int = m_config->GetSetting("statsclient_interval");
 		auto zsv_url = m_config->GetSetting("surveyclient_url");
 		auto zsv_int = m_config->GetSetting("surveyclient_interval");
-		auto sc_int = zsc_int != nullptr ? atoui(zsc_int) : 86400;
-		auto sv_int = zsv_int != nullptr ? atoui(zsv_int) : 86400;
+		auto sc_int = zsc_int != nullptr ? atoui(zsc_int) : 0;
+		auto sv_int = zsv_int != nullptr ? atoui(zsv_int) : 0;
 		auto now = decltype(next_sc)::clock::now();
 		auto do_sc = zsc_url != nullptr && sc_int > 0 && now > next_sc;
 		auto do_sv = zsv_url != nullptr && sv_int > 0 && now > next_sv;
+		auto next_wk = now + std::chrono::seconds(60); /* basic config reeval interval */
 
 		if (do_sc || do_sv)
 			fill_odm();
 		if (do_sc) {
 			submit(zsc_url, stats_as_text(), parseBool(m_config->GetSetting("statsclient_ssl_verify")));
 			next_sc = now + std::chrono::seconds(sc_int);
+			next_wk = std::min(next_wk, next_sc);
 		}
 		if (do_sv) {
 			submit(zsv_url, survey_as_text(), parseBool(m_config->GetSetting("surveyclient_ssl_verify")));
 			next_sv = now + std::chrono::seconds(sv_int);
+			next_wk = std::min(next_wk, next_sv);
 		}
 
 		ulock_normal blah(mtx);
-		if (m_exitsig.wait_until(blah, std::min(next_sc, next_sv)) != std::cv_status::timeout)
+		if (m_exitsig.wait_until(blah, next_wk) != std::cv_status::timeout)
 			break;
 	} while (!terminate);
 #endif
