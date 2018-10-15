@@ -642,8 +642,7 @@ libkcutil_la_SOURCES = \
 	common/ECConfigImpl.cpp common/ECFifoBuffer.cpp \
 	common/ECGuid.cpp \
 	common/ECKeyTable.cpp common/ECLogger.cpp \
-	common/ECMemStream.cpp \
-	common/ECScheduler.cpp common/ECThreadPool.cpp \
+	common/ECMemStream.cpp common/ECThreadPool.cpp \
 	common/ECUnknown.cpp common/HtmlEntity.cpp common/HtmlToTextParser.cpp \
 	common/MAPIErrors.cpp common/SSLUtil.cpp \
 	common/StatsClient.cpp common/TimeUtil.cpp \
