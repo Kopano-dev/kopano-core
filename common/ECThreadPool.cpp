@@ -428,6 +428,16 @@ void set_thread_name(pthread_t tid, const std::string &name)
 		pthread_setname_np(tid, name.substr(0, 15).c_str());
 	else
 		pthread_setname_np(tid, name.c_str());
+#elif defined(HAVE_PTHREAD_SET_NAME_NP_2)
+	pthread_set_name_np(tid, name.c_str());
+#elif defined(HAVE_PTHREAD_SETNAME_NP_3)
+	if (name.size() < PTHREAD_MAX_NAMELEN_NP)
+		pthread_setname_np(tid, "%s", name.c_str());
+	else
+		pthread_setname_np(tid, "%s", name.substr(0, PTHREAD_MAX_NAMELEN_NP).c_str());
+#elif defined(HAVE_PTHREAD_SETNAME_NP_1)
+	if (tid == pthread_self())
+		pthread_setname_np(name.c_str());
 #endif
 }
 
