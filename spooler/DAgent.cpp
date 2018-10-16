@@ -3414,7 +3414,7 @@ int main(int argc, char **argv) try {
 	sDeliveryArgs.strPath = GetServerUnixSocket((char*)sDeliveryArgs.strPath.c_str()); // let environment override if present
 	sDeliveryArgs.sDeliveryOpts.ascii_upgrade = g_lpConfig->GetSetting("default_charset");
 	sDeliveryArgs.sDeliveryOpts.insecure_html_join = parseBool(g_lpConfig->GetSetting("insecure_html_join"));
-#ifdef HAVE_TIDY_H
+#ifdef HAVE_TIDYBUFFIO_H
 	sDeliveryArgs.sDeliveryOpts.html_safety_filter = strcasecmp(g_lpConfig->GetSetting("html_safety_filter"), "yes") == 0;
 #else
 	if (strcasecmp(g_lpConfig->GetSetting("html_safety_filter"), "yes") == 0)

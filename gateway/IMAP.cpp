@@ -80,7 +80,7 @@ IMAP::IMAP(const char *szServerPath, std::shared_ptr<ECChannel> ch,
 {
 	imopt_default_delivery_options(&dopt);
 	dopt.add_imap_data = true;
-#ifdef HAVE_TIDY_H
+#ifdef HAVE_TIDYBUFFIO_H
 	dopt.html_safety_filter = strcasecmp(lpConfig->GetSetting("html_safety_filter"), "yes") == 0;
 #else
 	if (strcasecmp(lpConfig->GetSetting("html_safety_filter"), "yes") == 0)

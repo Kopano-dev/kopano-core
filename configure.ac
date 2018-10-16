@@ -604,8 +604,8 @@ AS_IF([test "$BUILDOS" = linux && test "$want_epoll" = "yes"], [
 
 tidy_CPPFLAGS="-I/usr/include/tidy"
 CPPFLAGS="$CPPFLAGS $tidy_CPPFLAGS"
-AC_CHECK_HEADERS([tidy.h])
-AM_CONDITIONAL([HAVE_TIDY], [test "x$ac_cv_header_tidy_h" = "xyes"])
+AC_CHECK_HEADERS([tidybuffio.h])
+AM_CONDITIONAL([HAVE_TIDY], [test "x$ac_cv_header_tidybuffio_h" = "xyes"])
 AC_SUBST([tidy_CPPFLAGS])
 CPPFLAGS="$CPPFLAGS_system"
 
