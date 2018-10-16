@@ -57,8 +57,8 @@ HRESULT ECUnknown::AddChild(ECUnknown *lpChild) {
 }
 
 HRESULT ECUnknown::RemoveChild(ECUnknown *lpChild) {
-	std::list<ECUnknown *>::iterator iterChild;
 	ulock_normal locker(mutex);
+	auto iterChild = lstChildren.end();
 
 	if (lpChild != NULL)
 		for (iterChild = lstChildren.begin(); iterChild != lstChildren.end(); ++iterChild)
