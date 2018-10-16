@@ -7,8 +7,10 @@
 #include <mapidefs.h>
 #include <mapicode.h>
 #include <mapiguid.h>
-#include <kopano/ECUnknown.h>
+#include <kopano/ECABEntryID.h>
 #include <kopano/ECGuid.h>
+#include <kopano/ECUnknown.h>
+#include "../provider/include/kcore.hpp"
 
 namespace KC {
 
@@ -133,6 +135,49 @@ HRESULT ECUnknown::Suicide() {
 	// Now, tell our parent to delete this object
 	if (parent != nullptr)
 		parent->RemoveChild(self);
+	return hrSuccess;
+}
+
+static ABEID g_sDefaultEid(MAPI_MAILUSER, MUIDECSAB, 0);
+unsigned char *g_lpDefaultEid = (unsigned char*)&g_sDefaultEid;
+const unsigned int g_cbDefaultEid = sizeof(g_sDefaultEid);
+
+static ABEID g_sEveryOneEid(MAPI_DISTLIST, MUIDECSAB, 1);
+unsigned char *g_lpEveryoneEid = (unsigned char*)&g_sEveryOneEid;
+const unsigned int g_cbEveryoneEid = sizeof(g_sEveryOneEid);
+
+static ABEID g_sSystemEid(MAPI_MAILUSER, MUIDECSAB, 2);
+unsigned char *g_lpSystemEid = (unsigned char*)&g_sSystemEid;
+const unsigned int g_cbSystemEid = sizeof(g_sSystemEid);
+
+static HRESULT CheckEntryId(unsigned int eid_size, const ENTRYID *eid,
+    unsigned int id, unsigned int type, bool *res)
+{
+	if (eid_size < sizeof(ABEID) || eid == nullptr || res == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+
+	*res = true;
+	auto ab = reinterpret_cast<const ABEID *>(eid);
+	if (ab->ulId != id)
+		*res = false;
+	else if (ab->ulType != type)
+		*res = false;
+	else if (ab->ulVersion == 1 && ab->szExId[0])
+		*res = false;
+	return hrSuccess;
+}
+
+HRESULT EntryIdIsEveryone(unsigned int eid_size, const ENTRYID *eid, bool *res)
+{
+	return CheckEntryId(eid_size, eid, 1, MAPI_DISTLIST, res);
+}
+
+HRESULT GetNonPortableObjectType(unsigned int eid_size,
+    const ENTRYID *eid, unsigned int *obj_type)
+{
+	if (eid_size < sizeof(ABEID) || eid == nullptr || obj_type == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+	*obj_type = reinterpret_cast<const ABEID *>(eid)->ulType;
 	return hrSuccess;
 }
 
