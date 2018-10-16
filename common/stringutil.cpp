@@ -4,19 +4,109 @@
  */
 #include <kopano/platform.h>
 #include <algorithm>
+#include <map>
+#include <memory>
+#include <mutex>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <utility>
 #include <cassert>
 #include <cctype>
+#include <cstring>
+#include <getopt.h>
 #include <kopano/stringutil.h>
 #include <kopano/charset/convert.h>
+#include <kopano/ECGetText.h>
 #include <kopano/ECLogger.h>
 #include <openssl/md5.h>
 #include <mapidefs.h>
+#include "ECACL.h"
 
 namespace KC {
+
+struct acl_right_name {
+	/* The data in this array must be sorted on the n_right field. */
+	unsigned int n_right;
+	const char *tx_right;
+
+	bool operator<(const acl_right_name &r) const { return n_right < r.n_right; }
+};
+
+struct acl_role_name {
+	/* The data in this array must be sorted on the n_rights field. */
+	unsigned int n_rights;
+	const char *tx_role;
+
+	bool operator<(const acl_role_name &r) const { return n_rights < r.n_rights; }
+};
+
+/**
+ * This class performs the actual conversion and caching of the translated
+ * messages. Results are cached based on the pointer value, not the string
+ * content. This implies two assumptions:
+ * 1. Gettext always returns the same pointer for a particular translation.
+ * 2. If there is no translation, the original pointer is returned. So we
+ *    assume that the compiler optimized string literals to have the same
+ *    address if they are equal. If this assumption is false, this will lead to
+ *    more conversions, and more memory usage by the cache.
+ */
+class gtconv final {
+	public:
+	static std::unique_ptr<gtconv> &get_instance()
+	{
+		scoped_lock locker(m_lock);
+		if (m_instance == nullptr)
+			m_instance.reset(new gtconv);
+		return m_instance;
+	}
+
+	/**
+	 * Perform the actual cache lookup or conversion.
+	 *
+	 * @param[in]	lpsz	The string to convert.
+	 * @return	The converted string.
+	 */
+	const wchar_t *convert(const char *lpsz) {
+		scoped_lock l_cache(m_hCacheLock);
+		auto insResult = m_cache.emplace(lpsz, L"");
+		if (insResult.second) /* successful insert, so not found in cache */
+			insResult.first->second.assign(m_converter.convert_to<std::wstring>(lpsz, strlen(lpsz), "UTF-8"));
+		return insResult.first->second.c_str();
+	}
+
+	private:
+	static std::unique_ptr<gtconv> m_instance;
+	static std::mutex m_lock;
+
+	convert_context	m_converter;
+	std::map<const char *, std::wstring> m_cache;
+	std::mutex m_hCacheLock;
+};
+
+std::mutex gtconv::m_lock;
+std::unique_ptr<gtconv> gtconv::m_instance;
+
+/**
+ * Performs a "regular" gettext and converts the result to a wide character string.
+ * @domain:	The domain to use for the translation
+ * @msg:	The msgid of the message to be translated.
+ * Retruns the converted, translated string.
+ */
+const wchar_t *kopano_dcgettext_wide(const char *domain, const char *msg)
+{
+	static bool init;
+	if (!init) {
+		/*
+		 * Avoid gettext doing the downconversion to LC_CTYPE and
+		 * killing all the Unicode characters before we had a chance of
+		 * seeing them.
+		 */
+		bind_textdomain_codeset("kopano", "utf-8");
+		init = true;
+	}
+	return gtconv::get_instance()->convert(dcgettext(domain, msg, LC_MESSAGES));
+}
 
 std::string stringify_hex(unsigned int x)
 {
@@ -723,6 +813,121 @@ std::string content_type_get_charset(const char *in, const char *cset)
 			++in;
 	}
 	return std::string(cset, cset_end - cset);
+}
+
+int my_getopt_long_permissive(int argc, char **argv, const char *shortopts,
+    const struct option *longopts, int *longind)
+{
+	int opterr_save = opterr, saved_optind = optind;
+	opterr = 0;
+
+	int c = getopt_long(argc, argv, shortopts, longopts, longind);
+	if (c == '?') {
+		// Move this parameter to the end of the list if it a long option
+		if (argv[optind - 1][0] == '-' && argv[optind - 1][1] == '-' && argv[optind - 1][2] != '\0') {
+			int i = optind - 1;
+			/*
+			 * Continue parsing at the next argument before moving the unknown
+			 * option to the end, otherwise a potentially endless loop could
+			 * ensue.
+			 */
+			c = getopt_long(argc, argv, shortopts, longopts, longind);
+			char *tmp = argv[i];
+			int move_count = (argc - i) - i;
+			if (move_count > 0)
+				memmove(&argv[i], &argv[i + 1], move_count * sizeof(char *));
+			argv[i] = tmp;
+			--optind;
+			--saved_optind;
+		}
+	}
+
+	opterr = opterr_save;
+	// Show error
+	if (c == '?') {
+		optind = saved_optind;
+		if (getopt_long(argc, argv, shortopts, longopts, longind) != 0)
+			/* ignore return value */;
+	}
+	return c;
+}
+
+static const acl_right_name acl_rights[] = {
+	{RIGHTS_READ_ITEMS, "item read"},
+	{RIGHTS_CREATE_ITEMS, "item create"},
+	{RIGHTS_EDIT_OWN, "edit own"},
+	{RIGHTS_DELETE_OWN, "delete own"},
+	{RIGHTS_EDIT_ALL, "edit all"},
+	{RIGHTS_DELETE_ALL, "delete all"},
+	{RIGHTS_CREATE_SUBFOLDERS, "create sub"},
+	{RIGHTS_FOLDER_OWNER, "own"},
+	{RIGHTS_FOLDER_CONTACT, "contact"},
+	{RIGHTS_FOLDER_VISIBLE, "view"}
+};
+
+static const acl_role_name acl_roles[] = {
+	{RIGHTS_NONE, "none"}, /* Actually a right, but not seen as such by is_right */
+	{ROLE_NONE, "none"}, /* This might be confusing */
+	{ROLE_REVIEWER, "reviewer"},
+	{ROLE_CONTRIBUTOR, "contributor"},
+	{ROLE_NONEDITING_AUTHOR, "non-editting author"},
+	{ROLE_AUTHOR, "author"},
+	{ROLE_EDITOR, "editor"},
+	{ROLE_PUBLISH_EDITOR, "publish editor"},
+	{ROLE_PUBLISH_AUTHOR, "publish author"},
+	{ROLE_OWNER, "owner"}
+};
+
+static inline bool is_right(unsigned int ror)
+{
+	/* A right has exactly 1 bit set. Otherwise, it is a role. */
+	return (ror ^ (ror - 1)) == 0;
+}
+
+static const struct acl_right_name *find_acl_right(unsigned int rightnum)
+{
+	const struct acl_right_name k = {rightnum, nullptr};
+	auto e = std::lower_bound(acl_rights, ARRAY_END(acl_rights), k);
+	if (e != ARRAY_END(acl_rights) && e->n_right == rightnum)
+		return e;
+	return nullptr;
+}
+
+static const struct acl_role_name *find_acl_role(unsigned int rolenum)
+{
+	const struct acl_role_name k = {rolenum, nullptr};
+	auto e = std::lower_bound(acl_roles, ARRAY_END(acl_roles), k);
+	if (e != ARRAY_END(acl_roles) && e->n_rights == rolenum)
+		return e;
+	return nullptr;
+}
+
+std::string AclRightsToString(unsigned int ror)
+{
+	if (ror == static_cast<unsigned int>(-1))
+		return "missing or invalid";
+	if (is_right(ror)) {
+		auto r = find_acl_right(ror);
+		if (r == nullptr)
+			return stringify_hex(ror);
+		return r->tx_right;
+	}
+
+	auto role = find_acl_role(ror);
+	if (role != nullptr)
+		return role->tx_role;
+
+	std::ostringstream ostr;
+	bool empty = true;
+	for (unsigned bit = 0, mask = 1; bit < 32; ++bit, mask <<= 1) {
+		if (ror & mask) {
+			if (!empty)
+				ostr << ",";
+			empty = false;
+			ostr << AclRightsToString(mask);
+		}
+	}
+	return ostr.str();
 }
 
 } /* namespace */

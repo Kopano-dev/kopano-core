@@ -637,18 +637,15 @@ noinst_HEADERS += \
 	common/utf8/core.h common/utf8/unchecked.h
 libkcutil_la_SOURCES = \
 	common/ConsoleTable.cpp common/ECABEntryID.cpp \
-	common/ECACL.cpp common/ECCache.cpp \
-	common/ECChannel.cpp common/ECChannelClient.cpp \
-	common/ECConfigImpl.cpp common/ECFifoBuffer.cpp \
-	common/ECGetText.cpp common/ECGuid.cpp \
+	common/ECCache.cpp common/ECChannel.cpp common/ECChannelClient.cpp \
+	common/ECConfigImpl.cpp common/ECGuid.cpp \
 	common/ECKeyTable.cpp common/ECLogger.cpp \
-	common/ECMemStream.cpp \
-	common/ECScheduler.cpp common/ECThreadPool.cpp \
+	common/ECMemStream.cpp common/ECThreadPool.cpp \
 	common/ECUnknown.cpp common/HtmlEntity.cpp common/HtmlToTextParser.cpp \
-	common/IStreamAdapter.cpp common/MAPIErrors.cpp common/SSLUtil.cpp \
+	common/MAPIErrors.cpp common/SSLUtil.cpp \
 	common/StatsClient.cpp common/TimeUtil.cpp \
 	common/UnixUtil.cpp common/codepage.cpp common/fileutil.cpp \
-	common/my_getopt.cpp common/platform.cpp \
+	common/platform.cpp \
 	common/platform.linux.cpp common/rtfutil.cpp common/stringutil.cpp \
 	common/ustringutil.cpp common/charset/convert.cpp \
 	common/charset/convstring.cpp common/charset/localeutil.cpp

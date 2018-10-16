@@ -158,7 +158,7 @@ HRESULT ECChangeAdvisor::PurgeStates()
 
 	// First get the most up to date change ids for all registered sync ids (we will ignore the changeids since we don't know if we actually got that far)
 	std::transform(m_mapConnections.begin(), m_mapConnections.end(), std::back_inserter(lstSyncId),
-		[](const ConnectionMap::value_type &s) { return s.first; });
+		[](const auto &s) { return s.first; });
 	hr = m_lpMsgStore->m_lpNotifyClient->UpdateSyncStates(lstSyncId, &lstSyncState);
 	if (hr != hrSuccess)
 		return hr;
@@ -327,7 +327,7 @@ HRESULT ECChangeAdvisor::Reload(void *lpParam, ECSESSIONID /*newSessionId*/)
 	lpChangeAdvisor->m_mapConnections.clear();
 	// Now re-register the notifications
 	std::transform(lpChangeAdvisor->m_mapSyncStates.begin(), lpChangeAdvisor->m_mapSyncStates.end(), std::back_inserter(listSyncStates),
-		[](const SyncStateMap::value_type &e) -> SSyncState { return {e.first, e.second}; });
+		[](const auto &e) -> SSyncState { return {e.first, e.second}; });
 	hr = lpChangeAdvisor->m_lpMsgStore->m_lpNotifyClient->Advise(listSyncStates, lpChangeAdvisor->m_lpChangeAdviseSink, &listConnections);
 	if (hr == hrSuccess)
 		lpChangeAdvisor->m_mapConnections.insert(std::make_move_iterator(listConnections.begin()), std::make_move_iterator(listConnections.end()));

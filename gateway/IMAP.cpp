@@ -1422,8 +1422,7 @@ HRESULT IMAP::HrCmdStatus(const std::string &strTag,
 	auto comp = [](const std::string &elem) {
 		return elem.compare("UIDNEXT") == 0 || elem.compare("RECENT") == 0;
 	};
-	auto iter = std::find_if(lstStatusData.cbegin(), lstStatusData.cend(), comp);
-	if(iter != lstStatusData.cend()) {
+	if (std::any_of(lstStatusData.cbegin(), lstStatusData.cend(), comp)) {
 		hr = get_recent_uidnext(lpStatusFolder, strTag, ulRecent, ulUIDNext, ulMessages);
 		if(hr != hrSuccess)
 			return hr;
@@ -3841,10 +3840,8 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
 
             // Output all headers except those specified
             for (const auto &field : lstFields) {
-                std::string strFieldUpper = field.first;
-                strFieldUpper = strToUpper(strFieldUpper);
-                if (s.find(strFieldUpper) != s.cend())
-                    continue;
+				if (s.find(strToUpper(field.first)) != s.cend())
+					continue;
                 strMessagePart += field.first + ": " + field.second + "\r\n";
             }
         } else {

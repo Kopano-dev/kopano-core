@@ -13,6 +13,7 @@
 #include <string>
 #include <cerrno>
 #include <cstring>
+#include <getopt.h>
 #include <sys/resource.h>
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
@@ -40,7 +41,6 @@
 #include <sys/stat.h>
 #include <kopano/ECScheduler.h>
 #include <kopano/kcodes.h>
-#include <kopano/my_getopt.h>
 #include <kopano/tie.hpp>
 #include "charset/localeutil.h"
 #include "cmd.hpp"
@@ -486,8 +486,7 @@ exit:
 static ECRESULT check_server_configuration(void)
 {
 	ECRESULT		er = erSuccess;
-	bool			bHaveErrors = false;
-	bool			bCheck = false;
+	bool bHaveErrors = false, bCheck = false;
 	std::string		strServerName;
 	ECSession		*lpecSession = NULL;
 	serverdetails_t	sServerDetails;
@@ -738,9 +737,8 @@ static void InitBindTextDomain(void)
 
 static int ksrv_listen_inet(ECSoapServerConnection *ssc, ECConfig *cfg)
 {
-	std::set<std::string, ec_bindaddr_less> http_sock, https_sock;
-	http_sock  = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("server_listen"), ' ', true));
-	https_sock = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("server_listen_tls"), ' ', true));
+	auto http_sock  = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("server_listen"), ' ', true));
+	auto https_sock = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("server_listen_tls"), ' ', true));
 
 	/* Launch */
 	for (const auto &spec : http_sock) {

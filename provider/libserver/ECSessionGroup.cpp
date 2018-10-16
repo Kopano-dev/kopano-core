@@ -134,8 +134,7 @@ ECRESULT ECSessionGroup::DelAdvise(ECSESSIONID ulSessionId, unsigned int ulConne
 	if (iterSubscription == m_mapSubscribe.cend()) {
 		// Apparently the connection was used for change notifications.
 		auto iterItem = find_if(m_mapChangeSubscribe.cbegin(),
-			m_mapChangeSubscribe.cend(),
-			[&](const CHANGESUBSCRIBEMAP::value_type &r) -> bool {
+			m_mapChangeSubscribe.cend(), [&](const auto &r) {
 				return r.second.ulSession == ulSessionId &&
 				       r.second.ulConnection == ulConnection;
 			});

@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
+#include <algorithm>
 #include <exception>
 #include <iostream>
 #include <list>
@@ -1679,7 +1680,7 @@ class InputValidator {
 			wstring strInput;
 
 			if (szInput == nullptr || TryConvert(szInput, strInput) != hrSuccess ||
-			    std::find_if_not(strInput.cbegin(), strInput.cend(), iswprint) != strInput.cend())
+			    !std::all_of(strInput.cbegin(), strInput.cend(), iswprint))
 				return NULL;
 			m_bFailure = false;
 			return szInput;

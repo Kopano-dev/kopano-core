@@ -2,6 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
+#include <algorithm>
 #include <kopano/platform.h>
 #include <mapidefs.h>
 #include <mapicode.h>
@@ -61,9 +62,7 @@ HRESULT ECUnknown::RemoveChild(ECUnknown *lpChild) {
 	auto iterChild = lstChildren.end();
 
 	if (lpChild != NULL)
-		for (iterChild = lstChildren.begin(); iterChild != lstChildren.end(); ++iterChild)
-			if(*iterChild == lpChild)
-				break;
+		iterChild = std::find(lstChildren.begin(), lstChildren.end(), lpChild);
 	if (iterChild == lstChildren.end())
 		return MAPI_E_NOT_FOUND;
 	lstChildren.erase(iterChild);

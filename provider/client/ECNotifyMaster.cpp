@@ -95,7 +95,7 @@ HRESULT ECNotifyMaster::ReleaseSession(ECNotifyClient* lpClient)
 	/* Remove all connections attached to client */
 	auto iter = m_mapConnections.cbegin();
 	while (true) {
-		iter = find_if(iter, m_mapConnections.cend(), [lpClient](const NOTIFYCONNECTIONCLIENTMAP::value_type &entry) { return entry.second.IsClient(lpClient); });
+		iter = std::find_if(iter, m_mapConnections.cend(), [=](const auto &e) { return e.second.IsClient(lpClient); });
 		if (iter == m_mapConnections.cend())
 			break;
 		iter = m_mapConnections.erase(iter);
