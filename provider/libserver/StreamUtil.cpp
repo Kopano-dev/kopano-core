@@ -99,9 +99,6 @@ const static struct StreamCaps {
 
 #define CHARSET_WIN1252	"WINDOWS-1252//TRANSLIT"
 
-// External objects
-extern ECSessionManager *g_lpSessionManager;	// ECServerEntrypoint.cpp
-
 // Helper class for mapping named properties from the stream to local proptags
 class NamedPropertyMapper {
 public:

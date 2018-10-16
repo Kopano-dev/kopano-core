@@ -22,7 +22,7 @@ namespace KC {
 pthread_key_t database_key;
 pthread_key_t plugin_key;
 
-_kc_export ECSessionManager *g_lpSessionManager;
+_kc_export std::unique_ptr<ECSessionManager> g_lpSessionManager;
 static std::set<ECDatabase *> g_lpDBObjectList;
 static std::mutex g_hMutexDBObjectList;
 static bool g_bInitLib = false;
@@ -98,17 +98,11 @@ ECRESULT kopano_init(std::shared_ptr<ECConfig> cfg, std::shared_ptr<ECLogger> ad
 	if (!g_bInitLib)
 		return KCERR_NOT_INITIALIZED;
 	try {
-		g_lpSessionManager = new ECSessionManager(std::move(cfg), std::move(ad), std::move(sc), bHostedKopano, bDistributedKopano);
+		g_lpSessionManager = std::make_unique<ECSessionManager>(std::move(cfg), std::move(ad), std::move(sc), bHostedKopano, bDistributedKopano);
 	} catch (const KMAPIError &e) {
 		return e.code();
 	}
 	return g_lpSessionManager->LoadSettings();
-}
-
-void kopano_removeallsessions()
-{
-	if (g_lpSessionManager != nullptr)
-		g_lpSessionManager->RemoveAllSessions();
 }
 
 ECRESULT kopano_exit()
@@ -117,10 +111,7 @@ ECRESULT kopano_exit()
 		return KCERR_NOT_INITIALIZED;
 	// delete our plugin of the mainthread: requires ECPluginFactory to be alive, because that holds the dlopen() result
 	plugin_destroy(pthread_getspecific(plugin_key));
-
-	delete g_lpSessionManager;
-	g_lpSessionManager = NULL;
-
+	g_lpSessionManager.reset();
 	// Close all database connections
 	scoped_lock l_obj(g_hMutexDBObjectList);
 	for (auto dbobjp : g_lpDBObjectList)

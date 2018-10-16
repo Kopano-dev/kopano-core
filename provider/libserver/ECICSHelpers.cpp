@@ -25,8 +25,6 @@ namespace KC {
 
 extern std::shared_ptr<ECLogger> g_lpLogger;
 
-extern ECSessionManager*	g_lpSessionManager;
-
 /**
  * IDbQueryCreator: Interface to the database query creators
  **/
@@ -558,11 +556,11 @@ ECRESULT ECGetContentChangesHelper::Init()
 	    if(m_sFolderSourceKey.empty()) {
 			// Optimization: when doing SYNC_CATCHUP on a non-filtered sync, we can skip looking for any changes
 			assert(m_ulFlags & SYNC_CATCHUP);
-			m_lpQueryCreator = new NullQueryCreator();
+			m_lpQueryCreator.reset(new NullQueryCreator);
 		} else {
-			m_lpQueryCreator = new FullQueryCreator(m_lpDatabase, m_sFolderSourceKey, m_ulFlags, m_ulSyncId);
+			m_lpQueryCreator.reset(new FullQueryCreator(m_lpDatabase, m_sFolderSourceKey, m_ulFlags, m_ulSyncId));
 		}
-		m_lpMsgProcessor = new FirstSyncProcessor(m_ulMaxFolderChange);
+		m_lpMsgProcessor.reset(new FirstSyncProcessor(m_ulMaxFolderChange));
 		return hrSuccess;
 	}
 	/*
@@ -587,8 +585,8 @@ ECRESULT ECGetContentChangesHelper::Init()
 		 * processor should do that because that's too complex for the
 		 * query creator to do.
 		 */
-		m_lpQueryCreator = new FullQueryCreator(m_lpDatabase, m_sFolderSourceKey, m_ulFlags);
-		m_lpMsgProcessor = new LegacyProcessor(m_ulChangeId, m_ulSyncId, m_setLegacyMessages, m_ulMaxFolderChange);
+		m_lpQueryCreator.reset(new FullQueryCreator(m_lpDatabase, m_sFolderSourceKey, m_ulFlags));
+		m_lpMsgProcessor.reset(new LegacyProcessor(m_ulChangeId, m_ulSyncId, m_setLegacyMessages, m_ulMaxFolderChange));
 		return hrSuccess;
 	}
 	/*
@@ -599,8 +597,8 @@ ECRESULT ECGetContentChangesHelper::Init()
 		 * This request is also without a restriction. We can use an
 		 * incremental query.
 		 */
-		m_lpQueryCreator = new IncrementalQueryCreator(m_lpDatabase, m_ulSyncId, m_ulChangeId, m_sFolderSourceKey, m_ulFlags);
-		m_lpMsgProcessor = new NonLegacyIncrementalProcessor(m_ulMaxFolderChange);
+		m_lpQueryCreator.reset(new IncrementalQueryCreator(m_lpDatabase, m_ulSyncId, m_ulChangeId, m_sFolderSourceKey, m_ulFlags));
+		m_lpMsgProcessor.reset(new NonLegacyIncrementalProcessor(m_ulMaxFolderChange));
 		return hrSuccess;
 	}
 	/*
@@ -617,16 +615,13 @@ ECRESULT ECGetContentChangesHelper::Init()
 	 * processor should do that because that's too complex for the
 	 * query creator to do.
 	 */
-	m_lpQueryCreator = new FullQueryCreator(m_lpDatabase, m_sFolderSourceKey, m_ulFlags);
-	m_lpMsgProcessor = new NonLegacyFullProcessor(m_ulChangeId, m_ulSyncId);
+	m_lpQueryCreator.reset(new FullQueryCreator(m_lpDatabase, m_sFolderSourceKey, m_ulFlags));
+	m_lpMsgProcessor.reset(new NonLegacyFullProcessor(m_ulChangeId, m_ulSyncId));
 	return erSuccess;
 }
 
 ECGetContentChangesHelper::~ECGetContentChangesHelper()
-{
-	delete m_lpQueryCreator;
-	delete m_lpMsgProcessor;
-}
+{}
 
 ECRESULT ECGetContentChangesHelper::QueryDatabase(DB_RESULT *lppDBResult)
 {

@@ -64,7 +64,6 @@ private:
 	std::condition_variable m_condSessions;
 };
 
-extern ECSessionManager *g_lpSessionManager;
 extern _kc_export void (*kopano_notify_done)(struct soap *);
 
 } /* namespace */

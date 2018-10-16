@@ -244,13 +244,14 @@ ECRESULT ECSessionGroup::AddNotificationTable(ECSESSIONID ulSessionId, unsigned 
 	lpNotify->tab->ulTableEvent		= ulType;
 
 	if(lpsChildRow && (lpsChildRow->ulObjId > 0 || lpsChildRow->ulOrderId > 0)) {
-		lpNotify->tab->propIndex.ulPropTag = PR_INSTANCE_KEY;
-		lpNotify->tab->propIndex.__union = SOAP_UNION_propValData_bin;
-		lpNotify->tab->propIndex.Value.bin = s_alloc<xsd__base64Binary>(nullptr);
-		lpNotify->tab->propIndex.Value.bin->__ptr = s_alloc<unsigned char>(nullptr, sizeof(ULONG) * 2);
-		lpNotify->tab->propIndex.Value.bin->__size = sizeof(ULONG)*2;
-		memcpy(lpNotify->tab->propIndex.Value.bin->__ptr, &lpsChildRow->ulObjId, sizeof(ULONG));
-		memcpy(lpNotify->tab->propIndex.Value.bin->__ptr+sizeof(ULONG), &lpsChildRow->ulOrderId, sizeof(ULONG));
+		auto &p = lpNotify->tab->propIndex;
+		p.ulPropTag = PR_INSTANCE_KEY;
+		p.__union = SOAP_UNION_propValData_bin;
+		p.Value.bin = s_alloc<xsd__base64Binary>(nullptr);
+		p.Value.bin->__ptr = s_alloc<unsigned char>(nullptr, sizeof(ULONG) * 2);
+		p.Value.bin->__size = sizeof(ULONG) * 2;
+		memcpy(p.Value.bin->__ptr, &lpsChildRow->ulObjId, sizeof(ULONG));
+		memcpy(p.Value.bin->__ptr + sizeof(ULONG), &lpsChildRow->ulOrderId, sizeof(ULONG));
 	}else {
 		lpNotify->tab->propIndex.ulPropTag = PR_NULL;
 		lpNotify->tab->propIndex.__union = SOAP_UNION_propValData_ul;
@@ -258,13 +259,14 @@ ECRESULT ECSessionGroup::AddNotificationTable(ECSESSIONID ulSessionId, unsigned 
 
 	if(lpsPrevRow && (lpsPrevRow->ulObjId > 0 || lpsPrevRow->ulOrderId > 0))
 	{
-		lpNotify->tab->propPrior.ulPropTag = PR_INSTANCE_KEY;
-		lpNotify->tab->propPrior.__union = SOAP_UNION_propValData_bin;
-		lpNotify->tab->propPrior.Value.bin = s_alloc<xsd__base64Binary>(nullptr);
-		lpNotify->tab->propPrior.Value.bin->__ptr = s_alloc<unsigned char>(nullptr, sizeof(ULONG) * 2);
-		lpNotify->tab->propPrior.Value.bin->__size = sizeof(ULONG)*2;
-		memcpy(lpNotify->tab->propPrior.Value.bin->__ptr, &lpsPrevRow->ulObjId, sizeof(ULONG));
-		memcpy(lpNotify->tab->propPrior.Value.bin->__ptr+sizeof(ULONG), &lpsPrevRow->ulOrderId, sizeof(ULONG));
+		auto &p = lpNotify->tab->propPrior;
+		p.ulPropTag = PR_INSTANCE_KEY;
+		p.__union = SOAP_UNION_propValData_bin;
+		p.Value.bin = s_alloc<xsd__base64Binary>(nullptr);
+		p.Value.bin->__ptr = s_alloc<unsigned char>(nullptr, sizeof(ULONG) * 2);
+		p.Value.bin->__size = sizeof(ULONG) * 2;
+		memcpy(p.Value.bin->__ptr, &lpsPrevRow->ulObjId, sizeof(ULONG));
+		memcpy(p.Value.bin->__ptr + sizeof(ULONG), &lpsPrevRow->ulOrderId, sizeof(ULONG));
 	}else {
 		lpNotify->tab->propPrior.__union = SOAP_UNION_propValData_ul;
 		lpNotify->tab->propPrior.ulPropTag = PR_NULL;
@@ -318,7 +320,7 @@ ECRESULT ECSessionGroup::AddChangeNotification(const std::set<unsigned int> &syn
 			// create ECNotification
 			ECNotification notify(notifyItem);
 			notify.SetConnection(iterItem->second.ulConnection);
-			m_listNotification.emplace_back(notify);
+			m_listNotification.emplace_back(std::move(notify));
 			mapInserted[iterItem->second.ulSession]++;
 		}
 	}
@@ -353,7 +355,7 @@ ECRESULT ECSessionGroup::AddChangeNotification(ECSESSIONID ulSessionId, unsigned
 	// create ECNotification
 	ECNotification notify(notifyItem);
 	notify.SetConnection(ulConnection);
-	m_listNotification.emplace_back(notify);
+	m_listNotification.emplace_back(std::move(notify));
 	l_note.unlock();
 
 	// Since we now have a notification ready to send, tell the session manager that we have something to send. Since

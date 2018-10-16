@@ -221,7 +221,7 @@ ECSession::ECSession(const char *src_addr, ECSESSIONID sessionID,
 	    ulCapabilities),
 	m_ulAuthMethod(ulAuthMethod), m_ulConnectingPid(pid),
 	m_ecSessionGroupId(ecSessionGroupId), m_strClientVersion(cl_ver),
-	m_ulClientVersion(KOPANO_VERSION_UNKNOWN), m_strClientApp(cl_app),
+	m_strClientApp(cl_app), m_ulClientVersion(KOPANO_VERSION_UNKNOWN),
 	m_lpTableManager(new ECTableManager(this))
 {
 	m_strClientApplicationVersion   = cl_app_ver;
@@ -297,26 +297,20 @@ ECRESULT ECSession::AddAdvise(unsigned int ulConnection, unsigned int ulKey, uns
 
 ECRESULT ECSession::AddChangeAdvise(unsigned int ulConnection, notifySyncState *lpSyncState)
 {
-	ECRESULT		er = erSuccess;
-	std::string strQuery;
 	ECDatabase*		lpDatabase = NULL;
 	DB_RESULT lpDBResult;
-	DB_ROW			lpDBRow;
-	ULONG			ulChangeId = 0;
 
 	lock();
-	if (!m_lpSessionGroup) {
-		er = KCERR_NOT_INITIALIZED;
-		goto exit;
-	}
-	er = m_lpSessionGroup->AddChangeAdvise(m_sessionID, ulConnection, lpSyncState);
+	auto cleanup = make_scope_success([&]() { unlock(); });
+	if (m_lpSessionGroup == nullptr)
+		return KCERR_NOT_INITIALIZED;
+	auto er = m_lpSessionGroup->AddChangeAdvise(m_sessionID, ulConnection, lpSyncState);
 	if (er != hrSuccess)
-		goto exit;
+		return er;
 	er = GetDatabase(&lpDatabase);
 	if (er != erSuccess)
-		goto exit;
-
-	strQuery =	"SELECT c.id FROM changes AS c JOIN syncs AS s "
+		return er;
+	auto strQuery = "SELECT c.id FROM changes AS c JOIN syncs AS s "
 					"ON s.sourcekey=c.parentsourcekey "
 				"WHERE s.id=" + stringify(lpSyncState->ulSyncId) + " "
 					"AND c.id>" + stringify(lpSyncState->ulChangeId) + " "
@@ -327,20 +321,16 @@ ECRESULT ECSession::AddChangeAdvise(unsigned int ulConnection, notifySyncState *
 				"LIMIT 1";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != hrSuccess)
-		goto exit;
+		return er;
 	if (lpDBResult.get_num_rows() == 0)
-		goto exit;
-	lpDBRow = lpDBResult.fetch_row();
+		return erSuccess;
+	auto lpDBRow = lpDBResult.fetch_row();
 	if (lpDBRow == NULL || lpDBRow[0] == NULL) {
-		er = KCERR_DATABASE_ERROR;
 		ec_log_err("ECSession::AddChangeAdvise(): row or column null");
-		goto exit;
+		return KCERR_DATABASE_ERROR;
 	}
-	ulChangeId = strtoul(lpDBRow[0], NULL, 0);
-	er = m_lpSessionGroup->AddChangeNotification(m_sessionID, ulConnection, lpSyncState->ulSyncId, ulChangeId);
-exit:
-	unlock();
-	return er;
+	auto ulChangeId = strtoul(lpDBRow[0], NULL, 0);
+	return m_lpSessionGroup->AddChangeNotification(m_sessionID, ulConnection, lpSyncState->ulSyncId, ulChangeId);
 }
 
 ECRESULT ECSession::DelAdvise(unsigned int ulConnection)
@@ -605,7 +595,6 @@ ECRESULT ECAuthSession::CreateECSession(ECSESSIONGROUPID ecSessionGroupId,
     const std::string &cl_app_ver, const std::string &cl_app_misc,
     ECSESSIONID *sessionID, ECSession **lppNewSession)
 {
-	ECRESULT er = erSuccess;
 	std::unique_ptr<ECSession> lpSession;
 	ECSESSIONID newSID;
 
@@ -621,7 +610,7 @@ ECRESULT ECAuthSession::CreateECSession(ECSESSIONGROUPID ecSessionGroupId,
 	            cl_ver, cl_app, cl_app_ver, cl_app_misc));
 	if (lpSession == nullptr)
 		return KCERR_NOT_ENOUGH_MEMORY;
-	er = lpSession->GetSecurity()->SetUserContext(m_ulUserID, m_ulImpersonatorID);
+	auto er = lpSession->GetSecurity()->SetUserContext(m_ulUserID, m_ulImpersonatorID);
 	if (er != erSuccess)
 		/* User not found anymore, or error in getting groups. */
 		return er;
@@ -634,8 +623,6 @@ ECRESULT ECAuthSession::CreateECSession(ECSESSIONGROUPID ecSessionGroupId,
 // You always log in as the user you are authenticating with.
 ECRESULT ECAuthSession::ValidateUserLogon(const char* lpszName, const char* lpszPassword, const char* lpszImpersonateUser)
 {
-	ECRESULT er;
-
 	if (!lpszName)
 	{
 		ec_log_err("Invalid argument \"lpszName\" in call to ECAuthSession::ValidateUserLogon()");
@@ -649,7 +636,7 @@ ECRESULT ECAuthSession::ValidateUserLogon(const char* lpszName, const char* lpsz
 	// SYSTEM can't login with user/pass
 	if (strcasecmp(lpszName, KOPANO_ACCOUNT_SYSTEM) == 0)
 		return KCERR_NO_ACCESS;
-	er = m_lpUserManagement->AuthUserAndSync(lpszName, lpszPassword, &m_ulUserID);
+	auto er = m_lpUserManagement->AuthUserAndSync(lpszName, lpszPassword, &m_ulUserID);
 	if(er != erSuccess)
 		return er;
 	er = ProcessImpersonation(lpszImpersonateUser);
@@ -690,7 +677,6 @@ static ECRESULT kc_peer_cred(int fd, uid_t *uid, pid_t *pid)
 // is also running as 'root', but you are actually loggin in as user 'user1'.
 ECRESULT ECAuthSession::ValidateUserSocket(int socket, const char* lpszName, const char* lpszImpersonateUser)
 {
-	const char *p = NULL;
 	bool			allowLocalUsers = false;
 	char			*ptr = NULL;
 	std::unique_ptr<char[], cstdlib_deleter> localAdminUsers;
@@ -704,7 +690,7 @@ ECRESULT ECAuthSession::ValidateUserSocket(int socket, const char* lpszName, con
 		ec_log_err("Invalid argument \"lpszImpersonateUser\" in call to ECAuthSession::ValidateUserSocket()");
 		return KCERR_INVALID_PARAMETER;
 	}
-	p = m_lpSessionManager->GetConfig()->GetSetting("allow_local_users");
+	auto p = m_lpSessionManager->GetConfig()->GetSetting("allow_local_users");
 	if (p != nullptr && strcasecmp(p, "yes") == 0)
 		allowLocalUsers = true;
 

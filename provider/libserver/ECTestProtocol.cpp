@@ -14,8 +14,6 @@ struct soap;
 
 namespace KC {
 
-extern ECSessionManager*    g_lpSessionManager;
-
 ECRESULT TestPerform(ECSession *lpSession,
     const char *szCommand, unsigned int ulArgs, char **args)
 {

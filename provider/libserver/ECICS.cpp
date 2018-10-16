@@ -27,8 +27,6 @@
 
 namespace KC {
 
-extern ECSessionManager*	g_lpSessionManager;
-
 struct ABChangeRecord {
 	ULONG id;
 	std::string strItem, strParent;

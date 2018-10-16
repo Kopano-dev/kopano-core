@@ -157,7 +157,7 @@ public:
 	_kc_hidden virtual ECRESULT RemoveSessionPersistentConnection(unsigned int conn_id);
 	_kc_hidden virtual ECRESULT GetSessionGroup(ECSESSIONGROUPID, ECSession *, ECSessionGroup **);
 	_kc_hidden virtual ECRESULT DeleteIfOrphaned(ECSessionGroup *);
-	_kc_hidden ECRESULT RemoveAllSessions(void);
+	_kc_export ECRESULT RemoveAllSessions();
 	_kc_hidden ECRESULT CancelAllSessions(ECSESSIONID except = 0);
 	_kc_hidden ECRESULT ForEachSession(void (*cb)(ECSession *, void *), void *obj);
 	_kc_hidden ECRESULT LoadSettings(void);
@@ -269,7 +269,7 @@ protected:
 };
 
 extern _kc_export void (*kopano_get_server_stats)(unsigned int *qlen, KC::time_duration *qage, unsigned int *nthr, unsigned int *nidlethr);
-extern _kc_export ECSessionManager *g_lpSessionManager;
+extern _kc_export std::unique_ptr<ECSessionManager> g_lpSessionManager;
 
 } /* namespace */
 
