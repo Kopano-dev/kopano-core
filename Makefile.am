@@ -278,7 +278,7 @@ kopano_storeadm_LDADD = ${jsoncpp_LIBS} ${libHX_LIBS} libmapi.la libkcutil.la
 # kopano-statsd
 #
 kopano_statsd_SOURCES = ECtools/statsd.cpp
-kopano_statsd_LDADD = libkcutil.la ${mhttpd_LIBS} ${rrd_LIBS}
+kopano_statsd_LDADD = libkcutil.la ${jsoncpp_LIBS} ${libHX_LIBS} ${mhttpd_LIBS} ${rrd_LIBS}
 
 
 #
