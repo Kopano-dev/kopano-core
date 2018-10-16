@@ -352,7 +352,7 @@ HRESULT ECExchangeExportChanges::Synchronize(ULONG *lpulSteps, ULONG *lpulProgre
 		return MAPI_E_UNCONFIGURED;
 	}
 	if(m_ulFlags & SYNC_CATCHUP){
-		m_ulChangeId = m_ulMaxChangeId > m_ulChangeId ? m_ulMaxChangeId : m_ulChangeId;
+		m_ulChangeId = std::max(m_ulMaxChangeId, m_ulChangeId);
 		hr = UpdateStream(m_lpStream);
 		if (hr == hrSuccess)
 			*lpulProgress = *lpulSteps = 0;

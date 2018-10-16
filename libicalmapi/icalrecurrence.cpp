@@ -639,7 +639,7 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
 HRESULT ICalRecurrence::HrMakeMAPIRecurrence(recurrence *lpRecurrence, LPSPropTagArray lpNamedProps, LPMESSAGE lpMessage)
 {
 	memory_ptr<char> lpRecBlob;
-	unsigned int ulRecBlob = 0;
+	size_t ulRecBlob = 0;
 	memory_ptr<SPropValue> lpsPropRecPattern;
 	std::string strHRS;
 

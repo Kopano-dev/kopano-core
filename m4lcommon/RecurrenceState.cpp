@@ -29,7 +29,7 @@ namespace KC {
 
 class BinReader final {
 public:
-	BinReader(const char *lpData, unsigned int ulLen) :
+	BinReader(const char *lpData, size_t ulLen) :
 		m_lpData(lpData), m_ulLen(ulLen)
 	{}
     
@@ -61,14 +61,14 @@ public:
         return 4;
     };
 
-    int ReadString(std::string *lpData, unsigned int len) {
-        unsigned int reallen = len > m_ulLen - m_ulCursor ? m_ulLen - m_ulCursor : len;
-        
+	int ReadString(std::string *lpData, size_t len)
+	{
+		auto reallen = std::min(len, m_ulLen - m_ulCursor);
         if(m_ulCursor + reallen > m_ulLen)
             return -1;
 
-        if(reallen)      
-			DEBUGPRINT("%s ", bin2hex(len > m_ulLen - m_ulCursor ? m_ulLen - m_ulCursor : len, m_lpData+m_ulCursor).c_str());
+		if (reallen != 0)
+			DEBUGPRINT("%s ", bin2hex(reallen, m_lpData+m_ulCursor).c_str());
         
         lpData->assign(&m_lpData[m_ulCursor], reallen);
         
@@ -83,12 +83,13 @@ public:
     
 private:
 	const char *m_lpData;
-	unsigned int m_ulLen, m_ulCursor = 0;
+	size_t m_ulLen, m_ulCursor = 0;
 };
 
 class BinWriter final {
 public:
-    void GetData(char **lppData, unsigned int *lpulLen, void *base) {
+	void GetData(char **lppData, size_t *lpulLen, void *base)
+	{
         char *lpData;
 		auto hr = MAPIAllocateMore(m_strData.size(), base, reinterpret_cast<void **>(&lpData));
 	if (hr == hrSuccess)
@@ -115,7 +116,8 @@ public:
         return 4;
     }
     
-    int WriteString(const char *data, unsigned int len) {
+	int WriteString(const char *data, size_t len)
+	{
         std::string s(data, len);
         
         m_strData += s;
@@ -170,7 +172,7 @@ private:
  * @param[in]	ulLen	length of lpData
  * @param[in]	ulFlags	possible task flag
  */
-HRESULT RecurrenceState::ParseBlob(const char *lpData, unsigned int ulLen,
+HRESULT RecurrenceState::ParseBlob(const char *lpData, size_t ulLen,
     ULONG ulFlags)
 {
     HRESULT hr = hrSuccess;
@@ -367,7 +369,7 @@ exit:
  * @param[out]	lpulLen	lenght of lppData
  * @parampin]	base	base pointer for allocation, may be NULL to start new chainn of MAPIAllocateBuffer
  */
-HRESULT RecurrenceState::GetBlob(char **lppData, unsigned int *lpulLen, void *base)
+HRESULT RecurrenceState::GetBlob(char **lppData, size_t *lpulLen, void *base)
 {
     BinWriter data;
     std::vector<Exception>::const_iterator j = lstExceptions.begin();

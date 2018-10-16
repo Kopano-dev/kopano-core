@@ -849,7 +849,7 @@ static HRESULT running_server(const char *szSMTP, int ulPort,
     const char *szPath)
 {
 	HRESULT hr = hrSuccess;
-	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-spooler version " PROJECT_VERSION " (pid %d)", getpid());
+	ec_log_always("Starting kopano-spooler version " PROJECT_VERSION " (pid %d)", getpid());
 	ec_log_debug("Using SMTP server: %s, port %d", szSMTP, ulPort);
 	disconnects = 0;
 

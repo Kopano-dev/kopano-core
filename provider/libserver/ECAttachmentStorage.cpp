@@ -1130,7 +1130,7 @@ static ssize_t gzread_retry(gzFile fp, void *data, size_t uclen)
 		return 0;
 
 	while (uclen > 0) {
-		int chunk_size = (uclen > INT_MAX) ? INT_MAX : uclen;
+		auto chunk_size = std::min(uclen, static_cast<size_t>(INT_MAX));
 		int ret = gzread(fp, buf, chunk_size);
 
 		/*
@@ -1176,7 +1176,7 @@ static ssize_t gzwrite_retry(gzFile fp, const void *data, size_t uclen)
 		return 0;
 
 	while (uclen > 0) {
-		int chunk_size = (uclen > INT_MAX) ? INT_MAX : uclen;
+		auto chunk_size = std::min(uclen, static_cast<size_t>(INT_MAX));
 		int ret = gzwrite(fp, buf, chunk_size);
 		int saved_errno = errno, zerror;
 		const char *zerrstr = gzerror(fp, &zerror);

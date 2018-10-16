@@ -2808,7 +2808,7 @@ static HRESULT running_service(char **argv, bool bDaemonize,
 	int err = 0;
 	unsigned int nMaxThreads;
 
-	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-dagent version " PROJECT_VERSION " (pid %d uid %u) (LMTP mode)", getpid(), getuid());
+	ec_log_always("Starting kopano-dagent version " PROJECT_VERSION " (pid %d uid %u) (LMTP mode)", getpid(), getuid());
 	auto laters = make_scope_success([&]() { ECChannel::HrFreeCtx(); });
 
 	// Setup sockets
@@ -2924,7 +2924,7 @@ static HRESULT running_service(char **argv, bool bDaemonize,
 		}
 	}
 
-	ec_log(EC_LOGLEVEL_ALWAYS, "LMTP service will now exit");
+	ec_log_always("LMTP service will now exit");
 	if (!g_use_threads) {
 		signal(SIGTERM, SIG_IGN);
 		kill(0, SIGTERM);

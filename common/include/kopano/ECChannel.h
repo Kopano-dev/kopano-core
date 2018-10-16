@@ -35,14 +35,14 @@ public:
 	_kc_hidden ECChannel(int sockfd);
 	~ECChannel();
 	HRESULT HrEnableTLS(void);
-	_kc_hidden HRESULT HrGets(char *buf, ULONG bufsize, ULONG *have_read);
-	HRESULT HrReadLine(std::string &strBuffer, ULONG ulMaxBuffer = 65536);
+	_kc_hidden HRESULT HrGets(char *buf, size_t bufsize, size_t *have_read);
+	HRESULT HrReadLine(std::string &buf, size_t maxbuf = 65536);
 	HRESULT HrWriteString(const std::string & strBuffer);
-	HRESULT HrWriteLine(const char *szBuffer, int len = 0);
+	HRESULT HrWriteLine(const char *buf, size_t len = 0);
 	HRESULT HrWriteLine(const std::string & strBuffer);
-	_kc_hidden HRESULT HrReadBytes(char *buf, ULONG count);
-	HRESULT HrReadBytes(std::string * strBuffer, ULONG ulByteCount);
-	HRESULT HrReadAndDiscardBytes(ULONG ulByteCount);
+	_kc_hidden HRESULT HrReadBytes(char *buf, size_t len);
+	HRESULT HrReadBytes(std::string *buf, size_t len);
+	HRESULT HrReadAndDiscardBytes(size_t);
 	HRESULT HrSelect(int seconds);
 	_kc_hidden void SetIPAddress(const struct sockaddr *, size_t);
 	_kc_hidden const char *peer_addr(void) const { return peer_atxt; }

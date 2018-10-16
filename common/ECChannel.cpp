@@ -287,7 +287,8 @@ exit:
 	return hr;
 }
 
-HRESULT ECChannel::HrGets(char *szBuffer, ULONG ulBufSize, ULONG *lpulRead) {
+HRESULT ECChannel::HrGets(char *szBuffer, size_t ulBufSize, size_t *lpulRead)
+{
 	char *lpRet = NULL;
 	int len = ulBufSize;
 
@@ -314,8 +315,9 @@ HRESULT ECChannel::HrGets(char *szBuffer, ULONG ulBufSize, ULONG *lpulRead) {
  * @return MAPI_ERROR_CODE
  * @retval MAPI_E_TOO_BIG more data in the network buffer than requested to read
  */
-HRESULT ECChannel::HrReadLine(std::string &strBuffer, ULONG ulMaxBuffer) {
-	ULONG ulRead = 0;
+HRESULT ECChannel::HrReadLine(std::string &strBuffer, size_t ulMaxBuffer)
+{
+	size_t ulRead = 0;
 	char buffer[65536];
 
 	// clear the buffer before appending
@@ -353,7 +355,8 @@ HRESULT ECChannel::HrWriteString(const std::string & strBuffer) {
  *
  * @retval		MAPI_E_CALL_FAILED	unable to write data to socket
  */
-HRESULT ECChannel::HrWriteLine(const char *szBuffer, int len) {
+HRESULT ECChannel::HrWriteLine(const char *szBuffer, size_t len)
+{
 	std::string strLine;
 
 	if (len == 0)
@@ -379,20 +382,21 @@ HRESULT ECChannel::HrWriteLine(const std::string & strBuffer) {
  * @retval MAPI_E_NETWORK_ERROR Unable to read bytes.
  * @retval MAPI_E_CALL_FAILED Reading wrong amount of data.
  */
-HRESULT ECChannel::HrReadAndDiscardBytes(ULONG ulByteCount) {
-	ULONG ulTotRead = 0;
+HRESULT ECChannel::HrReadAndDiscardBytes(size_t ulByteCount)
+{
+	size_t ulTotRead = 0;
 	char szBuffer[4096];
 
 	while (ulTotRead < ulByteCount) {
-		ULONG ulBytesLeft = ulByteCount - ulTotRead;
-		ULONG ulRead = ulBytesLeft > sizeof szBuffer ? sizeof szBuffer : ulBytesLeft;
+		size_t ulBytesLeft = ulByteCount - ulTotRead;
+		auto ulRead = std::min(ulBytesLeft, sizeof(szBuffer));
 
 		if (lpSSL)
 			ulRead = SSL_read(lpSSL, szBuffer, ulRead);
 		else
 			ulRead = recv(fd, szBuffer, ulRead, 0);
 
-		if (ulRead == (ULONG)-1) {
+		if (ulRead == static_cast<size_t>(-1)) {
 			if (errno == EINTR)
 				continue;
 			return MAPI_E_NETWORK_ERROR;
@@ -404,8 +408,9 @@ HRESULT ECChannel::HrReadAndDiscardBytes(ULONG ulByteCount) {
 	return (ulTotRead == ulByteCount) ? hrSuccess : MAPI_E_CALL_FAILED;
 }
 
-HRESULT ECChannel::HrReadBytes(char *szBuffer, ULONG ulByteCount) {
-	ULONG ulRead = 0, ulTotRead = 0;
+HRESULT ECChannel::HrReadBytes(char *szBuffer, size_t ulByteCount)
+{
+	size_t ulRead = 0, ulTotRead = 0;
 
 	if(!szBuffer)
 		return MAPI_E_INVALID_PARAMETER;
@@ -416,7 +421,7 @@ HRESULT ECChannel::HrReadBytes(char *szBuffer, ULONG ulByteCount) {
 		else
 			ulRead = recv(fd, szBuffer + ulTotRead, ulByteCount - ulTotRead, 0);
 
-		if (ulRead == (ULONG)-1) {
+		if (ulRead == static_cast<size_t>(-1)) {
 			if (errno == EINTR)
 				continue;
 			return MAPI_E_NETWORK_ERROR;
@@ -429,10 +434,11 @@ HRESULT ECChannel::HrReadBytes(char *szBuffer, ULONG ulByteCount) {
 	return (ulTotRead == ulByteCount) ? hrSuccess : MAPI_E_CALL_FAILED;
 }
 
-HRESULT ECChannel::HrReadBytes(std::string * strBuffer, ULONG ulByteCount) {
+HRESULT ECChannel::HrReadBytes(std::string * strBuffer, size_t ulByteCount)
+{
 	std::unique_ptr<char[]> buffer;
 
-	if (strBuffer == nullptr)
+	if (strBuffer == nullptr || ulByteCount == SIZE_MAX)
 		return MAPI_E_INVALID_PARAMETER;
 	buffer.reset(new(std::nothrow) char[ulByteCount+1]);
 	if (buffer == nullptr)

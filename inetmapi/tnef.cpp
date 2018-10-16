@@ -1610,7 +1610,7 @@ HRESULT ECTNEF::HrReadData(IStream *lpStream, void *data, size_t ulLen)
 	ULONG ulRead = 0;
 
 	while(ulLen) {
-		unsigned int ulToRead = ulLen > 4096 ? 4096 : ulLen;
+		auto ulToRead = std::min(ulLen, static_cast<size_t>(4096));
 		auto hr = lpStream->Read(lpData, ulToRead, &ulRead);
 		if(hr != hrSuccess)
 			return hr;
@@ -1694,7 +1694,7 @@ HRESULT ECTNEF::HrWriteData(IStream *lpStream, const void *vdata, size_t ulLen)
 	ULONG ulWritten = 0;
 
 	while(ulLen > 0) {
-		auto hr = lpStream->Write(data, ulLen > 4096 ? 4096 : ulLen, &ulWritten);
+		auto hr = lpStream->Write(data, std::min(ulLen, static_cast<size_t>(4096)), &ulWritten);
 		if(hr != hrSuccess)
 			return hr;
 		ulLen -= ulWritten;

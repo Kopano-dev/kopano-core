@@ -223,7 +223,7 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 	ULONG ulMvItems = 4;
 	// Get current freebusy entryid array
 	if (HrGetOneProp(lpFolder, PR_FREEBUSY_ENTRYIDS, &~lpPropfbEntryids) == hrSuccess)
-		ulMvItems = (lpPropfbEntryids->Value.MVbin.cValues > ulMvItems) ? lpPropfbEntryids->Value.MVbin.cValues : ulMvItems;
+		ulMvItems = std::max(lpPropfbEntryids->Value.MVbin.cValues, ulMvItems);
 	hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropfbEntryidsNew);
 	if (hr != hrSuccess)
 		return hr;
