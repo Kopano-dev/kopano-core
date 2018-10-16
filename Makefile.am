@@ -633,8 +633,7 @@ provider/libkcsoap.sym: ${top_builddir}/config.status
 noinst_HEADERS += \
 	common/ConsoleTable.h common/ECACL.h common/ECCache.h common/ECConfigImpl.h \
 	common/ECFifoBuffer.h common/ECSerializer.h common/StatsClient.h \
-	common/fileutil.h common/charset/localeutil.h \
-	common/utf8/core.h common/utf8/unchecked.h
+	common/charset/localeutil.h common/utf8/core.h common/utf8/unchecked.h
 libkcutil_la_SOURCES = \
 	common/ConsoleTable.cpp common/ECABEntryID.cpp \
 	common/ECCache.cpp common/ECChannel.cpp common/ECChannelClient.cpp \

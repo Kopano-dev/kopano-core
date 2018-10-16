@@ -24,7 +24,7 @@
 #include <kopano/memory.hpp>
 #include <kopano/scope.hpp>
 #include <kopano/timeutil.hpp>
-#include "common/fileutil.h"
+#include <kopano/fileutil.hpp>
 
 using namespace KC;
 

@@ -39,7 +39,7 @@
 #include "PyMapiPlugin.h"
 #include <list>
 #include <algorithm>
-#include "fileutil.h"
+#include <kopano/fileutil.hpp>
 
 using namespace KC;
 using std::list;

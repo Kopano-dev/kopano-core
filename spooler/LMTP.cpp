@@ -19,12 +19,12 @@
 #include <kopano/mapiext.h>
 #include <kopano/CommonUtil.h>
 #include <kopano/MAPIErrors.h>
-#include <fileutil.h>
+#include <kopano/fileutil.hpp>
 #include <kopano/ECTags.h>
 #include <kopano/ECChannel.h>
 #include "LMTP.h"
 #include <kopano/stringutil.h>
-#include "fileutil.h"
+#include <kopano/fileutil.hpp>
 
 using namespace KC;
 using std::string;

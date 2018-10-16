@@ -33,7 +33,7 @@
 #	include <execinfo.h>
 #	define WITH_BACKTRACE 1
 #endif
-#include "fileutil.h"
+#include <kopano/fileutil.hpp>
 
 static bool rand_init_done = false;
 

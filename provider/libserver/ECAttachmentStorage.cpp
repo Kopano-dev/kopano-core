@@ -25,7 +25,7 @@
 #include "SOAPUtils.h"
 #include <kopano/ECLogger.h>
 #include <kopano/MAPIErrors.h>
-#include "fileutil.h"
+#include <kopano/fileutil.hpp>
 #include <mapitags.h>
 #include <kopano/scope.hpp>
 #include <kopano/stringutil.h>

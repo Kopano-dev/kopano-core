@@ -44,7 +44,7 @@
 #include "IMAP.h"
 #include <kopano/ecversion.h>
 #include "SSLUtil.h"
-#include "fileutil.h"
+#include <kopano/fileutil.hpp>
 #include <kopano/UnixUtil.h>
 #include <unicode/uclean.h>
 #include <openssl/ssl.h>

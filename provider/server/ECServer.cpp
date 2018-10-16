@@ -51,7 +51,7 @@
 #include <map>
 #include <kopano/charset/convstring.h>
 #include <unicode/uclean.h>
-#include "fileutil.h"
+#include <kopano/fileutil.hpp>
 #include "ECICS.h"
 #include <openssl/ssl.h>
 #ifdef HAVE_KCOIDC_H

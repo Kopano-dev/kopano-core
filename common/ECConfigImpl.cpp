@@ -22,7 +22,7 @@
 #include <kopano/scope.hpp>
 #include <kopano/stringutil.h>
 #include "ECConfigImpl.h"
-#include "fileutil.h"
+#include <kopano/fileutil.hpp>
 #include <kopano/charset/convert.h>
 
 namespace KC {

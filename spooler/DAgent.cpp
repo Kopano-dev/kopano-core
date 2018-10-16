@@ -55,7 +55,7 @@
 #include <kopano/tie.hpp>
 #include <kopano/timeutil.hpp>
 #include "charset/localeutil.h"
-#include "fileutil.h"
+#include <kopano/fileutil.hpp>
 #include "PyMapiPlugin.h"
 #include <cerrno>
 #include <sys/types.h>

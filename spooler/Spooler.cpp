@@ -74,7 +74,7 @@
 #include <kopano/ECGetText.h>
 #include "charset/localeutil.h"
 #include "StatsClient.h"
-#include "fileutil.h"
+#include <kopano/fileutil.hpp>
 #include <map>
 
 using namespace KC;

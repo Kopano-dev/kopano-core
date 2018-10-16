@@ -20,7 +20,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <kopano/ECConfig.h>
-#include "fileutil.h"
+#include <kopano/fileutil.hpp>
 #define BLOCKSIZE	65536
 
 namespace KC {

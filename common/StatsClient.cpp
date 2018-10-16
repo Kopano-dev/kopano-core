@@ -24,7 +24,7 @@
 #include <kopano/stringutil.h>
 #include <kopano/timeutil.hpp>
 #include "StatsClient.h"
-#include "fileutil.h"
+#include <kopano/fileutil.hpp>
 
 using namespace std::string_literals;
 
