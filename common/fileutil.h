@@ -33,6 +33,10 @@ class file_deleter {
 extern _kc_export HRESULT HrFileLFtoCRLF(FILE *fin, FILE **fout);
 extern _kc_export HRESULT HrMapFileToString(FILE *f, std::string *buf);
 extern _kc_export bool DuplicateFile(FILE *, std::string &newname);
+extern _kc_export int CreatePath(std::string, unsigned int = 0770);
+extern _kc_export ssize_t read_retry(int, void *, size_t);
+extern _kc_export ssize_t write_retry(int, const void *, size_t);
+extern _kc_export bool force_buffers_to_disk(int fd);
 
 } /* namespace */
 

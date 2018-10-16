@@ -38,9 +38,6 @@ typedef int gsoap_size_t;
 /*
  * Platform independent functions
  */
-// mkdir -p
-extern _kc_export int CreatePath(std::string, unsigned int = 0770);
-
 // Random-number generators
 extern _kc_export void rand_init(void);
 extern _kc_export int rand_mt(void);
@@ -58,10 +55,7 @@ extern _kc_export char *get_password(const char *prompt);
 #define MEMORY_USAGE_STRING(str)			(str.capacity() + 1)
 #define MEMORY_USAGE_MULTIMAP(items, map)	MEMORY_USAGE_MAP(items, map)
 
-extern _kc_export ssize_t read_retry(int, void *, size_t);
-extern _kc_export ssize_t write_retry(int, const void *, size_t);
 extern _kc_export void set_thread_name(pthread_t, const std::string &);
-extern _kc_export bool force_buffers_to_disk(int fd);
 extern _kc_export int ec_relocate_fd(int);
 extern _kc_export void kcsrv_blocksigs(void);
 extern _kc_export unsigned long kc_threadid(void);

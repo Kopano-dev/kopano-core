@@ -191,4 +191,76 @@ bool TmpPath::OverridePath(ECConfig *ec)
 	return rc;
 }
 
+/* Does mkdir -p <path> */
+int CreatePath(std::string s, unsigned int mode)
+{
+	if (s.size() == 0)
+		return -ENOENT;
+	size_t p = 0;
+	while (s[p] == '/')
+		/* No need to create the root directory; it always exists. */
+		++p;
+	do {
+		p = s.find('/', p);
+		if (p == std::string::npos)
+			break;
+		s[p] = '\0';
+		auto ret = mkdir(s.c_str(), mode);
+		if (ret != 0 && errno != EEXIST)
+			return -errno;
+		s[p++] = '/';
+		while (s[p] == '/')
+			++p;
+	} while (true);
+	auto ret = mkdir(s.c_str(), mode);
+	if (ret != 0 && errno != EEXIST)
+		return -errno;
+	return 0;
+}
+
+ssize_t read_retry(int fd, void *data, size_t len)
+{
+	auto buf = static_cast<char *>(data);
+	size_t tread = 0;
+
+	while (len > 0) {
+		ssize_t ret = read(fd, buf, len);
+		if (ret < 0 && (errno == EINTR || errno == EAGAIN))
+			continue;
+		if (ret < 0)
+			return ret;
+		if (ret == 0)
+			break;
+		len -= ret;
+		buf += ret;
+		tread += ret;
+	}
+	return tread;
+}
+
+ssize_t write_retry(int fd, const void *data, size_t len)
+{
+	auto buf = static_cast<const char *>(data);
+	size_t twrote = 0;
+
+	while (len > 0) {
+		ssize_t ret = write(fd, buf, len);
+		if (ret < 0 && (errno == EINTR || errno == EAGAIN))
+			continue;
+		if (ret < 0)
+			return ret;
+		if (ret == 0)
+			break;
+		len -= ret;
+		buf += ret;
+		twrote += ret;
+	}
+	return twrote;
+}
+
+bool force_buffers_to_disk(const int fd)
+{
+	return fsync(fd) != -1;
+}
+
 } /* namespace */
