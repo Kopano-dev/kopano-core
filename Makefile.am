@@ -643,7 +643,7 @@ libkcutil_la_SOURCES = \
 	common/ECUnknown.cpp common/HtmlEntity.cpp common/HtmlToTextParser.cpp \
 	common/MAPIErrors.cpp common/SSLUtil.cpp \
 	common/StatsClient.cpp common/TimeUtil.cpp \
-	common/UnixUtil.cpp common/codepage.cpp common/fileutil.cpp \
+	common/UnixUtil.cpp common/fileutil.cpp \
 	common/platform.linux.cpp common/rtfutil.cpp common/stringutil.cpp \
 	common/ustringutil.cpp common/charset/convert.cpp \
 	common/charset/convstring.cpp common/charset/localeutil.cpp
