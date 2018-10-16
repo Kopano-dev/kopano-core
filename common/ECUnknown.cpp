@@ -10,6 +10,7 @@
 #include <kopano/ECABEntryID.h>
 #include <kopano/ECGuid.h>
 #include <kopano/ECUnknown.h>
+#include "ECCache.h"
 #include "../provider/include/kcore.hpp"
 
 namespace KC {
@@ -179,6 +180,22 @@ HRESULT GetNonPortableObjectType(unsigned int eid_size,
 		return MAPI_E_INVALID_PARAMETER;
 	*obj_type = reinterpret_cast<const ABEID *>(eid)->ulType;
 	return hrSuccess;
+}
+
+ECCacheBase::ECCacheBase(const std::string &name, size_type size, long age) :
+	m_strCachename(name), m_ulMaxSize(size), m_lMaxAge(age)
+{}
+
+ECCacheStat ECCacheBase::get_stats() const
+{
+	ECCacheStat s;
+	s.name = m_strCachename;
+	s.items = ItemCount();
+	s.size = Size();
+	s.maxsize = m_ulMaxSize;
+	s.req = HitCount();
+	s.hit = ValidCount();
+	return s;
 }
 
 } /* namespace */

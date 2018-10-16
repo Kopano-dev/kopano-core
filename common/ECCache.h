@@ -14,6 +14,7 @@
 #include <cassert>
 #include <cstdint>
 #include <kopano/platform.h>
+#include <kopano/kcodes.h> /* ECRESULT */
 
 namespace KC {
 

@@ -636,7 +636,7 @@ noinst_HEADERS += \
 	common/charset/localeutil.h common/utf8/core.h common/utf8/unchecked.h
 libkcutil_la_SOURCES = \
 	common/ConsoleTable.cpp \
-	common/ECCache.cpp common/ECChannel.cpp common/ECChannelClient.cpp \
+	common/ECChannel.cpp common/ECChannelClient.cpp \
 	common/ECConfigImpl.cpp common/ECGuid.cpp \
 	common/ECKeyTable.cpp common/ECLogger.cpp \
 	common/ECMemStream.cpp common/ECThreadPool.cpp \
