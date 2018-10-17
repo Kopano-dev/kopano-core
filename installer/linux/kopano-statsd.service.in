@@ -4,7 +4,7 @@ Documentation=man:kopano-statsd(8) man:kopano-statsd.cfg(5)
 
 [Service]
 Type=simple
-ExecStart=/usr/sbin/kopano-statsd
+ExecStart=@libexecdir@/kopano/kopano-statsd
 
 [Install]
 WantedBy=multi-user.target
