@@ -234,9 +234,7 @@ AC_DEFUN([LIBNCURSES_WITH_CONFIG],[
 			NCURSES_LIBS="-lncurses -ltinfo"
 		]
 	)
-	dnl We should be using ncurses.h - or is portability to non-ncurses
-	dnl that important?
-	AC_CHECK_HEADERS([curses.h])
+	AC_CHECK_HEADERS([ncurses.h])
 	LIBS="$LIBS_system"
 	CFLAGS="$CFLAGS_system"
 	CXXFLAGS="$CXXFLAGS_system"
