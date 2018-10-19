@@ -359,6 +359,41 @@ std::string bin2hex(const SBinary &b)
 	return bin2hex(b.cb, b.lpb);
 }
 
+std::string bin2txt(const void *vdata, size_t len)
+{
+	auto data = static_cast<const unsigned char *>(vdata);
+	std::string ret;
+	char b[5];
+	for (size_t i = 0; i < len; ++i) {
+		if (isprint(data[i]) && data[i] != '"' && data[i] != '\\') {
+			b[0] = data[i];
+			b[1] = '\0';
+		} else if (data[i] < 8) {
+			b[0] = '\\';
+			b[1] = '0' + (data[i] % 8);
+			b[2] = '\0';
+		} else if (data[i] < 32) {
+			b[0] = '\\';
+			b[1] = '0' + (data[i] / 8 % 8);
+			b[2] = '0' + (data[i] % 8);
+			b[3] = '\0';
+		} else {
+			b[0] = '\\';
+			b[1] = '0' + (data[i] / 64 % 8);
+			b[2] = '0' + (data[i] / 8 % 8);
+			b[3] = '0' + (data[i] % 8);
+			b[4] = '\0';
+		}
+		ret.append(b);
+	}
+	return ret;
+}
+
+std::string bin2txt(const SBinary &b)
+{
+	return bin2txt(b.lpb, b.cb);
+}
+
 /**
  * Encodes a string for inclusion into an url.
  *

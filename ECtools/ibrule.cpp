@@ -144,7 +144,7 @@ static int ibr_show_propval(const SPropValue &p)
 	case PT_BOOLEAN: return printf(" %u", p.Value.b);
 	case PT_STRING8: return printf(" \"%s\"", p.Value.lpszA);
 	case PT_UNICODE: return printf(" \"%s\"", convert_to<std::string>(p.Value.lpszW).c_str());
-	case PT_BINARY: return printf(" binary(%s)", bin2hex(p.Value.bin).c_str());
+	case PT_BINARY: return printf(" binary(\"%s\")", bin2txt(p.Value.bin).c_str());
 	case PT_LONGLONG: return printf(" %lld", static_cast<long long>(p.Value.li.QuadPart));
 	default: return printf(" <PT_UNHANDLED:%04x>", PROP_TYPE(p.ulPropTag));
 	}
@@ -158,17 +158,17 @@ static void ibr_show_actions(unsigned int level, const ACTIONS &al)
 		printf("Action #%zu: %s", i, ibr_atype_text(a.acttype));
 		switch (a.acttype) {
 		case OP_MOVE: case OP_COPY:
-			printf(" -> store %s folder %s\n",
-				bin2hex(a.actMoveCopy.cbStoreEntryId, a.actMoveCopy.lpStoreEntryId).c_str(),
-				bin2hex(a.actMoveCopy.cbFldEntryId, a.actMoveCopy.lpFldEntryId).c_str());
+			printf(" -> store_eid \"%s\" folder_eid \"%s\"\n",
+				bin2txt(a.actMoveCopy.lpStoreEntryId, a.actMoveCopy.cbStoreEntryId).c_str(),
+				bin2txt(a.actMoveCopy.lpFldEntryId, a.actMoveCopy.cbFldEntryId).c_str());
 			break;
 		case OP_REPLY: case OP_OOF_REPLY:
-			printf(" tpguid %s message %s\n",
+			printf(" tpl_guid %s msg_eid \"%s\"\n",
 				bin2hex(sizeof(a.actReply.guidReplyTemplate), &a.actReply.guidReplyTemplate).c_str(),
-				bin2hex(a.actReply.cbEntryId, a.actReply.lpEntryId).c_str());
+				bin2txt(a.actReply.lpEntryId, a.actReply.cbEntryId).c_str());
 			break;
 		case OP_DEFER_ACTION:
-			printf(" binary(%s)\n", bin2hex(a.actDeferAction.cbData, a.actDeferAction.pbData).c_str());
+			printf(" binary(\"%s\")\n", bin2txt(a.actDeferAction.pbData, a.actDeferAction.cbData).c_str());
 			break;
 		case OP_BOUNCE:
 			printf(" code %d\n", a.scBounceCode);
