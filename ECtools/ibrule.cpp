@@ -26,12 +26,13 @@ struct ibr_parse_ctx {
 enum { IBR_NONE = 0, IBR_SHOW, IBR_ADD };
 static unsigned int ibr_action, ibr_passpr;
 static int ibr_delete_pos = -1;
-static char *ibr_user, *ibr_pass;
+static char *ibr_user, *ibr_pass, *ibr_host;
 static constexpr const struct HXoption ibr_options[] = {
 	{nullptr, 'A', HXTYPE_VAL, &ibr_action, nullptr, nullptr, IBR_ADD, "Add new rule to the table"},
 	{nullptr, 'D', HXTYPE_INT, &ibr_delete_pos, nullptr, nullptr, 0, "Delete rule by position", "POS"},
 	{nullptr, 'P', HXTYPE_NONE, &ibr_passpr, nullptr, nullptr, 0, "Prompt for plain password to use for login"},
 	{nullptr, 'S', HXTYPE_VAL, &ibr_action, nullptr, nullptr, IBR_SHOW, "List rules for user"},
+	{nullptr, 'h', HXTYPE_STRING, &ibr_host, nullptr, nullptr, 0, "URI for server"},
 	{"user", 'u', HXTYPE_STRING, &ibr_user, nullptr, nullptr, 0, "User to inspect inbox of", "NAME"},
 	HXOPT_AUTOHELP,
 	HXOPT_TABLEEND,
@@ -532,7 +533,7 @@ static HRESULT ibr_perform(int argc, const char **argv)
 {
 	KServerContext srvctx;
 	srvctx.m_app_misc = "rules";
-	srvctx.m_host = GetServerUnixSocket("default:");
+	srvctx.m_host = (ibr_host != nullptr) ? ibr_host : GetServerUnixSocket("default:");
 	auto ret = srvctx.logon(ibr_user, ibr_pass);
 	if (ret != hrSuccess)
 		return kc_perror("logon", ret);
