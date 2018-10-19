@@ -53,10 +53,14 @@ class Importer:
         self.headertag = service.config['header_tag'].lower()
 
     def mark_spam(self, searchkey):
+        if not isinstance(searchkey, bytes): # python3
+            searchkey = searchkey.encode('ascii')
         with closing(bsddb.btopen(self.spamdb, 'c')) as db:
             db[searchkey] = ''
 
     def was_spam(self, searchkey):
+        if not isinstance(searchkey, bytes): # python3
+            searchkey = searchkey.encode('ascii')
         with closing(bsddb.btopen(self.spamdb, 'c')) as db:
             return searchkey in db
 
