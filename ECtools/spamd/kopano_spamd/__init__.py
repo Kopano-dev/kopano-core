@@ -34,15 +34,15 @@ CONFIG = {
 class Service(kopano.Service):
     def main(self):
         server = self.server
-        state = server.state
-        catcher = Checker(self)
+        state = server.state # start from current state
+        importer = Importer(self)
         with log_exc(self.log):
             while True:
-                state = server.sync(catcher, state)
+                state = server.sync(importer, state)
                 time.sleep(1)
 
 
-class Checker(object):
+class Importer:
     def __init__(self, service):
         self.log = service.log
         self.spamdb = service.config['spam_db']
@@ -61,59 +61,49 @@ class Checker(object):
             return searchkey in db
 
     def update(self, item, flags):
-        if item.message_class != 'IPM.Note':
-            return
+        with log_exc(self.log):
+            if item.message_class != 'IPM.Note': # TODO None?
+                return
 
-        searchkey = item.searchkey
-
-        if item.folder == item.store.junk and \
-           item.header(self.headertag).upper() != 'YES':
-
-            fn = os.path.join(self.hamdir, searchkey + '.eml')
-            if os.path.isfile(fn):
-                os.unlink(fn)
-
-            self.log.info("Learning message as SPAM, entryid: %s", item.entryid)
-            self.learn(item, True)
-
-        elif item.folder == item.store.inbox and \
-                self.learnham and self.was_spam(searchkey):
-
-            fn = os.path.join(self.spamdir, searchkey + '.eml')
-            if os.path.isfile(fn):
-                os.unlink(fn)
-
-            self.log.info("Learning message as HAM, entryid: %s", item.entryid)
-            self.learn(item, False)
-
-    def learn(self, item, spam):
-        try:
             searchkey = item.searchkey
-            spameml = item.eml()
-            dir = self.spamdir if spam else self.hamdir
-            emlfilename = os.path.join(dir, searchkey + '.eml')
+            header = item.header(self.headertag)
 
-            with closing(open(emlfilename, "wb")) as fh:
-                fh.write(spameml)
+            if (item.folder == item.store.junk and \
+                (not header or header.upper() != 'YES')):
 
-        except Exception as e:
-            self.log.error(
-                'Exception happend during learning: %s, entryid: %s',
-                e, item.entryid)
-            return
+                fn = os.path.join(self.hamdir, searchkey + '.eml')
+                if os.path.isfile(fn):
+                    os.unlink(fn)
 
-        try:
-            uid = os.getuid()
-            gid = grp.getgrnam(self.sagroup).gr_gid
-            os.chown(emlfilename, uid, gid)
-            os.chmod(emlfilename, 0o660)
-        except Exception as e:
-            self.log.warning('Unable to set ownership: %s, entryid %s',
-                             e, item.entryid)
+                self.log.info("Learning message as SPAM, entryid: %s", item.entryid)
+                self.learn(item, searchkey, True)
+
+            elif (item.folder == item.store.inbox and \
+                  self.learnham and \
+                  self.was_spam(searchkey)):
+
+                fn = os.path.join(self.spamdir, searchkey + '.eml')
+                if os.path.isfile(fn):
+                    os.unlink(fn)
+
+                self.log.info("Learning message as HAM, entryid: %s", item.entryid)
+                self.learn(item, searchkey, False)
+
+    def learn(self, item, searchkey, spam):
+        spameml = item.eml()
+        dir_ = self.spamdir if spam else self.hamdir
+        emlfilename = os.path.join(dir_, searchkey + '.eml')
+
+        with closing(open(emlfilename, "wb")) as fh:
+            fh.write(spameml)
+
+        uid = os.getuid()
+        gid = grp.getgrnam(self.sagroup).gr_gid
+        os.chown(emlfilename, uid, gid)
+        os.chmod(emlfilename, 0o660)
 
         if spam:
             self.mark_spam(searchkey)
-
 
 def main():
     parser = kopano.parser('ckpsFl')  # select common cmd-line options
