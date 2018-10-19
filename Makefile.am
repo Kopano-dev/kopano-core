@@ -14,7 +14,7 @@ endif
 endif # ENABLE_BASE
 SUBDIRS += installer/linux
 if ENABLE_PYTHON
-SUBDIRS += ECtools/backup ECtools/cli ECtools/migration-pst \
+SUBDIRS += ECtools/backup ECtools/migration-pst \
 	ECtools/search ECtools/spamd \
 	ECtools/utils installer/searchscripts spooler/python \
 	spooler/python/plugins swig/python/kopano
@@ -915,7 +915,6 @@ dist_man_MANS += \
 	doc/kopano-autorespond.8 \
 	doc/kopano-backup.8 doc/kopano-backup.cfg.5 \
 	doc/kopano-cachestat.8 \
-	doc/kopano-cli.8 \
 	doc/kopano-mailbox-permissions.8 \
 	doc/kopano-migration-pst.8 doc/kopano-migration-pst.cfg.5 \
 	doc/kopano-mr-accept.8 doc/kopano-mr-process.8 \
