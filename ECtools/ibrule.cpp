@@ -7,8 +7,10 @@
 #include <climits>
 #include <cstdlib>
 #include <libHX/option.h>
+#include <mapitags.h>
 #include <kopano/CommonUtil.h>
 #include <kopano/ECLogger.h>
+#include <kopano/mapiext.h>
 #include <kopano/stringutil.h>
 #include <kopano/charset/convert.h>
 
@@ -80,7 +82,10 @@ static const char *ibr_proptag_text(unsigned int tag)
 		S(PR_RULE_PROVIDER); S(PR_RULE_PROVIDER_DATA);
 		S(PR_BODY); S(PR_SUBJECT); S(PR_MESSAGE_CLASS);
 		S(PR_MESSAGE_FLAGS); S(PR_MESSAGE_RECIPIENTS);
-		S(PR_MESSAGE_ATTACHMENTS);
+		S(PR_MESSAGE_ATTACHMENTS); S(PR_OBJECT_TYPE);
+		S(PR_DISPLAY_NAME); S(PR_DISPLAY_TYPE); S(PR_EMAIL_ADDRESS);
+		S(PR_SMTP_ADDRESS); S(PR_ADDRTYPE); S(PR_RECIPIENT_TYPE);
+		S(PR_SEARCH_KEY); S(PR_ENTRYID);
 	default: return nullptr;
 	}
 #undef S
@@ -150,6 +155,25 @@ static int ibr_show_propval(const SPropValue &p)
 	}
 }
 
+static void ibr_show_adrentry(unsigned int level, const ADRENTRY &e)
+{
+	for (size_t i = 0; i < e.cValues; ++i) {
+		printf("%-*s%s", level * 4, "", ibr_tree);
+		ibr_show_proptag_text(e.rgPropVals[i].ulPropTag);
+		ibr_show_propval(e.rgPropVals[i]);
+		printf("\n");
+	}
+
+}
+
+static void ibr_show_adrlist(unsigned int level, const ADRLIST &al)
+{
+	for (size_t i = 0; i < al.cEntries; ++i) {
+		printf("%-*s *  Entry #%zu\n", level * 4, "", i);
+		ibr_show_adrentry(level + 1, al.aEntries[i]);
+	}
+}
+
 static void ibr_show_actions(unsigned int level, const ACTIONS &al)
 {
 	for (size_t i = 0; i < al.cActions; ++i) {
@@ -174,7 +198,9 @@ static void ibr_show_actions(unsigned int level, const ACTIONS &al)
 			printf(" code %d\n", a.scBounceCode);
 			break;
 		case OP_FORWARD: case OP_DELEGATE:
-			printf(" to <adrlist>\n");
+			printf(" to ...\n");
+			if (a.lpadrlist != nullptr)
+				ibr_show_adrlist(level + 1, *a.lpadrlist);
 			break;
 		case OP_TAG:
 			printf(" ");
