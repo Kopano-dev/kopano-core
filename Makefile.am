@@ -10,7 +10,7 @@ SUBDIRS += installer po
 if ENABLE_PYTHON
 SUBDIRS += ECtools/backup ECtools/cli ECtools/migration-pst \
 	ECtools/presence ECtools/rest ECtools/search ECtools/spamd \
-	ECtools/utils swig
+	ECtools/msr ECtools/utils swig
 endif
 
 

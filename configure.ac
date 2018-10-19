@@ -705,11 +705,12 @@ AC_CONFIG_FILES([Makefile
 		ECtools/archiver/include/kopano/Makefile
 		ECtools/backup/Makefile
 		ECtools/cli/Makefile
+		ECtools/migration-pst/Makefile
+		ECtools/msr/Makefile
 		ECtools/presence/Makefile
 		ECtools/rest/Makefile
 		ECtools/search/Makefile
 		ECtools/spamd/Makefile
-		ECtools/migration-pst/Makefile
 		ECtools/utils/Makefile
 		installer/Makefile
 		installer/linux/Makefile
