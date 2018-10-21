@@ -152,6 +152,7 @@ static ECRESULT main2(int argc, char **argv)
 		{ "companyquota_soft_template", "", CONFIGSETTING_UNUSED },
 		{ "companyquota_hard_template", "", CONFIGSETTING_UNUSED },
 		{ "servers", "" },
+		{"coredump_enabled", "systemdefault"},
 		{ NULL, NULL },
 	};
 
@@ -244,6 +245,7 @@ static ECRESULT main2(int argc, char **argv)
 		szPath = m_lpThreadMonitor->lpConfig->GetSetting("server_socket");
 
 	ec_log_always("Starting kopano-monitor version " PROJECT_VERSION " (pid %d uid %u)", getpid(), getuid());
+	unix_coredump_enable(m_lpThreadMonitor->lpConfig->GetSetting("coredump_enabled"));
 	auto ret = unix_runas(m_lpThreadMonitor->lpConfig.get());
 	if (ret < 0) {
 		return E_FAIL;
