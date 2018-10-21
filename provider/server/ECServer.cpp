@@ -598,7 +598,8 @@ static ECRESULT check_server_configuration(void)
  */
 static int kc_reexec_setup_allocator(const char *lib)
 {
-	if (*lib == '\0' || getenv("KC_AVOID_REEXEC") != nullptr)
+	if (*lib == '\0' || getenv("KC_AVOID_REEXEC") != nullptr ||
+	    getenv("KC_REEXEC_DONE") != nullptr)
 		return 0;
 	auto handle = dlopen(lib, RTLD_LAZY | RTLD_GLOBAL);
 	if (handle == nullptr)
