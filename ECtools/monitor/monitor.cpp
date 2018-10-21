@@ -244,13 +244,17 @@ static ECRESULT main2(int argc, char **argv)
 		szPath = m_lpThreadMonitor->lpConfig->GetSetting("server_socket");
 
 	ec_log_always("Starting kopano-monitor version " PROJECT_VERSION " (pid %d uid %u)", getpid(), getuid());
-	if (unix_runas(m_lpThreadMonitor->lpConfig.get()))
+	auto ret = unix_runas(m_lpThreadMonitor->lpConfig.get());
+	if (ret < 0) {
 		return E_FAIL;
-	auto ret = ec_reexec(argv);
-	if (ret < 0)
-		ec_log_notice("K-1240: Failed to re-exec self: %s. "
-			"Continuing with standard allocator and/or restricted coredumps.",
-			strerror(-ret));
+	} else if (ret == 0) {
+		ec_reexec_finalize();
+	} else if (ret > 0) {
+		ret = ec_reexec(argv);
+		if (ret < 0)
+			ec_log_notice("K-1240: Failed to re-exec self: %s. "
+				"Continuing with restricted coredumps.", strerror(-ret));
+	}
 
 	// SIGSEGV backtrace support
 	KAlternateStack sigstack;

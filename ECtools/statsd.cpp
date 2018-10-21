@@ -255,13 +255,18 @@ int main(int argc, const char **argv) try
 	auto ret = ec_listen_generic(v.begin()->c_str(), &sockfd, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
 	if (ret < 0)
 		return ret;
-	if (unix_runas(sd_config.get()))
+	ret = unix_runas(sd_config.get());
+	if (ret < 0) {
 		return EXIT_FAILURE;
-	ec_reexec_prepare_sockets();
-	ret = ec_reexec(argv);
-	if (ret < 0)
-		ec_log_notice("K-1240: Failed to re-exec self: %s", strerror(-ret));
-
+	} else if (ret == 0) {
+		ec_reexec_finalize();
+	} else {
+		ec_reexec_prepare_sockets();
+		ret = ec_reexec(argv);
+		if (ret < 0)
+			ec_log_notice("K-1240: Failed to re-exec self: %s. "
+				"Continuing with restricted coredumps.", strerror(-ret));
+	}
 	return sd_mainloop(sockfd) == hrSuccess ? EXIT_SUCCESS : EXIT_FAILURE;
 } catch (...) {
 	std::terminate();

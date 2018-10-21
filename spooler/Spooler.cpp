@@ -1110,13 +1110,18 @@ static int main2(int argc, char **argv)
 	AutoMAPI mapiinit;
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
-	if (unix_runas(g_lpConfig.get())) {
+	auto ret = unix_runas(g_lpConfig.get());
+	if (ret < 0) {
 		ec_log_crit("main(): run_as failed");
 		return MAPI_E_CALL_FAILED;
+	} else if (ret == 0) {
+		ec_reexec_finalize();
+	} else if (ret > 0) {
+		ret = ec_reexec(argv);
+		if (ret < 0)
+			ec_log_notice("K-1240: Failed to re-exec self: %s. "
+				"Continuing with restricted coredumps.", strerror(-ret));
 	}
-	auto ret = ec_reexec(argv);
-	if (ret < 0)
-		ec_log_notice("K-1240: Failed to re-exec self: %s", strerror(-ret));
 	if (daemonize && unix_daemonize(g_lpConfig.get())) {
 		ec_log_crit("main(): failed daemonizing");
 		return MAPI_E_CALL_FAILED;
