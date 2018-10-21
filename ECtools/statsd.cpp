@@ -48,6 +48,7 @@ static constexpr const configsetting_t sd_config_defaults[] = {
 	{"statsd_rrd", "/var/lib/kopano/rrd"},
 	{"run_as_user", "kopano"},
 	{"run_as_group", "kopano"},
+	{"coredump_enabled", "systemdefault"},
 	{nullptr},
 };
 
@@ -255,6 +256,7 @@ int main(int argc, const char **argv) try
 	auto ret = ec_listen_generic(v.begin()->c_str(), &sockfd, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
 	if (ret < 0)
 		return ret;
+	unix_coredump_enable(sd_config->GetSetting("coredump_enabled"));
 	ret = unix_runas(sd_config.get());
 	if (ret < 0) {
 		return EXIT_FAILURE;
