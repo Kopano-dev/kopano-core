@@ -850,7 +850,6 @@ static HRESULT running_server(const char *szSMTP, int ulPort,
     const char *szPath)
 {
 	HRESULT hr = hrSuccess;
-	ec_log_always("Starting kopano-spooler version " PROJECT_VERSION " (pid %d)", getpid());
 	ec_log_debug("Using SMTP server: %s, port %d", szSMTP, ulPort);
 	disconnects = 0;
 
@@ -1054,6 +1053,8 @@ static int main2(int argc, char **argv)
 		LogConfigErrors(g_lpConfig.get());
 	if (g_dump_config)
 		return g_lpConfig->dump_config(stdout) == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
+
+	ec_log_always("Starting kopano-spooler version " PROJECT_VERSION " (pid %d uid %u)", getpid(), getuid());
 	if (!TmpPath::instance.OverridePath(g_lpConfig.get()))
 		ec_log_err("Ignoring invalid path setting!");
 	g_main_thread = pthread_self();
@@ -1113,6 +1114,9 @@ static int main2(int argc, char **argv)
 		ec_log_crit("main(): run_as failed");
 		return MAPI_E_CALL_FAILED;
 	}
+	auto ret = ec_reexec(argv);
+	if (ret < 0)
+		ec_log_notice("K-1240: Failed to re-exec self: %s", strerror(-ret));
 	if (daemonize && unix_daemonize(g_lpConfig.get())) {
 		ec_log_crit("main(): failed daemonizing");
 		return MAPI_E_CALL_FAILED;
