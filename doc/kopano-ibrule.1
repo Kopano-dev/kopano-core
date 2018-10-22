@@ -4,8 +4,8 @@
 kopano\-ibrule \(em Inbox rule inspection and manipulation utility
 .SH Synopsis
 .PP
-\fBkopano\-ibrule\fP [\fB\-AP\fP] [\fB-D\fP \fIindex\fP] [\fB\-S\fP] [\fB\-u\fP
-\fIusername\fP] [\fIrule-spec\fP...]
+\fBkopano\-ibrule\fP [\fB\-AP\fP] [\fB-D\fP \fIindex\fP] [\fB\-S\fP] [\fB\-h\fP
+\fIhost\fP] [\fB\-u\fP \fIusername\fP] [\fIrule-spec\fP...]
 .SH Description
 .PP
 This program can be used to inspect or change the so-called "inbox rules" of a
@@ -24,6 +24,11 @@ Interactively prompt for the connection password.
 .TP
 \fB\-S\fP
 Show the inbox rule table for the particular user.
+.TP
+\fB\-h\fP \fIhost\fP
+URI for a specific server to connect to and execute the action on.
+.PP
+Default: \fIdefault:\fP
 .SH Rule specification
 .PP
 cond-spec := \fBcond\fP exists-rst
