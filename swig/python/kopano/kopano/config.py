@@ -176,7 +176,7 @@ CONFIG = {
     'log_method': Config.string(options=['file', 'syslog'], default='file'),
     'log_level': Config.string(options=[str(i) for i in range(7)] + ['info', 'debug', 'warning', 'error', 'critical'], default='warning'),
     'log_file': Config.string(default="-"),
-    'log_timestamp': Config.integer(options=[0, 1], default=1),
+    'log_timestamp': Config.boolean(default="true"),
     'pid_file': Config.string(default=None),
     'run_as_user': Config.string(default=None),
     'run_as_group': Config.string(default=None),
