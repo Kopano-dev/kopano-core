@@ -42,7 +42,7 @@ from MAPI.Tags import (
 )
 from MAPI.Struct import (
     SPropertyRestriction, SPropValue, ROWENTRY, MAPINAMEID,
-    MAPIErrorNotFound, MAPIErrorInvalidEntryid,
+    MAPIErrorNotFound, MAPIErrorInvalidEntryid, MAPIErrorNoSupport
 )
 
 from .defs import (
@@ -196,7 +196,7 @@ class Store(Properties):
         """:class:`Folder` designated as inbox."""
         try:
             return _folder.Folder(self, _benc(self.mapiobj.GetReceiveFolder(u'IPM', MAPI_UNICODE)[0]))
-        except (MAPIErrorNotFound, NotFoundError):
+        except (MAPIErrorNotFound, NotFoundError, MAPIErrorNoSupport):
             pass
 
     @inbox.setter
