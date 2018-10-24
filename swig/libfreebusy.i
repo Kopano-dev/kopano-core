@@ -50,8 +50,17 @@ enum FBStatus {
 		SWIG_fail;
 }
 
+%typemap(freearg) (LONG, FBBLOCK) {
+        MAPIFreeBuffer($2);
+}
+
+%typemap(freearg) (FBBLOCK, LONG) {
+        MAPIFreeBuffer($1);
+}
+
 %apply (LONG, FBBLOCK) { (LONG celt, FBBlock_1 *pblk), (ULONG celt, FBBlock_1 *pblk) }
 %apply (MAPIARRAY, LONG) { (FBBlock_1 *pblk, LONG* pcfetch), (FBBlock_1 *pblk, LONG* pcfetch) }
+%apply (FBBLOCK, LONG) { (const FBBlock_1 *, ULONG nblks) }
 
 %typemap(argout) LONG *
 {
