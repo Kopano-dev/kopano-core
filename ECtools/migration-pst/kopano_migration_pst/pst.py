@@ -873,6 +873,7 @@ class PropIdEnum:
     PidTagSensitivity = 0x0036
     PidTagSubjectW = 0x0037
     PidTagClientSubmitTime = 0x0039
+    PidTagSentRepresentingSearchKey = 0x003B
     PidTagSentRepresentingNameW = 0x0042
     PidTagMessageToMe = 0x0057
     PidTagMessageCcMe = 0x0058
@@ -887,6 +888,7 @@ class PropIdEnum:
     PidTagReplCopiedfromVersionhistory = 0x0E3C
     PidTagReplCopiedfromItemid = 0x0E3D
     PidTagLastModificationTime = 0x3008
+    PidTagSmtpAddress = 0x39FE
     PidTagSecureSubmitFlags = 0x65C6
     PidTagOfflineAddressBookName = 0x6800
     PidTagSendOutlookRecallReport = 0x6803
@@ -912,7 +914,10 @@ class PropIdEnum:
     PidTagAttachFilename = 0x3704
     PidTagAttachMethod = 0x3705
     PidTagRenderingPosition = 0x370B
+    PidTagSenderEntryId = 0x0C19
     PidTagSenderName = 0x0C1A
+    PidTagSenderSearchKey = 0x0C1D
+    PidTagSenderAddressType = 0x0C1E
     PidTagRead = 0x0E69
     PidTagHasAttachments = 0x0E1B
     PidTagBody = 0x1000
@@ -923,6 +928,8 @@ class PropIdEnum:
     PidTagTransportMessageHeaders = 0x007D
     PidTagSenderSmtpAddress = 0x5D01
     PidTagSentRepresentingSmtpAddress = 0x5D02
+    PidTagReceivedBySmtpAddress = 0x5D07
+    PidTagReceivedRepresentingSmtpAddress = 0x5D08
     PidTagAttachMimeTag = 0x370E
     PidTagAttachExtension = 0x3703
     PidTagAttachLongFilename = 0x3707
@@ -1335,9 +1342,9 @@ class SubAttachment:
 
 class SubRecipient:
 
-    def __init__(self, RecipientType, DisplayName, ObjectType, AddressType, EmailAddress, DisplayType, EntryID):
+    def __init__(self, RecipientType, DisplayName, ObjectType, AddressType, EmailAddress, DisplayType, EntryID, SmtpAddress):
 
-        self.RecipientType, self.DisplayName, self.ObjectType, self.AddressType, self.EmailAddress, self.DisplayType, self.EntryID = RecipientType, DisplayName, ObjectType, AddressType, EmailAddress, DisplayType, EntryID
+        self.RecipientType, self.DisplayName, self.ObjectType, self.AddressType, self.EmailAddress, self.DisplayType, self.EntryID, self.SmtpAddress = RecipientType, DisplayName, ObjectType, AddressType, EmailAddress, DisplayType, EntryID, SmtpAddress
 
 
     def __repr__(self):
@@ -1411,7 +1418,8 @@ class Message:
         if self.tc_recipients:
             self.subrecipients = [SubRecipient(self.tc_recipients.getval(RowIndex,PropIdEnum.PidTagRecipientType), self.tc_recipients.getval(RowIndex,PropIdEnum.PidTagDisplayName), \
                     self.tc_recipients.getval(RowIndex,PropIdEnum.PidTagObjectType), self.tc_recipients.getval(RowIndex,PropIdEnum.PidTagAddressType), \
-                    self.tc_recipients.getval(RowIndex,PropIdEnum.PidTagEmailAddress), self.tc_recipients.getval(RowIndex,PropIdEnum.PidTagDisplayType), self.tc_recipients.getval(RowIndex,PropIdEnum.PidTagEntryID)) for RowIndex in range(len(self.tc_recipients.RowIndex))]
+                    self.tc_recipients.getval(RowIndex,PropIdEnum.PidTagEmailAddress), self.tc_recipients.getval(RowIndex,PropIdEnum.PidTagDisplayType), self.tc_recipients.getval(RowIndex,PropIdEnum.PidTagEntryID),
+                    self.tc_recipients.getval(RowIndex,PropIdEnum.PidTagSmtpAddress)) for RowIndex in range(len(self.tc_recipients.RowIndex))]
 
 
     def get_attachment(self, subattachment):
