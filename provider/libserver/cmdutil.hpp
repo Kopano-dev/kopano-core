@@ -171,9 +171,9 @@ ECRESULT MapEntryIdToObjectId(ECSession *lpecSession, ECDatabase *lpDatabase, UL
 ECRESULT UpdateFolderCounts(ECDatabase *lpDatabase, ULONG ulParentId, ULONG ulFlags, propValArray *lpModProps);
 ECRESULT ProcessSubmitFlag(ECDatabase *lpDatabase, ULONG ulSyncId, ULONG ulStoreId, ULONG ulObjId, bool bNewItem, propValArray *lpModProps);
 ECRESULT CreateNotifications(ULONG ulObjId, ULONG ulObjType, ULONG ulParentId, ULONG ulGrandParentId, bool bNewItem, propValArray *lpModProps, struct propVal *lpvCommitTime);
-ECRESULT WriteSingleProp(ECDatabase *lpDatabase, unsigned int ulObjId, unsigned int ulFolderId, struct propVal *lpPropVal, bool bColumnProp, unsigned int ulMaxQuerySize, std::string &strInsertQuery, bool replace = true);
-ECRESULT WriteProp(ECDatabase *lpDatabase, unsigned int ulObjId, unsigned int ulParentId, struct propVal *lpPropVal, bool replace = true);
-ECRESULT InsertProps(ECDatabase *lpDatabase, unsigned int ulObjId, unsigned int ulParentId, std::list<propVal> &propList, bool replace = false);
+extern ECRESULT WriteSingleProp(ECDatabase *, unsigned int obj_id, unsigned int folder_id, const struct propVal *, bool column_prop, unsigned int max_qsize, std::string &insert_query, bool replace = true);
+extern ECRESULT WriteProp(ECDatabase *, unsigned int obj_id, unsigned int parent_id, const struct propVal *, bool replace = true);
+extern ECRESULT InsertProps(ECDatabase *, unsigned int obj_id, unsigned int parent_id, const std::list<propVal> &, bool replace = false);
 ECRESULT GetNamesFromIDs(struct soap *soap, ECDatabase *lpDatabase, struct propTagArray *lpPropTags, struct namedPropArray *lpsNames);
 ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId, unsigned int *lpulUpdates = NULL);
 extern ECRESULT RemoveStaleIndexedProp(ECDatabase *, unsigned int tag, const unsigned char *data, unsigned int size);

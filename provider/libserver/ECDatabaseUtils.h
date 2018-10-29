@@ -65,7 +65,7 @@ ULONG GetColOffset(ULONG ulPropTag);
 std::string GetPropColOrder(unsigned int ulPropTag, const std::string &strSubQuery);
 unsigned int GetColWidth(unsigned int ulPropType);
 ECRESULT	GetPropSize(DB_ROW lpRow, DB_LENGTHS lpLen, unsigned int *lpulSize);
-ECRESULT	CopySOAPPropValToDatabasePropVal(struct propVal *lpPropVal, unsigned int *ulColId, std::string &strColData, ECDatabase *lpMySQL, bool bTruncate);
+extern ECRESULT CopySOAPPropValToDatabasePropVal(const struct propVal *, unsigned int *col_id, std::string &col_data, ECDatabase *, bool truncate);
 ECRESULT	CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LENGTHS lpLen, propVal *lpPropVal);
 gsoap_size_t GetMVItemCount(struct propVal *lpPropVal);
 ECRESULT CopySOAPPropValToDatabaseMVPropVal(struct propVal *lpPropVal, int nItem, std::string &strColName, std::string &strColData, ECDatabase *lpDatabase);
