@@ -4965,23 +4965,19 @@ SOAP_ENTRY_START(createStore, *result, unsigned int ulStoreType,
 	er = RemoveStaleIndexedProp(lpDatabase, PR_SOURCE_KEY, sSourceKey, sSourceKey.size());
 	if (er != erSuccess)
 		return er;
-	strQuery = "INSERT INTO indexedproperties(hierarchyid,tag,val_binary) VALUES(" + stringify(ulRootMapId) + "," + stringify(PROP_ID(PR_SOURCE_KEY)) + "," + lpDatabase->EscapeBinary(sSourceKey) + ")";
-	er = lpDatabase->DoInsert(strQuery);
-	if(er != erSuccess)
-		return er;
-	// Add store entryid: 0x0FFF = PR_ENTRYID
 	er = RemoveStaleIndexedProp(lpDatabase, PR_ENTRYID, sStoreId.__ptr, sStoreId.__size);
 	if (er != erSuccess)
 		return er;
-	strQuery = "INSERT INTO indexedproperties (hierarchyid,tag,val_binary) VALUES(" + stringify(ulStoreId) + ", 4095, " + lpDatabase->EscapeBinary(sStoreId.__ptr, sStoreId.__size) + ")";
-	er = lpDatabase->DoInsert(strQuery);
-	if(er != erSuccess)
-		return er;
-	// Add rootfolder entryid: 0x0FFF = PR_ENTRYID
 	er = RemoveStaleIndexedProp(lpDatabase, PR_ENTRYID, sRootId.__ptr, sRootId.__size);
 	if (er != erSuccess)
 		return er;
-	strQuery = "INSERT INTO indexedproperties (hierarchyid,tag,val_binary) VALUES(" + stringify(ulRootMapId) + ", 4095, " + lpDatabase->EscapeBinary(sRootId.__ptr, sRootId.__size) + ")";
+
+	// Insert PR_SOURCE_KEY, store PR_ENTRYID, root PR_ENTRYID in batch
+	strQuery = "INSERT INTO indexedproperties(hierarchyid,tag,val_binary) VALUES(" + stringify(ulRootMapId) + "," + stringify(PROP_ID(PR_SOURCE_KEY)) + "," + lpDatabase->EscapeBinary(sSourceKey) + ")";
+	// Add store entryid: 0x0FFF = PR_ENTRYID
+	strQuery += ", (" + stringify(ulStoreId) + ", 4095, " + lpDatabase->EscapeBinary(sStoreId.__ptr, sStoreId.__size) + ")";
+	// Add rootfolder entryid: 0x0FFF = PR_ENTRYID
+	strQuery += ", (" + stringify(ulRootMapId) + ", 4095, " + lpDatabase->EscapeBinary(sRootId.__ptr, sRootId.__size) + ")";
 	er = lpDatabase->DoInsert(strQuery);
 	if(er != erSuccess)
 		return er;
