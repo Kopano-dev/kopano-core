@@ -298,10 +298,8 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 		key.ulOrderId = 0;
 
 		auto cache = lpSession->GetSessionManager()->GetCacheManager();
-		sProp = propList.front();
-		cache->SetCell(&key, PR_PREDECESSOR_CHANGE_LIST, &sProp);
-		sProp = propList.back();
-		cache->SetCell(&key, PR_CHANGE_KEY, &sProp);
+		cache->SetCell(&key, PR_PREDECESSOR_CHANGE_LIST, &propList.front());
+		cache->SetCell(&key, PR_CHANGE_KEY, &propList.back());
 		if (lpstrChangeKey != nullptr)
 			lpstrChangeKey->assign(szChangeKey, sizeof(szChangeKey));
 		if (lpstrChangeList != nullptr)
