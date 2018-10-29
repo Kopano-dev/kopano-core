@@ -940,7 +940,8 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 	return erSuccess;
 }
 
-ECRESULT AddABChange(BTSession *lpSession, unsigned int ulChange, SOURCEKEY sSourceKey, SOURCEKEY sParentSourceKey)
+ECRESULT AddABChange(BTSession *lpSession, unsigned int ulChange,
+    SOURCEKEY &&sSourceKey, SOURCEKEY &&sParentSourceKey)
 {
 	ECDatabase*		lpDatabase = NULL;
 
