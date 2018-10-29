@@ -2990,27 +2990,27 @@ static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
 			sProp.ulPropTag = tags[i];
 			sProp.__union = SOAP_UNION_propValData_ul;
 			sProp.Value.ul = 0;
-			propList.push_back(sProp);
+			propList.push_back(std::move(sProp));
 		}
 
 		// Create PR_SUBFOLDERS
 		sProp.ulPropTag = PR_SUBFOLDERS;
 		sProp.__union = SOAP_UNION_propValData_b;
 		sProp.Value.b = false;
-		propList.push_back(sProp);
+		propList.push_back(std::move(sProp));
 
 		// Create PR_FOLDERTYPE
 		sProp.ulPropTag = PR_FOLDER_TYPE;
 		sProp.__union = SOAP_UNION_propValData_ul;
 		sProp.Value.ul = type;
-		propList.push_back(sProp);
+		propList.push_back(std::move(sProp));
 
 		// Create PR_COMMENT
 		if (comment) {
 		    sProp.ulPropTag = PR_COMMENT_A;
 		    sProp.__union = SOAP_UNION_propValData_lpszA;
 			sProp.Value.lpszA = const_cast<char *>(comment);
-			propList.push_back(sProp);
+			propList.push_back(std::move(sProp));
 		}
 
 		// Create PR_LAST_MODIFICATION_TIME and PR_CREATION_TIME
@@ -3020,7 +3020,7 @@ static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
 		    sProp.__union = SOAP_UNION_propValData_hilo;
 		    sProp.Value.hilo = &sHilo;
 		    UnixTimeToFileTime(now, &sProp.Value.hilo->hi, &sProp.Value.hilo->lo);
-		    propList.push_back(sProp);
+		    propList.push_back(std::move(sProp));
 		}
 
 		er = InsertProps(lpDatabase, ulLastId, ulParentId, propList);

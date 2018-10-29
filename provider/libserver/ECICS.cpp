@@ -281,14 +281,14 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 		sProp.Value.bin = &sBin;
 		sProp.Value.bin->__ptr = (BYTE *)strChangeList.c_str();
 		sProp.Value.bin->__size = strChangeList.size();
-		propList.push_back(sProp);
+		propList.push_back(std::move(sProp));
 
 		sProp.ulPropTag = PR_CHANGE_KEY;
 		sProp.__union = SOAP_UNION_propValData_bin;
 		sProp.Value.bin = &sBin;
 		sProp.Value.bin->__ptr = (BYTE *)szChangeKey;
 		sProp.Value.bin->__size = sizeof(szChangeKey);
-		propList.push_back(sProp);
+		propList.push_back(std::move(sProp));
 
 		er = InsertProps(lpDatabase, ulObjId, 0, propList, true);
 		if(er != erSuccess)
