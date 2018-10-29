@@ -113,6 +113,8 @@ class Service(kopano.Service):
                 props.append(recip_prop(PROP_ID(PR_EMAIL_ADDRESS), value))
             if user:
                 props.append(SPropValue(PR_ENTRYID, codecs.decode(user.userid.encode('ascii'), 'hex')))
+            elif r.EntryID is not None:
+                props.append(SPropValue(PR_ENTRYID, r.EntryID))
             recipients.append(props)
         mapiobj.ModifyRecipients(0, recipients)
 
