@@ -131,7 +131,7 @@ static ECRESULT ConvertABEntryIDToSoapSourceKey(struct soap *soap,
 	}
 
 	lpSourceKey->__size = cbAbeid;
-	lpSourceKey->__ptr = (unsigned char*)s_memcpy(soap, (char*)lpAbeid, cbAbeid);
+	lpSourceKey->__ptr = reinterpret_cast<unsigned char *>(s_memcpy(soap, lpAbeid, cbAbeid));
 	return erSuccess;
 }
 
