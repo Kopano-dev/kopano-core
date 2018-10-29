@@ -12,8 +12,12 @@ struct thread_info {
 	bool bCalledFromPython;
 };
 
+void destructor(void *t) {
+	delete static_cast<thread_info *>(t);
+}
+
 static void make_key() {
-	pthread_key_create(&g_key, NULL);	// We need cleanup here
+	pthread_key_create(&g_key, destructor);
 }
 
 static thread_info *get_thread_info() {
