@@ -400,7 +400,8 @@ class Server(object):
             pass
 
     def users(self, remote=False, system=False, parse=True, page_start=None,
-              page_limit=None, order=None, hidden=True, inactive=True): # TODO hidden, inactive default False?
+              page_limit=None, order=None, hidden=True, inactive=True,
+              _server=None, _company=None):
         """Return all :class:`users <User>` on server.
 
         :param remote: include users on remote server nodes
@@ -408,31 +409,43 @@ class Server(object):
         """
         pos = 0
         count = 0
+
+        def include(user, ecuser):
+            return ((system or user.name != u'SYSTEM') and
+                    (remote or ecuser.Servername in (self.name, '')) and
+                    (hidden or not user.hidden) and
+                    (inactive or user.active))
+
+        # users specified on command-line
         if parse and getattr(self.options, 'users', None):
             for username in self.options.users:
-                if page_start is None or pos >= page_start:
-                    yield _user.User(username, self)
-                    count += 1
-                if page_limit is not None and count >= page_limit:
-                    return
-                pos += 1
+                yield _user.User(username, self)
             return
+
+        # multi-tenant: get users per company
         try:
-            for name in self._companylist():
-                for user in Company(name, self).users(): # TODO filter for args?
-                    if page_start is None or pos >= page_start:
-                        yield user
-                        count += 1
-                    if page_limit is not None and count >= page_limit:
-                        return
-                    pos += 1
+            companylist = self._companylist() # exception for single-tenant
+
+            if _company:
+                companies = [_company]
+            else:
+                companies = [Company(name, self) for name in companylist]
+            for company in companies:
+                for ecuser in self.sa.GetUserList(_bdec(company.companyid), MAPI_UNICODE):
+                    user = _user.User(server=self, ecuser=ecuser)
+                    if include(user, ecuser):
+                        if page_start is None or pos >= page_start:
+                            yield user
+                            count += 1
+                        if page_limit is not None and count >= page_limit:
+                            return
+                        pos += 1
+
+        # single-tenant: get all users
         except MAPIErrorNoSupport:
             for ecuser in self.sa.GetUserList(None, MAPI_UNICODE):
                 user = _user.User(server=self, ecuser=ecuser)
-                if ((system or user.name != u'SYSTEM') and
-                    (remote or ecuser.Servername in (self.name, '')) and
-                    (hidden or not user.hidden) and
-                    (inactive or user.active)):
+                if include(user, ecuser):
                     if page_start is None or pos >= page_start:
                         yield user
                         count += 1

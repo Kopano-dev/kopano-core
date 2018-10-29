@@ -244,25 +244,19 @@ class Company(Properties):
         except NotFoundError:
             pass
 
-    def users(self, parse=True, system=False):
+    def users(self, **kwargs):
         """
 
         :param parse: filter users on cli argument --user (default True)
         :param system: include system users (default False)
         :return: all :class:`users <User>` within company
         """
-        if parse and getattr(self.server.options, 'users', None):
-            for username in self.server.options.users:
-                yield _user.User(username, self.server)
-            return
 
-        if self._name == u'Default':
-            for user in self.server.users(system=system, remote=True):
-                yield user
-        else:
-            for ecuser in self.server.sa.GetUserList(self._eccompany.CompanyID, MAPI_UNICODE):
-                if ecuser.Username != 'SYSTEM':
-                    yield _user.User(ecuser.Username, self.server)
+        if 'remote' not in kwargs:
+            kwargs['remote'] = True
+
+        for user in self.server.users(_company=self, **kwargs):
+            yield user
 
     def admins(self):
         for ecuser in self.server.sa.GetRemoteAdminList(self._eccompany.CompanyID, MAPI_UNICODE):
