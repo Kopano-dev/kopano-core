@@ -268,6 +268,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 		struct propVal sProp;
 		struct xsd__base64Binary sBin;
 		struct sObjectTableKey key;
+		std::list<propVal> propList;
 
 		// Add the new change key to the predecessor change list
 		lpSession->GetServerGUID((GUID*)szChangeKey);
@@ -280,26 +281,26 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 		sProp.Value.bin = &sBin;
 		sProp.Value.bin->__ptr = (BYTE *)strChangeList.c_str();
 		sProp.Value.bin->__size = strChangeList.size();
-		er = WriteProp(lpDatabase, ulObjId, 0, &sProp);
-		if(er != erSuccess)
-			return er;
-
-		key.ulObjId = ulObjId;
-		key.ulOrderId = 0;
-		auto cache = lpSession->GetSessionManager()->GetCacheManager();
-		cache->SetCell(&key, PR_PREDECESSOR_CHANGE_LIST, &sProp);
+		propList.push_back(sProp);
 
 		sProp.ulPropTag = PR_CHANGE_KEY;
 		sProp.__union = SOAP_UNION_propValData_bin;
 		sProp.Value.bin = &sBin;
 		sProp.Value.bin->__ptr = (BYTE *)szChangeKey;
 		sProp.Value.bin->__size = sizeof(szChangeKey);
-		er = WriteProp(lpDatabase, ulObjId, 0, &sProp);
+		propList.push_back(sProp);
+
+		er = InsertProps(lpDatabase, ulObjId, 0, propList);
 		if(er != erSuccess)
 			return er;
 
 		key.ulObjId = ulObjId;
 		key.ulOrderId = 0;
+
+		auto cache = lpSession->GetSessionManager()->GetCacheManager();
+		sProp = propList.front();
+		cache->SetCell(&key, PR_PREDECESSOR_CHANGE_LIST, &sProp);
+		sProp = propList.back();
 		cache->SetCell(&key, PR_CHANGE_KEY, &sProp);
 		if (lpstrChangeKey != nullptr)
 			lpstrChangeKey->assign(szChangeKey, sizeof(szChangeKey));
