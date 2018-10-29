@@ -164,10 +164,19 @@ class Service(kopano.Service):
             self.propid_nameid = self.get_named_property_map(p)
             for name in self.options.users:
                 self.log.info("importing to user '%s'" % name)
-                self.import_pst(p, self.server.user(name).store)
+                store = self.server.user(name).store
+                if store:
+                    self.import_pst(p, store)
+                else:
+                    self.log.error("user '%s' has no store", name)
             for guid in self.options.stores:
+                store = self.server.store(guid)
                 self.log.info("importing to store '%s'" % guid)
-                self.import_pst(p, self.server.store(guid))
+                if store:
+                    self.import_pst(p, store)
+                else:
+                    self.log.error("guid '%s' has no store", name)
+
 
         self.log.info('imported %d items in %.2f seconds (%.2f/sec, %d errors)' %
             (self.stats['messages'], time.time()-t0, self.stats['messages']/(time.time()-t0), self.stats['errors']))
