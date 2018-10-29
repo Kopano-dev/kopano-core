@@ -126,7 +126,7 @@ static ECRESULT ConvertABEntryIDToSoapSourceKey(struct soap *soap,
 		if (er != erSuccess)
 			return er;
 
-		lpAbeid = reinterpret_cast<ABEID *>(static_cast<unsigned char *>(sSourceKey));
+		lpAbeid = const_cast<ABEID *>(reinterpret_cast<const ABEID *>(static_cast<const unsigned char *>(sSourceKey)));
 		cbAbeid = sSourceKey.size();
 	}
 

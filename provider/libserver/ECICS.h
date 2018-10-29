@@ -90,8 +90,8 @@ public:
 		}
 	}
 
-	operator unsigned char *(void) const { return reinterpret_cast<unsigned char *>(lpData.get()); }
-	operator std::string(void) const { return std::string(lpData.get(), ulSize); }
+	operator const unsigned char *(void) const { return reinterpret_cast<const unsigned char *>(lpData != nullptr ? lpData.get() : ""); }
+	operator std::string(void) const { return std::string(lpData != nullptr ? lpData.get() : "", ulSize); }
     unsigned int 	size() const { return ulSize; }
 	bool			empty() const { return ulSize == 0; }
 private:
