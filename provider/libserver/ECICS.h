@@ -32,7 +32,7 @@ public:
 	SOURCEKEY(SOURCEKEY &&o) :
 	    ulSize(o.ulSize), lpData(std::move(o.lpData))
 	{}
-	SOURCEKEY(unsigned int z, const char *d) : ulSize(z)
+	SOURCEKEY(unsigned int z, const void *d) : ulSize(z)
 	{
 		if (d != nullptr && z > 0) {
 			lpData.reset(new char[ulSize]);

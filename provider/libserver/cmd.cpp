@@ -3029,7 +3029,7 @@ static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
 
 		// Create SourceKey
 		if (lpsOrigSourceKey && lpsOrigSourceKey->__size > (int)sizeof(GUID) && lpsOrigSourceKey->__ptr){
-			sSourceKey = SOURCEKEY(lpsOrigSourceKey->__size, (char*)lpsOrigSourceKey->__ptr);
+			sSourceKey = SOURCEKEY(lpsOrigSourceKey->__size, lpsOrigSourceKey->__ptr);
 		}else{
 			er = lpecSession->GetNewSourceKey(&sSourceKey);
 			if(er != erSuccess)
