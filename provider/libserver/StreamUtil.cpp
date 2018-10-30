@@ -1637,22 +1637,12 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 		if (ulRealObjType == MAPI_MESSAGE) {
 			// We have to generate/update PR_HASATTACH
 			sObjectTableKey key(ulObjId, 0);
-			std::string strQuery;
 			struct propVal sPropHasAttach;
 			sPropHasAttach.ulPropTag = PR_HASATTACH;
 			sPropHasAttach.Value.b = (fHasAttach != FALSE);
 			sPropHasAttach.__union = SOAP_UNION_propValData_b;
 
-			// Write in properties
-			strQuery.clear();
-			WriteSingleProp(lpDatabase, ulObjId, ulParentId, &sPropHasAttach, false, 0, strQuery);
-			er = lpDatabase->DoInsert(strQuery);
-			if(er != erSuccess)
-				goto exit;
-			// Write in tproperties
-			strQuery.clear();
-			WriteSingleProp(lpDatabase, ulObjId, ulParentId, &sPropHasAttach, true, 0, strQuery);
-			er = lpDatabase->DoInsert(strQuery);
+			er = WriteProp(lpDatabase, ulObjId, ulParentId, &sPropHasAttach);
 			if(er != erSuccess)
 				goto exit;
 
@@ -1660,7 +1650,7 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 			gcache->SetCell(&key, PR_HASATTACH, &sPropHasAttach);
 			// Update MSGFLAG_HASATTACH in the same way. We can assume PR_MESSAGE_FLAGS is already available, so we
 			// just do an update (instead of REPLACE INTO)
-			strQuery = std::string("UPDATE properties SET val_ulong = val_ulong ") + (fHasAttach ? " | 16 " : " & ~16") + " WHERE hierarchyid = " + stringify(ulObjId) + " AND tag = " + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + " AND type = " + stringify(PROP_TYPE(PR_MESSAGE_FLAGS));
+			std::string strQuery = std::string("UPDATE properties SET val_ulong = val_ulong ") + (fHasAttach ? " | 16 " : " & ~16") + " WHERE hierarchyid = " + stringify(ulObjId) + " AND tag = " + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + " AND type = " + stringify(PROP_TYPE(PR_MESSAGE_FLAGS));
 			er = lpDatabase->DoUpdate(strQuery);
 			if(er != erSuccess)
 				goto exit;

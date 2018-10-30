@@ -2255,16 +2255,7 @@ static unsigned int SaveObject(struct soap *soap, ECSession *lpecSession,
 			sPropHasAttach.__union = SOAP_UNION_propValData_b;
 
 			// Write in properties
-			strQuery.clear();
-			WriteSingleProp(lpDatabase, lpsReturnObj->ulServerId, ulParentObjId, &sPropHasAttach, false, 0, strQuery);
-			er = lpDatabase->DoInsert(strQuery);
-			if (er != erSuccess)
-				return er;
-
-			// Write in tproperties
-			strQuery.clear();
-			WriteSingleProp(lpDatabase, lpsReturnObj->ulServerId, ulParentObjId, &sPropHasAttach, true, 0, strQuery);
-			er = lpDatabase->DoInsert(strQuery);
+			er = WriteProp(lpDatabase, lpsReturnObj->ulServerId, ulParentObjId, &sPropHasAttach);
 			if (er != erSuccess)
 				return er;
 
