@@ -2935,6 +2935,7 @@ static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
 	static constexpr const unsigned int timeTags[] = {PR_LAST_MODIFICATION_TIME, PR_CREATION_TIME};
 	struct propVal  sProp;
     struct hiloLong sHilo;
+	std::list<propVal> propList;
 
 	er = lpecSession->GetSessionManager()->GetCacheManager()->GetStore(ulParentId, &ulStoreId, &guid);
 	if(er != erSuccess)
@@ -3014,35 +3015,27 @@ static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
 			sProp.ulPropTag = tags[i];
 			sProp.__union = SOAP_UNION_propValData_ul;
 			sProp.Value.ul = 0;
-			er = WriteProp(lpDatabase, ulLastId, ulParentId, &sProp, false);
-			if(er != erSuccess)
-				return er;
+			propList.push_back(sProp);
 		}
 
 		// Create PR_SUBFOLDERS
 		sProp.ulPropTag = PR_SUBFOLDERS;
 		sProp.__union = SOAP_UNION_propValData_b;
 		sProp.Value.b = false;
-		er = WriteProp(lpDatabase, ulLastId, ulParentId, &sProp, false);
-		if(er != erSuccess)
-			return er;
+		propList.push_back(sProp);
 
 		// Create PR_FOLDERTYPE
 		sProp.ulPropTag = PR_FOLDER_TYPE;
 		sProp.__union = SOAP_UNION_propValData_ul;
 		sProp.Value.ul = type;
-		er = WriteProp(lpDatabase, ulLastId, ulParentId, &sProp, false);
-		if(er != erSuccess)
-			return er;
+		propList.push_back(sProp);
 
-        // Create PR_COMMENT
+		// Create PR_COMMENT
 		if (comment) {
 		    sProp.ulPropTag = PR_COMMENT_A;
 		    sProp.__union = SOAP_UNION_propValData_lpszA;
 			sProp.Value.lpszA = const_cast<char *>(comment);
-		    er = WriteProp(lpDatabase, ulLastId, ulParentId, &sProp, false);
-			if(er != erSuccess)
-				return er;
+			propList.push_back(sProp);
 		}
 
 		// Create PR_LAST_MODIFICATION_TIME and PR_CREATION_TIME
@@ -3052,10 +3045,12 @@ static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
 		    sProp.__union = SOAP_UNION_propValData_hilo;
 		    sProp.Value.hilo = &sHilo;
 		    UnixTimeToFileTime(now, &sProp.Value.hilo->hi, &sProp.Value.hilo->lo);
-		    er = WriteProp(lpDatabase, ulLastId, ulParentId, &sProp, false);
-			if(er != erSuccess)
-				return er;
+		    propList.push_back(sProp);
 		}
+
+		er = InsertProps(lpDatabase, ulLastId, ulParentId, propList);
+		if(er != erSuccess)
+			return er;
 
 		// Create SourceKey
 		if (lpsOrigSourceKey && lpsOrigSourceKey->__size > (int)sizeof(GUID) && lpsOrigSourceKey->__ptr){
@@ -4970,23 +4965,19 @@ SOAP_ENTRY_START(createStore, *result, unsigned int ulStoreType,
 	er = RemoveStaleIndexedProp(lpDatabase, PR_SOURCE_KEY, sSourceKey, sSourceKey.size());
 	if (er != erSuccess)
 		return er;
-	strQuery = "INSERT INTO indexedproperties(hierarchyid,tag,val_binary) VALUES(" + stringify(ulRootMapId) + "," + stringify(PROP_ID(PR_SOURCE_KEY)) + "," + lpDatabase->EscapeBinary(sSourceKey) + ")";
-	er = lpDatabase->DoInsert(strQuery);
-	if(er != erSuccess)
-		return er;
-	// Add store entryid: 0x0FFF = PR_ENTRYID
 	er = RemoveStaleIndexedProp(lpDatabase, PR_ENTRYID, sStoreId.__ptr, sStoreId.__size);
 	if (er != erSuccess)
 		return er;
-	strQuery = "INSERT INTO indexedproperties (hierarchyid,tag,val_binary) VALUES(" + stringify(ulStoreId) + ", 4095, " + lpDatabase->EscapeBinary(sStoreId.__ptr, sStoreId.__size) + ")";
-	er = lpDatabase->DoInsert(strQuery);
-	if(er != erSuccess)
-		return er;
-	// Add rootfolder entryid: 0x0FFF = PR_ENTRYID
 	er = RemoveStaleIndexedProp(lpDatabase, PR_ENTRYID, sRootId.__ptr, sRootId.__size);
 	if (er != erSuccess)
 		return er;
-	strQuery = "INSERT INTO indexedproperties (hierarchyid,tag,val_binary) VALUES(" + stringify(ulRootMapId) + ", 4095, " + lpDatabase->EscapeBinary(sRootId.__ptr, sRootId.__size) + ")";
+
+	// Insert PR_SOURCE_KEY, store PR_ENTRYID, root PR_ENTRYID in batch
+	strQuery = "INSERT INTO indexedproperties(hierarchyid,tag,val_binary) VALUES(" + stringify(ulRootMapId) + "," + stringify(PROP_ID(PR_SOURCE_KEY)) + "," + lpDatabase->EscapeBinary(sSourceKey) + ")";
+	// Add store entryid: 0x0FFF = PR_ENTRYID
+	strQuery += ", (" + stringify(ulStoreId) + ", 4095, " + lpDatabase->EscapeBinary(sStoreId.__ptr, sStoreId.__size) + ")";
+	// Add rootfolder entryid: 0x0FFF = PR_ENTRYID
+	strQuery += ", (" + stringify(ulRootMapId) + ", 4095, " + lpDatabase->EscapeBinary(sRootId.__ptr, sRootId.__size) + ")";
 	er = lpDatabase->DoInsert(strQuery);
 	if(er != erSuccess)
 		return er;
@@ -4997,19 +4988,21 @@ SOAP_ENTRY_START(createStore, *result, unsigned int ulStoreType,
 		return er;
 
 	auto now = time(nullptr);
-    for (size_t i = 0; i < ARRAY_SIZE(timeProps); ++i) {
-        sProp.ulPropTag = timeProps[i];
-        sProp.__union = SOAP_UNION_propValData_hilo;
-        sProp.Value.hilo = &sHilo;
+	std::list<propVal> propList;
+	for (size_t i = 0; i < ARRAY_SIZE(timeProps); ++i) {
+		sProp.ulPropTag = timeProps[i];
+		sProp.__union = SOAP_UNION_propValData_hilo;
+		sProp.Value.hilo = &sHilo;
+		UnixTimeToFileTime(now, &sProp.Value.hilo->hi, &sProp.Value.hilo->lo);
+		propList.push_back(sProp);
+	}
 
-        UnixTimeToFileTime(now, &sProp.Value.hilo->hi, &sProp.Value.hilo->lo);
-        WriteProp(lpDatabase, ulStoreId, 0, &sProp);
-        if(er != erSuccess)
-			return er;
-        WriteProp(lpDatabase, ulRootMapId, 0, &sProp);
-        if(er != erSuccess)
-			return er;
-    }
+	er = InsertProps(lpDatabase, ulStoreId, 0, propList);
+	if (er != erSuccess)
+		return er;
+	er = InsertProps(lpDatabase, ulRootMapId, 0, propList);
+	if (er != erSuccess)
+		return er;
 
 	// Couple store with user
 	strQuery = "INSERT INTO stores(hierarchy_id, user_id, type, user_name, company, guid) VALUES(" +

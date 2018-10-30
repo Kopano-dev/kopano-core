@@ -1357,6 +1357,26 @@ ECRESULT WriteProp(ECDatabase *lpDatabase, unsigned int ulObjId, unsigned int ul
 	return lpDatabase->DoInsert(strQuery);
 }
 
+/**
+ * Batch WriteProp calls for the same ulObjID and ulParentID.
+ */
+ECRESULT InsertProps(ECDatabase *database, unsigned int objId, unsigned int parentId, std::list<propVal> &propList)
+{
+	std::string query, colquery;
+
+	for (auto &i : propList) {
+		WriteSingleProp(database, objId, parentId, &i, false, 0, query, false);
+		WriteSingleProp(database, objId, parentId, &i, true, 0, colquery, false);
+	}
+
+	auto er = database->DoInsert(query);
+	if (er != erSuccess)
+		return er;
+	if (parentId == 0)
+		return erSuccess;
+	return database->DoInsert(colquery);
+}
+
 ECRESULT GetNamesFromIDs(struct soap *soap, ECDatabase *lpDatabase, struct propTagArray *lpPropTags, struct namedPropArray *lpsNames)
 {
 	DB_RESULT lpDBResult;
