@@ -290,7 +290,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 		sProp.Value.bin->__size = sizeof(szChangeKey);
 		propList.push_back(sProp);
 
-		er = InsertProps(lpDatabase, ulObjId, 0, propList);
+		er = InsertProps(lpDatabase, ulObjId, 0, propList, true);
 		if(er != erSuccess)
 			return er;
 

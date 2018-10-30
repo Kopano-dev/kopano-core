@@ -1360,13 +1360,13 @@ ECRESULT WriteProp(ECDatabase *lpDatabase, unsigned int ulObjId, unsigned int ul
 /**
  * Batch WriteProp calls for the same ulObjID and ulParentID.
  */
-ECRESULT InsertProps(ECDatabase *database, unsigned int objId, unsigned int parentId, std::list<propVal> &propList)
+ECRESULT InsertProps(ECDatabase *database, unsigned int objId, unsigned int parentId, std::list<propVal> &propList, bool replace)
 {
 	std::string query, colquery;
 
 	for (auto &i : propList) {
-		WriteSingleProp(database, objId, parentId, &i, false, 0, query, false);
-		WriteSingleProp(database, objId, parentId, &i, true, 0, colquery, false);
+		WriteSingleProp(database, objId, parentId, &i, false, 0, query, replace);
+		WriteSingleProp(database, objId, parentId, &i, true, 0, colquery, replace);
 	}
 
 	auto er = database->DoInsert(query);

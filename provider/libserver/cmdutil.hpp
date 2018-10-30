@@ -173,7 +173,7 @@ ECRESULT ProcessSubmitFlag(ECDatabase *lpDatabase, ULONG ulSyncId, ULONG ulStore
 ECRESULT CreateNotifications(ULONG ulObjId, ULONG ulObjType, ULONG ulParentId, ULONG ulGrandParentId, bool bNewItem, propValArray *lpModProps, struct propVal *lpvCommitTime);
 ECRESULT WriteSingleProp(ECDatabase *lpDatabase, unsigned int ulObjId, unsigned int ulFolderId, struct propVal *lpPropVal, bool bColumnProp, unsigned int ulMaxQuerySize, std::string &strInsertQuery, bool replace = true);
 ECRESULT WriteProp(ECDatabase *lpDatabase, unsigned int ulObjId, unsigned int ulParentId, struct propVal *lpPropVal, bool replace = true);
-ECRESULT InsertProps(ECDatabase *lpDatabase, unsigned int ulObjId, unsigned int ulParentId, std::list<propVal> &propList);
+ECRESULT InsertProps(ECDatabase *lpDatabase, unsigned int ulObjId, unsigned int ulParentId, std::list<propVal> &propList, bool replace = false);
 ECRESULT GetNamesFromIDs(struct soap *soap, ECDatabase *lpDatabase, struct propTagArray *lpPropTags, struct namedPropArray *lpsNames);
 ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId, unsigned int *lpulUpdates = NULL);
 extern ECRESULT RemoveStaleIndexedProp(ECDatabase *, unsigned int tag, const unsigned char *data, unsigned int size);
