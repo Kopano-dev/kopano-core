@@ -4988,19 +4988,21 @@ SOAP_ENTRY_START(createStore, *result, unsigned int ulStoreType,
 		return er;
 
 	auto now = time(nullptr);
-    for (size_t i = 0; i < ARRAY_SIZE(timeProps); ++i) {
-        sProp.ulPropTag = timeProps[i];
-        sProp.__union = SOAP_UNION_propValData_hilo;
-        sProp.Value.hilo = &sHilo;
+	std::list<propVal> propList;
+	for (size_t i = 0; i < ARRAY_SIZE(timeProps); ++i) {
+		sProp.ulPropTag = timeProps[i];
+		sProp.__union = SOAP_UNION_propValData_hilo;
+		sProp.Value.hilo = &sHilo;
+		UnixTimeToFileTime(now, &sProp.Value.hilo->hi, &sProp.Value.hilo->lo);
+		propList.push_back(sProp);
+	}
 
-        UnixTimeToFileTime(now, &sProp.Value.hilo->hi, &sProp.Value.hilo->lo);
-        WriteProp(lpDatabase, ulStoreId, 0, &sProp);
-        if(er != erSuccess)
-			return er;
-        WriteProp(lpDatabase, ulRootMapId, 0, &sProp);
-        if(er != erSuccess)
-			return er;
-    }
+	er = InsertProps(lpDatabase, ulStoreId, 0, propList);
+	if (er != erSuccess)
+		return er;
+	er = InsertProps(lpDatabase, ulRootMapId, 0, propList);
+	if (er != erSuccess)
+		return er;
 
 	// Couple store with user
 	strQuery = "INSERT INTO stores(hierarchy_id, user_id, type, user_name, company, guid) VALUES(" +
