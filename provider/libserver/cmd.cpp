@@ -2052,19 +2052,17 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 			er = g_lpSessionManager->GetNewSequence(ECSessionManager::SEQ_IMAP, &ullIMAP);
 			if(er != erSuccess)
 				return er;
-			auto strQuery = "INSERT INTO properties(hierarchyid, tag, type, val_ulong) VALUES(" +
-						stringify(ulObjId) + "," +
-						stringify(PROP_ID(PR_EC_IMAP_ID)) + "," +
-						stringify(PROP_TYPE(PR_EC_IMAP_ID)) + "," +
-						stringify(ullIMAP) +
-						")";
-			er = lpDatabase->DoInsert(strQuery);
-			if(er != erSuccess)
-				return er;
 
 			sProp.ulPropTag = PR_EC_IMAP_ID;
 			sProp.Value.ul = ullIMAP;
 			sProp.__union = SOAP_UNION_propValData_ul;
+
+			std::string strQuery;
+			WriteSingleProp(lpDatabase, ulObjId, 0, &sProp, false, 0, strQuery, false);
+			er = lpDatabase->DoInsert(strQuery);
+			if(er != erSuccess)
+				return er;
+
 			er = g_lpSessionManager->GetCacheManager()->SetCell(&key, PR_EC_IMAP_ID, &sProp);
 			if (er != erSuccess)
 				return er;

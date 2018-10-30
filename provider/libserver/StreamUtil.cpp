@@ -1592,17 +1592,14 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 			if (er != erSuccess)
 				goto exit;
 		}
-		auto strQuery = "INSERT INTO properties(hierarchyid, tag, type, val_ulong) VALUES(" +
-						stringify(ulObjId) + "," +
-						stringify(PROP_ID(PR_EC_IMAP_ID)) + "," +
-						stringify(PROP_TYPE(PR_EC_IMAP_ID)) + "," +
-						stringify_int64(ullIMAP) + ")";
-		er = lpDatabase->DoInsert(strQuery);
-		if (er != erSuccess)
-			goto exit;
 		sProp.ulPropTag = PR_EC_IMAP_ID;
 		sProp.Value.ul = (unsigned int)ullIMAP;
 		sProp.__union = SOAP_UNION_propValData_ul;
+		std::string strQuery;
+		WriteSingleProp(lpDatabase, ulObjId, 0, &sProp, false, 0, strQuery, false);
+		er = lpDatabase->DoInsert(strQuery);
+		if (er != erSuccess)
+			goto exit;
 		er = gcache->SetCell(&key, PR_EC_IMAP_ID, &sProp);
 		if (er != erSuccess)
 			goto exit;
