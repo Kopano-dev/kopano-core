@@ -2014,14 +2014,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 				continue;
 			sObjectTableKey key;
 			sPropTime.ulPropTag = tags[i];
-			std::string strQuery;
-			WriteSingleProp(lpDatabase, ulObjId, ulParent, &sPropTime, false, 0, strQuery);
-			er = lpDatabase->DoInsert(strQuery);
-			if (er != erSuccess)
-				return er;
-			strQuery.clear();
-			WriteSingleProp(lpDatabase, ulObjId, ulParent, &sPropTime, true, 0, strQuery);
-			er = lpDatabase->DoInsert(strQuery);
+			er = WriteProp(lpDatabase, ulObjId, ulParent, &sPropTime);
 			if (er != erSuccess)
 				return er;
 
