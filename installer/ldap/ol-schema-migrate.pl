@@ -35,25 +35,32 @@
 # GPL license
 #
 
+use Getopt::Long;
+
 my $optionCount = 0;
 my $optionPrint = 0;
 my $optionBadEntries = 0;
 my $optionHelp = 0;
-my $filename = "" ;
+my $optionOpenldap = 0;
 
-foreach (@ARGV) {
-  $optionHelp = 1 if ( /^-h$/);
-  $optionCount = 1 if ( /^-c$/);
-  $optionPrint = 1 if ( /^-b$/);
-  $optionBadEntries = 1 if ( /^-d$/);
-  $filename = $_ if ( ! /^-b$/ && ! /^-c$/ && ! /^-d$/);
-}
+&Getopt::Long::Configure(qw(bundling));
+&GetOptions("-h" => \$optionHelp, "-c" => \$optionCount, "-b" => \$optionPrint,
+	"-d" => \$optionBadEntries, "-X" => \$optionOpenldap);
+my $filename = shift(@ARGV);
 
 die "Usage : ol-schema-migrate-v2.pl [ -c ] [ -b ] [ -d ] schema\n" . 
     "  -c\tcount attribute and object class\n" . 
     "  -b\tconvert and beautify your schema\n" .
     "  -d\tdisplay unrecognized elements, find empty and duplicated OID\n" .
+    "  -X\toutput an openldap2-compatible schema\n" .
     "  -h\tthis help\n" if ($filename eq "" || ($optionHelp || (!$optionCount && !$optionPrint && !$optionBadEntries)));
+
+my $schemaName = "schema";
+if ($optionOpenldap) {
+  $schemaName = $filename;
+  $schemaName =~ s{^.*/}{};
+  $schemaName =~ s{\..+}{};
+}
 
 if($optionCount) {
   print "Schema verification counters:\n";
@@ -169,14 +176,24 @@ if($optionBadEntries) {
 sub printit {
   my $ldapdata = shift;
   &printSeparator;
-  print "dn: cn=schema\n";
+  if ($optionOpenldap) {
+    print "dn: cn=$schemaName,cn=schema,cn=config\n";
+    print "objectClass: olcSchemaConfig\n";
+    print "cn: $schemaName\n";
+  } else {
+    print "dn: cn=schema\n";
+  }
   &printSeparator;
 
   # print elements in RFC2252 order
 
   foreach (@{$ldapdata->{attributes}}) {
     my $attr = $_;
-    print "attributeTypes: (\n";
+    if ($optionOpenldap) {
+      print "olcAttributeTypes: (\n";
+    } else {
+      print "attributeTypes: (\n";
+    }
     print "  $attr->{OID}\n";
     print "  NAME $attr->{NAME}\n";
     print "  DESC '$attr->{DESC}'\n"         if(defined $attr->{DESC});
@@ -201,7 +218,11 @@ sub printit {
     $objc->{MUST}        =~ s/^\(\s*(.*?)\s*\)$/\( $1 \)/  if (defined $objc->{MUST}); 
     $objc->{MAY}         =~ s/^\(\s*(.*?)\s*\)$/\( $1 \)/  if (defined $objc->{MAY}); 
 
-    print "objectClasses: (\n";
+    if ($optionOpenldap) {
+      print "olcObjectClasses: (\n";
+    } else {
+      print "objectClasses: (\n";
+    }
     print "  $objc->{OID}\n";
     print "  NAME $objc->{NAME}\n";
     print "  DESC '$objc->{DESC}'\n"  if(defined $objc->{DESC});
