@@ -161,7 +161,11 @@ class Service(kopano.Service):
         t0 = time.time()
         for arg in self.args:
             self.log.info("importing file '%s'" % arg)
-            p = pst.PST(arg)
+            try:
+                p = pst.PST(arg)
+            except pst.PSTException:
+                self.log.error("'%s' is not a valid PST file", arg)
+                continue
             self.nbd, self.ltp = p.nbd, p.ltp
             self.propid_nameid = self.get_named_property_map(p)
             for name in self.options.users:
