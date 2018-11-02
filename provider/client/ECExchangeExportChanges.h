@@ -46,6 +46,7 @@ private:
 	HRESULT UpdateStream(LPSTREAM lpStream);
 	HRESULT ChangesToEntrylist(std::list<ICSCHANGE> * lpLstChanges, LPENTRYLIST * lppEntryList);
 	HRESULT zlog(const char *, HRESULT = 0);
+	HRESULT HrDecodeSyncStateStream(IStream *, unsigned int *sync_id, unsigned int *change_id);
 
 	unsigned long	m_ulSyncType;
 	bool m_bConfiged = false;
