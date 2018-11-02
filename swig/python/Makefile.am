@@ -36,7 +36,6 @@ libkcpydirector_la_LDFLAGS = ${AM_LDFLAGS} ${python_SYFLAGS${NO_VSYM}} \
 libkcpydirector_la_LIBADD  = -lpthread
 EXTRA_libkcpydirector_la_DEPENDENCIES = python.sym
 
-_MAPICore_la_CPPFLAGS = ${AM_CPPFLAGS} -I${top_srcdir}/libsync
 _MAPICore_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version
 _MAPICore_la_LIBADD = libkcpyconv.la libkcpydirector.la \
 	${top_builddir}/libmapi.la \
@@ -144,7 +143,7 @@ DEPFLAGS = -MMD -MF .$@.dep
 mapi_wrap.h: mapi_wrap.cxx
 mapi_wrap.cxx: ../mapi.i
 	if test "x$(SWIG_EXEC)" = "x"; then echo "swig is required for 'make dist'"; exit 1; fi
-	${SWIG_EXEC} -I${top_srcdir}/common/include -I${top_srcdir}/libsync ${DEPFLAGS} ${SWIG_FLAGS} ${SWIG_CXXFLAGS} -o $@ $<
+	${SWIG_EXEC} -I${top_srcdir}/common/include ${DEPFLAGS} ${SWIG_FLAGS} ${SWIG_CXXFLAGS} -o $@ $<
 
 inetmapi_wrap.cxx: ../inetmapi.i
 	${SWIG_EXEC} ${DEPFLAGS} ${SWIG_CXXFLAGS} -o $@ $<

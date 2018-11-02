@@ -17,7 +17,6 @@ Each top level directory is listed below with a description of what it does.
 | inetmapi/           | Library converting between RFC 2822 mail and MAPI mail objects
 | libfreebusy/        | Freebusy library from windows and from Linux
 | libicalmapi/        | Library converting between iCal and MAPI calendar objects
-| libsync/            | Shared library that is used by the synchronisation agent in Windows for offline synchronisation
 | mapi4linux/         | MAPI library (source-compatible with Windows MAPI32)
 | php-ext/            | PHP5 module for libmapi, and PHP-MAPI library
 | php7-ext/           | PHP7 module for libmapi

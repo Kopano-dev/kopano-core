@@ -21,7 +21,6 @@
 #include "Mem.h"
 #include "ECMessage.h"
 #include <kopano/stringutil.h>
-#include "ECSyncSettings.h"
 #include "EntryPoint.h"
 #include <kopano/CommonUtil.h>
 #include <arpa/inet.h> /* ntohl */
@@ -106,7 +105,6 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 	unsigned int ulSyncId = 0, ulChangeId = 0, ulStep = 0;
 	BOOL		bCanStream = FALSE;
 	bool		bForceImplicitStateUpdate = false;
-	auto lpSyncSettings = &ECSyncSettings::instance;
 	typedef std::map<SBinary, ChangeListIter, Util::SBinaryLess>	ChangeMap;
 	typedef ChangeMap::iterator					ChangeMapIter;
 	ChangeMap		mapChanges;
@@ -137,7 +135,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 		// We don't need the importer when doing SYNC_CATCHUP
 		if(m_ulSyncType == ICS_SYNC_CONTENTS){
 			hr = lpCollector->QueryInterface(IID_IExchangeImportContentsChanges, &~m_lpImportContents);
-			if (hr == hrSuccess && lpSyncSettings->SyncStreamEnabled()) {
+			if (hr == hrSuccess) {
 				m_lpStore->lpTransport->HrCheckCapabilityFlags(KOPANO_CAP_ENHANCED_ICS, &bCanStream);
 				if (bCanStream == TRUE) {
 					zlog("Exporter supports enhanced ICS, checking importer...");
@@ -488,7 +486,6 @@ HRESULT ECExchangeExportChanges::ConfigSelective(ULONG ulPropTag, LPENTRYLIST lp
 	if (lpParents != nullptr && lpParents->cValues != lpEntries->cValues)
 		return MAPI_E_INVALID_PARAMETER;
 
-	auto lpSyncSettings = &ECSyncSettings::instance;
 	BOOL bCanStream = false, bSupportsPropTag = false;
 
 	if(ulPropTag == PR_ENTRYID) {
@@ -506,7 +503,7 @@ HRESULT ECExchangeExportChanges::ConfigSelective(ULONG ulPropTag, LPENTRYLIST lp
 
 	// Select an importer interface
 	auto hr = lpCollector->QueryInterface(IID_IExchangeImportContentsChanges, &~m_lpImportContents);
-	if (hr == hrSuccess && lpSyncSettings->SyncStreamEnabled()) {
+	if (hr == hrSuccess) {
 		m_lpStore->lpTransport->HrCheckCapabilityFlags(KOPANO_CAP_ENHANCED_ICS, &bCanStream);
 		if (bCanStream == TRUE) {
 			zlog("Exporter supports enhanced ICS, checking importer...");

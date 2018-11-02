@@ -21,7 +21,6 @@ AM_CPPFLAGS = ${ZCPPFLAGS} -DLDAP_THREAD_SAFE \
 	-Iprovider/soap \
 	-I${top_srcdir}/common \
 	-I${top_srcdir}/libfreebusy \
-	-I${top_srcdir}/libsync \
 	-I${top_srcdir}/m4lcommon \
 	-I${top_srcdir}/mapi4linux/include \
 	-I${top_srcdir}/provider/client \
@@ -356,7 +355,6 @@ EXTRA_libkcarchivercore_la_DEPENDENCIES = ${default_sym}
 # libkcclient
 #
 libkcclient_la_SOURCES = \
-	libsync/ECSyncSettings.cpp libsync/ECSyncSettings.h \
 	provider/client/ClientUtil.cpp provider/client/ClientUtil.h \
 	provider/client/ECABContainer.cpp provider/client/ECABContainer.h \
 	provider/client/ECArchiveAwareMessage.cpp provider/client/ECArchiveAwareMessage.h \
