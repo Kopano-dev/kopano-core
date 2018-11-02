@@ -356,7 +356,6 @@ EXTRA_libkcarchivercore_la_DEPENDENCIES = ${default_sym}
 # libkcclient
 #
 libkcclient_la_SOURCES = \
-	libsync/ECSyncContext.cpp libsync/ECSyncContext.h \
 	libsync/ECSyncSettings.cpp libsync/ECSyncSettings.h \
 	libsync/ECSyncUtil.cpp libsync/ECSyncUtil.h \
 	provider/client/ClientUtil.cpp provider/client/ClientUtil.h \
