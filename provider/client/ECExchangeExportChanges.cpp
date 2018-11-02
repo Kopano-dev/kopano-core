@@ -21,7 +21,6 @@
 #include "Mem.h"
 #include "ECMessage.h"
 #include <kopano/stringutil.h>
-#include "ECSyncUtil.h"
 #include "ECSyncSettings.h"
 #include "EntryPoint.h"
 #include <kopano/CommonUtil.h>

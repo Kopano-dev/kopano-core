@@ -31,10 +31,6 @@ ECSyncSettings::ECSyncSettings(void) :
 		m_ulStreamBufferSize = strtoul(env, NULL, 10);
 }
 
-ULONG ECSyncSettings::SyncLogLevel() const {
-	return ContinuousLogging() ? EC_LOGLEVEL_DEBUG : m_ulSyncLogLevel;
-}
-
 ECSyncSettings ECSyncSettings::instance;
 
 } /* namespace */

@@ -14,20 +14,12 @@ namespace KC {
 #define EC_SYNC_OPT_STREAM			1
 #define EC_SYNC_OPT_CHANGENOTIF		2
 #define EC_SYNC_OPT_STATECOLLECT	4
-#define EC_SYNC_OPT_CONTINUOUS		8	// Not included in EC_SYNC_OPT_ALL
 #define EC_SYNC_OPT_ALL				(EC_SYNC_OPT_STREAM | EC_SYNC_OPT_CHANGENOTIF | EC_SYNC_OPT_STATECOLLECT)
 
 class ECSyncSettings final {
 public:
-	// Synclog settings
-	bool SyncLogEnabled() const { return ContinuousLogging() ? true : m_ulSyncLog != 0; }
-	ULONG SyncLogLevel() const;
-	bool ContinuousLogging() const { return m_ulSyncOpts & EC_SYNC_OPT_CONTINUOUS; }
-
 	// Sync options
 	bool SyncStreamEnabled() const { return m_ulSyncOpts & EC_SYNC_OPT_STREAM; }
-	bool ChangeNotificationsEnabled() const { return m_ulSyncOpts & EC_SYNC_OPT_CHANGENOTIF; }
-	bool StateCollectorEnabled() const { return m_ulSyncOpts & EC_SYNC_OPT_STATECOLLECT; }
 
 	// Stream settings
 	ULONG StreamTimeout() const { return m_ulStreamTimeout; }
