@@ -3713,27 +3713,6 @@ const char* WSTransport::GetServerName()
 	return m_sProfileProps.strServerPath.c_str();
 }
 
-HRESULT WSTransport::HrOpenMultiStoreTable(const ENTRYLIST *lpMsgList,
-    ULONG ulFlags, ULONG cbEntryID, const ENTRYID *lpEntryID,
-    ECMsgStore *lpMsgStore, WSTableView **lppTableView)
-{
-	if (lpMsgList == nullptr || lpMsgList->cValues == 0)
-		return MAPI_E_INVALID_PARAMETER;
-
-	HRESULT hr = hrSuccess;
-	object_ptr<WSTableMultiStore> lpMultiStoreTable;
-
-	hr = WSTableMultiStore::Create(ulFlags, m_ecSessionId, cbEntryID,
-	     lpEntryID, lpMsgStore, this, &~lpMultiStoreTable);
-	if (hr != hrSuccess)
-		return hr;
-	hr = lpMultiStoreTable->HrSetEntryIDs(lpMsgList);
-	if (hr != hrSuccess)
-		return hr;
-	return lpMultiStoreTable->QueryInterface(IID_ECTableView,
-	       reinterpret_cast<void **>(lppTableView));
-}
-
 HRESULT WSTransport::HrOpenMiscTable(ULONG ulTableType, ULONG ulFlags,
     ULONG cbEntryID, const ENTRYID *lpEntryID, ECMsgStore *lpMsgStore,
     WSTableView **lppTableView)
@@ -3972,7 +3951,7 @@ std::string WSTransport::GetAppName()
 		return m_strAppName;
 	std::string procpath = "/proc/" + stringify(getpid()) + "/cmdline";
 	std::string s;
-	std::ifstream in(procpath.c_str());	
+	std::ifstream in(procpath.c_str());
 
 	if (!getline(in, s))
 		m_strAppName = "<unknown>";

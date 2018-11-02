@@ -223,7 +223,6 @@ HRESULT ECMsgStore::QueryInterface(REFIID refiid, void **lppInterface)
 		return hrSuccess;
 	}
 	// is admin store?
-	REGISTER_INTERFACE2(IECMultiStoreTable, &m_xMsgStoreProxy);
 	REGISTER_INTERFACE2(IECTestProtocol, &m_xMsgStoreProxy);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
@@ -2464,38 +2463,6 @@ HRESULT ECMsgStore::UnwrapNoRef(LPVOID *ppvObject)
 	return hrSuccess;
 }
 
-// ECMultiStoreTable
-
-// open a table with given entryids and columns.
-// entryids can be from any store
-HRESULT ECMsgStore::OpenMultiStoreTable(const ENTRYLIST *lpMsgList,
-    ULONG ulFlags, IMAPITable **lppTable)
-{
-	if (lpMsgList == nullptr || lppTable == nullptr)
-		return MAPI_E_INVALID_PARAMETER;
-
-	object_ptr<ECMAPITable> lpTable;
-	object_ptr<WSTableView> lpTableOps;
-	// no notifications on this table
-	auto hr = ECMAPITable::Create("Multistore table", nullptr, ulFlags, &~lpTable);
-	if (hr != hrSuccess)
-		return hr;
-
-	// open a table on the server, with content specified in lpMsgList
-	// TODO: my entryid ?
-	hr = lpTransport->HrOpenMultiStoreTable(lpMsgList, ulFlags, 0, NULL, this, &~lpTableOps);
-	if (hr != hrSuccess)
-		return hr;
-	hr = lpTable->HrSetTableOps(lpTableOps, !(ulFlags & MAPI_DEFERRED_ERRORS));
-	if (hr != hrSuccess)
-		return hr;
-	hr = lpTable->QueryInterface(IID_IMAPITable, (void **)lppTable);
-
-	// add child really needed?
-	AddChild(lpTable);
-	return hr;
-}
-
 HRESULT ECMsgStore::TestPerform(const char *szCommand, unsigned int ulArgs,
     char **lpszArgs)
 {
@@ -2634,9 +2601,6 @@ DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, CopyTo, (ULONG, ciidExclude
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, CopyProps, (const SPropTagArray *, lpIncludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (void *, lpDestObj), (ULONG, ulFlags), (SPropProblemArray **, lppProblems))
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, GetNamesFromIDs, (SPropTagArray **, tags), (const GUID *, propset), (ULONG, flags), (ULONG *, nvals), (MAPINAMEID ***, names))
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, GetIDsFromNames, (ULONG, cNames), (LPMAPINAMEID *, ppNames), (ULONG, ulFlags), (LPSPropTagArray *, pptaga))
-
-// IECMultiStoreTable interface
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, OpenMultiStoreTable, (const ENTRYLIST *, msglist), (ULONG, flags), (IMAPITable **, table))
 
 // IECTestProtocol interface
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, TestPerform, (const char *, cmd), (unsigned int, argc), (char **, args))

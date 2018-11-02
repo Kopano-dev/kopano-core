@@ -30,20 +30,6 @@ public:
 	ALLOC_WRAP_FRIEND;
 };
 
-class WSTableMultiStore final : public WSStoreTableView {
-protected:
-	WSTableMultiStore(ULONG flags, KC::ECSESSIONID, ULONG eid_size, const ENTRYID *eid, ECMsgStore *, WSTransport *);
-    virtual ~WSTableMultiStore();
-
-public:
-	static HRESULT Create(ULONG flags, KC::ECSESSIONID, ULONG eid_size, const ENTRYID *eid, ECMsgStore *, WSTransport *, WSTableMultiStore **);
-	virtual HRESULT HrOpenTable();
-	virtual HRESULT HrSetEntryIDs(const ENTRYLIST *msglist);
-private:
-    struct entryList m_sEntryList;
-	ALLOC_WRAP_FRIEND;
-};
-
 /* not really store tables, but the code is the same.. */
 class WSTableMisc final : public WSStoreTableView {
 protected:

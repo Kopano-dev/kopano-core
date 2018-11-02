@@ -34,7 +34,7 @@ class ECSessionManager;
 
 struct TABLE_ENTRY {
 	enum TABLE_TYPE {
-		TABLE_TYPE_GENERIC, TABLE_TYPE_OUTGOINGQUEUE, TABLE_TYPE_MULTISTORE, TABLE_TYPE_USERSTORES,
+		TABLE_TYPE_GENERIC, TABLE_TYPE_OUTGOINGQUEUE, TABLE_TYPE_USERSTORES,
 		TABLE_TYPE_SYSTEMSTATS, TABLE_TYPE_THREADSTATS, TABLE_TYPE_USERSTATS, TABLE_TYPE_SESSIONSTATS, TABLE_TYPE_COMPANYSTATS, TABLE_TYPE_SERVERSTATS,
 		TABLE_TYPE_MAILBOX,
 	};
@@ -60,7 +60,6 @@ public:
 	ECRESULT	OpenGenericTable(unsigned int ulParent, unsigned int ulObjType, unsigned int ulFlags, unsigned int *lpulTableId, bool fLoad = true);
 	ECRESULT	OpenOutgoingQueueTable(unsigned int ulStoreId, unsigned int *lpulTableId);
 	ECRESULT	OpenABTable(unsigned int ulParent, unsigned int ulParentType, unsigned int ulObjType, unsigned int ulFlags, unsigned int *lpulTableId);
-	ECRESULT	OpenMultiStoreTable(unsigned int ulObjType, unsigned int ulFlags, unsigned int *lpulTableId);
 	ECRESULT	OpenUserStoresTable(unsigned int ulFlags, unsigned int *lpulTableId);
 	ECRESULT	OpenStatsTable(unsigned int ulTableType, unsigned int ulFlags, unsigned int *lpulTableId);
 	ECRESULT	OpenMailBoxTable(unsigned int ulflags, unsigned int *lpulTableId);
@@ -79,20 +78,6 @@ private:
 	TABLEENTRYMAP							mapTable;
 	unsigned int ulNextTableId = 1;
 	std::recursive_mutex hListMutex;
-};
-
-class _kc_export_dycast ECMultiStoreTable final : public ECStoreObjectTable {
-	protected:
-	_kc_hidden ECMultiStoreTable(ECSession *, unsigned int obj_type, unsigned int flags, const ECLocale &);
-
-	public:
-	_kc_hidden static ECRESULT Create(ECSession *, unsigned int obj_type, unsigned int flags, const ECLocale &, ECMultiStoreTable **ret);
-	_kc_hidden virtual ECRESULT SetEntryIDs(ECListInt *obj_list);
-	_kc_hidden virtual ECRESULT Load(void);
-
-	private:
-	std::list<unsigned int> m_lstObjects;
-	ALLOC_WRAP_FRIEND;
 };
 
 } /* namespace */

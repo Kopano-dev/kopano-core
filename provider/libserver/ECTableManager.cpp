@@ -300,27 +300,6 @@ ECRESULT ECTableManager::OpenUserStoresTable(unsigned int ulFlags, unsigned int 
 	return erSuccess;
 }
 
-ECRESULT ECTableManager::OpenMultiStoreTable(unsigned int ulObjType, unsigned int ulFlags, unsigned int *lpulTableId)
-{
-	object_ptr<ECMultiStoreTable> lpTable;
-	const char *lpszLocaleId = lpSession->GetSessionManager()->GetConfig()->GetSetting("default_sort_locale_id");
-
-	// Open an empty table. Contents will be provided by client in a later call.
-	auto er = ECMultiStoreTable::Create(lpSession, ulObjType, ulFlags, createLocaleFromName(lpszLocaleId), &~lpTable);
-	if (er != erSuccess)
-		return er;
-	std::unique_ptr<TABLE_ENTRY> lpEntry(new(std::nothrow) TABLE_ENTRY);
-	if (lpEntry == nullptr)
-		return KCERR_NOT_ENOUGH_MEMORY;
-
-	// Add the open table to the list of current tables
-	lpEntry->lpTable = lpTable;
-	lpEntry->ulTableType = TABLE_ENTRY::TABLE_TYPE_MULTISTORE;
-	memset(&lpEntry->sTable, 0, sizeof(lpEntry->sTable));
-	AddTableEntry(std::move(lpEntry), lpulTableId);
-	return er;
-}
-
 ECRESULT ECTableManager::OpenGenericTable(unsigned int ulParent, unsigned int ulObjType, unsigned int ulFlags, unsigned int *lpulTableId, bool fLoad)
 {
 	std::string		strQuery;
@@ -768,30 +747,5 @@ ECRESULT ECSearchObjectTable::Load()
 			objlist2.emplace_back(*i);
 	return UpdateRows(ECKeyTable::TABLE_ROW_ADD, &objlist2, 0, true);
 }
-
-ECMultiStoreTable::ECMultiStoreTable(ECSession *ses, unsigned int ulObjType,
-    unsigned int ulFlags, const ECLocale &locale) :
-	ECStoreObjectTable(ses, 0, nullptr, 0, ulObjType, ulFlags, 0, locale)
-{}
-
-ECRESULT ECMultiStoreTable::Create(ECSession *ses, unsigned int ulObjType,
-    unsigned int ulFlags, const ECLocale &locale, ECMultiStoreTable **lppTable)
-{
-	return alloc_wrap<ECMultiStoreTable>(ses, ulObjType,
-	       ulFlags, locale).put(lppTable);
-}
-
-ECRESULT ECMultiStoreTable::SetEntryIDs(ECListInt *lplObjectList) {
-	m_lstObjects = *lplObjectList;
-	return erSuccess;
-}
-
-ECRESULT ECMultiStoreTable::Load() {
-	Clear();
-	for (auto i = m_lstObjects.begin(); i != m_lstObjects.end(); ++i)
-		UpdateRow(ECKeyTable::TABLE_ROW_ADD, *i, 0);
-	return erSuccess;
-}
-
 
 } /* namespace */

@@ -117,7 +117,6 @@ ZEND_FUNCTION(mapi_msgstore_getarchiveentryid);
 ZEND_FUNCTION(mapi_msgstore_openentry);
 ZEND_FUNCTION(mapi_msgstore_getreceivefolder);
 ZEND_FUNCTION(mapi_msgstore_entryidfromsourcekey);
-ZEND_FUNCTION(mapi_msgstore_openmultistoretable);
 ZEND_FUNCTION(mapi_msgstore_advise);
 ZEND_FUNCTION(mapi_msgstore_unadvise);
 ZEND_FUNCTION(mapi_msgstore_abortsubmit);

@@ -128,9 +128,6 @@ public:
 	virtual HRESULT ResetFolderCount(ULONG eid_size, const ENTRYID *eid, ULONG *nupdates) override;
 	virtual HRESULT UnwrapNoRef(void **obj) override;
 
-	// ECMultiStoreTable
-	virtual HRESULT OpenMultiStoreTable(const ENTRYLIST *msglist, ULONG flags, IMAPITable **);
-
     // ECTestProtocol
 	virtual HRESULT TestPerform(const char *cmd, unsigned int argc, char **argv);
 	virtual HRESULT TestSet(const char *name, const char *value);
@@ -171,7 +168,7 @@ private:
 
 public:
 	class xMsgStoreProxy final :
-	    public IMsgStore, public KC::IECMultiStoreTable,
+	    public IMsgStore,
 	    public KC::IECTestProtocol {
 		virtual ULONG AddRef() override;
 		virtual ULONG Release() override;
@@ -200,7 +197,6 @@ public:
 		virtual HRESULT CopyProps(const SPropTagArray *inclprop, ULONG ui_param, IMAPIProgress *, const IID *intf, void *dest_obj, unsigned int flags, SPropProblemArray **) override;
 		virtual HRESULT GetNamesFromIDs(SPropTagArray **tags, const GUID *propset, ULONG flags, ULONG *nvals, MAPINAMEID ***names) override;
 		virtual HRESULT GetIDsFromNames(unsigned int nelem, MAPINAMEID **, unsigned int flags, SPropTagArray **) override;
-		virtual HRESULT OpenMultiStoreTable(const ENTRYLIST *msglist, ULONG flags, IMAPITable **table) override;
 		virtual HRESULT TestPerform(const char *cmd, unsigned int argc, char **args) override;
 		virtual HRESULT TestSet(const char *name, const char *value) override;
 		virtual HRESULT TestGet(const char *name, char **value) override;

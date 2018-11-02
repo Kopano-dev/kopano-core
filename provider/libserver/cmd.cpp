@@ -3203,9 +3203,7 @@ static ECRESULT OpenTable(ECSession *lpecSession, entryId sEntryId,
 			return er;
 		break;
 	case TABLETYPE_MULTISTORE:
-		er = lpecSession->GetTableManager()->OpenMultiStoreTable(ulType, ulFlags, &ulTableId);
-		if (er != erSuccess)
-			return er;
+			return KCERR_NO_SUPPORT;
 		break;
 	case TABLETYPE_USERSTORES:
 		er = lpecSession->GetTableManager()->OpenUserStoresTable(ulFlags, &ulTableId);
@@ -3589,30 +3587,6 @@ SOAP_ENTRY_START(tableSetCollapseState, lpsResponse->er, unsigned int ulTableId,
     if(er != erSuccess)
 		return er;
 	return lpTable->SetCollapseState(sCollapseState, &lpsResponse->ulBookmark);
-}
-SOAP_ENTRY_END()
-
-/**
- * tableSetMultiStoreEntryIDs: client sets content for MultiStoreTable
- */
-SOAP_ENTRY_START(tableSetMultiStoreEntryIDs, *result, unsigned int ulTableId, struct entryList *lpEntryList, unsigned int *result)
-{
-	object_ptr<ECGenericObjectTable> lpTable;
-	ECMultiStoreTable		*lpMultiStoreTable = NULL;
-	ECListInt	lObjectList;
-
-	if (lpEntryList == nullptr)
-		return KCERR_INVALID_PARAMETER;
-	er = lpecSession->GetTableManager()->GetTable(ulTableId, &~lpTable);
-	if (er != erSuccess)
-		return er;
-
-	// ignore errors
-	g_lpSessionManager->GetCacheManager()->GetEntryListToObjectList(lpEntryList, &lObjectList);
-	lpMultiStoreTable = dynamic_cast<ECMultiStoreTable *>(lpTable.get());
-	if (lpMultiStoreTable == nullptr)
-		return KCERR_INVALID_PARAMETER;
-	return lpMultiStoreTable->SetEntryIDs(&lObjectList);
 }
 SOAP_ENTRY_END()
 
