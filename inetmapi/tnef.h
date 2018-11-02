@@ -64,7 +64,6 @@ private:
 	HRESULT HrReadPropStream(const char *buf, ULONG size, std::list<memory_ptr<SPropValue>> &proplist);
 	HRESULT HrReadSingleProp(const char *buf, ULONG size, ULONG *have_read, LPSPropValue *out);
 	HRESULT HrGetChecksum(IStream *lpStream, ULONG *lpulChecksum);
-	ULONG GetChecksum(const char *data, unsigned int ulLen) const;
 	HRESULT HrWriteBlock(IStream *lpDest, IStream *lpSrc, ULONG ulBlockID, ULONG ulLevel);
 	HRESULT HrWriteBlock(IStream *lpDest, const char *buf, unsigned int len, ULONG block_id, ULONG level);
     HRESULT HrReadStream(IStream *lpStream, void *lpBase, BYTE **lppData, ULONG *lpulSize);

@@ -1742,21 +1742,6 @@ HRESULT ECTNEF::HrGetChecksum(IStream *lpStream, ULONG *lpulChecksum)
 	return hrSuccess;
 }
 
-/**
- * Create a TNEF checksum over a normal char buffer.
- *
- * @param[in]	lpData	Buffer containing TNEF data
- * @param[in]	ulLen	Length of lpData
- * @return TNEF checksum value
- */
-ULONG ECTNEF::GetChecksum(const char *lpData, unsigned int ulLen) const
-{
-    ULONG ulChecksum = 0;
-	for (unsigned int i = 0; i < ulLen; ++i)
-		ulChecksum += lpData[i];
-    return ulChecksum;
-}
-
 /** 
  * Copy stream data to another stream with given TNEF block id and level number.
  * 
