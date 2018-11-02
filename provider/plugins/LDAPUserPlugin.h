@@ -391,32 +391,6 @@ private:
 	std::string GetLDAPEntryDN(LDAPMessage *entry);
 
 	/**
-	 * Set one attribute of \c dn to \c value
-	 *
-	 * @param[in]	dn
-	 *					The DN to modify.
-	 * @param[in]	attribute
-	 *					The name of the attribute to modify.
-	 * @param[in]	value
-	 *					The new value of the attribute.
-	 * @return 0 When the modification was successful, 1 otherwise (error).
-	 */
-	int changeAttribute(const char *dn, char *attribute, const char *value);
-
-	/**
-	 * Set one attribute of \c dn to the values in \c values
-	 *
-	 * @param[in]	dn
-	 *					The DN to modify.
-	 * @param[in]	attribute
-	 *					The name of the attribute to modify.
-	 * @param[in]	values
-	 *					A list of new values. Any old values are overwritten or removed.
-	 * @retval 0 When the modification was successful, 1 Otherwise (error).
-	 */
-	int changeAttribute(const char *dn, char *attribute, const std::list<std::string> &values);
-
-	/**
 	 * Connect to the LDAP server
 	 *
 	 * @param[in]	bind_dn
@@ -586,24 +560,6 @@ private:
 	 * @throw runtime_error When an invalid objectclass was requested
 	 */
 	std::string getObjectSearchFilter(const objectid_t &id, const char *attr = NULL, const char *attr_type = NULL);
-
-	/**
-	 * Resolve objects from attribute data
-	 *
-	 * This will call LDAPUserPlugin::resolveObjectsFromAttributes()
-	 *
-	 * @param[in]	objclass
-	 *					The objectclass to which this search should be restricted.
-	 *					The objectclass can be partially unknown (OBJECTCLASS_UNKNOWN, MAILUSER_UNKNOWN, ...)
-	 * @param[in]	objects
-	 *					The list of atribute data
-	 * @param[in]	lpAttr
-	 *					The attribute which should contain the AttrData
-	 * @param[in]	company
-	 *					Optional argument, The company where the possible object should belong.
-	 * @return The list of object signatures which were found
-	 */
-	signatures_t resolveObjectsFromAttribute(objectclass_t, const std::list<std::string> &objects, const char *attr, const objectid_t &company = objectid_t(CONTAINER_COMPANY));
 
 	/**
 	 * Resolve objects from attribute data by checking if the data contains

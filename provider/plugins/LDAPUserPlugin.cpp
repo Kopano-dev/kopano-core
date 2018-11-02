@@ -1259,19 +1259,6 @@ LDAPUserPlugin::objectDNtoObjectSignatures(objectclass_t objclass,
 }
 
 signatures_t
-LDAPUserPlugin::resolveObjectsFromAttribute(objectclass_t objclass,
-    const std::list<std::string> &objects, const char *lpAttr,
-    const objectid_t &company)
-{
-	const char *lpAttrs[2] = {
-		lpAttr,
-		NULL,
-	};
-
-	return resolveObjectsFromAttributes(objclass, objects, lpAttrs, company);
-}
-
-signatures_t
 LDAPUserPlugin::resolveObjectsFromAttributes(objectclass_t objclass,
     const std::list<std::string> &objects, const char **lppAttr,
     const objectid_t &company)
@@ -2149,63 +2136,6 @@ objectdetails_t LDAPUserPlugin::getObjectDetails(const objectid_t &id)
 	if (iterDetails == mapDetails.cend())
 		throw objectnotfound("No details for \"" + id.id + "\"");
 	return iterDetails->second;
-}
-
-static LDAPMod *newLDAPModification(char *attribute, const list<string> &values) {
-	auto mod = static_cast<LDAPMod *>(calloc(1, sizeof(LDAPMod)));
-
-	// The only type of modification allowed here is replace.  It
-	// should be enough for our needs, but if an addition or removal
-	// is needed, this value has to be changed.
-	mod->mod_op = LDAP_MOD_REPLACE;
-	mod->mod_type = attribute;
-	mod->mod_vals.modv_strvals = (char**) calloc(values.size() + 1, sizeof(char*));
-	int idx = 0;
-	for (const auto &i : values)
-		// A strdup is necessary to be able to call free on it in the
-		// method changeAttribute, below.
-		mod->mod_vals.modv_strvals[idx++] = strdup(i.c_str());
-	mod->mod_vals.modv_strvals[idx] = NULL;
-	return mod;
-}
-
-static LDAPMod *newLDAPModification(char *attribute, const char *value) {
-	// Pretty lame function, all it does is use newLDAPModification
-	// with a list with only one element.
-	return newLDAPModification(attribute, std::list<std::string>{value});
-}
-
-int LDAPUserPlugin::changeAttribute(const char *dn, char *attribute, const char *value) {
-	LDAPMod *mods[] = {newLDAPModification(attribute, value), nullptr};
-
-	// Actual LDAP call
-	int rc = ldap_modify_s(m_ldap, const_cast<char *>(dn), mods);
-	if (rc != LDAP_SUCCESS)
-		return 1;
-
-	// Free all calloced memory
-	free(mods[0]->mod_vals.modv_strvals[0]);
-	free(mods[0]->mod_vals.modv_strvals);
-	free(mods[0]);
-
-	return 0;
-}
-
-int LDAPUserPlugin::changeAttribute(const char *dn, char *attribute, const std::list<std::string> &values) {
-	LDAPMod *mods[] = {newLDAPModification(attribute, values), nullptr};
-
-	// Actual LDAP call
-	int rc = ldap_modify_s(m_ldap, const_cast<char *>(dn), mods);
-	if (rc != LDAP_SUCCESS)
-		return 1;
-
-	// Free all calloced / strduped memory
-	for (int i = 0; mods[0]->mod_vals.modv_strvals[i] != NULL; ++i)
-		free(mods[0]->mod_vals.modv_strvals[i]);
-	free(mods[0]->mod_vals.modv_strvals);
-	free(mods[0]);
-
-	return 0;
 }
 
 void LDAPUserPlugin::changeObject(const objectid_t &id, const objectdetails_t &details, const std::list<std::string> *lpDelProps) {
