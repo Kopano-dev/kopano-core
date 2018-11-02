@@ -963,7 +963,7 @@ ECRESULT ECKeyTable::GetRowsBySortPrefix(sObjectTableKey *lpsRowItem, ECObjectTa
 
 ECRESULT ECKeyTable::HideRows(sObjectTableKey *lpsRowItem, ECObjectTableList *lpHiddenList)
 {
-    BOOL fCursorHidden = false;
+    bool fCursorHidden = false;
 	scoped_rlock biglock(mLock);
 	auto lpCursor = lpCurrent;
 	ECRESULT er = SeekId(lpsRowItem);
