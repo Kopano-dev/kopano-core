@@ -1685,34 +1685,6 @@ ECRESULT ECCacheManager::GetEntryListToObjectList(struct entryList *lpEntryList,
 }
 
 /**
- * Convert database object id to entryid
- */
-ECRESULT ECCacheManager::GetEntryListFromObjectList(ECListInt* lplObjectList, struct soap *soap, struct entryList **lppEntryList)
-{
-	if (lplObjectList == nullptr || lppEntryList == nullptr)
-		return KCERR_INVALID_PARAMETER;
-
-	bool			bPartialCompletion = false;
-	entryList*		lpEntryList = s_alloc<entryList>(soap);
-
-	lpEntryList->__ptr = s_alloc<entryId>(soap, lplObjectList->size());
-	lpEntryList->__size = 0;
-
-	for (auto xint : *lplObjectList) {
-		if (GetEntryIdFromObject(xint, soap, 0, &lpEntryList->__ptr[lpEntryList->__size]) != erSuccess) {
-			bPartialCompletion = true;
-			continue; // Unknown entryid, next item
-		}
-		++lpEntryList->__size;
-	}
-
-	*lppEntryList = lpEntryList;
-	if(bPartialCompletion)
-		return KCWARN_PARTIAL_COMPLETION;
-	return erSuccess;
-}
-
-/**
  * Get list of indexed properties for the indexer
  *
  * This is not a read-through, the data must be set via SetIndexedProperties
