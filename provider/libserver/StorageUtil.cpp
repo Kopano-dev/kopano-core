@@ -30,8 +30,7 @@ ECRESULT CreateObject(ECSession *lpecSession, ECDatabase *lpDatabase, unsigned i
 {
 	unsigned int ulNewObjId = 0, ulAffected = 0;
 	assert(ulParentType == MAPI_FOLDER || ulParentType == MAPI_MESSAGE || ulParentType == MAPI_ATTACH);
-	//
-    // We skip quota checking because we do this during writeProps.
+	// We skip quota checking because we do this during writeProps.
 
 	if(ulParentType == MAPI_FOLDER) {
 		// Only check creating items in folders. Creating items in messages and attachments is not security-checked since
