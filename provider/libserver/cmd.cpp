@@ -347,7 +347,6 @@ ECRESULT ECFifoSerializer::Write(const void *ptr, size_t size, size_t nmemb)
 {
 	ECRESULT er = erSuccess;
 	union {
-		char c[8];
 		short s;
 		int i;
 		long long ll;
@@ -6219,7 +6218,7 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, const char *szUserName,
 SOAP_ENTRY_END()
 
 struct COPYITEM {
-	unsigned int ulId, ulType, ulParent, ulNewId, ulFlags;
+	unsigned int ulId, ulType, ulParent, ulFlags;
 	unsigned int ulMessageFlags, ulOwner;
 	SOURCEKEY sSourceKey, sParentSourceKey, sNewSourceKey;
 	EntryId sOldEntryId, sNewEntryId;
