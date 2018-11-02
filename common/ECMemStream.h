@@ -80,7 +80,7 @@ private:
 	CommitFunc		lpCommitFunc;
 	DeleteFunc		lpDeleteFunc;
 	void *			lpParam;
-	BOOL fDirty = false;
+	bool fDirty = false;
 	ULONG			ulFlags;
 	ALLOC_WRAP_FRIEND;
 };

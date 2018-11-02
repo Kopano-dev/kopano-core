@@ -226,7 +226,7 @@ HRESULT ECMemStream::Write(const void *pv, ULONG cb, ULONG *pcbWritten)
 	liPos.QuadPart += ulWritten;
 	if(pcbWritten)
 		*pcbWritten = ulWritten;
-	fDirty = TRUE;
+	fDirty = true;
 
 	// If we're not in transacted mode, don't auto-commit; we should wait for the user
 	// to commit() the flags. In exclusive mode, nobody else can see this stream, so there's
