@@ -981,9 +981,4 @@ ECRESULT ECGetContentChangesHelper::GetSyncedMessages(unsigned int ulSyncId, uns
 	return erSuccess;
 }
 
-bool ECGetContentChangesHelper::CompareMessageEntry(const MESSAGESET::value_type &lhs, const MESSAGESET::value_type &rhs)
-{
-	return lhs.first == rhs.first;
-}
-
 } /* namespaces */

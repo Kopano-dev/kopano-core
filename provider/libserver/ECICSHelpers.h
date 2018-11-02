@@ -53,7 +53,6 @@ private:
 	ECRESULT Init();
 	ECRESULT MatchRestrictions(const std::vector<DB_ROW> &db_rows, const std::vector<DB_LENGTHS> &db_lengths, const struct restrictTable *lpsRestrict, std::set<SOURCEKEY> *matches);
 	ECRESULT GetSyncedMessages(unsigned int ulSyncId, unsigned int ulChangeId, LPMESSAGESET lpsetMessages);
-	static bool CompareMessageEntry(const MESSAGESET::value_type &lhs, const MESSAGESET::value_type &rhs);
 
 	// Interfaces for delegated processing
 	std::unique_ptr<IDbQueryCreator> m_lpQueryCreator;
