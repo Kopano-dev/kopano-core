@@ -1594,11 +1594,11 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
     unsigned int ulSyncId, struct saveObject *lpsReturnObj,
     bool *lpfHaveChangeKey, FILETIME *lpftCreated, FILETIME *lpftModified)
 {
-	std::string strInsertQuery, strColName, strUsername;
+	std::string strColName, strUsername;
 	struct propValArray *lpPropValArray = &lpsSaveObj->modProps;
 	unsigned int ulParent = 0, ulGrandParent = 0, ulParentType = 0;
 	unsigned int ulObjType = 0, ulOwner = 0, ulFlags = 0;
-	unsigned int ulAffected = 0, ulPropInserts = 0;
+	unsigned int ulAffected = 0;
 	gsoap_size_t nMVItems;
 	unsigned long long ullIMAP = 0;
 	std::set<unsigned int>	setInserted;
@@ -1915,12 +1915,6 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 		// Instead of writing directly to tproperties, save a delayed write request.
 		er = ECTPropsPurge::AddDeferredUpdateNoPurge(lpDatabase, ulParent, 0, ulObjId);
 		if (er != erSuccess)
-			return er;
-	}
-	// Insert the properties
-	if(ulPropInserts > 0) {
-		er = lpDatabase->DoInsert(strInsertQuery, NULL, NULL);
-		if(er != erSuccess)
 			return er;
 	}
 
