@@ -2402,7 +2402,7 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er,
 	SOURCEKEY sSourceKey, sParentSourceKey;
 	struct saveObject sReturnObject;
 	std::string strChangeKey, strChangeList;
-	BOOL			fNewItem = false;
+	bool			fNewItem = false;
 	bool			fHaveChangeKey = false;
 	struct propVal	*pvCommitTime = NULL;
 	std::unique_ptr<ECAttachmentStorage> lpAttachmentStorage(g_lpSessionManager->get_atxconfig()->new_handle(lpDatabase));
