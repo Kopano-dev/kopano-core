@@ -134,7 +134,6 @@ public:
 	virtual ECRESULT ReloadTableMVData(ECObjectTableList* lplistRows, ECListInt* lplistMVPropTag);
 
 	// Sort functions
-	virtual ECRESULT GetSortKey(sObjectTableKey* lpsRowItem, unsigned int ulPropTag, unsigned int *lpSortLen, unsigned char **lppSortData);
 	virtual ECRESULT SetSortKey(sObjectTableKey* lpsRowItem, unsigned int ulPropTag, unsigned int ulSortLen, unsigned char *lpSortData);
 
 	// Server operations
