@@ -1957,11 +1957,6 @@ ECRESULT ECGenericObjectTable::Populate()
 
 // Sort functions, overide this functions as you used a caching system
 
-ECRESULT ECGenericObjectTable::IsSortKeyExist(const sObjectTableKey* lpsRowItem, unsigned int ulPropTag)
-{
-	return KCERR_NOT_FOUND;
-}
-
 ECRESULT ECGenericObjectTable::GetSortKey(sObjectTableKey* lpsRowItem, unsigned int ulPropTag, unsigned int *lpSortLen, unsigned char **lppSortData)
 {
 	assert(false);
