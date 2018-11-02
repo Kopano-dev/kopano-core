@@ -12,25 +12,6 @@
 
 namespace KC {
 
-char *ECStringCompat::WTF1252_to_WINDOWS1252(soap *lpsoap, const char *szWTF1252, convert_context *lpConverter)
-{
-	if (!szWTF1252)
-		return NULL;
-
-	std::string str1252;
-	str1252.reserve(strlen(szWTF1252));
-
-	while (*szWTF1252) {
-		utf8::uint32_t cp = utf8::unchecked::next(szWTF1252);
-
-		// Since the string was originally windows-1252, all code points
-		// should be in the range 0 <= cp < 256.
-		str1252.append(1, cp < 256 ? cp : '?');
-	}
-
-	return s_strcpy(lpsoap, str1252.c_str());
-}
-
 char *ECStringCompat::WTF1252_to_UTF8(soap *lpsoap, const char *szWTF1252, convert_context *lpConverter)
 {
 	if (!szWTF1252)
