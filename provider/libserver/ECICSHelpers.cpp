@@ -986,12 +986,4 @@ bool ECGetContentChangesHelper::CompareMessageEntry(const MESSAGESET::value_type
 	return lhs.first == rhs.first;
 }
 
-bool ECGetContentChangesHelper::MessageSetsDiffer() const
-{
-	if (m_setLegacyMessages.size() != m_setNewMessages.size())
-		return true;
-
-	return !std::equal(m_setLegacyMessages.begin(), m_setLegacyMessages.end(), m_setNewMessages.begin(), &CompareMessageEntry);
-}
-
 } /* namespaces */
