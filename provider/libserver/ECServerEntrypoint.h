@@ -51,7 +51,6 @@ extern _kc_export void kopano_new_soap_connection(CONNECTION_TYPE, struct soap *
 extern _kc_export void kopano_end_soap_connection(struct soap *);
 extern _kc_export void kopano_new_soap_listener(CONNECTION_TYPE, struct soap *);
 extern _kc_export void kopano_end_soap_listener(struct soap *);
-void kopano_disconnect_soap_connection(struct soap *soap);
 
 } /* namespace */
 
