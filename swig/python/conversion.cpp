@@ -338,11 +338,6 @@ PyObject *Object_from_LPSPropValue(const SPropValue *prop)
 	return Object_from_SPropValue(prop);
 }
 
-int Object_is_LPSPropValue(PyObject *object)
-{
-	return PyObject_IsInstance(object, PyTypeSPropValue);
-}
-
 PyObject *List_from_SPropValue(const SPropValue *lpProps, ULONG cValues)
 {
 	pyobj_ptr list(PyList_New(0));
