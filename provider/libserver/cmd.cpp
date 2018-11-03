@@ -1456,7 +1456,7 @@ static ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession,
 
 /**
  * loadProp: Reads a single, large property from the database. No size limit.
- *   this can also be a complete attachment
+ * This can also be a complete attachment
  */
 SOAP_ENTRY_START(loadProp, lpsResponse->er, const entryId &sEntryId,
     unsigned int ulObjId, unsigned int ulPropTag,
@@ -1469,7 +1469,7 @@ SOAP_ENTRY_START(loadProp, lpsResponse->er, const entryId &sEntryId,
         if (er != erSuccess)
 			return er;
     }
-    
+
 	// Check permission
 	er = lpecSession->GetSecurity()->CheckPermission(ulObjId, ecSecurityRead);
 	if(er != erSuccess)
@@ -6293,7 +6293,7 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 
 	GetSourceKey(ulDestFolderId, &sDestFolderSourceKey);
 	// Get all items for the object list
-	strQuery = "SELECT h.id, h.parent, h.type, h.flags, h.owner, p.val_ulong, p2.val_ulong FROM hierarchy AS h LEFT JOIN properties AS p ON p.hierarchyid=h.id AND p.tag="+stringify(PROP_ID(PR_MESSAGE_SIZE))+" AND p.type="+stringify(PROP_TYPE(PR_MESSAGE_SIZE)) + 
+	strQuery = "SELECT h.id, h.parent, h.type, h.flags, h.owner, p.val_ulong, p2.val_ulong FROM hierarchy AS h LEFT JOIN properties AS p ON p.hierarchyid=h.id AND p.tag="+stringify(PROP_ID(PR_MESSAGE_SIZE))+" AND p.type="+stringify(PROP_TYPE(PR_MESSAGE_SIZE)) +
 		   " LEFT JOIN properties AS p2 ON p2.hierarchyid=h.id AND p2.tag = " + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + " AND p2.type = " + stringify(PROP_TYPE(PR_MESSAGE_FLAGS)) + " WHERE h.id IN(" +
 		   kc_join(*lplObjectIds, ",", stringify) + ")";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
