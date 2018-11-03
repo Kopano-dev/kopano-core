@@ -12,9 +12,6 @@
 #include <kopano/platform.h>
 
 /* seems unused? */
-#define    lhSessionNull    ((LHANDLE)0)
-
-/* seems unused? */
 /* used by attachments? */
 struct MapiFileDesc {
     ULONG ulReserved;
