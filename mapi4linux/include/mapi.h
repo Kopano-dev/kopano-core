@@ -11,8 +11,6 @@
 
 #include <kopano/platform.h>
 
-/* seems unused? */
-/* used by attachments? */
 struct MapiFileDesc {
     ULONG ulReserved;
     ULONG flFlags;
