@@ -7772,19 +7772,6 @@ SOAP_ENTRY_START(hookStore, *result, unsigned int ulStoreType,
 }
 SOAP_ENTRY_END()
 
-int KCmdService::deleteStore(ULONG64, unsigned int, unsigned int,
-    unsigned int *result)
-{
-	/*
-	 * Used to move the store to the public, but this is not
-	 * possible due to multi-server setups. This was also really
-	 * slow because of the storeid column in the properties
-	 * table.
-	 */
-	*result = KCERR_NOT_IMPLEMENTED;
-	return SOAP_OK;
-}
-
 // softdelete the store from the database, so this function returns quickly
 SOAP_ENTRY_START(removeStore, *result,
     const struct xsd__base64Binary &sStoreGuid, unsigned int ulSyncId,
