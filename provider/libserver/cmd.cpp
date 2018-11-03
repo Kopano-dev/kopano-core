@@ -101,7 +101,7 @@ class ECFifoSerializer final : public ECSerializer {
 };
 
 // Hold the status of the softdelete purge system
-static bool g_bPurgeSoftDeleteStatus = FALSE;
+static bool g_bPurgeSoftDeleteStatus = false;
 
 static ECRESULT CreateEntryId(GUID guidStore, unsigned int ulObjType,
     entryId **lppEntryId)
@@ -907,13 +907,13 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 
 	auto laters = make_scope_success([&]() {
 		if (er != KCERR_BUSY)
-			g_bPurgeSoftDeleteStatus = FALSE;
+			g_bPurgeSoftDeleteStatus = false;
 	});
 	if (g_bPurgeSoftDeleteStatus) {
 		ec_log_err("Softdelete already running");
 		return KCERR_BUSY;
 	}
-	g_bPurgeSoftDeleteStatus = TRUE;
+	g_bPurgeSoftDeleteStatus = true;
 	if (!lpbExit)
 		lpbExit = &bExitDummy;
 	er = lpecSession->GetDatabase(&lpDatabase);
