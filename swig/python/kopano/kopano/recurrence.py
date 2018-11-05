@@ -157,6 +157,9 @@ class Recurrence(object):
         else:
             raise ArgumentError('invalid recurrence pattern: %s' % value) # TODO add more such checks
 
+        if self._period == 0:
+            self.interval = 1
+
     @property
     def weekdays(self):
         if self._pattern_type in (PATTERN_WEEKLY, PATTERN_MONTHNTH, PATTERN_HJMONTHNTH):
