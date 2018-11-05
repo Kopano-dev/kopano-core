@@ -127,7 +127,7 @@ HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(const MAPIOBJECT *lpsMapiObj
 		memset(lpSaveObj->lpInstanceIds->__ptr, 0, lpSaveObj->lpInstanceIds->__size * sizeof(entryId));
 
 		if ((m_lpTransport->GetServerGUID(&sServerGUID) != hrSuccess) ||
-			(HrSIEntryIDToID(lpsMapiObject->cbInstanceID, (LPBYTE)lpsMapiObject->lpInstanceID, &sSIGUID, NULL, (unsigned int*)&ulPropId) != hrSuccess) ||
+		    HrSIEntryIDToID(lpsMapiObject->cbInstanceID, lpsMapiObject->lpInstanceID, &sSIGUID, nullptr, &ulPropId) != hrSuccess ||
 			(sSIGUID != sServerGUID) ||
 			(CopyMAPIEntryIdToSOAPEntryId(lpsMapiObject->cbInstanceID, (LPENTRYID)lpsMapiObject->lpInstanceID, &lpSaveObj->lpInstanceIds->__ptr[0]) != hrSuccess)) {
 				ulPropId = 0;
@@ -215,7 +215,7 @@ HRESULT WSMAPIPropStorage::HrUpdateSoapObject(const MAPIOBJECT *lpsMapiObject,
 	/* FIXME: Support Multiple Single Instances */
 	if (lpsSaveObj->lpInstanceIds && lpsSaveObj->lpInstanceIds->__size) {
 		/* Check which property this Instance ID is for */
-		auto hr = HrSIEntryIDToID(lpsSaveObj->lpInstanceIds->__ptr[0].__size, lpsSaveObj->lpInstanceIds->__ptr[0].__ptr, NULL, NULL, (unsigned int*)&ulPropId);
+		auto hr = HrSIEntryIDToID(lpsSaveObj->lpInstanceIds->__ptr[0].__size, lpsSaveObj->lpInstanceIds->__ptr[0].__ptr, nullptr, nullptr, &ulPropId);
 		if (hr != hrSuccess)
 			return hr;
 		/* Instance ID was incorrect, remove it */

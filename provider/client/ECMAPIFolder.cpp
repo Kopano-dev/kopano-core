@@ -599,9 +599,9 @@ HRESULT ECMAPIFolder::CopyFolder2(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		return hr;
 
 	// Check if it's  the same store of kopano so we can copy/move fast
-	if (!IsKopanoEntryId(cbEntryID, reinterpret_cast<const BYTE *>(lpEntryID)) ||
+	if (!IsKopanoEntryId(cbEntryID, lpEntryID) ||
 	    !IsKopanoEntryId(lpPropArray[0].Value.bin.cb, lpPropArray[0].Value.bin.lpb) ||
-	    HrGetStoreGuidFromEntryId(cbEntryID, reinterpret_cast<const BYTE *>(lpEntryID), &guidFrom) != hrSuccess ||
+	    HrGetStoreGuidFromEntryId(cbEntryID, lpEntryID, &guidFrom) != hrSuccess ||
 	    HrGetStoreGuidFromEntryId(lpPropArray[0].Value.bin.cb, lpPropArray[0].Value.bin.lpb, &guidDest) != hrSuccess ||
 	    memcmp(&guidFrom, &guidDest, sizeof(GUID)) != 0 ||
 	    lpFolderOps == nullptr)
@@ -629,7 +629,7 @@ HRESULT ECMAPIFolder::CopyFolder2(ULONG cbEntryID, const ENTRYID *lpEntryID,
 HRESULT ECMAPIFolder::DeleteFolder(ULONG cbEntryID, const ENTRYID *lpEntryID,
     ULONG ulUIParam, IMAPIProgress *, ULONG ulFlags)
 {
-	if (!ValidateZEntryId(cbEntryID, reinterpret_cast<const BYTE *>(lpEntryID), MAPI_FOLDER))
+	if (!ValidateZEntryId(cbEntryID, lpEntryID, MAPI_FOLDER))
 		return MAPI_E_INVALID_ENTRYID;
 	if (lpFolderOps == NULL)
 		return MAPI_E_NO_SUPPORT;
@@ -697,7 +697,7 @@ HRESULT ECMAPIFolder::SetReadFlags(LPENTRYLIST lpMsgList, ULONG ulUIParam, LPMAP
 HRESULT ECMAPIFolder::GetMessageStatus(ULONG cbEntryID,
     const ENTRYID *lpEntryID, ULONG ulFlags, ULONG *lpulMessageStatus)
 {
-	if (lpEntryID == nullptr || !IsKopanoEntryId(cbEntryID, reinterpret_cast<const BYTE *>(lpEntryID)))
+	if (lpEntryID == nullptr || !IsKopanoEntryId(cbEntryID, lpEntryID))
 		return MAPI_E_INVALID_ENTRYID;
 	if (lpulMessageStatus == NULL)
 		return MAPI_E_INVALID_OBJECT;
@@ -709,7 +709,7 @@ HRESULT ECMAPIFolder::GetMessageStatus(ULONG cbEntryID,
 HRESULT ECMAPIFolder::SetMessageStatus(ULONG cbEntryID, const ENTRYID *lpEntryID,
     ULONG ulNewStatus, ULONG ulNewStatusMask, ULONG *lpulOldStatus)
 {
-	if (lpEntryID == nullptr || !IsKopanoEntryId(cbEntryID, reinterpret_cast<const BYTE *>(lpEntryID)))
+	if (lpEntryID == nullptr || !IsKopanoEntryId(cbEntryID, lpEntryID))
 		return MAPI_E_INVALID_ENTRYID;
 	if (lpFolderOps == NULL)
 		return MAPI_E_NO_SUPPORT;

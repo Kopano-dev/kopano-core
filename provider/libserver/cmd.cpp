@@ -1672,7 +1672,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 
 		if (lpsSaveObj->lpInstanceIds->__size > 1)
 			return KCERR_UNKNOWN_INSTANCE_ID;
-		er = SIEntryIDToID(&lpsSaveObj->lpInstanceIds->__ptr[0], &sGuidTmp, (unsigned int*)&ulInstanceId, (unsigned int*)&ulInstanceTag);
+		er = SIEntryIDToID(&lpsSaveObj->lpInstanceIds->__ptr[0], &sGuidTmp, &ulInstanceId, &ulInstanceTag);
 		if (er != erSuccess)
 			return er;
 		/* Server GUID must always match */

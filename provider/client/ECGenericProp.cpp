@@ -84,7 +84,7 @@ HRESULT ECGenericProp::HrSetRealProp(const SPropValue *lpsPropValue)
 
 	if (m_bLoading == FALSE && m_sMapiObject) {
 		// Only reset instance id when we're being modified, not being reloaded
-		HrSIEntryIDToID(m_sMapiObject->cbInstanceID, (LPBYTE)m_sMapiObject->lpInstanceID, NULL, NULL, (unsigned int *)&ulPropId);
+		HrSIEntryIDToID(m_sMapiObject->cbInstanceID, m_sMapiObject->lpInstanceID, nullptr, nullptr, &ulPropId);
 		if (ulPropId == PROP_ID(lpsPropValue->ulPropTag))
 			SetSingleInstanceId(0, NULL);
 	}

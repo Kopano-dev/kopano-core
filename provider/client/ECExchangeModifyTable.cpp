@@ -294,7 +294,7 @@ HRESULT ECExchangeModifyTable::OpenACLS(ECMAPIProp *lpecMapiProp, ULONG ulFlags,
 			lpMemberName = (LPTSTR)((lpECUser->lpszFullName)?lpECUser->lpszFullName:lpECUser->lpszUsername);
 
 		lpsPropMember[0].ulPropTag = PR_MEMBER_ID;
-		if (ABEntryIDToID(lpECPerms[i].sUserId.cb, (LPBYTE)lpECPerms[i].sUserId.lpb, &ulUserid, NULL, NULL) == erSuccess && ulUserid == 1)
+		if (ABEntryIDToID(lpECPerms[i].sUserId.cb, lpECPerms[i].sUserId.lpb, &ulUserid, nullptr, nullptr) == erSuccess && ulUserid == 1)
 			lpsPropMember[0].Value.li.QuadPart= 0; //everyone / exchange default
 		else
 			lpsPropMember[0].Value.li.QuadPart= (*lpulUniqueID)++;

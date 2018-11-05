@@ -336,7 +336,7 @@ HRESULT ECMAPIFolderPublic::OpenEntry(ULONG cbEntryID, const ENTRYID *eid,
 	if (hr != hrSuccess)
 		return hr;
 	if (cbEntryID > 0) {
-		hr = HrGetObjTypeFromEntryId(cbEntryID, reinterpret_cast<BYTE *>(lpEntryID.get()), &objtype);
+		hr = HrGetObjTypeFromEntryId(cbEntryID, lpEntryID.get(), &objtype);
 		if(hr != hrSuccess)
 			return hr;
 		if (objtype == MAPI_FOLDER && m_ePublicEntryID == ePE_FavoriteSubFolder)
@@ -366,7 +366,7 @@ HRESULT ECMAPIFolderPublic::DeleteFolder(ULONG cbEntryID,
     ULONG ulFlags)
 {
 	memory_ptr<SPropValue> lpProp;
-	if (!ValidateZEntryId(cbEntryID, reinterpret_cast<const BYTE *>(lpEntryID), MAPI_FOLDER))
+	if (!ValidateZEntryId(cbEntryID, lpEntryID, MAPI_FOLDER))
 		return MAPI_E_INVALID_ENTRYID;
 	if (cbEntryID <= 4 || !(lpEntryID->abFlags[3] & KOPANO_FAVORITE))
 		return ECMAPIFolder::DeleteFolder(cbEntryID, lpEntryID,

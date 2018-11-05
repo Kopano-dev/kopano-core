@@ -148,7 +148,7 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		lpEntryID = lpEntryIDIntern;
 	}
 
-	hr = HrGetObjTypeFromEntryId(cbEntryID, reinterpret_cast<const BYTE *>(lpEntryID), &objtype);
+	hr = HrGetObjTypeFromEntryId(cbEntryID, lpEntryID, &objtype);
 	if(hr != hrSuccess)
 		return hr;
 	if (objtype == MAPI_MESSAGE ||

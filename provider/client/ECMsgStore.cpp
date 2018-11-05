@@ -585,7 +585,7 @@ HRESULT ECMsgStore::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		}
 	}
 
-	auto hr = HrGetObjTypeFromEntryId(cbEntryID, reinterpret_cast<const BYTE *>(lpEntryID), &objtype);
+	auto hr = HrGetObjTypeFromEntryId(cbEntryID, lpEntryID, &objtype);
 	if(hr != hrSuccess)
 		return hr;
 

@@ -980,7 +980,7 @@ ECRESULT ECAuthSession::ValidateSSOData_KCOIDC(struct soap* soap, const char* na
 
 	objectid_t extern_id;
 	unsigned int mapi_type;
-	auto er = ABEntryIDToID(static_cast<ULONG>(username_abid.size()), reinterpret_cast<const BYTE *>(username_abid.c_str()), &m_ulUserID, &extern_id, &mapi_type);
+	auto er = ABEntryIDToID(username_abid.size(), username_abid.c_str(), &m_ulUserID, &extern_id, &mapi_type);
 	if (er != erSuccess)
 		return ec_perror("ABEntryIDToID", er);
 	objectdetails_t details;
