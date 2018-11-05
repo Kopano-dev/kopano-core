@@ -81,4 +81,3 @@ PidLidWorkAddressPostalCode = 'PT_UNICODE:PSETID_Address:0x8048'
 PidLidWorkAddressCountry = 'PT_UNICODE:PSETID_Address:0x8049'
 PidLidDistributionListMembers = 'PT_MV_BINARY:PSETID_Address:0x8055'
 PidLidDistributionListOneOffMembers = 'PT_MV_BINARY:PSETID_Address:0x8054'
-
