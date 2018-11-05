@@ -1,6 +1,6 @@
 # -*- Makefile -*-
 
-SUBDIRS = include/kopano kopano zarafa
+SUBDIRS = include/kopano kopano
 
 SWIG_CXXFLAGS = -Wall -python -c++ -threads \
 	-I${top_srcdir}/common/include -I${top_srcdir}/swig/include \
