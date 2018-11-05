@@ -154,14 +154,15 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	hr = HrGetObjTypeFromEntryId(cbEntryID, reinterpret_cast<const BYTE *>(lpEntryID), &objtype);
 	if(hr != hrSuccess)
 		return hr;
-	if (objtype != MAPI_FOLDER && ePublicEntryID != ePE_FavoriteSubFolder)
+	if (objtype == MAPI_MESSAGE ||
+	    (objtype != MAPI_FOLDER && ePublicEntryID != ePE_FavoriteSubFolder))
 		// Open online Messages.
 		// On success, message is open, now we can exit
 		return ECMsgStore::OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
+	if (objtype != MAPI_FOLDER)
+		return MAPI_E_NOT_FOUND;
 
-	switch (objtype) {
-	case MAPI_FOLDER:
-
+	{
 		if (ePublicEntryID == ePE_PublicFolders) {
 			hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpsPropValue);
 			if(hr != hrSuccess)
@@ -224,16 +225,6 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 
 		if(lpulObjType)
 			*lpulObjType = MAPI_FOLDER;
-
-		break;
-	case MAPI_MESSAGE:
-		//FIXME: change for offline support
-		hr = ECMsgStore::OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
-		if (hr != hrSuccess)
-			return hr;
-		break;
-	default:
-		return MAPI_E_NOT_FOUND;
 	}
 	return hr;
 }
