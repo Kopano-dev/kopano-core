@@ -162,70 +162,66 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	if (objtype != MAPI_FOLDER)
 		return MAPI_E_NOT_FOUND;
 
-	{
-		if (ePublicEntryID == ePE_PublicFolders) {
-			hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpsPropValue);
-			if(hr != hrSuccess)
-				return hr;
-			// Get the online Subtree entryid
-			hr = HrGetRealProp(PR_IPM_SUBTREE_ENTRYID, 0, lpsPropValue, lpsPropValue);
-			if(hr != hrSuccess)
-				return hr;
-			cbEntryID = lpsPropValue->Value.bin.cb;
-			lpEntryID = (LPENTRYID)lpsPropValue->Value.bin.lpb;
-		}
-
-		if (ePublicEntryID != ePE_IPMSubtree && ePublicEntryID != ePE_Favorites) {
-			hr = lpTransport->HrOpenFolderOps(cbEntryID, lpEntryID, &~lpFolderOps);
-			if(hr != hrSuccess)
-				return hr;
-		} else {
-			lpFolderOps.reset();
-		}
-
-		hr = ECMAPIFolderPublic::Create(this, fModifyObject, lpFolderOps, ePublicEntryID, &~lpMAPIFolder);
-		if(hr != hrSuccess)
-			return hr;
-
-		if (ePublicEntryID != ePE_IPMSubtree && ePublicEntryID != ePE_Favorites) {
-			//FIXME: Wrong parent entryid
-			hr = lpTransport->HrOpenPropStorage(m_cbEntryId, m_lpEntryId, cbEntryID, lpEntryID, ulFlags & SHOW_SOFT_DELETES, &~lpPropStorage);
-			if(hr != hrSuccess)
-				return hr;
-			hr = lpMAPIFolder->HrSetPropStorage(lpPropStorage, TRUE);
-			if(hr != hrSuccess)
-				return hr;
-			//if(ePublicEntryID == ePE_FavoriteSubFolder)
-				//lpEntryID->abFlags[3] = KOPANO_FAVORITE;
-		} else {
-			lpMAPIFolder->HrLoadEmptyProps();
-		}
-
-		hr = lpMAPIFolder->SetEntryId(cbEntryID, lpEntryID);
-		if(hr != hrSuccess)
-			return hr;
-
-		// Get the parent entryid of a folder a check if this is the online subtree entryid. When it is,
-		// change the parent to the static parent entryid
+	if (ePublicEntryID == ePE_PublicFolders) {
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpsPropValue);
-		if(hr != hrSuccess)
+		if (hr != hrSuccess)
 			return hr;
-		if (HrGetOneProp(lpMAPIFolder, PR_PARENT_ENTRYID, &~lpParentProp) == hrSuccess &&
-			HrGetRealProp(PR_IPM_SUBTREE_ENTRYID, 0, lpsPropValue, lpsPropValue) == hrSuccess &&
-			CompareEntryIDs(lpsPropValue->Value.bin.cb, (LPENTRYID)lpsPropValue->Value.bin.lpb, lpParentProp->Value.bin.cb, (LPENTRYID)lpParentProp->Value.bin.lpb, 0, &ulResults) == hrSuccess &&
-			ulResults == TRUE)
-			lpMAPIFolder->SetParentID(m_cIPMPublicFoldersID, m_lpIPMPublicFoldersID);
-
-		AddChild(lpMAPIFolder);
-
-		if(lpInterface)
-			hr = lpMAPIFolder->QueryInterface(*lpInterface,(void **)lppUnk);
-		else
-			hr = lpMAPIFolder->QueryInterface(IID_IMAPIFolder, (void **)lppUnk);
-
-		if(lpulObjType)
-			*lpulObjType = MAPI_FOLDER;
+		// Get the online Subtree entryid
+		hr = HrGetRealProp(PR_IPM_SUBTREE_ENTRYID, 0, lpsPropValue, lpsPropValue);
+		if (hr != hrSuccess)
+			return hr;
+		cbEntryID = lpsPropValue->Value.bin.cb;
+		lpEntryID = (LPENTRYID)lpsPropValue->Value.bin.lpb;
 	}
+
+	if (ePublicEntryID != ePE_IPMSubtree && ePublicEntryID != ePE_Favorites) {
+		hr = lpTransport->HrOpenFolderOps(cbEntryID, lpEntryID, &~lpFolderOps);
+		if (hr != hrSuccess)
+			return hr;
+	} else {
+		lpFolderOps.reset();
+	}
+
+	hr = ECMAPIFolderPublic::Create(this, fModifyObject, lpFolderOps, ePublicEntryID, &~lpMAPIFolder);
+	if (hr != hrSuccess)
+		return hr;
+
+	if (ePublicEntryID != ePE_IPMSubtree && ePublicEntryID != ePE_Favorites) {
+		//FIXME: Wrong parent entryid
+		hr = lpTransport->HrOpenPropStorage(m_cbEntryId, m_lpEntryId, cbEntryID, lpEntryID, ulFlags & SHOW_SOFT_DELETES, &~lpPropStorage);
+		if (hr != hrSuccess)
+			return hr;
+		hr = lpMAPIFolder->HrSetPropStorage(lpPropStorage, TRUE);
+		if (hr != hrSuccess)
+			return hr;
+		//if (ePublicEntryID == ePE_FavoriteSubFolder)
+		//	lpEntryID->abFlags[3] = KOPANO_FAVORITE;
+	} else {
+		lpMAPIFolder->HrLoadEmptyProps();
+	}
+
+	hr = lpMAPIFolder->SetEntryId(cbEntryID, lpEntryID);
+	if (hr != hrSuccess)
+		return hr;
+
+	// Get the parent entryid of a folder a check if this is the online subtree entryid. When it is,
+	// change the parent to the static parent entryid
+	hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpsPropValue);
+	if (hr != hrSuccess)
+		return hr;
+	if (HrGetOneProp(lpMAPIFolder, PR_PARENT_ENTRYID, &~lpParentProp) == hrSuccess &&
+	    HrGetRealProp(PR_IPM_SUBTREE_ENTRYID, 0, lpsPropValue, lpsPropValue) == hrSuccess &&
+	    CompareEntryIDs(lpsPropValue->Value.bin.cb, (LPENTRYID)lpsPropValue->Value.bin.lpb, lpParentProp->Value.bin.cb, (LPENTRYID)lpParentProp->Value.bin.lpb, 0, &ulResults) == hrSuccess &&
+	    ulResults == TRUE)
+		lpMAPIFolder->SetParentID(m_cIPMPublicFoldersID, m_lpIPMPublicFoldersID);
+
+	AddChild(lpMAPIFolder);
+	if (lpInterface)
+		hr = lpMAPIFolder->QueryInterface(*lpInterface, (void **)lppUnk);
+	else
+		hr = lpMAPIFolder->QueryInterface(IID_IMAPIFolder, (void **)lppUnk);
+	if (lpulObjType)
+		*lpulObjType = MAPI_FOLDER;
 	return hr;
 }
 
