@@ -563,10 +563,16 @@ HRESULT ECMAPIFolder::CreateFolder(ULONG ulFolderType,
 	return hrSuccess;
 }
 
-// @note if you change this function please look also at ECMAPIFolderPublic::CopyFolder
 HRESULT ECMAPIFolder::CopyFolder(ULONG cbEntryID, const ENTRYID *lpEntryID,
     const IID *lpInterface, void *lpDestFolder, const TCHAR *lpszNewFolderName,
     ULONG_PTR ulUIParam, IMAPIProgress *lpProgress, ULONG ulFlags)
+{
+	return CopyFolder2(cbEntryID, lpEntryID, lpInterface, lpDestFolder, lpszNewFolderName, ulUIParam, lpProgress, ulFlags, false);
+}
+
+HRESULT ECMAPIFolder::CopyFolder2(ULONG cbEntryID, const ENTRYID *lpEntryID,
+    const IID *lpInterface, void *lpDestFolder, const TCHAR *lpszNewFolderName,
+    ULONG_PTR ulUIParam, IMAPIProgress *lpProgress, ULONG ulFlags, bool is_public)
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPIFolder> lpMapiFolder;
@@ -605,6 +611,15 @@ HRESULT ECMAPIFolder::CopyFolder(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		       lpInterface, lpDestFolder, lpszNewFolderName, ulUIParam,
 		       lpProgress, ulFlags);
 
+	/* If the entryid is a public folder's entryid, just change the entryid to a server entryid */
+	unsigned int ulResult = 0;
+	if (is_public && static_cast<ECMsgStorePublic *>(GetMsgStore())->ComparePublicEntryId(ePE_PublicFolders,
+	    lpPropArray[0].Value.bin.cb, reinterpret_cast<const ENTRYID *>(lpPropArray[0].Value.bin.lpb), &ulResult) == hrSuccess &&
+	    ulResult == true) {
+		hr = HrGetOneProp(lpMapiFolder, PR_ORIGINAL_ENTRYID, &~lpPropArray);
+		if (hr != hrSuccess)
+			return hr;
+	}
 	/* FIXME: Progressbar */
 	return lpFolderOps->HrCopyFolder(cbEntryID, lpEntryID,
 	       lpPropArray[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPropArray[0].Value.bin.lpb),
