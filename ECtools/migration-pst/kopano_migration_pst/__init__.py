@@ -22,17 +22,29 @@ from MAPI.Tags import (PR_SENDER_EMAIL_ADDRESS_W, PR_SENDER_ENTRYID,
 import MAPI.Time
 import kopano
 from kopano import log_exc
+from kopano.pidlid import PidLidDistributionListMembers
 
 from . import pst
 
 if sys.hexversion >= 0x03000000:
     def _encode(s):
         return s
+
+    def bval(x):
+        return x
+
 else: # pragma: no cover
     def _encode(s):
         return s.encode(sys.stdout.encoding or 'utf8')
 
+    def bval(x):
+        return ord(x)
+
 PSETID_Archive = DEFINE_GUID(0x72e98ebc, 0x57d2, 0x4ab5, 0xb0, 0xaa, 0xd5, 0x0a, 0x7b, 0x53, 0x1c, 0xb9)
+WRAPPED_ENTRYID_PREFIX = codecs.decode('00000000C091ADD3519DCF11A4A900AA0047FAA4', 'hex')
+WRAPPED_EID_TYPE_MASK = 0xf
+WRAPPED_EID_TYPE_CONTACT = 3
+WRAPPED_EID_TYPE_PERSONAL_DISTLIST = 4
 
 SENDER_PROPS = {
     'entryid': PR_SENDER_ENTRYID,
@@ -90,6 +102,11 @@ class Service(kopano.Service):
         attach_method = subnode_nid = None
         for k, v in parent.pc.props.items():
             propid, proptype, value = k, v.wPropType, v.value
+
+            if propid == (PR_MESSAGE_CLASS_W>>16):
+                if value == 'IPM.DistList':
+                    self.fixup_entryids.append(parent.EntryId)
+
             if proptype in (PT_CURRENCY, PT_MV_CURRENCY, PT_ACTIONS, PT_SRESTRICT, PT_SVREID):
                 continue # unsupported by parser
 
@@ -99,7 +116,7 @@ class Service(kopano.Service):
                 if nameid[0] == PSETID_Archive:
                     continue
 
-            if propid == (PR_SUBJECT>>16) and value and ord(value[0]) == 0x01:
+            if propid == (PR_SUBJECT_W>>16) and value and ord(value[0]) == 0x01:
                 value = value[2:] # \x01 plus another char indicates normalized-subject-prefix-length
             elif proptype == PT_SYSTIME:
                 value = MAPI.Time.FileTime(value)
@@ -212,6 +229,8 @@ class Service(kopano.Service):
     def import_pst(self, p, store):
         folders = p.folder_generator()
         root_path = rev_cp1252(next(folders).path) # skip root
+        self.fixup_entryids = []
+        self.entryid_map = {}
         for folder in folders:
             with log_exc(self.log, self.stats):
                 path = rev_cp1252(folder.path[len(root_path)+1:])
@@ -230,10 +249,29 @@ class Service(kopano.Service):
                     with log_exc(self.log, self.stats):
                         self.log.debug("importing message '%s'" % (rev_cp1252(message.Subject or '')))
                         message2 = folder2.create_item(save=False)
+                        self.entryid_map[message.EntryId] = message2.entryid
                         self.import_attachments(message, message2.mapiobj)
                         self.import_recipients(message, message2.mapiobj)
                         self.import_props(message, message2.mapiobj)
                         self.stats['messages'] += 1
+
+        # replace entryids inside properties with new entryids
+        with log_exc(self.log, self.stats):
+            for eid in self.fixup_entryids:
+                item = store.item(self.entryid_map[eid])
+                members = item.get(PidLidDistributionListMembers)
+                if members:
+                    for i, member in enumerate(members):
+                        pos = len(WRAPPED_ENTRYID_PREFIX)
+                        prefix, flags, rest = member[:pos], bval(member[pos]), member[pos+1:]
+                        if (prefix == WRAPPED_ENTRYID_PREFIX and \
+                            (flags & WRAPPED_EID_TYPE_MASK) in (WRAPPED_EID_TYPE_CONTACT, WRAPPED_EID_TYPE_PERSONAL_DISTLIST) and \
+                            rest in self.entryid_map):
+                                print('rewriting..')
+                                print(codecs.encode(members[i], 'hex'))
+                                members[i] = member[:pos+1] + codecs.decode(self.entryid_map[rest], 'hex')
+                                print(codecs.encode(members[i], 'hex'))
+                    item[PidLidDistributionListMembers] = members
 
     def get_named_property_map(self, p):
         propid_nameid = {}
@@ -273,7 +311,6 @@ class Service(kopano.Service):
                     self.import_pst(p, store)
                 else:
                     self.log.error("guid '%s' has no store", name)
-
 
         self.log.info('imported %d items in %.2f seconds (%.2f/sec, %d errors)' %
             (self.stats['messages'], time.time()-t0, self.stats['messages']/(time.time()-t0), self.stats['errors']))
