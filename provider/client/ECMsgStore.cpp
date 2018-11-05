@@ -563,8 +563,7 @@ HRESULT ECMsgStore::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	if(ulFlags & MAPI_MODIFY) {
 		if (!fModify)
 			return MAPI_E_NO_ACCESS;
-		else
-			fModifyObject = TRUE;
+		fModifyObject = TRUE;
 	}
 
 	if(ulFlags & MAPI_BEST_ACCESS)
