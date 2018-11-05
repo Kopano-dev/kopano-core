@@ -593,22 +593,22 @@ HRESULT ECMAPIFolder::CopyFolder(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		return hr;
 
 	// Check if it's  the same store of kopano so we can copy/move fast
-	if (IsKopanoEntryId(cbEntryID, (LPBYTE)lpEntryID) &&
-		IsKopanoEntryId(lpPropArray[0].Value.bin.cb, lpPropArray[0].Value.bin.lpb) &&
-		HrGetStoreGuidFromEntryId(cbEntryID, (LPBYTE)lpEntryID, &guidFrom) == hrSuccess &&
-		HrGetStoreGuidFromEntryId(lpPropArray[0].Value.bin.cb, lpPropArray[0].Value.bin.lpb, &guidDest) == hrSuccess &&
-		memcmp(&guidFrom, &guidDest, sizeof(GUID)) == 0 &&
-		lpFolderOps != NULL)
-		//FIXME: Progressbar
-		return lpFolderOps->HrCopyFolder(cbEntryID, lpEntryID,
-		       lpPropArray[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPropArray[0].Value.bin.lpb),
-		       convstring(lpszNewFolderName, ulFlags), ulFlags, 0);
+	if (!IsKopanoEntryId(cbEntryID, reinterpret_cast<const BYTE *>(lpEntryID)) ||
+	    !IsKopanoEntryId(lpPropArray[0].Value.bin.cb, lpPropArray[0].Value.bin.lpb) ||
+	    HrGetStoreGuidFromEntryId(cbEntryID, reinterpret_cast<const BYTE *>(lpEntryID), &guidFrom) != hrSuccess ||
+	    HrGetStoreGuidFromEntryId(lpPropArray[0].Value.bin.cb, lpPropArray[0].Value.bin.lpb, &guidDest) != hrSuccess ||
+	    memcmp(&guidFrom, &guidDest, sizeof(GUID)) != 0 ||
+	    lpFolderOps == nullptr)
+		/* Support object handled de copy/move */
+		return GetMsgStore()->lpSupport->CopyFolder(&IID_IMAPIFolder,
+		       static_cast<IMAPIFolder *>(this), cbEntryID, lpEntryID,
+		       lpInterface, lpDestFolder, lpszNewFolderName, ulUIParam,
+		       lpProgress, ulFlags);
 
-	/* Support object handled de copy/move */
-	return GetMsgStore()->lpSupport->CopyFolder(&IID_IMAPIFolder,
-	       static_cast<IMAPIFolder *>(this), cbEntryID, lpEntryID,
-	       lpInterface, lpDestFolder, lpszNewFolderName, ulUIParam,
-	       lpProgress, ulFlags);
+	/* FIXME: Progressbar */
+	return lpFolderOps->HrCopyFolder(cbEntryID, lpEntryID,
+	       lpPropArray[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPropArray[0].Value.bin.lpb),
+	       convstring(lpszNewFolderName, ulFlags), ulFlags, 0);
 }
 
 HRESULT ECMAPIFolder::DeleteFolder(ULONG cbEntryID, const ENTRYID *lpEntryID,
