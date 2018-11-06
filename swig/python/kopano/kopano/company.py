@@ -232,7 +232,7 @@ class Company(Properties):
             if create:
                 return self.create_user(name)
             else:
-                raise # FIXME
+                raise
 
     def get_user(self, name):
         """Return :class:`user <User>` with given name or *None* if not found.
@@ -263,6 +263,60 @@ class Company(Properties):
             for ecuser in self.server.sa.GetUserList(self._eccompany.CompanyID, MAPI_UNICODE):
                 if ecuser.Username != 'SYSTEM':
                     yield _user.User(ecuser.Username, self.server)
+
+    def create_user(self, name, password=None):
+        """Create a new :class:`user <User>` within the company.
+
+        :param name: user name
+        :param password: password (default None)
+        """
+        name = name.split('@')[0]
+        if self._name == u'Default':
+            self.server.create_user(name, password=password)
+        else:
+            self.server.create_user(name, password=password, company=self._name)
+        return self.user(name)
+
+    def group(self, name, create=False):
+        """Return :class:`group <Group>` with given name.
+
+        :param name: group name
+        :raises: NotFoundError
+        """
+        for group in self.groups(): # XXX
+            if group.name == name:
+                return group
+        if create:
+            return self.create_group(name)
+        else:
+            raise NotFoundError("no such group: '%s'" % name)
+
+    def get_group(self, name):
+        """Return :class:`group <Group>` with given name or *None* if not found.
+
+        :param name: group name
+        """
+        try:
+            return self.group(name)
+        except NotFoundError:
+            pass
+
+    def groups(self):
+        """Return all :class:`groups <Group>` within the company."""
+        if self.name == u'Default': # XXX
+            for group in self.server.groups():
+                yield group
+        else:
+            for ecgroup in self.server.sa.GetGroupList(self._eccompany.CompanyID, MAPI_UNICODE):
+                yield Group(ecgroup.Groupname, self.server)
+
+    def create_group(self, name):
+        name = name.split('@')[0]
+        if self._name == u'Default':
+            self.server.create_group(name)
+        else:
+            self.server.create_group(name+'@'+self._name)
+        return self.group(name)
 
     def admins(self):
         for ecuser in self.server.sa.GetRemoteAdminList(self._eccompany.CompanyID, MAPI_UNICODE):
@@ -305,37 +359,6 @@ class Company(Properties):
             self.server.sa.DelCompanyFromRemoteViewList(company._eccompany.CompanyID, self._eccompany.CompanyID)
         except MAPIErrorNotFound:
             raise NotFoundError("company '%s' not in view-list for company '%s'" % (company.name, self.name))
-
-    def create_user(self, name, password=None):
-        """Create a new :class:`user <User>` within the company.
-
-        :param name: user name
-        :param password: password (default None)
-        """
-        name = name.split('@')[0]
-        self.server.create_user(name, password=password, company=self._name)
-        return self.user('%s@%s' % (name, self._name))
-
-    # XXX create_group/create=True
-    def group(self, name):
-        """Return :class:`group <Group>` with given name.
-
-        :param name: group name
-        :raises: NotFoundError
-        """
-        for group in self.groups(): # XXX
-            if group.name == name:
-                return group
-        raise NotFoundError("no such group: '%s'" % name)
-
-    def groups(self):
-        """Return all :class:`groups <Group>` within the company."""
-        if self.name == u'Default': # XXX
-            for group in self.server.groups():
-                yield group
-        else:
-            for ecgroup in self.server.sa.GetGroupList(self._eccompany.CompanyID, MAPI_UNICODE):
-                yield Group(ecgroup.Groupname, self.server)
 
     @property
     def quota(self):
