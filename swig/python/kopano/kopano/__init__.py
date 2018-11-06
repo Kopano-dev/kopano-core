@@ -64,6 +64,7 @@ from .autoaccept import AutoAccept
 from .company import Company
 from .compat import set_bin_encoding, set_missing_none, hex, unhex, benc, bdec
 from .delegation import Delegation
+from .distlist import DistList
 from .folder import Folder
 from .freebusy import FreeBusyBlock, FreeBusy
 from .group import Group

@@ -102,6 +102,7 @@ from .properties import Properties
 from .recurrence import Occurrence
 from .restriction import Restriction
 from .meetingrequest import MeetingRequest, _copytags, _create_meetingrequest
+from .distlist import DistList
 from .address import Address
 from .table import Table
 from .contact import Contact
@@ -933,8 +934,22 @@ class Item(Properties, Contact, Appointment):
             pos += 4 + size
 
     @property
+    def is_meetingrequest(self):
+        """ Is the item a meeting request """
+        return self.message_class.startswith('IPM.Schedule.Meeting.')
+
+    @property
     def meetingrequest(self):
         return MeetingRequest(self)
+
+    @property
+    def is_distlist(self):
+        """ Is the item a distribution list """
+        return self.message_class == 'IPM.DistList'
+
+    @property
+    def distlist(self):
+        return DistList(self)
 
     def _addr_props(self, addr):
         if isinstance(addr, _user.User):
@@ -1325,11 +1340,6 @@ class Item(Properties, Contact, Appointment):
         """
 
         return self.copy(folder, _delete=True)
-
-    @property
-    def is_meetingrequest(self):
-        """ Is the item a meeting request """
-        return self.message_class.startswith('IPM.Schedule.Meeting.')
 
     @property
     def codepage(self):

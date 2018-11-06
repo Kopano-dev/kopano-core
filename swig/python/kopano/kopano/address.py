@@ -6,13 +6,27 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file)
 Copyright 2016 - Kopano and its licensors (see LICENSE file)
 """
 
+import codecs
+
 from .compat import repr as _repr
+
+# TODO use ECParseOneOff? TODO assumes unicode
+def _parse_oneoff(content):
+    start = sos = 24
+    info = []
+    while True:
+        if content[sos:sos + 2] == b'\x00\x00':
+            info.append(content[start:sos].decode('utf-16-le'))
+            if len(info) == 3:
+                return info
+            start = sos + 2
+        sos += 2
 
 class Address(object):
     """Address class"""
 
     def __init__(self, server=None, addrtype=None, name=None, email=None,
-                 entryid=None, searchkey=None, props=None):
+                 entryid=None, searchkey=None, props=None, oneoff=None):
         self.server = server
         self.addrtype = addrtype
         self._name = name
@@ -20,6 +34,12 @@ class Address(object):
         self.entryid = entryid
         self._searchkey = searchkey
         self._props = props
+
+        if oneoff:
+            self._name, self.addrtype, self._email = _parse_oneoff(oneoff)
+
+            if self.addrtype == 'ZARAFA':
+                self.entryid = codecs.decode(server.user(self._email).userid, 'hex')
 
     def props(self):
         """Return all :class:`properties <Property>`."""
