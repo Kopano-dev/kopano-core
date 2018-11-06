@@ -131,7 +131,7 @@ static ECRESULT ConvertABEntryIDToSoapSourceKey(struct soap *soap,
 	}
 
 	lpSourceKey->__size = cbAbeid;
-	lpSourceKey->__ptr = (unsigned char*)s_memcpy(soap, (char*)lpAbeid, cbAbeid);
+	lpSourceKey->__ptr = reinterpret_cast<unsigned char *>(s_memcpy(soap, lpAbeid, cbAbeid));
 	return erSuccess;
 }
 
@@ -281,14 +281,14 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 		sProp.Value.bin = &sBin;
 		sProp.Value.bin->__ptr = (BYTE *)strChangeList.c_str();
 		sProp.Value.bin->__size = strChangeList.size();
-		propList.push_back(sProp);
+		propList.push_back(std::move(sProp));
 
 		sProp.ulPropTag = PR_CHANGE_KEY;
 		sProp.__union = SOAP_UNION_propValData_bin;
 		sProp.Value.bin = &sBin;
 		sProp.Value.bin->__ptr = (BYTE *)szChangeKey;
 		sProp.Value.bin->__size = sizeof(szChangeKey);
-		propList.push_back(sProp);
+		propList.push_back(std::move(sProp));
 
 		er = InsertProps(lpDatabase, ulObjId, 0, propList, true);
 		if(er != erSuccess)
@@ -298,10 +298,8 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 		key.ulOrderId = 0;
 
 		auto cache = lpSession->GetSessionManager()->GetCacheManager();
-		sProp = propList.front();
-		cache->SetCell(&key, PR_PREDECESSOR_CHANGE_LIST, &sProp);
-		sProp = propList.back();
-		cache->SetCell(&key, PR_CHANGE_KEY, &sProp);
+		cache->SetCell(&key, PR_PREDECESSOR_CHANGE_LIST, &propList.front());
+		cache->SetCell(&key, PR_CHANGE_KEY, &propList.back());
 		if (lpstrChangeKey != nullptr)
 			lpstrChangeKey->assign(szChangeKey, sizeof(szChangeKey));
 		if (lpstrChangeList != nullptr)
@@ -942,7 +940,8 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 	return erSuccess;
 }
 
-ECRESULT AddABChange(BTSession *lpSession, unsigned int ulChange, SOURCEKEY sSourceKey, SOURCEKEY sParentSourceKey)
+ECRESULT AddABChange(BTSession *lpSession, unsigned int ulChange,
+    SOURCEKEY &&sSourceKey, SOURCEKEY &&sParentSourceKey)
 {
 	ECDatabase*		lpDatabase = NULL;
 

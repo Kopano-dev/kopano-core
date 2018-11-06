@@ -857,7 +857,7 @@ ECRESULT ECUserManagement::AddSubObjectToObjectAndSync(userobject_relation_t rel
 	{
 		if (er != erSuccess)
 			return er;
-		AddABChange(m_lpSession, ICS_AB_CHANGE, sSourceKey, SOURCEKEY(CbABEID(&eid), (char *)&eid));
+		AddABChange(m_lpSession, ICS_AB_CHANGE, std::move(sSourceKey), SOURCEKEY(CbABEID(&eid), &eid));
 	}
 	m_lpSession->GetSessionManager()->GetCacheManager()->UpdateUser(ulParentId);
 	return er;
@@ -910,8 +910,7 @@ ECRESULT ECUserManagement::DeleteSubObjectFromObjectAndSync(userobject_relation_
 	{
 		if (er != erSuccess)
 			return er;
-
-		AddABChange(m_lpSession, ICS_AB_CHANGE, sSourceKey, SOURCEKEY(CbABEID(&eid), (char *)&eid));
+		AddABChange(m_lpSession, ICS_AB_CHANGE, std::move(sSourceKey), SOURCEKEY(CbABEID(&eid), &eid));
 	}
 	m_lpSession->GetSessionManager()->GetCacheManager()->UpdateUser(ulParentId);
 	return er;
@@ -2279,7 +2278,7 @@ ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature,
 	er = GetABSourceKeyV1(ulId, &sSourceKey);
 	if (er != erSuccess)
 		return er;
-	AddABChange(m_lpSession, ICS_AB_NEW, sSourceKey, SOURCEKEY(CbABEID(&eid), (char *)&eid));
+	AddABChange(m_lpSession, ICS_AB_NEW, std::move(sSourceKey), SOURCEKEY(CbABEID(&eid), &eid));
 	*lpulObjectId = ulId;
 	return erSuccess;
 }
@@ -2418,7 +2417,7 @@ ECRESULT ECUserManagement::UpdateObjectclassOrDelete(const objectid_t &sExternId
 	er = GetABSourceKeyV1(ulObjectId, &sSourceKey);
 	if (er != erSuccess)
 		return er;
-	AddABChange(m_lpSession, ICS_AB_CHANGE, sSourceKey, SOURCEKEY(CbABEID(&eid), reinterpret_cast<char *>(&eid)));
+	AddABChange(m_lpSession, ICS_AB_CHANGE, std::move(sSourceKey), SOURCEKEY(CbABEID(&eid), &eid));
 	if (lpulObjectId != nullptr)
 		*lpulObjectId = ulObjectId;
 	return erSuccess;
@@ -2611,7 +2610,7 @@ ECRESULT ECUserManagement::MoveLocalObject(unsigned int ulObjectId,
 	er = GetABSourceKeyV1(ulObjectId, &sSourceKey);
 	if (er != erSuccess)
 		return er;
-	er = AddABChange(m_lpSession, ICS_AB_CHANGE, sSourceKey, SOURCEKEY(CbABEID(&eid), (char *)&eid));
+	er = AddABChange(m_lpSession, ICS_AB_CHANGE, std::move(sSourceKey), SOURCEKEY(CbABEID(&eid), &eid));
 	if(er != erSuccess)
 		return er;
 	er = dtx.commit();
@@ -2710,7 +2709,7 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 	}
 
 	// Log the change to ICS
-	er = AddABChange(m_lpSession, ICS_AB_DELETE, sSourceKey, SOURCEKEY(CbABEID(&eid), (char *)&eid));
+	er = AddABChange(m_lpSession, ICS_AB_DELETE, std::move(sSourceKey), SOURCEKEY(CbABEID(&eid), &eid));
 	if(er != erSuccess)
 		return er;
 	er = dtx.commit();
@@ -3970,8 +3969,7 @@ ECRESULT ECUserManagement::ProcessModification(unsigned int ulId,
 	auto er = GetABSourceKeyV1(ulId, &sSourceKey);
 	if (er != erSuccess)
 		return er;
-
-	AddABChange(m_lpSession, ICS_AB_CHANGE, sSourceKey, SOURCEKEY(CbABEID(&eid), (char *)&eid));
+	AddABChange(m_lpSession, ICS_AB_CHANGE, std::move(sSourceKey), SOURCEKEY(CbABEID(&eid), &eid));
 	// Ignore ICS error
 	// Save the new signature
 	er = m_lpSession->GetDatabase(&lpDatabase);

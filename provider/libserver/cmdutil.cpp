@@ -46,7 +46,7 @@ ECRESULT GetSourceKey(unsigned int ulObjId, SOURCEKEY *lpSourceKey)
 	auto er = g_lpSessionManager->GetCacheManager()->GetPropFromObject(PROP_ID(PR_SOURCE_KEY),
 	          ulObjId, nullptr, &cbData, &lpData);
 	if (er == erSuccess)
-		*lpSourceKey = SOURCEKEY(cbData, reinterpret_cast<const char *>(lpData));
+		*lpSourceKey = SOURCEKEY(cbData, lpData);
 	s_free(nullptr, lpData);
 	return er;
 }
@@ -1302,7 +1302,9 @@ ECRESULT CreateNotifications(ULONG ulObjId, ULONG ulObjType, ULONG ulParentId, U
 	return erSuccess;
 }
 
-ECRESULT WriteSingleProp(ECDatabase *lpDatabase, unsigned int ulObjId, unsigned int ulFolderId, struct propVal *lpPropVal, bool bColumnProp, unsigned int ulMaxQuerySize, std::string &strInsertQuery, bool replace)
+ECRESULT WriteSingleProp(ECDatabase *lpDatabase, unsigned int ulObjId,
+    unsigned int ulFolderId, const struct propVal *lpPropVal, bool bColumnProp,
+    unsigned int ulMaxQuerySize, std::string &strInsertQuery, bool replace)
 {
 	std::string strColData, strQueryAppend;
 	unsigned int ulColId = 0;
@@ -1342,7 +1344,9 @@ ECRESULT WriteSingleProp(ECDatabase *lpDatabase, unsigned int ulObjId, unsigned 
 	return erSuccess;
 }
 
-ECRESULT WriteProp(ECDatabase *lpDatabase, unsigned int ulObjId, unsigned int ulParentId, struct propVal *lpPropVal, bool replace) {
+ECRESULT WriteProp(ECDatabase *lpDatabase, unsigned int ulObjId,
+    unsigned int ulParentId, const struct propVal *lpPropVal, bool replace)
+{
 	std::string strQuery;
 
 	strQuery.clear();
@@ -1360,11 +1364,12 @@ ECRESULT WriteProp(ECDatabase *lpDatabase, unsigned int ulObjId, unsigned int ul
 /**
  * Batch WriteProp calls for the same ulObjID and ulParentID.
  */
-ECRESULT InsertProps(ECDatabase *database, unsigned int objId, unsigned int parentId, std::list<propVal> &propList, bool replace)
+ECRESULT InsertProps(ECDatabase *database, unsigned int objId,
+    unsigned int parentId, const std::list<propVal> &propList, bool replace)
 {
 	std::string query, colquery;
 
-	for (auto &i : propList) {
+	for (const auto &i : propList) {
 		WriteSingleProp(database, objId, parentId, &i, false, 0, query, replace);
 		WriteSingleProp(database, objId, parentId, &i, true, 0, colquery, replace);
 	}
