@@ -6,4 +6,4 @@ BUILT_SOURCES = kopano.ldif
 EXTRA_DIST = ldap/ol-schema-migrate.pl
 
 $(BUILT_SOURCES): ldap/kopano.schema ldap/ol-schema-migrate.pl
-	${top_srcdir}/installer/ldap/ol-schema-migrate.pl -b ${top_srcdir}/installer/ldap/kopano.schema > ${top_builddir}/installer/kopano.ldif
+	${top_srcdir}/installer/ldap/ol-schema-migrate.pl -X -b ${top_srcdir}/installer/ldap/kopano.schema >${top_builddir}/installer/kopano.ldif

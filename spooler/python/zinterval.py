@@ -43,5 +43,5 @@ if __name__ == '__main__':
     for input, output in testcases:
         real = parse(input)
         if real != output:
-            print "%r gives %r, not %r" % (input, real, output)
-    print 'done'
+            print("%r gives %r, not %r" % (input, real, output))
+    print('done')

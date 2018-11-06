@@ -19,7 +19,7 @@ class ZConfigParser:
         data = "[DEFAULT]\r\n"
         try:
             fp = open(filename)
-        except IOError, e:
+        except IOError as e:
             if e.errno == 2 or e.errno == 13:
                 raise IOError(e.errno, 'Unable to open config file \''+filename+'\'. ' + e.strerror)
             else:

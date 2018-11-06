@@ -48,7 +48,7 @@ class BMP2PNG(IMapiDAgentPlugin):
                     try:
                         self.ConvertBMP2PNG(message, attnum)
                         changes = True
-                    except Exception, e:
+                    except Exception as e:
                         self.logger.logError("!--- [%d] Unable to convert BMP to PNG: %s" % (attnum, e) )
                 elif (method == ATTACH_EMBEDDED_MSG):
                     self.logger.logDebug("*--- [%d] Embedded message found" % (attnum))
