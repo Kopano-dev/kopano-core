@@ -47,7 +47,7 @@ from MAPI.Tags import (
 
 from .errors import (
     Error, NotFoundError, DuplicateError, NotSupportedError,
-    LogonError
+    LogonError, ArgumentError
 )
 from .log import LOG
 
@@ -384,6 +384,10 @@ class Server(object):
         :param email: email address
         :param create: create user if it doesn't exist (name required)
         """
+
+        if not (name or email or userid):
+            raise ArgumentError('missing argument to identify user')
+
         try:
             return _user.User(name, email=email, server=self, userid=userid)
         except NotFoundError:

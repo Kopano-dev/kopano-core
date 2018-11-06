@@ -612,6 +612,8 @@ class Folder(Properties):
                 return Folder(self.store, entryid)
             except (MAPIErrorInvalidEntryid, MAPIErrorNotFound, TypeError):
                 raise NotFoundError('no folder with entryid "%s"' % entryid)
+        elif path is None:
+            raise ArgumentError('missing argument to identify folder')
 
         if '/' in path.replace('\\/', ''): # XXX MAPI folders may contain '/' (and '\') in their names..
             subfolder = self
