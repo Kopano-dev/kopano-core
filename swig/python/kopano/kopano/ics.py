@@ -301,7 +301,23 @@ def sync(server, syncobj, importer, state, max_changes, associated=False, window
     exporter.UpdateState(stream)
 
     stream.Seek(0, STREAM_SEEK_SET)
-    return _benc(stream.Read(0xFFFFF))
+    state = _benc(stream.Read(0xFFFFF))
+
+    # because changes may be reordered for efficiency, we are not always
+    # linearly following the change journal. so the current state cannot
+    # always be represented as a single change id. instead, the current state
+    # may contain changes which have been synced, relative to a certain
+    # change id (so we have synced until this change id, plus these changes).
+
+    # in pyko though, we always sync until there are no further changes,
+    # so this should normally not occur.
+
+    # TODO add an ICS flag to disable reordering
+
+    if len(state) != 16:
+        log.error('sync state not 16 digits, expect problems')
+
+    return state
 
 def sync_gab(server, mapistore, importer, state):
     stream = IStream()
