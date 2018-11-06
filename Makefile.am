@@ -744,26 +744,6 @@ EXTRA_mapi_la_DEPENDENCIES = ${srcdir}/php-ext/mapi.sym
 
 
 #
-# PHP classes, config files
-#
-phpdatadir = ${datarootdir}/kopano/php/mapi
-dist_phpdata_DATA = \
-	php-ext/include/mapi/class.baseexception.php \
-	php-ext/include/mapi/class.baserecurrence.php \
-	php-ext/include/mapi/class.freebusypublish.php \
-	php-ext/include/mapi/class.mapiexception.php \
-	php-ext/include/mapi/class.meetingrequest.php \
-	php-ext/include/mapi/class.recurrence.php \
-	php-ext/include/mapi/class.taskrecurrence.php \
-	php-ext/include/mapi/class.taskrequest.php \
-	php-ext/include/mapi/mapi.util.php \
-	php-ext/include/mapi/mapicode.php \
-	php-ext/include/mapi/mapidefs.php \
-	php-ext/include/mapi/mapiguid.php \
-	php-ext/include/mapi/mapitags.php
-
-
-#
 # auxiliary programs
 #
 kscriptrun_SOURCES = ECtools/scriptrun.cpp
