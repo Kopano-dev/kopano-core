@@ -563,10 +563,16 @@ HRESULT ECMAPIFolder::CreateFolder(ULONG ulFolderType,
 	return hrSuccess;
 }
 
-// @note if you change this function please look also at ECMAPIFolderPublic::CopyFolder
 HRESULT ECMAPIFolder::CopyFolder(ULONG cbEntryID, const ENTRYID *lpEntryID,
     const IID *lpInterface, void *lpDestFolder, const TCHAR *lpszNewFolderName,
     ULONG_PTR ulUIParam, IMAPIProgress *lpProgress, ULONG ulFlags)
+{
+	return CopyFolder2(cbEntryID, lpEntryID, lpInterface, lpDestFolder, lpszNewFolderName, ulUIParam, lpProgress, ulFlags, false);
+}
+
+HRESULT ECMAPIFolder::CopyFolder2(ULONG cbEntryID, const ENTRYID *lpEntryID,
+    const IID *lpInterface, void *lpDestFolder, const TCHAR *lpszNewFolderName,
+    ULONG_PTR ulUIParam, IMAPIProgress *lpProgress, ULONG ulFlags, bool is_public)
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPIFolder> lpMapiFolder;
@@ -593,22 +599,31 @@ HRESULT ECMAPIFolder::CopyFolder(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		return hr;
 
 	// Check if it's  the same store of kopano so we can copy/move fast
-	if (IsKopanoEntryId(cbEntryID, (LPBYTE)lpEntryID) &&
-		IsKopanoEntryId(lpPropArray[0].Value.bin.cb, lpPropArray[0].Value.bin.lpb) &&
-		HrGetStoreGuidFromEntryId(cbEntryID, (LPBYTE)lpEntryID, &guidFrom) == hrSuccess &&
-		HrGetStoreGuidFromEntryId(lpPropArray[0].Value.bin.cb, lpPropArray[0].Value.bin.lpb, &guidDest) == hrSuccess &&
-		memcmp(&guidFrom, &guidDest, sizeof(GUID)) == 0 &&
-		lpFolderOps != NULL)
-		//FIXME: Progressbar
-		return lpFolderOps->HrCopyFolder(cbEntryID, lpEntryID,
-		       lpPropArray[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPropArray[0].Value.bin.lpb),
-		       convstring(lpszNewFolderName, ulFlags), ulFlags, 0);
+	if (!IsKopanoEntryId(cbEntryID, reinterpret_cast<const BYTE *>(lpEntryID)) ||
+	    !IsKopanoEntryId(lpPropArray[0].Value.bin.cb, lpPropArray[0].Value.bin.lpb) ||
+	    HrGetStoreGuidFromEntryId(cbEntryID, reinterpret_cast<const BYTE *>(lpEntryID), &guidFrom) != hrSuccess ||
+	    HrGetStoreGuidFromEntryId(lpPropArray[0].Value.bin.cb, lpPropArray[0].Value.bin.lpb, &guidDest) != hrSuccess ||
+	    memcmp(&guidFrom, &guidDest, sizeof(GUID)) != 0 ||
+	    lpFolderOps == nullptr)
+		/* Support object handled de copy/move */
+		return GetMsgStore()->lpSupport->CopyFolder(&IID_IMAPIFolder,
+		       static_cast<IMAPIFolder *>(this), cbEntryID, lpEntryID,
+		       lpInterface, lpDestFolder, lpszNewFolderName, ulUIParam,
+		       lpProgress, ulFlags);
 
-	/* Support object handled de copy/move */
-	return GetMsgStore()->lpSupport->CopyFolder(&IID_IMAPIFolder,
-	       static_cast<IMAPIFolder *>(this), cbEntryID, lpEntryID,
-	       lpInterface, lpDestFolder, lpszNewFolderName, ulUIParam,
-	       lpProgress, ulFlags);
+	/* If the entryid is a public folder's entryid, just change the entryid to a server entryid */
+	unsigned int ulResult = 0;
+	if (is_public && static_cast<ECMsgStorePublic *>(GetMsgStore())->ComparePublicEntryId(ePE_PublicFolders,
+	    lpPropArray[0].Value.bin.cb, reinterpret_cast<const ENTRYID *>(lpPropArray[0].Value.bin.lpb), &ulResult) == hrSuccess &&
+	    ulResult == true) {
+		hr = HrGetOneProp(lpMapiFolder, PR_ORIGINAL_ENTRYID, &~lpPropArray);
+		if (hr != hrSuccess)
+			return hr;
+	}
+	/* FIXME: Progressbar */
+	return lpFolderOps->HrCopyFolder(cbEntryID, lpEntryID,
+	       lpPropArray[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPropArray[0].Value.bin.lpb),
+	       convstring(lpszNewFolderName, ulFlags), ulFlags, 0);
 }
 
 HRESULT ECMAPIFolder::DeleteFolder(ULONG cbEntryID, const ENTRYID *lpEntryID,
