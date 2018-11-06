@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # -*- coding: utf-8 -*-
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
@@ -40,20 +40,20 @@ def translate(lang, reset):
         try:
             locale.setlocale(locale.LC_ALL, lang)
         except locale.Error:
-            print 'Error: %s Is not a language pack or is not installed' % lang
+            print('Error: %s Is not a language pack or is not installed' % lang)
             sys.exit(1)
 
         encoding = locale.getlocale()[1]
 
         if "UTF-8" not in encoding:
-            print 'Error: Locale "%s" is in "%s" not in UTF-8, please select an appropriate UTF-8 locale.' % (
-                lang, encoding)
+            print('Error: Locale "%s" is in "%s" not in UTF-8, please select an appropriate UTF-8 locale.' % (
+                lang, encoding))
             sys.exit(1)
         try:
             t = gettext.translation('kopano', "/usr/share/locale", languages=[locale.getlocale()[0]])
             _ = t.gettext
         except (ValueError, IOError):
-            print 'Error: kopano is not translated in %s' % lang
+            print('Error: kopano is not translated in %s' % lang)
             sys.exit(1)
 
         trans = {"sentmail": _("Sent Items"),
@@ -76,37 +76,37 @@ def main():
     options, args = opt_args()
 
     if not options.lang and not options.reset:
-        print 'Usage:\n%s -u <username> --lang <language>  ' % sys.argv[0]
+        print('Usage:\n%s -u <username> --lang <language>  ' % sys.argv[0])
         sys.exit(1)
 
     trans = translate(options.lang, options.reset)
     for user in kopano.Server(options).users(options.users):
-        print user.name
+        print(user.name)
         if options.reset:
-            print '%s: Changing localized folder names to \"en_GB.UTF-8\"' % user.name.decode('utf-8')
+            print('%s: Changing localized folder names to \"en_GB.UTF-8\"' % user.name.decode('utf-8'))
         else:
-            print '%s: Changing localized folder names to \"%s\"' % (user.name.decode('utf-8'), options.lang)
+            print('%s: Changing localized folder names to \"%s\"' % (user.name.decode('utf-8'), options.lang))
 
         if options.verbose:
-            print 'Running in verbose mode'
+            print('Running in verbose mode')
         if options.dryrun:
-            print 'Running in dry mode no changes will be made'
+            print('Running in dry mode no changes will be made')
 
         for mapifolder in trans:
             try:
                 folderobject = getattr(user.store, mapifolder)
             except AttributeError as e:
-                print 'Warning: Cannot find MAPI folder %s, error code: %s' % (mapifolder.decode('utf-8'), e)
+                print('Warning: Cannot find MAPI folder %s, error code: %s' % (mapifolder.decode('utf-8'), e))
                 continue
 
             localizedname = trans[mapifolder]
             if options.verbose or options.dryrun:
-                print 'Changing MAPI "%s" -> Renaming "%s" to "%s"' % (mapifolder.decode('utf-8'), folderobject.name.decode('utf-8'), localizedname.decode('utf-8'))
+                print('Changing MAPI "%s" -> Renaming "%s" to "%s"' % (mapifolder.decode('utf-8'), folderobject.name.decode('utf-8'), localizedname.decode('utf-8')))
             if not options.dryrun:
                 try:
                     folderobject[PR_DISPLAY_NAME] = localizedname
                 except MAPI.Struct.MAPIErrorCollision:
-                    print '%s is already being used' % localizedname.decode('utf-8')
+                    print('%s is already being used' % localizedname.decode('utf-8'))
                     sys.exit(1)
 
 

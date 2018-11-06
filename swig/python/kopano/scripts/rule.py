@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # SPDX-License-Identifier: AGPL-3.0-only
 
 # client-side rule, which moves incoming mails with 'spam' in the subject to the junk folder

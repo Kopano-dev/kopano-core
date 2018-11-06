@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # SPDX-License-Identifier: AGPL-3.0-only
 
 # generate graphs, containing e.g. the store size for each user

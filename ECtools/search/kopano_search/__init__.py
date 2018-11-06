@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # SPDX-License-Identifier: AGPL-3.0-only
 from __future__ import print_function
 from .version import __version__

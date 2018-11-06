@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # SPDX-License-Identifier: AGPL-3.0-only
 
 from MAPI.Util import *
@@ -25,18 +25,18 @@ def AddRecipientToAppointments(calendar, recip):
                          ))
     ctable.Restrict(res, TBL_BATCH)
     rows = ctable.QueryRows(-1, 0)
-    print "Updating %d items" % len(rows)
+    print('Updating %d items' % len(rows))
     for row in rows:
         msg = calendar.OpenEntry(row[0].Value, None, MAPI_BEST_ACCESS)
         msg.ModifyRecipients(MODRECIP_ADD, [recip])
         msg.SaveChanges(0)
-    print "Done"
+    print('Done')
 
 def main(argv = None):
     if argv is None:
         argv = sys.argv
     if len(argv) < 2:
-        print "Usage: %s <username>" % argv[0]
+        print('Usage: %s <username>' % argv[0])
         return 1
     session = OpenECSession(argv[1], "", os.getenv("KOPANO_SOCKET", "default:"))
     store = GetDefaultStore(session)
