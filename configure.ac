@@ -742,7 +742,7 @@ AC_CONFIG_FILES([ECtools/migration-pst/kopano-migration-pst], [chmod +x ECtools/
 AC_CONFIG_FILES([ECtools/spamd/kopano-spamd], [chmod +x ECtools/spamd/kopano-spamd])
 AC_CONFIG_FILES([ECtools/utils/kopano-mr-accept], [chmod +x ECtools/utils/kopano-mr-accept])
 AC_CONFIG_FILES([ECtools/utils/kopano-mr-process], [chmod +x ECtools/utils/kopano-mr-process])
-AC_CONFIG_FILES([ECtools/utils/kopano-autorespond.py], [chmod +x ECtools/utils/kopano-autorespond.py])
+AC_CONFIG_FILES([ECtools/utils/kopano-autorespond], [chmod +x ECtools/utils/kopano-autorespond])
 AC_CONFIG_FILES([ECtools/search/kopano_search/version.py], [])
 AC_CONFIG_FILES([ECtools/backup/kopano_backup/version.py], [])
 AC_CONFIG_FILES([ECtools/cli/kopano_cli/version.py], [])
