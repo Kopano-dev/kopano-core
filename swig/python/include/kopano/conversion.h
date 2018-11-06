@@ -28,7 +28,6 @@ PyObject *		Object_from_FILETIME(FILETIME ft);
 extern SPropValue *Object_to_p_SPropValue(PyObject *, ULONG flags = CONV_COPY_SHALLOW, void *base = nullptr);
 extern SPropValue *Object_to_LPSPropValue(PyObject *, ULONG flags = CONV_COPY_SHALLOW, void *base = nullptr);
 extern int Object_is_SPropValue(PyObject *);
-extern int Object_is_LPSPropValue(PyObject *);
 extern PyObject *List_from_SPropValue(const SPropValue *, ULONG n);
 extern PyObject *List_from_LPSPropValue(const SPropValue *, ULONG n);
 extern SPropValue *List_to_p_SPropValue(PyObject *, ULONG *nvals, ULONG flags = CONV_COPY_SHALLOW, void *base = nullptr);

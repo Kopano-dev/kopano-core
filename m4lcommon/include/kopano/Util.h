@@ -71,7 +71,6 @@ class Util _kc_final {
 	_kc_export static HRESULT HrDeleteIMAPData(LPMESSAGE);
 	_kc_export static HRESULT HrGetQuotaStatus(IMsgStore *, ECQUOTA *, ECQUOTASTATUS **ret);
 	_kc_export static HRESULT HrDeleteResidualProps(LPMESSAGE dstmsg, LPMESSAGE srcmsg, LPSPropTagArray valid_props);
-	static HRESULT ValidMapiPropInterface(LPCIID lpInterface);
 	_kc_export static HRESULT HrDeleteAttachments(LPMESSAGE);
 	_kc_export static HRESULT HrDeleteRecipients(LPMESSAGE);
 	_kc_export static HRESULT HrDeleteMessage(IMAPISession *, IMessage *);
@@ -84,7 +83,6 @@ class Util _kc_final {
 	
 	_kc_export static HRESULT ReadProperty(IMAPIProp *, ULONG tag, std::string &data);
 	_kc_export static HRESULT WriteProperty(IMAPIProp *, ULONG tag, const std::string &data);
-	static HRESULT ExtractRSSEntryID(LPSPropValue blob, ULONG *eid_size, LPENTRYID *eid);
 	_kc_export static HRESULT ExtractSuggestedContactsEntryID(LPSPropValue prop_blob, ULONG *eid_size, LPENTRYID *eid);
 	static HRESULT ExtractAdditionalRenEntryID(LPSPropValue lpPropBlob, unsigned short usBlockType, ULONG *lpcbEntryID, LPENTRYID *lppEntryID);
 };

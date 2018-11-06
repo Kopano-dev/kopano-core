@@ -3713,11 +3713,6 @@ const char* WSTransport::GetServerName()
 	return m_sProfileProps.strServerPath.c_str();
 }
 
-bool WSTransport::IsConnected()
-{
-	return m_lpCmd != NULL;
-}
-
 HRESULT WSTransport::HrOpenMultiStoreTable(const ENTRYLIST *lpMsgList,
     ULONG ulFlags, ULONG cbEntryID, const ENTRYID *lpEntryID,
     ECMsgStore *lpMsgStore, WSTableView **lppTableView)

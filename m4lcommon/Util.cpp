@@ -3600,11 +3600,6 @@ HRESULT Util::WriteProperty(IMAPIProp *lpProp, ULONG ulPropTag, const std::strin
 	return lpStream->Commit(0);
 }
 
-HRESULT Util::ExtractRSSEntryID(LPSPropValue lpPropBlob, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
-{
-	return ExtractAdditionalRenEntryID(lpPropBlob, RSF_PID_RSS_SUBSCRIPTION, lpcbEntryID, lppEntryID);
-}
-
 HRESULT Util::ExtractSuggestedContactsEntryID(LPSPropValue lpPropBlob, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
 {
 	return ExtractAdditionalRenEntryID(lpPropBlob, RSF_PID_SUGGESTED_CONTACTS , lpcbEntryID, lppEntryID);

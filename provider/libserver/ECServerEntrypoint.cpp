@@ -181,15 +181,6 @@ void kopano_end_soap_listener(struct soap *soap)
 	delete soap_info(soap);
 }
 
-// Called just before the socket is reset, with the server-side socket still
-// open
-void kopano_disconnect_soap_connection(struct soap *soap)
-{
-	if (SOAP_CONNECTION_TYPE_NAMED_PIPE(soap))
-		// Mark the persistent session as exited
-		g_lpSessionManager->RemoveSessionPersistentConnection((unsigned int)soap->socket);
-}
-
 // Export functions
 ECRESULT GetDatabaseObject(std::shared_ptr<ECStatsCollector> sc, ECDatabase **lppDatabase)
 {

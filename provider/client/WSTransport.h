@@ -210,7 +210,6 @@ public:
 	virtual HRESULT HrGetSyncStates(const ECLISTSYNCID &lstSyncId, ECLISTSYNCSTATE *lplstSyncState);
 
 	virtual const char* GetServerName();
-	virtual bool IsConnected();
 
 	/* multi store table functions */
 	virtual HRESULT HrOpenMultiStoreTable(const ENTRYLIST *msglist, ULONG flags, ULONG eid_size, const ENTRYID *eid, ECMsgStore *, WSTableView **ops);

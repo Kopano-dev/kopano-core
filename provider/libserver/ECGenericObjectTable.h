@@ -133,11 +133,6 @@ public:
 	virtual ECRESULT GetColumnsAll(ECListInt* lplstProps);
 	virtual ECRESULT ReloadTableMVData(ECObjectTableList* lplistRows, ECListInt* lplistMVPropTag);
 
-	// Sort functions
-	virtual ECRESULT IsSortKeyExist(const sObjectTableKey* lpsRowItem, unsigned int ulPropTag);
-	virtual ECRESULT GetSortKey(sObjectTableKey* lpsRowItem, unsigned int ulPropTag, unsigned int *lpSortLen, unsigned char **lppSortData);
-	virtual ECRESULT SetSortKey(sObjectTableKey* lpsRowItem, unsigned int ulPropTag, unsigned int ulSortLen, unsigned char *lpSortData);
-
 	// Server operations
 	virtual ECRESULT	Clear();
 	virtual ECRESULT	Populate();
