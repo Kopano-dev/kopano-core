@@ -22,7 +22,11 @@ from MAPI.Tags import (PR_SENDER_EMAIL_ADDRESS_W, PR_SENDER_ENTRYID,
 import MAPI.Time
 import kopano
 from kopano import log_exc
-from kopano.pidlid import PidLidDistributionListMembers
+
+from kopano.pidlid import (
+    PidLidDistributionListMembers,
+    PidLidDistributionListOneOffMembers
+)
 
 from . import pst
 
@@ -105,7 +109,7 @@ class Service(kopano.Service):
 
             if propid == (PR_MESSAGE_CLASS_W>>16):
                 if value == 'IPM.DistList':
-                    self.fixup_entryids.append(parent.EntryId)
+                    self.distlist_entryids.append(parent.EntryId)
 
             if proptype in (PT_CURRENCY, PT_MV_CURRENCY, PT_ACTIONS, PT_SRESTRICT, PT_SVREID):
                 continue # unsupported by parser
@@ -229,7 +233,7 @@ class Service(kopano.Service):
     def import_pst(self, p, store):
         folders = p.folder_generator()
         root_path = rev_cp1252(next(folders).path) # skip root
-        self.fixup_entryids = []
+        self.distlist_entryids = []
         self.entryid_map = {}
         for folder in folders:
             with log_exc(self.log, self.stats):
@@ -254,23 +258,25 @@ class Service(kopano.Service):
                         self.import_recipients(message, message2.mapiobj)
                         self.import_props(message, message2.mapiobj)
                         self.stats['messages'] += 1
+        self.rewrite_entryids(store)
 
-        # replace entryids inside properties with new entryids
-        with log_exc(self.log, self.stats):
-            for eid in self.fixup_entryids:
+    def rewrite_entryids(self, store):
+        # distribution lists
+        for eid in self.distlist_entryids:
+            with log_exc(self.log, self.stats):
                 item = store.item(self.entryid_map[eid])
                 members = item.get(PidLidDistributionListMembers)
+                oneoffs = item.get(PidLidDistributionListOneOffMembers)
                 if members:
-                    for i, member in enumerate(members):
+                    for i, (member, oneoff) in enumerate(zip(members, oneoffs)):
                         pos = len(WRAPPED_ENTRYID_PREFIX)
                         prefix, flags, rest = member[:pos], bval(member[pos]), member[pos+1:]
                         if (prefix == WRAPPED_ENTRYID_PREFIX and \
                             (flags & WRAPPED_EID_TYPE_MASK) in (WRAPPED_EID_TYPE_CONTACT, WRAPPED_EID_TYPE_PERSONAL_DISTLIST) and \
                             rest in self.entryid_map):
-                                print('rewriting..')
-                                print(codecs.encode(members[i], 'hex'))
                                 members[i] = member[:pos+1] + codecs.decode(self.entryid_map[rest], 'hex')
-                                print(codecs.encode(members[i], 'hex'))
+                        else: # fall-back to oneoff if we can't resolve
+                            members[i] = oneoffs[i]
                     item[PidLidDistributionListMembers] = members
 
     def get_named_property_map(self, p):
