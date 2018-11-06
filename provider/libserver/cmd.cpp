@@ -101,7 +101,7 @@ class ECFifoSerializer final : public ECSerializer {
 };
 
 // Hold the status of the softdelete purge system
-static bool g_bPurgeSoftDeleteStatus = FALSE;
+static bool g_bPurgeSoftDeleteStatus = false;
 
 static ECRESULT CreateEntryId(GUID guidStore, unsigned int ulObjType,
     entryId **lppEntryId)
@@ -906,13 +906,13 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 
 	auto laters = make_scope_success([&]() {
 		if (er != KCERR_BUSY)
-			g_bPurgeSoftDeleteStatus = FALSE;
+			g_bPurgeSoftDeleteStatus = false;
 	});
 	if (g_bPurgeSoftDeleteStatus) {
 		ec_log_err("Softdelete already running");
 		return KCERR_BUSY;
 	}
-	g_bPurgeSoftDeleteStatus = TRUE;
+	g_bPurgeSoftDeleteStatus = true;
 	if (!lpbExit)
 		lpbExit = &bExitDummy;
 	er = lpecSession->GetDatabase(&lpDatabase);
@@ -1455,7 +1455,7 @@ static ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession,
 
 /**
  * loadProp: Reads a single, large property from the database. No size limit.
- *   this can also be a complete attachment
+ * This can also be a complete attachment
  */
 SOAP_ENTRY_START(loadProp, lpsResponse->er, const entryId &sEntryId,
     unsigned int ulObjId, unsigned int ulPropTag,
@@ -1468,7 +1468,7 @@ SOAP_ENTRY_START(loadProp, lpsResponse->er, const entryId &sEntryId,
         if (er != erSuccess)
 			return er;
     }
-    
+
 	// Check permission
 	er = lpecSession->GetSecurity()->CheckPermission(ulObjId, ecSecurityRead);
 	if(er != erSuccess)
@@ -1593,11 +1593,11 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
     unsigned int ulSyncId, struct saveObject *lpsReturnObj,
     bool *lpfHaveChangeKey, FILETIME *lpftCreated, FILETIME *lpftModified)
 {
-	std::string strInsertQuery, strColName, strUsername;
+	std::string strColName, strUsername;
 	struct propValArray *lpPropValArray = &lpsSaveObj->modProps;
 	unsigned int ulParent = 0, ulGrandParent = 0, ulParentType = 0;
 	unsigned int ulObjType = 0, ulOwner = 0, ulFlags = 0;
-	unsigned int ulAffected = 0, ulPropInserts = 0;
+	unsigned int ulAffected = 0;
 	gsoap_size_t nMVItems;
 	unsigned long long ullIMAP = 0;
 	std::set<unsigned int>	setInserted;
@@ -1914,12 +1914,6 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 		// Instead of writing directly to tproperties, save a delayed write request.
 		er = ECTPropsPurge::AddDeferredUpdateNoPurge(lpDatabase, ulParent, 0, ulObjId);
 		if (er != erSuccess)
-			return er;
-	}
-	// Insert the properties
-	if(ulPropInserts > 0) {
-		er = lpDatabase->DoInsert(strInsertQuery, NULL, NULL);
-		if(er != erSuccess)
 			return er;
 	}
 
@@ -2389,7 +2383,7 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er,
 	SOURCEKEY sSourceKey, sParentSourceKey;
 	struct saveObject sReturnObject;
 	std::string strChangeKey, strChangeList;
-	BOOL			fNewItem = false;
+	bool			fNewItem = false;
 	bool			fHaveChangeKey = false;
 	struct propVal	*pvCommitTime = NULL;
 	std::unique_ptr<ECAttachmentStorage> lpAttachmentStorage(g_lpSessionManager->get_atxconfig()->new_handle(lpDatabase));
@@ -6280,7 +6274,7 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 
 	GetSourceKey(ulDestFolderId, &sDestFolderSourceKey);
 	// Get all items for the object list
-	strQuery = "SELECT h.id, h.parent, h.type, h.flags, h.owner, p.val_ulong, p2.val_ulong FROM hierarchy AS h LEFT JOIN properties AS p ON p.hierarchyid=h.id AND p.tag="+stringify(PROP_ID(PR_MESSAGE_SIZE))+" AND p.type="+stringify(PROP_TYPE(PR_MESSAGE_SIZE)) + 
+	strQuery = "SELECT h.id, h.parent, h.type, h.flags, h.owner, p.val_ulong, p2.val_ulong FROM hierarchy AS h LEFT JOIN properties AS p ON p.hierarchyid=h.id AND p.tag="+stringify(PROP_ID(PR_MESSAGE_SIZE))+" AND p.type="+stringify(PROP_TYPE(PR_MESSAGE_SIZE)) +
 		   " LEFT JOIN properties AS p2 ON p2.hierarchyid=h.id AND p2.tag = " + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + " AND p2.type = " + stringify(PROP_TYPE(PR_MESSAGE_FLAGS)) + " WHERE h.id IN(" +
 		   kc_join(*lplObjectIds, ",", stringify) + ")";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
@@ -7758,19 +7752,6 @@ SOAP_ENTRY_START(hookStore, *result, unsigned int ulStoreType,
 	return erSuccess;
 }
 SOAP_ENTRY_END()
-
-int KCmdService::deleteStore(ULONG64, unsigned int, unsigned int,
-    unsigned int *result)
-{
-	/*
-	 * Used to move the store to the public, but this is not
-	 * possible due to multi-server setups. This was also really
-	 * slow because of the storeid column in the properties
-	 * table.
-	 */
-	*result = KCERR_NOT_IMPLEMENTED;
-	return SOAP_OK;
-}
 
 // softdelete the store from the database, so this function returns quickly
 SOAP_ENTRY_START(removeStore, *result,

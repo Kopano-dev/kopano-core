@@ -862,7 +862,7 @@ ECRESULT MarkStoreAsDeleted(ECSession *lpSession, ECDatabase *lpDatabase, unsign
 /*
  * Delete objects from different stores.
  *
- * Delete a store, folders, messages, reciepints and attachments.
+ * Delete a store, folders, messages, recipients and attachments.
  *
  * @param[in] lpSession Reference to a session object; cannot be NULL.
  * @param[in] lpDatabase Reference to a database object; cannot be NULL.
@@ -883,7 +883,7 @@ ECRESULT DeleteObjects(ECSession *lpSession, ECDatabase *lpDatabase, unsigned in
 /*
  * Delete objects from different stores.
  *
- * Delete a store, folders, messages, reciepints and attachments.
+ * Delete a store, folders, messages, recipients and attachments.
  *
  * @param[in] lpSession Reference to a session object; cannot be NULL.
  * @param[in] lpDatabase Reference to a database object; cannot be NULL.

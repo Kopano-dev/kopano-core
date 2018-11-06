@@ -1031,8 +1031,6 @@ int ns__purgeCache(ULONG64 ulSessionId, unsigned int ulFlags, unsigned int *resu
 
 // Create store for a user
 int ns__createStore(ULONG64 ulSessionId, unsigned int ulStoreType, unsigned int ulUserId, entryId sUserId, entryId sStoreId, entryId sRootId, unsigned int ulFlags, unsigned int *result);
-// Disabled, returns error, use ns__removeStore
-int ns__deleteStore(ULONG64 ulSessionId, unsigned int ulStoreId, unsigned int ulSyncId, unsigned int *result);
 // Mark store deleted for softdelete to purge from database
 int ns__removeStore(ULONG64 ulSessionId, struct xsd__base64Binary sStoreGuid, unsigned int ulSyncId, unsigned int *result);
 // Hook a store to a specified user (overrides previous hooked store)
