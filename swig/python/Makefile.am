@@ -108,7 +108,7 @@ archiver.py: $(BUILT_SOURCES)
 libfreebusy.py: $(BUILT_SOURCES)
 RecurrenceState.py: $(BUILT_SOURCES)
 
-nodist__MAPICore_la_SOURCES = mapi_wrap.cxx mapi_wrap.h scl.h
+nodist__MAPICore_la_SOURCES = mapi_wrap.cxx mapi_wrap.h
 nodist__inetmapi_la_SOURCES = inetmapi_wrap.cxx
 nodist__icalmapi_la_SOURCES = icalmapi_wrap.cxx
 nodist__archiver_la_SOURCES = archiver_wrap.cxx archiver_conv.h archiver_conv.cpp
