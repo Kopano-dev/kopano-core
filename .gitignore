@@ -162,7 +162,6 @@ stamp-h2
 /swig/python/RecurrenceState_wrap.cxx
 /swig/python/kopano/build/
 /swig/python/kopano/dist/
-/swig/python/zarafa/build/
 /swig/python/python.sym
 
 # Ignore Python compiled files
