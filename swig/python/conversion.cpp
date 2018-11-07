@@ -32,92 +32,90 @@ typedef int Py_ssize_t;
 #	define PY_SSIZE_T_MIN INT_MIN
 #endif
 
-namespace priv {
-	/**
-	 * Default version of conv_out, which is intended to convert one script value
-	 * to a native value.
-	 * This version will always generate a compile error as the actual conversions
-	 * should be performed by specializations for the specific native types.
-	 *
-	 * @value:	The scripted value to convert. (in)
-	 * @flags:	%MAPI_UNICODE or 0.
-	 */
-	template<typename _Type> void conv_out(PyObject *value,
-	    void */*base*/, unsigned int /*flags*/, _Type *result)
-	{
-		/* Just generate an error here */
-		value = result;
-	}
+/**
+ * Default version of conv_out, which is intended to convert one script value
+ * to a native value.
+ * This version will always generate a compile error as the actual conversions
+ * should be performed by specializations for the specific native types.
+ *
+ * @value:	The scripted value to convert. (in)
+ * @flags:	%MAPI_UNICODE or 0.
+ */
+template<typename _Type> static void conv_out(PyObject *value,
+    void */*base*/, unsigned int /*flags*/, _Type *result)
+{
+	/* Just generate an error here */
+	value = result;
+}
 
-	template<> void conv_out<TCHAR *>(PyObject *value, void *base,
-	    unsigned int flags, TCHAR **resp)
-	{
-		if (value == Py_None) {
-			*resp = nullptr;
-			return;
-		}
-		/* FIXME: General helper function as improvement */
-		if ((flags & MAPI_UNICODE) == 0) {
-			*reinterpret_cast<char **>(resp) = PyString_AsString(value);
-			return;
-		}
-		int len = PyUnicode_GetSize(value);
-		if (MAPIAllocateMore((len + 1) * sizeof(wchar_t), base, reinterpret_cast<void **>(resp)) != hrSuccess)
-			throw std::bad_alloc();
-		/* FIXME: Required for the PyUnicodeObject cast */
+template<> void conv_out<TCHAR *>(PyObject *value, void *base,
+    unsigned int flags, TCHAR **resp)
+{
+	if (value == Py_None) {
+		*resp = nullptr;
+		return;
+	}
+	/* FIXME: General helper function as improvement */
+	if ((flags & MAPI_UNICODE) == 0) {
+		*reinterpret_cast<char **>(resp) = PyString_AsString(value);
+		return;
+	}
+	int len = PyUnicode_GetSize(value);
+	if (MAPIAllocateMore((len + 1) * sizeof(wchar_t), base, reinterpret_cast<void **>(resp)) != hrSuccess)
+		throw std::bad_alloc();
+	/* FIXME: Required for the PyUnicodeObject cast */
 #if PY_MAJOR_VERSION >= 3
-		len = PyUnicode_AsWideChar(value, *reinterpret_cast<wchar_t **>(resp), len);
+	len = PyUnicode_AsWideChar(value, *reinterpret_cast<wchar_t **>(resp), len);
 #else
-		len = PyUnicode_AsWideChar(reinterpret_cast<PyUnicodeObject *>(value), *reinterpret_cast<wchar_t **>(resp), len);
+	len = PyUnicode_AsWideChar(reinterpret_cast<PyUnicodeObject *>(value), *reinterpret_cast<wchar_t **>(resp), len);
 #endif
-		(*reinterpret_cast<wchar_t **>(resp))[len] = L'\0';
-	}
+	(*reinterpret_cast<wchar_t **>(resp))[len] = L'\0';
+}
 
-	template<> void conv_out<unsigned int>(PyObject *value,
-	    void */*base*/, unsigned int /*flags*/, unsigned int *res)
-	{
-		*res = PyLong_AsUnsignedLong(value);
-	}
+template<> void conv_out<unsigned int>(PyObject *value,
+    void */*base*/, unsigned int /*flags*/, unsigned int *res)
+{
+	*res = PyLong_AsUnsignedLong(value);
+}
 
-	template<> void conv_out<unsigned short>(PyObject *value,
-	    void */*base*/, unsigned int /*flags*/, unsigned short *res)
-	{
-		*res = PyLong_AsUnsignedLong(value);
-	}
+template<> void conv_out<unsigned short>(PyObject *value,
+    void */*base*/, unsigned int /*flags*/, unsigned short *res)
+{
+	*res = PyLong_AsUnsignedLong(value);
+}
 
-	template<> void conv_out<bool>(PyObject *value, void */*base*/,
-	    unsigned int /*flags*/, bool *res)
-	{
-		*res = PyLong_AsUnsignedLong(value);
-	}
+template<> void conv_out<bool>(PyObject *value, void */*base*/,
+    unsigned int /*flags*/, bool *res)
+{
+	*res = PyLong_AsUnsignedLong(value);
+}
 
-	template<> void conv_out<int64_t>(PyObject *value, void */*base*/,
-	    unsigned int /*flags*/, int64_t *res)
-	{
-		*res = PyLong_AsUnsignedLong(value);
-	}
+template<> void conv_out<int64_t>(PyObject *value, void */*base*/,
+    unsigned int /*flags*/, int64_t *res)
+{
+	*res = PyLong_AsUnsignedLong(value);
+}
 
-	template<> void conv_out<SBinary>(PyObject *value, void *base,
-	    unsigned int /*flags*/, SBinary *res)
-	{
-		char *data;
-		Py_ssize_t size;
-		if (value == Py_None || PyString_AsStringAndSize(value, &data, &size) < 0) {
-			res->cb = 0;
-			res->lpb = nullptr;
-			return;
-		}
-		res->cb = size;
-		if (KAllocCopy(data, size, reinterpret_cast<void **>(&res->lpb), base) != hrSuccess)
-			throw std::bad_alloc();
+template<> void conv_out<SBinary>(PyObject *value, void *base,
+    unsigned int /*flags*/, SBinary *res)
+{
+	char *data;
+	Py_ssize_t size;
+	if (value == Py_None || PyString_AsStringAndSize(value, &data, &size) < 0) {
+		res->cb = 0;
+		res->lpb = nullptr;
+		return;
 	}
+	res->cb = size;
+	if (KAllocCopy(data, size, reinterpret_cast<void **>(&res->lpb), base) != hrSuccess)
+		throw std::bad_alloc();
+}
 
-	template<> void conv_out<objectclass_t>(PyObject *value, void */*base*/,
-	    unsigned int /*flags*/, objectclass_t *res)
-	{
-		*res = static_cast<objectclass_t>(PyLong_AsUnsignedLong(value));
-	}
-} /* namspace priv */
+template<> void conv_out<objectclass_t>(PyObject *value, void */*base*/,
+    unsigned int /*flags*/, objectclass_t *res)
+{
+	*res = static_cast<objectclass_t>(PyLong_AsUnsignedLong(value));
+}
 
 /**
  * This is the default convert function for converting a script value to
@@ -138,14 +136,14 @@ namespace priv {
  * @flags:	Allowed values: %MAPI_UNICODE for a wide character string.
  */
 template<typename ObjType, typename MemType, MemType(ObjType::*Member)>
-void conv_out_default(ObjType *obj, PyObject *elem, const char *member_tx,
-    void *base, unsigned int flags)
+static void conv_out_default(ObjType *obj, PyObject *elem,
+    const char *member_tx, void *base, unsigned int flags)
 {
 	/* Older versions of python might expect a non-const char pointer. */
 	pyobj_ptr value(PyObject_GetAttrString(elem, const_cast<char *>(member_tx)));
 	if (PyErr_Occurred())
 		return;
-	priv::conv_out(value, base, flags, &(obj->*Member));
+	conv_out(value, base, flags, &(obj->*Member));
 }
 
 /**
@@ -169,7 +167,7 @@ template<typename ObjType> struct conv_out_info {
  * @flags:	Allowed values: %MAPI_UNICODE for a wide character string.
  */
 template<typename ObjType, size_t N>
-void process_conv_out_array(ObjType *obj, PyObject *elem,
+static void process_conv_out_array(ObjType *obj, PyObject *elem,
     const conv_out_info<ObjType> (&array)[N], void *base, unsigned int flags)
 {
 	for (size_t n = 0; !PyErr_Occurred() && n < N; ++n)
