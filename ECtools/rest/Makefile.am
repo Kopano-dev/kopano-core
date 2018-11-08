@@ -6,10 +6,10 @@ EXTRA_DIST = setup.py \
 	kopano_rest/__init__.py \
 	kopano_rest/__main__.py \
 	kopano_rest/utils.py \
-	kopano_rest/api_v0/config.py \
-	kopano_rest/api_v0/__init__.py \
-	kopano_rest/api_v0/notify.py \
-	kopano_rest/api_v0/rest.py \
+	kopano_rest/api_v1/config.py \
+	kopano_rest/api_v1/__init__.py \
+	kopano_rest/api_v1/notify.py \
+	kopano_rest/api_v1/rest.py \
 	kopano_rest/resource/attachment.py \
 	kopano_rest/resource/calendar.py \
 	kopano_rest/resource/contactfolder.py \
