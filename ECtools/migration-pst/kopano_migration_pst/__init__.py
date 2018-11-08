@@ -8,6 +8,17 @@ import time
 import sys
 
 from MAPI.Util import *
+from MAPI.Tags import (PR_SENDER_EMAIL_ADDRESS_W, PR_SENDER_ENTRYID,
+                       PR_SENDER_NAME_W, PR_SENDER_ADDRTYPE_W,
+                       PR_SENDER_SEARCH_KEY,
+                       PR_SENT_REPRESENTING_ENTRYID, PR_SENT_REPRESENTING_NAME_W,
+                       PR_SENT_REPRESENTING_SEARCH_KEY, PR_SENT_REPRESENTING_EMAIL_ADDRESS_W,
+                       PR_SENT_REPRESENTING_ADDRTYPE_W,
+                       PR_RECEIVED_BY_ENTRYID, PR_RECEIVED_BY_NAME_W, PR_RECEIVED_BY_SEARCH_KEY,
+                       PR_RECEIVED_BY_EMAIL_ADDRESS_W, PR_RECEIVED_BY_ADDRTYPE_W,
+                       PR_RCVD_REPRESENTING_ENTRYID, PR_RCVD_REPRESENTING_NAME_W,
+                       PR_RCVD_REPRESENTING_SEARCH_KEY, PR_RCVD_REPRESENTING_EMAIL_ADDRESS_W,
+                       PR_RCVD_REPRESENTING_ADDRTYPE_W)
 import MAPI.Time
 import kopano
 from kopano import log_exc
@@ -22,6 +33,42 @@ else: # pragma: no cover
         return s.encode(sys.stdout.encoding or 'utf8')
 
 PSETID_Archive = DEFINE_GUID(0x72e98ebc, 0x57d2, 0x4ab5, 0xb0, 0xaa, 0xd5, 0x0a, 0x7b, 0x53, 0x1c, 0xb9)
+
+SENDER_PROPS = {
+    'entryid': PR_SENDER_ENTRYID,
+    'name': PR_SENDER_NAME_W,
+    'searchkey': PR_SENDER_SEARCH_KEY,
+    'email': PR_SENDER_EMAIL_ADDRESS_W, # PidTagSenderSmtpAddress
+    'addrtype': PR_SENDER_ADDRTYPE_W,
+    'smtp': pst.PropIdEnum.PidTagSentRepresentingSmtpAddress,
+}
+
+SENT_REPRESENTING_PROPS = {
+    'entryid': PR_SENT_REPRESENTING_ENTRYID,
+    'name': PR_SENT_REPRESENTING_NAME_W,
+    'searchkey': PR_SENT_REPRESENTING_SEARCH_KEY,
+    'email': PR_SENT_REPRESENTING_EMAIL_ADDRESS_W, # PidTagSentRepresentingSmtpAddress
+    'addrtype': PR_SENT_REPRESENTING_ADDRTYPE_W,
+    'smtp': pst.PropIdEnum.PidTagSenderSmtpAddress,
+}
+
+RECEIVED_PROPS = {
+    'entryid': PR_RECEIVED_BY_ENTRYID,
+    'name': PR_RECEIVED_BY_NAME_W,
+    'searchkey': PR_RECEIVED_BY_SEARCH_KEY,
+    'email': PR_RECEIVED_BY_EMAIL_ADDRESS_W, # PidTagReceivedBySmtpAddress
+    'addrtype': PR_RECEIVED_BY_ADDRTYPE_W,
+    'smtp': pst.PropIdEnum.PidTagReceivedBySmtpAddress,
+}
+
+RECEIVED_REPR_PROPS = {
+    'entryid': PR_RCVD_REPRESENTING_ENTRYID,
+    'name': PR_RCVD_REPRESENTING_NAME_W,
+    'searchkey': PR_RCVD_REPRESENTING_SEARCH_KEY,
+    'email': PR_RCVD_REPRESENTING_EMAIL_ADDRESS_W, # PidTagReceivedRepresentingSmtpAddress
+    'addrtype': PR_RCVD_REPRESENTING_ADDRTYPE_W,
+    'smtp': pst.PropIdEnum.PidTagReceivedRepresentingSmtpAddress,
+}
 
 def recip_prop(propid, value):
     # PST not generated with full unicode?
@@ -71,8 +118,47 @@ class Service(kopano.Service):
             self.import_recipients(submessage, submapiobj)
             self.import_props(submessage, submapiobj, embedded=True)
 
+        addrtype = parent.pc.getval(PROP_ID(PR_SENDER_ADDRTYPE_W))
+        if addrtype == 'EX':
+            props2.extend(self.convert_exchange_recipient(parent, SENDER_PROPS))
+            props2.extend(self.convert_exchange_recipient(parent, SENT_REPRESENTING_PROPS))
+            props2.extend(self.convert_exchange_recipient(parent, RECEIVED_PROPS))
+            props2.extend(self.convert_exchange_recipient(parent, RECEIVED_REPR_PROPS))
+
         mapiobj.SetProps(props2)
         mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+
+    def convert_exchange_recipient(self, parent, convertprops):
+        props = []
+        email = parent.pc.getval(convertprops['smtp'])
+
+        if not email:
+            self.log.info('Item\'s recipients have no email address, skipping')
+            return []
+
+        try:
+            user = self.server.user(email=email)
+        except kopano.NotFoundError:
+            user = None
+
+        if user:
+            props.append(SPropValue(convertprops['addrtype'], u'ZARAFA'))
+            props.append(SPropValue(convertprops['email'], user.email))
+            props.append(SPropValue(convertprops['name'], user.fullname))
+            props.append(SPropValue(convertprops['entryid'], codecs.decode(user.userid, 'hex')))
+            props.append(SPropValue(convertprops['searchkey'], user[PR_SEARCH_KEY]))  # TODO: add to Pyko.
+        else:
+            name = parent.pc.getval(PROP_ID(convertprops['name']))
+            if not name:
+                name = email
+
+            props.append(SPropValue(convertprops['addrtype'], u'SMTP'))
+            props.append(SPropValue(convertprops['email'], email))
+            props.append(SPropValue(convertprops['name'], name))
+            props.append(SPropValue(convertprops['entryid'], self.server.ab.CreateOneOff(name, u'SMTP', email, MAPI_UNICODE)))
+            props.append(SPropValue(convertprops['searchkey'], b'SMTP:' + email.encode('UTF-8') + b'\x00'))
+
+        return props
 
     def import_attachments(self, message, mapiobj):
         for attachment in message.subattachments:
@@ -86,7 +172,9 @@ class Service(kopano.Service):
             user = None
             key = None
             if r.ObjectType == 6 and r.DisplayType == 0:
-                if r.AddressType == 'EX' or not r.AddressType: # missing addr type observed in the wild
+                if r.AddressType == 'EX':
+                    key = r.SmtpAddress
+                if not r.AddressType: # missing addr type observed in the wild
                     key = r.DisplayName or r.EmailAddress
                 elif r.AddressType == 'ZARAFA':
                     key = r.EmailAddress or r.DisplayName
@@ -102,6 +190,7 @@ class Service(kopano.Service):
                 props.append(SPropValue(PR_RECIPIENT_TYPE, r.RecipientType))
             if user or r.AddressType is not None:
                 value = u'ZARAFA' if user else r.AddressType
+                value = u'SMTP' if not user and r.AddressType == 'EX' else value
                 props.append(recip_prop(PROP_ID(PR_ADDRTYPE), value))
             if user or r.DisplayName is not None:
                 value = user.fullname if user else r.DisplayName
@@ -110,11 +199,13 @@ class Service(kopano.Service):
                 props.append(SPropValue(PR_DISPLAY_TYPE, r.DisplayType))
             if user or r.EmailAddress:
                 value = user.name if user else r.EmailAddress
+                value = r.SmtpAddress if not user and r.AddressType == 'EX' else r.EmailAddress
                 props.append(recip_prop(PROP_ID(PR_EMAIL_ADDRESS), value))
             if user:
-                props.append(SPropValue(PR_ENTRYID, codecs.decode(user.userid.encode('ascii'), 'hex')))
-            elif r.EntryID is not None:
-                props.append(SPropValue(PR_ENTRYID, r.EntryID))
+                props.append(SPropValue(PR_ENTRYID, codecs.decode(user.userid, 'hex')))
+            else:
+                email = r.SmtpAddress if not user and r.AddressType == 'EX' else r.EmailAddress
+                props.append(SPropValue(PR_ENTRYID, self.server.ab.CreateOneOff(r.DisplayName, u'SMTP', email, MAPI_UNICODE)))
             recipients.append(props)
         mapiobj.ModifyRecipients(0, recipients)
 
