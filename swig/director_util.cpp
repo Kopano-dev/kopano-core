@@ -21,10 +21,9 @@ static void make_key() {
 }
 
 static thread_info *get_thread_info() {
-	thread_info *pti = NULL;
-	
 	pthread_once(&g_key_once, make_key);
-	if ((pti = (thread_info *)pthread_getspecific(g_key)) == NULL) {
+	auto pti = static_cast<thread_info *>(pthread_getspecific(g_key));
+	if (pti == nullptr) {
 		pti = new thread_info;
 		pthread_setspecific(g_key, (void *)pti);
 	}
@@ -43,10 +42,7 @@ void unmark_call_from_python() {
 }
 
 bool check_call_from_python() {
-	thread_info *pti = NULL;
-	
 	pthread_once(&g_key_once, make_key);
-	pti = (thread_info *)pthread_getspecific(g_key);
-
+	auto pti = static_cast<thread_info *>(pthread_getspecific(g_key));
 	return pti && pti->bCalledFromPython;
 }

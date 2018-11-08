@@ -159,49 +159,30 @@ template<typename ObjType> struct conv_out_info {
 using namespace KC;
 
 // From Structs.py
-static PyObject *PyTypeSPropValue;
-static PyObject *PyTypeSSort;
-static PyObject *PyTypeSSortOrderSet;
-static PyObject *PyTypeSPropProblem;
-static PyObject *PyTypeMAPINAMEID;
-static PyObject *PyTypeMAPIError;
-static PyObject *PyTypeREADSTATE;
-static PyObject *PyTypeSTATSTG;
-static PyObject *PyTypeSYSTEMTIME;
+static PyObject *PyTypeSPropValue, *PyTypeSPropProblem;
+static PyObject *PyTypeSSort, *PyTypeSSortOrderSet;
+static PyObject *PyTypeMAPINAMEID, *PyTypeMAPIError, *PyTypeREADSTATE;
+static PyObject *PyTypeSTATSTG, *PyTypeSYSTEMTIME;
 
 static PyObject *PyTypeNEWMAIL_NOTIFICATION;
 static PyObject *PyTypeOBJECT_NOTIFICATION;
 static PyObject *PyTypeTABLE_NOTIFICATION;
 
 static PyObject *PyTypeMVPROPMAP;
-static PyObject *PyTypeECUser;
-static PyObject *PyTypeECGroup;
-static PyObject *PyTypeECCompany;
-static PyObject *PyTypeECQuota;
+static PyObject *PyTypeECUser, *PyTypeECGroup, *PyTypeECCompany;
+static PyObject *PyTypeECQuota, *PyTypeECQuotaStatus, *PyTypeECServer;
 static PyObject *PyTypeECUserClientUpdateStatus;
-static PyObject *PyTypeECServer;
-static PyObject *PyTypeECQuotaStatus;
 
-static PyObject *PyTypeSAndRestriction;
-static PyObject *PyTypeSOrRestriction;
-static PyObject *PyTypeSNotRestriction;
-static PyObject *PyTypeSContentRestriction;
-static PyObject *PyTypeSBitMaskRestriction;
-static PyObject *PyTypeSPropertyRestriction;
-static PyObject *PyTypeSComparePropsRestriction;
-static PyObject *PyTypeSSizeRestriction;
-static PyObject *PyTypeSExistRestriction;
-static PyObject *PyTypeSSubRestriction;
+static PyObject *PyTypeSAndRestriction, *PyTypeSOrRestriction;
+static PyObject *PyTypeSNotRestriction, *PyTypeSContentRestriction;
+static PyObject *PyTypeSBitMaskRestriction, *PyTypeSPropertyRestriction;
+static PyObject *PyTypeSComparePropsRestriction, *PyTypeSSizeRestriction;
+static PyObject *PyTypeSExistRestriction, *PyTypeSSubRestriction;
 static PyObject *PyTypeSCommentRestriction;
 
-static PyObject *PyTypeActMoveCopy;
-static PyObject *PyTypeActReply;
-static PyObject *PyTypeActDeferAction;
-static PyObject *PyTypeActBounce;
-static PyObject *PyTypeActFwdDelegate;
-static PyObject *PyTypeActTag;
-static PyObject *PyTypeAction;
-static PyObject *PyTypeACTIONS;
+static PyObject *PyTypeActMoveCopy, *PyTypeActReply, *PyTypeActDeferAction;
+static PyObject *PyTypeActBounce, *PyTypeActFwdDelegate, *PyTypeActTag;
+static PyObject *PyTypeAction, *PyTypeACTIONS;
 
 // From Time.py
 static PyObject *PyTypeFiletime;
@@ -295,15 +276,13 @@ void Init()
 // Coerce PyObject into PyUnicodeObject, copy and zero-terminate
 wchar_t * CopyPyUnicode(wchar_t **lpWide, PyObject *o, void *lpBase)
 {
-    int size;
 	pyobj_ptr unicode(PyUnicode_FromObject(o));
     if(!unicode) {
         *lpWide = NULL;
         return NULL;
     }
         
-    size = PyUnicode_GetSize(unicode);
-    
+	auto size = PyUnicode_GetSize(unicode);
     if (MAPIAllocateMore((size + 1) * sizeof(wchar_t), lpBase, (void **)lpWide) == hrSuccess) {
 	    #if PY_MAJOR_VERSION >= 3
 		PyUnicode_AsWideChar(unicode, *lpWide, size);
@@ -320,8 +299,6 @@ wchar_t * CopyPyUnicode(wchar_t **lpWide, PyObject *o, void *lpBase)
 FILETIME Object_to_FILETIME(PyObject *object)
 {
 	FILETIME ft = {0, 0};
-	unsigned long long periods = 0;
-
 	PyObject *filetime = PyObject_GetAttrString(object, "filetime");
 	if (!filetime) {
 		PyErr_Format(PyExc_TypeError, "PT_SYSTIME object does not have 'filetime' attribute");
@@ -329,9 +306,9 @@ FILETIME Object_to_FILETIME(PyObject *object)
 	}
 
 	#if PY_MAJOR_VERSION >= 3
-		periods = PyLong_AsUnsignedLongLongMask(filetime);
+	auto periods = PyLong_AsUnsignedLongLongMask(filetime);
 	#else
-		periods = PyInt_AsUnsignedLongLongMask(filetime);
+	auto periods = PyInt_AsUnsignedLongLongMask(filetime);
 	#endif
 	ft.dwHighDateTime = periods >> 32;
 	ft.dwLowDateTime = periods & 0xffffffff;
@@ -774,9 +751,7 @@ SPropValue *Object_to_LPSPropValue(PyObject *object, ULONG flags, void *base)
 SPropValue *List_to_p_SPropValue(PyObject *object, ULONG *cValues,
     ULONG ulFlags, void *lpBase)
 {
-	Py_ssize_t size = 0;
-	LPSPropValue lpProps = NULL;
-	LPSPropValue lpResult = NULL;
+	SPropValue *lpProps = nullptr, *lpResult = nullptr;
 	int i = 0;
 
 	if(object == Py_None) {
@@ -791,9 +766,7 @@ SPropValue *List_to_p_SPropValue(PyObject *object, ULONG *cValues,
 	pyobj_ptr iter(PyObject_GetIter(object));
 	if(!iter)
 		return lpResult;
-
-	size = PyObject_Size(object);
-
+	auto size = PyObject_Size(object);
 	if (MAPIAllocateMore(sizeof(SPropValue)*size, lpBase, reinterpret_cast<void**>(&lpProps)) != hrSuccess)
 		return lpResult;
 
@@ -828,22 +801,19 @@ static typename T::pointer retval_or_null(T &retval) {
 
 SPropTagArray *List_to_p_SPropTagArray(PyObject *object, ULONG /*ulFlags*/)
 {
-	pyobj_ptr iter;
-	Py_ssize_t len = 0;
 	memory_ptr<SPropTagArray> lpPropTagArray;
 	int n = 0;
 
 	if(object == Py_None)
 		return NULL;
-
-	len = PyObject_Length(object);
+	auto len = PyObject_Length(object);
 	if(len < 0) {
 		PyErr_Format(PyExc_TypeError, "Invalid list passed as property list");
 		return retval_or_null(lpPropTagArray);
 	}
 	if (MAPIAllocateBuffer(CbNewSPropTagArray(len), &~lpPropTagArray) != hrSuccess)
 		return retval_or_null(lpPropTagArray);
-	iter.reset(PyObject_GetIter(object));
+	pyobj_ptr iter(PyObject_GetIter(object));
 	if(iter == NULL)
 		return retval_or_null(lpPropTagArray);
 	do {
@@ -887,8 +857,6 @@ PyObject *List_from_LPSPropTagArray(const SPropTagArray *a)
 
 void Object_to_LPSRestriction(PyObject *object, LPSRestriction lpsRestriction, void *lpBase)
 {
-	pyobj_ptr iter;
-
 	if(lpBase == NULL)
 		lpBase = lpsRestriction;
 	pyobj_ptr rt(PyObject_GetAttrString(object, "rt"));
@@ -914,7 +882,7 @@ void Object_to_LPSRestriction(PyObject *object, LPSRestriction lpsRestriction, v
 			PyErr_SetString(PyExc_RuntimeError, "Out of memory");
 			return;
 		}
-		iter.reset(PyObject_GetIter(sub));
+		pyobj_ptr iter(PyObject_GetIter(sub));
 		if(iter == NULL)
 			return;
 
@@ -1192,7 +1160,6 @@ PyObject *Object_from_LPSRestriction(const SRestriction *r)
 
 PyObject *		Object_from_LPACTION(LPACTION lpAction)
 {
-	PyObject *result = NULL;
 	PyObject *act = NULL;
 
 	if (lpAction == NULL) {
@@ -1249,9 +1216,7 @@ PyObject *		Object_from_LPACTION(LPACTION lpAction)
 	// restriction and proptype are always NULL
 	Py_INCREF(Py_None);
 	Py_INCREF(Py_None);
-	result = PyObject_CallFunction(PyTypeAction, "llOOlO", lpAction->acttype, lpAction->ulActionFlavor, Py_None, Py_None, lpAction->ulFlags, act);
-
-	return result;
+	return PyObject_CallFunction(PyTypeAction, "llOOlO", lpAction->acttype, lpAction->ulActionFlavor, Py_None, Py_None, lpAction->ulFlags, act);
 }
 
 PyObject *		Object_from_LPACTIONS(ACTIONS *lpsActions)
@@ -1261,15 +1226,14 @@ PyObject *		Object_from_LPACTIONS(ACTIONS *lpsActions)
 		return Py_None;
 	}
 
-	pyobj_ptr result, subs(PyList_New(0));
+	pyobj_ptr subs(PyList_New(0));
 	for (UINT i = 0; i < lpsActions->cActions; ++i) {
 		pyobj_ptr sub(Object_from_LPACTION(&lpsActions->lpAction[i]));
 		if (!sub)
 			return nullptr;
 		PyList_Append(subs, sub);
 	}
-	result.reset(PyObject_CallFunction(PyTypeACTIONS, "lO", lpsActions->ulVersion, subs.get()));
-	return result.release();
+	return PyObject_CallFunction(PyTypeACTIONS, "lO", lpsActions->ulVersion, subs.get());
 }
 
 void Object_to_LPACTION(PyObject *object, ACTION *lpAction, void *lpBase)
@@ -1358,23 +1322,18 @@ void Object_to_LPACTION(PyObject *object, ACTION *lpAction, void *lpBase)
 
 void Object_to_LPACTIONS(PyObject *object, ACTIONS *lpActions, void *lpBase)
 {
-	HRESULT hr = hrSuccess;
-	pyobj_ptr poVersion, poAction, iter;
-	Py_ssize_t len = 0;
-	unsigned int i = 0;
-
 	if(object == Py_None)
 		return;
 	if (lpBase == NULL)
 		lpBase = lpActions;
-	poVersion.reset(PyObject_GetAttrString(object, "ulVersion"));
-	poAction.reset(PyObject_GetAttrString(object, "lpAction"));
+
+	pyobj_ptr poVersion(PyObject_GetAttrString(object, "ulVersion"));
+	pyobj_ptr poAction(PyObject_GetAttrString(object, "lpAction"));
 	if(!poVersion || !poAction) {
 		PyErr_SetString(PyExc_RuntimeError, "Missing ulVersion or lpAction for ACTIONS struct");
 		return;
 	}
-
-	len = PyObject_Length(poAction);
+	auto len = PyObject_Length(poAction);
 	if (len == 0) {
 		PyErr_SetString(PyExc_RuntimeError, "No actions found in ACTIONS struct");
 		return;
@@ -1382,8 +1341,7 @@ void Object_to_LPACTIONS(PyObject *object, ACTIONS *lpActions, void *lpBase)
 		PyErr_SetString(PyExc_RuntimeError, "No action array found in ACTIONS struct");
 		return;
 	}
-
-	hr = MAPIAllocateMore(sizeof(ACTION)*len, lpBase, (void**)&lpActions->lpAction);
+	auto hr = MAPIAllocateMore(sizeof(ACTION)*len, lpBase, reinterpret_cast<void **>(&lpActions->lpAction));
 	if (hr != hrSuccess) {
 		PyErr_SetString(PyExc_RuntimeError, "Out of memory");
 		return;
@@ -1391,10 +1349,11 @@ void Object_to_LPACTIONS(PyObject *object, ACTIONS *lpActions, void *lpBase)
 
 	lpActions->ulVersion = PyLong_AsUnsignedLong(poVersion); // EDK_RULES_VERSION
 	lpActions->cActions = len;
-	iter.reset(PyObject_GetIter(poAction));
+	pyobj_ptr iter(PyObject_GetIter(poAction));
 	if(iter == NULL)
 		return;
-	i = 0;
+
+	unsigned int i = 0;
 	do {
 		pyobj_ptr elem(PyIter_Next(iter));
 		if (elem == nullptr)
@@ -1405,29 +1364,27 @@ void Object_to_LPACTIONS(PyObject *object, ACTIONS *lpActions, void *lpBase)
 
 SSortOrderSet *Object_to_p_SSortOrderSet(PyObject *object)
 {
-	pyobj_ptr aSort, cCategories, cExpanded, iter;
 	memory_ptr<SSortOrderSet> lpsSortOrderSet;
-	Py_ssize_t len = 0;
 	unsigned int i = 0;
 
 	if(object == Py_None)
 		return retval_or_null(lpsSortOrderSet);
-	aSort.reset(PyObject_GetAttrString(object, "aSort"));
-	cCategories.reset(PyObject_GetAttrString(object, "cCategories"));
-	cExpanded.reset(PyObject_GetAttrString(object, "cExpanded"));
+	pyobj_ptr aSort(PyObject_GetAttrString(object, "aSort"));
+	pyobj_ptr cCategories(PyObject_GetAttrString(object, "cCategories"));
+	pyobj_ptr cExpanded(PyObject_GetAttrString(object, "cExpanded"));
 	if(!aSort || !cCategories || !cExpanded) {
 		PyErr_SetString(PyExc_RuntimeError, "Missing aSort, cCategories or cExpanded for sort order");
 		return retval_or_null(lpsSortOrderSet);
 	}
 
-	len = PyObject_Length(aSort);
+	auto len = PyObject_Length(aSort);
 	if(len < 0) {
 		PyErr_SetString(PyExc_RuntimeError, "aSort is not a sequence");
 		return retval_or_null(lpsSortOrderSet);
 	}
 	if (MAPIAllocateBuffer(CbNewSSortOrderSet(len), &~lpsSortOrderSet) != hrSuccess)
 		return retval_or_null(lpsSortOrderSet);
-	iter.reset(PyObject_GetIter(aSort));
+	pyobj_ptr iter(PyObject_GetIter(aSort));
 	if(iter == NULL)
 		return retval_or_null(lpsSortOrderSet);
 	do {
@@ -1460,16 +1417,14 @@ PyObject *Object_from_SSortOrderSet(const SSortOrderSet *lpSortOrderSet)
 		return Py_None;
 	}
 
-	pyobj_ptr result, sorts(PyList_New(0));
+	pyobj_ptr sorts(PyList_New(0));
 	for (unsigned int i = 0; i < lpSortOrderSet->cSorts; ++i) {
 		pyobj_ptr sort(PyObject_CallFunction(PyTypeSSort, "(ll)", lpSortOrderSet->aSort[i].ulPropTag, lpSortOrderSet->aSort[i].ulOrder));
 		if(PyErr_Occurred())
 			return nullptr;
 		PyList_Append(sorts,sort);
 	}
-
-	result.reset(PyObject_CallFunction(PyTypeSSortOrderSet, "(Oll)", sorts.get(), lpSortOrderSet->cCategories, lpSortOrderSet->cExpanded));
-	return result.release();
+	return PyObject_CallFunction(PyTypeSSortOrderSet, "(Oll)", sorts.get(), lpSortOrderSet->cCategories, lpSortOrderSet->cExpanded);
 }
 
 PyObject *List_from_SRowSet(const SRowSet *lpRowSet)
@@ -1491,16 +1446,14 @@ PyObject *List_from_LPSRowSet(const SRowSet *s)
 
 SRowSet *List_to_p_SRowSet(PyObject *list, ULONG ulFlags, void *lpBase)
 {
-	pyobj_ptr iter;
-	Py_ssize_t len = 0;
 	rowset_ptr lpsRowSet;
 	int i = 0;
 
 	if (list == Py_None)
 		return retval_or_null(lpsRowSet);
 
-	len = PyObject_Length(list);
-	iter.reset(PyObject_GetIter(list));
+	auto len = PyObject_Length(list);
+	pyobj_ptr iter(PyObject_GetIter(list));
 	if(!iter)
 		return retval_or_null(lpsRowSet);
 
@@ -1570,14 +1523,12 @@ void	Object_to_LPSPropProblem(PyObject *object, LPSPropProblem lpProblem)
 
 PyObject *		List_from_LPSPropProblemArray(LPSPropProblemArray lpProblemArray)
 {
-	pyobj_ptr list;
-
 	if(lpProblemArray == NULL) {
 		Py_INCREF(Py_None);
 		return Py_None;
 	}
 
-	list.reset(PyList_New(0));
+	pyobj_ptr list(PyList_New(0));
 	for (unsigned int i = 0; i < lpProblemArray->cProblem; ++i) {
 		pyobj_ptr elem(Object_from_LPSPropProblem(&lpProblemArray->aProblem[i]));
 		if(PyErr_Occurred())
@@ -1589,16 +1540,14 @@ PyObject *		List_from_LPSPropProblemArray(LPSPropProblemArray lpProblemArray)
 
 LPSPropProblemArray List_to_LPSPropProblemArray(PyObject *list, ULONG /*ulFlags*/)
 {
-	pyobj_ptr iter;
-	Py_ssize_t len = 0;
 	memory_ptr<SPropProblemArray> lpsProblems;
 	int i = 0;
 
 	if (list == Py_None)
 		return retval_or_null(lpsProblems);
 
-	len = PyObject_Length(list);
-	iter.reset(PyObject_GetIter(list));
+	auto len = PyObject_Length(list);
+	pyobj_ptr iter(PyObject_GetIter(list));
 	if(!iter)
 		return retval_or_null(lpsProblems);
 	if (MAPIAllocateBuffer(CbNewSPropProblemArray(len), &~lpsProblems) != hrSuccess)
@@ -1623,7 +1572,6 @@ LPSPropProblemArray List_to_LPSPropProblemArray(PyObject *list, ULONG /*ulFlags*
 
 PyObject * Object_from_LPMAPINAMEID(LPMAPINAMEID lpMAPINameId)
 {
-	PyObject *elem = NULL;
 	if(lpMAPINameId == NULL) {
 		Py_INCREF(Py_None);
 		return Py_None;
@@ -1650,7 +1598,6 @@ PyObject * List_from_LPMAPINAMEID(LPMAPINAMEID *lppMAPINameId, ULONG cNames)
 void Object_to_LPMAPINAMEID(PyObject *elem, LPMAPINAMEID *lppName, void *lpBase)
 {
 	LPMAPINAMEID lpName = NULL;
-	pyobj_ptr kind, id, guid;
 	ULONG ulKind = 0;
 	Py_ssize_t len = 0;
 
@@ -1664,9 +1611,9 @@ void Object_to_LPMAPINAMEID(PyObject *elem, LPMAPINAMEID *lppName, void *lpBase)
 		return;
 	}
 	memset(lpName, 0, sizeof(MAPINAMEID));
-	kind.reset(PyObject_GetAttrString(elem, "kind"));
-	id.reset(PyObject_GetAttrString(elem, "id"));
-	guid.reset(PyObject_GetAttrString(elem, "guid"));
+	pyobj_ptr kind(PyObject_GetAttrString(elem, "kind"));
+	pyobj_ptr id(PyObject_GetAttrString(elem, "id"));
+	pyobj_ptr guid(PyObject_GetAttrString(elem, "guid"));
 	if(!guid || !id) {
 		PyErr_SetString(PyExc_RuntimeError, "Missing id or guid on MAPINAMEID object");
 		return;
@@ -1711,14 +1658,13 @@ void Object_to_LPMAPINAMEID(PyObject *elem, LPMAPINAMEID *lppName, void *lpBase)
 LPMAPINAMEID *	List_to_p_LPMAPINAMEID(PyObject *list, ULONG *lpcNames, ULONG /*ulFlags*/)
 {
 	memory_ptr<MAPINAMEID *> lpNames;
-	Py_ssize_t len = 0;
 	unsigned int i = 0;
 
 	pyobj_ptr iter(PyObject_GetIter(list));
 	if(!iter)
 		return retval_or_null(lpNames);
 
-	len = PyObject_Length(list);
+	auto len = PyObject_Length(list);
 	if (MAPIAllocateBuffer(sizeof(LPMAPINAMEID) * len, &~lpNames) != hrSuccess)
 		return retval_or_null(lpNames);
 
@@ -1741,7 +1687,6 @@ LPMAPINAMEID *	List_to_p_LPMAPINAMEID(PyObject *list, ULONG *lpcNames, ULONG /*u
 ENTRYLIST *List_to_p_ENTRYLIST(PyObject *list)
 {
 	memory_ptr<ENTRYLIST> lpEntryList;
-	Py_ssize_t len = 0;
 	unsigned int i = 0;
 
 	if(list == Py_None)
@@ -1750,7 +1695,7 @@ ENTRYLIST *List_to_p_ENTRYLIST(PyObject *list)
 	if(!iter)
 		return retval_or_null(lpEntryList);
 
-	len = PyObject_Length(list);
+	auto len = PyObject_Length(list);
 	if (MAPIAllocateBuffer(sizeof(*lpEntryList), &~lpEntryList) != hrSuccess)
 		return retval_or_null(lpEntryList);
 
@@ -1947,14 +1892,13 @@ NOTIFICATION *	Object_to_LPNOTIFICATION(PyObject *obj)
 
 LPFlagList		List_to_LPFlagList(PyObject *list)
 {
-	Py_ssize_t len = 0;
 	memory_ptr<FlagList> lpList;
 	int i = 0;
 	pyobj_ptr iter(PyObject_GetIter(list));
 	if(!iter)
 		return retval_or_null(lpList);
 
-	len = PyObject_Length(list);
+	auto len = PyObject_Length(list);
 	if (MAPIAllocateBuffer(CbNewFlagList(len), &~lpList) != hrSuccess)
 		return retval_or_null(lpList);
 	do {
@@ -1998,14 +1942,13 @@ LPMAPIERROR		Object_to_LPMAPIERROR(PyObject *)
 
 LPREADSTATE		List_to_LPREADSTATE(PyObject *list, ULONG *lpcElements)
 {
-	Py_ssize_t len = 0;
 	memory_ptr<READSTATE> lpList;
 	int i = 0;
 	pyobj_ptr iter(PyObject_GetIter(list));
 	if(!iter)
 		return retval_or_null(lpList);
 
-	len = PyObject_Length(list);
+	auto len = PyObject_Length(list);
 	if (MAPIAllocateBuffer(len * sizeof(*lpList), &~lpList) != hrSuccess)
 		return retval_or_null(lpList);
 
@@ -2013,7 +1956,6 @@ LPREADSTATE		List_to_LPREADSTATE(PyObject *list, ULONG *lpcElements)
 		pyobj_ptr elem(PyIter_Next(iter));
 		if (elem == nullptr)
 			break;
-		HRESULT hr;
 
 		pyobj_ptr sourcekey(PyObject_GetAttrString(elem, "SourceKey"));
 		pyobj_ptr flags(PyObject_GetAttrString(elem, "ulFlags"));
@@ -2030,7 +1972,7 @@ LPREADSTATE		List_to_LPREADSTATE(PyObject *list, ULONG *lpcElements)
 		if (PyString_AsStringAndSize(sourcekey, &ptr, &len) == -1 ||
 		    PyErr_Occurred())
 			return retval_or_null(lpList);
-		hr = KAllocCopy(ptr, len, reinterpret_cast<void **>(&lpList[i].pbSourceKey), lpList);
+		auto hr = KAllocCopy(ptr, len, reinterpret_cast<void **>(&lpList[i].pbSourceKey), lpList);
 		if (hr != hrSuccess) {
 			PyErr_SetString(PyExc_RuntimeError, "Out of memory");
 			return retval_or_null(lpList);
@@ -2060,7 +2002,6 @@ PyObject *		List_from_LPREADSTATE(LPREADSTATE lpReadState, ULONG cElements)
 
 LPCIID			List_to_LPCIID(PyObject *list, ULONG *cInterfaces)
 {
-	Py_ssize_t len = 0;
 	memory_ptr<IID> lpList;
 	int i = 0;
 
@@ -2072,7 +2013,7 @@ LPCIID			List_to_LPCIID(PyObject *list, ULONG *cInterfaces)
 	if(!iter)
 		return retval_or_null(lpList);
 
-	len = PyObject_Length(list);
+	auto len = PyObject_Length(list);
 	if (MAPIAllocateBuffer(len * sizeof(*lpList), &~lpList) != hrSuccess)
 		return retval_or_null(lpList);
 	do {
@@ -2119,15 +2060,11 @@ PyObject *List_from_LPCIID(LPCIID iids, ULONG cElements)
 template<typename T> void
 Object_to_MVPROPMAP(PyObject *elem, T *&lpObj, ULONG ulFlags)
 {
-	HRESULT hr = hrSuccess;
-	PyObject *Item, *ListItem;
-	int MVPropMapsSize = 0;
-
 	/* Multi-Value PropMap support. */
 	pyobj_ptr MVPropMaps(PyObject_GetAttrString(elem, "MVPropMap"));
 	if (MVPropMaps == nullptr || !PyList_Check(MVPropMaps))
 		return;
-	MVPropMapsSize = PyList_Size(MVPropMaps);
+	auto MVPropMapsSize = PyList_Size(MVPropMaps);
 	/* No PropMaps - bail out */
 	if (MVPropMapsSize != 2) {
 		PyErr_SetString(PyExc_TypeError, "MVPropMap should contain two entries");
@@ -2136,10 +2073,10 @@ Object_to_MVPROPMAP(PyObject *elem, T *&lpObj, ULONG ulFlags)
 
 	/* If we have more mv props than the feature lists, adjust this value! */
 	lpObj->sMVPropmap.cEntries = 2;
-	hr = MAPIAllocateMore(sizeof(MVPROPMAPENTRY) * lpObj->sMVPropmap.cEntries, lpObj, reinterpret_cast<void **>(&lpObj->sMVPropmap.lpEntries));
+	auto hr = MAPIAllocateMore(sizeof(MVPROPMAPENTRY) * lpObj->sMVPropmap.cEntries, lpObj, reinterpret_cast<void **>(&lpObj->sMVPropmap.lpEntries));
 
 	for (int i = 0; i < MVPropMapsSize; ++i) {
-		Item = PyList_GetItem(MVPropMaps, i);
+		auto Item = PyList_GetItem(MVPropMaps, i);
 		pyobj_ptr PropID(PyObject_GetAttrString(Item, "ulPropId"));
 		pyobj_ptr Values(PyObject_GetAttrString(Item, "Values"));
 
@@ -2166,8 +2103,7 @@ Object_to_MVPROPMAP(PyObject *elem, T *&lpObj, ULONG ulFlags)
 		}
 
 		for (int j = 0; j < ValuesLength; ++j) {
-			ListItem = PyList_GetItem(Values, j);
-
+			auto ListItem = PyList_GetItem(Values, j);
 			if (ListItem == Py_None)
 				continue;
 			if ((ulFlags & MAPI_UNICODE) == 0)
@@ -2238,14 +2174,12 @@ ECUSER *Object_to_LPECUSER(PyObject *elem, ULONG ulFlags)
 		{conv_out_default<ECUSER, unsigned int, &ECUSER::ulCapacity>, "Capacity"},
 		{conv_out_default<ECUSER, SBinary, &ECUSER::sUserId>, "UserID"},
 	};
-
-	HRESULT hr = hrSuccess;
 	ECUSER *lpUser = NULL;
 
 	if (elem == Py_None)
 		return nullptr;
 
-	hr = MAPIAllocateBuffer(sizeof *lpUser, (LPVOID*)&lpUser);
+	auto hr = MAPIAllocateBuffer(sizeof(*lpUser), reinterpret_cast<void **>(&lpUser));
 	if (hr != hrSuccess) {
 		PyErr_SetString(PyExc_RuntimeError, "Out of memory");
 		return nullptr;
@@ -2294,14 +2228,12 @@ ECGROUP *Object_to_LPECGROUP(PyObject *elem, ULONG ulFlags)
 		{conv_out_default<ECGROUP, unsigned int, &ECGROUP::ulIsABHidden>, "IsHidden"},
 		{conv_out_default<ECGROUP, SBinary, &ECGROUP::sGroupId>, "GroupID"},
 	};
-
-	HRESULT hr = hrSuccess;
 	ECGROUP *lpGroup = NULL;
 
 	if (elem == Py_None)
 		return nullptr;
 
-	hr = MAPIAllocateBuffer(sizeof *lpGroup, (LPVOID*)&lpGroup);
+	auto hr = MAPIAllocateBuffer(sizeof(*lpGroup), reinterpret_cast<void **>(&lpGroup));
 	if (hr != hrSuccess) {
 		PyErr_SetString(PyExc_RuntimeError, "Out of memory");
 		return nullptr;
@@ -2350,14 +2282,12 @@ ECCOMPANY *Object_to_LPECCOMPANY(PyObject *elem, ULONG ulFlags)
 		{conv_out_default<ECCOMPANY, SBinary, &ECCOMPANY::sCompanyId>, "CompanyID"},
 		{conv_out_default<ECCOMPANY, SBinary, &ECCOMPANY::sAdministrator>, "AdministratorID"},
 	};
-
-	HRESULT hr = hrSuccess;
 	ECCOMPANY *lpCompany = NULL;
 
 	if (elem == Py_None)
 		return nullptr;
 
-	hr = MAPIAllocateBuffer(sizeof *lpCompany, (LPVOID*)&lpCompany);
+	auto hr = MAPIAllocateBuffer(sizeof(*lpCompany), reinterpret_cast<void **>(&lpCompany));
 	if (hr != hrSuccess) {
 		PyErr_SetString(PyExc_RuntimeError, "Out of memory");
 		return nullptr;
@@ -2401,15 +2331,13 @@ PyObject *List_from_LPECCOMPANY(ECCOMPANY *lpCompany, ULONG cElements,
 
 LPROWLIST List_to_LPROWLIST(PyObject *object, ULONG ulFlags)
 {
-	pyobj_ptr iter;
-	Py_ssize_t len = 0;
 	memory_ptr<ROWLIST> lpRowList;
 	int n = 0;
 
 	if (object == Py_None)
 		return NULL;
 
-	len = PyObject_Length(object);
+	auto len = PyObject_Length(object);
 	if (len < 0) {
 		PyErr_Format(PyExc_TypeError, "Invalid list passed as row list");
 		return retval_or_null(lpRowList);
@@ -2417,7 +2345,7 @@ LPROWLIST List_to_LPROWLIST(PyObject *object, ULONG ulFlags)
 	if (MAPIAllocateBuffer(CbNewROWLIST(len), &~lpRowList) != hrSuccess)
 		return retval_or_null(lpRowList);
 	lpRowList->cEntries = 0;
-	iter.reset(PyObject_GetIter(object));
+	pyobj_ptr iter(PyObject_GetIter(object));
 	if (iter == NULL)
 		return retval_or_null(lpRowList);
 	do {
@@ -2494,14 +2422,12 @@ ECQUOTA *Object_to_LPECQUOTA(PyObject *elem)
 		{conv_out_default<ECQUOTA, int64_t, &ECQUOTA::llSoftSize>, "llSoftSize"},
 		{conv_out_default<ECQUOTA, int64_t, &ECQUOTA::llHardSize>, "llHardSize"},
 	};
-
-	HRESULT hr = hrSuccess;
 	ECQUOTA *lpQuota = NULL;
 
 	if (elem == Py_None)
 		return nullptr;
 
-	hr = MAPIAllocateBuffer(sizeof *lpQuota, (LPVOID*)&lpQuota);
+	auto hr = MAPIAllocateBuffer(sizeof(*lpQuota), reinterpret_cast<void **>(&lpQuota));
 	if (hr != hrSuccess) {
 		PyErr_SetString(PyExc_RuntimeError, "Out of memory");
 		return nullptr;
@@ -2529,15 +2455,12 @@ PyObject *Object_from_LPECQUOTASTATUS(ECQUOTASTATUS *lpQuotaStatus)
 
 ECSVRNAMELIST *List_to_LPECSVRNAMELIST(PyObject *object)
 {
-	HRESULT hr = hrSuccess;
-	Py_ssize_t len = 0;
-	pyobj_ptr iter;
 	memory_ptr<ECSVRNAMELIST> lpSvrNameList;
 
 	if (object == Py_None)
 		return retval_or_null(lpSvrNameList);
 
-	len = PyObject_Length(object);
+	auto len = PyObject_Length(object);
 	if (len < 0) {
 		PyErr_Format(PyExc_TypeError, "Invalid list passed as servername list");
 		return retval_or_null(lpSvrNameList);
@@ -2546,7 +2469,7 @@ ECSVRNAMELIST *List_to_LPECSVRNAMELIST(PyObject *object)
 		return retval_or_null(lpSvrNameList);
 
 	memset(lpSvrNameList, 0, sizeof(ECSVRNAMELIST) + (sizeof(ECSERVER *) * len) );
-	iter.reset(PyObject_GetIter(object));
+	pyobj_ptr iter(PyObject_GetIter(object));
 	if (iter == NULL)
 		return retval_or_null(lpSvrNameList);
 	do {
@@ -2559,7 +2482,7 @@ ECSVRNAMELIST *List_to_LPECSVRNAMELIST(PyObject *object)
 		if (PyString_AsStringAndSize(elem, &ptr, &strlen) == -1 ||
 		    PyErr_Occurred())
 			return retval_or_null(lpSvrNameList);
-		hr = KAllocCopy(ptr, strlen, reinterpret_cast<void **>(&lpSvrNameList->lpszaServer[lpSvrNameList->cServers]), lpSvrNameList);
+		auto hr = KAllocCopy(ptr, strlen, reinterpret_cast<void **>(&lpSvrNameList->lpszaServer[lpSvrNameList->cServers]), lpSvrNameList);
 		if (hr != hrSuccess) {
 			PyErr_SetString(PyExc_RuntimeError, "Out of memory");
 			return retval_or_null(lpSvrNameList);
@@ -2589,14 +2512,12 @@ PyObject *List_from_LPECSERVERLIST(ECSERVERLIST *lpServerList)
 
 void Object_to_STATSTG(PyObject *object, STATSTG *stg)
 {
-	pyobj_ptr cbSize;
-
 	if(object == Py_None) {
 		PyErr_Format(PyExc_TypeError, "Invalid None passed for STATSTG");
 		return;
 	}
 
-	cbSize.reset(PyObject_GetAttrString(object, "cbSize"));
+	pyobj_ptr cbSize(PyObject_GetAttrString(object, "cbSize"));
 	if(!cbSize) {
 		PyErr_Format(PyExc_TypeError, "STATSTG does not contain cbSize");
 		return;

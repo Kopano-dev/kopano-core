@@ -22,20 +22,16 @@ void InitFreebusy() {
 
 LPFBUser List_to_p_FBUser(PyObject *list, ULONG *cValues) {
 	KC::memory_ptr<FBUser> lpFbUsers;
-	LPENTRYID entryid = nullptr;
-	pyobj_ptr iter;
 	char *buf = 0 ;
-	int len;
 	size_t size;
 	int i = 0;
 
 	if (list == Py_None)
 		return nullptr;
-	iter.reset(PyObject_GetIter(list));
+	pyobj_ptr iter(PyObject_GetIter(list));
 	if (!iter)
 		return nullptr;
-
-	len = PyObject_Length(list);
+	auto len = PyObject_Length(list);
 	if (MAPIAllocateBuffer(len * sizeof(FBUser), &~lpFbUsers) != hrSuccess)
 		return nullptr;
 	do {
@@ -47,8 +43,7 @@ LPFBUser List_to_p_FBUser(PyObject *list, ULONG *cValues) {
 			return nullptr;
 		}
 
-		entryid = reinterpret_cast< LPENTRYID >(buf);
-
+		auto entryid = reinterpret_cast<ENTRYID *>(buf);
 		lpFbUsers[i].m_cbEid = size;
 		lpFbUsers[i].m_lpEid = entryid;
 		++i;
@@ -62,20 +57,17 @@ LPFBUser List_to_p_FBUser(PyObject *list, ULONG *cValues) {
 
 LPFBBlock_1 List_to_p_FBBlock_1(PyObject *list, ULONG *nBlocks) {
 	KC::memory_ptr<FBBlock_1> lpFBBlocks;
-	pyobj_ptr iter;
-	size_t i, len;
 
 	if (list == Py_None)
 		return nullptr;
-	iter.reset(PyObject_GetIter(list));
+	pyobj_ptr iter(PyObject_GetIter(list));
 	if (!iter)
 		return nullptr;
-
-	len = PyObject_Length(list);
+	auto len = PyObject_Length(list);
 	if (MAPIAllocateBuffer(len * sizeof(FBBlock_1), &~lpFBBlocks) != hrSuccess)
 		return nullptr;
 
-	i=0;
+	size_t i = 0;
 	do {
 		pyobj_ptr elem(PyIter_Next(iter));
 		if (elem == nullptr)
