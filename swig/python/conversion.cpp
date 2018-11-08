@@ -156,24 +156,6 @@ template<typename ObjType> struct conv_out_info {
 	const char *membername;
 };
 
-/**
- * This function processes an array of conv_out_info structures, effectively
- * performing the complete conversion.
- *
- * @ObjType:	The type of the structure containing the values that are to be
- * 		converted. This is determined automatically.
- * @N:		The size of the array. This is determined automatically.
- * @array:	The array containing the conv_out_info structures that define the conversion operations. (in)
- * @flags:	Allowed values: %MAPI_UNICODE for a wide character string.
- */
-template<typename ObjType, size_t N>
-static void process_conv_out_array(ObjType *obj, PyObject *elem,
-    const conv_out_info<ObjType> (&array)[N], void *base, unsigned int flags)
-{
-	for (size_t n = 0; !PyErr_Occurred() && n < N; ++n)
-		array[n].conv_out_func(obj, elem, array[n].membername, base, flags);
-}
-
 using namespace KC;
 
 // From Structs.py
@@ -2269,7 +2251,8 @@ ECUSER *Object_to_LPECUSER(PyObject *elem, ULONG ulFlags)
 		return nullptr;
 	}
 	memset(lpUser, 0, sizeof *lpUser);
-	process_conv_out_array(lpUser, elem, conv_info, lpUser, ulFlags);
+	for (size_t n = 0; n < ARRAY_SIZE(conv_info) && !PyErr_Occurred(); ++n)
+		conv_info[n].conv_out_func(lpUser, elem, conv_info[n].membername, lpUser, ulFlags);
 	Object_to_MVPROPMAP(elem, lpUser, ulFlags);
 
 	if (PyErr_Occurred()) {
@@ -2324,8 +2307,8 @@ ECGROUP *Object_to_LPECGROUP(PyObject *elem, ULONG ulFlags)
 		return nullptr;
 	}
 	memset(lpGroup, 0, sizeof *lpGroup);
-
-	process_conv_out_array(lpGroup, elem, conv_info, lpGroup, ulFlags);
+	for (size_t n = 0; n < ARRAY_SIZE(conv_info) && !PyErr_Occurred(); ++n)
+		conv_info[n].conv_out_func(lpGroup, elem, conv_info[n].membername, lpGroup, ulFlags);
 	Object_to_MVPROPMAP(elem, lpGroup, ulFlags);
 
 	if (PyErr_Occurred()) {
@@ -2380,9 +2363,8 @@ ECCOMPANY *Object_to_LPECCOMPANY(PyObject *elem, ULONG ulFlags)
 		return nullptr;
 	}
 	memset(lpCompany, 0, sizeof *lpCompany);
-
-	process_conv_out_array(lpCompany, elem, conv_info, lpCompany, ulFlags);
-
+	for (size_t n = 0; n < ARRAY_SIZE(conv_info) && !PyErr_Occurred(); ++n)
+		conv_info[n].conv_out_func(lpCompany, elem, conv_info[n].membername, lpCompany, ulFlags);
 	Object_to_MVPROPMAP(elem, lpCompany, ulFlags);
 
 	if (PyErr_Occurred()) {
@@ -2525,9 +2507,8 @@ ECQUOTA *Object_to_LPECQUOTA(PyObject *elem)
 		return nullptr;
 	}
 	memset(lpQuota, 0, sizeof *lpQuota);
-
-	process_conv_out_array(lpQuota, elem, conv_info, lpQuota, 0);
-
+	for (size_t n = 0; n < ARRAY_SIZE(conv_info) && !PyErr_Occurred(); ++n)
+		conv_info[n].conv_out_func(lpQuota, elem, conv_info[n].membername, lpQuota, 0);
 	if (PyErr_Occurred()) {
 		MAPIFreeBuffer(lpQuota);
 		return nullptr;
