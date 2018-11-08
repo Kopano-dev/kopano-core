@@ -16,7 +16,6 @@ void InitFreebusy() {
 		PyErr_SetString(PyExc_RuntimeError, "Unable to import MAPI.Struct");
 		return;
 	}
-
 	PyTypeFreeBusyBlock = PyObject_GetAttrString(lpMAPIStruct, "FreeBusyBlock");
 }
 
@@ -48,8 +47,8 @@ LPFBUser List_to_p_FBUser(PyObject *list, ULONG *cValues) {
 		lpFbUsers[i].m_lpEid = entryid;
 		++i;
 	} while (true);
-	*cValues = i;
 
+	*cValues = i;
 	if (PyErr_Occurred() && lpFbUsers != nullptr)
 		return nullptr;
 	return lpFbUsers.release();
@@ -76,15 +75,13 @@ LPFBBlock_1 List_to_p_FBBlock_1(PyObject *list, ULONG *nBlocks) {
 		pyobj_ptr start(PyObject_GetAttrString(elem, "start"));
 		pyobj_ptr end(PyObject_GetAttrString(elem, "end"));
 		pyobj_ptr status(PyObject_GetAttrString(elem, "status"));
-
 		lpFBBlocks[i].m_tmStart = PyLong_AsLong(start);
 		lpFBBlocks[i].m_tmEnd = PyLong_AsLong(end);
 		lpFBBlocks[i].m_fbstatus = FBStatus(PyLong_AsLong(status));
-
 		i++;
 	} while (true);
-	*nBlocks = i;
 
+	*nBlocks = i;
 	if (PyErr_Occurred() && lpFBBlocks != nullptr)
 		return nullptr;
 	return lpFBBlocks.release();

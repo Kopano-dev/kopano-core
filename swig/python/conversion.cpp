@@ -221,7 +221,6 @@ void Init()
 		PyErr_SetString(PyExc_RuntimeError, "Unable to import MAPI.Struct");
 		return;
 	}
-
 	if(!lpMAPITime) {
 		PyErr_SetString(PyExc_RuntimeError, "Unable to import MAPI.Time");
 		return;
@@ -735,7 +734,6 @@ SPropValue *Object_to_p_SPropValue(PyObject *object, ULONG ulFlags,
 	if (lpBase == nullptr)
 		lpBase = lpProp;
 	Object_to_LPSPropValue(object, lpProp, ulFlags, lpBase);
-
 	if (!PyErr_Occurred())
 		return lpProp;
 	if (!lpBase)
@@ -823,8 +821,8 @@ SPropTagArray *List_to_p_SPropTagArray(PyObject *object, ULONG /*ulFlags*/)
 		lpPropTagArray->aulPropTag[n] = (ULONG)PyLong_AsUnsignedLong(elem);
 		++n;
 	} while (true);
-	lpPropTagArray->cValues = n;
 
+	lpPropTagArray->cValues = n;
 	return retval_or_null(lpPropTagArray);
 }
 
@@ -892,7 +890,6 @@ void Object_to_LPSRestriction(PyObject *object, LPSRestriction lpsRestriction, v
 			if (elem == nullptr)
 				break;
 			Object_to_LPSRestriction(elem, &lpsRestriction->res.resAnd.lpRes[n], lpBase);
-
 			if(PyErr_Occurred())
 				return;
 			++n;
@@ -906,14 +903,11 @@ void Object_to_LPSRestriction(PyObject *object, LPSRestriction lpsRestriction, v
 			PyErr_SetString(PyExc_RuntimeError, "lpRes missing for restriction");
 			return;
 		}
-
 		if (MAPIAllocateMore(sizeof(SRestriction), lpBase, (void **)&lpsRestriction->res.resNot.lpRes) != hrSuccess) {
 			PyErr_SetString(PyExc_RuntimeError, "Out of memory");
 			return;
 		}
-
 		Object_to_LPSRestriction(sub, lpsRestriction->res.resNot.lpRes, lpBase);
-
 		if(PyErr_Occurred())
 			return;
 		break;
@@ -926,7 +920,6 @@ void Object_to_LPSRestriction(PyObject *object, LPSRestriction lpsRestriction, v
 			PyErr_SetString(PyExc_RuntimeError, "ulFuzzyLevel, ulPropTag or lpProp missing for RES_CONTENT restriction");
 			return;
 		}
-
 		lpsRestriction->res.resContent.ulFuzzyLevel = PyLong_AsUnsignedLong(ulFuzzyLevel);
 		lpsRestriction->res.resContent.ulPropTag = PyLong_AsUnsignedLong(ulPropTag);
 		lpsRestriction->res.resContent.lpProp = Object_to_LPSPropValue(sub, CONV_COPY_SHALLOW, lpBase);
@@ -940,7 +933,6 @@ void Object_to_LPSRestriction(PyObject *object, LPSRestriction lpsRestriction, v
 			PyErr_SetString(PyExc_RuntimeError, "relop, ulPropTag or lpProp missing for RES_PROPERTY restriction");
 			return;
 		}
-
 		lpsRestriction->res.resProperty.relop = PyLong_AsUnsignedLong(relop);
 		lpsRestriction->res.resProperty.ulPropTag = PyLong_AsUnsignedLong(ulPropTag);
 		lpsRestriction->res.resProperty.lpProp = Object_to_LPSPropValue(sub, CONV_COPY_SHALLOW, lpBase);
@@ -954,7 +946,6 @@ void Object_to_LPSRestriction(PyObject *object, LPSRestriction lpsRestriction, v
 			PyErr_SetString(PyExc_RuntimeError, "relop, ulPropTag1 or ulPropTag2 missing for RES_COMPAREPROPS restriction");
 			return;
 		}
-
 		lpsRestriction->res.resCompareProps.relop = PyLong_AsUnsignedLong(relop);
 		lpsRestriction->res.resCompareProps.ulPropTag1 = PyLong_AsUnsignedLong(ulPropTag);
 		lpsRestriction->res.resCompareProps.ulPropTag2 = PyLong_AsUnsignedLong(ulPropTag2);
@@ -968,7 +959,6 @@ void Object_to_LPSRestriction(PyObject *object, LPSRestriction lpsRestriction, v
 			PyErr_SetString(PyExc_RuntimeError, "relBMR, ulPropTag or ulMask missing for RES_BITMASK restriction");
 			return;
 		}
-
 		lpsRestriction->res.resBitMask.relBMR = PyLong_AsUnsignedLong(relop);
 		lpsRestriction->res.resBitMask.ulPropTag = PyLong_AsUnsignedLong(ulPropTag);
 		lpsRestriction->res.resBitMask.ulMask = PyLong_AsUnsignedLong(ulMask);
@@ -982,7 +972,6 @@ void Object_to_LPSRestriction(PyObject *object, LPSRestriction lpsRestriction, v
 			PyErr_SetString(PyExc_RuntimeError, "relop, ulPropTag or cb missing from RES_SIZE restriction");
 			return;
 		}
-
 		lpsRestriction->res.resSize.relop = PyLong_AsUnsignedLong(relop);
 		lpsRestriction->res.resSize.ulPropTag = PyLong_AsUnsignedLong(ulPropTag);
 		lpsRestriction->res.resSize.cb = PyLong_AsUnsignedLong(cb);
@@ -994,7 +983,6 @@ void Object_to_LPSRestriction(PyObject *object, LPSRestriction lpsRestriction, v
 			PyErr_SetString(PyExc_RuntimeError, "ulPropTag missing from RES_EXIST restriction");
 			return;
 		}
-
 		lpsRestriction->res.resExist.ulPropTag = PyLong_AsUnsignedLong(ulPropTag);
 		break;
 	}
@@ -1005,14 +993,12 @@ void Object_to_LPSRestriction(PyObject *object, LPSRestriction lpsRestriction, v
 			PyErr_SetString(PyExc_RuntimeError, "ulSubObject or lpRes missing from RES_SUBRESTRICTION restriction");
 			return;
 		}
-
 		lpsRestriction->res.resSub.ulSubObject = PyLong_AsUnsignedLong(ulPropTag);
 		if (MAPIAllocateMore(sizeof(SRestriction), lpBase, (void **)&lpsRestriction->res.resSub.lpRes) != hrSuccess) {
 			PyErr_SetString(PyExc_RuntimeError, "Out of memory");
 			return;
 		}
 		Object_to_LPSRestriction(sub, lpsRestriction->res.resSub.lpRes, lpBase);
-
 		if(PyErr_Occurred())
 			return;
 		break;
@@ -1024,14 +1010,11 @@ void Object_to_LPSRestriction(PyObject *object, LPSRestriction lpsRestriction, v
 			PyErr_SetString(PyExc_RuntimeError, "lpProp or sub missing from RES_COMMENT restriction");
 			return;
 		}
-
 		if (MAPIAllocateMore(sizeof(SRestriction), lpBase, (void **)&lpsRestriction->res.resComment.lpRes) != hrSuccess) {
 			PyErr_SetString(PyExc_RuntimeError, "Out of memory");
 			return;
 		}
-		
 		Object_to_LPSRestriction(sub, lpsRestriction->res.resComment.lpRes, lpBase);
-
 		if(PyErr_Occurred())
 			return;
 		lpsRestriction->res.resComment.lpProp = List_to_LPSPropValue(lpProp, &lpsRestriction->res.resComment.cValues, CONV_COPY_SHALLOW, lpBase);
@@ -1049,12 +1032,9 @@ SRestriction *Object_to_p_SRestriction(PyObject *object, void *lpBase)
 
 	if(object == Py_None)
 		return NULL;
-
 	if (MAPIAllocateBuffer(sizeof(SRestriction), (void **)&lpRestriction) != hrSuccess)
 		return NULL;
-
 	Object_to_LPSRestriction(object, lpRestriction);
-
 	if(PyErr_Occurred()) {
 		MAPIFreeBuffer(lpRestriction);
 		return NULL;
@@ -1085,7 +1065,6 @@ PyObject *Object_from_SRestriction(const SRestriction *lpsRestriction)
 				return nullptr;
 			PyList_Append(subs, sub);
 		}
-
 		if (lpsRestriction->rt == RES_AND)
 			result.reset(PyObject_CallFunction(PyTypeSAndRestriction, "O", subs.get()));
 		else
@@ -1116,19 +1095,15 @@ PyObject *Object_from_SRestriction(const SRestriction *lpsRestriction)
 	case RES_COMPAREPROPS:
 		result.reset(PyObject_CallFunction(PyTypeSComparePropsRestriction, "kkk", lpsRestriction->res.resCompareProps.relop, lpsRestriction->res.resCompareProps.ulPropTag1, lpsRestriction->res.resCompareProps.ulPropTag2));
 		break;
-
 	case RES_BITMASK:
 		result.reset(PyObject_CallFunction(PyTypeSBitMaskRestriction, "kkk", lpsRestriction->res.resBitMask.relBMR, lpsRestriction->res.resBitMask.ulPropTag, lpsRestriction->res.resBitMask.ulMask));
 		break;
-
 	case RES_SIZE:
 		result.reset(PyObject_CallFunction(PyTypeSSizeRestriction, "kkk", lpsRestriction->res.resSize.relop, lpsRestriction->res.resSize.ulPropTag, lpsRestriction->res.resSize.cb));
 		break;
-
 	case RES_EXIST:
 		result.reset(PyObject_CallFunction(PyTypeSExistRestriction, "k", lpsRestriction->res.resExist.ulPropTag));
 		break;
-
 	case RES_SUBRESTRICTION: {
 		pyobj_ptr sub(Object_from_LPSRestriction(lpsRestriction->res.resSub.lpRes));
 		if (!sub)
@@ -1406,7 +1381,6 @@ SSortOrderSet *Object_to_p_SSortOrderSet(PyObject *object)
 	lpsSortOrderSet->cSorts = i;
 	lpsSortOrderSet->cCategories = PyLong_AsUnsignedLong(cCategories);
 	lpsSortOrderSet->cExpanded = PyLong_AsUnsignedLong(cExpanded);
-
 	return retval_or_null(lpsSortOrderSet);
 }
 
@@ -1560,13 +1534,12 @@ LPSPropProblemArray List_to_LPSPropProblemArray(PyObject *list, ULONG /*ulFlags*
 		if (elem == nullptr)
 			break;
 		Object_to_LPSPropProblem(elem, &lpsProblems->aProblem[i]);
-
 		if(PyErr_Occurred())
 			return nullptr;
 		++i;
 	} while (true);
-	lpsProblems->cProblem = i;
 
+	lpsProblems->cProblem = i;
 	return retval_or_null(lpsProblems);
 }
 
@@ -1600,7 +1573,6 @@ void Object_to_LPMAPINAMEID(PyObject *elem, LPMAPINAMEID *lppName, void *lpBase)
 	LPMAPINAMEID lpName = NULL;
 	ULONG ulKind = 0;
 	Py_ssize_t len = 0;
-
 	auto laters = make_scope_success([&]() {
 		if (PyErr_Occurred() && lpBase == nullptr)
 			MAPIFreeBuffer(lpName);
@@ -1641,7 +1613,6 @@ void Object_to_LPMAPINAMEID(PyObject *elem, LPMAPINAMEID *lppName, void *lpBase)
 			PyErr_SetString(PyExc_RuntimeError, "Must pass unicode string for MNID_STRING ID part of MAPINAMEID");
 			return;
 		}
-		
 		CopyPyUnicode(&lpName->Kind.lpwstrName, id, lpBase);
 	}
 
@@ -1651,7 +1622,6 @@ void Object_to_LPMAPINAMEID(PyObject *elem, LPMAPINAMEID *lppName, void *lpBase)
 		PyErr_Format(PyExc_RuntimeError, "GUID parameter of MAPINAMEID must be exactly %d bytes", (int)sizeof(GUID));
 		return;
 	}
-
 	*lppName = lpName;
 }
 
@@ -1674,13 +1644,12 @@ LPMAPINAMEID *	List_to_p_LPMAPINAMEID(PyObject *list, ULONG *lpcNames, ULONG /*u
 		if (elem == nullptr)
 			break;
 		Object_to_LPMAPINAMEID(elem, &lpNames[i], lpNames);
-
 		if(PyErr_Occurred())
 			return nullptr;
 		++i;
 	} while (true);
-	*lpcNames = i;
 
+	*lpcNames = i;
 	return retval_or_null(lpNames);
 }
 
@@ -1698,7 +1667,6 @@ ENTRYLIST *List_to_p_ENTRYLIST(PyObject *list)
 	auto len = PyObject_Length(list);
 	if (MAPIAllocateBuffer(sizeof(*lpEntryList), &~lpEntryList) != hrSuccess)
 		return retval_or_null(lpEntryList);
-
 	if (MAPIAllocateMore(len * sizeof *lpEntryList->lpbin, lpEntryList, (void**)&lpEntryList->lpbin) != hrSuccess)
 		return retval_or_null(lpEntryList);
 
@@ -1713,7 +1681,6 @@ ENTRYLIST *List_to_p_ENTRYLIST(PyObject *list)
 		if (PyString_AsStringAndSize(elem, &ptr, &strlen) == -1 ||
 		    PyErr_Occurred())
 			return retval_or_null(lpEntryList);
-
 		lpEntryList->lpbin[i].cb = strlen;
 		if (KAllocCopy(ptr, strlen, reinterpret_cast<void **>(&lpEntryList->lpbin[i].lpb), lpEntryList) != hrSuccess)
 			return retval_or_null(lpEntryList);
@@ -1831,7 +1798,6 @@ NOTIFICATION *	Object_to_LPNOTIFICATION(PyObject *obj)
 	if (MAPIAllocateBuffer(sizeof(NOTIFICATION), &~lpNotif) != hrSuccess)
 		return nullptr;
 	memset(lpNotif, 0, sizeof(NOTIFICATION));
-
 	if (!PyObject_IsInstance(obj, PyTypeNEWMAIL_NOTIFICATION)) {
 		PyErr_Format(PyExc_RuntimeError, "Bad object type %p", obj->ob_type);
 		return PyErr_Occurred() ? nullptr : lpNotif.release();
@@ -1874,6 +1840,7 @@ NOTIFICATION *	Object_to_LPNOTIFICATION(PyObject *obj)
 	if (oTmp != Py_None) {
 		lpNotif->info.newmail.ulMessageFlags = (ULONG)PyLong_AsUnsignedLong(oTmp);
 	}
+
 	// MessageClass
 	oTmp.reset(PyObject_GetAttrString(obj, "lpszMessageClass"));
 	if (!oTmp) {
@@ -1886,7 +1853,6 @@ NOTIFICATION *	Object_to_LPNOTIFICATION(PyObject *obj)
 		else if (PyString_AsStringAndSize(oTmp, reinterpret_cast<char **>(&lpNotif->info.newmail.lpszMessageClass), nullptr) == -1)
 			return retval_or_null(lpNotif);
 	}
-
 	return retval_or_null(lpNotif);
 }
 
@@ -1906,7 +1872,6 @@ LPFlagList		List_to_LPFlagList(PyObject *list)
 		if (elem == nullptr)
 			break;
 		lpList->ulFlag[i] = PyLong_AsUnsignedLong(elem);
-
 		if(PyErr_Occurred())
 			return nullptr;
 		++i;
@@ -1968,7 +1933,6 @@ LPREADSTATE		List_to_LPREADSTATE(PyObject *list, ULONG *lpcElements)
 		lpList[i].ulFlags = PyLong_AsUnsignedLong(flags);
 		if (PyErr_Occurred())
 			return nullptr;
-
 		if (PyString_AsStringAndSize(sourcekey, &ptr, &len) == -1 ||
 		    PyErr_Occurred())
 			return retval_or_null(lpList);
@@ -1980,8 +1944,8 @@ LPREADSTATE		List_to_LPREADSTATE(PyObject *list, ULONG *lpcElements)
 		lpList[i].cbSourceKey = len;
 		++i;
 	} while (true);
-	*lpcElements = len;
 
+	*lpcElements = len;
 	return retval_or_null(lpList);
 }
 
@@ -2026,17 +1990,15 @@ LPCIID			List_to_LPCIID(PyObject *list, ULONG *cInterfaces)
 		if (PyString_AsStringAndSize(elem, &ptr, &strlen) == -1 ||
 		    PyErr_Occurred())
 			return retval_or_null(lpList);
-
 		if (strlen != sizeof(*lpList)) {
 			PyErr_Format(PyExc_RuntimeError, "IID parameter must be exactly %d bytes", (int)sizeof(IID));
 			return retval_or_null(lpList);
 		}
-
 		memcpy(&lpList[i], ptr, sizeof(*lpList));
 		++i;
 	} while (true);
-	*cInterfaces = len;
 
+	*cInterfaces = len;
 	return retval_or_null(lpList);
 }
 
@@ -2188,12 +2150,10 @@ ECUSER *Object_to_LPECUSER(PyObject *elem, ULONG ulFlags)
 	for (size_t n = 0; n < ARRAY_SIZE(conv_info) && !PyErr_Occurred(); ++n)
 		conv_info[n].conv_out_func(lpUser, elem, conv_info[n].membername, ulFlags);
 	Object_to_MVPROPMAP(elem, lpUser, ulFlags);
-
 	if (PyErr_Occurred()) {
 		MAPIFreeBuffer(lpUser);
 		return nullptr;
 	}
-
 	return lpUser;
 }
 
@@ -2242,12 +2202,10 @@ ECGROUP *Object_to_LPECGROUP(PyObject *elem, ULONG ulFlags)
 	for (size_t n = 0; n < ARRAY_SIZE(conv_info) && !PyErr_Occurred(); ++n)
 		conv_info[n].conv_out_func(lpGroup, elem, conv_info[n].membername, ulFlags);
 	Object_to_MVPROPMAP(elem, lpGroup, ulFlags);
-
 	if (PyErr_Occurred()) {
 		MAPIFreeBuffer(lpGroup);
 		return nullptr;
 	}
-
 	return lpGroup;
 }
 
@@ -2296,12 +2254,10 @@ ECCOMPANY *Object_to_LPECCOMPANY(PyObject *elem, ULONG ulFlags)
 	for (size_t n = 0; n < ARRAY_SIZE(conv_info) && !PyErr_Occurred(); ++n)
 		conv_info[n].conv_out_func(lpCompany, elem, conv_info[n].membername, ulFlags);
 	Object_to_MVPROPMAP(elem, lpCompany, ulFlags);
-
 	if (PyErr_Occurred()) {
 		MAPIFreeBuffer(lpCompany);
 		return nullptr;
 	}
-
 	return lpCompany;
 }
 
@@ -2358,7 +2314,6 @@ LPROWLIST List_to_LPROWLIST(PyObject *object, ULONG ulFlags)
 		pyobj_ptr props(PyObject_GetAttrString(elem, "rgPropVals"));
 		if (props == NULL)
 			return retval_or_null(lpRowList);
-
 		lpRowList->aEntries[n].ulRowFlags = (ULONG)PyLong_AsUnsignedLong(rowflags);
 		lpRowList->aEntries[n].rgPropVals = List_to_LPSPropValue(props, &lpRowList->aEntries[n].cValues, ulFlags);
 		lpRowList->cEntries = ++n;
@@ -2393,7 +2348,6 @@ void DoException(HRESULT hr)
 		errortype = PyTypeMAPIError;
 		ex.reset(PyObject_CallFunction(PyTypeMAPIError, "O", hrObj.get()));
 	}
-
 	PyErr_SetObject(errortype, ex);
 }
 
@@ -2408,7 +2362,6 @@ int GetExceptionError(PyObject *object, HRESULT *lphr)
 		PyErr_SetString(PyExc_RuntimeError, "hr or Value missing from MAPIError");
 		return -1;
 	}
-
 	*lphr = (HRESULT)PyLong_AsUnsignedLong(hr);
 	return 1;
 }
@@ -2439,7 +2392,6 @@ ECQUOTA *Object_to_LPECQUOTA(PyObject *elem)
 		MAPIFreeBuffer(lpQuota);
 		return nullptr;
 	}
-
 	return lpQuota;
 }
 
@@ -2467,11 +2419,11 @@ ECSVRNAMELIST *List_to_LPECSVRNAMELIST(PyObject *object)
 	}
 	if (MAPIAllocateBuffer(sizeof(ECSVRNAMELIST) + (sizeof(ECSERVER *) * len), &~lpSvrNameList) != hrSuccess)
 		return retval_or_null(lpSvrNameList);
-
 	memset(lpSvrNameList, 0, sizeof(ECSVRNAMELIST) + (sizeof(ECSERVER *) * len) );
 	pyobj_ptr iter(PyObject_GetIter(object));
 	if (iter == NULL)
 		return retval_or_null(lpSvrNameList);
+
 	do {
 		pyobj_ptr elem(PyIter_Next(iter));
 		if (elem == nullptr)
@@ -2522,7 +2474,6 @@ void Object_to_STATSTG(PyObject *object, STATSTG *stg)
 		PyErr_Format(PyExc_TypeError, "STATSTG does not contain cbSize");
 		return;
 	}
-
 	stg->cbSize.QuadPart = PyLong_AsINT64(cbSize);
 }
 

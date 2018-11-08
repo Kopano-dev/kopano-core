@@ -27,7 +27,6 @@ static thread_info *get_thread_info() {
 		pti = new thread_info;
 		pthread_setspecific(g_key, (void *)pti);
 	}
-
 	return pti;
 }
 
