@@ -11,10 +11,9 @@
 %typemap(in) (IMAPIProp *lpWrapped, LPCIID USE_IID_FOR_OUTPUT) (int res)
 {
 	res = SWIG_ConvertPtr($input, (void**)&$1, $1_descriptor, 0 |  0 );
-    if (!SWIG_IsOK(res)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "BUG"); 
-    }
-
+	if (!SWIG_IsOK(res)) {
+		SWIG_exception_fail(SWIG_ArgError(res1), "BUG");
+	}
 	$2 = IIDFromType(TypeFromObject($input));
 }
 

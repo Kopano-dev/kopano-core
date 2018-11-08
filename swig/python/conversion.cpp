@@ -280,7 +280,7 @@ wchar_t * CopyPyUnicode(wchar_t **lpWide, PyObject *o, void *lpBase)
         *lpWide = NULL;
         return NULL;
     }
-        
+
 	auto size = PyUnicode_GetSize(unicode);
     if (MAPIAllocateMore((size + 1) * sizeof(wchar_t), lpBase, (void **)lpWide) == hrSuccess) {
 	    #if PY_MAJOR_VERSION >= 3
@@ -288,7 +288,7 @@ wchar_t * CopyPyUnicode(wchar_t **lpWide, PyObject *o, void *lpBase)
 	    #else
 		PyUnicode_AsWideChar((PyUnicodeObject *)unicode.get(), *lpWide, size);
 	    #endif
-	    
+
 	    (*lpWide)[size] = '\0';
 	    return *lpWide;
     }

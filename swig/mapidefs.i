@@ -291,12 +291,11 @@ public:
         virtual HRESULT UnwrapNoRef(IUnknown **OUTPUT /*ppvObject*/) {
             HRESULT hr = hrSuccess;
             hr = self->UnwrapNoRef((LPVOID*)OUTPUT);
-            if(hr == hrSuccess)
+			if (hr == hrSuccess)
                 (*OUTPUT)->AddRef();
-
-            return hr;          
+			return hr;
         };
- 
+
     }
 };
 
