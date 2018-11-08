@@ -137,13 +137,13 @@ template<> void conv_out<objectclass_t>(PyObject *value, void */*base*/,
  */
 template<typename ObjType, typename MemType, MemType(ObjType::*Member)>
 static void conv_out_default(ObjType *obj, PyObject *elem,
-    const char *member_tx, void *base, unsigned int flags)
+    const char *member_tx, unsigned int flags)
 {
 	/* Older versions of python might expect a non-const char pointer. */
 	pyobj_ptr value(PyObject_GetAttrString(elem, const_cast<char *>(member_tx)));
 	if (PyErr_Occurred())
 		return;
-	conv_out(value, base, flags, &(obj->*Member));
+	conv_out(value, obj, flags, &(obj->*Member));
 }
 
 /**
@@ -151,7 +151,7 @@ static void conv_out_default(ObjType *obj, PyObject *elem,
  * their scripted representation to their native representation.
  */
 template<typename ObjType> struct conv_out_info {
-	typedef void (*functype)(ObjType *, PyObject *, const char *, void *base, unsigned int flags);
+	typedef void (*functype)(ObjType *, PyObject *, const char *, unsigned int flags);
 	functype conv_out_func;
 	const char *membername;
 };
@@ -2252,7 +2252,7 @@ ECUSER *Object_to_LPECUSER(PyObject *elem, ULONG ulFlags)
 	}
 	memset(lpUser, 0, sizeof *lpUser);
 	for (size_t n = 0; n < ARRAY_SIZE(conv_info) && !PyErr_Occurred(); ++n)
-		conv_info[n].conv_out_func(lpUser, elem, conv_info[n].membername, lpUser, ulFlags);
+		conv_info[n].conv_out_func(lpUser, elem, conv_info[n].membername, ulFlags);
 	Object_to_MVPROPMAP(elem, lpUser, ulFlags);
 
 	if (PyErr_Occurred()) {
@@ -2308,7 +2308,7 @@ ECGROUP *Object_to_LPECGROUP(PyObject *elem, ULONG ulFlags)
 	}
 	memset(lpGroup, 0, sizeof *lpGroup);
 	for (size_t n = 0; n < ARRAY_SIZE(conv_info) && !PyErr_Occurred(); ++n)
-		conv_info[n].conv_out_func(lpGroup, elem, conv_info[n].membername, lpGroup, ulFlags);
+		conv_info[n].conv_out_func(lpGroup, elem, conv_info[n].membername, ulFlags);
 	Object_to_MVPROPMAP(elem, lpGroup, ulFlags);
 
 	if (PyErr_Occurred()) {
@@ -2364,7 +2364,7 @@ ECCOMPANY *Object_to_LPECCOMPANY(PyObject *elem, ULONG ulFlags)
 	}
 	memset(lpCompany, 0, sizeof *lpCompany);
 	for (size_t n = 0; n < ARRAY_SIZE(conv_info) && !PyErr_Occurred(); ++n)
-		conv_info[n].conv_out_func(lpCompany, elem, conv_info[n].membername, lpCompany, ulFlags);
+		conv_info[n].conv_out_func(lpCompany, elem, conv_info[n].membername, ulFlags);
 	Object_to_MVPROPMAP(elem, lpCompany, ulFlags);
 
 	if (PyErr_Occurred()) {
@@ -2508,7 +2508,7 @@ ECQUOTA *Object_to_LPECQUOTA(PyObject *elem)
 	}
 	memset(lpQuota, 0, sizeof *lpQuota);
 	for (size_t n = 0; n < ARRAY_SIZE(conv_info) && !PyErr_Occurred(); ++n)
-		conv_info[n].conv_out_func(lpQuota, elem, conv_info[n].membername, lpQuota, 0);
+		conv_info[n].conv_out_func(lpQuota, elem, conv_info[n].membername, 0);
 	if (PyErr_Occurred()) {
 		MAPIFreeBuffer(lpQuota);
 		return nullptr;
