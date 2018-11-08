@@ -268,7 +268,6 @@ zend_function_entry mapi_functions[] =
 	ZEND_FE(mapi_msgstore_openentry, NULL)
 	ZEND_FE(mapi_msgstore_getreceivefolder, NULL)
 	ZEND_FE(mapi_msgstore_entryidfromsourcekey, NULL)
-	ZEND_FE(mapi_msgstore_openmultistoretable, NULL)
 	ZEND_FE(mapi_msgstore_advise, NULL)
 	ZEND_FE(mapi_msgstore_unadvise, NULL)
 	ZEND_FE(mapi_msgstore_abortsubmit, nullptr)
@@ -2460,55 +2459,6 @@ ZEND_FUNCTION(mapi_msgstore_getreceivefolder)
 	if(MAPI_G(hr) != hrSuccess)
 		goto exit;
 	ZEND_REGISTER_RESOURCE(return_value, lpFolder.release(), le_mapi_folder);
-exit:
-	LOG_END();
-	THROW_ON_ERROR();
-}
-
-/**
-* mapi_msgstore_openmultistoretable
-*
-* @param Resource MAPIMSGStore
-* @param Array EntryIdList
-* @param Long Flags
-* @return MAPITable
-*/
-ZEND_FUNCTION(mapi_msgstore_openmultistoretable)
-{
-	PMEASURE_FUNC;
-	LOG_BEGIN();
-	// params
-	zval			*res;
-	zval			*entryid_array = NULL;
-	LPMDB			lpMDB		= NULL;
-	long			ulFlags		= 0;
-	// return value
-	LPMAPITABLE		lpMultiTable = NULL;
-	// locals
-	object_ptr<IECMultiStoreTable> lpECMST;
-	memory_ptr<ENTRYLIST> lpEntryList;
-
-	RETVAL_FALSE;
-	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra|l", &res, &entryid_array, &ulFlags) == FAILURE) return;
-
-	ZEND_FETCH_RESOURCE_C(lpMDB, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
-
-	MAPI_G(hr) = PHPArraytoSBinaryArray(entryid_array, NULL, &~lpEntryList TSRMLS_CC);
-	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Bad message list");
-		goto exit;
-	}
-	MAPI_G(hr) = GetECObject(lpMDB, iid_of(lpECMST), &~lpECMST);
-	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano object");
-		goto exit;
-	}
-	MAPI_G(hr) = lpECMST->OpenMultiStoreTable(lpEntryList, ulFlags, &lpMultiTable);
-	if (FAILED(MAPI_G(hr)))
-		goto exit;
-	ZEND_REGISTER_RESOURCE(return_value, lpMultiTable, le_mapi_table);
 exit:
 	LOG_END();
 	THROW_ON_ERROR();

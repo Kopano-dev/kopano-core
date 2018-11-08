@@ -993,7 +993,6 @@ int ns__tableCreateBookmark(ULONG64 ulSessionId, unsigned int ulTableId, struct 
 int ns__tableFreeBookmark(ULONG64 ulSessionId, unsigned int ulTableId, unsigned int ulbkPosition, unsigned int *result);
 int ns__tableSetSearchCriteria(ULONG64 ulSessionId, entryId sEntryId, struct restrictTable *lpRestrict, struct entryList *lpFolders, unsigned int ulFlags, unsigned int *result);
 int ns__tableGetSearchCriteria(ULONG64 ulSessionId, entryId sEntryId, struct ns:tableGetSearchCriteriaResponse *lpsResponse);
-int ns__tableSetMultiStoreEntryIDs(ULONG64 ulSessionId, unsigned int ulTableId, struct entryList *aMessages, unsigned int *result);
 int ns__tableExpandRow(ULONG64 ulSessionId, unsigned int ulTableId, struct xsd__base64Binary sInstanceKey, unsigned int ulRowCount, unsigned int ulFlags, struct ns:tableExpandRowResponse *lpsTableExpandRowResponse);
 int ns__tableCollapseRow(ULONG64 ulSessionId, unsigned int ulTableId, struct xsd__base64Binary sInstanceKey, unsigned int ulFlags, struct ns:tableCollapseRowResponse *lpsTableCollapseRowResponse);
 int ns__tableGetCollapseState(ULONG64 ulSessionId, unsigned int ulTableId, struct xsd__base64Binary sBookmark, struct ns:tableGetCollapseStateResponse *lpsResponse);

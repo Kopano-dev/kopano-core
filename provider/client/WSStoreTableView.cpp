@@ -46,63 +46,6 @@ HRESULT WSStoreTableView::QueryInterface(REFIID refiid, void **lppInterface)
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
-// WSTableMultiStore view
-WSTableMultiStore::WSTableMultiStore(ULONG flags, ECSESSIONID sid,
-    ULONG cbEntryId, const ENTRYID *lpEntryId, ECMsgStore *lpMsgStore,
-    WSTransport *lpTransport) :
-	WSStoreTableView(MAPI_MESSAGE, flags, sid, cbEntryId, lpEntryId,
-	    lpMsgStore, lpTransport)
-{
-	m_sEntryList = entryList();
-	m_ulTableType = TABLETYPE_MULTISTORE;
-	ulTableId = 0;
-}
-
-WSTableMultiStore::~WSTableMultiStore()
-{
-	FreeEntryList(&m_sEntryList, false);
-}
-
-HRESULT WSTableMultiStore::Create(ULONG ulFlags, ECSESSIONID ecSessionId,
-    ULONG cbEntryId, const ENTRYID *lpEntryId, ECMsgStore *lpMsgStore,
-    WSTransport *lpTransport, WSTableMultiStore **lppTableMultiStore)
-{
-	return alloc_wrap<WSTableMultiStore>(ulFlags, ecSessionId, cbEntryId,
-	       lpEntryId, lpMsgStore, lpTransport).put(lppTableMultiStore);
-}
-
-HRESULT WSTableMultiStore::HrOpenTable()
-{
-	if (ulTableId != 0)
-		return hrSuccess;
-
-	ECRESULT		er = erSuccess;
-	struct tableOpenResponse sResponse;
-	soap_lock_guard spg(*m_lpTransport);
-
-	//m_sEntryId is the id of a store
-	if (m_lpTransport->m_lpCmd->tableOpen(ecSessionId, m_sEntryId,
-	    m_ulTableType, MAPI_MESSAGE, ulFlags, &sResponse) != SOAP_OK)
-		er = KCERR_NETWORK_ERROR;
-	else
-		er = sResponse.er;
-
-	auto hr = kcerr_to_mapierr(er);
-	if(hr != hrSuccess)
-		return hr;
-	ulTableId = sResponse.ulTableId;
-	if (m_lpTransport->m_lpCmd->tableSetMultiStoreEntryIDs(ecSessionId,
-	    ulTableId, &m_sEntryList, &er) != SOAP_OK)
-		er = KCERR_NETWORK_ERROR;
-	return kcerr_to_mapierr(er);
-}
-
-HRESULT WSTableMultiStore::HrSetEntryIDs(const ENTRYLIST *lpMsgList)
-{
-	// Not really a transport function, but this is the best place for it for now
-	return CopyMAPIEntryListToSOAPEntryList(lpMsgList, &m_sEntryList);
-}
-
 /*
   Miscellaneous tables are not really store tables, but the is the same, so it inherits from the store table
   Supported tables are the stats tables, and userstores table.

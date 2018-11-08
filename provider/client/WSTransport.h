@@ -211,9 +211,6 @@ public:
 
 	virtual const char* GetServerName();
 
-	/* multi store table functions */
-	virtual HRESULT HrOpenMultiStoreTable(const ENTRYLIST *msglist, ULONG flags, ULONG eid_size, const ENTRYID *eid, ECMsgStore *, WSTableView **ops);
-
 	/* statistics tables (system, threads, users), ulTableType is proto.h TABLETYPE_STATS_... */
 	/* userstores table TABLETYPE_USERSTORE */
 	virtual HRESULT HrOpenMiscTable(ULONG table_type, ULONG flags, ULONG eid_size, const ENTRYID *eid, ECMsgStore *, WSTableView **);

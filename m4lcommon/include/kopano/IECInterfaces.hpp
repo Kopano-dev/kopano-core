@@ -136,12 +136,6 @@ class IECImportHierarchyChanges : public IExchangeImportHierarchyChanges {
 	virtual HRESULT ImportFolderChangeEx(ULONG cValues, LPSPropValue lpPropArray, BOOL fNew) = 0;
 };
 
-class IECMultiStoreTable : public virtual IUnknown {
-	public:
-	/* ulFlags is currently unused */
-	virtual HRESULT OpenMultiStoreTable(const ENTRYLIST *msglist, ULONG flags, IMAPITable **) = 0;
-};
-
 class IECSecSvcAdm_base : public virtual IUnknown {
 	public:
 	virtual HRESULT GetUserList(ULONG cbCompanyId, const ENTRYID *lpCompanyId, ULONG ulFlags, ULONG *lpcUsers, ECUSER **lppsUsers) = 0;
@@ -251,7 +245,6 @@ class IECTestProtocol : public virtual IUnknown {
 } /* namespace */
 
 IID_OF2(KC::IECChangeAdvisor, IECChangeAdvisor)
-IID_OF2(KC::IECMultiStoreTable, IECMultiStoreTable)
 IID_OF2(KC::IECSecurity, IECSecurity)
 IID_OF2(KC::IECServiceAdmin, IECServiceAdmin)
 IID_OF2(KC::IECSingleInstance, IECSingleInstance)
