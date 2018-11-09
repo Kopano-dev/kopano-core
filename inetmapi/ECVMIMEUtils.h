@@ -18,6 +18,7 @@
 #ifndef ECVMIMEUTILS
 #define ECVMIMEUTILS
 
+#include <memory>
 #include <string>
 #include <set>
 #include <kopano/zcdefs.h>
@@ -27,13 +28,13 @@
 
 class ECVMIMESender _kc_final : public ECSender {
 private:
-	HRESULT HrMakeRecipientsList(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage, vmime::ref<vmime::message> vmMessage, vmime::mailboxList &recipients, bool bAllowEveryone, bool bAlwaysExpandDistrList);
+	HRESULT HrMakeRecipientsList(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage, vmime::shared_ptr<vmime::message>, vmime::mailboxList &recipients, bool bAllowEveryone, bool bAlwaysExpandDistrList);
 	HRESULT HrExpandGroup(LPADRBOOK lpAdrBook, LPSPropValue lpGroupName, LPSPropValue lpGroupEntryID, vmime::mailboxList &recipients, std::set<std::wstring> &setGroups, std::set<std::wstring> &setRecips, bool bAllowEveryone);
 	HRESULT HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpTable, vmime::mailboxList &recipients, std::set<std::wstring> &setGroups, std::set<std::wstring> &setRecips, bool bAllowEveryone, bool bAlwaysExpandDistrList);
 
 public:
 	ECVMIMESender(ECLogger *newlpLogger, std::string strSMTPHost, int port);
-	HRESULT sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage, vmime::ref<vmime::message> vmMessage, bool bAllowEveryone, bool bAlwaysExpandDistrList);
+	HRESULT sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage, vmime::shared_ptr<vmime::message>, bool bAllowEveryone, bool bAlwaysExpandDistrList);
 };
 
 #endif

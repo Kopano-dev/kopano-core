@@ -415,20 +415,8 @@ CXXFLAGS="$CXXFLAGS_system $ZCXXFLAGS"
 LDFLAGS="$LDFLAGS_system $ZLDFLAGS"
 AC_CHECK_FUNCS([pthread_getname_np])
 
-VMIME_CFLAGS=""
-VMIME_LIBS="-lvmime"
-
-AC_ARG_WITH(vmime-prefix,
-  AS_HELP_STRING([--with-vmime-prefix=PATH], [libvmime prefix, e.g. /usr/local, default /usr]),
-  [
-  VMIME_PREFIX="$withval"
-  VMIME_CFLAGS="$VMIME_CFLAGS -I$VMIME_PREFIX/include"
-  VMIME_LIBS="$VMIME_LIBS -L$VMIME_PREFIX/lib -L$VMIME_PREFIX/lib64 -R$VMIME_PREFIX/lib -R$VMIME_PREFIX/lib64"
-  ])
-AC_SUBST(VMIME_CFLAGS)
-AC_SUBST(VMIME_LIBS)
-
 PKG_CHECK_MODULES([GSOAP], [gsoapssl++ >= 2.8.73])
+PKG_CHECK_MODULES([VMIME], [vmime >= 0.9.2k1])
 
 ICAL_CFLAGS=""
 ICAL_LIBS="-lical -licalss"

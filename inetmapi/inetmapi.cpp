@@ -180,7 +180,7 @@ INETMAPI_API HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook, IM
 	LPSPropValue	lpTime		= NULL;
 	LPSPropValue	lpMessageId	= NULL;
 	MAPIToVMIME*	mToVM		= new MAPIToVMIME(lpSession, lpAddrBook, lpLogger, sopt);
-	vmime::ref<vmime::message>	lpVMMessage	= NULL;
+	vmime::shared_ptr<vmime::message> lpVMMessage;
 	vmime::utility::outputStreamAdapter adapter(os);
 
 	InitializeVMime();
@@ -224,7 +224,7 @@ INETMAPI_API HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook, IM
 {
 	HRESULT			hr	= hrSuccess;
 	MAPIToVMIME		*mToVM	= new MAPIToVMIME(lpSession, lpAddrBook, lpLogger, sopt);
-	vmime::ref<vmime::message>	vmMessage;
+	vmime::shared_ptr<vmime::message> vmMessage;
 	ECVMIMESender		*mailer	= dynamic_cast<ECVMIMESender*>(mailer_base);
 	wstring			wstrError;
 	SPropArrayPtr	ptrProps;

@@ -20,17 +20,17 @@
 
 #include <kopano/zcdefs.h>
 #include <mapidefs.h>
-#include <vmime/utility/stream.hpp>
+#include <vmime/utility/inputStream.hpp>
 
 class inputStreamMAPIAdapter _kc_final : public vmime::utility::inputStream {
 public:
 	inputStreamMAPIAdapter(IStream *lpStream);
 	virtual ~inputStreamMAPIAdapter();
 
-	virtual size_type read(value_type* const data, const size_type count);
-	virtual size_type skip(const size_type count);
-	virtual void reset();
-	virtual bool eof(void) const { return this->ateof; }
+	virtual size_t read(vmime::byte_t *, size_t) _kc_override;
+	virtual size_t skip(size_t) _kc_override;
+	virtual void reset(void) _kc_override;
+	virtual bool eof(void) const _kc_override { return this->ateof; }
 
 private:
 	bool	ateof;

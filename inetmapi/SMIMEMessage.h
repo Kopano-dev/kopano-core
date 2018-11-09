@@ -20,6 +20,7 @@
 
 #include <vmime/message.hpp>
 #include <vmime/utility/stream.hpp>
+#include <vmime/generationContext.hpp>
 
 /**
  * We are adding a bit of functionality to vmime::message here for S/MIME support.
@@ -46,7 +47,7 @@ class SMIMEMessage : public vmime::message {
 public:
     SMIMEMessage();
 
-	void generate(vmime::utility::outputStream& os, const std::string::size_type maxLineLength = vmime::options::getInstance()->message.maxLineLength(), const std::string::size_type curLinePos = 0, std::string::size_type* newLinePos = NULL) const;
+	void generateImpl(const vmime::generationContext &, vmime::utility::outputStream &, size_t curLinePos = 0, size_t *newLinePos = NULL) const;
 
     void setSMIMEBody(std::string &body);    
     

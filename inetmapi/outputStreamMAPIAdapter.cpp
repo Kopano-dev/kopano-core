@@ -35,9 +35,9 @@ outputStreamMAPIAdapter::~outputStreamMAPIAdapter()
 		lpStream->Release();
 }
 
-void outputStreamMAPIAdapter::write(const value_type* const data, const size_type count)
+void outputStreamMAPIAdapter::writeImpl(const vmime::byte_t *data, size_t count)
 {
-	lpStream->Write((unsigned char *)data,count,NULL);
+	lpStream->Write(data, count, NULL);
 }
 
 void outputStreamMAPIAdapter::flush()

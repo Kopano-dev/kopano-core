@@ -21,6 +21,7 @@
 // the GNU General Public License cover the whole combination.
 //
 
+#include <memory>
 #include "vmime/net/serviceFactory.hpp"
 
 
@@ -41,11 +42,10 @@ public:
 	{
 	}
 
-	ref <service> create
-		(ref <session> sess,
-		 ref <security::authenticator> auth) const
+	vmime::shared_ptr<service> create(const vmime::shared_ptr<session> &sess,
+	    const vmime::shared_ptr<security::authenticator> &auth) const
 	{
-		return vmime::create <S>(sess, auth);
+		return vmime::make_shared<S>(sess, auth);
 	}
 
 	const serviceInfos& getInfos() const
@@ -80,7 +80,7 @@ public:
 	serviceRegisterer(const string& protocol, const service::Type type)
 	{
 		serviceFactory::getInstance()->registerService
-			(vmime::create <vmime::net::registeredServiceImpl <S> >(protocol, type));
+			(vmime::make_shared<net::registeredServiceImpl<S> >(protocol, type));
 	}
 };
 

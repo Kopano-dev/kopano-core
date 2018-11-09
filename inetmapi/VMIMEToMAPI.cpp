@@ -124,7 +124,7 @@ VMIMEToMAPI::~VMIMEToMAPI()
  */
 HRESULT VMIMEToMAPI::createIMAPProperties(const std::string &input, std::string *lpEnvelope, std::string *lpBody, std::string *lpBodyStructure)
 {
-	vmime::ref<vmime::message> vmMessage = vmime::create<vmime::message>();
+	auto vmMessage = vmime::make_shared<vmime::message>();
 	vmMessage->parse(input);
 
 	if (lpBody || lpBodyStructure)
@@ -190,7 +190,7 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 		}
 
 		// turn buffer into a message
-		vmime::ref<vmime::message> vmMessage = vmime::create<vmime::message>();
+		auto vmMessage = vmime::make_shared<vmime::message>();
 		vmMessage->parse(input);
 
 		// save imap data first, seems vmMessage may be altered in the rest of the code.
@@ -221,8 +221,7 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 			}
 			
 			// Include the entire rfc822 data in an attachment for the client to check
-			vmime::ref<vmime::header> vmHeader = vmMessage->getHeader();
-
+			auto vmHeader = vmMessage->getHeader();
 			hr = lpMessage->CreateAttach(NULL, 0, &ulAttNr, &lpAtt);
 			if (hr != hrSuccess)
 				goto exit;
@@ -354,7 +353,9 @@ exit:
  * @return		MAPI error code.
  * @retval		MAPI_E_CALL_FAILED	Caught an exception, which breaks the conversion.
  */
-HRESULT VMIMEToMAPI::fillMAPIMail(vmime::ref<vmime::message> vmMessage, IMessage *lpMessage) {
+HRESULT VMIMEToMAPI::fillMAPIMail(vmime::shared_ptr<vmime::message> vmMessage,
+    IMessage *lpMessage)
+{
 	HRESULT	hr;
 	SPropValue sPropDefaults[3];
 
@@ -383,9 +384,9 @@ HRESULT VMIMEToMAPI::fillMAPIMail(vmime::ref<vmime::message> vmMessage, IMessage
 		// turn buffer into a message
 
 		// get the part header and find out what it is...
-		vmime::ref<vmime::header> vmHeader = vmMessage->getHeader();
-		vmime::ref<vmime::body> vmBody = vmMessage->getBody();
-		vmime::ref<vmime::mediaType> mt = vmHeader->ContentType()->getValue().dynamicCast<vmime::mediaType>();
+		auto vmHeader = vmMessage->getHeader();
+		auto vmBody = vmMessage->getBody();
+		auto mt = vmime::dynamicCast<vmime::mediaType>(vmHeader->ContentType()->getValue());
 
 		// pass recipients somewhere else 
 		hr = handleRecipients(vmHeader, lpMessage);
@@ -404,21 +405,19 @@ HRESULT VMIMEToMAPI::fillMAPIMail(vmime::ref<vmime::message> vmMessage, IMessage
 		if (vmime::mdn::MDNHelper::isMDN(vmMessage) == true)
 		{
 			vmime::mdn::receivedMDNInfos receivedMDN = vmime::mdn::MDNHelper::getReceivedMDN(vmMessage);
-
-			vmime::ref<vmime::body> myBody = vmMessage->getBody();
+			auto myBody = vmMessage->getBody();
 			// it is possible to get 3 bodyparts.
 			// text/plain, message/disposition-notification, text/rfc822-headers
 			// the third part seems optional. and some clients send multipart/alternative instead of text/plain.
 			// Loop to get text/plain body or multipart/alternative.
-			for (int i = 0; i < myBody->getPartCount(); ++i) {
-				vmime::ref<vmime::bodyPart> bPart = myBody->getPartAt(i);
-				vmime::ref<vmime::headerField> ctf = bPart->getHeader()->findField(vmime::fields::CONTENT_TYPE);
+			for (size_t i = 0; i < myBody->getPartCount(); ++i) {
+				auto bPart = myBody->getPartAt(i);
+				auto ctf = bPart->getHeader()->findField(vmime::fields::CONTENT_TYPE);
 
-				if( (ctf->getValue().dynamicCast <vmime::mediaType>()->getType() == vmime::mediaTypes::TEXT &&
-				     ctf->getValue().dynamicCast <vmime::mediaType>()->getSubType() == vmime::mediaTypes::TEXT_PLAIN)
-				||  (ctf->getValue().dynamicCast <vmime::mediaType>()->getType() == vmime::mediaTypes::MULTIPART &&
-				     ctf->getValue().dynamicCast <vmime::mediaType>()->getSubType() == vmime::mediaTypes::MULTIPART_ALTERNATIVE) )
-				{
+				if ((vmime::dynamicCast<vmime::mediaType>(ctf->getValue())->getType() == vmime::mediaTypes::TEXT &&
+				     vmime::dynamicCast<vmime::mediaType>(ctf->getValue())->getSubType() == vmime::mediaTypes::TEXT_PLAIN) ||
+				    (vmime::dynamicCast<vmime::mediaType>(ctf->getValue())->getType() == vmime::mediaTypes::MULTIPART &&
+				     vmime::dynamicCast<vmime::mediaType>(ctf->getValue())->getSubType() == vmime::mediaTypes::MULTIPART_ALTERNATIVE)) {
 					hr = dissect_body(bPart->getHeader(), bPart->getBody(), lpMessage);
 					if (hr != hrSuccess) {
 						lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to parse MDN mail body");
@@ -489,7 +488,9 @@ HRESULT VMIMEToMAPI::fillMAPIMail(vmime::ref<vmime::message> vmMessage, IMessage
  * @return		MAPI error code.
  * @retval		MAPI_E_CALL_FAILED	Caught an exception, which breaks the conversion.
  */
-HRESULT VMIMEToMAPI::handleHeaders(vmime::ref<vmime::header> vmHeader, IMessage* lpMessage) {
+HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
+    IMessage *lpMessage)
+{
 	HRESULT			hr = hrSuccess;
 	std::string		strInternetMessageId, strInReplyTos, strReferences;
 	std::wstring	wstrSubject;
@@ -555,16 +556,16 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::ref<vmime::header> vmHeader, IMessage*
 
 		// set subject
 		if(vmHeader->hasField(vmime::fields::SUBJECT)) {
-			wstrSubject = getWideFromVmimeText(*vmHeader->Subject()->getValue().dynamicCast<vmime::text>());
+			wstrSubject = getWideFromVmimeText(*vmime::dynamicCast<vmime::text>(vmHeader->Subject()->getValue()));
 			msgProps[nProps].ulPropTag = PR_SUBJECT_W;
 			msgProps[nProps++].Value.lpszW = (WCHAR *)wstrSubject.c_str();
 		}
 
 		// set ReplyTo
-		if (!vmHeader->ReplyTo()->getValue().dynamicCast<vmime::mailbox>()->isEmpty()) {
+		if (!vmime::dynamicCast<vmime::mailbox>(vmHeader->ReplyTo()->getValue())->isEmpty()) {
 			// First, set PR_REPLY_RECIPIENT_NAMES
-			wstrReplyTo = getWideFromVmimeText(vmHeader->ReplyTo()->getValue().dynamicCast<vmime::mailbox>()->getName());
-			wstrReplyToMail = m_converter.convert_to<wstring>(vmHeader->ReplyTo()->getValue().dynamicCast<vmime::mailbox>()->getEmail());
+			wstrReplyTo = getWideFromVmimeText(vmime::dynamicCast<vmime::mailbox>(vmHeader->ReplyTo()->getValue())->getName());
+			wstrReplyToMail = m_converter.convert_to<wstring>(vmime::dynamicCast<vmime::mailbox>(vmHeader->ReplyTo()->getValue())->getEmail().toString());
 			if (wstrReplyTo.empty())
 				wstrReplyTo = wstrReplyToMail;
 
@@ -604,10 +605,10 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::ref<vmime::header> vmHeader, IMessage*
 		// setting sent time
 		if(vmHeader->hasField(vmime::fields::DATE)) {
 			msgProps[nProps].ulPropTag = PR_CLIENT_SUBMIT_TIME;
-			msgProps[nProps++].Value.ft = vmimeDatetimeToFiletime(*vmHeader->Date()->getValue().dynamicCast<vmime::datetime>());
+			msgProps[nProps++].Value.ft = vmimeDatetimeToFiletime(*vmime::dynamicCast<vmime::datetime>(vmHeader->Date()->getValue()));
 
 			// set sent date (actual send date, disregarding timezone)
-			vmime::datetime d = *vmHeader->Date()->getValue().dynamicCast<vmime::datetime>();
+			vmime::datetime d = *vmime::dynamicCast<vmime::datetime>(vmHeader->Date()->getValue());
 			d.setTime(0,0,0,0);
 			msgProps[nProps].ulPropTag = PR_EC_CLIENT_SUBMIT_DATE;
 			msgProps[nProps++].Value.ft = vmimeDatetimeToFiletime(d);
@@ -619,7 +620,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::ref<vmime::header> vmHeader, IMessage*
 		bool found_date = false;
 		if (m_dopt.use_received_date || m_mailState.ulMsgInMsg) {
 			try {
-				vmime::ref<vmime::relay> recv = vmHeader->findField("Received")->getValue().dynamicCast<vmime::relay>();
+				auto recv = vmime::dynamicCast<vmime::relay>(vmHeader->findField("Received")->getValue());
 				if (recv) {
 					date = recv->getDate();
 					found_date = true;
@@ -627,7 +628,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::ref<vmime::header> vmHeader, IMessage*
 			}
 			catch (...) {
 				if (m_mailState.ulMsgInMsg) {
-					date = *vmHeader->Date()->getValue().dynamicCast<vmime::datetime>();
+					date = *vmime::dynamicCast<vmime::datetime>(vmHeader->Date()->getValue());
 					found_date = true;
 				} else {
 					date = vmime::datetime::now();
@@ -650,10 +651,9 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::ref<vmime::header> vmHeader, IMessage*
 
 		// The real sender of the mail
 		if(vmHeader->hasField(vmime::fields::FROM)) {
-			strFromEmail = vmHeader->From()->getValue().dynamicCast<vmime::mailbox>()->getEmail();
-			if (!vmHeader->From()->getValue().dynamicCast<vmime::mailbox>()->getName().isEmpty()) {
-				wstrFromName = getWideFromVmimeText(vmHeader->From()->getValue().dynamicCast<vmime::mailbox>()->getName());
-			}
+			strFromEmail = vmime::dynamicCast<vmime::mailbox>(vmHeader->From()->getValue())->getEmail().toString();
+			if (!vmime::dynamicCast<vmime::mailbox>(vmHeader->From()->getValue())->getName().isEmpty())
+				wstrFromName = getWideFromVmimeText(vmime::dynamicCast<vmime::mailbox>(vmHeader->From()->getValue())->getName());
 
 			hr = modifyFromAddressBook(&lpRecipProps, &ulRecipProps, strFromEmail.c_str(), wstrFromName.c_str(), MAPI_ORIG, (LPSPropTagArray)&sptaRecipPropsSentRepr);
 			if (hr == hrSuccess) {
@@ -696,14 +696,14 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::ref<vmime::header> vmHeader, IMessage*
 		
 		if (vmHeader->hasField(vmime::fields::SENDER) || vmHeader->hasField(vmime::fields::FROM)) {
 			// The original sender of the mail account (if non sender exist then the FROM)
-			strSenderEmail = vmHeader->Sender()->getValue().dynamicCast<vmime::mailbox>()->getEmail();
-			if(vmHeader->Sender()->getValue().dynamicCast<vmime::mailbox>()->getName().isEmpty() && strSenderEmail.empty()) {
+			strSenderEmail = vmime::dynamicCast<vmime::mailbox>(vmHeader->Sender()->getValue())->getEmail().toString();
+			if (vmime::dynamicCast<vmime::mailbox>(vmHeader->Sender()->getValue())->getName().isEmpty() && strSenderEmail.empty()) {
 				// Fallback on the original from address
 				wstrSenderName = wstrFromName;
 				strSenderEmail = strFromEmail;
 			} else {
-				if (!vmHeader->Sender()->getValue().dynamicCast<vmime::mailbox>()->getName().isEmpty()) {
-					wstrSenderName = getWideFromVmimeText(vmHeader->Sender()->getValue().dynamicCast<vmime::mailbox>()->getName());
+				if (!vmime::dynamicCast<vmime::mailbox>(vmHeader->Sender()->getValue())->getName().isEmpty()) {
+					wstrSenderName = getWideFromVmimeText(vmime::dynamicCast<vmime::mailbox>(vmHeader->Sender()->getValue())->getName());
 				} else {
 					wstrSenderName = m_converter.convert_to<wstring>(strSenderEmail);
 				}
@@ -750,7 +750,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::ref<vmime::header> vmHeader, IMessage*
 		//Conversation topic
 		if (vmHeader->hasField("Thread-Topic"))
 		{
-			wstring convTT = getWideFromVmimeText(*vmHeader->findField("Thread-Topic")->getValue().dynamicCast<vmime::text>());
+			wstring convTT = getWideFromVmimeText(*vmime::dynamicCast<vmime::text>(vmHeader->findField("Thread-Topic")->getValue()));
 
 			sConTopic.ulPropTag = PR_CONVERSATION_TOPIC_W;
 			sConTopic.Value.lpszW = (WCHAR *)convTT.c_str();
@@ -777,8 +777,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::ref<vmime::header> vmHeader, IMessage*
 
 			string threadIndex = vmHeader->findField("Thread-Index")->getValue()->generate();
 
-			vmime::ref<vmime::utility::encoder::encoder> enc = vmime::utility::encoder::encoderFactory::getInstance()->create("base64");
-
+			auto enc = vmime::utility::encoder::encoderFactory::getInstance()->create("base64");
 			vmime::utility::inputStreamStringAdapter in(threadIndex);			
 			vmime::utility::outputStreamStringAdapter out(outString);
 
@@ -899,13 +898,13 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::ref<vmime::header> vmHeader, IMessage*
 		// read receipt	request
 		// note: vmime never checks if the given pos to getMailboxAt() and similar functions is valid, so we check if the list is empty before using it
 		if (vmHeader->hasField("Disposition-Notification-To") &&
-			!vmHeader->DispositionNotificationTo()->getValue().dynamicCast<vmime::mailboxList>()->isEmpty())
+		    !vmime::dynamicCast<vmime::mailboxList>(vmHeader->DispositionNotificationTo()->getValue())->isEmpty())
 		{
-			vmime::ref<vmime::mailbox> mbReadReceipt = vmHeader->DispositionNotificationTo()->getValue().dynamicCast<vmime::mailboxList>()->getMailboxAt(0); // we only use the 1st
+			auto mbReadReceipt = vmime::dynamicCast<vmime::mailboxList>(vmHeader->DispositionNotificationTo()->getValue())->getMailboxAt(0); // we only use the 1st
 			if (mbReadReceipt && !mbReadReceipt->isEmpty())
 			{
 				wstring wstrRRName = getWideFromVmimeText(mbReadReceipt->getName());
-				wstring wstrRREmail = m_converter.convert_to<wstring>(mbReadReceipt->getEmail());
+				wstring wstrRREmail = m_converter.convert_to<wstring>(mbReadReceipt->getEmail().toString());
 
 				if (wstrRRName.empty())
 					wstrRRName = wstrRREmail;
@@ -1083,15 +1082,16 @@ HRESULT VMIMEToMAPI::handleMessageToMeProps(IMessage *lpMessage, LPADRLIST lpRec
  * @return		MAPI error code.
  * @retval		MAPI_E_CALL_FAILED	Caught an exception, which breaks the conversion.
  */
-HRESULT VMIMEToMAPI::handleRecipients(vmime::ref<vmime::header> vmHeader, IMessage* lpMessage) {
+HRESULT VMIMEToMAPI::handleRecipients(vmime::shared_ptr<vmime::header> vmHeader,
+    IMessage *lpMessage)
+{
 	HRESULT		hr				= hrSuccess;
 	LPADRLIST 	lpRecipients	= NULL;
 
 	try {
-		vmime::ref<vmime::addressList> lpVMAListRecip = vmHeader->To()->getValue().dynamicCast<vmime::addressList>();
-		vmime::ref<vmime::addressList> lpVMAListCopyRecip = vmHeader->Cc()->getValue().dynamicCast<vmime::addressList>();
-		vmime::ref<vmime::addressList> lpVMAListBlCpRecip = vmHeader->Bcc()->getValue().dynamicCast<vmime::addressList>();
-
+		auto lpVMAListRecip = vmime::dynamicCast<vmime::addressList>(vmHeader->To()->getValue());
+		auto lpVMAListCopyRecip = vmime::dynamicCast<vmime::addressList>(vmHeader->Cc()->getValue());
+		auto lpVMAListBlCpRecip = vmime::dynamicCast<vmime::addressList>(vmHeader->Bcc()->getValue());
 		int iAdresCount = lpVMAListRecip->getAddressCount() + lpVMAListCopyRecip->getAddressCount() + lpVMAListBlCpRecip->getAddressCount();
 
 		if (iAdresCount == 0)
@@ -1171,14 +1171,16 @@ exit:
  * @return		MAPI error code.
  * @retval		MAPI_E_CALL_FAILED	Caught an exception, which breaks the conversion.
  */
-HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients, vmime::ref<vmime::addressList> vmAddressList, ULONG ulRecipType) {
+HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients,
+    vmime::shared_ptr<vmime::addressList> vmAddressList, ULONG ulRecipType)
+{
 	HRESULT			hr				= hrSuccess;
 	int				iAddressCount	= vmAddressList->getAddressCount();
 	ULONG			cbEntryID		= 0;
 	LPENTRYID		lpEntryID		= NULL;
-	vmime::ref<vmime::mailbox> mbx	= NULL;
-	vmime::ref<vmime::mailboxGroup> grp	= NULL;
-	vmime::ref<vmime::address> vmAddress = NULL;
+	vmime::shared_ptr<vmime::mailbox> mbx;
+	vmime::shared_ptr<vmime::mailboxGroup> grp;
+	vmime::shared_ptr<vmime::address> vmAddress;
 	std::wstring	wstrName;
 	std::string		strEmail, strSearch;
 	unsigned int 	iRecipNum		= 0;
@@ -1199,7 +1201,7 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients, vmime::ref<vmim
 			vmAddress = vmAddressList->getAddressAt(iRecip);
 			
 			if (vmAddress->isGroup()) {
-				grp = vmAddress.dynamicCast<vmime::mailboxGroup>();
+				grp = vmime::dynamicCast<vmime::mailboxGroup>(vmAddress);
 				if (!grp)
 					continue;
 				strEmail.clear();
@@ -1207,10 +1209,10 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients, vmime::ref<vmim
 				if (grp->isEmpty() && vmText == vmime::text("undisclosed-recipients"))
 					continue;
 			} else {
-				mbx = vmAddress.dynamicCast<vmime::mailbox>();
+				mbx = vmime::dynamicCast<vmime::mailbox>(vmAddress);
 				if (!mbx)
 					continue;
-				strEmail = mbx->getEmail();
+				strEmail = mbx->getEmail().toString();
 				vmText = mbx->getName();
 			}
 
@@ -1544,14 +1546,15 @@ exit:
  * ordered from boring-to-interesting, the list returned by this function is
  * interesting-to-boring.
  */
-static std::list<unsigned int> vtm_order_alternatives(vmime::ref<vmime::body> vmBody)
+static std::list<unsigned int>
+vtm_order_alternatives(vmime::shared_ptr<vmime::body> vmBody)
 {
-	vmime::ref<vmime::header> vmHeader;
-	vmime::ref<vmime::bodyPart> vmBodyPart;
-	vmime::ref<vmime::mediaType> mt;
+	vmime::shared_ptr<vmime::header> vmHeader;
+	vmime::shared_ptr<vmime::bodyPart> vmBodyPart;
+	vmime::shared_ptr<vmime::mediaType> mt;
 	std::list<unsigned int> lBodies, pgtext;
 
-	for (int i = 0; i < vmBody->getPartCount(); ++i) {
+	for (size_t i = 0; i < vmBody->getPartCount(); ++i) {
 		vmBodyPart = vmBody->getPartAt(i);
 		vmHeader = vmBodyPart->getHeader();
 		if (!vmHeader->hasField(vmime::fields::CONTENT_TYPE)) {
@@ -1559,7 +1562,7 @@ static std::list<unsigned int> vtm_order_alternatives(vmime::ref<vmime::body> vm
 			lBodies.push_front(i);
 			continue;
 		}
-		mt = vmHeader->ContentType()->getValue().dynamicCast<vmime::mediaType>();
+		mt = vmime::dynamicCast<vmime::mediaType>(vmHeader->ContentType()->getValue());
 		// mostly better alternatives for text/plain, so try that last
 		if (mt->getType() == vmime::mediaTypes::TEXT && mt->getSubType() == vmime::mediaTypes::TEXT_PLAIN)
 			lBodies.push_back(i);
@@ -1569,8 +1572,8 @@ static std::list<unsigned int> vtm_order_alternatives(vmime::ref<vmime::body> vm
 	return lBodies;
 }
 
-HRESULT VMIMEToMAPI::dissect_multipart(vmime::ref<vmime::header> vmHeader,
-    vmime::ref<vmime::body> vmBody, IMessage *lpMessage,
+HRESULT VMIMEToMAPI::dissect_multipart(vmime::shared_ptr<vmime::header> vmHeader,
+    vmime::shared_ptr<vmime::body> vmBody, IMessage *lpMessage,
     bool bFilterDouble, bool bAppendBody)
 {
 	bool bAlternative = false;
@@ -1585,7 +1588,7 @@ HRESULT VMIMEToMAPI::dissect_multipart(vmime::ref<vmime::header> vmHeader,
 	}
 
 	// check new multipart type
-	vmime::ref<vmime::mediaType> mt = vmHeader->ContentType()->getValue().dynamicCast<vmime::mediaType>();
+	auto mt = vmime::dynamicCast<vmime::mediaType>(vmHeader->ContentType()->getValue());
 	if (mt->getSubType() == "appledouble")
 		bFilterDouble = true;
 	else if (mt->getSubType() == "mixed")
@@ -1604,9 +1607,8 @@ HRESULT VMIMEToMAPI::dissect_multipart(vmime::ref<vmime::header> vmHeader,
 
 	if (!bAlternative) {
 		// recursively process multipart message
-		for (int i = 0; i < vmBody->getPartCount(); ++i) {
-			vmime::ref<vmime::bodyPart> vmBodyPart = vmBody->getPartAt(i);
-
+		for (size_t i = 0; i < vmBody->getPartCount(); ++i) {
+			auto vmBodyPart = vmBody->getPartAt(i);
 			hr = dissect_body(vmBodyPart->getHeader(), vmBodyPart->getBody(), lpMessage, bFilterDouble, bAppendBody);
 			if (hr != hrSuccess) {
 				lpLogger->Log(EC_LOGLEVEL_ERROR, "dissect_multipart: Unable to parse sub multipart %d of mail body", i);
@@ -1620,10 +1622,8 @@ HRESULT VMIMEToMAPI::dissect_multipart(vmime::ref<vmime::header> vmHeader,
 
 	// recursively process multipart alternatives in reverse to select best body first
 	for (auto body_idx : lBodies) {
-		vmime::ref<vmime::bodyPart> vmBodyPart = vmBody->getPartAt(body_idx);
-
+		auto vmBodyPart = vmBody->getPartAt(body_idx);
 		ec_log_debug("Trying to parse alternative multipart %d of mail body", body_idx);
-
 		hr = dissect_body(vmBodyPart->getHeader(), vmBodyPart->getBody(), lpMessage, bFilterDouble, bAppendBody);
 		if (hr == hrSuccess)
 			return hrSuccess;
@@ -1635,7 +1635,8 @@ HRESULT VMIMEToMAPI::dissect_multipart(vmime::ref<vmime::header> vmHeader,
 	return hr;
 }
 
-void VMIMEToMAPI::dissect_message(vmime::ref<vmime::body> vmBody, IMessage *lpMessage)
+void VMIMEToMAPI::dissect_message(vmime::shared_ptr<vmime::body> vmBody,
+    IMessage *lpMessage)
 {
 	// Create Attach
 	ULONG ulAttNr = 0;
@@ -1703,8 +1704,9 @@ void VMIMEToMAPI::dissect_message(vmime::ref<vmime::body> vmBody, IMessage *lpMe
 		pAtt->Release();
 }
 
-HRESULT VMIMEToMAPI::dissect_ical(vmime::ref<vmime::header> vmHeader,
-    vmime::ref<vmime::body> vmBody, IMessage *lpMessage, bool bIsAttachment)
+HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
+    vmime::shared_ptr<vmime::body> vmBody, IMessage *lpMessage,
+    bool bIsAttachment)
 {
 	HRESULT hr;
 	// ical file
@@ -1840,9 +1842,9 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::ref<vmime::header> vmHeader,
  * @return		MAPI error code.
  * @retval		MAPI_E_CALL_FAILED	Caught an exception, which breaks the conversion.
  */
-HRESULT VMIMEToMAPI::dissect_body(vmime::ref<vmime::header> vmHeader,
-    vmime::ref<vmime::body> vmBody, IMessage *lpMessage, bool filterDouble,
-    bool appendBody)
+HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
+    vmime::shared_ptr<vmime::body> vmBody, IMessage *lpMessage,
+    bool filterDouble, bool appendBody)
 {
 	HRESULT	hr = hrSuccess;
 	IStream *lpStream = NULL;
@@ -1855,11 +1857,11 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::ref<vmime::header> vmHeader,
 		++m_mailState.mime_vtag_nest;
 
 	try {
-		vmime::ref<vmime::mediaType> mt = vmHeader->ContentType()->getValue().dynamicCast<vmime::mediaType>();
+		auto mt = vmime::dynamicCast<vmime::mediaType>(vmHeader->ContentType()->getValue());
 		bool force_raw = false;
 
 		try {
-			bIsAttachment = vmHeader->ContentDisposition()->getValue().dynamicCast<vmime::contentDisposition>()->getName() == vmime::contentDispositionTypes::ATTACHMENT;
+			bIsAttachment = vmime::dynamicCast<vmime::contentDisposition>(vmHeader->ContentDisposition()->getValue())->getName() == vmime::contentDispositionTypes::ATTACHMENT;
 		} catch (vmime::exception) {
 			// ignore exception, a header needed to detect attachment status could not be used
 			// probably can not happen, but better safe than sorry.
@@ -1960,8 +1962,8 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::ref<vmime::header> vmHeader,
 				goto exit;
 			}
 		} else if (mt->getType() == vmime::mediaTypes::APPLICATION && mt->getSubType() == vmime::mediaTypes::APPLICATION_OCTET_STREAM) {
-			if (vmHeader->ContentDisposition().dynamicCast<vmime::contentDispositionField>()->hasParameter("filename") ||
-				vmHeader->ContentType().dynamicCast<vmime::contentTypeField>()->hasParameter("name")) {
+			if (vmime::dynamicCast<vmime::contentDispositionField>(vmHeader->ContentDisposition())->hasParameter("filename") ||
+			    vmime::dynamicCast<vmime::contentTypeField>(vmHeader->ContentType())->hasParameter("name")) {
 				// should be attachment
 				hr = handleAttachment(vmHeader, vmBody, lpMessage);
 				if (hr != hrSuccess)
@@ -2019,13 +2021,12 @@ exit:
  * Returns the transfer-decoded data.
  */
 std::string
-VMIMEToMAPI::content_transfer_decode(vmime::ref<vmime::body> im_body) const
+VMIMEToMAPI::content_transfer_decode(vmime::shared_ptr<vmime::body> im_body) const
 {
 	/* TODO: Research how conversion could be minimized using streams. */
 	std::string data;
 	vmime::utility::outputStreamStringAdapter str_adap(data);
-	vmime::ref<const vmime::contentHandler> im_cont =
-		im_body->getContents();
+	auto im_cont = im_body->getContents();
 
 	try {
 		im_cont->extract(str_adap);
@@ -2048,11 +2049,10 @@ VMIMEToMAPI::content_transfer_decode(vmime::ref<vmime::body> im_body) const
  * new character set for it.
  */
 vmime::charset
-VMIMEToMAPI::get_mime_encoding(vmime::ref<vmime::header> im_header,
-    vmime::ref<vmime::body> im_body) const
+VMIMEToMAPI::get_mime_encoding(vmime::shared_ptr<vmime::header> im_header,
+    vmime::shared_ptr<vmime::body> im_body) const
 {
-	vmime::ref<const vmime::contentTypeField> ctf =
-		im_header->ContentType().dynamicCast<vmime::contentTypeField>();
+	auto ctf = vmime::dynamicCast<vmime::contentTypeField>(im_header->ContentType());
 
 	if (ctf != NULL && ctf->hasParameter("charset"))
 		return im_body->getCharset();
@@ -2135,7 +2135,9 @@ int VMIMEToMAPI::renovate_encoding(std::string &data,
  * @return		MAPI error code.
  * @retval		MAPI_E_CALL_FAILED	Caught an exception, which breaks the conversion.
  */
-HRESULT VMIMEToMAPI::handleTextpart(vmime::ref<vmime::header> vmHeader, vmime::ref<vmime::body> vmBody, IMessage* lpMessage, bool bAppendBody) {
+HRESULT VMIMEToMAPI::handleTextpart(vmime::shared_ptr<vmime::header> vmHeader,
+    vmime::shared_ptr<vmime::body> vmBody, IMessage* lpMessage, bool bAppendBody)
+{
 	HRESULT hr = S_OK;
 	IStream *lpStream = NULL;
 
@@ -2328,7 +2330,9 @@ static bool vtm_ascii_compatible(const char *s)
  * But with conversion to MAPI, we have this seemingly lossy conversion
  * stage. :-(
  */
-HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::ref<vmime::header> vmHeader, vmime::ref<vmime::body> vmBody, IMessage* lpMessage, bool bAppendBody) {
+HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::shared_ptr<vmime::header> vmHeader,
+    vmime::shared_ptr<vmime::body> vmBody, IMessage *lpMessage, bool bAppendBody)
+{
 	HRESULT		hr				= hrSuccess;
 	IStream*	lpHTMLStream	= NULL; 
 	ULONG		cbWritten		= 0;
@@ -2478,7 +2482,8 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::ref<vmime::header> vmHeader, vmim
 		HrSetOneProp(lpMessage, &sCodepage);
 
 		// we may have received a text part to append to the HTML body
-		if (vmHeader->ContentType()->getValue().dynamicCast<vmime::mediaType>()->getSubType() == vmime::mediaTypes::TEXT_PLAIN) {
+		if (vmime::dynamicCast<vmime::mediaType>(vmHeader->ContentType()->getValue())->getSubType() ==
+		    vmime::mediaTypes::TEXT_PLAIN) {
 			// escape and wrap with <pre> tags
 			std::wstring strwBody = m_converter.convert_to<std::wstring>(CHARSET_WCHAR "//IGNORE", strHTML, rawsize(strHTML), mime_charset.getName().c_str());
 			strHTML = "<pre>";
@@ -2552,7 +2557,9 @@ exit:
  * @return		MAPI error code.
  * @retval		MAPI_E_CALL_FAILED	Caught an exception, which breaks the conversion.
  */
-HRESULT VMIMEToMAPI::handleAttachment(vmime::ref<vmime::header> vmHeader, vmime::ref<vmime::body> vmBody, IMessage* lpMessage, bool bAllowEmpty) {
+HRESULT VMIMEToMAPI::handleAttachment(vmime::shared_ptr<vmime::header> vmHeader,
+    vmime::shared_ptr<vmime::body> vmBody, IMessage *lpMessage, bool bAllowEmpty)
+{
 	HRESULT		hr			= hrSuccess;
 	IStream		*lpStream	= NULL; 
 	LPATTACH	lpAtt		= NULL;
@@ -2561,10 +2568,10 @@ HRESULT VMIMEToMAPI::handleAttachment(vmime::ref<vmime::header> vmHeader, vmime:
 	std::wstring strLongFilename;
 	int			nProps = 0;
 	SPropValue	attProps[12];
-	vmime::ref<vmime::contentDispositionField> cdf;	// parameters of Content-Disposition header
-	vmime::ref<vmime::contentDisposition> cdv;		// value of Content-Disposition header
-	vmime::ref<vmime::contentTypeField> ctf;	
-	vmime::ref<vmime::mediaType> mt;
+	vmime::shared_ptr<vmime::contentDispositionField> cdf;	// parameters of Content-Disposition header
+	vmime::shared_ptr<vmime::contentDisposition> cdv;		// value of Content-Disposition header
+	vmime::shared_ptr<vmime::contentTypeField> ctf;
+	vmime::shared_ptr<vmime::mediaType> mt;
 
 	memset(attProps, 0, sizeof(attProps));
 
@@ -2582,10 +2589,10 @@ HRESULT VMIMEToMAPI::handleAttachment(vmime::ref<vmime::header> vmHeader, vmime:
 	try {
 		// attach adapter, generate in right encoding
 		outputStreamMAPIAdapter osMAPI(lpStream);
-		cdf = vmHeader->ContentDisposition().dynamicCast<vmime::contentDispositionField>();
-		cdv = cdf->getValue().dynamicCast<vmime::contentDisposition>();
-		ctf = vmHeader->ContentType().dynamicCast<vmime::contentTypeField>();
-		mt = ctf->getValue().dynamicCast<vmime::mediaType>();
+		cdf = vmime::dynamicCast<vmime::contentDispositionField>(vmHeader->ContentDisposition());
+		cdv = vmime::dynamicCast<vmime::contentDisposition>(cdf->getValue());
+		ctf = vmime::dynamicCast<vmime::contentTypeField>(vmHeader->ContentType());
+		mt = vmime::dynamicCast<vmime::mediaType>(ctf->getValue());
 
 		try {
 			vmBody->getContents()->generate(osMAPI, vmime::encoding(vmime::encodingTypes::BINARY));
@@ -2623,7 +2630,7 @@ HRESULT VMIMEToMAPI::handleAttachment(vmime::ref<vmime::header> vmHeader, vmime:
 		attProps[nProps++].Value.ul = ATTACH_BY_VALUE;
 
 		// vmHeader->ContentId() is headerField ->getValue() returns headerFieldValue, which messageId is.
-		strId = vmHeader->ContentId()->getValue().dynamicCast<vmime::messageId>()->getId();
+		strId = vmime::dynamicCast<vmime::messageId>(vmHeader->ContentId()->getValue())->getId();
 		if (!strId.empty()) {
 			// only set this property when string is present
 			// otherwise, you don't get the 'save attachments' list in the main menu of outlook
@@ -2632,7 +2639,7 @@ HRESULT VMIMEToMAPI::handleAttachment(vmime::ref<vmime::header> vmHeader, vmime:
 		}
 
 		try {
-			strLocation = vmHeader->ContentLocation()->getValue().dynamicCast<vmime::text>()->getConvertedText(MAPI_CHARSET);
+			strLocation = vmime::dynamicCast<vmime::text>(vmHeader->ContentLocation()->getValue())->getConvertedText(MAPI_CHARSET);
 		}
 		catch (vmime::exceptions::charset_conv_error) { }
 		if (!strLocation.empty()) {
@@ -2957,9 +2964,8 @@ std::wstring VMIMEToMAPI::getWideFromVmimeText(const vmime::text &vmText)
 	std::string myword;
 	std::wstring ret;
 
-	const std::vector<vmime::ref<const vmime::word> >& words = vmText.getWordList();
-	std::vector<vmime::ref<const vmime::word> >::const_iterator i, j;
-	for (i = words.begin(); i != words.end(); ++i) {
+	const auto &words = vmText.getWordList();
+	for (auto i = words.cbegin(); i != words.cend(); ++i) {
 		/*
 		 * RFC 5322 §2.2 specifies header field bodies consist of
 		 * US-ASCII characters only, and the only way to get other
@@ -2999,7 +3005,7 @@ std::wstring VMIMEToMAPI::getWideFromVmimeText(const vmime::text &vmText)
 		 * here anytime soon.
 		 */
 		myword = (*i)->getBuffer();
-		for (j = i + 1; j != words.end() && (*j)->getCharset() == wordCharset; ++j, ++i)
+		for (auto j = i + 1; j != words.end() && (*j)->getCharset() == wordCharset; ++j, ++i)
 			myword += (*j)->getBuffer();
 
 		std::string tmp = vmime::word(myword, wordCharset).getConvertedText(CHARSET_WCHAR);
@@ -3282,7 +3288,7 @@ static std::string StringEscape(const char *input, const char *tokens,
  * 
  * @return string with IMAP envelope list part
  */
-std::string VMIMEToMAPI::mailboxToEnvelope(vmime::ref<vmime::mailbox> mbox)
+std::string VMIMEToMAPI::mailboxToEnvelope(vmime::shared_ptr<vmime::mailbox> mbox)
 {
 	vector<string> lMBox;
 	string buffer;
@@ -3301,7 +3307,7 @@ std::string VMIMEToMAPI::mailboxToEnvelope(vmime::ref<vmime::mailbox> mbox)
 
 	lMBox.push_back("NIL");	// at-domain-list (source route) ... whatever that means
 
-	buffer = "\"" + mbox->getEmail() + "\"";
+	buffer = "\"" + mbox->getEmail().toString() + "\"";
 	pos = buffer.find("@");
 	if (pos != string::npos)
 		buffer.replace(pos, 1, "\" \"");
@@ -3318,7 +3324,7 @@ std::string VMIMEToMAPI::mailboxToEnvelope(vmime::ref<vmime::mailbox> mbox)
  * 
  * @return string with IMAP envelope list part
  */
-std::string VMIMEToMAPI::addressListToEnvelope(vmime::ref<vmime::addressList> aList)
+std::string VMIMEToMAPI::addressListToEnvelope(vmime::shared_ptr<vmime::addressList> aList)
 {
 	list<string> lAddr;
 	string buffer;
@@ -3333,7 +3339,7 @@ std::string VMIMEToMAPI::addressListToEnvelope(vmime::ref<vmime::addressList> aL
 		
 	for (int i = 0; i < aCount; ++i) {
 		try {
-			buffer += mailboxToEnvelope(aList->getAddressAt(i).dynamicCast<vmime::mailbox>());
+			buffer += mailboxToEnvelope(vmime::dynamicCast<vmime::mailbox>(aList->getAddressAt(i)));
 			lAddr.push_back(buffer);
 		} catch (vmime::exception &e) {
 		}
@@ -3358,7 +3364,8 @@ std::string VMIMEToMAPI::addressListToEnvelope(vmime::ref<vmime::addressList> aL
  * 
  * @return MAPI Error code
  */
-HRESULT VMIMEToMAPI::createIMAPEnvelope(vmime::ref<vmime::message> vmMessage, IMessage* lpMessage)
+HRESULT VMIMEToMAPI::createIMAPEnvelope(vmime::shared_ptr<vmime::message> vmMessage,
+    IMessage *lpMessage)
 {
 	HRESULT hr = hrSuccess;
 	std::string buffer;
@@ -3385,21 +3392,21 @@ exit: /* label still needed for expansion of PROPMAP_INIT */
  * 
  * @return ENVELOPE data
  */
-std::string VMIMEToMAPI::createIMAPEnvelope(vmime::ref<vmime::message> vmMessage)
+std::string VMIMEToMAPI::createIMAPEnvelope(vmime::shared_ptr<vmime::message> vmMessage)
 {
 	vector<string> lItems;
-	vmime::ref<vmime::header> vmHeader = vmMessage->getHeader();
+	auto vmHeader = vmMessage->getHeader();
 	std::string buffer;
 	vmime::utility::outputStreamStringAdapter os(buffer);
 
 	// date
 	try {
-		vmime::ref<vmime::datetime> date;
+		vmime::shared_ptr<vmime::datetime> date;
 		try {
-			date = vmHeader->Date()->getValue().dynamicCast<vmime::datetime>();
+			date = vmime::dynamicCast<vmime::datetime>(vmHeader->Date()->getValue());
 		} catch (vmime::exception &e) {
 			// date must not be empty, so force now() as the timestamp
-			date = vmime::create<vmime::datetime>(vmime::datetime::now());
+			date = vmime::make_shared<vmime::datetime>(vmime::datetime::now());
 		}
 		date->generate(os);
 		lItems.push_back("\"" + buffer + "\"");
@@ -3422,7 +3429,7 @@ std::string VMIMEToMAPI::createIMAPEnvelope(vmime::ref<vmime::message> vmMessage
 
 	// from
 	try {
-		buffer = mailboxToEnvelope(vmHeader->From()->getValue().dynamicCast<vmime::mailbox>());
+		buffer = mailboxToEnvelope(vmime::dynamicCast<vmime::mailbox>(vmHeader->From()->getValue()));
 		lItems.push_back("(" + buffer + ")");
 	} catch (vmime::exception &e) {
 		// this is not allowed, but better than nothing
@@ -3432,7 +3439,7 @@ std::string VMIMEToMAPI::createIMAPEnvelope(vmime::ref<vmime::message> vmMessage
 
 	// sender
 	try {
-		buffer = mailboxToEnvelope(vmHeader->Sender()->getValue().dynamicCast<vmime::mailbox>());
+		buffer = mailboxToEnvelope(vmime::dynamicCast<vmime::mailbox>(vmHeader->Sender()->getValue()));
 		lItems.push_back("(" + buffer + ")");
 	} catch (vmime::exception &e) {
 		lItems.push_back(lItems.back());
@@ -3441,7 +3448,7 @@ std::string VMIMEToMAPI::createIMAPEnvelope(vmime::ref<vmime::message> vmMessage
 
 	// reply-to
 	try {
-		buffer = mailboxToEnvelope(vmHeader->ReplyTo()->getValue().dynamicCast<vmime::mailbox>());
+		buffer = mailboxToEnvelope(vmime::dynamicCast<vmime::mailbox>(vmHeader->ReplyTo()->getValue()));
 		lItems.push_back("(" + buffer + ")");
 	} catch (vmime::exception &e) {
 		lItems.push_back(lItems.back());
@@ -3450,7 +3457,7 @@ std::string VMIMEToMAPI::createIMAPEnvelope(vmime::ref<vmime::message> vmMessage
 
 	// ((to),(to))
 	try {
-		buffer = addressListToEnvelope(vmHeader->To()->getValue().dynamicCast<vmime::addressList>());
+		buffer = addressListToEnvelope(vmime::dynamicCast<vmime::addressList>(vmHeader->To()->getValue()));
 		lItems.push_back(buffer);
 	} catch (vmime::exception &e) {
 		lItems.push_back("NIL");
@@ -3459,10 +3466,10 @@ std::string VMIMEToMAPI::createIMAPEnvelope(vmime::ref<vmime::message> vmMessage
 
 	// ((cc),(cc))
 	try {
-		vmime::ref<vmime::addressList> aList = vmHeader->Cc()->getValue().dynamicCast<vmime::addressList>();
+		auto aList = vmime::dynamicCast<vmime::addressList>(vmHeader->Cc()->getValue());
 		int aCount = aList->getAddressCount();
 		for (int i = 0; i < aCount; ++i)
-			buffer += mailboxToEnvelope(aList->getAddressAt(i).dynamicCast<vmime::mailbox>());
+			buffer += mailboxToEnvelope(vmime::dynamicCast<vmime::mailbox>(aList->getAddressAt(i)));
 		lItems.push_back(buffer.empty() ? "NIL" : "(" + buffer + ")");
 	} catch (vmime::exception &e) {
 		lItems.push_back("NIL");
@@ -3471,10 +3478,10 @@ std::string VMIMEToMAPI::createIMAPEnvelope(vmime::ref<vmime::message> vmMessage
 
 	// ((bcc),(bcc))
 	try {
-		vmime::ref<vmime::addressList> aList = vmHeader->Bcc()->getValue().dynamicCast<vmime::addressList>();
+		auto aList = vmime::dynamicCast<vmime::addressList>(vmHeader->Bcc()->getValue());
 		int aCount = aList->getAddressCount();
 		for (int i = 0; i < aCount; ++i)
-			buffer += mailboxToEnvelope(aList->getAddressAt(i).dynamicCast<vmime::mailbox>());
+			buffer += mailboxToEnvelope(vmime::dynamicCast<vmime::mailbox>(aList->getAddressAt(i)));
 		lItems.push_back(buffer.empty() ? "NIL" : "(" + buffer + ")");
 	} catch (vmime::exception &e) {
 		lItems.push_back("NIL");
@@ -3512,7 +3519,8 @@ std::string VMIMEToMAPI::createIMAPEnvelope(vmime::ref<vmime::message> vmMessage
  * 
  * @return MAPI error code
  */
-HRESULT VMIMEToMAPI::createIMAPBody(const string &input, vmime::ref<vmime::message> vmMessage, IMessage* lpMessage)
+HRESULT VMIMEToMAPI::createIMAPBody(const string &input,
+    vmime::shared_ptr<vmime::message> vmMessage, IMessage *lpMessage)
 {
 	SPropValue sProps[4];
 	string strBody;
@@ -3545,24 +3553,25 @@ HRESULT VMIMEToMAPI::createIMAPBody(const string &input, vmime::ref<vmime::messa
  * 
  * @return always success
  */
-HRESULT VMIMEToMAPI::messagePartToStructure(const string &input, vmime::ref<vmime::bodyPart> vmBodyPart, std::string *lpSimple, std::string *lpExtended)
+HRESULT VMIMEToMAPI::messagePartToStructure(const string &input,
+    vmime::shared_ptr<vmime::bodyPart> vmBodyPart, std::string *lpSimple,
+    std::string *lpExtended)
 {
 	HRESULT hr = hrSuccess;
 	list<string> lBody;
 	list<string> lBodyStructure;
-	vmime::ref<vmime::header> vmHeaderPart = vmBodyPart->getHeader();
+	auto vmHeaderPart = vmBodyPart->getHeader();
 
 	try {
-		vmime::ref<vmime::contentTypeField> ctf;
+		vmime::shared_ptr<vmime::contentTypeField> ctf;
 		if (vmHeaderPart->hasField(vmime::fields::CONTENT_TYPE)) {
 			// use Content-Type header from part
-			ctf = vmHeaderPart->ContentType().dynamicCast<vmime::contentTypeField>();
+			ctf = vmime::dynamicCast<vmime::contentTypeField>(vmHeaderPart->ContentType());
 		} else {
 			// create empty default Content-Type header
-			ctf = vmime::headerFieldFactory::getInstance()->create("Content-Type", "").dynamicCast<vmime::contentTypeField>();
+			ctf = vmime::dynamicCast<vmime::contentTypeField>(vmime::headerFieldFactory::getInstance()->create("Content-Type", ""));
 		}
-		vmime::ref<vmime::mediaType> mt = ctf->getValue().dynamicCast<vmime::mediaType>();
-
+		auto mt = vmime::dynamicCast<vmime::mediaType>(ctf->getValue());
 		if (mt->getType() == vmime::mediaTypes::MULTIPART) {
 			// handle multipart
 			// alternative, mixed, related
@@ -3573,7 +3582,7 @@ HRESULT VMIMEToMAPI::messagePartToStructure(const string &input, vmime::ref<vmim
 			// function please:
 			string strBody;
 			string strBodyStructure;
-			for (int i = 0; i < vmBodyPart->getBody()->getPartCount(); ++i) {
+			for (size_t i = 0; i < vmBodyPart->getBody()->getPartCount(); ++i) {
 				messagePartToStructure(input, vmBodyPart->getBody()->getPartAt(i), &strBody, &strBodyStructure);
 				lBody.push_back(strBody);
 				lBodyStructure.push_back(strBodyStructure);
@@ -3630,21 +3639,22 @@ HRESULT VMIMEToMAPI::messagePartToStructure(const string &input, vmime::ref<vmim
  * 
  * @return always success
  */
-HRESULT VMIMEToMAPI::bodyPartToStructure(const string &input, vmime::ref<vmime::bodyPart> vmBodyPart, std::string *lpSimple, std::string *lpExtended)
+HRESULT VMIMEToMAPI::bodyPartToStructure(const string &input,
+    vmime::shared_ptr<vmime::bodyPart> vmBodyPart, std::string *lpSimple,
+    std::string *lpExtended)
 {
 	string strPart;
 	list<string> lBody;
 	list<string> lBodyStructure;
 	string buffer;
 	vmime::utility::outputStreamStringAdapter os(buffer);
-	vmime::ref<vmime::header> vmHeaderPart = vmBodyPart->getHeader();
-
-	vmime::ref<vmime::contentTypeField> ctf;
-	vmime::ref<vmime::mediaType> mt;
+	auto vmHeaderPart = vmBodyPart->getHeader();
+	vmime::shared_ptr<vmime::contentTypeField> ctf;
+	vmime::shared_ptr<vmime::mediaType> mt;
 
 	try {
-		ctf = vmHeaderPart->findField(vmime::fields::CONTENT_TYPE).dynamicCast<vmime::contentTypeField>();
-		mt = ctf->getValue().dynamicCast<vmime::mediaType>();
+		ctf = vmime::dynamicCast<vmime::contentTypeField>(vmHeaderPart->findField(vmime::fields::CONTENT_TYPE));
+		mt = vmime::dynamicCast<vmime::mediaType>(ctf->getValue());
 	}
 	catch (vmime::exception &e) {
 		// create with text/plain; charset=us-ascii ?
@@ -3660,7 +3670,7 @@ HRESULT VMIMEToMAPI::bodyPartToStructure(const string &input, vmime::ref<vmime::
 	lBody.push_back(parameterizedFieldToStructure(ctf));
 
 	try {
-		buffer = vmHeaderPart->findField(vmime::fields::CONTENT_ID)->getValue().dynamicCast<vmime::messageId>()->getId();
+		buffer = vmime::dynamicCast<vmime::messageId>(vmHeaderPart->findField(vmime::fields::CONTENT_ID)->getValue())->getId();
 		lBody.push_back(buffer.empty() ? "NIL" : "\"<" + buffer + ">\"");
 	}
 	catch (vmime::exception &e) {
@@ -3705,7 +3715,7 @@ HRESULT VMIMEToMAPI::bodyPartToStructure(const string &input, vmime::ref<vmime::
 	if (mt->getType() == vmime::mediaTypes::MESSAGE && mt->getSubType() == vmime::mediaTypes::MESSAGE_RFC822) {
 		string strSubSingle;
 		string strSubExtended;
-		vmime::ref<vmime::message> subMessage = vmime::create<vmime::message>();
+		auto subMessage = vmime::make_shared<vmime::message>();
 
 		// From RFC:
 		// A body type of type MESSAGE and subtype RFC822 contains,
@@ -3754,7 +3764,7 @@ nil:
  * 
  * @return IMAP list part
  */
-std::string VMIMEToMAPI::getStructureExtendedFields(vmime::ref<vmime::header> vmHeaderPart)
+std::string VMIMEToMAPI::getStructureExtendedFields(vmime::shared_ptr<vmime::header> vmHeaderPart)
 {
 	list<string> lItems;
 	string buffer;
@@ -3763,9 +3773,8 @@ std::string VMIMEToMAPI::getStructureExtendedFields(vmime::ref<vmime::header> vm
 	// content-disposition header
 	try {
 		// use findField because we want an exception when missing
-		vmime::ref<vmime::contentDispositionField> cdf = vmHeaderPart->findField(vmime::fields::CONTENT_DISPOSITION).dynamicCast<vmime::contentDispositionField>();
-		vmime::ref<vmime::contentDisposition> cd = cdf->getValue().dynamicCast<vmime::contentDisposition>();
-
+		auto cdf = vmime::dynamicCast<vmime::contentDispositionField>(vmHeaderPart->findField(vmime::fields::CONTENT_DISPOSITION));
+		auto cd = vmime::dynamicCast<vmime::contentDisposition>(cdf->getValue());
 		lItems.push_back("(\"" + cd->getName() + "\" " + parameterizedFieldToStructure(cdf) + ")");
 	}
 	catch (vmime::exception &e) {
@@ -3794,7 +3803,7 @@ std::string VMIMEToMAPI::getStructureExtendedFields(vmime::ref<vmime::header> vm
  * 
  * @return IMAP list
  */
-std::string VMIMEToMAPI::parameterizedFieldToStructure(vmime::ref<vmime::parameterizedHeaderField> vmParamField)
+std::string VMIMEToMAPI::parameterizedFieldToStructure(vmime::shared_ptr<vmime::parameterizedHeaderField> vmParamField)
 {
 	list<string> lParams;
 	string buffer;

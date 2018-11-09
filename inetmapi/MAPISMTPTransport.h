@@ -51,6 +51,7 @@
 #include "vmime/net/socket.hpp"
 #include "vmime/net/timeoutHandler.hpp"
 
+#include <vmime/net/smtp/SMTPResponse.hpp>
 #include "vmime/net/smtp/SMTPServiceInfos.hpp"
 
 #include <inetmapi/inetmapi.h>
@@ -69,7 +70,7 @@ class SMTPResponse;
 class MAPISMTPTransport _kc_final : public transport {
 public:
 
-	MAPISMTPTransport(ref <session> sess, ref <security::authenticator> auth, const bool secured = false);
+	MAPISMTPTransport(vmime::shared_ptr<session> sess, vmime::shared_ptr<security::authenticator> auth, const bool secured = false);
 	~MAPISMTPTransport();
 
 	const std::string getProtocolName(void) const { return "mapismtp"; }
@@ -83,10 +84,10 @@ public:
 
 	void noop();
 
-	void send(const mailbox& expeditor, const mailboxList& recipients, utility::inputStream& is, const utility::stream::size_type size, utility::progressListener* progress = NULL);
+	void send(const mailbox &expeditor, const mailboxList &recipients, utility::inputStream &, size_t, utility::progressListener * = NULL, const mailbox &sender = mailbox());
 
 	bool isSecuredConnection(void) const { return m_secured; }
-	ref<connectionInfos> getConnectionInfos(void) const { return m_cntInfos; }
+	vmime::shared_ptr<connectionInfos> getConnectionInfos(void) const { return m_cntInfos; }
 
 	// additional functions
 	const std::vector<sFailedRecip> &getPermanentFailedRecipients(void) const { return mPermanentFailedRecipients; }
@@ -97,7 +98,7 @@ public:
 private:
 
 	void sendRequest(const string& buffer, const bool end = true);
-	ref <SMTPResponse> readResponse();
+	vmime::shared_ptr<SMTPResponse> readResponse(void);
 
 	void internalDisconnect();
 
@@ -111,18 +112,17 @@ private:
 	void startTLS();
 #endif // VMIME_HAVE_TLS_SUPPORT
 
-	ref <socket> m_socket;
+	vmime::shared_ptr<socket> m_socket;
 	bool m_authentified;
 
 	bool m_extendedSMTP;
 	std::map <string, std::vector <string> > m_extensions;
-
-	ref <timeoutHandler> m_timeoutHandler;
+	vmime::shared_ptr<timeoutHandler> m_timeoutHandler;
 
 	const bool m_isSMTPS;
 
 	bool m_secured;
-	ref <connectionInfos> m_cntInfos;
+	vmime::shared_ptr<connectionInfos> m_cntInfos;
 
 
 	// Service infos
@@ -135,6 +135,7 @@ private:
 	ECLogger *m_lpLogger;
 	bool m_bDSNRequest;
 	std::string m_strDSNTrackid;
+	SMTPResponse::state m_response_state;
 };
 
 

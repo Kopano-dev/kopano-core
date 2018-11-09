@@ -26,7 +26,7 @@ class mapiAttachment : public vmime::defaultAttachment
 {
 public:
 
-	mapiAttachment(vmime::ref <const vmime::contentHandler> data,
+	mapiAttachment(vmime::shared_ptr<const vmime::contentHandler> data,
 				   const vmime::encoding& enc,
 				   const vmime::mediaType& type,
 				   const std::string& contentid,
@@ -44,7 +44,7 @@ private:
 	bool m_hasCharset;
 	vmime::charset m_charset;
 
-	void generatePart(vmime::ref<vmime::bodyPart> part) const;
+	void generatePart(const vmime::shared_ptr<vmime::bodyPart> &) const override;
 };
 
 #endif

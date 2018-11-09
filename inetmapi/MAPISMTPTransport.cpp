@@ -51,6 +51,8 @@
 #include "vmime/mailboxList.hpp"
 
 #include "vmime/utility/filteredStream.hpp"
+#include <vmime/utility/outputStreamSocketAdapter.hpp>
+#include <vmime/utility/streamUtils.hpp>
 #include "vmime/utility/stringUtils.hpp"
 #include "vmime/net/defaultConnectionInfos.hpp"
 
@@ -83,7 +85,8 @@ namespace vmime {
 namespace net {
 namespace smtp {
 
-MAPISMTPTransport::MAPISMTPTransport(ref <session> sess, ref <security::authenticator> auth, const bool secured)
+MAPISMTPTransport::MAPISMTPTransport(vmime::shared_ptr<session> sess,
+    vmime::shared_ptr<security::authenticator> auth, const bool secured)
 	: transport(sess, getInfosInstance(), auth), m_socket(NULL),
 	  m_authentified(false), m_extendedSMTP(false), m_timeoutHandler(NULL),
 	  m_isSMTPS(secured), m_secured(false), m_lpLogger(NULL),
@@ -129,21 +132,17 @@ void MAPISMTPTransport::connect()
 #if VMIME_HAVE_TLS_SUPPORT
 	if (m_isSMTPS)  // dedicated port/SMTPS
 	{
-		ref <tls::TLSSession> tlsSession =
-			vmime::create <tls::TLSSession>(getCertificateVerifier());
-
-		ref <tls::TLSSocket> tlsSocket =
-			tlsSession->getSocket(m_socket);
-
+		auto tlsSession = tls::TLSSession::create(getCertificateVerifier(), getSession()->getTLSProperties());
+		auto tlsSocket = tlsSession->getSocket(m_socket);
 		m_socket = tlsSocket;
 
 		m_secured = true;
-		m_cntInfos = vmime::create <tls::TLSSecuredConnectionInfos>(address, port, tlsSession, tlsSocket);
+		m_cntInfos = vmime::make_shared<tls::TLSSecuredConnectionInfos>(address, port, tlsSession, tlsSocket);
 	}
 	else
 #endif // VMIME_HAVE_TLS_SUPPORT
 	{
-		m_cntInfos = vmime::create <defaultConnectionInfos>(address, port);
+		m_cntInfos = vmime::make_shared<defaultConnectionInfos>(address, port);
 	}
 
 	if (m_lpLogger && m_lpLogger->Log(EC_LOGLEVEL_DEBUG))
@@ -159,7 +158,7 @@ void MAPISMTPTransport::connect()
 	// eg:  C: <connection to server>
 	// ---  S: 220 smtp.domain.com Service ready
 
-	ref <SMTPResponse> resp;
+	vmime::shared_ptr<SMTPResponse> resp;
 
 	if ((resp = readResponse())->getCode() != 220)
 	{
@@ -225,8 +224,7 @@ void MAPISMTPTransport::helo()
 
 	sendRequest("EHLO " + platform::getHandler()->getHostName());
 
-	ref <SMTPResponse> resp;
-
+	vmime::shared_ptr<SMTPResponse> resp;
 	if ((resp = readResponse())->getCode() != 250)
 	{
 		// Next, try "Basic" SMTP
@@ -286,7 +284,7 @@ void MAPISMTPTransport::authenticate()
 		throw exceptions::command_error("AUTH", "ESMTP not supported.");
 	}
 
-	getAuthenticator()->setService(thisRef().dynamicCast <service>());
+	getAuthenticator()->setService(vmime::dynamicCast<service>(shared_from_this()));
 
 #if VMIME_HAVE_SASL_SUPPORT
 	// First, try SASL authentication
@@ -328,7 +326,7 @@ void MAPISMTPTransport::authenticate()
 
 void MAPISMTPTransport::authenticateSASL()
 {
-	if (!getAuthenticator().dynamicCast <security::sasl::SASLAuthenticator>())
+	if (!vmime::dynamicCast<security::sasl::SASLAuthenticator>(getAuthenticator()))
 		throw exceptions::authentication_error("No SASL authenticator available.");
 
 	// Obtain SASL mechanisms supported by server from ESMTP extensions
@@ -339,10 +337,8 @@ void MAPISMTPTransport::authenticateSASL()
 	if (saslMechs.empty())
 		throw exceptions::authentication_error("No SASL mechanism available.");
 
-	std::vector <ref <security::sasl::SASLMechanism> > mechList;
-
-	ref <security::sasl::SASLContext> saslContext =
-		vmime::create <security::sasl::SASLContext>();
+	std::vector<vmime::shared_ptr<security::sasl::SASLMechanism> > mechList;
+	auto saslContext = security::sasl::SASLContext::create();
 
 	for (unsigned int i = 0 ; i < saslMechs.size() ; ++i)
 	{
@@ -361,14 +357,12 @@ void MAPISMTPTransport::authenticateSASL()
 		throw exceptions::authentication_error("No SASL mechanism available.");
 
 	// Try to suggest a mechanism among all those supported
-	ref <security::sasl::SASLMechanism> suggestedMech =
-		saslContext->suggestMechanism(mechList);
-
+	auto suggestedMech = saslContext->suggestMechanism(mechList);
 	if (!suggestedMech)
 		throw exceptions::authentication_error("Unable to suggest SASL mechanism.");
 
 	// Allow application to choose which mechanisms to use
-	mechList = getAuthenticator().dynamicCast <security::sasl::SASLAuthenticator>()->
+	mechList = vmime::dynamicCast<security::sasl::SASLAuthenticator>(getAuthenticator())->
 		getAcceptableMechanisms(mechList, suggestedMech);
 
 	if (mechList.empty())
@@ -377,19 +371,15 @@ void MAPISMTPTransport::authenticateSASL()
 	// Try each mechanism in the list in turn
 	for (unsigned int i = 0 ; i < mechList.size() ; ++i)
 	{
-		ref <security::sasl::SASLMechanism> mech = mechList[i];
-
-		ref <security::sasl::SASLSession> saslSession =
-			saslContext->createSession("smtp", getAuthenticator(), mech);
-
+		auto mech = mechList[i];
+		auto saslSession = saslContext->createSession("smtp", getAuthenticator(), mech);
 		saslSession->init();
 
 		sendRequest("AUTH " + mech->getName());
 
 		for (bool cont = true ; cont ; )
 		{
-			ref <SMTPResponse> response = readResponse();
-
+			auto response = readResponse();
 			switch (response->getCode())
 			{
 			case 235:
@@ -400,10 +390,10 @@ void MAPISMTPTransport::authenticateSASL()
 			case 334:
 			{
 				byte_t* challenge = 0;
-				int challengeLen = 0;
+				size_t challengeLen = 0;
 
 				byte_t* resp = 0;
-				int respLen = 0;
+				size_t respLen = 0;
 
 				try
 				{
@@ -458,24 +448,18 @@ void MAPISMTPTransport::startTLS()
 	try
 	{
 		sendRequest("STARTTLS");
-
-		ref <SMTPResponse> resp = readResponse();
-
+		auto resp = readResponse();
 		if (resp->getCode() != 220)
 			throw exceptions::command_error("STARTTLS", resp->getText());
 
-		ref <tls::TLSSession> tlsSession =
-			vmime::create <tls::TLSSession>(getCertificateVerifier());
-
-		ref <tls::TLSSocket> tlsSocket =
-			tlsSession->getSocket(m_socket);
-
-		tlsSocket->handshake(m_timeoutHandler);
+		auto tlsSession = tls::TLSSession::create(getCertificateVerifier(), getSession()->getTLSProperties());
+		auto tlsSocket = tlsSession->getSocket(m_socket);
+		tlsSocket->handshake();
 
 		m_socket = tlsSocket;
 
 		m_secured = true;
-		m_cntInfos = vmime::create <tls::TLSSecuredConnectionInfos>
+		m_cntInfos = vmime::make_shared<tls::TLSSecuredConnectionInfos>
 			(m_cntInfos->getHost(), m_cntInfos->getPort(), tlsSession, tlsSocket);
 	}
 	catch (exceptions::command_error&)
@@ -536,8 +520,7 @@ void MAPISMTPTransport::noop()
 
 	sendRequest("NOOP");
 
-	ref <SMTPResponse> resp = readResponse();
-
+	auto resp = readResponse();
 	if (resp->getCode() != 250)
 		throw exceptions::command_error("NOOP", resp->getText());
 }
@@ -545,9 +528,9 @@ void MAPISMTPTransport::noop()
 //                             
 // Only this function is altered, to return per recipient failure.
 //                             
-void MAPISMTPTransport::send(const mailbox& expeditor, const mailboxList& recipients,
-                         utility::inputStream& is, const utility::stream::size_type size,
-                         utility::progressListener* progress)
+void MAPISMTPTransport::send(const mailbox &expeditor,
+    const mailboxList &recipients, utility::inputStream &is, size_t size,
+    utility::progressListener *progress, const mailbox &sender)
 {
 	if (!isConnected())
 		throw exceptions::not_connected();
@@ -559,7 +542,7 @@ void MAPISMTPTransport::send(const mailbox& expeditor, const mailboxList& recipi
 		throw exceptions::no_expeditor();
 
 	// Emit the "MAIL" command
-	ref <SMTPResponse> resp;
+	vmime::shared_ptr<SMTPResponse> resp;
 	string strSend;
 	bool bDSN = m_bDSNRequest;
 	
@@ -568,7 +551,7 @@ void MAPISMTPTransport::send(const mailbox& expeditor, const mailboxList& recipi
 		bDSN = false; // Disable DSN because the server does not support this.
 	}
 
-	strSend = "MAIL FROM: <" + expeditor.getEmail() + ">";
+	strSend = "MAIL FROM: <" + expeditor.getEmail().toString() + ">";
 	if (bDSN) {
 		strSend += " RET=HDRS";
 		if (!m_strDSNTrackid.empty())
@@ -586,12 +569,11 @@ void MAPISMTPTransport::send(const mailbox& expeditor, const mailboxList& recipi
 	// Emit a "RCPT TO" command for each recipient
 	mTemporaryFailedRecipients.clear();
 	mPermanentFailedRecipients.clear();
-	for (int i = 0 ; i < recipients.getMailboxCount() ; ++i)
-	{
+	for (size_t i = 0 ; i < recipients.getMailboxCount(); ++i) {
 		const mailbox& mbox = *recipients.getMailboxAt(i);
 		unsigned int code;
 
-		strSend = "RCPT TO: <" + mbox.getEmail() + ">";
+		strSend = "RCPT TO: <" + mbox.getEmail().toString() + ">";
 		if (bDSN)
 			 strSend += " NOTIFY=SUCCESS,DELAY";
 
@@ -601,7 +583,7 @@ void MAPISMTPTransport::send(const mailbox& expeditor, const mailboxList& recipi
 
 		sFailedRecip entry;
 		entry.strRecipName = (WCHAR*)mbox.getName().getConvertedText(charset(CHARSET_WCHAR)).c_str(); // does this work?, or convert to utf-8 then wstring?
-		entry.strRecipEmail = mbox.getEmail();
+		entry.strRecipEmail = mbox.getEmail().toString();
 		entry.ulSMTPcode = code;
 		entry.strSMTPResponse = resp->getText();
 
@@ -655,7 +637,7 @@ void MAPISMTPTransport::send(const mailbox& expeditor, const mailboxList& recipi
 	fos.flush();
 
 	// Send end-of-data delimiter
-	m_socket->sendRaw("\r\n.\r\n", 5);
+	m_socket->sendRaw(reinterpret_cast<const vmime::byte_t *>("\r\n.\r\n"), 5);
 
 	if ((resp = readResponse())->getCode() != 250)
 	{
@@ -695,9 +677,10 @@ void MAPISMTPTransport::sendRequest(const string& buffer, const bool end)
 		m_socket->send(buffer);
 }
 
-ref <SMTPResponse> MAPISMTPTransport::readResponse()
+vmime::shared_ptr<SMTPResponse> MAPISMTPTransport::readResponse(void)
 {
-	ref <SMTPResponse> resp = SMTPResponse::readResponse(m_socket, m_timeoutHandler);
+	vmime::shared_ptr<tracer> t;
+	auto resp = SMTPResponse::readResponse(t, m_socket, m_timeoutHandler, m_response_state);
 	if (m_lpLogger && m_lpLogger->Log(EC_LOGLEVEL_DEBUG))
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "> %d %s", resp->getCode(), resp->getText().c_str());
 	return resp;
