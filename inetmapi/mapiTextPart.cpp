@@ -75,8 +75,8 @@ size_t mapiTextPart::getPartCount() const
 	       !m_otherText->isEmpty();
 }
 
-void mapiTextPart::generateIn(vmime::shared_ptr<bodyPart> /* message */,
-    vmime::shared_ptr<bodyPart> parent) const
+void mapiTextPart::generateIn(const vmime::shared_ptr<bodyPart> &/* message */,
+    const vmime::shared_ptr<bodyPart> &parent) const
 {
 	// Plain text
 	if (!m_plainText->isEmpty())
@@ -207,9 +207,9 @@ void mapiTextPart::addEmbeddedObject(const bodyPart& part, const string& id)
 		part.getBody()->getEncoding(), id, type, string(), string()));
 }
 
-void mapiTextPart::parse(vmime::shared_ptr<const vmime::bodyPart> message,
-    vmime::shared_ptr<const vmime::bodyPart> parent,
-    vmime::shared_ptr<const vmime::bodyPart> textPart)
+void mapiTextPart::parse(const vmime::shared_ptr<const vmime::bodyPart> &message,
+    const vmime::shared_ptr<const vmime::bodyPart> &parent,
+    const vmime::shared_ptr<const vmime::bodyPart> &textPart)
 {
 	// Search for possible embedded objects in the _whole_ message.
 	std::vector<vmime::shared_ptr<const vmime::bodyPart> > cidParts;
@@ -351,7 +351,7 @@ void mapiTextPart::setOtherCharset(const charset& ch)
        m_bHaveOtherCharset = true;
 }
 
-void mapiTextPart::setText(vmime::shared_ptr<vmime::contentHandler> text)
+void mapiTextPart::setText(const vmime::shared_ptr<vmime::contentHandler> &text)
 {
 	m_text = text->clone();
 }

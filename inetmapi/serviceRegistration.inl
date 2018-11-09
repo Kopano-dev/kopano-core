@@ -40,8 +40,8 @@ public:
 	{
 	}
 
-	vmime::shared_ptr<service> create(vmime::shared_ptr<session> sess,
-	    vmime::shared_ptr<security::authenticator> auth) const
+	vmime::shared_ptr<service> create(const vmime::shared_ptr<session> &sess,
+	    const vmime::shared_ptr<security::authenticator> &auth) const
 	{
 		return vmime::make_shared<S>(sess, auth);
 	}

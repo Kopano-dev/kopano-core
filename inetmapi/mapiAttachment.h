@@ -45,7 +45,7 @@ private:
 	bool m_hasCharset = false;
 	vmime::charset m_charset;
 
-	void generatePart(vmime::shared_ptr<vmime::bodyPart> part) const _kc_override;
+	void generatePart(const vmime::shared_ptr<vmime::bodyPart> &) const override;
 };
 
 } /* namespace */

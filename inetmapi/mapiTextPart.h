@@ -78,8 +78,8 @@ public:
 	void setOtherCharset(const charset& ch);
 
 	/* html + plain + 'other' text */
-	const vmime::shared_ptr<const contentHandler> getText(void) const _kc_override { return m_text; }
-	void setText(vmime::shared_ptr<contentHandler> text) _kc_override;
+	const vmime::shared_ptr<const contentHandler> getText() const override { return m_text; }
+	void setText(const vmime::shared_ptr<contentHandler> &) override;
 
 	/** Embedded object (eg: image for &lt;IMG> tag).
 	  */
@@ -214,10 +214,9 @@ public:
 	 */
 	const string addObject(vmime::shared_ptr<contentHandler> data, const encoding &enc, const mediaType &type, const string &id, const string &name = string(), const string &loc = string());
 
-	size_t getPartCount() const _kc_override;
-
-	void generateIn(vmime::shared_ptr<bodyPart> message, vmime::shared_ptr<bodyPart> parent) const _kc_override;
-	void parse(vmime::shared_ptr<const bodyPart> message, vmime::shared_ptr<const bodyPart> parent, vmime::shared_ptr<const bodyPart> textPart) _kc_override;
+	size_t getPartCount() const override;
+	void generateIn(const vmime::shared_ptr<bodyPart> &message, const vmime::shared_ptr<bodyPart> &parent) const override;
+	void parse(const vmime::shared_ptr<const bodyPart> &message, const vmime::shared_ptr<const bodyPart> &parent, const vmime::shared_ptr<const bodyPart> &text_part) override;
 
 private:
 	vmime::shared_ptr<contentHandler> m_plainText;
