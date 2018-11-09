@@ -387,15 +387,14 @@ HRESULT vcftomapi_impl::parse_vcf(const std::string &ical)
 
 	if (!check_libical_bug_353())
 		ec_log_err("libical bug #353 detected. VCF import can produce garbage. (KC-1247)");
-	auto v = Parse_MIME(tmp_ical.c_str(), tmp_ical.length());
-	if (v == nullptr)
+	std::unique_ptr<VObject, ical_deleter> root(Parse_MIME(tmp_ical.c_str(), tmp_ical.length()));
+	if (root == nullptr)
 		return MAPI_E_CORRUPT_DATA;
 
-	auto v_orig = v;
 	VObjectIterator t;
-	for (initPropIterator(&t, v); moreIteration(&t); ) {
+	for (initPropIterator(&t, root.get()); moreIteration(&t); ) {
 		SPropValue s;
-		v = nextVObject(&t);
+		auto v = nextVObject(&t);
 		auto name = vObjectName(v);
 
 		if (strcmp(name, VCNameProp) == 0) {
@@ -459,7 +458,6 @@ HRESULT vcftomapi_impl::parse_vcf(const std::string &ical)
 				return hr;
 		}
 	}
-	cleanVObject(v_orig);
 	return hrSuccess;
 }
 
