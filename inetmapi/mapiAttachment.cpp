@@ -23,7 +23,7 @@ void mapiAttachment::addCharset(vmime::charset ch) {
 	m_charset = ch;
 }
 
-void mapiAttachment::generatePart(vmime::shared_ptr<vmime::bodyPart> part) const
+void mapiAttachment::generatePart(const vmime::shared_ptr<vmime::bodyPart> &part) const
 {
 	vmime::defaultAttachment::generatePart(part);
 	vmime::dynamicCast<vmime::contentDispositionField>(part->getHeader()->ContentDisposition())->setFilename(m_filename);
