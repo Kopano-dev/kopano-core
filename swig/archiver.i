@@ -48,7 +48,7 @@ public:
 			if (e != Success)
 				throw ArchiverError(e, "Method returned an error!");
 		}
-		
+
 		void Archive(const char *lpszUser, bool bAutoAttach = false, unsigned int ulFlags = ArchiveManage::Writable) {
 			eResult e = Success;
 			convert_context converter;
@@ -65,7 +65,7 @@ public:
 			if (e != Success)
 				throw ArchiverError(e, "Method returned an error!");
 		}
-		
+
 		void Cleanup(const char *lpszUser) {
 			eResult e = Success;
 			convert_context converter;
@@ -114,7 +114,7 @@ public:
 			if (e != Success)
 				throw ArchiverError(e, "Method returned an error!");
 		}
-		
+
 		void DetachFrom(const char *lpszArchiveServer, const char *lpszArchive, const char *lpszFolder) {
 			eResult e = Success;
 			convert_context converter;
@@ -176,11 +176,11 @@ public:
 		AttachStdErr		= 0x00000002,
 		InhibitErrorLogging	= 0x40000000
 	};
-	
+
 	%newobject Create;
 	%newobject GetControl;
 	%newobject GetManage;
-	
+
 	%extend {
 		static Archiver *Create(const char *lpszAppName, const char *lpszConfig, unsigned int ulFlags = 0) {
 			eResult r = Success;
@@ -209,7 +209,7 @@ public:
 
 			return ptr.release();
 		}
-		
+
 		ArchiveManage *GetManage(const char *lpszUser) {
 			eResult r = Success;
 			ArchiveManagePtr ptr;

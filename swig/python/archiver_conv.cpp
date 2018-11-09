@@ -19,9 +19,7 @@ template<typename ListType>
 PyObject* List_from(const ListType &lst)
 {
 	pyobj_ptr list(PyList_New(0));
-    typename ListType::const_iterator i;
-
-    for (i = lst.begin(); i != lst.end(); ++i) {
+	for (auto i = lst.cbegin(); i != lst.cend(); ++i) {
 		pyobj_ptr item(PyObject_from_Iterator(i));
 		if (PyErr_Occurred())
 			return nullptr;

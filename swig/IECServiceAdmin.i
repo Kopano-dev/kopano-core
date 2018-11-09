@@ -104,7 +104,7 @@ public:
 	virtual HRESULT GetQuotaRecipients(ULONG cbUserId, LPENTRYID lpUserId, ULONG ulFlags, ULONG *OUTPUT /*lpcUsers*/, LPECUSER *OUTPUT /*lppsUsers*/) = 0;
 
 	virtual HRESULT GetQuotaStatus(ULONG cbUserId, LPENTRYID lpUserId, LPECQUOTASTATUS* OUTPUT/*lppsQuotaStatus*/) = 0;
-	
+
 	virtual HRESULT PurgeSoftDelete(ULONG ulDays) = 0;
 	virtual HRESULT PurgeCache(ULONG ulFlags) = 0;
 	virtual HRESULT PurgeDeferredUpdates(ULONG *OUTPUT) = 0;
@@ -113,7 +113,7 @@ public:
 	// Multiserver functions
 	virtual HRESULT GetServerDetails(LPECSVRNAMELIST lpServerNameList, ULONG ulFlags, LPECSERVERLIST* OUTPUT/*lppsServerList*/) = 0;
 	virtual HRESULT ResolvePseudoUrl(const char *url, char** OUTMAPICHAR/*lppszServerPath*/, bool *OUTPUT /*lpbIsPeer*/) = 0;
-	
+
 	// Archive store function(s)
 	virtual HRESULT GetArchiveStoreEntryID(LPTSTR lpszUserName, LPTSTR lpszServerName, ULONG ulFlags, ULONG *OUTPUT /*lpcbStoreID*/, LPENTRYID *OUTPUT /*lppStoreID*/) = 0;
 
