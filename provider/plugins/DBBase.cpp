@@ -99,7 +99,7 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 		"FROM " + (string)DB_OBJECT_TABLE + " AS o "
 		"LEFT JOIN "+(string)DB_OBJECTPROPERTY_TABLE+" AS op "
 		"ON op.objectid=o.id "
-		"WHERE (" + std::move(strSubQuery) + ") "
+		"WHERE (" + strSubQuery + ") "
 		"ORDER BY o.externid, o.objectclass";
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if(er != erSuccess)
