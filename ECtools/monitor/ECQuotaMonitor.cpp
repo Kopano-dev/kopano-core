@@ -906,6 +906,92 @@ HRESULT ECQuotaMonitor::OpenUserStore(LPTSTR szStoreName, objectclass_t objclass
 }
 
 /**
+ * Opens or creates an associated message in the non-ipm subtree of
+ * the given store.
+ *
+ * @param[in] lpStore User or public store to find message in
+ * @param[in] szMessageName Name of the configuration message
+ * @param[out] lppMessage Message to load/save your custom data from/to
+ *
+ * @return MAPI Error code
+ */
+HRESULT ECQuotaMonitor::GetConfigMessage(LPMDB lpStore, const char* szMessageName, IMessage **lppMessage)
+{
+	SPropArrayPtr ptrEntryIDs;
+	MAPIFolderPtr ptrFolder;
+	unsigned int cValues, ulType;
+	MAPITablePtr ptrTable;
+	SPropValue propSubject;
+	SRowSetPtr ptrRows;
+	MessagePtr ptrMessage;
+	static constexpr const SizedSPropTagArray(2, sptaTreeProps) =
+		{2, {PR_NON_IPM_SUBTREE_ENTRYID, PR_IPM_SUBTREE_ENTRYID}};
+
+	HRESULT hr = lpStore->GetProps(sptaTreeProps, 0, &cValues, &~ptrEntryIDs);
+	if (FAILED(hr))
+		return hr;
+
+	// NON_IPM on a public store, IPM on a normal store
+	if (ptrEntryIDs[0].ulPropTag == sptaTreeProps.aulPropTag[0])
+		hr = lpStore->OpenEntry(ptrEntryIDs[0].Value.bin.cb,
+		     reinterpret_cast<ENTRYID *>(ptrEntryIDs[0].Value.bin.lpb),
+		     &iid_of(ptrFolder), MAPI_MODIFY, &ulType, &~ptrFolder);
+	else if (ptrEntryIDs[1].ulPropTag == sptaTreeProps.aulPropTag[1])
+		hr = lpStore->OpenEntry(ptrEntryIDs[1].Value.bin.cb,
+		     reinterpret_cast<ENTRYID *>(ptrEntryIDs[1].Value.bin.lpb),
+		     &iid_of(ptrFolder), MAPI_MODIFY, &ulType, &~ptrFolder);
+	else
+		hr = MAPI_E_INVALID_PARAMETER;
+	if (hr != hrSuccess)
+		return hr;
+	hr = ptrFolder->GetContentsTable(MAPI_DEFERRED_ERRORS | MAPI_ASSOCIATED, &~ptrTable);
+	if (hr != hrSuccess)
+		return hr;
+
+	propSubject.ulPropTag = PR_SUBJECT_A;
+	propSubject.Value.lpszA = (char*)szMessageName;
+
+	hr = ECPropertyRestriction(RELOP_EQ, PR_SUBJECT_A, &propSubject, ECRestriction::Cheap)
+	     .FindRowIn(ptrTable, BOOKMARK_BEGINNING, 0);
+	if (hr == hrSuccess) {
+		hr = ptrTable->QueryRows(1, 0, &~ptrRows);
+		if (hr != hrSuccess)
+			return hr;
+	}
+
+	if (!ptrRows.empty()) {
+		// message found, open it
+		auto lpEntryID = ptrRows[0].cfind(PR_ENTRYID);
+		if (lpEntryID == NULL)
+			return MAPI_E_INVALID_ENTRYID;
+		hr = ptrFolder->OpenEntry(lpEntryID->Value.bin.cb,
+		     reinterpret_cast<ENTRYID *>(lpEntryID->Value.bin.lpb),
+		     &iid_of(ptrMessage), MAPI_MODIFY, &ulType, &~ptrMessage);
+		if (hr != hrSuccess)
+			return hr;
+	} else {
+		// not found in folder, create new message
+		hr = ptrFolder->CreateMessage(&IID_IMessage, MAPI_ASSOCIATED, &~ptrMessage);
+		if (hr != hrSuccess)
+			return hr;
+		hr = ptrMessage->SetProps(1, &propSubject, NULL);
+		if (hr != hrSuccess)
+			return hr;
+
+		// set mandatory message property
+		propSubject.ulPropTag = PR_MESSAGE_CLASS_A;
+		propSubject.Value.lpszA = const_cast<char *>("IPM.Zarafa.Configuration");
+
+		hr = ptrMessage->SetProps(1, &propSubject, NULL);
+		if (hr != hrSuccess)
+			return hr;
+	}
+
+	*lppMessage = ptrMessage.release();
+	return hrSuccess;
+}
+
+/**
  * Check the last mail time for the quota message.
  *
  * @param lpStore Store that is over quota
