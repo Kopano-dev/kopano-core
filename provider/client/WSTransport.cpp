@@ -220,7 +220,11 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 	    ulLogonFlags, sLicenseRequest, m_ecSessionGroupId,
 	    GetAppName().c_str(), sProfileProps.strClientAppVersion.c_str(),
 	    sProfileProps.strClientAppMisc.c_str(), &sResponse) != SOAP_OK) {
+#if GSOAP_VERSION >= 20871
+		auto d = soap_fault_detail(lpCmd->soap);
+#else
 		const char *d = soap_check_faultdetail(lpCmd->soap);
+#endif
 		ec_log_err("gsoap connect: %s", d == nullptr ? "()" : d);
 		er = KCERR_SERVER_NOT_RESPONDING;
 	} else {
