@@ -154,6 +154,7 @@ class Service(kopano.Service):
         email = parent.pc.getval(convertprops['smtp'])
 
         if not email:
+            self.stats['noemail'] += 1
             self.log.info('Item\'s recipients have no email address, skipping')
             return []
 
@@ -290,7 +291,7 @@ class Service(kopano.Service):
         return propid_nameid
 
     def main(self):
-        self.stats = {'messages': 0, 'errors': 0}
+        self.stats = {'messages': 0, 'errors': 0, 'noemail': 0}
         pst.set_log(self.log, self.stats)
         self.unresolved = set()
         t0 = time.time()
@@ -318,8 +319,8 @@ class Service(kopano.Service):
                 else:
                     self.log.error("guid '%s' has no store", name)
 
-        self.log.info('imported %d items in %.2f seconds (%.2f/sec, %d errors)' %
-            (self.stats['messages'], time.time()-t0, self.stats['messages']/(time.time()-t0), self.stats['errors']))
+        self.log.info('imported %d items in %.2f seconds (%.2f/sec, %d errors) (no resolved email address: %d)' %
+            (self.stats['messages'], time.time()-t0, self.stats['messages']/(time.time()-t0), self.stats['errors'], self.stats['noemail']))
 
 
 def show_contents(args, options):
