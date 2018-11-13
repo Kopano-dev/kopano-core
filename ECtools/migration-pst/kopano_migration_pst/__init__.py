@@ -156,7 +156,8 @@ class Service(kopano.Service):
 
         if not email:
             self.stats['noemail'] += 1
-            self.log.info('Item\'s recipients have no email address, skipping')
+            recip = 'sender' if convertprops['email'] in [PR_SENDER_EMAIL_ADDRESS_W, PR_SENT_REPRESENTING_EMAIL_ADDRESS_W] else 'receiver'
+            self.log.warn('no email address found for %s property, skipping', recip)
             return []
 
         try:
