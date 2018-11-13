@@ -10,6 +10,7 @@ import datetime
 import fcntl
 from multiprocessing import Queue
 import os.path
+import re
 import shutil
 import sys
 import time
@@ -53,6 +54,8 @@ WEBAPP_SETTINGS = (
     PR_EC_WEBACCESS_SETTINGS_JSON_W, PR_EC_RECIPIENT_HISTORY_JSON_W,
     PR_EC_WEBAPP_PERSISTENT_SETTINGS_JSON_W,
 )
+
+UNESCAPED_SLASH_RE = re.compile(r'(?<!\\)/')
 
 import kopano
 from kopano import log_exc, Config
@@ -475,12 +478,28 @@ class Service(kopano.Service):
         t0 = time.time()
         stats = {'changes': 0, 'errors': 0}
 
+        # determine restore root
+        if self.options.restore_root:
+            restore_root = store.folder(_decode(self.options.restore_root), create=True)
+        else:
+            restore_root = store.subtree
+
+        # check existing folders
+        sk_folder = {}
+        for folder in restore_root.folders():
+            orig_sk = folder.get(PR_EC_BACKUP_SOURCE_KEY)
+            if orig_sk:
+                sk_folder[orig_sk] = folder
+
         # restore specified (parts of) folders
         restored = []
+        sks = set()
         for path in paths:
             fpath = path_folder[path]
-            restore_path = _decode(self.options.restore_root)+'/'+path if self.options.restore_root else path
+            folderprops = pickle_loads(open('%s/folder' % fpath, 'rb').read())
+            folder_sk = folderprops[PR_SOURCE_KEY]
 
+            # determine folder to restore
             if self.options.sourcekeys:
                 with closing(dbopen(fpath+'/items')) as db:
                     if not [sk for sk in self.options.sourcekeys if sk.encode('ascii') in db]:
@@ -489,16 +508,39 @@ class Service(kopano.Service):
                 if self.options.deletes in (None, 'no') and folder_deleted(fpath):
                     continue
 
-                folder = store.subtree.get_folder(restore_path)
+                sks.add(folder_sk)
+
+                folder = restore_root.get_folder(path)
                 if (folder and not store.public and \
                     ((self.options.skip_junk and folder == store.junk) or \
                     (self.options.skip_deleted and folder == store.wastebasket))):
                         continue
 
+            # restore folder
             if not self.options.only_meta:
-                folder = store.subtree.folder(restore_path, create=True)
+                # differential folder move
+                if self.options.differential:
+                    folder = sk_folder.get(folder_sk)
+                    if folder:
+                        restore_path = self.options.restore_root+'/'+path if self.options.restore_root else path
+                        if folder.path != restore_path:
+                            newparent = store.get_folder('/'.join(UNESCAPED_SLASH_RE.split(restore_path)[:-1]))
+                            if newparent:
+                                self.log.info('moving folder %s to %s', folder.path, restore_path)
+                                folder.parent.move(folder, newparent)
+
+                folder = restore_root.folder(path, create=True)
                 self.restore_folder(folder, path, fpath, store, store.subtree, stats, user, self.server)
             restored.append((folder, fpath))
+
+        # differential folder deletes
+        if self.options.differential:
+            for sk in set(sk_folder)-sks:
+                path = sk_folder[sk].path
+                parent = store.get_folder('/'.join(UNESCAPED_SLASH_RE.split(path)[:-1]))
+                if parent:
+                    self.log.info('deleting folder %s', path)
+                    parent.delete(sk_folder[sk])
 
         # restore folder-level metadata
         if not (self.options.sourcekeys or self.options.skip_meta):
@@ -669,11 +711,12 @@ class Service(kopano.Service):
     def restore_folder(self, folder, path, data_path, store, subtree, stats, user, server):
         """ restore single folder (or potential item in folder) """
 
+        folderprops = pickle_loads(open('%s/folder' % data_path, 'rb').read())
+
         if not self.options.sourcekeys:
             self.log.debug('restoring folder %s', path)
 
             # restore container class
-            folderprops = pickle_loads(open('%s/folder' % data_path, 'rb').read())
             container_class = folderprops.get(PR_CONTAINER_CLASS_W)
             if container_class:
                 folder.container_class = container_class
@@ -742,7 +785,7 @@ class Service(kopano.Service):
                         data = zlib.decompress(db_items[sourcekey2a])
                         item = folder.create_item(loads=data, attachments=not self.options.skip_attachments)
 
-                        # store original sourcekey or it is lost
+                        # store original item sourcekey or it is lost
                         try:
                             item.prop(PR_EC_BACKUP_SOURCE_KEY)
                         except (MAPIErrorNotFound, kopano.NotFoundError):
@@ -750,6 +793,14 @@ class Service(kopano.Service):
                             item.mapiobj.SaveChanges(0)
 
                         stats['changes'] += 1
+
+        # store original folder sourcekey
+        folder_sk = folderprops[PR_SOURCE_KEY]
+        try:
+            folder.prop(PR_EC_BACKUP_SOURCE_KEY)
+        except (MAPIErrorNotFound, kopano.NotFoundError):
+            folder.mapiobj.SetProps([SPropValue(PR_EC_BACKUP_SOURCE_KEY, folder_sk)])
+            folder.mapiobj.SaveChanges(0)
 
     def _store(self, username):
         """ lookup store for username """
@@ -1011,6 +1062,8 @@ def main():
         fatal('invalid use of --folder option')
     if options.output_dir and options.differential:
         fatal('invalid use of --output-dir option')
+    if options.sourcekeys and options.differential:
+        fatal('invalid use of --sourcekeys option')
 
     if options.stats or options.index:
         # handle --stats/--index
