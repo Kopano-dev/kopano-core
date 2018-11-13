@@ -237,7 +237,7 @@ DBUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 	};
 
 	LOG_PLUGIN_DEBUG("%s %s flags:%x", __FUNCTION__, match.c_str(), ulFlags);
-	return searchObjects(match.c_str(), search_props, nullptr, ulFlags);
+	return searchObjects(match, search_props, nullptr, ulFlags);
 }
 
 void DBUserPlugin::modifyObjectId(const objectid_t &oldId, const objectid_t &newId)
