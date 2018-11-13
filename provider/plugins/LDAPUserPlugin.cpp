@@ -2463,7 +2463,6 @@ signatures_t
 LDAPUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 {
 	string search_filter;
-	size_t pos;
 
 	LOG_PLUGIN_DEBUG("%s %s flags:%x", __FUNCTION__, match.c_str(), ulFlags);
 
@@ -2478,6 +2477,7 @@ LDAPUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 			// the admin should place %s* in the search filter
 			search_filter = m_config->GetSetting("ldap_object_search_filter");
 			// search/replace %s -> escMatch
+			size_t pos;
 			while ((pos = search_filter.find("%s")) != string::npos)
 				search_filter.replace(pos, 2, escMatch);
 		} catch (...) {};

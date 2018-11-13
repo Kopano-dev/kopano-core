@@ -152,7 +152,6 @@ HRESULT VTodoConverter::HrAddBaseProperties(icalproperty_method icMethod, icalco
 HRESULT VTodoConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent *lpicEventRoot, icalcomponent *lpicEvent, bool bIsAllday, icalitem *lpIcalItem)
 {
 	SPropValue sPropVal;
-	time_t timeDTStart = 0, timeDue = 0;
 
 	auto lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_DTSTART_PROPERTY);
 	if (lpicProp) {
@@ -162,7 +161,7 @@ HRESULT VTodoConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent *
 			return hr;
 
 		// localStartTime
-		timeDTStart = icaltime_as_timet(icalproperty_get_dtstart(lpicProp));
+		auto timeDTStart = icaltime_as_timet(icalproperty_get_dtstart(lpicProp));
 
 		// Set 0x820D / TaskStartDate
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TASK_STARTDATE], PT_SYSTIME);
@@ -189,7 +188,7 @@ HRESULT VTodoConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent *
 			return hr;
 
 		// localduetime
-		timeDue = icaltime_as_timet(icalproperty_get_due(lpicProp));
+		auto timeDue = icaltime_as_timet(icalproperty_get_due(lpicProp));
 
 		// Set 0x820D / TaskDueDate
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TASK_DUEDATE], PT_SYSTIME);

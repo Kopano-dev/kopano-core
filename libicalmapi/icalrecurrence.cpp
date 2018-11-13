@@ -44,7 +44,7 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 	HRESULT hr = hrSuccess;
 	int i = 0;
 	ULONG ulWeekDays = 0;	
-	time_t dtUTCEnd = 0, dtUTCUntil = 0, exUTCDate = 0, exLocalDate = 0;
+	time_t dtUTCEnd = 0, dtUTCUntil = 0;
 	SPropValue sPropVal = {0};
 	struct tm tm = {0};
 
@@ -228,8 +228,8 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 	for (lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_EXDATE_PROPERTY);
 	     lpicProp != nullptr; lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_EXDATE_PROPERTY))
 	{
-		exUTCDate = ICalTimeTypeToUTC(lpicRootEvent, lpicProp);
-		exLocalDate = UTCToLocal(exUTCDate, sTimeZone);
+		auto exUTCDate = ICalTimeTypeToUTC(lpicRootEvent, lpicProp);
+		auto exLocalDate = UTCToLocal(exUTCDate, sTimeZone);
 
 		lpRec->addDeletedException(exLocalDate);
 	}
