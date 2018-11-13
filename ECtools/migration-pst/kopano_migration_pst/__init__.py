@@ -86,6 +86,8 @@ RECEIVED_REPR_PROPS = {
     'smtp': pst.PropIdEnum.PidTagReceivedRepresentingSmtpAddress,
 }
 
+EMAIL_RECIP_PROPS = [SENDER_PROPS, SENT_REPRESENTING_PROPS, RECEIVED_PROPS, RECEIVED_REPR_PROPS]
+
 def recip_prop(propid, value):
     # PST not generated with full unicode?
     if isinstance(value, bytes):
@@ -139,12 +141,11 @@ class Service(kopano.Service):
             self.import_recipients(submessage, submapiobj)
             self.import_props(submessage, submapiobj, embedded=True)
 
-        addrtype = parent.pc.getval(PROP_ID(PR_SENDER_ADDRTYPE_W))
-        if addrtype == 'EX':
-            props2.extend(self.convert_exchange_recipient(parent, SENDER_PROPS))
-            props2.extend(self.convert_exchange_recipient(parent, SENT_REPRESENTING_PROPS))
-            props2.extend(self.convert_exchange_recipient(parent, RECEIVED_PROPS))
-            props2.extend(self.convert_exchange_recipient(parent, RECEIVED_REPR_PROPS))
+        # Check if any recipient property on an item has an EX address and try to convert it.
+        for prop_dict in EMAIL_RECIP_PROPS:
+            addrtype = parent.pc.getval(PROP_ID(prop_dict['addrtype']))
+            if addrtype and addrtype == 'EX':
+                props2.extend(self.convert_exchange_recipient(parent, prop_dict))
 
         mapiobj.SetProps(props2)
         mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
