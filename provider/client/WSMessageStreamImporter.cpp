@@ -4,10 +4,10 @@
  */
 #include <kopano/platform.h>
 #include <new>
+#include <cstdlib>
 #include "SOAPUtils.h"
 #include "WSMessageStreamImporter.h"
 #include "WSUtil.h"
-#include "ECSyncSettings.h"
 #include "soapKCmdProxy.h"
 
 using namespace KC;
@@ -82,7 +82,13 @@ HRESULT WSMessageStreamImporter::Create(ULONG ulFlags, ULONG ulSyncId,
 	entryId sEntryId, sFolderEntryId;
 	struct propVal sConflictItems;
 	WSMessageStreamImporterPtr ptrStreamImporter;
-	ECSyncSettings* lpSyncSettings = NULL;
+	unsigned int stream_timeout = 30000, stream_bufsize = 131072;
+	auto s = getenv("KOPANO_STREAM_TIMEOUT");
+	if (s != nullptr)
+		stream_timeout = atoui(s);
+	s = getenv("KOPANO_STREAM_BUFFER_SIZE");
+	if (s != nullptr)
+		stream_bufsize = atoui(s);
 
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, false);
 	if (hr != hrSuccess)
@@ -96,8 +102,9 @@ HRESULT WSMessageStreamImporter::Create(ULONG ulFlags, ULONG ulSyncId,
 			goto exit;
 	}
 
-	lpSyncSettings = &ECSyncSettings::instance;
-	ptrStreamImporter.reset(new(std::nothrow) WSMessageStreamImporter(ulFlags, ulSyncId, sEntryId, sFolderEntryId, bNewMessage, sConflictItems, lpTransport, lpSyncSettings->StreamBufferSize(), lpSyncSettings->StreamTimeout()));
+	ptrStreamImporter.reset(new(std::nothrow) WSMessageStreamImporter(ulFlags,
+		ulSyncId, sEntryId, sFolderEntryId, bNewMessage, sConflictItems,
+		lpTransport, stream_bufsize, stream_timeout));
 	if (ptrStreamImporter == nullptr) {
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
