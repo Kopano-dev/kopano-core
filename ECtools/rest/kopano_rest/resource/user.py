@@ -91,8 +91,11 @@ class UserResource(Resource):
                     def yielder(**kwargs):
                         yield from server._user_query(query) # TODO .users(query)?
                 else:
+                    userid = kopano.Store(server=server,
+                        mapiobj = GetDefaultStore(server.mapisession)).user.userid
+                    company = server.user(userid=userid).company
                     def yielder(**kwargs):
-                        yield from server.users(hidden=False, inactive=False, **kwargs)
+                        yield from company.users(hidden=False, inactive=False, **kwargs)
                 data = self.generator(req, yielder)
             self.respond(req, resp, data)
 
