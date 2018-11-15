@@ -117,17 +117,6 @@ typedef struct MAPIUID *LPMAPIUID;
 #define MAPI_SESSION    ((ULONG) 0x0000000B)
 #define MAPI_FORMINFO   ((ULONG) 0x0000000C)
 
-
-/*
- *  Maximum length of profile names and passwords, not including
- *  the null termination character.
- */
-    /* unused? */
-#define cchProfileNameMax   64
-#define cchProfilePassMax   64
-
-
-
 /* Property Types */
 #define MV_FLAG         0x1000
 
