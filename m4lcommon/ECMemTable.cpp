@@ -401,10 +401,8 @@ HRESULT ECMemTableView::Advise(ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink,
 
 	if (lpAdviseSink == NULL || lpulConnection == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	lpAdviseSink->AddRef();
-
 	auto lpMemAdvise = new ECMEMADVISE;
-	lpMemAdvise->lpAdviseSink = lpAdviseSink;
+	lpMemAdvise->lpAdviseSink.reset(lpAdviseSink);
 	lpMemAdvise->ulEventMask = ulEventMask;
 	m_mapAdvise.emplace(ulConnection, lpMemAdvise);
 	*lpulConnection = ulConnection;
@@ -419,8 +417,6 @@ HRESULT ECMemTableView::Unadvise(ULONG ulConnection)
 		assert(false);
 		return hrSuccess;
 	}
-	if (iterAdvise->second->lpAdviseSink != NULL)
-		iterAdvise->second->lpAdviseSink->Release();
 	delete iterAdvise->second;
 	m_mapAdvise.erase(iterAdvise);
 	return hrSuccess;

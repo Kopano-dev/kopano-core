@@ -31,7 +31,7 @@ struct ECTableEntry {
 
 struct ECMEMADVISE {
 	ULONG				ulEventMask;
-	LPMAPIADVISESINK	lpAdviseSink;
+	object_ptr<IMAPIAdviseSink> lpAdviseSink;
 	//ULONG				ulConnection;
 };
 
