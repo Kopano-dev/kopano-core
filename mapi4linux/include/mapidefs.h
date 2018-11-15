@@ -499,44 +499,6 @@ typedef ALLOCATEMORE* LPALLOCATEMORE;
 typedef FREEBUFFER* LPFREEBUFFER;
 }
 
-/* MAPI Component Object Model Macros */
-/* #if defined(MAPI_IF) && (!defined(__cplusplus) || defined(CINTERFACE)) */
-/* #define DECLARE_MAPI_INTERFACE(iface)                                   \ */
-/*         typedef struct iface##Vtbl iface##Vtbl, * iface;            \ */
-/*         struct iface##Vtbl */
-/* #define DECLARE_MAPI_INTERFACE_(iface, baseiface)                       \ */
-/*         DECLARE_MAPI_INTERFACE(iface) */
-/* #define DECLARE_MAPI_INTERFACE_PTR(iface, piface)                       \ */
-/*         typedef struct iface##Vtbl iface##Vtbl, * iface, * * piface; */
-/* #else */
-/* #define DECLARE_MAPI_INTERFACE(iface)                                   \ */
-/*         DECLARE_INTERFACE(iface) */
-/* #define DECLARE_MAPI_INTERFACE_(iface, baseiface)                       \ */
-/*         DECLARE_INTERFACE_(iface, baseiface) */
-/* #ifdef __cplusplus */
-/* #define DECLARE_MAPI_INTERFACE_PTR(iface, piface)                       \ */
-/*         interface iface; typedef iface * piface */
-/* #else */
-/* #define DECLARE_MAPI_INTERFACE_PTR(iface, piface)                       \ */
-/*         typedef interface iface iface, * piface */
-/* #endif */
-/* #endif */
-/* /\*--*\/ */
-
-/* #define MAPIMETHOD(method)              MAPIMETHOD_(HRESULT, method) */
-/* #define MAPIMETHOD_(type, method)       STDMETHOD_(type, method) */
-/* #define MAPIMETHOD_DECLARE(type, method, prefix) \ */
-/*         STDMETHODIMP_(type) prefix##method */
-/* #define MAPIMETHOD_TYPEDEF(type, method, prefix) \ */
-/*         typedef type (STDMETHODCALLTYPE prefix##method##_METHOD) */
-
-/* #define MAPI_IUNKNOWN_METHODS(IPURE)                                    \ */
-/*     MAPIMETHOD(QueryInterface)                                          \ */
-/*         (THIS_ REFIID riid, LPVOID * ppvObj) IPURE;                 \ */
-/*     MAPIMETHOD_(ULONG,AddRef)  (THIS) IPURE;                            \ */
-/*     MAPIMETHOD_(ULONG,Release) (THIS) IPURE;                            \ */
-
-
 /* Pointers to MAPI Interfaces */
 typedef const IID* LPCIID;
 
