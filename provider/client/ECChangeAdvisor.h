@@ -66,8 +66,6 @@ public:
 	virtual HRESULT Config(IStream *, GUID *guid, KC::IECChangeAdviseSink *, ULONG flags);
 	virtual HRESULT UpdateState(LPSTREAM lpStream);
 	virtual HRESULT AddKeys(LPENTRYLIST lpEntryList);
-	virtual HRESULT RemoveKeys(LPENTRYLIST lpEntryList);
-	virtual HRESULT IsMonitoringSyncId(syncid_t ulSyncId);
 	virtual HRESULT UpdateSyncState(syncid_t ulSyncId, changeid_t ulChangeId);
 
 private:

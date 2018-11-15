@@ -259,43 +259,6 @@ HRESULT ECChangeAdvisor::AddKeys(LPENTRYLIST lpEntryList)
 	return hr;
 }
 
-HRESULT ECChangeAdvisor::RemoveKeys(LPENTRYLIST lpEntryList)
-{
-	if (lpEntryList == nullptr)
-		return MAPI_E_INVALID_PARAMETER;
-	if (m_lpChangeAdviseSink == nullptr && !(m_ulFlags & SYNC_CATCHUP))
-		return MAPI_E_UNCONFIGURED;
-
-	SSyncState				*lpsSyncState = NULL;
-	ECLISTCONNECTION		listConnections;
-	scoped_rlock lock(m_hConnectionLock);
-
-	for (ULONG i = 0; i < lpEntryList->cValues; ++i) {
-		if (lpEntryList->lpbin[i].cb < sizeof(SSyncState))
-			continue;
-		lpsSyncState = (SSyncState*)lpEntryList->lpbin[i].lpb;
-		// Try to delete the sync state from state map anyway
-		m_mapSyncStates.erase(lpsSyncState->ulSyncId);
-		// Check if we even have the sync state
-		auto iterConnection = m_mapConnections.find(lpsSyncState->ulSyncId);
-		if (iterConnection == m_mapConnections.cend())
-			continue;
-		// Unregister the sync state.
-		if (!(m_ulFlags & SYNC_CATCHUP))
-			listConnections.emplace_back(*iterConnection);
-		// Remove from map
-		m_mapConnections.erase(iterConnection);
-	}
-	return m_lpMsgStore->m_lpNotifyClient->Unadvise(listConnections);
-}
-
-HRESULT ECChangeAdvisor::IsMonitoringSyncId(syncid_t ulSyncId)
-{
-	if (m_mapConnections.find(ulSyncId) == m_mapConnections.end())
-		return MAPI_E_NOT_FOUND;
-	return hrSuccess;
-}
-
 HRESULT ECChangeAdvisor::UpdateSyncState(syncid_t ulSyncId, changeid_t ulChangeId)
 {
 	scoped_rlock lock(m_hConnectionLock);

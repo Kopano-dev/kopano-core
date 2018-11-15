@@ -27,12 +27,10 @@ public:
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
 	virtual HRESULT Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKNOWN lpCollector, LPSRestriction lpRestriction, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize);
-	virtual HRESULT ConfigSelective(ULONG ulPropTag, LPENTRYLIST lpEntries, LPENTRYLIST lpParents, ULONG ulFlags, LPUNKNOWN lpCollector, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize);
 	virtual HRESULT Synchronize(ULONG *pulSteps, ULONG *pulProgress);
 	virtual HRESULT UpdateState(LPSTREAM lpStream);
 
 	virtual HRESULT GetChangeCount(ULONG *lpcChanges);
-	virtual HRESULT SetMessageInterface(REFIID refiid);
 
 private:
 	void LogMessageProps(int loglevel, ULONG cValues, LPSPropValue lpPropArray);

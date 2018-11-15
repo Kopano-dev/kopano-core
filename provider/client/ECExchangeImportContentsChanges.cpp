@@ -599,20 +599,6 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictFolder(LPTSTR lpszName, L
 	return hrSuccess;
 }
 
-HRESULT ECExchangeImportContentsChanges::ConfigForConversionStream(LPSTREAM lpStream, ULONG ulFlags, ULONG /*cValuesConversion*/, LPSPropValue /*lpPropArrayConversion*/)
-{
-	BOOL	bCanStream = FALSE;
-
-	// Since we don't use the cValuesConversion and lpPropArrayConversion arguments, we'll just check
-	// if the server suppors streaming and if so call the 'normal' config.
-	auto hr = m_lpFolder->GetMsgStore()->lpTransport->HrCheckCapabilityFlags(KOPANO_CAP_ENHANCED_ICS, &bCanStream);
-	if (hr != hrSuccess)
-		return hr;
-	if (bCanStream == FALSE)
-		return MAPI_E_NO_SUPPORT;
-	return Config(lpStream, ulFlags);
-}
-
 HRESULT ECExchangeImportContentsChanges::ImportMessageChangeAsAStream(ULONG cValue, LPSPropValue lpPropArray, ULONG ulFlags, LPSTREAM *lppStream)
 {
 	HRESULT hr;
