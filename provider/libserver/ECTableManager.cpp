@@ -302,7 +302,6 @@ ECRESULT ECTableManager::OpenUserStoresTable(unsigned int ulFlags, unsigned int 
 
 ECRESULT ECTableManager::OpenGenericTable(unsigned int ulParent, unsigned int ulObjType, unsigned int ulFlags, unsigned int *lpulTableId, bool fLoad)
 {
-	std::string		strQuery;
 	object_ptr<ECStoreObjectTable> lpTable;
 	std::unique_ptr<TABLE_ENTRY> lpEntry;
 	unsigned int	ulStoreId = 0;

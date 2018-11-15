@@ -210,7 +210,7 @@ ECRESULT ECStoreObjectTable::ReloadTableMVData(ECObjectTableList* lplistRows, EC
 		++j;
 		break; //FIXME: limit 1 column, multi MV cols
 	} // for iterListMVPropTag
-		
+
 	strQuery += " WHERE h.id IN(" +
 		kc_join(*lplistRows, ",", [](const auto &row) { return stringify(row.ulObjId); }) +
 		") ORDER BY id, orderid";
@@ -258,14 +258,11 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
 	std::map<unsigned int, std::map<sObjectTableKey, unsigned int> > mapStoreIdObjIds;
 	std::map<sObjectTableKey, unsigned int> mapIncompleteRows, mapRows;
 	std::multimap<unsigned int, unsigned int> mapColumns;
-	std::list<unsigned int> lstDeferred, propList;
+	std::list<unsigned int> lstDeferred;
 	std::set<unsigned int> setColumnIDs;
 	ECObjectTableList lstRowOrder;
 	std::map<sObjectTableKey, ECsObjects> mapObjects;
 
-	ECListInt			listMVSortCols;//Other mvprops then normal column set
-	ECListInt			listMVIColIds;
-	std::string strCol;
     sObjectTableKey sKey;
 
 	std::set<std::pair<unsigned int, unsigned int> > setCellDone;
@@ -543,7 +540,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
 {
 	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow = NULL;
-	std::string strQuery, strSubQuery, strCol;
+	std::string strQuery, strSubQuery;
 	ECDatabase		*lpDatabase = NULL;
 	bool bNeedProps = false, bNeedMVProps = false;
 	bool bNeedMVIProps = false, bNeedSubQueries = false;
