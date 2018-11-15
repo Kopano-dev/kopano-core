@@ -15,6 +15,7 @@
 #include <mapidefs.h>
 #include <kopano/ECKeyTable.h>
 #include <kopano/ECUnknown.h>
+#include <kopano/memory.hpp>
 #include <kopano/ustringutil.h>
 #include <kopano/Util.h>
 
@@ -80,8 +81,8 @@ protected:
 	// Data
 	std::map<unsigned int, ECTableEntry>	mapRows;
 	std::vector<ECMemTableView *>			lstViews;
-	LPSPropTagArray							lpsColumns;
 	ULONG									ulRowPropTag;
+	std::unique_ptr<SPropTagArray> lpsColumns;
 	std::recursive_mutex m_hDataMutex;
 
 	friend class ECMemTableView;
@@ -129,13 +130,13 @@ private:
 	_kc_hidden HRESULT Notify(ULONG table_event, sObjectTableKey *row_item, sObjectTableKey *prev_row);
 
 	ECKeyTable lpKeyTable;
-	SSortOrderSet *lpsSortOrderSet = nullptr;
-	LPSPropTagArray			lpsPropTags;		// Columns
-	SRestriction *lpsRestriction = nullptr;
 	ECMemTable *			lpMemTable;
 	ECMapMemAdvise			m_mapAdvise;
-	ULONG m_ulConnection = 1; // Next advise id
+	std::unique_ptr<SSortOrderSet> lpsSortOrderSet;
+	std::unique_ptr<SPropTagArray> lpsPropTags; /* columns */
+	memory_ptr<SRestriction> lpsRestriction;
 	ECLocale				m_locale;
+	ULONG m_ulConnection = 1; // Next advise id
 	ULONG					m_ulFlags;
 
 	_kc_hidden virtual HRESULT UpdateSortOrRestrict(void);

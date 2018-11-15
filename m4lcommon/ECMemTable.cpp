@@ -48,9 +48,9 @@ private:
  */
 
 ECMemTable::ECMemTable(const SPropTagArray *lpsPropTags, ULONG rpt) :
-	ECUnknown("ECMemTable"), ulRowPropTag(rpt)
+	ECUnknown("ECMemTable"), ulRowPropTag(rpt),
+	lpsColumns(reinterpret_cast<SPropTagArray *>(new BYTE[CbSPropTagArray(lpsPropTags)]))
 {
-	lpsColumns = reinterpret_cast<SPropTagArray *>(new BYTE[CbSPropTagArray(lpsPropTags)]);
 	lpsColumns->cValues = lpsPropTags->cValues;
 	memcpy(&lpsColumns->aulPropTag, &lpsPropTags->aulPropTag, lpsPropTags->cValues * sizeof(ULONG));
 }
@@ -58,7 +58,6 @@ ECMemTable::ECMemTable(const SPropTagArray *lpsPropTags, ULONG rpt) :
 ECMemTable::~ECMemTable()
 {
 	HrClear();
-	delete[] lpsColumns;
 }
 
 HRESULT ECMemTable::Create(const SPropTagArray *lpsColumns, ULONG ulRowPropTag,
@@ -361,10 +360,10 @@ HRESULT ECMemTable::HrClear()
 
 ECMemTableView::ECMemTableView(ECMemTable *mt, const ECLocale &locale,
     ULONG ulFlags) :
-	ECUnknown("ECMemTableView"), lpMemTable(mt), m_ulConnection(1),
-	    m_locale(locale), m_ulFlags(ulFlags & MAPI_UNICODE)
+	ECUnknown("ECMemTableView"), lpMemTable(mt),
+	lpsPropTags(reinterpret_cast<SPropTagArray *>(new BYTE[CbNewSPropTagArray(lpMemTable->lpsColumns->cValues)])),
+	m_locale(locale), m_ulConnection(1), m_ulFlags(ulFlags & MAPI_UNICODE)
 {
-	lpsPropTags = reinterpret_cast<SPropTagArray *>(new BYTE[CbNewSPropTagArray(lpMemTable->lpsColumns->cValues)]);
 	lpsPropTags->cValues = lpMemTable->lpsColumns->cValues;
 	std::transform(lpMemTable->lpsColumns->aulPropTag, lpMemTable->lpsColumns->aulPropTag + lpMemTable->lpsColumns->cValues, (ULONG*)lpsPropTags->aulPropTag, FixStringType(ulFlags & MAPI_UNICODE));
 
@@ -388,9 +387,6 @@ ECMemTableView::~ECMemTableView()
 		++iterAdvise;
 		Unadvise(iterAdviseRemove->first);
 	}
-	delete[] lpsPropTags;
-	delete[] lpsSortOrderSet;
-	MAPIFreeBuffer(lpsRestriction);
 }
 
 HRESULT ECMemTableView::Create(ECMemTable *lpMemTable, const ECLocale &locale, ULONG ulFlags, ECMemTableView **lppMemTableView)
@@ -522,9 +518,7 @@ HRESULT ECMemTableView::GetStatus(ULONG *lpulTableStatus, ULONG *lpulTableType)
 HRESULT ECMemTableView::SetColumns(const SPropTagArray *lpPropTagArray,
     ULONG ulFlags)
 {
-	delete[] lpsPropTags;
-	lpsPropTags = (LPSPropTagArray) new BYTE[CbNewSPropTagArray(lpPropTagArray->cValues)];
-
+	lpsPropTags.reset(reinterpret_cast<SPropTagArray *>(new BYTE[CbNewSPropTagArray(lpPropTagArray->cValues)]));
 	lpsPropTags->cValues = lpPropTagArray->cValues;
 	memcpy(&lpsPropTags->aulPropTag, &lpPropTagArray->aulPropTag, lpPropTagArray->cValues * sizeof(ULONG));
 
@@ -688,13 +682,10 @@ HRESULT ECMemTableView::FindRow(const SRestriction *lpRestriction,
 HRESULT ECMemTableView::Restrict(const SRestriction *lpRestriction, ULONG ulFlags)
 {
 	HRESULT hr = hrSuccess;
-
-	MAPIFreeBuffer(lpsRestriction);
-	lpsRestriction = nullptr;
 	if(lpRestriction)
-		hr = Util::HrCopySRestriction(&lpsRestriction, lpRestriction);
+		hr = Util::HrCopySRestriction(&~lpsRestriction, lpRestriction);
 	else
-		lpsRestriction = nullptr;
+		lpsRestriction.reset();
 	if(hr != hrSuccess)
 		return hr;
 	hr = UpdateSortOrRestrict();
@@ -799,11 +790,8 @@ HRESULT ECMemTableView::SortTable(const SSortOrderSet *lpSortCriteria,
 {
 	if (!lpSortCriteria)
 		lpSortCriteria = sSortDefault;
-
-	delete[] lpsSortOrderSet;
-	lpsSortOrderSet = (LPSSortOrderSet) new BYTE[CbSSortOrderSet(lpSortCriteria)];
-
-	memcpy(lpsSortOrderSet, lpSortCriteria, CbSSortOrderSet(lpSortCriteria));
+	lpsSortOrderSet.reset(reinterpret_cast<SSortOrderSet *>(new BYTE[CbSSortOrderSet(lpSortCriteria)]));
+	memcpy(lpsSortOrderSet.get(), lpSortCriteria, CbSSortOrderSet(lpSortCriteria));
 	auto hr = UpdateSortOrRestrict();
 	if (hr == hrSuccess)
 		Notify(TABLE_SORT_DONE, NULL, NULL);
@@ -873,7 +861,7 @@ HRESULT ECMemTableView::ModifyRowKey(sObjectTableKey *lpsRowItem, sObjectTableKe
 HRESULT ECMemTableView::QuerySortOrder(LPSSortOrderSet *lppSortCriteria)
 {
 	LPSSortOrderSet lpSortCriteria = NULL;
-	auto hr = KAllocCopy(lpsSortOrderSet, CbSSortOrderSet(lpsSortOrderSet), reinterpret_cast<void **>(&lpSortCriteria));
+	auto hr = KAllocCopy(lpsSortOrderSet.get(), CbSSortOrderSet(lpsSortOrderSet.get()), reinterpret_cast<void **>(&lpSortCriteria));
 	if(hr != hrSuccess)
 		return hr;
 	*lppSortCriteria = lpSortCriteria;
