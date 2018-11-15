@@ -179,8 +179,6 @@ HRESULT ECMemTable::HrSetClean()
 
 	for (auto iterRows = mapRows.begin(); iterRows != mapRows.end(); ) {
 		if(iterRows->second.fDeleted) {
-			MAPIFreeBuffer(iterRows->second.lpsID);
-			MAPIFreeBuffer(iterRows->second.lpsPropVal);
 			iterRows = mapRows.erase(iterRows);
 			continue;
 		}
@@ -202,10 +200,7 @@ HRESULT ECMemTable::HrUpdateRowID(LPSPropValue lpId, LPSPropValue lpProps, ULONG
 	auto iterRows = mapRows.find(lpUniqueProp->Value.ul);
 	if (iterRows == mapRows.cend())
 		return MAPI_E_NOT_FOUND;
-    
-    MAPIFreeBuffer(iterRows->second.lpsID);
-	HRESULT hr = MAPIAllocateBuffer(sizeof(SPropValue),
-		reinterpret_cast<void **>(&iterRows->second.lpsID));
+	auto hr = MAPIAllocateBuffer(sizeof(SPropValue), &~iterRows->second.lpsID);
 	if(hr != hrSuccess)
 		return hr;
 	return Util::HrCopyProperty(iterRows->second.lpsID, lpId, iterRows->second.lpsID);
@@ -228,7 +223,6 @@ HRESULT ECMemTable::HrUpdateRowID(LPSPropValue lpId, LPSPropValue lpProps, ULONG
 HRESULT ECMemTable::HrModifyRow(ULONG ulUpdateType, const SPropValue *lpsID,
     const SPropValue *lpPropVals, ULONG cValues)
 {
-	ECTableEntry entry;
 	scoped_rlock l_data(m_hDataMutex);
 
 	auto lpsRowID = PCpropFindProp(lpPropVals, cValues, ulRowPropTag);
@@ -262,22 +256,19 @@ HRESULT ECMemTable::HrModifyRow(ULONG ulUpdateType, const SPropValue *lpsID,
 			// refer to data that is allocated from iterRows->second.lpsPropVal.
 			//
 			// We therefore save the old value, copy the new properties, and THEN
-			// free the old row.
+			// (auto-)free the old row.
 
-			LPSPropValue lpOldPropVal = iterRows->second.lpsPropVal;
-
+			auto lpOldPropVal = std::move(iterRows->second.lpsPropVal);
 			// Update new row
-			auto hr = Util::HrCopyPropertyArray(lpPropVals, cValues, &iterRows->second.lpsPropVal, &iterRows->second.cValues, /* exclude PT_ERRORs */ true);
+			auto hr = Util::HrCopyPropertyArray(lpPropVals, cValues, &~iterRows->second.lpsPropVal, &iterRows->second.cValues, /* exclude PT_ERRORs */ true);
 			if(hr != hrSuccess)
 				return hr;
-
-			// Free old row
-			MAPIFreeBuffer(lpOldPropVal);
 		}
 	}
 
 	if(ulUpdateType == ECKeyTable::TABLE_ROW_ADD) {
-		auto hr = Util::HrCopyPropertyArray(lpPropVals, cValues, &entry.lpsPropVal, &entry.cValues);
+		ECTableEntry entry;
+		auto hr = Util::HrCopyPropertyArray(lpPropVals, cValues, &~entry.lpsPropVal, &entry.cValues);
 		if(hr != hrSuccess)
 			return hr;
 
@@ -286,18 +277,18 @@ HRESULT ECMemTable::HrModifyRow(ULONG ulUpdateType, const SPropValue *lpsID,
 		entry.fNew = TRUE;
 		
 		if(lpsID) {
-			hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **)&entry.lpsID);
+			hr = MAPIAllocateBuffer(sizeof(SPropValue), &~entry.lpsID);
 			if(hr != hrSuccess)
 				return hr;
 			hr = Util::HrCopyProperty(entry.lpsID, lpsID, entry.lpsID);
 			if(hr != hrSuccess)
 				return hr;
 		} else {
-			entry.lpsID = NULL;
+			entry.lpsID.reset();
 		}
 
 		// Add the actual data
-		mapRows[lpsRowID->Value.ul] =  entry;
+		mapRows[lpsRowID->Value.ul] = std::move(entry);
 	}
 
 	for (auto viewp : lstViews) {
@@ -338,11 +329,6 @@ HRESULT ECMemTable::HrDeleteAll()
 HRESULT ECMemTable::HrClear()
 {
 	scoped_rlock l_data(m_hDataMutex);
-	for (const auto &rowp : mapRows) {
-		MAPIFreeBuffer(rowp.second.lpsPropVal);
-		MAPIFreeBuffer(rowp.second.lpsID);
-	}
-
 	// Clear list
 	mapRows.clear();
 
