@@ -61,6 +61,7 @@ Enhancements:
 * spooler: new config value log_raw_message=error [KC-1105]
 * daemons: TLS ECDH curves can now be specified in config [KC-1233]
 * php: new functions to get freebusy message [KC-1077]
+* inetmapi: support multiple recipients in Reply-To [KC-434]
 Changes:
 * daemons: the default logging target is now syslog/journalctl [KC-1100]
 * daemons: SSLv3, TLSv1.0 and TLSv1.1 are now disabled by default [KC-1231]
