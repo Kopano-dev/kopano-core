@@ -663,7 +663,7 @@ libmapi_la_SOURCES = \
 	mapi4linux/src/common.cpp mapi4linux/src/mapidefs.cpp mapi4linux/src/mapispi.cpp mapi4linux/src/mapiutil.cpp \
 	mapi4linux/src/mapix.cpp mapi4linux/src/rtf.cpp mapi4linux/src/m4l.common.h \
 	mapi4linux/src/m4l.mapidefs.h mapi4linux/src/m4l.mapispi.h \
-	mapi4linux/src/m4l.mapix.h mapi4linux/src/mapi4linux.h mapi4linux/src/rtf.h \
+	mapi4linux/src/m4l.mapix.h mapi4linux/src/rtf.h \
 	mapi4linux/src/m4l.mapisvc.cpp mapi4linux/src/m4l.mapisvc.h \
 	m4lcommon/CommonUtil.cpp \
 	m4lcommon/ECFeatures.cpp m4lcommon/ECFeatureList.h \
