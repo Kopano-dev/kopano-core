@@ -18,10 +18,6 @@
 
 #define MAPI_DIM
 
-#ifndef BEGIN_INTERFACE
-#define BEGIN_INTERFACE
-#endif
-
 /*
  *  This flag is used in many different MAPI calls to signify that
  *  the object opened by the call should be modifiable (MAPI_MODIFY).
