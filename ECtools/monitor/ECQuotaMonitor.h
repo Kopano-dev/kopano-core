@@ -12,13 +12,8 @@
 struct TemplateVariables {
 	KC::objectclass_t ulClass;
 	KC::eQuotaStatus ulStatus;
-	std::string strUserName;
-	std::string strFullName;
-	std::string strCompany;
-	std::string strStoreSize;
-	std::string strWarnSize;
-	std::string strSoftSize;
-	std::string strHardSize;
+	std::string strUserName, strFullName, strCompany, strStoreSize;
+	std::string strWarnSize, strSoftSize, strHardSize;
 };
 
 class ECQuotaMonitor final {

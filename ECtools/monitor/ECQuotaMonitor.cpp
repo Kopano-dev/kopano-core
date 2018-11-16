@@ -535,14 +535,10 @@ HRESULT ECQuotaMonitor::CreateMessageProperties(ECUSER *lpecToUser,
     const std::string &strBody, ULONG *lpcPropSize, LPSPropValue *lppPropArray)
 {
 	memory_ptr<SPropValue> lpPropArray;
-	ULONG cbFromEntryid = 0;
+	unsigned int cbFromEntryid = 0, cbToEntryid = 0, cbFromSearchKey = 0;
+	unsigned int cbToSearchKey = 0, ulPropArrayMax = 50, ulPropArrayCur = 0;
 	memory_ptr<ENTRYID> lpFromEntryid, lpToEntryid;
-    ULONG cbToEntryid = 0;
-	ULONG cbFromSearchKey = 0;
 	memory_ptr<unsigned char> lpFromSearchKey, lpToSearchKey;
-	ULONG cbToSearchKey = 0;
-	ULONG ulPropArrayMax = 50;
-	ULONG ulPropArrayCur = 0;
 	FILETIME ft;
 	std::wstring name, email;
 	convert_context converter;
@@ -703,9 +699,8 @@ HRESULT ECQuotaMonitor::CreateRecipientList(ULONG cToUsers, ECUSER *lpToUsers,
     LPADRLIST *lppAddrList)
 {
 	adrlist_ptr lpAddrList;
-	ULONG cbUserEntryid = 0;
+	unsigned int cbUserEntryid = 0, cbUserSearchKey = 0;
 	memory_ptr<ENTRYID> lpUserEntryid;
-	ULONG cbUserSearchKey = 0;
 	memory_ptr<unsigned char> lpUserSearchKey;
 
 	auto hr = MAPIAllocateBuffer(CbNewADRLIST(cToUsers), &~lpAddrList);
@@ -767,10 +762,9 @@ HRESULT ECQuotaMonitor::CreateRecipientList(ULONG cToUsers, ECUSER *lpToUsers,
 HRESULT ECQuotaMonitor::SendQuotaWarningMail(IMsgStore* lpMDB, ULONG cPropSize, LPSPropValue lpPropArray, LPADRLIST lpAddrList)
 {
 	object_ptr<IMessage> lpMessage;
-	ULONG cbEntryID = 0;
+	unsigned int cbEntryID = 0, ulObjType;
 	memory_ptr<ENTRYID> lpEntryID;
 	object_ptr<IMAPIFolder> lpInbox;
-	ULONG ulObjType;
 
 	/* Get the entry id of the inbox */
 	auto hr = lpMDB->GetReceiveFolder(reinterpret_cast<const TCHAR *>("IPM"), 0, &cbEntryID, &~lpEntryID, nullptr);
@@ -971,8 +965,7 @@ HRESULT ECQuotaMonitor::CheckQuotaInterval(LPMDB lpStore, LPMESSAGE *lppMessage,
 {
 	MessagePtr ptrMessage;
 	SPropValuePtr ptrProp;
-	FILETIME ft;
-	FILETIME ftNextRun;
+	FILETIME ft, ftNextRun;
 
 	auto hr = GetConfigMessage(lpStore, QUOTA_CONFIG_MSG, &~ptrMessage);
 	if (hr != hrSuccess)
@@ -1044,9 +1037,8 @@ HRESULT ECQuotaMonitor::Notify(ECUSER *lpecUser, ECCOMPANY *lpecCompany,
 	memory_ptr<SPropValue> lpsObject;
 	adrlist_ptr lpAddrList;
 	memory_ptr<ECUSER> lpecFromUser, lpToUsers;
-	ULONG cToUsers = 0;
+	unsigned int cToUsers = 0, cbUserId = 0;
 	memory_ptr<ECQUOTA> lpecQuota;
-	ULONG cbUserId = 0;
 	LPENTRYID lpUserId = NULL;
 	struct TemplateVariables sVars;
 
