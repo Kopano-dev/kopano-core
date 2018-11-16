@@ -1,0 +1,8 @@
+#!@PYTHON@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+import sys
+import kopano_rules
+from kopano_rules import __version__
+
+if __name__ == '__main__':
+    sys.exit(kopano_rules.main())

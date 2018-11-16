@@ -1,21 +1,21 @@
 #!/usr/bin/python3
+# SPDX-License-Identifier: AGPL-3.0-or-later
 # -*- coding: utf-8 -*-
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
 #
+from .version import __version__
 
-import kopano
-from MAPI.Util import *
-import sys
 import binascii
-from tabulate import tabulate
 from datetime import datetime
-import time
 try:
     import simplejson as json
 except ImportError:
     import json
 import re
+import sys
+import time
 
+from tabulate import tabulate
 try:
     from ldap3 import Server, Connection, MODIFY_ADD, MODIFY_REPLACE, MODIFY_DELETE, \
         ALL_ATTRIBUTES, ALL, HASHED_SALTED_SHA512, ObjectDef, LEVEL, BASE, HASHED_SALTED_SHA
@@ -25,6 +25,9 @@ try:
     from ldap3.utils.conv import escape_filter_chars
 except ImportError as e:
     pass
+
+from MAPI.Util import *
+import kopano
 
 def opt_args():
     parser = kopano.parser('skpcUPv')
