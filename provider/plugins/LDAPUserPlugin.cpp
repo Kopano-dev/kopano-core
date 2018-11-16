@@ -2784,8 +2784,3 @@ abprops_t LDAPUserPlugin::getExtraAddressbookProperties()
 		lProps.emplace_back(xtoi(cs.szName));
 	return lProps;
 }
-
-void LDAPUserPlugin::removeAllObjects(objectid_t except)
-{
-    throw notimplemented("removeAllObjects is not implemented in the LDAP user plugin.");
-}

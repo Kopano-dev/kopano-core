@@ -250,9 +250,6 @@ public:
 	 */
 	virtual abprops_t getExtraAddressbookProperties() override;
 	
-	virtual void removeAllObjects(objectid_t except);
-
-
 private:
 	/**
 	 * Execute a query and return all objects in the form of object signatures

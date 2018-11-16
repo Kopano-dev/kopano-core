@@ -2187,30 +2187,6 @@ HRESULT WSTransport::HrDelSendAsUser(ULONG cbUserId, const ENTRYID *lpUserId,
 	return hr;
 }
 
-HRESULT WSTransport::HrRemoveAllObjects(ULONG cbUserId, const ENTRYID *lpUserId)
-{
-	if (cbUserId < CbNewABEID("") || lpUserId == nullptr)
-		return MAPI_E_INVALID_PARAMETER;
-
-    ECRESULT er = erSuccess;
-    HRESULT hr = hrSuccess;
-	entryId sUserId;
-	soap_lock_guard spg(*this);
-
-	hr = CopyMAPIEntryIdToSOAPEntryId(cbUserId, lpUserId, &sUserId, true);
-	if (hr != hrSuccess)
-		goto exitm;
-
-	START_SOAP_CALL
-	{
-		if (m_lpCmd->removeAllObjects(m_ecSessionId, sUserId, &er) != SOAP_OK)
-			er = KCERR_NETWORK_ERROR;
-	}
-	END_SOAP_CALL
- exitm:
-	return hr;
-}
-
 /**
  * Resolve a users entryid by name.
  *

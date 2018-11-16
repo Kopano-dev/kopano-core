@@ -2167,11 +2167,6 @@ HRESULT ECMsgStore::DelSendAsUser(ULONG cbUserId, const ENTRYID *lpUserId,
 	return lpTransport->HrDelSendAsUser(cbUserId, lpUserId, cbSenderId, lpSenderId);
 }
 
-HRESULT ECMsgStore::RemoveAllObjects(ULONG cbUserId, const ENTRYID *lpUserId)
-{
-	return lpTransport->HrRemoveAllObjects(cbUserId, lpUserId);
-}
-
 HRESULT ECMsgStore::ResolveGroupName(LPCTSTR lpszGroupName, ULONG ulFlags, ULONG *lpcbGroupId, LPENTRYID *lppGroupId)
 {
 	return lpTransport->HrResolveGroupName(lpszGroupName, ulFlags, lpcbGroupId, lppGroupId);

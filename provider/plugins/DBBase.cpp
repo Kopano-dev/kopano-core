@@ -831,19 +831,6 @@ abprops_t DBPlugin::getExtraAddressbookProperties()
 	return proplist;
 }
 
-void DBPlugin::removeAllObjects(objectid_t except)
-{
-	auto strQuery = "DELETE objectproperty.* FROM objectproperty JOIN object ON object.id = objectproperty.objectid WHERE externid != " + m_lpDatabase->EscapeBinary(except.id);
-	auto er = m_lpDatabase->DoDelete(strQuery);
-	if(er != erSuccess)
-		throw runtime_error(string("db_query: ") + strerror(er));
-		
-	strQuery = "DELETE FROM object WHERE externid != " + m_lpDatabase->EscapeBinary(except.id);
-	er = m_lpDatabase->DoDelete(strQuery);
-	if(er != erSuccess)
-		throw runtime_error(string("db_query: ") + strerror(er));
-}
-
 void DBPlugin::CreateObjectWithExternId(const objectid_t &objectid, const objectdetails_t &details)
 {
 	DB_RESULT lpResult;

@@ -319,8 +319,6 @@ public:
 	 */
 	virtual abprops_t getExtraAddressbookProperties() override;
 
-	virtual void removeAllObjects(objectid_t except);
-
 protected:
 	/**
 	 * Pointer to the LDAP state struct.
