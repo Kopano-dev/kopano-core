@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from datetime import datetime, timedelta
 import sys
+
 import kopano
 
 if sys.hexversion >= 0x03000000:
@@ -12,9 +13,11 @@ else: # pragma: no cover
         return s.decode(getattr(sys.stdin, 'encoding', 'utf8') or 'utf8')
 
 def main():
-    username, config, entryid = [_decode(arg) for arg in sys.argv[1:]]
+    username, config_file, entryid = [_decode(arg) for arg in sys.argv[1:]]
 
-    server = kopano.Server()
+    config = kopano.Config(filename=config_file)
+    server = kopano.Server(config=config)
+
     user = server.user(username)
     item = user.item(entryid)
     mr = item.meetingrequest

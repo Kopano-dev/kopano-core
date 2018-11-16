@@ -287,6 +287,7 @@ class MeetingRequest(object):
 
     def __init__(self, item):
         self.item = item
+        self.log = item.server.log
 
     @property
     def calendar(self):
@@ -419,6 +420,7 @@ class MeetingRequest(object):
         if not self.is_request:
             raise Error('item is not a meeting request')
         if self._check_processed():
+            self.log.warning('meeting request already processed')
             return
 
         calendar = self.calendar
@@ -549,6 +551,7 @@ class MeetingRequest(object):
 
         cal_item = self.calendar_item
         if not cal_item:
+            self.log.debug('no appointment matches cancellation')
             return
 
         basedate = self.basedate
@@ -592,6 +595,7 @@ class MeetingRequest(object):
         if not self.is_response:
             raise Error('item is not a meeting request response')
         if self._check_processed():
+            self.log.warning('response already processed')
             return
 
         cal_item = self.calendar_item
@@ -616,6 +620,7 @@ class MeetingRequest(object):
         else:
             message = cal_item
         if not message:
+            self.log.debug('no appointment matches response')
             return
 
         # update recipient track status

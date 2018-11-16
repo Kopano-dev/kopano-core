@@ -49,7 +49,7 @@ from .errors import (
     Error, NotFoundError, DuplicateError, NotSupportedError,
     LogonError, ArgumentError
 )
-from .log import LOG
+from .log import LOG, _loglevel
 
 from .parser import parser
 from .table import Table
@@ -209,6 +209,9 @@ class Server(object):
             self.log = log
         elif service:
             self.log = service.log
+        elif config:
+            self.log = LOG
+            self.log.setLevel(_loglevel(options, config))
         else:
             self.log = LOG
         self.mapisession = mapisession
