@@ -30,12 +30,12 @@ def _kopano_logger():
 LOG = _kopano_logger()
 
 def _loglevel(options, config):
+    log_level = None
     if options and getattr(options, 'loglevel', None):
         log_level = options.loglevel
     elif config:
         log_level = config.get('log_level')
-    else:
-        log_level = 'warning'
+    log_level = log_level or 'warning'
     return { # XXX NONE?
         '0': logging.NOTSET,
         '1': logging.CRITICAL,

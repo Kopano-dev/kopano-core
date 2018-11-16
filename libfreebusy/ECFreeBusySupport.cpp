@@ -97,7 +97,7 @@ HRESULT ECFreeBusySupport::LoadFreeBusyData(ULONG cMax, FBUser *rgfbuser, IFreeB
 		}
 		fbBlockList.Clear();
 		auto hr = GetFreeBusyMessageData(lpMessage, &rtmStart, &rtmEnd, &fbBlockList);
-		if (hr != hrSuccess)
+		if (FAILED(hr))
 			return hr;
 		// Add fbdata
 		object_ptr<ECFreeBusyData> lpECFreeBusyData;

@@ -76,7 +76,7 @@ Example::
     })
 
 """
-    def __init__(self, config, service=None, options=None, filename=None, log=None):
+    def __init__(self, config=None, service=None, options=None, filename=None, log=None):
         self.config = config
         self.service = service
         self.warnings = []
