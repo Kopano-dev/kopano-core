@@ -8700,20 +8700,6 @@ SOAP_ENTRY_START(getServerDetails, lpsResponse->er,
 }
 SOAP_ENTRY_END()
 
-// legacy calls required for 6.30 clients
-int KCmdService::getServerBehavior(ULONG64, struct getServerBehaviorResponse *r)
-{
-	r->ulBehavior = 1;
-	r->er = 0;
-	return SOAP_OK;
-}
-
-int KCmdService::setServerBehavior(ULONG64, unsigned int, unsigned int *r)
-{
-	*r = KCERR_NO_SUPPORT;
-	return SOAP_OK;
-}
-
 typedef ECDeferredFunc<ECRESULT, ECRESULT(*)(void*), void*> task_type;
 struct MTOMStreamInfo;
 
