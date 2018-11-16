@@ -134,7 +134,6 @@ class IECServiceAdmin : public virtual IECSecSvcAdm_base {
 	/* Create/Delete stores */
 	virtual HRESULT CreateStore(ULONG store_type, ULONG user_size, const ENTRYID *user_eid, ULONG *newstore_size, ENTRYID **newstore_eid, ULONG *root_size, ENTRYID **root_eid) = 0;
 	virtual HRESULT CreateEmptyStore(ULONG store_type, ULONG user_size, const ENTRYID *user_eid, ULONG flags, ULONG *newstore_size, ENTRYID **newstore_eid, ULONG *root_size, ENTRYID **root_eid) = 0;
-	virtual HRESULT ResolveStore(const GUID *, ULONG *user_id, ULONG *store_size, ENTRYID **store_eid) = 0;
 	virtual HRESULT HookStore(ULONG store_type, ULONG eid_size, const ENTRYID *eid, const GUID *guid) = 0;
 	virtual HRESULT UnhookStore(ULONG store_type, ULONG eid_size, const ENTRYID *eid) = 0;
 	virtual HRESULT RemoveStore(const GUID *) = 0;

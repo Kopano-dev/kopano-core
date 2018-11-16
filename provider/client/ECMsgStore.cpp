@@ -2006,19 +2006,6 @@ HRESULT ECMsgStore::RemoveStore(const GUID *lpGuid)
 	return lpTransport->HrRemoveStore(lpGuid, 0);
 }
 
-HRESULT ECMsgStore::ResolveStore(const GUID *lpGuid, ULONG *lpulUserID,
-    ULONG *lpcbStoreID, ENTRYID **lppStoreID)
-{
-	ULONG			cbStoreEntryID = 0;
-	memory_ptr<ENTRYID> lpStoreEntryID;
-
-	HRESULT hr = lpTransport->HrResolveStore(lpGuid, lpulUserID, &cbStoreEntryID, &~lpStoreEntryID);
-	if (hr != hrSuccess)
-		return hr;
-	return WrapStoreEntryID(0, reinterpret_cast<const TCHAR *>(WCLIENT_DLL_NAME),
-	       cbStoreEntryID, lpStoreEntryID, lpcbStoreID, lppStoreID);
-}
-
 HRESULT ECMsgStore::SetSpecialEntryIdOnFolder(LPMAPIFOLDER lpFolder, ECMAPIProp *lpFolderPropSet, unsigned int ulPropTag, unsigned int ulMVPos)
 {
 	ecmem_ptr<SPropValue> lpPropValue, lpPropMVValueNew;

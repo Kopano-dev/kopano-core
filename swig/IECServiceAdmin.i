@@ -48,7 +48,6 @@ public:
 	// Create/Delete stores
 	virtual HRESULT CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, ULONG* lpcbStoreId, LPENTRYID* lppStoreId, ULONG* lpcbRootId, LPENTRYID *lppRootId) = 0;
 	virtual HRESULT CreateEmptyStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, ULONG ulFlags, ULONG* lpcbStoreId_oio, LPENTRYID* lppStoreId_oio, ULONG* lpcbRootId_oio, LPENTRYID *lppRootId_oio) = 0;
-	virtual HRESULT ResolveStore(LPGUID lpGuid, ULONG *lpulUserID, ULONG* OUTPUT, LPENTRYID* OUTPUT) = 0;
 	virtual HRESULT HookStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, LPGUID lpGuid) = 0;
 	virtual HRESULT UnhookStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId) = 0;
 	virtual HRESULT RemoveStore(LPGUID lpGuid) = 0;
