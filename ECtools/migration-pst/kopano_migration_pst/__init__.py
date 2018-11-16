@@ -4,8 +4,11 @@ from .version import __version__
 
 import codecs
 import csv
+import json
 import time
 import sys
+
+from collections import defaultdict
 
 from MAPI.Util import *
 from MAPI.Tags import (PR_SENDER_EMAIL_ADDRESS_W, PR_SENDER_ENTRYID,
@@ -86,6 +89,8 @@ RECEIVED_REPR_PROPS = {
     'smtp': pst.PropIdEnum.PidTagReceivedRepresentingSmtpAddress,
 }
 
+EMAIL_RECIP_PROPS = [SENDER_PROPS, SENT_REPRESENTING_PROPS, RECEIVED_PROPS, RECEIVED_REPR_PROPS]
+
 def recip_prop(propid, value):
     # PST not generated with full unicode?
     if isinstance(value, bytes):
@@ -139,12 +144,11 @@ class Service(kopano.Service):
             self.import_recipients(submessage, submapiobj)
             self.import_props(submessage, submapiobj, embedded=True)
 
-        addrtype = parent.pc.getval(PROP_ID(PR_SENDER_ADDRTYPE_W))
-        if addrtype == 'EX':
-            props2.extend(self.convert_exchange_recipient(parent, SENDER_PROPS))
-            props2.extend(self.convert_exchange_recipient(parent, SENT_REPRESENTING_PROPS))
-            props2.extend(self.convert_exchange_recipient(parent, RECEIVED_PROPS))
-            props2.extend(self.convert_exchange_recipient(parent, RECEIVED_REPR_PROPS))
+        # Check if any recipient property on an item has an EX address and try to convert it.
+        for prop_dict in EMAIL_RECIP_PROPS:
+            addrtype = parent.pc.getval(PROP_ID(prop_dict['addrtype']))
+            if addrtype and addrtype == 'EX':
+                props2.extend(self.convert_exchange_recipient(parent, prop_dict))
 
         mapiobj.SetProps(props2)
         mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
@@ -153,8 +157,25 @@ class Service(kopano.Service):
         props = []
         email = parent.pc.getval(convertprops['smtp'])
 
+        # When mapping is provided and no email address was found
+        if not email and self.options.mapping:
+            legacyExchangeDN = parent.pc.getval(PROP_ID(convertprops['email']))
+            if legacyExchangeDN:
+                legacyExchangeDN = legacyExchangeDN.lower()
+                try:
+                    email = self.mapping[legacyExchangeDN]
+                except KeyError:
+                    if legacyExchangeDN not in self.nomapping:
+                        self.log.warning('legacyExchangeDN: \'%s\' was not found in mapping', legacyExchangeDN)
+                        self.nomapping.add(legacyExchangeDN)
+            else:
+                self.log.debug('item has no legacyExchangeDN, skipping importing recipient data')
+
+        # Still no email, logs erros and add it to stats
         if not email:
-            self.log.info('Item\'s recipients have no email address, skipping')
+            self.stats['noemail'] += 1
+            recip = 'sender' if convertprops['email'] in [PR_SENDER_EMAIL_ADDRESS_W, PR_SENT_REPRESENTING_EMAIL_ADDRESS_W] else 'receiver'
+            self.log.warn('no email address found for %s property, skipping', recip)
             return []
 
         try:
@@ -289,8 +310,18 @@ class Service(kopano.Service):
             )
         return propid_nameid
 
+    @property
+    def mapping(self):
+        if not self._mapping and self.options.mapping:
+            with open(self.options.mapping, 'r') as fp:
+                self._mapping = json.load(fp)
+        return self._mapping
+
     def main(self):
-        self.stats = {'messages': 0, 'errors': 0}
+        self._mapping = {}
+        self.nomapping = set()
+        self.stats = {'messages': 0, 'errors': 0, 'noemail': 0}
+
         pst.set_log(self.log, self.stats)
         self.unresolved = set()
         t0 = time.time()
@@ -318,8 +349,8 @@ class Service(kopano.Service):
                 else:
                     self.log.error("guid '%s' has no store", name)
 
-        self.log.info('imported %d items in %.2f seconds (%.2f/sec, %d errors)' %
-            (self.stats['messages'], time.time()-t0, self.stats['messages']/(time.time()-t0), self.stats['errors']))
+        self.log.info('imported %d items in %.2f seconds (%.2f/sec, %d errors) (no resolved email address: %d)' %
+            (self.stats['messages'], time.time()-t0, self.stats['messages']/(time.time()-t0), self.stats['errors'], self.stats['noemail']))
 
 
 def show_contents(args, options):
@@ -338,22 +369,51 @@ def show_contents(args, options):
                 for message in p.message_generator(folder):
                     writer.writerow([_encode(path), _encode(rev_cp1252(message.Subject or ''))])
 
+
+def create_mapping(args, options):
+    mapping = defaultdict(dict)
+    for arg in args:
+        print("Creating mapping of PST '%s'" % arg)
+        try:
+            p = pst.PST(arg)
+        except pst.PSTException:
+            print("'%s' is not a valid PST file" % arg)
+            continue
+
+        for folder in p.folder_generator():
+            for message in p.message_generator(folder):
+                for rec in message.subrecipients:
+                    if rec.AddressType != 'EX':
+                        continue
+                    if not rec.EmailAddress or not rec.SmtpAddress:
+                        continue
+                    mapping[rec.EmailAddress.lower()] = rec.SmtpAddress
+
+    with open(options.create_mapping, 'w') as fp:
+        json.dump(mapping, fp)
+        print('Written mapping file to \'%s\'.' % options.create_mapping)
+
+
 def main():
     parser = kopano.parser('cflskpUPuS', usage='kopano-migration-pst PATH [-u NAME]')
     parser.add_option('', '--stats', dest='stats', action='store_true', help='list folders for PATH')
     parser.add_option('', '--index', dest='index', action='store_true', help='list items for PATH')
     parser.add_option('', '--import-root', dest='import_root', action='store', help='import under specific folder', metavar='PATH')
     parser.add_option('', '--clean-folders', dest='clean_folders', action='store_true', default=False, help='empty folders before import (dangerous!)', metavar='PATH')
+    parser.add_option('', '--create-ex-mapping', dest='create_mapping', help='create legacyExchangeDN mapping for Exchange 2007 PST', metavar='FILE')
+    parser.add_option('', '--ex-mapping', dest='mapping', help='mapping file created --create-ex--mapping ', metavar='FILE')
 
     options, args = parser.parse_args()
     options.service = False
 
-    if not args or (bool(options.stats or options.index) == bool(options.users or options.stores)):
+    if not args or (bool(options.stats or options.index or options.create_mapping) == bool(options.users or options.stores)):
         parser.print_help()
         sys.exit(1)
 
     if options.stats or options.index:
         show_contents(args, options)
+    elif options.create_mapping:
+        create_mapping(args, options)
     else:
         Service('migration-pst', options=options, args=args).start()
 
