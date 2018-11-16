@@ -157,8 +157,20 @@ class Recurrence(object):
         else:
             raise ArgumentError('invalid recurrence pattern: %s' % value) # TODO add more such checks
 
-        if self._period == 0:
+        # recalculate deps
+        if self._interval is not None:
+            self.interval = self._interval
+        elif self._period == 0: # default interval of 1
             self.interval = 1
+
+        if self._monthday is not None:
+            self.monthday = self._monthday
+
+        if self._weekdays is not None:
+            self.weekdays = self._weekdays
+
+        if self._month is not None:
+            self.month = self._month
 
     @property
     def weekdays(self):
@@ -179,7 +191,7 @@ class Recurrence(object):
                 pts |= (1 << weekdays[weekday])
             self._pattern_type_specific[0] = pts
 
-        # TODO fill in
+        self._weekdays = value
 
     @property
     def first_weekday(self):
@@ -189,12 +201,13 @@ class Recurrence(object):
     @property
     def month(self):
         if self._recur_frequency == FREQ_YEAR:
-            return self.start.month # TODO remove dependency on self.start being set
+            return self.start.month
 
     @month.setter
     def month(self, value):
         if self._recur_frequency == FREQ_YEAR:
             self.start = self.start.replace(month=value)
+        self._month = value
 
     @property
     def monthday(self):
@@ -205,6 +218,7 @@ class Recurrence(object):
     def monthday(self, value):
         if self._pattern_type in (PATTERN_MONTHLY, PATTERN_HJMONTHLY):
             self._pattern_type_specific[0] = value
+        self._monthday = value
 
     @property
     def index(self):
@@ -247,6 +261,7 @@ class Recurrence(object):
             self._period = value * (24 * 60)
         else:
             self._period = value
+        self._interval = value
 
     @property
     def range_type(self):
@@ -275,6 +290,31 @@ class Recurrence(object):
     @count.setter
     def count(self, value):
         self._occurrence_count = value
+
+    # TODO add timezone-awareness flag to pyko..
+    @property
+    def start(self):
+        """ Start of recurrence range (within recurrence timezone) """
+        return datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._start_date))
+
+    @start.setter
+    def start(self, value):
+        self._start_date = _utils.unixtime_to_rectime(calendar.timegm(value.timetuple()))
+        self.item[PidLidClipStart] = self.start
+
+        if self._month is not None:
+            self.month = self._month
+
+    @property
+    def end(self):
+        """ End of recurrence range (within recurrence timezone) """
+        return datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._end_date))
+
+    @end.setter
+    def end(self, value):
+        self._end_date = _utils.unixtime_to_rectime(calendar.timegm(value.timetuple()))
+
+        self.item[PidLidClipEnd] = self.end
 
     def occurrences(self, start=None, end=None): # XXX fit-to-period
         recurrences = self.recurrences
@@ -364,6 +404,11 @@ class Recurrence(object):
         rec._endtime_offset = 0
         rec._update_offsets(save=False)
 
+        rec._interval = None
+        rec._monthday = None
+        rec._weekdays = None
+        rec._month = None
+
         rec._save()
 
     def _update_offsets(self, save=True):
@@ -378,6 +423,11 @@ class Recurrence(object):
             self._save()
 
     def _parse(self):
+        self._interval = None
+        self._monthday = None
+        self._weekdays = None
+        self._month = None
+
         # AppointmentRecurrencePattern
         value = self.item.prop(PidLidAppointmentRecur).value
 
@@ -675,29 +725,6 @@ class Recurrence(object):
             data += struct.pack('<I', 0)
 
         self.item[PidLidAppointmentRecur] = data
-
-    # TODO add timezone-awareness flag to pyko..
-    @property
-    def start(self):
-        """ Start of recurrence range (within recurrence timezone) """
-        return datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._start_date))
-
-    @start.setter
-    def start(self, value):
-        self._start_date = _utils.unixtime_to_rectime(calendar.timegm(value.timetuple()))
-
-        self.item[PidLidClipStart] = self.start
-
-    @property
-    def end(self):
-        """ End of recurrence range (within recurrence timezone) """
-        return datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._end_date))
-
-    @end.setter
-    def end(self, value):
-        self._end_date = _utils.unixtime_to_rectime(calendar.timegm(value.timetuple()))
-
-        self.item[PidLidClipEnd] = self.end
 
     # TODO functionality below here should be refactored or not visible
 
