@@ -359,15 +359,21 @@ def show_contents(args, options):
         p = pst.PST(arg)
         folders = p.folder_generator()
         root_path = rev_cp1252(next(folders).path) # skip root
-        for folder in folders:
-            path = rev_cp1252(folder.path[len(root_path)+1:])
-            if options.folders and path.lower() not in [f.lower() for f in options.folders]:
-                continue
-            if options.stats:
-                writer.writerow([_encode(path), folder.ContentCount])
-            elif options.index:
-                for message in p.message_generator(folder):
-                    writer.writerow([_encode(path), _encode(rev_cp1252(message.Subject or ''))])
+
+        if options.summary:
+            print("Folders:       %s" % sum(1 for f in folders))
+            print("Items:         %s" % p.get_total_message_count())
+            print("Attachments:   %s" %  p.get_total_attachment_count())
+        else:
+            for folder in folders:
+                path = rev_cp1252(folder.path[len(root_path)+1:])
+                if options.folders and path.lower() not in [f.lower() for f in options.folders]:
+                    continue
+                if options.stats:
+                    writer.writerow([_encode(path), folder.ContentCount])
+                elif options.index:
+                    for message in p.message_generator(folder):
+                        writer.writerow([_encode(path), _encode(rev_cp1252(message.Subject or ''))])
 
 
 def create_mapping(args, options):
@@ -402,15 +408,16 @@ def main():
     parser.add_option('', '--clean-folders', dest='clean_folders', action='store_true', default=False, help='empty folders before import (dangerous!)', metavar='PATH')
     parser.add_option('', '--create-ex-mapping', dest='create_mapping', help='create legacyExchangeDN mapping for Exchange 2007 PST', metavar='FILE')
     parser.add_option('', '--ex-mapping', dest='mapping', help='mapping file created --create-ex--mapping ', metavar='FILE')
+    parser.add_option('', '--summary', dest='summary', action='store_true', help='show total amount of items for a given PST')
 
     options, args = parser.parse_args()
     options.service = False
 
-    if not args or (bool(options.stats or options.index or options.create_mapping) == bool(options.users or options.stores)):
+    if not args or (bool(options.stats or options.index or options.create_mapping or options.summary) == bool(options.users or options.stores)):
         parser.print_help()
         sys.exit(1)
 
-    if options.stats or options.index:
+    if options.stats or options.index or options.summary:
         show_contents(args, options)
     elif options.create_mapping:
         create_mapping(args, options)
