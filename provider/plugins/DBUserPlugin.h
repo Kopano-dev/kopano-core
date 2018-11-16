@@ -101,19 +101,6 @@ public:
 	 */
 	virtual signatures_t searchObject(const std::string &match, unsigned int flags) override;
 
-	/**
-	 * Modify id of object in plugin
-	 *
-	 * @note This function is not supported by this plugin and will always throw an exception
-	 *
-	 * @param[in]	oldId
-	 *					The old objectid
-	 * @param[in]	newId
-	 *					The new objectid
-	 * @throw notsupported Always when this function is called
-	 */
-	virtual void modifyObjectId(const objectid_t &oldId, const objectid_t &newId);
-
     /**
 	 * Set quota information on object
 	 *

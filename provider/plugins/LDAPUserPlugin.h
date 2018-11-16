@@ -246,19 +246,6 @@ public:
 	virtual void deleteObject(const objectid_t &id);
 
 	/**
-	 * Modify id of object in plugin
-	 *
-	 * @note This function is not supported by this plugin and will always throw an exception
-	 *
-	 * @param[in]	oldId
-	 *					The old objectid
-	 * @param[in]	newId
-	 *					The new objectid
-	 * @throw notsupported Always when this function is called
-	 */
-	virtual void modifyObjectId(const objectid_t &oldId, const objectid_t &newId);
-
-	/**
 	 * Add relation between child and parent. This can be used
 	 * for example to add a user to a group or add
 	 * permission relations on companies.

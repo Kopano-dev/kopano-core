@@ -610,11 +610,6 @@ void UnixUserPlugin::deleteObject(const objectid_t &id) {
 	throw notimplemented("Deleting objects is not supported when using the Unix user plugin.");
 }
 
-void UnixUserPlugin::modifyObjectId(const objectid_t &oldId, const objectid_t &newId)
-{
-	throw notimplemented("Modifying objectid is not supported when using the Unix user plugin.");
-}
-
 signatures_t
 UnixUserPlugin::getParentObjectsForObject(userobject_relation_t relation,
     const objectid_t &childid)

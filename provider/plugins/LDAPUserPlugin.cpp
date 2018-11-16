@@ -2150,11 +2150,6 @@ void LDAPUserPlugin::deleteObject(const objectid_t &id) {
 	throw notimplemented("Deleting users is not supported when using the LDAP user plugin.");
 }
 
-void LDAPUserPlugin::modifyObjectId(const objectid_t &oldId, const objectid_t &newId)
-{
-	throw notimplemented("Modifying objectid is not supported when using the LDAP user plugin.");
-}
-
 /**
  * @todo speedup: read group info on the user (with ADS you know the groups if you have the user dn)
  * @note Missing one group: with linux you have one group id on the user and other objectid on every possible group.
