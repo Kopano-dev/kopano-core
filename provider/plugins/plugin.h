@@ -302,19 +302,6 @@ public:
 	virtual void deleteObject(const objectid_t &id) = 0;
 
 	/**
-	 * Modify id of object in plugin
-	 *
-	 * @note It is not mandatory to implement this function
-	 *
-	 * @param[in]	oldId
-	 *					The old objectid
-	 * @param[in]	newId
-	 *					The new objectid
-	 * @throw std::exception
-	 */
-	virtual void modifyObjectId(const objectid_t &oldId, const objectid_t &newId) = 0;
-
-	/**
  	 * Add relation between child and parent. This can be used
 	 * for example to add a user to a group or add
 	 * permission relations on companies.

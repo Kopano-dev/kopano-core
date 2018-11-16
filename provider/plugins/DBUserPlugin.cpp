@@ -240,11 +240,6 @@ DBUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 	return searchObjects(match.c_str(), search_props, nullptr, ulFlags);
 }
 
-void DBUserPlugin::modifyObjectId(const objectid_t &oldId, const objectid_t &newId)
-{
-	throw notimplemented("Modifying objects is not supported when using the DB user plugin.");
-}
-
 void DBUserPlugin::setQuota(const objectid_t &objectid, const quotadetails_t &quotadetails)
 {
 	DB_RESULT lpResult;
