@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 /*
  * mapidefs.h – Defines frequently used event types, property types, flags,
  * structures and interfaces.
@@ -54,7 +53,6 @@
 #define fMapiUnicode            MAPI_UNICODE
 
 #define hrSuccess		0
-
 
 /* Bit definitions for abFlags[0] of ENTRYID */
 #define MAPI_SHORTTERM		0x80
@@ -153,13 +151,11 @@ typedef struct MAPIUID *LPMAPIUID;
  *  field of the property value structure which should be
  *  dereferenced to obtain the string pointer.
  */
-
 #define PT_TSTRING          PT_UNICODE
 #define PT_MV_TSTRING       (MV_FLAG|PT_UNICODE)
 #define LPSZ                lpszW
 #define LPPSZ               lppszW
 #define MVSZ                MVszW
-
 
     /* Property Tags */
 #define PROP_TYPE_MASK			((ULONG)0x0000FFFF)
@@ -171,7 +167,6 @@ typedef struct MAPIUID *LPMAPIUID;
 #define PR_NULL                 PROP_TAG( PT_NULL, PROP_ID_NULL)
 #define CHANGE_PROP_TYPE(ulPropTag, ulPropType) \
                         (((ULONG)0xFFFF0000 & ulPropTag) | ulPropType)
-
 
 /* Multi-valued Property Types */
 #define PT_MV_SHORT     (MV_FLAG|PT_SHORT)
@@ -199,7 +194,6 @@ typedef struct MAPIUID *LPMAPIUID;
 #define MVI_FLAG        (MV_FLAG | MV_INSTANCE)
 #define MVI_PROP(tag)   ((tag) | MVI_FLAG)
 
-
 /* Data Structures */
 
 /* Property Tag Array */
@@ -223,7 +217,6 @@ struct SPropTagArray_ ## name { \
 	operator SPropTagArray &() { return *reinterpret_cast<SPropTagArray *>(this); } \
 	operator const SPropTagArray *(void) const { return reinterpret_cast<const SPropTagArray *>(this); } \
 } name
-
 
 /* Property Value */
 
@@ -497,7 +490,6 @@ typedef FREEBUFFER* LPFREEBUFFER;
 
 /* Pointers to MAPI Interfaces */
 typedef const IID* LPCIID;
-
 
 /* Extended MAPI Error Information */
 struct MAPIERROR {
@@ -812,7 +804,6 @@ struct NOTIFICATION {
 };
 typedef struct NOTIFICATION *LPNOTIFICATION;
 
-
 /* Callback function type for MAPIAllocAdviseSink */
 typedef LONG (NOTIFCALLBACK)(
     LPVOID          lpvContext,
@@ -820,7 +811,6 @@ typedef LONG (NOTIFCALLBACK)(
     LPNOTIFICATION  lpNotifications
 );
 typedef NOTIFCALLBACK *LPNOTIFCALLBACK;
-
 
 /* Interface used for registering and issuing notification callbacks. */
 struct IMAPIAdviseSink : public virtual IUnknown {
@@ -893,7 +883,6 @@ IID_OF(IMsgStore)
  */
 
 /* Data structures (Shared with IMAPITable) */
-
 struct SSortOrder {
     ULONG   ulPropTag;          /* Column to sort on */
     ULONG   ulOrder;            /* Ascending, descending, combine to left */
@@ -1181,7 +1170,6 @@ IID_OF(IMAPIStatus)
  */
 
 /* Table status */
-
 #define TBLSTAT_COMPLETE            ((ULONG) 0)
 #define TBLSTAT_QCHANGED            ((ULONG) 7)
 #define TBLSTAT_SORTING             ((ULONG) 9)
@@ -1191,22 +1179,16 @@ IID_OF(IMAPIStatus)
 #define TBLSTAT_RESTRICTING         ((ULONG) 14)
 #define TBLSTAT_RESTRICT_ERROR      ((ULONG) 15)
 
-
 /* Table Type */
-
 #define TBLTYPE_SNAPSHOT            ((ULONG) 0)
 #define TBLTYPE_KEYSET              ((ULONG) 1)
 #define TBLTYPE_DYNAMIC             ((ULONG) 2)
 
-
 /* Sort order */
-
 /* bit 0: set if descending, clear if ascending */
-
 #define TABLE_SORT_ASCEND       ((ULONG) 0x00000000)
 #define TABLE_SORT_DESCEND      ((ULONG) 0x00000001)
 #define TABLE_SORT_COMBINE      ((ULONG) 0x00000002)
-
 
 typedef ULONG       BOOKMARK;
 
@@ -1215,7 +1197,6 @@ typedef ULONG       BOOKMARK;
 #define BOOKMARK_END        ((BOOKMARK) 2)      /* After last row */
 
 /* Fuzzy Level */
-
 #define FL_FULLSTRING       ((ULONG) 0x00000000)
 #define FL_SUBSTRING        ((ULONG) 0x00000001)
 #define FL_PREFIX           ((ULONG) 0x00000002)
@@ -1225,9 +1206,7 @@ typedef ULONG       BOOKMARK;
 #define FL_LOOSE            ((ULONG) 0x00040000)
 
 /* Restrictions */
-
 /* Restriction types */
-
 #define RES_AND             ((ULONG) 0x00000000)
 #define RES_OR              ((ULONG) 0x00000001)
 #define RES_NOT             ((ULONG) 0x00000002)
@@ -1241,7 +1220,6 @@ typedef ULONG       BOOKMARK;
 #define RES_COMMENT         ((ULONG) 0x0000000A)
 
 /* Relational operators. These apply to all property comparison restrictions. */
-
 #define RELOP_LT        ((ULONG) 0)     /* <  */
 #define RELOP_LE        ((ULONG) 1)     /* <= */
 #define RELOP_GT        ((ULONG) 2)     /* >  */
@@ -1251,12 +1229,10 @@ typedef ULONG       BOOKMARK;
 #define RELOP_RE        ((ULONG) 6)     /* LIKE (Regular expression) */
 
 /* Bitmask operators, for RES_BITMASK only. */
-
 #define BMR_EQZ     ((ULONG) 0)     /* ==0 */
 #define BMR_NEZ     ((ULONG) 1)     /* !=0 */
 
 /* Subobject identifiers for RES_SUBRESTRICTION only. See MAPITAGS.H. */
-
 /* #define PR_MESSAGE_RECIPIENTS  PROP_TAG(PT_OBJECT,0x0E12) */
 /* #define PR_MESSAGE_ATTACHMENTS PROP_TAG(PT_OBJECT,0x0E13) */
 
@@ -1335,30 +1311,25 @@ struct SRestriction {
 /* Flags of the methods of IMAPITable */
 
 /* QueryColumn */
-
 #define TBL_ALL_COLUMNS     ((ULONG) 0x00000001)
 
 /* QueryRows */
 /* Possible values for PR_ROW_TYPE (for categorization) */
-
 #define TBL_LEAF_ROW            ((ULONG) 1)
 #define TBL_EMPTY_CATEGORY      ((ULONG) 2)
 #define TBL_EXPANDED_CATEGORY   ((ULONG) 3)
 #define TBL_COLLAPSED_CATEGORY  ((ULONG) 4)
 
 /* Table wait flag */
-
 #define TBL_NOWAIT          ((ULONG) 0x00000001)
 /* alternative name for TBL_NOWAIT */
 #define TBL_ASYNC           ((ULONG) 0x00000001)
 #define TBL_BATCH           ((ULONG) 0x00000002)
 
 /* FindRow */
-
 #define DIR_BACKWARD        ((ULONG) 0x00000001)
 
 /* Table cursor states */
-
 #define TBL_NOADVANCE       ((ULONG) 0x00000001)
 
 struct IMAPITable : public virtual IUnknown {
@@ -1396,7 +1367,6 @@ IID_OF(IMAPITable)
  */
 
 /* Standard section for public profile properties */
-
 #define PS_PROFILE_PROPERTIES_INIT \
 {   0x98, 0x15, 0xAC, 0x08, 0xAA, 0xB0, 0x10, 0x1A, \
     0x8C, 0x93, 0x08, 0x00, 0x2B, 0x2A, 0x56, 0xC2  }
@@ -1549,7 +1519,6 @@ IID_OF(IProviderAdmin)
 #define DTE_REMOTE(v)		(((v) & DTE_MASK_REMOTE) >> 8)
 #define DTE_LOCAL(v)		((v) & DTE_MASK_LOCAL)
 
-
 extern "C" {
 
 /*  Accelerator callback for DIALOG_SDI form of AB UI */
@@ -1615,9 +1584,6 @@ typedef struct ADRPARM *LPADRPARM;
 
 /* Flags for OpenAddressBook */
 #define AB_NO_DIALOG            ((ULONG) 0x00000001)
-
-/*-----------*/
-
 
 /*
  * IMAPIControl Interface
@@ -1699,7 +1665,6 @@ struct DTBLCOMBOBOX_ ## u { \
     TCHAR           lpszCharsAllowed[n]; \
 } u
 
-
 /*  Drop Down   */
 struct DTBLDDLBX {
 	ULONG ulFlags, ulPRDisplayProperty, ulPRSetProperty, ulPRTableName;
@@ -1717,7 +1682,6 @@ struct DTBLCHECKBOX_ ## u { \
     TCHAR       lpszLabel[n]; \
 } u
 
-
 /*  Group Box   */
 struct DTBLGROUPBOX {
 	ULONG ulbLpszLabel, ulFlags;
@@ -1729,7 +1693,6 @@ struct DTBLGROUPBOX_ ## u { \
     TCHAR           lpszLabel[n]; \
 } u
 
-
 /*  Button control   */
 struct DTBLBUTTON {
 	ULONG ulbLpszLabel, ulFlags, ulPRControl;
@@ -1740,7 +1703,6 @@ struct DTBLBUTTON_ ## u { \
     DTBLBUTTON  dtblbutton; \
     TCHAR       lpszLabel[n]; \
 } u
-
 
 /*  Pages   */
 struct DTBLPAGE {
@@ -1754,7 +1716,6 @@ struct DTBLPAGE_ ## u { \
     TCHAR       lpszComponent[n1]; \
 } u
 
-
 /*  Radio button   */
 struct DTBLRADIOBUTTON {
 	ULONG ulbLpszLabel, ulFlags, ulcButtons, ulPropTag;
@@ -1766,7 +1727,6 @@ struct DTBLRADIOBUTTON_ ## u { \
     DTBLRADIOBUTTON dtblradiobutton; \
     TCHAR           lpszLabel[n]; \
 } u
-
 
 /*  MultiValued listbox */
 struct DTBLMVLISTBOX {

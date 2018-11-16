@@ -93,7 +93,6 @@ static void sighup(int signr)
 		int new_ll = ll ? atoi(ll) : EC_LOGLEVEL_WARNING;
 		ec_log_get()->SetLoglevel(new_ll);
 	}
-
 	ec_log_get()->Reset();
 	ec_log_warn("Log connection was reset");
 }
@@ -112,7 +111,6 @@ static ECRESULT main2(int argc, char **argv)
 	const char *szConfig = ECConfig::GetDefaultPath("monitor.cfg");
 	const char *szPath = NULL;
 	bool bIgnoreUnknownConfigOptions = false, exp_config = false;
-
 	// Default settings
 	static const configsetting_t lpDefaults[] = {
 		{ "smtp_server","localhost" },
@@ -139,7 +137,6 @@ static ECRESULT main2(int argc, char **argv)
 		{"coredump_enabled", "systemdefault"},
 		{ NULL, NULL },
 	};
-
 	enum {
 		OPT_HELP = UCHAR_MAX + 1,
 		OPT_HOST,

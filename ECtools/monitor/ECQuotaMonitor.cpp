@@ -63,7 +63,6 @@ void* ECQuotaMonitor::Create(void* lpVoid)
 	std::unique_ptr<ECQuotaMonitor> lpecQuotaMonitor;
 	object_ptr<IMAPISession> lpMAPIAdminSession;
 	object_ptr<IMsgStore> lpMDBAdmin;
-
 	const char *lpPath = lpThreadMonitor->lpConfig->GetSetting("server_socket");
 	ec_log_info("Quota monitor starting");
 
@@ -111,13 +110,11 @@ HRESULT ECQuotaMonitor::CheckQuota()
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	memory_ptr<SPropValue> lpsObject;
 	object_ptr<IExchangeManageStore> lpIEMS;
-
 	/* Companylist */
 	ECCOMPANY *lpsCompanyList = NULL;
 	memory_ptr<ECCOMPANY> lpsCompanyListAlloc;
 	ECCOMPANY			sRootCompany = {{g_cbSystemEid, g_lpSystemEid}, (LPTSTR)"Default", NULL, {0, NULL}};
     ULONG				cCompanies = 0;
-
 	/* Quota information */
 	memory_ptr<ECQUOTA> lpsQuota;
 	memory_ptr<ECQUOTASTATUS> lpsQuotaStatus;
@@ -202,7 +199,6 @@ HRESULT ECQuotaMonitor::CheckCompanyQuota(ECCOMPANY *lpecCompany)
 	/* Userlist */
 	memory_ptr<ECUSER> lpsUserList;
 	ULONG				cUsers = 0;
-
 	set<string> setServers;
 	std::set<string, strcasecmp_comparison> setServersConfig;
 	memory_ptr<char> lpszConnection;
@@ -361,16 +357,13 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
 			auto lpQuotaWarn = lpRowSet[i].cfind(PR_QUOTA_WARNING_THRESHOLD);
 			auto lpQuotaSoft = lpRowSet[i].cfind(PR_QUOTA_SEND_THRESHOLD);
 			auto lpQuotaHard = lpRowSet[i].cfind(PR_QUOTA_RECEIVE_THRESHOLD);
+
 			if (!lpUsername || !lpStoreSize)
 				continue;		// don't log error: could be for several valid reasons (contacts, other server, etc)
-
 			if (lpStoreSize->Value.li.QuadPart == 0)
 				continue;
-
 			++m_ulProcessed;
-
 			memset(&sQuotaStatus, 0, sizeof(ECQUOTASTATUS));
-
 			sQuotaStatus.llStoreSize = lpStoreSize->Value.li.QuadPart;
 			sQuotaStatus.quotaStatus = QUOTA_OK;
 			if (lpQuotaHard && lpQuotaHard->Value.ul > 0 && lpStoreSize->Value.li.QuadPart > ((long long)lpQuotaHard->Value.ul * 1024))
@@ -379,7 +372,6 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
 				sQuotaStatus.quotaStatus = QUOTA_SOFTLIMIT;
 			else if (lpQuotaWarn && lpQuotaWarn->Value.ul > 0 && lpStoreSize->Value.li.QuadPart > ((long long)lpQuotaWarn->Value.ul * 1024))
 				sQuotaStatus.quotaStatus = QUOTA_WARN;
-
 			if (sQuotaStatus.quotaStatus == QUOTA_OK)
 				continue;
 
@@ -419,7 +411,6 @@ HRESULT ECQuotaMonitor::CreateMailFromTemplate(TemplateVariables *lpVars, string
 	char cBuffer[TEMPLATE_LINE_LENGTH];
 	std::string strSubject, strBody;
 	size_t pos;
-
 	string strVariables[7][2] = {
 		{ "${KOPANO_QUOTA_NAME}", "unknown" },
 		{ "${KOPANO_QUOTA_FULLNAME}" , "unknown" },
@@ -429,7 +420,6 @@ HRESULT ECQuotaMonitor::CreateMailFromTemplate(TemplateVariables *lpVars, string
 		{ "${KOPANO_QUOTA_SOFT_SIZE}", "unlimited" },
 		{ "${KOPANO_QUOTA_HARD_SIZE}", "unlimited" },
 	};
-
 	enum enumVariables {
 		KOPANO_QUOTA_NAME,
 		KOPANO_QUOTA_FULLNAME,
@@ -462,7 +452,6 @@ HRESULT ECQuotaMonitor::CreateMailFromTemplate(TemplateVariables *lpVars, string
 	}
 
 	auto lpszTemplate = m_lpThreadMonitor->lpConfig->GetSetting(strTemplateConfig.c_str());
-
 	/* Start reading the template mail */
 	auto fp = fopen(lpszTemplate, "rt");
 	if (fp == nullptr) {
@@ -472,7 +461,6 @@ HRESULT ECQuotaMonitor::CreateMailFromTemplate(TemplateVariables *lpVars, string
 
 	while(!feof(fp)) {
 		memset(&cBuffer, 0, sizeof(cBuffer));
-
 		if (!fgets(cBuffer, sizeof(cBuffer), fp))
 			break;
 
@@ -508,7 +496,6 @@ HRESULT ECQuotaMonitor::CreateMailFromTemplate(TemplateVariables *lpVars, string
 			strSubject.replace(pos, strVariables[i][0].size(), strVariables[i][1]);
 			pos += strVariables[i][1].size();
 		}
-
 		pos = 0;
 		while ((pos = strBody.find(strVariables[i][0], pos)) != string::npos) {
 			strBody.replace(pos, strVariables[i][0].size(), strVariables[i][1]);
@@ -523,11 +510,9 @@ HRESULT ECQuotaMonitor::CreateMailFromTemplate(TemplateVariables *lpVars, string
 	pos = strSubject.find('\r');
 	if (pos != string::npos)
 		strSubject.erase(pos);
-
 	/* Clear starting blank lines from body */
 	while (strBody[0] == '\r' || strBody[0] == '\n')
 		strBody.erase(0, 1);
-
 	*lpstrSubject = std::move(strSubject);
 	*lpstrBody = std::move(strBody);
 	return hrSuccess;
@@ -598,35 +583,27 @@ HRESULT ECQuotaMonitor::CreateMessageProperties(ECUSER *lpecToUser,
 	/* Messageclass */
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_MESSAGE_CLASS_A;
 	lpPropArray[ulPropArrayCur++].Value.lpszA = const_cast<char *>("IPM.Note.StorageQuotaWarning");
-
 	/* Priority */
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_PRIORITY;
 	lpPropArray[ulPropArrayCur++].Value.ul = PRIO_URGENT;
-
 	/* Importance */
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_IMPORTANCE;
 	lpPropArray[ulPropArrayCur++].Value.ul = IMPORTANCE_HIGH;
-
 	/* Set message flags */
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_MESSAGE_FLAGS;
 	lpPropArray[ulPropArrayCur++].Value.ul = MSGFLAG_UNMODIFIED;
-
 	/* Subject */
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_SUBJECT_A;
 	lpPropArray[ulPropArrayCur++].Value.lpszA = (LPSTR)strSubject.c_str();
-
 	/* PR_CONVERSATION_TOPIC */
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_CONVERSATION_TOPIC_A;
 	lpPropArray[ulPropArrayCur++].Value.lpszA = (LPSTR)strSubject.c_str();
-
 	/* Body */
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_BODY_A;
 	lpPropArray[ulPropArrayCur++].Value.lpszA = (LPSTR)strBody.c_str();
-
 	/* RCVD_REPRESENTING_* properties */
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_RCVD_REPRESENTING_ADDRTYPE_A;
 	lpPropArray[ulPropArrayCur++].Value.lpszA = const_cast<char *>("SMTP");
-
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_RCVD_REPRESENTING_EMAIL_ADDRESS_A;
 	lpPropArray[ulPropArrayCur++].Value.lpszA = (lpecToUser->lpszMailAddress ? (LPSTR)lpecToUser->lpszMailAddress : (LPSTR)"");
 	hr = KAllocCopy(lpToEntryid, cbToEntryid, reinterpret_cast<void **>(&lpPropArray[ulPropArrayCur].Value.bin.lpb), lpPropArray);
@@ -643,11 +620,9 @@ HRESULT ECQuotaMonitor::CreateMessageProperties(ECUSER *lpecToUser,
 
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_RCVD_REPRESENTING_SEARCH_KEY;
 	lpPropArray[ulPropArrayCur++].Value.bin.cb = cbToSearchKey;
-
 	/* RECEIVED_BY_* properties */
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_RECEIVED_BY_ADDRTYPE_A;
 	lpPropArray[ulPropArrayCur++].Value.lpszA = const_cast<char *>("SMTP");
-
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_RECEIVED_BY_EMAIL_ADDRESS_A;
 	lpPropArray[ulPropArrayCur++].Value.lpszA = (lpecToUser->lpszMailAddress ? (LPSTR)lpecToUser->lpszMailAddress : (LPSTR)"");
 	hr = KAllocCopy(lpToEntryid, cbToEntryid, reinterpret_cast<void **>(&lpPropArray[ulPropArrayCur].Value.bin.lpb), lpPropArray);
@@ -664,11 +639,9 @@ HRESULT ECQuotaMonitor::CreateMessageProperties(ECUSER *lpecToUser,
 
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_RECEIVED_BY_SEARCH_KEY;
 	lpPropArray[ulPropArrayCur++].Value.bin.cb = cbToSearchKey;
-
 	/* System user, PR_SENDER* */
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_SENDER_ADDRTYPE_A;
 	lpPropArray[ulPropArrayCur++].Value.lpszA = const_cast<char *>("SMTP");
-
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_SENDER_EMAIL_ADDRESS_A;
 	lpPropArray[ulPropArrayCur++].Value.lpszA = (lpecFromUser->lpszMailAddress ? (LPSTR)lpecFromUser->lpszMailAddress : (LPSTR)"");
 	hr = KAllocCopy(lpFromEntryid, cbFromEntryid, reinterpret_cast<void **>(&lpPropArray[ulPropArrayCur].Value.bin.lpb), lpPropArray);
@@ -682,13 +655,12 @@ HRESULT ECQuotaMonitor::CreateMessageProperties(ECUSER *lpecToUser,
 	hr = KAllocCopy(lpFromSearchKey, cbFromSearchKey, reinterpret_cast<void **>(&lpPropArray[ulPropArrayCur].Value.bin.lpb), lpPropArray);
 	if (hr != hrSuccess)
 		return hr;
+
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_SENDER_SEARCH_KEY;
 	lpPropArray[ulPropArrayCur++].Value.bin.cb = cbFromSearchKey;
-
 	/* System user, PR_SENT_REPRESENTING* */
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_SENT_REPRESENTING_ADDRTYPE_A;
 	lpPropArray[ulPropArrayCur++].Value.lpszA = const_cast<char *>("SMTP");
-
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_SENT_REPRESENTING_EMAIL_ADDRESS_A;
 	lpPropArray[ulPropArrayCur++].Value.lpszA = (lpecFromUser->lpszMailAddress ? (LPSTR)lpecFromUser->lpszMailAddress : (LPSTR)"");
 	hr = KAllocCopy(lpFromEntryid, cbFromEntryid, reinterpret_cast<void **>(&lpPropArray[ulPropArrayCur].Value.bin.lpb), lpPropArray);
@@ -705,14 +677,11 @@ HRESULT ECQuotaMonitor::CreateMessageProperties(ECUSER *lpecToUser,
 
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_SENT_REPRESENTING_SEARCH_KEY;
 	lpPropArray[ulPropArrayCur++].Value.bin.cb = cbFromSearchKey;
-
 	/* Get the time to add to the message as PR_CLIENT_SUBMIT_TIME */
 	GetSystemTimeAsFileTime(&ft);
-
 	/* Submit time */
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_CLIENT_SUBMIT_TIME;
 	lpPropArray[ulPropArrayCur++].Value.ft = ft;
-
 	/* Delivery time */
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_MESSAGE_DELIVERY_TIME;
 	lpPropArray[ulPropArrayCur++].Value.ft = ft;
@@ -749,7 +718,6 @@ HRESULT ECQuotaMonitor::CreateRecipientList(ULONG cToUsers, ECUSER *lpToUsers,
 		hr = MAPIAllocateBuffer(sizeof(SPropValue) * ent.cValues, reinterpret_cast<void **>(&ent.rgPropVals));
 		if (hr != hrSuccess)
 			return hr;
-
 		hr = ECCreateOneOff((LPTSTR)lpToUsers[i].lpszFullName, (LPTSTR)"SMTP", (LPTSTR)lpToUsers[i].lpszMailAddress,
 			MAPI_SEND_NO_RICH_INFO, &cbUserEntryid, &~lpUserEntryid);
 		if (hr != hrSuccess)
@@ -951,7 +919,6 @@ static HRESULT GetConfigMessage(IMsgStore *lpStore, const char *szMessageName,
 
 	propSubject.ulPropTag = PR_SUBJECT_A;
 	propSubject.Value.lpszA = (char*)szMessageName;
-
 	hr = ECPropertyRestriction(RELOP_EQ, PR_SUBJECT_A, &propSubject, ECRestriction::Cheap)
 	     .FindRowIn(ptrTable, BOOKMARK_BEGINNING, 0);
 	if (hr == hrSuccess) {
@@ -982,7 +949,6 @@ static HRESULT GetConfigMessage(IMsgStore *lpStore, const char *szMessageName,
 		// set mandatory message property
 		propSubject.ulPropTag = PR_MESSAGE_CLASS_A;
 		propSubject.Value.lpszA = const_cast<char *>("IPM.Zarafa.Configuration");
-
 		hr = ptrMessage->SetProps(1, &propSubject, NULL);
 		if (hr != hrSuccess)
 			return hr;
@@ -1150,7 +1116,6 @@ HRESULT ECQuotaMonitor::Notify(ECUSER *lpecUser, ECCOMPANY *lpecCompany,
 		}
 		if (OpenUserStore(lpToUsers[i].lpszUsername, sVars.ulClass, &~ptrRecipStore) != hrSuccess)
 			continue;
-
 		CreateQuotaWarningMail(&sVars, ptrRecipStore, &lpToUsers[i], lpecFromUser, lpAddrList);
 	}
 

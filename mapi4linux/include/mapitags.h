@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 /* mapitags.h – Defines property tags */
-
 #ifndef __M4L_MAPITAGS_H_
 #define __M4L_MAPITAGS_H_
 #define MAPITAGS_H
@@ -13,7 +11,6 @@
 #include <mapidefs.h>		/* we include this here too for the PROP_ID definitions */
 
 /* Determine if a property is transmittable. */
-
 #define FIsTransmittable(ulPropTag) \
     ((PROP_ID (ulPropTag) <  (ULONG)0x0E00) || \
     (PROP_ID (ulPropTag)  >= (ULONG)0x8000) || \
@@ -23,7 +20,6 @@
 /*
  *  Message envelope properties
  */
-
 #define PR_ACKNOWLEDGEMENT_MODE                     PROP_TAG( PT_LONG,      0x0001)
 #define PR_ALTERNATE_RECIPIENT_ALLOWED              PROP_TAG( PT_BOOLEAN,   0x0002)
 #define PR_AUTHORIZING_USERS                        PROP_TAG( PT_BINARY,    0x0003)
@@ -235,12 +231,9 @@
 
 #define PR_TNEF_CORRELATION_KEY                     PROP_TAG(PT_BINARY,     0x007F)
 
-
-
 /*
  *  Message content properties
  */
-
 #define PR_BODY                                     PROP_TAG( PT_TSTRING,   0x1000)
 #define PR_BODY_W                                   PROP_TAG( PT_UNICODE,   0x1000)
 #define PR_BODY_A                                   PROP_TAG( PT_STRING8,   0x1000)
@@ -269,11 +262,9 @@
  *  Reserved 0x1100-0x1200
  */
 
-
 /*
  *  Message recipient properties
  */
-
 #define PR_CONTENT_INTEGRITY_CHECK                  PROP_TAG( PT_BINARY,    0x0C00)
 #define PR_EXPLICIT_CONVERSION                      PROP_TAG( PT_LONG,      0x0C01)
 #define PR_IPM_RETURN_REQUESTED                     PROP_TAG( PT_BOOLEAN,   0x0C02)
@@ -379,7 +370,6 @@
 #define PR_ORIGINATING_MTA_CERTIFICATE              PROP_TAG( PT_BINARY,    0x0E25)
 #define PR_PROOF_OF_SUBMISSION                      PROP_TAG( PT_BINARY,    0x0E26)
 
-
 /*
  * The range of non-message and non-recipient property IDs (0x3000 - 0x3FFF) is
  * further broken down into ranges to make assigning new property IDs easier.
@@ -398,7 +388,6 @@
  *  3E00    3EFF    MAPI_defined Status property
  *  3F00    3FFF    MAPI_defined display table property
  */
-
 /*
  *  Properties common to numerous MAPI objects.
  *
@@ -414,7 +403,6 @@
  * properties that are common to multiple objects (including message objects)
  * -- these ids are in the non-transmittable range
  */
-
 #define PR_ENTRYID                                  PROP_TAG( PT_BINARY,    0x0FFF)
 #define PR_OBJECT_TYPE                              PROP_TAG( PT_LONG,      0x0FFE)
 #define PR_ICON                                     PROP_TAG( PT_BINARY,    0x0FFD)
@@ -432,7 +420,6 @@
  * properties that are common to multiple objects (usually not including message objects)
  * -- these ids are in the transmittable range
  */
-
 #define PR_ROWID                                    PROP_TAG( PT_LONG,      0x3000)
 #define PR_DISPLAY_NAME                             PROP_TAG( PT_TSTRING,   0x3001)
 #define PR_DISPLAY_NAME_W                           PROP_TAG( PT_UNICODE,   0x3001)
@@ -489,7 +476,6 @@
 /*
  *  Message store properties
  */
-
 #define PR_DEFAULT_STORE                            PROP_TAG( PT_BOOLEAN,   0x3400)
 #define PR_STORE_SUPPORT_MASK                       PROP_TAG( PT_LONG,      0x340D)
 #define PR_STORE_STATE                              PROP_TAG( PT_LONG,      0x340E)
@@ -516,7 +502,6 @@
 /*
  *  Folder and AB Container properties
  */
-
 #define PR_CONTAINER_FLAGS                          PROP_TAG( PT_LONG,      0x3600)
 #define PR_FOLDER_TYPE                              PROP_TAG( PT_LONG,      0x3601)
 #define PR_CONTENT_COUNT                            PROP_TAG( PT_LONG,      0x3602)
@@ -549,7 +534,6 @@
 /*
  *  Attachment properties
  */
-
 #define PR_ATTACHMENT_X400_PARAMETERS               PROP_TAG( PT_BINARY,    0x3700)
 #define PR_ATTACH_DATA_OBJ                          PROP_TAG( PT_OBJECT,    0x3701)
 #define PR_ATTACH_DATA_BIN                          PROP_TAG( PT_BINARY,    0x3701)
@@ -584,7 +568,6 @@
 /*
  *  AB Object properties
  */
-
 #define PR_DISPLAY_TYPE                             PROP_TAG( PT_LONG,      0x3900)
 #define PR_TEMPLATEID                               PROP_TAG( PT_BINARY,    0x3902)
 #define PR_PRIMARY_CAPABILITY                       PROP_TAG( PT_BINARY,    0x3904)
@@ -899,7 +882,6 @@
 /*
  *  Profile section properties
  */
-
 #define PR_STORE_PROVIDERS                          PROP_TAG( PT_BINARY,    0x3D00)
 #define PR_AB_PROVIDERS                             PROP_TAG( PT_BINARY,    0x3D01)
 #define PR_TRANSPORT_PROVIDERS                      PROP_TAG( PT_BINARY,    0x3D02)
@@ -934,7 +916,6 @@
 /*
  *  Status object properties
  */
-
 #define PR_IDENTITY_DISPLAY                         PROP_TAG( PT_TSTRING,   0x3E00)
 #define PR_IDENTITY_DISPLAY_W                       PROP_TAG( PT_UNICODE,   0x3E00)
 #define PR_IDENTITY_DISPLAY_A                       PROP_TAG( PT_STRING8,   0x3E00)
@@ -961,7 +942,6 @@
 /*
  * Display table properties
  */
-
 #define PR_CONTROL_FLAGS                            PROP_TAG( PT_LONG,      0x3F00)
 #define PR_CONTROL_STRUCTURE                        PROP_TAG( PT_BINARY,    0x3F01)
 #define PR_CONTROL_TYPE                             PROP_TAG( PT_LONG,      0x3F02)
@@ -975,7 +955,6 @@
 /*
  * Secure property id range
  */
-
 #define PROP_ID_SECURE_MIN                          0x67F0
 #define PROP_ID_SECURE_MAX                          0x67FF
 

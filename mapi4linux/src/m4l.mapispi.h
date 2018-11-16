@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef __M4L_MAPISPI_IMPL_H
 #define __M4L_MAPISPI_IMPL_H
 
@@ -98,6 +97,5 @@ public:
 	virtual HRESULT GetSvcConfigSupportObj(unsigned int flags, IMAPISupport **) override;
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 };
-
 
 #endif

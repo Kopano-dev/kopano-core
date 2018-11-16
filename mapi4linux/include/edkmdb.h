@@ -2,12 +2,10 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 /*
  * edkmdb.h – Defines additional properties and interfaces offered by the
  * server-side information store.
  */
-
 #ifndef __M4L_EDKMDB_H_
 #define __M4L_EDKMDB_H_
 
@@ -56,11 +54,9 @@ typedef IExchangeManageStore* LPEXCHANGEMANAGESTORE;
 #define pidLocalStoreInternalMin			0x6500
 #define pidLocalStoreInternalMax			0x65C0
 
-
 #define PR_NON_IPM_SUBTREE_ENTRYID			PROP_TAG( PT_BINARY, 0x6620)
 #define PR_IPM_FAVORITES_ENTRYID			PROP_TAG( PT_BINARY, 0x6630)
 #define PR_IPM_PUBLIC_FOLDERS_ENTRYID		PROP_TAG( PT_BINARY, 0x6631)
-
 
 /* missing PR_* defines for common/ECDebug */
 #define PR_PROFILE_VERSION					PROP_TAG(PT_LONG, 0x6600)
@@ -105,7 +101,6 @@ typedef IExchangeManageStore* LPEXCHANGEMANAGESTORE;
 #define PR_PROFILE_MOAB_SEQ					PROP_TAG(PT_LONG, 0x667D)
 
 #define PR_GET_PROPS_EXCLUDE_PROP_ID_LIST	PROP_TAG(PT_BINARY, 0x667E)
-
 
 #define PR_USER_ENTRYID						PROP_TAG(PT_BINARY, 0x6619)
 #define PR_USER_NAME						PROP_TAG( PT_TSTRING, 0x661A)
@@ -277,7 +272,6 @@ typedef IExchangeManageStore* LPEXCHANGEMANAGESTORE;
 #define PR_RECEIVED_BY_SID_AS_XML					PROP_TAG(PT_TSTRING, 0x0E77)
 #define PR_RCVD_REPRESENTING_SID_AS_XML				PROP_TAG(PT_TSTRING, 0x0E78)
 
-
 #define PR_MERGE_MIDSET_DELETED			PROP_TAG(PT_BINARY, 0x0E7A)
 #define PR_RESERVE_RANGE_OF_IDS			PROP_TAG(PT_BINARY, 0x0E7B)
 
@@ -441,7 +435,6 @@ typedef IExchangeManageStore* LPEXCHANGEMANAGESTORE;
 #define PR_QUOTA_SEND_THRESHOLD			PROP_TAG(PT_LONG, 0x6722)
 #define PR_QUOTA_RECEIVE_THRESHOLD		PROP_TAG(PT_LONG, 0x6723)
 
-
 #define PR_FOLDER_FLAGS							PROP_TAG(PT_LONG, 0x66A8)
 #define PR_LAST_ACCESS_TIME						PROP_TAG(PT_SYSTIME, 0x66A9)
 #define PR_RESTRICTION_COUNT					PROP_TAG(PT_LONG, 0x66AA)
@@ -600,11 +593,9 @@ IID_OF(IExchangeModifyTable)
 typedef IExchangeModifyTable* LPEXCHANGEMODIFYTABLE;
 
 /* --- snip acl stuff --- */
-
 /*
  * Rules specifics
  */
-
 // Property types
 #define PT_SRESTRICTION				((ULONG) 0x00FD)
 #define PT_ACTIONS					((ULONG) 0x00FE)
@@ -619,7 +610,6 @@ typedef IExchangeModifyTable* LPEXCHANGEMODIFYTABLE;
  *					information to do conversion. This is internal to the store and
  *					is not supported for outside calls.
  */
-
 #define PT_FILE_HANDLE					((ULONG) 0x0103)
 #define PT_FILE_EA						((ULONG) 0x0104)
 #define PT_VIRTUAL						((ULONG) 0x0105)
@@ -707,20 +697,15 @@ enum ACTTYPE {
 //Action structure
 struct ACTION {
 	ACTTYPE		acttype;
-
 	// to indicate which flavor of the action.
 	ULONG		ulActionFlavor;
-
 	// Action restriction
 	// currently unused and must be set to NULL
 	LPSRestriction	lpRes;
-
 	// currently unused and must be set to NULL.
 	LPSPropTagArray lpPropTagArray;
-
 	// User defined flags
 	ULONG		ulFlags;
-
 	// padding to align the union on 8 byte boundary
 	ULONG		dwAlignPad;
 
@@ -748,10 +733,8 @@ struct ACTION {
 
 		// Error code to set for OP_BOUNCE action
 		SCODE			scBounceCode;
-
 		// list of address for OP_FORWARD and OP_DELEGATE action
 		LPADRLIST		lpadrlist;
-
 		// prop value for OP_TAG action
 		SPropValue		propTag;
 	};
@@ -811,7 +794,6 @@ HRESULT HrDeserializeActions(IMAPIProp * pprop, BYTE * pbActions, ULONG cbAction
  *
  * Used for get actions from a Deferred Action Message.
  */
-
 struct IExchangeRuleAction : public virtual IUnknown {
 public:
 	virtual HRESULT ActionCount(ULONG *lpcActions) = 0;
@@ -819,7 +801,6 @@ public:
 };
 
 typedef IExchangeRuleAction* LPEXCHANGERULEACTION;
-
 
 //Outlook 2007, Blocked Attachments
 struct IAttachmentSecurity : public virtual IUnknown {
@@ -971,6 +952,5 @@ public:
 };
 
 typedef IMAPIGetSession* LPMAPIGETSESSION;
-
 
 #endif

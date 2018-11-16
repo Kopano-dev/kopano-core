@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef __MAPI_SVC_H
 #define __MAPI_SVC_H
 
@@ -26,7 +25,6 @@ public:
 	INFLoader();
 	HRESULT LoadINFs();
 	const inf_section* GetSection(const std::string& strSectionName) const;
-
 	HRESULT MakeProperty(const std::string& strTag, const std::string& strData, void *base, LPSPropValue lpProp) const;
 
 private:
@@ -42,7 +40,6 @@ class SVCProvider final {
 public:
 	/* ZARAFA6_ABP, ZARAFA6_MSMDB_private, ZARAFA6_MSMDB_public */
 	~SVCProvider();
-
 	HRESULT Init(const INFLoader& cINF, const inf_section* infService);
 	void GetProps(ULONG *lpcValues, LPSPropValue *lppPropValues);
 
@@ -55,14 +52,11 @@ class SVCService final {
 public:
 	/* ZARAFA6, ZCONTACTS */
 	~SVCService();
-
 	HRESULT Init(const INFLoader& cINF, const inf_section* infService);
-
 	HRESULT CreateProviders(IProviderAdmin *lpProviderAdmin);
 	const SPropValue *GetProp(ULONG tag);
 	SVCProvider* GetProvider(const TCHAR *name, ULONG flags);
 	std::vector<SVCProvider*> GetProviders();
-
 	SVC_MSGServiceEntry MSGServiceEntry();
 	/* move to SVCProvider ? */
 	SVC_MSProviderInit MSProviderInit();
@@ -83,7 +77,6 @@ private:
 class MAPISVC final {
 public:
 	~MAPISVC();
-
 	HRESULT Init();
 	HRESULT GetService(const TCHAR *service, ULONG flags, SVCService **);
 	HRESULT GetService(const char *dll_name, SVCService **);

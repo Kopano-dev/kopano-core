@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef ECQUOTAMONITOR
 #define ECQUOTAMONITOR
 
@@ -28,7 +27,6 @@ private:
 
 public:
 	static void* Create(void* lpVoid);
-
 	HRESULT	CheckQuota();
 	HRESULT CheckCompanyQuota(KC::ECCOMPANY *);
 	HRESULT CheckServerQuota(ULONG cUsers, KC::ECUSER *userlist, KC::ECCOMPANY *, LPMDB lpAdminStore);
@@ -49,6 +47,5 @@ private:
 	KC::object_ptr<IMsgStore> m_lpMDBAdmin;
 	ULONG m_ulProcessed = 0, m_ulFailed = 0;
 };
-
 
 #endif
