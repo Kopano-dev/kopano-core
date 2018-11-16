@@ -6,6 +6,7 @@
 #include <memory>
 #include <new>
 #include <utility>
+#include <kopano/ECLogger.h>
 #include <kopano/ECRestriction.h>
 #include <kopano/charset/convert.h>
 #include <kopano/mapiext.h>
@@ -52,6 +53,38 @@ class vcftomapi_impl final : public vcftomapi {
 
 	size_t email_count = 0;
 };
+
+struct ical_deleter {
+	void operator()(VObject *x) { cleanVObject(x); }
+};
+
+static int check_libical_bug_353()
+{
+	char utf8string[] = "BEGIN:VCARD\n" "VERSION:3.0\n" "N:\xd0\x91\xd0\x9d;\xd0\x95\n" "END:VCARD\n";
+	std::unique_ptr<VObject, ical_deleter> root(Parse_MIME(utf8string, strlen(utf8string)));
+	if (root == nullptr)
+		return -1;
+	VObjectIterator t;
+	for (initPropIterator(&t, root.get()); moreIteration(&t); ) {
+		auto v = nextVObject(&t);
+		if (strcmp(vObjectName(v), VCNameProp) != 0)
+			continue;
+		VObjectIterator tt;
+		initPropIterator(&tt, v);
+		if (!moreIteration(&tt))
+			return -1;
+		v = nextVObject(&tt);
+		int type = vObjectValueType(v);
+		if (type != VCVT_USTRINGZ)
+			return -1;
+		auto s = vObjectUStringZValue(v);
+		if (s == nullptr)
+			return -1;
+		if (*s != L'Б')
+			return 1;
+	}
+	return 0;
+}
 
 /**
  * Create a class implementing the ICalToMapi "interface".
@@ -392,15 +425,16 @@ HRESULT vcftomapi_impl::parse_vcf(const std::string &ical)
 		tmp_ical.replace(pos, 3, ":");
 	}
 
-	auto v = Parse_MIME(tmp_ical.c_str(), tmp_ical.length());
-	if (v == nullptr)
+	if (!check_libical_bug_353())
+		ec_log_err("libical bug #353 detected. VCF import can produce garbage. (KC-1247)");
+	std::unique_ptr<VObject, ical_deleter> root(Parse_MIME(tmp_ical.c_str(), tmp_ical.length()));
+	if (root == nullptr)
 		return MAPI_E_CORRUPT_DATA;
 
-	auto v_orig = v;
 	VObjectIterator t;
-	for (initPropIterator(&t, v); moreIteration(&t); ) {
+	for (initPropIterator(&t, root.get()); moreIteration(&t); ) {
 		SPropValue s;
-		v = nextVObject(&t);
+		auto v = nextVObject(&t);
 		auto name = vObjectName(v);
 
 		if (strcmp(name, VCNameProp) == 0) {
@@ -468,7 +502,6 @@ HRESULT vcftomapi_impl::parse_vcf(const std::string &ical)
 				return hr;
 		}
 	}
-	cleanVObject(v_orig);
 	return hrSuccess;
 }
 
