@@ -86,9 +86,11 @@ def conflict_message(occurrences):
 
 def main():
     args = [_decode(arg) for arg in sys.argv[1:]]
-    username, config = args[:2]
+    username, config_file = args[:2]
 
-    server = kopano.Server()
+    config = kopano.Config(filename=config_file)
+    server = kopano.Server(config=config)
+
     user = server.user(username)
     autoaccept = user.autoaccept
 
