@@ -565,8 +565,7 @@ typedef IExchangeManageStore* LPEXCHANGEMANAGESTORE;
 #define ROW_EMPTY			(ROW_ADD|ROW_REMOVE)
 
 struct ROWENTRY {
-	ULONG			ulRowFlags;
-	ULONG			cValues;
+	ULONG ulRowFlags, cValues;
 	LPSPropValue	rgPropVals;
 };
 typedef struct ROWENTRY *LPROWENTRY;

@@ -68,8 +68,7 @@
 struct ENTRYID {
 	ENTRYID(void) = delete;
 	template<typename T> ENTRYID(std::initializer_list<T>) = delete;
-    BYTE    abFlags[4];
-    BYTE    ab[MAPI_DIM];
+	BYTE abFlags[4], ab[MAPI_DIM];
 };
 typedef struct ENTRYID *LPENTRYID;
 
@@ -200,8 +199,7 @@ typedef struct MAPIUID *LPMAPIUID;
 struct SPropTagArray {
 	SPropTagArray(void) = delete;
 	template<typename T> SPropTagArray(std::initializer_list<T>) = delete;
-    ULONG   cValues;
-    ULONG   aulPropTag[MAPI_DIM];
+	unsigned int cValues, aulPropTag[MAPI_DIM];
 };
 typedef struct SPropTagArray *LPSPropTagArray;
 
@@ -227,8 +225,7 @@ struct SPropTagArray_ ## name { \
 union CURRENCY {
     __extension__ struct {
 #ifdef _USE_NETWORK_ORDER
-        LONG Hi;
-        LONG Lo;
+		int Hi, Lo;
 #else
         ULONG Lo;
         LONG Hi;
@@ -773,8 +770,7 @@ struct OBJECT_NOTIFICATION {
 struct TABLE_NOTIFICATION {
     ULONG               ulTableEvent;
     HRESULT             hResult;
-    SPropValue          propIndex;
-    SPropValue          propPrior;
+	SPropValue propIndex, propPrior;
     SRow                row;
     ULONG               ulPad;
 };
@@ -1035,8 +1031,7 @@ IID_OF2(IAttach, IAttachment)
 struct FlagList {
 	FlagList(void) = delete;
 	template<typename T> FlagList(std::initializer_list<T>) = delete;
-    ULONG cFlags;
-    ULONG ulFlag[MAPI_DIM];
+	unsigned int cFlags, ulFlag[MAPI_DIM];
 };
 typedef struct FlagList *LPFlagList;
 
@@ -1558,8 +1553,7 @@ struct ADRPARM {
     LPFNDISMISS     lpfnDismiss;
     LPVOID          lpvDismissContext;
 	TCHAR *lpszCaption, *lpszNewEntryTitle, *lpszDestWellsTitle;
-    ULONG           cDestFields;
-    ULONG           nDestFieldFocus;
+	unsigned int cDestFields, nDestFieldFocus;
     LPTSTR *    lppszDestTitles;
     ULONG *     lpulDestComps;
 	SRestriction *lpContRestriction, *lpHierRestriction;
@@ -1712,8 +1706,7 @@ typedef struct DTBLPAGE *LPDTBLPAGE;
 #define SizedDtblPage(n,n1,u) \
 struct DTBLPAGE_ ## u { \
     DTBLPAGE    dtblpage; \
-    TCHAR       lpszLabel[n]; \
-    TCHAR       lpszComponent[n1]; \
+	TCHAR lpszLabel[n], lpszComponent[n1]; \
 } u
 
 /*  Radio button   */

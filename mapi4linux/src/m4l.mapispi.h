@@ -21,8 +21,7 @@ struct M4LSUPPORTADVISE {
 	{}
 
 	LPNOTIFKEY lpKey;
-	ULONG ulEventMask;
-	ULONG ulFlags;
+	unsigned int ulEventMask, ulFlags;
 	LPMAPIADVISESINK lpAdviseSink;
 };
 
