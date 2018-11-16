@@ -847,11 +847,6 @@ struct ns:getServerDetailsResponse {
 	unsigned int er;
 };
 
-struct ns:getServerBehaviorResponse {
-	unsigned int ulBehavior;
-	unsigned int er;
-};
-
 struct sourceKeyPair {
 	struct xsd__base64Binary sParentKey;
 	struct xsd__base64Binary sObjectKey;
@@ -1099,10 +1094,6 @@ int ns__getLicenseAuth(ULONG64 ulSessionId, struct xsd__base64Binary sAuthData, 
 // Multi Server
 int ns__resolvePseudoUrl(ULONG64 ulSessionId, const char *lpszPseudoUrl, struct ns:resolvePseudoUrlResponse *lpsResponse);
 int ns__getServerDetails(ULONG64 ulSessionId, struct mv_string8 szaSvrNameList, unsigned int ulFlags, struct ns:getServerDetailsResponse* lpsResponse);
-
-// Server Behavior, legacy calls for 6.30 clients, unused and may be removed in the future
-int ns__getServerBehavior(ULONG64 ulSessionId, struct ns:getServerBehaviorResponse* lpsResponse);
-int ns__setServerBehavior(ULONG64 ulSessionId, unsigned int ulBehavior, unsigned int *result);
 
 // Streaming
 int ns__exportMessageChangesAsStream(ULONG64 ulSessionId, unsigned int ulFlags, struct propTagArray sPropTags, struct sourceKeyPairArray, unsigned int ulPropTag, struct ns:exportMessageChangesAsStreamResponse *lpsResponse);
