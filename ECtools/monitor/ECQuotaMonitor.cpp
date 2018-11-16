@@ -915,7 +915,8 @@ HRESULT ECQuotaMonitor::OpenUserStore(LPTSTR szStoreName, objectclass_t objclass
  *
  * @return MAPI Error code
  */
-HRESULT ECQuotaMonitor::GetConfigMessage(LPMDB lpStore, const char* szMessageName, IMessage **lppMessage)
+static HRESULT GetConfigMessage(IMsgStore *lpStore, const char *szMessageName,
+    IMessage **lppMessage)
 {
 	SPropArrayPtr ptrEntryIDs;
 	MAPIFolderPtr ptrFolder;

@@ -40,7 +40,6 @@ private:
 	HRESULT SendQuotaWarningMail(IMsgStore* lpMDB, ULONG cPropSize, LPSPropValue lpPropArray, LPADRLIST lpAddrList);
 	HRESULT CreateQuotaWarningMail(TemplateVariables *, IMsgStore *, KC::ECUSER *to, KC::ECUSER *from, ADRLIST *);
 	HRESULT OpenUserStore(TCHAR *name, KC::objectclass_t, IMsgStore **);
-	HRESULT GetConfigMessage(LPMDB, const char *msgname, IMessage **msgout);
 	HRESULT CheckQuotaInterval(LPMDB lpStore, LPMESSAGE *lppMessage, bool *lpbTimeout);
 	HRESULT UpdateQuotaTimestamp(LPMESSAGE lpMessage);
 	HRESULT Notify(KC::ECUSER *, KC::ECCOMPANY *, KC::ECQUOTASTATUS *, IMsgStore *);
