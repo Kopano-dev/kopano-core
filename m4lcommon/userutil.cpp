@@ -258,7 +258,7 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 	hr = MAPIAllocateBuffer(sizeof(ECSVRNAMELIST), &~lpSrvNameList);
 	if (hr != hrSuccess)
 		return hr;
-	hr = MAPIAllocateMore(sizeof(WCHAR *) * listServers.size(), lpSrvNameList, (LPVOID *)&lpSrvNameList->lpszaServer);
+	hr = MAPIAllocateMore(sizeof(wchar_t *) * listServers.size(), lpSrvNameList, reinterpret_cast<void **>(&lpSrvNameList->lpszaServer));
 	if (hr != hrSuccess)
 		return hr;
 

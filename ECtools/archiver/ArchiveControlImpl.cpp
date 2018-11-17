@@ -718,7 +718,7 @@ HRESULT ArchiveControlImpl::PurgeArchiveFolder(MsgStorePtr &ptrArchive, const en
 	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~ptrEntryList);
 	if (hr != hrSuccess)
 		return hr;
-	hr = MAPIAllocateMore(lstEntries.size() * sizeof(SBinary), ptrEntryList, (LPVOID*)&ptrEntryList->lpbin);
+	hr = MAPIAllocateMore(lstEntries.size() * sizeof(SBinary), ptrEntryList, reinterpret_cast<void **>(&ptrEntryList->lpbin));
 	if (hr != hrSuccess)
 		return hr;
 
@@ -1143,7 +1143,7 @@ HRESULT ArchiveControlImpl::MoveAndDetachMessages(ArchiveHelperPtr ptrArchiveHel
 
 	ptrMessageList->cValues = 0;
 
-	hr = MAPIAllocateMore(sizeof(SBinary) * setEIDs.size(), ptrMessageList, (LPVOID*)&ptrMessageList->lpbin);
+	hr = MAPIAllocateMore(sizeof(SBinary) * setEIDs.size(), ptrMessageList, reinterpret_cast<void **>(&ptrMessageList->lpbin));
 	if (hr != hrSuccess) {
 		m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Failed to allocate %zu bytes of memory: %s (%x)",
 			sizeof(SBinary) * setEIDs.size(), GetMAPIErrorMessage(hr), hr);
@@ -1246,7 +1246,7 @@ HRESULT ArchiveControlImpl::DeleteMessages(LPMAPIFOLDER lpArchiveFolder, const E
 
 	ptrMessageList->cValues = 0;
 
-	hr = MAPIAllocateMore(sizeof(SBinary) * setEIDs.size(), ptrMessageList, (LPVOID*)&ptrMessageList->lpbin);
+	hr = MAPIAllocateMore(sizeof(SBinary) * setEIDs.size(), ptrMessageList, reinterpret_cast<void **>(&ptrMessageList->lpbin));
 	if (hr != hrSuccess) {
 		m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Failed to allocate %zu bytes of memory: %s (%x)",
 			sizeof(SBinary) * setEIDs.size(), GetMAPIErrorMessage(hr), hr);

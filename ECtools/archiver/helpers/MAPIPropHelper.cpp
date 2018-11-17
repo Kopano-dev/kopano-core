@@ -309,12 +309,12 @@ HRESULT MAPIPropHelper::SetArchiveList(const ObjectEntryList &lstArchives, bool 
 
 	ptrPropArray[0].ulPropTag = PROP_ARCHIVE_STORE_ENTRYIDS;
 	ptrPropArray[0].Value.MVbin.cValues = cValues;
-	hr = MAPIAllocateMore(cValues * sizeof(SBinary), ptrPropArray, (LPVOID*)&ptrPropArray[0].Value.MVbin.lpbin);
+	hr = MAPIAllocateMore(cValues * sizeof(SBinary), ptrPropArray, reinterpret_cast<void **>(&ptrPropArray[0].Value.MVbin.lpbin));
 	if (hr != hrSuccess)
 		return hr;
 	ptrPropArray[1].ulPropTag = PROP_ARCHIVE_ITEM_ENTRYIDS;
 	ptrPropArray[1].Value.MVbin.cValues = cValues;
-	hr = MAPIAllocateMore(cValues * sizeof(SBinary), ptrPropArray, (LPVOID*)&ptrPropArray[1].Value.MVbin.lpbin);
+	hr = MAPIAllocateMore(cValues * sizeof(SBinary), ptrPropArray, reinterpret_cast<void **>(&ptrPropArray[1].Value.MVbin.lpbin));
 	if (hr != hrSuccess)
 		return hr;
 

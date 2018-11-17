@@ -2480,7 +2480,7 @@ HRESULT IMAP::HrExpungeDeleted(const std::string &strTag,
 	if (lpRows->cRows == 0)
 		return hrSuccess;
 	entry_list->cValues = 0;
-	hr = MAPIAllocateMore(sizeof(SBinary) * lpRows->cRows, entry_list, (LPVOID *)&entry_list->lpbin);
+	hr = MAPIAllocateMore(sizeof(SBinary) * lpRows->cRows, entry_list, reinterpret_cast<void **>(&entry_list->lpbin));
 	if (hr != hrSuccess)
 		return hr;
 
@@ -4322,7 +4322,8 @@ HRESULT IMAP::HrCopy(const list<ULONG> &lstMails,
 	if (hr != hrSuccess)
 		return hr;
 	entry_list->cValues = lstMails.size();
-	if ((hr = MAPIAllocateMore(sizeof(SBinary) * lstMails.size(), entry_list, (LPVOID *) &entry_list->lpbin)) != hrSuccess)
+	hr = MAPIAllocateMore(sizeof(SBinary) * lstMails.size(), entry_list, reinterpret_cast<void **>(&entry_list->lpbin));
+	if (hr != hrSuccess)
 		return hr;
 
 	unsigned int ulCount = 0;

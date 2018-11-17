@@ -1069,7 +1069,8 @@ HRESULT ECExchangeExportChanges::ChangesToEntrylist(std::list<ICSCHANGE> * lpLst
 
 	lpEntryList->cValues = lpLstChanges->size();
 	if(lpEntryList->cValues > 0){
-		if ((hr = MAPIAllocateMore(sizeof(SBinary) * lpEntryList->cValues, lpEntryList, (LPVOID *)&lpEntryList->lpbin)) != hrSuccess)
+		hr = MAPIAllocateMore(sizeof(SBinary) * lpEntryList->cValues, lpEntryList, reinterpret_cast<void **>(&lpEntryList->lpbin));
+		if (hr != hrSuccess)
 			return hr;
 		ulCount = 0;
 		for (const auto &change : *lpLstChanges) {

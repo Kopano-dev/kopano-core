@@ -684,7 +684,7 @@ HRESULT ArchiveHelper::SetSpecialFolderEntryID(eSpecFolder sfWhich, ULONG cbEntr
 	if (ptrSFEntryIDs->Value.MVbin.cValues <= ULONG(sfWhich)) {
 		LPSBinary lpbinPrev = ptrSFEntryIDs->Value.MVbin.lpbin;
 
-		hr = MAPIAllocateMore((sfWhich + 1) * sizeof(SBinary), ptrSFEntryIDs, (LPVOID*)&ptrSFEntryIDs->Value.MVbin.lpbin);
+		hr = MAPIAllocateMore((sfWhich + 1) * sizeof(SBinary), ptrSFEntryIDs, reinterpret_cast<void **>(&ptrSFEntryIDs->Value.MVbin.lpbin));
 		if (hr != hrSuccess)
 			return hr;
 		// Copy old entries

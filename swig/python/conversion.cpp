@@ -626,7 +626,7 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 		pyobj_ptr iter(PyObject_GetIter(Value));
 		int n = 0;
 
-		if (MAPIAllocateMore(sizeof(*lpProp->Value.MVszA.lppszA) * len, lpBase, (LPVOID *)&lpProp->Value.MVszA.lppszA) != hrSuccess)
+		if (MAPIAllocateMore(sizeof(*lpProp->Value.MVszA.lppszA) * len, lpBase, reinterpret_cast<void **>(&lpProp->Value.MVszA.lppszA)) != hrSuccess)
 			return;
 		do {
 			pyobj_ptr elem(PyIter_Next(iter));
@@ -672,7 +672,7 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 		pyobj_ptr iter(PyObject_GetIter(Value));
 		int n = 0;
 
-		if (MAPIAllocateMore(sizeof(*lpProp->Value.MVszW.lppszW) * len, lpBase, (LPVOID *)&lpProp->Value.MVszW.lppszW) != hrSuccess)
+		if (MAPIAllocateMore(sizeof(*lpProp->Value.MVszW.lppszW) * len, lpBase, reinterpret_cast<void **>(&lpProp->Value.MVszW.lppszW)) != hrSuccess)
 			return;
 		do {
 			pyobj_ptr elem(PyIter_Next(iter));
@@ -1900,7 +1900,7 @@ PyObject *		Object_from_LPMAPIERROR(LPMAPIERROR lpMAPIError)
 LPMAPIERROR		Object_to_LPMAPIERROR(PyObject *)
 {
 	LPMAPIERROR	lpError = NULL;
-	if (MAPIAllocateBuffer(sizeof(LPMAPIERROR), (LPVOID*)&lpError) == hrSuccess)
+	if (MAPIAllocateBuffer(sizeof(LPMAPIERROR), reinterpret_cast<void **>(&lpError)) == hrSuccess)
 		memset(lpError, 0, sizeof(*lpError));
 	return lpError;
 }

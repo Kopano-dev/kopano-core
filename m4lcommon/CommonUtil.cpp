@@ -339,7 +339,7 @@ static HRESULT GetProxyStoreObject(IMsgStore *lpMsgStore, IMsgStore **lppMsgStor
 	if (lpMsgStore == nullptr || lppMsgStore == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 	if (lpMsgStore->QueryInterface(IID_IProxyStoreObject, &~lpProxyStoreObject) == hrSuccess) {
-		auto hr = lpProxyStoreObject->UnwrapNoRef((LPVOID*)lppMsgStore);
+		auto hr = lpProxyStoreObject->UnwrapNoRef(reinterpret_cast<void **>(lppMsgStore));
 		if (hr != hrSuccess)
 			return hr;
 		(*lppMsgStore)->AddRef();

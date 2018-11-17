@@ -3612,7 +3612,7 @@ HRESULT Util::ExtractAdditionalRenEntryID(LPSPropValue lpPropBlob, unsigned shor
 		lpPos += 2;
 		if (lpPos + usLen > lpEnd)
 			return MAPI_E_CORRUPT_DATA;
-		hr = MAPIAllocateBuffer(usLen, (LPVOID*)lppEntryID);
+		hr = MAPIAllocateBuffer(usLen, reinterpret_cast<void **>(lppEntryID));
 		if (hr != hrSuccess)
 			return hr;
 		memcpy(*lppEntryID, lpPos, usLen);

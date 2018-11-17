@@ -216,13 +216,13 @@ static HRESULT ExpandRecipients(LPADRBOOK lpAddrBook, IMessage *lpMessage)
 	auto hr = MAPIAllocateBuffer(sizeof(SRestriction), &~lpRestriction);
 	if (hr != hrSuccess)
 		return kc_perrorf("MAPIAllocateBuffer failed", hr);
-	hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRestriction, (LPVOID*)&lpRestriction->res.resAnd.lpRes);
+	hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRestriction, reinterpret_cast<void **>(&lpRestriction->res.resAnd.lpRes));
 	if (hr != hrSuccess)
 		return kc_perrorf("MAPIAllocateMore failed(1)", hr);
 	lpRestriction->rt = RES_AND;
 	lpRestriction->res.resAnd.cRes = 2;
 
-	hr = MAPIAllocateMore(sizeof(SPropValue), lpRestriction, (LPVOID*)&lpRestriction->res.resAnd.lpRes[0].res.resProperty.lpProp);
+	hr = MAPIAllocateMore(sizeof(SPropValue), lpRestriction, reinterpret_cast<void **>(&lpRestriction->res.resAnd.lpRes[0].res.resProperty.lpProp));
 	if (hr != hrSuccess)
 		return kc_perrorf("MAPIAllocateMore failed(2)", hr);
 
@@ -232,7 +232,7 @@ static HRESULT ExpandRecipients(LPADRBOOK lpAddrBook, IMessage *lpMessage)
 	lpRestriction->res.resAnd.lpRes[0].res.resProperty.lpProp->ulPropTag = PR_OBJECT_TYPE;
 	lpRestriction->res.resAnd.lpRes[0].res.resProperty.lpProp->Value.ul = MAPI_DISTLIST;
 
-	hr = MAPIAllocateMore(sizeof(SPropValue), lpRestriction, (LPVOID*)&lpRestriction->res.resAnd.lpRes[1].res.resProperty.lpProp);
+	hr = MAPIAllocateMore(sizeof(SPropValue), lpRestriction, reinterpret_cast<void **>(&lpRestriction->res.resAnd.lpRes[1].res.resProperty.lpProp));
 	if (hr != hrSuccess)
 		return kc_perrorf("MAPIAllocateMore failed(3)", hr);
 
@@ -249,7 +249,7 @@ static HRESULT ExpandRecipients(LPADRBOOK lpAddrBook, IMessage *lpMessage)
 	hr = MAPIAllocateBuffer(sizeof(SRestriction), &~lpEntryRestriction);
 	if (hr != hrSuccess)
 		return kc_perrorf("MAPIAllocateBuffer failed", hr);
-	hr = MAPIAllocateMore(sizeof(SPropValue), lpEntryRestriction, (LPVOID*)&lpEntryRestriction->res.resProperty.lpProp);
+	hr = MAPIAllocateMore(sizeof(SPropValue), lpEntryRestriction, reinterpret_cast<void **>(&lpEntryRestriction->res.resProperty.lpProp));
 	if (hr != hrSuccess)
 		return kc_perrorf("MAPIAllocateMore failed(4)", hr);
 
