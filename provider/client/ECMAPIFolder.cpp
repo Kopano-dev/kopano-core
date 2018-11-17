@@ -414,6 +414,8 @@ HRESULT ECMAPIFolder::CopyMessages2(unsigned int ftype, ENTRYLIST *lpMsgList,
 		return hrSuccess;
 	if (lpMsgList->lpbin == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
+	if (ftype != ECSTORE_TYPE_PRIVATE && ftype != ECSTORE_TYPE_PUBLIC)
+		return MAPI_E_INVALID_PARAMETER;
 
 	HRESULT hr = hrSuccess, hrEC = hrSuccess;
 	object_ptr<IMAPIFolder> lpMapiFolder;
