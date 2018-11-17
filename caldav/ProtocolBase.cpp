@@ -90,7 +90,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 		}
 	} else if (wcscasecmp(m_wstrUser.c_str(), m_wstrFldOwner.c_str())) {
 		// open shared store
-		hr = HrOpenUserMsgStore(m_lpSession, const_cast<wchar_t *>(m_wstrFldOwner.c_str()), &~m_lpActiveStore);
+		hr = HrOpenUserMsgStore(m_lpSession, m_wstrFldOwner.c_str(), &~m_lpActiveStore);
 		if (hr != hrSuccess) {
 			ec_log_err("Unable to open store of user \"%ls\" with user \"%ls\": %s (%x)",
 				m_wstrFldOwner.c_str(), m_wstrUser.c_str(), GetMAPIErrorMessage(hr), hr);

@@ -468,7 +468,7 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 	case PT_UNICODE:
 		// @todo add PyUnicode_Check call?
 		if (ulFlags == CONV_COPY_SHALLOW && NATIVE_UNICODE)
-			lpProp->Value.lpszW = reinterpret_cast<wchar_t *>(PyUnicode_AsUnicode(Value));
+			lpProp->Value.lpszW = PyUnicode_AsUnicode(Value);
 		else
 			CopyPyUnicode(&lpProp->Value.lpszW, Value, lpBase);
 		break;
@@ -649,7 +649,7 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 			if (elem == nullptr)
 				break;
 			if (ulFlags == CONV_COPY_SHALLOW && NATIVE_UNICODE)
-				lpProp->Value.MVszW.lppszW[n] = reinterpret_cast<wchar_t *>(PyUnicode_AsUnicode(elem));
+				lpProp->Value.MVszW.lppszW[n] = PyUnicode_AsUnicode(elem);
 			else
 				CopyPyUnicode(&lpProp->Value.MVszW.lppszW[n], Value, lpBase);
 			++n;
