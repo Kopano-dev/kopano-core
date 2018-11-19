@@ -1219,6 +1219,7 @@ class Item(Properties, Contact, Appointment):
 
         item = Item(mapiobj=msg)
         item.server = self.server
+        item.store = self.store
         item._attobj = attach
 
         for key, val in kwargs.items():
@@ -1243,6 +1244,9 @@ class Item(Properties, Contact, Appointment):
                 item = Item(mapiobj=msg)
                 item._attobj = att # XXX
                 item.server = self.server # XXX
+                # KC-1390, item should always have item.store
+                if hasattr(self, 'store'):
+                    item.store = self.store
                 yield item
 
                 if recurse:

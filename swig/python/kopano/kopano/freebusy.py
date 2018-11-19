@@ -12,6 +12,10 @@ try:
 except ImportError: # pragma: no cover
     pass
 
+from .defs import (
+    STATUS_FB,
+)
+
 from MAPI.Time import (
     FileTime,
 )
@@ -113,7 +117,8 @@ class FreeBusy(object):
         for occ in self.store.calendar.occurrences(start, end):
             start = datetime_to_rtime(occ.start)
             end = datetime_to_rtime(occ.end)
-            blocks.append(MAPI.Struct.FreeBusyBlock(start, end, 2))
+            # Fall back on busy, same as WebApp
+            blocks.append(MAPI.Struct.FreeBusyBlock(start, end, STATUS_FB[occ.busystatus] if occ.busystatus else 2))
 
         update.PublishFreeBusy(blocks)
         update.SaveChanges(ftstart, ftend)
