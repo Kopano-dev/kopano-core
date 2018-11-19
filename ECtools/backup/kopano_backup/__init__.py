@@ -39,7 +39,7 @@ from MAPI.Struct import (
 )
 
 from MAPI.Tags import (
-    PR_EC_BACKUP_SOURCE_KEY, PR_EC_OUTOFOFFICE, PR_ENTRYID,
+    PR_EC_BACKUP_SOURCE_KEY, PR_EC_OUTOFOFFICE, PR_ENTRYID, PR_DISPLAY_NAME_W,
     PR_EC_OUTOFOFFICE_SUBJECT, PR_EC_OUTOFOFFICE_MSG, PR_EC_OUTOFOFFICE_FROM,
     PR_EC_OUTOFOFFICE_UNTIL, IID_IExchangeModifyTable, PR_CONTAINER_CLASS_W,
     PR_SOURCE_KEY, PR_ACL_TABLE, PR_STORE_RECORD_KEY, PR_RULES_DATA,
@@ -519,17 +519,17 @@ class Service(kopano.Service):
             # restore folder
             if not self.options.only_meta:
                 # differential folder move
-                if self.options.differential:
-                    folder = sk_folder.get(folder_sk)
-                    if folder:
-                        restore_path = self.options.restore_root+'/'+path if self.options.restore_root else path
-                        if folder.path != restore_path:
-                            newparent = store.get_folder('/'.join(UNESCAPED_SLASH_RE.split(restore_path)[:-1]))
-                            if newparent:
-                                self.log.info('moving folder %s to %s', folder.path, restore_path)
-                                folder.parent.move(folder, newparent)
-
-                folder = restore_root.folder(path, create=True)
+                folder = sk_folder.get(folder_sk)
+                if folder and self.options.differential:
+                    restore_path = self.options.restore_root+'/'+path if self.options.restore_root else path
+                    restore_parent_path = '/'.join(UNESCAPED_SLASH_RE.split(restore_path)[:-1])
+                    if folder.parent.path != restore_parent_path:
+                        newparent = store.get_folder(restore_parent_path)
+                        if newparent:
+                            self.log.info('moving folder %s to %s', folder.path, restore_path)
+                            folder.parent.move(folder, newparent)
+                else:
+                    folder = restore_root.folder(path, create=True)
                 self.restore_folder(folder, path, fpath, store, store.subtree, stats, user, self.server)
             restored.append((folder, fpath))
 
@@ -716,10 +716,11 @@ class Service(kopano.Service):
         if not self.options.sourcekeys:
             self.log.debug('restoring folder %s', path)
 
-            # restore container class
-            container_class = folderprops.get(PR_CONTAINER_CLASS_W)
-            if container_class:
-                folder.container_class = container_class
+            # restore name, container class
+            for proptag in (PR_DISPLAY_NAME_W, PR_CONTAINER_CLASS_W):
+                value = folderprops.get(proptag)
+                if value is not None:
+                    folder[proptag] = value
 
         # load existing sourcekeys in folder, to check for duplicates
         existing = {}
