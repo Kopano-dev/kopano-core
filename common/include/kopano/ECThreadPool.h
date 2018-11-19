@@ -88,6 +88,8 @@ public:
 	virtual void execute(void);
 	bool queue_on(ECThreadPool *, bool transfer_ownership = false);
 
+	ECThreadWorker *m_worker = nullptr;
+
 protected:
 	virtual void run(void) = 0;
 	ECTask(void) {};

@@ -220,6 +220,7 @@ void* ECThreadPool::threadFunc(void *lpVoid)
 			break;
 
 		assert(sTaskInfo.lpTask != NULL);
+		sTaskInfo.lpTask->m_worker = worker;
 		sTaskInfo.lpTask->execute();
 		if (sTaskInfo.bDelete)
 			delete sTaskInfo.lpTask;
