@@ -1732,19 +1732,19 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
  * @param[in]	vmHeader		vmime header part which describes the contents of the body in vmBody.
  * @param[in]	vmBody			a body part of the mail.
  * @param[out]	lpMessage		MAPI message to write header properties in.
- * @param[in]	filterDouble	skips some attachments when true, only happens then an appledouble attachment marker is found.
+ * @param[in]	bFilterDouble	skips some attachments when true, only happens then an appledouble attachment marker is found.
  * @param[in]	bAppendBody		Concatenate with existing body if true, makes an attachment when false and a body was previously saved.
  * @return		MAPI error code.
  * @retval		MAPI_E_CALL_FAILED	Caught an exception, which breaks the conversion.
  */
 HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
     vmime::shared_ptr<vmime::body> vmBody, IMessage *lpMessage,
-    bool filterDouble, bool appendBody)
+    bool bFilterDouble, bool bAppendBody)
 {
 	HRESULT	hr = hrSuccess;
 	object_ptr<IStream> lpStream;
 	SPropValue sPropSMIMEClass;
-	bool bFilterDouble = filterDouble, bAppendBody = appendBody, bIsAttachment = false;
+	bool bIsAttachment = false;
 
 	if (vmHeader->hasField(vmime::fields::MIME_VERSION))
 		++m_mailState.mime_vtag_nest;
@@ -1823,8 +1823,8 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 			hr = dissect_ical(vmHeader, vmBody, lpMessage, bIsAttachment);
 			if (hr != hrSuccess)
 				return hr;
-		} else if (filterDouble && mt->getType() == vmime::mediaTypes::APPLICATION && mt->getSubType() == "applefile") {
-		} else if (filterDouble && mt->getType() == vmime::mediaTypes::APPLICATION && mt->getSubType() == "mac-binhex40") {
+		} else if (bFilterDouble && mt->getType() == vmime::mediaTypes::APPLICATION && mt->getSubType() == "applefile") {
+		} else if (bFilterDouble && mt->getType() == vmime::mediaTypes::APPLICATION && mt->getSubType() == "mac-binhex40") {
 				// ignore appledouble parts
 				// mac-binhex40 is appledouble v1, applefile is v2
 				// see: http://www.iana.org/assignments/media-types/multipart/appledouble			
