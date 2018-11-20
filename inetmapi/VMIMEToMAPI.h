@@ -31,6 +31,9 @@ struct sMailState {
 	bool bAttachSignature = false; /* Add a signed signature at the end */
 	/* Cache for the current complete untouched HTML body, used for finding CIDs or locations (inline images) */
 	std::string strHTMLBody;
+	std::vector<unsigned int> part_counter; /* stack used for counting MIME parts */
+
+	std::string part_text() const;
 };
 
 void ignoreError(void *ctx, const char *msg, ...);

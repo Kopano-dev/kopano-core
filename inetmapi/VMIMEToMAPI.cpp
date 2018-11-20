@@ -129,6 +129,13 @@ static ULONG SecondsToIntTime(ULONG seconds)
 	return CreateIntTime(seconds, minutes, hours);
 }
 
+std::string sMailState::part_text() const
+{
+	if (part_counter.empty())
+		return "1";
+	return kc_join(part_counter, ".", stringify);
+}
+
 /**
  * Default empty constructor for the inetmapi library. Sets all member
  * values to sane defaults.
@@ -1470,6 +1477,8 @@ HRESULT VMIMEToMAPI::dissect_multipart(vmime::shared_ptr<vmime::header> vmHeader
 	HRESULT hr = hrSuccess;
 
 	if (vmBody->getPartCount() <= 0) {
+		m_mailState.part_counter.push_back(1);
+		auto pop = make_scope_success([&]() { m_mailState.part_counter.pop_back(); });
 		// a lonely attachment in a multipart, may not be empty when it's a signed part.
 		hr = handleAttachment(vmHeader, vmBody, lpMessage);
 		if (hr != hrSuccess)
@@ -1498,10 +1507,12 @@ HRESULT VMIMEToMAPI::dissect_multipart(vmime::shared_ptr<vmime::header> vmHeader
 	if (!bAlternative) {
 		// recursively process multipart message
 		for (size_t i = 0; i < vmBody->getPartCount(); ++i) {
+			m_mailState.part_counter.push_back(i);
+			auto pop = make_scope_success([&]() { m_mailState.part_counter.pop_back(); });
 			auto vmBodyPart = vmBody->getPartAt(i);
 			hr = dissect_body(vmBodyPart->getHeader(), vmBodyPart->getBody(), lpMessage, bFilterDouble, bAppendBody);
 			if (hr != hrSuccess) {
-				ec_log_err("dissect_multipart: Unable to parse sub multipart %zu of mail body", i);
+				ec_log_err("dissect_multipart: Unable to parse part %s: %s", m_mailState.part_text().c_str(), GetMAPIErrorMessage(hr));
 				return hr;
 			}
 		}
@@ -1512,17 +1523,18 @@ HRESULT VMIMEToMAPI::dissect_multipart(vmime::shared_ptr<vmime::header> vmHeader
 
 	// recursively process multipart alternatives in reverse to select best body first
 	for (auto body_idx : lBodies) {
+		m_mailState.part_counter.push_back(body_idx);
+		auto pop = make_scope_success([&]() { m_mailState.part_counter.pop_back(); });
 		auto vmBodyPart = vmBody->getPartAt(body_idx);
-		ec_log_debug("Trying to parse alternative multipart %d of mail body", body_idx);
-
+		ec_log_debug("Parsing MIME part %s", m_mailState.part_text().c_str());
 		hr = dissect_body(vmBodyPart->getHeader(), vmBodyPart->getBody(), lpMessage, bFilterDouble, bAppendBody);
 		if (hr == hrSuccess)
 			return hrSuccess;
-		ec_log_err("Unable to parse alternative multipart %d of mail body, trying other alternatives", body_idx);
+		ec_log_err("Unable to parse MIME part %s: %s. Trying more alternatives.", GetMAPIErrorMessage(hr), m_mailState.part_text().c_str());
 	}
 	/* If lBodies was empty, we could get here, with hr being hrSuccess. */
 	if (hr != hrSuccess)
-		ec_log_err("Unable to parse all alternative multiparts of mail body");
+		ec_log_err("Part %s: no alternatives were good", m_mailState.part_text().c_str());
 	return hr;
 }
 
