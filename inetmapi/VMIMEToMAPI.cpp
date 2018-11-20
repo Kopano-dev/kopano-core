@@ -12,6 +12,7 @@
 #include <utility>
 #include <vector>
 #include "VMIMEToMAPI.h"
+#include <kopano/ECGetText.h>
 #include <kopano/ECGuid.h>
 #include <kopano/ECLogger.h>
 #include <kopano/hl.hpp>
@@ -487,6 +488,15 @@ HRESULT VMIMEToMAPI::fillMAPIMail(vmime::shared_ptr<vmime::message> vmMessage,
 			if (hr != hrSuccess) {
 				ec_log_err("Unable to parse mail body");
 				return hr;
+			}
+			if (m_dopt.conversion_notices &&
+			    m_mailState.bodyLevel == BODY_NONE &&
+			    !m_mailState.cvt_notes.empty()) {
+				auto text = convert_to<std::wstring>(kc_join(m_mailState.cvt_notes, "\n"));
+				SPropValue pv;
+				pv.ulPropTag = PR_BODY_W;
+				pv.Value.lpszW = const_cast<wchar_t *>(text.c_str());
+				HrSetOneProp(lpMessage, &pv);
 			}
 		}
 	} catch (const vmime::exception &e) {
@@ -1780,6 +1790,10 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 		}
 
 		if (force_raw) {
+			if (flags & DIS_ALTERNATIVE)
+				m_mailState.cvt_notes.push_back(format(KC_A("MIME part %s, the highest-ranking alternative in a set and hence chosen, is unsuitable for display: Unknown Content-Transfer-Encoding. It is made available as an attachment instead."), m_mailState.part_text().c_str()));
+			else
+				m_mailState.cvt_notes.push_back(format(KC_A("MIME part %s unsuitable for display: Unknown Content-Transfer-Encoding. It is made available as an attachment instead."), m_mailState.part_text().c_str()));
 			hr = handleAttachment(vmHeader, vmBody, lpMessage, L"unknown_transfer_encoding", true);
 			if (hr != hrSuccess)
 				return hr;
@@ -1883,6 +1897,10 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 			}
 		} else {
 			/* RFC 2049 §2 item 7 */
+			if (flags & DIS_ALTERNATIVE)
+				m_mailState.cvt_notes.push_back(format(KC_A("MIME part %s, the highest-ranking alternative in a set and hence chosen, is insuitable for display: Unknown Content-Type. It is made available as an attachment instead."), m_mailState.part_text().c_str()));
+			else
+				m_mailState.cvt_notes.push_back(format(KC_A("MIME part %s unsuitable for display: Unknown Content-Type. It is made available as an attachment instead."), m_mailState.part_text().c_str()));
 			hr = handleAttachment(vmHeader, vmBody, lpMessage, L"unknown_content_type");
 			if (hr != hrSuccess)
 				return hr;
@@ -3583,6 +3601,7 @@ void imopt_default_delivery_options(delivery_options *dopt) {
 	dopt->ascii_upgrade = nullptr;
 	dopt->html_safety_filter = false;
 	dopt->header_strict_rfc = false;
+	dopt->conversion_notices = false;
 }
 
 /**

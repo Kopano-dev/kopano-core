@@ -32,6 +32,7 @@ struct sMailState {
 	/* Cache for the current complete untouched HTML body, used for finding CIDs or locations (inline images) */
 	std::string strHTMLBody;
 	std::vector<unsigned int> part_counter; /* stack used for counting MIME parts */
+	std::vector<std::string> cvt_notes; /* conversion notices */
 
 	std::string part_text() const;
 };
