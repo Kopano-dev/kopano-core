@@ -18,7 +18,7 @@ from kopano import Config
 from kopano import log_exc
 
 CONFIG = {
-    'state_path': Config.string(default='/var/lib/kopano/msr/'),
+    'state_path': Config.path(default='/var/lib/kopano/msr/', check=True),
     'server_bind_name': Config.string(default='file:///var/run/kopano/msr.sock'),
     'ssl_private_key_file': Config.path(default=None, check=False), # XXX don't check when default=None?
     'ssl_certificate_file': Config.path(default=None, check=False),
