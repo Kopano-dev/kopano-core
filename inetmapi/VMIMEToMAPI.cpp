@@ -199,7 +199,7 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 
 	try {
 		if (m_mailState.ulMsgInMsg == 0)
-			m_mailState.reset();
+			m_mailState = sMailState();
 
 		// get raw headers
 		auto posHeaderEnd = input.find("\r\n\r\n");
@@ -1559,7 +1559,7 @@ void VMIMEToMAPI::dissect_message(vmime::shared_ptr<vmime::body> vmBody,
 
 	// handle message-in-message, save current state variables
 	auto savedState = m_mailState;
-	m_mailState.reset();
+	m_mailState = sMailState();
 	++m_mailState.ulMsgInMsg;
 
 	hr = convertVMIMEToMAPI(newMessage, lpNewMessage);
