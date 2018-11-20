@@ -61,6 +61,13 @@ using namespace std::string_literals;
 
 namespace KC {
 
+enum {
+	/* dissect_body: Skips some attachments — only happens then an appledouble attachment marker is found. */
+	DIS_FILTER_DOUBLE = 1 << 0,
+	/* dissect_body: Concatenate with existing body if true, makes an attachment when false and a body was previously saved. */
+	DIS_APPEND_BODY = 1 << 1,
+};
+
 static vmime::charset vtm_upgrade_charset(vmime::charset cset, const char *ascii_upgrade = nullptr);
 static int getCharsetFromHTML(const string &, vmime::charset *);
 static HRESULT postWriteFixups(IMessage *);
@@ -1472,7 +1479,7 @@ vtm_order_alternatives(vmime::shared_ptr<vmime::body> vmBody)
 
 HRESULT VMIMEToMAPI::dissect_multipart(vmime::shared_ptr<vmime::header> vmHeader,
     vmime::shared_ptr<vmime::body> vmBody, IMessage *lpMessage,
-    bool bFilterDouble, bool bAppendBody)
+    unsigned int flags)
 {
 	bool bAlternative = false;
 	HRESULT hr = hrSuccess;
@@ -1490,9 +1497,9 @@ HRESULT VMIMEToMAPI::dissect_multipart(vmime::shared_ptr<vmime::header> vmHeader
 	// check new multipart type
 	auto mt = vmime::dynamicCast<vmime::mediaType>(vmHeader->ContentType()->getValue());
 	if (mt->getSubType() == "appledouble")
-		bFilterDouble = true;
+		flags |= DIS_FILTER_DOUBLE;
 	else if (mt->getSubType() == "mixed")
-		bAppendBody = true;
+		flags |= DIS_APPEND_BODY;
 	else if (mt->getSubType() == "alternative")
 		bAlternative = true;
 
@@ -1511,7 +1518,7 @@ HRESULT VMIMEToMAPI::dissect_multipart(vmime::shared_ptr<vmime::header> vmHeader
 			m_mailState.part_counter.push_back(i);
 			auto pop = make_scope_success([&]() { m_mailState.part_counter.pop_back(); });
 			auto vmBodyPart = vmBody->getPartAt(i);
-			hr = dissect_body(vmBodyPart->getHeader(), vmBodyPart->getBody(), lpMessage, bFilterDouble, bAppendBody);
+			hr = dissect_body(vmBodyPart->getHeader(), vmBodyPart->getBody(), lpMessage, flags);
 			if (hr != hrSuccess) {
 				ec_log_err("dissect_multipart: Unable to parse part %s: %s", m_mailState.part_text().c_str(), GetMAPIErrorMessage(hr));
 				return hr;
@@ -1528,7 +1535,7 @@ HRESULT VMIMEToMAPI::dissect_multipart(vmime::shared_ptr<vmime::header> vmHeader
 		auto pop = make_scope_success([&]() { m_mailState.part_counter.pop_back(); });
 		auto vmBodyPart = vmBody->getPartAt(body_idx);
 		ec_log_debug("Parsing MIME part %s", m_mailState.part_text().c_str());
-		hr = dissect_body(vmBodyPart->getHeader(), vmBodyPart->getBody(), lpMessage, bFilterDouble, bAppendBody);
+		hr = dissect_body(vmBodyPart->getHeader(), vmBodyPart->getBody(), lpMessage, flags);
 		if (hr == hrSuccess)
 			return hrSuccess;
 		ec_log_err("Unable to parse MIME part %s: %s. Trying more alternatives.", GetMAPIErrorMessage(hr), m_mailState.part_text().c_str());
@@ -1732,14 +1739,12 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
  * @param[in]	vmHeader		vmime header part which describes the contents of the body in vmBody.
  * @param[in]	vmBody			a body part of the mail.
  * @param[out]	lpMessage		MAPI message to write header properties in.
- * @param[in]	bFilterDouble	skips some attachments when true, only happens then an appledouble attachment marker is found.
- * @param[in]	bAppendBody		Concatenate with existing body if true, makes an attachment when false and a body was previously saved.
  * @return		MAPI error code.
  * @retval		MAPI_E_CALL_FAILED	Caught an exception, which breaks the conversion.
  */
 HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
     vmime::shared_ptr<vmime::body> vmBody, IMessage *lpMessage,
-    bool bFilterDouble, bool bAppendBody)
+    unsigned int flags)
 {
 	HRESULT	hr = hrSuccess;
 	object_ptr<IStream> lpStream;
@@ -1773,23 +1778,23 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 			if (hr != hrSuccess)
 				return hr;
 		} else if (mt->getType() == "multipart") {
-			hr = dissect_multipart(vmHeader, vmBody, lpMessage, bFilterDouble, bAppendBody);
+			hr = dissect_multipart(vmHeader, vmBody, lpMessage, flags);
 			if (hr != hrSuccess)
 				return hr;
 		// Only handle as inline text if no filename is specified and not specified as 'attachment'
 		} else if (mt->getType() == vmime::mediaTypes::TEXT &&
 		    (mt->getSubType() == vmime::mediaTypes::TEXT_PLAIN || mt->getSubType() == vmime::mediaTypes::TEXT_HTML) &&
 		    !bIsAttachment) {
-			if (mt->getSubType() == vmime::mediaTypes::TEXT_HTML || (m_mailState.bodyLevel == BODY_HTML && bAppendBody)) {
+			if (mt->getSubType() == vmime::mediaTypes::TEXT_HTML || (m_mailState.bodyLevel == BODY_HTML && flags & DIS_APPEND_BODY)) {
 				// handle real html part, or append a plain text bodypart to the html main body
 				// subtype guaranteed html or plain.
-				hr = handleHTMLTextpart(vmHeader, vmBody, lpMessage, m_dopt.insecure_html_join ? bAppendBody : false);
+				hr = handleHTMLTextpart(vmHeader, vmBody, lpMessage, m_dopt.insecure_html_join ? (flags & DIS_APPEND_BODY) : false);
 				if (hr != hrSuccess) {
 					ec_log_err("Unable to parse mail HTML text");
 					return hr;
 				}
 			} else {
-				hr = handleTextpart(vmHeader, vmBody, lpMessage, bAppendBody);
+				hr = handleTextpart(vmHeader, vmBody, lpMessage, flags & DIS_APPEND_BODY);
 				if (hr != hrSuccess)
 					return hr;
 			}
@@ -1823,8 +1828,8 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 			hr = dissect_ical(vmHeader, vmBody, lpMessage, bIsAttachment);
 			if (hr != hrSuccess)
 				return hr;
-		} else if (bFilterDouble && mt->getType() == vmime::mediaTypes::APPLICATION && mt->getSubType() == "applefile") {
-		} else if (bFilterDouble && mt->getType() == vmime::mediaTypes::APPLICATION && mt->getSubType() == "mac-binhex40") {
+		} else if ((flags & DIS_FILTER_DOUBLE) && mt->getType() == vmime::mediaTypes::APPLICATION && mt->getSubType() == "applefile") {
+		} else if ((flags & DIS_FILTER_DOUBLE) && mt->getType() == vmime::mediaTypes::APPLICATION && mt->getSubType() == "mac-binhex40") {
 				// ignore appledouble parts
 				// mac-binhex40 is appledouble v1, applefile is v2
 				// see: http://www.iana.org/assignments/media-types/multipart/appledouble			

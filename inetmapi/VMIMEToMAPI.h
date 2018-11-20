@@ -59,9 +59,9 @@ public:
 	convert_context m_converter;
 
 	HRESULT fillMAPIMail(vmime::shared_ptr<vmime::message>, IMessage *lpMessage);
-	HRESULT dissect_body(vmime::shared_ptr<vmime::header>, vmime::shared_ptr<vmime::body>, IMessage *lpMessage, bool filterDouble = false, bool appendBody = false);
+	HRESULT dissect_body(vmime::shared_ptr<vmime::header>, vmime::shared_ptr<vmime::body>, IMessage *lpMessage, unsigned int flags = 0);
 	void dissect_message(vmime::shared_ptr<vmime::body>, IMessage *);
-	HRESULT dissect_multipart(vmime::shared_ptr<vmime::header>, vmime::shared_ptr<vmime::body>, IMessage *, bool filterDouble = false, bool appendBody = false);
+	HRESULT dissect_multipart(vmime::shared_ptr<vmime::header>, vmime::shared_ptr<vmime::body>, IMessage *, unsigned int flags = 0);
 	HRESULT dissect_ical(vmime::shared_ptr<vmime::header>, vmime::shared_ptr<vmime::body>, IMessage *, bool bIsAttachment);
 	std::string generate_wrap(vmime::shared_ptr<vmime::headerFieldValue> &&);
 	HRESULT hreplyto(vmime::shared_ptr<vmime::mailboxList> &&, std::wstring &, memory_ptr<FLATENTRYLIST> &);
