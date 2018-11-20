@@ -1439,12 +1439,13 @@ HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals,
 /** 
  * Order alternatives in a body according to local preference.
  *
- * This function (currently) only deprioritizes text/plain parts, and leaves
- * the priority of everything else as-is.
+ * Parts in the incoming mail are ordered in increasing preference
+ * (boring-to-interesting) as per RFC 2046 §5.1.4. The local algorithm is to
+ * deprioritize text/plain at all times, but otherwise keep the sender's
+ * preferences.
  *
- * This function also reverses the list. Whereas MIME parts in @vmBody are
- * ordered from boring-to-interesting, the list returned by this function is
- * interesting-to-boring.
+ * The amended list is then returned in _reverse_, i.e. interesting-to-boring
+ * for purposes of further processing.
  */
 static std::list<unsigned int>
 vtm_order_alternatives(vmime::shared_ptr<vmime::body> vmBody)
