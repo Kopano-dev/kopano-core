@@ -66,6 +66,11 @@ enum {
 	DIS_FILTER_DOUBLE = 1 << 0,
 	/* dissect_body: Concatenate with existing body if true, makes an attachment when false and a body was previously saved. */
 	DIS_APPEND_BODY = 1 << 1,
+	/* dissect_body: Current body is part of an alternatives group (informational) */
+	DIS_ALTERNATIVE = 1 << 2,
+
+	/* Flags that should only propagate one level */
+	DIS_IMMEDIATE_FLAGS = DIS_ALTERNATIVE,
 };
 
 static vmime::charset vtm_upgrade_charset(vmime::charset cset, const char *ascii_upgrade = nullptr);
@@ -1481,7 +1486,6 @@ HRESULT VMIMEToMAPI::dissect_multipart(vmime::shared_ptr<vmime::header> vmHeader
     vmime::shared_ptr<vmime::body> vmBody, IMessage *lpMessage,
     unsigned int flags)
 {
-	bool bAlternative = false;
 	HRESULT hr = hrSuccess;
 
 	if (vmBody->getPartCount() <= 0) {
@@ -1501,7 +1505,9 @@ HRESULT VMIMEToMAPI::dissect_multipart(vmime::shared_ptr<vmime::header> vmHeader
 	else if (mt->getSubType() == "mixed")
 		flags |= DIS_APPEND_BODY;
 	else if (mt->getSubType() == "alternative")
-		bAlternative = true;
+		flags |= DIS_ALTERNATIVE;
+	else
+		flags &= ~DIS_ALTERNATIVE;
 
 		/*
 		 * RFC 2046 §5.1.7: all unrecognized subtypes are to be
@@ -1512,7 +1518,7 @@ HRESULT VMIMEToMAPI::dissect_multipart(vmime::shared_ptr<vmime::header> vmHeader
 		 * reasons.
 		 */
 
-	if (!bAlternative) {
+	if (!(flags & DIS_ALTERNATIVE)) {
 		// recursively process multipart message
 		for (size_t i = 0; i < vmBody->getPartCount(); ++i) {
 			m_mailState.part_counter.push_back(i);
@@ -1778,7 +1784,7 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 			if (hr != hrSuccess)
 				return hr;
 		} else if (mt->getType() == "multipart") {
-			hr = dissect_multipart(vmHeader, vmBody, lpMessage, flags);
+			hr = dissect_multipart(vmHeader, vmBody, lpMessage, flags & ~DIS_IMMEDIATE_FLAGS);
 			if (hr != hrSuccess)
 				return hr;
 		// Only handle as inline text if no filename is specified and not specified as 'attachment'
