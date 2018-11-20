@@ -228,8 +228,8 @@ DBPlugin::getSubObjectsForObject(userobject_relation_t relation,
 			"ON modtime.objectid=o.id "
 			"AND modtime.propname = '" + OP_MODTIME + "' "
 		"WHERE p.externid = '" +  m_lpDatabase->Escape(parentobject.id) + "' "
-			"AND ort.relationtype = " + stringify(relation) + " ";
-			"AND " + OBJECTCLASS_COMPARE_SQL("p.objectclass", parentobject.objclass);
+			"AND ort.relationtype = " + stringify(relation) + " "
+		"AND " + OBJECTCLASS_COMPARE_SQL("p.objectclass", parentobject.objclass);
 
 	LOG_PLUGIN_DEBUG("%s Relation %x", __FUNCTION__, relation);
 	return CreateSignatureList(strQuery);

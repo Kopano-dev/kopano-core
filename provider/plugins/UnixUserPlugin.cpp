@@ -751,7 +751,6 @@ void UnixUserPlugin::deleteSubObjectRelation(userobject_relation_t relation, con
 signatures_t
 UnixUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 {
-	char buffer[PWBUFSIZE];
 	struct passwd pws, *pw = NULL;
 	signatures_t objectlist;
 
@@ -764,6 +763,7 @@ UnixUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 
 	// See if we get matches based on database details as well
 	try {
+		char buffer[PWBUFSIZE];
 		static constexpr const char *const search_props[] = {OP_EMAILADDRESS, nullptr};
 		for (const auto &sig : DBPlugin::searchObjects(match, search_props, nullptr, ulFlags)) {
 			// the DBPlugin returned the DB signature, so we need to prepend this with the gecos signature

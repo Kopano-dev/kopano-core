@@ -61,7 +61,6 @@ extern _kc_export HRESULT GetECObject(IMAPIProp *, const IID &, void **);
 
 // Auto-accept settings
 extern _kc_export HRESULT HrGetRemoteAdminStore(IMAPISession *, IMsgStore *, LPCTSTR server, ULONG flags, IMsgStore **ret);
-extern _kc_export HRESULT GetConfigMessage(LPMDB, const char *msgname, IMessage **msgout);
 
 extern _kc_export HRESULT HrOpenDefaultStore(IMAPISession *, IMsgStore **ret);
 extern _kc_export HRESULT HrOpenDefaultStore(IMAPISession *, ULONG flags, IMsgStore **ret);
