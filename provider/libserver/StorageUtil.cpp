@@ -84,7 +84,6 @@ ECRESULT CalculateObjectSize(ECDatabase* lpDatabase, unsigned int objid, unsigne
 	ECDatabaseAttachment *lpDatabaseStorage = NULL;
 
 	*lpulSize = 0;
-	// SQLite doesn't support IF-type statements, so we're now using a slightly simpler construct ..
 	auto strQuery = "SELECT (SELECT SUM(20 + LENGTH(IFNULL(val_string, ''))+length(IFNULL(val_binary, ''))) FROM properties WHERE hierarchyid=" + stringify(objid) + ") + IFNULL( (SELECT SUM(LENGTH(lob.val_binary)) FROM `lob` JOIN `singleinstances` ON singleinstances.instanceid = lob.instanceid WHERE singleinstances.hierarchyid=" + stringify(objid) + "), '')";
 	auto er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
