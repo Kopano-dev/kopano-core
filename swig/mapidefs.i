@@ -816,15 +816,4 @@ public:
 	}
 };
 
-// This is purely for testing
-HRESULT wrap_IMessage(IMessage *lpMessage, IMessage **OUTPUT);
-%{
-HRESULT wrap_IMessage(IMessage *lpMessage, IMessage **OUTPUT)
-{
-	*OUTPUT = lpMessage;
-	lpMessage->AddRef();
-	return hrSuccess;
-}
-%}
-
 #endif

@@ -25,18 +25,11 @@ typedef IMAPISession* LPMAPISESSION;
 /* uhhh... already in mapi.h ? */
 /* MAPILogon() flags.       */
 
-//#define MAPI_LOGON_UI           0x00000001  /* Display logon UI                 */
-//#define MAPI_NEW_SESSION        0x00000002  /* Don't use shared session         */
 #define MAPI_ALLOW_OTHERS       0x00000008  /* Make this a shared session       */
 #define MAPI_EXPLICIT_PROFILE   0x00000010  /* Don't use default profile        */
-//#define MAPI_EXTENDED           0x00000020  /* Extended MAPI Logon              */
-//#define MAPI_FORCE_DOWNLOAD     0x00001000  /* Get new mail before return       */
 #define MAPI_SERVICE_UI_ALWAYS  0x00002000  /* Do logon UI in all providers     */
 #define MAPI_NO_MAIL            0x00008000  /* Do not activate transports       */
 #define MAPI_NT_SERVICE          0x00010000  /* Allow logon from an NT service  */
-/* #ifndef MAPI_PASSWORD_UI */
-/* #define MAPI_PASSWORD_UI        0x00020000  /\* Display password UI only         *\/ */
-/* #endif */
 #define MAPI_TIMEOUT_SHORT      0x00100000  /* Minimal wait for logon resources */
 
 #define MAPI_SIMPLE_DEFAULT (MAPI_LOGON_UI | MAPI_FORCE_DOWNLOAD | MAPI_ALLOW_OTHERS)
