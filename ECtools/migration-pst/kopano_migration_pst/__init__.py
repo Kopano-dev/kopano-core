@@ -239,15 +239,25 @@ class Service(kopano.Service):
                 props.append(recip_prop(PROP_ID(PR_DISPLAY_NAME), value))
             if r.DisplayType is not None:
                 props.append(SPropValue(PR_DISPLAY_TYPE, r.DisplayType))
-            if user or r.EmailAddress:
-                value = user.name if user else r.EmailAddress
-                value = r.SmtpAddress if not user and r.AddressType == 'EX' else r.EmailAddress
-                props.append(recip_prop(PROP_ID(PR_EMAIL_ADDRESS), value))
             if user:
                 props.append(SPropValue(PR_ENTRYID, codecs.decode(user.userid, 'hex')))
+                props.append(recip_prop(PROP_ID(PR_EMAIL_ADDRESS), user.name))
             else:
-                email = r.SmtpAddress if not user and r.AddressType == 'EX' else r.EmailAddress
-                props.append(SPropValue(PR_ENTRYID, self.server.ab.CreateOneOff(r.DisplayName, u'SMTP', email, MAPI_UNICODE)))
+                email = None
+                if r.AddressType == 'EX':
+                    if r.SmtpAddress:
+                        email = r.SmtpAddress
+                    else:
+                        email = self.mapping.get(r.EmailAddress.lower())
+                elif r.AddressType == 'SMTP':
+                    email = r.EmailAddress
+                elif r.AddressType == 'ZARAFA':
+                    email = r.SmtpAddress
+                if email:
+                    props.append(SPropValue(PR_ENTRYID, self.server.ab.CreateOneOff(r.DisplayName, u'SMTP', email, MAPI_UNICODE)))
+                    props.append(recip_prop(PROP_ID(PR_EMAIL_ADDRESS), value))
+                else:
+                    self.log.warning("no email address for recipient '%s'" % r.DisplayName or '')
             recipients.append(props)
         mapiobj.ModifyRecipients(0, recipients)
 
