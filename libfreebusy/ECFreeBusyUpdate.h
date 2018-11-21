@@ -35,14 +35,9 @@ private:
 public:
 	static HRESULT Create(IMessage* lpMessage, ECFreeBusyUpdate **lppECFreeBusyUpdate);
 	virtual HRESULT QueryInterface(const IID &, void **) override;
-	virtual HRESULT Reload(void) { return S_OK; }
 	virtual HRESULT PublishFreeBusy(const FBBlock_1 *, ULONG nblks);
-	virtual HRESULT RemoveAppt(void) { return S_OK; }
 	virtual HRESULT ResetPublishedFreeBusy();
-	virtual HRESULT ChangeAppt(void) { return S_OK; }
 	virtual HRESULT SaveChanges(const FILETIME &start, const FILETIME &end) override;
-	virtual HRESULT GetFBTimes(void) { return S_OK; }
-	virtual HRESULT Intersect(void) { return S_OK; }
 
 private:
 	object_ptr<IMessage> m_lpMessage; /**< Pointer to the free/busy message received from GetFreeBusyMessage */

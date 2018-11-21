@@ -78,14 +78,9 @@ enum FBStatus {
 
 class IFreeBusyUpdate {
 public:
-        virtual HRESULT Reload() = 0;
 	virtual HRESULT PublishFreeBusy(const FBBlock_1 *, ULONG nblks) = 0;
-        virtual HRESULT RemoveAppt() = 0;
         virtual HRESULT ResetPublishedFreeBusy() = 0;
-        virtual HRESULT ChangeAppt() = 0;
         virtual HRESULT SaveChanges(const FILETIME start, const FILETIME end) = 0;
-        virtual HRESULT GetFBTimes() = 0;
-        virtual HRESULT Intersect() = 0;
         %extend {
                 ~IFreeBusyUpdate() { self->Release(); }
         }
@@ -107,14 +102,10 @@ public:
 
 class IFreeBusyData {
 public:
-        virtual HRESULT Reload(void*) = 0;
         virtual HRESULT EnumBlocks(IEnumFBBlock **ppenumfb, const FILETIME start, const FILETIME end) = 0;
-        virtual HRESULT Merge(void *) = 0;
         virtual HRESULT GetDelegateInfo(void *) = 0;
         virtual HRESULT FindFreeBlock(LONG, LONG, LONG, BOOL, LONG, LONG, LONG, FBBlock_1 *) = 0;
-        virtual HRESULT InterSect(void *, LONG, void *) = 0;
         virtual HRESULT SetFBRange(LONG rtmStart, LONG rtmEnd) = 0;
-        virtual HRESULT NextFBAppt(void *, ULONG, void *, ULONG, void *, void *) = 0;
         virtual HRESULT GetFBPublishRange(LONG *prtmStart, LONG *prtmEnd) = 0;
         %extend {
                 ~IFreeBusyData() { self->Release(); }
@@ -133,7 +124,6 @@ public:
         virtual HRESULT GetDelegateInfo(const FBUser &, void *) = 0;
         virtual HRESULT SetDelegateInfo(void *) = 0;
         virtual HRESULT AdviseFreeBusy(void *) = 0;
-        virtual HRESULT Reload(void *) = 0;
         virtual HRESULT GetFBDetailSupport(void **, BOOL ) = 0;
         virtual HRESULT HrHandleServerSched(void *) = 0;
         virtual HRESULT HrHandleServerSchedAccess() = 0;

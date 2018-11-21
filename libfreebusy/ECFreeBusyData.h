@@ -33,12 +33,9 @@ public:
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	virtual HRESULT Reload(void *) { return E_NOTIMPL; }
 	virtual HRESULT EnumBlocks(IEnumFBBlock **ppenumfb, const FILETIME &start, const FILETIME &end) override;
-	virtual HRESULT Merge(void *) { return E_NOTIMPL; }
 	virtual HRESULT GetDelegateInfo(void *) { return E_NOTIMPL; }
 	virtual HRESULT FindFreeBlock(LONG, LONG, LONG, BOOL, LONG, LONG, LONG, FBBlock_1 *);
-	virtual HRESULT InterSect(void *, LONG, void *) { return E_NOTIMPL; }
 	virtual HRESULT SetFBRange(LONG rtmStart, LONG rtmEnd);
-	virtual HRESULT NextFBAppt(void *, ULONG, void *, ULONG, void *, void *) { return E_NOTIMPL; }
 	virtual HRESULT GetFBPublishRange(LONG *prtmStart, LONG *prtmEnd);
 
 private:

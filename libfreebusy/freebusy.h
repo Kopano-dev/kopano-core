@@ -138,27 +138,12 @@ typedef struct FBUser *LPFBUser;
 class IFreeBusyUpdate : public virtual IUnknown {
 public:
 	/**
-	 * Unknown function, Possible reload the freebusydata ?
-	 * @return This member must return S_OK
-	 */
-	virtual HRESULT Reload() = 0;
-
-	/**
 	 * Add freebusy blocks, May be called more than once successively
 	 * Alternative name: AddAppt
 	 * @param lpBlocks an array of free/busy blocks to publish
 	 * @param nBlocks Number of freebusy blocks
 	 */
 	virtual HRESULT PublishFreeBusy(const FBBlock_1 *b, ULONG nblks) = 0;
-
-	/**
-	 * Unknown function, this member not supported
-	 *
-	 * @note The variables of the function are possible wrong should be like, 
-	          int IFreeBusyUpdate__RemoveAppt(int,int,int,int);
-	 * @return This member must return S_OK
-	 */
-	virtual HRESULT RemoveAppt() = 0;
 
 	/**
 	 * Remove all Freebusy data
@@ -168,33 +153,9 @@ public:
 	virtual HRESULT ResetPublishedFreeBusy() = 0;
 
 	/**
-	 * Unknown function, this member not supported
-	 *
-	 * @note The variables of the function are possible wrong
-	 * @return This member must return S_OK
-	 */
-	virtual HRESULT ChangeAppt() = 0;
-
-	/**
 	 * Save the freebusydata with time frame between the begintime and endtime.
 	 */
 	virtual HRESULT SaveChanges(const FILETIME &start, const FILETIME &end) = 0;
-
-	/**
-	 * Unknown function, this member not supported
-	 *
-	 * @note The variables of the function are possible wrong
-	 * @return This member must return S_OK
-	 */
-	virtual HRESULT GetFBTimes() = 0;
-
-	/**
-	 * Unknown function, this member not supported
-	 *
-	 * @note The variables of the function are possible wrong
-	 * @return This member must return S_OK
-	 */
-	virtual HRESULT Intersect() = 0;
 };
 
 /**
@@ -287,12 +248,6 @@ public:
  */
 class IFreeBusyData : public virtual IUnknown {
 public:
-	
-	/**
-	 * This member not supported must return E_NOTIMPL.
-	 */
-	virtual HRESULT Reload(void*) = 0;
-
 	/**
 	 * Gets an interface for a user that enumerates free/busy blocks of data within a 
 	 * specified time range.
@@ -314,22 +269,12 @@ public:
 	/**
 	 * This member not supported must return E_NOTIMPL.
 	 */
-	virtual HRESULT Merge(void *) = 0;
-
-	/**
-	 * This member not supported must return E_NOTIMPL.
-	 */
 	virtual HRESULT GetDelegateInfo(void *) = 0;
 
 	/**
 	 * This member not supported must return S_OK.
 	 */
 	virtual HRESULT FindFreeBlock(LONG, LONG, LONG, BOOL, LONG, LONG, LONG, FBBlock_1 *) = 0;
-
-	/**
-	 * This member not supported must return E_NOTIMPL.
-	 */
-	virtual HRESULT InterSect(void *, LONG, void *) = 0;
 
 	/**
 	 * Sets the range of time for an enumeration of free/busy block of data for a user.
@@ -347,12 +292,6 @@ public:
 	 *	IFreeBusyData::GetFBPublishRange.
 	 */
 	virtual HRESULT SetFBRange(LONG rtmStart, LONG rtmEnd) = 0;
-
-	/**
-	 * This member not supported must return E_NOTIMPL.
-	 */
-	virtual HRESULT NextFBAppt(void *, ULONG, void *, ULONG, void *, void *) = 0;
-
 
 	/**
 	 * Gets a preset time range for an enumeration of free/busy blocks of data for a user.
@@ -486,11 +425,6 @@ public:
 	 * This member not supported must return E_NOTIMPL.
 	 */
 	virtual HRESULT AdviseFreeBusy(void *) = 0;
-
-	/**
-	 * This member not supported must return E_NOTIMPL.
-	 */
-	virtual HRESULT Reload(void *) = 0;
 
 	/**
 	 * This member not supported must return E_NOTIMPL.
