@@ -96,11 +96,11 @@ information and delegate access to accounts.
  * calendar: Free, Busy, Tentative, or Out of Office.
  */
 enum FBStatus {
-	fbFree	= 0,					/**< Free */
-	fbTentative = fbFree + 1,		/**< Tentative */
-	fbBusy	= fbTentative + 1,		/**< Busy */
-	fbOutOfOffice	= fbBusy + 1,	/**< Out Of Office */
-	fbKopanoAllBusy = 1000			/**< Internal used */
+	fbFree,				/**< Free */
+	fbTentative,			/**< Tentative */
+	fbBusy,				/**< Busy */
+	fbOutOfOffice,			/**< Out Of Office */
+	fbKopanoAllBusy = 1000		/**< Internal used */
 };
 
 /**
