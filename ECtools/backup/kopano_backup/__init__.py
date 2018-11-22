@@ -919,8 +919,8 @@ def dump_rules(folder, user, server, stats, log):
                         f = movecopy.findall('folder')[0]
                         path = store.folder(entryid=_hex(_unbase64(f.text))).path
                         f.text = path
-                    except (MAPIErrorNotFound, kopano.NotFoundError, binascii.Error):
-                        log.warning("cannot serialize rule for unknown store/folder")
+                    except Exception as e:
+                        log.warning("could not resolve rule target: %s", str(e))
             ruledata = ElementTree.tostring(etxml)
     return pickle_dumps(ruledata)
 
@@ -942,8 +942,8 @@ def load_rules(folder, user, server, data, stats, log):
                         s.text = _base64(_unhex(store.entryid))
                         f = movecopy.findall('folder')[0]
                         f.text = _base64(_unhex(store.folder(f.text).entryid))
-                    except kopano.NotFoundError:
-                        log.warning("skipping rule for unknown store/folder")
+                    except Exception as e:
+                        log.warning("could not resolve rule target: %s", str(e))
             etxml = ElementTree.tostring(etxml)
             folder.create_prop(PR_RULES_DATA, etxml)
 
