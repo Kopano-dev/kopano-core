@@ -239,15 +239,25 @@ class Service(kopano.Service):
                 props.append(recip_prop(PROP_ID(PR_DISPLAY_NAME), value))
             if r.DisplayType is not None:
                 props.append(SPropValue(PR_DISPLAY_TYPE, r.DisplayType))
-            if user or r.EmailAddress:
-                value = user.name if user else r.EmailAddress
-                value = r.SmtpAddress if not user and r.AddressType == 'EX' else r.EmailAddress
-                props.append(recip_prop(PROP_ID(PR_EMAIL_ADDRESS), value))
             if user:
                 props.append(SPropValue(PR_ENTRYID, codecs.decode(user.userid, 'hex')))
+                props.append(recip_prop(PROP_ID(PR_EMAIL_ADDRESS), user.name))
             else:
-                email = r.SmtpAddress if not user and r.AddressType == 'EX' else r.EmailAddress
-                props.append(SPropValue(PR_ENTRYID, self.server.ab.CreateOneOff(r.DisplayName, u'SMTP', email, MAPI_UNICODE)))
+                email = None
+                if r.AddressType == 'EX':
+                    if r.SmtpAddress:
+                        email = r.SmtpAddress
+                    else:
+                        email = self.mapping.get(r.EmailAddress.lower())
+                elif r.AddressType == 'SMTP':
+                    email = r.EmailAddress
+                elif r.AddressType == 'ZARAFA':
+                    email = r.SmtpAddress
+                if email:
+                    props.append(SPropValue(PR_ENTRYID, self.server.ab.CreateOneOff(r.DisplayName, u'SMTP', email, MAPI_UNICODE)))
+                    props.append(recip_prop(PROP_ID(PR_EMAIL_ADDRESS), value))
+                else:
+                    self.log.warning("no email address for recipient '%s'" % r.DisplayName or '')
             recipients.append(props)
         mapiobj.ModifyRecipients(0, recipients)
 
@@ -374,6 +384,31 @@ def show_contents(args, options):
                 elif options.index:
                     for message in p.message_generator(folder):
                         writer.writerow([_encode(path), _encode(rev_cp1252(message.Subject or ''))])
+
+
+def create_mapping(args, options):
+    mapping = defaultdict(dict)
+    for arg in args:
+        print("Creating mapping of PST '%s'" % arg)
+        try:
+            p = pst.PST(arg)
+        except pst.PSTException:
+            print("'%s' is not a valid PST file" % arg)
+            continue
+
+        for folder in p.folder_generator():
+            for message in p.message_generator(folder):
+                for rec in message.subrecipients:
+                    if rec.AddressType != 'EX':
+                        continue
+                    if not rec.EmailAddress or not rec.SmtpAddress:
+                        continue
+                    mapping[rec.EmailAddress.lower()] = rec.SmtpAddress
+
+    with open(options.create_mapping, 'w') as fp:
+        json.dump(mapping, fp)
+        print('Written mapping file to \'%s\'.' % options.create_mapping)
+
 
 
 def create_mapping(args, options):

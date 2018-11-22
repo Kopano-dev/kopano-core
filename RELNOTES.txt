@@ -80,6 +80,7 @@ Packaging changes:
 Fixes:
 * backup: use PR_STORE_ENTRYID instead of PR_STORE_RECORD_KEY
   to open stores [KC-1331]
+* php: add missing variable initialization [KS-41996]
 Enhancements:
 * inetmapi: support multiple recipients in Reply-To [KC-434]
 Packaging:
