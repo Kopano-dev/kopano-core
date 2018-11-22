@@ -660,7 +660,6 @@ int main(int argc, char* argv[])
 		{ NULL, 0, NULL, 0 }
 	};
 
-	//FIXME: By start as service current path is the system32 dir ??? <-- use '-c' option in service to be sure?
 	// check for configfile
 	while (1) {
 		int c = my_getopt_long_permissive(argc, argv, "c:VFiuR", long_options, NULL);

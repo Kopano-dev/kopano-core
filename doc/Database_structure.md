@@ -143,7 +143,7 @@ Users table with the relation column (externid)
 
 ## versions
 
-List of all zarafa versions ever installed on the system
+List of all Kopano versions ever installed on the system
 
 
 ## Tables specific for DB plugin
