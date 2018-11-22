@@ -130,7 +130,7 @@ private:
 	BOOL HasAttachment();
 	HRESULT SyncRecips();
 	HRESULT SyncSubject();
-	HRESULT GetBodyType(eBodyType *lpulBodyType);
+	HRESULT GetBodyType(const std::string &rtf, eBodyType *out);
 
 	// Override GetProps/GetPropList so we can sync RTF before calling GetProps
 	virtual HRESULT GetProps(const SPropTagArray *, ULONG flags, ULONG *nvals, SPropValue **) override;
@@ -140,7 +140,7 @@ private:
 	HRESULT SyncBody(ULONG ulPropTag);
 	HRESULT SyncPlainToRtf();
 	HRESULT SyncPlainToHtml();
-	HRESULT SyncRtf();
+	HRESULT SyncRtf(const std::string &rtf);
 	HRESULT SyncHtmlToPlain();
 	HRESULT SyncHtmlToRtf();
 	HRESULT SetReadFlag2(unsigned int flags);

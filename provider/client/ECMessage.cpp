@@ -333,8 +333,13 @@ HRESULT ECMessage::SyncBody(ULONG ulPropTag)
 		else if (PROP_ID(ulPropTag) == PROP_ID(PR_HTML))
 			return SyncPlainToHtml();
 	} else if (m_ulBodyType == bodyTypeRTF) {
-		if (PROP_ID(ulPropTag) == PROP_ID(PR_BODY) || PROP_ID(ulPropTag) == PROP_ID(PR_HTML))
-			return SyncRtf();
+		if (PROP_ID(ulPropTag) == PROP_ID(PR_BODY) || PROP_ID(ulPropTag) == PROP_ID(PR_HTML)) {
+			std::string rtf;
+			auto hr = GetRtfData(&rtf);
+			if (hr != hrSuccess)
+				return hr;
+			return SyncRtf(rtf);
+		}
 	} else if (m_ulBodyType == bodyTypeHTML) {
 		if (PROP_ID(ulPropTag) == PROP_ID(PR_BODY))
 			return SyncHtmlToPlain();
@@ -430,10 +435,9 @@ HRESULT ECMessage::SyncPlainToHtml()
 /**
  * Synchronize an RTF body to a plaintext and an HTML body.
  */
-HRESULT ECMessage::SyncRtf()
+HRESULT ECMessage::SyncRtf(const std::string &strRTF)
 {
 	enum eRTFType { RTFTypeOther, RTFTypeFromText, RTFTypeFromHTML};
-	std::string strRTF;
 	bool bDone = false;
 	unsigned int ulCodePage = 0;
 	StreamPtr ptrHTMLStream;
@@ -445,11 +449,7 @@ HRESULT ECMessage::SyncRtf()
 	m_bInhibitSync = TRUE;
 
 	auto laters = make_scope_success([&]() { m_bInhibitSync = FALSE; });
-	auto hr = GetRtfData(&strRTF);
-	if (hr != hrSuccess)
-		return hr;
-
-	hr = GetCodePage(&ulCodePage);
+	auto hr = GetCodePage(&ulCodePage);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ECMAPIProp::OpenProperty(PR_HTML, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~ptrHTMLStream);
@@ -1728,8 +1728,13 @@ HRESULT ECMessage::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 	// IF the user sets both the body and the RTF, assume RTF overrides
 	if (pvalRtf) {
 		m_ulBodyType = bodyTypeUnknown; // Make sure GetBodyType doesn't use the cached value
-		GetBodyType(&m_ulBodyType);
-		SyncRtf();
+		std::string rtf;
+		hr = GetRtfData(&rtf);
+		if (hr == hrSuccess) {
+			hr = GetBodyType(rtf, &m_ulBodyType);
+			if (hr == hrSuccess)
+				SyncRtf(rtf);
+		}
 	} else if (pvalHtml) {
 		m_ulBodyType = bodyTypeHTML;
 		SyncHtmlToPlain();
@@ -2166,15 +2171,21 @@ HRESULT ECMessage::HrLoadProps()
 		fHTMLOK = TRUE;
 
 	if (fRTFOK) {
-		auto hrTmp = GetBodyType(&m_ulBodyType);
-		if (FAILED(hrTmp)) {
-			// e.g. this fails then RTF property is present but empty
-			kc_pwarn("GetBestBody: Unable to determine body type based on RTF data", hrTmp);
-		} else if ((m_ulBodyType == bodyTypePlain && !fBodyOK) ||
-		    (m_ulBodyType == bodyTypeHTML && !fHTMLOK)) {
-			hr = SyncRtf();
-			if (hr != hrSuccess)
-				return hr;
+		std::string rtf;
+		auto hrTmp = GetRtfData(&rtf);
+		if (hrTmp != hrSuccess) {
+			kc_pwarn("GetBestBody: GetRtfData", hrTmp);
+		} else {
+			hrTmp = GetBodyType(rtf, &m_ulBodyType);
+			if (FAILED(hrTmp)) {
+				// e.g. this fails then RTF property is present but empty
+				kc_pwarn("GetBestBody: Unable to determine body type based on RTF data", hrTmp);
+			} else if ((m_ulBodyType == bodyTypePlain && !fBodyOK) ||
+			    (m_ulBodyType == bodyTypeHTML && !fHTMLOK)) {
+				hr = SyncRtf(rtf);
+				if (hr != hrSuccess)
+					return hr;
+			}
 		}
 	}
 
@@ -2201,8 +2212,13 @@ HRESULT ECMessage::HrSetRealProp(const SPropValue *lpsPropValue)
 
 	if (lpsPropValue->ulPropTag == PR_RTF_COMPRESSED) {
 		m_ulBodyType = bodyTypeUnknown; // Make sure GetBodyType doesn't use the cached value
-		GetBodyType(&m_ulBodyType);
-		SyncRtf();
+		std::string rtf;
+		hr = GetRtfData(&rtf);
+		if (hr == hrSuccess) {
+			hr = GetBodyType(rtf, &m_ulBodyType);
+			if (hr == hrSuccess)
+				SyncRtf(rtf);
+		}
 	} else if (lpsPropValue->ulPropTag == PR_HTML) {
 		m_ulBodyType = bodyTypeHTML;
 		SyncHtmlToPlain();
@@ -2329,28 +2345,15 @@ HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 	return lpAttachments->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, &sKeyProp, lpProps, ulProps);
 }
 
-HRESULT ECMessage::GetBodyType(eBodyType *lpulBodyType)
+HRESULT ECMessage::GetBodyType(const std::string &rtf, eBodyType *lpulBodyType)
 {
-	object_ptr<IStream> lpRTFCompressedStream, lpRTFUncompressedStream;
-	char		szRtfBuf[64] = {0};
-	ULONG		cbRtfBuf = 0;
-
 	if (m_ulBodyType != bodyTypeUnknown) {
 		*lpulBodyType = m_ulBodyType;
 		return hrSuccess;
 	}
-	auto hr = OpenProperty(PR_RTF_COMPRESSED, &IID_IStream, 0, 0, &~lpRTFCompressedStream);
-	if (hr != hrSuccess)
-		return hr;
-	hr = WrapCompressedRTFStream(lpRTFCompressedStream, 0, &~lpRTFUncompressedStream);
-	if (hr != hrSuccess)
-		return hr;
-	hr = lpRTFUncompressedStream->Read(szRtfBuf, sizeof(szRtfBuf), &cbRtfBuf);
-	if (hr != hrSuccess)
-		return hr;
-	if (isrtftext(szRtfBuf, cbRtfBuf))
+	if (isrtftext(rtf.c_str(), rtf.size()))
 		m_ulBodyType = bodyTypePlain;
-	else if (isrtfhtml(szRtfBuf, cbRtfBuf))
+	else if (isrtfhtml(rtf.c_str(), rtf.size()))
 		m_ulBodyType = bodyTypeHTML;
 	else
 		m_ulBodyType = bodyTypeRTF;
