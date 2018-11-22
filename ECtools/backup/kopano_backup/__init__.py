@@ -492,7 +492,7 @@ class Service(kopano.Service):
                 sk_folder[orig_sk] = folder
 
         # restore specified (parts of) folders
-        restored = []
+        meta_folders = []
         sks = set()
         for path in paths:
             fpath = path_folder[path]
@@ -517,7 +517,9 @@ class Service(kopano.Service):
                         continue
 
             # restore folder
-            if not self.options.only_meta:
+            if self.options.only_meta: # TODO create empty folders with acls/rules, or skip non-existing folders?
+                folder = restore_root.get_folder(path)
+            else:
                 # differential folder move
                 folder = sk_folder.get(folder_sk)
                 if folder and self.options.differential:
@@ -531,7 +533,8 @@ class Service(kopano.Service):
                 else:
                     folder = restore_root.folder(path, create=True)
                 self.restore_folder(folder, path, fpath, store, store.subtree, stats, user, self.server)
-            restored.append((folder, fpath))
+            if folder:
+                meta_folders.append((folder, fpath))
 
         # differential folder deletes
         if self.options.differential:
@@ -545,7 +548,7 @@ class Service(kopano.Service):
         # restore folder-level metadata
         if not (self.options.sourcekeys or self.options.skip_meta):
             self.log.info('restoring metadata')
-            for (folder, fpath) in restored:
+            for (folder, fpath) in meta_folders:
                 load_acl(folder, user, self.server, open(fpath+'/acl', 'rb').read(), stats, self.log)
                 load_rules(folder, user, self.server, open(fpath+'/rules', 'rb').read(), stats, self.log)
 
