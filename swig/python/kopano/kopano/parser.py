@@ -187,7 +187,7 @@ Available options:
     if 'f' in options:
         parser.add_option(
             '-f', '--folder', dest='folders', default=[],
-            help='Specify folder', metavar='NAME', **kw_list_str
+            help='Specify folder', metavar='PATH', **kw_list_str
         )
 
     if 'b' in options:
