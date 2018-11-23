@@ -331,6 +331,7 @@ class FolderImporter:
 
     def __init__(self, *args):
         self.folder, self.folder_path, self.config, self.options, self.log, self.stats, self.service = args
+        self.store = self.folder.store
         self.reset_cache()
 
     def reset_cache(self):
@@ -347,15 +348,7 @@ class FolderImporter:
             data = zlib.compress(item.dumps(attachments=not self.options.skip_attachments, archiver=False, skip_broken=True))
             self.item_updates.append((item.sourcekey, data))
 
-            orig_prop = item.get_prop(PR_EC_BACKUP_SOURCE_KEY)
-            if orig_prop:
-                orig_prop = _hex(orig_prop.value)
-            idx = pickle_dumps({
-                b'subject': item.subject,
-                b'orig_sourcekey': orig_prop,
-                b'last_modified': item.last_modified,
-                b'backup_updated': self.service.timestamp,
-            })
+            idx = self.make_idx(item, item.read)
             self.index_updates.append((item.sourcekey, idx))
 
             self.stats['changes'] += 1
@@ -363,6 +356,19 @@ class FolderImporter:
             self.cache_size += len(data) + len(idx)
             if self.cache_size > CACHE_SIZE:
                 self.commit()
+
+    def make_idx(self, item, read):
+        orig_prop = item.get_prop(PR_EC_BACKUP_SOURCE_KEY)
+        if orig_prop:
+            orig_prop = _hex(orig_prop.value)
+        idx = pickle_dumps({
+            b'subject': item.subject,
+            b'orig_sourcekey': orig_prop,
+            b'last_modified': item.last_modified,
+            b'backup_updated': self.service.timestamp,
+            b'read': read,
+        })
+        return idx
 
     def delete(self, item, flags): # XXX batch as well, 'updating' cache?
         """ deleted item from 'items' and 'index' databases """
@@ -385,6 +391,10 @@ class FolderImporter:
                     b'backup_deleted': self.service.timestamp
                 })
             self.stats['deletes'] += 1
+
+    def read(self, item, state):
+        idx = self.make_idx(item, state)
+        self.index_updates.append((item.sourcekey, idx))
 
     def commit(self):
         """ commit data to storage """
@@ -709,7 +719,7 @@ class Service(kopano.Service):
         return [(job[0].entryid,)+job[1:] for job in sorted(jobs, reverse=True, key=lambda x: x[0].size)]
 
     def restore_folder(self, folder, path, data_path, store, subtree, stats, user, server):
-        """ restore single folder (or potential item in folder) """
+        """ restore (partial) folder """
 
         folderprops = pickle_loads(open('%s/folder' % data_path, 'rb').read())
 
@@ -784,7 +794,13 @@ class Service(kopano.Service):
                     else:
                         self.log.debug('restoring item with sourcekey %s', sourcekey2)
                         data = zlib.decompress(db_items[sourcekey2a])
-                        item = folder.create_item(loads=data, attachments=not self.options.skip_attachments)
+                        read = index[sourcekey2a].get(b'read')
+
+                        item = folder.create_item(
+                            loads=data,
+                            attachments=not self.options.skip_attachments,
+                            read=read,
+                        )
 
                         # store original item sourcekey or it is lost
                         try:

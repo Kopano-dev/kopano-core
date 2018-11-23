@@ -479,9 +479,11 @@ class Folder(Properties):
                     break
 
     def create_item(self, eml=None, ics=None, vcf=None, load=None, loads=None, attachments=True, save=True, **kwargs): # XXX associated
-        item = _item.Item(self, eml=eml, ics=ics, vcf=vcf, load=load, loads=loads, attachments=attachments, create=True, save=save)
+        read = kwargs.get('read') # needs to be set before first save
+        item = _item.Item(self, eml=eml, ics=ics, vcf=vcf, load=load, loads=loads, attachments=attachments, create=True, save=save, read=read)
         for key, val in kwargs.items():
-            setattr(item, key, val)
+            if key != 'read':
+                setattr(item, key, val)
         return item
 
     # XXX: always hard delete or but we should also provide 'softdelete' which moves the item to the wastebasket

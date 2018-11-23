@@ -162,6 +162,8 @@ class TrackingContentsImporter(ECImportContentsChanges):
             for state in states:
                 item = _item.Item()
                 item.server = self.server
+                if self.importer.store: # TODO system-wide?
+                    item.store = self.importer.store
                 item._sourcekey = _benc(state.SourceKey)
                 if hasattr(self.importer, 'read'):
                     self.importer.read(item, bool(state.ulFlags & MSGFLAG_READ))
