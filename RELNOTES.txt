@@ -6,6 +6,7 @@ Fixes:
 * php: add missing variable initialization [KS-41996]
 Enhancements:
 * inetmapi: support multiple recipients in Reply-To [KC-434]
+* server: print openssl errors when they happen [KC-1340]
 Packaging:
 * Support for gsoap 2.8.71
 
