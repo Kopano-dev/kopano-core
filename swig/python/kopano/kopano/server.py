@@ -657,6 +657,8 @@ class Server(object):
         fullname = _unicode(fullname)
         try:
             self.sa.CreateGroup(ECGROUP(name, fullname, email, int(hidden), groupid), MAPI_UNICODE)
+        except MAPIErrorNoSupport:
+            raise NotSupportedError("cannot create groups with configured user plugin")
         except MAPIErrorCollision:
             raise DuplicateError("group '%s' already exists" % name)
 
