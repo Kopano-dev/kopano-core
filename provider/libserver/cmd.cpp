@@ -304,23 +304,14 @@ static ECRESULT PeerIsServer(struct soap *soap,
     const std::string &strServerName, const std::string &strHttpPath,
     const std::string &strSslPath, bool *lpbResult)
 {
-	bool			bResult = false;
-
 	if (soap == NULL || lpbResult == NULL)
 		return KCERR_INVALID_PARAMETER;
-
-	if (SOAP_CONNECTION_TYPE_NAMED_PIPE(soap) &&
-	    strcasecmp(strServerName.c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) == 0) {
-		/*
-		 * If the client tries to connect to the same server as it
-		 * already is, and the existing connection was AF_LOCAL, then
-		 * obviously the new connection can be AF_LOCAL too. (Unhandled
-		 * caveat emptor: local mount namespaces!)
-		 */
-		*lpbResult = true;
-		return hrSuccess;
-	}
 	/*
+	 * If the client tries to connect to the same server as it
+	 * already is, and the existing connection was AF_LOCAL, then
+	 * obviously the new connection can be AF_LOCAL too. (Unhandled
+	 * caveat emptor: local mount namespaces!)
+	 *
 	 * SSL->AF_LOCAL transition could lead to rejected logins later when
 	 * using password-less auth, since AF_LOCAL does not implement
 	 * certificates.
@@ -329,7 +320,8 @@ static ECRESULT PeerIsServer(struct soap *soap,
 	 * on the client, any AF_INET->AF_LOCAL transitions cannot be made to
 	 * work reliably.
 	 */
-	*lpbResult = false;
+	*lpbResult = SOAP_CONNECTION_TYPE_NAMED_PIPE(soap) &&
+	             strcasecmp(strServerName.c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name"));
 	return erSuccess;
 }
 
