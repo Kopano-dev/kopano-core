@@ -4,8 +4,8 @@ Fixes:
 * backup: use PR_STORE_ENTRYID instead of PR_STORE_RECORD_KEY
   to open stores [KC-1331]
 * php: add missing variable initialization [KS-41996]
-* server: when issuing redirects, do not switch from SSL to
-  AF_LOCAL (as certificates are not supported) [KC-117]
+* server: cease issuing redirects to AF_LOCAL when connecting
+  over AF_INET* [KC-117]
 Enhancements:
 * inetmapi: support multiple recipients in Reply-To [KC-434]
 * server: print openssl errors when they happen [KC-1340]
