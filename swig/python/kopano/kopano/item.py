@@ -160,7 +160,7 @@ class Item(Properties, Contact, Appointment):
 
     def __init__(self, folder=None, eml=None, ics=None, vcf=None, load=None,
                  loads=None, attachments=True, create=False, mapiobj=None,
-                 entryid=None, content_flag=None, cache={}, save=True):
+                 entryid=None, content_flag=None, cache={}, save=True, read=None):
         self._eml = None
         self._architem = None
         self._folder = None
@@ -219,6 +219,9 @@ class Item(Properties, Contact, Appointment):
                         self[PidLidAppointmentStateFlags] = 1
                         self[PidLidResponseStatus] = 1 # TODO move appt creation to appointment.py
                         self[PidLidFInvited] = False
+
+            if read is not None:
+                self.read = read
             if save:
                 _utils._save(self.mapiobj)
 
