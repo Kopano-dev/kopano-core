@@ -311,6 +311,15 @@ static ECRESULT PeerIsServer(struct soap *soap,
 		*lpbResult = true;
 		return hrSuccess;
 	}
+	if (soap_info(soap)->ulConnectionType == CONNECTION_TYPE_SSL) {
+		/*
+		 * SSL->AF_LOCAL transition could lead to rejected logins later when
+		 * using password-less auth, since AF_LOCAL does not implement
+		 * certificates.
+		 */
+		*lpbResult = false;
+		return erSuccess;
+	}
 
 	const std::string *lpstrPath = &strHttpPath;
 	if (lpstrPath->empty())
