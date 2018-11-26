@@ -62,24 +62,6 @@ class IECChangeAdvisor : public virtual IUnknown {
 	virtual HRESULT AddKeys(LPENTRYLIST lpEntryList) = 0;
 
 	/**
-	 * Unregister one or more folder for change notifications.
-	 *
-	 * @param[in]	lpEntryList
-	 *					A list of keys specifying the folders to monitor. See AddKeys for
-	 *					information about the key format.
-	 */
-	virtual HRESULT RemoveKeys(LPENTRYLIST lpEntryList) = 0;
-
-	/**
-	 * Check if the change advisor is monitoring the folder specified by a particular sync id.
-	 *
-	 * @param[in]	ulSyncId
-	 *					The sync id of the folder.
-	 * @return hrSuccess if the folder is being monitored.
-	 */
-	virtual HRESULT IsMonitoringSyncId(ULONG ulSyncId) = 0;
-
-	/**
 	 * Update the changeid for a particular syncid.
 	 *
 	 * This is used to update the state of the changeadvisor. This is also vital information
@@ -111,9 +93,7 @@ class ECLogger;
 
 class IECExportChanges : public IExchangeExportChanges {
 	public:
-	virtual HRESULT ConfigSelective(ULONG ulPropTag, LPENTRYLIST lpEntries, LPENTRYLIST lpParents, ULONG ulFlags, LPUNKNOWN lpCollector, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize) = 0;
 	virtual HRESULT GetChangeCount(ULONG *lpcChanges) = 0;
-	virtual HRESULT SetMessageInterface(REFIID refiid) = 0;
 };
 
 class IECImportAddressbookChanges : public virtual IUnknown {
@@ -127,7 +107,6 @@ class IECImportAddressbookChanges : public virtual IUnknown {
 
 class IECImportContentsChanges : public IExchangeImportContentsChanges {
 	public:
-	virtual HRESULT ConfigForConversionStream(LPSTREAM lpStream, ULONG ulFlags, ULONG cValuesConversion, LPSPropValue lpPropArrayConversion) = 0;
 	virtual HRESULT ImportMessageChangeAsAStream(ULONG cpvalChanges, LPSPropValue ppvalChanges, ULONG ulFlags, LPSTREAM *lppstream) = 0;
 };
 
@@ -155,7 +134,6 @@ class IECServiceAdmin : public virtual IECSecSvcAdm_base {
 	/* Create/Delete stores */
 	virtual HRESULT CreateStore(ULONG store_type, ULONG user_size, const ENTRYID *user_eid, ULONG *newstore_size, ENTRYID **newstore_eid, ULONG *root_size, ENTRYID **root_eid) = 0;
 	virtual HRESULT CreateEmptyStore(ULONG store_type, ULONG user_size, const ENTRYID *user_eid, ULONG flags, ULONG *newstore_size, ENTRYID **newstore_eid, ULONG *root_size, ENTRYID **root_eid) = 0;
-	virtual HRESULT ResolveStore(const GUID *, ULONG *user_id, ULONG *store_size, ENTRYID **store_eid) = 0;
 	virtual HRESULT HookStore(ULONG store_type, ULONG eid_size, const ENTRYID *eid, const GUID *guid) = 0;
 	virtual HRESULT UnhookStore(ULONG store_type, ULONG eid_size, const ENTRYID *eid) = 0;
 	virtual HRESULT RemoveStore(const GUID *) = 0;
@@ -169,9 +147,6 @@ class IECServiceAdmin : public virtual IECSecSvcAdm_base {
 	virtual HRESULT GetSendAsList(ULONG ueid_size, const ENTRYID *user_eid, ULONG flags, ULONG *nsenders, ECUSER **) = 0;
 	virtual HRESULT AddSendAsUser(ULONG ueid_size, const ENTRYID *user_eid, ULONG seid_size, const ENTRYID *sender_eid) = 0;
 	virtual HRESULT DelSendAsUser(ULONG ueid_size, const ENTRYID *user_eid, ULONG seid_size, const ENTRYID *sender_eid) = 0;
-
-	/* Remove all users EXCEPT the passed user */
-	virtual HRESULT RemoveAllObjects(ULONG ueid_size, const ENTRYID *user_eid) = 0;
 
 	/* Group functions */
 	virtual HRESULT CreateGroup(ECGROUP *lpECGroup, ULONG ulFlags, ULONG *lpcbGroupId, LPENTRYID *lppGroupId) = 0;

@@ -1434,43 +1434,6 @@ HRESULT WSTransport::HrAbortSubmit(ULONG cbEntryID, const ENTRYID *lpEntryID)
 	return hr;
 }
 
-HRESULT WSTransport::HrResolveStore(const GUID *lpGuid, ULONG *lpulUserID,
-    ULONG *lpcbStoreID, ENTRYID **lppStoreID)
-{
-	if (lpGuid == nullptr)
-		return MAPI_E_INVALID_PARAMETER;
-
-	HRESULT hr = hrSuccess;
-	ECRESULT er = erSuccess;
-	struct resolveUserStoreResponse sResponse;
-	struct xsd__base64Binary sStoreGuid;
-	soap_lock_guard spg(*this);
-
-	sStoreGuid.__ptr = (unsigned char*)lpGuid;
-	sStoreGuid.__size = sizeof(GUID);
-
-	START_SOAP_CALL
-	{
-		if (m_lpCmd->resolveStore(m_ecSessionId, sStoreGuid, &sResponse) != SOAP_OK)
-			er = KCERR_NETWORK_ERROR;
-		else
-			er = sResponse.er;
-	}
-	END_SOAP_CALL
-
-	if(lpulUserID)
-		*lpulUserID = sResponse.ulUserId;
-
-	if(lpcbStoreID && lppStoreID) {
-		// Create a client store entry, add the servername
-		hr = WrapServerClientStoreEntry(sResponse.lpszServerPath ? sResponse.lpszServerPath : m_sProfileProps.strServerPath.c_str(), &sResponse.sStoreId, lpcbStoreID, lppStoreID);
-		if(hr != hrSuccess)
-			goto exitm;
-	}
- exitm:
-	return hr;
-}
-
 HRESULT WSTransport::HrResolveUserStore(const utf8string &strUserName, ULONG ulFlags, ULONG *lpulUserID, ULONG* lpcbStoreID, LPENTRYID* lppStoreID, std::string *lpstrRedirServer)
 {
 	if (strUserName.empty())
@@ -2180,30 +2143,6 @@ HRESULT WSTransport::HrDelSendAsUser(ULONG cbUserId, const ENTRYID *lpUserId,
 	START_SOAP_CALL
 	{
 		if (m_lpCmd->delSendAsUser(m_ecSessionId, ABEID_ID(lpUserId), sUserId, ABEID_ID(lpSenderId), sSenderId, &er) != SOAP_OK)
-			er = KCERR_NETWORK_ERROR;
-	}
-	END_SOAP_CALL
- exitm:
-	return hr;
-}
-
-HRESULT WSTransport::HrRemoveAllObjects(ULONG cbUserId, const ENTRYID *lpUserId)
-{
-	if (cbUserId < CbNewABEID("") || lpUserId == nullptr)
-		return MAPI_E_INVALID_PARAMETER;
-
-    ECRESULT er = erSuccess;
-    HRESULT hr = hrSuccess;
-	entryId sUserId;
-	soap_lock_guard spg(*this);
-
-	hr = CopyMAPIEntryIdToSOAPEntryId(cbUserId, lpUserId, &sUserId, true);
-	if (hr != hrSuccess)
-		goto exitm;
-
-	START_SOAP_CALL
-	{
-		if (m_lpCmd->removeAllObjects(m_ecSessionId, sUserId, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL

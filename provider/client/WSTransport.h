@@ -127,7 +127,6 @@ public:
 	virtual HRESULT HrAbortSubmit(ULONG eid_size, const ENTRYID *);
 
 	// Get user information
-	virtual HRESULT HrResolveStore(const GUID *, ULONG *user_id, ULONG *store_size, ENTRYID **store_eid);
 	virtual HRESULT HrResolveUserStore(const KC::utf8string &username, ULONG flags, ULONG *user_id, ULONG *eid_size, ENTRYID **store_eid, std::string *redir_srv = nullptr);
 	virtual HRESULT HrResolveTypedStore(const KC::utf8string &username, ULONG store_type, ULONG *eid_size, ENTRYID **store_eid);
 
@@ -146,7 +145,6 @@ public:
 	virtual HRESULT HrGetSendAsList(ULONG ueid_size, const ENTRYID *user_eid, ULONG flags, ULONG *nsenders, KC::ECUSER **senders);
 	virtual HRESULT HrAddSendAsUser(ULONG ueid_size, const ENTRYID *user_eid, ULONG seid_size, const ENTRYID *sender_eid);
 	virtual HRESULT HrDelSendAsUser(ULONG ueid_size, const ENTRYID *user_eid, ULONG seid_size, const ENTRYID *sender_eid);
-	virtual HRESULT HrRemoveAllObjects(ULONG ueid_size, const ENTRYID *user_eid);
 
 	// Quota
 	virtual HRESULT GetQuota(ULONG ueid_size, const ENTRYID *user_eid, bool get_dfl, KC::ECQUOTA **);

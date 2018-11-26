@@ -377,16 +377,6 @@ public:
 	 */
 	virtual abprops_t getExtraAddressbookProperties() = 0;
 
-	/**
-	 * Reset entire plugin - use with care - this deletes (almost) all entries in the user database
-	 *
-	 * @param except The exception of all objects, which should NOT be deleted (usually the userid 
-	 *               of the caller)
-	 *
-	 */
-	virtual void removeAllObjects(objectid_t except) = 0;
-	
-
 protected:
 	std::mutex &m_plugin_lock;
 

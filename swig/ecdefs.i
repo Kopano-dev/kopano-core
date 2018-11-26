@@ -12,8 +12,6 @@ public:
 	virtual HRESULT Config(IStream * lpStream, GUID * lpGUID, IECChangeAdviseSink* lpAdviseSink, ULONG ulFlags) = 0;
 	virtual HRESULT UpdateState(IStream * lpStream) = 0;
 	virtual HRESULT AddKeys(LPENTRYLIST lpEntryList) = 0;
-	virtual HRESULT RemoveKeys(LPENTRYLIST lpEntryList) = 0;
-    virtual HRESULT IsMonitoringSyncId(ULONG ulSyncId) = 0;
 	virtual HRESULT UpdateSyncState(ULONG ulSyncId, ULONG ulChangeId) = 0;
 	%extend {
 		virtual ~IECChangeAdvisor() { self->Release(); }
@@ -30,7 +28,6 @@ public:
 
 class IECImportContentsChanges : public IExchangeImportContentsChanges {
 public:
-	virtual HRESULT ConfigForConversionStream(IStream * lpStream, ULONG ulFlags, ULONG cValuesConversion, LPSPropValue lpPropArrayConversion) = 0;
 	virtual HRESULT ImportMessageChangeAsAStream(ULONG cValues, LPSPropValue lpProps, ULONG ulFlags, IStream ** lppStream) = 0;
 	%extend {
 		virtual ~IECImportContentsChanges() { self->Release(); }
