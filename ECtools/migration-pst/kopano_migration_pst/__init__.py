@@ -165,7 +165,7 @@ class Service(kopano.Service):
             reminder_set_id is not None):
             props2[reminder_set_id].Value = False
 
-        proplist = props2.values() # TODO move down and overwrite instead of append
+        proplist = list(props2.values()) # TODO move down and overwrite instead of append
 
         # Check if any recipient property on an item has an EX address and try to convert it.
         for prop_dict in EMAIL_RECIP_PROPS:
