@@ -234,15 +234,14 @@ class Service(kopano.Service):
     def import_recipients(self, message, mapiobj):
         recipients = [] # XXX groups etc?
         for r in message.subrecipients:
+            # try to resolve user
             user = None
             key = None
             if r.ObjectType == 6 and r.DisplayType == 0:
                 if r.AddressType == 'EX':
                     key = r.SmtpAddress
-                if not r.AddressType: # missing addr type observed in the wild
-                    key = r.DisplayName or r.EmailAddress
                 elif r.AddressType == 'ZARAFA':
-                    key = r.EmailAddress or r.DisplayName
+                    key = r.EmailAddress
             if key:
                 try:
                     user = self.server.user(email=key) # XXX using email arg for name/fullname/email
@@ -250,22 +249,23 @@ class Service(kopano.Service):
                     if key not in self.unresolved:
                         self.log.warning("could not resolve user '%s'" % key)
                         self.unresolved.add(key)
+
+            # set recipient properties
             props = []
             if r.RecipientType is not None:
                 props.append(SPropValue(PR_RECIPIENT_TYPE, r.RecipientType))
-            if user or r.AddressType is not None:
-                value = u'ZARAFA' if user else r.AddressType
-                value = u'SMTP' if not user and r.AddressType == 'EX' else value
-                props.append(recip_prop(PROP_ID(PR_ADDRTYPE), value))
-            if user or r.DisplayName is not None:
-                value = user.fullname if user else r.DisplayName
-                props.append(recip_prop(PROP_ID(PR_DISPLAY_NAME), value))
             if r.DisplayType is not None:
                 props.append(SPropValue(PR_DISPLAY_TYPE, r.DisplayType))
+            if r.DisplayName is not None:
+                props.append(recip_prop(PROP_ID(PR_DISPLAY_NAME), r.DisplayName))
+
             if user:
+                # matching user: set properties cleanly
+                props.append(recip_prop(PROP_ID(PR_ADDRTYPE), u'ZARAFA'))
                 props.append(SPropValue(PR_ENTRYID, codecs.decode(user.userid, 'hex')))
                 props.append(recip_prop(PROP_ID(PR_EMAIL_ADDRESS), user.name))
             else:
+                # create one-off
                 email = None
                 if r.AddressType == 'EX':
                     if r.SmtpAddress:
@@ -278,9 +278,11 @@ class Service(kopano.Service):
                     email = r.SmtpAddress
                 if email:
                     props.append(SPropValue(PR_ENTRYID, self.server.ab.CreateOneOff(r.DisplayName, u'SMTP', email, MAPI_UNICODE)))
+                    props.append(recip_prop(PROP_ID(PR_ADDRTYPE), u'SMTP'))
                     props.append(recip_prop(PROP_ID(PR_EMAIL_ADDRESS), email))
                 else:
                     self.log.warning("no email address for recipient '%s'" % r.DisplayName or '')
+
             recipients.append(props)
         mapiobj.ModifyRecipients(0, recipients)
 
