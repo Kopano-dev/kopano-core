@@ -69,7 +69,8 @@ EXTRA_DIST = ${BUILT_SOURCES} ldap.m4 \
 	kopano-ical.init.rhel kopano-dagent.init.rhel kopano-search.init.rhel \
 	kopano-presence.init.rhel kopano-spamd.init.rhel
 
-kopano-statsd.service: ${top_builddir}/config.status
+kopano-statsd.service: kopano-statsd.service.in ${top_builddir}/config.status
+	${AM_V_GEN}${SED} -e 's|@''libexecdir''@|${libexecdir}|g' <$< >$@
 
 install-data-hook:
 	install -d -m 755 ${DESTDIR}/${sysconfdir}/kopano/license
