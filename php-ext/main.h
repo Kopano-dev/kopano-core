@@ -35,6 +35,11 @@
 ***************************************************************/
 #include "globals.h"
 
+struct zvalplus : public zval {
+	zvalplus() { ZVAL_NULL(this); }
+	~zvalplus() { zval_ptr_dtor(this); }
+};
+
 /**
 * Numeric identifier for the resource type
 *
