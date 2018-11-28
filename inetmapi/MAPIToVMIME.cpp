@@ -1679,8 +1679,6 @@ HRESULT MAPIToVMIME::handleReplyTo(IMessage *lpMessage,
     vmime::shared_ptr<vmime::header> vmHeader)
 {
 	HRESULT			hr = hrSuccess;
-	FLATENTRYLIST	*lpEntryList = NULL;
-	FLATENTRY		*lpEntry = NULL;
 	LPCONTAB_ENTRYID lpContabEntryID = NULL;
 	GUID*			guid = NULL;
 	ULONG			ulObjType;
@@ -1691,7 +1689,7 @@ HRESULT MAPIToVMIME::handleReplyTo(IMessage *lpMessage,
 	static const ULONG lpulNamesIDs[] = {0x8080, 0x8082, 0x8083, 0x8085,
 				0x8090, 0x8092, 0x8093, 0x8095,
 				0x80A0, 0x80A2, 0x80A3, 0x80A5};
-	ULONG cNames, i, offset;
+	ULONG cNames, offset;
 	memory_ptr<MAPINAMEID> lpNames;
 	memory_ptr<MAPINAMEID *> lppNames;
 	memory_ptr<SPropTagArray> lpNameTagArray;
@@ -1701,12 +1699,15 @@ HRESULT MAPIToVMIME::handleReplyTo(IMessage *lpMessage,
 		return hr;
 	if (lpReplyTo->Value.bin.cb == 0)
 		return hr;
-	lpEntryList = (FLATENTRYLIST *)lpReplyTo->Value.bin.lpb;
-
+	auto lpEntryList = reinterpret_cast<const FLATENTRYLIST *>(lpReplyTo->Value.bin.lpb);
 	if (lpEntryList->cEntries == 0)
 		return hr;
 
-	lpEntry = (FLATENTRY *)&lpEntryList->abEntries;
+	auto mblist = vmime::make_shared<vmime::mailboxList>();
+	auto lpEntry = reinterpret_cast<const FLATENTRY *>(&lpEntryList->abEntries);
+	for (unsigned int i = 0; i < lpEntryList->cEntries &&
+	     reinterpret_cast<uintptr_t>(lpEntryList) < reinterpret_cast<uintptr_t>(lpEntryList + CbFLATENTRYLIST(lpEntryList));
+	     ++i) {
 
 	hr = HrGetAddress(m_lpAdrBook, (LPENTRYID)lpEntry->abEntry, lpEntry->cb, strName, strType, strEmail);
 	if (hr != hrSuccess) {
@@ -1760,11 +1761,18 @@ HRESULT MAPIToVMIME::handleReplyTo(IMessage *lpMessage,
 		}
 	}
 
-	// vmime can only set 1 email address in the ReplyTo field.
-	if (!strName.empty() && strName != strEmail)
-		vmHeader->ReplyTo()->setValue(vmime::make_shared<vmime::mailbox>(getVmimeTextFromWide(strName), m_converter.convert_to<string>(strEmail)));
-	else
-		vmHeader->ReplyTo()->setValue(vmime::make_shared<vmime::mailbox>(m_converter.convert_to<string>(strEmail)));
+	auto mb = !strName.empty() && strName != strEmail ?
+	          vmime::make_shared<vmime::mailbox>(getVmimeTextFromWide(strName), m_converter.convert_to<string>(strEmail)) :
+	          vmime::make_shared<vmime::mailbox>(m_converter.convert_to<string>(strEmail));
+	mblist->appendMailbox(mb);
+	lpEntry = reinterpret_cast<const FLATENTRY *>((reinterpret_cast<uintptr_t>(lpEntry) + CbFLATENTRY(lpEntry) + 3) / 4 * 4);
+	}
+	try {
+		vmHeader->ReplyTo()->setValue(mblist);
+	} catch (const vmime::exceptions::bad_field_value_type &) {
+		if (mblist->getMailboxCount() > 0)
+			vmHeader->ReplyTo()->setValue(mblist->getMailboxAt(0));
+	}
 	return hrSuccess;
 }
 
