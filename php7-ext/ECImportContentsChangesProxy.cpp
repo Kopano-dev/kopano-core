@@ -110,10 +110,11 @@ HRESULT ECImportContentsChangesProxy::Config(LPSTREAM lpStream, ULONG ulFlags) {
     zval pvalArgs[2];
     
     if(lpStream) {
-	Z_LVAL_P(&pvalArgs[0]) = (long)lpStream;
-	Z_TYPE_INFO_P(&pvalArgs[0]) = IS_RESOURCE;
+		ZVAL_RES(&pvalArgs[0], zend_register_resource(lpStream, le_istream));
+		if (Z_RES(pvalArgs[0]) != nullptr)
+			lpStream->AddRef();
     } else {
-        ZVAL_NULL(&pvalArgs[0]);
+		ZVAL_NULL(&pvalArgs[0]);
     }
     
     ZVAL_LONG(&pvalArgs[1], ulFlags);
@@ -135,8 +136,9 @@ HRESULT ECImportContentsChangesProxy::UpdateState(LPSTREAM lpStream) {
 	zval pvalArgs;
     
     if(lpStream) {
-		Z_LVAL_P(&pvalArgs) = reinterpret_cast<uintptr_t>(lpStream);
-		Z_TYPE_INFO_P(&pvalArgs) = IS_RESOURCE;
+		ZVAL_RES(&pvalArgs, zend_register_resource(lpStream, le_istream));
+		if (Z_RES(pvalArgs) != nullptr)
+			lpStream->AddRef();
     } else {
 		ZVAL_NULL(&pvalArgs);
     }

@@ -65,6 +65,7 @@ extern "C" {
 #include <edkmdb.h>
 #include "ECImportHierarchyChangesProxy.h"
 #include "typeconversion.h"
+#include "main.h"
 
 ECImportHierarchyChangesProxy::ECImportHierarchyChangesProxy(const zval *v TSRMLS_DC) :
 	m_cRef(1)
@@ -109,8 +110,9 @@ HRESULT ECImportHierarchyChangesProxy::Config(LPSTREAM lpStream, ULONG ulFlags) 
     zval pvalArgs[2];
     
     if(lpStream) {
-	Z_LVAL_P(&pvalArgs[0]) = (long)lpStream;
-	Z_TYPE_INFO_P(&pvalArgs[0]) = IS_RESOURCE;
+		ZVAL_RES(&pvalArgs[0], zend_register_resource(lpStream, le_istream));
+		if (Z_RES(pvalArgs[0]))
+			lpStream->AddRef();
     } else {
         ZVAL_NULL(&pvalArgs[0]);
     }
@@ -134,8 +136,9 @@ HRESULT ECImportHierarchyChangesProxy::UpdateState(LPSTREAM lpStream) {
     zval pvalArgs[1];
     
     if(lpStream) {
-	Z_LVAL_P(&pvalArgs[0]) = (long)lpStream;
-	Z_TYPE_INFO_P(&pvalArgs[0]) = IS_RESOURCE;
+		ZVAL_RES(&pvalArgs[0], zend_register_resource(lpStream, le_istream));
+		if (Z_RES(pvalArgs[0]))
+			lpStream->AddRef();
     } else {
         ZVAL_NULL(&pvalArgs[0]);
     }

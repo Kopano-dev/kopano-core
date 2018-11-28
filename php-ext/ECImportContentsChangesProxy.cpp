@@ -119,11 +119,13 @@ HRESULT ECImportContentsChangesProxy::Config(LPSTREAM lpStream, ULONG ulFlags) {
     
     MAKE_STD_ZVAL(pvalArgs[0]);
     MAKE_STD_ZVAL(pvalArgs[1]);
-
-    if (lpStream != nullptr)
-        ZVAL_RESOURCE(pvalArgs[0], (long)lpStream);
-    else
-        ZVAL_NULL(pvalArgs[0]);
+	if (lpStream != nullptr) {
+		ZEND_REGISTER_RESOURCE(pvalArgs[0], lpStream, le_istream);
+		if (Z_RESVAL_P(pvalArgs[0]) != nullptr)
+			lpStream->AddRef();
+	} else {
+		ZVAL_NULL(pvalArgs[0]);
+	}
     
     ZVAL_LONG(pvalArgs[1], ulFlags);
     
@@ -158,10 +160,13 @@ HRESULT ECImportContentsChangesProxy::UpdateState(LPSTREAM lpStream) {
     MAKE_STD_ZVAL(pvalFuncName);
     MAKE_STD_ZVAL(pvalReturn);
 	MAKE_STD_ZVAL(pvalArgs);
-    if (lpStream != nullptr)
-		ZVAL_RESOURCE(pvalArgs, reinterpret_cast<uintptr_t>(lpStream));
-    else
+	if (lpStream != nullptr) {
+		ZEND_REGISTER_RESOURCE(pvalArgs, lpStream, le_istream);
+		if (Z_RESVAL_P(pvalArgs) != nullptr)
+			lpStream->AddRef();
+	} else {
 		ZVAL_NULL(pvalArgs);
+	}
     
     ZVAL_STRING(pvalFuncName, "UpdateState" , 1);
 	if (call_user_function(nullptr, &m_lpObj, pvalFuncName, pvalReturn, 1, &pvalArgs TSRMLS_CC) == FAILURE) {
