@@ -62,9 +62,7 @@ extern "C" {
 #include <edkmdb.h>
 #include "ECImportContentsChangesProxy.h"
 #include "typeconversion.h"
-
-static char *name_mapi_message;
-static int le_mapi_message;
+#include "main.h"
 
 ECImportContentsChangesProxy::ECImportContentsChangesProxy(zval *lpObj TSRMLS_DC) :
 	m_cRef(1), m_lpObj(lpObj)
