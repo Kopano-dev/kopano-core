@@ -278,7 +278,7 @@ class Service(kopano.Service):
                     email = r.SmtpAddress
                 if email:
                     props.append(SPropValue(PR_ENTRYID, self.server.ab.CreateOneOff(r.DisplayName, u'SMTP', email, MAPI_UNICODE)))
-                    props.append(recip_prop(PROP_ID(PR_EMAIL_ADDRESS), value))
+                    props.append(recip_prop(PROP_ID(PR_EMAIL_ADDRESS), email))
                 else:
                     self.log.warning("no email address for recipient '%s'" % r.DisplayName or '')
             recipients.append(props)

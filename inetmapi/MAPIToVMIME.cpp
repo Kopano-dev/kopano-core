@@ -1636,22 +1636,27 @@ HRESULT MAPIToVMIME::handleReplyTo(IMessage *lpMessage,
 		return hrSuccess;
 	if (lpReplyTo->Value.bin.cb == 0)
 		return hrSuccess;
-	auto lpEntryList = reinterpret_cast<FLATENTRYLIST *>(lpReplyTo->Value.bin.lpb);
+	auto lpEntryList = reinterpret_cast<const FLATENTRYLIST *>(lpReplyTo->Value.bin.lpb);
 	if (lpEntryList->cEntries == 0)
 		return hrSuccess;
-	auto lpEntry = reinterpret_cast<FLATENTRY *>(&lpEntryList->abEntries);
-	auto hr = HrGetAddress(m_lpAdrBook, reinterpret_cast<ENTRYID *>(lpEntry->abEntry), lpEntry->cb, strName, strType, strEmail);
+	auto mblist = vmime::make_shared<vmime::mailboxList>();
+	auto lpEntry = reinterpret_cast<const FLATENTRY *>(&lpEntryList->abEntries);
+	for (unsigned int i = 0; i < lpEntryList->cEntries &&
+	     reinterpret_cast<uintptr_t>(lpEntryList) < reinterpret_cast<uintptr_t>(lpEntryList + CbFLATENTRYLIST(lpEntryList));
+	     ++i) {
+
+	auto hr = HrGetAddress(m_lpAdrBook, reinterpret_cast<const ENTRYID *>(lpEntry->abEntry), lpEntry->cb, strName, strType, strEmail);
 	if (hr != hrSuccess) {
 		if (m_lpSession == nullptr)
 			return MAPI_E_INVALID_PARAMETER;
 
 		// user selected a contact (or distrolist ?) in the reply-to
-		auto lpContabEntryID = reinterpret_cast<CONTAB_ENTRYID *>(lpEntry->abEntry);
-		auto guid = reinterpret_cast<GUID *>(&lpContabEntryID->muid);
+		auto lpContabEntryID = reinterpret_cast<const CONTAB_ENTRYID *>(lpEntry->abEntry);
+		auto guid = reinterpret_cast<const GUID *>(&lpContabEntryID->muid);
 
 		if (sizeof(CONTAB_ENTRYID) > lpEntry->cb || *guid != PSETID_CONTACT_FOLDER_RECIPIENT || lpContabEntryID->email_offset > 2)
 			return hr;
-		hr = m_lpSession->OpenEntry(lpContabEntryID->cbeid, reinterpret_cast<ENTRYID *>(lpContabEntryID->abeid), &iid_of(lpContact), 0, &ulObjType, &~lpContact);
+		hr = m_lpSession->OpenEntry(lpContabEntryID->cbeid, reinterpret_cast<const ENTRYID *>(lpContabEntryID->abeid), &iid_of(lpContact), 0, &ulObjType, &~lpContact);
 		if (hr != hrSuccess)
 			return hr;
 		unsigned int cNames = ARRAY_SIZE(lpulNamesIDs);
@@ -1690,11 +1695,18 @@ HRESULT MAPIToVMIME::handleReplyTo(IMessage *lpMessage,
 		}
 	}
 
-	// vmime can only set 1 email address in the ReplyTo field.
-	if (!strName.empty() && strName != strEmail)
-		vmHeader->ReplyTo()->setValue(vmime::make_shared<vmime::mailbox>(getVmimeTextFromWide(strName), m_converter.convert_to<string>(strEmail)));
-	else
-		vmHeader->ReplyTo()->setValue(vmime::make_shared<vmime::mailbox>(m_converter.convert_to<string>(strEmail)));
+	auto mb = !strName.empty() && strName != strEmail ?
+	          vmime::make_shared<vmime::mailbox>(getVmimeTextFromWide(strName), m_converter.convert_to<string>(strEmail)) :
+	          vmime::make_shared<vmime::mailbox>(m_converter.convert_to<string>(strEmail));
+	mblist->appendMailbox(mb);
+	lpEntry = reinterpret_cast<const FLATENTRY *>((reinterpret_cast<uintptr_t>(lpEntry) + CbFLATENTRY(lpEntry) + 3) / 4 * 4);
+	}
+	try {
+		vmHeader->ReplyTo()->setValue(mblist);
+	} catch (const vmime::exceptions::bad_field_value_type &) {
+		if (mblist->getMailboxCount() > 0)
+			vmHeader->ReplyTo()->setValue(mblist->getMailboxAt(0));
+	}
 	return hrSuccess;
 }
 
