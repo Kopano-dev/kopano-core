@@ -1,5 +1,5 @@
-8.6.x
-=====
+8.6.9 (2018-11-28)
+==================
 Fixes:
 * backup: use PR_STORE_ENTRYID instead of PR_STORE_RECORD_KEY
   to open stores [KC-1331]
