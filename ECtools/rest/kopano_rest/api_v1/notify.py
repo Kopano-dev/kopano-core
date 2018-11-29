@@ -114,7 +114,7 @@ class Processor(Thread):
             try:
                 if self.options and self.options.with_metrics:
                     POST_COUNT.inc()
-                logging.debug('Subscription notification: %s' % subscription['notificationUrl'])
+                logging.debug('Subscription notification: %s', subscription['notificationUrl'])
                 requests.post(subscription['notificationUrl'], json=data, timeout=10, verify=verify)
             except Exception:
                 traceback.print_exc()
@@ -170,7 +170,7 @@ class SubscriptionResource:
         validationToken = str(uuid.uuid4())
         verify = not self.options or not self.options.insecure
         try: # TODO async
-            logging.debug('Subscription validation: %s' % fields['notificationUrl'])
+            logging.debug('Subscription validation: %s', fields['notificationUrl'])
             r = requests.post(fields['notificationUrl']+'?validationToken='+validationToken, timeout=10, verify=verify)
             if r.text != validationToken:
                 raise utils.HTTPBadRequest("Subscription validation request failed.")

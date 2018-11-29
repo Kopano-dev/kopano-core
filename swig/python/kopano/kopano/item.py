@@ -185,7 +185,6 @@ class Item(Properties, Contact, Appointment):
                 # options for CreateMessage: 0 / MAPI_ASSOCIATED
                 dopt = inetmapi.delivery_options()
                 inetmapi.IMToMAPI(server.mapisession, self.folder.store.mapiobj, None, self.mapiobj, self._eml, dopt)
-                pass
             elif ics is not None:
                 icm = icalmapi.CreateICalToMapi(self.mapiobj, server.ab, False)
                 icm.ParseICal(ics, 'utf-8', 'UTC', self.user.mapiobj, 0)
@@ -1135,11 +1134,11 @@ class Item(Properties, Contact, Appointment):
                             raise MAPIErrorNotFound()
                         data = _utils.stream(att, PR_ATTACH_DATA_BIN)
                     except MAPIErrorNotFound:
-                        log.warn("no data found for attachment of item with entryid %s" % _main_item.entryid)
+                        log.warning("no data found for attachment of item with entryid %s", _main_item.entryid)
                         data = ''
                     atts.append(([[a, b, None] for a, b in row.items()], data))
             except Exception as e: # XXX generalize so usable in more places
-                log.error('could not serialize attachment for item with entryid %s' % _main_item.entryid)
+                log.error('could not serialize attachment for item with entryid %s', _main_item.entryid)
                 if skip_broken:
                     log.error(traceback.format_exc())
                     service = self.server.service

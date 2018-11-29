@@ -277,7 +277,7 @@ class Server(object):
                     break
                 except (MAPIErrorNetworkError, MAPIErrorDiskError):
                     if service:
-                        self.log.warning("could not connect to server at '%s', retrying in 5 sec" % self.server_socket)
+                        self.log.warning("could not connect to server at '%s', retrying in 5 sec", self.server_socket)
                         time.sleep(5)
                     else:
                         raise Error("could not connect to server at '%s'" % self.server_socket)

@@ -198,7 +198,7 @@ class Service(kopano.Service):
         if not email:
             self.stats['noemail'] += 1
             recip = 'sender' if convertprops['email'] in [PR_SENDER_EMAIL_ADDRESS_W, PR_SENT_REPRESENTING_EMAIL_ADDRESS_W] else 'receiver'
-            self.log.warn('no email address found for %s property, skipping', recip)
+            self.log.warning('no email address found for %s property, skipping', recip)
             return []
 
         try:
@@ -247,7 +247,7 @@ class Service(kopano.Service):
                     user = self.server.user(email=key) # XXX using email arg for name/fullname/email
                 except kopano.NotFoundError:
                     if key not in self.unresolved:
-                        self.log.warning("could not resolve user '%s'" % key)
+                        self.log.warning("could not resolve user '%s'", key)
                         self.unresolved.add(key)
 
             # set recipient properties
@@ -308,7 +308,7 @@ class Service(kopano.Service):
                 if self.options.folders and \
                    path.lower() not in [f.lower() for f in self.options.folders]:
                     continue
-                self.log.info("importing folder '%s'" % path)
+                self.log.info("importing folder '%s'", path)
                 if self.options.import_root:
                     path = self.options.import_root + '/' + path
 
@@ -383,7 +383,7 @@ class Service(kopano.Service):
         self.unresolved = set()
         t0 = time.time()
         for arg in self.args:
-            self.log.info("importing file '%s'" % arg)
+            self.log.info("importing file '%s'", arg)
             try:
                 p = pst.PST(arg)
             except pst.PSTException:
@@ -392,7 +392,7 @@ class Service(kopano.Service):
             self.nbd, self.ltp = p.nbd, p.ltp
             self.propid_nameid = self.get_named_property_map(p)
             for name in self.options.users:
-                self.log.info("importing to user '%s'" % name)
+                self.log.info("importing to user '%s'", name)
                 store = self.server.user(name).store
                 if store:
                     self.import_pst(p, store)
@@ -400,14 +400,14 @@ class Service(kopano.Service):
                     self.log.error("user '%s' has no store", name)
             for guid in self.options.stores:
                 store = self.server.store(guid)
-                self.log.info("importing to store '%s'" % guid)
+                self.log.info("importing to store '%s'", guid)
                 if store:
                     self.import_pst(p, store)
                 else:
-                    self.log.error("guid '%s' has no store", name)
+                    self.log.error("guid '%s' has no store", guid)
 
-        self.log.info('imported %d items in %.2f seconds (%.2f/sec, %d errors) (no resolved email address: %d)' %
-            (self.stats['messages'], time.time()-t0, self.stats['messages']/(time.time()-t0), self.stats['errors'], self.stats['noemail']))
+        self.log.info('imported %d items in %.2f seconds (%.2f/sec, %d errors) (no resolved email address: %d)',
+                      self.stats['messages'], time.time()-t0, self.stats['messages']/(time.time()-t0), self.stats['errors'], self.stats['noemail'])
 
 
 def show_contents(args, options):

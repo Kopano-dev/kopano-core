@@ -26,7 +26,7 @@ $ PROFILER=0 gunicorn -c ./wsgi_profiler_conf.py wsgi
 def profiler_enable(worker, req):
     worker.profile = cProfile.Profile()
     worker.profile.enable()
-    worker.log.info("PROFILING %d: %s" % (worker.pid, req.uri))
+    worker.log.info("PROFILING %d: %s", worker.pid, req.uri)
 
 
 def profiler_summary(worker, req):
@@ -38,8 +38,8 @@ def profiler_summary(worker, req):
     ps = ps.sort_stats('cumulative')
     ps.print_stats(PROFILE_LIMIT)
 
-    logging.error("\n[%d] [INFO] [%s] URI %s" % (worker.pid, req.method, req.uri))
-    logging.error("[%d] [INFO] %s" % (worker.pid, s.getvalue()))
+    logging.error("\n[%d] [INFO] [%s] URI %s", worker.pid, req.method, req.uri)
+    logging.error("[%d] [INFO] %s", worker.pid, s.getvalue())
 
 
 def pre_request(worker, req):
@@ -50,7 +50,7 @@ def pre_request(worker, req):
 
 def post_request(worker, req, *args):
     total_time = time.time() - worker.start_time
-    logging.error("\n[%d] [INFO] [%s] Load Time: %.3fs\n" % (
-        worker.pid, req.method, total_time))
+    logging.error("\n[%d] [INFO] [%s] Load Time: %.3fs\n",
+        worker.pid, req.method, total_time)
     if PROFILER is True:
         profiler_summary(worker, req)

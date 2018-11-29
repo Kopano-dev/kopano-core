@@ -66,7 +66,7 @@ class Service(kopano.Service):
         sys.exit(0)
 
     def check_auth(self):
-        """ check shared-secret based authentication token """ 
+        """ check shared-secret based authentication token """
 
         secret_key = str(self.config['server_secret_key'])
         t, userid, sha256 = str(request.json['AuthenticationToken']).split(':')
@@ -131,7 +131,7 @@ class Service(kopano.Service):
     def data_set(self, username, plugin, status, message):
         """ atomic update of user data """
 
-        self.log.debug('%s: %s %s' % (plugin, username, status))
+        self.log.debug('%s: %s %s', plugin, username, status)
         with self.lock:
             userplugin = self.data.setdefault(username, {}).setdefault(plugin, {})
             userplugin['status'] = status
@@ -141,6 +141,6 @@ def main():
     parser = kopano.parser('ckpsF')
     options, args = parser.parse_args()
     Service('presence', config=CONFIG, options=options).start()
-    
+
 if __name__ == '__main__':
     main()
