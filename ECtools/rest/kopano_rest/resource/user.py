@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import codecs
-import datetime
 
 import falcon
 
@@ -8,7 +7,7 @@ from ..utils import (
     _server_store, HTTPBadRequest
 )
 from .resource import (
-    DEFAULT_TOP, Resource, urlparse, _start_end, json, _date
+    DEFAULT_TOP, Resource, _start_end,
 )
 from .calendar import CalendarResource
 from .contact import ContactResource

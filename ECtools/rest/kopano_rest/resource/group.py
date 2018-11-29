@@ -1,5 +1,4 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-import falcon
 
 from ..utils import (
     _server_store, HTTPBadRequest

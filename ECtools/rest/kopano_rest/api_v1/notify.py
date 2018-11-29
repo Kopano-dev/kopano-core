@@ -1,5 +1,4 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-import base64
 import codecs
 import json
 import logging
@@ -21,7 +20,6 @@ try:
 except ImportError: # pragma: no cover
     PROMETHEUS = False
 
-from MAPI import MAPI_MESSAGE # TODO avoid MAPI
 from MAPI.Struct import (
     MAPIErrorNetworkError, MAPIErrorEndOfSession
 )

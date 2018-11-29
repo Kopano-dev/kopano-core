@@ -8,8 +8,6 @@ from .resource import (
     Resource, _date
 )
 
-import falcon
-
 class AttachmentResource(Resource):
     fields = {
         'id': lambda attachment: attachment.entryid,

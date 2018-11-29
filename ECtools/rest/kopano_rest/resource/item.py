@@ -8,7 +8,7 @@ from ..utils import (
     db_get, db_put
 )
 from .resource import (
-    DEFAULT_TOP, Resource, _header_sub_arg, _date, urlparse
+    DEFAULT_TOP, Resource, _header_sub_arg, _date
 )
 
 def get_body(req, item):
