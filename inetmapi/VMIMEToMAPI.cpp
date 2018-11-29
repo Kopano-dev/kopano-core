@@ -1784,15 +1784,16 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 			vmBody->getContents()->getEncoding().getEncoder();
 		} catch (const vmime::exceptions::no_encoder_available &) {
 			/* RFC 2045 §6.4 page 17 */
-			ec_log_debug("Encountered unknown Content-Transfer-Encoding \"%s\".",
-				vmBody->getContents()->getEncoding().getName().c_str());
+			if (!bIsAttachment)
+				ec_log_debug("Encountered unknown Content-Transfer-Encoding \"%s\".",
+					vmBody->getContents()->getEncoding().getName().c_str());
 			force_raw = true;
 		}
 
 		if (force_raw) {
-			if (flags & DIS_ALTERNATIVE)
+			if (!bIsAttachment && (flags & DIS_ALTERNATIVE))
 				m_mailState.cvt_notes.push_back(format(KC_A("MIME part %s, the highest-ranking alternative in a set and hence chosen, is unsuitable for display: Unknown Content-Transfer-Encoding. It is made available as an attachment instead."), m_mailState.part_text().c_str()));
-			else
+			else if (!bIsAttachment)
 				m_mailState.cvt_notes.push_back(format(KC_A("MIME part %s unsuitable for display: Unknown Content-Transfer-Encoding. It is made available as an attachment instead."), m_mailState.part_text().c_str()));
 			hr = handleAttachment(vmHeader, vmBody, lpMessage, L"unknown_transfer_encoding", true);
 			if (hr != hrSuccess)
