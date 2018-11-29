@@ -152,7 +152,7 @@ Encapsulates everything to create a simple service, such as:
         for msg in self.config.info:
             self.log.info(msg)
         for msg in self.config.warnings:
-            self.log.warn(msg)
+            self.log.warning(msg)
         if self.config.errors:
             for msg in self.config.errors:
                 self.log.error(msg)

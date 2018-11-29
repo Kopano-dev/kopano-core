@@ -27,7 +27,6 @@ from MAPI.Tags import (
     PR_EC_HIERARCHYID, PR_STORE_RECORD_KEY, PR_CONTENTS_SYNCHRONIZER,
     PR_MESSAGE_DELIVERY_TIME, PR_HIERARCHY_SYNCHRONIZER,
     IID_IECImportAddressbookChanges, IID_IECExportAddressbookChanges,
-    PR_PARENT_SOURCE_KEY,
 )
 from MAPI.Tags import (
     IID_IExchangeImportContentsChanges, IID_IECImportContentsChanges,

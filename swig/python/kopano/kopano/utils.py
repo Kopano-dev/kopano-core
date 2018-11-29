@@ -7,8 +7,6 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
 import binascii
-import calendar
-import datetime
 import os
 import struct
 import sys

@@ -5,14 +5,10 @@ Part of the high-level python bindings for Kopano
 Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file)
 Copyright 2016 - Kopano and its licensors (see LICENSE file)
 """
-import codecs
-import datetime
-import struct
 import sys
 
 from MAPI import (
     PT_SYSTIME, MNID_ID, PT_BOOLEAN, MODRECIP_ADD,
-    KEEP_OPEN_READWRITE,
 )
 
 from MAPI.Tags import (

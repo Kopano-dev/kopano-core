@@ -13,9 +13,9 @@ except ImportError:
 
 # Not unused, imported from server
 try:
-    from functools import lru_cache
+    from functools import lru_cache  # pylint: disable=unused-import
 except ImportError: # pragma: no cover
-    from .lru_cache import lru_cache
+    from .lru_cache import lru_cache  # pylint: disable=unused-import
 
 import base64
 import codecs

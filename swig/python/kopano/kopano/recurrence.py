@@ -13,7 +13,7 @@ import sys
 import time
 
 from MAPI import (
-    MAPI_UNICODE, KEEP_OPEN_READWRITE, MODRECIP_ADD, MODRECIP_MODIFY,
+    MAPI_UNICODE, MODRECIP_ADD, MODRECIP_MODIFY,
     MSGFLAG_READ, MSGFLAG_UNSENT, ATTACH_EMBEDDED_MSG,
 )
 
@@ -47,7 +47,7 @@ from .compat import (
     repr as _repr, benc as _benc, bdec as _bdec, fake_unicode as _unicode
 )
 from .errors import (
-    NotSupportedError, NotFoundError, ArgumentError,
+    ArgumentError,
 )
 from .defs import (
     ARO_SUBJECT, ARO_MEETINGTYPE, ARO_REMINDERDELTA, ARO_REMINDERSET,
@@ -78,10 +78,10 @@ from .pidlid import (
     PidLidSideEffects, PidLidSmartNoAttach,
     PidLidReminderSet, PidLidReminderSignalTime, PidLidReminderDelta,
     PidLidBusyStatus, PidLidExceptionReplaceTime,
-    PidLidResponseStatus, PidLidTimeZoneStruct, PidLidAppointmentRecur,
+    PidLidResponseStatus, PidLidAppointmentRecur,
     PidLidLocation, PidLidAppointmentSubType, PidLidAppointmentColor,
     PidLidIntendedBusyStatus, PidLidAppointmentStartWhole,
-    PidLidAppointmentEndWhole, PidLidIsRecurring, PidLidClipStart,
+    PidLidAppointmentEndWhole, PidLidClipStart,
     PidLidClipEnd, PidLidAppointmentStateFlags,
 )
 
