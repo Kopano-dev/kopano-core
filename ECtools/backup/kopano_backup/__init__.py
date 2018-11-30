@@ -791,28 +791,34 @@ class Service(kopano.Service):
                     ):
                          continue
 
+                    # handle existing item
+                    entryid = existing.get(sourcekey2a) or existing.get(index[sourcekey2a][b'orig_sourcekey'])
+                    if entryid is not None:
+                        if self.options.differential:
+                            folder.delete(folder.item(entryid=entryid))
+                        else:
+                            self.log.warning('skipping duplicate item with sourcekey %s', sourcekey2)
+                            continue
+
                     # restore item
-                    if sourcekey2a in existing or index[sourcekey2a][b'orig_sourcekey'] in existing:
-                        self.log.warning('skipping duplicate item with sourcekey %s', sourcekey2)
-                    else:
-                        self.log.debug('restoring item with sourcekey %s', sourcekey2)
-                        data = zlib.decompress(db_items[sourcekey2a])
-                        read = index[sourcekey2a].get(b'read')
+                    self.log.debug('restoring item with sourcekey %s', sourcekey2)
+                    data = zlib.decompress(db_items[sourcekey2a])
+                    read = index[sourcekey2a].get(b'read')
 
-                        item = folder.create_item(
-                            loads=data,
-                            attachments=not self.options.skip_attachments,
-                            read=read,
-                        )
+                    item = folder.create_item(
+                        loads=data,
+                        attachments=not self.options.skip_attachments,
+                        read=read,
+                    )
 
-                        # store original item sourcekey or it is lost
-                        try:
-                            item.prop(PR_EC_BACKUP_SOURCE_KEY)
-                        except (MAPIErrorNotFound, kopano.NotFoundError):
-                            item.mapiobj.SetProps([SPropValue(PR_EC_BACKUP_SOURCE_KEY, _unhex(sourcekey2))])
-                            item.mapiobj.SaveChanges(0)
+                    # store original item sourcekey or it is lost
+                    try:
+                        item.prop(PR_EC_BACKUP_SOURCE_KEY)
+                    except (MAPIErrorNotFound, kopano.NotFoundError):
+                        item.mapiobj.SetProps([SPropValue(PR_EC_BACKUP_SOURCE_KEY, _unhex(sourcekey2))])
+                        item.mapiobj.SaveChanges(0)
 
-                        stats['changes'] += 1
+                    stats['changes'] += 1
 
         # store original folder sourcekey
         folder_sk = folderprops[PR_SOURCE_KEY]
