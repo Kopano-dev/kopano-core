@@ -184,13 +184,13 @@ static const sUpdateList_t sUpdateList[] = {
 	{106, "utf8mb4 #26", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `objectproperty` MODIFY COLUMN `propname` varchar(191) BINARY NOT NULL"); }},
 	{107, "utf8mb4 #27", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `objectproperty` MODIFY COLUMN `value` text CHARACTER SET utf8mb4 DEFAULT NULL"); }},
 	{108, "utf8mb4 #28", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `objectmvproperty` DEFAULT CHARSET utf8mb4"); }},
-	{109, "utf8mb4 #29", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `objectproperty` MODIFY COLUMN `propname` varchar(191) BINARY NOT NULL"); }},
-	{110, "utf8mb4 #30", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `objectproperty` MODIFY COLUMN `value` text CHARACTER SET utf8mb4 DEFAULT NULL"); }},
 	{111, "utf8mb4 #31", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `settings` DEFAULT CHARSET utf8mb4"); }},
 	{112, "utf8mb4 #32", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `settings` MODIFY COLUMN `name` varchar(191) BINARY NOT NULL"); }},
 	{113, "utf8mb4 #33", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `tproperties` DEFAULT CHARSET utf8mb4"); }},
 	{114, "utf8mb4 #34", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `properties` DEFAULT CHARSET utf8mb4"); }},
 	{115, "utf8mb4 #35", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `singleinstances` DEFAULT CHARSET utf8mb4"); }},
+	{116, "utf8mb4 #36", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `objectmvproperty` MODIFY COLUMN `propname` varchar(191) BINARY NOT NULL"); }},
+	{117, "utf8mb4 #37", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `objectmvproperty` MODIFY COLUMN `value` text CHARACTER SET utf8mb4 DEFAULT NULL"); }},
 };
 
 static const char *const server_groups[] = {
