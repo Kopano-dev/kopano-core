@@ -35,6 +35,8 @@ from MAPI import (
     RELOP_EQ
 )
 
+from MAPI.Util.codepage import GetCharsetByCP
+
 from MAPI.Defs import (
     HrGetOneProp, CHANGE_PROP_TYPE
 )
@@ -89,7 +91,7 @@ from .compat import (
 
 from .defs import (
     NAMED_PROPS_ARCHIVER, NAMED_PROP_CATEGORY, ADDR_PROPS,
-    PSETID_Archive, URGENCY, REV_URGENCY, CODEPAGE_ENCODING,
+    PSETID_Archive, URGENCY, REV_URGENCY
 )
 from .errors import (
     Error, NotFoundError, _DeprecationWarning
@@ -1350,8 +1352,8 @@ class Item(Properties, Contact, Appointment):
         """ Encoding used for html body"""
         if self.codepage is not None:
             try:
-                return CODEPAGE_ENCODING[self.codepage]
-            except KeyError:
+                return GetCharsetByCP(self.codepage)
+            except Exception:
                 raise NotFoundError('no encoding for codepage: %d' % self.codepage)
 
     def __eq__(self, i): # XXX check same store?
