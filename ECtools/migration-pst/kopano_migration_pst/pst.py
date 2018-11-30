@@ -33,7 +33,7 @@
 # based on MS-PST Microsoft specification for PST file format [MS-PST].pdf v2.1
 #
 
-import struct, binascii, datetime, math, os, sys, unicodedata, re, argparse, itertools, string, traceback
+import struct, datetime, math, os, sys, unicodedata, re, argparse, itertools, string, traceback
 #import colorama
 #import progressbar
 
@@ -1321,7 +1321,7 @@ class Folder:
 
     def __repr__(self):
 
-        return 'Folder: %s, %s items, messages: %s, subfolders: %s' % (self.DisplayName, len(self.submessages), self.subfolders)
+        return 'Folder: %s, submessages: %s, subfolders: %s' % (self.DisplayName, len(self.submessages), self.subfolders)
 
 
 
@@ -2115,18 +2115,6 @@ def hex(i):
 
     return '0x%x' % i
 
-
-def bin_bytes(bytes):
-
-    return ''.join([bin(ord(c)).lstrip('0b').zfill(8) for c in bytes])
-
-
-def bit_shift_bytes_left(bytes, offset):
-
-    new_bytes = ''
-    for c in bytes:
-        new_bytes += chr( ord(c) << offset)
-    return new_bytes
 
 
 def size_friendly(size):
