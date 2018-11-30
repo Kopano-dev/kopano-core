@@ -713,7 +713,6 @@ AC_CONFIG_FILES([Makefile
 		ECtools/utils/Makefile
 		installer/Makefile
 		installer/linux/Makefile
-		installer/linux/kopano-statsd.service
 		installer/userscripts/Makefile
 		installer/quotamail/Makefile
 		installer/searchscripts/Makefile
