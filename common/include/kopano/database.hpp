@@ -130,6 +130,8 @@ class _kc_export KDatabase : public kt_completion {
 	virtual ECRESULT Commit() override { return Query("COMMIT") == 0 ? erSuccess : KCERR_DATABASE_ERROR; }
 	virtual ECRESULT Rollback() override { return Query("ROLLBACK") == 0 ? erSuccess : KCERR_DATABASE_ERROR; }
 
+	bool m_filter_bmp = false;
+
 	protected:
 	class autolock : private std::unique_lock<std::recursive_mutex> {
 		public:

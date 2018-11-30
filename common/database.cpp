@@ -18,6 +18,7 @@
 #include <kopano/MAPIErrors.h>
 #include <kopano/database.hpp>
 #include <kopano/stringutil.h>
+#include <kopano/charset/convert.h>
 #define LOG_SQL_DEBUG(_msg, ...) \
 	ec_log(EC_LOGLEVEL_DEBUG | EC_LOGLEVEL_SQL, _msg, ##__VA_ARGS__)
 
@@ -393,8 +394,17 @@ ECRESULT KDatabase::DoUpdate(const std::string &q, unsigned int *aff)
 	return I_Update(q, aff);
 }
 
-std::string KDatabase::Escape(const std::string &s)
+static std::string ec_filter_bmp(const std::string &s)
 {
+	auto w = convert_to<std::wstring>(s);
+	std::transform(w.begin(), w.end(), w.begin(),
+		[](wchar_t c) { return c <= 0xFFFF ? c : 0xFFFD; });
+	return convert_to<std::string>("UTF-8", w.c_str(), rawsize(w), CHARSET_WCHAR);
+}
+
+std::string KDatabase::Escape(const std::string &sa)
+{
+	const auto &s = m_filter_bmp ? ec_filter_bmp(sa) : sa;
 	auto size = s.length() * 2 + 1;
 	auto esc = std::make_unique<char[]>(size);
 	memset(esc.get(), 0, size);

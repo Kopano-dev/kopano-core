@@ -113,6 +113,16 @@ ECRESULT ECSessionManager::LoadSettings(){
 	memcpy(&m_server_guid, lpDBRow[0], sizeof(m_server_guid));
 	/* ECStatsCollector may decide to send before the guid has been set. That's normal. */
 	m_stats->set(SCN_SERVER_GUID, bin2hex(sizeof(m_server_guid), &m_server_guid));
+
+	er = lpDatabase->DoSelect("SELECT `value` FROM `settings` WHERE `name`='charset' LIMIT 1", &lpDBResult);
+	if (er != erSuccess)
+		return er;
+	lpDBRow = lpDBResult.fetch_row();
+	if (lpDBRow == nullptr || lpDBRow[0] == nullptr || strcmp(lpDBRow[0], "utf8mb4") != 0) {
+		m_lpDatabaseFactory->filter_bmp(true);
+		ec_log_warn("K-1244: Your database does not support storing 4-byte UTF-8! The content of some mails may be truncated. The DB should be upgraded with `kopano-dbadm usmp` and kopano-server be restarted.");
+	}
+
 	strQuery = "SELECT `value` FROM settings WHERE `name` = 'source_key_auto_increment' LIMIT 1";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)

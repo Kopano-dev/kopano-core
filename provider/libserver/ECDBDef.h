@@ -320,8 +320,7 @@
 											(2, 4095, 0x000000008962ffeffb7b4d639bc5967c4bb5823400000000030000000200000000000000);"
 
 #define Z_TABLEDATA_SETTINGS "INSERT INTO `settings` VALUES ('source_key_auto_increment' , CHAR(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00)), \
-															('imapseq', '3'), \
-															('charset', 'utf8');"
+	('imapseq', '3'), ('charset', 'utf8mb4');"
 
 /*
  * The first population of the SQL tables can use both create-type and

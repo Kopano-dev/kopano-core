@@ -509,7 +509,7 @@ static ECRESULT usmp_charset(std::shared_ptr<KDatabase> db)
 		return ret;
 	if (adm_quit)
 		return erSuccess;
-	return erSuccess;
+	return db->DoUpdate("REPLACE INTO `settings` (`name`, `value`) VALUES ('charset', 'utf8mb4')");
 }
 
 static ECRESULT usmp(std::shared_ptr<KDatabase> db)

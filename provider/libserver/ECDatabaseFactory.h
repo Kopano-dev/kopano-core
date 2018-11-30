@@ -37,6 +37,7 @@ public:
 	ECRESULT		CreateDatabase();
 	ECRESULT		UpdateDatabase(bool bForceUpdate, std::string &strError);
 	ECRESULT get_tls_db(ECDatabase **);
+	void filter_bmp(bool);
 
 	std::shared_ptr<ECStatsCollector> m_stats;
 
@@ -52,6 +53,7 @@ private:
 	pthread_key_t m_thread_key;
 	std::unordered_set<dfpair, dfhash> m_children;
 	std::mutex m_child_mtx;
+	bool m_filter_bmp = false;
 };
 
 } /* namespace */

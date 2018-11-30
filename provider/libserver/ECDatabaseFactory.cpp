@@ -59,6 +59,7 @@ ECRESULT ECDatabaseFactory::GetDatabaseFactory(ECDatabase **lppDatabase)
 
 	if(strcasecmp(szEngine, "mysql") == 0) {
 		*lppDatabase = new ECDatabase(m_lpConfig, m_stats);
+		(*lppDatabase)->m_filter_bmp = m_filter_bmp;
 	} else {
 		ec_log_crit("ECDatabaseFactory::GetDatabaseFactory(): database not mysql");
 		return KCERR_DATABASE_ERROR;
@@ -126,6 +127,14 @@ ECRESULT ECDatabaseFactory::get_tls_db(ECDatabase **lppDatabase)
 	pthread_setspecific(m_thread_key, &*pair.first);
 	*lppDatabase = pair.first->db.get();
 	return erSuccess;
+}
+
+void ECDatabaseFactory::filter_bmp(bool y)
+{
+	m_filter_bmp = y;
+	std::unique_lock<std::mutex> lk(m_child_mtx);
+	for (const auto &dfp : m_children)
+		dfp.db->m_filter_bmp = y;
 }
 
 } /* namespace */
