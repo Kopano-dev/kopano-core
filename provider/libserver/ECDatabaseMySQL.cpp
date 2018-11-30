@@ -154,44 +154,7 @@ static const sUpdateList_t sUpdateList[] = {
 		return db->DoUpdate("ALTER TABLE `names` CHANGE COLUMN `guid` `guid` binary(16) NOT NULL"); }},
 	{71, "Add the \"filename\" column to \"singleinstances\"", [](ECDatabase *db) {
 		return db->DoUpdate("ALTER TABLE `singleinstances` ADD COLUMN `filename` VARCHAR(255) DEFAULT NULL"); }},
-	/*
-	 * The InnoDB Antelope (= COMPACT) row format has a limitation of 767
-	 * bytes, which interferes with utf8mb4*255 (only indexed fields).
-	 */
-	{73, "Shrink index key 2/5", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `receivefolder` MODIFY COLUMN `messageclass` VARCHAR(191) NOT NULL"); }},
-	{77, "utf8mb4 #1", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `acl` DEFAULT CHARSET utf8mb4"); }},
-	{78, "utf8mb4 #2", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `hierarchy` DEFAULT CHARSET utf8mb4"); }},
-	{80, "utf8mb4 #4", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `mvproperties` DEFAULT CHARSET utf8mb4"); }},
-	{81, "utf8mb4 #5", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `tproperties` MODIFY COLUMN `val_string` longtext CHARACTER SET utf8mb4 DEFAULT NULL"); }},
-	{82, "utf8mb4 #6", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `deferredupdate` DEFAULT CHARSET utf8mb4"); }},
-	{83, "utf8mb4 #7", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `properties` MODIFY COLUMN `val_string` longtext CHARACTER SET utf8mb4 DEFAULT NULL"); }},
-	{84, "utf8mb4 #8", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `receivefolder` DEFAULT CHARSET utf8mb4"); }},
-	{85, "utf8mb4 support 9/22", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `stores` CONVERT TO CHARSET utf8mb4"); }},
-	{86, "utf8mb4 support 10/22", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `users` CONVERT TO CHARSET utf8mb4"); }},
-	{87, "utf8mb4 #11", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `outgoingqueue` DEFAULT CHARSET utf8mb4"); }},
-	{88, "utf8mb4 #12", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `lob` DEFAULT CHARSET utf8mb4"); }},
-	{89, "utf8mb4 #13", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `singleinstances` MODIFY COLUMN `filename` varchar(255) DEFAULT NULL"); }},
-	{90, "utf8mb4 #14", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `object` DEFAULT CHARSET utf8mb4"); }},
-	{93, "utf8mb4 #17", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `objectrelation` DEFAULT CHARSET utf8mb4"); }},
-	{94, "utf8mb4 #18", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `versions` DEFAULT CHARSET utf8mb4"); }},
-	{95, "utf8mb4 #19", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `searchresults` DEFAULT CHARSET utf8mb4"); }},
-	{96, "utf8mb4 #20", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `changes` DEFAULT CHARSET utf8mb4"); }},
-	{97, "utf8mb4 #21", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `abchanges` DEFAULT CHARSET utf8mb4"); }},
-	{98, "utf8mb4 #22", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `syncs` DEFAULT CHARSET utf8mb4"); }},
-	{103, "utf8mb4 #23", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `names` DEFAULT CHARSET utf8mb4"); }},
-	{104, "utf8mb4 #24", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `names` MODIFY COLUMN `namestring` varchar(191) BINARY DEFAULT NULL"); }},
-	{105, "utf8mb4 #25", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `objectproperty` DEFAULT CHARSET utf8mb4"); }},
-	{106, "utf8mb4 #26", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `objectproperty` MODIFY COLUMN `propname` varchar(191) BINARY NOT NULL"); }},
-	{107, "utf8mb4 #27", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `objectproperty` MODIFY COLUMN `value` text CHARACTER SET utf8mb4 DEFAULT NULL"); }},
-	{108, "utf8mb4 #28", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `objectmvproperty` DEFAULT CHARSET utf8mb4"); }},
-	{111, "utf8mb4 #31", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `settings` DEFAULT CHARSET utf8mb4"); }},
-	{112, "utf8mb4 #32", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `settings` MODIFY COLUMN `name` varchar(191) BINARY NOT NULL"); }},
-	{113, "utf8mb4 #33", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `tproperties` DEFAULT CHARSET utf8mb4"); }},
-	{114, "utf8mb4 #34", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `properties` DEFAULT CHARSET utf8mb4"); }},
-	{115, "utf8mb4 #35", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `singleinstances` DEFAULT CHARSET utf8mb4"); }},
-	{116, "utf8mb4 #36", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `objectmvproperty` MODIFY COLUMN `propname` varchar(191) BINARY NOT NULL"); }},
-	{117, "utf8mb4 #37", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `objectmvproperty` MODIFY COLUMN `value` text CHARACTER SET utf8mb4 DEFAULT NULL"); }},
-	{118, "utf8mb4 #38", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `mvproperties` MODIFY COLUMN `val_string` longtext CHARACTER SET utf8mb4 DEFAULT NULL"); }},
+	{118, "no-op marker", [](ECDatabase *) -> ECRESULT { return erSuccess; }},
 };
 
 static const char *const server_groups[] = {

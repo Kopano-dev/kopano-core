@@ -286,7 +286,7 @@
 											`val_binary` varbinary(255), \
 											PRIMARY KEY (`hierarchyid`, `tag`), \
 											UNIQUE KEY `bin` (`tag`, `val_binary`) \
-										) ENGINE=%s CHARACTER SET utf8 COLLATE utf8_general_ci;"
+	) ENGINE=%s CHARACTER SET utf8mb4;"
 
 #define Z_TABLEDEF_SETTINGS		"CREATE TABLE settings ( \
 		`name` varchar(185) BINARY NOT NULL, \
