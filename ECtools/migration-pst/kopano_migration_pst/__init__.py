@@ -291,8 +291,19 @@ class Service(kopano.Service):
         root_path = rev_cp1252(next(folders).path) # skip root
         self.distlist_entryids = []
         self.entryid_map = {}
+
         for folder in folders:
             with log_exc(self.log, self.stats):
+                import_nids = []
+                if self.options.nids:
+                    for nid in self.options.nids:
+                        nid = int(nid)
+                        parentNid = p.nbd.nbt_entries[nid].nidParent
+                        if folder.nid.nid == parentNid.nid:
+                            import_nids.append(nid)
+                    if not import_nids:
+                        continue
+
                 path = rev_cp1252(folder.path[len(root_path)+1:])
                 if self.options.folders and \
                    path.lower() not in [f.lower() for f in self.options.folders]:
@@ -300,21 +311,32 @@ class Service(kopano.Service):
                 self.log.info("importing folder '%s'" % path)
                 if self.options.import_root:
                     path = self.options.import_root + '/' + path
+
                 folder2 = store.folder(path, create=True)
                 if self.options.clean_folders:
                     folder2.empty()
                 if folder.ContainerClass:
                     folder2.container_class = folder.ContainerClass
-                for message in p.message_generator(folder):
-                    with log_exc(self.log, self.stats):
-                        self.log.debug("importing message '%s'" % (rev_cp1252(message.Subject or '')))
-                        message2 = folder2.create_item(save=False)
-                        self.entryid_map[message.EntryId] = message2.entryid
-                        self.import_attachments(message, message2.mapiobj)
-                        self.import_recipients(message, message2.mapiobj)
-                        self.import_props(message, message2.mapiobj)
-                        self.stats['messages'] += 1
+
+                if import_nids:
+                    for nid in import_nids:
+                        message = pst.Message(pst.NID(nid), p.ltp, messaging=p.messaging)
+                        self.import_message(message, folder2)
+                else:
+                    for message in p.message_generator(folder):
+                        self.import_message(message, folder2)
+
         self.rewrite_entryids(store)
+
+    def import_message(self, message, folder2):
+        with log_exc(self.log, self.stats):
+            self.log.debug("importing message '%s' (NID=%d)" % (rev_cp1252(message.Subject or ''), message.nid.nid))
+            message2 = folder2.create_item(save=False)
+            self.entryid_map[message.EntryId] = message2.entryid
+            self.import_attachments(message, message2.mapiobj)
+            self.import_recipients(message, message2.mapiobj)
+            self.import_props(message, message2.mapiobj)
+            self.stats['messages'] += 1
 
     def rewrite_entryids(self, store):
         # distribution lists
@@ -465,6 +487,8 @@ def main():
     parser.add_option('', '--stats', dest='stats', action='store_true', help='list folders for PATH')
     parser.add_option('', '--index', dest='index', action='store_true', help='list items for PATH')
     parser.add_option('', '--import-root', dest='import_root', action='store', help='import under specific folder', metavar='PATH')
+    parser.add_option('', '--nid', dest='nids', action='append', help='import specific nid', metavar='NID')
+
     parser.add_option('', '--clean-folders', dest='clean_folders', action='store_true', default=False, help='empty folders before import (dangerous!)', metavar='PATH')
     parser.add_option('', '--create-ex-mapping', dest='create_mapping', help='create legacyExchangeDN mapping for Exchange 2007 PST', metavar='FILE')
     parser.add_option('', '--ex-mapping', dest='mapping', help='mapping file created --create-ex--mapping ', metavar='FILE')

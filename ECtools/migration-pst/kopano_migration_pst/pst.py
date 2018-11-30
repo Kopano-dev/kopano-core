@@ -1281,6 +1281,7 @@ class Folder:
         #print('FOLDER DEBUG', self.DisplayName, self.pc)
 
         # entryids in PST are stored as nids
+        self.nid = nid
         if messaging:
             self.EntryId = 4*b'\x00' + messaging.store_record_key + struct.pack('I', nid.nid)
 
@@ -1388,6 +1389,7 @@ class Message:
             self.pc = ltp.get_pc_by_nid(nid)
 
         # entryids in PST are stored as nids
+        self.nid = nid
         if messaging:
             self.EntryId = 4*b'\x00' + messaging.store_record_key + struct.pack('I', nid.nid)
 
