@@ -160,19 +160,19 @@ def name_flags(s):
 def list_users(intro, users):
     users = list(users)
     print(intro + ' (%d):' % len(users))
-    fmt = '{0:>16} {1:>20} {2:>20} {3:>40}'
-    print(fmt.format('User', 'Full Name', 'Homeserver', 'Store'))
-    print(99*'-')
+    fmt = '{0:<16} {1:<20} {2:<20}'
+    print(fmt.format('User', 'Full Name', 'Homeserver'))
+    print(58*'-')
     for user in sorted(users, key=lambda u: u.name):
-        print(fmt.format(_encode(user.name), _encode(user.fullname), _encode(user.home_server), user.store.guid if user.store else ''))
+        print(fmt.format(_encode(user.name), _encode(user.fullname), _encode(user.home_server)))
     print
 
 def list_groups(intro, groups):
     groups = list(groups)
     print(intro + ' (%d):' % len(groups))
-    fmt = '\t{0:>16}'
+    fmt = '{0:<16}'
     print(fmt.format('Groupname'))
-    print('\t'+16*'-')
+    print(16*'-')
     for group in sorted(groups, key=lambda g: g.name):
         print(fmt.format(_encode(group.name)))
     print
@@ -180,17 +180,17 @@ def list_groups(intro, groups):
 def list_companies(intro, companies):
     companies = list(companies)
     print(intro + ' (%d):' % len(companies))
-    fmt = '\t{0:>32} {1:>32}'
+    fmt = '{0:<32} {1:<32}'
     print(fmt.format('Companyname', 'System Administrator'))
-    print('\t'+65*'-')
+    print(65*'-')
     for company in sorted(companies, key=lambda c: c.name):
         print(fmt.format(_encode(company.name), _encode(company.admin.name) if company.admin else ''))
 
 def list_orphans(server):
     print('Stores without users:')
-    fmt = '\t{0:>32} {1:>20} {2:>16} {3:>16} {4:>16}'
+    fmt = '{0:<32} {1:<20} {2:<16} {3:<16} {4:<16}'
     print(fmt.format('Store guid', 'Username', 'Last login', 'Store size', 'Store type'))
-    print('\t'+104*'-')
+    print(104*'-')
     for store in server.stores():
         if store.orphan:
             username = store.user.name if store.user else ''
