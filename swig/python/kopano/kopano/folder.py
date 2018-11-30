@@ -1007,6 +1007,8 @@ class Folder(Properties):
             return 'contacts'
         elif self.container_class == 'IPF.Appointment':
             return 'calendar'
+        else:
+            return 'folder'
 
     def __eq__(self, f): # XXX check same store?
         if isinstance(f, Folder):

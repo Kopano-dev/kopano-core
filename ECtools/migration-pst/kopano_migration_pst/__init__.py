@@ -289,6 +289,15 @@ class Service(kopano.Service):
         root_path = rev_cp1252(next(folders).path) # skip root
         self.distlist_entryids = []
         self.entryid_map = {}
+
+        type_map = [
+            ('IPM.Note', 'mail'),
+            ('IPM.Schedule', 'mail'),
+            ('IPM.Contact', 'contact'),
+            ('IPM.DistList', 'distlist'),
+            ('IPM.Appointment', 'appointment'),
+        ]
+
         for folder in folders:
             with log_exc(self.log, self.stats):
                 path = rev_cp1252(folder.path[len(root_path)+1:])
@@ -305,7 +314,12 @@ class Service(kopano.Service):
                     folder2.container_class = folder.ContainerClass
                 for message in p.message_generator(folder):
                     with log_exc(self.log, self.stats):
-                        self.log.debug("importing message '%s'" % (rev_cp1252(message.Subject or '')))
+                        for (class_, type_) in type_map:
+                            if message.MessageClass and message.MessageClass.startswith(class_):
+                                break
+                        else:
+                            type_ = 'item'
+                        self.log.debug("importing %s '%s'" % (type_, rev_cp1252(message.Subject or '')))
                         message2 = folder2.create_item(save=False)
                         self.entryid_map[message.EntryId] = message2.entryid
                         self.import_attachments(message, message2.mapiobj)
