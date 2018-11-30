@@ -191,6 +191,7 @@ static const sUpdateList_t sUpdateList[] = {
 	{115, "utf8mb4 #35", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `singleinstances` DEFAULT CHARSET utf8mb4"); }},
 	{116, "utf8mb4 #36", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `objectmvproperty` MODIFY COLUMN `propname` varchar(191) BINARY NOT NULL"); }},
 	{117, "utf8mb4 #37", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `objectmvproperty` MODIFY COLUMN `value` text CHARACTER SET utf8mb4 DEFAULT NULL"); }},
+	{118, "utf8mb4 #38", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `mvproperties` MODIFY COLUMN `val_string` longtext CHARACTER SET utf8mb4 DEFAULT NULL"); }},
 };
 
 static const char *const server_groups[] = {
