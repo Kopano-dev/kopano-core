@@ -84,7 +84,7 @@
 #define Z_TABLEDEF_NAMES			"CREATE TABLE `names` ( \
 										`id` int(11) NOT NULL auto_increment, \
 										`nameid` int(11) default NULL, \
-										`namestring` varchar(255) binary default NULL, \
+										`namestring` varchar(185) BINARY DEFAULT NULL, \
 										`guid` binary(16) NOT NULL, \
 										PRIMARY KEY  (`id`), \
 										KEY `nameid` (`nameid`), \
@@ -151,7 +151,7 @@
 										`id` int(11) unsigned NOT NULL auto_increment, \
 										`storeid` int(11) unsigned NOT NULL default '0', \
 										`objid` int(11) unsigned NOT NULL default '0', \
-										`messageclass` varchar(255) NOT NULL default '', \
+										`messageclass` varchar(185) NOT NULL DEFAULT '', \
 										PRIMARY KEY  (`id`), \
 										UNIQUE KEY `storeid` (`storeid`,`messageclass`) \
 									) ENGINE=%s CHARACTER SET utf8 COLLATE utf8_general_ci;"
@@ -212,14 +212,14 @@
 
 #define Z_TABLEDEF_OBJECT_PROPERTY	"CREATE TABLE objectproperty ( \
 										`objectid` int(11) unsigned NOT NULL default '0', \
-										`propname` varchar(255) binary NOT NULL, \
+										`propname` varchar(185) BINARY NOT NULL, \
 										`value` text, \
 										PRIMARY KEY  (`objectid`, `propname`) \
 									) ENGINE=%s CHARACTER SET utf8 COLLATE utf8_general_ci;"
 
 #define Z_TABLEDEF_OBJECT_MVPROPERTY "CREATE TABLE objectmvproperty ( \
 										`objectid` int(11) unsigned NOT NULL default '0', \
-										`propname` varchar(255) binary NOT NULL, \
+										`propname` varchar(185) BINARY NOT NULL, \
 										`orderid` tinyint(11) unsigned NOT NULL default '0', \
 										`value` text, \
 										PRIMARY KEY (`objectid`, `orderid`, `propname`) \
@@ -300,7 +300,7 @@
 										) ENGINE=%s CHARACTER SET utf8 COLLATE utf8_general_ci;"
 
 #define Z_TABLEDEF_SETTINGS		"CREATE TABLE settings ( \
-										`name` varchar(255) binary NOT NULL, \
+										`name` varchar(185) BINARY NOT NULL, \
 										`value` blob NOT NULL, \
 										PRIMARY KEY  (`name`) \
 									) ENGINE=%s CHARACTER SET utf8 COLLATE utf8_general_ci;"

@@ -416,6 +416,54 @@ static ECRESULT k1216(std::shared_ptr<KDatabase> db)
 	return np_defrag(db);
 }
 
+static ECRESULT usmp_shrink_columns(std::shared_ptr<KDatabase> db)
+{
+	unsigned int aff = 0;
+	ec_log_notice("dbadm: executing action \"usmp-column-shrink\"");
+	ec_log_notice("usmp: discovering overly long named properties...");
+	auto ret = db->DoUpdate("CREATE TEMPORARY TABLE n (SELECT id, 34049+id AS tag FROM names WHERE LENGTH(namestring) > 185)");
+	if (ret != erSuccess)
+		return ret;
+	for (const auto &tbl : our_proptables) {
+		if (adm_quit)
+			break;
+		ec_log_notice("usmp: purging long namedprops from \"%s\"...", tbl.c_str());
+		ret = db->DoDelete("DELETE p FROM " + tbl + " AS p INNER JOIN n ON p.tag=n.tag", &aff);
+		if (ret != erSuccess)
+			return ret;
+		ec_log_notice("usmp: expunged %u rows", aff);
+	}
+	/* For now, the hope for these tables is that no user has strings longer than 185 */
+	if (adm_quit)
+		return erSuccess;
+	ec_log_notice("usmp: resizing names.namestring...");
+	ret = db->DoUpdate("ALTER TABLE `names` MODIFY COLUMN `namestring` varchar(185) BINARY DEFAULT NULL");
+	if (ret != erSuccess)
+		return ret;
+	if (adm_quit)
+		return erSuccess;
+	ec_log_notice("usmp: resizing receivefolder.messageclass...");
+	ret = db->DoUpdate("ALTER TABLE `receivefolder` MODIFY COLUMN `messageclass` varchar(185) NOT NULL DEFAULT ''");
+	if (ret != erSuccess)
+		return ret;
+	if (adm_quit)
+		return erSuccess;
+	ec_log_notice("usmp: resizing objectproperty.propname...");
+	ret = db->DoUpdate("ALTER TABLE `objectproperty` MODIFY COLUMN `propname` varchar(185) BINARY NOT NULL");
+	if (ret != erSuccess)
+		return ret;
+	if (adm_quit)
+		return erSuccess;
+	ec_log_notice("usmp: resizing objectmvproperty.propname...");
+	ret = db->DoUpdate("ALTER TABLE `objectmvproperty` MODIFY COLUMN `propname` varchar(185) BINARY NOT NULL");
+	if (ret != erSuccess)
+		return ret;
+	if (adm_quit)
+		return erSuccess;
+	ec_log_notice("usmp: resizing settings.name...");
+	return db->DoUpdate("ALTER TABLE `settings` MODIFY COLUMN `name` varchar(185) BINARY NOT NULL");
+}
+
 static void adm_sigterm(int sig)
 {
 	if (--adm_sigterm_count <= 0) {
@@ -518,6 +566,8 @@ int main(int argc, char **argv)
 			ret = index_tags(db);
 		else if (strcmp(argv[i], "rm-helper-index") == 0)
 			ret = remove_helper_index(db);
+		else if (strcmp(argv[i], "usmp-shrink-columns") == 0)
+			ret = usmp_shrink_columns(db);
 		if (ret == KCERR_NOT_FOUND) {
 			ec_log_err("dbadm: unknown action \"%s\"", argv[i]);
 			return EXIT_FAILURE;
