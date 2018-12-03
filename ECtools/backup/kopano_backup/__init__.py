@@ -542,6 +542,10 @@ class Service(kopano.Service):
                             folder.parent.move(folder, newparent)
                 else:
                     folder = restore_root.folder(path, create=True)
+
+                if self.options.clean_folders:
+                    self.log.info('emptying folder %s', folder.path)
+                    folder.empty()
                 self.restore_folder(folder, path, fpath, store, store.subtree, stats, user, self.server)
             if folder:
                 meta_folders.append((folder, fpath))
@@ -1073,6 +1077,7 @@ def main():
     parser.add_option('', '--differential', dest='differential', action='store_true', help='create/restore differential backup')
     parser.add_option('', '--overwrite', dest='overwrite', action='store_true', help='overwrite duplicate items')
     parser.add_option('', '--merge', dest='merge', action='store_true', help='merge differential backups')
+    parser.add_option('', '--clean-folders', dest='clean_folders', action='store_true', help='empty folder(s) before restore (dangerous!)')
 
     # parse and check command-line options
     options, args = parser.parse_args()
