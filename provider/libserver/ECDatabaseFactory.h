@@ -7,6 +7,9 @@
 #define ECDATABASEFACTORY_H
 
 #include <memory>
+#include <mutex>
+#include <unordered_set>
+#include <pthread.h>
 #include <kopano/zcdefs.h>
 #include "ECDatabase.h"
 #include <kopano/ECConfig.h>
@@ -21,7 +24,15 @@ class ECStatsCollector;
 
 class _kc_export ECDatabaseFactory final {
 public:
+	struct dfpair {
+		ECDatabaseFactory *factory;
+		std::shared_ptr<ECDatabase> db;
+		bool operator==(const dfpair &o) const { return db == o.db; }
+	};
+
 	ECDatabaseFactory(std::shared_ptr<ECConfig>, std::shared_ptr<ECStatsCollector>);
+	~ECDatabaseFactory();
+	static void S_thread_end(void *);
 	ECRESULT		CreateDatabaseObject(ECDatabase **lppDatabase, std::string &ConnectError);
 	ECRESULT		CreateDatabase();
 	ECRESULT		UpdateDatabase(bool bForceUpdate, std::string &strError);
@@ -30,9 +41,17 @@ public:
 	std::shared_ptr<ECStatsCollector> m_stats;
 
 private:
+	struct dfhash {
+		size_t operator()(const dfpair &a) const { return reinterpret_cast<size_t>(a.db.get()); }
+	};
+
+	_kc_hidden void destroy_database(ECDatabase *);
 	_kc_hidden ECRESULT GetDatabaseFactory(ECDatabase **);
 
 	std::shared_ptr<ECConfig> m_lpConfig;
+	pthread_key_t m_thread_key;
+	std::unordered_set<dfpair, dfhash> m_children;
+	std::mutex m_child_mtx;
 };
 
 } /* namespace */

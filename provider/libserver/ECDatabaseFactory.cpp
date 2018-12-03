@@ -4,7 +4,9 @@
  */
 #include <kopano/platform.h>
 #include <memory>
+#include <mutex>
 #include <utility>
+#include <pthread.h>
 #include <kopano/tie.hpp>
 #include "ECDatabase.h"
 #include "ECDatabaseFactory.h"
@@ -18,7 +20,38 @@ namespace KC {
 ECDatabaseFactory::ECDatabaseFactory(std::shared_ptr<ECConfig> c,
     std::shared_ptr<ECStatsCollector> s) :
 	m_stats(std::move(s)), m_lpConfig(std::move(c))
-{}
+{
+	pthread_key_create(&m_thread_key, S_thread_end);
+}
+
+ECDatabaseFactory::~ECDatabaseFactory()
+{
+	/*
+	 * The API user has to ensure that ~ECDatabaseFactory and S_thread_end
+	 * do not run concurrently. (The dfpairs belong to the class, too.) For
+	 * kopano-server, the factory outlives ECSessionManager, so there is no
+	 * issue.
+	 */
+	pthread_key_delete(m_thread_key);
+}
+
+void ECDatabaseFactory::S_thread_end(void *q)
+{
+	auto p = static_cast<dfpair *>(q);
+	auto fac = p->factory;
+	std::lock_guard<std::mutex> lk(fac->m_child_mtx);
+	auto i = fac->m_children.find({fac, p->db});
+	if (i == fac->m_children.end()) {
+		ec_log_err("K-1249: abandoned dfpair/ECDatabase instance");
+		return;
+	}
+	fac->m_children.erase(i);
+	p->db->ThreadEnd();
+}
+
+void ECDatabaseFactory::destroy_database(ECDatabase *db)
+{
+}
 
 ECRESULT ECDatabaseFactory::GetDatabaseFactory(ECDatabase **lppDatabase)
 {
@@ -69,8 +102,6 @@ ECRESULT ECDatabaseFactory::UpdateDatabase(bool bForceUpdate, std::string &strRe
 	return lpDatabase->UpdateDatabase(bForceUpdate, strReport);
 }
 
-extern pthread_key_t database_key;
-
 ECRESULT ECDatabaseFactory::get_tls_db(ECDatabase **lppDatabase)
 {
 	std::string error;
@@ -78,24 +109,22 @@ ECRESULT ECDatabaseFactory::get_tls_db(ECDatabase **lppDatabase)
 	// We check to see whether the calling thread already
 	// has an open database connection. If so, we return that, or otherwise
 	// we create a new one.
-
-	// database_key is defined in ECServer.cpp, and allocated in the running_server routine
-	auto lpDatabase = static_cast<ECDatabase *>(pthread_getspecific(database_key));
-
-	if(lpDatabase == NULL) {
-		auto er = CreateDatabaseObject(&lpDatabase, error);
-		if(er != erSuccess) {
-			ec_log_err("Unable to get database connection: %s", error.c_str());
-			lpDatabase = NULL;
-			return er;
-		}
-
-		// Add database into a list, for close all database connections
-		AddDatabaseObject(lpDatabase);
-		pthread_setspecific(database_key, lpDatabase);
+	auto bp = static_cast<dfpair *>(pthread_getspecific(m_thread_key));
+	if (bp != nullptr) {
+		*lppDatabase = bp->db.get();
+		return erSuccess;
 	}
 
-	*lppDatabase = lpDatabase;
+	std::unique_ptr<ECDatabase> updb;
+	auto er = CreateDatabaseObject(&unique_tie(updb), error);
+	if(er != erSuccess) {
+		ec_log_err("Unable to get database connection: %s", error.c_str());
+		return er;
+	}
+	std::unique_lock<std::mutex> lk(m_child_mtx);
+	auto pair = m_children.emplace(dfpair{this, std::move(updb)});
+	pthread_setspecific(m_thread_key, &*pair.first);
+	*lppDatabase = pair.first->db.get();
 	return erSuccess;
 }
 
