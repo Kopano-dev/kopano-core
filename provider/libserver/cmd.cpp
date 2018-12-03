@@ -843,15 +843,15 @@ int KCmdService::fname(ULONG64 ulSessionId, ##__VA_ARGS__) \
 	DB_RESULT UNUSED_VAR lpDBResult; \
 	std::string		UNUSED_VAR		strQuery;
 
-#define USE_DATABASE() \
+#define USE_DATABASE_NORESULT() \
        ECDatabase*             lpDatabase = NULL; \
-       ALLOC_DBRESULT(); \
-    \
        er = lpecSession->GetDatabase(&lpDatabase); \
        if (er != erSuccess) { \
 		ec_log_err(" GetDatabase failed"); \
                return KCERR_DATABASE_ERROR; \
        }
+
+#define USE_DATABASE() USE_DATABASE_NORESULT(); ALLOC_DBRESULT();
 
 #define ROLLBACK_ON_ERROR() \
 	if (lpDatabase && FAILED(er)) \
@@ -1257,8 +1257,7 @@ static ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession,
 	unsigned int ulCompanyId = 0, ulStoreOwner = 0;
 	struct propVal sPropVal;
 	ECStringCompat stringCompat(lpecSession->GetCapabilities() & KOPANO_CAP_UNICODE);
-
-	USE_DATABASE();
+	USE_DATABASE_NORESULT();
 
 	if(ulObjType == MAPI_STORE) //fimxe: except public stores
 	{
@@ -3089,7 +3088,7 @@ SOAP_ENTRY_START(createFolder, lpsResponse->er, const entryId &sParentId,
     struct createFolderResponse *lpsResponse)
 {
 	unsigned int ulParentId = 0, ulFolderId = 0;
-	USE_DATABASE();
+	USE_DATABASE_NORESULT();
 
 	if (szName == nullptr)
 		return KCERR_INVALID_PARAMETER;
@@ -3672,7 +3671,7 @@ SOAP_ENTRY_START(deleteObjects, *result, unsigned int ulFlags, struct entryList 
 {
 	ECListInt	lObjectList;
 	unsigned int ulDeleteFlags = EC_DELETE_ATTACHMENTS | EC_DELETE_RECIPIENTS | EC_DELETE_CONTAINER | EC_DELETE_MESSAGES;
-	USE_DATABASE();
+	USE_DATABASE_NORESULT();
 
 	if (lpEntryList == nullptr)
 		return KCERR_INVALID_PARAMETER;
@@ -3692,7 +3691,7 @@ SOAP_ENTRY_START(emptyFolder, *result, const entryId &sEntryId,
 {
 	unsigned int		ulId = 0;
 	ECListInt			lObjectIds;
-	USE_DATABASE();
+	USE_DATABASE_NORESULT();
 
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulId);
 	if(er != erSuccess)
@@ -3726,7 +3725,7 @@ SOAP_ENTRY_START(deleteFolder, *result, const entryId &sEntryId,
 {
 	unsigned int ulId = 0, ulFolderFlags = 0;
 	ECListInt			lObjectIds;
-	USE_DATABASE();
+	USE_DATABASE_NORESULT();
 
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulId);
 	if(er != erSuccess)
@@ -4072,7 +4071,7 @@ SOAP_ENTRY_END()
 SOAP_ENTRY_START(getNamesFromIDs, lpsResponse->er, struct propTagArray *lpPropTags, struct getNamesFromIDsResponse *lpsResponse)
 {
 	struct namedPropArray lpsNames;
-	USE_DATABASE();
+	USE_DATABASE_NORESULT();
 
 	if (lpPropTags == nullptr)
 		return KCERR_INVALID_PARAMETER;
@@ -5768,7 +5767,7 @@ SOAP_ENTRY_START(submitMessage, *result, const entryId &sEntryId,
 	objectdetails_t details;
 	auto cache = lpecSession->GetSessionManager()->GetCacheManager();
 	auto sec = lpecSession->GetSecurity();
-	USE_DATABASE();
+	USE_DATABASE_NORESULT();
 
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulObjId);
 	if(er != erSuccess)
@@ -5810,7 +5809,7 @@ SOAP_ENTRY_START(submitMessage, *result, const entryId &sEntryId,
 	if(!(ulFlags & EC_SUBMIT_MASTER)) {
 	    // Set the submit flag (because it has just been submitted), and set it to UNSENT, as it has definitely
 	    // not been sent if the user has just submitted it.
-		strQuery = "UPDATE properties SET val_ulong=val_ulong|"+stringify(MSGFLAG_SUBMIT|MSGFLAG_UNSENT)+" where hierarchyid="+stringify(ulObjId) + " and tag=" + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + " and type=" + stringify(PROP_TYPE(PR_MESSAGE_FLAGS));
+		auto strQuery = "UPDATE properties SET val_ulong=val_ulong|" + stringify(MSGFLAG_SUBMIT | MSGFLAG_UNSENT) + " where hierarchyid=" + stringify(ulObjId) + " and tag=" + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + " and type=" + stringify(PROP_TYPE(PR_MESSAGE_FLAGS));
 		er = lpDatabase->DoUpdate(strQuery);
 		if(er != erSuccess)
 			return er;
@@ -5828,7 +5827,7 @@ SOAP_ENTRY_START(submitMessage, *result, const entryId &sEntryId,
 		return er;
 
 	// Insert the message into the outgoing queue
-	strQuery = "INSERT IGNORE INTO outgoingqueue (store_id, hierarchy_id, flags) VALUES("+stringify(ulStoreId)+", "+stringify(ulObjId)+","+stringify(ulFlags)+")";
+	auto strQuery = "INSERT IGNORE INTO outgoingqueue (store_id, hierarchy_id, flags) VALUES(" + stringify(ulStoreId) + ", " + stringify(ulObjId) + "," + stringify(ulFlags) + ")";
 	er = lpDatabase->DoInsert(strQuery);
 	if(er != erSuccess)
 		return er;
@@ -7167,7 +7166,7 @@ SOAP_ENTRY_START(copyObjects, *result, struct entryList *aMessages,
 	unsigned int ulGrandParent = 0, ulDestFolderId = 0;
 	ECListInt			lObjectIds;
 	std::set<EntryId> setEntryIds;
-	USE_DATABASE();
+	USE_DATABASE_NORESULT();
 
 	const EntryId dstEntryId(&sDestFolderId);
 	if(aMessages == NULL) {
@@ -7517,7 +7516,7 @@ SOAP_ENTRY_START(notify, *result, const struct notification &sNotification,
     unsigned int *result)
 {
 	unsigned int ulKey = 0;
-	USE_DATABASE();
+	USE_DATABASE_NORESULT();
 
 	// You are only allowed to send newmail notifications at the moment. This could currently
 	// only be misused to send other users new mail popup notification for e-mails that aren't
@@ -8584,9 +8583,9 @@ SOAP_ENTRY_START(getEntryIDFromSourceKey, lpsResponse->er,
 	unsigned int ulObjType = 0, ulObjId = 0, ulMessageId = 0, ulFolderId = 0;
 	unsigned int ulParent = 0, ulStoreId = 0, ulStoreFound = 0;
 	EID				eid;
-
-	USE_DATABASE();
+	USE_DATABASE_NORESULT();
 	kd_trans dtx;
+
 	er = BeginLockFolders(lpDatabase, SOURCEKEY(folderSourceKey), LOCK_SHARED, dtx, er);
 	if(er != erSuccess)
 		return er;
@@ -8907,7 +8906,7 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er,
 	auto gcache = g_lpSessionManager->GetCacheManager();
 	auto sec = lpecSession->GetSecurity();
 	std::shared_ptr<ECAttachmentStorage> lpAttachmentStorage;
-	USE_DATABASE();
+	USE_DATABASE_NORESULT();
 	kd_trans dtx;
 
 	if(ulPropTag == PR_ENTRYID) {
@@ -8964,6 +8963,7 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er,
 	soap_info(soap)->fdoneparam = lpMTOMSessionInfo;
 	lpsResponse->sMsgStreams.__ptr = s_alloc<messageStream>(soap, sSourceKeyPairs.__size);
 
+	std::string strQuery;
 	for (gsoap_size_t i = 0; i < sSourceKeyPairs.__size; ++i) {
 		// Progress information
 		lpsResponse->sMsgStreams.__ptr[ulObjCnt].ulStep = i;
