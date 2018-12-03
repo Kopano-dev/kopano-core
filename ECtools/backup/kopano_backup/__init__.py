@@ -794,7 +794,7 @@ class Service(kopano.Service):
                     # handle existing item
                     entryid = existing.get(sourcekey2a) or existing.get(index[sourcekey2a][b'orig_sourcekey'])
                     if entryid is not None:
-                        if self.options.differential:
+                        if self.options.differential or self.options.overwrite:
                             folder.delete(folder.item(entryid=entryid))
                         else:
                             self.log.warning('skipping duplicate item with sourcekey %s', sourcekey2)
@@ -1071,6 +1071,7 @@ def main():
     parser.add_option('', '--sourcekey', dest='sourcekeys', action='append', help='restore specific sourcekey', metavar='SOURCEKEY')
     parser.add_option('', '--recursive', dest='recursive', action='store_true', help='backup/restore folders recursively')
     parser.add_option('', '--differential', dest='differential', action='store_true', help='create/restore differential backup')
+    parser.add_option('', '--overwrite', dest='overwrite', action='store_true', help='overwrite duplicate items')
     parser.add_option('', '--merge', dest='merge', action='store_true', help='merge differential backups')
 
     # parse and check command-line options

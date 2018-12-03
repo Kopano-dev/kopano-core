@@ -104,6 +104,11 @@ Only backup/restore meta data, such as settings, permissions and rules.
 Create/update backup directories in the specified directory, instead of the local directory.
 .RE
 .PP
+\fB\-\-overwrite\fR
+.RS 4
+When restoring items (without \fI\-\-differential), overwrite duplicate items instead of skipping them.
+.RE
+.PP
 \fB\-\-period\-begin\fR, \fB\-b\fR \fIDATE\fR
 .RS 4
 Backup/restore data which was last modified on or after the specified date (YYYY\-MM\-DD).
