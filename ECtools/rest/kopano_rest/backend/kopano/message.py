@@ -3,7 +3,7 @@ import base64
 
 import falcon
 
-from ..utils import (
+from ...utils import (
     _server_store, _folder, _item, HTTPBadRequest
 )
 from .resource import (

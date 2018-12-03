@@ -4,7 +4,7 @@ import codecs
 import datetime
 import dateutil
 
-from ..utils import (
+from ...utils import (
     db_get, db_put
 )
 from .resource import (

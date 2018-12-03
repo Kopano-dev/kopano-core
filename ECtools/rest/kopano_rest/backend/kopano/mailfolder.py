@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 from .resource import json
-from ..utils import (
+from ...utils import (
     _server_store, _folder, HTTPBadRequest
 )
 from .message import MessageResource

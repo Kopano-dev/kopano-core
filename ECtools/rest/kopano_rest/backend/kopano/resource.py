@@ -16,7 +16,7 @@ import pytz
 import dateutil
 from jsonschema import ValidationError
 
-from ..utils import HTTPBadRequest
+from ...utils import HTTPBadRequest
 
 UTC = dateutil.tz.tzutc()
 

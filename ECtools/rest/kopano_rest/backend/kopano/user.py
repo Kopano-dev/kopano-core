@@ -3,7 +3,7 @@ import codecs
 
 import falcon
 
-from ..utils import (
+from ...utils import (
     _server_store, HTTPBadRequest
 )
 from .resource import (
