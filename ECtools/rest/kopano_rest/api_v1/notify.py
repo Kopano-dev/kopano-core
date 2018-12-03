@@ -1,5 +1,4 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-import base64
 import codecs
 import json
 import logging
@@ -21,7 +20,6 @@ try:
 except ImportError: # pragma: no cover
     PROMETHEUS = False
 
-from MAPI import MAPI_MESSAGE # TODO avoid MAPI
 from MAPI.Struct import (
     MAPIErrorNetworkError, MAPIErrorEndOfSession
 )
@@ -116,7 +114,7 @@ class Processor(Thread):
             try:
                 if self.options and self.options.with_metrics:
                     POST_COUNT.inc()
-                logging.debug('Subscription notification: %s' % subscription['notificationUrl'])
+                logging.debug('Subscription notification: %s', subscription['notificationUrl'])
                 requests.post(subscription['notificationUrl'], json=data, timeout=10, verify=verify)
             except Exception:
                 traceback.print_exc()
@@ -172,7 +170,7 @@ class SubscriptionResource:
         validationToken = str(uuid.uuid4())
         verify = not self.options or not self.options.insecure
         try: # TODO async
-            logging.debug('Subscription validation: %s' % fields['notificationUrl'])
+            logging.debug('Subscription validation: %s', fields['notificationUrl'])
             r = requests.post(fields['notificationUrl']+'?validationToken='+validationToken, timeout=10, verify=verify)
             if r.text != validationToken:
                 raise utils.HTTPBadRequest("Subscription validation request failed.")

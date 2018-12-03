@@ -7,18 +7,10 @@ Copyright 2017 - Kopano and its licensors (see LICENSE file for details)
 
 import copy
 import sys
-try:
-    from queue import Queue
-except ImportError: # pragma: no cover
-    from Queue import Queue
 
 from MAPI import (
     MAPI_MESSAGE, MAPI_FOLDER, MAPIAdviseSink, fnevObjectModified,
     fnevObjectCreated, fnevObjectMoved, fnevObjectCopied, fnevObjectDeleted,
-)
-
-from MAPI.Struct import (
-    MAPIErrorNoSupport,
 )
 
 from MAPI.Tags import (

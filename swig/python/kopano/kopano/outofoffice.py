@@ -10,7 +10,6 @@ import time
 import datetime
 import sys
 
-from MAPI import KEEP_OPEN_READWRITE
 from MAPI.Tags import (
     PR_EC_OUTOFOFFICE, PR_EC_OUTOFOFFICE_SUBJECT_W,
     PR_EC_OUTOFOFFICE_MSG_W, PR_EC_OUTOFOFFICE_FROM,

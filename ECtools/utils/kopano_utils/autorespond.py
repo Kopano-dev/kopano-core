@@ -80,7 +80,7 @@ def main():
         msg = fh.read()
         fh.close()
     except:
-        log.info("Could not open msg file: %s" % msg_file)
+        log.info("Could not open msg file: %s", msg_file)
         sys.exit(1)
 
     if not(config["autorespond_norecip"] or

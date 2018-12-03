@@ -17,7 +17,7 @@ from MAPI.Struct import (
     SPropValue, MAPIErrorNotFound
 )
 from MAPI import (
-    MAPI_MODIFY, KEEP_OPEN_READWRITE, PT_BOOLEAN, MAPI_CREATE
+    MAPI_MODIFY, PT_BOOLEAN, MAPI_CREATE
 )
 
 from .defs import NAMED_PROPS_KC

@@ -15,7 +15,7 @@ import time
 import icalmapi
 
 from MAPI import (
-    MAPI_MODIFY, MAPI_ASSOCIATED, KEEP_OPEN_READWRITE, ROW_ADD,
+    MAPI_MODIFY, MAPI_ASSOCIATED, ROW_ADD,
     RELOP_GT, RELOP_LT, RELOP_EQ, MAPI_CREATE,
     DEL_ASSOCIATED, DEL_FOLDERS, DEL_MESSAGES, COPY_SUBFOLDERS,
     BOOKMARK_BEGINNING, ROW_REMOVE, MESSAGE_MOVE, FOLDER_MOVE,
@@ -66,7 +66,7 @@ from .errors import NotFoundError, ArgumentError
 from .query import _query_to_restriction
 
 from .compat import (
-    fake_unicode as _unicode, bdec as _bdec, benc as _benc, is_str
+    fake_unicode as _unicode, bdec as _bdec, benc as _benc
 )
 
 if sys.hexversion >= 0x03000000:
@@ -934,7 +934,7 @@ class Folder(Properties):
 
     def search_wait(self):
         while True:
-            (restrict, list, state) = self.mapiobj.GetSearchCriteria(0)
+            (restrict, _, state) = self.mapiobj.GetSearchCriteria(0)
             if not state & SEARCH_REBUILD:
                 break
 

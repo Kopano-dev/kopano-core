@@ -9,7 +9,7 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file)
 import sys
 
 from MAPI import (
-    MAPI_MODIFY, MAPI_DEFERRED_ERRORS, KEEP_OPEN_READWRITE
+    MAPI_MODIFY, MAPI_DEFERRED_ERRORS
 )
 
 from MAPI.Tags import (

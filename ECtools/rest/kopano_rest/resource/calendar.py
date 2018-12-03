@@ -1,8 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-import falcon
 
 from .resource import (
-    DEFAULT_TOP, json, _start_end,
+    json, _start_end,
 )
 
 from ..utils import (

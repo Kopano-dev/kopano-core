@@ -70,7 +70,7 @@ class ControlWorker(kopano.Worker):
                     conn, _ = s.accept()
                     fields_terms = []
                     for data in conn.makefile():
-                        self.log.info('CMD: %s' % data.strip())
+                        self.log.info('CMD: %s', data.strip())
                         data = data.split()
 
                         if data[0] == 'ADD':

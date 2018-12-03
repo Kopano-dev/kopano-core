@@ -9,7 +9,7 @@ Copyright 2017 - Kopano and its licensors (see LICENSE file)
 import sys
 
 from MAPI import (
-    KEEP_OPEN_READWRITE, PT_UNICODE, PT_ERROR, MAPI_E_NOT_FOUND
+    PT_UNICODE, PT_ERROR, MAPI_E_NOT_FOUND
 )
 
 from MAPI.Defs import PROP_TYPE

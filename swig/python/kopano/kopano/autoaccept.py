@@ -15,7 +15,7 @@ from MAPI.Tags import (
 )
 from MAPI.Defs import HrGetOneProp
 from MAPI.Struct import SPropValue
-from MAPI import MAPI_MODIFY, KEEP_OPEN_READWRITE
+from MAPI import MAPI_MODIFY
 
 if sys.hexversion >= 0x03000000:
     try:

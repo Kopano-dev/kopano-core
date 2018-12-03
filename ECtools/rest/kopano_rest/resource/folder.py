@@ -1,13 +1,11 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import codecs
 
-import falcon
-
 from ..utils import (
     _server_store, _folder, db_put, db_get
 )
 from .resource import (
-    DEFAULT_TOP, Resource, urlparse
+    DEFAULT_TOP, Resource
 )
 
 class DeletedFolder(object):

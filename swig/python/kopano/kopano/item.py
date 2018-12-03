@@ -25,12 +25,12 @@ import inetmapi
 import icalmapi
 
 from MAPI import (
-    KEEP_OPEN_READWRITE, PT_MV_BINARY, PT_BOOLEAN, MSGFLAG_READ,
+    PT_MV_BINARY, PT_BOOLEAN, MSGFLAG_READ,
     CLEAR_READ_FLAG, PT_MV_UNICODE, PT_BINARY, PT_LONG,
     MAPI_CREATE, MAPI_MODIFY, MAPI_DEFERRED_ERRORS,
     ATTACH_BY_VALUE, ATTACH_EMBEDDED_MSG, STGM_WRITE, STGM_TRANSACTED,
     MAPI_UNICODE, MAPI_TO, MAPI_CC, MAPI_BCC, MAPI_E_NOT_FOUND,
-    MAPI_E_NOT_ENOUGH_MEMORY, PT_SYSTIME, MAPI_ASSOCIATED,
+    MAPI_E_NOT_ENOUGH_MEMORY, MAPI_ASSOCIATED,
     WrapCompressedRTFStream, MODRECIP_ADD, MODRECIP_REMOVE,
     RELOP_EQ
 )
@@ -62,7 +62,6 @@ from MAPI.Tags import (
     PR_MESSAGE_ATTACHMENTS, PR_RECIPIENT_TYPE, PR_ADDRTYPE_W,
     PR_EMAIL_ADDRESS_W, PR_SMTP_ADDRESS_W, PR_NULL, PR_HTML,
     PR_RTF_COMPRESSED, PR_SENDER_SEARCH_KEY,
-    PR_START_DATE, PR_END_DATE, PR_OWNER_APPT_ID, PR_RESPONSE_REQUESTED,
     PR_SENT_REPRESENTING_SEARCH_KEY, PR_ATTACHMENT_FLAGS,
     PR_ATTACHMENT_HIDDEN, PR_ATTACHMENT_LINKID, PR_ATTACH_FLAGS,
     PR_NORMALIZED_SUBJECT_W, PR_INTERNET_MESSAGE_ID_W, PR_CONVERSATION_ID,
@@ -77,7 +76,7 @@ from MAPI.Tags import (
 )
 
 from .pidlid import (
-    PidLidAppointmentStateFlags, PidLidCleanGlobalObjectId, PidLidResponseStatus,
+    PidLidAppointmentStateFlags, PidLidResponseStatus,
     PidLidAppointmentStartWhole, PidLidAppointmentEndWhole, PidLidFInvited
 )
 
@@ -90,8 +89,7 @@ from .compat import (
 
 from .defs import (
     NAMED_PROPS_ARCHIVER, NAMED_PROP_CATEGORY, ADDR_PROPS,
-    PSETID_Archive, URGENCY, REV_URGENCY, ASF_MEETING, ASF_RECEIVED,
-    ASF_CANCELED, CODEPAGE_ENCODING
+    PSETID_Archive, URGENCY, REV_URGENCY, CODEPAGE_ENCODING,
 )
 from .errors import (
     Error, NotFoundError, _DeprecationWarning
@@ -114,10 +112,6 @@ if sys.hexversion >= 0x03000000:
     except ImportError: # pragma: no cover
         _folder = sys.modules[__package__+'.folder']
     try:
-        from . import store as _store
-    except ImportError: # pragma: no cover
-        _store = sys.modules[__package__ + '.store']
-    try:
         from . import user as _user
     except ImportError: # pragma: no cover
         _user = sys.modules[__package__ + '.user']
@@ -128,7 +122,6 @@ if sys.hexversion >= 0x03000000:
     from . import property_ as _prop
 else: # pragma: no cover
     import folder as _folder
-    import store as _store
     import user as _user
     import utils as _utils
     import property_ as _prop
@@ -192,7 +185,6 @@ class Item(Properties, Contact, Appointment):
                 # options for CreateMessage: 0 / MAPI_ASSOCIATED
                 dopt = inetmapi.delivery_options()
                 inetmapi.IMToMAPI(server.mapisession, self.folder.store.mapiobj, None, self.mapiobj, self._eml, dopt)
-                pass
             elif ics is not None:
                 icm = icalmapi.CreateICalToMapi(self.mapiobj, server.ab, False)
                 icm.ParseICal(ics, 'utf-8', 'UTC', self.user.mapiobj, 0)
@@ -1142,11 +1134,11 @@ class Item(Properties, Contact, Appointment):
                             raise MAPIErrorNotFound()
                         data = _utils.stream(att, PR_ATTACH_DATA_BIN)
                     except MAPIErrorNotFound:
-                        log.warn("no data found for attachment of item with entryid %s" % _main_item.entryid)
+                        log.warning("no data found for attachment of item with entryid %s", _main_item.entryid)
                         data = ''
                     atts.append(([[a, b, None] for a, b in row.items()], data))
             except Exception as e: # XXX generalize so usable in more places
-                log.error('could not serialize attachment for item with entryid %s' % _main_item.entryid)
+                log.error('could not serialize attachment for item with entryid %s', _main_item.entryid)
                 if skip_broken:
                     log.error(traceback.format_exc())
                     service = self.server.service

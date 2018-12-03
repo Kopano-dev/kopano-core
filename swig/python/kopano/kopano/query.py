@@ -8,7 +8,6 @@ Copyright 2018 - Kopano and its licensors (see LICENSE file for details)
 import datetime
 import time
 import re
-import sys
 
 import dateutil.parser
 

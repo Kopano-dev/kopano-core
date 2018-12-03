@@ -8,10 +8,6 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file)
 
 import sys
 
-from MAPI import (
-    KEEP_OPEN_READWRITE,
-)
-
 from MAPI.Tags import (
     PR_ATTACHMENT_CONTACTPHOTO, PR_GIVEN_NAME_W, PR_MIDDLE_NAME_W,
     PR_SURNAME_W, PR_NICKNAME_W, PR_TITLE_W, PR_GENERATION_W,
