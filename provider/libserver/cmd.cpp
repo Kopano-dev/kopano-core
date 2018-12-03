@@ -2611,6 +2611,8 @@ static HRESULT loadobject_cache(ECCacheManager *cache,
 		sObjectTableKey key(objid, 0);
 		cache->SetCell(&key, arr.__ptr[i].ulPropTag, &arr.__ptr[i]);
 	}
+	if (iter->second.lpPropVals->size() < iter->second.lpPropTags->size())
+		return erSuccess;
 	cache->SetComplete(objid);
 	return erSuccess;
 }
