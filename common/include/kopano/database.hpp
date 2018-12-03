@@ -100,7 +100,7 @@ class _kc_export kd_trans final {
 class _kc_export KDatabase : public kt_completion {
 	public:
 	KDatabase(void);
-	virtual ~KDatabase(void) = default;
+	virtual ~KDatabase() { Close(); }
 	ECRESULT Close(void);
 	virtual ECRESULT Connect(ECConfig *, bool, unsigned int, unsigned int);
 	virtual ECRESULT CreateDatabase(ECConfig *, bool);
