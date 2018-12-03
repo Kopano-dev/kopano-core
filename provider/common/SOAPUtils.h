@@ -99,7 +99,6 @@ class DynamicPropValArray final {
 public:
     DynamicPropValArray(struct soap *soap, unsigned int ulHint = 10);
     ~DynamicPropValArray();
-	size_t size() const { return m_ulPropCount; }
     // Copies the passed propVal
     ECRESULT AddPropVal(struct propVal &propVal);
     // Return a propvalarray of all properties passed
@@ -117,7 +116,6 @@ private:
 class DynamicPropTagArray final {
 public:
     DynamicPropTagArray(struct soap *soap);
-	size_t size() const { return m_lstPropTags.size(); }
     ECRESULT AddPropTag(unsigned int ulPropTag);
     BOOL HasPropTag(unsigned int ulPropTag) const;
     ECRESULT GetPropTagArray(struct propTagArray *lpPropTagArray);

@@ -2601,18 +2601,29 @@ static HRESULT loadobject_cache(ECCacheManager *cache,
     std::map<unsigned int, CHILDPROPS> *p, unsigned int objid)
 {
 	struct propValArray arr;
+	struct propTagArray pta;
 	auto iter = p->find(objid);
 	if (iter == p->cend() || iter->second.lpPropVals == nullptr)
 		return erSuccess;
 	auto ret = iter->second.lpPropVals->GetPropValArray(&arr, false);
 	if (ret != erSuccess)
 		return ret;
-	for (int i = 0; i < arr.__size; ++i) {
+	ret = iter->second.lpPropTags->GetPropTagArray(&pta);
+	if (ret != erSuccess)
+		return ret;
+
+	struct propVal pv{};
+	for (int i = 0, j = 0; i < pta.__size && j < arr.__size; ++i) {
+		/* Assumes that @arr and @pta have their things in the same order */
 		sObjectTableKey key(objid, 0);
-		cache->SetCell(&key, arr.__ptr[i].ulPropTag, &arr.__ptr[i]);
+		if (pta.__ptr[i] != arr.__ptr[j].ulPropTag) {
+			pv.ulPropTag = CHANGE_PROP_TYPE(pta.__ptr[i], PT_NULL);
+			cache->SetCell(&key, pta.__ptr[i], &pv);
+			continue;
+		}
+		cache->SetCell(&key, arr.__ptr[j].ulPropTag, &arr.__ptr[j]);
+		++j;
 	}
-	if (iter->second.lpPropVals->size() < iter->second.lpPropTags->size())
-		return erSuccess;
 	cache->SetComplete(objid);
 	return erSuccess;
 }
@@ -2672,6 +2683,8 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
 			if (PROP_TYPE(proptag) == PT_MV_STRING8)
 				proptag = CHANGE_PROP_TYPE(proptag, PT_MV_UNICODE);
 			sChild.lpPropTags->AddPropTag(proptag);
+			if (PROP_TYPE(prop.ulPropTag) == PT_NULL)
+				continue;
 			sChild.lpPropVals->AddPropVal(prop);
 		}
 

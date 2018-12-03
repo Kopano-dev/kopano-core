@@ -364,7 +364,8 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
 			}
     	    // FIXME bComputed always false
     	    // FIXME optimisation possible to GetCell: much more efficient to get all cells in one row at once
-			if (cache->GetCell(&row, ulPropTag, &lpsRowSet->__ptr[i].__ptr[k], soap, false) == erSuccess) {
+			if (cache->GetCell(&row, ulPropTag, &lpsRowSet->__ptr[i].__ptr[k], soap, false) == erSuccess &&
+			    PROP_TYPE(lpsRowSet->__ptr[i].__ptr[k].ulPropTag) != PT_NULL) {
 				setCellDone.emplace(i, k);
 	            continue;
 			}
