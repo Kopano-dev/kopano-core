@@ -43,7 +43,7 @@ def send_ooo(server, username, msg, copy_to_sentmail):
 
 def check_time(senddb, timelimit, username, to):
     with closing(bsddb.btopen(senddb, 'c')) as db:
-        key = username + ":" + to
+        key = (username + ":" + to).encode('utf8')
         if key in db:
             timestamp = int(db[key])
             if timestamp + timelimit > int(time.time()):
@@ -52,7 +52,7 @@ def check_time(senddb, timelimit, username, to):
 
 def add_time(senddb, username, to):
     with closing(bsddb.btopen(senddb, 'c')) as db:
-        key = username + ":" + to
+        key = (username + ":" + to).encode('utf8')
         db[key] = str(int(time.time()))
 
 def main():
@@ -76,7 +76,7 @@ def main():
     )
 
     try:
-        fh = open(msg_file, "r")
+        fh = open(msg_file, "rb")
         msg = fh.read()
         fh.close()
     except:
