@@ -53,6 +53,11 @@ Authenticate with specified password.
 Authenticate as specified user.
 .RE
 .PP
+\fB\-\-clean-folders\fR
+.RS 4
+Empty target folders before restoring data to them. In combination with \fI\-\-folder\fR, only the respective folders are emptied.
+.RE
+.PP
 \fB\-\-company\fR, \fB\-C\fR \fINAME\fR
 .RS 4
 Backup users and public store for specified company.
@@ -102,6 +107,11 @@ Only backup/restore meta data, such as settings, permissions and rules.
 \fB\-\-output\-dir\fR, \fB\-O\fR \fIPATH\fR
 .RS 4
 Create/update backup directories in the specified directory, instead of the local directory.
+.RE
+.PP
+\fB\-\-overwrite\fR
+.RS 4
+When restoring items (without \fI\-\-differential), overwrite duplicate items instead of skipping them.
 .RE
 .PP
 \fB\-\-period\-begin\fR, \fB\-b\fR \fIDATE\fR
