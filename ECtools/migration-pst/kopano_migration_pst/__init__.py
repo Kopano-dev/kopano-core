@@ -165,7 +165,7 @@ class Service(kopano.Service):
             reminder_set_id is not None):
             props2[reminder_set_id].Value = False
 
-        proplist = props2.values() # TODO move down and overwrite instead of append
+        proplist = list(props2.values()) # TODO move down and overwrite instead of append
 
         # Check if any recipient property on an item has an EX address and try to convert it.
         for prop_dict in EMAIL_RECIP_PROPS:
@@ -325,12 +325,24 @@ class Service(kopano.Service):
                 else:
                     for message in p.message_generator(folder):
                         self.import_message(message, folder2)
-
         self.rewrite_entryids(store)
 
     def import_message(self, message, folder2):
+        type_map = [
+            ('IPM.Note', 'mail'),
+            ('IPM.Schedule', 'mail'),
+            ('IPM.Contact', 'contact'),
+            ('IPM.DistList', 'distlist'),
+            ('IPM.Appointment', 'appointment'),
+        ]
+        for (class_, type_) in type_map:
+            if message.MessageClass and message.MessageClass.startswith(class_):
+                break
+        else:
+            type_ = 'item'
+
         with log_exc(self.log, self.stats):
-            self.log.debug("importing message '%s' (NID=%d)" % (rev_cp1252(message.Subject or ''), message.nid.nid))
+            self.log.debug("importing %s '%s' (NID=%d)" % (type_, rev_cp1252(message.Subject or ''), message.nid.nid))
             message2 = folder2.create_item(save=False)
             self.entryid_map[message.EntryId] = message2.entryid
             self.import_attachments(message, message2.mapiobj)

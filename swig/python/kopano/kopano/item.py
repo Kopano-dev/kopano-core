@@ -1356,6 +1356,19 @@ class Item(Properties, Contact, Appointment):
             except Exception:
                 raise NotFoundError('no encoding for codepage: %d' % self.codepage)
 
+    @property
+    def type_(self):
+        if self.message_class is None or self.message_class.startswith('IPM.Note') or self.message_class.startswith('IPM.Schedule'):
+            return 'mail'
+        elif self.message_class == 'IPM.Appointment':
+            return 'appointment'
+        elif self.message_class == 'IPM.Contact':
+            return 'contact'
+        elif self.message_class == 'IPM.DistList':
+            return 'distlist'
+        else:
+            return 'item'
+
     def __eq__(self, i): # XXX check same store?
         if isinstance(i, Item):
             return self.entryid == i.entryid

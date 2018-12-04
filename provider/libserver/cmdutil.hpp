@@ -198,6 +198,7 @@ typedef std::map<unsigned int, NAMEDPROPDEF> NamedPropDefMap;
 
 struct CHILDPROPS {
 	CHILDPROPS(struct soap *soap, unsigned int hint = 20);
+	/* There may be fewer values cached in @lpPropVals than tags are present in @lpPropTags. */
 	std::unique_ptr<DynamicPropTagArray> lpPropTags;
 	std::unique_ptr<DynamicPropValArray> lpPropVals;
 };
