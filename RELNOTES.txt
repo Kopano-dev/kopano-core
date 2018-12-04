@@ -1,5 +1,7 @@
 8.6.90 (8.7 beta)
 =================
+Fixes:
+* server: fix large inbox rule table/properties to "disappear" [KC-1359]
 Enhancements:
 * kopano-statsd: new daemon that records dagent/server/spooler stats
   (memory use, items processed, etc.) in RRD files.
