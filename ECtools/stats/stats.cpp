@@ -501,6 +501,28 @@ static std::string mapitable_ToString(const SPropValue *lpProp)
 	return std::string();
 }
 
+static std::string getMapiPropertyString(ULONG ulPropTag)
+{
+#define PROP_TO_STRING(__proptag) \
+case PROP_ID(__proptag): return #__proptag
+
+	switch (PROP_ID(ulPropTag)) {
+	PROP_TO_STRING(PR_DISPLAY_NAME);
+	PROP_TO_STRING(PR_EC_USERNAME);
+	PROP_TO_STRING(PR_EC_STATS_SYSTEM_VALUE);
+	PROP_TO_STRING(PR_EC_STATS_SYSTEM_DESCRIPTION);
+	PROP_TO_STRING(PR_EC_STATS_SERVER_NAME);
+	PROP_TO_STRING(PR_EC_STATS_SERVER_HTTPPORT);
+	PROP_TO_STRING(PR_EC_STATS_SERVER_SSLPORT);
+	PROP_TO_STRING(PR_EC_STATS_SERVER_HOST);
+	PROP_TO_STRING(PR_EC_STATS_SERVER_PROXYURL);
+	PROP_TO_STRING(PR_EC_STATS_SERVER_HTTPSURL);
+	PROP_TO_STRING(PR_EC_STATS_SERVER_FILEURL);
+	default:
+		return stringify_hex(ulPropTag);
+	}
+}
+
 static HRESULT MAPITablePrint(IMAPITable *lpTable, bool humanreadable /* = true */)
 {
 	SPropTagArrayPtr ptrColumns;
@@ -515,7 +537,7 @@ static HRESULT MAPITablePrint(IMAPITable *lpTable, bool humanreadable /* = true 
 		return hr;
 	ct.Resize(ptrRows.size(), ptrColumns->cValues);
 	for (unsigned int i = 0; i < ptrColumns->cValues; ++i)
-		ct.SetHeader(i, stringify_hex(ptrColumns->aulPropTag[i]));
+		ct.SetHeader(i, getMapiPropertyString(ptrColumns->aulPropTag[i]));
 	for (unsigned int i = 0; i < ptrRows.size(); ++i)
 		for (unsigned int j = 0; j < ptrRows[i].cValues; ++j)
 			ct.SetColumn(i, j, mapitable_ToString(&ptrRows[i].lpProps[j]));
