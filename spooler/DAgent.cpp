@@ -2111,7 +2111,7 @@ static HRESULT FindSpamMarker(const std::string &strMail,
 	// copy headers in upper case, need to resize destination first
 	strHeaders.resize(end);
 	transform(strMail.begin(), strMail.begin() +end, strHeaders.begin(), ::toupper);
-	match = strToUpper(std::string("\r\n") + szHeader);
+	match = strToUpper(std::string("\r\n") + szHeader + ":");
 
 	// find header
 	pos = strHeaders.find(match.c_str());
