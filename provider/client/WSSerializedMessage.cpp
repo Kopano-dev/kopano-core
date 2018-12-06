@@ -93,7 +93,11 @@ HRESULT WSSerializedMessage::DoCopyData(LPSTREAM lpDestStream)
 	m_lpSoap->fmimewrite = StaticMTOMWrite;
 	m_lpSoap->fmimewriteclose = StaticMTOMWriteClose;
 
+#if GSOAP_VERSION >= 20873
+	soap_recv_mime_attachment(m_lpSoap, this);
+#else
 	soap_get_mime_attachment(m_lpSoap, (void*)this);
+#endif
 	if (m_lpSoap->error != 0)
 		return MAPI_E_NETWORK_ERROR;
 	return m_hr;

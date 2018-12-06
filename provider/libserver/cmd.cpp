@@ -11251,9 +11251,11 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags, unsigne
 	lpsStreamInfo->lpSessionInfo = lpMTOMSessionInfo;
 
 	if (soap_check_mime_attachments(soap)) {
-		struct soap_multipart *content;
-		
-		content = soap_get_mime_attachment(soap, (void*)lpsStreamInfo);
+#if GSOAP_VERSION >= 20873
+		auto content = soap_recv_mime_attachment(soap, lpsStreamInfo);
+#else
+		auto content = soap_get_mime_attachment(soap, lpsStreamInfo);
+#endif
 		if (!content) {
 			er = (lpMTOMSessionInfo->er ? lpMTOMSessionInfo->er : KCERR_CALL_FAILED);
 			goto exit;
@@ -11261,7 +11263,11 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags, unsigne
 		
 		// Flush remaining attachments (that shouldn't even be there)
 		while (true) {
+#if GSOAP_VERSION >= 20873
+			content = soap_recv_mime_attachment(soap, lpsStreamInfo);
+#else
 			content = soap_get_mime_attachment(soap, (void*)lpsStreamInfo);
+#endif
 			if (!content)
 				break;
 		};
