@@ -2,6 +2,8 @@
 =====
 Enhancements:
 * dbadm: new action "usmp-shrink-columns"
+Packaging:
+* Support for gsoap 2.8.73
 
 
 8.6.9 (2018-11-28)
