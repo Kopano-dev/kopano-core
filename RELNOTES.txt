@@ -1,5 +1,7 @@
 8.6.x
 =====
+Fixes:
+* dagent: the spam_header_name was not matched correctly [KF-1961]
 Enhancements:
 * dbadm: new action "usmp-shrink-columns"
 Packaging:
