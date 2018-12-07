@@ -9,6 +9,7 @@ Enhancements:
   window, 60-second step). PNG image generation is not included (CPU intensive,
   and styling depends on user taste).
   To enable, set statsclient_interval=60 in dagent.cfg/server.cfg/spooler.cfg.
+* kopano-dbadm: new action "usmp" and "usmp-charset"
 Changes:
 * dagent/spooler: the custom plaintext protocol of StatsClient is
   replaced by a JSON variant [KC-1264]
@@ -79,8 +80,12 @@ Packaging changes:
 
 8.6.x
 =====
+Fixes:
+* dagent: the spam_header_name was not matched correctly [KF-1961]
 Enhancements:
 * dbadm: new action "usmp-shrink-columns"
+Packaging:
+* Support for gsoap 2.8.73
 
 
 8.6.9 (2018-11-28)

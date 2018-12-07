@@ -17,6 +17,7 @@
 #include <kopano/stringutil.h>
 #include <kopano/timeutil.hpp>
 
+using namespace std::string_literals;
 using namespace KC;
 
 static int adm_sigterm_count = 3;
@@ -461,6 +462,64 @@ static ECRESULT usmp_shrink_columns(std::shared_ptr<KDatabase> db)
 	return db->DoUpdate("ALTER TABLE `settings` MODIFY COLUMN `name` varchar(185) BINARY NOT NULL");
 }
 
+static ECRESULT usmp_charset(std::shared_ptr<KDatabase> db)
+{
+	ec_log_notice("dbadm: executing action \"usmp-charset\"");
+	for (const auto &tbl : {"abchanges", "acl", "changes", "deferredupdate",
+	    "hierarchy", "indexedproperties", "lob", "mvproperties",
+	    "object", "objectrelation",
+	    "outgoingqueue", "properties", "receivefolder", "searchresults",
+	    "settings", "singleinstances", "stores", "syncedmessages", "syncs",
+	    "tproperties", "users", "versions"}) {
+		if (adm_quit)
+			break;
+		ec_log_notice("usmp: converting \"%s\" to utf8mb4...", tbl);
+		auto ret = db->DoUpdate("ALTER TABLE `"s + tbl + "` CONVERT TO CHARSET utf8mb4");
+		if (ret != erSuccess)
+			return ret;
+	}
+	/*
+	 * "CONVERT TO CHARACTER SET" resets the collation, which we do not want.
+	 * It is split into individual operations here and the collation is reassured.
+	 */
+	for (const auto &tbl : {"names", "objectmvproperty", "objectproperty", "settings"}) {
+		if (adm_quit)
+			break;
+		auto ret = db->DoUpdate("ALTER TABLE `"s + tbl + "` DEFAULT CHARSET utf8mb4");
+		if (ret != erSuccess)
+			return ret;
+	}
+	if (adm_quit)
+		return erSuccess;
+	auto ret = db->DoUpdate("ALTER TABLE `names` MODIFY COLUMN `namestring` varchar(185) CHARACTER SET utf8mb4 BINARY DEFAULT NULL");
+	if (ret != erSuccess)
+		return ret;
+	if (adm_quit)
+		return erSuccess;
+	for (const auto &tbl : {"objectproperty", "objectmvproperty"}) {
+		if (adm_quit)
+			break;
+		ec_log_notice("usmp: converting \"%s\" to utf8mb4...", tbl);
+		ret = db->DoUpdate("ALTER TABLE `"s + tbl + "` MODIFY COLUMN `propname` varchar(185) CHARACTER SET utf8mb4 BINARY DEFAULT NULL");
+		if (ret != erSuccess)
+			return ret;
+	}
+	ret = db->DoUpdate("ALTER TABLE `settings` MODIFY COLUMN `name` varchar(185) CHARACTER SET utf8mb4 BINARY DEFAULT NULL");
+	if (ret != erSuccess)
+		return ret;
+	if (adm_quit)
+		return erSuccess;
+	return erSuccess;
+}
+
+static ECRESULT usmp(std::shared_ptr<KDatabase> db)
+{
+	auto ret = usmp_shrink_columns(db);
+	if (ret != erSuccess)
+		return ret;
+	return usmp_charset(db);
+}
+
 static void adm_sigterm(int sig)
 {
 	if (--adm_sigterm_count <= 0) {
@@ -566,6 +625,10 @@ int main(int argc, char **argv)
 			ret = remove_helper_index(db);
 		else if (strcmp(argv[i], "usmp-shrink-columns") == 0)
 			ret = usmp_shrink_columns(db);
+		else if (strcmp(argv[i], "usmp-charset") == 0)
+			ret = usmp_charset(db);
+		else if (strcmp(argv[i], "usmp") == 0)
+			ret = usmp(db);
 		if (ret == KCERR_NOT_FOUND) {
 			ec_log_err("dbadm: unknown action \"%s\"", argv[i]);
 			return EXIT_FAILURE;

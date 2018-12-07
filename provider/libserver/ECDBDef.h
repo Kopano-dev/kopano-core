@@ -286,7 +286,7 @@
 											`val_binary` varbinary(255), \
 											PRIMARY KEY (`hierarchyid`, `tag`), \
 											UNIQUE KEY `bin` (`tag`, `val_binary`) \
-										) ENGINE=%s CHARACTER SET utf8 COLLATE utf8_general_ci;"
+	) ENGINE=%s CHARACTER SET utf8mb4;"
 
 #define Z_TABLEDEF_SETTINGS		"CREATE TABLE settings ( \
 		`name` varchar(185) BINARY NOT NULL, \
@@ -329,9 +329,9 @@
  * version that can be reached with creates only.
  * (This is never less than %Z_UPDATE_LAST.)
  */
-#define Z_UPDATE_RELEASE_ID 115
+#define Z_UPDATE_RELEASE_ID 118
 
 // This is the last update ID always update this to the last ID
-#define Z_UPDATE_LAST 115
+#define Z_UPDATE_LAST 118
 
 #endif
