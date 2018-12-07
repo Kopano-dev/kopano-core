@@ -21,7 +21,7 @@ config_files = \
 	admin.cfg server.cfg unix.cfg presence.cfg \
 	spooler.cfg gateway.cfg monitor.cfg dagent.cfg ical.cfg search.cfg \
 	autorespond archiver.cfg backup.cfg migration-pst.cfg \
-	autorespond.cfg spamd.cfg statsd.cfg
+	autorespond.cfg spamd.cfg statsd.cfg msr.cfg
 if WITH_PYTHON3
 config_files += grapi.cfg
 endif
