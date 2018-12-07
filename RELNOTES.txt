@@ -9,6 +9,7 @@ Enhancements:
   window, 60-second step). PNG image generation is not included (CPU intensive,
   and styling depends on user taste).
   To enable, set statsclient_interval=60 in dagent.cfg/server.cfg/spooler.cfg.
+* kopano-dbadm: new action "usmp" and "usmp-charset"
 Changes:
 * dagent/spooler: the custom plaintext protocol of StatsClient is
   replaced by a JSON variant [KC-1264]

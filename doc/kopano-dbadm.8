@@ -56,6 +56,13 @@ kopano\-server is active.
 .PP
 Remove helper indices again. This action can be executed while kopano\-server
 is active.
+.SS usmp
+.PP
+This is an alias for the combination of: usmp\-shrink\-columns, usmp\-charset.
+.SS usmp-charset
+.PP
+Convert the database to utf8mb4 to support the Unicode Supplemental Plane,
+better known for Emoji characters.
 .SS usmp-shrink-columns
 .PP
 A number of table columns will be shrunk to accomodate certain MySQL index
@@ -63,15 +70,23 @@ limits.
 .SH Performance
 .PP
 Totally depends on the amount of data that needs to be moved. MySQL also seems
-to process the requests single-threadedly. An i7-3930K completed a
-naturally-evolved DB (4.96 GiB, properties: 12.94M rows, tproperties: 9.65M
-rows, mvproperties: 9.9K rows, indexedproperties: 3.24M rows, singleinstances:
-188K rows, names: 2988) using the "k\-1216" command combo within 2 minutes and
-The "np\-remove\-xh, np\-defrag" combo within 5 1/2 minutes.
+to process the requests single-threadedly.
 .PP
 An approximate row count of a table can be retrieved with \fBSHOW TABLE STATUS
 LIKE "\fP\fIproperties\fP\fB"\fP. For an exact count, use \fBSELECT COUNT(*)
 FROM `\fP\fIproperties\fP\fB`\fP.
+.SS k\-1216
+.PP
+An i7-3930K completed a naturally-evolved DB (4.96 GiB, properties: 12.94M
+rows, tproperties: 9.65M rows, mvproperties: 9.9K rows, indexedproperties:
+3.24M rows, singleinstances: 188K rows, names: 2988) using the "k\-1216"
+command combo within 2 minutes and The "np\-remove\-xh, np\-defrag" combo
+within 5 1/2 minutes.
+.SS usmp-charset
+.PP
+An AMD Ryzen 1700X completed the "usmp\-charset" transformation on a DB (6.3
+GiB, properties: 16.43M rows, tproperties: 12.25M rows, mvproperties: 10.2K
+rows, indexedproperties: 410K rows, singleinstances: 258K rows) in 7 minutes.
 .SH See also
 .PP
 \fBkopano\-server.cfg\fP(5)
