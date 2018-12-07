@@ -269,7 +269,12 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char *lpServerName,
 		)
 	{
 		soap_set_fault(lpsSoap.get());
-		ec_log_crit("K-2170: Unable to setup SSL context: soap_ssl_server_context: %s: %s", *soap_faultdetail(lpsSoap.get()), soap_ssl_error(lpsSoap.get(), 0));
+#if GSOAP_VERSION >= 20873
+		auto se = soap_ssl_error(lpsSoap.get(), 0, SSL_ERROR_NONE);
+#else
+		auto se = soap_ssl_error(lpsSoap.get(), 0);
+#endif
+		ec_log_crit("K-2170: Unable to setup SSL context: soap_ssl_server_context: %s: %s", *soap_faultdetail(lpsSoap.get()), se);
 		return KCERR_CALL_FAILED;
 	}
 	auto er = kc_ssl_options(lpsSoap.get(), server_ssl_protocols.get(), server_ssl_ciphers, pref_ciphers, server_ssl_curves);
