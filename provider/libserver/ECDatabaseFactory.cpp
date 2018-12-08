@@ -71,7 +71,7 @@ ECRESULT ECDatabaseFactory::UpdateDatabase(bool bForceUpdate, std::string &strRe
 
 extern pthread_key_t database_key;
 
-ECRESULT GetThreadLocalDatabase(ECDatabaseFactory *lpFactory, ECDatabase **lppDatabase)
+ECRESULT ECDatabaseFactory::get_tls_db(ECDatabase **lppDatabase)
 {
 	std::string error;
 
@@ -83,7 +83,7 @@ ECRESULT GetThreadLocalDatabase(ECDatabaseFactory *lpFactory, ECDatabase **lppDa
 	auto lpDatabase = static_cast<ECDatabase *>(pthread_getspecific(database_key));
 
 	if(lpDatabase == NULL) {
-		auto er = lpFactory->CreateDatabaseObject(&lpDatabase, error);
+		auto er = CreateDatabaseObject(&lpDatabase, error);
 		if(er != erSuccess) {
 			ec_log_err("Unable to get database connection: %s", error.c_str());
 			lpDatabase = NULL;

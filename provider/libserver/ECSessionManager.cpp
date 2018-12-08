@@ -96,7 +96,7 @@ ECRESULT ECSessionManager::LoadSettings(){
 
 	if (m_sguid_set)
 		return KCERR_BAD_VALUE;
-	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory.get(), &lpDatabase);
+	auto er = m_lpDatabaseFactory.get()->get_tls_db(&lpDatabase);
 	if(er != erSuccess)
 		return er;
 
@@ -612,7 +612,7 @@ void* ECSessionManager::SessionCleaner(void *lpTmpSessionManager)
 		return 0;
 
 	ECDatabase *db = NULL;
-	if (GetThreadLocalDatabase(lpSessionManager->m_lpDatabaseFactory.get(), &db) != erSuccess)
+	if (lpSessionManager->m_lpDatabaseFactory.get()->get_tls_db(&db) != erSuccess)
 		ec_log_err("GTLD failed in SessionCleaner");
 
 	while(true){
@@ -1191,7 +1191,7 @@ ECRESULT ECSessionManager::GetStoreSortLCID(ULONG ulStoreId, ULONG *lpLcid)
 		return erSuccess;
 	}
 
-	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory.get(), &lpDatabase);
+	auto er = m_lpDatabaseFactory.get()->get_tls_db(&lpDatabase);
 	if(er != erSuccess)
 		return er;
 
@@ -1332,7 +1332,7 @@ ECRESULT ECSessionManager::get_user_count(usercount_t *uc)
 	ECDatabase *db = nullptr;
 	DB_RESULT result;
 	DB_ROW row;
-	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory.get(), &db);
+	auto er = m_lpDatabaseFactory.get()->get_tls_db(&db);
 	if (er != erSuccess)
 		return er;
 	auto query =

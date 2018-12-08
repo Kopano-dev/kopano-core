@@ -25,6 +25,7 @@ public:
 	ECRESULT		CreateDatabaseObject(ECDatabase **lppDatabase, std::string &ConnectError);
 	ECRESULT		CreateDatabase();
 	ECRESULT		UpdateDatabase(bool bForceUpdate, std::string &strError);
+	ECRESULT get_tls_db(ECDatabase **);
 
 	std::shared_ptr<ECStatsCollector> m_stats;
 
@@ -33,8 +34,6 @@ private:
 
 	std::shared_ptr<ECConfig> m_lpConfig;
 };
-
-ECRESULT	GetThreadLocalDatabase(ECDatabaseFactory *lpFactory, ECDatabase **lppDatabase);
 
 } /* namespace */
 

@@ -198,7 +198,7 @@ ECRESULT GetDatabaseObject(std::shared_ptr<ECStatsCollector> sc, ECDatabase **lp
 	if (lppDatabase == NULL)
 		return KCERR_INVALID_PARAMETER;
 	ECDatabaseFactory db(g_lpSessionManager->GetConfig(), std::move(sc));
-	return GetThreadLocalDatabase(&db, lppDatabase);
+	return db.get_tls_db(lppDatabase);
 }
 
 } /* namespace */

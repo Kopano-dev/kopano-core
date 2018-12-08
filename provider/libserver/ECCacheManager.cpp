@@ -366,7 +366,7 @@ ECRESULT ECCacheManager::GetObject(unsigned int ulObjId, unsigned int *lpulParen
 	unsigned int	ulParent = 0, ulOwner = 0, ulFlags = 0, ulType = 0;
 	bool bCacheResult = false;
 
-	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
+	auto er = m_lpDatabaseFactory->get_tls_db(&lpDatabase);
 	if(er != erSuccess)
 		goto exit;
 
@@ -435,7 +435,7 @@ ECRESULT ECCacheManager::GetObjects(const std::list<sObjectTableKey> &lstObjects
 	ECsObjects sObject, *lpsObject = nullptr;
 	std::set<sObjectTableKey> setUncached;
 
-	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
+	auto er = m_lpDatabaseFactory->get_tls_db(&lpDatabase);
 	if(er != erSuccess)
 		goto exit;
 
@@ -506,7 +506,7 @@ ECRESULT ECCacheManager::GetObjectsFromProp(unsigned int ulTag,
 	}
 
 	if (!uncached.empty()) {
-		er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
+		er = m_lpDatabaseFactory->get_tls_db(&lpDatabase);
 		if (er != erSuccess)
 			goto exit;
 		auto strQuery = "SELECT hierarchyid, val_binary FROM indexedproperties WHERE tag=" + stringify(ulTag) + " AND val_binary IN(" +
@@ -550,7 +550,7 @@ ECRESULT ECCacheManager::GetStoreAndType(unsigned int ulObjId, unsigned int *lpu
 
 	if(maxdepth <= 0)
 	    return KCERR_NOT_FOUND;
-	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
+	auto er = m_lpDatabaseFactory->get_tls_db(&lpDatabase);
 	if(er != erSuccess)
 		goto exit;
 
@@ -626,7 +626,7 @@ ECRESULT ECCacheManager::GetUserObject(unsigned int ulUserId, objectid_t *lpExte
 		goto exit;
 	}
 
-	er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
+	er = m_lpDatabaseFactory->get_tls_db(&lpDatabase);
 	if (er != erSuccess)
 		goto exit;
 
@@ -713,7 +713,7 @@ ECRESULT ECCacheManager::GetUserObject(const objectid_t &sExternId, unsigned int
 		bCacheResult = true;
 		goto exit;
 	}
-	er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
+	er = m_lpDatabaseFactory->get_tls_db(&lpDatabase);
 	if (er != erSuccess)
 		goto exit;
 
@@ -794,7 +794,7 @@ ECRESULT ECCacheManager::GetUserObjects(const std::list<objectid_t> &lstExternOb
 	// Check if all objects have been collected from the cache
 	if (lstExternIds.empty())
 		goto exit;
-	er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
+	er = m_lpDatabaseFactory->get_tls_db(&lpDatabase);
 	if (er != erSuccess)
 		goto exit;
 
@@ -997,7 +997,7 @@ ECRESULT ECCacheManager::GetACLs(unsigned int ulObjId, struct rightsArray **lppR
 		return erSuccess;
 
 	/* Failed, get it from the cache */
-	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
+	auto er = m_lpDatabaseFactory->get_tls_db(&lpDatabase);
 	if(er != erSuccess)
 		return er;
 	auto strQuery = "SELECT id, type, rights FROM acl WHERE hierarchy_id=" + stringify(ulObjId);
@@ -1471,7 +1471,7 @@ ECRESULT ECCacheManager::GetPropFromObject(unsigned int ulTag, unsigned int ulOb
 	}
 
 	// item not found, search in the database
-	er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
+	er = m_lpDatabaseFactory->get_tls_db(&lpDatabase);
 	if(er != erSuccess)
 		goto exit;
 	// Get them from the database
@@ -1524,7 +1524,7 @@ ECRESULT ECCacheManager::GetObjectFromProp(unsigned int ulTag, unsigned int cbDa
 	}
 
 	// Item not found, search in database
-	er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
+	er = m_lpDatabaseFactory->get_tls_db(&lpDatabase);
     if(er != erSuccess)
         goto exit;
     // Get them from the database
