@@ -11,12 +11,13 @@
 #include "ECMAPIFolder.h"
 #include <kopano/ECUnknown.h>
 #include <kopano/IECInterfaces.hpp>
+#include <kopano/zcdefs.h>
 
 namespace KC {
 class ECLogger;
 }
 
-class ECExchangeImportContentsChanges final :
+class ECExchangeImportContentsChanges KC_FINAL_OPG :
     public KC::ECUnknown, public KC::IECImportContentsChanges {
 protected:
 	ECExchangeImportContentsChanges(ECMAPIFolder *lpFolder);

@@ -8,10 +8,11 @@
 #include <kopano/ECUnknown.h>
 #include <kopano/Util.h>
 #include <kopano/memory.hpp>
+#include <kopano/zcdefs.h>
 #include "WSTransport.h"
 #include <string>
 
-class ECMSProvider final : public KC::ECUnknown, public IMSProvider {
+class ECMSProvider KC_FINAL_OPG : public KC::ECUnknown, public IMSProvider {
 protected:
 	ECMSProvider(ULONG ulFlags, const char *szClassName);
 public:
@@ -30,7 +31,7 @@ private:
 	ALLOC_WRAP_FRIEND;
 };
 
-class ECMSProviderSwitch final : public KC::ECUnknown, public IMSProvider {
+class ECMSProviderSwitch KC_FINAL_OPG : public KC::ECUnknown, public IMSProvider {
 protected:
 	ECMSProviderSwitch(ULONG ulFlags);
 

@@ -18,6 +18,7 @@
 #include <kopano/ECUnknown.h>
 #include <kopano/ECGuid.h>
 #include <kopano/Util.h>
+#include <kopano/zcdefs.h>
 #include "freebusyguid.h"
 #include "ECFBBlockList.h"
 
@@ -26,7 +27,7 @@ namespace KC {
 /**
  * Implementatie of the IEnumFBBlock interface
  */
-class ECEnumFBBlock final : public ECUnknown, public IEnumFBBlock {
+class ECEnumFBBlock KC_FINAL_OPG : public ECUnknown, public IEnumFBBlock {
 private:
 	ECEnumFBBlock(ECFBBlockList* lpFBBlock);
 public:

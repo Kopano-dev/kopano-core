@@ -21,7 +21,7 @@ class WSMessageStreamImporter;
  * This class represents the data sink into which the stream data can be written.
  * It is returned from WSMessageStreamImporter::StartTransfer.
  */
-class WSMessageStreamSink final : public KC::ECUnknown {
+class WSMessageStreamSink KC_FINAL_OPG : public KC::ECUnknown {
 public:
 	static HRESULT Create(KC::ECFifoBuffer *, ULONG timeout, WSMessageStreamImporter *, WSMessageStreamSink **);
 	HRESULT Write(const void *data, unsigned int size);
@@ -44,7 +44,7 @@ private:
  * data in the returned WSMessageStreamSink. Once the returned stream is deleted, GetAsyncResult can
  * be used to wait for the worker and obtain its return values.
  */
-class WSMessageStreamImporter final :
+class WSMessageStreamImporter KC_FINAL_OPG :
     public KC::ECUnknown, private KC::ECWaitableTask {
 public:
 	static HRESULT Create(ULONG flags, ULONG sync_id, ULONG eid_size, const ENTRYID *eid, ULONG feid_size, const ENTRYID *folder_eid, bool newmsg, const SPropValue *conflict_items, WSTransport *, WSMessageStreamImporter **);

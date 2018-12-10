@@ -12,6 +12,7 @@
 #include <edkmdb.h>
 #include <kopano/ECUnknown.h>
 #include <kopano/Util.h>
+#include <kopano/zcdefs.h>
 #include "ECMAPIProp.h"
 #include "WSTransport.h"
 #include "ECNotifyClient.h"
@@ -216,7 +217,7 @@ private:
 	ALLOC_WRAP_FRIEND;
 };
 
-class ECMSLogon final : public KC::ECUnknown, public IMSLogon {
+class ECMSLogon KC_FINAL_OPG : public KC::ECUnknown, public IMSLogon {
 private:
 	ECMSLogon(ECMsgStore *lpStore);
 	ECMsgStore *m_lpStore;

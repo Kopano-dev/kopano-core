@@ -13,8 +13,9 @@
 #include <kopano/ECMemTable.h>
 #include <kopano/Util.h>
 #include <kopano/memory.hpp>
+#include <kopano/zcdefs.h>
 
-class ECMsgStorePublic final : public ECMsgStore {
+class ECMsgStorePublic KC_FINAL_OPG : public ECMsgStore {
 protected:
 	ECMsgStorePublic(const char *profile, IMAPISupport *, WSTransport *, BOOL modify, ULONG profile_flags, BOOL is_spooler, BOOL offline_store);
 public:

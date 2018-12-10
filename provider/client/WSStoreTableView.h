@@ -7,6 +7,7 @@
 
 #include <mutex>
 #include <kopano/Util.h>
+#include <kopano/zcdefs.h>
 #include "WSTableView.h"
 
 class WSStoreTableView : public WSTableView {
@@ -31,7 +32,7 @@ public:
 };
 
 /* not really store tables, but the code is the same.. */
-class WSTableMisc final : public WSStoreTableView {
+class WSTableMisc KC_FINAL_OPG : public WSStoreTableView {
 protected:
 	WSTableMisc(ULONG type, ULONG flags, KC::ECSESSIONID, ULONG eid_size, const ENTRYID *eid, ECMsgStore *, WSTransport *);
 
@@ -47,7 +48,7 @@ private:
 /**
  * MailBox table which shows all the stores
  */
-class WSTableMailBox final : public WSStoreTableView {
+class WSTableMailBox KC_FINAL_OPG : public WSStoreTableView {
 protected:
 	WSTableMailBox(ULONG ulFlags, KC::ECSESSIONID, ECMsgStore *, WSTransport *);
 

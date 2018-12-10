@@ -42,6 +42,13 @@
 /* Mark classes which explicitly must not be final in the C++ side… for SWIG */
 #define _no_final
 
+#ifdef KC_DISALLOW_OBJECTPTR_REFMOD
+/* Add object_ptr build-time checks */
+#define KC_FINAL_OPG
+#else
+#define KC_FINAL_OPG final
+#endif
+
 namespace KC {}
 
 #endif /* ZCOMMON_DEFS_H */

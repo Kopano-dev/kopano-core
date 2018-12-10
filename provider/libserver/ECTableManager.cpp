@@ -11,6 +11,7 @@
 #include <kopano/memory.hpp>
 #include <kopano/stringutil.h>
 #include <kopano/Util.h>
+#include <kopano/zcdefs.h>
 #include <mapidefs.h>
 #include <mapitags.h>
 #include "ECMAPI.h"
@@ -35,7 +36,7 @@
 
 namespace KC {
 
-class ECMailBoxTable final : public ECStoreObjectTable {
+class ECMailBoxTable KC_FINAL_OPG : public ECStoreObjectTable {
 	public:
 	static ECRESULT Create(ECSession *s, unsigned int flags, const ECLocale &l, ECMailBoxTable **p)
 	{

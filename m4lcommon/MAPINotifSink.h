@@ -19,7 +19,7 @@
 
 namespace KC {
 
-class _kc_export MAPINotifSink _kc_final : public IMAPIAdviseSink {
+class _kc_export MAPINotifSink KC_FINAL_OPG : public IMAPIAdviseSink {
 public:
     static HRESULT Create(MAPINotifSink **lppSink);
 	_kc_hidden virtual ULONG AddRef(void) _kc_override;

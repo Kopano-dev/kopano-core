@@ -10,6 +10,7 @@
 #include <kopano/Util.h>
 #include "IECPropStorage.h"
 #include <kopano/kcodes.h>
+#include <kopano/zcdefs.h>
 #include "WSTransport.h"
 #include <mapi.h>
 #include <mapispi.h>
@@ -18,7 +19,7 @@ namespace KC {
 class convert_context;
 }
 
-class WSMAPIPropStorage final : public KC::ECUnknown, public IECPropStorage {
+class WSMAPIPropStorage KC_FINAL_OPG : public KC::ECUnknown, public IECPropStorage {
 protected:
 	WSMAPIPropStorage(ULONG peid_size, const ENTRYID *parent_eid, ULONG eid_size, const ENTRYID *eid, ULONG flags, KC::ECSESSIONID, unsigned int srv_caps, WSTransport *);
 	virtual ~WSMAPIPropStorage();

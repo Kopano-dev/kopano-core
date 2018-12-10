@@ -18,6 +18,7 @@
 #include <map>
 #include <kopano/ECConfig.h>
 #include <kopano/memory.hpp>
+#include <kopano/zcdefs.h>
 
 class M4LMsgServiceAdmin;
 namespace KC {
@@ -67,7 +68,8 @@ public:
 	friend class KC::SessionRestorer;
 };
 
-class M4LMsgServiceAdmin final : public M4LUnknown, public IMsgServiceAdmin2 {
+class M4LMsgServiceAdmin KC_FINAL_OPG :
+    public M4LUnknown, public IMsgServiceAdmin2 {
 private:
 	std::list<std::unique_ptr<providerEntry> > providers;
 	std::list<std::unique_ptr<serviceEntry> > services;
@@ -108,7 +110,7 @@ inline bool operator<(const GUID &a, const GUID &b) noexcept
     return memcmp(&a, &b, sizeof(GUID)) < 0;
 }
 
-class M4LMAPISession final : public M4LUnknown, public IMAPISession {
+class M4LMAPISession KC_FINAL_OPG : public M4LUnknown, public IMAPISession {
 private:
 	// variables
 	std::string profileName;
@@ -148,7 +150,7 @@ public:
 	HRESULT setStatusRow(ULONG nvals, const SPropValue *);
 };
 
-class M4LAddrBook final : public M4LMAPIProp, public IAddrBook {
+class M4LAddrBook KC_FINAL_OPG : public M4LMAPIProp, public IAddrBook {
 public:
 	M4LAddrBook(M4LMsgServiceAdmin *new_serviceAdmin, LPMAPISUP newlpMAPISup);
 	virtual ~M4LAddrBook();

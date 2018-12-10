@@ -11,6 +11,7 @@
 #include <kopano/ECUnknown.h>
 #include <kopano/Util.h>
 #include <kopano/memory.hpp>
+#include <kopano/zcdefs.h>
 #include "IECPropStorage.h"
 #include "ECGenericProp.h"
 #include "WSMAPIPropStorage.h"
@@ -18,7 +19,8 @@
 #include <mapi.h>
 #include <mapispi.h>
 
-class ECParentStorage final : public KC::ECUnknown, public IECPropStorage {
+class ECParentStorage KC_FINAL_OPG :
+    public KC::ECUnknown, public IECPropStorage {
 	/*
 	  lpParentObject:	The property object of the parent (e.g. ECMessage for ECAttach)
 	  ulUniqueId:		A unique client-side to find the object in the children list on the parent (PR_ATTACH_NUM (attachments) or PR_ROWID (recipients))

@@ -16,9 +16,10 @@
 #include <kopano/ECUnknown.h>
 #include <kopano/IECInterfaces.hpp>
 #include <kopano/memory.hpp>
+#include <kopano/zcdefs.h>
 #include "WSMessageStreamExporter.h"
 
-class ECExchangeExportChanges final :
+class ECExchangeExportChanges KC_FINAL_OPG :
     public KC::ECUnknown, public KC::IECExportChanges {
 protected:
 	ECExchangeExportChanges(ECMsgStore *lpStore, const std::string& strSK, const wchar_t *szDisplay, unsigned int ulSyncType);

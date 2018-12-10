@@ -8,9 +8,10 @@
 
 #include <kopano/ECUnknown.h>
 #include <kopano/Util.h>
+#include <kopano/zcdefs.h>
 #include <mapispi.h>
 
-class ZCABProvider final : public KC::ECUnknown, public IABProvider {
+class ZCABProvider KC_FINAL_OPG : public KC::ECUnknown, public IABProvider {
 protected:
 	ZCABProvider(ULONG ulFlags, const char *szClassName);
 

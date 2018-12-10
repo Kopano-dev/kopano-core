@@ -10,6 +10,7 @@
 #include <mapispi.h>
 #include <kopano/ECUnknown.h>
 #include <kopano/Util.h>
+#include <kopano/zcdefs.h>
 
 struct zcabFolderEntry {
 	ULONG cbStore;
@@ -19,7 +20,7 @@ struct zcabFolderEntry {
 	std::wstring strwDisplayName;
 };
 
-class ZCABLogon final : public KC::ECUnknown, public IABLogon {
+class ZCABLogon KC_FINAL_OPG : public KC::ECUnknown, public IABLogon {
 protected:
 	ZCABLogon(IMAPISupport *, ULONG profile_flags, const GUID *);
 	virtual ~ZCABLogon();

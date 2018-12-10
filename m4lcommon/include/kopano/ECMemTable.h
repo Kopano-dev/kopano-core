@@ -88,7 +88,7 @@ protected:
 	ALLOC_WRAP_FRIEND;
 };
 
-class _kc_export ECMemTableView _kc_final :
+class _kc_export ECMemTableView KC_FINAL_OPG :
     public ECUnknown, public IMAPITable {
 protected:
 	_kc_hidden ECMemTableView(ECMemTable *, const ECLocale &, ULONG flags);

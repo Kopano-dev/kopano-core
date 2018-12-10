@@ -8,6 +8,7 @@
 #include <memory>
 #include <set>
 #include <kopano/memory.hpp>
+#include <kopano/zcdefs.h>
 #include "ECABContainer.h"
 
 namespace KC {
@@ -17,7 +18,7 @@ class ECLogger;
 
 }
 
-class ECExportAddressbookChanges final :
+class ECExportAddressbookChanges KC_FINAL_OPG :
     public KC::ECUnknown, public KC::IECExportAddressbookChanges {
 public:
 	ECExportAddressbookChanges(ECMsgStore *lpContainer);
