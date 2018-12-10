@@ -40,9 +40,11 @@ public:
 	virtual HRESULT Stat(STATSTG *pstatstg, DWORD grfStatFlag);
 	virtual HRESULT Clone(IStream **ppstm);
 
+	protected:
+	~ECMessageStreamImporterIStreamAdapter();
+
 private:
 	ECMessageStreamImporterIStreamAdapter(WSMessageStreamImporter *lpStreamImporter);
-	~ECMessageStreamImporterIStreamAdapter();
 
 	WSMessageStreamImporterPtr	m_ptrStreamImporter;
 	KC::object_ptr<WSMessageStreamSink> m_ptrSink;

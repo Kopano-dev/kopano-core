@@ -53,6 +53,8 @@ public:
 private:
 	_kc_hidden ECMemStream(const char *buffer, ULONG data_len, ULONG flags, CommitFunc, DeleteFunc, void *param);
 	_kc_hidden ECMemStream(ECMemBlock *, ULONG flags, CommitFunc, DeleteFunc, void *param);
+
+	protected:
 	_kc_hidden ~ECMemStream(void);
 
 public:

@@ -25,9 +25,11 @@ public:
 	bool IsDone() const;
 	HRESULT GetSerializedMessage(ULONG ulIndex, WSSerializedMessage **lppSerializedMessage);
 
+	protected:
+	~WSMessageStreamExporter();
+
 private:
 	WSMessageStreamExporter(void) = default;
-	~WSMessageStreamExporter();
 	// Inhibit copying
 	WSMessageStreamExporter(const WSMessageStreamExporter &) = delete;
 	WSMessageStreamExporter &operator=(const WSMessageStreamExporter &) = delete;

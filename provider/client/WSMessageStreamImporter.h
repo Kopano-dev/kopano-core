@@ -26,9 +26,11 @@ public:
 	static HRESULT Create(KC::ECFifoBuffer *, ULONG timeout, WSMessageStreamImporter *, WSMessageStreamSink **);
 	HRESULT Write(const void *data, unsigned int size);
 
+	protected:
+	~WSMessageStreamSink();
+
 private:
 	WSMessageStreamSink(KC::ECFifoBuffer *, ULONG timeout, WSMessageStreamImporter *);
-	~WSMessageStreamSink();
 
 	KC::ECFifoBuffer *m_lpFifoBuffer;
 	WSMessageStreamImporter *m_lpImporter;
@@ -49,9 +51,11 @@ public:
 	HRESULT StartTransfer(WSMessageStreamSink **lppSink);
 	HRESULT GetAsyncResult(HRESULT *lphrResult);
 
+	protected:
+	~WSMessageStreamImporter();
+
 private:
 	WSMessageStreamImporter(ULONG flags, ULONG sync_id, const entryId &eid, const entryId &feid, bool newmsg, const propVal &conflict_items, WSTransport *, ULONG bufsize, ULONG timeout);
-	~WSMessageStreamImporter();
 	void run();
 	static void  *StaticMTOMReadOpen(struct soap *soap, void *handle, const char *id, const char *type, const char *description);
 	static size_t StaticMTOMRead(struct soap *soap, void *handle, char *buf, size_t len);
