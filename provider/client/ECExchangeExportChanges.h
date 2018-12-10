@@ -53,7 +53,6 @@ private:
 	ULONG m_ulFlags = 0, m_ulSyncId = 0, m_ulChangeId = 0;
 	ULONG m_ulStep = 0, m_ulBatchSize, m_ulBufferSize = 0;
 	ULONG m_ulEntryPropTag = PR_SOURCE_KEY; // This is normally the tag that is sent to exportMessageChangeAsStream()
-	IID				m_iidMessage;
 	WSMessageStreamExporterPtr			m_ptrStreamExporter;
 	std::vector<ICSCHANGE> m_lstChange;
 
