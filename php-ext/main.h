@@ -35,32 +35,23 @@
 ***************************************************************/
 #include "globals.h"
 
+struct zvalplus : public zval {
+	zvalplus() { ZVAL_NULL(this); }
+	~zvalplus() { zval_ptr_dtor(this); }
+};
+
 /**
 * Numeric identifier for the resource type
 *
 */
-static int le_mapi_session; 
-static int le_mapi_table;
-static int le_mapi_rowset;
-static int le_mapi_msgstore;
-static int le_mapi_addrbook;
-static int le_mapi_mailuser;
-static int le_mapi_distlist;
-static int le_mapi_abcont;
-static int le_mapi_folder;
-static int le_mapi_message;
-static int le_mapi_attachment;
-static int le_mapi_property;
-static int le_mapi_modifytable;
-static int le_istream;
-static int le_freebusy_support;
-static int le_freebusy_data;
-static int le_freebusy_update;
-static int le_freebusy_enumblock;
-static int le_mapi_exportchanges;
-static int le_mapi_importhierarchychanges;
-static int le_mapi_importcontentschanges;
-static int le_mapi_advisesink;
+extern int le_mapi_session, le_mapi_table, le_mapi_rowset, le_mapi_msgstore;
+extern int le_mapi_addrbook, le_mapi_mailuser, le_mapi_distlist, le_mapi_abcont;
+extern int le_mapi_folder, le_mapi_message, le_mapi_attachment;
+extern int le_mapi_property, le_mapi_modifytable, le_istream;
+extern int le_freebusy_support, le_freebusy_data;
+extern int le_freebusy_update, le_freebusy_enumblock;
+extern int le_mapi_exportchanges, le_mapi_importhierarchychanges;
+extern int le_mapi_importcontentschanges, le_mapi_advisesink;
 
 /**
 * When adding or changing a entry here, don't forget to 
