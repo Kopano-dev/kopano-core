@@ -1538,8 +1538,8 @@ HRESULT OpenSubFolder(LPMDB lpMDB, const wchar_t *folder, wchar_t psep,
 
 found:
 	if (lpFoundFolder) {
-		lpFoundFolder->AddRef();
 		*lppSubFolder = lpFoundFolder;
+		(*lppSubFolder)->AddRef();
 	}
 	return hr;
 }

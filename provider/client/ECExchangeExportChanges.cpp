@@ -520,14 +520,14 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 				goto exit;
 			}
 			/* Check if requested interface exists */
-			void *throwaway;
-			hr = lpSourceMessage->QueryInterface(IID_IMessage, &throwaway);
+			object_ptr<IMessage> throwaway;
+			hr = lpSourceMessage->QueryInterface(IID_IMessage, &~throwaway);
 			if (hr != hrSuccess) {
 				m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "Unable to open message with entryid %s: %s (%x)",
 					bin2hex(cbEntryID, lpEntryID.get()).c_str(), GetMAPIErrorMessage(hr), hr);
 				goto exit;
 			}
-			lpSourceMessage->Release(); /* give back one ref taken by QI */
+			throwaway.reset();
 
 			hr = lpSourceMessage->GetProps(sptImportProps, 0, &ulCount, &~lpPropArray);
 			if(FAILED(hr)) {

@@ -602,7 +602,7 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 		hr = HrSetOneProp(ptrGlobalProfSect, &spv);
 		if (hr != hrSuccess)
 			return hr;
-		lpTransport->AddRef();
+		lpTransport.get()->AddRef(); /* for EC_TRANSPORTOBJECT */
 
 		// Check the path, username and password
 		while(1)
@@ -658,8 +658,8 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 
  exit2:
 		static constexpr const SizedSPropTagArray(1, tags) = {1, {PR_EC_TRANSPORTOBJECT}};
-		lpTransport->Release();
 		ptrGlobalProfSect->DeleteProps(tags, nullptr);
+		lpTransport.get()->Release();
 		break;
 	} // switch(ulContext)
 	return hr;
