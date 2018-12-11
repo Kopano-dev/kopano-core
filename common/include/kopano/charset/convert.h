@@ -21,7 +21,7 @@ namespace KC {
 /**
  * @brief	Exception class
  */
-class _kc_export_throw convert_exception : public std::runtime_error {
+class KC_EXPORT_THROW convert_exception : public std::runtime_error {
 public:
 	enum exception_type {
 		eUnknownCharset,
@@ -40,7 +40,7 @@ private:
 /**
  * @brief	Unknown charset
  */
-class _kc_export_throw unknown_charset_exception _kc_final :
+class KC_EXPORT_THROW unknown_charset_exception _kc_final :
     public convert_exception {
 	public:
 	unknown_charset_exception(const std::string &message);
@@ -49,7 +49,7 @@ class _kc_export_throw unknown_charset_exception _kc_final :
 /**
  * @brief	Illegal sequence
  */
-class _kc_export_throw illegal_sequence_exception _kc_final :
+class KC_EXPORT_THROW illegal_sequence_exception _kc_final :
     public convert_exception {
 	public:
 	illegal_sequence_exception(const std::string &message);
