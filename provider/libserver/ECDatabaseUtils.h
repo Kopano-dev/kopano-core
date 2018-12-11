@@ -43,10 +43,8 @@ namespace KC {
 #define I_PROPCOL_HILO(_tab)	PROPCOL_HI(_tab) "," PROPCOL_LO(_tab)
 
 /* make string of define value */
-#ifndef __STRING
-#define __STRING(x) #x
-#endif
-#define STR(macro) __STRING(macro)
+#define STRINGIFY(x) #x
+#define STR(macro) STRINGIFY(macro)
 
 // Warning! Code references the ordering of these values! Do not change unless you know what you're doing!
 #define PROPCOLVALUEORDER(_tab) I_PROPCOL_ULONG(_tab) "," I_PROPCOL_STRING(_tab) "," I_PROPCOL_BINARY(_tab) "," I_PROPCOL_DOUBLE(_tab) "," I_PROPCOL_LONGINT(_tab) "," I_PROPCOL_HI(_tab) "," I_PROPCOL_LO(_tab)

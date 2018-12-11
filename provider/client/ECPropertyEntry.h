@@ -20,15 +20,15 @@ template<typename Type> class ECInvariantChecker final {
 
 #ifdef KNOB144
 #	define DEBUG_CHECK_INVARIANT do { CheckInvariant(); } while (false)
-#	define DEBUG_GUARD guard __g(this);
+#	define DEBUG_GUARD guard debug_guard(this);
 #else
 #	define DEBUG_CHECK_INVARIANT do { } while (false)
 #	define DEBUG_GUARD
 #endif
 
-#define DECL_INVARIANT_GUARD(__class) typedef ECInvariantChecker<__class> guard;
+#define DECL_INVARIANT_GUARD(cls) typedef ECInvariantChecker<cls> guard;
 #define DECL_INVARIANT_CHECK void CheckInvariant() const;
-#define DEF_INVARIANT_CHECK(__class) void __class::CheckInvariant() const
+#define DEF_INVARIANT_CHECK(cls) void cls::CheckInvariant() const
 
 // C++ class to represent a property in the property list.
 class ECProperty final {
