@@ -408,7 +408,7 @@ class Server(object):
 
     def users(self, remote=False, system=False, parse=True, page_start=None,
               page_limit=None, order=None, hidden=True, inactive=True,
-              _server=None, _company=None):
+              _server=None, _company=None, query=None):
         """Return all :class:`users <User>` on server.
 
         :param remote: include users on remote server nodes
@@ -416,6 +416,26 @@ class Server(object):
         """
         pos = 0
         count = 0
+
+        multitenant = self.multitenant
+
+        # use query
+        if query is not None:
+            store = _store.Store(mapiobj=self.mapistore, server=self)
+            restriction = _query_to_restriction(query, 'user', store) # TODO use restriction to filter company!
+            columns = [PR_ENTRYID, PR_DISPLAY_NAME_W, PR_SMTP_ADDRESS_W]
+            table = self.gab_table(restriction=restriction, columns=columns)
+            for row in table.rows():
+                user = self.user(userid=_benc(row[0].value))
+                if multitenant and _company and _company != user.company:
+                    continue
+                if page_start is None or pos >= page_start:
+                    yield user
+                    count += 1
+                if page_limit is not None and count >= page_limit:
+                    return
+                pos += 1
+            return
 
         def include(user, ecuser):
             return ((system or user.name != u'SYSTEM') and
@@ -430,13 +450,11 @@ class Server(object):
             return
 
         # multi-tenant: get users per company
-        try:
-            companylist = self._companylist() # exception for single-tenant
-
+        if multitenant:
             if _company:
                 companies = [_company]
             else:
-                companies = [Company(name, self) for name in companylist]
+                companies = [Company(name, self) for name in self._companylist()] # TODO slow
             for company in companies:
                 for ecuser in self.sa.GetUserList(_bdec(company.companyid), MAPI_UNICODE):
                     user = _user.User(server=self, ecuser=ecuser)
@@ -449,7 +467,7 @@ class Server(object):
                         pos += 1
 
         # single-tenant: get all users
-        except MAPIErrorNoSupport:
+        else:
             for ecuser in self.sa.GetUserList(None, MAPI_UNICODE):
                 user = _user.User(server=self, ecuser=ecuser)
                 if include(user, ecuser):
@@ -459,14 +477,6 @@ class Server(object):
                     if page_limit is not None and count >= page_limit:
                         return
                     pos += 1
-
-    def _user_query(self, query): # TODO merge as .users('..')?
-        store = _store.Store(mapiobj=self.mapistore, server=self)
-        restriction = _query_to_restriction(query, 'user', store)
-        columns = [PR_ENTRYID, PR_DISPLAY_NAME_W, PR_SMTP_ADDRESS_W]
-        table = self.gab_table(restriction=restriction, columns=columns)
-        for row in table.rows():
-            yield self.user(userid=_benc(row[0].value))
 
     def create_user(self, name, email=None, password=None, company=None, fullname=None, create_store=True):
         """Create a new :class:`user <User>` on the server.
