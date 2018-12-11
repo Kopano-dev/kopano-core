@@ -75,13 +75,12 @@ struct ENTRYID {
 };
 typedef struct ENTRYID *LPENTRYID;
 
-#define CbNewENTRYID(_cb)	(offsetof(ENTRYID,ab) + (_cb))
-#define CbENTRYID(_cb)		(offsetof(ENTRYID,ab) + (_cb))
-#define SizedENTRYID(_cb, _name) \
-struct _ENTRYID_ ## _name { \
-    BYTE    abFlags[4]; \
-    BYTE    ab[_cb]; \
-} _name
+#define CbNewENTRYID(cb) (offsetof(ENTRYID, ab) + (cb))
+#define CbENTRYID(cb) (offsetof(ENTRYID, ab) + (cb))
+#define SizedENTRYID(cb, name) \
+struct ENTRYID_ ## name { \
+	BYTE abFlags[4], ab[cb]; \
+} name
 
 /* Byte-order-independent version of GUID (world-unique identifier) */
 struct MAPIUID {
@@ -212,19 +211,18 @@ struct SPropTagArray {
 };
 typedef struct SPropTagArray *LPSPropTagArray;
 
-#define CbNewSPropTagArray(_ctag) \
-    (offsetof(SPropTagArray,aulPropTag) + (_ctag)*sizeof(ULONG))
-#define CbSPropTagArray(_lparray) \
+#define CbNewSPropTagArray(ctag) \
+	(offsetof(SPropTagArray, aulPropTag) + (ctag) * sizeof(ULONG))
+#define CbSPropTagArray(lparray) \
     (offsetof(SPropTagArray,aulPropTag) + \
-    (UINT)((_lparray)->cValues)*sizeof(ULONG))
+	static_cast<UINT>((lparray)->cValues) * sizeof(ULONG))
 /* SPropTagArray */
-#define SizedSPropTagArray(_ctag, _name) \
-struct _SPropTagArray_ ## _name { \
-    ULONG   cValues; \
-    ULONG   aulPropTag[_ctag]; \
+#define SizedSPropTagArray(ctag, name) \
+struct SPropTagArray_ ## name { \
+	unsigned int cValues, aulPropTag[ctag]; \
 	operator SPropTagArray &() { return *reinterpret_cast<SPropTagArray *>(this); } \
 	operator const SPropTagArray *(void) const { return reinterpret_cast<const SPropTagArray *>(this); } \
-} _name
+} name
 
 
 /* Property Value */
@@ -365,17 +363,16 @@ struct SPropProblemArray {
 };
 typedef struct SPropProblemArray *LPSPropProblemArray;
 
-#define CbNewSPropProblemArray(_cprob) \
-    (offsetof(SPropProblemArray,aProblem) + (_cprob)*sizeof(SPropProblem))
-#define CbSPropProblemArray(_lparray) \
+#define CbNewSPropProblemArray(cprob) \
+	(offsetof(SPropProblemArray, aProblem) + (cprob) * sizeof(SPropProblem))
+#define CbSPropProblemArray(lparray) \
     (offsetof(SPropProblemArray,aProblem) + \
-    (UINT) ((_lparray)->cProblem*sizeof(SPropProblem)))
-#define SizedSPropProblemArray(_cprob, _name) \
-struct _SPropProblemArray_ ## _name { \
+	static_cast<UINT>((lparray)->cProblem * sizeof(SPropProblem)))
+#define SizedSPropProblemArray(cprob, name) \
+struct SPropProblemArray_ ## name { \
     ULONG           cProblem; \
-    SPropProblem    aProblem[_cprob]; \
-} _name
-
+	SPropProblem aProblem[cprob]; \
+} name
 
 /* Entry List */
 typedef SBinaryArray ENTRYLIST, *LPENTRYLIST;
@@ -412,14 +409,14 @@ struct FLATMTSIDLIST {
 };
 typedef struct FLATMTSIDLIST *LPFLATMTSIDLIST;
 
-#define CbNewFLATENTRY(_cb)     (offsetof(FLATENTRY,abEntry) + (_cb))
-#define CbFLATENTRY(_lpentry)   (offsetof(FLATENTRY,abEntry) + (_lpentry)->cb)
-#define CbNewFLATENTRYLIST(_cb) (offsetof(FLATENTRYLIST,abEntries) + (_cb))
-#define CbFLATENTRYLIST(_lplist) (offsetof(FLATENTRYLIST,abEntries) + (_lplist)->cbEntries)
-#define CbNewMTSID(_cb)         (offsetof(MTSID,ab) + (_cb))
-#define CbMTSID(_lpentry)       (offsetof(MTSID,ab) + (_lpentry)->cb)
-#define CbNewFLATMTSIDLIST(_cb) (offsetof(FLATMTSIDLIST,abMTSIDs) + (_cb))
-#define CbFLATMTSIDLIST(_lplist) (offsetof(FLATMTSIDLIST,abMTSIDs) + (_lplist)->cbMTSIDs)
+#define CbNewFLATENTRY(cb) (offsetof(FLATENTRY, abEntry) + (cb))
+#define CbFLATENTRY(lpentry) (offsetof(FLATENTRY, abEntry) + (lpentry)->cb)
+#define CbNewFLATENTRYLIST(cb) (offsetof(FLATENTRYLIST, abEntries) + (cb))
+#define CbFLATENTRYLIST(lplist) (offsetof(FLATENTRYLIST, abEntries) + (lplist)->cbEntries)
+#define CbNewMTSID(cb) (offsetof(MTSID, ab) + (cb))
+#define CbMTSID(lpentry) (offsetof(MTSID, ab) + (lpentry)->cb)
+#define CbNewFLATMTSIDLIST(cb) (offsetof(FLATMTSIDLIST, abMTSIDs) + (cb))
+#define CbFLATMTSIDLIST(lplist) (offsetof(FLATMTSIDLIST, abMTSIDs) + (lplist)->cbMTSIDs)
 /* No SizedXXX macros for these types. */
 
 /* ADRENTRY, ADRLIST */
@@ -438,16 +435,16 @@ struct ADRLIST {
 };
 typedef struct ADRLIST *LPADRLIST;
 
-#define CbNewADRLIST(_centries) \
-    (offsetof(ADRLIST,aEntries) + (_centries)*sizeof(ADRENTRY))
-#define CbADRLIST(_lpadrlist) \
-    (offsetof(ADRLIST,aEntries) + (UINT)(_lpadrlist)->cEntries*sizeof(ADRENTRY))
-#define SizedADRLIST(_centries, _name) \
-struct _ADRLIST_ ## _name { \
+#define CbNewADRLIST(centries) \
+	(offsetof(ADRLIST, aEntries) + (centries) * sizeof(ADRENTRY))
+#define CbADRLIST(lpadrlist) \
+	(offsetof(ADRLIST, aEntries) + static_cast<UINT>(lpadrlist)->cEntries * sizeof(ADRENTRY))
+#define SizedADRLIST(centries, name) \
+struct ADRLIST_ ## name { \
     ULONG           cEntries; \
-    ADRENTRY        aEntries[_centries]; \
+	ADRENTRY aEntries[centries]; \
     operator const ADRLIST *(void) const { return reinterpret_cast<const ADRLIST *>(this); } \
-} _name
+} name
 
 /* SRow, SRowSet */
 struct SRow {
@@ -467,15 +464,14 @@ struct SRowSet {
 };
 typedef struct SRowSet *LPSRowSet;
 
-#define CbNewSRowSet(_crow)     (offsetof(SRowSet,aRow) + (_crow)*sizeof(SRow))
-#define CbSRowSet(_lprowset)    (offsetof(SRowSet,aRow) + \
-                                    (UINT)((_lprowset)->cRows*sizeof(SRow)))
-#define SizedSRowSet(_crow, _name) \
-struct _SRowSet_ ## _name { \
+#define CbNewSRowSet(crow) (offsetof(SRowSet, aRow) + (crow) * sizeof(SRow))
+#define CbSRowSet(lprowset) (offsetof(SRowSet, aRow) + \
+	static_cast<UINT>((lprowset)->cRows * sizeof(SRow)))
+#define SizedSRowSet(crow, name) \
+struct SRowSet_ ## name { \
     ULONG           cRows; \
-    SRow            aRow[_crow]; \
-} _name
-
+	SRow aRow[crow]; \
+} name
 
 extern "C" {
 /* MAPI Allocation Routines */
@@ -915,18 +911,17 @@ struct SSortOrderSet {
 };
 typedef struct SSortOrderSet *LPSSortOrderSet;
 
-#define CbNewSSortOrderSet(_csort) \
-    (offsetof(SSortOrderSet,aSort) + (_csort)*sizeof(SSortOrder))
-#define CbSSortOrderSet(_lpset) \
+#define CbNewSSortOrderSet(csort) \
+    (offsetof(SSortOrderSet, aSort) + (csort) * sizeof(SSortOrder))
+#define CbSSortOrderSet(lpset) \
     (offsetof(SSortOrderSet,aSort) + \
-    (UINT)((_lpset)->cSorts*sizeof(SSortOrder)))
-#define SizedSSortOrderSet(_csort, _name) \
-struct _SSortOrderSet_ ## _name { \
+	static_cast<UINT>((lpset)->cSorts * sizeof(SSortOrder)))
+#define SizedSSortOrderSet(csort, name) \
+struct SSortOrderSet_ ## name { \
 	ULONG cSorts, cCategories, cExpanded; \
-    SSortOrder      aSort[_csort];  \
+	SSortOrder aSort[csort]; \
 	operator const SSortOrderSet *(void) const { return reinterpret_cast<const SSortOrderSet *>(this); } \
-} _name
-
+} name
 
 #define FOLDER_ROOT             ((ULONG) 0x00000000)
 #define FOLDER_GENERIC          ((ULONG) 0x00000001)
@@ -1057,8 +1052,8 @@ struct FlagList {
 typedef struct FlagList *LPFlagList;
 
 /* Our parts. */
-#define CbNewFlagList(_cflags) \
-    (offsetof(FlagList,ulFlag) + (_cflags)*sizeof(ULONG))
+#define CbNewFlagList(cflags) \
+	(offsetof(FlagList, ulFlag) + (cflags) * sizeof(ULONG))
 
 #define AB_RECIPIENTS           ((ULONG) 0x00000001)
 #define AB_SUBCONTAINERS        ((ULONG) 0x00000002)
@@ -1101,7 +1096,7 @@ IID_OF(IABContainer)
 */
 #define MAPI_SEND_NO_RICH_INFO      ((ULONG) 0x00010000)
 
-#define MAPI_DIAG(_code)    ((LONG) _code)
+#define MAPI_DIAG(code) static_cast<LONG>(code)
 
 #define MAPI_DIAG_NO_DIAGNOSTIC                     MAPI_DIAG( -1 )
 #define MAPI_DIAG_OR_NAME_UNRECOGNIZED              MAPI_DIAG( 0 )
@@ -1667,7 +1662,7 @@ struct DTBLLABEL {
 };
 typedef struct DTBLLABEL *LPDTBLLABEL;
 #define SizedDtblLabel(n,u) \
-struct _DTBLLABEL_ ## u { \
+struct DTBLLABEL_ ## u { \
     DTBLLABEL   dtbllabel; \
     TCHAR       lpszLabelName[n]; \
 } u
@@ -1678,7 +1673,7 @@ struct DTBLEDIT {
 };
 typedef struct DTBLEDIT *LPDTBLEDIT;
 #define SizedDtblEdit(n,u) \
-struct _DTBLEDIT_ ## u { \
+struct DTBLEDIT_ ## u { \
     DTBLEDIT    dtbledit; \
     TCHAR       lpszCharsAllowed[n]; \
 } u
@@ -1699,7 +1694,7 @@ struct DTBLCOMBOBOX {
 };
 typedef struct DTBLCOMBOBOX *LPDTBLCOMBOBOX;
 #define SizedDtblComboBox(n,u) \
-struct _DTBLCOMBOBOX_ ## u { \
+struct DTBLCOMBOBOX_ ## u { \
     DTBLCOMBOBOX    dtblcombobox; \
     TCHAR           lpszCharsAllowed[n]; \
 } u
@@ -1717,7 +1712,7 @@ struct DTBLCHECKBOX {
 };
 typedef struct DTBLCHECKBOX *LPDTBLCHECKBOX;
 #define SizedDtblCheckBox(n,u) \
-struct _DTBLCHECKBOX_ ## u { \
+struct DTBLCHECKBOX_ ## u { \
     DTBLCHECKBOX    dtblcheckbox; \
     TCHAR       lpszLabel[n]; \
 } u
@@ -1729,7 +1724,7 @@ struct DTBLGROUPBOX {
 };
 typedef struct DTBLGROUPBOX *LPDTBLGROUPBOX;
 #define SizedDtblGroupBox(n,u) \
-struct _DTBLGROUPBOX_ ## u { \
+struct DTBLGROUPBOX_ ## u { \
     DTBLGROUPBOX    dtblgroupbox; \
     TCHAR           lpszLabel[n]; \
 } u
@@ -1741,7 +1736,7 @@ struct DTBLBUTTON {
 };
 typedef struct DTBLBUTTON *LPDTBLBUTTON;
 #define SizedDtblButton(n,u) \
-struct _DTBLBUTTON_ ## u { \
+struct DTBLBUTTON_ ## u { \
     DTBLBUTTON  dtblbutton; \
     TCHAR       lpszLabel[n]; \
 } u
@@ -1753,7 +1748,7 @@ struct DTBLPAGE {
 };
 typedef struct DTBLPAGE *LPDTBLPAGE;
 #define SizedDtblPage(n,n1,u) \
-struct _DTBLPAGE_ ## u { \
+struct DTBLPAGE_ ## u { \
     DTBLPAGE    dtblpage; \
     TCHAR       lpszLabel[n]; \
     TCHAR       lpszComponent[n1]; \
@@ -1767,7 +1762,7 @@ struct DTBLRADIOBUTTON {
 };
 typedef struct DTBLRADIOBUTTON *LPDTBLRADIOBUTTON;
 #define SizedDtblRadioButton(n,u) \
-struct _DTBLRADIOBUTTON_ ## u { \
+struct DTBLRADIOBUTTON_ ## u { \
     DTBLRADIOBUTTON dtblradiobutton; \
     TCHAR           lpszLabel[n]; \
 } u
