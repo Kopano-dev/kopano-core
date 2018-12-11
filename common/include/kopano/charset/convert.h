@@ -100,7 +100,7 @@ class _kc_export iconv_context_base {
  * @brief	Default converter from one charset to another with string types.
  */
 template<typename To_Type, typename From_Type>
-class _kc_export_dycast iconv_context _kc_final :
+class KC_EXPORT_DYCAST iconv_context _kc_final :
     public iconv_context_base {
 	public:
 	/**

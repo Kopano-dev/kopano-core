@@ -24,7 +24,7 @@
 #endif
 
 /* Exported because something was using dynamic_cast<C> */
-#define _kc_export_dycast _kc_export
+#define KC_EXPORT_DYCAST _kc_export
 /* Exported because something was using throw C; */
 #define _kc_export_throw _kc_export
 

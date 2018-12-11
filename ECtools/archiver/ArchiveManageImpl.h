@@ -18,7 +18,7 @@ namespace KC {
 /**
  * The ArchiveManager is used to attach, detach and list archives for users.
  */
-class _kc_export_dycast ArchiveManageImpl final : public ArchiveManage {
+class KC_EXPORT_DYCAST ArchiveManageImpl final : public ArchiveManage {
 public:
 	static HRESULT Create(ArchiverSessionPtr ptrSession, ECConfig *lpConfig, const TCHAR *lpszUser, std::shared_ptr<ECLogger>, ArchiveManagePtr *lpptrArchiveManage);
 	_kc_hidden eResult AttachTo(const char *server, const TCHAR *archive, const TCHAR *folder, unsigned int flags) override;
