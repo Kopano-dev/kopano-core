@@ -27,7 +27,7 @@ namespace KC {
 /**
  * Implementatie of the IFreeBusyData interface
  */
-class ECFreeBusyData _kc_final : public ECUnknown, public IFreeBusyData {
+class ECFreeBusyData KC_FINAL_OPG : public ECUnknown, public IFreeBusyData {
 public:
 	static HRESULT Create(LONG start, LONG end, const ECFBBlockList &, ECFreeBusyData **);
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;

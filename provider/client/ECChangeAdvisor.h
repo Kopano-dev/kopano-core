@@ -14,6 +14,7 @@
 #include "ics_client.hpp"
 #include <kopano/kcodes.h>
 #include <kopano/memory.hpp>
+#include <kopano/zcdefs.h>
 #include <map>
 #include "ECMsgStore.h"
 
@@ -27,7 +28,7 @@ class ECMsgStore;
  * ECChangeAdvisor: Implementation IECChangeAdvisor, which allows one to register for
  *                  change notifications on folders.
  */
-class ECChangeAdvisor final :
+class ECChangeAdvisor KC_FINAL_OPG :
     public KC::ECUnknown, public KC::IECChangeAdvisor {
 protected:
 	/**

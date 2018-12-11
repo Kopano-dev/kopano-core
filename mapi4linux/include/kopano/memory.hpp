@@ -173,6 +173,13 @@ template<typename T, typename Deleter = default_delete> class memory_ptr {
 	T *m_ptr = nullptr;
 };
 
+/* Extra proxy class to forbid AddRef/Release */
+template<typename T> class object_rcguard final : public T {
+	private:
+	virtual unsigned int AddRef() = 0;
+	virtual unsigned int Release() = 0;
+};
+
 /**
  * Works a bit like shared_ptr, except that the refcounting is in the
  * underlying object (T) rather than this class.
@@ -207,7 +214,11 @@ template<typename T> class object_ptr {
 	}
 	/* Observers */
 	T &operator*(void) const { return *m_ptr; }
-	T *operator->(void) const noexcept { return m_ptr; }
+#ifdef KC_DISALLOW_OBJECTPTR_REFMOD
+	object_rcguard<T> *operator->() const noexcept { return reinterpret_cast<object_rcguard<T> *>(m_ptr); }
+#else
+	T *operator->() const noexcept { return m_ptr; }
+#endif
 	T *get(void) const noexcept { return m_ptr; }
 	operator T *(void) const noexcept { return m_ptr; }
 	template<typename U> HRESULT QueryInterface(U &);

@@ -13,7 +13,7 @@
 #include <edkmdb.h>
 #include <kopano/IECInterfaces.hpp>
 
-class ECExchangeModifyTable final :
+class ECExchangeModifyTable KC_FINAL_OPG :
     public KC::ECUnknown, public KC::IECExchangeModifyTable {
 public:
 	ECExchangeModifyTable(ULONG unique_tag, KC::ECMemTable *table, ECMAPIProp *parent, ULONG start_rule, ULONG flags);

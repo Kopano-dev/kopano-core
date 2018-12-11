@@ -18,7 +18,8 @@
 #include <string>
 #include <vector>
 
-class _kc_export_dycast ECArchiveAwareMsgStore final : public ECMsgStore {
+class _kc_export_dycast ECArchiveAwareMsgStore KC_FINAL_OPG :
+    public ECMsgStore {
 	public:
 	_kc_hidden ECArchiveAwareMsgStore(const char *profname, IMAPISupport *, WSTransport *, BOOL modify, ULONG profflags, BOOL is_spooler, BOOL is_dfl_store, BOOL offline_store);
 	_kc_hidden static HRESULT Create(const char *profname, IMAPISupport *, WSTransport *, BOOL modify, ULONG profflags, BOOL is_spooler, BOOL is_dfl_store, BOOL offline_store, ECMsgStore **ret);
@@ -39,7 +40,7 @@ class _kc_export_dycast ECArchiveAwareMsgStore final : public ECMsgStore {
 	ALLOC_WRAP_FRIEND;
 };
 
-class _kc_export_dycast ECArchiveAwareMessage final : public ECMessage {
+class _kc_export_dycast ECArchiveAwareMessage KC_FINAL_OPG : public ECMessage {
 protected:
 	/**
 	 * \param lpMsgStore	The store owning this message.
@@ -113,7 +114,7 @@ public:
 	HRESULT Create(ECMsgStore *, BOOL fnew, BOOL modify, ULONG flags, BOOL embedded, const ECMAPIProp *root, ECMessage **) const;
 };
 
-class ECArchiveAwareAttach final : public ECAttach {
+class ECArchiveAwareAttach KC_FINAL_OPG : public ECAttach {
 	protected:
 	ECArchiveAwareAttach(ECMsgStore *, ULONG obj_type, BOOL modify, ULONG attach_num, const ECMAPIProp *root);
 

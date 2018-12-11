@@ -8,9 +8,10 @@
 #include "ECMAPIFolder.h"
 #include <kopano/ECMemTable.h>
 #include <kopano/Util.h>
+#include <kopano/zcdefs.h>
 #include "ClientUtil.h"
 
-class ECMAPIFolderPublic final : public ECMAPIFolder {
+class ECMAPIFolderPublic KC_FINAL_OPG : public ECMAPIFolder {
 protected:
 	ECMAPIFolderPublic(ECMsgStore *lpMsgStore, BOOL fModify, WSMAPIFolderOps *lpFolderOps, enumPublicEntryID ePublicEntryID);
 

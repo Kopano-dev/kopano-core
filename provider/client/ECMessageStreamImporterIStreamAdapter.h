@@ -8,6 +8,7 @@
 #include <kopano/memory.hpp>
 #include <kopano/ECUnknown.h>
 #include <kopano/Util.h>
+#include <kopano/zcdefs.h>
 #include "WSMessageStreamImporter.h"
 
 /**
@@ -17,7 +18,7 @@
  * On commit, the call thread will block until the asynchronous call has completed, and
  * the return value will be returned.
  */
-class ECMessageStreamImporterIStreamAdapter final :
+class ECMessageStreamImporterIStreamAdapter KC_FINAL_OPG :
     public KC::ECUnknown, public IStream {
 public:
 	static HRESULT Create(WSMessageStreamImporter *lpStreamImporter, IStream **lppStream);
@@ -40,9 +41,11 @@ public:
 	virtual HRESULT Stat(STATSTG *pstatstg, DWORD grfStatFlag);
 	virtual HRESULT Clone(IStream **ppstm);
 
+	protected:
+	~ECMessageStreamImporterIStreamAdapter();
+
 private:
 	ECMessageStreamImporterIStreamAdapter(WSMessageStreamImporter *lpStreamImporter);
-	~ECMessageStreamImporterIStreamAdapter();
 
 	WSMessageStreamImporterPtr	m_ptrStreamImporter;
 	KC::object_ptr<WSMessageStreamSink> m_ptrSink;

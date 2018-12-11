@@ -10,6 +10,7 @@
 #include "kcore.hpp"
 #include <kopano/kcodes.h>
 #include <kopano/Util.h>
+#include <kopano/zcdefs.h>
 #include "ics_client.hpp"
 #include <vector>
 #include <mapi.h>
@@ -22,7 +23,7 @@ class utf8string;
 
 class WSTransport;
 
-class WSMAPIFolderOps final : public KC::ECUnknown {
+class WSMAPIFolderOps KC_FINAL_OPG : public KC::ECUnknown {
 protected:
 	WSMAPIFolderOps(KC::ECSESSIONID, ULONG eid_size, const ENTRYID *, WSTransport *);
 	virtual ~WSMAPIFolderOps();

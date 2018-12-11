@@ -6,12 +6,13 @@
 #define ECMAILUSER
 
 #include <kopano/Util.h>
+#include <kopano/zcdefs.h>
 #include <mapidefs.h>
 #include "ECABContainer.h"
 
 class ECABLogon;
 
-class ECDistList final : public ECABContainer, public IDistList {
+class ECDistList KC_FINAL_OPG : public ECABContainer, public IDistList {
 	public:
 	static HRESULT Create(ECABLogon *prov, BOOL modify, ECDistList **);
 	static HRESULT TableRowGetProp(void *prov, const struct propVal *src, SPropValue *dst, void **base, ULONG type);
@@ -29,7 +30,7 @@ class ECDistList final : public ECABContainer, public IDistList {
 	ALLOC_WRAP_FRIEND;
 };
 
-class ECMailUser final : public ECABProp, public IMailUser {
+class ECMailUser KC_FINAL_OPG : public ECABProp, public IMailUser {
 private:
 	ECMailUser(ECABLogon *prov, BOOL modify);
 

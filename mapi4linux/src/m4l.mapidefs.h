@@ -12,6 +12,7 @@
 #include <list>
 #include <map>
 #include <kopano/memory.hpp>
+#include <kopano/zcdefs.h>
 
 class M4LMsgServiceAdmin;
 
@@ -36,7 +37,7 @@ public:
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 };
 
-class M4LProfSect final : public IProfSect, public M4LMAPIProp {
+class M4LProfSect KC_FINAL_OPG : public IProfSect, public M4LMAPIProp {
 private:
 	BOOL bGlobalProf;
 public:
@@ -76,7 +77,7 @@ public:
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 };
 
-class M4LProviderAdmin final : public M4LUnknown , public IProviderAdmin {
+class M4LProviderAdmin KC_FINAL_OPG : public M4LUnknown, public IProviderAdmin {
 private:
 	M4LMsgServiceAdmin* msa;
 	char *szService;
@@ -92,7 +93,8 @@ public:
 	virtual HRESULT QueryInterface(const IID &, void **iface) override;
 };
 
-class M4LMAPIAdviseSink final : public M4LUnknown, public IMAPIAdviseSink {
+class M4LMAPIAdviseSink KC_FINAL_OPG :
+    public M4LUnknown, public IMAPIAdviseSink {
 private:
     void *lpContext;
     LPNOTIFCALLBACK lpFn;

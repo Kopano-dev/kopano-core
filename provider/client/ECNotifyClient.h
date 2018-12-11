@@ -11,6 +11,7 @@
 #include <kopano/IECInterfaces.hpp>
 #include <kopano/Util.h>
 #include <kopano/memory.hpp>
+#include <kopano/zcdefs.h>
 #include "ics_client.hpp"
 #include "ECNotifyMaster.h"
 #include <map>
@@ -25,7 +26,7 @@ typedef std::list<std::pair<syncid_t,connection_t> > ECLISTCONNECTION;
 
 class SessionGroupData;
 
-class ECNotifyClient final : public KC::ECUnknown {
+class ECNotifyClient KC_FINAL_OPG : public KC::ECUnknown {
 protected:
 	ECNotifyClient(ULONG ulProviderType, void *lpProvider, ULONG ulFlags, LPMAPISUP lpSupport);
 	virtual ~ECNotifyClient();

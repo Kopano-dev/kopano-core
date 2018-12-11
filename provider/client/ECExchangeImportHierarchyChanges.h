@@ -10,8 +10,9 @@
 #include <kopano/ECUnknown.h>
 #include <kopano/Util.h>
 #include <kopano/memory.hpp>
+#include <kopano/zcdefs.h>
 
-class ECExchangeImportHierarchyChanges final :
+class ECExchangeImportHierarchyChanges KC_FINAL_OPG :
     public KC::ECUnknown, public IExchangeImportHierarchyChanges {
 protected:
 	ECExchangeImportHierarchyChanges(ECMAPIFolder *lpFolder);

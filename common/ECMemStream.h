@@ -19,7 +19,7 @@ namespace KC {
  * The commit and revert functions use memory sparingly, as only changed blocks
  * are held in memory.
  */
-class ECMemBlock _kc_final : public ECUnknown {
+class ECMemBlock KC_FINAL_OPG : public ECUnknown {
 private:
 	ECMemBlock(const char *buffer, ULONG len, ULONG flags);
 	~ECMemBlock();
@@ -45,7 +45,7 @@ private:
 /*
  * This is an IStream-compatible wrapper for ECMemBlock
  */
-class _kc_export ECMemStream _kc_final : public ECUnknown, public IStream {
+class _kc_export ECMemStream KC_FINAL_OPG : public ECUnknown, public IStream {
 public:
 	typedef HRESULT (*CommitFunc)(IStream *lpStream, void *lpParam);
 	typedef HRESULT (*DeleteFunc)(void *lpParam); /* Caller's function to remove lpParam data from memory */
@@ -53,6 +53,8 @@ public:
 private:
 	_kc_hidden ECMemStream(const char *buffer, ULONG data_len, ULONG flags, CommitFunc, DeleteFunc, void *param);
 	_kc_hidden ECMemStream(ECMemBlock *, ULONG flags, CommitFunc, DeleteFunc, void *param);
+
+	protected:
 	_kc_hidden ~ECMemStream(void);
 
 public:

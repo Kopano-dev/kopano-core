@@ -13,6 +13,7 @@
 #include "ECMAPIProp.h"
 #include <kopano/kcodes.h>
 #include <kopano/Util.h>
+#include <kopano/zcdefs.h>
 #include "WSStoreTableView.h"
 #include "WSMAPIFolderOps.h"
 #include "WSMAPIPropStorage.h"
@@ -53,7 +54,7 @@ enum
 
 class ECABLogon;
 
-class WSTransport final : public KC::ECUnknown, public WSSoap {
+class WSTransport KC_FINAL_OPG : public KC::ECUnknown, public WSSoap {
 protected:
 	WSTransport(ULONG ulUIFlags);
 	virtual ~WSTransport();

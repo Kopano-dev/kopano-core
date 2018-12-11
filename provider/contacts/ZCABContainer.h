@@ -8,6 +8,7 @@
 
 #include <kopano/memory.hpp>
 #include <kopano/Util.h>
+#include <kopano/zcdefs.h>
 #include <mapispi.h>
 #include <mapidefs.h>
 #include "ZCABLogon.h"
@@ -15,7 +16,7 @@
 #include "ZCMAPIProp.h"
 
 /* should be derived from IMAPIProp, but since we don't do anything with those functions, let's skip the red tape. */
-class ZCABContainer final :
+class ZCABContainer KC_FINAL_OPG :
     public KC::ECUnknown, public IABContainer, public IDistList {
 protected:
 	ZCABContainer(const std::vector<zcabFolderEntry> *folders, IMAPIFolder *contacts, IMAPISupport *, void *provider, const char *class_name);

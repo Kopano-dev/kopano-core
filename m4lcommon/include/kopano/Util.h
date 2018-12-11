@@ -122,8 +122,8 @@ template<typename T> class alloc_wrap {
 	{
 		if (obj == nullptr)
 			return MAPI_E_NOT_ENOUGH_MEMORY;
-		obj->AddRef(); /* what QueryInterface would have done */
 		*p = obj.get();
+		(*p)->AddRef(); /* what QueryInterface would have done */
 		return hrSuccess;
 	}
 	template<typename Base> HRESULT as(const IID &iid, Base **p)

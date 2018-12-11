@@ -9,6 +9,7 @@
 #include <kopano/ECUnknown.h>
 #include <kopano/IECInterfaces.hpp>
 #include <kopano/memory.hpp>
+#include <kopano/zcdefs.h>
 #include <mapidefs.h>
 #include <mapispi.h>
 #include "ECGenericProp.h"
@@ -16,7 +17,7 @@
 
 class WSTransport;
 
-class ECABLogon final : public KC::ECUnknown, public IABLogon {
+class ECABLogon KC_FINAL_OPG : public KC::ECUnknown, public IABLogon {
 	protected:
 	ECABLogon(IMAPISupport *, WSTransport *, ULONG profile_flags, const GUID *);
 	virtual ~ECABLogon();
@@ -88,7 +89,7 @@ private:
 	ALLOC_WRAP_FRIEND;
 };
 
-class ECABProvider final : public KC::ECUnknown, public IABProvider {
+class ECABProvider KC_FINAL_OPG : public KC::ECUnknown, public IABProvider {
 	protected:
 	ECABProvider(ULONG ulFlags, const char *szClassName);
 	virtual ~ECABProvider() = default;
@@ -103,7 +104,8 @@ class ECABProvider final : public KC::ECUnknown, public IABProvider {
 	ALLOC_WRAP_FRIEND;
 };
 
-class ECABProviderSwitch final : public KC::ECUnknown, public IABProvider {
+class ECABProviderSwitch KC_FINAL_OPG :
+    public KC::ECUnknown, public IABProvider {
 	protected:
 	ECABProviderSwitch();
 

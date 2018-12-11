@@ -12,13 +12,14 @@
 #include "ECNotifyClient.h"
 #include <set>
 #include <kopano/memory.hpp>
+#include <kopano/zcdefs.h>
 
 /*
  * This is the superclass which contains common code for the Hierarchy and Contents
  * tables implementations
  */
 
-class ECMAPITable final : public KC::ECUnknown, public IMAPITable {
+class ECMAPITable KC_FINAL_OPG : public KC::ECUnknown, public IMAPITable {
 protected:
 	ECMAPITable(const std::string &name, ECNotifyClient *, ULONG flags);
 	virtual ~ECMAPITable();

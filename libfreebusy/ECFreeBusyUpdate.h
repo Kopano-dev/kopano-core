@@ -20,6 +20,7 @@
 #include <kopano/ECGuid.h>
 #include <kopano/Util.h>
 #include <kopano/memory.hpp>
+#include <kopano/zcdefs.h>
 #include <mapi.h>
 #include <mapidefs.h>
 #include "ECFBBlockList.h"
@@ -29,7 +30,8 @@ namespace KC {
 /**
  * Implementatie of the IFreeBusyUpdate interface
  */
-class ECFreeBusyUpdate final : public ECUnknown, public IFreeBusyUpdate {
+class ECFreeBusyUpdate KC_FINAL_OPG :
+    public ECUnknown, public IFreeBusyUpdate {
 private:
 	ECFreeBusyUpdate(IMessage* lpMessage);
 public:
