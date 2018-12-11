@@ -426,7 +426,12 @@ class Server(object):
             columns = [PR_ENTRYID, PR_DISPLAY_NAME_W, PR_SMTP_ADDRESS_W]
             table = self.gab_table(restriction=restriction, columns=columns)
             for row in table.rows():
-                user = self.user(userid=_benc(row[0].value))
+                userid=_benc(row[0].value)
+                try:
+                    user = self.user(userid=userid)
+                except NotFoundError:
+                    self.log.warning('could not open user with userid "%s"', userid)
+                    continue
                 if multitenant and _company and _company != user.company:
                     continue
                 if page_start is None or pos >= page_start:
