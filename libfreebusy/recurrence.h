@@ -18,7 +18,7 @@
 
 namespace KC {
 
-class _kc_export recurrence _kc_final {
+class _kc_export recurrence KC_FINAL {
 public:
 	HRESULT HrLoadRecurrenceState(const char *data, size_t len, ULONG flags) { return m_sRecState.ParseBlob(data, len, flags); }
 	HRESULT HrGetRecurrenceState(char **lppData, size_t *lpulLen, void *base = NULL);

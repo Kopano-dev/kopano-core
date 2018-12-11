@@ -173,7 +173,7 @@ class _kc_export ECLogger {
 /**
  * Dummy null logger, drops every log message.
  */
-class _kc_export ECLogger_Null _kc_final : public ECLogger {
+class _kc_export ECLogger_Null KC_FINAL : public ECLogger {
 	public:
 	ECLogger_Null(void);
 	_kc_hidden virtual void Reset(void) _kc_override;
@@ -185,7 +185,7 @@ class _kc_export ECLogger_Null _kc_final : public ECLogger {
 /**
  * File logger. Use "-" for stderr logging. Output is in system locale set in LC_CTYPE.
  */
-class KC_EXPORT_DYCAST ECLogger_File _kc_final : public ECLogger {
+class KC_EXPORT_DYCAST ECLogger_File KC_FINAL : public ECLogger {
 	private:
 	typedef void *handle_type;
 	typedef handle_type (*open_func)(const char *, const char *);
@@ -230,7 +230,7 @@ class KC_EXPORT_DYCAST ECLogger_File _kc_final : public ECLogger {
 /**
  * Linux syslog logger. Output is whatever syslog does, probably LC_CTYPE.
  */
-class KC_EXPORT_DYCAST ECLogger_Syslog _kc_final : public ECLogger {
+class KC_EXPORT_DYCAST ECLogger_Syslog KC_FINAL : public ECLogger {
 	private:
 	std::unique_ptr<char[], cstdlib_deleter> m_ident;
 	static const int levelmap[16]; /* converts to syslog levels */
@@ -249,7 +249,7 @@ class KC_EXPORT_DYCAST ECLogger_Syslog _kc_final : public ECLogger {
  * log message to an ECLogger_File object. This ECLogger_Pipe object
  * can be created by StartLoggerProcess function.
  */
-class KC_EXPORT_DYCAST ECLogger_Pipe _kc_final : public ECLogger {
+class KC_EXPORT_DYCAST ECLogger_Pipe KC_FINAL : public ECLogger {
 	private:
 	int m_fd;
 	pid_t m_childpid;
@@ -275,7 +275,7 @@ extern _kc_export std::shared_ptr<ECLogger> StartLoggerProcess(ECConfig *, std::
  *
  * Each attached logger can have its own loglevel.
  */
-class _kc_export ECLogger_Tee _kc_final : public ECLogger {
+class _kc_export ECLogger_Tee KC_FINAL : public ECLogger {
 	private:
 	std::list<std::shared_ptr<ECLogger>> m_loggers;
 

@@ -22,7 +22,7 @@ namespace KC {
 
 typedef std::map<LONG, FBBlock_1>mapFB;
 
-class ECFBBlockList _kc_final {
+class ECFBBlockList KC_FINAL {
 public:
 	ECFBBlockList(void);
 	ECFBBlockList(const ECFBBlockList &);

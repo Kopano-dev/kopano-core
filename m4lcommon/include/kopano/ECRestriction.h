@@ -101,7 +101,7 @@ protected:
  * constructors of the ECAndRestriction and the ECOrRestriction classes.
  * It's implicitly created by +-ing multiple ECRestriction objects.
  */
-class ECRestrictionList _kc_final {
+class ECRestrictionList KC_FINAL {
 public:
 	ECRestrictionList(const ECRestriction &res1, const ECRestriction &res2) {
 		m_list.emplace_back(res1.Clone());
@@ -153,7 +153,7 @@ class IRestrictionPush : public ECRestriction {
 	virtual ECRestriction *operator+=(ECRestriction &&) = 0;
 };
 
-class _kc_export ECAndRestriction _kc_final : public IRestrictionPush {
+class _kc_export ECAndRestriction KC_FINAL : public IRestrictionPush {
 public:
 	_kc_hidden ECAndRestriction(void) {}
 	ECAndRestriction(const ECRestrictionList &list);
@@ -182,7 +182,7 @@ private:
 	ResList	m_lstRestrictions;
 };
 
-class _kc_export ECOrRestriction _kc_final : public IRestrictionPush {
+class _kc_export ECOrRestriction KC_FINAL : public IRestrictionPush {
 public:
 	_kc_hidden ECOrRestriction(void) {}
 	ECOrRestriction(const ECRestrictionList &list);
@@ -211,7 +211,7 @@ private:
 	ResList	m_lstRestrictions;
 };
 
-class _kc_export ECNotRestriction _kc_final : public IRestrictionPush {
+class _kc_export ECNotRestriction KC_FINAL : public IRestrictionPush {
 public:
 	_kc_hidden ECNotRestriction(const ECRestriction &restriction)
 	: m_ptrRestriction(ResPtr(restriction.Clone())) 
@@ -241,7 +241,7 @@ private:
 	ResPtr	m_ptrRestriction;
 };
 
-class _kc_export ECContentRestriction _kc_final : public ECRestriction {
+class _kc_export ECContentRestriction KC_FINAL : public ECRestriction {
 public:
 	ECContentRestriction(ULONG fuzzy_lvl, ULONG tag, const SPropValue *, ULONG flags);
 	_kc_hidden HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
@@ -257,7 +257,7 @@ private:
 	PropPtr	m_ptrProp;
 };
 
-class _kc_export ECBitMaskRestriction _kc_final : public ECRestriction {
+class _kc_export ECBitMaskRestriction KC_FINAL : public ECRestriction {
 public:
 	_kc_hidden ECBitMaskRestriction(ULONG relBMR, ULONG ulPropTag, ULONG ulMask)
 	: m_relBMR(relBMR)
@@ -275,7 +275,7 @@ private:
 	ULONG	m_ulMask;
 };
 
-class _kc_export ECPropertyRestriction _kc_final : public ECRestriction {
+class _kc_export ECPropertyRestriction KC_FINAL : public ECRestriction {
 public:
 	ECPropertyRestriction(ULONG relop, ULONG tag, const SPropValue *, ULONG flags);
 	_kc_hidden HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
@@ -290,7 +290,7 @@ private:
 	PropPtr	m_ptrProp;
 };
 
-class _kc_export ECComparePropsRestriction _kc_final : public ECRestriction {
+class _kc_export ECComparePropsRestriction KC_FINAL : public ECRestriction {
 public:
 	_kc_hidden ECComparePropsRestriction(ULONG relop, ULONG ulPropTag1, ULONG ulPropTag2)
 	: m_relop(relop)
@@ -308,7 +308,7 @@ private:
 	ULONG	m_ulPropTag2;
 };
 
-class _kc_export ECExistRestriction _kc_final : public ECRestriction {
+class _kc_export ECExistRestriction KC_FINAL : public ECRestriction {
 public:
 	_kc_hidden ECExistRestriction(ULONG ulPropTag)
 	: m_ulPropTag(ulPropTag) 
@@ -326,7 +326,7 @@ private:
  * This is a special class, which encapsulates a raw SRestriction structure to allow
  * prebuild or obtained restriction structures to be used in the ECRestriction model.
  */
-class _kc_export ECRawRestriction _kc_final : public ECRestriction {
+class _kc_export ECRawRestriction KC_FINAL : public ECRestriction {
 public:
 	ECRawRestriction(const SRestriction *, ULONG flags);
 	_kc_hidden HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;

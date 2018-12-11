@@ -13,7 +13,7 @@
 
 namespace KC {
 
-class _kc_export ConsoleTable _kc_final {
+class _kc_export ConsoleTable KC_FINAL {
 public:
 	ConsoleTable(size_t rows, size_t columns);
 	_kc_hidden void Clear(void);

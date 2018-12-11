@@ -31,11 +31,11 @@
 /* Minimum requirement for KC is g++ 4.7, g++0x mode. */
 /* Swig is not bright enough to grok all C++11. */
 #if defined(SWIG)
-#	define _kc_final
+#	define KC_FINAL
 #	define _kc_override
 #else
 	/* From g++ 4.7 onwards */
-#	define _kc_final final
+#	define KC_FINAL final
 #	define _kc_override override
 #endif
 

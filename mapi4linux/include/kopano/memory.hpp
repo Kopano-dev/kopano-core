@@ -17,7 +17,7 @@
 
 namespace KC {
 
-template<typename T> class memory_proxy _kc_final {
+template<typename T> class memory_proxy KC_FINAL {
 	public:
 	memory_proxy(T **p) noexcept : m_ptr(p) {}
 	operator T **(void) noexcept { return m_ptr; }
@@ -32,7 +32,7 @@ template<typename T> class memory_proxy _kc_final {
 	T **m_ptr;
 };
 
-template<typename T> class memory_proxy2 _kc_final {
+template<typename T> class memory_proxy2 KC_FINAL {
 	public:
 	memory_proxy2(T **p) noexcept : m_ptr(p) {}
 	memory_proxy<T> operator&(void)
@@ -44,7 +44,7 @@ template<typename T> class memory_proxy2 _kc_final {
 	T **m_ptr;
 };
 
-template<typename T> class object_proxy _kc_final {
+template<typename T> class object_proxy KC_FINAL {
 	public:
 	object_proxy(T **p) noexcept : m_ptr(p) {}
 	operator T **(void) noexcept { return m_ptr; }
@@ -60,7 +60,7 @@ template<typename T> class object_proxy _kc_final {
 	T **m_ptr;
 };
 
-template<> class object_proxy<IUnknown> _kc_final {
+template<> class object_proxy<IUnknown> KC_FINAL {
 	public:
 	object_proxy(IUnknown **p) noexcept : m_ptr(p) {}
 	operator IUnknown **(void) noexcept { return m_ptr; }
@@ -75,7 +75,7 @@ template<> class object_proxy<IUnknown> _kc_final {
 	IUnknown **m_ptr;
 };
 
-template<typename T> class object_proxy2 _kc_final {
+template<typename T> class object_proxy2 KC_FINAL {
 	public:
 	object_proxy2(T **p) noexcept : m_ptr(p) {}
 	object_proxy<T> operator&(void)

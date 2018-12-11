@@ -21,7 +21,7 @@ namespace KC {
  * This class only exists to satisfy the %extend directive in swig/libcommon.i.
  * It screams for replacement with a namespace Util {}
  */
-class Util _kc_final {
+class Util KC_FINAL {
 	public:
 	_kc_export static HRESULT HrAddToPropertyArray(const SPropValue *src, ULONG srcvals, const SPropValue *add, SPropValue **dest, ULONG *ndestvals);
 	_kc_export static HRESULT HrMergePropertyArrays(const SPropValue *src, ULONG srcvals, const SPropValue *adds, ULONG naddvals, SPropValue **dest, ULONG *destvals);

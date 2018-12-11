@@ -30,7 +30,7 @@ namespace KC {
 // this ensures that the ECChannel class is responsible for reading, writing
 // and culling newline characters.
 
-class _kc_export ECChannel _kc_final {
+class _kc_export ECChannel KC_FINAL {
 public:
 	_kc_hidden ECChannel(int sockfd);
 	~ECChannel();

@@ -23,7 +23,7 @@ class ECTask;
  * The amount of workers can be modified at run time, but is not automatically
  * adjusted based on the task queue length or age.
  */
-class _kc_export ECThreadPool _kc_final {
+class _kc_export ECThreadPool KC_FINAL {
 private:	// types
 	struct STaskInfo {
 		ECTask			*lpTask;
@@ -134,7 +134,7 @@ private:
  * To call a function with more than one argument boost::bind can be used.
  */
 template<typename Rt, typename Fn, typename At>
-class ECDeferredFunc _kc_final : public ECWaitableTask {
+class ECDeferredFunc KC_FINAL : public ECWaitableTask {
 public:
 	/**
 	 * Construct an ECDeferredFunc instance.

@@ -13,7 +13,7 @@
 
 namespace KC {
 
-template<typename Type> class iconv_charset _kc_final {
+template<typename Type> class iconv_charset KC_FINAL {
 };
 
 #define CHARSET_CHAR "//TRANSLIT"
@@ -32,7 +32,7 @@ template<typename Type> class iconv_charset _kc_final {
 #define CHARSET_TCHAR (iconv_charset<TCHAR*>::name())
 
 // Multibyte character specializations
-template<> class iconv_charset<std::string> _kc_final {
+template<> class iconv_charset<std::string> KC_FINAL {
 public:
 	static const char *name() {
 		return CHARSET_CHAR;	// Current locale
@@ -45,7 +45,7 @@ public:
 	}
 };
 
-template<> class iconv_charset<char *> _kc_final {
+template<> class iconv_charset<char *> KC_FINAL {
 public:
 	static const char *name() {
 		return CHARSET_CHAR;	// Current locale
@@ -58,7 +58,7 @@ public:
 	}
 };
 
-template<> class iconv_charset<const char *> _kc_final {
+template<> class iconv_charset<const char *> KC_FINAL {
 public:
 	static const char *name() {
 		return CHARSET_CHAR;	// Current locale
@@ -71,7 +71,7 @@ public:
 	}
 };
 
-template<size_t N> class iconv_charset<char[N]> _kc_final {
+template<size_t N> class iconv_charset<char[N]> KC_FINAL {
 public:
 	static const char *name() {
 		return CHARSET_CHAR;	// Current locale
@@ -86,7 +86,7 @@ public:
 	}
 };
 
-template<size_t N> class iconv_charset<const char[N]> _kc_final {
+template<size_t N> class iconv_charset<const char[N]> KC_FINAL {
 public:
 	static const char *name() {
 		return CHARSET_CHAR;	// Current locale
@@ -103,7 +103,7 @@ public:
 
 
 // Wide character specializations
-template<> class iconv_charset<std::wstring> _kc_final {
+template<> class iconv_charset<std::wstring> KC_FINAL {
 public:
 	static const char *name() {
 		return CHARSET_WCHAR;
@@ -116,7 +116,7 @@ public:
 	}
 };
 
-template<> class iconv_charset<wchar_t *> _kc_final {
+template<> class iconv_charset<wchar_t *> KC_FINAL {
 public:
 	static const char *name() {
 		return CHARSET_WCHAR;
@@ -129,7 +129,7 @@ public:
 	}
 };
 
-template<> class iconv_charset<const wchar_t *> _kc_final {
+template<> class iconv_charset<const wchar_t *> KC_FINAL {
 public:
 	static const char *name() {
 		return CHARSET_WCHAR;
@@ -142,7 +142,7 @@ public:
 	}
 };
 
-template<size_t N> class iconv_charset<wchar_t[N]> _kc_final {
+template<size_t N> class iconv_charset<wchar_t[N]> KC_FINAL {
 public:
 	static const char *name() {
 		return CHARSET_WCHAR;	// Current locale
@@ -157,7 +157,7 @@ public:
 	}
 };
 
-template<size_t N> class iconv_charset<const wchar_t[N]> _kc_final {
+template<size_t N> class iconv_charset<const wchar_t[N]> KC_FINAL {
 public:
 	static const char *name() {
 		return CHARSET_WCHAR;	// Current locale
@@ -172,7 +172,7 @@ public:
 	}
 };
 
-template<> class iconv_charset<std::u16string> _kc_final {
+template<> class iconv_charset<std::u16string> KC_FINAL {
 public:
 	static const char *name() {
 #ifdef KC_BIGENDIAN

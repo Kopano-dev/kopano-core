@@ -18,7 +18,7 @@
 
 namespace KC {
 
-template<typename Key> class KeyEntry _kc_final {
+template<typename Key> class KeyEntry KC_FINAL {
 public:
 	Key key;
 	time_t ulLastAccess;
@@ -86,7 +86,7 @@ private:
 	size_type m_ulCacheHit = 0, m_ulCacheValid = 0;
 };
 
-template<typename MapType> class ECCache _kc_final : public ECCacheBase {
+template<typename MapType> class ECCache KC_FINAL : public ECCacheBase {
 public:
 	typedef typename MapType::key_type key_type;
 	typedef typename MapType::mapped_type mapped_type;

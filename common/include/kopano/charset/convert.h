@@ -40,7 +40,7 @@ private:
 /**
  * @brief	Unknown charset
  */
-class KC_EXPORT_THROW unknown_charset_exception _kc_final :
+class KC_EXPORT_THROW unknown_charset_exception KC_FINAL :
     public convert_exception {
 	public:
 	unknown_charset_exception(const std::string &message);
@@ -49,7 +49,7 @@ class KC_EXPORT_THROW unknown_charset_exception _kc_final :
 /**
  * @brief	Illegal sequence
  */
-class KC_EXPORT_THROW illegal_sequence_exception _kc_final :
+class KC_EXPORT_THROW illegal_sequence_exception KC_FINAL :
     public convert_exception {
 	public:
 	illegal_sequence_exception(const std::string &message);
@@ -100,7 +100,7 @@ class _kc_export iconv_context_base {
  * @brief	Default converter from one charset to another with string types.
  */
 template<typename To_Type, typename From_Type>
-class KC_EXPORT_DYCAST iconv_context _kc_final :
+class KC_EXPORT_DYCAST iconv_context KC_FINAL :
     public iconv_context_base {
 	public:
 	/**
@@ -219,7 +219,7 @@ inline To_Type convert_to(const char *tocode, const From_Type &_from,
  * same context. This basically means that the iconv_context classes can
  * be reused, removing the need to recreate them for each conversion.
  */
-class _kc_export convert_context _kc_final {
+class _kc_export convert_context KC_FINAL {
 public:
 	convert_context(void) = default;
 	~convert_context();
@@ -282,7 +282,7 @@ private:
 	 * The convert_context::helper class detects when the to and from charsets are
 	 * identical. In that case the string is merely copied.
 	 */
-	template<typename Type> class _kc_hidden helper _kc_final {
+	template<typename Type> class _kc_hidden helper KC_FINAL {
 	public:
 		helper(convert_context &context)
 			: m_context(context)
@@ -351,7 +351,7 @@ private:
 	 * result needs to be stores to guarantee storage of the data. Without this
 	 * the caller will end up with a pointer to non-existing data.
 	 */
-	template<typename Type> class _kc_hidden helper<Type *> _kc_final {
+	template<typename Type> class _kc_hidden helper<Type *> KC_FINAL {
 	public:
 		typedef std::basic_string<Type> string_type;
 

@@ -9,7 +9,7 @@
 
 namespace KC {
 
-class KC_EXPORT_THROW KMAPIError _kc_final : public std::runtime_error {
+class KC_EXPORT_THROW KMAPIError KC_FINAL : public std::runtime_error {
 	public:
 	KMAPIError(HRESULT c = hrSuccess) : std::runtime_error(GetMAPIErrorMessage(c)), m_code(c) {}
 	HRESULT code(void) const noexcept { return m_code; }

@@ -15,7 +15,7 @@
 namespace KC {
 
 // Thread safe buffer for FIFO operations
-class _kc_export ECFifoBuffer _kc_final {
+class _kc_export ECFifoBuffer KC_FINAL {
 public:
 	typedef std::deque<unsigned char>	storage_type;
 	typedef storage_type::size_type		size_type;
