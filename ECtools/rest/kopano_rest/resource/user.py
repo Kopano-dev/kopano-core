@@ -86,16 +86,14 @@ class UserResource(Resource):
                     data = server.user(userid=userid)
             else:
                 args = self.parse_qs(req)
+                userid = kopano.Store(server=server,
+                    mapiobj = GetDefaultStore(server.mapisession)).user.userid
+                company = server.user(userid=userid).company
+                query = None
                 if '$search' in args:
                     query = args['$search'][0]
-                    def yielder(**kwargs):
-                        yield from server._user_query(query) # TODO .users(query)?
-                else:
-                    userid = kopano.Store(server=server,
-                        mapiobj = GetDefaultStore(server.mapisession)).user.userid
-                    company = server.user(userid=userid).company
-                    def yielder(**kwargs):
-                        yield from company.users(hidden=False, inactive=False, **kwargs)
+                def yielder(**kwargs):
+                    yield from company.users(hidden=False, inactive=False, query=query, **kwargs)
                 data = self.generator(req, yielder)
             self.respond(req, resp, data)
 
