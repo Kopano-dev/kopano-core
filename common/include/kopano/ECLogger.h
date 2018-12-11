@@ -51,15 +51,15 @@ static const unsigned int EC_LOGLEVEL_EXTENDED_MASK = 0xFFFF0000;
 
 #define _LOG_BUFSIZE		10240
 
-#define ZLOG_DEBUG(_plog, ...) \
+#define ZLOG_DEBUG(plog, ...) \
 	do { \
-		if ((_plog)->Log(EC_LOGLEVEL_DEBUG)) \
-			(_plog)->logf(EC_LOGLEVEL_DEBUG, __VA_ARGS__); \
+		if ((plog)->Log(EC_LOGLEVEL_DEBUG)) \
+			(plog)->logf(EC_LOGLEVEL_DEBUG, __VA_ARGS__); \
 	} while (false)
-#define ZLOG_AUDIT(_plog, ...) \
+#define ZLOG_AUDIT(plog, ...) \
 	do { \
-		if ((_plog) != NULL) \
-			(_plog)->logf(EC_LOGLEVEL_FATAL, __VA_ARGS__); \
+		if ((plog) != NULL) \
+			(plog)->logf(EC_LOGLEVEL_FATAL, __VA_ARGS__); \
 	} while (false)
 
 #define TSTRING_PRINTF "%ls"
