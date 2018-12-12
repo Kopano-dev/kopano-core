@@ -227,6 +227,10 @@ private:
 	if (__var)												\
 		(__attrs)->add(__var);
 
+static HRESULT BintoEscapeSequence(const char *data, size_t size, std::string *);
+static std::string StringEscapeSequence(const std::string &);
+static std::string StringEscapeSequence(const char *, size_t);
+
 std::unique_ptr<LDAPCache> LDAPUserPlugin::m_lpCache(new LDAPCache());
 
 template<typename T> static constexpr inline LONGLONG dur2us(const T &t)
@@ -631,7 +635,7 @@ exit:
 	}
 }
 
-std::list<std::string> LDAPUserPlugin::GetClasses(const char *lpszClasses)
+static std::list<std::string> split_classes(const char *lpszClasses)
 {
 	std::list<std::string> lstClasses;
 	for (const auto &s : tokenize(lpszClasses, ','))
@@ -639,7 +643,8 @@ std::list<std::string> LDAPUserPlugin::GetClasses(const char *lpszClasses)
 	return lstClasses;
 }
 
-bool LDAPUserPlugin::MatchClasses(std::set<std::string> setClasses, std::list<std::string> lstClasses)
+static bool MatchClasses(const std::set<std::string> &setClasses,
+    const std::list<std::string> &lstClasses)
 {
 	for (const auto &cls : lstClasses)
 		if (setClasses.find(strToUpper(cls)) == setClasses.cend())
@@ -647,9 +652,15 @@ bool LDAPUserPlugin::MatchClasses(std::set<std::string> setClasses, std::list<st
 	return true;
 }
 
-std::string LDAPUserPlugin::GetObjectClassFilter(const char *lpszObjectClassAttr, const char *lpszClasses)
+/**
+ * Creates an LDAP object class filter for a list of object classes
+ *
+ * Takes the list of object classes passed and converts them into an LDAP
+ * filter that matches entries which have all the passed object classes.
+ */
+static std::string GetObjectClassFilter(const char *lpszObjectClassAttr, const char *lpszClasses)
 {
-	std::list<std::string> lstObjectClasses = GetClasses(lpszClasses);
+	auto lstObjectClasses = split_classes(lpszClasses);
 	if (lstObjectClasses.size() == 0)
 		return "";
 	if (lstObjectClasses.size() == 1)
@@ -732,27 +743,27 @@ objectid_t LDAPUserPlugin::GetObjectIdForEntry(LDAPMessage *entry)
 	for (const auto &i : objclasses)
 		setObjectClasses.emplace(strToUpper(i));
 
-	auto lstLDAPObjectClasses = GetClasses(class_user_type);
+	auto lstLDAPObjectClasses = split_classes(class_user_type);
 	if(MatchClasses(setObjectClasses, lstLDAPObjectClasses))
 		lstMatches.emplace_back(lstLDAPObjectClasses.size(), OBJECTCLASS_USER); // Could still be active or nonactive, will resolve later
 
-	lstLDAPObjectClasses = GetClasses(class_contact_type);
+	lstLDAPObjectClasses = split_classes(class_contact_type);
 	if(MatchClasses(setObjectClasses, lstLDAPObjectClasses))
 		lstMatches.emplace_back(lstLDAPObjectClasses.size(), NONACTIVE_CONTACT);
 
-	lstLDAPObjectClasses = GetClasses(class_group_type);
+	lstLDAPObjectClasses = split_classes(class_group_type);
 	if(MatchClasses(setObjectClasses, lstLDAPObjectClasses))
 		lstMatches.emplace_back(lstLDAPObjectClasses.size(), OBJECTCLASS_DISTLIST); // Could be permission or distribution group, will resolve later
 
-	lstLDAPObjectClasses = GetClasses(class_dynamic_type);
+	lstLDAPObjectClasses = split_classes(class_dynamic_type);
 	if(MatchClasses(setObjectClasses, lstLDAPObjectClasses))
 		lstMatches.emplace_back(lstLDAPObjectClasses.size(), DISTLIST_DYNAMIC);
 
-	lstLDAPObjectClasses = GetClasses(class_company_type);
+	lstLDAPObjectClasses = split_classes(class_company_type);
 	if(MatchClasses(setObjectClasses, lstLDAPObjectClasses))
 		lstMatches.emplace_back(lstLDAPObjectClasses.size(), CONTAINER_COMPANY);
 
-	lstLDAPObjectClasses = GetClasses(class_address_type);
+	lstLDAPObjectClasses = split_classes(class_address_type);
 	if(MatchClasses(setObjectClasses, lstLDAPObjectClasses))
 		lstMatches.emplace_back(lstLDAPObjectClasses.size(), CONTAINER_ADDRESSLIST);
 
@@ -2743,7 +2754,10 @@ static std::string toHex(unsigned char n)
 	return s;
 }
 
-HRESULT LDAPUserPlugin::BintoEscapeSequence(const char* lpdata, size_t size, string* lpEscaped)
+/**
+ * Escape binary data to escaped string
+ */
+static HRESULT BintoEscapeSequence(const char *lpdata, size_t size, std::string *lpEscaped)
 {
 	lpEscaped->clear();
 	for (size_t t = 0; t < size; ++t)
@@ -2751,12 +2765,15 @@ HRESULT LDAPUserPlugin::BintoEscapeSequence(const char* lpdata, size_t size, str
 	return 0;
 }
 
-std::string LDAPUserPlugin::StringEscapeSequence(const string &strData)
+static std::string StringEscapeSequence(const std::string &strData)
 {
 	return StringEscapeSequence(strData.c_str(), strData.size());
 }
 
-std::string LDAPUserPlugin::StringEscapeSequence(const char* lpdata, size_t size)
+/**
+ * Escape binary data to escaped string
+ */
+static std::string StringEscapeSequence(const char *lpdata, size_t size)
 {
 	std::string strEscaped;
 
