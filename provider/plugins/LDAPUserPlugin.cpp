@@ -1551,8 +1551,8 @@ objectsignature_t LDAPUserPlugin::authenticateUserPassword(const string &usernam
 	return signature;
 }
 
-signatures_t
-LDAPUserPlugin::getAllObjects(const objectid_t &company, objectclass_t objclass)
+signatures_t LDAPUserPlugin::getAllObjects(const objectid_t &company,
+    objectclass_t objclass, const restrictTable *rst)
 {
 	string companyDN;
 	if (!company.id.empty()) {

@@ -183,7 +183,7 @@ ECRESULT ECABObjectTable::LoadHierarchyAddressList(unsigned int ulObjectId,
 	}
 
 	auto er = lpSession->GetUserManagement()->GetCompanyObjectListAndSync(CONTAINER_ADDRESSLIST,
-	          ulObjectId, &unique_tie(lpObjects), m_ulUserManagementFlags);
+	          ulObjectId, lpsRestrict, &unique_tie(lpObjects), m_ulUserManagementFlags);
 	if (er != erSuccess)
 		return er;
 
@@ -303,7 +303,7 @@ ECRESULT ECABObjectTable::LoadContentsCompany(unsigned int ulObjectId,
 	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
 
 	auto er = lpSession->GetUserManagement()->GetCompanyObjectListAndSync(OBJECTCLASS_UNKNOWN,
-	          ulObjectId, &unique_tie(lpObjects), m_ulUserManagementFlags);
+	          ulObjectId, lpsRestrict, &unique_tie(lpObjects), m_ulUserManagementFlags);
 	if (er != erSuccess)
 		return er;
 

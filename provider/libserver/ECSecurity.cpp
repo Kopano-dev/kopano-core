@@ -815,7 +815,7 @@ ECRESULT ECSecurity::GetViewableCompanies(unsigned int ulFlags,
 	auto usrmgt = m_lpSession->GetUserManagement();
 
 	if (m_details.GetPropInt(OB_PROP_I_ADMINLEVEL) == ADMIN_LEVEL_SYSADMIN)
-		er = usrmgt->GetCompanyObjectListAndSync(CONTAINER_COMPANY, 0, &unique_tie(lpObjects), ulFlags);
+		er = usrmgt->GetCompanyObjectListAndSync(CONTAINER_COMPANY, 0, nullptr, &unique_tie(lpObjects), ulFlags);
 	else
 		er = usrmgt->GetParentObjectsOfObjectAndSync(OBJECTRELATION_COMPANY_VIEW,
 		     m_ulCompanyID, &unique_tie(lpObjects), ulFlags);
@@ -863,8 +863,8 @@ ECRESULT ECSecurity::GetAdminCompanies(unsigned int ulFlags,
 	auto usrmgt = m_lpSession->GetUserManagement();
 
 	if (m_details.GetPropInt(OB_PROP_I_ADMINLEVEL) == ADMIN_LEVEL_SYSADMIN)
-		er = usrmgt->GetCompanyObjectListAndSync(CONTAINER_COMPANY,
-		     0, &unique_tie(lpObjects), ulFlags);
+		er = usrmgt->GetCompanyObjectListAndSync(CONTAINER_COMPANY, 0,
+		     nullptr, &unique_tie(lpObjects), ulFlags);
 	else
 		er = usrmgt->GetParentObjectsOfObjectAndSync(OBJECTRELATION_COMPANY_ADMIN,
 		     m_ulUserID, &unique_tie(lpObjects), ulFlags);

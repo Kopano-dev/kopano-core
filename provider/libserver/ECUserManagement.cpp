@@ -336,7 +336,9 @@ ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const std::list<obje
  *                perform a sync with the plugin, even if sync_gab_realtime is set to 'no'
  * @return result
  */
-ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, unsigned int ulCompanyId, std::list<localobjectdetails_t> **lppObjects, unsigned int ulFlags)
+ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass,
+    unsigned int ulCompanyId, const restrictTable *rst,
+    std::list<localobjectdetails_t> **lppObjects, unsigned int ulFlags)
 {
 	bool bSync = ulFlags & USERMANAGEMENT_FORCE_SYNC || parseBool(m_lpConfig->GetSetting("sync_gab_realtime"));
 	bool bIsSafeMode = parseBool(m_lpConfig->GetSetting("user_safe_mode"));
@@ -407,7 +409,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 		// We now have a map, mapping external IDs to local user IDs (and their signatures)
 		try {
 			// Get full user list
-			lpExternSignatures = lpPlugin->getAllObjects(extcompany, objclass);
+			lpExternSignatures = lpPlugin->getAllObjects(extcompany, objclass, rst);
 			// TODO: check requested 'objclass'
 		} catch (const notsupported &) {
 			return KCERR_NO_SUPPORT;
@@ -468,8 +470,13 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 	if (er != erSuccess)
 		return er;
 
-	// mapSignatureIdToLocal is now a map of objects that were NOT in the external user database
-	if(bSync) {
+	/*
+	 * mapSignatureIdToLocal is now a map of objects that were NOT in the
+	 * external user database search result. Since a restriction is
+	 * present, the result is only a subset of the entire UDB, and so
+	 * meaningless for deletions.
+	 */
+	if (rst != nullptr && bSync) {
 		if (bIsSafeMode)
 			ec_log_err("user_safe_mode: would normally now delete %zu local users (you may see this message more often as the delete is now omitted)", mapExternIdToLocal.size() - lpExternSignatures.size());
 		else
@@ -496,8 +503,8 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 	return erSuccess;
 }
 
-ECRESULT ECUserManagement::GetSubObjectsOfObjectAndSync(userobject_relation_t relation, unsigned int ulParentId,
-														std::list<localobjectdetails_t> **lppObjects, unsigned int ulFlags)
+ECRESULT ECUserManagement::GetSubObjectsOfObjectAndSync(userobject_relation_t relation,
+    unsigned int ulParentId, std::list<localobjectdetails_t> **lppObjects, unsigned int ulFlags)
 {
 	std::unique_ptr<std::list<localobjectdetails_t> > lpCompanies;
 	// Extern ids
@@ -535,7 +542,7 @@ ECRESULT ECUserManagement::GetSubObjectsOfObjectAndSync(userobject_relation_t re
 		for (const auto &obj : *lpCompanies) {
 			std::unique_ptr<std::list<localobjectdetails_t> > lpObjectsTmp;
 			er = GetCompanyObjectListAndSync(OBJECTCLASS_UNKNOWN,
-			     obj.ulId, &unique_tie(lpObjectsTmp),
+			     obj.ulId, nullptr, &unique_tie(lpObjectsTmp),
 			     ulFlags | USERMANAGEMENT_SHOW_HIDDEN);
 			if (er != erSuccess)
 				return er;
@@ -4128,7 +4135,7 @@ ECRESULT ECUserManagement::SyncAllObjects()
 		return er;
 
 	// request all companies
-	er = GetCompanyObjectListAndSync(CONTAINER_COMPANY, 0, &unique_tie(lplstCompanyObjects), ulFlags);
+	er = GetCompanyObjectListAndSync(CONTAINER_COMPANY, 0, nullptr, &unique_tie(lplstCompanyObjects), ulFlags);
 	if (er == KCERR_NO_SUPPORT)
 		er = erSuccess;
 	else if (er != erSuccess)
@@ -4138,7 +4145,7 @@ ECRESULT ECUserManagement::SyncAllObjects()
 
 	if (!lplstCompanyObjects || lplstCompanyObjects->empty()) {
 		// get all users of server
-		er = GetCompanyObjectListAndSync(OBJECTCLASS_UNKNOWN, 0, &unique_tie(lplstUserObjects), ulFlags);
+		er = GetCompanyObjectListAndSync(OBJECTCLASS_UNKNOWN, 0, nullptr, &unique_tie(lplstUserObjects), ulFlags);
 		if (er != erSuccess)
 			return ec_perror("Error synchronizing user list", er);
 		ec_log_info("Synchronized user list");
@@ -4146,7 +4153,7 @@ ECRESULT ECUserManagement::SyncAllObjects()
 	}
 	// per company, get all users
 	for (const auto &com : *lplstCompanyObjects) {
-		er = GetCompanyObjectListAndSync(OBJECTCLASS_UNKNOWN, com.ulId, &unique_tie(lplstUserObjects), ulFlags);
+		er = GetCompanyObjectListAndSync(OBJECTCLASS_UNKNOWN, com.ulId, nullptr, &unique_tie(lplstUserObjects), ulFlags);
 		if (er != erSuccess) {
 			ec_log_err("Error synchronizing user list for company %d: %s (%x)", com.ulId, GetMAPIErrorMessage(kcerr_to_mapierr(er)), er);
 			return er;

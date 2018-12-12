@@ -21,6 +21,7 @@
 #include "plugin.h"
 
 struct soap;
+class restrictTable;
 
 namespace KC {
 
@@ -56,7 +57,7 @@ public:
 	// Set quota details for a user object
 	_kc_hidden virtual ECRESULT SetQuotaDetailsAndSync(unsigned int obj_id, const quotadetails_t &);
 	/* Get (typed) objectlist for company, or list of all companies, with on-the-fly deletion/creation of users and groups. */
-	_kc_hidden virtual ECRESULT GetCompanyObjectListAndSync(objectclass_t, unsigned int company_id, std::list<localobjectdetails_t> **objs, unsigned int flags = 0);
+	_kc_hidden virtual ECRESULT GetCompanyObjectListAndSync(objectclass_t, unsigned int company_id, const restrictTable *, std::list<localobjectdetails_t> **objs, unsigned int flags = 0);
 	/* Get subobjects in an object, with on-the-fly deletion of the specified parent object. */
 	_kc_hidden virtual ECRESULT GetSubObjectsOfObjectAndSync(userobject_relation_t, unsigned int parent_id, std::list<localobjectdetails_t> **objs, unsigned int flags = 0);
 	/* Get parent for an object, with on-the-fly deletion of the specified child object id. */
