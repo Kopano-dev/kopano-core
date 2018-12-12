@@ -48,9 +48,9 @@ private:
  */
 
 ECMemTable::ECMemTable(const SPropTagArray *lpsPropTags, ULONG rpt) :
-	ECUnknown("ECMemTable"), ulRowPropTag(rpt)
+	ECUnknown("ECMemTable"), ulRowPropTag(rpt),
+	lpsColumns(reinterpret_cast<SPropTagArray *>(new BYTE[CbSPropTagArray(lpsPropTags)]))
 {
-	lpsColumns = reinterpret_cast<SPropTagArray *>(new BYTE[CbSPropTagArray(lpsPropTags)]);
 	lpsColumns->cValues = lpsPropTags->cValues;
 	memcpy(&lpsColumns->aulPropTag, &lpsPropTags->aulPropTag, lpsPropTags->cValues * sizeof(ULONG));
 }
@@ -58,7 +58,6 @@ ECMemTable::ECMemTable(const SPropTagArray *lpsPropTags, ULONG rpt) :
 ECMemTable::~ECMemTable()
 {
 	HrClear();
-	delete[] lpsColumns;
 }
 
 HRESULT ECMemTable::Create(const SPropTagArray *lpsColumns, ULONG ulRowPropTag,
@@ -180,8 +179,6 @@ HRESULT ECMemTable::HrSetClean()
 
 	for (auto iterRows = mapRows.begin(); iterRows != mapRows.end(); ) {
 		if(iterRows->second.fDeleted) {
-			MAPIFreeBuffer(iterRows->second.lpsID);
-			MAPIFreeBuffer(iterRows->second.lpsPropVal);
 			iterRows = mapRows.erase(iterRows);
 			continue;
 		}
@@ -203,10 +200,7 @@ HRESULT ECMemTable::HrUpdateRowID(LPSPropValue lpId, LPSPropValue lpProps, ULONG
 	auto iterRows = mapRows.find(lpUniqueProp->Value.ul);
 	if (iterRows == mapRows.cend())
 		return MAPI_E_NOT_FOUND;
-    
-    MAPIFreeBuffer(iterRows->second.lpsID);
-	HRESULT hr = MAPIAllocateBuffer(sizeof(SPropValue),
-		reinterpret_cast<void **>(&iterRows->second.lpsID));
+	auto hr = MAPIAllocateBuffer(sizeof(SPropValue), &~iterRows->second.lpsID);
 	if(hr != hrSuccess)
 		return hr;
 	return Util::HrCopyProperty(iterRows->second.lpsID, lpId, iterRows->second.lpsID);
@@ -229,7 +223,6 @@ HRESULT ECMemTable::HrUpdateRowID(LPSPropValue lpId, LPSPropValue lpProps, ULONG
 HRESULT ECMemTable::HrModifyRow(ULONG ulUpdateType, const SPropValue *lpsID,
     const SPropValue *lpPropVals, ULONG cValues)
 {
-	ECTableEntry entry;
 	scoped_rlock l_data(m_hDataMutex);
 
 	auto lpsRowID = PCpropFindProp(lpPropVals, cValues, ulRowPropTag);
@@ -263,22 +256,19 @@ HRESULT ECMemTable::HrModifyRow(ULONG ulUpdateType, const SPropValue *lpsID,
 			// refer to data that is allocated from iterRows->second.lpsPropVal.
 			//
 			// We therefore save the old value, copy the new properties, and THEN
-			// free the old row.
+			// (auto-)free the old row.
 
-			LPSPropValue lpOldPropVal = iterRows->second.lpsPropVal;
-
+			auto lpOldPropVal = std::move(iterRows->second.lpsPropVal);
 			// Update new row
-			auto hr = Util::HrCopyPropertyArray(lpPropVals, cValues, &iterRows->second.lpsPropVal, &iterRows->second.cValues, /* exclude PT_ERRORs */ true);
+			auto hr = Util::HrCopyPropertyArray(lpPropVals, cValues, &~iterRows->second.lpsPropVal, &iterRows->second.cValues, /* exclude PT_ERRORs */ true);
 			if(hr != hrSuccess)
 				return hr;
-
-			// Free old row
-			MAPIFreeBuffer(lpOldPropVal);
 		}
 	}
 
 	if(ulUpdateType == ECKeyTable::TABLE_ROW_ADD) {
-		auto hr = Util::HrCopyPropertyArray(lpPropVals, cValues, &entry.lpsPropVal, &entry.cValues);
+		ECTableEntry entry;
+		auto hr = Util::HrCopyPropertyArray(lpPropVals, cValues, &~entry.lpsPropVal, &entry.cValues);
 		if(hr != hrSuccess)
 			return hr;
 
@@ -287,18 +277,18 @@ HRESULT ECMemTable::HrModifyRow(ULONG ulUpdateType, const SPropValue *lpsID,
 		entry.fNew = TRUE;
 		
 		if(lpsID) {
-			hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **)&entry.lpsID);
+			hr = MAPIAllocateBuffer(sizeof(SPropValue), &~entry.lpsID);
 			if(hr != hrSuccess)
 				return hr;
 			hr = Util::HrCopyProperty(entry.lpsID, lpsID, entry.lpsID);
 			if(hr != hrSuccess)
 				return hr;
 		} else {
-			entry.lpsID = NULL;
+			entry.lpsID.reset();
 		}
 
 		// Add the actual data
-		mapRows[lpsRowID->Value.ul] =  entry;
+		mapRows[lpsRowID->Value.ul] = std::move(entry);
 	}
 
 	for (auto viewp : lstViews) {
@@ -339,11 +329,6 @@ HRESULT ECMemTable::HrDeleteAll()
 HRESULT ECMemTable::HrClear()
 {
 	scoped_rlock l_data(m_hDataMutex);
-	for (const auto &rowp : mapRows) {
-		MAPIFreeBuffer(rowp.second.lpsPropVal);
-		MAPIFreeBuffer(rowp.second.lpsID);
-	}
-
 	// Clear list
 	mapRows.clear();
 
@@ -361,10 +346,10 @@ HRESULT ECMemTable::HrClear()
 
 ECMemTableView::ECMemTableView(ECMemTable *mt, const ECLocale &locale,
     ULONG ulFlags) :
-	ECUnknown("ECMemTableView"), lpMemTable(mt), m_ulConnection(1),
-	    m_locale(locale), m_ulFlags(ulFlags & MAPI_UNICODE)
+	ECUnknown("ECMemTableView"), lpMemTable(mt),
+	lpsPropTags(reinterpret_cast<SPropTagArray *>(new BYTE[CbNewSPropTagArray(lpMemTable->lpsColumns->cValues)])),
+	m_locale(locale), m_ulConnection(1), m_ulFlags(ulFlags & MAPI_UNICODE)
 {
-	lpsPropTags = reinterpret_cast<SPropTagArray *>(new BYTE[CbNewSPropTagArray(lpMemTable->lpsColumns->cValues)]);
 	lpsPropTags->cValues = lpMemTable->lpsColumns->cValues;
 	std::transform(lpMemTable->lpsColumns->aulPropTag, lpMemTable->lpsColumns->aulPropTag + lpMemTable->lpsColumns->cValues, (ULONG*)lpsPropTags->aulPropTag, FixStringType(ulFlags & MAPI_UNICODE));
 
@@ -388,9 +373,6 @@ ECMemTableView::~ECMemTableView()
 		++iterAdvise;
 		Unadvise(iterAdviseRemove->first);
 	}
-	delete[] lpsPropTags;
-	delete[] lpsSortOrderSet;
-	MAPIFreeBuffer(lpsRestriction);
 }
 
 HRESULT ECMemTableView::Create(ECMemTable *lpMemTable, const ECLocale &locale, ULONG ulFlags, ECMemTableView **lppMemTableView)
@@ -419,10 +401,8 @@ HRESULT ECMemTableView::Advise(ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink,
 
 	if (lpAdviseSink == NULL || lpulConnection == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	lpAdviseSink->AddRef();
-
 	auto lpMemAdvise = new ECMEMADVISE;
-	lpMemAdvise->lpAdviseSink = lpAdviseSink;
+	lpMemAdvise->lpAdviseSink.reset(lpAdviseSink);
 	lpMemAdvise->ulEventMask = ulEventMask;
 	m_mapAdvise.emplace(ulConnection, lpMemAdvise);
 	*lpulConnection = ulConnection;
@@ -437,8 +417,6 @@ HRESULT ECMemTableView::Unadvise(ULONG ulConnection)
 		assert(false);
 		return hrSuccess;
 	}
-	if (iterAdvise->second->lpAdviseSink != NULL)
-		iterAdvise->second->lpAdviseSink->Release();
 	delete iterAdvise->second;
 	m_mapAdvise.erase(iterAdvise);
 	return hrSuccess;
@@ -522,9 +500,7 @@ HRESULT ECMemTableView::GetStatus(ULONG *lpulTableStatus, ULONG *lpulTableType)
 HRESULT ECMemTableView::SetColumns(const SPropTagArray *lpPropTagArray,
     ULONG ulFlags)
 {
-	delete[] lpsPropTags;
-	lpsPropTags = (LPSPropTagArray) new BYTE[CbNewSPropTagArray(lpPropTagArray->cValues)];
-
+	lpsPropTags.reset(reinterpret_cast<SPropTagArray *>(new BYTE[CbNewSPropTagArray(lpPropTagArray->cValues)]));
 	lpsPropTags->cValues = lpPropTagArray->cValues;
 	memcpy(&lpsPropTags->aulPropTag, &lpPropTagArray->aulPropTag, lpPropTagArray->cValues * sizeof(ULONG));
 
@@ -688,13 +664,10 @@ HRESULT ECMemTableView::FindRow(const SRestriction *lpRestriction,
 HRESULT ECMemTableView::Restrict(const SRestriction *lpRestriction, ULONG ulFlags)
 {
 	HRESULT hr = hrSuccess;
-
-	MAPIFreeBuffer(lpsRestriction);
-	lpsRestriction = nullptr;
 	if(lpRestriction)
-		hr = Util::HrCopySRestriction(&lpsRestriction, lpRestriction);
+		hr = Util::HrCopySRestriction(&~lpsRestriction, lpRestriction);
 	else
-		lpsRestriction = nullptr;
+		lpsRestriction.reset();
 	if(hr != hrSuccess)
 		return hr;
 	hr = UpdateSortOrRestrict();
@@ -799,11 +772,8 @@ HRESULT ECMemTableView::SortTable(const SSortOrderSet *lpSortCriteria,
 {
 	if (!lpSortCriteria)
 		lpSortCriteria = sSortDefault;
-
-	delete[] lpsSortOrderSet;
-	lpsSortOrderSet = (LPSSortOrderSet) new BYTE[CbSSortOrderSet(lpSortCriteria)];
-
-	memcpy(lpsSortOrderSet, lpSortCriteria, CbSSortOrderSet(lpSortCriteria));
+	lpsSortOrderSet.reset(reinterpret_cast<SSortOrderSet *>(new BYTE[CbSSortOrderSet(lpSortCriteria)]));
+	memcpy(lpsSortOrderSet.get(), lpSortCriteria, CbSSortOrderSet(lpSortCriteria));
 	auto hr = UpdateSortOrRestrict();
 	if (hr == hrSuccess)
 		Notify(TABLE_SORT_DONE, NULL, NULL);
@@ -873,7 +843,7 @@ HRESULT ECMemTableView::ModifyRowKey(sObjectTableKey *lpsRowItem, sObjectTableKe
 HRESULT ECMemTableView::QuerySortOrder(LPSSortOrderSet *lppSortCriteria)
 {
 	LPSSortOrderSet lpSortCriteria = NULL;
-	auto hr = KAllocCopy(lpsSortOrderSet, CbSSortOrderSet(lpsSortOrderSet), reinterpret_cast<void **>(&lpSortCriteria));
+	auto hr = KAllocCopy(lpsSortOrderSet.get(), CbSSortOrderSet(lpsSortOrderSet.get()), reinterpret_cast<void **>(&lpSortCriteria));
 	if(hr != hrSuccess)
 		return hr;
 	*lppSortCriteria = lpSortCriteria;

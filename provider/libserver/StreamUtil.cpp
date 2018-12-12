@@ -18,6 +18,7 @@
 #include "ECICS.h"
 #include "ECMemStream.h"
 #include <kopano/MAPIErrors.h>
+#include <kopano/scope.hpp>
 #include <kopano/charset/convert.h>
 #include <kopano/charset/utf8string.h>
 #include <ECFifoBuffer.h>
@@ -852,27 +853,29 @@ static ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 	DB_RESULT lpDBResult;
 	object_ptr<ECMemStream> lpStream;
 	object_ptr<IStream> lpIStream;
-	ECStreamSerializer *	lpTempSink = NULL;
 	bool			bUseSQLMulti = parseBool(g_lpSessionManager->GetConfig()->GetSetting("enable_sql_procedures"));
 	std::list<struct propVal> sPropValList;
 
 	assert(lpStreamCaps != NULL);
 	auto er = ECMemStream::Create(nullptr, 0, STGM_SHARE_EXCLUSIVE | STGM_WRITE, nullptr, nullptr, nullptr, &~lpStream);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 	er = lpStream->QueryInterface(IID_IStream, &~lpIStream);
 	if (er != erSuccess)
-		goto exit;
-	if (!lpAttachmentStorage) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
-	lpTempSink = new(std::nothrow) ECStreamSerializer(lpIStream);
+		return er;
+	if (lpAttachmentStorage == nullptr)
+		return KCERR_INVALID_PARAMETER;
+	auto lpTempSink = make_unique_nt<ECStreamSerializer>(lpIStream);
 	if (lpTempSink == nullptr)
 		return KCERR_NOT_ENOUGH_MEMORY;
 
 	// We'll (ab)use a soap structure as a memory pool.
 	soap = soap_new();
+	auto cleanup = make_scope_success([&]() {
+		soap_destroy(soap);
+		soap_end(soap);
+		soap_free(soap);
+	});
 	// PR_SOURCE_KEY
 	if (bTop && ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_SOURCE_KEY, ulObjId, 0, ulStoreId, 0, ulObjType, &sPropVal) == erSuccess)
 		sPropValList.emplace_back(sPropVal);
@@ -886,7 +889,7 @@ static ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 			strMode = "1";
 			er = GetBestBody(lpDatabase, ulObjId, &strBestBody);
 			if (er != erSuccess)
-				goto exit;
+				return er;
 		} else if(ulFlags & SYNC_LIMITED_IMESSAGE)
 			strMode = "2";
 		auto strQuery = "SELECT " PROPCOLORDER ", 0, names.nameid, names.namestring, names.guid FROM properties "
@@ -900,44 +903,33 @@ static ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	}
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// Properties
 	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 		auto lpDBLen = lpDBResult.fetch_row_lengths();
 		if (lpDBRow == NULL || lpDBLen == NULL) {
-			er = KCERR_DATABASE_ERROR;
 			ec_log_err("SerializeProps(): fetchrow/fetchrowlengths failed");
-			goto exit;
+			return KCERR_DATABASE_ERROR;
 		}
-		er = SerializeDatabasePropVal(lpStreamCaps, lpDBRow, lpDBLen, lpTempSink);
+		er = SerializeDatabasePropVal(lpStreamCaps, lpDBRow, lpDBLen, lpTempSink.get());
 		if (er != erSuccess)
-			goto exit;
+			return er;
 		++ulCount;
 	}
 
 	for (const auto &pv : sPropValList) {
 		/* No NamedPropDefMap needed for computed properties */
-		er = SerializePropVal(lpStreamCaps, pv, lpTempSink, NULL);
+		er = SerializePropVal(lpStreamCaps, pv, lpTempSink.get(), nullptr);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 		++ulCount;
 	}
 
 	er = lpSink->Write(&ulCount, sizeof(ulCount), 1);
 	if (er != erSuccess)
-		goto exit;
-	er = lpSink->Write(lpStream->GetBuffer(), 1, lpStream->GetSize());
-	if (er != erSuccess)
-		goto exit;
-exit:
-	delete lpTempSink;
-	if (soap) {
-		soap_destroy(soap);
-		soap_end(soap);
-		soap_free(soap);
-	}
-	return er;
+		return er;
+	return lpSink->Write(lpStream->GetBuffer(), 1, lpStream->GetSize());
 }
 
 /**
