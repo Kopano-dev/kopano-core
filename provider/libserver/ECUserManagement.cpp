@@ -257,8 +257,6 @@ ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const std::list<obje
 	// Extern details
 	std::list<objectid_t> lstExternIds;
 	std::map<objectid_t, objectdetails_t> lpExternDetails;
-	objectdetails_t details;
-	unsigned int ulObjectId = 0;
 	UserPlugin *lpPlugin = NULL;
 
 	auto er = GetThreadLocalPlugin(m_lpPluginFactory, &lpPlugin);
@@ -273,9 +271,10 @@ ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const std::list<obje
 		auto iterExternLocal = mapExternToLocal.find(sig.id);
 		if (iterExternLocal == mapExternToLocal.cend())
 			continue;
-		ulObjectId = iterExternLocal->second;
+		auto ulObjectId = iterExternLocal->second;
 		// Check if the cache contains the details or if we are going to request
 		// it from the plugin.
+		objectdetails_t details;
 		er = cache->GetUserDetails(ulObjectId, &details);
 		if (er != erSuccess) {
 			lstExternIds.emplace_back(sig.id);
@@ -288,7 +287,7 @@ ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const std::list<obje
 		// remove details, but keep the class information
 		if (ulFlags & USERMANAGEMENT_IDS_ONLY)
 			details = objectdetails_t(details.GetClass());
-		lpDetails->emplace_back(ulObjectId, details);
+		lpDetails->emplace_back(ulObjectId, std::move(details));
 	}
 
 	if (lstExternIds.empty())
@@ -306,11 +305,11 @@ ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const std::list<obje
 		return KCERR_PLUGIN_ERROR;
 	}
 
-	for (const auto &ext_det : lpExternDetails) {
+	for (auto &&ext_det : lpExternDetails) {
 		auto iterExternLocal = mapExternToLocal.find(ext_det.first);
 		if (iterExternLocal == mapExternToLocal.cend())
 			continue;
-		ulObjectId = iterExternLocal->second;
+		auto ulObjectId = iterExternLocal->second;
 		if (ulFlags & USERMANAGEMENT_ADDRESSBOOK &&
 		    MustHide(*lpSecurity, ulFlags, ext_det.second))
 				continue;
@@ -318,7 +317,7 @@ ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const std::list<obje
 			lpDetails->emplace_back(ulObjectId, objectdetails_t(ext_det.second.GetClass()));
 		else
 			lpDetails->emplace_back(ulObjectId, ext_det.second);
-		cache->SetUserDetails(ulObjectId, ext_det.second);
+		cache->SetUserDetails(ulObjectId, std::move(ext_det.second));
 	}
 	return erSuccess;
 }
@@ -396,9 +395,9 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 			// Reset details, this saves time copying unwanted data, but keep the correct class
 			if (ulFlags & USERMANAGEMENT_IDS_ONLY)
 				details = objectdetails_t(details.GetClass());
-			lpObjects->emplace_back(loc_id, details);
+			lpObjects->emplace_back(loc_id, std::move(details));
 		} else if (GetExternalId(loc_id, &externid, NULL, &signature) == erSuccess) {
-			mapSignatureIdToLocal.emplace(externid, std::pair<unsigned int, std::string>(loc_id, signature));
+			mapSignatureIdToLocal.emplace(std::move(externid), std::pair<unsigned int, std::string>(loc_id, std::move(signature)));
 		} else {
 			// cached externid not found for local object id
 		}
@@ -650,6 +649,7 @@ ECRESULT ECUserManagement::GetParentObjectsOfObjectAndSync(userobject_relation_t
 	// If we are requesting group membership we should always insert the everyone, since everyone is member of EVERYONE except for SYSTEM
 	if (relation == OBJECTRELATION_GROUP_MEMBER && ulObjectId != KOPANO_UID_SYSTEM) {
 		if ((!(ulFlags & USERMANAGEMENT_IDS_ONLY)) || (ulFlags & USERMANAGEMENT_ADDRESSBOOK)) {
+			objectdetails_t details;
 			er = GetLocalObjectDetails(KOPANO_UID_EVERYONE, &details);
 			if(er != erSuccess)
 				return er;
@@ -659,7 +659,7 @@ ECRESULT ECUserManagement::GetParentObjectsOfObjectAndSync(userobject_relation_t
 			{
 				if (ulFlags & USERMANAGEMENT_IDS_ONLY)
 					details = objectdetails_t(details.GetClass());
-				lpObjects->emplace_back(KOPANO_UID_EVERYONE, details);
+				lpObjects->emplace_back(KOPANO_UID_EVERYONE, std::move(details));
 			}
 		} else
 			lpObjects->emplace_back(KOPANO_UID_EVERYONE, objectdetails_t(DISTLIST_SECURITY));
