@@ -94,7 +94,7 @@ public:
 };
 
 typedef std::list<objectsignature_t> signatures_t;
-typedef std::list<unsigned int> abprops_t;
+typedef std::vector<unsigned int> abprops_t;
 
 class ECConfig;
 

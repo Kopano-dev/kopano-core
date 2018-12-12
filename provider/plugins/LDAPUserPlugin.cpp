@@ -2724,11 +2724,14 @@ void LDAPUserPlugin::setQuota(const objectid_t &id, const quotadetails_t &quotad
 
 abprops_t LDAPUserPlugin::getExtraAddressbookProperties()
 {
+	auto sg = m_config->GetSettingGroup(CONFIGGROUP_PROPMAP);
+	size_t i = 0;
 	abprops_t lProps;
 
 	LOG_PLUGIN_DEBUG("%s", __FUNCTION__);
-	for (const auto &cs : m_config->GetSettingGroup(CONFIGGROUP_PROPMAP))
-		lProps.emplace_back(xtoi(cs.szName));
+	lProps.resize(sg.size());
+	for (const auto &cs : sg)
+		lProps[i++] = xtoi(cs.szName);
 	return lProps;
 }
 
