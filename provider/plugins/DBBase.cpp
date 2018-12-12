@@ -156,9 +156,9 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 		else if (strncasecmp(lpDBRow[2], "0x", strlen("0x")) == 0) {
 			unsigned int key = xtoi(lpDBRow[2]);
 			if (PROP_TYPE(key) == PT_BINARY)
-				details.SetPropString((property_key_t)key, base64_decode(lpDBRow[3]));
+				details.SetPropString(static_cast<property_key_t>(key), base64_decode(lpDBRow[3]));
 			else
-				details.SetPropString((property_key_t)xtoi(lpDBRow[2]), lpDBRow[3]);
+				details.SetPropString(static_cast<property_key_t>(xtoi(lpDBRow[2])), lpDBRow[3]);
 		}
 	}
 
@@ -204,9 +204,9 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 		if (strncasecmp(lpDBRow[0], "0x", strlen("0x")) == 0) {
 			unsigned int key = xtoi(lpDBRow[0]);
 			if (PROP_TYPE(key) == PT_BINARY || PROP_TYPE(key) == PT_MV_BINARY)
-				iterDetails->second.AddPropString((property_key_t)key, base64_decode(lpDBRow[1]));
+				iterDetails->second.AddPropString(static_cast<property_key_t>(key), base64_decode(lpDBRow[1]));
 			else
-				iterDetails->second.AddPropString((property_key_t)key, lpDBRow[1]);
+				iterDetails->second.AddPropString(static_cast<property_key_t>(key), lpDBRow[1]);
 		}
 	}
 
@@ -274,19 +274,19 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 		{ OB_PROP_S_FULLNAME, OP_FULLNAME, },
 		{ OB_PROP_O_COMPANYID, OP_COMPANYID, },
 		{ OB_PROP_B_AB_HIDDEN, OB_AB_HIDDEN, },
-		{ (property_key_t)0, NULL },
+		{static_cast<property_key_t>(0)},
 	};
 	const struct props sGroupValidProps[] = {
 		{ OB_PROP_S_FULLNAME, OP_GROUPNAME, },
 		{ OB_PROP_O_COMPANYID, OP_COMPANYID, },
 		{ OB_PROP_S_EMAIL, OP_EMAILADDRESS, },
 		{ OB_PROP_B_AB_HIDDEN, OB_AB_HIDDEN, },
-		{ (property_key_t)0, NULL },
+		{static_cast<property_key_t>(0)},
 	};
 	const struct props sCompanyValidProps[] = {
 		{ OB_PROP_S_FULLNAME, OP_COMPANYNAME, },
 		{ OB_PROP_O_SYSADMIN, OP_COMPANYADMIN, },
-		{ (property_key_t)0, NULL },
+		{static_cast<property_key_t>(0)},
 	};
 	const struct props *sValidProps;
 

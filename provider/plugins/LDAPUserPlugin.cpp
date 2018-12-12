@@ -1834,7 +1834,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 					p.ldap_attrs = getLDAPAttributeValues(att, entry);
 					p.relAttr = "dn";
 					p.relAttrType = "dn";
-					p.propname = (property_key_t)ulPropTag;
+					p.propname = static_cast<property_key_t>(ulPropTag);
 					lPostActions.emplace_back(std::move(p));
 					break;
                 }
@@ -1859,7 +1859,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 					p.ldap_attr = getLDAPAttributeValue(att, entry);
 					p.relAttr = "dn";
 					p.relAttrType = "dn";
-					p.propname = (property_key_t)ulPropTag;
+					p.propname = static_cast<property_key_t>(ulPropTag);
 					lPostActions.emplace_back(std::move(p));
 					break;
                 }
@@ -1879,7 +1879,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 					p.relAttr = "dn";
 					p.relAttrType = "dn";
 					p.result_attr = m_config->GetSetting("ldap_fullname_attribute");
-					p.propname = (property_key_t)ulPropTag;
+					p.propname = static_cast<property_key_t>(ulPropTag);
 					lPostActions.emplace_back(std::move(p));
 					break;
                 }
@@ -1891,9 +1891,9 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 							i = m_iconv->convert(i);
 
 					if (ulPropTag & 0x1000) /* MV_FLAG */
-						sObjDetails.SetPropListString((property_key_t)ulPropTag, ldap_attrs);
+						sObjDetails.SetPropListString(static_cast<property_key_t>(ulPropTag), ldap_attrs);
 					else
-						sObjDetails.SetPropString((property_key_t)ulPropTag, ldap_attrs.front());
+						sObjDetails.SetPropString(static_cast<property_key_t>(ulPropTag), ldap_attrs.front());
 					break;
 				}
 				}

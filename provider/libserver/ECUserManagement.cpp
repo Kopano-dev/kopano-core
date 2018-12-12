@@ -1968,14 +1968,14 @@ ECRESULT ECUserManagement::ComplementDefaultFeatures(objectdetails_t *lpDetails)
 	if (OBJECTCLASS_TYPE(lpDetails->GetClass()) != OBJECTTYPE_MAILUSER) {
 		// clear settings for anything but users
 		std::list<std::string> e;
-		lpDetails->SetPropListString((property_key_t)PR_EC_ENABLED_FEATURES_A, e);
-		lpDetails->SetPropListString((property_key_t)PR_EC_DISABLED_FEATURES_A, e);
+		lpDetails->SetPropListString(static_cast<property_key_t>(PR_EC_ENABLED_FEATURES_A), e);
+		lpDetails->SetPropListString(static_cast<property_key_t>(PR_EC_DISABLED_FEATURES_A), e);
 		return erSuccess;
 	}
 
 	auto defaultEnabled = getFeatures();
-	auto userEnabled = lpDetails->GetPropListString((property_key_t)PR_EC_ENABLED_FEATURES_A);
-	auto userDisabled = lpDetails->GetPropListString((property_key_t)PR_EC_DISABLED_FEATURES_A);
+	auto userEnabled = lpDetails->GetPropListString(static_cast<property_key_t>(PR_EC_ENABLED_FEATURES_A));
+	auto userDisabled = lpDetails->GetPropListString(static_cast<property_key_t>(PR_EC_DISABLED_FEATURES_A));
 	std::vector<std::string> ddv = tokenize(m_lpConfig->GetSetting("disabled_features"), "\t ");
 	std::set<std::string> defaultDisabled(std::make_move_iterator(ddv.begin()), std::make_move_iterator(ddv.end()));
 
@@ -2003,8 +2003,8 @@ ECRESULT ECUserManagement::ComplementDefaultFeatures(objectdetails_t *lpDetails)
 	userEnabled.assign(std::make_move_iterator(defaultEnabled.begin()), std::make_move_iterator(defaultEnabled.end()));
 	userDisabled.assign(std::make_move_iterator(defaultDisabled.begin()), std::make_move_iterator(defaultDisabled.end()));
 	// save lists back to user details
-	lpDetails->SetPropListString((property_key_t)PR_EC_ENABLED_FEATURES_A, userEnabled);
-	lpDetails->SetPropListString((property_key_t)PR_EC_DISABLED_FEATURES_A, userDisabled);
+	lpDetails->SetPropListString(static_cast<property_key_t>(PR_EC_ENABLED_FEATURES_A), userEnabled);
+	lpDetails->SetPropListString(static_cast<property_key_t>(PR_EC_DISABLED_FEATURES_A), userDisabled);
 	return erSuccess;
 }
 
@@ -2021,8 +2021,8 @@ ECRESULT ECUserManagement::RemoveDefaultFeatures(objectdetails_t *lpDetails) con
 	if (lpDetails->GetClass() != ACTIVE_USER)
 		return erSuccess;
 	auto defaultEnabled = getFeatures();
-	auto userEnabled = lpDetails->GetPropListString((property_key_t)PR_EC_ENABLED_FEATURES_A);
-	auto userDisabled = lpDetails->GetPropListString((property_key_t)PR_EC_DISABLED_FEATURES_A);
+	auto userEnabled = lpDetails->GetPropListString(static_cast<property_key_t>(PR_EC_ENABLED_FEATURES_A));
+	auto userDisabled = lpDetails->GetPropListString(static_cast<property_key_t>(PR_EC_DISABLED_FEATURES_A));
 	std::vector<std::string> ddv = tokenize(m_lpConfig->GetSetting("disabled_features"), "\t ");
 	std::set<std::string> defaultDisabled(std::make_move_iterator(ddv.begin()), std::make_move_iterator(ddv.end()));
 
@@ -2036,8 +2036,8 @@ ECRESULT ECUserManagement::RemoveDefaultFeatures(objectdetails_t *lpDetails) con
 		return defaultEnabled.find(x) != defaultEnabled.end();
 	});
 	// save lists back to user details
-	lpDetails->SetPropListString((property_key_t)PR_EC_ENABLED_FEATURES_A, userEnabled);
-	lpDetails->SetPropListString((property_key_t)PR_EC_DISABLED_FEATURES_A, userDisabled);
+	lpDetails->SetPropListString(static_cast<property_key_t>(PR_EC_ENABLED_FEATURES_A), userEnabled);
+	lpDetails->SetPropListString(static_cast<property_key_t>(PR_EC_DISABLED_FEATURES_A), userDisabled);
 	return erSuccess;
 }
 
@@ -2731,11 +2731,11 @@ ECRESULT ECUserManagement::ConvertAnonymousObjectDetailToProp(struct soap *soap,
 		ulGetPropTag = ulPropTag;
 
 	if (PROP_TYPE(ulPropTag) & MV_FLAG) {
-		lstrValues = lpDetails->GetPropListString((property_key_t)ulGetPropTag);
+		lstrValues = lpDetails->GetPropListString(static_cast<property_key_t>(ulGetPropTag));
 		if (lstrValues.empty())
 			return KCERR_UNKNOWN;
 	} else {
-		strValue = lpDetails->GetPropString((property_key_t)ulGetPropTag);
+		strValue = lpDetails->GetPropString(static_cast<property_key_t>(ulGetPropTag));
 		if (strValue.empty())
 			return KCERR_UNKNOWN;
 	}
@@ -2744,14 +2744,14 @@ ECRESULT ECUserManagement::ConvertAnonymousObjectDetailToProp(struct soap *soap,
 	switch (ulPropTag) {
 	case 0x80050102: /* PR_EMS_AB_MANAGER	| PT_BINARY */
 	case 0x800C0102: /* PR_EMS_AB_OWNER		| PT_BINARY */
-		er = CreateABEntryID(soap, lpDetails->GetPropObject((property_key_t)ulPropTag), lpPropVal);
+		er = CreateABEntryID(soap, lpDetails->GetPropObject(static_cast<property_key_t>(ulPropTag)), lpPropVal);
 		if (er != erSuccess)
 			return er;
 		lpPropVal->ulPropTag = ulPropTag;
 		return erSuccess;
 	case 0x80081102: /* PR_EMS_AB_IS_MEMBER_OF_DL	| PT_MV_BINARY */
 	case 0x800E1102: { /* PR_EMS_AB_REPORTS | PT_MV_BINARY */
-		lobjValues = lpDetails->GetPropListObject((property_key_t)ulPropTag);
+		lobjValues = lpDetails->GetPropListObject(static_cast<property_key_t>(ulPropTag));
 		lpPropVal->__union = SOAP_UNION_propValData_mvbin;
 		lpPropVal->ulPropTag = ulPropTag;
 		lpPropVal->Value.mvbin.__size = 0;

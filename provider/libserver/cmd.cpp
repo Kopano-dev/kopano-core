@@ -226,7 +226,7 @@ static ECRESULT CheckUserStore(ECSession *lpecSession, unsigned ulUserId,
 			else
 				*lpbHasLocalStore = (strcasecmp(sDetails.GetPropString(OB_PROP_S_SERVERNAME).c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) == 0);
 		} else	// Archive store
-			*lpbHasLocalStore = sDetails.PropListStringContains((property_key_t)PR_EC_ARCHIVE_SERVERS_A, g_lpSessionManager->GetConfig()->GetSetting("server_name"), true);
+			*lpbHasLocalStore = sDetails.PropListStringContains(static_cast<property_key_t>(PR_EC_ARCHIVE_SERVERS_A), g_lpSessionManager->GetConfig()->GetSetting("server_name"), true);
 	} else	// Single tennant
 		*lpbHasLocalStore = bPrivateOrPublic;
 
@@ -2797,7 +2797,7 @@ SOAP_ENTRY_START(loadObject, lpsLoadObjectResponse->er, const entryId &sEntryId,
 					// We allow an archive store to be opened by sysadmins even if it's not supposed
 					// to exist on this server for a particular user.
 					if (lpecSession->GetSecurity()->GetAdminLevel() < ADMIN_LEVEL_SYSADMIN &&
-					   !sUserDetails.PropListStringContains((property_key_t)PR_EC_ARCHIVE_SERVERS_A, g_lpSessionManager->GetConfig()->GetSetting("server_name"), true))
+					   !sUserDetails.PropListStringContains(static_cast<property_key_t>(PR_EC_ARCHIVE_SERVERS_A), g_lpSessionManager->GetConfig()->GetSetting("server_name"), true))
 						return KCERR_NOT_FOUND;
 				} else {
 					return KCERR_NOT_FOUND;
@@ -6122,7 +6122,7 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, const char *szUserName,
 			// We allow an archive store to be resolved by sysadmins even if it's not supposed
 			// to exist on this server for a particular user.
 			if (sec->GetAdminLevel() < ADMIN_LEVEL_SYSADMIN &&
-				!sUserDetails.PropListStringContains((property_key_t)PR_EC_ARCHIVE_SERVERS_A, cfg->GetSetting("server_name"), true))
+				!sUserDetails.PropListStringContains(static_cast<property_key_t>(PR_EC_ARCHIVE_SERVERS_A), cfg->GetSetting("server_name"), true))
 				// No redirect with archive stores because there can be multiple archive stores.
 				return KCERR_NOT_FOUND;
 		}
