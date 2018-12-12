@@ -102,10 +102,9 @@ typedef memory_ptr<struct berval *, ldap_deleter> auto_free_ldap_berval;
 			m_ldap = ConnectLDAP(m_config->GetSetting("ldap_bind_user"), m_config->GetSetting("ldap_bind_passwd"), parseBool(m_config->GetSetting("ldap_starttls"))); \
 		/* set critical to 'F' to not force paging? @todo find an ldap server without support. */ \
 		rc = ldap_create_page_control(m_ldap, ldap_page_size, &sCookie, 0, &~pageControl); \
-		if (rc != LDAP_SUCCESS) {										\
+		if (rc != LDAP_SUCCESS) \
 			/* 'F' ? */ \
 			throw ldap_error(string("ldap_create_page_control: ") + ldap_err2string(rc), rc); \
-		} \
 		serverControls[0] = pageControl; \
 		\
 		/* search like normal, throws on error */ \
@@ -127,9 +126,8 @@ typedef memory_ptr<struct berval *, ldap_deleter> auto_free_ldap_berval;
 		} \
 		if (!!returnedControls) {										\
 			rc = ldap_parse_pageresponse_control(m_ldap, returnedControls[0], NULL, &sCookie); \
-			if (rc != LDAP_SUCCESS) {										\
+			if (rc != LDAP_SUCCESS) \
 				throw ldap_error(string("ldap_parse_pageresponse_control: ") + ldap_err2string(rc), rc); \
-			}																\
 			morePages = sCookie.bv_len > 0; \
 		} else { \
 			morePages = false; \
@@ -205,19 +203,11 @@ public:
 			add(lppAttr[i++]);
 	}
 
-	bool empty(void) const
-	{
-		return lpAttrs[0] == NULL;
-	}
-
-	const char **get(void) const
-	{
-		return lpAttrs.get();
-	}
+	bool empty() const { return lpAttrs[0] == nullptr; }
+	const char **get() const { return lpAttrs.get(); }
 
 private:
-	unsigned int ulAttrs;
-	unsigned int ulMaxAttrs;
+	unsigned int ulAttrs, ulMaxAttrs;
 	std::unique_ptr<const char *[]> lpAttrs;
 };
 
@@ -372,11 +362,8 @@ LDAPUserPlugin::LDAPUserPlugin(std::mutex &pluginlock,
 
 		{ NULL, NULL },
 	};
-	static const char *const lpszAllowedDirectives[] = {
-		"include",
-		"propmap",
-		NULL,
-	};
+	static const char *const lpszAllowedDirectives[] =
+		{"include", "propmap", nullptr};
 
 	m_config = shareddata->CreateConfig(lpDefaults, lpszAllowedDirectives);
 	if (!m_config)
@@ -445,8 +432,7 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn,
 
 	// Initialize LDAP struct
 	for (unsigned long int loop = 0; loop < ldap_servers.size(); ++loop) {
-		const int limit = 0;
-		const int version = LDAP_VERSION3;
+		static const int limit = 0, version = LDAP_VERSION3;
 		std::string currentServer = ldap_servers.at(ldapServerIndex);
 
 		ulock_normal biglock(m_plugin_lock);
@@ -643,13 +629,11 @@ static std::vector<std::string> split_classes(const char *lpszClasses)
 	return lstClasses;
 }
 
-static bool MatchClasses(const std::set<std::string> &setClasses,
-    const std::vector<std::string> &lstClasses)
+static bool MatchClasses(const std::set<std::string> &a,
+    const std::vector<std::string> &b)
 {
-	for (const auto &cls : lstClasses)
-		if (setClasses.find(strToUpper(cls)) == setClasses.cend())
-			return false;
-	return true;
+	return !std::any_of(b.cbegin(), b.cend(),
+	       [&](const auto &cls) { return a.find(strToUpper(cls)) == a.cend(); });
 }
 
 /**
@@ -780,11 +764,7 @@ objectid_t LDAPUserPlugin::GetObjectIdForEntry(LDAPMessage *entry)
 
 	// Subspecify some generic types now
 	if (objclass == OBJECTCLASS_USER) {
-		if (atoi(nonactive_type.c_str()) != 0)
-			objclass = NONACTIVE_USER;
-		else
-			objclass = ACTIVE_USER;
-
+		objclass = atoi(nonactive_type.c_str()) == 0 ? ACTIVE_USER : NONACTIVE_USER;
 		if (objclass == NONACTIVE_USER && !resource_type.empty()) {
 			/* Overwrite objectclass, a resource is allowed to overwrite the nonactive type */
 			if (strcasecmp(resource_type.c_str(), "room") == 0)
@@ -799,17 +779,10 @@ objectid_t LDAPUserPlugin::GetObjectIdForEntry(LDAPMessage *entry)
 	if (objclass == NONACTIVE_CONTACT)
 		object_uid = user_unique;
 	if (objclass == OBJECTCLASS_DISTLIST) {
-		if (!strcasecmp(security_attr_type, "ads")) {
-			if(atoi(security_type.c_str()) & 0x80000000)
-				objclass = DISTLIST_SECURITY;
-			else
-				objclass = DISTLIST_GROUP;
-		} else {
-			if (parseBool(security_type.c_str()))
-				objclass = DISTLIST_SECURITY;
-			else
-				objclass = DISTLIST_GROUP;
-		}
+		if (strcasecmp(security_attr_type, "ads") == 0)
+			objclass = (atoi(security_type.c_str()) & 0x80000000) ? DISTLIST_SECURITY : DISTLIST_GROUP;
+		else
+			objclass = parseBool(security_type.c_str()) ? DISTLIST_SECURITY : DISTLIST_GROUP;
 		object_uid = group_unique;
 	}
 
@@ -1132,16 +1105,10 @@ string LDAPUserPlugin::getObjectSearchFilter(const objectid_t &id, const char *a
 string LDAPUserPlugin::objectUniqueIDtoAttributeData(const objectid_t &uniqueid, const char* lpAttr)
 {
 	auto_free_ldap_message res;
-	string			strData;
 	bool			bDataAttrFound = false;
-
-	string ldap_basedn = getSearchBase();
+	std::string strData, ldap_basedn = getSearchBase();
 	string ldap_filter = getObjectSearchFilter(uniqueid);
-
-	char *request_attrs[] = {
-		(char*)lpAttr,
-		NULL
-	};
+	char *request_attrs[] = {const_cast<char *>(lpAttr), nullptr};
 
 	if (lpAttr == NULL)
 		throw runtime_error("Cannot convert uniqueid to unknown attribute");
@@ -1223,9 +1190,7 @@ string LDAPUserPlugin::objectUniqueIDtoObjectDN(const objectid_t &uniqueid, bool
 	entry = ldap_first_entry(m_ldap, res);
 	if (entry == nullptr)
 		throw runtime_error("ldap_dn: broken.");
-	dn = GetLDAPEntryDN(entry);
-
-	return dn;
+	return GetLDAPEntryDN(entry);
 }
 
 objectsignature_t LDAPUserPlugin::objectDNtoObjectSignature(objectclass_t objclass, const string &dn)
@@ -1269,11 +1234,7 @@ LDAPUserPlugin::resolveObjectsFromAttribute(objectclass_t objclass,
     const std::list<std::string> &objects, const char *lpAttr,
     const objectid_t &company)
 {
-	const char *lpAttrs[2] = {
-		lpAttr,
-		NULL,
-	};
-
+	const char *lpAttrs[] = {lpAttr, nullptr};
 	return resolveObjectsFromAttributes(objclass, objects, lpAttrs, company);
 }
 
@@ -1315,11 +1276,7 @@ LDAPUserPlugin::resolveObjectsFromAttributeType(objectclass_t objclass,
     const std::list<std::string> &objects, const char *lpAttr,
     const char *lpAttrType, const objectid_t &company)
 {
-	const char *lpAttrs[2] = {
-		lpAttr,
-		NULL,
-	};
-
+	const char *lpAttrs[] = {lpAttr, nullptr};
 	return resolveObjectsFromAttributesType(objclass, objects, lpAttrs, lpAttrType, company);
 }
 
@@ -1800,8 +1757,6 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 			}
 
 			for (const auto &se : lExtraAttrs) {
-				unsigned int ulPropTag;
-
 				/*
 				 * The value should be set to something, as protection to make sure
 				 * the name is a property tag all names should be prefixed with '0x'.
@@ -1809,8 +1764,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 				if (strcasecmp(se.szValue, att) != 0 || strncasecmp(se.szName, "0x", strlen("0x")) != 0)
 					continue;
 
-				ulPropTag = xtoi(se.szName);
-
+				auto ulPropTag = xtoi(se.szName);
 				/* Handle property actions */
 				switch (PROP_ID(ulPropTag)) {
 					// this property is only supported on ADS and OpenLDAP 2.4+ with slapo-memberof enabled
@@ -1827,12 +1781,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 					postaction p;
 
 					p.objectid = objectid;
-
-					if(ulPropTag == 0x800E1102)
-    					p.objclass = OBJECTCLASS_USER;
-                    else
-                        p.objclass = OBJECTCLASS_DISTLIST;
-                        
+					p.objclass = ulPropTag == 0x800E1102 ? OBJECTCLASS_USER : OBJECTCLASS_DISTLIST;
 					p.ldap_attrs = getLDAPAttributeValues(att, entry);
 
 					p.relAttr = "dn";
@@ -2459,12 +2408,7 @@ LDAPUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 		break;
 	}
 
-	const char *request_attrs[] = {
-		member_attr,
-		base_attr,
-		NULL
-	};
-
+	const char *request_attrs[] = {member_attr, base_attr, nullptr};
 	//Get group DN from unique id
 	auto ldap_basedn = getSearchBase();
 	auto ldap_filter = getObjectSearchFilter(sExternId, unique_attr, unique_attr_type);
@@ -2745,13 +2689,9 @@ serverdetails_t LDAPUserPlugin::getServerDetails(const std::string &server)
 // Convert unsigned char to 2-char hex string
 static std::string toHex(unsigned char n)
 {
-	std::string s;
 	static const char digits[] = "0123456789ABCDEF";
-
-	s += digits[n >> 4];
-	s += digits[n & 0xf];
-
-	return s;
+	char x[2] = {digits[n>>4], digits[n&0xf]};
+	return std::string(x, sizeof(x));
 }
 
 /**
