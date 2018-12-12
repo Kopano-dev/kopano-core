@@ -21,12 +21,14 @@
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
 #include <kopano/ECPluginSharedData.h>
+#include <kopano/mapiext.h>
 #include <kopano/memory.hpp>
 #include "StatsClient.h"
 #include <kopano/stringutil.h>
 #include "LDAPUserPlugin.h"
 #include "ldappasswords.h"
 #include <kopano/ecversion.h>
+#include "../soap/soapStub.h"
 
 #ifndef PROP_ID
 // from mapidefs.h
@@ -216,6 +218,7 @@ private:
 	if (__var)												\
 		(__attrs)->add(__var);
 
+static std::string rst2flt_main(const restrictTable *, const std::map<unsigned int, std::string> &);
 static HRESULT BintoEscapeSequence(const char *data, size_t size, std::string *);
 static std::string StringEscapeSequence(const std::string &);
 static std::string StringEscapeSequence(const char *, size_t);
@@ -225,6 +228,96 @@ std::unique_ptr<LDAPCache> LDAPUserPlugin::m_lpCache(new LDAPCache());
 template<typename T> static constexpr inline LONGLONG dur2us(const T &t)
 {
 	return std::chrono::duration_cast<std::chrono::microseconds>(t).count();
+}
+
+static std::string rst2flt_or(const restrictOr *q,
+    const std::map<unsigned int, std::string> &propmap)
+{
+	/*
+	 * 0-member OR restriction: evaluates to false in
+	 * LDAP, MatchRowRestrict and TestRestriction.
+	 */
+	std::string s = "(|";
+	for (int i = 0; i < q->__size; ++i)
+		s += rst2flt_main(q->__ptr[i], propmap);
+	return s += ")";
+}
+
+static std::string rst2flt_and(const restrictAnd *q,
+    const std::map<unsigned int, std::string> &propmap)
+{
+	/*
+	 * 0-member AND restriction: evaluates to true in LDAP
+	 * and MatchRowRestrict, but not in TestRestriction.
+	 */
+	std::string s = "(&";
+	for (int i = 0; i < q->__size; ++i)
+		s += rst2flt_main(q->__ptr[i], propmap);
+	return s += ")";
+}
+
+static std::string rst2flt_main(const restrictTable *rt,
+    const std::map<unsigned int, std::string> &propmap)
+{
+	/* Transform a restriction into an LDAP filter. It need not be exact:
+	 * matching more is always ok. */
+	//(gdb) p/x lpsRestrict[0].lpOr[0].__ptr[3][0].lpContent[0].ulPropTag
+	//$14 = 0x3003001e
+	switch (rt->ulType) {
+	case RES_OR:
+		return rst2flt_or(rt->lpOr, propmap);
+	case RES_AND:
+		return rst2flt_and(rt->lpAnd, propmap);
+	case RES_NOT:
+		return "(!" + rst2flt_main(rt->lpNot->lpNot, propmap) + ")";
+	case RES_COMMENT:
+		return rst2flt_main(rt->lpComment->lpResTable, propmap);
+	case RES_SUBRESTRICTION:
+		return "(|)"; /* userdb has no concept of "sub" */
+	case RES_EXIST: {
+		auto i = propmap.find(PROP_ID(rt->lpExist->ulPropTag));
+		return i == propmap.cend() ? "(|)"s : "(" + i->second + "=*)";
+	}
+	case RES_CONTENT:
+		break;
+	default:
+		/* Unrepresentable restriction type (BITMASK, COMPARE, PROPERTY, SIZE) */
+		return "(&)";
+	}
+	auto q = rt->lpContent;
+	auto pv = q->lpProp;
+	auto pt = propmap.find(PROP_ID(pv->ulPropTag));
+	if (pt == propmap.cend())
+		return "(|)";
+	std::string flt = "(" + pt->second + "=";
+	if (PROP_TYPE(pv->ulPropTag) != PT_STRING8)
+		/* Not supporting non-string checks yet */
+		return flt += "*)";
+	if (q->ulFuzzyLevel & FL_SUBSTRING)
+		flt += "*";
+	flt += StringEscapeSequence(pv->Value.lpszA);
+	if (q->ulFuzzyLevel & (FL_PREFIX | FL_SUBSTRING))
+		flt += "*";
+	return flt += ")";
+}
+
+std::string LDAPUserPlugin::rst_to_filter(const restrictTable *rt)
+{
+	if (rt == nullptr)
+		return "";
+	std::map<unsigned int, std::string> map;
+	for (const auto &cs : m_config->GetSettingGroup(CONFIGGROUP_PROPMAP))
+		map.emplace(PROP_ID(xtoi(cs.szName)), cs.szValue);
+	static const unsigned int nametags[] = {PR_DISPLAY_NAME, PR_NORMALIZED_SUBJECT, PR_7BIT_DISPLAY_NAME, PR_TRANSMITABLE_DISPLAY_NAME, PR_ORIGINAL_DISPLAY_NAME};
+	auto value = m_config->GetSetting("ldap_fullname_attribute");
+	for (auto tag : nametags)
+		map.emplace(PROP_ID(tag), value);
+	value = m_config->GetSetting("ldap_loginname_attribute");
+	map.emplace(PROP_ID(PR_ACCOUNT), value);
+	map.emplace(PROP_ID(PR_EMAIL_ADDRESS), value);
+	map.emplace(PROP_ID(PR_EC_HOMESERVER_NAME), m_config->GetSetting("ldap_user_server_attribute"));
+	map.emplace(PROP_ID(PR_SMTP_ADDRESS), m_config->GetSetting("ldap_emailaddress_attribute"));
+	return rst2flt_main(rt, map);
 }
 
 LDAPUserPlugin::LDAPUserPlugin(std::mutex &pluginlock,
@@ -1497,7 +1590,7 @@ signatures_t LDAPUserPlugin::getAllObjects(const objectid_t &company,
 		LOG_PLUGIN_DEBUG("%s Class %x", __FUNCTION__, objclass);
 	}
 	return getAllObjectsByFilter(getSearchBase(company), LDAP_SCOPE_SUBTREE,
-	       getSearchFilter(objclass), companyDN, true);
+	       "(&" + getSearchFilter(objclass) + rst_to_filter(rst) + ")", companyDN, true);
 }
 
 string LDAPUserPlugin::getLDAPAttributeValue(char *attribute, LDAPMessage *entry) {

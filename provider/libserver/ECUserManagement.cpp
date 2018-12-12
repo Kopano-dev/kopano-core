@@ -472,11 +472,11 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass,
 
 	/*
 	 * mapSignatureIdToLocal is now a map of objects that were NOT in the
-	 * external user database search result. Since a restriction is
-	 * present, the result is only a subset of the entire UDB, and so
-	 * meaningless for deletions.
+	 * external user database search result. If a restriction is present,
+	 * the result is only a subset of the entire UDB, and so meaningless
+	 * for deletions.
 	 */
-	if (rst != nullptr && bSync) {
+	if (rst == nullptr && bSync) {
 		if (!bIsSafeMode) {
 			for (const auto &sil : mapSignatureIdToLocal)
 				/* second == map value, first == id */
