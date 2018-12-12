@@ -4528,7 +4528,8 @@ SOAP_ENTRY_START(setUser, *result, struct user *lpsUser, unsigned int *result)
 			lpsUser->lpszServername = NULL;
 		}
 		// FIXME: check OB_PROP_B_NONACTIVE too?
-		if (lpsUser->ulObjClass != (ULONG)-1 && oldDetails.GetClass() != (objectclass_t)lpsUser->ulObjClass) {
+		if (lpsUser->ulObjClass != static_cast<ULONG>(-1) &&
+		    oldDetails.GetClass() != static_cast<objectclass_t>(lpsUser->ulObjClass)) {
 			ec_log_warn("Disallowing user \"%s\" to update their active flag to %d",
 												 oldDetails.GetPropString(OB_PROP_S_LOGIN).c_str(), lpsUser->ulObjClass);
 			lpsUser->ulObjClass = (ULONG)-1;

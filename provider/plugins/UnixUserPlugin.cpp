@@ -469,9 +469,10 @@ signatures_t UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 	// clear our stringlist containing the valid entries and fill it with the deleted item ids
 	objectstrings.clear();
 	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
-		if (!objectstrings[(objectclass_t)atoi(lpDBRow[1])].empty())
-			objectstrings[(objectclass_t)atoi(lpDBRow[1])] += ", ";
-		objectstrings[(objectclass_t)atoi(lpDBRow[1])] += lpDBRow[0];
+		auto cl = static_cast<objectclass_t>(atoi(lpDBRow[1]));
+		if (!objectstrings[cl].empty())
+			objectstrings[cl] += ", ";
+		objectstrings[cl] += lpDBRow[0];
 	}
 
 	// remove obsolete objects

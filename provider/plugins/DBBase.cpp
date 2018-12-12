@@ -113,14 +113,14 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 		if (lpDBLen == NULL || lpDBLen[0] == 0)
 			continue;
 
-		auto curid = objectid_t(string(lpDBRow[0], lpDBLen[0]), (objectclass_t)atoi(lpDBRow[1]));
+		auto curid = objectid_t(string(lpDBRow[0], lpDBLen[0]), static_cast<objectclass_t>(atoi(lpDBRow[1])));
 		if (lastid != curid && !lastid.id.empty()) {
 			details.SetClass(lastid.objclass);
 			addSendAsToDetails(lastid, &details);
 			mapdetails[lastid] = details;
 
 			// clear details for new object
-			details = objectdetails_t((objectclass_t)atoi(lpDBRow[1]));
+			details = objectdetails_t(static_cast<objectclass_t>(atoi(lpDBRow[1])));
 			/* By default the sysadmin is SYSTEM, will be overwritten later */
 			if (details.GetClass() == CONTAINER_COMPANY)
 				details.SetPropObject(OB_PROP_O_SYSADMIN, objectid_t("SYSTEM", ACTIVE_USER));
@@ -192,7 +192,7 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 		if (lpDBLen == NULL || lpDBLen[2] == 0)
 			continue;
 
-		auto curid = objectid_t(string(lpDBRow[2], lpDBLen[2]), (objectclass_t)atoi(lpDBRow[3]));
+		auto curid = objectid_t(string(lpDBRow[2], lpDBLen[2]), static_cast<objectclass_t>(atoi(lpDBRow[3])));
 		if (lastid != curid) {
 			iterDetails = mapdetails.find(curid);
 			if (iterDetails == mapdetails.cend())

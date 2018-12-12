@@ -1715,7 +1715,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 
     if (ulCutoff != 0 && setObjectIds.size() >= ulCutoff) {
 		// find all the different object classes in the objectids list, and make an or filter based on that
-		objectclass_t objclass = (objectclass_t)-1; // set to something invalid
+		auto objclass = static_cast<objectclass_t>(-1); // set to something invalid
 		ldap_filter = "(|";
 		for (const auto &id : setObjectIds)
 			if (objclass != id.objclass) {

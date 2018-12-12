@@ -801,7 +801,7 @@ static void print_user_settings(IMsgStore *lpStore, const ECUSER *lpECUser,
 	cout << "Emailaddress:\t\t" << (LPSTR)lpECUser->lpszMailAddress << endl;
 	cout << "Active:\t\t\t" << ((lpECUser->ulObjClass==ACTIVE_USER) ? "yes" : "no") << endl;
 	if (lpECUser->ulObjClass != ACTIVE_USER)
-		cout << "Non-active type:\t" << ClassToString((objectclass_t)lpECUser->ulObjClass) << endl;
+		cout << "Non-active type:\t" << ClassToString(static_cast<objectclass_t>(lpECUser->ulObjClass)) << endl;
 	if (lpECUser->ulObjClass == NONACTIVE_ROOM || lpECUser->ulObjClass == NONACTIVE_EQUIPMENT)
 		cout << "Resource capacity:\t" << lpECUser->ulCapacity << endl;
 	cout << "Administrator:\t\t" << ((lpECUser->ulIsAdmin >= 1) ? "yes" : "no") << ((lpECUser->ulIsAdmin == 2) ? " (system)" : "") << endl;

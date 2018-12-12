@@ -645,7 +645,7 @@ ECRESULT ECCacheManager::GetUserObject(unsigned int ulUserId, objectid_t *lpExte
 		goto exit;
 	}
 
-	ulClass = (objectclass_t)atoui(lpDBRow[1]);
+	ulClass = static_cast<objectclass_t>(atoui(lpDBRow[1]));
 	ulCompanyId = atoui(lpDBRow[3]);
 
 	externid.assign(lpDBRow[0], lpDBLen[0]);
@@ -742,7 +742,7 @@ ECRESULT ECCacheManager::GetUserObject(const objectid_t &sExternId, unsigned int
 
 	// possibly update objectclass from database, to add the correct info in the cache
 	if (OBJECTCLASS_ISTYPE(sExternId.objclass))
-		objclass = (objectclass_t)atoi(lpDBRow[3]);
+		objclass = static_cast<objectclass_t>(atoi(lpDBRow[3]));
 
 	// insert the item into the cache
 	I_AddUEIdObject(sExternId.id, objclass, ulCompanyId, ulUserId, signature);
@@ -816,7 +816,7 @@ ECRESULT ECCacheManager::GetUserObjects(const std::list<objectid_t> &lstExternOb
 			break;
 		auto ulLocalId = atoi(lpDBRow[0]);
 		sExternId.id.assign(lpDBRow[1], lpDBLen[1]);
-		sExternId.objclass = (objectclass_t)atoi(lpDBRow[2]);
+		sExternId.objclass = static_cast<objectclass_t>(atoi(lpDBRow[2]));
 		strSignature.assign(lpDBRow[3], lpDBLen[3]);
 		auto ulCompanyId = atoi(lpDBRow[4]);
 		lpmapLocalObjIds->insert({sExternId, ulLocalId});

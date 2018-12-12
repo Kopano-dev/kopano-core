@@ -2320,7 +2320,7 @@ ECRESULT ECUserManagement::UpdateObjectclassOrDelete(const objectid_t &sExternId
 	if (lpRow == nullptr)
 		return KCERR_NOT_FOUND;
 	auto ulObjectId = atoui(lpRow[0]);
-	objectclass_t objClass = (objectclass_t)atoui(lpRow[1]);
+	auto objClass = static_cast<objectclass_t>(atoui(lpRow[1]));
 
 	/* Exception: converting from contact to other user type or other user type to contact is NOT allowed -> this is to force store create/remove */
 	bool illegal = objClass == NONACTIVE_CONTACT && sExternId.objclass != NONACTIVE_CONTACT;
@@ -2603,7 +2603,7 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 				break;
 
 			/* Perhaps the user was moved to a different company */
-			er = MoveOrDeleteLocalObject(atoui(lpRow[0]), (objectclass_t)atoui(lpRow[1]));
+			er = MoveOrDeleteLocalObject(atoui(lpRow[0]), static_cast<objectclass_t>(atoui(lpRow[1])));
 			if (er != erSuccess)
 				return er;
 		}

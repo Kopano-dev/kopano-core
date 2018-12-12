@@ -18,7 +18,7 @@ objectid_t::objectid_t(const std::string &str)
 		objclass = ACTIVE_USER;
 	} else {
 		id = hex2bin(std::string(str, pos + 1, str.size() - pos));
-		objclass = (objectclass_t)atoi(std::string(str, 0, pos).c_str());
+		objclass = static_cast<objectclass_t>(atoi(std::string(str, 0, pos).c_str()));
 	}
 }
 

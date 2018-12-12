@@ -1708,7 +1708,7 @@ ECRESULT CopyUserDetailsFromSoap(struct user *lpUser,
 	if (lpUser->ulIsAdmin != (ULONG)-1)
 		details->SetPropInt(OB_PROP_I_ADMINLEVEL, lpUser->ulIsAdmin);
 	if (lpUser->ulObjClass != (ULONG)-1)
-		details->SetClass((objectclass_t)lpUser->ulObjClass);
+		details->SetClass(static_cast<objectclass_t>(lpUser->ulObjClass));
 	if (lpUser->lpszFullName)
 		details->SetPropString(OB_PROP_S_FULLNAME, lpUser->lpszFullName);
 	if (lpUser->lpszPassword)

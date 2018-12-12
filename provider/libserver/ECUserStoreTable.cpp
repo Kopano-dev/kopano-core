@@ -207,7 +207,7 @@ ECRESULT ECUserStoreTable::Load() {
 			break;
 		auto lpDBLength = lpDBResult.fetch_row_lengths();
 		if (lpDBRow[OBJCLASS])
-			objclass = (objectclass_t)atoi(lpDBRow[OBJCLASS]);
+			objclass = static_cast<objectclass_t>(atoi(lpDBRow[OBJCLASS]));
 		if (lpDBRow[USERID]) {
 			sUserStore.ulUserId = atoi(lpDBRow[USERID]);
 			if (sUserStore.ulUserId == KOPANO_UID_SYSTEM) // everyone already filtered by object type
