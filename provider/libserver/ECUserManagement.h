@@ -11,6 +11,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <vector>
 #include <kopano/kcodes.h>
 #include <kopano/pcuser.hpp>
 #include <kopano/ECConfig.h>
@@ -134,7 +135,7 @@ private:
 	_kc_hidden ECRESULT GetLocalObjectsIdsOrCreate(const std::list<objectsignature_t> &signatures, std::map<objectid_t, unsigned int> *local_objids);
 
 	// Get a list of local object IDs in the database plus any internal objects (SYSTEM, EVERYONE)
-	_kc_hidden ECRESULT GetLocalObjectIdList(objectclass_t, unsigned int company_id, std::list<unsigned int> **objs) const;
+	_kc_hidden ECRESULT GetLocalObjectIdList(objectclass_t, unsigned int company_id, std::vector<unsigned int> **objs) const;
 
 	// Converts anonymous Object Detail to property. */
 	_kc_hidden ECRESULT ConvertAnonymousObjectDetailToProp(struct soap *, const objectdetails_t *, unsigned int tag, struct propVal *) const;

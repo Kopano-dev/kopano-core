@@ -341,8 +341,6 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 {
 	bool bSync = ulFlags & USERMANAGEMENT_FORCE_SYNC || parseBool(m_lpConfig->GetSetting("sync_gab_realtime"));
 	bool bIsSafeMode = parseBool(m_lpConfig->GetSetting("user_safe_mode"));
-	// Local ids
-	std::unique_ptr<std::list<unsigned int> > lpLocalIds;
 	// Extern ids
 	signatures_t lpExternSignatures;
 	// Extern -> Local
@@ -379,6 +377,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 	}
 
 	// Get all the items of the requested type
+	std::unique_ptr<std::vector<unsigned int>> lpLocalIds;
 	er = GetLocalObjectIdList(objclass, ulCompanyId, &unique_tie(lpLocalIds));
 	if (er != erSuccess)
 		return er;
@@ -1219,7 +1218,7 @@ ECRESULT ECUserManagement::GetLocalObjectsIdsOrCreate(const std::list<objectsign
 }
 
 ECRESULT ECUserManagement::GetLocalObjectIdList(objectclass_t objclass,
-    unsigned int ulCompanyId, std::list<unsigned int> **lppObjects) const
+    unsigned int ulCompanyId, std::vector<unsigned int> **lppObjects) const
 {
 	ECDatabase *lpDatabase = NULL;
 	DB_RESULT lpResult;
@@ -1245,14 +1244,14 @@ ECRESULT ECUserManagement::GetLocalObjectIdList(objectclass_t objclass,
 	if (er != erSuccess)
 		return er;
 
-	auto lpObjects = std::make_unique<std::list<unsigned int>>();
+	auto lpObjects = std::make_unique<std::vector<unsigned int>>();
+	lpObjects->reserve(lpResult.get_num_rows());
 	while(1) {
 		auto lpRow = lpResult.fetch_row();
 		if(lpRow == NULL)
 			break;
-		if(lpRow[0] == NULL)
-			continue;
-		lpObjects->emplace_back(atoi(lpRow[0]));
+		if (lpRow[0] != nullptr)
+			lpObjects->push_back(atoi(lpRow[0]));
 	}
 	*lppObjects = lpObjects.release();
 	return erSuccess;
