@@ -635,16 +635,16 @@ exit:
 	}
 }
 
-static std::list<std::string> split_classes(const char *lpszClasses)
+static std::vector<std::string> split_classes(const char *lpszClasses)
 {
-	std::list<std::string> lstClasses;
-	for (const auto &s : tokenize(lpszClasses, ','))
-		lstClasses.emplace_back(trim(s));
+	auto lstClasses = tokenize(lpszClasses, ',');
+	for (auto &&s : lstClasses)
+		s = trim(s);
 	return lstClasses;
 }
 
 static bool MatchClasses(const std::set<std::string> &setClasses,
-    const std::list<std::string> &lstClasses)
+    const std::vector<std::string> &lstClasses)
 {
 	for (const auto &cls : lstClasses)
 		if (setClasses.find(strToUpper(cls)) == setClasses.cend())
