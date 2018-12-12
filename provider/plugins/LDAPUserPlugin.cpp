@@ -533,12 +533,11 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn,
 
 LDAPUserPlugin::~LDAPUserPlugin() {
 	// Disconnect from the LDAP server
-	if (m_ldap) {
-		LOG_PLUGIN_DEBUG("%s", "Disconnecting from LDAP since unloading plugin instance");
-
-		if (ldap_unbind_s(m_ldap) == -1)
-			ec_log_err("LDAP unbind failed");
-	}
+	if (m_ldap == nullptr)
+		return;
+	LOG_PLUGIN_DEBUG("%s", "Disconnecting from LDAP since unloading plugin instance");
+	if (ldap_unbind_s(m_ldap) == -1)
+		ec_log_err("LDAP unbind failed");
 }
 
 void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char *attrs[], int attrsonly, LDAPMessage **lppres, LDAPControl **serverControls)
@@ -651,19 +650,15 @@ bool LDAPUserPlugin::MatchClasses(std::set<std::string> setClasses, std::list<st
 std::string LDAPUserPlugin::GetObjectClassFilter(const char *lpszObjectClassAttr, const char *lpszClasses)
 {
 	std::list<std::string> lstObjectClasses = GetClasses(lpszClasses);
-	if(lstObjectClasses.size() == 0) {
+	if (lstObjectClasses.size() == 0)
 		return "";
-	}
-	else if(lstObjectClasses.size() == 1) {
+	if (lstObjectClasses.size() == 1)
 		return "("s + lpszObjectClassAttr + "=" + lstObjectClasses.front() + ")";
-	}
-	else {
-		std::string filter = "(&";
-		for (const auto &cls : lstObjectClasses)
-			filter += "("s + lpszObjectClassAttr + "=" + cls + ")";
-		filter += ")";
-		return filter;
-	}
+	std::string filter = "(&";
+	for (const auto &cls : lstObjectClasses)
+		filter += "("s + lpszObjectClassAttr + "=" + cls + ")";
+	filter += ")";
+	return filter;
 }
 
 objectid_t LDAPUserPlugin::GetObjectIdForEntry(LDAPMessage *entry)
@@ -2319,17 +2314,15 @@ LDAPUserPlugin::getParentObjectsForObject(userobject_relation_t relation,
 	if(member_attr_rel == NULL  || strlen(member_attr_rel) == 0)
 		member_attr_rel = unique_attr;
 
-	if (member_attr_type && strcasecmp(member_attr_type, LDAP_DATA_TYPE_DN) == 0) {
+	if (member_attr_type && strcasecmp(member_attr_type, LDAP_DATA_TYPE_DN) == 0)
 		//ads
 		member_data = objectUniqueIDtoObjectDN(childobject);
-	} else { //LDAP_DATA_TYPE_ATTRIBUTE
-		//posix ldap
+	else if (strcasecmp(member_attr_rel, unique_attr) == 0)
+		/* LDAP_DATA_TYPE_ATTRIBUTE / posix ldap */
+		member_data = childobject.id;
+	else
 		// FIXME: No binary support for member_attr_rel
-		if (strcasecmp(member_attr_rel, unique_attr) == 0)
-			member_data = childobject.id;
-		else
-			member_data = objectUniqueIDtoAttributeData(childobject, member_attr_rel);
-	}
+		member_data = objectUniqueIDtoAttributeData(childobject, member_attr_rel);
 
 	ldap_filter = "(&" + ldap_filter + "(" + member_attr + "=" + StringEscapeSequence(member_data) + "))";
 	return getAllObjectsByFilter(ldap_basedn, LDAP_SCOPE_SUBTREE,
@@ -2418,10 +2411,10 @@ LDAPUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 		member_attr = m_config->GetSetting("ldap_quota_userwarning_recipients_attribute");
 		member_attr_type = m_config->GetSetting("ldap_quota_userwarning_recipients_attribute_type");
 		CONFIG_TO_ATTR(member_attr_rel, qur_rel_attr, "ldap_quota_userwarning_recipients_relation_attribute");
-		if (member_attr_rel->empty()) {
-			member_attr_rel->add(user_unique_attr);
-			member_attr_rel->add(group_unique_attr);
-		}
+		if (!member_attr_rel->empty())
+			break;
+		member_attr_rel->add(user_unique_attr);
+		member_attr_rel->add(group_unique_attr);
 		break;
 	}
 	case OBJECTRELATION_QUOTA_COMPANYRECIPIENT: {
@@ -2432,10 +2425,10 @@ LDAPUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 		member_attr = m_config->GetSetting("ldap_quota_companywarning_recipients_attribute");
 		member_attr_type = m_config->GetSetting("ldap_quota_companywarning_recipients_attribute_type");
 		CONFIG_TO_ATTR(member_attr_rel, qcr_rel_attr, "ldap_quota_companywarning_recipients_relation_attribute");
-		if (member_attr_rel->empty()) {
-			member_attr_rel->add(user_unique_attr);
-			member_attr_rel->add(group_unique_attr);
-		}
+		if (!member_attr_rel->empty())
+			break;
+		member_attr_rel->add(user_unique_attr);
+		member_attr_rel->add(group_unique_attr);
 		break;
 	}
 	case OBJECTRELATION_ADDRESSLIST_MEMBER:

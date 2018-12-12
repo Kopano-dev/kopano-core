@@ -311,8 +311,8 @@ ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const std::list<obje
 		if (iterExternLocal == mapExternToLocal.cend())
 			continue;
 		ulObjectId = iterExternLocal->second;
-		if (ulFlags & USERMANAGEMENT_ADDRESSBOOK)
-			if (MustHide(*lpSecurity, ulFlags, ext_det.second))
+		if (ulFlags & USERMANAGEMENT_ADDRESSBOOK &&
+		    MustHide(*lpSecurity, ulFlags, ext_det.second))
 				continue;
 		if (ulFlags & USERMANAGEMENT_IDS_ONLY)
 			lpDetails->emplace_back(ulObjectId, objectdetails_t(ext_det.second.GetClass()));
@@ -391,9 +391,9 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 			er = GetLocalObjectDetails(loc_id, &details);
 			if(er != erSuccess)
 				return er;
-			if (ulFlags & USERMANAGEMENT_ADDRESSBOOK)
-				if (MustHide(*lpSecurity, ulFlags, details))
-					continue;
+			if (ulFlags & USERMANAGEMENT_ADDRESSBOOK &&
+			    MustHide(*lpSecurity, ulFlags, details))
+				continue;
 			// Reset details, this saves time copying unwanted data, but keep the correct class
 			if (ulFlags & USERMANAGEMENT_IDS_ONLY)
 				details = objectdetails_t(details.GetClass());
