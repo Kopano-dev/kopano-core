@@ -477,12 +477,15 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass,
 	 * meaningless for deletions.
 	 */
 	if (rst != nullptr && bSync) {
-		if (bIsSafeMode)
-			ec_log_err("user_safe_mode: would normally now delete %zu local users (you may see this message more often as the delete is now omitted)", mapExternIdToLocal.size() - lpExternSignatures.size());
-		else
-		for (const auto &sil : mapSignatureIdToLocal)
-			/* second == map value, first == id */
-			MoveOrDeleteLocalObject(sil.second.first, sil.first.objclass);
+		if (!bIsSafeMode) {
+			for (const auto &sil : mapSignatureIdToLocal)
+				/* second == map value, first == id */
+				MoveOrDeleteLocalObject(sil.second.first, sil.first.objclass);
+		} else {
+			auto d = mapExternIdToLocal.size() - lpExternSignatures.size();
+			if (d > 0)
+				ec_log_err("user_safe_mode: would normally now delete %zu local users (you may see this message more often as the delete is now omitted)", d);
+		}
 	}
 
 	// Convert details for client usage
