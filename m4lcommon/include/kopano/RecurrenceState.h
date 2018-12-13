@@ -66,12 +66,12 @@ namespace KC {
 #define PT_HJ_MONTH_NTH		0xB
 #define PT_HJ_MONTH_END		0xC
 
-class _kc_export RecurrenceState _kc_final {
+class _kc_export RecurrenceState KC_FINAL {
 	public:
 	HRESULT ParseBlob(const char *lpData, size_t ulLen, ULONG ulFlags);
 	HRESULT GetBlob(char **lpData, size_t *lpulLen, void *base = NULL);
 
-	class _kc_hidden Exception _kc_final {
+	class _kc_hidden Exception KC_FINAL {
 		public:
 		unsigned int ulStartDateTime;
 		unsigned int ulEndDateTime;
@@ -88,7 +88,7 @@ class _kc_export RecurrenceState _kc_final {
 		unsigned int ulAppointmentColor;
 	};
 
-	class _kc_hidden ExtendedException _kc_final {
+	class _kc_hidden ExtendedException KC_FINAL {
 		public:
 		unsigned int ulChangeHighlightValue;
 		std::string strReserved;

@@ -18,7 +18,7 @@
 #include <string>
 #include <vector>
 
-class _kc_export_dycast ECArchiveAwareMsgStore KC_FINAL_OPG :
+class KC_EXPORT_DYCAST ECArchiveAwareMsgStore KC_FINAL_OPG :
     public ECMsgStore {
 	public:
 	_kc_hidden ECArchiveAwareMsgStore(const char *profname, IMAPISupport *, WSTransport *, BOOL modify, ULONG profflags, BOOL is_spooler, BOOL is_dfl_store, BOOL offline_store);
@@ -40,7 +40,7 @@ class _kc_export_dycast ECArchiveAwareMsgStore KC_FINAL_OPG :
 	ALLOC_WRAP_FRIEND;
 };
 
-class _kc_export_dycast ECArchiveAwareMessage KC_FINAL_OPG : public ECMessage {
+class KC_EXPORT_DYCAST ECArchiveAwareMessage KC_FINAL_OPG : public ECMessage {
 protected:
 	/**
 	 * \param lpMsgStore	The store owning this message.

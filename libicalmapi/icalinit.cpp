@@ -14,15 +14,15 @@
 
 namespace KC {
 
-class __libicalmapi_init {
+class libicalmapi_init {
 public:
-	__libicalmapi_init() {
+	libicalmapi_init() {
 		icaltimezone_get_builtin_timezones();
 	}
 
-	~__libicalmapi_init() {
+	~libicalmapi_init() {
 		icaltimezone_free_builtin_timezones();
 	}
-}  __libicalmapi_init;
+} libicalmapi_init;
 
 } /* namespace */

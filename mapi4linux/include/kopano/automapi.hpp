@@ -14,7 +14,7 @@
 
 namespace KC {
 
-class AutoMAPI _kc_final {
+class AutoMAPI KC_FINAL {
 public:
 	~AutoMAPI() {
 		if (m_bInitialized)

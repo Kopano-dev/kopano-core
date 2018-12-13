@@ -95,7 +95,7 @@ extern _kc_export HRESULT GetAutoAcceptSettings(IMsgStore *, bool *auto_accept, 
  * printf("%X %X\n", PROP_RECURRING, PROP_START);
  *
  */
-class _kc_export ECPropMapEntry _kc_final {
+class _kc_export ECPropMapEntry KC_FINAL {
 public:
     ECPropMapEntry(GUID guid, ULONG ulId);
     ECPropMapEntry(GUID guid, const char *strName);
@@ -108,7 +108,7 @@ private:
     GUID m_sGuid;
 };
 
-class _kc_export ECPropMap _kc_final {
+class _kc_export ECPropMap KC_FINAL {
 public:
     ECPropMap(size_t = 0);
     void AddProp(ULONG *lpId, ULONG ulType, const ECPropMapEntry &entry);

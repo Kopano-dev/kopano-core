@@ -14,7 +14,7 @@ namespace KC {
 
 class ECConfig;
 
-class _kc_export TmpPath _kc_final {
+class _kc_export TmpPath KC_FINAL {
 	private:
 	std::string path;
 

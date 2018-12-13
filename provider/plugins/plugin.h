@@ -404,7 +404,7 @@ protected:
 /**
  * Exception which is thrown when no object was found during a search
  */
-class _kc_export_throw objectnotfound final : public std::runtime_error {
+class KC_EXPORT_THROW objectnotfound final : public std::runtime_error {
 public:
 	/**
 	 * @param[in]	arg
@@ -422,7 +422,7 @@ public:
  * Exception which is thrown when too many objects where returned in
  * a search.
  */
-class _kc_export_throw toomanyobjects final : public std::runtime_error {
+class KC_EXPORT_THROW toomanyobjects final : public std::runtime_error {
 public:
 	/**
 	 * @param[in]	arg
@@ -440,7 +440,7 @@ public:
  * Exception which is thrown when an object is being created
  * while it already existed.
  */
-class _kc_export_throw collision_error final : public std::runtime_error {
+class KC_EXPORT_THROW collision_error final : public std::runtime_error {
 public:
 	/**
 	 * @param[in]	arg
@@ -458,7 +458,7 @@ public:
  * Exception which is thrown when a problem has been found with
  * the data read from the plugin backend.
  */
-class _kc_export_throw data_error final : public std::runtime_error {
+class KC_EXPORT_THROW data_error final : public std::runtime_error {
 public:
 	/**
 	 * @param[in]	arg
@@ -476,7 +476,7 @@ public:
  * Exception which is thrown when the function was not
  * implemented by the plugin.
  */
-class _kc_export_throw notimplemented final : public std::runtime_error {
+class KC_EXPORT_THROW notimplemented final : public std::runtime_error {
 public:
 	/**
 	 * @param[in]	arg
@@ -496,7 +496,7 @@ public:
  * or multi-server function is called while this feature is
  * disabled.
  */
-class _kc_export_throw notsupported final : public std::runtime_error {
+class KC_EXPORT_THROW notsupported final : public std::runtime_error {
 public:
 	/**
 	 * @param[in]	arg
@@ -513,7 +513,7 @@ public:
 /**
  * Exception which is thrown when a user could not be logged in
  */
-class _kc_export_throw login_error final : public std::runtime_error {
+class KC_EXPORT_THROW login_error final : public std::runtime_error {
 public:
 	/**
 	 * @param[in]	arg
@@ -530,7 +530,7 @@ public:
 /**
  * Exception which is thrown when LDAP returns errors
  */
-class _kc_export_throw ldap_error final : public std::runtime_error {
+class KC_EXPORT_THROW ldap_error final : public std::runtime_error {
 	int m_ldaperror;
 public:
 	/**

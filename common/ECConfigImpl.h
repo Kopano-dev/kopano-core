@@ -48,7 +48,7 @@ struct directive_t {
 #define LOADSETTING_CMDLINE_PARAM		0x0020	/* This setting is being set from commandline parameters. Sets the option non-reloadable */
 #define LOADSETTING_MARK_DEFAULT                0x0040  /* This setting is at its default value */
 
-class ECConfigImpl _kc_final : public ECConfig {
+class ECConfigImpl KC_FINAL : public ECConfig {
 public:
 	ECConfigImpl(const configsetting_t *lpDefaults, const char *const *lpszDirectives);
 	~ECConfigImpl();

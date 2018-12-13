@@ -21,7 +21,7 @@ namespace KC {
 /**
  * @brief	Exception class
  */
-class _kc_export_throw convert_exception : public std::runtime_error {
+class KC_EXPORT_THROW convert_exception : public std::runtime_error {
 public:
 	enum exception_type {
 		eUnknownCharset,
@@ -40,7 +40,7 @@ private:
 /**
  * @brief	Unknown charset
  */
-class _kc_export_throw unknown_charset_exception _kc_final :
+class KC_EXPORT_THROW unknown_charset_exception KC_FINAL :
     public convert_exception {
 	public:
 	unknown_charset_exception(const std::string &message);
@@ -49,7 +49,7 @@ class _kc_export_throw unknown_charset_exception _kc_final :
 /**
  * @brief	Illegal sequence
  */
-class _kc_export_throw illegal_sequence_exception _kc_final :
+class KC_EXPORT_THROW illegal_sequence_exception KC_FINAL :
     public convert_exception {
 	public:
 	illegal_sequence_exception(const std::string &message);
@@ -100,7 +100,7 @@ class _kc_export iconv_context_base {
  * @brief	Default converter from one charset to another with string types.
  */
 template<typename To_Type, typename From_Type>
-class _kc_export_dycast iconv_context _kc_final :
+class KC_EXPORT_DYCAST iconv_context KC_FINAL :
     public iconv_context_base {
 	public:
 	/**
@@ -149,10 +149,10 @@ class _kc_export_dycast iconv_context _kc_final :
 	 * @param[in] _from		The string to be converted.
 	 * @return				The converted string.
 	 */
-	To_Type convert(const From_Type &_from)
+	To_Type convert(const From_Type &from)
 	{
-		return convert(iconv_charset<From_Type>::rawptr(_from),
-		       iconv_charset<From_Type>::rawsize(_from));
+		return convert(iconv_charset<From_Type>::rawptr(from),
+		       iconv_charset<From_Type>::rawsize(from));
 	}
 
 	private:
@@ -189,26 +189,26 @@ class _kc_export_dycast iconv_context _kc_final :
  *			need to be performed.
  */
 template<typename To_Type, typename From_Type>
-inline To_Type convert_to(const From_Type &_from)
+inline To_Type convert_to(const From_Type &from)
 {
 	static_assert(!std::is_same<To_Type, From_Type>::value, "pointless conversion");
 	iconv_context<To_Type, From_Type> context;
-	return context.convert(_from);
+	return context.convert(from);
 }
 
 template<typename To_Type, typename From_Type> inline To_Type
-convert_to(const From_Type &_from, size_t cbBytes, const char *fromcode)
+convert_to(const From_Type &from, size_t cbBytes, const char *fromcode)
 {
 	iconv_context<To_Type, From_Type> context(fromcode);
-	return context.convert(iconv_charset<From_Type>::rawptr(_from), cbBytes);
+	return context.convert(iconv_charset<From_Type>::rawptr(from), cbBytes);
 }
 
 template<typename To_Type, typename From_Type>
-inline To_Type convert_to(const char *tocode, const From_Type &_from,
+inline To_Type convert_to(const char *tocode, const From_Type &from,
     size_t cbBytes, const char *fromcode)
 {
 	iconv_context<To_Type, From_Type> context(tocode, fromcode);
-	return context.convert(iconv_charset<From_Type>::rawptr(_from), cbBytes);
+	return context.convert(iconv_charset<From_Type>::rawptr(from), cbBytes);
 }
 
 
@@ -219,7 +219,7 @@ inline To_Type convert_to(const char *tocode, const From_Type &_from,
  * same context. This basically means that the iconv_context classes can
  * be reused, removing the need to recreate them for each conversion.
  */
-class _kc_export convert_context _kc_final {
+class _kc_export convert_context KC_FINAL {
 public:
 	convert_context(void) = default;
 	~convert_context();
@@ -234,9 +234,9 @@ public:
 	 * @return					The converted string.
 	 */
 	template<typename To_Type, typename From_Type>
-	_kc_hidden To_Type convert_to(const From_Type &_from)
+	_kc_hidden To_Type convert_to(const From_Type &from)
 	{
-		return helper<To_Type>(*this).convert(_from);
+		return helper<To_Type>(*this).convert(from);
 	}
 
 	/**
@@ -251,10 +251,10 @@ public:
 	 * @return					The converted string.
 	 */
 	template<typename To_Type, typename From_Type>
-	_kc_hidden To_Type convert_to(const From_Type &_from, size_t cbBytes,
+	_kc_hidden To_Type convert_to(const From_Type &from, size_t cbBytes,
 	    const char *fromcode)
 	{
-		return helper<To_Type>(*this).convert(_from, cbBytes, fromcode);
+		return helper<To_Type>(*this).convert(from, cbBytes, fromcode);
 	}
 
 	/**
@@ -282,7 +282,7 @@ private:
 	 * The convert_context::helper class detects when the to and from charsets are
 	 * identical. In that case the string is merely copied.
 	 */
-	template<typename Type> class _kc_hidden helper _kc_final {
+	template<typename Type> class _kc_hidden helper KC_FINAL {
 	public:
 		helper(convert_context &context)
 			: m_context(context)
@@ -298,10 +298,10 @@ private:
 		 * @return				The converted string.
 		 */
 		template<typename Other_Type>
-		Type convert(const Other_Type &_from)
+		Type convert(const Other_Type &from)
 		{
 			static_assert(!std::is_same<Type, Other_Type>::value, "pointless conversion");
-			return m_context.get_context<Type, Other_Type>()->convert(_from);
+			return m_context.get_context<Type, Other_Type>()->convert(from);
 		}
 
 		/**
@@ -316,9 +316,9 @@ private:
 		 * @return				The converted string.
 		 */
 		template<typename Other_Type>
-		Type convert(const Other_Type &_from, size_t cbBytes, const char *fromcode)
+		Type convert(const Other_Type &from, size_t cbBytes, const char *fromcode)
 		{
-			return m_context.get_context<Type, Other_Type>(fromcode)->convert(iconv_charset<Other_Type>::rawptr(_from), cbBytes);
+			return m_context.get_context<Type, Other_Type>(fromcode)->convert(iconv_charset<Other_Type>::rawptr(from), cbBytes);
 		}
 
 		/**
@@ -334,10 +334,10 @@ private:
 		 * @return				The converted string.
 		 */
 		template<typename Other_Type>
-		Type convert(const char *tocode, const Other_Type &_from,
+		Type convert(const char *tocode, const Other_Type &from,
 		    size_t cbBytes, const char *fromcode)
 		{
-			return m_context.get_context<Type, Other_Type>(tocode, fromcode)->convert(iconv_charset<Other_Type>::rawptr(_from), cbBytes);
+			return m_context.get_context<Type, Other_Type>(tocode, fromcode)->convert(iconv_charset<Other_Type>::rawptr(from), cbBytes);
 		}
 
 	private:
@@ -351,7 +351,7 @@ private:
 	 * result needs to be stores to guarantee storage of the data. Without this
 	 * the caller will end up with a pointer to non-existing data.
 	 */
-	template<typename Type> class _kc_hidden helper<Type *> _kc_final {
+	template<typename Type> class _kc_hidden helper<Type *> KC_FINAL {
 	public:
 		typedef std::basic_string<Type> string_type;
 
@@ -369,9 +369,9 @@ private:
 		 * @param[in] _from		The string to be converted.
 		 * @return				The converted string.
 		 */
-		template<typename Other_Type> Type *convert(const Other_Type &_from)
+		template<typename Other_Type> Type *convert(const Other_Type &from)
 		{
-			string_type s = m_helper.convert(_from);
+			string_type s = m_helper.convert(from);
 			return m_context.persist_string(s);
 		}
 
@@ -387,9 +387,9 @@ private:
 		 * @return				The converted string.
 		 */
 		template<typename Other_Type>
-		Type *convert(const Other_Type &_from, size_t cbBytes, const char *fromcode)
+		Type *convert(const Other_Type &from, size_t cbBytes, const char *fromcode)
 		{
-			string_type s = m_helper.convert(_from, cbBytes, fromcode);
+			string_type s = m_helper.convert(from, cbBytes, fromcode);
 			return m_context.persist_string(s);
 		}
 
@@ -616,11 +616,11 @@ private:
  *
  * @return	The converted string.
  */
-#define TO_UTF8(_context, _ptr, _flags)													\
-	((_ptr) ?																			\
-		(_context).convert_to<char*>("UTF-8", (_ptr),									\
-		((_flags) & MAPI_UNICODE) ? sizeof(wchar_t) * wcslen((wchar_t*)(_ptr)) : strlen((char*)(_ptr)),	\
-		((_flags) & MAPI_UNICODE) ? CHARSET_WCHAR : CHARSET_CHAR)						\
+#define TO_UTF8(context, ptr, flags) \
+	((ptr) ? \
+		(context).convert_to<char *>("UTF-8", (ptr), \
+		((flags) & MAPI_UNICODE) ? sizeof(wchar_t) * wcslen(reinterpret_cast<const wchar_t *>(ptr)) : strlen(reinterpret_cast<const char *>(ptr)), \
+		((flags) & MAPI_UNICODE) ? CHARSET_WCHAR : CHARSET_CHAR) \
 	: NULL )
 
 /**
@@ -633,8 +633,7 @@ private:
  *
  * @return	The converted string.
  */
-#define TO_UTF8_DEF(_ptr)					\
-	TO_UTF8(converter, (_ptr), ulFlags)
+#define TO_UTF8_DEF(ptr) TO_UTF8(converter, (ptr), ulFlags)
 
 extern _kc_export HRESULT HrFromException(const convert_exception &);
 
@@ -649,10 +648,10 @@ extern _kc_export HRESULT HrFromException(const convert_exception &);
  * @return				HRESULT.
  */
 template<typename To_Type, typename From_Type>
-HRESULT TryConvert(const From_Type &_from, To_Type &_to)
+HRESULT TryConvert(const From_Type &from, To_Type &to)
 {
 	try {
-		_to = convert_to<To_Type>(_from);
+		to = convert_to<To_Type>(from);
 		return hrSuccess;
 	} catch (const convert_exception &ce) {
 		return HrFromException(ce);
@@ -671,11 +670,11 @@ HRESULT TryConvert(const From_Type &_from, To_Type &_to)
  * @return				HRESULT.
  */
 template<typename To_Type, typename From_Type>
-HRESULT TryConvert(const From_Type &_from, size_t cbBytes,
-    const char *fromcode, To_Type &_to)
+HRESULT TryConvert(const From_Type &from, size_t cbBytes,
+    const char *fromcode, To_Type &to)
 {
 	try {
-		_to = convert_to<To_Type>(_from, cbBytes, fromcode);
+		to = convert_to<To_Type>(from, cbBytes, fromcode);
 		return hrSuccess;
 	} catch (const convert_exception &ce) {
 		return HrFromException(ce);
@@ -693,10 +692,10 @@ HRESULT TryConvert(const From_Type &_from, size_t cbBytes,
  * @return				HRESULT.
  */
 template<typename To_Type, typename From_Type> HRESULT
-TryConvert(convert_context &context, const From_Type &_from, To_Type &_to)
+TryConvert(convert_context &context, const From_Type &from, To_Type &to)
 {
 	try {
-		_to = context.convert_to<To_Type>(_from);
+		to = context.convert_to<To_Type>(from);
 		return hrSuccess;
 	} catch (const convert_exception &ce) {
 		return HrFromException(ce);
@@ -716,11 +715,11 @@ TryConvert(convert_context &context, const From_Type &_from, To_Type &_to)
  * @return				HRESULT.
  */
 template<typename To_Type, typename From_Type>
-HRESULT TryConvert(convert_context &context, const From_Type &_from,
-    size_t cbBytes, const char *fromcode, To_Type &_to)
+HRESULT TryConvert(convert_context &context, const From_Type &from,
+    size_t cbBytes, const char *fromcode, To_Type &to)
 {
 	try {
-		_to = context.convert_to<To_Type>(_from, cbBytes, fromcode);
+		to = context.convert_to<To_Type>(from, cbBytes, fromcode);
 		return hrSuccess;
 	} catch (const convert_exception &ce) {
 		return HrFromException(ce);

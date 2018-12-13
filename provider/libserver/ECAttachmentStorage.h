@@ -91,7 +91,7 @@ protected:
 	std::string m_CompressionLevel;
 };
 
-class _kc_export_dycast ECDatabaseAttachment final :
+class KC_EXPORT_DYCAST ECDatabaseAttachment final :
     public ECAttachmentStorage {
 public:
 	ECDatabaseAttachment(ECDatabase *lpDatabase);

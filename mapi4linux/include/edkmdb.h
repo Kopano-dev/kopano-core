@@ -586,8 +586,8 @@ struct ROWLIST {
 };
 typedef struct ROWLIST *LPROWLIST;
 
-#define CbNewROWLIST(_centries) \
-    (offsetof(ROWLIST,aEntries) + (_centries)*sizeof(ROWENTRY))
+#define CbNewROWLIST(centries) \
+	(offsetof(ROWLIST, aEntries) + (centries) * sizeof(ROWENTRY))
 
 class IExchangeModifyTable : public virtual IUnknown {
 public:

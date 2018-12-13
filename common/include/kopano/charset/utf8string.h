@@ -20,7 +20,7 @@ namespace KC {
  * This class does not expose the same methods as STL's std::string as most of those don't make
  * much sense.
  */
-class utf8string _kc_final {
+class utf8string KC_FINAL {
 public:
 	typedef std::string::value_type		value_type;
 	typedef std::string::const_pointer	const_pointer;
@@ -93,7 +93,7 @@ private:
 	std::string	m_str;
 };
 
-template<> class iconv_charset<utf8string> _kc_final {
+template<> class iconv_charset<utf8string> KC_FINAL {
 public:
 	static const char *name() {
 		return "UTF-8";

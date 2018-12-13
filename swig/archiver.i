@@ -10,7 +10,7 @@
 	#define TO_LPTST(s) ((s) ? converter.convert_to<LPTSTR>(s) : NULL)
 	using namespace KC;
 
-	class _kc_export_throw ArchiverError : public std::runtime_error {
+	class KC_EXPORT_THROW ArchiverError : public std::runtime_error {
 	public:
 		ArchiverError(eResult e, const std::string &message)
 		: std::runtime_error(message)

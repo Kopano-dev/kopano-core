@@ -10,7 +10,7 @@
 
 namespace KC {
 
-class _kc_export CHtmlToTextParser _kc_final {
+class _kc_export CHtmlToTextParser KC_FINAL {
 public:
 	CHtmlToTextParser(void);
 	bool Parse(const WCHAR *lpwHTML);

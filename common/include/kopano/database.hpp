@@ -42,7 +42,7 @@ struct sSQLDatabase_t {
 class ECConfig;
 class KDatabase;
 
-class _kc_export DB_RESULT _kc_final {
+class _kc_export DB_RESULT KC_FINAL {
 	public:
 	DB_RESULT(void) = default;
 	DB_RESULT(KDatabase *d, void *r) : m_res(r), m_db(d) {}
