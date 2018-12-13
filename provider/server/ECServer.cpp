@@ -98,7 +98,6 @@ ECConfig*			g_lpConfig = NULL;
 static bool g_listen_http, g_listen_https, g_listen_pipe;
 static ECLogger *g_lpLogger = nullptr;
 static ECLogger *g_lpAudit = nullptr;
-static std::unique_ptr<ECScheduler> g_lpScheduler;
 static std::unique_ptr<ECSoapServerConnection> g_lpSoapServerConn;
 static bool m_bDatabaseUpdateIgnoreSignals = false;
 static bool g_dump_config;
@@ -1350,12 +1349,11 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		g_lpSessionManager->GetSearchFolders()->RestartSearches();
 
 	// Create scheduler system
-	g_lpScheduler.reset(new(std::nothrow) ECScheduler(g_lpLogger));
+	ECScheduler sch(g_lpLogger);
 	// Add a task on the scheduler
-	g_lpScheduler->AddSchedule(SCHEDULE_HOUR, 00, &SoftDeleteRemover, (void*)&g_Quit);
-
-	g_lpScheduler->AddSchedule(SCHEDULE_HOUR, 15, &CleanupSyncsTable);
-	g_lpScheduler->AddSchedule(SCHEDULE_HOUR, 16, &CleanupSyncedMessagesTable);
+	sch.AddSchedule(SCHEDULE_HOUR, 00, &SoftDeleteRemover, &g_Quit);
+	sch.AddSchedule(SCHEDULE_HOUR, 15, &CleanupSyncsTable);
+	sch.AddSchedule(SCHEDULE_HOUR, 16, &CleanupSyncedMessagesTable);
 
 	// high loglevel to always see when server is started.
 	ec_log_notice("Startup succeeded on pid %d", getpid() );
