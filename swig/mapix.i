@@ -148,7 +148,6 @@ public:
     virtual HRESULT SetDefaultDir(ULONG cbEntryID, LPENTRYID lpEntryID) = 0;
     virtual HRESULT GetSearchPath(ULONG ulFlags, LPSRowSet* OUTPUT /*lppSearchPath*/) = 0;
     virtual HRESULT SetSearchPath(ULONG ulFlags, LPSRowSet INPUT /*lpSearchPath*/) = 0;
-	virtual HRESULT PrepareRecips(ULONG ulFlags, const SPropTagArray *lpPropTagArray, LPADRLIST INOUT /*lpRecipList*/) = 0;
 	%extend {
 		~IAddrBook() { self->Release(); }
 	}
