@@ -2098,37 +2098,6 @@ HRESULT	Util::HrHtmlToRtf(IStream *html, IStream *rtf, unsigned int ulCodepage)
 }
 
 /** 
- * Converts binary data into its hexidecimal string representation.
- * 
- * @param[in] inLength number of bytes in input
- * @param[in] input data buffer to convert
- * @param[out] output MAPIAllocateBuffer/More allocated buffer containing the string
- * @param[in] parent optional pointer for MAPIAllocateMore
- * 
- * @return MAPI error code
- */
-HRESULT Util::bin2hex(ULONG inLength, const BYTE *input, char **output,
-    void *parent)
-{
-	static const char digits[] = "0123456789ABCDEF";
-	char *buffer = NULL;
-	ULONG i, j;
-
-	auto hr = MAPIAllocateMore(inLength * 2 + 1, parent, reinterpret_cast<void **>(&buffer));
-	if (hr != hrSuccess)
-		return hr;
-
-	for (i = 0, j = 0; i < inLength; ++i) {
-		buffer[j++] = digits[input[i]>>4];
-		buffer[j++] = digits[input[i]&0x0F];
-	}
-
-	buffer[j] = '\0';
-	*output = buffer;
-	return hrSuccess;
-}
-
-/** 
  * Converts a string containing hexidecimal numbers into binary
  * data. And it adds a 0 at the end of the data.
  * 

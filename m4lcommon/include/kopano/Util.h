@@ -59,7 +59,6 @@ class Util KC_FINAL {
 	_kc_export static bool IsBodyProp(ULONG tag);
 	_kc_export static HRESULT HrMAPIErrorToText(HRESULT, LPTSTR *err, void *base = nullptr);
 	_kc_export static bool ValidatePropTagArray(const SPropTagArray *);
-	static HRESULT bin2hex(ULONG inLength, const BYTE *input, char **output, void *parent = nullptr);
 	_kc_export static HRESULT hex2bin(const char *input, size_t len, ULONG *outlen, LPBYTE *output, void *parent = nullptr);
 	static HRESULT hex2bin(const char *input, size_t len, LPBYTE output);
 
