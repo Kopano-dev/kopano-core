@@ -104,7 +104,6 @@ class IFreeBusyData {
 public:
         virtual HRESULT EnumBlocks(IEnumFBBlock **ppenumfb, const FILETIME start, const FILETIME end) = 0;
         virtual HRESULT GetDelegateInfo(void *) = 0;
-        virtual HRESULT FindFreeBlock(LONG, LONG, LONG, BOOL, LONG, LONG, LONG, FBBlock_1 *) = 0;
         virtual HRESULT SetFBRange(LONG rtmStart, LONG rtmEnd) = 0;
         virtual HRESULT GetFBPublishRange(LONG *prtmStart, LONG *prtmEnd) = 0;
         %extend {

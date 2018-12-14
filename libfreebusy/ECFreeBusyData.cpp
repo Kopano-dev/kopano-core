@@ -58,62 +58,6 @@ HRESULT ECFreeBusyData::EnumBlocks(IEnumFBBlock **ppenumfb,
 	return lpECEnumFBBlock->QueryInterface(IID_IEnumFBBlock, (void**)ppenumfb);
 }
 
-/**
- * Documentation of this function cannot be found. This is what I think it does.
- *
- * Find first free block inside the specified range <ulBegin,ulEnd]. Note that ulBegin is non-inclusive, so 
- * the earliest block that can be returned is starts at ulBegin + 1.
- *
- * I think that this function should normally look for the first position in the given range in which the specified
- * duration (ulMinutes) fits. However, in practice, it is only called to check if range <ulBegin, ulEnd] is free, since
- * ulEnd - ulBegin - 1 == ulMinutes. This means we can use a much simpler algorithm, and just check if the entire range
- * is free, and return that if it is.
- *
- * It is my theory that someone made this function, but later found out that it is not very useful since you always want to 
- * find a specific slot, not the first slot that fits, so now it is only used to check for availability.
- *
- * @param ulBegin Begin time as RTIME
- * @param ulMinutes Duration of the slot to find
- * @param ulNumber (Guess) Number of resources that should be free at this moment (always one in my tests)
- * @param bA (Unknown) always TRUE
- * @param ulEnd End time as RTIME
- * @param ulUnknown Unknown, always 0
- * @param ulMinutesPerDay Unknown, always set to 1440 ( = 24 * 60 )
- * @result 0 for OK, anything else is an error
- */
-HRESULT ECFreeBusyData::FindFreeBlock(LONG ulBegin, LONG ulMinutes, LONG ulNumber, BOOL bA, LONG ulEnd, LONG ulUnknown, LONG ulMinutesPerDay, FBBlock_1 *lpBlock)
-{
-	FBBlock_1 sBlock;
-	BOOL bOverlap = false;
-
-	if (ulBegin + 1 + ulMinutes > ulEnd)
-		// Requested slot can never fit between start and end
-		return MAPI_E_NOT_FOUND;
-
-	m_fbBlockList.Reset();
-
-	// Loop through FB data to find if there is a block that overlaps the requested slot
-	while(TRUE) {
-		auto hr = m_fbBlockList.Next(&sBlock);
-		if(hr != hrSuccess)
-			break;
-
-		if(sBlock.m_tmStart >= ulEnd)
-			break;
-
-		if(sBlock.m_tmEnd > ulBegin+1 && sBlock.m_tmStart < ulEnd) {
-			bOverlap = true;
-			break;
-		}
-	}
-	if (bOverlap)
-		return MAPI_E_NOT_FOUND;
-	lpBlock->m_fbstatus = fbFree;
-	lpBlock->m_tmStart = ulBegin+1;
-	lpBlock->m_tmEnd = lpBlock->m_tmStart + ulMinutes;
-	return hrSuccess;
-}
-
 HRESULT ECFreeBusyData::SetFBRange(LONG rtmStart, LONG rtmEnd)
 {
 	m_rtmStart = rtmStart;

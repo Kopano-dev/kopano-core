@@ -34,7 +34,6 @@ public:
 	virtual HRESULT Reload(void *) { return E_NOTIMPL; }
 	virtual HRESULT EnumBlocks(IEnumFBBlock **ppenumfb, const FILETIME &start, const FILETIME &end) override;
 	virtual HRESULT GetDelegateInfo(void *) { return E_NOTIMPL; }
-	virtual HRESULT FindFreeBlock(LONG, LONG, LONG, BOOL, LONG, LONG, LONG, FBBlock_1 *);
 	virtual HRESULT SetFBRange(LONG rtmStart, LONG rtmEnd);
 	virtual HRESULT GetFBPublishRange(LONG *prtmStart, LONG *prtmEnd);
 

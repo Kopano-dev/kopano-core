@@ -272,11 +272,6 @@ public:
 	virtual HRESULT GetDelegateInfo(void *) = 0;
 
 	/**
-	 * This member not supported must return S_OK.
-	 */
-	virtual HRESULT FindFreeBlock(LONG, LONG, LONG, BOOL, LONG, LONG, LONG, FBBlock_1 *) = 0;
-
-	/**
 	 * Sets the range of time for an enumeration of free/busy block of data for a user.
 	 *
 	 * @param[in] rtmStart
