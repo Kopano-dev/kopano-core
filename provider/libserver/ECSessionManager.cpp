@@ -1029,34 +1029,6 @@ ECRESULT ECSessionManager::SaveSourceKeyAutoIncrement(unsigned long long ullNewS
 	// @TODO if this failed we want to retry this
 }
 
-ECRESULT ECSessionManager::SetSessionPersistentConnection(ECSESSIONID sessionID, unsigned int ulPersistentConnectionId)
-{
-	scoped_lock lock(m_mutexPersistent);
-	// maintain a bi-map of connection <-> session here
-	m_mapPersistentByConnection[ulPersistentConnectionId] = sessionID;
-	m_mapPersistentBySession[sessionID] = ulPersistentConnectionId;
-	return erSuccess;
-}
-
-ECRESULT ECSessionManager::RemoveSessionPersistentConnection(unsigned int ulPersistentConnectionId)
-{
-	scoped_lock lock(m_mutexPersistent);
-
-	auto iterConnection = m_mapPersistentByConnection.find(ulPersistentConnectionId);
-	if (iterConnection == m_mapPersistentByConnection.cend())
-		// shouldn't really happen
-		return KCERR_NOT_FOUND;
-
-	PERSISTENTBYSESSION::const_iterator iterSession = m_mapPersistentBySession.find(iterConnection->second);
-	if (iterSession == m_mapPersistentBySession.cend())
-		// really really shouldn't happen
-		return KCERR_NOT_FOUND;
-
-	m_mapPersistentBySession.erase(iterSession);
-	m_mapPersistentByConnection.erase(iterConnection);
-	return erSuccess;
-}
-
 BOOL ECSessionManager::IsSessionPersistent(ECSESSIONID sessionID)
 {
 	scoped_lock lock(m_mutexPersistent);

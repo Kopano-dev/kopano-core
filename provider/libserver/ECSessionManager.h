@@ -151,11 +151,6 @@ public:
 	_kc_hidden virtual ECRESULT RemoveSession(ECSESSIONID);
 	virtual void RemoveSessionInternal(ECSession *);
 
-	// Persistent connections: sessions with persistent connections (named pipes) are guaranteed not to timeout
-	// between calls to SetSessionPersistentConnection() and RemoveSessionPersistentConnection. The persistent connection ID
-	// is implementation-specific, but must be unique for each session.
-	_kc_hidden virtual ECRESULT SetSessionPersistentConnection(ECSESSIONID, unsigned int conn_id);
-	_kc_hidden virtual ECRESULT RemoveSessionPersistentConnection(unsigned int conn_id);
 	_kc_hidden virtual ECRESULT GetSessionGroup(ECSESSIONGROUPID, ECSession *, ECSessionGroup **);
 	_kc_hidden virtual ECRESULT DeleteIfOrphaned(ECSessionGroup *);
 	_kc_export ECRESULT RemoveAllSessions();
