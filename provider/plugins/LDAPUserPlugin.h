@@ -23,6 +23,7 @@
  */
 namespace KC { class ECStatsCollector; }
 using namespace KC;
+class restrictTable;
 
 /** 
  * LDAP user plugin
@@ -110,7 +111,7 @@ public:
 	 *					The objectclass can be partially unknown (OBJECTCLASS_UNKNOWN, MAILUSER_UNKNOWN, ...)
 	 * @return The list of object signatures of all objects which were found
 	 */
-	virtual signatures_t getAllObjects(const objectid_t &company, objectclass_t) override;
+	virtual signatures_t getAllObjects(const objectid_t &company, objectclass_t, const restrictTable * = nullptr) override;
 
 	/**
 	 * Obtain the object details for the given object
@@ -498,38 +499,6 @@ private:
 	signatures_t objectDNtoObjectSignatures(objectclass_t, const std::list<std::string> &dn);
 
 	/**
-	 * Escape binary data to escaped string
-	 *
-	 * @param[in]	lpdata
-	 *					The binary data
-	 * @param[in]	size
-	 *					The length of the binary data
-	 * @param[out]	lpEscaped
-	 *					Escaped string
-	 */
-	HRESULT BintoEscapeSequence(const char *data, size_t size, std::string *escaped);
-
-	/**
-	 * Escape binary data to escaped string
-	 *
-	 * @param[in]	lpdata
-	 *					The binary data
-	 * @param[in]	size
-	 *					The length of the binary data
-	 * @return Escaped string
-	 */
-	std::string StringEscapeSequence(const char* lpdata, size_t size);
-
-	/**
-	 * Escape binary data to escaped string
-	 *
-	 * @param[in]	strData
-	 *					The binary data
-	 * @return Escaped string
-	 */
-	std::string StringEscapeSequence(const std::string &data);
-
-	/**
 	 * Determine the search base for a LDAP query
 	 *
 	 * @param[in]	company
@@ -773,48 +742,7 @@ private:
 	 * @todo return value lppres
 	 */
 	void my_ldap_search_s(char *base, int scope, char *filter, char *attrs[], int attrsonly, LDAPMessage **lppres, LDAPControl **serverControls = NULL);
-
-
-	/**
-	 * Get list of object classes from object class settings string
-	 *
-	 * Object classes must be separated by comma (,) and are trimmed for whitespace surrounding the
-	 * classes.
-	 *
-	 * @param[in] 	lpszClasses
-	 * 					String from settings with classes separated by comma (,)
-	 * @return std::list List of classes converted from settings
-	 */
-	std::list<std::string> GetClasses(const char *lpszClasses);
-
-	/**
-	 * Returns TRUE if all classes in lstClasses are set in setClasses
-	 *
-	 * Due to case-insensitivity of object classes, the object classes in setClasses must
-	 * be provided in UPPER CASE, while the classes in lstClasses need not be.
-	 *
-	 * @param[in]	setClasses
-	 * 					Set of classes to look in (UPPER CASE)
-	 * @param[in]	lstClasses
-	 * 					Set of classes that must be in setClasses
-	 * @return boolean TRUE if all classes in lstClasses are available in setClasses
-	 */
-	bool MatchClasses(std::set<std::string> setClasses, std::list<std::string> lstClasses);
-
-	/**
-	 * Creates an LDAP object class filter for a list of object classes
-	 *
-	 * Takes the list of object classes passed and converts them into an LDAP
-	 * filter that matches entries which have all the passed object classes.
-	 *
-	 * @param[in]	lpszObjectClassAttr
-	 *					Name of the objectClass attribute that should be matched
-	 * @param[in]	lpszClasses
-	 *					String with classes separated by comma (,) that should be in 
-	 *					the filter. The string will be convert in a list. See GetClasses
-	 * @return std::string Filter
-	 */
-	std::string GetObjectClassFilter(const char *lpszObjectClassAttr, const char *lpszClasses);
+	std::string rst_to_filter(const restrictTable *);
 
 	long unsigned int ldapServerIndex; // index of the last ldap server to which we could connect
 	std::vector<std::string> ldap_servers;
