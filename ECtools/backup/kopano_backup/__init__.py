@@ -455,6 +455,9 @@ class Service(kopano.Service):
     def restore(self, data_path):
         """ restore data from backup """
 
+        self.restored_sourcekeys = set()
+        self.options.sourcekeys = [sk.upper() for sk in self.options.sourcekeys]
+
         # determine store to restore to
         self.log.info('starting restore of %s', data_path)
         username = os.path.split(data_path)[1]
@@ -583,6 +586,10 @@ class Service(kopano.Service):
                 load_delegates(user, self.server, open('%s/delegates' % data_path, 'rb').read(), stats, self.log)
             if os.path.exists('%s/acl' % data_path):
                 load_acl(store, user, self.server, open('%s/acl' % data_path, 'rb').read(), stats, self.log)
+
+        for sourcekey in self.options.sourcekeys:
+            if sourcekey not in self.restored_sourcekeys:
+                self.log.error('could not restore sourcekey: %s', sourcekey)
 
         self.log.info('restore completed in %.2f seconds (%d changes, ~%.2f/sec, %d errors)',
             time.time()-t0, stats['changes'], stats['changes']/(time.time()-t0), stats['errors'])
@@ -822,6 +829,8 @@ class Service(kopano.Service):
                         item.mapiobj.SetProps([SPropValue(PR_EC_BACKUP_SOURCE_KEY, _unhex(sourcekey2))])
                         item.mapiobj.SaveChanges(0)
 
+                    if self.options.sourcekeys:
+                        self.restored_sourcekeys.add(sourcekey2)
                     stats['changes'] += 1
 
         # store original folder sourcekey
@@ -1072,7 +1081,7 @@ def main():
     parser.add_option('', '--restore-root', dest='restore_root', help='restore under specific folder', metavar='PATH')
     parser.add_option('', '--stats', dest='stats', action='store_true', help='list folders for PATH')
     parser.add_option('', '--index', dest='index', action='store_true', help='list items for PATH')
-    parser.add_option('', '--sourcekey', dest='sourcekeys', action='append', help='restore specific sourcekey', metavar='SOURCEKEY')
+    parser.add_option('', '--sourcekey', dest='sourcekeys', action='append', default=[], help='restore specific sourcekey', metavar='SOURCEKEY')
     parser.add_option('', '--recursive', dest='recursive', action='store_true', help='backup/restore folders recursively')
     parser.add_option('', '--differential', dest='differential', action='store_true', help='create/restore differential backup')
     parser.add_option('', '--overwrite', dest='overwrite', action='store_true', help='overwrite duplicate items')
