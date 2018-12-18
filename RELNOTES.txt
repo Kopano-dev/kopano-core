@@ -82,6 +82,8 @@ Packaging changes:
 =====
 Fixes:
 * dagent: the spam_header_name was not matched correctly [KF-1961]
+* dagent/client/libserver: fix inadvertent AF_LOCAL->SSL redirect [KC-1368]
+* libserver: restore a missing KCERR_NOT_FOUND return code in getStore
 Enhancements:
 * dbadm: new action "usmp-shrink-columns"
 Packaging:

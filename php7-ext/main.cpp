@@ -227,6 +227,14 @@ static std::shared_ptr<ECLogger> lpLogger;
 
 static unsigned int mapi_debug;
 static char *perf_measure_file;
+int le_mapi_session, le_mapi_table, le_mapi_rowset, le_mapi_msgstore;
+int le_mapi_addrbook, le_mapi_mailuser, le_mapi_distlist, le_mapi_abcont;
+int le_mapi_folder, le_mapi_message, le_mapi_attachment;
+int le_mapi_property, le_mapi_modifytable, le_istream;
+int le_freebusy_support, le_freebusy_data;
+int le_freebusy_update, le_freebusy_enumblock;
+int le_mapi_exportchanges, le_mapi_importhierarchychanges;
+int le_mapi_importcontentschanges, le_mapi_advisesink;
 
 pmeasure::pmeasure(const std::string &whatIn)
 {
