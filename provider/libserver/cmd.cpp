@@ -1252,7 +1252,7 @@ SOAP_ENTRY_START(getStore, lpsResponse->er, entryId* lpsEntryId, struct getStore
 				return er;
             strServerName = sUserDetails.GetPropString(OB_PROP_S_SERVERNAME);
 			if (strServerName.empty())
-				return er;
+				return KCERR_NOT_FOUND;
             if (strcasecmp(strServerName.c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) != 0)  {
                 er = GetBestServerPath(soap, lpecSession, strServerName, &strServerPath);
                 if (er != erSuccess)
