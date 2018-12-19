@@ -2814,7 +2814,7 @@ HRESULT Util::DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj,
 			return MAPI_E_INTERFACE_NOT_SUPPORTED;
 		if (*lpDestInterface != IID_IStream)
 			return MAPI_E_INTERFACE_NOT_SUPPORTED;
-		return CopyStream((LPSTREAM)lpSrcObj, (LPSTREAM)lpDestObj);
+		return CopyStream(static_cast<IStream *>(lpSrcObj), static_cast<IStream *>(lpDestObj));
 	}
 
 	hr = FindInterface(&IID_IMAPIProp, ciidExclude, rgiidExclude);
