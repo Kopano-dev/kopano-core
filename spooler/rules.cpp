@@ -36,11 +36,19 @@
 #include <kopano/mapiguidext.h>
 #include <kopano/charset/convert.h>
 #include <kopano/IECInterfaces.hpp>
+#include "fileutil.h"
 #include "PyMapiPlugin.h"
 
 using namespace KC;
 using std::string;
 using std::wstring;
+
+struct wlparam {
+	/* Because wildcards are possible, a search tree (map) does not help over vector. */
+	std::vector<std::string> domains;
+	std::wstring subject, body;
+};
+
 extern ECConfig *g_lpConfig;
 
 static HRESULT GetRecipStrings(LPMESSAGE lpMessage, std::wstring &wstrTo,
@@ -431,14 +439,55 @@ static bool proc_fwd_allowed(const std::vector<std::string> &wdomlist,
 	return false;
 }
 
+static std::string wlparam_slurp(const char *file)
+{
+	std::string content;
+	std::unique_ptr<FILE, file_deleter> fp(fopen(file, "r"));
+	if (fp == nullptr) {
+		ec_log_err("Could not read %s: %s", file, strerror(errno));
+		return content;
+	}
+	auto ret = HrMapFileToString(fp.get(), &content);
+	if (ret != hrSuccess)
+		ec_log_err("HrMapFileToString %s: %s", file, GetMAPIErrorMessage(ret));
+	return content;
+}
+
+static wlparam wlparam_read(ECConfig *cfg)
+{
+	wlparam par;
+	auto z = cfg->GetSetting("forward_whitelist_domains_file");
+	if (z != nullptr) {
+		par.domains = tokenize(wlparam_slurp(z), "\t\n ");
+	} else {
+		z = cfg->GetSetting("forward_whitelist_domains");
+		if (z != nullptr)
+			par.domains = tokenize(z, "\t ");
+	}
+	z = cfg->GetSetting("forward_whitelist_domain_message_file");
+	if (z != nullptr) {
+		par.body = convert_to<std::wstring>(wlparam_slurp(z));
+	} else {
+		z = cfg->GetSetting("forward_whitelist_domain_message");
+		if (z != nullptr)
+			par.body = convert_to<std::wstring>(z);
+	}
+	z = cfg->GetSetting("forward_whitelist_domain_subject");
+	if (z != nullptr)
+		par.subject = convert_to<std::wstring>(z);
+	return par;
+}
+
 /**
  * @inbox:	folder to dump warning mail into
  * @addr:	target address which delivery was rejected to
+ * @subject:	original message's subject
  *
  * Drop an additional message into @inbox informing about the
  * unwillingness to process a forwarding rule.
  */
-static HRESULT kc_send_fwdabort_notice(IMsgStore *store, const wchar_t *addr, const wchar_t *subject)
+static HRESULT kc_send_fwdabort_notice(IMsgStore *store, const wchar_t *addr,
+    const wchar_t *subject, const wlparam &wlp)
 {
 	memory_ptr<ENTRYID> eid;
 	ULONG eid_size;
@@ -460,7 +509,7 @@ static HRESULT kc_send_fwdabort_notice(IMsgStore *store, const wchar_t *addr, co
 	prop[nprop].ulPropTag = PR_SENDER_NAME_W;
 	prop[nprop++].Value.lpszW = const_cast<wchar_t *>(L"Mail Delivery System");
 
-	auto newsubject = convert_to<std::wstring>(g_lpConfig->GetSetting("forward_whitelist_domain_subject"));
+	auto newsubject = wlp.subject;
 	auto pos = newsubject.find(L"%subject");
 	if (pos != std::string::npos)
 		newsubject = newsubject.replace(pos, 8, subject);
@@ -478,8 +527,7 @@ static HRESULT kc_send_fwdabort_notice(IMsgStore *store, const wchar_t *addr, co
 	prop[nprop].ulPropTag = PR_MESSAGE_DELIVERY_TIME;
 	prop[nprop++].Value.ft = ft;
 
-	auto newbody = convert_to<std::wstring>(g_lpConfig->GetSetting("forward_whitelist_domain_message"));
-
+	auto newbody = wlp.body;
 	pos = newbody.find(L"%subject");
 	if (pos != std::string::npos)
 		newbody = newbody.replace(pos, 8, subject);
@@ -533,8 +581,7 @@ static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMsgStore *orig_store,
 		return kc_perrorf("MAPIAllocateBuffer failed", hr);
 
 	lpRecipients->cEntries = 0;
-	std::vector<std::string> fwd_whitelist =
-		tokenize(g_lpConfig->GetSetting("forward_whitelist_domains"), " ");
+	auto wlparam = wlparam_read(g_lpConfig);
 	if (HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &~lpMsgClass) != hrSuccess)
 		/* ignore error - will check for pointer instead */;
 
@@ -557,8 +604,9 @@ static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMsgStore *orig_store,
 		else if (hr != MAPI_E_NOT_FOUND)
 			return hr;
 
-		if (!proc_fwd_allowed(fwd_whitelist, rule_addr_std.c_str())) {
-			kc_send_fwdabort_notice(orig_store, strRuleAddress.c_str(), subject_wstd.c_str());
+		if (!proc_fwd_allowed(wlparam.domains, rule_addr_std.c_str())) {
+			kc_send_fwdabort_notice(orig_store, strRuleAddress.c_str(),
+				subject_wstd.c_str(), wlparam);
 			return MAPI_E_NO_ACCESS;
 		}
 		if (strFromAddress == strRuleAddress &&

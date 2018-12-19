@@ -3394,10 +3394,12 @@ int main(int argc, char *argv[]) {
 		{ "z_statsd_stats", "/var/run/kopano/statsd.sock" },
 		{ "tmp_path", "/tmp" },
 		{"forward_whitelist_domains", "*", CONFIGSETTING_RELOADABLE},
+		{"forward_whitelist_domains_file", "", CONFIGSETTING_RELOADABLE},
 		{"forward_whitelist_domain_message", "The Kopano mail system has rejected your "
 		 "request to forward your e-mail with subject \"%subject\" (via mail filters) "
 		 "to %sender: the operation is not permitted.\n\nRemove the rule or contact "
 		 "your administrator about the forward_whitelist_domains setting.\n", CONFIGSETTING_RELOADABLE},
+		{"forward_whitelist_domain_message_file", "", CONFIGSETTING_RELOADABLE},
 		{"forward_whitelist_domain_subject", "REJECT: %subject not forwarded (administratively blocked)", CONFIGSETTING_RELOADABLE},
 		{"html_safety_filter", "no"},
 		{"unknown_charset_substitutions", ""},
