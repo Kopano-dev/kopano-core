@@ -932,7 +932,7 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage,
 			hr = MAPIAllocateBuffer(sizeof(MAPINAMEID), &~lpNameID);
 			if (hr != hrSuccess)
 				return kc_perror("Not enough memory", hr);
-			lpNameID->lpguid = (GUID*)&PS_INTERNET_HEADERS;
+			lpNameID->lpguid = const_cast<GUID *>(&PS_INTERNET_HEADERS);
 			lpNameID->ulKind = MNID_STRING;
 			lpNameID->Kind.lpwstrName = const_cast<wchar_t *>(L"Content-Type");
 
@@ -1667,7 +1667,7 @@ HRESULT MAPIToVMIME::handleReplyTo(IMessage *lpMessage,
 		if (hr != hrSuccess)
 			return hr;
 		for (unsigned int i = 0; i < cNames; ++i) {
-			lpNames[i].lpguid = (GUID*)&PSETID_Address;
+			lpNames[i].lpguid = const_cast<GUID *>(&PSETID_Address);
 			lpNames[i].ulKind = MNID_ID;
 			lpNames[i].Kind.lID = lpulNamesIDs[i];
 			lppNames[i] = &lpNames[i];

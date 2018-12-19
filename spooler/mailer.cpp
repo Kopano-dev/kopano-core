@@ -964,17 +964,17 @@ static HRESULT ContactToKopano(IMsgStore *lpUserStore,
 		return kc_perror("No memory for named IDs from contact", hr);
 
 	// Email1EntryID
-	lpNames[0].lpguid = (GUID*)&PSETID_Address;
+	lpNames[0].lpguid = const_cast<GUID *>(&PSETID_Address);
 	lpNames[0].ulKind = MNID_ID;
 	lpNames[0].Kind.lID = 0x8085;
 	lppNames[0] = &lpNames[0];
 	// Email2EntryID
-	lpNames[1].lpguid = (GUID*)&PSETID_Address;
+	lpNames[1].lpguid = const_cast<GUID *>(&PSETID_Address);
 	lpNames[1].ulKind = MNID_ID;
 	lpNames[1].Kind.lID = 0x8095;
 	lppNames[1] = &lpNames[1];
 	// Email3EntryID
-	lpNames[2].lpguid = (GUID*)&PSETID_Address;
+	lpNames[2].lpguid = const_cast<GUID *>(&PSETID_Address);
 	lpNames[2].ulKind = MNID_ID;
 	lpNames[2].Kind.lID = 0x80A5;
 	lppNames[2] = &lpNames[2];

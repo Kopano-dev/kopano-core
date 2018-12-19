@@ -149,7 +149,7 @@ HRESULT ECNotifyClient::RegisterAdvise(ULONG cbKey, LPBYTE lpKey, ULONG ulEventM
 		if(hr != hrSuccess)
 			return hr;
 		lpKeySupport->cb = sizeof(GUID);
-		hr = CoCreateGuid((GUID *)lpKeySupport->ab);
+		hr = CoCreateGuid(reinterpret_cast<GUID *>(lpKeySupport->ab));
 		if(hr != hrSuccess)
 			return hr;
 		// Get support object connection id

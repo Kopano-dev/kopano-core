@@ -326,7 +326,7 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 			MAPINAMEID sNameID, *lpNameID = &sNameID;
 			memory_ptr<SPropTagArray> lpPropTag;
 
-			sNameID.lpguid = (GUID*)&PSETID_Common;
+			sNameID.lpguid = const_cast<GUID *>(&PSETID_Common);
 			sNameID.ulKind = MNID_ID;
 			sNameID.Kind.lID = dispidSmartNoAttach;
 
@@ -942,7 +942,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 
 			if ((hr = MAPIAllocateBuffer(sizeof(MAPINAMEID), &~lpNameID)) != hrSuccess)
 				return hr;
-			lpNameID->lpguid = (GUID*)&PS_INTERNET_HEADERS;
+			lpNameID->lpguid = const_cast<GUID *>(&PS_INTERNET_HEADERS);
 			lpNameID->ulKind = MNID_STRING;
 
 			int vlen = mbstowcs(NULL, name.c_str(), 0) +1;

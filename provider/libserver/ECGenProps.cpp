@@ -324,7 +324,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 		sPropVal.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
 		sPropVal.Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(GUID));
 		sPropVal.Value.bin->__size = sizeof(GUID);
-		er = cache->GetStore(ulStoreId, 0, (GUID *)sPropVal.Value.bin->__ptr);
+		er = cache->GetStore(ulStoreId, 0, reinterpret_cast<GUID *>(sPropVal.Value.bin->__ptr));
 		if (er != erSuccess) {
 			er = KCERR_NOT_FOUND;
 			goto exit;
@@ -625,7 +625,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 		sPropVal.Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(GUID));
 		sPropVal.__union = SOAP_UNION_propValData_bin;
 		sPropVal.Value.bin->__size = sizeof(GUID);
-		er = lpSession->GetServerGUID((GUID *)sPropVal.Value.bin->__ptr);
+		er = lpSession->GetServerGUID(reinterpret_cast<GUID *>(sPropVal.Value.bin->__ptr));
 		if (er != erSuccess){
 			er = KCERR_NOT_FOUND;
 			goto exit;

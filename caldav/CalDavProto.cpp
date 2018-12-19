@@ -65,7 +65,7 @@ static ULONG GetPropIDForXMLProp(LPMAPIPROP lpObj,
 	auto hr = MAPIAllocateBuffer(sizeof(MAPINAMEID), &~lpNameID);
 	if (hr != hrSuccess)
 		return PR_NULL;
-	lpNameID->lpguid = (GUID*)&PSETID_Kopano_CalDav;
+	lpNameID->lpguid = const_cast<GUID *>(&PSETID_Kopano_CalDav);
 	lpNameID->ulKind = MNID_STRING;
 	lpNameID->Kind.lpwstrName = const_cast<wchar_t *>(wstrName.c_str());
 	hr = lpObj->GetIDsFromNames(1, &+lpNameID, ulFlags, &~ptrPropTags);

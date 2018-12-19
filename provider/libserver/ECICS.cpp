@@ -271,7 +271,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 		std::list<propVal> propList;
 
 		// Add the new change key to the predecessor change list
-		lpSession->GetServerGUID((GUID*)szChangeKey);
+		lpSession->GetServerGUID(reinterpret_cast<GUID *>(szChangeKey));
 		memcpy(szChangeKey + sizeof(GUID), &changeid, 4);
 		AddChangeKeyToChangeList(&strChangeList, sizeof(szChangeKey), szChangeKey);
 
