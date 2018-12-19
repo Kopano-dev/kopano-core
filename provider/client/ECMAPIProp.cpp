@@ -221,7 +221,7 @@ HRESULT	ECMAPIProp::DefaultMAPIGetProp(ULONG ulPropTag, void* lpProvider, ULONG 
 			if (hr != hrSuccess)
 				return hr;
 		}
-		if (lpProp->m_sMapiObject->ulObjId > 0) {
+		if (lpProp->m_sMapiObject != nullptr && lpProp->m_sMapiObject->ulObjId > 0) {
 			lpsPropValue->ulPropTag = ulPropTag;
 			lpsPropValue->Value.ul = lpProp->m_sMapiObject->ulObjId;
 		} else {
