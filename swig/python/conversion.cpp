@@ -542,7 +542,7 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 			break;
 		}
 		if (ulFlags == CONV_COPY_SHALLOW) {
-			lpProp->Value.lpguid = (LPGUID)lpstr;
+			lpProp->Value.lpguid = reinterpret_cast<GUID *>(lpstr);
 			break;
 		}
 		if (KAllocCopy(lpstr, sizeof(GUID), reinterpret_cast<void **>(&lpProp->Value.lpguid), lpBase) != hrSuccess)

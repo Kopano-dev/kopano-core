@@ -557,7 +557,7 @@ HRESULT M4LProviderAdmin::CreateProvider(const TCHAR *lpszProvider,
 	hr = entry->profilesection->SetProps(1, lpsPropValProfileName, NULL);
 	if (hr != hrSuccess)
 		return hr;
-	CoCreateGuid((LPGUID)&entry->uid);
+	CoCreateGuid(reinterpret_cast<GUID *>(&entry->uid));
 
 	// no need to free this, not a copy!
 	lpProvider->GetProps(&cProviderProps, &lpProviderProps);

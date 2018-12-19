@@ -228,11 +228,13 @@ HRESULT ZCMAPIProp::ConvertProps(IMAPIProp *lpContact, ULONG cbEntryID,
 	memory_ptr<MAPINAMEID *> lppNames;
 	ULONG ulNames = 5;
 	MAPINAMEID mnNamedProps[5] = {
-		{(LPGUID)&PSETID_Address, MNID_ID, {dispidEmail1DisplayName}},
-		{(LPGUID)&PSETID_Address, MNID_ID, {dispidEmail1AddressType}},
-		{(LPGUID)&PSETID_Address, MNID_ID, {dispidEmail1Address}},
-		{(LPGUID)&PSETID_Address, MNID_ID, {dispidEmail1OriginalDisplayName}},
-		{(LPGUID)&PSETID_Address, MNID_ID, {dispidEmail1OriginalEntryID}}
+#define PS const_cast<GUID *>(&PSETID_Address)
+		{PS, MNID_ID, {dispidEmail1DisplayName}},
+		{PS, MNID_ID, {dispidEmail1AddressType}},
+		{PS, MNID_ID, {dispidEmail1Address}},
+		{PS, MNID_ID, {dispidEmail1OriginalDisplayName}},
+		{PS, MNID_ID, {dispidEmail1OriginalEntryID}}
+#undef PS
 	};
 
 	hr = MAPIAllocateBuffer(sizeof(LPMAPINAMEID) * ulNames, &~lppNames);

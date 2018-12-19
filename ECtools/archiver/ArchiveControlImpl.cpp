@@ -822,7 +822,8 @@ HRESULT ArchiveControlImpl::CleanupArchive(const SObjectEntry &archiveEntry, IMs
  * @param[in]	lpArchiveGuid	The GUID of the archive store for which to get the references.
  * @param[out]	lpReferences	An EntryIDSet containing all references.
  */
-HRESULT ArchiveControlImpl::GetAllReferences(LPMDB lpUserStore, LPGUID lpArchiveGuid, EntryIDSet *lpReferences)
+HRESULT ArchiveControlImpl::GetAllReferences(IMsgStore *lpUserStore,
+    const GUID *lpArchiveGuid, EntryIDSet *lpReferences)
 {
 	EntryIDSet setRefs;
 	SPropValuePtr ptrPropVal;
@@ -862,7 +863,8 @@ HRESULT ArchiveControlImpl::GetAllReferences(LPMDB lpUserStore, LPGUID lpArchive
  * @param[in]	lpArchiveGuid	The GUID of the archive store for which to get the references.
  * @param[out]	lpReferences	The EntryIDSet to add the references to.
  */
-HRESULT ArchiveControlImpl::AppendAllReferences(LPMAPIFOLDER lpFolder, LPGUID lpArchiveGuid, EntryIDSet *lpReferences)
+HRESULT ArchiveControlImpl::AppendAllReferences(IMAPIFolder *lpFolder,
+    const GUID *lpArchiveGuid, EntryIDSet *lpReferences)
 {
 	BYTE prefixData[4 + sizeof(GUID)] = {0};
 	static constexpr const ULONG ulFlagArray[] = {0, SHOW_SOFT_DELETES};

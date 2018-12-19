@@ -15,88 +15,98 @@ const WCHAR* nmStringNames[SIZE_NAMEDPROPS] = {
 
 MAPINAMEID mnNamedProps[SIZE_NAMEDPROPS] = {
 // lpwstrName:L"Keywords" may work, but gives a compile warning: ISO C++ does not allow designated initializers
-	{(LPGUID)&PS_PUBLIC_STRINGS, MNID_STRING, { 0 }},
+	{const_cast<GUID *>(&PS_PUBLIC_STRINGS), MNID_STRING, {0}},
 // ID names
-	{(LPGUID)&PSETID_Meeting, MNID_ID, {dispidMeetingLocation}},
-	{(LPGUID)&PSETID_Meeting, MNID_ID, {dispidGlobalObjectID}},
-	{(LPGUID)&PSETID_Meeting, MNID_ID, {dispidIsRecurring}},
-	{(LPGUID)&PSETID_Meeting, MNID_ID, {dispidCleanGlobalObjectID}},
-	{(LPGUID)&PSETID_Meeting, MNID_ID, {dispidOwnerCriticalChange}},
-	{(LPGUID)&PSETID_Meeting, MNID_ID, {dispidAttendeeCriticalChange}},
-	{(LPGUID)&PSETID_Meeting, MNID_ID, {dispidOldWhenStartWhole}},
-	{(LPGUID)&PSETID_Meeting, MNID_ID, {dispidIsException}},
-	{(LPGUID)&PSETID_Meeting, MNID_ID, {dispidStartRecurrenceTime}},
-	{(LPGUID)&PSETID_Meeting, MNID_ID, {dispidEndRecurrenceTime}},
-	{(LPGUID)&PSETID_Kopano_CalDav, MNID_ID, {dispidMozGen}}, //X-MOZ-GENERATION
-	{(LPGUID)&PSETID_Kopano_CalDav, MNID_ID, {dispidMozLastAck}}, //X-MOZ-LAST-ACK
-	{(LPGUID)&PSETID_Kopano_CalDav, MNID_ID, {dispidMozSnoozeSuffixTime}}, //X-MOZ-SNOOZE-TIME suffix
-	{(LPGUID)&PSETID_Kopano_CalDav, MNID_ID, {dispidMozSendInvite}}, //X-MOZ-SEND-INVITATIONS 
-	{(LPGUID)&PSETID_Kopano_CalDav, MNID_ID, {dispidApptTsRef}},
-	{(LPGUID)&PSETID_Kopano_CalDav, MNID_ID, {dispidFldID}},
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidSendAsICAL}},
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidAppointmentSequenceNumber}},
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidApptSeqTime}},
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidBusyStatus}},
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidApptAuxFlags}},
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidLocation}},
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidLabel}},
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidApptStartWhole}},
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidApptEndWhole}},
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidApptDuration}},
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidAllDayEvent}},
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidRecurrenceState}},
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidAppointmentStateFlags}},
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidResponseStatus}},
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidRecurring}},
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidIntendedBusyStatus}},
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidRecurringBase}},
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidRequestSent}},		// aka PidLidFInvited
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {0x8230}},
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidRecurrenceType}},
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidRecurrencePattern}},
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidTimeZoneData}},
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidTimeZone}},
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidClipStart}},
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidClipEnd}},
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidAllAttendeesString}},	// AllAttendees (Exluding self, ';' separated)
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidToAttendeesString}},	// RequiredAttendees (Including self)
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidCCAttendeesString}},	// OptionalAttendees
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidNetMeetingType}},
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidNetMeetingServer}},
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidNetMeetingOrganizerAlias}},
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidNetMeetingAutoStart}},
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidAutoStartWhen}},
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidConferenceServerAllowExternal}},
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidNetMeetingDocPathName}},
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidNetShowURL}},
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidConferenceServerPassword}},
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidApptReplyTime}},
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidApptCounterProposal}},
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidApptProposedStartWhole}},
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidApptProposedEndWhole}},
-	{(LPGUID)&PSETID_Common, MNID_ID, {dispidReminderMinutesBeforeStart}},
-	{(LPGUID)&PSETID_Common, MNID_ID, {dispidReminderTime}},
-	{(LPGUID)&PSETID_Common, MNID_ID, {dispidReminderSet}},
-	{(LPGUID)&PSETID_Common, MNID_ID, {dispidPrivate}},
-	{(LPGUID)&PSETID_Common, MNID_ID, {dispidNoAging}},
-	{(LPGUID)&PSETID_Common, MNID_ID, {dispidSideEffect}},
-	{(LPGUID)&PSETID_Common, MNID_ID, {dispidRemoteStatus}},
-	{(LPGUID)&PSETID_Common, MNID_ID, {dispidCommonStart}},
-	{(LPGUID)&PSETID_Common, MNID_ID, {dispidCommonEnd}},
-	{(LPGUID)&PSETID_Common, MNID_ID, {dispidCommonAssign}},
-	{(LPGUID)&PSETID_Common, MNID_ID, {dispidContacts}},
-	{(LPGUID)&PSETID_Common, MNID_ID, {dispidOutlookInternalVersion}},
-	{(LPGUID)&PSETID_Common, MNID_ID, {dispidOutlookVersion}},
-	{(LPGUID)&PSETID_Common, MNID_ID, {dispidReminderNextTime}},
-	{(LPGUID)&PSETID_Common, MNID_ID, {dispidSmartNoAttach}},	
-	{(LPGUID)&PSETID_Task, MNID_ID, {dispidTaskStatus}},
-	{(LPGUID)&PSETID_Task, MNID_ID, {dispidTaskComplete}},
-	{(LPGUID)&PSETID_Task, MNID_ID, {dispidTaskPercentComplete}},
-	{(LPGUID)&PSETID_Task, MNID_ID, {dispidTaskStartDate}},
-	{(LPGUID)&PSETID_Task, MNID_ID, {dispidTaskDueDate}},
-	{(LPGUID)&PSETID_Task, MNID_ID, {dispidTaskRecurrenceState}},
-	{(LPGUID)&PSETID_Task, MNID_ID, {dispidTaskIsRecurring}},
-	{(LPGUID)&PSETID_Task, MNID_ID, {dispidTaskDateCompleted}}
+#define PS const_cast<GUID *>(&PSETID_Meeting)
+	{PS, MNID_ID, {dispidMeetingLocation}},
+	{PS, MNID_ID, {dispidGlobalObjectID}},
+	{PS, MNID_ID, {dispidIsRecurring}},
+	{PS, MNID_ID, {dispidCleanGlobalObjectID}},
+	{PS, MNID_ID, {dispidOwnerCriticalChange}},
+	{PS, MNID_ID, {dispidAttendeeCriticalChange}},
+	{PS, MNID_ID, {dispidOldWhenStartWhole}},
+	{PS, MNID_ID, {dispidIsException}},
+	{PS, MNID_ID, {dispidStartRecurrenceTime}},
+	{PS, MNID_ID, {dispidEndRecurrenceTime}},
+#undef PS
+#define PS const_cast<GUID *>(&PSETID_Kopano_CalDav)
+	{PS, MNID_ID, {dispidMozGen}}, /* X-MOZ-GENERATION */
+	{PS, MNID_ID, {dispidMozLastAck}}, /* X-MOZ-LAST-ACK */
+	{PS, MNID_ID, {dispidMozSnoozeSuffixTime}}, /* X-MOZ-SNOOZE-TIME suffix */
+	{PS, MNID_ID, {dispidMozSendInvite}}, /* X-MOZ-SEND-INVITATIONS */
+	{PS, MNID_ID, {dispidApptTsRef}},
+	{PS, MNID_ID, {dispidFldID}},
+#undef PS
+#define PS const_cast<GUID *>(&PSETID_Appointment)
+	{PS, MNID_ID, {dispidSendAsICAL}},
+	{PS, MNID_ID, {dispidAppointmentSequenceNumber}},
+	{PS, MNID_ID, {dispidApptSeqTime}},
+	{PS, MNID_ID, {dispidBusyStatus}},
+	{PS, MNID_ID, {dispidApptAuxFlags}},
+	{PS, MNID_ID, {dispidLocation}},
+	{PS, MNID_ID, {dispidLabel}},
+	{PS, MNID_ID, {dispidApptStartWhole}},
+	{PS, MNID_ID, {dispidApptEndWhole}},
+	{PS, MNID_ID, {dispidApptDuration}},
+	{PS, MNID_ID, {dispidAllDayEvent}},
+	{PS, MNID_ID, {dispidRecurrenceState}},
+	{PS, MNID_ID, {dispidAppointmentStateFlags}},
+	{PS, MNID_ID, {dispidResponseStatus}},
+	{PS, MNID_ID, {dispidRecurring}},
+	{PS, MNID_ID, {dispidIntendedBusyStatus}},
+	{PS, MNID_ID, {dispidRecurringBase}},
+	{PS, MNID_ID, {dispidRequestSent}},		// aka PidLidFInvited
+	{PS, MNID_ID, {0x8230}},
+	{PS, MNID_ID, {dispidRecurrenceType}},
+	{PS, MNID_ID, {dispidRecurrencePattern}},
+	{PS, MNID_ID, {dispidTimeZoneData}},
+	{PS, MNID_ID, {dispidTimeZone}},
+	{PS, MNID_ID, {dispidClipStart}},
+	{PS, MNID_ID, {dispidClipEnd}},
+	{PS, MNID_ID, {dispidAllAttendeesString}}, /* AllAttendees (exluding self, ';' separated) */
+	{PS, MNID_ID, {dispidToAttendeesString}}, /* RequiredAttendees (including self) */
+	{PS, MNID_ID, {dispidCCAttendeesString}}, /* OptionalAttendees */
+	{PS, MNID_ID, {dispidNetMeetingType}},
+	{PS, MNID_ID, {dispidNetMeetingServer}},
+	{PS, MNID_ID, {dispidNetMeetingOrganizerAlias}},
+	{PS, MNID_ID, {dispidNetMeetingAutoStart}},
+	{PS, MNID_ID, {dispidAutoStartWhen}},
+	{PS, MNID_ID, {dispidConferenceServerAllowExternal}},
+	{PS, MNID_ID, {dispidNetMeetingDocPathName}},
+	{PS, MNID_ID, {dispidNetShowURL}},
+	{PS, MNID_ID, {dispidConferenceServerPassword}},
+	{PS, MNID_ID, {dispidApptReplyTime}},
+	{PS, MNID_ID, {dispidApptCounterProposal}},
+	{PS, MNID_ID, {dispidApptProposedStartWhole}},
+	{PS, MNID_ID, {dispidApptProposedEndWhole}},
+#undef PS
+#define PS const_cast<GUID *>(&PSETID_Common)
+	{PS, MNID_ID, {dispidReminderMinutesBeforeStart}},
+	{PS, MNID_ID, {dispidReminderTime}},
+	{PS, MNID_ID, {dispidReminderSet}},
+	{PS, MNID_ID, {dispidPrivate}},
+	{PS, MNID_ID, {dispidNoAging}},
+	{PS, MNID_ID, {dispidSideEffect}},
+	{PS, MNID_ID, {dispidRemoteStatus}},
+	{PS, MNID_ID, {dispidCommonStart}},
+	{PS, MNID_ID, {dispidCommonEnd}},
+	{PS, MNID_ID, {dispidCommonAssign}},
+	{PS, MNID_ID, {dispidContacts}},
+	{PS, MNID_ID, {dispidOutlookInternalVersion}},
+	{PS, MNID_ID, {dispidOutlookVersion}},
+	{PS, MNID_ID, {dispidReminderNextTime}},
+	{PS, MNID_ID, {dispidSmartNoAttach}},	
+#undef PS
+#define PS const_cast<GUID *>(&PSETID_Task)
+	{PS, MNID_ID, {dispidTaskStatus}},
+	{PS, MNID_ID, {dispidTaskComplete}},
+	{PS, MNID_ID, {dispidTaskPercentComplete}},
+	{PS, MNID_ID, {dispidTaskStartDate}},
+	{PS, MNID_ID, {dispidTaskDueDate}},
+	{PS, MNID_ID, {dispidTaskRecurrenceState}},
+	{PS, MNID_ID, {dispidTaskIsRecurring}},
+	{PS, MNID_ID, {dispidTaskDateCompleted}}
+#undef PS
 };
 
 /** 
