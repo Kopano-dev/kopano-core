@@ -1097,8 +1097,7 @@ HRESULT IMAP::HrCmdRename(const std::string &strTag,
 		// from is same as dest folder, use SetProps(PR_DISPLAY_NAME)
 		SPropValue propName;
 		propName.ulPropTag = PR_DISPLAY_NAME_W;
-		propName.Value.lpszW = (WCHAR*)strFolder.c_str();
-
+		propName.Value.lpszW = const_cast<wchar_t *>(strFolder.c_str());
 		hr = lpSession->OpenEntry(cb, entry_id, &IID_IMAPIFolder, MAPI_MODIFY | MAPI_DEFERRED_ERRORS,
 		     &ulObjType, &~lpSubFolder);
 		if (hr != hrSuccess) {
@@ -5176,7 +5175,7 @@ HRESULT IMAP::HrFindSubFolder(IMAPIFolder *lpFolder, const wstring& strFolder, U
     ULONG ulObjType = 0;
 
     sProp.ulPropTag = PR_DISPLAY_NAME_W;
-    sProp.Value.lpszW = (WCHAR *)strFolder.c_str();
+	sProp.Value.lpszW = const_cast<wchar_t *>(strFolder.c_str());
 
     // lpFolder is NULL when we're referring to the IMAP root. The IMAP root contains
     // INBOX, the public folder container, and all folders under the users IPM_SUBTREE.

@@ -391,7 +391,7 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 		auto wstrFaxMail = convert_to<std::wstring>(strFaxMail);
 		std::wstring wstrOldFaxMail = lpEmailAddress->Value.lpszW; // keep old string for logging
 		// hack values in lpRowSet
-		lpEmailAddress->Value.lpszW = (WCHAR*)wstrFaxMail.c_str();
+		lpEmailAddress->Value.lpszW = const_cast<wchar_t *>(wstrFaxMail.c_str());
 		lpAddrType->Value.lpszW = const_cast<wchar_t *>(L"SMTP");
 		// old value is stuck to the row allocation, so we can override it, but we also must free the new!
 		ECCreateOneOff((LPTSTR)lpEmailName->Value.lpszW, (LPTSTR)L"SMTP", (LPTSTR)wstrFaxMail.c_str(), MAPI_UNICODE, &cbNewEntryID, &~lpNewEntryID);
@@ -499,7 +499,7 @@ static HRESULT RewriteQuotedRecipients(IMessage *lpMessage)
 
 		ec_log_info("Rewrite quoted recipient: %ls", strEmail.c_str());
 		strEmail = strEmail.substr(1, strEmail.size() - 2);
-		lpEmailAddress->Value.lpszW = (WCHAR *)strEmail.c_str();
+		lpEmailAddress->Value.lpszW = const_cast<wchar_t *>(strEmail.c_str());
 		hr = lpMessage->ModifyRecipients(MODRECIP_MODIFY,
 		     reinterpret_cast<ADRLIST *>(lpRowSet.get()));
 		if (hr != hrSuccess)
@@ -852,7 +852,7 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 		newbody.append(L"\n\nYou may need to contact your e-mail administrator to solve this problem.\n");
 
 		lpPropValue[ulPropPos].ulPropTag = PR_BODY_W;
-		lpPropValue[ulPropPos++].Value.lpszW = (WCHAR*)newbody.c_str();
+		lpPropValue[ulPropPos++].Value.lpszW = const_cast<wchar_t *>(newbody.c_str());
 
 		if (ulRows > 0) {
 			// All recipients failed, therefore all recipient need to be in the MDN recipient table
@@ -1026,7 +1026,7 @@ static HRESULT SMTPToZarafa(IAddrBook *lpAddrBook, const SBinary &smtp,
 		return hrSuccess;
 	++lpAList->cEntries;
 	lpAList->aEntries[0].rgPropVals[0].ulPropTag = PR_DISPLAY_NAME_W;
-	lpAList->aEntries[0].rgPropVals[0].Value.lpszW = (WCHAR*)wstrEmailAddress.c_str();
+	lpAList->aEntries[0].rgPropVals[0].Value.lpszW = const_cast<wchar_t *>(wstrEmailAddress.c_str());
 	hr = lpAddrBook->ResolveName(0, EMS_AB_ADDRESS_LOOKUP, NULL, lpAList);
 	if (hr != hrSuccess)
 		return kc_perrorf("ResolveName failed", hr);

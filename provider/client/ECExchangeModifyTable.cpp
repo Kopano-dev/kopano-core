@@ -302,7 +302,7 @@ HRESULT ECExchangeModifyTable::OpenACLS(ECMAPIProp *lpecMapiProp, ULONG ulFlags,
 		lpsPropMember[1].ulPropTag = PR_MEMBER_RIGHTS;
 		lpsPropMember[1].Value.ul = lpECPerms[i].ulRights;
 		lpsPropMember[2].ulPropTag = PR_MEMBER_NAME;
-		lpsPropMember[2].Value.lpszW = (WCHAR*)lpMemberName;
+		lpsPropMember[2].Value.lpszW = const_cast<wchar_t *>(lpMemberName);
 		lpsPropMember[3].ulPropTag = PR_MEMBER_ENTRYID;
 		lpsPropMember[3].Value.bin = lpECPerms[i].sUserId;
 		hr = lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, &lpsPropMember[0], lpsPropMember, 4);

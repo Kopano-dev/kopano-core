@@ -121,7 +121,7 @@ HRESULT HrLookupNames(IMAPIProp *lpPropObj, LPSPropTagArray *lppNamedProps)
 		if (hr != hrSuccess)
 			return hr;
 		if (mnNamedProps[i].ulKind == MNID_STRING && nmStringNames[i])
-			lppNameIds[i]->Kind.lpwstrName = (WCHAR*)nmStringNames[i];
+			lppNameIds[i]->Kind.lpwstrName = const_cast<wchar_t *>(nmStringNames[i]);
 	}
 
 	hr = lpPropObj->GetIDsFromNames(SIZE_NAMEDPROPS, lppNameIds, MAPI_CREATE, &lpNamedProps);

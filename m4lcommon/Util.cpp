@@ -1327,7 +1327,7 @@ HRESULT Util::HrTextToHtml(IStream *text, IStream *html, ULONG ulCodepage)
 				continue;
 			// make html number from WCHAR entry
 			std::string strHTMLUnicode = "&#";
-			strHTMLUnicode += stringify(*(WCHAR*)readBuffer);
+			strHTMLUnicode += stringify(*reinterpret_cast<const wchar_t *>(readBuffer));
 			strHTMLUnicode += ";";
 
 			hr = html->Write(strHTMLUnicode.c_str(), strHTMLUnicode.length(), NULL);
@@ -1697,7 +1697,7 @@ HRESULT Util::HrStreamToString(IStream *sInput, std::wstring &strOutput) {
 
 	if (sInput->QueryInterface(IID_ECMemStream, &~lpMemStream) == hrSuccess) {
 		// getsize, getbuffer, assign
-		strOutput.append((WCHAR*)lpMemStream->GetBuffer(), lpMemStream->GetSize() / sizeof(WCHAR));
+		strOutput.append(reinterpret_cast<wchar_t *>(lpMemStream->GetBuffer()), lpMemStream->GetSize() / sizeof(WCHAR));
 		return hrSuccess;
 	}
 	// manual copy
@@ -1708,7 +1708,7 @@ HRESULT Util::HrStreamToString(IStream *sInput, std::wstring &strOutput) {
 		hr = sInput->Read(buffer, BUFSIZE, &ulRead);
 		if (hr != hrSuccess || ulRead == 0)
 			break;
-		strOutput.append((WCHAR*)buffer, ulRead / sizeof(WCHAR));
+		strOutput.append(reinterpret_cast<wchar_t *>(buffer), ulRead / sizeof(WCHAR));
 	}
 	return hr;
 }

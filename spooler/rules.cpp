@@ -251,7 +251,7 @@ static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 		} else {
 			strForwardText += ptrBodies[0].Value.lpszW;
 		}
-		sNewBody.Value.lpszW = (WCHAR*)strForwardText.c_str();
+		sNewBody.Value.lpszW = const_cast<wchar_t *>(strForwardText.c_str());
 	}
 	else {
 		// HTML body (or rtf, but nuts to editing that!)
@@ -367,7 +367,7 @@ static HRESULT CreateReplyCopy(LPMAPISESSION lpSession, LPMDB lpOrigStore,
 		hr = HrGetOneProp(lpOrigMessage, PR_SUBJECT_W, &~lpProp);
 		if (hr == hrSuccess) {
 			strwSubject = wstring(L"BT: ") + lpProp->Value.lpszW;
-			lpProp->Value.lpszW = (WCHAR*)strwSubject.c_str();
+			lpProp->Value.lpszW = const_cast<wchar_t *>(strwSubject.c_str());
 			hr = HrSetOneProp(lpReplyMessage, lpProp);
 			if (hr != hrSuccess)
 				return hr;
@@ -809,7 +809,7 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 	sForwardProps[cfp].ulPropTag = PR_AUTO_FORWARDED;
 	sForwardProps[cfp++].Value.b = TRUE;
 	sForwardProps[cfp].ulPropTag = PR_SUBJECT;
-	sForwardProps[cfp++].Value.lpszW = (WCHAR*)strSubject.c_str();
+	sForwardProps[cfp++].Value.lpszW = const_cast<wchar_t *>(strSubject.c_str());
 	sForwardProps[cfp].ulPropTag = PR_SENTMAIL_ENTRYID;
 	sForwardProps[cfp++].Value.bin = lpSentMailEntryID->Value.bin;
 	if (bForwardAsAttachment) {

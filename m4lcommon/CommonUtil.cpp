@@ -737,8 +737,7 @@ static HRESULT HrResolveToSMTP(LPADRBOOK lpAdrBook,
 		return hr;
 	++lpAdrList->cEntries;
     lpAdrList->aEntries[0].rgPropVals[0].ulPropTag = PR_DISPLAY_NAME_W;
-    lpAdrList->aEntries[0].rgPropVals[0].Value.lpszW = (WCHAR *)strResolve.c_str();
-    
+	lpAdrList->aEntries[0].rgPropVals[0].Value.lpszW = const_cast<wchar_t *>(strResolve.c_str());
     hr = lpAdrBook->ResolveName(0, ulFlags | MAPI_UNICODE, NULL, lpAdrList);
     if(hr != hrSuccess)
 		return hr;

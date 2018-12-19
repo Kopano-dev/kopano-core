@@ -1366,15 +1366,15 @@ HRESULT ECMessage::SyncRecips()
 	}
 
 	sPropRecip.ulPropTag = PR_DISPLAY_TO_W;
-	sPropRecip.Value.lpszW = (WCHAR *)wstrTo.c_str();
+	sPropRecip.Value.lpszW = const_cast<wchar_t *>(wstrTo.c_str());
 	HrSetRealProp(&sPropRecip);
 
 	sPropRecip.ulPropTag = PR_DISPLAY_CC_W;
-	sPropRecip.Value.lpszW = (WCHAR *)wstrCc.c_str();
+	sPropRecip.Value.lpszW = const_cast<wchar_t *>(wstrCc.c_str());
 	HrSetRealProp(&sPropRecip);
 
 	sPropRecip.ulPropTag = PR_DISPLAY_BCC_W;
-	sPropRecip.Value.lpszW = (WCHAR *)wstrBcc.c_str();
+	sPropRecip.Value.lpszW = const_cast<wchar_t *>(wstrBcc.c_str());
 	HrSetRealProp(&sPropRecip);
 
 	m_bRecipsDirty = FALSE;
