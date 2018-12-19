@@ -29,6 +29,7 @@ using KC::serverdetails_t;
 using KC::serverlist_t;
 using KC::signatures_t;
 using KC::userobject_relation_t;
+class restrictTable;
 
 /**
  * UNIX user plugin
@@ -105,7 +106,7 @@ public:
 	 * @return The list of object signatures of all objects which were found
 	 * @throw std::exception
 	 */
-	virtual signatures_t getAllObjects(const objectid_t &company, objectclass_t) override;
+	virtual signatures_t getAllObjects(const objectid_t &company, objectclass_t, const restrictTable *) override;
 
 	/**
 	 * Obtain the object details for the given object

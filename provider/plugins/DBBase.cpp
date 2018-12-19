@@ -37,8 +37,8 @@ void DBPlugin::InitPlugin(std::shared_ptr<ECStatsCollector> sc)
 	    throw runtime_error(string("db_init: cannot get handle to database"));
 }
 
-signatures_t
-DBPlugin::getAllObjects(const objectid_t &company, objectclass_t objclass)
+signatures_t DBPlugin::getAllObjects(const objectid_t &company,
+    objectclass_t objclass, const restrictTable *rst)
 {
 	string strQuery =
 		"SELECT om.externid, om.objectclass, op.value "

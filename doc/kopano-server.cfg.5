@@ -533,6 +533,11 @@ Users with administrator rights are also not affected by this option and always 
 .PP
 Default:
 \fIyes\fR
+.SS abtable_initially_empty
+.PP
+If this directive is set to yes, the default content of (non-recursive) address
+book listings will be presented as empty, so that client programs will not load
+the entire address book until they have set or unset the table restriction.
 .SS auth_method
 .PP
 Authentication is normally done in the user plugin, selectable with

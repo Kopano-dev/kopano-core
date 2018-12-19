@@ -87,7 +87,6 @@ static pthread_t mainthread;
 std::shared_ptr<ECConfig> g_lpConfig;
 static bool g_listen_http, g_listen_https, g_listen_pipe;
 static std::shared_ptr<ECLogger> g_lpLogger, g_lpAudit;
-static std::unique_ptr<ECScheduler> g_lpScheduler;
 static std::unique_ptr<ECSoapServerConnection> g_lpSoapServerConn;
 static bool m_bDatabaseUpdateIgnoreSignals = false;
 static bool g_dump_config;
@@ -963,6 +962,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{ "hide_everyone",			"no", CONFIGSETTING_RELOADABLE },			// whether internal group Everyone should be removed for users
 		{ "hide_system",			"yes", CONFIGSETTING_RELOADABLE },			// whether internal user SYSTEM should be removed for users
 		{ "enable_gab",				"yes", CONFIGSETTING_RELOADABLE },			// whether the GAB is enabled
+		{"abtable_initially_empty", "no", CONFIGSETTING_RELOADABLE},
         { "enable_enhanced_ics",    "yes", CONFIGSETTING_RELOADABLE },			// (dis)allow enhanced ICS operations (stream and notifications)
         { "enable_sql_procedures",  "no" },			// (dis)allow SQL procedures (requires mysql config stack adjustment), not reloadable because in the middle of the streaming flip
 
@@ -1326,13 +1326,11 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		g_lpSessionManager->GetSearchFolders()->RestartSearches();
 
 	// Create scheduler system
-	g_lpScheduler.reset(new(std::nothrow) ECScheduler);
-	if (g_lpScheduler == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
+	ECScheduler sch;
 	// Add a task on the scheduler
-	g_lpScheduler->AddSchedule(SCHEDULE_HOUR, 0, &SoftDeleteRemover, &g_Quit);
-	g_lpScheduler->AddSchedule(SCHEDULE_HOUR, 15, &CleanupSyncsTable);
-	g_lpScheduler->AddSchedule(SCHEDULE_HOUR, 16, &CleanupSyncedMessagesTable);
+	sch.AddSchedule(SCHEDULE_HOUR, 00, &SoftDeleteRemover, &g_Quit);
+	sch.AddSchedule(SCHEDULE_HOUR, 15, &CleanupSyncsTable);
+	sch.AddSchedule(SCHEDULE_HOUR, 16, &CleanupSyncedMessagesTable);
 
 	// high loglevel to always see when server is started.
 	ec_log_notice("Startup succeeded on pid %d", getpid() );

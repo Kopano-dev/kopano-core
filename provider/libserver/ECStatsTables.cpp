@@ -552,7 +552,7 @@ ECRESULT ECUserStatsTable::LoadCompanyUsers(ULONG ulCompanyId)
 	std::list<unsigned int> lstObjId;
 
 	auto er = lpUserManagement->GetCompanyObjectListAndSync(OBJECTCLASS_USER,
-	          ulCompanyId, &unique_tie(lpObjects), 0);
+	          ulCompanyId, lpsRestrict, &unique_tie(lpObjects), 0);
 	if (FAILED(er))
 		return er;
 	for (const auto &obj : *lpObjects) {

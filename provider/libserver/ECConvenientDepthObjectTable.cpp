@@ -148,6 +148,13 @@ ECConvenientDepthABObjectTable::ECConvenientDepthABObjectTable(ECSession *ses,
 	m_lpfnQueryRowData = ECConvenientDepthABObjectTable::QueryRowData;
 	/* We require the details to construct the PR_EMS_AB_HIERARCHY_PATH */
 	m_ulUserManagementFlags &= ~USERMANAGEMENT_IDS_ONLY;
+	/*
+	 * Undo what the superclass may have set up as part of
+	 * abtable_initially_empty. Requestors using CONVENIENT_DEPTH normally
+	 * want all the entries, so give it to them.
+	 */
+	FreeRestrictTable(lpsRestrict);
+	lpsRestrict = nullptr;
 }
 
 ECRESULT ECConvenientDepthABObjectTable::Create(ECSession *lpSession,

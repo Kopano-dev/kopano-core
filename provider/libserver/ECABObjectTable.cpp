@@ -67,6 +67,16 @@ ECABObjectTable::ECABObjectTable(ECSession *ses, unsigned int ulABId,
 	sDefaultSortOrder.__ptr = &sObjectType;
 	sDefaultSortOrder.__size = 1;
 	SetSortOrder(&sDefaultSortOrder, 0, 0);
+
+	if (!parseBool(ses->GetSessionManager()->GetConfig()->GetSetting("abtable_initially_empty")))
+		return;
+	restrictOr ro;
+	ro.__size = 0;
+	ro.__ptr = nullptr;
+	restrictTable rt;
+	rt.ulType = RES_OR;
+	rt.lpOr = &ro;
+	CopyRestrictTable(nullptr, &rt, &lpsRestrict);
 }
 
 ECABObjectTable::~ECABObjectTable()
@@ -183,7 +193,7 @@ ECRESULT ECABObjectTable::LoadHierarchyAddressList(unsigned int ulObjectId,
 	}
 
 	auto er = lpSession->GetUserManagement()->GetCompanyObjectListAndSync(CONTAINER_ADDRESSLIST,
-	          ulObjectId, &unique_tie(lpObjects), m_ulUserManagementFlags);
+	          ulObjectId, lpsRestrict, &unique_tie(lpObjects), m_ulUserManagementFlags);
 	if (er != erSuccess)
 		return er;
 
@@ -303,7 +313,7 @@ ECRESULT ECABObjectTable::LoadContentsCompany(unsigned int ulObjectId,
 	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
 
 	auto er = lpSession->GetUserManagement()->GetCompanyObjectListAndSync(OBJECTCLASS_UNKNOWN,
-	          ulObjectId, &unique_tie(lpObjects), m_ulUserManagementFlags);
+	          ulObjectId, lpsRestrict, &unique_tie(lpObjects), m_ulUserManagementFlags);
 	if (er != erSuccess)
 		return er;
 

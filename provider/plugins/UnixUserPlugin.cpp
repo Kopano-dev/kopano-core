@@ -399,9 +399,8 @@ signatures_t UnixUserPlugin::getAllGroupObjects(const std::string &match,
 	return objectlist;
 }
 
-signatures_t
-UnixUserPlugin::getAllObjects(const objectid_t &companyid,
-    objectclass_t objclass)
+signatures_t UnixUserPlugin::getAllObjects(const objectid_t &companyid,
+    objectclass_t objclass, const restrictTable *rst)
 {
 	signatures_t objectlist;
 	std::map<objectclass_t, std::string> objectstrings;

@@ -23,6 +23,8 @@
 #include <kopano/ECLogger.h>
 #include <kopano/ECPluginSharedData.h>
 
+class restrictTable;
+
 namespace KC {
 /**
  * @defgroup userplugin Server user plugin
@@ -92,7 +94,7 @@ public:
 };
 
 typedef std::list<objectsignature_t> signatures_t;
-typedef std::list<unsigned int> abprops_t;
+typedef std::vector<unsigned int> abprops_t;
 
 class ECConfig;
 
@@ -171,7 +173,7 @@ public:
 	 * @return The list of object signatures of all objects which were found
 	 * @throw std::exception
 	 */
-	virtual signatures_t getAllObjects(const objectid_t &company, objectclass_t) = 0;
+	virtual signatures_t getAllObjects(const objectid_t &company, objectclass_t, const restrictTable * = nullptr) = 0;
 
 	/**
 	 * Obtain the object details for the given object

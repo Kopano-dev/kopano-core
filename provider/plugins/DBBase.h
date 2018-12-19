@@ -15,6 +15,8 @@
 #include "ECDatabase.h"
 #include <kopano/ECDefs.h>
 
+class restrictTable;
+
 namespace KC {
 
 /**
@@ -90,7 +92,7 @@ public:
 	 * @return The list of object signatures of all objects which were found
 	 * @throw std::exception
 	 */
-	virtual signatures_t getAllObjects(const objectid_t &company, objectclass_t) override;
+	virtual signatures_t getAllObjects(const objectid_t &company, objectclass_t, const restrictTable *) override;
 
 	/**
 	 * Obtain the object details for the given object

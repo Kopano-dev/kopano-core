@@ -214,6 +214,14 @@ static std::shared_ptr<ECLogger> lpLogger;
 
 static unsigned int mapi_debug;
 static char *perf_measure_file;
+int le_mapi_session, le_mapi_table, le_mapi_rowset, le_mapi_msgstore;
+int le_mapi_addrbook, le_mapi_mailuser, le_mapi_distlist, le_mapi_abcont;
+int le_mapi_folder, le_mapi_message, le_mapi_attachment;
+int le_mapi_property, le_mapi_modifytable, le_istream;
+int le_freebusy_support, le_freebusy_data;
+int le_freebusy_update, le_freebusy_enumblock;
+int le_mapi_exportchanges, le_mapi_importhierarchychanges;
+int le_mapi_importcontentschanges, le_mapi_advisesink;
 
 pmeasure::pmeasure(const std::string &whatIn)
 {
@@ -1283,8 +1291,7 @@ ZEND_FUNCTION(mapi_folder_gethierarchytable)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &res, &ulFlags) == FAILURE) return;
 
-	zend_list_find(res->value.lval, &type);
-
+	zend_list_find(Z_RESVAL_P(res), &type);
 	if(type == le_mapi_folder) {
 		IMAPIFolder *fld = nullptr;
 		ZEND_FETCH_RESOURCE_C(fld, decltype(fld), &res, -1, name_mapi_folder, le_mapi_folder);
@@ -1336,8 +1343,7 @@ ZEND_FUNCTION(mapi_folder_getcontentstable)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &res, &ulFlags) == FAILURE) return;
 
-	zend_list_find(res->value.lval, &type);
-
+	zend_list_find(Z_RESVAL_P(res), &type);
 	if(type == le_mapi_folder) {
 		IMAPIFolder *fld = nullptr;
 		ZEND_FETCH_RESOURCE_C(fld, decltype(fld), &res, -1, name_mapi_folder, le_mapi_folder);
@@ -2902,8 +2908,7 @@ ZEND_FUNCTION(mapi_openpropertytostream)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl|ls", &res, &proptag, &flags, &guidStr, &guidLen) == FAILURE) return;
 
-	zend_list_find(res->value.lval, &type);
-
+	zend_list_find(Z_RESVAL_P(res), &type);
 	if(type == le_mapi_message) {
 		ZEND_FETCH_RESOURCE_C(lpMapiProp, LPMESSAGE, &res, -1, name_mapi_message, le_mapi_message);
 	} else if (type == le_mapi_folder) {
@@ -3171,8 +3176,7 @@ ZEND_FUNCTION(mapi_setprops)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra", &res, &propValueArray) == FAILURE) return;
 
-	zend_list_find(res->value.lval, &type);
-
+	zend_list_find(Z_RESVAL_P(res), &type);
 	if(type == le_mapi_message) {
 		ZEND_FETCH_RESOURCE_C(lpMapiProp, LPMESSAGE, &res, -1, name_mapi_message, le_mapi_message);
 	} else if (type == le_mapi_folder) {
@@ -3232,8 +3236,7 @@ ZEND_FUNCTION(mapi_copyto)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "raar|l", &srcres, &excludeiid, &excludeprops, &dstres, &flags) == FAILURE) return;
 
-	zend_list_find(srcres->value.lval, &type);
-
+	zend_list_find(Z_RESVAL_P(srcres), &type);
 	if(type == le_mapi_message) {
 		ZEND_FETCH_RESOURCE_C(lpSrcObj, LPMESSAGE, &srcres, -1, name_mapi_message, le_mapi_message);
 	} else if (type == le_mapi_folder) {
@@ -3259,8 +3262,7 @@ ZEND_FUNCTION(mapi_copyto)
 		goto exit;
 	}
 
-	zend_list_find(dstres->value.lval, &type);
-
+	zend_list_find(Z_RESVAL_P(dstres), &type);
 	if(type == le_mapi_message) {
 		ZEND_FETCH_RESOURCE_C(lpDstObj, LPMESSAGE, &dstres, -1, name_mapi_message, le_mapi_message);
 		lpInterface = &IID_IMessage;
@@ -3310,7 +3312,7 @@ ZEND_FUNCTION(mapi_savechanges)
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unsupported case !IS_RESOURCE.");
 		goto exit;
 	}
-	zend_list_find(res->value.lval, &type);
+	zend_list_find(Z_RESVAL_P(res), &type);
 	if (type == le_mapi_message) {
 		ZEND_FETCH_RESOURCE_C(lpMapiProp, LPMESSAGE, &res, -1, name_mapi_message, le_mapi_message);
 	} else if (type == le_mapi_folder) {
@@ -3355,8 +3357,7 @@ ZEND_FUNCTION(mapi_deleteprops)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra", &res, &propTagArray) == FAILURE) return;
 
-	zend_list_find(res->value.lval, &type);
-
+	zend_list_find(Z_RESVAL_P(res), &type);
 	if(type == le_mapi_message) {
 		ZEND_FETCH_RESOURCE_C(lpMapiProp, LPMESSAGE, &res, -1, name_mapi_message, le_mapi_message);
 	} else if (type == le_mapi_folder) {
@@ -3421,8 +3422,7 @@ ZEND_FUNCTION(mapi_openproperty)
 		return;
 	}
 
-	zend_list_find(res->value.lval, &type);
-
+	zend_list_find(Z_RESVAL_P(res), &type);
 	if(type == le_mapi_message) {
 		ZEND_FETCH_RESOURCE_C(lpMapiProp, LPMESSAGE, &res, -1, name_mapi_message, le_mapi_message);
 	} else if (type == le_mapi_folder) {
@@ -3532,8 +3532,7 @@ ZEND_FUNCTION(mapi_getprops)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|a", &res, &tagArray) == FAILURE) return;
 
-	zend_list_find(res->value.lval, &type);
-
+	zend_list_find(Z_RESVAL_P(res), &type);
 	if(type == le_mapi_message) {
 		ZEND_FETCH_RESOURCE_C(lpMapiProp, LPMESSAGE, &res, -1, name_mapi_message, le_mapi_message);
 	} else if (type == le_mapi_folder) {
@@ -5452,8 +5451,7 @@ ZEND_FUNCTION(mapi_zarafa_getpermissionrules)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &res, &ulType) == FAILURE) return;
 
-	zend_list_find(res->value.lval, &type);
-
+	zend_list_find(Z_RESVAL_P(res), &type);
 	if(type == le_mapi_message) {
 		ZEND_FETCH_RESOURCE_C(lpMapiProp, LPMESSAGE, &res, -1, name_mapi_message, le_mapi_message);
 	} else if (type == le_mapi_folder) {
@@ -5518,8 +5516,7 @@ ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra", &res, &perms) == FAILURE) return;
 
-	zend_list_find(res->value.lval, &type);
-
+	zend_list_find(Z_RESVAL_P(res), &type);
 	if(type == le_mapi_message) {
 		ZEND_FETCH_RESOURCE_C(lpMapiProp, LPMESSAGE, &res, -1, name_mapi_message, le_mapi_message);
 	} else if (type == le_mapi_folder) {
@@ -6249,8 +6246,7 @@ ZEND_FUNCTION(mapi_exportchanges_config)
 	ZEND_FETCH_RESOURCE_C(lpExportChanges, IExchangeExportChanges *, &resExportChanges, -1, name_mapi_exportchanges, le_mapi_exportchanges);
 
 	if(Z_TYPE_P(resImportChanges) == IS_RESOURCE) {
-		zend_list_find(resImportChanges->value.lval, &type);
-
+		zend_list_find(Z_RESVAL_P(resImportChanges), &type);
 		if(type == le_mapi_importcontentschanges) {
 			ZEND_FETCH_RESOURCE_C(lpImportChanges, IUnknown *, &resImportChanges, -1, name_mapi_importcontentschanges, le_mapi_importcontentschanges);
 		} else if(type == le_mapi_importhierarchychanges) {
