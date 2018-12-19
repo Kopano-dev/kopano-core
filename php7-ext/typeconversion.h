@@ -28,6 +28,11 @@ ZEND_EXTERN_MODULE_GLOBALS(mapi)
 #include <kopano/charset/convert.h>
 #include <inetmapi/options.h>
 
+struct zvalplus : public zval {
+	zvalplus() { ZVAL_NULL(this); }
+	~zvalplus() { zval_ptr_dtor(this); }
+};
+
 /*
  * PHP -> MAPI
  *
