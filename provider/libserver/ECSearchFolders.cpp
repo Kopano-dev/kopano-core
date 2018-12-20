@@ -27,14 +27,17 @@
 
 namespace KC {
 
-struct THREADINFO {
+class THREADINFO final : public ECTask {
+	public:
+	virtual void run();
 	std::shared_ptr<SEARCHFOLDER> lpFolder;
     ECSearchFolders *lpSearchFolders;
 };
 
 ECSearchFolders::ECSearchFolders(ECSessionManager *lpSessionManager,
     ECDatabaseFactory *lpFactory) :
-	m_lpDatabaseFactory(lpFactory), m_lpSessionManager(lpSessionManager)
+	m_lpDatabaseFactory(lpFactory), m_lpSessionManager(lpSessionManager),
+	m_pool{atoui(lpSessionManager->GetConfig()->GetSetting("threads"))}
 {
 	auto ret = pthread_create(&m_threadProcess, nullptr, ECSearchFolders::ProcessThread, this);
 	if (ret != 0) {
@@ -222,20 +225,9 @@ ECRESULT ECSearchFolders::AddSearchFolder(unsigned int ulStoreId,
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	ti->lpSearchFolders = this;
 	ti->lpFolder = lpSearchFolder;
-	// Insert the actual folder with the criteria
-	// Start the thread (will store the thread id in the original list)
-	pthread_attr_t attr;
-	pthread_attr_init(&attr);
-	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-	pthread_attr_setstacksize(&attr, 512*1024); // 512KB stack space for search threads
-	auto err = pthread_create(&lpSearchFolder->sThreadId, &attr, ECSearchFolders::SearchThread, ti.get());
-	if (err != 0) {
-		ec_log_crit("Unable to spawn thread for search: %s", strerror(err));
-		return KCERR_NOT_ENOUGH_MEMORY;
-	} else {
-		ti.release();
-	}
-	set_thread_name(lpSearchFolder->sThreadId, "SearchFolders:Folder");
+	//pthread_attr_setstacksize(&attr, 512*1024); // 512KB stack space for search threads
+	m_pool.enqueue(ti.get(), true);
+	ti.release();
 	l_sf.unlock();
 	return er;
 }
@@ -1060,16 +1052,18 @@ ECRESULT ECSearchFolders::GetState(unsigned int ulStoreId, unsigned int ulFolder
     return erSuccess;
 }
 
-// Entrypoint for the SearchThread
-void* ECSearchFolders::SearchThread(void *lpParam)
+void THREADINFO::run()
 {
+	set_thread_name(pthread_self(), "SearchFolders:Folder");
 	kcsrv_blocksigs();
-	auto ti = static_cast<THREADINFO *>(lpParam);
+	ECSearchFolders::SearchThread(this);
+}
+
+void ECSearchFolders::SearchThread(THREADINFO *ti)
+{
 	auto lpFolder = std::move(ti->lpFolder); // The entry in the m_mapSearchFolders map
 	auto lpSearchFolders = ti->lpSearchFolders; // The main ECSearchFolders object
 
-    // We no longer need this
-    delete ti;
 	g_lpSessionManager->m_stats->inc(SCN_SEARCHFOLDER_THREADS);
     // Start the search
     lpSearchFolders->Search(lpFolder->ulStoreId, lpFolder->ulFolderId, lpFolder->lpSearchCriteria, &lpFolder->bThreadExit);
@@ -1083,7 +1077,6 @@ void* ECSearchFolders::SearchThread(void *lpParam)
     // We may not access lpFolder from this point on (it will be freed when the searchfolder is removed)
     lpFolder = NULL;
 	g_lpSessionManager->m_stats->inc(SCN_SEARCHFOLDER_THREADS, -1);
-    return NULL;
 }
 
 // Functions to do things in the database

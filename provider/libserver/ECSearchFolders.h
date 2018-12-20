@@ -13,6 +13,7 @@
 #include <pthread.h>
 #include "ECDatabaseFactory.h"
 #include <kopano/ECKeyTable.h>
+#include <kopano/ECThreadPool.h>
 #include "ECStoreObjectTable.h"
 #include "soapH.h"
 #include "SOAPUtils.h"
@@ -23,17 +24,17 @@
 namespace KC {
 
 class ECSessionManager;
+class THREADINFO;
 
 struct SEARCHFOLDER final {
 	SEARCHFOLDER(unsigned int store_id, unsigned int folder_id) :
-		sThreadId{}, ulStoreId(store_id), ulFolderId(folder_id)
+		ulStoreId(store_id), ulFolderId(folder_id)
 	{}
 	~SEARCHFOLDER() {
 		FreeSearchCriteria(lpSearchCriteria);
 	}
 
 	struct searchCriteria *lpSearchCriteria = nullptr;
-    pthread_t 				sThreadId;
 	std::mutex mMutexThreadFree;
 	bool bThreadFree = true, bThreadExit = false;
 	unsigned int ulStoreId, ulFolderId;
@@ -257,13 +258,7 @@ private:
      */
 	_kc_hidden virtual ECRESULT GetState(unsigned int store_id, unsigned int folder_id, unsigned int *state);
 
-    /**
-     * Search thread entrypoint.
-     *
-     * Simply a wrapper for Search(), and has code to do thread deregistration.
-     * @param[in] lpParam THREADINFO * thread information
-     */
-	_kc_hidden static void *SearchThread(void *);
+	_kc_hidden static void SearchThread(THREADINFO *);
 
     // Functions to do things in the database
 
@@ -386,6 +381,7 @@ private:
 
     ECDatabaseFactory *m_lpDatabaseFactory;
     ECSessionManager *m_lpSessionManager;
+	ECThreadPool m_pool;
 
     // List of change events
     std::list<EVENT> m_lstEvents;
@@ -397,6 +393,8 @@ private:
 
     // Exit request for processing thread
 	bool m_thread_active = false, m_bExitThread = false, m_bRunning = false;
+
+	friend class THREADINFO;
 };
 
 } /* namespace */
