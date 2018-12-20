@@ -607,6 +607,7 @@ libkcserver_la_SOURCES = \
 	provider/common/ECSearchClient.cpp provider/common/ECSearchClient.h \
 	provider/soap/soapKCmdService.h provider/soap/soapKCmdService.cpp
 libkcserver_la_LIBADD = \
+	libkcindex.la \
 	libkcutil.la libkcsoap.la -lpthread ${icu_i18n_LIBS} ${icu_uc_LIBS} \
 	${GSOAP_LIBS} ${GZ_LIBS} ${kcoidc_LIBS} \
 	${KRB5_LIBS} ${MYSQL_LIBS} ${PAM_LIBS} ${SSL_LIBS}

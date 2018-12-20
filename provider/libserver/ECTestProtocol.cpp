@@ -38,7 +38,7 @@ ECRESULT TestPerform(ECSession *lpSession,
         }
     } else if (strcasecmp(szCommand, "indexer_syncrun") == 0) {
 		if (parseBool(g_lpSessionManager->GetConfig()->GetSetting("search_enabled")))
-			er = ECSearchClient(
+			er = ECSearchClientNET(
 				g_lpSessionManager->GetConfig()->GetSetting("search_socket"),
 				60 * 10 /* 10 minutes should be enough for everyone */
 			).SyncRun();
