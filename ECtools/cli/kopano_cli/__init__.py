@@ -9,7 +9,6 @@ import sys
 import traceback
 from optparse import OptionGroup
 
-from MAPI.Tags import PR_EC_STATSTABLE_SYSTEM, PR_DISPLAY_NAME, PR_EC_STATS_SYSTEM_VALUE
 import kopano
 from kopano.parser import _true, _int, _name, _guid, _bool, _list_name, _date, _path
 
@@ -211,9 +210,7 @@ def list_permissions(store):
                 print(_encode('    ' + folder.path + ': ' + perm.member.name + ':' + ','.join(perm.rights)))
 
 def user_counts(server): # XXX allowed/available
-    stats = server.table(PR_EC_STATSTABLE_SYSTEM).dict_(PR_DISPLAY_NAME, PR_EC_STATS_SYSTEM_VALUE)
-    if sys.hexversion >= 0x03000000: # XXX shouldn't be necessary
-        stats = dict([(s.decode('ascii'), stats[s].decode('ascii')) for s in stats])
+    stats = server.stats()
     print('User counts:')
     fmt = '\t{0:>12} {1:>10}'
     print(fmt.format('', 'Used'))
