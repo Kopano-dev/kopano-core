@@ -150,20 +150,20 @@ server_stats::server_stats(std::shared_ptr<ECConfig> cfg) :
 	AddStat(SCN_LDAP_CONNECTS, SCT_INTEGER, "ldap_connect", "Number of connections made to LDAP server");
 	AddStat(SCN_LDAP_RECONNECTS, SCT_INTEGER, "ldap_reconnect", "Number of re-connections made to LDAP server");
 	AddStat(SCN_LDAP_CONNECT_FAILED, SCT_INTEGER, "ldap_connect_fail", "Number of failed connections made to LDAP server");
-	AddStat(SCN_LDAP_CONNECT_TIME, SCT_INTEGER, "ldap_connect_time", "Total duration of connections made to LDAP server");
-	AddStat(SCN_LDAP_CONNECT_TIME_MAX, SCT_INTGAUGE, "ldap_max_connect", "Longest connection time made to LDAP server");
+	AddStat(SCN_LDAP_CONNECT_TIME, SCT_INTEGER, "ldap_connect_time", "Total duration (µs) of connections made to LDAP server");
+	AddStat(SCN_LDAP_CONNECT_TIME_MAX, SCT_INTGAUGE, "ldap_max_connect", "Longest connection time (µs) made to LDAP server");
 
 	/* potentially useless because of SCN_LOGIN_* */
 	AddStat(SCN_LDAP_AUTH_LOGINS, SCT_INTEGER, "ldap_auth", "Number of LDAP authentications");
 	AddStat(SCN_LDAP_AUTH_DENIED, SCT_INTEGER, "ldap_auth_fail", "Number of failed authentications");
-	AddStat(SCN_LDAP_AUTH_TIME, SCT_INTEGER, "ldap_auth_time", "Total authentication time");
-	AddStat(SCN_LDAP_AUTH_TIME_MAX, SCT_INTGAUGE, "ldap_max_auth", "Longest duration of authentication made to LDAP server");
-	AddStat(SCN_LDAP_AUTH_TIME_AVG, SCT_INTGAUGE, "ldap_avg_auth", "Average duration of authentication made to LDAP server");
+	AddStat(SCN_LDAP_AUTH_TIME, SCT_INTEGER, "ldap_auth_time", "Total authentication time (µs)");
+	AddStat(SCN_LDAP_AUTH_TIME_MAX, SCT_INTGAUGE, "ldap_max_auth", "Longest duration (µs) of authentication made to LDAP server");
+	AddStat(SCN_LDAP_AUTH_TIME_AVG, SCT_INTGAUGE, "ldap_avg_auth", "Average duration (µs) of authentication made to LDAP server");
 
 	AddStat(SCN_LDAP_SEARCH, SCT_INTEGER, "ldap_search", "Number of searches made to LDAP server");
 	AddStat(SCN_LDAP_SEARCH_FAILED, SCT_INTEGER, "ldap_search_fail", "Number of failed searches made to LDAP server");
-	AddStat(SCN_LDAP_SEARCH_TIME, SCT_INTEGER, "ldap_search_time", "Total duration of LDAP searches");
-	AddStat(SCN_LDAP_SEARCH_TIME_MAX, SCT_INTGAUGE, "ldap_max_search", "Longest duration of LDAP search");
+	AddStat(SCN_LDAP_SEARCH_TIME, SCT_INTEGER, "ldap_search_time", "Total duration (µs) of LDAP searches");
+	AddStat(SCN_LDAP_SEARCH_TIME_MAX, SCT_INTGAUGE, "ldap_max_search", "Longest duration (µs) of LDAP search");
 
 	AddStat(SCN_INDEXER_SEARCH_ERRORS, SCT_INTEGER, "index_search_errors", "Number of failed indexer queries");
 	AddStat(SCN_INDEXER_SEARCH_MAX, SCT_INTGAUGE, "index_search_max", "Maximum duration of an indexed search query");
