@@ -121,7 +121,9 @@ ECRESULT ECSearchClient::Query(std::list<unsigned int> &lstMatches)
  * @return result
  */
  
-ECRESULT ECSearchClient::Query(GUID *lpServerGuid, GUID *lpStoreGuid, std::list<unsigned int>& lstFolders, std::list<SIndexedTerm> &lstSearches, std::list<unsigned int> &lstMatches, std::string &suggestion)
+ECRESULT ECSearchClient::Query(const GUID *lpServerGuid, const GUID *lpStoreGuid,
+    const std::list<unsigned int> &lstFolders, const std::list<SIndexedTerm> &lstSearches,
+    std::list<unsigned int> &lstMatches, std::string &suggestion)
 {
 	auto strServer = bin2hex(sizeof(GUID), lpServerGuid);
 	auto strStore = bin2hex(sizeof(GUID), lpStoreGuid);

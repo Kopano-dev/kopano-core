@@ -27,7 +27,7 @@ class ECSearchClient final : public ECChannelClient {
 public:
 	ECSearchClient(const char *szIndexerPath, unsigned int ulTimeOut);
 	ECRESULT GetProperties(setindexprops_t &mapProps);
-	ECRESULT Query(GUID *lpServerGuid, GUID *lpStoreGUID, std::list<unsigned int> &lstFolders, std::list<SIndexedTerm> &lstSearches, std::list<unsigned int> &lstMatches, std::string &suggestion);
+	ECRESULT Query(const GUID *server_guid, const GUID *store_guid, const std::list<unsigned int> &folders, const std::list<SIndexedTerm> &searches, std::list<unsigned int> &matches, std::string &suggestion);
 	ECRESULT SyncRun();
 	
 private:
