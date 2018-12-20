@@ -345,7 +345,7 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig,
 	ec_log_debug("Using index, %zu index queries", lstMultiSearches.size());
 	tstart = decltype(tstart)::clock::now();
 	er = lpSearchClient->Query(guidServer, guidStore, lstFolders, lstMultiSearches, lstMatches, suggestion);
-	llelapsedtime = std::chrono::duration_cast<std::chrono::milliseconds>(decltype(tstart)::clock::now() - tstart).count();
+	llelapsedtime = std::chrono::duration_cast<std::chrono::microseconds>(decltype(tstart)::clock::now() - tstart).count();
 	g_lpSessionManager->m_stats->Max(SCN_INDEXER_SEARCH_MAX, llelapsedtime);
 	g_lpSessionManager->m_stats->avg(SCN_INDEXER_SEARCH_AVG, llelapsedtime);
 
