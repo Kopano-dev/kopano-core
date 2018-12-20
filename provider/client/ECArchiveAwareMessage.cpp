@@ -408,28 +408,6 @@ std::string ECArchiveAwareMessage::CreateErrorBodyUtf8(HRESULT hResult) {
 	return convert_to<std::string>("UTF-8", strHtmlBody, rawsize(strHtmlBody), CHARSET_TCHAR);
 }
 
-std::string ECArchiveAwareMessage::CreateOfflineWarnBodyUtf8()
-{
-	std::basic_ostringstream<TCHAR> ossHtmlBody;
-
-	ossHtmlBody << KC_T("<HTML><HEAD><STYLE type=\"text/css\">")
-				   KC_T("BODY {font-family: \"sans-serif\";margin-left: 1em;}")
-				   KC_T("P {margin: .1em 0;}")
-				   KC_T("P.spacing {margin: .8em 0;}")
-				   KC_T("H1 {margin: .3em 0;}")
-				   KC_T("SPAN#errcode {display: inline;font-weight: bold;}")
-				   KC_T("SPAN#errmsg {display: inline;font-style: italic;}")
-				   KC_T("DIV.indented {margin-left: 4em;}")
-				   KC_T("</STYLE></HEAD><BODY><H1>")
-				<< "Kopano Archiver"
-				<< KC_T("</H1><P>")
-				<< KC_TX("Archives can not be destubbed when working offline.")
-				<< KC_T("</P></BODY></HTML>");
-
-	tstring strHtmlBody = ossHtmlBody.str();
-	return convert_to<std::string>("UTF-8", strHtmlBody, rawsize(strHtmlBody), CHARSET_TCHAR);
-}
-
 HRESULT ECArchiveAwareAttachFactory::Create(ECMsgStore *lpMsgStore,
     ULONG ulObjType, BOOL fModify, ULONG ulAttachNum, const ECMAPIProp *lpRoot,
     ECAttach **lppAttach) const

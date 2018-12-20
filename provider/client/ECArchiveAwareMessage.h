@@ -84,7 +84,6 @@ private:
 	_kc_hidden HRESULT MapNamedProps(void);
 	_kc_hidden HRESULT CreateInfoMessage(const SPropTagArray *deleteprop, const std::string &bodyhtml);
 	_kc_hidden std::string CreateErrorBodyUtf8(HRESULT);
-	_kc_hidden std::string CreateOfflineWarnBodyUtf8(void);
 
 	bool	m_bLoading, m_bNamedPropsMapped;
 	PROPMAP_DECL()
