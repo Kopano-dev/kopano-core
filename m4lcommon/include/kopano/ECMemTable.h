@@ -81,7 +81,7 @@ protected:
 	std::map<unsigned int, ECTableEntry>	mapRows;
 	std::vector<ECMemTableView *>			lstViews;
 	ULONG									ulRowPropTag;
-	std::unique_ptr<SPropTagArray> lpsColumns;
+	memory_ptr<SPropTagArray> lpsColumns;
 	std::recursive_mutex m_hDataMutex;
 
 	friend class ECMemTableView;
@@ -131,8 +131,8 @@ private:
 	ECKeyTable lpKeyTable;
 	ECMemTable *			lpMemTable;
 	ECMapMemAdvise			m_mapAdvise;
-	std::unique_ptr<SSortOrderSet> lpsSortOrderSet;
-	std::unique_ptr<SPropTagArray> lpsPropTags; /* columns */
+	memory_ptr<SSortOrderSet> lpsSortOrderSet;
+	memory_ptr<SPropTagArray> lpsPropTags; /* columns */
 	memory_ptr<SRestriction> lpsRestriction;
 	ECLocale				m_locale;
 	ULONG m_ulConnection = 1; // Next advise id
