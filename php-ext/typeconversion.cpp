@@ -93,11 +93,10 @@ HRESULT PHPArraytoSBinaryArray(zval * entryid_array , void *lpBase, SBinaryArray
 	if(MAPI_G(hr) != hrSuccess)
 		return MAPI_G(hr);
 
-	// Reset php pointer
-	zend_hash_internal_pointer_reset(target_hash);
-
+	HashPosition hpos;
+	zend_hash_internal_pointer_reset_ex(target_hash, &hpos);
 	for (i = 0; i < count; ++i) {
-		zend_hash_get_current_data(target_hash, (void **) &ppentry);
+		zend_hash_get_current_data_ex(target_hash, reinterpret_cast<void **>(&ppentry), &hpos);
 		pentry = *ppentry;
 
 		convert_to_string_ex(&pentry);
@@ -106,7 +105,7 @@ HRESULT PHPArraytoSBinaryArray(zval * entryid_array , void *lpBase, SBinaryArray
 		if(MAPI_G(hr) != hrSuccess)
 			return MAPI_G(hr);
 		++n;
-		zend_hash_move_forward(target_hash);
+		zend_hash_move_forward_ex(target_hash, &hpos);
 	}
 
 	lpBinaryArray->cValues = n;
@@ -190,17 +189,15 @@ HRESULT PHPArraytoSortOrderSet(zval * sortorder_array, void *lpBase, LPSSortOrde
 	lpSortOrderSet->cCategories = 0;
 	lpSortOrderSet->cExpanded = 0;
 
-	// first reset the hash, so the pointer points to the first element.
-	zend_hash_internal_pointer_reset(target_hash);
-
+	HashPosition hpos;
+	zend_hash_internal_pointer_reset_ex(target_hash, &hpos);
 	for (int i = 0; i < count; ++i) {
 		//todo: check on FAILURE
 		char *key = NULL;
 		ulong ind = 0;
-		zend_hash_get_current_data(target_hash, (void **) &entry);
-
+		zend_hash_get_current_data_ex(target_hash, reinterpret_cast<void **>(&entry), &hpos);
 		// when the key is a char &key is set else ind is set
-		zend_hash_get_current_key(target_hash, &key, &ind, 0);
+		zend_hash_get_current_key_ex(target_hash, &key, nullptr, &ind, 0, &hpos);
 		if (key != NULL)
 			lpSortOrderSet->aSort[i].ulPropTag = atoi(key);
 		else
@@ -208,9 +205,7 @@ HRESULT PHPArraytoSortOrderSet(zval * sortorder_array, void *lpBase, LPSSortOrde
 
 		convert_to_long_ex(&entry[0]);
 		lpSortOrderSet->aSort[i].ulOrder = (ULONG) entry[0]->value.lval;
-
-		// get next hash pointer
-		zend_hash_move_forward(target_hash);
+		zend_hash_move_forward_ex(target_hash, &hpos);
 	}
 
 	*lppSortOrderSet = lpSortOrderSet;
@@ -249,19 +244,14 @@ HRESULT PHPArraytoPropTagArray(zval * prop_value_array, void *lpBase, LPSPropTag
 		return MAPI_G(hr);
 	lpPropTagArray->cValues = count;
 
-	// first reset the hash, so the pointer points to the first element.
-	zend_hash_internal_pointer_reset(target_hash);
-
+	HashPosition hpos;
+	zend_hash_internal_pointer_reset_ex(target_hash, &hpos);
 	for (int i = 0; i < count; ++i) {
-		//	Gets the element that exist at the current pointer.
-		zend_hash_get_current_data(target_hash, (void **) &entry);
-		
+		zend_hash_get_current_data_ex(target_hash, reinterpret_cast<void **>(&entry), &hpos);
 		convert_to_long_ex(entry);
 
 		lpPropTagArray->aulPropTag[i] = entry[0]->value.lval;
-
-		// move the pointer to the next entry
-		zend_hash_move_forward(target_hash);
+		zend_hash_move_forward_ex(target_hash, &hpos);
 	}
 	
 	*lppPropTagArray = lpPropTagArray;
@@ -310,14 +300,13 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 	    *lpcValues = 0;
 	}
 
-	zend_hash_internal_pointer_reset(target_hash);
-
+	HashPosition thpos, dhpos;
+	zend_hash_internal_pointer_reset_ex(target_hash, &thpos);
 	MAPI_G(hr) = MAPI_ALLOC(sizeof(SPropValue) * count, lpBase, (void**)&lpPropValue);
 
 	for (int i = 0; i < count; ++i) {
-		//	Gets the element that exist at the current pointer.
-		zend_hash_get_current_data(target_hash, (void **) &entry);
-		zend_hash_get_current_key(target_hash, &keyIndex, &numIndex, 0);
+		zend_hash_get_current_data_ex(target_hash, reinterpret_cast<void **>(&entry), &thpos);
+		zend_hash_get_current_key_ex(target_hash, &keyIndex, nullptr, &numIndex, 0, &thpos);
 
 		// assume a numeric index
 		lpPropValue[cvalues].ulPropTag = numIndex;
@@ -404,7 +393,7 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 			lpPropValue[cvalues].Value.mapimvmember.mapilpmember = NULL; \
 			break; \
 		} \
-		zend_hash_internal_pointer_reset(dataHash); \
+		zend_hash_internal_pointer_reset_ex(dataHash, &dhpos); \
 	}
 
 #define COPY_MV_PROPS(type, mapimvmember, mapilpmember, phpmember) \
@@ -413,10 +402,10 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 	lpPropValue[cvalues].Value.mapimvmember.cValues = countarray; \
 	MAPI_G(hr) = MAPIAllocateMore(sizeof(lpPropValue[cvalues].Value.mapimvmember.mapilpmember[0]) * countarray, lpBase ? lpBase : lpPropValue, (void**)&lpPropValue[cvalues].Value.mapimvmember.mapilpmember); \
 	for (j = 0; j < countarray; ++j) { \
-		zend_hash_get_current_data(dataHash, (void **) &dataEntry); \
+		zend_hash_get_current_data_ex(dataHash, reinterpret_cast<void **>(&dataEntry), &dhpos); \
 		convert_to_##type##_ex(dataEntry); \
 		lpPropValue[cvalues].Value.mapimvmember.mapilpmember[j] = dataEntry[0]->value.phpmember; \
-		zend_hash_move_forward(dataHash); \
+		zend_hash_move_forward_ex(dataHash, &dhpos); \
 	}
 
 		case PT_MV_I2:
@@ -447,10 +436,10 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 			if ((MAPI_G(hr) = MAPIAllocateMore(sizeof(FILETIME) * countarray, lpBase ? lpBase : lpPropValue, (void **)&lpPropValue[cvalues].Value.MVft.lpft)) != hrSuccess)
 				return MAPI_G(hr);
 			for (j = 0; j < countarray; ++j) {
-				zend_hash_get_current_data(dataHash, (void **)&dataEntry);
+				zend_hash_get_current_data_ex(dataHash, reinterpret_cast<void **>(&dataEntry), &dhpos);
 				convert_to_long_ex(dataEntry);
 				lpPropValue[cvalues].Value.MVft.lpft[j] = UnixTimeToFileTime(dataEntry[0]->value.lval);
-				zend_hash_move_forward(dataHash);
+				zend_hash_move_forward_ex(dataHash, &dhpos);
 			}
 			++cvalues;
 			break;
@@ -461,14 +450,14 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 			if ((MAPI_G(hr) = MAPIAllocateMore(sizeof(SBinary) * countarray, lpBase ? lpBase : lpPropValue, (void **)&lpPropValue[cvalues].Value.MVbin.lpbin)) != hrSuccess)
 				return MAPI_G(hr);
 			for (h = 0, j = 0; j < countarray; ++j) {
-				zend_hash_get_current_data(dataHash, (void **)&dataEntry);
+				zend_hash_get_current_data_ex(dataHash, reinterpret_cast<void **>(&dataEntry), &dhpos);
 				convert_to_string_ex(dataEntry);
 				lpPropValue[cvalues].Value.MVbin.lpbin[h].cb = dataEntry[0]->value.str.len;
 				MAPI_G(hr) = KAllocCopy(dataEntry[0]->value.str.val, dataEntry[0]->value.str.len, reinterpret_cast<void **>(&lpPropValue[cvalues].Value.MVbin.lpbin[h].lpb), lpBase != nullptr ? lpBase : lpPropValue);
 				if (MAPI_G(hr) != hrSuccess)
 					return MAPI_G(hr);
 				++h;
-				zend_hash_move_forward(dataHash);
+				zend_hash_move_forward_ex(dataHash, &dhpos);
 			}
 			lpPropValue[cvalues++].Value.MVbin.cValues = h;
 			break;
@@ -478,13 +467,13 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 			if ((MAPI_G(hr) = MAPIAllocateMore(sizeof(char*) * countarray, lpBase ? lpBase : lpPropValue, (void **)&lpPropValue[cvalues].Value.MVszA.lppszA)) != hrSuccess)
 				return MAPI_G(hr);
 			for (h = 0, j = 0; j < countarray; ++j) {
-				zend_hash_get_current_data(dataHash, (void **)&dataEntry);
+				zend_hash_get_current_data_ex(dataHash, reinterpret_cast<void **>(&dataEntry), &dhpos);
 				convert_to_string_ex(dataEntry);
 				MAPI_G(hr) = KAllocCopy(dataEntry[0]->value.str.val, dataEntry[0]->value.str.len + 1, reinterpret_cast<void **>(&lpPropValue[cvalues].Value.MVszA.lppszA[h]), lpBase != nullptr ? lpBase : lpPropValue);
 				if (MAPI_G(hr) != hrSuccess)
 					return MAPI_G(hr);
 				++h;
-				zend_hash_move_forward(dataHash);
+				zend_hash_move_forward_ex(dataHash, &dhpos);
 			}
 			lpPropValue[cvalues++].Value.MVszA.cValues = h;
 			break;
@@ -494,13 +483,13 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 			if ((MAPI_G(hr) = MAPIAllocateMore(sizeof(GUID) * countarray, lpBase ? lpBase : lpPropValue, (void **)&lpPropValue[cvalues].Value.MVguid.lpguid)) != hrSuccess)
 				return MAPI_G(hr);
 			for (h = 0, j = 0; j < countarray; ++j) {
-				zend_hash_get_current_data(dataHash, (void **)&dataEntry);
+				zend_hash_get_current_data_ex(dataHash, reinterpret_cast<void **>(&dataEntry), &dhpos);
 				convert_to_string_ex(dataEntry);
 				if (dataEntry[0]->value.str.len != sizeof(GUID))
 					php_error_docref(NULL TSRMLS_CC, E_WARNING, "invalid value for PT_MV_CLSID property in proptag 0x%08X, position %d,%d", lpPropValue[cvalues].ulPropTag, i, j);
 				else
 					memcpy(&lpPropValue[cvalues].Value.MVguid.lpguid[h++], dataEntry[0]->value.str.val, sizeof(GUID));
-				zend_hash_move_forward(dataHash);
+				zend_hash_move_forward_ex(dataHash, &dhpos);
 			}
 			lpPropValue[cvalues++].Value.MVguid.cValues = h;
 			break;
@@ -514,7 +503,7 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 			dataHash = HASH_OF(entry[0]);
 			if (!dataHash)
 				break;
-			zend_hash_internal_pointer_reset(dataHash);
+			zend_hash_internal_pointer_reset_ex(dataHash, &dhpos);
 			countarray = zend_hash_num_elements(dataHash); // # of actions
 			if (countarray == 0) {
 				php_error_docref(NULL TSRMLS_CC, E_WARNING, "PT_ACTIONS is empty");
@@ -530,7 +519,7 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 			memset(lpActions->lpAction, 0, sizeof(ACTION) * lpActions->cActions);
 
 			for (j = 0; j < countarray; ++j) {
-				zend_hash_get_current_data(dataHash, (void **)&entry);
+				zend_hash_get_current_data_ex(dataHash, reinterpret_cast<void **>(&entry), &dhpos);
 				actionHash = HASH_OF(entry[0]);
 				if (!actionHash) {
 					php_error_docref(NULL TSRMLS_CC, E_WARNING, "ACTIONS structure has a wrong ACTION");
@@ -659,7 +648,7 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 					// Nothing to do
 					break;
 				};
-				zend_hash_move_forward(dataHash);
+				zend_hash_move_forward_ex(dataHash, &dhpos);
 			}
 			++cvalues;
 			break;
@@ -680,9 +669,7 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unknown property type %08X", PROP_TYPE(numIndex));
 			return MAPI_G(hr) = MAPI_E_INVALID_TYPE;
 		}
-
-		// move the pointer to the next entry
-		zend_hash_move_forward(target_hash);
+		zend_hash_move_forward_ex(target_hash, &thpos);
 	}
 
 	*lpcValues = cvalues;
@@ -725,13 +712,14 @@ HRESULT PHPArraytoAdrList(zval *phpArray, void *lpBase, LPADRLIST *lppAdrList TS
 	if(MAPI_G(hr) != hrSuccess)
 		return MAPI_G(hr);
 	lpAdrList->cEntries = 0;
-	zend_hash_internal_pointer_reset(target_hash);
+	HashPosition hpos;
+	zend_hash_internal_pointer_reset_ex(target_hash, &hpos);
 
 	// FIXME: It is possible that the memory allocated is more than actually needed. We should first
 	//		  count the number of elements needed then allocate memory and then fill the memory.
 	//        but since this waste is probably very minimal, we could not care less about this.
 	for (unsigned int i = 0; i < count; ++i) {
-		zend_hash_get_current_data(target_hash, (void **) &entry);
+		zend_hash_get_current_data_ex(target_hash, reinterpret_cast<void **>(&entry), &hpos);
 		if(entry[0]->type != IS_ARRAY) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "phparraytoadrlist array must include an array with array of propvalues");
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -745,9 +733,7 @@ HRESULT PHPArraytoAdrList(zval *phpArray, void *lpBase, LPADRLIST *lppAdrList TS
 		lpAdrList->aEntries[countRecipients].ulReserved1 = 0;
 		lpAdrList->aEntries[countRecipients].rgPropVals = pPropValue;
 		lpAdrList->aEntries[countRecipients].cValues = countProperties;
-
-		// move the pointer to the next entry
-		zend_hash_move_forward(target_hash);
+		zend_hash_move_forward_ex(target_hash, &hpos);
 		++countRecipients;
 	}
 	*lppAdrList = lpAdrList;
@@ -789,13 +775,14 @@ HRESULT PHPArraytoRowList(zval *phpArray, void *lpBase, LPROWLIST *lppRowList TS
 	if (MAPI_G(hr) != hrSuccess)
 		return MAPI_G(hr);
 	lpRowList->cEntries = 0;
-	zend_hash_internal_pointer_reset(target_hash);
+	HashPosition hpos;
+	zend_hash_internal_pointer_reset_ex(target_hash, &hpos);
 
 	// FIXME: It is possible that the memory allocated is more than actually needed. We should first
 	//		  count the number of elements needed then allocate memory and then fill the memory.
 	//        but since this waste is probably very minimal, we could not care less about this.
 	for (unsigned int i = 0; i < count; ++i) {
-		zend_hash_get_current_data(target_hash, (void **) &entry);
+		zend_hash_get_current_data_ex(target_hash, reinterpret_cast<void **>(&entry), &hpos);
 		if (Z_TYPE_PP(entry) != IS_ARRAY) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "PHPArraytoRowList, Row not wrapped in array");
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -828,9 +815,7 @@ HRESULT PHPArraytoRowList(zval *phpArray, void *lpBase, LPROWLIST *lppRowList TS
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 			goto exit;
 		}
-
-		// move the pointer to the next entry
-		zend_hash_move_forward(target_hash);
+		zend_hash_move_forward_ex(target_hash, &hpos);
 	}
 	*lppRowList = lpRowList;
 
@@ -928,12 +913,13 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Wrong array should be array(RES_, array(values))");
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 	}
-	zend_hash_internal_pointer_reset(resHash);
+	HashPosition rhpos, dhpos;
+	zend_hash_internal_pointer_reset_ex(resHash, &rhpos);
 
 	// structure assumption: add more checks that valueEntry becomes php array pointer?
-	zend_hash_get_current_data(resHash, (void **) &typeEntry); // 0=type, 1=array
-	zend_hash_move_forward(resHash);
-	zend_hash_get_current_data(resHash, (void **) &valueEntry);
+	zend_hash_get_current_data_ex(resHash, reinterpret_cast<void **>(&typeEntry), &rhpos); // 0=type, 1=array
+	zend_hash_move_forward_ex(resHash, &rhpos);
+	zend_hash_get_current_data_ex(resHash, reinterpret_cast<void **>(&valueEntry), &rhpos);
 
 	lpRes->rt = typeEntry[0]->value.lval;		// set restriction type (RES_AND, RES_OR, ...)
 	dataHash = HASH_OF(valueEntry[0]);			// from resHash
@@ -942,8 +928,7 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 	}
 	count = zend_hash_num_elements(dataHash);
-
-	zend_hash_internal_pointer_reset(dataHash);
+	zend_hash_internal_pointer_reset_ex(dataHash, &dhpos);
 
 	switch(lpRes->rt) {
 	/*
@@ -956,13 +941,12 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 		if (MAPI_G(hr) != hrSuccess)
 			return MAPI_G(hr);
 		for (i = 0; i < count; ++i) {
-			zend_hash_get_current_data(dataHash, (void **) &valueEntry);
-
+			zend_hash_get_current_data_ex(dataHash, reinterpret_cast<void **>(&valueEntry), &dhpos);
 			MAPI_G(hr) = PHPArraytoSRestriction(valueEntry[0], lpBase, &lpRes->res.resAnd.lpRes[i] TSRMLS_CC);
 			
 			if (MAPI_G(hr) != hrSuccess)
 				return MAPI_G(hr);
-			zend_hash_move_forward(dataHash);
+			zend_hash_move_forward_ex(dataHash, &dhpos);
 		}
 		break;
 	case RES_OR:
@@ -973,13 +957,12 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 			return MAPI_G(hr);
 
 		for (i = 0; i < count; ++i) {
-			zend_hash_get_current_data(dataHash, (void **) &valueEntry);
-
+			zend_hash_get_current_data_ex(dataHash, reinterpret_cast<void **>(&valueEntry), &dhpos);
 			MAPI_G(hr) = PHPArraytoSRestriction(valueEntry[0], lpBase, &lpRes->res.resOr.lpRes[i] TSRMLS_CC);
 
 			if (MAPI_G(hr) != hrSuccess)
 				return MAPI_G(hr);
-			zend_hash_move_forward(dataHash);
+			zend_hash_move_forward_ex(dataHash, &dhpos);
 		}
 		break;
 	case RES_NOT:
@@ -987,8 +970,7 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 		MAPI_G(hr) = MAPIAllocateMore(sizeof(SRestriction), lpBase, (void **) &lpRes->res.resNot.lpRes);
 		if (MAPI_G(hr) != hrSuccess)
 			return MAPI_G(hr);
-		zend_hash_get_current_data(dataHash, (void **) &valueEntry);
-
+		zend_hash_get_current_data_ex(dataHash, reinterpret_cast<void **>(&valueEntry), &dhpos);
 		MAPI_G(hr) = PHPArraytoSRestriction(valueEntry[0], lpBase, lpRes->res.resNot.lpRes TSRMLS_CC);
 		if (MAPI_G(hr) != hrSuccess)
 			return MAPI_G(hr);
@@ -1874,11 +1856,10 @@ HRESULT PHPArraytoReadStateArray(zval *zvalReadStates, void *lpBase, ULONG *lpcV
 	if(MAPI_G(hr) != hrSuccess) 
 		return MAPI_G(hr);
 
-	// Reset php pointer
-	zend_hash_internal_pointer_reset(target_hash);
-
+	HashPosition hpos;
+	zend_hash_internal_pointer_reset_ex(target_hash, &hpos);
 	for (i = 0; i < count; ++i) {
-		zend_hash_get_current_data(target_hash, (void **) &ppentry);
+		zend_hash_get_current_data_ex(target_hash, reinterpret_cast<void **>(&ppentry), &hpos);
 		pentry = *ppentry;
 
 		if(zend_hash_find(HASH_OF(pentry), "sourcekey", sizeof("sourcekey"), (void **)&valueEntry) == FAILURE) {
@@ -1944,11 +1925,10 @@ HRESULT PHPArraytoGUIDArray(zval *phpVal, void *lpBase, ULONG *lpcValues, LPGUID
 	MAPI_G(hr) = MAPI_ALLOC(sizeof(GUID) * count, lpBase, (void **) &lpGUIDs);
 	if(MAPI_G(hr) != hrSuccess)
 		return MAPI_G(hr);
-
-	zend_hash_internal_pointer_reset(target_hash);
-
+	HashPosition hpos;
+	zend_hash_internal_pointer_reset_ex(target_hash, &hpos);
 	for (i = 0; i < count; ++i) {
-		zend_hash_get_current_data(target_hash, (void **) &ppentry);
+		zend_hash_get_current_data_ex(target_hash, reinterpret_cast<void **>(&ppentry), &hpos);
 		pentry = *ppentry;
 
 		convert_to_string_ex(&pentry);
@@ -1960,7 +1940,7 @@ HRESULT PHPArraytoGUIDArray(zval *phpVal, void *lpBase, ULONG *lpcValues, LPGUID
 		}
 		
 		memcpy(&lpGUIDs[n++], pentry->value.str.val, sizeof(GUID));
-		zend_hash_move_forward(target_hash);
+		zend_hash_move_forward_ex(target_hash, &hpos);
 	}
 
 	*lppGUIDs = lpGUIDs;
@@ -2054,11 +2034,11 @@ HRESULT PHPArraytoSendingOptions(zval *phpArray, sending_options *lpSOPT)
 	}
 
 	count = zend_hash_num_elements(target_hash);
-	zend_hash_internal_pointer_reset(target_hash);
+	HashPosition hpos;
+	zend_hash_internal_pointer_reset_ex(target_hash, &hpos);
 	for (int i = 0; i < count; ++i) {
-		// Gets the element that exist at the current pointer.
-		zend_hash_get_current_data(target_hash, (void **) &entry);
-		zend_hash_get_current_key(target_hash, &keyIndex, &numIndex, 0);
+		zend_hash_get_current_data_ex(target_hash, reinterpret_cast<void **>(&entry), &hpos);
+		zend_hash_get_current_key_ex(target_hash, &keyIndex, nullptr, &numIndex, 0, &hpos);
 
 		if (strcmp(keyIndex, "alternate_boundary") == 0) {
 			convert_to_string_ex(entry);
@@ -2089,7 +2069,7 @@ HRESULT PHPArraytoSendingOptions(zval *phpArray, sending_options *lpSOPT)
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unknown or disallowed sending option %s", keyIndex);
 		}
 
-		zend_hash_move_forward(target_hash);
+		zend_hash_move_forward_ex(target_hash, &hpos);
 	}
 	return hr;
 }
@@ -2118,11 +2098,11 @@ HRESULT PHPArraytoDeliveryOptions(zval *phpArray, delivery_options *lpDOPT)
 	}
 
 	count = zend_hash_num_elements(target_hash);
-	zend_hash_internal_pointer_reset(target_hash);
+	HashPosition hpos;
+	zend_hash_internal_pointer_reset_ex(target_hash, &hpos);
 	for (int i = 0; i < count; ++i) {
-		// Gets the element that exist at the current pointer.
-		zend_hash_get_current_data(target_hash, (void **) &entry);
-		zend_hash_get_current_key(target_hash, &keyIndex, &numIndex, 0);
+		zend_hash_get_current_data_ex(target_hash, reinterpret_cast<void **>(&entry), &hpos);
+		zend_hash_get_current_key_ex(target_hash, &keyIndex, nullptr, &numIndex, 0, &hpos);
 
 		if (strcmp(keyIndex, "use_received_date") == 0) {
 			convert_to_boolean_ex(entry);
@@ -2147,7 +2127,7 @@ HRESULT PHPArraytoDeliveryOptions(zval *phpArray, delivery_options *lpDOPT)
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unknown or disallowed delivery option %s", keyIndex);
 		}
 
-		zend_hash_move_forward(target_hash);
+		zend_hash_move_forward_ex(target_hash, &hpos);
 	}
 	return hr;
 }
