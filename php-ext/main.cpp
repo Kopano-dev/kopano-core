@@ -4278,8 +4278,6 @@ ZEND_FUNCTION(mapi_zarafa_setquota)
 		goto exit;
 
 	data = HASH_OF(array);
-	zend_hash_internal_pointer_reset(data);
-
 	if (zend_hash_find(data, "usedefault", sizeof("usedefault"), (void**)&value) == SUCCESS) {
 		convert_to_boolean_ex(value);
 		lpQuota->bUseDefaultQuota = Z_BVAL_PP(value);
@@ -5556,8 +5554,6 @@ ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
 
 		// null pointer returned if perms was not array(array()).
 		data = HASH_OF(entry[0]);
-		zend_hash_internal_pointer_reset(data);
-
 		if (zend_hash_find(data, "userid", sizeof("userid"), (void **)&value) != SUCCESS)
 			continue;
 		convert_to_string_ex(value);
@@ -6124,8 +6120,6 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish)
 		zend_hash_get_current_data(target_hash, (void **) &entry);
 
 		data = HASH_OF(entry[0]);
-		zend_hash_internal_pointer_reset(data);
-
 		if (zend_hash_find(data, "start", sizeof("start"), reinterpret_cast<void **>(&value)) != SUCCESS) {
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 			goto exit;
