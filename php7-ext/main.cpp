@@ -3183,18 +3183,14 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
 
-	// first reset the hash, so the pointer points to the first element.
-	zend_hash_internal_pointer_reset(targetHash);
-
+	HashPosition thpos, ghpos;
+	zend_hash_internal_pointer_reset_ex(targetHash, &thpos);
 	if(guidHash)
-		zend_hash_internal_pointer_reset(guidHash);
-
+		zend_hash_internal_pointer_reset_ex(guidHash, &ghpos);
 	for (i = 0; i < hashTotal; ++i) {
-		//	Gets the element that exist at the current pointer.
-		entry = zend_hash_get_current_data(targetHash);
+		entry = zend_hash_get_current_data_ex(targetHash, &thpos);
 		if(guidHash)
-			guidEntry = zend_hash_get_current_data(guidHash);
-
+			guidEntry = zend_hash_get_current_data_ex(guidHash, &ghpos);
 		MAPI_G(hr) = MAPIAllocateMore(sizeof(MAPINAMEID),lppNamePropId,(void **) &lppNamePropId[i]);
 		if (MAPI_G(hr) != hrSuccess)
 			goto exit;
@@ -3235,11 +3231,9 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Entry is of an unknown type: %08X", Z_TYPE_P(entry));
 			break;
 		}
-
-		// move the pointers of the hashtables forward.
-		zend_hash_move_forward(targetHash);
+		zend_hash_move_forward_ex(targetHash, &thpos);
 		if(guidHash)
-			zend_hash_move_forward(guidHash);
+			zend_hash_move_forward_ex(guidHash, &ghpos);
 	}
 
 	MAPI_G(hr) = lpMessageStore->GetIDsFromNames(hashTotal, lppNamePropId, MAPI_CREATE, &~lpPropTagArray);
