@@ -39,11 +39,4 @@ private:
 	bool m_bPushToServer = true;
 };
 
-class ECExchangeRuleAction final :
-    public KC::ECUnknown, public IExchangeRuleAction {
-public:
-	HRESULT ActionCount(ULONG *lpcActions);
-	HRESULT GetAction(ULONG ulActionNumber, LARGE_INTEGER *lpruleid, LPACTION *lppAction);
-};
-
 #endif

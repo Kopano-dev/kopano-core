@@ -75,8 +75,6 @@ digraph {
 	ECExchangeImportHierarchyChanges -> IExchangeImportHierarchyChanges;
 	ECExchangeModifyTable -> ECUnknown;
 	ECExchangeModifyTable -> IECExchangeModifyTable;
-	ECExchangeRuleAction -> ECUnknown;
-	ECExchangeRuleAction -> IExchangeRuleAction;
 	ECExportAddressbookChanges -> ECUnknown;
 	ECExportAddressbookChanges -> IECExportAddressbookChanges;
 	ECFreeBusyData -> ECUnknown;

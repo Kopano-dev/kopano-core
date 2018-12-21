@@ -503,16 +503,3 @@ HRESULT ECExchangeModifyTable::HrDeserializeTable(char *lpSerialized, ECMemTable
 	*ulRuleId = ulHighestRuleID;
 	return hr;
 }
-
-// ExchangeRuleAction object
-HRESULT ECExchangeRuleAction::ActionCount(ULONG *lpcActions)
-{
-	*lpcActions = 0;
-	return hrSuccess;
-}
-
-HRESULT ECExchangeRuleAction::GetAction(ULONG ulActionNumber,
-    LARGE_INTEGER *lpruleid, LPACTION *lppAction)
-{
-	return MAPI_E_NO_SUPPORT;
-}
