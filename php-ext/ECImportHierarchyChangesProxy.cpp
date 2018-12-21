@@ -121,7 +121,7 @@ HRESULT ECImportHierarchyChangesProxy::Config(LPSTREAM lpStream, ULONG ulFlags) 
     MAKE_STD_ZVAL(pvalArgs[1]);
 	if (lpStream != nullptr) {
 		ZEND_REGISTER_RESOURCE(pvalArgs[0], lpStream, le_istream);
-		if (Z_RESVAL_P(pvalArgs[0]) != nullptr)
+		if (Z_RESVAL_P(pvalArgs[0]))
 			lpStream->AddRef();
 	} else {
 		ZVAL_NULL(pvalArgs[0]);
