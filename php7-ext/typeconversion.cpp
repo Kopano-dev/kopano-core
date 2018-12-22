@@ -195,15 +195,13 @@ HRESULT PHPArraytoSortOrderSet(zval * sortorder_array, void *lpBase, LPSSortOrde
 		zend_string *key = NULL;
 		zend_ulong ind = 0;
 		entry = zend_hash_get_current_data_ex(target_hash, &hpos);
-
-		// when the key is a char &key is set else ind is set
-		zend_hash_get_current_key_ex(target_hash, &key, &ind, &hpos);
-
-		if (key != NULL)
+		auto xtype = zend_hash_get_current_key_ex(target_hash, &key, &ind, &hpos);
+		if (xtype == HASH_KEY_IS_STRING)
 			lpSortOrderSet->aSort[i].ulPropTag = atoi(key->val);
-		else
+		else if (xtype == HASH_KEY_IS_LONG)
 			lpSortOrderSet->aSort[i].ulPropTag = ind;
-
+		else
+			continue;
 		convert_to_long_ex(entry);
 		lpSortOrderSet->aSort[i].ulOrder = (ULONG) entry->value.lval;
 	}
@@ -260,8 +258,6 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 	ULONG			cvalues = 0;
 	HashTable		*target_hash = NULL;
 	HashTable		*dataHash = NULL;
-	zend_string		*keyIndex;
-	zend_ulong numIndex = 0;
 	zval			*entry = NULL;
 	ULONG			countarray = 0;
 	zval			*dataEntry = NULL;
@@ -303,10 +299,15 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 	zend_hash_internal_pointer_reset_ex(target_hash, &hpos);
 	MAPI_G(hr) = MAPI_ALLOC(sizeof(SPropValue) * count, lpBase, (void**)&lpPropValue);
 	for (unsigned int i = 0; i < count; ++i, zend_hash_move_forward_ex(target_hash, &hpos)) {
+		zend_string *keyIndex = nullptr;
+		zend_ulong numIndex = 0;
 		entry = zend_hash_get_current_data_ex(target_hash, &hpos);
-		zend_hash_get_current_key_ex(target_hash, &keyIndex, &numIndex, &hpos);
+		if (zend_hash_get_current_key_ex(target_hash, &keyIndex,
+		    &numIndex, &hpos) != HASH_KEY_IS_LONG) {
+			php_error_docref(nullptr TSRMLS_CC, E_WARNING, "PHPArraytoPropValueArray: expected array to be int-keyed");
+			continue;
+		}
 
-		// assume a numeric index
 		lpPropValue[cvalues].ulPropTag = numIndex;
 		switch(PROP_TYPE(numIndex))	{
 		case PT_SHORT:
@@ -1934,8 +1935,6 @@ HRESULT PHPArraytoSendingOptions(zval *phpArray, sending_options *lpSOPT)
 	HRESULT hr = hrSuccess;
 	HashTable		*target_hash = NULL;
 	zval			*entry = NULL;
-	zend_string		*keyIndex;
-	zend_ulong numIndex = 0;
 
 	if (!phpArray) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No phpArray in PHPArraytoSendingOptions");
@@ -1954,8 +1953,14 @@ HRESULT PHPArraytoSendingOptions(zval *phpArray, sending_options *lpSOPT)
 	HashPosition hpos;
 	zend_hash_internal_pointer_reset_ex(target_hash, &hpos);
 	for (unsigned int i = 0; i < count; ++i, zend_hash_move_forward_ex(target_hash, &hpos)) {
+		zend_string *keyIndex = nullptr;
+		zend_ulong numIndex = 0;
 		entry = zend_hash_get_current_data_ex(target_hash, &hpos);
-		zend_hash_get_current_key_ex(target_hash, &keyIndex, &numIndex, &hpos);
+		if (zend_hash_get_current_key_ex(target_hash, &keyIndex,
+		    &numIndex, &hpos) != HASH_KEY_IS_STRING) {
+			php_error_docref(nullptr TSRMLS_CC, E_WARNING, "PHPArraytoSendingOptions: expected array to be string-keyed");
+			continue;
+		}
 
 		if (strcmp(keyIndex->val, "alternate_boundary") == 0) {
 			convert_to_string_ex(entry);
@@ -1994,8 +1999,6 @@ HRESULT PHPArraytoDeliveryOptions(zval *phpArray, delivery_options *lpDOPT)
 	HRESULT hr = hrSuccess;
 	HashTable		*target_hash = NULL;
 	zval			*entry = NULL;
-	zend_string		*keyIndex;
-	zend_ulong numIndex = 0;
 
 	if (!phpArray) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No phpArray in PHPArraytoDeliveryOptions");
@@ -2014,8 +2017,14 @@ HRESULT PHPArraytoDeliveryOptions(zval *phpArray, delivery_options *lpDOPT)
 	HashPosition hpos;
 	zend_hash_internal_pointer_reset_ex(target_hash, &hpos);
 	for (unsigned int i = 0; i < count; ++i, zend_hash_move_forward_ex(target_hash, &hpos)) {
+		zend_string *keyIndex = nullptr;
+		zend_ulong numIndex = 0;
 		entry = zend_hash_get_current_data_ex(target_hash, &hpos);
-		zend_hash_get_current_key_ex(target_hash, &keyIndex, &numIndex, &hpos);
+		if (zend_hash_get_current_key_ex(target_hash, &keyIndex,
+		    &numIndex, &hpos) != HASH_KEY_IS_STRING) {
+			php_error_docref(nullptr TSRMLS_CC, E_WARNING, "PHPArraytoDeliveryOptions: expected array to be string-keyed");
+			continue;
+		}
 
 		if (strcmp(keyIndex->val, "use_received_date") == 0) {
 			convert_to_boolean_ex(entry);
