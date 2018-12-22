@@ -4371,15 +4371,11 @@ ZEND_FUNCTION(mapi_zarafa_setquota)
 	ZVAL_DEREF(array);
 	data = HASH_OF(array);
 	value = zend_hash_find(data, str_usedefault.get());
-	if (value != nullptr) {
-		convert_to_boolean_ex(value);
-		lpQuota->bUseDefaultQuota = (Z_TYPE_P(value) == IS_TRUE);
-	}
+	if (value != nullptr)
+		lpQuota->bUseDefaultQuota = zval_is_true(value);
 	value = zend_hash_find(data, str_isuserdefault.get());
-	if (value != nullptr) {
-		convert_to_boolean_ex(value);
-		lpQuota->bIsUserDefaultQuota = (Z_TYPE_P(value) == IS_TRUE);
-	}
+	if (value != nullptr)
+		lpQuota->bIsUserDefaultQuota = zval_is_true(value);
 	value = zend_hash_find(data, str_warnsize.get());
 	if (value != nullptr) {
 		convert_to_long_ex(value);
