@@ -1957,6 +1957,9 @@ HRESULT NotificationstoPHPArray(ULONG cNotifs, const NOTIFICATION *lpNotifs,
 	return MAPI_G(hr);
 }
 
+/**
+ * Update an _existing_ (and initialized) sopt structure with the flags from phpArray.
+ */
 HRESULT PHPArraytoSendingOptions(zval *phpArray, sending_options *lpSOPT)
 {
 	HRESULT hr = hrSuccess;
@@ -2012,6 +2015,9 @@ HRESULT PHPArraytoSendingOptions(zval *phpArray, sending_options *lpSOPT)
 	return hr;
 }
 
+/**
+ * Update an _existing_ (and initialized) dopt structure with the flags from phpArray.
+ */
 HRESULT PHPArraytoDeliveryOptions(zval *phpArray, delivery_options *lpDOPT)
 {
 	HRESULT hr = hrSuccess;
