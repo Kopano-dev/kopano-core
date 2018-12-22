@@ -4267,16 +4267,10 @@ ZEND_FUNCTION(mapi_zarafa_setquota)
 		goto exit;
 
 	data = HASH_OF(array);
-	if (zend_hash_find(data, "usedefault", sizeof("usedefault"), (void**)&value) == SUCCESS) {
-		convert_to_boolean_ex(value);
-		lpQuota->bUseDefaultQuota = Z_BVAL_PP(value);
-	}
-
-	if (zend_hash_find(data, "isuserdefault", sizeof("isuserdefault"), (void**)&value) == SUCCESS) {
-		convert_to_boolean_ex(value);
-		lpQuota->bIsUserDefaultQuota = Z_BVAL_PP(value);
-	}
-
+	if (zend_hash_find(data, "usedefault", sizeof("usedefault"), reinterpret_cast<void **>(&value)) == SUCCESS)
+		lpQuota->bUseDefaultQuota = zval_is_true(*value);
+	if (zend_hash_find(data, "isuserdefault", sizeof("isuserdefault"), reinterpret_cast<void **>(&value)) == SUCCESS)
+		lpQuota->bIsUserDefaultQuota = zval_is_true(*value);
 	if (zend_hash_find(data, "warnsize", sizeof("warnsize"), (void**)&value) == SUCCESS) {
 		convert_to_long_ex(value);
 		lpQuota->llWarnSize = Z_LVAL_PP(value);

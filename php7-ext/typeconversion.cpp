@@ -304,9 +304,7 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 			lpPropValue[cvalues++].Value.li.QuadPart = (LONGLONG)entry->value.dval;
 			break;
 		case PT_BOOLEAN:
-			convert_to_boolean_ex(entry);
-			// lval will be 1 or 0 for true or false
-			lpPropValue[cvalues++].Value.b = (Z_TYPE_P(entry) == IS_TRUE);
+			lpPropValue[cvalues++].Value.b = zval_is_true(entry);
 			break;
 		case PT_SYSTIME:
 			convert_to_long_ex(entry);
@@ -1108,8 +1106,7 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 				lpProp->Value.flt = (float)valueEntry->value.dval;
 				break;
 			case PT_BOOLEAN:
-				convert_to_boolean_ex(valueEntry);
-				lpProp->Value.b = (Z_TYPE_P(valueEntry) == IS_TRUE);
+				lpProp->Value.b = zval_is_true(valueEntry);
 				break;
 			case PT_SYSTIME:
 				convert_to_long_ex(valueEntry);
@@ -1957,14 +1954,11 @@ HRESULT PHPArraytoSendingOptions(zval *phpArray, sending_options *lpSOPT)
 			convert_to_string_ex(entry);
 			lpSOPT->alternate_boundary = Z_STRVAL_P(entry);
 		} else if (strcmp(keyIndex->val, "no_recipients_workaround") == 0) {
-			convert_to_boolean_ex(entry);
-			lpSOPT->no_recipients_workaround = (Z_TYPE_P(entry) == IS_TRUE);
+			lpSOPT->no_recipients_workaround = zval_is_true(entry);
 		} else if (strcmp(keyIndex->val, "headers_only") == 0) {
-			convert_to_boolean_ex(entry);
-			lpSOPT->headers_only = (Z_TYPE_P(entry) == IS_TRUE);
+			lpSOPT->headers_only = zval_is_true(entry);
 		} else if (strcmp(keyIndex->val, "add_received_date") == 0) {
-			convert_to_boolean_ex(entry);
-			lpSOPT->add_received_date = (Z_TYPE_P(entry) == IS_TRUE);
+			lpSOPT->add_received_date = zval_is_true(entry);
 		} else if (strcmp(keyIndex->val, "use_tnef") == 0) {
 			convert_to_long_ex(entry);
 			lpSOPT->use_tnef = Z_LVAL_P(entry);
@@ -1972,11 +1966,9 @@ HRESULT PHPArraytoSendingOptions(zval *phpArray, sending_options *lpSOPT)
 			convert_to_string_ex(entry);
 			lpSOPT->charset_upgrade = Z_STRVAL_P(entry);
 		} else if (strcmp(keyIndex->val, "allow_send_to_everyone") == 0) {
-			convert_to_boolean_ex(entry);
-			lpSOPT->allow_send_to_everyone = (Z_TYPE_P(entry) == IS_TRUE);
+			lpSOPT->allow_send_to_everyone = zval_is_true(entry);
 		} else if (strcmp(keyIndex->val, "ignore_missing_attachments") == 0) {
-			convert_to_boolean_ex(entry);
-			lpSOPT->ignore_missing_attachments = (Z_TYPE_P(entry) == IS_TRUE);
+			lpSOPT->ignore_missing_attachments = zval_is_true(entry);
 		} else {
 			// msg_in_msg and enable_dsn not allowed, others unknown
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unknown or disallowed sending option %s", keyIndex->val);
@@ -2013,23 +2005,18 @@ HRESULT PHPArraytoDeliveryOptions(zval *phpArray, delivery_options *lpDOPT)
 		}
 
 		if (strcmp(keyIndex->val, "use_received_date") == 0) {
-			convert_to_boolean_ex(entry);
-			lpDOPT->use_received_date = (Z_TYPE_P(entry) == IS_TRUE);
+			lpDOPT->use_received_date = zval_is_true(entry);
 		} else if (strcmp(keyIndex->val, "mark_as_read") == 0) {
-			convert_to_boolean_ex(entry);
-			lpDOPT->mark_as_read = (Z_TYPE_P(entry) == IS_TRUE);
+			lpDOPT->mark_as_read = zval_is_true(entry);
 		} else if (strcmp(keyIndex->val, "add_imap_data") == 0) {
-			convert_to_boolean_ex(entry);
-			lpDOPT->add_imap_data = (Z_TYPE_P(entry) == IS_TRUE);
+			lpDOPT->add_imap_data = zval_is_true(entry);
 		} else if (strcmp(keyIndex->val, "parse_smime_signed") == 0) {
-			convert_to_boolean_ex(entry);
-			lpDOPT->parse_smime_signed = (Z_TYPE_P(entry) == IS_TRUE);
+			lpDOPT->parse_smime_signed = zval_is_true(entry);
 		} else if (strcmp(keyIndex->val, "default_charset") == 0) {
 			convert_to_string_ex(entry);
 			lpDOPT->ascii_upgrade = Z_STRVAL_P(entry);
 		} else if (strcmp(keyIndex->val, "header_strict_rfc") == 0) {
-			convert_to_boolean_ex(entry);
-			lpDOPT->header_strict_rfc = (Z_TYPE_P(entry) == TRUE);
+			lpDOPT->header_strict_rfc = zval_is_true(entry);
 		} else {
 			// user_entryid not supported, others unknown
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unknown or disallowed delivery option %s", keyIndex->val);
