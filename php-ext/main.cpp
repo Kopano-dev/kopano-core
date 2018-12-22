@@ -4348,16 +4348,19 @@ ZEND_FUNCTION(mapi_zarafa_setquota)
 	if (zend_hash_find(data, "isuserdefault", sizeof("isuserdefault"), reinterpret_cast<void **>(&value)) == SUCCESS)
 		lpQuota->bIsUserDefaultQuota = zval_is_true(*value);
 	if (zend_hash_find(data, "warnsize", sizeof("warnsize"), (void**)&value) == SUCCESS) {
+		SEPARATE_ZVAL(value);
 		convert_to_long_ex(value);
 		lpQuota->llWarnSize = Z_LVAL_PP(value);
 	}
 
 	if (zend_hash_find(data, "softsize", sizeof("softsize"), (void**)&value) == SUCCESS) {
+		SEPARATE_ZVAL(value);
 		convert_to_long_ex(value);
 		lpQuota->llSoftSize = Z_LVAL_PP(value);
 	}
 
 	if (zend_hash_find(data, "hardsize", sizeof("hardsize"), (void**)&value) == SUCCESS) {
+		SEPARATE_ZVAL(value);
 		convert_to_long_ex(value);
 		lpQuota->llHardSize = Z_LVAL_PP(value);
 	}
@@ -5606,21 +5609,25 @@ ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
 		data = HASH_OF(entry[0]);
 		if (zend_hash_find(data, "userid", sizeof("userid"), (void **)&value) != SUCCESS)
 			continue;
+		SEPARATE_ZVAL(value);
 		convert_to_string_ex(value);
 		lpECPerms[j].sUserId.cb = Z_STRLEN_PP(value);
 		lpECPerms[j].sUserId.lpb = (unsigned char*)Z_STRVAL_PP(value);
 
 		if (zend_hash_find(data, "type", sizeof("type"), (void **)&value) != SUCCESS)
 			continue;
+		SEPARATE_ZVAL(value);
 		convert_to_long_ex(value);
 		lpECPerms[j].ulType = Z_LVAL_PP(value);
 
 		if (zend_hash_find(data, "rights", sizeof("rights"), (void **)&value) != SUCCESS)
 			continue;
+		SEPARATE_ZVAL(value);
 		convert_to_long_ex(value);
 		lpECPerms[j].ulRights = Z_LVAL_PP(value);
 
 		if (zend_hash_find(data, "state", sizeof("state"), (void **)&value) == SUCCESS) {
+			SEPARATE_ZVAL(value);
 		    convert_to_long_ex(value);
 			lpECPerms[j].ulState = Z_LVAL_PP(value);
 		} else {
