@@ -684,11 +684,11 @@ HRESULT ECMessage::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterface
 //FIXME: Support the flags ?
 	if(ulPropTag == PR_MESSAGE_ATTACHMENTS) {
 		if(*lpiid == IID_IMAPITable)
-			hr = GetAttachmentTable(ulInterfaceOptions, (LPMAPITABLE*)lppUnk);
+			hr = GetAttachmentTable(ulInterfaceOptions, reinterpret_cast<IMAPITable **>(lppUnk));
 		return hr;
 	} else if(ulPropTag == PR_MESSAGE_RECIPIENTS) {
 		if (*lpiid == IID_IMAPITable)
-			hr = GetRecipientTable(ulInterfaceOptions, (LPMAPITABLE*)lppUnk);
+			hr = GetRecipientTable(ulInterfaceOptions, reinterpret_cast<IMAPITable **>(lppUnk));
 		return hr;
 	}
 	// Workaround for support html in outlook 2000/xp

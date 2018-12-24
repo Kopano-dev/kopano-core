@@ -303,19 +303,19 @@ HRESULT ECMsgStore::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 			hr = lpChangeAdvisor->QueryInterface(*lpiid, (void**)lppUnk);
 	} else if(ulPropTag == PR_EC_STATSTABLE_SYSTEM) {
 		if (*lpiid == IID_IMAPITable)
-			hr = OpenStatsTable(TABLETYPE_STATS_SYSTEM, (LPMAPITABLE*)lppUnk);
+			hr = OpenStatsTable(TABLETYPE_STATS_SYSTEM, reinterpret_cast<IMAPITable **>(lppUnk));
 	} else if(ulPropTag == PR_EC_STATSTABLE_SESSIONS) {
 		if (*lpiid == IID_IMAPITable)
-			hr = OpenStatsTable(TABLETYPE_STATS_SESSIONS, (LPMAPITABLE*)lppUnk);
+			hr = OpenStatsTable(TABLETYPE_STATS_SESSIONS, reinterpret_cast<IMAPITable **>(lppUnk));
 	} else if(ulPropTag == PR_EC_STATSTABLE_USERS) {
 		if (*lpiid == IID_IMAPITable)
-			hr = OpenStatsTable(TABLETYPE_STATS_USERS, (LPMAPITABLE*)lppUnk);
+			hr = OpenStatsTable(TABLETYPE_STATS_USERS, reinterpret_cast<IMAPITable **>(lppUnk));
 	} else if(ulPropTag == PR_EC_STATSTABLE_COMPANY) {
 		if (*lpiid == IID_IMAPITable)
-			hr = OpenStatsTable(TABLETYPE_STATS_COMPANY, (LPMAPITABLE*)lppUnk);
+			hr = OpenStatsTable(TABLETYPE_STATS_COMPANY, reinterpret_cast<IMAPITable **>(lppUnk));
 	} else if(ulPropTag == PR_EC_STATSTABLE_SERVERS) {
 		if (*lpiid == IID_IMAPITable)
-			hr = OpenStatsTable(TABLETYPE_STATS_SERVERS, (LPMAPITABLE*)lppUnk);
+			hr = OpenStatsTable(TABLETYPE_STATS_SERVERS, reinterpret_cast<IMAPITable **>(lppUnk));
 	} else if(ulPropTag == PR_ACL_TABLE) {
 		if(*lpiid == IID_IExchangeModifyTable)
 			hr = ECExchangeModifyTable::CreateACLTable(this, ulInterfaceOptions, (LPEXCHANGEMODIFYTABLE*)lppUnk);
