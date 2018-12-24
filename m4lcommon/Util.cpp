@@ -3065,7 +3065,7 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, void *lpSrcObj,
 				hr = CopyRecipients(static_cast<IMessage *>(lpSrcObj), static_cast<IMessage *>(lpDestObj));
 			else if (lpIncludeProps->aulPropTag[i] == PR_MESSAGE_ATTACHMENTS)
 				// TODO: add ulFlags, and check for MAPI_NOREPLACE
-				hr = Util::CopyAttachments((LPMESSAGE)lpSrcObj, (LPMESSAGE)lpDestObj, NULL);
+				hr = Util::CopyAttachments(static_cast<IMessage *>(lpSrcObj), static_cast<IMessage *>(lpDestObj), nullptr);
 			else
 				hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 			if (hr != hrSuccess) {
