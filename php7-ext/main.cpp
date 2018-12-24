@@ -1267,7 +1267,7 @@ ZEND_FUNCTION(mapi_openprofilesection)
 	ZEND_FETCH_RESOURCE_C(lpSession, IMAPISession*, &res, -1, name_mapi_session, le_mapi_session);
 
 	// yes, you can request any compatible interface, but the return pointer is LPPROFSECT .. ohwell.
-	MAPI_G(hr) = lpSession->OpenProfileSection(lpUID, &IID_IMAPIProp, 0, (LPPROFSECT*)&lpProfSectProp);
+	MAPI_G(hr) = lpSession->OpenProfileSection(lpUID, &IID_IMAPIProp, 0, reinterpret_cast<IProfSect **>(&lpProfSectProp));
 	if (MAPI_G(hr) != hrSuccess)
 		return;
 	ZEND_REGISTER_RESOURCE(return_value, lpProfSectProp, le_mapi_property);
