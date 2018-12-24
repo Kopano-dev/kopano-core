@@ -3092,18 +3092,20 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, void *lpSrcObj,
 				ulAttachMethod = ATTACH_BY_VALUE;
 			else
 				ulAttachMethod = lpAttachMethod->Value.ul;
+			auto src_at = static_cast<IAttach *>(lpSrcObj);
+			auto dst_at = static_cast<IAttach *>(lpDestObj);
 			switch (ulAttachMethod) {
 			case ATTACH_BY_VALUE:
 			case ATTACH_OLE:
 				// stream
 				// Not being able to open the source message is not an error: it may just not be there
-				if (((LPATTACH)lpSrcObj)->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, 0, 0, &~lpSrcStream) == hrSuccess) {
+				if (src_at->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, 0, 0, &~lpSrcStream) == hrSuccess) {
 					// While dragging and dropping, Outlook 2007 (at least) returns an internal MAPI object to CopyTo as destination
 					// The internal MAPI object is unable to make a stream STGM_TRANSACTED, so we retry the action without that flag
 					// to get the stream without the transaction feature.
-					hr = ((LPATTACH)lpDestObj)->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~lpDestStream);
+					hr = dst_at->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~lpDestStream);
 					if (hr != hrSuccess)
-						hr = ((LPATTACH)lpDestObj)->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, STGM_WRITE, MAPI_CREATE | MAPI_MODIFY, &~lpDestStream);
+						hr = dst_at->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, STGM_WRITE, MAPI_CREATE | MAPI_MODIFY, &~lpDestStream);
 					if (hr != hrSuccess) {
 						isProblem = true;
 						goto next_include_check;
@@ -3114,11 +3116,11 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, void *lpSrcObj,
 						goto next_include_check;
 					}
 				} else if(lpAttachMethod->Value.ul == ATTACH_OLE &&
-				    ((LPATTACH)lpSrcObj)->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IStream, 0, 0, &~lpSrcStream) == hrSuccess) {
+				    src_at->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IStream, 0, 0, &~lpSrcStream) == hrSuccess) {
 					// OLE 2.0 must be open with PR_ATTACH_DATA_OBJ
-					hr = ((LPATTACH)lpDestObj)->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~lpDestStream);
+					hr = dst_at->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~lpDestStream);
 					if (hr == E_FAIL)
-						hr = ((LPATTACH)lpDestObj)->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IStream, STGM_WRITE, MAPI_CREATE | MAPI_MODIFY, &~lpDestStream);
+						hr = dst_at->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IStream, STGM_WRITE, MAPI_CREATE | MAPI_MODIFY, &~lpDestStream);
 					if (hr != hrSuccess) {
 						isProblem = true;
 						goto next_include_check;
@@ -3132,9 +3134,9 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, void *lpSrcObj,
 				break;
 			case ATTACH_EMBEDDED_MSG:
 				// message
-				if (((LPATTACH)lpSrcObj)->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, 0, &~lpSrcMessage) == hrSuccess) {
+				if (src_at->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, 0, &~lpSrcMessage) == hrSuccess) {
 					// Not being able to open the source message is not an error: it may just not be there
-					hr = ((LPATTACH)lpDestObj)->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY, &~lpDestMessage);
+					hr = dst_at->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY, &~lpDestMessage);
 					if (hr != hrSuccess) {
 						isProblem = true;
 						goto next_include_check;
