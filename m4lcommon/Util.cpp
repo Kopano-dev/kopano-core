@@ -2831,16 +2831,18 @@ HRESULT Util::DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj,
 			// on store, create folder and still go ?
 			return MAPI_E_INTERFACE_NOT_SUPPORTED;
 
+		auto src_fld = static_cast<IMAPIFolder *>(lpSrcObj);
+		auto dst_fld = static_cast<IMAPIFolder *>(lpDestObj);
 		if (!lpExcludeProps || Util::FindPropInArray(lpExcludeProps, PR_CONTAINER_CONTENTS) == -1) {
 			sExtraExcludes.aulPropTag[sExtraExcludes.cValues++] = PR_CONTAINER_CONTENTS;
-			hr = CopyContents(0, (LPMAPIFOLDER)lpSrcObj, (LPMAPIFOLDER)lpDestObj, ulFlags, ulUIParam, lpProgress);
+			hr = CopyContents(0, src_fld, dst_fld, ulFlags, ulUIParam, lpProgress);
 			if (hr != hrSuccess)
 				bPartial = true;
 		}
 
 		if (!lpExcludeProps || Util::FindPropInArray(lpExcludeProps, PR_FOLDER_ASSOCIATED_CONTENTS) == -1) {
 			sExtraExcludes.aulPropTag[sExtraExcludes.cValues++] = PR_FOLDER_ASSOCIATED_CONTENTS;
-			hr = CopyContents(MAPI_ASSOCIATED, (LPMAPIFOLDER)lpSrcObj, (LPMAPIFOLDER)lpDestObj, ulFlags, ulUIParam, lpProgress);
+			hr = CopyContents(MAPI_ASSOCIATED, src_fld, dst_fld, ulFlags, ulUIParam, lpProgress);
 			if (hr != hrSuccess)
 				bPartial = true;
 		}
@@ -2848,7 +2850,7 @@ HRESULT Util::DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj,
 		if (!lpExcludeProps || Util::FindPropInArray(lpExcludeProps, PR_CONTAINER_HIERARCHY) == -1) {
 			// add to lpExcludeProps so CopyProps ignores them
 			sExtraExcludes.aulPropTag[sExtraExcludes.cValues++] = PR_CONTAINER_HIERARCHY;
-			hr = CopyHierarchy((LPMAPIFOLDER)lpSrcObj, (LPMAPIFOLDER)lpDestObj, ulFlags, ulUIParam, lpProgress);
+			hr = CopyHierarchy(src_fld, dst_fld, ulFlags, ulUIParam, lpProgress);
 			if (hr != hrSuccess)
 				bPartial = true;
 		}
