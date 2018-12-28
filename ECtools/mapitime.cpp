@@ -17,6 +17,7 @@
 #include <kopano/ECLogger.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/ECMemTable.h>
+#include <kopano/ECRestriction.h>
 #include <kopano/automapi.hpp>
 #include <kopano/ecversion.h>
 #include <kopano/memory.hpp>
@@ -198,6 +199,175 @@ int mpt_open2::run()
 		return EXIT_FAILURE;
 	}
 	return mpt_basic_work(store);
+}
+
+class mpt_search final : public mpt_job {
+	public:
+	int init() override;
+	int run() override;
+
+	private:
+	unsigned int m_rfsize = 0;
+	object_ptr<IMAPIFolder> m_findroot, m_find;
+	memory_ptr<ENTRYLIST> m_scanfld;
+	memory_ptr<SRestriction> m_rst;
+};
+
+int mpt_search::init()
+{
+	auto ret = mpt_job::init();
+	if (ret != hrSuccess)
+		return EXIT_FAILURE;
+	object_ptr<IMAPISession> ses;
+	object_ptr<IMsgStore> store;
+	ret = mpt_basic_open(ses, store);
+	if (ret != hrSuccess) {
+		kc_perrorf("mpt_basic_open", ret);
+		return EXIT_FAILURE;
+	}
+
+	/* Set up INBOX for scanning */
+	unsigned int inbox_sz = 0;
+	memory_ptr<ENTRYID> inbox;
+	ret = store->GetReceiveFolder(reinterpret_cast<const TCHAR *>("IPM"), 0, &inbox_sz, &~inbox, nullptr);
+	if (ret != hrSuccess) {
+		kc_perrorf("GRF", ret);
+		return EXIT_FAILURE;
+	}
+	fprintf(stderr, "inbox    %s\n", bin2hex(inbox_sz, inbox).c_str());
+	object_ptr<IMAPIFolder> fld;
+	unsigned int objtype;
+	ret = store->OpenEntry(inbox_sz, inbox, &IID_IMAPIFolder, MAPI_MODIFY, &objtype, &~fld);
+	if (ret != hrSuccess) {
+		kc_perrorf("OpenEntry inbox", ret);
+		return EXIT_FAILURE;
+	}
+	ret = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~m_scanfld);
+	if (ret != hrSuccess) {
+		kc_perrorf("malloc", ret);
+		return EXIT_FAILURE;
+	}
+	m_scanfld->cValues = 1;
+	ret = MAPIAllocateMore(sizeof(SBinary) * 1, m_scanfld, reinterpret_cast<void **>(&m_scanfld->lpbin));
+	if (ret != hrSuccess) {
+		kc_perrorf("malloc", ret);
+		return EXIT_FAILURE;
+	}
+	m_scanfld->lpbin[0].cb = 0;
+	m_scanfld->lpbin[0].lpb = nullptr;
+	ret = MAPIAllocateMore(inbox_sz, m_scanfld, reinterpret_cast<void **>(&m_scanfld->lpbin[0].lpb));
+	if (ret != hrSuccess) {
+		kc_perrorf("malloc", ret);
+		return EXIT_FAILURE;
+	}
+	m_scanfld->lpbin[0].cb = inbox_sz;
+	memcpy(m_scanfld->lpbin[0].lpb, inbox.get(), inbox_sz);
+
+	/* Create search folder */
+	memory_ptr<SPropValue> pv;
+	ret = HrGetOneProp(store, PR_FINDER_ENTRYID, &~pv);
+	if (ret != hrSuccess) {
+		kc_perrorf("FINDER_ENTRYID", ret);
+		return EXIT_FAILURE;
+	}
+	fprintf(stderr, "findroot %s\n", bin2hex(pv->Value.bin.cb, pv->Value.bin.lpb).c_str());
+	ret = ses->OpenEntry(pv->Value.bin.cb, reinterpret_cast<ENTRYID *>(pv->Value.bin.lpb), &IID_IMAPIFolder, MAPI_MODIFY, &objtype, &~m_findroot);
+	if (ret != hrSuccess) {
+		kc_perrorf("OpenEntry", ret);
+		return EXIT_FAILURE;
+	}
+
+	char name[32];
+	snprintf(name, sizeof(name), "sf0x%x", rand());
+	printf(">> %s\n", name);
+	ret = m_findroot->CreateFolder(FOLDER_SEARCH, reinterpret_cast<const TCHAR *>(name), reinterpret_cast<const TCHAR *>(L""), &IID_IMAPIFolder, 0, &~m_find);
+	if (ret != hrSuccess) {
+		kc_perrorf("CreateFolder", ret);
+		return EXIT_FAILURE;
+	}
+	return EXIT_SUCCESS;
+}
+
+int mpt_search::run()
+{
+	/* Do it like WebApp does */
+	SPropValue cls[7], spv[] = {
+		{PR_SUBJECT}, {PR_SENDER_NAME}, {PR_SENDER_EMAIL_ADDRESS},
+		{PR_SENT_REPRESENTING_NAME},
+		{PR_SENT_REPRESENTING_EMAIL_ADDRESS}, {PR_BODY},
+		{PR_DISPLAY_TO}, {PR_DISPLAY_NAME},
+		{PR_CALLBACK_TELEPHONE_NUMBER}, {PR_GENERATION},
+		{PR_BUSINESS_TELEPHONE_NUMBER}, {PR_HOME_TELEPHONE_NUMBER},
+		{PR_COMPANY_NAME}, {PR_PRIMARY_TELEPHONE_NUMBER},
+		{PR_BUSINESS2_TELEPHONE_NUMBER}, {PR_MOBILE_TELEPHONE_NUMBER},
+		{PR_RADIO_TELEPHONE_NUMBER}, {PR_CAR_TELEPHONE_NUMBER},
+		{PR_OTHER_TELEPHONE_NUMBER}, {PR_PAGER_TELEPHONE_NUMBER},
+		{PR_PRIMARY_FAX_NUMBER}, {PR_BUSINESS_FAX_NUMBER},
+		{PR_HOME_FAX_NUMBER}, {PR_TELEX_NUMBER},
+		{PR_ASSISTANT_TELEPHONE_NUMBER}, {PR_HOME2_TELEPHONE_NUMBER},
+		{PR_DISPLAY_NAME}, {PR_TTYTDD_PHONE_NUMBER},
+		{PR_COMPANY_MAIN_PHONE_NUMBER}, {PR_DISPLAY_CC}
+	};
+	for (size_t i = 0; i < ARRAY_SIZE(spv); ++i)
+		spv[i].Value.lpszW = const_cast<wchar_t *>(L"t1");
+	for (size_t i = 0; i < ARRAY_SIZE(cls); ++i)
+		cls[i].ulPropTag = PR_MESSAGE_CLASS;
+	cls[0].Value.lpszW = const_cast<wchar_t *>(L"IPM.Note");
+	cls[1].Value.lpszW = const_cast<wchar_t *>(L"IPM.Appointment");
+	cls[2].Value.lpszW = const_cast<wchar_t *>(L"IPM.Schedule");
+	cls[3].Value.lpszW = const_cast<wchar_t *>(L"IPM.Contact");
+	cls[4].Value.lpszW = const_cast<wchar_t *>(L"IPM.DistList");
+	cls[5].Value.lpszW = const_cast<wchar_t *>(L"IPM.Task");
+	cls[6].Value.lpszW = const_cast<wchar_t *>(L"IPM.StickyNote");
+	auto ret = ECAndRestriction(ECOrRestriction(
+		ECContentRestriction(FL_IGNORECASE | FL_SUBSTRING, PR_SUBJECT, &spv[0], ECRestriction::Cheap) +
+		ECContentRestriction(FL_IGNORECASE | FL_SUBSTRING, PR_SENDER_NAME, &spv[1], ECRestriction::Cheap) +
+		ECContentRestriction(FL_IGNORECASE | FL_SUBSTRING, PR_SENDER_EMAIL_ADDRESS, &spv[2], ECRestriction::Cheap) +
+		ECContentRestriction(FL_IGNORECASE | FL_SUBSTRING, PR_SENT_REPRESENTING_NAME, &spv[3], ECRestriction::Cheap) +
+		ECContentRestriction(FL_IGNORECASE | FL_SUBSTRING, PR_SENT_REPRESENTING_EMAIL_ADDRESS, &spv[4], ECRestriction::Cheap) +
+		ECContentRestriction(FL_IGNORECASE | FL_SUBSTRING, PR_BODY, &spv[5], ECRestriction::Cheap) +
+		ECContentRestriction(FL_IGNORECASE | FL_SUBSTRING, PR_DISPLAY_TO, &spv[6], ECRestriction::Cheap) +
+		ECContentRestriction(FL_IGNORECASE | FL_SUBSTRING, PR_DISPLAY_NAME, &spv[7], ECRestriction::Cheap) +
+		ECContentRestriction(FL_IGNORECASE | FL_SUBSTRING, PR_CALLBACK_TELEPHONE_NUMBER, &spv[8], ECRestriction::Cheap) +
+		ECContentRestriction(FL_IGNORECASE | FL_SUBSTRING, PR_GENERATION, &spv[9], ECRestriction::Cheap) +
+		ECContentRestriction(FL_IGNORECASE | FL_SUBSTRING, PR_BUSINESS_TELEPHONE_NUMBER, &spv[10], ECRestriction::Cheap) +
+		ECContentRestriction(FL_IGNORECASE | FL_SUBSTRING, PR_HOME_TELEPHONE_NUMBER, &spv[11], ECRestriction::Cheap) +
+		ECContentRestriction(FL_IGNORECASE | FL_SUBSTRING, PR_COMPANY_NAME, &spv[12], ECRestriction::Cheap) +
+		ECContentRestriction(FL_IGNORECASE | FL_SUBSTRING, PR_PRIMARY_TELEPHONE_NUMBER, &spv[13], ECRestriction::Cheap) +
+		ECContentRestriction(FL_IGNORECASE | FL_SUBSTRING, PR_BUSINESS2_TELEPHONE_NUMBER, &spv[14], ECRestriction::Cheap) +
+		ECContentRestriction(FL_IGNORECASE | FL_SUBSTRING, PR_MOBILE_TELEPHONE_NUMBER, &spv[15], ECRestriction::Cheap) +
+		ECContentRestriction(FL_IGNORECASE | FL_SUBSTRING, PR_RADIO_TELEPHONE_NUMBER, &spv[16], ECRestriction::Cheap) +
+		ECContentRestriction(FL_IGNORECASE | FL_SUBSTRING, PR_CAR_TELEPHONE_NUMBER, &spv[17], ECRestriction::Cheap) +
+		ECContentRestriction(FL_IGNORECASE | FL_SUBSTRING, PR_OTHER_TELEPHONE_NUMBER, &spv[18], ECRestriction::Cheap) +
+		ECContentRestriction(FL_IGNORECASE | FL_SUBSTRING, PR_PAGER_TELEPHONE_NUMBER, &spv[19], ECRestriction::Cheap) +
+		ECContentRestriction(FL_IGNORECASE | FL_SUBSTRING, PR_PRIMARY_FAX_NUMBER, &spv[20], ECRestriction::Cheap) +
+		ECContentRestriction(FL_IGNORECASE | FL_SUBSTRING, PR_BUSINESS_FAX_NUMBER, &spv[21], ECRestriction::Cheap) +
+		ECContentRestriction(FL_IGNORECASE | FL_SUBSTRING, PR_HOME_FAX_NUMBER, &spv[22], ECRestriction::Cheap) +
+		ECContentRestriction(FL_IGNORECASE | FL_SUBSTRING, PR_TELEX_NUMBER, &spv[23], ECRestriction::Cheap) +
+		ECContentRestriction(FL_IGNORECASE | FL_SUBSTRING, PR_ASSISTANT_TELEPHONE_NUMBER, &spv[24], ECRestriction::Cheap) +
+		ECContentRestriction(FL_IGNORECASE | FL_SUBSTRING, PR_HOME2_TELEPHONE_NUMBER, &spv[25], ECRestriction::Cheap) +
+		ECContentRestriction(FL_IGNORECASE | FL_SUBSTRING, PR_DISPLAY_NAME, &spv[26], ECRestriction::Cheap) +
+		ECContentRestriction(FL_IGNORECASE | FL_SUBSTRING, PR_TTYTDD_PHONE_NUMBER, &spv[27], ECRestriction::Cheap) +
+		ECContentRestriction(FL_IGNORECASE | FL_SUBSTRING, PR_COMPANY_MAIN_PHONE_NUMBER, &spv[28], ECRestriction::Cheap) +
+		ECContentRestriction(FL_IGNORECASE | FL_SUBSTRING, PR_DISPLAY_CC, &spv[29], ECRestriction::Cheap)
+	) + ECOrRestriction(
+		ECContentRestriction(FL_IGNORECASE | FL_PREFIX, PR_MESSAGE_CLASS, &cls[0], ECRestriction::Cheap) +
+		ECContentRestriction(FL_IGNORECASE | FL_PREFIX, PR_MESSAGE_CLASS, &cls[1], ECRestriction::Cheap) +
+		ECContentRestriction(FL_IGNORECASE | FL_PREFIX, PR_MESSAGE_CLASS, &cls[2], ECRestriction::Cheap) +
+		ECContentRestriction(FL_IGNORECASE | FL_PREFIX, PR_MESSAGE_CLASS, &cls[3], ECRestriction::Cheap) +
+		ECContentRestriction(FL_IGNORECASE | FL_PREFIX, PR_MESSAGE_CLASS, &cls[4], ECRestriction::Cheap) +
+		ECContentRestriction(FL_IGNORECASE | FL_PREFIX, PR_MESSAGE_CLASS, &cls[5], ECRestriction::Cheap) +
+		ECContentRestriction(FL_IGNORECASE | FL_PREFIX, PR_MESSAGE_CLASS, &cls[6], ECRestriction::Cheap)
+	))
+	.CreateMAPIRestriction(&~m_rst, ECRestriction::Cheap);
+	if (ret != hrSuccess) {
+		kc_perrorf("CreateMAPIRestriction", ret);
+		return EXIT_FAILURE;
+	}
+	ret = m_find->SetSearchCriteria(m_rst, m_scanfld, RECURSIVE_SEARCH | RESTART_SEARCH);
+	if (ret != hrSuccess)
+		kc_perrorf("SetSearchCriteria", ret);
+	return EXIT_SUCCESS;
 }
 
 static int mpt_runner(mpt_job &&fct)
@@ -437,6 +607,8 @@ int main(int argc, char **argv)
 		ret = mpt_main_malloc();
 	else if (strcmp(argv[1], "bin2hex") == 0)
 		ret = mpt_main_bin2hex();
+	else if (strcmp(argv[1], "search") == 0)
+		ret = mpt_runner(mpt_search());
 	else
 		mpt_usage();
 	pthread_cancel(mpt_ticker);

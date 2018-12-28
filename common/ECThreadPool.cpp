@@ -123,7 +123,6 @@ void ECThreadPool::setThreadCount(unsigned ulThreadCount, bool bWait)
 					/* If there were no resources, stop trying. */
 					break;
 				}
-				set_thread_name(hThread, "ECThreadPool");
 				m_setThreads.emplace(hThread);
 			}
 		}
@@ -193,6 +192,7 @@ void ECThreadPool::joinTerminated(ulock_normal &locker)
 void* ECThreadPool::threadFunc(void *lpVoid)
 {
 	auto lpPool = static_cast<ECThreadPool *>(lpVoid);
+	set_thread_name(pthread_self(), "ECThreadPool");
 
 	while (true) {
 		STaskInfo sTaskInfo{};

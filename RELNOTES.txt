@@ -1,3 +1,20 @@
+8.6.91 (8.7 beta)
+=================
+Fixes:
+* server: fix disappearing inbox rules [KC-1359,KF-1940]
+* kopano-dbadm: new action "usmp" and "usmp-charset"
+* server: no more automatic upgrade to utf8mb4,
+  use `kopano-dbadm usmp` instead [KF-1394]
+Enhancements:
+* server: reduction of search folder overhead (have ECSearchFolders use a thread pool)
+* server: implement faster LDAP-based Global Addressbook searches [KC-1261]
+* ibrule: show contents of address lists
+Changes:
+* ol-schema-migrate: add back openldap support with -X option
+  (ol-schema-migrate was earlier updated to a new upstream version,
+  which changed attribute names to 389-ds)
+
+
 8.6.90 (8.7 beta)
 =================
 Fixes:
@@ -9,7 +26,6 @@ Enhancements:
   window, 60-second step). PNG image generation is not included (CPU intensive,
   and styling depends on user taste).
   To enable, set statsclient_interval=60 in dagent.cfg/server.cfg/spooler.cfg.
-* kopano-dbadm: new action "usmp" and "usmp-charset"
 Changes:
 * dagent/spooler: the custom plaintext protocol of StatsClient is
   replaced by a JSON variant [KC-1264]
@@ -86,6 +102,8 @@ Fixes:
 * libserver: restore a missing KCERR_NOT_FOUND return code in getStore
 Enhancements:
 * dbadm: new action "usmp-shrink-columns"
+* dagent: add directive to read whitelist domains and body from file
+  [KC-1278, KC-1279]
 Packaging:
 * Support for gsoap 2.8.73
 
