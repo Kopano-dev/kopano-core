@@ -82,10 +82,9 @@ HRESULT PHPArraytoSBinaryArray(zval * entryid_array , void *lpBase, SBinaryArray
 {
 	// local
 	HashTable		*target_hash = NULL;
-	int				count;
 	zval			**ppentry = NULL;
 	zval			*pentry = NULL;
-	int				i, n = 0;
+	unsigned int n = 0;
 
 	MAPI_G(hr) = hrSuccess;
 
@@ -95,8 +94,7 @@ HRESULT PHPArraytoSBinaryArray(zval * entryid_array , void *lpBase, SBinaryArray
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 		return MAPI_G(hr);
 	}
-	
-	count = zend_hash_num_elements(Z_ARRVAL_P(entryid_array));
+	auto count = zend_hash_num_elements(Z_ARRVAL_P(entryid_array));
 	if (count == 0) {
         lpBinaryArray->lpbin = NULL;
         lpBinaryArray->cValues = 0;
@@ -109,7 +107,7 @@ HRESULT PHPArraytoSBinaryArray(zval * entryid_array , void *lpBase, SBinaryArray
 
 	HashPosition hpos;
 	zend_hash_internal_pointer_reset_ex(target_hash, &hpos);
-	for (i = 0; i < count; ++i) {
+	for (unsigned int i = 0; i < count; ++i) {
 		zend_hash_get_current_data_ex(target_hash, reinterpret_cast<void **>(&ppentry), &hpos);
 		pentry = *ppentry;
 
@@ -179,7 +177,6 @@ HRESULT PHPArraytoSortOrderSet(zval * sortorder_array, void *lpBase, LPSSortOrde
 {
 	// local
 	LPSSortOrderSet lpSortOrderSet = NULL;
-	int				count;
 	HashTable		*target_hash = NULL;
 	zval			**entry = NULL;
 
@@ -190,10 +187,7 @@ HRESULT PHPArraytoSortOrderSet(zval * sortorder_array, void *lpBase, LPSSortOrde
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No target_hash in PHPArraytoSortOrderSet");
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 	}
-
-	// get the number of items in the array
-	count = zend_hash_num_elements(Z_ARRVAL_P(sortorder_array));
-
+	auto count = zend_hash_num_elements(Z_ARRVAL_P(sortorder_array));
 	MAPI_G(hr) = MAPI_ALLOC(CbNewSSortOrderSet(count), lpBase, (void **) &lpSortOrderSet);
 	if(MAPI_G(hr) != hrSuccess)
 		return MAPI_G(hr);
@@ -204,7 +198,7 @@ HRESULT PHPArraytoSortOrderSet(zval * sortorder_array, void *lpBase, LPSSortOrde
 
 	HashPosition hpos;
 	zend_hash_internal_pointer_reset_ex(target_hash, &hpos);
-	for (int i = 0; i < count; ++i) {
+	for (unsigned int i = 0; i < count; ++i) {
 		//todo: check on FAILURE
 		char *key = NULL;
 		ulong ind = 0;
@@ -234,9 +228,6 @@ HRESULT PHPArraytoPropTagArray(zval * prop_value_array, void *lpBase, LPSPropTag
 {
 	// return value
 	LPSPropTagArray lpPropTagArray = NULL;
-
-	// local
-	int				count;
 	HashTable		*target_hash = NULL;
 	zval ** entry = NULL;
 
@@ -247,11 +238,7 @@ HRESULT PHPArraytoPropTagArray(zval * prop_value_array, void *lpBase, LPSPropTag
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No target_hash in PHPArraytoPropTagArray");
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 	}
-
-	// get the number of items in the array
-	count = zend_hash_num_elements(target_hash);
-
-	// allocate memory to use
+	auto count = zend_hash_num_elements(target_hash);
 	MAPI_G(hr) = MAPI_ALLOC(CbNewSPropTagArray(count), lpBase, (void **)&lpPropTagArray);
 	if (MAPI_G(hr) != hrSuccess)
 		return MAPI_G(hr);
@@ -259,7 +246,7 @@ HRESULT PHPArraytoPropTagArray(zval * prop_value_array, void *lpBase, LPSPropTag
 
 	HashPosition hpos;
 	zend_hash_internal_pointer_reset_ex(target_hash, &hpos);
-	for (int i = 0; i < count; ++i) {
+	for (unsigned int i = 0; i < count; ++i) {
 		zend_hash_get_current_data_ex(target_hash, reinterpret_cast<void **>(&entry), &hpos);
 		convert_to_long_ex(entry);
 
@@ -279,8 +266,6 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 	// return value
 	LPSPropValue	lpPropValue	= NULL;
 	ULONG			cvalues = 0;
-	// local
-	int				count;
 	HashTable		*target_hash = NULL;
 	HashTable		*dataHash = NULL;
 	char			*keyIndex;
@@ -305,9 +290,7 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No target_hash in PHPArraytoPropValueArray");
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 	}
-
-	// Get the number of items in the array, also the number of item to use for the LPSPropValue array
-	count = zend_hash_num_elements(target_hash);
+	auto count = zend_hash_num_elements(target_hash);
 	if (count == 0) {
 	    *lppPropValArray = NULL;
 	    *lpcValues = 0;
@@ -321,7 +304,7 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 			MAPIFreeBuffer(lpPropValue);
 	});
 
-	for (int i = 0; i < count; ++i) {
+	for (unsigned int i = 0; i < count; ++i) {
 		zend_hash_get_current_data_ex(target_hash, reinterpret_cast<void **>(&entry), &thpos);
 		zend_hash_get_current_key_ex(target_hash, &keyIndex, nullptr, &numIndex, 0, &thpos);
 
@@ -698,7 +681,6 @@ HRESULT PHPArraytoAdrList(zval *phpArray, void *lpBase, LPADRLIST *lppAdrList TS
 {
 	HashTable		*target_hash = NULL;
 	ULONG			countProperties = 0;		// number of properties
-	ULONG			count = 0;					// number of elements in the array
 	ULONG			countRecipients = 0;		// number of actual recipients
 	LPADRLIST		lpAdrList = NULL;
 	zval			**entry = NULL;
@@ -722,7 +704,7 @@ HRESULT PHPArraytoAdrList(zval *phpArray, void *lpBase, LPADRLIST *lppAdrList TS
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 	}
 
-	count = zend_hash_num_elements(target_hash);
+	auto count = zend_hash_num_elements(target_hash);
 	// We allow allocing a 0 count addresslist, since we need this the OP_DELEGATE rule
 
 	MAPI_G(hr) = MAPI_ALLOC(CbNewADRLIST(count), lpBase, (void **)&lpAdrList);
@@ -764,7 +746,6 @@ exit:
 HRESULT PHPArraytoRowList(zval *phpArray, void *lpBase, LPROWLIST *lppRowList TSRMLS_DC) {
 	HashTable		*target_hash = NULL;
 	ULONG			countProperties = 0;		// number of properties
-	ULONG			count = 0;					// number of elements in the array
 	ULONG			countRows = 0;		// number of actual recipients
 	rowlist_ptr lpRowList;
 	zval			**entry = NULL;
@@ -783,10 +764,7 @@ HRESULT PHPArraytoRowList(zval *phpArray, void *lpBase, LPROWLIST *lppRowList TS
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No target_hash in PHPArraytoRowList");
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 	}
-	
-	count = zend_hash_num_elements(target_hash);
-
-	// allocate memory to store the array of pointers
+	auto count = zend_hash_num_elements(target_hash);
 	MAPI_G(hr) = MAPIAllocateBuffer(CbNewROWLIST(count), &~lpRowList);
 	if (MAPI_G(hr) != hrSuccess)
 		return MAPI_G(hr);
@@ -912,8 +890,6 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 	zval **typeEntry  = NULL;
 	zval **valueEntry = NULL;
 	ULONG cValues = 0;
-	int count;
-	int i;
 
 	if (!phpVal || lpRes == NULL) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "critical error");
@@ -939,7 +915,7 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "critical error, wrong array");
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 	}
-	count = zend_hash_num_elements(dataHash);
+	auto count = zend_hash_num_elements(dataHash);
 	zend_hash_internal_pointer_reset_ex(dataHash, &dhpos);
 
 	switch(lpRes->rt) {
@@ -952,7 +928,7 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 		MAPI_G(hr) = MAPIAllocateMore(sizeof(SRestriction) * count, lpBase, (void **) &lpRes->res.resAnd.lpRes);
 		if (MAPI_G(hr) != hrSuccess)
 			return MAPI_G(hr);
-		for (i = 0; i < count; ++i) {
+		for (unsigned int i = 0; i < count; ++i) {
 			zend_hash_get_current_data_ex(dataHash, reinterpret_cast<void **>(&valueEntry), &dhpos);
 			MAPI_G(hr) = PHPArraytoSRestriction(valueEntry[0], lpBase, &lpRes->res.resAnd.lpRes[i] TSRMLS_CC);
 			
@@ -968,7 +944,7 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 		if (MAPI_G(hr) != hrSuccess)
 			return MAPI_G(hr);
 
-		for (i = 0; i < count; ++i) {
+		for (unsigned int i = 0; i < count; ++i) {
 			zend_hash_get_current_data_ex(dataHash, reinterpret_cast<void **>(&valueEntry), &dhpos);
 			MAPI_G(hr) = PHPArraytoSRestriction(valueEntry[0], lpBase, &lpRes->res.resOr.lpRes[i] TSRMLS_CC);
 
@@ -1842,11 +1818,10 @@ HRESULT PHPArraytoReadStateArray(zval *zvalReadStates, void *lpBase, ULONG *lpcV
 {
 	LPREADSTATE 	lpReadStates = NULL;
 	HashTable		*target_hash = NULL;
-	int				count;
 	zval			**ppentry = NULL;
 	zval			*pentry = NULL;
 	zval			**valueEntry = NULL;
-	int				n = 0, i = 0;
+	unsigned int n = 0;
 
 	MAPI_G(hr) = hrSuccess;
 
@@ -1855,16 +1830,14 @@ HRESULT PHPArraytoReadStateArray(zval *zvalReadStates, void *lpBase, ULONG *lpcV
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No target_hash in PHPArraytoReadStateArray");
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 	}
-	
-	count = zend_hash_num_elements(Z_ARRVAL_P(zvalReadStates));
-
+	auto count = zend_hash_num_elements(Z_ARRVAL_P(zvalReadStates));
 	MAPI_G(hr) = MAPI_ALLOC(sizeof(READSTATE) * count, lpBase, (void **) &lpReadStates);
 	if(MAPI_G(hr) != hrSuccess) 
 		return MAPI_G(hr);
 
 	HashPosition hpos;
 	zend_hash_internal_pointer_reset_ex(target_hash, &hpos);
-	for (i = 0; i < count; ++i) {
+	for (unsigned int i = 0; i < count; ++i) {
 		zend_hash_get_current_data_ex(target_hash, reinterpret_cast<void **>(&ppentry), &hpos);
 		pentry = *ppentry;
 
@@ -1907,9 +1880,7 @@ HRESULT PHPArraytoGUIDArray(zval *phpVal, void *lpBase, ULONG *lpcValues, LPGUID
 {
 	HashTable *target_hash = NULL;
 	LPGUID lpGUIDs = NULL;
-	int	count = 0;
-	int n = 0;
-	int i = 0;
+	unsigned int n = 0;
 	zval			**ppentry = NULL;
 	zval			*pentry = NULL;
 
@@ -1920,8 +1891,7 @@ HRESULT PHPArraytoGUIDArray(zval *phpVal, void *lpBase, ULONG *lpcValues, LPGUID
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No target_hash in PHPArraytoGUIDArray");
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 	}
-	
-	count = zend_hash_num_elements(Z_ARRVAL_P(phpVal));
+	auto count = zend_hash_num_elements(Z_ARRVAL_P(phpVal));
 	if (count == 0) {
 		*lppGUIDs = NULL;
 		*lpcValues = 0;
@@ -1933,7 +1903,7 @@ HRESULT PHPArraytoGUIDArray(zval *phpVal, void *lpBase, ULONG *lpcValues, LPGUID
 		return MAPI_G(hr);
 	HashPosition hpos;
 	zend_hash_internal_pointer_reset_ex(target_hash, &hpos);
-	for (i = 0; i < count; ++i) {
+	for (unsigned int i = 0; i < count; ++i) {
 		zend_hash_get_current_data_ex(target_hash, reinterpret_cast<void **>(&ppentry), &hpos);
 		pentry = *ppentry;
 
@@ -2018,8 +1988,6 @@ HRESULT NotificationstoPHPArray(ULONG cNotifs, LPNOTIFICATION lpNotifs, zval **p
 HRESULT PHPArraytoSendingOptions(zval *phpArray, sending_options *lpSOPT)
 {
 	HRESULT hr = hrSuccess;
-	// local
-	int				count;
 	HashTable		*target_hash = NULL;
 	zval			**entry = NULL;
 	char			*keyIndex;
@@ -2038,10 +2006,10 @@ HRESULT PHPArraytoSendingOptions(zval *phpArray, sending_options *lpSOPT)
 		return hr;
 	}
 
-	count = zend_hash_num_elements(target_hash);
+	auto count = zend_hash_num_elements(target_hash);
 	HashPosition hpos;
 	zend_hash_internal_pointer_reset_ex(target_hash, &hpos);
-	for (int i = 0; i < count; ++i) {
+	for (unsigned int i = 0; i < count; ++i) {
 		zend_hash_get_current_data_ex(target_hash, reinterpret_cast<void **>(&entry), &hpos);
 		zend_hash_get_current_key_ex(target_hash, &keyIndex, nullptr, &numIndex, 0, &hpos);
 
@@ -2082,8 +2050,6 @@ HRESULT PHPArraytoSendingOptions(zval *phpArray, sending_options *lpSOPT)
 HRESULT PHPArraytoDeliveryOptions(zval *phpArray, delivery_options *lpDOPT)
 {
 	HRESULT hr = hrSuccess;
-	// local
-	int				count;
 	HashTable		*target_hash = NULL;
 	zval			**entry = NULL;
 	char			*keyIndex;
@@ -2102,10 +2068,10 @@ HRESULT PHPArraytoDeliveryOptions(zval *phpArray, delivery_options *lpDOPT)
 		return hr;
 	}
 
-	count = zend_hash_num_elements(target_hash);
+	auto count = zend_hash_num_elements(target_hash);
 	HashPosition hpos;
 	zend_hash_internal_pointer_reset_ex(target_hash, &hpos);
-	for (int i = 0; i < count; ++i) {
+	for (unsigned int i = 0; i < count; ++i) {
 		zend_hash_get_current_data_ex(target_hash, reinterpret_cast<void **>(&entry), &hpos);
 		zend_hash_get_current_key_ex(target_hash, &keyIndex, nullptr, &numIndex, 0, &hpos);
 

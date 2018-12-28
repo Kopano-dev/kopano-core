@@ -3152,8 +3152,6 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 	zval	*guidArray		= NULL;
 	// return value
 	memory_ptr<SPropTagArray> lpPropTagArray;
-	// local
-	size_t hashTotal = 0, i = 0;
 	memory_ptr<MAPINAMEID *> lppNamePropId;
 	zval		*entry = NULL, *guidEntry = NULL;
 	HashTable	*targetHash	= NULL,	*guidHash = NULL;
@@ -3171,10 +3169,7 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 
 	if(guidArray)
 		guidHash = Z_ARRVAL_P(guidArray);
-
-	// get the number of items in the array
-	hashTotal = zend_hash_num_elements(targetHash);
-
+	auto hashTotal = zend_hash_num_elements(targetHash);
 	if (guidHash && hashTotal != zend_hash_num_elements(guidHash))
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "The array with the guids is not of the same size as the array with the ids");
 
@@ -3187,7 +3182,7 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 	zend_hash_internal_pointer_reset_ex(targetHash, &thpos);
 	if(guidHash)
 		zend_hash_internal_pointer_reset_ex(guidHash, &ghpos);
-	for (i = 0; i < hashTotal; ++i) {
+	for (unsigned int i = 0; i < hashTotal; ++i) {
 		entry = zend_hash_get_current_data_ex(targetHash, &thpos);
 		if(guidHash)
 			guidEntry = zend_hash_get_current_data_ex(guidHash, &ghpos);
@@ -3200,7 +3195,7 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 
 		if(guidHash) {
 			if (Z_TYPE_P(guidEntry) != IS_STRING || sizeof(GUID) != guidEntry->value.str->len) {
-				php_error_docref(NULL TSRMLS_CC, E_WARNING, "The GUID with index number %d that is passed is not of the right length, cannot convert to GUID", i);
+				php_error_docref(nullptr TSRMLS_CC, E_WARNING, "The GUID with index number %u that is passed is not of the right length, cannot convert to GUID", i);
 			} else {
 				MAPI_G(hr) = KAllocCopy(guidEntry->value.str->val, sizeof(GUID), reinterpret_cast<void **>(&lppNamePropId[i]->lpguid), lppNamePropId);
 				if (MAPI_G(hr) != hrSuccess)
