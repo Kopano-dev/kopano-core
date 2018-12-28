@@ -303,6 +303,10 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 	HashPosition thpos, dhpos;
 	zend_hash_internal_pointer_reset_ex(target_hash, &thpos);
 	MAPI_G(hr) = MAPI_ALLOC(sizeof(SPropValue) * count, lpBase, (void**)&lpPropValue);
+	auto cleanup = make_scope_success([&]() {
+		if (MAPI_G(hr) != hrSuccess && lpBase != nullptr && lpPropValue != nullptr)
+			MAPIFreeBuffer(lpPropValue);
+	});
 
 	for (int i = 0; i < count; ++i) {
 		zend_hash_get_current_data_ex(target_hash, reinterpret_cast<void **>(&entry), &thpos);
