@@ -48,9 +48,10 @@ private:
  */
 
 ECMemTable::ECMemTable(const SPropTagArray *lpsPropTags, ULONG rpt) :
-	ECUnknown("ECMemTable"), ulRowPropTag(rpt),
-	lpsColumns(reinterpret_cast<SPropTagArray *>(new BYTE[CbSPropTagArray(lpsPropTags)]))
+	ECUnknown("ECMemTable"), ulRowPropTag(rpt)
 {
+	if (MAPIAllocateBuffer(CbSPropTagArray(lpsPropTags), &~lpsColumns) != hrSuccess)
+		throw std::bad_alloc();
 	lpsColumns->cValues = lpsPropTags->cValues;
 	memcpy(&lpsColumns->aulPropTag, &lpsPropTags->aulPropTag, lpsPropTags->cValues * sizeof(ULONG));
 }
@@ -347,9 +348,10 @@ HRESULT ECMemTable::HrClear()
 ECMemTableView::ECMemTableView(ECMemTable *mt, const ECLocale &locale,
     ULONG ulFlags) :
 	ECUnknown("ECMemTableView"), lpMemTable(mt),
-	lpsPropTags(reinterpret_cast<SPropTagArray *>(new BYTE[CbNewSPropTagArray(lpMemTable->lpsColumns->cValues)])),
 	m_locale(locale), m_ulConnection(1), m_ulFlags(ulFlags & MAPI_UNICODE)
 {
+	if (MAPIAllocateBuffer(CbNewSPropTagArray(lpMemTable->lpsColumns->cValues), &~lpsPropTags) != hrSuccess)
+		throw std::bad_alloc();
 	lpsPropTags->cValues = lpMemTable->lpsColumns->cValues;
 	std::transform(lpMemTable->lpsColumns->aulPropTag, lpMemTable->lpsColumns->aulPropTag + lpMemTable->lpsColumns->cValues, (ULONG*)lpsPropTags->aulPropTag, FixStringType(ulFlags & MAPI_UNICODE));
 
@@ -500,7 +502,8 @@ HRESULT ECMemTableView::GetStatus(ULONG *lpulTableStatus, ULONG *lpulTableType)
 HRESULT ECMemTableView::SetColumns(const SPropTagArray *lpPropTagArray,
     ULONG ulFlags)
 {
-	lpsPropTags.reset(reinterpret_cast<SPropTagArray *>(new BYTE[CbNewSPropTagArray(lpPropTagArray->cValues)]));
+	if (MAPIAllocateBuffer(CbNewSPropTagArray(lpPropTagArray->cValues), &~lpsPropTags) != hrSuccess)
+		throw std::bad_alloc();
 	lpsPropTags->cValues = lpPropTagArray->cValues;
 	memcpy(&lpsPropTags->aulPropTag, &lpPropTagArray->aulPropTag, lpPropTagArray->cValues * sizeof(ULONG));
 
@@ -772,9 +775,11 @@ HRESULT ECMemTableView::SortTable(const SSortOrderSet *lpSortCriteria,
 {
 	if (!lpSortCriteria)
 		lpSortCriteria = sSortDefault;
-	lpsSortOrderSet.reset(reinterpret_cast<SSortOrderSet *>(new BYTE[CbSSortOrderSet(lpSortCriteria)]));
+	auto hr = MAPIAllocateBuffer(CbSSortOrderSet(lpSortCriteria), &~lpsSortOrderSet);
+	if (hr != hrSuccess)
+		return hr;
 	memcpy(lpsSortOrderSet.get(), lpSortCriteria, CbSSortOrderSet(lpSortCriteria));
-	auto hr = UpdateSortOrRestrict();
+	hr = UpdateSortOrRestrict();
 	if (hr == hrSuccess)
 		Notify(TABLE_SORT_DONE, NULL, NULL);
 
