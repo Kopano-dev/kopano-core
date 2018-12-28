@@ -880,8 +880,7 @@ HRESULT PHPArraytoRowList(zval *phpArray, void *lpBase, LPROWLIST *lppRowList TS
 
 exit:
 	if (MAPI_G(hr) != hrSuccess)
-		MAPIFreeBuffer(lpRowList);
-
+		FreeProws(reinterpret_cast<SRowSet *>(lpRowList));
         zend_string_release(str_properties);
         zend_string_release(str_rowflags);
 	return MAPI_G(hr);
