@@ -3053,8 +3053,6 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 	zval	*guidArray		= NULL;
 	// return value
 	memory_ptr<SPropTagArray> lpPropTagArray;
-	// local
-	int hashTotal = 0, i = 0;
 	memory_ptr<MAPINAMEID *> lppNamePropId;
 	zval		**entry = NULL, **guidEntry = NULL;
 	HashTable	*targetHash	= NULL,	*guidHash = NULL;
@@ -3074,8 +3072,7 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 		guidHash = Z_ARRVAL_P(guidArray);
 
 	// get the number of items in the array
-	hashTotal = zend_hash_num_elements(targetHash);
-
+	auto hashTotal = zend_hash_num_elements(targetHash);
 	if (guidHash && hashTotal != zend_hash_num_elements(guidHash))
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "The array with the guids is not of the same size as the array with the ids");
 
@@ -3088,7 +3085,7 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 	zend_hash_internal_pointer_reset_ex(targetHash, &thpos);
 	if(guidHash)
 		zend_hash_internal_pointer_reset_ex(guidHash, &ghpos);
-	for (i = 0; i < hashTotal; ++i) {
+	for (unsigned int i = 0; i < hashTotal; ++i) {
 		zend_hash_get_current_data_ex(targetHash, reinterpret_cast<void **>(&entry), &thpos);
 		if(guidHash)
 			zend_hash_get_current_data_ex(guidHash, reinterpret_cast<void **>(&guidEntry), &ghpos);
@@ -3101,7 +3098,7 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 
 		if(guidHash) {
 			if (guidEntry[0]->type != IS_STRING || sizeof(GUID) != guidEntry[0]->value.str.len) {
-				php_error_docref(NULL TSRMLS_CC, E_WARNING, "The GUID with index number %d that is passed is not of the right length, cannot convert to GUID", i);
+				php_error_docref(nullptr TSRMLS_CC, E_WARNING, "The GUID with index number %u that is passed is not of the right length, cannot convert to GUID", i);
 			} else {
 				MAPI_G(hr) = KAllocCopy(guidEntry[0]->value.str.val, sizeof(GUID), reinterpret_cast<void **>(&lppNamePropId[i]->lpguid), lppNamePropId);
 				if (MAPI_G(hr) != hrSuccess)
@@ -5657,7 +5654,6 @@ ZEND_FUNCTION(mapi_freebusysupport_loaddata)
 	PMEASURE_FUNC;
 	LOG_BEGIN();
 	HashTable*			target_hash = NULL;
-	ULONG				i, j;
 	zval**				entry = NULL;
 	int					rid = 0;
 	memory_ptr<FBUser> lpUsers;
@@ -5689,7 +5685,7 @@ ZEND_FUNCTION(mapi_freebusysupport_loaddata)
 		goto exit;
 
 	// Get the user entryids
-	for (j = 0, i = 0; i < cUsers; ++i) {
+	for (unsigned int j = 0, i = 0; i < cUsers; ++i) {
 		if (zend_hash_get_current_data_ex(target_hash, reinterpret_cast<void **>(&entry), &hpos) == FAILURE) {
 			MAPI_G(hr) = MAPI_E_INVALID_ENTRYID;
 			goto exit;
@@ -5711,7 +5707,7 @@ ZEND_FUNCTION(mapi_freebusysupport_loaddata)
 
 	//Return an array of IFreeBusyData interfaces
 	array_init(return_value);
-	for (i = 0; i < cUsers; ++i) {
+	for (unsigned int i = 0; i < cUsers; ++i) {
 		if(lppFBData[i])
 		{
 			// Set resource relation
@@ -5736,7 +5732,6 @@ ZEND_FUNCTION(mapi_freebusysupport_loadupdate)
 	PMEASURE_FUNC;
 	LOG_BEGIN();
 	HashTable*			target_hash = NULL;
-	ULONG				i, j;
 	zval**				entry = NULL;
 	int					rid = 0;
 	memory_ptr<FBUser> lpUsers;
@@ -5768,7 +5763,7 @@ ZEND_FUNCTION(mapi_freebusysupport_loadupdate)
 		goto exit;
 
 	// Get the user entryids
-	for (j = 0, i = 0; i < cUsers; ++i) {
+	for (unsigned int j = 0, i = 0; i < cUsers; ++i) {
 		if (zend_hash_get_current_data_ex(target_hash, reinterpret_cast<void **>(&entry), &hpos) == FAILURE)
 		{
 			MAPI_G(hr) = MAPI_E_INVALID_ENTRYID;
@@ -5791,7 +5786,7 @@ ZEND_FUNCTION(mapi_freebusysupport_loadupdate)
 
 	//Return an array of IFreeBusyUpdate interfaces
 	array_init(return_value);
-	for (i = 0; i < cUsers; ++i) {
+	for (unsigned int i = 0; i < cUsers; ++i) {
 		if(lppFBUpdate[i])
 		{
 			// Set resource relation
@@ -6086,7 +6081,6 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish)
 	memory_ptr<FBBlock_1> lpBlocks;
 	ULONG				cBlocks = 0;
 	HashTable*			target_hash = NULL;
-	ULONG				i;
 	zval**				entry = NULL;
 	zval**				value = NULL;
 	HashTable*			data = NULL;
@@ -6111,7 +6105,7 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish)
 	if(MAPI_G(hr) != hrSuccess)
 		goto exit;
 
-	for (i = 0; i < cBlocks; ++i) {
+	for (unsigned int i = 0; i < cBlocks; ++i) {
 		zend_hash_get_current_data_ex(target_hash, reinterpret_cast<void **>(&entry), &hpos);
 		data = HASH_OF(entry[0]);
 		if (zend_hash_find(data, "start", sizeof("start"), reinterpret_cast<void **>(&value)) != SUCCESS) {

@@ -3021,10 +3021,7 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 
 	if(guidArray)
 		guidHash = Z_ARRVAL_P(guidArray);
-
-	// get the number of items in the array
-	hashTotal = zend_hash_num_elements(targetHash);
-
+	auto hashTotal = zend_hash_num_elements(targetHash);
 	if (guidHash && hashTotal != zend_hash_num_elements(guidHash))
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "The array with the guids is not of the same size as the array with the ids");
 
@@ -3036,11 +3033,17 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 	HashPosition thpos, ghpos;
 	zend_hash_internal_pointer_reset_ex(targetHash, &thpos);
 	if(guidHash)
+<<<<<<< HEAD
 		zend_hash_internal_pointer_reset(guidHash);
 
 	for (size_t i = 0; i < hashTotal; ++i) {
 		//	Gets the element that exist at the current pointer.
 		entry = zend_hash_get_current_data(targetHash);
+=======
+		zend_hash_internal_pointer_reset_ex(guidHash, &ghpos);
+	for (unsigned int i = 0; i < hashTotal; ++i) {
+		entry = zend_hash_get_current_data_ex(targetHash, &thpos);
+>>>>>>> d8e279a... php-ext: fix type of "count"
 		if(guidHash)
 			guidEntry = zend_hash_get_current_data_ex(guidHash, &ghpos);
 		MAPI_G(hr) = MAPIAllocateMore(sizeof(MAPINAMEID),lppNamePropId,(void **) &lppNamePropId[i]);
@@ -3052,7 +3055,7 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 
 		if(guidHash) {
 			if (Z_TYPE_P(guidEntry) != IS_STRING || sizeof(GUID) != guidEntry->value.str->len) {
-				php_error_docref(NULL TSRMLS_CC, E_WARNING, "The GUID with index number %d that is passed is not of the right length, cannot convert to GUID", i);
+				php_error_docref(nullptr TSRMLS_CC, E_WARNING, "The GUID with index number %u that is passed is not of the right length, cannot convert to GUID", i);
 			} else {
 				MAPI_G(hr) = KAllocCopy(guidEntry->value.str->val, sizeof(GUID), reinterpret_cast<void **>(&lppNamePropId[i]->lpguid), lppNamePropId);
 				if (MAPI_G(hr) != hrSuccess)
