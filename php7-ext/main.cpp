@@ -4354,12 +4354,11 @@ ZEND_FUNCTION(mapi_zarafa_setquota)
 	memory_ptr<ECQUOTA> lpQuota;
 	HashTable		*data = NULL;
 	zval			*value = NULL;
-
-        zend_string *str_usedefault = zend_string_init("usedefault", sizeof("usedefault")-1, 0);
-        zend_string *str_isuserdefault = zend_string_init("isuserdefault", sizeof("isuserdefault")-1, 0);
-        zend_string *str_warnsize = zend_string_init("warnsize", sizeof("warnsize")-1, 0);
-        zend_string *str_softsize = zend_string_init("softsize", sizeof("softsize")-1, 0);
-        zend_string *str_hardsize = zend_string_init("hardsize", sizeof("hardsize")-1, 0);
+	zstrplus str_usedefault(zend_string_init("usedefault", sizeof("usedefault") - 1, 0));
+	zstrplus str_isuserdefault(zend_string_init("isuserdefault", sizeof("isuserdefault") - 1, 0));
+	zstrplus str_warnsize(zend_string_init("warnsize", sizeof("warnsize") - 1, 0));
+	zstrplus str_softsize(zend_string_init("softsize", sizeof("softsize") - 1, 0));
+	zstrplus str_hardsize(zend_string_init("hardsize", sizeof("hardsize") - 1, 0));
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -4378,27 +4377,28 @@ ZEND_FUNCTION(mapi_zarafa_setquota)
 
 	ZVAL_DEREF(array);
 	data = HASH_OF(array);
-	if ((value = zend_hash_find(data, str_usedefault)) != NULL) {
+	value = zend_hash_find(data, str_usedefault.get());
+	if (value != nullptr) {
 		convert_to_boolean_ex(value);
 		lpQuota->bUseDefaultQuota = (Z_TYPE_P(value) == IS_TRUE);
 	}
-
-	if ((value = zend_hash_find(data, str_isuserdefault)) != NULL) {
+	value = zend_hash_find(data, str_isuserdefault.get());
+	if (value != nullptr) {
 		convert_to_boolean_ex(value);
 		lpQuota->bIsUserDefaultQuota = (Z_TYPE_P(value) == IS_TRUE);
 	}
-
-	if ((value = zend_hash_find(data, str_warnsize)) != NULL) {
+	value = zend_hash_find(data, str_warnsize.get());
+	if (value != nullptr) {
 		convert_to_long_ex(value);
 		lpQuota->llWarnSize = Z_LVAL_P(value);
 	}
-
-	if ((value = zend_hash_find(data, str_softsize)) != NULL) {
+	value = zend_hash_find(data, str_softsize.get());
+	if (value != nullptr) {
 		convert_to_long_ex(value);
 		lpQuota->llSoftSize = Z_LVAL_P(value);
 	}
-
-	if ((value = zend_hash_find(data, str_hardsize)) != NULL) {
+	value = zend_hash_find(data, str_hardsize.get());
+	if (value != nullptr) {
 		convert_to_long_ex(value);
 		lpQuota->llHardSize = Z_LVAL_P(value);
 	}
@@ -4410,11 +4410,6 @@ ZEND_FUNCTION(mapi_zarafa_setquota)
 	RETVAL_TRUE;
 
 exit:
-        zend_string_release(str_usedefault);
-        zend_string_release(str_isuserdefault);
-        zend_string_release(str_warnsize);
-        zend_string_release(str_softsize);
-        zend_string_release(str_hardsize);
 	LOG_END();
 	THROW_ON_ERROR();
 }
@@ -5601,11 +5596,10 @@ ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
 	ULONG j;
 	zval *entry = NULL, *value = NULL;
 	HashTable *data = NULL;
-
-	zend_string *str_userid = zend_string_init("userid", sizeof("userid")-1, 0);
-	zend_string *str_type = zend_string_init("type", sizeof("type")-1, 0);
-	zend_string *str_rights = zend_string_init("rights", sizeof("rights")-1, 0);
-	zend_string *str_state = zend_string_init("state", sizeof("state")-1, 0);
+	zstrplus str_userid(zend_string_init("userid", sizeof("userid") - 1, 0));
+	zstrplus str_type(zend_string_init("type", sizeof("type") - 1, 0));
+	zstrplus str_rights(zend_string_init("rights", sizeof("rights") - 1, 0));
+	zstrplus str_state(zend_string_init("state", sizeof("state") - 1, 0));
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -5653,23 +5647,27 @@ ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
 		// null pointer returned if perms was not array(array()).
 		ZVAL_DEREF(entry);
 		data = HASH_OF(entry);
-		if ((value = zend_hash_find(data, str_userid)) == nullptr)
+		value = zend_hash_find(data, str_userid.get());
+		if (value == nullptr)
 			continue;
 		convert_to_string_ex(value);
 		lpECPerms[j].sUserId.cb = Z_STRLEN_P(value);
 		lpECPerms[j].sUserId.lpb = (unsigned char*)Z_STRVAL_P(value);
 
-		if ((value = zend_hash_find(data, str_type)) == nullptr)
+		value = zend_hash_find(data, str_type.get());
+		if (value == nullptr)
 			continue;
 		convert_to_long_ex(value);
 		lpECPerms[j].ulType = Z_LVAL_P(value);
 
-		if ((value = zend_hash_find(data, str_rights)) == nullptr)
+		value = zend_hash_find(data, str_rights.get());
+		if (value == nullptr)
 			continue;
 		convert_to_long_ex(value);
 		lpECPerms[j].ulRights = Z_LVAL_P(value);
 
-		if ((value = zend_hash_find(data, str_state)) != NULL) {
+		value = zend_hash_find(data, str_state.get());
+		if (value != nullptr) {
 		    convert_to_long_ex(value);
 			lpECPerms[j].ulState = Z_LVAL_P(value);
 		} else {
@@ -5686,10 +5684,6 @@ ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
 	RETVAL_TRUE;
 
 exit:
-	zend_string_release(str_userid);
-	zend_string_release(str_type);
-	zend_string_release(str_rights);
-	zend_string_release(str_state);
 	LOG_END();
 	THROW_ON_ERROR();
 }
@@ -6198,10 +6192,9 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish)
 	zval*				entry = NULL;
 	zval*				value = NULL;
 	HashTable*			data = NULL;
-
-	zend_string *str_start = zend_string_init("start", sizeof("start")-1, 0);
-	zend_string *str_end = zend_string_init("end", sizeof("end")-1, 0);
-	zend_string *str_status = zend_string_init("status", sizeof("status")-1, 0);
+	zstrplus str_start(zend_string_init("start", sizeof("start") - 1, 0));
+	zstrplus str_end(zend_string_init("end", sizeof("end") - 1, 0));
+	zstrplus str_status(zend_string_init("status", sizeof("status") - 1, 0));
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -6226,19 +6219,19 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish)
 	ZEND_HASH_FOREACH_VAL(target_hash, entry) {
 		ZVAL_DEREF(entry);
 		data = HASH_OF(entry);
-		value = zend_hash_find(data, str_start);
+		value = zend_hash_find(data, str_start.get());
 		if (value == nullptr) {
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 			goto exit;
 		}
 		lpBlocks[i].m_tmStart = UnixTimeToRTime(Z_LVAL_P(value));
-		value = zend_hash_find(data, str_end);
+		value = zend_hash_find(data, str_end.get());
 		if (value == nullptr) {
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 			goto exit;
 		}
 		lpBlocks[i].m_tmEnd = UnixTimeToRTime(Z_LVAL_P(value));
-		value = zend_hash_find(data, str_status);
+		value = zend_hash_find(data, str_status.get());
 		if (value == nullptr) {
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 			goto exit;
@@ -6252,9 +6245,6 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish)
 	RETVAL_TRUE;
 
 exit:
-	zend_string_release(str_start);
-	zend_string_release(str_end);
-	zend_string_release(str_status);
 	LOG_END();
 	THROW_ON_ERROR();
 }
