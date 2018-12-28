@@ -3182,7 +3182,8 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 	zend_hash_internal_pointer_reset_ex(targetHash, &thpos);
 	if(guidHash)
 		zend_hash_internal_pointer_reset_ex(guidHash, &ghpos);
-	for (unsigned int i = 0; i < hashTotal; ++i) {
+	for (unsigned int i = 0; i < hashTotal; ++i, zend_hash_move_forward_ex(targetHash, &thpos),
+	     (guidHash ? zend_hash_move_forward_ex(guidHash, &ghpos) : 0)) {
 		entry = zend_hash_get_current_data_ex(targetHash, &thpos);
 		if(guidHash)
 			guidEntry = zend_hash_get_current_data_ex(guidHash, &ghpos);
@@ -3226,9 +3227,6 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Entry is of an unknown type: %08X", Z_TYPE_P(entry));
 			break;
 		}
-		zend_hash_move_forward_ex(targetHash, &thpos);
-		if(guidHash)
-			zend_hash_move_forward_ex(guidHash, &ghpos);
 	}
 
 	MAPI_G(hr) = lpMessageStore->GetIDsFromNames(hashTotal, lppNamePropId, MAPI_CREATE, &~lpPropTagArray);

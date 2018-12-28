@@ -3165,7 +3165,8 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 	zend_hash_internal_pointer_reset_ex(targetHash, &thpos);
 	if(guidHash)
 		zend_hash_internal_pointer_reset_ex(guidHash, &ghpos);
-	for (unsigned int i = 0; i < hashTotal; ++i) {
+	for (unsigned int i = 0; i < hashTotal; ++i, zend_hash_move_forward_ex(targetHash, &thpos),
+	     (guidHash != nullptr ? zend_hash_move_forward_ex(guidHash, &ghpos) : 0)) {
 		zend_hash_get_current_data_ex(targetHash, reinterpret_cast<void **>(&entry), &thpos);
 		if(guidHash)
 			zend_hash_get_current_data_ex(guidHash, reinterpret_cast<void **>(&guidEntry), &ghpos);
@@ -3209,9 +3210,6 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Entry is of an unknown type: %08X", entry[0]->type);
 			break;
 		}
-		zend_hash_move_forward_ex(targetHash, &thpos);
-		if(guidHash)
-			zend_hash_move_forward_ex(guidHash, &ghpos);
 	}
 
 	MAPI_G(hr) = lpMessageStore->GetIDsFromNames(hashTotal, lppNamePropId, MAPI_CREATE, &~lpPropTagArray);
@@ -5608,7 +5606,7 @@ ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
 		goto exit;
 	memset(lpECPerms, 0, sizeof(ECPERMISSION)*cPerms);
 	
-	for (j = 0, i = 0; i < cPerms; ++i) {
+	for (j = 0, i = 0; i < cPerms; ++i, zend_hash_move_forward_ex(target_hash, &hpos)) {
 		zend_hash_get_current_data_ex(target_hash, reinterpret_cast<void **>(&entry), &hpos);
 		// null pointer returned if perms was not array(array()).
 		data = HASH_OF(entry[0]);
@@ -5635,7 +5633,6 @@ ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
 			lpECPerms[j].ulState = RIGHT_NEW|RIGHT_AUTOUPDATE_DENIED;
 		}
 		++j;
-		zend_hash_move_forward_ex(target_hash, &hpos);
 	}
 
 	MAPI_G(hr) = lpSecurity->SetPermissionRules(j, lpECPerms);
@@ -5753,7 +5750,7 @@ ZEND_FUNCTION(mapi_freebusysupport_loaddata)
 		goto exit;
 
 	// Get the user entryids
-	for (unsigned int j = 0, i = 0; i < cUsers; ++i) {
+	for (unsigned int j = 0, i = 0; i < cUsers; ++i, zend_hash_move_forward_ex(target_hash, &hpos)) {
 		if (zend_hash_get_current_data_ex(target_hash, reinterpret_cast<void **>(&entry), &hpos) == FAILURE) {
 			MAPI_G(hr) = MAPI_E_INVALID_ENTRYID;
 			goto exit;
@@ -5762,7 +5759,6 @@ ZEND_FUNCTION(mapi_freebusysupport_loaddata)
 		lpUsers[j].m_cbEid = Z_STRLEN_PP(entry);
 		lpUsers[j].m_lpEid = (LPENTRYID)Z_STRVAL_PP(entry);
 		++j;
-		zend_hash_move_forward_ex(target_hash, &hpos);
 	}
 
 	MAPI_G(hr) = MAPIAllocateBuffer(sizeof(IFreeBusyData*)*cUsers, (void**)&lppFBData);
@@ -5831,7 +5827,7 @@ ZEND_FUNCTION(mapi_freebusysupport_loadupdate)
 		goto exit;
 
 	// Get the user entryids
-	for (unsigned int j = 0, i = 0; i < cUsers; ++i) {
+	for (unsigned int j = 0, i = 0; i < cUsers; ++i, zend_hash_move_forward_ex(target_hash, &hpos)) {
 		if (zend_hash_get_current_data_ex(target_hash, reinterpret_cast<void **>(&entry), &hpos) == FAILURE)
 		{
 			MAPI_G(hr) = MAPI_E_INVALID_ENTRYID;
@@ -5841,7 +5837,6 @@ ZEND_FUNCTION(mapi_freebusysupport_loadupdate)
 		lpUsers[j].m_cbEid = Z_STRLEN_PP(entry);
 		lpUsers[j].m_lpEid = (LPENTRYID)Z_STRVAL_PP(entry);
 		++j;
-		zend_hash_move_forward_ex(target_hash, &hpos);
 	}
 
 	MAPI_G(hr) = MAPIAllocateBuffer(sizeof(IFreeBusyUpdate*)*cUsers, &~lppFBUpdate);
@@ -6173,7 +6168,7 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish)
 	if(MAPI_G(hr) != hrSuccess)
 		goto exit;
 
-	for (unsigned int i = 0; i < cBlocks; ++i) {
+	for (unsigned int i = 0; i < cBlocks; ++i, zend_hash_move_forward_ex(target_hash, &hpos)) {
 		zend_hash_get_current_data_ex(target_hash, reinterpret_cast<void **>(&entry), &hpos);
 		data = HASH_OF(entry[0]);
 		if (zend_hash_find(data, "start", sizeof("start"), reinterpret_cast<void **>(&value)) != SUCCESS) {
@@ -6191,7 +6186,6 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish)
 			goto exit;
 		}
 		lpBlocks[i].m_fbstatus = (enum FBStatus)Z_LVAL_PP(value);
-		zend_hash_move_forward_ex(target_hash, &hpos);
 	}
 
 	MAPI_G(hr) = lpFBUpdate->PublishFreeBusy(lpBlocks, cBlocks);
