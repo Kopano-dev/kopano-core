@@ -732,7 +732,7 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 	*lppPropValArray = lpPropValue;
 
 exit:
-	if(MAPI_G(hr) != hrSuccess)
+	if (MAPI_G(hr) != hrSuccess && lpBase != nullptr && lpPropValue != nullptr)
 		MAPIFreeBuffer(lpPropValue);
 	return MAPI_G(hr);
 }
