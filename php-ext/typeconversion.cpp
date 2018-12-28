@@ -16,7 +16,7 @@
  */
 
 #include "phpconfig.h"
-
+#include <kopano/memory.hpp>
 #include <kopano/platform.h>
 
 #include <cmath>
@@ -762,7 +762,7 @@ HRESULT PHPArraytoRowList(zval *phpArray, void *lpBase, LPROWLIST *lppRowList TS
 	ULONG			countProperties = 0;		// number of properties
 	ULONG			count = 0;					// number of elements in the array
 	ULONG			countRows = 0;		// number of actual recipients
-	LPROWLIST		lpRowList = NULL;
+	rowlist_ptr lpRowList;
 	zval			**entry = NULL;
 	zval			**data = NULL;
 	LPSPropValue	pPropValue = NULL;
@@ -783,8 +783,7 @@ HRESULT PHPArraytoRowList(zval *phpArray, void *lpBase, LPROWLIST *lppRowList TS
 	count = zend_hash_num_elements(target_hash);
 
 	// allocate memory to store the array of pointers
-	MAPI_G(hr) = MAPIAllocateBuffer(CbNewROWLIST(count),
-	             reinterpret_cast<void **>(&lpRowList));
+	MAPI_G(hr) = MAPIAllocateBuffer(CbNewROWLIST(count), &~lpRowList);
 	if (MAPI_G(hr) != hrSuccess)
 		return MAPI_G(hr);
 	lpRowList->cEntries = 0;
@@ -830,11 +829,8 @@ HRESULT PHPArraytoRowList(zval *phpArray, void *lpBase, LPROWLIST *lppRowList TS
 		}
 		zend_hash_move_forward_ex(target_hash, &hpos);
 	}
-	*lppRowList = lpRowList;
-
+	*lppRowList = lpRowList.release();
 exit:
-	if (MAPI_G(hr) != hrSuccess)
-		FreeProws(reinterpret_cast<SRowSet *>(lpRowList));
 	return MAPI_G(hr);
 }
 
