@@ -1319,7 +1319,7 @@ HRESULT WebDav::HrMkCalendar()
 			sProperty.strValue = (char*)lpXmlNode->children->content;
 
 		// @todo we should have a generic xml to structs converter, this is *way* too hackish
-		if (sProperty.sPropName.strPropname.compare("supported-calendar-component-set") == 0)
+		if (sProperty.sPropName.strPropname == "supported-calendar-component-set")
 			for (auto lpXmlChild = lpXmlNode->children;
 			     lpXmlChild != nullptr; lpXmlChild = lpXmlChild->next)
 				if (lpXmlChild->type == XML_ELEMENT_NODE &&

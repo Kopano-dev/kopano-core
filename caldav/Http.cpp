@@ -58,9 +58,9 @@ HRESULT HrParseURL(const std::string &strUrl, ULONG *lpulFlag, std::string *lpst
 	iterToken = vcUrlTokens.cbegin();
 	//change case of Service name ICAL -> ical CALDaV ->caldav
 	strService = strToLower(*iterToken++);
-	if (!strService.compare("ical"))
+	if (strService == "ical")
 		ulFlag |= SERVICE_ICAL;
-	else if (!strService.compare("caldav"))
+	else if (strService == "caldav")
 		ulFlag |= SERVICE_CALDAV;
 	else
 		ulFlag |= SERVICE_UNKNOWN;
@@ -71,7 +71,7 @@ HRESULT HrParseURL(const std::string &strUrl, ULONG *lpulFlag, std::string *lpst
 	strUrlUser = strToLower(*iterToken++);
 	// check if the request is for public folders and set the bool flag
 	// @note: request for public folder not have user's name in the url
-	if (!strUrlUser.compare("public"))
+	if (strUrlUser == "public")
 		ulFlag |= REQ_PUBLIC;
 	if (iterToken == vcUrlTokens.cend())
 		goto exit;
@@ -204,7 +204,7 @@ HRESULT Http::HrParseHeaders()
 
 	items = tokenize(strAuthdata, ' ', true);
 	// we only support basic authentication
-	if (items.size() != 2 || items[0].compare("Basic") != 0) {
+	if (items.size() != 2 || items[0] != "Basic") {
 		ec_log_debug("HrParseHeaders login failed");
 		return MAPI_E_LOGON_FAILED;
 	}
@@ -316,7 +316,7 @@ HRESULT Http::HrGetDepth(ULONG *ulDepth)
 	auto hr = HrGetHeaderValue("Depth", &strDepth);
 	if (hr != hrSuccess)
 		*ulDepth = 0; /* Default is no subfolders. Default should become a parameter. It is action dependent. */
-	else if (strDepth.compare("infinity") == 0)
+	else if (strDepth == "infinity")
 		*ulDepth = 2;
 	else {
 		*ulDepth = atoi(strDepth.c_str());
@@ -346,11 +346,11 @@ bool Http::CheckIfMatch(LPMAPIPROP lpProp)
 		strValue = stringify_int64(FileTimeToUnixTime(ptrLastModTime->Value.ft), false);
 
 	if (HrGetHeaderValue("If-Match", &strIf) == hrSuccess) {
-		if (strIf.compare("*") == 0 && !ptrLastModTime)
+		if (strIf == "*" && ptrLastModTime == nullptr)
 			// we have an object without a last mod time, not allowed
 			return false;
 	} else if (HrGetHeaderValue("If-None-Match", &strIf) == hrSuccess) {
-		if (strIf.compare("*") == 0 && !!ptrLastModTime)
+		if (strIf == "*" && ptrLastModTime != nullptr)
 			// we have an object which has a last mod time, not allowed
 			return false;
 		invert = true;
@@ -362,7 +362,7 @@ bool Http::CheckIfMatch(LPMAPIPROP lpProp)
 	for (auto &i : tokenize(strIf, ',', true)) {
 		if (i.at(0) == '"' || i.at(0) == '\'')
 			i.assign(i.begin() + 1, i.end() - 1);
-		if (i.compare(strValue) == 0) {
+		if (i == strValue) {
 			ret = true;
 			break;
 		}
@@ -472,7 +472,7 @@ HRESULT Http::HrValidateReq()
 		return MAPI_E_NO_ACCESS;
 	}
 	for (unsigned int i = 0; lpszMethods[i] != nullptr; ++i) {
-		if (m_strMethod.compare(lpszMethods[i]) == 0) {
+		if (m_strMethod == lpszMethods[i]) {
 			bFound = true;
 			break;
 		}
@@ -524,8 +524,7 @@ HRESULT Http::HrFinalize()
 	HrResponseHeader("Content-Length", stringify(m_strRespBody.length()));
 
 	// force chunked http for long size response, should check version >= 1.1 to disable chunking
-	if (m_strRespBody.size() < HTTP_CHUNK_SIZE || m_strHttpVer.compare("1.1") != 0)
-	{
+	if (m_strRespBody.size() < HTTP_CHUNK_SIZE || m_strHttpVer != "1.1") {
 		hr = HrFlushHeaders();
 		if (hr != hrSuccess && hr != MAPI_E_END_OF_SESSION) {
 			ec_log_debug("Http::HrFinalize flush fail %d", hr);

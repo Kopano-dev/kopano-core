@@ -147,8 +147,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 	/*
 	 * Set m_lpUsrFld
 	 */
-	if (strMethod.compare("MKCALENDAR") == 0 && (m_ulUrlFlag & SERVICE_CALDAV))
-	{
+	if (strMethod == "MKCALENDAR" && m_ulUrlFlag & SERVICE_CALDAV) {
 		// created in the IPM_SUBTREE
 		hr = OpenSubFolder(m_lpActiveStore, NULL, '/', bIsPublic,
 		     false, &~m_lpUsrFld);
@@ -249,7 +248,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 	hr = HrGetOneProp(m_lpUsrFld, PR_SUBFOLDERS, &~lpFldProp);
 	if (hr != hrSuccess)
 		return hr;
-	if (lpFldProp->Value.b && !strMethod.compare("DELETE"))
+	if (lpFldProp->Value.b && strMethod == "DELETE")
 		m_blFolderAccess = false;
 	return hr;
 }

@@ -148,7 +148,7 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 		wstrFldId.erase(0, wcslen(FOLDER_PREFIX));
 
 	// Hack Alert #47 -- get Inbox and Outbox as special folders
-	if (wstrFldId.compare(L"Inbox") == 0) {
+	if (wstrFldId == L"Inbox") {
 		auto hr = lpMsgStore->GetReceiveFolder(KC_T("IPM"), fMapiUnicode, &cbEntryID, &~lpEntryID, nullptr);
 		if (hr != hrSuccess)
 			return kc_perror("Cannot open Inbox folder, no receive folder entryID", hr);
@@ -157,7 +157,7 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 			return hr;
 		folder->Value.bin.cb = cbEntryID;
 		folder->Value.bin.lpb = reinterpret_cast<BYTE *>(lpEntryID.get());
-	} else if (wstrFldId.compare(L"Outbox") == 0) {
+	} else if (wstrFldId == L"Outbox") {
 		memory_ptr<SPropValue> lpOutbox;
 		auto hr = HrGetOneProp(lpMsgStore, PR_IPM_OUTBOX_ENTRYID, &~lpOutbox);
 		if (hr != hrSuccess)

@@ -569,9 +569,7 @@ static HRESULT HrHandleRequest(ECChannel *lpChannel)
 	if (ulFlag & SERVICE_CALDAV)
 		// this header is always present in a caldav response, but not in ical.
 		lpRequest.HrResponseHeader("DAV", "1, access-control, calendar-access, calendar-schedule, calendarserver-principal-property-search");
-
-	if(!strMethod.compare("OPTIONS"))
-	{
+	if (strMethod == "OPTIONS") {
 		lpRequest.HrResponseHeader(200, "OK");
 		// @todo, if ical get is disabled, do not add GET as allowed option
 		// @todo, should check write access on url and only return read actions if not available
@@ -603,13 +601,10 @@ static HRESULT HrHandleRequest(ECChannel *lpChannel)
 	//GET & ical Requests
 	// @todo fix caldav GET request
 	static_assert(std::is_polymorphic<ProtocolBase>::value, "ProtocolBase needs to be polymorphic for unique_ptr to work");
-	if( !strMethod.compare("GET") || !strMethod.compare("HEAD") || ((ulFlag & SERVICE_ICAL) && strMethod.compare("PROPFIND")) )
-	{
+	if (strMethod == "GET" || strMethod == "HEAD" || ((ulFlag & SERVICE_ICAL) && strMethod != "PROPFIND")) {
 		lpBase.reset(new iCal(lpRequest, lpSession, strServerTZ, strCharset));
-	}
+	} else if ((ulFlag & SERVICE_CALDAV) || (strMethod == "PROPFIND" && !(ulFlag & SERVICE_ICAL))) {
 	//CALDAV Requests
-	else if((ulFlag & SERVICE_CALDAV) || ( !strMethod.compare("PROPFIND") && !(ulFlag & SERVICE_ICAL)))
-	{
 		lpBase.reset(new CalDAV(lpRequest, lpSession, strServerTZ, strCharset));
 	}
 	else
