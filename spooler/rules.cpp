@@ -192,7 +192,7 @@ static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 		ulCharset = ptrBodies[3].Value.ul;
 	if (PROP_TYPE(ptrBodies[0].ulPropTag) == PT_ERROR && PROP_TYPE(ptrBodies[1].ulPropTag) == PT_ERROR)
 		// plain and html not found, check sync flag
-		bPlain = (ptrBodies[2].Value.b == FALSE);
+		bPlain = !ptrBodies[2].Value.b;
 	else
 		bPlain = PROP_TYPE(ptrBodies[1].ulPropTag) == PT_ERROR && ptrBodies[1].Value.err == MAPI_E_NOT_FOUND;
 	sNewBody.ulPropTag = bPlain ? PR_BODY_W : PR_HTML;

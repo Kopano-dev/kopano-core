@@ -968,7 +968,7 @@ HRESULT DoSentMail(IMAPISession *lpSession, IMsgStore *lpMDBParam,
 
 	// Handle PR_DELETE_AFTER_SUBMIT
 	if (lpPropValue[DSM_DELETE_AFTER_SUBMIT].ulPropTag != PR_DELETE_AFTER_SUBMIT ||
-	    lpPropValue[DSM_DELETE_AFTER_SUBMIT].Value.b != TRUE)
+	    !lpPropValue[DSM_DELETE_AFTER_SUBMIT].Value.b)
 		return hr;
 
 	if(lpFolder == NULL)

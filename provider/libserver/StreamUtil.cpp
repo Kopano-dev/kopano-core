@@ -1631,7 +1631,7 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 			sObjectTableKey key(ulObjId, 0);
 			struct propVal sPropHasAttach;
 			sPropHasAttach.ulPropTag = PR_HASATTACH;
-			sPropHasAttach.Value.b = (fHasAttach != FALSE);
+			sPropHasAttach.Value.b = fHasAttach;
 			sPropHasAttach.__union = SOAP_UNION_propValData_b;
 
 			er = WriteProp(lpDatabase, ulObjId, ulParentId, &sPropHasAttach);

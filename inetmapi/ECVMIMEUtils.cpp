@@ -314,7 +314,7 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage,
 		SPropValuePtr ptrDeliveryReport;
 		if (mapiTransport != nullptr &&
 		    HrGetOneProp(lpMessage, PR_ORIGINATOR_DELIVERY_REPORT_REQUESTED, &~ptrDeliveryReport) == hrSuccess &&
-		    ptrDeliveryReport->Value.b == TRUE)
+		    ptrDeliveryReport->Value.b)
 			mapiTransport->requestDSN(true, "");
 
 		// Generate the message, "stream" it and delegate the sending

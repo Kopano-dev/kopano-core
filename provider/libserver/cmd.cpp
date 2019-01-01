@@ -2242,7 +2242,7 @@ static unsigned int SaveObject(struct soap *soap, ECSession *lpecSession,
 	// 1. calc size of object, now that all children are saved.
 	if (lpsReturnObj->ulObjType == MAPI_MESSAGE || lpsReturnObj->ulObjType == MAPI_ATTACH) {
 		// Remove old size
-		if (fNewItem != true && lpsReturnObj->ulObjType == MAPI_MESSAGE && ulParentType == MAPI_FOLDER) {
+		if (!fNewItem && lpsReturnObj->ulObjType == MAPI_MESSAGE && ulParentType == MAPI_FOLDER) {
 			if (GetObjectSize(lpDatabase, lpsReturnObj->ulServerId, &ulSize) == erSuccess)
 				er = UpdateObjectSize(lpDatabase, ulStoreId, MAPI_STORE, UPDATE_SUB, ulSize);
 			if (er != erSuccess)

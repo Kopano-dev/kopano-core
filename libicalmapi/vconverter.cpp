@@ -766,7 +766,7 @@ HRESULT VConverter::HrAddXHeaders(icalcomponent *lpicEvent, icalitem *lpIcalItem
 			const char *x = icalvalue_get_x(lpicValue);
 			if (x == NULL)
 				x = "";
-			sPropVal.Value.b = strcmp(x, "TRUE") ? 0 : 1;
+			sPropVal.Value.b = strcmp(x, "TRUE") == 0;
 			lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 			icalvalue_free(lpicValue);
 		}
@@ -2048,7 +2048,7 @@ HRESULT VConverter::HrSetVAlarm(ULONG ulProps, LPSPropValue lpProps, icalcompone
 	
 	// find bool, skip if error or false
 	auto lpPropVal = PCpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERSET], PT_BOOLEAN));
-	if (!lpPropVal || lpPropVal->Value.b == FALSE)
+	if (lpPropVal == nullptr || !lpPropVal->Value.b)
 		return hrSuccess;
 	lpPropVal = PCpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERMINUTESBEFORESTART], PT_LONG));
 	LONG lRemindBefore = lpPropVal != nullptr ? lpPropVal->Value.l : 0;
@@ -2184,7 +2184,7 @@ HRESULT VConverter::HrSetRecurrenceID(LPSPropValue lpMsgProps, ULONG ulMsgProps,
 
 	// We cannot check if PROP_ISEXCEPTION is set to TRUE, since Outlook sends accept messages on excetions with that property set to false.
 	auto lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ISEXCEPTION], PT_BOOLEAN));
-	if (!lpPropVal || lpPropVal->Value.b == FALSE) {
+	if (lpPropVal == nullptr || !lpPropVal->Value.b) {
 		auto lpPropGlobal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY));
 		if (!lpPropGlobal)
 			return hrSuccess;
@@ -2378,7 +2378,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 		{
 			auto lpProp = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ALLDAYEVENT], PT_BOOLEAN));
 			if (lpProp)
-				bIsAllDayException = (lpProp->Value.b == TRUE);
+				bIsAllDayException = lpProp->Value.b;
 			auto lpicProp = icalcomponent_get_first_property(lpicException.get(), ICAL_X_PROPERTY);
 			while (lpicProp && (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-CDO-ALLDAYEVENT") != 0))
 				lpicProp = icalcomponent_get_next_property(lpicException.get(), ICAL_X_PROPERTY);
@@ -2730,13 +2730,9 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 
 	hr = hrSuccess;
 	// if recurring, add recurrence. We have to check two props since CDO only sets the second, while Outlook only sets the first :S
-	if (((PROP_TYPE(lpSpropValArray[0].ulPropTag) != PT_ERROR) &&
-		lpSpropValArray[0].Value.b == TRUE) || 
-		((PROP_TYPE(lpSpropValArray[1].ulPropTag) != PT_ERROR) &&
-		lpSpropValArray[1].Value.b == TRUE) || 
-		((PROP_TYPE(lpSpropValArray[2].ulPropTag) != PT_ERROR) &&
-		lpSpropValArray[2].Value.b == TRUE))
-	{
+	if (((PROP_TYPE(lpSpropValArray[0].ulPropTag) != PT_ERROR) && lpSpropValArray[0].Value.b) ||
+	    ((PROP_TYPE(lpSpropValArray[1].ulPropTag) != PT_ERROR) && lpSpropValArray[1].Value.b) ||
+	    ((PROP_TYPE(lpSpropValArray[2].ulPropTag) != PT_ERROR) && lpSpropValArray[2].Value.b)) {
 		hr = HrSetRecurrence(lpMessage, lpicEvent.get(),
 		     lpicTZinfo.get(), strTZid, &lstEvents);
 		if (hr != hrSuccess)

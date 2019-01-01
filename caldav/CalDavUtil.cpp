@@ -537,8 +537,7 @@ bool HasDelegatePerm(IMsgStore *lpDefStore, IMsgStore *lpSharedStore)
 bool IsPrivate(LPMESSAGE lpMessage, ULONG ulPropIDPrivate)
 {
 	memory_ptr<SPropValue> lpPropPrivate;
-	return HrGetOneProp(lpMessage, ulPropIDPrivate, &~lpPropPrivate) == hrSuccess &&
-	       lpPropPrivate->Value.b == TRUE;
+	return HrGetOneProp(lpMessage, ulPropIDPrivate, &~lpPropPrivate) == hrSuccess && lpPropPrivate->Value.b;
 }
 
 /**

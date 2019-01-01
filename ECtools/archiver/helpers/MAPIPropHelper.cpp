@@ -103,11 +103,11 @@ HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageSt
 	hr = hrSuccess;
 
 	// Determine stubbed / dirty state.
-	if (PROP_TYPE(ptrMessageProps[IDX_STUBBED].ulPropTag) != PT_ERROR && ptrMessageProps[IDX_STUBBED].Value.b == TRUE)
+	if (PROP_TYPE(ptrMessageProps[IDX_STUBBED].ulPropTag) != PT_ERROR && ptrMessageProps[IDX_STUBBED].Value.b)
 		ulState |= MessageState::msStubbed;
 
 	if (PROP_TYPE(ptrMessageProps[IDX_DIRTY].ulPropTag) != PT_ERROR &&
-	    ptrMessageProps[IDX_DIRTY].Value.b == TRUE &&
+	    ptrMessageProps[IDX_DIRTY].Value.b &&
 	    !(ulState & MessageState::msStubbed))
 		// If, for some reason, both dirty and stubbed are set, it is safest to mark the message
 		// as stubbed. That might cause the archive to miss out some changes, but if we marked

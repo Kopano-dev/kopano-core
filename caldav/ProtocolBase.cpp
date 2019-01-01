@@ -249,7 +249,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 	hr = HrGetOneProp(m_lpUsrFld, PR_SUBFOLDERS, &~lpFldProp);
 	if (hr != hrSuccess)
 		return hr;
-	if (lpFldProp->Value.b == (unsigned short)true && !strMethod.compare("DELETE"))
+	if (lpFldProp->Value.b && !strMethod.compare("DELETE"))
 		m_blFolderAccess = false;
 	return hr;
 }
