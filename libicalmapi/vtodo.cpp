@@ -310,7 +310,6 @@ HRESULT VTodoConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMsg
 HRESULT VTodoConverter::HrSetItemSpecifics(ULONG ulProps, LPSPropValue lpProps, icalcomponent *lpicEvent)
 {
 	double pc = 0.0;
-	ULONG ulStatus = 0;
 
 	auto lpPropVal = PCpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TASK_PERCENTCOMPLETE], PT_DOUBLE));
 	if (lpPropVal)
@@ -318,8 +317,7 @@ HRESULT VTodoConverter::HrSetItemSpecifics(ULONG ulProps, LPSPropValue lpProps, 
 	icalcomponent_add_property(lpicEvent, icalproperty_new_percentcomplete(pc * 100));
 
 	lpPropVal = PCpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TASK_STATUS], PT_LONG));
-	if (lpPropVal)
-		ulStatus = lpPropVal->Value.ul;
+	ULONG ulStatus = lpPropVal != nullptr ? lpPropVal->Value.ul : 0;
 
 	switch (ulStatus) {
 	case 1:	// olTaskInProgress

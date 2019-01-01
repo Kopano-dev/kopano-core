@@ -424,7 +424,7 @@ HRESULT VEventConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *l
  */
 HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMsgProps, icaltimezone *lpicTZinfo, const std::string &strTZid, icalcomponent *lpEvent)
 {
-	bool bIsAllDay = false, bCounterProposal = false;
+	bool bCounterProposal = false;
 	ULONG ulStartIndex = PROP_APPTSTARTWHOLE, ulEndIndex = PROP_APPTENDWHOLE;
 
 	HRESULT hr = VConverter::HrSetTimeProperties(lpMsgProps, ulMsgProps,
@@ -444,8 +444,7 @@ HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMs
 	}
  	
 	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ALLDAYEVENT], PT_BOOLEAN));
-	if (lpPropVal)
-		bIsAllDay = (lpPropVal->Value.b == TRUE);
+	auto bIsAllDay = lpPropVal != nullptr && lpPropVal->Value.b;
 	// @note If bIsAllDay == true, the item is an allday event "in the timezone it was created in" (and the user selected the allday event option)
 	// In another timezone, Outlook will display the item as a 24h event with times (and the allday event option disabled)
 	// However, in ICal, you cannot specify a timezone for a date, so ICal will show this as an allday event in every timezone your client is in.
@@ -474,16 +473,13 @@ HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMs
 	if (!bCounterProposal)
 		return hrSuccess;
 
-	// set the original times in X properties
-	icalproperty *lpProp = NULL;
-
 	// Set original start time / DTSTART
 	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTSTARTWHOLE], PT_SYSTIME));
 	if (lpPropVal == nullptr)
 		// do not create calendar items without start/end date, which is invalid.
 		return MAPI_E_CORRUPT_DATA;
 	ttTime = FileTimeToUnixTime(lpPropVal->Value.ft);
-	lpProp = icalproperty_new_x("overwrite-me");
+	auto lpProp = icalproperty_new_x("overwrite-me");
 	icalproperty_set_x_name(lpProp, "X-MS-OLK-ORIGINALSTART");
 	hr = HrSetTimeProperty(ttTime, bIsAllDay, lpicTZinfo, strTZid, ICAL_DTSTART_PROPERTY, lpProp);
 	if (hr != hrSuccess)

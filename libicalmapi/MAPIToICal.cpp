@@ -102,10 +102,7 @@ HRESULT MapiToICalImpl::AddMessage(LPMESSAGE lpMessage, const std::string &strSr
 	icalproperty_method icMethod = ICAL_METHOD_NONE;
 	memory_ptr<SPropValue> lpMessageClass;
 	TIMEZONE_STRUCT ttTZinfo = {0};
-	bool blCensor = false;
-
-	if(ulFlags & M2IC_CENSOR_PRIVATE)
-		blCensor = true;
+	auto blCensor = ulFlags & M2IC_CENSOR_PRIVATE;
 
 	if (lpMessage == nullptr)
 		return MAPI_E_INVALID_PARAMETER;

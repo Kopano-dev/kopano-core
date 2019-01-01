@@ -1582,13 +1582,9 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 	object_ptr<IMAPITable> lpTable;
 	memory_ptr<SPropValue> lpSpropVal;
 	icalparameter *lpicParam = NULL;
-	ULONG ulMeetingStatus = 0;
-	bool bCounterProposal = false;
 
 	auto lpPropVal = PCpropFindProp(lpProps, ulProps, m_lpNamedProps->aulPropTag[PROP_COUNTERPROPOSAL]);
-	if(lpPropVal && PROP_TYPE(lpPropVal->ulPropTag) == PT_BOOLEAN && lpPropVal->Value.b)
-		bCounterProposal = true;
-	
+	auto bCounterProposal = lpPropVal != nullptr && PROP_TYPE(lpPropVal->ulPropTag) == PT_BOOLEAN && lpPropVal->Value.b;
 	//Remove Organiser & Attendees of Root event for exception.
 	auto lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_ORGANIZER_PROPERTY);
 	if (lpicProp) {
@@ -1700,8 +1696,8 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 	// strMessageClass == "IPM.Schedule.Meeting.Request", "IPM.Schedule.Meeting.Canceled" or ....?
 	// strMessageClass == "IPM.Appointment": normal calendar item
 	// If we're dealing with a meeting, preset status to 1. PROP_MEETINGSTATUS may not be set
-	if (strMessageClass.compare(0, string("IPM.Schedule.Meeting").length(), string("IPM.Schedule.Meeting")) == 0)
-		ulMeetingStatus = 1;
+	ULONG ulMeetingStatus = strMessageClass.compare(0, string("IPM.Schedule.Meeting").length(),
+	                        string("IPM.Schedule.Meeting")) == 0 ? 1 : 0;
 
 	// a normal calendar item has meeting status == 0, all other types != 0
 	lpPropVal = PCpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MEETINGSTATUS], PT_LONG));
@@ -2008,10 +2004,7 @@ HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, LPM
 	
 	// X-MICROSOFT-CDO-APPT-SEQUENCE
 	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTSEQNR], PT_LONG));
-	ULONG ulApptSeqNo = 0;
-	if (lpPropVal != nullptr)
-		ulApptSeqNo = lpPropVal->Value.ul;
-
+	ULONG ulApptSeqNo = lpPropVal != nullptr ? lpPropVal->Value.ul : 0;
 	lpicValue = icalvalue_new_integer(ulApptSeqNo);
 	lpszTemp = icalvalue_as_ical_string_r(lpicValue);
 	lpProp = icalproperty_new_x(lpszTemp);
@@ -2022,10 +2015,7 @@ HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, LPM
 
 	// X-MICROSOFT-CDO-OWNERAPPTID
 	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, PR_OWNER_APPT_ID);
-	ULONG ulOwnerApptID = -1;
-	if (lpPropVal != nullptr)
-		ulOwnerApptID = lpPropVal->Value.ul;
-
+	ULONG ulOwnerApptID = lpPropVal != nullptr ? lpPropVal->Value.ul : -1;
 	lpicValue = icalvalue_new_integer(ulOwnerApptID);
 	lpszTemp = icalvalue_as_ical_string_r(lpicValue);
 	lpProp = icalproperty_new_x(lpszTemp);
@@ -2053,10 +2043,7 @@ HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, LPM
 
 	// X-MICROSOFT-CDO-ALLDAYEVENT
 	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps,  CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ALLDAYEVENT], PT_BOOLEAN));
-	bool blIsAllday = false;
-	if (lpPropVal != nullptr)
-		blIsAllday = (lpPropVal->Value.b == TRUE);
-
+	auto blIsAllday = lpPropVal != nullptr && lpPropVal->Value.b;
 	lpicValue = icalvalue_new_x(blIsAllday ? "TRUE" : "FALSE");
 	lpszTemp = icalvalue_as_ical_string_r(lpicValue);
 	lpProp = icalproperty_new_x(lpszTemp);
@@ -2077,8 +2064,7 @@ HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, LPM
 	if (Util::HrStreamToString(lpStream, rtf) != hrSuccess)
 		return hrSuccess;
 
-	string rtfbase64;
-	rtfbase64 = base64_encode(rtf.c_str(), rtf.size());
+	auto rtfbase64 = base64_encode(rtf.c_str(), rtf.size());
 	lpicValue = icalvalue_new_x(rtfbase64.c_str());
 	lpszTemp = icalvalue_as_ical_string_r(lpicValue);
 	lpProp = icalproperty_new_x(lpszTemp);
@@ -2105,36 +2091,29 @@ HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, LPM
 HRESULT VConverter::HrSetVAlarm(ULONG ulProps, LPSPropValue lpProps, icalcomponent *lpicEvent)
 {
 	icalcomponent *lpAlarm = NULL;
-	time_t ttSnooze = 0, ttSnoozeSuffix = 0, ttReminderTime = 0;
-	bool blxmozgen = false, blisItemReccr = false, bTask = false;
-	LONG lRemindBefore = 0;
+	time_t ttSnooze = 0;
 	
 	// find bool, skip if error or false
 	auto lpPropVal = PCpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERSET], PT_BOOLEAN));
 	if (!lpPropVal || lpPropVal->Value.b == FALSE)
 		return hrSuccess;
 	lpPropVal = PCpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERMINUTESBEFORESTART], PT_LONG));
-	if (lpPropVal)
-		lRemindBefore = lpPropVal->Value.l;
+	LONG lRemindBefore = lpPropVal != nullptr ? lpPropVal->Value.l : 0;
 	lpPropVal = PCpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERTIME], PT_SYSTIME));
-	if (lpPropVal)
-		ttReminderTime = FileTimeToUnixTime(lpPropVal->Value.ft);
+	time_t ttReminderTime = lpPropVal != nullptr ? FileTimeToUnixTime(lpPropVal->Value.ft) : 0;
 	lpPropVal = PCpropFindProp(lpProps, ulProps, PR_MESSAGE_CLASS);
-	if (lpPropVal && _tcsicmp(lpPropVal->Value.LPSZ, KC_T("IPM.Task")) == 0)
-		bTask = true;
+	auto bTask = lpPropVal != nullptr && _tcsicmp(lpPropVal->Value.LPSZ, KC_T("IPM.Task")) == 0;
 	auto hr = HrParseReminder(lRemindBefore, ttReminderTime, bTask, &lpAlarm);
 	if (hr != hrSuccess)
 		return hr;
 
 	icalcomponent_add_component(lpicEvent, lpAlarm);
 	lpPropVal = PCpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRING], PT_BOOLEAN));
-	if(lpPropVal && lpPropVal->Value.b == TRUE)
-		blisItemReccr = true;
-
+	auto blisItemReccr = lpPropVal != nullptr && lpPropVal->Value.b;
 	// retrieve the suffix time for property X-MOZ-SNOOZE-TIME
 	lpPropVal = PCpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MOZ_SNOOZE_SUFFIX], PT_SYSTIME));
-	if(lpPropVal)
-		ttSnoozeSuffix = FileTimeToUnixTime(lpPropVal->Value.ft);
+	time_t ttSnoozeSuffix = lpPropVal != nullptr ? FileTimeToUnixTime(lpPropVal->Value.ft) : 0;
+
 	// check latest snooze time
 	lpPropVal = PCpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERNEXTTIME], PT_SYSTIME));
 	if (lpPropVal) {
@@ -2157,10 +2136,7 @@ HRESULT VConverter::HrSetVAlarm(ULONG ulProps, LPSPropValue lpProps, icalcompone
 		icalvalue_free(lpicValue);
 	}
 
-	lpPropVal = PCpropFindProp(lpProps, ulProps,  CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MOZGEN], PT_LONG));
-	if (lpPropVal)
-		blxmozgen = true;
-
+	auto blxmozgen = PCpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MOZGEN], PT_LONG)) != nullptr;
 	// send X-MOZ-LASTACK
 	lpPropVal = PCpropFindProp(lpProps, ulProps,  CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MOZLASTACK], PT_SYSTIME));
 	if (lpPropVal)
@@ -2256,11 +2232,8 @@ HRESULT VConverter::HrSetItemSpecifics(ULONG ulProps, LPSPropValue lpProps, ical
  */
 HRESULT VConverter::HrSetRecurrenceID(LPSPropValue lpMsgProps, ULONG ulMsgProps, icaltimezone *lpicTZinfo, const std::string &strTZid, icalcomponent *lpEvent)
 {
-	bool bIsSeriesAllDay = false;
 	icaltimetype icTime = {0};
 	time_t tRecId = 0;
-	ULONG ulRecurStartTime = -1;	// as 0 states start of day
-	ULONG ulRecurEndTime = -1;		// as 0 states start of day	
 
 	// We cannot check if PROP_ISEXCEPTION is set to TRUE, since Outlook sends accept messages on excetions with that property set to false.
 	auto lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ISEXCEPTION], PT_BOOLEAN));
@@ -2280,19 +2253,17 @@ HRESULT VConverter::HrSetRecurrenceID(LPSPropValue lpMsgProps, ULONG ulMsgProps,
 	}
 
 	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURSTARTTIME], PT_LONG));
-	if (lpPropVal)
-		ulRecurStartTime = lpPropVal->Value.ul;
+	/* 0 is "start of day", hence -1 as default */
+	ULONG ulRecurStartTime = lpPropVal != nullptr ? lpPropVal->Value.ul : -1;
 	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURENDTIME], PT_LONG));
-	if (lpPropVal)
-		ulRecurEndTime = lpPropVal->Value.ul;
+	ULONG ulRecurEndTime = lpPropVal != nullptr ? lpPropVal->Value.ul : -1;
 
 	// check to know if series is all day or not.
 	// ulRecurStartTime = 0 -> recurrence series starts at 00:00 AM 
 	// ulRecurEndTime = 24 * 4096 -> recurrence series ends at 12:00 PM 
 	// 60 sec -> highest pow of 2 after 60 -> 64 
 	// 60 mins -> 60 * 64 = 3840 -> highest pow of 2 after 3840 -> 4096
-	if (ulRecurStartTime == 0 && ulRecurEndTime == (24 * 4096))
-		bIsSeriesAllDay = true;
+	auto bIsSeriesAllDay = ulRecurStartTime == 0 && ulRecurEndTime == 24 * 4096;
 
 	// set Recurrence-ID for exception msg if dispidRecurringbase prop is present	
 	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRINGBASE], PT_SYSTIME));
@@ -2348,7 +2319,6 @@ HRESULT VConverter::HrSetRecurrenceID(LPSPropValue lpMsgProps, ULONG ulMsgProps,
 HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEvent, icaltimezone *lpicTZinfo, const std::string &strTZid, std::list<icalcomponent*> *lpEventList)
 {
 	ULONG ulRecurrenceStateTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRENCESTATE], PT_BINARY);
-	bool bIsAllDay = false;
 	memory_ptr<SPropValue> lpSpropArray;
 	LPSPropValue lpSPropRecVal = NULL;
 	recurrence cRecurrence;
@@ -2414,9 +2384,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 
 	if (FAILED(hr))
 		return hr;
-	if (PROP_TYPE(lpSpropArray[3].ulPropTag) != PT_ERROR)
-		bIsAllDay = (lpSpropArray[3].Value.b == TRUE);
-
+	auto bIsAllDay = PROP_TYPE(lpSpropArray[3].ulPropTag) != PT_ERROR && lpSpropArray[3].Value.b;
 	if (m_iCurrentTimeZone == m_mapTimeZones->end()) {
 		hr = HrGetTzStruct("Etc/UTC", &zone);
 		if (hr != hrSuccess)

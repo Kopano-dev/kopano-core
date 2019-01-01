@@ -224,7 +224,6 @@ HRESULT ECVMIMESender::HrMakeRecipientsList(LPADRBOOK lpAdrBook,
     bool bAlwaysExpandDistrList)
 {
 	object_ptr<IMAPITable> lpRTable;
-	bool bResend = false;
 	std::set<std::wstring> setGroups; // Set of groups to make sure we don't get into an expansion-loop
 	std::set<std::wstring> setRecips; // Set of recipients to make sure we don't send two identical RCPT TOs
 	memory_ptr<SPropValue> lpMessageFlags;
@@ -232,8 +231,7 @@ HRESULT ECVMIMESender::HrMakeRecipientsList(LPADRBOOK lpAdrBook,
 	auto hr = HrGetOneProp(lpMessage, PR_MESSAGE_FLAGS, &~lpMessageFlags);
 	if (hr != hrSuccess)
 		return hr;
-	if(lpMessageFlags->Value.ul & MSGFLAG_RESEND)
-		bResend = true;
+	auto bResend = lpMessageFlags->Value.ul & MSGFLAG_RESEND;
 	hr = lpMessage->GetRecipientTable(MAPI_UNICODE, &~lpRTable);
 	if (hr != hrSuccess)
 		return hr;
