@@ -363,10 +363,8 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 			continue;
 		if (!bFirstOne)
 			strQuery += ",";
-		if (PROP_TYPE(ap.first) == PT_BINARY)
-			strData = base64_encode(ap.second.c_str(), ap.second.size());
-		else
-			strData = ap.second;
+		strData = PROP_TYPE(ap.first) != PT_BINARY ? ap.second :
+		          base64_encode(ap.second.c_str(), ap.second.size());
 		strQuery +=
 			"((" + strSubQuery + "),"
 			"'" + m_lpDatabase->Escape(stringify_hex(ap.first)) + "',"
