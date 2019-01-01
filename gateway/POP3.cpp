@@ -86,12 +86,12 @@ HRESULT POP3::HrProcessCommand(const std::string &strInput)
 
 	ec_log_debug("Command received: %s", vWords[0].c_str());
 	auto strCommand = strToUpper(vWords[0]);
-	if (strCommand.compare("CAPA") == 0) {
+	if (strCommand == "CAPA") {
 		if (vWords.size() != 1)
 			return HrResponse(POP3_RESP_ERR,
 			       "CAPA command must have 0 arguments");
 		return HrCmdCapability();
-	} else if (strCommand.compare("STLS") == 0) {
+	} else if (strCommand == "STLS") {
 		if (vWords.size() != 1)
 			return HrResponse(POP3_RESP_ERR,
 			       "STLS command must have 0 arguments");
@@ -100,19 +100,19 @@ HRESULT POP3::HrProcessCommand(const std::string &strInput)
 			// let the gateway quit from the socket read loop
 			return MAPI_E_END_OF_SESSION;
 		return hrSuccess;
-	} else if (strCommand.compare("USER") == 0) {
+	} else if (strCommand == "USER") {
 		if (vWords.size() != 2)
 			return HrResponse(POP3_RESP_ERR,
 			       "User command must have 1 argument");
 		return HrCmdUser(vWords[1]);
-	} else if (strCommand.compare("PASS") == 0) {
+	} else if (strCommand == "PASS") {
 		if (vWords.size() < 2)
 			return HrResponse(POP3_RESP_ERR,
 			       "Pass command must have 1 argument");
 		string strPass = strInput;
 		strPass.erase(0, strCommand.length()+1);
 		return HrCmdPass(strPass);
-	} else if (strCommand.compare("QUIT") == 0) {
+	} else if (strCommand == "QUIT") {
 		HrCmdQuit();
 		// let the gateway quit from the socket read loop
 		return MAPI_E_END_OF_SESSION;
@@ -120,44 +120,44 @@ HRESULT POP3::HrProcessCommand(const std::string &strInput)
 		HrResponse(POP3_RESP_ERR, "Invalid command");
 		ec_log_err("Not authorized for command \"%s\"", vWords[0].c_str());
 		return MAPI_E_CALL_FAILED;
-	} else if (strCommand.compare("STAT") == 0) {
+	} else if (strCommand == "STAT") {
 		if (vWords.size() != 1)
 			return HrResponse(POP3_RESP_ERR,
 			       "Stat command has no arguments");
 		return HrCmdStat();
-	} else if (strCommand.compare("LIST") == 0) {
+	} else if (strCommand == "LIST") {
 		if (vWords.size() > 2)
 			return HrResponse(POP3_RESP_ERR,
 			       "List must have 0 or 1 arguments");
 		if (vWords.size() == 2)
 			return HrCmdList(strtoul(vWords[1].c_str(), NULL, 0));
 		return HrCmdList();
-	} else if (strCommand.compare("RETR") == 0) {
+	} else if (strCommand == "RETR") {
 		if (vWords.size() != 2)
 			return HrResponse(POP3_RESP_ERR,
 			       "RETR must have 1 argument");
 		return HrCmdRetr(strtoul(vWords[1].c_str(), NULL, 0));
-	} else if (strCommand.compare("DELE") == 0) {
+	} else if (strCommand == "DELE") {
 		if (vWords.size() != 2)
 			return HrResponse(POP3_RESP_ERR,
 			       "DELE must have 1 argument");
 		return HrCmdDele(strtoul(vWords[1].c_str(), NULL, 0));
-	} else if (strCommand.compare("NOOP") == 0) {
+	} else if (strCommand == "NOOP") {
 		if (vWords.size() > 1)
 			return HrResponse(POP3_RESP_ERR,
 			       "NOOP must have 0 arguments");
 		return HrCmdNoop();
-	} else if (strCommand.compare("RSET") == 0) {
+	} else if (strCommand == "RSET") {
 		if (vWords.size() > 1)
 			return HrResponse(POP3_RESP_ERR,
 			       "RSET must have 0 arguments");
 		return HrCmdRset();
-	} else if (strCommand.compare("TOP") == 0) {
+	} else if (strCommand == "TOP") {
 		if (vWords.size() != 3)
 			return HrResponse(POP3_RESP_ERR,
 			       "TOP must have 2 arguments");
 		return HrCmdTop(strtoul(vWords[1].c_str(), NULL, 0), strtoul(vWords[2].c_str(), NULL, 0));
-	} else if (strCommand.compare("UIDL") == 0) {
+	} else if (strCommand == "UIDL") {
 		if (vWords.size() > 2)
 			return HrResponse(POP3_RESP_ERR,
 			       "UIDL must have 0 or 1 arguments");
