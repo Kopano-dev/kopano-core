@@ -73,13 +73,11 @@ HRESULT HrCreateGlobalID(ULONG ulNamedTag, void *base, LPSPropValue *lppPropVal)
 		return hr;
 
 	lpPropVal->ulPropTag = ulNamedTag;
-
 	hr = HrGenerateUid(&strUid);
 	if (hr != hrSuccess)
 		goto exit;
 
 	strBinUid = hex2bin(strUid);
-
 	lpPropVal->Value.bin.cb = strBinUid.length();
 	hr = KAllocCopy(strBinUid.data(), lpPropVal->Value.bin.cb, reinterpret_cast<void **>(&lpPropVal->Value.bin.lpb), base);
 	if (hr != hrSuccess)
@@ -89,7 +87,6 @@ HRESULT HrCreateGlobalID(ULONG ulNamedTag, void *base, LPSPropValue *lppPropVal)
 exit:
 	if (hr != hrSuccess && origbase == nullptr)
 		MAPIFreeBuffer(lpPropVal);
-
 	return hr;
 }
 
@@ -186,7 +183,6 @@ HRESULT HrMakeBinaryUID(const std::string &strUid, void *base, SPropValue *lpPro
 	auto hr = KAllocCopy(strBinUid.data(), sPropValue.Value.bin.cb, reinterpret_cast<void **>(&sPropValue.Value.bin.lpb), base);
 	if (hr != hrSuccess)
 		return hr;
-
 	// set return value
 	lpPropValue->Value.bin = sPropValue.Value.bin;
 	return hrSuccess;

@@ -164,7 +164,6 @@ HRESULT vcftomapi_impl::handle_TEL(VObject *v)
 			if (strcasecmp(token.c_str(), "MOBILE") == 0 || strcasecmp(token.c_str(), "CELL") == 0) {
 				if (is_fax)
 					continue;
-
 				auto ret = vobject_to_prop(v, s, PR_MOBILE_TELEPHONE_NUMBER);
 				if (ret != hrSuccess)
 					return ret;
@@ -187,7 +186,6 @@ HRESULT vcftomapi_impl::handle_TEL(VObject *v)
 			if (strcasecmp(token.c_str(), "PAGER") == 0) {
 				if (is_fax)
 					continue;
-
 				auto ret = vobject_to_prop(v, s, PR_PAGER_TELEPHONE_NUMBER);
 				if (ret != hrSuccess)
 					return ret;
@@ -238,7 +236,6 @@ HRESULT vcftomapi_impl::handle_ADR(VObject *v)
 	if (moreIteration(&t)) {
 		auto vv = nextVObject(&t);
 		auto name = vObjectName(vv);
-
 		const char *namep = strcmp(name, "TYPE") == 0 ? vObjectStringZValue(vv) : name;
 		if (strcmp(namep, "HOME") == 0)
 			adr_type = HOME;
@@ -252,7 +249,6 @@ HRESULT vcftomapi_impl::handle_ADR(VObject *v)
 		SPropValue s;
 
 		s.ulPropTag = 0;
-
 		if (adr_type == HOME && !strcmp(name, "STREET"))
 			vobject_to_prop(vv, s, PR_HOME_ADDRESS_STREET);
 		else if (adr_type == HOME && !strcmp(name, "L"))
@@ -283,7 +279,6 @@ HRESULT vcftomapi_impl::handle_ADR(VObject *v)
 			vobject_to_prop(vv, s, PR_OTHER_ADDRESS_POSTAL_CODE);
 		else if (adr_type == OTHER && !strcmp(name, "C"))
 			vobject_to_prop(vv, s, PR_OTHER_ADDRESS_COUNTRY);
-
 		if (s.ulPropTag > 0)
 			props.emplace_back(std::move(s));
 	}
@@ -299,12 +294,11 @@ HRESULT vcftomapi_impl::handle_UID(VObject *v)
 
 	auto uid_wstring = vObjectUStringZValue(v);
 	auto uid_string = convert_to<std::string>(uid_wstring);
-
 	memory_ptr<SPropValue> prop;
+
 	auto hr = MAPIAllocateBuffer(sizeof(SPropValue), &~prop);
 	if (hr != hrSuccess)
 		return hr;
-
 	hr = HrMakeBinaryUID(uid_string, prop, prop);
 	if (hr != hrSuccess)
 		return hr;
@@ -387,7 +381,6 @@ HRESULT vcftomapi_impl::handle_PHOTO(VObject *v)
 
 	if (!base64 || vObjectValueType(v) != VCVT_USTRINGZ)
 		phototype = PHOTO_NONE;
-
 	if (phototype == PHOTO_NONE)
 		return hrSuccess;
 
@@ -411,7 +404,6 @@ HRESULT vcftomapi_impl::parse_vcf(const std::string &ical)
 	 * Therefore we work around it and replace ":\r\n " or ":\n "
 	 * with ":".
 	 */
-
 	auto tmp_ical = ical;
 	while (true) {
 		auto pos = tmp_ical.find(":\r\n ");
@@ -472,7 +464,6 @@ HRESULT vcftomapi_impl::parse_vcf(const std::string &ical)
 			auto res = date_string_to_filetime(input, filetime);
 			if (!res)
 				continue;
-
 			s.ulPropTag = PR_BIRTHDAY;
 			s.Value.ft = filetime;
 			props.emplace_back(s);
@@ -618,10 +609,8 @@ HRESULT vcftomapi_impl::save_photo(IMessage *mapiprop)
 	hr = stream->Write(bytes.c_str(), bytes.size(), &written);
 	if (hr != hrSuccess)
 		return hr;
-
 	if (written != bytes.size())
 		return MAPI_E_CALL_FAILED;
-
 	hr = stream->Commit(0);
 	if (hr != hrSuccess)
 		return hr;
@@ -660,11 +649,9 @@ HRESULT vcftomapi_impl::save_photo(IMessage *mapiprop)
 	hr = att->SetProps(ARRAY_SIZE(prop), prop, nullptr);
 	if (hr != hrSuccess)
 		return hr;
-
 	hr = att->SaveChanges(KEEP_OPEN_READWRITE);
 	if (hr != hrSuccess)
 		return hr;
-
 	return hrSuccess;
 }
 
@@ -701,10 +688,8 @@ HRESULT vcftomapi_impl::save_props(const std::list<SPropValue> &proplist,
 
 	if (ret != hrSuccess)
 		return ret;
-
 	if (phototype != PHOTO_NONE)
 		ret = save_photo(mapiprop);
-
 	return ret;
 }
 

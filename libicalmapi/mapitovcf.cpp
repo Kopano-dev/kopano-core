@@ -289,7 +289,6 @@ HRESULT mapitovcf_impl::add_photo(IMessage *lpMessage, VObject *root)
 	auto hr = lpMessage->GetAttachmentTable(0, &~table);
 	if (hr != hrSuccess)
 		return hr;
-
 	hr = table->SetColumns(columns, 0);
 	if (hr != hrSuccess)
 		return hr;
@@ -302,7 +301,6 @@ HRESULT mapitovcf_impl::add_photo(IMessage *lpMessage, VObject *root)
 	hr = ECPropertyRestriction(RELOP_EQ, PR_ATTACHMENT_CONTACTPHOTO, &prop, ECRestriction::Cheap).CreateMAPIRestriction(&~restriction, ECRestriction::Cheap);
 	if (hr != hrSuccess)
 		return hr;
-
 	hr = table->Restrict(restriction, MAPI_DEFERRED_ERRORS);
 	if (hr != hrSuccess)
 		return hr;
@@ -311,7 +309,6 @@ HRESULT mapitovcf_impl::add_photo(IMessage *lpMessage, VObject *root)
 	hr = HrQueryAllRows(table, nullptr, nullptr, nullptr, 0, &~rows);
 	if (hr != hrSuccess)
 		return hr;
-
 	if (rows->cRows == 0)
 		return hrSuccess;
 
@@ -485,15 +482,12 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 	hr = add_adr(lpMessage, root);
 	if (hr != hrSuccess)
 		return hr;
-
 	hr = add_email(lpMessage, root);
 	if (hr != hrSuccess)
 		return hr;
-
 	hr = add_uid(lpMessage, root);
 	if (hr != hrSuccess)
 		return hr;
-
 	hr = add_url(lpMessage, root);
 	if (hr != hrSuccess)
 		return hr;
@@ -515,7 +509,6 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 		to_prop(root, "REV", *msgprop);
 	else if (hr != MAPI_E_NOT_FOUND)
 		return hr;
-
 	hr = add_photo(lpMessage, root);
 	if (hr != hrSuccess)
 		return hr;

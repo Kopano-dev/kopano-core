@@ -64,7 +64,6 @@ HRESULT VEventConverter::HrICal2MAPI(icalcomponent *lpEventRoot, icalcomponent *
  * @param[in]  base Used for the 'base' pointer for memory allocations
  * @param[in]  bisException Weather we're handling an exception or not
  * @param[in,out] lstMsgProps 
- * 
  * @return MAPI error code
  */
 HRESULT VEventConverter::HrAddBaseProperties(icalproperty_method icMethod, icalcomponent *lpicEvent, void *base, bool bisException, std::list<SPropValue> *lstMsgProps)
@@ -80,7 +79,6 @@ HRESULT VEventConverter::HrAddBaseProperties(icalproperty_method icMethod, icalc
 		strEmail = m_converter.convert_to<std::wstring>(lpszProp, rawsize(lpszProp), m_strCharset.c_str());
 		if (wcsncasecmp(strEmail.c_str(), L"mailto:", 7) == 0)
 			strEmail.erase(0, 7);
-		
 		if (bIsUserLoggedIn(strEmail))
 			bMeetingOrganised = true;
 	}
@@ -112,7 +110,6 @@ HRESULT VEventConverter::HrAddBaseProperties(icalproperty_method icMethod, icalc
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RESPONSESTATUS], PT_LONG);
 		sPropVal.Value.ul = respNone;
 		lstMsgProps->emplace_back(sPropVal);
-		
 		// skip the meetingstatus property
 		bMeeting = false;
 
@@ -130,15 +127,12 @@ HRESULT VEventConverter::HrAddBaseProperties(icalproperty_method icMethod, icalc
 		case ICAL_PARTSTAT_ACCEPTED:
 			HrCopyString(base, L"IPM.Schedule.Meeting.Resp.Pos", &sPropVal.Value.lpszW);
 			break;
-
 		case ICAL_PARTSTAT_DECLINED:
 			HrCopyString(base, L"IPM.Schedule.Meeting.Resp.Neg", &sPropVal.Value.lpszW);
 			break;
-
 		case ICAL_PARTSTAT_TENTATIVE:
 			HrCopyString(base, L"IPM.Schedule.Meeting.Resp.Tent", &sPropVal.Value.lpszW);
 			break;
-
 		default:
 			return MAPI_E_TYPE_NO_SUPPORT;
 		}
@@ -151,7 +145,6 @@ HRESULT VEventConverter::HrAddBaseProperties(icalproperty_method icMethod, icalc
 
 		// make sure the cancel flag gets set
 		bMeeting = true;
-
 		HrCopyString(base, L"IPM.Schedule.Meeting.Canceled", &sPropVal.Value.lpszW);
 		break;
 
@@ -396,7 +389,6 @@ HRESULT VEventConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent 
  * @param[out] lppicTZinfo ical timezone struct, describes all times used in this ical component
  * @param[out] lpstrTZid The name of the timezone
  * @param[out] lppEvent The ical calendar event
- * 
  * @return MAPI error code
  */
 HRESULT VEventConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMethod, icaltimezone **lppicTZinfo, std::string *lpstrTZid, icalcomponent **lppEvent)
@@ -419,7 +411,6 @@ HRESULT VEventConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *l
  * @param[in]  lpicTZinfo ical timezone object to set times in
  * @param[in]  strTZid name of the given ical timezone
  * @param[in,out] lpEvent The Ical object to modify
- * 
  * @return MAPI error code.
  */
 HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMsgProps, icaltimezone *lpicTZinfo, const std::string &strTZid, icalcomponent *lpEvent)
@@ -469,7 +460,6 @@ HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMs
 	if (hr != hrSuccess)
 		return hr;
 	// @note we never set the DURATION property: MAPI objects always should have the end property 
-
 	if (!bCounterProposal)
 		return hrSuccess;
 

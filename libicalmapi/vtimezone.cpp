@@ -32,7 +32,6 @@ time_t icaltime_as_timet_with_server_zone(const struct icaltimetype &tt)
 
 	/* Copy the icaltimetype to a struct tm. */
 	memset (&stm, 0, sizeof (struct tm));
-
 	if (icaltime_is_date(tt)) {
 		stm.tm_sec = stm.tm_min = stm.tm_hour = 0;
 	} else {
@@ -112,10 +111,8 @@ static struct tm UTC_ICalTime2UnixTime(const icaltimetype &tt)
 	struct tm stm = {0};
 
 	memset(&stm, 0, sizeof(struct tm));
-
 	if (icaltime_is_null_time(tt))
 		return stm;
-
 	stm.tm_sec = tt.second;
 	stm.tm_min = tt.minute;
 	stm.tm_hour = tt.hour;
@@ -123,7 +120,6 @@ static struct tm UTC_ICalTime2UnixTime(const icaltimetype &tt)
 	stm.tm_mon = tt.month-1;
 	stm.tm_year = tt.year-1900;
 	stm.tm_isdst = -1;
-
 	return stm;
 }
 
@@ -166,13 +162,11 @@ static HRESULT HrZoneToStruct(icalcomponent_kind kind, icalcomponent *lpVTZ,
 		return MAPI_E_NOT_FOUND;
 	auto icTime = icalcomponent_get_dtstart(icComp);
 	kc_ical_utc(icTime, true);
-
 	if (kind == ICAL_XSTANDARD_COMPONENT) {
 		// this is set when we request the STD timezone part.
 		lpsTimeZone->lBias    = -(icalproperty_get_tzoffsetto(tzTo) / 60); // STD time is set as bias for timezone
 		lpsTimeZone->lStdBias = 0;
 		lpsTimeZone->lDstBias =  (icalproperty_get_tzoffsetto(tzTo) - icalproperty_get_tzoffsetfrom(tzFrom)) / 60; // DST bias == standard from
-
 		lpsTimeZone->wStdYear = 0;
 		lpSysTime = &lpsTimeZone->stStdDate;
 	} else {
@@ -181,7 +175,6 @@ static HRESULT HrZoneToStruct(icalcomponent_kind kind, icalcomponent *lpVTZ,
 	}
 
 	memset(lpSysTime, 0, sizeof(SYSTEMTIME));
-
 	// e.g. Japan doesn't have daylight saving switches.
 	if (!rRule) {
 		stRecurTime = TMToSystemTime(UTC_ICalTime2UnixTime(icTime));
@@ -192,6 +185,7 @@ static HRESULT HrZoneToStruct(icalcomponent_kind kind, icalcomponent *lpVTZ,
 		lpSysTime->wMinute = stRecurTime.wMinute;
 		return hrSuccess;
 	}
+
 	auto recur = icalproperty_get_rrule(rRule);
 	// can daylight saving really be !yearly ??
 	if (recur.freq != ICAL_YEARLY_RECURRENCE ||
@@ -310,10 +304,8 @@ HRESULT HrCreateVTimeZone(const std::string &strTZID,
 		icalrecurrencetype_clear(&icRec);
 		icRec.freq = ICAL_YEARLY_RECURRENCE;
 		icRec.interval = 1;
-
 		icRec.by_month[0] = tsTimeZone.stStdDate.wMonth;
 		icRec.by_month[1] = ICAL_RECURRENCE_ARRAY_MAX;
-
 		icRec.week_start = ICAL_SUNDAY_WEEKDAY;
 
 		// by_day[0] % 8 = weekday, by_day[0]/8 = Nth week, 0 is 'any', and -1 = last

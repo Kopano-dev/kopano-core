@@ -19,7 +19,6 @@ public:
 	libicalmapi_init() {
 		icaltimezone_get_builtin_timezones();
 	}
-
 	~libicalmapi_init() {
 		icaltimezone_free_builtin_timezones();
 	}

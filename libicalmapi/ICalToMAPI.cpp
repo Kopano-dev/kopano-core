@@ -44,7 +44,6 @@ public:
 
 private:
 	void Clean();
-
 	HRESULT SaveAttendeesString(const std::list<icalrecip> *lplstRecip, LPMESSAGE lpMessage);
 	HRESULT SaveProps(const std::list<SPropValue> *lpPropList, IMAPIProp *, unsigned int flags = 0);
 	HRESULT SaveRecipList(const std::list<icalrecip> *lplstRecip, ULONG ulFlag, LPMESSAGE lpMessage);
@@ -105,7 +104,6 @@ void ICalToMapiImpl::Clean()
 {
 	m_ulErrorCount = 0;
 	m_vMessages.clear();
-
 	m_bHaveFreeBusy = false;
 	m_lstUsers.clear();
 	m_tFbStart = 0;
@@ -238,7 +236,6 @@ HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string&
 	}
 
 	// TODO: sort m_vMessages on sBinGuid in icalitem struct, so caldav server can use optimized algorithm for finding the same items in MAPI
-
 	// seems this happens quite fast .. don't know what's wrong with exchange's ical
 // 	if (m_ulErrorCount != 0)
 // 		hr = MAPI_W_ERRORS_RETURNED;
@@ -274,10 +271,8 @@ HRESULT ICalToMapiImpl::GetItemInfo(ULONG ulPosition, eIcalType *lpType, time_t 
 		return MAPI_E_INVALID_PARAMETER;
 	if (lpType)
 		*lpType = m_vMessages[ulPosition]->eType;
-
 	if (lptLastModified)
 		*lptLastModified = m_vMessages[ulPosition]->tLastModified;
-
 	if (lpUid)
 		*lpUid = m_vMessages[ulPosition]->sBinGuid.Value.bin;
 	return hrSuccess;
@@ -297,7 +292,6 @@ HRESULT ICalToMapiImpl::GetFreeBusyInfo(time_t *lptstart, time_t *lptend, std::s
 {
 	if (!m_bHaveFreeBusy)
 		return MAPI_E_NOT_FOUND;
-
 	if (lptend)
 		*lptend = m_tFbEnd;
 	if (lptstart != NULL)
@@ -306,7 +300,6 @@ HRESULT ICalToMapiImpl::GetFreeBusyInfo(time_t *lptstart, time_t *lptend, std::s
 		*lpstrUID = m_strUID;
 	if (lplstUsers)
 		*lplstUsers = &m_lstUsers;
-
 	return hrSuccess;
 }
 
@@ -342,11 +335,8 @@ HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMes
 		hr = MAPIAllocateBuffer(CbNewSPropTagArray(lpItem->lstDelPropTags.size()), &~lpsPTA);
 		if (hr != hrSuccess)
 			return hr;
-
 		std::copy(lpItem->lstDelPropTags.begin(), lpItem->lstDelPropTags.end(), lpsPTA->aulPropTag);
-
 		lpsPTA->cValues = lpItem->lstDelPropTags.size();
-
 		hr = lpMessage->DeleteProps(lpsPTA, NULL);
 		if (hr != hrSuccess)
 			return hr;
@@ -357,13 +347,11 @@ HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMes
 		return hr;
 	if (!(ulFlags & IC2M_NO_RECIPIENTS))
 		hr = SaveRecipList(&(lpItem->lstRecips), ulFlags, lpMessage);
-
 	if (hr != hrSuccess)
 		return hr;
 	hr = SaveAttendeesString(&(lpItem->lstRecips), lpMessage);
 	if (hr != hrSuccess)
 		return hr;
-
 	// remove all exception attachments from message, if any
 	hr = lpMessage->GetAttachmentTable(0, &~lpAttachTable);
 	if (hr != hrSuccess)
@@ -397,7 +385,6 @@ HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMes
 		auto lpPropVal = lpRows[i].cfind(PR_ATTACH_NUM);
 		if (lpPropVal == NULL)
 			continue;
-
 		hr = lpMessage->DeleteAttach(lpPropVal->Value.ul, 0, NULL, 0);
 		if (hr != hrSuccess)
 			return hr;
@@ -506,7 +493,6 @@ HRESULT ICalToMapiImpl::SaveRecipList(const std::list<icalrecip> *lplstRecip,
 		// cbEntryID, lpEntryID
 		if ((ulFlag & IC2M_NO_ORGANIZER) && recip.ulRecipientType == MAPI_ORIG)
 			continue;
-			
 		if ((hr = MAPIAllocateBuffer(sizeof(SPropValue)*10, (void**)&lpRecipients->aEntries[i].rgPropVals)) != hrSuccess)
 			return hr;
 		lpRecipients->aEntries[i].cValues = 10;

@@ -189,7 +189,6 @@ HRESULT VTodoConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent *
 
 		// localduetime
 		auto timeDue = icaltime_as_timet(icalproperty_get_due(lpicProp));
-
 		// Set 0x820D / TaskDueDate
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TASK_DUEDATE], PT_SYSTIME);
 		sPropVal.Value.ft  = UnixTimeToFileTime(timeDue);
