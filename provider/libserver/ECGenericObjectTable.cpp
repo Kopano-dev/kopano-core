@@ -842,10 +842,7 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 			}
 
 			if(m_ulCategories > 0) {
-				bool bUnread = false;
-
-				if((lpRowSet->__ptr[i].__ptr[1].Value.ul & MSGFLAG_READ) == 0)
-					bUnread = true;
+				auto bUnread = !(lpRowSet->__ptr[i].__ptr[1].Value.ul & MSGFLAG_READ);
 				// Update category for this row if required, and send notification if required
 				AddCategoryBeforeAddRow(sRowItem, lpRowSet->__ptr[i].__ptr+ulFirstCol, lpsSortOrderArray->__size, ulFlags, bUnread, &fHidden, &lpCategory);
 			}

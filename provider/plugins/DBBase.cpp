@@ -330,7 +330,6 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 		throw runtime_error("Object is wrong type");
 	}
 
-	bFirstOne = true;
 	unsigned int i = 0;
 	while (sValidProps[i].column != NULL) {
 		string propvalue = details.GetPropString(sValidProps[i].id);

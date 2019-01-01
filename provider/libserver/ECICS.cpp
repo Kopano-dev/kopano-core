@@ -896,7 +896,6 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 	ECDatabase*		lpDatabase = NULL;
 	unsigned int ulMaxChange = 0, ulFolderId = 0;
 	icsChangesArray*lpChanges = NULL;
-	bool			bAcceptABEID = false;
 
 	ec_log(EC_LOGLEVEL_ICS, "K-1200: sourcekey=%s, syncid=%d, changetype=%d, flags=%d", bin2hex(sFolderSourceKey).c_str(), ulSyncId, ulChangeType, ulFlags);
 	auto gcache = g_lpSessionManager->GetCacheManager();
@@ -909,14 +908,13 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 		return er;
 
     // CHeck if the client understands the new ABEID.
-	if (lpSession->GetCapabilities() & KOPANO_CAP_MULTI_SERVER)
-		bAcceptABEID = true;
 	if(ulChangeType != ICS_SYNC_AB) {
 		er = getchanges_nab(lpSession, lpDatabase, gcache, ulSyncId, ulChangeId, ulChangeType, ulMaxChange, sFolderSourceKey, ulFolderId);
 		if (er != erSuccess)
 			return er;
 	}
 
+	auto bAcceptABEID = lpSession->GetCapabilities() & KOPANO_CAP_MULTI_SERVER;
 	if(ulChangeType == ICS_SYNC_CONTENTS){
 		er = getchanges_contents(soap, lpSession, lpDatabase, sFolderSourceKey, ulSyncId, ulChangeId, ulFlags, lpsRestrict, ulMaxChange, lpChanges);
 		if (er != erSuccess)

@@ -177,7 +177,6 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChange(ULONG cValue, LPSPr
 	auto lpMessageAssociated = PCpropFindProp(lpPropArray, cValue, PR_ASSOCIATED);
 	auto lpRemotePCL = PCpropFindProp(lpPropArray, cValue, PR_PREDECESSOR_CHANGE_LIST);
 	auto lpRemoteCK = PCpropFindProp(lpPropArray, cValue, PR_CHANGE_KEY);
-	bool bAssociatedMessage = false;
 	object_ptr<IMessage> lpMessage;
 	object_ptr<ECMessage> lpECMessage;
 
@@ -197,10 +196,8 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChange(ULONG cValue, LPSPr
 		// This is a change, but we don't already have the item. This can only mean
 		// that the item has been deleted on our side.
 		return SYNC_E_OBJECT_DELETED;
-	if ((lpMessageFlags != NULL &&
-	    (lpMessageFlags->Value.ul & MSGFLAG_ASSOCIATED)) ||
-	    (lpMessageAssociated != NULL && lpMessageAssociated->Value.b))
-		bAssociatedMessage = true;
+	auto bAssociatedMessage = (lpMessageFlags != nullptr && lpMessageFlags->Value.ul & MSGFLAG_ASSOCIATED) ||
+	                          (lpMessageAssociated != nullptr && lpMessageAssociated->Value.b);
 
 	if(hr == MAPI_E_NOT_FOUND){
 		ulNewFlags = bAssociatedMessage ? MAPI_ASSOCIATED : 0;
@@ -685,7 +682,6 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageUpdateAsStream(ULONG cbEnt
 		return MAPI_E_INVALID_PARAMETER;
 
 	SPropValuePtr ptrPropPCL, ptrPropCK, ptrConflictItems;
-	bool bAssociated = false;
 	WSMessageStreamImporterPtr ptrMessageImporter;
 	auto hr = m_lpFolder->GetChangeInfo(cbEntryId, lpEntryId, &~ptrPropPCL, &~ptrPropCK);
 	if (hr != hrSuccess) {
@@ -707,8 +703,8 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageUpdateAsStream(ULONG cbEnt
 
 	auto lpMessageFlags = PCpropFindProp(lpPropArray, cValue, PR_MESSAGE_FLAGS);
 	auto lpMessageAssociated = PCpropFindProp(lpPropArray, cValue, PR_ASSOCIATED);
-	if ((lpMessageFlags != NULL && (lpMessageFlags->Value.ul & MSGFLAG_ASSOCIATED)) || (lpMessageAssociated != NULL && lpMessageAssociated->Value.b))
-		bAssociated = true;
+	auto bAssociated = (lpMessageFlags != nullptr && lpMessageFlags->Value.ul & MSGFLAG_ASSOCIATED) ||
+	                   (lpMessageAssociated != nullptr && lpMessageAssociated->Value.b);
 
 	auto lpRemotePCL = PCpropFindProp(lpPropArray, cValue, PR_PREDECESSOR_CHANGE_LIST);
 	if (!bAssociated && IsConflict(ptrPropCK, lpRemotePCL)) {
