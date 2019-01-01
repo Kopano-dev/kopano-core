@@ -207,8 +207,8 @@ HRESULT iCal::HrHandleIcalPost()
 			}
 			++mpIterI;
 		} else if (mpSrvEntries.cend() != mpIterJ && mpIcalEntries.cend() != mpIterI) {
-			if(!mpIterI->first.compare(mpIterJ->first))
-			{
+			auto cmp = mpIterI->first.compare(mpIterJ->first);
+			if (cmp == 0) {
 				lpICalToMapi->GetItemInfo(mpIterI->second, &etype, &tLastMod, &sbEid);
 				if (etype == VEVENT && FileTimeToUnixTime(mpSrvTimes[mpIterJ->first]) != tLastMod) {
 					hr = HrModify(lpICalToMapi.get(), mpIterJ->second, mpIterI->second, blCensorPrivate);
@@ -220,9 +220,7 @@ HRESULT iCal::HrHandleIcalPost()
 				}
 				++mpIterI;
 				++mpIterJ;
-			}
-			else if( mpIterI->first.compare(mpIterJ->first) < 0 )
-			{
+			} else if (cmp < 0) {
 				hr = HrAddMessage(lpICalToMapi.get(), mpIterI->second);
 				if(hr != hrSuccess)
 				{
@@ -230,9 +228,7 @@ HRESULT iCal::HrHandleIcalPost()
 					goto exit;
 				}
 				++mpIterI;
-			}
-			else if(mpIterI->first.compare(mpIterJ->first) > 0  )
-			{
+			} else if (cmp > 0) {
 				hr = HrDelMessage(mpIterJ->second, blCensorPrivate);
 				if(hr != hrSuccess)
 				{
