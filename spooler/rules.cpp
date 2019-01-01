@@ -457,7 +457,7 @@ static wlparam wlparam_read(ECConfig *cfg)
 {
 	wlparam par;
 	auto z = cfg->GetSetting("forward_whitelist_domains_file");
-	if (z != nullptr) {
+	if (z != nullptr && *z != '\0') {
 		par.domains = tokenize(wlparam_slurp(z), "\t\n ");
 	} else {
 		z = cfg->GetSetting("forward_whitelist_domains");
@@ -465,7 +465,7 @@ static wlparam wlparam_read(ECConfig *cfg)
 			par.domains = tokenize(z, "\t ");
 	}
 	z = cfg->GetSetting("forward_whitelist_domain_message_file");
-	if (z != nullptr) {
+	if (z != nullptr && *z != '\0') {
 		par.body = convert_to<std::wstring>(wlparam_slurp(z));
 	} else {
 		z = cfg->GetSetting("forward_whitelist_domain_message");
