@@ -197,13 +197,11 @@ HRESULT VConverter::HrGetUID(icalcomponent *lpEvent, std::string *strUid)
  */
 bool VConverter::bIsUserLoggedIn(const std::wstring &strUser)
 {
-	HRESULT hr = hrSuccess;
+	HRESULT hr = MAPI_E_CALL_FAILED;
 	memory_ptr<SPropValue> lpUserProp;
 	
 	if (m_lpMailUser)
 		hr = HrGetOneProp(m_lpMailUser, PR_SMTP_ADDRESS_W, &~lpUserProp);
-	else
-		hr = MAPI_E_CALL_FAILED;
 	if (hr != hrSuccess)
 		return false;
 	return wcsncmp(lpUserProp->Value.lpszW, strUser.c_str(), strUser.length()) == 0;
@@ -631,10 +629,7 @@ HRESULT VConverter::HrAddBusyStatus(icalcomponent *lpicEvent, icalproperty_metho
 	// 3: oof
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_BUSYSTATUS], PT_LONG);
 	// defaults if the TRANSP property is missing
-	if (icMethod == ICAL_METHOD_CANCEL)
-		sPropVal.Value.ul = 0;
-	else
-		sPropVal.Value.ul = 2;
+	sPropVal.Value.ul = icMethod == ICAL_METHOD_CANCEL ? 0 : 2;
 	
 	// caldav clients only uses the TRANSP property to set FreeBusy
 	auto lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_TRANSP_PROPERTY);
@@ -1989,10 +1984,8 @@ HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, LPM
 	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps,  CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MOZGEN], PT_LONG));
 	if (lpPropVal)
 	{
-		LONG ulXmozGen = 0;
-		icalvalue *lpicValue = NULL;
-		ulXmozGen = lpPropVal->Value.ul;
-		lpicValue = icalvalue_new_integer(ulXmozGen);
+		ULONG ulXmozGen = lpPropVal->Value.ul;
+		auto lpicValue = icalvalue_new_integer(ulXmozGen);
 
 		lpszTemp = icalvalue_as_ical_string_r(lpicValue);
 		lpProp = icalproperty_new_x(lpszTemp);

@@ -124,10 +124,7 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 		if (icRRule.by_day[0] < 0) {
 			// outlook can only have _one_ last day of the month/year (not daily or weekly here!)
 			auto dy = abs(icRRule.by_day[0] % 8);
-			if (dy != 0)
-				ulWeekDays = 1 << (dy - 1);
-			else
-				ulWeekDays = 0b1111111;
+			ulWeekDays = dy != 0 ? 1 << (dy - 1) : 0b1111111;
 			// next call also changes pattern to 3!
 			lpRec->setWeekNumber(5);
 		} else if (icRRule.by_day[0] >= 1 && icRRule.by_day[0] <= 7) {
@@ -159,10 +156,7 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 		} else {
 			// monthly, first sunday: 9, monday: 10
 			auto dy = icRRule.by_day[0] % 8;
-			if (dy != 0)
-				ulWeekDays = 1 << (dy - 1);
-			else
-				ulWeekDays = 0b1111111;
+			ulWeekDays = dy != 0 ? 1 << (dy - 1) : 0b1111111;
 			lpRec->setWeekNumber((int)(icRRule.by_day[0]/8)); // 1..4
 		}
 		lpRec->setWeekDays(ulWeekDays);
@@ -671,16 +665,14 @@ HRESULT ICalRecurrence::HrMakeMAPIRecurrence(recurrence *lpRecurrence, LPSPropTa
  */
 bool ICalRecurrence::HrValidateOccurrence(icalitem *lpItem, icalitem::exception lpEx)
 {
-	HRESULT hr = hrSuccess;
 	memory_ptr<OccrInfo> lpFBBlocksAll;
 	ULONG cValues = 0;
 	time_t tBaseDateStart = LocalToUTC(lpItem->lpRecurrence->StartOfDay(UTCToLocal(lpEx.tBaseDate, lpItem->tTZinfo)), lpItem->tTZinfo);
 	time_t tStartDateStart = LocalToUTC(lpItem->lpRecurrence->StartOfDay(UTCToLocal(lpEx.tStartDate, lpItem->tTZinfo)), lpItem->tTZinfo);
 
-	if (tBaseDateStart < tStartDateStart)
-		hr = lpItem->lpRecurrence->HrGetItems(tBaseDateStart, tStartDateStart + 1439 * 60, lpItem->tTZinfo, lpItem->ulFbStatus, &~lpFBBlocksAll, &cValues);
-	else
-		hr = lpItem->lpRecurrence->HrGetItems(tStartDateStart, tBaseDateStart + 1439 * 60, lpItem->tTZinfo, lpItem->ulFbStatus, &~lpFBBlocksAll, &cValues);
+	auto hr = lpItem->lpRecurrence->HrGetItems(std::min(tBaseDateStart, tStartDateStart),
+	          std::max(tBaseDateStart, tStartDateStart) + 1439 * 60,
+	          lpItem->tTZinfo, lpItem->ulFbStatus, &~lpFBBlocksAll, &cValues);
 	if (hr != hrSuccess)
 		return false;
 	return cValues == 1;
@@ -716,10 +708,8 @@ HRESULT ICalRecurrence::HrCreateICalRecurrence(const TIMEZONE_STRUCT &sTimeZone,
 
 	// add EXDATE props
 	for (const auto &exc : lstExceptions) {
-		if (bIsAllDay)
-			ittExDate = icaltime_from_timet_with_zone(LocalToUTC(exc, sTZgmt), bIsAllDay, nullptr);
-		else
-			ittExDate = icaltime_from_timet_with_zone(LocalToUTC(exc, sTimeZone), 0, nullptr);
+		ittExDate = icaltime_from_timet_with_zone(LocalToUTC(exc, bIsAllDay ? sTZgmt : sTimeZone),
+		            bIsAllDay, nullptr);
 		kc_ical_utc(ittExDate, true);
 		icalcomponent_add_property(lpicEvent, icalproperty_new_exdate(ittExDate));
 	}
