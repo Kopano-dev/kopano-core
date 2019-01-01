@@ -159,12 +159,7 @@ HRESULT VEventConverter::HrAddBaseProperties(icalproperty_method icMethod, icalc
 	default: {
 		// set ResponseStatus to 0 fix for BlackBerry.
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RESPONSESTATUS], PT_LONG);
-		if (m_ulUserStatus != 0)
-			sPropVal.Value.ul = m_ulUserStatus;
-		else if (bMeetingOrganised)
-			sPropVal.Value.ul = 1;
-		else
-			sPropVal.Value.ul = 0;
+		sPropVal.Value.ul = m_ulUserStatus != 0 ? m_ulUserStatus : bMeetingOrganised;
 		lstMsgProps->emplace_back(sPropVal);
 		
 		// time(NULL) returns UTC time as libical sets application to UTC time.
@@ -322,12 +317,7 @@ HRESULT VEventConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent 
 	timeDTStartUTC = ICalTimeTypeToUTC(lpicEventRoot, lpicDTStartProp);
 	timeDTStartLocal = ICalTimeTypeToLocal(lpicDTStartProp);
 	timeStartOffset = timeDTStartUTC - timeDTStartLocal;
-
-	if (bIsAllday)
-		sPropVal.Value.ft = UnixTimeToFileTime(timeDTStartLocal);
-	else
-		sPropVal.Value.ft = UnixTimeToFileTime(timeDTStartUTC);
-
+	sPropVal.Value.ft = UnixTimeToFileTime(bIsAllday ? timeDTStartLocal : timeDTStartUTC);
 	// Set 0x820D / ApptStartWhole
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTSTARTWHOLE], PT_SYSTIME);
 	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
@@ -364,12 +354,7 @@ HRESULT VEventConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent 
 		timeDTEndUTC = timeDTStartUTC + icaldurationtype_as_int(dur);
 	}
 	timeEndOffset = timeDTEndUTC - timeDTEndLocal;
-
-	if (bIsAllday)
-		sPropVal.Value.ft = UnixTimeToFileTime(timeDTEndLocal);
-	else
-		sPropVal.Value.ft = UnixTimeToFileTime(timeDTEndUTC);
-
+	sPropVal.Value.ft = UnixTimeToFileTime(bIsAllday ? timeDTEndLocal : timeDTEndUTC);
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTENDWHOLE], PT_SYSTIME);
 	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 	

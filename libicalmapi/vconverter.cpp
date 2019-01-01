@@ -1518,11 +1518,8 @@ HRESULT VConverter::HrSetTimeProperty(time_t tStamp, bool bDateOnly, icaltimezon
 		ittStamp = icaltime_from_timet_with_zone(tStamp, bDateOnly, icaltimezone_get_utc_timezone());
 	}
 
-	if (bDateOnly)
-		icalproperty_set_value(lpicProp, icalvalue_new_date(ittStamp));
-	else
-		icalproperty_set_value(lpicProp, icalvalue_new_datetime(ittStamp));
-
+	icalproperty_set_value(lpicProp, bDateOnly ? icalvalue_new_date(ittStamp) :
+		icalvalue_new_datetime(ittStamp));
 	// only allowed to add timezone information on non-allday events
 	if (lpicTZinfo && !bDateOnly)
 		icalproperty_add_parameter(lpicProp, icalparameter_new_from_value_string(ICAL_TZID_PARAMETER, strTZid.c_str()));
@@ -1731,10 +1728,7 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 
 		//Set this property to force thunderbird to send invitations mails.
 		lpPropVal = PCpropFindProp (lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MOZSENDINVITE], PT_BOOLEAN));
-		if (lpPropVal && !lpPropVal->Value.b)
-			lpicProp = icalproperty_new_x("FALSE");
-		else
-			lpicProp = icalproperty_new_x("TRUE");
+		lpicProp = icalproperty_new_x(lpPropVal != nullptr && !lpPropVal->Value.b ? "FALSE" : "TRUE");
 		icalproperty_set_x_name(lpicProp, "X-MOZ-SEND-INVITATIONS");
 		icalcomponent_add_property(lpicEvent, lpicProp);
 
@@ -1937,13 +1931,7 @@ HRESULT VConverter::HrSetICalAttendees(LPMESSAGE lpMessage, const std::wstring &
 HRESULT VConverter::HrSetBusyStatus(LPMESSAGE lpMessage, ULONG ulBusyStatus, icalcomponent *lpicEvent)
 {
 	memory_ptr<SPropValue> lpSpropVal;
-	icalproperty *lpicProp = NULL;
-	
-	// set the TRANSP property
-	if (ulBusyStatus == 0)
-		lpicProp = icalproperty_new_transp(ICAL_TRANSP_TRANSPARENT);
-	else
-		lpicProp = icalproperty_new_transp(ICAL_TRANSP_OPAQUE);
+	auto lpicProp = icalproperty_new_transp(ulBusyStatus == 0 ? ICAL_TRANSP_TRANSPARENT : ICAL_TRANSP_OPAQUE);
 	icalcomponent_add_property(lpicEvent, lpicProp);
 	
 	// set the X-MICROSOFT-CDO-INTENDEDSTATUS property
@@ -2333,10 +2321,8 @@ HRESULT VConverter::HrSetRecurrenceID(LPSPropValue lpMsgProps, ULONG ulMsgProps,
 		icTime.second = ulRecurStartTime - icTime.minute * 64;
 		
 		// set correct date for all_day
-		if(bIsSeriesAllDay)
-			tRecId = icaltime_as_timet(icTime);
-		else 
-			tRecId = icaltime_as_timet_with_zone(icTime,lpicTZinfo);
+		tRecId = bIsSeriesAllDay ? icaltime_as_timet(icTime) :
+		         icaltime_as_timet_with_zone(icTime, lpicTZinfo);
 	} else {
 		tRecId = FileTimeToUnixTime(lpPropVal->Value.ft);	
 	}
