@@ -16,7 +16,7 @@
  */
 #include <kopano/memory.hpp>
 #include <kopano/platform.h>
-
+#include <kopano/scope.hpp>
 #include <cmath>
 #include <mapiutil.h>
 #include "php-ext/phpconfig.h"
@@ -286,6 +286,10 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 	}
 
 	MAPI_G(hr) = MAPI_ALLOC(sizeof(SPropValue) * count, lpBase, (void**)&lpPropValue);
+	auto cleanup = make_scope_success([&]() {
+		if (MAPI_G(hr) != hrSuccess && lpBase != nullptr && lpPropValue != nullptr)
+			MAPIFreeBuffer(lpPropValue);
+	});
 	zend_string *keyIndex = nullptr;
 	zend_ulong numIndex = 0;
 	unsigned int i = 0;
