@@ -3053,8 +3053,6 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 	zval	*guidArray		= NULL;
 	// return value
 	memory_ptr<SPropTagArray> lpPropTagArray;
-	// local
-	int hashTotal = 0, i = 0;
 	memory_ptr<MAPINAMEID *> lppNamePropId;
 	zval		**entry = NULL, **guidEntry = NULL;
 	HashTable	*targetHash	= NULL,	*guidHash = NULL;
@@ -3074,8 +3072,7 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 		guidHash = Z_ARRVAL_P(guidArray);
 
 	// get the number of items in the array
-	hashTotal = zend_hash_num_elements(targetHash);
-
+	auto hashTotal = zend_hash_num_elements(targetHash);
 	if (guidHash && hashTotal != zend_hash_num_elements(guidHash))
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "The array with the guids is not of the same size as the array with the ids");
 
@@ -3084,18 +3081,15 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
 
-	// first reset the hash, so the pointer points to the first element.
-	zend_hash_internal_pointer_reset(targetHash);
-
+	HashPosition thpos, ghpos;
+	zend_hash_internal_pointer_reset_ex(targetHash, &thpos);
 	if(guidHash)
-		zend_hash_internal_pointer_reset(guidHash);
-
-	for (i = 0; i < hashTotal; ++i) {
-		//	Gets the element that exist at the current pointer.
-		zend_hash_get_current_data(targetHash,(void **) &entry);
+		zend_hash_internal_pointer_reset_ex(guidHash, &ghpos);
+	for (unsigned int i = 0; i < hashTotal; ++i, zend_hash_move_forward_ex(targetHash, &thpos),
+	     (guidHash != nullptr ? zend_hash_move_forward_ex(guidHash, &ghpos) : 0)) {
+		zend_hash_get_current_data_ex(targetHash, reinterpret_cast<void **>(&entry), &thpos);
 		if(guidHash)
-			zend_hash_get_current_data(guidHash, (void **) &guidEntry);
-
+			zend_hash_get_current_data_ex(guidHash, reinterpret_cast<void **>(&guidEntry), &ghpos);
 		MAPI_G(hr) = MAPIAllocateMore(sizeof(MAPINAMEID),lppNamePropId,(void **) &lppNamePropId[i]);
 		if (MAPI_G(hr) != hrSuccess)
 			goto exit;
@@ -3105,7 +3099,7 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 
 		if(guidHash) {
 			if (guidEntry[0]->type != IS_STRING || sizeof(GUID) != guidEntry[0]->value.str.len) {
-				php_error_docref(NULL TSRMLS_CC, E_WARNING, "The GUID with index number %d that is passed is not of the right length, cannot convert to GUID", i);
+				php_error_docref(nullptr TSRMLS_CC, E_WARNING, "The GUID with index number %u that is passed is not of the right length, cannot convert to GUID", i);
 			} else {
 				MAPI_G(hr) = KAllocCopy(guidEntry[0]->value.str.val, sizeof(GUID), reinterpret_cast<void **>(&lppNamePropId[i]->lpguid), lppNamePropId);
 				if (MAPI_G(hr) != hrSuccess)
@@ -3136,11 +3130,6 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Entry is of an unknown type: %08X", entry[0]->type);
 			break;
 		}
-
-		// move the pointers of the hashtables forward.
-		zend_hash_move_forward(targetHash);
-		if(guidHash)
-			zend_hash_move_forward(guidHash);
 	}
 
 	MAPI_G(hr) = lpMessageStore->GetIDsFromNames(hashTotal, lppNamePropId, MAPI_CREATE, &~lpPropTagArray);
@@ -4278,29 +4267,24 @@ ZEND_FUNCTION(mapi_zarafa_setquota)
 		goto exit;
 
 	data = HASH_OF(array);
-	zend_hash_internal_pointer_reset(data);
-
-	if (zend_hash_find(data, "usedefault", sizeof("usedefault"), (void**)&value) == SUCCESS) {
-		convert_to_boolean_ex(value);
-		lpQuota->bUseDefaultQuota = Z_BVAL_PP(value);
-	}
-
-	if (zend_hash_find(data, "isuserdefault", sizeof("isuserdefault"), (void**)&value) == SUCCESS) {
-		convert_to_boolean_ex(value);
-		lpQuota->bIsUserDefaultQuota = Z_BVAL_PP(value);
-	}
-
+	if (zend_hash_find(data, "usedefault", sizeof("usedefault"), reinterpret_cast<void **>(&value)) == SUCCESS)
+		lpQuota->bUseDefaultQuota = zval_is_true(*value);
+	if (zend_hash_find(data, "isuserdefault", sizeof("isuserdefault"), reinterpret_cast<void **>(&value)) == SUCCESS)
+		lpQuota->bIsUserDefaultQuota = zval_is_true(*value);
 	if (zend_hash_find(data, "warnsize", sizeof("warnsize"), (void**)&value) == SUCCESS) {
+		SEPARATE_ZVAL(value);
 		convert_to_long_ex(value);
 		lpQuota->llWarnSize = Z_LVAL_PP(value);
 	}
 
 	if (zend_hash_find(data, "softsize", sizeof("softsize"), (void**)&value) == SUCCESS) {
+		SEPARATE_ZVAL(value);
 		convert_to_long_ex(value);
 		lpQuota->llSoftSize = Z_LVAL_PP(value);
 	}
 
 	if (zend_hash_find(data, "hardsize", sizeof("hardsize"), (void**)&value) == SUCCESS) {
+		SEPARATE_ZVAL(value);
 		convert_to_long_ex(value);
 		lpQuota->llHardSize = Z_LVAL_PP(value);
 	}
@@ -5543,45 +5527,45 @@ ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
 	}
 
 	// The following code should be in typeconversion.cpp
-
-	zend_hash_internal_pointer_reset(target_hash);
+	HashPosition hpos;
+	zend_hash_internal_pointer_reset_ex(target_hash, &hpos);
 	cPerms = zend_hash_num_elements(target_hash);
 	MAPI_G(hr) = MAPIAllocateBuffer(sizeof(ECPERMISSION)*cPerms, &~lpECPerms);
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
 	memset(lpECPerms, 0, sizeof(ECPERMISSION)*cPerms);
 	
-	for (j = 0, i = 0; i < cPerms; ++i) {
-		zend_hash_get_current_data(target_hash, (void **) &entry);
-
+	for (j = 0, i = 0; i < cPerms; ++i, zend_hash_move_forward_ex(target_hash, &hpos)) {
+		zend_hash_get_current_data_ex(target_hash, reinterpret_cast<void **>(&entry), &hpos);
 		// null pointer returned if perms was not array(array()).
 		data = HASH_OF(entry[0]);
-		zend_hash_internal_pointer_reset(data);
-
 		if (zend_hash_find(data, "userid", sizeof("userid"), (void **)&value) != SUCCESS)
 			continue;
+		SEPARATE_ZVAL(value);
 		convert_to_string_ex(value);
 		lpECPerms[j].sUserId.cb = Z_STRLEN_PP(value);
 		lpECPerms[j].sUserId.lpb = (unsigned char*)Z_STRVAL_PP(value);
 
 		if (zend_hash_find(data, "type", sizeof("type"), (void **)&value) != SUCCESS)
 			continue;
+		SEPARATE_ZVAL(value);
 		convert_to_long_ex(value);
 		lpECPerms[j].ulType = Z_LVAL_PP(value);
 
 		if (zend_hash_find(data, "rights", sizeof("rights"), (void **)&value) != SUCCESS)
 			continue;
+		SEPARATE_ZVAL(value);
 		convert_to_long_ex(value);
 		lpECPerms[j].ulRights = Z_LVAL_PP(value);
 
 		if (zend_hash_find(data, "state", sizeof("state"), (void **)&value) == SUCCESS) {
+			SEPARATE_ZVAL(value);
 		    convert_to_long_ex(value);
 			lpECPerms[j].ulState = Z_LVAL_PP(value);
 		} else {
 			lpECPerms[j].ulState = RIGHT_NEW|RIGHT_AUTOUPDATE_DENIED;
 		}
 		++j;
-		zend_hash_move_forward(target_hash);
 	}
 
 	MAPI_G(hr) = lpSecurity->SetPermissionRules(j, lpECPerms);
@@ -5668,7 +5652,6 @@ ZEND_FUNCTION(mapi_freebusysupport_loaddata)
 	PMEASURE_FUNC;
 	LOG_BEGIN();
 	HashTable*			target_hash = NULL;
-	ULONG				i, j;
 	zval**				entry = NULL;
 	int					rid = 0;
 	memory_ptr<FBUser> lpUsers;
@@ -5692,16 +5675,16 @@ ZEND_FUNCTION(mapi_freebusysupport_loaddata)
 		goto exit;
 	}
 
-	zend_hash_internal_pointer_reset(target_hash);
+	HashPosition hpos;
+	zend_hash_internal_pointer_reset_ex(target_hash, &hpos);
 	cUsers = zend_hash_num_elements(target_hash);
 	MAPI_G(hr) = MAPIAllocateBuffer(sizeof(FBUser)*cUsers, &~lpUsers);
 	if(MAPI_G(hr) != hrSuccess)
 		goto exit;
 
 	// Get the user entryids
-	for (j = 0, i = 0; i < cUsers; ++i) {
-		if(zend_hash_get_current_data(target_hash, (void **) &entry) == FAILURE)
-		{
+	for (unsigned int j = 0, i = 0; i < cUsers; ++i, zend_hash_move_forward_ex(target_hash, &hpos)) {
+		if (zend_hash_get_current_data_ex(target_hash, reinterpret_cast<void **>(&entry), &hpos) == FAILURE) {
 			MAPI_G(hr) = MAPI_E_INVALID_ENTRYID;
 			goto exit;
 		}
@@ -5709,7 +5692,6 @@ ZEND_FUNCTION(mapi_freebusysupport_loaddata)
 		lpUsers[j].m_cbEid = Z_STRLEN_PP(entry);
 		lpUsers[j].m_lpEid = (LPENTRYID)Z_STRVAL_PP(entry);
 		++j;
-		zend_hash_move_forward(target_hash);
 	}
 
 	MAPI_G(hr) = MAPIAllocateBuffer(sizeof(IFreeBusyData*)*cUsers, (void**)&lppFBData);
@@ -5722,7 +5704,7 @@ ZEND_FUNCTION(mapi_freebusysupport_loaddata)
 
 	//Return an array of IFreeBusyData interfaces
 	array_init(return_value);
-	for (i = 0; i < cUsers; ++i) {
+	for (unsigned int i = 0; i < cUsers; ++i) {
 		if(lppFBData[i])
 		{
 			// Set resource relation
@@ -5747,7 +5729,6 @@ ZEND_FUNCTION(mapi_freebusysupport_loadupdate)
 	PMEASURE_FUNC;
 	LOG_BEGIN();
 	HashTable*			target_hash = NULL;
-	ULONG				i, j;
 	zval**				entry = NULL;
 	int					rid = 0;
 	memory_ptr<FBUser> lpUsers;
@@ -5771,15 +5752,16 @@ ZEND_FUNCTION(mapi_freebusysupport_loadupdate)
 		goto exit;
 	}
 
-	zend_hash_internal_pointer_reset(target_hash);
+	HashPosition hpos;
+	zend_hash_internal_pointer_reset_ex(target_hash, &hpos);
 	cUsers = zend_hash_num_elements(target_hash);
 	MAPI_G(hr) = MAPIAllocateBuffer(sizeof(FBUser)*cUsers, &~lpUsers);
 	if(MAPI_G(hr) != hrSuccess)
 		goto exit;
 
 	// Get the user entryids
-	for (j = 0, i = 0; i < cUsers; ++i) {
-		if(zend_hash_get_current_data(target_hash, (void **) &entry) == FAILURE)
+	for (unsigned int j = 0, i = 0; i < cUsers; ++i, zend_hash_move_forward_ex(target_hash, &hpos)) {
+		if (zend_hash_get_current_data_ex(target_hash, reinterpret_cast<void **>(&entry), &hpos) == FAILURE)
 		{
 			MAPI_G(hr) = MAPI_E_INVALID_ENTRYID;
 			goto exit;
@@ -5788,7 +5770,6 @@ ZEND_FUNCTION(mapi_freebusysupport_loadupdate)
 		lpUsers[j].m_cbEid = Z_STRLEN_PP(entry);
 		lpUsers[j].m_lpEid = (LPENTRYID)Z_STRVAL_PP(entry);
 		++j;
-		zend_hash_move_forward(target_hash);
 	}
 
 	MAPI_G(hr) = MAPIAllocateBuffer(sizeof(IFreeBusyUpdate*)*cUsers, &~lppFBUpdate);
@@ -5801,7 +5782,7 @@ ZEND_FUNCTION(mapi_freebusysupport_loadupdate)
 
 	//Return an array of IFreeBusyUpdate interfaces
 	array_init(return_value);
-	for (i = 0; i < cUsers; ++i) {
+	for (unsigned int i = 0; i < cUsers; ++i) {
 		if(lppFBUpdate[i])
 		{
 			// Set resource relation
@@ -6096,7 +6077,6 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish)
 	memory_ptr<FBBlock_1> lpBlocks;
 	ULONG				cBlocks = 0;
 	HashTable*			target_hash = NULL;
-	ULONG				i;
 	zval**				entry = NULL;
 	zval**				value = NULL;
 	HashTable*			data = NULL;
@@ -6114,18 +6094,16 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish)
 		goto exit;
 	}
 
-	zend_hash_internal_pointer_reset(target_hash);
+	HashPosition hpos;
+	zend_hash_internal_pointer_reset_ex(target_hash, &hpos);
 	cBlocks = zend_hash_num_elements(target_hash);
 	MAPI_G(hr) = MAPIAllocateBuffer(sizeof(FBBlock_1)*cBlocks, &~lpBlocks);
 	if(MAPI_G(hr) != hrSuccess)
 		goto exit;
 
-	for (i = 0; i < cBlocks; ++i) {
-		zend_hash_get_current_data(target_hash, (void **) &entry);
-
+	for (unsigned int i = 0; i < cBlocks; ++i, zend_hash_move_forward_ex(target_hash, &hpos)) {
+		zend_hash_get_current_data_ex(target_hash, reinterpret_cast<void **>(&entry), &hpos);
 		data = HASH_OF(entry[0]);
-		zend_hash_internal_pointer_reset(data);
-
 		if (zend_hash_find(data, "start", sizeof("start"), reinterpret_cast<void **>(&value)) != SUCCESS) {
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 			goto exit;
@@ -6141,7 +6119,6 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish)
 			goto exit;
 		}
 		lpBlocks[i].m_fbstatus = (enum FBStatus)Z_LVAL_PP(value);
-		zend_hash_move_forward(target_hash);
 	}
 
 	MAPI_G(hr) = lpFBUpdate->PublishFreeBusy(lpBlocks, cBlocks);
