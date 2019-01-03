@@ -480,8 +480,7 @@ HRESULT M4LMsgServiceAdmin::CreateMsgServiceEx(const char *lpszService,
 	entry->servicename = (char*)lpszService;
 	const SPropValue *lpProp = service->GetProp(PR_DISPLAY_NAME_A);
 	entry->displayname = lpProp ? lpProp->Value.lpszA : (char*)lpszService;
-	
-	CoCreateGuid((LPGUID)&entry->muid);
+	CoCreateGuid(reinterpret_cast<GUID *>(&entry->muid));
 	if (uid != nullptr)
 		*uid = entry->muid;
 	entry->service = service;

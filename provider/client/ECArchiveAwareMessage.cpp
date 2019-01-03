@@ -516,7 +516,7 @@ HRESULT ECArchiveAwareMsgStore::OpenItemFromArchive(LPSPropValue lpPropStoreEIDs
 	if (iterStoreEID == lstStoreEIDs.end())
 		return MAPI_E_NOT_FOUND;
 	if (ptrArchiveMessage)
-		hr = ptrArchiveMessage->QueryInterface(IID_ECMessage, (LPVOID*)lppMessage);
+		hr = ptrArchiveMessage->QueryInterface(IID_ECMessage, reinterpret_cast<void **>(lppMessage));
 	return hr;
 }
 
@@ -548,7 +548,7 @@ HRESULT ECArchiveAwareMsgStore::GetArchiveStore(LPSBinary lpStoreEID, ECMsgStore
 	const std::vector<BYTE> eid(lpStoreEID->lpb, lpStoreEID->lpb + lpStoreEID->cb);
 	MsgStoreMap::const_iterator iterStore = m_mapStores.find(eid);
 	if (iterStore != m_mapStores.cend())
-		return iterStore->second->QueryInterface(IID_ECMsgStore, (LPVOID*)lppArchiveStore);
+		return iterStore->second->QueryInterface(IID_ECMsgStore, reinterpret_cast<void **>(lppArchiveStore));
 
 	// @todo: Consolidate this with ECMSProvider::LogonByEntryID
 	object_ptr<IMsgStore> ptrUnknown;
@@ -616,7 +616,7 @@ HRESULT ECArchiveAwareMsgStore::GetArchiveStore(LPSBinary lpStoreEID, ECMsgStore
 	hr = ptrArchiveStore->SetEntryId(cbEntryID, ptrEntryID);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrArchiveStore->QueryInterface(IID_ECMsgStore, (LPVOID*)lppArchiveStore);
+	hr = ptrArchiveStore->QueryInterface(IID_ECMsgStore, reinterpret_cast<void **>(lppArchiveStore));
 	if (hr != hrSuccess)
 		return hr;
 	m_mapStores.emplace(eid, ptrArchiveStore);

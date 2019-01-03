@@ -65,9 +65,9 @@ static ULONG GetPropIDForXMLProp(LPMAPIPROP lpObj,
 	auto hr = MAPIAllocateBuffer(sizeof(MAPINAMEID), &~lpNameID);
 	if (hr != hrSuccess)
 		return PR_NULL;
-	lpNameID->lpguid = (GUID*)&PSETID_Kopano_CalDav;
+	lpNameID->lpguid = const_cast<GUID *>(&PSETID_Kopano_CalDav);
 	lpNameID->ulKind = MNID_STRING;
-	lpNameID->Kind.lpwstrName = (WCHAR*)wstrName.c_str();
+	lpNameID->Kind.lpwstrName = const_cast<wchar_t *>(wstrName.c_str());
 	hr = lpObj->GetIDsFromNames(1, &+lpNameID, ulFlags, &~ptrPropTags);
 	if (hr != hrSuccess)
 		return PR_NULL;
@@ -1336,7 +1336,7 @@ HRESULT CalDAV::HrHandlePropPatch(WEBDAVPROP *lpsDavProp, WEBDAVMULTISTATUS *lps
 		}
 		if (PROP_TYPE(sProp.ulPropTag) == PT_UNICODE) {
 			wstrConvProp = U2W(iter.strValue);
-			sProp.Value.lpszW = (WCHAR*)wstrConvProp.c_str();
+			sProp.Value.lpszW = const_cast<wchar_t *>(wstrConvProp.c_str());
 		} else {
 			sProp.Value.bin.cb = iter.strValue.size();
 			sProp.Value.bin.lpb = reinterpret_cast<BYTE *>(const_cast<char *>(iter.strValue.data()));

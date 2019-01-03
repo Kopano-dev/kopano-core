@@ -392,23 +392,6 @@ extern "C" {
 extern _kc_export HRESULT CoCreateGuid(LPGUID);
 extern _kc_export void GetSystemTimeAsFileTime(FILETIME *);
 
-/* Some wrappers to map Windows unicode functions */
-static inline int lstrcmpW(LPCWSTR str1, LPCWSTR str2)
-{
-	return wcscmp((WCHAR *)str1, (WCHAR *)str2);
-}
-
-static inline int lstrlenW(LPCWSTR str)
-{
-	return wcslen((WCHAR *)str);
-}
-
-static inline LPWSTR lstrcpyW(LPWSTR dst, LPCWSTR src)
-{
-	wcscpy(dst, (WCHAR *)src);
-	return dst;
-}
-
 #define _tcslen	wcslen
 #define _tcscpy wcscpy
 #define _tcscmp wcscmp

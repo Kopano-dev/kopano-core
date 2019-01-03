@@ -114,53 +114,55 @@ HRESULT ZCABContainer::MakeWrappedEntryID(ULONG cbEntryID, LPENTRYID lpEntryID, 
 }
 
 static constexpr const MAPINAMEID default_namedprops[(6*5)+2] = {
+#define PS const_cast<GUID *>(&PSETID_Address)
 	/* index with MVI_FLAG */
-	{(GUID *)&PSETID_Address, MNID_ID, {dispidABPEmailList}},
+	{PS, MNID_ID, {dispidABPEmailList}},
 
 	/* MVI offset 0: email1 set */
-	{(GUID *)&PSETID_Address, MNID_ID, {dispidEmail1DisplayName}},
-	{(GUID *)&PSETID_Address, MNID_ID, {dispidEmail1AddressType}},
-	{(GUID *)&PSETID_Address, MNID_ID, {dispidEmail1Address}},
-	{(GUID *)&PSETID_Address, MNID_ID, {dispidEmail1OriginalDisplayName}},
-	{(GUID *)&PSETID_Address, MNID_ID, {dispidEmail1OriginalEntryID}},
+	{PS, MNID_ID, {dispidEmail1DisplayName}},
+	{PS, MNID_ID, {dispidEmail1AddressType}},
+	{PS, MNID_ID, {dispidEmail1Address}},
+	{PS, MNID_ID, {dispidEmail1OriginalDisplayName}},
+	{PS, MNID_ID, {dispidEmail1OriginalEntryID}},
 
 	/* MVI offset 1: email2 set */
-	{(GUID *)&PSETID_Address, MNID_ID, {dispidEmail2DisplayName}},
-	{(GUID *)&PSETID_Address, MNID_ID, {dispidEmail2AddressType}},
-	{(GUID *)&PSETID_Address, MNID_ID, {dispidEmail2Address}},
-	{(GUID *)&PSETID_Address, MNID_ID, {dispidEmail2OriginalDisplayName}},
-	{(GUID *)&PSETID_Address, MNID_ID, {dispidEmail2OriginalEntryID}},
+	{PS, MNID_ID, {dispidEmail2DisplayName}},
+	{PS, MNID_ID, {dispidEmail2AddressType}},
+	{PS, MNID_ID, {dispidEmail2Address}},
+	{PS, MNID_ID, {dispidEmail2OriginalDisplayName}},
+	{PS, MNID_ID, {dispidEmail2OriginalEntryID}},
 
 	/* MVI offset 2: email3 set */
-	{(GUID *)&PSETID_Address, MNID_ID, {dispidEmail3DisplayName}},
-	{(GUID *)&PSETID_Address, MNID_ID, {dispidEmail3AddressType}},
-	{(GUID *)&PSETID_Address, MNID_ID, {dispidEmail3Address}},
-	{(GUID *)&PSETID_Address, MNID_ID, {dispidEmail3OriginalDisplayName}},
-	{(GUID *)&PSETID_Address, MNID_ID, {dispidEmail3OriginalEntryID}},
+	{PS, MNID_ID, {dispidEmail3DisplayName}},
+	{PS, MNID_ID, {dispidEmail3AddressType}},
+	{PS, MNID_ID, {dispidEmail3Address}},
+	{PS, MNID_ID, {dispidEmail3OriginalDisplayName}},
+	{PS, MNID_ID, {dispidEmail3OriginalEntryID}},
 
 	/* MVI offset 3: business fax (fax2) set */
-	{(GUID *)&PSETID_Address, MNID_ID, {dispidFax2DisplayName}},
-	{(GUID *)&PSETID_Address, MNID_ID, {dispidFax2AddressType}},
-	{(GUID *)&PSETID_Address, MNID_ID, {dispidFax2Address}},
-	{(GUID *)&PSETID_Address, MNID_ID, {dispidFax2OriginalDisplayName}},
-	{(GUID *)&PSETID_Address, MNID_ID, {dispidFax2OriginalEntryID}},
+	{PS, MNID_ID, {dispidFax2DisplayName}},
+	{PS, MNID_ID, {dispidFax2AddressType}},
+	{PS, MNID_ID, {dispidFax2Address}},
+	{PS, MNID_ID, {dispidFax2OriginalDisplayName}},
+	{PS, MNID_ID, {dispidFax2OriginalEntryID}},
 
 	/* MVI offset 4: home fax (fax3) set */
-	{(GUID *)&PSETID_Address, MNID_ID, {dispidFax3DisplayName}},
-	{(GUID *)&PSETID_Address, MNID_ID, {dispidFax3AddressType}},
-	{(GUID *)&PSETID_Address, MNID_ID, {dispidFax3Address}},
-	{(GUID *)&PSETID_Address, MNID_ID, {dispidFax3OriginalDisplayName}},
-	{(GUID *)&PSETID_Address, MNID_ID, {dispidFax3OriginalEntryID}},
+	{PS, MNID_ID, {dispidFax3DisplayName}},
+	{PS, MNID_ID, {dispidFax3AddressType}},
+	{PS, MNID_ID, {dispidFax3Address}},
+	{PS, MNID_ID, {dispidFax3OriginalDisplayName}},
+	{PS, MNID_ID, {dispidFax3OriginalEntryID}},
 
 	/* MVI offset 5: primary fax (fax1) set */
-	{(GUID *)&PSETID_Address, MNID_ID, {dispidFax1DisplayName}},
-	{(GUID *)&PSETID_Address, MNID_ID, {dispidFax1AddressType}},
-	{(GUID *)&PSETID_Address, MNID_ID, {dispidFax1Address}},
-	{(GUID *)&PSETID_Address, MNID_ID, {dispidFax1OriginalDisplayName}},
-	{(GUID *)&PSETID_Address, MNID_ID, {dispidFax1OriginalEntryID}},
+	{PS, MNID_ID, {dispidFax1DisplayName}},
+	{PS, MNID_ID, {dispidFax1AddressType}},
+	{PS, MNID_ID, {dispidFax1Address}},
+	{PS, MNID_ID, {dispidFax1OriginalDisplayName}},
+	{PS, MNID_ID, {dispidFax1OriginalEntryID}},
 
 	/* restriction */
-	{(GUID *)&PSETID_Address, MNID_ID, {dispidABPArrayType}},
+	{PS, MNID_ID, {dispidABPArrayType}},
+#undef PS
 };
 
 HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)

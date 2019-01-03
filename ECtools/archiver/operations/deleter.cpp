@@ -60,7 +60,7 @@ HRESULT Deleter::PurgeQueuedMessages()
 	auto hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~ptrEntryList);
 	if (hr != hrSuccess)
 		return hr;
-	hr = MAPIAllocateMore(m_lstEntryIds.size() * sizeof(SBinary), ptrEntryList, (LPVOID*)&ptrEntryList->lpbin);
+	hr = MAPIAllocateMore(m_lstEntryIds.size() * sizeof(SBinary), ptrEntryList, reinterpret_cast<void **>(&ptrEntryList->lpbin));
 	if (hr != hrSuccess)
 		return hr;
 	ptrEntryList->cValues = m_lstEntryIds.size();

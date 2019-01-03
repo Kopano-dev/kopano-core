@@ -339,7 +339,7 @@ static HRESULT GetProxyStoreObject(IMsgStore *lpMsgStore, IMsgStore **lppMsgStor
 	if (lpMsgStore == nullptr || lppMsgStore == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 	if (lpMsgStore->QueryInterface(IID_IProxyStoreObject, &~lpProxyStoreObject) == hrSuccess) {
-		auto hr = lpProxyStoreObject->UnwrapNoRef((LPVOID*)lppMsgStore);
+		auto hr = lpProxyStoreObject->UnwrapNoRef(reinterpret_cast<void **>(lppMsgStore));
 		if (hr != hrSuccess)
 			return hr;
 		(*lppMsgStore)->AddRef();
@@ -737,8 +737,7 @@ static HRESULT HrResolveToSMTP(LPADRBOOK lpAdrBook,
 		return hr;
 	++lpAdrList->cEntries;
     lpAdrList->aEntries[0].rgPropVals[0].ulPropTag = PR_DISPLAY_NAME_W;
-    lpAdrList->aEntries[0].rgPropVals[0].Value.lpszW = (WCHAR *)strResolve.c_str();
-    
+	lpAdrList->aEntries[0].rgPropVals[0].Value.lpszW = const_cast<wchar_t *>(strResolve.c_str());
     hr = lpAdrBook->ResolveName(0, ulFlags | MAPI_UNICODE, NULL, lpAdrList);
     if(hr != hrSuccess)
 		return hr;

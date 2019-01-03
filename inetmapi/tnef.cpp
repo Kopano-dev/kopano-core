@@ -881,7 +881,7 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 			strUnicodeName = convert_to<std::wstring>(ucs2);
 
 			sNameID.ulKind = MNID_STRING;
-			sNameID.Kind.lpwstrName = (WCHAR *)strUnicodeName.c_str();
+			sNameID.Kind.lpwstrName = const_cast<wchar_t *>(strUnicodeName.c_str());
 			lpBuffer += ulLen;
 			ulSize -= ulLen;
 

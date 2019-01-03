@@ -208,7 +208,7 @@ HRESULT	ECMAPIProp::DefaultMAPIGetProp(ULONG ulPropTag, void* lpProvider, ULONG 
 		GUID sServerGuid = {0};
 		hr = ((ECMAPIProp*)lpParam)->m_lpRoot->GetMsgStore()->lpTransport->GetServerGUID(&sServerGuid);
 		if (hr == hrSuccess)
-			hr = ECAllocateMore(sizeof(GUID), lpBase, (LPVOID*)&lpsPropValue->Value.bin.lpb);
+			hr = ECAllocateMore(sizeof(GUID), lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
 		if (hr == hrSuccess) {
 			memcpy(lpsPropValue->Value.bin.lpb, &sServerGuid, sizeof(GUID));
 			lpsPropValue->Value.bin.cb = sizeof(GUID);

@@ -271,7 +271,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 		std::list<propVal> propList;
 
 		// Add the new change key to the predecessor change list
-		lpSession->GetServerGUID((GUID*)szChangeKey);
+		lpSession->GetServerGUID(reinterpret_cast<GUID *>(szChangeKey));
 		memcpy(szChangeKey + sizeof(GUID), &changeid, 4);
 		AddChangeKeyToChangeList(&strChangeList, sizeof(szChangeKey), szChangeKey);
 
@@ -849,8 +849,8 @@ static ECRESULT getchanges_ab2(struct soap *soap, ECSession *lpSession,
 			return KCERR_DATABASE_ERROR;
 		}
 		id.id.assign(lpDBRow[2], lpDBLen[2]);
-		id.objclass = (objectclass_t)atoui(lpDBRow[1]);
-		er = TypeToMAPIType((objectclass_t)atoui(lpDBRow[1]), (ULONG *)&ulType);
+		id.objclass = static_cast<objectclass_t>(atoui(lpDBRow[1]));
+		er = TypeToMAPIType(static_cast<objectclass_t>(atoui(lpDBRow[1])), reinterpret_cast<ULONG *>(&ulType));
 		if (er != erSuccess)
 			return er;
 		lpChanges->__ptr[i].ulChangeId = ulMaxChange;

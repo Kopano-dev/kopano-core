@@ -815,7 +815,7 @@ static HRESULT ResolveServerToPath(IMAPISession *lpSession,
 	hr = MAPIAllocateBuffer(sizeof(ECSVRNAMELIST), &~lpSrvNameList);
 	if (hr != hrSuccess)
 		return kc_perrorf("MAPIAllocateBuffer failed", hr);
-	hr = MAPIAllocateMore(sizeof(WCHAR *) * lpServerNameRecips->size(), lpSrvNameList, (LPVOID *)&lpSrvNameList->lpszaServer);
+	hr = MAPIAllocateMore(sizeof(wchar_t *) * lpServerNameRecips->size(), lpSrvNameList, reinterpret_cast<void **>(&lpSrvNameList->lpszaServer));
 	if (hr != hrSuccess)
 		return kc_perrorf("MAPIAllocateMore failed(1)", hr);
 

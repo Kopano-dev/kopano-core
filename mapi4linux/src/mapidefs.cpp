@@ -69,8 +69,7 @@ HRESULT M4LMAPIProp::GetProps(const SPropTagArray *lpPropTagArray,
 			if ((ulFlags & MAPI_UNICODE) && PROP_TYPE((*i)->ulPropTag) == PT_STRING8) {
 				sConvert.ulPropTag = CHANGE_PROP_TYPE((*i)->ulPropTag, PT_UNICODE);
 				unicode = converter.convert_to<std::wstring>((*i)->Value.lpszA);
-				sConvert.Value.lpszW = (WCHAR*)unicode.c_str();
-
+				sConvert.Value.lpszW = const_cast<wchar_t *>(unicode.c_str());
 				lpCopy = &sConvert;
 			} else if ((ulFlags & MAPI_UNICODE) == 0 && PROP_TYPE((*i)->ulPropTag) == PT_UNICODE) {
 				sConvert.ulPropTag = CHANGE_PROP_TYPE((*i)->ulPropTag, PT_STRING8);
@@ -106,7 +105,7 @@ HRESULT M4LMAPIProp::GetProps(const SPropTagArray *lpPropTagArray,
 				// string8 to unicode
 				sConvert.ulPropTag = CHANGE_PROP_TYPE((*i)->ulPropTag, PT_UNICODE);
 				unicode = converter.convert_to<std::wstring>((*i)->Value.lpszA);
-				sConvert.Value.lpszW = (WCHAR*)unicode.c_str();
+				sConvert.Value.lpszW = const_cast<wchar_t *>(unicode.c_str());
 				lpCopy = &sConvert;
 			}
 			else if (PROP_TYPE((*i)->ulPropTag) == PT_UNICODE &&
@@ -558,7 +557,7 @@ HRESULT M4LProviderAdmin::CreateProvider(const TCHAR *lpszProvider,
 	hr = entry->profilesection->SetProps(1, lpsPropValProfileName, NULL);
 	if (hr != hrSuccess)
 		return hr;
-	CoCreateGuid((LPGUID)&entry->uid);
+	CoCreateGuid(reinterpret_cast<GUID *>(&entry->uid));
 
 	// no need to free this, not a copy!
 	lpProvider->GetProps(&cProviderProps, &lpProviderProps);

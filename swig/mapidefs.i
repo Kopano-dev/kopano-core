@@ -290,7 +290,7 @@ public:
 
         virtual HRESULT UnwrapNoRef(IUnknown **OUTPUT /*ppvObject*/) {
             HRESULT hr = hrSuccess;
-            hr = self->UnwrapNoRef((LPVOID*)OUTPUT);
+			hr = self->UnwrapNoRef(reinterpret_cast<void **>(OUTPUT));
 			if (hr == hrSuccess)
                 (*OUTPUT)->AddRef();
 			return hr;

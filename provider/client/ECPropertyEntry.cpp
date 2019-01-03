@@ -675,7 +675,7 @@ HRESULT ECProperty::CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulRequestPr
 			dwLastError = MAPI_E_INVALID_PARAMETER;
 			return hr;
 		}
-		hr = ECAllocateMore(dst.length() + 1, lpBase, (LPVOID*)&lpsProp->Value.lpszA);
+		hr = ECAllocateMore(dst.length() + 1, lpBase, reinterpret_cast<void **>(&lpsProp->Value.lpszA));
 		if (hr != hrSuccess)
 			dwLastError = hr;
 		else
@@ -684,7 +684,7 @@ HRESULT ECProperty::CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulRequestPr
 	}
 	case PT_CLSID: {
 		GUID *lpGUID;
-		hr = ECAllocateMore(sizeof(GUID), lpBase, (LPVOID *)&lpGUID);
+		hr = ECAllocateMore(sizeof(GUID), lpBase, reinterpret_cast<void **>(&lpGUID));
 		if (hr != hrSuccess) {
 			dwLastError = hr;
 			break;
@@ -820,7 +820,7 @@ HRESULT ECProperty::CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulRequestPr
 					dwLastError = MAPI_E_INVALID_PARAMETER;
 					return hr;
 				}
-				hr = ECAllocateMore(strDst.size() + 1, lpBase, (LPVOID*)&lpsProp->Value.MVszA.lppszA[i]);
+				hr = ECAllocateMore(strDst.size() + 1, lpBase, reinterpret_cast<void **>(&lpsProp->Value.MVszA.lppszA[i]));
 				if (hr != hrSuccess)
 					dwLastError = hr;
 				else

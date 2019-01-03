@@ -482,7 +482,7 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictMessageOnly(LPMESSAGE lpM
 		lpConflictItems->Value.MVbin.lpbin = NULL;
 	}
 
-	hr = MAPIAllocateMore(sizeof(SBinary)*(lpConflictItems->Value.MVbin.cValues+1), lpConflictItems, (LPVOID*)&lpEntryIds);
+	hr = MAPIAllocateMore(sizeof(SBinary) * (lpConflictItems->Value.MVbin.cValues + 1), lpConflictItems, reinterpret_cast<void **>(&lpEntryIds));
 	if(hr != hrSuccess)
 		return hr;
 	for (ulCount = 0; ulCount < lpConflictItems->Value.MVbin.cValues; ++ulCount)
@@ -529,7 +529,7 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictFolders(){
 	else
 		lpNewAdditionalREN->Value.MVbin.cValues = lpAdditionalREN->Value.MVbin.cValues;
 
-	hr = MAPIAllocateMore(sizeof(SBinary)*lpNewAdditionalREN->Value.MVbin.cValues, lpNewAdditionalREN, (LPVOID*)&lpNewAdditionalREN->Value.MVbin.lpbin);
+	hr = MAPIAllocateMore(sizeof(SBinary) * lpNewAdditionalREN->Value.MVbin.cValues, lpNewAdditionalREN, reinterpret_cast<void **>(&lpNewAdditionalREN->Value.MVbin.lpbin));
 	if(hr != hrSuccess)
 		return hr;
 

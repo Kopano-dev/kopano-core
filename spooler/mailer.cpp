@@ -216,13 +216,13 @@ static HRESULT ExpandRecipients(LPADRBOOK lpAddrBook, IMessage *lpMessage)
 	auto hr = MAPIAllocateBuffer(sizeof(SRestriction), &~lpRestriction);
 	if (hr != hrSuccess)
 		return kc_perrorf("MAPIAllocateBuffer failed", hr);
-	hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRestriction, (LPVOID*)&lpRestriction->res.resAnd.lpRes);
+	hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRestriction, reinterpret_cast<void **>(&lpRestriction->res.resAnd.lpRes));
 	if (hr != hrSuccess)
 		return kc_perrorf("MAPIAllocateMore failed(1)", hr);
 	lpRestriction->rt = RES_AND;
 	lpRestriction->res.resAnd.cRes = 2;
 
-	hr = MAPIAllocateMore(sizeof(SPropValue), lpRestriction, (LPVOID*)&lpRestriction->res.resAnd.lpRes[0].res.resProperty.lpProp);
+	hr = MAPIAllocateMore(sizeof(SPropValue), lpRestriction, reinterpret_cast<void **>(&lpRestriction->res.resAnd.lpRes[0].res.resProperty.lpProp));
 	if (hr != hrSuccess)
 		return kc_perrorf("MAPIAllocateMore failed(2)", hr);
 
@@ -232,7 +232,7 @@ static HRESULT ExpandRecipients(LPADRBOOK lpAddrBook, IMessage *lpMessage)
 	lpRestriction->res.resAnd.lpRes[0].res.resProperty.lpProp->ulPropTag = PR_OBJECT_TYPE;
 	lpRestriction->res.resAnd.lpRes[0].res.resProperty.lpProp->Value.ul = MAPI_DISTLIST;
 
-	hr = MAPIAllocateMore(sizeof(SPropValue), lpRestriction, (LPVOID*)&lpRestriction->res.resAnd.lpRes[1].res.resProperty.lpProp);
+	hr = MAPIAllocateMore(sizeof(SPropValue), lpRestriction, reinterpret_cast<void **>(&lpRestriction->res.resAnd.lpRes[1].res.resProperty.lpProp));
 	if (hr != hrSuccess)
 		return kc_perrorf("MAPIAllocateMore failed(3)", hr);
 
@@ -249,7 +249,7 @@ static HRESULT ExpandRecipients(LPADRBOOK lpAddrBook, IMessage *lpMessage)
 	hr = MAPIAllocateBuffer(sizeof(SRestriction), &~lpEntryRestriction);
 	if (hr != hrSuccess)
 		return kc_perrorf("MAPIAllocateBuffer failed", hr);
-	hr = MAPIAllocateMore(sizeof(SPropValue), lpEntryRestriction, (LPVOID*)&lpEntryRestriction->res.resProperty.lpProp);
+	hr = MAPIAllocateMore(sizeof(SPropValue), lpEntryRestriction, reinterpret_cast<void **>(&lpEntryRestriction->res.resProperty.lpProp));
 	if (hr != hrSuccess)
 		return kc_perrorf("MAPIAllocateMore failed(4)", hr);
 
@@ -391,7 +391,7 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 		auto wstrFaxMail = convert_to<std::wstring>(strFaxMail);
 		std::wstring wstrOldFaxMail = lpEmailAddress->Value.lpszW; // keep old string for logging
 		// hack values in lpRowSet
-		lpEmailAddress->Value.lpszW = (WCHAR*)wstrFaxMail.c_str();
+		lpEmailAddress->Value.lpszW = const_cast<wchar_t *>(wstrFaxMail.c_str());
 		lpAddrType->Value.lpszW = const_cast<wchar_t *>(L"SMTP");
 		// old value is stuck to the row allocation, so we can override it, but we also must free the new!
 		ECCreateOneOff((LPTSTR)lpEmailName->Value.lpszW, (LPTSTR)L"SMTP", (LPTSTR)wstrFaxMail.c_str(), MAPI_UNICODE, &cbNewEntryID, &~lpNewEntryID);
@@ -499,7 +499,7 @@ static HRESULT RewriteQuotedRecipients(IMessage *lpMessage)
 
 		ec_log_info("Rewrite quoted recipient: %ls", strEmail.c_str());
 		strEmail = strEmail.substr(1, strEmail.size() - 2);
-		lpEmailAddress->Value.lpszW = (WCHAR *)strEmail.c_str();
+		lpEmailAddress->Value.lpszW = const_cast<wchar_t *>(strEmail.c_str());
 		hr = lpMessage->ModifyRecipients(MODRECIP_MODIFY,
 		     reinterpret_cast<ADRLIST *>(lpRowSet.get()));
 		if (hr != hrSuccess)
@@ -852,7 +852,7 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 		newbody.append(L"\n\nYou may need to contact your e-mail administrator to solve this problem.\n");
 
 		lpPropValue[ulPropPos].ulPropTag = PR_BODY_W;
-		lpPropValue[ulPropPos++].Value.lpszW = (WCHAR*)newbody.c_str();
+		lpPropValue[ulPropPos++].Value.lpszW = const_cast<wchar_t *>(newbody.c_str());
 
 		if (ulRows > 0) {
 			// All recipients failed, therefore all recipient need to be in the MDN recipient table
@@ -964,17 +964,17 @@ static HRESULT ContactToKopano(IMsgStore *lpUserStore,
 		return kc_perror("No memory for named IDs from contact", hr);
 
 	// Email1EntryID
-	lpNames[0].lpguid = (GUID*)&PSETID_Address;
+	lpNames[0].lpguid = const_cast<GUID *>(&PSETID_Address);
 	lpNames[0].ulKind = MNID_ID;
 	lpNames[0].Kind.lID = 0x8085;
 	lppNames[0] = &lpNames[0];
 	// Email2EntryID
-	lpNames[1].lpguid = (GUID*)&PSETID_Address;
+	lpNames[1].lpguid = const_cast<GUID *>(&PSETID_Address);
 	lpNames[1].ulKind = MNID_ID;
 	lpNames[1].Kind.lID = 0x8095;
 	lppNames[1] = &lpNames[1];
 	// Email3EntryID
-	lpNames[2].lpguid = (GUID*)&PSETID_Address;
+	lpNames[2].lpguid = const_cast<GUID *>(&PSETID_Address);
 	lpNames[2].ulKind = MNID_ID;
 	lpNames[2].Kind.lID = 0x80A5;
 	lppNames[2] = &lpNames[2];
@@ -1026,7 +1026,7 @@ static HRESULT SMTPToZarafa(IAddrBook *lpAddrBook, const SBinary &smtp,
 		return hrSuccess;
 	++lpAList->cEntries;
 	lpAList->aEntries[0].rgPropVals[0].ulPropTag = PR_DISPLAY_NAME_W;
-	lpAList->aEntries[0].rgPropVals[0].Value.lpszW = (WCHAR*)wstrEmailAddress.c_str();
+	lpAList->aEntries[0].rgPropVals[0].Value.lpszW = const_cast<wchar_t *>(wstrEmailAddress.c_str());
 	hr = lpAddrBook->ResolveName(0, EMS_AB_ADDRESS_LOOKUP, NULL, lpAList);
 	if (hr != hrSuccess)
 		return kc_perrorf("ResolveName failed", hr);

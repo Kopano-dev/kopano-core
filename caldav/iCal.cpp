@@ -398,7 +398,7 @@ HRESULT iCal::HrGetContents(LPMAPITABLE *lppTable)
 		if (hr != hrSuccess || ulRows != 1)
 			return MAPI_E_NOT_FOUND;
 	}
-	return ptrContents->QueryInterface(IID_IMAPITable, (LPVOID*)lppTable);
+	return ptrContents->QueryInterface(IID_IMAPITable, reinterpret_cast<void **>(lppTable));
 }
 
 /**

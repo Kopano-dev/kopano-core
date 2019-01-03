@@ -1327,7 +1327,7 @@ HRESULT Util::HrTextToHtml(IStream *text, IStream *html, ULONG ulCodepage)
 				continue;
 			// make html number from WCHAR entry
 			std::string strHTMLUnicode = "&#";
-			strHTMLUnicode += stringify(*(WCHAR*)readBuffer);
+			strHTMLUnicode += stringify(*reinterpret_cast<const wchar_t *>(readBuffer));
 			strHTMLUnicode += ";";
 
 			hr = html->Write(strHTMLUnicode.c_str(), strHTMLUnicode.length(), NULL);
@@ -1697,7 +1697,7 @@ HRESULT Util::HrStreamToString(IStream *sInput, std::wstring &strOutput) {
 
 	if (sInput->QueryInterface(IID_ECMemStream, &~lpMemStream) == hrSuccess) {
 		// getsize, getbuffer, assign
-		strOutput.append((WCHAR*)lpMemStream->GetBuffer(), lpMemStream->GetSize() / sizeof(WCHAR));
+		strOutput.append(reinterpret_cast<wchar_t *>(lpMemStream->GetBuffer()), lpMemStream->GetSize() / sizeof(WCHAR));
 		return hrSuccess;
 	}
 	// manual copy
@@ -1708,7 +1708,7 @@ HRESULT Util::HrStreamToString(IStream *sInput, std::wstring &strOutput) {
 		hr = sInput->Read(buffer, BUFSIZE, &ulRead);
 		if (hr != hrSuccess || ulRead == 0)
 			break;
-		strOutput.append((WCHAR*)buffer, ulRead / sizeof(WCHAR));
+		strOutput.append(reinterpret_cast<wchar_t *>(buffer), ulRead / sizeof(WCHAR));
 	}
 	return hr;
 }
@@ -2814,7 +2814,7 @@ HRESULT Util::DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj,
 			return MAPI_E_INTERFACE_NOT_SUPPORTED;
 		if (*lpDestInterface != IID_IStream)
 			return MAPI_E_INTERFACE_NOT_SUPPORTED;
-		return CopyStream((LPSTREAM)lpSrcObj, (LPSTREAM)lpDestObj);
+		return CopyStream(static_cast<IStream *>(lpSrcObj), static_cast<IStream *>(lpDestObj));
 	}
 
 	hr = FindInterface(&IID_IMAPIProp, ciidExclude, rgiidExclude);
@@ -2831,16 +2831,18 @@ HRESULT Util::DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj,
 			// on store, create folder and still go ?
 			return MAPI_E_INTERFACE_NOT_SUPPORTED;
 
+		auto src_fld = static_cast<IMAPIFolder *>(lpSrcObj);
+		auto dst_fld = static_cast<IMAPIFolder *>(lpDestObj);
 		if (!lpExcludeProps || Util::FindPropInArray(lpExcludeProps, PR_CONTAINER_CONTENTS) == -1) {
 			sExtraExcludes.aulPropTag[sExtraExcludes.cValues++] = PR_CONTAINER_CONTENTS;
-			hr = CopyContents(0, (LPMAPIFOLDER)lpSrcObj, (LPMAPIFOLDER)lpDestObj, ulFlags, ulUIParam, lpProgress);
+			hr = CopyContents(0, src_fld, dst_fld, ulFlags, ulUIParam, lpProgress);
 			if (hr != hrSuccess)
 				bPartial = true;
 		}
 
 		if (!lpExcludeProps || Util::FindPropInArray(lpExcludeProps, PR_FOLDER_ASSOCIATED_CONTENTS) == -1) {
 			sExtraExcludes.aulPropTag[sExtraExcludes.cValues++] = PR_FOLDER_ASSOCIATED_CONTENTS;
-			hr = CopyContents(MAPI_ASSOCIATED, (LPMAPIFOLDER)lpSrcObj, (LPMAPIFOLDER)lpDestObj, ulFlags, ulUIParam, lpProgress);
+			hr = CopyContents(MAPI_ASSOCIATED, src_fld, dst_fld, ulFlags, ulUIParam, lpProgress);
 			if (hr != hrSuccess)
 				bPartial = true;
 		}
@@ -2848,7 +2850,7 @@ HRESULT Util::DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj,
 		if (!lpExcludeProps || Util::FindPropInArray(lpExcludeProps, PR_CONTAINER_HIERARCHY) == -1) {
 			// add to lpExcludeProps so CopyProps ignores them
 			sExtraExcludes.aulPropTag[sExtraExcludes.cValues++] = PR_CONTAINER_HIERARCHY;
-			hr = CopyHierarchy((LPMAPIFOLDER)lpSrcObj, (LPMAPIFOLDER)lpDestObj, ulFlags, ulUIParam, lpProgress);
+			hr = CopyHierarchy(src_fld, dst_fld, ulFlags, ulUIParam, lpProgress);
 			if (hr != hrSuccess)
 				bPartial = true;
 		}
@@ -3065,7 +3067,7 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, void *lpSrcObj,
 				hr = CopyRecipients(static_cast<IMessage *>(lpSrcObj), static_cast<IMessage *>(lpDestObj));
 			else if (lpIncludeProps->aulPropTag[i] == PR_MESSAGE_ATTACHMENTS)
 				// TODO: add ulFlags, and check for MAPI_NOREPLACE
-				hr = Util::CopyAttachments((LPMESSAGE)lpSrcObj, (LPMESSAGE)lpDestObj, NULL);
+				hr = Util::CopyAttachments(static_cast<IMessage *>(lpSrcObj), static_cast<IMessage *>(lpDestObj), nullptr);
 			else
 				hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 			if (hr != hrSuccess) {
@@ -3092,18 +3094,20 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, void *lpSrcObj,
 				ulAttachMethod = ATTACH_BY_VALUE;
 			else
 				ulAttachMethod = lpAttachMethod->Value.ul;
+			auto src_at = static_cast<IAttach *>(lpSrcObj);
+			auto dst_at = static_cast<IAttach *>(lpDestObj);
 			switch (ulAttachMethod) {
 			case ATTACH_BY_VALUE:
 			case ATTACH_OLE:
 				// stream
 				// Not being able to open the source message is not an error: it may just not be there
-				if (((LPATTACH)lpSrcObj)->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, 0, 0, &~lpSrcStream) == hrSuccess) {
+				if (src_at->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, 0, 0, &~lpSrcStream) == hrSuccess) {
 					// While dragging and dropping, Outlook 2007 (at least) returns an internal MAPI object to CopyTo as destination
 					// The internal MAPI object is unable to make a stream STGM_TRANSACTED, so we retry the action without that flag
 					// to get the stream without the transaction feature.
-					hr = ((LPATTACH)lpDestObj)->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~lpDestStream);
+					hr = dst_at->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~lpDestStream);
 					if (hr != hrSuccess)
-						hr = ((LPATTACH)lpDestObj)->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, STGM_WRITE, MAPI_CREATE | MAPI_MODIFY, &~lpDestStream);
+						hr = dst_at->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, STGM_WRITE, MAPI_CREATE | MAPI_MODIFY, &~lpDestStream);
 					if (hr != hrSuccess) {
 						isProblem = true;
 						goto next_include_check;
@@ -3114,11 +3118,11 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, void *lpSrcObj,
 						goto next_include_check;
 					}
 				} else if(lpAttachMethod->Value.ul == ATTACH_OLE &&
-				    ((LPATTACH)lpSrcObj)->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IStream, 0, 0, &~lpSrcStream) == hrSuccess) {
+				    src_at->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IStream, 0, 0, &~lpSrcStream) == hrSuccess) {
 					// OLE 2.0 must be open with PR_ATTACH_DATA_OBJ
-					hr = ((LPATTACH)lpDestObj)->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~lpDestStream);
+					hr = dst_at->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~lpDestStream);
 					if (hr == E_FAIL)
-						hr = ((LPATTACH)lpDestObj)->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IStream, STGM_WRITE, MAPI_CREATE | MAPI_MODIFY, &~lpDestStream);
+						hr = dst_at->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IStream, STGM_WRITE, MAPI_CREATE | MAPI_MODIFY, &~lpDestStream);
 					if (hr != hrSuccess) {
 						isProblem = true;
 						goto next_include_check;
@@ -3132,9 +3136,9 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, void *lpSrcObj,
 				break;
 			case ATTACH_EMBEDDED_MSG:
 				// message
-				if (((LPATTACH)lpSrcObj)->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, 0, &~lpSrcMessage) == hrSuccess) {
+				if (src_at->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, 0, &~lpSrcMessage) == hrSuccess) {
 					// Not being able to open the source message is not an error: it may just not be there
-					hr = ((LPATTACH)lpDestObj)->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY, &~lpDestMessage);
+					hr = dst_at->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY, &~lpDestMessage);
 					if (hr != hrSuccess) {
 						isProblem = true;
 						goto next_include_check;
@@ -3612,7 +3616,7 @@ HRESULT Util::ExtractAdditionalRenEntryID(LPSPropValue lpPropBlob, unsigned shor
 		lpPos += 2;
 		if (lpPos + usLen > lpEnd)
 			return MAPI_E_CORRUPT_DATA;
-		hr = MAPIAllocateBuffer(usLen, (LPVOID*)lppEntryID);
+		hr = MAPIAllocateBuffer(usLen, reinterpret_cast<void **>(lppEntryID));
 		if (hr != hrSuccess)
 			return hr;
 		memcpy(*lppEntryID, lpPos, usLen);

@@ -1652,21 +1652,21 @@ CopyAnonymousDetailsFromSoap(struct propmapPairArray *lpsoapPropmap,
 		for (gsoap_size_t i = 0; i < lpsoapPropmap->__size; ++i)
 			if (PROP_TYPE(lpsoapPropmap->__ptr[i].ulPropId) == PT_BINARY) {
 				auto strData = base64_decode(lpsoapPropmap->__ptr[i].lpszValue);
-				details->SetPropString((property_key_t)lpsoapPropmap->__ptr[i].ulPropId, strData);
+				details->SetPropString(static_cast<property_key_t>(lpsoapPropmap->__ptr[i].ulPropId), strData);
 			} else if (PROP_TYPE(lpsoapPropmap->__ptr[i].ulPropId) == PT_STRING8) {
-				details->SetPropString((property_key_t)lpsoapPropmap->__ptr[i].ulPropId, lpsoapPropmap->__ptr[i].lpszValue);
+				details->SetPropString(static_cast<property_key_t>(lpsoapPropmap->__ptr[i].ulPropId), lpsoapPropmap->__ptr[i].lpszValue);
 			}
 	}
 
 	if (lpsoapMVPropmap)
 		for (gsoap_size_t i = 0; i < lpsoapMVPropmap->__size; ++i) {
-			details->SetPropListString((property_key_t)lpsoapMVPropmap->__ptr[i].ulPropId, {});
+			details->SetPropListString(static_cast<property_key_t>(lpsoapMVPropmap->__ptr[i].ulPropId), {});
 			for (gsoap_size_t j = 0; j < lpsoapMVPropmap->__ptr[i].sValues.__size; ++j)
 				if (PROP_TYPE(lpsoapMVPropmap->__ptr[i].ulPropId) == PT_MV_BINARY) {
 					auto strData = base64_decode(lpsoapMVPropmap->__ptr[i].sValues.__ptr[j]);
-					details->AddPropString((property_key_t)lpsoapMVPropmap->__ptr[i].ulPropId, strData);
+					details->AddPropString(static_cast<property_key_t>(lpsoapMVPropmap->__ptr[i].ulPropId), strData);
 				} else {
-					details->AddPropString((property_key_t)lpsoapMVPropmap->__ptr[i].ulPropId, lpsoapMVPropmap->__ptr[i].sValues.__ptr[j]);
+					details->AddPropString(static_cast<property_key_t>(lpsoapMVPropmap->__ptr[i].ulPropId), lpsoapMVPropmap->__ptr[i].sValues.__ptr[j]);
 				}
 		}
 
@@ -1708,7 +1708,7 @@ ECRESULT CopyUserDetailsFromSoap(struct user *lpUser,
 	if (lpUser->ulIsAdmin != (ULONG)-1)
 		details->SetPropInt(OB_PROP_I_ADMINLEVEL, lpUser->ulIsAdmin);
 	if (lpUser->ulObjClass != (ULONG)-1)
-		details->SetClass((objectclass_t)lpUser->ulObjClass);
+		details->SetClass(static_cast<objectclass_t>(lpUser->ulObjClass));
 	if (lpUser->lpszFullName)
 		details->SetPropString(OB_PROP_S_FULLNAME, lpUser->lpszFullName);
 	if (lpUser->lpszPassword)

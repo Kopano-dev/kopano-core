@@ -932,7 +932,7 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage,
 			hr = MAPIAllocateBuffer(sizeof(MAPINAMEID), &~lpNameID);
 			if (hr != hrSuccess)
 				return kc_perror("Not enough memory", hr);
-			lpNameID->lpguid = (GUID*)&PS_INTERNET_HEADERS;
+			lpNameID->lpguid = const_cast<GUID *>(&PS_INTERNET_HEADERS);
 			lpNameID->ulKind = MNID_STRING;
 			lpNameID->Kind.lpwstrName = const_cast<wchar_t *>(L"Content-Type");
 
@@ -1452,12 +1452,14 @@ HRESULT MAPIToVMIME::handleContactEntryID(ULONG cValues, LPSPropValue lpProps, w
 	memory_ptr<MAPINAMEID *> lppNames;
 	ULONG ulNames = 5;
 	MAPINAMEID mnNamedProps[5] = {
+#define PS const_cast<GUID *>(&PSETID_Address)
 		// offset 0, every offset < 3 is + 0x10
-		{(LPGUID)&PSETID_Address, MNID_ID, {0x8080}}, // display name
-		{(LPGUID)&PSETID_Address, MNID_ID, {0x8082}}, // address type
-		{(LPGUID)&PSETID_Address, MNID_ID, {0x8083}}, // email address
-		{(LPGUID)&PSETID_Address, MNID_ID, {0x8084}}, // original display name (unused)
-		{(LPGUID)&PSETID_Address, MNID_ID, {0x8085}}, // real entryid
+		{PS, MNID_ID, {0x8080}}, /* display name */
+		{PS, MNID_ID, {0x8082}}, /* address type */
+		{PS, MNID_ID, {0x8083}}, /* email address */
+		{PS, MNID_ID, {0x8084}}, /* original display name (unused) */
+		{PS, MNID_ID, {0x8085}}, /* real entryid */
+#undef PS
 	};
 
 	if (PROP_TYPE(lpProps[0].ulPropTag) != PT_BINARY)
@@ -1667,7 +1669,7 @@ HRESULT MAPIToVMIME::handleReplyTo(IMessage *lpMessage,
 		if (hr != hrSuccess)
 			return hr;
 		for (unsigned int i = 0; i < cNames; ++i) {
-			lpNames[i].lpguid = (GUID*)&PSETID_Address;
+			lpNames[i].lpguid = const_cast<GUID *>(&PSETID_Address);
 			lpNames[i].ulKind = MNID_ID;
 			lpNames[i].Kind.lID = lpulNamesIDs[i];
 			lppNames[i] = &lpNames[i];
@@ -1718,7 +1720,7 @@ bool MAPIToVMIME::is_voting_request(IMessage *lpMessage) const
 {
 	memory_ptr<SPropTagArray> lpPropTags;
 	memory_ptr<SPropValue> lpPropContentType;
-	MAPINAMEID named_prop = {(LPGUID)&PSETID_Common, MNID_ID, {0x8520}};
+	MAPINAMEID named_prop = {const_cast<GUID *>(&PSETID_Common), MNID_ID, {0x8520}};
 	MAPINAMEID *named_proplist = &named_prop;
 
 	auto hr = lpMessage->GetIDsFromNames(1, &named_proplist, MAPI_CREATE, &~lpPropTags);

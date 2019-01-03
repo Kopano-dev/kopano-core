@@ -1614,8 +1614,7 @@ static HRESULT SoapUserToUser(const struct user *lpUser, ECUSER *lpsUser,
 	lpsUser->ulIsAdmin		= lpUser->ulIsAdmin;
 	lpsUser->ulIsABHidden	= lpUser->ulIsABHidden;
 	lpsUser->ulCapacity		= lpUser->ulCapacity;
-	lpsUser->ulObjClass = (objectclass_t)lpUser->ulObjClass;
-
+	lpsUser->ulObjClass = static_cast<objectclass_t>(lpUser->ulObjClass);
 	return hrSuccess;
 }
 

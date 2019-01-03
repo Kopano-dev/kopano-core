@@ -501,7 +501,7 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 	case PT_UNICODE:
 		// @todo add PyUnicode_Check call?
 		if (ulFlags == CONV_COPY_SHALLOW && NATIVE_UNICODE)
-			lpProp->Value.lpszW = (WCHAR *)PyUnicode_AsUnicode(Value);
+			lpProp->Value.lpszW = reinterpret_cast<wchar_t *>(PyUnicode_AsUnicode(Value));
 		else
 			CopyPyUnicode(&lpProp->Value.lpszW, Value, lpBase);
 		break;
@@ -542,7 +542,7 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 			break;
 		}
 		if (ulFlags == CONV_COPY_SHALLOW) {
-			lpProp->Value.lpguid = (LPGUID)lpstr;
+			lpProp->Value.lpguid = reinterpret_cast<GUID *>(lpstr);
 			break;
 		}
 		if (KAllocCopy(lpstr, sizeof(GUID), reinterpret_cast<void **>(&lpProp->Value.lpguid), lpBase) != hrSuccess)
@@ -626,7 +626,7 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 		pyobj_ptr iter(PyObject_GetIter(Value));
 		int n = 0;
 
-		if (MAPIAllocateMore(sizeof(*lpProp->Value.MVszA.lppszA) * len, lpBase, (LPVOID *)&lpProp->Value.MVszA.lppszA) != hrSuccess)
+		if (MAPIAllocateMore(sizeof(*lpProp->Value.MVszA.lppszA) * len, lpBase, reinterpret_cast<void **>(&lpProp->Value.MVszA.lppszA)) != hrSuccess)
 			return;
 		do {
 			pyobj_ptr elem(PyIter_Next(iter));
@@ -672,14 +672,14 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 		pyobj_ptr iter(PyObject_GetIter(Value));
 		int n = 0;
 
-		if (MAPIAllocateMore(sizeof(*lpProp->Value.MVszW.lppszW) * len, lpBase, (LPVOID *)&lpProp->Value.MVszW.lppszW) != hrSuccess)
+		if (MAPIAllocateMore(sizeof(*lpProp->Value.MVszW.lppszW) * len, lpBase, reinterpret_cast<void **>(&lpProp->Value.MVszW.lppszW)) != hrSuccess)
 			return;
 		do {
 			pyobj_ptr elem(PyIter_Next(iter));
 			if (elem == nullptr)
 				break;
 			if (ulFlags == CONV_COPY_SHALLOW && NATIVE_UNICODE)
-				lpProp->Value.MVszW.lppszW[n] = (WCHAR*)PyUnicode_AsUnicode(elem);
+				lpProp->Value.MVszW.lppszW[n] = reinterpret_cast<wchar_t *>(PyUnicode_AsUnicode(elem));
 			else
 				CopyPyUnicode(&lpProp->Value.MVszW.lppszW[n], Value, lpBase);
 			++n;
@@ -1900,7 +1900,7 @@ PyObject *		Object_from_LPMAPIERROR(LPMAPIERROR lpMAPIError)
 LPMAPIERROR		Object_to_LPMAPIERROR(PyObject *)
 {
 	LPMAPIERROR	lpError = NULL;
-	if (MAPIAllocateBuffer(sizeof(LPMAPIERROR), (LPVOID*)&lpError) == hrSuccess)
+	if (MAPIAllocateBuffer(sizeof(LPMAPIERROR), reinterpret_cast<void **>(&lpError)) == hrSuccess)
 		memset(lpError, 0, sizeof(*lpError));
 	return lpError;
 }

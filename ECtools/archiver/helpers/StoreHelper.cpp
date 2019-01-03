@@ -134,7 +134,7 @@ HRESULT StoreHelper::UpdateSearchFolders()
 
 	ptrPropValue->ulPropTag = PROP_SEARCH_FOLDER_ENTRYIDS;
 	ptrPropValue->Value.MVbin.cValues = 3;
-	hr = MAPIAllocateMore(3 * sizeof(*ptrPropValue->Value.MVbin.lpbin), ptrPropValue, (LPVOID*)&ptrPropValue->Value.MVbin.lpbin);
+	hr = MAPIAllocateMore(3 * sizeof(*ptrPropValue->Value.MVbin.lpbin), ptrPropValue, reinterpret_cast<void **>(&ptrPropValue->Value.MVbin.lpbin));
 	if (hr != hrSuccess)
 		return hr;
 	ptrPropValue->Value.MVbin.lpbin[0] = ptrSearchArchiveEntryId->Value.bin;
@@ -266,7 +266,7 @@ HRESULT StoreHelper::GetSearchFolders(LPMAPIFOLDER *lppSearchArchiveFolder, LPMA
 
 		ptrPropValue->ulPropTag = PROP_SEARCH_FOLDER_ENTRYIDS;
 		ptrPropValue->Value.MVbin.cValues = 3;
-		hr = MAPIAllocateMore(3 * sizeof(*ptrPropValue->Value.MVbin.lpbin), ptrPropValue, (LPVOID*)&ptrPropValue->Value.MVbin.lpbin);
+		hr = MAPIAllocateMore(3 * sizeof(*ptrPropValue->Value.MVbin.lpbin), ptrPropValue, reinterpret_cast<void **>(&ptrPropValue->Value.MVbin.lpbin));
 		if (hr != hrSuccess)
 			return hr;
 		ptrPropValue->Value.MVbin.lpbin[0] = ptrSearchArchiveEntryId->Value.bin;
@@ -277,10 +277,10 @@ HRESULT StoreHelper::GetSearchFolders(LPMAPIFOLDER *lppSearchArchiveFolder, LPMA
 			return hr;
 	}
 
-	hr = ptrSearchArchiveFolder->QueryInterface(IID_IMAPIFolder, (LPVOID*)lppSearchArchiveFolder);
+	hr = ptrSearchArchiveFolder->QueryInterface(IID_IMAPIFolder, reinterpret_cast<void **>(lppSearchArchiveFolder));
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrSearchDeleteFolder->QueryInterface(IID_IMAPIFolder, (LPVOID*)lppSearchDeleteFolder);
+	hr = ptrSearchDeleteFolder->QueryInterface(IID_IMAPIFolder, reinterpret_cast<void **>(lppSearchDeleteFolder));
 	if (hr != hrSuccess)
 		return hr;
 	return ptrSearchStubFolder->QueryInterface(IID_IMAPIFolder,
@@ -455,7 +455,7 @@ HRESULT StoreHelper::SetupSearchArchiveFolder(LPMAPIFOLDER lpSearchFolder, const
 	if (hr != hrSuccess)
 		return hr;
 	ptrEntryList->cValues = 1;
-	hr = MAPIAllocateMore(sizeof(SBinary), ptrEntryList, (LPVOID*)&ptrEntryList->lpbin);
+	hr = MAPIAllocateMore(sizeof(SBinary), ptrEntryList, reinterpret_cast<void **>(&ptrEntryList->lpbin));
 	if (hr != hrSuccess)
 		return hr;
 	ptrEntryList->lpbin[0] = ptrPropEntryId->Value.bin;
@@ -528,7 +528,7 @@ HRESULT StoreHelper::SetupSearchDeleteFolder(LPMAPIFOLDER lpSearchFolder, const 
 	if (hr != hrSuccess)
 		return hr;
 	ptrEntryList->cValues = 1;
-	hr = MAPIAllocateMore(sizeof(SBinary), ptrEntryList, (LPVOID*)&ptrEntryList->lpbin);
+	hr = MAPIAllocateMore(sizeof(SBinary), ptrEntryList, reinterpret_cast<void **>(&ptrEntryList->lpbin));
 	if (hr != hrSuccess)
 		return hr;
 	ptrEntryList->lpbin[0] = ptrPropEntryId->Value.bin;
@@ -584,7 +584,7 @@ HRESULT StoreHelper::SetupSearchStubFolder(LPMAPIFOLDER lpSearchFolder, const EC
 	if (hr != hrSuccess)
 		return hr;
 	ptrEntryList->cValues = 1;
-	hr = MAPIAllocateMore(sizeof(SBinary), ptrEntryList, (LPVOID*)&ptrEntryList->lpbin);
+	hr = MAPIAllocateMore(sizeof(SBinary), ptrEntryList, reinterpret_cast<void **>(&ptrEntryList->lpbin));
 	if (hr != hrSuccess)
 		return hr;
 	ptrEntryList->lpbin[0] = ptrPropEntryId->Value.bin;

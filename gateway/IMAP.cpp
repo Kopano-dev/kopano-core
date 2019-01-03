@@ -1097,8 +1097,7 @@ HRESULT IMAP::HrCmdRename(const std::string &strTag,
 		// from is same as dest folder, use SetProps(PR_DISPLAY_NAME)
 		SPropValue propName;
 		propName.ulPropTag = PR_DISPLAY_NAME_W;
-		propName.Value.lpszW = (WCHAR*)strFolder.c_str();
-
+		propName.Value.lpszW = const_cast<wchar_t *>(strFolder.c_str());
 		hr = lpSession->OpenEntry(cb, entry_id, &IID_IMAPIFolder, MAPI_MODIFY | MAPI_DEFERRED_ERRORS,
 		     &ulObjType, &~lpSubFolder);
 		if (hr != hrSuccess) {
@@ -2480,7 +2479,7 @@ HRESULT IMAP::HrExpungeDeleted(const std::string &strTag,
 	if (lpRows->cRows == 0)
 		return hrSuccess;
 	entry_list->cValues = 0;
-	hr = MAPIAllocateMore(sizeof(SBinary) * lpRows->cRows, entry_list, (LPVOID *)&entry_list->lpbin);
+	hr = MAPIAllocateMore(sizeof(SBinary) * lpRows->cRows, entry_list, reinterpret_cast<void **>(&entry_list->lpbin));
 	if (hr != hrSuccess)
 		return hr;
 
@@ -4322,7 +4321,8 @@ HRESULT IMAP::HrCopy(const list<ULONG> &lstMails,
 	if (hr != hrSuccess)
 		return hr;
 	entry_list->cValues = lstMails.size();
-	if ((hr = MAPIAllocateMore(sizeof(SBinary) * lstMails.size(), entry_list, (LPVOID *) &entry_list->lpbin)) != hrSuccess)
+	hr = MAPIAllocateMore(sizeof(SBinary) * lstMails.size(), entry_list, reinterpret_cast<void **>(&entry_list->lpbin));
+	if (hr != hrSuccess)
 		return hr;
 
 	unsigned int ulCount = 0;
@@ -5175,7 +5175,7 @@ HRESULT IMAP::HrFindSubFolder(IMAPIFolder *lpFolder, const wstring& strFolder, U
     ULONG ulObjType = 0;
 
     sProp.ulPropTag = PR_DISPLAY_NAME_W;
-    sProp.Value.lpszW = (WCHAR *)strFolder.c_str();
+	sProp.Value.lpszW = const_cast<wchar_t *>(strFolder.c_str());
 
     // lpFolder is NULL when we're referring to the IMAP root. The IMAP root contains
     // INBOX, the public folder container, and all folders under the users IPM_SUBTREE.

@@ -3,9 +3,6 @@ global:
 	GetSystemTimeAsFileTime;
 	GlobalAlloc;
 	Sleep;
-	lstrcmpW;
-	lstrcpyW;
-	lstrlenW;
 	extern "C++" {
 		operator*GUID*;
 	};

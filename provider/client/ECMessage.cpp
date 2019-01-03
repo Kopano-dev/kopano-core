@@ -684,11 +684,11 @@ HRESULT ECMessage::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterface
 //FIXME: Support the flags ?
 	if(ulPropTag == PR_MESSAGE_ATTACHMENTS) {
 		if(*lpiid == IID_IMAPITable)
-			hr = GetAttachmentTable(ulInterfaceOptions, (LPMAPITABLE*)lppUnk);
+			hr = GetAttachmentTable(ulInterfaceOptions, reinterpret_cast<IMAPITable **>(lppUnk));
 		return hr;
 	} else if(ulPropTag == PR_MESSAGE_RECIPIENTS) {
 		if (*lpiid == IID_IMAPITable)
-			hr = GetRecipientTable(ulInterfaceOptions, (LPMAPITABLE*)lppUnk);
+			hr = GetRecipientTable(ulInterfaceOptions, reinterpret_cast<IMAPITable **>(lppUnk));
 		return hr;
 	}
 	// Workaround for support html in outlook 2000/xp
@@ -1366,15 +1366,15 @@ HRESULT ECMessage::SyncRecips()
 	}
 
 	sPropRecip.ulPropTag = PR_DISPLAY_TO_W;
-	sPropRecip.Value.lpszW = (WCHAR *)wstrTo.c_str();
+	sPropRecip.Value.lpszW = const_cast<wchar_t *>(wstrTo.c_str());
 	HrSetRealProp(&sPropRecip);
 
 	sPropRecip.ulPropTag = PR_DISPLAY_CC_W;
-	sPropRecip.Value.lpszW = (WCHAR *)wstrCc.c_str();
+	sPropRecip.Value.lpszW = const_cast<wchar_t *>(wstrCc.c_str());
 	HrSetRealProp(&sPropRecip);
 
 	sPropRecip.ulPropTag = PR_DISPLAY_BCC_W;
-	sPropRecip.Value.lpszW = (WCHAR *)wstrBcc.c_str();
+	sPropRecip.Value.lpszW = const_cast<wchar_t *>(wstrBcc.c_str());
 	HrSetRealProp(&sPropRecip);
 
 	m_bRecipsDirty = FALSE;
