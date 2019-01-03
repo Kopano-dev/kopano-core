@@ -90,8 +90,7 @@ public:
 
 	inline bool operator<(const ECsIndexObject &other) const noexcept
 	{
-		return ulObjId < other.ulObjId ||
-		       (ulObjId == other.ulObjId && ulTag < other.ulTag);
+		return std::tie(ulObjId, ulTag) < std::tie(other.ulObjId, other.ulTag);
 	}
 
 	unsigned int ulObjId, ulTag;

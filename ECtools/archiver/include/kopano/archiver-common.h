@@ -444,8 +444,8 @@ static inline bool operator!=(const SObjectEntry &lhs, const SObjectEntry &rhs) 
 }
 
 static inline bool operator<(const SObjectEntry &lhs, const SObjectEntry &rhs) {
-	return lhs.sStoreEntryId < rhs.sStoreEntryId ||
-			(lhs.sStoreEntryId == rhs.sStoreEntryId && lhs.sItemEntryId < rhs.sItemEntryId);
+	return std::tie(lhs.sStoreEntryId, lhs.sItemEntryId) <
+	       std::tie(rhs.sStoreEntryId, rhs.sItemEntryId);
 }
 
 
