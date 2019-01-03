@@ -427,6 +427,10 @@ class MeetingRequest(object):
         cal_item = self.calendar_item
         basedate = self.basedate
 
+        # do nothing for invitation to self (esp. don't try to add organizer/BCC)
+        if self.item.store.user.email == self.item.from_.email:
+            return
+
         self.item.mapiobj.SetReadFlag(SUPPRESS_RECEIPT)
         merge = False
 
