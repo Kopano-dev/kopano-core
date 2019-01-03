@@ -13,8 +13,8 @@
 #include <mapi.h>
 #include <mapiutil.h>
 #include <edkmdb.h>
-#ifdef HAVE_CURSES_H
-#include <curses.h>
+#ifdef HAVE_NCURSES_H
+#include <ncurses.h>
 #endif
 #include <map>
 #include <set>
@@ -183,7 +183,7 @@ static double GetDouble(const SRow &row, ULONG ulPropTag)
 
 static void showtop(LPMDB lpStore)
 {
-#ifdef HAVE_CURSES_H
+#ifdef HAVE_NCURSES_H
 	object_ptr<IMAPITable> lpTable;
     std::map<unsigned long long, TIMES> mapLastTimes;
     std::map<std::string, std::string> mapStats;
@@ -466,7 +466,7 @@ exit:
     endwin();
 #else
 	cerr << "Not compiled with ncurses support." << endl;
-#endif
+#endif /* HAVE_NCURSES_H */
 }
 
 static std::string mapitable_ToString(const SPropValue *lpProp)
