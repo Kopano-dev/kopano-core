@@ -3049,8 +3049,6 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 	zval	*guidArray		= NULL;
 	// return value
 	memory_ptr<SPropTagArray> lpPropTagArray;
-	// local
-	size_t hashTotal = 0;
 	memory_ptr<MAPINAMEID *> lppNamePropId;
 	zval		*entry = NULL, *guidEntry = NULL;
 	HashTable	*targetHash	= NULL,	*guidHash = NULL;
@@ -3070,10 +3068,7 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 
 	if(guidArray)
 		guidHash = Z_ARRVAL_P(guidArray);
-
-	// get the number of items in the array
-	hashTotal = zend_hash_num_elements(targetHash);
-
+	auto hashTotal = zend_hash_num_elements(targetHash);
 	if (guidHash && hashTotal != zend_hash_num_elements(guidHash))
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "The array with the guids is not of the same size as the array with the ids");
 
@@ -3082,18 +3077,15 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 	if (MAPI_G(hr) != hrSuccess)
 		return;
 
-	// first reset the hash, so the pointer points to the first element.
-	zend_hash_internal_pointer_reset(targetHash);
-
+	HashPosition thpos, ghpos;
+	zend_hash_internal_pointer_reset_ex(targetHash, &thpos);
 	if(guidHash)
-		zend_hash_internal_pointer_reset(guidHash);
-
-	for (size_t i = 0; i < hashTotal; ++i) {
-		//	Gets the element that exist at the current pointer.
-		entry = zend_hash_get_current_data(targetHash);
+		zend_hash_internal_pointer_reset_ex(guidHash, &ghpos);
+	for (unsigned int i = 0; i < hashTotal; ++i, zend_hash_move_forward_ex(targetHash, &thpos),
+	     (guidHash ? zend_hash_move_forward_ex(guidHash, &ghpos) : 0)) {
+		entry = zend_hash_get_current_data_ex(targetHash, &thpos);
 		if(guidHash)
-			guidEntry = zend_hash_get_current_data(guidHash);
-
+			guidEntry = zend_hash_get_current_data_ex(guidHash, &ghpos);
 		MAPI_G(hr) = MAPIAllocateMore(sizeof(MAPINAMEID),lppNamePropId,(void **) &lppNamePropId[i]);
 		if (MAPI_G(hr) != hrSuccess)
 			return;
@@ -3103,7 +3095,7 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 
 		if(guidHash) {
 			if (Z_TYPE_P(guidEntry) != IS_STRING || sizeof(GUID) != guidEntry->value.str->len) {
-				php_error_docref(NULL TSRMLS_CC, E_WARNING, "The GUID with index number %d that is passed is not of the right length, cannot convert to GUID", i);
+				php_error_docref(nullptr TSRMLS_CC, E_WARNING, "The GUID with index number %u that is passed is not of the right length, cannot convert to GUID", i);
 			} else {
 				MAPI_G(hr) = KAllocCopy(guidEntry->value.str->val, sizeof(GUID), reinterpret_cast<void **>(&lppNamePropId[i]->lpguid), lppNamePropId);
 				if (MAPI_G(hr) != hrSuccess)
@@ -3134,11 +3126,6 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Entry is of an unknown type: %08X", Z_TYPE_P(entry));
 			break;
 		}
-
-		// move the pointers of the hashtables forward.
-		zend_hash_move_forward(targetHash);
-		if(guidHash)
-			zend_hash_move_forward(guidHash);
 	}
 
 	MAPI_G(hr) = lpMessageStore->GetIDsFromNames(hashTotal, lppNamePropId, MAPI_CREATE, &~lpPropTagArray);
@@ -4232,12 +4219,11 @@ ZEND_FUNCTION(mapi_zarafa_setquota)
 	memory_ptr<ECQUOTA> lpQuota;
 	HashTable		*data = NULL;
 	zval			*value = NULL;
-
-        zend_string *str_usedefault = zend_string_init("usedefault", sizeof("usedefault")-1, 0);
-        zend_string *str_isuserdefault = zend_string_init("isuserdefault", sizeof("isuserdefault")-1, 0);
-        zend_string *str_warnsize = zend_string_init("warnsize", sizeof("warnsize")-1, 0);
-        zend_string *str_softsize = zend_string_init("softsize", sizeof("softsize")-1, 0);
-        zend_string *str_hardsize = zend_string_init("hardsize", sizeof("hardsize")-1, 0);
+	zstrplus str_usedefault(zend_string_init("usedefault", sizeof("usedefault") - 1, 0));
+	zstrplus str_isuserdefault(zend_string_init("isuserdefault", sizeof("isuserdefault") - 1, 0));
+	zstrplus str_warnsize(zend_string_init("warnsize", sizeof("warnsize") - 1, 0));
+	zstrplus str_softsize(zend_string_init("softsize", sizeof("softsize") - 1, 0));
+	zstrplus str_hardsize(zend_string_init("hardsize", sizeof("hardsize") - 1, 0));
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -4256,29 +4242,27 @@ ZEND_FUNCTION(mapi_zarafa_setquota)
 
 	ZVAL_DEREF(array);
 	data = HASH_OF(array);
-	zend_hash_internal_pointer_reset(data);
-
-	if ((value = zend_hash_find(data, str_usedefault)) != NULL) {
-		convert_to_boolean_ex(value);
-		lpQuota->bUseDefaultQuota = (Z_TYPE_P(value) == IS_TRUE);
-	}
-
-	if ((value = zend_hash_find(data, str_isuserdefault)) != NULL) {
-		convert_to_boolean_ex(value);
-		lpQuota->bIsUserDefaultQuota = (Z_TYPE_P(value) == IS_TRUE);
-	}
-
-	if ((value = zend_hash_find(data, str_warnsize)) != NULL) {
+	value = zend_hash_find(data, str_usedefault.get());
+	if (value != nullptr)
+		lpQuota->bUseDefaultQuota = zval_is_true(value);
+	value = zend_hash_find(data, str_isuserdefault.get());
+	if (value != nullptr)
+		lpQuota->bIsUserDefaultQuota = zval_is_true(value);
+	value = zend_hash_find(data, str_warnsize.get());
+	if (value != nullptr) {
+		SEPARATE_ZVAL(value);
 		convert_to_long_ex(value);
 		lpQuota->llWarnSize = Z_LVAL_P(value);
 	}
-
-	if ((value = zend_hash_find(data, str_softsize)) != NULL) {
+	value = zend_hash_find(data, str_softsize.get());
+	if (value != nullptr) {
+		SEPARATE_ZVAL(value);
 		convert_to_long_ex(value);
 		lpQuota->llSoftSize = Z_LVAL_P(value);
 	}
-
-	if ((value = zend_hash_find(data, str_hardsize)) != NULL) {
+	value = zend_hash_find(data, str_hardsize.get());
+	if (value != nullptr) {
+		SEPARATE_ZVAL(value);
 		convert_to_long_ex(value);
 		lpQuota->llHardSize = Z_LVAL_P(value);
 	}
@@ -4290,11 +4274,6 @@ ZEND_FUNCTION(mapi_zarafa_setquota)
 	RETVAL_TRUE;
 
 exit:
-        zend_string_release(str_usedefault);
-        zend_string_release(str_isuserdefault);
-        zend_string_release(str_warnsize);
-        zend_string_release(str_softsize);
-        zend_string_release(str_hardsize);
 	LOG_END();
 	THROW_ON_ERROR();
 }
@@ -5438,11 +5417,10 @@ ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
 	ULONG j;
 	zval *entry = NULL, *value = NULL;
 	HashTable *data = NULL;
-
-	zend_string *str_userid = zend_string_init("userid", sizeof("userid")-1, 0);
-	zend_string *str_type = zend_string_init("type", sizeof("type")-1, 0);
-	zend_string *str_rights = zend_string_init("rights", sizeof("rights")-1, 0);
-	zend_string *str_state = zend_string_init("state", sizeof("state")-1, 0);
+	zstrplus str_userid(zend_string_init("userid", sizeof("userid") - 1, 0));
+	zstrplus str_type(zend_string_init("type", sizeof("type") - 1, 0));
+	zstrplus str_rights(zend_string_init("rights", sizeof("rights") - 1, 0));
+	zstrplus str_state(zend_string_init("state", sizeof("state") - 1, 0));
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -5450,10 +5428,6 @@ ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra", &res, &perms) == FAILURE) return;
 
 	auto laters = make_scope_success([&]() {
-		zend_string_release(str_userid);
-		zend_string_release(str_type);
-		zend_string_release(str_rights);
-		zend_string_release(str_state);
 		LOG_END();
 		THROW_ON_ERROR();
 	});
@@ -5499,25 +5473,31 @@ ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
 		// null pointer returned if perms was not array(array()).
 		ZVAL_DEREF(entry);
 		data = HASH_OF(entry);
-		zend_hash_internal_pointer_reset(data);
-
-		if ((value = zend_hash_find(data, str_userid)) == nullptr)
+		value = zend_hash_find(data, str_userid.get());
+		if (value == nullptr)
 			continue;
+		SEPARATE_ZVAL(value);
 		convert_to_string_ex(value);
 		lpECPerms[j].sUserId.cb = Z_STRLEN_P(value);
 		lpECPerms[j].sUserId.lpb = (unsigned char*)Z_STRVAL_P(value);
 
-		if ((value = zend_hash_find(data, str_type)) == nullptr)
+		value = zend_hash_find(data, str_type.get());
+		if (value == nullptr)
 			continue;
+		SEPARATE_ZVAL(value);
 		convert_to_long_ex(value);
 		lpECPerms[j].ulType = Z_LVAL_P(value);
 
-		if ((value = zend_hash_find(data, str_rights)) == nullptr)
+		value = zend_hash_find(data, str_rights.get());
+		if (value == nullptr)
 			continue;
+		SEPARATE_ZVAL(value);
 		convert_to_long_ex(value);
 		lpECPerms[j].ulRights = Z_LVAL_P(value);
 
-		if ((value = zend_hash_find(data, str_state)) != NULL) {
+		value = zend_hash_find(data, str_state.get());
+		if (value != nullptr) {
+			SEPARATE_ZVAL(value);
 		    convert_to_long_ex(value);
 			lpECPerms[j].ulState = Z_LVAL_P(value);
 		} else {
@@ -6041,10 +6021,9 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish)
 	zval*				entry = NULL;
 	zval*				value = NULL;
 	HashTable*			data = NULL;
-
-	zend_string *str_start = zend_string_init("start", sizeof("start")-1, 0);
-	zend_string *str_end = zend_string_init("end", sizeof("end")-1, 0);
-	zend_string *str_status = zend_string_init("status", sizeof("status")-1, 0);
+	zstrplus str_start(zend_string_init("start", sizeof("start") - 1, 0));
+	zstrplus str_end(zend_string_init("end", sizeof("end") - 1, 0));
+	zstrplus str_status(zend_string_init("status", sizeof("status") - 1, 0));
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -6069,21 +6048,19 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish)
 	ZEND_HASH_FOREACH_VAL(target_hash, entry) {
 		ZVAL_DEREF(entry);
 		data = HASH_OF(entry);
-		zend_hash_internal_pointer_reset(data);
-
-		value = zend_hash_find(data, str_start);
+		value = zend_hash_find(data, str_start.get());
 		if (value == nullptr) {
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 			goto exit;
 		}
 		lpBlocks[i].m_tmStart = UnixTimeToRTime(Z_LVAL_P(value));
-		value = zend_hash_find(data, str_end);
+		value = zend_hash_find(data, str_end.get());
 		if (value == nullptr) {
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 			goto exit;
 		}
 		lpBlocks[i].m_tmEnd = UnixTimeToRTime(Z_LVAL_P(value));
-		value = zend_hash_find(data, str_status);
+		value = zend_hash_find(data, str_status.get());
 		if (value == nullptr) {
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 			goto exit;
@@ -6097,9 +6074,6 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish)
 	RETVAL_TRUE;
 
 exit:
-	zend_string_release(str_start);
-	zend_string_release(str_end);
-	zend_string_release(str_status);
 	LOG_END();
 	THROW_ON_ERROR();
 }

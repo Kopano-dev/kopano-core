@@ -143,9 +143,9 @@ the unique_tie function makes it possible to do without the explicit temporary
 There are three extra typedefs for the purpose of portraying the "individual
 allocation" strategy often used for ADRLIST, SRowSet and ROWLIST:
 
-	typedef memory_ptr<ADRLIST, rowlist_delete> adrlist_ptr;
-	typedef memory_ptr<SRowSet, rowlist_delete> rowset_ptr;
-	typedef memory_ptr<ROWLIST, rowlist_delete> rowlist_ptr;
+	typedef memory_ptr<ADRLIST, rowset_delete> adrlist_ptr;
+	typedef memory_ptr<SRowSet, rowset_delete> rowset_ptr;
+	typedef memory_ptr<ROWLIST, rowset_delete> rowlist_ptr;
 
 (https://msdn.microsoft.com/en-us/library/office/cc842180.aspx) When every
 SPropValue within such a type is allocated independently — with
