@@ -346,6 +346,7 @@ class Folder(Properties):
             PR_CHANGE_KEY,
             PR_MESSAGE_CLASS_W,
             PR_BODY_W, # body preview, not entire body!
+            PR_SOURCE_KEY,
         ]
 
         if query is not None:
