@@ -35,9 +35,9 @@ from MAPI.Tags import (
     PR_ACCOUNT_W, PURGE_CACHE_ALL, PR_DISPLAY_NAME_W, PR_ENTRYID,
     PR_STORE_RECORD_KEY, PR_SMTP_ADDRESS_W, PR_MAPPING_SIGNATURE,
     PR_CONTAINER_CONTENTS, PR_EC_STATSTABLE_SYSTEM, PR_EC_STATSTABLE_SESSIONS,
-    PR_EC_STATSTABLE_USERS, PR_EC_STATSTABLE_COMPANY,
+    PR_EC_STATSTABLE_USERS, PR_EC_STATSTABLE_COMPANY, PR_DISPLAY_NAME,
     PR_EC_STATSTABLE_SERVERS, PR_EC_STATS_SERVER_HTTPSURL,
-    PR_STORE_ENTRYID, EC_PROFILE_FLAGS_NO_UID_AUTH,
+    PR_STORE_ENTRYID, EC_PROFILE_FLAGS_NO_UID_AUTH, PR_EC_STATS_SYSTEM_VALUE,
     EC_PROFILE_FLAGS_NO_NOTIFICATIONS, EC_PROFILE_FLAGS_OIDC,
 )
 from MAPI.Tags import (
@@ -814,6 +814,23 @@ class Server(object):
         if state is None:
             state = _benc(8 * b'\0')
         return _ics.sync_gab(self, self.mapistore, importer, state)
+
+    def stats(self):
+        table = self.table(PR_EC_STATSTABLE_SYSTEM)
+        stats = {}
+        for key, value in table.dict_(PR_DISPLAY_NAME, PR_EC_STATS_SYSTEM_VALUE).items(): # TODO use *_W?
+            stats[key] = value
+
+        if sys.hexversion >= 0x03000000: # XXX shouldn't be necessary
+            stats = dict([(s.decode('UTF-8'), stats[s].decode('UTF-8')) for s in stats])
+
+        return stats
+
+    def stat(self, key): # TODO optimize with restriction?
+        return self.stats()[key]
+
+    def get_stat(self, key, default=None):
+        return self.stats().get(key, default)
 
     @_timed_cache(minutes=60)
     def _resolve_email(self, entryid=None):
