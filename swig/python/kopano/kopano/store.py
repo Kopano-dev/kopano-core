@@ -376,7 +376,10 @@ class Store(Properties):
         :param create: Create folder if it doesn't exist
         """
 
-        if guid:
+        if path is None and entryid is None and guid is None:
+            raise ArgumentError('missing argument to identify folder')
+
+        if guid is not None:
             # 01 -> entryid format version, 03 -> object type (folder)
             entryid = '00000000' + self.guid + '0100000003000000' + guid + '00000000'
 
