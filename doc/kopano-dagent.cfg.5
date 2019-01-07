@@ -381,6 +381,15 @@ Default: \fI0\fP (submission service is deactivated)
 This setting can be used to control SSL certificate validation.
 .PP
 Default: \fIyes\fP
+.SS mail_conversion_detail
+.PP
+When Internet e-mail messages are converted to MAPI message objects, the
+presence of rich-text body alternatives will cause them to be chosen and stored
+as attachments, discarding the plaintext and HTML copies. Since this choice is
+not always obvious to the end-user, the enablement of this directive will
+substitute an explanatory PR_BODY text if that happens.
+.PP
+Default: \fIno\fP
 .RE
 .SH "RELOADING"
 .PP

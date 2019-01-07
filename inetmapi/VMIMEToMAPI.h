@@ -23,26 +23,18 @@ enum BODYLEVEL { BODY_NONE, BODY_PLAIN, BODY_HTML };
 enum ATTACHLEVEL { ATTACH_NONE, ATTACH_INLINE, ATTACH_NORMAL };
 
 struct sMailState {
-	BODYLEVEL bodyLevel;		//!< the current body state. plain upgrades none, html upgrades plain and none.
-	ULONG ulLastCP;
-	ATTACHLEVEL attachLevel;	//!< the current attachment state
-	unsigned int mime_vtag_nest;	//!< number of nested MIME-Version tags seen
-	bool bAttachSignature;		//!< add a signed signature at the end
-	ULONG ulMsgInMsg;			//!< counter for msg-in-msg level
-	std::string strHTMLBody;	//!< cache for the current complete untouched HTML body, used for finding CIDs or locations (inline images)
+	BODYLEVEL bodyLevel = BODY_NONE; /* Is there a body, and is so, what type. */
+	ATTACHLEVEL attachLevel = ATTACH_NONE; /* Current attachment state */
+	unsigned int ulLastCP = 0; /* Character set of the body */
+	unsigned int mime_vtag_nest = 0; /* Number of nested "MIME-Version" headers seen */
+	unsigned int ulMsgInMsg = 0; /* Counter for msg-in-msg level */
+	bool bAttachSignature = false; /* Add a signed signature at the end */
+	/* Cache for the current complete untouched HTML body, used for finding CIDs or locations (inline images) */
+	std::string strHTMLBody;
+	std::vector<unsigned int> part_counter; /* stack used for counting MIME parts */
+	std::vector<std::string> cvt_notes; /* conversion notices */
 
-	sMailState() {
-		reset();
-		ulMsgInMsg = 0;
-	};
-	void reset() {
-		bodyLevel = BODY_NONE;
-		ulLastCP = 0;
-		attachLevel = ATTACH_NONE;
-		mime_vtag_nest = 0;
-		bAttachSignature = false;
-		strHTMLBody.clear();
-	};
+	std::string part_text() const;
 };
 
 void ignoreError(void *ctx, const char *msg, ...);
@@ -68,9 +60,9 @@ public:
 	convert_context m_converter;
 
 	HRESULT fillMAPIMail(vmime::shared_ptr<vmime::message>, IMessage *lpMessage);
-	HRESULT dissect_body(vmime::shared_ptr<vmime::header>, vmime::shared_ptr<vmime::body>, IMessage *lpMessage, bool filterDouble = false, bool appendBody = false);
+	HRESULT dissect_body(vmime::shared_ptr<vmime::header>, vmime::shared_ptr<vmime::body>, IMessage *lpMessage, unsigned int flags = 0);
 	void dissect_message(vmime::shared_ptr<vmime::body>, IMessage *);
-	HRESULT dissect_multipart(vmime::shared_ptr<vmime::header>, vmime::shared_ptr<vmime::body>, IMessage *, bool filterDouble = false, bool appendBody = false);
+	HRESULT dissect_multipart(vmime::shared_ptr<vmime::header>, vmime::shared_ptr<vmime::body>, IMessage *, unsigned int flags = 0);
 	HRESULT dissect_ical(vmime::shared_ptr<vmime::header>, vmime::shared_ptr<vmime::body>, IMessage *, bool bIsAttachment);
 	std::string generate_wrap(vmime::shared_ptr<vmime::headerFieldValue> &&);
 	HRESULT hreplyto(vmime::shared_ptr<vmime::mailboxList> &&, std::wstring &, memory_ptr<FLATENTRYLIST> &);
