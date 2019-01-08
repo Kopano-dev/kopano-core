@@ -79,7 +79,7 @@ ECRESULT ECTPropsPurge::PurgeThread()
     while(1) {
     	// Run in a loop constantly checking our deferred update table
         if(!lpDatabase) {
-			er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
+			er = m_lpDatabaseFactory->get_tls_db(&lpDatabase);
             if(er != erSuccess) {
                 ec_log_crit("Unable to get database connection for delayed purge!");
                 Sleep(60000);

@@ -211,6 +211,7 @@ public:
 	_kc_hidden std::shared_ptr<ECLogger> GetAudit() const { return m_lpAudit; }
 	_kc_hidden ECPluginFactory *GetPluginFactory() const { return m_lpPluginFactory.get(); }
 	_kc_hidden ECLockManager *GetLockManager() const { return m_ptrLockManager.get(); }
+	_kc_hidden ECDatabaseFactory *get_db_factory() const { return m_lpDatabaseFactory.get(); }
 	_kc_hidden ECAttachmentConfig *get_atxconfig() const { return m_atxconfig.get(); }
 	_kc_hidden ECRESULT get_user_count(usercount_t *);
 	_kc_hidden ECRESULT get_user_count_cached(usercount_t *);

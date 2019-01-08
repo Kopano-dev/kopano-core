@@ -322,11 +322,6 @@ ECDatabase::ECDatabase(std::shared_ptr<ECConfig> c, std::shared_ptr<ECStatsColle
 		m_dbname = s;
 }
 
-ECDatabase::~ECDatabase(void)
-{
-	Close();
-}
-
 ECRESULT ECDatabase::InitLibrary(const char *lpDatabaseDir,
     const char *lpConfigFile)
 {

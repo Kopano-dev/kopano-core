@@ -77,7 +77,7 @@ ECRESULT ECSearchFolders::LoadSearchFolders()
     struct searchCriteria *lpSearchCriteria = NULL;
 
     // Get database
-	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
+	auto er = m_lpDatabaseFactory->get_tls_db(&lpDatabase);
     if(er != erSuccess)
 		return er;
 	ec_log_notice("Querying database for searchfolders. This may take a while.");
@@ -373,7 +373,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 	ECLocale locale = m_lpSessionManager->GetSortLocale(ulStoreId);
 	ulock_rec l_sf(m_mutexMapSearchFolders);
 
-	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
+	auto er = m_lpDatabaseFactory->get_tls_db(&lpDatabase);
     if(er != erSuccess)
 		return er;
 	STOREFOLDERIDSEARCH::const_iterator iterStore = m_mapSearchFolders.find(ulStoreId);
@@ -1087,7 +1087,7 @@ ECRESULT ECSearchFolders::ResetResults(unsigned int ulFolderId)
 	auto er = m_lpSessionManager->GetCacheManager()->GetParent(ulFolderId, &ulParentId);
 	if (er != erSuccess)
 		return ec_perror("ECSearchFolders::ResetResults(): GetParent failed", er);
-	er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
+	er = m_lpDatabaseFactory->get_tls_db(&lpDatabase);
 	if (er != erSuccess)
 		return ec_perror("ECSearchFolders::ResetResults(): GetThreadLocalDatabase failed", er);
 	auto dtx = lpDatabase->Begin(er);
@@ -1123,7 +1123,7 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulFolderId, unsigned int ulObj
 	DB_RESULT lpDBResult;
 
     assert((ulFlags &~ MSGFLAG_READ) == 0);
-	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
+	auto er = m_lpDatabaseFactory->get_tls_db(&lpDatabase);
 	if (er != erSuccess)
 		return ec_perror("ECSearchFolders::AddResults(): GetThreadLocalDatabase failed", er);
 	std::string strQuery = "SELECT flags FROM searchresults WHERE folderid = " + stringify(ulFolderId) + " AND hierarchyid = " + stringify(ulObjId) + " LIMIT 1";
@@ -1154,7 +1154,7 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulFolderId, std::list<unsigned
 	assert(lstObjId.size() == lstFlags.size());
     if(lstObjId.empty())
 		return erSuccess;
-	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
+	auto er = m_lpDatabaseFactory->get_tls_db(&lpDatabase);
 	if (er != erSuccess)
 		return ec_perror("ECSearchFolders::AddResults(): GetThreadLocalDatabase failed", er);
 	auto strQuery = "SELECT 1 FROM searchresults WHERE folderid = " +
@@ -1203,7 +1203,7 @@ ECRESULT ECSearchFolders::DeleteResults(unsigned int ulFolderId, unsigned int ul
 	DB_RESULT lpResult;
 
     unsigned int ulAffected = 0;
-	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
+	auto er = m_lpDatabaseFactory->get_tls_db(&lpDatabase);
 	if (er != erSuccess)
 		return er;
 
@@ -1231,7 +1231,7 @@ ECRESULT ECSearchFolders::SetStatus(unsigned int ulFolderId, unsigned int ulStat
     ECDatabase *lpDatabase = NULL;
 
 	// Do not use transactions because this function is called inside a transaction.
-	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
+	auto er = m_lpDatabaseFactory->get_tls_db(&lpDatabase);
 	if (er != erSuccess)
 		return ec_perror("ECSearchFolders::SetStatus(): GetThreadLocalDatabase failed", er);
 
@@ -1262,7 +1262,7 @@ ECRESULT ECSearchFolders::GetSearchResults(unsigned int ulStoreId, unsigned int 
 {
     ECDatabase *lpDatabase = NULL;
 	DB_RESULT lpResult;
-	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
+	auto er = m_lpDatabaseFactory->get_tls_db(&lpDatabase);
 	if (er != erSuccess)
 		return ec_perror("ECSearchFolders::GetSearchResults(): GetThreadLocalDatabase failed", er);
 	std::string strQuery = "SELECT hierarchyid FROM searchresults WHERE folderid=" + stringify(ulFolderId);
@@ -1287,7 +1287,7 @@ ECRESULT ECSearchFolders::LoadSearchCriteria(unsigned int ulFolderId, struct sea
 	DB_RESULT lpDBResult;
 
     // Get database
-	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
+	auto er = m_lpDatabaseFactory->get_tls_db(&lpDatabase);
 	if (er != erSuccess)
 		return ec_perror("ECSearchFolders::LoadSearchCriteria(): GetThreadLocalDatabase failed", er);
 	// Find out what kind of table this is
@@ -1340,7 +1340,7 @@ ECRESULT ECSearchFolders::SaveSearchCriteria(unsigned int ulFolderId,
 	ECDatabase		*lpDatabase = NULL;
 
     // Get database
-	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
+	auto er = m_lpDatabaseFactory->get_tls_db(&lpDatabase);
 	if (er != erSuccess)
 		return ec_perror("ECSearchFolders::SaveSearchCriteria(): GetThreadLocalDatabase failed", er);
 	auto dtx = lpDatabase->Begin(er);

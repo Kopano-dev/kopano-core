@@ -8,11 +8,6 @@
 
 namespace KC {
 
-KCMDatabaseMySQL::~KCMDatabaseMySQL(void)
-{
-	Close();
-}
-
 ECRESULT KCMDatabaseMySQL::Connect(ECConfig *lpConfig)
 {
 	/* The max length of a group_concat function */

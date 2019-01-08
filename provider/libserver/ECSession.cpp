@@ -131,7 +131,7 @@ void BTSession::UpdateSessionTime()
 
 ECRESULT BTSession::GetDatabase(ECDatabase **lppDatabase)
 {
-	return GetThreadLocalDatabase(m_lpDatabaseFactory, lppDatabase);
+	return m_lpDatabaseFactory->get_tls_db(lppDatabase);
 }
 
 ECRESULT BTSession::GetAdditionalDatabase(ECDatabase **lppDatabase)

@@ -14,7 +14,6 @@ class ECConfig;
 
 class KCMDatabaseMySQL final : public KDatabase {
 public:
-	virtual ~KCMDatabaseMySQL(void);
 	ECRESULT		Connect(ECConfig *lpConfig);
 	virtual const struct sSQLDatabase_t *GetDatabaseDefs() override;
 };
