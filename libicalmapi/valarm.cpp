@@ -51,7 +51,6 @@ HRESULT HrParseReminder(LONG lRemindBefore, time_t ttReminderTime, bool bTask, i
 	icalcomponent_add_property(lpVAlarm, icalproperty_new_trigger(sittTrigger));
 	icalcomponent_add_property(lpVAlarm, icalproperty_new_action(ICAL_ACTION_DISPLAY));
 	icalcomponent_add_property(lpVAlarm, icalproperty_new_description("Reminder"));
-
 	*lppAlarm = lpVAlarm;
 	return hrSuccess;
 }
@@ -75,9 +74,7 @@ HRESULT HrParseVAlarm(icalcomponent *lpicAlarm, LONG *lplRemindBefore, time_t *l
 
 	if (lpTrigger != NULL) {
 		auto sittTrigger = icalproperty_get_trigger(lpTrigger);
-
 		ttReminderTime = icaltime_as_timet(sittTrigger.time); // is in utc
-
 		lRemindBefore = -1 * (icaldurationtype_as_int(sittTrigger.duration) / 60);
 
 		// In iCal, a reminder before can be both negative (meaning alarm BEFORE startdate) or positive (meaning
@@ -87,7 +84,6 @@ HRESULT HrParseVAlarm(icalcomponent *lpicAlarm, LONG *lplRemindBefore, time_t *l
 		if (lRemindBefore < 0)
 			lRemindBefore = 0;
 	}
-
 	if (lpAction != NULL) {
 		auto eipaAction = icalproperty_get_action(lpAction);
 		// iMac Calendar 6.0 sends ACTION:NONE, which libical doesn't parse correcty to the ICAL_ACTION_NONE enum value
@@ -97,10 +93,8 @@ HRESULT HrParseVAlarm(icalcomponent *lpicAlarm, LONG *lplRemindBefore, time_t *l
 
 	if (lplRemindBefore)
 		*lplRemindBefore = lRemindBefore;
-
 	if (lpttReminderTime)
 		*lpttReminderTime = ttReminderTime;
-
 	if (lpbReminderSet)
 		*lpbReminderSet = bReminderSet;
 	return hrSuccess;

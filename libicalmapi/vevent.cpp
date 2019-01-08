@@ -64,7 +64,6 @@ HRESULT VEventConverter::HrICal2MAPI(icalcomponent *lpEventRoot, icalcomponent *
  * @param[in]  base Used for the 'base' pointer for memory allocations
  * @param[in]  bisException Weather we're handling an exception or not
  * @param[in,out] lstMsgProps 
- * 
  * @return MAPI error code
  */
 HRESULT VEventConverter::HrAddBaseProperties(icalproperty_method icMethod, icalcomponent *lpicEvent, void *base, bool bisException, std::list<SPropValue> *lstMsgProps)
@@ -80,7 +79,6 @@ HRESULT VEventConverter::HrAddBaseProperties(icalproperty_method icMethod, icalc
 		strEmail = m_converter.convert_to<std::wstring>(lpszProp, rawsize(lpszProp), m_strCharset.c_str());
 		if (wcsncasecmp(strEmail.c_str(), L"mailto:", 7) == 0)
 			strEmail.erase(0, 7);
-		
 		if (bIsUserLoggedIn(strEmail))
 			bMeetingOrganised = true;
 	}
@@ -112,7 +110,6 @@ HRESULT VEventConverter::HrAddBaseProperties(icalproperty_method icMethod, icalc
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RESPONSESTATUS], PT_LONG);
 		sPropVal.Value.ul = respNone;
 		lstMsgProps->emplace_back(sPropVal);
-		
 		// skip the meetingstatus property
 		bMeeting = false;
 
@@ -130,15 +127,12 @@ HRESULT VEventConverter::HrAddBaseProperties(icalproperty_method icMethod, icalc
 		case ICAL_PARTSTAT_ACCEPTED:
 			HrCopyString(base, L"IPM.Schedule.Meeting.Resp.Pos", &sPropVal.Value.lpszW);
 			break;
-
 		case ICAL_PARTSTAT_DECLINED:
 			HrCopyString(base, L"IPM.Schedule.Meeting.Resp.Neg", &sPropVal.Value.lpszW);
 			break;
-
 		case ICAL_PARTSTAT_TENTATIVE:
 			HrCopyString(base, L"IPM.Schedule.Meeting.Resp.Tent", &sPropVal.Value.lpszW);
 			break;
-
 		default:
 			return MAPI_E_TYPE_NO_SUPPORT;
 		}
@@ -151,7 +145,6 @@ HRESULT VEventConverter::HrAddBaseProperties(icalproperty_method icMethod, icalc
 
 		// make sure the cancel flag gets set
 		bMeeting = true;
-
 		HrCopyString(base, L"IPM.Schedule.Meeting.Canceled", &sPropVal.Value.lpszW);
 		break;
 
@@ -159,12 +152,7 @@ HRESULT VEventConverter::HrAddBaseProperties(icalproperty_method icMethod, icalc
 	default: {
 		// set ResponseStatus to 0 fix for BlackBerry.
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RESPONSESTATUS], PT_LONG);
-		if (m_ulUserStatus != 0)
-			sPropVal.Value.ul = m_ulUserStatus;
-		else if (bMeetingOrganised)
-			sPropVal.Value.ul = 1;
-		else
-			sPropVal.Value.ul = 0;
+		sPropVal.Value.ul = m_ulUserStatus != 0 ? m_ulUserStatus : bMeetingOrganised;
 		lstMsgProps->emplace_back(sPropVal);
 		
 		// time(NULL) returns UTC time as libical sets application to UTC time.
@@ -322,12 +310,7 @@ HRESULT VEventConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent 
 	timeDTStartUTC = ICalTimeTypeToUTC(lpicEventRoot, lpicDTStartProp);
 	timeDTStartLocal = ICalTimeTypeToLocal(lpicDTStartProp);
 	timeStartOffset = timeDTStartUTC - timeDTStartLocal;
-
-	if (bIsAllday)
-		sPropVal.Value.ft = UnixTimeToFileTime(timeDTStartLocal);
-	else
-		sPropVal.Value.ft = UnixTimeToFileTime(timeDTStartUTC);
-
+	sPropVal.Value.ft = UnixTimeToFileTime(bIsAllday ? timeDTStartLocal : timeDTStartUTC);
 	// Set 0x820D / ApptStartWhole
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTSTARTWHOLE], PT_SYSTIME);
 	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
@@ -364,12 +347,7 @@ HRESULT VEventConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent 
 		timeDTEndUTC = timeDTStartUTC + icaldurationtype_as_int(dur);
 	}
 	timeEndOffset = timeDTEndUTC - timeDTEndLocal;
-
-	if (bIsAllday)
-		sPropVal.Value.ft = UnixTimeToFileTime(timeDTEndLocal);
-	else
-		sPropVal.Value.ft = UnixTimeToFileTime(timeDTEndUTC);
-
+	sPropVal.Value.ft = UnixTimeToFileTime(bIsAllday ? timeDTEndLocal : timeDTEndUTC);
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTENDWHOLE], PT_SYSTIME);
 	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 	
@@ -411,7 +389,6 @@ HRESULT VEventConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent 
  * @param[out] lppicTZinfo ical timezone struct, describes all times used in this ical component
  * @param[out] lpstrTZid The name of the timezone
  * @param[out] lppEvent The ical calendar event
- * 
  * @return MAPI error code
  */
 HRESULT VEventConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMethod, icaltimezone **lppicTZinfo, std::string *lpstrTZid, icalcomponent **lppEvent)
@@ -434,12 +411,11 @@ HRESULT VEventConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *l
  * @param[in]  lpicTZinfo ical timezone object to set times in
  * @param[in]  strTZid name of the given ical timezone
  * @param[in,out] lpEvent The Ical object to modify
- * 
  * @return MAPI error code.
  */
 HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMsgProps, icaltimezone *lpicTZinfo, const std::string &strTZid, icalcomponent *lpEvent)
 {
-	bool bIsAllDay = false, bCounterProposal = false;
+	bool bCounterProposal = false;
 	ULONG ulStartIndex = PROP_APPTSTARTWHOLE, ulEndIndex = PROP_APPTENDWHOLE;
 
 	HRESULT hr = VConverter::HrSetTimeProperties(lpMsgProps, ulMsgProps,
@@ -459,8 +435,7 @@ HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMs
 	}
  	
 	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ALLDAYEVENT], PT_BOOLEAN));
-	if (lpPropVal)
-		bIsAllDay = (lpPropVal->Value.b == TRUE);
+	auto bIsAllDay = lpPropVal != nullptr && lpPropVal->Value.b;
 	// @note If bIsAllDay == true, the item is an allday event "in the timezone it was created in" (and the user selected the allday event option)
 	// In another timezone, Outlook will display the item as a 24h event with times (and the allday event option disabled)
 	// However, in ICal, you cannot specify a timezone for a date, so ICal will show this as an allday event in every timezone your client is in.
@@ -485,12 +460,8 @@ HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMs
 	if (hr != hrSuccess)
 		return hr;
 	// @note we never set the DURATION property: MAPI objects always should have the end property 
-
 	if (!bCounterProposal)
 		return hrSuccess;
-
-	// set the original times in X properties
-	icalproperty *lpProp = NULL;
 
 	// Set original start time / DTSTART
 	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTSTARTWHOLE], PT_SYSTIME));
@@ -498,7 +469,7 @@ HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMs
 		// do not create calendar items without start/end date, which is invalid.
 		return MAPI_E_CORRUPT_DATA;
 	ttTime = FileTimeToUnixTime(lpPropVal->Value.ft);
-	lpProp = icalproperty_new_x("overwrite-me");
+	auto lpProp = icalproperty_new_x("overwrite-me");
 	icalproperty_set_x_name(lpProp, "X-MS-OLK-ORIGINALSTART");
 	hr = HrSetTimeProperty(ttTime, bIsAllDay, lpicTZinfo, strTZid, ICAL_DTSTART_PROPERTY, lpProp);
 	if (hr != hrSuccess)

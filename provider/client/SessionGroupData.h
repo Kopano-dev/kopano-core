@@ -34,14 +34,12 @@ public:
 
 static inline bool operator==(const ECSessionGroupInfo &a, const ECSessionGroupInfo &b)
 {
-	return	(a.strServer.compare(b.strServer) == 0) &&
-			(a.strProfile.compare(b.strProfile) == 0);
+	return a.strServer == b.strServer && a.strProfile == b.strProfile;
 }
 
 static inline bool operator<(const ECSessionGroupInfo &a, const ECSessionGroupInfo &b)
 {
-	return	(a.strServer.compare(b.strServer) < 0) ||
-			((a.strServer.compare(b.strServer) == 0) && (a.strProfile.compare(b.strProfile) < 0));
+	return std::tie(a.strServer, a.strProfile) < std::tie(b.strServer, b.strProfile);
 }
 
 class SessionGroupData KC_FINAL_OPG {

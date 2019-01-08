@@ -81,7 +81,6 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	// recurrence class contains LOCAL times only, so convert UTC -> LOCAL
 	lpRec->setStartDateTime(dtLocalStart);
-
 	// default 1st day of week is sunday, except in weekly recurrences
 	lpRec->setFirstDOW(0);
 
@@ -89,29 +88,22 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 	switch (icRRule.freq) {
 	case ICAL_DAILY_RECURRENCE:
 		sPropVal.Value.ul = 1;
-
 		lpRec->setFrequency(recurrence::DAILY);
 		break;
-
 	case ICAL_WEEKLY_RECURRENCE:
 		sPropVal.Value.ul = 2;
-
 		lpRec->setFrequency(recurrence::WEEKLY);
 		// assume this weekly item is exactly on the start time day
 		lpRec->setWeekDays(1 << tm.tm_wday);
 		// Strange little thing for the recurrence type "every workday"
 		lpRec->setFirstDOW(1);
 		break;
-
 	case ICAL_MONTHLY_RECURRENCE:
 		sPropVal.Value.ul = 3;
-
 		lpRec->setFrequency(recurrence::MONTHLY);
 		break;
-
 	case ICAL_YEARLY_RECURRENCE:
 		sPropVal.Value.ul = 4;
-
 		lpRec->setFrequency(recurrence::YEARLY);
 		lpRec->setDayOfMonth(tm.tm_mday);
 		if (icRRule.by_month[0] != ICAL_RECURRENCE_ARRAY_MAX) 
@@ -132,10 +124,7 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 		if (icRRule.by_day[0] < 0) {
 			// outlook can only have _one_ last day of the month/year (not daily or weekly here!)
 			auto dy = abs(icRRule.by_day[0] % 8);
-			if (dy != 0)
-				ulWeekDays = 1 << (dy - 1);
-			else
-				ulWeekDays = 0b1111111;
+			ulWeekDays = dy != 0 ? 1 << (dy - 1) : 0b1111111;
 			// next call also changes pattern to 3!
 			lpRec->setWeekNumber(5);
 		} else if (icRRule.by_day[0] >= 1 && icRRule.by_day[0] <= 7) {
@@ -152,7 +141,6 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 			} else if (lpRec->getFrequency() == recurrence::MONTHLY) {
 				// A monthly every [mo/tu/we/th/fr/sa/su]day is not supported in outlook. but this is the same as 
 				// weekly x day so convert this item to weekly x day
-
 				lpRec->setFrequency(recurrence::WEEKLY);
 				// assume this weekly item is exactly on the start time day
 				lpRec->setWeekDays(1 << tm.tm_wday);
@@ -168,10 +156,7 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 		} else {
 			// monthly, first sunday: 9, monday: 10
 			auto dy = icRRule.by_day[0] % 8;
-			if (dy != 0)
-				ulWeekDays = 1 << (dy - 1);
-			else
-				ulWeekDays = 0b1111111;
+			ulWeekDays = dy != 0 ? 1 << (dy - 1) : 0b1111111;
 			lpRec->setWeekNumber((int)(icRRule.by_day[0]/8)); // 1..4
 		}
 		lpRec->setWeekDays(ulWeekDays);
@@ -190,7 +175,6 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 		// count limit
 		lpRec->setEndType(recurrence::NUMBER);
 		lpRec->setCount(icRRule.count);
-
 		// calculate end
 		lpRec->setEndDate(lpRec->calcEndDate());
 		dtUTCUntil = lpRec->getEndDate();
@@ -200,7 +184,6 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 		// enddate is the date/time of the LAST occurrence, do not add duration
 		dtUTCUntil = icaltime_as_timet_with_zone(icRRule.until, NULL);
 		lpRec->setEndDate(UTCToLocal(dtUTCUntil, sTimeZone));
-
 		// calculate number
 		lpRec->setCount(lpRec->calcCount());
 	} else {
@@ -210,7 +193,6 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 		lpRec->setCount(10);
 		// 1. dtUTCEnd -> end time offset (set later)
 		// (date will overridden by recurrence.cpp when writing the blob)
-
 		// 2. dtUTCUntil = clipend == start of month of item in 4500
 		dtUTCUntil = 0x7FFFFFFF; // incorrect, but good enough
 	}
@@ -230,7 +212,6 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 	{
 		auto exUTCDate = ICalTimeTypeToUTC(lpicRootEvent, lpicProp);
 		auto exLocalDate = UTCToLocal(exUTCDate, sTimeZone);
-
 		lpRec->addDeletedException(exLocalDate);
 	}
 
@@ -260,7 +241,6 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_RECURRENCEID_PROPERTY);
 	if(!lpicProp) {
 		sPropVal.Value.ft = UnixTimeToFileTime(LocalToUTC(lpRec->getStartDateTime(), sTimeZone));
-
 		// Set 0x820D / ApptStartWhole
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_APPTSTARTWHOLE], PT_SYSTIME);
 		lpIcalItem->lstMsgProps.emplace_back(sPropVal);
@@ -330,7 +310,6 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
 	auto ttOriginalLocalTime = icaltime_as_timet(icalvalue_get_datetime(icalproperty_get_value(lpicProp)));
 
 	lpEx->tBaseDate = ttOriginalUtcTime;
-
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_DTSTART_PROPERTY);
 	if (lpicProp == NULL)
 		return MAPI_E_NOT_FOUND;
@@ -338,7 +317,6 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
 	auto ttStartLocalTime = icaltime_as_timet(icalvalue_get_datetime(icalproperty_get_value(lpicProp)));
 
 	lpEx->tStartDate = ttStartUtcTime;
-
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_DTEND_PROPERTY);
 	if (lpicProp == NULL)
 		return MAPI_E_NOT_FOUND;
@@ -651,7 +629,6 @@ HRESULT ICalRecurrence::HrMakeMAPIRecurrence(recurrence *lpRecurrence, LPSPropTa
 	SPropValue pv[4];
 	pv[0].ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_RECURRING], PT_BOOLEAN);
 	pv[0].Value.b = TRUE;
-
 	// TODO: combine with icon index in vevent .. the item may be a meeting request (meeting+recurring==1027)
 	pv[1].ulPropTag = PR_ICON_INDEX;
 	pv[1].Value.ul = ICON_APPT_RECURRING;
@@ -688,16 +665,14 @@ HRESULT ICalRecurrence::HrMakeMAPIRecurrence(recurrence *lpRecurrence, LPSPropTa
  */
 bool ICalRecurrence::HrValidateOccurrence(icalitem *lpItem, icalitem::exception lpEx)
 {
-	HRESULT hr = hrSuccess;
 	memory_ptr<OccrInfo> lpFBBlocksAll;
 	ULONG cValues = 0;
 	time_t tBaseDateStart = LocalToUTC(lpItem->lpRecurrence->StartOfDay(UTCToLocal(lpEx.tBaseDate, lpItem->tTZinfo)), lpItem->tTZinfo);
 	time_t tStartDateStart = LocalToUTC(lpItem->lpRecurrence->StartOfDay(UTCToLocal(lpEx.tStartDate, lpItem->tTZinfo)), lpItem->tTZinfo);
 
-	if (tBaseDateStart < tStartDateStart)
-		hr = lpItem->lpRecurrence->HrGetItems(tBaseDateStart, tStartDateStart + 1439 * 60, lpItem->tTZinfo, lpItem->ulFbStatus, &~lpFBBlocksAll, &cValues);
-	else
-		hr = lpItem->lpRecurrence->HrGetItems(tStartDateStart, tBaseDateStart + 1439 * 60, lpItem->tTZinfo, lpItem->ulFbStatus, &~lpFBBlocksAll, &cValues);
+	auto hr = lpItem->lpRecurrence->HrGetItems(std::min(tBaseDateStart, tStartDateStart),
+	          std::max(tBaseDateStart, tStartDateStart) + 1439 * 60,
+	          lpItem->tTZinfo, lpItem->ulFbStatus, &~lpFBBlocksAll, &cValues);
 	if (hr != hrSuccess)
 		return false;
 	return cValues == 1;
@@ -733,10 +708,8 @@ HRESULT ICalRecurrence::HrCreateICalRecurrence(const TIMEZONE_STRUCT &sTimeZone,
 
 	// add EXDATE props
 	for (const auto &exc : lstExceptions) {
-		if (bIsAllDay)
-			ittExDate = icaltime_from_timet_with_zone(LocalToUTC(exc, sTZgmt), bIsAllDay, nullptr);
-		else
-			ittExDate = icaltime_from_timet_with_zone(LocalToUTC(exc, sTimeZone), 0, nullptr);
+		ittExDate = icaltime_from_timet_with_zone(LocalToUTC(exc, bIsAllDay ? sTZgmt : sTimeZone),
+		            bIsAllDay, nullptr);
 		kc_ical_utc(ittExDate, true);
 		icalcomponent_add_property(lpicEvent, icalproperty_new_exdate(ittExDate));
 	}
@@ -812,7 +785,6 @@ HRESULT ICalRecurrence::HrCreateICalRecurrenceType(const TIMEZONE_STRUCT &sTimeZ
 			// mapi patterntype == 2
 			icRec.by_month_day[0] = lpRecurrence->getDayOfMonth();
 			icRec.by_month_day[1] = ICAL_RECURRENCE_ARRAY_MAX;
-
 			icRec.by_month[0] = lpRecurrence->getMonth();
 			icRec.by_month[1] = ICAL_RECURRENCE_ARRAY_MAX;
 			break;
@@ -898,7 +870,6 @@ HRESULT ICalRecurrence::HrMakeICalException(icalcomponent *lpicEvent, icalcompon
 		icalcomponent_remove_property(lpicException, lpicProp);
 		icalproperty_free(lpicProp);
 	}
-
 	lpicProp = icalcomponent_get_first_property(lpicException, ICAL_DTEND_PROPERTY);
 	if (lpicProp) {
 		icalcomponent_remove_property(lpicException, lpicProp);

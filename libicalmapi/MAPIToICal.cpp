@@ -102,10 +102,7 @@ HRESULT MapiToICalImpl::AddMessage(LPMESSAGE lpMessage, const std::string &strSr
 	icalproperty_method icMethod = ICAL_METHOD_NONE;
 	memory_ptr<SPropValue> lpMessageClass;
 	TIMEZONE_STRUCT ttTZinfo = {0};
-	bool blCensor = false;
-
-	if(ulFlags & M2IC_CENSOR_PRIVATE)
-		blCensor = true;
+	auto blCensor = ulFlags & M2IC_CENSOR_PRIVATE;
 
 	if (lpMessage == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
@@ -173,7 +170,6 @@ HRESULT MapiToICalImpl::AddBlocks(FBBlock_1 *lpsFbblk, LONG ulBlocks, time_t tSt
 	             strOrganiser, strUser, strUID, &icFbComponent);
 	if (hr != hrSuccess)
 		return hr;
-
 	m_icMethod = ICAL_METHOD_PUBLISH;
 	icalcomponent_add_component(m_lpicCalender.get(), icFbComponent);
 	return hrSuccess;
@@ -196,7 +192,6 @@ HRESULT MapiToICalImpl::Finalize(ULONG ulFlags, std::string *strMethod, std::str
 
 	if (strMethod == nullptr && strIcal == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-
 	// TODO: make flags force a publish method
 	if (m_icMethod != ICAL_METHOD_NONE)
 		icalcomponent_add_property(m_lpicCalender.get(), icalproperty_new_method(m_icMethod));
@@ -216,7 +211,6 @@ HRESULT MapiToICalImpl::Finalize(ULONG ulFlags, std::string *strMethod, std::str
 		return MAPI_E_CALL_FAILED;
 	if (strMethod)
 		*strMethod = icalproperty_method_to_string(m_icMethod);
-
 	if (strIcal)
 		*strIcal = ics.get();
 	return hrSuccess;
@@ -234,10 +228,8 @@ HRESULT MapiToICalImpl::ResetObject()
 	m_icMethod = ICAL_METHOD_NONE;
 	m_tzMap.clear();
 	m_ulEvents = 0;
-
 	// reset the ical data with emtpy calendar
 	HrInitializeVCal();
-
 	return hrSuccess;
 }
 

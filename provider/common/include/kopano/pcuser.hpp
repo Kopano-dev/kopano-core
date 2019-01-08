@@ -33,11 +33,7 @@ struct objectid_t {
 
 inline bool operator<(const objectid_t &a, const objectid_t &b) noexcept
 {
-	if (a.objclass < b.objclass)
-		return true;
-	if ((a.objclass == b.objclass) && a.id < b.id)
-		return true;
-	return false;
+	return std::tie(a.objclass, a.id) < std::tie(b.objclass, b.id);
 }
 
 /* Object properties

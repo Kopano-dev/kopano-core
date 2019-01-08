@@ -1822,7 +1822,7 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
 		}
 
 		// delegation of meeting requests need to be in tnef too because of special properties
-		if (iUseTnef <= 0 && lpDelegateRule && lpDelegateRule->Value.b == TRUE) {
+		if (iUseTnef <= 0 && lpDelegateRule != nullptr && lpDelegateRule->Value.b) {
 			iUseTnef = 1;
 			strTnefReason = "Force TNEF because of delegation";
 		}

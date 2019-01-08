@@ -95,21 +95,21 @@ HRESULT CalDAV::HrHandleCommand(const std::string &strMethod)
 {
 	HRESULT hr = hrSuccess;
 
-	if (!strMethod.compare("PROPFIND"))
+	if (strMethod == "PROPFIND")
 		hr = HrPropfind();
-	else if (!strMethod.compare("REPORT"))
+	else if (strMethod == "REPORT")
 		hr = HrReport();
-	else if (!strMethod.compare("PUT"))
+	else if (strMethod == "PUT")
 		hr = HrPut();
-	else if (!strMethod.compare("DELETE"))
+	else if (strMethod == "DELETE")
 		hr = HrHandleDelete();
-	else if (!strMethod.compare("MKCALENDAR"))
+	else if (strMethod == "MKCALENDAR")
 		hr = HrMkCalendar();
-	else if (!strMethod.compare("PROPPATCH"))
+	else if (strMethod == "PROPPATCH")
 		hr = HrPropPatch();
-	else if (!strMethod.compare("POST"))
+	else if (strMethod == "POST")
 		hr = HrHandlePost();
-	else if (!strMethod.compare("MOVE"))
+	else if (strMethod == "MOVE")
 		hr = HrMove();
 	else
 		m_lpRequest.HrResponseHeader(501, "Not Implemented");
@@ -1061,15 +1061,15 @@ HRESULT CalDAV::HrHandleMkCal(WEBDAVPROP *lpsDavProp)
 
 	// @todo handle other props as in proppatch command
 	for (const auto &p : lpsDavProp->lstProps) {
-		if (p.sPropName.strPropname.compare("displayname") == 0) {
+		if (p.sPropName.strPropname == "displayname") {
 			wstrNewFldName = U2W(p.strValue);
 			continue;
 		}
-		if (p.sPropName.strPropname.compare("supported-calendar-component-set") != 0)
+		if (p.sPropName.strPropname != "supported-calendar-component-set")
 			continue;
-		if (p.strValue.compare("VTODO") == 0)
+		if (p.strValue == "VTODO")
 			strContainerClass = "IPF.Task";
-		else if (p.strValue.compare("VEVENT") != 0) {
+		else if (p.strValue != "VEVENT") {
 			ec_log_err("Unable to create folder for supported-calendar-component-set type: %s", p.strValue.c_str());
 			return MAPI_E_INVALID_PARAMETER;
 		}
@@ -1323,7 +1323,7 @@ HRESULT CalDAV::HrHandlePropPatch(WEBDAVPROP *lpsDavProp, WEBDAVMULTISTATUS *lps
 			// not allowed to select which calendars give freebusy information
 			sPropStatusForbidden.sProp.lstProps.emplace_back(std::move(sDavProp));
 			continue;
-		} else if (iter.sPropName.strNS.compare(WEBDAVNS) == 0) {
+		} else if (iter.sPropName.strNS == WEBDAVNS) {
 			// only DAV:displayname may be modified, the rest is read-only
 			sPropStatusForbidden.sProp.lstProps.emplace_back(std::move(sDavProp));
 			continue;

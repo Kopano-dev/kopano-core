@@ -183,9 +183,8 @@ bool operator>=(const FILETIME &a, const FILETIME &b) noexcept
 
 bool operator<(const FILETIME &a, const FILETIME &b) noexcept
 {
-	return a.dwHighDateTime < b.dwHighDateTime ||
-	       (a.dwHighDateTime == b.dwHighDateTime &&
-	       a.dwLowDateTime < b.dwLowDateTime);
+	return std::tie(a.dwHighDateTime, a.dwLowDateTime) <
+	       std::tie(b.dwHighDateTime, b.dwLowDateTime);
 }
 
 bool operator<=(const FILETIME &a, const FILETIME &b) noexcept

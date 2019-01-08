@@ -281,7 +281,7 @@ HRESULT CreateStreamOnHGlobal(void *hGlobal, BOOL fDeleteOnRelease,
 {
 	object_ptr<ECMemStream> lpStream;
 	
-	if (hGlobal != nullptr || fDeleteOnRelease != TRUE)
+	if (hGlobal != nullptr || !fDeleteOnRelease)
 		return MAPI_E_INVALID_PARAMETER;
 	auto hr = ECMemStream::Create(nullptr, 0, STGM_WRITE, nullptr, nullptr, nullptr, &~lpStream); // NULLs: no callbacks and custom data
 	if(hr != hrSuccess) 

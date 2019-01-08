@@ -1227,7 +1227,7 @@ HRESULT ECMessage::SetReadFlag2(unsigned int ulFlags)
 		{2, {PR_MESSAGE_FLAGS, PR_READ_RECEIPT_REQUESTED}};
 	auto hr = ECMAPIProp::GetProps(proptags, 0, &cValues, &~lpReadReceiptRequest);
 	if(hr == hrSuccess && (!(ulFlags&(SUPPRESS_RECEIPT|CLEAR_READ_FLAG | CLEAR_NRN_PENDING | CLEAR_RN_PENDING)) || (ulFlags&GENERATE_RECEIPT_ONLY )) &&
-		lpReadReceiptRequest[1].Value.b == TRUE && ((lpReadReceiptRequest[0].Value.ul & MSGFLAG_RN_PENDING) || (lpReadReceiptRequest[0].Value.ul & MSGFLAG_NRN_PENDING)))
+	    lpReadReceiptRequest[1].Value.b && ((lpReadReceiptRequest[0].Value.ul & MSGFLAG_RN_PENDING) || (lpReadReceiptRequest[0].Value.ul & MSGFLAG_NRN_PENDING)))
 	{
 		hr = QueryInterface(IID_IMessage, &~lpThisMessage);
 		if (hr != hrSuccess)

@@ -124,7 +124,7 @@ struct TABLECHANGENOTIFICATION {
 	TABLECHANGENOTIFICATION(unsigned int t, unsigned int f): ulFlags(f), ulType(t) {}
 	bool operator<(const TABLECHANGENOTIFICATION &rhs) const noexcept
 	{
-		return ulFlags < rhs.ulFlags || (ulFlags == rhs.ulFlags && ulType < rhs.ulType);
+		return std::tie(ulFlags, ulType) < std::tie(rhs.ulFlags, rhs.ulType);
 	}
 
 	unsigned int ulFlags, ulType;

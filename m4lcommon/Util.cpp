@@ -2196,13 +2196,13 @@ ULONG Util::GetBestBody(const SPropValue *lpBody, const SPropValue *lpHtml,
 	if ((lpHtml->ulPropTag == PR_HTML || (PROP_TYPE(lpHtml->ulPropTag) == PT_ERROR && lpHtml->Value.err == MAPI_E_NOT_ENOUGH_MEMORY)) &&
 		(PROP_TYPE(lpBody->ulPropTag) == PT_ERROR && lpBody->Value.err == MAPI_E_NOT_ENOUGH_MEMORY) &&
 		(PROP_TYPE(lpRtfCompressed->ulPropTag) == PT_ERROR && lpRtfCompressed->Value.err == MAPI_E_NOT_ENOUGH_MEMORY) &&
-		lpRtfInSync->Value.b == FALSE)
+	    !lpRtfInSync->Value.b)
 		return PR_HTML;
 
 	if ((lpRtfCompressed->ulPropTag == PR_RTF_COMPRESSED || (PROP_TYPE(lpRtfCompressed->ulPropTag) == PT_ERROR && lpRtfCompressed->Value.err == MAPI_E_NOT_ENOUGH_MEMORY)) &&
 		(PROP_TYPE(lpBody->ulPropTag) == PT_ERROR && lpBody->Value.err == MAPI_E_NOT_ENOUGH_MEMORY) &&
 		(PROP_TYPE(lpHtml->ulPropTag) == PT_ERROR && lpHtml->Value.err == MAPI_E_NOT_FOUND) &&
-		lpRtfInSync->Value.b == TRUE)
+	    lpRtfInSync->Value.b)
 		return PR_RTF_COMPRESSED;
 
 	return PR_NULL;
@@ -2446,7 +2446,7 @@ HRESULT Util::CopyAttachments(LPMESSAGE lpSrc, LPMESSAGE lpDest, LPSRestriction 
 	auto hr = HrGetOneProp(lpSrc, PR_HASATTACH, &~lpHasAttach);
 	if (hr != hrSuccess)
 		return hrSuccess;
-	if (lpHasAttach->Value.b == FALSE)
+	if (!lpHasAttach->Value.b)
 		return hrSuccess;
 	hr = lpSrc->GetAttachmentTable(MAPI_UNICODE, &~lpTable);
 	if (hr != hrSuccess)

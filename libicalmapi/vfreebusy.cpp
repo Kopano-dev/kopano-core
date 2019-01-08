@@ -31,12 +31,10 @@ HRESULT HrGetFbInfo(icalcomponent *lpFbcomp, time_t *lptStart, time_t *lptEnd, s
 	auto lpicProp = icalcomponent_get_first_property(lpFbcomp, ICAL_DTSTART_PROPERTY);
 	if (lpicProp)
 		*lptStart = icaltime_as_timet (icalproperty_get_dtstart (lpicProp));
-
 	// DTEND
 	lpicProp = icalcomponent_get_first_property(lpFbcomp, ICAL_DTEND_PROPERTY);
 	if (lpicProp)
 		*lptEnd = icaltime_as_timet (icalproperty_get_dtend (lpicProp));
-
 	// UID
 	lpicProp = icalcomponent_get_first_property(lpFbcomp, ICAL_UID_PROPERTY);
 	if (lpicProp)

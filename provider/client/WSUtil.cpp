@@ -70,7 +70,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 		break;
 	case PT_BOOLEAN:
 		dp->__union = SOAP_UNION_propValData_b;
-		dp->Value.b = sp->Value.b == 0 ? false : true;
+		dp->Value.b = sp->Value.b;
 		break;
 	case PT_OBJECT:
 		// can never be transmitted over the wire!

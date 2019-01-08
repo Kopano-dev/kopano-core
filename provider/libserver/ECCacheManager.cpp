@@ -326,11 +326,8 @@ ECRESULT ECCacheManager::I_DelStore(unsigned int ulObjId)
 ECRESULT ECCacheManager::GetOwner(unsigned int ulObjId, unsigned int *ulOwner)
 {
 	ECRESULT	er = erSuccess;
-	bool bCacheResult = false;
-
-	if (I_GetObject(ulObjId, nullptr, ulOwner, nullptr, nullptr) == erSuccess)
-		bCacheResult = true;
-	else
+	auto bCacheResult = I_GetObject(ulObjId, nullptr, ulOwner, nullptr, nullptr) == erSuccess;
+	if (!bCacheResult)
 		er = GetObject(ulObjId, NULL, ulOwner, NULL);
 	if (er != erSuccess)
 		LOG_CACHE_DEBUG("Get owner for id %d: %s (%x)", ulObjId, GetMAPIErrorMessage(kcerr_to_mapierr(er)), er);

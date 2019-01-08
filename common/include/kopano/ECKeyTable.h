@@ -63,12 +63,12 @@ struct sObjectTableKey {
 
 	bool operator<(const sObjectTableKey &o) const noexcept
 	{
-		return ulObjId < o.ulObjId || (ulObjId == o.ulObjId && ulOrderId < o.ulOrderId);
+		return std::tie(ulObjId, ulOrderId) < std::tie(o.ulObjId, o.ulOrderId);
 	}
 
 	bool operator>(const sObjectTableKey &o) const noexcept
 	{
-		return ulObjId > o.ulObjId || (ulObjId == o.ulObjId && ulOrderId > o.ulOrderId);
+		return std::tie(ulObjId, ulOrderId) > std::tie(o.ulObjId, o.ulOrderId);
 	}
 };
 

@@ -28,11 +28,11 @@ iCal::iCal(Http &lpRequest, IMAPISession *lpSession,
 
 HRESULT iCal::HrHandleCommand(const std::string &strMethod)
 {
-	if (!strMethod.compare("GET") || !strMethod.compare("HEAD"))
+	if (strMethod == "GET" || strMethod == "HEAD")
 		return HrHandleIcalGet(strMethod);
-	else if (!strMethod.compare("PUT"))
+	else if (strMethod == "PUT")
 		return HrHandleIcalPost();
-	else if (!strMethod.compare("DELETE"))
+	else if (strMethod == "DELETE")
 		return HrDelFolder();
 	return MAPI_E_CALL_FAILED;
 }
@@ -82,7 +82,7 @@ exit:
 			strMsg = "attachment; filename=\"" + (m_wstrFldName.empty() ? "Calendar" : W2U(m_wstrFldName.substr(0,10))) + ".ics\"";
 			m_lpRequest.HrResponseHeader("Content-Disposition", strMsg);
 		}
-		if (strMethod.compare("GET") == 0)
+		if (strMethod == "GET")
 			m_lpRequest.HrResponseBody(strIcal);
 		// @todo, send Content-Length header? but HrFinalize in HTTP class will also send with size:0
 	}
@@ -207,8 +207,8 @@ HRESULT iCal::HrHandleIcalPost()
 			}
 			++mpIterI;
 		} else if (mpSrvEntries.cend() != mpIterJ && mpIcalEntries.cend() != mpIterI) {
-			if(!mpIterI->first.compare(mpIterJ->first))
-			{
+			auto cmp = mpIterI->first.compare(mpIterJ->first);
+			if (cmp == 0) {
 				lpICalToMapi->GetItemInfo(mpIterI->second, &etype, &tLastMod, &sbEid);
 				if (etype == VEVENT && FileTimeToUnixTime(mpSrvTimes[mpIterJ->first]) != tLastMod) {
 					hr = HrModify(lpICalToMapi.get(), mpIterJ->second, mpIterI->second, blCensorPrivate);
@@ -220,9 +220,7 @@ HRESULT iCal::HrHandleIcalPost()
 				}
 				++mpIterI;
 				++mpIterJ;
-			}
-			else if( mpIterI->first.compare(mpIterJ->first) < 0 )
-			{
+			} else if (cmp < 0) {
 				hr = HrAddMessage(lpICalToMapi.get(), mpIterI->second);
 				if(hr != hrSuccess)
 				{
@@ -230,9 +228,7 @@ HRESULT iCal::HrHandleIcalPost()
 					goto exit;
 				}
 				++mpIterI;
-			}
-			else if(mpIterI->first.compare(mpIterJ->first) > 0  )
-			{
+			} else if (cmp > 0) {
 				hr = HrDelMessage(mpIterJ->second, blCensorPrivate);
 				if(hr != hrSuccess)
 				{
