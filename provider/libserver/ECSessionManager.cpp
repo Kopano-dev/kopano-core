@@ -96,7 +96,7 @@ ECRESULT ECSessionManager::LoadSettings(){
 
 	if (m_sguid_set)
 		return KCERR_BAD_VALUE;
-	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory.get(), &lpDatabase);
+	auto er = m_lpDatabaseFactory.get()->get_tls_db(&lpDatabase);
 	if(er != erSuccess)
 		return er;
 
@@ -113,6 +113,16 @@ ECRESULT ECSessionManager::LoadSettings(){
 	memcpy(&m_server_guid, lpDBRow[0], sizeof(m_server_guid));
 	/* ECStatsCollector may decide to send before the guid has been set. That's normal. */
 	m_stats->set(SCN_SERVER_GUID, bin2hex(sizeof(m_server_guid), &m_server_guid));
+
+	er = lpDatabase->DoSelect("SELECT `value` FROM `settings` WHERE `name`='charset' LIMIT 1", &lpDBResult);
+	if (er != erSuccess)
+		return er;
+	lpDBRow = lpDBResult.fetch_row();
+	if (lpDBRow == nullptr || lpDBRow[0] == nullptr || strcmp(lpDBRow[0], "utf8mb4") != 0) {
+		m_lpDatabaseFactory->filter_bmp(true);
+		ec_log_warn("K-1244: Your database does not support storing 4-byte UTF-8! The content of some mails may be truncated. The DB should be upgraded with `kopano-dbadm usmp` and kopano-server be restarted.");
+	}
+
 	strQuery = "SELECT `value` FROM settings WHERE `name` = 'source_key_auto_increment' LIMIT 1";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
@@ -612,7 +622,7 @@ void* ECSessionManager::SessionCleaner(void *lpTmpSessionManager)
 		return 0;
 
 	ECDatabase *db = NULL;
-	if (GetThreadLocalDatabase(lpSessionManager->m_lpDatabaseFactory.get(), &db) != erSuccess)
+	if (lpSessionManager->m_lpDatabaseFactory.get()->get_tls_db(&db) != erSuccess)
 		ec_log_err("GTLD failed in SessionCleaner");
 
 	while(true){
@@ -1163,7 +1173,7 @@ ECRESULT ECSessionManager::GetStoreSortLCID(ULONG ulStoreId, ULONG *lpLcid)
 		return erSuccess;
 	}
 
-	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory.get(), &lpDatabase);
+	auto er = m_lpDatabaseFactory.get()->get_tls_db(&lpDatabase);
 	if(er != erSuccess)
 		return er;
 
@@ -1304,7 +1314,7 @@ ECRESULT ECSessionManager::get_user_count(usercount_t *uc)
 	ECDatabase *db = nullptr;
 	DB_RESULT result;
 	DB_ROW row;
-	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory.get(), &db);
+	auto er = m_lpDatabaseFactory.get()->get_tls_db(&db);
 	if (er != erSuccess)
 		return er;
 	auto query =

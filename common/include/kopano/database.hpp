@@ -100,7 +100,7 @@ class _kc_export kd_trans final {
 class _kc_export KDatabase : public kt_completion {
 	public:
 	KDatabase(void);
-	virtual ~KDatabase(void) = default;
+	virtual ~KDatabase() { Close(); }
 	ECRESULT Close(void);
 	virtual ECRESULT Connect(ECConfig *, bool, unsigned int, unsigned int);
 	virtual ECRESULT CreateDatabase(ECConfig *, bool);
@@ -129,6 +129,8 @@ class _kc_export KDatabase : public kt_completion {
 	virtual kd_trans Begin(ECRESULT &);
 	virtual ECRESULT Commit() override { return Query("COMMIT") == 0 ? erSuccess : KCERR_DATABASE_ERROR; }
 	virtual ECRESULT Rollback() override { return Query("ROLLBACK") == 0 ? erSuccess : KCERR_DATABASE_ERROR; }
+
+	bool m_filter_bmp = false;
 
 	protected:
 	class autolock : private std::unique_lock<std::recursive_mutex> {

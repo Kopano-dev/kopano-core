@@ -20,7 +20,6 @@ class zcp_versiontuple;
 class _kc_export ECDatabase final : public KDatabase {
 public:
 	ECDatabase(std::shared_ptr<ECConfig>, std::shared_ptr<ECStatsCollector>);
-	virtual ~ECDatabase(void);
 	static ECRESULT	InitLibrary(const char *dir, const char *config_file);
 	static void UnloadLibrary(void);
 	virtual kd_trans Begin(ECRESULT &) override;

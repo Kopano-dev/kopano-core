@@ -19,30 +19,10 @@
 
 namespace KC {
 
-pthread_key_t database_key;
 pthread_key_t plugin_key;
 
 _kc_export std::unique_ptr<ECSessionManager> g_lpSessionManager;
-static std::set<ECDatabase *> g_lpDBObjectList;
-static std::mutex g_hMutexDBObjectList;
 static bool g_bInitLib = false;
-
-void AddDatabaseObject(ECDatabase* lpDatabase)
-{
-	scoped_lock lk(g_hMutexDBObjectList);
-	g_lpDBObjectList.emplace(lpDatabase);
-}
-
-static void database_destroy(void *lpParam)
-{
-	auto lpDatabase = static_cast<ECDatabase *>(lpParam);
-	ulock_normal l_obj(g_hMutexDBObjectList);
-
-	g_lpDBObjectList.erase(std::set<ECDatabase*>::key_type(lpDatabase));
-	l_obj.unlock();
-	lpDatabase->ThreadEnd();
-	delete lpDatabase;
-}
 
 static void plugin_destroy(void *lpParam)
 {
@@ -53,10 +33,6 @@ ECRESULT kopano_initlibrary(const char *lpDatabaseDir, const char *lpConfigFile)
 {
 	if (g_bInitLib)
 		return KCERR_CALL_FAILED;
-
-	// This is a global key that we can reference from each thread with a different value. The
-	// database_destroy routine is called when the thread terminates.
-	pthread_key_create(&database_key, database_destroy);
 	pthread_key_create(&plugin_key, plugin_destroy); // same goes for the userDB-plugin
 
 	// Init mutex for database object list
@@ -74,18 +50,9 @@ ECRESULT kopano_unloadlibrary(void)
 
 	// Delete the global key,
 	//  on this position, there are zero or more threads exist.
-	//  As you delete the keys, the function database_destroy and plugin_destroy will never called
+	//  As you delete the keys, the function plugin_destroy will never called
 	//
-	pthread_key_delete(database_key);
 	pthread_key_delete(plugin_key);
-
-	// Remove all exist database objects
-	ulock_normal l_obj(g_hMutexDBObjectList);
-	for (auto o = g_lpDBObjectList.cbegin(); o != g_lpDBObjectList.cend();
-	     o = g_lpDBObjectList.erase(o))
-		delete *o;
-	l_obj.unlock();
-
 	// remove mutex for database object list
 	ECDatabase::UnloadLibrary();
 	g_bInitLib = false;
@@ -112,10 +79,6 @@ ECRESULT kopano_exit()
 	// delete our plugin of the mainthread: requires ECPluginFactory to be alive, because that holds the dlopen() result
 	plugin_destroy(pthread_getspecific(plugin_key));
 	g_lpSessionManager.reset();
-	// Close all database connections
-	scoped_lock l_obj(g_hMutexDBObjectList);
-	for (auto dbobjp : g_lpDBObjectList)
-		dbobjp->Close();
 	return erSuccess;
 }
 
@@ -188,8 +151,7 @@ ECRESULT GetDatabaseObject(std::shared_ptr<ECStatsCollector> sc, ECDatabase **lp
 		return KCERR_UNKNOWN;
 	if (lppDatabase == NULL)
 		return KCERR_INVALID_PARAMETER;
-	ECDatabaseFactory db(g_lpSessionManager->GetConfig(), std::move(sc));
-	return GetThreadLocalDatabase(&db, lppDatabase);
+	return g_lpSessionManager->get_db_factory()->get_tls_db(lppDatabase);
 }
 
 } /* namespace */

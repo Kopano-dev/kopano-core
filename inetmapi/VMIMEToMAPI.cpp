@@ -12,6 +12,7 @@
 #include <utility>
 #include <vector>
 #include "VMIMEToMAPI.h"
+#include <kopano/ECGetText.h>
 #include <kopano/ECGuid.h>
 #include <kopano/ECLogger.h>
 #include <kopano/hl.hpp>
@@ -60,6 +61,18 @@ using std::wstring;
 using namespace std::string_literals;
 
 namespace KC {
+
+enum {
+	/* dissect_body: Skips some attachments — only happens then an appledouble attachment marker is found. */
+	DIS_FILTER_DOUBLE = 1 << 0,
+	/* dissect_body: Concatenate with existing body if true, makes an attachment when false and a body was previously saved. */
+	DIS_APPEND_BODY = 1 << 1,
+	/* dissect_body: Current body is part of an alternatives group (informational) */
+	DIS_ALTERNATIVE = 1 << 2,
+
+	/* Flags that should only propagate one level */
+	DIS_IMMEDIATE_FLAGS = DIS_ALTERNATIVE,
+};
 
 static vmime::charset vtm_upgrade_charset(vmime::charset cset, const char *ascii_upgrade = nullptr);
 static int getCharsetFromHTML(const string &, vmime::charset *);
@@ -127,6 +140,13 @@ static ULONG SecondsToIntTime(ULONG seconds)
 	ULONG minutes = seconds / 60;
 	seconds -= minutes * 60;
 	return CreateIntTime(seconds, minutes, hours);
+}
+
+std::string sMailState::part_text() const
+{
+	if (part_counter.empty())
+		return "1";
+	return kc_join(part_counter, ".", stringify);
 }
 
 /**
@@ -199,7 +219,7 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 
 	try {
 		if (m_mailState.ulMsgInMsg == 0)
-			m_mailState.reset();
+			m_mailState = sMailState();
 
 		// get raw headers
 		auto posHeaderEnd = input.find("\r\n\r\n");
@@ -468,6 +488,15 @@ HRESULT VMIMEToMAPI::fillMAPIMail(vmime::shared_ptr<vmime::message> vmMessage,
 			if (hr != hrSuccess) {
 				ec_log_err("Unable to parse mail body");
 				return hr;
+			}
+			if (m_dopt.conversion_notices &&
+			    m_mailState.bodyLevel == BODY_NONE &&
+			    !m_mailState.cvt_notes.empty()) {
+				auto text = convert_to<std::wstring>(kc_join(m_mailState.cvt_notes, "\n"));
+				SPropValue pv;
+				pv.ulPropTag = PR_BODY_W;
+				pv.Value.lpszW = const_cast<wchar_t *>(text.c_str());
+				HrSetOneProp(lpMessage, &pv);
 			}
 		}
 	} catch (const vmime::exception &e) {
@@ -1432,12 +1461,13 @@ HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals,
 /** 
  * Order alternatives in a body according to local preference.
  *
- * This function (currently) only deprioritizes text/plain parts, and leaves
- * the priority of everything else as-is.
+ * Parts in the incoming mail are ordered in increasing preference
+ * (boring-to-interesting) as per RFC 2046 §5.1.4. The local algorithm is to
+ * deprioritize text/plain at all times, but otherwise keep the sender's
+ * preferences.
  *
- * This function also reverses the list. Whereas MIME parts in @vmBody are
- * ordered from boring-to-interesting, the list returned by this function is
- * interesting-to-boring.
+ * The amended list is then returned in _reverse_, i.e. interesting-to-boring
+ * for purposes of further processing.
  */
 static std::list<unsigned int>
 vtm_order_alternatives(vmime::shared_ptr<vmime::body> vmBody)
@@ -1464,12 +1494,13 @@ vtm_order_alternatives(vmime::shared_ptr<vmime::body> vmBody)
 
 HRESULT VMIMEToMAPI::dissect_multipart(vmime::shared_ptr<vmime::header> vmHeader,
     vmime::shared_ptr<vmime::body> vmBody, IMessage *lpMessage,
-    bool bFilterDouble, bool bAppendBody)
+    unsigned int flags)
 {
-	bool bAlternative = false;
 	HRESULT hr = hrSuccess;
 
 	if (vmBody->getPartCount() <= 0) {
+		m_mailState.part_counter.push_back(1);
+		auto pop = make_scope_success([&]() { m_mailState.part_counter.pop_back(); });
 		// a lonely attachment in a multipart, may not be empty when it's a signed part.
 		hr = handleAttachment(vmHeader, vmBody, lpMessage);
 		if (hr != hrSuccess)
@@ -1480,11 +1511,13 @@ HRESULT VMIMEToMAPI::dissect_multipart(vmime::shared_ptr<vmime::header> vmHeader
 	// check new multipart type
 	auto mt = vmime::dynamicCast<vmime::mediaType>(vmHeader->ContentType()->getValue());
 	if (mt->getSubType() == "appledouble")
-		bFilterDouble = true;
+		flags |= DIS_FILTER_DOUBLE;
 	else if (mt->getSubType() == "mixed")
-		bAppendBody = true;
+		flags |= DIS_APPEND_BODY;
 	else if (mt->getSubType() == "alternative")
-		bAlternative = true;
+		flags |= DIS_ALTERNATIVE;
+	else
+		flags &= ~DIS_ALTERNATIVE;
 
 		/*
 		 * RFC 2046 §5.1.7: all unrecognized subtypes are to be
@@ -1495,13 +1528,15 @@ HRESULT VMIMEToMAPI::dissect_multipart(vmime::shared_ptr<vmime::header> vmHeader
 		 * reasons.
 		 */
 
-	if (!bAlternative) {
+	if (!(flags & DIS_ALTERNATIVE)) {
 		// recursively process multipart message
 		for (size_t i = 0; i < vmBody->getPartCount(); ++i) {
+			m_mailState.part_counter.push_back(i);
+			auto pop = make_scope_success([&]() { m_mailState.part_counter.pop_back(); });
 			auto vmBodyPart = vmBody->getPartAt(i);
-			hr = dissect_body(vmBodyPart->getHeader(), vmBodyPart->getBody(), lpMessage, bFilterDouble, bAppendBody);
+			hr = dissect_body(vmBodyPart->getHeader(), vmBodyPart->getBody(), lpMessage, flags);
 			if (hr != hrSuccess) {
-				ec_log_err("dissect_multipart: Unable to parse sub multipart %zu of mail body", i);
+				ec_log_err("dissect_multipart: Unable to parse part %s: %s", m_mailState.part_text().c_str(), GetMAPIErrorMessage(hr));
 				return hr;
 			}
 		}
@@ -1512,17 +1547,18 @@ HRESULT VMIMEToMAPI::dissect_multipart(vmime::shared_ptr<vmime::header> vmHeader
 
 	// recursively process multipart alternatives in reverse to select best body first
 	for (auto body_idx : lBodies) {
+		m_mailState.part_counter.push_back(body_idx);
+		auto pop = make_scope_success([&]() { m_mailState.part_counter.pop_back(); });
 		auto vmBodyPart = vmBody->getPartAt(body_idx);
-		ec_log_debug("Trying to parse alternative multipart %d of mail body", body_idx);
-
-		hr = dissect_body(vmBodyPart->getHeader(), vmBodyPart->getBody(), lpMessage, bFilterDouble, bAppendBody);
+		ec_log_debug("Parsing MIME part %s", m_mailState.part_text().c_str());
+		hr = dissect_body(vmBodyPart->getHeader(), vmBodyPart->getBody(), lpMessage, flags);
 		if (hr == hrSuccess)
 			return hrSuccess;
-		ec_log_err("Unable to parse alternative multipart %d of mail body, trying other alternatives", body_idx);
+		ec_log_err("Unable to parse MIME part %s: %s. Trying more alternatives.", GetMAPIErrorMessage(hr), m_mailState.part_text().c_str());
 	}
 	/* If lBodies was empty, we could get here, with hr being hrSuccess. */
 	if (hr != hrSuccess)
-		ec_log_err("Unable to parse all alternative multiparts of mail body");
+		ec_log_err("Part %s: no alternatives were good", m_mailState.part_text().c_str());
 	return hr;
 }
 
@@ -1559,7 +1595,7 @@ void VMIMEToMAPI::dissect_message(vmime::shared_ptr<vmime::body> vmBody,
 
 	// handle message-in-message, save current state variables
 	auto savedState = m_mailState;
-	m_mailState.reset();
+	m_mailState = sMailState();
 	++m_mailState.ulMsgInMsg;
 
 	hr = convertVMIMEToMAPI(newMessage, lpNewMessage);
@@ -1719,19 +1755,17 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
  * @param[in]	vmHeader		vmime header part which describes the contents of the body in vmBody.
  * @param[in]	vmBody			a body part of the mail.
  * @param[out]	lpMessage		MAPI message to write header properties in.
- * @param[in]	filterDouble	skips some attachments when true, only happens then an appledouble attachment marker is found.
- * @param[in]	bAppendBody		Concatenate with existing body if true, makes an attachment when false and a body was previously saved.
  * @return		MAPI error code.
  * @retval		MAPI_E_CALL_FAILED	Caught an exception, which breaks the conversion.
  */
 HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
     vmime::shared_ptr<vmime::body> vmBody, IMessage *lpMessage,
-    bool filterDouble, bool appendBody)
+    unsigned int flags)
 {
 	HRESULT	hr = hrSuccess;
 	object_ptr<IStream> lpStream;
 	SPropValue sPropSMIMEClass;
-	bool bFilterDouble = filterDouble, bAppendBody = appendBody, bIsAttachment = false;
+	bool bIsAttachment = false;
 
 	if (vmHeader->hasField(vmime::fields::MIME_VERSION))
 		++m_mailState.mime_vtag_nest;
@@ -1750,33 +1784,38 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 			vmBody->getContents()->getEncoding().getEncoder();
 		} catch (const vmime::exceptions::no_encoder_available &) {
 			/* RFC 2045 §6.4 page 17 */
-			ec_log_debug("Encountered unknown Content-Transfer-Encoding \"%s\".",
-				vmBody->getContents()->getEncoding().getName().c_str());
+			if (!bIsAttachment)
+				ec_log_debug("Encountered unknown Content-Transfer-Encoding \"%s\".",
+					vmBody->getContents()->getEncoding().getName().c_str());
 			force_raw = true;
 		}
 
 		if (force_raw) {
+			if (!bIsAttachment && (flags & DIS_ALTERNATIVE))
+				m_mailState.cvt_notes.push_back(format(KC_A("MIME part %s, the highest-ranking alternative in a set and hence chosen, is unsuitable for display: Unknown Content-Transfer-Encoding. It is made available as an attachment instead."), m_mailState.part_text().c_str()));
+			else if (!bIsAttachment)
+				m_mailState.cvt_notes.push_back(format(KC_A("MIME part %s unsuitable for display: Unknown Content-Transfer-Encoding. It is made available as an attachment instead."), m_mailState.part_text().c_str()));
 			hr = handleAttachment(vmHeader, vmBody, lpMessage, L"unknown_transfer_encoding", true);
 			if (hr != hrSuccess)
 				return hr;
 		} else if (mt->getType() == "multipart") {
-			hr = dissect_multipart(vmHeader, vmBody, lpMessage, bFilterDouble, bAppendBody);
+			hr = dissect_multipart(vmHeader, vmBody, lpMessage, flags & ~DIS_IMMEDIATE_FLAGS);
 			if (hr != hrSuccess)
 				return hr;
 		// Only handle as inline text if no filename is specified and not specified as 'attachment'
 		} else if (mt->getType() == vmime::mediaTypes::TEXT &&
 		    (mt->getSubType() == vmime::mediaTypes::TEXT_PLAIN || mt->getSubType() == vmime::mediaTypes::TEXT_HTML) &&
 		    !bIsAttachment) {
-			if (mt->getSubType() == vmime::mediaTypes::TEXT_HTML || (m_mailState.bodyLevel == BODY_HTML && bAppendBody)) {
+			if (mt->getSubType() == vmime::mediaTypes::TEXT_HTML || (m_mailState.bodyLevel == BODY_HTML && flags & DIS_APPEND_BODY)) {
 				// handle real html part, or append a plain text bodypart to the html main body
 				// subtype guaranteed html or plain.
-				hr = handleHTMLTextpart(vmHeader, vmBody, lpMessage, m_dopt.insecure_html_join ? bAppendBody : false);
+				hr = handleHTMLTextpart(vmHeader, vmBody, lpMessage, m_dopt.insecure_html_join ? (flags & DIS_APPEND_BODY) : false);
 				if (hr != hrSuccess) {
 					ec_log_err("Unable to parse mail HTML text");
 					return hr;
 				}
 			} else {
-				hr = handleTextpart(vmHeader, vmBody, lpMessage, bAppendBody);
+				hr = handleTextpart(vmHeader, vmBody, lpMessage, flags & DIS_APPEND_BODY);
 				if (hr != hrSuccess)
 					return hr;
 			}
@@ -1810,8 +1849,8 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 			hr = dissect_ical(vmHeader, vmBody, lpMessage, bIsAttachment);
 			if (hr != hrSuccess)
 				return hr;
-		} else if (filterDouble && mt->getType() == vmime::mediaTypes::APPLICATION && mt->getSubType() == "applefile") {
-		} else if (filterDouble && mt->getType() == vmime::mediaTypes::APPLICATION && mt->getSubType() == "mac-binhex40") {
+		} else if ((flags & DIS_FILTER_DOUBLE) && mt->getType() == vmime::mediaTypes::APPLICATION && mt->getSubType() == "applefile") {
+		} else if ((flags & DIS_FILTER_DOUBLE) && mt->getType() == vmime::mediaTypes::APPLICATION && mt->getSubType() == "mac-binhex40") {
 				// ignore appledouble parts
 				// mac-binhex40 is appledouble v1, applefile is v2
 				// see: http://www.iana.org/assignments/media-types/multipart/appledouble			
@@ -1859,6 +1898,10 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 			}
 		} else {
 			/* RFC 2049 §2 item 7 */
+			if (flags & DIS_ALTERNATIVE)
+				m_mailState.cvt_notes.push_back(format(KC_A("MIME part %s, the highest-ranking alternative in a set and hence chosen, is insuitable for display: Unknown Content-Type. It is made available as an attachment instead."), m_mailState.part_text().c_str()));
+			else
+				m_mailState.cvt_notes.push_back(format(KC_A("MIME part %s unsuitable for display: Unknown Content-Type. It is made available as an attachment instead."), m_mailState.part_text().c_str()));
 			hr = handleAttachment(vmHeader, vmBody, lpMessage, L"unknown_content_type");
 			if (hr != hrSuccess)
 				return hr;
@@ -3559,6 +3602,7 @@ void imopt_default_delivery_options(delivery_options *dopt) {
 	dopt->ascii_upgrade = nullptr;
 	dopt->html_safety_filter = false;
 	dopt->header_strict_rfc = false;
+	dopt->conversion_notices = false;
 }
 
 /**
