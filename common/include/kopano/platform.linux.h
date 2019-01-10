@@ -67,26 +67,20 @@ typedef signed char		CHAR;
 typedef BYTE*			LPBYTE;
 typedef unsigned short	WORD;
 typedef WORD*			LPWORD;
-typedef unsigned short	USHORT;
-typedef USHORT*			LPUSHORT;
 typedef unsigned int	DWORD;
 typedef DWORD*			LPDWORD;
 typedef unsigned int	UINT;
-typedef UINT*			LPUINT;
 typedef unsigned int	ULONG;
 typedef ULONG*			LPULONG;
 typedef int64_t		LONGLONG;
 typedef LONGLONG*		LPLONGLONG;
 typedef uint64_t	ULONGLONG;
-typedef ULONGLONG*		LPULONGLONG;
 typedef uintptr_t ULONG_PTR;
 typedef int	LONG;
 typedef int	BOOL;
 typedef void* LPVOID;
-typedef const void* LPCVOID;
 typedef char* LPSTR;
 typedef const char* LPCSTR;
-typedef void* HGLOBAL;
 typedef __int64_t __int64;
 
 #ifndef FALSE
@@ -122,10 +116,8 @@ typedef CLSID* LPCLSID;
 typedef GUID   FMTID;
 typedef FMTID* LPFMTID;
 
-#define REFGUID  const GUID &
 #define REFIID   const IID &
 #define REFCLSID const CLSID &
-#define REFFMTID const FMTID &
 
 typedef GUID  UUID;		// needed? existing?
 
@@ -187,7 +179,6 @@ typedef GUID  UUID;		// needed? existing?
 /* correct? */
 typedef unsigned int	HINSTANCE;
 typedef unsigned int	HANDLE;
-typedef unsigned int	HWND;
 typedef int				HRESULT;
 typedef int				SCODE;
 
@@ -274,7 +265,6 @@ typedef WCHAR		TCHAR;
 namespace KC {
 typedef std::basic_string<TCHAR> tstring;
 }
-typedef unsigned char	TBYTE;
 typedef WCHAR*			LPWSTR;
 typedef const WCHAR*	LPCWSTR;
 typedef TCHAR*			LPTSTR;
@@ -401,7 +391,7 @@ extern _kc_export void Sleep(unsigned int usec);
 
 /* because the flags are not used linux, they do not match the windows flags! */
 #define GPTR 0
-extern _kc_export HGLOBAL GlobalAlloc(UINT flags, ULONG size);
+extern _kc_export void * GlobalAlloc(UINT flags, ULONG size);
 
 } /* extern "C" */
 

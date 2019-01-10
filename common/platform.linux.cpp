@@ -145,7 +145,7 @@ char * get_password(const char *prompt) {
 
 } /* namespace */
 
-HGLOBAL GlobalAlloc(UINT uFlags, ULONG ulSize)
+void * GlobalAlloc(UINT uFlags, ULONG ulSize)
 {
 	// always returns NULL, as required by CreateStreamOnHGlobal implementation in mapi4linux/src/mapiutil.cpp
 	return NULL;
