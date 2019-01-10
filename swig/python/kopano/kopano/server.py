@@ -8,6 +8,7 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 
 import atexit
 import codecs
+import warnings
 import gc
 import datetime
 import functools
@@ -17,8 +18,10 @@ import socket
 import sys
 
 from MAPI import (
-    MAPI_UNICODE, MDB_WRITE, RELOP_EQ,
-    TBL_BATCH, ECSTORE_TYPE_PRIVATE, MAPI_DEFERRED_ERRORS
+    MAPI_UNICODE, MDB_WRITE, RELOP_EQ, MAPI_MAILUSER, TBL_BATCH,
+    ECSTORE_TYPE_PRIVATE, MAPI_DEFERRED_ERRORS, DT_REMOTE_MAILUSER,
+    RELOP_NE, FL_FULLSTRING, FL_IGNORECASE, BOOKMARK_BEGINNING,
+    EC_OVERRIDE_HOMESERVER, WrapStoreEntryID
 )
 from MAPI.Util import (
     GetDefaultStore, OpenECSession
@@ -30,7 +33,8 @@ from MAPI.Defs import (
 from MAPI.Struct import (
     SPropertyRestriction, SPropValue, ECCOMPANY, ECGROUP, ECUSER,
     MAPIErrorNotFound, MAPIErrorNoSupport, MAPIErrorCollision,
-    MAPIErrorLogonFailed, MAPIErrorNetworkError, MAPIErrorDiskError
+    MAPIErrorLogonFailed, MAPIErrorNetworkError, MAPIErrorDiskError,
+    SAndRestriction, SContentRestriction,
 )
 from MAPI.Tags import (
     PR_ACCOUNT_W, PURGE_CACHE_ALL, PR_DISPLAY_NAME_W, PR_ENTRYID,
@@ -40,6 +44,7 @@ from MAPI.Tags import (
     PR_EC_STATSTABLE_SERVERS, PR_EC_STATS_SERVER_HTTPSURL,
     PR_STORE_ENTRYID, EC_PROFILE_FLAGS_NO_UID_AUTH,
     EC_PROFILE_FLAGS_NO_NOTIFICATIONS, EC_PROFILE_FLAGS_OIDC,
+    PR_OBJECT_TYPE, PR_DISPLAY_TYPE,
 )
 from MAPI.Tags import (
     IID_IMsgStore, IID_IMAPITable, IID_IExchangeManageStore,
@@ -48,7 +53,7 @@ from MAPI.Tags import (
 
 from .errors import (
     Error, NotFoundError, DuplicateError, NotSupportedError,
-    LogonError, ArgumentError
+    LogonError, ArgumentError, _DeprecationWarning
 )
 from .log import LOG, _loglevel
 
@@ -347,7 +352,9 @@ class Server(object):
             except MAPIErrorNotFound:
                 pass
 
-    def gab_table(self, restriction=None, columns=None): # XXX separate addressbook class? useful to add to self.tables?
+    def gab_table(self, restriction=None, columns=None):
+        warnings.warn('Server.gab_table is deprecated', _DeprecationWarning)
+
         ct = self.gab.GetContentsTable(MAPI_DEFERRED_ERRORS)
         return Table(
             self,
@@ -372,6 +379,8 @@ class Server(object):
 
     @property
     def gab(self):
+        # TODO deprecate, because MAPI-level
+
         if not self._gab:
             self._gab = self.ab.OpenEntry(self.ab.GetDefaultDir(), None, 0)
         return self._gab
@@ -415,34 +424,6 @@ class Server(object):
         :param remote: include users on remote server nodes
         :param system: include system users
         """
-        pos = 0
-        count = 0
-
-        multitenant = self.multitenant
-
-        # use query
-        if query is not None:
-            store = _store.Store(mapiobj=self.mapistore, server=self)
-            restriction = _query_to_restriction(query, 'user', store) # TODO use restriction to filter company!
-            columns = [PR_ENTRYID, PR_DISPLAY_NAME_W, PR_SMTP_ADDRESS_W]
-            table = self.gab_table(restriction=restriction, columns=columns)
-            for row in table.rows():
-                user = self.user(userid=_benc(row[0].value))
-                if multitenant and _company and _company != user.company:
-                    continue
-                if page_start is None or pos >= page_start:
-                    yield user
-                    count += 1
-                if page_limit is not None and count >= page_limit:
-                    return
-                pos += 1
-            return
-
-        def include(user, ecuser):
-            return ((system or user.name != u'SYSTEM') and
-                    (remote or ecuser.Servername in (self.name, '')) and
-                    (hidden or not user.hidden) and
-                    (inactive or user.active))
 
         # users specified on command-line
         if parse and getattr(self.options, 'users', None):
@@ -450,28 +431,93 @@ class Server(object):
                 yield _user.User(username, self)
             return
 
-        # multi-tenant: get users per company
-        if multitenant:
-            if _company:
-                companies = [_company]
+        # global listing on multitenant setup
+        if self.multitenant and not _company:
+            if page_limit is None and page_start is None and query is None and order is None:
+                for company in self.companies():
+                    for user in company.users(remote=remote, system=system, parse=parse, hidden=hidden, inactive=inactive):
+                        yield user
+                return
             else:
-                companies = [Company(name, self) for name in self._companylist()] # TODO slow
-            for company in companies:
-                for ecuser in self.sa.GetUserList(_bdec(company.companyid), MAPI_UNICODE):
+                raise NotSupportedError('unsupported method of user listing')
+
+        # find right addressbook container (global or for company)
+        gab = self.gab
+
+        restriction = SAndRestriction([
+            SPropertyRestriction(RELOP_EQ, PR_OBJECT_TYPE, SPropValue(PR_OBJECT_TYPE, MAPI_MAILUSER)),
+            SPropertyRestriction(RELOP_NE, PR_DISPLAY_TYPE, SPropValue(PR_DISPLAY_TYPE, DT_REMOTE_MAILUSER))
+        ])
+
+        if _company and _company.name != 'Default':
+            htable = gab.GetHierarchyTable(0)
+            htable.SetColumns([PR_ENTRYID], TBL_BATCH)
+            htable.FindRow(SContentRestriction(FL_FULLSTRING|FL_IGNORECASE, PR_DISPLAY_NAME_W, SPropValue(PR_DISPLAY_NAME_W, _company.name)), BOOKMARK_BEGINNING, 0)
+            row = htable.QueryRows(1, 0)[0]
+            container = gab.OpenEntry(row[0].Value, None, 0)
+        else:
+            container = gab
+
+        table = container.GetContentsTable(0)
+        table.SetColumns([PR_ENTRYID], MAPI_UNICODE)
+
+        # apply query restriction
+        if query is not None:
+            store = _store.Store(mapiobj=self.mapistore, server=self)
+            restriction.lpRes.append(_query_to_restriction(query, 'user', store).mapiobj)
+
+        table.Restrict(restriction, TBL_BATCH)
+
+        # TODO apply order argument here
+
+        def include(user, ecuser):
+            return ((system or user.name != u'SYSTEM') and
+                    (remote or ecuser.Servername in (self.name, '')) and
+                    (hidden or not user.hidden) and
+                    (inactive or user.active))
+
+        # TODO simpler/faster if sa.GetUserList could do restrictions, ordering, pagination..
+        # since then we can always work with ecuser objects in bulk
+        userid_ecuser = None
+        if page_limit is None and page_start is None and query is None:
+            userid_ecuser = {}
+            if _company and _company.name != 'Default':
+                ecusers = self.sa.GetUserList(_company._eccompany.CompanyID, MAPI_UNICODE)
+            else:
+                ecusers = self.sa.GetUserList(None, MAPI_UNICODE)
+            for ecuser in ecusers:
+                userid_ecuser[ecuser.UserID] = ecuser
+
+                # fast path: just get all users
+                if order is None:
                     user = _user.User(server=self, ecuser=ecuser)
                     if include(user, ecuser):
-                        if page_start is None or pos >= page_start:
-                            yield user
-                            count += 1
-                        if page_limit is not None and count >= page_limit:
-                            return
-                        pos += 1
+                        yield user
+            if order is None:
+                return
 
-        # single-tenant: get all users
-        else:
-            for ecuser in self.sa.GetUserList(None, MAPI_UNICODE):
-                user = _user.User(server=self, ecuser=ecuser)
-                if include(user, ecuser):
+        # loop over rows and paginate
+        pos = 0
+        count = 0
+
+        while True:
+            rows = table.QueryRows(50, 0)
+            if not rows:
+                break
+            for row in rows:
+                userid = row[0].Value
+                if userid_ecuser is None:
+                    try:
+                        user = _user.User(server=self, userid=_benc(userid))
+                    except NotFoundError:
+                        continue
+                else:
+                    try:
+                        user = _user.User(server=self, ecuser=userid_ecuser[userid])
+                    except KeyError:
+                        continue
+
+                if include(user, user._ecuser):
                     if page_start is None or pos >= page_start:
                         yield user
                         count += 1
