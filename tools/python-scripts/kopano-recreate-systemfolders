@@ -39,7 +39,7 @@ def main():
 
     user = kopano.Server(options).user(options.user)
     print(user)
-    whitelist = ['calendar', 'contacts', 'drafts', 'journal', 'notes', 'outbox', 'sentmail', 'task',
+    whitelist = ['calendar', 'contacts', 'drafts', 'journal', 'notes', 'outbox', 'sentmail', 'tasks',
                  'wastebasket']
     if options.systemfolder in whitelist:
 
