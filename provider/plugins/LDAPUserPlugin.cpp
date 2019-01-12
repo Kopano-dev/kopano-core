@@ -218,7 +218,7 @@ private:
 	if (__var)												\
 		(__attrs)->add(__var);
 
-static std::string rst2flt_main(const restrictTable *, const std::map<unsigned int, std::string> &);
+static std::string rst2flt_main(const restrictTable *, const std::map<unsigned int, std::string> &, bool inot);
 static HRESULT BintoEscapeSequence(const char *data, size_t size, std::string *);
 static std::string StringEscapeSequence(const std::string &);
 static std::string StringEscapeSequence(const char *, size_t);
@@ -231,7 +231,7 @@ template<typename T> static constexpr inline LONGLONG dur2us(const T &t)
 }
 
 static std::string rst2flt_or(const restrictOr *q,
-    const std::map<unsigned int, std::string> &propmap)
+    const std::map<unsigned int, std::string> &propmap, bool inot)
 {
 	/*
 	 * 0-member OR restriction: evaluates to false in
@@ -239,12 +239,12 @@ static std::string rst2flt_or(const restrictOr *q,
 	 */
 	std::string s = "(|";
 	for (int i = 0; i < q->__size; ++i)
-		s += rst2flt_main(q->__ptr[i], propmap);
+		s += rst2flt_main(q->__ptr[i], propmap, inot);
 	return s += ")";
 }
 
 static std::string rst2flt_and(const restrictAnd *q,
-    const std::map<unsigned int, std::string> &propmap)
+    const std::map<unsigned int, std::string> &propmap, bool inot)
 {
 	/*
 	 * 0-member AND restriction: evaluates to true in LDAP
@@ -252,12 +252,12 @@ static std::string rst2flt_and(const restrictAnd *q,
 	 */
 	std::string s = "(&";
 	for (int i = 0; i < q->__size; ++i)
-		s += rst2flt_main(q->__ptr[i], propmap);
+		s += rst2flt_main(q->__ptr[i], propmap, inot);
 	return s += ")";
 }
 
 static std::string rst2flt_main(const restrictTable *rt,
-    const std::map<unsigned int, std::string> &propmap)
+    const std::map<unsigned int, std::string> &propmap, bool inot)
 {
 	/* Transform a restriction into an LDAP filter. It need not be exact:
 	 * matching more is always ok. */
@@ -265,13 +265,13 @@ static std::string rst2flt_main(const restrictTable *rt,
 	//$14 = 0x3003001e
 	switch (rt->ulType) {
 	case RES_OR:
-		return rst2flt_or(rt->lpOr, propmap);
+		return rst2flt_or(rt->lpOr, propmap, inot);
 	case RES_AND:
-		return rst2flt_and(rt->lpAnd, propmap);
+		return rst2flt_and(rt->lpAnd, propmap, inot);
 	case RES_NOT:
-		return "(!" + rst2flt_main(rt->lpNot->lpNot, propmap) + ")";
+		return "(!" + rst2flt_main(rt->lpNot->lpNot, propmap, !inot) + ")";
 	case RES_COMMENT:
-		return rst2flt_main(rt->lpComment->lpResTable, propmap);
+		return rst2flt_main(rt->lpComment->lpResTable, propmap, inot);
 	case RES_SUBRESTRICTION:
 		return "(|)"; /* userdb has no concept of "sub" */
 	case RES_EXIST: {
@@ -281,8 +281,13 @@ static std::string rst2flt_main(const restrictTable *rt,
 	case RES_CONTENT:
 		break;
 	default:
-		/* Unrepresentable restriction type (BITMASK, COMPARE, PROPERTY, SIZE) */
-		return "(&)";
+		/*
+		 * Unrepresentable restriction type (BITMASK, COMPARE,
+		 * PROPERTY, SIZE); the result is therefore indefinite.
+		 * "Indefinite" values need to evaluate to "true" in the
+		 * outermost expression such that they do not filter rows.
+		 */
+		return inot ? "(|)" : "(&)";
 	}
 	auto q = rt->lpContent;
 	auto pv = q->lpProp;
@@ -317,7 +322,7 @@ std::string LDAPUserPlugin::rst_to_filter(const restrictTable *rt)
 	map.emplace(PROP_ID(PR_EMAIL_ADDRESS), value);
 	map.emplace(PROP_ID(PR_EC_HOMESERVER_NAME), m_config->GetSetting("ldap_user_server_attribute"));
 	map.emplace(PROP_ID(PR_SMTP_ADDRESS), m_config->GetSetting("ldap_emailaddress_attribute"));
-	return rst2flt_main(rt, map);
+	return rst2flt_main(rt, map, false);
 }
 
 LDAPUserPlugin::LDAPUserPlugin(std::mutex &pluginlock,
