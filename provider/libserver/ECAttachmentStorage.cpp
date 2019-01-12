@@ -37,6 +37,30 @@ using namespace std::string_literals;
 
 namespace KC {
 
+class gz_ptr {
+	public:
+	gz_ptr(int &fd, const char *file) : m_fd(fd), m_fp(gzdopen(fd, file)) {}
+	~gz_ptr() {
+		if (m_fp != nullptr)
+			close();
+	}
+	operator gzFile() const { return m_fp; }
+	int close() {
+		if (m_fp == nullptr)
+			return Z_OK;
+		auto ret = gzclose(m_fp);
+		if (ret != Z_OK)
+			ec_log_err("gzclose: %s", ret == Z_ERRNO ? strerror(errno) : "buffer error");
+		m_fd = -1;
+		m_fp = nullptr;
+		return ret;
+	}
+
+	private:
+	int &m_fd;
+	gzFile m_fp = nullptr;
+};
+
 class ECDatabaseAttachmentConfig final : public ECAttachmentConfig {
 	public:
 	virtual ECAttachmentStorage *new_handle(ECDatabase *) override;
@@ -1252,7 +1276,6 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(struct soap *soap,
 	ECRESULT er = erSuccess;
 	unsigned char *lpData = NULL;
 	bool bCompressed = m_bFileCompression;
-	gzFile gzfp = NULL;
 
 	*lpiSize = 0;
 	auto filename = CreateAttachmentFilename(ulInstanceId, bCompressed);
@@ -1274,7 +1297,7 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(struct soap *soap,
 	my_readahead(fd);
 	if (bCompressed) {
 		unsigned char *temp = NULL;
-		gzfp = gzdopen(fd, "rb");
+		gz_ptr gzfp(fd, "rb");
 		if (!gzfp) {
 			// do not use KCERR_NOT_FOUND: the file is already open so it exists
 			// so something else is going wrong here
@@ -1402,9 +1425,7 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(struct soap *soap,
 exit:
 	if (er != erSuccess && soap == nullptr)
 		soap_del_PointerTounsignedByte(&lpData);
-	if (gzfp)
-		gzclose(gzfp);
-	else if (fd >= 0)
+	if (fd >= 0)
 		close(fd);
 	return er;
 }
@@ -1424,7 +1445,6 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(const ext_siid &ulInstanceId,
 	ECRESULT er = erSuccess;
 	bool bCompressed = false;
 	char buffer[CHUNK_SIZE];
-	gzFile gzfp = NULL;
 
 	*lpiSize = 0;
 	auto filename = CreateAttachmentFilename(ulInstanceId, bCompressed);
@@ -1447,7 +1467,7 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(const ext_siid &ulInstanceId,
 
 	if (bCompressed) {
 		/* Compressed attachment */
-		gzfp = gzdopen(fd, "rb");
+		gz_ptr gzfp(fd, "rb");
 		if (!gzfp) {
 			er = KCERR_UNKNOWN;
 			goto exit;
@@ -1496,11 +1516,6 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(const ext_siid &ulInstanceId,
 	}
 
 exit:
-	if (gzfp) {
-		gzclose(gzfp);
-		fd = -1;
-	}
-
 	if (fd != -1)
 		close(fd);
 
@@ -1595,11 +1610,10 @@ ECRESULT ECFileAttachment::save_instance_data(const std::string &filename, int f
     ULONG ulPropId, size_t iSize, unsigned char *lpData, bool compressAttachment)
 {
 	ECRESULT er = erSuccess;
-	gzFile gzfp = NULL;
 
 	// no need to remove the file, just overwrite it
 	if (compressAttachment) {
-		gzfp = gzdopen(fd, std::string("wb" + m_CompressionLevel).c_str());
+		gz_ptr gzfp(fd, std::string("wb" + m_CompressionLevel).c_str());
 		if (!gzfp) {
 			ec_log_err("Unable to gzopen attachment \"%s\" for writing: %s", filename.c_str(), strerror(errno));
 			er = KCERR_DATABASE_ERROR;
@@ -1613,6 +1627,9 @@ ECRESULT ECFileAttachment::save_instance_data(const std::string &filename, int f
 			er = KCERR_DATABASE_ERROR;
 			goto exit;
 		}
+		auto ret = gzfp.close();
+		if (ret != Z_OK)
+			er = KCERR_DATABASE_ERROR;
 	}
 	else {
 		give_filesize_hint(fd, iSize);
@@ -1626,15 +1643,6 @@ ECRESULT ECFileAttachment::save_instance_data(const std::string &filename, int f
 		}
 	}
 exit:
-	if (gzfp != NULL) {
-		int ret = gzclose(gzfp);
-		if (ret != Z_OK) {
-			ec_log_err("gzclose on attachment \"%s\" failed: %s",
-				filename.c_str(), (ret == Z_ERRNO) ? strerror(errno) : "buffer error");
-			er = KCERR_DATABASE_ERROR;
-		}
-		fd = -1;
-	}
 	if (fd != -1)
 		close(fd);
 	return er;
@@ -1684,7 +1692,7 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(ext_siid &ulInstanceId,
 
 	//no need to remove the file, just overwrite it
 	if (m_bFileCompression) {
-		gzFile gzfp = gzdopen(fd, std::string("wb" + m_CompressionLevel).c_str());
+		gz_ptr gzfp(fd, std::string("wb" + m_CompressionLevel).c_str());
 		if (!gzfp) {
 			ec_log_err("Unable to gzdopen attachment \"%s\" for writing: %s",
 				filename.c_str(), strerror(errno));
@@ -1732,16 +1740,9 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(ext_siid &ulInstanceId,
 				er = KCERR_DATABASE_ERROR;
 			}
 		}
-
-		int ret = gzclose(gzfp);
-		if (ret != Z_OK) {
-			ec_log_err("Problem closing file \"%s\": %s",
-				filename.c_str(), (ret == Z_ERRNO) ? strerror(errno) : "buffer error");
+		auto ret = gzfp.close();
+		if (ret != Z_OK)
 			er = KCERR_DATABASE_ERROR;
-		}
-
-		// if gzclose fails, we can't know if the fd is still valid or not
-		fd = -1;
 	}
 	else {
 		give_filesize_hint(fd, iSize);
