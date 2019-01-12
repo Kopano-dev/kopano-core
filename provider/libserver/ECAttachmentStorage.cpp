@@ -1568,7 +1568,7 @@ exit:
 		int ret = gzclose(gzfp);
 		if (ret != Z_OK) {
 			ec_log_err("gzclose on attachment \"%s\" failed: %s",
-				filename.c_str(), (ret == Z_ERRNO) ? strerror(errno) : gzerror(gzfp, NULL));
+				filename.c_str(), (ret == Z_ERRNO) ? strerror(errno) : "buffer error");
 			er = KCERR_DATABASE_ERROR;
 		}
 		fd = -1;
@@ -1658,7 +1658,7 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(const ext_siid &ulInstanceId,
 		int ret = gzclose(gzfp);
 		if (ret != Z_OK) {
 			ec_log_err("Problem closing file \"%s\": %s",
-				filename.c_str(), (ret == Z_ERRNO) ? strerror(errno) : gzerror(gzfp, NULL));
+				filename.c_str(), (ret == Z_ERRNO) ? strerror(errno) : "buffer error");
 			er = KCERR_DATABASE_ERROR;
 		}
 
