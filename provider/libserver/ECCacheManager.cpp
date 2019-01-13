@@ -671,7 +671,7 @@ exit:
 		LOG_USERCACHE_DEBUG("Get user object for user %d result [%s]: externid \"%s\", class %d, companyid %d, signature \"%s\"",
 			ulUserId, (bCacheResult ? "C" : "D"), bin2txt(externid).c_str(), ulClass,
 			(lpulCompanyId != nullptr ? *lpulCompanyId : -1),
-			(lpstrSignature != nullptr ? bin2hex(*lpstrSignature).c_str() : "-"));
+			(lpstrSignature != nullptr ? bin2txt(*lpstrSignature).c_str() : "-"));
 	return er;
 }
 
@@ -766,7 +766,7 @@ exit:
 			bin2txt(sExternId.id).c_str(), sExternId.objclass, (bCacheResult ? "C" : "D"),
 			(lpulCompanyId != nullptr ? *lpulCompanyId : -1),
 			(lpulUserId != nullptr ? *lpulUserId : -1),
-			(lpstrSignature != nullptr ? bin2hex(*lpstrSignature).c_str() : "-"));
+			(lpstrSignature != nullptr ? bin2txt(*lpstrSignature).c_str() : "-"));
 	return er;
 }
 
@@ -828,7 +828,8 @@ ECRESULT ECCacheManager::GetUserObjects(const std::list<objectid_t> &lstExternOb
 		auto ulCompanyId = atoi(lpDBRow[4]);
 		lpmapLocalObjIds->insert({sExternId, ulLocalId});
 		I_AddUEIdObject(sExternId.id, sExternId.objclass, ulCompanyId, ulLocalId, strSignature);
-		LOG_USERCACHE_DEBUG(" Get user objects result company %d, userid %d, signature '%s'", ulCompanyId, ulLocalId, bin2hex(strSignature).c_str());
+		LOG_USERCACHE_DEBUG(" Get user objects result company %d, userid %d, signature \"%s\"",
+			ulCompanyId, ulLocalId, bin2txt(strSignature).c_str());
 	}
 
 	// From this point you can have less items in lpmapLocalObjIds than requested in lstExternObjIds
@@ -852,12 +853,12 @@ ECRESULT ECCacheManager::I_AddUserObject(unsigned int ulUserId,
 
 	if (OBJECTCLASS_ISTYPE(ulClass)) {
 		LOG_USERCACHE_DEBUG("_Add user object. userid %d, class %d, companyid %d, externid \"%s\", signature \"%s\". error incomplete object",
-			ulUserId, ulClass, ulCompanyId, bin2txt(strExternId).c_str(), bin2hex(strSignature).c_str());
+			ulUserId, ulClass, ulCompanyId, bin2txt(strExternId).c_str(), bin2txt(strSignature).c_str());
 		return erSuccess; // do not add incomplete data into the cache
 	}
 
 	LOG_USERCACHE_DEBUG("_Add user object. userid %d, class %d, companyid %d, externid \"%s\", signature \"%s\"",
-		ulUserId, ulClass, ulCompanyId, bin2txt(strExternId).c_str(), bin2hex(strSignature).c_str());
+		ulUserId, ulClass, ulCompanyId, bin2txt(strExternId).c_str(), bin2txt(strSignature).c_str());
 
 	sData.ulClass = ulClass;
 	sData.ulCompanyId = ulCompanyId;
