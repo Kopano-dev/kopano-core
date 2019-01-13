@@ -222,7 +222,8 @@ objectsignature_t UnixUserPlugin::resolveName(objectclass_t objclass, const stri
 	if (company.id.empty())
 		LOG_PLUGIN_DEBUG("%s Class %x, Name %s", __FUNCTION__, objclass, name.c_str());
 	else
-		LOG_PLUGIN_DEBUG("%s Class %x, Name %s, Company %s", __FUNCTION__, objclass, name.c_str(), company.id.c_str());
+		LOG_PLUGIN_DEBUG("%s Class %x, Name %s, Company xid:\"%s\"", __FUNCTION__,
+			objclass, name.c_str(), bin2txt(company.id).c_str());
 
 	switch (OBJECTCLASS_TYPE(objclass)) {
 	case OBJECTTYPE_UNKNOWN:
@@ -413,7 +414,7 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 	if (companyid.id.empty())
 		LOG_PLUGIN_DEBUG("%s Class %x", __FUNCTION__, objclass);
 	else
-		LOG_PLUGIN_DEBUG("%s Company %s, Class %x", __FUNCTION__, companyid.id.c_str(), objclass);
+		LOG_PLUGIN_DEBUG("%s Company xid:\"%s\", Class %x", __FUNCTION__, bin2txt(companyid.id).c_str(), objclass);
 
 	// use mutex to protect thread-unsafe setpwent()/setgrent() calls
 	ulock_normal biglock(m_plugin_lock);
@@ -539,8 +540,7 @@ objectdetails_t UnixUserPlugin::getObjectDetails(const objectid_t &externid)
 	struct group grp;
 	DB_RESULT lpResult;
 
-	LOG_PLUGIN_DEBUG("%s for externid %s, class %d", __FUNCTION__, bin2hex(externid.id).c_str(), externid.objclass);
-
+	LOG_PLUGIN_DEBUG("%s for xid:\"%s\", class %d", __FUNCTION__, bin2txt(externid.id).c_str(), externid.objclass);
 	switch (externid.objclass) {
 	case ACTIVE_USER:
 	case NONACTIVE_USER:

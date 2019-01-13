@@ -70,7 +70,7 @@ objectsignature_t DBUserPlugin::resolveName(objectclass_t objclass, const string
 	if (company.id.empty())
 		LOG_PLUGIN_DEBUG("%s Class %x, Name %s", __FUNCTION__, objclass, name.c_str());
 	else
-		LOG_PLUGIN_DEBUG("%s Class %x, Name %s, Company %s", __FUNCTION__, objclass, name.c_str(), company.id.c_str());
+		LOG_PLUGIN_DEBUG("%s Class %x, Name %s, Company xid:\"%s\"", __FUNCTION__, objclass, name.c_str(), bin2txt(company.id).c_str());
 
 	switch (objclass) {
 	case OBJECTCLASS_USER:
@@ -296,7 +296,6 @@ void DBUserPlugin::addSubObjectRelation(userobject_relation_t relation, const ob
 	if (er != erSuccess)
 		throw runtime_error(string("db_query: ") + strerror(er));
 	if (lpResult.get_num_rows() != 1)
-		throw objectnotfound("db_user: Relation does not exist, id:" + parentobject.id);
-
+		throw objectnotfound("db_user: Relation does not exist, xid:\"" + bin2txt(parentobject.id) + "\"");
 	DBPlugin::addSubObjectRelation(relation, parentobject, childobject);
 }

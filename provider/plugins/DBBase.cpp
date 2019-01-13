@@ -546,7 +546,7 @@ void DBPlugin::deleteObject(const objectid_t &objectid)
 	if (er != erSuccess)
 		;//FIXME: ....
 	if (ulAffRows != 1)
-		throw objectnotfound("db_user: " + objectid.id);
+		throw objectnotfound("db_user: xid:\"" + bin2txt(objectid.id) + "\"");
 }
 
 void DBPlugin::addSubObjectRelation(userobject_relation_t relation, const objectid_t &parentobject, const objectid_t &childobject)
@@ -613,7 +613,7 @@ void DBPlugin::deleteSubObjectRelation(userobject_relation_t relation, const obj
 		throw runtime_error("db_query: " + string(strerror(er)));
 
 	if (ulAffRows != 1)
-		throw objectnotfound("db_user: relation " + parentobject.id);
+		throw objectnotfound("db_user: relation xid:\"" + bin2txt(parentobject.id) + "\"");
 }
 
 signatures_t DBPlugin::searchObjects(const std::string &match,
@@ -855,7 +855,7 @@ void DBPlugin::CreateObjectWithExternId(const objectid_t &objectid, const object
 	if (er != erSuccess)
 		throw runtime_error(string("db_query: ") + strerror(er));
 	if (lpResult.fetch_row() != nullptr)
-		throw collision_error(string("Object exists: ") + bin2hex(objectid.id));
+		throw collision_error("Object exists: \"" + bin2txt(objectid.id) + "\"");
 
 	strQuery =
 		"INSERT INTO " + (string)DB_OBJECT_TABLE + "(externid, objectclass) "

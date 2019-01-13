@@ -101,6 +101,7 @@ extern _kc_export std::string bin2hex(size_t len, const void *input);
 extern _kc_export std::string bin2hex(const SBinary &);
 extern _kc_export std::string bin2txt(const void *, size_t);
 extern _kc_export std::string bin2txt(const SBinary &);
+inline std::string bin2txt(const std::string &s) { return bin2txt(s.data(), s.size()); }
 extern _kc_export std::string urlEncode(const std::string &);
 extern _kc_export std::string urlEncode(const std::wstring &, const char *charset);
 extern _kc_export std::string urlEncode(const wchar_t *input, const char *charset);
