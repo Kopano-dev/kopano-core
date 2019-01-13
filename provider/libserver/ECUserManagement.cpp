@@ -2228,7 +2228,7 @@ ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature,
 		"INSERT INTO users (externid, objectclass, signature) "
 		"VALUES(" + lpDatabase->EscapeBinary(signature.id.id) + ", " +
 			stringify(signature.id.objclass) + ", " +
-			"'" + lpDatabase->Escape(signature.signature) + "')";
+			lpDatabase->EscapeBinary(signature.signature) + ")";
 	er = lpDatabase->DoInsert(strQuery, &ulId);
 	if(er != erSuccess)
 		return er;
@@ -2343,7 +2343,7 @@ ECRESULT ECUserManagement::CreateLocalObjectSimple(const objectsignature_t &sign
 			lpDatabase->EscapeBinary(signature.id.id) + ", " +
 			stringify(signature.id.objclass) + ", " +
 			stringify(ulCompanyId) + ", " +
-			"'" + lpDatabase->Escape(signature.signature) + "')";
+			lpDatabase->EscapeBinary(signature.signature) + ")";
 	er = lpDatabase->DoInsert(strQuery);
 exit:
 	if (bLocked)
