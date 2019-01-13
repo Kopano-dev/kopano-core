@@ -341,13 +341,9 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 		    CreateMD5Hash(propvalue, &propvalue) != erSuccess)
 			/* WARNING input and output point to the same data */
 			throw runtime_error(string("db_changeUser: create md5"));
-
-		if (sValidProps[i].id == OB_PROP_O_COMPANYID) {
-			propvalue = details.GetPropObject(OB_PROP_O_COMPANYID).id;
+		if (sValidProps[i].id == OB_PROP_O_COMPANYID)
 			// save id as hex in objectproperty.value
-			propvalue = bin2hex(propvalue.length(), propvalue.data());
-		}
-
+			propvalue = bin2hex(details.GetPropObject(OB_PROP_O_COMPANYID).id);
 		if (!propvalue.empty()) {
 			if (!bFirstOne)
 				strQuery += ",";

@@ -189,10 +189,7 @@ public:
 	 * Convert the entryid to a human readable hexadecimal format.
 	 * @return The entryid in hexadecimal format.
 	 */
-	_kc_hidden std::string tostring(void) const
-	{
-		return bin2hex(m_eid.size(), m_eid.data());
-	}
+	_kc_hidden std::string tostring() const { return bin2hex(m_eid); }
 
 	/**
 	 * Get entryid as a std::string
@@ -392,9 +389,7 @@ public:
 	 * Convert the entryid to a human readable hexadecimal format.
 	 * @return The entryid in hexadecimal format.
 	 */
-	std::string tostring() const {
-		return bin2hex(m_eid.size(), m_eid.data());
-	}
+	std::string tostring() const { return bin2hex(m_eid); }
 
 private:
 	/**
