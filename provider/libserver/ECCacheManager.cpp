@@ -719,7 +719,7 @@ ECRESULT ECCacheManager::GetUserObject(const objectid_t &sExternId, unsigned int
 
 	strQuery =
 		"SELECT id, signature, company, objectclass FROM users "
-		"WHERE externid='" + lpDatabase->Escape(sExternId.id) + "' "
+		"WHERE externid=" + lpDatabase->EscapeBinary(sExternId.id) + " "
 			"AND " + OBJECTCLASS_COMPARE_SQL("objectclass", sExternId.objclass) + " LIMIT 1";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess) {
@@ -801,7 +801,7 @@ ECRESULT ECCacheManager::GetUserObjects(const std::list<objectid_t> &lstExternOb
 	strQuery = "SELECT id, externid, objectclass, signature, company FROM users WHERE " +
 		kc_join(lstExternIds, "OR", [&](const auto &i) { return
 			"(" + OBJECTCLASS_COMPARE_SQL("objectclass", i.objclass) +
-			" AND externid = '" + lpDatabase->Escape(i.id) + "')"; });
+			" AND externid=" + lpDatabase->EscapeBinary(i.id) + ")"; });
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess) {
 		ec_perror("ECCacheManager::GetUserObjects() query failed", er);

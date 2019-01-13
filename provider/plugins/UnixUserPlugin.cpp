@@ -39,6 +39,7 @@
  */
 #define PWBUFSIZE 16384
 
+using namespace std::string_literals;
 using namespace KC;
 
 extern "C" {
@@ -442,7 +443,7 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 	for (const auto &obj : objectlist) {
 		if (!objectstrings[obj.id.objclass].empty())
 			objectstrings[obj.id.objclass] += ", ";
-		objectstrings[obj.id.objclass] += m_lpDatabase->Escape(obj.id.id);
+		objectstrings[obj.id.objclass] += m_lpDatabase->EscapeBinary(obj.id.id);
 	}
 
 	// make list of obsolete objects
@@ -559,18 +560,18 @@ objectdetails_t UnixUserPlugin::getObjectDetails(const objectid_t &externid)
 		break;
 	}
 
-	auto id = m_lpDatabase->Escape(externid.id);
+	auto id = m_lpDatabase->EscapeBinary(externid.id);
 	auto objclass = stringify(externid.objclass);
-	auto strQuery = "SELECT id FROM " + std::string(DB_OBJECT_TABLE) + " WHERE externid = '" + id + "' AND objectclass = " + objclass;
+	auto strQuery = "SELECT id FROM "s + DB_OBJECT_TABLE + " WHERE externid=" + id + " AND objectclass=" + objclass;
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
 		throw runtime_error(externid.id);
 	auto lpRow = lpResult.fetch_row();
 	if (lpRow && lpRow[0]) {
-		strQuery = "UPDATE " + (string)DB_OBJECT_TABLE + " SET externid='" + id + "',objectclass=" + objclass + " WHERE id=" + lpRow[0];
+		strQuery = "UPDATE "s + DB_OBJECT_TABLE + " SET externid=" + id + ", objectclass=" + objclass + " WHERE id=" + lpRow[0];
 		er = m_lpDatabase->DoUpdate(strQuery);
 	} else {
-		strQuery = "INSERT INTO " + (string)DB_OBJECT_TABLE + " (externid, objectclass) VALUES ('" + id + "', " + objclass + ")";
+		strQuery = "INSERT INTO "s + DB_OBJECT_TABLE + " (externid, objectclass) VALUES (" + id + ", " + objclass + ")";
 		er = m_lpDatabase->DoInsert(strQuery);
 	}
 	if (er != erSuccess)
@@ -889,7 +890,7 @@ std::string UnixUserPlugin::getDBSignature(const objectid_t &id)
 		"FROM " + (string)DB_OBJECTPROPERTY_TABLE + " AS op "
 		"JOIN " + (string)DB_OBJECT_TABLE + " AS o "
 			"ON op.objectid = o.id "
-		"WHERE o.externid = '" + m_lpDatabase->Escape(id.id) + "' "
+		"WHERE o.externid=" + m_lpDatabase->EscapeBinary(id.id) + " "
 			"AND o.objectclass = " + stringify(id.objclass) + " "
 			"AND op.propname = '" + OP_MODTIME + "' LIMIT 1";
 
