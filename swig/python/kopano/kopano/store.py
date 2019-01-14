@@ -708,6 +708,28 @@ class Store(Properties):
             for user2 in users:
                 self.delegation(user2, create=True)
 
+    def dumps(self):
+        data = {}
+
+        data['permissions'] = self.permissions_dumps()
+        data['delegations'] = self.delegations_dumps()
+
+        data['folders'] = folders = {}
+        for folder in self.folders():
+            folders[folder.path] = folder.dumps()
+
+        return _utils.pickle_dumps(data)
+
+    def loads(self, data):
+        data = _utils.pickle_loads(data)
+
+        self.delegations_loads(data['delegations'])
+        self.permissions_loads(data['permissions'])
+
+        for path, fdata in data['folders'].items():
+            folder = self.folder(path, create=True)
+            folder.loads(fdata)
+
     @property
     def send_only_to_delegates(self):
         """When sending meetingrequests to delegates, do not send them to the owner."""

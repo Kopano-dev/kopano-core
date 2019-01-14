@@ -792,7 +792,23 @@ class Folder(Properties):
         mapirow = dict((p.ulPropTag, p.Value) for p in row)
         return Rule(mapirow, table)
 
-    # TODO general def dump(s) -> {'rules': .., 'items': .., ..}
+    def dumps(self):
+        data = {}
+
+        data['rules'] = self.rules_dumps()
+        data['permissions'] = self.permissions_dumps()
+        data['items'] = [item.dumps() for item in self]
+
+        return _utils.pickle_dumps(data)
+
+    def loads(self, data):
+        data = _utils.pickle_loads(data)
+
+        self.rules_loads(data['rules'])
+        self.permissions_loads(data['permissions'])
+
+        for data in data['items']:
+            self.create_item(loads=data)
 
     def rules_dumps(self, stats=None):
         server = self.server
