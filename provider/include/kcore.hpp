@@ -68,15 +68,6 @@ struct EID {
 		uniqueId = id;
 	}
 
-	EID(const EID *oldEID)
-	{
-		memset(this, 0, sizeof(EID));
-		this->ulVersion = oldEID->ulVersion;
-		this->usType = oldEID->usType;
-		this->guid = oldEID->guid;
-		this->uniqueId = oldEID->uniqueId;
-	}
-
 	EID() {
 		memset(this, 0, sizeof(EID));
 		this->ulVersion = 1;
@@ -94,22 +85,6 @@ struct EID_V0 {
 	ULONG	ulId;
 	CHAR	szServer[1];
 	CHAR	szPadding[3];
-
-	EID_V0(USHORT type, const GUID &g, ULONG id)
-	{
-		memset(this, 0, sizeof(EID_V0));
-		usType = type;
-		guid = g;
-		ulId = id;
-	}
-
-	EID_V0(const EID_V0 *oldEID)
-	{
-		memset(this, 0, sizeof(EID_V0));
-		this->usType = oldEID->usType;
-		this->guid = oldEID->guid;
-		this->ulId = oldEID->ulId;
-	}
 
 	EID_V0() {
 		memset(this, 0, sizeof(EID_V0));
@@ -132,14 +107,6 @@ struct ABEID {
 		ulType = type;
 		guid = g;
 		ulId = id;
-	}
-
-	ABEID(const ABEID *oldEID)
-	{
-		memset(this, 0, sizeof(ABEID));
-		this->ulType = oldEID->ulType;
-		this->guid = oldEID->guid;
-		this->ulId = oldEID->ulId;
 	}
 
 	ABEID() {
@@ -171,22 +138,6 @@ struct SIEID {
 	ULONG	ulId;
 	CHAR	szServerId[1];
 	CHAR	szPadding[3];
-
-	SIEID(ULONG type, const GUID &g, ULONG id)
-	{
-		memset(this, 0, sizeof(SIEID));
-		ulType = type;
-		guid = g;
-		ulId = id;
-	}
-
-	SIEID(const SIEID *oldEID)
-	{
-		memset(this, 0, sizeof(SIEID));
-		this->ulType = oldEID->ulType;
-		this->guid = oldEID->guid;
-		this->ulId = oldEID->ulId;
-	}
 
 	SIEID() {
 		memset(this, 0, sizeof(SIEID));
