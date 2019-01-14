@@ -227,7 +227,7 @@ class BackupWorker(kopano.Worker):
             if user:
                 open(path+'/user', 'wb').write(dump_props(user.props(), stats, self.log))
                 if not options.skip_meta:
-                    open(path+'/delegates', 'wb').write(dump_delegates(user, server, stats, self.log)) # XXX why 'if user'?
+                    open(path+'/delegates', 'wb').write(store.delegations_dumps(stats=stats))
                     open(path+'/acl', 'wb').write(store.permissions_dumps(stats=stats))
 
         # time of last backup
@@ -566,7 +566,7 @@ class Service(kopano.Service):
                     store.mapiobj.SetProps([SPropValue(proptag, value)])
                 store.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
             if os.path.exists('%s/delegates' % data_path):
-                load_delegates(user, self.server, open('%s/delegates' % data_path, 'rb').read(), stats, self.log)
+                store.delegations_loads(open('%s/delegates' % data_path, 'rb').read(), stats=stats)
             if os.path.exists('%s/acl' % data_path):
                 store.permissions_loads(open('%s/acl' % data_path, 'rb').read(), stats=stats)
 
@@ -927,32 +927,6 @@ def dump_props(props, stats, log):
         data = dict((prop.proptag, prop.mapiobj.Value) for prop in props)
     return pickle_dumps(data)
 
-def dump_delegates(user, server, stats, log):
-    """ dump delegate users for given user """
-
-    usernames = []
-    with log_exc(log, stats):
-        try:
-            usernames = [d.user.name for d in user.delegations()]
-        except (MAPIErrorNotFound, kopano.NotFoundError):
-            log.warning("could not load delegations for %s", user.name)
-
-    return pickle_dumps(usernames)
-
-def load_delegates(user, server, data, stats, log):
-    """ load delegate users for given user """
-
-    with log_exc(log, stats):
-        users = []
-        for name in pickle_loads(data):
-            try:
-                users.append(server.user(name))
-            except kopano.NotFoundError:
-                log.warning("skipping delegation for unknown user '%s'", name)
-
-        user.delete(user.delegations()) # XXX not in combination with --import-root, -f?
-        for user2 in users:
-            user.delegation(user2, create=True)
 
 def main():
     # select common options

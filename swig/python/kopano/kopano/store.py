@@ -51,6 +51,7 @@ from .defs import (
 )
 
 from .errors import NotFoundError, ArgumentError, DuplicateError
+from .log import log_exc
 from .properties import Properties
 from .autoaccept import AutoAccept
 from .autoprocess import AutoProcess
@@ -670,6 +671,42 @@ class Store(Properties):
             return Delegation(self, user)
         else:
             raise NotFoundError("no delegation for user '%s'" % user.name)
+
+    def delegations_dumps(self, stats=None):
+        log = self.server.log
+
+        # TODO dump delegation flags (see _fbmsg_delgs above)
+
+        usernames = []
+        with log_exc(log, stats):
+            try:
+                usernames = [d.user.name for d in self.delegations()]
+            except (MAPIErrorNotFound, NotFoundError):
+                log.warning("could not load delegations")
+
+        return _utils.pickle_dumps({
+            b'usernames': usernames
+        })
+
+    def delegations_loads(self, data, stats=None):
+        server = self.server
+        log = self.server.log
+
+        data = _utils.pickle_loads(data)
+        if isinstance(data, dict):
+            data = data[b'usernames']
+
+        with log_exc(log, stats):
+            users = []
+            for name in data:
+                try:
+                    users.append(server.user(name))
+                except NotFoundError:
+                    log.warning("skipping delegation for unknown user '%s'", name)
+
+            self.delete(self.delegations()) # XXX not in combination with --import-root, -f?
+            for user2 in users:
+                self.delegation(user2, create=True)
 
     @property
     def send_only_to_delegates(self):
