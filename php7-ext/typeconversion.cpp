@@ -461,10 +461,11 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 			CHECK_EMPTY_MV_ARRAY(MVguid, lpguid);
 			if ((MAPI_G(hr) = MAPIAllocateMore(sizeof(GUID) * countarray, lpBase ? lpBase : lpPropValue, (void **)&lpPropValue[cvalues].Value.MVguid.lpguid)) != hrSuccess)
 				return MAPI_G(hr);
-			h = 0;
+			h = j = 0;
 			ZEND_HASH_FOREACH_VAL(dataHash, dataEntry) {
 				SEPARATE_ZVAL(dataEntry);
 				convert_to_string_ex(dataEntry);
+				++j;
 				if (dataEntry->value.str->len != sizeof(GUID))
 					php_error_docref(NULL TSRMLS_CC, E_WARNING, "invalid value for PT_MV_CLSID property in proptag 0x%08X, position %d,%d", lpPropValue[cvalues].ulPropTag, i, j);
 				else
