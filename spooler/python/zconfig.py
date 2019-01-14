@@ -1,7 +1,11 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-import ConfigParser
+try:
+    import ConfigParser
+except ImportError: # renamed in python3
+    import configparser as ConfigParser
 import zinterval
-import StringIO
+from io import StringIO
+
 import os
 import zunit
 
@@ -30,7 +34,7 @@ class ZConfigParser:
             
         fp.close()
         
-        self.config.readfp(StringIO.StringIO(data))
+        self.config.readfp(StringIO(data))
 
     def options(self):
         return self.config.defaults()

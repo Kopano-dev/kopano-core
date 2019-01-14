@@ -5,7 +5,7 @@ from MAPI.Time import *
 from MAPI.Struct import *
 
 from plugintemplates import *
-import StringIO 
+from io import StringIO
 from PIL import Image
 
 
@@ -73,8 +73,8 @@ class BMP2PNG(IMapiDAgentPlugin):
         attprops = attach.GetProps([PR_ATTACH_LONG_FILENAME, PR_DISPLAY_NAME, PR_ATTACH_FILENAME], 0)
         stream = attach.OpenProperty(PR_ATTACH_DATA_BIN, IID_IStream, 0, MAPI_MODIFY)
 
-        datain = StringIO.StringIO(stream.Read(0xFFFFFF))
-        dataout = StringIO.StringIO()
+        datain = StringIO(stream.Read(0xFFFFFF))
+        dataout = StringIO()
 
         img = Image.open(datain)
         img.save(dataout, 'PNG') 
