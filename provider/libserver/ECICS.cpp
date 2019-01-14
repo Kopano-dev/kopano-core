@@ -52,7 +52,7 @@ struct ABChangeRecord {
 	ABChangeRecord(ULONG id, const std::string &strItem, const std::string &strParent, ULONG change_type);
 };
 
-static const ABEID abcont_1(MAPI_ABCONT, MUIDECSAB, 1);
+static const ABEID_FIXED abcont_1(MAPI_ABCONT, MUIDECSAB, 1);
 
 inline ABChangeRecord::ABChangeRecord(ULONG _id, const std::string &_strItem, const std::string &_strParent, ULONG _change_type)
 : id(_id)

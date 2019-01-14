@@ -2081,7 +2081,7 @@ HRESULT UnWrapServerClientABEntry(ULONG cbWrapABID, const ENTRYID *lpWrapABID,
 	if (pabeid->ulVersion == 0)
 		ulSize = CbNewABEID("");
 	else if (pabeid->ulVersion == 1)
-		ulSize = CbABEID(pabeid);
+		ulSize = (sizeof(ABEID) + strnlen(pabeid->szExId, cbWrapABID - sizeof(ABEID)) + 4) / 4 * 4;
 	else
 		return MAPI_E_INVALID_ENTRYID;
 

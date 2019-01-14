@@ -76,23 +76,30 @@ struct EID_V0 {
 	char szServer[1]{}, szPadding[3]{};
 };
 
-/* 36 bytes */
+/* dynamic-size structure view (instantiation forbidden) to interpret arbitrary ABEIDs */
 struct ABEID {
 	BYTE abFlags[4]{};
 	GUID guid{};
 	uint32_t ulVersion = 0, ulType = 0, ulId = 0;
-	char szExId[1]{}, szPadding[3]{};
+	char szExId[];
 
-	constexpr ABEID() = default;
-	constexpr ABEID(unsigned int type, const GUID &g, unsigned int id) :
+	ABEID(ABEID &&) = delete;
+};
+
+/* fixed-size structure used for well-known ABEID constants in code */
+struct ABEID_FIXED {
+	BYTE abFlags[4]{};
+	GUID guid{};
+	uint32_t ulVersion = 0, ulType = 0, ulId = 0;
+	char pad[4]{};
+
+	constexpr ABEID_FIXED() = default;
+	constexpr ABEID_FIXED(unsigned int type, const GUID &g, unsigned int id) :
 		guid(g), ulType(type), ulId(id)
 	{}
 };
 typedef struct ABEID *PABEID;
-#define CbABEID_2(p) ((sizeof(ABEID) + strlen((char *)(p)->szExId)) & ~3)
-#define CbABEID(p) (sizeof(ABEID) > CbABEID_2(p) ? sizeof(ABEID) : CbABEID_2(p))
-#define CbNewABEID_2(p) ((sizeof(ABEID) + strlen((char *)(p))) & ~3)
-#define CbNewABEID(p) (sizeof(ABEID) > CbNewABEID_2(p) ? sizeof(ABEID) : CbNewABEID_2(p))
+#define CbNewABEID(p) ((sizeof(ABEID) + strlen(p) + 4) / 4 * 4)
 
 static inline ULONG ABEID_TYPE(const ABEID *p)
 {

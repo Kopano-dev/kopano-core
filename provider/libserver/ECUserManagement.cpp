@@ -64,8 +64,8 @@ namespace KC {
 extern ECSessionManager*	g_lpSessionManager;
 
 /* DEFINED_GUIDs are in rodata, which means they are practically initialized before any static initializers run */
-static const ABEID abcont_1(MAPI_ABCONT, MUIDECSAB, 1);
-static const ABEID abcont_uab(MAPI_ABCONT, MUIDECSAB, KOPANO_UID_ADDRESS_BOOK);
+static const ABEID_FIXED abcont_1(MAPI_ABCONT, MUIDECSAB, 1);
+static const ABEID_FIXED abcont_uab(MAPI_ABCONT, MUIDECSAB, KOPANO_UID_ADDRESS_BOOK);
 
 static bool execute_script(const char *scriptname, ...)
 {
@@ -3846,7 +3846,7 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap,
     struct propValArray *lpPropValArray)
 {
 	std::string strName;
-	const ABEID abeid(MAPI_ABCONT, MUIDECSAB, ulId);
+	const ABEID_FIXED abeid(MAPI_ABCONT, MUIDECSAB, ulId);
 
 	lpPropValArray->__ptr = s_alloc<struct propVal>(soap, lpPropTagArray->__size);
 	lpPropValArray->__size = lpPropTagArray->__size;

@@ -300,7 +300,6 @@ ECRESULT ABIDToEntryID(struct soap *soap, unsigned int ulID, const objectid_t& s
 	if (!sExternId.id.empty())
 	{
 		lpUserEid->ulVersion = 1;
-		// avoid FORTIFY_SOURCE checks in strcpy to an address that the compiler thinks is 1 size large
 		memcpy(lpUserEid->szExId, strEncExId.c_str(), strEncExId.length()+1);
 	}
 

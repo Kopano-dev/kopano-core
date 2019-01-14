@@ -34,7 +34,7 @@
 
 #include <edkmdb.h>
 
-static const ABEID abcont_1(MAPI_ABCONT, MUIDECSAB, 1 /* first container */);
+static const ABEID_FIXED abcont_1(MAPI_ABCONT, MUIDECSAB, 1 /* first container */);
 
 ECExportAddressbookChanges::ECExportAddressbookChanges(ECMsgStore *lpStore) :
 	m_lpMsgStore(lpStore)
