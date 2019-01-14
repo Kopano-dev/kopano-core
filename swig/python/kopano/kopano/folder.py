@@ -9,10 +9,6 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 import codecs
 import collections
 import mailbox
-try:
-    import cPickle as pickle
-except ImportError:
-    import _pickle as pickle
 import sys
 import time
 from xml.etree import ElementTree
@@ -57,7 +53,7 @@ from MAPI.Struct import (
 from MAPI.Time import unixtime
 
 from .properties import Properties
-from .permission import Permission
+from .permission import Permission, _permissions_dumps, _permissions_loads
 from .restriction import Restriction
 from .recurrence import Occurrence
 from .rule import Rule
@@ -114,26 +110,17 @@ else: # pragma: no cover
     import notification as _notification
 
 if sys.hexversion >= 0x03000000:
-    def pickle_loads(s):
-        return pickle.loads(s, encoding='bytes')
-
     def _unbase64(s):
         return codecs.decode(codecs.encode(s, 'ascii'), 'base64')
 
     def _base64(s):
         return codecs.decode(codecs.encode(s, 'base64').strip(), 'ascii')
 else:
-    def pickle_loads(s):
-        return pickle.loads(s)
-
     def _unbase64(s):
         return s.decode('base64')
 
     def _base64(s):
         return s.encode('base64').strip()
-
-def pickle_dumps(s):
-    return pickle.dumps(s, protocol=2)
 
 # TODO generalize, autogenerate basic item getters/setters?
 PROPMAP = {
@@ -837,7 +824,7 @@ class Folder(Properties):
                             log.warning("could not resolve rule target: %s", str(e))
                 ruledata = ElementTree.tostring(etxml)
 
-        return pickle_dumps({
+        return _utils.pickle_dumps({
             b'data': ruledata
         })
 
@@ -846,7 +833,7 @@ class Folder(Properties):
         log = server.log
 
         with _log.log_exc(log, stats):
-            data = pickle_loads(data)
+            data = _utils.pickle_loads(data)
             if isinstance(data, dict):
                 data = data[b'data']
             if data:
@@ -1110,6 +1097,12 @@ class Folder(Properties):
             return 'calendar'
         else:
             return 'folder'
+
+    def permissions_dumps(self, **kwargs):
+        return _permissions_dumps(self, **kwargs)
+
+    def permissions_loads(self, data, **kwargs):
+        return _permissions_loads(self, data, **kwargs)
 
     def __eq__(self, f): # XXX check same store?
         if isinstance(f, Folder):

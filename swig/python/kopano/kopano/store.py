@@ -57,7 +57,7 @@ from .autoprocess import AutoProcess
 from .outofoffice import OutOfOffice
 from .property_ import Property
 from .delegation import Delegation
-from .permission import Permission
+from .permission import Permission, _permissions_dumps, _permissions_loads
 from .freebusy import FreeBusy
 from .table import Table
 from .restriction import Restriction
@@ -614,6 +614,12 @@ class Store(Properties):
         :param create: create new permission for this user or group
         """
         return _utils.permission(self, member, create)
+
+    def permissions_dumps(self, **kwargs):
+        return _permissions_dumps(self, **kwargs)
+
+    def permissions_loads(self, data, **kwargs):
+        return _permissions_loads(self, data, **kwargs)
 
     def _fbmsg_delgs(self):
         fbeid = self.root.prop(PR_FREEBUSY_ENTRYIDS).value[1]

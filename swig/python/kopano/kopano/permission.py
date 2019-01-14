@@ -6,13 +6,75 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
-from MAPI import MAPI_UNICODE, ROW_MODIFY
-from MAPI.Struct import MAPIErrorNotFound, ROWENTRY, SPropValue
-from MAPI.Tags import PR_MEMBER_ENTRYID, PR_MEMBER_RIGHTS, PR_MEMBER_ID
+from MAPI import (
+    MAPI_UNICODE, ROW_MODIFY, ROW_ADD, MAPI_MODIFY,
+)
+from MAPI.Struct import (
+    MAPIErrorNotFound, ROWENTRY, SPropValue,
+)
+from MAPI.Tags import (
+    PR_MEMBER_ENTRYID, PR_MEMBER_RIGHTS, PR_MEMBER_ID, PR_ACL_TABLE,
+    IID_IExchangeModifyTable,
+)
 
-from .compat import repr as _repr
+from .compat import (
+    bdec as _bdec, benc as _benc
+)
 from .defs import RIGHT_NAME, NAME_RIGHT
 from .errors import NotFoundError
+from .log import log_exc
+
+from . import utils as _utils
+
+def _permissions_dumps(obj, stats=None):
+    """ dump permissions for given store or folder """
+
+    server = obj.server
+    log = server.log
+
+    rows = []
+    with log_exc(log, stats):
+        acl_table = obj.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, 0)
+        table = acl_table.GetTable(0)
+        for row in table.QueryRows(-1,0):
+            entryid = row[1].Value
+            try:
+                row[1].Value = (b'user', server.sa.GetUser(entryid, MAPI_UNICODE).Username)
+            except MAPIErrorNotFound:
+                try:
+                    row[1].Value = (b'group', server.sa.GetGroup(entryid, MAPI_UNICODE).Groupname)
+                except MAPIErrorNotFound:
+                    log.warning("skipping access control entry for unknown user/group %s", _benc(entryid))
+                    continue
+            rows.append(row)
+    return _utils.pickle_dumps({
+        b'data': rows
+    })
+
+def _permissions_loads(obj, data, stats=None):
+    """ load permissions for given store or folder """
+
+    server = obj.server
+    log = server.log
+
+    with log_exc(log, stats):
+        data = _utils.pickle_loads(data)
+        if isinstance(data, dict):
+            data = data[b'data']
+        rows = []
+        for row in data:
+            try:
+                member_type, value = row[1].Value
+                if member_type == b'user':
+                    entryid = server.user(value).userid
+                else:
+                    entryid = server.group(value).groupid
+                row[1].Value = _bdec(entryid)
+                rows.append(row)
+            except kopano.NotFoundError:
+                log.warning("skipping access control entry for unknown user/group '%s'", value)
+        acltab = obj.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, MAPI_MODIFY)
+        acltab.ModifyTable(0, [ROWENTRY(ROW_ADD, row) for row in rows])
 
 class Permission(object):
     """Permission class"""
@@ -58,6 +120,3 @@ class Permission(object):
 
     def __unicode__(self):
         return u"Permission('%s')" % self.member.name
-
-    def __repr__(self):
-        return _repr(self)

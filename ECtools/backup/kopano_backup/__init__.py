@@ -24,25 +24,22 @@ else: # pragma: no cover
     import bsddb
 
 from MAPI import (
-    PT_UNICODE, PT_ERROR, MAPI_UNICODE, KEEP_OPEN_READWRITE, MAPI_MODIFY,
-    ROW_ADD,
+    PT_UNICODE, PT_ERROR, KEEP_OPEN_READWRITE,
 )
 
 from MAPI.Defs import (
-    PROP_TYPE, CHANGE_PROP_TYPE, HrGetOneProp,
+    PROP_TYPE, CHANGE_PROP_TYPE,
 )
 
 from MAPI.Struct import (
-    MAPIErrorNotFound, SPropValue, ROWENTRY,
+    MAPIErrorNotFound, SPropValue,
 )
 
 from MAPI.Tags import (
     PR_EC_BACKUP_SOURCE_KEY, PR_EC_OUTOFOFFICE, PR_ENTRYID, PR_DISPLAY_NAME_W,
     PR_EC_OUTOFOFFICE_SUBJECT, PR_EC_OUTOFOFFICE_MSG, PR_EC_OUTOFOFFICE_FROM,
-    PR_EC_OUTOFOFFICE_UNTIL, IID_IExchangeModifyTable, PR_CONTAINER_CLASS_W,
-    PR_SOURCE_KEY, PR_ACL_TABLE,
-    PR_FREEBUSY_ENTRYIDS, PR_SCHDINFO_DELEGATE_ENTRYIDS, PT_TSTRING,
-    PR_EC_WEBACCESS_SETTINGS_W, PR_EC_RECIPIENT_HISTORY_W,
+    PR_EC_OUTOFOFFICE_UNTIL, PR_CONTAINER_CLASS_W, PR_SOURCE_KEY,
+    PT_TSTRING, PR_EC_WEBACCESS_SETTINGS_W, PR_EC_RECIPIENT_HISTORY_W,
     PR_EC_WEBACCESS_SETTINGS_JSON_W, PR_EC_RECIPIENT_HISTORY_JSON_W,
     PR_EC_WEBAPP_PERSISTENT_SETTINGS_JSON_W, PR_STORE_ENTRYID
 )
@@ -231,7 +228,7 @@ class BackupWorker(kopano.Worker):
                 open(path+'/user', 'wb').write(dump_props(user.props(), stats, self.log))
                 if not options.skip_meta:
                     open(path+'/delegates', 'wb').write(dump_delegates(user, server, stats, self.log)) # XXX why 'if user'?
-                    open(path+'/acl', 'wb').write(dump_acl(store, user, server, stats, self.log))
+                    open(path+'/acl', 'wb').write(store.permissions_dumps(stats=stats))
 
         # time of last backup
         open(path+'/timestamp', 'wb').write(pickle_dumps(self.service.timestamp))
@@ -292,7 +289,7 @@ class BackupWorker(kopano.Worker):
         open(data_path+'/path', 'wb').write(folder.path.encode('utf8'))
         open(data_path+'/folder', 'wb').write(dump_props(folder.props(), stats, self.log))
         if not options.skip_meta:
-            open(data_path+'/acl', 'wb').write(dump_acl(folder, user, server, stats, self.log))
+            open(data_path+'/acl', 'wb').write(folder.permissions_dumps(stats=stats))
             open(data_path+'/rules', 'wb').write(folder.rules_dumps(stats=stats))
         if options.only_meta:
             return
@@ -552,7 +549,7 @@ class Service(kopano.Service):
         if not (self.options.sourcekeys or self.options.skip_meta):
             self.log.info('restoring metadata')
             for (folder, fpath) in meta_folders:
-                load_acl(folder, user, self.server, open(fpath+'/acl', 'rb').read(), stats, self.log)
+                folder.permissions_loads(open(fpath+'/acl', 'rb').read(), stats=stats)
                 folder.rules_loads(open(fpath+'/rules', 'rb').read(), stats=stats)
 
         # restore store-level metadata (webapp/mapi settings)
@@ -571,7 +568,7 @@ class Service(kopano.Service):
             if os.path.exists('%s/delegates' % data_path):
                 load_delegates(user, self.server, open('%s/delegates' % data_path, 'rb').read(), stats, self.log)
             if os.path.exists('%s/acl' % data_path):
-                load_acl(store, user, self.server, open('%s/acl' % data_path, 'rb').read(), stats, self.log)
+                store.permissions_loads(open('%s/acl' % data_path, 'rb').read(), stats=stats)
 
         for sourcekey in self.options.sourcekeys:
             if sourcekey not in self.restored_sourcekeys:
@@ -929,46 +926,6 @@ def dump_props(props, stats, log):
     with log_exc(log, stats):
         data = dict((prop.proptag, prop.mapiobj.Value) for prop in props)
     return pickle_dumps(data)
-
-def dump_acl(obj, user, server, stats, log):
-    """ dump acl for given store or folder """
-
-    rows = []
-    with log_exc(log, stats):
-        acl_table = obj.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, 0)
-        table = acl_table.GetTable(0)
-        for row in table.QueryRows(-1,0):
-            entryid = row[1].Value
-            try:
-                row[1].Value = (b'user', server.sa.GetUser(entryid, MAPI_UNICODE).Username)
-            except MAPIErrorNotFound:
-                try:
-                    row[1].Value = (b'group', server.sa.GetGroup(entryid, MAPI_UNICODE).Groupname)
-                except MAPIErrorNotFound:
-                    log.warning("skipping access control entry for unknown user/group %s", _hex(entryid))
-                    continue
-            rows.append(row)
-    return pickle_dumps(rows)
-
-def load_acl(obj, user, server, data, stats, log):
-    """ load acl for given store or folder """
-
-    with log_exc(log, stats):
-        data = pickle_loads(data)
-        rows = []
-        for row in data:
-            try:
-                member_type, value = row[1].Value
-                if member_type == b'user':
-                    entryid = server.user(value).userid
-                else:
-                    entryid = server.group(value).groupid
-                row[1].Value = _unhex(entryid)
-                rows.append(row)
-            except kopano.NotFoundError:
-                log.warning("skipping access control entry for unknown user/group '%s'", value)
-        acltab = obj.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, MAPI_MODIFY)
-        acltab.ModifyTable(0, [ROWENTRY(ROW_ADD, row) for row in rows])
 
 def dump_delegates(user, server, stats, log):
     """ dump delegate users for given user """
