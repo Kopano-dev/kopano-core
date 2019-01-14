@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <cstdint>
 #include <kopano/platform.h>
 #include <kopano/ECABEntryID.h>
 #include <kopano/ECGuid.h>
@@ -26,21 +26,14 @@ namespace KC {
 /* This is a copy from the definition in kcore.hpp. It's for internal use only as we
  * don't want to expose the format of the entry id. */
 struct ABEID {
-	BYTE	abFlags[4];
-	GUID	guid;
-	ULONG	ulVersion;
-	ULONG	ulType;
-	ULONG	ulId;
-	char	szExId[1];
-	char	szPadding[3];
+	BYTE abFlags[4]{};
+	GUID guid{};
+	uint32_t ulVersion = 0, ulType = 0, ulId = 0;
+	char szExId[1]{}, szPadding[3]{};
 
-	ABEID(ULONG t, GUID g, ULONG id)
-	{
-		memset(this, 0, sizeof(ABEID));
-		ulType = t;
-		guid = g;
-		ulId = id;
-	}
+	constexpr ABEID(unsigned int type, const GUID &g, unsigned int id) :
+		guid(g), ulType(type), ulId(id)
+	{}
 };
 
 static ABEID		g_sDefaultEid(MAPI_MAILUSER, MUIDECSAB, 0);
