@@ -70,10 +70,10 @@ MESSAGE_KEYWORD_PROP = {
     'sender': PR_SENDER_NAME_W, # TODO why does 'from:user1@domain.com' work!?
     'attachment': (PR_MESSAGE_ATTACHMENTS, PR_ATTACH_LONG_FILENAME_W),
     'category': CATEGORY_NAME,
-    'to': (PR_MESSAGE_RECIPIENTS, MAPI_TO),
-    'cc': (PR_MESSAGE_RECIPIENTS, MAPI_CC),
-    'bcc': (PR_MESSAGE_RECIPIENTS, MAPI_BCC),
-    'participants': (PR_MESSAGE_RECIPIENTS, None),
+    'to': (PR_MESSAGE_RECIPIENTS, PR_DISPLAY_NAME_W, MAPI_TO),
+    'cc': (PR_MESSAGE_RECIPIENTS, PR_DISPLAY_NAME_W, MAPI_CC),
+    'bcc': (PR_MESSAGE_RECIPIENTS, PR_DISPLAY_NAME_W, MAPI_BCC),
+    'participants': (PR_MESSAGE_RECIPIENTS, PR_DISPLAY_NAME_W, None),
 }
 
 CONTACT_KEYWORD_PROP = {
@@ -138,18 +138,17 @@ class Term(object):
             recipient_type = None
 
             # property in sub-object (attachments/recipient): use sub-restriction
-            if isinstance(proptag, tuple) and len(proptag) == 2:
+            if isinstance(proptag, tuple):
                 if(proptag[0]) == PR_MESSAGE_ATTACHMENTS:
                     subobj, proptag = proptag
                 elif(proptag[0]) == PR_MESSAGE_RECIPIENTS:
-                    subobj, recipient_type = proptag
-                    proptag = PR_DISPLAY_NAME_W # TODO email
-                else:
+                    subobj, proptag, recipient_type = proptag
+                elif len(proptag) == 2:
                     proptag, flag = proptag
 
-            # named property: resolve local proptag
-            elif isinstance(proptag, tuple) and len(proptag) == 4:
-                proptag = store._name_id(proptag[:3]) | proptag[3]
+                # named property: resolve local proptag
+                elif len(proptag) == 4:
+                    proptag = store._name_id(proptag[:3]) | proptag[3]
 
             # make restriction on proptag
             restr = self.prop_restriction(proptag, flag)
