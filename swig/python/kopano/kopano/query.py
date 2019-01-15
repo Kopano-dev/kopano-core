@@ -23,7 +23,7 @@ from MAPI.Tags import (
     PR_MESSAGE_SIZE, PR_MESSAGE_FLAGS, MSGFLAG_READ, PR_SENDER_NAME_W,
     PR_DISPLAY_NAME_W, PR_SENT_REPRESENTING_NAME_W, PR_SMTP_ADDRESS_W,
     PR_MESSAGE_ATTACHMENTS, PR_ATTACH_LONG_FILENAME_W, PR_MESSAGE_RECIPIENTS,
-    PR_RECIPIENT_TYPE,
+    PR_RECIPIENT_TYPE, PR_SENDER_EMAIL_ADDRESS_W, PR_EMAIL_ADDRESS_W,
 )
 
 from MAPI.Struct import (
@@ -53,9 +53,12 @@ from .parse import (
 # TODO relative dates rel. to timezone (eg "received:today")
 # TODO graph does not support 'size>"10 KB" and such? we now roll our own
 # TODO email matching on to/cc/bcc (PR_SEARCH_KEY/PR_EMAIL_ADDRESS?)
+# TODO sender:user2@domain.com OR category:blue doesn't work, even if they separately work?
 
 EMAIL1_NAME = (PSETID_Address, MNID_ID, 0x8083, PT_UNICODE) # TODO merge
 CATEGORY_NAME = (PS_PUBLIC_STRINGS, MNID_STRING, u'Keywords', PT_MV_UNICODE)
+
+RECIP_PROPS = [PR_DISPLAY_NAME_W, PR_EMAIL_ADDRESS_W, PR_SMTP_ADDRESS_W]
 
 MESSAGE_KEYWORD_PROP = {
     'subject': PR_SUBJECT_W,
@@ -67,13 +70,13 @@ MESSAGE_KEYWORD_PROP = {
     'size': PR_MESSAGE_SIZE,
     'read': (PR_MESSAGE_FLAGS, MSGFLAG_READ),
     'from': PR_SENT_REPRESENTING_NAME_W, # TODO email address
-    'sender': PR_SENDER_NAME_W, # TODO why does 'from:user1@domain.com' work!?
+    'sender': [PR_SENDER_NAME_W, PR_SENDER_EMAIL_ADDRESS_W], # TODO why does 'from:user1@domain.com' work with just PR_SENDER_NAME_W!?
     'attachment': (PR_MESSAGE_ATTACHMENTS, PR_ATTACH_LONG_FILENAME_W),
     'category': CATEGORY_NAME,
-    'to': (PR_MESSAGE_RECIPIENTS, PR_DISPLAY_NAME_W, MAPI_TO),
-    'cc': (PR_MESSAGE_RECIPIENTS, PR_DISPLAY_NAME_W, MAPI_CC),
-    'bcc': (PR_MESSAGE_RECIPIENTS, PR_DISPLAY_NAME_W, MAPI_BCC),
-    'participants': (PR_MESSAGE_RECIPIENTS, PR_DISPLAY_NAME_W, None),
+    'to': (PR_MESSAGE_RECIPIENTS, RECIP_PROPS, MAPI_TO),
+    'cc': (PR_MESSAGE_RECIPIENTS, RECIP_PROPS, MAPI_CC),
+    'bcc': (PR_MESSAGE_RECIPIENTS, RECIP_PROPS, MAPI_BCC),
+    'participants': (PR_MESSAGE_RECIPIENTS, RECIP_PROPS, None),
 }
 
 CONTACT_KEYWORD_PROP = {
@@ -150,8 +153,13 @@ class Term(object):
                 elif len(proptag) == 4:
                     proptag = store._name_id(proptag[:3]) | proptag[3]
 
-            # make restriction on proptag
-            restr = self.prop_restriction(proptag, flag)
+            # make restriction on proptag(s)
+            if isinstance(proptag, list):
+                restr = SOrRestriction([
+                    self.prop_restriction(proptag, flag) for proptag in proptag
+                ])
+            else:
+                restr = self.prop_restriction(proptag, flag)
 
             # turn restriction into sub-restriction
             if subobj:
