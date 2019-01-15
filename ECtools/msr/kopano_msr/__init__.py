@@ -31,6 +31,7 @@ _mgr = multiprocessing.Manager()
 
 USER_USER = _mgr.dict() # user mapping # TODO persistency
 STORE_STORE = _mgr.dict() # store mapping
+USER_INFO = _mgr.dict() # statistics
 
 # ensure max one worker per store (performance, correctness)
 # storeid -> foldereid (specific folder sync) or None (for hierarchy sync)
@@ -57,6 +58,28 @@ def db_put(db_path, key, value):
         fcntl.flock(lockfile.fileno(), fcntl.LOCK_EX)
         with closing(bsddb.hashopen(db_path, 'c')) as db:
             db[key] = value
+
+def update_user_info(user, key, op, value):
+    data = USER_INFO.get(user.name, {})
+    if op == 'add':
+        if key not in data:
+            data[key] = 0
+        data[key] += value
+    elif op == 'store':
+        data[key] = value
+    USER_INFO[user.name] = data
+
+def _queue_or_store(user, store_entryid, folder_entryid, iqueue):
+    with LOCK:
+        update_user_info(user, 'queue_empty', 'store', 'no')
+
+        if store_entryid in STORE_FOLDER_QUEUED:
+            todo = STORE_FOLDERS_TODO.get(store_entryid, set())
+            todo.add(folder_entryid)
+            STORE_FOLDERS_TODO[store_entryid] = todo
+        else:
+            STORE_FOLDER_QUEUED[store_entryid] = folder_entryid
+            iqueue.put((store_entryid, folder_entryid))
 
 class ControlWorker(kopano.Worker):
     """ control process """
@@ -94,7 +117,14 @@ class ControlWorker(kopano.Worker):
                             break
 
                         elif data[0] == 'LIST':
-                            response(conn, 'OK: ' + ' '.join(user+':'+target for user, target in USER_USER.items()))
+                            lines = []
+                            for user, target in USER_USER.items():
+                                items = USER_INFO[user]['items']
+                                init_done = USER_INFO[user]['init_done']
+                                queue_empty = USER_INFO[user]['queue_empty']
+                                line = 'user=%s:target=%s:items=%d:init_done=%s:queue_empty=%s' % (user, target, items, init_done, queue_empty)
+                                lines.append(line)
+                            response(conn, 'OK: ' + ' '.join(lines))
                             break
 
                         else:
@@ -109,12 +139,13 @@ class ControlWorker(kopano.Worker):
                         conn.close()
 
 class HierarchyImporter:
-    def __init__(self, state_path, store2, store_entryid, iqueue, subtree_sk, log):
+    def __init__(self, state_path, store2, store_entryid, iqueue, subtree_sk, user, log):
         self.state_path = state_path
         self.store2 = store2
         self.store_entryid = store_entryid
         self.iqueue = iqueue
         self.subtree_sk = subtree_sk
+        self.user = user
         self.log = log
 
     def update(self, f):
@@ -147,7 +178,7 @@ class HierarchyImporter:
 
             db_put(self.state_path, 'folder_map_'+f.sourcekey, folder2.entryid)
 
-        _queue_or_store(self.store_entryid, f.entryid, self.iqueue)
+        _queue_or_store(self.user, self.store_entryid, f.entryid, self.iqueue)
 
     def delete(self, f, flags):
         self.log.info('deleted folder: %s', f.sourcekey)
@@ -160,9 +191,10 @@ class HierarchyImporter:
         # TODO delete from mapping
 
 class FolderImporter:
-    def __init__(self, state_path, folder2, log):
+    def __init__(self, state_path, folder2, user, log):
         self.state_path = state_path
         self.folder2 = folder2
+        self.user = user
         self.log = log
 
     def update(self, item, flags):
@@ -173,6 +205,7 @@ class FolderImporter:
             self.folder2.delete(item2) # TODO remove from db
         item2 = item.copy(self.folder2)
         db_put(self.state_path, 'item_map_'+item.sourcekey, item2.entryid)
+        update_user_info(self.user, 'items', 'add', 1)
 
     def read(self, item, state):
         self.log.info('changed readstate for item: %s', item.sourcekey)
@@ -184,18 +217,9 @@ class FolderImporter:
         entryid2 = db_get(self.state_path, 'item_map_'+item.sourcekey)
         self.folder2.delete(self.folder2.item(entryid2))
 
-def _queue_or_store(store_entryid, folder_entryid, iqueue):
-    with LOCK:
-        if store_entryid in STORE_FOLDER_QUEUED:
-            todo = STORE_FOLDERS_TODO.get(store_entryid, set())
-            todo.add(folder_entryid)
-            STORE_FOLDERS_TODO[store_entryid] = todo
-        else:
-            STORE_FOLDER_QUEUED[store_entryid] = folder_entryid
-            iqueue.put((store_entryid, folder_entryid))
-
 class NotificationSink:
-    def __init__(self, store, iqueue, log):
+    def __init__(self, user, store, iqueue, log):
+        self.user = user
         self.store = store
         self.log = log
         self.iqueue = iqueue
@@ -205,10 +229,10 @@ class NotificationSink:
 
         if notification.object_type == 'item':
             folder = notification.object.folder
-            _queue_or_store(self.store.entryid, folder.entryid, self.iqueue)
+            _queue_or_store(self.user, self.store.entryid, folder.entryid, self.iqueue)
 
         elif notification.object_type == 'folder':
-            _queue_or_store(self.store.entryid, None, self.iqueue)
+            _queue_or_store(self.user, self.store.entryid, None, self.iqueue)
 
 class SyncWorker(kopano.Worker):
     """ worker process """
@@ -247,7 +271,7 @@ class SyncWorker(kopano.Worker):
                             self.log.info('previous folder sync state: %s', state)
 
                         # sync and store new state
-                        importer = FolderImporter(state_path, folder2, self.log)
+                        importer = FolderImporter(state_path, folder2, user, self.log)
                         newstate = folder.sync(importer, state)
                         db_put(state_path, 'folder_state_'+folder.sourcekey, newstate)
 
@@ -261,7 +285,7 @@ class SyncWorker(kopano.Worker):
                         self.log.info('found previous store sync state: %s', state)
 
                     # sync and store new state
-                    importer = HierarchyImporter(state_path, store2, store_entryid, self.iqueue, store.subtree.sourcekey, self.log)
+                    importer = HierarchyImporter(state_path, store2, store_entryid, self.iqueue, store.subtree.sourcekey, user, self.log)
                     newstate = store.subtree.sync_hierarchy(importer, state)
                     db_put(state_path, 'store_state_'+store_entryid, newstate)
 
@@ -294,18 +318,22 @@ class Service(kopano.Service):
 
         usera = server.user(user)
         userb = server.user(target_user)
-        sink = NotificationSink(usera.store, self.iqueue, self.log)
+        sink = NotificationSink(usera, usera.store, self.iqueue, self.log)
 
         usera.store.subscribe(sink, object_types=['item', 'folder'])
 
+        # TODO make persistent
         STORE_STORE[usera.store.entryid] = userb.store.entryid
         USER_USER[usera.name] = userb.name
         USER_SINK[usera.name] = sink
+        update_user_info(usera, 'items', 'store', 0)
+        update_user_info(usera, 'init_done', 'store', 'no')
+        update_user_info(usera, 'queue_empty', 'store', 'no')
 
         state_path = os.path.join(self.config['state_path'], usera.store.entryid)
         db_put(state_path, 'folder_map_'+usera.subtree.sourcekey, userb.subtree.entryid)
 
-        _queue_or_store(usera.store.entryid, None, self.iqueue)
+        _queue_or_store(usera, usera.store.entryid, None, self.iqueue)
 
     def unsubscribe_user(self, server, user):
         self.log.info('unsubscribing: %s', user)
@@ -318,6 +346,7 @@ class Service(kopano.Service):
         del USER_USER[usera.name]
         del USER_SINK[usera.name]
         del STORE_STORE[usera.store.entryid]
+        del USER_INFO[usera]
 
     def notify_sync(self):
         server = kopano.Server(notifications=True, options=self.options, parse_args=False) # TODO ugh
@@ -346,6 +375,12 @@ class Service(kopano.Service):
                         STORE_FOLDERS_TODO[store_entryid] = folders_todo
                     else:
                         del STORE_FOLDER_QUEUED[store_entryid]
+
+                        store = server.store(entryid=store_entryid)
+                        user = store.user # TODO shall we use only storeid..
+                        update_user_info(user, 'init_done', 'store', 'yes')
+                        update_user_info(user, 'queue_empty', 'store', 'yes')
+
             except Empty:
                 pass
 
