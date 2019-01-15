@@ -122,7 +122,7 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 
 	if(cbEntryID == 0 && lpEntryID == NULL) {
 		memcpy(&lpABeid, &eidRoot, sizeof(lpABeid));
-		cbEntryID = CbABEID(&lpABeid);
+		cbEntryID = sizeof(lpABeid);
 		lpEntryID = reinterpret_cast<ENTRYID *>(&lpABeid);
 	} else {
 		if (cbEntryID == 0 || lpEntryID == nullptr || cbEntryID < sizeof(ABEID))

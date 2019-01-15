@@ -3868,10 +3868,10 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap,
 		switch (NormalizePropTag(lpPropTagArray->__ptr[i])) {
 		case PR_SEARCH_KEY:
 			lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-			lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ABEID));
-			lpPropVal->Value.bin->__size = sizeof(ABEID);
+			lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(abeid));
+			lpPropVal->Value.bin->__size = sizeof(abeid);
 			lpPropVal->__union = SOAP_UNION_propValData_bin;
-			memcpy(lpPropVal->Value.bin->__ptr, &abeid, sizeof(ABEID));
+			memcpy(lpPropVal->Value.bin->__ptr, &abeid, sizeof(abeid));
 			break;
 		case PR_CONTAINER_CLASS:
 			lpPropVal->Value.lpszA = s_strcpy(soap, "IPM.Contact");
@@ -3879,10 +3879,10 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap,
 			break;
 		case PR_ENTRYID:
 			lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-			lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ABEID));
-			lpPropVal->Value.bin->__size = sizeof(ABEID);
+			lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(abeid));
+			lpPropVal->Value.bin->__size = sizeof(abeid);
 			lpPropVal->__union = SOAP_UNION_propValData_bin;
-			memcpy(lpPropVal->Value.bin->__ptr, &abeid, sizeof(ABEID));
+			memcpy(lpPropVal->Value.bin->__ptr, &abeid, sizeof(abeid));
 			break;
 		case PR_ACCOUNT:
 		case PR_NORMALIZED_SUBJECT:
@@ -3923,10 +3923,10 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap,
 			break;
 		case PR_RECORD_KEY:
 			lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-			lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ABEID));
-			lpPropVal->Value.bin->__size = sizeof(ABEID);
+			lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(abeid));
+			lpPropVal->Value.bin->__size = sizeof(abeid);
 			lpPropVal->__union = SOAP_UNION_propValData_bin;
-			memcpy(lpPropVal->Value.bin->__ptr, &abeid, sizeof(ABEID));
+			memcpy(lpPropVal->Value.bin->__ptr, &abeid, sizeof(abeid));
 			break;
 		case PR_CONTAINER_FLAGS:
 			/*
