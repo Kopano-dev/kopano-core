@@ -36,15 +36,15 @@ struct ABEID {
 	{}
 };
 
-static ABEID		g_sDefaultEid(MAPI_MAILUSER, MUIDECSAB, 0);
+static const ABEID g_sDefaultEid(MAPI_MAILUSER, MUIDECSAB, 0);
 unsigned char		*g_lpDefaultEid = (unsigned char*)&g_sDefaultEid;
 const unsigned int	g_cbDefaultEid = sizeof(g_sDefaultEid);
 
-static ABEID		g_sEveryOneEid(MAPI_DISTLIST, MUIDECSAB, 1);
+static const ABEID g_sEveryOneEid(MAPI_DISTLIST, MUIDECSAB, 1);
 unsigned char		*g_lpEveryoneEid = (unsigned char*)&g_sEveryOneEid;
 const unsigned int	g_cbEveryoneEid = sizeof(g_sEveryOneEid);
 
-static ABEID		g_sSystemEid(MAPI_MAILUSER, MUIDECSAB, 2);
+static const ABEID g_sSystemEid(MAPI_MAILUSER, MUIDECSAB, 2);
 unsigned char		*g_lpSystemEid = (unsigned char*)&g_sSystemEid;
 const unsigned int	g_cbSystemEid = sizeof(g_sSystemEid);
 

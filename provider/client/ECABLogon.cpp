@@ -35,6 +35,8 @@
 
 using namespace KC;
 
+static const ABEID eidRoot(MAPI_ABCONT, MUIDECSAB, 0);
+
 ECABLogon::ECABLogon(LPMAPISUP lpMAPISup, WSTransport *lpTransport,
     ULONG ulProfileFlags, const GUID *lpGUID) :
 	ECUnknown("IABLogon"), m_lpMAPISup(lpMAPISup),
@@ -97,7 +99,6 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	HRESULT			hr = hrSuccess;
 	object_ptr<ECABContainer> lpABContainer;
 	BOOL			fModifyObject = FALSE;
-	ABEID			eidRoot =  ABEID(MAPI_ABCONT, MUIDECSAB, 0);
 	ABEID lpABeid;
 	object_ptr<IECPropStorage> lpPropStorage;
 	object_ptr<ECMailUser> lpMailUser;
