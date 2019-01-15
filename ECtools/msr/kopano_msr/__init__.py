@@ -28,10 +28,18 @@ LOCK = multiprocessing.Lock()
 
 setproctitle.setproctitle('kopano-msr manager')
 _mgr = multiprocessing.Manager()
-USER_USER = _mgr.dict() # user mapping
+
+USER_USER = _mgr.dict() # user mapping # TODO persistency
 STORE_STORE = _mgr.dict() # store mapping
-STORE_FOLDER_QUEUED = _mgr.dict() # ensure max one worker per store (performance, correctness)
-STORE_FOLDERS_TODO = _mgr.dict() # store incoming updates until processed
+
+# ensure max one worker per store (performance, correctness)
+# storeid -> foldereid (specific folder sync) or None (for hierarchy sync)
+STORE_FOLDER_QUEUED = _mgr.dict()
+
+# store incoming updates until processed
+# storeid -> foldereids (or None for hierarchy sync)
+STORE_FOLDERS_TODO = _mgr.dict()
+
 USER_SINK = {} # per-user notification sink
 
 def db_get(db_path, key):
@@ -140,7 +148,6 @@ class HierarchyImporter:
             db_put(self.state_path, 'folder_map_'+f.sourcekey, folder2.entryid)
 
         _queue_or_store(self.store_entryid, f.entryid, self.iqueue)
-
 
     def delete(self, f, flags):
         self.log.info('deleted folder: %s', f.sourcekey)
@@ -299,8 +306,6 @@ class Service(kopano.Service):
         db_put(state_path, 'folder_map_'+usera.subtree.sourcekey, userb.subtree.entryid)
 
         _queue_or_store(usera.store.entryid, None, self.iqueue)
-#        for folder in usera.folders():
-#            _queue_or_store(usera.store.entryid, folder.entryid, self.iqueue)
 
     def unsubscribe_user(self, server, user):
         self.log.info('unsubscribing: %s', user)
@@ -331,11 +336,13 @@ class Service(kopano.Service):
 
             # check worker output queue: more folders for same store?
             try:
-                store_entryid, folder_entryid = self.oqueue.get(timeout=0.01)
+                store_entryid, _ = self.oqueue.get(timeout=0.01)
                 with LOCK:
                     folders_todo = STORE_FOLDERS_TODO.get(store_entryid)
                     if folders_todo:
-                        self.iqueue.put((store_entryid, folders_todo.pop()))
+                        folder_entryid = folders_todo.pop()
+                        STORE_FOLDER_QUEUED[store_entryid] = folder_entryid
+                        self.iqueue.put((store_entryid, folder_entryid))
                         STORE_FOLDERS_TODO[store_entryid] = folders_todo
                     else:
                         del STORE_FOLDER_QUEUED[store_entryid]
