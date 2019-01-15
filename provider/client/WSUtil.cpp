@@ -2079,7 +2079,7 @@ HRESULT UnWrapServerClientABEntry(ULONG cbWrapABID, const ENTRYID *lpWrapABID,
 	// FIXME: Check whether it is a Zarafa entry?
 	auto pabeid = reinterpret_cast<const ABEID *>(lpWrapABID);
 	if (pabeid->ulVersion == 0)
-		ulSize = sizeof(ABEID);
+		ulSize = CbNewABEID("");
 	else if (pabeid->ulVersion == 1)
 		ulSize = CbABEID(pabeid);
 	else

@@ -4257,13 +4257,13 @@ ECRESULT ECUserManagement::CreateABEntryID(struct soap *soap,
 	if (IsInternalObject(ulObjId)) {
 		if (ulVersion != 0)
 			throw std::runtime_error("Internal objects must always have v0 ABEIDs");
-		lpEid = reinterpret_cast<ABEID *>(s_alloc<unsigned char>(soap, sizeof(ABEID)));
-		memset(lpEid, 0, sizeof(ABEID));
-		ulSize = sizeof(ABEID);
+		ulSize = CbNewABEID("");
+		lpEid = reinterpret_cast<ABEID *>(s_alloc<unsigned char>(soap, ulSize));
+		memset(lpEid, 0, ulSize);
 	} else if (ulVersion == 0) {
-		lpEid = reinterpret_cast<ABEID *>(s_alloc<unsigned char>(soap, sizeof(ABEID)));
-		memset(lpEid, 0, sizeof(ABEID));
-		ulSize = sizeof(ABEID);
+		ulSize = CbNewABEID("");
+		lpEid = reinterpret_cast<ABEID *>(s_alloc<unsigned char>(soap, ulSize));
+		memset(lpEid, 0, ulSize);
 	} else if(ulVersion == 1) {
 		if (lpExternId == NULL)
 			return KCERR_INVALID_PARAMETER;
