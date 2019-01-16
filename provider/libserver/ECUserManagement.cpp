@@ -2235,10 +2235,9 @@ ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature,
 	 */
 	std::string strQuery =
 		"INSERT INTO users (externid, objectclass, signature) "
-		"VALUES("
-			"'" + lpDatabase->Escape(signature.id.id) + "', " +
+		"VALUES(" + lpDatabase->EscapeBinary(signature.id.id) + ", " +
 			stringify(signature.id.objclass) + ", " +
-			"'" + lpDatabase->Escape(signature.signature) + "')";
+			lpDatabase->EscapeBinary(signature.signature) + ")";
 	er = lpDatabase->DoInsert(strQuery, &ulId);
 	if(er != erSuccess)
 		return er;
@@ -2350,10 +2349,10 @@ ECRESULT ECUserManagement::CreateLocalObjectSimple(const objectsignature_t &sign
 		"INSERT INTO users (id, externid, objectclass, company, signature) "
 		"VALUES ("
 			+ strUserId + ", " +
-			"'" + lpDatabase->Escape(signature.id.id) + "', " +
+			lpDatabase->EscapeBinary(signature.id.id) + ", " +
 			stringify(signature.id.objclass) + ", " +
 			stringify(ulCompanyId) + ", " +
-			"'" + lpDatabase->Escape(signature.signature) + "')";
+			lpDatabase->EscapeBinary(signature.signature) + ")";
 	er = lpDatabase->DoInsert(strQuery);
 exit:
 	if (bLocked)
@@ -2387,7 +2386,7 @@ ECRESULT ECUserManagement::UpdateObjectclassOrDelete(const objectid_t &sExternId
 	auto er = m_lpSession->GetDatabase(&lpDatabase);
 	if(er != erSuccess)
 		return er;
-	std::string strQuery = "SELECT id, objectclass FROM users WHERE externid='" + lpDatabase->Escape(sExternId.id) + "' AND " +
+	auto strQuery = "SELECT id, objectclass FROM users WHERE externid=" + lpDatabase->EscapeBinary(sExternId.id) + " AND " +
 		OBJECTCLASS_COMPARE_SQL("objectclass", OBJECTCLASS_CLASSTYPE(sExternId.objclass));
 	er = lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)

@@ -1759,7 +1759,8 @@ ECRESULT BeginLockFolders(ECDatabase *lpDatabase,
 {
     std::set<std::string> setIds;
 
-    std::copy(setFolders.begin(), setFolders.end(), std::inserter(setIds, setIds.begin()));
+	std::transform(setFolders.cbegin(), setFolders.cend(), std::inserter(setIds, setIds.begin()),
+		[](const auto &s) { return static_cast<std::string>(s); });
 	return BeginLockFolders(lpDatabase, PROP_ID(PR_SOURCE_KEY), setIds,
 	       ulFlags, dtx, dtxerr);
 }

@@ -668,7 +668,10 @@ exit:
 	if (er != erSuccess)
 		LOG_USERCACHE_DEBUG("Get user object for user %d error 0x%08x", ulUserId, er);
 	else
-		LOG_USERCACHE_DEBUG("Get user object for user %d result [%s]: externid '%s', class %d, companyid %d, signature '%s'", ulUserId, ((bCacheResult)?"C":"D"), bin2hex(externid).c_str(), ulClass, ((lpulCompanyId)?*lpulCompanyId:-1), ((lpstrSignature)?bin2hex(*lpstrSignature).c_str():"-") );
+		LOG_USERCACHE_DEBUG("Get user object for user %d result [%s]: externid \"%s\", class %d, companyid %d, signature \"%s\"",
+			ulUserId, (bCacheResult ? "C" : "D"), bin2txt(externid).c_str(), ulClass,
+			(lpulCompanyId != nullptr ? *lpulCompanyId : -1),
+			(lpstrSignature != nullptr ? bin2txt(*lpstrSignature).c_str() : "-"));
 	return er;
 }
 
@@ -719,7 +722,7 @@ ECRESULT ECCacheManager::GetUserObject(const objectid_t &sExternId, unsigned int
 
 	strQuery =
 		"SELECT id, signature, company, objectclass FROM users "
-		"WHERE externid='" + lpDatabase->Escape(sExternId.id) + "' "
+		"WHERE externid=" + lpDatabase->EscapeBinary(sExternId.id) + " "
 			"AND " + OBJECTCLASS_COMPARE_SQL("objectclass", sExternId.objclass) + " LIMIT 1";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess) {
@@ -759,7 +762,11 @@ exit:
 	if (er != erSuccess)
 		LOG_USERCACHE_DEBUG("Get user object done: %s (%x)", GetMAPIErrorMessage(kcerr_to_mapierr(er)), er);
 	else
-		LOG_USERCACHE_DEBUG("Get user object from externid '%s', class %d result [%s]: company %d, userid %d, signature '%s'" , bin2hex(sExternId.id).c_str(), sExternId.objclass, ((bCacheResult)?"C":"D"), ((lpulCompanyId)?*lpulCompanyId:-1), ((lpulUserId)?*lpulUserId:-1), ((lpstrSignature)?bin2hex(*lpstrSignature).c_str():"-") );
+		LOG_USERCACHE_DEBUG("Get user object from externid \"%s\", class %d result [%s]: company %d, userid %d, signature \"%s\"",
+			bin2txt(sExternId.id).c_str(), sExternId.objclass, (bCacheResult ? "C" : "D"),
+			(lpulCompanyId != nullptr ? *lpulCompanyId : -1),
+			(lpulUserId != nullptr ? *lpulUserId : -1),
+			(lpstrSignature != nullptr ? bin2txt(*lpstrSignature).c_str() : "-"));
 	return er;
 }
 
@@ -782,7 +789,7 @@ ECRESULT ECCacheManager::GetUserObjects(const std::list<objectid_t> &lstExternOb
 	for (const auto &objid : lstExternObjIds) {
 		unsigned int ulLocalId;
 		LOG_USERCACHE_DEBUG(" Get user objects from externid \"%s\", class %d",
-			bin2hex(objid.id).c_str(), objid.objclass);
+			bin2txt(objid.id).c_str(), objid.objclass);
 		if (I_GetUEIdObject(objid.id, objid.objclass, NULL, &ulLocalId, NULL) == erSuccess)
 			/* Object was found in cache. */
 			lpmapLocalObjIds->insert({objid, ulLocalId});
@@ -801,7 +808,7 @@ ECRESULT ECCacheManager::GetUserObjects(const std::list<objectid_t> &lstExternOb
 	strQuery = "SELECT id, externid, objectclass, signature, company FROM users WHERE " +
 		kc_join(lstExternIds, "OR", [&](const auto &i) { return
 			"(" + OBJECTCLASS_COMPARE_SQL("objectclass", i.objclass) +
-			" AND externid = '" + lpDatabase->Escape(i.id) + "')"; });
+			" AND externid=" + lpDatabase->EscapeBinary(i.id) + ")"; });
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess) {
 		ec_perror("ECCacheManager::GetUserObjects() query failed", er);
@@ -821,7 +828,8 @@ ECRESULT ECCacheManager::GetUserObjects(const std::list<objectid_t> &lstExternOb
 		auto ulCompanyId = atoi(lpDBRow[4]);
 		lpmapLocalObjIds->insert({sExternId, ulLocalId});
 		I_AddUEIdObject(sExternId.id, sExternId.objclass, ulCompanyId, ulLocalId, strSignature);
-		LOG_USERCACHE_DEBUG(" Get user objects result company %d, userid %d, signature '%s'", ulCompanyId, ulLocalId, bin2hex(strSignature).c_str());
+		LOG_USERCACHE_DEBUG(" Get user objects result company %d, userid %d, signature \"%s\"",
+			ulCompanyId, ulLocalId, bin2txt(strSignature).c_str());
 	}
 
 	// From this point you can have less items in lpmapLocalObjIds than requested in lstExternObjIds
@@ -844,11 +852,13 @@ ECRESULT ECCacheManager::I_AddUserObject(unsigned int ulUserId,
 	scoped_rlock lock(m_hCacheMutex);
 
 	if (OBJECTCLASS_ISTYPE(ulClass)) {
-		LOG_USERCACHE_DEBUG("_Add user object. userid %d, class %d, companyid %d, externid '%s', signature '%s'. error incomplete object", ulUserId, ulClass, ulCompanyId, bin2hex(strExternId).c_str(), bin2hex(strSignature).c_str());
+		LOG_USERCACHE_DEBUG("_Add user object. userid %d, class %d, companyid %d, externid \"%s\", signature \"%s\". error incomplete object",
+			ulUserId, ulClass, ulCompanyId, bin2txt(strExternId).c_str(), bin2txt(strSignature).c_str());
 		return erSuccess; // do not add incomplete data into the cache
 	}
 
-	LOG_USERCACHE_DEBUG("_Add user object. userid %d, class %d, companyid %d, externid '%s', signature '%s'", ulUserId, ulClass, ulCompanyId, bin2hex(strExternId).c_str(), bin2hex(strSignature).c_str());
+	LOG_USERCACHE_DEBUG("_Add user object. userid %d, class %d, companyid %d, externid \"%s\", signature \"%s\"",
+		ulUserId, ulClass, ulCompanyId, bin2txt(strExternId).c_str(), bin2txt(strSignature).c_str());
 
 	sData.ulClass = ulClass;
 	sData.ulCompanyId = ulCompanyId;
@@ -975,9 +985,7 @@ ECRESULT ECCacheManager::I_DelUEIdObject(const std::string &strExternId,
 {
 	ECsUEIdKey	sKey;
 
-	LOG_USERCACHE_DEBUG("Remove user externid '%s' class %d", bin2hex(strExternId).c_str(), ulClass);
-
-	// Remove the user
+	LOG_USERCACHE_DEBUG("Remove user externid \"%s\" class %d", bin2txt(strExternId).c_str(), ulClass);
 	sKey.strExternId = strExternId;
 	sKey.ulClass = ulClass;
 

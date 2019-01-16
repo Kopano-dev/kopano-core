@@ -962,7 +962,7 @@ string LDAPUserPlugin::getSearchBase(const objectid_t &company)
 	// CHECK: should not be possible to not already know the company
 	if (!search_base.empty())
 		return search_base;
-	ec_log_crit("No search base found for company \"%s\"", company.id.c_str());
+	ec_log_crit("No search base found for company xid:\"%s\"", bin2txt(company.id).c_str());
 	return lpszSearchBase;
 }
 
@@ -1375,7 +1375,8 @@ objectsignature_t LDAPUserPlugin::resolveName(objectclass_t objclass, const stri
 	if (company.id.empty())
 		LOG_PLUGIN_DEBUG("%s Class %x, Name %s", __FUNCTION__, objclass, name.c_str());
 	else
-		LOG_PLUGIN_DEBUG("%s Class %x, Name %s, Company %s", __FUNCTION__, objclass, name.c_str(), company.id.c_str());
+		LOG_PLUGIN_DEBUG("%s Class %x, Name %s, Company xid:\"%s\"", __FUNCTION__,
+			objclass, name.c_str(), bin2txt(company.id).c_str());
 
 	switch (objclass) {
 	case OBJECTCLASS_UNKNOWN:
@@ -1589,7 +1590,7 @@ signatures_t LDAPUserPlugin::getAllObjects(const objectid_t &company,
 {
 	string companyDN;
 	if (!company.id.empty()) {
-		LOG_PLUGIN_DEBUG("%s Company %s, Class %x", __FUNCTION__, company.id.c_str(), objclass);
+		LOG_PLUGIN_DEBUG("%s Company xid:\"%s\", Class %x", __FUNCTION__, bin2txt(company.id).c_str(), objclass);
 		companyDN = getSearchBase(company);
 	} else {
 		LOG_PLUGIN_DEBUG("%s Class %x", __FUNCTION__, objclass);
@@ -1783,7 +1784,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 					ldap_filter += getSearchFilter(iter->id, addresslist_unique_attr, addresslist_unique_attr_type);
 					break;
 				default:
-					ec_log_crit("Incorrect object class %d for item \"%s\"", iter->objclass, iter->id.c_str());
+					ec_log_crit("Incorrect object class %d for item xid:\"%s\"", iter->objclass, bin2txt(iter->id).c_str());
 					continue;
 				}
 				++iter;
@@ -2076,7 +2077,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 		auto o = mapdetails.find(p.objectid);
 		if (o == mapdetails.cend()) {
 			// this should never happen, but only some details will be missing, not the end of the world.
-			ec_log_crit("No object \"%s\" found for postaction", p.objectid.id.c_str());
+			ec_log_crit("No object xid:\"%s\" found for postaction", bin2txt(p.objectid.id).c_str());
 			continue;
 		}
 
@@ -2138,7 +2139,7 @@ objectdetails_t LDAPUserPlugin::getObjectDetails(const objectid_t &id)
 	auto mapDetails = getObjectDetails(std::list<objectid_t>{id});
 	auto iterDetails = mapDetails.find(id);
 	if (iterDetails == mapDetails.cend())
-		throw objectnotfound("No details for \"" + id.id + "\"");
+		throw objectnotfound("No details for xid:\"" + bin2txt(id.id) + "\"");
 	return iterDetails->second;
 }
 
@@ -2781,7 +2782,7 @@ quotadetails_t LDAPUserPlugin::getQuota(const objectid_t &id,
 
 	/* LDAP filter empty, object does not exist */
 	if (ldap_filter.empty())
-		throw objectnotfound("No LDAP filter for \"" + id.id + "\"");
+		throw objectnotfound("No LDAP filter for xid:\"" + bin2txt(id.id) + "\"");
 	LOG_PLUGIN_DEBUG("%s", __FUNCTION__);
 
 	// Do a search request to get all attributes for this user. The

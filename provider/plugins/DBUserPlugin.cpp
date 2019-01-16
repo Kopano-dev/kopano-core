@@ -70,7 +70,7 @@ objectsignature_t DBUserPlugin::resolveName(objectclass_t objclass, const string
 	if (company.id.empty())
 		LOG_PLUGIN_DEBUG("%s Class %x, Name %s", __FUNCTION__, objclass, name.c_str());
 	else
-		LOG_PLUGIN_DEBUG("%s Class %x, Name %s, Company %s", __FUNCTION__, objclass, name.c_str(), company.id.c_str());
+		LOG_PLUGIN_DEBUG("%s Class %x, Name %s, Company xid:\"%s\"", __FUNCTION__, objclass, name.c_str(), bin2txt(company.id).c_str());
 
 	switch (objclass) {
 	case OBJECTCLASS_USER:
@@ -120,8 +120,8 @@ objectsignature_t DBUserPlugin::resolveName(objectclass_t objclass, const string
 		strQuery +=
 			"JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS usercompany "
 				"ON usercompany.objectid = o.id "
-				"AND (usercompany.propname = '" + OP_COMPANYID + "' AND usercompany.value = hex('" + m_lpDatabase->Escape(company.id) + "') OR "
-					"usercompany.propname = '" + OP_COMPANYNAME + "' AND usercompany.objectid = '" + m_lpDatabase->Escape(company.id) + "')";
+			"AND (usercompany.propname='" + OP_COMPANYID + "' AND usercompany.value=HEX(" + m_lpDatabase->EscapeBinary(company.id) + ") OR "
+			"usercompany.propname='" + OP_COMPANYNAME + "' AND usercompany.objectid=" + m_lpDatabase->EscapeBinary(company.id) + ")";
 
 	strQuery +=
 		"LEFT JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS modtime "
@@ -176,8 +176,8 @@ objectsignature_t DBUserPlugin::authenticateUser(const string &username, const s
 		strQuery +=
 			"JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS usercompany "
 				"ON usercompany.objectid = o.id "
-				"AND (usercompany.propname = '" + OP_COMPANYID + "' AND usercompany.value = hex('" + m_lpDatabase->Escape(company.id) + "') OR "
-					"usercompany.propname = '" + OP_COMPANYNAME + "' AND usercompany.objectid = '" + m_lpDatabase->Escape(company.id) + "')";
+			"AND (usercompany.propname='" + OP_COMPANYID + "' AND usercompany.value=HEX(" + m_lpDatabase->EscapeBinary(company.id) + ") OR "
+			"usercompany.propname='" + OP_COMPANYNAME + "' AND usercompany.objectid=" + m_lpDatabase->EscapeBinary(company.id) + ")";
 
 	strQuery +=
 		"LEFT JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS modtime "
@@ -253,7 +253,7 @@ void DBUserPlugin::setQuota(const objectid_t &objectid, const quotadetails_t &qu
 	auto strQuery =
 		"SELECT o.externid "
 		"FROM " + (string)DB_OBJECT_TABLE + " AS o "
-		"WHERE o.externid='" + m_lpDatabase->Escape(objectid.id) + "' "
+		"WHERE o.externid=" + m_lpDatabase->EscapeBinary(objectid.id) + " "
 		"AND " + OBJECTCLASS_COMPARE_SQL("o.objectclass", objectid.objclass) + " LIMIT 2";
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if(er != erSuccess)
@@ -290,13 +290,12 @@ void DBUserPlugin::addSubObjectRelation(userobject_relation_t relation, const ob
 	auto strQuery =
 		"SELECT o.externid "
 		"FROM " + (string)DB_OBJECT_TABLE + " AS o "
-		"WHERE o.externid='" + m_lpDatabase->Escape(parentobject.id) + "' "
+		"WHERE o.externid=" + m_lpDatabase->EscapeBinary(parentobject.id) + " "
 			"AND " + OBJECTCLASS_COMPARE_SQL("o.objectclass", parentobject.objclass);
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
 		throw runtime_error(string("db_query: ") + strerror(er));
 	if (lpResult.get_num_rows() != 1)
-		throw objectnotfound("db_user: Relation does not exist, id:" + parentobject.id);
-
+		throw objectnotfound("db_user: Relation does not exist, xid:\"" + bin2txt(parentobject.id) + "\"");
 	DBPlugin::addSubObjectRelation(relation, parentobject, childobject);
 }
