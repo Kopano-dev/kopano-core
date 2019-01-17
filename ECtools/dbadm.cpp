@@ -416,6 +416,20 @@ static ECRESULT k1216(std::shared_ptr<KDatabase> db)
 	return np_defrag(db);
 }
 
+static ECRESULT kc1375(std::shared_ptr<KDatabase> db)
+{
+	ec_log_notice("kc1375: purging problematic-looking IMAP envelopes...");
+	unsigned int aff = 0;
+	auto ret = db->DoDelete("DELETE p "
+		"FROM properties AS p INNER JOIN names AS n ON p.tag-34049=n.id "
+		"WHERE n.guid=0x08F1F5003F8EC746AF725E201C2349E7 AND n.nameid=1 "
+		"AND p.type=30 AND p.val_string LIKE '% (((%))) %'", &aff);
+	if (ret != erSuccess)
+		return ret;
+	ec_log_notice("kc1375: deleted %u rows.", aff);
+	return erSuccess;
+}
+
 static ECRESULT usmp_shrink_columns(std::shared_ptr<KDatabase> db)
 {
 	unsigned int aff = 0;
@@ -566,6 +580,8 @@ int main(int argc, char **argv)
 			ret = index_tags(db);
 		else if (strcmp(argv[i], "rm-helper-index") == 0)
 			ret = remove_helper_index(db);
+		else if (strcmp(argv[i], "kc-1375") == 0)
+			ret = kc1375(db);
 		else if (strcmp(argv[i], "usmp-shrink-columns") == 0)
 			ret = usmp_shrink_columns(db);
 		if (ret == KCERR_NOT_FOUND) {
