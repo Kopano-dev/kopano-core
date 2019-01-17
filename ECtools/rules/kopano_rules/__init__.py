@@ -334,6 +334,8 @@ def convertcondition(conditions): ## TODO make this nicer
         conditions = [conditions]
     elif isinstance(conditions,SBitMaskRestriction):
         conditions = [conditions]
+    elif isinstance(conditions,SExistRestriction):
+        conditions = [conditions]
 
     for condition in conditions:
         connum = 0
