@@ -140,21 +140,26 @@ template<typename T> static inline ULONG ABEID_ID(const T *p)
 	return p != nullptr ? reinterpret_cast<const ABEID *>(p)->ulId : 0;
 }
 
-/* 36 bytes */
+/*
+ * Dynamic-size structure view (instantiation forbidden) to interpret arbitrary
+ * Single Instance EIDs.
+ *
+ * The typical form that they are generated with is a 52-byte form with
+ * szServerId={"\0\0\0\0" + 16-byte GUID}.
+ */
 struct SIEID {
 	BYTE	abFlags[4];
 	GUID	guid;
 	ULONG	ulVersion;
 	ULONG	ulType;
 	ULONG	ulId;
-	CHAR	szServerId[1];
-	CHAR	szPadding[3];
+	char szServerId[];
 
-	SIEID() {
-		memset(this, 0, sizeof(SIEID));
-	}
+	SIEID(SIEID &&) = delete;
 };
 typedef struct SIEID *LPSIEID;
+
+#define SIZEOF_SIEID_FIXED (sizeof(SIEID) + 4)
 
 /* Bit definitions for abFlags[3] of ENTRYID */
 #define	KOPANO_FAVORITE		0x01		// Entryid from the favorits folder

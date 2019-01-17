@@ -173,7 +173,7 @@ ECRESULT SIEntryIDToID(ULONG cb, const BYTE *lpInstanceId, GUID *guidServer,
 	lpInstanceEid = (LPSIEID)lpInstanceId;
 
 	if (guidServer)
-		memcpy(guidServer, (LPBYTE)lpInstanceEid + sizeof(SIEID), sizeof(GUID));
+		memcpy(guidServer, reinterpret_cast<BYTE *>(lpInstanceEid) + SIZEOF_SIEID_FIXED, sizeof(GUID));
 	if (lpulInstanceId)
 		*lpulInstanceId = lpInstanceEid->ulId;
 	if (lpulPropId)
@@ -318,7 +318,7 @@ ECRESULT SIIDToEntryID(struct soap *soap, const GUID *guidServer,
 	if (lpsInstanceId == NULL)
 		return KCERR_INVALID_PARAMETER;
 
-	ulSize = sizeof(SIEID) + sizeof(GUID);
+	ulSize = SIZEOF_SIEID_FIXED + sizeof(GUID);
 
 	lpInstanceEid = (LPSIEID)s_alloc<char>(soap, ulSize);
 	memset(lpInstanceEid, 0, ulSize);
@@ -327,7 +327,7 @@ ECRESULT SIIDToEntryID(struct soap *soap, const GUID *guidServer,
 	lpInstanceEid->ulType = ulPropId;
 	memcpy(&lpInstanceEid->guid, MUIDECSI_SERVER, sizeof(GUID));
 
-	memcpy((char *)lpInstanceEid + sizeof(SIEID), guidServer, sizeof(GUID));
+	memcpy(reinterpret_cast<char *>(lpInstanceEid) + SIZEOF_SIEID_FIXED, guidServer, sizeof(GUID));
 
 	lpsInstanceId->__size = ulSize;
 	lpsInstanceId->__ptr = (unsigned char *)lpInstanceEid;
