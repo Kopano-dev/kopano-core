@@ -84,6 +84,48 @@ def _queue_or_store(user, store_entryid, folder_entryid, iqueue):
 class ControlWorker(kopano.Worker):
     """ control process """
 
+    def user_details(self, server, username):
+        lines = []
+
+        # general info
+        lines.append('user:               %s' % username)
+        lines.append('target user:        %s' % USER_USER[username])
+        lines.append('processed items:    %d' % USER_INFO[username]['items'])
+        lines.append('initial sync done:  %s' % USER_INFO[username]['init_done'])
+        lines.append('update queue empty: %s' % USER_INFO[username]['queue_empty'])
+        lines.append('')
+
+        # store contents comparison
+        lines.append('store comparison:')
+
+        usera = server.user(username)
+        userb = server.user(USER_USER[username])
+
+        difference = False
+
+        foldersa = set(f.path for f in usera.folders())
+        foldersb = set(f.path for f in userb.folders())
+
+        for path in foldersb - foldersa:
+            lines.append('%s: folder only exists in target store' % path)
+            difference = True
+
+        for path in foldersa - foldersb:
+            lines.append('%s: folder only exists in source store' % path)
+            difference = True
+
+        for path in foldersa & foldersb:
+            counta = usera.folder(path).count
+            countb = userb.folder(path).count
+            if counta != countb:
+                lines.append("%s: item count is %d compared to source %d" % (path, countb, counta))
+                difference = True
+
+        if not difference:
+            lines.append('folder structure and item counts are identical')
+
+        return lines
+
     def main(self):
         config, server, options = self.service.config, self.service.server, self.service.options
         setproctitle.setproctitle('kopano-msr control')
@@ -128,7 +170,7 @@ class ControlWorker(kopano.Worker):
                             break
 
                         elif data[0] == 'DETAILS':
-                            response(conn, 'OK: ' + '\nfred\nhoi')
+                            response(conn, 'OK:\n' + '\n'.join(self.user_details(server, data[1])))
                             break
 
                         else:
@@ -397,8 +439,7 @@ class Service(kopano.Service):
                 print('kopano-msr returned an error. please check log.', file=sys.stderr)
                 sys.exit(1)
             for line in m:
-                if line.rstrip():
-                    print(line.rstrip())
+                print(line.rstrip())
 
     def cmd_add(self, options):
         username = options.users[0]
