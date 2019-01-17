@@ -274,7 +274,7 @@ class Item(Properties, Contact, Appointment):
         """ Item sourcekey """
 
         if not hasattr(self, '_sourcekey'): # XXX more general caching solution
-            self._sourcekey = _benc(self[PR_SOURCE_KEY])
+            self._sourcekey = _benc(self._get_fast(PR_SOURCE_KEY, must_exist=True))
         return self._sourcekey
 
     @property
