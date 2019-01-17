@@ -122,9 +122,13 @@ class ControlWorker(kopano.Worker):
                                 items = USER_INFO[user]['items']
                                 init_done = USER_INFO[user]['init_done']
                                 queue_empty = USER_INFO[user]['queue_empty']
-                                line = 'user=%s:target=%s:items=%d:init_done=%s:queue_empty=%s' % (user, target, items, init_done, queue_empty)
+                                line = 'user=%s target=%s items=%d init_done=%s queue_empty=%s' % (user, target, items, init_done, queue_empty)
                                 lines.append(line)
-                            response(conn, 'OK: ' + ' '.join(lines))
+                            response(conn, 'OK:\n' + '\n'.join(lines))
+                            break
+
+                        elif data[0] == 'DETAILS':
+                            response(conn, 'OK: ' + '\nfred\nhoi')
                             break
 
                         else:
@@ -384,52 +388,37 @@ class Service(kopano.Service):
             except Empty:
                 pass
 
-    def cmd_add(self, options): # TODO merge common
-        if len(options.users) != 1:
-            print("please specify single user to add", file=sys.stderr)
-            sys.exit(1)
+    def do_cmd(self, cmd):
+        with closing(kopano.client_socket(self.config['server_bind_name'], ssl_cert=self.config['ssl_certificate_file'])) as s:
+            s.sendall(cmd.encode())
+            m = s.makefile()
+            line = m.readline()
+            if not line.startswith('OK'):
+                print('kopano-msr returned an error. please check log.', file=sys.stderr)
+                sys.exit(1)
+            for line in m:
+                if line.rstrip():
+                    print(line.rstrip())
 
+    def cmd_add(self, options):
         username = options.users[0]
         targetname = options.target
 
-        for name in (username, targetname):
+        for name in (username, targetname): # TODO move check
             if not self.server.get_user(name):
                 print("no such user: %s" % name, file=sys.stderr)
                 sys.exit(1)
 
-        with closing(kopano.client_socket(self.config['server_bind_name'], ssl_cert=self.config['ssl_certificate_file'])) as s:
-            s.sendall(('ADD %s %s\r\n' % (username, targetname)).encode())
-            m = s.makefile()
-            data = m.readline()
-            if not data.startswith('OK'):
-                print('kopano-msr returned an error. please check log.', file=sys.stderr)
-                sys.exit(1)
+        self.do_cmd('ADD %s %s\r\n' % (username, targetname))
 
     def cmd_remove(self, options):
-        if len(options.users) != 1:
-            print("please specify single user to remove", file=sys.stderr)
-            sys.exit(1)
-
-        username = options.users[0]
-
-        with closing(kopano.client_socket(self.config['server_bind_name'], ssl_cert=self.config['ssl_certificate_file'])) as s:
-            s.sendall(('REMOVE %s\r\n' % username).encode())
-            m = s.makefile()
-            data = m.readline()
-            if not data.startswith('OK'):
-                print('kopano-msr returned an error. please check log.', file=sys.stderr)
-                sys.exit(1)
+        self.do_cmd('REMOVE %s\r\n' % options.users[0])
 
     def cmd_list(self):
-        with closing(kopano.client_socket(self.config['server_bind_name'], ssl_cert=self.config['ssl_certificate_file'])) as s:
-            s.sendall(('LIST\r\n').encode())
-            m = s.makefile()
-            data = m.readline()
-            if not data.startswith('OK:'):
-                print('kopano-msr returned an error. please check log.', file=sys.stderr)
-                sys.exit(1)
-            for word in data.split()[1:]:
-                print(word.replace(':', ' '))
+        self.do_cmd('LIST\r\n')
+
+    def cmd_details(self, options):
+        self.do_cmd('DETAILS %s\r\n' % options.users[0])
 
 def main():
     # select common options
@@ -446,10 +435,16 @@ def main():
 
     service = Service('msr', options=options, config=CONFIG)
 
-    if options.add:
-        service.cmd_add(options)
-    elif options.remove:
-        service.cmd_remove(options)
+    if options.users:
+        if len(options.users) != 1:
+            print('please specify single user', file=sys.stderr)
+            sys.exit(1)
+        if options.add:
+            service.cmd_add(options)
+        elif options.remove:
+            service.cmd_remove(options)
+        else:
+            service.cmd_details(options)
     elif options.list_users:
         service.cmd_list()
     else:
