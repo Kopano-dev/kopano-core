@@ -2040,7 +2040,7 @@ HRESULT UnWrapServerClientStoreEntry(ULONG cbWrapStoreID,
 
 	auto peid = reinterpret_cast<const EID *>(lpWrapStoreID);
 	if (peid->ulVersion == 0)
-		ulSize = sizeof(EID_V0);
+		ulSize = SIZEOF_EID_V0_FIXED;
 	else if (peid->ulVersion == 1)
 		ulSize = sizeof(EID_FIXED);
 	else

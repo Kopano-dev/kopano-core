@@ -3037,7 +3037,7 @@ SOAP_ENTRY_START(loadObject, lpsLoadObjectResponse->er, const entryId &sEntryId,
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulObjId, &ulEidFlags);
 	if ((ulEidFlags & OPENSTORE_OVERRIDE_HOME_MDB) == 0 &&
 	    er == KCERR_NOT_FOUND &&
-	    sEntryId.__size >= static_cast<int>(std::min(sizeof(EID_FIXED), sizeof(EID_V0))) &&
+	    sEntryId.__size >= static_cast<int>(std::min(sizeof(EID_FIXED), SIZEOF_EID_V0_FIXED)) &&
 	    reinterpret_cast<EID *>(sEntryId.__ptr)->usType == MAPI_STORE)
 		er = KCERR_UNABLE_TO_COMPLETE;	// Reason 1
 	if (er != erSuccess)
@@ -5327,7 +5327,7 @@ SOAP_ENTRY_START(createStore, *result, unsigned int ulStoreType,
 
 	memset(&srightsArray, 0 , sizeof(srightsArray));
 
-	if((unsigned int)sStoreId.__size < sizeof(EID_V0)) {
+	if (static_cast<unsigned int>(sStoreId.__size) < SIZEOF_EID_V0_FIXED) {
 	    er = KCERR_INVALID_PARAMETER;
 	    goto exit;
     }

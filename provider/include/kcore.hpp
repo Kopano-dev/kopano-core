@@ -83,8 +83,14 @@ struct EID_FIXED {
 	{}
 };
 
-// The entryid from the begin of zarafa till 5.20
-// Entryid version is zero (36 bytes)
+/*
+ * Dynamic-size structure view (instantiation forbidden) to interpret arbitrary
+ * v0 EIDs.
+ *
+ * The typical form that they are generated with is a 36-byte form with
+ * szServer="\0\0\0\0". Many places in KC somewhat arbitrarily only accept that
+ * form.
+ */
 struct EID_V0 {
 	BYTE abFlags[4]{};
 	GUID guid{}; /* StoreGuid */
@@ -92,8 +98,12 @@ struct EID_V0 {
 	uint16_t usType = 0;
 	uint16_t usFlags = 0; /* Before Zarafa 7.1, ulFlags did not exist, and ulType was ULONG */
 	uint32_t ulId = 0;
-	char szServer[1]{}, szPadding[3]{};
+	char szServer[];
+
+	EID_V0(EID_V0 &&) = delete;
 };
+
+#define SIZEOF_EID_V0_FIXED (sizeof(EID_V0) + 4)
 
 /* dynamic-size structure view (instantiation forbidden) to interpret arbitrary ABEIDs */
 struct ABEID {

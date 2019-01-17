@@ -33,7 +33,7 @@ bool IsKopanoEntryId(ULONG cb, const BYTE *lpEntryId)
 	auto peid = reinterpret_cast<const EID *>(lpEntryId);
 	/* TODO: maybe also a check on objType */
 	if ((cb == sizeof(EID_FIXED) && peid->ulVersion == 1) ||
-		(cb == sizeof(EID_V0) && peid->ulVersion == 0 ) )
+	    (cb == SIZEOF_EID_V0_FIXED && peid->ulVersion == 0))
 		return true;
 
 	return false;
@@ -45,7 +45,7 @@ bool ValidateZEntryId(ULONG cb, const BYTE *lpEntryId, unsigned int ulCheckType)
 		return false;
 	auto peid = reinterpret_cast<const EID *>(lpEntryId);
 	if (((cb == sizeof(EID_FIXED) && peid->ulVersion == 1) ||
-		 (cb == sizeof(EID_V0) && peid->ulVersion == 0 ) ) &&
+	    (cb == SIZEOF_EID_V0_FIXED && peid->ulVersion == 0)) &&
 		 peid->usType == ulCheckType)
 		return true;
 	return false;
@@ -68,7 +68,7 @@ bool ValidateZEntryList(const ENTRYLIST *lpMsgList, unsigned int ulCheckType)
 	for (ULONG i = 0; i < lpMsgList->cValues; ++i) {
 		auto peid = reinterpret_cast<const EID *>(lpMsgList->lpbin[i].lpb);
 		if (!(((lpMsgList->lpbin[i].cb == sizeof(EID_FIXED) && peid->ulVersion == 1) ||
-			 (lpMsgList->lpbin[i].cb == sizeof(EID_V0) && peid->ulVersion == 0 ) ) &&
+		    (lpMsgList->lpbin[i].cb == SIZEOF_EID_V0_FIXED && peid->ulVersion == 0)) &&
 			 peid->usType == ulCheckType))
 			return false;
 	}
@@ -82,7 +82,7 @@ ECRESULT GetStoreGuidFromEntryId(ULONG cb, const BYTE *lpEntryId,
 		return KCERR_INVALID_PARAMETER;
 	auto peid = reinterpret_cast<const EID *>(lpEntryId);
 	if (!((cb == sizeof(EID_FIXED) && peid->ulVersion == 1) ||
-		 (cb == sizeof(EID_V0) && peid->ulVersion == 0 )) )
+	    (cb == SIZEOF_EID_V0_FIXED && peid->ulVersion == 0)))
 		return KCERR_INVALID_ENTRYID;
 
 	memcpy(lpguidStore, &peid->guid, sizeof(GUID));
@@ -96,7 +96,7 @@ ECRESULT GetObjTypeFromEntryId(ULONG cb, const BYTE *lpEntryId,
 		return KCERR_INVALID_PARAMETER;
 	auto peid = reinterpret_cast<const EID *>(lpEntryId);
 	if (!((cb == sizeof(EID_FIXED) && peid->ulVersion == 1) ||
-		 (cb == sizeof(EID_V0) && peid->ulVersion == 0 )) )
+	    (cb == SIZEOF_EID_V0_FIXED && peid->ulVersion == 0)))
 		return KCERR_INVALID_ENTRYID;
 
 	*lpulObjType = peid->usType;
