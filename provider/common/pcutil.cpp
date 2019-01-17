@@ -32,7 +32,7 @@ bool IsKopanoEntryId(ULONG cb, const BYTE *lpEntryId)
 		return false;
 	auto peid = reinterpret_cast<const EID *>(lpEntryId);
 	/* TODO: maybe also a check on objType */
-	if( (cb == sizeof(EID) && peid->ulVersion == 1) ||
+	if ((cb == sizeof(EID_FIXED) && peid->ulVersion == 1) ||
 		(cb == sizeof(EID_V0) && peid->ulVersion == 0 ) )
 		return true;
 
@@ -44,7 +44,7 @@ bool ValidateZEntryId(ULONG cb, const BYTE *lpEntryId, unsigned int ulCheckType)
 	if(lpEntryId == NULL)
 		return false;
 	auto peid = reinterpret_cast<const EID *>(lpEntryId);
-	if( ((cb == sizeof(EID) && peid->ulVersion == 1) ||
+	if (((cb == sizeof(EID_FIXED) && peid->ulVersion == 1) ||
 		 (cb == sizeof(EID_V0) && peid->ulVersion == 0 ) ) &&
 		 peid->usType == ulCheckType)
 		return true;
@@ -67,7 +67,7 @@ bool ValidateZEntryList(const ENTRYLIST *lpMsgList, unsigned int ulCheckType)
 
 	for (ULONG i = 0; i < lpMsgList->cValues; ++i) {
 		auto peid = reinterpret_cast<const EID *>(lpMsgList->lpbin[i].lpb);
-		if( !(((lpMsgList->lpbin[i].cb == sizeof(EID) && peid->ulVersion == 1) ||
+		if (!(((lpMsgList->lpbin[i].cb == sizeof(EID_FIXED) && peid->ulVersion == 1) ||
 			 (lpMsgList->lpbin[i].cb == sizeof(EID_V0) && peid->ulVersion == 0 ) ) &&
 			 peid->usType == ulCheckType))
 			return false;
@@ -81,7 +81,7 @@ ECRESULT GetStoreGuidFromEntryId(ULONG cb, const BYTE *lpEntryId,
 	if(lpEntryId == NULL || lpguidStore == NULL)
 		return KCERR_INVALID_PARAMETER;
 	auto peid = reinterpret_cast<const EID *>(lpEntryId);
-	if(!((cb == sizeof(EID) && peid->ulVersion == 1) ||
+	if (!((cb == sizeof(EID_FIXED) && peid->ulVersion == 1) ||
 		 (cb == sizeof(EID_V0) && peid->ulVersion == 0 )) )
 		return KCERR_INVALID_ENTRYID;
 
@@ -95,7 +95,7 @@ ECRESULT GetObjTypeFromEntryId(ULONG cb, const BYTE *lpEntryId,
 	if (lpEntryId == NULL || lpulObjType == NULL)
 		return KCERR_INVALID_PARAMETER;
 	auto peid = reinterpret_cast<const EID *>(lpEntryId);
-	if(!((cb == sizeof(EID) && peid->ulVersion == 1) ||
+	if (!((cb == sizeof(EID_FIXED) && peid->ulVersion == 1) ||
 		 (cb == sizeof(EID_V0) && peid->ulVersion == 0 )) )
 		return KCERR_INVALID_ENTRYID;
 

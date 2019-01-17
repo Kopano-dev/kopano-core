@@ -47,8 +47,14 @@
 // When this is a store EID, the szServer field is also set, and the ulId
 // points to the top-level object for the store. The other fields are the same.
 
-// Entryid from version 6
-// Entryid version 1 (48 bytes)
+/*
+ * Dynamic-size structure view (instantiation forbidden) to interpret arbitrary
+ * v1 EIDs. (v1 EIDs are used from ZCP 6 onwards.)
+ *
+ * The typical form that they are generated with is a 48-byte form with
+ * szServer="\0\0\0\0" (EID_FIXED). Many places in KC somewhat arbitrarily only
+ * accept that form.
+ */
 struct EID {
 	BYTE abFlags[4]{};
 	GUID guid{}; /* StoreGuid */
@@ -56,10 +62,23 @@ struct EID {
 	uint16_t usType = 0;
 	uint16_t usFlags = 0; /* Before Zarafa 7.1, ulFlags did not exist, and ulType was ULONG */
 	GUID uniqueId{};
-	char szServer[1]{}, szPadding[3]{};
+	char szServer[];
 
-	EID() = default;
-	EID(unsigned short type, const GUID &g, const GUID &id, unsigned short flags = 0) :
+	EID(EID &&) = delete;
+};
+
+/* 48-byte fixed-size structure used for constructing standard (unwrapped) v1 EIDs */
+struct EID_FIXED {
+	BYTE abFlags[4]{};
+	GUID guid{}; /* StoreGuid */
+	uint32_t ulVersion = 1;
+	uint16_t usType = 0;
+	uint16_t usFlags = 0; /* Before Zarafa 7.1, ulFlags did not exist, and ulType was ULONG */
+	GUID uniqueId{};
+	char pad[4]{};
+
+	EID_FIXED() = default;
+	EID_FIXED(unsigned short type, const GUID &g, const GUID &id, unsigned short flags = 0) :
 		guid(g), usType(type), usFlags(flags), uniqueId(id)
 	{}
 };
@@ -147,9 +166,7 @@ enum
 #define TRANSPORT_ADDRESS_TYPE_FAX KC_T("FAX")
 
 typedef EID * PEID;
-
-#define CbEID(p)	(sizeof(EID)+strlen((char*)(p)->szServer))
-#define CbNewEID(p) 	(sizeof(EID)+strlen(((char*)p)))
+#define CbNewEID(p) ((sizeof(EID) + strlen(p) + 4) / 4 * 4)
 
 #define EID_TYPE_STORE		1
 #define EID_TYPE_OBJECT		2

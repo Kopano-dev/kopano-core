@@ -613,7 +613,7 @@ static HRESULT adm_create_store(IECServiceAdmin *svcadm)
 		return kc_perror("User store already exists", ret);
 	if (ret != hrSuccess)
 		return kc_perror("Unable to create store", ret);
-	if (store_size == sizeof(EID))
+	if (store_size == sizeof(EID_FIXED))
 		printf("Store GUID is %s\n", strToLower(bin2hex(sizeof(GUID), &reinterpret_cast<EID *>(store_eid.get())->guid)).c_str());
 	else
 		printf("Store EID is %s\n", strToLower(bin2hex(store_size, store_eid->ab)).c_str());
@@ -645,7 +645,7 @@ static HRESULT adm_create_public(IECServiceAdmin *svcadm, const char *cname)
 	if (ret != hrSuccess)
 		return kc_perror("Unable to create public store", ret);
 	printf("The store has been created.\n");
-	if (store_size == sizeof(EID))
+	if (store_size == sizeof(EID_FIXED))
 		printf("Store GUID is %s\n", strToLower(bin2hex(sizeof(GUID), &reinterpret_cast<EID *>(store_eid.get())->guid)).c_str());
 	else
 		printf("Store EID is %s\n", strToLower(bin2hex(store_size, store_eid->ab)).c_str());

@@ -667,7 +667,7 @@ HRESULT HrCreateEntryId(const GUID &guidStore, unsigned int ulObjType,
     ULONG *lpcbEntryId, ENTRYID **lppEntryId)
 {
 	HRESULT		hr;
-	EID			eid;
+	EID_FIXED eid;
 	LPENTRYID	lpEntryId = NULL;
 
 	if (lpcbEntryId == NULL || lppEntryId == NULL)
@@ -783,7 +783,7 @@ HRESULT GetPublicEntryId(enumPublicEntryID ePublicEntryID,
 	LPENTRYID lpEntryID = NULL;
 
 	GUID guidEmpty = {0};
-	EID eid(MAPI_FOLDER, guidStore, guidEmpty);
+	EID_FIXED eid(MAPI_FOLDER, guidStore, guidEmpty);
 
 	switch (ePublicEntryID) {
 	case ePE_IPMSubtree:

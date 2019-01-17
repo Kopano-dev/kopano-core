@@ -2042,7 +2042,7 @@ HRESULT UnWrapServerClientStoreEntry(ULONG cbWrapStoreID,
 	if (peid->ulVersion == 0)
 		ulSize = sizeof(EID_V0);
 	else if (peid->ulVersion == 1)
-		ulSize = sizeof(EID);
+		ulSize = sizeof(EID_FIXED);
 	else
 		return MAPI_E_INVALID_ENTRYID;
 
