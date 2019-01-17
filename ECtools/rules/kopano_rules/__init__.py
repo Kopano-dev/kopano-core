@@ -320,8 +320,6 @@ class KopanoRules():
 def convertcondition(conditions): ## TODO make this nicer
     condition_message = ''
     conlist = []
-    totalnum = 0
-    messagelist = []
     if isinstance(conditions, SAndRestriction):
         conditions = conditions.lpRes
     elif isinstance(conditions, SCommentRestriction):
