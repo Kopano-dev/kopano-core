@@ -978,11 +978,18 @@ ECRESULT ECAuthSession::ValidateSSOData_KCOIDC(struct soap* soap, const char* na
 		}
 	}
 
+	unsigned int id = 0;
 	objectid_t extern_id;
 	unsigned int mapi_type;
-	auto er = ABEntryIDToID(static_cast<ULONG>(username_abid.size()), reinterpret_cast<const BYTE *>(username_abid.c_str()), &m_ulUserID, &extern_id, &mapi_type);
+	auto er = ABEntryIDToID(static_cast<ULONG>(username_abid.size()), reinterpret_cast<const BYTE *>(username_abid.c_str()), &id, &extern_id, &mapi_type);
 	if (er != erSuccess)
 		return ec_perror("ABEntryIDToID", er);
+	// Always lookup via exID to ensure correct user in multi server environments.
+	er = m_lpSessionManager->GetCacheManager()->GetUserObject(extern_id, &m_ulUserID, nullptr, nullptr);
+	if (er == KCERR_NOT_FOUND)
+		return KCERR_LOGON_FAILED;
+	else if (er != erSuccess)
+		return ec_perror("GetUserObject", er);
 	objectdetails_t details;
 	er = m_lpUserManagement->GetObjectDetails(m_ulUserID, &details);
 	if (er != erSuccess)
