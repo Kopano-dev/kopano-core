@@ -144,7 +144,7 @@ static ECRESULT CreateEntryId(GUID guidStore, unsigned int ulObjType,
 	eid.guid = guidStore;
 	eid.usType = ulObjType;
 	lpEntryId = s_alloc<entryId>(nullptr);
-	lpEntryId->__size = sizeof(EID);
+	lpEntryId->__size = sizeof(eid);
 	lpEntryId->__ptr = s_alloc<unsigned char>(nullptr, lpEntryId->__size);
 	memcpy(lpEntryId->__ptr, &eid, lpEntryId->__size);
 
