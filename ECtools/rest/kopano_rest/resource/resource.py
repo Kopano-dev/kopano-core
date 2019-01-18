@@ -152,9 +152,9 @@ class Resource(object):
         if expand:
             data.update(expand)
         if INDENT:
-            return json.dumps(data, indent=2)
+            return json.dumps(data, indent=2, ensure_ascii=False).encode('utf-8')
         else:
-            return json.dumps(data)
+            return json.dumps(data, ensure_ascii=False).encode('utf-8')
 
     def json_multi(self, req, obj, fields, all_fields, top, skip, count, deltalink, add_count=False):
         header = b'{\n'
@@ -181,7 +181,7 @@ class Resource(object):
             if not first:
                 yield b',\n'
             first = False
-            wa = self.json(req, o, fields, all_fields, multi=True).encode('utf-8')
+            wa = self.json(req, o, fields, all_fields, multi=True)
             yield b'\n'.join([b'    '+line for line in wa.splitlines()])
         yield b'\n  ]\n}'
 
