@@ -385,14 +385,27 @@ class Service(kopano.Service):
         self.log.info('unsubscribing: %s', user)
 
         usera = server.user(user)
-        sink = USER_SINK[usera.name]
+        userb = server.user(USER_USER[usera.name])
 
+        # unsubscribe user from notification
+        sink = USER_SINK[usera.name]
         usera.store.unsubscribe(sink)
 
+        # unregister user everywhere
         del USER_USER[usera.name]
         del USER_SINK[usera.name]
         del STORE_STORE[usera.store.entryid]
-        del USER_INFO[usera]
+        del USER_INFO[usera.name]
+
+        # transfer metadata # TODO webapp settings
+        userb.permissions_loads(usera.permissions_dumps())
+        userb.delegations_loads(usera.delegations_dumps())
+        for foldera in usera.folders():
+            folderb = userb.folder(foldera.path)
+            folderb.permissions_loads(foldera.permissions_dumps())
+            folderb.rules_loads(foldera.rules_dumps())
+
+        # TODO remove states
 
     def notify_sync(self):
         server = kopano.Server(notifications=True, options=self.options, parse_args=False) # TODO ugh
