@@ -1,3 +1,18 @@
+8.6.93
+======
+Fixes:
+* server: incomplete LDAP filter processing (KC-1261 from 8.6.91) had
+  caused GAB users to be not shown, which is fixed [KC-1381]
+
+
+8.6.92 (8.7 beta)
+=================
+Enhancements:
+* dagent: a new config directive "mail_conversion_detail" was added [KC-1342]
+* server: support running with old utf8mb3 databases by filtering
+  all Emojis/Unicode SMP characters [KC-725]
+
+
 8.6.91 (8.7 beta)
 =================
 Fixes:
