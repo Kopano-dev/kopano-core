@@ -35,6 +35,8 @@
 
 using namespace KC;
 
+static const ABEID_FIXED eidRoot(MAPI_ABCONT, MUIDECSAB, 0);
+
 ECABLogon::ECABLogon(LPMAPISUP lpMAPISup, WSTransport *lpTransport,
     ULONG ulProfileFlags, const GUID *lpGUID) :
 	ECUnknown("IABLogon"), m_lpMAPISup(lpMAPISup),
@@ -97,8 +99,7 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	HRESULT			hr = hrSuccess;
 	object_ptr<ECABContainer> lpABContainer;
 	BOOL			fModifyObject = FALSE;
-	ABEID			eidRoot =  ABEID(MAPI_ABCONT, MUIDECSAB, 0);
-	ABEID lpABeid;
+	ABEID_FIXED lpABeid;
 	object_ptr<IECPropStorage> lpPropStorage;
 	object_ptr<ECMailUser> lpMailUser;
 	object_ptr<ECDistList> 	lpDistList;
@@ -121,7 +122,7 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 
 	if(cbEntryID == 0 && lpEntryID == NULL) {
 		memcpy(&lpABeid, &eidRoot, sizeof(lpABeid));
-		cbEntryID = CbABEID(&lpABeid);
+		cbEntryID = sizeof(lpABeid);
 		lpEntryID = reinterpret_cast<ENTRYID *>(&lpABeid);
 	} else {
 		if (cbEntryID == 0 || lpEntryID == nullptr || cbEntryID < sizeof(ABEID))

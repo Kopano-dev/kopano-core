@@ -63,6 +63,10 @@ namespace KC {
 
 extern ECSessionManager*	g_lpSessionManager;
 
+/* DEFINED_GUIDs are in rodata, which means they are practically initialized before any static initializers run */
+static const ABEID_FIXED abcont_1(MAPI_ABCONT, MUIDECSAB, 1);
+static const ABEID_FIXED abcont_uab(MAPI_ABCONT, MUIDECSAB, KOPANO_UID_ADDRESS_BOOK);
+
 static bool execute_script(const char *scriptname, ...)
 {
 	va_list v;
@@ -869,7 +873,6 @@ ECRESULT ECUserManagement::CreateOrModifyObject(const objectid_t &sExternId, con
  * Add a member to a group, with on-the-fly deletion of the specified group id.
  */
 ECRESULT ECUserManagement::AddSubObjectToObjectAndSync(userobject_relation_t relation, unsigned int ulParentId, unsigned int ulChildId) {
-	ABEID eid(MAPI_ABCONT, MUIDECSAB, 1);
 	objectid_t parentid;
 	objectid_t childid;
 	SOURCEKEY sSourceKey;
@@ -920,7 +923,7 @@ ECRESULT ECUserManagement::AddSubObjectToObjectAndSync(userobject_relation_t rel
 	{
 		if (er != erSuccess)
 			return er;
-		AddABChange(m_lpSession, ICS_AB_CHANGE, sSourceKey, SOURCEKEY(CbABEID(&eid), (char *)&eid));
+		AddABChange(m_lpSession, ICS_AB_CHANGE, sSourceKey, SOURCEKEY(sizeof(abcont_1), reinterpret_cast<const char *>(&abcont_1)));
 	}
 
 	m_lpSession->GetSessionManager()->GetCacheManager()->UpdateUser(ulParentId);
@@ -928,7 +931,6 @@ ECRESULT ECUserManagement::AddSubObjectToObjectAndSync(userobject_relation_t rel
 }
 
 ECRESULT ECUserManagement::DeleteSubObjectFromObjectAndSync(userobject_relation_t relation, unsigned int ulParentId, unsigned int ulChildId) {
-	ABEID eid(MAPI_ABCONT, MUIDECSAB, 1);
 	objectid_t parentid;
 	objectid_t childid;
 	SOURCEKEY sSourceKey;
@@ -976,8 +978,7 @@ ECRESULT ECUserManagement::DeleteSubObjectFromObjectAndSync(userobject_relation_
 	{
 		if (er != erSuccess)
 			return er;
-
-		AddABChange(m_lpSession, ICS_AB_CHANGE, sSourceKey, SOURCEKEY(CbABEID(&eid), (char *)&eid));
+		AddABChange(m_lpSession, ICS_AB_CHANGE, sSourceKey, SOURCEKEY(sizeof(abcont_1), reinterpret_cast<const char *>(&abcont_1)));
 	}
 
 	m_lpSession->GetSessionManager()->GetCacheManager()->UpdateUser(ulParentId);
@@ -2281,7 +2282,6 @@ ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature,
 	objectdetails_t details;
 	unsigned int ulId;
 	unsigned int ulCompanyId;
-	ABEID eid(MAPI_ABCONT, MUIDECSAB, 1);
 	SOURCEKEY sSourceKey;
 	UserPlugin *lpPlugin = NULL;
 	string strUserServer;
@@ -2406,9 +2406,7 @@ ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature,
 	er = GetABSourceKeyV1(ulId, &sSourceKey);
 	if (er != erSuccess)
 		return er;
-
-	AddABChange(m_lpSession, ICS_AB_NEW, sSourceKey, SOURCEKEY(CbABEID(&eid), (char *)&eid));
-
+	AddABChange(m_lpSession, ICS_AB_NEW, sSourceKey, SOURCEKEY(sizeof(abcont_1), reinterpret_cast<const char *>(&abcont_1)));
 	*lpulObjectId = ulId;
 	return erSuccess;
 }
@@ -2513,7 +2511,6 @@ ECRESULT ECUserManagement::UpdateObjectclassOrDelete(const objectid_t &sExternId
 	ECDatabase *lpDatabase = NULL;
 	DB_RESULT lpResult;
 	SOURCEKEY sSourceKey;
-	ABEID eid(MAPI_ABCONT, MUIDECSAB, 1);
 
 	auto er = m_lpSession->GetDatabase(&lpDatabase);
 	if(er != erSuccess)
@@ -2560,7 +2557,7 @@ ECRESULT ECUserManagement::UpdateObjectclassOrDelete(const objectid_t &sExternId
 	er = GetABSourceKeyV1(ulObjectId, &sSourceKey);
 	if (er != erSuccess)
 		return er;
-	AddABChange(m_lpSession, ICS_AB_CHANGE, sSourceKey, SOURCEKEY(CbABEID(&eid), reinterpret_cast<char *>(&eid)));
+	AddABChange(m_lpSession, ICS_AB_CHANGE, sSourceKey, SOURCEKEY(sizeof(abcont_1), reinterpret_cast<const char *>(&abcont_1)));
 	if (lpulObjectId != nullptr)
 		*lpulObjectId = ulObjectId;
 	return erSuccess;
@@ -2719,7 +2716,6 @@ ECRESULT ECUserManagement::MoveLocalObject(unsigned int ulObjectId, objectclass_
 	ECRESULT er = erSuccess;
 	ECDatabase *lpDatabase = NULL;
 	std::string strQuery;
-	ABEID eid(MAPI_ABCONT, MUIDECSAB, 1);
 	bool bTransaction = false;
 	SOURCEKEY sSourceKey;
 
@@ -2769,8 +2765,7 @@ ECRESULT ECUserManagement::MoveLocalObject(unsigned int ulObjectId, objectclass_
 	er = GetABSourceKeyV1(ulObjectId, &sSourceKey);
 	if (er != erSuccess)
 		goto exit;
-
-	er = AddABChange(m_lpSession, ICS_AB_CHANGE, sSourceKey, SOURCEKEY(CbABEID(&eid), (char *)&eid));
+	er = AddABChange(m_lpSession, ICS_AB_CHANGE, sSourceKey, SOURCEKEY(sizeof(abcont_1), reinterpret_cast<const char *>(&abcont_1)));
 	if(er != erSuccess)
 		goto exit;
 
@@ -2799,7 +2794,6 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 	DB_ROW lpRow = NULL;
 	unsigned int ulDeletedRows = 0;
 	std::string strQuery;
-	ABEID eid(MAPI_ABCONT, MUIDECSAB, 1);
 	bool bTransaction = false;
 	SOURCEKEY sSourceKey;
 	auto cache = m_lpSession->GetSessionManager()->GetCacheManager();
@@ -2893,7 +2887,7 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 	}
 
 	// Log the change to ICS
-	er = AddABChange(m_lpSession, ICS_AB_DELETE, sSourceKey, SOURCEKEY(CbABEID(&eid), (char *)&eid));
+	er = AddABChange(m_lpSession, ICS_AB_DELETE, sSourceKey, SOURCEKEY(sizeof(abcont_1), reinterpret_cast<const char *>(&abcont_1)));
 	if(er != erSuccess)
 		goto exit;
 
@@ -3685,17 +3679,11 @@ ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soa
 				break;
 			}
 			case PR_PARENT_ENTRYID: {
-				ABEID abeid;
-				abeid.ulType = MAPI_ABCONT;
-				abeid.ulId = 1;
-				memcpy(&abeid.guid, &MUIDECSAB, sizeof(GUID));
-
 				lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ABEID));
-				lpPropVal->Value.bin->__size = sizeof(ABEID);
+				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(abcont_1));
+				lpPropVal->Value.bin->__size = sizeof(abcont_1);
 				lpPropVal->__union = SOAP_UNION_propValData_bin;
-
-				*(ABEID *)lpPropVal->Value.bin->__ptr = abeid;
+				memcpy(lpPropVal->Value.bin->__ptr, &abcont_1, sizeof(abcont_1));
 				break;
 			}
 			case PR_NORMALIZED_SUBJECT:
@@ -3764,17 +3752,11 @@ ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soa
 			}
 			case PR_EMS_AB_PARENT_ENTRYID:
 			case PR_PARENT_ENTRYID: {
-				ABEID abeid;
-				abeid.ulType = MAPI_ABCONT;
-				abeid.ulId = 1;
-				memcpy(&abeid.guid, &MUIDECSAB, sizeof(GUID));
-
 				lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ABEID));
-				lpPropVal->Value.bin->__size = sizeof(ABEID);
+				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(abcont_1));
+				lpPropVal->Value.bin->__size = sizeof(abcont_1);
 				lpPropVal->__union = SOAP_UNION_propValData_bin;
-
-				*(ABEID *)lpPropVal->Value.bin->__ptr = abeid;
+				memcpy(lpPropVal->Value.bin->__ptr, &abcont_1, sizeof(abcont_1));
 				break;
 			}
 			case PR_ACCOUNT:
@@ -3864,15 +3846,10 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap,
     struct propValArray *lpPropValArray)
 {
 	std::string strName;
-	ABEID abeid;
+	const ABEID_FIXED abeid(MAPI_ABCONT, MUIDECSAB, ulId);
 
 	lpPropValArray->__ptr = s_alloc<struct propVal>(soap, lpPropTagArray->__size);
 	lpPropValArray->__size = lpPropTagArray->__size;
-
-	abeid.ulType = MAPI_ABCONT;
-	memcpy(&abeid.guid, &MUIDECSAB, sizeof(GUID));
-	abeid.ulId = ulId;
-
 	// FIXME: Should this name be hardcoded like this?
 	// Are there any other values that might be passed as name?
 	if (ulId == KOPANO_UID_ADDRESS_BOOK)
@@ -3891,10 +3868,10 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap,
 		switch (NormalizePropTag(lpPropTagArray->__ptr[i])) {
 		case PR_SEARCH_KEY:
 			lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-			lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ABEID));
-			lpPropVal->Value.bin->__size = sizeof(ABEID);
+			lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(abeid));
+			lpPropVal->Value.bin->__size = sizeof(abeid);
 			lpPropVal->__union = SOAP_UNION_propValData_bin;
-			memcpy(lpPropVal->Value.bin->__ptr, &abeid, sizeof(ABEID));
+			memcpy(lpPropVal->Value.bin->__ptr, &abeid, sizeof(abeid));
 			break;
 		case PR_CONTAINER_CLASS:
 			lpPropVal->Value.lpszA = s_strcpy(soap, "IPM.Contact");
@@ -3902,10 +3879,10 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap,
 			break;
 		case PR_ENTRYID:
 			lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-			lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ABEID));
-			lpPropVal->Value.bin->__size = sizeof(ABEID);
+			lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(abeid));
+			lpPropVal->Value.bin->__size = sizeof(abeid);
 			lpPropVal->__union = SOAP_UNION_propValData_bin;
-			memcpy(lpPropVal->Value.bin->__ptr, &abeid, sizeof(ABEID));
+			memcpy(lpPropVal->Value.bin->__ptr, &abeid, sizeof(abeid));
 			break;
 		case PR_ACCOUNT:
 		case PR_NORMALIZED_SUBJECT:
@@ -3946,10 +3923,10 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap,
 			break;
 		case PR_RECORD_KEY:
 			lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-			lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ABEID));
-			lpPropVal->Value.bin->__size = sizeof(ABEID);
+			lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(abeid));
+			lpPropVal->Value.bin->__size = sizeof(abeid);
 			lpPropVal->__union = SOAP_UNION_propValData_bin;
-			memcpy(lpPropVal->Value.bin->__ptr, &abeid, sizeof(ABEID));
+			memcpy(lpPropVal->Value.bin->__ptr, &abeid, sizeof(abeid));
 			break;
 		case PR_CONTAINER_FLAGS:
 			/*
@@ -4000,17 +3977,11 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap,
 		case PR_EMS_AB_PARENT_ENTRYID:
 		case PR_PARENT_ENTRYID:
 			if (ulId != KOPANO_UID_ADDRESS_BOOK) {
-				ABEID abeid;
-				abeid.ulType = MAPI_ABCONT;
-				abeid.ulId = KOPANO_UID_ADDRESS_BOOK;
-				memcpy(&abeid.guid, &MUIDECSAB, sizeof(GUID));
-
 				lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ABEID));
-				lpPropVal->Value.bin->__size = sizeof(ABEID);
+				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(abcont_uab));
+				lpPropVal->Value.bin->__size = sizeof(abcont_uab);
 				lpPropVal->__union = SOAP_UNION_propValData_bin;
-
-				*(ABEID *)lpPropVal->Value.bin->__ptr = abeid;
+				memcpy(lpPropVal->Value.bin->__ptr, &abcont_uab, sizeof(abcont_uab));
 			} else { /* Kopano Address Book */
 				lpPropVal->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropTagArray->__ptr[i]));
 				lpPropVal->Value.ul = KCERR_NOT_FOUND;
@@ -4077,11 +4048,9 @@ ECRESULT ECUserManagement::GetUserCount(usercount_t *lpUserCount)
 	if (lpUserCount)
 		lpUserCount->assign(ulActive, ulNonActiveUser, ulRoom, ulEquipment, ulContact);
 
-	{
-		std::lock_guard<std::recursive_mutex> lock(m_hMutex);
-		m_userCount.assign(ulActive, ulNonActiveUser, ulRoom, ulEquipment, ulContact);
-		m_usercount_ts = time(NULL);
-	}
+	std::lock_guard<std::recursive_mutex> lock(m_hMutex);
+	m_userCount.assign(ulActive, ulNonActiveUser, ulRoom, ulEquipment, ulContact);
+	m_usercount_ts = time(NULL);
 	return erSuccess;
 }
 
@@ -4212,7 +4181,6 @@ ECRESULT ECUserManagement::CheckObjectModified(unsigned int ulObjectId, const st
 ECRESULT ECUserManagement::ProcessModification(unsigned int ulId, const std::string &newsignature)
 {
 	ECDatabase *lpDatabase = NULL;
-	ABEID eid(MAPI_ABCONT, MUIDECSAB, 1);
 	SOURCEKEY sSourceKey;
 
 	// Log the change to ICS
@@ -4220,8 +4188,7 @@ ECRESULT ECUserManagement::ProcessModification(unsigned int ulId, const std::str
 	if (er != erSuccess)
 		return er;
 
-	AddABChange(m_lpSession, ICS_AB_CHANGE, sSourceKey, SOURCEKEY(CbABEID(&eid), (char *)&eid));
-
+	AddABChange(m_lpSession, ICS_AB_CHANGE, sSourceKey, SOURCEKEY(sizeof(abcont_1), reinterpret_cast<const char *>(&abcont_1)));
 	// Ignore ICS error
 
 	// Save the new signature
@@ -4290,28 +4257,24 @@ ECRESULT ECUserManagement::CreateABEntryID(struct soap *soap,
 	if (IsInternalObject(ulObjId)) {
 		if (ulVersion != 0)
 			throw std::runtime_error("Internal objects must always have v0 ABEIDs");
-		lpEid = reinterpret_cast<ABEID *>(s_alloc<unsigned char>(soap, sizeof(ABEID)));
-		memset(lpEid, 0, sizeof(ABEID));
-		ulSize = sizeof(ABEID);
+		ulSize = CbNewABEID("");
+		lpEid = reinterpret_cast<ABEID *>(s_alloc<unsigned char>(soap, ulSize));
+		memset(lpEid, 0, ulSize);
+	} else if (ulVersion == 0) {
+		ulSize = CbNewABEID("");
+		lpEid = reinterpret_cast<ABEID *>(s_alloc<unsigned char>(soap, ulSize));
+		memset(lpEid, 0, ulSize);
+	} else if(ulVersion == 1) {
+		if (lpExternId == NULL)
+			return KCERR_INVALID_PARAMETER;
+		strEncExId = base64_encode(lpExternId->id.c_str(), lpExternId->id.size());
+		ulSize = CbNewABEID(strEncExId.c_str());
+		lpEid = reinterpret_cast<ABEID *>(s_alloc<unsigned char>(soap, ulSize));
+		memset(lpEid, 0, ulSize);
+		// avoid FORTIFY_SOURCE checks in strcpy to an address that the compiler thinks is 1 size large
+		memcpy(lpEid->szExId, strEncExId.c_str(), strEncExId.length()+1);
 	} else {
-		if(ulVersion == 0) {
-			lpEid = reinterpret_cast<ABEID *>(s_alloc<unsigned char>(soap, sizeof(ABEID)));
-			
-			memset(lpEid, 0, sizeof(ABEID));
-			ulSize = sizeof(ABEID);
-		} else if(ulVersion == 1) {
-			if (lpExternId == NULL)
-				return KCERR_INVALID_PARAMETER;
-			strEncExId = base64_encode(lpExternId->id.c_str(), lpExternId->id.size());
-			ulSize = CbNewABEID(strEncExId.c_str());
-			lpEid = reinterpret_cast<ABEID *>(s_alloc<unsigned char>(soap, ulSize));
-			memset(lpEid, 0, ulSize);
-
-			// avoid FORTIFY_SOURCE checks in strcpy to an address that the compiler thinks is 1 size large
-			memcpy(lpEid->szExId, strEncExId.c_str(), strEncExId.length()+1);
-		} else {
-			throw std::runtime_error("Unknown user entry version " + stringify(ulVersion));
-		}
+		throw std::runtime_error("Unknown user entry version " + stringify(ulVersion));
 	}
 
 	lpEid->ulVersion = ulVersion;

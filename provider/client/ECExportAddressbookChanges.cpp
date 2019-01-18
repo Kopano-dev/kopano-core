@@ -34,6 +34,8 @@
 
 #include <edkmdb.h>
 
+static const ABEID_FIXED abcont_1(MAPI_ABCONT, MUIDECSAB, 1 /* first container */);
+
 ECExportAddressbookChanges::ECExportAddressbookChanges(ECMsgStore *lpStore) :
 	m_lpMsgStore(lpStore)
 {
@@ -51,7 +53,6 @@ HRESULT	ECExportAddressbookChanges::Config(LPSTREAM lpStream, ULONG ulFlags, IEC
 {
 	HRESULT hr;
 	LARGE_INTEGER lint = {{ 0, 0 }};
-    ABEID abeid;
 	STATSTG sStatStg;
 	ULONG ulCount = 0;
 	ULONG ulProcessed = 0;
@@ -93,13 +94,9 @@ HRESULT	ECExportAddressbookChanges::Config(LPSTREAM lpStream, ULONG ulFlags, IEC
 
 	// ulFlags ignored
 	m_lpImporter.reset(lpCollector);
-	abeid.ulType = MAPI_ABCONT;
-	memcpy(&abeid.guid, &MUIDECSAB, sizeof(GUID));
-	abeid.ulId = 1; // 1 is the first container
-    
     // The parent source key is the entryid of the AB container that we're sync'ing
 	m_lpChanges.reset();
-	hr = m_lpMsgStore->lpTransport->HrGetChanges(std::string(reinterpret_cast<const char *>(&abeid), sizeof(ABEID)),
+	hr = m_lpMsgStore->lpTransport->HrGetChanges(std::string(reinterpret_cast<const char *>(&abcont_1), sizeof(abcont_1)),
 	     0, m_ulChangeId, ICS_SYNC_AB, 0, nullptr, &m_ulMaxChangeId,
 	     &m_ulChanges, &~m_lpRawChanges);
     if(hr != hrSuccess)

@@ -32,8 +32,8 @@ bool IsKopanoEntryId(ULONG cb, const BYTE *lpEntryId)
 		return false;
 	auto peid = reinterpret_cast<const EID *>(lpEntryId);
 	/* TODO: maybe also a check on objType */
-	if( (cb == sizeof(EID) && peid->ulVersion == 1) ||
-		(cb == sizeof(EID_V0) && peid->ulVersion == 0 ) )
+	if ((cb == sizeof(EID_FIXED) && peid->ulVersion == 1) ||
+	    (cb == SIZEOF_EID_V0_FIXED && peid->ulVersion == 0))
 		return true;
 
 	return false;
@@ -44,8 +44,8 @@ bool ValidateZEntryId(ULONG cb, const BYTE *lpEntryId, unsigned int ulCheckType)
 	if(lpEntryId == NULL)
 		return false;
 	auto peid = reinterpret_cast<const EID *>(lpEntryId);
-	if( ((cb == sizeof(EID) && peid->ulVersion == 1) ||
-		 (cb == sizeof(EID_V0) && peid->ulVersion == 0 ) ) &&
+	if (((cb == sizeof(EID_FIXED) && peid->ulVersion == 1) ||
+	    (cb == SIZEOF_EID_V0_FIXED && peid->ulVersion == 0)) &&
 		 peid->usType == ulCheckType)
 		return true;
 	return false;
@@ -67,8 +67,8 @@ bool ValidateZEntryList(const ENTRYLIST *lpMsgList, unsigned int ulCheckType)
 
 	for (ULONG i = 0; i < lpMsgList->cValues; ++i) {
 		auto peid = reinterpret_cast<const EID *>(lpMsgList->lpbin[i].lpb);
-		if( !(((lpMsgList->lpbin[i].cb == sizeof(EID) && peid->ulVersion == 1) ||
-			 (lpMsgList->lpbin[i].cb == sizeof(EID_V0) && peid->ulVersion == 0 ) ) &&
+		if (!(((lpMsgList->lpbin[i].cb == sizeof(EID_FIXED) && peid->ulVersion == 1) ||
+		    (lpMsgList->lpbin[i].cb == SIZEOF_EID_V0_FIXED && peid->ulVersion == 0)) &&
 			 peid->usType == ulCheckType))
 			return false;
 	}
@@ -81,8 +81,8 @@ ECRESULT GetStoreGuidFromEntryId(ULONG cb, const BYTE *lpEntryId,
 	if(lpEntryId == NULL || lpguidStore == NULL)
 		return KCERR_INVALID_PARAMETER;
 	auto peid = reinterpret_cast<const EID *>(lpEntryId);
-	if(!((cb == sizeof(EID) && peid->ulVersion == 1) ||
-		 (cb == sizeof(EID_V0) && peid->ulVersion == 0 )) )
+	if (!((cb == sizeof(EID_FIXED) && peid->ulVersion == 1) ||
+	    (cb == SIZEOF_EID_V0_FIXED && peid->ulVersion == 0)))
 		return KCERR_INVALID_ENTRYID;
 
 	memcpy(lpguidStore, &peid->guid, sizeof(GUID));
@@ -95,8 +95,8 @@ ECRESULT GetObjTypeFromEntryId(ULONG cb, const BYTE *lpEntryId,
 	if (lpEntryId == NULL || lpulObjType == NULL)
 		return KCERR_INVALID_PARAMETER;
 	auto peid = reinterpret_cast<const EID *>(lpEntryId);
-	if(!((cb == sizeof(EID) && peid->ulVersion == 1) ||
-		 (cb == sizeof(EID_V0) && peid->ulVersion == 0 )) )
+	if (!((cb == sizeof(EID_FIXED) && peid->ulVersion == 1) ||
+	    (cb == SIZEOF_EID_V0_FIXED && peid->ulVersion == 0)))
 		return KCERR_INVALID_ENTRYID;
 
 	*lpulObjType = peid->usType;
@@ -173,7 +173,7 @@ ECRESULT SIEntryIDToID(ULONG cb, const BYTE *lpInstanceId, GUID *guidServer,
 	lpInstanceEid = (LPSIEID)lpInstanceId;
 
 	if (guidServer)
-		memcpy(guidServer, (LPBYTE)lpInstanceEid + sizeof(SIEID), sizeof(GUID));
+		memcpy(guidServer, reinterpret_cast<BYTE *>(lpInstanceEid) + SIZEOF_SIEID_FIXED, sizeof(GUID));
 	if (lpulInstanceId)
 		*lpulInstanceId = lpInstanceEid->ulId;
 	if (lpulPropId)
@@ -300,7 +300,6 @@ ECRESULT ABIDToEntryID(struct soap *soap, unsigned int ulID, const objectid_t& s
 	if (!sExternId.id.empty())
 	{
 		lpUserEid->ulVersion = 1;
-		// avoid FORTIFY_SOURCE checks in strcpy to an address that the compiler thinks is 1 size large
 		memcpy(lpUserEid->szExId, strEncExId.c_str(), strEncExId.length()+1);
 	}
 
@@ -319,7 +318,7 @@ ECRESULT SIIDToEntryID(struct soap *soap, const GUID *guidServer,
 	if (lpsInstanceId == NULL)
 		return KCERR_INVALID_PARAMETER;
 
-	ulSize = sizeof(SIEID) + sizeof(GUID);
+	ulSize = SIZEOF_SIEID_FIXED + sizeof(GUID);
 
 	lpInstanceEid = (LPSIEID)s_alloc<char>(soap, ulSize);
 	memset(lpInstanceEid, 0, ulSize);
@@ -328,7 +327,7 @@ ECRESULT SIIDToEntryID(struct soap *soap, const GUID *guidServer,
 	lpInstanceEid->ulType = ulPropId;
 	memcpy(&lpInstanceEid->guid, MUIDECSI_SERVER, sizeof(GUID));
 
-	memcpy((char *)lpInstanceEid + sizeof(SIEID), guidServer, sizeof(GUID));
+	memcpy(reinterpret_cast<char *>(lpInstanceEid) + SIZEOF_SIEID_FIXED, guidServer, sizeof(GUID));
 
 	lpsInstanceId->__size = ulSize;
 	lpsInstanceId->__ptr = (unsigned char *)lpInstanceEid;
