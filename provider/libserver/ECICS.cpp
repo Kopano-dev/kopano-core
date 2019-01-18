@@ -35,6 +35,8 @@ struct ABChangeRecord {
 	ABChangeRecord(ULONG id, const std::string &strItem, const std::string &strParent, ULONG change_type);
 };
 
+static const ABEID_FIXED abcont_1(MAPI_ABCONT, MUIDECSAB, 1);
+
 inline ABChangeRecord::ABChangeRecord(ULONG _id, const std::string &_strItem, const std::string &_strParent, ULONG _change_type)
 : id(_id)
 , strItem(_strItem)
@@ -795,7 +797,6 @@ static ECRESULT getchanges_ab2(struct soap *soap, ECSession *lpSession,
 	 * During initial sync, just get all the current users from the
 	 * database and output them as ICS_AB_NEW changes.
 	 */
-	ABEID eid(MAPI_ABCONT, MUIDECSAB, 1);
 	std::string strQuery = "SELECT max(id) FROM abchanges";
 	DB_RESULT lpDBResult;
 	auto er = lpDatabase->DoSelect(strQuery, &lpDBResult);
@@ -861,9 +862,9 @@ static ECRESULT getchanges_ab2(struct soap *soap, ECSession *lpSession,
 		     reinterpret_cast<ABEID **>(&lpChanges->__ptr[i].sSourceKey.__ptr));
 		if (er != erSuccess)
 			return er;
-		lpChanges->__ptr[i].sParentSourceKey.__size = sizeof(eid);
-		lpChanges->__ptr[i].sParentSourceKey.__ptr = s_alloc<unsigned char>(soap, sizeof(eid));
-		memcpy(lpChanges->__ptr[i].sParentSourceKey.__ptr, &eid, sizeof(eid));
+		lpChanges->__ptr[i].sParentSourceKey.__size = sizeof(abcont_1);
+		lpChanges->__ptr[i].sParentSourceKey.__ptr = s_alloc<unsigned char>(soap, sizeof(abcont_1));
+		memcpy(lpChanges->__ptr[i].sParentSourceKey.__ptr, &abcont_1, sizeof(abcont_1));
 		lpChanges->__ptr[i].ulChangeType = ICS_AB_NEW;
 		++i;
 	}

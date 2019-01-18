@@ -1980,9 +1980,9 @@ HRESULT UnWrapServerClientStoreEntry(ULONG cbWrapStoreID,
 	ULONG	ulSize = 0;
 	auto peid = reinterpret_cast<const EID *>(lpWrapStoreID);
 	if (peid->ulVersion == 0)
-		ulSize = sizeof(EID_V0);
+		ulSize = SIZEOF_EID_V0_FIXED;
 	else if (peid->ulVersion == 1)
-		ulSize = sizeof(EID);
+		ulSize = sizeof(EID_FIXED);
 	else
 		return MAPI_E_INVALID_ENTRYID;
 
@@ -2017,9 +2017,9 @@ HRESULT UnWrapServerClientABEntry(ULONG cbWrapABID, const ENTRYID *lpWrapABID,
 	// FIXME: Check whether it is a Zarafa entry?
 	auto pabeid = reinterpret_cast<const ABEID *>(lpWrapABID);
 	if (pabeid->ulVersion == 0)
-		ulSize = sizeof(ABEID);
+		ulSize = CbNewABEID("");
 	else if (pabeid->ulVersion == 1)
-		ulSize = CbABEID(pabeid);
+		ulSize = (sizeof(ABEID) + strnlen(pabeid->szExId, cbWrapABID - sizeof(ABEID)) + 4) / 4 * 4;
 	else
 		return MAPI_E_INVALID_ENTRYID;
 

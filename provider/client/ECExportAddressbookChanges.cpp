@@ -19,6 +19,8 @@
 
 using namespace KC;
 
+static const ABEID_FIXED abcont_1(MAPI_ABCONT, MUIDECSAB, 1 /* first container */);
+
 ECExportAddressbookChanges::ECExportAddressbookChanges(ECMsgStore *lpStore) :
 	m_lpMsgStore(lpStore), m_lpLogger(new ECLogger_Null)
 {}
@@ -33,7 +35,6 @@ HRESULT ECExportAddressbookChanges::QueryInterface(REFIID refiid, void **lppInte
 HRESULT	ECExportAddressbookChanges::Config(LPSTREAM lpStream, ULONG ulFlags, IECImportAddressbookChanges *lpCollector)
 {
 	LARGE_INTEGER lint = {{ 0, 0 }};
-    ABEID abeid;
 	STATSTG sStatStg;
 	unsigned int ulCount = 0, ulProcessed = 0, ulRead = 0;
 	ICSCHANGE *lpLastChange = NULL;
@@ -71,13 +72,9 @@ HRESULT	ECExportAddressbookChanges::Config(LPSTREAM lpStream, ULONG ulFlags, IEC
 
 	// ulFlags ignored
 	m_lpImporter.reset(lpCollector);
-	abeid.ulType = MAPI_ABCONT;
-	memcpy(&abeid.guid, &MUIDECSAB, sizeof(GUID));
-	abeid.ulId = 1; // 1 is the first container
-
     // The parent source key is the entryid of the AB container that we're sync'ing
 	m_lpChanges.reset();
-	hr = m_lpMsgStore->lpTransport->HrGetChanges(std::string(reinterpret_cast<const char *>(&abeid), sizeof(ABEID)),
+	hr = m_lpMsgStore->lpTransport->HrGetChanges(std::string(reinterpret_cast<const char *>(&abcont_1), sizeof(abcont_1)),
 	     0, m_ulChangeId, ICS_SYNC_AB, 0, nullptr, &m_ulMaxChangeId,
 	     &m_ulChanges, &~m_lpRawChanges);
     if(hr != hrSuccess)

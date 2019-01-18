@@ -114,11 +114,13 @@ Packaging changes:
 Fixes:
 * dagent: the spam_header_name was not matched correctly [KF-1961]
 * dagent/client/libserver: fix inadvertent AF_LOCAL->SSL redirect [KC-1368]
+* client: ABEIDs were parsed wrong (and it broke with gcc8) [KC-1386, KS-42325]
 * libserver: restore a missing KCERR_NOT_FOUND return code in getStore
 Enhancements:
 * dbadm: new action "usmp-shrink-columns"
 * dagent: add directive to read whitelist domains and body from file
   [KC-1278, KC-1279]
+* Support for PHP 7.3 [KC-1372]
 Packaging:
 * Support for gsoap 2.8.73
 
