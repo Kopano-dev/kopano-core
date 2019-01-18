@@ -111,14 +111,18 @@ static HRESULT running_service(char **argv)
 	auto hr = ical_listen(g_lpConfig.get());
 	if (hr != hrSuccess)
 		return hr;
-	if (unix_runas(g_lpConfig.get()))
+	auto ret = unix_runas(g_lpConfig.get());
+	if (ret < 0) {
 		return MAPI_E_CALL_FAILED;
-	ec_reexec_prepare_sockets();
-	auto ret = ec_reexec(argv);
-	if (ret < 0)
-		ec_log_notice("K-1240: Failed to re-exec self: %s. "
-			"Continuing with standard allocator and/or restricted coredumps.",
-			strerror(-ret));
+	} else if (ret == 0) {
+		ec_reexec_finalize();
+	} else if (ret > 0) {
+		ec_reexec_prepare_sockets();
+		ret = ec_reexec(argv);
+		if (ret < 0)
+			ec_log_notice("K-1240: Failed to re-exec self: %s. "
+				"Continuing with restricted coredumps.", strerror(-ret));
+	}
 
 	// setup signals
 	KAlternateStack sigstack;

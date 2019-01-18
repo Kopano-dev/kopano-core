@@ -34,6 +34,10 @@ static int unix_runpath(ECConfig *conf)
 	return ret;
 }
 
+/**
+ * Change group identities for the process.
+ * Returns <0 on error, 0 on success (no action), >0 on success (actioned).
+ */
 static int unix_runasgroup(const struct passwd *pw, const char *group)
 {
 	auto gr = getgrnam(group);
@@ -41,29 +45,34 @@ static int unix_runasgroup(const struct passwd *pw, const char *group)
 		ec_log_err("Looking up group \"%s\" failed: %s", group, strerror(errno));
 		return -1;
 	}
-	if (getgid() != gr->gr_gid && setgid(gr->gr_gid) != 0) {
+	bool do_setgid = getgid() != gr->gr_gid || getegid() != gr->gr_gid;
+	if (do_setgid && setgid(gr->gr_gid) != 0) {
 		ec_log_crit("Changing to group \"%s\" failed: %s", gr->gr_name, strerror(errno));
 		return -1;
 	}
 	if (pw == nullptr)
 		/* No user change desired, so no initgroups desired. */
-		return 0;
-	if (getuid() == pw->pw_uid) {
+		return do_setgid;
+	if (geteuid() == pw->pw_uid) {
 		/*
 		 * The process is already the (supposedly unprivileged) target
 		 * user - initgroup is unlikely to succeed, so ignore its
 		 * return value.
 		 */
 		initgroups(pw->pw_name, gr->gr_gid);
-		return 0;
+		return do_setgid;
 	}
 	if (initgroups(pw->pw_name, gr->gr_gid) != 0) {
 		ec_log_crit("Changing supplementary groups failed: %s", strerror(errno));
 		return -1;
 	}
-	return 0;
+	return do_setgid;
 }
 
+/**
+ * Change user and group identities for the process.
+ * Returns <0 on error, 0 on success (no action), >0 on success (actioned).
+ */
 int unix_runas(ECConfig *lpConfig)
 {
 	const char *group = lpConfig->GetSetting("run_as_group");
@@ -82,14 +91,17 @@ int unix_runas(ECConfig *lpConfig)
 	}
 	if (group != nullptr && *group != '\0') {
 		ret = unix_runasgroup(pw, group);
-		if (ret != 0)
+		if (ret < 0)
 			return ret;
 	}
-	if (pw != nullptr && getuid() != pw->pw_uid && setuid(pw->pw_uid) != 0) {
+	bool do_setuid = pw != nullptr && (getuid() != pw->pw_uid || geteuid() != pw->pw_uid);
+	if (do_setuid && setuid(pw->pw_uid) != 0) {
 		ec_log_crit("Changing to user \"%s\" failed: %s", pw->pw_name, strerror(errno));
 		return -1;
 	}
-	return 0;
+	if (do_setuid)
+		ret = 1;
+	return ret;
 }
 
 int unix_chown(const char *filename, const char *username, const char *groupname) {
@@ -436,22 +448,34 @@ bool unix_system(const char *lpszLogName, const std::vector<std::string> &cmd,
 	return rv;
 }
 
+void ec_reexec_finalize()
+{
+	auto s = getenv("KC_REEXEC_DONE");
+	if (s == nullptr)
+		return; /* nothing to do */
+	unsetenv("KC_REEXEC_DONE");
+	s = getenv("KC_ORIGINAL_PRELOAD");
+	if (s == nullptr)
+		unsetenv("LD_PRELOAD");
+	else
+		setenv("LD_PRELOAD", s, true);
+}
+
+/**
+ * Reexecute the program with new UIDs and/or new preloaded
+ * libraries.
+ *
+ *
+ * The so-restarted process must invoke ec_reexec() again, so as to
+ * get the environment variables cleaned.
+ */
 int ec_reexec(const char *const *argv)
 {
 	if (getenv("KC_AVOID_REEXEC") != nullptr)
 		return 0;
 	auto s = getenv("KC_REEXEC_DONE");
 	if (s != nullptr) {
-		/*
-		 * 2nd time ec_reexec is called. Restore the previous
-		 * environment.
-		 */
-		unsetenv("KC_REEXEC_DONE");
-		s = getenv("KC_ORIGINAL_PRELOAD");
-		if (s == nullptr)
-			unsetenv("LD_PRELOAD");
-		else
-			setenv("LD_PRELOAD", s, true);
+		ec_reexec_finalize();
 		return 0;
 	}
 
