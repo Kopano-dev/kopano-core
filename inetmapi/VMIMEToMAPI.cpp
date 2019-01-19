@@ -3226,10 +3226,10 @@ std::string VMIMEToMAPI::createIMAPEnvelope(vmime::shared_ptr<vmime::message> vm
 
 	// ((reply-to),(reply-to))
 	try {
-		lItems.emplace_back("(" + addressListToEnvelope(vmime::dynamicCast<vmime::mailboxList>(vmHeader->ReplyTo()->getValue())) + ")");
+		lItems.emplace_back(addressListToEnvelope(vmime::dynamicCast<vmime::mailboxList>(vmHeader->ReplyTo()->getValue())));
 	} catch (const vmime::exception &e) {
 		try {
-			lItems.emplace_back("(" + mailboxToEnvelope(vmime::dynamicCast<vmime::mailbox>(vmHeader->ReplyTo()->getValue())) + ")");
+			lItems.emplace_back(mailboxToEnvelope(vmime::dynamicCast<vmime::mailbox>(vmHeader->ReplyTo()->getValue())));
 		} catch (const vmime::exception &e) {
 			lItems.emplace_back(lItems.back());
 		}

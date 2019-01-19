@@ -19,8 +19,8 @@ bool IsKopanoEntryId(unsigned int cb, const void *lpEntryId)
 		return false;
 	auto peid = reinterpret_cast<const EID *>(lpEntryId);
 	/* TODO: maybe also a check on objType */
-	return (cb == sizeof(EID) && peid->ulVersion == 1) ||
-	       (cb == sizeof(EID_V0) && peid->ulVersion == 0);
+	return (cb == sizeof(EID_FIXED) && peid->ulVersion == 1) ||
+	       (cb == SIZEOF_EID_V0_FIXED && peid->ulVersion == 0);
 }
 
 bool ValidateZEntryId(unsigned int cb, const void *lpEntryId, unsigned int ulCheckType)
@@ -28,8 +28,8 @@ bool ValidateZEntryId(unsigned int cb, const void *lpEntryId, unsigned int ulChe
 	if(lpEntryId == NULL)
 		return false;
 	auto peid = reinterpret_cast<const EID *>(lpEntryId);
-	return ((cb == sizeof(EID) && peid->ulVersion == 1) ||
-	       (cb == sizeof(EID_V0) && peid->ulVersion == 0)) &&
+	return ((cb == sizeof(EID_FIXED) && peid->ulVersion == 1) ||
+	       (cb == SIZEOF_EID_V0_FIXED && peid->ulVersion == 0)) &&
 	       peid->usType == ulCheckType;
 }
 
@@ -49,8 +49,8 @@ bool ValidateZEntryList(const ENTRYLIST *lpMsgList, unsigned int ulCheckType)
 
 	for (ULONG i = 0; i < lpMsgList->cValues; ++i) {
 		auto peid = reinterpret_cast<const EID *>(lpMsgList->lpbin[i].lpb);
-		if( !(((lpMsgList->lpbin[i].cb == sizeof(EID) && peid->ulVersion == 1) ||
-			 (lpMsgList->lpbin[i].cb == sizeof(EID_V0) && peid->ulVersion == 0 ) ) &&
+		if (!(((lpMsgList->lpbin[i].cb == sizeof(EID_FIXED) && peid->ulVersion == 1) ||
+		    (lpMsgList->lpbin[i].cb == SIZEOF_EID_V0_FIXED && peid->ulVersion == 0)) &&
 			 peid->usType == ulCheckType))
 			return false;
 	}
@@ -63,8 +63,8 @@ ECRESULT GetStoreGuidFromEntryId(unsigned int cb, const void *lpEntryId,
 	if(lpEntryId == NULL || lpguidStore == NULL)
 		return KCERR_INVALID_PARAMETER;
 	auto peid = reinterpret_cast<const EID *>(lpEntryId);
-	if(!((cb == sizeof(EID) && peid->ulVersion == 1) ||
-		 (cb == sizeof(EID_V0) && peid->ulVersion == 0 )) )
+	if (!((cb == sizeof(EID_FIXED) && peid->ulVersion == 1) ||
+	    (cb == SIZEOF_EID_V0_FIXED && peid->ulVersion == 0)))
 		return KCERR_INVALID_ENTRYID;
 	memcpy(lpguidStore, &peid->guid, sizeof(GUID));
 	return erSuccess;
@@ -75,19 +75,27 @@ ECRESULT GetObjTypeFromEntryId(unsigned int cb, const void *lpEntryId,
 {
 	if (lpEntryId == NULL || lpulObjType == NULL)
 		return KCERR_INVALID_PARAMETER;
-	if (cb == sizeof(EID)) {
-		EID eid;
-		memcpy(&eid, lpEntryId, sizeof(eid));
-		if (eid.ulVersion != 1)
+	if (cb == sizeof(EID_FIXED)) {
+		decltype(EID::ulVersion) ver;
+		decltype(EID::usType) type;
+		memcpy(&ver, lpEntryId + offsetof(EID, ulVersion), sizeof(ver));
+		memcpy(&type, lpEntryId + offsetof(EID, usType), sizeof(type));
+		ver  = le32_to_cpu(ver);
+		type = le16_to_cpu(type);
+		if (ver != 1)
 			return KCERR_INVALID_ENTRYID;
-		*lpulObjType = eid.usType;
+		*lpulObjType = type;
 		return erSuccess;
-	} else if (cb == sizeof(EID_V0)) {
-		EID_V0 eid;
-		memcpy(&eid, lpEntryId, sizeof(eid));
-		if (eid.ulVersion != 0)
+	} else if (cb == SIZEOF_EID_V0_FIXED) {
+		decltype(EID::ulVersion) ver;
+		decltype(EID_V0::usType) type;
+		memcpy(&ver, lpEntryId + offsetof(EID_V0, ulVersion), sizeof(ver));
+		memcpy(&type, lpEntryId + offsetof(EID_V0, usType), sizeof(type));
+		ver  = le32_to_cpu(ver);
+		type = le16_to_cpu(type);
+		if (ver != 0)
 			return KCERR_INVALID_ENTRYID;
-		*lpulObjType = eid.usType;
+		*lpulObjType = type;
 		return erSuccess;
 	}
 	return KCERR_INVALID_ENTRYID;
@@ -155,7 +163,7 @@ ECRESULT SIEntryIDToID(unsigned int cb, const void *lpInstanceId,
 		return KCERR_INVALID_PARAMETER;
 	auto lpInstanceEid = reinterpret_cast<const SIEID *>(lpInstanceId);
 	if (guidServer)
-		memcpy(guidServer, (LPBYTE)lpInstanceEid + sizeof(SIEID), sizeof(GUID));
+		memcpy(guidServer, reinterpret_cast<const BYTE *>(lpInstanceEid) + SIZEOF_SIEID_FIXED, sizeof(GUID));
 	if (lpulInstanceId)
 		*lpulInstanceId = lpInstanceEid->ulId;
 	if (lpulPropId)
@@ -264,7 +272,6 @@ ECRESULT ABIDToEntryID(struct soap *soap, unsigned int ulID, const objectid_t& s
 	if (!sExternId.id.empty())
 	{
 		lpUserEid->ulVersion = 1;
-		// avoid FORTIFY_SOURCE checks in strcpy to an address that the compiler thinks is 1 size large
 		memcpy(lpUserEid->szExId, strEncExId.c_str(), strEncExId.length()+1);
 	}
 	lpsEntryId->__size = ulLen;
@@ -279,14 +286,14 @@ ECRESULT SIIDToEntryID(struct soap *soap, const GUID *guidServer,
 	if (lpsInstanceId == nullptr)
 		return KCERR_INVALID_PARAMETER;
 
-	ULONG ulSize = sizeof(SIEID) + sizeof(GUID);
+	auto ulSize = SIZEOF_SIEID_FIXED + sizeof(GUID);
 	auto lpInstanceEid = reinterpret_cast<SIEID *>(s_alloc<char>(soap, ulSize));
 
 	memset(lpInstanceEid, 0, ulSize);
 	lpInstanceEid->ulId = ulInstanceId;
 	lpInstanceEid->ulType = ulPropId;
 	memcpy(&lpInstanceEid->guid, MUIDECSI_SERVER, sizeof(GUID));
-	memcpy((char *)lpInstanceEid + sizeof(SIEID), guidServer, sizeof(GUID));
+	memcpy(reinterpret_cast<char *>(lpInstanceEid) + SIZEOF_SIEID_FIXED, guidServer, sizeof(GUID));
 	lpsInstanceId->__size = ulSize;
 	lpsInstanceId->__ptr = (unsigned char *)lpInstanceEid;
 	return erSuccess;

@@ -590,20 +590,19 @@ HRESULT HrCreateEntryId(const GUID &guidStore, unsigned int ulObjType,
 	if (lpcbEntryId == nullptr || lppEntryId == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	EID			eid;
+	EID_FIXED eid;
 	LPENTRYID	lpEntryId = NULL;
 	if (CoCreateGuid(&eid.uniqueId) != hrSuccess)
 		return MAPI_E_CALL_FAILED;
 
-	unsigned int cbEntryId = CbNewEID("");
-	auto hr = ECAllocateBuffer(cbEntryId, reinterpret_cast<void **>(&lpEntryId));
+	auto hr = ECAllocateBuffer(sizeof(eid), reinterpret_cast<void **>(&lpEntryId));
 	if(hr != hrSuccess)
 		return hr;
 
 	eid.guid = guidStore;
 	eid.usType = ulObjType;
-	memcpy(lpEntryId, &eid, cbEntryId);
-	*lpcbEntryId = cbEntryId;
+	memcpy(lpEntryId, &eid, sizeof(eid));
+	*lpcbEntryId = sizeof(eid);
 	*lppEntryId = lpEntryId;
 	return hrSuccess;
 }
@@ -705,7 +704,7 @@ HRESULT GetPublicEntryId(enumPublicEntryID ePublicEntryID,
 
 	LPENTRYID lpEntryID = NULL;
 	GUID guidEmpty = {0};
-	EID eid(MAPI_FOLDER, guidStore, guidEmpty);
+	EID_FIXED eid(MAPI_FOLDER, guidStore, guidEmpty);
 
 	switch (ePublicEntryID) {
 	case ePE_IPMSubtree:
@@ -721,11 +720,10 @@ HRESULT GetPublicEntryId(enumPublicEntryID ePublicEntryID,
 		return MAPI_E_INVALID_PARAMETER;
 	}
 
-	unsigned int cbEntryID = CbEID(&eid);
-	auto hr = KAllocCopy(&eid, cbEntryID, reinterpret_cast<void **>(&lpEntryID), lpBase);
+	auto hr = KAllocCopy(&eid, sizeof(eid), reinterpret_cast<void **>(&lpEntryID), lpBase);
 	if (hr != hrSuccess)
 		return hr;
-	*lpcbEntryID = cbEntryID;
+	*lpcbEntryID = sizeof(eid);
 	*lppEntryID = lpEntryID;
 	return hrSuccess;
 }

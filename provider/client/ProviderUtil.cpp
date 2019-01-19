@@ -47,7 +47,7 @@ HRESULT CompareStoreIDs(ULONG cbEntryID1, const ENTRYID *lpEntryID1,
 		goto exit;
 
 	if(peid1->ulVersion == 0) {
-		if(cbEntryID1 < sizeof(EID_V0))
+		if (cbEntryID1 < SIZEOF_EID_V0_FIXED)
 			goto exit;
 		if (reinterpret_cast<const EID_V0 *>(lpEntryID1)->ulId !=
 		    reinterpret_cast<const EID_V0 *>(lpEntryID2)->ulId)

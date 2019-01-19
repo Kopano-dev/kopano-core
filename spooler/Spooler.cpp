@@ -850,7 +850,6 @@ static HRESULT running_server(const char *szSMTP, int ulPort,
     const char *szPath)
 {
 	HRESULT hr = hrSuccess;
-	ec_log_always("Starting kopano-spooler version " PROJECT_VERSION " (pid %d)", getpid());
 	ec_log_debug("Using SMTP server: %s, port %d", szSMTP, ulPort);
 	disconnects = 0;
 
@@ -867,7 +866,7 @@ static HRESULT running_server(const char *szSMTP, int ulPort,
 	return hr;
 }
 
-int main(int argc, char **argv) try
+static int main2(int argc, char **argv)
 {
 	HRESULT hr = hrSuccess;
 	const char *szPath = nullptr, *szSMTP = nullptr;
@@ -1054,6 +1053,8 @@ int main(int argc, char **argv) try
 		LogConfigErrors(g_lpConfig.get());
 	if (g_dump_config)
 		return g_lpConfig->dump_config(stdout) == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
+
+	ec_log_always("Starting kopano-spooler version " PROJECT_VERSION " (pid %d uid %u)", getpid(), getuid());
 	if (!TmpPath::instance.OverridePath(g_lpConfig.get()))
 		ec_log_err("Ignoring invalid path setting!");
 	g_main_thread = pthread_self();
@@ -1109,19 +1110,27 @@ int main(int argc, char **argv) try
 	AutoMAPI mapiinit;
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
-	if (unix_runas(g_lpConfig.get())) {
+	auto ret = unix_runas(g_lpConfig.get());
+	if (ret < 0) {
 		ec_log_crit("main(): run_as failed");
-		goto exit;
+		return MAPI_E_CALL_FAILED;
+	} else if (ret == 0) {
+		ec_reexec_finalize();
+	} else if (ret > 0) {
+		ret = ec_reexec(argv);
+		if (ret < 0)
+			ec_log_notice("K-1240: Failed to re-exec self: %s. "
+				"Continuing with restricted coredumps.", strerror(-ret));
 	}
 	if (daemonize && unix_daemonize(g_lpConfig.get())) {
 		ec_log_crit("main(): failed daemonizing");
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
 	if (!daemonize)
 		setsid();
 	if (!bForked && unix_create_pidfile(argv[0], g_lpConfig.get(), false) < 0) {
 		ec_log_crit("main(): Failed creating PID file");
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
 	if (!g_use_threads)
 		g_lpLogger = StartLoggerProcess(g_lpConfig.get(), std::move(g_lpLogger));
@@ -1132,7 +1141,7 @@ int main(int argc, char **argv) try
 	if (hr != hrSuccess) {
 		ec_log_crit("Unable to initialize MAPI: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 
 	sc.reset(new spooler_stats(g_lpConfig));
@@ -1144,7 +1153,11 @@ int main(int argc, char **argv) try
 			hr = running_server(szSMTP, ulPort, szPath);
 	if (!bForked)
 		ec_log_info("Spooler shutdown complete");
-exit:
+	return hr;
+}
+
+int main(int argc, char **argv) try {
+	auto hr = main2(argc, argv);
 	switch(hr) {
 	case hrSuccess:
 		return EXIT_SUCCESS;

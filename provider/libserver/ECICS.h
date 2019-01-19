@@ -91,7 +91,8 @@ public:
 	}
 
 	operator const unsigned char *(void) const { return reinterpret_cast<const unsigned char *>(lpData != nullptr ? lpData.get() : ""); }
-	operator std::string(void) const { return std::string(lpData != nullptr ? lpData.get() : "", ulSize); }
+	explicit operator std::string() const { return std::string(lpData != nullptr ? lpData.get() : "", ulSize); }
+	operator SBinary() const { return SBinary{ulSize, reinterpret_cast<BYTE *>(lpData.get())}; }
     unsigned int 	size() const { return ulSize; }
 	bool			empty() const { return ulSize == 0; }
 private:

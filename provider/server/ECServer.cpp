@@ -595,10 +595,13 @@ static ECRESULT check_server_configuration(void)
  * "malloc@GLIBC_2.2.5". The use of LD_PRELOAD appears to relax the version
  * requirement, though; the benefit would be that libtcmalloc's malloc will
  * take over _all_ malloc calls.
+ *
+ * Returns 0 on success (no action), or >0 (actioned).
  */
 static int kc_reexec_setup_allocator(const char *lib)
 {
-	if (getenv("KC_AVOID_REEXEC") != nullptr)
+	if (*lib == '\0' || getenv("KC_AVOID_REEXEC") != nullptr ||
+	    getenv("KC_REEXEC_DONE") != nullptr)
 		return 0;
 	auto handle = dlopen(lib, RTLD_LAZY | RTLD_GLOBAL);
 	if (handle == nullptr)
@@ -623,7 +626,8 @@ static int kc_reexec_setup_allocator(const char *lib)
 		setenv("KC_ORIGINAL_PRELOAD", s, true);
 		setenv("LD_PRELOAD", (std::string(s) + ":" + lib).c_str(), true);
 	}
-	return 0;
+	ec_log_debug("Preparing relaunch with allocator lib %s", lib);
+	return 1;
 }
 
 int main(int argc, char* argv[])
@@ -1091,17 +1095,22 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		ec_log_warn("Either start the process as root, or increase user limits for open file descriptors.");
 	}
 	unix_coredump_enable(g_lpConfig->GetSetting("coredump_enabled"));
-	if (unix_runas(g_lpConfig.get())) {
+	auto did_setid = unix_runas(g_lpConfig.get());
+	if (did_setid < 0) {
 		er = MAPI_E_CALL_FAILED;
 		return retval;
 	}
-	kc_reexec_setup_allocator(g_lpConfig->GetSetting("allocator_library"));
-	ec_reexec_prepare_sockets();
-	auto ret = ec_reexec(argv);
-	if (ret < 0)
-		ec_log_notice("K-1240: Failed to re-exec self: %s. "
-			"Continuing with standard allocator and/or restricted coredumps.",
-			strerror(-ret));
+	auto do_allocator = kc_reexec_setup_allocator(g_lpConfig->GetSetting("allocator_library"));
+	if (did_setid == 0 && do_allocator == 0) {
+		ec_reexec_finalize();
+	} else if (did_setid > 0 || do_allocator > 0) {
+		ec_reexec_prepare_sockets();
+		auto ret = ec_reexec(argv);
+		if (ret < 0)
+			ec_log_notice("K-1240: Failed to re-exec self: %s. "
+				"Continuing with standard allocator and/or restricted coredumps.",
+				strerror(-ret));
+	}
 
 	auto aback = g_lpConfig->GetSetting("attachment_storage");
 	if (strcmp(aback, "files") == 0 || strcmp(aback, "files_v2") == 0) {

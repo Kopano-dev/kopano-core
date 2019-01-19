@@ -521,7 +521,7 @@ HRESULT ECMsgStore::CompareEntryIDs(ULONG cbEntryID1, const ENTRYID *lpEntryID1,
 		return hrSuccess;
 
 	if(peid1->ulVersion == 0) {
-		if(cbEntryID1 != sizeof(EID_V0))
+		if (cbEntryID1 != SIZEOF_EID_V0_FIXED)
 			return hrSuccess;
 		if( ((EID_V0*)lpEntryID1)->ulId != ((EID_V0*)lpEntryID2)->ulId )
 			return hrSuccess;

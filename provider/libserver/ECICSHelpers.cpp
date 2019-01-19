@@ -247,7 +247,7 @@ ECRESULT NonLegacyIncrementalProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGT
 
 	*lpulChangeType = atoui(lpDBRow[icsChangeType]);
 	*lpulFlags = lpDBRow[icsFlags] ? atoui(lpDBRow[icsFlags]) : 0;
-	ec_log(EC_LOGLEVEL_ICS, "NonLegacyIncrementalAccepted: sourcekey=%s, changetype=%d", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str(), *lpulChangeType);
+	ec_log(EC_LOGLEVEL_ICS, "NonLegacyIncrementalAccepted: sourcekey=%s, changetype=%d", bin2hex(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey]).c_str(), *lpulChangeType);
 	return erSuccess;
 }
 
@@ -257,7 +257,7 @@ ECRESULT NonLegacyIncrementalProcessor::ProcessRejected(DB_ROW lpDBRow, DB_LENGT
 	// We'll set the changetype to 0 anyway.
 	assert(false);
 	*lpulChangeType = 0;
-	ec_log(EC_LOGLEVEL_ICS, "NonLegacyIncrementalRejected: sourcekey=%s, changetype=0", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str());
+	ec_log(EC_LOGLEVEL_ICS, "NonLegacyIncrementalRejected: sourcekey=%s, changetype=0", bin2hex(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey]).c_str());
 	return erSuccess;
 }
 
@@ -312,7 +312,7 @@ ECRESULT NonLegacyFullProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDB
 	*lpulFlags = 0; // Flags are only useful for ICS_FLAG
 	if (ulChange > m_ulMaxChangeId)
 		m_ulMaxChangeId = ulChange;
-	ec_log(EC_LOGLEVEL_ICS, "NonLegacyFullAccepted: sourcekey=%s, changetype=%d", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str(), *lpulChangeType);
+	ec_log(EC_LOGLEVEL_ICS, "NonLegacyFullAccepted: sourcekey=%s, changetype=%d", bin2hex(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey]).c_str(), *lpulChangeType);
 	return erSuccess;
 }
 
@@ -326,7 +326,7 @@ ECRESULT NonLegacyFullProcessor::ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDB
 		*lpulChangeType = ICS_HARD_DELETE;
 	if (ulChange > m_ulMaxChangeId)
 		m_ulMaxChangeId = ulChange;
-	ec_log(EC_LOGLEVEL_ICS, "NonLegacyFullRejected: sourcekey=%s, changetype=%d", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str(), *lpulChangeType);
+	ec_log(EC_LOGLEVEL_ICS, "NonLegacyFullRejected: sourcekey=%s, changetype=%d", bin2hex(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey]).c_str(), *lpulChangeType);
 	return erSuccess;
 }
 
@@ -381,7 +381,7 @@ ECRESULT LegacyProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, un
 		else
 			*lpulChangeType = ICS_MESSAGE_NEW;
 
-		ec_log(EC_LOGLEVEL_ICS, "LegacyAccepted: not synced, sourcekey=%s, changetype=%d", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str(), *lpulChangeType);
+		ec_log(EC_LOGLEVEL_ICS, "LegacyAccepted: not synced, sourcekey=%s, changetype=%d", bin2hex(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey]).c_str(), *lpulChangeType);
 	} else {
 		// The message is synced!
 		if (ulMsgFlags & MSGFLAG_DELETED)		// Deleted
@@ -397,7 +397,7 @@ ECRESULT LegacyProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, un
 		else
 			*lpulChangeType = 0;	// Ignore
 
-		ec_log(EC_LOGLEVEL_ICS, "LegacyAccepted: synced, sourcekey=%s , changetype=%d", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str(), *lpulChangeType);
+		ec_log(EC_LOGLEVEL_ICS, "LegacyAccepted: synced, sourcekey=%s , changetype=%d", bin2hex(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey]).c_str(), *lpulChangeType);
 		m_setMessages.erase(iterMessage);
 	}
 
@@ -419,12 +419,12 @@ ECRESULT LegacyProcessor::ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, un
 	if (iterMessage == m_setMessages.cend()) {
 		// The message is not synced yet!
 		*lpulChangeType = 0;	// Ignore
-		ec_log(EC_LOGLEVEL_ICS, "LegacyRejected: not synced, sourcekey=%s, changetype=%d", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str(), *lpulChangeType);
+		ec_log(EC_LOGLEVEL_ICS, "LegacyRejected: not synced, sourcekey=%s, changetype=%d", bin2hex(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey]).c_str(), *lpulChangeType);
 	} else {
 		// The message is synced!
 		*lpulChangeType = ICS_HARD_DELETE;
 		m_setMessages.erase(iterMessage);
-		ec_log(EC_LOGLEVEL_ICS, "LegacyRejected: synced, sourcekey=%s, changetype=%d", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str(), *lpulChangeType);
+		ec_log(EC_LOGLEVEL_ICS, "LegacyRejected: synced, sourcekey=%s, changetype=%d", bin2hex(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey]).c_str(), *lpulChangeType);
 	}
 
 	if (*lpulChangeType != 0)
@@ -478,7 +478,7 @@ ECRESULT FirstSyncProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen,
 	else
 		*lpulChangeType = ICS_MESSAGE_NEW;
 
-	ec_log(EC_LOGLEVEL_ICS, "FirstSyncAccepted: sourcekey=%s, changetype=%d", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str(), *lpulChangeType);
+	ec_log(EC_LOGLEVEL_ICS, "FirstSyncAccepted: sourcekey=%s, changetype=%d", bin2hex(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey]).c_str(), *lpulChangeType);
 	return erSuccess;
 }
 
@@ -486,7 +486,7 @@ ECRESULT FirstSyncProcessor::ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen,
 {
 	assert(lpulChangeType != NULL);
 	*lpulChangeType = 0;	// Ignore
-	ec_log(EC_LOGLEVEL_ICS, "FirstSyncRejected: sourcekey=%s, changetype=0", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str());
+	ec_log(EC_LOGLEVEL_ICS, "FirstSyncRejected: sourcekey=%s, changetype=0", bin2hex(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey]).c_str());
 	return erSuccess;
 }
 
@@ -672,7 +672,7 @@ ECRESULT ECGetContentChangesHelper::ProcessRows(const std::vector<DB_ROW> &db_ro
 		if (m_lpsRestrict != NULL)
 			fMatch = matches.find(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])) != matches.end();
 
-		ec_log(EC_LOGLEVEL_ICS, "Processing: %s, match=%d", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str(), fMatch);
+		ec_log(EC_LOGLEVEL_ICS, "Processing: %s, match=%d", bin2hex(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey]).c_str(), fMatch);
 		unsigned int ulChangeType = 0, ulFlags = 0;
 		if (fMatch) {
 			er = m_lpMsgProcessor->ProcessAccepted(lpDBRow, lpDBLen, &ulChangeType, &ulFlags);

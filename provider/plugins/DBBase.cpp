@@ -51,8 +51,8 @@ signatures_t DBPlugin::getAllObjects(const objectid_t &company,
 		strQuery +=
 			"JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS usercompany "
 				"ON usercompany.objectid = om.id "
-				"AND ((usercompany.propname = '" + OP_COMPANYID + "' AND usercompany.value = hex('" + m_lpDatabase->Escape(company.id) + "')) OR"
-					" (usercompany.propname = '" + OP_COMPANYNAME + "' AND om.externid = '" + m_lpDatabase->Escape(company.id) + "'))";
+			"AND ((usercompany.propname='" + OP_COMPANYID + "' AND usercompany.value=HEX(" + m_lpDatabase->EscapeBinary(company.id) + ")) OR"
+			" (usercompany.propname='" + OP_COMPANYNAME + "' AND om.externid=" + m_lpDatabase->EscapeBinary(company.id) + "))";
 		if (objclass != OBJECTCLASS_UNKNOWN)
 			strQuery += " AND " + OBJECTCLASS_COMPARE_SQL("om.objectclass", objclass);
 	} else if (objclass != OBJECTCLASS_UNKNOWN)
@@ -87,7 +87,7 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 	for (const auto &id : objectids) {
 		if (!objectstrings[id.objclass].empty())
 			objectstrings[id.objclass] += ", ";
-		objectstrings[id.objclass] += "'" + m_lpDatabase->Escape(id.id) + "'";
+		objectstrings[id.objclass] += m_lpDatabase->EscapeBinary(id.id);
 	}
 
 	/* Create subquery which combines all externids with the matching objectclass */
@@ -227,7 +227,7 @@ DBPlugin::getSubObjectsForObject(userobject_relation_t relation,
 		"LEFT JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS modtime "
 			"ON modtime.objectid=o.id "
 			"AND modtime.propname = '" + OP_MODTIME + "' "
-		"WHERE p.externid = '" +  m_lpDatabase->Escape(parentobject.id) + "' "
+		"WHERE p.externid=" + m_lpDatabase->EscapeBinary(parentobject.id) + " "
 			"AND ort.relationtype = " + stringify(relation) + " "
 		"AND " + OBJECTCLASS_COMPARE_SQL("p.objectclass", parentobject.objclass);
 
@@ -249,7 +249,7 @@ DBPlugin::getParentObjectsForObject(userobject_relation_t relation,
 		"LEFT JOIN " +(string)DB_OBJECTPROPERTY_TABLE + " AS modtime "
 			"ON modtime.objectid = o.id "
 			"AND modtime.propname = '" + OP_MODTIME + "' "
-		"WHERE c.externid = '" +  m_lpDatabase->Escape(childobject.id) + "' "
+		"WHERE c.externid=" + m_lpDatabase->EscapeBinary(childobject.id) + " "
 			"AND ort.relationtype = " + stringify(relation) + " "
 			"AND " + OBJECTCLASS_COMPARE_SQL("c.objectclass", childobject.objclass);
 
@@ -293,7 +293,7 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 	LOG_PLUGIN_DEBUG("%s", __FUNCTION__);
 	auto strSubQuery =
 		"SELECT id FROM " + (string)DB_OBJECT_TABLE + " "
-		"WHERE externid = '" + m_lpDatabase->Escape(objectid.id) + "' " +
+		"WHERE externid=" + m_lpDatabase->EscapeBinary(objectid.id) + " "
 		"AND " + OBJECTCLASS_COMPARE_SQL("objectclass", objectid.objclass);
 
 	if (lpDeleteProps) {
@@ -340,13 +340,9 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 		    CreateMD5Hash(propvalue, &propvalue) != erSuccess)
 			/* WARNING input and output point to the same data */
 			throw runtime_error(string("db_changeUser: create md5"));
-
-		if (sValidProps[i].id == OB_PROP_O_COMPANYID) {
-			propvalue = details.GetPropObject(OB_PROP_O_COMPANYID).id;
+		if (sValidProps[i].id == OB_PROP_O_COMPANYID)
 			// save id as hex in objectproperty.value
-			propvalue = bin2hex(propvalue.length(), propvalue.data());
-		}
-
+			propvalue = bin2hex(details.GetPropObject(OB_PROP_O_COMPANYID).id);
 		if (!propvalue.empty()) {
 			if (!bFirstOne)
 				strQuery += ",";
@@ -441,7 +437,7 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 	// Maybe change user type from active to something nonactive
 	if (objectid.objclass != details.GetClass() && OBJECTCLASS_TYPE(objectid.objclass) == OBJECTCLASS_TYPE(details.GetClass())) {
 		strQuery = "UPDATE object SET objectclass = " + stringify(details.GetClass()) +
-			" WHERE externid = '" + m_lpDatabase->Escape(objectid.id) + "' AND objectclass = " + stringify(objectid.objclass);
+			" WHERE externid=" + m_lpDatabase->EscapeBinary(objectid.id) + " AND objectclass=" + stringify(objectid.objclass);
 		er = m_lpDatabase->DoUpdate(strQuery);
 		if (er != erSuccess)
 			throw runtime_error(string("db_query: ") + strerror(er));
@@ -476,13 +472,13 @@ void DBPlugin::deleteObject(const objectid_t &objectid)
 
 	std::string strSubQuery =
 		"SELECT id FROM " + (string)DB_OBJECT_TABLE + " "
-		"WHERE externid = '" + m_lpDatabase->Escape(objectid.id) + "' "
+		"WHERE externid=" + m_lpDatabase->EscapeBinary(objectid.id) + " "
 			"AND " + OBJECTCLASS_COMPARE_SQL("objectclass", objectid.objclass);
 
 	/* First delete company children */
 	if (objectid.objclass == CONTAINER_COMPANY) {
 		auto strQuery = "SELECT objectid FROM " + std::string(DB_OBJECTPROPERTY_TABLE) +
-			" WHERE propname = '" + OP_COMPANYID + "' AND value = hex('" + m_lpDatabase->Escape(objectid.id) + "')";
+			" WHERE propname='" + OP_COMPANYID + "' AND value=HEX(" + m_lpDatabase->EscapeBinary(objectid.id) + ")";
 		auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 		if (er != erSuccess)
 			throw runtime_error(string("db_query: ") + strerror(er));
@@ -540,14 +536,14 @@ void DBPlugin::deleteObject(const objectid_t &objectid)
 	// delete user from object table .. we now have no reference to the user anymore.
 	strQuery =
 		"DELETE FROM " + (string)DB_OBJECT_TABLE + " "
-		"WHERE externid = '" + m_lpDatabase->Escape(objectid.id) + "' "
+		"WHERE externid=" + m_lpDatabase->EscapeBinary(objectid.id) + " "
 			"AND " + OBJECTCLASS_COMPARE_SQL("objectclass", objectid.objclass);
 
 	er = m_lpDatabase->DoDelete(strQuery, &ulAffRows);
 	if (er != erSuccess)
 		;//FIXME: ....
 	if (ulAffRows != 1)
-		throw objectnotfound("db_user: " + objectid.id);
+		throw objectnotfound("db_user: xid:\"" + bin2txt(objectid.id) + "\"");
 }
 
 void DBPlugin::addSubObjectRelation(userobject_relation_t relation, const objectid_t &parentobject, const objectid_t &childobject)
@@ -561,11 +557,11 @@ void DBPlugin::addSubObjectRelation(userobject_relation_t relation, const object
 
 	auto strParentSubQuery =
 		"SELECT id FROM " + (string)DB_OBJECT_TABLE + " "
-		"WHERE externid = '" + m_lpDatabase->Escape(parentobject.id) + "' "
+		"WHERE externid=" + m_lpDatabase->EscapeBinary(parentobject.id) + " "
 	   		"AND " + OBJECTCLASS_COMPARE_SQL("objectclass", parentobject.objclass);
 	auto strChildSubQuery =
 		"SELECT id FROM " + (string)DB_OBJECT_TABLE + " "
-		"WHERE externid = '" + m_lpDatabase->Escape(childobject.id) + "'"
+		"WHERE externid=" + m_lpDatabase->EscapeBinary(childobject.id) + " "
 	   		"AND " + OBJECTCLASS_COMPARE_SQL("objectclass", childobject.objclass);
 
 	/* Check if relation already exists */
@@ -598,11 +594,11 @@ void DBPlugin::deleteSubObjectRelation(userobject_relation_t relation, const obj
 
 	auto strParentSubQuery =
 		"SELECT id FROM " + (string)DB_OBJECT_TABLE + " "
-		"WHERE externid = '" + m_lpDatabase->Escape(parentobject.id) + "' "
+		"WHERE externid=" + m_lpDatabase->EscapeBinary(parentobject.id) + " "
 	   		"AND " + OBJECTCLASS_COMPARE_SQL("objectclass", parentobject.objclass);
 	auto strChildSubQuery =
 		"SELECT id FROM " + (string)DB_OBJECT_TABLE + " "
-		"WHERE externid = '" + m_lpDatabase->Escape(childobject.id) + "'"
+		"WHERE externid=" + m_lpDatabase->EscapeBinary(childobject.id) + " "
 	   		"AND " + OBJECTCLASS_COMPARE_SQL("objectclass", childobject.objclass);
 	auto strQuery =
 		"DELETE FROM " + (string)DB_OBJECT_RELATION_TABLE + " "
@@ -614,7 +610,7 @@ void DBPlugin::deleteSubObjectRelation(userobject_relation_t relation, const obj
 		throw runtime_error("db_query: " + string(strerror(er)));
 
 	if (ulAffRows != 1)
-		throw objectnotfound("db_user: relation " + parentobject.id);
+		throw objectnotfound("db_user: relation xid:\"" + bin2txt(parentobject.id) + "\"");
 }
 
 signatures_t DBPlugin::searchObjects(const std::string &match,
@@ -684,7 +680,7 @@ quotadetails_t DBPlugin::getQuota(const objectid_t &objectid,
 		"FROM " + (string)DB_OBJECT_TABLE + " AS o "
 		"JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS op "
 			"ON op.objectid = o.id "
-		"WHERE o.externid = '" +  m_lpDatabase->Escape(objectid.id) + "' "
+		"WHERE o.externid=" + m_lpDatabase->EscapeBinary(objectid.id) + " "
 	   		"AND " + OBJECTCLASS_COMPARE_SQL("o.objectclass", objectid.objclass);
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
@@ -730,7 +726,7 @@ void DBPlugin::setQuota(const objectid_t &objectid, const quotadetails_t &quotad
 	std::string op_warn    = b ? OP_UD_WARNQUOTA : OP_WARNQUOTA;
 	auto strSubQuery =
 		"SELECT id FROM " + (string)DB_OBJECT_TABLE + " "
-		"WHERE externid = '" + m_lpDatabase->Escape(objectid.id) + "' "
+		"WHERE externid=" + m_lpDatabase->EscapeBinary(objectid.id) + " "
 	   		"AND " + OBJECTCLASS_COMPARE_SQL("objectclass", objectid.objclass);
 
 	// Update new quota settings
@@ -843,12 +839,11 @@ void DBPlugin::CreateObjectWithExternId(const objectid_t &objectid, const object
 	if (er != erSuccess)
 		throw runtime_error(string("db_query: ") + strerror(er));
 	if (lpResult.fetch_row() != nullptr)
-		throw collision_error(string("Object exists: ") + bin2hex(objectid.id));
+		throw collision_error("Object exists: \"" + bin2txt(objectid.id) + "\"");
 
 	strQuery =
 		"INSERT INTO " + (string)DB_OBJECT_TABLE + "(externid, objectclass) "
-		"VALUES('" + m_lpDatabase->Escape(objectid.id) + "'," + stringify(objectid.objclass) + ")";
-
+		"VALUES(" + m_lpDatabase->EscapeBinary(objectid.id) + "," + stringify(objectid.objclass) + ")";
 	er = m_lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess)
 		throw runtime_error(string("db_query: ") + strerror(er));
@@ -897,7 +892,7 @@ objectid_t DBPlugin::CreateObject(const objectdetails_t &details)
 			"AND " + OBJECTCLASS_COMPARE_SQL("o.objectclass", OBJECTCLASS_CLASSTYPE(details.GetClass()));
 
 		if (m_bHosted && details.GetClass() != CONTAINER_COMPANY)
-			strQuery += " AND (oc.value IS NULL OR oc.value = hex('" + m_lpDatabase->Escape(details.GetPropObject(OB_PROP_O_COMPANYID).id) + "'))";
+			strQuery += " AND (oc.value IS NULL OR oc.value=HEX(" + m_lpDatabase->EscapeBinary(details.GetPropObject(OB_PROP_O_COMPANYID).id) + "))";
 
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)

@@ -218,7 +218,7 @@ private:
 	if (__var)												\
 		(__attrs)->add(__var);
 
-static std::string rst2flt_main(const restrictTable *, const std::map<unsigned int, std::string> &);
+static std::string rst2flt_main(const restrictTable *, const std::map<unsigned int, std::string> &, bool inot);
 static HRESULT BintoEscapeSequence(const char *data, size_t size, std::string *);
 static std::string StringEscapeSequence(const std::string &);
 static std::string StringEscapeSequence(const char *, size_t);
@@ -231,7 +231,7 @@ template<typename T> static constexpr inline LONGLONG dur2us(const T &t)
 }
 
 static std::string rst2flt_or(const restrictOr *q,
-    const std::map<unsigned int, std::string> &propmap)
+    const std::map<unsigned int, std::string> &propmap, bool inot)
 {
 	/*
 	 * 0-member OR restriction: evaluates to false in
@@ -239,12 +239,12 @@ static std::string rst2flt_or(const restrictOr *q,
 	 */
 	std::string s = "(|";
 	for (int i = 0; i < q->__size; ++i)
-		s += rst2flt_main(q->__ptr[i], propmap);
+		s += rst2flt_main(q->__ptr[i], propmap, inot);
 	return s += ")";
 }
 
 static std::string rst2flt_and(const restrictAnd *q,
-    const std::map<unsigned int, std::string> &propmap)
+    const std::map<unsigned int, std::string> &propmap, bool inot)
 {
 	/*
 	 * 0-member AND restriction: evaluates to true in LDAP
@@ -252,12 +252,12 @@ static std::string rst2flt_and(const restrictAnd *q,
 	 */
 	std::string s = "(&";
 	for (int i = 0; i < q->__size; ++i)
-		s += rst2flt_main(q->__ptr[i], propmap);
+		s += rst2flt_main(q->__ptr[i], propmap, inot);
 	return s += ")";
 }
 
 static std::string rst2flt_main(const restrictTable *rt,
-    const std::map<unsigned int, std::string> &propmap)
+    const std::map<unsigned int, std::string> &propmap, bool inot)
 {
 	/* Transform a restriction into an LDAP filter. It need not be exact:
 	 * matching more is always ok. */
@@ -265,13 +265,13 @@ static std::string rst2flt_main(const restrictTable *rt,
 	//$14 = 0x3003001e
 	switch (rt->ulType) {
 	case RES_OR:
-		return rst2flt_or(rt->lpOr, propmap);
+		return rst2flt_or(rt->lpOr, propmap, inot);
 	case RES_AND:
-		return rst2flt_and(rt->lpAnd, propmap);
+		return rst2flt_and(rt->lpAnd, propmap, inot);
 	case RES_NOT:
-		return "(!" + rst2flt_main(rt->lpNot->lpNot, propmap) + ")";
+		return "(!" + rst2flt_main(rt->lpNot->lpNot, propmap, !inot) + ")";
 	case RES_COMMENT:
-		return rst2flt_main(rt->lpComment->lpResTable, propmap);
+		return rst2flt_main(rt->lpComment->lpResTable, propmap, inot);
 	case RES_SUBRESTRICTION:
 		return "(|)"; /* userdb has no concept of "sub" */
 	case RES_EXIST: {
@@ -281,8 +281,13 @@ static std::string rst2flt_main(const restrictTable *rt,
 	case RES_CONTENT:
 		break;
 	default:
-		/* Unrepresentable restriction type (BITMASK, COMPARE, PROPERTY, SIZE) */
-		return "(&)";
+		/*
+		 * Unrepresentable restriction type (BITMASK, COMPARE,
+		 * PROPERTY, SIZE); the result is therefore indefinite.
+		 * "Indefinite" values need to evaluate to "true" in the
+		 * outermost expression such that they do not filter rows.
+		 */
+		return inot ? "(|)" : "(&)";
 	}
 	auto q = rt->lpContent;
 	auto pv = q->lpProp;
@@ -317,7 +322,7 @@ std::string LDAPUserPlugin::rst_to_filter(const restrictTable *rt)
 	map.emplace(PROP_ID(PR_EMAIL_ADDRESS), value);
 	map.emplace(PROP_ID(PR_EC_HOMESERVER_NAME), m_config->GetSetting("ldap_user_server_attribute"));
 	map.emplace(PROP_ID(PR_SMTP_ADDRESS), m_config->GetSetting("ldap_emailaddress_attribute"));
-	return rst2flt_main(rt, map);
+	return rst2flt_main(rt, map, false);
 }
 
 LDAPUserPlugin::LDAPUserPlugin(std::mutex &pluginlock,
@@ -957,7 +962,7 @@ string LDAPUserPlugin::getSearchBase(const objectid_t &company)
 	// CHECK: should not be possible to not already know the company
 	if (!search_base.empty())
 		return search_base;
-	ec_log_crit("No search base found for company \"%s\"", company.id.c_str());
+	ec_log_crit("No search base found for company xid:\"%s\"", bin2txt(company.id).c_str());
 	return lpszSearchBase;
 }
 
@@ -1361,7 +1366,8 @@ objectsignature_t LDAPUserPlugin::resolveName(objectclass_t objclass, const stri
 	if (company.id.empty())
 		LOG_PLUGIN_DEBUG("%s Class %x, Name %s", __FUNCTION__, objclass, name.c_str());
 	else
-		LOG_PLUGIN_DEBUG("%s Class %x, Name %s, Company %s", __FUNCTION__, objclass, name.c_str(), company.id.c_str());
+		LOG_PLUGIN_DEBUG("%s Class %x, Name %s, Company xid:\"%s\"", __FUNCTION__,
+			objclass, name.c_str(), bin2txt(company.id).c_str());
 
 	switch (objclass) {
 	case OBJECTCLASS_UNKNOWN:
@@ -1575,7 +1581,7 @@ signatures_t LDAPUserPlugin::getAllObjects(const objectid_t &company,
 {
 	string companyDN;
 	if (!company.id.empty()) {
-		LOG_PLUGIN_DEBUG("%s Company %s, Class %x", __FUNCTION__, company.id.c_str(), objclass);
+		LOG_PLUGIN_DEBUG("%s Company xid:\"%s\", Class %x", __FUNCTION__, bin2txt(company.id).c_str(), objclass);
 		companyDN = getSearchBase(company);
 	} else {
 		LOG_PLUGIN_DEBUG("%s Class %x", __FUNCTION__, objclass);
@@ -1769,7 +1775,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 					ldap_filter += getSearchFilter(iter->id, addresslist_unique_attr, addresslist_unique_attr_type);
 					break;
 				default:
-					ec_log_crit("Incorrect object class %d for item \"%s\"", iter->objclass, iter->id.c_str());
+					ec_log_crit("Incorrect object class %d for item xid:\"%s\"", iter->objclass, bin2txt(iter->id).c_str());
 					continue;
 				}
 				++iter;
@@ -2062,7 +2068,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 		auto o = mapdetails.find(p.objectid);
 		if (o == mapdetails.cend()) {
 			// this should never happen, but only some details will be missing, not the end of the world.
-			ec_log_crit("No object \"%s\" found for postaction", p.objectid.id.c_str());
+			ec_log_crit("No object xid:\"%s\" found for postaction", bin2txt(p.objectid.id).c_str());
 			continue;
 		}
 
@@ -2124,7 +2130,7 @@ objectdetails_t LDAPUserPlugin::getObjectDetails(const objectid_t &id)
 	auto mapDetails = getObjectDetails(std::list<objectid_t>{id});
 	auto iterDetails = mapDetails.find(id);
 	if (iterDetails == mapDetails.cend())
-		throw objectnotfound("No details for \"" + id.id + "\"");
+		throw objectnotfound("No details for xid:\"" + bin2txt(id.id) + "\"");
 	return iterDetails->second;
 }
 
@@ -2709,7 +2715,7 @@ quotadetails_t LDAPUserPlugin::getQuota(const objectid_t &id,
 
 	/* LDAP filter empty, object does not exist */
 	if (ldap_filter.empty())
-		throw objectnotfound("No LDAP filter for \"" + id.id + "\"");
+		throw objectnotfound("No LDAP filter for xid:\"" + bin2txt(id.id) + "\"");
 	LOG_PLUGIN_DEBUG("%s", __FUNCTION__);
 
 	// Do a search request to get all attributes for this user. The

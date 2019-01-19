@@ -2806,7 +2806,6 @@ static HRESULT running_service(char **argv, bool bDaemonize,
     DeliveryArgs *lpArgs)
 {
 	HRESULT hr = hrSuccess;
-	int err = 0;
 	unsigned int nMaxThreads;
 
 	ec_log_always("Starting kopano-dagent version " PROJECT_VERSION " (pid %d uid %u) (LMTP mode)", getpid(), getuid());
@@ -2815,17 +2814,21 @@ static HRESULT running_service(char **argv, bool bDaemonize,
 	// Setup sockets
 	std::vector<struct pollfd> lmtp_poll;
 	std::vector<int> closefd;
-	err = dagent_listen(g_lpConfig.get(), lmtp_poll, closefd);
+	auto err = dagent_listen(g_lpConfig.get(), lmtp_poll, closefd);
 	if (err < 0)
 		return MAPI_E_NETWORK_ERROR;
-	if (unix_runas(g_lpConfig.get()))
+	err = unix_runas(g_lpConfig.get());
+	if (err < 0) {
 		return MAPI_E_CALL_FAILED;
-	ec_reexec_prepare_sockets();
-	auto ret = ec_reexec(argv);
-	if (ret < 0)
-		ec_log_notice("K-1240: Failed to re-exec self: %s. "
-			"Continuing with standard allocator and/or restricted coredumps.",
-			strerror(-ret));
+	} else if (err == 0) {
+		ec_reexec_finalize();
+	} else if (err > 0) {
+		ec_reexec_prepare_sockets();
+		err = ec_reexec(argv);
+		if (err < 0)
+			ec_log_notice("K-1240: Failed to re-exec self: %s. "
+				"Continuing with restricted coredumps.", strerror(-err));
+	}
 
 	// Setup signals
 	struct sigaction act{};
