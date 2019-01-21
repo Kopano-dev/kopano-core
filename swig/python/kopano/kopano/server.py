@@ -17,7 +17,8 @@ import sys
 
 from MAPI import (
     MAPI_UNICODE, MDB_WRITE, RELOP_EQ,
-    TBL_BATCH, ECSTORE_TYPE_PRIVATE, MAPI_DEFERRED_ERRORS
+    TBL_BATCH, ECSTORE_TYPE_PRIVATE, MAPI_DEFERRED_ERRORS,
+    EC_OVERRIDE_HOMESERVER,
 )
 from MAPI.Util import (
     GetDefaultStore, OpenECSession
@@ -746,6 +747,13 @@ class Server(object):
             if not system and store.user and store.user.name == 'SYSTEM':
                 continue
             yield store
+
+    def create_store(self, user):
+        try:
+            eid1, eid2 = self.sa.CreateEmptyStore(ECSTORE_TYPE_PRIVATE, _bdec(user.userid), EC_OVERRIDE_HOMESERVER, None, None)
+            return user.store
+        except MAPIErrorCollision:
+            raise DuplicateError("user '%s' already has an associated store (unhook first?)" % user.name)
 
     def remove_store(self, store):
         try:
