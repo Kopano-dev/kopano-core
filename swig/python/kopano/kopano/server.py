@@ -242,7 +242,7 @@ class Server(object):
             if os.getenv("KOPANO_SOCKET"): # env variable used in testset
                 self.server_socket = os.getenv("KOPANO_SOCKET")
             elif config:
-                if not (server_socket or getattr(self.options, 'server_socket')): # XXX generalize
+                if not (server_socket or getattr(self.options, 'server_socket', None)): # XXX generalize
                     self.server_socket = config.get('server_socket')
                     self.sslkey_file = config.get('sslkey_file')
                     self.sslkey_pass = config.get('sslkey_pass')
