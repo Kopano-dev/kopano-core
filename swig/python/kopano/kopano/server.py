@@ -7,6 +7,7 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
 import atexit
+import codecs
 import gc
 import datetime
 import functools
@@ -326,7 +327,7 @@ class Server(object):
 
     def nodes(self): # XXX delay mapi sessions until actually needed
         for row in self.table(PR_EC_STATSTABLE_SERVERS).dict_rows():
-            yield Server(options=self.options, config=self.config, sslkey_file=self.sslkey_file, sslkey_pass=self.sslkey_pass, server_socket=row[PR_EC_STATS_SERVER_HTTPSURL], log=self.log, service=self.service)
+            yield Server(options=self.options, config=self.config, sslkey_file=self.sslkey_file, sslkey_pass=self.sslkey_pass, server_socket=codecs.decode(row[PR_EC_STATS_SERVER_HTTPSURL], 'utf-8'), log=self.log, service=self.service)
 
     def table(self, name, restriction=None, order=None, columns=None):
         return Table(
