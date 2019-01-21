@@ -398,12 +398,15 @@ class Service(kopano.Service):
         del USER_INFO[usera.name]
 
         # transfer metadata # TODO webapp settings
-        userb.permissions_loads(usera.permissions_dumps())
-        userb.delegations_loads(usera.delegations_dumps())
-        for foldera in usera.folders():
-            folderb = userb.folder(foldera.path)
-            folderb.permissions_loads(foldera.permissions_dumps())
-            folderb.rules_loads(foldera.rules_dumps())
+        with log_exc(self.log): # TODO testing: store deleted in tearDown
+            userb.permissions_loads(usera.permissions_dumps())
+            userb.delegations_loads(usera.delegations_dumps())
+            for foldera in usera.folders():
+                if foldera.path:
+                    folderb = userb.get_folder(foldera.path)
+                    if folderb:
+                        folderb.permissions_loads(foldera.permissions_dumps())
+                        folderb.rules_loads(foldera.rules_dumps())
 
         # TODO remove states
 
