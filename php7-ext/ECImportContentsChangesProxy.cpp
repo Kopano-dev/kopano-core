@@ -105,7 +105,8 @@ HRESULT ECImportContentsChangesProxy::GetLastError(HRESULT hResult, ULONG ulFlag
 }
 
 HRESULT ECImportContentsChangesProxy::Config(LPSTREAM lpStream, ULONG ulFlags) {
-	zvalplus pvalFuncName, pvalReturn, pvalArgs[2];
+	zvalplus pvalFuncName, pvalArgs[2];
+	zval pvalReturn;
     
     if(lpStream) {
 		ZVAL_RES(&pvalArgs[0], zend_register_resource(lpStream, le_istream));
@@ -126,7 +127,8 @@ HRESULT ECImportContentsChangesProxy::Config(LPSTREAM lpStream, ULONG ulFlags) {
 }
 
 HRESULT ECImportContentsChangesProxy::UpdateState(LPSTREAM lpStream) {
-	zvalplus pvalFuncName, pvalReturn, pvalArgs;
+	zvalplus pvalFuncName, pvalArgs;
+	zval pvalReturn;
     
     if(lpStream) {
 		ZVAL_RES(&pvalArgs, zend_register_resource(lpStream, le_istream));
@@ -145,7 +147,8 @@ HRESULT ECImportContentsChangesProxy::UpdateState(LPSTREAM lpStream) {
 }
 
 HRESULT ECImportContentsChangesProxy::ImportMessageChange(ULONG cValues, LPSPropValue lpPropArray, ULONG ulFlags, LPMESSAGE * lppMessage)  {
-	zvalplus pvalFuncName, pvalReturn, pvalArgs[3];
+	zvalplus pvalFuncName, pvalArgs[3];
+	zval pvalReturn;
 
     IMessage *lpMessage = NULL;
     HRESULT hr = PropValueArraytoPHPArray(cValues, lpPropArray, &pvalArgs[0] TSRMLS_CC);
@@ -180,7 +183,8 @@ HRESULT ECImportContentsChangesProxy::ImportMessageChange(ULONG cValues, LPSProp
 }
 
 HRESULT ECImportContentsChangesProxy::ImportMessageDeletion(ULONG ulFlags, LPENTRYLIST lpSourceEntryList) {
-	zvalplus pvalFuncName, pvalReturn, pvalArgs[2];
+	zvalplus pvalFuncName, pvalArgs[2];
+	zval pvalReturn;
     
     ZVAL_LONG(&pvalArgs[0], ulFlags);
     SBinaryArraytoPHPArray(lpSourceEntryList, &pvalArgs[1] TSRMLS_CC);
@@ -196,7 +200,8 @@ HRESULT ECImportContentsChangesProxy::ImportMessageDeletion(ULONG ulFlags, LPENT
 }
 
 HRESULT ECImportContentsChangesProxy::ImportPerUserReadStateChange(ULONG cElements, LPREADSTATE lpReadState) {
-	zvalplus pvalFuncName, pvalReturn, pvalArgs;
+	zvalplus pvalFuncName, pvalArgs;
+	zval pvalReturn;
     
 	ReadStateArraytoPHPArray(cElements, lpReadState, &pvalArgs TSRMLS_CC);
     ZVAL_STRING(&pvalFuncName, "ImportPerUserReadStateChange");
