@@ -518,7 +518,7 @@ static ECRESULT usmp_charset(std::shared_ptr<KDatabase> db)
 		if (ret != erSuccess)
 			return ret;
 	}
-	ret = db->DoUpdate("ALTER TABLE `settings` MODIFY COLUMN `name` varchar(185) CHARACTER SET utf8mb4 BINARY DEFAULT NULL");
+	ret = db->DoUpdate("ALTER TABLE `settings` MODIFY COLUMN `name` varchar(185) CHARACTER SET utf8mb4 BINARY NOT NULL");
 	if (ret != erSuccess)
 		return ret;
 	if (adm_quit)
