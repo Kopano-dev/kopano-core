@@ -146,14 +146,14 @@ class ControlWorker(kopano.Worker):
                         data = data.split()
 
                         if data[0] == 'ADD':
-                            user, target_user = data[1:]
-                            self.subscribe.put((user, target_user, True))
+                            user, target_user, target_server = data[1:]
+                            self.subscribe.put((user, target_user, target_server, True))
                             response(conn, 'OK:')
                             break
 
                         elif data[0] == 'REMOVE':
                             user = data[1]
-                            self.subscribe.put((user, None, False))
+                            self.subscribe.put((user, None, None, False))
                             response(conn, 'OK:')
                             break
 
@@ -358,26 +358,38 @@ class Service(kopano.Service):
         # continue using notifications
         self.notify_sync()
 
-    def subscribe_user(self, server, user, target_user):
-        self.log.info('subscribing: %s -> %s', user, target_user)
+    def subscribe_user(self, server, username, target_user, target_server):
+        self.log.info('subscribing: %s -> %s', username, target_server)
 
-        usera = server.user(user)
-        userb = server.user(target_user)
+        usera = server.user(username)
+        storea = usera.store
+
+        if target_server != '_':
+            for node in server.nodes(): # TODO optimize
+                if node.name == target_server:
+                    storeb = node.create_store(usera)
+                    break
+            else:
+                self.log.info('unknown server: %s', target_server)
+                return
+        else:
+            storeb = server.user(target_user).store
+
         sink = NotificationSink(usera, usera.store, self.iqueue, self.log)
 
-        usera.store.subscribe(sink, object_types=['item', 'folder'])
+        storea.subscribe(sink, object_types=['item', 'folder'])
 
         # TODO make persistent
-        STORE_STORE[usera.store.entryid] = userb.store.entryid
-        USER_SINK[usera.name] = sink
+        STORE_STORE[storea.entryid] = storeb.entryid
+        USER_SINK[username] = sink
         update_user_info(usera, 'items', 'store', 0)
         update_user_info(usera, 'init_done', 'store', 'no')
         update_user_info(usera, 'queue_empty', 'store', 'no')
 
-        state_path = os.path.join(self.config['state_path'], usera.store.entryid)
-        db_put(state_path, 'folder_map_'+usera.subtree.sourcekey, userb.subtree.entryid)
+        state_path = os.path.join(self.config['state_path'], storea.entryid)
+        db_put(state_path, 'folder_map_'+storea.subtree.sourcekey, storeb.subtree.entryid)
 
-        _queue_or_store(usera, usera.store.entryid, None, self.iqueue)
+        _queue_or_store(usera, storea.entryid, None, self.iqueue)
 
     def unsubscribe_user(self, server, username):
         self.log.info('unsubscribing: %s', username)
@@ -413,9 +425,9 @@ class Service(kopano.Service):
         while True:
             # check command-line add-user requests
             try:
-                user, target_user, subscribe = self.subscribe.get(timeout=0.01)
+                user, target_user, target_server, subscribe = self.subscribe.get(timeout=0.01)
                 if subscribe:
-                    self.subscribe_user(server, user, target_user)
+                    self.subscribe_user(server, user, target_user, target_server)
                 else:
                     self.unsubscribe_user(server, user)
 
@@ -456,14 +468,13 @@ class Service(kopano.Service):
 
     def cmd_add(self, options):
         username = options.users[0]
-        targetname = options.target
 
-        for name in (username, targetname): # TODO move check
-            if not self.server.get_user(name):
+        for name in (username, options.target):
+            if name and not self.server.get_user(name):
                 print("no such user: %s" % name, file=sys.stderr)
                 sys.exit(1)
 
-        self.do_cmd('ADD %s %s\r\n' % (username, targetname))
+        self.do_cmd('ADD %s %s %s\r\n' % (username, options.target or '_', options.server or '_'))
 
     def cmd_remove(self, options):
         self.do_cmd('REMOVE %s\r\n' % options.users[0])
@@ -480,7 +491,8 @@ def main():
 
     # custom options
     parser.add_option('--add', dest='add', action='store_true', help='Add user')
-    parser.add_option('--target', dest='target', action='store', help='Specify target user')
+    parser.add_option('--target', dest='target', action='store', help='Specify target user') # TODO remove (still used in testset/msr)
+    parser.add_option('--server', dest='server', action='store', help='Specify target server')
     parser.add_option('--remove', dest='remove', action='store_true', help='Remove user')
     parser.add_option('--list-users', dest='list_users', action='store_true', help='List users')
 
