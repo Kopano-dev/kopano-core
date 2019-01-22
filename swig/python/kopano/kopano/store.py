@@ -655,7 +655,7 @@ class Store(Properties):
             fbmsg, (entryids, names, flags) = self._fbmsg_delgs()
 
             entryids.Value.append(_bdec(user.userid))
-            names.Value.append(user.name)
+            names.Value.append(user.fullname)
             flags.Value.append(1 if see_private else 0)
 
             fbmsg.SetProps([entryids, names, flags])
