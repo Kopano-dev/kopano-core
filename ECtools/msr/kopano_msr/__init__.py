@@ -29,7 +29,7 @@ LOCK = multiprocessing.Lock()
 setproctitle.setproctitle('kopano-msr manager')
 _mgr = multiprocessing.Manager()
 
-USER_USER = _mgr.dict() # user mapping # TODO persistency
+# TODO persistency
 STORE_STORE = _mgr.dict() # store mapping
 USER_INFO = _mgr.dict() # statistics
 
@@ -89,7 +89,6 @@ class ControlWorker(kopano.Worker):
 
         # general info
         lines.append('user:               %s' % username)
-        lines.append('target user:        %s' % USER_USER[username])
         lines.append('processed items:    %d' % USER_INFO[username]['items'])
         lines.append('initial sync done:  %s' % USER_INFO[username]['init_done'])
         lines.append('update queue empty: %s' % USER_INFO[username]['queue_empty'])
@@ -98,13 +97,13 @@ class ControlWorker(kopano.Worker):
         # store contents comparison
         lines.append('store comparison:')
 
-        usera = server.user(username)
-        userb = server.user(USER_USER[username])
+        storea = server.user(username).store
+        storeb = server.store(entryid=STORE_STORE[storea.entryid])
 
         difference = False
 
-        foldersa = set(f.path for f in usera.folders())
-        foldersb = set(f.path for f in userb.folders())
+        foldersa = set(f.path for f in storea.folders())
+        foldersb = set(f.path for f in storeb.folders())
 
         for path in foldersb - foldersa:
             lines.append('%s: folder only exists in target store' % path)
@@ -115,8 +114,8 @@ class ControlWorker(kopano.Worker):
             difference = True
 
         for path in foldersa & foldersb:
-            counta = usera.folder(path).count
-            countb = userb.folder(path).count
+            counta = storea.folder(path).count
+            countb = storeb.folder(path).count
             if counta != countb:
                 lines.append("%s: item count is %d compared to source %d" % (path, countb, counta))
                 difference = True
@@ -160,10 +159,10 @@ class ControlWorker(kopano.Worker):
 
                         elif data[0] == 'LIST':
                             lines = []
-                            for user, target in USER_USER.items():
-                                items = USER_INFO[user]['items']
-                                init_done = USER_INFO[user]['init_done']
-                                queue_empty = USER_INFO[user]['queue_empty']
+                            for user, data in USER_INFO.items():
+                                items = data['items']
+                                init_done = data['init_done']
+                                queue_empty = data['queue_empty']
                                 line = 'user=%s target=%s items=%d init_done=%s queue_empty=%s' % (user, target, items, init_done, queue_empty)
                                 lines.append(line)
                             response(conn, 'OK:\n' + '\n'.join(lines))
@@ -370,7 +369,6 @@ class Service(kopano.Service):
 
         # TODO make persistent
         STORE_STORE[usera.store.entryid] = userb.store.entryid
-        USER_USER[usera.name] = userb.name
         USER_SINK[usera.name] = sink
         update_user_info(usera, 'items', 'store', 0)
         update_user_info(usera, 'init_done', 'store', 'no')
@@ -381,29 +379,28 @@ class Service(kopano.Service):
 
         _queue_or_store(usera, usera.store.entryid, None, self.iqueue)
 
-    def unsubscribe_user(self, server, user):
-        self.log.info('unsubscribing: %s', user)
+    def unsubscribe_user(self, server, username):
+        self.log.info('unsubscribing: %s', username)
 
-        usera = server.user(user)
-        userb = server.user(USER_USER[usera.name])
+        storea = server.user(username).store
+        storeb = server.store(entryid=STORE_STORE[storea.entryid])
 
         # unsubscribe user from notification
-        sink = USER_SINK[usera.name]
-        usera.store.unsubscribe(sink)
+        sink = USER_SINK[username]
+        storea.unsubscribe(sink)
 
         # unregister user everywhere
-        del USER_USER[usera.name]
-        del USER_SINK[usera.name]
-        del STORE_STORE[usera.store.entryid]
-        del USER_INFO[usera.name]
+        del USER_SINK[username]
+        del STORE_STORE[storea.entryid]
+        del USER_INFO[username]
 
         # transfer metadata # TODO webapp settings
         with log_exc(self.log): # TODO testing: store deleted in tearDown
-            userb.permissions_loads(usera.permissions_dumps())
-            userb.delegations_loads(usera.delegations_dumps())
-            for foldera in usera.folders():
+            storeb.permissions_loads(storea.permissions_dumps())
+            storeb.delegations_loads(storea.delegations_dumps())
+            for foldera in storea.folders():
                 if foldera.path:
-                    folderb = userb.get_folder(foldera.path)
+                    folderb = storeb.get_folder(foldera.path)
                     if folderb:
                         folderb.permissions_loads(foldera.permissions_dumps())
                         folderb.rules_loads(foldera.rules_dumps())
