@@ -176,6 +176,10 @@ class Store(Properties):
         except (MAPIErrorNotFound, NotFoundError):
             pass
 
+    @subtree.setter
+    def subtree(self, folder):
+        self[PR_IPM_SUBTREE_ENTRYID] = _bdec(folder.entryid)
+
     @property
     def findroot(self):
         """:class:`Folder` designated as search-results root."""

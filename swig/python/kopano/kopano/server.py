@@ -19,7 +19,7 @@ import sys
 from MAPI import (
     MAPI_UNICODE, MDB_WRITE, RELOP_EQ,
     TBL_BATCH, ECSTORE_TYPE_PRIVATE, MAPI_DEFERRED_ERRORS,
-    EC_OVERRIDE_HOMESERVER,
+    EC_OVERRIDE_HOMESERVER, WrapStoreEntryID
 )
 from MAPI.Util import (
     GetDefaultStore, OpenECSession
@@ -749,12 +749,24 @@ class Server(object):
                 continue
             yield store
 
-    def create_store(self, user):
-        try:
-            eid1, eid2 = self.sa.CreateEmptyStore(ECSTORE_TYPE_PRIVATE, _bdec(user.userid), EC_OVERRIDE_HOMESERVER, None, None)
-            return user.store
-        except MAPIErrorCollision:
-            raise DuplicateError("user '%s' already has an associated store (unhook first?)" % user.name)
+    def create_store(self, user, _msr=False):
+        storetype = ECSTORE_TYPE_PRIVATE
+        # TODO configurable storetype
+
+        if _msr:
+            try:
+                storeid, rootid = self.sa.CreateEmptyStore(storetype, _bdec(user.userid), EC_OVERRIDE_HOMESERVER, None, None)
+            except MAPIErrorCollision:
+                raise DuplicateError("user '%s' already has an associated store (unhook first?)" % user.name)
+            store_entryid = WrapStoreEntryID(0, b'zarafa6client.dll', storeid[:-4]) + b'https://' + codecs.encode(self.name, 'utf-8') + b':237\x00'
+            store_entryid = store_entryid[:66] + b'\x10' + store_entryid[67:] # multi-server flag
+            store = self.store(entryid=_benc(store_entryid))
+
+            # TODO CreateStore could do this for us..!?
+            store.subtree = store.root.folder('IPM_SUBTREE', create=True)
+        else:
+            store = user.create_store()
+        return store
 
     def remove_store(self, store):
         try:

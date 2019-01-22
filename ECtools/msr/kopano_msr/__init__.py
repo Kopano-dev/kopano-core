@@ -367,7 +367,7 @@ class Service(kopano.Service):
         if target_server != '_':
             for node in server.nodes(): # TODO optimize
                 if node.name == target_server:
-                    storeb = node.create_store(usera)
+                    storeb = node.create_store(usera, _msr=True)
                     break
             else:
                 self.log.info('unknown server: %s', target_server)
