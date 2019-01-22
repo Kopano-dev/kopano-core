@@ -648,7 +648,9 @@ class Folder(Properties):
             return subfolder
 
         if self == self.store.subtree and path in ENGLISH_FOLDER_MAP: # XXX depth==0?
-            path = getattr(self.store, ENGLISH_FOLDER_MAP[path]).name
+            f = getattr(self.store, ENGLISH_FOLDER_MAP[path], None)
+            if f:
+                path = f.name
 
         if create:
             name = path.replace('\\/', '/')

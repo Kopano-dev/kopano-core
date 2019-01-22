@@ -88,10 +88,12 @@ class ControlWorker(kopano.Worker):
         lines = []
 
         # general info
+        data = USER_INFO[username]
         lines.append('user:               %s' % username)
-        lines.append('processed items:    %d' % USER_INFO[username]['items'])
-        lines.append('initial sync done:  %s' % USER_INFO[username]['init_done'])
-        lines.append('update queue empty: %s' % USER_INFO[username]['queue_empty'])
+        lines.append('target server:      %s' % data['server'])
+        lines.append('processed items:    %d' % data['items'])
+        lines.append('initial sync done:  %s' % data['init_done'])
+        lines.append('update queue empty: %s' % data['queue_empty'])
         lines.append('')
 
         # store contents comparison
@@ -163,7 +165,8 @@ class ControlWorker(kopano.Worker):
                                 items = data['items']
                                 init_done = data['init_done']
                                 queue_empty = data['queue_empty']
-                                line = 'user=%s target=%s items=%d init_done=%s queue_empty=%s' % (user, target, items, init_done, queue_empty)
+                                servername = data['server']
+                                line = 'user=%s server=%s items=%d init_done=%s queue_empty=%s' % (user, servername, items, init_done, queue_empty)
                                 lines.append(line)
                             response(conn, 'OK:\n' + '\n'.join(lines))
                             break
@@ -385,6 +388,7 @@ class Service(kopano.Service):
         update_user_info(usera, 'items', 'store', 0)
         update_user_info(usera, 'init_done', 'store', 'no')
         update_user_info(usera, 'queue_empty', 'store', 'no')
+        update_user_info(usera, 'server', 'store', target_server)
 
         state_path = os.path.join(self.config['state_path'], storea.entryid)
         db_put(state_path, 'folder_map_'+storea.subtree.sourcekey, storeb.subtree.entryid)
