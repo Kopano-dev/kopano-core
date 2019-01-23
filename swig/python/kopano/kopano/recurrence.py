@@ -52,7 +52,7 @@ from .errors import (
 from .defs import (
     ARO_SUBJECT, ARO_MEETINGTYPE, ARO_REMINDERDELTA, ARO_REMINDERSET,
     ARO_LOCATION, ARO_BUSYSTATUS, ARO_ATTACHMENT, ARO_SUBTYPE,
-    ARO_APPTCOLOR, ASF_CANCELED,
+    ARO_APPTCOLOR, ASF_CANCELED, FB_STATUS, STATUS_FB
 )
 
 LOCAL = dateutil.tz.tzlocal()
@@ -289,6 +289,7 @@ class Recurrence(object):
 
             subject = self.item.subject
             location = self.item.location
+            busystatus = self.item.busystatus
             exception = False
             if startdatetime_val in start_exc_ext:
                 exc, ext = start_exc_ext[startdatetime_val]
@@ -296,6 +297,9 @@ class Recurrence(object):
                 subject = ext.get('subject', subject)
                 location = ext.get('location', location)
                 basedate_val = exc['original_start_date']
+                busystatus = exc.get('busy_status', busystatus)
+                if busystatus is not None:
+                    busystatus = FB_STATUS[busystatus]
                 exception = True
             else:
                 minutes = self._endtime_offset - self._starttime_offset
@@ -304,7 +308,7 @@ class Recurrence(object):
             d = _timezone._to_utc(d, self._tzinfo)
             e = d + datetime.timedelta(minutes=minutes)
 
-            occ = Occurrence(self.item, d, e, subject, location, basedate_val=basedate_val, exception=exception)
+            occ = Occurrence(self.item, d, e, subject, location, busystatus=busystatus, basedate_val=basedate_val, exception=exception)
             if (not start or occ.end > start) and (not end or occ.start < end):
                 yield occ
 
@@ -822,10 +826,10 @@ class Recurrence(object):
             exception['override_flags'] |= ARO_REMINDERSET
             exception['reminder_set'] = reminder_set
 
-        busy_status = item.get(PidLidBusyStatus)
+        busy_status = kwargs.get('busystatus') or item.busystatus
         if busy_status is not None:
             exception['override_flags'] |= ARO_BUSYSTATUS
-            exception['busy_status'] = busy_status
+            exception['busy_status'] = STATUS_FB[busy_status]
 
         # skip ARO_ATTACHMENT (like php)
 
@@ -1113,12 +1117,13 @@ class Recurrence(object):
 class Occurrence(object):
     """Occurrence class"""
 
-    def __init__(self, item, start=None, end=None, subject=None, location=None, basedate_val=None, exception=False):
+    def __init__(self, item, start=None, end=None, subject=None, location=None, busystatus=None, basedate_val=None, exception=False):
         self.item = item
         self._start = start
         self._end = end
         self._subject = subject
         self._location = location
+        self._busystatus = busystatus
         self._basedate_val = basedate_val
         self.exception = exception
 
@@ -1168,6 +1173,15 @@ class Occurrence(object):
     def color(self, value):
         self._update(color=value)
         self._color = value
+
+    @property
+    def busystatus(self):
+        return self._busystatus or self.item.busystatus
+
+    @busystatus.setter
+    def busystatus(self, value):
+        self._update(busystatus=value)
+        self._busystatus = value
 
     def _update(self, **kwargs):
         if self.item.recurring:

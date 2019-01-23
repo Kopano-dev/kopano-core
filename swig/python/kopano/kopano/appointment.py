@@ -12,7 +12,7 @@ import sys
 
 from MAPI import (
     PT_SYSTIME, MNID_ID, PT_BOOLEAN, MODRECIP_ADD,
-    KEEP_OPEN_READWRITE,
+    KEEP_OPEN_READWRITE, PT_LONG
 )
 
 from MAPI.Tags import (
@@ -30,7 +30,7 @@ from .compat import (
     benc as _benc, bdec as _bdec, fake_unicode as _unicode,
 )
 from .defs import (
-    PSETID_Appointment, ASF_CANCELED, NR_COLOR, COLOR_NR
+    PSETID_Appointment, ASF_CANCELED, NR_COLOR, COLOR_NR, FB_STATUS, STATUS_FB,
 )
 from .pidlid import (
     PidLidReminderSet, PidLidReminderDelta, PidLidAppointmentSubType,
@@ -53,6 +53,7 @@ ALL_DAY_NAME = (PSETID_Appointment, MNID_ID, 0x8215)
 START_NAME = (PSETID_Appointment, MNID_ID, 33293) # TODO use pidlid instead
 END_NAME = (PSETID_Appointment, MNID_ID, 33294)
 RECURRING_NAME = (PSETID_Appointment, MNID_ID, 33315)
+BUSYSTATUS = (PSETID_Appointment, MNID_ID, 33285)
 
 class Appointment(object):
     """Appointment mixin class"""
@@ -124,6 +125,19 @@ class Appointment(object):
         if value and not self.recurring:
             Recurrence._init(self)
         self[PidLidRecurring] = value
+
+    @property
+    def busystatus(self):
+        proptag = self.store._name_id(BUSYSTATUS) | PT_LONG
+        return FB_STATUS.get(self._get_fast(proptag))
+
+    @busystatus.setter
+    def busystatus(self, val):
+        try:
+            self.create_prop('appointment:33285', STATUS_FB[val], PT_LONG) # props are identical
+        except KeyError:
+            raise ArgumentError('invalid busy status: %s' % val)
+
 
     @property
     def recurrence(self):
