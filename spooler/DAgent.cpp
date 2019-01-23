@@ -1425,7 +1425,7 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 		goto exit;
 	}
 
-	snprintf(szHeader, PATH_MAX, "\nMime-Version: 1.0"); // add mime-version header, so some clients show high-characters correctly
+	snprintf(szHeader, PATH_MAX, "\nMIME-Version: 1.0"); // add mime-version header, so some clients show high-characters correctly
 	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
 	if (hr != hrSuccess) {
 		kc_perrorf("WriteOrLogError failed(8)", hr);

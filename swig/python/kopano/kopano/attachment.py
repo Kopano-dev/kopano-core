@@ -85,7 +85,7 @@ class Attachment(Properties):
 
     @property
     def mimetype(self):
-        """Mime-type"""
+        """MIME-Type"""
         try:
             return HrGetOneProp(self.mapiobj, PR_ATTACH_MIME_TAG_W).Value
         except MAPIErrorNotFound:
