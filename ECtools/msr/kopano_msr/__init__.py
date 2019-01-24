@@ -345,7 +345,8 @@ class Service(kopano.Service):
     def main(self):
         setproctitle.setproctitle('kopano-msr main')
 
-        os.system('rm -rf %s/*' % self.config['state_path']) # TODO temporary until improved persistency
+        if self.config['state_path']:
+            os.system('rm -rf %s/*' % self.config['state_path']) # TODO temporary until improved persistency
 
         self.iqueue = multiprocessing.Queue() # folders in the working queue
         self.oqueue = multiprocessing.Queue() # processed folders, used to update STORE_FOLDER_QUEUED

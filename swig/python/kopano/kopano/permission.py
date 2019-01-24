@@ -6,6 +6,8 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
+import sys
+
 from MAPI import (
     MAPI_UNICODE, ROW_MODIFY, ROW_ADD, MAPI_MODIFY,
 )
@@ -18,13 +20,19 @@ from MAPI.Tags import (
 )
 
 from .compat import (
-    bdec as _bdec, benc as _benc
+    bdec as _bdec, benc as _benc, repr as _repr
 )
 from .defs import RIGHT_NAME, NAME_RIGHT
 from .errors import NotFoundError
 from .log import log_exc
 
-from . import utils as _utils
+if sys.hexversion >= 0x03000000:
+    try:
+        from . import utils as _utils
+    except ImportError: # pragma: no cover
+        _utils = sys.modules[__package__ + '.utils']
+else:
+    import utils as _utils
 
 def _permissions_dumps(obj, stats=None):
     """ dump permissions for given store or folder """
@@ -120,3 +128,6 @@ class Permission(object):
 
     def __unicode__(self):
         return u"Permission('%s')" % self.member.name
+
+    def __repr__(self):
+        return _repr(self)
