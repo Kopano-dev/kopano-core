@@ -66,7 +66,8 @@ pkglibexec_SCRIPTS =
 if WITH_PYTHON3
 pkglibexec_SCRIPTS += ECtools/rest/kopano-mfr.py
 endif
-check_PROGRAMS = tests/ablookup tests/imtomapi tests/kc-335 tests/mapialloctime \
+check_PROGRAMS = tests/ablookup tests/htmltext tests/imtomapi \
+	tests/kc-335 tests/mapialloctime \
 	tests/readflag tests/zcpmd5
 if HAVE_TIDY
 check_PROGRAMS += tests/rosie
@@ -772,6 +773,8 @@ mapitime_LDADD = ${clock_LIBS} libmapi.la libkcutil.la \
 	${curl_LIBS} ${icu_uc_LIBS}
 tests_ablookup_SOURCES = tests/ablookup.cpp
 tests_ablookup_LDADD = libmapi.la libkcutil.la
+tests_htmltext_SOURCES = tests/htmltext.cpp
+tests_htmltext_LDADD = libkcutil.la
 tests_imtomapi_SOURCES = tests/imtomapi.cpp tests/tbi.hpp
 tests_imtomapi_LDADD = libkcinetmapi.la libmapi.la libkcutil.la
 tests_kc_335_SOURCES = tests/kc-335.cpp tests/tbi.hpp
