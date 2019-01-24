@@ -750,6 +750,7 @@ class Server(object):
             yield store
 
     def create_store(self, user, _msr=False):
+        # TODO detect homeserver override
         storetype = ECSTORE_TYPE_PRIVATE
         # TODO configurable storetype
 
@@ -762,8 +763,42 @@ class Server(object):
             store_entryid = store_entryid[:66] + b'\x10' + store_entryid[67:] # multi-server flag
             store = self.store(entryid=_benc(store_entryid))
 
-            # TODO CreateStore could do this for us..!?
-            store.subtree = store.root.folder('IPM_SUBTREE', create=True)
+            # TODO add EC_OVERRIDE_HOMESERVER flag to CreateStore instead? or how does the old MSR do this?
+
+            # TODO language
+
+            # system folders
+            root = store.root
+
+            store.findroot = root.create_folder('FINDER_ROOT')
+            store.findroot.permission(self.group('Everyone'), create=True).rights = ['read_items', 'create_subfolders', 'edit_own', 'delete_own', 'folder_visible']
+
+            store.views = root.create_folder('IPM_VIEWS')
+            store.common_views = root.create_folder('IPM_COMMON_VIEWS')
+
+            root.create_folder('Freebusy Data')
+            root.create_folder('Schedule')
+            root.create_folder('Shortcut')
+
+            # special folders
+            subtree = store.subtree = root.folder('IPM_SUBTREE', create=True)
+
+            store.calendar = subtree.create_folder('Calendar')
+            store.contacts = subtree.create_folder('Contacts')
+            # TODO Conversation Action Settings?
+            store.wastebasket = subtree.create_folder('Deleted Items')
+            store.drafts = subtree.create_folder('Drafts')
+            store.inbox = subtree.create_folder('Inbox')
+            store.journal = subtree.create_folder('Journal')
+            store.junk = subtree.create_folder('Junk E-mail')
+            store.notes = subtree.create_folder('Notes')
+            store.outbox = subtree.create_folder('Outbox')
+            # TODO Quick Step Settings?
+            # TODO RSS Feeds?
+            store.sentmail = subtree.create_folder('Sent Items')
+            # TODO Suggested Contacts?
+            store.tasks = subtree.create_folder('Tasks')
+
         else:
             store = user.create_store()
         return store
