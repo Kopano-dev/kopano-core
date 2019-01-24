@@ -368,11 +368,17 @@ class Service(kopano.Service):
 
         usera = server.user(username)
         storea = usera.store
+   
+        # TODO report errors back directly to command-line process
 
         if target_server != '_':
             for node in server.nodes(): # TODO optimize
                 if node.name == target_server:
-                    storeb = node.create_store(usera, _msr=True)
+                    try:
+                        storeb = node.create_store(usera, _msr=True)
+                    except kopano.DuplicateError:
+                        self.log.error('could not create new store')
+                        return
                     break
             else:
                 self.log.info('unknown server: %s', target_server)
@@ -480,6 +486,14 @@ class Service(kopano.Service):
                 print("no such user: %s" % name, file=sys.stderr)
                 sys.exit(1)
 
+        if options.server:
+            for node in self.server.nodes(): # TODO optimize
+                if node.name == options.server:
+                    break
+            else:
+                print("no such server: %s" % options.server, file=sys.stderr)
+                sys.exit(1)
+
         self.do_cmd('ADD %s %s %s\r\n' % (username, options.target or '_', options.server or '_'))
 
     def cmd_remove(self, options):
@@ -508,19 +522,32 @@ def main():
     service = Service('msr', options=options, config=CONFIG)
 
     if options.users:
+        if options.list_users:
+            print('too many options provided')
+            sys.exit(1)
         if len(options.users) != 1:
-            print('please specify single user', file=sys.stderr)
+            print('more than one user specified', file=sys.stderr)
             sys.exit(1)
         if options.add:
+            if not (options.target or options.server):
+                print('no server specified', file=sys.stderr)
+                sys.exit(1)
             service.cmd_add(options)
         elif options.remove:
             service.cmd_remove(options)
         else:
             service.cmd_details(options)
+
     elif options.list_users:
+        if options.add or options.remove or options.target or options.server:
+            print('too many options provided')
+            sys.exit(1)
         service.cmd_list()
+
     else:
-        # start MSR
+        if options.add or options.remove or options.target or options.server:
+            print('no user specified')
+            sys.exit(1)
         service.start()
 
 if __name__ == '__main__':
