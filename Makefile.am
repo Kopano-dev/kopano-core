@@ -61,9 +61,6 @@ dist_sbin_SCRIPTS = ECtools/utils/kopano-mailbox-permissions \
 	tools/python-scripts/kopano-recreate-systemfolders \
 	tools/python-scripts/kopano-rules
 noinst_PROGRAMS = kopano-cfgchecker
-if HAVE_TIDY
-noinst_PROGRAMS += rosie-test
-endif
 pkglibexec_PROGRAMS = kscriptrun mapitime
 pkglibexec_SCRIPTS =
 if WITH_PYTHON3
@@ -71,6 +68,9 @@ pkglibexec_SCRIPTS += ECtools/rest/kopano-mfr.py
 endif
 check_PROGRAMS = tests/ablookup tests/imtomapi tests/kc-335 tests/mapialloctime \
 	tests/readflag tests/zcpmd5
+if HAVE_TIDY
+check_PROGRAMS += tests/rosie
+endif
 noinst_PROGRAMS += ${check_PROGRAMS}
 
 
@@ -770,8 +770,6 @@ kscriptrun_SOURCES = ECtools/scriptrun.cpp
 mapitime_SOURCES = ECtools/mapitime.cpp
 mapitime_LDADD = ${clock_LIBS} libmapi.la libkcutil.la \
 	${curl_LIBS} ${icu_uc_LIBS}
-rosie_test_SOURCES = librosie/test.cpp
-rosie_test_LDADD = libkcrosie.la
 tests_ablookup_SOURCES = tests/ablookup.cpp
 tests_ablookup_LDADD = libmapi.la libkcutil.la
 tests_imtomapi_SOURCES = tests/imtomapi.cpp tests/tbi.hpp
@@ -782,6 +780,8 @@ tests_mapialloctime_SOURCES = tests/mapialloctime.cpp
 tests_mapialloctime_LDADD = libmapi.la ${clock_LIBS}
 tests_readflag_SOURCES = tests/readflag.cpp tests/tbi.hpp
 tests_readflag_LDADD = libmapi.la libkcutil.la
+tests_rosie_SOURCES = tests/rosie.cpp
+tests_rosie_LDADD = libkcrosie.la
 tests_zcpmd5_SOURCES = tests/zcpmd5.cpp
 tests_zcpmd5_LDADD = ${CRYPTO_LIBS} libkcutil.la
 
