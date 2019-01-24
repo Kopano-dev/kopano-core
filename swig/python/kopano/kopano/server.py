@@ -41,6 +41,7 @@ from MAPI.Tags import (
     PR_EC_STATSTABLE_SERVERS, PR_EC_STATS_SERVER_HTTPSURL,
     PR_STORE_ENTRYID, EC_PROFILE_FLAGS_NO_UID_AUTH, PR_EC_STATS_SYSTEM_VALUE,
     EC_PROFILE_FLAGS_NO_NOTIFICATIONS, EC_PROFILE_FLAGS_OIDC,
+    PR_FREEBUSY_ENTRYIDS,
 )
 from MAPI.Tags import (
     IID_IMsgStore, IID_IMAPITable, IID_IExchangeManageStore,
@@ -798,6 +799,13 @@ class Server(object):
             store.sentmail = subtree.create_folder('Sent Items')
             # TODO Suggested Contacts?
             store.tasks = subtree.create_folder('Tasks')
+
+            # freebusy message TODO create dynamically instead?
+            fbmsg = root.create_item(
+                subject='LocalFreebusy',
+                message_class='IPM.Microsoft.ScheduleData.FreeBusy'
+            )
+            root[PR_FREEBUSY_ENTRYIDS] = [b'', _bdec(fbmsg.entryid), b'', b'']
 
         else:
             store = user.create_store()
