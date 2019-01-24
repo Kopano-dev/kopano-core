@@ -2,6 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
+#include "config.h"
 #include <kopano/platform.h>
 #include <algorithm>
 #include <cwctype>
@@ -9,6 +10,11 @@
 #include "HtmlToTextParser.h"
 #include "HtmlEntity.h"
 #include <cwctype>
+#include <kopano/charset/convert.h>
+#ifdef HAVE_TIDYBUFFIO_H
+#	include <tidy.h>
+#	include <tidybuffio.h>
+#endif
 
 namespace KC {
 
@@ -66,7 +72,32 @@ void CHtmlToTextParser::Init()
 	strText.clear();
 }
 
-bool CHtmlToTextParser::Parse(const WCHAR *lpwHTML)
+bool CHtmlToTextParser::Parse(const wchar_t *lpwHTML)
+{
+#ifdef HAVE_TIDYBUFFIO_H
+	TidyBuffer output, errbuf;
+	tidyBufInit(&output);
+	tidyBufInit(&errbuf);
+	auto tdoc = tidyCreate();
+	tidyOptSetBool(tdoc, TidyHideComments, yes);
+	tidyOptSetBool(tdoc, TidyPreserveEntities, yes);
+	tidySetCharEncoding(tdoc, "utf8");
+	tidySetErrorBuffer(tdoc, &errbuf);
+	tidyParseString(tdoc, convert_to<std::string>("UTF-8", reinterpret_cast<const char *>(lpwHTML), rawsize(lpwHTML), CHARSET_WCHAR).c_str());
+	tidyCleanAndRepair(tdoc);
+	tidyOptSetBool(tdoc, TidyForceOutput, yes);
+	tidySaveBuffer(tdoc, &output);
+	auto ret = ll_parse(convert_to<std::wstring>(reinterpret_cast<const char *>(output.bp), output.size, "UTF-8").c_str());
+	tidyBufFree(&errbuf);
+	tidyBufFree(&output);
+	tidyRelease(tdoc);
+	return ret;
+#else
+	return ll_parse(lpwHTML);
+#endif
+}
+
+bool CHtmlToTextParser::ll_parse(const wchar_t *lpwHTML)
 {
 	Init();
 

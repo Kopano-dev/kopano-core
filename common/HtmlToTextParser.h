@@ -18,6 +18,7 @@ public:
 
 protected:
 	_kc_hidden void Init(void);
+	_kc_hidden bool ll_parse(const wchar_t *);
 	_kc_hidden void parseTag(const wchar_t *&);
 	_kc_hidden bool parseEntity(const wchar_t *&);
 	_kc_hidden void parseAttributes(const wchar_t *&);

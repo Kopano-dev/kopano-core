@@ -652,6 +652,9 @@ libkcutil_la_LIBADD = \
 	-lpthread -lz ${CRYPTO_LIBS} ${curl_LIBS} ${GZ_LIBS} ${iconv_LIBS} \
 	${icu_i18n_LIBS} ${icu_uc_LIBS} ${jsoncpp_LIBS} ${libHX_LIBS} \
 	${SSL_LIBS} ${UUID_LIBS}
+if HAVE_TIDY
+libkcutil_la_LIBADD += -ltidy
+endif
 libkcutil_la_SYFLAGS = -Wl,--version-script=common/libkcutil.sym
 libkcutil_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	${libkcutil_la_SYFLAGS${NO_VSYM}}
