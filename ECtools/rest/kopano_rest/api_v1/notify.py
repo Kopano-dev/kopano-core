@@ -1,6 +1,9 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import codecs
-import json
+try:
+    import ujson as json
+except ImportError: # pragma: no cover
+    import json
 import logging
 import traceback
 import uuid
@@ -10,6 +13,12 @@ except ImportError: # pragma: no cover
     from Queue import Queue
 import requests
 from threading import Thread
+
+INDENT = True
+try:
+    json.dumps({}, indent=True) # ujson 1.33 doesn't support 'indent'
+except TypeError: # pragma: no cover
+    INDENT = False
 
 import falcon
 from falcon import routing
@@ -198,7 +207,10 @@ class SubscriptionResource:
         SUBSCRIPTIONS[id_] = (subscription, sink, user.userid)
 
         resp.content_type = "application/json"
-        resp.body = json.dumps(subscription, indent=2, separators=(',', ': '))
+        if INDENT:
+            resp.body = json.dumps(subscription, indent=2, ensure_ascii=False).encode('utf-8')
+        else:
+            resp.body = json.dumps(subscription, ensure_ascii=False).encode('utf-8')
         resp.status = falcon.HTTP_201
 
         if self.options and self.options.with_metrics:
@@ -219,7 +231,10 @@ class SubscriptionResource:
             }
 
         resp.content_type = "application/json"
-        resp.body = json.dumps(data, indent=2, separators=(',', ': '))
+        if INDENT:
+            resp.body = json.dumps(data, indent=2, ensure_ascii=False).encode('utf-8')
+        else:
+            resp.body = json.dumps(data, ensure_ascii=False).encode('utf-8')
 
     def on_delete(self, req, resp, subscriptionid):
         user = _user(req, self.options)

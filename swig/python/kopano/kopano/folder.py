@@ -38,7 +38,7 @@ from MAPI.Tags import (
     PR_EC_PUBLIC_IPM_SUBTREE_ENTRYID, PR_CHANGE_KEY, PR_EXCEPTION_STARTTIME,
     PR_EXCEPTION_ENDTIME, PR_RULE_ID, PR_RULE_STATE, ST_ENABLED,
     PR_RULE_PROVIDER_DATA, PR_RULE_SEQUENCE, PR_RULE_NAME_W,
-    PR_RULE_CONDITION,
+    PR_RULE_CONDITION, PT_LONG,
 )
 from MAPI.Defs import (
     HrGetOneProp, CHANGE_PROP_TYPE
@@ -398,14 +398,15 @@ class Folder(Properties):
             endstamp = time.mktime(end.timetuple())
 
             # XXX use shortcuts and default type (database) to avoid MAPI snake wrestling
-            NAMED_PROPS = [MAPINAMEID(PSETID_Appointment, MNID_ID, x) for x in (33293, 33294, 33315, 33301, 33333, 33334)]
+            NAMED_PROPS = [MAPINAMEID(PSETID_Appointment, MNID_ID, x) for x in (33285, 33293, 33294, 33315, 33301, 33333, 33334)]
             ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS, MAPI_CREATE)
-            startdate = ids[0] | PT_SYSTIME
-            enddate = ids[1] | PT_SYSTIME
-            recurring = ids[2] | PT_BOOLEAN
-            all_day = ids[3] | PT_BOOLEAN
-            clip_start = ids[4] | PT_SYSTIME
-            clip_end = ids[5] | PT_SYSTIME
+            busystatus = ids[0] | PT_LONG
+            startdate = ids[1] | PT_SYSTIME
+            enddate = ids[2] | PT_SYSTIME
+            recurring = ids[3] | PT_BOOLEAN
+            all_day = ids[4] | PT_BOOLEAN
+            clip_start = ids[5] | PT_SYSTIME
+            clip_end = ids[6] | PT_SYSTIME
 
             restriction = SOrRestriction([
                 # non-recurring: normal start/end
@@ -440,6 +441,7 @@ class Folder(Properties):
                 enddate,
                 recurring,
                 all_day,
+                busystatus
             ]
 
             table = Table(

@@ -264,3 +264,11 @@ NR_COLOR = { # PidLidAppointmentColor - only used by old clients
     10: 'yellow',
 }
 COLOR_NR = dict((b, a) for (a, b) in NR_COLOR.items())
+
+FB_STATUS = {
+    0: 'free',
+    1: 'tentative',
+    2: 'busy',
+    3: 'outofoffice',
+}
+STATUS_FB = dict((b, a) for (a, b) in FB_STATUS.items())
