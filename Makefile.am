@@ -861,6 +861,7 @@ dist_man_MANS = \
 	doc/kopano-monitor.8 doc/kopano-monitor.cfg.5 \
 	doc/kopano-oof.1 doc/kopano-passwd.1 \
 	doc/kopano-search.8 doc/kopano-search.cfg.5 \
+	doc/kopano-msr.8 doc/kopano-msr.cfg.5 \
 	doc/kopano-server.8 doc/kopano-server.cfg.5 \
 	doc/kopano-set-oof.1 \
 	doc/kopano-spamd.8 doc/kopano-spamd.cfg.5 \
