@@ -16,6 +16,7 @@ from MAPI import (
     MAPI_UNICODE, MAPI_MODIFY, PT_MV_BINARY, RELOP_EQ,
     TBL_BATCH, ECSTORE_TYPE_PUBLIC, FOLDER_SEARCH, MAPI_ASSOCIATED,
     MAPI_DEFERRED_ERRORS, ROW_REMOVE, MAPI_CREATE,
+    ECSTORE_TYPE_PRIVATE, ECSTORE_TYPE_ARCHIVE, ECSTORE_TYPE_PUBLIC,
 )
 from MAPI.Defs import (
     HrGetOneProp, CHANGE_PROP_TYPE, PpropFindProp
@@ -773,6 +774,19 @@ class Store(Properties):
                         return node.name
             except MAPIErrorNotFound:
                 return self.server.name
+
+    @property
+    def type_(self):
+        table = self.server.sa.OpenUserStoresTable(MAPI_UNICODE)
+        table.Restrict(SPropertyRestriction(RELOP_EQ, PR_EC_STOREGUID, SPropValue(PR_EC_STOREGUID, _bdec(self.guid))), TBL_BATCH)
+        for row in table.QueryRows(1, 0):
+            storetype = PpropFindProp(row, PR_EC_STORETYPE)
+            if storetype:
+                return {
+                    ECSTORE_TYPE_PRIVATE: 'private',
+                    ECSTORE_TYPE_ARCHIVE: 'archive',
+                    ECSTORE_TYPE_PUBLIC: 'public',
+                }[storetype.Value]
 
     @property
     def freebusy(self):
