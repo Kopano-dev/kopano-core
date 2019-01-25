@@ -11,6 +11,7 @@ import collections
 import mailbox
 import sys
 import time
+from xml.etree import ElementTree
 
 import icalmapi
 
@@ -30,7 +31,7 @@ from MAPI.Tags import (
     PR_MESSAGE_DELIVERY_TIME, MNID_ID, PT_SYSTIME, PT_BOOLEAN,
     DELETE_HARD_DELETE, PR_MESSAGE_SIZE, PR_ACL_TABLE, PR_MESSAGE_CLASS_W,
     PR_MEMBER_ID, PR_RULES_TABLE, IID_IExchangeModifyTable,
-    IID_IMAPITable, PR_CONTAINER_CONTENTS,
+    IID_IMAPITable, PR_CONTAINER_CONTENTS, PR_RULES_DATA, PR_STORE_ENTRYID,
     PR_FOLDER_ASSOCIATED_CONTENTS, PR_CONTAINER_HIERARCHY,
     PR_SUBJECT_W, PR_BODY_W, PR_DISPLAY_TO_W, PR_CREATION_TIME,
     CONVENIENT_DEPTH, PR_CONTENT_COUNT, PR_ASSOC_CONTENT_COUNT,
@@ -52,7 +53,7 @@ from MAPI.Struct import (
 from MAPI.Time import unixtime
 
 from .properties import Properties
-from .permission import Permission
+from .permission import Permission, _permissions_dumps, _permissions_loads
 from .restriction import Restriction
 from .recurrence import Occurrence
 from .rule import Rule
@@ -70,6 +71,10 @@ from .compat import (
 )
 
 if sys.hexversion >= 0x03000000:
+    try:
+        from . import log as _log
+    except ImportError: # pragma: no cover
+        _log = sys.modules[__package__ + '.log']
     try:
         from . import user as _user
     except ImportError: # pragma: no cover
@@ -94,13 +99,28 @@ if sys.hexversion >= 0x03000000:
         from . import notification as _notification
     except ImportError: # pragma: no cover
         _notification = sys.modules[__package__ + '.notification']
+
 else: # pragma: no cover
+    import log as _log
     import user as _user
     import store as _store
     import item as _item
     import utils as _utils
     import ics as _ics
     import notification as _notification
+
+if sys.hexversion >= 0x03000000:
+    def _unbase64(s):
+        return codecs.decode(codecs.encode(s, 'ascii'), 'base64')
+
+    def _base64(s):
+        return codecs.decode(codecs.encode(s, 'base64').strip(), 'ascii')
+else:
+    def _unbase64(s):
+        return s.decode('base64')
+
+    def _base64(s):
+        return s.encode('base64').strip()
 
 # TODO generalize, autogenerate basic item getters/setters?
 PROPMAP = {
@@ -631,7 +651,9 @@ class Folder(Properties):
             return subfolder
 
         if self == self.store.subtree and path in ENGLISH_FOLDER_MAP: # XXX depth==0?
-            path = getattr(self.store, ENGLISH_FOLDER_MAP[path]).name
+            f = getattr(self.store, ENGLISH_FOLDER_MAP[path], None)
+            if f:
+                path = f.name
 
         if create:
             name = path.replace('\\/', '/')
@@ -774,6 +796,84 @@ class Folder(Properties):
 
         mapirow = dict((p.ulPropTag, p.Value) for p in row)
         return Rule(mapirow, table)
+
+    def dumps(self):
+        data = {}
+
+        data['rules'] = self.rules_dumps()
+        data['permissions'] = self.permissions_dumps()
+        data['items'] = [item.dumps() for item in self]
+
+        return _utils.pickle_dumps(data)
+
+    def loads(self, data):
+        data = _utils.pickle_loads(data)
+
+        self.rules_loads(data['rules'])
+        self.permissions_loads(data['permissions'])
+
+        for data in data['items']:
+            self.create_item(loads=data)
+
+    def rules_dumps(self, stats=None):
+        server = self.server
+        log = server.log
+
+        ruledata = None
+        with _log.log_exc(log, stats):
+            try:
+                ruledata = self.prop(PR_RULES_DATA).value
+            except (MAPIErrorNotFound, NotFoundError):
+                pass
+            else:
+                etxml = ElementTree.fromstring(ruledata)
+                for actions in etxml.findall('./item/item/actions'):
+                    for movecopy in actions.findall('.//moveCopy'):
+                        try:
+                            s = movecopy.findall('store')[0]
+                            store = server.mapisession.OpenMsgStore(0, _unbase64(s.text), None, 0)
+                            entryid = HrGetOneProp(store, PR_STORE_ENTRYID).Value
+                            store = server.store(entryid=_benc(entryid))
+                            if store.public:
+                                s.text = 'public'
+                            else:
+                                s.text = store.user.name if store != self.store else ''
+                            f = movecopy.findall('folder')[0]
+                            path = store.folder(entryid=_benc(_unbase64(f.text))).path
+                            f.text = path
+                        except Exception as e:
+                            log.warning("could not resolve rule target: %s", str(e))
+                ruledata = ElementTree.tostring(etxml)
+
+        return _utils.pickle_dumps({
+            b'data': ruledata
+        })
+
+    def rules_loads(self, data, stats=None):
+        server = self.server
+        log = server.log
+
+        with _log.log_exc(log, stats):
+            data = _utils.pickle_loads(data)
+            if isinstance(data, dict):
+                data = data[b'data']
+            if data:
+                etxml = ElementTree.fromstring(data)
+                for actions in etxml.findall('./item/item/actions'):
+                    for movecopy in actions.findall('.//moveCopy'):
+                        try:
+                            s = movecopy.findall('store')[0]
+                            if s.text == 'public':
+                                store = server.public_store
+                            else:
+                                store = server.user(s.text).store if s.text else self.store
+                            s.text = _base64(_bdec(store.entryid))
+                            f = movecopy.findall('folder')[0]
+                            f.text = _base64(_bdec(store.folder(f.text).entryid))
+                        except Exception as e:
+                            log.warning("could not resolve rule target: %s", str(e))
+                etxml = ElementTree.tostring(etxml)
+                self[PR_RULES_DATA] = etxml
 
     def table(self, name, restriction=None, order=None, columns=None): # XXX associated, PR_CONTAINER_CONTENTS?
         return Table(
@@ -1018,6 +1118,12 @@ class Folder(Properties):
             return 'calendar'
         else:
             return 'folder'
+
+    def permissions_dumps(self, **kwargs):
+        return _permissions_dumps(self, **kwargs)
+
+    def permissions_loads(self, data, **kwargs):
+        return _permissions_loads(self, data, **kwargs)
 
     def __eq__(self, f): # XXX check same store?
         if isinstance(f, Folder):

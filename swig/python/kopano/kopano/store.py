@@ -26,7 +26,7 @@ from MAPI.Tags import (
     PR_IPM_PUBLIC_FOLDERS_ENTRYID, PR_IPM_SUBTREE_ENTRYID,
     PR_FINDER_ENTRYID, PR_ADDITIONAL_REN_ENTRYIDS, PR_ACL_TABLE,
     PR_IPM_APPOINTMENT_ENTRYID, PR_IPM_OUTBOX_ENTRYID,
-    PR_IPM_CONTACT_ENTRYID, PR_COMMON_VIEWS_ENTRYID,
+    PR_IPM_CONTACT_ENTRYID, PR_COMMON_VIEWS_ENTRYID, PR_VIEWS_ENTRYID,
     PR_IPM_DRAFTS_ENTRYID, PR_IPM_WASTEBASKET_ENTRYID,
     PR_IPM_JOURNAL_ENTRYID, PR_IPM_NOTE_ENTRYID, PR_MEMBER_ID,
     PR_IPM_SENTMAIL_ENTRYID, PR_IPM_TASK_ENTRYID,
@@ -34,7 +34,7 @@ from MAPI.Tags import (
     PR_LAST_LOGON_TIME, PR_LAST_LOGOFF_TIME, IID_IExchangeModifyTable,
     PR_MAILBOX_OWNER_ENTRYID, PR_EC_STOREGUID, PR_EC_STORETYPE,
     PR_EC_USERNAME_W, PR_EC_COMPANY_NAME_W, PR_MESSAGE_CLASS_W,
-    PR_SUBJECT_W,
+    PR_SUBJECT_W, PR_CONTAINER_CLASS_W,
     PR_WLINK_STORE_ENTRYID, PR_WLINK_ENTRYID,
     PR_EXTENDED_FOLDER_FLAGS, PR_WB_SF_ID, PR_FREEBUSY_ENTRYIDS,
     PR_SCHDINFO_DELEGATE_ENTRYIDS, PR_SCHDINFO_DELEGATE_NAMES_W,
@@ -51,13 +51,14 @@ from .defs import (
 )
 
 from .errors import NotFoundError, ArgumentError, DuplicateError
+from .log import log_exc
 from .properties import Properties
 from .autoaccept import AutoAccept
 from .autoprocess import AutoProcess
 from .outofoffice import OutOfOffice
 from .property_ import Property
 from .delegation import Delegation
-from .permission import Permission
+from .permission import Permission, _permissions_dumps, _permissions_loads
 from .freebusy import FreeBusy
 from .table import Table
 from .restriction import Restriction
@@ -154,6 +155,28 @@ class Store(Properties):
         except NotFoundError:
             pass
 
+    def _set_special_folder(self, folder, proptag, container_class=None):
+        _root = self.mapiobj.OpenEntry(None, None, MAPI_MODIFY)
+
+        if isinstance(proptag, tuple):
+            proptag, idx = proptag
+            try:
+                value = HrGetOneProp(self._root, proptag).Value
+            except MAPIErrorNotFound:
+                value = 5 * [b'']
+            value[idx] = _bdec(folder.entryid)
+            _root.SetProps([SPropValue(proptag, value)])
+        else:
+            _root.SetProps([SPropValue(proptag, _bdec(folder.entryid))])
+        _utils._save(self._root)
+
+        if container_class:
+            folder.container_class = container_class
+        else:
+            prop = folder.get_prop(PR_CONTAINER_CLASS_W)
+            if prop:
+                folder.delete(prop)
+
     @property
     def root(self):
         """:class:`Folder` designated as store root."""
@@ -175,6 +198,10 @@ class Store(Properties):
         except (MAPIErrorNotFound, NotFoundError):
             pass
 
+    @subtree.setter
+    def subtree(self, folder):
+        self[PR_IPM_SUBTREE_ENTRYID] = _bdec(folder.entryid)
+
     @property
     def findroot(self):
         """:class:`Folder` designated as search-results root."""
@@ -183,6 +210,10 @@ class Store(Properties):
         except (MAPIErrorNotFound, NotFoundError):
             pass
 
+    @findroot.setter
+    def findroot(self, folder):
+        self[PR_FINDER_ENTRYID] = _bdec(folder.entryid)
+
     @property
     def reminders(self):
         """:class:`Folder` designated as reminders."""
@@ -190,6 +221,7 @@ class Store(Properties):
             return _folder.Folder(self, _benc(HrGetOneProp(self._root, PR_REM_ONLINE_ENTRYID).Value))
         except (MAPIErrorNotFound, NotFoundError):
             pass
+    # TODO setter
 
     @property
     def inbox(self):
@@ -214,6 +246,10 @@ class Store(Properties):
         except (MAPIErrorNotFound, NotFoundError):
             pass
 
+    @junk.setter
+    def junk(self, folder):
+        self._set_special_folder(folder, (PR_ADDITIONAL_REN_ENTRYIDS, 4), 'IPF.Note')
+
     @property
     def calendar(self):
         """:class:`Folder` designated as calendar."""
@@ -221,6 +257,10 @@ class Store(Properties):
             return _folder.Folder(self, _benc(HrGetOneProp(self._root, PR_IPM_APPOINTMENT_ENTRYID).Value))
         except (MAPIErrorNotFound, NotFoundError):
             pass
+
+    @calendar.setter
+    def calendar(self, folder):
+        self._set_special_folder(folder, PR_IPM_APPOINTMENT_ENTRYID, 'IPF.Appointment')
 
     @property
     def outbox(self):
@@ -230,6 +270,11 @@ class Store(Properties):
         except (MAPIErrorNotFound, NotFoundError):
             pass
 
+    @outbox.setter
+    def outbox(self, folder):
+        self[PR_IPM_OUTBOX_ENTRYID] = _bdec(folder.entryid)
+        # TODO clear container class
+
     @property
     def contacts(self):
         """:class:`Folder` designated as contacts."""
@@ -237,6 +282,22 @@ class Store(Properties):
             return _folder.Folder(self, _benc(HrGetOneProp(self._root, PR_IPM_CONTACT_ENTRYID).Value))
         except (MAPIErrorNotFound, NotFoundError):
             pass
+
+    @contacts.setter
+    def contacts(self, folder):
+        self._set_special_folder(folder, PR_IPM_CONTACT_ENTRYID, 'IPF.Contact')
+
+    @property
+    def views(self):
+        try:
+            return _folder.Folder(self, _benc(self.prop(PR_VIEWS_ENTRYID).value))
+        except NotFoundError:
+            pass
+
+    @views.setter
+    def views(self, folder):
+        self[PR_VIEWS_ENTRYID] = _bdec(folder.entryid)
+        # TODO clear container class
 
     @property
     def common_views(self):
@@ -246,6 +307,11 @@ class Store(Properties):
         except NotFoundError:
             pass
 
+    @common_views.setter
+    def common_views(self, folder):
+        self[PR_COMMON_VIEWS_ENTRYID] = _bdec(folder.entryid)
+        # TODO clear container class
+
     @property
     def drafts(self):
         """:class:`Folder` designated as drafts."""
@@ -253,6 +319,10 @@ class Store(Properties):
             return _folder.Folder(self, _benc(HrGetOneProp(self._root, PR_IPM_DRAFTS_ENTRYID).Value))
         except (MAPIErrorNotFound, NotFoundError):
             pass
+
+    @drafts.setter
+    def drafts(self, folder):
+        self._set_special_folder(folder, PR_IPM_DRAFTS_ENTRYID, 'IPF.Note')
 
     @property
     def wastebasket(self):
@@ -262,6 +332,11 @@ class Store(Properties):
         except (MAPIErrorNotFound, NotFoundError):
             pass
 
+    @wastebasket.setter
+    def wastebasket(self, folder):
+        self[PR_IPM_WASTEBASKET_ENTRYID] = _bdec(folder.entryid)
+        # TODO clear container class
+
     @property
     def journal(self):
         """:class:`Folder` designated as journal."""
@@ -269,6 +344,10 @@ class Store(Properties):
             return _folder.Folder(self, _benc(HrGetOneProp(self._root, PR_IPM_JOURNAL_ENTRYID).Value))
         except (MAPIErrorNotFound, NotFoundError):
             pass
+
+    @journal.setter
+    def journal(self, folder):
+        self._set_special_folder(folder, PR_IPM_JOURNAL_ENTRYID, 'IPF.Journal')
 
     @property
     def notes(self):
@@ -278,6 +357,10 @@ class Store(Properties):
         except (MAPIErrorNotFound, NotFoundError):
             pass
 
+    @notes.setter
+    def notes(self, folder):
+        self._set_special_folder(folder, PR_IPM_NOTE_ENTRYID, 'IPF.StickyNote')
+
     @property
     def sentmail(self):
         """:class:`Folder` designated as sentmail."""
@@ -285,6 +368,11 @@ class Store(Properties):
             return _folder.Folder(self, _benc(HrGetOneProp(self.mapiobj, PR_IPM_SENTMAIL_ENTRYID).Value))
         except (MAPIErrorNotFound, NotFoundError):
             pass
+
+    @sentmail.setter
+    def sentmail(self, folder):
+        self[PR_IPM_SENTMAIL_ENTRYID] = _bdec(folder.entryid)
+        # TODO clear container class
 
     @property
     def tasks(self):
@@ -294,6 +382,10 @@ class Store(Properties):
         except (MAPIErrorNotFound, NotFoundError):
             pass
 
+    @tasks.setter
+    def tasks(self, folder):
+        self._set_special_folder(folder, PR_IPM_TASK_ENTRYID, 'IPF.Task')
+
     @property
     def suggested_contacts(self):
         """:class`Folder` designated as Suggested contacts."""
@@ -301,6 +393,7 @@ class Store(Properties):
             return _folder.Folder(self, self._extract_ipm_ol2007_entryid(RSF_PID_SUGGESTED_CONTACTS))
         except NotFoundError:
             pass
+    # TODO setter
 
     @property
     def todo_search(self):
@@ -309,6 +402,7 @@ class Store(Properties):
             return _folder.Folder(self, self._extract_ipm_ol2007_entryid(RSF_PID_TODO_SEARCH))
         except NotFoundError:
             pass
+    # TODO setter
 
     @property
     def rss(self):
@@ -317,6 +411,7 @@ class Store(Properties):
             return _folder.Folder(self, self._extract_ipm_ol2007_entryid(RSF_PID_RSS_SUBSCRIPTION))
         except NotFoundError:
             pass
+    # TODO setter
 
     def _extract_ipm_ol2007_entryid(self, offset):
         # Extracts entryids from PR_IPM_OL2007_ENTRYIDS blob using logic from common/Util.cpp Util::ExtractAdditionalRenEntryID
@@ -615,6 +710,12 @@ class Store(Properties):
         """
         return _utils.permission(self, member, create)
 
+    def permissions_dumps(self, **kwargs):
+        return _permissions_dumps(self, **kwargs)
+
+    def permissions_loads(self, data, **kwargs):
+        return _permissions_loads(self, data, **kwargs)
+
     def _fbmsg_delgs(self):
         fbeid = self.root.prop(PR_FREEBUSY_ENTRYIDS).value[1]
         fbmsg = self.mapiobj.OpenEntry(fbeid, None, MAPI_MODIFY)
@@ -664,6 +765,64 @@ class Store(Properties):
             return Delegation(self, user)
         else:
             raise NotFoundError("no delegation for user '%s'" % user.name)
+
+    def delegations_dumps(self, stats=None):
+        log = self.server.log
+
+        # TODO dump delegation flags (see _fbmsg_delgs above)
+
+        usernames = []
+        with log_exc(log, stats):
+            try:
+                usernames = [d.user.name for d in self.delegations()]
+            except (MAPIErrorNotFound, NotFoundError):
+                log.warning("could not load delegations")
+
+        return _utils.pickle_dumps({
+            b'usernames': usernames
+        })
+
+    def delegations_loads(self, data, stats=None):
+        server = self.server
+        log = self.server.log
+
+        data = _utils.pickle_loads(data)
+        if isinstance(data, dict):
+            data = data[b'usernames']
+
+        with log_exc(log, stats):
+            users = []
+            for name in data:
+                try:
+                    users.append(server.user(name))
+                except NotFoundError:
+                    log.warning("skipping delegation for unknown user '%s'", name)
+
+            self.delete(self.delegations()) # XXX not in combination with --import-root, -f?
+            for user2 in users:
+                self.delegation(user2, create=True)
+
+    def dumps(self):
+        data = {}
+
+        data['permissions'] = self.permissions_dumps()
+        data['delegations'] = self.delegations_dumps()
+
+        data['folders'] = folders = {}
+        for folder in self.folders():
+            folders[folder.path] = folder.dumps()
+
+        return _utils.pickle_dumps(data)
+
+    def loads(self, data):
+        data = _utils.pickle_loads(data)
+
+        self.delegations_loads(data['delegations'])
+        self.permissions_loads(data['permissions'])
+
+        for path, fdata in data['folders'].items():
+            folder = self.folder(path, create=True)
+            folder.loads(fdata)
 
     @property
     def send_only_to_delegates(self):

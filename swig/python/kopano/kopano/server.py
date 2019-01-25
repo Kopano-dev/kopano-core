@@ -7,6 +7,7 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
 import atexit
+import codecs
 import gc
 import datetime
 import functools
@@ -17,7 +18,8 @@ import sys
 
 from MAPI import (
     MAPI_UNICODE, MDB_WRITE, RELOP_EQ,
-    TBL_BATCH, ECSTORE_TYPE_PRIVATE, MAPI_DEFERRED_ERRORS
+    TBL_BATCH, ECSTORE_TYPE_PRIVATE, MAPI_DEFERRED_ERRORS,
+    EC_OVERRIDE_HOMESERVER, WrapStoreEntryID
 )
 from MAPI.Util import (
     GetDefaultStore, OpenECSession
@@ -39,6 +41,7 @@ from MAPI.Tags import (
     PR_EC_STATSTABLE_SERVERS, PR_EC_STATS_SERVER_HTTPSURL,
     PR_STORE_ENTRYID, EC_PROFILE_FLAGS_NO_UID_AUTH, PR_EC_STATS_SYSTEM_VALUE,
     EC_PROFILE_FLAGS_NO_NOTIFICATIONS, EC_PROFILE_FLAGS_OIDC,
+    PR_FREEBUSY_ENTRYIDS,
 )
 from MAPI.Tags import (
     IID_IMsgStore, IID_IMAPITable, IID_IExchangeManageStore,
@@ -241,7 +244,7 @@ class Server(object):
             if os.getenv("KOPANO_SOCKET"): # env variable used in testset
                 self.server_socket = os.getenv("KOPANO_SOCKET")
             elif config:
-                if not (server_socket or getattr(self.options, 'server_socket')): # XXX generalize
+                if not (server_socket or getattr(self.options, 'server_socket', None)): # XXX generalize
                     self.server_socket = config.get('server_socket')
                     self.sslkey_file = config.get('sslkey_file')
                     self.sslkey_pass = config.get('sslkey_pass')
@@ -326,7 +329,7 @@ class Server(object):
 
     def nodes(self): # XXX delay mapi sessions until actually needed
         for row in self.table(PR_EC_STATSTABLE_SERVERS).dict_rows():
-            yield Server(options=self.options, config=self.config, sslkey_file=self.sslkey_file, sslkey_pass=self.sslkey_pass, server_socket=row[PR_EC_STATS_SERVER_HTTPSURL], log=self.log, service=self.service)
+            yield Server(options=self.options, config=self.config, sslkey_file=self.sslkey_file, sslkey_pass=self.sslkey_pass, server_socket=codecs.decode(row[PR_EC_STATS_SERVER_HTTPSURL], 'utf-8'), log=self.log, service=self.service)
 
     def table(self, name, restriction=None, order=None, columns=None):
         return Table(
@@ -746,6 +749,67 @@ class Server(object):
             if not system and store.user and store.user.name == 'SYSTEM':
                 continue
             yield store
+
+    def create_store(self, user, _msr=False):
+        # TODO detect homeserver override
+        storetype = ECSTORE_TYPE_PRIVATE
+        # TODO configurable storetype
+
+        if _msr:
+            try:
+                storeid, rootid = self.sa.CreateEmptyStore(storetype, _bdec(user.userid), EC_OVERRIDE_HOMESERVER, None, None)
+            except MAPIErrorCollision:
+                raise DuplicateError("user '%s' already has an associated store (unhook first?)" % user.name)
+            store_entryid = WrapStoreEntryID(0, b'zarafa6client.dll', storeid[:-4]) + b'https://' + codecs.encode(self.name, 'utf-8') + b':237\x00'
+            store_entryid = store_entryid[:66] + b'\x10' + store_entryid[67:] # multi-server flag
+            store = self.store(entryid=_benc(store_entryid))
+
+            # TODO add EC_OVERRIDE_HOMESERVER flag to CreateStore instead? or how does the old MSR do this?
+
+            # TODO language
+
+            # system folders
+            root = store.root
+
+            store.findroot = root.create_folder('FINDER_ROOT')
+            store.findroot.permission(self.group('Everyone'), create=True).rights = ['read_items', 'create_subfolders', 'edit_own', 'delete_own', 'folder_visible']
+
+            store.views = root.create_folder('IPM_VIEWS')
+            store.common_views = root.create_folder('IPM_COMMON_VIEWS')
+
+            root.create_folder('Freebusy Data')
+            root.create_folder('Schedule')
+            root.create_folder('Shortcut')
+
+            # special folders
+            subtree = store.subtree = root.folder('IPM_SUBTREE', create=True)
+
+            store.calendar = subtree.create_folder('Calendar')
+            store.contacts = subtree.create_folder('Contacts')
+            # TODO Conversation Action Settings?
+            store.wastebasket = subtree.create_folder('Deleted Items')
+            store.drafts = subtree.create_folder('Drafts')
+            store.inbox = subtree.create_folder('Inbox')
+            store.journal = subtree.create_folder('Journal')
+            store.junk = subtree.create_folder('Junk E-mail')
+            store.notes = subtree.create_folder('Notes')
+            store.outbox = subtree.create_folder('Outbox')
+            # TODO Quick Step Settings?
+            # TODO RSS Feeds?
+            store.sentmail = subtree.create_folder('Sent Items')
+            # TODO Suggested Contacts?
+            store.tasks = subtree.create_folder('Tasks')
+
+            # freebusy message TODO create dynamically instead?
+            fbmsg = root.create_item(
+                subject='LocalFreebusy',
+                message_class='IPM.Microsoft.ScheduleData.FreeBusy'
+            )
+            root[PR_FREEBUSY_ENTRYIDS] = [b'', _bdec(fbmsg.entryid), b'', b'']
+
+        else:
+            store = user.create_store()
+        return store
 
     def remove_store(self, store):
         try:

@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 from .version import __version__
 
-import binascii
 import codecs
 from contextlib import closing
 import csv
@@ -14,7 +13,6 @@ import re
 import shutil
 import sys
 import time
-from xml.etree import ElementTree
 import zlib
 try:
     import cPickle as pickle
@@ -26,25 +24,22 @@ else: # pragma: no cover
     import bsddb
 
 from MAPI import (
-    PT_UNICODE, PT_ERROR, MAPI_UNICODE, KEEP_OPEN_READWRITE, MAPI_MODIFY,
-    ROW_ADD,
+    PT_UNICODE, PT_ERROR, KEEP_OPEN_READWRITE,
 )
 
 from MAPI.Defs import (
-    PROP_TYPE, CHANGE_PROP_TYPE, HrGetOneProp,
+    PROP_TYPE, CHANGE_PROP_TYPE,
 )
 
 from MAPI.Struct import (
-    MAPIErrorNotFound, SPropValue, ROWENTRY,
+    MAPIErrorNotFound, SPropValue,
 )
 
 from MAPI.Tags import (
     PR_EC_BACKUP_SOURCE_KEY, PR_EC_OUTOFOFFICE, PR_ENTRYID, PR_DISPLAY_NAME_W,
     PR_EC_OUTOFOFFICE_SUBJECT, PR_EC_OUTOFOFFICE_MSG, PR_EC_OUTOFOFFICE_FROM,
-    PR_EC_OUTOFOFFICE_UNTIL, IID_IExchangeModifyTable, PR_CONTAINER_CLASS_W,
-    PR_SOURCE_KEY, PR_ACL_TABLE, PR_STORE_RECORD_KEY, PR_RULES_DATA,
-    PR_FREEBUSY_ENTRYIDS, PR_SCHDINFO_DELEGATE_ENTRYIDS, PT_TSTRING,
-    PR_EC_WEBACCESS_SETTINGS_W, PR_EC_RECIPIENT_HISTORY_W,
+    PR_EC_OUTOFOFFICE_UNTIL, PR_CONTAINER_CLASS_W, PR_SOURCE_KEY,
+    PT_TSTRING, PR_EC_WEBACCESS_SETTINGS_W, PR_EC_RECIPIENT_HISTORY_W,
     PR_EC_WEBACCESS_SETTINGS_JSON_W, PR_EC_RECIPIENT_HISTORY_JSON_W,
     PR_EC_WEBAPP_PERSISTENT_SETTINGS_JSON_W, PR_STORE_ENTRYID
 )
@@ -109,12 +104,6 @@ if sys.hexversion >= 0x03000000:
     def pickle_loads(s):
         return pickle.loads(s, encoding='bytes')
 
-    def _unbase64(s):
-        return codecs.decode(codecs.encode(s, 'ascii'), 'base64')
-
-    def _base64(s):
-        return codecs.decode(codecs.encode(s, 'base64').strip(), 'ascii')
-
 else: # pragma: no cover
     def _decode(s):
         return s.decode(getattr(sys.stdin, 'encoding', 'utf8') or 'utf8')
@@ -127,12 +116,6 @@ else: # pragma: no cover
 
     def pickle_loads(s):
         return pickle.loads(s)
-
-    def _unbase64(s):
-        return s.decode('base64')
-
-    def _base64(s):
-        return s.encode('base64').strip()
 
 def _hex(s):
     return codecs.encode(s, 'hex').upper()
@@ -244,8 +227,8 @@ class BackupWorker(kopano.Worker):
             if user:
                 open(path+'/user', 'wb').write(dump_props(user.props(), stats, self.log))
                 if not options.skip_meta:
-                    open(path+'/delegates', 'wb').write(dump_delegates(user, server, stats, self.log)) # XXX why 'if user'?
-                    open(path+'/acl', 'wb').write(dump_acl(store, user, server, stats, self.log))
+                    open(path+'/delegates', 'wb').write(store.delegations_dumps(stats=stats))
+                    open(path+'/acl', 'wb').write(store.permissions_dumps(stats=stats))
 
         # time of last backup
         open(path+'/timestamp', 'wb').write(pickle_dumps(self.service.timestamp))
@@ -306,8 +289,8 @@ class BackupWorker(kopano.Worker):
         open(data_path+'/path', 'wb').write(folder.path.encode('utf8'))
         open(data_path+'/folder', 'wb').write(dump_props(folder.props(), stats, self.log))
         if not options.skip_meta:
-            open(data_path+'/acl', 'wb').write(dump_acl(folder, user, server, stats, self.log))
-            open(data_path+'/rules', 'wb').write(dump_rules(folder, user, server, stats, self.log))
+            open(data_path+'/acl', 'wb').write(folder.permissions_dumps(stats=stats))
+            open(data_path+'/rules', 'wb').write(folder.rules_dumps(stats=stats))
         if options.only_meta:
             return
 
@@ -566,8 +549,8 @@ class Service(kopano.Service):
         if not (self.options.sourcekeys or self.options.skip_meta):
             self.log.info('restoring metadata')
             for (folder, fpath) in meta_folders:
-                load_acl(folder, user, self.server, open(fpath+'/acl', 'rb').read(), stats, self.log)
-                load_rules(folder, user, self.server, open(fpath+'/rules', 'rb').read(), stats, self.log)
+                folder.permissions_loads(open(fpath+'/acl', 'rb').read(), stats=stats)
+                folder.rules_loads(open(fpath+'/rules', 'rb').read(), stats=stats)
 
         # restore store-level metadata (webapp/mapi settings)
         if user and not self.options.folders and not self.options.restore_root and not self.options.skip_meta:
@@ -583,9 +566,9 @@ class Service(kopano.Service):
                     store.mapiobj.SetProps([SPropValue(proptag, value)])
                 store.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
             if os.path.exists('%s/delegates' % data_path):
-                load_delegates(user, self.server, open('%s/delegates' % data_path, 'rb').read(), stats, self.log)
+                store.delegations_loads(open('%s/delegates' % data_path, 'rb').read(), stats=stats)
             if os.path.exists('%s/acl' % data_path):
-                load_acl(store, user, self.server, open('%s/acl' % data_path, 'rb').read(), stats, self.log)
+                store.permissions_loads(open('%s/acl' % data_path, 'rb').read(), stats=stats)
 
         for sourcekey in self.options.sourcekeys:
             if sourcekey not in self.restored_sourcekeys:
@@ -944,125 +927,6 @@ def dump_props(props, stats, log):
         data = dict((prop.proptag, prop.mapiobj.Value) for prop in props)
     return pickle_dumps(data)
 
-def dump_acl(obj, user, server, stats, log):
-    """ dump acl for given store or folder """
-
-    rows = []
-    with log_exc(log, stats):
-        acl_table = obj.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, 0)
-        table = acl_table.GetTable(0)
-        for row in table.QueryRows(-1,0):
-            entryid = row[1].Value
-            try:
-                row[1].Value = (b'user', server.sa.GetUser(entryid, MAPI_UNICODE).Username)
-            except MAPIErrorNotFound:
-                try:
-                    row[1].Value = (b'group', server.sa.GetGroup(entryid, MAPI_UNICODE).Groupname)
-                except MAPIErrorNotFound:
-                    log.warning("skipping access control entry for unknown user/group %s", _hex(entryid))
-                    continue
-            rows.append(row)
-    return pickle_dumps(rows)
-
-def load_acl(obj, user, server, data, stats, log):
-    """ load acl for given store or folder """
-
-    with log_exc(log, stats):
-        data = pickle_loads(data)
-        rows = []
-        for row in data:
-            try:
-                member_type, value = row[1].Value
-                if member_type == b'user':
-                    entryid = server.user(value).userid
-                else:
-                    entryid = server.group(value).groupid
-                row[1].Value = _unhex(entryid)
-                rows.append(row)
-            except kopano.NotFoundError:
-                log.warning("skipping access control entry for unknown user/group '%s'", value)
-        acltab = obj.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, MAPI_MODIFY)
-        acltab.ModifyTable(0, [ROWENTRY(ROW_ADD, row) for row in rows])
-
-def dump_rules(folder, user, server, stats, log):
-    """ dump rules for given folder """
-
-    ruledata = None
-    with log_exc(log, stats):
-        try:
-            ruledata = folder.prop(PR_RULES_DATA).value
-        except (MAPIErrorNotFound, kopano.NotFoundError):
-            pass
-        else:
-            etxml = ElementTree.fromstring(ruledata)
-            for actions in etxml.findall('./item/item/actions'):
-                for movecopy in actions.findall('.//moveCopy'):
-                    try:
-                        s = movecopy.findall('store')[0]
-                        store = server.mapisession.OpenMsgStore(0, _unbase64(s.text), None, 0)
-                        entryid = _hex(HrGetOneProp(store, PR_STORE_ENTRYID).Value)
-                        store = server.store(entryid=entryid)
-                        if store.public:
-                            s.text = 'public'
-                        else:
-                            s.text = store.user.name if store != user.store else ''
-                        f = movecopy.findall('folder')[0]
-                        path = store.folder(entryid=_hex(_unbase64(f.text))).path
-                        f.text = path
-                    except Exception as e:
-                        log.warning("could not resolve rule target: %s", str(e))
-            ruledata = ElementTree.tostring(etxml)
-    return pickle_dumps(ruledata)
-
-def load_rules(folder, user, server, data, stats, log):
-    """ load rules for given folder """
-
-    with log_exc(log, stats):
-        data = pickle_loads(data)
-        if data:
-            etxml = ElementTree.fromstring(data)
-            for actions in etxml.findall('./item/item/actions'):
-                for movecopy in actions.findall('.//moveCopy'):
-                    try:
-                        s = movecopy.findall('store')[0]
-                        if s.text == 'public':
-                            store = server.public_store
-                        else:
-                            store = server.user(s.text).store if s.text else user.store
-                        s.text = _base64(_unhex(store.entryid))
-                        f = movecopy.findall('folder')[0]
-                        f.text = _base64(_unhex(store.folder(f.text).entryid))
-                    except Exception as e:
-                        log.warning("could not resolve rule target: %s", str(e))
-            etxml = ElementTree.tostring(etxml)
-            folder.create_prop(PR_RULES_DATA, etxml)
-
-def dump_delegates(user, server, stats, log):
-    """ dump delegate users for given user """
-
-    usernames = []
-    with log_exc(log, stats):
-        try:
-            usernames = [d.user.name for d in user.delegations()]
-        except (MAPIErrorNotFound, kopano.NotFoundError):
-            log.warning("could not load delegations for %s", user.name)
-
-    return pickle_dumps(usernames)
-
-def load_delegates(user, server, data, stats, log):
-    """ load delegate users for given user """
-
-    with log_exc(log, stats):
-        users = []
-        for name in pickle_loads(data):
-            try:
-                users.append(server.user(name))
-            except kopano.NotFoundError:
-                log.warning("skipping delegation for unknown user '%s'", name)
-
-        user.delete(user.delegations()) # XXX not in combination with --import-root, -f?
-        for user2 in users:
-            user.delegation(user2, create=True)
 
 def main():
     # select common options

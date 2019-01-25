@@ -8,6 +8,10 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 
 import binascii
 import os
+try:
+    import cPickle as pickle
+except ImportError:
+    import _pickle as pickle
 import struct
 import sys
 import time
@@ -49,6 +53,16 @@ else: # pragma: no cover
     import permission as _permission
     import user as _user
     import group as _group
+
+if sys.hexversion >= 0x03000000:
+    def pickle_loads(s):
+        return pickle.loads(s, encoding='bytes')
+else:
+    def pickle_loads(s):
+        return pickle.loads(s)
+
+def pickle_dumps(s):
+    return pickle.dumps(s, protocol=2)
 
 def stream(mapiobj, proptag):
     stream = mapiobj.OpenProperty(proptag, IID_IStream, 0, 0)

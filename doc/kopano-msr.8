@@ -1,0 +1,133 @@
+'\" t
+.\"     Title: kopano-msr
+.\"    Author: [see the "Author" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
+.\"      Date: November 2016
+.\"    Manual: Kopano Core user reference
+.\"    Source: Kopano 8
+.\"  Language: English
+.\"
+.TH "KOPANO\-MSR" "8" "November 2016" "Kopano 8" "Kopano Core user reference"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+kopano-msr \- Kopano Multi-server Store Relocator
+.SH "SYNOPSIS"
+.HP \w'\fBkopano\-msr\fR\ 'u
+\fBkopano\-msr\fR
+.SH "DESCRIPTION"
+.PP
+The kopano\-msr daemon is used to live-migrate users from one server to another, within a multi-server cluster.
+.PP
+Users need to be separately indicated to the daemon. To do the actual switch-over, user homeservers need to be
+adjusted in the user directory (LDAP), after which kopano-admin --sync will switch to the new store.
+
+\fBkopano-msr\fR(8).
+.SH "OPTIONS"
+.PP
+The Kopano MSR program takes the following configuration options:
+.PP
+\fB\-\-add\fR
+.RS 4
+Add the user specified with \fB\-\-user\fR to the list of users to be relocated.
+.RE
+.PP
+\fB\-\-config\fR, \fB\-c\fR \fIfile\fR
+.RS 4
+Specify the location of the configuration file.
+.sp
+Default:
+\fI/etc/kopano/msr.cfg\fR
+.RE
+.PP
+\fB\-\-foreground\fR, \fB\-F\fR
+.RS 4
+Run in the foreground. Normally the kopano\-msr process will daemonize and run in the background.
+.RE
+.PP
+\fB\-\-list\-users\fR
+.RS 4
+List all users currently being relocated, including status information for each user.
+.RE
+.PP
+\fB\-\-log\-level\fR, \fB\-l\fR \fINAME\fR
+.RS 4
+Specify log\-level, for example, \*(Aqerror\*(Aq, \*(Aqwarning\*(Aq \*(Aqinfo\*(Aq or \*(Aqdebug\*(Aq.
+.RE
+.PP
+\fB\-\-remove\fR
+.RS 4
+Remove the user specified with \fB\-\-user\fR from the list of users to be relocated. At this point,
+metadata (such as permissions and rules) will be synchronized.
+.RE
+.PP
+\fB\-\-server\fR
+.RS 4
+Specify server node to which user specified with \fB\-\-user\fR should be relocated.
+.RE
+.PP
+\fB\-\-user\fR, \fB\-u\fR
+.RS 4
+Specify user. With no further options, it will show details about the user (store) as it is being relocated,
+including a comparison between source and target store.
+.RE
+.PP
+\fB\-\-worker\-processes\fR, \fB\-w\fR \fIN\fR
+.RS 4
+When relocating multiple stores, process these stores in parallel, using the specified number of workers.
+.RE
+.PP
+When invoked without a \fB\-\-config\fR option, the kopano\-msr daemon will search for a configuration file in
+/etc/kopano/msr.cfg. If no configuration file is found, default values are used. See
+\fBkopano-msr.cfg\fR(5)
+for all configuration options and their default values.
+.SH "USAGE"
+.PP
+Starting kopano MSR with log-level debug (the following commands assume a running service):
+.PP
+\fBkopano\-msr\fR\ \fB\-l\fR\ debug
+.PP
+Adding a user \fBfritz\fR to be relocated to server node \fBsauerkraut\fR:
+.PP
+\fBkopano\-msr\fR\ \fB\-u\fR\ fritz \fB\-\-add\fR \fB\-\-server\fR sauerkraut
+.PP
+Listing users currently being relocated:
+.PP
+\fBkopano\-msr\fR\ \fB\-\-list\-users\fR
+.PP
+Showing details and relocation status for user \fBfritz\fR:
+.PP
+\fBkopano\-msr\fR\ \fB\-u\fR fritz
+.PP
+Removing user from relocation list (because the target store is up-to-date), and sync metadata:
+.PP
+\fBkopano\-msr\fR\ \fB\-\-remove\fR fritz
+.PP
+After removing a user, and changing the user homeserver to the new server node, make the actual switch:
+.PP
+\fBkopano\-admin\fR\ \fB\-\-sync\fR
+.PP
+.SH "AUTHOR"
+.PP
+Written by Kopano.
+.SH "SEE ALSO"
+.PP
+\fBkopano-server\fR(8),
+\fBkopano-msr.cfg\fR(5)
