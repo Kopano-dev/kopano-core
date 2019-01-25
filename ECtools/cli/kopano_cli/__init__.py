@@ -23,6 +23,7 @@ def parser_opt_args():
     group.add_option('--list-users', help='List users', **_true())
     group.add_option('--list-groups', help='List groups', **_true())
     group.add_option('--list-companies', help='List companies', **_true())
+    group.add_option('--list-stores', help='List stores', **_true())
     group.add_option('--list-orphans', help='List orphan stores', **_true())
     group.add_option('--user-count', help='Output user counts', **_true())
     parser.add_option_group(group)
@@ -111,9 +112,9 @@ def parser_opt_args():
 ACTION_MATRIX = {
     ('list_users',): ('global', 'companies', 'groups'),
     ('list_groups',): ('global', 'companies',),
-    ('create', 'delete'): ('companies', 'groups', 'users'),
+    ('create', 'delete'): ('companies', 'groups', 'users', 'stores'),
     ('sync', 'clear_cache', 'purge_softdelete', 'purge_deferred', 'remove_store'): ('global',),
-    ('list_orphans', 'list_companies', 'user_count'): ('global',),
+    ('list_orphans', 'list_companies', 'list_stores', 'user_count'): ('global',),
 }
 
 UPDATE_MATRIX = {
@@ -184,6 +185,13 @@ def list_companies(intro, companies):
     print(65*'-')
     for company in sorted(companies, key=lambda c: c.name):
         print(fmt.format(_encode(company.name), _encode(company.admin.name) if company.admin else ''))
+
+def list_stores(server):
+    fmt = '{0:<32}'
+    print(fmt.format('Store guid'))
+    print(32*'-')
+    for store in server.stores():
+        print(fmt.format(store.guid))
 
 def list_orphans(server):
     print('Stores without users:')
@@ -299,6 +307,9 @@ def company_details(company, server):
 
 def store_details(store, server):
     fmt = '{0:<30} {1:<}'
+    print(fmt.format('Type:', store.type_))
+    if store.user:
+        print(fmt.format('User:', store.user.name))
     print(fmt.format('GUID:', store.guid))
     print(fmt.format('Size:', '%.2f MB' % (store.size / 2**20)))
     list_permissions(store)
@@ -518,6 +529,9 @@ def store_options(name, options, server):
 
     permission_options(store, options, server)
 
+    if options.delete:
+        server.delete(store)
+
 def global_options(options, server):
     if options.lang:
         locale.setlocale(locale.LC_MESSAGES, options.lang)
@@ -535,6 +549,8 @@ def global_options(options, server):
     if options.remove_store:
         server.delete(server.store(options.remove_store))
 
+    if options.list_stores:
+        list_stores(server)
     if options.list_orphans:
         list_orphans(server)
     if options.list_companies:
