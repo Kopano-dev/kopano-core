@@ -63,7 +63,7 @@ from .defs import (
     PSETID_Appointment, UNESCAPED_SLASH_RE,
     ENGLISH_FOLDER_MAP, NAME_RIGHT, NAMED_PROPS_ARCHIVER
 )
-from .errors import NotFoundError, ArgumentError
+from .errors import NotFoundError, ArgumentError, DuplicateError
 from .query import _query_to_restriction
 
 from .compat import (
@@ -758,6 +758,8 @@ class Folder(Properties):
     def create_folder(self, path=None, **kwargs):
         if path is None:
             path = kwargs.get('path', kwargs.get('name'))
+        if self.get_folder(path):
+            raise DuplicateError("folder '%s' already exists" % path)
         folder = self.folder(path, create=True)
         for key, val in kwargs.items():
             setattr(folder, key, val)
