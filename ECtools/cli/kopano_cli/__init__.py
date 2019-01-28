@@ -614,6 +614,9 @@ def main():
         for s in options.stores:
             store_options(s, options, server)
 
+    except (SystemError, KeyboardInterrupt): # TODO SystemError?
+        print()
+        sys.exit(130)
     except Exception as e:
         if 'options' in locals() and options.debug:
             print(traceback.format_exc(), file=sys.stderr)
