@@ -262,7 +262,7 @@ class HierarchyImporter:
             else:
                 self.log.info('create')
 
-                folder2 = parent2.create_folder(f.name) # TODO potential name conflict
+                folder2 = parent2.folder(f.name, create=True)
 
                 db_put(self.state_path, 'folder_map_'+f.sourcekey, folder2.entryid)
 
