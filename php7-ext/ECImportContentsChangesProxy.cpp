@@ -121,9 +121,7 @@ HRESULT ECImportContentsChangesProxy::Config(LPSTREAM lpStream, ULONG ulFlags) {
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "Config method not present on ImportContentsChanges object");
         return MAPI_E_CALL_FAILED;
     }
-    
-    convert_to_long_ex(&pvalReturn);
-    return pvalReturn.value.lval;
+	return zval_get_long(&pvalReturn);
 }
 
 HRESULT ECImportContentsChangesProxy::UpdateState(LPSTREAM lpStream) {
@@ -141,9 +139,7 @@ HRESULT ECImportContentsChangesProxy::UpdateState(LPSTREAM lpStream) {
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "UpdateState method not present on ImportContentsChanges object");
         return MAPI_E_CALL_FAILED;
     }
-    
-    convert_to_long_ex(&pvalReturn);
-    return pvalReturn.value.lval;
+	return zval_get_long(&pvalReturn);
 }
 
 HRESULT ECImportContentsChangesProxy::ImportMessageChange(ULONG cValues, LPSPropValue lpPropArray, ULONG ulFlags, LPMESSAGE * lppMessage)  {
@@ -163,11 +159,7 @@ HRESULT ECImportContentsChangesProxy::ImportMessageChange(ULONG cValues, LPSProp
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "ImportMessageChange method not present on ImportContentsChanges object");
         return MAPI_E_CALL_FAILED;
     }
-        
-    convert_to_long_ex(&pvalReturn);
-    
-    hr = pvalReturn.value.lval;
-    
+	hr = zval_get_long(&pvalReturn);
     if(hr != hrSuccess)
         return hr;
     lpMessage = (IMessage *) zend_fetch_resource(Z_RES_P(&pvalReturn) TSRMLS_CC, name_mapi_message, le_mapi_message);
@@ -194,9 +186,7 @@ HRESULT ECImportContentsChangesProxy::ImportMessageDeletion(ULONG ulFlags, LPENT
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "ImportMessageDeletion method not present on ImportContentsChanges object");
         return MAPI_E_CALL_FAILED;
     }
-    
-    convert_to_long_ex(&pvalReturn);
-    return pvalReturn.value.lval;
+	return zval_get_long(&pvalReturn);
 }
 
 HRESULT ECImportContentsChangesProxy::ImportPerUserReadStateChange(ULONG cElements, LPREADSTATE lpReadState) {
@@ -209,9 +199,7 @@ HRESULT ECImportContentsChangesProxy::ImportPerUserReadStateChange(ULONG cElemen
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "ImportPerUserReadStateChange method not present on ImportContentsChanges object");
         return MAPI_E_CALL_FAILED;
     }
-    
-    convert_to_long_ex(&pvalReturn);
-    return pvalReturn.value.lval;
+	return zval_get_long(&pvalReturn);
 }
 
 HRESULT ECImportContentsChangesProxy::ImportMessageMove(ULONG cbSourceKeySrcFolder, BYTE *pbSourceKeySrcFolder, ULONG cbSourceKeySrcMessage, BYTE *pbSourceKeySrcMessage, ULONG cbPCLMessage, BYTE *pbPCLMessage, ULONG cbSourceKeyDestMessage, BYTE *pbSourceKeyDestMessage, ULONG cbChangeNumDestMessage, BYTE *pbChangeNumDestMessage) {

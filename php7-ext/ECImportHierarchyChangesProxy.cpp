@@ -121,9 +121,7 @@ HRESULT ECImportHierarchyChangesProxy::Config(LPSTREAM lpStream, ULONG ulFlags) 
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "Config method not present on ImportHierarchyChanges object");
         return MAPI_E_CALL_FAILED;
     }
-    
-    convert_to_long_ex(&pvalReturn);
-    return pvalReturn.value.lval;
+	return zval_get_long(&pvalReturn);
 }
 
 HRESULT ECImportHierarchyChangesProxy::UpdateState(LPSTREAM lpStream) {
@@ -141,9 +139,7 @@ HRESULT ECImportHierarchyChangesProxy::UpdateState(LPSTREAM lpStream) {
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "UpdateState method not present on ImportHierarchyChanges object");
         return MAPI_E_CALL_FAILED;
     }
-    
-    convert_to_long_ex(&pvalReturn);
-    return pvalReturn.value.lval;
+	return zval_get_long(&pvalReturn);
 }
 
 HRESULT ECImportHierarchyChangesProxy::ImportFolderChange(ULONG cValues, LPSPropValue lpPropArray)  {
@@ -160,9 +156,7 @@ HRESULT ECImportHierarchyChangesProxy::ImportFolderChange(ULONG cValues, LPSProp
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "ImportFolderChange method not present on ImportHierarchyChanges object");
         return MAPI_E_CALL_FAILED;
     }
-        
-    convert_to_long_ex(&pvalReturn);
-    return pvalReturn.value.lval;
+	return zval_get_long(&pvalReturn);
 }
 
 HRESULT ECImportHierarchyChangesProxy::ImportFolderDeletion(ULONG ulFlags, LPENTRYLIST lpSourceEntryList) {
@@ -177,7 +171,5 @@ HRESULT ECImportHierarchyChangesProxy::ImportFolderDeletion(ULONG ulFlags, LPENT
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "ImportFolderDeletion method not present on ImportHierarchyChanges object");
         return MAPI_E_CALL_FAILED;
     }
-    
-    convert_to_long_ex(&pvalReturn);
-    return pvalReturn.value.lval;
+	return zval_get_long(&pvalReturn);
 }
