@@ -105,7 +105,8 @@ HRESULT ECImportContentsChangesProxy::GetLastError(HRESULT hResult, ULONG ulFlag
 }
 
 HRESULT ECImportContentsChangesProxy::Config(LPSTREAM lpStream, ULONG ulFlags) {
-	zvalplus pvalFuncName, pvalReturn, pvalArgs[2];
+	zvalplus pvalFuncName, pvalArgs[2];
+	zval pvalReturn;
     
     if(lpStream) {
 		ZVAL_RES(&pvalArgs[0], zend_register_resource(lpStream, le_istream));
@@ -120,13 +121,12 @@ HRESULT ECImportContentsChangesProxy::Config(LPSTREAM lpStream, ULONG ulFlags) {
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "Config method not present on ImportContentsChanges object");
         return MAPI_E_CALL_FAILED;
     }
-    
-    convert_to_long_ex(&pvalReturn);
-    return pvalReturn.value.lval;
+	return zval_get_long(&pvalReturn);
 }
 
 HRESULT ECImportContentsChangesProxy::UpdateState(LPSTREAM lpStream) {
-	zvalplus pvalFuncName, pvalReturn, pvalArgs;
+	zvalplus pvalFuncName, pvalArgs;
+	zval pvalReturn;
     
     if(lpStream) {
 		ZVAL_RES(&pvalArgs, zend_register_resource(lpStream, le_istream));
@@ -139,13 +139,12 @@ HRESULT ECImportContentsChangesProxy::UpdateState(LPSTREAM lpStream) {
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "UpdateState method not present on ImportContentsChanges object");
         return MAPI_E_CALL_FAILED;
     }
-    
-    convert_to_long_ex(&pvalReturn);
-    return pvalReturn.value.lval;
+	return zval_get_long(&pvalReturn);
 }
 
 HRESULT ECImportContentsChangesProxy::ImportMessageChange(ULONG cValues, LPSPropValue lpPropArray, ULONG ulFlags, LPMESSAGE * lppMessage)  {
-	zvalplus pvalFuncName, pvalReturn, pvalArgs[3];
+	zvalplus pvalFuncName, pvalArgs[3];
+	zval pvalReturn;
 
     IMessage *lpMessage = NULL;
     HRESULT hr = PropValueArraytoPHPArray(cValues, lpPropArray, &pvalArgs[0] TSRMLS_CC);
@@ -160,11 +159,7 @@ HRESULT ECImportContentsChangesProxy::ImportMessageChange(ULONG cValues, LPSProp
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "ImportMessageChange method not present on ImportContentsChanges object");
         return MAPI_E_CALL_FAILED;
     }
-        
-    convert_to_long_ex(&pvalReturn);
-    
-    hr = pvalReturn.value.lval;
-    
+	hr = zval_get_long(&pvalReturn);
     if(hr != hrSuccess)
         return hr;
     lpMessage = (IMessage *) zend_fetch_resource(Z_RES_P(&pvalReturn) TSRMLS_CC, name_mapi_message, le_mapi_message);
@@ -180,7 +175,8 @@ HRESULT ECImportContentsChangesProxy::ImportMessageChange(ULONG cValues, LPSProp
 }
 
 HRESULT ECImportContentsChangesProxy::ImportMessageDeletion(ULONG ulFlags, LPENTRYLIST lpSourceEntryList) {
-	zvalplus pvalFuncName, pvalReturn, pvalArgs[2];
+	zvalplus pvalFuncName, pvalArgs[2];
+	zval pvalReturn;
     
     ZVAL_LONG(&pvalArgs[0], ulFlags);
     SBinaryArraytoPHPArray(lpSourceEntryList, &pvalArgs[1] TSRMLS_CC);
@@ -190,13 +186,12 @@ HRESULT ECImportContentsChangesProxy::ImportMessageDeletion(ULONG ulFlags, LPENT
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "ImportMessageDeletion method not present on ImportContentsChanges object");
         return MAPI_E_CALL_FAILED;
     }
-    
-    convert_to_long_ex(&pvalReturn);
-    return pvalReturn.value.lval;
+	return zval_get_long(&pvalReturn);
 }
 
 HRESULT ECImportContentsChangesProxy::ImportPerUserReadStateChange(ULONG cElements, LPREADSTATE lpReadState) {
-	zvalplus pvalFuncName, pvalReturn, pvalArgs;
+	zvalplus pvalFuncName, pvalArgs;
+	zval pvalReturn;
     
 	ReadStateArraytoPHPArray(cElements, lpReadState, &pvalArgs TSRMLS_CC);
     ZVAL_STRING(&pvalFuncName, "ImportPerUserReadStateChange");
@@ -204,9 +199,7 @@ HRESULT ECImportContentsChangesProxy::ImportPerUserReadStateChange(ULONG cElemen
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "ImportPerUserReadStateChange method not present on ImportContentsChanges object");
         return MAPI_E_CALL_FAILED;
     }
-    
-    convert_to_long_ex(&pvalReturn);
-    return pvalReturn.value.lval;
+	return zval_get_long(&pvalReturn);
 }
 
 HRESULT ECImportContentsChangesProxy::ImportMessageMove(ULONG cbSourceKeySrcFolder, BYTE *pbSourceKeySrcFolder, ULONG cbSourceKeySrcMessage, BYTE *pbSourceKeySrcMessage, ULONG cbPCLMessage, BYTE *pbPCLMessage, ULONG cbSourceKeyDestMessage, BYTE *pbSourceKeyDestMessage, ULONG cbChangeNumDestMessage, BYTE *pbChangeNumDestMessage) {
