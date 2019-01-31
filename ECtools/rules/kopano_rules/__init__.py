@@ -322,6 +322,8 @@ def convertcondition(conditions): ## TODO make this nicer
     conlist = []
     if isinstance(conditions, SAndRestriction):
         conditions = conditions.lpRes
+    elif isinstance(conditions, SOrRestriction):
+        conditions = conditions.lpRes
     elif isinstance(conditions, SCommentRestriction):
         conditions = [conditions.lpRes]
     elif isinstance(conditions,SPropertyRestriction):
@@ -706,13 +708,16 @@ def convertaction(action, user,server):
 
 
 def printrules(filters, user, server):
-    rulestate = {0: "Disabled",
-                 1: "Enabled",
-                 2: "Error",
-                 3: "Enabled but error reported",
-                 4: "Only active when OOF is active",
-                 16: "Disabled",
-                 17: "Enabled (stop further rules)"}
+    rulestate = {ST_DISABLED:                      "Disabled",
+                 ST_ONLY_WHEN_OOF:                 "Disabled",
+                 ST_EXIT_LEVEL:                    "Disabled",
+                 ST_ONLY_WHEN_OOF | ST_EXIT_LEVEL: "Disabled",
+                 ST_ENABLED:                       "Enabled",
+                 ST_ERROR:                         "Error",
+                 ST_ENABLED | ST_ERROR:            "Enabled but error reported",
+                 ST_ENABLED | ST_EXIT_LEVEL:       "Enabled (stop further rules)",
+                 ST_ENABLED | ST_ONLY_WHEN_OOF:    "Only active while OOF",
+                 ST_ENABLED | ST_ONLY_WHEN_OOF | ST_EXIT_LEVEL: "Only active while OOF (stop further rules)"}
 
     table_header = ["Number", "Name", "Condition", "Action", "State"]
     table_data = []
@@ -733,10 +738,10 @@ def printrules(filters, user, server):
 
 def changerule(filters, number, state):
     rowlist = ''
-    convertstate = {'enable': ST_ENABLED,
-                    'disable': ST_DISABLED,
-                    'enable_stop_processing': 17
-                    }
+    convertstate = {'':           ST_ENABLED,
+                    '-if-oof':    ST_ONLY_WHEN_OOF,
+                    '-stop-here': ST_EXIT_LEVEL
+                   }
     try:
         rule = filters[number - 1]
     except IndexError:
@@ -753,25 +758,44 @@ def changerule(filters, number, state):
             sequence = prop.Value
         if prop.ulPropTag == PR_RULE_PROVIDER_DATA:
             provider_data = binascii.hexlify(prop.Value)
+        if prop.ulPropTag == PR_RULE_STATE:
+            state_value = prop.Value
 
-    if state == 'enable' or state == 'disable':
+    update_state  = False
+    
+    try: 
+        if state[:6] == 'enable':
+            update_state = True
+            state_value = state_value | convertstate[state[6:]]
+    
+        elif state[:7] == 'disable':
+            update_state = True
+            state_value = state_value & ~convertstate[state[7:]]
+
+    except:
+        print('State-flag does not exist')
+        sys.exit(1)
+   
+    if update_state:
         rowlist = [ROWENTRY(
-            ROW_MODIFY,
+           ROW_MODIFY,
             [SPropValue(PR_RULE_ID, number),
              SPropValue(PR_RULE_PROVIDER_DATA, binascii.unhexlify(provider_data)),
-             SPropValue(PR_RULE_STATE, convertstate[state]),
+             SPropValue(PR_RULE_STATE, state_value),
              SPropValue(PR_RULE_ACTIONS, actions),
              SPropValue(PR_RULE_CONDITION, conditions),
              SPropValue(PR_RULE_SEQUENCE, sequence),
              SPropValue(1719730206, b'RuleOrganizer'),
              SPropValue(PR_RULE_NAME, name)
-             ])]
+            ])]
 
-    if state == 'delete':
+    elif state == 'delete':
         rowlist = [ROWENTRY(
             ROW_REMOVE,
             [SPropValue(PR_RULE_ID, number)]
         )]
+    else: 
+        return
 
     return rowlist, name
 
@@ -944,9 +968,10 @@ def kopano_rule(server, user, listrules=False, rule=None, state=None, emptyRules
 
     if state:
         rowlist, name = changerule(filters, rule, state)
-        if state == 'enable' or state == 'disable' or state == 'delete':
+
+        if rowlist:
             rule_table.ModifyTable(0, rowlist)
-            print("Rule '{}' is {}d for user '{}'".format(name.decode('utf-8'), state, user.name))
+            print("State of rule '{}' set to '{}' for user '{}'".format(name.decode('utf-8'), state, user.name))
             sys.exit(0)
 
     if rulename:
