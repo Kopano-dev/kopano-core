@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-from ..utils import (
+from ...utils import (
     _server_store, _folder, _item, HTTPBadRequest
 )
 from .resource import (

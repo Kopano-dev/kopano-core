@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import base64
 
-from ..utils import (
+from ...utils import (
     _server_store, _folder, _item
 )
 from .resource import (

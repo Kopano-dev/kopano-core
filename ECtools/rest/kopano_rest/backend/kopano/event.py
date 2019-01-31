@@ -6,7 +6,7 @@ import falcon
 
 import kopano
 
-from ..utils import (
+from ...utils import (
     _server_store, _folder, HTTPBadRequest
 )
 from .resource import (

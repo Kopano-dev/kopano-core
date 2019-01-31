@@ -2,7 +2,7 @@
 import falcon
 
 from .resource import json
-from ..utils import (
+from ...utils import (
     _server_store, _folder, HTTPBadRequest
 )
 from .folder import FolderResource
