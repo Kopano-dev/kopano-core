@@ -7,7 +7,6 @@ import zinterval
 from io import StringIO
 
 import os
-import zunit
 
 class ZConfigParser:
 
@@ -52,10 +51,6 @@ class ZConfigParser:
     def getinterval(self, option):
         value = self.config.get('DEFAULT', option)
         return zinterval.parse(value)
-
-    def getunitbyte(self, option):
-        value = self.config.get('DEFAULT', option)
-        return zunit.parseUnitByte(value)
 
     ## Get a dict of a list of options
     #  if you have the following options in the config file:
