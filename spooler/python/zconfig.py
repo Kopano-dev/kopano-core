@@ -3,7 +3,6 @@ try:
     import ConfigParser
 except ImportError: # renamed in python3
     import configparser as ConfigParser
-import zinterval
 from io import StringIO
 
 import os
@@ -46,11 +45,6 @@ class ZConfigParser:
     
     def getboolean(self, option):
         return self.config.getboolean('DEFAULT', option)
-
-    # get interval field in seconds
-    def getinterval(self, option):
-        value = self.config.get('DEFAULT', option)
-        return zinterval.parse(value)
 
     ## Get a dict of a list of options
     #  if you have the following options in the config file:
