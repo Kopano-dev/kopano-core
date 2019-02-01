@@ -97,7 +97,7 @@ class Attachment(Properties):
 
     @property
     def mimetype(self):
-        """Mime-type"""
+        """MIME-Type"""
         return self.get(PR_ATTACH_MIME_TAG_W, u'')
 
     @mimetype.setter
