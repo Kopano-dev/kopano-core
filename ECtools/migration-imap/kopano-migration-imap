@@ -6711,7 +6711,7 @@ From: fff\r
 To: fff\r
 Subject: Testing kopano-migration-imap --skipmess\r
 Date: Mon, 22 Aug 2011 08:40:20 +0800\r
-Mime-Version: 1.0\r
+MIME-Version: 1.0\r
 Content-Type: text/plain; charset=iso-8859-1\r
 Content-Transfer-Encoding: 7bit\r
 \r

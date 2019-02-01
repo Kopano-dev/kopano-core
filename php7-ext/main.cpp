@@ -4200,24 +4200,14 @@ ZEND_FUNCTION(mapi_zarafa_setquota)
 	if (value != nullptr)
 		lpQuota->bIsUserDefaultQuota = zval_is_true(value);
 	value = zend_hash_find(data, str_warnsize.get());
-	if (value != nullptr) {
-		SEPARATE_ZVAL(value);
-		convert_to_long_ex(value);
-		lpQuota->llWarnSize = Z_LVAL_P(value);
-	}
+	if (value != nullptr)
+		lpQuota->llWarnSize = zval_get_long(value);
 	value = zend_hash_find(data, str_softsize.get());
-	if (value != nullptr) {
-		SEPARATE_ZVAL(value);
-		convert_to_long_ex(value);
-		lpQuota->llSoftSize = Z_LVAL_P(value);
-	}
+	if (value != nullptr)
+		lpQuota->llSoftSize = zval_get_long(value);
 	value = zend_hash_find(data, str_hardsize.get());
-	if (value != nullptr) {
-		SEPARATE_ZVAL(value);
-		convert_to_long_ex(value);
-		lpQuota->llHardSize = Z_LVAL_P(value);
-	}
-
+	if (value != nullptr)
+		lpQuota->llHardSize = zval_get_long(value);
 	MAPI_G(hr) = lpServiceAdmin->SetQuota(cbUserId, lpUserId, lpQuota);
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
@@ -5427,33 +5417,27 @@ ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
 		value = zend_hash_find(data, str_userid.get());
 		if (value == nullptr)
 			continue;
-		SEPARATE_ZVAL(value);
-		convert_to_string_ex(value);
-		lpECPerms[j].sUserId.cb = Z_STRLEN_P(value);
-		lpECPerms[j].sUserId.lpb = (unsigned char*)Z_STRVAL_P(value);
+		zstrplus str(zval_get_string(value));
+		lpECPerms[j].sUserId.cb = str->len;
+		MAPI_G(hr) = KAllocCopy(str->val, str->len, reinterpret_cast<void **>(&lpECPerms[j].sUserId.lpb), lpECPerms);
+		if (MAPI_G(hr) != hrSuccess)
+			return;
 
 		value = zend_hash_find(data, str_type.get());
 		if (value == nullptr)
 			continue;
-		SEPARATE_ZVAL(value);
-		convert_to_long_ex(value);
-		lpECPerms[j].ulType = Z_LVAL_P(value);
+		lpECPerms[j].ulType = zval_get_long(value);
 
 		value = zend_hash_find(data, str_rights.get());
 		if (value == nullptr)
 			continue;
-		SEPARATE_ZVAL(value);
-		convert_to_long_ex(value);
-		lpECPerms[j].ulRights = Z_LVAL_P(value);
+		lpECPerms[j].ulRights = zval_get_long(value);
 
 		value = zend_hash_find(data, str_state.get());
-		if (value != nullptr) {
-			SEPARATE_ZVAL(value);
-		    convert_to_long_ex(value);
-			lpECPerms[j].ulState = Z_LVAL_P(value);
-		} else {
+		if (value != nullptr)
+			lpECPerms[j].ulState = zval_get_long(value);
+		else
 			lpECPerms[j].ulState = RIGHT_NEW|RIGHT_AUTOUPDATE_DENIED;
-		}
 		++j;
 	} ZEND_HASH_FOREACH_END();
 

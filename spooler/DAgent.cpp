@@ -1274,7 +1274,7 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 	if (hr != hrSuccess)
 		return kc_perrorf("WriteOrLogError failed(7)", hr);
 
-	snprintf(szHeader, PATH_MAX, "\nMime-Version: 1.0"); // add mime-version header, so some clients show high-characters correctly
+	snprintf(szHeader, PATH_MAX, "\nMIME-Version: 1.0"); // add mime-version header, so some clients show high-characters correctly
 	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
 	if (hr != hrSuccess)
 		return kc_perrorf("WriteOrLogError failed(8)", hr);

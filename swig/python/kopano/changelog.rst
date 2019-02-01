@@ -2,6 +2,69 @@
 Python-kopano Change Log
 ==========
 
+`8.7.0`_ (2019-01-21)
+-------------------------
+
+* Remove deprecated Body class
+* Convert some MAPI exceptions to Kopano exceptions
+
+* Greatly improved notifications (per store, folder,
+  type of event, ..)
+* Added KQL query language support. for example one can
+  now use:
+  folder.items(query='from:bert AND size>1MB')
+  server.users(query='frits')
+* Added Server.sync_gab (user directory sync)
+* Greatly improved Recurrence attributes,
+  for reading/changing/creating recurrences.
+  Also hiding internals much better now.
+* Added general 'kopano' logger, and log several
+  new warnings (more to come)
+* Generalized saving: retry on deadlocks/temp issues
+* Improved timezone handling, using Olson db
+* Many improvements to meeting request handling
+
+* Added Contact.{email2, address2, ..}
+* Added Item.{urgency, read_receipt} setters
+* Improved Item.create_item (embedded message)
+* Added Item.body_preview (optimized for bulk)
+* Added User.{first_name, mobile_phone, ..}
+* Added Picture class
+* Added {User, Contact}.photo (Picture instance)
+* Added ArgumentError, and use in many places
+* Added Appointment.{location, create_attendee, ..}
+* Added Appointment.{accept, decline}
+* Added hidden, active filters to Server.users()
+* Expand stubbed messages when dumping
+* Added Appointment.{cancel, canceled}
+* Improvements to Occurrence class (more attributes)
+* Added Appointment.{reminder, reminder_minutes}
+* Very basic Rule management (loop, create, delete)
+* Added Item.{codepage, encoding, html_utf8}
+* Added Attachment.{hidden, inline, content_id,
+  content_location}
+* Added Store.add_favorite()
+* Added Store.add_search() (permanent search folders)
+* Added Item.type_ ('mail', 'contact', ..)
+* Improve command-line boolean format (yes/no/true/
+  false, case insensitive)
+
+* Optimized Folder/Recurrence occurrences
+* Optimized Property attributs
+
+* Fullname default to name for Server.create_user()
+* Company.stores() also yields public store now
+* Make sure named props are always created on server
+* Keep working when extended exceptions are missing
+* Improved cleanup of unused Store objects
+* Fixed broken logging in item.dump(s)()
+* Fixed Folder.delete(occurrence)
+* Fixes for Item.create_reply()
+* Fix for tracking tab visibility
+* Fixed Item.{to, cc, bcc} setters
+* More circular import fixes for Python ~3.4
+* Fix for reminder times (and timezones)
+
 `8.6.1`_ (2018-04-04)
 -------------------------
 
