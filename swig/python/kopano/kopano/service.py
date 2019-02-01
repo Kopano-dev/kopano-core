@@ -25,11 +25,10 @@ from .compat import decode as _decode
 
 if sys.hexversion >= 0x03000000:
     try:
-        import daemon # picks system version
+        import daemon
         import daemon.pidfile as pidlockfile
     except ImportError: # pragma: no cover
-        from . import daemon # fallback to bundled version
-        from .daemon import pidlockfile
+        pass
 
     from . import config as _config
     from . import log as _log
@@ -38,9 +37,9 @@ if sys.hexversion >= 0x03000000:
     from . import parser as _parser
 else: # pragma: no cover
     try:
-        import daemon # picks bundled version
-        import daemon.pidlockfile as pidlockfile
-    except ImportError:
+        import daemon
+        import daemon.pidfile as pidlockfile
+    except ImportError: # pragma: no cover
         pass
 
     import config as _config
