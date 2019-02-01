@@ -22,12 +22,13 @@ except ImportError:
 
 import codecs
 
-if sys.version_info < (3,):
+if sys.version_info[0] < 3:
     # Wrap sys.stdout into a StreamWriter to allow writing unicode.
     sys.stdout = codecs.getwriter(locale.getpreferredencoding())(sys.stdout)
 else:
     def unicode(s):
         return s
+    long = int
 
 try:
     import MAPI
@@ -40,9 +41,6 @@ except ImportError as e:
     print("")
     print(e)
     sys.exit(1)
-
-if sys.version_info > (3,):
-    long = int
 
 verbose = False
 
@@ -69,12 +67,12 @@ EMS_AB_ADDRESS_LOOKUP = 0x1
 ########################
 # Util functions
 class MyTable(object):
-    
+
     def __init__(self):
         self.column = []
         self.align = []
         self.rows = []
-        self.maxwith= {} 
+        self.maxwith= {}
 
     def getTable(self):
         cols = len(self.column)
@@ -181,7 +179,7 @@ def getUserListHosted(gab):
         ctable = company.GetContentsTable(MAPI_DEFERRED_ERRORS)
         users.extend(buildUserList(ctable))
 
-    
+
     return users
 
 def getUserList(session):
@@ -232,7 +230,7 @@ def parsePermissionsToId(permissions):
         return ecRightsNone
     elif permissions[0:2] == '0x':
         return int(permissions, 16)
-    
+
     raise ValueError("error unknown permission type %s" % permissions )
 
 # Get the mailbox of the given user
@@ -322,7 +320,7 @@ def setMailboxPermissions(session, listfolderrights, members, mailboxes, private
                 PR_FREEBUSY_ENTRYIDS,
                 ]
 
-    ab = session.OpenAddressBook(0, None, MAPI_UNICODE) 
+    ab = session.OpenAddressBook(0, None, MAPI_UNICODE)
 
     # build permission items
     for mailbox in mailboxes:
@@ -361,7 +359,7 @@ def setMailboxPermissions(session, listfolderrights, members, mailboxes, private
             fbmsgOl2k = None
             pass
 
-        
+
         fbrights = ecRightsNone
 
         # Store permissions
@@ -412,7 +410,7 @@ def setMailboxPermissions(session, listfolderrights, members, mailboxes, private
         if sendcopy != None or onlySendToDelegates != None:
             drd = DelegateRuleData(session, store, inbox)
 
-            if (onlySendToDelegates != None): 
+            if (onlySendToDelegates != None):
                 drd.setOnlySendToDelegates(onlySendToDelegates)
 
             if sendcopy == True and listfolderrights.get('calendar', ecRightsNone) > ecRightsNone:
@@ -596,7 +594,7 @@ def setMailboxFolderPermissions(store, entryid, members, rights):
 
     rows = []
     for member in members:
-        if rights != None: 
+        if rights != None:
             rows.append(ROWENTRY(ROW_ADD, [SPropValue(PR_MEMBER_ENTRYID, member[0]), SPropValue(PR_MEMBER_RIGHTS, rights)]))
         else:
             pass

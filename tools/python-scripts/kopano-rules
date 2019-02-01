@@ -11,6 +11,8 @@ from terminaltables import AsciiTable
 from datetime import datetime
 import time
 
+if sys.version_info[0] > 2:
+    unicode = str
 
 def opt_args():
 

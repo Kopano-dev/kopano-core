@@ -2,6 +2,10 @@
 import MAPI
 from MAPI.Util import *
 
+import sys
+if sys.version_info[0] > 2:
+    unicode = str
+
 def GetStores(session, users = None, flags = MDB_WRITE):
     # Get rid of potential MAPI_UNICODE flag, which was allowed in
     # previous versions to specify the string typ of the users list,
@@ -44,7 +48,7 @@ def GetFolders(store, **kwargs):
         if depth != 0:
             table.Restrict(SPropertyRestriction(RELOP_LE, PR_DEPTH, SPropValue(PR_DEPTH, depth)), TBL_BATCH)
     table.SetColumns([PR_ENTRYID, PR_DEPTH], TBL_BATCH)
-    
+
     while True:
         rows = table.QueryRows(1, 0)
         if len(rows) == 0:

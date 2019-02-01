@@ -5,13 +5,13 @@ import gc
 import gdb
 import struct
 
-""" 
+"""
 tool to parse/inspect tcmalloc internals, and detect 'lost' memory,
 meaning memory which isn't reachable via any (internal) pointers.
 
 http://goog-perftools.sourceforge.net/doc/tcmalloc.html
 
-assumes a 64-bit system, and a recent version of GDB to avoid memleaks 
+assumes a 64-bit system, and a recent version of GDB to avoid memleaks
 in this tool itself.. still it may use a _lot_ of memory.
 
 """
@@ -95,7 +95,7 @@ class Object(object):
             return Object(self.next_)
 
     def __repr__(self):
-        return 'Object(%x)' % self.addr 
+        return 'Object(%x)' % self.addr
 
 class ObjectList(object):
     """ linked-list of 'free' objects """
@@ -131,7 +131,7 @@ class Block(object):
 def dump_pageheap():
     """ summarize page cache """
 
-    print()
+    print('')
     print('PAGE HEAP')
 
     for kind in ('normal', 'returned'):
@@ -148,7 +148,7 @@ def dump_pageheap():
             for span in SpanList(val):
                 print('[%d/%d]' % (x, kmaxpages), span, span.length, span.location)
 
-    print
+    print('')
     print('PAGE MAP RADIX')
 
 def pagemap_spans():
@@ -183,7 +183,7 @@ def dump_pagemap():
 def dump_central_cache():
     """ summarizes central free cache """
 
-    print
+    print('')
     print('CENTRAL CACHE')
 
     for kind in ('empty_', 'nonempty_'):
@@ -197,7 +197,7 @@ def dump_central_cache():
 def dump_thread_caches():
     """ summarizes thread free caches """
 
-    print
+    print('')
     print('THREAD CACHES')
     print('thread heaps:', gdb.parse_and_eval("'tcmalloc::ThreadCache::thread_heap_count_'"))
     heap = thread_heaps_
@@ -205,7 +205,7 @@ def dump_thread_caches():
         if int(str(heap), 16) == 0:
             break
 
-        print()
+        print('')
         print('[thread %s]' % hex(int(heap['tid_'])))
 
         for x in range(knumclasses):
@@ -214,7 +214,7 @@ def dump_thread_caches():
             if objects:
                 size = int(sizemap_['class_to_size_'][x])
                 print('[%d(%d/%d)] (%d objects)' % (size, x, knumclasses, len(objects)))
-        print()
+        print('')
 
         heap = heap['next_']
 
@@ -371,7 +371,7 @@ def freq_blocks(blocks):
 def dump_blocks(blocks):
     """ summarizes given blocks """
 
-    print
+    print('')
     print('BLOCK SUMMARY')
 
     summary, count, size = freq_blocks(blocks)
@@ -404,14 +404,14 @@ def main():
     blocks = list(pagemap_blocks())
     used = list(used_blocks(blocks))
     free = list(free_blocks(blocks))
-    print()
+    print('')
     print('USED:')
     dump_blocks(used)
-    print()
+    print('')
     print('FREE:')
     dump_blocks(free)
     # reachability
-    print
+    print('')
     print('LOST:')
     unreached = unreachable_blocks(used)
     dump_blocks(unreached)

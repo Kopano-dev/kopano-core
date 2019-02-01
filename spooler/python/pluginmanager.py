@@ -7,6 +7,8 @@ import inspect
 
 from plugintemplates import *
 
+if sys.version_info[0] > 2:
+    long = int
 
 class PluginManager(object):
     def __init__(self, plugindir, logger):

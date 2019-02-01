@@ -165,7 +165,7 @@ def list_users(intro, users):
     print(58*'-')
     for user in sorted(users, key=lambda u: u.name):
         print(fmt.format(_encode(user.name), _encode(user.fullname), _encode(user.home_server)))
-    print
+    print('')
 
 def list_groups(intro, groups):
     groups = list(groups)
@@ -175,7 +175,7 @@ def list_groups(intro, groups):
     print(16*'-')
     for group in sorted(groups, key=lambda g: g.name):
         print(fmt.format(_encode(group.name)))
-    print
+    print('')
 
 def list_companies(intro, companies):
     companies = list(companies)
@@ -197,7 +197,7 @@ def list_orphans(server):
             storesize = '%.2f MB' % (float(store.size)/2**20)
             storetype = 'public' if store.public else 'private' # XXX archive
             print(fmt.format(store.guid, _encode(username), '<unknown>', storesize, storetype))
-    print
+    print('')
     users = [user for user in server.users() if not user.store]
     list_users('Users without stores', users)
 
