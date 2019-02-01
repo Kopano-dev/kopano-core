@@ -1,20 +1,20 @@
-8.6.93
-======
+8.6.92 -> 8.7.0 (2019-01-24)
+============================
 Fixes:
 * server: incomplete LDAP filter processing (KC-1261 from 8.6.91) had
   caused GAB users to be not shown, which is fixed [KC-1381]
 
 
-8.6.92 (8.7 beta)
-=================
+8.6.92 (8.7 beta) (2019-01-11)
+==============================
 Enhancements:
 * dagent: a new config directive "mail_conversion_detail" was added [KC-1342]
 * server: support running with old utf8mb3 databases by filtering
   all Emojis/Unicode SMP characters [KC-725]
 
 
-8.6.91 (8.7 beta)
-=================
+8.6.91 (8.7 beta) (2018-12-21)
+==============================
 Fixes:
 * server: fix disappearing inbox rules [KC-1359,KF-1940]
 * kopano-dbadm: new action "usmp" and "usmp-charset"
@@ -30,8 +30,8 @@ Changes:
   which changed attribute names to 389-ds)
 
 
-8.6.90 (8.7 beta)
-=================
+8.6.90 (8.7 beta) (2018-10-18)
+==============================
 Fixes:
 * server: fix large inbox rule table/properties to "disappear" [KC-1359]
 Enhancements:
@@ -46,8 +46,8 @@ Changes:
   replaced by a JSON variant [KC-1264]
 
 
-8.6.82 (8.7 Milestone 2)
-========================
+8.6.82 (8.7 Milestone) (2018-10-12)
+===================================
 Fixes:
 * server: logon/logoff times were not reported correctly [KC-1257]
 Enhancements:
@@ -76,8 +76,8 @@ Packaging changes:
 * The MySQL 8 C API is now supported at build time [KC-1237]
 
 
-8.6.81 (8.7 Milestone 1)
-========================
+8.6.81 (8.7 Milestone) (2018-08-10)
+===================================
 Fixes:
 * ical: better support recurring tasks [KC-781]
 Enhancements:
