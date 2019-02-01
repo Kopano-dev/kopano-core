@@ -131,7 +131,7 @@ class Disclaimer(IMapiSpoolerPlugin):
         self.logger.logDebug("*--- The message bestbody 0x%08X" % bodytag)
         if bodytag == PR_BODY_W:
             
-            disclaimer = u"\r\n" + unicode(self.getDisclaimer('txt', company), 'utf-8')
+            disclaimer = u"\r\n" + self.getDisclaimer('txt', company).decode('utf-8')
 
             bodystream = message.OpenProperty(PR_BODY_W, IID_IStream, 0, MAPI_MODIFY)
             bodystream.Seek(0, STREAM_SEEK_END)
@@ -144,7 +144,7 @@ class Disclaimer(IMapiSpoolerPlugin):
             if props[0].ulPropTag == PR_INTERNET_CPID:
                 charset = self.getCharSetByCP(props[0].Value)
 
-            disclaimer = u"<br>" + unicode(self.getDisclaimer('html', company), 'utf-8')
+            disclaimer = u"<br>" + self.getDisclaimer('html', company).decode('utf-8')
 
             stream = message.OpenProperty(PR_HTML, IID_IStream, 0, MAPI_MODIFY)
             stream.Seek(0, STREAM_SEEK_END)
