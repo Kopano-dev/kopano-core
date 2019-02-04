@@ -15,6 +15,7 @@ import os
 import time
 import socket
 import sys
+import warnings
 
 from MAPI import (
     MAPI_UNICODE, MDB_WRITE, RELOP_EQ,
@@ -50,7 +51,7 @@ from MAPI.Tags import (
 
 from .errors import (
     Error, NotFoundError, DuplicateError, NotSupportedError,
-    LogonError, ArgumentError
+    LogonError, ArgumentError, _DeprecationWarning
 )
 from .log import LOG, _loglevel
 
@@ -221,7 +222,7 @@ class Server(object):
         self.store_cache = store_cache
 
         if not _skip_check:
-            self.log.warning('please use kopano.server instead of kopano.Server')
+            warnings.warn('use kopano.server instead of kopano.Server', _DeprecationWarning)
 
         if not self.mapisession:
             # get cmd-line options
