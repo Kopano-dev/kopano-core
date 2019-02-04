@@ -564,9 +564,14 @@ kd_trans::kd_trans(kd_trans &&o) :
 
 kd_trans::~kd_trans()
 {
-	if (m_done || std::uncaught_exception())
+#if __cplusplus >= 201700L
+	if (m_done || std::uncaught_exceptions() > 0)
 		/* was not handled earlier either */
 		return;
+#else
+	if (m_done || std::uncaught_exception())
+		return;
+#endif
 	if (*m_result != 0)
 		m_db->Rollback();
 	else
