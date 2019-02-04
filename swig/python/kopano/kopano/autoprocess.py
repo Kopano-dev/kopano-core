@@ -22,13 +22,10 @@ from MAPI import (
 
 from .defs import NAMED_PROPS_KC
 
-if sys.hexversion >= 0x03000000:
-    try:
-        from . import utils as _utils
-    except ImportError: # pragma: no cover
-        _utils = sys.modules[__package__ + '.utils']
-else: # pragma: no cover
-    import utils as _utils
+try:
+    from . import utils as _utils
+except ImportError: # pragma: no cover
+    _utils = sys.modules[__package__ + '.utils']
 
 class AutoProcess(object):
     """AutoProcess class"""

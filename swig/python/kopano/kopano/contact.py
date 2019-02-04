@@ -44,14 +44,10 @@ from .compat import (
 )
 from .picture import Picture
 
-if sys.hexversion >= 0x03000000:
-    try:
-        from . import utils as _utils
-    except ImportError: # pragma: no cover
-        _utils = sys.modules[__package__ + '.utils']
-else: # pragma: no cover
-    import utils as _utils
-
+try:
+    from . import utils as _utils
+except ImportError: # pragma: no cover
+    _utils = sys.modules[__package__ + '.utils']
 
 class PhysicalAddress(object):
     def __init__(self, item, proptags):

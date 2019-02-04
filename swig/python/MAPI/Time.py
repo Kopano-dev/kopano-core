@@ -10,7 +10,7 @@ import time
 NANOSECS_BETWEEN_EPOCH = 116444736000000000
 
 def _convert(s):
-    if sys.hexversion >= 0x03000000 and isinstance(s, bytes):
+    if isinstance(s, bytes):
         return s.decode('ascii')
     else:
         return s

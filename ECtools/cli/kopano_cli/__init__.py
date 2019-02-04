@@ -134,13 +134,6 @@ UPDATE_MATRIX = {
     ('admin', 'add_view', 'remove_view', 'add_admin', 'remove_admin'): ('companies',),
 }
 
-if sys.hexversion >= 0x03000000:
-    def _encode(s):
-        return s
-else: # pragma: no cover
-    def _encode(s):
-        return s.encode(sys.stdout.encoding or 'utf8')
-
 def orig_option(o):
     OBJ_OPT = {'users': '--user', 'groups': '--group', 'companies': '--company', 'stores': '--store'}
     return OBJ_OPT.get(o) or '--'+o.replace('_', '-')
@@ -164,8 +157,8 @@ def list_users(intro, users):
     print(fmt.format('User', 'Full Name', 'Homeserver'))
     print(58*'-')
     for user in sorted(users, key=lambda u: u.name):
-        print(fmt.format(_encode(user.name), _encode(user.fullname), _encode(user.home_server)))
-    print('')
+        print(fmt.format(user.name, user.fullname, user.home_server))
+    print()
 
 def list_groups(intro, groups):
     groups = list(groups)
@@ -174,8 +167,8 @@ def list_groups(intro, groups):
     print(fmt.format('Groupname'))
     print(16*'-')
     for group in sorted(groups, key=lambda g: g.name):
-        print(fmt.format(_encode(group.name)))
-    print('')
+        print(fmt.format(group.name))
+    print()
 
 def list_companies(intro, companies):
     companies = list(companies)
@@ -184,7 +177,7 @@ def list_companies(intro, companies):
     print(fmt.format('Companyname', 'System Administrator'))
     print(65*'-')
     for company in sorted(companies, key=lambda c: c.name):
-        print(fmt.format(_encode(company.name), _encode(company.admin.name) if company.admin else ''))
+        print(fmt.format(company.name, company.admin.name if company.admin else ''))
 
 def list_stores(server):
     fmt = '{0:<32}'
@@ -203,8 +196,8 @@ def list_orphans(server):
             username = store.user.name if store.user else ''
             storesize = '%.2f MB' % (float(store.size)/2**20)
             storetype = 'public' if store.public else 'private' # XXX archive
-            print(fmt.format(store.guid, _encode(username), '<unknown>', storesize, storetype))
-    print('')
+            print(fmt.format(store.guid, username, '<unknown>', storesize, storetype))
+    print()
     users = [user for user in server.users() if not user.store]
     list_users('Users without stores', users)
 
@@ -212,10 +205,10 @@ def list_permissions(store):
     if store:
         print('Permissions:')
         for perm in store.permissions():
-            print(_encode('    (store): ' + perm.member.name + ':' + ','.join(perm.rights)))
+            print('    (store): ' + perm.member.name + ':' + ','.join(perm.rights))
         for folder in store.folders():
             for perm in folder.permissions():
-                print(_encode('    ' + folder.path + ': ' + perm.member.name + ':' + ','.join(perm.rights)))
+                print('    ' + folder.path + ': ' + perm.member.name + ':' + ','.join(perm.rights))
 
 def user_counts(server): # XXX allowed/available
     stats = server.stats()
@@ -238,8 +231,8 @@ def quota_str(limit): # TODO in pyko?
 
 def user_details(user):
     fmt = '{0:<30} {1:<}'
-    print(fmt.format('Name:', _encode(user.name)))
-    print(fmt.format('Full name:', _encode(user.fullname)))
+    print(fmt.format('Name:', user.name))
+    print(fmt.format('Full name:', user.fullname))
     print(fmt.format('Email address:', user.email))
     print(fmt.format('Active:', yesno(user.active)))
     print(fmt.format('Administrator:', yesno(user.admin) + (' (system)' if user.admin_level == 2 else '')))
@@ -255,10 +248,10 @@ def user_details(user):
         if user.archive_folder:
             print(fmt.format('Archive folder:', user.archive_folder.path))
 
-        print(fmt.format('Send-as:', ', '.join(_encode(sendas.name) for sendas in user.send_as())))
+        print(fmt.format('Send-as:', ', '.join(sendas.name for sendas in user.send_as())))
         print(fmt.format('Delegation:', '(send only to delegates)' if user.send_only_to_delegates else ''))
         for dlg in user.delegations():
-            print(_encode('    '+dlg.user.name+':'+','.join(dlg.flags)))
+            print('    '+dlg.user.name+':'+','.join(dlg.flags))
         print(fmt.format('Auto-accept meeting requests:', yesno(user.autoaccept.enabled)))
         if user.autoaccept.enabled:
             print(fmt.format('    Accept conflicting:', yesno(user.autoaccept.conflicts)))
@@ -282,27 +275,27 @@ def user_details(user):
 
 def group_details(group):
     fmt = '{0:<16} {1:<}'
-    print(fmt.format('Name:', _encode(group.name)))
+    print(fmt.format('Name:', group.name))
     print(fmt.format('Email address:', group.email))
     print(fmt.format('Address Book:', ('hidden' if group.hidden else 'visible')))
-    print(fmt.format('Send-as:', ', '.join(_encode(sendas.name) for sendas in group.send_as())))
+    print(fmt.format('Send-as:', ', '.join(sendas.name for sendas in group.send_as())))
     list_users('Users', group.users())
 
 def company_details(company, server):
     fmt = '{0:<30} {1:<}'
-    print(fmt.format('Name:', _encode(company.name)))
+    print(fmt.format('Name:', company.name))
     if company.admin:
-        print(fmt.format('Sysadmin:', _encode(company.admin.name)))
+        print(fmt.format('Sysadmin:', company.admin.name))
     print(fmt.format('Address Book:', ('hidden' if company.hidden else 'visible')))
     if company.public_store:
         print(fmt.format('Public store:', company.public_store.guid))
         print(fmt.format('Public store size:', '%.2f MB' % (company.public_store.size / 2**20)))
     if server.multitenant:
-        print(fmt.format('Remote-admin list:', ', '.join(_encode(u.name) for u in company.admins())))
-        print(fmt.format('Remote-view list:', ', '.join(_encode(c.name) for c in company.views())))
+        print(fmt.format('Remote-admin list:', ', '.join(u.name for u in company.admins())))
+        print(fmt.format('Remote-view list:', ', '.join(c.name for c in company.views())))
         user = next(company.users())
-        print(fmt.format('Userquota-recipient list:', ', '.join(_encode(u.name) for u in user.quota.recipients() if u.name != 'SYSTEM')))
-        print(fmt.format('Companyquota-recipient list:', ', '.join(_encode(u.name) for u in company.quota.recipients() if u.name != 'SYSTEM')))
+        print(fmt.format('Userquota-recipient list:', ', '.join(u.name for u in user.quota.recipients() if u.name != 'SYSTEM')))
+        print(fmt.format('Companyquota-recipient list:', ', '.join(u.name for u in company.quota.recipients() if u.name != 'SYSTEM')))
     list_permissions(company.public_store)
 
 def store_details(store, server):
@@ -621,7 +614,7 @@ def main():
         if 'options' in locals() and options.debug:
             print(traceback.format_exc(), file=sys.stderr)
         else:
-            print(_encode(str(e)), file=sys.stderr)
+            print(str(e), file=sys.stderr)
         sys.exit(1)
 
 if __name__ == '__main__':

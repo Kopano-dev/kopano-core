@@ -55,18 +55,13 @@ from .compat import repr as _repr
 from .errors import Error
 from .restriction import Restriction
 
-if sys.hexversion >= 0x03000000:
-    try:
-        from . import utils as _utils
-    except ImportError: # pragma: no cover
-        _utils = sys.modules[__package__ + '.utils']
+try:
+    from . import utils as _utils
+except ImportError: # pragma: no cover
+    _utils = sys.modules[__package__ + '.utils']
 
-    from . import property_ as _prop
-    from . import timezone as _timezone
-else: # pragma: no cover
-    import utils as _utils
-    import property_ as _prop
-    import timezone as _timezone
+from . import property_ as _prop
+from . import timezone as _timezone
 
 # XXX move all pidlids into separate definition file, plus short description of their meanings
 

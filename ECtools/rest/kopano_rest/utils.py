@@ -6,10 +6,7 @@ import html
 import sys
 import time
 
-if sys.hexversion >= 0x03000000:
-    import bsddb3 as bsddb
-else: # pragma: no cover
-    import bsddb
+import bsddb3 as bsddb
 
 import falcon
 

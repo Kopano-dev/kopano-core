@@ -42,13 +42,10 @@ from .compat import (
 )
 from .errors import Error, NotFoundError
 
-if sys.hexversion >= 0x03000000:
-    try:
-        from . import utils as _utils
-    except ImportError: # pragma: no cover
-        _utils = sys.modules[__package__ + '.utils']
-else: # pragma: no cover
-    import utils as _utils
+try:
+    from . import utils as _utils
+except ImportError: # pragma: no cover
+    _utils = sys.modules[__package__ + '.utils']
 
 TYPEMAP = {
     'PT_SHORT': PT_SHORT,

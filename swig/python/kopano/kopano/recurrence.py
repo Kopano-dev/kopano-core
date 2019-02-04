@@ -59,18 +59,13 @@ LOCAL = dateutil.tz.tzlocal()
 
 from .attendee import Attendee
 
-if sys.hexversion >= 0x03000000:
-    try:
-        from . import utils as _utils
-    except ImportError: # pragma: no cover
-        _utils = sys.modules[__package__ + '.utils']
+try:
+    from . import utils as _utils
+except ImportError: # pragma: no cover
+    _utils = sys.modules[__package__ + '.utils']
 
-    from . import meetingrequest as _meetingrequest
-    from . import timezone as _timezone
-else: # pragma: no cover
-    import utils as _utils
-    import meetingrequest as _meetingrequest
-    import timezone as _timezone
+from . import meetingrequest as _meetingrequest
+from . import timezone as _timezone
 
 SHORT, LONG = 2, 4
 

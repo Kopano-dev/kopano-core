@@ -12,10 +12,7 @@ import sys
 from .compat import decode as _decode
 from .errors import ConfigError
 
-if sys.hexversion >= 0x03000000:
-    from . import utils as _utils
-else: # pragma: no cover
-    import utils as _utils
+from . import utils as _utils
 
 class ConfigOption:
     def __init__(self, type_, **kwargs):

@@ -26,13 +26,10 @@ from .defs import RIGHT_NAME, NAME_RIGHT
 from .errors import NotFoundError
 from .log import log_exc
 
-if sys.hexversion >= 0x03000000:
-    try:
-        from . import utils as _utils
-    except ImportError: # pragma: no cover
-        _utils = sys.modules[__package__ + '.utils']
-else:
-    import utils as _utils
+try:
+    from . import utils as _utils
+except ImportError: # pragma: no cover
+    _utils = sys.modules[__package__ + '.utils']
 
 def _permissions_dumps(obj, stats=None):
     """ dump permissions for given store or folder """

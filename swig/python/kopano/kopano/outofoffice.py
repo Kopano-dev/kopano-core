@@ -21,13 +21,10 @@ from MAPI.Time import unixtime
 from .compat import repr as _repr, fake_unicode as _unicode
 from .errors import NotFoundError
 
-if sys.hexversion >= 0x03000000:
-    try:
-        from . import utils as _utils
-    except ImportError: # pragma: no cover
-        _utils = sys.modules[__package__ + '.utils']
-else: # pragma: no cover
-    import utils as _utils
+try:
+    from . import utils as _utils
+except ImportError: # pragma: no cover
+    _utils = sys.modules[__package__ + '.utils']
 
 class OutOfOffice(object):
     """OutOfOffice class

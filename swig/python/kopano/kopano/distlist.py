@@ -15,14 +15,6 @@ from .pidlid import (
     PidLidDistributionListOneOffMembers
 )
 
-if sys.hexversion >= 0x03000000:
-    def bval(x):
-        return x
-
-else: # pragma: no cover
-    def bval(x):
-        return ord(x)
-
 WRAPPED_ENTRYID_PREFIX = codecs.decode('00000000C091ADD3519DCF11A4A900AA0047FAA4', 'hex')
 WRAPPED_EID_TYPE_MASK = 0xf
 WRAPPED_EID_TYPE_CONTACT = 3
@@ -40,7 +32,7 @@ class DistList(object):
 
         for i, (member, oneoff) in enumerate(zip(members, oneoffs)):
             pos = len(WRAPPED_ENTRYID_PREFIX)
-            prefix, flags, rest = member[:pos], bval(member[pos]), member[pos+1:]
+            prefix, flags, rest = member[:pos], member[pos], member[pos+1:]
 
             if (prefix == WRAPPED_ENTRYID_PREFIX and \
                 (flags & WRAPPED_EID_TYPE_MASK) == (WRAPPED_EID_TYPE_PERSONAL_DISTLIST)):

@@ -35,16 +35,12 @@ from .pidlid import (
     PidLidTimeZoneStruct, PidLidTimeZoneDescription, PidLidLocation,
     PidLidAppointmentStateFlags, PidLidAppointmentColor,
 )
-if sys.hexversion >= 0x03000000:
-    try:
-        from . import utils as _utils
-    except ImportError: # pragma: no cover
-        _utils = sys.modules[__package__+'.utils']
+try:
+    from . import utils as _utils
+except ImportError: # pragma: no cover
+    _utils = sys.modules[__package__+'.utils']
 
-    from . import timezone as _timezone
-else: # pragma: no cover
-    import utils as _utils
-    import timezone as _timezone
+from . import timezone as _timezone
 
 ALL_DAY_NAME = (PSETID_Appointment, MNID_ID, 0x8215)
 START_NAME = (PSETID_Appointment, MNID_ID, 33293) # TODO use pidlid instead

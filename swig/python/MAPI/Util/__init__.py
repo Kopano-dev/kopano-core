@@ -13,26 +13,11 @@ from MAPI.Struct import *
 # For backward compatibility
 from MAPI.Util.AddressBook import GetUserList
 
-def is_unicode(s):
-    if sys.hexversion >= 0x03000000:
-        return isinstance(s, str)
-    else:
-        return isinstance(s, unicode)
-
-def is_str(s):
-    if sys.hexversion >= 0x03000000:
-        return isinstance(s, bytes)
-    else:
-        return isinstance(s, str)
-
 def to_str(s):
-    if sys.hexversion >= 0x03000000:
-        if isinstance(s, bytes):
-            return s
-        else:
-            return bytes(s, 'ascii')
+    if isinstance(s, bytes):
+        return s
     else:
-        return str(s)
+        return bytes(s, 'ascii')
 
 # flags = 1 == EC_PROFILE_FLAGS_NO_NOTIFICATIONS
 def OpenECSession(user, password, path, **keywords):
@@ -52,15 +37,15 @@ def OpenECSession(user, password, path, **keywords):
         uid = prop.Value
         profprops = list()
         profprops.append(SPropValue(PR_EC_PATH, to_str(path if path else "default:")))
-        if is_unicode(user):
+        if isinstance(user, str):
             profprops.append(SPropValue(PR_EC_USERNAME_W, user))
         else:
-            assert is_str(user)
+            assert isinstance(user, bytes)
             profprops.append(SPropValue(PR_EC_USERNAME_A, user))
-        if is_unicode(password):
+        if isinstance(password, str):
             profprops.append(SPropValue(PR_EC_USERPASSWORD_W, password))
         else:
-            assert is_str(password)
+            assert isinstance(password, bytes)
             profprops.append(SPropValue(PR_EC_USERPASSWORD_A, password))
 
         sslkey_file = keywords.get('sslkey_file')
@@ -76,31 +61,31 @@ def OpenECSession(user, password, path, **keywords):
         profprops.append(SPropValue(PR_EC_FLAGS, flags))
 
         impersonate = keywords.get('impersonate')
-        if impersonate and is_unicode(impersonate):
+        if impersonate and isinstance(impersonate, str):
             profprops.append(SPropValue(PR_EC_IMPERSONATEUSER_W, impersonate))
         elif impersonate:
             profprops.append(SPropValue(PR_EC_IMPERSONATEUSER_A, impersonate))
 
         profprops.append(SPropValue(PR_EC_STATS_SESSION_CLIENT_APPLICATION_VERSION, to_str(sys.version)))
         profprops.append(SPropValue(PR_EC_STATS_SESSION_CLIENT_APPLICATION_MISC, to_str(sys.argv[0])))
-    
+
         admin.ConfigureMsgService(uid, 0, 0, profprops)
-        
+
         session = MAPILogonEx(0,profname,None,0)
     finally:
         profadmin.DeleteProfile(profname, 0)
     return session
-    
+
 def GetDefaultStore(session):
     table = session.GetMsgStoresTable(0)
-    
+
     table.SetColumns([PR_DEFAULT_STORE, PR_ENTRYID], 0)
     rows = table.QueryRows(25,0)
-    
+
     for row in rows:
         if(row[0].ulPropTag == PR_DEFAULT_STORE and row[0].Value):
             return session.OpenMsgStore(0, row[1].Value, None, MDB_WRITE)
-            
+
 def GetPublicStore(session):
     table = session.GetMsgStoresTable(0)
 

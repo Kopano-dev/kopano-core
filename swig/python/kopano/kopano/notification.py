@@ -20,12 +20,8 @@ from MAPI.Tags import (
 from .compat import benc as _benc, bdec as _bdec
 from .errors import NotSupportedError
 
-if sys.hexversion >= 0x03000000:
-    from . import folder as _folder
-    from . import item as _item
-else: # pragma: no cover
-    import folder as _folder
-    import item as _item
+from . import folder as _folder
+from . import item as _item
 
 fnevObjTypeMessage = 0x00010000 # TODO to defs?
 fnevObjTypeFolder = 0x00020000

@@ -70,57 +70,40 @@ from .compat import (
     fake_unicode as _unicode, bdec as _bdec, benc as _benc
 )
 
-if sys.hexversion >= 0x03000000:
-    try:
-        from . import log as _log
-    except ImportError: # pragma: no cover
-        _log = sys.modules[__package__ + '.log']
-    try:
-        from . import user as _user
-    except ImportError: # pragma: no cover
-        _user = sys.modules[__package__ + '.user']
-    try:
-        from . import store as _store
-    except ImportError: # pragma: no cover
-        _store = sys.modules[__package__ + '.store']
-    try:
-        from . import item as _item
-    except ImportError: # pragma: no cover
-        _item = sys.modules[__package__ + '.item']
-    try:
-        from . import utils as _utils
-    except ImportError: # pragma: no cover
-        _utils = sys.modules[__package__ + '.utils']
-    try:
-        from . import ics as _ics
-    except ImportError: # pragma: no cover
-        _ics = sys.modules[__package__ + '.ics']
-    try:
-        from . import notification as _notification
-    except ImportError: # pragma: no cover
-        _notification = sys.modules[__package__ + '.notification']
+try:
+    from . import log as _log
+except ImportError: # pragma: no cover
+    _log = sys.modules[__package__ + '.log']
+try:
+    from . import user as _user
+except ImportError: # pragma: no cover
+    _user = sys.modules[__package__ + '.user']
+try:
+    from . import store as _store
+except ImportError: # pragma: no cover
+    _store = sys.modules[__package__ + '.store']
+try:
+    from . import item as _item
+except ImportError: # pragma: no cover
+    _item = sys.modules[__package__ + '.item']
+try:
+    from . import utils as _utils
+except ImportError: # pragma: no cover
+    _utils = sys.modules[__package__ + '.utils']
+try:
+    from . import ics as _ics
+except ImportError: # pragma: no cover
+    _ics = sys.modules[__package__ + '.ics']
+try:
+    from . import notification as _notification
+except ImportError: # pragma: no cover
+    _notification = sys.modules[__package__ + '.notification']
 
-else: # pragma: no cover
-    import log as _log
-    import user as _user
-    import store as _store
-    import item as _item
-    import utils as _utils
-    import ics as _ics
-    import notification as _notification
+def _unbase64(s):
+    return codecs.decode(codecs.encode(s, 'ascii'), 'base64')
 
-if sys.hexversion >= 0x03000000:
-    def _unbase64(s):
-        return codecs.decode(codecs.encode(s, 'ascii'), 'base64')
-
-    def _base64(s):
-        return codecs.decode(codecs.encode(s, 'base64').strip(), 'ascii')
-else:
-    def _unbase64(s):
-        return s.decode('base64')
-
-    def _base64(s):
-        return s.encode('base64').strip()
+def _base64(s):
+    return codecs.decode(codecs.encode(s, 'base64').strip(), 'ascii')
 
 # TODO generalize, autogenerate basic item getters/setters?
 PROPMAP = {
@@ -930,10 +913,7 @@ class Folder(Properties):
 
     def readmbox(self, location):
         for message in mailbox.mbox(location):
-            if sys.hexversion >= 0x03000000:
-                _item.Item(self, eml=message.as_bytes(unixfrom=True), create=True)
-            else: # pragma: no cover
-                _item.Item(self, eml=message.as_string(unixfrom=True), create=True)
+            _item.Item(self, eml=message.as_bytes(unixfrom=True), create=True)
 
     def mbox(self, location): # FIXME: inconsistent with maildir()
         mboxfile = mailbox.mbox(location)
@@ -951,10 +931,7 @@ class Folder(Properties):
 
     def read_maildir(self, location):
         for message in mailbox.MH(location):
-            if sys.hexversion >= 0x03000000:
-                _item.Item(self, eml=message.as_bytes(unixfrom=True), create=True)
-            else: # pragma: no cover
-                _item.Item(self, eml=message.as_string(unixfrom=True), create=True)
+            _item.Item(self, eml=message.as_bytes(unixfrom=True), create=True)
 
     def read_ics(self, ics):
         """Import a complete ics calendar into the current folder

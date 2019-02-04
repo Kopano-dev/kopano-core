@@ -66,30 +66,23 @@ from .compat import (
     bdec as _bdec, fake_unicode as _unicode, lru_cache as _lru_cache
 )
 
-if sys.hexversion >= 0x03000000:
-    try:
-        from . import user as _user
-    except ImportError: # pragma: no cover
-        _user = sys.modules[__package__ + '.user']
-    try:
-        from . import config as _config
-    except ImportError: # pragma: no cover
-        _config = sys.modules[__package__ + '.config']
-    from . import ics as _ics
-    try:
-        from . import store as _store
-    except ImportError: # pragma: no cover
-        _store = sys.modules[__package__ + '.store']
-    try:
-        from . import utils as _utils
-    except ImportError: # pragma: no cover
-        _utils = sys.modules[__package__ + '.utils']
-else: # pragma: no cover
-    import user as _user
-    import config as _config
-    import ics as _ics
-    import store as _store
-    import utils as _utils
+try:
+    from . import user as _user
+except ImportError: # pragma: no cover
+    _user = sys.modules[__package__ + '.user']
+try:
+    from . import config as _config
+except ImportError: # pragma: no cover
+    _config = sys.modules[__package__ + '.config']
+from . import ics as _ics
+try:
+    from . import store as _store
+except ImportError: # pragma: no cover
+    _store = sys.modules[__package__ + '.store']
+try:
+    from . import utils as _utils
+except ImportError: # pragma: no cover
+    _utils = sys.modules[__package__ + '.utils']
 
 def _timed_cache(seconds=0, minutes=0, hours=0, days=0):
     # used with permission from will mcgugan, https://www.willmcgugan.com
@@ -895,8 +888,8 @@ class Server(object):
         for key, value in table.dict_(PR_DISPLAY_NAME, PR_EC_STATS_SYSTEM_VALUE).items(): # TODO use *_W?
             stats[key] = value
 
-        if sys.hexversion >= 0x03000000: # XXX shouldn't be necessary
-            stats = dict([(s.decode('UTF-8'), stats[s].decode('UTF-8')) for s in stats])
+        # XXX shouldn't be necessary
+        stats = dict([(s.decode('UTF-8'), stats[s].decode('UTF-8')) for s in stats])
 
         return stats
 

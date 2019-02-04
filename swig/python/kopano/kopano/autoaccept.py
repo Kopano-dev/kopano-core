@@ -17,13 +17,10 @@ from MAPI.Defs import HrGetOneProp
 from MAPI.Struct import SPropValue
 from MAPI import MAPI_MODIFY
 
-if sys.hexversion >= 0x03000000:
-    try:
-        from . import utils as _utils
-    except ImportError: # pragma: no cover
-        _utils = sys.modules[__package__ + '.utils']
-else: # pragma: no cover
-    import utils as _utils
+try:
+    from . import utils as _utils
+except ImportError: # pragma: no cover
+    _utils = sys.modules[__package__ + '.utils']
 
 class AutoAccept(object):
     """AutoAccept class"""
