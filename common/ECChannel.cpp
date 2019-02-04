@@ -881,6 +881,7 @@ int ec_listen_inet(const char *szBind, uint16_t ulPort, int *lpulListenSocket)
 		goto exit;
 	}
 	*lpulListenSocket = fd;
+	errno = 0;
 exit:
 	int saved_errno = errno;
 	if (sock_res != NULL)
