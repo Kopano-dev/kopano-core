@@ -9,7 +9,7 @@ import kopano
 
 USER = 'user1'
 
-server = kopano.Server()
+server = kopano.server()
 
 for item in server.user(USER).inbox:
     print(item)

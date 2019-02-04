@@ -107,7 +107,7 @@ def dump_props(props):
 def main():
     parser = kopano.parser('spkuf')
     options, args = parser.parse_args()
-    server = kopano.Server(options=options)
+    server = kopano.server(options=options, parse_args=True)
 
     for user in kopano.users():
         if server.options.folders:

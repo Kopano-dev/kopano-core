@@ -21,7 +21,7 @@ class importer:
     def delete(self, item, flags):
         pass
 
-server = kopano.Server()
+server = kopano.server()
 
 store = server.user(server.options.auth_user).store # auth_user checks -U/--auth-user command-line option
 inbox, junk = store.inbox, store.junk

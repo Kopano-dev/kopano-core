@@ -11,7 +11,7 @@ import kopano
 
 parser = kopano.parser('skpuf')
 options, args = parser.parse_args()
-server = kopano.Server(options)
+server = kopano.server(options, parse_args=True)
 
 for user in server.users():
     if options.folders:

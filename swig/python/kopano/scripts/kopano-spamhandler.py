@@ -21,7 +21,7 @@ def main():
     global delcounter
     learncounter = 0
     (users, allusers, remoteusers, autolearn, autodelete, deleteafter, spamcommand) = getconfig()
-    z = kopano.Server()
+    z = kopano.server(parse_args=True)
     if allusers and not users:
         users = []
         for user in z.users(remote=remoteusers):

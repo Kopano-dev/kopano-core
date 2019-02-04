@@ -15,8 +15,8 @@ from flask import Flask, jsonify, request, Response, make_response, current_app
 
 app = Flask(__name__)
 # TODO: auth with username/password
-server = kopano.Server()
-user = kopano.Server().user('user1')
+server = kopano.server()
+user = kopano.user('user1')
 
 def crossdomain(origin=None, methods=None, headers=None,
                 max_age=21600, attach_to_all=True,

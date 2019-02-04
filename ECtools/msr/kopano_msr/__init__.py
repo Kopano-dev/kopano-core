@@ -433,7 +433,7 @@ class Service(kopano.Service):
         # TODO remove states
 
     def notify_sync(self):
-        server = kopano.Server(notifications=True, options=self.options, parse_args=False) # TODO ugh
+        server = kopano.server(notifications=True, options=self.options) # TODO ugh
 
         while True:
             # check command-line add-user requests

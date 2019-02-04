@@ -17,7 +17,7 @@ class Importer:
     def delete(self, item, flags): # only item.sourcekey is available here!
         pass
 
-server = kopano.Server()
+server = kopano.server()
 folder = server.user(USER).store.folder('Inbox')
 
 folder_state = folder.state

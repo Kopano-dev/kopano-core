@@ -1163,7 +1163,7 @@ def main():
         print('please use: {} --user <username> or \n{} --import-exchange-rules <json file>'.format(sys.argv[0],sys.argv[0]))
         sys.exit(1)
 
-    server = kopano.Server(options)
+    server = kopano.server(options=options)
     if options.user:
         kopano_rule(server=server, user=options.user, listrules=options.listrules, rule=options.rule,
                     state=options.state, emptyRules=options.emptyRules, rulename=options.createrule,

@@ -9,7 +9,7 @@ import codecs
 import kopano
 
 
-server = kopano.Server()
+server = kopano.server()
 if server.options.users:
     user = server.user(server.options.users[0])
     print("X-Kopano-UserEntryID: {}".format(base64.b64encode(codecs.decode(user.userid, 'hex'))))

@@ -70,8 +70,8 @@ def _server(auth_user, auth_pass, oidc=False, reconnect=False):
         reconnect=True
 
     if reconnect:
-        SERVER = kopano.Server(auth_user=auth_user, auth_pass=auth_pass,
-            notifications=True, parse_args=False, oidc=oidc)
+        SERVER = kopano.server(auth_user=auth_user, auth_pass=auth_pass,
+            notifications=True, oidc=oidc)
 
     return SERVER
 

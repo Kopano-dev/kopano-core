@@ -92,8 +92,8 @@ class MailHeader(urwid.Text):
         super(MailHeader, self).__init__(item.sender.name+'\n  '+item.subject[:30])
 
 def main():
-    server = kopano.Server()
-    user = kopano.Server().user(server.options.auth_user)
+    server = kopano.server(parse_args=True)
+    user = kopano.user(server.options.auth_user)
     header = urwid.Text('inbox')
     footer = urwid.Text(FOOT1)
     mail = Mail(user.store.outbox)

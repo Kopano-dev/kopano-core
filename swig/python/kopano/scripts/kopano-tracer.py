@@ -91,7 +91,7 @@ def sync_folders(folders):
 
 def main():
     options, _ = kopano.parser('suf').parse_args()
-    server = kopano.Server(options)
+    server = kopano.server(options=options, parse_args=True)
     if not server.options.users:
         print('No user specified')
         sys.exit(1)

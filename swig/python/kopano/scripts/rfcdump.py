@@ -95,7 +95,7 @@ def main():
         if len(options.users) != 1:
             raise Exception('please specify one user')
         log = logger(options)
-        server = kopano.Server(options=options)
+        server = kopano.server(options=options, parse_args=True)
         if options.restore:
             if len(args) != 1:
                 raise Exception('please specify one directory')

@@ -601,7 +601,7 @@ def main():
         if args:
             raise Exception("extra argument '%s' specified" % args[0])
 
-        server = kopano.Server(options)
+        server = kopano.server(options, parse_args=True)
         check_options(parser, options, server)
 
         global_options(options, server)

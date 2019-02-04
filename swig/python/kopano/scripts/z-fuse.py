@@ -26,7 +26,7 @@ class ZFilesystem(fuse.Fuse):
     def __init__(self, *args, **kw):
         fuse.Fuse.__init__(self, *args, **kw)
 
-        self.server = kopano.Server()
+        self.server = kopano.server()
 
         self.path_object = {} # XXX caching everything, so don't use this on a large account..
 
@@ -90,14 +90,14 @@ class ZFilesystem(fuse.Fuse):
 
         except Exception as e:
             print >>open(LOG, 'a'), traceback.format_exc(e)
- 
+
     def read(self, path, size, offset):
         try:
             print >>open(LOG, 'a'), 'read', path, size, offset
             splitpath = path.split(os.sep)
             last = splitpath[-1]
             parentpath = os.sep.join(splitpath[:-1])
-     
+
             if last == 'eml':
                 item = self.path_object[parentpath]
                 eml = item.eml()
