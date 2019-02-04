@@ -51,7 +51,7 @@ class User(Properties):
 
     def __init__(self, name=None, server=None, email=None, ecuser=None,
                  userid=None):
-        self.server = server or _server.Server()
+        self.server = server or _server.Server(_skip_check=True)
         self._ecuser = None
         self._name = None
 

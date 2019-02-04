@@ -166,7 +166,7 @@ Encapsulates everything to create a simple service, such as:
     @property
     def server(self):
         if self._server is None:
-            self._server = _server.Server(options=self.options, config=self.config.data, log=self.log, service=self)
+            self._server = _server.Server(options=self.options, config=self.config.data, log=self.log, service=self, _skip_check=True)
         return self._server
 
     def start(self):
@@ -202,7 +202,7 @@ class Worker(Process):
     @property
     def server(self):
         if self._server is None:
-            self._server = _server.Server(options=self.service.options, config=self.service.config, log=self.service.log, service=self.service)
+            self._server = _server.Server(options=self.service.options, config=self.service.config, log=self.service.log, service=self.service, _skip_check=True)
         return self._server
 
     def main(self):

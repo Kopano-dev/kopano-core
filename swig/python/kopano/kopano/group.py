@@ -34,7 +34,7 @@ class Group(Properties):
     """Group class."""
 
     def __init__(self, name, server=None):
-        self.server = server or _server.Server()
+        self.server = server or _server.Server(_skip_check=True)
         self._name = _unicode(name)
         try:
             self._ecgroup = self.server.sa.GetGroup(self.server.sa.ResolveGroupName(self._name, MAPI_UNICODE), MAPI_UNICODE)
