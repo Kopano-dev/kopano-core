@@ -261,8 +261,7 @@ static std::string rst2flt_main(const restrictTable *rt,
 {
 	/* Transform a restriction into an LDAP filter. It need not be exact:
 	 * matching more is always ok. */
-	//(gdb) p/x lpsRestrict[0].lpOr[0].__ptr[3][0].lpContent[0].ulPropTag
-	//$14 = 0x3003001e
+	static const char always_true[] = "(objectClass=*)", always_false[] = "(!(objectClass=*))";
 	switch (rt->ulType) {
 	case RES_OR:
 		return rst2flt_or(rt->lpOr, propmap, inot);
@@ -273,10 +272,10 @@ static std::string rst2flt_main(const restrictTable *rt,
 	case RES_COMMENT:
 		return rst2flt_main(rt->lpComment->lpResTable, propmap, inot);
 	case RES_SUBRESTRICTION:
-		return "(|)"; /* userdb has no concept of "sub" */
+		return always_true; /* userdb has no concept of "sub" */
 	case RES_EXIST: {
 		auto i = propmap.find(PROP_ID(rt->lpExist->ulPropTag));
-		return i == propmap.cend() ? "(|)"s : "(" + i->second + "=*)";
+		return i == propmap.cend() ? std::string(always_true) : "(" + i->second + "=*)";
 	}
 	case RES_CONTENT:
 		break;
@@ -287,13 +286,13 @@ static std::string rst2flt_main(const restrictTable *rt,
 		 * "Indefinite" values need to evaluate to "true" in the
 		 * outermost expression such that they do not filter rows.
 		 */
-		return inot ? "(|)" : "(&)";
+		return inot ? always_true : always_false;
 	}
 	auto q = rt->lpContent;
 	auto pv = q->lpProp;
 	auto pt = propmap.find(PROP_ID(pv->ulPropTag));
 	if (pt == propmap.cend())
-		return "(|)";
+		return always_true;
 	std::string flt = "(" + pt->second + "=";
 	if (PROP_TYPE(pv->ulPropTag) != PT_STRING8)
 		/* Not supporting non-string checks yet */
