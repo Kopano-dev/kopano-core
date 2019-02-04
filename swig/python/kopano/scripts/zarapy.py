@@ -37,7 +37,7 @@ class ZaraPy(object):
                 html = html + "<tr><td>" + str(props.idname) + "</td><td>" +  "</td><td>" + str(props.value.encode('hex').upper()) + "</td><tr>\n"
             else:
                 html = html + "<tr><td>" + str(props.idname) + "</td><td>" + "</td><td>" + str(props.value) + "</td><tr>\n"
-    
+
         html = html + '</table></html>\n'
         return html
 
@@ -58,7 +58,7 @@ class ZaraPy(object):
             html = html + "<table><tr><th>item.subject</th><th>item.entryid</th><tr>\n"
             for folder in kopano.server().company(company['company']).user(user['user']).store.folders():
                 html = html + "<tr><td><a href=/listfolders/%s/%s/%s>%s</a></td><td>%s</td><tr>\n" %( company['company'],user['user'],folder.entryid,folder.name,folder.entryid)
-        
+
         html = html + '</table></html>\n'
 
         return html
@@ -88,7 +88,7 @@ class ZaraPy(object):
                                         html = html + "<table><tr><td>%s</td><td>%s</td><tr>\n" % ( prop.name , str(prop.value))
                                     except:
                                         pass
-        
+
         html = html + '</table></html>\n'
 
         return html

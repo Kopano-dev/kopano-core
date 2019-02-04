@@ -138,7 +138,7 @@ class Service(kopano.Service):
             userplugin['message'] = message
 
 def main():
-    parser = kopano.parser('ckpsF')
+    parser = kopano.parser('CKQSF')
     options, args = parser.parse_args()
     Service('presence', config=CONFIG, options=options).start()
 

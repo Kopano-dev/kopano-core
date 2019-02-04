@@ -533,7 +533,7 @@ class Service(kopano.Service):
 
 def main():
     # select common options
-    parser = kopano.parser('uclFw')
+    parser = kopano.parser('uClFw')
 
     # custom options
     parser.add_option('--add', dest='add', action='store_true', help='Add user')

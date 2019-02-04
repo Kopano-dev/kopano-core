@@ -100,7 +100,7 @@ class Module(object):
     @property
     def _server(self):
         if not self.__server:
-            self.__server = Server(_skip_check=True)
+            self.__server = Server(_skip_check=True, parse_args=False)
         return self.__server
 
     @property # this is the reason we need a class

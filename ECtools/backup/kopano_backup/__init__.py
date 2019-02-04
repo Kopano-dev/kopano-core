@@ -930,7 +930,7 @@ def dump_props(props, stats, log):
 
 def main():
     # select common options
-    parser = kopano.parser('ckpsufwUPCSlObeV', usage='kopano-backup [PATH] [options]')
+    parser = kopano.parser('CKQSufwUPcslObeV', usage='kopano-backup [PATH] [options]')
 
     # add custom options
     parser.add_option('', '--skip-junk', dest='skip_junk', action='store_true', help='skip junk folder')

@@ -495,7 +495,7 @@ def create_mapping(args, options):
 
 
 def main():
-    parser = kopano.parser('cflskpUPuS', usage='kopano-migration-pst PATH [-u NAME]')
+    parser = kopano.parser('CflSKQUPus', usage='kopano-migration-pst PATH [-u NAME]')
     parser.add_option('', '--stats', dest='stats', action='store_true', help='list folders for PATH')
     parser.add_option('', '--index', dest='index', action='store_true', help='list items for PATH')
     parser.add_option('', '--import-root', dest='import_root', action='store', help='import under specific folder', metavar='PATH')

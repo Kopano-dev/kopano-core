@@ -61,7 +61,7 @@ def add_time(senddb, username, to):
         db[key] = str(int(time.time()))
 
 def main():
-    parser = kopano.parser("cskp", usage="Usage: %prog [options] from to subject username msgfile")
+    parser = kopano.parser("CSKQ", usage="Usage: %prog [options] from to subject username msgfile")
     options, args = parser.parse_args()
 
     if len(args) != 5:

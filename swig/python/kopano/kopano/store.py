@@ -109,7 +109,7 @@ class Store(Properties):
     """Store class"""
 
     def __init__(self, guid=None, entryid=None, mapiobj=None, server=None):
-        self.server = server or _server.Server(_skip_check=True)
+        self.server = server or _server.Server(_skip_check=True, parse_args=False)
 
         if guid:
             mapiobj = self.server._store(guid)

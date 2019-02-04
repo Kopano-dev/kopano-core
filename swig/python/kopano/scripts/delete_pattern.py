@@ -7,7 +7,7 @@
 
 import kopano
 
-options, args = kopano.parser('cskpUPufm').parse_args()
+options, args = kopano.parser('CSKQUPufm').parse_args()
 assert args, 'please specify search pattern'
 
 server = kopano.server(parse_args=True, options=options)

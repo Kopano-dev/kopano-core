@@ -28,7 +28,7 @@ def logger(options):
     return logging.getLogger('rfcdump')
 
 def opt_args():
-    parser = kopano.parser('skpul')
+    parser = kopano.parser('SKQul')
     parser.add_option('', '--restore', dest='restore', action='store_true', help='restore from backup')
     return parser.parse_args()
 

@@ -49,7 +49,7 @@ class Company(Properties):
     """Company class"""
 
     def __init__(self, name, server=None):
-        self.server = server or _server.Server(_skip_check=True)
+        self.server = server or _server.Server(_skip_check=True, parse_args=False)
 
         self._name = name = _unicode(name)
         if name != u'Default': # XXX

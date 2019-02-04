@@ -9,7 +9,7 @@ import sys
 import time
 import kopano
 
-parser = kopano.parser('skpc', usage='loadsim [options]')
+parser = kopano.parser('SKQC', usage='loadsim [options]')
 parser.add_option('-u', '--user', dest='user', action='store', help='user to send mails to')
 parser.add_option('-N', '--n-write-workers', dest='n_write_workers', action='store', help='number of write workers to start', default=1)
 parser.add_option('-n', '--n-read-workers', dest='n_read_workers', action='store', help='number of read workers to start', default=1)

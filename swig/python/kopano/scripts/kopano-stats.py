@@ -129,7 +129,7 @@ def top(scr, server):
         time.sleep(1)
 
 def opt_args():
-    parser = kopano.parser('skpc')
+    parser = kopano.parser('SKQC')
     parser.add_option('--system', dest='system', action='store_true',  help='Gives information about threads, SQL and caches')
     parser.add_option('--users', dest='users', action='store_true', help='Gives information about users, store sizes and quotas')
     parser.add_option('--company', dest='company', action='store_true', help='Gives information about companies, company sizes and quotas')

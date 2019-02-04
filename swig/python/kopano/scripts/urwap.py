@@ -72,7 +72,7 @@ class Mail(urwid.BoxWidget):
         field.set_edit_text('\n\n'+'\n'.join('> '+l for l in (self.item.text or u'').splitlines())+'\n\n')
         self.contents[0] = field
         self.edit = True
-    
+
     def render(self, size, focus=False):
         return self.listbox.render(size, focus)
 

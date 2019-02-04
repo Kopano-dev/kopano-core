@@ -105,7 +105,7 @@ def dump_props(props):
             print(prop, _encode(prop.strval))
 
 def main():
-    parser = kopano.parser('spkuf')
+    parser = kopano.parser('SPQuf')
     options, args = parser.parse_args()
     server = kopano.server(options=options, parse_args=True)
 

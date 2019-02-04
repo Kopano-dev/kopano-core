@@ -13,7 +13,7 @@ import kopano
 from kopano.parser import _true, _int, _name, _guid, _bool, _list_name, _date, _path
 
 def parser_opt_args():
-    parser = kopano.parser('skpcuGCfVUPS')
+    parser = kopano.parser('SKQCugcfVUPs')
     parser.add_option('--debug', help='Debug mode', **_true())
     parser.add_option('--lang', help='Create folders in this language')
     parser.add_option('--create', help='Create object', **_true())

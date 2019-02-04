@@ -67,7 +67,7 @@ def _date():
 def _list_name():
     return _callback(callback=parse_list_str, default=[], metavar='NAME')
 
-def parser(options='cskpUPufmvCGSlbe', usage=None):
+def parser(options='CSKQUPufmvcgslbe', usage=None):
     """
 Return OptionParser instance from the standard ``optparse`` module,
 containing common kopano command-line options
@@ -76,25 +76,27 @@ containing common kopano command-line options
 
 Available options:
 
--c, --config: Path to configuration file
+-C, --config: Path to configuration file
 
--s, --server-socket: Storage server socket address
+-S, --server-socket: Storage server socket address
 
--k, --sslkey-file: SSL key file
+-K, --sslkey-file: SSL key file
 
--p, --sslkey-password: SSL key password
+-Q, --sslkey-password: SSL key passphrase
 
 -U, --auth-user: Login as user
 
 -P, --auth-pass: Login with password
 
--C, --company: Run program for specific company
+-c, --company: Run program for specific company
 
 -u, --user: Run program for specific user
 
--S, --store: Run program for specific store
+-s, --store: Run program for specific store
 
 -f, --folder: Run program for specific folder
+
+-g, --group: Run program for specific group
 
 -b, --period-begin: Run program for specific period
 
@@ -124,28 +126,28 @@ Available options:
     kw_date = _callback(callback=parse_date)
     kw_list_str = _callback(callback=parse_list_str)
 
-    if 'c' in options:
+    if 'C' in options:
         parser.add_option(
-            '-c', '--config', dest='config_file',
+            '-C', '--config', dest='config_file',
             help='load settings from FILE', metavar='FILE', **kw_str
         )
 
-    if 's' in options:
+    if 'S' in options:
         parser.add_option(
-            '-s', '--server-socket', dest='server_socket',
+            '-S', '--server-socket', dest='server_socket',
             help='connect to server SOCKET', metavar='SOCKET', **kw_str
         )
 
-    if 'k' in options:
+    if 'K' in options:
         parser.add_option(
-            '-k', '--ssl-key', dest='sslkey_file',
+            '-K', '--ssl-key', dest='sslkey_file',
             help='SSL key file', metavar='FILE', **kw_str
         )
 
-    if 'p' in options:
+    if 'Q' in options:
         parser.add_option(
-            '-p', '--ssl-pass', dest='sslkey_pass',
-            help='SSL key password', metavar='PASS', **kw_str
+            '-Q', '--ssl-pass', dest='sslkey_pass',
+            help='SSL key passphrase', metavar='PASS', **kw_str
         )
 
     if 'U' in options:
@@ -160,15 +162,15 @@ Available options:
             help='login with password', metavar='PASS', **kw_str
         )
 
-    if 'G' in options:
+    if 'g' in options:
         parser.add_option(
-            '-G', '--group', dest='groups', default=[],
+            '-g', '--group', dest='groups', default=[],
             help='Specify group', metavar='NAME', **kw_list_str
         )
 
-    if 'C' in options:
+    if 'c' in options:
         parser.add_option(
-            '-C', '--company', dest='companies', default=[],
+            '-c', '--company', dest='companies', default=[],
             help='Specify company', metavar='NAME', **kw_list_str
         )
 
@@ -178,9 +180,9 @@ Available options:
             help='Specify user', metavar='NAME', **kw_list_str
         )
 
-    if 'S' in options:
+    if 's' in options:
         parser.add_option(
-            '-S', '--store', dest='stores', default=[],
+            '-s', '--store', dest='stores', default=[],
             help='Specify store', metavar='GUID', **kw_list_str
         )
 
