@@ -56,7 +56,7 @@ private:
 	int fd;
 	SSL *lpSSL = nullptr;
 	static SSL_CTX *lpCTX;
-	char peer_atxt[256+16];
+	char peer_atxt[280];
 	struct sockaddr_storage peer_sockaddr;
 	socklen_t peer_salen = 0;
 
