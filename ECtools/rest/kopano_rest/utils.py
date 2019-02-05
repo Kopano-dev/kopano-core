@@ -133,6 +133,8 @@ def _server_store(req, userid, options):
         server = _server(req, options)
         store = _store(server, userid)
         return server, store
+    except (kopano.NotFoundError, kopano.ArgumentError):
+        raise falcon.HTTPNotFound(description="The user wasn't found")
     except Exception:
         raise falcon.HTTPForbidden('Unauthorized', None)
 

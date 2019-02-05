@@ -6,6 +6,7 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
+import binascii
 import sys
 
 from MAPI import (
@@ -33,7 +34,9 @@ from .quota import Quota
 from .defs import (
     ACTIVE_USER, NONACTIVE_USER,
 )
-from .errors import Error, NotFoundError, NotSupportedError, DuplicateError
+from .errors import (
+    Error, NotFoundError, NotSupportedError, DuplicateError, ArgumentError
+)
 from .compat import (
     fake_unicode as _unicode, benc as _benc, bdec as _bdec,
 )
@@ -61,6 +64,8 @@ class User(Properties):
         elif userid:
             try:
                 self._ecuser = self.server.sa.GetUser(_bdec(userid), MAPI_UNICODE)
+            except (binascii.Error, TypeError): # TODO generalize?
+                raise ArgumentError("invalid entryid: '%s'" % userid)
             except MAPIErrorNotFound:
                 raise NotFoundError("no user found with userid '%s'" % userid)
 
