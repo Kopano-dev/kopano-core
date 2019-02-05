@@ -823,8 +823,11 @@ int ec_listen_inet(const char *szBind, uint16_t ulPort, int *lpulListenSocket)
 		sock_last = sock_addr;
 		fd = socket(sock_addr->ai_family, sock_addr->ai_socktype,
 		     sock_addr->ai_protocol);
-		if (fd < 0)
+		if (fd < 0) {
+			if (errno != EAFNOSUPPORT)
+				break;
 			continue;
+		}
 
 		if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR,
 		    reinterpret_cast<const char *>(&opt), sizeof(opt)) < 0)
@@ -878,6 +881,7 @@ int ec_listen_inet(const char *szBind, uint16_t ulPort, int *lpulListenSocket)
 		goto exit;
 	}
 	*lpulListenSocket = fd;
+	errno = 0;
 exit:
 	int saved_errno = errno;
 	if (sock_res != NULL)
