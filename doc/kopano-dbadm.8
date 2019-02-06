@@ -20,8 +20,8 @@ This is an alias for the combination of: index\-tags, np\-remove\-highid,
 np\-remove\-unused, np\-repair\-dups, np\-defrag, rm\-helper\-index. It may be
 used to address the K-1216 issue that kopano\-server(8) may report when
 performing a schema update. If the tag indices already exist, harmless warnings
-will show, but the indices will be used and left as-is after the k\-1216 action
-is done.
+will be shown by kopano\-dbadm, but the indices will be used and left as-is
+after the k\-1216 action is done.
 .SS kc\-1375
 .PP
 Deletes all cached IMAP Envelopes that show signs of having address lists with
@@ -45,7 +45,8 @@ Remove all named property mappings that have zero use counts in other tables.
 kopano\-dagent(8) used to index all X-Headers from Internet e-mails by default,
 but administrators may not have needed this information in the first place. By
 using np\-remove\-xh, all named properties whose name starts with "X\-" and
-have GUID=PS_INTERNET_HEADERS are removed. np\-defrag should be run afterwards.
+have GUID=PS_INTERNET_HEADERS are removed. Afterwards, `kopano\-dbadm
+np\-defrag` should be run.
 .SS np\-repair\-dups
 .PP
 Repairs duplicate named properties (only IDs below or equal to 31485).
@@ -67,11 +68,16 @@ This is an alias for the combination of: usmp\-shrink\-columns, usmp\-charset.
 .SS usmp-charset
 .PP
 Convert the database to utf8mb4 to support the Unicode Supplemental Plane,
-better known for Emoji characters.
+better known for Emoji characters. This action can be executed while
+kopano\-server is active, though the SQL server may queue/block
+database write operations, rendering the server practically
+unavailable.
 .SS usmp-shrink-columns
 .PP
 A number of table columns will be shrunk to accomodate certain MySQL index
-limits.
+limits. This action can be executed while kopano\-server is active,
+though the SQL server may queue/block database write operations,
+rendering the server practically unavailable.
 .SH Performance
 .PP
 Totally depends on the amount of data that needs to be moved. MySQL also seems
