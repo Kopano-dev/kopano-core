@@ -2259,26 +2259,32 @@ ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature,
 	case ACTIVE_USER:
 	case NONACTIVE_USER:
 	case NONACTIVE_ROOM:
-	case NONACTIVE_EQUIPMENT:
+	case NONACTIVE_EQUIPMENT: {
+		auto script = m_lpConfig->GetSetting("createuser_script");
+		if (*script == '\0')
+			break;
 		strUserServer = details.GetPropString(OB_PROP_S_SERVERNAME);
 		if (!bDistributed || strcasecmp(strUserServer.c_str(), strThisServer.c_str()) == 0)
-			execute_script(m_lpConfig->GetSetting("createuser_script"),
-						   "KOPANO_USER", details.GetPropString(OB_PROP_S_LOGIN).c_str(),
-						   NULL);
+			execute_script(script, "KOPANO_USER", details.GetPropString(OB_PROP_S_LOGIN).c_str(), nullptr);
 		break;
+	}
 	case DISTLIST_GROUP:
-	case DISTLIST_SECURITY:
-		execute_script(m_lpConfig->GetSetting("creategroup_script"),
-					   "KOPANO_GROUP", details.GetPropString(OB_PROP_S_LOGIN).c_str(),
-					   NULL);
+	case DISTLIST_SECURITY: {
+		auto script = m_lpConfig->GetSetting("creategroup_script");
+		if (*script == '\0')
+			break;
+		execute_script(script, "KOPANO_GROUP", details.GetPropString(OB_PROP_S_LOGIN).c_str(), nullptr);
 		break;
-	case CONTAINER_COMPANY:
+	}
+	case CONTAINER_COMPANY: {
+		auto script = m_lpConfig->GetSetting("createcompany_script");
+		if (*script == '\0')
+			break;
 		strUserServer = details.GetPropString(OB_PROP_S_SERVERNAME);
 		if (!bDistributed || strcasecmp(strUserServer.c_str(), strThisServer.c_str()) == 0)
-			execute_script(m_lpConfig->GetSetting("createcompany_script"),
-						   "KOPANO_COMPANY", details.GetPropString(OB_PROP_S_FULLNAME).c_str(),
-						   NULL);
+			execute_script(script, "KOPANO_COMPANY", details.GetPropString(OB_PROP_S_FULLNAME).c_str(), nullptr);
 		break;
+	}
 	default:
 		break;
 	}
@@ -2731,7 +2737,10 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 	case ACTIVE_USER:
 	case NONACTIVE_USER:
 	case NONACTIVE_ROOM:
-	case NONACTIVE_EQUIPMENT:
+	case NONACTIVE_EQUIPMENT: {
+		auto script = m_lpConfig->GetSetting("deleteuser_script");
+		if (*script == '\0')
+			break;
 		strQuery = "SELECT HEX(guid) FROM stores WHERE user_id=" + stringify(ulObjectId);
 		er = lpDatabase->DoSelect(strQuery, &lpResult);
 		if(er != erSuccess)
@@ -2744,21 +2753,24 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 			ec_log_err("ECUserManagement::DeleteLocalObject(): column null");
 			return KCERR_DATABASE_ERROR; /* setting er, has effect for ~kd_trans */
 		}
-		execute_script(m_lpConfig->GetSetting("deleteuser_script"),
-					   "KOPANO_STOREGUID", lpRow[0],
-					   NULL);
+		execute_script(script, "KOPANO_STOREGUID", lpRow[0], nullptr);
 		break;
+	}
 	case DISTLIST_GROUP:
-	case DISTLIST_SECURITY:
-		execute_script(m_lpConfig->GetSetting("deletegroup_script"),
-					   "KOPANO_GROUPID", stringify(ulObjectId).c_str(),
-					   NULL);
+	case DISTLIST_SECURITY: {
+		auto script = m_lpConfig->GetSetting("deletegroup_script");
+		if (*script == '\0')
+			break;
+		execute_script(script, "KOPANO_GROUPID", stringify(ulObjectId).c_str(), nullptr);
 		break;
-	case CONTAINER_COMPANY:
-		execute_script(m_lpConfig->GetSetting("deletecompany_script"),
-					   "KOPANO_COMPANYID", stringify(ulObjectId).c_str(),
-					   NULL);
+	}
+	case CONTAINER_COMPANY: {
+		auto script = m_lpConfig->GetSetting("deletecompany_script");
+		if (*script == '\0')
+			break;
+		execute_script(script, "KOPANO_COMPANYID", stringify(ulObjectId).c_str(), nullptr);
 		break;
+	}
 	default:
 		break;
 	}
