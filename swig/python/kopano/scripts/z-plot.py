@@ -22,9 +22,9 @@ def b2m(bytes):
 
 def main():
     options, args = opt_args()
-    users = list(kopano.Server(options).users())
+    users = list(kopano.server(options=options, parse_args=True).users())
 
-    fig, ax = plt.subplots() 
+    fig, ax = plt.subplots()
 
     if options.store:
         data = {user.name: b2m(user.store.size) for user in users}

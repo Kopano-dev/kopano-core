@@ -13,10 +13,10 @@ class ZaraPy(object):
     def index(self):
         html ='<html>'
 
-        for company in kopano.Server().companies():
+        for company in kopano.server().companies():
             html = html + '<table>'
             html = html + "<tr><th>company.name</th><th>user.name </th><th> user.store.guid</th><th>user.server.name</th><tr>\n"
-            for user in kopano.Server().company(company.name).users():
+            for user in kopano.server().company(company.name).users():
                 html = html + "<tr><td>" + company.name + "</td><td><a href=/viewuser/"+ company.name + "/" + user.name + ">" + user.name + "</a><td><a href=/listfolders/"+ company.name + "/" + user.name + ">Folders</a></td></td><td>" + user.store.guid + "</td><td>" + user.server.name + "</td><tr>\n"
             html = html + '</table>\n'
 
@@ -32,7 +32,7 @@ class ZaraPy(object):
         html = '<html><h1>Company: %s <br>User: %s</h1>' % (company['company'],user['user'])
         html = html + "<table><tr><th>prop.idname</th><th>prop.proptype</th><th>prop.value</th><tr>\n"
 
-        for props in kopano.Server().company(company['company']).user(user['user']).props():
+        for props in kopano.server().company(company['company']).user(user['user']).props():
             if props.typename == 'PT_BINARY':
                 html = html + "<tr><td>" + str(props.idname) + "</td><td>" +  "</td><td>" + str(props.value.encode('hex').upper()) + "</td><tr>\n"
             else:
@@ -50,13 +50,13 @@ class ZaraPy(object):
         html = '<html><h1>Company: %s <br>User: %s</h1>' % (company['company'],user['user'])
         if foldername['folder']:
             html = html + "<table><tr><th>item.subject</th><th>item.entryid</th><tr>\n"
-            for folder in kopano.Server().company(company['company']).user(user['user']).store.folders():
+            for folder in kopano.server().company(company['company']).user(user['user']).store.folders():
                 if folder.entryid == foldername['folder']:
                     for item in folder.items():
                         html = html + "<tr><td><a href=/listitem/%s/%s/%s/%s>%s</a></td><td>%s</td><tr>\n" %( company['company'],user['user'],folder.entryid,item.entryid.encode('hex'),item.subject.encode("utf-8"),item.entryid.encode('hex'))
         else:
             html = html + "<table><tr><th>item.subject</th><th>item.entryid</th><tr>\n"
-            for folder in kopano.Server().company(company['company']).user(user['user']).store.folders():
+            for folder in kopano.server().company(company['company']).user(user['user']).store.folders():
                 html = html + "<tr><td><a href=/listfolders/%s/%s/%s>%s</a></td><td>%s</td><tr>\n" %( company['company'],user['user'],folder.entryid,folder.name,folder.entryid)
         
         html = html + '</table></html>\n'
@@ -75,7 +75,7 @@ class ZaraPy(object):
         #html = html + "<table><tr><th>prop.name</th><th>prop.value</th><tr>\n"
         if itemname['item']:
             #html = html + "<table><tr><th>item.subject</th><th>item.entryid</th><tr>\n"
-            for folder in kopano.Server().company(company['company']).user(user['user']).store.folders():
+            for folder in kopano.server().company(company['company']).user(user['user']).store.folders():
                 if folder.entryid == foldername['folder']:
                     for item in folder.items():
                         print("curr %s" , item.entryid.encode('hex'))

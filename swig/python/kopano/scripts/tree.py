@@ -7,11 +7,10 @@
 
 import kopano
 
-server = kopano.Server()
-for company in server.companies(): # checks -c/--company command-line option
+server = kopano.server(parse_args=True)
+for company in server.companies():
     print(company)
-    for user in company.users(): # checks -u/--user command-line option
-                                 # server.users() gives all users
+    for user in company.users():
          print('  ' + user.name)
          for folder in user.store.folders():
              indent = (folder.depth + 2) * '  '

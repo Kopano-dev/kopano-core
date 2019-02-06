@@ -33,7 +33,7 @@ def read_worker():
 	while True:
 		try:
 			if o.restart_session == True or server == None or (o.random_restart_session and random.randint(0, 1) == 1):
-				server = kopano.Server(o)
+				server = kopano.server(o)
 
 			u = server.user(o.user)
 			for folder in u.store.folders():
@@ -53,7 +53,7 @@ def write_worker():
 	while True:
 		try:
 			if o.restart_session == True or server == None or (o.random_restart_session and random.randint(0, 1) == 1):
-				server = kopano.Server(o)
+				server = kopano.server(o)
 
 			item = server.user(o.user).store.inbox.create_item(eml = eml_file_data)
 

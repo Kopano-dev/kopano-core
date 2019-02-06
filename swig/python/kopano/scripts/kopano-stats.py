@@ -143,13 +143,13 @@ def main():
     options, args = opt_args()
     if options.top:
         try:
-            curses.wrapper(top, kopano.Server(options))
+            curses.wrapper(top, kopano.server(options=options, parse_args=True))
         except KeyboardInterrupt:
             sys.exit(-1)
     else:
         for option, (table, sort) in TABLES.items():
             if getattr(options, option):
-                table = kopano.Server(options).table(table)
+                table = kopano.server(options=options, parse_args=True).table(table)
                 table.sort(sort)
                 print(table.csv(delimiter=';') if options.dump else table.text())
 

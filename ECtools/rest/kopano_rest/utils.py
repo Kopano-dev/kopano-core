@@ -73,10 +73,10 @@ def _server(req, options):
         sessiondata = TOKEN_SESSION.get(token)
         if sessiondata:
             mapisession = kc_session_restore(sessiondata[0])
-            server = kopano.Server(mapisession=mapisession, parse_args=False)
+            server = kopano.server(mapisession=mapisession)
         else:
-            server = kopano.Server(auth_user=auth['userid'], auth_pass=token,
-                                   parse_args=False, oidc=True)
+            server = kopano.server(auth_user=auth['userid'], auth_pass=token,
+                                   oidc=True)
             sessiondata = kc_session_save(server.mapisession)
             now = time.time()
             TOKEN_SESSION[token] = (sessiondata, now)
@@ -90,8 +90,7 @@ def _server(req, options):
         return server
 
     elif auth['method'] == 'basic':
-        return kopano.Server(auth_user=auth['user'], auth_pass=auth['password'],
-            parse_args=False)
+        return kopano.server(auth_user=auth['user'], auth_pass=auth['password'])
 
     # TODO remove
     elif auth['method'] == 'passthrough': # pragma: no cover
@@ -99,11 +98,11 @@ def _server(req, options):
         sessiondata = USERID_SESSION.get(userid)
         if sessiondata:
             mapisession = kc_session_restore(sessiondata)
-            server = kopano.Server(mapisession=mapisession, parse_args=False)
+            server = kopano.server(mapisession=mapisession)
         else:
             username = _username(auth['userid'])
-            server = kopano.Server(auth_user=username, auth_pass='',
-                                   parse_args=False, store_cache=False)
+            server = kopano.server(auth_user=username, auth_pass='',
+                                   store_cache=False)
             sessiondata = kc_session_save(server.mapisession)
             USERID_SESSION[userid] = sessiondata
         return server
@@ -118,7 +117,7 @@ def _username(userid): # pragma: no cover
         reconnect = True
 
     if reconnect:
-        SERVER = kopano.Server(parse_args=False, store_cache=False)
+        SERVER = kopano.server(store_cache=False)
     return SERVER.user(userid=userid).name
 
 def _store(server, userid):

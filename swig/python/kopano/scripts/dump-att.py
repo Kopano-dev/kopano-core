@@ -11,10 +11,10 @@ import md5
 import kopano
 from MAPI.Util import *
 
-server = kopano.Server()
+server = kopano.server(parse_args=True)
 
-for user in server.users(): # checks command-line for -u/--user
-    for folder in user.store.folders(): # checks command-line for -f/--folder
+for user in server.users():
+    for folder in user.store.folders():
         for item in folder:
             for att in item.attachments():
                 h = md5.new(item.subject + ' ' + att.filename + ' ' + item.sourcekey).hexdigest()

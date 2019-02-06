@@ -8,7 +8,7 @@ from MAPI.Tags import PR_EC_IMAP_EMAIL_SIZE, PR_EC_IMAP_BODYSTRUCTURE, PR_EC_IMA
 from MAPI.Struct import MAPIErrorNotFound, SNotRestriction, SExistRestriction
 import inetmapi
 
-from kopano import Restriction, Server, parser
+from kopano import Restriction, server, parser
 
 
 def logger(options):
@@ -31,10 +31,10 @@ def generate_imap_message(item):
 def main():
     options, _ = parser('ksplu').parse_args()
     log = logger(options)
-    server = Server(options=options, auth_user='SYSTEM', auth_pass='')
+    server = server(options=options, auth_user='SYSTEM', auth_pass='', parse_args=True)
     restriction = Restriction(mapiobj=SNotRestriction(SExistRestriction(PR_EC_IMAP_EMAIL_SIZE)))
 
-    for user in server.users(parse=True):  # XXX multi-company..
+    for user in server.users():  # XXX multi-company..
         # Skip users without IMAP enabled
         if not 'imap' in user.features:
             log.info('Skipping user %s, IMAP disabled', user.name)

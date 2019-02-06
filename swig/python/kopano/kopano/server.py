@@ -15,6 +15,7 @@ import os
 import time
 import socket
 import sys
+import warnings
 
 from MAPI import (
     MAPI_UNICODE, MDB_WRITE, RELOP_EQ,
@@ -50,7 +51,7 @@ from MAPI.Tags import (
 
 from .errors import (
     Error, NotFoundError, DuplicateError, NotSupportedError,
-    LogonError, ArgumentError
+    LogonError, ArgumentError, _DeprecationWarning
 )
 from .log import LOG, _loglevel
 
@@ -184,7 +185,7 @@ if os.getenv('ZCPSRCDIR'):
 class Server(object):
     """Server class"""
 
-    def __init__(self, options=None, config=None, sslkey_file=None, sslkey_pass=None, server_socket=None, auth_user=None, auth_pass=None, log=None, service=None, mapisession=None, parse_args=True, notifications=False, store_cache=True, oidc=False):
+    def __init__(self, options=None, config=None, sslkey_file=None, sslkey_pass=None, server_socket=None, auth_user=None, auth_pass=None, log=None, service=None, mapisession=None, parse_args=True, notifications=False, store_cache=True, oidc=False, _skip_check=False):
         """
         Create Server instance.
 
@@ -219,6 +220,9 @@ class Server(object):
             self.log = LOG
         self.mapisession = mapisession
         self.store_cache = store_cache
+
+        if not _skip_check:
+            warnings.warn('use kopano.server instead of kopano.Server', _DeprecationWarning)
 
         if not self.mapisession:
             # get cmd-line options
@@ -329,7 +333,7 @@ class Server(object):
 
     def nodes(self): # XXX delay mapi sessions until actually needed
         for row in self.table(PR_EC_STATSTABLE_SERVERS).dict_rows():
-            yield Server(options=self.options, config=self.config, sslkey_file=self.sslkey_file, sslkey_pass=self.sslkey_pass, server_socket=codecs.decode(row[PR_EC_STATS_SERVER_HTTPSURL], 'utf-8'), log=self.log, service=self.service)
+            yield Server(options=self.options, config=self.config, sslkey_file=self.sslkey_file, sslkey_pass=self.sslkey_pass, server_socket=codecs.decode(row[PR_EC_STATS_SERVER_HTTPSURL], 'utf-8'), log=self.log, service=self.service, _skip_check=True)
 
     def table(self, name, restriction=None, order=None, columns=None):
         return Table(

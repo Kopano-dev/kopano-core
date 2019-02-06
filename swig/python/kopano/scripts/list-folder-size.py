@@ -5,9 +5,9 @@
 
 import kopano
 
-server = kopano.Server()
+server = kopano.server(parse+args=True)
 
-for user in server.users(): # checks command-line for -u/--user
+for user in server.users():
     print 'user:', user.name
     if user.store:
         for folder in user.store.root.folders():

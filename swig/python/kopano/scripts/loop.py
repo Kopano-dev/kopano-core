@@ -9,7 +9,7 @@ import kopano
 
 USER = 'user1'
 
-server = kopano.Server()
+server = kopano.server(parse_args=True)
 
 for prop in server.admin_store.props():
     print(prop.idname if not prop.named else prop.name, hex(prop.proptag), repr(prop.value))

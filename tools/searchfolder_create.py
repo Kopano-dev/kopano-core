@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Create a lot of dummy SFs
 import kopano
-s = kopano.Server(auth_user='bar', auth_pass='xbar')
+s = kopano.server(auth_user='bar', auth_pass='xbar')
 u = s.user('bar')
 for x in range(0, 10000):
 	findroot = u.root.folder('FINDER_ROOT') # search folders are stored here as regular MAPI folders, but with the data coming from special DB tables

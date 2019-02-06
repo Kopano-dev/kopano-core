@@ -10,14 +10,14 @@ import kopano
 options, args = kopano.parser('cskpUPufm').parse_args()
 assert args, 'please specify search pattern'
 
-server = kopano.Server()
+server = kopano.server(parse_args=True, options=options)
 
-for user in server.users(): # checks -u/--user command-line option
+for user in server.users():
     print("Running for user:", user.name)
-    for folder in user.store.folders(): # checks -f/--folder command-line option
+    for folder in user.store.folders():
         print("Folder:", folder.name)
         for item in folder:
             if args[0].lower() in item.subject.lower():
                 print("Deleting:", item)
-                if options.modify: # checks -m/--modify command-line option
+                if options.modify:
                     folder.delete(item)

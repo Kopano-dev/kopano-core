@@ -34,7 +34,7 @@ def main():
     options, args = parser.parse_args()
 
     config = kopano.Config(None, service='search', options=options)
-    server = kopano.Server(options, config)
+    server = kopano.server(options, config, parse_args=True)
 
     # get index_path, run_as_user, run_as_group from  search.cfg
     search_config = server.config

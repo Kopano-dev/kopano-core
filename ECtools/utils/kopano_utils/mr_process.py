@@ -16,7 +16,7 @@ def main():
     username, config_file, entryid = [_decode(arg) for arg in sys.argv[1:]]
 
     config = kopano.Config(filename=config_file)
-    server = kopano.Server(config=config)
+    server = kopano.server(config=config)
 
     user = server.user(username)
     item = user.item(entryid)

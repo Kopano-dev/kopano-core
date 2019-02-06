@@ -89,7 +89,7 @@ def main():
     username, config_file = args[:2]
 
     config = kopano.Config(filename=config_file)
-    server = kopano.Server(config=config)
+    server = kopano.server(config=config)
 
     user = server.user(username)
     autoaccept = user.autoaccept

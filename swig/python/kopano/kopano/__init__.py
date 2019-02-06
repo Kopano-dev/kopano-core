@@ -100,12 +100,19 @@ class Module(object):
     @property
     def _server(self):
         if not self.__server:
-            self.__server = Server()
+            self.__server = Server(_skip_check=True)
         return self.__server
 
     @property # this is the reason we need a class
     def public_store(self):
         return self._server.public_store
+
+    def server(self, *args, **kwargs): # TODO add 'name' argument to lookup node?
+        kwargs['_skip_check'] = True # avoid deprecation warning for calling Server()
+        kwargs['parse_args'] = kwargs.get('parse_args', False)
+        return Server(*args, **kwargs)
+
+    # TODO add servers() for multiserver
 
     def user(self, *args, **kwargs):
         return self._server.user(*args, **kwargs)
@@ -132,4 +139,3 @@ class Module(object):
         return self._server.companies(*args, **kwargs)
 
 sys.modules[__name__] = Module(sys.modules[__name__])
-
