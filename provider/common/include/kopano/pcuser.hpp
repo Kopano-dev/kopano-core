@@ -22,7 +22,7 @@ struct objectid_t {
 	objectid_t(const std::string &xid, objectclass_t xoc) :
 		id(xid), objclass(xoc)
 	{}
-	explicit objectid_t(const std::string &str);
+	static objectid_t fromstring(const std::string &str);
 	bool operator==(const objectid_t &x) const noexcept;
 	bool operator!=(const objectid_t &x) const noexcept;
 	std::string tostring() const;

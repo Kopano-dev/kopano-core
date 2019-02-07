@@ -9,17 +9,14 @@
 
 namespace KC {
 
-objectid_t::objectid_t(const std::string &str)
+objectid_t objectid_t::fromstring(const std::string &str)
 {
 	// sendas users are "encoded" like this in a string
 	auto pos = str.find_first_of(';');
-	if (pos == std::string::npos) {
-		id = hex2bin(str);
-		objclass = ACTIVE_USER;
-	} else {
-		id = hex2bin(std::string(str, pos + 1, str.size() - pos));
-		objclass = static_cast<objectclass_t>(atoi(std::string(str, 0, pos).c_str()));
-	}
+	if (pos == std::string::npos)
+		return objectid_t{hex2bin(str), ACTIVE_USER};
+	return objectid_t{hex2bin(std::string(str, pos + 1, str.size() - pos)),
+		static_cast<objectclass_t>(atoi(std::string(str, 0, pos).c_str()))};
 }
 
 bool objectid_t::operator==(const objectid_t &x) const noexcept
@@ -58,7 +55,7 @@ std::string objectdetails_t::GetPropString(property_key_t propname) const
 objectid_t objectdetails_t::GetPropObject(property_key_t propname) const
 {
 	property_map::const_iterator item = m_mapProps.find(propname);
-	return item == m_mapProps.cend() ? objectid_t() : objectid_t(item->second);
+	return item == m_mapProps.cend() ? objectid_t() : objectid_t::fromstring(item->second);
 }
 
 void objectdetails_t::SetPropInt(property_key_t propname, unsigned int value)
@@ -135,7 +132,7 @@ objectdetails_t::GetPropListObject(property_key_t propname) const
 		return std::list<objectid_t>();
 	std::list<objectid_t> l;
 	for (const auto &i : mvitem->second)
-		l.emplace_back(i);
+		l.emplace_back(objectid_t::fromstring(i));
 	return l;
 }
 
