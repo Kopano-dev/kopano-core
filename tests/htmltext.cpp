@@ -1,6 +1,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <clocale>
 #include <cstdlib>
 #include "HtmlToTextParser.h"
 
@@ -10,6 +11,7 @@ int main(int argc, char **argv)
 {
 	std::wstring line, html;
 	CHtmlToTextParser parser;
+	setlocale(LC_ALL, "");
 
 	if (argc < 2) {
 		std::cerr << "Usage: requires a HTML file\n";
@@ -20,6 +22,7 @@ int main(int argc, char **argv)
 		std::cerr << "Unable to open \"" << argv[1] << "\"\n";
 		return EXIT_FAILURE;
 	}
+	htmlfile.imbue(std::locale(""));
 	while (std::getline(htmlfile, line))
 		html += line;
 	if (!parser.Parse(html.c_str())) {
