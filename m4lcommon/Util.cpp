@@ -1743,6 +1743,15 @@ static HRESULT HrConvertStreamToWString(IStream *sInput, ULONG ulCodepage, std::
 	return hrSuccess;
 }
 
+static std::wstring string_strip_nuls(const std::wstring &i)
+{
+	std::wstring o;
+	o.reserve(i.size());
+	std::copy_if(i.cbegin(), i.cend(), std::back_inserter(o),
+		[](wchar_t c) { return c != L'\0'; });
+	return o;
+}
+
 /**
  * Converts HTML (PT_BINARY, with specified codepage) to plain text (PT_UNICODE)
  *
