@@ -13,7 +13,7 @@ import codecs
 class Disclaimer(IMapiSpoolerPlugin):
 
     disclaimerdir = '/etc/kopano/disclaimers'
-    
+
     def bestBody(self, message):
         tag = PR_NULL
         bodytag = PR_BODY_W # todo use flags to support PR_BODY_A
@@ -22,8 +22,8 @@ class Disclaimer(IMapiSpoolerPlugin):
         if (props[3].ulPropTag != PR_RTF_IN_SYNC):
             return tag
 
-        if((props[0].ulPropTag == bodytag or ( PROP_TYPE(props[0].ulPropTag) == PT_ERROR and props[0].Value == MAPI_E_NOT_ENOUGH_MEMORY) ) and 
-           (PROP_TYPE(props[1].ulPropTag) == PT_ERROR and props[1].Value == MAPI_E_NOT_FOUND) and 
+        if((props[0].ulPropTag == bodytag or ( PROP_TYPE(props[0].ulPropTag) == PT_ERROR and props[0].Value == MAPI_E_NOT_ENOUGH_MEMORY) ) and
+           (PROP_TYPE(props[1].ulPropTag) == PT_ERROR and props[1].Value == MAPI_E_NOT_FOUND) and
            (PROP_TYPE(props[2].ulPropTag) == PT_ERROR and props[2].Value == MAPI_E_NOT_FOUND)):
             tag = bodytag
         elif((props[1].ulPropTag == PR_HTML or ( PROP_TYPE(props[1].ulPropTag) == PT_ERROR and props[1].Value == MAPI_E_NOT_ENOUGH_MEMORY) ) and
@@ -36,7 +36,7 @@ class Disclaimer(IMapiSpoolerPlugin):
              (PROP_TYPE(props[1].ulPropTag) == PT_ERROR and props[1].Value == MAPI_E_NOT_FOUND) and
              props[3].Value == True):
             tag = PR_RTF_COMPRESSED
-            
+
         return tag
 
     def getCharSetByCP(self, codepage):
@@ -95,7 +95,7 @@ class Disclaimer(IMapiSpoolerPlugin):
             return cp2char[codepage]
         except:
             return "us-ascii"
- 
+
     def getDisclaimer(self, extension, company):
         if company == None:
             company = 'default'
@@ -104,8 +104,7 @@ class Disclaimer(IMapiSpoolerPlugin):
 
         self.logger.logDebug("*--- Open disclaimer file '%s'" % (name) )
 
-        f = codecs.open(name, "r", "utf-8")
-        return f.read().encode('utf-8')
+        return open(name, 'rb').read()
 
     def PreSending(self, session, addrbook, store, folder, message):
 
@@ -126,12 +125,11 @@ class Disclaimer(IMapiSpoolerPlugin):
 
 
         bodytag = self.bestBody(message)
-        
 
         self.logger.logDebug("*--- The message bestbody 0x%08X" % bodytag)
         if bodytag == PR_BODY_W:
-            
-            disclaimer = u"\r\n" + unicode(self.getDisclaimer('txt', company), 'utf-8')
+
+            disclaimer = u"\r\n" + codecs.decode(self.getDisclaimer('txt', company), 'utf-8')
 
             bodystream = message.OpenProperty(PR_BODY_W, IID_IStream, 0, MAPI_MODIFY)
             bodystream.Seek(0, STREAM_SEEK_END)
@@ -144,7 +142,7 @@ class Disclaimer(IMapiSpoolerPlugin):
             if props[0].ulPropTag == PR_INTERNET_CPID:
                 charset = self.getCharSetByCP(props[0].Value)
 
-            disclaimer = u"<br>" + unicode(self.getDisclaimer('html', company), 'utf-8')
+            disclaimer = u"<br>" + codecs.decode(self.getDisclaimer('html', company), 'utf-8')
 
             stream = message.OpenProperty(PR_HTML, IID_IStream, 0, MAPI_MODIFY)
             stream.Seek(0, STREAM_SEEK_END)
