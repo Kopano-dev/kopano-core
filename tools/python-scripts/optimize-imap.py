@@ -4,8 +4,16 @@
 import sys
 import logging
 
-from MAPI.Tags import PR_EC_IMAP_EMAIL_SIZE, PR_EC_IMAP_BODYSTRUCTURE, PR_EC_IMAP_BODY, PR_EC_IMAP_EMAIL, PT_STRING8
-from MAPI.Struct import MAPIErrorNotFound, SNotRestriction, SExistRestriction
+from MAPI import (
+    PT_UNICODE, PT_STRING8,
+)
+from MAPI.Tags import (
+    PR_EC_IMAP_EMAIL_SIZE, PR_EC_IMAP_BODYSTRUCTURE, PR_EC_IMAP_BODYSTRUCTURE_W,
+    PR_EC_IMAP_BODY, PR_EC_IMAP_BODY_W, PR_EC_IMAP_EMAIL,
+)
+from MAPI.Struct import (
+    MAPIErrorNotFound, SNotRestriction, SExistRestriction,
+)
 import inetmapi
 
 from kopano import Restriction, Server, parser
@@ -20,13 +28,20 @@ def generate_imap_message(item):
     eml = item.eml(received_date=True)
     envelope, body, bodystructure = inetmapi.createIMAPProperties(eml)
 
-    item.create_prop(PR_EC_IMAP_EMAIL, eml)
-    item.create_prop(PR_EC_IMAP_EMAIL_SIZE, len(eml))
-    item.create_prop(PR_EC_IMAP_BODYSTRUCTURE, bodystructure)
-    item.create_prop(PR_EC_IMAP_BODY, body)
-    item.create_prop('imap:1', envelope, proptype=PT_STRING8)
-    item.mapiobj.SaveChanges(0)
+    if sys.hexversion >= 0x03000000:
+        item.create_prop(PR_EC_IMAP_EMAIL, eml)
+        item.create_prop(PR_EC_IMAP_EMAIL_SIZE, len(eml))
+        item.create_prop(PR_EC_IMAP_BODYSTRUCTURE_W, bodystructure)
+        item.create_prop(PR_EC_IMAP_BODY_W, body)
+        item.create_prop('imap:1', envelope, proptype=PT_UNICODE)
+    else:
+        item.create_prop(PR_EC_IMAP_EMAIL, eml)
+        item.create_prop(PR_EC_IMAP_EMAIL_SIZE, len(eml))
+        item.create_prop(PR_EC_IMAP_BODYSTRUCTURE, bodystructure)
+        item.create_prop(PR_EC_IMAP_BODY, body)
+        item.create_prop('imap:1', envelope, proptype=PT_STRING8)
 
+    item.mapiobj.SaveChanges(0)
 
 def main():
     options, _ = parser('ksplu').parse_args()
