@@ -802,7 +802,7 @@ ECRESULT FreePropVal(struct propVal *lpProp, bool bBasePointerDel)
 				break;
 			case OP_FORWARD:
 			case OP_DELEGATE:
-				FreeRowSet(lpAction->act.adrlist, true);
+				FreeRowSet(lpAction->act.adrlist);
 				break;
 			case OP_TAG:
 				FreePropVal(lpAction->act.prop, true);
@@ -822,15 +822,14 @@ ECRESULT FreePropVal(struct propVal *lpProp, bool bBasePointerDel)
 	return er;
 }
 
-void FreeRowSet(struct rowSet *lpRowSet, bool bBasePointerDel)
+void FreeRowSet(struct rowSet *lpRowSet)
 {
 	if(lpRowSet == NULL)
 		return;
 	for (gsoap_size_t i = 0; i < lpRowSet->__size; ++i)
 		FreePropValArray(&lpRowSet->__ptr[i]);
 	s_free(nullptr, lpRowSet->__ptr);
-	if(bBasePointerDel)
-		s_free(nullptr, lpRowSet);
+	s_free(nullptr, lpRowSet);
 }
 
 /** 

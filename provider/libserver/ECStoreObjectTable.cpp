@@ -278,7 +278,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
 	lpsRowSet->__ptr = NULL;
 	auto cleanup = make_scope_success([&] {
 		if (soap == nullptr)
-			FreeRowSet(lpsRowSet, true);
+			FreeRowSet(lpsRowSet);
 	});
 
 	if (lpRowList == nullptr || lpRowList->empty()) {

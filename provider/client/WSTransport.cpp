@@ -3085,8 +3085,7 @@ HRESULT WSTransport::HrResolveNames(const SPropTagArray *lpPropTagArray,
  exitm:
 	spg.unlock();
 	if(lpsRowSet)
-		FreeRowSet(lpsRowSet, true);
-
+		FreeRowSet(lpsRowSet);
 	return hr;
 }
 
