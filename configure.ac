@@ -352,7 +352,7 @@ CXXFLAGS="$CXXFLAGS_system $ZCXXFLAGS"
 LDFLAGS="$LDFLAGS_system $ZLDFLAGS"
 AC_CHECK_FUNCS([pthread_getname_np])
 
-PKG_CHECK_MODULES([GSOAP], [gsoapssl++ >= 2.8.49])
+PKG_CHECK_MODULES([GSOAP], [gsoapssl++ >= 2.8.73])
 PKG_CHECK_MODULES([ICAL], [libical >= 0.42])
 PKG_CHECK_MODULES([curl], [libcurl], [], [:])
 CPPFLAGS="$CPPFLAGS $curl_CFLAGS"

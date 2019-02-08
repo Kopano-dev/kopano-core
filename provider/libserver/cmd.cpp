@@ -9042,20 +9042,12 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags,
 	lpsStreamInfo->lpSessionInfo = lpMTOMSessionInfo;
 
 	if (soap_check_mime_attachments(soap)) {
-#if GSOAP_VERSION >= 20873
 		auto content = soap_recv_mime_attachment(soap, lpsStreamInfo);
-#else
-		auto content = soap_get_mime_attachment(soap, lpsStreamInfo);
-#endif
 		if (content == nullptr)
 			return er = lpMTOMSessionInfo->er ? lpMTOMSessionInfo->er : KCERR_CALL_FAILED;
 		// Flush remaining attachments (that shouldn't even be there)
 		while (true) {
-#if GSOAP_VERSION >= 20873
 			content = soap_recv_mime_attachment(soap, lpsStreamInfo);
-#else
-			content = soap_get_mime_attachment(soap, lpsStreamInfo);
-#endif
 			if (!content)
 				break;
 		};

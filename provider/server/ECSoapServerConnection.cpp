@@ -210,10 +210,7 @@ ECRESULT ECSoapServerConnection::ListenTCP(const char *lpServerName, int nServer
 	kopano_new_soap_listener(CONNECTION_TYPE_TCP, lpsSoap.get());
 	lpsSoap->sndbuf = lpsSoap->rcvbuf = 0;
 	lpsSoap->bind_flags = SO_REUSEADDR;
-#if GSOAP_VERSION >= 20857
-	/* The v6only field exists in 2.8.56, but has no effect. */
 	lpsSoap->bind_v6only = strcmp(lpServerName, "*") != 0;
-#endif
 	struct sockaddr_storage grab_addr;
 	socklen_t grab_len = 0;
 	if (getenv("KC_REEXEC_DONE") != nullptr)
@@ -268,11 +265,7 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char *lpServerName,
 		)
 	{
 		soap_set_fault(lpsSoap.get());
-#if GSOAP_VERSION >= 20873
 		auto se = soap_ssl_error(lpsSoap.get(), 0, SSL_ERROR_NONE);
-#else
-		auto se = soap_ssl_error(lpsSoap.get(), 0);
-#endif
 		ec_log_crit("K-2170: Unable to setup SSL context: soap_ssl_server_context: %s: %s", *soap_faultdetail(lpsSoap.get()), se);
 		return KCERR_CALL_FAILED;
 	}
@@ -280,9 +273,7 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char *lpServerName,
 	if (er != erSuccess)
 		return er;
 	lpsSoap->bind_flags = SO_REUSEADDR;
-#if GSOAP_VERSION >= 20857
 	lpsSoap->bind_v6only = strcmp(lpServerName, "*") != 0;
-#endif
 	struct sockaddr_storage grab_addr;
 	socklen_t grab_len = 0;
 	if (getenv("KC_REEXEC_DONE") != nullptr)
