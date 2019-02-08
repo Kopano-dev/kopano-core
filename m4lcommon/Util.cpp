@@ -1721,7 +1721,7 @@ HRESULT Util::HrStreamToString(IStream *sInput, std::wstring &strOutput) {
  * @param[out]	lppwOutput	output in WCHAR
  * @return MAPI error code
  */
-HRESULT Util::HrConvertStreamToWString(IStream *sInput, ULONG ulCodepage, std::wstring *wstrOutput)
+static HRESULT HrConvertStreamToWString(IStream *sInput, ULONG ulCodepage, std::wstring *wstrOutput)
 {
 	const char *lpszCharset;
 	convert_context converter;
@@ -1731,8 +1731,7 @@ HRESULT Util::HrConvertStreamToWString(IStream *sInput, ULONG ulCodepage, std::w
 		lpszCharset = "us-ascii";
 		hr = hrSuccess;
 	}
-
-	hr = HrStreamToString(sInput, data);
+	hr = Util::HrStreamToString(sInput, data);
 	if (hr != hrSuccess)
 		return hr;
 

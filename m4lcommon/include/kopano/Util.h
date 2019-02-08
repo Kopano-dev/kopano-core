@@ -45,7 +45,6 @@ class Util KC_FINAL {
 	_kc_export static LONG FindPropInArray(const SPropTagArray *proptags, ULONG tag);
 	_kc_export static HRESULT HrStreamToString(IStream *in, std::string &out);
 	_kc_export static HRESULT HrStreamToString(IStream *in, std::wstring &out);
-	static HRESULT HrConvertStreamToWString(IStream *sInput, ULONG ulCodepage, std::wstring *wstrOutput);
 	_kc_export static HRESULT HrTextToRtf(IStream *text, IStream *rtf);
 	_kc_export static HRESULT HrTextToHtml(IStream *text, IStream *html, ULONG codepage);
 	_kc_export static HRESULT HrTextToHtml(const wchar_t *text, std::string &html, ULONG codepage);
