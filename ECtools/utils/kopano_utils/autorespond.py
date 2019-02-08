@@ -3,12 +3,13 @@
 
 from __future__ import print_function
 
+from contextlib import closing
+import os
+import sys
+import time
+
 import kopano
 from kopano.log import logger
-import sys
-import os
-import time
-from contextlib import closing
 
 if sys.hexversion >= 0x03000000:
     import bsddb3 as bsddb
@@ -44,6 +45,8 @@ def send_ooo(server, username, msg, copy_to_sentmail):
 def check_time(senddb, timelimit, username, to):
     with closing(bsddb.btopen(senddb, 'c')) as db:
         key = username + ":" + to
+        if sys.hexversion >= 0x03000000:
+            key = key.encode('utf-8')
         if key in db:
             timestamp = int(db[key])
             if timestamp + timelimit > int(time.time()):
@@ -53,6 +56,8 @@ def check_time(senddb, timelimit, username, to):
 def add_time(senddb, username, to):
     with closing(bsddb.btopen(senddb, 'c')) as db:
         key = username + ":" + to
+        if sys.hexversion >= 0x03000000:
+            key = key.encode('utf-8')
         db[key] = str(int(time.time()))
 
 def main():
@@ -76,7 +81,7 @@ def main():
     )
 
     try:
-        fh = open(msg_file, "r")
+        fh = open(msg_file, "rb")
         msg = fh.read()
         fh.close()
     except:
