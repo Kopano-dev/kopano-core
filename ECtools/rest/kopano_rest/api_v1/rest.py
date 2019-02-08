@@ -64,6 +64,9 @@ class BackendResource(object):
     def on_patch(self, *args, **kwargs):
         return self.resource.on_patch(*args, **kwargs)
 
+    def on_put(self, *args, **kwargs):
+        return self.resource.on_put(*args, **kwargs)
+
     def on_delete(self, *args, **kwargs):
         return self.resource.on_delete(*args, **kwargs)
 
