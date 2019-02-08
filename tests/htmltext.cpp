@@ -9,7 +9,6 @@ using namespace KC;
 
 int main(int argc, char **argv)
 {
-	std::wstring line, html;
 	CHtmlToTextParser parser;
 	setlocale(LC_ALL, "");
 
@@ -23,8 +22,7 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 	htmlfile.imbue(std::locale(""));
-	while (std::getline(htmlfile, line))
-		html += line;
+	std::wstring html{std::istreambuf_iterator<wchar_t>(htmlfile), std::istreambuf_iterator<wchar_t>()};
 	if (!parser.Parse(html.c_str())) {
 		std::cerr << "Unable to parse HTML\n";
 		return EXIT_FAILURE;
