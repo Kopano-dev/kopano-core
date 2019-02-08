@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-import ConfigParser
+import configparser
 import zinterval
-import StringIO
+import io
 import os
 import zunit
 
@@ -9,13 +9,13 @@ class ZConfigParser:
 
     def __init__(self, configfile, defaultoptions={}):
 
-        self.config = ConfigParser.ConfigParser(defaults=defaultoptions)
+        self.config = configparser.ConfigParser(defaults=defaultoptions)
 
         self.readZConfig(configfile)
-        
+
     def readZConfig(self, filename):
         filename = os.path.abspath(filename)
-        
+
         data = "[DEFAULT]\r\n"
         try:
             fp = open(filename)
@@ -24,23 +24,23 @@ class ZConfigParser:
                 raise IOError(e.errno, 'Unable to open config file \''+filename+'\'. ' + e.strerror)
             else:
                 raise
-            
+
         for line in fp:
             data += line
-            
+
         fp.close()
-        
-        self.config.readfp(StringIO.StringIO(data))
+
+        self.config.readfp(io.StringIO(data))
 
     def options(self):
         return self.config.defaults()
-    
+
     def get(self, option):
         return self.config.get('DEFAULT', option)
 
     def getint(self, option):
         return self.config.getint('DEFAULT', option)
-    
+
     def getboolean(self, option):
         return self.config.getboolean('DEFAULT', option)
 
