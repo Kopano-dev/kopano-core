@@ -421,27 +421,17 @@ ECRESULT ECABObjectTable::Load()
 		 */
 		ulObjectFilter |= AB_FILTER_SYSTEM | AB_FILTER_ADDRESSLIST;
 
-		switch (objectid.objclass) {
-		case DISTLIST_GROUP:
-		case DISTLIST_SECURITY:
-		case DISTLIST_DYNAMIC:
+		if (objectid.objclass == DISTLIST_GROUP || objectid.objclass == DISTLIST_SECURITY ||
+		    objectid.objclass == DISTLIST_DYNAMIC)
 			er = LoadContentsDistlist(lpODAB->ulABParentId, ulObjectFilter, &unique_tie(lpObjects));
-			if (er != erSuccess)
-				return er;
-			break;
-		case CONTAINER_COMPANY:
+		else if (objectid.objclass == CONTAINER_COMPANY)
 			er = LoadContentsCompany(lpODAB->ulABParentId, ulObjectFilter, &unique_tie(lpObjects));
-			if (er != erSuccess)
-				return er;
-			break;
-		case CONTAINER_ADDRESSLIST:
+		else if (objectid.objclass == CONTAINER_ADDRESSLIST)
 			er = LoadContentsAddressList(lpODAB->ulABParentId, ulObjectFilter, &unique_tie(lpObjects));
-			if (er != erSuccess)
-				return er;
-			break;
-		default:
+		else
 			return KCERR_INVALID_PARAMETER;
-		}
+		if (er != erSuccess)
+			return er;
 	}
 
 	for (const auto &obj : *lpObjects) {

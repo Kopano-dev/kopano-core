@@ -528,16 +528,12 @@ ECRESULT ECUserStatsTable::Load()
 	auto er = lpSession->GetSecurity()->GetViewableCompanyIds(0, &unique_tie(lpCompanies));
 	if (er != erSuccess)
 		return er;
-	if (lpCompanies->empty()) {
-		er = LoadCompanyUsers(0);
+	if (lpCompanies->empty())
+		return LoadCompanyUsers(0);
+	for (const auto &com : *lpCompanies) {
+		er = LoadCompanyUsers(com.ulId);
 		if (er != erSuccess)
 			return er;
-	} else {
-		for (const auto &com : *lpCompanies) {
-			er = LoadCompanyUsers(com.ulId);
-			if (er != erSuccess)
-				return er;
-		}
 	}
 	return erSuccess;
 }

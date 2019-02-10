@@ -870,15 +870,12 @@ ECRESULT ECSecurity::GetAdminCompanies(unsigned int ulFlags,
 		return er;
 
 	/* A user is only admin over a company when he has privileges to view the company */
-	for (auto iterObjects = lpObjects->begin(); iterObjects != lpObjects->cend(); ) {
-		if (IsUserObjectVisible(iterObjects->ulId) != erSuccess) {
-			auto iterObjectsRemove = iterObjects;
+	for (auto iterObjects = lpObjects->begin(); iterObjects != lpObjects->cend(); )
+		if (IsUserObjectVisible(iterObjects->ulId) != erSuccess)
+			iterObjects = lpObjects->erase(iterObjects);
+		else
 			++iterObjects;
-			lpObjects->erase(iterObjectsRemove);
-		} else {
-			++iterObjects;
-		}
-	}
+
 	*lppObjects = lpObjects.release();
 	return erSuccess;
 }

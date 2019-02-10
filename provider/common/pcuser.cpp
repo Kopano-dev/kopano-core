@@ -86,7 +86,7 @@ void objectdetails_t::SetPropListString(property_key_t propname,
 void objectdetails_t::SetPropObject(property_key_t propname,
     const objectid_t &value)
 {
-	m_mapProps[propname].assign(((objectid_t)value).tostring());
+	m_mapProps[propname].assign(value.tostring());
 }
 
 void objectdetails_t::AddPropInt(property_key_t propname, unsigned int value)
