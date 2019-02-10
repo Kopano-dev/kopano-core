@@ -419,14 +419,14 @@ signatures_t UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 	ulock_normal biglock(m_plugin_lock);
 	switch (OBJECTCLASS_TYPE(objclass)) {
 	case OBJECTTYPE_UNKNOWN:
-		objectlist.merge(getAllUserObjects());
+		objectlist = getAllUserObjects();
 		objectlist.merge(getAllGroupObjects());
 		break;
 	case OBJECTTYPE_MAILUSER:
-		objectlist.merge(getAllUserObjects());
+		objectlist = getAllUserObjects();
 		break;
 	case OBJECTTYPE_DISTLIST:
-		objectlist.merge(getAllGroupObjects());
+		objectlist = getAllGroupObjects();
 		break;
 	case OBJECTTYPE_CONTAINER:
 		throw notsupported("objecttype not supported " + stringify(objclass));
@@ -758,7 +758,7 @@ UnixUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 	LOG_PLUGIN_DEBUG("%s %s flags:%x", __FUNCTION__, match.c_str(), ulFlags);
 
 	ulock_normal biglock(m_plugin_lock);
-	objectlist.merge(getAllUserObjects(match, ulFlags));
+	objectlist = getAllUserObjects(match, ulFlags);
 	objectlist.merge(getAllGroupObjects(match, ulFlags));
 	biglock.unlock();
 
