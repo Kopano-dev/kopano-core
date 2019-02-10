@@ -134,14 +134,14 @@ public:
  */
 ECRESULT ECSecurity::GetGroupsForUser(unsigned int ulUserId, std::list<localobjectdetails_t> **lppGroups)
 {
-	std::list<localobjectdetails_t> *lpGroups = NULL;
+	std::unique_ptr<std::list<localobjectdetails_t>> lpGroups;
 	cUniqueGroup cSeenGroups;
 
 	/* Gets the current user's membership information.
 	 * This means you will be in the same groups until you login again */
 	auto usrmgt = m_lpSession->GetUserManagement();
 	auto er = usrmgt->GetParentObjectsOfObjectAndSync(OBJECTRELATION_GROUP_MEMBER,
-		ulUserId, &lpGroups, USERMANAGEMENT_IDS_ONLY);
+		ulUserId, &unique_tie(lpGroups), USERMANAGEMENT_IDS_ONLY);
 	if (er != erSuccess)
 		return er;
 
@@ -159,19 +159,17 @@ ECRESULT ECSecurity::GetGroupsForUser(unsigned int ulUserId, std::list<localobje
 		}
 		cSeenGroups.m_seen.emplace(*iterGroups);
 
-		std::list<localobjectdetails_t> *lpGroupInGroups = NULL;
+		std::unique_ptr<std::list<localobjectdetails_t>> lpGroupInGroups;
 		er = usrmgt->GetParentObjectsOfObjectAndSync(OBJECTRELATION_GROUP_MEMBER,
-		     iterGroups->ulId, &lpGroupInGroups, USERMANAGEMENT_IDS_ONLY);
-		if (er == erSuccess) {
+		     iterGroups->ulId, &unique_tie(lpGroupInGroups), USERMANAGEMENT_IDS_ONLY);
+		if (er == erSuccess)
 			// Adds all groups from lpGroupInGroups to the main lpGroups list, except when already in cSeenGroups
 			remove_copy_if(lpGroupInGroups->begin(), lpGroupInGroups->end(), back_inserter(*lpGroups), cSeenGroups);
-			delete lpGroupInGroups;
-		}
 		// Ignore error (e.g. cannot use that function on group Everyone)
 		++iterGroups;
 	}
 
-	*lppGroups = lpGroups;
+	*lppGroups = lpGroups.release();
 	return erSuccess;
 }
 
