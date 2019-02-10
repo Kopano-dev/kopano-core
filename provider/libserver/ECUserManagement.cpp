@@ -253,7 +253,7 @@ ECRESULT ECUserManagement::GetObjectDetails(unsigned int ulObjectId, objectdetai
 	return GetExternalObjectDetails(ulObjectId, lpDetails);
 	}
 
-ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const std::list<objectsignature_t> &lstSignatures,
+ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const signatures_t &lstSignatures,
     const std::map<objectid_t, unsigned int> &mapExternToLocal,
     unsigned int ulFlags, std::list<localobjectdetails_t> *lpDetails) const
 {
@@ -1126,7 +1126,7 @@ ECRESULT ECUserManagement::GetLocalObjectIdOrCreate(const objectsignature_t &sSi
 	return erSuccess;
 }
 
-ECRESULT ECUserManagement::GetLocalObjectsIdsOrCreate(const std::list<objectsignature_t> &lstSignatures,
+ECRESULT ECUserManagement::GetLocalObjectsIdsOrCreate(const signatures_t &lstSignatures,
     std::map<objectid_t, unsigned int> *lpmapLocalObjIds)
 {
 	std::list<objectid_t> lstExternObjIds;

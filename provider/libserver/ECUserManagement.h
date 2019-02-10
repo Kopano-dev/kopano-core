@@ -122,7 +122,7 @@ private:
 	_kc_hidden bool MustHide(/*const*/ ECSecurity &, unsigned int flags, const objectdetails_t &) const;
 
 	// Get object details from list
-	_kc_hidden ECRESULT GetLocalObjectListFromSignatures(const std::list<objectsignature_t> &signatures, const std::map<objectid_t, unsigned int> &extern_to_local, unsigned int flags, std::list<localobjectdetails_t> *) const;
+	_kc_hidden ECRESULT GetLocalObjectListFromSignatures(const signatures_t &, const std::map<objectid_t, unsigned int> &extern_to_local, unsigned int flags, std::list<localobjectdetails_t> *) const;
 	// Get local details
 	_kc_hidden ECRESULT GetLocalObjectDetails(unsigned int id, objectdetails_t *) const;
 
@@ -131,7 +131,7 @@ private:
 
 	// Get userid from usertable or create a new user/group if it doesn't exist yet
 	_kc_hidden ECRESULT GetLocalObjectIdOrCreate(const objectsignature_t &signature, unsigned int *id);
-	_kc_hidden ECRESULT GetLocalObjectsIdsOrCreate(const std::list<objectsignature_t> &signatures, std::map<objectid_t, unsigned int> *local_objids);
+	_kc_hidden ECRESULT GetLocalObjectsIdsOrCreate(const signatures_t &, std::map<objectid_t, unsigned int> *local_objids);
 
 	// Get a list of local object IDs in the database plus any internal objects (SYSTEM, EVERYONE)
 	_kc_hidden ECRESULT GetLocalObjectIdList(objectclass_t, unsigned int company_id, std::vector<unsigned int> **objs) const;
