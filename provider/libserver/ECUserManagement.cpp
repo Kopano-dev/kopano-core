@@ -1969,9 +1969,8 @@ ECRESULT ECUserManagement::ComplementDefaultFeatures(objectdetails_t *lpDetails)
 {
 	if (OBJECTCLASS_TYPE(lpDetails->GetClass()) != OBJECTTYPE_MAILUSER) {
 		// clear settings for anything but users
-		std::list<std::string> e;
-		lpDetails->SetPropListString(static_cast<property_key_t>(PR_EC_ENABLED_FEATURES_A), e);
-		lpDetails->SetPropListString(static_cast<property_key_t>(PR_EC_DISABLED_FEATURES_A), e);
+		lpDetails->SetPropListString(static_cast<property_key_t>(PR_EC_ENABLED_FEATURES_A), {});
+		lpDetails->SetPropListString(static_cast<property_key_t>(PR_EC_DISABLED_FEATURES_A), {});
 		return erSuccess;
 	}
 
@@ -2005,8 +2004,8 @@ ECRESULT ECUserManagement::ComplementDefaultFeatures(objectdetails_t *lpDetails)
 	userEnabled.assign(std::make_move_iterator(defaultEnabled.begin()), std::make_move_iterator(defaultEnabled.end()));
 	userDisabled.assign(std::make_move_iterator(defaultDisabled.begin()), std::make_move_iterator(defaultDisabled.end()));
 	// save lists back to user details
-	lpDetails->SetPropListString(static_cast<property_key_t>(PR_EC_ENABLED_FEATURES_A), userEnabled);
-	lpDetails->SetPropListString(static_cast<property_key_t>(PR_EC_DISABLED_FEATURES_A), userDisabled);
+	lpDetails->SetPropListString(static_cast<property_key_t>(PR_EC_ENABLED_FEATURES_A), std::move(userEnabled));
+	lpDetails->SetPropListString(static_cast<property_key_t>(PR_EC_DISABLED_FEATURES_A), std::move(userDisabled));
 	return erSuccess;
 }
 
@@ -2038,8 +2037,8 @@ ECRESULT ECUserManagement::RemoveDefaultFeatures(objectdetails_t *lpDetails) con
 		return defaultEnabled.find(x) != defaultEnabled.end();
 	});
 	// save lists back to user details
-	lpDetails->SetPropListString(static_cast<property_key_t>(PR_EC_ENABLED_FEATURES_A), userEnabled);
-	lpDetails->SetPropListString(static_cast<property_key_t>(PR_EC_DISABLED_FEATURES_A), userDisabled);
+	lpDetails->SetPropListString(static_cast<property_key_t>(PR_EC_ENABLED_FEATURES_A), std::move(userEnabled));
+	lpDetails->SetPropListString(static_cast<property_key_t>(PR_EC_DISABLED_FEATURES_A), std::move(userDisabled));
 	return erSuccess;
 }
 

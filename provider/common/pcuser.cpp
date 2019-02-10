@@ -78,9 +78,9 @@ void objectdetails_t::SetPropString(property_key_t propname,
 }
 
 void objectdetails_t::SetPropListString(property_key_t propname,
-    const std::list<std::string> &value)
+    std::list<std::string> &&value)
 {
-	m_mapMVProps[propname].assign(value.begin(), value.end());
+	m_mapMVProps[propname].assign(std::make_move_iterator(value.begin()), std::make_move_iterator(value.end()));
 }
 
 void objectdetails_t::SetPropObject(property_key_t propname,
