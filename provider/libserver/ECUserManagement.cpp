@@ -553,7 +553,7 @@ ECRESULT ECUserManagement::GetSubObjectsOfObjectAndSync(userobject_relation_t re
 			     ulFlags | USERMANAGEMENT_SHOW_HIDDEN);
 			if (er != erSuccess)
 				return er;
-			lpObjects->merge(*lpObjectsTmp);
+			lpObjects->splice(lpObjects->end(), std::move(*lpObjectsTmp));
 		}
 		// TODO: remove excessive objects from lpObjects ? seems that this list is going to contain a lot... maybe too much?
 	} else {
