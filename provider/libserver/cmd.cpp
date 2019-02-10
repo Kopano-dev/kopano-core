@@ -4598,7 +4598,7 @@ SOAP_ENTRY_END()
 SOAP_ENTRY_START(getUserList, lpsUserList->er, unsigned int ulCompanyId,
     const entryId &sCompanyId, struct userListResponse *lpsUserList)
 {
-	std::unique_ptr<std::list<localobjectdetails_t> > lpUsers;
+	std::list<localobjectdetails_t> users;
 	entryId sUserEid;
 
 	er = GetLocalId(sCompanyId, ulCompanyId, &ulCompanyId, NULL);
@@ -4615,14 +4615,14 @@ SOAP_ENTRY_START(getUserList, lpsUserList->er, unsigned int ulCompanyId,
 	if (er != erSuccess)
 		return er;
 	er = lpecSession->GetUserManagement()->GetCompanyObjectListAndSync(OBJECTCLASS_USER,
-	     ulCompanyId, nullptr, &unique_tie(lpUsers), 0);
+	     ulCompanyId, nullptr, users, 0);
 	if(er != erSuccess)
 		return er;
 
     lpsUserList->sUserArray.__size = 0;
-    lpsUserList->sUserArray.__ptr = s_alloc<user>(soap, lpUsers->size());
+    lpsUserList->sUserArray.__ptr = s_alloc<user>(soap, users.size());
 
-	for (const auto &user : *lpUsers) {
+	for (const auto &user : users) {
 		if (OBJECTCLASS_TYPE(user.GetClass()) != OBJECTTYPE_MAILUSER ||
 		    user.GetClass() == NONACTIVE_CONTACT)
 			continue;
@@ -5077,7 +5077,7 @@ SOAP_ENTRY_END()
 SOAP_ENTRY_START(getGroupList, lpsGroupList->er, unsigned int ulCompanyId,
     const entryId &sCompanyId, struct groupListResponse *lpsGroupList)
 {
-	std::unique_ptr<std::list<localobjectdetails_t> > lpGroups;
+	std::list<localobjectdetails_t> groups;
 	entryId	sGroupEid;
 
 	er = GetLocalId(sCompanyId, ulCompanyId, &ulCompanyId, NULL);
@@ -5094,13 +5094,13 @@ SOAP_ENTRY_START(getGroupList, lpsGroupList->er, unsigned int ulCompanyId,
 	if (er != erSuccess)
 		return er;
 	er = lpecSession->GetUserManagement()->GetCompanyObjectListAndSync(OBJECTCLASS_DISTLIST,
-	     ulCompanyId, nullptr, &unique_tie(lpGroups), 0);
+	     ulCompanyId, nullptr, groups, 0);
 	if (er != erSuccess)
 		return er;
 
 	lpsGroupList->sGroupArray.__size = 0;
-	lpsGroupList->sGroupArray.__ptr = s_alloc<group>(soap, lpGroups->size());
-	for (const auto &grp : *lpGroups) {
+	lpsGroupList->sGroupArray.__ptr = s_alloc<group>(soap, groups.size());
+	for (const auto &grp : groups) {
 		if (OBJECTCLASS_TYPE(grp.GetClass()) != OBJECTTYPE_DISTLIST)
 			continue;
 		er = GetABEntryID(grp.ulId, soap, &sGroupEid);
@@ -5221,7 +5221,7 @@ SOAP_ENTRY_END()
 SOAP_ENTRY_START(getUserListOfGroup, lpsUserList->er, unsigned int ulGroupId,
     const entryId &sGroupId, struct userListResponse *lpsUserList)
 {
-	std::unique_ptr<std::list<localobjectdetails_t> > lpUsers;
+	std::list<localobjectdetails_t> users;
 	entryId sUserEid;
 
 	er = GetLocalId(sGroupId, ulGroupId, &ulGroupId, NULL);
@@ -5231,13 +5231,13 @@ SOAP_ENTRY_START(getUserListOfGroup, lpsUserList->er, unsigned int ulGroupId,
 	er = sec->IsUserObjectVisible(ulGroupId);
 	if (er != erSuccess)
 		return er;
-    er = lpecSession->GetUserManagement()->GetSubObjectsOfObjectAndSync(OBJECTRELATION_GROUP_MEMBER, ulGroupId, &unique_tie(lpUsers));
+	er = lpecSession->GetUserManagement()->GetSubObjectsOfObjectAndSync(OBJECTRELATION_GROUP_MEMBER, ulGroupId, users);
     if(er != erSuccess)
 		return er;
     lpsUserList->sUserArray.__size = 0;
-    lpsUserList->sUserArray.__ptr = s_alloc<user>(soap, lpUsers->size());
+	lpsUserList->sUserArray.__ptr = s_alloc<user>(soap, users.size());
 
-	for (const auto &user : *lpUsers) {
+	for (const auto &user : users) {
 		if (sec->IsUserObjectVisible(user.ulId) != erSuccess)
 			continue;
 		er = GetABEntryID(user.ulId, soap, &sUserEid);
@@ -5265,7 +5265,7 @@ SOAP_ENTRY_END()
 SOAP_ENTRY_START(getGroupListOfUser, lpsGroupList->er, unsigned int ulUserId,
     const entryId &sUserId, struct groupListResponse *lpsGroupList)
 {
-	std::unique_ptr<std::list<localobjectdetails_t> > lpGroups;
+	std::list<localobjectdetails_t> groups;
 	entryId sGroupEid;
 
 	er = GetLocalId(sUserId, ulUserId, &ulUserId, NULL);
@@ -5275,13 +5275,13 @@ SOAP_ENTRY_START(getGroupListOfUser, lpsGroupList->er, unsigned int ulUserId,
 	er = sec->IsUserObjectVisible(ulUserId);
 	if (er != erSuccess)
 		return er;
-	er = lpecSession->GetUserManagement()->GetParentObjectsOfObjectAndSync(OBJECTRELATION_GROUP_MEMBER, ulUserId, &unique_tie(lpGroups));
+	er = lpecSession->GetUserManagement()->GetParentObjectsOfObjectAndSync(OBJECTRELATION_GROUP_MEMBER, ulUserId, groups);
 	if(er != erSuccess)
 		return er;
 
 	lpsGroupList->sGroupArray.__size = 0;
-	lpsGroupList->sGroupArray.__ptr = s_alloc<group>(soap, lpGroups->size());
-	for (const auto &grp : *lpGroups) {
+	lpsGroupList->sGroupArray.__ptr = s_alloc<group>(soap, groups.size());
+	for (const auto &grp : groups) {
 		if (sec->IsUserObjectVisible(grp.ulId) != erSuccess)
 			continue;
 		er = GetABEntryID(grp.ulId, soap, &sGroupEid);
@@ -5479,18 +5479,18 @@ SOAP_ENTRY_END()
 SOAP_ENTRY_START(getCompanyList, lpsCompanyList->er, struct companyListResponse *lpsCompanyList)
 {
 	entryId sCompanyEid, sAdminEid;
-	std::unique_ptr<std::list<localobjectdetails_t> > lpCompanies;
+	std::list<localobjectdetails_t> companies;
 
 	if (!g_lpSessionManager->IsHostedSupported())
 		return KCERR_NO_SUPPORT;
 	auto sec = lpecSession->GetSecurity();
-	er = sec->GetViewableCompanyIds(0, &unique_tie(lpCompanies));
+	er = sec->GetViewableCompanyIds(0, companies);
 	if(er != erSuccess)
 		return er;
 
 	lpsCompanyList->sCompanyArray.__size = 0;
-	lpsCompanyList->sCompanyArray.__ptr = s_alloc<company>(soap, lpCompanies->size());
-	for (const auto &com : *lpCompanies) {
+	lpsCompanyList->sCompanyArray.__ptr = s_alloc<company>(soap, companies.size());
+	for (const auto &com : companies) {
 		auto ulAdmin = com.GetPropInt(OB_PROP_I_SYSADMIN);
 		er = sec->IsUserObjectVisible(ulAdmin);
 		if (er != erSuccess)
@@ -5563,7 +5563,7 @@ SOAP_ENTRY_START(getRemoteViewList, lpsCompanyList->er,
     struct companyListResponse *lpsCompanyList)
 {
 	entryId sCompanyEid, sAdminEid;
-	std::unique_ptr<std::list<localobjectdetails_t> > lpCompanies;
+	std::list<localobjectdetails_t> companies;
 
 	if (!g_lpSessionManager->IsHostedSupported())
 		return KCERR_NO_SUPPORT;
@@ -5580,14 +5580,14 @@ SOAP_ENTRY_START(getRemoteViewList, lpsCompanyList->er,
 		er = sec->IsUserObjectVisible(ulCompanyId);
 	if (er != erSuccess)
 		return er;
-	er = lpecSession->GetUserManagement()->GetSubObjectsOfObjectAndSync(OBJECTRELATION_COMPANY_VIEW, ulCompanyId, &unique_tie(lpCompanies));
+	er = lpecSession->GetUserManagement()->GetSubObjectsOfObjectAndSync(OBJECTRELATION_COMPANY_VIEW, ulCompanyId, companies);
 	if(er != erSuccess)
 		return er;
 
 	lpsCompanyList->sCompanyArray.__size = 0;
-	lpsCompanyList->sCompanyArray.__ptr = s_alloc<company>(soap, lpCompanies->size());
+	lpsCompanyList->sCompanyArray.__ptr = s_alloc<company>(soap, companies.size());
 
-	for (const auto &com : *lpCompanies) {
+	for (const auto &com : companies) {
 		if (sec->IsUserObjectVisible(com.ulId) != erSuccess)
 			continue;
 		auto ulAdmin = com.GetPropInt(OB_PROP_I_SYSADMIN);
@@ -5660,7 +5660,7 @@ SOAP_ENTRY_END()
 SOAP_ENTRY_START(getRemoteAdminList, lpsUserList->er, unsigned int ulCompanyId,
     const entryId &sCompanyId, struct userListResponse *lpsUserList)
 {
-	std::unique_ptr<std::list<localobjectdetails_t> > lpUsers;
+	std::list<localobjectdetails_t> users;
 	entryId sUserEid;
 
 	if (!g_lpSessionManager->IsHostedSupported())
@@ -5680,13 +5680,13 @@ SOAP_ENTRY_START(getRemoteAdminList, lpsUserList->er, unsigned int ulCompanyId,
 		return er;
 
 	// only users can be admins, nonactive users make no sense.
-	er = lpecSession->GetUserManagement()->GetSubObjectsOfObjectAndSync(OBJECTRELATION_COMPANY_ADMIN, ulCompanyId, &unique_tie(lpUsers));
+	er = lpecSession->GetUserManagement()->GetSubObjectsOfObjectAndSync(OBJECTRELATION_COMPANY_ADMIN, ulCompanyId, users);
 	if(er != erSuccess)
 		return er;
 
 	lpsUserList->sUserArray.__size = 0;
-	lpsUserList->sUserArray.__ptr = s_alloc<user>(soap, lpUsers->size());
-	for (const auto &user : *lpUsers) {
+	lpsUserList->sUserArray.__ptr = s_alloc<user>(soap, users.size());
+	for (const auto &user : users) {
 		if (sec->IsUserObjectVisible(user.ulId) != erSuccess)
 			continue;
 		er = GetABEntryID(user.ulId, soap, &sUserEid);
@@ -8171,7 +8171,7 @@ SOAP_ENTRY_END()
 SOAP_ENTRY_START(GetQuotaRecipients, lpsUserList->er, unsigned int ulUserid,
     const entryId &sUserId, struct userListResponse *lpsUserList)
 {
-	std::unique_ptr<std::list<localobjectdetails_t> > lpUsers;
+	std::list<localobjectdetails_t> users;
 	objectid_t sExternId;
 	objectdetails_t details;
 	userobject_relation_t relation;
@@ -8222,15 +8222,15 @@ SOAP_ENTRY_START(GetQuotaRecipients, lpsUserList->er, unsigned int ulUserid,
 	 * in that case we should manually allocate the list so it is safe to add the user
 	 * to the list. */
 	if (ulCompanyId != 0) {
-		er = usrmgt->GetSubObjectsOfObjectAndSync(relation, ulCompanyId, &unique_tie(lpUsers));
+		er = usrmgt->GetSubObjectsOfObjectAndSync(relation, ulCompanyId, users);
 		if (er != erSuccess)
 			return er;
 	} else
-		lpUsers.reset(new std::list<localobjectdetails_t>);
+		users.clear();
 
 	if (OBJECTCLASS_TYPE(details.GetClass())== OBJECTTYPE_MAILUSER) {
 		/* The main recipient (the user over quota) must be the first entry */
-		lpUsers->emplace_front(ulUserid, details);
+		users.emplace_front(ulUserid, details);
 	} else if (details.GetClass() == CONTAINER_COMPANY) {
 		/* Append the system administrator for the company */
 		objectdetails_t systemdetails;
@@ -8241,15 +8241,15 @@ SOAP_ENTRY_START(GetQuotaRecipients, lpsUserList->er, unsigned int ulUserid,
 		er = usrmgt->GetObjectDetails(ulSystem, &systemdetails);
 		if (er != erSuccess)
 			return er;
-		lpUsers->emplace_front(ulSystem, systemdetails);
+		users.emplace_front(ulSystem, systemdetails);
 		/* The main recipient (the company's public store) must be the first entry */
-		lpUsers->emplace_front(ulUserid, details);
+		users.emplace_front(ulUserid, details);
 	}
 
 	lpsUserList->sUserArray.__size = 0;
-	lpsUserList->sUserArray.__ptr = s_alloc<user>(soap, lpUsers->size());
+	lpsUserList->sUserArray.__ptr = s_alloc<user>(soap, users.size());
 
-	for (const auto &user : *lpUsers) {
+	for (const auto &user : users) {
 		if ((OBJECTCLASS_TYPE(user.GetClass()) != OBJECTTYPE_MAILUSER) ||
 			(details.GetClass() == NONACTIVE_CONTACT))
 				continue;

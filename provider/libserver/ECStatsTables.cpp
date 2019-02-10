@@ -519,18 +519,18 @@ ECRESULT ECUserStatsTable::Create(ECSession *lpSession, unsigned int ulFlags,
 
 ECRESULT ECUserStatsTable::Load()
 {
-	std::unique_ptr<std::list<localobjectdetails_t> > lpCompanies;
+	std::list<localobjectdetails_t> companies;
 
 	// load all active and non-active users
 	// FIXME: group/company quota already possible?
 
 	// get company list if hosted and is sysadmin
-	auto er = lpSession->GetSecurity()->GetViewableCompanyIds(0, &unique_tie(lpCompanies));
+	auto er = lpSession->GetSecurity()->GetViewableCompanyIds(0, companies);
 	if (er != erSuccess)
 		return er;
-	if (lpCompanies->empty())
+	if (companies.empty())
 		return LoadCompanyUsers(0);
-	for (const auto &com : *lpCompanies) {
+	for (const auto &com : companies) {
 		er = LoadCompanyUsers(com.ulId);
 		if (er != erSuccess)
 			return er;
@@ -540,7 +540,7 @@ ECRESULT ECUserStatsTable::Load()
 
 ECRESULT ECUserStatsTable::LoadCompanyUsers(ULONG ulCompanyId)
 {
-	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
+	std::list<localobjectdetails_t> objs;
 	ECUserManagement *lpUserManagement = lpSession->GetUserManagement();
 	auto sesmgr = lpSession->GetSessionManager();
 	bool bDistrib = sesmgr->IsDistributedSupported();
@@ -548,10 +548,10 @@ ECRESULT ECUserStatsTable::LoadCompanyUsers(ULONG ulCompanyId)
 	std::list<unsigned int> lstObjId;
 
 	auto er = lpUserManagement->GetCompanyObjectListAndSync(OBJECTCLASS_USER,
-	          ulCompanyId, lpsRestrict, &unique_tie(lpObjects), 0);
+	          ulCompanyId, lpsRestrict, objs, 0);
 	if (FAILED(er))
 		return er;
-	for (const auto &obj : *lpObjects) {
+	for (const auto &obj : objs) {
 		// we only return users present on this server
 		if (bDistrib && obj.GetPropString(OB_PROP_S_SERVERNAME).compare(server) != 0)
 			continue;
@@ -794,12 +794,12 @@ ECRESULT ECCompanyStatsTable::Create(ECSession *lpSession, unsigned int ulFlags,
 
 ECRESULT ECCompanyStatsTable::Load()
 {
-	std::unique_ptr<std::list<localobjectdetails_t> > lpCompanies;
+	std::list<localobjectdetails_t> companies;
 
-	auto er = lpSession->GetSecurity()->GetViewableCompanyIds(0, &unique_tie(lpCompanies));
+	auto er = lpSession->GetSecurity()->GetViewableCompanyIds(0, companies);
 	if (er != erSuccess)
 		return er;
-	for (const auto &com : *lpCompanies)
+	for (const auto &com : companies)
 		UpdateRow(ECKeyTable::TABLE_ROW_ADD, com.ulId, 0);
 	return erSuccess;
 }

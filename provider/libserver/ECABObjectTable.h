@@ -42,14 +42,14 @@ public:
 
 protected:
 	/* Load hierarchy objects */
-	ECRESULT LoadHierarchyAddressList(unsigned int obj_id, std::list<localobjectdetails_t> **objects);
-	ECRESULT LoadHierarchyCompany(unsigned int obj_id, std::list<localobjectdetails_t> **objects);
-	ECRESULT LoadHierarchyContainer(unsigned int obj_id, std::list<localobjectdetails_t> **objects);
+	ECRESULT LoadHierarchyAddressList(unsigned int obj_id, std::list<localobjectdetails_t> &objs);
+	ECRESULT LoadHierarchyCompany(unsigned int obj_id, std::list<localobjectdetails_t> &objs);
+	ECRESULT LoadHierarchyContainer(unsigned int obj_id, std::list<localobjectdetails_t> &objs);
 
 	/* Load contents objects */
-	ECRESULT LoadContentsAddressList(unsigned int obj_id, unsigned int flags, std::list<localobjectdetails_t> **objects);
-	ECRESULT LoadContentsCompany(unsigned int obj_id, unsigned int flags, std::list<localobjectdetails_t> **objects);
-	ECRESULT LoadContentsDistlist(unsigned int obj_id, unsigned int flags, std::list<localobjectdetails_t> **objects);
+	ECRESULT LoadContentsAddressList(unsigned int obj_id, unsigned int flags, std::list<localobjectdetails_t> &objs);
+	ECRESULT LoadContentsCompany(unsigned int obj_id, unsigned int flags, std::list<localobjectdetails_t> &objs);
+	ECRESULT LoadContentsDistlist(unsigned int obj_id, unsigned int flags, std::list<localobjectdetails_t> &objs);
 
 private:
 	virtual ECRESULT GetMVRowCount(std::list<unsigned int> &&obj_ids, std::map<unsigned int, unsigned int> &count) override;

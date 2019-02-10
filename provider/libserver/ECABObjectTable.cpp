@@ -4,11 +4,9 @@
  */
 #include <kopano/platform.h>
 #include <list>
-#include <memory>
 #include <new>
 #include "kcore.hpp"
 #include <kopano/kcodes.h>
-#include <kopano/tie.hpp>
 #include <mapidefs.h>
 #include <mapitags.h>
 #include <kopano/mapiext.h>
@@ -179,10 +177,8 @@ struct filter_objects {
 };
 
 ECRESULT ECABObjectTable::LoadHierarchyAddressList(unsigned int ulObjectId,
-    std::list<localobjectdetails_t> **lppObjects)
+    std::list<localobjectdetails_t> &objs)
 {
-	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
-
 	if (ulObjectId == KOPANO_UID_GLOBAL_ADDRESS_BOOK ||
 		ulObjectId == KOPANO_UID_GLOBAL_ADDRESS_LISTS)
 	{
@@ -193,21 +189,17 @@ ECRESULT ECABObjectTable::LoadHierarchyAddressList(unsigned int ulObjectId,
 	}
 
 	auto er = lpSession->GetUserManagement()->GetCompanyObjectListAndSync(CONTAINER_ADDRESSLIST,
-	          ulObjectId, lpsRestrict, &unique_tie(lpObjects), m_ulUserManagementFlags);
+	          ulObjectId, lpsRestrict, objs, m_ulUserManagementFlags);
 	if (er != erSuccess)
 		return er;
-	if (lppObjects != nullptr)
-		*lppObjects = lpObjects.release();
 	return erSuccess;
 }
 
 ECRESULT ECABObjectTable::LoadHierarchyCompany(unsigned int ulObjectId,
-    std::list<localobjectdetails_t> **lppObjects)
+    std::list<localobjectdetails_t> &objs)
 {
-	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
 	ECSecurity *lpSecurity = lpSession->GetSecurity();
-
-	auto er = lpSecurity->GetViewableCompanyIds(m_ulUserManagementFlags, &unique_tie(lpObjects));
+	auto er = lpSecurity->GetViewableCompanyIds(m_ulUserManagementFlags, objs);
 	if (er != erSuccess)
 		return er;
 	/*
@@ -222,17 +214,14 @@ ECRESULT ECABObjectTable::LoadHierarchyCompany(unsigned int ulObjectId,
 	 * confusing for the user. So lets delete the entry altogether for everybody except SYSTEM
 	 * and SYSADMIN users.
 	 */
-	if (lpObjects->size() == 1 && lpSecurity->GetAdminLevel() < ADMIN_LEVEL_SYSADMIN)
-		lpObjects->clear();
-	if (lppObjects != nullptr)
-		*lppObjects = lpObjects.release();
+	if (objs.size() == 1 && lpSecurity->GetAdminLevel() < ADMIN_LEVEL_SYSADMIN)
+		objs.clear();
 	return erSuccess;
 }
 
 ECRESULT ECABObjectTable::LoadHierarchyContainer(unsigned int ulObjectId,
-    std::list<localobjectdetails_t> **lppObjects)
+    std::list<localobjectdetails_t> &objs)
 {
-	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
 	objectid_t objectid;
 
 	if (ulObjectId == KOPANO_UID_ADDRESS_BOOK) {
@@ -242,13 +231,13 @@ ECRESULT ECABObjectTable::LoadHierarchyContainer(unsigned int ulObjectId,
 		 * the first container is the Global Address Book,
 		 * the second is the Global Address Lists container.
 		 */
-		lpObjects.reset(new std::list<localobjectdetails_t>());
-		lpObjects->emplace_back(KOPANO_UID_GLOBAL_ADDRESS_BOOK, CONTAINER_COMPANY);
+		objs.clear();
+		objs.emplace_back(KOPANO_UID_GLOBAL_ADDRESS_BOOK, CONTAINER_COMPANY);
 		if (!(m_ulUserManagementFlags & USERMANAGEMENT_IDS_ONLY))
-			lpObjects->back().SetPropString(OB_PROP_S_LOGIN, KOPANO_ACCOUNT_GLOBAL_ADDRESS_BOOK);
-		lpObjects->emplace_back(KOPANO_UID_GLOBAL_ADDRESS_LISTS, CONTAINER_ADDRESSLIST);
+			objs.back().SetPropString(OB_PROP_S_LOGIN, KOPANO_ACCOUNT_GLOBAL_ADDRESS_BOOK);
+		objs.emplace_back(KOPANO_UID_GLOBAL_ADDRESS_LISTS, CONTAINER_ADDRESSLIST);
 		if (!(m_ulUserManagementFlags & USERMANAGEMENT_IDS_ONLY))
-			lpObjects->back().SetPropString(OB_PROP_S_LOGIN, KOPANO_ACCOUNT_GLOBAL_ADDRESS_LISTS);
+			objs.back().SetPropString(OB_PROP_S_LOGIN, KOPANO_ACCOUNT_GLOBAL_ADDRESS_LISTS);
 	} else if (ulObjectId == KOPANO_UID_GLOBAL_ADDRESS_BOOK) {
 		/*
 		 * Global Address Book
@@ -264,13 +253,13 @@ ECRESULT ECABObjectTable::LoadHierarchyContainer(unsigned int ulObjectId,
 		 *    in the hierarchy view. The user will not be allowed to open it, so it isn't a real security risk,
 		 *    but since we still have issue (1) open, we might as well disable the hierarchy view
 		 *    containers completely. */
-		auto er = LoadHierarchyCompany(ulObjectId, &unique_tie(lpObjects));
+		auto er = LoadHierarchyCompany(ulObjectId, objs);
 		if (er != erSuccess)
 			return er;
 	} else if (ulObjectId == KOPANO_UID_GLOBAL_ADDRESS_LISTS) {
 		if (lpSession->GetSecurity()->GetUserId() == KOPANO_UID_SYSTEM)
 			return KCERR_INVALID_PARAMETER;
-		auto er = LoadHierarchyAddressList(ulObjectId, &unique_tie(lpObjects));
+		auto er = LoadHierarchyAddressList(ulObjectId, objs);
 		if (er != erSuccess)
 			return er;
 	} else {
@@ -278,72 +267,57 @@ ECRESULT ECABObjectTable::LoadHierarchyContainer(unsigned int ulObjectId,
 		 * Normal container
 		 * Containers don't have additional subcontainers
 		 */
-		lpObjects.reset(new std::list<localobjectdetails_t>());
+		objs.clear();
 	}
-	if (lppObjects != nullptr)
-		*lppObjects = lpObjects.release();
 	return erSuccess;
 }
 
 ECRESULT ECABObjectTable::LoadContentsAddressList(unsigned int ulObjectId,
-    unsigned int ulFlags, std::list<localobjectdetails_t> **lppObjects)
+    unsigned int ulFlags, std::list<localobjectdetails_t> &objs)
 {
-	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
-
 	auto er = lpSession->GetUserManagement()->GetSubObjectsOfObjectAndSync(OBJECTRELATION_ADDRESSLIST_MEMBER,
-	          ulObjectId, &unique_tie(lpObjects), m_ulUserManagementFlags);
+	          ulObjectId, objs, m_ulUserManagementFlags);
 	if (er != erSuccess)
 		return er;
 
 	/* Filter objects */
 	if (ulFlags)
-		lpObjects->remove_if(filter_objects(ulFlags));
-	if (lppObjects != nullptr)
-		*lppObjects = lpObjects.release();
+		objs.remove_if(filter_objects(ulFlags));
 	return erSuccess;
 }
 
 ECRESULT ECABObjectTable::LoadContentsCompany(unsigned int ulObjectId,
-    unsigned int ulFlags, std::list<localobjectdetails_t> **lppObjects)
+    unsigned int ulFlags, std::list<localobjectdetails_t> &objs)
 {
-	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
-
 	auto er = lpSession->GetUserManagement()->GetCompanyObjectListAndSync(OBJECTCLASS_UNKNOWN,
-	          ulObjectId, lpsRestrict, &unique_tie(lpObjects), m_ulUserManagementFlags);
+	          ulObjectId, lpsRestrict, objs, m_ulUserManagementFlags);
 	if (er != erSuccess)
 		return er;
 
 	/* Filter objects */
 	if (ulFlags)
-		lpObjects->remove_if(filter_objects(ulFlags));
-	if (lppObjects != nullptr)
-		*lppObjects = lpObjects.release();
+		objs.remove_if(filter_objects(ulFlags));
 	return erSuccess;
 }
 
 ECRESULT ECABObjectTable::LoadContentsDistlist(unsigned int ulObjectId,
-    unsigned int ulFlags, std::list<localobjectdetails_t> **lppObjects)
+    unsigned int ulFlags, std::list<localobjectdetails_t> &objs)
 {
-	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
-
 	auto er = lpSession->GetUserManagement()->GetSubObjectsOfObjectAndSync(OBJECTRELATION_GROUP_MEMBER,
-	          ulObjectId, &unique_tie(lpObjects), m_ulUserManagementFlags);
+	          ulObjectId, objs, m_ulUserManagementFlags);
 	if (er != erSuccess)
 		return er;
 
 	/* Filter objects */
 	if (ulFlags)
-		lpObjects->remove_if(filter_objects(ulFlags));
-	if (lppObjects != nullptr)
-		*lppObjects = lpObjects.release();
+		objs.remove_if(filter_objects(ulFlags));
 	return erSuccess;
 }
 
 ECRESULT ECABObjectTable::Load()
 {
 	auto lpODAB = static_cast<const ECODAB *>(m_lpObjectData);
-
-	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
+	std::list<localobjectdetails_t> objs;
 	std::list<unsigned int> lstObjects;
 	unsigned int ulObjectId = 0, ulObjectFilter = 0;
 	objectid_t objectid;
@@ -367,7 +341,7 @@ ECRESULT ECABObjectTable::Load()
 		 */
 		if (lpODAB->ulABParentType != MAPI_ABCONT)
 			return KCERR_INVALID_PARAMETER;
-		er = LoadHierarchyContainer(lpODAB->ulABParentId, &unique_tie(lpObjects));
+		er = LoadHierarchyContainer(lpODAB->ulABParentId, objs);
 		if (er != erSuccess)
 			return er;
 	} else if (lpODAB->ulABParentId == KOPANO_UID_GLOBAL_ADDRESS_BOOK && lpODAB->ulABParentType == MAPI_ABCONT) {
@@ -377,7 +351,7 @@ ECRESULT ECABObjectTable::Load()
 		er = sec->GetUserCompany(&ulObjectId);
 		if (er != erSuccess)
 			return er;
-		er = LoadContentsCompany(ulObjectId, AB_FILTER_ADDRESSLIST, &unique_tie(lpObjects));
+		er = LoadContentsCompany(ulObjectId, AB_FILTER_ADDRESSLIST, objs);
 		if (er != erSuccess)
 			return er;
 		/*
@@ -386,7 +360,7 @@ ECRESULT ECABObjectTable::Load()
 		 * that one isn't visible.
 		 */
 		if (!ulObjectId)
-			lpObjects->emplace_front(ulObjectId, CONTAINER_COMPANY);
+			objs.emplace_front(ulObjectId, CONTAINER_COMPANY);
 	} else if (lpODAB->ulABParentId == KOPANO_UID_GLOBAL_ADDRESS_LISTS && lpODAB->ulABParentType == MAPI_ABCONT) {
 		/*
 		 * Load contents of Global Address Lists
@@ -423,18 +397,18 @@ ECRESULT ECABObjectTable::Load()
 
 		if (objectid.objclass == DISTLIST_GROUP || objectid.objclass == DISTLIST_SECURITY ||
 		    objectid.objclass == DISTLIST_DYNAMIC)
-			er = LoadContentsDistlist(lpODAB->ulABParentId, ulObjectFilter, &unique_tie(lpObjects));
+			er = LoadContentsDistlist(lpODAB->ulABParentId, ulObjectFilter, objs);
 		else if (objectid.objclass == CONTAINER_COMPANY)
-			er = LoadContentsCompany(lpODAB->ulABParentId, ulObjectFilter, &unique_tie(lpObjects));
+			er = LoadContentsCompany(lpODAB->ulABParentId, ulObjectFilter, objs);
 		else if (objectid.objclass == CONTAINER_ADDRESSLIST)
-			er = LoadContentsAddressList(lpODAB->ulABParentId, ulObjectFilter, &unique_tie(lpObjects));
+			er = LoadContentsAddressList(lpODAB->ulABParentId, ulObjectFilter, objs);
 		else
 			return KCERR_INVALID_PARAMETER;
 		if (er != erSuccess)
 			return er;
 	}
 
-	for (const auto &obj : *lpObjects) {
+	for (const auto &obj : objs) {
 		/* Only add visible items */
 		if (sec->IsUserObjectVisible(obj.ulId) != erSuccess)
 			continue;

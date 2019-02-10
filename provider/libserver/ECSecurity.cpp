@@ -6,7 +6,6 @@
 #include <list>
 #include <memory>
 #include <utility>
-#include <kopano/tie.hpp>
 #include "ECDatabaseUtils.h"
 #include "ECDatabase.h"
 #include "ECSessionManager.h"
@@ -31,6 +30,22 @@
 #include "cmdutil.hpp"
 
 namespace KC {
+
+template<typename Z> class unique_feeder {
+	public:
+	unique_feeder(std::unique_ptr<Z> &arg) : m_ptr(arg), m_data(new Z) {}
+	unique_feeder(unique_feeder<Z> &&o) = default;
+	~unique_feeder() { m_ptr = std::move(m_data); }
+	Z &operator*() { return *m_data; }
+	private:
+	typename std::unique_ptr<Z> &m_ptr;
+	typename std::unique_ptr<Z> m_data;
+};
+
+template<typename Z> static unique_feeder<Z> make_feeder(std::unique_ptr<Z> &arg)
+{
+	return unique_feeder<Z>(arg);
+}
 
 #define MAX_PARENT_LIMIT 64
 
@@ -132,21 +147,20 @@ public:
  *
  * @return Kopano error code
  */
-ECRESULT ECSecurity::GetGroupsForUser(unsigned int ulUserId, std::list<localobjectdetails_t> **lppGroups)
+ECRESULT ECSecurity::GetGroupsForUser(unsigned int ulUserId, std::list<localobjectdetails_t> &groups)
 {
-	std::unique_ptr<std::list<localobjectdetails_t>> lpGroups;
 	cUniqueGroup cSeenGroups;
 
 	/* Gets the current user's membership information.
 	 * This means you will be in the same groups until you login again */
 	auto usrmgt = m_lpSession->GetUserManagement();
 	auto er = usrmgt->GetParentObjectsOfObjectAndSync(OBJECTRELATION_GROUP_MEMBER,
-		ulUserId, &unique_tie(lpGroups), USERMANAGEMENT_IDS_ONLY);
+		ulUserId, groups, USERMANAGEMENT_IDS_ONLY);
 	if (er != erSuccess)
 		return er;
 
 	/* A user is only member of a group when he can also view the group */
-	for (auto iterGroups = lpGroups->begin(); iterGroups != lpGroups->cend(); ) {
+	for (auto iterGroups = groups.begin(); iterGroups != groups.cend(); ) {
 		/*
 		 * Since this function is only used by ECSecurity, we can only
 		 * test for security groups here. However, normal groups were
@@ -154,22 +168,20 @@ ECRESULT ECSecurity::GetGroupsForUser(unsigned int ulUserId, std::list<localobje
 		 * groups here to exclude.
 		 */
 		if (IsUserObjectVisible(iterGroups->ulId) != erSuccess || iterGroups->GetClass() == DISTLIST_DYNAMIC) {
-			iterGroups = lpGroups->erase(iterGroups);
+			iterGroups = groups.erase(iterGroups);
 			continue;
 		}
 		cSeenGroups.m_seen.emplace(*iterGroups);
 
-		std::unique_ptr<std::list<localobjectdetails_t>> lpGroupInGroups;
+		std::list<localobjectdetails_t> gig; /* groups in groups */
 		er = usrmgt->GetParentObjectsOfObjectAndSync(OBJECTRELATION_GROUP_MEMBER,
-		     iterGroups->ulId, &unique_tie(lpGroupInGroups), USERMANAGEMENT_IDS_ONLY);
+		     iterGroups->ulId, gig, USERMANAGEMENT_IDS_ONLY);
 		if (er == erSuccess)
 			// Adds all groups from lpGroupInGroups to the main lpGroups list, except when already in cSeenGroups
-			remove_copy_if(lpGroupInGroups->begin(), lpGroupInGroups->end(), back_inserter(*lpGroups), cSeenGroups);
+			std::remove_copy_if(gig.cbegin(), gig.cend(), std::back_inserter(groups), cSeenGroups);
 		// Ignore error (e.g. cannot use that function on group Everyone)
 		++iterGroups;
 	}
-
-	*lppGroups = lpGroups.release();
 	return erSuccess;
 }
 
@@ -209,7 +221,7 @@ ECRESULT ECSecurity::GetObjectPermission(unsigned int ulObjId, unsigned int* lpu
 					bFoundACL = true;
 				}
 			// Also check for groups that we are in, and add those permissions
-			if (m_lpGroups || GetGroupsForUser(m_ulUserID, &unique_tie(m_lpGroups)) == erSuccess)
+			if (m_lpGroups || GetGroupsForUser(m_ulUserID, *make_feeder(m_lpGroups)) == erSuccess)
 				for (const auto &grp : *m_lpGroups)
 					for (gsoap_size_t i = 0; i < lpRights->__size; ++i)
 						if (lpRights->__ptr[i].ulType == ACCESS_TYPE_GRANT &&
@@ -718,7 +730,7 @@ ECRESULT ECSecurity::GetUserCompany(unsigned int *lpulCompanyId) const
  * @return Kopano error code
  */
 ECRESULT ECSecurity::GetViewableCompanyIds(unsigned int ulFlags,
-    std::list<localobjectdetails_t> **lppObjects)
+    std::list<localobjectdetails_t> &objs)
 {
 	/*
 	 * We have the viewable companies stored in our cache,
@@ -729,7 +741,7 @@ ECRESULT ECSecurity::GetViewableCompanyIds(unsigned int ulFlags,
 	 * want all details while others will only want the IDs.
 	 */
 	if (!m_lpViewCompanies) {
-		auto er = GetViewableCompanies(0, &unique_tie(m_lpViewCompanies));
+		auto er = GetViewableCompanies(0, *make_feeder(m_lpViewCompanies));
 		if (er != erSuccess)
 			return er;
 	}
@@ -738,15 +750,15 @@ ECRESULT ECSecurity::GetViewableCompanyIds(unsigned int ulFlags,
 	 * Because of the difference in flags it is possible we have
 	 * too many entries in the list. We need to filter those out now.
 	 */
-	*lppObjects = new std::list<localobjectdetails_t>;
+	objs.clear();
 	for (const auto &i : *m_lpViewCompanies) {
 		if (m_ulUserID != 0 && (ulFlags & USERMANAGEMENT_ADDRESSBOOK) &&
 		    i.GetPropBool(OB_PROP_B_AB_HIDDEN))
 			continue;
 		if (ulFlags & USERMANAGEMENT_IDS_ONLY)
-			(*lppObjects)->emplace_back(i.ulId, i.GetClass());
+			objs.emplace_back(i.ulId, i.GetClass());
 		else
-			(*lppObjects)->emplace_back(i.ulId, i);
+			objs.emplace_back(i.ulId, i);
 	}
 	return erSuccess;
 }
@@ -781,7 +793,7 @@ ECRESULT ECSecurity::IsUserObjectVisible(unsigned int ulUserObjectId)
 	if (sExternId.objclass == CONTAINER_COMPANY)
 		ulCompanyId = ulUserObjectId;
 	if (!m_lpViewCompanies) {
-		er = GetViewableCompanies(0, &unique_tie(m_lpViewCompanies));
+		er = GetViewableCompanies(0, *make_feeder(m_lpViewCompanies));
 		if (er != erSuccess)
 			return er;
 	}
@@ -805,23 +817,22 @@ ECRESULT ECSecurity::IsUserObjectVisible(unsigned int ulUserObjectId)
  * @return
  */
 ECRESULT ECSecurity::GetViewableCompanies(unsigned int ulFlags,
-    std::list<localobjectdetails_t> **lppObjects) const
+    std::list<localobjectdetails_t> &objs) const
 {
 	ECRESULT er = erSuccess;
-	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
 	objectdetails_t details;
 	auto usrmgt = m_lpSession->GetUserManagement();
 
 	if (m_details.GetPropInt(OB_PROP_I_ADMINLEVEL) == ADMIN_LEVEL_SYSADMIN)
-		er = usrmgt->GetCompanyObjectListAndSync(CONTAINER_COMPANY, 0, nullptr, &unique_tie(lpObjects), ulFlags);
+		er = usrmgt->GetCompanyObjectListAndSync(CONTAINER_COMPANY, 0, nullptr, objs, ulFlags);
 	else
 		er = usrmgt->GetParentObjectsOfObjectAndSync(OBJECTRELATION_COMPANY_VIEW,
-		     m_ulCompanyID, &unique_tie(lpObjects), ulFlags);
+		     m_ulCompanyID, objs, ulFlags);
 	if (er != erSuccess)
 		/* Whatever the error might be, it only indicates we
 		 * are not allowed to view _other_ companyspaces.
 		 * It doesn't restrict us from viewing our own... */
-		lpObjects.reset(new std::list<localobjectdetails_t>);
+		objs.clear();
 
 	/* We are going to insert the requested companyID to the list as well,
 	 * this way we guarentee that _all_ viewable companies are in the list.
@@ -836,12 +847,10 @@ ECRESULT ECSecurity::GetViewableCompanies(unsigned int ulFlags,
 		} else {
 			details = objectdetails_t(CONTAINER_COMPANY);
 		}
-		lpObjects->emplace_back(m_ulCompanyID, details);
+		objs.emplace_back(m_ulCompanyID, details);
 	}
-
-	lpObjects->sort();
-	lpObjects->unique();
-	*lppObjects = lpObjects.release();
+	objs.sort();
+	objs.unique();
 	return erSuccess;
 }
 
@@ -854,29 +863,27 @@ ECRESULT ECSecurity::GetViewableCompanies(unsigned int ulFlags,
  * @return Kopano error code
  */
 ECRESULT ECSecurity::GetAdminCompanies(unsigned int ulFlags,
-    std::list<localobjectdetails_t> **lppObjects)
+    std::list<localobjectdetails_t> &objs)
 {
 	ECRESULT er = erSuccess;
-	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
 	auto usrmgt = m_lpSession->GetUserManagement();
 
 	if (m_details.GetPropInt(OB_PROP_I_ADMINLEVEL) == ADMIN_LEVEL_SYSADMIN)
 		er = usrmgt->GetCompanyObjectListAndSync(CONTAINER_COMPANY, 0,
-		     nullptr, &unique_tie(lpObjects), ulFlags);
+		     nullptr, objs, ulFlags);
 	else
 		er = usrmgt->GetParentObjectsOfObjectAndSync(OBJECTRELATION_COMPANY_ADMIN,
-		     m_ulUserID, &unique_tie(lpObjects), ulFlags);
+		     m_ulUserID, objs, ulFlags);
 	if (er != erSuccess)
 		return er;
 
 	/* A user is only admin over a company when he has privileges to view the company */
-	for (auto iterObjects = lpObjects->begin(); iterObjects != lpObjects->cend(); )
+	for (auto iterObjects = objs.begin(); iterObjects != objs.cend(); )
 		if (IsUserObjectVisible(iterObjects->ulId) != erSuccess)
-			iterObjects = lpObjects->erase(iterObjects);
+			iterObjects = objs.erase(iterObjects);
 		else
 			++iterObjects;
 
-	*lppObjects = lpObjects.release();
 	return erSuccess;
 }
 
@@ -1017,7 +1024,7 @@ ECRESULT ECSecurity::IsAdminOverUserObject(unsigned int ulUserObjectId)
 		return KCERR_NO_ACCESS;
 	}
 	if (!m_lpAdminCompanies) {
-		er = GetAdminCompanies(USERMANAGEMENT_IDS_ONLY, &unique_tie(m_lpAdminCompanies));
+		er = GetAdminCompanies(USERMANAGEMENT_IDS_ONLY, *make_feeder(m_lpAdminCompanies));
 		if (er != erSuccess)
 			return er;
 	}
