@@ -52,7 +52,7 @@ eResult ArchiverImpl::Init(const char *lpszAppName, const char *lpszConfig, cons
 		// the logger with a NULL logger.
 		auto lpFileLogger = dynamic_cast<ECLogger_File *>(m_lpLogLogger.get());
 		if (lpFileLogger && lpFileLogger->IsStdErr())
-			m_lpLogLogger.reset(new ECLogger_Null);
+			m_lpLogLogger = std::make_shared<ECLogger_Null>();
 		m_lpLogger = m_lpLogLogger;
 	} else if (ulFlags & AttachStdErr) {
 		// We need to check if the current logger isn't logging to the console

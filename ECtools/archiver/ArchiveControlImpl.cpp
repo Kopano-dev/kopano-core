@@ -345,18 +345,18 @@ HRESULT ArchiveControlImpl::DoArchive(const tstring& strUser)
 	// Create and hook the three dependent steps
 	if (m_bArchiveEnable && m_ulArchiveAfter >= 0) {
 		SizedSPropTagArray(5, sptaExcludeProps) = {5, {PROP_ARCHIVE_STORE_ENTRYIDS, PROP_ARCHIVE_ITEM_ENTRYIDS, PROP_STUBBED, PROP_DIRTY, PROP_ORIGINAL_SOURCEKEY}};
-		ptrCopyOp.reset(new Copier(m_ptrSession, m_lpConfig, m_lpLogger,
-			lstArchives, sptaExcludeProps, m_ulArchiveAfter, true));
+		ptrCopyOp = std::make_shared<Copier>(m_ptrSession, m_lpConfig, m_lpLogger,
+			lstArchives, sptaExcludeProps, m_ulArchiveAfter, true);
 	}
 
 	if (m_bDeleteEnable && m_ulDeleteAfter >= 0) {
-		ptrDeleteOp.reset(new Deleter(m_lpLogger, m_ulDeleteAfter, m_bDeleteUnread));
+		ptrDeleteOp = std::make_shared<Deleter>(m_lpLogger, m_ulDeleteAfter, m_bDeleteUnread);
 		if (ptrCopyOp)
 			ptrCopyOp->SetDeleteOperation(ptrDeleteOp);
 	}
 
 	if (m_bStubEnable && m_ulStubAfter >= 0) {
-		ptrStubOp.reset(new Stubber(m_lpLogger, PROP_STUBBED, m_ulStubAfter, m_bStubUnread));
+		ptrStubOp = std::make_shared<Stubber>(m_lpLogger, PROP_STUBBED, m_ulStubAfter, m_bStubUnread);
 		if (ptrCopyOp)
 			ptrCopyOp->SetStubOperation(ptrStubOp);
 	}

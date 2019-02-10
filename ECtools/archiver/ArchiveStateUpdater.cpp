@@ -89,7 +89,7 @@ ArchiveStateUpdater::ArchiveStateUpdater(const ArchiverSessionPtr &ptrSession,
 	m_mapArchiveInfo(mapArchiveInfo)
 {
 	if (m_lpLogger == nullptr)
-		m_lpLogger.reset(new ECLogger_Null);
+		m_lpLogger = std::make_shared<ECLogger_Null>();
 }
 
 /**

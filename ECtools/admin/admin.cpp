@@ -2453,7 +2453,7 @@ int main(int argc, char **argv) try
 	if ((!bHaveConfig && bExplicitConfig) || (bHaveConfig && !bExplicitConfig && lpsConfig->HasErrors())) {
 		cerr << "Error while reading configuration file " << szConfig << endl;
 		// create fatal logger without a timestamp to stderr
-		lpLogger.reset(new ECLogger_File(EC_LOGLEVEL_FATAL, 0, "-", false));
+		lpLogger = std::make_shared<ECLogger_File>(EC_LOGLEVEL_FATAL, 0, "-", false);
 		ec_log_set(lpLogger);
 		LogConfigErrors(lpsConfig.get());
 		return 1;
@@ -2471,9 +2471,9 @@ int main(int argc, char **argv) try
 	if (loglevel > EC_LOGLEVEL_DEBUG)
 		loglevel = EC_LOGLEVEL_ALWAYS;
 	if (loglevel > EC_LOGLEVEL_NONE)
-		lpLogger.reset(new ECLogger_File(loglevel, 0, "-", false));
+		lpLogger = std::make_shared<ECLogger_File>(loglevel, 0, "-", false);
 	else
-		lpLogger.reset(new ECLogger_Null);
+		lpLogger = std::make_shared<ECLogger_Null>();
 
 	ec_log_set(lpLogger);
 
