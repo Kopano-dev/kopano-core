@@ -2044,10 +2044,8 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 		}
 		END_FOREACH_ATTR
 
-		if (m_bHosted && sObjDetails.GetClass() != CONTAINER_COMPANY) {
-			objectid_t company = m_lpCache->getParentForDN(lpCompanyCache, strDN);
-			sObjDetails.SetPropObject(OB_PROP_O_COMPANYID, company);
-		}
+		if (m_bHosted && sObjDetails.GetClass() != CONTAINER_COMPANY)
+			sObjDetails.SetPropObject(OB_PROP_O_COMPANYID, m_lpCache->getParentForDN(lpCompanyCache, strDN));
 		if (!objectid.id.empty())
 			mapdetails[objectid] = sObjDetails;
 	}
@@ -2101,7 +2099,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 				} else {
 				    // ID type
     				if (!signature.id.id.empty())
-					o->second.SetPropObject(p.propname, signature.id);
+						o->second.SetPropObject(p.propname, std::move(signature.id));
 	    			else
 					ec_log_err("Unable to find relation \"%s\" in attribute \"%s\"", p.ldap_attr.c_str(), p.relAttr);
                 }

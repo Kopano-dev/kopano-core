@@ -98,7 +98,7 @@ public:
 	void			SetPropBool(property_key_t propname, bool value);
 	void			SetPropString(property_key_t propname, const std::string &value);
 	void SetPropListString(property_key_t propname, std::list<std::string> &&value);
-	void			SetPropObject(property_key_t propname, const objectid_t &value);
+	void SetPropObject(property_key_t propname, objectid_t &&value);
 
 	/* "mv" props */
 	void			AddPropInt(property_key_t propname, unsigned int value);

@@ -84,7 +84,7 @@ void objectdetails_t::SetPropListString(property_key_t propname,
 }
 
 void objectdetails_t::SetPropObject(property_key_t propname,
-    const objectid_t &value)
+    objectid_t &&value)
 {
 	m_mapProps[propname].assign(((objectid_t)value).tostring());
 }

@@ -1781,7 +1781,6 @@ ECRESULT ECUserManagement::ConvertLoginToUserAndCompany(objectdetails_t *lpDetai
 	bool bHosted = m_lpSession->GetSessionManager()->IsHostedSupported();
 	std::string loginname, companyname;
 	unsigned int ulCompanyId = 0;
-	objectid_t sCompanyId;
 
 	if ((OBJECTCLASS_TYPE(lpDetails->GetClass()) != OBJECTTYPE_MAILUSER &&
 		 OBJECTCLASS_TYPE(lpDetails->GetClass()) != OBJECTTYPE_DISTLIST) ||
@@ -1798,13 +1797,14 @@ ECRESULT ECUserManagement::ConvertLoginToUserAndCompany(objectdetails_t *lpDetai
 		return er;
 
 	if (bHosted) {
+		objectid_t sCompanyId;
 		er = ResolveObject(CONTAINER_COMPANY, companyname, objectid_t(), &sCompanyId);
 		if (er != erSuccess)
 			return er;
 		er = GetLocalId(sCompanyId, &ulCompanyId);
 		if (er != erSuccess)
 			return er;
-		lpDetails->SetPropObject(OB_PROP_O_COMPANYID, sCompanyId);
+		lpDetails->SetPropObject(OB_PROP_O_COMPANYID, std::move(sCompanyId));
 		lpDetails->SetPropInt(OB_PROP_I_COMPANYID, ulCompanyId);
 	}
 
@@ -1927,19 +1927,20 @@ ECRESULT ECUserManagement::ConvertExternIDsToLocalIDs(objectdetails_t *lpDetails
 ECRESULT ECUserManagement::ConvertLocalIDsToExternIDs(objectdetails_t *lpDetails) const
 {
 	ECRESULT er;
-	objectid_t sExternID;
 	unsigned int ulLocalID = 0;
 
 	switch (lpDetails->GetClass()) {
-	case CONTAINER_COMPANY:
+	case CONTAINER_COMPANY: {
 		ulLocalID = lpDetails->GetPropInt(OB_PROP_I_SYSADMIN);
 		if (!ulLocalID || IsInternalObject(ulLocalID))
 			break;
+		objectid_t sExternID;
 		er = GetExternalId(ulLocalID, &sExternID);
 		if (er != erSuccess)
 			return er;
-		lpDetails->SetPropObject(OB_PROP_O_SYSADMIN, sExternID);
+		lpDetails->SetPropObject(OB_PROP_O_SYSADMIN, std::move(sExternID));
 		break;
+	}
 	default:
 		// Nothing to do
 		break;
