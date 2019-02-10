@@ -7,7 +7,6 @@
 #include <memory>
 #include <utility>
 #include <kopano/MAPIErrors.h>
-#include <kopano/scope.hpp>
 #include <kopano/tie.hpp>
 #include "kcore.hpp"
 #include <mapidefs.h>

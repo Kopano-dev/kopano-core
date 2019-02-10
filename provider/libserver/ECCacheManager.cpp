@@ -14,7 +14,6 @@
 #include <mapidefs.h>
 #include <mapitags.h>
 #include <kopano/MAPIErrors.h>
-#include <kopano/scope.hpp>
 #include "ECDatabase.h"
 #include "ECSessionManager.h"
 #include "ECDatabaseUtils.h"

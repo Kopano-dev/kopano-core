@@ -99,7 +99,6 @@ public:
 	void			SetPropString(property_key_t propname, const std::string &value);
 	void			SetPropListString(property_key_t propname, const std::list<std::string> &value);
 	void			SetPropObject(property_key_t propname, const objectid_t &value);
-	void			SetPropListObject(property_key_t propname, const std::list<objectid_t> &value);
 
 	/* "mv" props */
 	void			AddPropInt(property_key_t propname, unsigned int value);

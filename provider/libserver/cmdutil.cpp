@@ -16,7 +16,6 @@
 #include <kopano/memory.hpp>
 #include <kopano/EMSAbTag.h>
 #include <kopano/scope.hpp>
-#include <kopano/tie.hpp>
 #include <edkmdb.h>
 #include "ECMAPI.h"
 #include "soapH.h"
