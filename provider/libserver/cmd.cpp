@@ -741,8 +741,8 @@ int KCmdService::ssoLogon(ULONG64 ulSessionId, const char *szUsername,
     if(er != KCERR_SSO_CONTINUE) {
         // Don't reset er to erSuccess on SSO_CONTINUE, we don't need the server guid yet
     	er = g_lpSessionManager->GetServerGUID(&sServerGuid);
-    	if (er != erSuccess)
-    		goto exit;
+		if (er != erSuccess)
+			goto exit;
 		lpsResponse->sServerGuid.__ptr = reinterpret_cast<unsigned char *>(s_memcpy(soap, &sServerGuid, sizeof(sServerGuid)));
     	lpsResponse->sServerGuid.__size = sizeof(sServerGuid);
     }
