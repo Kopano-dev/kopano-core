@@ -2484,14 +2484,12 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er,
 		GetSourceKey(sReturnObject.ulServerId, &sSourceKey);
 		GetSourceKey(ulParentObjId, &sParentSourceKey);
 
-		if (sReturnObject.ulObjType == MAPI_MESSAGE && ulParentObjType == MAPI_FOLDER) {
-			if (lpsSaveObj->ulServerId == 0)
-				AddChange(lpecSession, ulSyncId, sSourceKey, sParentSourceKey, ICS_MESSAGE_NEW, 0, !fHaveChangeKey, &strChangeKey, &strChangeList);
-			else
-				AddChange(lpecSession, ulSyncId, sSourceKey, sParentSourceKey, ICS_MESSAGE_CHANGE, 0, !fHaveChangeKey, &strChangeKey, &strChangeList);
-		} else if (lpsSaveObj->ulObjType == MAPI_FOLDER && !(ulFlags & FOLDER_SEARCH)) {
+		if (sReturnObject.ulObjType == MAPI_MESSAGE && ulParentObjType == MAPI_FOLDER)
+			AddChange(lpecSession, ulSyncId, sSourceKey, sParentSourceKey,
+				lpsSaveObj->ulServerId == 0 ? ICS_MESSAGE_NEW : ICS_MESSAGE_CHANGE,
+				0, !fHaveChangeKey, &strChangeKey, &strChangeList);
+		else if (lpsSaveObj->ulObjType == MAPI_FOLDER && !(ulFlags & FOLDER_SEARCH))
 			AddChange(lpecSession, ulSyncId, sSourceKey, sParentSourceKey, ICS_FOLDER_CHANGE, 0, !fHaveChangeKey, &strChangeKey, &strChangeList);
-		}
 
 		if(!strChangeKey.empty()){
 			sReturnObject.delProps.__ptr[sReturnObject.delProps.__size] = PR_CHANGE_KEY;
