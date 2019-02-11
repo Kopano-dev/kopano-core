@@ -3514,7 +3514,8 @@ SOAP_ENTRY_START(tableMulti, lpsResponse->er,
     struct rowSet *lpRowSet = NULL;
 
     if(sRequest.lpOpen) {
-        er = OpenTable(lpecSession, sRequest.lpOpen->sEntryId, sRequest.lpOpen->ulTableType, sRequest.lpOpen->ulType, sRequest.lpOpen->ulFlags, &lpsResponse->ulTableId);
+		auto &o = *sRequest.lpOpen;
+		er = OpenTable(lpecSession, o.sEntryId, o.ulTableType, o.ulType, o.ulFlags, &lpsResponse->ulTableId);
 		if(er != erSuccess)
 			return er;
         ulTableId = lpsResponse->ulTableId;
@@ -3524,7 +3525,8 @@ SOAP_ENTRY_START(tableMulti, lpsResponse->er,
 	if(er != erSuccess)
 		return er;
     if(sRequest.lpSort) {
-        er = lpTable->SetSortOrder(&sRequest.lpSort->sSortOrder, sRequest.lpSort->ulCategories, sRequest.lpSort->ulExpanded);
+		auto &s = *sRequest.lpSort;
+		er = lpTable->SetSortOrder(&s.sSortOrder, s.ulCategories, s.ulExpanded);
         if(er != erSuccess)
 			return er;
     }
