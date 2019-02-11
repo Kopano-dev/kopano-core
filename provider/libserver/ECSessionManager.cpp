@@ -39,6 +39,11 @@ namespace KC {
 
 void (*kopano_get_server_stats)(unsigned int *qlen, KC::time_duration *qage, unsigned int *nthr, unsigned int *idlthr) = [](unsigned int *, KC::time_duration *, unsigned int *, unsigned int *) {};
 
+static inline const char *znul(const char *s)
+{
+	return s != nullptr ? s : "";
+}
+
 ECSessionManager::ECSessionManager(std::shared_ptr<ECConfig> cfg,
     std::shared_ptr<ECLogger> ad, std::shared_ptr<server_stats> sc,
     bool bHostedKopano, bool bDistributedKopano) :
@@ -153,25 +158,26 @@ ECRESULT ECSessionManager::LoadSettings(){
  * deletion of the session group only occurs within DeleteIfOrphaned(), and this function guarantees that the caller
  * will receive a sessiongroup that is not an orphan unless the caller releases the session group.
  */
-ECRESULT ECSessionManager::GetSessionGroup(ECSESSIONGROUPID sessionGroupID, ECSession *lpSession, ECSessionGroup **lppSessionGroup)
+ECRESULT ECSessionManager::GetSessionGroup(ECSESSIONGROUPID sgid,
+    ECSession *lpSession, ECSessionGroup **lppSessionGroup)
 {
 	ECSessionGroup *lpSessionGroup = NULL;
 	std::shared_lock<KC::shared_mutex> lr_group(m_hGroupLock);
 	std::unique_lock<KC::shared_mutex> lw_group(m_hGroupLock, std::defer_lock_t());
 
-	/* Workaround for old clients, when sessionGroupID is 0 each session is its own group */
-	if (sessionGroupID == 0) {
-		lpSessionGroup = new ECSessionGroup(sessionGroupID, this);
+	/* Workaround for old clients, when sgid is 0 each session is its own group */
+	if (sgid == 0) {
+		lpSessionGroup = new ECSessionGroup(sgid, this);
 		g_lpSessionManager->m_stats->inc(SCN_SESSIONGROUPS_CREATED);
 	} else {
-		auto iter = m_mapSessionGroups.find(sessionGroupID);
+		auto iter = m_mapSessionGroups.find(sgid);
 		/* Check if the SessionGroup already exists on the server */
 		if (iter == m_mapSessionGroups.cend()) {
 			// "upgrade" lock to insert new session
 			lr_group.unlock();
 			lw_group.lock();
-			lpSessionGroup = new ECSessionGroup(sessionGroupID, this);
-			m_mapSessionGroups.emplace(sessionGroupID, lpSessionGroup);
+			lpSessionGroup = new ECSessionGroup(sgid, this);
+			m_mapSessionGroups.emplace(sgid, lpSessionGroup);
 			g_lpSessionManager->m_stats->inc(SCN_SESSIONGROUPS_CREATED);
 		} else
 			lpSessionGroup = iter->second;
@@ -385,9 +391,9 @@ ECRESULT ECSessionManager::CreateAuthSession(struct soap *soap, unsigned int ulC
 
 ECRESULT ECSessionManager::CreateSession(struct soap *soap, const char *szName,
     const char *szPassword, const char *szImpersonateUser,
-    const char *szClientVersion, const char *szClientApp,
-    const char *szClientAppVersion, const char *szClientAppMisc,
-    unsigned int ulCapabilities, ECSESSIONGROUPID sessionGroupID,
+    const char *cl_ver, const char *cl_app,
+    const char *cl_app_ver, const char *cl_app_misc,
+    unsigned int ulCapabilities, ECSESSIONGROUPID sgid,
     ECSESSIONID *lpSessionID, ECSession **lppSession, bool fLockSession,
     bool fAllowUidAuth, bool bRegisterSession)
 {
@@ -408,8 +414,8 @@ ECRESULT ECSessionManager::CreateSession(struct soap *soap, const char *szName,
 	auto er = CreateAuthSession(soap, ulCapabilities, lpSessionID, &unique_tie(lpAuthSession), false, false);
 	if (er != erSuccess)
 		return er;
-	if (szClientApp == nullptr)
-		szClientApp = "<unknown>";
+	if (cl_app == nullptr)
+		cl_app = "<unknown>";
 
 	// If we've connected with SSL, check if there is a certificate, and check if we accept that certificate for that user
 	if (soap->ssl && lpAuthSession->ValidateUserCertificate(soap, szName, szImpersonateUser) == erSuccess) {
@@ -432,47 +438,46 @@ ECRESULT ECSessionManager::CreateSession(struct soap *soap, const char *szName,
 
 	// whoops, out of auth options.
 	ZLOG_AUDIT(m_lpAudit, "authenticate failed user='%s' from='%s' program='%s'",
-		szName, from.c_str(), szClientApp);
+		szName, from.c_str(), cl_app);
 	g_lpSessionManager->m_stats->inc(SCN_LOGIN_DENIED);
 	return KCERR_LOGON_FAILED;
 
 authenticated:
 	if (!bRegisterSession)
 		return erSuccess;
-	er = RegisterSession(lpAuthSession.get(), sessionGroupID,
-	     szClientVersion, szClientApp, szClientAppVersion, szClientAppMisc,
-	     lpSessionID, lppSession, fLockSession);
+	er = RegisterSession(lpAuthSession.get(), sgid, cl_ver, cl_app,
+	     cl_app_ver, cl_app_misc, lpSessionID, lppSession, fLockSession);
 	if (er != erSuccess) {
 		if (er == KCERR_NO_ACCESS && szImpersonateUser != NULL && *szImpersonateUser != '\0') {
 			ec_log_err("Failed attempt to impersonate user \"%s\" by user \"%s\": %s (0x%x)", szImpersonateUser, szName, GetMAPIErrorMessage(er), er);
 			ZLOG_AUDIT(m_lpAudit, "authenticate ok, impersonate failed: from=\"%s\" user=\"%s\" impersonator=\"%s\" method=\"%s\" program=\"%s\"",
-				from.c_str(), szImpersonateUser, szName, method, szClientApp);
+				from.c_str(), szImpersonateUser, szName, method, cl_app);
 		} else {
 			ec_log_err("User \"%s\" authenticated, but failed to create session: %s (0x%x)", szName, GetMAPIErrorMessage(er), er);
 			ZLOG_AUDIT(m_lpAudit, "authenticate ok, session failed: from=\"%s\" user=\"%s\" impersonator=\"%s\" method=\"%s\" program=\"%s\"",
-				from.c_str(), szImpersonateUser, szName, method, szClientApp);
+				from.c_str(), szImpersonateUser, szName, method, cl_app);
 		}
 		return er;
 	}
 	if (!szImpersonateUser || *szImpersonateUser == '\0')
 		ZLOG_AUDIT(m_lpAudit, "authenticate ok: from=\"%s\" user=\"%s\" method=\"%s\" program=\"%s\" sid=0x%llx",
-			from.c_str(), szName, method, szClientApp, static_cast<unsigned long long>(*lpSessionID));
+			from.c_str(), szName, method, cl_app, static_cast<unsigned long long>(*lpSessionID));
 	else
 		ZLOG_AUDIT(m_lpAudit, "authenticate ok, impersonate ok: from=\"%s\" user=\"%s\" impersonator=\"%s\" method=\"%s\" program=\"%s\" sid=0x%llx",
-			from.c_str(), szImpersonateUser, szName, method, szClientApp, static_cast<unsigned long long>(*lpSessionID));
+			from.c_str(), szImpersonateUser, szName, method, cl_app, static_cast<unsigned long long>(*lpSessionID));
 	return erSuccess;
 }
 
 ECRESULT ECSessionManager::RegisterSession(ECAuthSession *lpAuthSession,
-    ECSESSIONGROUPID sessionGroupID, const char *szClientVersion,
-    const char *szClientApp, const char *szClientApplicationVersion,
-    const char *szClientApplicationMisc, ECSESSIONID *lpSessionID,
+    ECSESSIONGROUPID sgid, const char *cl_ver, const char *cl_app,
+    const char *cl_app_ver, const char *cl_app_misc, ECSESSIONID *lpSessionID,
     ECSession **lppSession, bool fLockSession)
 {
 	ECSession	*lpSession = NULL;
 	ECSESSIONID	newSID = 0;
 
-	auto er = lpAuthSession->CreateECSession(sessionGroupID, szClientVersion ? szClientVersion : "", szClientApp ? szClientApp : "", szClientApplicationVersion ? szClientApplicationVersion : "", szClientApplicationMisc ? szClientApplicationMisc : "", &newSID, &lpSession);
+	auto er = lpAuthSession->CreateECSession(sgid, znul(cl_ver), znul(cl_app),
+	          znul(cl_app_ver), znul(cl_app_misc), &newSID, &lpSession);
 	if (er != erSuccess)
 		return er;
 

@@ -621,7 +621,8 @@ ECRESULT ECAuthSession::CreateECSession(ECSESSIONGROUPID ecSessionGroupId,
 
 // This is a standard user/pass login.
 // You always log in as the user you are authenticating with.
-ECRESULT ECAuthSession::ValidateUserLogon(const char* lpszName, const char* lpszPassword, const char* lpszImpersonateUser)
+ECRESULT ECAuthSession::ValidateUserLogon(const char *lpszName,
+    const char *lpszPassword, const char *impuser)
 {
 	if (!lpszName)
 	{
@@ -639,7 +640,7 @@ ECRESULT ECAuthSession::ValidateUserLogon(const char* lpszName, const char* lpsz
 	auto er = m_lpUserManagement->AuthUserAndSync(lpszName, lpszPassword, &m_ulUserID);
 	if(er != erSuccess)
 		return er;
-	er = ProcessImpersonation(lpszImpersonateUser);
+	er = ProcessImpersonation(impuser);
 	if (er != erSuccess)
 		return er;
 
@@ -675,7 +676,8 @@ static ECRESULT kc_peer_cred(int fd, uid_t *uid, pid_t *pid)
 // that you can connect as a different user than you are specifying in the username. For example,
 // you could be connecting as 'root' and being granted access because the kopano-server process
 // is also running as 'root', but you are actually loggin in as user 'user1'.
-ECRESULT ECAuthSession::ValidateUserSocket(int socket, const char* lpszName, const char* lpszImpersonateUser)
+ECRESULT ECAuthSession::ValidateUserSocket(int socket, const char *lpszName,
+    const char *impuser)
 {
 	bool			allowLocalUsers = false;
 	char			*ptr = NULL;
@@ -686,8 +688,8 @@ ECRESULT ECAuthSession::ValidateUserSocket(int socket, const char* lpszName, con
 		ec_log_err("Invalid argument \"lpszName\" in call to ECAuthSession::ValidateUserSocket()");
 		return KCERR_INVALID_PARAMETER;
     }
-	if (!lpszImpersonateUser) {
-		ec_log_err("Invalid argument \"lpszImpersonateUser\" in call to ECAuthSession::ValidateUserSocket()");
+	if (impuser == nullptr) {
+		ec_log_err("Invalid argument \"impuser\" in call to ECAuthSession::ValidateUserSocket()");
 		return KCERR_INVALID_PARAMETER;
 	}
 	auto p = m_lpSessionManager->GetConfig()->GetSetting("allow_local_users");
@@ -743,7 +745,7 @@ userok:
 	er = m_lpUserManagement->ResolveObjectAndSync(OBJECTCLASS_USER, lpszName, &m_ulUserID);
 	if (er != erSuccess)
 		return er;
-	er = ProcessImpersonation(lpszImpersonateUser);
+	er = ProcessImpersonation(impuser);
 	if (er != erSuccess)
 		return er;
 	m_bValidated = true;
@@ -752,7 +754,8 @@ userok:
 	return erSuccess;
 }
 
-ECRESULT ECAuthSession::ValidateUserCertificate(struct soap* soap, const char* lpszName, const char* lpszImpersonateUser)
+ECRESULT ECAuthSession::ValidateUserCertificate(struct soap *soap,
+    const char *lpszName, const char *impuser)
 {
 	ECRESULT		er = KCERR_LOGON_FAILED;
 	X509			*cert = NULL;			// client certificate
@@ -770,8 +773,8 @@ ECRESULT ECAuthSession::ValidateUserCertificate(struct soap* soap, const char* l
 		ec_log_err("Invalid argument \"lpszName\" in call to ECAuthSession::ValidateUserCertificate()");
 		return KCERR_INVALID_PARAMETER;
 	}
-	if (!lpszImpersonateUser) {
-		ec_log_err("Invalid argument \"lpszImpersonateUser\" in call to ECAuthSession::ValidateUserCertificate()");
+	if (impuser == nullptr) {
+		ec_log_err("Invalid argument \"impuser\" in call to ECAuthSession::ValidateUserCertificate()");
 		return KCERR_INVALID_PARAMETER;
 	}
 
@@ -838,7 +841,7 @@ ECRESULT ECAuthSession::ValidateUserCertificate(struct soap* soap, const char* l
 	er = m_lpUserManagement->ResolveObjectAndSync(OBJECTCLASS_USER, lpszName, &m_ulUserID);
 	if (er != erSuccess)
 		goto exit;
-	er = ProcessImpersonation(lpszImpersonateUser);
+	er = ProcessImpersonation(impuser);
 	if (er != erSuccess)
 		goto exit;
 	m_bValidated = true;
@@ -852,7 +855,11 @@ exit:
 }
 
 #define NTLMBUFFER 8192
-ECRESULT ECAuthSession::ValidateSSOData(struct soap* soap, const char* lpszName, const char* lpszImpersonateUser, const char* szClientVersion, const char *szClientApp, const char *szClientAppVersion, const char *szClientAppMisc, const struct xsd__base64Binary* lpInput, struct xsd__base64Binary **lppOutput)
+ECRESULT ECAuthSession::ValidateSSOData(struct soap *soap, const char *lpszName,
+    const char *impuser, const char *cl_ver, const char *cl_app,
+    const char *cl_app_ver, const char *cl_app_misc,
+    const struct xsd__base64Binary *lpInput,
+    struct xsd__base64Binary **lppOutput)
 {
 	ECRESULT er = KCERR_INVALID_PARAMETER;
 	if (!soap) {
@@ -863,16 +870,16 @@ ECRESULT ECAuthSession::ValidateSSOData(struct soap* soap, const char* lpszName,
 		ec_log_err("Invalid argument \"lpszName\" in call to ECAuthSession::ValidateSSOData()");
 		return er;
 	}
-	if (!lpszImpersonateUser) {
-		ec_log_err("Invalid argument \"lpszImpersonateUser\" in call to ECAuthSession::ValidateSSOData()");
+	if (impuser == nullptr) {
+		ec_log_err("Invalid argument \"impuser\" in call to ECAuthSession::ValidateSSOData()");
 		return er;
 	}
-	if (!szClientVersion) {
-		ec_log_err("Invalid argument \"szClientVersion\" in call to ECAuthSession::ValidateSSOData()");
+	if (cl_ver == nullptr) {
+		ec_log_err("Invalid argument \"cl_ver\" in call to ECAuthSession::ValidateSSOData()");
 		return er;
 	}
-	if (!szClientApp) {
-		ec_log_err("Invalid argument \"szClientApp\" in call to ECAuthSession::ValidateSSOData()");
+	if (cl_app == nullptr) {
+		ec_log_err("Invalid argument \"cl_app\" in call to ECAuthSession::ValidateSSOData()");
 		return er;
 	}
 	if (!lpInput) {
@@ -887,14 +894,14 @@ ECRESULT ECAuthSession::ValidateSSOData(struct soap* soap, const char* lpszName,
 	er = KCERR_LOGON_FAILED;
 	// first NTLM package starts with that signature, continues are detected by the filedescriptor
 	if (m_NTLM_pid != -1 || strncmp((const char*)lpInput->__ptr, "NTLM", 4) == 0)
-		er = ValidateSSOData_NTLM(soap, lpszName, szClientVersion, szClientApp, szClientAppVersion, szClientAppMisc, lpInput, lppOutput);
+		er = ValidateSSOData_NTLM(soap, lpszName, cl_ver, cl_app, cl_app_ver, cl_app_misc, lpInput, lppOutput);
 	else if(strncmp(reinterpret_cast<const char *>(lpInput->__ptr), "KCOIDC", 6) == 0)
-		er = ValidateSSOData_KCOIDC(soap, lpszName, szClientVersion, szClientApp, szClientAppVersion, szClientAppMisc, lpInput, lppOutput);
+		er = ValidateSSOData_KCOIDC(soap, lpszName, cl_ver, cl_app, cl_app_ver, cl_app_misc, lpInput, lppOutput);
 	else
-		er = ValidateSSOData_KRB5(soap, lpszName, szClientVersion, szClientApp, szClientAppVersion, szClientAppMisc, lpInput, lppOutput);
+		er = ValidateSSOData_KRB5(soap, lpszName, cl_ver, cl_app, cl_app_ver, cl_app_misc, lpInput, lppOutput);
 	if (er != erSuccess)
 		return er;
-	return ProcessImpersonation(lpszImpersonateUser);
+	return ProcessImpersonation(impuser);
 }
 
 #ifdef HAVE_GSSAPI
@@ -1012,7 +1019,11 @@ ECRESULT ECAuthSession::ValidateSSOData_KCOIDC(struct soap* soap, const char* na
 #endif
 }
 
-ECRESULT ECAuthSession::ValidateSSOData_KRB5(struct soap* soap, const char* lpszName, const char* szClientVersion, const char* szClientApp, const char *szClientAppVersion, const char *szClientAppMisc, const struct xsd__base64Binary* lpInput, struct xsd__base64Binary** lppOutput)
+ ECRESULT ECAuthSession::ValidateSSOData_KRB5(struct soap *soap,
+     const char *lpszName, const char *cl_ver, const char *cl_app,
+     const char *cl_app_ver, const char *cl_app_misc,
+     const struct xsd__base64Binary *lpInput,
+     struct xsd__base64Binary **lppOutput)
 {
 	ECRESULT er = KCERR_INVALID_PARAMETER;
 #ifndef HAVE_GSSAPI
@@ -1038,12 +1049,12 @@ ECRESULT ECAuthSession::ValidateSSOData_KRB5(struct soap* soap, const char* lpsz
 		ec_log_err("Invalid argument \"lpszName\" in call to ECAuthSession::ValidateSSOData_KRB5()");
 		goto exit;
 	}
-	if (!szClientVersion) {
-		ec_log_err("Invalid argument \"zClientVersionin\" in call to ECAuthSession::ValidateSSOData_KRB5()");
+	if (cl_ver == nullptr) {
+		ec_log_err("Invalid argument \"cl_ver\" in call to ECAuthSession::ValidateSSOData_KRB5()");
 		goto exit;
 	}
-	if (!szClientApp) {
-		ec_log_err("Invalid argument \"szClientApp\" in call to ECAuthSession::ValidateSSOData_KRB5()");
+	if (cl_app == nullptr) {
+		ec_log_err("Invalid argument \"cl_app\" in call to ECAuthSession::ValidateSSOData_KRB5()");
 		goto exit;
 	}
 	if (!lpInput) {
@@ -1100,7 +1111,7 @@ ECRESULT ECAuthSession::ValidateSSOData_KRB5(struct soap* soap, const char* lpsz
 	} else if (retval != GSS_S_COMPLETE) {
 		LogKRB5Error("Unable to accept security context", retval, status);
 		ZLOG_AUDIT(m_lpSessionManager->GetAudit(), "authenticate failed user='%s' from='%s' method='kerberos sso' program='%s'",
-			lpszName, soap->host, szClientApp);
+			lpszName, soap->host, cl_app);
 		goto exit;
 	}
 
@@ -1127,11 +1138,11 @@ ECRESULT ECAuthSession::ValidateSSOData_KRB5(struct soap* soap, const char* lpsz
 		m_ulValidationMethod = METHOD_SSO;
 		ec_log_debug("Kerberos Single Sign-On: User \"%s\" authenticated", lpszName);
 		ZLOG_AUDIT(m_lpSessionManager->GetAudit(), "authenticate ok user='%s' from='%s' method='kerberos sso' program='%s'",
-			lpszName, soap->host, szClientApp);
+			lpszName, soap->host, cl_app);
 	} else {
 		ec_log_err("Kerberos username \"%s\" authenticated, but user \"%s\" requested.", (char*)gssUserBuffer.value, lpszName);
 		ZLOG_AUDIT(m_lpSessionManager->GetAudit(), "authenticate spoofed user='%s' requested='%s' from='%s' method='kerberos sso' program='%s'",
-			static_cast<char *>(gssUserBuffer.value), lpszName, soap->host, szClientApp);
+			static_cast<char *>(gssUserBuffer.value), lpszName, soap->host, cl_app);
 	}
 exit:
 	if (gssUserBuffer.length)
@@ -1148,7 +1159,11 @@ exit:
 	return er;
 }
 
-ECRESULT ECAuthSession::ValidateSSOData_NTLM(struct soap* soap, const char* lpszName, const char* szClientVersion, const char* szClientApp, const char *szClientAppVersion, const char *szClientAppMisc, const struct xsd__base64Binary* lpInput, struct xsd__base64Binary **lppOutput)
+ECRESULT ECAuthSession::ValidateSSOData_NTLM(struct soap *soap,
+    const char *lpszName, const char *cl_ver, const char *cl_app,
+    const char *cl_app_ver, const char *cl_app_misc,
+    const struct xsd__base64Binary *lpInput,
+    struct xsd__base64Binary **lppOutput)
 {
 	ECRESULT er = KCERR_INVALID_PARAMETER;
 	struct xsd__base64Binary *lpOutput = NULL;
@@ -1166,12 +1181,12 @@ ECRESULT ECAuthSession::ValidateSSOData_NTLM(struct soap* soap, const char* lpsz
 		ec_log_err("Invalid argument \"lpszName\" in call to ECAuthSession::ValidateSSOData_NTLM()");
 		return er;
 	}
-	if (!szClientVersion) {
-		ec_log_err("Invalid argument \"zClientVersionin\" in call to ECAuthSession::ValidateSSOData_NTLM()");
+	if (cl_ver == nullptr) {
+		ec_log_err("Invalid argument \"cl_ver\" in call to ECAuthSession::ValidateSSOData_NTLM()");
 		return er;
 	}
-	if (!szClientApp) {
-		ec_log_err("Invalid argument \"szClientApp\" in call to ECAuthSession::ValidateSSOData_NTLM()");
+	if (cl_app == nullptr) {
+		ec_log_err("Invalid argument \"cl_app\" in call to ECAuthSession::ValidateSSOData_NTLM()");
 		return er;
 	}
 	if (!lpInput) {
@@ -1356,7 +1371,7 @@ retry:
 			// or should we check permissions ?
 			ec_log_warn("Single Sign-On: User \"%s\" authenticated, but user \"%s\" requested.", strAnswer.c_str(), lpszName);
 			ZLOG_AUDIT(m_lpSessionManager->GetAudit(), "authenticate spoofed user='%s' requested='%s' from='%s' method='ntlm sso' program='%s'",
-				strAnswer.c_str(), lpszName, soap->host, szClientApp);
+				strAnswer.c_str(), lpszName, soap->host, cl_app);
 			er = KCERR_LOGON_FAILED;
 		} else {
 			m_bValidated = true;
@@ -1364,13 +1379,13 @@ retry:
 			er = erSuccess;
 			ec_log_debug("Single Sign-On: User \"%s\" authenticated", strAnswer.c_str());
 			ZLOG_AUDIT(m_lpSessionManager->GetAudit(), "authenticate ok user='%s' from='%s' method='ntlm sso' program='%s'",
-				lpszName, soap->host, szClientApp);
+				lpszName, soap->host, cl_app);
 		}
 	} else if (buffer[0] == 'N' && buffer[1] == 'A') {
 		// Not Authenticated
 		ec_log_info("Requested user \"%s\" denied. Not authenticated: \"%s\"", lpszName, strAnswer.c_str());
 		ZLOG_AUDIT(m_lpSessionManager->GetAudit(), "authenticate failed user='%s' from='%s' method='ntlm sso' program='%s'",
-			lpszName, soap->host, szClientApp);
+			lpszName, soap->host, cl_app);
 		er = KCERR_LOGON_FAILED;
 	} else {
 		// unknown response?
@@ -1383,15 +1398,15 @@ retry:
 }
 #undef NTLMBUFFER
 
-ECRESULT ECAuthSession::ProcessImpersonation(const char* lpszImpersonateUser)
+ECRESULT ECAuthSession::ProcessImpersonation(const char *impuser)
 {
-	if (lpszImpersonateUser == NULL || *lpszImpersonateUser == '\0') {
+	if (impuser == nullptr || *impuser == '\0') {
 		m_ulImpersonatorID = EC_NO_IMPERSONATOR;
 		return erSuccess;
 	}
 	m_ulImpersonatorID = m_ulUserID;
 	return m_lpUserManagement->ResolveObjectAndSync(OBJECTCLASS_USER,
-	       lpszImpersonateUser, &m_ulUserID);
+	       impuser, &m_ulUserID);
 }
 
 size_t ECAuthSession::GetObjectSize()

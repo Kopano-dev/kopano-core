@@ -532,10 +532,10 @@ using steady_clock = std::chrono::steady_clock;
  * logon: log on and create a session with provided credentials
  */
 int KCmdService::logon(const char *user, const char *pass,
-    const char *impersonate, const char *clientVersion, unsigned int clientCaps,
+    const char *impuser, const char *cl_ver, unsigned int clientCaps,
     unsigned int logonFlags, const struct xsd__base64Binary &sLicenseRequest,
-    ULONG64 ullSessionGroup, const char *szClientApp,
-    const char *szClientAppVersion, const char *szClientAppMisc,
+    ULONG64 ullSessionGroup, const char *cl_app,
+    const char *cl_app_ver, const char *cl_app_misc,
     struct logonResponse *lpsResponse)
 {
 	ECSession	*lpecSession = NULL;
@@ -568,7 +568,11 @@ int KCmdService::logon(const char *user, const char *pass,
 	}
 
 	// check username and password
-	auto er = g_lpSessionManager->CreateSession(soap, user, pass, impersonate, clientVersion, szClientApp, szClientAppVersion, szClientAppMisc, clientCaps, ullSessionGroup, &sessionID, &lpecSession, true, (logonFlags & KOPANO_LOGON_NO_UID_AUTH) == 0, (logonFlags & KOPANO_LOGON_NO_REGISTER_SESSION) == 0);
+	auto er = g_lpSessionManager->CreateSession(soap, user, pass, impuser,
+	          cl_ver, cl_app, cl_app_ver, cl_app_misc, clientCaps,
+	          ullSessionGroup, &sessionID, &lpecSession, true,
+	          !(logonFlags & KOPANO_LOGON_NO_UID_AUTH),
+	          !(logonFlags & KOPANO_LOGON_NO_REGISTER_SESSION));
 	if(er != erSuccess){
 		er = KCERR_LOGON_FAILED;
 		goto exit;
@@ -578,7 +582,7 @@ int KCmdService::logon(const char *user, const char *pass,
 	// denied. We can't say what future clients may or may not be capable of. So we'll leave that to the
 	// clients.
 	if (lpecSession && (KOPANO_COMPARE_VERSION_TO_GENERAL(lpecSession->ClientVersion(), MAKE_KOPANO_GENERAL(6)) < 0)) {
-		ec_log_warn("Rejected logon attempt from a %s version client.", clientVersion ? clientVersion : "<unknown>");
+		ec_log_warn("Rejected logon attempt from a %s version client.", cl_ver != nullptr ? cl_ver : "<unknown>");
 		er = KCERR_INVALID_VERSION;
 		goto exit;
 	}
@@ -621,11 +625,11 @@ exit:
  * logon: log on and create a session with provided credentials
  */
 int KCmdService::ssoLogon(ULONG64 ulSessionId, const char *szUsername,
-    const char *szImpersonateUser, struct xsd__base64Binary *lpInput,
-    const char *szClientVersion, unsigned int clientCaps,
+    const char *impuser, struct xsd__base64Binary *lpInput,
+    const char *cl_ver, unsigned int clientCaps,
     const struct xsd__base64Binary &sLicenseRequest, ULONG64 ullSessionGroup,
-    const char *szClientApp, const char *szClientAppVersion,
-    const char *szClientAppMisc, struct ssoLogonResponse *lpsResponse)
+    const char *cl_app, const char *cl_app_ver, const char *cl_app_misc,
+    struct ssoLogonResponse *lpsResponse)
 {
 	ECRESULT		er = KCERR_LOGON_FAILED;
 	ECAuthSession	*lpecAuthSession = NULL;
@@ -640,7 +644,9 @@ int KCmdService::ssoLogon(ULONG64 ulSessionId, const char *szUsername,
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTimes);
 	LOG_SOAP_DEBUG("%020" PRIu64 ": S ssoLogon", ulSessionId);
 
-	if (!lpInput || lpInput->__size == 0 || lpInput->__ptr == NULL || !szUsername || !szClientVersion)
+	if (lpInput == nullptr || lpInput->__size == 0 ||
+	    lpInput->__ptr == nullptr || szUsername == nullptr ||
+	    cl_ver == nullptr)
 		goto exit;
 	lpszEnabled = g_lpSessionManager->GetConfig()->GetSetting("enable_sso");
 	if (!(lpszEnabled && strcasecmp(lpszEnabled, "yes") == 0))
@@ -673,18 +679,20 @@ int KCmdService::ssoLogon(ULONG64 ulSessionId, const char *szUsername,
 			goto exit;
 	}
 
-	lpecAuthSession->SetClientMeta(szClientAppVersion, szClientAppMisc);
+	lpecAuthSession->SetClientMeta(cl_app_ver, cl_app_misc);
 	if (!(clientCaps & KOPANO_CAP_UNICODE))
 		return MAPI_E_BAD_CHARWIDTH;
 
-	er = lpecAuthSession->ValidateSSOData(soap, szUsername, szImpersonateUser, szClientVersion, szClientApp, szClientAppVersion, szClientAppMisc, lpInput, &lpOutput);
+	er = lpecAuthSession->ValidateSSOData(soap, szUsername, impuser, cl_ver, cl_app, cl_app_ver, cl_app_misc, lpInput, &lpOutput);
 	if (er == KCERR_SSO_CONTINUE) {
 		// continue validation exchange
 		lpsResponse->lpOutput = lpOutput;
 	} else if (er == erSuccess) {
 		// done and logged in
 		// create ecsession from ecauthsession, and place in session map
-		er = g_lpSessionManager->RegisterSession(lpecAuthSession, ullSessionGroup, szClientVersion, szClientApp, szClientAppVersion, szClientAppMisc, &newSessionID, &lpecSession, true);
+		er = g_lpSessionManager->RegisterSession(lpecAuthSession,
+		     ullSessionGroup, cl_ver, cl_app, cl_app_ver, cl_app_misc,
+		     &newSessionID, &lpecSession, true);
 		if (er != erSuccess) {
 			ec_perror("User authenticated, but failed to create session", er);
 			goto exit;
@@ -694,7 +702,7 @@ int KCmdService::ssoLogon(ULONG64 ulSessionId, const char *szUsername,
 	// denied. We can't say what future clients may or may not be capable of. So we'll leave that to the
 	// clients.
 	if (KOPANO_COMPARE_VERSION_TO_GENERAL(lpecSession->ClientVersion(), MAKE_KOPANO_GENERAL(6)) < 0) {
-		ec_log_warn("Rejected logon attempt from a %s version client.", szClientVersion ? szClientVersion : "<unknown>");
+		ec_log_warn("Rejected logon attempt from a %s version client.", cl_ver != nullptr ? cl_ver : "<unknown>");
 		er = KCERR_INVALID_VERSION;
 		goto exit;
 	}
