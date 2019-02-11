@@ -179,7 +179,7 @@ struct filter_objects {
 };
 
 ECRESULT ECABObjectTable::LoadHierarchyAddressList(unsigned int ulObjectId,
-    unsigned int ulFlags, std::list<localobjectdetails_t> **lppObjects)
+    std::list<localobjectdetails_t> **lppObjects)
 {
 	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
 
@@ -196,10 +196,6 @@ ECRESULT ECABObjectTable::LoadHierarchyAddressList(unsigned int ulObjectId,
 	          ulObjectId, lpsRestrict, &unique_tie(lpObjects), m_ulUserManagementFlags);
 	if (er != erSuccess)
 		return er;
-
-	/* Filter objects */
-	if (ulFlags)
-		lpObjects->remove_if(filter_objects(ulFlags));
 	if (lppObjects != nullptr)
 		*lppObjects = lpObjects.release();
 	return erSuccess;
@@ -274,7 +270,7 @@ ECRESULT ECABObjectTable::LoadHierarchyContainer(unsigned int ulObjectId,
 	} else if (ulObjectId == KOPANO_UID_GLOBAL_ADDRESS_LISTS) {
 		if (lpSession->GetSecurity()->GetUserId() == KOPANO_UID_SYSTEM)
 			return KCERR_INVALID_PARAMETER;
-		auto er = LoadHierarchyAddressList(ulObjectId, 0, &unique_tie(lpObjects));
+		auto er = LoadHierarchyAddressList(ulObjectId, &unique_tie(lpObjects));
 		if (er != erSuccess)
 			return er;
 	} else {
