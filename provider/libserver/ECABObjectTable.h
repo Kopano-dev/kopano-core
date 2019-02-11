@@ -44,7 +44,7 @@ protected:
 	/* Load hierarchy objects */
 	ECRESULT LoadHierarchyAddressList(unsigned int obj_id, unsigned int flags, std::list<localobjectdetails_t> **objects);
 	ECRESULT LoadHierarchyCompany(unsigned int obj_id, unsigned int flags, std::list<localobjectdetails_t> **objects);
-	ECRESULT LoadHierarchyContainer(unsigned int obj_id, unsigned int flags, std::list<localobjectdetails_t> **objects);
+	ECRESULT LoadHierarchyContainer(unsigned int obj_id, std::list<localobjectdetails_t> **objects);
 
 	/* Load contents objects */
 	ECRESULT LoadContentsAddressList(unsigned int obj_id, unsigned int flags, std::list<localobjectdetails_t> **objects);

@@ -234,7 +234,7 @@ ECRESULT ECABObjectTable::LoadHierarchyCompany(unsigned int ulObjectId,
 }
 
 ECRESULT ECABObjectTable::LoadHierarchyContainer(unsigned int ulObjectId,
-    unsigned int ulFlags, std::list<localobjectdetails_t> **lppObjects)
+    std::list<localobjectdetails_t> **lppObjects)
 {
 	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
 	objectid_t objectid;
@@ -268,13 +268,13 @@ ECRESULT ECABObjectTable::LoadHierarchyContainer(unsigned int ulObjectId,
 		 *    in the hierarchy view. The user will not be allowed to open it, so it isn't a real security risk,
 		 *    but since we still have issue (1) open, we might as well disable the hierarchy view
 		 *    containers completely. */
-		auto er = LoadHierarchyCompany(ulObjectId, ulFlags, &unique_tie(lpObjects));
+		auto er = LoadHierarchyCompany(ulObjectId, 0, &unique_tie(lpObjects));
 		if (er != erSuccess)
 			return er;
 	} else if (ulObjectId == KOPANO_UID_GLOBAL_ADDRESS_LISTS) {
 		if (lpSession->GetSecurity()->GetUserId() == KOPANO_UID_SYSTEM)
 			return KCERR_INVALID_PARAMETER;
-		auto er = LoadHierarchyAddressList(ulObjectId, ulFlags, &unique_tie(lpObjects));
+		auto er = LoadHierarchyAddressList(ulObjectId, 0, &unique_tie(lpObjects));
 		if (er != erSuccess)
 			return er;
 	} else {
@@ -371,7 +371,7 @@ ECRESULT ECABObjectTable::Load()
 		 */
 		if (lpODAB->ulABParentType != MAPI_ABCONT)
 			return KCERR_INVALID_PARAMETER;
-		er = LoadHierarchyContainer(lpODAB->ulABParentId, 0, &unique_tie(lpObjects));
+		er = LoadHierarchyContainer(lpODAB->ulABParentId, &unique_tie(lpObjects));
 		if (er != erSuccess)
 			return er;
 	} else if (lpODAB->ulABParentId == KOPANO_UID_GLOBAL_ADDRESS_BOOK && lpODAB->ulABParentType == MAPI_ABCONT) {

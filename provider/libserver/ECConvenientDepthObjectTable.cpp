@@ -221,7 +221,7 @@ ECRESULT ECConvenientDepthABObjectTable::Load()
 	// 'Recursively' loop through all our containers and add each of those children to our object list
 	for (const auto &obj : lstObjects) {
 		std::unique_ptr<std::list<localobjectdetails_t> > lpSubObjects;
-		if (LoadHierarchyContainer(obj.ulId, 0, &unique_tie(lpSubObjects)) != erSuccess)
+		if (LoadHierarchyContainer(obj.ulId, &unique_tie(lpSubObjects)) != erSuccess)
 			continue;
 		for (const auto &subobj : *lpSubObjects)
 			lstObjects.emplace_back(CONTAINERINFO{subobj.ulId, obj.ulDepth + 1,
