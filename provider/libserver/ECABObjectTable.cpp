@@ -206,7 +206,7 @@ ECRESULT ECABObjectTable::LoadHierarchyAddressList(unsigned int ulObjectId,
 }
 
 ECRESULT ECABObjectTable::LoadHierarchyCompany(unsigned int ulObjectId,
-    unsigned int ulFlags, std::list<localobjectdetails_t> **lppObjects)
+    std::list<localobjectdetails_t> **lppObjects)
 {
 	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
 	ECSecurity *lpSecurity = lpSession->GetSecurity();
@@ -268,7 +268,7 @@ ECRESULT ECABObjectTable::LoadHierarchyContainer(unsigned int ulObjectId,
 		 *    in the hierarchy view. The user will not be allowed to open it, so it isn't a real security risk,
 		 *    but since we still have issue (1) open, we might as well disable the hierarchy view
 		 *    containers completely. */
-		auto er = LoadHierarchyCompany(ulObjectId, 0, &unique_tie(lpObjects));
+		auto er = LoadHierarchyCompany(ulObjectId, &unique_tie(lpObjects));
 		if (er != erSuccess)
 			return er;
 	} else if (ulObjectId == KOPANO_UID_GLOBAL_ADDRESS_LISTS) {
