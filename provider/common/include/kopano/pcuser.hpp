@@ -115,6 +115,12 @@ public:
 
 private:
 	objectclass_t m_objclass = OBJECTCLASS_UNKNOWN;
+	/*
+	 * These maps are so heavy that sorting a
+	 * vector<objectdetails_t> takes longer to sort than
+	 * list<objectdetails_t> (in GNU stdc++), because even move
+	 * assignments take time.
+	 */
 	property_map m_mapProps;
 	property_mv_map m_mapMVProps;
 };
