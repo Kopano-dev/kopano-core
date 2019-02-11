@@ -84,7 +84,7 @@ public:
 	unsigned int 			GetPropInt(property_key_t propname) const;
 	bool					GetPropBool(property_key_t propname) const;
 	std::string				GetPropString(property_key_t propname) const;
-	std::list<unsigned int>	GetPropListInt(property_key_t propname) const;
+	std::vector<unsigned int> GetPropListInt(property_key_t propname) const;
 	std::list<std::string>	GetPropListString(property_key_t propname) const;
 	objectid_t				GetPropObject(property_key_t propname) const;
 	std::list<objectid_t>	GetPropListObject(property_key_t propname) const;

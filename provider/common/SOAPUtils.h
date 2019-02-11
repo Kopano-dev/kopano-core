@@ -13,8 +13,8 @@
 #include <kopano/pcuser.hpp>
 #include <kopano/timeutil.hpp>
 #include <kopano/ustringutil.h>
-#include <list>
 #include <string>
+#include <vector>
 
 namespace KC {
 
@@ -121,7 +121,7 @@ public:
     ECRESULT GetPropTagArray(struct propTagArray *lpPropTagArray);
     
 private:
-    std::list<unsigned int> m_lstPropTags;
+	std::vector<unsigned int> m_lstPropTags;
     struct soap *m_soap;
 };
 
