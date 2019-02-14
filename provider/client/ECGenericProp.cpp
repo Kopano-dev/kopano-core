@@ -51,7 +51,9 @@ HRESULT ECGenericProp::SetEntryId(ULONG cbEntryId, const ENTRYID *lpEntryId)
 }
 
 // Add a property handler. Usually called by a subclass
-HRESULT ECGenericProp::HrAddPropHandlers(ULONG ulPropTag, GetPropCallBack lpfnGetProp, SetPropCallBack lpfnSetProp, void *lpParam, BOOL fRemovable, BOOL fHidden)
+HRESULT ECGenericProp::HrAddPropHandlers(unsigned int ulPropTag,
+    GetPropCallBack lpfnGetProp, SetPropCallBack lpfnSetProp,
+    ECGenericProp *lpParam, BOOL fRemovable, BOOL fHidden)
 {
 	PROPCALLBACK			sCallBack;
 
@@ -214,10 +216,10 @@ HRESULT ECGenericProp::HrDeleteRealProp(ULONG ulPropTag, BOOL fOverwriteRO)
 }
 
 // Default property handles
-HRESULT	ECGenericProp::DefaultGetProp(ULONG ulPropTag,  void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase)
+HRESULT ECGenericProp::DefaultGetProp(unsigned int ulPropTag, void *lpProvider,
+    unsigned int ulFlags, SPropValue *lpsPropValue, ECGenericProp *lpProp,
+    void *lpBase)
 {
-	auto lpProp = static_cast<ECGenericProp *>(lpParam);
-
 	switch(PROP_ID(ulPropTag))
 	{
 	case PROP_ID(PR_ENTRYID): {
@@ -262,26 +264,27 @@ HRESULT	ECGenericProp::DefaultGetProp(ULONG ulPropTag,  void* lpProvider, ULONG 
 	return hrSuccess;
 }
 
-HRESULT	ECGenericProp::DefaultGetPropGetReal(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase)
+HRESULT ECGenericProp::DefaultGetPropGetReal(unsigned int ulPropTag,
+    void *lpProvider, unsigned int ulFlags, SPropValue *lpsPropValue,
+    ECGenericProp *lpProp, void *lpBase)
 {
-	auto lpProp = static_cast<ECGenericProp *>(lpParam);
 	return lpProp->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue, lpProp->m_ulMaxPropSize);
 }
 
-HRESULT ECGenericProp::DefaultSetPropSetReal(ULONG ulPropTag, void *lpProvider,
-    const SPropValue *lpsPropValue, void *lpParam)
+HRESULT ECGenericProp::DefaultSetPropSetReal(unsigned int ulPropTag,
+    void *lpProvider, const SPropValue *lpsPropValue, ECGenericProp *lpParam)
 {
-	return static_cast<ECGenericProp *>(lpParam)->HrSetRealProp(lpsPropValue);
+	return lpParam->HrSetRealProp(lpsPropValue);
 }
 
-HRESULT	ECGenericProp::DefaultSetPropComputed(ULONG tag, void *provider,
-    const SPropValue *, void *)
+HRESULT ECGenericProp::DefaultSetPropComputed(unsigned int tag, void *provider,
+    const SPropValue *, ECGenericProp *)
 {
 	return MAPI_E_COMPUTED;
 }
 
-HRESULT	ECGenericProp::DefaultSetPropIgnore(ULONG tag, void *provider,
-    const SPropValue *, void *)
+HRESULT ECGenericProp::DefaultSetPropIgnore(unsigned int tag, void *provider,
+    const SPropValue *, ECGenericProp *)
 {
 	return hrSuccess;
 }
@@ -502,7 +505,9 @@ HRESULT ECGenericProp::HrSetCleanProperty(ULONG ulPropTag)
 }
 
 // Get the handler(s) for a given property tag
-HRESULT	ECGenericProp::HrGetHandler(ULONG ulPropTag, SetPropCallBack *lpfnSetProp, GetPropCallBack *lpfnGetProp, void **lpParam)
+HRESULT ECGenericProp::HrGetHandler(unsigned int ulPropTag,
+    SetPropCallBack *lpfnSetProp, GetPropCallBack *lpfnGetProp,
+    ECGenericProp **lpParam)
 {
 	ECPropCallBackIterator iterCallBack;
 
@@ -656,7 +661,6 @@ HRESULT ECGenericProp::GetProps(const SPropTagArray *lpPropTagArray,
 	HRESULT			hrT = hrSuccess;
 	ecmem_ptr<SPropTagArray> lpGetPropTagArray;
 	GetPropCallBack	lpfnGetProp = NULL;
-	void*			lpParam = NULL;
 	ecmem_ptr<SPropValue> lpsPropValue;
 
 	if (lpPropTagArray == NULL) {
@@ -670,6 +674,7 @@ HRESULT ECGenericProp::GetProps(const SPropTagArray *lpPropTagArray,
 		return hr;
 
 	for (unsigned int i = 0; i < lpPropTagArray->cValues; ++i) {
+		ECGenericProp *lpParam = nullptr;
 		if (HrGetHandler(lpPropTagArray->aulPropTag[i], NULL, &lpfnGetProp, &lpParam) == hrSuccess) {
 			lpsPropValue[i].ulPropTag = lpPropTagArray->aulPropTag[i];
 			hrT = lpfnGetProp(lpPropTagArray->aulPropTag[i], lpProvider, ulFlags, &lpsPropValue[i], lpParam, lpsPropValue);
@@ -777,7 +782,6 @@ HRESULT ECGenericProp::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 	ecmem_ptr<SPropProblemArray> lpProblems;
 	int					nProblem = 0;
 	SetPropCallBack		lpfnSetProp = NULL;
-	void*				lpParam = NULL;
 	auto hr = ECAllocateBuffer(CbNewSPropProblemArray(cValues), &~lpProblems);
 	if(hr != hrSuccess)
 		return hr;
@@ -789,6 +793,7 @@ HRESULT ECGenericProp::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 			PROP_TYPE(lpPropArray[i].ulPropTag) == PT_ERROR)
 			continue;
 
+		ECGenericProp *lpParam = nullptr;
 		if (HrGetHandler(lpPropArray[i].ulPropTag, &lpfnSetProp, NULL, &lpParam) == hrSuccess)
 			hrT = lpfnSetProp(lpPropArray[i].ulPropTag, lpProvider, &lpPropArray[i], lpParam);
 		else

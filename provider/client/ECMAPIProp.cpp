@@ -109,7 +109,9 @@ BOOL ECMAPIProp::IsICSObject()
 }
 
 // Property handles
-HRESULT	ECMAPIProp::DefaultMAPIGetProp(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase)
+HRESULT ECMAPIProp::DefaultMAPIGetProp(unsigned int ulPropTag,
+    void *lpProvider, unsigned int ulFlags, SPropValue *lpsPropValue,
+    ECGenericProp *lpParam, void *lpBase)
 {
 	HRESULT		hr = hrSuccess;
 	auto lpMsgStore = static_cast<ECMsgStore *>(lpProvider);
@@ -235,8 +237,8 @@ HRESULT	ECMAPIProp::DefaultMAPIGetProp(ULONG ulPropTag, void* lpProvider, ULONG 
 	return hr;
 }
 
-HRESULT ECMAPIProp::SetPropHandler(ULONG ulPropTag, void *lpProvider,
-    const SPropValue *lpsPropValue, void *lpParam)
+HRESULT ECMAPIProp::SetPropHandler(unsigned int ulPropTag, void *lpProvider,
+    const SPropValue *lpsPropValue, ECGenericProp *lpParam)
 {
 	auto lpProp = static_cast<ECMAPIProp *>(lpParam);
 	switch(ulPropTag) {

@@ -297,8 +297,8 @@ HRESULT ECArchiveAwareMessage::SaveChanges(ULONG ulFlags)
 	return ECMessage::SaveChanges(ulFlags);
 }
 
-HRESULT ECArchiveAwareMessage::SetPropHandler(ULONG ulPropTag,
-    void */*lpProvider*/, const SPropValue *lpsPropValue, void *lpParam)
+HRESULT ECArchiveAwareMessage::SetPropHandler(unsigned int ulPropTag,
+    void *lpProvider, const SPropValue *lpsPropValue, ECGenericProp *lpParam)
 {
 	auto lpMessage = static_cast<ECArchiveAwareMessage *>(lpParam);
 	switch(ulPropTag) {
@@ -455,8 +455,8 @@ HRESULT ECArchiveAwareAttach::Create(ECMsgStore *lpMsgStore, ULONG ulObjType,
 	       ulAttachNum, lpRoot).as(IID_ECAttach, lppAttach);
 }
 
-HRESULT	ECArchiveAwareAttach::SetPropHandler(ULONG ulPropTag,
-    void */*lpProvider*/, const SPropValue *lpsPropValue, void *lpParam)
+HRESULT ECArchiveAwareAttach::SetPropHandler(unsigned int ulPropTag,
+    void *lpProvider, const SPropValue *lpsPropValue, ECGenericProp *lpParam)
 {
 	auto lpAttach = static_cast<ECArchiveAwareAttach *>(lpParam);
 	switch(ulPropTag) {

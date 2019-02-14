@@ -36,7 +36,7 @@ private:
 public:
 	static HRESULT Create(ECABLogon *prov, BOOL modify, ECMailUser **);
 	static HRESULT TableRowGetProp(void *prov, const struct propVal *src, SPropValue *dst, void **base, ULONG type);
-	static HRESULT DefaultGetProp(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase);
+	static HRESULT DefaultGetProp(unsigned int tag, void *prov, unsigned int flags, SPropValue *, ECGenericProp *, void *base);
 
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 	virtual HRESULT OpenProperty(ULONG proptag, const IID *intf, ULONG iface_opts, ULONG flags, IUnknown **) override;

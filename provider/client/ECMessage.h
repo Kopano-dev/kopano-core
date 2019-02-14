@@ -70,7 +70,7 @@ public:
 	 *
 	 * \return hrSuccess on success.
 	 */
-	static HRESULT	GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase);
+	static HRESULT GetPropHandler(unsigned int tag, void *prov, unsigned int flags, SPropValue *, ECGenericProp *, void *base);
 
 	/**
 	 * \brief Handles SetProp requests for previously registered properties.
@@ -85,7 +85,7 @@ public:
 	 *
 	 * \return hrSuccess on success.
 	 */
-	static HRESULT SetPropHandler(ULONG ulPropTag, void *lpProvider, const SPropValue *lpsPropValue, void *lpParam);
+	static HRESULT SetPropHandler(unsigned int tag, void *prov, const SPropValue *, ECGenericProp *);
 	virtual HRESULT	QueryInterface(const IID &, void **) override;
 	virtual HRESULT OpenProperty(ULONG proptag, const IID *intf, ULONG iface_opts, ULONG flags, IUnknown **) override;
 	virtual HRESULT GetAttachmentTable(ULONG flags, IMAPITable **) override;
