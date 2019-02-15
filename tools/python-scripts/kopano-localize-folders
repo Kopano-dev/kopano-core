@@ -81,7 +81,7 @@ def main():
     options, args = opt_args()
 
     if not options.lang and not options.reset:
-        print 'Usage:\n%s -u <username> --lang <language>  ' % sys.argv[0]
+        print('Usage:\n%s -u <username> --lang <language>' % sys.argv[0])
         sys.exit(1)
 
     trans = translate(options.lang, options.reset)
@@ -93,9 +93,9 @@ def main():
             print('%s: Changing localized folder names to \"%s\"' % (_encode(user.name), _encode(options.lang)))
 
         if options.verbose:
-            print 'Running in verbose mode'
+            print('Running in verbose mode')
         if options.dryrun:
-            print 'Running in dry mode no changes will be made'
+            print('Running in dry mode no changes will be made')
 
         for mapifolder in trans:
             try:
