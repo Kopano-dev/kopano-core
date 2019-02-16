@@ -8774,7 +8774,7 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er,
 			continue;
         }
 
-		auto lpStreamInfo = static_cast<MTOMStreamInfo *>(soap_malloc(soap, sizeof(MTOMStreamInfo)));
+		auto lpStreamInfo = s_alloc<MTOMStreamInfo>(soap);
 		static_assert(std::is_trivially_constructible<MTOMStreamInfo>::value, "MTOMStreamInfo must remain TC");
 		lpStreamInfo->ulObjectId = ulObjectId;
 		lpStreamInfo->ulStoreId = ulStoreId;
@@ -9048,7 +9048,7 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags,
 	// We usually do not pass database objects to other threads. However, since
 	// we want to be able to perform a complete rollback we need to pass it
 	// to thread that processes the data and puts it in the database.
-	lpsStreamInfo = (MTOMStreamInfo *)soap_malloc(soap, sizeof(MTOMStreamInfo));
+	lpsStreamInfo = s_alloc<MTOMStreamInfo>(soap);
 	lpsStreamInfo->ulObjectId = ulObjectId;
 	lpsStreamInfo->ulStoreId = ulStoreId;
 	lpsStreamInfo->bNewItem = bIsNew;
