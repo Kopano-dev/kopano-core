@@ -1324,14 +1324,8 @@ ECRESULT FreeNotificationStruct(notification *lpNotification, bool bFreeBase)
 	if(lpNotification->tab != NULL) {
 		if(lpNotification->tab->pRow != NULL)
 			FreePropValArray(lpNotification->tab->pRow, true);
-		if(lpNotification->tab->propIndex.Value.bin != NULL) {
-			s_free(nullptr, lpNotification->tab->propIndex.Value.bin->__ptr);
-			s_free(nullptr, lpNotification->tab->propIndex.Value.bin);
-		}
-		if(lpNotification->tab->propPrior.Value.bin != NULL) {
-			s_free(nullptr, lpNotification->tab->propPrior.Value.bin->__ptr);
-			s_free(nullptr, lpNotification->tab->propPrior.Value.bin);
-		}
+		FreePropVal(&lpNotification->tab->propIndex, false);
+		FreePropVal(&lpNotification->tab->propPrior, false);
 		s_free(nullptr, lpNotification->tab);
 	}
 
