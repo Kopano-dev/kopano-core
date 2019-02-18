@@ -480,19 +480,6 @@ static ECRESULT usmp_shrink_columns(fancydb db)
 static ECRESULT usmp_charset(fancydb db)
 {
 	ec_log_notice("dbadm: executing action \"usmp-charset\"");
-	for (const auto &tbl : {"abchanges", "acl", "changes", "deferredupdate",
-	    "hierarchy", "indexedproperties", "lob", "mvproperties",
-	    "object", "objectrelation",
-	    "outgoingqueue", "properties", "receivefolder", "searchresults",
-	    "settings", "singleinstances", "stores", "syncedmessages", "syncs",
-	    "tproperties", "users", "versions"}) {
-		if (adm_quit)
-			break;
-		ec_log_notice("usmp: converting \"%s\" to utf8mb4...", tbl);
-		auto ret = db->DoUpdate("ALTER TABLE `"s + tbl + "` CONVERT TO CHARSET utf8mb4");
-		if (ret != erSuccess)
-			return ret;
-	}
 	/*
 	 * "CONVERT TO CHARACTER SET" resets the collation, which we do not want.
 	 * It is split into individual operations here and the collation is reassured.
@@ -506,6 +493,21 @@ static ECRESULT usmp_charset(fancydb db)
 	}
 	if (adm_quit)
 		return erSuccess;
+
+	/* Heavy operations follow */
+	for (const auto &tbl : {"abchanges", "acl", "changes", "deferredupdate",
+	    "hierarchy", "indexedproperties", "lob", "mvproperties",
+	    "object", "objectrelation",
+	    "outgoingqueue", "properties", "receivefolder", "searchresults",
+	    "settings", "singleinstances", "stores", "syncedmessages", "syncs",
+	    "tproperties", "users", "versions"}) {
+		if (adm_quit)
+			break;
+		ec_log_notice("usmp: converting \"%s\" to utf8mb4...", tbl);
+		auto ret = db->DoUpdate("ALTER TABLE `"s + tbl + "` CONVERT TO CHARSET utf8mb4");
+		if (ret != erSuccess)
+			return ret;
+	}
 	auto ret = db->DoUpdate("ALTER TABLE `names` MODIFY COLUMN `namestring` varchar(185) CHARACTER SET utf8mb4 BINARY DEFAULT NULL");
 	if (ret != erSuccess)
 		return ret;
