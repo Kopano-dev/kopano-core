@@ -958,7 +958,7 @@ ECRESULT GetSyncStates(struct soap *soap, ECSession *lpSession, mv_long ulaSyncI
 	DB_ROW			lpDBRow;
 
 	if (ulaSyncId.__size == 0) {
-		memset(lpsaSyncState, 0, sizeof *lpsaSyncState);
+		soap_default_syncStateArray(soap, lpsaSyncState);
 		return erSuccess;
 	}
 	auto er = lpSession->GetDatabase(&lpDatabase);
@@ -975,7 +975,7 @@ ECRESULT GetSyncStates(struct soap *soap, ECSession *lpSession, mv_long ulaSyncI
 
 	unsigned int ulResults = lpDBResult.get_num_rows();
     if (ulResults == 0){
-		memset(lpsaSyncState, 0, sizeof *lpsaSyncState);
+		soap_default_syncStateArray(soap, lpsaSyncState);
 		return erSuccess;
     }
 

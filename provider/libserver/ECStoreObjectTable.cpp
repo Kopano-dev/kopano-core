@@ -658,7 +658,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
 				// free prop if we're not allocing by soap
 				if (soap == nullptr && pv.ulPropTag != 0) {
 					FreePropVal(&pv, false);
-					memset(&pv, 0, sizeof(pv));
+					soap_default_propVal(soap, &pv);
 				}
 				if (CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, &pv) != erSuccess) {
                 	// This can happen if a subquery returned a NULL field or if your database contains bad data (eg a NULL field where there shouldn't be)
@@ -824,7 +824,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 				auto &m = lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second];
 				if (soap == nullptr && m.ulPropTag != 0) {
 					FreePropVal(&m, false);
-					memset(&m, 0, sizeof(m));
+					soap_default_propVal(soap, &m);
 				}
 
 				// Handle requesting the same tag multiple times; the data is returned only once, so we need to copy it to all the columns in which it was
