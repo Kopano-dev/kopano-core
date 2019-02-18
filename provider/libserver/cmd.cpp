@@ -2592,7 +2592,6 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
 	USE_DATABASE();
 	CHILDPROPS sEmptyProps(soap);
 
-	memset(&sSavedObject, 0, sizeof(saveObject));
 	// Check permission
 	if (ulObjType == MAPI_STORE || (ulObjType == MAPI_FOLDER && ulParentObjType == MAPI_STORE))
 		// Always read rights on the store and the root folder
@@ -4720,7 +4719,6 @@ SOAP_ENTRY_START(createStore, *result, unsigned int ulStoreType,
 	struct rightsArray srightsArray;
 	USE_DATABASE();
 
-	memset(&srightsArray, 0 , sizeof(srightsArray));
 	auto cleanup = make_scope_success([&]() {
 		if (er == KCERR_NO_ACCESS)
 			ec_log_err("Failed to create store access denied");

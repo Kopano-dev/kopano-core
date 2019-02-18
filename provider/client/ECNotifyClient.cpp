@@ -380,7 +380,6 @@ HRESULT ECNotifyClient::NotifyReload()
 	struct notificationTable table;
 	NOTIFYLIST notifications;
 
-	memset(&table, 0, sizeof(table));
 	notif.ulEventType = fnevTableModified;
 	notif.tab = &table;
 	notif.tab->ulTableEvent = TABLE_RELOAD;

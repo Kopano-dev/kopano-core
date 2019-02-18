@@ -591,7 +591,7 @@ ECRESULT DeleteObjectHard(ECSession *lpSession, ECDatabase *lpDatabase, ECAttach
 
 			if(!(ulFlags&EC_DELETE_STORE) && iterDeleteItems->ulParentType == MAPI_FOLDER && iterDeleteItems->fRoot) {
 				// Track counter changes
-				memset(&pi, 0, sizeof(pi));
+				pi = decltype(pi)();
 				pi.ulStoreId = iterDeleteItems->ulStoreId;
 				mapFolderCounts.emplace(iterDeleteItems->ulParent, pi);
 

@@ -1091,7 +1091,6 @@ ECRESULT ECGenericObjectTable::GetCollapseState(struct soap *soap, struct xsd__b
     if(er != erSuccess)
         goto exit;
 
-    memset(&sCollapseState, 0, sizeof(sCollapseState));
     // Generate a binary collapsestate which is simply an XML stream of all categories with their collapse state
     sCollapseState.sCategoryStates.__size = m_mapCategories.size();
     sCollapseState.sCategoryStates.__ptr = s_alloc<struct categoryState>(soap, sCollapseState.sCategoryStates.__size);
