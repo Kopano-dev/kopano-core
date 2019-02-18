@@ -550,7 +550,6 @@ ECRESULT ECSecurity::GetRights(unsigned int objid, int ulType,
 
 	lpsRightsArray->__ptr = s_alloc<rights>(nullptr, ulCount);
 	lpsRightsArray->__size = ulCount;
-	memset(lpsRightsArray->__ptr, 0, sizeof(struct rights) * ulCount);
 	auto usrmgt = m_lpSession->GetUserManagement();
 	for (unsigned int i = 0; i < ulCount; ++i) {
 		auto lpDBRow = lpDBResult.fetch_row();

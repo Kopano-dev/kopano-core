@@ -51,13 +51,11 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis,
 	// We return a square array with all the values
 	lpsRowSet->__size = lpRowList->size();
 	lpsRowSet->__ptr = s_alloc<propValArray>(soap, lpsRowSet->__size);
-	memset(lpsRowSet->__ptr, 0, sizeof(propValArray) * lpsRowSet->__size);
 
 	// Allocate memory for all rows
 	for (gsoap_size_t i = 0; i < lpsRowSet->__size; ++i) {
 		lpsRowSet->__ptr[i].__size = lpsPropTagArray->__size;
 		lpsRowSet->__ptr[i].__ptr = s_alloc<propVal>(soap, lpsPropTagArray->__size);
-		memset(lpsRowSet->__ptr[i].__ptr, 0, sizeof(propVal) * lpsPropTagArray->__size);
 	}
 
 	gsoap_size_t i = 0;

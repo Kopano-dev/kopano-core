@@ -235,10 +235,7 @@ ECRESULT ECSessionGroup::AddNotificationTable(ECSESSIONID ulSessionId, unsigned 
 {
 	std::lock_guard<ECSessionGroup> holder(*this);
 	auto lpNotify = s_alloc<notification>(nullptr);
-	memset(lpNotify, 0, sizeof(notification));
 	lpNotify->tab = s_alloc<notificationTable>(nullptr);
-	memset(lpNotify->tab, 0, sizeof(notificationTable));
-
 	lpNotify->ulEventType			= fnevTableModified;
 	lpNotify->tab->ulTableEvent		= ulType;
 

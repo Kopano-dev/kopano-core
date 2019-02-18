@@ -124,7 +124,6 @@ HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(const MAPIOBJECT *lpsMapiObj
 		lpSaveObj->lpInstanceIds = s_alloc<entryList>(nullptr);
 		lpSaveObj->lpInstanceIds->__size = 1;
 		lpSaveObj->lpInstanceIds->__ptr = s_alloc<entryId>(nullptr, lpSaveObj->lpInstanceIds->__size);
-		memset(lpSaveObj->lpInstanceIds->__ptr, 0, lpSaveObj->lpInstanceIds->__size * sizeof(entryId));
 
 		if ((m_lpTransport->GetServerGUID(&sServerGUID) != hrSuccess) ||
 		    HrSIEntryIDToID(lpsMapiObject->cbInstanceID, lpsMapiObject->lpInstanceID, &sSIGUID, nullptr, &ulPropId) != hrSuccess ||

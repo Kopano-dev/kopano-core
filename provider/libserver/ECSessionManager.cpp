@@ -762,7 +762,6 @@ ECRESULT ECSessionManager::NotificationDeleted(unsigned int ulObjType, unsigned 
 	if(ulObjType != MAPI_MESSAGE && ulObjType != MAPI_FOLDER && ulObjType != MAPI_STORE)
 		goto exit;
 	notify.obj = s_alloc<notificationObject>(nullptr);
-	memset(notify.obj, 0, sizeof(notificationObject));
 	notify.ulEventType			= fnevObjectDeleted;
 	notify.obj->ulObjType		= ulObjType;
 	notify.obj->pEntryId		= lpEntryId;
@@ -785,7 +784,6 @@ ECRESULT ECSessionManager::NotificationModified(unsigned int ulObjType, unsigned
 	if(ulObjType != MAPI_MESSAGE && ulObjType != MAPI_FOLDER && ulObjType != MAPI_STORE)
 		return erSuccess;
 	notify.obj = s_alloc<notificationObject>(nullptr);
-	memset(notify.obj, 0, sizeof(notificationObject));
 	notify.ulEventType			= fnevObjectModified;
 	notify.obj->ulObjType		= ulObjType;
 	auto er = GetCacheManager()->GetEntryIdFromObject(ulObjId, nullptr, 0, &notify.obj->pEntryId);
@@ -809,7 +807,6 @@ ECRESULT ECSessionManager::NotificationCreated(unsigned int ulObjType, unsigned 
 	if(ulObjType != MAPI_MESSAGE && ulObjType != MAPI_FOLDER && ulObjType != MAPI_STORE)
 		return erSuccess;
 	notify.obj = s_alloc<notificationObject>(nullptr);
-	memset(notify.obj, 0, sizeof(notificationObject));
 	notify.ulEventType			= fnevObjectCreated;
 	notify.obj->ulObjType		= ulObjType;
 
@@ -832,7 +829,6 @@ ECRESULT ECSessionManager::NotificationMoved(unsigned int ulObjType, unsigned in
 	if(ulObjType != MAPI_MESSAGE && ulObjType != MAPI_FOLDER && ulObjType != MAPI_STORE)
 		return erSuccess;
 	notify.obj = s_alloc<notificationObject>(nullptr);
-	memset(notify.obj, 0, sizeof(notificationObject));
 	notify.ulEventType				= fnevObjectMoved;
 	notify.obj->ulObjType			= ulObjType;
 
@@ -860,7 +856,6 @@ ECRESULT ECSessionManager::NotificationCopied(unsigned int ulObjType, unsigned i
 	if(ulObjType != MAPI_MESSAGE && ulObjType != MAPI_FOLDER && ulObjType != MAPI_STORE)
 		return erSuccess;
 	notify.obj = s_alloc<notificationObject>(nullptr);
-	memset(notify.obj, 0, sizeof(notificationObject));
 	notify.ulEventType				= fnevObjectCopied;
 	notify.obj->ulObjType			= ulObjType;
 
@@ -898,7 +893,6 @@ ECRESULT ECSessionManager::NotificationSearchComplete(unsigned int ulObjId, unsi
 	struct notification notify;
 
 	notify.obj = s_alloc<notificationObject>(nullptr);
-	memset(notify.obj, 0, sizeof(notificationObject));
 	notify.ulEventType				= fnevSearchComplete;
 	notify.obj->ulObjType			= MAPI_FOLDER;
 	auto er = GetCacheManager()->GetEntryIdFromObject(ulObjId, nullptr, 0, &notify.obj->pEntryId);

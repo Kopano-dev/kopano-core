@@ -42,7 +42,6 @@ ECNotification::ECNotification(const notification &notification)
 void ECNotification::Init()
 {
 	m_lpsNotification = s_alloc<notification>(nullptr);
-	memset(m_lpsNotification, 0, sizeof(notification));
 }
 
 ECNotification& ECNotification::operator=(const ECNotification &x)

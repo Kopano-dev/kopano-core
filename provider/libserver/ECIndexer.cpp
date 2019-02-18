@@ -229,11 +229,9 @@ static ECRESULT NormalizeRestrictionMultiFieldSearch(
         // now obsolete. Since the above loop will generate an empty AND clause, we will do that here as well.
 	// Do not delete the lpRestrict itself, since we place new content in it.
 	FreeRestrictTable(lpRestrict, false);
-	memset(lpRestrict, 0, sizeof(struct restrictTable));
+	soap_default_restrictTable(nullptr, lpRestrict);
         lpRestrict->ulType = RES_AND;
 		lpRestrict->lpAnd = s_alloc<restrictAnd>(nullptr);
-        lpRestrict->lpAnd->__size = 0;
-        lpRestrict->lpAnd->__ptr = NULL;
     }
 	return erSuccess;
 }

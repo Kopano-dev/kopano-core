@@ -763,7 +763,6 @@ static ECRESULT getchanges_ab1(struct soap *soap, ECSession *lpSession,
 	lpChanges = s_alloc<icsChangesArray>(soap);
 	lpChanges->__ptr = s_alloc<icsChange>(soap, ulChanges);
 	lpChanges->__size = 0;
-	memset(lpChanges->__ptr, 0, sizeof(icsChange) * ulChanges);
 	unsigned int i = 0;
 
 	for (const auto &iter : lstChanges) {
@@ -832,7 +831,6 @@ static ECRESULT getchanges_ab2(struct soap *soap, ECSession *lpSession,
 	lpChanges = s_alloc<icsChangesArray>(soap);
 	lpChanges->__ptr = s_alloc<icsChange>(soap, ulChanges);
 	lpChanges->__size = 0;
-	memset(lpChanges->__ptr, 0, sizeof(icsChange) * ulChanges);
 
 	unsigned int i = 0;
 	auto usrmgt = lpSession->GetUserManagement();

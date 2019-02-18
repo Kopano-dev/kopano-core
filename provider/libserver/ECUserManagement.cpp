@@ -1494,9 +1494,9 @@ ECRESULT ECUserManagement::QueryContentsRowData(struct soap *soap,
 		goto exit;
 
 	assert(lpRowList != NULL);
-	lpsRowSet = s_alloc<struct rowSet>(soap);
-	lpsRowSet->__size = 0;
-	lpsRowSet->__ptr = NULL;
+	lpsRowSet = s_alloc_nothrow<struct rowSet>(soap);
+	if (lpsRowSet == nullptr)
+		return KCERR_NOT_ENOUGH_MEMORY;
 	if (lpRowList->empty()) {
 		*lppRowSet = lpsRowSet;
 		goto exit; // success
@@ -1505,7 +1505,6 @@ ECRESULT ECUserManagement::QueryContentsRowData(struct soap *soap,
 	// We return a square array with all the values
 	lpsRowSet->__size = lpRowList->size();
 	lpsRowSet->__ptr = s_alloc<propValArray>(soap, lpRowList->size());
-	memset(lpsRowSet->__ptr, 0, sizeof(propValArray) * lpRowList->size());
 
 	// Get Extern ID and Types for all items
 	i = 0;
@@ -1620,8 +1619,6 @@ ECRESULT ECUserManagement::QueryHierarchyRowData(struct soap *soap,
 	auto lpsRowSet = s_alloc_nothrow<struct rowSet>(soap);
 	if (lpsRowSet == NULL)
 		return KCERR_NOT_ENOUGH_MEMORY;
-	lpsRowSet->__size = 0;
-	lpsRowSet->__ptr = NULL;
 	if (lpRowList->empty()) {
 		*lppRowSet = lpsRowSet;
 		goto exit; // success
@@ -1630,7 +1627,6 @@ ECRESULT ECUserManagement::QueryHierarchyRowData(struct soap *soap,
 	// We return a square array with all the values
 	lpsRowSet->__size = lpRowList->size();
 	lpsRowSet->__ptr = s_alloc<propValArray>(soap, lpRowList->size());
-	memset(lpsRowSet->__ptr, 0, sizeof(propValArray) * lpRowList->size());
 
 	for (const auto &row : *lpRowList) {
 		/* Although it probably doesn't make a lot of sense, we need to check for company containers here.
@@ -3923,18 +3919,15 @@ ECRESULT ECUserManagement::CreateABEntryID(struct soap *soap,
 			throw std::runtime_error("Internal objects must always have v0 ABEIDs");
 		ulSize = CbNewABEID("");
 		lpEid = reinterpret_cast<ABEID *>(s_alloc<unsigned char>(soap, ulSize));
-		memset(lpEid, 0, ulSize);
 	} else if (ulVersion == 0) {
 		ulSize = CbNewABEID("");
 		lpEid = reinterpret_cast<ABEID *>(s_alloc<unsigned char>(soap, ulSize));
-		memset(lpEid, 0, ulSize);
 	} else if(ulVersion == 1) {
 		if (lpExternId == NULL)
 			return KCERR_INVALID_PARAMETER;
 		strEncExId = base64_encode(lpExternId->id.c_str(), lpExternId->id.size());
 		ulSize = CbNewABEID(strEncExId.c_str());
 		lpEid = reinterpret_cast<ABEID *>(s_alloc<unsigned char>(soap, ulSize));
-		memset(lpEid, 0, ulSize);
 		// avoid FORTIFY_SOURCE checks in strcpy to an address that the compiler thinks is 1 size large
 		memcpy(lpEid->szExId, strEncExId.c_str(), strEncExId.length()+1);
 	} else {

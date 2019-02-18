@@ -1055,7 +1055,6 @@ ECRESULT ECCacheManager::GetACLs(unsigned int ulObjId, struct rightsArray **lppR
     {
 	    lpRights->__size = ulRows;
 		lpRights->__ptr = s_alloc<rights>(nullptr, ulRows);
-		memset(lpRights->__ptr, 0, sizeof(struct rights) * ulRows);
 
 		for (unsigned int i = 0; i < ulRows; ++i) {
 			auto lpRow = lpResult.fetch_row();
@@ -1073,8 +1072,6 @@ ECRESULT ECCacheManager::GetACLs(unsigned int ulObjId, struct rightsArray **lppR
 			LOG_USERCACHE_DEBUG(" Get ACLs result for objectid %d: userid %d, type %d, permissions %d", ulObjId, lpRights->__ptr[i].ulUserid, lpRights->__ptr[i].ulType, lpRights->__ptr[i].ulRights);
 		}
 	}
-	else
-	    memset(lpRights, 0, sizeof *lpRights);
 
 	SetACLs(ulObjId, *lpRights);
     *lppRights = lpRights;
@@ -1095,7 +1092,6 @@ ECRESULT ECCacheManager::I_GetACLs(unsigned int ulObjId, struct rightsArray **lp
     {
         lpRights->__size = sACL->ulACLs;
 		lpRights->__ptr = s_alloc<rights>(nullptr, sACL->ulACLs);
-        memset(lpRights->__ptr, 0, sizeof(struct rights) * sACL->ulACLs);
 
         for (unsigned int i = 0; i < sACL->ulACLs; ++i) {
             lpRights->__ptr[i].ulType = sACL->aACL[i].ulType;
@@ -1105,8 +1101,6 @@ ECRESULT ECCacheManager::I_GetACLs(unsigned int ulObjId, struct rightsArray **lp
 			LOG_USERCACHE_DEBUG("_Get ACLs result for objectid %d: userid %d, type %d, permissions %d", ulObjId, lpRights->__ptr[i].ulUserid, lpRights->__ptr[i].ulType, lpRights->__ptr[i].ulRights);
         }
     }
-	else
-		memset(lpRights, 0, sizeof *lpRights);
 
 	*lppRights = lpRights;
 	return erSuccess;
