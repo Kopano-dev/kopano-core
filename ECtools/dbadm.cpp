@@ -2,6 +2,7 @@
  * SPDX-License-Identifier: LGPL-3.0-or-later
  * Copyright 2018, Kopano and its licensors
  */
+#include <atomic>
 #include <memory>
 #include <set>
 #include <string>
@@ -11,6 +12,7 @@
 #include <getopt.h>
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
+#include <kopano/ECThreadPool.h>
 #include <kopano/database.hpp>
 #include <kopano/MAPIErrors.h>
 #include <kopano/scope.hpp>
@@ -19,8 +21,46 @@
 
 using namespace std::string_literals;
 using namespace KC;
-using fancydb = std::shared_ptr<KDatabase>;
+class da_exec;
 
+class da_task final : public ECTask {
+	public:
+	enum action { NONE, SELECT, UPDATE, DELETE, };
+	da_task(da_exec *, std::shared_ptr<ECConfig>, action, const std::string &note, const std::string &query, DB_RESULT *, unsigned int *aff);
+	virtual void run();
+	ECRESULT m_retcode = erSuccess;
+
+	private:
+	std::shared_ptr<ECConfig> m_config;
+	std::string m_note, m_query;
+	da_exec *m_pool = nullptr;
+	DB_RESULT *m_result = nullptr;
+	unsigned int *m_aff = nullptr;
+	action m_action = NONE;
+};
+
+/* A joint dispatcher/threadpool in one */
+class da_exec final : private ECThreadPool {
+	public:
+	da_exec(std::shared_ptr<ECConfig> c, size_t z);
+	ECRESULT quiesce();
+	void notify(ECRESULT);
+
+	void DoUpdate_async(const std::string &note, const std::string &query)
+	{
+		enqueue(new da_task(this, m_config, da_task::UPDATE, note, query, nullptr, nullptr), true);
+	}
+	ECRESULT DoSelect(const std::string &q, DB_RESULT *r) { return m_db.DoSelect(q, r); }
+	ECRESULT DoUpdate(const std::string &q, unsigned int *a = nullptr) { return m_db.DoUpdate(q, a); }
+	ECRESULT DoDelete(const std::string &q, unsigned int *a = nullptr) { return m_db.DoDelete(q, a); }
+
+	private:
+	std::atomic<ECRESULT> m_retcode{erSuccess};
+	std::shared_ptr<ECConfig> m_config;
+	KDatabase m_db;
+};
+
+using fancydb = std::shared_ptr<da_exec>;
 static int adm_sigterm_count = 3;
 static bool adm_quit;
 
@@ -34,10 +74,62 @@ static const std::string our_proptables_hier[] = {
 	"indexedproperties", "singleinstances",
 };
 
-static ECRESULT hidx_add(fancydb db, const std::string &tbl)
+da_task::da_task(da_exec *p, std::shared_ptr<ECConfig> c, da_task::action a,
+    const std::string &n, const std::string &q, DB_RESULT *r,
+    unsigned int *z) :
+	m_config(std::move(c)), m_note(n), m_query(q), m_pool(p),
+	m_result(r), m_aff(z), m_action(a)
+{}
+
+void da_task::run()
 {
-	ec_log_notice("dbadm: adding temporary helper index on %s", tbl.c_str());
-	return db->DoUpdate("ALTER TABLE " + tbl + " ADD INDEX tmptag (tag)");
+	KDatabase db;
+	auto ret = db.Connect(m_config.get(), true, 0, 0);
+	if (ret != hrSuccess) {
+		ec_perror("Could not connect to db", ret);
+		m_pool->notify(ret);
+		return;
+	}
+	if (!m_note.empty())
+		ec_log_notice("Starting " + m_note);
+	if (m_action == SELECT)
+		m_pool->notify(db.DoSelect(m_query, m_result));
+	else if (m_action == UPDATE)
+		m_pool->notify(db.DoDelete(m_query, m_aff));
+	else if (m_action == DELETE)
+		m_pool->notify(db.DoDelete(m_query, m_aff));
+	if (!m_note.empty())
+		ec_log_notice("Ending " + m_note);
+}
+
+da_exec::da_exec(std::shared_ptr<ECConfig> c, size_t z) :
+	ECThreadPool(z), m_config(std::move(c))
+{
+	auto ret = m_db.Connect(m_config.get(), true, 0, 0);
+	if (ret != hrSuccess) {
+		ec_perror("Could not connect to db", ret);
+		return;
+	}
+}
+
+void da_exec::notify(ECRESULT ret)
+{
+	ECRESULT exp = erSuccess;
+	m_retcode.compare_exchange_strong(exp, ret);
+}
+
+ECRESULT da_exec::quiesce()
+{
+	ulock_normal locker(m_hMutex);
+	while (!adm_quit && (m_listTasks.size() > 0 || m_active > 0))
+		m_hCondTaskDone.wait(locker);
+	/* Reset code for use with subsequent quiesce call. */
+	auto ret = m_retcode.exchange(erSuccess);
+	locker.unlock();
+
+	if (adm_quit)
+		setThreadCount(0, true);
+	return ret;
 }
 
 static ECRESULT hidx_remove(fancydb db, const std::string &tbl)
@@ -46,25 +138,21 @@ static ECRESULT hidx_remove(fancydb db, const std::string &tbl)
 	return db->DoUpdate("ALTER TABLE " + tbl + " DROP INDEX tmptag");
 }
 
-static std::set<std::string> index_tags2(fancydb db)
+static std::set<std::string> hidx_add_all(fancydb db)
 {
 	std::set<std::string> status;
-	ECRESULT coll = erSuccess;
-	for (const auto &tbl : our_proptables) {
-		auto ret = hidx_add(db, tbl);
-		if (ret == erSuccess)
-			status.emplace(tbl);
-		if (coll == erSuccess)
-			coll = ret;
-	}
-	if (coll != erSuccess)
+	for (const auto &tbl : our_proptables)
+		db->DoUpdate_async(format("index-tags: adding temporary helper index on %s", tbl.c_str()),
+			"ALTER TABLE " + tbl + " ADD INDEX tmptag (tag)");
+	auto ret = db->quiesce();
+	if (ret != erSuccess)
 		ec_log_info("Index creation failures are not fatal; it affects at most the processing speed.");
 	return status;
 }
 
 static ECRESULT index_tags(fancydb db)
 {
-	index_tags2(db);
+	hidx_add_all(db);
 	return erSuccess;
 }
 
@@ -386,7 +474,7 @@ static ECRESULT np_stat(fancydb db)
 
 static ECRESULT k1216(fancydb db)
 {
-	auto idx = index_tags2(db);
+	auto idx = hidx_add_all(db);
 	/* If indices failed, so be it. Proceed at slow speed, then. */
 	auto terminate_handler = make_scope_success([&]() {
 		if (adm_quit)
@@ -449,32 +537,17 @@ static ECRESULT usmp_shrink_columns(fancydb db)
 	/* For now, the hope for these tables is that no user has strings longer than 185 */
 	if (adm_quit)
 		return erSuccess;
-	ec_log_notice("usmp: resizing names.namestring...");
-	ret = db->DoUpdate("ALTER TABLE `names` MODIFY COLUMN `namestring` varchar(185) BINARY DEFAULT NULL");
-	if (ret != erSuccess)
-		return ret;
-	if (adm_quit)
-		return erSuccess;
-	ec_log_notice("usmp: resizing receivefolder.messageclass...");
-	ret = db->DoUpdate("ALTER TABLE `receivefolder` MODIFY COLUMN `messageclass` varchar(185) NOT NULL DEFAULT ''");
-	if (ret != erSuccess)
-		return ret;
-	if (adm_quit)
-		return erSuccess;
-	ec_log_notice("usmp: resizing objectproperty.propname...");
-	ret = db->DoUpdate("ALTER TABLE `objectproperty` MODIFY COLUMN `propname` varchar(185) BINARY NOT NULL");
-	if (ret != erSuccess)
-		return ret;
-	if (adm_quit)
-		return erSuccess;
-	ec_log_notice("usmp: resizing objectmvproperty.propname...");
-	ret = db->DoUpdate("ALTER TABLE `objectmvproperty` MODIFY COLUMN `propname` varchar(185) BINARY NOT NULL");
-	if (ret != erSuccess)
-		return ret;
-	if (adm_quit)
-		return erSuccess;
-	ec_log_notice("usmp: resizing settings.name...");
-	return db->DoUpdate("ALTER TABLE `settings` MODIFY COLUMN `name` varchar(185) BINARY NOT NULL");
+	db->DoUpdate_async("usmp: resizing names.namestring...",
+		"ALTER TABLE `names` MODIFY COLUMN `namestring` varchar(185) BINARY DEFAULT NULL");
+	db->DoUpdate_async("usmp: resizing receivefolder.messageclass...",
+		"ALTER TABLE `receivefolder` MODIFY COLUMN `messageclass` varchar(185) NOT NULL DEFAULT ''");
+	db->DoUpdate_async("usmp: resizing objectproperty.propname...",
+		"ALTER TABLE `objectproperty` MODIFY COLUMN `propname` varchar(185) BINARY NOT NULL");
+	db->DoUpdate_async("usmp: resizing objectmvproperty.propname...",
+		"ALTER TABLE `objectmvproperty` MODIFY COLUMN `propname` varchar(185) BINARY NOT NULL");
+	db->DoUpdate_async("usmp: resizing settings.name...",
+		"ALTER TABLE `settings` MODIFY COLUMN `name` varchar(185) BINARY NOT NULL");
+	return db->quiesce();
 }
 
 static ECRESULT usmp_charset(fancydb db)
@@ -500,28 +573,19 @@ static ECRESULT usmp_charset(fancydb db)
 	    "object", "objectrelation",
 	    "outgoingqueue", "properties", "receivefolder", "searchresults",
 	    "settings", "singleinstances", "stores", "syncedmessages", "syncs",
-	    "tproperties", "users", "versions"}) {
-		if (adm_quit)
-			break;
-		ec_log_notice("usmp: converting \"%s\" to utf8mb4...", tbl);
-		auto ret = db->DoUpdate("ALTER TABLE `"s + tbl + "` CONVERT TO CHARSET utf8mb4");
-		if (ret != erSuccess)
-			return ret;
-	}
-	auto ret = db->DoUpdate("ALTER TABLE `names` MODIFY COLUMN `namestring` varchar(185) CHARACTER SET utf8mb4 BINARY DEFAULT NULL");
-	if (ret != erSuccess)
-		return ret;
-	if (adm_quit)
-		return erSuccess;
-	for (const auto &tbl : {"objectproperty", "objectmvproperty"}) {
-		if (adm_quit)
-			break;
-		ec_log_notice("usmp: converting \"%s\" to utf8mb4...", tbl);
-		ret = db->DoUpdate("ALTER TABLE `"s + tbl + "` MODIFY COLUMN `propname` varchar(185) CHARACTER SET utf8mb4 BINARY NOT NULL");
-		if (ret != erSuccess)
-			return ret;
-	}
-	ret = db->DoUpdate("ALTER TABLE `settings` MODIFY COLUMN `name` varchar(185) CHARACTER SET utf8mb4 BINARY NOT NULL");
+	    "tproperties", "users", "versions"})
+		db->DoUpdate_async(format("usmp: converting \"%s\" to utf8mb4...", tbl),
+			"ALTER TABLE `"s + tbl + "` CONVERT TO CHARSET utf8mb4");
+
+	db->DoUpdate_async("usmp: converting \"names.namestring\" to utf8mb4...",
+		"ALTER TABLE `names` MODIFY COLUMN `namestring` varchar(185) CHARACTER SET utf8mb4 BINARY DEFAULT NULL");
+	for (const auto &tbl : {"objectproperty", "objectmvproperty"})
+		db->DoUpdate_async(format("usmp: converting \"%s.propname\" to utf8mb4...", tbl),
+			"ALTER TABLE `"s + tbl + "` MODIFY COLUMN `propname` varchar(185) CHARACTER SET utf8mb4 BINARY NOT NULL");
+	db->DoUpdate_async("usmp: converting \"settings.name\" to utf8mb4...",
+		"ALTER TABLE `settings` MODIFY COLUMN `name` varchar(185) CHARACTER SET utf8mb4 BINARY NOT NULL");
+
+	auto ret = db->quiesce();
 	if (ret != erSuccess)
 		return ret;
 	if (adm_quit)
@@ -588,15 +652,21 @@ int main(int argc, char **argv)
 		{nullptr, nullptr},
 	};
 	const char *cfg_file = ECConfig::GetDefaultPath("server.cfg");
+	unsigned int opt_parallel = 0;
 	int c;
-	while ((c = getopt_long(argc, argv, "c:", nullptr, nullptr)) >= 0) {
+	while ((c = getopt_long(argc, argv, "c:j:", nullptr, nullptr)) >= 0) {
 		switch (c) {
 		case 'c':
 			cfg_file = optarg;
 			break;
+		case 'j':
+			opt_parallel = atoui(optarg);
+			break;
 		}
 	}
-	auto cfg = ECConfig::Create(defaults);
+	if (opt_parallel == 0)
+		opt_parallel = 1;
+	auto cfg = std::shared_ptr<ECConfig>(ECConfig::Create(defaults));
 	if (!cfg->LoadSettings(cfg_file)) {
 		ec_log_err("Errors in config; run kopano-server to see details.");
 		return EXIT_FAILURE;
@@ -608,20 +678,16 @@ int main(int argc, char **argv)
 
 	cfg->AddSetting("log_method", "file");
 	cfg->AddSetting("log_file", "-");
-	std::shared_ptr<ECLogger> g_logger(CreateLogger(cfg, argv[0], "kopano-dbadm", false));
+	std::shared_ptr<ECLogger> g_logger(CreateLogger(cfg.get(), argv[0], "kopano-dbadm", false));
 	ec_log_set(g_logger);
 	if (!ec_log_get()->Log(EC_LOGLEVEL_INFO))
 		ec_log_get()->SetLoglevel(EC_LOGLEVEL_INFO);
-	auto db = std::make_shared<KDatabase>();
-	auto ret = db->Connect(cfg, true, 0, 0);
-	if (ret != erSuccess) {
-		ec_log_err("db connect failed: %s (%x)", GetMAPIErrorMessage(kcerr_to_mapierr(ret)), ret);
-		return ret;
-	}
+
+	auto db = std::make_shared<da_exec>(cfg, opt_parallel);
 	if (!adm_setup_signals())
 		return EXIT_FAILURE;
 	for (size_t i = optind; i < argc; ++i) {
-		ret = KCERR_NOT_FOUND;
+		ECRESULT ret = KCERR_NOT_FOUND;
 		if (strcmp(argv[i], "k-1216") == 0)
 			ret = k1216(db);
 		else if (strcmp(argv[i], "np-defrag") == 0)

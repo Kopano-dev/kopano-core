@@ -23,8 +23,8 @@ class ECTask;
  * The amount of workers can be modified at run time, but is not automatically
  * adjusted based on the task queue length or age.
  */
-class _kc_export ECThreadPool _kc_final {
-private:	// types
+class _kc_export ECThreadPool {
+	protected:
 	struct STaskInfo {
 		ECTask			*lpTask;
 		KC::time_point enq_stamp;
@@ -43,7 +43,7 @@ public:
 	size_t queue_length() const;
 	void thread_counts(size_t *active, size_t *idle) const;
 
-private:	// methods
+	protected:
 	_kc_hidden size_t threadCount() const; /* unlocked variant */
 	_kc_hidden bool getNextTask(STaskInfo *, std::unique_lock<std::mutex> &);
 	_kc_hidden void joinTerminated(std::unique_lock<std::mutex> &);
