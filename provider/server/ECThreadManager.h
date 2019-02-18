@@ -110,7 +110,6 @@ protected:
 	std::map<int, std::unique_ptr<struct soap, KC::ec_soap_deleter>> m_setListenSockets;
 	std::mutex m_poolcount, m_mutexSockets;
 	bool m_bExit = false;
-	std::atomic<unsigned int> m_ulIdle{0};
 	// Socket settings (TCP + SSL)
 	int m_nRecvTimeout, m_nReadTimeout, m_nSendTimeout;
 };
