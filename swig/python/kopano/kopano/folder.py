@@ -800,8 +800,7 @@ class Folder(Properties):
     def dumps(self):
         data = {}
 
-        data['rules'] = self.rules_dumps()
-        data['permissions'] = self.permissions_dumps()
+        data['settings'] = self.settings_dumps()
         data['items'] = [item.dumps() for item in self]
 
         return _utils.pickle_dumps(data)
@@ -809,11 +808,24 @@ class Folder(Properties):
     def loads(self, data):
         data = _utils.pickle_loads(data)
 
-        self.rules_loads(data['rules'])
-        self.permissions_loads(data['permissions'])
+        self.settings_loads(data['settings'])
 
         for data in data['items']:
             self.create_item(loads=data)
+
+    def settings_dumps(self):
+        data = {}
+
+        data['rules'] = self.rules_dumps()
+        data['permissions'] = self.permissions_dumps()
+
+        return _utils.pickle_dumps(data)
+
+    def settings_loads(self, data):
+        data = _utils.pickle_loads(data)
+
+        self.rules_loads(data['rules'])
+        self.permissions_loads(data['permissions'])
 
     def rules_dumps(self, stats=None):
         server = self.server

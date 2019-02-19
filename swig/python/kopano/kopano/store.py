@@ -806,8 +806,7 @@ class Store(Properties):
     def dumps(self):
         data = {}
 
-        data['permissions'] = self.permissions_dumps()
-        data['delegations'] = self.delegations_dumps()
+        data['settings'] = self.settings_dumps()
 
         data['folders'] = folders = {}
         for folder in self.folders():
@@ -818,12 +817,25 @@ class Store(Properties):
     def loads(self, data):
         data = _utils.pickle_loads(data)
 
-        self.delegations_loads(data['delegations'])
-        self.permissions_loads(data['permissions'])
+        self.settings_loads(data['settings'])
 
         for path, fdata in data['folders'].items():
             folder = self.folder(path, create=True)
             folder.loads(fdata)
+
+    def settings_dumps(self):
+        data = {}
+
+        data['permissions'] = self.permissions_dumps()
+        data['delegations'] = self.delegations_dumps()
+
+        return _utils.pickle_dumps(data)
+
+    def settings_loads(self, data):
+        data = _utils.pickle_loads(data)
+
+        self.delegations_loads(data['delegations'])
+        self.permissions_loads(data['permissions'])
 
     @property
     def send_only_to_delegates(self):
