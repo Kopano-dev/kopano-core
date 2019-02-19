@@ -6,6 +6,7 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
+import binascii
 import codecs
 import json
 import os
@@ -114,7 +115,7 @@ class Store(Properties):
         elif entryid:
             try:
                 mapiobj = self.server._store2(_bdec(entryid))
-            except (MAPIErrorNotFound, MAPIErrorInvalidEntryid):
+            except (binascii.Error, MAPIErrorNotFound, MAPIErrorInvalidEntryid):
                 raise NotFoundError("no store with entryid '%s'" % entryid)
 
         self.mapiobj = mapiobj
