@@ -39,7 +39,7 @@ public:
 
 	// Functions to determine which companies are visible, and which userobjects are
 	// visible to the currently logged in user.
-	virtual ECRESULT GetViewableCompanyIds(unsigned int ulFlags, std::list<localobjectdetails_t> **lppObjects);
+	virtual ECRESULT GetViewableCompanyIds(unsigned int ulFlags, std::list<localobjectdetails_t> &objs);
 	virtual ECRESULT IsUserObjectVisible(unsigned int ulUserObjectId);
 
 	// Get the owner of an object
@@ -72,9 +72,9 @@ public:
 	virtual size_t GetObjectSize(void) const;
 
 private:
-	ECRESULT GetGroupsForUser(unsigned int ulUserId, std::list<localobjectdetails_t> **lppGroups);
-	ECRESULT GetViewableCompanies(unsigned int ulFlags, std::list<localobjectdetails_t> **lppObjects) const;
-	ECRESULT GetAdminCompanies(unsigned int ulFlags, std::list<localobjectdetails_t> **lppObjects);
+	ECRESULT GetGroupsForUser(unsigned int ulUserId, std::list<localobjectdetails_t> &groups);
+	ECRESULT GetViewableCompanies(unsigned int ulFlags, std::list<localobjectdetails_t> &objs) const;
+	ECRESULT GetAdminCompanies(unsigned int ulFlags, std::list<localobjectdetails_t> &objs);
 	ECRESULT HaveObjectPermission(unsigned int ulObjId, unsigned int ulACLMask);
 
 protected:

@@ -56,15 +56,11 @@ void ECSessionGroup::ReleaseSession(ECSession *lpSession)
 	l_map.unlock();
 
 	scoped_lock l_note(m_hNotificationLock);
-	for (auto i = m_mapSubscribe.cbegin(); i != m_mapSubscribe.cend(); ) {
-		if (i->second.ulSession != lpSession->GetSessionId()) {
+	for (auto i = m_mapSubscribe.cbegin(); i != m_mapSubscribe.cend(); )
+		if (i->second.ulSession != lpSession->GetSessionId())
 			++i;
-			continue;
-		}
-		auto iRemove = i;
-		++i;
-		m_mapSubscribe.erase(iRemove);
-	}
+		else
+			i = m_mapSubscribe.erase(i);
 }
 
 void ECSessionGroup::ShutdownSession(ECSession *lpSession)

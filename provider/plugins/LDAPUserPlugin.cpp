@@ -2084,8 +2084,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 		} else {
 			// string, so use SetPropObject
 			try {
-				objectsignature_t signature;
-				signature = resolveObjectFromAttributeType(p.objclass, p.ldap_attr, p.relAttr, p.relAttrType);
+				auto signature = resolveObjectFromAttributeType(p.objclass, p.ldap_attr, p.relAttr, p.relAttrType);
 				if (!p.result_attr.empty()) {
 				    // String type
 				    try {

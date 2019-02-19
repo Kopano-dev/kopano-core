@@ -57,11 +57,11 @@ public:
 	// Set quota details for a user object
 	_kc_hidden virtual ECRESULT SetQuotaDetailsAndSync(unsigned int obj_id, const quotadetails_t &);
 	/* Get (typed) objectlist for company, or list of all companies, with on-the-fly deletion/creation of users and groups. */
-	_kc_hidden virtual ECRESULT GetCompanyObjectListAndSync(objectclass_t, unsigned int company_id, const restrictTable *, std::list<localobjectdetails_t> **objs, unsigned int flags = 0);
+	_kc_hidden virtual ECRESULT GetCompanyObjectListAndSync(objectclass_t, unsigned int company_id, const restrictTable *, std::list<localobjectdetails_t> &objs, unsigned int flags = 0);
 	/* Get subobjects in an object, with on-the-fly deletion of the specified parent object. */
-	_kc_hidden virtual ECRESULT GetSubObjectsOfObjectAndSync(userobject_relation_t, unsigned int parent_id, std::list<localobjectdetails_t> **objs, unsigned int flags = 0);
+	_kc_hidden virtual ECRESULT GetSubObjectsOfObjectAndSync(userobject_relation_t, unsigned int parent_id, std::list<localobjectdetails_t> &objs, unsigned int flags = 0);
 	/* Get parent for an object, with on-the-fly deletion of the specified child object id. */
-	_kc_hidden virtual ECRESULT GetParentObjectsOfObjectAndSync(userobject_relation_t, unsigned int child_id, std::list<localobjectdetails_t> **groups, unsigned int flags = 0);
+	_kc_hidden virtual ECRESULT GetParentObjectsOfObjectAndSync(userobject_relation_t, unsigned int child_id, std::list<localobjectdetails_t> &groups, unsigned int flags = 0);
 	/* Set data for a single user, with on-the-fly deletion of the specified user id. */
 	_kc_hidden virtual ECRESULT SetObjectDetailsAndSync(unsigned int obj_id, const objectdetails_t &, std::list<std::string> *remove_props);
 	/* Add a member to a group, with on-the-fly deletion of the specified group id. */
@@ -122,7 +122,7 @@ private:
 	_kc_hidden bool MustHide(/*const*/ ECSecurity &, unsigned int flags, const objectdetails_t &) const;
 
 	// Get object details from list
-	_kc_hidden ECRESULT GetLocalObjectListFromSignatures(const std::list<objectsignature_t> &signatures, const std::map<objectid_t, unsigned int> &extern_to_local, unsigned int flags, std::list<localobjectdetails_t> *) const;
+	_kc_hidden ECRESULT GetLocalObjectListFromSignatures(const signatures_t &, const std::map<objectid_t, unsigned int> &extern_to_local, unsigned int flags, std::list<localobjectdetails_t> &) const;
 	// Get local details
 	_kc_hidden ECRESULT GetLocalObjectDetails(unsigned int id, objectdetails_t *) const;
 
@@ -131,10 +131,10 @@ private:
 
 	// Get userid from usertable or create a new user/group if it doesn't exist yet
 	_kc_hidden ECRESULT GetLocalObjectIdOrCreate(const objectsignature_t &signature, unsigned int *id);
-	_kc_hidden ECRESULT GetLocalObjectsIdsOrCreate(const std::list<objectsignature_t> &signatures, std::map<objectid_t, unsigned int> *local_objids);
+	_kc_hidden ECRESULT GetLocalObjectsIdsOrCreate(const signatures_t &, std::map<objectid_t, unsigned int> *local_objids);
 
 	// Get a list of local object IDs in the database plus any internal objects (SYSTEM, EVERYONE)
-	_kc_hidden ECRESULT GetLocalObjectIdList(objectclass_t, unsigned int company_id, std::vector<unsigned int> **objs) const;
+	_kc_hidden ECRESULT GetLocalObjectIdList(objectclass_t, unsigned int company_id, std::vector<unsigned int> &objs) const;
 
 	// Converts anonymous Object Detail to property. */
 	_kc_hidden ECRESULT ConvertAnonymousObjectDetailToProp(struct soap *, const objectdetails_t *, unsigned int tag, struct propVal *) const;

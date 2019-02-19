@@ -4,7 +4,6 @@
  */
 #include <kopano/platform.h>
 #include <list>
-#include <memory>
 #include <new>
 #include <utility>
 #include "ECDatabase.h"
@@ -16,7 +15,6 @@
 #include "ECSession.h"
 #include "ECMAPI.h"
 #include <kopano/stringutil.h>
-#include <kopano/tie.hpp>
 #include <kopano/EMSAbTag.h>
 #include <kopano/Util.h>
 #include <list>
@@ -220,10 +218,10 @@ ECRESULT ECConvenientDepthABObjectTable::Load()
 
 	// 'Recursively' loop through all our containers and add each of those children to our object list
 	for (const auto &obj : lstObjects) {
-		std::unique_ptr<std::list<localobjectdetails_t> > lpSubObjects;
-		if (LoadHierarchyContainer(obj.ulId, 0, &unique_tie(lpSubObjects)) != erSuccess)
+		std::list<localobjectdetails_t> subobjs;
+		if (LoadHierarchyContainer(obj.ulId, subobjs) != erSuccess)
 			continue;
-		for (const auto &subobj : *lpSubObjects)
+		for (const auto &subobj : subobjs)
 			lstObjects.emplace_back(CONTAINERINFO{subobj.ulId, obj.ulDepth + 1,
 				obj.strPath + "/" + subobj.GetPropString(OB_PROP_S_LOGIN)});
 	}

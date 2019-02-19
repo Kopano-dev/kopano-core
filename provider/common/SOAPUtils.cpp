@@ -1649,24 +1649,20 @@ CopyAnonymousDetailsFromSoap(struct propmapPairArray *lpsoapPropmap,
 {
 	if (lpsoapPropmap) {
 		for (gsoap_size_t i = 0; i < lpsoapPropmap->__size; ++i)
-			if (PROP_TYPE(lpsoapPropmap->__ptr[i].ulPropId) == PT_BINARY) {
-				auto strData = base64_decode(lpsoapPropmap->__ptr[i].lpszValue);
-				details->SetPropString(static_cast<property_key_t>(lpsoapPropmap->__ptr[i].ulPropId), strData);
-			} else if (PROP_TYPE(lpsoapPropmap->__ptr[i].ulPropId) == PT_STRING8) {
+			if (PROP_TYPE(lpsoapPropmap->__ptr[i].ulPropId) == PT_BINARY)
+				details->SetPropString(static_cast<property_key_t>(lpsoapPropmap->__ptr[i].ulPropId), base64_decode(lpsoapPropmap->__ptr[i].lpszValue));
+			else if (PROP_TYPE(lpsoapPropmap->__ptr[i].ulPropId) == PT_STRING8)
 				details->SetPropString(static_cast<property_key_t>(lpsoapPropmap->__ptr[i].ulPropId), lpsoapPropmap->__ptr[i].lpszValue);
-			}
 	}
 
 	if (lpsoapMVPropmap)
 		for (gsoap_size_t i = 0; i < lpsoapMVPropmap->__size; ++i) {
 			details->SetPropListString(static_cast<property_key_t>(lpsoapMVPropmap->__ptr[i].ulPropId), {});
 			for (gsoap_size_t j = 0; j < lpsoapMVPropmap->__ptr[i].sValues.__size; ++j)
-				if (PROP_TYPE(lpsoapMVPropmap->__ptr[i].ulPropId) == PT_MV_BINARY) {
-					auto strData = base64_decode(lpsoapMVPropmap->__ptr[i].sValues.__ptr[j]);
-					details->AddPropString(static_cast<property_key_t>(lpsoapMVPropmap->__ptr[i].ulPropId), strData);
-				} else {
+				if (PROP_TYPE(lpsoapMVPropmap->__ptr[i].ulPropId) == PT_MV_BINARY)
+					details->AddPropString(static_cast<property_key_t>(lpsoapMVPropmap->__ptr[i].ulPropId), base64_decode(lpsoapMVPropmap->__ptr[i].sValues.__ptr[j]));
+				else
 					details->AddPropString(static_cast<property_key_t>(lpsoapMVPropmap->__ptr[i].ulPropId), lpsoapMVPropmap->__ptr[i].sValues.__ptr[j]);
-				}
 		}
 
 	return erSuccess;

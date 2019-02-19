@@ -83,7 +83,7 @@ void objectdetails_t::SetPropListString(property_key_t propname,
 void objectdetails_t::SetPropObject(property_key_t propname,
     objectid_t &&value)
 {
-	m_mapProps[propname].assign(((objectid_t)value).tostring());
+	m_mapProps[propname].assign(value.tostring());
 }
 
 void objectdetails_t::AddPropInt(property_key_t propname, unsigned int value)
@@ -103,13 +103,13 @@ void objectdetails_t::AddPropObject(property_key_t propname,
 	m_mapMVProps[propname].emplace_back(value.tostring());
 }
 
-std::list<unsigned int>
+std::vector<unsigned int>
 objectdetails_t::GetPropListInt(property_key_t propname) const
 {
 	property_mv_map::const_iterator mvitem = m_mapMVProps.find(propname);
+	std::vector<unsigned int> l;
 	if (mvitem == m_mapMVProps.cend())
-		return std::list<unsigned int>();
-	std::list<unsigned int> l;
+		return l;
 	for (const auto &i : mvitem->second)
 		l.emplace_back(atoui(i.c_str()));
 	return l;
