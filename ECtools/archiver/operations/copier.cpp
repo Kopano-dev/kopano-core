@@ -492,7 +492,7 @@ HRESULT Copier::DoProcessEntry(const SRow &proprow)
 			}
 		} else if (!state.isMove()) {
 			Logger()->Log(EC_LOGLEVEL_WARNING, "Ignoring already archived message.");
-			ptrTransaction.reset(new Transaction(*iArchivedMsg));
+			ptrTransaction = std::make_shared<Transaction>(*iArchivedMsg);
 		} else {	// Moved
 			Logger()->Log(EC_LOGLEVEL_DEBUG, "Moving archived message.");
 			hr = DoMoveArchive(arc, *iArchivedMsg, refObjectEntry, &ptrTransaction);
@@ -579,7 +579,7 @@ HRESULT Copier::DoInitialArchive(LPMESSAGE lpMessage, const SObjectEntry &archiv
 	// Update the list of archive messages for this message.
 	objectEntry.sStoreEntryId = archiveRootEntry.sStoreEntryId;
 	objectEntry.sItemEntryId = ptrEntryId->Value.bin;
-	ptrTransaction.reset(new Transaction(objectEntry));
+	ptrTransaction = std::make_shared<Transaction>(objectEntry);
 	hr = ptrTransaction->Save(ptrNewArchive, true, ptrPSAction);
 	if (hr != hrSuccess)
 		return Logger()->perr("Failed to add archive message to transaction", hr);
@@ -608,7 +608,7 @@ HRESULT Copier::DoTrackAndRearchive(LPMESSAGE lpMessage, const SObjectEntry &arc
 	// Create the transaction, which is needed by CopyToHistory, now.
 	newArchiveEntry.sStoreEntryId = archiveRootEntry.sStoreEntryId;
 	newArchiveEntry.sItemEntryId = ptrEntryId->Value.bin;
-	ptrTransaction.reset(new Transaction(newArchiveEntry));
+	ptrTransaction = std::make_shared<Transaction>(newArchiveEntry);
 	hr = MoveToHistory(archiveRootEntry, archiveMsgEntry, ptrTransaction, &movedEntry, &~ptrMovedMessage);
 	if (hr != hrSuccess)
 		return Logger()->perr("Failed to move old archive to history folder", hr);
@@ -681,7 +681,7 @@ HRESULT Copier::DoUpdateArchive(LPMESSAGE lpMessage, const SObjectEntry &archive
 	hr = m_ptrHelper->ArchiveMessage(lpMessage, &refMsgEntry, ptrArchivedMsg, &ptrPSAction);
 	if (hr != hrSuccess)
 		return hr;
-	ptrTransaction.reset(new Transaction(archiveMsgEntry));
+	ptrTransaction = std::make_shared<Transaction>(archiveMsgEntry);
 	hr = ptrTransaction->Save(ptrArchivedMsg, false, ptrPSAction);
 	if (hr != hrSuccess)
 		return Logger()->perr("Failed to add archive message to transaction", hr);
@@ -729,7 +729,7 @@ HRESULT Copier::DoMoveArchive(const SObjectEntry &archiveRootEntry, const SObjec
 	// Create the transaction, which is needed by CopyToHistory, now.
 	objectEntry.sStoreEntryId = archiveRootEntry.sStoreEntryId;
 	objectEntry.sItemEntryId = ptrEntryId->Value.bin;
-	ptrTransaction.reset(new Transaction(objectEntry));
+	ptrTransaction = std::make_shared<Transaction>(objectEntry);
 	hr = ptrTransaction->Save(ptrArchiveCopy, true);
 	if (hr == hrSuccess)
 		hr = ptrTransaction->Delete(archiveMsgEntry);

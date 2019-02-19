@@ -1721,7 +1721,7 @@ HRESULT Util::HrStreamToString(IStream *sInput, std::wstring &strOutput) {
  * @param[out]	lppwOutput	output in WCHAR
  * @return MAPI error code
  */
-HRESULT Util::HrConvertStreamToWString(IStream *sInput, ULONG ulCodepage, std::wstring *wstrOutput)
+static HRESULT HrConvertStreamToWString(IStream *sInput, ULONG ulCodepage, std::wstring *wstrOutput)
 {
 	const char *lpszCharset;
 	convert_context converter;
@@ -1731,8 +1731,7 @@ HRESULT Util::HrConvertStreamToWString(IStream *sInput, ULONG ulCodepage, std::w
 		lpszCharset = "us-ascii";
 		hr = hrSuccess;
 	}
-
-	hr = HrStreamToString(sInput, data);
+	hr = Util::HrStreamToString(sInput, data);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -1742,6 +1741,15 @@ HRESULT Util::HrConvertStreamToWString(IStream *sInput, ULONG ulCodepage, std::w
 		return MAPI_E_INVALID_PARAMETER;
 	}
 	return hrSuccess;
+}
+
+static std::wstring string_strip_nuls(const std::wstring &i)
+{
+	std::wstring o;
+	o.reserve(i.size());
+	std::copy_if(i.cbegin(), i.cend(), std::back_inserter(o),
+		[](wchar_t c) { return c != L'\0'; });
+	return o;
 }
 
 /**

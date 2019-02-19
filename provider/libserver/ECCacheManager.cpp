@@ -14,7 +14,6 @@
 #include <mapidefs.h>
 #include <mapitags.h>
 #include <kopano/MAPIErrors.h>
-#include <kopano/scope.hpp>
 #include "ECDatabase.h"
 #include "ECSessionManager.h"
 #include "ECDatabaseUtils.h"
@@ -131,7 +130,6 @@ ECCacheManager::~ECCacheManager()
 ECRESULT ECCacheManager::PurgeCache(unsigned int ulFlags)
 {
 	auto start = std::chrono::steady_clock::now();
-	LOG_CACHE_DEBUG("Purge cache, flags 0x%08X", ulFlags);
 
 	// cache mutex items
 	ulock_rec l_cache(m_hCacheMutex);
@@ -185,7 +183,7 @@ ECRESULT ECCacheManager::PurgeCache(unsigned int ulFlags)
 
 	using namespace std::chrono;
 	auto end = duration_cast<milliseconds>(decltype(start)::clock::now() - start);
-	ec_log_debug("PurgeCache took %u ms", static_cast<unsigned int>(end.count()));
+	ec_log_debug("PurgeCache 0x%x took %u ms", ulFlags, static_cast<unsigned int>(end.count()));
 	return erSuccess;
 }
 

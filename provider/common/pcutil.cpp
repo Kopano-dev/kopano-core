@@ -70,9 +70,10 @@ ECRESULT GetStoreGuidFromEntryId(unsigned int cb, const void *lpEntryId,
 	return erSuccess;
 }
 
-ECRESULT GetObjTypeFromEntryId(unsigned int cb, const void *lpEntryId,
+ECRESULT GetObjTypeFromEntryId(unsigned int cb, const void *eidv,
     unsigned int *lpulObjType)
 {
+	auto lpEntryId = static_cast<const char *>(eidv);
 	if (lpEntryId == NULL || lpulObjType == NULL)
 		return KCERR_INVALID_PARAMETER;
 	if (cb == sizeof(EID_FIXED)) {

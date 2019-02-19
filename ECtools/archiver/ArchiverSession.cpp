@@ -84,13 +84,8 @@ HRESULT ArchiverSession::Create(const MAPISessionPtr &ptrSession,
     ECConfig *lpConfig, std::shared_ptr<ECLogger> lpLogger,
     ArchiverSessionPtr *lpptrSession)
 {
-	std::shared_ptr<ECLogger> lpLocalLogger;
 	const char *lpszSslKeyFile = nullptr, *lpszSslKeyPass = nullptr;
-
-	if (lpLogger != nullptr)
-		lpLocalLogger = std::move(lpLogger);
-	else
-		lpLocalLogger.reset(new ECLogger_Null);
+	auto lpLocalLogger(lpLogger != nullptr ? std::move(lpLogger) : std::make_shared<ECLogger_Null>());
 
 	if (lpConfig) {
 		lpszSslKeyFile = lpConfig->GetSetting("sslkey_file", "", NULL);

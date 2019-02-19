@@ -7,7 +7,6 @@
 #include <memory>
 #include <string>
 #include <kopano/scope.hpp>
-#include <kopano/tie.hpp>
 
 /* Returns the rows for a contents- or hierarchytable
  *

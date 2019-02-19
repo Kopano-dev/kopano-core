@@ -23,7 +23,6 @@
 #	include <fcntl.h>
 #	include <unistd.h>
 #	include <kopano/UnixUtil.h>
-#include <kopano/scope.hpp>
 
 using namespace KC;
 using namespace std::string_literals;

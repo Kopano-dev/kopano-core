@@ -22,7 +22,7 @@ struct objectid_t {
 	objectid_t(const std::string &xid, objectclass_t xoc) :
 		id(xid), objclass(xoc)
 	{}
-	explicit objectid_t(const std::string &str);
+	static objectid_t fromstring(const std::string &str);
 	bool operator==(const objectid_t &x) const noexcept;
 	bool operator!=(const objectid_t &x) const noexcept;
 	std::string tostring() const;
@@ -97,9 +97,8 @@ public:
 	void			SetPropInt(property_key_t propname, unsigned int value);
 	void			SetPropBool(property_key_t propname, bool value);
 	void			SetPropString(property_key_t propname, const std::string &value);
-	void			SetPropListString(property_key_t propname, const std::list<std::string> &value);
-	void			SetPropObject(property_key_t propname, const objectid_t &value);
-	void			SetPropListObject(property_key_t propname, const std::list<objectid_t> &value);
+	void SetPropListString(property_key_t propname, std::list<std::string> &&value);
+	void SetPropObject(property_key_t propname, objectid_t &&value);
 
 	/* "mv" props */
 	void			AddPropInt(property_key_t propname, unsigned int value);
@@ -116,6 +115,12 @@ public:
 
 private:
 	objectclass_t m_objclass = OBJECTCLASS_UNKNOWN;
+	/*
+	 * These maps are so heavy that sorting a
+	 * vector<objectdetails_t> takes longer to sort than
+	 * list<objectdetails_t> (in GNU stdc++), because even move
+	 * assignments take time.
+	 */
 	property_map m_mapProps;
 	property_mv_map m_mapMVProps;
 };

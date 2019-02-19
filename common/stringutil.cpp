@@ -722,15 +722,6 @@ std::string zcp_md5_final_hex(MD5_CTX *ctx)
 	return s;
 }
 
-std::wstring string_strip_nuls(const std::wstring &i)
-{
-	std::wstring o;
-	o.reserve(i.size());
-	std::copy_if(i.cbegin(), i.cend(), std::back_inserter(o),
-		[](wchar_t c) { return c != L'\0'; });
-	return o;
-}
-
 std::string string_strip_crlf(const char *s)
 {
 	std::string o;

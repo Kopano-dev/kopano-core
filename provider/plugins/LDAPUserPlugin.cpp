@@ -1897,7 +1897,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 							i = m_iconv->convert(i);
 
 					if (ulPropTag & 0x1000) /* MV_FLAG */
-						sObjDetails.SetPropListString(static_cast<property_key_t>(ulPropTag), ldap_attrs);
+						sObjDetails.SetPropListString(static_cast<property_key_t>(ulPropTag), std::move(ldap_attrs));
 					else
 						sObjDetails.SetPropString(static_cast<property_key_t>(ulPropTag), ldap_attrs.front());
 					break;
@@ -1928,10 +1928,8 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 					auto ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
 					sObjDetails.SetPropString(OB_PROP_S_EMAIL, ldap_attr);
 				}
-				if (emailaliases_attr && !strcasecmp(att, emailaliases_attr)) {
-					auto ldap_attrs = getLDAPAttributeValues(att, entry);
-					sObjDetails.SetPropListString(OB_PROP_LS_ALIASES, ldap_attrs);
-				}
+				if (emailaliases_attr != nullptr && strcasecmp(att, emailaliases_attr) == 0)
+					sObjDetails.SetPropListString(OB_PROP_LS_ALIASES, getLDAPAttributeValues(att, entry));
 				if (isadmin_attr && !strcasecmp(att, isadmin_attr)) {
 					auto ldap_attr = getLDAPAttributeValue(att, entry);
 					sObjDetails.SetPropInt(OB_PROP_I_ADMINLEVEL, std::min(2, atoi(ldap_attr.c_str())));
@@ -1944,10 +1942,8 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 					auto ldap_attr = getLDAPAttributeValue(att, entry);
 					sObjDetails.SetPropInt(OB_PROP_I_RESOURCE_CAPACITY, atoi(ldap_attr.c_str()));
 				}
-				if (usercert_attr && !strcasecmp(att, usercert_attr)) {
-					auto ldap_attrs = getLDAPAttributeValues(att, entry);
-					sObjDetails.SetPropListString(OB_PROP_LS_CERTIFICATE, ldap_attrs);
-				}
+				if (usercert_attr != nullptr && strcasecmp(att, usercert_attr) == 0)
+					sObjDetails.SetPropListString(OB_PROP_LS_CERTIFICATE, getLDAPAttributeValues(att, entry));
 
 				if (sendas_attr && !strcasecmp(att, sendas_attr)) {
 					postaction p;
@@ -1978,10 +1974,8 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 					auto ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
 					sObjDetails.SetPropString(OB_PROP_S_EMAIL, ldap_attr);
 				}
-				if (emailaliases_attr && !strcasecmp(att, emailaliases_attr)) {
-					auto ldap_attrs = getLDAPAttributeValues(att, entry);
-					sObjDetails.SetPropListString(OB_PROP_LS_ALIASES, ldap_attrs);
-				}
+				if (emailaliases_attr != nullptr && strcasecmp(att, emailaliases_attr) == 0)
+					sObjDetails.SetPropListString(OB_PROP_LS_ALIASES, getLDAPAttributeValues(att, entry));
 
 				if (sendas_attr && !strcasecmp(att, sendas_attr)) {
 					postaction p;
@@ -2007,10 +2001,8 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 					auto ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
 					sObjDetails.SetPropString(OB_PROP_S_EMAIL, ldap_attr);
 				}
-				if (emailaliases_attr && !strcasecmp(att, emailaliases_attr)) {
-					auto ldap_attrs = getLDAPAttributeValues(att, entry);
-					sObjDetails.SetPropListString(OB_PROP_LS_ALIASES, ldap_attrs);
-				}
+				if (emailaliases_attr != nullptr && strcasecmp(att, emailaliases_attr) == 0)
+					sObjDetails.SetPropListString(OB_PROP_LS_ALIASES, getLDAPAttributeValues(att, entry));
 				break;
 			case CONTAINER_COMPANY:
 				if (company_fullname_attr && !strcasecmp(att, company_fullname_attr)) {
@@ -2052,10 +2044,8 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 		}
 		END_FOREACH_ATTR
 
-		if (m_bHosted && sObjDetails.GetClass() != CONTAINER_COMPANY) {
-			objectid_t company = m_lpCache->getParentForDN(lpCompanyCache, strDN);
-			sObjDetails.SetPropObject(OB_PROP_O_COMPANYID, company);
-		}
+		if (m_bHosted && sObjDetails.GetClass() != CONTAINER_COMPANY)
+			sObjDetails.SetPropObject(OB_PROP_O_COMPANYID, m_lpCache->getParentForDN(lpCompanyCache, strDN));
 		if (!objectid.id.empty())
 			mapdetails[objectid] = sObjDetails;
 	}
@@ -2109,7 +2099,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 				} else {
 				    // ID type
     				if (!signature.id.id.empty())
-					o->second.SetPropObject(p.propname, signature.id);
+						o->second.SetPropObject(p.propname, std::move(signature.id));
 	    			else
 					ec_log_err("Unable to find relation \"%s\" in attribute \"%s\"", p.ldap_attr.c_str(), p.relAttr);
                 }

@@ -10,7 +10,6 @@
 #include <kopano/platform.h>
 #include <kopano/kcodes.h>
 #include <kopano/memory.hpp>
-#include <kopano/tie.hpp>
 #include "StorageUtil.h"
 #include "ECDatabase.h"
 #include "ECAttachmentStorage.h"
