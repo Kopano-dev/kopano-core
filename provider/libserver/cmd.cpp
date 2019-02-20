@@ -73,11 +73,10 @@
 #	include <google/malloc_extension_c.h>
 #	define HAVE_TCMALLOC 1
 #endif
-#define STROUT_FIX(s) (s)
-#define STROUT_FIX_CPY(s) s_strcpy(soap, (s))
 #define LOG_SOAP_DEBUG(_msg, ...) \
 	ec_log(EC_LOGLEVEL_DEBUG | EC_LOGLEVEL_SOAP, "soap: " _msg, ##__VA_ARGS__)
 
+using namespace std::string_literals;
 using namespace KC;
 
 class ECFifoSerializer final : public ECSerializer {
@@ -1048,7 +1047,7 @@ SOAP_ENTRY_START(getPublicStore, lpsResponse->er, unsigned int ulFlags, struct g
 			auto er = GetBestServerPath(soap, lpecSession, strStoreServer, &strServerPath);
 			if (er != erSuccess)
 				return er;
-			lpsResponse->lpszServerPath = STROUT_FIX_CPY(strServerPath.c_str());
+			lpsResponse->lpszServerPath = s_strcpy(soap, strServerPath.c_str());
 			ec_log_info("Redirecting request to \"%s\"", lpsResponse->lpszServerPath);
 			g_lpSessionManager->m_stats->inc(SCN_REDIRECT_COUNT);
 			return KCERR_UNABLE_TO_COMPLETE;
@@ -1082,7 +1081,7 @@ SOAP_ENTRY_START(getPublicStore, lpsResponse->er, unsigned int ulFlags, struct g
 	if(er != erSuccess)
 		return er;
 	if ((ulFlags & EC_OVERRIDE_HOMESERVER) == 0)
-		lpsResponse->lpszServerPath = STROUT_FIX_CPY(std::string("pseudo://" + strStoreServer).c_str());
+		lpsResponse->lpszServerPath = s_strcpy(soap, ("pseudo://"s + strStoreServer).c_str());
 	er = gcache->GetEntryIdFromObject(atoui(lpDBRow[2]), soap, ulFlags, &lpsResponse->sStoreId);
 	if(er != erSuccess)
 		return er;
@@ -1127,7 +1126,7 @@ SOAP_ENTRY_START(getStore, lpsResponse->er, entryId* lpsEntryId, struct getStore
                 er = GetBestServerPath(soap, lpecSession, strServerName, &strServerPath);
                 if (er != erSuccess)
 					return er;
-                lpsResponse->lpszServerPath = STROUT_FIX_CPY(strServerPath.c_str());
+				lpsResponse->lpszServerPath = s_strcpy(soap, (strServerPath.c_str()));
                 ec_log_info("Redirecting request to \"%s\"", lpsResponse->lpszServerPath);
 				g_lpSessionManager->m_stats->inc(SCN_REDIRECT_COUNT);
 				return KCERR_UNABLE_TO_COMPLETE;
@@ -1140,7 +1139,7 @@ SOAP_ENTRY_START(getStore, lpsResponse->er, entryId* lpsEntryId, struct getStore
     if (strServerName.empty())
         strServerName = g_lpSessionManager->GetConfig()->GetSetting("server_name" ,"", "Unknown");
     // Always return a pseudo URL
-    lpsResponse->lpszServerPath = STROUT_FIX_CPY(std::string("pseudo://" + strServerName).c_str());
+	lpsResponse->lpszServerPath = s_strcpy(soap, ("pseudo://"s + strServerName).c_str());
 
 	strQuery = "SELECT hierarchy.id, stores.guid, stores.hierarchy_id, stores.type "
 	           "FROM stores join hierarchy on stores.hierarchy_id=hierarchy.parent ";
@@ -4024,7 +4023,7 @@ SOAP_ENTRY_START(getReceiveFolder, lpsReceiveFolder->er,
 	er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(atoui(lpDBRow[0]), soap, 0, &lpsReceiveFolder->sReceiveFolder.sEntryId);
 	if (er != erSuccess)
 		return er;
-	lpsReceiveFolder->sReceiveFolder.lpszAExplicitClass = STROUT_FIX_CPY(lpDBRow[1]);
+	lpsReceiveFolder->sReceiveFolder.lpszAExplicitClass = s_strcpy(soap, lpDBRow[1]);
 	return erSuccess;
 }
 SOAP_ENTRY_END()
@@ -5956,7 +5955,7 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, const char *szUserName,
 					er = GetBestServerPath(soap, lpecSession, strServerName, &strServerPath);
 					if (er != erSuccess)
 						return er;
-					lpsResponse->lpszServerPath = STROUT_FIX_CPY(strServerPath.c_str());
+					lpsResponse->lpszServerPath = s_strcpy(soap, strServerPath.c_str());
 					ec_log_info("Redirecting request to \"%s\'", lpsResponse->lpszServerPath);
 					g_lpSessionManager->m_stats->inc(SCN_REDIRECT_COUNT);
 					return KCERR_UNABLE_TO_COMPLETE;
@@ -5994,7 +5993,7 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, const char *szUserName,
     /* We found the store, so we don't need to check if this is the correct server. */
 	std::string strServerName = cfg->GetSetting("server_name", "", "Unknown");
     // Always return the pseudo URL.
-    lpsResponse->lpszServerPath = STROUT_FIX_CPY(std::string("pseudo://" + strServerName).c_str());
+	lpsResponse->lpszServerPath = s_strcpy(soap, ("pseudo://"s + strServerName).c_str());
     er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(atoui(lpDBRow[0]), soap, ulFlags & OPENSTORE_OVERRIDE_HOME_MDB, &lpsResponse->sStoreId);
 	if(er != erSuccess)
 		return er;
@@ -7383,7 +7382,7 @@ SOAP_ENTRY_START(getReceiveFolderTable, lpsReceiveFolderTable->er,
 			er = erSuccess;
 			continue;
 		}
-		lpsReceiveFolderTable->sFolderArray.__ptr[i].lpszAExplicitClass = STROUT_FIX_CPY(lpDBRow[1]);
+		lpsReceiveFolderTable->sFolderArray.__ptr[i].lpszAExplicitClass = s_strcpy(soap, lpDBRow[1]);
 		++i;
 	}
 
@@ -8444,7 +8443,7 @@ SOAP_ENTRY_START(resolvePseudoUrl, lpsResponse->er, const char *lpszPseudoUrl,
 	er = GetBestServerPath(soap, lpecSession, lpszPseudoUrl + 9, &strServerPath);
 	if (er != erSuccess)
 		return er;
-	lpsResponse->lpszServerPath = STROUT_FIX_CPY(strServerPath.c_str());
+	lpsResponse->lpszServerPath = s_strcpy(soap, strServerPath.c_str());
 	lpsResponse->bIsPeer = strcasecmp(g_lpSessionManager->GetConfig()->GetSetting("server_name"), lpszPseudoUrl + 9) == 0;
 	return erSuccess;
 }
@@ -8493,16 +8492,16 @@ SOAP_ENTRY_START(getServerDetails, lpsResponse->er,
 		if (!strPublicServer.empty() && strcasecmp(sDetails.GetServerName().c_str(), strPublicServer.c_str()) == 0)
 			lpsResponse->sServerList.__ptr[i].ulFlags |= EC_SDFLAG_HAS_PUBLIC;
 		if (!(ulFlags & EC_SERVERDETAIL_NO_NAME) && !sDetails.GetServerName().empty())
-			lpsResponse->sServerList.__ptr[i].lpszName = STROUT_FIX_CPY(sDetails.GetServerName().c_str());
+			lpsResponse->sServerList.__ptr[i].lpszName = s_strcpy(soap, sDetails.GetServerName().c_str());
 		if (ulFlags & EC_SERVERDETAIL_FILEPATH && !sDetails.GetFilePath().empty())
-			lpsResponse->sServerList.__ptr[i].lpszFilePath = STROUT_FIX_CPY(sDetails.GetFilePath().c_str());
+			lpsResponse->sServerList.__ptr[i].lpszFilePath = s_strcpy(soap, sDetails.GetFilePath().c_str());
 		if (ulFlags & EC_SERVERDETAIL_HTTPPATH && sDetails.GetHttpPort() != 0)
-			lpsResponse->sServerList.__ptr[i].lpszHttpPath = STROUT_FIX_CPY(sDetails.GetHttpPath().c_str());
+			lpsResponse->sServerList.__ptr[i].lpszHttpPath = s_strcpy(soap, sDetails.GetHttpPath().c_str());
 		if (ulFlags & EC_SERVERDETAIL_SSLPATH && sDetails.GetSslPort() != 0)
-			lpsResponse->sServerList.__ptr[i].lpszSslPath = STROUT_FIX_CPY(sDetails.GetSslPath().c_str());
+			lpsResponse->sServerList.__ptr[i].lpszSslPath = s_strcpy(soap, sDetails.GetSslPath().c_str());
 		if (ulFlags & EC_SERVERDETAIL_PREFEREDPATH &&
 		    GetBestServerPath(soap, lpecSession, sDetails.GetServerName(), &strServerPath) == erSuccess)
-			lpsResponse->sServerList.__ptr[i].lpszPreferedPath = STROUT_FIX_CPY(strServerPath.c_str());
+			lpsResponse->sServerList.__ptr[i].lpszPreferedPath = s_strcpy(soap, strServerPath.c_str());
 	}
 	return erSuccess;
 }
