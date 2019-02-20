@@ -73,7 +73,6 @@
 #	include <google/malloc_extension_c.h>
 #	define HAVE_TCMALLOC 1
 #endif
-#define STRIN_FIX(s) (s)
 #define STROUT_FIX(s) (s)
 #define STROUT_FIX_CPY(s) s_strcpy(soap, (s))
 #define LOG_SOAP_DEBUG(_msg, ...) \
@@ -3062,9 +3061,6 @@ SOAP_ENTRY_START(createFolder, lpsResponse->er, const entryId &sParentId,
 
 	if (szName == nullptr)
 		return KCERR_INVALID_PARAMETER;
-	// Fixup the input strings
-	szName = STRIN_FIX(szName);
-	szComment = STRIN_FIX(szComment);
 	auto dtx = lpDatabase->Begin(er);
 	if (er != erSuccess)
 		return er;
@@ -3986,14 +3982,12 @@ SOAP_ENTRY_START(getNamesFromIDs, lpsResponse->er, struct propTagArray *lpPropTa
 SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(getReceiveFolder, lpsReceiveFolder->er,
-    const entryId &sStoreId, const char *msg_class,
+    const entryId &sStoreId, const char *lpszMessageClass,
     struct receiveFolderResponse *lpsReceiveFolder)
 {
-	const char *lpszMessageClass = msg_class;
 	unsigned int	ulStoreid = 0;
 	USE_DATABASE();
 
-	lpszMessageClass = STRIN_FIX(lpszMessageClass);
 	er = lpecSession->GetObjectFromEntryId(&sStoreId, &ulStoreid);
 	if(er != erSuccess)
 		return er;
@@ -4037,13 +4031,11 @@ SOAP_ENTRY_END()
 
 // FIXME: should be able to delete an entry too
 SOAP_ENTRY_START(setReceiveFolder, *result, const entryId &sStoreId,
-    entryId *lpsEntryId, const char *msg_class, unsigned int *result)
+    entryId *lpsEntryId, const char *lpszMessageClass, unsigned int *result)
 {
-	const char *lpszMessageClass = msg_class;
 	unsigned int ulCheckStoreId = 0, ulStoreid = 0, ulId = 0;
 	USE_DATABASE();
 
-	lpszMessageClass = STRIN_FIX(lpszMessageClass);
 	auto dtx = lpDatabase->Begin(er);
 	if (er != erSuccess)
 		return er;
@@ -5039,7 +5031,7 @@ SOAP_ENTRY_START(resolveUsername, lpsResponse->er, const char *lpszUsername,
 
 	if (lpszUsername == nullptr)
 		return KCERR_INVALID_PARAMETER;
-	er = lpecSession->GetUserManagement()->ResolveObjectAndSync(OBJECTCLASS_USER, STRIN_FIX(lpszUsername), &ulUserId);
+	er = lpecSession->GetUserManagement()->ResolveObjectAndSync(OBJECTCLASS_USER, lpszUsername, &ulUserId);
 	if (er != erSuccess)
 		return er;
 	/* Check if we are able to view the returned userobject */
@@ -5061,7 +5053,7 @@ SOAP_ENTRY_START(resolveGroupname, lpsResponse->er, const char *lpszGroupname,
 
 	if (lpszGroupname == nullptr)
 		return KCERR_INVALID_PARAMETER;
-	er = lpecSession->GetUserManagement()->ResolveObjectAndSync(OBJECTCLASS_DISTLIST, STRIN_FIX(lpszGroupname), &ulGroupId);
+	er = lpecSession->GetUserManagement()->ResolveObjectAndSync(OBJECTCLASS_DISTLIST, lpszGroupname, &ulGroupId);
 	if (er != erSuccess)
 		return er;
 	/* Check if we are able to view the returned userobject */
@@ -5329,7 +5321,7 @@ SOAP_ENTRY_START(resolveCompanyname, lpsResponse->er,
 		return KCERR_NO_SUPPORT;
 	if (lpszCompanyname == nullptr)
 		return KCERR_INVALID_PARAMETER;
-	er = lpecSession->GetUserManagement()->ResolveObjectAndSync(CONTAINER_COMPANY, STRIN_FIX(lpszCompanyname), &ulCompanyId);
+	er = lpecSession->GetUserManagement()->ResolveObjectAndSync(CONTAINER_COMPANY, lpszCompanyname, &ulCompanyId);
 	if(er != erSuccess)
 		return er;
 
@@ -5922,7 +5914,6 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, const char *szUserName,
 
 	if (szUserName == nullptr)
 		return KCERR_INVALID_PARAMETER;
-	szUserName = STRIN_FIX(szUserName);
 	if (ulStoreTypeMask == 0)
 		ulStoreTypeMask = ECSTORE_TYPE_MASK_PRIVATE | ECSTORE_TYPE_MASK_PUBLIC;
 
@@ -7071,8 +7062,6 @@ SOAP_ENTRY_START(copyFolder, *result, const entryId &sEntryId,
 	const EntryId srcEntryId(&sEntryId), dstEntryId(&sDestFolderId);
 
 	// NOTE: lpszNewFolderName can be NULL
-	if (lpszNewFolderName)
-		lpszNewFolderName = STRIN_FIX(lpszNewFolderName);
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulFolderId);
 	if (er != erSuccess) {
 		const std::string srcEntryIdStr = srcEntryId;
@@ -8450,7 +8439,6 @@ SOAP_ENTRY_START(resolvePseudoUrl, lpsResponse->er, const char *lpszPseudoUrl,
 		return erSuccess;
 	}
 
-	lpszPseudoUrl = STRIN_FIX(lpszPseudoUrl);
 	if (strncmp(lpszPseudoUrl, "pseudo://", 9))
 		return KCERR_INVALID_PARAMETER;
 	er = GetBestServerPath(soap, lpecSession, lpszPseudoUrl + 9, &strServerPath);
@@ -8496,7 +8484,7 @@ SOAP_ENTRY_START(getServerDetails, lpsResponse->er,
 	lpsResponse->sServerList.__ptr = s_alloc<struct server>(soap, szaSvrNameList.__size);
 	memset(lpsResponse->sServerList.__ptr, 0, szaSvrNameList.__size * sizeof *lpsResponse->sServerList.__ptr);
 	for (gsoap_size_t i = 0; i < szaSvrNameList.__size; ++i) {
-		er = usrmgt->GetServerDetails(STRIN_FIX(szaSvrNameList.__ptr[i]), &sDetails);
+		er = usrmgt->GetServerDetails(szaSvrNameList.__ptr[i], &sDetails);
 		if (er != erSuccess)
 			return er;
 		if (strcasecmp(sDetails.GetServerName().c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) == 0)
