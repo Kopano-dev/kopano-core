@@ -73,9 +73,9 @@
 #	include <google/malloc_extension_c.h>
 #	define HAVE_TCMALLOC 1
 #endif
-#define STRIN_FIX(s) (bSupportUnicode ? (s) : ECStringCompat::WTF1252_to_UTF8(soap, (s)))
-#define STROUT_FIX(s) (bSupportUnicode ? (s) : ECStringCompat::UTF8_to_WTF1252(soap, (s)))
-#define STROUT_FIX_CPY(s) (bSupportUnicode ? s_strcpy(soap, (s)) : ECStringCompat::UTF8_to_WTF1252(soap, (s)))
+#define STRIN_FIX(s) (s)
+#define STROUT_FIX(s) (s)
+#define STROUT_FIX_CPY(s) s_strcpy(soap, (s))
 #define LOG_SOAP_DEBUG(_msg, ...) \
 	ec_log(EC_LOGLEVEL_DEBUG | EC_LOGLEVEL_SOAP, "soap: " _msg, ##__VA_ARGS__)
 
@@ -808,8 +808,7 @@ int KCmdService::fname(ULONG64 ulSessionId, ##__VA_ARGS__) \
 			timespec2dbl(endTimes) - timespec2dbl(startTimes), \
 			dur2dbl(decltype(dblStart)::clock::now() - dblStart)); \
 	}); \
-	const bool bSupportUnicode = true; \
-	const ECStringCompat stringCompat(bSupportUnicode); \
+	const ECStringCompat stringCompat(true); \
 	if (er != erSuccess) { \
 		resultvar = er; \
 		return SOAP_OK; \
@@ -1216,12 +1215,7 @@ SOAP_ENTRY_START(getStoreName, lpsResponse->er, const entryId &sEntryId,
 	er = lpecSession->GetSessionManager()->GetCacheManager()->GetStoreAndType(ulObjId, NULL, NULL, &ulStoreType);
 	if (er != erSuccess)
 		return er;
-	er = ECGenProps::GetStoreName(soap, lpecSession, ulObjId, ulStoreType, &lpsResponse->lpszStoreName);
-	if(er != erSuccess)
-		return er;
-	if (!bSupportUnicode)
-		lpsResponse->lpszStoreName = STROUT_FIX(lpsResponse->lpszStoreName);
-	return erSuccess;
+	return ECGenProps::GetStoreName(soap, lpecSession, ulObjId, ulStoreType, &lpsResponse->lpszStoreName);
 }
 SOAP_ENTRY_END()
 
@@ -1472,9 +1466,7 @@ SOAP_ENTRY_START(loadProp, lpsResponse->er, const entryId &sEntryId,
 			return er;
 	}
 
-	if (bSupportUnicode)
-		return erSuccess;
-	return FixPropEncoding(soap, stringCompat, Out, lpsResponse->lpPropVal);
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
@@ -3255,11 +3247,6 @@ SOAP_ENTRY_START(tableSetSearchCriteria, *result, const entryId &sEntryId,
 	if (ulFlags & STOP_SEARCH)
 		return lpecSession->GetSessionManager()->GetSearchFolders()->SetSearchCriteria(ulStoreId, ulParent, nullptr);
 	struct searchCriteria sSearchCriteria;
-	if (!bSupportUnicode) {
-		er = FixRestrictionEncoding(soap, stringCompat, In, lpRestrict);
-		if (er != erSuccess)
-			return er;
-	}
 	sSearchCriteria.lpRestrict = lpRestrict;
 	sSearchCriteria.lpFolders = lpFolders;
 	sSearchCriteria.ulFlags = ulFlags;
@@ -3294,11 +3281,6 @@ SOAP_ENTRY_START(tableGetSearchCriteria, lpsResponse->er,
 	er = CopyRestrictTable(soap, lpSearchCriteria->lpRestrict, &lpsResponse->lpRestrict);
 	if(er != erSuccess)
 		return er;
-	if (!bSupportUnicode) {
-		er = FixRestrictionEncoding(soap, stringCompat, Out, lpsResponse->lpRestrict);
-		if (er != erSuccess)
-			return er;
-	}
 	er = CopyEntryList(soap, lpSearchCriteria->lpFolders, &lpsResponse->lpFolderIDs);
 	if(er != erSuccess)
 		return er;
@@ -3354,11 +3336,6 @@ SOAP_ENTRY_START(tableRestrict, *result, unsigned int ulTableId, struct restrict
 	er = lpecSession->GetTableManager()->GetTable(ulTableId, &~lpTable);
 	if(er != erSuccess)
 		return er;
-	if (!bSupportUnicode) {
-		er = FixRestrictionEncoding(soap, stringCompat, In, lpsRestrict);
-		if (er != erSuccess)
-			return er;
-	}
 	return lpTable->Restrict(lpsRestrict);
 }
 SOAP_ENTRY_END()
@@ -3398,12 +3375,6 @@ SOAP_ENTRY_START(tableQueryRows, lpsResponse->er, unsigned int ulTableId, unsign
 	er = lpTable->QueryRows(soap, ulRowCount, ulFlags, &lpRowSet);
 	if(er != erSuccess)
 		return er;
-	if (!bSupportUnicode) {
-		er = FixRowSetEncoding(soap, stringCompat, Out, lpRowSet);
-		if (er != erSuccess)
-			return er;
-	}
-
 	lpsResponse->sRowSet.__ptr = lpRowSet->__ptr;
 	lpsResponse->sRowSet.__size = lpRowSet->__size;
 	return erSuccess;
@@ -3449,11 +3420,6 @@ SOAP_ENTRY_START(tableFindRow, *result, unsigned int ulTableId ,unsigned int ulB
 	er = lpecSession->GetTableManager()->GetTable(ulTableId, &~lpTable);
 	if(er != erSuccess)
 		return er;
-	if (!bSupportUnicode) {
-		er = FixRestrictionEncoding(soap, stringCompat, In, lpsRestrict);
-		if (er != erSuccess)
-			return er;
-	}
 	return lpTable->FindRow(lpsRestrict, ulBookmark, ulFlags);
 }
 SOAP_ENTRY_END()
@@ -3505,12 +3471,6 @@ SOAP_ENTRY_START(tableExpandRow, lpsResponse->er, unsigned int ulTableId,
 	er = lpTable->ExpandRow(soap, sInstanceKey, ulRowCount, ulFlags, &lpRowSet, &ulMoreRows);
 	if(er != erSuccess)
 		return er;
-	if (!bSupportUnicode) {
-		er = FixRowSetEncoding(soap, stringCompat, Out, lpRowSet);
-		if (er != erSuccess)
-			return er;
-	}
-
     lpsResponse->ulMoreRows = ulMoreRows;
     lpsResponse->rowSet = *lpRowSet;
 	return erSuccess;
@@ -3592,11 +3552,6 @@ SOAP_ENTRY_START(tableMulti, lpsResponse->er,
     }
 
     if(sRequest.lpRestrict || (sRequest.ulFlags&TABLE_MULTI_CLEAR_RESTRICTION)) {
-		if (!bSupportUnicode && sRequest.lpRestrict) {
-			er = FixRestrictionEncoding(soap, stringCompat, In, sRequest.lpRestrict);
-			if (er != erSuccess)
-				return er;
-		}
         er = lpTable->Restrict(sRequest.lpRestrict);
         if(er != erSuccess)
 			return er;
@@ -3607,11 +3562,6 @@ SOAP_ENTRY_START(tableMulti, lpsResponse->er,
 	er = lpTable->QueryRows(soap, sRequest.lpQueryRows->ulCount, sRequest.lpQueryRows->ulFlags, &lpRowSet);
 	if (er != erSuccess)
 		return er;
-	if (!bSupportUnicode) {
-		er = FixRowSetEncoding(soap, stringCompat, Out, lpRowSet);
-		if (er != erSuccess)
-			return er;
-	}
 	lpsResponse->sRowSet.__ptr = lpRowSet->__ptr;
 	lpsResponse->sRowSet.__size = lpRowSet->__size;
 	return erSuccess;
@@ -4432,12 +4382,6 @@ SOAP_ENTRY_START(createUser, lpsUserSetResponse->er, struct user *lpsUser, struc
 	if (lpsUser == NULL || lpsUser->lpszUsername == NULL || lpsUser->lpszFullName == NULL || lpsUser->lpszMailAddress == NULL ||
 		(lpsUser->lpszPassword == nullptr && lpsUser->ulObjClass == OBJECTTYPE_UNKNOWN))
 		return KCERR_INVALID_PARAMETER;
-	if (!bSupportUnicode) {
-		er = FixUserEncoding(soap, stringCompat, In, lpsUser);
-		if (er != erSuccess)
-			return er;
-	}
-
 	er = CopyUserDetailsFromSoap(lpsUser, NULL, &details, soap);
 	if (er != erSuccess)
 		return er;
@@ -4470,11 +4414,6 @@ SOAP_ENTRY_START(setUser, *result, struct user *lpsUser, unsigned int *result)
 
 	if (lpsUser == nullptr)
 		return KCERR_INVALID_PARAMETER;
-	if (!bSupportUnicode) {
-		er = FixUserEncoding(soap, stringCompat, In, lpsUser);
-		if (er != erSuccess)
-			return er;
-	}
 	if (lpsUser->sUserId.__size > 0 && lpsUser->sUserId.__ptr != NULL)
 	{
 		er = GetLocalId(lpsUser->sUserId, lpsUser->ulUserId, &ulUserId, &sExternId);
@@ -4580,11 +4519,7 @@ SOAP_ENTRY_START(getUser, lpsGetUserResponse->er, unsigned int ulUserId,
 	er = GetABEntryID(ulUserId, soap, &sTmpUserId);
 	if (er == erSuccess)
 		er = CopyUserDetailsToSoap(ulUserId, &sTmpUserId, details, lpecSession->GetCapabilities() & KOPANO_CAP_EXTENDED_ANON, soap, lpsGetUserResponse->lpsUser);
-	if (er != erSuccess)
-		return er;
-	if (bSupportUnicode)
-		return erSuccess;
-	return FixUserEncoding(soap, stringCompat, Out, lpsGetUserResponse->lpsUser);
+	return er;
 }
 SOAP_ENTRY_END()
 
@@ -4627,12 +4562,6 @@ SOAP_ENTRY_START(getUserList, lpsUserList->er, unsigned int ulCompanyId,
 		     soap, &lpsUserList->sUserArray.__ptr[lpsUserList->sUserArray.__size]);
 		if (er != erSuccess)
 			return er;
-
-		if (!bSupportUnicode) {
-			er = FixUserEncoding(soap, stringCompat, Out, lpsUserList->sUserArray.__ptr + lpsUserList->sUserArray.__size);
-			if (er != erSuccess)
-				return er;
-		}
 		++lpsUserList->sUserArray.__size;
 	}
 	return erSuccess;
@@ -4677,12 +4606,6 @@ SOAP_ENTRY_START(getSendAsList, lpsUserList->er, unsigned int ulUserId,
 		     soap, &lpsUserList->sUserArray.__ptr[lpsUserList->sUserArray.__size]);
 		if (er != erSuccess)
 			return er;
-
-		if (!bSupportUnicode) {
-			er = FixUserEncoding(soap, stringCompat, Out, lpsUserList->sUserArray.__ptr + lpsUserList->sUserArray.__size);
-			if (er != erSuccess)
-				return er;
-		}
 		++lpsUserList->sUserArray.__size;
 	}
 	return erSuccess;
@@ -4970,11 +4893,6 @@ SOAP_ENTRY_START(createGroup, lpsSetGroupResponse->er, struct group *lpsGroup, s
 	if (lpsGroup == nullptr || lpsGroup->lpszGroupname == nullptr ||
 	    lpsGroup->lpszFullname == nullptr)
 		return KCERR_INVALID_PARAMETER;
-	if (!bSupportUnicode) {
-		er = FixGroupEncoding(soap, stringCompat, In, lpsGroup);
-		if (er != erSuccess)
-			return er;
-	}
 	er = CopyGroupDetailsFromSoap(lpsGroup, NULL, &details, soap);
 	if (er != erSuccess)
 		return er;
@@ -5005,12 +4923,6 @@ SOAP_ENTRY_START(setGroup, *result, struct group *lpsGroup, unsigned int *result
 
 	if (lpsGroup == nullptr)
 		return KCERR_INVALID_PARAMETER;
-	if (!bSupportUnicode) {
-		er = FixGroupEncoding(soap, stringCompat, In, lpsGroup);
-		if (er != erSuccess)
-			return er;
-	}
-
 	if (lpsGroup->sGroupId.__size > 0 && lpsGroup->sGroupId.__ptr != NULL)
 	{
 		er = GetLocalId(lpsGroup->sGroupId, lpsGroup->ulGroupId, &ulGroupId, &sExternId);
@@ -5059,11 +4971,7 @@ SOAP_ENTRY_START(getGroup, lpsResponse->er, unsigned int ulGroupId,
 	er = GetABEntryID(ulGroupId, soap, &sTmpGroupId);
 	if (er == erSuccess)
 		er = CopyGroupDetailsToSoap(ulGroupId, &sTmpGroupId, details, lpecSession->GetCapabilities() & KOPANO_CAP_EXTENDED_ANON, soap, lpsResponse->lpsGroup);
-	if (er != erSuccess)
-		return er;
-	if (bSupportUnicode)
-		return erSuccess;
-	return FixGroupEncoding(soap, stringCompat, Out, lpsResponse->lpsGroup);
+	return er;
 }
 SOAP_ENTRY_END()
 
@@ -5104,11 +5012,6 @@ SOAP_ENTRY_START(getGroupList, lpsGroupList->er, unsigned int ulCompanyId,
 		     soap, &lpsGroupList->sGroupArray.__ptr[lpsGroupList->sGroupArray.__size]);
 		if (er != erSuccess)
 			return er;
-		if (!bSupportUnicode) {
-			er = FixGroupEncoding(soap, stringCompat, Out, lpsGroupList->sGroupArray.__ptr + lpsGroupList->sGroupArray.__size);
-			if (er != erSuccess)
-				return er;
-		}
 		++lpsGroupList->sGroupArray.__size;
 	}
 	return erSuccess;
@@ -5244,11 +5147,6 @@ SOAP_ENTRY_START(getUserListOfGroup, lpsUserList->er, unsigned int ulGroupId,
 		     soap, &lpsUserList->sUserArray.__ptr[lpsUserList->sUserArray.__size]);
 		if (er != erSuccess)
 			return er;
-		if (!bSupportUnicode) {
-			er = FixUserEncoding(soap, stringCompat, Out, lpsUserList->sUserArray.__ptr + lpsUserList->sUserArray.__size);
-			if (er != erSuccess)
-				return er;
-		}
 		++lpsUserList->sUserArray.__size;
 	}
 	return erSuccess;
@@ -5285,11 +5183,6 @@ SOAP_ENTRY_START(getGroupListOfUser, lpsGroupList->er, unsigned int ulUserId,
 		     soap, &lpsGroupList->sGroupArray.__ptr[lpsGroupList->sGroupArray.__size]);
 		if (er != erSuccess)
 			return er;
-		if (!bSupportUnicode) {
-			er = FixGroupEncoding(soap, stringCompat, Out, lpsGroupList->sGroupArray.__ptr + lpsGroupList->sGroupArray.__size);
-			if (er != erSuccess)
-				return er;
-		}
 		++lpsGroupList->sGroupArray.__size;
 	}
 	return erSuccess;
@@ -5310,12 +5203,6 @@ SOAP_ENTRY_START(createCompany, lpsResponse->er, struct company *lpsCompany, str
 	er = lpecSession->GetSecurity()->IsAdminOverUserObject(KOPANO_UID_SYSTEM);
 	if(er != erSuccess)
 		return er;
-	if (!bSupportUnicode) {
-		er = FixCompanyEncoding(soap, stringCompat, In, lpsCompany);
-		if (er != erSuccess)
-			return er;
-	}
-
 	er = CopyCompanyDetailsFromSoap(lpsCompany, NULL, KOPANO_UID_SYSTEM, &details, soap);
 	if (er != erSuccess)
 		return er;
@@ -5359,12 +5246,6 @@ SOAP_ENTRY_START(setCompany, *result, struct company *lpsCompany, unsigned int *
 		return KCERR_INVALID_PARAMETER;
 	if (!g_lpSessionManager->IsHostedSupported())
 		return KCERR_NO_SUPPORT;
-	if (!bSupportUnicode) {
-		er = FixCompanyEncoding(soap, stringCompat, In, lpsCompany);
-		if (er != erSuccess)
-			return er;
-	}
-
 	if (lpsCompany->sCompanyId.__size > 0 && lpsCompany->sCompanyId.__ptr != NULL)
 	{
 		er = GetLocalId(lpsCompany->sCompanyId, lpsCompany->ulCompanyId, &ulCompanyId, &sExternId);
@@ -5435,12 +5316,7 @@ SOAP_ENTRY_START(getCompany, lpsResponse->er, unsigned int ulCompanyId,
 
 	lpsResponse->lpsCompany = s_alloc<company>(soap);
 	memset(lpsResponse->lpsCompany, 0, sizeof(company));
-	er = CopyCompanyDetailsToSoap(ulCompanyId, &sTmpCompanyId, ulAdmin, &sAdminEid, details, lpecSession->GetCapabilities() & KOPANO_CAP_EXTENDED_ANON, soap, lpsResponse->lpsCompany);
-	if (er != erSuccess)
-		return er;
-	if (bSupportUnicode)
-		return erSuccess;
-	return FixCompanyEncoding(soap, stringCompat, Out, lpsResponse->lpsCompany);
+	return CopyCompanyDetailsToSoap(ulCompanyId, &sTmpCompanyId, ulAdmin, &sAdminEid, details, lpecSession->GetCapabilities() & KOPANO_CAP_EXTENDED_ANON, soap, lpsResponse->lpsCompany);
 }
 SOAP_ENTRY_END()
 
@@ -5500,11 +5376,6 @@ SOAP_ENTRY_START(getCompanyList, lpsCompanyList->er, struct companyListResponse 
 		     soap, &lpsCompanyList->sCompanyArray.__ptr[lpsCompanyList->sCompanyArray.__size]);
 		if (er != erSuccess)
 			return er;
-		if (!bSupportUnicode) {
-			er = FixCompanyEncoding(soap, stringCompat, Out, lpsCompanyList->sCompanyArray.__ptr + lpsCompanyList->sCompanyArray.__size);
-			if (er != erSuccess)
-				return er;
-		}
 		++lpsCompanyList->sCompanyArray.__size;
 	}
 	return erSuccess;
@@ -5599,11 +5470,6 @@ SOAP_ENTRY_START(getRemoteViewList, lpsCompanyList->er,
 		     soap, &lpsCompanyList->sCompanyArray.__ptr[lpsCompanyList->sCompanyArray.__size]);
 		if (er != erSuccess)
 			return er;
-		if (!bSupportUnicode) {
-			er = FixCompanyEncoding(soap, stringCompat, Out, lpsCompanyList->sCompanyArray.__ptr + lpsCompanyList->sCompanyArray.__size);
-			if (er != erSuccess)
-				return er;
-		}
 		++lpsCompanyList->sCompanyArray.__size;
 	}
 	return erSuccess;
@@ -5690,12 +5556,6 @@ SOAP_ENTRY_START(getRemoteAdminList, lpsUserList->er, unsigned int ulCompanyId,
 		     soap, &lpsUserList->sUserArray.__ptr[lpsUserList->sUserArray.__size]);
 		if (er != erSuccess)
 			return er;
-
-		if (!bSupportUnicode) {
-			er = FixUserEncoding(soap, stringCompat, Out, lpsUserList->sUserArray.__ptr + lpsUserList->sUserArray.__size);
-			if (er != erSuccess)
-				return er;
-		}
 		++lpsUserList->sUserArray.__size;
 		if (sUserEid.__ptr)
 		{
@@ -7491,9 +7351,6 @@ SOAP_ENTRY_START(notify, *result, const struct notification &sNotification,
         sNotification.newmail->pParentId == nullptr ||
         sNotification.newmail->pEntryId == nullptr)
 		return KCERR_INVALID_PARAMETER;
-	if (!bSupportUnicode && sNotification.newmail->lpszMessageClass != NULL)
-		sNotification.newmail->lpszMessageClass = STRIN_FIX(sNotification.newmail->lpszMessageClass);
-
 	er = lpecSession->GetObjectFromEntryId(sNotification.newmail->pParentId, &ulKey);
 	if(er != erSuccess)
 		return er;
@@ -7972,16 +7829,9 @@ SOAP_ENTRY_START(readABProps, readPropsResponse->er, const entryId &sEntryId,
 	/* Copy properties which have been correctly read to tag array */
 	readPropsResponse->aPropTag.__size = 0;
 	readPropsResponse->aPropTag.__ptr = s_alloc<unsigned int>(soap, ptaProps.__size);
-
-	for (gsoap_size_t j = 0; j < readPropsResponse->aPropVal.__size; ++j) {
-		if (!bSupportUnicode) {
-			er = FixPropEncoding(soap, stringCompat, Out, readPropsResponse->aPropVal.__ptr + j);
-			if (er != erSuccess)
-				return er;
-		}
+	for (gsoap_size_t j = 0; j < readPropsResponse->aPropVal.__size; ++j)
 		if (PROP_TYPE(readPropsResponse->aPropVal.__ptr[j].ulPropTag) != PT_ERROR)
 			readPropsResponse->aPropTag.__ptr[readPropsResponse->aPropTag.__size++] = readPropsResponse->aPropVal.__ptr[j].ulPropTag;
-	}
 	return erSuccess;
 }
 SOAP_ENTRY_END()
@@ -8006,12 +7856,6 @@ SOAP_ENTRY_START(abResolveNames, lpsABResolveNames->er, struct propTagArray* lpa
 	lpsABResolveNames->sRowSet.__size = lpsRowSet->__size;
 	lpsABResolveNames->sRowSet.__ptr = s_alloc<propValArray>(soap, lpsRowSet->__size);
 	memset(lpsABResolveNames->sRowSet.__ptr, 0, sizeof(struct propValArray) * lpsRowSet->__size);
-
-	if (!bSupportUnicode) {
-		er = FixRowSetEncoding(soap, stringCompat, In, lpsRowSet);
-		if (er != erSuccess)
-			return er;
-	}
 
 	auto usrmgt = lpecSession->GetUserManagement();
 	for (gsoap_size_t i = 0; i < lpsRowSet->__size; ++i) {
@@ -8048,9 +7892,7 @@ SOAP_ENTRY_START(abResolveNames, lpsABResolveNames->er, struct propTagArray* lpa
 		}
 	}
 
-	if (bSupportUnicode)
-		return erSuccess;
-	return FixRowSetEncoding(soap, stringCompat, Out, &lpsABResolveNames->sRowSet);
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
@@ -8256,12 +8098,6 @@ SOAP_ENTRY_START(GetQuotaRecipients, lpsUserList->er, unsigned int ulUserid,
 		     soap, &lpsUserList->sUserArray.__ptr[lpsUserList->sUserArray.__size]);
 		if (er != erSuccess)
 			return er;
-
-		if (!bSupportUnicode) {
-			er = FixUserEncoding(soap, stringCompat, Out, lpsUserList->sUserArray.__ptr + lpsUserList->sUserArray.__size);
-			if (er != erSuccess)
-				return er;
-		}
 		++lpsUserList->sUserArray.__size;
 		if (sUserEid.__ptr)
 		{
