@@ -153,7 +153,9 @@ HRESULT ECAttach::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceO
 	return hr;
 }
 
-HRESULT	ECAttach::GetPropHandler(ULONG ulPropTag, void *lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase)
+HRESULT ECAttach::GetPropHandler(unsigned int ulPropTag, void *lpProvider,
+    unsigned int ulFlags, SPropValue *lpsPropValue, ECGenericProp *lpParam,
+    void *lpBase)
 {
 	HRESULT hr = hrSuccess;
 	auto lpAttach = static_cast<ECAttach *>(lpParam);
@@ -194,8 +196,8 @@ HRESULT	ECAttach::GetPropHandler(ULONG ulPropTag, void *lpProvider, ULONG ulFlag
 	return hr;
 }
 
-HRESULT	ECAttach::SetPropHandler(ULONG ulPropTag, void *lpProvider,
-    const SPropValue *lpsPropValue, void *lpParam)
+HRESULT ECAttach::SetPropHandler(unsigned int ulPropTag, void *lpProvider,
+    const SPropValue *lpsPropValue, ECGenericProp *lpParam)
 {
 	auto lpAttach = static_cast<ECAttach *>(lpParam);
 	switch (ulPropTag) {

@@ -102,10 +102,12 @@ HRESULT ECABContainer::CopyProps(const SPropTagArray *lpIncludeProps,
 	return Util::DoCopyProps(&IID_IABContainer, static_cast<IABContainer *>(this), lpIncludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
 }
 
-HRESULT	ECABContainer::DefaultABContainerGetProp(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase)
+HRESULT ECABContainer::DefaultABContainerGetProp(unsigned int ulPropTag,
+    void *lpProvider, unsigned int ulFlags, SPropValue *lpsPropValue,
+    ECGenericProp *lpParam, void *lpBase)
 {
 	HRESULT		hr = hrSuccess;
-	auto lpProp = static_cast<ECABProp *>(lpParam);
+	auto lpProp = static_cast<ECABContainer *>(lpParam);
 	memory_ptr<SPropValue> lpSectionUid;
 	object_ptr<IProfSect> lpProfSect;
 
@@ -648,7 +650,9 @@ HRESULT ECABProp::QueryInterface(REFIID refiid, void **lppInterface)
 	return ECGenericProp::QueryInterface(refiid, lppInterface);
 }
 
-HRESULT	ECABProp::DefaultABGetProp(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase)
+HRESULT ECABProp::DefaultABGetProp(unsigned int ulPropTag, void *lpProvider,
+    unsigned int ulFlags, SPropValue *lpsPropValue, ECGenericProp *lpParam,
+    void *lpBase)
 {
 	HRESULT		hr = hrSuccess;
 	auto lpProp = static_cast<ECABProp *>(lpParam);

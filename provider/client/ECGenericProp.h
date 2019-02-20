@@ -17,14 +17,15 @@
 #include <set>
 
 // These are the callback functions called when a software-handled property is requested
-typedef HRESULT (*SetPropCallBack)(ULONG ulPropTag, void *lpProvider, const SPropValue *lpsPropValue, void *lpParam);
-typedef HRESULT (* GetPropCallBack)(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase);
+class ECGenericProp;
+typedef HRESULT (*SetPropCallBack)(unsigned int tag, void *prov, const SPropValue *, ECGenericProp *);
+typedef HRESULT (*GetPropCallBack)(unsigned int tag, void *prov, unsigned int flags, SPropValue *, ECGenericProp *, void *base);
 
 struct PROPCALLBACK {
 	ULONG ulPropTag;
 	SetPropCallBack lpfnSetProp;
 	GetPropCallBack lpfnGetProp;
-	void *			lpParam;
+	ECGenericProp *lpParam;
 	BOOL			fRemovable;
 	BOOL			fHidden; // hidden from GetPropList
 
@@ -51,18 +52,18 @@ public:
 
 	HRESULT SetProvider(void* lpProvider);
 	HRESULT SetEntryId(ULONG eid_size, const ENTRYID *eid);
-	static HRESULT DefaultGetPropGetReal(ULONG ulPropTag, void *lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase);
-	static HRESULT DefaultSetPropComputed(ULONG ulPropTag, void *lpProvider, const SPropValue *lpsPropValue, void *lpParam);
-	static HRESULT DefaultSetPropIgnore(ULONG ulPropTag, void *lpProvider, const SPropValue *lpsPropValue, void *lpParam);
-	static HRESULT DefaultSetPropSetReal(ULONG ulPropTag, void *lpProvider, const SPropValue *lpsPropValue, void *lpParam);
-	static HRESULT		DefaultGetProp(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase);
+	static HRESULT DefaultGetPropGetReal(unsigned int tag, void *prov, unsigned int flags, SPropValue *, ECGenericProp *lpParam, void *base);
+	static HRESULT DefaultSetPropComputed(unsigned int tag, void *prov, const SPropValue *, ECGenericProp *);
+	static HRESULT DefaultSetPropIgnore(unsigned int tag, void *prov, const SPropValue *, ECGenericProp *);
+	static HRESULT DefaultSetPropSetReal(unsigned int tag, void *prov, const SPropValue *, ECGenericProp *);
+	static HRESULT DefaultGetProp(unsigned int tag, void *prov, unsigned int flags, SPropValue *, ECGenericProp *lpParam, void *base);
 
 	// Our table-row getprop handler (handles client-side generation of table columns)
 	static HRESULT TableRowGetProp(void *prov, const struct propVal *src, SPropValue *dst, void **base, ULONG type);
 	virtual HRESULT HrSetPropStorage(IECPropStorage *lpStorage, BOOL fLoadProps);
 	virtual HRESULT HrSetRealProp(const SPropValue *lpsPropValue);
 	virtual HRESULT		HrGetRealProp(ULONG ulPropTag, ULONG ulFlags, void *lpBase, LPSPropValue lpsPropValue, ULONG ulMaxSize = 0);
-	virtual HRESULT		HrAddPropHandlers(ULONG ulPropTag, GetPropCallBack lpfnGetProp, SetPropCallBack lpfnSetProp, void *lpParam, BOOL fRemovable = FALSE, BOOL fHidden = FALSE);
+	virtual HRESULT HrAddPropHandlers(unsigned int tag, GetPropCallBack, SetPropCallBack, ECGenericProp *, BOOL removable = false, BOOL hidden = false);
 	virtual HRESULT 	HrLoadEmptyProps();
 
 	bool IsReadOnly() const;
@@ -71,7 +72,7 @@ protected: ///?
 	virtual HRESULT		HrLoadProps();
 	HRESULT				HrLoadProp(ULONG ulPropTag);
 	virtual HRESULT		HrDeleteRealProp(ULONG ulPropTag, BOOL fOverwriteRO);
-	HRESULT				HrGetHandler(ULONG ulPropTag, SetPropCallBack *lpfnSetProp, GetPropCallBack *lpfnGetProp, void **lpParam);
+	HRESULT HrGetHandler(unsigned int tag, SetPropCallBack *, GetPropCallBack *, ECGenericProp **);
 	HRESULT				IsPropDirty(ULONG ulPropTag, BOOL *lpbDirty);
 	HRESULT				HrSetClean();
 	HRESULT				HrSetCleanProperty(ULONG ulPropTag);

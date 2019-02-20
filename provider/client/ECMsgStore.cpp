@@ -897,7 +897,9 @@ HRESULT ECMsgStore::NotifyNewMail(const NOTIFICATION *lpNotification)
 	return lpTransport->HrNotify(lpNotification);
 }
 
-HRESULT	ECMsgStore::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase)
+HRESULT ECMsgStore::GetPropHandler(unsigned int ulPropTag, void *lpProvider,
+    unsigned int ulFlags, SPropValue *lpsPropValue, ECGenericProp *lpParam,
+    void *lpBase)
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<IProfSect> lpProfSect;
@@ -1045,8 +1047,8 @@ HRESULT	ECMsgStore::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFl
 	return hr;
 }
 
-HRESULT	ECMsgStore::SetPropHandler(ULONG ulPropTag, void *lpProvider,
-    const SPropValue *lpsPropValue, void *lpParam)
+HRESULT ECMsgStore::SetPropHandler(unsigned int ulPropTag, void *lpProvider,
+    const SPropValue *lpsPropValue, ECGenericProp *lpParam)
 {
 	if (ulPropTag == PR_ACL_DATA)
 		return static_cast<ECMsgStore *>(lpParam)->SetSerializedACLData(lpsPropValue);

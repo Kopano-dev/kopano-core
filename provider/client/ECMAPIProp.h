@@ -34,9 +34,8 @@ public:
 	static HRESULT	HrStreamCommit(IStream *lpStream, void *lpData);
 	// Callback for ECMemStream delete local data
 	static HRESULT	HrStreamCleanup(void *lpData);
-
-	static HRESULT	DefaultMAPIGetProp(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase);
-	static HRESULT SetPropHandler(ULONG ulPropTag, void *lpProvider, const SPropValue *lpsPropValue, void *lpParam);
+	static HRESULT DefaultMAPIGetProp(unsigned int tag, void *prov, unsigned int flags, SPropValue *, ECGenericProp *lpParam, void *base);
+	static HRESULT SetPropHandler(unsigned int tag, void *prov, const SPropValue *, ECGenericProp *);
 
 	// IMAPIProp override
 	virtual HRESULT OpenProperty(ULONG tag, const IID *intf, ULONG iface_opts, ULONG flags, IUnknown **) override;
