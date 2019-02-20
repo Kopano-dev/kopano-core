@@ -13,11 +13,12 @@ namespace KC {
 class _kc_export CHtmlToTextParser _kc_final {
 public:
 	CHtmlToTextParser(void);
-	bool Parse(const WCHAR *lpwHTML);
+	bool Parse(const wchar_t *lpwHTML);
 	std::wstring& GetText();
 
 protected:
 	_kc_hidden void Init(void);
+	_kc_hidden bool ll_parse(const wchar_t *);
 	_kc_hidden void parseTag(const wchar_t *&);
 	_kc_hidden bool parseEntity(const wchar_t *&);
 	_kc_hidden void parseAttributes(const wchar_t *&);
