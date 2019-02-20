@@ -697,28 +697,17 @@ static void print_group_settings(const ECGROUP *lpECGroup)
 static string ClassToString(objectclass_t eClass)
 {
 	switch (eClass) {
-	case ACTIVE_USER:
-		return string("User");
-	case NONACTIVE_USER:
-		return string("Shared store");
-	case NONACTIVE_ROOM:
-		return string("Room");
-	case NONACTIVE_EQUIPMENT:
-		return string("Equipment");
-	case NONACTIVE_CONTACT:
-		return string("Contact");
-	case DISTLIST_GROUP:
-		return string("Group");
-	case DISTLIST_SECURITY:
-		return string("Security group");
-	case DISTLIST_DYNAMIC:
-		return string("Dynamic group");
-	case CONTAINER_COMPANY:
-		return string("Company");
-	case CONTAINER_ADDRESSLIST:
-		return string("Addresslist");
-	default:
-		return string("Unknown");
+	case ACTIVE_USER: return "User";
+	case NONACTIVE_USER: return "Shared store";
+	case NONACTIVE_ROOM: return "Room";
+	case NONACTIVE_EQUIPMENT: return "Equipment";
+	case NONACTIVE_CONTACT: return "Contact";
+	case DISTLIST_GROUP: return "Group";
+	case DISTLIST_SECURITY: return "Security group";
+	case DISTLIST_DYNAMIC: return "Dynamic group";
+	case CONTAINER_COMPANY: return "Company";
+	case CONTAINER_ADDRESSLIST: return "Addresslist";
+	default: return "Unknown";
 	};
 }
 
