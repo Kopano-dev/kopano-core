@@ -610,29 +610,10 @@ bool u8_icontains(const char *haystack, const char *needle, const ECLocale &loca
     return u_strstr(a.getTerminatedBuffer(), b.getTerminatedBuffer());
 }
 
-/**
- * Copy at most n characters from the utf8 string src.
- *
- * @param[in]	src			The UTF-8 source data to copy
- * @param[in]	n			The maximum amount of characters to copy
- *
- * @return The amount of characters copied.
- */
-std::string u8_ncpy(const char *src, size_t n)
-{
-	const char *it = src;
-	size_t len = 0;
-	while (true) {
-		const char *tmp = it;
-		utf8::uint32_t cp = utf8::unchecked::next(tmp);
-		if (cp == 0)
-			break;
-		it = tmp;
-		if (++len == n)
-			break;
-	}
-	return std::string(src, it);
-}
+static const uint8_t utf8_widths[] = {
+	2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+	3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,5,5,5,5,6,6,1,1,
+};
 
 /**
  * Returns the length in bytes of the string s when capped to a maximum of
@@ -644,20 +625,18 @@ std::string u8_ncpy(const char *src, size_t n)
  *
  * @return	The length in bytes of the capped string.
  */
-unsigned u8_cappedbytes(const char *s, unsigned max)
+size_t u8_cappedbytes(const char *src, size_t max)
 {
-	const char *it = s;
-	unsigned len = 0;
-	while (true) {
-		const char *tmp = it;
-		utf8::uint32_t cp = utf8::unchecked::next(tmp);
-		if (cp == 0)
+	auto it = src;
+	for (auto z = strlen(src); z > 0 && max > 0; --max) {
+		uint8_t ch = *it;
+		size_t nob = ch < 0xC0 ? 1 : utf8_widths[ch-0xC0];
+		if (nob > z)
 			break;
-		it = tmp;
-		if (++len == max)
-			break;
+		it += nob;
+		z -= nob;
 	}
-	return unsigned(it - s);
+	return it - src;
 }
 
 /**

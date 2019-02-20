@@ -62,6 +62,12 @@ ci_find_substr(const std::string &first, const std::string &second)
 	return strToLower(first).find(strToLower(second));
 }
 
+/* Copy at most @n Unicode codepoints from @s */
+static inline std::string u8_ncpy(const char *s, size_t n)
+{
+	return {s, u8_cappedbytes(s, n)};
+}
+
 ECRESULT CopySOAPPropValToDatabasePropVal(const struct propVal *lpPropVal,
     unsigned int *lpulColNr, std::string &strColData, ECDatabase *lpDatabase,
     bool bTruncate)
