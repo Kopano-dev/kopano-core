@@ -53,7 +53,6 @@ At some point we need to rewqrite these functions to do all the conversion on th
 #include <kopano/platform.h>
 #include <kopano/ustringutil.h>
 #include <kopano/CommonUtil.h>
-#include "utf8/unchecked.h"
 #include <cassert>
 #include <clocale>
 #include <memory>
@@ -646,16 +645,19 @@ size_t u8_cappedbytes(const char *src, size_t max)
  *
  * @return	The length in characters of string s
  */
-unsigned u8_len(const char *s)
+size_t u8_len(const char *src, size_t max)
 {
-	unsigned len = 0;
-	while (true) {
-		utf8::uint32_t cp = utf8::unchecked::next(s);
-		if (cp == 0)
+	auto it = src;
+	size_t u = 0;
+	for (auto z = strlen(src); u < max && z > 0; ++u) {
+		uint8_t ch = *it;
+		size_t nob = ch < 0xC0 ? 1 : utf8_widths[ch-0xC0];
+		if (nob > z)
 			break;
-		++len;
+		it += nob;
+		z -= nob;
 	}
-	return len;
+	return u;
 }
 
 static const struct localemap {
