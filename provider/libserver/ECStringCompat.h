@@ -28,7 +28,7 @@ public:
 
 enum EncodingFixDirection { In, Out };
 
-ECRESULT FixPropEncoding(struct soap *soap, const ECStringCompat &stringCompat, enum EncodingFixDirection type, struct propVal *lpProp, bool bNoTagUpdate = false);
+extern ECRESULT FixPropEncoding(struct soap *, enum EncodingFixDirection, struct propVal *, bool no_tag_update = false);
 
 } /* namespace */
 

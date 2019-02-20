@@ -1927,7 +1927,7 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase,
             er = CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, &sPropVal);
             if(er != erSuccess)
                 continue;
-			er = FixPropEncoding(soap, stringCompat, Out, &sPropVal);
+			er = FixPropEncoding(soap, Out, &sPropVal);
 			if (er != erSuccess)
 				continue;
             iterChild->second.lpPropVals->AddPropVal(sPropVal);
@@ -2006,7 +2006,7 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase,
 		auto er = CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, &sPropVal);
         if(er != erSuccess)
             continue;
-		er = FixPropEncoding(soap, stringCompat, Out, &sPropVal);
+		er = FixPropEncoding(soap, Out, &sPropVal);
 		if (er != erSuccess)
 			continue;
         er = iterChild->second.lpPropTags->AddPropTag(sPropVal.ulPropTag);
