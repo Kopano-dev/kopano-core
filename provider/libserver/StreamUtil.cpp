@@ -85,10 +85,9 @@ class ECStreamSerializer final : public ECSerializer {
 };
 
 const static struct StreamCaps {
-	bool bSupportUnicode;
 } g_StreamCaps[] = {
-	{ false },		// version 0
-	{ true },		// version 1
+	{},		// version 0
+	{},		// version 1
 };
 
 #define FIELD_NR_NAMEID		(FIELD_NR_MAX + 1)
@@ -450,24 +449,17 @@ static ECRESULT SerializeDatabasePropVal(const StreamCaps *lpStreamCaps,
 		break;
 	}
 	case PT_STRING8:
-	case PT_UNICODE:
+	case PT_UNICODE: {
 		if (lpRow[FIELD_NR_STRING] == NULL) {
 			er = KCERR_NOT_FOUND;
 			goto exit;
 		}
-		if (lpStreamCaps->bSupportUnicode) {
-			unsigned int ulLen = lpLen[FIELD_NR_STRING];
-			er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
-			if (er == erSuccess)
-				er = lpSink->Write(lpRow[FIELD_NR_STRING], 1, lpLen[FIELD_NR_STRING]);
-		} else {
-			const std::string strEncoded = converter.convert_to<std::string>(CHARSET_WIN1252, lpRow[FIELD_NR_STRING], lpLen[FIELD_NR_STRING], "UTF-8");
-			unsigned int ulLen = strEncoded.length();
-			er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
-			if (er == erSuccess)
-				er = lpSink->Write(strEncoded.data(), 1, ulLen);
-		}
+		unsigned int ulLen = lpLen[FIELD_NR_STRING];
+		er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
+		if (er == erSuccess)
+			er = lpSink->Write(lpRow[FIELD_NR_STRING], 1, lpLen[FIELD_NR_STRING]);
 		break;
+	}
 	case PT_CLSID:
 	case PT_BINARY: {
 		if (lpRow[FIELD_NR_BINARY] == NULL) {
@@ -584,18 +576,10 @@ static ECRESULT SerializeDatabasePropVal(const StreamCaps *lpStreamCaps,
 		er = lpSink->Write(&ulCount, sizeof(ulCount), 1);
 		for (unsigned int x = 0; er == erSuccess && x < ulCount; ++x) {
 			ParseMVProp(lpRow[FIELD_NR_STRING], lpLen[FIELD_NR_STRING], &ulLastPos, &strData);
-			if (lpStreamCaps->bSupportUnicode) {
-				unsigned int ulLen = strData.size();
-				er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
-				if (er == erSuccess)
-					er = lpSink->Write(strData.c_str(), 1, ulLen);
-			} else {
-				const std::string strEncoded = converter.convert_to<std::string>(CHARSET_WIN1252, strData, rawsize(strData), "UTF-8");
-				unsigned int ulLen = strEncoded.size();
-				er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
-				if (er == erSuccess)
-					er = lpSink->Write(strEncoded.c_str(), 1, ulLen);
-			}
+			unsigned int ulLen = strData.size();
+			er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
+			if (er == erSuccess)
+				er = lpSink->Write(strData.c_str(), 1, ulLen);
 		}
 		break;
 	}
@@ -699,20 +683,13 @@ static ECRESULT SerializePropVal(const StreamCaps *lpStreamCaps,
 		er = lpSink->Write(&sPropVal.Value.li, sizeof(sPropVal.Value.li), 1);
 		break;
 	case PT_STRING8:
-	case PT_UNICODE:
-		if (lpStreamCaps->bSupportUnicode) {
-			unsigned int ulLen = strlen(sPropVal.Value.lpszA);
-			er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
-			if (er == erSuccess)
-				er = lpSink->Write(sPropVal.Value.lpszA, 1, ulLen);
-		} else {
-			const std::string strEncoded = converter.convert_to<std::string>(CHARSET_WIN1252, sPropVal.Value.lpszA, rawsize(sPropVal.Value.lpszA), "UTF-8");
-			unsigned int ulLen = strEncoded.length();
-			er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
-			if (er == erSuccess)
-				er = lpSink->Write(strEncoded.data(), 1, ulLen);
-		}
+	case PT_UNICODE: {
+		unsigned int ulLen = strlen(sPropVal.Value.lpszA);
+		er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
+		if (er == erSuccess)
+			er = lpSink->Write(sPropVal.Value.lpszA, 1, ulLen);
 		break;
+	}
 	case PT_CLSID:
 	case PT_BINARY:
 		er = lpSink->Write(&sPropVal.Value.bin->__size, sizeof(sPropVal.Value.bin->__size), 1);
@@ -762,18 +739,10 @@ static ECRESULT SerializePropVal(const StreamCaps *lpStreamCaps,
 	case PT_MV_UNICODE:
 		er = lpSink->Write(&sPropVal.Value.mvszA.__size, sizeof(sPropVal.Value.mvszA.__size), 1);
 		for (gsoap_size_t x = 0; er == erSuccess && x < sPropVal.Value.mvszA.__size; ++x) {
-			if (lpStreamCaps->bSupportUnicode) {
-				unsigned int ulLen = strlen(sPropVal.Value.mvszA.__ptr[x]);
-				er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
-				if (er == erSuccess)
-					er = lpSink->Write(sPropVal.Value.mvszA.__ptr[x], 1, ulLen);
-				continue;
-			}
-			const std::string strEncoded = converter.convert_to<std::string>(CHARSET_WIN1252, sPropVal.Value.mvszA.__ptr[x], rawsize(sPropVal.Value.mvszA.__ptr[x]), "UTF-8");
-			unsigned int ulLen = strEncoded.length();
+			unsigned int ulLen = strlen(sPropVal.Value.mvszA.__ptr[x]);
 			er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
 			if (er == erSuccess)
-				er = lpSink->Write(strEncoded.data(), 1, ulLen);
+				er = lpSink->Write(sPropVal.Value.mvszA.__ptr[x], 1, ulLen);
 		}
 		break;
 	case PT_MV_I8:
@@ -1159,25 +1128,15 @@ static ECRESULT DeserializePropVal(struct soap *soap,
 		er = lpSource->Read(&lpsPropval->Value.li, sizeof(lpsPropval->Value.li), 1);
 		break;
 	case PT_STRING8:
-	case PT_UNICODE: {
+	case PT_UNICODE:
 		lpsPropval->__union = SOAP_UNION_propValData_lpszA;
 		er = lpSource->Read(&ulLen, sizeof(ulLen), 1);
 		if (er != erSuccess)
 			break;
-		if (lpStreamCaps->bSupportUnicode) {
-			lpsPropval->Value.lpszA = s_alloc<char>(soap, ulLen + 1);
-			memset(lpsPropval->Value.lpszA, 0, ulLen + 1);
-			er = lpSource->Read(lpsPropval->Value.lpszA, 1, ulLen);
-			break;
-		}
-		std::string strData(ulLen, '\0');
-		er = lpSource->Read((void *)strData.data(), 1, ulLen);
-		if (er != erSuccess)
-			break;
-		const utf8string strConverted = converter.convert_to<utf8string>(strData, rawsize(strData), "WINDOWS-1252");
-		lpsPropval->Value.lpszA = s_strcpy(soap, strConverted.c_str());
+		lpsPropval->Value.lpszA = s_alloc<char>(soap, ulLen + 1);
+		memset(lpsPropval->Value.lpszA, 0, ulLen + 1);
+		er = lpSource->Read(lpsPropval->Value.lpszA, 1, ulLen);
 		break;
-	}
 	case PT_CLSID:
 	case PT_BINARY:
 		lpsPropval->__union = SOAP_UNION_propValData_bin;
@@ -1270,18 +1229,9 @@ static ECRESULT DeserializePropVal(struct soap *soap,
 			er = lpSource->Read(&ulLen, sizeof(ulLen), 1);
 			if (er != erSuccess)
 				continue;
-			if (lpStreamCaps->bSupportUnicode) {
-				lpsPropval->Value.mvszA.__ptr[x] = s_alloc<char>(soap, ulLen + 1);
-				memset(lpsPropval->Value.mvszA.__ptr[x], 0, ulLen + 1);
-				er = lpSource->Read(lpsPropval->Value.mvszA.__ptr[x], 1, ulLen);
-				continue;
-			}
-			std::string strData(ulLen, '\0');
-			er = lpSource->Read((void*)strData.data(), 1, ulLen);
-			if (er != erSuccess)
-				continue;
-			const utf8string strConverted = converter.convert_to<utf8string>(strData, rawsize(strData), "WINDOWS-1252");
-			lpsPropval->Value.mvszA.__ptr[x] = s_strcpy(soap, strConverted.c_str());
+			lpsPropval->Value.mvszA.__ptr[x] = s_alloc<char>(soap, ulLen + 1);
+			memset(lpsPropval->Value.mvszA.__ptr[x], 0, ulLen + 1);
+			er = lpSource->Read(lpsPropval->Value.mvszA.__ptr[x], 1, ulLen);
 		}
 		break;
 	case PT_MV_I8:
