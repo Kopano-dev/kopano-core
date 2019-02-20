@@ -11,11 +11,9 @@
 #include "kcore.hpp"
 #include "SOAPUtils.h"
 
-struct soap;
-
 namespace KC {
 
-extern ECRESULT FixPropEncoding(struct soap *, struct propVal *);
+extern ECRESULT FixPropEncoding(struct propVal *);
 
 } /* namespace */
 

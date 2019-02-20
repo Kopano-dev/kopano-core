@@ -1244,7 +1244,7 @@ static ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession,
 	if(ulObjType == MAPI_STORE) //fimxe: except public stores
 	{
 		if (ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_USER_NAME, ulObjId, 0, ulObjId, 0, ulObjType, &sPropVal) == erSuccess) {
-			er = FixPropEncoding(soap, &sPropVal);
+			er = FixPropEncoding(&sPropVal);
 			if (er != erSuccess)
 				return er;
 		    sChildProps.lpPropTags->AddPropTag(sPropVal.ulPropTag);
@@ -1292,7 +1292,7 @@ static ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession,
 			// 5.0 client knows how to handle the PR_MAILBOX_OWNER_* properties
 			if(ulStoreOwner != KOPANO_UID_EVERYONE && ulStoreOwner != ulCompanyId )	{
 				if (ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_MAILBOX_OWNER_NAME, ulObjId, 0, ulObjId, 0, ulObjType, &sPropVal) == erSuccess) {
-					er = FixPropEncoding(soap, &sPropVal);
+					er = FixPropEncoding(&sPropVal);
 					if (er != erSuccess)
 						return er;
 					sChildProps.lpPropTags->AddPropTag(sPropVal.ulPropTag);
@@ -1308,7 +1308,7 @@ static ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession,
 
 		// Add PR_DISPLAY_NAME
 		if (ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_DISPLAY_NAME, ulObjId, 0, ulObjId, 0, ulObjType, &sPropVal) == erSuccess) {
-			er = FixPropEncoding(soap, &sPropVal);
+			er = FixPropEncoding(&sPropVal);
 			if (er != erSuccess)
 				return er;
 		    sChildProps.lpPropTags->AddPropTag(sPropVal.ulPropTag);

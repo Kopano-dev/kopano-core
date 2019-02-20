@@ -12,7 +12,7 @@
 
 namespace KC {
 
-ECRESULT FixPropEncoding(struct soap *soap, struct propVal *lpProp)
+ECRESULT FixPropEncoding(struct propVal *lpProp)
 {
 	if (PROP_TYPE(lpProp->ulPropTag) == PT_STRING8 || PROP_TYPE(lpProp->ulPropTag) == PT_UNICODE)
 		lpProp->ulPropTag = CHANGE_PROP_TYPE(lpProp->ulPropTag, PT_UNICODE);
