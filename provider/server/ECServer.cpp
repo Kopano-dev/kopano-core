@@ -812,8 +812,8 @@ static void cleanup(ECRESULT er)
 
 	/* Ensure threads are stopped before ripping away the underlying session state */
 	g_lpSoapServerConn.reset();
-
-	g_lpSessionManager->RemoveAllSessions();
+	if (g_lpSessionManager != nullptr)
+		g_lpSessionManager->RemoveAllSessions();
 	kopano_exit();
 #ifdef HAVE_KCOIDC_H
 	if (kcoidc_initialized) {
