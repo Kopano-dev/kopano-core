@@ -29,10 +29,7 @@ public:
 	static char *WTF1252_to_UTF8(struct soap *lpsoap, const char *szWTF1252, convert_context *lpConverter = NULL);
 	static char *UTF8_to_WTF1252(struct soap *lpsoap, const char *szUTF8, convert_context *lpConverter = NULL);
 
-	ECStringCompat(bool fUnicode = false);
-	ECStringCompat(const ECStringCompat &) = delete;
 	~ECStringCompat();
-	void operator=(const ECStringCompat &) = delete;
 	/**
 	 * Convert the input data to true UTF8. If ulClientCaps contains
 	 * KOPANO_CAP_UNICODE, the input data is expected to be in UTF8,
@@ -86,8 +83,8 @@ public:
 	ULONG string_prop_type() const;
 
 private:
-	convert_context *m_lpConverter;
-	bool m_fUnicode;
+	convert_context *m_lpConverter = nullptr;
+	bool m_fUnicode = true;
 };
 
 enum EncodingFixDirection { In, Out };
