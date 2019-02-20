@@ -806,7 +806,6 @@ int KCmdService::fname(ULONG64 ulSessionId, ##__VA_ARGS__) \
 			timespec2dbl(endTimes) - timespec2dbl(startTimes), \
 			dur2dbl(decltype(dblStart)::clock::now() - dblStart)); \
 	}); \
-	const ECStringCompat stringCompat; \
 	if (er != erSuccess) { \
 		resultvar = er; \
 		return SOAP_OK; \
@@ -1240,7 +1239,6 @@ static ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession,
 	quotadetails_t	sDetails;
 	unsigned int ulCompanyId = 0, ulStoreOwner = 0;
 	struct propVal sPropVal;
-	ECStringCompat stringCompat;
 	USE_DATABASE_NORESULT();
 
 	if(ulObjType == MAPI_STORE) //fimxe: except public stores
@@ -1551,7 +1549,6 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 	ULONG ulInstanceId = 0, ulInstanceTag = 0;
 	bool bAttachmentStored = false;
 	entryId sUserId;
-	ECStringCompat stringCompat;
 	std::string	strColData, strInsert, strInsertTProp;
 	SOURCEKEY sSourceKey, sParentSourceKey;
 	DB_RESULT lpDBResult;

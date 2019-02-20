@@ -1842,7 +1842,6 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase,
 {
 	unsigned int ulSize;
 	struct propVal sPropVal;
-	ECStringCompat stringCompat;
 	std::string strQuery;
 	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL;

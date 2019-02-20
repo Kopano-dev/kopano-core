@@ -15,17 +15,6 @@ struct soap;
 
 namespace KC {
 
-/**
- * This class is responsible of converting string encodings from
- * UTF8 to WTF1252 and vice versa. WTF1252 is a string with characters
- * from the windows-1252 codepage encoded as UTF8. So the difference
- * with UTF8 is that is a string with true unicode code points.
- */
-class ECStringCompat final {
-public:
-	~ECStringCompat() {}
-};
-
 enum EncodingFixDirection { In, Out };
 
 extern ECRESULT FixPropEncoding(struct soap *, enum EncodingFixDirection, struct propVal *, bool no_tag_update = false);
