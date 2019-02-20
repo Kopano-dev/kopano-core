@@ -16,8 +16,6 @@ struct soap;
 
 namespace KC {
 
-class convert_context;
-
 /**
  * This class is responsible of converting string encodings from
  * UTF8 to WTF1252 and vice versa. WTF1252 is a string with characters
@@ -26,10 +24,7 @@ class convert_context;
  */
 class ECStringCompat final {
 public:
-	static char *WTF1252_to_UTF8(struct soap *lpsoap, const char *szWTF1252, convert_context *lpConverter = NULL);
-	static char *UTF8_to_WTF1252(struct soap *lpsoap, const char *szUTF8, convert_context *lpConverter = NULL);
-
-	~ECStringCompat();
+	~ECStringCompat() {}
 	/**
 	 * Convert the input data to true UTF8. If ulClientCaps contains
 	 * KOPANO_CAP_UNICODE, the input data is expected to be in UTF8,
@@ -81,10 +76,6 @@ public:
 	 * @retval	PT_UNICODE when the client does support unicoce.
 	 */
 	ULONG string_prop_type() const;
-
-private:
-	convert_context *m_lpConverter = nullptr;
-	bool m_fUnicode = true;
 };
 
 enum EncodingFixDirection { In, Out };
@@ -94,22 +85,22 @@ ECRESULT FixPropEncoding(struct soap *soap, const ECStringCompat &stringCompat, 
 // inlines
 inline char *ECStringCompat::to_UTF8(soap *lpsoap, const char *szIn) const
 {
-	return m_fUnicode ? (char*)szIn : WTF1252_to_UTF8(lpsoap, szIn, m_lpConverter);
+	return const_cast<char *>(szIn);
 }
 
 inline char *ECStringCompat::from_UTF8(soap *lpsoap, const char *szIn) const
 {
-	return m_fUnicode ? (char*)szIn : UTF8_to_WTF1252(lpsoap, szIn, m_lpConverter);
+	return const_cast<char *>(szIn);
 }
 
 inline char *ECStringCompat::from_UTF8_cpy(soap *lpsoap, const char *szIn) const
 {
-	return m_fUnicode ? s_strcpy(lpsoap, szIn) : UTF8_to_WTF1252(lpsoap, szIn);
+	return s_strcpy(lpsoap, szIn);
 }
 
 inline ULONG ECStringCompat::string_prop_type() const
 {
-	return m_fUnicode ? PT_UNICODE : PT_STRING8;
+	return PT_UNICODE;
 }
 
 } /* namespace */
