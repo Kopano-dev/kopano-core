@@ -36,19 +36,6 @@ public:
 	 * @return		The input data encoded in UTF8.
 	 */
 	char *to_UTF8(soap *lpsoap, const char *szIn) const;
-
-	/**
-	 * Convert the data from UTF8 to either UTF8 ot WTF1252. If culClientCaps
-	 * contains KOPANO_CAP_UNICODE, the output data will not be converted and
-	 * will be in UTF8. Otherwise the data will be encoded in WTF1252.
-	 *
-	 *
-	 * @param[in]	szIn	The input data in UTF8.
-	 *
-	 * @return		The input data encoded in UTF8 or WTF1252 depending on the
-	 *				current convert setting.
-	 */
-	char *from_UTF8(soap *lpsoap, const char *szIn) const;
 };
 
 enum EncodingFixDirection { In, Out };
@@ -57,11 +44,6 @@ ECRESULT FixPropEncoding(struct soap *soap, const ECStringCompat &stringCompat, 
 
 // inlines
 inline char *ECStringCompat::to_UTF8(soap *lpsoap, const char *szIn) const
-{
-	return const_cast<char *>(szIn);
-}
-
-inline char *ECStringCompat::from_UTF8(soap *lpsoap, const char *szIn) const
 {
 	return const_cast<char *>(szIn);
 }
