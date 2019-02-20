@@ -1560,7 +1560,7 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 		er = lpSource->Read(&ulStreamVersion, sizeof(ulStreamVersion), 1);
 		if (er != erSuccess)
 			goto exit;
-		if (ulStreamVersion >= ARRAY_SIZE(g_StreamCaps)) {
+		if (ulStreamVersion != 1) {
 			er = KCERR_NO_SUPPORT;
 			goto exit;
 		}
