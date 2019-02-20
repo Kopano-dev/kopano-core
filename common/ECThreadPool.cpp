@@ -200,6 +200,8 @@ void* ECThreadPool::threadFunc(void *lpVoid)
 
 		ulock_normal locker(lpPool->m_hMutex);
 		bResult = lpPool->getNextTask(&sTaskInfo, locker);
+		if (bResult)
+			++lpPool->m_active;
 		locker.unlock();
 		if (!bResult)
 			break;
@@ -208,6 +210,7 @@ void* ECThreadPool::threadFunc(void *lpVoid)
 		sTaskInfo.lpTask->execute();
 		if (sTaskInfo.bDelete)
 			delete sTaskInfo.lpTask;
+		--lpPool->m_active;
 		lpPool->m_hCondTaskDone.notify_one();
 	}
 

@@ -1,3 +1,16 @@
+8.7.x
+=====
+Fixes:
+* dagent: standard casing for RFC 5322 headers [KF-2100]
+* daemons: do not fail startup on IPv4-only systems [KC-1400]
+* Feed HTML through libtidy before using it for the to-plaintext
+  conversion stage [KS-40722]
+* server: fix crash on shutdown [KF-2179]
+* server: address a potential crash due to type mismatch [KF-2151]
+* dbadm: some long-running statements can now be run in parallel
+  with the new -j option [KS-42617]
+
+
 8.6.92 -> 8.7.0 (2019-01-24)
 ============================
 Fixes:

@@ -2,7 +2,8 @@
 .SH Name
 kopano\-dbadm \(em database administration utility
 .SH Synopsis
-\fBkopano\-dbadm\fP [\fB\-c\fP \fIserver.cfg\fP] \fIaction\fP...
+\fBkopano\-dbadm\fP [\fB\-c\fP \fIserver.cfg\fP] [\fB\-j\fP \fIjobs\fP]
+\fIaction\fP...
 .SH Description
 .PP
 This tool is for special surgical tasks on the Kopano SQL database.
@@ -13,6 +14,12 @@ otherwise noted. You should make a database backup first.
 \fB\-c\fP \fIserver.cfg\fP
 By default, kopano\-dbadm will read /etc/kopano/server.cfg for MySQL
 connection parameters, but an alternate file may be specified.
+.TP
+\fB\-j\fP \fIjobs\fP
+Specifies an upper limit on the number of SQL queries running simultaneously.
+This may improve or worsen the overall time to process ALTER statements,
+depending on the underlying storage of the SQL database.
+The default is \fI1\fP.
 .SH Actions
 .SS k\-1216
 .PP
@@ -20,8 +27,8 @@ This is an alias for the combination of: index\-tags, np\-remove\-highid,
 np\-remove\-unused, np\-repair\-dups, np\-defrag, rm\-helper\-index. It may be
 used to address the K-1216 issue that kopano\-server(8) may report when
 performing a schema update. If the tag indices already exist, harmless warnings
-will show, but the indices will be used and left as-is after the k\-1216 action
-is done.
+will be shown by kopano\-dbadm, but the indices will be used and left as-is
+after the k\-1216 action is done.
 .SS kc\-1375
 .PP
 Deletes all cached IMAP Envelopes that show signs of having address lists with
@@ -45,7 +52,8 @@ Remove all named property mappings that have zero use counts in other tables.
 kopano\-dagent(8) used to index all X-Headers from Internet e-mails by default,
 but administrators may not have needed this information in the first place. By
 using np\-remove\-xh, all named properties whose name starts with "X\-" and
-have GUID=PS_INTERNET_HEADERS are removed. np\-defrag should be run afterwards.
+have GUID=PS_INTERNET_HEADERS are removed. Afterwards, `kopano\-dbadm
+np\-defrag` should be run.
 .SS np\-repair\-dups
 .PP
 Repairs duplicate named properties (only IDs below or equal to 31485).
@@ -67,11 +75,16 @@ This is an alias for the combination of: usmp\-shrink\-columns, usmp\-charset.
 .SS usmp-charset
 .PP
 Convert the database to utf8mb4 to support the Unicode Supplemental Plane,
-better known for Emoji characters.
+better known for Emoji characters. This action can be executed while
+kopano\-server is active, though the SQL server may queue/block
+database write operations, rendering the server practically
+unavailable.
 .SS usmp-shrink-columns
 .PP
 A number of table columns will be shrunk to accomodate certain MySQL index
-limits.
+limits. This action can be executed while kopano\-server is active,
+though the SQL server may queue/block database write operations,
+rendering the server practically unavailable.
 .SH Performance
 .PP
 Totally depends on the amount of data that needs to be moved. MySQL also seems
@@ -80,18 +93,42 @@ to process the requests single-threadedly.
 An approximate row count of a table can be retrieved with \fBSHOW TABLE STATUS
 LIKE "\fP\fIproperties\fP\fB"\fP. For an exact count, use \fBSELECT COUNT(*)
 FROM `\fP\fIproperties\fP\fB`\fP.
+.SS index\-tags
+.PP
+System: 16-thr Ryzen 1700X, 64 GB memory, 2-disk RAID-1 Toshiba XG5 NVMe, Linux
+5.0, mariadb 10.2, filesystem yields 430 MiB/s sequential read speed, 130 MiB/s
+sequential write speed.
+.PP
+Database: 8.9 GiB, properties: 17.78M rows, tproperties: 13.22M, mvproperties:
+10.3K, indexedproperties: 445K, singleinstances: 228K rows.
+.PP
+dbadm index\-tags \-j1: completed in 48s. top(1) reported system load 1.25 with
+mysqld using 100% CPU (ceiling 1600%). This operation was CPU-bound.
+.PP
+dbadm index\-tags \-j6: completed in 27s.
 .SS k\-1216
 .PP
-An i7-3930K completed a naturally-evolved DB (4.96 GiB, properties: 12.94M
-rows, tproperties: 9.65M rows, mvproperties: 9.9K rows, indexedproperties:
-3.24M rows, singleinstances: 188K rows, names: 2988) using the "k\-1216"
-command combo within 2 minutes and The "np\-remove\-xh, np\-defrag" combo
-within 5 1/2 minutes.
+System: 12-thr i7-3930K, 64 GB memory, 2-disk RAID-1 SATA SSD, Linux 4.18ish,
+mariadb 10.x.
+.PP
+Database: 4.96 GiB, properties: 12.94M rows, tproperties: 9.65M,
+mvproperties: 9.9K, indexedproperties: 3.24M, singleinstances: 188K, names: 2988
+rows.
+.PP
+dbadm k\-1216: 2 minutes indexing
+.PP
+dbadm np\-remove\-xh np\-defrag: 5 1/2 minutes.
 .SS usmp-charset
 .PP
-An AMD Ryzen 1700X completed the "usmp\-charset" transformation on a DB (6.3
-GiB, properties: 16.43M rows, tproperties: 12.25M rows, mvproperties: 10.2K
-rows, indexedproperties: 410K rows, singleinstances: 258K rows) in 7 minutes.
+Same 1700X/XG5/8.9GiB/17.78M.
+.PP
+dbadm usmp\-charset \-j1: completed in 5m42s. top(1) reported system load 1.56,
+with mysqld using 55-70% CPU use. So this operation was waiting on I/O.
+.PP
+dbadm usmp\-charset \-j2: completed in 6m38s, as there was nothing more to be
+gained from the I/O.
+.PP
+usmp\-charset \-j2 on tmpfs: 3m13s.
 .SH See also
 .PP
 \fBkopano\-server.cfg\fP(5)

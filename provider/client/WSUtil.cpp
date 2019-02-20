@@ -336,7 +336,7 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 		dp->Value.dbl = sp->Value.dbl;
 		break;
 	case PT_CURRENCY:
-		if (sp->__union == 0 || sp->Value.hilo == nullptr) {
+		if (sp->__union != SOAP_UNION_propValData_hilo || sp->Value.hilo == nullptr) {
 			dp->ulPropTag = CHANGE_PROP_TYPE(sp->ulPropTag, PT_ERROR);
 			dp->Value.err = MAPI_E_NOT_FOUND;
 			break;
@@ -362,7 +362,7 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 		dp->Value.li.QuadPart = sp->Value.li;
 		break;
 	case PT_STRING8: {
-		if (sp->__union == 0 || sp->Value.lpszA == nullptr) {
+		if (sp->__union != SOAP_UNION_propValData_lpszA || sp->Value.lpszA == nullptr) {
 			dp->ulPropTag = CHANGE_PROP_TYPE(sp->ulPropTag, PT_ERROR);
 			dp->Value.err = MAPI_E_NOT_FOUND;
 			break;
@@ -375,7 +375,7 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 		break;
 	}
 	case PT_UNICODE: {
-		if (sp->__union == 0 || sp->Value.lpszA == nullptr) {
+		if (sp->__union != SOAP_UNION_propValData_lpszA || sp->Value.lpszA == nullptr) {
 			dp->ulPropTag = CHANGE_PROP_TYPE(sp->ulPropTag, PT_ERROR);
 			dp->Value.err = MAPI_E_NOT_FOUND;
 			break;
@@ -388,7 +388,7 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 		break;
 	}
 	case PT_SYSTIME:
-		if (sp->__union == 0 || sp->Value.hilo == 0) {
+		if (sp->__union != SOAP_UNION_propValData_hilo || sp->Value.hilo == nullptr) {
 			dp->ulPropTag = CHANGE_PROP_TYPE(sp->ulPropTag, PT_ERROR);
 			dp->Value.err = MAPI_E_NOT_FOUND;
 			break;
@@ -397,7 +397,7 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 		dp->Value.ft.dwLowDateTime = sp->Value.hilo->lo;
 		break;
 	case PT_CLSID:
-		if (sp->__union == 0 || sp->Value.bin == nullptr ||
+		if (sp->__union != SOAP_UNION_propValData_bin || sp->Value.bin == nullptr ||
 		    sp->Value.bin->__size != sizeof(MAPIUID)) {
 			dp->ulPropTag = CHANGE_PROP_TYPE(sp->ulPropTag, PT_ERROR);
 			dp->Value.err = MAPI_E_NOT_FOUND;
@@ -410,7 +410,7 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 		memcpy(dp->Value.lpguid, sp->Value.bin->__ptr, sp->Value.bin->__size);
 		break;
 	case PT_BINARY:
-		if (sp->__union == 0) {
+		if (sp->__union != SOAP_UNION_propValData_bin) {
 			dp->Value.bin.lpb = NULL;
 			dp->Value.bin.cb = 0;
 			break;
@@ -427,7 +427,7 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 		dp->Value.bin.cb = sp->Value.bin->__size;
 		break;
 	case PT_MV_I2:
-		if (sp->__union == 0 || sp->Value.mvi.__ptr == nullptr) {
+		if (sp->__union != SOAP_UNION_propValData_mvi || sp->Value.mvi.__ptr == nullptr) {
 			dp->ulPropTag = CHANGE_PROP_TYPE(sp->ulPropTag, PT_ERROR);
 			dp->Value.err = MAPI_E_NOT_FOUND;
 			break;
@@ -440,7 +440,7 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 		memcpy(dp->Value.MVi.lpi, sp->Value.mvi.__ptr, sizeof(short int)*dp->Value.MVi.cValues);
 		break;
 	case PT_MV_LONG:
-		if (sp->__union == 0 || sp->Value.mvl.__ptr == nullptr) {
+		if (sp->__union != SOAP_UNION_propValData_mvl || sp->Value.mvl.__ptr == nullptr) {
 			dp->ulPropTag = CHANGE_PROP_TYPE(sp->ulPropTag, PT_ERROR);
 			dp->Value.err = MAPI_E_NOT_FOUND;
 			break;
@@ -453,7 +453,7 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 		memcpy(dp->Value.MVl.lpl, sp->Value.mvl.__ptr, sizeof(unsigned int)*dp->Value.MVl.cValues);
 		break;
 	case PT_MV_R4:
-		if (sp->__union == 0 || sp->Value.mvflt.__ptr == nullptr) {
+		if (sp->__union != SOAP_UNION_propValData_mvflt || sp->Value.mvflt.__ptr == nullptr) {
 			dp->ulPropTag = CHANGE_PROP_TYPE(sp->ulPropTag, PT_ERROR);
 			dp->Value.err = MAPI_E_NOT_FOUND;
 			break;
@@ -466,7 +466,7 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 		memcpy(dp->Value.MVflt.lpflt, sp->Value.mvflt.__ptr, sizeof(float)*dp->Value.MVflt.cValues);
 		break;
 	case PT_MV_DOUBLE:
-		if (sp->__union == 0 || sp->Value.mvdbl.__ptr == nullptr) {
+		if (sp->__union != SOAP_UNION_propValData_mvdbl || sp->Value.mvdbl.__ptr == nullptr) {
 			dp->ulPropTag = CHANGE_PROP_TYPE(sp->ulPropTag, PT_ERROR);
 			dp->Value.err = MAPI_E_NOT_FOUND;
 			break;
@@ -479,7 +479,7 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 		memcpy(dp->Value.MVdbl.lpdbl, sp->Value.mvdbl.__ptr, sizeof(double)*dp->Value.MVdbl.cValues);
 		break;
 	case PT_MV_CURRENCY:
-		if (sp->__union == 0 || sp->Value.mvhilo.__ptr == nullptr) {
+		if (sp->__union != SOAP_UNION_propValData_mvhilo || sp->Value.mvhilo.__ptr == nullptr) {
 			dp->ulPropTag = CHANGE_PROP_TYPE(sp->ulPropTag, PT_ERROR);
 			dp->Value.err = MAPI_E_NOT_FOUND;
 			break;
@@ -495,7 +495,7 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 		}
 		break;
 	case PT_MV_APPTIME:
-		if (sp->__union == 0 || sp->Value.mvdbl.__ptr == nullptr) {
+		if (sp->__union != SOAP_UNION_propValData_mvdbl || sp->Value.mvdbl.__ptr == nullptr) {
 			dp->ulPropTag = CHANGE_PROP_TYPE(sp->ulPropTag, PT_ERROR);
 			dp->Value.err = MAPI_E_NOT_FOUND;
 			break;
@@ -508,7 +508,7 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 		memcpy(dp->Value.MVat.lpat, sp->Value.mvdbl.__ptr, sizeof(double)*dp->Value.MVat.cValues);
 		break;
 	case PT_MV_SYSTIME:
-		if (sp->__union == 0 || sp->Value.mvhilo.__ptr == nullptr) {
+		if (sp->__union != SOAP_UNION_propValData_mvhilo || sp->Value.mvhilo.__ptr == nullptr) {
 			dp->ulPropTag = CHANGE_PROP_TYPE(sp->ulPropTag, PT_ERROR);
 			dp->Value.err = MAPI_E_NOT_FOUND;
 			break;
@@ -524,7 +524,7 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 		}
 		break;
 	case PT_MV_BINARY:
-		if (sp->__union == 0 || sp->Value.mvbin.__ptr == nullptr) {
+		if (sp->__union != SOAP_UNION_propValData_mvbin || sp->Value.mvbin.__ptr == nullptr) {
 			dp->ulPropTag = CHANGE_PROP_TYPE(sp->ulPropTag, PT_ERROR);
 			dp->Value.err = MAPI_E_NOT_FOUND;
 			break;
@@ -548,7 +548,7 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 		}
 		break;
 	case PT_MV_STRING8:
-		if (sp->__union == 0 || sp->Value.mvszA.__ptr == nullptr) {
+		if (sp->__union != SOAP_UNION_propValData_mvszA || sp->Value.mvszA.__ptr == nullptr) {
 			dp->ulPropTag = CHANGE_PROP_TYPE(sp->ulPropTag, PT_ERROR);
 			dp->Value.err = MAPI_E_NOT_FOUND;
 			break;
@@ -577,7 +577,7 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 		}
 		break;
 	case PT_MV_UNICODE:
-		if (sp->__union == 0 || sp->Value.mvszA.__ptr == nullptr) {
+		if (sp->__union != SOAP_UNION_propValData_mvszA || sp->Value.mvszA.__ptr == nullptr) {
 			dp->ulPropTag = CHANGE_PROP_TYPE(sp->ulPropTag, PT_ERROR);
 			dp->Value.err = MAPI_E_NOT_FOUND;
 			break;
@@ -610,7 +610,7 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 		}
 		break;
 	case PT_MV_CLSID:
-		if (sp->__union == 0 || sp->Value.mvbin.__ptr == nullptr) {
+		if (sp->__union != SOAP_UNION_propValData_mvbin || sp->Value.mvbin.__ptr == nullptr) {
 			dp->ulPropTag = CHANGE_PROP_TYPE(sp->ulPropTag, PT_ERROR);
 			dp->Value.err = MAPI_E_NOT_FOUND;
 			break;
@@ -624,7 +624,7 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 			memcpy(&dp->Value.MVguid.lpguid[i], sp->Value.mvbin.__ptr[i].__ptr, sizeof(GUID));
 		break;
 	case PT_MV_I8:
-		if (sp->__union == 0 || sp->Value.mvli.__ptr == nullptr) {
+		if (sp->__union != SOAP_UNION_propValData_mvli || sp->Value.mvli.__ptr == nullptr) {
 			dp->ulPropTag = CHANGE_PROP_TYPE(sp->ulPropTag, PT_ERROR);
 			dp->Value.err = MAPI_E_NOT_FOUND;
 			break;
@@ -638,7 +638,7 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 			dp->Value.MVli.lpli[i].QuadPart = sp->Value.mvli.__ptr[i];
 		break;
 	case PT_SRESTRICTION:
-		if (sp->__union == 0 || sp->Value.res == nullptr) {
+		if (sp->__union != SOAP_UNION_propValData_res || sp->Value.res == nullptr) {
 			dp->ulPropTag = CHANGE_PROP_TYPE(sp->ulPropTag, PT_ERROR);
 			dp->Value.err = MAPI_E_NOT_FOUND;
 			break;
@@ -650,7 +650,7 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 		hr = CopySOAPRestrictionToMAPIRestriction((LPSRestriction)dp->Value.lpszA, sp->Value.res, lpBase, lpConverter);
 		break;
 	case PT_ACTIONS: {
-		if (sp->__union == 0 || sp->Value.actions == nullptr) {
+		if (sp->__union != SOAP_UNION_propValData_actions || sp->Value.actions == nullptr) {
 			dp->ulPropTag = CHANGE_PROP_TYPE(sp->ulPropTag, PT_ERROR);
 			dp->Value.err = MAPI_E_NOT_FOUND;
 			break;
@@ -2104,7 +2104,8 @@ HRESULT CopySOAPNotificationToMAPINotification(void *lpProvider,
 		dst.ulTableEvent = lpSrc->tab->ulTableEvent;
 		dst.propIndex.ulPropTag = lpSrc->tab->propIndex.ulPropTag;
 
-		if (lpSrc->tab->propIndex.Value.bin){
+		if (lpSrc->tab->propIndex.__union == SOAP_UNION_propValData_bin &&
+		    lpSrc->tab->propIndex.Value.bin != nullptr) {
 			auto &bin = dst.propIndex.Value.bin;
 			bin.cb = lpSrc->tab->propIndex.Value.bin->__size;
 			hr = ECAllocateMore(bin.cb, lpNotification,
@@ -2116,7 +2117,8 @@ HRESULT CopySOAPNotificationToMAPINotification(void *lpProvider,
 
 		dst.propPrior.ulPropTag = lpSrc->tab->propPrior.ulPropTag;
 
-		if (lpSrc->tab->propPrior.Value.bin){
+		if (lpSrc->tab->propPrior.__union == SOAP_UNION_propValData_bin &&
+		    lpSrc->tab->propPrior.Value.bin != nullptr) {
 			auto &bin = dst.propPrior.Value.bin;
 			bin.cb = lpSrc->tab->propPrior.Value.bin->__size;
 			hr = ECAllocateMore(bin.cb, lpNotification,

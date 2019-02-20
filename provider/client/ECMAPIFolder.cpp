@@ -83,7 +83,9 @@ HRESULT ECMAPIFolder::Create(ECMsgStore *lpMsgStore, BOOL fModify, WSMAPIFolderO
 	       "IMAPIFolder").put(lppECMAPIFolder);
 }
 
-HRESULT ECMAPIFolder::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase)
+HRESULT ECMAPIFolder::GetPropHandler(unsigned int ulPropTag, void *lpProvider,
+     unsigned int ulFlags, SPropValue *lpsPropValue, ECGenericProp *lpParam,
+     void *lpBase)
 {
 	HRESULT hr = hrSuccess;
 	auto lpFolder = static_cast<ECMAPIFolder *>(lpParam);
@@ -138,8 +140,8 @@ HRESULT ECMAPIFolder::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ul
 	return hr;
 }
 
-HRESULT	ECMAPIFolder::SetPropHandler(ULONG ulPropTag, void *lpProvider,
-    const SPropValue *lpsPropValue, void *lpParam)
+HRESULT ECMAPIFolder::SetPropHandler(unsigned int ulPropTag, void *lpProvider,
+    const SPropValue *lpsPropValue, ECGenericProp *lpParam)
 {
 	if (ulPropTag != PR_ACL_DATA)
 		return MAPI_E_NOT_FOUND;

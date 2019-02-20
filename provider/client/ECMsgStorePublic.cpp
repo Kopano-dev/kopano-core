@@ -49,7 +49,9 @@ HRESULT ECMsgStorePublic::QueryInterface(REFIID refiid, void **lppInterface)
 	return ECMsgStore::QueryInterface(refiid, lppInterface);
 }
 
-HRESULT ECMsgStorePublic::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase)
+HRESULT ECMsgStorePublic::GetPropHandler(unsigned int ulPropTag,
+     void *lpProvider, unsigned int ulFlags, SPropValue *lpsPropValue,
+     ECGenericProp *lpParam, void *lpBase)
 {
 	auto lpStore = static_cast<ECMsgStorePublic *>(lpParam);
 
@@ -71,8 +73,8 @@ HRESULT ECMsgStorePublic::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULON
 	}
 }
 
-HRESULT ECMsgStorePublic::SetPropHandler(ULONG ulPropTag, void *lpProvider,
-    const SPropValue *lpsPropValue, void *lpParam)
+HRESULT ECMsgStorePublic::SetPropHandler(unsigned int ulPropTag,
+    void *lpProvider, const SPropValue *lpsPropValue, ECGenericProp *lpParam)
 {
 	SPropValue sPropValue;
 	auto lpStore = static_cast<ECMsgStorePublic *>(lpParam);

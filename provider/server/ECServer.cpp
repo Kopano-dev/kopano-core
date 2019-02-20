@@ -809,6 +809,10 @@ static void cleanup(ECRESULT er)
 	if (g_lpAudit)
 		g_lpAudit->Log(EC_LOGLEVEL_ALWAYS, "server shutdown in progress");
 
+	/* Ensure threads are stopped before ripping away the underlying session state */
+	g_lpSoapServerConn.reset();
+
+	g_lpSessionManager->RemoveAllSessions();
 	kopano_exit();
 #ifdef HAVE_KCOIDC_H
 	if (kcoidc_initialized) {
@@ -1033,7 +1037,6 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 
 	auto laters = make_scope_success([&]() {
 		cleanup(er);
-		g_lpSoapServerConn.reset();
 		ssl_threading_cleanup();
 		SSL_library_cleanup(); //cleanup memory so valgrind is happy
 	});
@@ -1358,6 +1361,5 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 			continue;
 		}
 	}
-	g_lpSessionManager->RemoveAllSessions();
 	return retval;
 }

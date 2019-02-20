@@ -9,7 +9,7 @@ from plugintemplates import *
 import zconfig
 
 class MoveToPublic(IMapiDAgentPlugin):
-    
+
     prioPreDelivery = 50
 
     configfile = '/etc/kopano/movetopublic.cfg'
@@ -41,7 +41,7 @@ class MoveToPublic(IMapiDAgentPlugin):
         if props[0].ulPropTag != PR_RECEIVED_BY_EMAIL_ADDRESS_W:
             self.logger.logError("!--- No received by emailaddress")
             return MP_CONTINUE,
-        
+
         recipient = props[0].Value.lower()
 
         if recipient not in self.rulelist:
@@ -59,7 +59,7 @@ class MoveToPublic(IMapiDAgentPlugin):
                 userprops = user.GetProps([PR_EC_COMPANY_NAME_W], 0)
                 if userprops[0].ulPropTag == PR_EC_COMPANY_NAME_W:
                     companyname = userprops[0].Value
-            
+
                 if companyname == None:
                     self.logger.logError("!--- Can not open a public store")
                     return MP_CONTINUE,
@@ -78,7 +78,7 @@ class MoveToPublic(IMapiDAgentPlugin):
         folder = publicfolders
         for foldername in folderlist:
             if len(foldername) > 0:
-                folder = folder.CreateFolder(0, foldername, "Create by Move to Public plugin", None, OPEN_IF_EXISTS)
+                folder = folder.CreateFolder(0, foldername, "Create by Move to Public plugin", None, OPEN_IF_EXISTS | MAPI_UNICODE)
 
         msgnew = folder.CreateMessage(None, 0)
         tags = message.GetPropList(MAPI_UNICODE)

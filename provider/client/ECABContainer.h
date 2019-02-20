@@ -50,7 +50,7 @@ class ECABProp : public ECGenericProp {
 
 	public:
 	virtual HRESULT QueryInterface(const IID &, void **) override;
-	static HRESULT DefaultABGetProp(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase);
+	static HRESULT DefaultABGetProp(unsigned int tag, void *prov, unsigned int flags, SPropValue *, ECGenericProp *, void *base);
 	static HRESULT TableRowGetProp(void *prov, const struct propVal *src, SPropValue *dst, void **base, ULONG type);
 	ECABLogon *GetABStore() const { return static_cast<ECABLogon *>(lpProvider); }
 };
@@ -61,7 +61,7 @@ protected:
 	virtual ~ECABContainer() = default;
 public:
 	static HRESULT Create(ECABLogon *prov, ULONG obj_type, BOOL modify, ECABContainer **);
-	static HRESULT	DefaultABContainerGetProp(ULONG ulPropTag, void* lpProvider, ULONG ulFLags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase);
+	static HRESULT DefaultABContainerGetProp(unsigned int tag, void *prov, unsigned int flags, SPropValue *, ECGenericProp *, void *base);
 	static HRESULT TableRowGetProp(void *prov, const struct propVal *src, SPropValue *dst, void **base, ULONG type);
 
 	// IUnknown

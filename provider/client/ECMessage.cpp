@@ -1786,7 +1786,9 @@ HRESULT ECMessage::TableRowGetProp(void *lpProvider,
 	return MAPI_E_NOT_FOUND;
 }
 
-HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase)
+HRESULT ECMessage::GetPropHandler(unsigned int ulPropTag, void *lpProvider,
+    unsigned int ulFlags, SPropValue *lpsPropValue, ECGenericProp *lpParam,
+    void *lpBase)
 {
 	HRESULT hr = hrSuccess;
 	LPBYTE	lpData = NULL;
@@ -2015,8 +2017,8 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 	return hr;
 }
 
-HRESULT ECMessage::SetPropHandler(ULONG ulPropTag, void *lpProvider,
-    const SPropValue *lpsPropValue, void *lpParam)
+HRESULT ECMessage::SetPropHandler(unsigned int ulPropTag, void *lpProvider,
+    const SPropValue *lpsPropValue, ECGenericProp *lpParam)
 {
 	auto lpMessage = static_cast<ECMessage *>(lpParam);
 	HRESULT hr = hrSuccess;

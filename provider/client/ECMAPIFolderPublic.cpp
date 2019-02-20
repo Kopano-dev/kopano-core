@@ -56,7 +56,9 @@ HRESULT ECMAPIFolderPublic::Create(ECMsgStore *lpMsgStore, BOOL fModify, WSMAPIF
 	       .as(IID_ECMAPIFolder, reinterpret_cast<void **>(lppECMAPIFolder));
 }
 
-HRESULT ECMAPIFolderPublic::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase)
+HRESULT ECMAPIFolderPublic::GetPropHandler(unsigned int ulPropTag,
+    void *lpProvider, unsigned int ulFlags, SPropValue *lpsPropValue,
+    ECGenericProp *lpParam, void *lpBase)
 {
 	HRESULT hr = hrSuccess;
 	LPCTSTR lpszName = NULL;
@@ -215,8 +217,8 @@ HRESULT ECMAPIFolderPublic::GetPropHandler(ULONG ulPropTag, void* lpProvider, UL
 	return hr;
 }
 
-HRESULT ECMAPIFolderPublic::SetPropHandler(ULONG ulPropTag, void *lpProvider,
-    const SPropValue *lpsPropValue, void *lpParam)
+HRESULT ECMAPIFolderPublic::SetPropHandler(unsigned int ulPropTag,
+    void *lpProvider, const SPropValue *lpsPropValue, ECGenericProp *lpParam)
 {
 	HRESULT hr = hrSuccess;
 	auto lpFolder = static_cast<ECMAPIFolderPublic *>(lpParam);

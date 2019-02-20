@@ -74,7 +74,7 @@ public:
 	_kc_hidden virtual HRESULT DeleteAttach(ULONG atnum, ULONG ui_param, IMAPIProgress *, ULONG flags) override;
 	_kc_hidden virtual HRESULT ModifyRecipients(ULONG flags, const ADRLIST *mods) override;
 	_kc_hidden virtual HRESULT SaveChanges(ULONG flags) override;
-	_kc_hidden static HRESULT SetPropHandler(ULONG proptag, void *prov, const SPropValue *, void *param);
+	_kc_hidden static HRESULT SetPropHandler(unsigned int tag, void *prov, const SPropValue *, ECGenericProp *);
 	_kc_hidden bool IsLoading(void) const { return m_bLoading; }
 
 protected:
@@ -119,7 +119,7 @@ class ECArchiveAwareAttach KC_FINAL_OPG : public ECAttach {
 
 	public:
 	static HRESULT Create(ECMsgStore *, ULONG obj_type, BOOL modify, ULONG attach_num, const ECMAPIProp *root, ECAttach **);
-	static HRESULT SetPropHandler(ULONG ulPropTag, void *lpProvider, const SPropValue *lpsPropValue, void *lpParam);
+	static HRESULT SetPropHandler(unsigned int tag, void *prov, const SPropValue *, ECGenericProp *);
 
 	private:
 	const ECArchiveAwareMessage *m_lpRoot;

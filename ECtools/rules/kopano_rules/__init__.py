@@ -29,6 +29,9 @@ except ImportError as e:
 from MAPI.Util import *
 import kopano
 
+if sys.version_info[0] > 2:
+    unicode = str
+
 def opt_args():
     parser = kopano.parser('skpcUPv')
     parser.add_option("--user", dest="user", action="store", help="Run script for user ")

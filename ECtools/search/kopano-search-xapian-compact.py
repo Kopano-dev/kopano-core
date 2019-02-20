@@ -94,7 +94,7 @@ def main():
             else:
                 print('ERROR: no such database:', dbpath)
                 errors += 1
-            print
+            print('')
         except Exception as e:
             print('ERROR', file=sys.stderr)
             traceback.print_exc(e)

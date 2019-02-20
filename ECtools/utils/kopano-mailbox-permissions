@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 # SPDX-License-Identifier: AGPL-3.0-only
+from __future__ import print_function
 
 """
 Set the delegate permissions of a Kopano mailbox
@@ -21,9 +22,13 @@ except ImportError:
 
 import codecs
 
-if sys.version_info < (3,):
+if sys.version_info[0] < 3:
     # Wrap sys.stdout into a StreamWriter to allow writing unicode.
     sys.stdout = codecs.getwriter(locale.getpreferredencoding())(sys.stdout)
+else:
+    def unicode(s):
+        return s
+    long = int
 
 try:
     import MAPI
@@ -36,9 +41,6 @@ except ImportError as e:
     print("")
     print(e)
     sys.exit(1)
-
-if sys.version_info > (3,):
-    long = int
 
 verbose = False
 
@@ -65,12 +67,12 @@ EMS_AB_ADDRESS_LOOKUP = 0x1
 ########################
 # Util functions
 class MyTable(object):
-    
+
     def __init__(self):
         self.column = []
         self.align = []
         self.rows = []
-        self.maxwith= {} 
+        self.maxwith= {}
 
     def getTable(self):
         cols = len(self.column)
@@ -126,8 +128,8 @@ def getGlobalAddressbook(session):
     rest = SAndRestriction(
         [SPropertyRestriction(RELOP_EQ, PR_EMS_AB_CONTAINERID, SPropValue(PR_EMS_AB_CONTAINERID, 0)),
          SOrRestriction([
-                    SPropertyRestriction(RELOP_EQ, PR_AB_PROVIDER_ID, SPropValue(PR_AB_PROVIDER_ID, 'AC21A95040D3EE48B319FBA753304425'.decode('hex'))), # MUIDECSAB
-                    SPropertyRestriction(RELOP_EQ, PR_AB_PROVIDER_ID, SPropValue(PR_AB_PROVIDER_ID, 'DCA740C8C042101AB4B908002B2FE182'.decode('hex'))) ] ) # MUIDEMSAB
+                    SPropertyRestriction(RELOP_EQ, PR_AB_PROVIDER_ID, SPropValue(PR_AB_PROVIDER_ID, codecs.decode('AC21A95040D3EE48B319FBA753304425', 'hex'))), # MUIDECSAB
+                    SPropertyRestriction(RELOP_EQ, PR_AB_PROVIDER_ID, SPropValue(PR_AB_PROVIDER_ID, codecs.decode('DCA740C8C042101AB4B908002B2FE182', 'hex'))) ] ) # MUIDEMSAB
          ])
 
     table.Restrict(rest, TBL_BATCH)
@@ -177,7 +179,7 @@ def getUserListHosted(gab):
         ctable = company.GetContentsTable(MAPI_DEFERRED_ERRORS)
         users.extend(buildUserList(ctable))
 
-    
+
     return users
 
 def getUserList(session):
@@ -228,7 +230,7 @@ def parsePermissionsToId(permissions):
         return ecRightsNone
     elif permissions[0:2] == '0x':
         return int(permissions, 16)
-    
+
     raise ValueError("error unknown permission type %s" % permissions )
 
 # Get the mailbox of the given user
@@ -273,7 +275,7 @@ def UserAccountsToEntryIDs(session, users):
 
     entryids = []
     errors = 0
-    for i in xrange(0, len(rows)):
+    for i in range(0, len(rows)):
         if flags[i] == MAPI_UNRESOLVED or flags[i] == MAPI_AMBIGUOUS:
             errors += 1
             print("unable to resolve user '%s' with flags 0x%08x" % (users[i], flags[i]))
@@ -318,7 +320,7 @@ def setMailboxPermissions(session, listfolderrights, members, mailboxes, private
                 PR_FREEBUSY_ENTRYIDS,
                 ]
 
-    ab = session.OpenAddressBook(0, None, MAPI_UNICODE) 
+    ab = session.OpenAddressBook(0, None, MAPI_UNICODE)
 
     # build permission items
     for mailbox in mailboxes:
@@ -326,7 +328,7 @@ def setMailboxPermissions(session, listfolderrights, members, mailboxes, private
         store = getStore(session, mailbox)
 
         # get inbox
-        inboxid = store.GetReceiveFolder('IPM', 0)[0]
+        inboxid = store.GetReceiveFolder(b'IPM', 0)[0]
         inbox = store.OpenEntry(inboxid, None, MAPI_MODIFY)
 
         # Get the default properties from the inbox
@@ -357,7 +359,7 @@ def setMailboxPermissions(session, listfolderrights, members, mailboxes, private
             fbmsgOl2k = None
             pass
 
-        
+
         fbrights = ecRightsNone
 
         # Store permissions
@@ -408,7 +410,7 @@ def setMailboxPermissions(session, listfolderrights, members, mailboxes, private
         if sendcopy != None or onlySendToDelegates != None:
             drd = DelegateRuleData(session, store, inbox)
 
-            if (onlySendToDelegates != None): 
+            if (onlySendToDelegates != None):
                 drd.setOnlySendToDelegates(onlySendToDelegates)
 
             if sendcopy == True and listfolderrights.get('calendar', ecRightsNone) > ecRightsNone:
@@ -426,7 +428,7 @@ def setMailboxPermissions(session, listfolderrights, members, mailboxes, private
 class DelegateRuleData(object):
 
     userprops = [PR_ENTRYID, PR_ADDRTYPE_W, PR_EMAIL_ADDRESS_W, PR_DISPLAY_NAME_W, PR_SEARCH_KEY, PR_SMTP_ADDRESS_W, PR_OBJECT_TYPE, PR_DISPLAY_TYPE, PR_RECIPIENT_TYPE]
-    delegateruleres = SAndRestriction([SPropertyRestriction(RELOP_EQ, PR_RULE_PROVIDER, SPropValue(PR_RULE_PROVIDER, "Schedule+ EMS Interface"))])
+    delegateruleres = SAndRestriction([SPropertyRestriction(RELOP_EQ, PR_RULE_PROVIDER, SPropValue(PR_RULE_PROVIDER, b'Schedule+ EMS Interface'))])
 
     def __init__(self, session, store, inbox):
         self.session = session
@@ -457,7 +459,6 @@ class DelegateRuleData(object):
 
         rows = self.table.QueryRows(1,0)
         if len(rows) == 1:
-            
             if rows[0][0].ulPropTag == PR_RULE_ACTIONS:
                 if rows[0][0].Value.lpAction[0].acttype == ACTTYPE.OP_DELEGATE:
                     # Get the Delegate users
@@ -470,7 +471,7 @@ class DelegateRuleData(object):
 
             if rows[0][1].ulPropTag == PR_RULE_ID:
                 self.rulekey = rows[0][1]
-    
+
     def getOnlySendToDelegates(self):
         return self.onlysendtodelegates
 
@@ -510,7 +511,7 @@ class DelegateRuleData(object):
             if err.hr != MAPI_E_NOT_FOUND:
                 raise
             rows = []
-        
+
         rulerows = []
         if len(self.usermap) == 0:
             if len(rows) == 1:
@@ -523,12 +524,12 @@ class DelegateRuleData(object):
                     if row[i].ulPropTag in (PR_RULE_ACTIONS, PR_RULE_CONDITION):
                         row.pop(i)
             else:
-                row = [ SPropValue(PR_RULE_LEVEL, 0), 
-                        SPropValue(PR_RULE_NAME, "Delegate Meetingrequest service"),
-                        SPropValue(PR_RULE_PROVIDER, "Schedule+ EMS Interface"),
+                row = [ SPropValue(PR_RULE_LEVEL, 0),
+                        SPropValue(PR_RULE_NAME, b'Delegate Meetingrequest service'),
+                        SPropValue(PR_RULE_PROVIDER, b'Schedule+ EMS Interface'),
                         SPropValue(PR_RULE_SEQUENCE, 0),
                         SPropValue(PR_RULE_STATE, 1),
-                        SPropValue(PR_RULE_PROVIDER_DATA, ''),
+                        SPropValue(PR_RULE_PROVIDER_DATA, b''),
                       ]
 
             actions = []
@@ -539,9 +540,9 @@ class DelegateRuleData(object):
 
             row.append(SPropValue(PR_RULE_ACTIONS, ACTIONS(1, actions)))
 
-            cond = SAndRestriction([SContentRestriction(FL_PREFIX, PR_MESSAGE_CLASS_W, SPropValue(PR_MESSAGE_CLASS_W, u"IPM.Schedule.Meeting")),
+            cond = SAndRestriction([SContentRestriction(FL_PREFIX, PR_MESSAGE_CLASS_W, SPropValue(PR_MESSAGE_CLASS_W, u'IPM.Schedule.Meeting')),
                                      SNotRestriction( SExistRestriction(PR_DELEGATED_BY_RULE) ),
-                                     SOrRestriction([SNotRestriction( SExistRestriction(PR_SENSITIVITY)), 
+                                     SOrRestriction([SNotRestriction( SExistRestriction(PR_SENSITIVITY)),
                                         SPropertyRestriction(RELOP_NE, PR_SENSITIVITY, SPropValue(PR_SENSITIVITY, 2))])
                                     ])
             row.append(SPropValue(PR_RULE_CONDITION, cond))
@@ -593,7 +594,7 @@ def setMailboxFolderPermissions(store, entryid, members, rights):
 
     rows = []
     for member in members:
-        if rights != None: 
+        if rights != None:
             rows.append(ROWENTRY(ROW_ADD, [SPropValue(PR_MEMBER_ENTRYID, member[0]), SPropValue(PR_MEMBER_RIGHTS, rights)]))
         else:
             pass
@@ -603,14 +604,12 @@ def setMailboxFolderPermissions(store, entryid, members, rights):
 
 
 def validatePermissionsAndConvert(permissions):
-
-    for (folder, right) in permissions.iteritems():
+    for (folder, right) in permissions.items():
         permissions[folder] = parsePermissionsToId(right.lower())
-   
+
     return permissions
 
 def parseToBool(b):
-    
     if b and b.lower()[0] in ('y','t', '1'): # Yes, True, 1
         return True
     else: # no, false, 0
@@ -654,7 +653,7 @@ def removeRecuriveFolderPermissions(session, store, entryid, depth):
 
 def removeDelegatePermissions(session, store):
     # get inbox
-    inboxid = store.GetReceiveFolder('IPM', 0)[0]
+    inboxid = store.GetReceiveFolder(b'IPM', 0)[0]
     inbox = store.OpenEntry(inboxid, None, MAPI_MODIFY)
 
     # Get the default properties from the inbox
@@ -763,7 +762,7 @@ def printFolderACLs(printtable, folder, showall, depth):
 # Print the delegate information of a store
 def printDelegateInformation(session, store):
     # get inbox
-    inboxid = store.GetReceiveFolder('IPM', 0)[0]
+    inboxid = store.GetReceiveFolder(b'IPM', 0)[0]
     inbox = store.OpenEntry(inboxid, None, MAPI_MODIFY)
 
     drd = DelegateRuleData(session, store, inbox)
@@ -880,8 +879,8 @@ def main(argv = None):
         argv = sys.argv
 
     try:
-        opts, args = getopt.gnu_getopt(argv[1:], 'avh:s:p:', 
-                                        ['all', 'help', 'host', 'sslkey-file', 'sslkey-pass','verbose', 
+        opts, args = getopt.gnu_getopt(argv[1:], 'avh:s:p:',
+                                        ['all', 'help', 'host', 'sslkey-file', 'sslkey-pass','verbose',
                                          'calendar=', 'tasks=', 'inbox=', 'contacts=', 'notes=', 'journal=', 'store=',
                                          'seeprivate=', 'sendcopy=', 'send-only-to-delegators=',
                                          'update-delegate=','remove-delegate=','remove-all-permissions',
@@ -899,16 +898,16 @@ def main(argv = None):
     host = os.getenv("KOPANO_SOCKET", "default:")
     sslkey_file = None
     sslkey_pass = None
-    users = [] 
+    users = []
     listpermissions = None
     showall = None
     seeprivate = False
-    sendcopy = None 
+    sendcopy = None
     onlysendtodelegators = None
     action = None
     allmailboxes = False
     profile = None
-    
+
     permissions = {}
     for o, a in opts:
         if o in ('-h', '--host'):
@@ -938,7 +937,7 @@ def main(argv = None):
         elif o in ('--send-only-to-delegators'):
             onlysendtodelegators = parseToBool(a)
         elif o in ('--update-delegate'):
-            users = a.split() 
+            users = a.split()
             action = 'add'
         elif o in ('--remove-delegate'):
             users = a.split()
@@ -994,7 +993,7 @@ def main(argv = None):
     if (listpermissions):
         printUserMailBoxPermissions(session, showall, args)
 
-    return 0 
+    return 0
 
 
 if __name__ == '__main__':

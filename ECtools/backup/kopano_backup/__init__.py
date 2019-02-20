@@ -553,7 +553,7 @@ class Service(kopano.Service):
                 folder.rules_loads(open(fpath+'/rules', 'rb').read(), stats=stats)
 
         # restore store-level metadata (webapp/mapi settings)
-        if user and not self.options.folders and not self.options.restore_root and not self.options.skip_meta:
+        if user and not (self.options.folders or self.options.restore_root or self.options.skip_meta or self.options.sourcekeys):
             if os.path.exists('%s/store' % data_path):
                 storeprops = pickle_loads(open('%s/store' % data_path, 'rb').read())
                 for proptag in WEBAPP_SETTINGS + (PR_EC_OUTOFOFFICE_SUBJECT, PR_EC_OUTOFOFFICE_MSG,
