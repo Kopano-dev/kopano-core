@@ -25,7 +25,7 @@ ECRESULT KCMDatabaseMySQL::Connect(ECConfig *lpConfig)
 		`guid` binary(16) NOT NULL, \
 		PRIMARY KEY (`id`), \
 		UNIQUE KEY `guid` (`guid`) \
-	) ENGINE=%s"
+	) ENGINE=%s CHARACTER SET %s"
 
 #define ZA_TABLEDEF_INSTANCES \
 	"CREATE TABLE `za_instances` ( \
@@ -33,7 +33,7 @@ ECRESULT KCMDatabaseMySQL::Connect(ECConfig *lpConfig)
 		`tag` smallint(6) unsigned NOT NULL, \
 		PRIMARY KEY (`id`), \
 		UNIQUE KEY `instance` (`id`, `tag`) \
-	) ENGINE=%s"
+	) ENGINE=%s CHARACTER SET %s"
 
 #define ZA_TABLEDEF_MAPPINGS \
 	"CREATE TABLE `za_mappings` ( \
@@ -45,7 +45,7 @@ ECRESULT KCMDatabaseMySQL::Connect(ECConfig *lpConfig)
 		UNIQUE KEY `instance` (`instance_id`, `tag`, `server_id`), \
 		FOREIGN KEY (`server_id`) REFERENCES za_servers(`id`) ON DELETE CASCADE, \
 		FOREIGN KEY (`instance_id`, `tag`) REFERENCES za_instances(`id`, `tag`) ON UPDATE RESTRICT ON DELETE CASCADE \
-	) ENGINE=%s"
+	) ENGINE=%s CHARACTER SET %s"
 
 static constexpr const struct sSQLDatabase_t kcmsql_tables[] = {
 	{"servers", ZA_TABLEDEF_SERVERS},

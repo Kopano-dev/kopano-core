@@ -219,7 +219,7 @@ ECRESULT KDatabase::CreateDatabase(ECConfig *cfg, bool reconnect)
 	return erSuccess;
 }
 
-ECRESULT KDatabase::CreateTables(ECConfig *cfg)
+ECRESULT KDatabase::CreateTables(ECConfig *cfg, const char **charsetp)
 {
 	auto tables = GetDatabaseDefs();
 	if (tables == nullptr)
@@ -228,6 +228,7 @@ ECRESULT KDatabase::CreateTables(ECConfig *cfg)
 	if (engine == nullptr)
 		engine = "InnoDB";
 
+	const char *charset = nullptr;
 	for (size_t i = 0; tables[i].lpSQL != nullptr; ++i) {
 		DB_RESULT result;
 		auto query = format("SHOW tables LIKE '%s'", tables[i].lpComment);
@@ -241,9 +242,16 @@ ECRESULT KDatabase::CreateTables(ECConfig *cfg)
 			continue;
 		}
 		ec_log_info("Create table: %s", tables[i].lpComment);
-		er = DoInsert(format(tables[i].lpSQL, engine));
-		if (er != erSuccess)
-			return er;
+		if (charset == nullptr) {
+			er = DoInsert(format(tables[i].lpSQL, engine, "utf8mb4"));
+			charset = er == erSuccess ? "utf8mb4" : "utf8";
+			if (charsetp != nullptr)
+				*charsetp = charset;
+		} else {
+			er = DoInsert(format(tables[i].lpSQL, engine, charset));
+			if (er != erSuccess)
+				return er;
+		}
 	}
 	return erSuccess;
 }
