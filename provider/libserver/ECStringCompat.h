@@ -101,7 +101,6 @@ ECRESULT FixRowSetEncoding(struct soap *soap, const ECStringCompat &stringCompat
 ECRESULT FixUserEncoding(struct soap *soap, const ECStringCompat &stringCompat, enum EncodingFixDirection type, struct user *lpUser);
 ECRESULT FixGroupEncoding(struct soap *soap, const ECStringCompat &stringCompat, enum EncodingFixDirection type, struct group *lpGroup);
 ECRESULT FixCompanyEncoding(struct soap *soap, const ECStringCompat &stringCompat, enum EncodingFixDirection type, struct company *lpCompany);
-ECRESULT FixNotificationsEncoding(struct soap *soap, const ECStringCompat &stringCompat, struct notificationArray *notifications);
 
 // inlines
 inline char *ECStringCompat::to_UTF8(soap *lpsoap, const char *szIn) const
