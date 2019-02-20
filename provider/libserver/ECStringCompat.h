@@ -10,7 +10,6 @@
 #include <kopano/kcodes.h>
 #include "kcore.hpp"
 #include "SOAPUtils.h"
-#include <mapidefs.h>
 
 struct soap;
 
@@ -68,14 +67,6 @@ public:
 	 *				current convert setting.
 	 */
 	char *from_UTF8_cpy(soap *lpsoap, const char *szIn)const ;
-
-	/**
-	 * Returns the prop type needed for strings that are returned to the client.
-	 *
-	 * @retval	PT_STRING8 when the client does not support unicode.
-	 * @retval	PT_UNICODE when the client does support unicoce.
-	 */
-	ULONG string_prop_type() const;
 };
 
 enum EncodingFixDirection { In, Out };
@@ -96,11 +87,6 @@ inline char *ECStringCompat::from_UTF8(soap *lpsoap, const char *szIn) const
 inline char *ECStringCompat::from_UTF8_cpy(soap *lpsoap, const char *szIn) const
 {
 	return s_strcpy(lpsoap, szIn);
-}
-
-inline ULONG ECStringCompat::string_prop_type() const
-{
-	return PT_UNICODE;
 }
 
 } /* namespace */
