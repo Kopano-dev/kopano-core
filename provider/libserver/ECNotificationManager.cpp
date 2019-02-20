@@ -10,7 +10,6 @@
 #include "ECNotificationManager.h"
 #include "ECSession.h"
 #include "ECSessionManager.h"
-#include "ECStringCompat.h"
 #include "SOAPUtils.h"
 #include "soapH.h"
 
@@ -245,12 +244,6 @@ void *ECNotificationManager::Work() {
                             soap_default_notificationArray(iterRequest->second.soap, notifications.pNotificationArray);
                         }
                     }
-
-					ULONG ulCapabilities = lpecSession->GetCapabilities();
-					if (er == erSuccess && (ulCapabilities & KOPANO_CAP_UNICODE) == 0) {
-						ECStringCompat stringCompat(false);
-						er = FixNotificationsEncoding(iterRequest->second.soap, stringCompat, notifications.pNotificationArray);
-					}
 
                     notifications.er = er;
 					lpecSession->unlock();

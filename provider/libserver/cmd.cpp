@@ -808,7 +808,7 @@ int KCmdService::fname(ULONG64 ulSessionId, ##__VA_ARGS__) \
 			timespec2dbl(endTimes) - timespec2dbl(startTimes), \
 			dur2dbl(decltype(dblStart)::clock::now() - dblStart)); \
 	}); \
-	const bool bSupportUnicode = (er == erSuccess ? (lpecSession->GetCapabilities() & KOPANO_CAP_UNICODE) != 0 : false); \
+	const bool bSupportUnicode = true; \
 	const ECStringCompat stringCompat(bSupportUnicode); \
 	if (er != erSuccess) { \
 		resultvar = er; \
@@ -1248,7 +1248,7 @@ static ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession,
 	quotadetails_t	sDetails;
 	unsigned int ulCompanyId = 0, ulStoreOwner = 0;
 	struct propVal sPropVal;
-	ECStringCompat stringCompat(lpecSession->GetCapabilities() & KOPANO_CAP_UNICODE);
+	ECStringCompat stringCompat(true);
 	USE_DATABASE_NORESULT();
 
 	if(ulObjType == MAPI_STORE) //fimxe: except public stores
@@ -1561,7 +1561,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 	ULONG ulInstanceId = 0, ulInstanceTag = 0;
 	bool bAttachmentStored = false;
 	entryId sUserId;
-	ECStringCompat stringCompat(lpecSession->GetCapabilities() & KOPANO_CAP_UNICODE);
+	ECStringCompat stringCompat(true);
 	std::string	strColData, strInsert, strInsertTProp;
 	SOURCEKEY sSourceKey, sParentSourceKey;
 	DB_RESULT lpDBResult;
@@ -2661,7 +2661,7 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
 	}
 	else if (lpChildProps == nullptr) {
 	    // We were not provided with a property list for this object, get our own now.
-	    er = PrepareReadProps(soap, lpDatabase, true, lpecSession->GetCapabilities() & KOPANO_CAP_UNICODE, ulObjId, 0, MAX_PROP_SIZE, &mapChildProps, NULL);
+	    er = PrepareReadProps(soap, lpDatabase, true, true, ulObjId, 0, MAX_PROP_SIZE, &mapChildProps, NULL);
 	    if(er != erSuccess)
 			return er;
         lpChildProps = &mapChildProps;
@@ -2686,7 +2686,7 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
 	if (ulObjType == MAPI_MESSAGE || ulObjType == MAPI_ATTACH) {
 		if (!complete) {
 			// Pre-load *all* properties of *all* subobjects for fast accessibility
-			er = PrepareReadProps(soap, lpDatabase, true, lpecSession->GetCapabilities() & KOPANO_CAP_UNICODE, 0, ulObjId, MAX_PROP_SIZE, &mapChildProps, NULL);
+			er = PrepareReadProps(soap, lpDatabase, true, true, 0, ulObjId, MAX_PROP_SIZE, &mapChildProps, NULL);
 			if (er != erSuccess)
 				return er;
 		}

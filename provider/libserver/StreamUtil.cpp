@@ -969,10 +969,6 @@ ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, 
 
 	if (lpStreamCaps == NULL) {
 		lpStreamCaps = STREAM_CAPS_CURRENT;	// Set to current stream capabilities.
-		if ((lpecSession->GetCapabilities() & KOPANO_CAP_UNICODE) == 0) {
-			ulStreamVersion = 0;
-			lpStreamCaps = &g_StreamCaps[0];
-		}
 		er = lpSink->Write(&ulStreamVersion, sizeof(ulStreamVersion), 1);
 		if (er != erSuccess)
 			goto exit;
