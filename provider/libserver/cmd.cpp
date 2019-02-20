@@ -550,12 +550,8 @@ int KCmdService::logon(const char *user, const char *pass,
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTimes);
 	LOG_SOAP_DEBUG("%020llu: S logon", static_cast<unsigned long long>(sessionID));
 
-    if ((clientCaps & KOPANO_CAP_UNICODE) == 0) {
-		user = ECStringCompat::WTF1252_to_UTF8(soap, user);
-		pass = ECStringCompat::WTF1252_to_UTF8(soap, pass);
-		clientVersion = ECStringCompat::WTF1252_to_UTF8(soap, clientVersion);
-		szClientApp = ECStringCompat::WTF1252_to_UTF8(soap, szClientApp);
-	}
+	if (!(clientCaps & KOPANO_CAP_UNICODE))
+		return MAPI_E_BAD_CHARWIDTH;
 
 	lpsResponse->lpszVersion = const_cast<char *>("0," PROJECT_VERSION_COMMIFIED);
 	lpsResponse->ulCapabilities = KOPANO_LATEST_CAPABILITIES;
@@ -681,11 +677,8 @@ int KCmdService::ssoLogon(ULONG64 ulSessionId, const char *szUsername,
 	}
 
 	lpecAuthSession->SetClientMeta(szClientAppVersion, szClientAppMisc);
-    if ((clientCaps & KOPANO_CAP_UNICODE) == 0) {
-		szUsername = ECStringCompat::WTF1252_to_UTF8(soap, szUsername);
-		szClientVersion = ECStringCompat::WTF1252_to_UTF8(soap, szClientVersion);
-		szClientApp = ECStringCompat::WTF1252_to_UTF8(soap, szClientApp);
-	}
+	if (!(clientCaps & KOPANO_CAP_UNICODE))
+		return MAPI_E_BAD_CHARWIDTH;
 
 	er = lpecAuthSession->ValidateSSOData(soap, szUsername, szImpersonateUser, szClientVersion, szClientApp, szClientAppVersion, szClientAppMisc, lpInput, &lpOutput);
 	if (er == KCERR_SSO_CONTINUE) {
