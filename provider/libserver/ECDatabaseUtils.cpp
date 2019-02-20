@@ -128,19 +128,16 @@ ECRESULT CopySOAPPropValToDatabasePropVal(const struct propVal *lpPropVal,
 		*lpulColNr = VALUE_NR_LONGINT;
 		break;
 	case PT_UNICODE:
-	case PT_STRING8: {
-		std::string strData;
+	case PT_STRING8:
 		if (lpPropVal->__union != SOAP_UNION_propValData_lpszA ||
 		    lpPropVal->Value.lpszA == NULL)
 			return KCERR_INVALID_PARAMETER;
 		if (bTruncate)
-			u8_ncpy(lpPropVal->Value.lpszA, TABLE_CAP_STRING, &strData);
+			strColData = "'" + lpDatabase->Escape(u8_ncpy(lpPropVal->Value.lpszA, TABLE_CAP_STRING)) + "'";
 		else
-			strData = lpPropVal->Value.lpszA;
-		strColData = "'" +  lpDatabase->Escape(strData) + "'";
+			strColData = "'" + lpDatabase->Escape(lpPropVal->Value.lpszA) + "'";
 		*lpulColNr = VALUE_NR_STRING;
 		break;
-	}
 	case PT_BINARY: {
 		unsigned int ulSize;
 		if (lpPropVal->__union != SOAP_UNION_propValData_bin ||

@@ -611,18 +611,17 @@ bool u8_icontains(const char *haystack, const char *needle, const ECLocale &loca
 }
 
 /**
- * Copy at most n characters from the utf8 string src to lpstrDest.
+ * Copy at most n characters from the utf8 string src.
  *
  * @param[in]	src			The UTF-8 source data to copy
  * @param[in]	n			The maximum amount of characters to copy
- * @param[out]	lpstrDest	The copied data.
  *
  * @return The amount of characters copied.
  */
-unsigned u8_ncpy(const char *src, unsigned n, std::string *lpstrDest)
+std::string u8_ncpy(const char *src, size_t n)
 {
 	const char *it = src;
-	unsigned len = 0;
+	size_t len = 0;
 	while (true) {
 		const char *tmp = it;
 		utf8::uint32_t cp = utf8::unchecked::next(tmp);
@@ -632,8 +631,7 @@ unsigned u8_ncpy(const char *src, unsigned n, std::string *lpstrDest)
 		if (++len == n)
 			break;
 	}
-	lpstrDest->assign(src, it);
-	return len;
+	return std::string(src, it);
 }
 
 /**
