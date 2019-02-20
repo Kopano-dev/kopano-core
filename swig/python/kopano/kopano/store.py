@@ -17,6 +17,7 @@ from MAPI import (
     TBL_BATCH, ECSTORE_TYPE_PUBLIC, FOLDER_SEARCH, MAPI_ASSOCIATED,
     MAPI_DEFERRED_ERRORS, ROW_REMOVE, MAPI_CREATE,
     ECSTORE_TYPE_PRIVATE, ECSTORE_TYPE_ARCHIVE, ECSTORE_TYPE_PUBLIC,
+    KEEP_OPEN_READWRITE,
 )
 from MAPI.Defs import (
     HrGetOneProp, CHANGE_PROP_TYPE, PpropFindProp
@@ -39,7 +40,12 @@ from MAPI.Tags import (
     PR_WLINK_STORE_ENTRYID, PR_WLINK_ENTRYID,
     PR_EXTENDED_FOLDER_FLAGS, PR_WB_SF_ID, PR_FREEBUSY_ENTRYIDS,
     PR_SCHDINFO_DELEGATE_ENTRYIDS, PR_SCHDINFO_DELEGATE_NAMES_W,
-    PR_DELEGATE_FLAGS, PR_MAPPING_SIGNATURE, PR_EC_WEBACCESS_SETTINGS_JSON
+    PR_DELEGATE_FLAGS, PR_MAPPING_SIGNATURE, PR_EC_WEBACCESS_SETTINGS_JSON_W,
+    PR_EC_WEBACCESS_SETTINGS_W, PR_EC_RECIPIENT_HISTORY_W,
+    PR_EC_WEBACCESS_SETTINGS_JSON_W, PR_EC_RECIPIENT_HISTORY_JSON_W,
+    PR_EC_WEBAPP_PERSISTENT_SETTINGS_JSON_W, PR_EC_OUTOFOFFICE_SUBJECT_W,
+    PR_EC_OUTOFOFFICE_MSG_W, PR_EC_OUTOFOFFICE, PR_EC_OUTOFOFFICE_FROM,
+    PR_EC_OUTOFOFFICE_UNTIL,
 )
 from MAPI.Struct import (
     SPropertyRestriction, SPropValue, ROWENTRY, MAPINAMEID,
@@ -89,6 +95,14 @@ else: # pragma: no cover
     import folder as _folder
     import item as _item
     import utils as _utils
+
+SETTINGS_PROPTAGS = (
+    PR_EC_WEBACCESS_SETTINGS_W, PR_EC_RECIPIENT_HISTORY_W,
+    PR_EC_WEBACCESS_SETTINGS_JSON_W, PR_EC_RECIPIENT_HISTORY_JSON_W,
+    PR_EC_WEBAPP_PERSISTENT_SETTINGS_JSON_W,
+    PR_EC_OUTOFOFFICE_SUBJECT_W, PR_EC_OUTOFOFFICE_MSG_W,
+    PR_EC_OUTOFOFFICE, PR_EC_OUTOFOFFICE_FROM, PR_EC_OUTOFOFFICE_UNTIL,
+)
 
 
 class Store(Properties):
@@ -152,7 +166,7 @@ class Store(Properties):
     def webapp_settings(self):
         """Webapp settings (JSON)."""
         try:
-            return json.loads(self.user.store.prop(PR_EC_WEBACCESS_SETTINGS_JSON).value)
+            return json.loads(self.user.store.prop(PR_EC_WEBACCESS_SETTINGS_JSON_W).value)
         except NotFoundError:
             pass
 
@@ -803,11 +817,10 @@ class Store(Properties):
             for user2 in users:
                 self.delegation(user2, create=True)
 
-    def dumps(self):
+    def dumps(self): # TODO optionally include folder settings but not data
         data = {}
 
-        data['permissions'] = self.permissions_dumps()
-        data['delegations'] = self.delegations_dumps()
+        data['settings'] = self.settings_dumps()
 
         data['folders'] = folders = {}
         for folder in self.folders():
@@ -818,12 +831,40 @@ class Store(Properties):
     def loads(self, data):
         data = _utils.pickle_loads(data)
 
-        self.delegations_loads(data['delegations'])
-        self.permissions_loads(data['permissions'])
+        self.settings_loads(data['settings'])
 
         for path, fdata in data['folders'].items():
             folder = self.folder(path, create=True)
             folder.loads(fdata)
+
+    def settings_dumps(self):
+        data = {}
+
+        data['permissions'] = self.permissions_dumps()
+        data['delegations'] = self.delegations_dumps()
+
+        props = {}
+        for prop in self.props():
+            if prop.proptag in SETTINGS_PROPTAGS:
+                props[prop.proptag] = prop.mapiobj.Value
+
+        data['props'] = props
+
+        return _utils.pickle_dumps(data)
+
+    def settings_loads(self, data):
+        data = _utils.pickle_loads(data)
+
+        self.delegations_loads(data['delegations'])
+        self.permissions_loads(data['permissions'])
+
+        props = []
+        for proptag, value in data['props'].items():
+            if proptag in SETTINGS_PROPTAGS:
+                props.append(SPropValue(proptag, value))
+
+        self.mapiobj.SetProps(props)
+        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     @property
     def send_only_to_delegates(self):
