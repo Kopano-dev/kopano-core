@@ -12,16 +12,12 @@
 
 namespace KC {
 
-ECRESULT FixPropEncoding(struct soap *soap, enum EncodingFixDirection type, struct propVal *lpProp, bool bNoTagUpdate)
+ECRESULT FixPropEncoding(struct soap *soap, enum EncodingFixDirection type, struct propVal *lpProp)
 {
-	if (PROP_TYPE(lpProp->ulPropTag) == PT_STRING8 || PROP_TYPE(lpProp->ulPropTag) == PT_UNICODE) {
-		if (!bNoTagUpdate)
-			lpProp->ulPropTag = CHANGE_PROP_TYPE(lpProp->ulPropTag, PT_UNICODE);
-	} else if (PROP_TYPE(lpProp->ulPropTag) == PT_MV_STRING8 || PROP_TYPE(lpProp->ulPropTag) == PT_MV_UNICODE) {
-		if (!bNoTagUpdate)
-			lpProp->ulPropTag = CHANGE_PROP_TYPE(lpProp->ulPropTag, PT_MV_UNICODE);
-	}
-
+	if (PROP_TYPE(lpProp->ulPropTag) == PT_STRING8 || PROP_TYPE(lpProp->ulPropTag) == PT_UNICODE)
+		lpProp->ulPropTag = CHANGE_PROP_TYPE(lpProp->ulPropTag, PT_UNICODE);
+	else if (PROP_TYPE(lpProp->ulPropTag) == PT_MV_STRING8 || PROP_TYPE(lpProp->ulPropTag) == PT_MV_UNICODE)
+		lpProp->ulPropTag = CHANGE_PROP_TYPE(lpProp->ulPropTag, PT_MV_UNICODE);
 	return erSuccess;
 }
 

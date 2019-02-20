@@ -17,7 +17,7 @@ namespace KC {
 
 enum EncodingFixDirection { In, Out };
 
-extern ECRESULT FixPropEncoding(struct soap *, enum EncodingFixDirection, struct propVal *, bool no_tag_update = false);
+extern ECRESULT FixPropEncoding(struct soap *, enum EncodingFixDirection, struct propVal *);
 
 } /* namespace */
 
