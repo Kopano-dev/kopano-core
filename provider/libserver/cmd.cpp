@@ -2661,7 +2661,7 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
 	}
 	else if (lpChildProps == nullptr) {
 	    // We were not provided with a property list for this object, get our own now.
-	    er = PrepareReadProps(soap, lpDatabase, true, true, ulObjId, 0, MAX_PROP_SIZE, &mapChildProps, NULL);
+		er = PrepareReadProps(soap, lpDatabase, true, ulObjId, 0, MAX_PROP_SIZE, &mapChildProps, nullptr);
 	    if(er != erSuccess)
 			return er;
         lpChildProps = &mapChildProps;
@@ -2686,7 +2686,7 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
 	if (ulObjType == MAPI_MESSAGE || ulObjType == MAPI_ATTACH) {
 		if (!complete) {
 			// Pre-load *all* properties of *all* subobjects for fast accessibility
-			er = PrepareReadProps(soap, lpDatabase, true, true, 0, ulObjId, MAX_PROP_SIZE, &mapChildProps, NULL);
+			er = PrepareReadProps(soap, lpDatabase, true, 0, ulObjId, MAX_PROP_SIZE, &mapChildProps, nullptr);
 			if (er != erSuccess)
 				return er;
 		}

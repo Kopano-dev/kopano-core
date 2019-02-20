@@ -979,7 +979,7 @@ ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, 
 	if (er != erSuccess)
 		goto exit;
 	// szPrepareGetProps
-	er = PrepareReadProps(NULL, lpStreamDatabase, !bUseSQLMulti, true, 0, ulObjId, 0, &mapChildProps, &mapNamedPropDefs);
+	er = PrepareReadProps(nullptr, lpStreamDatabase, !bUseSQLMulti, 0, ulObjId, 0, &mapChildProps, &mapNamedPropDefs);
 	if (er != erSuccess)
 		goto exit;
 

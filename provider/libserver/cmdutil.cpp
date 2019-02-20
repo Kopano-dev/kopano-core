@@ -1835,11 +1835,14 @@ ECRESULT BeginLockFolders(ECDatabase *lpDatabase, const SOURCEKEY &sourcekey,
 // Prepares child property data. This can be passed to ReadProps(). This allows the properties of child objects of object ulObjId to be
 // retrieved with far less SQL queries, since this function bulk-receives the data. You may pass EITHER ulObjId OR ulParentId to retrieve an object itself, or
 // children of an object.
-ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQuery, bool fUnicode, unsigned int ulObjId, unsigned int ulParentId, unsigned int ulMaxSize, ChildPropsMap *lpChildProps, NamedPropDefMap *lpNamedPropDefs)
+ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase,
+    bool fDoQuery, unsigned int ulObjId, unsigned int ulParentId,
+    unsigned int ulMaxSize, ChildPropsMap *lpChildProps,
+    NamedPropDefMap *lpNamedPropDefs)
 {
 	unsigned int ulSize;
 	struct propVal sPropVal;
-	ECStringCompat stringCompat(fUnicode);
+	ECStringCompat stringCompat(true);
 	std::string strQuery;
 	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL;
@@ -1904,12 +1907,10 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
         }
 
 		// server strings are always unicode, for unicode clients.
-		if (fUnicode) {
-			if (PROP_TYPE(ulPropTag) == PT_STRING8)
-				ulPropTag = CHANGE_PROP_TYPE(ulPropTag, PT_UNICODE);
-			else if (PROP_TYPE(ulPropTag) == PT_MV_STRING8)
-				ulPropTag = CHANGE_PROP_TYPE(ulPropTag, PT_MV_UNICODE);
-		}
+		if (PROP_TYPE(ulPropTag) == PT_STRING8)
+			ulPropTag = CHANGE_PROP_TYPE(ulPropTag, PT_UNICODE);
+		else if (PROP_TYPE(ulPropTag) == PT_MV_STRING8)
+			ulPropTag = CHANGE_PROP_TYPE(ulPropTag, PT_MV_UNICODE);
 
 		auto ulChildId = atoui(lpDBRow[FIELD_NR_MAX]);
 		auto iterChild = lpChildProps->find(ulChildId);

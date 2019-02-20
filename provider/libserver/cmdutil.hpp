@@ -204,7 +204,7 @@ struct CHILDPROPS {
 };
 typedef std::map<unsigned int, CHILDPROPS> ChildPropsMap;
 
-ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQuery, bool fUnicode, unsigned int ulObjId, unsigned int ulParentId, unsigned int ulMaxSize, ChildPropsMap *lpChildProps, NamedPropDefMap *lpNamedProps);
+extern ECRESULT PrepareReadProps(struct soap *, ECDatabase *, bool do_query, unsigned int obj_id, unsigned int parent_id, unsigned int max_size, ChildPropsMap *, NamedPropDefMap *);
 
 } /* namespace */
 
