@@ -1619,7 +1619,7 @@ exit:
 
 class InputValidator {
 	public:
-		bool Failed() const { return m_bFailure; }
+	bool failed = false;
 
 		/**
 		 * Checks for 'invalid' input from the command prompt. Any
@@ -1630,18 +1630,11 @@ class InputValidator {
 		 * @return validated input or NULL
 		 */
 		char* operator()(char *szInput) {
-			m_bFailure = true;
 			wstring strInput;
-
-			if (szInput == nullptr || TryConvert(szInput, strInput) != hrSuccess ||
-			    !std::all_of(strInput.cbegin(), strInput.cend(), iswprint))
-				return NULL;
-			m_bFailure = false;
-			return szInput;
+			failed = szInput == nullptr || TryConvert(szInput, strInput) != hrSuccess ||
+			       !std::all_of(strInput.cbegin(), strInput.cend(), iswprint);
+			return failed ? nullptr : szInput;
 		}
-
-	private:
-		bool m_bFailure = false;
 };
 
 static HRESULT fillMVPropmap(ECUSER &sECUser, ULONG ulPropTag, int index,
@@ -2094,7 +2087,7 @@ int main(int argc, char **argv) try
 		default:
 			break;
 		};
-		if (validateInput.Failed()) {
+		if (validateInput.failed) {
 			cerr << "Invalid input '" << optarg << "' found." << endl;
 			// no need to return, later input checking will print an error too
 		}
