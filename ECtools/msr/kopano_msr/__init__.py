@@ -24,24 +24,28 @@ CONFIG = {
     'ssl_certificate_file': Config.path(default=None, check=False),
 }
 
-LOCK = multiprocessing.Lock()
+setproctitle.setproctitle('kopano-msr main')
 
-setproctitle.setproctitle('kopano-msr manager')
-_mgr = multiprocessing.Manager()
+def init_globals(): # late init to survive daemonization
+    global LOCK, STORE_STORE, USER_INFO, STORE_FOLDER_QUEUED, STORE_FOLDERS_TODO, USER_SINK
 
-# TODO persistency
-STORE_STORE = _mgr.dict() # store mapping
-USER_INFO = _mgr.dict() # statistics
+    LOCK = multiprocessing.Lock()
 
-# ensure max one worker per store (performance, correctness)
-# storeid -> foldereid (specific folder sync) or None (for hierarchy sync)
-STORE_FOLDER_QUEUED = _mgr.dict()
+    _mgr = multiprocessing.Manager()
 
-# store incoming updates until processed
-# storeid -> foldereids (or None for hierarchy sync)
-STORE_FOLDERS_TODO = _mgr.dict()
+    # TODO persistency
+    STORE_STORE = _mgr.dict() # store mapping
+    USER_INFO = _mgr.dict() # statistics
 
-USER_SINK = {} # per-user notification sink
+    # ensure max one worker per store (performance, correctness)
+    # storeid -> foldereid (specific folder sync) or None (for hierarchy sync)
+    STORE_FOLDER_QUEUED = _mgr.dict()
+
+    # store incoming updates until processed
+    # storeid -> foldereids (or None for hierarchy sync)
+    STORE_FOLDERS_TODO = _mgr.dict()
+
+    USER_SINK = {} # per-user notification sink
 
 def db_get(db_path, key):
     """ get value from db file """
@@ -343,7 +347,9 @@ class Service(kopano.Service):
     """ main process """
 
     def main(self):
-        setproctitle.setproctitle('kopano-msr main')
+        init_globals()
+
+        setproctitle.setproctitle('kopano-msr service')
 
         if self.config['state_path']:
             os.system('rm -rf %s/*' % self.config['state_path']) # TODO temporary until improved persistency
@@ -369,7 +375,7 @@ class Service(kopano.Service):
 
         usera = server.user(username)
         storea = usera.store
-   
+
         # TODO report errors back directly to command-line process
 
         if target_server != '_':
