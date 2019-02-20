@@ -13,9 +13,6 @@
 #include <mapidefs.h>
 
 struct soap;
-struct user;
-struct group;
-struct company;
 
 namespace KC {
 
@@ -96,11 +93,6 @@ private:
 enum EncodingFixDirection { In, Out };
 
 ECRESULT FixPropEncoding(struct soap *soap, const ECStringCompat &stringCompat, enum EncodingFixDirection type, struct propVal *lpProp, bool bNoTagUpdate = false);
-ECRESULT FixRestrictionEncoding(struct soap *soap, const ECStringCompat &stringCompat, enum EncodingFixDirection type, struct restrictTable *lpRestrict);
-ECRESULT FixRowSetEncoding(struct soap *soap, const ECStringCompat &stringCompat, enum EncodingFixDirection type, struct rowSet *lpRowSet);
-ECRESULT FixUserEncoding(struct soap *soap, const ECStringCompat &stringCompat, enum EncodingFixDirection type, struct user *lpUser);
-ECRESULT FixGroupEncoding(struct soap *soap, const ECStringCompat &stringCompat, enum EncodingFixDirection type, struct group *lpGroup);
-ECRESULT FixCompanyEncoding(struct soap *soap, const ECStringCompat &stringCompat, enum EncodingFixDirection type, struct company *lpCompany);
 
 // inlines
 inline char *ECStringCompat::to_UTF8(soap *lpsoap, const char *szIn) const
