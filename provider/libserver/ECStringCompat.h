@@ -49,24 +49,6 @@ public:
 	 *				current convert setting.
 	 */
 	char *from_UTF8(soap *lpsoap, const char *szIn) const;
-
-	/**
-	 * Convert and copy the data from UTF8 to either UTF8 or WTF1252. If
-	 * ulClientCaps contains KOPANO_CAP_UNICODE, the output data will not be
-	 * converted and will be in UTF8. Otherwise the data will be encoded in
-	 * WTF1252.
-	 *
-	 * This function is intended to be used when a copy should be made
-	 * regardless of the convert setting. So when the value is going to be
-	 * used as a result and gsoap is going to use it, this function should
-	 * be used unless the original string is static.
-	 *
-	 * @param[in]	szIn	The input data in UTF8.
-	 *
-	 * @return		The input data encoded in UTF8 or WTF1252 depending on the
-	 *				current convert setting.
-	 */
-	char *from_UTF8_cpy(soap *lpsoap, const char *szIn)const ;
 };
 
 enum EncodingFixDirection { In, Out };
@@ -82,11 +64,6 @@ inline char *ECStringCompat::to_UTF8(soap *lpsoap, const char *szIn) const
 inline char *ECStringCompat::from_UTF8(soap *lpsoap, const char *szIn) const
 {
 	return const_cast<char *>(szIn);
-}
-
-inline char *ECStringCompat::from_UTF8_cpy(soap *lpsoap, const char *szIn) const
-{
-	return s_strcpy(lpsoap, szIn);
 }
 
 } /* namespace */
