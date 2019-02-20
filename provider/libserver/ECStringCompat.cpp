@@ -15,14 +15,9 @@ namespace KC {
 ECRESULT FixPropEncoding(struct soap *soap, const ECStringCompat &stringCompat, enum EncodingFixDirection type, struct propVal *lpProp, bool bNoTagUpdate)
 {
 	if (PROP_TYPE(lpProp->ulPropTag) == PT_STRING8 || PROP_TYPE(lpProp->ulPropTag) == PT_UNICODE) {
-		if (type == In)
-			lpProp->Value.lpszA = stringCompat.to_UTF8(soap, lpProp->Value.lpszA);
 		if (!bNoTagUpdate)
 			lpProp->ulPropTag = CHANGE_PROP_TYPE(lpProp->ulPropTag, PT_UNICODE);
 	} else if (PROP_TYPE(lpProp->ulPropTag) == PT_MV_STRING8 || PROP_TYPE(lpProp->ulPropTag) == PT_MV_UNICODE) {
-		if (type == In)
-			for (gsoap_size_t i = 0; i < lpProp->Value.mvszA.__size; ++i)
-				lpProp->Value.mvszA.__ptr[i] = stringCompat.to_UTF8(soap, lpProp->Value.mvszA.__ptr[i]);
 		if (!bNoTagUpdate)
 			lpProp->ulPropTag = CHANGE_PROP_TYPE(lpProp->ulPropTag, PT_MV_UNICODE);
 	}

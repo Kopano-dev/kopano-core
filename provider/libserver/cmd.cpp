@@ -1781,9 +1781,6 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 			nMVItems = GetMVItemCount(&lpPropValArray->__ptr[i]);
 			for (gsoap_size_t j = 0; j < nMVItems; ++j) {
 				assert(PROP_TYPE(lpPropValArray->__ptr[i].ulPropTag) != PT_MV_UNICODE);
-				// Make sure string propvals are in UTF8
-				if (PROP_TYPE(lpPropValArray->__ptr[i].ulPropTag) == PT_MV_STRING8)
-					lpPropValArray->__ptr[i].Value.mvszA.__ptr[j] = stringCompat.to_UTF8(soap, lpPropValArray->__ptr[i].Value.mvszA.__ptr[j]);
 				er = CopySOAPPropValToDatabaseMVPropVal(&lpPropValArray->__ptr[i], j, strColName, strColData, lpDatabase);
 				if(er != erSuccess)
 					continue;
@@ -1827,10 +1824,8 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 			}
 		} else {
             // Make sure string propvals are in UTF8 with tag PT_STRING8
-            if (PROP_TYPE(lpPropValArray->__ptr[i].ulPropTag) == PT_STRING8 || PROP_TYPE(lpPropValArray->__ptr[i].ulPropTag) == PT_UNICODE) {
-            	lpPropValArray->__ptr[i].Value.lpszA = stringCompat.to_UTF8(soap, lpPropValArray->__ptr[i].Value.lpszA);
-                lpPropValArray->__ptr[i].ulPropTag = CHANGE_PROP_TYPE(lpPropValArray->__ptr[i].ulPropTag, PT_STRING8);
-		    }
+			if (PROP_TYPE(lpPropValArray->__ptr[i].ulPropTag) == PT_STRING8 || PROP_TYPE(lpPropValArray->__ptr[i].ulPropTag) == PT_UNICODE)
+				lpPropValArray->__ptr[i].ulPropTag = CHANGE_PROP_TYPE(lpPropValArray->__ptr[i].ulPropTag, PT_STRING8);
 			// Write the property to the database
 			er = WriteSingleProp(lpDatabase, ulObjId, ulParent, &lpPropValArray->__ptr[i], false, lpDatabase->GetMaxAllowedPacket(), strInsert);
 			if (er == KCERR_TOO_BIG) {

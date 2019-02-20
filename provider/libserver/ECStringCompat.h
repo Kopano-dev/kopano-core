@@ -24,29 +24,11 @@ namespace KC {
 class ECStringCompat final {
 public:
 	~ECStringCompat() {}
-	/**
-	 * Convert the input data to true UTF8. If ulClientCaps contains
-	 * KOPANO_CAP_UNICODE, the input data is expected to be in UTF8,
-	 * so no conversion is needed. If convert is set to true, the input
-	 * data is expected to be in WTF1252, and the data is converted
-	 * accordingly.
-	 *
-	 * @param[in]	szIn	The input data.
-	 *
-	 * @return		The input data encoded in UTF8.
-	 */
-	char *to_UTF8(soap *lpsoap, const char *szIn) const;
 };
 
 enum EncodingFixDirection { In, Out };
 
 ECRESULT FixPropEncoding(struct soap *soap, const ECStringCompat &stringCompat, enum EncodingFixDirection type, struct propVal *lpProp, bool bNoTagUpdate = false);
-
-// inlines
-inline char *ECStringCompat::to_UTF8(soap *lpsoap, const char *szIn) const
-{
-	return const_cast<char *>(szIn);
-}
 
 } /* namespace */
 
