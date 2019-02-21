@@ -80,13 +80,13 @@ ECCacheManager::ECCacheManager(std::shared_ptr<ECConfig> lpConfig,
 , m_ObjectToPropCache("index2", atoll(lpConfig->GetSetting("cache_indexedobject_size")), 0)
 {
 	if (atoll(lpConfig->GetSetting("cache_cell_size")) == 0) {
-		#ifdef LINUX
-		struct sysinfo s;
-		auto res = sysinfo(&s);
-		if (res != 0)
+		#if defined(LINUX) || defined(OPENBSD)
+		uint64_t phys_pages = sysconf(_SC_PHYS_PAGES);
+		uint64_t page_size = sysconf(_SC_PAGESIZE);
+		if (phys_pages == -1 || page_size == -1)
 			m_CellCache.SetMaxSize(256 << 20);
 		else
-			m_CellCache.SetMaxSize(std::max(static_cast<uint64_t>(1) << 30, static_cast<uint64_t>(s.totalram) / 4));
+			m_CellCache.SetMaxSize(std::max(static_cast<uint64_t>(1) << 30, static_cast<uint64_t>(phys_pages * page_size) / 4));
 		#else
 		m_CellCache.SetMaxSize(256 << 20);
 		#endif
