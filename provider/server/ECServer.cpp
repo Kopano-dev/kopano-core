@@ -49,7 +49,6 @@
 #include "ECSoapServerConnection.h"
 #include <libintl.h>
 #include <map>
-#include <kopano/charset/convstring.h>
 #include <unicode/uclean.h>
 #include <kopano/fileutil.hpp>
 #include "ECICS.h"

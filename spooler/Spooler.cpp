@@ -69,8 +69,6 @@
 #include <kopano/mapiguidext.h>
 #include "mapicontact.h"
 #include <kopano/charset/convert.h>
-#include <kopano/charset/convstring.h>
-#include <kopano/charset/utf8string.h>
 #include <kopano/ECGetText.h>
 #include "charset/localeutil.h"
 #include "StatsClient.h"

@@ -7,7 +7,7 @@
 #include <kopano/automapi.hpp>
 #include <kopano/hl.hpp>
 #include <kopano/CommonUtil.h>
-#include <kopano/charset/convstring.h>
+#include <kopano/charset/convert.h>
 #include "tbi.hpp"
 
 using namespace KC;

@@ -35,7 +35,6 @@
 #include <kopano/ECABEntryID.h>
 #include <kopano/ECGetText.h>
 #include <kopano/charset/convert.h>
-#include <kopano/charset/convstring.h>
 #include "PyMapiPlugin.h"
 #include <list>
 #include <algorithm>
