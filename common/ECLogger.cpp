@@ -1043,7 +1043,7 @@ static void ec_log_bt(unsigned int level, const char *fmt, ...)
 	std::vector<std::string> bt = get_backtrace();
 	if (!bt.empty()) {
 		for (size_t i = 0; i < bt.size(); ++i)
-			ec_log(level, "#%zu. %s", i, bt[i].c_str());
+			ec_log(level, "f%zu. %s", i, bt[i].c_str());
 	} else if (!notified) {
 		ec_log_info("Backtrace not available");
 		notified = true;

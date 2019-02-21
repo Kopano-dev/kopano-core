@@ -34,6 +34,7 @@ static constexpr const struct HXoption adm_options[] = {
 };
 
 static constexpr const configsetting_t adm_config_defaults[] = {
+	{"default_store_locale", ""},
 	{"server_socket", "default:"},
 	{"sslkey_file", ""},
 	{"sslkey_pass", ""},
