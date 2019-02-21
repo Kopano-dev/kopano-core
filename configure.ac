@@ -368,26 +368,7 @@ CXXFLAGS="$CXXFLAGS_system $ZCXXFLAGS"
 LDFLAGS="$LDFLAGS_system $ZLDFLAGS"
 AC_CHECK_FUNCS([pthread_getname_np])
 
-AC_MSG_CHECKING([for soapcpp2])
-mkdir "conftest.d$$"
-if ! soapcpp2 -d "conftest.d$$" -z1 "${srcdir}/autoconf/1126.h" 2>"conftest.d$$/fail.log"; then
-	cat "conftest.d$$/fail.log" || :
-	AC_MSG_ERROR([Failed to run soapcpp])
-	exit 1
-fi
-if grep -Fq "int foo" "conftest.d$$/soapStub.h" 2>/dev/null; then
-	AC_MSG_ERROR([ERROR: gsoap generator is too old -- version 2.8.49 or higher is required. http://sf.net/p/gsoap2/bugs/1126/])
-	exit 1
-fi
-AC_MSG_RESULT([ok])
-rm -Rf "conftest.d$$"
-
-dnl Stupid gsoap not abstracting properly! If our -Ds do not match with what
-dnl gsoap was compiled with, we are in trouble.
-GSOAP_CFLAGS="-DWITH_OPENSSL -DWITH_GZIP -DHAVE_OPENSSL_SSL_H -DHAVE_ZLIB_H"
-GSOAP_LIBS="-lgsoapssl++"
-AC_SUBST(GSOAP_CFLAGS)
-AC_SUBST(GSOAP_LIBS)
+PKG_CHECK_MODULES([GSOAP], [gsoapssl++ >= 2.8.49])
 PKG_CHECK_MODULES([ICAL], [libical >= 0.42])
 PKG_CHECK_MODULES([curl], [libcurl], [], [:])
 CPPFLAGS="$CPPFLAGS $curl_CFLAGS"
@@ -785,7 +766,6 @@ PHP flags	:	$PHP_INCLUDES
 PHP libs	:	$PHP_LIBS
 gSOAP flags	:	$GSOAP_CFLAGS
 gSOAP libs	:	$GSOAP_LIBS
-gSOAP soapcpp2	:	$GSOAP_SOAPCPP2
 OpenSSL libs	:	$SSL_LIBS
 MySQL flags	:	$MYSQL_INCLUDES
 MySQL libs	:	$MYSQL_LIBS
