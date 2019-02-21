@@ -614,6 +614,25 @@ static const uint8_t utf8_widths[] = {
 	3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,5,5,5,5,6,6,1,1,
 };
 
+wchar_t u8_readbyte(const char *&z)
+{
+	static const uint8_t mask[] = {0xFF, 0x1F, 0x0F, 0x07, 0x03, 0x01};
+	if (*z == '\0')
+		return 0;
+	auto s = reinterpret_cast<const uint8_t *>(z);
+	size_t nob = *s < 0xC0 ? 1 : utf8_widths[*s-0xC0], nc = nob - 1;
+	wchar_t v = (*s & mask[nc]) << (6 * nc);
+	for (size_t i = 1; i < nob; ++i) {
+		if ((s[i] & 0xC0) != 0x80)
+			return 0;
+		v <<= 6;
+		v |= s[i] & 0x3F;
+	}
+	z += nob;
+	--nob;
+	return v;
+}
+
 /**
  * Returns the length in bytes of the string s when capped to a maximum of
  * max characters.
