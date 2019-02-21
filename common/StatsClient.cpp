@@ -21,6 +21,7 @@
 #include <kopano/platform.h>
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
+#include <kopano/ecversion.h>
 #include <kopano/stringutil.h>
 #include <kopano/timeutil.hpp>
 #include "StatsClient.h"
@@ -267,7 +268,7 @@ ECStatsCollector::ECStatsCollector(std::shared_ptr<ECConfig> config) :
 	AddStat(SCN_OSRELEASE, SCT_STRING, "osrelease", "Pretty operating system name"); /* not for parsing either */
 	AddStat(SCN_PROGRAM_NAME, SCT_STRING, "program_name", "Program name");
 	AddStat(SCN_PROGRAM_VERSION, SCT_STRING, "program_version", "Program version");
-	set(SCN_PROGRAM_VERSION, PACKAGE_VERSION);
+	set(SCN_PROGRAM_VERSION, PROJECT_VERSION);
 	std::unique_ptr<FILE, file_deleter> fp(fopen("/etc/machine-id", "r"));
 	if (fp != nullptr) {
 		std::string mid;

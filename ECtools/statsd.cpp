@@ -233,7 +233,7 @@ int main(int argc, const char **argv) try
 	if (!sd_parse_options(argc, argv))
 		return EXIT_FAILURE;
 
-	ec_log_always("Starting kopano-statsd " PACKAGE_VERSION " (uid %u)", getuid());
+	ec_log_always("Starting kopano-statsd " PROJECT_VERSION " (uid %u)", getuid());
 	KAlternateStack kstk;
 	struct sigaction act{};
 	act.sa_sigaction = sd_segv;
