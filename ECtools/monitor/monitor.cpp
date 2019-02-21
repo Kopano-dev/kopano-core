@@ -105,12 +105,6 @@ static void sighup(int signr)
 	ec_log_warn("Log connection was reset");
 }
 
-// SIGSEGV catcher
-static void sigsegv(int signr, siginfo_t *si, void *uc)
-{
-	generic_sigsegv_handler(ec_log_get(), "kopano-monitor", PROJECT_VERSION, signr, si, uc);
-}
-
 static void print_help(const char *name)
 {
 	cout << "Usage:\n" << endl;
@@ -259,21 +253,15 @@ static ECRESULT main2(int argc, char **argv)
 	}
 
 	// SIGSEGV backtrace support
-	KAlternateStack sigstack;
 	struct sigaction act{};
 	sigemptyset(&act.sa_mask);
-	act.sa_sigaction = sigsegv;
-	act.sa_flags = SA_ONSTACK | SA_RESETHAND | SA_SIGINFO;
-	sigemptyset(&act.sa_mask);
-	sigaction(SIGSEGV, &act, NULL);
-	sigaction(SIGBUS, &act, NULL);
-	sigaction(SIGABRT, &act, NULL);
 	act.sa_flags   = SA_RESTART;
 	act.sa_handler = sighandle;
 	sigaction(SIGTERM, &act, nullptr);
 	sigaction(SIGINT, &act, nullptr);
 	act.sa_handler = sighup;
 	sigaction(SIGHUP, &act, nullptr);
+	ec_setup_segv_handler("kopano-monitor", PROJECT_VERSION);
 
 	if (daemonize && unix_daemonize(m_lpThreadMonitor->lpConfig.get()))
 		return E_FAIL;

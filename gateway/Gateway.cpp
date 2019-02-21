@@ -114,12 +114,6 @@ static void sigchld(int)
 		--nChildren;
 }
 
-// SIGSEGV catcher
-static void sigsegv(int signr, siginfo_t *si, void *uc)
-{
-	generic_sigsegv_handler(g_lpLogger.get(), "kopano-gateway", PROJECT_VERSION, signr, si, uc);
-}
-
 static HRESULT running_service(char **argv);
 
 static void print_help(const char *name)
@@ -626,19 +620,12 @@ static HRESULT running_service(char **argv)
 				"Continuing with restricted coredumps.", strerror(-err));
 	}
 
-	// SIGSEGV backtrace support
-	KAlternateStack sigstack;
 	struct sigaction act;
 	memset(&act, 0, sizeof(act));
 
 	// Setup signals
 	signal(SIGPIPE, SIG_IGN);
-	act.sa_sigaction = sigsegv;
-	act.sa_flags = SA_ONSTACK | SA_RESETHAND | SA_SIGINFO;
 	sigemptyset(&act.sa_mask);
-    sigaction(SIGSEGV, &act, NULL);
-    sigaction(SIGBUS, &act, NULL);
-    sigaction(SIGABRT, &act, NULL);
 	act.sa_flags   = SA_RESTART;
 	act.sa_handler = sigterm;
 	sigaction(SIGTERM, &act, nullptr);
@@ -647,6 +634,7 @@ static HRESULT running_service(char **argv)
 	sigaction(SIGHUP, &act, nullptr);
 	act.sa_handler = sigchld;
 	sigaction(SIGCHLD, &act, nullptr);
+	ec_setup_segv_handler("kopano-dagent", PROJECT_VERSION);
 
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads

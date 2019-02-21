@@ -281,13 +281,7 @@ ECStatsCollector::ECStatsCollector(std::shared_ptr<ECConfig> config) :
 	struct utsname uts;
 	if (uname(&uts) == 0)
 		set(SCN_UTSNAME, uts.sysname + " "s + uts.machine + " " + uts.release);
-	struct mpfree { void operator()(struct HXmap *m) { HXmap_free(m); } };
-	std::unique_ptr<HXmap, mpfree> os_rel(HX_shconfig_map("/etc/os-release"));
-	if (os_rel != nullptr) {
-		auto os_pretty = HXmap_get<char *>(os_rel.get(), "PRETTY_NAME");
-		if (os_pretty != nullptr)
-			set(SCN_OSRELEASE, os_pretty);
-	}
+	set(SCN_OSRELEASE, ec_os_pretty_name());
 	if (m_config == nullptr)
 		return;
 }

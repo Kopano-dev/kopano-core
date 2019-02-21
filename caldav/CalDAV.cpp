@@ -99,11 +99,6 @@ static void sigchld(int)
 		--nChildren;
 }
 
-static void sigsegv(int signr, siginfo_t *si, void *uc)
-{
-	generic_sigsegv_handler(g_lpLogger.get(), "kopano-ical", PROJECT_VERSION, signr, si, uc);
-}
-
 static HRESULT running_service(char **argv)
 {
 	ec_log_always("Starting kopano-ical version " PROJECT_VERSION " (pid %d uid %u)", getpid(), getuid());
@@ -125,15 +120,9 @@ static HRESULT running_service(char **argv)
 	}
 
 	// setup signals
-	KAlternateStack sigstack;
 	struct sigaction act{};
 	signal(SIGPIPE, SIG_IGN);
-	act.sa_sigaction = sigsegv;
-	act.sa_flags = SA_ONSTACK | SA_RESETHAND | SA_SIGINFO;
 	sigemptyset(&act.sa_mask);
-	sigaction(SIGSEGV, &act, nullptr);
-	sigaction(SIGBUS, &act, nullptr);
-	sigaction(SIGABRT, &act, nullptr);
 	act.sa_flags = SA_RESTART;
 	act.sa_handler = sigterm;
 	sigaction(SIGTERM, &act, nullptr);
@@ -142,6 +131,7 @@ static HRESULT running_service(char **argv)
 	sigaction(SIGHUP, &act, nullptr);
 	act.sa_handler = sigchld;
 	sigaction(SIGCHLD, &act, nullptr);
+	ec_setup_segv_handler("kopano-ical", PROJECT_VERSION);
 	if (g_bDaemonize && unix_daemonize(g_lpConfig.get()))
 		return MAPI_E_CALL_FAILED;
 	if (!g_bDaemonize)

@@ -215,11 +215,6 @@ static bool sd_parse_options(int &argc, const char **&argv)
 	return true;
 }
 
-static void sd_segv(int nr, siginfo_t *si, void *uc)
-{
-	generic_sigsegv_handler(ec_log_get(), "kopano-statsd", PROJECT_VERSION, nr, si, uc);
-}
-
 static void sd_term(int)
 {
 	sd_quit = true;
@@ -234,18 +229,13 @@ int main(int argc, const char **argv) try
 		return EXIT_FAILURE;
 
 	ec_log_always("Starting kopano-statsd " PROJECT_VERSION " (uid %u)", getuid());
-	KAlternateStack kstk;
 	struct sigaction act{};
-	act.sa_sigaction = sd_segv;
-	act.sa_flags = SA_ONSTACK | SA_RESETHAND | SA_SIGINFO;
 	sigemptyset(&act.sa_mask);
-	sigaction(SIGSEGV, &act, nullptr);
-	sigaction(SIGBUS, &act, nullptr);
-	sigaction(SIGABRT, &act, nullptr);
 	act.sa_flags = SA_ONSTACK | SA_RESETHAND;
 	act.sa_handler = sd_term;
 	sigaction(SIGINT, &act, nullptr);
 	sigaction(SIGTERM, &act, nullptr);
+	ec_setup_segv_handler("kopano-statsd", PROJECT_VERSION);
 
 	auto v = vector_to_set<std::string, ec_bindaddr_less>(tokenize(sd_config->GetSetting("statsd_listen"), ' ', true));
 	if (v.size() > 1) {
