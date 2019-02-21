@@ -48,13 +48,14 @@ def init_globals(): # late init to survive daemonization
 
     USER_SINK = {} # per-user notification sink
 
-def db_get(db_path, key):
+def db_get(db_path, key, decode=True):
     """ get value from db file """
     key = key.encode('ascii')
     with closing(bsddb.hashopen(db_path, 'c')) as db:
         value = db.get(key)
-        if value is not None:
-            return db.get(key).decode('ascii')
+        if value is not None and decode:
+            value = value.decode('ascii')
+        return value
 
 def db_put(db_path, key, value):
     """ store key, value in db file """
@@ -73,6 +74,9 @@ def update_user_info(state_path, user, key, op, value):
     elif op == 'store':
         data[key] = value
     USER_INFO[user.name] = data
+
+    data = pickle.dumps(data)
+    db_put(state_path, 'info', data)
 
 def _queue_or_store(state_path, user, store_entryid, folder_entryid, iqueue):
     with LOCK:
@@ -154,13 +158,13 @@ class ControlWorker(kopano.Worker):
 
                         if data[0] == 'ADD':
                             user, target_user, target_server = data[1:]
-                            self.subscribe.put((user, target_user, target_server, True))
+                            self.subscribe.put((user, target_user, target_server, True, None))
                             response(conn, 'OK:')
                             break
 
                         elif data[0] == 'REMOVE':
                             user = data[1]
-                            self.subscribe.put((user, None, None, False))
+                            self.subscribe.put((user, None, None, False, None))
                             response(conn, 'OK:')
                             break
 
@@ -357,6 +361,8 @@ class Service(kopano.Service):
         self.oqueue = multiprocessing.Queue() # processed folders, used to update STORE_FOLDER_QUEUED
         self.subscribe = multiprocessing.Queue() # subscription update queue
 
+        self.state_path = self.config['state_path']
+
         # initialize and start workers
         workers = [SyncWorker(self, 'msr%d'%i, nr=i, iqueue=self.iqueue, oqueue=self.oqueue)
                        for i in range(self.config['worker_processes'])]
@@ -366,18 +372,27 @@ class Service(kopano.Service):
         control_worker = ControlWorker(self, 'control', subscribe=self.subscribe)
         control_worker.start()
 
+        # resume relocations
+        for username in os.listdir(self.state_path):
+            if not username.endswith('.lock'):
+                state_path = os.path.join(self.state_path, username)
+                info = pickle.loads(db_get(state_path, 'info', decode=False))
+
+                self.subscribe.put((username, info['target'], info['server'], True, info['store']))
+
         # continue using notifications
         self.notify_sync()
 
-    def subscribe_user(self, server, username, target_user, target_server):
+    def subscribe_user(self, server, username, target_user, target_server, storeb_eid):
         self.log.info('subscribing: %s -> %s', username, target_server)
 
         usera = server.user(username)
         storea = usera.store
 
         # TODO report errors back directly to command-line process
-
-        if target_server != '_':
+        if storeb_eid:
+            storeb = server.store(entryid=storeb_eid)
+        elif target_server != '_':
             for node in server.nodes(): # TODO optimize
                 if node.name == target_server:
                     try:
@@ -392,19 +407,20 @@ class Service(kopano.Service):
         else:
             storeb = server.user(target_user).store
 
-        state_path = os.path.join(self.config['state_path'], usera.name)
+        state_path = os.path.join(self.state_path, usera.name)
 
         sink = NotificationSink(state_path, usera, usera.store, self.iqueue, self.log)
 
         storea.subscribe(sink, object_types=['item', 'folder'])
 
-        # TODO make persistent
         STORE_STORE[storea.entryid] = storeb.entryid
         USER_SINK[username] = sink
         update_user_info(state_path, usera, 'items', 'store', 0)
         update_user_info(state_path, usera, 'init_done', 'store', 'no')
         update_user_info(state_path, usera, 'queue_empty', 'store', 'no')
+        update_user_info(state_path, usera, 'target', 'store', target_user)
         update_user_info(state_path, usera, 'server', 'store', target_server)
+        update_user_info(state_path, usera, 'store', 'store', storeb.entryid)
 
         db_put(state_path, 'folder_map_'+storea.subtree.sourcekey, storeb.subtree.entryid)
 
@@ -436,9 +452,9 @@ class Service(kopano.Service):
                         folderb.settings_loads(foldera.settings_dumps())
 
         # remove state dir
-        if self.config['state_path']:
-            os.system('rm -rf %s/%s' % (self.config['state_path'], username))
-            os.system('rm -rf %s/%s.lock' % (self.config['state_path'], username))
+        if self.state_path:
+            os.system('rm -rf %s/%s' % (self.state_path, username))
+            os.system('rm -rf %s/%s.lock' % (self.state_path, username))
 
     def notify_sync(self):
         server = kopano.server(notifications=True, options=self.options) # TODO ugh
@@ -446,9 +462,9 @@ class Service(kopano.Service):
         while True:
             # check command-line add-user requests
             try:
-                user, target_user, target_server, subscribe = self.subscribe.get(timeout=0.01)
+                user, target_user, target_server, subscribe, store_eid = self.subscribe.get(timeout=0.01)
                 if subscribe:
-                    self.subscribe_user(server, user, target_user, target_server)
+                    self.subscribe_user(server, user, target_user, target_server, store_eid)
                 else:
                     self.unsubscribe_user(server, user)
 
@@ -470,7 +486,7 @@ class Service(kopano.Service):
 
                         store = server.store(entryid=store_entryid)
                         user = store.user # TODO shall we use only storeid..
-                        state_path = os.path.join(self.config['state_path'], user.name)
+                        state_path = os.path.join(self.state_path, user.name)
                         update_user_info(state_path, user, 'init_done', 'store', 'yes')
                         update_user_info(state_path, user, 'queue_empty', 'store', 'yes')
 
