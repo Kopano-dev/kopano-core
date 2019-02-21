@@ -6,7 +6,6 @@
 #include <cstdlib>
 #include <kopano/platform.h>
 #include <kopano/hl.hpp>
-#include <kopano/automapi.hpp>
 #include <kopano/CommonUtil.h>
 #include <kopano/ECRestriction.h>
 #include <kopano/MAPIErrors.h>
@@ -82,15 +81,7 @@ KProp t_set_read(KStore &store, KFolder &root)
 
 int main(void) try
 {
-	AutoMAPI automapi;
-	auto hr = automapi.Initialize();
 	int ex = EXIT_FAILURE;
-
-	if (hr != hrSuccess) {
-		fprintf(stderr, "MAPIInitialize: %s\n", GetMAPIErrorMessage(hr));
-		return EXIT_FAILURE;
-	}
-
 	try {
 		auto store = KSession(L"user1", L"pass").open_default_store();
 		auto root = store.open_root(MAPI_MODIFY);

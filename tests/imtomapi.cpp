@@ -22,7 +22,6 @@
 #include <kopano/ECLogger.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/CommonUtil.h>
-#include <kopano/automapi.hpp>
 #include <kopano/codepage.h>
 #include <kopano/hl.hpp>
 #include <inetmapi/options.h>
@@ -654,15 +653,7 @@ int main(int argc, const char **argv)
 		fprintf(stderr, "Need the directory with test mails as first argument.\n");
 		return EXIT_FAILURE;
 	}
-	AutoMAPI automapi;
 	size_t err = 0;
-	auto hr = automapi.Initialize();
-	if (hr != hrSuccess) {
-		fprintf(stderr, "MAPIInitialize: %s\n",
-		        GetMAPIErrorMessage(hr));
-		return EXIT_FAILURE;
-	}
-
 	try {
 		err = runtests(argv[1]);
 		fprintf(stderr, (err == 0) ? "Overall success\n" : "Overall FAILURE\n");

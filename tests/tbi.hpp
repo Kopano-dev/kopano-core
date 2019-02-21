@@ -72,7 +72,18 @@ class KStore : public object_ptr<IMsgStore> {
 	inline KFolder open_root(unsigned int flags = 0);
 };
 
-class KSession : public object_ptr<IMAPISession> {
+class AutoMAPI_raii {
+	public:
+	AutoMAPI_raii() {
+		auto ret = am.Initialize();
+		if (ret != hrSuccess)
+			throw KMAPIError(ret);
+	}
+	private:
+	AutoMAPI am;
+};
+
+class KSession : private AutoMAPI_raii, public object_ptr<IMAPISession> {
 	public:
 	using object_ptr::object_ptr;
 	KSession(const wchar_t *user = L"SYSTEM", const wchar_t *pass = L"")

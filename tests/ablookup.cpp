@@ -6,7 +6,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <mapidefs.h>
-#include <kopano/automapi.hpp>
 #include <kopano/charset/convert.h>
 #include <kopano/ECRestriction.h>
 #include <kopano/ECLogger.h>
@@ -151,13 +150,10 @@ int main(int argc, char **argv) try
 		user = convert_to<std::wstring>(argv[1]);
 		pass = convert_to<std::wstring>(argv[2]);
 	}
-	AutoMAPI am;
-	auto ret = am.Initialize();
-	assert(ret == hrSuccess);
 
 	auto ses = KSession(user.c_str(), pass.c_str());
 	load_zc(ses);
-	ret = setup_zc(ses);
+	auto ret = setup_zc(ses);
 	if (ret != hrSuccess)
 		return EXIT_FAILURE;
 
