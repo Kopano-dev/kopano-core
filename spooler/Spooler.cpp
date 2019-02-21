@@ -225,7 +225,7 @@ static HRESULT StartSpoolerThread(SendData &&sd, const char *smtp_host,
 		return MAPI_E_CALL_FAILED;
 	}
 	th_arg.release();
-	ec_log_info("Worker thread 0x%lx started", static_cast<unsigned long>(tid));
+	ec_log_info("Worker thread 0x%lx started", reinterpret_cast<unsigned long>(tid));
 	return hrSuccess;
 }
 

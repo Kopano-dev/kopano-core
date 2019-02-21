@@ -7,8 +7,11 @@ Fixes:
   conversion stage [KS-40722]
 * server: fix crash on shutdown [KF-2179]
 * server: address a potential crash due to type mismatch [KF-2151]
+* server: use utf8mb3 with mysql 5.1 [KC-1423]
+* srvadm: do not complain about default_store_locale [KC-1416]
 * dbadm: some long-running statements can now be run in parallel
   with the new -j option [KS-42617]
+* pyko: expand stubbed messages when dumping [KC-1159,KC-1168]
 
 
 8.6.92 -> 8.7.0 (2019-01-24)

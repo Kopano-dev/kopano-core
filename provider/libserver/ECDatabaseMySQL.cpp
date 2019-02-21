@@ -684,7 +684,8 @@ ECRESULT ECDatabase::CreateDatabase(void)
 	auto er = KDatabase::CreateDatabase(m_lpConfig.get(), false);
 	if (er != erSuccess)
 		return er;
-	er = KDatabase::CreateTables(m_lpConfig.get());
+	const char *charset = nullptr;
+	er = KDatabase::CreateTables(m_lpConfig.get(), &charset);
 	if (er != erSuccess)
 		return er;
 
@@ -706,6 +707,8 @@ ECRESULT ECDatabase::CreateDatabase(void)
 		if(er != erSuccess)
 			return er;
 	}
+	if (charset != nullptr)
+		DoUpdate("UPDATE `settings` SET `value`='" + Escape(charset) + "' WHERE `name`='charset'");
 
 	er = InsertServerGUID(this);
 	if(er != erSuccess)

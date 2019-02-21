@@ -172,7 +172,7 @@ kopano_dagent_SOURCES = \
 kopano_dagent_LDADD = \
 	libkcinetmapi.la libmapi.la libkcutil.la \
 	libkcarchiver.la libkcarchivercore.la -lpthread \
-	${DL_LIBS} ${SSL_LIBS} ${XML2_LIBS} ${icu_uc_LIBS}
+	${DL_LIBS} ${INTL_LIBS} ${SSL_LIBS} ${XML2_LIBS} ${icu_uc_LIBS}
 
 
 #
