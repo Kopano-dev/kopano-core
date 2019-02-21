@@ -26,7 +26,6 @@
 #include "StorageUtil.h"
 #include "ECAttachmentStorage.h"
 #include "StatsClient.h"
-#include "ECStringCompat.h"
 #include "ECTPropsPurge.h"
 #include "cmdutil.hpp"
 
@@ -2022,5 +2021,14 @@ CHILDPROPS::CHILDPROPS(struct soap *soap, unsigned int hint) :
 	lpPropTags(new DynamicPropTagArray(soap)),
 	lpPropVals(new DynamicPropValArray(soap, hint))
 {}
+
+ECRESULT FixPropEncoding(struct propVal *lpProp)
+{
+	if (PROP_TYPE(lpProp->ulPropTag) == PT_STRING8 || PROP_TYPE(lpProp->ulPropTag) == PT_UNICODE)
+		lpProp->ulPropTag = CHANGE_PROP_TYPE(lpProp->ulPropTag, PT_UNICODE);
+	else if (PROP_TYPE(lpProp->ulPropTag) == PT_MV_STRING8 || PROP_TYPE(lpProp->ulPropTag) == PT_MV_UNICODE)
+		lpProp->ulPropTag = CHANGE_PROP_TYPE(lpProp->ulPropTag, PT_MV_UNICODE);
+	return erSuccess;
+}
 
 } /* namespace */

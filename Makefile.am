@@ -568,7 +568,6 @@ libkcserver_la_SOURCES = \
 	provider/libserver/ECSessionManager.cpp provider/libserver/ECSessionManager.h \
 	provider/libserver/ECStatsTables.cpp provider/libserver/ECStatsTables.h \
 	provider/libserver/ECStoreObjectTable.cpp provider/libserver/ECStoreObjectTable.h \
-	provider/libserver/ECStringCompat.cpp provider/libserver/ECStringCompat.h \
 	provider/libserver/ECSubRestriction.cpp provider/libserver/ECSubRestriction.h \
 	provider/libserver/ECTPropsPurge.cpp provider/libserver/ECTPropsPurge.h \
 	provider/libserver/ECTableManager.cpp provider/libserver/ECTableManager.h \

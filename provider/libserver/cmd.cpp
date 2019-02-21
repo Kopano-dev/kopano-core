@@ -51,7 +51,6 @@
 #include "ECSecurity.h"
 #include "ECICS.h"
 #include "StatsClient.h"
-#include "ECStringCompat.h"
 #include "ECTableManager.h"
 #include "ECTPropsPurge.h"
 #include "versions.h"
