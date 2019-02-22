@@ -51,17 +51,6 @@ private:
 	const char** m_ptr;
 };
 
-class PropTagCompare final {
-public:
-	bool operator()(ULONG lhs, ULONG rhs) const { 
-		if (PROP_TYPE(lhs) == PT_UNSPECIFIED || PROP_TYPE(rhs) == PT_UNSPECIFIED)
-			return PROP_ID(lhs) < PROP_ID(rhs); 
-		return lhs < rhs;
-	}
-};
-
-typedef std::set<ULONG,PropTagCompare> PropTagSet;
-
 static HRESULT HrCopyActions(ACTIONS *, const ACTIONS *, void *);
 static HRESULT HrCopyAction(ACTION *, const ACTION *, void *);
 
@@ -3390,82 +3379,6 @@ HRESULT Util::HrGetQuotaStatus(IMsgStore *lpMsgStore, ECQUOTA *lpsQuota,
 	}
 	*lppsQuotaStatus = lpsQuotaStatus.release();
 	return hrSuccess;
-}
-
-/** 
- * Removes properties from lpDestMsg, which do are not listed in
- * lpsValidProps.
- *
- * Named properties listed in lpsValidProps map to names in
- * lpSourceMsg. The corresponding property tags are checked in
- * lpDestMsg.
- * 
- * @param[out] lpDestMsg The message to delete properties from, which are found "invalid"
- * @param[in] lpSourceMsg The message for which named properties may be lookupped, listed in lpsValidProps
- * @param[in] lpsValidProps Properties which are valid in lpDestMsg. All others should be removed.
- * 
- * @return MAPI error code
- */
-HRESULT Util::HrDeleteResidualProps(LPMESSAGE lpDestMsg, LPMESSAGE lpSourceMsg, LPSPropTagArray lpsValidProps)
-{
-	memory_ptr<SPropTagArray> lpsPropArray, lpsNamedPropArray;
-	memory_ptr<SPropTagArray> lpsMappedPropArray;
-	ULONG			cPropNames = 0;
-	memory_ptr<MAPINAMEID *> lppPropNames;
-	PropTagSet		sPropTagSet;
-
-	if (lpDestMsg == nullptr || lpSourceMsg == nullptr || lpsValidProps == nullptr)
-		return MAPI_E_INVALID_PARAMETER;
-	auto hr = lpDestMsg->GetPropList(0, &~lpsPropArray);
-	if (hr != hrSuccess || lpsPropArray->cValues == 0)
-		return hr;
-	hr = MAPIAllocateBuffer(CbNewSPropTagArray(lpsValidProps->cValues), &~lpsNamedPropArray);
-	if (hr != hrSuccess)
-		return hr;
-	memset(lpsNamedPropArray, 0, CbNewSPropTagArray(lpsValidProps->cValues));
-
-	for (unsigned i = 0; i < lpsValidProps->cValues; ++i)
-		if (PROP_ID(lpsValidProps->aulPropTag[i]) >= 0x8000)
-			lpsNamedPropArray->aulPropTag[lpsNamedPropArray->cValues++] = lpsValidProps->aulPropTag[i];
-
-	if (lpsNamedPropArray->cValues > 0) {
-		hr = lpSourceMsg->GetNamesFromIDs(&+lpsNamedPropArray, NULL, 0, &cPropNames, &~lppPropNames);
-		if (FAILED(hr))
-			return hr;
-		hr = lpDestMsg->GetIDsFromNames(cPropNames, lppPropNames, MAPI_CREATE, &~lpsMappedPropArray);
-		if (FAILED(hr))
-			return hr;
-	}
-
-	// Add the PropTags the message currently has
-	for (unsigned i = 0; i < lpsPropArray->cValues; ++i)
-		sPropTagSet.emplace(lpsPropArray->aulPropTag[i]);
-
-	// Remove the regular properties we want to keep
-	for (unsigned i = 0; i < lpsValidProps->cValues; ++i)
-		if (PROP_ID(lpsValidProps->aulPropTag[i]) < 0x8000)
-			sPropTagSet.erase(lpsValidProps->aulPropTag[i]);
-
-	// Remove the mapped named properties we want to keep. Filter failed named properties, so they will be removed
-	for (unsigned i = 0; lpsMappedPropArray != NULL && i < lpsMappedPropArray->cValues; ++i)
-		if (PROP_TYPE(lpsMappedPropArray->aulPropTag[i]) != PT_ERROR)
-			sPropTagSet.erase(lpsMappedPropArray->aulPropTag[i]);
-
-	if (sPropTagSet.empty())
-		return hrSuccess;
-
-	// Reuse lpsPropArray to hold the properties we're going to delete
-	assert(lpsPropArray->cValues >= sPropTagSet.size());
-	memset(lpsPropArray->aulPropTag, 0, lpsPropArray->cValues * sizeof *lpsPropArray->aulPropTag);
-	lpsPropArray->cValues = 0;
-
-	for (const auto &i : sPropTagSet)
-		lpsPropArray->aulPropTag[lpsPropArray->cValues++] = i;
-
-	hr = lpDestMsg->DeleteProps(lpsPropArray, NULL);
-	if (hr != hrSuccess)
-		return hr;
-	return lpDestMsg->SaveChanges(KEEP_OPEN_READWRITE);
 }
 
 HRESULT Util::HrDeleteAttachments(LPMESSAGE lpMsg)
