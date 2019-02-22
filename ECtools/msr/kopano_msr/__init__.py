@@ -397,6 +397,7 @@ class Service(kopano.Service):
                 if node.name == target_server:
                     try:
                         storeb = node.create_store(usera, _msr=True)
+                        storeb.subtree.empty() # remove default english special folders
                     except kopano.DuplicateError:
                         self.log.error('could not create new store')
                         return
@@ -440,6 +441,23 @@ class Service(kopano.Service):
         del USER_SINK[username]
         del STORE_STORE[storea.entryid]
         del USER_INFO[username]
+
+        # set special folders
+        for attr in (
+            'calendar',
+            'contacts',
+            'wastebasket',
+            'drafts',
+            'inbox',
+            'journal',
+            'junk',
+            'notes',
+            'outbox',
+            'sentmail',
+            'tasks',
+        ):
+            with log_exc(self.log):
+                setattr(storeb, attr, storeb.folder(getattr(storea, attr).path))
 
         # transfer metadata
         with log_exc(self.log): # TODO testing: store deleted in tearDown
