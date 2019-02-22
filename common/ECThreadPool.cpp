@@ -8,7 +8,6 @@
 #include <string>
 #include <utility>
 #include <cerrno>
-#include <csignal>
 #include <cstdlib>
 #include <cstring>
 #include <pthread.h>
@@ -482,24 +481,6 @@ unsigned long kc_threadid()
 #else
 	return pthread_self();
 #endif
-}
-
-KAlternateStack::KAlternateStack()
-{
-	memset(&st, 0, sizeof(st));
-	st.ss_flags = 0;
-	st.ss_size = 65536;
-	st.ss_sp = malloc(st.ss_size);
-	if (st.ss_sp != nullptr && sigaltstack(&st, nullptr) < 0)
-		ec_log_err("sigaltstack: %s", strerror(errno));
-}
-
-KAlternateStack::~KAlternateStack()
-{
-	if (st.ss_sp == nullptr)
-		return;
-	sigaltstack(nullptr, nullptr);
-	free(st.ss_sp);
 }
 
 } /* namespace */
