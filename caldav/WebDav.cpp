@@ -9,6 +9,7 @@
 #include "WebDav.h"
 #include <kopano/stringutil.h>
 #include <kopano/CommonUtil.h>
+#include <kopano/ECLogger.h>
 #include <kopano/MAPIErrors.h>
 #include <libical/ical.h>
 

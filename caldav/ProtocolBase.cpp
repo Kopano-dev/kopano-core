@@ -10,6 +10,7 @@
 #include <kopano/stringutil.h>
 #include <kopano/timeutil.hpp>
 #include <kopano/CommonUtil.h>
+#include <kopano/ECLogger.h>
 #include <kopano/MAPIErrors.h>
 #include "CalDavUtil.h"
 #include <kopano/mapi_ptr.h>

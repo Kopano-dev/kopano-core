@@ -11,6 +11,7 @@
 #include <sys/socket.h>
 #include <kopano/ECChannel.h>
 #include <kopano/ECLogger.h>
+#include <kopano/memory.hpp>
 #ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
 #endif

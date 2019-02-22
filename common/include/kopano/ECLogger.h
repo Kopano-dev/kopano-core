@@ -7,17 +7,15 @@
 #define ECLOGGER_H
 
 #include <atomic>
-#include <kopano/zcdefs.h>
-#include <kopano/platform.h>
+#include <clocale>
+#include <cstdarg>
 #include <list>
 #include <memory>
 #include <mutex>
-#include <pthread.h>
-#include <csignal>
-#include <cstdarg>
-#include <cstdio>
 #include <string>
-#include <kopano/memory.hpp>
+#include <sys/types.h>
+#include <kopano/zcdefs.h>
+#include <kopano/platform.h>
 #ifndef KC_LIKE_PRINTF
 #	define KC_LIKE_PRINTF(_fmt, _va)
 #endif
@@ -25,7 +23,6 @@
 namespace KC {
 
 class ECConfig;
-class ECLogger;
 
 static const unsigned int EC_LOGLEVEL_NONE       = 0;
 static const unsigned int EC_LOGLEVEL_FATAL	 = 1;

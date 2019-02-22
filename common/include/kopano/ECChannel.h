@@ -6,22 +6,17 @@
 #ifndef ECCHANNEL_H
 #define ECCHANNEL_H
 
-#include <set>
-#include <string>
-#include <utility>
-#include <kopano/zcdefs.h>
 #include <cstdint>
-#include <cstdio>
-#include <iostream>
+#include <string>
 #include <sys/socket.h>
 #include <openssl/ssl.h>
-#include <openssl/err.h>
-#include <kopano/ECConfig.h>
-#include <kopano/ECLogger.h>
+#include <kopano/zcdefs.h>
 
 struct sockaddr;
 
 namespace KC {
+
+class ECConfig;
 
 // ECChannel is the communication channel with the other side. Initially, it is
 // a simple way to read/write full lines of data. The reason why we specify

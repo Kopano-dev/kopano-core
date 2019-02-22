@@ -21,6 +21,7 @@
 #include <kopano/ECLogger.h>
 #include <kopano/codepage.h>
 #include <openssl/md5.h>
+#include <mapicode.h>
 #include <mapidefs.h>
 #include "ECACL.h"
 

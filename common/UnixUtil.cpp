@@ -5,6 +5,7 @@
 #include <memory>
 #include <new>
 #include <kopano/platform.h>
+#include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
 #include <kopano/UnixUtil.h>
 #include <kopano/memory.hpp>

@@ -9,6 +9,7 @@
 #include <memory>
 #include <vector>
 #include <kopano/CommonUtil.h>
+#include <kopano/ECLogger.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/memory.hpp>
 #include <kopano/tie.hpp>

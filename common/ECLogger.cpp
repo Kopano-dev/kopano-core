@@ -21,6 +21,7 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/un.h>
+#include <kopano/memory.hpp>
 #include <kopano/scope.hpp>
 #include <kopano/stringutil.h>
 #include "charset/localeutil.h"

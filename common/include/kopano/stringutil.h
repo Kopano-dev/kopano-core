@@ -5,17 +5,19 @@
 #ifndef _STRINGUTIL_H
 #define _STRINGUTIL_H
 
-#include <kopano/zcdefs.h>
-#include <cstdarg>
+#include <algorithm>
+#include <cctype>
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
+#include <cwctype>
 #include <iterator>
 #include <set>
 #include <string>
 #include <type_traits>
 #include <vector>
-#include <algorithm>
-#include <cctype>
-#include <cwctype>
 #include <kopano/platform.h>
+#include <kopano/zcdefs.h>
 #include <openssl/md5.h>
 
 struct SBinary;
@@ -41,12 +43,12 @@ struct wcscasecmp_comparison {
 };
 
 static inline std::string strToUpper(std::string f) {
-	transform(f.begin(), f.end(), f.begin(), ::toupper);
+	std::transform(f.begin(), f.end(), f.begin(), ::toupper);
 	return f;
 }
 
 static inline std::string strToLower(std::string f) {
-	transform(f.begin(), f.end(), f.begin(), ::tolower);
+	std::transform(f.begin(), f.end(), f.begin(), ::tolower);
 	return f;
 }
 

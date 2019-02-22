@@ -12,6 +12,7 @@
 #include <kopano/timeutil.hpp>
 #include <kopano/MAPIErrors.h>
 #include <kopano/ECConfig.h>
+#include <kopano/ECLogger.h>
 
 using namespace KC;
 

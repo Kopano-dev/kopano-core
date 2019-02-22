@@ -28,6 +28,7 @@
 #include <iostream>
 #include <string>
 #include <getopt.h>
+#include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
 #include <kopano/ECChannel.h>
 #include <kopano/memory.hpp>

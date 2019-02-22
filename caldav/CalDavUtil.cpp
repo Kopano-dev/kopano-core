@@ -8,6 +8,7 @@
 #include <utility>
 #include <kopano/ECRestriction.h>
 #include "CalDavUtil.h"
+#include <kopano/ECLogger.h>
 #include <kopano/EMSAbTag.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/charset/convert.h>
