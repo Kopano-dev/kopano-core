@@ -40,6 +40,23 @@
 
 namespace KC {
 
+/**
+ * Linux syslog logger. Output is whatever syslog does, probably LC_CTYPE.
+ */
+class ECLogger_Syslog KC_FINAL : public ECLogger {
+	private:
+	std::unique_ptr<char[], cstdlib_deleter> m_ident;
+	static const int levelmap[16]; /* converts to syslog levels */
+
+	public:
+	ECLogger_Syslog(unsigned int max_ll, const char *ident, int facility);
+	~ECLogger_Syslog(void);
+	_kc_hidden virtual void Reset(void) _kc_override;
+	_kc_hidden virtual void log(unsigned int level, const char *msg) _kc_override;
+	_kc_hidden virtual void logf(unsigned int level, const char *fmt, ...) _kc_override KC_LIKE_PRINTF(3, 4);
+	_kc_hidden virtual void logv(unsigned int level, const char *fmt, va_list &) _kc_override;
+};
+
 static void ec_log_bt(unsigned int, const char *, ...);
 
 static constexpr const size_t _LOG_TSSIZE = 64;
