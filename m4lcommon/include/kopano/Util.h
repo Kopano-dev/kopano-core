@@ -72,13 +72,6 @@ class Util KC_FINAL {
 	_kc_export static HRESULT HrDeleteAttachments(LPMESSAGE);
 	_kc_export static HRESULT HrDeleteRecipients(LPMESSAGE);
 	_kc_export static HRESULT HrDeleteMessage(IMAPISession *, IMessage *);
-
-	struct SBinaryLess {
-		bool operator()(const SBinary &left, const SBinary &right) const {
-			return CompareSBinary(left, right) < 0;
-		}
-	};
-	
 	_kc_export static HRESULT ReadProperty(IMAPIProp *, ULONG tag, std::string &data);
 	_kc_export static HRESULT WriteProperty(IMAPIProp *, ULONG tag, const std::string &data);
 	_kc_export static HRESULT ExtractSuggestedContactsEntryID(LPSPropValue prop_blob, ULONG *eid_size, LPENTRYID *eid);

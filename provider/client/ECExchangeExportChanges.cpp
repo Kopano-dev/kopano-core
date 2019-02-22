@@ -101,14 +101,14 @@ HRESULT ECExchangeExportChanges::GetLastError(HRESULT hResult, ULONG ulFlags, LP
 }
 
 HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKNOWN lpCollector, LPSRestriction lpRestriction, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize){
+	struct sbcmp {
+		bool operator()(const SBinary &l, const SBinary &r) const { return Util::CompareSBinary(l, r) < 0; }
+	};
 	HRESULT hr;
 	unsigned int ulSyncId = 0, ulChangeId = 0, ulStep = 0;
 	BOOL		bCanStream = FALSE;
 	bool		bForceImplicitStateUpdate = false;
-	typedef std::map<SBinary, ChangeListIter, Util::SBinaryLess>	ChangeMap;
-	typedef ChangeMap::iterator					ChangeMapIter;
-	ChangeMap		mapChanges;
-	ChangeMapIter	iterLastChange;
+	std::map<SBinary, ChangeListIter, sbcmp> mapChanges;
 	ChangeList		lstChange;
 	std::string	sourcekey;
 
@@ -225,7 +225,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 		if (m_setProcessedChanges.find({m_lpChanges[ulStep].ulChangeId, std::string(reinterpret_cast<const char *>(m_lpChanges[ulStep].sSourceKey.lpb), m_lpChanges[ulStep].sSourceKey.cb)}) != m_setProcessedChanges.end())
 			continue;
 
-		iterLastChange = mapChanges.find(m_lpChanges[ulStep].sSourceKey);
+		auto iterLastChange = mapChanges.find(m_lpChanges[ulStep].sSourceKey);
 		if (iterLastChange == mapChanges.end()) {
 			switch (ICS_ACTION(m_lpChanges[ulStep].ulChangeType)) {
 			case ICS_NEW:
