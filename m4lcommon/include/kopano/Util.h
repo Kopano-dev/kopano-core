@@ -70,7 +70,6 @@ class Util KC_FINAL {
 	_kc_export static HRESULT HrGetQuotaStatus(IMsgStore *, ECQUOTA *, ECQUOTASTATUS **ret);
 	_kc_export static HRESULT HrDeleteResidualProps(LPMESSAGE dstmsg, LPMESSAGE srcmsg, LPSPropTagArray valid_props);
 	_kc_export static HRESULT HrDeleteAttachments(LPMESSAGE);
-	_kc_export static HRESULT HrDeleteRecipients(LPMESSAGE);
 	_kc_export static HRESULT HrDeleteMessage(IMAPISession *, IMessage *);
 	_kc_export static HRESULT ReadProperty(IMAPIProp *, ULONG tag, std::string &data);
 	_kc_export static HRESULT WriteProperty(IMAPIProp *, ULONG tag, const std::string &data);

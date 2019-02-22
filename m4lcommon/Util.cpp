@@ -3491,23 +3491,6 @@ HRESULT Util::HrDeleteAttachments(LPMESSAGE lpMsg)
 	return hrSuccess;
 }
 
-HRESULT Util::HrDeleteRecipients(LPMESSAGE lpMsg)
-{
-	MAPITablePtr ptrRecipTable;
-	SRowSetPtr ptrRows;
-	static constexpr const SizedSPropTagArray(1, sptaRowId) = {1, {PR_ROWID}};
-
-	if (lpMsg == NULL)
-		return MAPI_E_INVALID_PARAMETER;
-	HRESULT hr = lpMsg->GetRecipientTable(0, &~ptrRecipTable);
-	if (hr != hrSuccess)
-		return hr;
-	hr = HrQueryAllRows(ptrRecipTable, sptaRowId, nullptr, nullptr, 0, &~ptrRows);
-	if (hr != hrSuccess)
-		return hr;
-	return lpMsg->ModifyRecipients(MODRECIP_REMOVE, (LPADRLIST)ptrRows.get());
-}
-
 HRESULT Util::HrDeleteMessage(IMAPISession *lpSession, IMessage *lpMessage)
 {
 	ULONG cMsgProps;
