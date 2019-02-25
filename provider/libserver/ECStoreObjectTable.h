@@ -70,6 +70,7 @@ private:
 
 ECRESULT GetDeferredTableUpdates(ECDatabase *lpDatabase, unsigned int ulFolderId, std::list<unsigned int> *lpDeferred);
 extern ECRESULT GetDeferredTableUpdates(ECDatabase *, const ECObjectTableList *, std::list<unsigned int> *deferred);
+extern bool propVal_is_truncated(const struct propVal *);
 
 } /* namespace */
 

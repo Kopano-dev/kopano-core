@@ -70,7 +70,7 @@ static bool IsTruncatableType(unsigned int ulTag)
     return false;
 }
 
-static bool IsTruncated(const struct propVal *lpsPropVal)
+bool propVal_is_truncated(const struct propVal *lpsPropVal)
 {
 	if(!IsTruncatableType(lpsPropVal->ulPropTag))
 		return false;
@@ -496,7 +496,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
 				continue;
 			i = 0;
 			for (const auto &row : *lpRowList) {
-				if (!IsTruncated(&lpsRowSet->__ptr[i].__ptr[k])) {
+				if (!propVal_is_truncated(&lpsRowSet->__ptr[i].__ptr[k])) {
 					++i;
 					continue;
 				}
