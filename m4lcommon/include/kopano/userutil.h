@@ -2,12 +2,10 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef USERUTIL_INCLUDED
 #define USERUTIL_INCLUDED
 
 #include <kopano/zcdefs.h>
-#include <set>
 #include <list>
 #include <string>
 #include <mapidefs.h>

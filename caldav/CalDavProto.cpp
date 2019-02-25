@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <kopano/ECLogger.h>
 #include <kopano/ECRestriction.h>
 #include <kopano/memory.hpp>
 #include <kopano/tie.hpp>

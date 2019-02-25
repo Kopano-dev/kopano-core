@@ -17,6 +17,8 @@
 #include <libHX/option.h>
 #include <microhttpd.h>
 #include <rrd.h>
+#include <mapicode.h>
+#include <mapidefs.h>
 #include <kopano/ECChannel.h>
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>

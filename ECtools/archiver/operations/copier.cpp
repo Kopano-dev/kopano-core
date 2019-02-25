@@ -643,6 +643,22 @@ HRESULT Copier::DoTrackAndRearchive(LPMESSAGE lpMessage, const SObjectEntry &arc
 	return hrSuccess;
 }
 
+static HRESULT delete_recipients(IMessage *msg)
+{
+	static constexpr const SizedSPropTagArray(1, tags) = {1, {PR_ROWID}};
+	if (msg == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+	object_ptr<IMAPITable> tbl;
+	auto ret = msg->GetRecipientTable(0, &~tbl);
+	if (ret != hrSuccess)
+		return ret;
+	rowset_ptr rows;
+	ret = HrQueryAllRows(tbl, tags, nullptr, nullptr, 0, &~rows);
+	if (ret != hrSuccess)
+		return ret;
+	return msg->ModifyRecipients(MODRECIP_REMOVE, reinterpret_cast<ADRLIST *>(rows.get()));
+}
+
 HRESULT Copier::DoUpdateArchive(LPMESSAGE lpMessage, const SObjectEntry &archiveMsgEntry, const SObjectEntry &refMsgEntry, TransactionPtr *lpptrTransaction)
 {
 	MsgStorePtr ptrArchiveStore;
@@ -675,7 +691,7 @@ HRESULT Copier::DoUpdateArchive(LPMESSAGE lpMessage, const SObjectEntry &archive
 	hr = Util::HrDeleteAttachments(ptrArchivedMsg);
 	if (hr != hrSuccess)
 		return Logger()->perr("Failed to delete attachments", hr);
-	hr = Util::HrDeleteRecipients(ptrArchivedMsg);
+	hr = delete_recipients(ptrArchivedMsg);
 	if (hr != hrSuccess)
 		return Logger()->perr("Failed to delete recipients", hr);
 	hr = m_ptrHelper->ArchiveMessage(lpMessage, &refMsgEntry, ptrArchivedMsg, &ptrPSAction);

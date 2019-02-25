@@ -2,11 +2,13 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
+#include <list>
 #include <kopano/platform.h>
 #include <sys/un.h>
 #include <sys/socket.h>
 #include <kopano/ECChannel.h>
 #include <kopano/ECDefs.h>
+#include <kopano/ECLogger.h>
 #include <kopano/stringutil.h>
 #include "ECSearchClient.h"
 

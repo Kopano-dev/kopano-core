@@ -22,6 +22,7 @@
 #include <kopano/fileutil.hpp>
 #include <kopano/ECTags.h>
 #include <kopano/ECChannel.h>
+#include <kopano/ECLogger.h>
 #include "LMTP.h"
 #include <kopano/stringutil.h>
 #include <kopano/fileutil.hpp>

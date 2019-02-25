@@ -7,17 +7,15 @@
 #define ECLOGGER_H
 
 #include <atomic>
-#include <kopano/zcdefs.h>
-#include <kopano/platform.h>
+#include <clocale>
+#include <cstdarg>
 #include <list>
 #include <memory>
 #include <mutex>
-#include <pthread.h>
-#include <csignal>
-#include <cstdarg>
-#include <cstdio>
 #include <string>
-#include <kopano/memory.hpp>
+#include <sys/types.h>
+#include <kopano/zcdefs.h>
+#include <kopano/platform.h>
 #ifndef KC_LIKE_PRINTF
 #	define KC_LIKE_PRINTF(_fmt, _va)
 #endif
@@ -25,7 +23,6 @@
 namespace KC {
 
 class ECConfig;
-class ECLogger;
 
 static const unsigned int EC_LOGLEVEL_NONE       = 0;
 static const unsigned int EC_LOGLEVEL_FATAL	 = 1;
@@ -225,23 +222,6 @@ class KC_EXPORT_DYCAST ECLogger_File KC_FINAL : public ECLogger {
 	_kc_hidden void init_for_stderr(void);
 	_kc_hidden void init_for_file(void);
 	_kc_hidden void init_for_gzfile(void);
-};
-
-/**
- * Linux syslog logger. Output is whatever syslog does, probably LC_CTYPE.
- */
-class KC_EXPORT_DYCAST ECLogger_Syslog KC_FINAL : public ECLogger {
-	private:
-	std::unique_ptr<char[], cstdlib_deleter> m_ident;
-	static const int levelmap[16]; /* converts to syslog levels */
-
-	public:
-	ECLogger_Syslog(unsigned int max_ll, const char *ident, int facility);
-	~ECLogger_Syslog(void);
-	_kc_hidden virtual void Reset(void) _kc_override;
-	_kc_hidden virtual void log(unsigned int level, const char *msg) _kc_override;
-	_kc_hidden virtual void logf(unsigned int level, const char *fmt, ...) _kc_override KC_LIKE_PRINTF(3, 4);
-	_kc_hidden virtual void logv(unsigned int level, const char *fmt, va_list &) _kc_override;
 };
 
 /**

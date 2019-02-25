@@ -14,6 +14,7 @@
 #include <sys/socket.h>
 #include <kopano/ECChannel.h>
 #include <kopano/ECDefs.h>
+#include <kopano/ECLogger.h>
 #include <kopano/scope.hpp>
 #include <kopano/stringutil.h>
 #include "ECChannelClient.h"

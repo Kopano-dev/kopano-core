@@ -9,6 +9,9 @@
 #include <cstdint>
 #include <cstdlib>
 #include <kopano/ECChannel.h>
+#include <kopano/ECConfig.h>
+#include <kopano/ECLogger.h>
+#include <kopano/memory.hpp>
 #include <kopano/stringutil.h>
 #include <csignal>
 #include <fcntl.h>
@@ -24,6 +27,7 @@
 #ifdef LINUX
 #include <linux/rtnetlink.h>
 #endif
+#include <openssl/err.h>
 #include <cerrno>
 #include <mapicode.h>
 #ifndef hrSuccess

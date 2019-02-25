@@ -7,12 +7,12 @@
 
 #include <string>
 #include <vector>
-#include <kopano/zcdefs.h>
 #include <dirent.h>
-#include <sys/resource.h>
-#include <kopano/ECConfig.h>
+#include <kopano/zcdefs.h>
 
 namespace KC {
+
+class ECConfig;
 
 class fs_deleter {
 	public:

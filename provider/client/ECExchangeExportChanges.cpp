@@ -28,6 +28,85 @@
 
 using namespace KC;
 
+class PropTagCompare final {
+	public:
+	bool operator()(unsigned int lhs, unsigned int rhs) const
+	{
+		if (PROP_TYPE(lhs) == PT_UNSPECIFIED || PROP_TYPE(rhs) == PT_UNSPECIFIED)
+			return PROP_ID(lhs) < PROP_ID(rhs); 
+		return lhs < rhs;
+	}
+};
+
+/** 
+ * Removes properties from lpDestMsg, which do are not listed in @validprops.
+ *
+ * @dst_msg:	The message to delete properties from, which are found "invalid".
+ * @src_msg:	The message for which named properties may be lookupped, listed in @validprops.
+ * @validprops:	Properties which are valid in @dst_msg. All others should be removed.
+ *
+ * Named properties listed in @validprops map to names in @src_msg. The
+ * corresponding property tags are checked in @dst_msg.
+ */
+static HRESULT delete_residual_props(IMessage *dst_msg, IMessage *src_msg,
+    SPropTagArray *validprops)
+{
+	memory_ptr<SPropTagArray> stdprops, namedprops, mappedprops;
+	memory_ptr<MAPINAMEID *> propnames;
+	unsigned int nnames = 0;
+	std::set<unsigned int, PropTagCompare> proptags;
+
+	if (dst_msg == nullptr || src_msg == nullptr || validprops == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+	auto ret = dst_msg->GetPropList(0, &~stdprops);
+	if (ret != hrSuccess || stdprops->cValues == 0)
+		return ret;
+	ret = MAPIAllocateBuffer(CbNewSPropTagArray(validprops->cValues), &~namedprops);
+	if (ret != hrSuccess)
+		return ret;
+
+	memset(namedprops, 0, CbNewSPropTagArray(validprops->cValues));
+	for (size_t i = 0; i < validprops->cValues; ++i)
+		if (PROP_ID(validprops->aulPropTag[i]) >= 0x8000)
+			namedprops->aulPropTag[namedprops->cValues++] = validprops->aulPropTag[i];
+	if (namedprops->cValues > 0) {
+		ret = src_msg->GetNamesFromIDs(&+namedprops, nullptr, 0, &nnames, &~propnames);
+		if (FAILED(ret))
+			return ret;
+		ret = dst_msg->GetIDsFromNames(nnames, propnames, MAPI_CREATE, &~mappedprops);
+		if (FAILED(ret))
+			return ret;
+	}
+
+	/* Add the PropTags the message currently has */
+	for (size_t i = 0; i < stdprops->cValues; ++i)
+		proptags.emplace(stdprops->aulPropTag[i]);
+	/* Remove the regular properties we want to keep */
+	for (size_t i = 0; i < validprops->cValues; ++i)
+		if (PROP_ID(validprops->aulPropTag[i]) < 0x8000)
+			proptags.erase(validprops->aulPropTag[i]);
+	/*
+	 * Remove the mapped named properties we want to keep. Filter failed
+	 * named properties, so they will be removed.
+	 */
+	for (size_t i = 0; mappedprops != nullptr && i < mappedprops->cValues; ++i)
+		if (PROP_TYPE(mappedprops->aulPropTag[i]) != PT_ERROR)
+			proptags.erase(mappedprops->aulPropTag[i]);
+	if (proptags.empty())
+		return hrSuccess;
+
+	/* Reuse stdprops to hold the properties we are going to delete. */
+	assert(stdprops->cValues >= proptags.size());
+	memset(stdprops->aulPropTag, 0, stdprops->cValues * sizeof *stdprops->aulPropTag);
+	stdprops->cValues = 0;
+	for (const auto &i : proptags)
+		stdprops->aulPropTag[stdprops->cValues++] = i;
+	ret = dst_msg->DeleteProps(stdprops, nullptr);
+	if (ret != hrSuccess)
+		return ret;
+	return dst_msg->SaveChanges(KEEP_OPEN_READWRITE);
+}
+
 ECExchangeExportChanges::ECExchangeExportChanges(ECMsgStore *lpStore,
     const std::string &sk, const wchar_t *szDisplay, unsigned int ulSyncType) :
 	m_ulSyncType(ulSyncType), m_sourcekey(sk),
@@ -101,14 +180,14 @@ HRESULT ECExchangeExportChanges::GetLastError(HRESULT hResult, ULONG ulFlags, LP
 }
 
 HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKNOWN lpCollector, LPSRestriction lpRestriction, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize){
+	struct sbcmp {
+		bool operator()(const SBinary &l, const SBinary &r) const { return Util::CompareSBinary(l, r) < 0; }
+	};
 	HRESULT hr;
 	unsigned int ulSyncId = 0, ulChangeId = 0, ulStep = 0;
 	BOOL		bCanStream = FALSE;
 	bool		bForceImplicitStateUpdate = false;
-	typedef std::map<SBinary, ChangeListIter, Util::SBinaryLess>	ChangeMap;
-	typedef ChangeMap::iterator					ChangeMapIter;
-	ChangeMap		mapChanges;
-	ChangeMapIter	iterLastChange;
+	std::map<SBinary, ChangeListIter, sbcmp> mapChanges;
 	ChangeList		lstChange;
 	std::string	sourcekey;
 
@@ -225,7 +304,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 		if (m_setProcessedChanges.find({m_lpChanges[ulStep].ulChangeId, std::string(reinterpret_cast<const char *>(m_lpChanges[ulStep].sSourceKey.lpb), m_lpChanges[ulStep].sSourceKey.cb)}) != m_setProcessedChanges.end())
 			continue;
 
-		iterLastChange = mapChanges.find(m_lpChanges[ulStep].sSourceKey);
+		auto iterLastChange = mapChanges.find(m_lpChanges[ulStep].sSourceKey);
 		if (iterLastChange == mapChanges.end()) {
 			switch (ICS_ACTION(m_lpChanges[ulStep].ulChangeType)) {
 			case ICS_NEW:
@@ -678,7 +757,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 			zlog("Unable to get property list of source message", hr);
 			goto exit;
 		}
-		hr = Util::HrDeleteResidualProps(lpDestMessage, lpSourceMessage, lpPropTagArray);
+		hr = delete_residual_props(lpDestMessage, lpSourceMessage, lpPropTagArray);
 		if (hr != hrSuccess) {
 			zlog("Unable to remove old properties from destination message", hr);
 			goto exit;
