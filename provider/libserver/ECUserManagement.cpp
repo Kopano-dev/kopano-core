@@ -380,18 +380,17 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass,
 		ulCompanyId = 0;
 	}
 
-	// Get all the items of the requested type
-	std::vector<unsigned int> local_ids;
-	er = GetLocalObjectIdList(objclass, ulCompanyId, local_ids);
+	std::map<unsigned int, ECsUserObject> alluser;
+	er = m_lpSession->GetSessionManager()->GetCacheManager()->get_all_user_objects(objclass, alluser);
 	if (er != erSuccess)
 		return er;
 
 	objs.clear();
-	for (const auto &loc_id : local_ids) {
-		if (IsInternalObject(loc_id)) {
+	for (const auto &pair : alluser) {
+		if (IsInternalObject(pair.first)) {
 			// Local user, add it to the result array directly
 			objectdetails_t details;
-			er = GetLocalObjectDetails(loc_id, &details);
+			er = GetLocalObjectDetails(pair.first, &details);
 			if(er != erSuccess)
 				return er;
 			if (ulFlags & USERMANAGEMENT_ADDRESSBOOK &&
@@ -400,13 +399,13 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass,
 			// Reset details, this saves time copying unwanted data, but keep the correct class
 			if (ulFlags & USERMANAGEMENT_IDS_ONLY)
 				details = objectdetails_t(details.GetClass());
-			objs.emplace_back(loc_id, std::move(details));
-		} else if (GetExternalId(loc_id, &externid, NULL, &signature) == erSuccess) {
-			mapSignatureIdToLocal.emplace(std::move(externid), std::pair<unsigned int, std::string>(loc_id, std::move(signature)));
-		} else {
-			// cached externid not found for local object id
+			objs.emplace_back(pair.first, std::move(details));
 		}
+		mapSignatureIdToLocal.emplace(
+			objectid_t{std::move(pair.second.strExternId), pair.second.ulClass},
+			std::make_pair(pair.first, std::move(pair.second.strSignature)));
 	}
+	alluser.clear();
 
 	if (bSync && !bIsSafeMode) {
 		// We now have a map, mapping external IDs to local user IDs (and their signatures)
@@ -1140,45 +1139,6 @@ ECRESULT ECUserManagement::GetLocalObjectsIdsOrCreate(const signatures_t &lstSig
 			return er;
 		}
 		result.first->second = ulObjectId;
-	}
-	return erSuccess;
-}
-
-ECRESULT ECUserManagement::GetLocalObjectIdList(objectclass_t objclass,
-    unsigned int ulCompanyId, std::vector<unsigned int> &objs) const
-{
-	ECDatabase *lpDatabase = NULL;
-	DB_RESULT lpResult;
-
-	auto er = m_lpSession->GetDatabase(&lpDatabase);
-	if (er != erSuccess)
-		return er;
-	std::string strQuery =
-		"SELECT id FROM users "
-		"WHERE " + OBJECTCLASS_COMPARE_SQL("objectclass", objclass);
-	/* As long as the Offline server has partial hosted support,
-	 * we must comment out this additional where statement... */
-	if (m_lpSession->GetSessionManager()->IsHostedSupported())
-		/* Everyone and SYSTEM don't have a company but must be
-		 * included by the query, so write exception case for them */
-		strQuery +=
-			" AND ("
-				"company = " + stringify(ulCompanyId) + " "
-				"OR id = " + stringify(ulCompanyId) + " "
-				"OR id = " + stringify(KOPANO_UID_SYSTEM) + " "
-				"OR id = " + stringify(KOPANO_UID_EVERYONE) + ")";
-	er = lpDatabase->DoSelect(strQuery, &lpResult);
-	if (er != erSuccess)
-		return er;
-
-	objs.clear();
-	objs.reserve(lpResult.get_num_rows());
-	while(1) {
-		auto lpRow = lpResult.fetch_row();
-		if(lpRow == NULL)
-			break;
-		if (lpRow[0] != nullptr)
-			objs.push_back(atoi(lpRow[0]));
 	}
 	return erSuccess;
 }

@@ -670,6 +670,35 @@ exit:
 	return er;
 }
 
+ECRESULT ECCacheManager::get_all_user_objects(objectclass_t ocls,
+    std::map<unsigned int, ECsUserObject> &out)
+{
+	ECDatabase *db = nullptr;
+	DB_RESULT result;
+	DB_ROW row;
+
+	auto ret = m_lpDatabaseFactory->get_tls_db(&db);
+	if (ret != erSuccess)
+		return ret;
+	ret = db->DoSelect("SELECT externid, objectclass, signature, company, id "
+	      "FROM users WHERE " + OBJECTCLASS_COMPARE_SQL("objectclass", ocls), &result);
+	if (ret != erSuccess)
+		return KCERR_DATABASE_ERROR;
+
+	out.clear();
+	while ((row = result.fetch_row()) != nullptr) {
+		ECsUserObject u;
+		if (row[0] != nullptr)
+			u.strExternId = row[0];
+		u.ulClass = static_cast<objectclass_t>(atoui(row[1]));
+		u.strSignature = row[2];
+		u.ulCompanyId = atoui(row[3]);
+		I_AddUserObject(atoui(row[4]), u.ulClass, u.ulCompanyId, u.strExternId, u.strSignature);
+		out.emplace(atoui(row[4]), std::move(u));
+	}
+	return erSuccess;
+}
+
 ECRESULT ECCacheManager::GetUserDetails(unsigned int ulUserId, objectdetails_t *details)
 {
 	auto er = I_GetUserObjectDetails(ulUserId, details);

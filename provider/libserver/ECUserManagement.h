@@ -133,9 +133,6 @@ private:
 	_kc_hidden ECRESULT GetLocalObjectIdOrCreate(const objectsignature_t &signature, unsigned int *id);
 	_kc_hidden ECRESULT GetLocalObjectsIdsOrCreate(const signatures_t &, std::map<objectid_t, unsigned int> *local_objids);
 
-	// Get a list of local object IDs in the database plus any internal objects (SYSTEM, EVERYONE)
-	_kc_hidden ECRESULT GetLocalObjectIdList(objectclass_t, unsigned int company_id, std::vector<unsigned int> &objs) const;
-
 	// Converts anonymous Object Detail to property. */
 	_kc_hidden ECRESULT ConvertAnonymousObjectDetailToProp(struct soap *, const objectdetails_t *, unsigned int tag, struct propVal *) const;
 	// Converts the data in user/group/company details fields into property value array for content tables and MAPI_MAILUSER and MAPI_DISTLIST objects
