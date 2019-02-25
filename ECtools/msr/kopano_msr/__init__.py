@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # SPDX-License-Identifier: AGPL-3.0-only
 import codecs
 import collections
@@ -14,9 +14,31 @@ import bsddb3 as bsddb
 import setproctitle
 
 from .version import __version__
+
 import kopano
 from kopano import Config
 from kopano import log_exc
+
+"""
+kopano-msr - live store migration tool
+
+parallelized over stores, with max 1 worker per store.
+
+migration settings and sync states are persistently stored in 'state_path'.
+
+migration management is done from command-line (using socket for communication).
+
+basic commands (see --help for all options):
+
+kopano-msr --list-users -> list users currently being migrated
+
+kopano-msr -u user1 --add --server node14 -> start migrating user
+
+kopano-msr -u user1 ->  check migration status, compare store contents
+
+kopano-msr -u user1 --remove -> finalize migration (metadata, special folders..)
+
+"""
 
 CONFIG = {
     'state_path': Config.path(default='/var/lib/kopano/msr/', check=True),
@@ -158,12 +180,20 @@ class ControlWorker(kopano.Worker):
 
                         if data[0] == 'ADD':
                             user, target_user, target_server = data[1:]
+                            if user in USER_INFO:
+                                self.log.error('user %s is already being relocated', user) # TODO return error
+                                response(conn, 'ERROR')
+                                break
                             self.subscribe.put((user, target_user, target_server, True, None))
                             response(conn, 'OK:')
                             break
 
                         elif data[0] == 'REMOVE':
                             user = data[1]
+                            if user not in USER_INFO:
+                                self.log.error('user %s is not being relocated', user) # TODO return error
+                                response(conn, 'ERROR')
+                                break
                             self.subscribe.put((user, None, None, False, None))
                             response(conn, 'OK:')
                             break
@@ -206,46 +236,48 @@ class HierarchyImporter:
         self.log = log
 
     def update(self, f):
-        entryid2 = db_get(self.state_path, 'folder_map_'+f.sourcekey)
-        psk = f.parent.sourcekey or self.subtree_sk # TODO default pyko to subtree_sk?
+        with log_exc(self.log): # TODO use decorator?
+            entryid2 = db_get(self.state_path, 'folder_map_'+f.sourcekey)
+            psk = f.parent.sourcekey or self.subtree_sk # TODO default pyko to subtree_sk?
 
-        self.log.info('updated: %s', f)
+            self.log.info('updated: %s', f)
 
-        parent2_eid = db_get(self.state_path, 'folder_map_'+psk)
-        parent2 = self.store2.folder(entryid=parent2_eid)
+            parent2_eid = db_get(self.state_path, 'folder_map_'+psk)
+            parent2 = self.store2.folder(entryid=parent2_eid)
 
-        self.log.info('parent: %s', parent2)
+            self.log.info('parent: %s', parent2)
 
-        if entryid2:
-            self.log.info('exists')
+            if entryid2:
+                self.log.info('exists')
 
-            folder2 = self.store2.folder(entryid=entryid2)
-            folder2.name = f.name
-            folder2.container_class = f.container_class
+                folder2 = self.store2.folder(entryid=entryid2)
+                folder2.name = f.name
+                folder2.container_class = f.container_class
 
-            if folder2.parent.entryid != parent2_eid:
-                self.log.info('move folder')
+                if folder2.parent.entryid != parent2_eid:
+                    self.log.info('move folder')
 
-                folder2.parent.move(folder2, parent2)
+                    folder2.parent.move(folder2, parent2)
 
-        else:
-            self.log.info('create')
+            else:
+                self.log.info('create')
 
-            folder2 = parent2.create_folder(f.name) # TODO potential name conflict
+                folder2 = parent2.create_folder(f.name) # TODO potential name conflict
 
-            db_put(self.state_path, 'folder_map_'+f.sourcekey, folder2.entryid)
+                db_put(self.state_path, 'folder_map_'+f.sourcekey, folder2.entryid)
 
-        _queue_or_store(self.state_path, self.user, self.store_entryid, f.entryid, self.iqueue)
+            _queue_or_store(self.state_path, self.user, self.store_entryid, f.entryid, self.iqueue)
 
     def delete(self, f, flags):
-        self.log.info('deleted folder: %s', f.sourcekey)
+        with log_exc(self.log):
+            self.log.info('deleted folder: %s', f.sourcekey)
 
-        entryid2 = db_get(self.state_path, 'folder_map_'+f.sourcekey)
-        if entryid2: # TODO why this check
-            folder2 = self.store2.folder(entryid=entryid2)
-            self.store2.delete(folder2)
+            entryid2 = db_get(self.state_path, 'folder_map_'+f.sourcekey)
+            if entryid2: # TODO why this check
+                folder2 = self.store2.folder(entryid=entryid2)
+                self.store2.delete(folder2)
 
-        # TODO delete from mapping
+            # TODO delete from mapping
 
 class FolderImporter:
     def __init__(self, state_path, folder2, user, log):
@@ -255,42 +287,46 @@ class FolderImporter:
         self.log = log
 
     def update(self, item, flags):
-        self.log.info('new/updated item: %s', item.sourcekey)
-        entryid2 = db_get(self.state_path, 'item_map_'+item.sourcekey)
-        if entryid2:
-            item2 = self.folder2.item(entryid2)
-            self.folder2.delete(item2) # TODO remove from db
-        item2 = item.copy(self.folder2)
-        db_put(self.state_path, 'item_map_'+item.sourcekey, item2.entryid)
-        update_user_info(self.state_path, self.user, 'items', 'add', 1)
+        with log_exc(self.log):
+            self.log.info('new/updated item: %s', item.sourcekey)
+            entryid2 = db_get(self.state_path, 'item_map_'+item.sourcekey)
+            if entryid2:
+                item2 = self.folder2.item(entryid2)
+                self.folder2.delete(item2) # TODO remove from db
+            item2 = item.copy(self.folder2)
+            db_put(self.state_path, 'item_map_'+item.sourcekey, item2.entryid)
+            update_user_info(self.state_path, self.user, 'items', 'add', 1)
 
     def read(self, item, state):
-        self.log.info('changed readstate for item: %s', item.sourcekey)
-        entryid2 = db_get(self.state_path, 'item_map_'+item.sourcekey)
-        self.folder2.item(entryid2).read = state
+        with log_exc(self.log):
+            self.log.info('changed readstate for item: %s', item.sourcekey)
+            entryid2 = db_get(self.state_path, 'item_map_'+item.sourcekey)
+            self.folder2.item(entryid2).read = state
 
     def delete(self, item, flags):
-        self.log.info('deleted item: %s', item.sourcekey)
-        entryid2 = db_get(self.state_path, 'item_map_'+item.sourcekey)
-        self.folder2.delete(self.folder2.item(entryid2))
+        with log_exc(self.log):
+            self.log.info('deleted item: %s', item.sourcekey)
+            entryid2 = db_get(self.state_path, 'item_map_'+item.sourcekey)
+            self.folder2.delete(self.folder2.item(entryid2))
 
 class NotificationSink:
     def __init__(self, state_path, user, store, iqueue, log):
         self.state_path = state_path
         self.user = user
         self.store = store
-        self.log = log
         self.iqueue = iqueue
+        self.log = log
 
     def update(self, notification):
-        self.log.info('notif: %s %s', notification.object_type, notification.event_type)
+        with log_exc(self.log):
+            self.log.info('notif: %s %s', notification.object_type, notification.event_type)
 
-        if notification.object_type == 'item':
-            folder = notification.object.folder
-            _queue_or_store(self.state_path, self.user, self.store.entryid, folder.entryid, self.iqueue)
+            if notification.object_type == 'item':
+                folder = notification.object.folder
+                _queue_or_store(self.state_path, self.user, self.store.entryid, folder.entryid, self.iqueue)
 
-        elif notification.object_type == 'folder':
-            _queue_or_store(self.state_path, self.user, self.store.entryid, None, self.iqueue)
+            elif notification.object_type == 'folder':
+                _queue_or_store(self.state_path, self.user, self.store.entryid, None, self.iqueue)
 
 class SyncWorker(kopano.Worker):
     """ worker process """
@@ -300,8 +336,9 @@ class SyncWorker(kopano.Worker):
         setproctitle.setproctitle('kopano-msr worker %d' % self.nr)
 
         while True:
+            store_entryid, folder_entryid = self.iqueue.get()
+
             with log_exc(self.log):
-                (store_entryid, folder_entryid) = self.iqueue.get()
 
                 store = self.server.store(entryid=store_entryid)
                 user = store.user
@@ -375,10 +412,11 @@ class Service(kopano.Service):
         # resume relocations
         for username in os.listdir(self.state_path):
             if not username.endswith('.lock'):
-                state_path = os.path.join(self.state_path, username)
-                info = pickle.loads(db_get(state_path, 'info', decode=False))
+                with log_exc(self.log):
+                    state_path = os.path.join(self.state_path, username)
+                    info = pickle.loads(db_get(state_path, 'info', decode=False))
 
-                self.subscribe.put((username, info['target'], info['server'], True, info['store']))
+                    self.subscribe.put((username, info['target'], info['server'], True, info['store']))
 
         # continue using notifications
         self.notify_sync()
@@ -461,15 +499,16 @@ class Service(kopano.Service):
 
         while True:
             # check command-line add-user requests
-            try:
-                user, target_user, target_server, subscribe, store_eid = self.subscribe.get(timeout=0.01)
-                if subscribe:
-                    self.subscribe_user(server, user, target_user, target_server, store_eid)
-                else:
-                    self.unsubscribe_user(server, user)
+            with log_exc(self.log):
+                try:
+                    user, target_user, target_server, subscribe, store_eid = self.subscribe.get(timeout=0.01)
+                    if subscribe:
+                        self.subscribe_user(server, user, target_user, target_server, store_eid)
+                    else:
+                        self.unsubscribe_user(server, user)
 
-            except Empty:
-                pass
+                except Empty:
+                    pass
 
             # check worker output queue: more folders for same store?
             try:
@@ -506,12 +545,10 @@ class Service(kopano.Service):
 
     def cmd_add(self, options):
         username = options.users[0]
-
         for name in (username, options.target):
             if name and not self.server.get_user(name):
                 print("no such user: %s" % name, file=sys.stderr)
                 sys.exit(1)
-
         if options.server:
             for node in self.server.nodes(): # TODO optimize
                 if node.name == options.server:
@@ -519,7 +556,6 @@ class Service(kopano.Service):
             else:
                 print("no such server: %s" % options.server, file=sys.stderr)
                 sys.exit(1)
-
         self.do_cmd('ADD %s %s %s\r\n' % (username, options.target or '_', options.server or '_'))
 
     def cmd_remove(self, options):
@@ -529,6 +565,10 @@ class Service(kopano.Service):
         self.do_cmd('LIST\r\n')
 
     def cmd_details(self, options):
+        username = options.users[0]
+        if not self.server.get_user(username):
+            print("no such user: %s" % username, file=sys.stderr)
+            sys.exit(1)
         self.do_cmd('DETAILS %s\r\n' % options.users[0])
 
 def main():
