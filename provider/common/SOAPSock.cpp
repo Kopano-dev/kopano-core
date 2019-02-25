@@ -20,11 +20,7 @@ using namespace KC;
 
 // we cannot patch http_post now (see external/gsoap/*.diff), so we redefine it
 static int
-#if GSOAP_VERSION >= 20850
 http_post(struct soap *soap, const char *endpoint, const char *host, int port, const char *path, const char *action, ULONG64 count)
-#else
-http_post(struct soap *soap, const char *endpoint, const char *host, int port, const char *path, const char *action, size_t count)
-#endif
 { int err;
   if (strlen(endpoint) + strlen(soap->http_version) > sizeof(soap->tmpbuf) - 80
    || strlen(host) + strlen(soap->http_version) > sizeof(soap->tmpbuf) - 80)

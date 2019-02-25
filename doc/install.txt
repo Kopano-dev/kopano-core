@@ -4,7 +4,7 @@ Mandatory build-time dependencies and their minimum versions (if any):
 	* g++ 5.x or clang++ 3.8
 	* binutils 2.22
 	* pkg-config
-	* gsoap 2.8.49, generator and library
+	* gsoap 2.8.73, generator and library
 	* libcrypt with crypt_r
 	* libgettext (where separate from libc)
 	* libical 0.9.x
