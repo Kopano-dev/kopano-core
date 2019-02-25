@@ -358,7 +358,8 @@ signatures_t UnixUserPlugin::getAllUserObjects(const std::string &match,
 		if (!match.empty() && !matchUserObject(pw, match, ulFlags))
 			continue;
 		objectid_t objectid{tostring(pw->pw_uid), shell_to_class(forbid_sh, pw->pw_shell)};
-		objectlist.emplace_back(objectid, getDBSignature(objectid) + pw->pw_gecos + pw->pw_name);
+		auto xsig = getDBSignature(objectid) + pw->pw_gecos + pw->pw_name;
+		objectlist.emplace_back(std::move(objectid), std::move(xsig));
 	}
 	endpwent();
 
@@ -724,7 +725,8 @@ UnixUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 		if (pw->pw_gid != grp.gr_gid || pw->pw_gid < mingid || pw->pw_gid >= maxgid)
 			continue;
 		objectid_t objectid{tostring(pw->pw_uid), shell_to_class(forbid_sh, pw->pw_shell)};
-		objectlist.emplace_back(objectid, getDBSignature(objectid) + pw->pw_gecos + pw->pw_name);
+		auto xsig = getDBSignature(objectid) + pw->pw_gecos + pw->pw_name;
+		objectlist.emplace_back(std::move(objectid), std::move(xsig));
 	}
 	endpwent();
 	biglock.unlock();

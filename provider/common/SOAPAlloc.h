@@ -44,9 +44,9 @@ inline char *s_strcpy(struct soap *soap, const char *str) {
 	return s;
 }
 
-inline void *s_memcpy(struct soap *soap, const void *str, unsigned int len)
+inline unsigned char *s_memcpy(struct soap *soap, const void *str, unsigned int len)
 {
-	char *s = s_alloc<char>(soap, len);
+	auto s = s_alloc<unsigned char>(soap, len);
 	memcpy(s, str, len);
 	return s;
 }

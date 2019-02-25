@@ -231,7 +231,7 @@ ECRESULT ECGenericObjectTable::FindRow(struct restrictTable *rt,
 	while(1) {
 		ecRowList.clear();
 		// Get the row ID of the next row
-		er = lpKeyTable->QueryRows(20, &ecRowList, (ulFlags & DIR_BACKWARD)?true:false, TBL_NOADVANCE);
+		er = lpKeyTable->QueryRows(20, &ecRowList, ulFlags & DIR_BACKWARD, TBL_NOADVANCE);
 		if(er != erSuccess)
 			return er;
 		if(ecRowList.empty())
