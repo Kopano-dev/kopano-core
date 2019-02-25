@@ -48,10 +48,12 @@ from MAPI.Tags import (
     PR_EC_WEBAPP_PERSISTENT_SETTINGS_JSON_W, PR_STORE_ENTRYID
 )
 
-WEBAPP_SETTINGS = (
+SETTINGS_PROPTAGS = ( # TODO long-term move to store.settings_dumps()
     PR_EC_WEBACCESS_SETTINGS_W, PR_EC_RECIPIENT_HISTORY_W,
     PR_EC_WEBACCESS_SETTINGS_JSON_W, PR_EC_RECIPIENT_HISTORY_JSON_W,
     PR_EC_WEBAPP_PERSISTENT_SETTINGS_JSON_W,
+    PR_EC_OUTOFOFFICE_SUBJECT, PR_EC_OUTOFOFFICE_MSG,
+    PR_EC_OUTOFOFFICE, PR_EC_OUTOFOFFICE_FROM, PR_EC_OUTOFOFFICE_UNTIL,
 )
 
 import kopano
@@ -226,7 +228,7 @@ class BackupWorker(kopano.Worker):
     def _store_props(self, store):
         props = list(store.props())
 
-        for proptag in WEBAPP_SETTINGS:
+        for proptag in SETTINGS_PROPTAGS:
             if not [prop for prop in props if prop.proptag == proptag]:
                 prop = store.get_prop(proptag)
                 if prop:
@@ -511,8 +513,7 @@ class Service(kopano.Service):
         if user and not (self.options.folders or self.options.restore_root or self.options.skip_meta or self.options.sourcekeys):
             if os.path.exists('%s/store' % data_path):
                 storeprops = pickle_loads(open('%s/store' % data_path, 'rb').read())
-                for proptag in WEBAPP_SETTINGS + (PR_EC_OUTOFOFFICE_SUBJECT, PR_EC_OUTOFOFFICE_MSG,
-                                PR_EC_OUTOFOFFICE, PR_EC_OUTOFOFFICE_FROM, PR_EC_OUTOFOFFICE_UNTIL):
+                for proptag in SETTINGS_PROPTAGS:
                     if PROP_TYPE(proptag) == PT_TSTRING:
                         proptag = CHANGE_PROP_TYPE(proptag, PT_UNICODE)
                     value = storeprops.get(proptag)
