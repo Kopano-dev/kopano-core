@@ -271,7 +271,7 @@ exit:
 	}
 
 	/** free SSL error data **/
-	#if OPENSSL_VERSION_NUMBER < 0x10100000L
+        #ifdef OLD_API
 		ERR_remove_state(0);
 	#endif
 
