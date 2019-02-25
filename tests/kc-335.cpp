@@ -4,10 +4,9 @@
 #include <string>
 #include <cassert>
 #include <cstdlib>
-#include <kopano/automapi.hpp>
 #include <kopano/hl.hpp>
 #include <kopano/CommonUtil.h>
-#include <kopano/charset/convstring.h>
+#include <kopano/charset/convert.h>
 #include "tbi.hpp"
 
 using namespace KC;
@@ -19,9 +18,6 @@ int main(int argc, char **argv) try
 		user = convert_to<std::wstring>(argv[1]);
 		pass = convert_to<std::wstring>(argv[2]);
 	}
-	AutoMAPI automapi;
-	auto ret = automapi.Initialize();
-	assert(ret == hrSuccess);
 	auto msg = KSession(user.c_str(), pass.c_str()).open_default_store()
 	           .open_root(MAPI_MODIFY).create_message();
 	SPropValue prop[3];

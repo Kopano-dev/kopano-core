@@ -357,16 +357,12 @@ static char *get_password(void)
 	auto s = get_password("Type password:");
 	if(s == NULL)
 		return NULL;
-
 	strncpy(password, s, sizeof(password)-1);
-
 	s = get_password("Retype password:");
 	if (s == NULL)
 		return NULL;
-
 	if (strcmp(password, s) != 0)
 		return NULL;
-
 	return password;
 }
 
@@ -445,7 +441,6 @@ static HRESULT setQuota(IECServiceAdmin *lpServiceAdmin, ULONG cbEid,
 		cerr << "Unable to update quota, probably not found." << endl;
 		return hr;
 	}
-
 	if (print) {
 		cout << "Old quota settings:" << endl;
 		print_quota(lpsQuota, NULL, company);
@@ -460,7 +455,6 @@ static HRESULT setQuota(IECServiceAdmin *lpServiceAdmin, ULONG cbEid,
 	sQuota.llHardSize = (hard >= 0) ? hard : lpsQuota->llHardSize;
 	sQuota.llSoftSize = (soft >= 0) ? soft : lpsQuota->llSoftSize;
 	sQuota.llWarnSize = (warn >= 0) ? warn : lpsQuota->llWarnSize;
-
 	hr = lpServiceAdmin->SetQuota(cbEid, lpEid, &sQuota);
 	if(hr != hrSuccess) {
 		cerr << "Unable to update quota information." << endl;
@@ -552,9 +546,7 @@ static void print_companies(unsigned int cCompanies,
 			cout << ((i > 0) ? ", " : "");
 		else
 			cout << "\t";
-
 		cout << (LPSTR)lpECCompanies[i].lpszCompanyname;
-
 		if (bList)
 			cout << endl;
 	}
@@ -575,9 +567,7 @@ static void print_groups(unsigned int cGroups, const ECGROUP *lpECGroups,
 			cout << ((i > 0) ? ", " : "");
 		else
 			cout << "\t";
-
 		cout << (LPSTR)lpECGroups[i].lpszGroupname;
-
 		if (bList)
 			cout << endl;
 	}
@@ -658,7 +648,6 @@ static void print_extra_settings(const SPROPMAP *lpPropmap,
 				strMVValues += (LPSTR)lpMVPropmap->lpEntries[i].lpszValues[j];
 			}
 		}
-
 		ct.SetColumn(c, 1, strMVValues);
 		++c;
 	}
@@ -681,9 +670,7 @@ static void print_company_settings(const ECCOMPANY *lpECCompany,
 	cout << "Sysadmin:\t\t" << (LPSTR)lpECAdministrator->lpszUsername << endl;
 	if (lpECCompany->lpszServername != NULL && *reinterpret_cast<LPSTR>(lpECCompany->lpszServername) != '\0')
 		cout << "Home server:\t\t" << (LPSTR)lpECCompany->lpszServername << endl;
-
 	cout << "Address book:\t\t" << (lpECCompany->ulIsABHidden ? "Hidden" : "Visible") << endl;
-
 	print_extra_settings(&lpECCompany->sPropmap, &lpECCompany->sMVPropmap);
 }
 
@@ -698,7 +685,6 @@ static void print_group_settings(const ECGROUP *lpECGroup)
 	cout << "Fullname:\t\t" << (LPSTR)lpECGroup->lpszFullname << endl;
 	cout << "Emailaddress:\t\t" << (LPSTR)lpECGroup->lpszFullEmail << endl;
 	cout << "Address book:\t\t" << (lpECGroup->ulIsABHidden ? "Hidden" : "Visible") << endl;
-
 	print_extra_settings(&lpECGroup->sPropmap, &lpECGroup->sMVPropmap, true);
 }
 
@@ -711,28 +697,17 @@ static void print_group_settings(const ECGROUP *lpECGroup)
 static string ClassToString(objectclass_t eClass)
 {
 	switch (eClass) {
-	case ACTIVE_USER:
-		return string("User");
-	case NONACTIVE_USER:
-		return string("Shared store");
-	case NONACTIVE_ROOM:
-		return string("Room");
-	case NONACTIVE_EQUIPMENT:
-		return string("Equipment");
-	case NONACTIVE_CONTACT:
-		return string("Contact");
-	case DISTLIST_GROUP:
-		return string("Group");
-	case DISTLIST_SECURITY:
-		return string("Security group");
-	case DISTLIST_DYNAMIC:
-		return string("Dynamic group");
-	case CONTAINER_COMPANY:
-		return string("Company");
-	case CONTAINER_ADDRESSLIST:
-		return string("Addresslist");
-	default:
-		return string("Unknown");
+	case ACTIVE_USER: return "User";
+	case NONACTIVE_USER: return "Shared store";
+	case NONACTIVE_ROOM: return "Room";
+	case NONACTIVE_EQUIPMENT: return "Equipment";
+	case NONACTIVE_CONTACT: return "Contact";
+	case DISTLIST_GROUP: return "Group";
+	case DISTLIST_SECURITY: return "Security group";
+	case DISTLIST_DYNAMIC: return "Dynamic group";
+	case CONTAINER_COMPANY: return "Company";
+	case CONTAINER_ADDRESSLIST: return "Addresslist";
+	default: return "Unknown";
 	};
 }
 
@@ -750,7 +725,6 @@ static void adm_oof_status(const SPropValue *const prop)
 			return;
 		a &= ts <= now;
 	}
-
 	if (prop[4].ulPropTag == PR_EC_OUTOFOFFICE_UNTIL) {
 		if (FileTimeToTimestamp(prop[4].Value.ft, ts, end_buf, sizeof(start_buf)) == -1)
 			return;
@@ -823,7 +797,6 @@ static void print_user_settings(IMsgStore *lpStore, const ECUSER *lpECUser,
 			logon = FileTimeToUnixTime(lpProps[0].Value.ft);
 		if(lpProps[1].ulPropTag == PR_LAST_LOGOFF_TIME)
 			logoff = FileTimeToUnixTime(lpProps[1].Value.ft);
-
 		if(logon) {
 			strftime(d, sizeof(d), "%x %X", localtime(&logon));
 			cout << "Last logon:\t\t" << d << std::endl;
@@ -851,7 +824,6 @@ static void print_user_settings(IMsgStore *lpStore, const ECUSER *lpECUser,
 				else
 					cout << " [Modified: " << AclRightsToString(arc.Rights) << "]";
 			}
-
 			cout << endl;
 		}
 	}
@@ -1041,7 +1013,6 @@ static HRESULT print_details(LPMAPISESSION lpSession,
 				cerr << "Unable to open user store." << endl;
 				return hr;
 			}
-
 			GetAutoAcceptSettings(lpStore, &bAutoAccept, &bDeclineConflict, &bDeclineRecurring);
 			/* Ignore return value */
 		}
@@ -1098,25 +1069,21 @@ static HRESULT print_details(LPMAPISESSION lpSession,
 		print_users(cUsers, lpECUsers, true);
 		cout << endl;
 	}
-
 	if (cGroups) {
 		cout << "Groups (" << cGroups << "):" << endl;
 		print_groups(cGroups, lpECGroups, true);
 		cout << endl;
 	}
-
 	if (cAdmins) {
 		cout << "Remote admins (" << cAdmins << "):" << endl;
 		print_users(cAdmins, lpECAdmins);
 		cout << endl;
 	}
-
 	if (cViews) {
 		cout << "Remote viewers (" << cViews << "):" << endl;
 		print_companies(cViews, lpECViews, true);
 		cout << endl;
 	}
-
 	if (lpECUser == nullptr)
 		return hr;
 
@@ -1143,6 +1110,7 @@ static HRESULT print_details(LPMAPISESSION lpSession,
 				")" << endl;
 			continue;
 		}
+
 		object_ptr<IECServiceAdmin> svcadm;
 		hr = GetECObject(ptrRemoteAdminStore, iid_of(svcadm), &~svcadm);
 		if (hr != hrSuccess) {
@@ -1237,7 +1205,6 @@ static HRESULT ForEachCompany(IECServiceAdmin *lpServiceAdmin,
 	ULONG cbCompanyId = 0;
 	memory_ptr<ENTRYID> lpCompanyId;
 	ULONG cCompanies = 0;
-
 	ECCOMPANY *lpECCompanies = NULL;
 	memory_ptr<ECCOMPANY> lpECCompaniesAlloc;
 	ECCOMPANY sRootCompany = {{g_cbSystemEid, g_lpSystemEid}, (LPTSTR)"Default", NULL, {0, NULL}};
@@ -1269,7 +1236,6 @@ static HRESULT ForEachCompany(IECServiceAdmin *lpServiceAdmin,
 		cerr << "No companies found." << endl;
 		return hr;
 	}
-
 	for (unsigned int i = 0; i < cCompanies; ++i) {
 		hr = lpWork(lpServiceAdmin, &lpECCompanies[i]);
 		if (hr != hrSuccess)
@@ -1301,7 +1267,6 @@ static HRESULT ForceResyncFor(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 	hr = ptrUserStore->OpenEntry(0, nullptr, &iid_of(ptrRoot), MAPI_MODIFY, &ulType, &~ptrRoot);
 	if (hr != hrSuccess)
 		return hr;
-
 	hr = HrGetOneProp(ptrRoot, PR_EC_RESYNC_ID, &~ptrPropResyncID);
 	if (hr == MAPI_E_NOT_FOUND) {
 		SPropValue sPropResyncID;
@@ -1366,7 +1331,6 @@ static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 
 	sObjTypePropVal.ulPropTag = PR_OBJECT_TYPE;
 	sObjTypePropVal.Value.l = MAPI_MAILUSER;
-
 	sDispTypePropVal.ulPropTag = PR_DISPLAY_TYPE;
 	sDispTypePropVal.Value.l = DT_MAILUSER;
 
@@ -1384,7 +1348,6 @@ static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 		hr = ptrTable->QueryRows(50, 0, &~ptrRows);
 		if (hr != hrSuccess)
 			goto exit;
-
 		if (ptrRows.empty())
 			break;
 
@@ -1411,7 +1374,6 @@ static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 exit:
 	if (!FAILED(hr) && bFail)
 		hr = MAPI_W_ERRORS_RETURNED;
-
 	return hr;
 }
 
@@ -1475,7 +1437,6 @@ static HRESULT DisplayUserCount(LPMDB lpAdminStore)
 	hr = ptrSystemTable->QueryRows(0xffff, 0, &~ptrRows);
 	if (hr != hrSuccess)
 		return hr;
-
 	// We expect at least the first 3
 	if (ptrRows.size() < 3)
 		return MAPI_E_NOT_FOUND;
@@ -1501,14 +1462,12 @@ static HRESULT DisplayUserCount(LPMDB lpAdminStore)
 	    ulActiveUsers == static_cast<ULONG>(-1) ||
 	    ulNonActiveTotal == static_cast<ULONG>(-1))
 		return MAPI_E_NOT_FOUND;
-
 	if (ulNonActiveUsers != (ULONG)-1)
 		++ulExtraRows;
 	if (ulRooms != (ULONG)-1)
 		++ulExtraRows;
 	if (ulEquipment != (ULONG)-1)
 		++ulExtraRows;
-
 	if (ulExtraRows > 0)
 		ct.Resize(3 + ulExtraRows, 4);
 
@@ -1520,7 +1479,6 @@ static HRESULT DisplayUserCount(LPMDB lpAdminStore)
 	ct.SetHeader(COL_ALLOWED, "Allowed");
 	ct.SetHeader(COL_USED, "Used");
 	ct.SetHeader(COL_AVAILABLE, "Available");
-
 	ct.SetColumn(0, 0, "Active");
 	ct.SetColumn(0, COL_USED, stringify(ulActiveUsers));
 	if (ulLicensedUsers == 0) {
@@ -1553,13 +1511,11 @@ static HRESULT DisplayUserCount(LPMDB lpAdminStore)
 		ct.SetColumn(2 + ulExtraRow, COL_USED, stringify(ulNonActiveUsers));
 		++ulExtraRow;
 	}
-
 	if (ulRooms != (ULONG)-1) {
 		ct.SetColumn(2 + ulExtraRow, 0, "  Rooms");
 		ct.SetColumn(2 + ulExtraRow, COL_USED, stringify(ulRooms));
 		++ulExtraRow;
 	}
-
 	if (ulEquipment != (ULONG)-1) {
 		ct.SetColumn(2 + ulExtraRow, 0, "  Equipment");
 		ct.SetColumn(2 + ulExtraRow, COL_USED, stringify(ulEquipment));
@@ -1570,7 +1526,6 @@ static HRESULT DisplayUserCount(LPMDB lpAdminStore)
 	ct.SetColumn(2 + ulExtraRows, COL_USED, stringify(ulActiveUsers + ulNonActiveTotal));
 	// available & allowed columns are too confusing in totals field.
 	ct.SetColumn(2 + ulExtraRows, COL_AVAILABLE, string()); // add empty last column to make sure we print this row
-
 	ct.PrintTable();
 	return hrSuccess;
 }
@@ -1641,7 +1596,6 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 
 		if (PROP_TYPE(row.lpProps[IDX_DISPLAY_NAME].ulPropTag) != PT_ERROR)
 			lpszName = row.lpProps[IDX_DISPLAY_NAME].Value.lpszA;
-
 		hr = ptrServiceAdmin->ResetFolderCount(row.lpProps[IDX_ENTRYID].Value.bin.cb,
 				(LPENTRYID)row.lpProps[IDX_ENTRYID].Value.bin.lpb,
 				&ulUpdates);
@@ -1657,7 +1611,6 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 
 	if (ulTotalUpdates == 0)
 		cerr << "No counters needed to be updated." << endl;
-
 exit:
 	if (hr == hrSuccess && bFailures)
 		hr = MAPI_W_ERRORS_RETURNED;
@@ -1666,7 +1619,7 @@ exit:
 
 class InputValidator {
 	public:
-		bool Failed() const { return m_bFailure; }
+	bool failed = false;
 
 		/**
 		 * Checks for 'invalid' input from the command prompt. Any
@@ -1677,18 +1630,11 @@ class InputValidator {
 		 * @return validated input or NULL
 		 */
 		char* operator()(char *szInput) {
-			m_bFailure = true;
 			wstring strInput;
-
-			if (szInput == nullptr || TryConvert(szInput, strInput) != hrSuccess ||
-			    !std::all_of(strInput.cbegin(), strInput.cend(), iswprint))
-				return NULL;
-			m_bFailure = false;
-			return szInput;
+			failed = szInput == nullptr || TryConvert(szInput, strInput) != hrSuccess ||
+			       !std::all_of(strInput.cbegin(), strInput.cend(), iswprint);
+			return failed ? nullptr : szInput;
 		}
-
-	private:
-		bool m_bFailure = false;
 };
 
 static HRESULT fillMVPropmap(ECUSER &sECUser, ULONG ulPropTag, int index,
@@ -1812,7 +1758,6 @@ int main(int argc, char **argv) try
 	int sendas_action = -1, passprompt = 0;
 	modes mode = MODE_INVALID;
 	std::list<std::string> lstUsernames;
-
 	bool bAutoAccept = false, bDeclineConflict = false, bDeclineRecurring = false;
 	object_ptr<IExchangeManageStore> lpIEMS;
 	unsigned int loglevel = EC_LOGLEVEL_NONE;
@@ -2142,7 +2087,7 @@ int main(int argc, char **argv) try
 		default:
 			break;
 		};
-		if (validateInput.Failed()) {
+		if (validateInput.failed) {
 			cerr << "Invalid input '" << optarg << "' found." << endl;
 			// no need to return, later input checking will print an error too
 		}
@@ -2190,18 +2135,15 @@ int main(int argc, char **argv) try
 		cerr << "Too many options given." << endl;
 		return 1;
 	}
-
 	if (mode == MODE_INVALID) {
 		cerr << "No correct command (e.g. -c for create user) given." << endl;
 		return 1;
 	}
-
 	if (mode == MODE_HELP) {
 		print_help(argv[0]);
 		cout << endl << "Please read kopano-admin(8) for detailed information. Enter `man kopano-admin` to view it." << endl << endl;
 		return 0;
 	}
-
 	// For the following modes we need a company name.
 	if (!companyname &&
 			(mode == MODE_ADD_VIEW || mode == MODE_DEL_VIEW || mode == MODE_LIST_VIEW ||
@@ -2210,12 +2152,10 @@ int main(int argc, char **argv) try
 		cerr << "Missing companyname to perform action" << endl;
 		return 1;
 	}
-
 	if (mode == MODE_DETAILS && username == NULL) {
 		cerr << "Missing information to show user details." << endl;
 		return 1;
 	}
-
 	if (mode == MODE_CREATE_USER) {
 		bool has_username = username != NULL;
 		bool has_password = !(password == NULL && passprompt == 0 && isnonactive < 1);
@@ -2245,7 +2185,6 @@ int main(int argc, char **argv) try
 		cerr << endl;
 		return 1;
 	}
-
 	if (mode == MODE_CREATE_COMPANY &&
 			((quota == 1 && quotawarn == -1) ||
 			 (ud_quota == 1 && (ud_quotahard == -1 || ud_quotasoft == -1 || ud_quotawarn == -1)))) {
@@ -2259,17 +2198,14 @@ int main(int argc, char **argv) try
 		cerr << endl;
 		return 1;
 	}
-
 	if (mode == MODE_CREATE_STORE && username == NULL) {
 		cerr << "Missing username (-u) to be able to create store." << endl;
 		return 1;
 	}
-
 	if (mode == MODE_DELETE_STORE) {
 		cerr << "Delete store action is not available anymore. Use --remove-store to remove a store from the database." << endl;
 		return 1;
 	}
-
 	if (mode == MODE_HOOK_STORE && (storeguid == nullptr || (username == nullptr && !bCopyToPublic))) {
 		cerr << "Missing information to hook store:";
 		if (storeguid == NULL)
@@ -2279,17 +2215,14 @@ int main(int argc, char **argv) try
 		cerr << endl;
 		return 1;
 	}
-
 	if (mode == MODE_UNHOOK_STORE && username == NULL) {
 		cerr << "Missing username (-u) to unhook store for." << endl;
 		return 1;
 	}
-
 	if (mode == MODE_REMOVE_STORE && storeguid == NULL) {
 		cerr << "Missing guid (--remove-store) to remove store for." << endl;
 		return 1;
 	}
-
 	if (mode == MODE_UPDATE_USER && password == NULL && passprompt == 0 &&
 			emailadr == NULL && fullname == NULL && new_username == NULL && isadmin == -1 &&
 			quota == -1 && quotahard == -1 && quotasoft == -1 && quotawarn == -1 &&
@@ -2298,17 +2231,14 @@ int main(int argc, char **argv) try
 		cerr << "Missing information to update user (e.g. password, quota, see --help)." << endl;
 		return 1;
 	}
-
 	if (mode == MODE_DELETE_USER && username == NULL) {
 		cerr << "Missing username (-u) to delete." << endl;
 		return 1;
 	}
-
 	if (mode == MODE_CREATE_GROUP && groupname == NULL) {
 		cerr << "Missing name of group (-g) to create." << endl;
 		return 1;
 	}
-
 	if (mode == MODE_UPDATE_GROUP && (groupname == NULL || (emailadr == NULL && sendas_user == NULL) ) ) {
 		cerr << "Missing information to update group:";
 		if (!groupname)
@@ -2318,12 +2248,10 @@ int main(int argc, char **argv) try
 		cerr << endl;
 		return 1;
 	}
-
 	if (mode == MODE_DELETE_GROUP && groupname == NULL) {
 		cerr << "Missing name of group (-G) to delete." << endl;
 		return 1;
 	}
-
 	if (mode == MODE_ADDUSER_GROUP && (groupname == NULL || username == NULL)) {
 		cerr << "Missing information to add user to group:";
 		if (!groupname)
@@ -2333,7 +2261,6 @@ int main(int argc, char **argv) try
 		cerr << endl;
 		return 1;
 	}
-
 	if (mode == MODE_DELETEUSER_GROUP && (groupname == NULL || username == NULL)) {
 		cerr << "Missing information to remove user from group:";
 		if (!groupname)
@@ -2343,12 +2270,10 @@ int main(int argc, char **argv) try
 		cerr << endl;
 		return 1;
 	}
-
 	if (mode == MODE_CREATE_COMPANY && companyname == NULL) {
 		cerr << "Missing name of company to create." << endl;
 		return 1;
 	}
-
 	if (mode == MODE_UPDATE_COMPANY &&
 			((quota == 1 && quotawarn == -1) ||
 			 (ud_quota == 1 && (ud_quotahard == -1 || ud_quotasoft == -1 || ud_quotawarn == -1)))) {
@@ -2360,49 +2285,40 @@ int main(int argc, char **argv) try
 		cerr << endl;
 		return 1;
 	}
-
 	if (mode == MODE_DELETE_COMPANY && companyname == NULL) {
 		cerr << "Missing name of company to delete." << endl;
 		return 1;
 	}
-
 	if (mode == MODE_ADD_VIEW && set_companyname == NULL) {
 		cerr << "Missing company name to add remote view privilege to." << endl;
 		return 1;
 	}
-
 	if (mode == MODE_DEL_VIEW && set_companyname == NULL) {
 		cerr << "Missing company name to delete remote view privilege to." << endl;
 		return 1;
 	}
-
 	if (mode == MODE_ADD_ADMIN && username == NULL) {
 		cerr << "Missing username to add remote administrator to." << endl;
 		return 1;
 	}
-
 	if (mode == MODE_DEL_ADMIN && username == NULL) {
 		cerr << "Missing username to delete remote administration privilege for." << endl;
 		return 1;
 	}
-
 	if (mode == MODE_SYSTEM_ADMIN && username == NULL) {
 		cerr << "Missing username to set system administrator privilege for." << endl;
 		return 1;
 	}
-
 	if ((mode == MODE_ADD_USERQUOTA_RECIPIENT || mode == MODE_DEL_USERQUOTA_RECIPIENT ||
 				mode == MODE_ADD_COMPANYQUOTA_RECIPIENT || mode == MODE_DEL_COMPANYQUOTA_RECIPIENT) &&
 			username == NULL) {
 		cerr << "Missing username to edit quota recipients for." << endl;
 		return 1;
 	}
-
 	if (mode == MODE_RESET_FOLDER_COUNT && username == NULL) {
 		cerr << "Missing username to reset folder counts for." << endl;
 		return 1;
 	}
-
 	if (lang && mode != MODE_CREATE_STORE) {
 		cerr << "You can only use the --lang option in combination with --create-store." << endl;
 		return 1;
@@ -2412,14 +2328,12 @@ int main(int argc, char **argv) try
 	if (new_username != NULL && mode != MODE_UPDATE_USER) {
 		cerr << "WARNING: new username \"" << new_username << "\" will be ignored (only used for -U)."  << endl;
 	}
-
 	if ((quota == 0 && (quotawarn >= 0 || quotasoft >= 0 || quotahard >= 0)) ||
 			(ud_quota == 0 && (ud_quotawarn >= 0 || ud_quotasoft >= 0 || ud_quotahard >= 0))) {
 		cerr << "Disabling quota override, but quota levels are provided." << endl;
 		cerr << "By disabling quota overrides the existing values will be reset," << endl;
 		cerr << "and these new values will be ignored." << endl;
 	}
-
 	if ((quota == -1 && (quotawarn >= 0 || quotasoft >= 0 || quotahard >= 0)) ||
 			(ud_quota == -1 && (ud_quotawarn >= 0 || ud_quotasoft >= 0 || ud_quotahard >= 0))) {
 		cerr << "Quota levels are provided, but not quota level override" << endl;
@@ -2432,7 +2346,6 @@ int main(int argc, char **argv) try
 
 		cout << "You requested a forced resync without arguments, are you sure you want" << endl;
 		cout << "force a resync of all offline profiles for all users? [y/N]: ";
-
 		cin >> response;
 		if (response.empty() || strcasecmp(response.c_str(), "n") == 0 || strcasecmp(response.c_str(), "no") == 0)
 			return 0;
@@ -2474,7 +2387,6 @@ int main(int argc, char **argv) try
 		lpLogger = std::make_shared<ECLogger_File>(loglevel, 0, "-", false);
 	else
 		lpLogger = std::make_shared<ECLogger_Null>();
-
 	ec_log_set(lpLogger);
 
 	//Init mapi
@@ -2495,7 +2407,6 @@ int main(int argc, char **argv) try
 		// environment variable may override setting variable
 		path = GetServerUnixSocket(path);
 	}
-
 	hr = HrOpenECAdminSession(&~lpSession, PROJECT_VERSION, "admin",
 	     path, EC_PROFILE_FLAGS_NO_NOTIFICATIONS,
 	     lpsConfig->GetSetting("sslkey_file", "", NULL),
@@ -2613,7 +2524,6 @@ int main(int argc, char **argv) try
 	}
 
 	// fully logged on, action!
-
 	switch(mode) {
 	case MODE_LIST_USERS:
 		hr = ForEachCompany(lpServiceAdmin, companyname, ListUsers);
@@ -2639,21 +2549,18 @@ int main(int argc, char **argv) try
 		if (hr != hrSuccess)
 			goto exit;
 		break;
-
 	case MODE_CREATE_PUBLIC:
 		if (companyname == nullptr)
 			return fexech(argv[0], {"kopano-storeadm", "-P"}, path);
 		return fexech(argv[0], {"kopano-storeadm", "-Pk", companyname}, path);
 	case MODE_CREATE_USER:
 		memset(&sECUser, 0, sizeof(sECUser));
-
 		sECUser.sUserId.cb = g_cbDefaultEid;
 		sECUser.sUserId.lpb = g_lpDefaultEid;
 		sECUser.lpszUsername = (LPTSTR)username;
 
 		if (passprompt && isnonactive != 1) {
 			sECUser.lpszPassword = (LPTSTR)get_password();
-
 			if (sECUser.lpszPassword == NULL) {
 				cerr << "Passwords don't match" << endl;
 				return 1;
@@ -2682,7 +2589,6 @@ int main(int argc, char **argv) try
 			cerr << "Check server.log for details." << endl;
 			goto exit;
 		}
-
 		// set quota data
 		if (quota != -1 || quotahard != -1 || quotasoft != -1 || quotawarn != -1) {
 			hr = setQuota(lpServiceAdmin, cbUserId, lpUserId, quota, false, quotawarn, quotasoft, quotahard);
@@ -2702,9 +2608,7 @@ int main(int argc, char **argv) try
 			goto exit;
 		}
 		cout << "User deleted." << endl;
-
 		break;
-
 	case MODE_DELETE_STORE:
 		// happy compiler
 		break;
@@ -2933,7 +2837,6 @@ int main(int argc, char **argv) try
 			cerr << "Unable to list companies: " << getMapiCodeString(hr) << endl;
 			goto exit;
 		}
-
 		cout << "Company list ("<< cCompanies <<"):" << endl;
 		ct.Resize(cCompanies, 2);
 		ct.SetHeader(0, "Companyname");
@@ -2970,7 +2873,6 @@ int main(int argc, char **argv) try
 
 		if (emailadr) {
 			memset(&sECGroup, 0, sizeof(sECGroup));
-
 			// copy static info
 			sECGroup.sGroupId.cb = cbGroupId;
 			sECGroup.sGroupId.lpb = reinterpret_cast<unsigned char *>(lpGroupId.get());
@@ -3135,7 +3037,6 @@ int main(int argc, char **argv) try
 		break;
 	case MODE_SYSTEM_ADMIN:
 		memset(&sECCompany, 0, sizeof(sECCompany));
-
 		sECCompany.sAdministrator.cb = cbUserId;
 		sECCompany.sAdministrator.lpb = reinterpret_cast<unsigned char *>(lpUserId.get());
 		sECCompany.lpszCompanyname = (LPTSTR)companyname;
@@ -3171,7 +3072,6 @@ int main(int argc, char **argv) try
 			cerr << "Failed to get quota recipient list" << endl;
 			goto exit;
 		}
-
 		cbUserId = lpECUser[1].sUserId.cb;
 		hr = KAllocCopy(lpECUser[1].sUserId.lpb, cbUserId, &~lpUserId);
 		if (hr != hrSuccess)
@@ -3181,7 +3081,6 @@ int main(int argc, char **argv) try
 			cerr << "Failed to get quota recipient list" << endl;
 			goto exit;
 		}
-
 		cout << "Recipient list ("<< cUsers-1 <<"):" << endl;
 		/* Skip the dummy entry we used to obtain the list */
 		print_users(cUsers - 1, &lpECUser[1]);
@@ -3208,7 +3107,6 @@ int main(int argc, char **argv) try
 			cerr << "Failed to get quota recipient list." << endl;
 			goto exit;
 		}
-
 		cout << "Recipient list ("<< cUsers-1 <<"):" << endl;
 		/* Skipt first entry, that is the company itself which will not get the mail */
 		print_users(cUsers - 1, &lpECUser[1]);
@@ -3234,7 +3132,6 @@ int main(int argc, char **argv) try
 			cerr << "Failed to retrieve send-as list for " << detailstype << " " << username << endl;
 			goto exit;
 		}
-
 		cout << "Send-as list ("<< cSenders <<") for " << detailstype << " " << username << ":" << endl;
 		print_users(cSenders, lpSenders);
 		break;
@@ -3274,16 +3171,12 @@ int main(int argc, char **argv) try
 
 exit:
 	SSL_library_cleanup();
-
 	if (forcedExitCode > 0)
 		return forcedExitCode;
-
 	if (hr == hrSuccess)
 		return 0;
-
 	cerr << "Using the -v option (possibly multiple times) may "
 	     << "give more hints." << endl;
-
 	return 1;
 } catch (...) {
 	std::terminate();
