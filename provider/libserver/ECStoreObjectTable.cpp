@@ -78,7 +78,7 @@ static bool IsTruncated(const struct propVal *lpsPropVal)
 	switch(PROP_TYPE(lpsPropVal->ulPropTag)) {
 	case PT_STRING8:
 	case PT_UNICODE:
-		return u8_len(lpsPropVal->Value.lpszA) == TABLE_CAP_STRING;
+		return u8_len(lpsPropVal->Value.lpszA, TABLE_CAP_STRING + 1) == TABLE_CAP_STRING;
 	case PT_BINARY:
 		// previously we capped on 255 bytes, upgraded to 511.
 		return lpsPropVal->Value.bin->__size == TABLE_CAP_STRING || lpsPropVal->Value.bin->__size == TABLE_CAP_BINARY;

@@ -24,7 +24,6 @@
 #include <mapiguid.h>
 #include "pcutil.hpp"
 #include <kopano/charset/convert.h>
-#include "utf8/unchecked.h"
 
 using namespace KC;
 
@@ -39,8 +38,7 @@ static LPWSTR WTF1252_to_WCHAR(LPCSTR szWTF1252, LPVOID lpBase, convert_context 
 	str1252.reserve(strlen(szWTF1252));
 
 	while (*szWTF1252) {
-		utf8::uint32_t cp = utf8::unchecked::next(szWTF1252);
-
+		auto cp = u8_readbyte(szWTF1252);
 		// Since the string was originally windows-1252, all code points
 		// should be in the range 0 <= cp < 256.
 		str1252.append(1, cp < 256 ? cp : '?');

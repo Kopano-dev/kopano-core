@@ -53,7 +53,6 @@ At some point we need to rewqrite these functions to do all the conversion on th
 #include <kopano/platform.h>
 #include <kopano/ustringutil.h>
 #include <kopano/CommonUtil.h>
-#include "utf8/unchecked.h"
 #include <cassert>
 #include <clocale>
 #include <memory>
@@ -610,30 +609,28 @@ bool u8_icontains(const char *haystack, const char *needle, const ECLocale &loca
     return u_strstr(a.getTerminatedBuffer(), b.getTerminatedBuffer());
 }
 
-/**
- * Copy at most n characters from the utf8 string src to lpstrDest.
- *
- * @param[in]	src			The UTF-8 source data to copy
- * @param[in]	n			The maximum amount of characters to copy
- * @param[out]	lpstrDest	The copied data.
- *
- * @return The amount of characters copied.
- */
-unsigned u8_ncpy(const char *src, unsigned n, std::string *lpstrDest)
+static const uint8_t utf8_widths[] = {
+	2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+	3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,5,5,5,5,6,6,1,1,
+};
+
+wchar_t u8_readbyte(const char *&z)
 {
-	const char *it = src;
-	unsigned len = 0;
-	while (true) {
-		const char *tmp = it;
-		utf8::uint32_t cp = utf8::unchecked::next(tmp);
-		if (cp == 0)
-			break;
-		it = tmp;
-		if (++len == n)
-			break;
+	static const uint8_t mask[] = {0xFF, 0x1F, 0x0F, 0x07, 0x03, 0x01};
+	if (*z == '\0')
+		return 0;
+	auto s = reinterpret_cast<const uint8_t *>(z);
+	size_t nob = *s < 0xC0 ? 1 : utf8_widths[*s-0xC0], nc = nob - 1;
+	wchar_t v = (*s & mask[nc]) << (6 * nc);
+	for (size_t i = 1; i < nob; ++i) {
+		if ((s[i] & 0xC0) != 0x80)
+			return 0;
+		v <<= 6;
+		v |= s[i] & 0x3F;
 	}
-	lpstrDest->assign(src, it);
-	return len;
+	z += nob;
+	--nob;
+	return v;
 }
 
 /**
@@ -646,20 +643,18 @@ unsigned u8_ncpy(const char *src, unsigned n, std::string *lpstrDest)
  *
  * @return	The length in bytes of the capped string.
  */
-unsigned u8_cappedbytes(const char *s, unsigned max)
+size_t u8_cappedbytes(const char *src, size_t max)
 {
-	const char *it = s;
-	unsigned len = 0;
-	while (true) {
-		const char *tmp = it;
-		utf8::uint32_t cp = utf8::unchecked::next(tmp);
-		if (cp == 0)
+	auto it = src;
+	for (auto z = strlen(src); z > 0 && max > 0; --max) {
+		uint8_t ch = *it;
+		size_t nob = ch < 0xC0 ? 1 : utf8_widths[ch-0xC0];
+		if (nob > z)
 			break;
-		it = tmp;
-		if (++len == max)
-			break;
+		it += nob;
+		z -= nob;
 	}
-	return unsigned(it - s);
+	return it - src;
 }
 
 /**
@@ -669,16 +664,19 @@ unsigned u8_cappedbytes(const char *s, unsigned max)
  *
  * @return	The length in characters of string s
  */
-unsigned u8_len(const char *s)
+size_t u8_len(const char *src, size_t max)
 {
-	unsigned len = 0;
-	while (true) {
-		utf8::uint32_t cp = utf8::unchecked::next(s);
-		if (cp == 0)
+	auto it = src;
+	size_t u = 0;
+	for (auto z = strlen(src); u < max && z > 0; ++u) {
+		uint8_t ch = *it;
+		size_t nob = ch < 0xC0 ? 1 : utf8_widths[ch-0xC0];
+		if (nob > z)
 			break;
-		++len;
+		it += nob;
+		z -= nob;
 	}
-	return len;
+	return u;
 }
 
 static const struct localemap {
