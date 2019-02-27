@@ -23,7 +23,7 @@ SPAMDPROGRAM=/usr/sbin/kopano-spamd
 [ -x $SPAMDPROGRAM ] || exit 0
 
 SPAMDCONFIG_OPT=""
-[ ! -z $SPAMDCONFIG -a -f $SPAMDCONFIG ] && SPAMDCONFIG_OPT="-c $SPAMDCONFIG"
+[ ! -z $SPAMDCONFIG -a -f $SPAMDCONFIG ] && SPAMDCONFIG_OPT="-C $SPAMDCONFIG"
 
 # Source function library.
 . /etc/rc.d/init.d/functions
