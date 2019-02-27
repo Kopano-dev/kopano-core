@@ -9,23 +9,18 @@ import datetime
 import time
 import json
 
-try:
-    import MAPI
-    from MAPI.Util import *
-    from MAPI.Time import *
-    from MAPI.Struct import *
-except ImportError as e:
-    print("Not all modules can be loaded. The following modules are required:")
-    print("- MAPI")
-    print("")
-    print(e)
-    sys.exit(1) 
+import MAPI
+from MAPI.Util import *
+from MAPI.Time import *
+from MAPI.Struct import *
 
-PR_EC_OUTOFOFFICE                   = PROP_TAG(PT_BOOLEAN,    PR_EC_BASE+0x60)
-PR_EC_OUTOFOFFICE_MSG               = PROP_TAG(PT_TSTRING,    PR_EC_BASE+0x61)
-PR_EC_OUTOFOFFICE_SUBJECT           = PROP_TAG(PT_TSTRING,    PR_EC_BASE+0x62)
-PR_EC_OUTOFOFFICE_FROM              = PROP_TAG(PT_SYSTIME,    PR_EC_BASE+0x63)
-PR_EC_OUTOFOFFICE_UNTIL             = PROP_TAG(PT_SYSTIME,    PR_EC_BASE+0x64)
+from MAPI.Tags import (
+    PR_EC_OUTOFOFFICE,
+    PR_EC_OUTOFOFFICE_MSG_W,
+    PR_EC_OUTOFOFFICE_SUBJECT_W,
+    PR_EC_OUTOFOFFICE_FROM,
+    PR_EC_OUTOFOFFICE_UNTIL,
+)
 
 MODE_ENABLE = 1
 MODE_DISABLE = 2
@@ -63,11 +58,11 @@ def print_help():
     print("  $ %s --user user1 --mode 0 --sslkey-file /etc/kopano/ssl/client.pem --host https://127.0.0.1:237/ --sslkey-pass password" % sys.argv[0])
 
 def PrintSubject(subject):
-    if subject.ulPropTag == PR_EC_OUTOFOFFICE_SUBJECT:
+    if subject.ulPropTag == PR_EC_OUTOFOFFICE_SUBJECT_W:
         print("Current subject: '%s'" % subject.Value)
     else:
         print("Current subject: No subject set")
-    
+
 def main(argv = None):
     if argv is None:
         argv = sys.argv
@@ -93,7 +88,7 @@ def main(argv = None):
     message = None
 
     dump_json = False
-    
+
     for o, a in opts:
         if o in ('-h', '--host'):
             host = a
@@ -158,7 +153,7 @@ def main(argv = None):
         print("Unable to read out of office status of user '%s'" % username)
 
     try:
-        oldsubject = st.GetProps([PR_EC_OUTOFOFFICE_SUBJECT], 0)[0].Value
+        oldsubject = st.GetProps([PR_EC_OUTOFOFFICE_SUBJECT_W], 0)[0].Value
         if oldsubject == MAPI_E_NOT_FOUND:
             oldsubject = None
 
@@ -166,7 +161,7 @@ def main(argv = None):
         print("Unable to read out of office subject of user '%s'" % username)
 
     try:
-        oldmsg = st.GetProps([PR_EC_OUTOFOFFICE_MSG], 0)[0].Value
+        oldmsg = st.GetProps([PR_EC_OUTOFOFFICE_MSG_W], 0)[0].Value
         if oldmsg == MAPI_E_NOT_FOUND:
             oldmsg = None
     except Exception:
@@ -267,11 +262,11 @@ def main(argv = None):
                     print("Not changing subject for user '%s' as it was not updated" % username)
                 else:
                     print("Setting new subject '%s' for user '%s'" % (subject, username))
-                    st.SetProps([SPropValue(PR_EC_OUTOFOFFICE_SUBJECT, subject)])
+                    st.SetProps([SPropValue(PR_EC_OUTOFOFFICE_SUBJECT_W, subject)])
             except:
                 print("Unable to set out of office subject for user '%s'" % username)
 
-            newsubject = st.GetProps([PR_EC_OUTOFOFFICE_SUBJECT], 0)
+            newsubject = st.GetProps([PR_EC_OUTOFOFFICE_SUBJECT_W], 0)
             PrintSubject(newsubject[0])
 
         if message:
@@ -288,7 +283,7 @@ def main(argv = None):
                     print("Not updating message, already matching with input file.")
                 else:
                     print("Setting new out of office message for user '%s'" % username)
-                    st.SetProps([SPropValue(PR_EC_OUTOFOFFICE_MSG, msg)])
+                    st.SetProps([SPropValue(PR_EC_OUTOFOFFICE_MSG_W, msg)])
             except:
                 print("Unable to set out of office message.")
 

@@ -16,14 +16,20 @@
 #include <clocale>
 #include <pthread.h>
 #include <cstdarg>
+#include <cstdlib>
 #include <csignal>
 #include <zlib.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/un.h>
+#include <libHX/map.h>
+#include <libHX/option.h>
+#include <libHX/string.h>
+#include <kopano/fileutil.hpp>
 #include <kopano/memory.hpp>
 #include <kopano/scope.hpp>
 #include <kopano/stringutil.h>
+#include <kopano/tie.hpp>
 #include "charset/localeutil.h"
 #include <poll.h>
 #if HAVE_SYSLOG_H
@@ -40,6 +46,19 @@
 #include <kopano/MAPIErrors.h>
 
 namespace KC {
+
+class ECAlternateStack final {
+	public:
+	ECAlternateStack();
+	~ECAlternateStack();
+	private:
+	stack_t st;
+};
+
+struct hxdt {
+	void operator()(struct HXmap *m) { HXmap_free(m); }
+	void operator()(hxmc_t *z) { HXmc_free(z); }
+};
 
 /**
  * Linux syslog logger. Output is whatever syslog does, probably LC_CTYPE.
@@ -76,6 +95,8 @@ static const char *const ll_names[] = {
 
 static ECLogger_File ec_log_fallback_target(EC_LOGLEVEL_WARNING, false, "-", false);
 static ECLogger *ec_log_target = &ec_log_fallback_target;
+static std::string ec_sysinfo = "(indet-OS)", ec_program_name = "(noname-program)", ec_program_ver;
+static std::atomic<bool> ec_sysinfo_checked{false};
 
 ECLogger::ECLogger(int max_ll) :
 	max_loglevel(max_ll), prefix(LP_NONE)
@@ -945,47 +966,41 @@ void LogConfigErrors(ECConfig *lpConfig)
 		ec_log_crit("Config error: " + i);
 }
 
-void generic_sigsegv_handler(ECLogger *lpLogger, const char *app_name,
-    const char *version_string, int signr, const siginfo_t *si, const void *uc)
+static void ec_segv_handler(int signr, siginfo_t *si, void *uctx)
 {
-	ECLogger_Syslog localLogger(EC_LOGLEVEL_DEBUG, app_name, LOG_MAIL);
-
-	if (lpLogger == NULL)
-		lpLogger = &localLogger;
-
-	lpLogger->Log(EC_LOGLEVEL_FATAL, "----------------------------------------------------------------------");
-	lpLogger->Log(EC_LOGLEVEL_FATAL, "Fatal error detected. Please report all following information.");
-	lpLogger->logf(EC_LOGLEVEL_FATAL, "Application %s version: %s", app_name, version_string);
+	ec_log_fatal("----------------------------------------------------------------------");
+	ec_log_fatal("Fatal error detected. Please report all following information.");
+	ec_log_fatal("%s %s", ec_program_name.c_str(), ec_program_ver.c_str());
 	struct utsname buf;
 	if (uname(&buf) == -1)
-		lpLogger->logf(EC_LOGLEVEL_FATAL, "uname() failed: %s", strerror(errno));
+		ec_log_fatal("OS: %s", ec_os_pretty_name().c_str());
 	else
-		lpLogger->logf(EC_LOGLEVEL_FATAL, "OS: %s, release: %s, version: %s, hardware: %s", buf.sysname, buf.release, buf.version, buf.machine);
+		ec_log_fatal("OS: %s (%s %s %s)", ec_os_pretty_name().c_str(), buf.sysname, buf.release, buf.machine);
 
 #ifdef HAVE_PTHREAD_GETNAME_NP
         char name[32] = { 0 };
         int rc = pthread_getname_np(pthread_self(), name, sizeof name);
 	if (rc)
-		lpLogger->logf(EC_LOGLEVEL_FATAL, "pthread_getname_np failed: %s", strerror(rc));
+		ec_log_fatal("pthread_getname_np failed: %s", strerror(rc));
 	else
-		lpLogger->logf(EC_LOGLEVEL_FATAL, "Thread name: %s", name);
+		ec_log_fatal("Thread name: %s", name);
 #endif
 
 	struct rusage rusage;
 	if (getrusage(RUSAGE_SELF, &rusage) == -1)
-		lpLogger->logf(EC_LOGLEVEL_FATAL, "getrusage() failed: %s", strerror(errno));
+		ec_log_fatal("getrusage() failed: %s", strerror(errno));
 	else
-		lpLogger->logf(EC_LOGLEVEL_FATAL, "Peak RSS: %ld", rusage.ru_maxrss);
+		ec_log_fatal("Peak RSS: %ld", rusage.ru_maxrss);
 
 	switch (signr) {
 	case SIGSEGV:
-		lpLogger->logf(EC_LOGLEVEL_FATAL, "Pid %d caught SIGSEGV (%d), traceback:", getpid(), signr);
+		ec_log_fatal("Pid %d caught SIGSEGV (%d), traceback:", getpid(), signr);
 		break;
 	case SIGBUS:
-		lpLogger->logf(EC_LOGLEVEL_FATAL, "Pid %d caught SIGBUS (%d), possible invalid mapped memory access, traceback:", getpid(), signr);
+		ec_log_fatal("Pid %d caught SIGBUS (%d), possible invalid mapped memory access, traceback:", getpid(), signr);
 		break;
 	case SIGABRT:
-		lpLogger->logf(EC_LOGLEVEL_FATAL, "Pid %d caught SIGABRT (%d), out of memory or unhandled exception, traceback:", getpid(), signr);
+		ec_log_fatal("Pid %d caught SIGABRT (%d), out of memory or unhandled exception, traceback:", getpid(), signr);
 		break;
 	}
 
@@ -1000,7 +1015,7 @@ void generic_sigsegv_handler(ECLogger *lpLogger, const char *app_name,
 #ifdef HAVE_SIGINFO_T_SI_FD
 	ec_log_crit("Affected fd: %d", si->si_fd);
 #endif
-	lpLogger->Log(EC_LOGLEVEL_FATAL, "When reporting this traceback, please include Linux distribution name (and version), system architecture and Kopano version.");
+	ec_log_fatal("When reporting this traceback, please include Linux distribution name (and version), system architecture and Kopano version.");
 	/* Reset to DFL to avoid recursion */
 	if (signal(signr, SIG_DFL) == SIG_ERR)
 		ec_log_warn("signal(%d, SIG_DFL): %s", signr, strerror(errno));
@@ -1076,6 +1091,65 @@ HRESULT ec_log_hrcode(HRESULT code, unsigned int level,
 	else
 		ec_log(level, fmt, func, GetMAPIErrorMessage(code), code);
 	return code;
+}
+
+ECAlternateStack::ECAlternateStack()
+{
+	memset(&st, 0, sizeof(st));
+	st.ss_flags = 0;
+	st.ss_size = 65536;
+	st.ss_sp = malloc(st.ss_size);
+	if (st.ss_sp != nullptr && sigaltstack(&st, nullptr) < 0)
+		ec_log_err("sigaltstack: %s", strerror(errno));
+}
+
+ECAlternateStack::~ECAlternateStack()
+{
+	if (st.ss_sp == nullptr)
+		return;
+	sigaltstack(nullptr, nullptr);
+	free(st.ss_sp);
+}
+
+void ec_setup_segv_handler(const char *app, const char *app_ver)
+{
+	static ECAlternateStack stk;
+
+	if (app != nullptr)
+		ec_program_name = app;
+	if (app_ver != nullptr)
+		ec_program_ver  = app_ver;
+	/* Ensure os info is filled before handler is running */
+	ec_os_pretty_name();
+
+	struct sigaction act{};
+	act.sa_sigaction = ec_segv_handler;
+	act.sa_flags     = SA_ONSTACK | SA_RESETHAND | SA_SIGINFO;
+	sigemptyset(&act.sa_mask);
+	sigaction(SIGSEGV, &act, nullptr);
+	sigaction(SIGBUS,  &act, nullptr);
+	sigaction(SIGABRT, &act, nullptr);
+}
+
+const std::string &ec_os_pretty_name()
+{
+	if (ec_sysinfo_checked.exchange(true))
+		return ec_sysinfo;
+
+	std::unique_ptr<HXmap, hxdt> os_rel(HX_shconfig_map("/etc/os-release"));
+	if (os_rel != nullptr) {
+		auto pn = HXmap_get<char *>(os_rel.get(), "PRETTY_NAME");
+		if (pn != nullptr)
+			return ec_sysinfo = pn;
+	}
+
+	std::unique_ptr<FILE, file_deleter> fp(fopen("/etc/redhat-release", "r"));
+	if (fp != nullptr) {
+		std::unique_ptr<hxmc_t, hxdt> ln;
+		if (HX_getl(&unique_tie(ln), fp.get()) != nullptr)
+			return ec_sysinfo = ln.get();
+	}
+	return ec_sysinfo;
 }
 
 } /* namespace */

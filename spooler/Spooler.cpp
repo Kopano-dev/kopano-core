@@ -765,16 +765,6 @@ static HRESULT ProcessQueue(const char *smtp, int port, const char *path)
 }
 
 /**
- * Segfault signal handler. Prints the backtrace of the crash in the log.
- *
- * @param[in]	signr	Any signal that can dump core. Mostly SIGSEGV.
- */
-static void sigsegv(int signr, siginfo_t *si, void *uc)
-{
-	generic_sigsegv_handler(g_lpLogger.get(), "kopano-spooler", PROJECT_VERSION, signr, si, uc);
-}
-
-/**
  * actual signal handler, direct entry point if only linuxthreads is available.
  *
  * @param[in] sig signal received
@@ -1093,14 +1083,7 @@ static int main2(int argc, char **argv)
 		sigaction(SIGTERM, &act, nullptr);
 	}
 
-	KAlternateStack stk;
-	act.sa_sigaction = sigsegv;
-	act.sa_flags = SA_ONSTACK | SA_RESETHAND | SA_SIGINFO;
-	sigemptyset(&act.sa_mask);
-    sigaction(SIGSEGV, &act, NULL);
-    sigaction(SIGBUS, &act, NULL);
-    sigaction(SIGABRT, &act, NULL);
-
+	ec_setup_segv_handler("kopano-spooler", PROJECT_VERSION);
 	bQuit = bMessagesWaiting = false;
 	unix_coredump_enable(g_lpConfig->GetSetting("coredump_enabled"));
 	umask(S_IRWXG | S_IRWXO);

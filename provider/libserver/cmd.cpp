@@ -2576,7 +2576,8 @@ static HRESULT loadobject_cache(ECCacheManager *cache,
 			cache->SetCell(&key, pta.__ptr[i], &pv);
 			continue;
 		}
-		cache->SetCell(&key, arr.__ptr[j].ulPropTag, &arr.__ptr[j]);
+		if (!propVal_is_truncated(&arr.__ptr[j]))
+			cache->SetCell(&key, arr.__ptr[j].ulPropTag, &arr.__ptr[j]);
 		++j;
 	}
 	cache->SetComplete(objid);

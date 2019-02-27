@@ -21,6 +21,7 @@
 #include <kopano/platform.h>
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
+#include <kopano/ecversion.h>
 #include <kopano/stringutil.h>
 #include <kopano/timeutil.hpp>
 #include "StatsClient.h"
@@ -267,7 +268,7 @@ ECStatsCollector::ECStatsCollector(std::shared_ptr<ECConfig> config) :
 	AddStat(SCN_OSRELEASE, SCT_STRING, "osrelease", "Pretty operating system name"); /* not for parsing either */
 	AddStat(SCN_PROGRAM_NAME, SCT_STRING, "program_name", "Program name");
 	AddStat(SCN_PROGRAM_VERSION, SCT_STRING, "program_version", "Program version");
-	set(SCN_PROGRAM_VERSION, PACKAGE_VERSION);
+	set(SCN_PROGRAM_VERSION, PROJECT_VERSION);
 	std::unique_ptr<FILE, file_deleter> fp(fopen("/etc/machine-id", "r"));
 	if (fp != nullptr) {
 		std::string mid;
@@ -280,13 +281,7 @@ ECStatsCollector::ECStatsCollector(std::shared_ptr<ECConfig> config) :
 	struct utsname uts;
 	if (uname(&uts) == 0)
 		set(SCN_UTSNAME, uts.sysname + " "s + uts.machine + " " + uts.release);
-	struct mpfree { void operator()(struct HXmap *m) { HXmap_free(m); } };
-	std::unique_ptr<HXmap, mpfree> os_rel(HX_shconfig_map("/etc/os-release"));
-	if (os_rel != nullptr) {
-		auto os_pretty = HXmap_get<char *>(os_rel.get(), "PRETTY_NAME");
-		if (os_pretty != nullptr)
-			set(SCN_OSRELEASE, os_pretty);
-	}
+	set(SCN_OSRELEASE, ec_os_pretty_name());
 	if (m_config == nullptr)
 		return;
 }

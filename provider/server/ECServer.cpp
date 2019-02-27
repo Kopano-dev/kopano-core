@@ -244,11 +244,6 @@ static void process_signal(int sig)
 	}
 }
 
-static void sigsegv(int signr, siginfo_t *si, void *uc)
-{
-	generic_sigsegv_handler(g_lpLogger.get(), "kopano-server", PROJECT_VERSION, signr, si, uc);
-}
-
 static ECRESULT check_database_engine(ECDatabase *lpDatabase)
 {
 	ECRESULT er = erSuccess;
@@ -837,8 +832,6 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	// Connections
 	bool			hosted = false;
 	bool			distributed = false;
-	// SIGSEGV backtrace support
-	struct sigaction act;
 	int tmplock = -1;
 	struct stat dir = {0};
 	struct passwd *runasUser = NULL;
@@ -1235,16 +1228,8 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	unix_create_pidfile(szName, g_lpConfig.get());
 	mainthread = pthread_self();
 
-	// SIGSEGV backtrace support
-	KAlternateStack sigstack;
-	memset(&act, 0, sizeof(act));
-	act.sa_sigaction = sigsegv;
-	act.sa_flags = SA_ONSTACK | SA_RESETHAND | SA_SIGINFO;
+	struct sigaction act{};
 	sigemptyset(&act.sa_mask);
-	sigaction(SIGSEGV, &act, NULL);
-	sigaction(SIGBUS , &act, NULL);
-	sigaction(SIGABRT, &act, NULL);
-
 	// normally ignore these signals
 	signal(SIGUSR1, SIG_IGN);
 	signal(SIGUSR2, SIG_IGN);
@@ -1255,6 +1240,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	sigaction(SIGINT, &act, nullptr);
 	sigaction(SIGHUP, &act, nullptr);
 	sigaction(SIGTERM, &act, nullptr);
+	ec_setup_segv_handler("kopano-server", PROJECT_VERSION);
 
 	// ignore ignorable signals that might stop the server during database upgrade
 	// all these signals will be reset after the database upgrade part.

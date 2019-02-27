@@ -8,7 +8,6 @@
 #include <string>
 #include <utility>
 #include <cerrno>
-#include <csignal>
 #include <cstdlib>
 #include <cstring>
 #include <pthread.h>
@@ -115,15 +114,16 @@ void ECThreadPool::setThreadCount(unsigned ulThreadCount, bool bWait)
 			m_ulTermReq = 0;
 
 			for (unsigned i = 0; i < ulThreadsToAdd; ++i) {
+				auto wk = make_worker();
 				pthread_t hThread;
 
-				auto ret = pthread_create(&hThread, nullptr, &threadFunc, this);
+				auto ret = pthread_create(&hThread, nullptr, &threadFunc, wk.get());
 				if (ret != 0) {
 					ec_log_err("Could not create ECThreadPool worker thread: %s", strerror(ret));
 					/* If there were no resources, stop trying. */
 					break;
 				}
-				m_setThreads.emplace(hThread);
+				m_setThreads.emplace(hThread, std::move(wk));
 			}
 		}
 	}
@@ -159,7 +159,7 @@ bool ECThreadPool::getNextTask(STaskInfo *lpsTaskInfo, ulock_normal &locker)
 	if (bTerminate) {
 		pthread_t self = pthread_self();
 		auto iThread = std::find_if(m_setThreads.cbegin(), m_setThreads.cend(),
-			[self](pthread_t t) { return pthread_equal(t, self) != 0; });
+			[=](const auto &pair) { return pthread_equal(pair.first, self) != 0; });
 		assert(iThread != m_setThreads.cend());
 		m_setTerminated.emplace(*iThread);
 		m_setThreads.erase(iThread);
@@ -179,9 +179,18 @@ bool ECThreadPool::getNextTask(STaskInfo *lpsTaskInfo, ulock_normal &locker)
 void ECThreadPool::joinTerminated(ulock_normal &locker)
 {
 	assert(locker.owns_lock());
-	for (auto thr : m_setTerminated)
-		pthread_join(thr, NULL);
+	for (const auto &pair : m_setTerminated)
+		pthread_join(pair.first, nullptr);
 	m_setTerminated.clear();
+}
+
+ECThreadWorker::ECThreadWorker(ECThreadPool *p) :
+	m_pool(p)
+{}
+
+std::unique_ptr<ECThreadWorker> ECThreadPool::make_worker()
+{
+	return std::make_unique<ECThreadWorker>(this);
 }
 
 /**
@@ -191,8 +200,11 @@ void ECThreadPool::joinTerminated(ulock_normal &locker)
  */
 void* ECThreadPool::threadFunc(void *lpVoid)
 {
-	auto lpPool = static_cast<ECThreadPool *>(lpVoid);
+	auto worker = static_cast<ECThreadWorker *>(lpVoid);
+	auto lpPool = worker->m_pool;
 	set_thread_name(pthread_self(), "ECThreadPool");
+	if (!worker->init())
+		return nullptr;
 
 	while (true) {
 		STaskInfo sTaskInfo{};
@@ -207,6 +219,7 @@ void* ECThreadPool::threadFunc(void *lpVoid)
 			break;
 
 		assert(sTaskInfo.lpTask != NULL);
+		sTaskInfo.lpTask->m_worker = worker;
 		sTaskInfo.lpTask->execute();
 		if (sTaskInfo.bDelete)
 			delete sTaskInfo.lpTask;
@@ -214,6 +227,7 @@ void* ECThreadPool::threadFunc(void *lpVoid)
 		lpPool->m_hCondTaskDone.notify_one();
 	}
 
+	worker->exit();
 	return NULL;
 }
 
@@ -467,24 +481,6 @@ unsigned long kc_threadid()
 #else
 	return pthread_self();
 #endif
-}
-
-KAlternateStack::KAlternateStack()
-{
-	memset(&st, 0, sizeof(st));
-	st.ss_flags = 0;
-	st.ss_size = 65536;
-	st.ss_sp = malloc(st.ss_size);
-	if (st.ss_sp != nullptr && sigaltstack(&st, nullptr) < 0)
-		ec_log_err("sigaltstack: %s", strerror(errno));
-}
-
-KAlternateStack::~KAlternateStack()
-{
-	if (st.ss_sp == nullptr)
-		return;
-	sigaltstack(nullptr, nullptr);
-	free(st.ss_sp);
 }
 
 } /* namespace */

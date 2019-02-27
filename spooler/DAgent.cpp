@@ -275,12 +275,6 @@ static void sigchld(int)
 		--g_nLMTPThreads;
 }
 
-// Look for segmentation faults
-static void sigsegv(int signr, siginfo_t *si, void *uc)
-{
-	generic_sigsegv_handler(g_lpLogger.get(), "kopano-dagent", PROJECT_VERSION, signr, si, uc);
-}
-
 /**
  * Check if the message should be processed with the autoaccepter
  *
@@ -3451,18 +3445,11 @@ int main(int argc, char **argv) try {
 	}
 
 	signal(SIGPIPE, SIG_IGN);
-
-	// SIGSEGV backtrace support
-	KAlternateStack sigstack;
-	act.sa_sigaction = sigsegv;
-	act.sa_flags = SA_ONSTACK | SA_RESETHAND | SA_SIGINFO;
 	sigemptyset(&act.sa_mask);
-	sigaction(SIGSEGV, &act, NULL);
-	sigaction(SIGBUS, &act, NULL);
-	sigaction(SIGABRT, &act, NULL);
 	act.sa_flags = SA_RESTART;
 	act.sa_handler = sighup;
 	sigaction(SIGHUP, &act, nullptr);
+	ec_setup_segv_handler("kopano-dagent", PROJECT_VERSION);
 	file_limit.rlim_cur = KC_DESIRED_FILEDES;
 	file_limit.rlim_max = KC_DESIRED_FILEDES;
 

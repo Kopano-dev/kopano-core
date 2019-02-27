@@ -2193,7 +2193,8 @@ HRESULT KServerContext::logon(const char *user, const char *pass)
 	if (user == nullptr)
 		user = pass = KOPANO_SYSTEM_USER;
 	ret = HrOpenECSession(&~m_session, m_app_misc, PROJECT_VERSION,
-	      user, pass, m_host, m_ses_flags, m_ssl_keyfile, m_ssl_keypass);
+	      user, pass, m_host == nullptr ? "default:" : m_host,
+	      m_ses_flags, m_ssl_keyfile, m_ssl_keypass);
 	if (ret != hrSuccess)
 		return kc_perror("OpenECSession", ret);
 	ret = HrOpenDefaultStore(m_session, &~m_admstore);

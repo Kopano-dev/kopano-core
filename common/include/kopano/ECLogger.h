@@ -289,7 +289,8 @@ extern _kc_export void ec_log(unsigned int level, const std::string &msg);
 extern _kc_export HRESULT ec_log_hrcode(HRESULT, unsigned int level, const char *fmt, const char *func);
 extern _kc_export ECLogger *CreateLogger(ECConfig *, const char *argv0, const char *service, bool audit = false);
 extern _kc_export void LogConfigErrors(ECConfig *);
-extern _kc_export void generic_sigsegv_handler(ECLogger *, const char *app, const char *vers, int sig, const siginfo_t *, const void *uctx);
+extern _kc_export void ec_setup_segv_handler(const char *app, const char *vers);
+extern _kc_export const std::string &ec_os_pretty_name();
 
 } /* namespace */
 
