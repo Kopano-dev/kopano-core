@@ -33,7 +33,7 @@ if sys.version_info[0] > 2:
     unicode = str
 
 def opt_args():
-    parser = kopano.parser('skpcUPv')
+    parser = kopano.parser('SKQCUPv')
     parser.add_option("--user", dest="user", action="store", help="Run script for user ")
     parser.add_option("--list", dest="listrules", action="store_true", help="Print rules")
     parser.add_option("--rule", dest="rule", action="store", type="int", help="rule id")

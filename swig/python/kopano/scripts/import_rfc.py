@@ -9,7 +9,7 @@ from __future__ import print_function
 import sys
 import kopano
 
-parser = kopano.parser('skpuf')
+parser = kopano.parser('SKQuf')
 options, args = parser.parse_args()
 server = kopano.server(options, parse_args=True)
 

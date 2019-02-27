@@ -435,7 +435,7 @@ class Service(kopano.Service):
                 s.recv(1024)
 
 def main():
-    parser = kopano.parser('ckpsFlVuS') # select common cmd-line options
+    parser = kopano.parser('CKQSFlVus') # select common cmd-line options
     parser.add_option('-r', '--reindex', dest='reindex', action='store_true',help='Reindex user/store')
     options, args = parser.parse_args()
     service = Service('search', config=CONFIG, options=options)

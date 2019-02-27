@@ -9,7 +9,7 @@ import kopano
 import matplotlib.pyplot as plt
 
 def opt_args():
-    parser = kopano.parser('skpc')
+    parser = kopano.parser('SKQC')
     parser.add_option('--store', dest='store', action='store_true',  help='Plots a graph with store sizes of users')
     parser.add_option('--folders', dest='plotfolders', action='store_true',  help='Plots a graph with the number of folders per user')
     parser.add_option('--items', dest='items', action='store_true',  help='Plots a graph with the number of items per user')

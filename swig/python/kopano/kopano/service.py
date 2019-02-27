@@ -130,7 +130,7 @@ Encapsulates everything to create a simple service, such as:
         self.name = name
         self.__dict__.update(kwargs)
         if not options:
-            options, args = _parser.parser('cskpUPufmvVFw').parse_args()
+            options, args = _parser.parser('CSKQUPufmvVFw').parse_args()
             args = [_decode(arg) for arg in args]
         self.options, self.args = options, args
         self.name = name

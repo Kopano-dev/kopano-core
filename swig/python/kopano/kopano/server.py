@@ -182,6 +182,9 @@ def _cleanup_mapistores():
 if os.getenv('ZCPSRCDIR'):
     atexit.register(_cleanup_mapistores)
 
+class Options(object):
+    pass
+
 class Server(object):
     """Server class"""
 
@@ -226,8 +229,11 @@ class Server(object):
 
         if not self.mapisession:
             # get cmd-line options
-            if parse_args and not self.options:
-                self.options, _ = parser().parse_args()
+            if not self.options:
+                if parse_args:
+                    self.options, _ = parser().parse_args()
+                else:
+                    self.options = Options()
 
             # determine config file
             if config:
