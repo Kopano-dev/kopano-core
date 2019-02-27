@@ -66,7 +66,7 @@ class MailFolderResource(FolderResource):
             self.respond(req, resp, item, MessageResource.fields)
 
         elif method == 'childFolders':
-            child = folder.create_folder(fields['displayName']) # TODO exception on conflict
+            child = folder.create_folder(fields['displayName'])
             self.respond(req, resp, child, MailFolderResource.fields)
 
         elif method in ('copy', 'move'):

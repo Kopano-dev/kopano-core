@@ -187,7 +187,7 @@ class UserResource(Resource):
             self.respond(req, resp, item, EventResource.fields)
 
         elif method == 'mailFolders':
-            folder = store.create_folder(fields['displayName']) # TODO exception on conflict
+            folder = store.create_folder(fields['displayName'])
             self.respond(req, resp, folder, MailFolderResource.fields)
 
 from .group import (
