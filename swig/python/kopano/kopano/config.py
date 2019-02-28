@@ -17,6 +17,8 @@ if sys.hexversion >= 0x03000000:
 else: # pragma: no cover
     import utils as _utils
 
+KOPANO_CFG_DIR = os.getenv('KOPANO_CFG_DIR') or '/etc/kopano'
+
 class ConfigOption:
     def __init__(self, type_, **kwargs):
         self.type_ = type_
@@ -87,7 +89,7 @@ Example::
         elif options and getattr(options, 'config_file', None):
             filename = options.config_file
         elif service:
-            filename = '/etc/kopano/%s.cfg' % service
+            filename = '%s/%s.cfg' % (KOPANO_CFG_DIR, service)
         self.data = {}
         if self.config is not None:
             for key, val in self.config.items():
