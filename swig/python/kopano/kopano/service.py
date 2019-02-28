@@ -20,6 +20,7 @@ import signal
 import socket
 import ssl
 import sys
+import traceback
 
 from .compat import decode as _decode
 
@@ -174,11 +175,14 @@ Encapsulates everything to create a simple service, such as:
         signal.signal(signal.SIGHUP, signal.SIG_IGN) # XXX long term, reload config?
 
         self.log.info('starting %s', self.logname or self.name)
-        with _log.log_exc(self.log):
+        try:
             if getattr(self.options, 'service', True): # do not run-as-service (eg backup)
                 _daemonize(self.main, options=self.options, log=self.log, config=self.config, service=self)
             else:
                 _daemon_helper(self.main, self, self.log)
+        except Exception as e:
+            self.log.error(traceback.format_exc())
+            sys.exit(1)
 
 class Worker(Process):
     def __init__(self, service, name, **kwargs):

@@ -748,8 +748,10 @@ class Server(object):
             for guid in self.options.stores:
                 if guid.split('@')[0] == 'public':
                     yield self._pubstore(guid)
+                elif len(guid) == 32:
+                    yield _store.Store(guid=guid, server=self)
                 else:
-                    yield _store.Store(guid, server=self)
+                    yield _store.Store(entryid=guid, server=self)
             return
 
         table = self.ems.GetMailboxTable(None, 0)
