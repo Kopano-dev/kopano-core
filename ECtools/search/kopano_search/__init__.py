@@ -398,10 +398,14 @@ class Service(kopano.Service):
             else:
                 store_guids.append(store.guid)
 
-        for store_guid in store_guids:
-            with closing(kopano.client_socket(self.config['server_bind_name'], ssl_cert=self.config['ssl_certificate_file'])) as s:
-                s.sendall((u'REINDEX %s\r\n' % store_guid).encode('ascii'))
-                s.recv(1024)
+        try:
+            for store_guid in store_guids:
+                with closing(kopano.client_socket(self.config['server_bind_name'], ssl_cert=self.config['ssl_certificate_file'])) as s:
+                    s.sendall((u'REINDEX %s\r\n' % store_guid).encode('ascii'))
+                    s.recv(1024)
+        except OSError as e:
+            print('could not connect to search socket (%s)' % e)
+            sys.exit(1)
 
 def main():
     parser = kopano.parser('CKQSFlVus') # select common cmd-line options

@@ -551,15 +551,19 @@ class Service(kopano.Service):
                 pass
 
     def do_cmd(self, cmd):
-        with closing(kopano.client_socket(self.config['server_bind_name'], ssl_cert=self.config['ssl_certificate_file'])) as s:
-            s.sendall(cmd.encode())
-            m = s.makefile()
-            line = m.readline()
-            if not line.startswith('OK'):
-                print('kopano-msr returned an error. please check log.', file=sys.stderr)
-                sys.exit(1)
-            for line in m:
-                print(line.rstrip())
+        try:
+            with closing(kopano.client_socket(self.config['server_bind_name'], ssl_cert=self.config['ssl_certificate_file'])) as s:
+                s.sendall(cmd.encode())
+                m = s.makefile()
+                line = m.readline()
+                if not line.startswith('OK'):
+                    print('kopano-msr returned an error. please check log.', file=sys.stderr)
+                    sys.exit(1)
+                for line in m:
+                    print(line.rstrip())
+        except OSError as e:
+            print('could not connect to msr socket (%s)' % e)
+            sys.exit(1)
 
     def cmd_add(self, options):
         username = options.users[0]
