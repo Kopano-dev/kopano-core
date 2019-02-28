@@ -8,7 +8,7 @@ import MAPICore
 from MAPI.Defs import *
 
 def _convert(s):
-    if sys.hexversion >= 0x03000000 and isinstance(s, bytes):
+    if isinstance(s, bytes):
         return s.decode('ascii')
     else:
         return s
@@ -45,7 +45,7 @@ class SSort(MAPIStruct):
     def __init__(self, ulPropTag, ulOrder):
         self.ulPropTag = ulPropTag
         self.ulOrder = ulOrder
-        
+
     def __repr__(self):
         sorts = [ 'TABLE_SORT_ASCEND', 'TABLE_SORT_DESCEND' ]
         return "SSort(%#x, %s)" % (self.ulPropTag, sorts[self.ulOrder])
@@ -55,7 +55,7 @@ class SSortOrderSet(MAPIStruct):
         self.aSort = sorts
         self.cCategories = cCategories
         self.cExpanded = cExpanded
-      
+
     def __repr__(self):
         return "SSortOrderSet(%r, %r, %r)" % (self.aSort, self.cCategories, self.cExpanded)
 
@@ -67,7 +67,7 @@ class MAPINAMEID(MAPIStruct):
 
     def __hash__(self):
         return (self.guid, self.kind, self.id).__hash__()
-        
+
     def __repr__(self):
         if (self.kind == MAPICore.MNID_ID):
             return "MAPINAMEID(%r, MNID_ID, %r)" % (self.guid, self.id)
@@ -86,21 +86,21 @@ class SAndRestriction(MAPIStruct):
         self.lpRes = sub
     def __repr__(self):
         return 'SAndRestriction(%r)' % (self.lpRes)
-            
+
 class SOrRestriction(MAPIStruct):
     def __init__(self, sub):
         self.rt = MAPICore.RES_OR
         self.lpRes = sub
     def __repr__(self):
         return 'SOrRestriction(%r)' % (self.lpRes)
-        
+
 class SNotRestriction(MAPIStruct):
     def __init__(self, sub):
         self.rt = MAPICore.RES_NOT
         self.lpRes = sub
     def __repr__(self):
         return 'SNotRestriction(%r)' % (self.lpRes)
-        
+
 class SContentRestriction(MAPIStruct):
     def __init__(self, fuzzy, proptag, prop):
         self.rt = MAPICore.RES_CONTENT
@@ -109,7 +109,7 @@ class SContentRestriction(MAPIStruct):
         self.lpProp = prop
     def __repr__(self):
         return 'SContentRestriction(%r,%#x,%r)' % (self.ulFuzzyLevel, self.ulPropTag, self.lpProp)
-        
+
 class SBitMaskRestriction(MAPIStruct):
     def __init__(self, relBMR, ulPropTag, ulMask):
         self.rt = MAPICore.RES_BITMASK
@@ -136,7 +136,7 @@ class SComparePropsRestriction(MAPIStruct):
         self.ulPropTag2 = ulPropTag2
     def __repr__(self):
         return 'SComparePropsRestriction(%r,%#x,%#x)' % (self.relop, self.ulPropTag1, self.ulPropTag2)
-        
+
 class SSizeRestriction(MAPIStruct):
     def __init__(self, relop, ulPropTag, cb):
         self.rt = MAPICore.RES_SIZE
@@ -145,14 +145,14 @@ class SSizeRestriction(MAPIStruct):
         self.cb = cb
     def __repr__(self):
         return 'SSizeRestriction(%r,%#x,%r)' % (self.relop, self.ulPropTag, self.cb)
-        
+
 class SExistRestriction(MAPIStruct):
     def __init__(self, proptag):
         self.rt = MAPICore.RES_EXIST
         self.ulPropTag = proptag
     def __repr__(self):
         return 'SExistRestriction(%#x)' % (self.ulPropTag)
-        
+
 class SSubRestriction(MAPIStruct):
     def __init__(self, ulSubObject, res):
         self.rt = MAPICore.RES_SUBRESTRICTION
@@ -160,7 +160,7 @@ class SSubRestriction(MAPIStruct):
         self.lpRes = res
     def __repr__(self):
         return 'SSubRestriction(%#x,%r)' % (self.ulSubObject, self.lpRes)
-        
+
 class SCommentRestriction(MAPIStruct):
     def __init__(self, res, prop):
         self.rt = MAPICore.RES_COMMENT
@@ -225,7 +225,7 @@ class ACTIONS(MAPIStruct):
         self.lpAction = actions
     def __repr__(self):
         return 'ACTIONS(%r,%r)' % (self.ulVersion, self.lpAction)
-    
+
 # pylint (let's replace the horror which comes after this with a simple list)
 MAPIErrorNotFound = None
 MAPIErrorInterfaceNotSupported = None
@@ -242,7 +242,7 @@ MAPIErrorLogonFailed = None
 
 class MAPIError(Exception):
     _errormap = {}
-    
+
     @staticmethod
     def _initialize_errors():
         error_prefix = 'MAPI_E_'
@@ -260,12 +260,12 @@ class MAPIError(Exception):
                 t = construct_class(value, name)
                 setattr(sys.modules[__name__], clsname, t)
                 MAPIError._errormap[value] = t
-    
+
     @staticmethod
     def _get_type(hr):
         '''Returns the type of the MAPIError subclass that represents the given error code.'''
         return MAPIError._errormap.get(hr)
-    
+
     @staticmethod
     def from_hresult(hr):
         '''Use MAPIError.from_hresult(hr) to create a MAPIError subclass based on the error
@@ -276,11 +276,11 @@ class MAPIError(Exception):
         if t:
             return t()
         return MAPIError(hr)
-    
+
     def __init__(self, hr, descr=None):
         self.hr = hr
         self.descr = descr
-        
+
     def __repr__(self):
         return "MAPI error %X (%s)" % (self.hr, self.descr)
 
@@ -351,7 +351,7 @@ class ERROR_NOTIFICATION(MAPIStruct):
         self.scode = scode
         self.ulFlags = ulFlags
         self.lpMAPIError = lpMAPIError
-        
+
 class NEWMAIL_NOTIFICATION(MAPIStruct):
     def __init__(self, lpEntryID, lpParentID, ulFlags, lpszMessageClass, ulMessageFlags):
         self.lpEntryID = lpEntryID
@@ -359,7 +359,7 @@ class NEWMAIL_NOTIFICATION(MAPIStruct):
         self.ulFlags = ulFlags
         self.lpszMessageClass = lpszMessageClass
         self.ulMessageFlags = ulMessageFlags
-        
+
 class OBJECT_NOTIFICATION(MAPIStruct):
     def __init__(self, ulEventType, lpEntryID, ulObjType, lpParentID, lpOldID, lpOldParentID, lpPropTagArray):
         self.ulEventType = ulEventType
@@ -369,7 +369,7 @@ class OBJECT_NOTIFICATION(MAPIStruct):
         self.lpOldID = lpOldID
         self.lpOldParentID = lpOldParentID
         self.lpPropTagArray = lpPropTagArray
-        
+
 class TABLE_NOTIFICATION(MAPIStruct):
     def __init__(self, ulTableEvent, hResult, propIndex, propPrior, row):
         self.ulTableEvent = ulTableEvent
@@ -377,7 +377,7 @@ class TABLE_NOTIFICATION(MAPIStruct):
         self.propIndex = propIndex
         self.propPrior = propPrior
         self.row = row
-     
+
 class ROWENTRY(MAPIStruct):
     def __init__(self, ulRowFlags, rgPropVals):
         self.ulRowFlags = ulRowFlags

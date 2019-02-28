@@ -32,18 +32,14 @@ from .compat import (
     benc as _benc, bdec as _bdec, fake_unicode as _unicode,
 )
 
-if sys.hexversion >= 0x03000000:
-    try:
-        from . import server as _server
-    except ImportError: # pragma: no cover
-        _server = sys.modules[__package__ + '.server']
-    try:
-        from . import store as _store
-    except ImportError: # pragma: no cover
-        _store = sys.modules[__package__ + '.store']
-else: # pragma: no cover
-    import server as _server
-    import store as _store
+try:
+    from . import server as _server
+except ImportError: # pragma: no cover
+    _server = sys.modules[__package__ + '.server']
+try:
+    from . import store as _store
+except ImportError: # pragma: no cover
+    _store = sys.modules[__package__ + '.store']
 
 class Company(Properties):
     """Company class"""

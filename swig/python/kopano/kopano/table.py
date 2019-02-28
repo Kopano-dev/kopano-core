@@ -23,10 +23,7 @@ from MAPI.Struct import MAPIErrorNotFound, SSort, SSortOrderSet
 from .defs import REV_TAG
 from .compat import fake_unicode as _unicode, repr as _repr
 
-if sys.hexversion >= 0x03000000:
-    from . import property_ as _prop
-else: # pragma: no cover
-    import property_ as _prop
+from . import property_ as _prop
 
 class Table(object):
     """Table class"""

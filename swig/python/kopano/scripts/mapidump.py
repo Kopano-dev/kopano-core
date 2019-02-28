@@ -29,13 +29,6 @@ By default, all users/folders are included.
 
 """
 
-if sys.hexversion >= 0x03000000:
-    def _encode(s):
-        return s
-else:
-    def _encode(s):
-        return s.encode(sys.stdout.encoding or 'utf8')
-
 IGNORE = [
     PR_SOURCE_KEY,
     PR_PARENT_SOURCE_KEY,
@@ -57,7 +50,7 @@ IGNORE = [
 DEFAULT_DATETIME = datetime.datetime(1978, 1, 1)
 
 def dump_folder(folder):
-    print('(FOLDER)', _encode(folder.name)) # XXX show folder.path
+    print('(FOLDER)', folder.name) # XXX show folder.path
 
     def item_key(item):
         # extend as needed to make as much items unique as possible
@@ -78,7 +71,7 @@ def dump_folder(folder):
 
 def dump_item(item, depth=0):
     print('(ITEM)' if depth == 0 else '(EMBEDDED ITEM)')
-    print(_encode(item.subject), item.received.isoformat(' ') if item.received else '')
+    print(item.subject, item.received.isoformat(' ') if item.received else '')
     try:
         dump_props(item.props())
 
@@ -102,7 +95,7 @@ def dump_item(item, depth=0):
 def dump_props(props):
     for prop in props:
         if prop.proptag not in IGNORE:
-            print(prop, _encode(prop.strval))
+            print(prop, prop.strval)
 
 def main():
     parser = kopano.parser('SPQuf')

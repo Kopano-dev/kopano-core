@@ -11,10 +11,7 @@ import time
 import kopano
 from kopano.log import logger
 
-if sys.hexversion >= 0x03000000:
-    import bsddb3 as bsddb
-else:
-    import bsddb
+import bsddb3 as bsddb
 
 CONFIG = {
     "autorespond_cc": kopano.Config.boolean(default=False),

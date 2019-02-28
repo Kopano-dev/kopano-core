@@ -18,10 +18,7 @@ try:
     import cPickle as pickle
 except ImportError:
     import _pickle as pickle
-if sys.hexversion >= 0x03000000:
-    import bsddb3 as bsddb
-else: # pragma: no cover
-    import bsddb
+import bsddb3 as bsddb
 
 from MAPI import (
     PT_UNICODE, PT_ERROR, KEEP_OPEN_READWRITE,
@@ -93,31 +90,11 @@ CONFIG = {
 
 CACHE_SIZE = 64000000 # XXX make configurable
 
-if sys.hexversion >= 0x03000000:
-    def _decode(s):
-        return s
+def pickle_dumps(s):
+    return pickle.dumps(s, protocol=2)
 
-    def _encode(s):
-        return s
-
-    def pickle_dumps(s):
-        return pickle.dumps(s, protocol=2)
-
-    def pickle_loads(s):
-        return pickle.loads(s, encoding='bytes')
-
-else: # pragma: no cover
-    def _decode(s):
-        return s.decode(getattr(sys.stdin, 'encoding', 'utf8') or 'utf8')
-
-    def _encode(s):
-        return s.encode(getattr(sys.stdin, 'encoding', 'utf8') or 'utf8')
-
-    def pickle_dumps(s):
-        return pickle.dumps(s, protocol=2)
-
-    def pickle_loads(s):
-        return pickle.loads(s)
+def pickle_loads(s):
+    return pickle.loads(s, encoding='bytes')
 
 def _hex(s):
     return codecs.encode(s, 'hex').upper()
@@ -130,10 +107,7 @@ def fatal(s):
     sys.exit(1)
 
 def dbopen(path):
-    if sys.hexversion >= 0x03000000:
-        return bsddb.hashopen(path, 'c')
-    else: # pragma: no cover
-        return bsddb.hashopen(_encode(path), 'c')
+    return bsddb.hashopen(path, 'c')
 
 def _copy_folder_meta(from_dir, to_dir, keep_db=False):
     if not os.path.exists(to_dir):
@@ -403,7 +377,7 @@ class Service(kopano.Service):
         self.timestamp = datetime.datetime.now()
 
         if self.options.restore or (self.options.purge is not None) or self.options.merge:
-            data_path = _decode(self.args[0].rstrip('/'))
+            data_path = self.args[0].rstrip('/')
             with open(data_path+'/lock', 'w') as lockfile:
                 fcntl.flock(lockfile.fileno(), fcntl.LOCK_EX)
                 if self.options.restore:
@@ -478,7 +452,7 @@ class Service(kopano.Service):
 
         # determine restore root
         if self.options.restore_root:
-            restore_root = store.folder(_decode(self.options.restore_root), create=True)
+            restore_root = store.folder(self.options.restore_root, create=True)
         else:
             restore_root = store.subtree
 
@@ -749,7 +723,7 @@ class Service(kopano.Service):
             sourcekeys = db_index.keys()
             if self.options.sourcekeys:
                 sourcekeys = [sk for sk in self.options.sourcekeys if sk.encode('ascii') in sourcekeys]
-            elif sys.hexversion >= 0x03000000:
+            else:
                 sourcekeys = [sk.decode('ascii') for sk in sourcekeys]
 
             # restore/delete each item
@@ -912,13 +886,13 @@ def show_contents(data_path, options):
 
         # --stats: one entry per folder
         if options.stats:
-            writer.writerow([_encode(path), len(items)])
+            writer.writerow([path, len(items)])
 
         # --index: one entry per item
         elif options.index:
             items = sorted(items, key=lambda item: item[1][b'last_modified'])
             for key, d in items:
-                writer.writerow([key.decode('ascii'), _encode(path), d[b'last_modified'], _encode(d[b'subject'])])
+                writer.writerow([key.decode('ascii'), path, d[b'last_modified'], d[b'subject']])
 
 def dump_props(props, stats, log):
     """ dump given MAPI properties """

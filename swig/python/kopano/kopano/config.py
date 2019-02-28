@@ -12,10 +12,7 @@ import sys
 from .compat import decode as _decode
 from .errors import ConfigError
 
-if sys.hexversion >= 0x03000000:
-    from . import utils as _utils
-else: # pragma: no cover
-    import utils as _utils
+from . import utils as _utils
 
 KOPANO_CFG_DIR = os.getenv('KOPANO_CFG_DIR') or '/etc/kopano'
 

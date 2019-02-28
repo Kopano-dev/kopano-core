@@ -5,15 +5,8 @@ import sys
 
 import kopano
 
-if sys.hexversion >= 0x03000000:
-    def _decode(s):
-        return s
-else: # pragma: no cover
-    def _decode(s):
-        return s.decode(getattr(sys.stdin, 'encoding', 'utf8') or 'utf8')
-
 def main():
-    username, config_file, entryid = [_decode(arg) for arg in sys.argv[1:]]
+    username, config_file, entryid = sys.argv[1:]
 
     config = kopano.Config(filename=config_file)
     server = kopano.server(config=config)

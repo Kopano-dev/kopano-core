@@ -35,20 +35,6 @@ from kopano.pidlid import (
 
 from . import pst
 
-if sys.hexversion >= 0x03000000:
-    def _encode(s):
-        return s
-
-    def bval(x):
-        return x
-
-else: # pragma: no cover
-    def _encode(s):
-        return s.encode(sys.stdout.encoding or 'utf8')
-
-    def bval(x):
-        return ord(x)
-
 WRAPPED_ENTRYID_PREFIX = codecs.decode('00000000C091ADD3519DCF11A4A900AA0047FAA4', 'hex')
 WRAPPED_EID_TYPE_MASK = 0xf
 WRAPPED_EID_TYPE_CONTACT = 3
@@ -360,7 +346,7 @@ class Service(kopano.Service):
                 if members:
                     for i, (member, oneoff) in enumerate(zip(members, oneoffs)):
                         pos = len(WRAPPED_ENTRYID_PREFIX)
-                        prefix, flags, rest = member[:pos], bval(member[pos]), member[pos+1:]
+                        prefix, flags, rest = member[:pos], member[pos], member[pos+1:]
                         if (prefix == WRAPPED_ENTRYID_PREFIX and \
                             (flags & WRAPPED_EID_TYPE_MASK) in (WRAPPED_EID_TYPE_CONTACT, WRAPPED_EID_TYPE_PERSONAL_DISTLIST) and \
                             rest in self.entryid_map):
@@ -439,10 +425,10 @@ def show_contents(args, options):
                 if options.folders and path.lower() not in [f.lower() for f in options.folders]:
                     continue
                 if options.stats:
-                    writer.writerow([_encode(path), folder.ContentCount])
+                    writer.writerow([path, folder.ContentCount])
                 elif options.index:
                     for message in p.message_generator(folder):
-                        writer.writerow([_encode(path), _encode(rev_cp1252(message.Subject or ''))])
+                        writer.writerow([path, rev_cp1252(message.Subject or '')])
 
 
 def create_mapping(args, options):

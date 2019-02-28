@@ -13,12 +13,8 @@ from multiprocessing import Queue, Value
 import time
 import sys
 
-if sys.hexversion >= 0x03000000:
-    import bsddb3 as bsddb
-    from queue import Empty
-else: # pragma: no cover
-    import bsddb
-    from Queue import Empty
+import bsddb3 as bsddb
+from queue import Empty
 
 from kopano_search import plaintext
 import kopano
@@ -83,33 +79,6 @@ CONFIG = {
     'term_cache_size': Config.size(default=64000000),
 }
 
-if sys.hexversion >= 0x03000000:
-    unicode = str
-
-    def _is_unicode(s):
-        return isinstance(s, str)
-
-    def _decode(s):
-        return s
-
-    def _decode_ascii(s):
-        return s.decode('ascii')
-
-    def _encode(s):
-        return s.encode()
-else: # pragma: no cover
-    def _is_unicode(s):
-        return isinstance(s, unicode)
-
-    def _decode_ascii(s):
-        return s
-
-    def _decode(s):
-        return s.decode(getattr(sys.stdin, 'encoding', 'utf8') or 'utf8')
-
-    def _encode(s):
-        return s.encode(getattr(sys.stdin, 'encoding', 'utf8') or 'utf8')
-
 def db_get(db_path, key):
     """ get value from db file """
     if not isinstance(key, bytes): # python3
@@ -117,7 +86,7 @@ def db_get(db_path, key):
     with closing(bsddb.hashopen(db_path, 'c')) as db:
         value = db.get(key)
         if value is not None:
-            return _decode_ascii(db.get(key))
+            return db.get(key).decode('ascii')
 
 def db_put(db_path, key, value):
     """ store key, value in db file """
@@ -135,14 +104,14 @@ class SearchWorker(kopano.Worker):
         config, plugin = self.service.config, self.service.plugin
         def response(conn, msg):
             self.log.info('Response: %s', msg)
-            conn.sendall(_encode(msg) + _encode('\r\n'))
+            conn.sendall((msg + '\r\n').encode())
         s = kopano.server_socket(config['server_bind_name'], ssl_key=config['ssl_private_key_file'], ssl_cert=config['ssl_certificate_file'], log=self.log)
         while True:
             with log_exc(self.log):
                 conn, _ = s.accept()
                 fields_terms = []
                 for data in conn.makefile():
-                    data = _decode(data.strip())
+                    data = data.strip()
                     self.log.info('Command: %s', data)
                     cmd, args = data.split()[0], data.split()[1:]
                     if cmd == 'PROPS':
@@ -251,18 +220,18 @@ class FolderImporter:
             storeid, folderid, entryid, sourcekey, docid = item.storeid, item.folder.hierarchyid, item.entryid, item.sourcekey, item.docid
             self.log.debug('store %s, folder %d: new/updated document with entryid %s, sourcekey %s, docid %d', storeid, folderid, entryid, sourcekey, docid)
 
-            doc = collections.defaultdict(unicode)
+            doc = collections.defaultdict(str)
             doc.update({'serverid': self.serverid, 'storeid': storeid, 'folderid': folderid, 'docid': docid, 'sourcekey': item.sourcekey})
             attach_text = []
 
             for subitem in [item] + list(item.items()):
                 for prop in subitem.props():
                     if prop.id_ not in self.excludes:
-                        if _is_unicode(prop.value):
+                        if isinstance(prop.value, str):
                             if prop.value:
                                 doc['mapi%d' % prop.id_] += u' ' + prop.value
                         elif isinstance(prop.value, list):
-                            doc['mapi%d' % prop.id_] += u' ' + u' '.join(x for x in prop.value if _is_unicode(x))
+                            doc['mapi%d' % prop.id_] += u' ' + u' '.join(x for x in prop.value if isinstance(x, str))
 
                 for attachment in subitem.attachments():
                     if self.config['index_attachments'] and \

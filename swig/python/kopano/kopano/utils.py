@@ -43,23 +43,13 @@ MAX_SAVE_RETRIES = int(os.getenv('PYKO_MAPI_SAVE_MAX_RETRIES', 3))
 from .compat import bdec as _bdec
 from .errors import Error, NotFoundError, ArgumentError
 
-if sys.hexversion >= 0x03000000:
-    from . import table as _table
-    from . import permission as _permission
-    from . import user as _user
-    from . import group as _group
-else: # pragma: no cover
-    import table as _table
-    import permission as _permission
-    import user as _user
-    import group as _group
+from . import table as _table
+from . import permission as _permission
+from . import user as _user
+from . import group as _group
 
-if sys.hexversion >= 0x03000000:
-    def pickle_loads(s):
-        return pickle.loads(s, encoding='bytes')
-else:
-    def pickle_loads(s):
-        return pickle.loads(s)
+def pickle_loads(s):
+    return pickle.loads(s, encoding='bytes')
 
 def pickle_dumps(s):
     return pickle.dumps(s, protocol=2)

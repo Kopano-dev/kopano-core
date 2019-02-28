@@ -23,13 +23,10 @@ from MAPI.Tags import (
 from MAPI.Defs import HrGetOneProp
 from MAPI.Struct import MAPIErrorNoAccess
 
-if sys.hexversion >= 0x03000000:
-    try:
-        from . import item as _item
-    except ImportError: # pragma: no cover
-        _item = sys.modules[__package__ + '.item']
-else: # pragma: no cover
-    import item as _item
+try:
+    from . import item as _item
+except ImportError: # pragma: no cover
+    _item = sys.modules[__package__ + '.item']
 
 from .errors import NotFoundError
 from .properties import Properties
@@ -38,19 +35,14 @@ from .compat import (
     benc as _benc, fake_unicode as _unicode,
 )
 
-if sys.hexversion >= 0x03000000:
-    try:
-        from . import utils as _utils
-    except ImportError: # pragma: no cover
-        _utils = sys.modules[__package__ + '.utils']
-    try:
-        from . import property_ as _prop
-    except ImportError: # pragma: no cover
-        _prop = sys.modules[__package__ + '.property_']
-
-else: # pragma: no cover
-    import utils as _utils
-    import property_ as _prop
+try:
+    from . import utils as _utils
+except ImportError: # pragma: no cover
+    _utils = sys.modules[__package__ + '.utils']
+try:
+    from . import property_ as _prop
+except ImportError: # pragma: no cover
+    _prop = sys.modules[__package__ + '.property_']
 
 class Attachment(Properties):
     """Attachment class"""

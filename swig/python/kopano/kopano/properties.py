@@ -18,16 +18,12 @@ from MAPI.Struct import SPropValue
 from .compat import repr as _repr
 from .errors import NotFoundError
 
-if sys.hexversion >= 0x03000000:
-    from . import property_ as _prop
+from . import property_ as _prop
 
-    try:
-        from . import utils as _utils
-    except ImportError: # pragma: no cover
-        _utils = sys.modules[__package__ + '.utils']
-else: # pragma: no cover
-    import property_ as _prop
-    import utils as _utils
+try:
+    from . import utils as _utils
+except ImportError: # pragma: no cover
+    _utils = sys.modules[__package__ + '.utils']
 
 class Properties(object):
     """Property mixin class"""

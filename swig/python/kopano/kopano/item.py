@@ -108,25 +108,19 @@ from .table import Table
 from .contact import Contact
 from .appointment import Appointment
 
-if sys.hexversion >= 0x03000000:
-    try:
-        from . import folder as _folder
-    except ImportError: # pragma: no cover
-        _folder = sys.modules[__package__+'.folder']
-    try:
-        from . import user as _user
-    except ImportError: # pragma: no cover
-        _user = sys.modules[__package__ + '.user']
-    try:
-        from . import utils as _utils
-    except ImportError: # pragma: no cover
-        _utils = sys.modules[__package__ + '.utils']
-    from . import property_ as _prop
-else: # pragma: no cover
-    import folder as _folder
-    import user as _user
-    import utils as _utils
-    import property_ as _prop
+try:
+    from . import folder as _folder
+except ImportError: # pragma: no cover
+    _folder = sys.modules[__package__+'.folder']
+try:
+    from . import user as _user
+except ImportError: # pragma: no cover
+    _user = sys.modules[__package__ + '.user']
+try:
+    from . import utils as _utils
+except ImportError: # pragma: no cover
+    _utils = sys.modules[__package__ + '.utils']
+from . import property_ as _prop
 
 TESTING = False
 if os.getenv('PYKO_TESTING'): # env variable used in testset
@@ -610,10 +604,7 @@ class Item(Properties, Contact, Appointment):
 
         try:
             message_headers = self.prop(PR_TRANSPORT_MESSAGE_HEADERS)
-            if sys.hexversion >= 0x03000000:
-                headers = email_parser.BytesParser().parsebytes(message_headers.value, headersonly=True)
-            else: # pragma: no cover
-                headers = email_parser.Parser().parsestr(message_headers.value, headersonly=True)
+            headers = email_parser.BytesParser().parsebytes(message_headers.value, headersonly=True)
             return headers
         except NotFoundError:
             return {}

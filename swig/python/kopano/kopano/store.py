@@ -73,27 +73,19 @@ from . import notification as _notification
 
 from .compat import (
     encode as _encode, bdec as _bdec, benc as _benc, fake_unicode as _unicode,
-    fake_ord as _ord,
 )
 
-if sys.hexversion >= 0x03000000:
-    from . import server as _server
-    try:
-        from . import user as _user
-    except ImportError: # pragma: no cover
-        _user = sys.modules[__package__ + '.user']
-    from . import folder as _folder
-    from . import item as _item
-    try:
-        from . import utils as _utils
-    except ImportError: # pragma: no cover
-        _utils = sys.modules[__package__ + '.utils']
-else: # pragma: no cover
-    import server as _server
-    import user as _user
-    import folder as _folder
-    import item as _item
-    import utils as _utils
+from . import server as _server
+try:
+    from . import user as _user
+except ImportError: # pragma: no cover
+    _user = sys.modules[__package__ + '.user']
+from . import folder as _folder
+from . import item as _item
+try:
+    from . import utils as _utils
+except ImportError: # pragma: no cover
+    _utils = sys.modules[__package__ + '.utils']
 
 SETTINGS_PROPTAGS = (
     PR_EC_WEBACCESS_SETTINGS_W, PR_EC_RECIPIENT_HISTORY_W,
@@ -912,8 +904,8 @@ class Store(Properties):
         result = {}
         pos = 0
         while pos < len(value):
-            id_ = _ord(value[pos])
-            cb = _ord(value[pos + 1])
+            id_ = value[pos]
+            cb = value[pos + 1]
             result[id_] = value[pos + 2:pos + 2 + cb]
             pos += 2 + cb
         return result

@@ -43,30 +43,23 @@ from MAPI.Time import (
 
 from .compat import benc as _benc, bdec as _bdec
 
-if sys.hexversion >= 0x03000000:
-    from . import item as _item
-    try:
-        from . import folder as _folder
-    except ImportError: # pragma: no cover
-        _folder = sys.modules[__package__+'.folder']
-    try:
-        from . import user as _user
-    except ImportError: # pragma: no cover
-        _user = sys.modules[__package__ + '.user']
-    try:
-        from . import store as _store
-    except ImportError: # pragma: no cover
-        _store = sys.modules[__package__ + '.store']
-    try:
-        from . import utils as _utils
-    except ImportError: # pragma: no cover
-        _utils = sys.modules[__package__ + '.utils']
-else: # pragma: no cover
-    import item as _item
-    import folder as _folder
-    import store as _store
-    import utils as _utils
-    import user as _user
+from . import item as _item
+try:
+    from . import folder as _folder
+except ImportError: # pragma: no cover
+    _folder = sys.modules[__package__+'.folder']
+try:
+    from . import user as _user
+except ImportError: # pragma: no cover
+    _user = sys.modules[__package__ + '.user']
+try:
+    from . import store as _store
+except ImportError: # pragma: no cover
+    _store = sys.modules[__package__ + '.store']
+try:
+    from . import utils as _utils
+except ImportError: # pragma: no cover
+    _utils = sys.modules[__package__ + '.utils']
 
 TESTING = False
 if os.getenv('PYKO_TESTING'): # env variable used in testset

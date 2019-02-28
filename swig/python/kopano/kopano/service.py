@@ -24,30 +24,17 @@ import traceback
 
 from .compat import decode as _decode
 
-if sys.hexversion >= 0x03000000:
-    try:
-        import daemon
-        import daemon.pidfile as pidlockfile
-    except ImportError: # pragma: no cover
-        pass
+try:
+    import daemon
+    import daemon.pidfile as pidlockfile
+except ImportError: # pragma: no cover
+    pass
 
-    from . import config as _config
-    from . import log as _log
-    from . import server as _server
-    from . import errors as _errors
-    from . import parser as _parser
-else: # pragma: no cover
-    try:
-        import daemon
-        import daemon.pidfile as pidlockfile
-    except ImportError: # pragma: no cover
-        pass
-
-    import config as _config
-    import log as _log
-    import server as _server
-    import errors as _errors
-    import parser as _parser
+from . import config as _config
+from . import log as _log
+from . import server as _server
+from . import errors as _errors
+from . import parser as _parser
 
 def _daemon_helper(func, service, log):
     try:

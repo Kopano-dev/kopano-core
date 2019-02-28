@@ -42,12 +42,8 @@ from .compat import (
 )
 from .picture import Picture
 
-if sys.hexversion >= 0x03000000:
-    from . import server as _server
-    from . import company as _company
-else: # pragma: no cover
-    import server as _server
-    import company as _company
+from . import server as _server
+from . import company as _company
 
 class User(Properties):
     """User class"""
