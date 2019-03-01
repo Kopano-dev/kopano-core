@@ -58,7 +58,7 @@ static HRESULT oof_parse_options(int &argc, const char **&argv)
 {
 	if (HX_getopt(oof_options, &argc, &argv, HXOPT_USAGEONERR) != HXOPT_ERR_SUCCESS)
 		return MAPI_E_CALL_FAILED;
-	if (argc < 2 || oof_user == nullptr) {
+	if (oof_user == nullptr) {
 		fprintf(stderr, "No username specified.\n");
 		return MAPI_E_CALL_FAILED;
 	}
