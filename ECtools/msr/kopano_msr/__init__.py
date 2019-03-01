@@ -432,17 +432,20 @@ class Service(kopano.Service):
         if storeb_eid:
             storeb = server.store(entryid=storeb_eid)
         elif target_server != '_':
-            for node in server.nodes(): # TODO optimize
-                if node.name == target_server:
-                    try:
-                        storeb = node.create_store(usera, _msr=True)
-                        storeb.subtree.empty() # remove default english special folders
-                    except kopano.DuplicateError:
-                        self.log.error('could not create new store')
-                        return
-                    break
-            else:
-                self.log.info('unknown server: %s', target_server)
+            try:
+                server2 = kopano.server(
+                    server_socket=target_server,
+                    sslkey_file = server.sslkey_file,
+                    sslkey_pass = server.sslkey_pass
+                )
+            except Exception as e:
+                self.log.error("could not connect to server: %s (%s)" % (target_server, e), file=sys.stderr)
+            try:
+                userb = server2.user(username) # TODO assuming the user is there?
+                storeb = server2.create_store(userb, _msr=True)
+                storeb.subtree.empty() # remove default english special folders
+            except kopano.DuplicateError:
+                self.log.error('user already has hooked store on server %s, try to unhook first' % target_server)
                 return
         else:
             storeb = server.user(target_user).store
@@ -569,11 +572,14 @@ class Service(kopano.Service):
                 print("no such user: %s" % name, file=sys.stderr)
                 sys.exit(1)
         if options.server:
-            for node in self.server.nodes(): # TODO optimize
-                if node.name == options.server:
-                    break
-            else:
-                print("no such server: %s" % options.server, file=sys.stderr)
+            try:
+                ts = kopano.server(
+                    server_socket=options.server,
+                    sslkey_file = self.server.sslkey_file,
+                    sslkey_pass = self.server.sslkey_pass
+                )
+            except Exception as e:
+                print("could not connect to server: %s (%s)" % (options.server, e), file=sys.stderr)
                 sys.exit(1)
         self.do_cmd('ADD %s %s %s\r\n' % (username, options.target or '_', options.server or '_'))
 
