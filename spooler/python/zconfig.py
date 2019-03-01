@@ -1,8 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-try:
-    import ConfigParser
-except ImportError: # renamed in python3
-    import configparser as ConfigParser
+import configparser
 import io
 import os
 
