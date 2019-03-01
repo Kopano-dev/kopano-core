@@ -5,6 +5,7 @@ import collections
 from contextlib import closing
 import fcntl
 import multiprocessing
+import optparse
 import os.path
 import pickle
 from queue import Empty
@@ -591,11 +592,11 @@ class Service(kopano.Service):
 
 def main():
     # select common options
-    parser = kopano.parser('uClFw')
+    parser = kopano.parser('SUPKQCFulw')
 
     # custom options
     parser.add_option('--add', dest='add', action='store_true', help='Add user')
-    parser.add_option('--target', dest='target', action='store', help='Specify target user') # TODO remove (still used in testset/msr)
+    parser.add_option('--target', dest='target', action='store', help=optparse.SUPPRESS_HELP) # TODO remove (still used in testset/msr)
     parser.add_option('--server', dest='server', action='store', help='Specify target server')
     parser.add_option('--remove', dest='remove', action='store_true', help='Remove user')
     parser.add_option('--list-users', dest='list_users', action='store_true', help='List users')
