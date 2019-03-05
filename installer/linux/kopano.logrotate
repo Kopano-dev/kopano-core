@@ -1,6 +1,7 @@
 /var/log/kopano/archiver.log {
         weekly
         missingok
+	create 640 kopano kopano
         rotate 52
         compress
         delaycompress
@@ -10,6 +11,7 @@
 /var/log/kopano/dagent.log {
         weekly
         missingok
+	create 640 kopano kopano
         rotate 52
         compress
         delaycompress
@@ -22,6 +24,7 @@
 /var/log/kopano/gateway.log {
         weekly
         missingok
+	create 640 kopano kopano
         rotate 52
         compress
         delaycompress
@@ -34,6 +37,7 @@
 /var/log/kopano/ical.log {
         weekly
         missingok
+	create 640 kopano kopano
         rotate 52
         compress
         delaycompress
@@ -46,6 +50,7 @@
 /var/log/kopano/search.log {
         weekly
         missingok
+	create 640 kopano kopano
         rotate 52
         compress
         delaycompress
@@ -58,6 +63,7 @@
 /var/log/kopano/backup.log {
         weekly
         missingok
+	create 640 kopano kopano
         rotate 52
         compress
         delaycompress
@@ -67,6 +73,7 @@
 /var/log/kopano/presence.log {
         weekly
         missingok
+	create 640 kopano kopano
         rotate 52
         compress
         delaycompress
@@ -79,6 +86,7 @@
 /var/log/kopano/monitor.log {
         weekly
         missingok
+	create 640 kopano kopano
         rotate 52
         compress
         delaycompress
@@ -91,6 +99,7 @@
 /var/log/kopano/server.log /var/log/kopano/audit.log {
         weekly
         missingok
+	create 640 kopano kopano
         rotate 52
         compress
         delaycompress
@@ -103,6 +112,7 @@
 /var/log/kopano/spooler.log {
         weekly
         missingok
+	create 640 kopano kopano
         rotate 52
         compress
         delaycompress
@@ -115,6 +125,7 @@
 /var/log/kopano/spamd.log {
         weekly
         missingok
+	create 640 kopano kopano
         rotate 52
         compress
         delaycompress
