@@ -234,6 +234,7 @@ namespace KC {
 enum {
 	KC_GETCELL_TRUNCATE = 1 << 0,
 	KC_GETCELL_NOTRUNC  = 0,
+	KC_GETCELL_NEGATIVES = 1 << 1,
 };
 
 class ECCacheManager final {

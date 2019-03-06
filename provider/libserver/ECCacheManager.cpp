@@ -1209,9 +1209,12 @@ ECRESULT ECCacheManager::GetCell(const sObjectTableKey *lpsRowItem,
 	    goto exit;
 
 	if (!sCell->GetPropVal(ulPropTag, lpDest, soap, flags & KC_GETCELL_TRUNCATE)) {
-		if (!sCell->GetComplete()) {
-            // Object is not complete, and item is not in cache. We simply don't know anything about
+		if (!sCell->GetComplete() ||
+		    (PROP_TYPE(lpDest->ulPropTag) == PT_NULL && !(flags & KC_GETCELL_NEGATIVES))) {
+			// Object taglist is not complete, and item is not in cache. We simply don't know anything about
 			// the item, so return NOT_FOUND.
+			// Or, proptaglist is complete, but propval is not in cache,
+			// and the caller did not want to know about this special case.
 			m_CellCache.DecrementValidCount();
             er = KCERR_NOT_FOUND;
         } else {
