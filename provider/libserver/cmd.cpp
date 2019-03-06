@@ -2670,7 +2670,7 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
 		for (auto proptag : proptags) {
 			sObjectTableKey key(ulObjId, 0);
 			struct propVal prop;
-			er = cache->GetCell(&key, proptag, &prop, soap, false);
+			er = cache->GetCell(&key, proptag, &prop, soap, KC_GETCELL_NOTRUNC);
 			if (er != erSuccess)
 				return er;
 			if (PROP_TYPE(prop.ulPropTag) == PT_ERROR)

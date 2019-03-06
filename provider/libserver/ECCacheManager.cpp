@@ -1193,7 +1193,7 @@ ECRESULT ECCacheManager::GetObjectFlags(unsigned int ulObjId, unsigned int *ulFl
 
 ECRESULT ECCacheManager::GetCell(const sObjectTableKey *lpsRowItem,
     unsigned int ulPropTag, struct propVal *lpDest, struct soap *soap,
-    bool truncate)
+    unsigned int flags)
 {
     ECRESULT er = erSuccess;
     ECsCells *sCell;
@@ -1208,7 +1208,7 @@ ECRESULT ECCacheManager::GetCell(const sObjectTableKey *lpsRowItem,
 	if(er != erSuccess)
 	    goto exit;
 
-    if (!sCell->GetPropVal(ulPropTag, lpDest, soap, truncate)) {
+	if (!sCell->GetPropVal(ulPropTag, lpDest, soap, flags & KC_GETCELL_TRUNCATE)) {
 		if (!sCell->GetComplete()) {
             // Object is not complete, and item is not in cache. We simply don't know anything about
 			// the item, so return NOT_FOUND.

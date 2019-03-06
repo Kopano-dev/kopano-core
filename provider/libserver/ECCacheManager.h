@@ -231,6 +231,11 @@ namespace KC {
 
 #define CACHE_NO_PARENT 0xFFFFFFFF
 
+enum {
+	KC_GETCELL_TRUNCATE = 1 << 0,
+	KC_GETCELL_NOTRUNC  = 0,
+};
+
 class ECCacheManager final {
 public:
 	ECCacheManager(std::shared_ptr<ECConfig>, ECDatabaseFactory *lpDatabase);
@@ -278,7 +283,7 @@ public:
 	ECRESULT GetEntryListFromObjectList(ECListInt* lplObjectList, struct soap *soap, struct entryList **lppEntryList);
 
 	// Table data functions (pure cache functions, they will never access the DB themselves. Data must be provided through Set functions)
-	ECRESULT GetCell(const sObjectTableKey *, unsigned int tag, struct propVal *, struct soap *, bool truncated = true);
+	ECRESULT GetCell(const sObjectTableKey *, unsigned int tag, struct propVal *, struct soap *, unsigned int flags = KC_GETCELL_TRUNCATE);
 	ECRESULT SetCell(const sObjectTableKey *, unsigned int tag, const struct propVal *);
 	ECRESULT UpdateCell(unsigned int ulObjId, unsigned int ulPropTag, int lDelta);
 	ECRESULT UpdateCell(unsigned int ulObjId, unsigned int ulPropTag, unsigned int ulMask, unsigned int ulValue);
