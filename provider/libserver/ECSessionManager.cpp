@@ -1194,7 +1194,7 @@ ECRESULT ECSessionManager::GetStoreSortLCID(ULONG ulStoreId, ULONG *lpLcid)
 	auto cache = GetCacheManager();
 	sObjectTableKey key(ulStoreId, 0);
 	struct propVal prop;
-	if (cache->GetCell(&key, PR_SORT_LOCALE_ID, &prop, nullptr, false) == erSuccess) {
+	if (cache->GetCell(&key, PR_SORT_LOCALE_ID, &prop, nullptr) == erSuccess) {
 		if (prop.ulPropTag == CHANGE_PROP_TYPE(PR_SORT_LOCALE_ID, PT_ERROR))
 			return prop.Value.ul;
 		*lpLcid = prop.Value.ul;

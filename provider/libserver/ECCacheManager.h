@@ -278,7 +278,7 @@ public:
 	ECRESULT GetEntryListFromObjectList(ECListInt* lplObjectList, struct soap *soap, struct entryList **lppEntryList);
 
 	// Table data functions (pure cache functions, they will never access the DB themselves. Data must be provided through Set functions)
-	ECRESULT GetCell(const sObjectTableKey *, unsigned int tag, struct propVal *, struct soap *, bool computed, bool truncated = true);
+	ECRESULT GetCell(const sObjectTableKey *, unsigned int tag, struct propVal *, struct soap *, bool truncated = true);
 	ECRESULT SetCell(const sObjectTableKey *, unsigned int tag, const struct propVal *);
 	ECRESULT UpdateCell(unsigned int ulObjId, unsigned int ulPropTag, int lDelta);
 	ECRESULT UpdateCell(unsigned int ulObjId, unsigned int ulPropTag, unsigned int ulMask, unsigned int ulValue);
