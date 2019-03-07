@@ -870,15 +870,16 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 	}
 
 	for (const auto &col : mapColumns)
-		for (const auto &ob : mapObjIds)
-			if (setDone.count({ob.second, col.second}) == 0) {
-				// We may be overwriting a value that was retrieved from the cache before.
-				if (soap == NULL && lpsRowSet->__ptr[ob.second].__ptr[col.second].ulPropTag != 0)
-					FreePropVal(&lpsRowSet->__ptr[ob.second].__ptr[col.second], false);
-				CopyEmptyCellToSOAPPropVal(soap, col.first, &lpsRowSet->__ptr[ob.second].__ptr[col.second]);
-				cache->SetCell(const_cast<sObjectTableKey *>(&ob.first),
-					col.first, &lpsRowSet->__ptr[ob.second].__ptr[col.second]);
-			}
+		for (const auto &ob : mapObjIds) {
+			if (setDone.count({ob.second, col.second}) != 0)
+				continue;
+			// We may be overwriting a value that was retrieved from the cache before.
+			if (soap == NULL && lpsRowSet->__ptr[ob.second].__ptr[col.second].ulPropTag != 0)
+				FreePropVal(&lpsRowSet->__ptr[ob.second].__ptr[col.second], false);
+			CopyEmptyCellToSOAPPropVal(soap, col.first, &lpsRowSet->__ptr[ob.second].__ptr[col.second]);
+			cache->SetCell(const_cast<sObjectTableKey *>(&ob.first),
+				col.first, &lpsRowSet->__ptr[ob.second].__ptr[col.second]);
+		}
 	return erSuccess;
 }
 
