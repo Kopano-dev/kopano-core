@@ -1985,8 +1985,8 @@ void MAPIToVMIME::removeEnters(WCHAR *s) {
  */
 vmime::text MAPIToVMIME::getVmimeTextFromWide(const wchar_t *lpszwInput)
 {
-	return vmime::text(vmime::word(m_converter.convert_to<std::string>(m_strCharset.c_str(),
-	       lpszwInput, rawsize(lpszwInput), CHARSET_WCHAR), m_vmCharset));
+	return vmime::text(m_converter.convert_to<std::string>(m_strCharset.c_str(),
+	       lpszwInput, rawsize(lpszwInput), CHARSET_WCHAR), m_vmCharset);
 }
 
 /**
@@ -1998,8 +1998,8 @@ vmime::text MAPIToVMIME::getVmimeTextFromWide(const wchar_t *lpszwInput)
  */
 vmime::text MAPIToVMIME::getVmimeTextFromWide(const std::wstring &strwInput)
 {
-	return vmime::text(vmime::word(m_converter.convert_to<std::string>(m_strCharset.c_str(),
-	       strwInput, rawsize(strwInput), CHARSET_WCHAR), m_vmCharset));
+	return vmime::text(m_converter.convert_to<std::string>(m_strCharset.c_str(),
+	       strwInput, rawsize(strwInput), CHARSET_WCHAR), m_vmCharset);
 }
 
 } /* namespace */
