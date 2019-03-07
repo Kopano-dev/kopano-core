@@ -80,7 +80,7 @@ metadata (such as permissions and rules) will be synchronized.
 .PP
 \fB\-\-server\fR
 .RS 4
-Specify server node to which user specified with \fB\-\-user\fR should be relocated.
+Specify URL of server to which user specified with \fB\-\-user\fR should be relocated.
 .RE
 .PP
 \fB\-\-user\fR, \fB\-u\fR
@@ -100,13 +100,13 @@ When invoked without a \fB\-\-config\fR option, the kopano\-msr daemon will sear
 for all configuration options and their default values.
 .SH "USAGE"
 .PP
-Starting kopano MSR with log-level debug (the following commands assume a running service):
+Starting kopano MSR with log-level debug (subsequent commands assume a running service):
 .PP
 \fBkopano\-msr\fR\ \fB\-l\fR\ debug
 .PP
-Adding a user \fBfritz\fR to be relocated to server node \fBsauerkraut\fR:
+Adding a user \fBfritz\fR to be relocated to another server:
 .PP
-\fBkopano\-msr\fR\ \fB\-u\fR\ fritz \fB\-\-add\fR \fB\-\-server\fR sauerkraut
+\fBkopano\-msr\fR\ \fB\-u\fR\ fritz \fB\-\-add\fR \fB\-\-server\fR https://destination.server:237/
 .PP
 Listing users currently being relocated:
 .PP
@@ -118,7 +118,7 @@ Showing details and relocation status for user \fBfritz\fR:
 .PP
 Removing user from relocation list (because the target store is up-to-date), and sync metadata:
 .PP
-\fBkopano\-msr\fR\ \fB\-\-remove\fR fritz
+\fBkopano\-msr\fR\ \fB\-u\fR fritz \fB\-\-remove\fR
 .PP
 After removing a user, and changing the user homeserver to the new server node, make the actual switch:
 .PP
