@@ -44,7 +44,7 @@ static constexpr const struct HXoption oof_options[] = {
 	{"sslkey-file", 's', HXTYPE_STRING, &oof_sslkey, nullptr, nullptr, 0, "SSL key file to authenticate as admin", "FILENAME"},
 	{"sslkey-pass", 'p', HXTYPE_STRING, &oof_sslpass, nullptr, nullptr, 0, "Password for the SSL key file", "TEXT"},
 	{nullptr, 'P', HXTYPE_NONE, &oof_sslpr, nullptr, nullptr, 0, "Prompt for SSL key password"},
-	{"dump-json", 0, HXTYPE_STRING, nullptr, nullptr, nullptr, 0, "(Option is ignored for compatibility)", "VALUE"},
+	{"dump-json", 0, HXTYPE_NONE, nullptr, nullptr, nullptr, 0, "(Option is ignored)", "VALUE"},
 	HXOPT_AUTOHELP,
 	HXOPT_TABLEEND,
 };
