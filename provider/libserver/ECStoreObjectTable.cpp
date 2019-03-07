@@ -686,7 +686,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
 				if ((pv.ulPropTag & MVI_FLAG) == MVI_FLAG)
 					// Get rid of the MVI_FLAG
 					pv.ulPropTag &= ~MVI_FLAG;
-				else
+				else if (!propVal_is_truncated(&pv))
 					cache->SetCell(&sKey, iterColumns->first, &pv);
                 // Remove from mapColumns so we know that we got a response from SQL
 				iterColumns = mapColumns.erase(iterColumns);
@@ -698,6 +698,8 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
 		auto &pv = lpsRowSet->__ptr[ulRowNum].__ptr[col.second];
 		assert(pv.ulPropTag == 0);
 		CopyEmptyCellToSOAPPropVal(soap, col.first, &pv);
+		if (propVal_is_truncated(&pv))
+			continue;
 		cache->SetCell(&sKey, col.first, &pv);
 	}
 	return erSuccess;
@@ -852,7 +854,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 					m.ulPropTag = iterColumns->first;
 				if ((m.ulPropTag & MVI_FLAG) == MVI_FLAG)
 					m.ulPropTag &= ~MVI_FLAG;
-				else
+				else if (!propVal_is_truncated(&m))
 					cache->SetCell(const_cast<sObjectTableKey *>(&iterObjIds->first), iterColumns->first, &m);
 
 				setDone.emplace(iterObjIds->second, iterColumns->second);
@@ -876,6 +878,8 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 			if (soap == nullptr && pv.ulPropTag != 0)
 				FreePropVal(&pv, false);
 			CopyEmptyCellToSOAPPropVal(soap, col.first, &pv);
+			if (propVal_is_truncated(&pv))
+				continue;
 			cache->SetCell(const_cast<sObjectTableKey *>(&ob.first), col.first, &pv);
 		}
 	return erSuccess;
