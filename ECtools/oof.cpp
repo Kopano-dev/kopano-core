@@ -184,7 +184,7 @@ static int oof_set(IMsgStore *store)
 		auto ret = HrMapFileToString(fp.get(), &msg);
 		if (ret != hrSuccess)
 			return kc_perror("HrMapFileToString", ret);
-		pv.set(c++, PR_EC_OUTOFOFFICE, convert_to<std::wstring>(msg));
+		pv.set(c++, PR_EC_OUTOFOFFICE_MSG, convert_to<std::wstring>(msg));
 	}
 	if (c == 0)
 		return hrSuccess;
