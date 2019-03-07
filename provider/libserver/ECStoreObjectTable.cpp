@@ -668,29 +668,26 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
             // means we have to loop through all the same-property columns and add the same data everywhere.
             for (auto iterColumns = mapColumns.lower_bound(NormalizeDBPropTag(ulPropTag));
                  iterColumns != mapColumns.cend() && CompareDBPropTag(iterColumns->first, ulPropTag); ) {
+				auto &pv = lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second];
 				// free prop if we're not allocing by soap
-				if(soap == NULL && lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second].ulPropTag != 0) {
-					FreePropVal(&lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second], false);
-					memset(&lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second], 0, sizeof(lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second]));
+				if (soap == nullptr && pv.ulPropTag != 0) {
+					FreePropVal(&pv, false);
+					memset(&pv, 0, sizeof(pv));
 				}
-
-                if(CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, &lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second]) != erSuccess) {
+				if (CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, &pv) != erSuccess) {
                 	// This can happen if a subquery returned a NULL field or if your database contains bad data (eg a NULL field where there shouldn't be)
 			++iterColumns;
 			continue;
                 }
 
                 // Update property tag to requested property tag; requested type may have been PT_UNICODE while database contains PT_STRING8
-                lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second].ulPropTag = iterColumns->first;
-
+				pv.ulPropTag = iterColumns->first;
 				// Cache value
-				if ((lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second].ulPropTag & MVI_FLAG) == MVI_FLAG)
+				if ((pv.ulPropTag & MVI_FLAG) == MVI_FLAG)
 					// Get rid of the MVI_FLAG
-					lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second].ulPropTag &= ~MVI_FLAG;
+					pv.ulPropTag &= ~MVI_FLAG;
 				else
-					cache->SetCell(&sKey, iterColumns->first, &lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second]);
-
-
+					cache->SetCell(&sKey, iterColumns->first, &pv);
                 // Remove from mapColumns so we know that we got a response from SQL
 				iterColumns = mapColumns.erase(iterColumns);
             }
@@ -698,9 +695,10 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
     }
 
 	for (const auto &col : mapColumns) {
-		assert(lpsRowSet->__ptr[ulRowNum].__ptr[col.second].ulPropTag == 0);
-		CopyEmptyCellToSOAPPropVal(soap, col.first, &lpsRowSet->__ptr[ulRowNum].__ptr[col.second]);
-		cache->SetCell(&sKey, col.first, &lpsRowSet->__ptr[ulRowNum].__ptr[col.second]);
+		auto &pv = lpsRowSet->__ptr[ulRowNum].__ptr[col.second];
+		assert(pv.ulPropTag == 0);
+		CopyEmptyCellToSOAPPropVal(soap, col.first, &pv);
+		cache->SetCell(&sKey, col.first, &pv);
 	}
 	return erSuccess;
 }
@@ -873,12 +871,12 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 		for (const auto &ob : mapObjIds) {
 			if (setDone.count({ob.second, col.second}) != 0)
 				continue;
+			auto &pv = lpsRowSet->__ptr[ob.second].__ptr[col.second];
 			// We may be overwriting a value that was retrieved from the cache before.
-			if (soap == NULL && lpsRowSet->__ptr[ob.second].__ptr[col.second].ulPropTag != 0)
-				FreePropVal(&lpsRowSet->__ptr[ob.second].__ptr[col.second], false);
-			CopyEmptyCellToSOAPPropVal(soap, col.first, &lpsRowSet->__ptr[ob.second].__ptr[col.second]);
-			cache->SetCell(const_cast<sObjectTableKey *>(&ob.first),
-				col.first, &lpsRowSet->__ptr[ob.second].__ptr[col.second]);
+			if (soap == nullptr && pv.ulPropTag != 0)
+				FreePropVal(&pv, false);
+			CopyEmptyCellToSOAPPropVal(soap, col.first, &pv);
+			cache->SetCell(const_cast<sObjectTableKey *>(&ob.first), col.first, &pv);
 		}
 	return erSuccess;
 }
