@@ -2778,12 +2778,15 @@ static int dagent_listen(ECConfig *cfg, std::vector<struct pollfd> &pollers,
 	closefd.reserve(lmtp_sock.size());
 	for (const auto &spec : lmtp_sock) {
 		auto ret = ec_fdtable_socket(spec.c_str(), nullptr, nullptr);
-		if (ret >= 0)
+		if (ret >= 0) {
 			x.fd = ret;
-		else
+			ec_log_info("Re-using fd %d to listen on %s for LMTP", ret, spec.c_str());
+		} else {
 			ret = ec_listen_generic(spec.c_str(), &x.fd, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
-		if (ret < 0)
-			return ret;
+			if (ret < 0)
+				return ret;
+			ec_log_info("Listening on %s for LMTP", spec.c_str());
+		}
 		pollers.push_back(x);
 		closefd.push_back(x.fd);
 		ret = zcp_bindtodevice(x.fd, intf);
@@ -2791,7 +2794,6 @@ static int dagent_listen(ECConfig *cfg, std::vector<struct pollfd> &pollers,
 			ec_log_err("SO_BINDTODEVICE: %s", strerror(-ret));
 			return ret;
 		}
-		ec_log_info("Listening on %s for LMTP", spec.c_str());
 	}
 	return 0;
 }
