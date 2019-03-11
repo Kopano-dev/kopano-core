@@ -44,7 +44,7 @@ static constexpr const struct HXoption oof_options[] = {
 	{"sslkey-file", 's', HXTYPE_STRING, &oof_sslkey, nullptr, nullptr, 0, "SSL key file to authenticate as admin", "FILENAME"},
 	{"sslkey-pass", 'p', HXTYPE_STRING, &oof_sslpass, nullptr, nullptr, 0, "Password for the SSL key file", "TEXT"},
 	{nullptr, 'P', HXTYPE_NONE, &oof_sslpr, nullptr, nullptr, 0, "Prompt for SSL key password"},
-	{"dump-json", 0, HXTYPE_STRING, nullptr, nullptr, nullptr, 0, "(Option is ignored for compatibility)", "VALUE"},
+	{"dump-json", 0, HXTYPE_NONE, nullptr, nullptr, nullptr, 0, "(Option is ignored)", "VALUE"},
 	HXOPT_AUTOHELP,
 	HXOPT_TABLEEND,
 };
@@ -58,7 +58,7 @@ static HRESULT oof_parse_options(int &argc, const char **&argv)
 {
 	if (HX_getopt(oof_options, &argc, &argv, HXOPT_USAGEONERR) != HXOPT_ERR_SUCCESS)
 		return MAPI_E_CALL_FAILED;
-	if (argc < 2 || oof_user == nullptr) {
+	if (oof_user == nullptr) {
 		fprintf(stderr, "No username specified.\n");
 		return MAPI_E_CALL_FAILED;
 	}
@@ -184,7 +184,7 @@ static int oof_set(IMsgStore *store)
 		auto ret = HrMapFileToString(fp.get(), &msg);
 		if (ret != hrSuccess)
 			return kc_perror("HrMapFileToString", ret);
-		pv.set(c++, PR_EC_OUTOFOFFICE, convert_to<std::wstring>(msg));
+		pv.set(c++, PR_EC_OUTOFOFFICE_MSG, convert_to<std::wstring>(msg));
 	}
 	if (c == 0)
 		return hrSuccess;

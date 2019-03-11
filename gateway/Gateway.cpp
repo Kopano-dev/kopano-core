@@ -247,7 +247,7 @@ exit:
 	client->HrDone(false);	// HrDone does not send an error string to the client
 	delete client;
 	/** free SSL error data **/
-	#if OPENSSL_VERSION_NUMBER < 0x10100000L
+        #ifdef OLD_API
 		ERR_remove_state(0);
 	#endif
 	if (bThreads)
@@ -480,12 +480,15 @@ static HRESULT gw_listen(ECConfig *cfg)
 	pfd.events = POLLIN;
 	for (const auto &spec : pop3_sock) {
 		auto ret = ec_fdtable_socket(spec.c_str(), nullptr, nullptr);
-		if (ret >= 0)
+		if (ret >= 0) {
 			pfd.fd = ret;
-		else
+			ec_log_info("Re-using fd %d to listen on %s for pop3", ret, spec.c_str());
+		} else {
 			ret = ec_listen_generic(spec.c_str(), &pfd.fd);
-		if (ret < 0)
-			return MAPI_E_NETWORK_ERROR;
+			if (ret < 0)
+				return MAPI_E_NETWORK_ERROR;
+			ec_log_notice("Listening on %s for pop3", spec.c_str());
+		}
 		g_socks.pollfd.push_back(pfd);
 		g_socks.linfd.push_back(pfd.fd);
 		g_socks.pop3.push_back(true);
@@ -493,12 +496,15 @@ static HRESULT gw_listen(ECConfig *cfg)
 	}
 	for (const auto &spec : pop3s_sock) {
 		auto ret = ec_fdtable_socket(spec.c_str(), nullptr, nullptr);
-		if (ret >= 0)
+		if (ret >= 0) {
 			pfd.fd = ret;
-		else
+			ec_log_info("Re-using fd %d to listen on %s for pop3s", ret, spec.c_str());
+		} else {
 			ret = ec_listen_generic(spec.c_str(), &pfd.fd);
-		if (ret < 0)
-			return MAPI_E_NETWORK_ERROR;
+			if (ret < 0)
+				return MAPI_E_NETWORK_ERROR;
+			ec_log_notice("Listening on %s for pop3s", spec.c_str());
+		}
 		g_socks.pollfd.push_back(pfd);
 		g_socks.linfd.push_back(pfd.fd);
 		g_socks.pop3.push_back(true);
@@ -506,12 +512,15 @@ static HRESULT gw_listen(ECConfig *cfg)
 	}
 	for (const auto &spec : imap_sock) {
 		auto ret = ec_fdtable_socket(spec.c_str(), nullptr, nullptr);
-		if (ret >= 0)
+		if (ret >= 0) {
 			pfd.fd = ret;
-		else
+			ec_log_info("Re-using fd %d to listen on %s for imap", ret, spec.c_str());
+		} else {
 			ret = ec_listen_generic(spec.c_str(), &pfd.fd);
-		if (ret < 0)
-			return MAPI_E_NETWORK_ERROR;
+			if (ret < 0)
+				return MAPI_E_NETWORK_ERROR;
+			ec_log_notice("Listening on %s for imap", spec.c_str());
+		}
 		g_socks.pollfd.push_back(pfd);
 		g_socks.linfd.push_back(pfd.fd);
 		g_socks.pop3.push_back(false);
@@ -519,12 +528,15 @@ static HRESULT gw_listen(ECConfig *cfg)
 	}
 	for (const auto &spec : imaps_sock) {
 		auto ret = ec_fdtable_socket(spec.c_str(), nullptr, nullptr);
-		if (ret >= 0)
+		if (ret >= 0) {
 			pfd.fd = ret;
-		else
+			ec_log_info("Re-using fd %d to listen on %s for imap", ret, spec.c_str());
+		} else {
 			ret = ec_listen_generic(spec.c_str(), &pfd.fd);
-		if (ret < 0)
-			return MAPI_E_NETWORK_ERROR;
+			if (ret < 0)
+				return MAPI_E_NETWORK_ERROR;
+			ec_log_notice("Listening on %s for imaps", spec.c_str());
+		}
 		g_socks.pollfd.push_back(pfd);
 		g_socks.linfd.push_back(pfd.fd);
 		g_socks.pop3.push_back(false);

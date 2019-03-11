@@ -221,18 +221,19 @@ ECRESULT ECSoapServerConnection::ListenTCP(const char *lpServerName, int nServer
 		lpsSoap->port = nServerPort;
 		lpsSoap->peerlen = grab_len;
 		soap_memcpy(&lpsSoap->peer.storage, sizeof(lpsSoap->peer.storage), &grab_addr, grab_len);
+		ec_log_info("Re-using fd %d to listen on TCP port %d", socket, nServerPort);
 	} else {
 		lpsSoap->socket = socket = soap_bind(lpsSoap.get(), *lpServerName == '\0' ? nullptr : lpServerName, nServerPort, INT_MAX);
-	}
-        if (socket == -1) {
-                ec_log_crit("Unable to bind to port %d: %s. This is usually caused by another process (most likely another server) already using this port. This program will terminate now.", nServerPort, lpsSoap->fault->faultstring);
-                kill(0, SIGTERM);
-                exit(1);
+		if (socket == -1) {
+			ec_log_crit("Unable to bind to port %d: %s. This is usually caused by another process (most likely another server) already using this port. This program will terminate now.", nServerPort, lpsSoap->fault->faultstring);
+			kill(0, SIGTERM);
+			exit(1);
+		}
+		ec_log_notice("Listening for TCP connections on port %d", nServerPort);
         }
 	/* Manually check for attachments, independent of streaming support. */
 	soap_post_check_mime_attachments(lpsSoap.get());
 	m_lpDispatcher->AddListenSocket(std::move(lpsSoap));
-	ec_log_notice("Listening for TCP connections on port %d", nServerPort);
 	return erSuccess;
 }
 
@@ -266,7 +267,7 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char *lpServerName,
 		)
 	{
 		soap_set_fault(lpsSoap.get());
-		auto se = soap_ssl_error(lpsSoap.get(), 0, SSL_ERROR_NONE);
+		auto se = lpsSoap->ssl != nullptr ? soap_ssl_error(lpsSoap.get(), 0, SSL_ERROR_NONE) : 0;
 		ec_log_crit("K-2170: Unable to setup SSL context: soap_ssl_server_context: %s: %s", *soap_faultdetail(lpsSoap.get()), se);
 		return KCERR_CALL_FAILED;
 	}
@@ -284,19 +285,20 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char *lpServerName,
 		lpsSoap->port = nServerPort;
 		lpsSoap->peerlen = grab_len;
 		soap_memcpy(&lpsSoap->peer.storage, sizeof(lpsSoap->peer.storage), &grab_addr, grab_len);
+		ec_log_info("Re-using fd %d to listen on SSL port %d", socket, nServerPort);
 	} else {
 		lpsSoap->socket = socket = soap_bind(lpsSoap.get(),
 			*lpServerName == '\0' ? nullptr : lpServerName, nServerPort, INT_MAX);
-	}
-        if (socket == -1) {
-                ec_log_crit("Unable to bind to port %d: %s (SSL). This is usually caused by another process (most likely another server) already using this port. This program will terminate now.", nServerPort, lpsSoap->fault->faultstring);
-                kill(0, SIGTERM);
-                exit(1);
+		if (socket == -1) {
+			ec_log_crit("Unable to bind to port %d: %s (SSL). This is usually caused by another process (most likely another server) already using this port. This program will terminate now.", nServerPort, lpsSoap->fault->faultstring);
+			kill(0, SIGTERM);
+			exit(1);
+		}
+		ec_log_notice("Listening for SSL connections on port %d", nServerPort);
         }
 	/* Manually check for attachments, independent of streaming support. */
 	soap_post_check_mime_attachments(lpsSoap.get());
 	m_lpDispatcher->AddListenSocket(std::move(lpsSoap));
-	ec_log_notice("Listening for SSL connections on port %d", nServerPort);
 	return erSuccess;
 }
 
@@ -323,13 +325,17 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriori
 	if (getenv("KC_REEXEC_DONE") != nullptr)
 		lpsSoap->master = lpsSoap->socket = sPipe =
 			ec_fdtable_socket(("unix:"s + lpPipeName).c_str(), &grab_addr, &grab_len);
-	if (sPipe == SOAP_INVALID_SOCKET)
-		// set the mode stricter for the priority socket: let only the same Unix user or root connect on the priority socket, users should not be able to abuse the socket
+	/* This just marks the socket as being a pipe, which triggers some slightly different behavior. */
+	strcpy(lpsSoap->path, "pipe");
+	if (sPipe != SOAP_INVALID_SOCKET) {
+		ec_log_info("Re-using fd %d to listen on %spipe %s", sPipe, bPriority ? "priority " : "", lpPipeName);
+	} else {
+		/* Set the mode stricter for the priority socket: let only the same Unix user or root connect on the priority socket, users should not be able to abuse the socket. */
 		lpsSoap->socket = sPipe = create_pipe_socket(lpPipeName, m_lpConfig.get(), true, bPriority ? 0660 : 0666);
-	// This just marks the socket as being a pipe, which triggers some slightly different behaviour
-	strcpy(lpsSoap->path,"pipe");
-	if (sPipe == -1)
-		return KCERR_CALL_FAILED;
+		if (sPipe == -1)
+			return KCERR_CALL_FAILED;
+		ec_log_notice("Listening for %spipe connections on %s", bPriority ? "priority " : "", lpPipeName);
+	}
 	lpsSoap->master = sPipe;
 	socklen = sizeof(lpsSoap->peer.storage);
 	if (getsockname(lpsSoap->socket, &lpsSoap->peer.addr, &socklen) != 0) {
@@ -344,7 +350,6 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriori
 	/* Manually check for attachments, independent of streaming support. */
 	soap_post_check_mime_attachments(lpsSoap.get());
 	m_lpDispatcher->AddListenSocket(std::move(lpsSoap));
-	ec_log_notice("Listening for %spipe connections on %s", bPriority ? "priority " : "", lpPipeName);
 	return erSuccess;
 }
 

@@ -126,7 +126,7 @@ void WORKITEM::run()
 	if (soap->ctx && soap->ssl == nullptr) {
 		err = soap_ssl_accept(soap);
 		if (err) {
-			auto se = soap_ssl_error(soap, 0, SSL_ERROR_NONE);
+			auto se = soap->ssl != nullptr ? soap_ssl_error(soap, 0, SSL_ERROR_NONE) : 0;
 			ec_log_warn("K-2171: soap_ssl_accept: %s: %s", *soap_faultdetail(soap), se);
 			ec_log_debug("%s: %s", GetSoapError(err).c_str(), *soap_faultstring(soap));
 		}
