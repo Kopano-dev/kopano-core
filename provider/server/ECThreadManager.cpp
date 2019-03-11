@@ -127,9 +127,9 @@ void WORKITEM::run()
 		err = soap_ssl_accept(soap);
 		if (err) {
 #if GSOAP_VERSION >= 20873
-			auto se = soap_ssl_error(soap, 0, SSL_ERROR_NONE);
+			auto se = soap->ssl != nullptr ? soap_ssl_error(soap, 0, SSL_ERROR_NONE) : 0;
 #else
-			auto se = soap_ssl_error(soap, 0);
+			auto se = soap->ssl != nullptr ? soap_ssl_error(soap, 0) : 0;
 #endif
 			ec_log_warn("K-2171: soap_ssl_accept: %s: %s", *soap_faultdetail(soap), se);
 			ec_log_debug("%s: %s", GetSoapError(err).c_str(), *soap_faultstring(soap));
