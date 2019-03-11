@@ -1983,12 +1983,10 @@ void MAPIToVMIME::removeEnters(WCHAR *s) {
  * @param[in]	lpszwInput	input string in WCHAR
  * @return	the converted text from WCHAR to vmime::text with specified charset
  */
-vmime::text MAPIToVMIME::getVmimeTextFromWide(const WCHAR* lpszwInput, bool bWrapInWord) {
-	std::string output = m_converter.convert_to<std::string>(m_strCharset.c_str(), lpszwInput, rawsize(lpszwInput), CHARSET_WCHAR);
-	if (bWrapInWord)
-		return vmime::text(vmime::word(output, m_vmCharset));
-	else
-		return vmime::text(output, m_vmCharset);
+vmime::text MAPIToVMIME::getVmimeTextFromWide(const wchar_t *lpszwInput)
+{
+	return vmime::text(m_converter.convert_to<std::string>(m_strCharset.c_str(),
+	       lpszwInput, rawsize(lpszwInput), CHARSET_WCHAR), m_vmCharset);
 }
 
 /**
@@ -1998,12 +1996,10 @@ vmime::text MAPIToVMIME::getVmimeTextFromWide(const WCHAR* lpszwInput, bool bWra
  * @param[in]	lpszwInput	input string in std::wstring
  * @return	the converted text from WCHAR to vmime::text with specified charset
  */
-vmime::text MAPIToVMIME::getVmimeTextFromWide(const std::wstring& strwInput, bool bWrapInWord) {
-	std::string output = m_converter.convert_to<std::string>(m_strCharset.c_str(), strwInput, rawsize(strwInput), CHARSET_WCHAR);
-	if (bWrapInWord)
-		return vmime::text(vmime::word(output, m_vmCharset));
-	else
-		return vmime::text(output, m_vmCharset);
+vmime::text MAPIToVMIME::getVmimeTextFromWide(const std::wstring &strwInput)
+{
+	return vmime::text(m_converter.convert_to<std::string>(m_strCharset.c_str(),
+	       strwInput, rawsize(strwInput), CHARSET_WCHAR), m_vmCharset);
 }
 
 } /* namespace */

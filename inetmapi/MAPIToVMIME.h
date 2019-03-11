@@ -72,8 +72,8 @@ private:
 	// util
 	void capitalize(char *s);
 	void removeEnters(WCHAR *s);
-	vmime::text getVmimeTextFromWide(const WCHAR* lpszwInput, bool bWrapInWord = true);
-	vmime::text getVmimeTextFromWide(const std::wstring& strwInput, bool bWrapInWord = true);
+	vmime::text getVmimeTextFromWide(const wchar_t *);
+	vmime::text getVmimeTextFromWide(const std::wstring &);
 	bool is_voting_request(IMessage *lpMessage) const;
 	bool has_reminder(IMessage *) const ;
 };
