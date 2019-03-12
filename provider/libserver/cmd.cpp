@@ -2251,7 +2251,7 @@ static unsigned int SaveObject(struct soap *soap, ECSession *lpecSession,
 				return er;
 
 			// Update cache if it's actually in the cache
-			if (g_lpSessionManager->GetCacheManager()->GetCell(&key, PR_MESSAGE_FLAGS, &sPropHasAttach, soap, false) == erSuccess) {
+			if (g_lpSessionManager->GetCacheManager()->GetCell(&key, PR_MESSAGE_FLAGS, &sPropHasAttach, soap) == erSuccess) {
 				sPropHasAttach.Value.ul &= ~MSGFLAG_HASATTACH;
 				sPropHasAttach.Value.ul |= fHasAttach ? MSGFLAG_HASATTACH : 0;
 				g_lpSessionManager->GetCacheManager()->SetCell(&key, PR_MESSAGE_FLAGS, &sPropHasAttach);
@@ -2670,7 +2670,7 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
 		for (auto proptag : proptags) {
 			sObjectTableKey key(ulObjId, 0);
 			struct propVal prop;
-			er = cache->GetCell(&key, proptag, &prop, soap, false, false);
+			er = cache->GetCell(&key, proptag, &prop, soap, KC_GETCELL_NOTRUNC | KC_GETCELL_NEGATIVES);
 			if (er != erSuccess)
 				return er;
 			if (PROP_TYPE(prop.ulPropTag) == PT_ERROR)
