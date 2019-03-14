@@ -689,7 +689,6 @@ AC_CONFIG_FILES([Makefile
 		ECtools/migration-pst/Makefile
 		ECtools/msr/Makefile
 		ECtools/presence/Makefile
-		ECtools/rest/Makefile
 		ECtools/search/Makefile
 		ECtools/spamd/Makefile
 		ECtools/utils/Makefile
@@ -732,7 +731,6 @@ AC_CONFIG_FILES([ECtools/cli/kopano_cli/version.py], [])
 AC_CONFIG_FILES([ECtools/rules/kopano_rules/version.py], [])
 AC_CONFIG_FILES([ECtools/presence/kopano_presence/version.py], [])
 AC_CONFIG_FILES([ECtools/migration-pst/kopano_migration_pst/version.py], [])
-AC_CONFIG_FILES([ECtools/rest/kopano_rest/version.py], [])
 AC_CONFIG_FILES([ECtools/spamd/kopano_spamd/version.py], [])
 AC_CONFIG_FILES([ECtools/utils/kopano_utils/version.py], [])
 AC_CONFIG_FILES([swig/python/kopano/kopano/version.py], [])

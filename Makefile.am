@@ -9,7 +9,7 @@ SUBDIRS = . ECtools/archiver/include/kopano \
 SUBDIRS += installer po
 if ENABLE_PYTHON
 SUBDIRS += ECtools/backup ECtools/cli ECtools/migration-pst \
-	ECtools/presence ECtools/rest ECtools/search ECtools/spamd \
+	ECtools/presence ECtools/search ECtools/spamd \
 	ECtools/msr ECtools/utils swig
 endif
 
@@ -61,9 +61,6 @@ dist_sbin_SCRIPTS = ECtools/utils/kopano-mailbox-permissions \
 noinst_PROGRAMS = kopano-cfgchecker
 pkglibexec_PROGRAMS = kscriptrun mapitime
 pkglibexec_SCRIPTS =
-if WITH_PYTHON3
-pkglibexec_SCRIPTS += ECtools/rest/kopano-mfr.py
-endif
 check_PROGRAMS = tests/ablookup tests/htmltext tests/imtomapi \
 	tests/kc-335 tests/mapialloctime \
 	tests/readflag tests/zcpmd5
