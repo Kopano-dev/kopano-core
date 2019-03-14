@@ -8,7 +8,6 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 
 import atexit
 import codecs
-import warnings
 import gc
 import datetime
 import functools
@@ -39,7 +38,7 @@ from MAPI.Struct import (
 )
 from MAPI.Tags import (
     PR_ACCOUNT_W, PURGE_CACHE_ALL, PR_DISPLAY_NAME_W, PR_ENTRYID,
-    PR_STORE_RECORD_KEY, PR_SMTP_ADDRESS_W, PR_MAPPING_SIGNATURE,
+    PR_STORE_RECORD_KEY, PR_MAPPING_SIGNATURE,
     PR_CONTAINER_CONTENTS, PR_EC_STATSTABLE_SYSTEM, PR_EC_STATSTABLE_SESSIONS,
     PR_EC_STATSTABLE_USERS, PR_EC_STATSTABLE_COMPANY, PR_DISPLAY_NAME,
     PR_EC_STATSTABLE_SERVERS, PR_EC_STATS_SERVER_HTTPSURL,

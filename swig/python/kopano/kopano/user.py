@@ -7,7 +7,6 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
 import binascii
-import sys
 
 from MAPI import (
     MAPI_UNICODE, MAPI_UNRESOLVED, ECSTORE_TYPE_PRIVATE, ECSTORE_TYPE_ARCHIVE,

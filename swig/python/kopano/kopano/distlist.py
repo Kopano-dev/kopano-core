@@ -6,7 +6,6 @@ Copyright 2018 - Kopano and its licensors (see LICENSE file for details)
 """
 
 import codecs
-import sys
 
 from .address import Address
 from .compat import repr as _repr

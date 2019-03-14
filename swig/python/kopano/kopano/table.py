@@ -7,7 +7,6 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
 import csv
-import sys
 
 try:
     from StringIO import StringIO
