@@ -69,7 +69,7 @@ from MAPI.Tags import (
     PR_READ_RECEIPT_REQUESTED, PR_ORIGINATOR_DELIVERY_REPORT_REQUESTED,
     PR_REPLY_RECIPIENT_ENTRIES, PR_EC_BODY_FILTERED, PR_SENSITIVITY,
     PR_SEARCH_KEY, PR_LAST_VERB_EXECUTED, PR_LAST_VERB_EXECUTION_TIME,
-    PR_ROWID
+    PR_ROWID, respNotResponded, respOrganized
 )
 
 from MAPI.Tags import (
@@ -215,8 +215,8 @@ class Item(Properties, Contact, Appointment):
                     elif container_class == 'IPF.Appointment':
                         self.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS_W, u'IPM.Appointment')]) # TODO set all default props!!
                         self.from_ = self.store.user
-                        self[PidLidAppointmentStateFlags] = 1
-                        self[PidLidResponseStatus] = 1 # TODO move appt creation to appointment.py
+                        self[PidLidAppointmentStateFlags] = 0
+                        self[PidLidResponseStatus] = 0 # TODO move appt creation to appointment.py
                         self[PidLidFInvited] = False
             if save:
                 _utils._save(self.mapiobj)
@@ -991,6 +991,11 @@ class Item(Properties, Contact, Appointment):
                 SPropValue(PR_ENTRYID, pr_entryid),
             ])
         self.mapiobj.ModifyRecipients(MODRECIP_ADD, names)
+
+        if self.message_class == 'IPM.Appointment':
+            self[PidLidAppointmentStateFlags] = ASF_MEETING
+            self[PidLidResponseStatus] = respOrganized # TODO delegation?
+
         _utils._save(self.mapiobj) # XXX needed?
 
     @to.setter
