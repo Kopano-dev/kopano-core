@@ -284,9 +284,13 @@ static std::string rst2flt_main(const restrictTable *rt,
 		 * Unrepresentable restriction type (BITMASK, COMPARE,
 		 * PROPERTY, SIZE); the result is therefore indefinite.
 		 * "Indefinite" values need to evaluate to "true" in the
-		 * outermost expression such that they do not filter rows.
+		 * outermost expression such that they do not lead to row
+		 * filtering.
+		 *
+		 * AND(BITMASK) => (&(irrepr)) => (&(objectClass=*))   <=> (objectClass=*)
+		 * NOT(BITMASK) => (!(irrepr)) => (!(!(objectClass=*)) <=> (objectClass=*)
 		 */
-		return inot ? always_true : always_false;
+		return inot ? always_false : always_true;
 	}
 	auto q = rt->lpContent;
 	auto pv = q->lpProp;
