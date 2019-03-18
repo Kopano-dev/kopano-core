@@ -13,7 +13,6 @@ try:
 except ImportError:
     import _pickle as pickle
 import struct
-import sys
 import time
 
 from MAPI import (

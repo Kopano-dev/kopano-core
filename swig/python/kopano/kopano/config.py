@@ -7,7 +7,6 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file)
 """
 
 import os
-import sys
 
 from .compat import decode as _decode
 from .errors import ConfigError

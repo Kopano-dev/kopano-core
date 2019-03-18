@@ -20,7 +20,6 @@ except ImportError: # pragma: no cover
 import base64
 import codecs
 import io
-import sys
 
 _BIN_ENCODING = 'hex'
 _MISSING_NONE = False
