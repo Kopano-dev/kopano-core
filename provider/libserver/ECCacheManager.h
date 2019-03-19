@@ -315,6 +315,8 @@ public:
 	void DisableCellCache();
 	void EnableCellCache();
 
+	bool m_bCellCacheDisabled = false;
+
 private:
 	typedef std::unordered_map<unsigned int, ECsQuota> ECMapQuota;
 	typedef std::map<ECsIndexObject, ECsIndexProp> ECMapObjectToProp;
@@ -374,8 +376,6 @@ private:
 	// Properties from kopano-search
 	std::set<unsigned int> 		m_setExcludedIndexProperties;
 	std::mutex m_hExcludedIndexPropertiesMutex;
-	// Testing
-	bool m_bCellCacheDisabled = false;
 };
 
 } /* namespace */

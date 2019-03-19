@@ -1015,6 +1015,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{ "kcoidc_insecure_skip_verify", "no", 0},
 		{ "kcoidc_initialize_timeout", "60", 0 },
 #endif
+		{"cache_cellcache_reads", "yes", CONFIGSETTING_RELOADABLE},
 		{ NULL, NULL },
 	};
 
