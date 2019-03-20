@@ -1736,6 +1736,7 @@ HRESULT HrGetAllProps(IMAPIProp *lpProp, ULONG ulFlags, ULONG *lpcValues, LPSPro
 	ULONG cValues = 0;
 	StreamPtr lpStream;	
 	void *lpData = NULL;
+	bool had_err = false;
 	
 	HRESULT hr = lpProp->GetPropList(ulFlags, &~lpTags);
 	if(hr != hrSuccess)
@@ -1745,8 +1746,12 @@ HRESULT HrGetAllProps(IMAPIProp *lpProp, ULONG ulFlags, ULONG *lpcValues, LPSPro
 		return hr;
 		
 	for (unsigned int i = 0; i < cValues; ++i) {
-		if (PROP_TYPE(lpProps[i].ulPropTag) != PT_ERROR || lpProps[i].Value.err != MAPI_E_NOT_ENOUGH_MEMORY)
+		if (PROP_TYPE(lpProps[i].ulPropTag) != PT_ERROR)
 			continue;
+		if (lpProps[i].Value.err != MAPI_E_NOT_ENOUGH_MEMORY) {
+			had_err = true;
+			continue;
+		}
 		if (PROP_TYPE(lpTags->aulPropTag[i]) != PT_STRING8 && PROP_TYPE(lpTags->aulPropTag[i]) != PT_UNICODE && PROP_TYPE(lpTags->aulPropTag[i]) != PT_BINARY)
 			continue;
 		if (lpProp->OpenProperty(lpTags->aulPropTag[i], &IID_IStream, 0, 0, &~lpStream) != hrSuccess)
@@ -1779,7 +1784,7 @@ HRESULT HrGetAllProps(IMAPIProp *lpProp, ULONG ulFlags, ULONG *lpcValues, LPSPro
 	
 	*lppProps = lpProps.release();
 	*lpcValues = cValues;
-	return hrSuccess;
+	return had_err ? MAPI_W_ERRORS_RETURNED : hrSuccess;
 }
 
 /**
