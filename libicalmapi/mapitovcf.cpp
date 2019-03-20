@@ -10,6 +10,7 @@
 #include <mapicode.h>
 #include <mapiutil.h>
 #include <mapix.h>
+#include <kopano/CommonUtil.h>
 #include <kopano/memory.hpp>
 #include <kopano/platform.h>
 #include <kopano/mapiguidext.h>
@@ -498,7 +499,7 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 	if (hr != hrSuccess)
 		return hr;
 
-	hr = HrGetOneProp(lpMessage, PR_BODY, &~msgprop);
+	hr = HrGetFullProp(lpMessage, PR_BODY, &~msgprop);
 	if (hr == hrSuccess)
 		to_prop(root, "NOTE", *msgprop);
 	else if (hr != MAPI_E_NOT_FOUND)

@@ -573,7 +573,7 @@ HRESULT MAPIToVMIME::BuildNoteMessage(IMessage *lpMessage,
 		// PR_TRANSPORT_MESSAGE_HEADERS)
 		// currently includes: Received*, Return-Path, List* and Precedence.
 		// New e-mails should not have this property.
-		if (HrGetOneProp(lpMessage, PR_TRANSPORT_MESSAGE_HEADERS_A, &~lpTransportHeaders) == hrSuccess &&
+		if (HrGetFullProp(lpMessage, PR_TRANSPORT_MESSAGE_HEADERS_A, &~lpTransportHeaders) == hrSuccess &&
 		    lpTransportHeaders != nullptr) {
 			try {
 				int j=0;
@@ -754,7 +754,7 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage,
 		vmMessage = vmime::mdn::MDNHelper::buildMDN(mdnInfos, strMDNText, m_vmCharset, expeditor, dispo, reportingUA, reportingUAProducts);
 
 		// rewrite subject
-		if (HrGetOneProp(lpMessage, PR_SUBJECT_W, &~lpSubject) == hrSuccess) {
+		if (HrGetFullProp(lpMessage, PR_SUBJECT_W, &~lpSubject) == hrSuccess) {
 			removeEnters(lpSubject->Value.lpszW);
 
 			strOut = lpSubject->Value.lpszW;
@@ -980,7 +980,7 @@ HRESULT MAPIToVMIME::fillVMIMEMail(IMessage *lpMessage, bool bSkipContent, vmime
 	eBestBody bestBody = plaintext;
 
 	try {
-		if (HrGetOneProp(lpMessage, PR_SUBJECT_W, &~lpSubject) == hrSuccess) {
+		if (HrGetFullProp(lpMessage, PR_SUBJECT_W, &~lpSubject) == hrSuccess) {
 			removeEnters(lpSubject->Value.lpszW);
 			strOut = lpSubject->Value.lpszW;
 		}
@@ -1343,7 +1343,8 @@ HRESULT MAPIToVMIME::handleExtraHeaders(IMessage *lpMessage,
 	}
 
 	// Outlook never adds this property
-	if (HrGetOneProp(lpMessage, PR_INTERNET_REFERENCES_A, &~ptrMessageId) == hrSuccess && ptrMessageId->Value.lpszA[0]) {
+	if (HrGetFullProp(lpMessage, PR_INTERNET_REFERENCES_A, &~ptrMessageId) == hrSuccess &&
+	    ptrMessageId->Value.lpszA[0] != '\0') {
 		std::vector<std::string> ids = tokenize(ptrMessageId->Value.lpszA, ' ', true);
 
 		const size_t n = ids.size();
@@ -1370,7 +1371,7 @@ HRESULT MAPIToVMIME::handleExtraHeaders(IMessage *lpMessage,
 		vmHeader->appendField(hff->create("X-Mailer", "Kopano " PROJECT_VERSION));
 
 	// PR_CONVERSATION_INDEX
-	if (HrGetOneProp(lpMessage, PR_CONVERSATION_INDEX, &~lpConversationIndex) == hrSuccess) {
+	if (HrGetFullProp(lpMessage, PR_CONVERSATION_INDEX, &~lpConversationIndex) == hrSuccess) {
 		vmime::string inString;
 		inString.assign((const char*)lpConversationIndex->Value.bin.lpb, lpConversationIndex->Value.bin.cb);
 
@@ -1385,8 +1386,8 @@ HRESULT MAPIToVMIME::handleExtraHeaders(IMessage *lpMessage,
 	}
 
 	// PR_CONVERSATION_TOPIC is always the original started topic
-	if (HrGetOneProp(lpMessage, PR_CONVERSATION_TOPIC_W, &~lpConversationTopic) == hrSuccess &&
-	    (HrGetOneProp(lpMessage, PR_NORMALIZED_SUBJECT_W, &~lpNormSubject) != hrSuccess ||
+	if (HrGetFullProp(lpMessage, PR_CONVERSATION_TOPIC_W, &~lpConversationTopic) == hrSuccess &&
+	    (HrGetFullProp(lpMessage, PR_NORMALIZED_SUBJECT_W, &~lpNormSubject) != hrSuccess ||
 	    wcscmp(lpNormSubject->Value.lpszW, lpConversationTopic->Value.lpszW) != 0)) {
 		removeEnters(lpConversationTopic->Value.lpszW);
 		vmHeader->appendField(hff->create("Thread-Topic", getVmimeTextFromWide(lpConversationTopic->Value.lpszW).generate()));

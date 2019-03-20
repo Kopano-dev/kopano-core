@@ -796,7 +796,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			hr = lpMessage->SetProps(1, prop.get(), nullptr);
 			if (hr != hrSuccess)
 				return hr;
-		} else if (HrGetOneProp(lpMessage, PR_NORMALIZED_SUBJECT_W, &~lpPropNormalizedSubject) == hrSuccess) {
+		} else if (HrGetFullProp(lpMessage, PR_NORMALIZED_SUBJECT_W, &~lpPropNormalizedSubject) == hrSuccess) {
 			SPropValue sConTopic;
 			sConTopic.ulPropTag = PR_CONVERSATION_TOPIC_W;
 			sConTopic.Value.lpszW = lpPropNormalizedSubject->Value.lpszW;
@@ -1605,7 +1605,7 @@ void VMIMEToMAPI::dissect_message(vmime::shared_ptr<vmime::body> vmBody,
 
 	if (hr != hrSuccess)
 		return;
-	if (HrGetOneProp(lpNewMessage, PR_SUBJECT_W, &~lpSubject) == hrSuccess) {
+	if (HrGetFullProp(lpNewMessage, PR_SUBJECT_W, &~lpSubject) == hrSuccess) {
 		// Set PR_ATTACH_FILENAME of attachment to message subject, (WARNING: abuse of lpSubject variable)
 		lpSubject->ulPropTag = PR_DISPLAY_NAME_W;
 		pAtt->SetProps(1, lpSubject, NULL);
@@ -1710,7 +1710,7 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 		return hr;
 
 	// give attachment name of calendar item
-	if (HrGetOneProp(ptrNewMessage, PR_SUBJECT_W, &~ptrSubject) == hrSuccess) {
+	if (HrGetFullProp(ptrNewMessage, PR_SUBJECT_W, &~ptrSubject) == hrSuccess) {
 		ptrSubject->ulPropTag = PR_DISPLAY_NAME_W;
 
 		hr = ptrAttach->SetProps(1, ptrSubject, NULL);

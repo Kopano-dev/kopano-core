@@ -1651,7 +1651,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	}
 
 	/* Get subject for logging - ignore errors, we check for nullptr. */
-	hr = HrGetOneProp(lpMessage, PR_SUBJECT_W, &~lpSubject);
+	hr = HrGetFullProp(lpMessage, PR_SUBJECT_W, &~lpSubject);
 	if (hr != hrSuccess && hr != MAPI_E_NOT_FOUND) {
 		kc_perror("Unable to get subject", hr);
 		goto exit;
