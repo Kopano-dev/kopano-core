@@ -588,18 +588,18 @@ PHP_MINIT_FUNCTION(mapi) {
 	return SUCCESS;
 }
 
-// Used at the end of each MAPI call to throw exceptions if mapi_enable_exceptions() has been called
-#define THROW_ON_ERROR() \
-	if (FAILED(MAPI_G(hr))) { \
-		if (lpLogger) \
-			lpLogger->logf(EC_LOGLEVEL_ERROR, "MAPI error: %s (%x) (method: %s, line: %d)", GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr), __FUNCTION__, __LINE__); \
-			\
-		if (MAPI_G(exceptions_enabled)) \
-			zend_throw_exception(MAPI_G(exception_ce), "MAPI error ", MAPI_G(hr)  TSRMLS_CC); \
-	}
-
 #define DEFERRED_EPILOGUE \
-	auto epilogue_handler = make_scope_success([&]() { LOG_END(); THROW_ON_ERROR(); });
+	auto epilogue_handler = make_scope_success([&]() { \
+		LOG_END(); \
+		if (FAILED(MAPI_G(hr))) { \
+			if (lpLogger) \
+				lpLogger->logf(EC_LOGLEVEL_ERROR, "MAPI error: %s (%x) (method: %s, line: %d)", GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr), __FUNCTION__, __LINE__); \
+			\
+			if (MAPI_G(exceptions_enabled)) \
+				zend_throw_exception(MAPI_G(exception_ce), "MAPI error ", MAPI_G(hr)  TSRMLS_CC); \
+		} \
+	});
+// Used at the end of each MAPI call to throw exceptions if mapi_enable_exceptions() has been called
 
 /**
 *
