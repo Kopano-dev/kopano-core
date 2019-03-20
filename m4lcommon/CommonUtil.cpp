@@ -1718,33 +1718,18 @@ HRESULT HrOpenDefaultCalendar(LPMDB lpMsgStore, LPMAPIFOLDER *lppFolder)
 }
 
 /**
- * Gets all properties for passed object
+ * Update an SPropValue array in-place with large properties.
  *
- * This includes properties that are normally returned from GetProps() as MAPI_E_NOT_ENOUGH_MEMORY. The
- * rest of the semantics of this call are equal to those of calling IMAPIProp::GetProps() with NULL as the
- * property tag array.
- *
- * @param[in] lpProp IMAPIProp object to get properties from
- * @param[in] ulFlags MAPI_UNICODE or 0
- * @param[out] lpcValues Number of properties saved in lppProps
- * @param[out] lppProps Output properties
+ * (To be called after IMAPIProp::GetProps.)
  */
-HRESULT HrGetAllProps(IMAPIProp *lpProp, ULONG ulFlags, ULONG *lpcValues, LPSPropValue *lppProps)
+HRESULT spv_postload_large_props(IMAPIProp *lpProp,
+    const SPropTagArray *lpTags, unsigned int cValues, SPropValue *lpProps)
 {
-	SPropTagArrayPtr lpTags;
-	SPropArrayPtr lpProps;
-	ULONG cValues = 0;
+	HRESULT hr = hrSuccess;
 	StreamPtr lpStream;	
 	void *lpData = NULL;
 	bool had_err = false;
 	
-	HRESULT hr = lpProp->GetPropList(ulFlags, &~lpTags);
-	if(hr != hrSuccess)
-		return hr;
-	hr = lpProp->GetProps(lpTags, ulFlags, &cValues, &~lpProps);
-	if(FAILED(hr))
-		return hr;
-		
 	for (unsigned int i = 0; i < cValues; ++i) {
 		if (PROP_TYPE(lpProps[i].ulPropTag) != PT_ERROR)
 			continue;
@@ -1781,10 +1766,39 @@ HRESULT HrGetAllProps(IMAPIProp *lpProp, ULONG ulFlags, ULONG *lpcValues, LPSPro
 			assert(false);
 		}
 	}
+	return had_err ? MAPI_W_ERRORS_RETURNED : hrSuccess;
+}
 	
+/**
+ * Gets all properties for passed object
+ *
+ * This includes properties that are normally returned from GetProps() as MAPI_E_NOT_ENOUGH_MEMORY. The
+ * rest of the semantics of this call are equal to those of calling IMAPIProp::GetProps() with NULL as the
+ * property tag array.
+ *
+ * @prop:	IMAPIProp object to get properties from
+ * @flags:	MAPI_UNICODE or 0
+ * @lpcValues:	Number of properties saved in @lppProps
+ * @lppProps:	Output properties
+ */
+HRESULT HrGetAllProps(IMAPIProp *prop, unsigned int flags,
+    unsigned int *lpcValues, SPropValue **lppProps)
+{
+	memory_ptr<SPropTagArray> tags;
+	memory_ptr<SPropValue> lpProps;
+	unsigned int cValues = 0;
+	auto ret = prop->GetPropList(flags, &~tags);
+	if (ret != hrSuccess)
+		return ret;
+	ret = prop->GetProps(tags, flags, &cValues, &~lpProps);
+	if (FAILED(ret))
+		return ret;
+	ret = spv_postload_large_props(prop, tags, cValues, lpProps);
+	if (FAILED(ret))
+		return ret;
 	*lppProps = lpProps.release();
 	*lpcValues = cValues;
-	return had_err ? MAPI_W_ERRORS_RETURNED : hrSuccess;
+	return ret;
 }
 
 /**
