@@ -426,7 +426,7 @@ ECRESULT WSMAPIPropStorage::ECSoapObjectToMapiObject(const struct saveObject *lp
 
 	// delProps contains all the available property tag
 	EcFillPropTags(lpsSaveObj, lpsMapiObject);
-	// modProps contains all the props < 8K
+	/* modProps contains all the props < MAX_PROP_SIZE */
 	EcFillPropValues(lpsSaveObj, lpsMapiObject);
 	// delete stays false, unique id is set upon allocation
 	lpsMapiObject->ulObjId = lpsSaveObj->ulServerId;
