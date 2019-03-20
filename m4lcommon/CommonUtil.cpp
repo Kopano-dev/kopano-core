@@ -1768,6 +1768,29 @@ HRESULT spv_postload_large_props(IMAPIProp *lpProp,
 	}
 	return had_err ? MAPI_W_ERRORS_RETURNED : hrSuccess;
 }
+
+/**
+ * A HrGetOneProp-alike that loads large properties as needed.
+ */
+HRESULT HrGetFullProp(IMAPIProp *prop, unsigned int tag, SPropValue **pvout)
+{
+	SizedSPropTagArray(1, taglist) = {1, {tag}};
+	unsigned int nvals = 0;
+	memory_ptr<SPropValue> pv;
+	auto ret = prop->GetProps(taglist, 0, &nvals, &~pv);
+	if (FAILED(ret))
+		return ret;
+	if (nvals == 0)
+		return MAPI_E_NOT_FOUND;
+	nvals = 1; /* caller only expects one anyway, don't postload more */
+	ret = spv_postload_large_props(prop, taglist, nvals, pv);
+	if (FAILED(ret))
+		return ret;
+	if (PROP_TYPE(pv->ulPropTag) == PT_ERROR)
+		return pv->Value.err;
+	*pvout = pv.release();
+	return ret;
+}
 	
 /**
  * Gets all properties for passed object

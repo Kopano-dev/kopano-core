@@ -56,6 +56,7 @@ extern _kc_export HRESULT GetClientVersion(unsigned int *);
 extern _kc_export HRESULT OpenSubFolder(LPMDB, const wchar_t *folder, wchar_t psep, bool is_public, bool create_folder, LPMAPIFOLDER *subfolder);
 extern _kc_export HRESULT spv_postload_large_props(IMAPIProp *, const SPropTagArray *, unsigned int, SPropValue *);
 extern _kc_export HRESULT HrOpenDefaultCalendar(LPMDB, LPMAPIFOLDER *default_folder);
+extern _kc_export HRESULT HrGetFullProp(IMAPIProp *prop, unsigned int tag, SPropValue **);
 extern _kc_export HRESULT HrGetAllProps(IMAPIProp *prop, ULONG flags, ULONG *nvals, LPSPropValue *props);
 extern _kc_export HRESULT UnWrapStoreEntryID(ULONG eid_size, const ENTRYID *eid, ULONG *ret_size, ENTRYID **ret);
 extern _kc_export HRESULT GetECObject(IMAPIProp *, const IID &, void **);
