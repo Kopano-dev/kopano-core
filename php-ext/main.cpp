@@ -138,12 +138,13 @@ ZEND_END_ARG_INFO()
 		php_error_docref(nullptr TSRMLS_CC, E_NOTICE, "[IN] %s", __FUNCTION__); \
 } while (false)
 
-#define LOG_END() do { \
+#define LOG2_END(func) do { \
 	if (mapi_debug & 2) { \
 		HRESULT hrx =  MAPI_G(hr); \
-		php_error_docref(nullptr TSRMLS_CC, E_NOTICE, "[OUT] %s: %s (%x)", __FUNCTION__, GetMAPIErrorMessage(hrx), hrx); \
+		php_error_docref(nullptr TSRMLS_CC, E_NOTICE, "[OUT] %s: %s (%x)", func, GetMAPIErrorMessage(hrx), hrx); \
 	} \
 } while (false)
+#define LOG_END() LOG2_END(__func__)
 
 /*
  * PHP fails to apply do{}while(0), so we have to do it extra in some places.
@@ -589,11 +590,11 @@ PHP_MINIT_FUNCTION(mapi) {
 }
 
 #define DEFERRED_EPILOGUE \
-	auto epilogue_handler = make_scope_success([&]() { \
+	auto epilogue_handler = make_scope_success([&,func=__func__]() { \
 		LOG_END(); \
 		if (FAILED(MAPI_G(hr))) { \
 			if (lpLogger) \
-				lpLogger->logf(EC_LOGLEVEL_ERROR, "MAPI error: %s (%x) (method: %s, line: %d)", GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr), __FUNCTION__, __LINE__); \
+				lpLogger->logf(EC_LOGLEVEL_ERROR, "MAPI error: %s (%x) (method: %s, line: %d)", GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr), func, __LINE__); \
 			\
 			if (MAPI_G(exceptions_enabled)) \
 				zend_throw_exception(MAPI_G(exception_ce), "MAPI error ", MAPI_G(hr)  TSRMLS_CC); \
