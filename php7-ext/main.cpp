@@ -257,8 +257,13 @@ pmeasure::~pmeasure(void)
 		return;
 	}
 	using namespace std::chrono;
-	long long int tdiff = duration_cast<microseconds>(end_ts - start_ts).count();
-	fprintf(fh, "%lld %s\n", tdiff, what.c_str());
+	static size_t rcount = 0;
+	auto epd = end_ts.time_since_epoch();
+	fprintf(fh, "%6d %9zu %llu.%03lu: %9lldµs %s\n", getpid(), ++rcount,
+		static_cast<unsigned long long>(duration_cast<seconds>(epd).count()),
+		duration_cast<milliseconds>(epd).count() % milli::den,
+		static_cast<unsigned long long>(duration_cast<microseconds>(end_ts - start_ts).count()),
+		what.c_str());
 	fclose(fh);
 }
 
