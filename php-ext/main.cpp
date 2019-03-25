@@ -138,12 +138,13 @@ ZEND_END_ARG_INFO()
 		php_error_docref(nullptr TSRMLS_CC, E_NOTICE, "[IN] %s", __FUNCTION__); \
 } while (false)
 
-#define LOG_END() do { \
+#define LOG2_END(func) do { \
 	if (mapi_debug & 2) { \
 		HRESULT hrx =  MAPI_G(hr); \
-		php_error_docref(nullptr TSRMLS_CC, E_NOTICE, "[OUT] %s: %s (%x)", __FUNCTION__, GetMAPIErrorMessage(hrx), hrx); \
+		php_error_docref(nullptr TSRMLS_CC, E_NOTICE, "[OUT] %s: %s (%x)", func, GetMAPIErrorMessage(hrx), hrx); \
 	} \
 } while (false)
+#define LOG_END() LOG2_END(__func__)
 
 /*
  * PHP fails to apply do{}while(0), so we have to do it extra in some places.
@@ -243,8 +244,13 @@ pmeasure::~pmeasure(void)
 		return;
 	}
 	using namespace std::chrono;
-	long long int tdiff = duration_cast<microseconds>(end_ts - start_ts).count();
-	fprintf(fh, "%lld %s\n", tdiff, what.c_str());
+	static size_t rcount = 0;
+	auto epd = end_ts.time_since_epoch();
+	fprintf(fh, "%6d %9zu %llu.%03lu: %9lldµs %s\n", getpid(), ++rcount,
+		static_cast<unsigned long long>(duration_cast<seconds>(epd).count()),
+		duration_cast<milliseconds>(epd).count() % milli::den,
+		static_cast<unsigned long long>(duration_cast<microseconds>(end_ts - start_ts).count()),
+		what.c_str());
 	fclose(fh);
 }
 
@@ -587,15 +593,18 @@ PHP_MINIT_FUNCTION(mapi) {
 	return SUCCESS;
 }
 
-// Used at the end of each MAPI call to throw exceptions if mapi_enable_exceptions() has been called
-#define THROW_ON_ERROR() \
-	if (FAILED(MAPI_G(hr))) { \
-		if (lpLogger) \
-			lpLogger->logf(EC_LOGLEVEL_ERROR, "MAPI error: %s (%x) (method: %s, line: %d)", GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr), __FUNCTION__, __LINE__); \
+#define DEFERRED_EPILOGUE \
+	auto epilogue_handler = make_scope_success([&,func=__func__]() { \
+		LOG_END(); \
+		if (FAILED(MAPI_G(hr))) { \
+			if (lpLogger) \
+				lpLogger->logf(EC_LOGLEVEL_ERROR, "MAPI error: %s (%x) (method: %s, line: %d)", GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr), func, __LINE__); \
 			\
-		if (MAPI_G(exceptions_enabled)) \
-			zend_throw_exception(MAPI_G(exception_ce), "MAPI error ", MAPI_G(hr)  TSRMLS_CC); \
-	}
+			if (MAPI_G(exceptions_enabled)) \
+				zend_throw_exception(MAPI_G(exception_ce), "MAPI error ", MAPI_G(hr)  TSRMLS_CC); \
+		} \
+	});
+// Used at the end of each MAPI call to throw exceptions if mapi_enable_exceptions() has been called
 
 /**
 *
@@ -789,8 +798,7 @@ ZEND_FUNCTION(mapi_createoneoff)
 	RETVAL_STRINGL(reinterpret_cast<const char *>(lpEntryID.get()), cbEntryID, 1);
 exit:
 	// using RETVAL_* not RETURN_*, otherwise php will instantly return itself, and we won't be able to free...
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_parseoneoff)
@@ -831,8 +839,7 @@ ZEND_FUNCTION(mapi_parseoneoff)
 	add_assoc_string(return_value, "type", (char*)strType.c_str(), 1);
 	add_assoc_string(return_value, "address", (char*)strAddress.c_str(), 1);
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /*
@@ -937,8 +944,7 @@ ZEND_FUNCTION(mapi_logon_zarafa)
 
 	ZEND_REGISTER_RESOURCE(return_value, lpMAPISession.release(), le_mapi_session);
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /**
@@ -993,8 +999,7 @@ ZEND_FUNCTION(mapi_openentry)
 	}
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 // IMAPISession::OpenAddressBook()
@@ -1022,8 +1027,7 @@ ZEND_FUNCTION(mapi_openaddressbook)
 		goto exit;
 	ZEND_REGISTER_RESOURCE(return_value, lpAddrBook, le_mapi_addrbook);
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_ab_openentry) {
@@ -1076,8 +1080,7 @@ ZEND_FUNCTION(mapi_ab_openentry) {
 	}
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_ab_resolvename) {
@@ -1120,8 +1123,7 @@ ZEND_FUNCTION(mapi_ab_resolvename) {
 	};
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_ab_getdefaultdir) {
@@ -1150,8 +1152,7 @@ ZEND_FUNCTION(mapi_ab_getdefaultdir) {
 
 	RETVAL_STRINGL(reinterpret_cast<const char *>(lpEntryID.get()), cbEntryID, 1);
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /**
@@ -1185,8 +1186,7 @@ ZEND_FUNCTION(mapi_getmsgstorestable)
 	}
 	ZEND_REGISTER_RESOURCE(return_value, lpTable, le_mapi_table);
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /**
@@ -1224,8 +1224,7 @@ ZEND_FUNCTION(mapi_openmsgstore)
 	}
 	ZEND_REGISTER_RESOURCE(return_value, pMDB, le_mapi_msgstore);
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /** 
@@ -1265,8 +1264,7 @@ ZEND_FUNCTION(mapi_openprofilesection)
 		goto exit;
 	ZEND_REGISTER_RESOURCE(return_value, lpProfSectProp, le_mapi_property);
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /**
@@ -1315,8 +1313,7 @@ ZEND_FUNCTION(mapi_folder_gethierarchytable)
 		goto exit;
 	ZEND_REGISTER_RESOURCE(return_value, lpTable, le_mapi_table);
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /**
@@ -1366,8 +1363,7 @@ ZEND_FUNCTION(mapi_folder_getcontentstable)
 		goto exit;
 	ZEND_REGISTER_RESOURCE(return_value, pTable, le_mapi_table);
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /**
@@ -1399,8 +1395,7 @@ ZEND_FUNCTION(mapi_folder_createmessage)
 		goto exit;
 	ZEND_REGISTER_RESOURCE(return_value, pMessage, le_mapi_message);
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /**
@@ -1439,8 +1434,7 @@ ZEND_FUNCTION(mapi_folder_deletemessages)
 
 	RETVAL_TRUE;
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /**
@@ -1481,8 +1475,7 @@ ZEND_FUNCTION(mapi_folder_copymessages)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /*
@@ -1526,8 +1519,7 @@ ZEND_FUNCTION(mapi_folder_setreadflags)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_folder_createfolder) {
@@ -1562,8 +1554,7 @@ ZEND_FUNCTION(mapi_folder_createfolder) {
 		goto exit;
 	ZEND_REGISTER_RESOURCE(return_value, lpNewFolder, le_mapi_folder);
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_folder_deletefolder)
@@ -1591,8 +1582,7 @@ ZEND_FUNCTION(mapi_folder_deletefolder)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_folder_emptyfolder)
@@ -1618,8 +1608,7 @@ ZEND_FUNCTION(mapi_folder_emptyfolder)
 
 	RETVAL_TRUE;
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /**
@@ -1664,8 +1653,7 @@ ZEND_FUNCTION(mapi_folder_copyfolder)
 
 	RETVAL_TRUE;
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /**
@@ -1708,8 +1696,7 @@ ZEND_FUNCTION(mapi_msgstore_createentryid)
 		goto exit;
 	RETVAL_STRINGL(reinterpret_cast<const char *>(lpEntryID.get()), cbEntryID, 1);
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /**
@@ -1756,8 +1743,7 @@ ZEND_FUNCTION(mapi_msgstore_getarchiveentryid)
 	RETVAL_STRINGL((char *)ptrEntryID.get(), cbEntryID, 1);
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /**
@@ -1814,8 +1800,7 @@ ZEND_FUNCTION(mapi_msgstore_openentry)
 	}
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_msgstore_entryidfromsourcekey)
@@ -1846,8 +1831,7 @@ ZEND_FUNCTION(mapi_msgstore_entryidfromsourcekey)
 		goto exit;
 	RETVAL_STRINGL(reinterpret_cast<const char *>(lpEntryId.get()), cbEntryId, 1);
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_msgstore_advise)
@@ -1881,8 +1865,7 @@ ZEND_FUNCTION(mapi_msgstore_advise)
 	RETVAL_LONG(ulConnection);
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_msgstore_unadvise)
@@ -1907,8 +1890,7 @@ ZEND_FUNCTION(mapi_msgstore_unadvise)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_sink_create)
@@ -1955,8 +1937,7 @@ ZEND_FUNCTION(mapi_sink_timedwait)
 	FREE_ZVAL(notifications);
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /**
@@ -2025,8 +2006,7 @@ ZEND_FUNCTION(mapi_table_queryallrows)
 	FREE_ZVAL(rowset);
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /**
@@ -2098,8 +2078,7 @@ ZEND_FUNCTION(mapi_table_queryrows)
 	FREE_ZVAL(rowset);
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /**
@@ -2144,8 +2123,7 @@ ZEND_FUNCTION(mapi_table_setcolumns)
 
 	RETVAL_TRUE;
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /**
@@ -2185,8 +2163,7 @@ ZEND_FUNCTION(mapi_table_seekrow)
 	RETVAL_LONG(lRowsSought);
 	
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /**
@@ -2223,8 +2200,7 @@ ZEND_FUNCTION(mapi_table_sort)
 
 	RETVAL_TRUE;
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /**
@@ -2255,8 +2231,7 @@ ZEND_FUNCTION(mapi_table_getrowcount)
 
 	RETVAL_LONG(count);
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /**
@@ -2302,8 +2277,7 @@ ZEND_FUNCTION(mapi_table_restrict)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_table_findrow)
@@ -2352,8 +2326,7 @@ ZEND_FUNCTION(mapi_table_findrow)
 	RETVAL_LONG(ulRow);
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /**
@@ -2390,8 +2363,7 @@ ZEND_FUNCTION(mapi_table_createbookmark)
 	RETVAL_LONG(lbookmark);
 	
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /**
@@ -2427,8 +2399,7 @@ ZEND_FUNCTION(mapi_table_freebookmark)
 
 	RETVAL_TRUE;	
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 /**
 * mapi_msgstore_getreceivefolder
@@ -2466,8 +2437,7 @@ ZEND_FUNCTION(mapi_msgstore_getreceivefolder)
 		goto exit;
 	ZEND_REGISTER_RESOURCE(return_value, lpFolder.release(), le_mapi_folder);
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /**
@@ -2508,8 +2478,7 @@ ZEND_FUNCTION(mapi_message_modifyrecipients)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /**
@@ -2539,8 +2508,7 @@ ZEND_FUNCTION(mapi_message_submitmessage)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /**
@@ -2571,8 +2539,7 @@ ZEND_FUNCTION(mapi_message_getattachmenttable)
 		goto exit;
 	ZEND_REGISTER_RESOURCE(return_value, pTable, le_mapi_table);
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /**
@@ -2605,8 +2572,7 @@ ZEND_FUNCTION(mapi_message_openattach)
 		goto exit;
 	ZEND_REGISTER_RESOURCE(return_value, pAttach, le_mapi_attachment);
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_message_createattach)
@@ -2635,8 +2601,7 @@ ZEND_FUNCTION(mapi_message_createattach)
 		goto exit;
 	ZEND_REGISTER_RESOURCE(return_value, lpAttach, le_mapi_attachment);
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_message_deleteattach)
@@ -2663,8 +2628,7 @@ ZEND_FUNCTION(mapi_message_deleteattach)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_stream_read)
@@ -2692,8 +2656,7 @@ ZEND_FUNCTION(mapi_stream_read)
 		goto exit;
 	RETVAL_STRINGL(buf.get(), actualRead, 1);
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_stream_seek)
@@ -2724,8 +2687,7 @@ ZEND_FUNCTION(mapi_stream_seek)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_stream_setsize)
@@ -2756,8 +2718,7 @@ ZEND_FUNCTION(mapi_stream_setsize)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_stream_commit)
@@ -2782,8 +2743,7 @@ ZEND_FUNCTION(mapi_stream_commit)
 
 	RETVAL_TRUE;
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_stream_write)
@@ -2812,8 +2772,7 @@ ZEND_FUNCTION(mapi_stream_write)
 
 	RETVAL_LONG(pcbWritten);
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 // FIXME: Add more output in the array
@@ -2846,8 +2805,7 @@ ZEND_FUNCTION(mapi_stream_stat)
 	add_assoc_long(return_value, "cb", cb);
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /* Create a new in-memory IStream interface. Useful only to write stuff to and then
@@ -2875,8 +2833,7 @@ ZEND_FUNCTION(mapi_stream_create)
 	ZEND_REGISTER_RESOURCE(return_value, lpIStream, le_istream);
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /*
@@ -2939,8 +2896,7 @@ ZEND_FUNCTION(mapi_openpropertytostream)
 
 	ZEND_REGISTER_RESOURCE(return_value, pStream, le_istream);
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /**
@@ -2971,8 +2927,7 @@ ZEND_FUNCTION(mapi_message_getrecipienttable)
 		goto exit;
 	ZEND_REGISTER_RESOURCE(return_value, pTable, le_mapi_table);
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_message_setreadflag)
@@ -2998,8 +2953,7 @@ ZEND_FUNCTION(mapi_message_setreadflag)
 
 	RETVAL_TRUE;
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /**
@@ -3032,8 +2986,7 @@ ZEND_FUNCTION(mapi_attach_openobj)
 	else
 		ZEND_REGISTER_RESOURCE(return_value, lpMessage, le_mapi_message);
 
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /**
@@ -3144,8 +3097,7 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 	}
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_setprops)
@@ -3195,8 +3147,7 @@ ZEND_FUNCTION(mapi_setprops)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_copyto)
@@ -3277,8 +3228,7 @@ ZEND_FUNCTION(mapi_copyto)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_savechanges)
@@ -3326,8 +3276,7 @@ ZEND_FUNCTION(mapi_savechanges)
 		RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_deleteprops)
@@ -3372,8 +3321,7 @@ ZEND_FUNCTION(mapi_deleteprops)
 
 	RETVAL_TRUE;
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_openproperty)
@@ -3493,8 +3441,7 @@ ZEND_FUNCTION(mapi_openproperty)
 	}
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /*
@@ -3570,8 +3517,7 @@ ZEND_FUNCTION(mapi_getprops)
 	FREE_ZVAL(zval_prop_value);
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_getnamesfromids)
@@ -3636,8 +3582,7 @@ ZEND_FUNCTION(mapi_getnamesfromids)
 	}
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /**
@@ -3704,8 +3649,7 @@ ZEND_FUNCTION(mapi_decompressrtf)
 	RETVAL_STRINGL((char *)strUncompressed.c_str(), strUncompressed.size(), 1);
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /**
@@ -3735,8 +3679,7 @@ ZEND_FUNCTION(mapi_folder_openmodifytable) {
 		goto exit;
 	ZEND_REGISTER_RESOURCE(return_value, lpRulesTable, le_mapi_modifytable);
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_folder_getsearchcriteria) {
@@ -3779,8 +3722,7 @@ ZEND_FUNCTION(mapi_folder_getsearchcriteria) {
 	add_assoc_long(return_value, "searchstate", ulSearchState);
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_folder_setsearchcriteria) {
@@ -3817,8 +3759,7 @@ ZEND_FUNCTION(mapi_folder_setsearchcriteria) {
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /**
@@ -3869,8 +3810,7 @@ ZEND_FUNCTION(mapi_rules_gettable) {
 		goto exit;
 	ZEND_REGISTER_RESOURCE(return_value, lpRulesView.release(), le_mapi_table);
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /**
@@ -3909,9 +3849,7 @@ ZEND_FUNCTION(mapi_rules_modifytable) {
 exit:
 	if (lpRowList)
 		FreeProws((LPSRowSet)lpRowList);
-
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_zarafa_createuser)
@@ -3969,8 +3907,7 @@ ZEND_FUNCTION(mapi_zarafa_createuser)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_zarafa_setuser)
@@ -4028,8 +3965,7 @@ ZEND_FUNCTION(mapi_zarafa_setuser)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_zarafa_deleteuser)
@@ -4075,8 +4011,7 @@ ZEND_FUNCTION(mapi_zarafa_deleteuser)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_zarafa_createstore)
@@ -4116,8 +4051,7 @@ ZEND_FUNCTION(mapi_zarafa_createstore)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /**
@@ -4174,8 +4108,7 @@ ZEND_FUNCTION(mapi_zarafa_getuserlist)
 	}
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /**
@@ -4222,8 +4155,7 @@ ZEND_FUNCTION(mapi_zarafa_getquota)
 	add_assoc_long(return_value, "hardsize", lpQuota->llHardSize);
        
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /**
@@ -4296,8 +4228,7 @@ ZEND_FUNCTION(mapi_zarafa_setquota)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /**
@@ -4356,8 +4287,7 @@ ZEND_FUNCTION(mapi_zarafa_getuser_by_name)
 	add_assoc_long(return_value, "admin", lpUsers->ulIsAdmin);
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /**
@@ -4408,8 +4338,7 @@ ZEND_FUNCTION(mapi_zarafa_getuser_by_id)
 	add_assoc_long(return_value, "admin", lpUsers->ulIsAdmin);
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_zarafa_creategroup)
@@ -4447,8 +4376,7 @@ ZEND_FUNCTION(mapi_zarafa_creategroup)
 	}
 	RETVAL_STRINGL(reinterpret_cast<const char *>(lpGroupId.get()), cbGroupId, 1);
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_zarafa_deletegroup)
@@ -4491,8 +4419,7 @@ ZEND_FUNCTION(mapi_zarafa_deletegroup)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_zarafa_addgroupmember)
@@ -4527,8 +4454,7 @@ ZEND_FUNCTION(mapi_zarafa_addgroupmember)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_zarafa_deletegroupmember)
@@ -4563,8 +4489,7 @@ ZEND_FUNCTION(mapi_zarafa_deletegroupmember)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_zarafa_setgroup)
@@ -4605,8 +4530,7 @@ ZEND_FUNCTION(mapi_zarafa_setgroup)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_zarafa_getgroup_by_id)
@@ -4643,8 +4567,7 @@ ZEND_FUNCTION(mapi_zarafa_getgroup_by_id)
 	add_assoc_string(return_value, "groupname", (char*)lpsGroup->lpszGroupname, 1);
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_zarafa_getgroup_by_name)
@@ -4689,8 +4612,7 @@ ZEND_FUNCTION(mapi_zarafa_getgroup_by_name)
 	add_assoc_string(return_value, "groupname", (char*)lpsGroup->lpszGroupname, 1);
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_zarafa_getgrouplist)
@@ -4737,8 +4659,7 @@ ZEND_FUNCTION(mapi_zarafa_getgrouplist)
 	}
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_zarafa_getgrouplistofuser)
@@ -4785,8 +4706,7 @@ ZEND_FUNCTION(mapi_zarafa_getgrouplistofuser)
 	}
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_zarafa_getuserlistofgroup)
@@ -4836,8 +4756,7 @@ ZEND_FUNCTION(mapi_zarafa_getuserlistofgroup)
 	}
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_zarafa_createcompany)
@@ -4875,8 +4794,7 @@ ZEND_FUNCTION(mapi_zarafa_createcompany)
 	}
 	RETVAL_STRINGL(reinterpret_cast<const char *>(lpCompanyId.get()), cbCompanyId, 1);
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_zarafa_deletecompany)
@@ -4920,8 +4838,7 @@ ZEND_FUNCTION(mapi_zarafa_deletecompany)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_zarafa_getcompany_by_id)
@@ -4959,8 +4876,7 @@ ZEND_FUNCTION(mapi_zarafa_getcompany_by_id)
 	add_assoc_string(return_value, "companyname", (char*)lpsCompany->lpszCompanyname, 1);
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_zarafa_getcompany_by_name)
@@ -5006,8 +4922,7 @@ ZEND_FUNCTION(mapi_zarafa_getcompany_by_name)
 	add_assoc_string(return_value, "companyname", (char*)lpsCompany->lpszCompanyname, 1);
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_zarafa_getcompanylist)
@@ -5051,8 +4966,7 @@ ZEND_FUNCTION(mapi_zarafa_getcompanylist)
 	}
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_zarafa_add_company_remote_viewlist)
@@ -5087,8 +5001,7 @@ ZEND_FUNCTION(mapi_zarafa_add_company_remote_viewlist)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_zarafa_del_company_remote_viewlist)
@@ -5123,8 +5036,7 @@ ZEND_FUNCTION(mapi_zarafa_del_company_remote_viewlist)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_zarafa_get_remote_viewlist)
@@ -5169,8 +5081,7 @@ ZEND_FUNCTION(mapi_zarafa_get_remote_viewlist)
 	}
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_zarafa_add_user_remote_adminlist)
@@ -5205,8 +5116,7 @@ ZEND_FUNCTION(mapi_zarafa_add_user_remote_adminlist)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_zarafa_del_user_remote_adminlist)
@@ -5241,8 +5151,7 @@ ZEND_FUNCTION(mapi_zarafa_del_user_remote_adminlist)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_zarafa_get_remote_adminlist)
@@ -5287,8 +5196,7 @@ ZEND_FUNCTION(mapi_zarafa_get_remote_adminlist)
 	}
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_zarafa_add_quota_recipient)
@@ -5324,8 +5232,7 @@ ZEND_FUNCTION(mapi_zarafa_add_quota_recipient)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_zarafa_del_quota_recipient)
@@ -5361,8 +5268,7 @@ ZEND_FUNCTION(mapi_zarafa_del_quota_recipient)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_zarafa_get_quota_recipientlist)
@@ -5407,8 +5313,7 @@ ZEND_FUNCTION(mapi_zarafa_get_quota_recipientlist)
 	}
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_zarafa_getpermissionrules)
@@ -5472,8 +5377,7 @@ ZEND_FUNCTION(mapi_zarafa_getpermissionrules)
 	}
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
@@ -5575,8 +5479,7 @@ ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_freebusysupport_open)
@@ -5617,8 +5520,7 @@ ZEND_FUNCTION(mapi_freebusysupport_open)
 		goto exit;
 	ZEND_REGISTER_RESOURCE(return_value, lpFBSupport.release(), le_freebusy_support);
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_freebusysupport_close)
@@ -5643,8 +5545,7 @@ ZEND_FUNCTION(mapi_freebusysupport_close)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_freebusysupport_loaddata)
@@ -5720,8 +5621,7 @@ ZEND_FUNCTION(mapi_freebusysupport_loaddata)
 exit:
 	// do not release fbdata, it's registered in the return_value array, but not addref'd
 	MAPIFreeBuffer(lppFBData);
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_freebusysupport_loadupdate)
@@ -5796,8 +5696,7 @@ ZEND_FUNCTION(mapi_freebusysupport_loadupdate)
 	}
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_freebusydata_enumblocks)
@@ -5828,8 +5727,7 @@ ZEND_FUNCTION(mapi_freebusydata_enumblocks)
 		goto exit;
 	ZEND_REGISTER_RESOURCE(return_value, lpEnumBlock, le_freebusy_enumblock);
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_freebusydata_getpublishrange)
@@ -5856,8 +5754,7 @@ ZEND_FUNCTION(mapi_freebusydata_getpublishrange)
 	add_assoc_long(return_value, "start", RTimeToUnixTime(rtmStart));
 	add_assoc_long(return_value, "end", RTimeToUnixTime(rtmEnd));
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_freebusydata_setrange)
@@ -5882,8 +5779,7 @@ ZEND_FUNCTION(mapi_freebusydata_setrange)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_freebusyenumblock_reset)
@@ -5906,8 +5802,7 @@ ZEND_FUNCTION(mapi_freebusyenumblock_reset)
 
 	RETVAL_TRUE;
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_freebusyenumblock_next)
@@ -5950,8 +5845,7 @@ ZEND_FUNCTION(mapi_freebusyenumblock_next)
 	}
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_freebusyenumblock_skip)
@@ -5975,8 +5869,7 @@ ZEND_FUNCTION(mapi_freebusyenumblock_skip)
 
 	RETVAL_TRUE;
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_freebusyenumblock_restrict)
@@ -6008,8 +5901,7 @@ ZEND_FUNCTION(mapi_freebusyenumblock_restrict)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_freebusyenumblock_ical)
@@ -6018,9 +5910,7 @@ ZEND_FUNCTION(mapi_freebusyenumblock_ical)
 	LOG_BEGIN();
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	auto laters = make_scope_success([&]() { LOG_END(); THROW_ON_ERROR(); });
-
+	DEFERRED_EPILOGUE;
 	long req_count = 0;
 	php_stringsize_t organizer_len, user_len, uid_len;
 	char *organizer_cstr = nullptr, *user_cstr = nullptr;
@@ -6128,8 +6018,7 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_freebusyupdate_reset)
@@ -6153,8 +6042,7 @@ ZEND_FUNCTION(mapi_freebusyupdate_reset)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_freebusyupdate_savechanges)
@@ -6186,8 +6074,7 @@ ZEND_FUNCTION(mapi_freebusyupdate_savechanges)
 
 	RETVAL_TRUE;
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /*
@@ -6276,8 +6163,7 @@ ZEND_FUNCTION(mapi_exportchanges_config)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_exportchanges_synchronize)
@@ -6310,8 +6196,7 @@ ZEND_FUNCTION(mapi_exportchanges_synchronize)
 	}
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_exportchanges_updatestate)
@@ -6338,8 +6223,7 @@ ZEND_FUNCTION(mapi_exportchanges_updatestate)
 
 	RETVAL_TRUE;
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_exportchanges_getchangecount)
@@ -6370,8 +6254,7 @@ ZEND_FUNCTION(mapi_exportchanges_getchangecount)
 
 	RETVAL_LONG(ulChanges);
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_importcontentschanges_config)
@@ -6400,8 +6283,7 @@ ZEND_FUNCTION(mapi_importcontentschanges_config)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_importcontentschanges_updatestate)
@@ -6430,8 +6312,7 @@ ZEND_FUNCTION(mapi_importcontentschanges_updatestate)
 
 	RETVAL_TRUE;
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_importcontentschanges_importmessagechange)
@@ -6467,8 +6348,7 @@ ZEND_FUNCTION(mapi_importcontentschanges_importmessagechange)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_importcontentschanges_importmessagedeletion)
@@ -6499,8 +6379,7 @@ ZEND_FUNCTION(mapi_importcontentschanges_importmessagedeletion)
 		goto exit;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_importcontentschanges_importperuserreadstatechange)
@@ -6533,8 +6412,7 @@ ZEND_FUNCTION(mapi_importcontentschanges_importperuserreadstatechange)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_importcontentschanges_importmessagemove)
@@ -6572,8 +6450,7 @@ ZEND_FUNCTION(mapi_importcontentschanges_importmessagemove)
 		goto exit;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_importhierarchychanges_config)
@@ -6601,8 +6478,7 @@ ZEND_FUNCTION(mapi_importhierarchychanges_config)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_importhierarchychanges_updatestate)
@@ -6631,8 +6507,7 @@ ZEND_FUNCTION(mapi_importhierarchychanges_updatestate)
 
 	RETVAL_TRUE;
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_importhierarchychanges_importfolderchange)
@@ -6665,8 +6540,7 @@ ZEND_FUNCTION(mapi_importhierarchychanges_importfolderchange)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_importhierarchychanges_importfolderdeletion)
@@ -6700,8 +6574,7 @@ ZEND_FUNCTION(mapi_importhierarchychanges_importfolderdeletion)
 	RETVAL_TRUE;
 
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 /*
@@ -6735,9 +6608,7 @@ ZEND_FUNCTION(mapi_wrap_importcontentschanges)
     // Simply return the wrapped object
 	ZEND_REGISTER_RESOURCE(return_value, lpImportContentsChanges, le_mapi_importcontentschanges);
 	MAPI_G(hr) = hrSuccess;
-
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 // Same for IExchangeImportHierarchyChanges
@@ -6758,9 +6629,7 @@ ZEND_FUNCTION(mapi_wrap_importhierarchychanges)
     // Simply return the wrapped object
 	ZEND_REGISTER_RESOURCE(return_value, lpImportHierarchyChanges, le_mapi_importhierarchychanges);
 	MAPI_G(hr) = hrSuccess;
-
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_inetmapi_imtoinet)
@@ -6810,8 +6679,7 @@ ZEND_FUNCTION(mapi_inetmapi_imtoinet)
     ZEND_REGISTER_RESOURCE(return_value, lpStream, le_istream);
     
 exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_inetmapi_imtomapi)
@@ -6858,8 +6726,7 @@ ZEND_FUNCTION(mapi_inetmapi_imtomapi)
     RETVAL_TRUE;
     
 exit:
-	LOG_END();
-    THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }    
 
 ZEND_FUNCTION(mapi_icaltomapi)
@@ -6923,8 +6790,7 @@ ZEND_FUNCTION(mapi_icaltomapi)
 		goto exit;
 	RETVAL_TRUE;
  exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_mapitoical)
@@ -6963,8 +6829,7 @@ ZEND_FUNCTION(mapi_mapitoical)
 	MAPI_G(hr) = lpMtIcal->Finalize(0, &method, &strical);
 	RETVAL_STRING(strical.c_str(), sizeof(strical.c_str()));
  exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_vcftomapi)
@@ -7004,8 +6869,7 @@ ZEND_FUNCTION(mapi_vcftomapi)
 		goto exit;
 	RETVAL_TRUE;
  exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_mapitovcf)
@@ -7040,8 +6904,7 @@ ZEND_FUNCTION(mapi_mapitovcf)
 	MAPI_G(hr) = conv->finalize(&vcf);
 	RETVAL_STRING(vcf.c_str(), vcf.size());
  exit:
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }
 
 ZEND_FUNCTION(mapi_enable_exceptions)
@@ -7143,6 +7006,5 @@ ZEND_FUNCTION(mapi_msgstore_abortsubmit)
 		php_error_docref(nullptr TSRMLS_CC, E_WARNING, "Unable to abort submit: %s (%x)", GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr));
 	else
 		RETVAL_TRUE;
-	LOG_END();
-	THROW_ON_ERROR();
+	DEFERRED_EPILOGUE;
 }

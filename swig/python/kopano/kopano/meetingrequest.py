@@ -34,7 +34,7 @@ from MAPI.Tags import (
     PR_SENT_REPRESENTING_SEARCH_KEY, PR_ACCOUNT_W, PR_DISPLAY_TYPE_EX,
     PR_SUBJECT_W, PR_MESSAGE_FLAGS, PR_RESPONSE_REQUESTED,
     recipSendable, recipOrganizer, recipOriginal, respTentative, respAccepted,
-    respDeclined, PR_START_DATE, PR_END_DATE,
+    respDeclined, respNotResponded, PR_START_DATE, PR_END_DATE,
 )
 
 from MAPI.Defs import (
@@ -255,6 +255,7 @@ def _create_meetingrequest(cal_item, item, basedate=None):
         cal_item[PidLidAppointmentLastSequence] = sequence+1
     item2[PidLidAppointmentSequence] = cal_item[PidLidAppointmentSequence]
     item2[PidLidAppointmentLastSequence] = cal_item[PidLidAppointmentLastSequence]
+    item2[PidLidResponseStatus] = respNotResponded
 
     # set item goids
     item2[PidLidCleanGlobalObjectId] = cleangoid

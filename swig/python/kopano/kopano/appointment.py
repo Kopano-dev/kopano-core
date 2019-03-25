@@ -15,6 +15,7 @@ from MAPI import (
 from MAPI.Tags import (
     PR_MESSAGE_RECIPIENTS, PR_RESPONSE_REQUESTED, PR_ENTRYID,
     PR_DISPLAY_NAME_W, PR_ADDRTYPE_W, PR_EMAIL_ADDRESS_W, PR_RECIPIENT_TYPE,
+    respOrganized,
 )
 
 from MAPI.Struct import SPropValue
@@ -28,12 +29,13 @@ from .compat import (
 )
 from .defs import (
     PSETID_Appointment, ASF_CANCELED, NR_COLOR, COLOR_NR, FB_STATUS, STATUS_FB,
+    ASF_MEETING,
 )
 from .pidlid import (
     PidLidReminderSet, PidLidReminderDelta, PidLidAppointmentSubType,
     PidLidBusyStatus, PidLidGlobalObjectId, PidLidRecurring,
     PidLidTimeZoneStruct, PidLidTimeZoneDescription, PidLidLocation,
-    PidLidAppointmentStateFlags, PidLidAppointmentColor,
+    PidLidAppointmentStateFlags, PidLidAppointmentColor, PidLidResponseStatus,
 )
 try:
     from . import utils as _utils
@@ -204,6 +206,10 @@ class Appointment(object):
             SPropValue(PR_ENTRYID, pr_entryid),
         ])
         self.mapiobj.ModifyRecipients(MODRECIP_ADD, names)
+
+        self[PidLidAppointmentStateFlags] = ASF_MEETING
+        self[PidLidResponseStatus] = respOrganized # TODO delegation?
+
         _utils._save(self.mapiobj)
 
     @property
