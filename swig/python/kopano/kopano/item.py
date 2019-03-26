@@ -91,7 +91,7 @@ from .compat import (
 
 from .defs import (
     NAMED_PROPS_ARCHIVER, NAMED_PROP_CATEGORY, ADDR_PROPS,
-    PSETID_Archive, URGENCY, REV_URGENCY
+    PSETID_Archive, URGENCY, REV_URGENCY, ASF_MEETING,
 )
 from .errors import (
     Error, NotFoundError, _DeprecationWarning
@@ -734,7 +734,6 @@ class Item(Properties, Contact, Appointment):
 
         :param action: the reply action
         :type action: str
-        :return:
         :rtype: str
         """
 

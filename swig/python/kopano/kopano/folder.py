@@ -948,10 +948,7 @@ class Folder(Properties):
             _utils._save(mapiobj)
 
     def ics(self, charset="UTF-8"):
-        """Export all calendar items in the folder to an ics file
-
-        :return: ics calendar string
-        """
+        """Export all calendar items in the folder to an ics file"""
         mic = icalmapi.CreateMapiToICal(self.server.ab, charset)
         for item in self.items():
             if item.message_class.startswith('IPM.Appointment'):

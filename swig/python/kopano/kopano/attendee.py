@@ -71,7 +71,7 @@ class Attendee(object):
             }.get(prop.value)
 
     def __unicode__(self):
-        return 'Attendee()'
+        return 'Attendee()' # TODO add self.address.name
 
     def __repr__(self):
         return _repr(self)

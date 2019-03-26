@@ -200,4 +200,4 @@ class Attachment(Properties):
         return self.get(PR_LAST_MODIFICATION_TIME)
 
     def __unicode__(self):
-        return 'Attachment("%s")' % (self.name or '')
+        return 'Attachment("%s")' % (self.filename or '')

@@ -537,7 +537,6 @@ class Server(object):
         :param company: the company of the user
         :param fullname: the full name of the user
         :param create_store: should a store be created for the new user
-        :return: :class:`<User>`
         """
         fullname = _unicode(fullname or name or '')
         name = _unicode(name)
@@ -595,7 +594,6 @@ class Server(object):
         """:class:`company <Company>` with given name
 
         :param name: the company name
-        :return: :class:`company <Company>` with given name or *None* if not found.
         """
         try:
             return self.company(name)
@@ -627,7 +625,6 @@ class Server(object):
 
         :param remote: include companies without users on this server node (default False)
         :param parse: take cli argument --companies into account (default True)
-        :return: Generator of :class:`companies <Company>` on server.
         """
         if parse and getattr(self.options, 'companies', None):
             for name in self.options.companies:
@@ -710,7 +707,6 @@ class Server(object):
         :param email: the email address of the group (optional)
         :param hidden: hide the group (optional)
         :param groupid: the id of the group (optional)
-        :return: :class:`group <Group>` the created group
         """
         name = _unicode(name) # XXX: fullname/email unicode?
         email = _unicode(email)
