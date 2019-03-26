@@ -3,7 +3,7 @@
 Part of the high-level python bindings for Kopano
 
 Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file)
-Copyright 2016 - Kopano and its licensors (see LICENSE file)
+Copyright 2016 - 2019 Kopano and its licensors (see LICENSE file)
 """
 
 import codecs
@@ -23,53 +23,69 @@ def _parse_oneoff(content):
         sos += 2
 
 class Address(object):
-    """Address class"""
+    """Address class
+
+    Abstraction for addresses, usually of type SMTP or ZARAFA.
+    Most commonly used to resolve full names and/or email addresses.
+    """
 
     def __init__(self, server=None, addrtype=None, name=None, email=None,
                  entryid=None, searchkey=None, props=None, oneoff=None):
-        self.server = server
-        self.addrtype = addrtype
+        self._server = server
+
+        if oneoff:
+            name, addrtype, email = _parse_oneoff(oneoff)
+
+            if addrtype == 'ZARAFA':
+                entryid = codecs.decode(server.user(email).userid, 'hex')
+
+        self._entryid = entryid
+        self._addrtype = addrtype
         self._name = name
         self._email = email
-        self.entryid = entryid
         self._searchkey = searchkey
         self._props = props
 
-        if oneoff:
-            self._name, self.addrtype, self._email = _parse_oneoff(oneoff)
-
-            if self.addrtype == 'ZARAFA':
-                self.entryid = codecs.decode(server.user(self._email).userid, 'hex')
-
     def props(self):
-        """Return all :class:`properties <Property>`."""
+        """Return associated :class:`properties <Property>`."""
         for prop in self._props:
             yield prop
 
-    # XXX prop()
+    # TODO prop()
 
     @property
     def name(self):
         """Full name"""
-        return self._name or u''
+        return self._name or ''
 
     @property
     def email(self):
         """Email address"""
         if self.addrtype == 'ZARAFA':
-            email = self.server._resolve_email(entryid=self.entryid)
+            email = self._server._resolve_email(entryid=self.entryid)
             # cannot resolve email for deleted/non-existent user, so fallback
             # to searchkey
-            # XXX make PR_SMTP_ADDRESS always contain email address?
+            # TODO make PR_SMTP_ADDRESS always contain email address?
             if (not email and self._searchkey and
                     b':' in self._searchkey and b'@' in self._searchkey):
-                email = self._searchkey.split(b':')[1].rstrip(b'\x00').decode('ascii').lower()
+                email_bin = self._searchkey.split(b':')[1].rstrip(b'\x00')
+                email = email_bin.decode('ascii').lower()
         else:
-            email = self._email or u''
+            email = self._email or ''
         return email
 
+    @property
+    def addrtype(self):
+        """Address type (usually SMTP or ZARAFA)"""
+        return self._addrtype
+
+    @property
+    def entryid(self):
+        """User entryid (for addrtype ZARAFA)"""
+        return self._entryid
+
     def __unicode__(self):
-        return u'Address(%s)' % (self.name or self.email)
+        return 'Address(%s)' % (self.name or self.email or '')
 
     def __repr__(self):
         return _repr(self)
