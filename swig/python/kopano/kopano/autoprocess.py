@@ -2,7 +2,7 @@
 """
 Part of the high-level python bindings for Kopano
 
-Copyright 2018 - Kopano and its licensors (see LICENSE file)
+Copyright 2018 - 2019 Kopano and its licensors (see LICENSE file)
 """
 
 import sys
@@ -28,16 +28,19 @@ except ImportError: # pragma: no cover
     _utils = sys.modules[__package__ + '.utils']
 
 class AutoProcess(object):
-    """AutoProcess class"""
+    """AutoProcess class
+
+    Manage settings for automatically processing meeting requests.
+    """
 
     def __init__(self, store):
         fbeid = store.root.prop(PR_FREEBUSY_ENTRYIDS).value[1]
         self._fb = store.mapiobj.OpenEntry(fbeid, None, MAPI_MODIFY)
-        self.store = store
         self._ids = store.mapiobj.GetIDsFromNames(NAMED_PROPS_KC, MAPI_CREATE)
 
     @property
     def enabled(self):
+        """Auto-processing is enabled."""
         prop = CHANGE_PROP_TYPE(self._ids[0], PT_BOOLEAN)
         try:
             return HrGetOneProp(self._fb, prop).Value

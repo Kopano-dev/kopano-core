@@ -3,7 +3,7 @@
 Part of the high-level python bindings for Kopano
 
 Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file)
-Copyright 2016 - Kopano and its licensors (see LICENSE file)
+Copyright 2016 - 2019 Kopano and its licensors (see LICENSE file)
 """
 
 import sys
@@ -23,12 +23,14 @@ except ImportError: # pragma: no cover
     _utils = sys.modules[__package__ + '.utils']
 
 class AutoAccept(object):
-    """AutoAccept class"""
+    """AutoAccept class
+
+    Manage settings for automatically accepting meeting requests.
+    """
 
     def __init__(self, store):
         fbeid = store.root.prop(PR_FREEBUSY_ENTRYIDS).value[1]
         self._fb = store.mapiobj.OpenEntry(fbeid, None, MAPI_MODIFY)
-        self.store = store
 
     @property
     def enabled(self):
