@@ -66,7 +66,7 @@ from .query import _query_to_restriction
 
 from .compat import (
     repr as _repr, is_str as _is_str, benc as _benc,
-    bdec as _bdec, fake_unicode as _unicode, lru_cache as _lru_cache
+    bdec as _bdec, fake_unicode as _unicode,
 )
 
 try:
@@ -127,7 +127,7 @@ def instance_method_lru_cache(*cache_args, **cache_kwargs):
         @functools.wraps(func)
         def cache_factory(self, *args, **kwargs):
             # Wrap the function in a cache by calling the decorator
-            instance_cache = _lru_cache(*cache_args, **cache_kwargs)(func)
+            instance_cache = functools.lru_cache(*cache_args, **cache_kwargs)(func)
             # Bind the decorated function to the instance to make it a method
             instance_cache = instance_cache.__get__(self, self.__class__)
             setattr(self, func.__name__, instance_cache)
