@@ -158,7 +158,7 @@ Default:
 \fI300\fR
 .SS session_ip_check
 .PP
-Normally, a session is linked to an IP\-address, so this check is enabled. You may want to disable this check when you have laptop\*(Aqs which can get multiple ip\-adresses through wired and wireless networks. It is highly recommended to leave this check enabled, since the session id can be used by other machines, and thus introduces a large security risc. The session id is 64 bits.
+Normally, a session is linked to an IP\-address, so this check is enabled. You may want to disable this check when you have laptops which can get multiple ip\-adresses through wired and wireless networks. It is highly recommended to leave this check enabled, since the session id can be used by other machines, and thus introduces a large security risc. The session id is 64 bits.
 .PP
 Default:
 \fIyes\fR
@@ -397,7 +397,7 @@ The CA file which was used to sign client SSL certificates. This CA will be trus
 No default set.
 .SS server_ssl_ca_path
 .PP
-When you have multiple CA\*(Aqs to trust, you may use this option. Set this to a directory which contains all your trusted CA certificates. The name of the certificate needs to be the hash of the certificate. You can get the hash value of the certificate with the following command:
+When you have multiple CAs to trust, you may use this option. Set this to a directory which contains all your trusted CA certificates. The name of the certificate needs to be the hash of the certificate. You can get the hash value of the certificate with the following command:
 .RS 4
 .nf
 \fBopenssl x509 \-hash \-noout \-in cacert.pem \fR

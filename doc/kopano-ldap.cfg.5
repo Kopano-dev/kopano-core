@@ -120,7 +120,7 @@ Default:
 .PP
 An object is defined by this attribute what type it is, e.g. user, group, etc. Every object type should have a unique value in this attribute in order to define what which entry is.
 .PP
-The value of this attribute must be specified in the ldap_*_type_attribute_value settings. Each of those settings may specify multiple values for the type attribute, separated by comma\*(Aqs. All of these values must be present in the objects type attribute for a match to be made and the object to be recognised as that type.
+The value of this attribute must be specified in the ldap_*_type_attribute_value settings. Each of those settings may specify multiple values for the type attribute, separated by commas. All of these values must be present in the objects type attribute for a match to be made and the object to be recognised as that type.
 .PP
 It is possible for ambiguities to arise by setting the same string for multiple ldap_*_type_attribute_value settings. This ambiguity will be resolved by preferring objects with more matching values. If the ambiguity cannot be resolved in this way, then the first possibility is chosen from the list (addresslist, tenant, dynamic group, group, contact, user).
 .PP
