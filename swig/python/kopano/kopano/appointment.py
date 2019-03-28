@@ -229,7 +229,8 @@ class Appointment(object):
 
         table = self.table(PR_MESSAGE_RECIPIENTS)
         names = []
-        pr_addrtype, pr_dispname, pr_email, pr_entryid = self._addr_props(address)
+        pr_addrtype, pr_dispname, pr_email, pr_entryid = \
+            self._addr_props(address)
         names.append([
             SPropValue(PR_RECIPIENT_TYPE, reciptype),
             SPropValue(PR_DISPLAY_NAME_W, pr_dispname),
