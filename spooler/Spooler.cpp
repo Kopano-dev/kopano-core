@@ -151,7 +151,7 @@ static void print_help(const char *name)
 	cout << "  -h path\tUse alternate connect path (e.g. file:///var/run/socket).\n\t\tDefault: file:///var/run/kopano/server.sock" << endl;
 	cout << "  -V Print version info." << endl;
 	cout << "  -c filename\tUse alternate config file (e.g. /etc/kopano-spooler.cfg)\n\t\tDefault: /etc/kopano/spooler.cfg" << endl;
-	cout << "  smtp server: The name or IP-address of the SMTP server, overriding the configuration" << endl;
+	cout << "  smtp server: The name or IP address of the SMTP server, overriding the configuration" << endl;
 	cout << endl;
 }
 

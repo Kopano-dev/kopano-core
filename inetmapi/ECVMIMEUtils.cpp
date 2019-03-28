@@ -135,7 +135,7 @@ HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpT
 		} else if (setRecips.find(strEmail) == setRecips.end()) {
 			recipients.appendMailbox(vmime::make_shared<vmime::mailbox>(convert_to<std::string>(strEmail)));
 			setRecips.emplace(strEmail);
-			ec_log_debug("Sending to group-address %s instead of expanded list",
+			ec_log_debug("Sending to group address %s instead of expanded list",
 				convert_to<std::string>(strEmail).c_str());
 		}
 	}
