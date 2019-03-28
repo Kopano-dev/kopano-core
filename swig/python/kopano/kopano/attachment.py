@@ -169,7 +169,7 @@ class Attachment(Properties):
 
     @property
     def size(self):
-        """Binary data size (approximate!)"""
+        """Storage size (different from binary data size!)."""
         # TODO size of the attachment object, so more than just the attachment
         #      data
         # TODO (useful when calculating store size, for example.. sounds
@@ -181,7 +181,7 @@ class Attachment(Properties):
 
     @property
     def data(self):
-        """Binary data"""
+        """Binary data."""
         if self._data is None:
             self._data = _utils.stream(self.mapiobj, PR_ATTACH_DATA_BIN)
         return self._data

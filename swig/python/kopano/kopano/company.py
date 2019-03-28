@@ -49,7 +49,6 @@ class Company(Properties):
     """
 
     def __init__(self, name, server=None):
-        # TODO rename to _server
         self.server = server or \
             _server.Server(_skip_check=True, parse_args=False)
 

@@ -24,7 +24,7 @@ class Attendee(object):
     """
 
     def __init__(self, server, mapirow):
-        self._server = server
+        self.server = server
         self._mapirow = mapirow
         self._row = dict([(x.proptag, x) for x in mapirow])
 
@@ -32,7 +32,7 @@ class Attendee(object):
     def address(self):
         """Attendee :class:`address <Address>`."""
         args = [self._row[p].value if p in self._row else None for p in PROPS]
-        return Address(self._server, *args, props=self._mapirow)
+        return Address(self.server, *args, props=self._mapirow)
 
     @property
     def response(self):

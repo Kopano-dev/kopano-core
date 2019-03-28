@@ -164,7 +164,7 @@ class Item(Properties, Contact, Appointment):
             self.server = folder.server
 
         if create:
-            self.mapiobj = self.folder.mapiobj.CreateMessage(None, MAPI_ASSOCIATED if self.folder.content_flag & MAPI_ASSOCIATED else 0)
+            self.mapiobj = self.folder.mapiobj.CreateMessage(None, MAPI_ASSOCIATED if self.folder._content_flag & MAPI_ASSOCIATED else 0)
             self.store = self.folder.store
             self.server = server = self.store.server # XXX
 

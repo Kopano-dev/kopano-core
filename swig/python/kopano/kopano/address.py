@@ -31,7 +31,7 @@ class Address(object):
 
     def __init__(self, server=None, addrtype=None, name=None, email=None,
                  entryid=None, searchkey=None, props=None, oneoff=None):
-        self._server = server
+        self.server = server
 
         if oneoff:
             name, addrtype, email = _parse_oneoff(oneoff)
@@ -62,7 +62,7 @@ class Address(object):
     def email(self):
         """Email address"""
         if self.addrtype == 'ZARAFA':
-            email = self._server._resolve_email(entryid=self.entryid)
+            email = self.server._resolve_email(entryid=self.entryid)
             # cannot resolve email for deleted/non-existent user, so fallback
             # to searchkey
             # TODO make PR_SMTP_ADDRESS always contain email address?
