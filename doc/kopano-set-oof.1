@@ -7,13 +7,13 @@
 .\" disable justification (adjust text to left margin only)
 .ad l
 .SH "NAME"
-kopano-set-oof \- Control a user\*(Aqs out of office settings.
+kopano-set-oof \- Control a user's out of office settings.
 .SH "SYNOPSIS"
 .HP \w'\fBkopano\-set\-oof\fR\ 'u
 \fBkopano\-set\-oof\fR [\-h\ \fIhostname\fR] [\-m\ \fImode\fR] [\-n\ \fImsgfile\fR] [\-p\ \fIkeypass\fR] [\-s\ \fIkeyfile\fR] [\-t\ \fIsubject\fR] [\-u\ \fIusername\fR] [\-\-from\ \fIdatetime\fR\ \-\-until\ \fIdatetime\fR]
 .SH "DESCRIPTION"
 .PP
-This tool can be used to change a user\*(Aqs out of office settings. The storage server must be running for
+This tool can be used to change a user's out of office settings. The storage server must be running for
 \fBkopano\-set\-oof\fR
 to work.
 .SH "OPTIONS"
@@ -25,24 +25,24 @@ Connect to the given storage server. This defaults to file:///var/run/kopano/ser
 .PP
 \fB\-m\fR, \fB\-\-mode\fR \fB0\fR
 .RS 4
-Disable the user\*(Aqs out of office reply.
+Disable the user's out of office reply.
 .RE
 .PP
 \fB\-m\fR, \fB\-\-mode\fR \fB1\fR
 .RS 4
-Enable the user\*(Aqs out of office reply.
+Enable the user's out of office reply.
 .RE
 .PP
 \fB\-m\fR, \fB\-\-mode\fR \fB\-\fR
 .RS 4
-Do not enable or disable the user\*(Aqs out of office reply. Just update the subject and message, unless the user\*(Aqs out of office reply is enabled. This is the default mode.
+Do not enable or disable the user's out of office reply. Just update the subject and message, unless the user's out of office reply is enabled. This is the default mode.
 .sp
 This is useful to update all out of office settings without enabling them and without changing the messages of enabled replies because that might overwrite some useful information that a user has set.
 .RE
 .PP
 \fB\-n\fR, \fB\-\-message\fR \fIfile\fR
 .RS 4
-Reads the given text file and uses its contents for the autoreply\*(Aqs message body.
+Reads the given text file and uses its contents for the autoreply's message body.
 .RE
 .PP
 \fB\-p\fR, \fB\-\-sslkey\-pass\fR \fIpassword\fR

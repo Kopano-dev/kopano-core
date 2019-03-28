@@ -531,7 +531,7 @@ Default:
 \fIplugin\fR
 .SS restrict_admin_permissions
 .PP
-Normally, admin users are granted all permissions on all stores in the server, or for stores in the tenant\*(Aqs company (in multi\-tenant mode). Enabling this option restricts permissions to folder operations: Folder viewing, folder creation and importantly, folder permissions. This means that an administrator can grant himself full permissions on a folder. However, in combination with auditing, it provides an extra level of security protection against unwanted access.
+Normally, admin users are granted all permissions on all stores in the server, or for stores in the tenant's company (in multi\-tenant mode). Enabling this option restricts permissions to folder operations: Folder viewing, folder creation and importantly, folder permissions. This means that an administrator can grant himself full permissions on a folder. However, in combination with auditing, it provides an extra level of security protection against unwanted access.
 .PP
 Note that some applications may require full access to all stores, which would be restricted by this option. Also, this option cannot be reset by sending a HUP signal, so a full server restart is required to change the setting.
 .PP
@@ -948,7 +948,7 @@ Default:
 \fIyes\fR
 .SS proxy_header
 .PP
-In normal operation, a cluster of kopano\-server nodes is served by sending redirections back to the clients requesting information. The redirection URL is built from the server\*(Aqs information in the LDAP database. However, in some cases it is useful to place the kopano\-server instances behind a reverse HTTP proxy. In this case the redirected URL returned to the client cannot be the \*(Aqnormal\*(Aq hostname, but must be a URL that is handled by the proxy.
+In normal operation, a cluster of kopano\-server nodes is served by sending redirections back to the clients requesting information. The redirection URL is built from the server's information in the LDAP database. However, in some cases it is useful to place the kopano\-server instances behind a reverse HTTP proxy. In this case the redirected URL returned to the client cannot be the \*(Aqnormal\*(Aq hostname, but must be a URL that is handled by the proxy.
 .PP
 However, internal (\*(Aqbehind\*(Aq the proxy) redirections must *not* be redirected to the proxy since this is not necessary. The strategy is that kopano\-server will redirect to the proxy URL if the connection that initiated the redirect passed through a proxy. The way that this is detected is by examining an HTTP header. If the header specified by this option is found, then redirections will be to the proxy. If it is not, then redirections will be to the internal host. If the special value \*(Aq*\*(Aq is specified for this option, then the proxy URL will always be used. Specifying an empty value disables proxy detection.
 .PP
