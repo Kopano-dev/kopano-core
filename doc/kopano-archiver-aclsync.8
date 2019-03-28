@@ -13,7 +13,7 @@ kopano-archiver-aclsync \- Synchronizes archive ACL settings with those of the p
 \fBkopano\-archiver\-aclsync\fR [\fIOPTION\fR...]
 .SH "DESCRIPTION"
 .PP
-When a user has set permissions for others on his or her store or folders, the other user will need at least read\-permissions on this persons archive as well in order to read stubbed messages or access the archive directly. These permissions can not be set by the owner of the archive if the archive was attached without write privileges. Even if the user has write permissions, it\*(Aqs a nuisance to have to set all the permissions twice (or more if multiple archives are attached).
+When a user has set permissions for others on his or her store or folders, the other user will need at least read\-permissions on this persons archive as well in order to read stubbed messages or access the archive directly. These permissions can not be set by the owner of the archive if the archive was attached without write privileges. Even if the user has write permissions, it is a nuisance to have to set all the permissions twice (or more if multiple archives are attached).
 .PP
 \fBkopano\-archiver\-aclsync\fR
 can be used to propagate the ACL settings from the primary store to the archives. However, no user will ever get more right on a store or folder than the owner of the archive. So if the archive was attached without write permissions, no user will get write permissions on the archive.

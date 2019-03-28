@@ -60,7 +60,7 @@ modified - exposed via ICA.
 
 ## deferredupdate
 
-Is a per-folder list of changes to tproperties that haven't been written to
+Is a per-folder list of changes to tproperties that have not been written to
 tproperties yet (for performance reasons)
 
 ## hierarchy
@@ -121,7 +121,7 @@ links stores to users (hierarchy.id to users.id)
 
 ## syncedmessages
 
-Is used in restricted ICS (when we can't use the journal) - sync only the last 4
+Is used in restricted ICS (when we cannot use the journal) - sync only the last 4
 weeks is an example. This represents the messages that have been sent to a
 mobile. only for z-push
 

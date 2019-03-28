@@ -16,11 +16,11 @@ kopano-archiver-aclset \- Reset the archive ACL settings for the owner.
 \fBkopano\-archiver\-aclset\fR
 sets or updates the permissions on an archive store for the owner of that store.
 .PP
-When an archive is attached to a store, the owner of the store gets read\-only or read/write permissions on the archive based on the configuration or command line options passed at the time of attaching. Also when an archive is attached to a store of a non\-active user, no permissions for that non\-active user are set because that\*(Aqs not possible.
+When an archive is attached to a store, the owner of the store gets read\-only or read/write permissions on the archive based on the configuration or command line options passed at the time of attaching. Also when an archive is attached to a store of a non\-active user, no permissions for that non\-active user are set because that is not possible.
 .PP
 In the first case it can be desirable to change the permissions at a later time because of company policy changes or because the original setting was just wrong.
 .PP
-In the second case, if the user is converted to an active user, it\*(Aqs required to reset the permissions because the owner won\*(Aqt have any permissions on his archive.
+In the second case, if the user is converted to an active user, it is required to reset the permissions because the owner will not have any permissions on his archive.
 .SH "OPTIONS"
 .PP
 \fB\-w\fR

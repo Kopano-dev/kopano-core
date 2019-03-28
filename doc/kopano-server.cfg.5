@@ -59,13 +59,13 @@ Default:
 \fIyes\fR
 .SS server_recv_timeout
 .PP
-TCP and SSL receive timeout in seconds. This is the time that a TCP connection may be idle (between requests) before the TCP connection is closed from the server. Settings this high makes it less necessary for clients to re\-connect, but increases the total number of concurrent open sockets in the server. You normally needn\*(Aqt change the default value.
+TCP and SSL receive timeout in seconds. This is the time that a TCP connection may be idle (between requests) before the TCP connection is closed from the server. Settings this high makes it less necessary for clients to re\-connect, but increases the total number of concurrent open sockets in the server. You normally need not change the default value.
 .PP
 Default:
 \fI5\fR
 .SP server_read_timeout
 .PP
-TCP and SSL read timeout in seconds. The read timeout is the amount of time that the server will wait to read more data from a socket, after processing of the request has started. This needn\*(Aqt be changed in most cases.
+TCP and SSL read timeout in seconds. The read timeout is the amount of time that the server will wait to read more data from a socket, after processing of the request has started. This need not be changed in most cases.
 .PP
 Default:
 \fI60\fR
@@ -575,7 +575,7 @@ Default:
 .SH "EXPLANATION OF THE CACHE SETTINGS PARAMETERS"
 .SS cache_cell_size
 .PP
-Size in bytes of the cell cache. This is the main cache used in Kopano. It caches all data that comes into view in tables (ie the view of your inbox, or any other folder). In an ideal situation, all cells would be cached, so that the database does not need to be queried for data when browsing through folders, but this would require around 1.5K per message item (e\-mail, appointment task, etc) in the entire server. If you can afford it, set this value as high as possible, up to 50% of your total RAM capacity. Make sure this doesn\*(Aqt lead to swapping though. This value may contain a k, m or g multiplier.
+Size in bytes of the cell cache. This is the main cache used in Kopano. It caches all data that comes into view in tables (ie the view of your inbox, or any other folder). In an ideal situation, all cells would be cached, so that the database does not need to be queried for data when browsing through folders, but this would require around 1.5K per message item (e\-mail, appointment task, etc) in the entire server. If you can afford it, set this value as high as possible, up to 50% of your total RAM capacity. Make sure this does not lead to swapping though. This value may contain a k, m or g multiplier.
 .PP
 Default:
 \fI256M\fR
@@ -603,7 +603,7 @@ Default:
 \fI1M\fR
 .SS cache_quota_lifetime
 .PP
-This sets the lifetime for quota details inside the cache. If quota details weren\*(Aqt queried during this period it is removed from the cache making room for more often requested quota details. Set to 0 to never expire, or \-1 to disable this cache.
+This sets the lifetime for quota details inside the cache. If quota details were not queried during this period it is removed from the cache making room for more often requested quota details. Set to 0 to never expire, or \-1 to disable this cache.
 .PP
 Default:
 \fI1\fR
@@ -634,7 +634,7 @@ Default:
 \fI3M\fR
 .SS cache_userdetails_lifetime
 .PP
-This sets the lifetime for user details inside the cache. If user details weren\*(Aqt queried during this period it is removed from the cache making room for more often requested user details. Set to 0 to never expire, or \-1 to disable this cache.
+This sets the lifetime for user details inside the cache. If user details were not queried during this period it is removed from the cache making room for more often requested user details. Set to 0 to never expire, or \-1 to disable this cache.
 .PP
 Default:
 \fI0\fR
@@ -647,7 +647,7 @@ Default:
 \fI1M\fR
 .SS cache_server_lifetime
 .PP
-This sets the lifetime for server location details inside the cache. If server details weren\*(Aqt queried during this period it is removed from the cache making room for more often requested server details. Set to 0 to never expire, or \-1 to disable this cache.
+This sets the lifetime for server location details inside the cache. If server details were not queried during this period it is removed from the cache making room for more often requested server details. Set to 0 to never expire, or \-1 to disable this cache.
 .PP
 Default:
 \fI30\fR
