@@ -2,8 +2,8 @@
 """
 High-level python bindings for Kopano
 
-Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
-Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
+Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file)
+Copyright 2016 - 2019 Kopano and its licensors (see LICENSE file)
 
 Some goals:
 
@@ -11,7 +11,7 @@ Some goals:
 - To be usable for many common system administration tasks
 - To provide full access to the underlying MAPI layer if needed
 - To return all text as unicode strings
-- To return/accept binary identifiers in readable (hex-encoded) form
+- To return/accept binary identifiers in readable form
 - To raise well-described exceptions if something goes wrong
 
 Main classes:
@@ -62,7 +62,9 @@ from .address import Address
 from .attachment import Attachment
 from .autoaccept import AutoAccept
 from .company import Company
-from .compat import set_bin_encoding, set_missing_none, hex, unhex, benc, bdec
+from .compat import (
+    set_bin_encoding, set_missing_none, hex, unhex, benc, bdec
+)
 from .delegation import Delegation
 from .distlist import DistList
 from .folder import Folder
@@ -107,8 +109,9 @@ class Module(object):
     def public_store(self):
         return self._server.public_store
 
-    def server(self, *args, **kwargs): # TODO add 'name' argument to lookup node?
-        kwargs['_skip_check'] = True # avoid deprecation warning for calling Server()
+    # TODO add 'name' argument to lookup node?
+    def server(self, *args, **kwargs):
+        kwargs['_skip_check'] = True # avoid deprecation warning
         kwargs['parse_args'] = kwargs.get('parse_args', False)
         return Server(*args, **kwargs)
 

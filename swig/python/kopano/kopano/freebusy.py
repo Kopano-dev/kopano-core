@@ -2,7 +2,7 @@
 """
 Part of the high-level python bindings for Kopano
 
-Copyright 2017 - Kopano and its licensors (see LICENSE file for details)
+Copyright 2017 - 2019 Kopano and its licensors (see LICENSE file)
 """
 
 import datetime
@@ -24,12 +24,13 @@ import MAPI.Struct
 
 from .compat import (
     bdec as _bdec, repr as _repr
-)
+    )
 
-# XXX to utils.py?
+# TODO to utils.py?
 NANOSECS_BETWEEN_EPOCH = 116444736000000000
 def datetime_to_filetime(d):
-    return FileTime(int(time.mktime(d.timetuple())) * 10000000 + NANOSECS_BETWEEN_EPOCH)
+    return FileTime(int(time.mktime(d.timetuple())) * 10000000 + \
+        NANOSECS_BETWEEN_EPOCH)
 
 def datetime_to_rtime(d):
     return datetime_to_filetime(d).filetime / 600000000
@@ -49,30 +50,37 @@ class FreeBusyBlock(object):
     """FreeBusyBlock class"""
 
     def __init__(self, block):
+        #: Freebusy block status (free, tentative, busy or outofoffice)
         self.status = CODE_STATUS[block.status]
-
+        #: Freebusy block start
         self.start = rtime_to_datetime(block.start)
+        #: Freebusy block end
         self.end = rtime_to_datetime(block.end)
 
     def __unicode__(self):
-        return u'FreeBusyBlock()'
+        return 'FreeBusyBlock()'
 
     def __repr__(self):
         return _repr(self)
 
 class FreeBusy(object):
-    """FreeBusy class"""
+    """FreeBusy class
+
+    Freebusy data consists of high level, privacy insensitive, information
+    about user availability. This is mostly useful for scheduling meetings,
+    without requiring full access to other users' calendars.
+    """
 
     def __init__(self, store):
         self.store = store
 
     def blocks(self, start=None, end=None):
-        """ Freebusy blocks
+        """Return all :class:`freebusy blocks <FreeBusyBlock>` for the
+        given period.
 
         :param start: start of period
         :param end: end of period
         """
-
         eid = _bdec(self.store.user.userid)
         if start:
             ftstart = datetime_to_filetime(start)
@@ -86,7 +94,7 @@ class FreeBusy(object):
         fb = libfreebusy.IFreeBusySupport()
         fb.Open(self.store.server.mapisession, self.store.mapiobj, False)
         fbdata = fb.LoadFreeBusyData([eid], None)
-        if fbdata in (0, 1): # XXX what?
+        if fbdata in (0, 1): # TODO what?
             return
         data, status = fbdata
         fb.Close()
@@ -101,13 +109,14 @@ class FreeBusy(object):
                 break
 
     def publish(self, start=None, end=None):
-        """ Publish freebusy data
+        """Publish freebusy information for the given period.
 
         :param start: start of period
         :param end: end of period
         """
-        eid = _bdec(self.store.user.userid) # XXX merge with blocks
-        ftstart, ftend = datetime_to_filetime(start), datetime_to_filetime(end) # XXX tz?
+        eid = _bdec(self.store.user.userid) # TODO merge with blocks
+        ftstart = datetime_to_filetime(start) # TODO tz?
+        ftend = datetime_to_filetime(end) # TODO tz?
 
         fb = libfreebusy.IFreeBusySupport()
         fb.Open(self.store.server.mapisession, self.store.mapiobj, False)
@@ -118,7 +127,8 @@ class FreeBusy(object):
             start = datetime_to_rtime(occ.start)
             end = datetime_to_rtime(occ.end)
             # Fall back on busy, same as WebApp
-            blocks.append(MAPI.Struct.FreeBusyBlock(start, end, STATUS_FB[occ.busystatus] if occ.busystatus else 2))
+            blocks.append(MAPI.Struct.FreeBusyBlock(start, end,
+                STATUS_FB[occ.busystatus] if occ.busystatus else 2))
 
         update.PublishFreeBusy(blocks)
         update.SaveChanges(ftstart, ftend)
@@ -128,7 +138,7 @@ class FreeBusy(object):
         return self.blocks()
 
     def __unicode__(self):
-        return u'FreeBusy()'
+        return 'FreeBusy()'
 
     def __repr__(self):
         return _repr(self)
