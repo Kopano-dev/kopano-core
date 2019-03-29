@@ -60,6 +60,21 @@ AC_ARG_WITH([dcprefix],
 	[dcprefix="$withval"])
 AC_SUBST([dcprefix])
 
+dnl Python interpreter selection
+AS_IF([test -n "$PYTHON"], [
+	dnl Expand e.g. PYTHON="python3 -B" to PYTHON="/usr/bin/python3 -B"
+	dnl (for embedding into #!), but keep unresolvable values as-is.
+	set -- $PYTHON
+	PYTHON=$(which "$1" 2>/dev/null)
+	AS_IF([test -z "$PYTHON"], [PYTHON="$1"])
+	shift
+	PYTHON=$(echo "$PYTHON $@")
+	PYTHON_MAJOR_VERSION=$($PYTHON -c "from __future__ import print_function;import sys;print(sys.version_info[[0]])" 2>/dev/null)
+])
+AS_IF([test "$PYTHON_MAJOR_VERSION" = "3"], [PYTHON_PC="python3"], [PYTHON_PC="python"])
+AM_CONDITIONAL([WITH_PYTHON3], [test "x$PYTHON_MAJOR_VERSION" = "x3"])
+AM_CONDITIONAL([WITH_PYTHON2], [test "x$PYTHON_MAJRO_VERSION" = "x2"])
+
 ECCLIENT_LIBRARY_VERSION=1:0:0
 AC_SUBST(ECCLIENT_LIBRARY_VERSION)
 
@@ -638,17 +653,6 @@ AC_SUBST([ZCXXFLAGS])
 AC_SUBST([AM_CXXFLAGS])
 AC_SUBST([AM_LDFLAGS])
 
-AS_IF([test -n "$PYTHON"], [
-	dnl Expand e.g. PYTHON="python3 -B" to PYTHON="/usr/bin/python3 -B"
-	dnl (for embedding into #!), but keep unresolvable values as-is.
-	set -- $PYTHON
-	PYTHON=$(which "$1" 2>/dev/null)
-	AS_IF([test -z "$PYTHON"], [PYTHON="$1"])
-	shift
-	PYTHON=$(echo "$PYTHON $@")
-	PYTHON_MAJOR_VERSION=$($PYTHON -c "from __future__ import print_function;import sys;print(sys.version_info[[0]])" 2>/dev/null)
-])
-AS_IF([test "$PYTHON_MAJOR_VERSION" = "3"], [PYTHON_PC="python3"], [PYTHON_PC="python"])
 AC_ARG_ENABLE([python], [AS_HELP_STRING([--disable-python],
 	[Enables/disables building of C++↔Python bindings (default: auto-enable).
 	To select the interpreter for scripts, set the $PYTHON environment variable instead.])],
@@ -665,8 +669,6 @@ AS_IF([test "$want_python" != no], [
 ])
 AM_CONDITIONAL([ENABLE_PYTHON], [test "$want_python" != no -a -n "$PYTHON_LIBS"])
 
-AM_CONDITIONAL([WITH_PYTHON3], [test "x$PYTHON_MAJOR_VERSION" = "x3"])
-AM_CONDITIONAL([WITH_PYTHON2], [test "x$PYTHON_MAJRO_VERSION" = "x2"])
 
 #
 # Output files
