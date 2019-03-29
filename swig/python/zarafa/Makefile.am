@@ -4,7 +4,7 @@ install-exec-local:
 	cd ${srcdir} && ${PYTHON} setup.py \
 		build --build-base="${abs_builddir}/build" \
 		install -f $${DESTDIR+--root=${DESTDIR}} \
-		--prefix="${prefix}" --install-purelib ${pythondir}
+		--prefix="${prefix}" --install-purelib="${pythondir}"
 	rm -Rf build
 
 uninstall-local:

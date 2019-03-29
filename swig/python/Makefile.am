@@ -177,7 +177,7 @@ install-exec-local:
 	cd staging/ && ${PYTHON} setup.py \
 		build --build-base="${abs_builddir}/build" \
 		install -f $${DESTDIR+--root=${DESTDIR}} \
-		--prefix="${prefix}" --install-purelib ${pythondir}
+		--prefix="${prefix}" --install-purelib="${pythondir}"
 	rm -Rf build
 
 uninstall-local:
