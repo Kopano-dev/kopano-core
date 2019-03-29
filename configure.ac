@@ -697,9 +697,7 @@ AC_CONFIG_FILES([Makefile
 		installer/searchscripts/Makefile
 		po/Makefile
 		swig/Makefile
-		swig/include/kopano/Makefile
 		swig/python/Makefile swig/python/python.sym
-		swig/python/include/kopano/Makefile
 		swig/python/kopano/Makefile
 		swig/python/zarafa/Makefile
 		common/kopano.pc common/libkcutil.sym
