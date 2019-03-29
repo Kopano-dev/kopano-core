@@ -70,7 +70,7 @@ to update user information. Use:
 \fB\-\-qs\fP
 or
 \fB\-\-qh\fP
-to set quota levels. Use 0 with quota options to set as \*(Aqunlimited\*(Aq.
+to set quota levels. Use 0 with quota options to set as unlimited.
 .sp
 \fB\-\-enable\-feature\fP
 and
@@ -428,7 +428,7 @@ to specify the user to hook the store to.
 .sp
 You can copy an orphaned store to the public store. Use the
 \fB\-\-copyto\-public\fR
-to copy the store to the public folder named \*(AqAdmin/deleted stores\*(Aq. This folder is then only visible for users with Kopano admin privileges.
+to copy the store to the public folder named "Deleted Stores". This folder is then only visible for users with Kopano admin privileges.
 .sp
 To hook a public store, use
 \fB\-\-type\fR
@@ -459,7 +459,7 @@ To unhook a public store, use the
 \fB\-\-type\fR
 group/company option to influence the name type in the
 \fIusername\fR
-argument. Use a company name with type company or \*(AqEveryone\*(Aq with type group to unhook the public.
+argument. Use a company name with type company or "Everyone" with type group to unhook the public.
 .sp
 To unhook an archive store, use
 \fB\-\-type\fR
@@ -531,7 +531,7 @@ update action.
 .PP
 \fB\-e\fR, \fB\-\-email\fP \fIemail_address\fP
 .RS 4
-Specify the email address. This address will be used to set the \*(AqFrom\*(Aq email address in outgoing email messages. Use single quotes around the name to pass it as a single parameter. This option is only valid with the
+Specify the email address. This address will be used to set the "From" email address in outgoing email messages. Use single quotes around the name to pass it as a single parameter. This option is only valid with the
 \fB\-c\fP
 create or
 \fB\-u\fP
@@ -634,7 +634,7 @@ This sets the companyname for all user, group and tenant commands. This option i
 .PP
 \fB\-\-mr\-accept\fR \fI[yes|y|1 / no|n|0]\fR
 .RS 4
-Specified that meeting requests should automatically be accepted for a user. This means that when a meeting request is sent to this user when specified as being a \*(Aqresource\*(Aq, the request will directly be honoured and written to the calendar. This is a client\-side action and this setting therefore does not affect actual meeting requests being delivered via kopano\-dagent. The user on which to operate is select using the
+Specified that meeting requests should automatically be accepted for a user. This means that when a meeting request is sent to this user when specified as being a "resource", the request will directly be honoured and written to the calendar. This is a client\-side action and this setting therefore does not affect actual meeting requests being delivered via kopano\-dagent. The user on which to operate is select using the
 \fB\-u\fP
 switch.
 .RE
@@ -657,13 +657,13 @@ switch.
 .RS 4
 Add user
 \fIsender\fR
-to the list of the senders you are updating as a \*(Aqsend as\*(Aq user. The
+to the list of the senders you are updating as a "send as" user. The
 \fIsender\fR
 can now send mails under the updated user's name, unless the updated user sets the
 \fIsender\fR
 as a delegate. When the
 \fIsender\fR
-is a delegate, the mail will be sent with \*(AqOn behalf of\*(Aq markings in the email. This option is only valid with the
+is a delegate, the mail will be sent with "On behalf of" markings in the email. This option is only valid with the
 \fB\-u\fP
 and
 \fB\-\-update\-group\fPl
@@ -674,7 +674,7 @@ update action.
 .RS 4
 Remove user
 \fIsender\fR
-from the list of the senders you are updating as a \*(Aqsend as\*(Aq user. This option is only valid with the
+from the list of the senders you are updating as a "send as" user. This option is only valid with the
 \fB\-u\fP
 and
 \fB\-\-update\-group\fP update action.

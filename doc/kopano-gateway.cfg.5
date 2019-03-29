@@ -162,7 +162,7 @@ Default:
 .SS imap_expunge_on_delete
 .PP
 Normally when you delete an e-mail in an IMAP client, it will only be marked as deleted, and not removed from the folder. The client should send the EXPUNGE command to actually remove the item from the folder (where Kopano will place it in the soft\-delete system). When this option is set to
-\fIyes\fR, the kopano\-gateway will issue the expunge command itself directly after a \*(Aqmark as delete\*(Aq command was received.
+\fIyes\fR, the kopano\-gateway will issue the expunge command itself directly after a "mark as delete" command was received.
 .PP
 Default:
 \fIno\fR
@@ -291,7 +291,7 @@ Default:
 \fI3\fP
 .SS log_timestamp
 .PP
-Specify whether to prefix each log line with a timestamp in \*(Aqfile\*(Aq logging mode.
+Specify whether to prefix each log line with a timestamp in "file" logging mode.
 .PP
 Default:
 \fI1\fR

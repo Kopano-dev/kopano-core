@@ -141,7 +141,7 @@ Now that we have a CA, we can create self\-signed certificates. The script will 
 \fIserver_ssl_ca_file\fR
 setting. We need a signed certificate for the server to start with SSL support.
 .PP
-Enter a password for the request, and enter the certificate details. Some details need to be different from what you typed when creating the CA. Type at least a different name in the \*(AqOrganizational Unit Name\*(Aq field. The challenge password at the end may be left empty.
+Enter a password for the request, and enter the certificate details. Some details need to be different from what you typed when creating the CA. Type at least a different name in the "Organizational Unit Name" field. The challenge password at the end may be left empty.
 .PP
 The script will automatically continue with signing this certificate request. You will need to enter your CA certificate password again to sign this request. Then you must accept the new certificate into the CA.
 .PP
@@ -161,7 +161,7 @@ To create a new certificate for a client service, run the script again. You can 
 .PP
 \fB sh /usr/share/kopano/ssl\-certificates.sh \fR
 .PP
-When typing the certificate information, type at least a different \*(AqOrganizational Unit Name\*(Aq field. When asked for a public key, type \*(Aqy\*(Aq and enter to create the public key.
+When typing the certificate information, type at least a different "Organizational Unit Name" field. When asked for a public key, type \fBy\fP and enter to create the public key.
 .PP
 Install the new service.pem on the server that will be logging in. Install the service\-public.pem file in the /etc/kopano/sslkeys directory:
 .PP

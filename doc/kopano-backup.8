@@ -192,7 +192,7 @@ When backing up data from multiple stores, process these stores in parallel, usi
 .RE
 .SH "EXAMPLES"
 .PP
-Backup user \*(Aqhenk\*(Aq, creating/updating a backup directory with the same name:
+Backup user "henk", creating/updating a backup directory with the same name:
 .PP
 \fBkopano\-backup \-u henk\fR
 .PP
@@ -200,7 +200,7 @@ Restore the same user (possibly on another server):
 .PP
 \fBkopano\-backup \-\-restore henk\fR
 .PP
-Backup users \*(Aqhenk\*(Aq and \*(Aqfred\*(Aq, in parallel, in a specified directory:
+Backup users "henk" and "fred", in parallel, in a specified directory:
 .PP
 \fBkopano\-backup \-u henk \-u fred \-w 2 \-O backups\fR
 .PP
@@ -216,7 +216,7 @@ Backup calendars of all users:
 .PP
 \fBkopano\-backup \-f Calendar \-O calendars\fR
 .PP
-Recursively restore inbox of \*(Aqfred\*(Aq into store of \*(Aqhenk\*(Aq, in certain subfolder:
+Recursively restore inbox of "fred" into store of "henk", in certain subfolder:
 .PP
 \fBkopano\-backup \-\-restore fred \-f Inbox \-u henk \-\-recursive \-\-restore\-root from_fred\fR
 .PP
@@ -224,7 +224,7 @@ Restore everything last modified in 2014:
 .PP
 \fBkopano\-backup \-\-restore fred \-b 2014\-01\-01 \-e 2015\-01\-01\fR
 .PP
-Create differential backup for \*(Aqfred\*(Aq:
+Create differential backup for "fred":
 .PP
 \fBkopano\-backup \-\-differential \-u fred\fR
 .PP
@@ -234,6 +234,6 @@ Inspect specific differential backups:
 .PP
 \fBkopano\-backup \-\-stats differential/fred/2
 .PP
-Merge differential backups for \*(Aqfred\*(Aq:
+Merge differential backups for "fred":
 .PP
 \fBkopano\-backup --merge fred\fR
