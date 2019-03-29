@@ -15,6 +15,51 @@ AC_CONFIG_MACRO_DIR([autoconf])
 AM_INIT_AUTOMAKE([1.10 foreign subdir-objects])
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 
+dnl Directories
+uscriptlibdir='${prefix}/lib/kopano/userscripts'
+uscriptconfdir='${sysconfdir}/kopano/userscripts'
+AC_SUBST([uscriptlibdir])
+AC_SUBST([uscriptconfdir])
+
+AC_ARG_WITH(quotatemplate-prefix,
+	[AS_HELP_STRING([--with-quotatemplate-prefix=PATH], [Path to install the quota warning templates in (default SYSCONFDIR/kopano/quotamail)])],
+	[QUOTATEMPLATEDIR="$withval"], [QUOTATEMPLATEDIR='${sysconfdir}/kopano/quotamail'])
+AC_SUBST([QUOTATEMPLATEDIR])
+AC_ARG_WITH(searchscripts-prefix,
+	[AS_HELP_STRING([--with-searchscripts-prefix=PATH], [path to install the search scripts in (default SYSCONFDIR/kopano/searchscripts)])],
+	[SEARCHSCRIPTSDIR="$withval"], [SEARCHSCRIPTSDIR='${sysconfdir}/kopano/searchscripts'])
+AC_SUBST([SEARCHSCRIPTSDIR])
+AC_ARG_WITH([systemunitdir],
+	[AS_HELP_STRING([--with-systemunitdir=PATH], [Path to systemd service unit directory])],
+	[systemunitdir="$withval"],
+	[
+		systemunitdir=$("$PKG_CONFIG" systemd --variable systemdsystemunitdir 2>/dev/null)
+		AS_IF([test -z "$systemunitdir"], [systemunitdir='${prefix}/lib/systemd/system'])
+	])
+AC_SUBST([systemunitdir])
+AC_ARG_WITH([sysusersdir],
+	[AS_HELP_STRING([--with-sysusersdir=PATH], [Path to sysusers config directory])],
+	[sysusersdir="$withval"],
+	[
+		sysusersdir=$("$PKG_CONFIG" systemd --variable sysusersdir 2>/dev/null)
+		AS_IF([test -z "$sysusersdir"], [sysusersdir='${prefix}/lib/sysusers.d'])
+	])
+AC_SUBST([sysusersdir])
+AC_ARG_WITH([tmpfilesdir],
+	[AS_HELP_STRING([--with-tmpfilesdir=PATH], [Path to tmpfiles config directory])],
+	[tmpfilesdir="$withval"],
+	[
+		tmpfilesdir=$("$PKG_CONFIG" systemd --variable tmpfilesdir 2>/dev/null)
+		AS_IF([test -z "$tmpfilesdir"], [tmpfilesdir='${prefix}/lib/tmpfiles.d'])
+	])
+AC_SUBST([tmpfilesdir])
+dnl Not all files will be installed to ${prefix}, so we need to cheat a bit
+dnl to make "distcheck" succeed.
+AC_ARG_WITH([dcprefix],
+	[AS_HELP_STRING([Extra path inserted for distcheck])],
+	[dcprefix="$withval"])
+AC_SUBST([dcprefix])
+
 ECCLIENT_LIBRARY_VERSION=1:0:0
 AC_SUBST(ECCLIENT_LIBRARY_VERSION)
 
@@ -157,54 +202,6 @@ AC_ARG_ENABLE(coverage,
 	  fi
     ])
 
-uscriptlibdir='${prefix}/lib/kopano/userscripts'
-uscriptconfdir='${sysconfdir}/kopano/userscripts'
-AC_SUBST([uscriptlibdir])
-AC_SUBST([uscriptconfdir])
-
-# quota warning templates location
-AC_ARG_WITH(quotatemplate-prefix,
-  AS_HELP_STRING([--with-quotatemplate-prefix=PATH], [path to install the quota warning templates in (default SYSCONFDIR/kopano/quotamail)]),
-  [QUOTATEMPLATEDIR=${withval}],[QUOTATEMPLATEDIR='${sysconfdir}/kopano/quotamail'])
-AC_SUBST(QUOTATEMPLATEDIR)
-
-# search scripts location
-AC_ARG_WITH(searchscripts-prefix,
-  AS_HELP_STRING([--with-searchscripts-prefix=PATH], [path to install the search scripts in (default SYSCONFDIR/kopano/searchscripts)]),
-  [SEARCHSCRIPTSDIR=${withval}],[SEARCHSCRIPTSDIR='${sysconfdir}/kopano/searchscripts'])
-AC_SUBST(SEARCHSCRIPTSDIR)
-
-AC_ARG_WITH([systemunitdir],
-	[AS_HELP_STRING([--with-systemunitdir=PATH], [Path to systemd service unit directory])],
-	[systemunitdir="$withval"],
-	[
-		systemunitdir=$("$PKG_CONFIG" systemd --variable systemdsystemunitdir 2>/dev/null)
-		AS_IF([test -z "$systemunitdir"], [systemunitdir='${prefix}/lib/systemd/system'])
-	])
-AC_SUBST([systemunitdir])
-AC_ARG_WITH([sysusersdir],
-	[AS_HELP_STRING([--with-sysusersdir=PATH], [Path to sysusers config directory])],
-	[sysusersdir="$withval"],
-	[
-		sysusersdir=$("$PKG_CONFIG" systemd --variable sysusersdir 2>/dev/null)
-		AS_IF([test -z "$sysusersdir"], [sysusersdir='${prefix}/lib/sysusers.d'])
-	])
-AC_SUBST([sysusersdir])
-AC_ARG_WITH([tmpfilesdir],
-	[AS_HELP_STRING([--with-tmpfilesdir=PATH], [Path to tmpfiles config directory])],
-	[tmpfilesdir="$withval"],
-	[
-		tmpfilesdir=$("$PKG_CONFIG" systemd --variable tmpfilesdir 2>/dev/null)
-		AS_IF([test -z "$tmpfilesdir"], [tmpfilesdir='${prefix}/lib/tmpfiles.d'])
-	])
-AC_SUBST([tmpfilesdir])
-
-dnl Not all files will be installed to ${prefix}, so we need to cheat a bit
-dnl to make "distcheck" succeed.
-AC_ARG_WITH([dcprefix],
-	[AS_HELP_STRING([Extra path inserted for distcheck])],
-	[dcprefix="$withval"])
-AC_SUBST([dcprefix])
 
 # stats client requires ncurses(w) for --top
 # check wide version before non-wide version
