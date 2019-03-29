@@ -65,7 +65,7 @@ Deliver in the Junk mail folder of the specified user.
 .PP
 \fB\-\-file\fR, \fB\-f\fR \fIfile\fR
 .RS 4
-Read e\-mail input from file. When not given, input is read from standard in.
+Read e-mail input from file. When not given, input is read from standard in.
 .RE
 .PP
 \fB\-\-host\fR, \fB\-h\fR \fIpath\fR
@@ -95,7 +95,7 @@ Silent mode. No output will be printed by the DAgent, except when wrong paramete
 .PP
 \fB\-v\fR
 .RS 4
-Verbose mode. More output can be printed when processing the e\-mail for rules.
+Verbose mode. More output can be printed when processing the e-mail for rules.
 .sp
 When given a second time, more debugging output will be printed.
 .RE
@@ -107,7 +107,7 @@ Strip the domain from the given username. For example, when the DAgent is called
 .PP
 \fB\-R\fR
 .RS 4
-The passed recipient name will always be resolved first. This means that the recipient can be a username, e\-mail address or any other resolvable, unique identifier for the user. However, if the resolve fails (e.g. when running as a non\-trusted user), the passed name will be assumed to be a loginname of a user. Passing the \-R option will disable this and will cause kopano\-dagent to exit with an error when the resolve fails.
+The passed recipient name will always be resolved first. This means that the recipient can be a username, e-mail address or any other resolvable, unique identifier for the user. However, if the resolve fails (e.g. when running as a non\-trusted user), the passed name will be assumed to be a loginname of a user. Passing the \-R option will disable this and will cause kopano\-dagent to exit with an error when the resolve fails.
 .sp
 In practice, the resolve will only fail if kopano\-dagent is not running in a trusted account and is therefore only really here for backward\-compatibility of earlier kopano\-dagent versions.
 .RE
@@ -154,16 +154,16 @@ Path to autoresponder, e.g.
 \fIX\-Kopano\-Vacation\fR
 or
 \fIPrecedence\fR
-was found in the received e\-mail, this program will not be called to avoid loops. The Precedence header is often used in mailing lists. Other loop protections can be archieved in this separate program. This program or script will be called with the following arguments, in order:
+was found in the received e-mail, this program will not be called to avoid loops. The Precedence header is often used in mailing lists. Other loop protections can be archieved in this separate program. This program or script will be called with the following arguments, in order:
 .PP
 \fIfrom\fR
 .RS 4
-The e\-mail address of the Kopano user sending the vacation message
+The e-mail address of the Kopano user sending the vacation message
 .RE
 .PP
 \fIto\fR
 .RS 4
-The e\-mail address of the user to send the response to
+The e-mail address of the user to send the response to
 .RE
 .PP
 \fIsubject\fR
@@ -203,7 +203,7 @@ Default:
 .RE
 .SH "USAGE"
 .PP
-To deliver an e\-mail to a Kopano user's mailbox:
+To deliver an e-mail to a Kopano user's mailbox:
 .PP
 \fBkopano\-dagent \fR\fB\fIusername\fR\fR\fB < \fR\fB\fImailfile\fR\fR
 .PP

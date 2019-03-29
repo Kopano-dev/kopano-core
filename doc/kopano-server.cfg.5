@@ -89,7 +89,7 @@ Default:
 \fI/var/run/kopano/prio.sock\fR
 .SS server_name
 .PP
-Unique name for identifying the server in a multi\-server environment.
+Unique name for identifying the server in a multi-server environment.
 .PP
 Default:
 \fIKopano\fR
@@ -115,7 +115,7 @@ Default:
 \fIroot\fR
 .SS system_email_address
 .PP
-This is the e\-mail address of the SYSTEM user. When people receive mail from the quota monitor, or receive fallback deliveries from the kopano\-dagent, the From email address is this field. You might want to change this field so people can reply to this address.
+This is the e-mail address of the SYSTEM user. When people receive mail from the quota monitor, or receive fallback deliveries from the kopano\-dagent, the From email address is this field. You might want to change this field so people can reply to this address.
 .PP
 Default:
 \fIpostmaster@localhost\fR
@@ -164,13 +164,13 @@ Default:
 \fIyes\fR
 .SS hide_everyone
 .PP
-If this option is set to \*(Aqyes\*(Aq, the internal group Everyone (which always contains all users) will be hidden from the Global Addressbook. Thus, users will not be able to send e\-mail to this group anymore, and also will not be able to set access rights on folders for this group. Administrators will still be able to see and use the group.
+If this option is set to \*(Aqyes\*(Aq, the internal group Everyone (which always contains all users) will be hidden from the Global Addressbook. Thus, users will not be able to send e-mail to this group anymore, and also will not be able to set access rights on folders for this group. Administrators will still be able to see and use the group.
 .PP
 Default:
 \fIno\fR
 .SS hide_system
 .PP
-If this option is set to \*(Aqyes\*(Aq, the internal user SYSTEM will be hidden from the Global Addressbook. Thus, users will not be able to send e\-mail to this user anymore. Administrators will still be able to see and use the user.
+If this option is set to \*(Aqyes\*(Aq, the internal user SYSTEM will be hidden from the Global Addressbook. Thus, users will not be able to send e-mail to this user anymore. Administrators will still be able to see and use the user.
 .PP
 Default:
 \fIyes\fR
@@ -531,7 +531,7 @@ Default:
 \fIplugin\fR
 .SS restrict_admin_permissions
 .PP
-Normally, admin users are granted all permissions on all stores in the server, or for stores in the tenant's company (in multi\-tenant mode). Enabling this option restricts permissions to folder operations: Folder viewing, folder creation and importantly, folder permissions. This means that an administrator can grant himself full permissions on a folder. However, in combination with auditing, it provides an extra level of security protection against unwanted access.
+Normally, admin users are granted all permissions on all stores in the server, or for stores in the tenant's company (in multi-tenant mode). Enabling this option restricts permissions to folder operations: Folder viewing, folder creation and importantly, folder permissions. This means that an administrator can grant himself full permissions on a folder. However, in combination with auditing, it provides an extra level of security protection against unwanted access.
 .PP
 Note that some applications may require full access to all stores, which would be restricted by this option. Also, this option cannot be reset by sending a HUP signal, so a full server restart is required to change the setting.
 .PP
@@ -575,7 +575,7 @@ Default:
 .SH "EXPLANATION OF THE CACHE SETTINGS PARAMETERS"
 .SS cache_cell_size
 .PP
-Size in bytes of the cell cache. This is the main cache used in Kopano. It caches all data that comes into view in tables (ie the view of your inbox, or any other folder). In an ideal situation, all cells would be cached, so that the database does not need to be queried for data when browsing through folders, but this would require around 1.5K per message item (e\-mail, appointment task, etc) in the entire server. If you can afford it, set this value as high as possible, up to 50% of your total RAM capacity. Make sure this does not lead to swapping though. This value may contain a k, m or g multiplier.
+Size in bytes of the cell cache. This is the main cache used in Kopano. It caches all data that comes into view in tables (ie the view of your inbox, or any other folder). In an ideal situation, all cells would be cached, so that the database does not need to be queried for data when browsing through folders, but this would require around 1.5K per message item (e-mail, appointment task, etc) in the entire server. If you can afford it, set this value as high as possible, up to 50% of your total RAM capacity. Make sure this does not lead to swapping though. This value may contain a k, m or g multiplier.
 .PP
 Default:
 \fI256M\fR
@@ -811,21 +811,21 @@ Default:
 .SH "EXPLANATION OF MISCELLEANIOUS PARAMETERS"
 .SS enable_hosted_kopano
 .PP
-Enable multi\-tenancy environment.
+Enable multi-tenancy environment.
 .PP
 When set to true it is possible to create companies within the kopano instance and assign all users and groups to particular companies.
 .PP
-When set to false, the normal single\-tenancy environment is created.
+When set to false, the normal single-tenancy environment is created.
 .PP
 Default:
 \fIfalse\fR
 .SS enable_distributed_kopano
 .PP
-Enable multi\-server environment.
+Enable multi-server environment.
 .PP
 When set to true it is possible to place users and companies on specific servers.
 .PP
-When set to false, the normal single\-server environment is created.
+When set to false, the normal single-server environment is created.
 .PP
 Default:
 \fIfalse\fR
@@ -848,7 +848,7 @@ Default:
 \fI%f\fR
 .SS loginname_format
 .PP
-Loginname format (for multi\-tenancy installations). When the user does not login through a system\-wide unique username (like the email address) a unique name has created by combining the username and the tenancyname. With the this configuration option you can set how the loginname should be build up.
+Loginname format (for multi-tenancy installations). When the user does not login through a system\-wide unique username (like the email address) a unique name has created by combining the username and the tenancyname. With the this configuration option you can set how the loginname should be build up.
 .PP
 Allowed variables:
 .TP
