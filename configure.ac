@@ -652,7 +652,6 @@ AS_IF([test -n "$PYTHON"], [
 	PYTHON_MAJOR_VERSION=$($PYTHON -c "from __future__ import print_function;import sys;print(sys.version_info[[0]])" 2>/dev/null)
 ])
 AS_IF([test "$PYTHON_MAJOR_VERSION" = "3"], [PYTHON_PC="python3"], [PYTHON_PC="python"])
-AH_TEMPLATE([ENABLE_PYTHON], [Build dagent/spooler with Python plugin support])
 AC_ARG_ENABLE([python], [AS_HELP_STRING([--disable-python],
 	[Enables/disables building of C++↔Python bindings (default: auto-enable).
 	To select the interpreter for scripts, set the $PYTHON environment variable instead.])],
@@ -663,7 +662,6 @@ AS_IF([test "$want_python" != no], [
 		AC_PATH_PROG([SWIG_EXEC], [swig])
 		AM_PATH_PYTHON([2.5])
 		AS_IF([test -z "$SWIG_EXEC"], [AC_MSG_ERROR([swig is required for Python])])
-		AC_DEFINE([ENABLE_PYTHON], [1])
 	], [test "$want_python" = yes], [
 		AC_MSG_ERROR([python requested but not satisfiable])
 	])
