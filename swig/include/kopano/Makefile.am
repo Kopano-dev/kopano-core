@@ -1,3 +1,3 @@
 # -*- Makefile -*-
 
-nobase_pkginclude_HEADERS = swig_iunknown.h typemap.i
+noinst_HEADERS = swig_iunknown.h typemap.i
