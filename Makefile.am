@@ -8,10 +8,13 @@ SUBDIRS = . ECtools/archiver/include/kopano \
 	spooler/python
 SUBDIRS += installer installer/linux installer/userscripts \
 	installer/quotemail installer/searchscripts po
+if ENABLE_PYBIND
+SUBDIRS += swig
+endif
 if ENABLE_PYTHON
 SUBDIRS += ECtools/backup ECtools/cli ECtools/migration-pst \
 	ECtools/presence ECtools/rest ECtools/search ECtools/spamd \
-	ECtools/utils swig swig/python/kopano swig/python/zarafa
+	ECtools/utils swig/python/kopano swig/python/zarafa
 endif
 
 
@@ -104,7 +107,7 @@ noinst_DATA = \
 	libkccontacts.ldd libkcfreebusy.ldd libkcicalmapi.ldd \
 	libkcinetmapi.ldd ${COND_libkcrosie_ldd} \
 	libkcserver.ldd libkcutil.ldd libmapi.ldd
-if ENABLE_PYTHON
+if ENABLE_PYBIND
 lib_LTLIBRARIES += libkcpyplug.la
 noinst_DATA += libkcpyplug.ldd
 endif
@@ -801,7 +804,7 @@ CLEANFILES += spooler/PythonSWIGRuntime.h
 EXTRA_DIST += spooler/PythonSWIGRuntime.h
 
 spooler/PythonSWIGRuntime.h:
-if ENABLE_PYTHON
+if ENABLE_PYBIND
 	${SWIG_EXEC} -python -external-runtime $@
 else
 	: >$@

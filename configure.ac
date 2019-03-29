@@ -75,6 +75,12 @@ AS_IF([test "$PYTHON_MAJOR_VERSION" = "3"], [PYTHON_PC="python3"], [PYTHON_PC="p
 AM_CONDITIONAL([WITH_PYTHON3], [test "x$PYTHON_MAJOR_VERSION" = "x3"])
 AM_CONDITIONAL([WITH_PYTHON2], [test "x$PYTHON_MAJRO_VERSION" = "x2"])
 
+dnl Top-level component selection
+AC_ARG_ENABLE([python], [AS_HELP_STRING([--disable-python],
+	[Disables building Python components (default: enable). Use the $PYTHON environment variable to select the script interpreter.])],
+	[want_python="$enableval"], [want_python=auto])
+AM_CONDITIONAL([ENABLE_PYTHON], [test "$want_python" != no])
+
 ECCLIENT_LIBRARY_VERSION=1:0:0
 AC_SUBST(ECCLIENT_LIBRARY_VERSION)
 
@@ -653,11 +659,10 @@ AC_SUBST([ZCXXFLAGS])
 AC_SUBST([AM_CXXFLAGS])
 AC_SUBST([AM_LDFLAGS])
 
-AC_ARG_ENABLE([python], [AS_HELP_STRING([--disable-python],
-	[Enables/disables building of C++↔Python bindings (default: auto-enable).
-	To select the interpreter for scripts, set the $PYTHON environment variable instead.])],
-	[want_python="$enableval"], [want_python=auto])
-AS_IF([test "$want_python" != no], [
+AC_ARG_ENABLE([pybind], [AS_HELP_STRING([--disable-pybind],
+	[Enables/disables building of C++↔Python bindings (default: auto-enable)])],
+	[want_pybind="$enableval"], [want_pybind=auto])
+AS_IF([test "$want_pybind" != no], [
 	PKG_CHECK_MODULES([PYTHON], [$PYTHON_PC], [], [:])
 	AS_IF([test -n "$PYTHON_LIBS"], [
 		AC_PATH_PROG([SWIG_EXEC], [swig])
@@ -667,7 +672,7 @@ AS_IF([test "$want_python" != no], [
 		AC_MSG_ERROR([python requested but not satisfiable])
 	])
 ])
-AM_CONDITIONAL([ENABLE_PYTHON], [test "$want_python" != no -a -n "$PYTHON_LIBS"])
+AM_CONDITIONAL([ENABLE_PYBIND], [test "$want_pybind" != no -a -n "$PYTHON_LIBS"])
 
 
 #
