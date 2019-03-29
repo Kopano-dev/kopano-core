@@ -6,11 +6,12 @@ SUBDIRS = . ECtools/archiver/include/kopano \
 	common/include/kopano m4lcommon/include/kopano \
 	mapi4linux/include inetmapi/include/inetmapi provider/include \
 	spooler/python
-SUBDIRS += installer po
+SUBDIRS += installer installer/linux installer/userscripts \
+	installer/quotemail installer/searchscripts po
 if ENABLE_PYTHON
 SUBDIRS += ECtools/backup ECtools/cli ECtools/migration-pst \
 	ECtools/presence ECtools/rest ECtools/search ECtools/spamd \
-	ECtools/utils swig
+	ECtools/utils swig swig/python/kopano swig/python/zarafa
 endif
 
 
