@@ -146,12 +146,12 @@ Note: This function does not synchronize with the external user plugin. Thus cha
 .RS 4
 Additional argument for
 \fB\-\-details\fP. The argument with this option indicates for what type of object the details are being requested. Allowed values are
-\fI\*(Aquser\*(Aq\fR,
-\fI\*(Aqgroup\*(Aq\fR
+\fBuser\fP,
+\fBgroup\fP
 or
-\fI\*(Aqcompany\*(Aq\fR
+\fBcompany\fP
 When this option is not used, it defaults to
-\fI\*(Aquser\*(Aq\fR
+\fBuser\fP.
 .RE
 .PP
 \fB\-\-create\-company\fR \fIcompanyname\fR
@@ -216,10 +216,10 @@ This option is only available in multi-tenancy Kopano.
 \fB\-\-add\-to\-viewlist\fR \fIcompanyname\fR
 .RS 4
 Add tenant
-\fI\*(Aqcompanyname\*(Aq\fR
+\fIcompanyname\fP
 to remote view list of company specified by
 \fB\-I\fP. After this command the
-\fI\*(Aqcompanyname\*(Aq\fR
+\fIcompanyname\fP
 is capable of viewing all members of the company specified by
 \fB\-I\fP.
 .sp
@@ -229,10 +229,10 @@ This option is only available in multi-tenancy Kopano.
 \fB\-\-del\-from\-viewlist\fR \fIcompanyname\fR
 .RS 4
 Delete company
-\fI\*(Aqcompanyname\*(Aq\fR
+\fIcompanyname\fP
 from remote view list of tenant specified by
 \fB\-I\fP. After this command the
-\fI\*(Aqcompanyname\*(Aq\fR
+\fIcompanyname\fP
 is no longer capable of viewing all members of the tenant specified by
 \fB\-I\fP.
 .sp
@@ -250,7 +250,7 @@ This option is only available in multi-tenancy Kopano.
 \fB\-\-add\-to\-adminlist\fR \fIusername\fR
 .RS 4
 Add user
-\fI\*(Aqusername\*(Aq\fR
+\fIusername\fP
 to remote\-admin list of tenant specified by
 \fB\-I\fP. This is the administrator list for remote administrators, as such it only manages administrators from a different tenant. Users who should be administrator over their own tenant are managed by updating (\fB\-u\fR) the user and specifying the
 \fB\-a\fR
@@ -265,7 +265,7 @@ This option is only available in multi-tenancy Kopano.
 \fB\-\-del\-from\-adminlist\fR \fIusername\fR
 .RS 4
 Delete user
-\fI\*(Aqusername\*(Aq\fR
+\fIusername\fP
 from remote\-admin list of company specified by
 \fB\-I\fP. This is the administrator list for remote administrators, as such it only manages administrators from a different tenant. Users who should be administrator over their own tenant are managed by updating (\fB\-u\fR) the user and specifying the
 \fB\-a\fR
@@ -290,7 +290,7 @@ This option is only available in multi-tenancy Kopano.
 \fB\-\-add\-userquota\-recipient\fR \fIuser\fR
 .RS 4
 Add
-\fI\*(Aquser\*(Aq\fR
+\fIuser\fP
 as recipient to userquota warning emails. You can optionally use
 \fB\-I\fP
 to set the tenant space to apply the recipient action on.
@@ -299,7 +299,7 @@ to set the tenant space to apply the recipient action on.
 \fB\-\-del\-userquota\-recipient\fR \fIuser\fR
 .RS 4
 Delete
-\fI\*(Aquser\*(Aq\fR
+\fIuser\fP
 as recipient to userquota warning emails. You can optionally use
 \fB\-I\fP
 to set the tenant space to apply the recipient action on.
@@ -315,7 +315,7 @@ to request the recipient list for a particular tenant space.
 \fB\-\-add\-companyquota\-recipient\fR \fIuser\fR
 .RS 4
 Add
-\fI\*(Aquser\*(Aq\fR
+\fIuser\fP
 as recipient to tenant quota warning emails. You can optionally use
 \fB\-I\fP
 to set the tenant space to apply the recipient action on.
@@ -324,7 +324,7 @@ to set the tenant space to apply the recipient action on.
 \fB\-\-del\-companyquota\-recipient\fR \fIuser\fR
 .RS 4
 Delete
-\fI\*(Aquser\*(Aq\fR
+\fIuser\fP
 as recipient to tenant quota warning emails. You can optionally use
 \fB\-I\fP
 to set the tenant space to apply the recipient action on.
@@ -495,7 +495,7 @@ Set the verbosity level (0=critical, ..., 6=debug).
 Increases the verbosity level by one, up to the maximum of 6.
 .RE
 .PP
-\fB\-U\fR \fI\*(Aqnew username\*(Aq\fR
+\fB\-U\fR \fInew_username\fP
 .RS 4
 Use this parameter to rename a user. This option is only valid with the
 \fB\-u\fP
@@ -520,7 +520,7 @@ create or
 update action.
 .RE
 .PP
-\fB\-f\fR, \fB\-\-fullname\fP \fI\*(Aqfull name\*(Aq\fR
+\fB\-f\fR, \fB\-\-fullname\fP "\fIfull name\fP"
 .RS 4
 Specify full user name. Use single quotes around the name to pass it as a single parameter. This option is only valid with the
 \fB\-c\fP
@@ -529,7 +529,7 @@ create or
 update action.
 .RE
 .PP
-\fB\-e\fR, \fB\-\-email\fP \fI\*(Aqemail address\*(Aq\fR
+\fB\-e\fR, \fB\-\-email\fP \fIemail_address\fP
 .RS 4
 Specify the email address. This address will be used to set the \*(AqFrom\*(Aq email address in outgoing email messages. Use single quotes around the name to pass it as a single parameter. This option is only valid with the
 \fB\-c\fP
@@ -540,7 +540,7 @@ update action.
 .PP
 \fB\-a\fR \fI[yes|y|1|2 / no|n|0]\fR
 .RS 4
-Set the user as administrator by passing \*(Aqyes\*(Aq. When passing \*(Aqno\*(Aq, administrator rights will be revoked from the user. This option is only valid with the
+Set the user as administrator by passing \fByes\fP. When passing \fBno\fP, administrator rights will be revoked from the user. This option is only valid with the
 \fB\-c\fP
 create or
 \fB\-u\fP
@@ -556,7 +556,7 @@ Specify a non\-active user. This user cannot login, but email can be delivered, 
 .PP
 \fB\-\-qo\fR \fI[yes|y|1 / no|n|0]\fR
 .RS 4
-Override the default server quota settings for this user. User specific quota levels will used. The default value of this option is \*(Aqno\*(Aq, always using server quota levels. This option is only valid with the
+Override the default server quota settings for this user. User specific quota levels will used. The default value of this option is \fBno\fP, always using server quota levels. This option is only valid with the
 \fB\-c\fP
 create or
 \fB\-u\fP
@@ -594,7 +594,7 @@ update action.
 .PP
 \fB\-\-udqo\fR \fI[yes|y|1 / no|n|0]\fR
 .RS 4
-Override the default server quota settings for all user within the specified tenant. default value of this option is \*(Aqno\*(Aq, always using server quota levels.
+Override the default server quota settings for all user within the specified tenant. default value of this option is \fBno\fP, always using server quota levels.
 .RE
 .PP
 \fB\-\-udqw\fR \fIvalue in Mb\fR
@@ -758,7 +758,7 @@ For creating a user:
 \fB\-p\fR
 \fIpassword\fR
 \fB\-f\fR
-\fI\*(AqFirstname Lastname\*(Aq\fR
+"\fIFirstname Lastname\fP"
 \fB\-e\fR
 \fIf.lastname@tenant.com\fR
 .PP
@@ -770,7 +770,7 @@ For creating a non\-login store:
 \fB\-p\fR
 \fIpassword\fR
 \fB\-f\fR
-\fI\*(AqFirstname Lastname\*(Aq\fR
+"\fIFirstname Lastname\fP"
 \fB\-e\fR
 \fIf.lastname@tenant.com\fR
 \fB\-n\fP

@@ -102,7 +102,7 @@ When given a second time, more debugging output will be printed.
 .PP
 \fB\-e\fR
 .RS 4
-Strip the domain from the given username. For example, when the DAgent is called with \*(Aq\-e\*(Aq and the username is \*(Aqname@domain.com\*(Aq, the delivery will be started for user \*(Aqname\*(Aq instead of \*(Aqname@domain.com\*(Aq.
+Strip the domain from the given username. For example, when the DAgent is called with \fB\-e\fP and the username is \fIname@domain.com\fP, the delivery will be started for user \fIname\fP instead of \fIname@domain.com\fP.
 .RE
 .PP
 \fB\-R\fR
@@ -114,7 +114,7 @@ In practice, the resolve will only fail if kopano\-dagent is not running in a tr
 .PP
 \fB\-n\fR
 .RS 4
-Use \*(Aqnow\*(Aq as the delivery time. Normally, the dagent will use the date from the first Received header, which is most likely to be the header from your own mailserver.
+Use \fBnow\fP as the delivery time. Normally, the dagent will use the date from the first Received header, which is most likely to be the header from your own mailserver.
 .RE
 .PP
 \fB\-\-do\-not\-notify\fR, \fB\-N\fR
@@ -124,17 +124,17 @@ Do not send a new mail notification to othere connected clients. This option can
 .PP
 \fB\-\-folder\fR, \fB\-F\fR \fIpath\\to\\folder\fR
 .RS 4
-Deliver the incoming email to a specified subfolder of the store, e.g. \fB\-\-folder\fP \*(AqInbox\\important\*(Aq. Note that the \*(AqInbox\*(Aq folder is language specific. If the folder does not exist, delivery is reverted to the normal Inbox of the user, or use the \fB\-\-create\fP flag.
+Deliver the incoming email to a specified subfolder of the store, e.g. \fB\-\-folder\fP \fIInbox\\important\fP. Note that the \*(AqInbox\*(Aq folder is language specific. If the folder does not exist, delivery is reverted to the normal Inbox of the user, or use the \fB\-\-create\fP flag.
 .RE
 .PP
 \fB\-\-public\fR, \fB\-P\fR \fIpath\\to\\folder\fR
 .RS 4
-Deliver the incoming email to a specified subfolder of the public store, e.g. \fB\-\-public\fP \*(Aqsales\\incoming\*(Aq. If the folder does not exist, delivery is reverted to the normal Inbox of the user, or use the \fB\-\-create\fP flag.
+Deliver the incoming email to a specified subfolder of the public store, e.g. \fB\-\-public\fP \fIsales\\incoming\fP. If the folder does not exist, delivery is reverted to the normal Inbox of the user, or use the \fB\-\-create\fP flag.
 .RE
 .PP
 \fB\-p\fR \fI<path separator>\fR
 .RS 4
-Use a different path separator. The default is \*(Aq\\\*(Aq. If your delivery path contains a \\ character, you can use this to alter the separator, e.g. \-p _ \-\-folder \*(AqInbox_resellers\\dealers\*(Aq. The mail will now be delivered in a folder called \*(Aqresellers\\dealers\*(Aq as a subfolder of the Inbox.
+Use a different path separator. The default is \fB\\\fP. If your delivery path contains a \\ character, you can use this to alter the separator, e.g. \fB\-p _ \-\-folder\fP \fIInbox_resellers\\dealers\fP. The mail will now be delivered in a folder called \fIresellers\\dealers\fP as a subfolder of the Inbox.
 .RE
 .PP
 \fB\-\-create\fR, \fB\-C\fR

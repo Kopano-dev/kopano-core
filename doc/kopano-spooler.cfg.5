@@ -28,7 +28,7 @@ The parameters are written in the form:
 =
 \fIvalue\fR
 .PP
-The file is line\-based. Each newline\-terminated line represents either a comment, nothing, a parameter or a directive. A line beginning with `#\*(Aq is considered a comment, and will be ignored by Kopano. Parameter names are case sensitive. Lines beginning with `!\*(Aq are directives.
+The file is line\-based. Each newline\-terminated line represents either a comment, nothing, a parameter or a directive. A line beginning with \fB#\fP is considered a comment, and will be ignored by Kopano. Parameter names are case sensitive. Lines beginning with \fB!\fP are directives.
 .PP
 Directives are written in the form:
 .PP
@@ -176,21 +176,21 @@ When an email is sent to a contact with a FAX type email address, the address wi
 Default:
 .SS fax_international
 .PP
-When sending an international fax, the number will start with a \*(Aq+\*(Aq sign. You can rewrite this to the digits you need to dial when dialing to another country.
+When sending an international fax, the number will start with a \fB+\fP sign. You can rewrite this to the digits you need to dial when dialing to another country.
 .PP
 Default:
 \fI+\fR
 .SS always_send_delegates
 .PP
-Normally, a user needs to give explicit rights to other users to be able to send under their name. When setting this value to \*(Aqyes\*(Aq, the spooler will not check these permissions, and will always send the email with \*(AqOn behalf of\*(Aq headers. Please note that this feature overrides \*(Aqsend\-as\*(Aq functionality.
+Normally, a user needs to give explicit rights to other users to be able to send under their name. When setting this value to \fByes\fP, the spooler will not check these permissions, and will always send the email with \*(AqOn behalf of\*(Aq headers. Please note that this feature overrides \*(Aqsend\-as\*(Aq functionality.
 .PP
 Default:
 \fIno\fR
 .SS always_send_tnef
 .PP
-Meeting requests will be sent using iCalendar files. This adds compatibility to more calendar programs. To use the previous TNEF (winmail.dat) method, set this option to \*(Aqyes\*(Aq.
+Meeting requests will be sent using iCalendar files. This adds compatibility to more calendar programs. To use the previous TNEF (winmail.dat) method, set this option to \fByes\fP.
 .PP
-When an email body is written in RTF text, normally this data is sent using TNEF. If you want to send an HTML representation of the email instead and not use TNEF, set this to \*(Aqminimal\*(Aq.
+When an email body is written in RTF text, normally this data is sent using TNEF. If you want to send an HTML representation of the email instead and not use TNEF, set this to \fBminimal\fP.
 .PP
 Default:
 \fIno\fR
@@ -239,7 +239,7 @@ Default:
 \fIyes\fR
 .SS allow_send_to_everyone
 .PP
-When set to \*(Aqno\*(Aq, sending to the \*(Aqeveryone\*(Aq group is disallowed. The entire message will be bounced if this is attempted. When set to \*(Aqyes\*(Aq, this allows sending to all users in the \*(Aqeveryone\*(Aq group.
+When set to \fBno\fP, sending to the \*(Aqeveryone\*(Aq group is disallowed. The entire message will be bounced if this is attempted. When set to \fByes\fP, this allows sending to all users in the \*(Aqeveryone\*(Aq group.
 .PP
 Default:
 \fIyes\fR

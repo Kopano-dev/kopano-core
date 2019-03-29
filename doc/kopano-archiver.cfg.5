@@ -28,7 +28,7 @@ The parameters are written in the form:
 =
 \fIvalue\fR
 .PP
-The file is line\-based. Each newline\-terminated line represents either a comment, nothing, a parameter or a directive. A line beginning with `#\*(Aq is considered a comment, and will be ignored by Kopano. Parameter names are case sensitive. Lines beginning with `!\*(Aq are directives.
+The file is line\-based. Each newline\-terminated line represents either a comment, nothing, a parameter or a directive. A line beginning with \fB#\fP is considered a comment, and will be ignored by Kopano. Parameter names are case sensitive. Lines beginning with \fB!\fP are directives.
 .PP
 Directives are written in the form:
 .PP
@@ -137,7 +137,7 @@ Default:
 \fIno\fR
 .SS cleanup_action
 .PP
-Specify what action should be taken on archive messages whose primary message has been deleted. The options are \*(Aqstore\*(Aq and \*(Aqdelete\*(Aq, meaning store the archived message in a special \*(AqDeleted\*(Aq folder or delete the archived messages respectively.
+Specify what action should be taken on archive messages whose primary message has been deleted. The options are \fBstore\fP and \fBdelete\fP, meaning store the archived message in a special \*(AqDeleted\*(Aq folder or delete the archived messages respectively.
 .PP
 Default:
 \fIstore\fR
@@ -238,7 +238,7 @@ The password to use for MySQL. Leave empty for no password.
 Default:
 .SS mysql_socket
 .PP
-The socket of the MySQL server to use. This option can be used to override the default mysql socket. To use the socket, the mysql_host value must be empty or \*(Aqlocalhost\*(Aq
+The socket of the MySQL server to use. This option can be used to override the default mysql socket. To use the socket, the mysql_host value must be empty or \fBlocalhost\fP.
 .PP
 Default:
 .SS mysql_database

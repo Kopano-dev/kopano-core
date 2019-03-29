@@ -26,7 +26,7 @@ The parameters are written in the form:
 =
 \fIvalue\fR
 .PP
-The file is line\-based. Each newline\-terminated line represents either a comment, nothing, a parameter or a directive. A line beginning with `#\*(Aq is considered a comment, and will be ignored by Kopano. Parameter names are case sensitive. Lines beginning with `!\*(Aq are directives.
+The file is line\-based. Each newline\-terminated line represents either a comment, nothing, a parameter or a directive. A line beginning with \fB#\fP is considered a comment, and will be ignored by Kopano. Parameter names are case sensitive. Lines beginning with \fB!\fP are directives.
 .PP
 Directives are written in the form:
 .PP
@@ -756,13 +756,13 @@ Default:
 \fIkopanoHidden\fR
 .SS ldap_object_search_filter
 .PP
-When searching in the addressbook, this filter will be used. Normally, the storage server will only search in the unique attribute, loginname, fullname and emailaddress. You might want to search in more fields, like \*(Aqlastname\*(Aq. Kopano also uses a postfix wildcard only. Using the \*(Aq*\*(Aq wildcard with prefixes makes a search slower, but can return more results.
+When searching in the addressbook, this filter will be used. Normally, the storage server will only search in the unique attribute, loginname, fullname and emailaddress. You might want to search in more fields, like \fIlastname\fP. Kopano also uses a postfix wildcard only. Using the \fB*\fP wildcard with prefixes makes a search slower, but can return more results.
 .PP
 Hint: Use the kopanoAccount attribute in the filter to differentiate between non\-kopano and kopano objects.
 .PP
-You can set a custom search filter here. \*(Aq%s\*(Aq will be replaced with the string being searched.
+You can set a custom search filter here. \fB%s\fP will be replaced with the string being searched.
 .PP
-Active Directory has a shortcut for searching in the addressbook using the \*(Aqanr\*(Aq attribute. This is recommended on ADS installations.
+Active Directory has a shortcut for searching in the addressbook using the \fBanr\fP attribute. This is recommended on ADS installations.
 .PP
 Default:
 .PP

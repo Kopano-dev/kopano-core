@@ -28,7 +28,7 @@ The parameters are written in the form:
 =
 \fIvalue\fR
 .PP
-The file is line\-based. Each newline\-terminated line represents either a comment, nothing, a parameter or a directive. A line beginning with `#\*(Aq is considered a comment, and will be ignored by Kopano. Parameter names are case sensitive. Lines beginning with `!\*(Aq are directives.
+The file is line\-based. Each newline\-terminated line represents either a comment, nothing, a parameter or a directive. A line beginning with \fB#\fP is considered a comment, and will be ignored by Kopano. Parameter names are case sensitive. Lines beginning with \fB!\fP are directives.
 .PP
 Directives are written in the form:
 .PP
@@ -216,7 +216,7 @@ Default:
 \fI0\fR
 .SS enable_ical_get
 .PP
-Enable the ical GET method to download an entire calendar. When set to \*(Aqyes\*(Aq, the GET method is enabled and allowed. If not, then calendars can only be retrieved with the CalDAV PROPFIND method, which is much more efficient. This option allows you to force the use of CalDAV which lowers load on your server.
+Enable the ical GET method to download an entire calendar. When set to \fByes\fP, the GET method is enabled and allowed. If not, then calendars can only be retrieved with the CalDAV PROPFIND method, which is much more efficient. This option allows you to force the use of CalDAV which lowers load on your server.
 .RE
 .SH "RELOADING"
 .PP
