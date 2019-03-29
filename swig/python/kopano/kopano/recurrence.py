@@ -297,9 +297,8 @@ class Recurrence(object):
                 subject = ext.get('subject', subject)
                 location = ext.get('location', location)
                 basedate_val = exc['original_start_date']
-                busystatus = exc.get('busy_status', busystatus)
-                if busystatus is not None:
-                    busystatus = FB_STATUS[busystatus]
+                if 'busy_status' in exc:
+                    busystatus = FB_STATUS[exc['busy_status']]
                 exception = True
             else:
                 minutes = self._endtime_offset - self._starttime_offset
