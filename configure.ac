@@ -76,6 +76,10 @@ AM_CONDITIONAL([WITH_PYTHON3], [test "x$PYTHON_MAJOR_VERSION" = "x3"])
 AM_CONDITIONAL([WITH_PYTHON2], [test "x$PYTHON_MAJRO_VERSION" = "x2"])
 
 dnl Top-level component selection
+AC_ARG_ENABLE([base], [AS_HELP_STRING([--disable-base],
+	[Disables building base components (default: enable)])],
+	[want_base="$enableval"], [want_base=yes])
+AM_CONDITIONAL([ENABLE_BASE], [test "$want_base" != no])
 AC_ARG_ENABLE([python], [AS_HELP_STRING([--disable-python],
 	[Disables building Python components (default: enable). Use the $PYTHON environment variable to select the script interpreter.])],
 	[want_python="$enableval"], [want_python=auto])
@@ -84,7 +88,7 @@ AM_CONDITIONAL([ENABLE_PYTHON], [test "$want_python" != no])
 ECCLIENT_LIBRARY_VERSION=1:0:0
 AC_SUBST(ECCLIENT_LIBRARY_VERSION)
 
-# Checks for programs.
+dnl Checks for programs. Must be top-level (outside our want_base block).
 AC_DISABLE_STATIC	dnl must be before ac_prog_libtool
 AC_PROG_LIBTOOL
 AC_PROG_CC
@@ -99,6 +103,9 @@ rm -f version
 AC_SUBST([PACKAGE_ABI])
 abs_top_srcdir=`cd $srcdir; pwd`
 abs_top_builddir=`pwd`
+
+
+AS_IF([test "$want_base" != no], [
 
 #
 # construct default CXXFLAGS
@@ -266,8 +273,6 @@ AS_IF([test "$with_php" != "no"], [
 		[7.*], [with_php=7]
 	)
 ])
-AM_CONDITIONAL([WITH_PHP5], [test "$with_php" = 5])
-AM_CONDITIONAL([WITH_PHP7], [test "$with_php" = 7])
 PKG_CHECK_MODULES([libHX], [libHX >= 1.10])
 PKG_CHECK_MODULES([XML2], [libxml-2.0])
 
@@ -374,8 +379,6 @@ AC_CHECK_HEADERS([curl/curl.h])
 CPPFLAGS="$CPPFLAGS_system"
 PKG_CHECK_MODULES([mhttpd], [libmicrohttpd >= 0.9.30], [], [:])
 PKG_CHECK_MODULES([rrd], [librrd >= 1.3], [], [:])
-AM_CONDITIONAL([HAVE_MHTTPD], [test -n "$mhttpd_CFLAGS" -o -n "$mhttpd_LIBS"])
-AM_CONDITIONAL([HAVE_RRD], [test -n "$rrd_CFLAGS" -o -n "$rrd_LIBS"])
 PKG_CHECK_MODULES([TCMALLOC], [libtcmalloc_minimal], [], [:])
 CPPFLAGS="$CPPFLAGS $TCMALLOC_CFLAGS"
 AC_CHECK_HEADERS([gperftools/malloc_extension.h google/malloc_extension.h])
@@ -426,7 +429,6 @@ LIBS=$LIBS_system
 
 AC_SUBST(LDAP_LIBS)
 AC_SUBST(LDAP_FLAGS)
-AM_CONDITIONAL([WITH_LDAP], [test "$want_ldap" = yes])
 
 LIBS="$LIBS $LDAP_LIBS"
 CXXFLAGS="$CXXFLAGS $LDAP_FLAGS"
@@ -436,7 +438,6 @@ LIBS=$LIBS_system
 CXXFLAGS=$CXXFLAGS_system
 
 AC_CHECK_HEADERS([shadow.h], [want_unix=yes], [want_unix=no])
-AM_CONDITIONAL([WITH_UNIX], [test "$want_unix" = yes])
 
 AC_MSG_CHECKING([for iconv])
 AC_LINK_IFELSE([ AC_LANG_SOURCE([
@@ -505,7 +506,6 @@ AC_CHECK_LIB([pam], [pam_start],
 		AC_DEFINE(HAVE_PAM, [1], [pam authentication available]),
 		AC_MSG_RESULT([library libpam missing or unusable]))
 AC_SUBST(PAM_LIBS)
-AM_CONDITIONAL([WITH_PAM], [test "$PAM_LIBS" != ""])
 
 # Check for kerberos library (optional)
 AC_DEFUN([LIBKRB5_WITH_KRB5_CONFIG],[
@@ -545,7 +545,6 @@ AC_DEFUN([LIBKRB5_WITH_KRB5_CONFIG],[
   ])
 ])
 LIBKRB5_WITH_KRB5_CONFIG
-AM_CONDITIONAL([WITH_KRB5], [test "$KRB5_LIBS" != ""])
 
 # Check for libs3 amazon s3 availability
 LIBS_system="$LIBS"
@@ -591,7 +590,6 @@ AC_SUBST(INTL_LIBS)
 
 # check epoll support
 AC_ARG_ENABLE([epoll], AS_HELP_STRING([--disable-epoll], [disable epoll and fallback to select]), [want_epoll=${enableval}], [want_epoll=yes])
-AM_CONDITIONAL(WITH_EPOLL, test "$want_epoll" = "yes")
 AS_IF([test "$BUILDOS" = linux && test "$want_epoll" = "yes"], [
 	AC_CHECK_FUNCS([epoll_create], [ZCPPFLAGS="$ZCPPFLAGS -DUSE_EPOLL"])
 ])
@@ -599,7 +597,6 @@ AS_IF([test "$BUILDOS" = linux && test "$want_epoll" = "yes"], [
 tidy_CPPFLAGS="-I/usr/include/tidy"
 CPPFLAGS="$CPPFLAGS $tidy_CPPFLAGS"
 AC_CHECK_HEADERS([tidybuffio.h])
-AM_CONDITIONAL([HAVE_TIDY], [test "x$ac_cv_header_tidybuffio_h" = "xyes"])
 AC_SUBST([tidy_CPPFLAGS])
 CPPFLAGS="$CPPFLAGS_system"
 
@@ -662,14 +659,27 @@ AS_IF([test "$want_pybind" != no], [
 	PKG_CHECK_MODULES([PYTHON], [$PYTHON_PC], [], [:])
 	AS_IF([test -n "$PYTHON_LIBS"], [
 		AC_PATH_PROG([SWIG_EXEC], [swig])
-		AM_PATH_PYTHON([2.5])
 		AS_IF([test -z "$SWIG_EXEC"], [AC_MSG_ERROR([swig is required for Python])])
 	], [test "$want_python" = yes], [
 		AC_MSG_ERROR([python requested but not satisfiable])
 	])
 ])
-AM_CONDITIONAL([ENABLE_PYBIND], [test "$want_pybind" != no -a -n "$PYTHON_LIBS"])
 
+]) dnl enable-cxx
+
+AM_CONDITIONAL([ENABLE_BASE], [test "$enable_base" != no])
+AM_CONDITIONAL([ENABLE_PYBIND], [test "$want_pybind" != no -a -n "$PYTHON_LIBS"])
+AM_CONDITIONAL([HAVE_MHTTPD], [test -n "$mhttpd_CFLAGS" -o -n "$mhttpd_LIBS"])
+AM_CONDITIONAL([HAVE_RRD], [test -n "$rrd_CFLAGS" -o -n "$rrd_LIBS"])
+AM_CONDITIONAL([HAVE_TIDY], [test "x$ac_cv_header_tidybuffio_h" = "xyes"])
+AM_CONDITIONAL([WITH_EPOLL], [test "$want_epoll" = "yes"])
+AM_CONDITIONAL([WITH_KRB5], [test -n "$KRB5_LIBS"])
+AM_CONDITIONAL([WITH_LDAP], [test "$want_ldap" = yes])
+AM_CONDITIONAL([WITH_PAM], [test -n "$PAM_LIBS"])
+AM_CONDITIONAL([WITH_PHP5], [test "$with_php" = 5])
+AM_CONDITIONAL([WITH_PHP7], [test "$with_php" = 7])
+AM_CONDITIONAL([WITH_UNIX], [test "$want_unix" = yes])
+AS_IF([test -n "$PYTHON_LIBS" || test -n "$PYTHON"], [AM_PATH_PYTHON([2.5])])
 
 #
 # Output files
