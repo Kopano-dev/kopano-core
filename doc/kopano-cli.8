@@ -19,42 +19,42 @@ Kopano\-cli is used to manage a Kopano server (cluster), including users, stores
 .PP
 \fB\-\-active\fR \fI{\fByes\fR|\fBno\fR}\fR
 .RS 4
-Change or specify if user is active. Should be combined with --user (and optionally --create).
+Change or specify if user is active. Should be combined with \fB\-\-user\fP (and, optionally, \fB\-\-create\fP).
 .RE
 .PP
 \fB\-\-add-admin\fR \fINAME\fR
 .RS 4
-Add specified user as "remote-admin" for company specified with --company.
+Add specified user as "remote-admin" for company specified with \fB\-\-company\fP.
 .RE
 .PP
 \fB\-\-add-company-quota-recipient\fR \fINAME\fR
 .RS 4
-Add specified user to companyquota recipients for company specified with --company.
+Add specified user to companyquota recipients for company specified with \fB\-\-company\fP.
 .RE
 .PP
 \fB\-\-add-delegation\fR \fINAME\fR
 .RS 4
-Add specified delegation (flags) to user specified with --user. The syntax to be used for delegation (flags) is 'user:flag1,flag2,..' where 'user' is a user name, and flags are optionally chosen from the following: see_private, send_copy. The first means that delegates can see private items, and the second that meeting requests and responses are also sent to the delegates.
+Add specified delegation (flags) to user specified with \fB\-\-user\fP. The syntax to be used for delegation (flags) is 'user:flag1,flag2,..' where 'user' is a user name, and flags are optionally chosen from the following: see_private, send_copy. The first means that delegates can see private items, and the second that meeting requests and responses are also sent to the delegates.
 .RE
 .PP
 \fB\-\-add-feature\fR \fINAME\fR
 .RS 4
-Enable specified feature for user specified with --user.
+Enable specified feature for user specified with \fB\-\-user\fP.
 .RE
 .PP
 \fB\-\-add-permission\fR \fINAME\fR
 .RS 4
-Add specified permissions to store of user specified with --user. Can be used with --folder to add permissions for a specific folder. The syntax to be used for permissions is 'member:right1,right..', where 'member' is a group or user name, and rights are chosen from the following: read_items, create_items, create_subfolders, edit_own, edit_all, delete_own, delete_all, folder_owner, folder_contact and folder_visible. So for example, to add certain permissions to the inbox of a user 'user2', to the inbox of user 'user1': --user user1 --folder Inbox --add-permission user2:read_items,folder_visible. The colon is optional.
+Add specified permissions to store of user specified with \fB\-\-user\fP. Can be used with \fB\-\-folder\fP to add permissions for a specific folder. The syntax to be used for permissions is 'member:right1,right..', where 'member' is a group or user name, and rights are chosen from the following: read_items, create_items, create_subfolders, edit_own, edit_all, delete_own, delete_all, folder_owner, folder_contact and folder_visible. So for example, to add certain permissions to the inbox of a user 'user2', to the inbox of user 'user1': \fB\-\-user user1 \-\-folder Inbox \-\-add\-permission user2:read_items,folder_visible\fP. The colon is optional.
 .RE
 .PP
 \fB\-\-add-sendas\fR \fINAME\fR
 .RS 4
-Allow specified user to "send as" user specified with --user.
+Allow specified user to "send as" user specified with \fB\-\-user\fP.
 .RE
 .PP
 \fB\-\-add-userquota-recipient\fR \fINAME\fR
 .RS 4
-Add specified user to userquota recipients for company specified with --company.
+Add specified user to userquota recipients for company specified with \fB\-\-company\fP.
 .RE
 .PP
 \fB\-\-add-view\fR \fINAME\fR
@@ -64,17 +64,17 @@ Add specified company as remote-viewer of address book.
 .PP
 \fB\-\-add-user\fR \fINAME\fR
 .RS 4
-Add specified user to group specified with --group.
+Add specified user to group specified with \fB\-\-group\fP.
 .RE
 .PP
 \fB\-\-admin\fR \fINAME\fR
 .RS 4
-Make specified user administrator of company specified with --company.
+Make specified user administrator of company specified with \fB\-\-company\fP.
 .RE
 .PP
 \fB\-\-admin-level\fR \fIN\fR
 .RS 4
-Change or specify admin level for user specified with --user. A value of 1 means the user is an administrator, and 2 means the user is a system administrator.
+Change or specify admin level for user specified with \fB\-\-user\fP. A value of \fB1\fP means the user is an administrator, and \fB2\fP means the user is a system administrator.
 .RE
 .PP
 \fB\-\-clear-cache\fR
@@ -84,7 +84,7 @@ Clear all server caches.
 .PP
 \fB\-\-company\fR, \fB\-C\fR \fINAME\fR
 .RS 4
-Specify company. Without further arguments, this will show information about the given company. Can also be used in combination with e.g. --list-users.
+Specify company. Without further arguments, this will show information about the given company. Can also be used in combination with e.g. \fB\-\-list\-users\fP.
 .RE
 .PP
 \fB\-\-config\fR, \fB\-c\fR \fIFILE\fR
@@ -94,12 +94,12 @@ Load configuration settings from specified file.
 .PP
 \fB\-\-create\fR
 .RS 4
-Create object. Must be combined with --user, --group or --company. Can be combined with options such as --fullname, --email and --password. Note that this does not work with an external source such as LDAP.
+Create object. Must be combined with \fB\-\-user\fP, \fB\-\-group\fP or \fB\-\-company\fP. Can be combined with options such as \fB\-\-fullname\fP, \fB\-\-email\fP and \fB\-\-password\fP. Note that this does not work with an external source such as LDAP.
 .RE
 .PP
 \fB\-\-create-store\fR
 .RS 4
-Create and hook store. Without further arguments, a public store is created for the current company or server. Can be used in combination with --company (to create a company public store) and --user (to create a user store).
+Create and hook store. Without further arguments, a public store is created for the current company or server. Can be used in combination with \fB\-\-company\fP (to create a company public store) and \fB\-\-user\fP (to create a user store).
 .RE
 .PP
 \fB\-\-debug\fR
@@ -109,38 +109,38 @@ Enable debug mode, meaning full tracebacks are shown in addition to error messag
 .PP
 \fB\-\-delete\fR
 .RS 4
-Delete object. Must be combined with --user, --group or --company. Note that this does not work with an external source such as LDAP.
+Delete object. Must be combined with \fB\-\-user\fP, \fB\-\-group\fP or \fB\-\-company\fP. Note that this does not work with an external source such as LDAP.
 .RE
 .PP
 \fB\-\-email\fR \fINAME\fR
 .RS 4
-Change or specify object email address. Can be used with --user or --group (and optionally --create).
+Change or specify object email address. Can be used with \fB\-\-user\fP or \fB\-\-group\fP (and, optionally, \fB\-\-create\fP).
 .RE
 .PP
 \fB\-\-folder\fR, \fB\-f\fR \fIPATH\fR
 .RS 4
-Specify folder. Can be used in combination with e.g. --add-permission, to add permissions for a specific folder.
-\fI\-\-recursive\fR.
+Specify folder. Can be used in combination with e.g. \fB\-\-add\-permission\fP, to add permissions for a specific folder.
+\fB\-\-recursive\fP.
 .RE
 .PP
 \fB\-\-fullname\fR \fINAME\fR
 .RS 4
-Change or specify object full name. Can be used with --user, --group or --company (and optionally --create).
+Change or specify object full name. Can be used with \fB\-\-user\fP, \fB\-\-group\fP or \fB\-\-company\fP (and, optionally, \fB\-\-create\fP).
 .RE
 .PP
 \fB\-\-group\fR, \fB\-G\fR \fINAME\fR
 .RS 4
-Specify group. Without further arguments, this will show information about the given group. Can also be used in combination with e.g. --list-users.
+Specify group. Without further arguments, this will show information about the given group. Can also be used in combination with e.g. \fB\-\-list\-users\fP.
 .RE
 .PP
 \fB\-\-hook-store\fR \fIGUID\fR
 .RS 4
-Hook store with specified GUID. Without further arguments, this will hook the public store. Can be used in combination with --company (to hook the public store) and --user (to hook the user store).
+Hook store with specified GUID. Without further arguments, this will hook the public store. Can be used in combination with \fB\-\-company\fP (to hook the public store) and \fB\-\-user\fP (to hook the user store).
 .RE
 .PP
 \fB\-\-hook-archive\fR \fIGUID\fR
 .RS 4
-Hook archive store with specified GUID. Should be used in combination with --user.
+Hook archive store with specified GUID. Should be used in combination with \fB\-\-user\fP.
 .RE
 .PP
 \fB\-\-lang\fR \fILANG\fR
@@ -150,27 +150,27 @@ Specify language in which new stores are created, determining e.g. the name of t
 .PP
 \fB\-\-mr-accept\fR \fI{\fByes\fR|\fBno\fR}\fR
 .RS 4
-Change or specify if meeting requests are automatically accepted (by script specified in dagent.cfg). Should be combined with --user.
+Change or specify if meeting requests are automatically accepted (by script specified in dagent.cfg). Should be combined with \fB\-\-user\fP.
 .RE
 .PP
 \fB\-\-mr-accept-conflicts\fR \fI{\fByes\fR|\fBno\fR}\fR
 .RS 4
-Change or specify if overlapping meeting requests are automatically declined by accept script. Should be combined with --user.
+Change or specify if overlapping meeting requests are automatically declined by accept script. Should be combined with \fB\-\-user\fP.
 .RE
 .PP
 \fB\-\-mr-accept-recurring\fR \fI{\fByes\fR|\fBno\fR}\fR
 .RS 4
-Change or specify if recurring meeting requests are automatically declined by accept script. Should be combined with --user.
+Change or specify if recurring meeting requests are automatically declined by accept script. Should be combined with \fB\-\-user\fP.
 .RE
 .PP
 \fB\-\-list-users\fR
 .RS 4
-List users. Without further arguments, this will list all users. Can also be used in combination with e.g. --company and --group.
+List users. Without further arguments, this will list all users. Can also be used in combination with e.g. \fB\-\-company\fP and \fB\-\-group\fP.
 .RE
 .PP
 \fB\-\-list-groups\fR
 .RS 4
-List groups. Without further arguments, this will list all groups. Can also be used in combination with e.g. --company.
+List groups. Without further arguments, this will list all groups. Can also be used in combination with e.g. \fB\-\-company\fP.
 .RE
 .PP
 \fB\-\-list-companies\fR
@@ -185,47 +185,47 @@ List orphans, meaning stores that are currently not hooked to a user or public s
 .PP
 \fB\-\-name\fR \fINAME\fR
 .RS 4
-Change or specify object name. Can be used with --user, --group or --company (and optionally --create).
+Change or specify object name. Can be used with \fB\-\-user\fP, \fB\-\-group\fP or \fB\-\-company\fP (and, optionally, \fB\-\-create\fP).
 .RE
 .PP
 \fB\-\-ooo\fR \fI{\fByes\fR|\fBno\fR}\fR
 .RS 4
-Enable or disable out-of-office replies for user specified with --user.
+Enable or disable out-of-office replies for user specified with \fB\-\-user\fP.
 .RE
 .PP
 \fB\-\-ooo-clear\fR
 .RS 4
-Clear out-of-office settings for user specified with --user.
+Clear out-of-office settings for user specified with \fB\-\-user\fP.
 .RE
 .PP
 \fB\-\-ooo-subject\fR \fINAME\fR
 .RS 4
-Change or specify out-of-office subject for user specified with --user.
+Change or specify out-of-office subject for user specified with \fB\-\-user\fP.
 .RE
 .PP
 \fB\-\-ooo-message\fR \fIPATH\fR
 .RS 4
-Change or specify out-of-office message for user specified with --user, by specifying a file containing the message.
+Change or specify out-of-office message for user specified with \fB\-\-user\fP, by specifying a file containing the message.
 .RE
 .PP
 \fB\-\-ooo-from\fR \fINAME\fR
 .RS 4
-Change or specify out-of-office from date for user specified with --user.
+Change or specify out-of-office from date for user specified with \fB\-\-user\fP.
 .RE
 .PP
 \fB\-\-ooo-until\fR \fINAME\fR
 .RS 4
-Change or specify out-of-office until date for user specified with --user.
+Change or specify out-of-office until date for user specified with \fB\-\-user\fP.
 .RE
 .PP
 \fB\-\-password\fR \fINAME\fR
 .RS 4
-Change or specify user password. Should be used in combination with --user (and optionally --create).
+Change or specify user password. Should be used in combination with \fB\-\-user\fP (and, optionally, \fB\-\-create\fP).
 .RE
 .PP
 \fB\-\-password\-prompt\fR
 .RS 4
-Change or specify user password via prompt. Should be used in combination with --user (and optionally --create).
+Change or specify user password via prompt. Should be used in combination with \fB\-\-user\fP (and, optionally, \fB\-\-create\fP).
 .RE
 .PP
 \fB\-\-purge-softdelete\fR \fIN\fR
@@ -240,22 +240,22 @@ Purge all items in the deferred update table.
 .PP
 \fB\-\-quota-override\fR \fI{\fByes\fR|\fBno\fR}\fR
 .RS 4
-Override server quota limits for user specified with --user or company specified with --company.
+Override server quota limits for user specified with \fB\-\-user\fP or company specified with \fB\-\-company\fP.
 .RE
 .PP
 \fB\-\-quota-hard\fR \fIN\fR
 .RS 4
-Change or specify hard quota limit at specified number of megabytes (MB). Should be used with --user or --company.
+Change or specify hard quota limit at specified number of megabytes (MB). Should be used with \fB\-\-user\fP or \fB\-\-company\fP.
 .RE
 .PP
 \fB\-\-quota-soft\fR \fIN\fR
 .RS 4
-Change or specify soft quota limit at specified number of megabytes (MB). Should be used with --user or --company.
+Change or specify soft quota limit at specified number of megabytes (MB). Should be used with \fB\-\-user\fP or \fB\-\-company\fP.
 .RE
 .PP
 \fB\-\-quota-warn\fR \fIN\fR
 .RS 4
-Change or specify warn quota limit at specified number of megabytes (MB). Should be used with --user or --company.
+Change or specify warn quota limit at specified number of megabytes (MB). Should be used with \fB\-\-user\fP or \fB\-\-company\fP.
 .RE
 .PP
 \fB\-\-remove-store\fR \fIGUID\fR
@@ -265,37 +265,37 @@ Remove orphaned store with specified GUID.
 .PP
 \fB\-\-remove-admin\fR \fINAME\fR
 .RS 4
-Remove specified user as "remote-admin" for company specified with --company.
+Remove specified user as "remote-admin" for company specified with \fB\-\-company\fP.
 .RE
 .PP
 \fB\-\-remove-company-quota-recipient\fR \fINAME\fR
 .RS 4
-Remove specified user from companyquota recipients for company specified with --company.
+Remove specified user from companyquota recipients for company specified with \fB\-\-company\fP.
 .RE
 .PP
 \fB\-\-remove-delegation\fR \fINAME\fR
 .RS 4
-Remove delegation (flags) for user specified with --user. The syntax to be used is described for the --add-delegation option.
+Remove delegation (flags) for user specified with \fB\-\-user\fP. The syntax to be used is described for the \fB\-\-add\-delegation\fP option.
 .RE
 .PP
 \fB\-\-remove-feature\fR \fINAME\fR
 .RS 4
-Disable specified feature for user specified with --user.
+Disable specified feature for user specified with \fB\-\-user\fP.
 .RE
 .PP
 \fB\-\-remove-permission\fR \fINAME\fR
 .RS 4
-Remove specified permissions to store of user specified with --user. Can be used with --folder to remove permissions for a specific folder. The syntax to be used for permissions is described for the --add-permission option.
+Remove specified permissions to store of user specified with \fB\-\-user\fP. Can be used with \fB\-\-folder\fP to remove permissions for a specific folder. The syntax to be used for permissions is described for the \fB\-\-add\-permission\fP option.
 .RE
 .PP
 \fB\-\-remove-sendas\fR \fINAME\fR
 .RS 4
-Disallow specified user to "send as" user specified with --user.
+Disallow specified user to "send as" user specified with \fB\-\-user\fP.
 .RE
 .PP
 \fB\-\-remove-userquota-recipient\fR \fINAME\fR
 .RS 4
-Remove specified user from userquota recipients for company specified with --company.
+Remove specified user from userquota recipients for company specified with \fB\-\-company\fP.
 .RE
 .PP
 \fB\-\-remove-view\fR \fINAME\fR
@@ -305,12 +305,12 @@ Remove specified company as remote-viewer of address book.
 .PP
 \fB\-\-remove-user\fR \fINAME\fR
 .RS 4
-Remove specified user from group specified with --group.
+Remove specified user from group specified with \fB\-\-group\fP.
 .RE
 .PP
 \fB\-\-reset-folder-count\fR
 .RS 4
-Reset folder counts for all folders of user given with --user.
+Reset folder counts for all folders of user given with \fB\-\-user\fP.
 .RE
 .PP
 \fB\-\-send-only-to-delegates\fR \fI{\fByes\fR|\fBno\fR}\fR
@@ -345,12 +345,12 @@ Synchronize users, groups and companies with external source (such as LDAP).
 .PP
 \fB\-\-unhook-archive\fR
 .RS 4
-Unhook archive store. Should be combined with --user.
+Unhook archive store. Should be combined with \fB\-\-user\fP.
 .RE
 .PP
 \fB\-\-unhook-store\fR
 .RS 4
-Unhook store. Without further arguments, the public store is unhooked. Can be used in combination with --company (to unhook the public store) or --user (to unhook the user store).
+Unhook store. Without further arguments, the public store is unhooked. Can be used in combination with \fB\-\-company\fP (to unhook the public store) or \fB\-\-user\fP (to unhook the user store).
 .RE
 .PP
 \fB\-\-user\fR, \fB\-u\fR \fINAME\fR

@@ -16,7 +16,7 @@ kopano-archiver \- Manages kopano archives and performs the archive operation.
 This tool is used to attach or detach archives to a users store. An archive is defined as a special non\-active store or a folder inside such a store.
 .PP
 On top of managing archives, this tool is used to perform the actual archive operation. Using the
-\fI\-u\fR
+\fB\-u\fP
 option, the archiver can be instructed to archive a single store or all stores.
 .SH "ACTIONS"
 .PP
@@ -25,7 +25,7 @@ kopano\-archiver needs an action command with the appropriate options. Valid act
 \fB\-l\fR, \fB\-\-list\fR
 .RS 4
 List archives for the specified user. The
-\fI\-u\fR
+\fB\-u\fP
 option is required.
 .RE
 .PP
@@ -37,45 +37,45 @@ List users that have an archive attached.
 \fB\-A\fR, \fB\-\-archive\fR
 .RS 4
 Perform an archive run. If a
-\fI\-u\fR
+\fB\-u\fP
 option is provided, only the store of one user will be archived. Otherwise all stores are archived. Optionally the
-\fI\-\-local\-only\fR
+\fB\-\-local\-only\fP
 option can be set to only archive stores that exist on the server to which kopano\-archiver is connected (usually the local server).
 .RE
 .PP
 \fB\-C\fR, \fB\-\-cleanup\fR
 .RS 4
 Perform an archive cleanup run. If a
-\fI\-u\fR
+\fB\-u\fP
 option is provided, only the archives of one user will be cleaned. Otherwise all stores are cleaned. Optionally the
-\fI\-\-local\-only\fR
+\fB\-\-local\-only\fP
 option can be set to only cleanup archives of users that have their primary store on the server to which kopano\-archiver is connected (usually the local server).
 .RE
 .PP
 \fB\-a\fR \fIarchive\fR, \fB\-\-attach\-to\fR \fIarchive\fR
 .RS 4
 Attach an archive to the store of the user specified with the
-\fI\-u\fR
+\fB\-u\fP
 option. If no additional options are specified, a folder will be created in the archive store, which will act as the root of the archive for the user. The foldername will be set to the username of the user. This behavior can be changed by providing the
-\fI\-\-archive\-folder \fR
+\fB\-\-archive\-folder\fP
 or
-\fI\-\-no\-folder\fR
+\fB\-\-no\-folder\fP
 option.
 .RE
 .PP
 \fB\-d\fR \fIarchive\fR, \fB\-\-detach\-from\fR \fIarchive\fR
 .RS 4
 Detach an archive from the store of the user specified with the
-\fI\-u\fR
+\fB\-u\fP
 option. kopano\-archiver will automatically determine which folder to detach. However if a user has two archives in one archive store, kopano\-archiver will not be able to tell which one needs to be detached. In this case the folder needs to be specified with the
-\fI\-\-archive\-folder\fR
+\fB\-\-archive\-folder\fP
 option.
 .RE
 .PP
 \fB\-D\fR \fIarchiveno\fR, \fB\-\-detach\fR \fIarchiveno\fR
 .RS 4
 Detach an archive from the store of the user specified with the
-\fI\-u\fR
+\fB\-u\fP
 option. The archive to detach is indicated by archiveno and can be obtained by running
 \fBkopano\-archiver\fR
 \fB\-u\fR
@@ -86,7 +86,7 @@ option. The archive to detach is indicated by archiveno and can be obtained by r
 \fB\-\-auto\-attach\fR
 .RS 4
 When no user is specified with \-u, all users will have their archives attached or detached based on the LDAP/ADS settings. If a user is specified only that user's store will be processed. This option can be combined with
-\fI\-A\fR
+\fB\-A\fP
 to force an auto\-attach run regardless of the
 \fIenable_auto_attach\fR
 configuration option.

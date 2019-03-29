@@ -34,7 +34,7 @@ Authenticate as specified user.
 .PP
 \fB\-\-clean-folders\fR
 .RS 4
-Empty target folders before restoring data to them. In combination with \fI\-\-folder\fR, only the respective folders are emptied.
+Empty target folders before restoring data to them. In combination with \fB\-\-folder\fP, only the respective folders are emptied.
 .RE
 .PP
 \fB\-\-company\fR, \fB\-C\fR \fINAME\fR
@@ -54,13 +54,13 @@ Backup/restore/show deleted items/folders. The default when backing up is to mai
 .PP
 \fB\-\-differential\fR
 .RS 4
-Create 'differential' backup(s), containing all changes since the previous or regular backup(s), in separate directories called 'differential/username/N'. Differential backups can be inspected using the \fI\-\-index\fR and \fI\-\-stats\fR options. See also the \fI\-\-merge\fR option.
+Create 'differential' backup(s), containing all changes since the previous or regular backup(s), in separate directories called 'differential/username/N'. Differential backups can be inspected using the \fB\-\-index\fP and \fB\-\-stats\fP options. See also the \fB\-\-merge\fP option.
 .RE
 .PP
 \fB\-\-folder\fR, \fB\-f\fR \fIPATH\fR
 .RS 4
 Backup/restore only folder(s) with specified path. Multiple folders may be specified. Subfolders may be included using
-\fI\-\-recursive\fR.
+\fB\-\-recursive\fP.
 .RE
 .PP
 \fB\-\-index\fR
@@ -70,7 +70,7 @@ List messages/items contained in specified backup directory in CSV format. Sourc
 .PP
 \fB\-\-merge\fR
 .RS 4
-Merge 'differential' backups for a given user into regular backup. See the \fI\-\-differential\fR option.
+Merge 'differential' backups for a given user into regular backup. See the \fB\-\-differential\fP option.
 .RE
 .PP
 \fB\-\-log\-level\fR, \fB\-l\fR \fINAME\fR
@@ -90,7 +90,7 @@ Create/update backup directories in the specified directory, instead of the loca
 .PP
 \fB\-\-overwrite\fR
 .RS 4
-When restoring items (without \fI\-\-differential), overwrite duplicate items instead of skipping them.
+When restoring items (without \fB\-\-differential\fP), overwrite duplicate items instead of skipping them.
 .RE
 .PP
 \fB\-\-period\-begin\fR, \fB\-b\fR \fIDATE\fR
@@ -110,13 +110,13 @@ Permanently delete data from backup directory which has been marked as deleted m
 .PP
 \fB\-\-recursive\fR
 .RS 4
-When specifying folders (\fI\-\-folder\fR), also include subfolders in backup/restore.
+When specifying folders (\fB\-\-folder\fP), also include subfolders in backup/restore.
 .RE
 .PP
 \fB\-\-restore\fR
 .RS 4
 Restore the contents of the specified backup directory. The respective store is determined automatically, but may also be specified explicitly, for example using
-\fI\-\-user\fR.
+\fB\-\-user\fP.
 .RE
 .PP
 \fB\-\-restore\-root\fR \fIPATH\fR
@@ -132,8 +132,8 @@ Connect to storage server through specified socket.
 \fB\-\-sourcekey\fR \fISOURCEKEY\fR
 .RS 4
 Restore message/item with specified sourcekey (as shown using
-\fI\-\-index\fR). Must be combined with
-\fI\-\-restore\fR. Multiple sourcekeys may be specified.
+\fB\-\-index\fP). Must be combined with
+\fB\-\-restore\fP. Multiple sourcekeys may be specified.
 .RE
 .PP
 \fB\-\-skip\-attachments\fR

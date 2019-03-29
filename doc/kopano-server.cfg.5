@@ -137,7 +137,7 @@ Default:
 \fI/var/run/kopano/server.pid\fR
 .SS running_path
 .PP
-Change directory to this path when running in daemonize mode. When using the \-F switch to run in the foreground the directory will not be changed.
+Change directory to this path when running in daemonize mode. When using the \fB\-F\fP switch to run in the foreground the directory will not be changed.
 .PP
 Default:
 \fI/\fR
@@ -202,7 +202,7 @@ Default: \fIauto\fP
 .SS log_file
 .PP
 When logging to a file, specify the filename in this parameter. Use
-\fI\-\fR
+\fB\-\fP
 (minus sign) for stderr output.
 .PP
 Default:
@@ -264,7 +264,7 @@ Default:
 .SS audit_log_file
 .PP
 When logging to a file, specify the filename in this parameter. Use
-\fI\-\fR
+\fB\-\fP
 (minus sign) for stderr output.
 .PP
 Default:
@@ -709,8 +709,7 @@ These scripts are called by the server when the external user source, like LDAP,
 .PP
 \fIKOPANO_USER\fR
 contains the new username. The script should at least call
-\fBkopano\-admin\fR
-\fI\-\-create\-store\fR
+\fBkopano\-admin \-\-create\-store\fP
 \fI"${KOPANO_USER}"\fR
 to correctly create the store for the new user.
 .PP
