@@ -115,24 +115,21 @@ LIBS_system=$LIBS
 # check build OS
 AC_CANONICAL_HOST
 ZCPPFLAGS=""
-case "$host_os" in
-	openbsd*)
+AS_CASE([$host_os],
+	[openbsd], [
 		BUILDOS="openbsd"
 		ZCPPFLAGS="$ZCPPFLAGS -DOPENBSD"
 		LN_TFSV="ln -fs"
-		;;
-	linux*)
+	],
+	[linux*], [
 		BUILDOS="linux"
 		ZCPPFLAGS="$ZCPPFLAGS -DLINUX"
 		LN_TFSV="ln -Tfsv"
-		;;
-esac
+	])
 
 >conftest.cpp
 ZPHPCXXFLAGS=""
-if $CXX -Wno-narrowing -c conftest.cpp; then
-	ZPHPCXXFLAGS="-Wno-narrowing"
-fi
+AS_IF([$CXX -Wno-narrowing -c conftest.cpp], [ZPHPCXXFLAGS="-Wno-narrowing"])
 rm -f conftest.*
 AC_SUBST([ZPHPCXXFLAGS])
 
@@ -184,12 +181,12 @@ fi
 
 AC_ARG_ENABLE([release], AS_HELP_STRING([--enable-release], [enable release mode (compile flags -O2 and no DEBUG defines)]),
   [want_release=${enableval}],[want_release=no])
-if test "$want_release" = "yes"; then
+AS_IF([test "$want_release" = "yes"], [
     ZCPPFLAGS="$ZCPPFLAGS -DNDEBUG"
     ZCXXFLAGS="$ZCXXFLAGS -O2 -fno-strict-aliasing"
-else
+], [
     ZCXXFLAGS="$ZCXXFLAGS -Wno-long-long"
-fi
+])
 
 ZCPPFLAGS="$ZCPPFLAGS -DUNICODE"
 SWIG_FLAGS="-DUNICODE "
@@ -209,18 +206,18 @@ AC_SUBST([NO_VSYM])
 # profiling
 AC_ARG_ENABLE(profiling,
   AS_HELP_STRING([--enable-profiling], [enable profiling (-pg)]),
-    [ if test "${enableval}" = "yes"; then
+    [AS_IF([test "$enableval" = "yes"], [
 		ZCXXFLAGS="$ZCXXFLAGS -pg"
 		ZLDFLAGS="$ZLDFLAGS -pg"
-	  fi
+	])
     ])
 
 AC_ARG_ENABLE(coverage,
   AS_HELP_STRING([--enable-coverage], [enable coverage (--coverage)]),
-    [ if test "${enableval}" = "yes"; then
+    [AS_IF([test "$enableval" = "yes"], [
 		ZCXXFLAGS="$ZCXXFLAGS -g --coverage -fprofile-arcs -ftest-coverage"
 		ZLDFLAGS="$ZLDFLAGS -lgcov"
-	  fi
+	  ])
     ])
 
 
@@ -517,9 +514,9 @@ AC_DEFUN([LIBKRB5_WITH_KRB5_CONFIG],[
 
   AC_MSG_CHECKING([for krb5-config presence])
   KRB5_CONFIG=`which $KRB5_CONFIG 2>/dev/null`
-  if ! test -x "$KRB5_CONFIG"; then
+  AS_IF([test ! -x "$KRB5_CONFIG"], [
     AC_MSG_RESULT([not found])
-  else
+  ], [
     AC_MSG_RESULT([$KRB5_CONFIG])
 
     KRB5_CFLAGS=`$KRB5_CONFIG --cflags`
@@ -533,20 +530,19 @@ AC_DEFUN([LIBKRB5_WITH_KRB5_CONFIG],[
 	AC_CHECK_FUNCS([gss_acquire_cred], [AC_DEFINE(HAVE_GSSAPI, [1], [Kerberos Single Signon Authentication enabled]) ], [ use_krb=$((use_krb-1)) ])
 	AC_CHECK_FUNCS([krb5_free_unparsed_name], [ AC_DEFINE(HAVE_KRB5, [1], [Kerberos Password Authentication enabled]) ], [ use_krb=$((use_krb-1)) ])
 	AC_MSG_CHECKING([for krb5 usability])
-	if test $use_krb -eq 0; then
+	AS_IF([test "$use_krb" = 0], [
 		KRB5_CFLAGS=
 		KRB5_LIBS=
 		AC_MSG_RESULT([no])
-	else
+	], [
 		AC_MSG_RESULT([yes])
-	fi
-
+	])
 	LIBS="$LIBS_system"
 	CFLAGS="$CFLAGS_system"
 	CXXFLAGS="$CXXFLAGS_system"
 	AC_SUBST(KRB5_CFLAGS)
 	AC_SUBST(KRB5_LIBS)
-  fi
+  ])
 ])
 LIBKRB5_WITH_KRB5_CONFIG
 AM_CONDITIONAL([WITH_KRB5], [test "$KRB5_LIBS" != ""])
