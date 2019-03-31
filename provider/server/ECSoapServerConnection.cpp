@@ -110,7 +110,8 @@ int kc_ssl_options(struct soap *soap, char *protos, const char *ciphers,
 		else if (strcasecmp(ssl_name, SSL_TXT_SSLV2) == 0)
 			ssl_proto = 0x01;
 #endif
-		else if (strcasecmp(ssl_name, SSL_TXT_TLSV1) == 0)
+		else if (strcasecmp(ssl_name, SSL_TXT_TLSV1) == 0 ||
+		    strcasecmp(ssl_name, "TLSv1.0") == 0)
 			ssl_proto = 0x04;
 #ifdef SSL_TXT_TLSV1_1
 		else if (strcasecmp(ssl_name, SSL_TXT_TLSV1_1) == 0)
