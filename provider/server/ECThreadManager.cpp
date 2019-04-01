@@ -41,7 +41,7 @@ class WORKITEM final : public ECTask {
 	virtual ~WORKITEM();
 	virtual void run();
 	struct soap *xsoap = nullptr; /* socket and state associated with the connection */
-	KC::time_point dblReceiveStamp; /* time at which activity was detected on the socket */
+	time_point dblReceiveStamp; /* time at which activity was detected on the socket */
 	ECDispatcher *dispatcher = nullptr;
 };
 
@@ -239,7 +239,7 @@ size_t ECDispatcher::queue_length()
 	return m_pool.queue_length() + m_prio.queue_length();
 }
 
-void ECDispatcher::AddListenSocket(std::unique_ptr<struct soap, KC::ec_soap_deleter> &&soap)
+void ECDispatcher::AddListenSocket(std::unique_ptr<struct soap, ec_soap_deleter> &&soap)
 {
 	soap->recv_timeout = m_nReadTimeout; // Use m_nReadTimeout, the value for timeouts during XML reads
 	soap->send_timeout = m_nSendTimeout;

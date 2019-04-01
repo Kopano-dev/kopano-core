@@ -52,7 +52,7 @@ ECNotifyMaster::~ECNotifyMaster(void)
 
 HRESULT ECNotifyMaster::Create(SessionGroupData *lpData, ECNotifyMaster **lppMaster)
 {
-	return KC::alloc_wrap<ECNotifyMaster>(lpData).put(lppMaster);
+	return alloc_wrap<ECNotifyMaster>(lpData).put(lppMaster);
 }
 
 HRESULT ECNotifyMaster::ConnectToSession()
@@ -162,7 +162,7 @@ HRESULT ECNotifyMaster::StartNotifyWatch()
 
 HRESULT ECNotifyMaster::StopNotifyWatch()
 {
-	KC::object_ptr<WSTransport> lpTransport;
+	object_ptr<WSTransport> lpTransport;
 	ulock_rec biglock(m_hMutex, std::defer_lock_t());
 
 	/* Thread was already halted, or connection is broken */

@@ -66,8 +66,8 @@ using namespace KC;
 	if(hr != hrSuccess) \
 		goto exitm;
 
-static KC::ECRESULT KCOIDCLogon(KCmdProxy2 *, const utf8string &user, const utf8string &imp_user, const utf8string &password, unsigned int caps, ECSESSIONGROUPID, const char *app_name, ECSESSIONID *, unsigned int *srv_caps, GUID *srv_guid, const std::string &cl_app_ver, const std::string &cl_app_misc);
-static KC::ECRESULT TrySSOLogon(KCmdProxy2 *, const utf8string &user, const utf8string &imp_user, unsigned int caps, ECSESSIONGROUPID, const char *app_name, ECSESSIONID *, unsigned int *srv_caps, GUID *srv_guid, const std::string &cl_app_ver, const std::string &cl_app_misc);
+static ECRESULT KCOIDCLogon(KCmdProxy2 *, const utf8string &user, const utf8string &imp_user, const utf8string &password, unsigned int caps, ECSESSIONGROUPID, const char *app_name, ECSESSIONID *, unsigned int *srv_caps, GUID *srv_guid, const std::string &cl_app_ver, const std::string &cl_app_misc);
+static ECRESULT TrySSOLogon(KCmdProxy2 *, const utf8string &user, const utf8string &imp_user, unsigned int caps, ECSESSIONGROUPID, const char *app_name, ECSESSIONID *, unsigned int *srv_caps, GUID *srv_guid, const std::string &cl_app_ver, const std::string &cl_app_misc);
 
 WSTransport::WSTransport() :
 	ECUnknown("WSTransport"),

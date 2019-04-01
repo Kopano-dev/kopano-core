@@ -218,7 +218,7 @@ static ECRESULT np_defrag(fancydb db)
 	if (result.get_num_rows() == 0)
 		return erSuccess;
 
-	KC::time_point start_ts = decltype(start_ts)::clock::now();
+	time_point start_ts = decltype(start_ts)::clock::now();
 	while (!adm_quit && (row = result.fetch_row()) != nullptr) {
 		unsigned int oldid = strtoul(row[0], nullptr, 0);
 		unsigned int oldtag = 0x8501 + oldid;
@@ -341,7 +341,7 @@ static ECRESULT np_repair_dups(fancydb db)
 	if (tags_to_move == 0)
 		return erSuccess;
 
-	KC::time_point start_ts = decltype(start_ts)::clock::now();
+	time_point start_ts = decltype(start_ts)::clock::now();
 	while (!adm_quit && (row = result.fetch_row()) != nullptr) {
 		unsigned int oldid = strtoul(row[0], nullptr, 0);
 		unsigned int newid = strtoul(row[1], nullptr, 0);

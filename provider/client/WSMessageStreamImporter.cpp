@@ -126,7 +126,7 @@ exit:
 
 HRESULT WSMessageStreamImporter::StartTransfer(WSMessageStreamSink **lppSink)
 {
-	KC::object_ptr<WSMessageStreamSink> ptrSink;
+	object_ptr<WSMessageStreamSink> ptrSink;
 
 	if (!m_threadPool.enqueue(this))
 		return MAPI_E_CALL_FAILED;

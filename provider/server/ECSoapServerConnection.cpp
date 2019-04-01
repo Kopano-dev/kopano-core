@@ -90,7 +90,7 @@ static int ignore_shutdown(struct soap *, SOAP_SOCKET, int shuttype)
 	return 0;
 }
 
-static void custom_soap_bind(struct soap *soap, KC::ec_socket &spec)
+static void custom_soap_bind(struct soap *soap, ec_socket &spec)
 {
 #if GSOAP_VERSION >= 20857
 	/* The v6only field exists in 2.8.56, but has no effect there. */
@@ -109,7 +109,7 @@ static void custom_soap_bind(struct soap *soap, KC::ec_socket &spec)
 		SOAP_CONNECTION_TYPE(soap) = CONNECTION_TYPE_NAMED_PIPE;
 }
 
-ECRESULT ECSoapServerConnection::ListenTCP(struct KC::ec_socket &spec)
+ECRESULT ECSoapServerConnection::ListenTCP(struct ec_socket &spec)
 {
 	std::unique_ptr<struct soap, ec_soap_deleter> lpsSoap(soap_new2(SOAP_IO_KEEPALIVE | SOAP_XML_TREE | SOAP_C_UTFSTRING, SOAP_IO_KEEPALIVE | SOAP_XML_TREE | SOAP_C_UTFSTRING));
 	if (lpsSoap == nullptr)
@@ -122,7 +122,7 @@ ECRESULT ECSoapServerConnection::ListenTCP(struct KC::ec_socket &spec)
 	return erSuccess;
 }
 
-ECRESULT ECSoapServerConnection::ListenSSL(struct KC::ec_socket &spec,
+ECRESULT ECSoapServerConnection::ListenSSL(struct ec_socket &spec,
     const char *lpszKeyFile, const char *lpszKeyPass,
     const char *lpszCAFile, const char *lpszCAPath)
 {
@@ -161,7 +161,7 @@ ECRESULT ECSoapServerConnection::ListenSSL(struct KC::ec_socket &spec,
 	return erSuccess;
 }
 
-ECRESULT ECSoapServerConnection::ListenPipe(struct KC::ec_socket &spec, bool bPriority)
+ECRESULT ECSoapServerConnection::ListenPipe(struct ec_socket &spec, bool bPriority)
 {
 	std::unique_ptr<struct soap, ec_soap_deleter> lpsSoap(soap_new2(SOAP_IO_KEEPALIVE | SOAP_XML_TREE | SOAP_C_UTFSTRING, SOAP_IO_KEEPALIVE | SOAP_XML_TREE | SOAP_C_UTFSTRING));
 	if (lpsSoap == nullptr)
