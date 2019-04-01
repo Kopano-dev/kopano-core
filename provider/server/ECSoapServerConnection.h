@@ -13,7 +13,7 @@
 #include <kopano/ECConfig.h>
 
 using KC::ECRESULT;
-extern int kc_ssl_options(struct soap *, char *protos, const char *ciphers, const char *prefciphers, const char *curves);
+extern int kc_ssl_options(struct soap *, const char *proto, const char *ciphers, const char *prefciphers, const char *curves);
 
 class ECSoapServerConnection final {
 public:

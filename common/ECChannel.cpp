@@ -32,6 +32,7 @@
 #include <openssl/err.h>
 #include <cerrno>
 #include <mapicode.h>
+#include "SSLUtil.h"
 #ifndef hrSuccess
 #define hrSuccess 0
 #endif
@@ -65,11 +66,8 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 	const char *szFile = nullptr, *szPath = nullptr;;
 	auto cert_file = lpConfig->GetSetting("ssl_certificate_file");
 	auto key_file = lpConfig->GetSetting("ssl_private_key_file");
-	std::unique_ptr<char[], cstdlib_deleter> ssl_protocols(strdup(lpConfig->GetSetting("ssl_protocols")));
 	const char *ssl_ciphers = lpConfig->GetSetting("ssl_ciphers");
 	const char *ssl_curves = lpConfig->GetSetting("ssl_curves");
- 	char *ssl_name = NULL;
- 	int ssl_op = 0, ssl_include = 0, ssl_exclude = 0;
 #if !defined(OPENSSL_NO_ECDH) && defined(NID_X9_62_prime256v1)
 	EC_KEY *ecdh;
 #endif
@@ -106,74 +104,12 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 #	define SSL_OP_NO_RENEGOTIATION 0 /* unavailable in openSSL 1.0 */
 #endif
 	SSL_CTX_set_options(lpCTX, SSL_OP_ALL | SSL_OP_NO_RENEGOTIATION);
-	ssl_name = strtok(ssl_protocols.get(), " ");
-	while(ssl_name != NULL) {
-		int ssl_proto = 0;
-		bool ssl_neg = false;
-
-		if (*ssl_name == '!') {
-			++ssl_name;
-			ssl_neg = true;
-		}
-
-		if (strcasecmp(ssl_name, SSL_TXT_SSLV3) == 0)
-			ssl_proto = 0x02;
-#ifdef SSL_TXT_SSLV2
-		else if (strcasecmp(ssl_name, SSL_TXT_SSLV2) == 0)
-			ssl_proto = 0x01;
-#endif
-		else if (strcasecmp(ssl_name, SSL_TXT_TLSV1) == 0)
-			ssl_proto = 0x04;
-#ifdef SSL_TXT_TLSV1_1
-		else if (strcasecmp(ssl_name, SSL_TXT_TLSV1_1) == 0)
-			ssl_proto = 0x08;
-#endif
-#ifdef SSL_TXT_TLSV1_2
-		else if (strcasecmp(ssl_name, SSL_TXT_TLSV1_2) == 0)
-			ssl_proto = 0x10;
-#endif
-#ifdef SSL_OP_NO_TLSv1_3
-		else if (strcasecmp(ssl_name, "TLSv1.3") == 0)
-			ssl_proto = 0x20;
-#endif
-		else if (!ssl_neg) {
-			ec_log_err("Unknown protocol \"%s\" in ssl_protocols setting", ssl_name);
-			hr = MAPI_E_CALL_FAILED;
-			goto exit;
-		}
-
-		if (ssl_neg)
-			ssl_exclude |= ssl_proto;
-		else
-			ssl_include |= ssl_proto;
-
-		ssl_name = strtok(NULL, " ");
+	auto tlsprot = lpConfig->GetSetting("tls_min_proto");
+	if (!ec_tls_minproto(lpCTX, tlsprot)) {
+		ec_log_err("Unknown SSL/TLS protocol version \"%s\"", tlsprot);
+		hr = MAPI_E_CALL_FAILED;
+		goto exit;
 	}
-
-	if (ssl_include != 0)
-		// Exclude everything, except those that are included (and let excludes still override those)
-		ssl_exclude |= 0x1f & ~ssl_include;
-	if ((ssl_exclude & 0x01) != 0)
-		ssl_op |= SSL_OP_NO_SSLv2;
-	if ((ssl_exclude & 0x02) != 0)
-		ssl_op |= SSL_OP_NO_SSLv3;
-	if ((ssl_exclude & 0x04) != 0)
-		ssl_op |= SSL_OP_NO_TLSv1;
-#ifdef SSL_OP_NO_TLSv1_1
-	if ((ssl_exclude & 0x08) != 0)
-		ssl_op |= SSL_OP_NO_TLSv1_1;
-#endif
-#ifdef SSL_OP_NO_TLSv1_2
-	if ((ssl_exclude & 0x10) != 0)
-		ssl_op |= SSL_OP_NO_TLSv1_2;
-#endif
-#ifdef SSL_OP_NO_TLSv1_3
-	if ((ssl_exclude & 0x20) != 0)
-		ssl_op |= SSL_OP_NO_TLSv1_3;
-#endif
-	if (ssl_protocols)
-		SSL_CTX_set_options(lpCTX, ssl_op);
-
 #if !defined(OPENSSL_NO_ECDH) && defined(NID_X9_62_prime256v1)
 	ecdh = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
 	if (ecdh != NULL) {
