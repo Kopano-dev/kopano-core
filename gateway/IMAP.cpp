@@ -2121,37 +2121,36 @@ int IMAP::IdleAdviseCallback2(void *lpContext, unsigned int cNotif,
 			++ulRecent;
 			break;
 
-		case TABLE_ROW_DELETED:
+		case TABLE_ROW_DELETED: {
 			// find number and print N EXPUNGE
-			if (lpNotif[i].info.tab.propIndex.ulPropTag == PR_INSTANCE_KEY) {
-				auto iterMail = lpIMAP->lstFolderMailEIDs.begin();
-				for (; iterMail != lpIMAP->lstFolderMailEIDs.cend(); ++iterMail)
-					if (iterMail->sInstanceKey == lpNotif[i].info.tab.propIndex.Value.bin)
-						break;
-				if (iterMail != lpIMAP->lstFolderMailEIDs.cend()) {
-					ulMailNr = iterMail - lpIMAP->lstFolderMailEIDs.cbegin();
-					// remove mail from list
-					lpIMAP->HrResponse(RESP_UNTAGGED, stringify(ulMailNr+1) + " EXPUNGE");
-					lpIMAP->lstFolderMailEIDs.erase(iterMail);
-				}
-			}
+			if (lpNotif[i].info.tab.propIndex.ulPropTag != PR_INSTANCE_KEY)
+				break;
+			auto iterMail = lpIMAP->lstFolderMailEIDs.begin();
+			for (; iterMail != lpIMAP->lstFolderMailEIDs.cend(); ++iterMail)
+				if (iterMail->sInstanceKey == lpNotif[i].info.tab.propIndex.Value.bin)
+					break;
+			if (iterMail == lpIMAP->lstFolderMailEIDs.cend())
+				break;
+			ulMailNr = iterMail - lpIMAP->lstFolderMailEIDs.cbegin();
+			// remove mail from list
+			lpIMAP->HrResponse(RESP_UNTAGGED, stringify(ulMailNr + 1) + " EXPUNGE");
+			lpIMAP->lstFolderMailEIDs.erase(iterMail);
 			break;
-
-		case TABLE_ROW_MODIFIED:
+		}
+		case TABLE_ROW_MODIFIED: {
 			// find number and print N FETCH (FLAGS (flags...))
 			strFlags.clear();
-
-			if (lpNotif[i].info.tab.row.lpProps[IMAPID].ulPropTag == PR_EC_IMAP_ID) {
-				auto iterMail = find(lpIMAP->lstFolderMailEIDs.cbegin(), lpIMAP->lstFolderMailEIDs.cend(), lpNotif[i].info.tab.row.lpProps[IMAPID].Value.ul);
-				// not found probably means the client needs to sync
-				if (iterMail != lpIMAP->lstFolderMailEIDs.cend()) {
-					ulMailNr = iterMail - lpIMAP->lstFolderMailEIDs.cbegin();
-					strFlags = lpIMAP->PropsToFlags(lpNotif[i].info.tab.row.lpProps, lpNotif[i].info.tab.row.cValues, iterMail->bRecent, false);
-					lpIMAP->HrResponse(RESP_UNTAGGED, stringify(ulMailNr+1) + " FETCH (FLAGS (" + strFlags + "))");
-				}
-			}
+			if (lpNotif[i].info.tab.row.lpProps[IMAPID].ulPropTag != PR_EC_IMAP_ID)
+				break;
+			auto iterMail = find(lpIMAP->lstFolderMailEIDs.cbegin(), lpIMAP->lstFolderMailEIDs.cend(), lpNotif[i].info.tab.row.lpProps[IMAPID].Value.ul);
+			// not found probably means the client needs to sync
+			if (iterMail == lpIMAP->lstFolderMailEIDs.cend())
+				break;
+			ulMailNr = iterMail - lpIMAP->lstFolderMailEIDs.cbegin();
+			strFlags = lpIMAP->PropsToFlags(lpNotif[i].info.tab.row.lpProps, lpNotif[i].info.tab.row.cValues, iterMail->bRecent, false);
+			lpIMAP->HrResponse(RESP_UNTAGGED, stringify(ulMailNr+1) + " FETCH (FLAGS (" + strFlags + "))");
 			break;
-
+		}
 		case TABLE_RELOAD:
 			// TABLE_RELOAD is unused in Kopano
 		case TABLE_CHANGED:
@@ -2160,10 +2159,10 @@ int IMAP::IdleAdviseCallback2(void *lpContext, unsigned int cNotif,
 		};
 	}
 
-	if (ulRecent) {
-		lpIMAP->HrResponse(RESP_UNTAGGED, stringify(ulRecent) + " RECENT");
-		lpIMAP->HrResponse(RESP_UNTAGGED, stringify(lpIMAP->lstFolderMailEIDs.size()) + " EXISTS");
-	}
+	if (ulRecent == 0)
+		return S_OK;
+	lpIMAP->HrResponse(RESP_UNTAGGED, stringify(ulRecent) + " RECENT");
+	lpIMAP->HrResponse(RESP_UNTAGGED, stringify(lpIMAP->lstFolderMailEIDs.size()) + " EXISTS");
 	return S_OK;
 }
 
