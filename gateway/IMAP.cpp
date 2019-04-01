@@ -748,7 +748,7 @@ HRESULT IMAP::HrCmdLogin(const std::string &strTag,
 	}
 	hr = HrMakeSpecialsList();
 	if (hr != hrSuccess) {
-		ec_log_warn("Failed to find special folder properties");
+		kc_pwarn("Failed to find special folder properties", hr);
 		HrResponse(RESP_TAGGED_NO, strTag, "LOGIN can't find special folder properties");
 		return hr;
 	}
@@ -2677,7 +2677,7 @@ HRESULT IMAP::HrMakeSpecialsList() {
 
 	auto hr = lpStore->GetProps(sPropsStore, 0, &cValues, &~lpPropArrayStore);
 	if (hr != hrSuccess)
-		return hr;
+		return kc_perror("GetProps SOT", hr);
 	for (ULONG i = 0; i < cValues; ++i)
 		if (PROP_TYPE(lpPropArrayStore[i].ulPropTag) == PT_BINARY)
 			lstSpecialEntryIDs.emplace(BinaryArray(lpPropArrayStore[i].Value.bin), lpPropArrayStore[i].ulPropTag);

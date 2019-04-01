@@ -2659,7 +2659,9 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
 	sSavedObject.ulObjType = ulObjType;
 	auto cache = lpecSession->GetSessionManager()->GetCacheManager();
 	bool complete = false;
-	if (lpChildProps == nullptr && cache->GetComplete(ulObjId, complete) == erSuccess && complete) {
+	auto rd_cache = !cache->m_bCellCacheDisabled &&
+	                parseBool(g_lpSessionManager->GetConfig()->GetSetting("cache_cellcache_reads"));
+	if (rd_cache && lpChildProps == nullptr && cache->GetComplete(ulObjId, complete) == erSuccess && complete) {
 		std::vector<unsigned int> proptags;
 
 		er = cache->GetPropTags(ulObjId, proptags);
@@ -2701,7 +2703,7 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
     }
 
 	/* not in cache, so let us cache it */
-	if (!complete) {
+	if (rd_cache && !complete) {
 		er = loadobject_cache(cache, lpChildProps, ulObjId);
 		if (er != erSuccess)
 			return er;
@@ -2717,7 +2719,7 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
 	mapChildProps.clear();
 
 	if (ulObjType == MAPI_MESSAGE || ulObjType == MAPI_ATTACH) {
-		if (!complete) {
+		if (!rd_cache || !complete) {
 			// Pre-load *all* properties of *all* subobjects for fast accessibility
 			er = PrepareReadProps(soap, lpDatabase, true, lpecSession->GetCapabilities() & KOPANO_CAP_UNICODE, 0, ulObjId, MAX_PROP_SIZE, &mapChildProps, NULL);
 			if (er != erSuccess)
@@ -2740,7 +2742,7 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
 				ec_log_err("LoadObject(): no rows from db");
 				return KCERR_DATABASE_ERROR; // this should never happen
 			}
-			LoadObject(soap, lpecSession, atoi(lpDBRow[0]), atoi(lpDBRow[1]), ulObjType, &sSavedObject.__ptr[i], complete ? nullptr : &mapChildProps);
+			LoadObject(soap, lpecSession, atoi(lpDBRow[0]), atoi(lpDBRow[1]), ulObjType, &sSavedObject.__ptr[i], rd_cache && complete ? nullptr : &mapChildProps);
 		}
 		mapChildProps.clear();
 	}
