@@ -207,6 +207,7 @@ private:
 	/* Tagged response with result OK, NO or BAD */
 	void HrResponse(const std::string &result, const std::string &tag, const std::string &resp);
 	static LONG IdleAdviseCallback(void *ctx, ULONG numnotif, LPNOTIFICATION);
+	static LONG IdleAdviseCallback2(void *ctx, unsigned int numnotif, NOTIFICATION *);
 
 	bool bOnlyMailFolders;
 	bool bShowPublicFolder;
