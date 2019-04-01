@@ -3,7 +3,7 @@
 Part of the high-level python bindings for Kopano
 
 Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file)
-Copyright 2016 - Kopano and its licensors (see LICENSE file)
+Copyright 2016 - 2019 Kopano and its licensors (see LICENSE file)
 """
 
 from datetime import datetime
@@ -26,7 +26,9 @@ def parse_list_str(option, opt_str, value, parser):
 
 def parse_bool(option, opt_str, value, parser):
     if value.lower() not in ('yes', 'no', 'true', 'false'):
-        raise Exception("error: %s option requires 'yes', 'no', 'true' or 'false'" % opt_str)
+        raise Exception(
+            "error: %s option requires 'yes', 'no', 'true' or 'false'" %
+                opt_str)
     setattr(parser.values, option.dest, value.lower() in ('yes', 'true'))
 
 def show_version(*args):
@@ -116,7 +118,6 @@ Available options:
 
 -V, --version: Show program version
 """
-
     parser = optparse.OptionParser(
         formatter=optparse.IndentedHelpFormatter(max_help_position=42),
         usage=usage

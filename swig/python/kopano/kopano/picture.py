@@ -2,7 +2,7 @@
 """
 Part of the high-level python bindings for Kopano
 
-Copyright 2018 - Kopano and its licensors (see LICENSE file for details)
+Copyright 2018 - 2019 Kopano and its licensors (see LICENSE file)
 """
 
 import io
@@ -16,11 +16,17 @@ except ImportError: # pragma: no cover
 from .compat import repr as _repr
 
 class Picture(object):
-    """Picture class"""
+    """Picture class
 
-    def __init__(self, data, name=u'', mimetype=u''):
-        self.data = data
+    Typical pictures are :class:`contact <Contact>` and :class:`user <User>`
+    profile photos.
+    """
+
+    def __init__(self, data, name='', mimetype=''):
+        #: Picture name.
         self.name = name
+        #: Picture binary data.
+        self.data = data
         self._mimetype = mimetype
         self.__img = None
 
@@ -32,25 +38,33 @@ class Picture(object):
 
     @property
     def mimetype(self):
+        """Picture MIME type."""
         if not self._mimetype:
             ext = self._img.format
             if ext:
-                self._mimetype = mimetypes.types_map.get('.'+ext.lower(), u'')
+                self._mimetype = mimetypes.types_map.get('.'+ext.lower(), '')
         return self._mimetype
 
     @property
     def width(self):
+        """Picture pixel width."""
         return self._img.width
 
     @property
     def height(self):
+        """Picture pixel height."""
         return self._img.height
 
     @property
     def size(self):
+        """Picture pixel (width, height) tuple."""
         return (self.width, self.height)
 
     def scale(self, size):
+        """Return new picture instance, scaled to given size.
+
+        :param size: (width, height) tuple
+        """
         img = Image.open(io.BytesIO(self.data))
         img.thumbnail(size)
         b = io.BytesIO()
@@ -59,7 +73,7 @@ class Picture(object):
         return Picture(data, self.name, self.mimetype)
 
     def __unicode__(self):
-        return u'Picture(%s)' % (self.name or u'')
+        return 'Picture(%s)' % (self.name or '')
 
     def __repr__(self):
         return _repr(self)

@@ -2,8 +2,8 @@
 """
 Part of the high-level python bindings for Kopano.
 
-Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
-Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
+Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file)
+Copyright 2016 - 2019 Kopano and its licensors (see LICENSE file)
 """
 
 import sys
@@ -32,24 +32,26 @@ except ImportError: # pragma: no cover
     _utils = sys.modules[__package__ + '.utils']
 
 def _permissions_dumps(obj, stats=None):
-    """ dump permissions for given store or folder """
-
     server = obj.server
     log = server.log
 
     rows = []
     with log_exc(log, stats):
-        acl_table = obj.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, 0)
+        acl_table = obj.mapiobj.OpenProperty(PR_ACL_TABLE,
+            IID_IExchangeModifyTable, 0, 0)
         table = acl_table.GetTable(0)
         for row in table.QueryRows(-1,0):
             entryid = row[1].Value
             try:
-                row[1].Value = (b'user', server.sa.GetUser(entryid, MAPI_UNICODE).Username)
+                row[1].Value = (b'user', server.sa.GetUser(entryid,
+                    MAPI_UNICODE).Username)
             except MAPIErrorNotFound:
                 try:
-                    row[1].Value = (b'group', server.sa.GetGroup(entryid, MAPI_UNICODE).Groupname)
+                    row[1].Value = (b'group', server.sa.GetGroup(entryid,
+                        MAPI_UNICODE).Groupname)
                 except MAPIErrorNotFound:
-                    log.warning("skipping access control entry for unknown user/group %s", _benc(entryid))
+                    log.warning("skipping access control entry for unknown \
+user/group %s", _benc(entryid))
                     continue
             rows.append(row)
     return _utils.pickle_dumps({
@@ -57,8 +59,6 @@ def _permissions_dumps(obj, stats=None):
     })
 
 def _permissions_loads(obj, data, stats=None):
-    """ load permissions for given store or folder """
-
     server = obj.server
     log = server.log
 
@@ -77,34 +77,53 @@ def _permissions_loads(obj, data, stats=None):
                 row[1].Value = _bdec(entryid)
                 rows.append(row)
             except kopano.NotFoundError:
-                log.warning("skipping access control entry for unknown user/group '%s'", value)
-        acltab = obj.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, MAPI_MODIFY)
+                log.warning("skipping access control entry for unknown \
+user/group '%s'", value)
+        acltab = obj.mapiobj.OpenProperty(PR_ACL_TABLE,
+            IID_IExchangeModifyTable, 0, MAPI_MODIFY)
         acltab.ModifyTable(0, [ROWENTRY(ROW_ADD, row) for row in rows])
 
 class Permission(object):
-    """Permission class"""
+    """Permission class
 
-    def __init__(self, mapitable, mapirow, server): # XXX fix args
+    A permission instance combines a store or folder with a user or group and
+    a set of permissions.
+
+    Permissions for a given folder are resolved by following the parent
+    chain (and ultimately store), until there is a match on user or group.
+    """
+
+    def __init__(self, mapitable, mapirow, server): # TODO fix args
         self.mapitable = mapitable
         self.mapirow = mapirow
         self.server = server
 
     @property
-    def member(self): # XXX company?
-        """:class:`User <User>` or :class:`group <Group>` given specific rights."""
+    def member(self): # TODO companies in addition to users/groups?
+        """The associated :class:`User <User>` or :class:`group <Group>`."""
         try:
-            return self.server.user(self.server.sa.GetUser(self.mapirow[PR_MEMBER_ENTRYID], MAPI_UNICODE).Username)
+            return self.server.user(self.server.sa.GetUser(
+                self.mapirow[PR_MEMBER_ENTRYID], MAPI_UNICODE).Username)
         except (NotFoundError, MAPIErrorNotFound):
-            return self.server.group(self.server.sa.GetGroup(self.mapirow[PR_MEMBER_ENTRYID], MAPI_UNICODE).Groupname)
+            return self.server.group(self.server.sa.GetGroup(
+                self.mapirow[PR_MEMBER_ENTRYID], MAPI_UNICODE).Groupname)
 
     @property
-    def rights(self):
-        """Rights given to member.
+    def rights(self): # TODO add def roles!!
+        """The rights given to the associated member.
 
         Possible rights:
 
-        read_items, create_items, create_subfolders, edit_own, edit_all,
-        delete_own, delete_all, folder_owner, folder_contact, folder_visible
+        *read_items*
+        *create_items*
+        *create_subfolders*
+        *edit_own*,
+        *edit_all*
+        *delete_own*
+        *delete_all*
+        *folder_owner*
+        *folder_contact*
+        *folder_visible*
         """
         r = []
         for right, name in RIGHT_NAME.items():
@@ -121,10 +140,14 @@ class Permission(object):
             except KeyError:
                 raise NotFoundError("no such right: '%s'" % name)
 
-        self.mapitable.ModifyTable(0, [ROWENTRY(ROW_MODIFY, [SPropValue(PR_MEMBER_ID, self.mapirow[PR_MEMBER_ID]), SPropValue(PR_MEMBER_ENTRYID, self.mapirow[PR_MEMBER_ENTRYID]), SPropValue(PR_MEMBER_RIGHTS, r)])]) # PR_MEMBER_ID needed, or it becomes ROW_ADD
+        self.mapitable.ModifyTable(0, [ROWENTRY(ROW_MODIFY,
+            [SPropValue(PR_MEMBER_ID, self.mapirow[PR_MEMBER_ID]),
+             SPropValue(PR_MEMBER_ENTRYID, self.mapirow[PR_MEMBER_ENTRYID]),
+             SPropValue(PR_MEMBER_RIGHTS, r)]
+        )]) # PR_MEMBER_ID needed, or it becomes ROW_ADD
 
     def __unicode__(self):
-        return u"Permission('%s')" % self.member.name
+        return "Permission('%s')" % self.member.name
 
     def __repr__(self):
         return _repr(self)
