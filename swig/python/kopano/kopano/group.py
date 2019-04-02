@@ -2,8 +2,8 @@
 """
 Part of the high-level python bindings for Kopano
 
-Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
-Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
+Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file)
+Copyright 2016 - 2019 Kopano and its licensors (see LICENSE file)
 """
 
 import sys
@@ -27,13 +27,21 @@ except ImportError: # pragma: no cover
     _user = sys.modules[__package__ + '.user']
 
 class Group(Properties):
-    """Group class."""
+    """Group class
+
+    A group is a collection of :class:`users <User>` and/or
+    subgroups of :class:`users <User>`.
+    """
 
     def __init__(self, name, server=None):
-        self.server = server or _server.Server(_skip_check=True, parse_args=False)
+        self.server = server or \
+            _server.Server(_skip_check=True, parse_args=False)
         self._name = _unicode(name)
         try:
-            self._ecgroup = self.server.sa.GetGroup(self.server.sa.ResolveGroupName(self._name, MAPI_UNICODE), MAPI_UNICODE)
+            self._ecgroup = self.server.sa.GetGroup(
+                self.server.sa.ResolveGroupName(self._name, MAPI_UNICODE),
+                MAPI_UNICODE
+            )
         except (MAPIErrorNotFound, MAPIErrorInvalidParameter):
             raise NotFoundError("no such group '%s'" % name)
 
@@ -41,38 +49,39 @@ class Group(Properties):
 
     @property
     def mapiobj(self):
+        """Underlying MAPI object."""
         if not self._mapiobj:
-            self._mapiobj = self.server.mapisession.OpenEntry(self._ecgroup.GroupID, None, 0)
+            self._mapiobj = self.server.mapisession.OpenEntry(
+                self._ecgroup.GroupID, None, 0)
         return self._mapiobj
 
     @property
     def groupid(self):
-        """Group identifier."""
-
+        """Group id."""
         return _benc(self._ecgroup.GroupID)
 
-    def users(self): # XXX recurse?
+    def users(self): # TODO recurse?
         """Return all :class:`users <User>` in group."""
-
         return self.members(groups=False)
 
-    def groups(self): # XXX recurse?
+    def groups(self): # TODO recurse?
         """Return all :class:`groups <Group>` in group."""
-
         return self.members(users=False)
 
-    def members(self, groups=True, users=True): # XXX recurse?
-        """Return all members in group (:class:`users <User>` or :class:`groups <Group>`)."""
-
-        for ecuser in self.server.sa.GetUserListOfGroup(self._ecgroup.GroupID, MAPI_UNICODE):
+    def members(self, groups=True, users=True): # TODO recurse?
+        """Return all members in group (:class:`users <User>` or
+        :class:`groups <Group>`)."""
+        for ecuser in self.server.sa.GetUserListOfGroup(
+                self._ecgroup.GroupID, MAPI_UNICODE):
             if ecuser.Username == 'SYSTEM':
                 continue
             if users:
                 try:
-                    # XXX working around '@' duplication
+                    # TODO working around '@' duplication
                     username = '@'.join(ecuser.Username.split('@')[:2])
                     yield _user.User(username, self.server)
-                except NotFoundError: # XXX everyone, groups are included as users..
+                    # TODO 'everyone', groups are included as users..
+                except NotFoundError:
                     pass
             if groups:
                 try:
@@ -117,7 +126,8 @@ class Group(Properties):
 
     def send_as(self):
         """Return :class:`users <User>` in send-as list."""
-        for u in self.server.sa.GetSendAsList(self._ecgroup.GroupID, MAPI_UNICODE):
+        for u in self.server.sa.GetSendAsList(
+                self._ecgroup.GroupID,MAPI_UNICODE):
             yield self.server.user(u.Username)
 
     def add_send_as(self, user):
@@ -126,9 +136,12 @@ class Group(Properties):
         :param user: user to add
         """
         try:
-            self.server.sa.AddSendAsUser(self._ecgroup.GroupID, user._ecuser.UserID)
+            self.server.sa.AddSendAsUser(
+                self._ecgroup.GroupID, user._ecuser.UserID)
         except MAPIErrorCollision:
-            raise DuplicateError("user '%s' already in send-as for group '%s'" % (user.name, self.name))
+            raise DuplicateError(
+                "user '%s' already in send-as for group '%s'" %
+                    (user.name, self.name))
 
     def remove_send_as(self, user):
         """Remove :class:`user <User>` from send-as list.
@@ -136,45 +149,59 @@ class Group(Properties):
         :param user: user to remove
         """
         try:
-            self.server.sa.DelSendAsUser(self._ecgroup.GroupID, user._ecuser.UserID)
+            self.server.sa.DelSendAsUser(
+                self._ecgroup.GroupID, user._ecuser.UserID)
         except MAPIErrorNotFound:
-            raise NotFoundError("no user '%s' in send-as for group '%s'" % (user.name, self.name))
+            raise NotFoundError(
+                "no user '%s' in send-as for group '%s'" %
+                    (user.name, self.name))
 
-    # XXX: also does groups..
+    # TODO: also does groups..
     def add_user(self, user):
         """Add :class:`user <User>` to group.
 
         :param user: user to add
         """
         if isinstance(user, Group):
-            self.server.sa.AddGroupUser(self._ecgroup.GroupID, user._ecgroup.GroupID)
+            self.server.sa.AddGroupUser(
+                self._ecgroup.GroupID, user._ecgroup.GroupID)
         else:
             try:
-                self.server.sa.AddGroupUser(self._ecgroup.GroupID, user._ecuser.UserID)
+                self.server.sa.AddGroupUser(
+                    self._ecgroup.GroupID, user._ecuser.UserID)
             except MAPIErrorCollision:
-                raise DuplicateError("group '%s' already contains user '%s'" % (self.name, user.name))
+                raise DuplicateError(
+                    "group '%s' already contains user '%s'" %
+                        (self.name, user.name))
 
-    def remove_user(self, user):
+    def remove_user(self, user): # TODO also 'delete' for consistency?
         """Remove :class:`user <User>` from group.
 
         :param user: user to remove
         """
         try:
-            self.server.sa.DeleteGroupUser(self._ecgroup.GroupID, user._ecuser.UserID)
+            self.server.sa.DeleteGroupUser(
+                self._ecgroup.GroupID, user._ecuser.UserID)
         except MAPIErrorNotFound:
-            raise NotFoundError("group '%s' does not contain user '%s'" % (self.name, user.name))
+            raise NotFoundError(
+                "group '%s' does not contain user '%s'" %
+                    (self.name, user.name))
 
     def _update(self, **kwargs):
-        # XXX: crashes server on certain characters...
+        # TODO: crashes server on certain characters...
         self._name = kwargs.get('name', self.name)
         fullname = kwargs.get('fullname', self.fullname)
         email = kwargs.get('email', self.email)
         hidden = kwargs.get('hidden', self.hidden)
-        group = ECGROUP(self._name, fullname, email, int(hidden), self._ecgroup.GroupID)
+        group = ECGROUP(self._name, fullname, email, int(hidden),
+            self._ecgroup.GroupID)
         self.server.sa.SetGroup(group, MAPI_UNICODE)
-        self._ecgroup = self.server.sa.GetGroup(self.server.sa.ResolveGroupName(self._name, MAPI_UNICODE), MAPI_UNICODE)
+        self._ecgroup = self.server.sa.GetGroup(
+            self.server.sa.ResolveGroupName(self._name, MAPI_UNICODE),
+            MAPI_UNICODE
+        )
 
-    def __eq__(self, u): # XXX check same server?
+    def __eq__(self, u): # TODO check same server?
         if isinstance(u, Group):
             return self.groupid == u.groupid
         return False
@@ -182,8 +209,8 @@ class Group(Properties):
     def __ne__(self, g):
         return not self == g
 
-    def __contains__(self, u): # XXX subgroups
+    def __contains__(self, u): # TODO subgroups
         return u in self.users()
 
     def __unicode__(self):
-        return u"Group('%s')" % self.name
+        return "Group('%s')" % self.name

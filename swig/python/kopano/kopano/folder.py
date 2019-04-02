@@ -1252,14 +1252,17 @@ class Folder(Properties):
     def subscribe(self, sink, **kwargs): # TODO document args
         """Subscribe to folder notifications
 
-        :param sink: sink instance with callbacks to process notifications
+        :param sink: Sink instance with callbacks to process notifications
+        :param object_types: Tracked objects (*item*, *folder*)
+        :param folder_types: Tracked folders (*mail*, *contacts*, *calendar*)
+        :param event_types: Event types (*created*, *updated*, *deleted*)
         """
         _notification.subscribe(self.store, self, sink, **kwargs)
 
     def unsubscribe(self, sink):
         """Unsubscribe from folder notifications
 
-        :param sink: previously subscribed sink instance
+        :param sink: Previously subscribed sink instance
         """
         _notification.unsubscribe(self.store, sink)
 

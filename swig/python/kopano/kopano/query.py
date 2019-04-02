@@ -2,7 +2,7 @@
 """
 Part of the high-level python bindings for Kopano
 
-Copyright 2018 - Kopano and its licensors (see LICENSE file for details)
+Copyright 2018 - 2019 Kopano and its licensors (see LICENSE file)
 """
 
 import datetime
@@ -10,6 +10,14 @@ import time
 import re
 
 import dateutil.parser
+
+"""This module converts Microsoft KQL (Keyword Query Language)
+queries into MAPI restrictions, as used when for example searching
+for specific mails or users.
+
+To achive this, it uses a hand-written parser, using the building
+blocks in parse.py.
+"""
 
 from MAPI import (
     FL_SUBSTRING, FL_IGNORECASE, RELOP_GT, RELOP_EQ, PT_BOOLEAN, PT_UNICODE,
@@ -53,10 +61,11 @@ from .parse import (
 # TODO relative dates rel. to timezone (eg "received:today")
 # TODO graph does not support 'size>"10 KB" and such? we now roll our own
 # TODO email matching on to/cc/bcc (PR_SEARCH_KEY/PR_EMAIL_ADDRESS?)
-# TODO sender:user2@domain.com OR category:blue doesn't work, even if they separately work?
+# TODO sender:user2@domain.com OR category:blue doesn't work, even if they
+# separately work?
 
 EMAIL1_NAME = (PSETID_Address, MNID_ID, 0x8083, PT_UNICODE) # TODO merge
-CATEGORY_NAME = (PS_PUBLIC_STRINGS, MNID_STRING, u'Keywords', PT_MV_UNICODE)
+CATEGORY_NAME = (PS_PUBLIC_STRINGS, MNID_STRING, 'Keywords', PT_MV_UNICODE)
 
 RECIP_PROPS = [PR_DISPLAY_NAME_W, PR_EMAIL_ADDRESS_W, PR_SMTP_ADDRESS_W]
 
@@ -70,7 +79,8 @@ MESSAGE_KEYWORD_PROP = {
     'size': PR_MESSAGE_SIZE,
     'read': (PR_MESSAGE_FLAGS, MSGFLAG_READ),
     'from': PR_SENT_REPRESENTING_NAME_W, # TODO email address
-    'sender': [PR_SENDER_NAME_W, PR_SENDER_EMAIL_ADDRESS_W], # TODO why does 'from:user1@domain.com' work with just PR_SENDER_NAME_W!?
+    # TODO why does 'from:user1@domain.com' work with just PR_SENDER_NAME_W!?
+    'sender': [PR_SENDER_NAME_W, PR_SENDER_EMAIL_ADDRESS_W],
     'attachment': (PR_MESSAGE_ATTACHMENTS, PR_ATTACH_LONG_FILENAME_W),
     'category': CATEGORY_NAME,
     'to': (PR_MESSAGE_RECIPIENTS, RECIP_PROPS, MAPI_TO),
@@ -112,7 +122,8 @@ OP_RELOP = {
 # TODO merge with freebusy version
 NANOSECS_BETWEEN_EPOCH = 116444736000000000
 def datetime_to_filetime(d):
-    return FileTime(int(time.mktime(d.timetuple())) * 10000000 + NANOSECS_BETWEEN_EPOCH)
+    return FileTime(
+        int(time.mktime(d.timetuple())) * 10000000 + NANOSECS_BETWEEN_EPOCH)
 
 def _interval_restriction(proptag, start, end):
     start = datetime_to_filetime(start)
@@ -123,8 +134,7 @@ def _interval_restriction(proptag, start, end):
         SPropertyRestriction(RELOP_LT, proptag, SPropValue(proptag, end))
     ])
 
-# AST nodes
-
+# AST node
 class Term(object):
     def __init__(self, sign=None, field=None, op=None, value=None, hoepa=None):
         self.sign = sign
@@ -140,7 +150,7 @@ class Term(object):
             subobj = None
             recipient_type = None
 
-            # property in sub-object (attachments/recipient): use sub-restriction
+            # property in sub-object (attachments/recipient): sub-restriction
             if isinstance(proptag, tuple):
                 if(proptag[0]) == PR_MESSAGE_ATTACHMENTS:
                     subobj, proptag = proptag
@@ -236,16 +246,16 @@ class Term(object):
             elif flag or PROP_TYPE(proptag) == PT_BOOLEAN:
                 if flag:
                     restr = SBitMaskRestriction(
-                                BMR_NEZ if self.value in ('yes', 'true') else BMR_EQZ,
+                        BMR_NEZ if self.value in ('yes', 'true') else BMR_EQZ,
                                 proptag,
                                 flag
-                            )
+                    )
                 else:
                     restr = SPropertyRestriction(
-                                RELOP_EQ,
-                                proptag,
-                                SPropValue(proptag, self.value in ('yes', 'true'))
-                            )
+                        RELOP_EQ,
+                        proptag,
+                        SPropValue(proptag, self.value in ('yes', 'true'))
+                    )
 
             elif PROP_TYPE(proptag) == PT_MV_UNICODE:
                 proptag2 = (proptag ^ PT_MV_UNICODE) | PT_UNICODE # funky!
@@ -255,8 +265,10 @@ class Term(object):
                             SPropValue(proptag2, self.value)
                         )
 
-            elif PROP_TYPE(proptag) in (PT_SHORT, PT_LONG, PT_LONGLONG, PT_FLOAT, PT_DOUBLE):
-                conv = float if PROP_TYPE(proptag) in (PT_FLOAT, PT_DOUBLE) else int
+            elif (PROP_TYPE(proptag) in \
+                  (PT_SHORT, PT_LONG, PT_LONGLONG, PT_FLOAT, PT_DOUBLE)):
+                conv = float if PROP_TYPE(proptag) in (PT_FLOAT, PT_DOUBLE) \
+                    else int
                 if '..' in self.value:
                     val1, val2 = self.value.split('..')
                     restr = SAndRestriction([
@@ -434,7 +446,8 @@ def _build_parser():
     wsexpr2.modifier = lambda t: t[1]
 
     andor = Sequence(unit,
-        Optional(Sequence(Optional(Choice(and_, or_)), Choice(bracketed, wsexpr))))
+        Optional(Sequence(Optional(Choice(and_, or_)),
+            Choice(bracketed, wsexpr))))
     def modifier(t):
         if t[1] is None:
             return t[0]

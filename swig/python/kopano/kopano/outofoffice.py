@@ -2,8 +2,8 @@
 """
 Part of the high-level python bindings for Kopano
 
-Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
-Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
+Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file)
+Copyright 2016 - 2019 Kopano and its licensors (see LICENSE file)
 """
 
 import time
@@ -29,18 +29,14 @@ except ImportError: # pragma: no cover
 class OutOfOffice(object):
     """OutOfOffice class
 
-    Class which contains a :class:`store <Store>` out of office properties and
-    can set out-of-office status, message and subject.
-
-    :param store: :class:`store <Store>`
+    Manage out-of-office settings, such as status, subject and message.
     """
     def __init__(self, store):
         self.store = store
 
     @property
     def enabled(self):
-        """ Out of office enabled status """
-
+        """Out-of-office is enabled."""
         try:
             return self.store.prop(PR_EC_OUTOFOFFICE).value
         except NotFoundError:
@@ -53,25 +49,24 @@ class OutOfOffice(object):
 
     @property
     def subject(self):
-        """ Subject """
-
+        """Out-of-office subject."""
         try:
             return self.store.prop(PR_EC_OUTOFOFFICE_SUBJECT_W).value
         except NotFoundError:
-            return u''
+            return ''
 
     @subject.setter
     def subject(self, value):
         if value is None:
             self.store.mapiobj.DeleteProps([PR_EC_OUTOFOFFICE_SUBJECT_W])
         else:
-            self.store.mapiobj.SetProps([SPropValue(PR_EC_OUTOFOFFICE_SUBJECT_W, _unicode(value))])
+            self.store.mapiobj.SetProps(
+                [SPropValue(PR_EC_OUTOFOFFICE_SUBJECT_W, _unicode(value))])
         _utils._save(self.store.mapiobj)
 
     @property
     def message(self):
-        """ Message """
-
+        """Out-of-office message."""
         try:
             return self.store.prop(PR_EC_OUTOFOFFICE_MSG_W).value
         except NotFoundError:
@@ -82,12 +77,13 @@ class OutOfOffice(object):
         if value is None:
             self.store.mapiobj.DeleteProps([PR_EC_OUTOFOFFICE_MSG_W])
         else:
-            self.store.mapiobj.SetProps([SPropValue(PR_EC_OUTOFOFFICE_MSG_W, _unicode(value))])
+            self.store.mapiobj.SetProps(
+                [SPropValue(PR_EC_OUTOFOFFICE_MSG_W, _unicode(value))])
         _utils._save(self.store.mapiobj)
 
     @property
     def start(self):
-        """ Out-of-office is activated from the particular datetime onwards """
+        """Out-of-office is active starting from the given date."""
         try:
             return self.store.prop(PR_EC_OUTOFOFFICE_FROM).value
         except NotFoundError:
@@ -99,12 +95,13 @@ class OutOfOffice(object):
             self.store.mapiobj.DeleteProps([PR_EC_OUTOFOFFICE_FROM])
         else:
             value = unixtime(time.mktime(value.timetuple()))
-            self.store.mapiobj.SetProps([SPropValue(PR_EC_OUTOFOFFICE_FROM, value)])
+            self.store.mapiobj.SetProps(
+                [SPropValue(PR_EC_OUTOFOFFICE_FROM, value)])
         _utils._save(self.store.mapiobj)
 
     @property
     def end(self):
-        """ Out-of-office is activated until the particular datetime """
+        """Out-of-office is active until the given date."""
         try:
             return self.store.prop(PR_EC_OUTOFOFFICE_UNTIL).value
         except NotFoundError:
@@ -116,11 +113,13 @@ class OutOfOffice(object):
             self.store.mapiobj.DeleteProps([PR_EC_OUTOFOFFICE_UNTIL])
         else:
             value = unixtime(time.mktime(value.timetuple()))
-            self.store.mapiobj.SetProps([SPropValue(PR_EC_OUTOFOFFICE_UNTIL, value)])
+            self.store.mapiobj.SetProps(
+                [SPropValue(PR_EC_OUTOFOFFICE_UNTIL, value)])
         _utils._save(self.store.mapiobj)
 
     @property
-    def period_desc(self): # XXX class Period?
+    def period_desc(self): # TODO class Period?
+        """English description of out-of-office date range."""
         terms = []
         if self.start:
             terms.append('from %s' % self.start)
@@ -130,6 +129,7 @@ class OutOfOffice(object):
 
     @property
     def active(self):
+        """Out-of-office is currently active (start <= now < end)."""
         if not self.enabled:
             return False
         now = datetime.datetime.now()
@@ -140,13 +140,11 @@ class OutOfOffice(object):
         return True
 
     def __unicode__(self):
-        return u'OutOfOffice(%s)' % self.subject
+        return 'OutOfOffice(%s)' % self.subject
 
     def __repr__(self):
         return _repr(self)
 
     def update(self, **kwargs):
-        """ Update function for outofoffice """
-
         for key, val in kwargs.items():
             setattr(self, key, val)
