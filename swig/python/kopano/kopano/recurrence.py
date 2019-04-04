@@ -114,7 +114,16 @@ RRULE_WEEKDAYS = {0: SU, 1: MO, 2: TU, 3: WE, 4: TH, 5: FR, 6: SA}
 # TODO ability to set attributes in any order
 
 class Recurrence(object):
-    """Recurrence class"""
+    """Recurrence class
+
+    Abstraction for recurring :class:`items <Item>`, such as appointments.
+
+    Provides equivalent functionality as iCal, but on top of MAPI and
+    dateutil.rrule.
+
+    For example: "an appointment occurs every last monday of the month,
+    except in june 2020".
+    """
 
     def __init__(self, item, parse=True):
         # TODO add check if we actually have a recurrence, otherwise
@@ -128,6 +137,8 @@ class Recurrence(object):
 
     @property
     def pattern(self):
+        """Recurrence pattern (*daily*, *weekly*, *monthly*, *monthly_rel*,
+        *yearly*, *yearly_rel*).""" # TODO explain relative patterns
         if self._recur_frequency == FREQ_YEAR:
             return {
                 PATTERN_MONTHLY: 'yearly',
@@ -182,6 +193,9 @@ class Recurrence(object):
 
     @property
     def weekdays(self):
+        """Recurrence weekdays (*sunday*, *monday*, ..). Depending on the
+        pattern, this indicates days of the week where the recurrence should
+        occur."""
         if (self._pattern_type in \
             (PATTERN_WEEKLY, PATTERN_MONTHNTH, PATTERN_HJMONTHNTH)):
             days = []
@@ -203,10 +217,14 @@ class Recurrence(object):
 
     @property
     def first_weekday(self):
+        """Recurrence first weekday (*sunday*, *monday*, ..). Depending on
+        the pattern, this indicates the first day of the week."""
         return WEEKDAYS[self._first_dow]
 
     @property
     def month(self):
+        """Recurrence month (1..12). Depending on the pattern, this indicates
+        the month where the recurrence occurs."""
         if self._recur_frequency == FREQ_YEAR:
             return self.start.month
 
@@ -218,6 +236,8 @@ class Recurrence(object):
 
     @property
     def monthday(self):
+        """Recurrence month day (1..31). Depending on the pattern, this
+        indicates the day of the month where the recurrence occurs."""
         if self._pattern_type in (PATTERN_MONTHLY, PATTERN_HJMONTHLY):
             return self._pattern_type_specific[0]
 
@@ -229,6 +249,11 @@ class Recurrence(object):
 
     @property
     def index(self):
+        """Recurrence index (*first*, *second*, *third*, *fourth*, *last*).
+        Depending on the pattern, this indicates the occurrence within each
+        month where the recurrence occurs. For example, on the second
+        monday or the last wednesday.
+        """
         if self._pattern_type in (PATTERN_MONTHNTH, PATTERN_HJMONTHNTH):
             return {
                 1: 'first',
@@ -253,6 +278,9 @@ class Recurrence(object):
 
     @property
     def interval(self):
+        """Recurrence interval (number). Depending on the pattern, this
+        indicates how many weeks/months/years there should be between each
+        occurrence. For example, every 3 weeks."""
         if self._recur_frequency == FREQ_YEAR:
             return self._period // 12
         elif self._pattern_type == PATTERN_DAILY:
@@ -272,6 +300,8 @@ class Recurrence(object):
 
     @property
     def range_type(self):
+        """Recurrence range type (*end_date*, *count*, *forever*). Indicates
+        how the recurrence ends: by end date, by count, or never."""
         if self._end_type == 0x2021:
             return 'end_date'
         elif self._end_type == 0x2022:
@@ -292,6 +322,8 @@ class Recurrence(object):
 
     @property
     def count(self):
+        """Recurrence count. Depending on range type, indicates an absolute
+        number of occurrences."""
         return self._occurrence_count
 
     @count.setter
@@ -301,7 +333,7 @@ class Recurrence(object):
     # TODO add timezone-awareness flag to pyko..
     @property
     def start(self):
-        """ Start of recurrence range (within recurrence timezone) """
+        """Start of recurrence range (using recurrence timezone!)."""
         return datetime.datetime.utcfromtimestamp(
             _utils.rectime_to_unixtime(self._start_date))
 
@@ -316,7 +348,8 @@ class Recurrence(object):
 
     @property
     def end(self):
-        """ End of recurrence range (within recurrence timezone) """
+        """End of recurrence range (using! recurrence timezone). Used depending
+        on range type."""
         return datetime.datetime.utcfromtimestamp(
             _utils.rectime_to_unixtime(self._end_date))
 
@@ -329,6 +362,12 @@ class Recurrence(object):
 
     # TODO fit-to-period
     def occurrences(self, start=None, end=None):
+        """Return all recurrence :class:`occurrences <Occurrence>`,
+        optionally overlapping with a given time window.
+
+        :param start: start of time window (optional)
+        :param end: end of time window (optional)
+        """
         recurrences = self.recurrences
         if start and end:
             start = _timezone._tz2(start, LOCAL, self._tzinfo)
@@ -1247,10 +1286,17 @@ class Recurrence(object):
 
 
 class Occurrence(object):
-    """Occurrence class"""
+    """Occurrence class.
+
+    Abstraction for specific occurrences of a :class:`recurrence <Recurrence>`.
+
+    Works similar to class :class:`Item <Item>`, except underwater it takes
+    care of recurrence aspects, such as exceptions.
+    """
 
     def __init__(self, item, start=None, end=None, subject=None,location=None,
             busystatus=None, basedate_val=None, exception=False):
+        #: Recurring :class:`item <Item>` which this occurrence belongs to
         self.item = item
         self._start = start
         self._end = end
