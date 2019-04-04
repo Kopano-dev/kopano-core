@@ -286,7 +286,7 @@ class SPropDelayedValue(SPropValue):
 class Property(object):
     """Property class
 
-    Abstraction for MAPI properties.
+    Low-level abstraction for MAPI properties.
     """
 
     def __init__(self, parent_mapiobj, mapiobj):
