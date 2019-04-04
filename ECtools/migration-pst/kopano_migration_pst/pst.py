@@ -952,7 +952,12 @@ class PC: # Property Context
         for bth_data in self.bth.bth_datas:
             pc_prop = PCBTHData(bth_data, hn)
             if pc_prop.wPropId in (PropIdEnum.PidTagFinderEntryId, PropIdEnum.PidTagIpmSubTreeEntryId, PropIdEnum.PidTagIpmWastebasketEntryId, PropIdEnum.PidTagEntryID):
-                pc_prop.value = EntryID(pc_prop.value)
+                try:
+                    pc_prop.value = EntryID(pc_prop.value)
+                except struct.error as e:
+                    log_error(e)
+                    continue
+
             self.props[pc_prop.wPropId] = pc_prop
 
 
@@ -2180,6 +2185,10 @@ def set_log(log, stats):
 
 def log_error(e):
     global error_log_list
+    try:
+        LOG
+    except NameError:
+        return
     error_log_list.append(str(e))
     LOG.error(str(e))
     LOG.error(traceback.format_exc())
