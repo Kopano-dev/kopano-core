@@ -2075,7 +2075,7 @@ std::string IMAP::PropsToFlags(LPSPropValue lpProps, unsigned int cValues, bool 
  *
  * @return MAPI Error code
  */
-LONG IMAP::IdleAdviseCallback(void *lpContext, ULONG cNotif,
+int IMAP::IdleAdviseCallback2(void *lpContext, unsigned int cNotif,
     LPNOTIFICATION lpNotif)
 {
 	auto lpIMAP = static_cast<IMAP *>(lpContext);
@@ -2166,6 +2166,17 @@ LONG IMAP::IdleAdviseCallback(void *lpContext, ULONG cNotif,
 		lpIMAP->HrResponse(RESP_UNTAGGED, stringify(lpIMAP->lstFolderMailEIDs.size()) + " EXISTS");
 	}
 	return S_OK;
+}
+
+int IMAP::IdleAdviseCallback(void *ctx, unsigned int z, NOTIFICATION *nt)
+{
+	int ret = S_OK;
+	try {
+		ret = IdleAdviseCallback2(ctx, z, nt);
+	} catch (const KMAPIError &e) {
+		return e.code();
+	}
+	return ret;
 }
 
 /**

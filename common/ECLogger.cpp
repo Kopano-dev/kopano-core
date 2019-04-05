@@ -564,7 +564,8 @@ ECLogger_Pipe::~ECLogger_Pipe() {
 
 void ECLogger_Pipe::Reset() {
 	// send the log process HUP signal again
-	kill(m_childpid, SIGHUP);
+	if (m_childpid > 0)
+		kill(m_childpid, SIGHUP);
 }
 
 void ECLogger_Pipe::log(unsigned int loglevel, const char *message)

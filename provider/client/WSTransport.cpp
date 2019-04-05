@@ -3482,7 +3482,8 @@ HRESULT WSTransport::HrResolvePseudoUrl(const char *lpszPseudoUrl, char **lppszS
 	cachedResult.hr = hr;
 	if (hr == hrSuccess) {
 		cachedResult.isPeer = sResponse.bIsPeer;
-		cachedResult.serverPath = sResponse.lpszServerPath;
+		if (sResponse.lpszServerPath != nullptr)
+			cachedResult.serverPath = sResponse.lpszServerPath;
 	}
 
 	{
