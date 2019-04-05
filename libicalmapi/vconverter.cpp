@@ -361,7 +361,7 @@ HRESULT VConverter::HrAddUids(icalcomponent *lpicEvent, icalitem *lpIcalItem)
 {
 	SPropValue sPropValue;
 	std::string strUid;
-	
+
 	// GlobalObjectId -> it has UID value & embeded Exception occurnece date for exceptions else 00000000
 	// CleanGlobalObjectID -> it has UID value
 
@@ -372,10 +372,18 @@ HRESULT VConverter::HrAddUids(icalcomponent *lpicEvent, icalitem *lpIcalItem)
 	if (hr != hrSuccess)
 		return hr;
 
+	// set as dispidApptTsRef
+	sPropValue.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTTSREF], PT_BINARY);
+	sPropValue.Value.bin.cb = strUid.size();
+	hr = KAllocCopy(strUid.data(), strUid.size(), reinterpret_cast<void **>(&sPropValue.Value.bin.lpb), lpIcalItem->base);
+	if (hr != hrSuccess)
+		return hr;
+	lpIcalItem->lstMsgProps.emplace_back(sPropValue);
+
 	hr = HrMakeBinaryUID(strUid, lpIcalItem->base, &sPropValue);
 	if (hr != hrSuccess)
 		return hr;
-	
+
 	// sets exception date in GUID from recurrence-id
 	hr = HrHandleExceptionGuid(lpicEvent, lpIcalItem->base, &sPropValue);
 	if (hr != hrSuccess)
@@ -384,7 +392,7 @@ HRESULT VConverter::HrAddUids(icalcomponent *lpicEvent, icalitem *lpIcalItem)
 	// set as dispidGlobalObjectID ...
 	sPropValue.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY);
 	lpIcalItem->lstMsgProps.emplace_back(sPropValue);
-	
+
 	// replace date in GUID, the dispidCleanGlobalObjectID should be same for exceptions and reccurence message.
 	// used for exceptions in outlook
 	if(IsOutlookUid(strUid))
@@ -397,6 +405,7 @@ HRESULT VConverter::HrAddUids(icalcomponent *lpicEvent, icalitem *lpIcalItem)
 	// set as dispidCleanGlobalObjectID...
 	sPropValue.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_CLEANID], PT_BINARY);
 	lpIcalItem->lstMsgProps.emplace_back(sPropValue);
+
 	// save the strUid to lookup for occurrences
 	lpIcalItem->sBinGuid = sPropValue;
 	return hrSuccess;
@@ -416,7 +425,7 @@ HRESULT VConverter::HrAddUids(icalcomponent *lpicEvent, icalitem *lpIcalItem)
 HRESULT VConverter::HrHandleExceptionGuid(icalcomponent *lpiEvent, void *base, SPropValue *lpsProp)
 {
 	char strHexDate[] = "00000000";
-	
+
 	if (lpsProp == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	auto icProp = icalcomponent_get_first_property(lpiEvent, ICAL_RECURRENCEID_PROPERTY);
