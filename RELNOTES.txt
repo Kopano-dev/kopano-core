@@ -6,6 +6,9 @@ Fixes:
 * client: ABEIDs were parsed wrong (and it broke with gcc8) [KC-1386, KS-42325]
 * libserver: restore a missing KCERR_NOT_FOUND return code in getStore
 * php7-ext: cease modifying potentially-immutable PHP variables [KC-1355]
+*  gateway: avoid uncaught exception when client disconnects midway [KC-1452]
+* client: add a nullptr check when parsing copying resolvePseudoUrlResponse
+  struct [KC-1453]
 Enhancements:
 * dbadm: new action "usmp-shrink-columns"
 * dagent: add directive to read whitelist domains and body from file
