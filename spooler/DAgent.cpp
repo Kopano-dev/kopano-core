@@ -2190,7 +2190,7 @@ static HRESULT ProcessDeliveryToServer(pym_plugin_intf *lppyMapiPlugin,
 
 				if (HrGetOneProp(lpMessageTmp, PR_INTERNET_MESSAGE_ID_W, &~lpMessageId) == hrSuccess)
 					wMessageId = lpMessageId->Value.lpszW;
-				HrGetOneProp(lpMessageTmp, PR_SUBJECT_W, &~lpSubject);
+				HrGetFullProp(lpMessageTmp, PR_SUBJECT_W, &~lpSubject);
 				ec_log_info("Delivered message to \"%ls\", Subject: \"%ls\", Message-Id: %ls, size %zu",
 					recip->wstrUsername.c_str(),
 					(lpSubject != NULL) ? lpSubject->Value.lpszW : L"<none>",

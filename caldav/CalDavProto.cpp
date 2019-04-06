@@ -866,6 +866,7 @@ HRESULT CalDAV::HrPut()
 	object_ptr<IMessage> lpMessage;
 	ICalToMapi *lpICalToMapi = NULL;
 	bool blNewEntry = false, bMatch = false;
+	SPropValue sPropApptTsRef;
 
 	m_lpRequest.HrGetUrl(&strUrl);
 	auto strGuid = StripGuid(strUrl);
@@ -885,8 +886,6 @@ HRESULT CalDAV::HrPut()
 			goto exit;
 		}
 	} else {
-		SPropValue sProp;
-
 		blNewEntry = true;
 		hr = m_lpUsrFld->CreateMessage(nullptr, 0, &~lpMessage);
 		if (hr != hrSuccess) {
@@ -898,13 +897,8 @@ HRESULT CalDAV::HrPut()
 		// PUT /caldav/user/folder/item.ics
 		// GET /caldav/user/folder/item.ics
 		// and item.ics has UID:unrelated, the above urls should work, so we save the item part in a custom tag.
-		sProp.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTTSREF], PT_STRING8);
-		sProp.Value.lpszA = (char*)strGuid.c_str();
-		hr = HrSetOneProp(lpMessage, &sProp);
-		if (hr != hrSuccess) {
-			kc_perror("Error adding property to new message", hr);
-			goto exit;
-		}
+		sPropApptTsRef.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTTSREF], PT_STRING8);
+		sPropApptTsRef.Value.lpszA = (char*)strGuid.c_str();
 	}
 
 	bMatch = !m_lpRequest.CheckIfMatch(lpMessage);
@@ -954,6 +948,15 @@ HRESULT CalDAV::HrPut()
 	{
 		kc_perror("Error converting iCal data in PUT request to MAPI message", hr);
 		goto exit;
+	}
+
+	// set dispidApptTsRef (overriding UID from iCal data)
+	if( blNewEntry ) {
+		hr = HrSetOneProp(lpMessage, &sPropApptTsRef);
+		if (hr != hrSuccess) {
+			kc_perror("Error adding property to new message", hr);
+			goto exit;
+		}
 	}
 
 	// get other messages if present

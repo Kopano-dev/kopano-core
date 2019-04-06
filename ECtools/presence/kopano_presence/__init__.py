@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 from .version import __version__
 
+import codecs
 from copy import deepcopy
 import hashlib
 import hmac
@@ -68,9 +69,9 @@ class Service(kopano.Service):
     def check_auth(self):
         """ check shared-secret based authentication token """
 
-        secret_key = str(self.config['server_secret_key'])
-        t, userid, sha256 = str(request.json['AuthenticationToken']).split(':')
-        if (sha256 != hmac.new(secret_key, '%s:%s' % (t, userid), hashlib.sha256).digest().encode('base64').strip().upper()) or \
+        secret_key = codecs.encode(self.config['server_secret_key'], 'utf-8')
+        t, userid, sha256 = codecs.encode(request.json['AuthenticationToken'], 'utf-8').split(b':')
+        if (sha256 != codecs.encode(hmac.new(secret_key, b'%s:%s' % (t, userid), hashlib.sha256).digest(), 'base64').strip().upper()) or \
            ((int(time.time()) - int(t)) > (self.config['server_token_expire'] * 60)):
             self.log.warning('unauthorized access; please check shared key settings in presence.cfg and client configuration.')
             abort(401)

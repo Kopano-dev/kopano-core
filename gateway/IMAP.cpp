@@ -748,7 +748,7 @@ HRESULT IMAP::HrCmdLogin(const std::string &strTag,
 	}
 	hr = HrMakeSpecialsList();
 	if (hr != hrSuccess) {
-		ec_log_warn("Failed to find special folder properties");
+		kc_pwarn("Failed to find special folder properties", hr);
 		HrResponse(RESP_TAGGED_NO, strTag, "LOGIN can't find special folder properties");
 		return hr;
 	}
@@ -2074,7 +2074,7 @@ std::string IMAP::PropsToFlags(LPSPropValue lpProps, unsigned int cValues, bool 
  *
  * @return MAPI Error code
  */
-LONG IMAP::IdleAdviseCallback(void *lpContext, ULONG cNotif,
+int IMAP::IdleAdviseCallback2(void *lpContext, unsigned int cNotif,
     LPNOTIFICATION lpNotif)
 {
 	auto lpIMAP = static_cast<IMAP *>(lpContext);
@@ -2165,6 +2165,17 @@ LONG IMAP::IdleAdviseCallback(void *lpContext, ULONG cNotif,
 		lpIMAP->HrResponse(RESP_UNTAGGED, stringify(lpIMAP->lstFolderMailEIDs.size()) + " EXISTS");
 	}
 	return S_OK;
+}
+
+int IMAP::IdleAdviseCallback(void *ctx, unsigned int z, NOTIFICATION *nt)
+{
+	int ret = S_OK;
+	try {
+		ret = IdleAdviseCallback2(ctx, z, nt);
+	} catch (const KMAPIError &e) {
+		return e.code();
+	}
+	return ret;
 }
 
 /**
@@ -2676,7 +2687,7 @@ HRESULT IMAP::HrMakeSpecialsList() {
 
 	auto hr = lpStore->GetProps(sPropsStore, 0, &cValues, &~lpPropArrayStore);
 	if (hr != hrSuccess)
-		return hr;
+		return kc_perror("GetProps SOT", hr);
 	for (ULONG i = 0; i < cValues; ++i)
 		if (PROP_TYPE(lpPropArrayStore[i].ulPropTag) == PT_BINARY)
 			lstSpecialEntryIDs.emplace(BinaryArray(lpPropArrayStore[i].Value.bin), lpPropArrayStore[i].ulPropTag);
