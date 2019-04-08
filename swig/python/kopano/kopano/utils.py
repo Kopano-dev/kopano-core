@@ -2,8 +2,8 @@
 """
 Part of the high-level python bindings for Kopano
 
-Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
-Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
+Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file)
+Copyright 2016 - 2019 Kopano and its licensors (see LICENSE file)
 """
 
 import binascii
@@ -76,13 +76,15 @@ def stream(mapiobj, proptag):
 
     return data
 
-def _openentry_helper(mapistore, entryid, flags): # avoid underwater action for archived items
+# avoid underwater action for archived items
+def _openentry_helper(mapistore, entryid, flags):
     try:
         return mapistore.OpenEntry(entryid, IID_IECMessageRaw, flags)
     except MAPIErrorInterfaceNotSupported:
         return mapistore.OpenEntry(entryid, None, flags)
 
-def openentry_raw(mapistore, entryid, flags): # try to open read/write, falling back to read-only
+# try to open read/write, falling back to read-only
+def openentry_raw(mapistore, entryid, flags):
     try:
         return _openentry_helper(mapistore, entryid, flags | MAPI_MODIFY)
     except MAPIErrorNoAccess:
@@ -108,7 +110,8 @@ def unixtime_to_rectime(t):
 
 def permissions(obj):
         try:
-            acl_table = obj.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, 0)
+            acl_table = obj.mapiobj.OpenProperty(
+                PR_ACL_TABLE, IID_IExchangeModifyTable, 0, 0)
         except MAPIErrorNotFound:
             return
         table = _table.Table(
@@ -125,14 +128,21 @@ def permission(obj, member, create):
             if permission.member == member:
                 return permission
         if create:
-            acl_table = obj.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, 0)
-            if isinstance(member, _user.User): # XXX *.id_ or something..?
+            acl_table = obj.mapiobj.OpenProperty(
+                PR_ACL_TABLE, IID_IExchangeModifyTable, 0, 0)
+
+            if isinstance(member, _user.User): # TODO *.id_ or something..?
                 memberid = member.userid
             elif isinstance(member, _group.Group):
                 memberid = member.groupid
             else:
                 memberid = member.companyid
-            acl_table.ModifyTable(0, [ROWENTRY(ROW_ADD, [SPropValue(PR_MEMBER_ENTRYID, _bdec(memberid)), SPropValue(PR_MEMBER_RIGHTS, 0)])])
+
+            props = [
+                SPropValue(PR_MEMBER_ENTRYID, _bdec(memberid)),
+                SPropValue(PR_MEMBER_RIGHTS, 0)
+            ]
+            acl_table.ModifyTable(0, [ROWENTRY(ROW_ADD, props)])
             return obj.permission(member)
         else:
             raise NotFoundError("no permission entry for '%s'" % member.name)
@@ -164,9 +174,11 @@ def human_to_bytes(s):
     except ValueError:
         raise ArgumentError('invalid size: %r' % init)
     letter = s.strip()
-    for sset in [('b', 'k', 'm', 'g', 't', 'p', 'e', 'z', 'y'),
-                 ('b', 'kb', 'mb', 'gb', 'tb', 'pb', 'eb', 'zb', 'yb'),
-                 ('b', 'kib', 'mib', 'gib', 'tib', 'pib', 'eib', 'zib', 'yib')]:
+    for sset in [
+        ('b', 'k', 'm', 'g', 't', 'p', 'e', 'z', 'y'),
+        ('b', 'kb', 'mb', 'gb', 'tb', 'pb', 'eb', 'zb', 'yb'),
+        ('b', 'kib', 'mib', 'gib', 'tib', 'pib', 'eib', 'zib', 'yib')
+    ]:
         if letter in sset:
             break
     else:

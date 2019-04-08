@@ -2,8 +2,8 @@
 """
 Part of the high-level python bindings for Kopano
 
-Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
-Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
+Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file)
+Copyright 2016 - 2019 Kopano and its licensors (see LICENSE file)
 """
 
 from MAPI import (
@@ -11,8 +11,8 @@ from MAPI import (
 )
 
 from MAPI.Tags import (
-    PR_RULE_NAME_W, PR_RULE_STATE, PR_RULE_PROVIDER_W, PR_RULE_ACTIONS, ST_ENABLED,
-    PR_RULE_CONDITION
+    PR_RULE_NAME_W, PR_RULE_STATE, PR_RULE_PROVIDER_W, PR_RULE_ACTIONS,
+    ST_ENABLED, PR_RULE_CONDITION
 )
 
 from MAPI.Struct import (
@@ -26,20 +26,31 @@ from .compat import (
 from .restriction import Restriction
 
 class Rule(object):
-    """Rule class"""
+    """Rule class.
+
+    A rule consist of a :class:`condition <Restriction>` and a set of
+    :class:`actions <Action>`. When a mail is delivered (usually in the
+    inbox), and it matches the condition, the actions are executed.
+
+    Typical actions are deletion, forwarding, copying and moving.
+    """
 
     def __init__(self, mapirow, table):
         self.mapirow = mapirow
         self.table = table
+        #: Rule name.
         self.name = mapirow.get(PR_RULE_NAME_W)
+        #: Rule provider.
         self.provider = mapirow.get(PR_RULE_PROVIDER_W)
         if PR_RULE_STATE in mapirow:
+            #: Is the rule active.
             self.active = bool(mapirow[PR_RULE_STATE] & ST_ENABLED)
         else:
             self.active = False
 
     @property
     def restriction(self):
+        """Rule :class:`condition <Restriction>`."""
         if PR_RULE_CONDITION in self.mapirow:
             return Restriction(mapiobj=self.mapirow[PR_RULE_CONDITION])
 
@@ -65,17 +76,20 @@ class Rule(object):
         return Action(action)
 
     def actions(self):
+        """Rule :class:`actions <Action>`."""
         if PR_RULE_ACTIONS in self.mapirow:
             for action in self.mapirow[PR_RULE_ACTIONS].lpAction:
                 yield Action(action)
 
     def __unicode__(self):
-        return u"Rule('%s')" % self.name
+        return "Rule('%s')" % self.name
 
     def __repr__(self):
         return _repr(self)
 
 class Action(object):
+    """:class:`Rule <Rule>` action class."""
+
     acttype_str = {
         1: 'move',
         2: 'copy',
@@ -92,10 +106,11 @@ class Action(object):
 
     def __init__(self, mapiobj):
         self.mapiobj = mapiobj
+        #: Action operator (*move*, *delete*, ..)
         self.operator = self.acttype_str[mapiobj.acttype]
 
     def __unicode__(self):
-        return u"Action('%s')" % self.operator
+        return "Action('%s')" % self.operator
 
     def __repr__(self):
         return _repr(self)

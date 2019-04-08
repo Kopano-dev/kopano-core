@@ -2,16 +2,16 @@
 """
 Part of the high-level python bindings for Kopano
 
-Copyright 2018 - Kopano and its licensors (see LICENSE file for details)
+Copyright 2018 - 2019 Kopano and its licensors (see LICENSE file)
 """
 
 # two-way conversion of timezones between MAPI and python
 #
 # note that pyko always outputs/expects naive system-local datetimes.
 # (except for recurrence.{start,end}, which are timezone-local dates)
-# this may have been a mistake, but OTOH, it does seem nice for interactive use.
-# anyway this is not easy to change now. we intend to add a global flag
-# to python-kopano, to make all datetimes timezone-aware.
+# this may have been a mistake, but OTOH, it does seem nice for interactive
+# use. anyway this is not easy to change now. we intend to add a global
+# flag to python-kopano, to make all datetimes timezone-aware.
 
 import calendar
 import datetime
@@ -31,32 +31,52 @@ TZFMT = '<lll H HHHHHHHH H HHHHHHHH'
 # convert MAPI timezone struct to datetime-compatible tzinfo class
 
 class MAPITimezone(datetime.tzinfo):
+    """Python datetime compatible MAPI timezone class.
+
+    With this class, we can use Python builtin functionality to
+    perform conversion between timezones, which avoids potential
+    subtle/tricky issues.
+    """
+
     def __init__(self, tzdata):
         # TODO more thoroughly check specs (MS-OXOCAL)
-        self.timezone, _, self.timezonedst, \
+        self.timezone, \
         _, \
-        _, self.dstendmonth, self.dstendweek, self.dstendday, self.dstendhour, _, _, _, \
-        _, \
-        _, self.dststartmonth, self.dststartweek, self.dststartday, self.dststarthour, _, _, _ = \
+        self.timezonedst, \
+        _, _, \
+        self.dstendmonth, \
+        self.dstendweek, \
+        self.dstendday, \
+        self.dstendhour, \
+        _, _, _, _, _, \
+        self.dststartmonth, \
+        self.dststartweek, \
+        self.dststartday, \
+        self.dststarthour, \
+        _, _, _ = \
             struct.unpack(TZFMT, tzdata)
 
     def _date(self, dt, dstmonth, dstweek, dstday, dsthour):
         d = datetime.datetime(dt.year, dstmonth, 1, dsthour)
         if dstday == 5: # last weekday of month
-            d += relativedelta(months=1, days=-1, weekday=RRULE_WEEKDAYS[dstweek](-1))
+            d += relativedelta(
+                months=1, days=-1, weekday=RRULE_WEEKDAYS[dstweek](-1))
         else:
-            d += relativedelta(weekday=RRULE_WEEKDAYS[dstweek](dstday))
+            d += relativedelta(
+                weekday=RRULE_WEEKDAYS[dstweek](dstday))
         return d
 
     def dst(self, dt):
         if self.dststartmonth == 0: # no DST
             return datetime.timedelta(0)
 
-        start = self._date(dt, self.dststartmonth, self.dststartweek, self.dststartday, self.dststarthour)
-        end = self._date(dt, self.dstendmonth, self.dstendweek, self.dstendday, self.dstendhour)
+        start = self._date(dt, self.dststartmonth, self.dststartweek,
+            self.dststartday, self.dststarthour)
+        end = self._date(dt, self.dstendmonth, self.dstendweek,
+            self.dstendday, self.dstendhour)
 
-        # Can't compare naive to aware objects, so strip the timezone from
-        # dt first.
+        # Can't compare naive to aware objects, so strip the timezone
+        # from dt first.
         # TODO end < start case!
         dt = dt.replace(tzinfo=None)
 
@@ -83,9 +103,9 @@ def _timezone_struct(name):
     # does not expose the actual DST rules, if any, and just expands all
     # transitions. this means we have to do some guess work.
     # on the other hand, the MAPI struct/rule is quite limited (transition
-    # always on "Nth weekday in month", and not historical). ideally of course
-    # we move away from the MAPI struct altogether, and just use the olson name..
-    # but that would probably break other clients at this point.
+    # always on "Nth weekday in month", and not historical). ideally of
+    # course we move away from the MAPI struct altogether, and just use the
+    # olson name.. but that would probably break other clients at this point.
 
     tz = pytz.timezone(name)
 
@@ -126,11 +146,14 @@ def _timezone_struct(name):
         dstbias = -DSTBIAS.seconds//60
         startmonth = DSTSTART.month
         endmonth = DSTEND.month
-        weekday = DSTSTART.weekday() # TODO don't assume start/end are same weekday and last-in-month
+        # TODO don't assume start/end are same weekday and last-in-month
+        weekday = DSTSTART.weekday()
 
-        return struct.pack(TZFMT, utcbias, 0, dstbias, 0, 0, endmonth, weekday, 5, 0, 0, 0, 0, 0, 0, startmonth, weekday, 5, 0, 0, 0, 0)
+        return struct.pack(TZFMT, utcbias, 0, dstbias, 0, 0, endmonth,
+            weekday, 5, 0, 0, 0, 0, 0, 0, startmonth, weekday, 5, 0, 0, 0, 0)
     else:
-        return struct.pack(TZFMT, utcbias, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+        return struct.pack(TZFMT, utcbias, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0)
 
 # conversion helpers
 

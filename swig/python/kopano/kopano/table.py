@@ -2,8 +2,8 @@
 """
 Part of the high-level python bindings for Kopano
 
-Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
-Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
+Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file)
+Copyright 2016 - 2019 Kopano and its licensors (see LICENSE file)
 """
 
 import csv
@@ -25,9 +25,13 @@ from .compat import fake_unicode as _unicode, repr as _repr
 from . import property_ as _prop
 
 class Table(object):
-    """Table class"""
+    """Table class
 
-    def __init__(self, server, mapiobj, mapitable, proptag=None, restriction=None, order=None, columns=None):
+    Low-level abstraction for MAPI tables.
+    """
+
+    def __init__(self, server, mapiobj, mapitable, proptag=None,
+            restriction=None, order=None, columns=None):
         self.server = server
         self.mapiobj = mapiobj
         self.mapitable = mapitable
@@ -35,7 +39,9 @@ class Table(object):
         if columns:
             mapitable.SetColumns(columns, 0)
         else:
-            cols = mapitable.QueryColumns(TBL_ALL_COLUMNS) # some columns are hidden by default XXX result (if at all) depends on table implementation
+            # some columns are hidden by default TODO result (if at all)
+            # depends on table implementation
+            cols = mapitable.QueryColumns(TBL_ALL_COLUMNS)
             cols = cols or mapitable.QueryColumns(0) # fall-back
             mapitable.SetColumns(cols, 0)
         if restriction:
@@ -43,9 +49,12 @@ class Table(object):
 
     @property
     def header(self):
-        return [_unicode(REV_TAG.get(c, hex(c))) for c in self.mapitable.QueryColumns(0)]
+        """Return all table column names."""
+        return [_unicode(REV_TAG.get(c, hex(c))) \
+            for c in self.mapitable.QueryColumns(0)]
 
     def rows(self, batch_size=100, page_start=None, page_limit=None):
+        """Return all table rows."""
         offset = 0
         if page_limit is not None:
             batch_size = page_limit
@@ -69,13 +78,15 @@ class Table(object):
 
     @property
     def count(self):
+        """Return table row count."""
         return self.mapitable.GetRowCount(0)
 
     def dict_rows(self, batch_size=100):
+        """Return all table rows as dictionaries."""
         for row in self.rows(batch_size):
             yield dict((p.proptag, p.mapiobj.Value) for p in row)
 
-    # XXX: apply batch_size as shown above
+    # TODO: apply batch_size as shown above
     def dict_(self, key, value):
         d = {}
         for row in self.mapitable.QueryRows(-1, 0):
@@ -83,18 +94,22 @@ class Table(object):
         return d
 
     def index(self, key):
+        """Return key->row dictionary keyed on given column (proptag)."""
         d = {}
         for row in self.mapitable.QueryRows(-1, 0):
-            d[PpropFindProp(row, key).Value] = dict((c.ulPropTag, c.Value) for c in row)
+            d[PpropFindProp(row, key).Value] = \
+                dict((c.ulPropTag, c.Value) for c in row)
         return d
 
     def data(self, header=False):
+        """Return list per row with textual representation for each element."""
         data = [[p.strval for p in row] for row in self.rows()]
         if header:
             data = [self.header] + data
         return data
 
     def text(self, borders=False):
+        """Return textual table representation."""
         result = []
         data = self.data(header=True)
         colsizes = [max(len(d[i]) for d in data) for i in range(len(data[0]))]
@@ -106,15 +121,26 @@ class Table(object):
         return '\n'.join(result)
 
     def csv(self, *args, **kwargs):
+        """Return CSV data for table. All arguments are passed to
+        csv.writer."""
         csvfile = StringIO()
         writer = csv.writer(csvfile, *args, **kwargs)
         writer.writerows(self.data(header=True))
         return csvfile.getvalue()
 
     def sort(self, tags):
+        """Sort table.
+
+        :param tags: Tag(s) on which to sort.
+        """
         if not isinstance(tags, tuple):
             tags = (tags,)
-        self.mapitable.SortTable(SSortOrderSet([SSort(abs(tag), TABLE_SORT_DESCEND if tag < 0 else TABLE_SORT_ASCEND) for tag in tags], 0, 0), 0)
+
+        ascend_descend = [SSort(abs(tag),
+            TABLE_SORT_DESCEND if tag < 0 else TABLE_SORT_ASCEND)
+                for tag in tags]
+
+        self.mapitable.SortTable(SSortOrderSet(ascend_descend, 0, 0), 0)
 
     def __iter__(self):
         return self.rows()
@@ -123,7 +149,7 @@ class Table(object):
         tablename = None
         if self.proptag:
             tablename = REV_TAG.get(self.proptag)
-        return u'Table(%s)' % tablename
+        return 'Table(%s)' % tablename
 
     def __repr__(self):
         return _repr(self)
