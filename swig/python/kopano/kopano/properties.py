@@ -29,10 +29,8 @@ class Properties(object):
     """Property mixin class
 
     MAPI property-specific functionality, mixed into several
-    classes that deal with MAPI properties, such as :class:`Item <Item>`
-    and :class:`Folder <Folder>`.
-
-    Only used to separate out this functionality.
+    classes whose instances represent sets of MAPI properties,
+    such as :class:`Item <Item>` and :class:`Folder <Folder>`.
     """
 
     def prop(self, proptag, create=False, proptype=None):

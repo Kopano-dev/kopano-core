@@ -75,10 +75,10 @@ class PhysicalAddress(object):
         return 'PhysicalAddress()'
 
 class Contact(object):
-    """Contact (mixin) class
+    """Contact mixin class
 
-    Contact-specific functionality, mixed into the :class:`items <Item>`
-    class. Only used to separate out this functionality.
+    Contact-specific functionality, mixed into the :class:`Item`
+    class.
     """
 
     @property

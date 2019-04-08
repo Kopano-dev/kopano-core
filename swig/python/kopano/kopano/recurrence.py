@@ -348,7 +348,7 @@ class Recurrence(object):
 
     @property
     def end(self):
-        """End of recurrence range (using! recurrence timezone). Used depending
+        """End of recurrence range (using recurrence timezone!). Used depending
         on range type."""
         return datetime.datetime.utcfromtimestamp(
             _utils.rectime_to_unixtime(self._end_date))
@@ -1290,8 +1290,8 @@ class Occurrence(object):
 
     Abstraction for specific occurrences of a :class:`recurrence <Recurrence>`.
 
-    Works similar to class :class:`Item <Item>`, except underwater it takes
-    care of recurrence aspects, such as exceptions.
+    Works similar to class :class:`Item <Item>`, except there may be multiple
+    occurrences for a single (recurring) item.
     """
 
     def __init__(self, item, start=None, end=None, subject=None,location=None,

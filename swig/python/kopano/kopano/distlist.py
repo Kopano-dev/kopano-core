@@ -23,8 +23,7 @@ WRAPPED_EID_TYPE_PERSONAL_DISTLIST = 4
 class DistList(object):
     """DistList class
 
-    A distribution list is an :class:`item <Item>` containing users,
-    groups and/or sub distribution lists.
+    A distribution list contains users, groups and/or sub distribution lists.
     """
 
     def __init__(self, item):
