@@ -22,7 +22,7 @@ except ImportError: # pragma: no cover
 class Quota(object):
     """Quota class
 
-    Manage :user:`user <User>` or :class:`company <Company>`
+    Manage :class:`user <User>` or :class:`company <Company>`
     quota settings.
     """
 

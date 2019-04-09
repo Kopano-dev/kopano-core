@@ -53,10 +53,10 @@ RECURRING_NAME = (PSETID_Appointment, MNID_ID, 33315)
 BUSYSTATUS = (PSETID_Appointment, MNID_ID, 33285)
 
 class Appointment(object):
-    """Appointment (mixin) class
+    """Appointment mixin class
 
-    Appointment-specific functionality, mixed into the :class:`items <Item>`
-    class. Only used to separate out this functionality.
+    Appointment-specific functionality, mixed into the :class:`Item`
+    class.
     """
 
     @property

@@ -119,6 +119,8 @@ class Store(Properties):
 
     An *archive* store is used in combination with the archiver, and contains
     'older' data, which is migrated there according to configurable criteria.
+
+    Includes all functionality from :class:`Properties`.
     """
 
     def __init__(self, guid=None, entryid=None, mapiobj=None, server=None):

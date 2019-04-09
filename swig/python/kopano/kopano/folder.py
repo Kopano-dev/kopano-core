@@ -117,6 +117,8 @@ class Folder(Properties):
 
     Abstraction for collections of :class:`items <Item>`. For example,
     folders, calendars and contact folders.
+
+    Includes all functionality from :class:`Properties`.
     """
 
     def __init__(self, store=None, entryid=None, associated=False,

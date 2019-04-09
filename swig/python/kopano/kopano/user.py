@@ -45,7 +45,12 @@ from . import server as _server
 from . import company as _company
 
 class User(Properties):
-    """User class."""
+    """User class.
+
+    Includes all functionality from :class:`Properties`.
+
+    :class:`Store` attributes can be accessed directly from a :class:`User` instance.
+    """
 
     def __init__(self, name=None, server=None, email=None, ecuser=None,
                  userid=None):

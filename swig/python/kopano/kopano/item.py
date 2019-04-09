@@ -150,6 +150,9 @@ class Item(Properties, Contact, Appointment):
 
     Abstraction for basic items, such as emails, calendar appointments
     and contacts.
+
+    Includes all functionality from :class:`Appointment`,
+    :class:`Contact` and :class:`Properties`.
     """
 
     def __init__(self, folder=None, eml=None, ics=None, vcf=None, load=None,

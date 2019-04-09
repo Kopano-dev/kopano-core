@@ -49,6 +49,8 @@ class Attachment(Properties):
 
     Attachment abstraction. Attachments may contain binary data or
     embedded :class:`items <Item>`.
+
+    Includes all functionality from :class:`Properties`.
     """
 
     def __init__(self, item, mapiitem=None, entryid=None, mapiobj=None):
