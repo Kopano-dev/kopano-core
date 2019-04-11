@@ -638,7 +638,7 @@ static HRESULT running_service(char **argv)
 	// Setup signals
 	signal(SIGPIPE, SIG_IGN);
 	sigemptyset(&act.sa_mask);
-	act.sa_flags   = SA_RESTART;
+	act.sa_flags   = SA_ONSTACK | SA_RESTART;
 	act.sa_handler = sigterm;
 	sigaction(SIGTERM, &act, nullptr);
 	sigaction(SIGINT, &act, nullptr);
