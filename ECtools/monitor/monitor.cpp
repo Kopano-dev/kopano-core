@@ -68,13 +68,6 @@ static HRESULT running_service(void)
 
 static void sighandle(int sig)
 {
-	// Win32 has Unix semantics and therefore requires us to reset the signal handler.
-	struct sigaction act{};
-	sigemptyset(&act.sa_mask);
-	act.sa_flags   = SA_RESTART;
-	act.sa_handler = sighandle;
-	sigaction(SIGTERM, &act, nullptr);
-	sigaction(SIGINT, &act, nullptr);
 	if (m_lpThreadMonitor) {
 		if (!m_lpThreadMonitor->bShutdown)
 			/* do not log multimple shutdown messages */
@@ -255,7 +248,7 @@ static ECRESULT main2(int argc, char **argv)
 	// SIGSEGV backtrace support
 	struct sigaction act{};
 	sigemptyset(&act.sa_mask);
-	act.sa_flags   = SA_RESTART;
+	act.sa_flags   = SA_ONSTACK;
 	act.sa_handler = sighandle;
 	sigaction(SIGTERM, &act, nullptr);
 	sigaction(SIGINT, &act, nullptr);
