@@ -7,12 +7,13 @@ if ENABLE_BASE
 SUBDIRS += ECtools/archiver/include/kopano \
 	common/include/kopano m4lcommon/include/kopano \
 	mapi4linux/include inetmapi/include/inetmapi provider/include \
-	spooler/python installer installer/linux installer/quotamail \
+	spooler/python installer installer/quotamail \
 	installer/userscripts po
 if ENABLE_PYBIND
 SUBDIRS += swig
 endif
 endif # ENABLE_BASE
+SUBDIRS += installer/linux
 if ENABLE_PYTHON
 SUBDIRS += ECtools/backup ECtools/cli ECtools/migration-pst \
 	ECtools/presence ECtools/rest ECtools/search ECtools/spamd \
@@ -55,8 +56,10 @@ AM_CXXFLAGS = ${ZCXXFLAGS} -Wno-sign-compare
 #
 # target programs
 #
+dist_bin_SCRIPTS =
 if ENABLE_BASE
 bin_PROGRAMS = kopano-fsck kopano-ibrule kopano-oof kopano-passwd kopano-stats
+dist_bin_SCRIPTS += ECtools/migration-imap/kopano-migration-imap
 sbin_PROGRAMS = \
 	kopano-admin kopano-archiver kopano-dagent kopano-dbadm kopano-gateway \
 	kopano-ical kopano-monitor kopano-server kopano-spooler \
@@ -74,8 +77,7 @@ SUBDIRS += swig
 endif # ENABLE_BASE
 
 if ENABLE_PYTHON
-dist_bin_SCRIPTS = ECtools/migration-imap/kopano-migration-imap \
-	ECtools/utils/kopano-set-oof
+dist_bin_SCRIPTS += ECtools/utils/kopano-set-oof
 dist_sbin_SCRIPTS = ECtools/utils/kopano-mailbox-permissions \
 	ECtools/archiver/scripts/kopano-archiver-aclset \
 	ECtools/archiver/scripts/kopano-archiver-aclsync \

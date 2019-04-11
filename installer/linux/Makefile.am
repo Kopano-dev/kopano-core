@@ -21,6 +21,10 @@ endif # WITH_PYTHON3
 config_files =
 dist_doc_DATA =
 dist_sbin_SCRIPTS =
+data_configdir = ${docdir}/example-config
+dist_data_config_DATA = ${config_files}
+sysconf_apparmordir = ${docdir}/example-config/apparmor.d
+dist_sysconf_apparmor_DATA =
 
 if ENABLE_BASE
 config_files += admin.cfg archiver.cfg autorespond dagent.cfg gateway.cfg \
@@ -28,14 +32,12 @@ config_files += admin.cfg archiver.cfg autorespond dagent.cfg gateway.cfg \
 dist_sysusers_DATA = kopano-sysusers.conf
 dist_tmpfiles_DATA = kopano-tmpfiles.conf
 dist_pkgdata_DATA = ldap.active-directory.cfg ldap.openldap.cfg ldap.propmap.cfg
-data_configdir = ${docdir}/example-config
-dist_data_config_DATA = ${config_files} ldap.cfg
+dist_data_config_DATA += ldap.cfg
 dist_doc_DATA += audit-parse.pl createuser.dotforward db-calc-storesize \
 	db-convert-attachments-to-files db-remove-orphaned-attachments \
 	ldap-switch-sendas.pl ssl-certificates.sh
-sysconf_apparmordir = ${docdir}/example-config/apparmor.d
-dist_sysconf_apparmor_DATA = kopano-coredump.aa kopano-client.aa \
-	usr.sbin.kopano-dagent usr.sbin.kopano-search usr.sbin.kopano-server
+dist_sysconf_apparmor_DATA += kopano-coredump.aa kopano-client.aa \
+	usr.sbin.kopano-dagent usr.sbin.kopano-server
 BUILT_SOURCES = ldap.openldap.cfg ldap.active-directory.cfg
 dist_sbin_SCRIPTS += kopano-autorespond
 sysconf_rotatedir = ${sysconfdir}/logrotate.d
@@ -46,6 +48,7 @@ endif # ENABLE_BASE
 
 if ENABLE_PYTHON
 config_files += autorespond.cfg backup.cfg migration-pst.cfg presence.cfg search.cfg spamd.cfg
+dist_sysconf_apparmor_DATA += usr.sbin.kopano-search
 dist_doc_DATA += ${top_srcdir}/tools/python-scripts/update-resource-recipients
 kgwdocdir = ${docdir}/../kopano-gateway
 dist_kgwdoc_DATA = ${top_srcdir}/tools/python-scripts/optimize-imap.py
