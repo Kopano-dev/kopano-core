@@ -2829,10 +2829,11 @@ static HRESULT running_service(char **argv, bool bDaemonize,
 	// Setup signals
 	struct sigaction act{};
 	sigemptyset(&act.sa_mask);
-	act.sa_flags   = SA_ONSTACK | SA_RESTART;
+	act.sa_flags   = SA_ONSTACK | SA_RESTART | SA_RESETHAND;
 	act.sa_handler = sigterm;
 	sigaction(SIGTERM, &act, nullptr);
 	sigaction(SIGINT, &act, nullptr);
+	act.sa_flags   = SA_ONSTACK | SA_RESTART;
 	act.sa_handler = sigchld;
 	sigaction(SIGCHLD, &act, nullptr);
 
