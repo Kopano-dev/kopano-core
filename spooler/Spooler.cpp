@@ -1136,6 +1136,8 @@ static int main2(int argc, char **argv)
 			hr = running_server(szSMTP, ulPort, szPath);
 	if (!bForked)
 		ec_log_info("Spooler shutdown complete");
+	/* ~ECLogger_Pipe could call hCondMessagesWaiting.notify_one and thus needs to be gone before the cv */
+	g_lpLogger.reset();
 	return hr;
 }
 
