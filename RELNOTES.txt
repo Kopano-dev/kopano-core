@@ -13,6 +13,7 @@ Fixes:
   know about [KC-1402]
 * server: fixed TLS negotiation errors with openSSL 1.1.1 [KC-1439]
 * spooler: avoid unnecessary QP encoding in header fields [KC-1430]
+* spooler: fix hang on process termination [KC-1449]
 * srvadm: do not complain about default_store_locale [KC-1416]
 * dbadm: some long-running statements can now be run in parallel
   with the new -j option [KS-42617]
