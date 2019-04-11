@@ -1073,7 +1073,7 @@ static int main2(int argc, char **argv)
 	else {
 		// notification condition
 		act.sa_handler = process_signal;
-		act.sa_flags = SA_ONSTACK | SA_RESTART;
+		act.sa_flags = SA_ONSTACK;
 		sigemptyset(&act.sa_mask);
 		sigaction(SIGHUP, &act, nullptr);
 		sigaction(SIGCHLD, &act, nullptr);
@@ -1134,6 +1134,8 @@ static int main2(int argc, char **argv)
 			hr = running_server(szSMTP, ulPort, szPath);
 	if (!bForked)
 		ec_log_info("Spooler shutdown complete");
+	/* ~ECLogger_Pipe could call hCondMessagesWaiting.notify_one and thus needs to be gone before the cv */
+	g_lpLogger.reset();
 	return hr;
 }
 

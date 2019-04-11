@@ -2,16 +2,26 @@
 
 ACLOCAL_AMFLAGS = -I autoconf
 
-SUBDIRS = . ECtools/archiver/include/kopano \
+SUBDIRS = .
+if ENABLE_BASE
+SUBDIRS += ECtools/archiver/include/kopano \
 	common/include/kopano m4lcommon/include/kopano \
 	mapi4linux/include inetmapi/include/inetmapi provider/include \
-	spooler/python
-SUBDIRS += installer po
+	spooler/python installer installer/quotamail \
+	installer/userscripts po
+if ENABLE_PYBIND
+SUBDIRS += swig
+endif
+endif # ENABLE_BASE
+SUBDIRS += installer/linux
 if ENABLE_PYTHON
 SUBDIRS += ECtools/backup ECtools/cli ECtools/migration-pst \
 	ECtools/presence ECtools/search ECtools/spamd \
-	ECtools/msr ECtools/utils swig
+	ECtools/msr ECtools/utils installer/searchscripts swig/python/kopano
 endif
+BUILT_SOURCES =
+CLEANFILES =
+EXTRA_DIST =
 
 
 AM_CPPFLAGS = ${ZCPPFLAGS} -DLDAP_THREAD_SAFE \
@@ -44,23 +54,16 @@ AM_CXXFLAGS = ${ZCXXFLAGS} -Wno-sign-compare
 #
 # target programs
 #
+dist_bin_SCRIPTS =
+if ENABLE_BASE
 bin_PROGRAMS = kopano-fsck kopano-ibrule kopano-oof kopano-passwd kopano-stats
-dist_bin_SCRIPTS = ECtools/migration-imap/kopano-migration-imap \
-	ECtools/utils/kopano-set-oof
+dist_bin_SCRIPTS += ECtools/migration-imap/kopano-migration-imap
 sbin_PROGRAMS = \
 	kopano-admin kopano-archiver kopano-dagent kopano-dbadm kopano-gateway \
 	kopano-ical kopano-monitor kopano-server kopano-spooler \
 	kopano-srvadm kopano-storeadm
-dist_sbin_SCRIPTS = ECtools/utils/kopano-mailbox-permissions \
-	ECtools/archiver/scripts/kopano-archiver-aclset \
-	ECtools/archiver/scripts/kopano-archiver-aclsync \
-	ECtools/archiver/scripts/kopano-archiver-restore \
-	tools/python-scripts/kopano-fix-ipm-subtree \
-	tools/python-scripts/kopano-localize-folders \
-	tools/python-scripts/kopano-recreate-systemfolders
 noinst_PROGRAMS = kopano-cfgchecker
 pkglibexec_PROGRAMS = kscriptrun mapitime
-pkglibexec_SCRIPTS =
 check_PROGRAMS = tests/ablookup tests/htmltext tests/imtomapi \
 	tests/kc-335 tests/mapialloctime \
 	tests/readflag tests/zcpmd5
@@ -68,7 +71,23 @@ if HAVE_TIDY
 check_PROGRAMS += tests/rosie
 endif
 noinst_PROGRAMS += ${check_PROGRAMS}
+SUBDIRS += swig
+endif # ENABLE_BASE
 
+if ENABLE_PYTHON
+dist_bin_SCRIPTS += ECtools/utils/kopano-set-oof
+dist_sbin_SCRIPTS = ECtools/utils/kopano-mailbox-permissions \
+	ECtools/archiver/scripts/kopano-archiver-aclset \
+	ECtools/archiver/scripts/kopano-archiver-aclsync \
+	ECtools/archiver/scripts/kopano-archiver-restore \
+	tools/python-scripts/kopano-fix-ipm-subtree \
+	tools/python-scripts/kopano-localize-folders \
+	tools/python-scripts/kopano-recreate-systemfolders \
+	tools/python-scripts/kopano-cachestat
+endif # ENABLE_PYTHON
+
+
+if ENABLE_BASE
 
 #
 # target libraries
@@ -98,7 +117,7 @@ noinst_DATA = \
 	libkccontacts.ldd libkcfreebusy.ldd libkcicalmapi.ldd \
 	libkcinetmapi.ldd ${COND_libkcrosie_ldd} \
 	libkcserver.ldd libkcutil.ldd libmapi.ldd
-if ENABLE_PYTHON
+if ENABLE_PYBIND
 lib_LTLIBRARIES += libkcpyplug.la
 noinst_DATA += libkcpyplug.ldd
 endif
@@ -124,9 +143,8 @@ pkgconfdir = ${libdir}/pkgconfig
 pkgconf_DATA = common/kopano.pc
 mapiinfdir = ${prefix}/lib/mapi.d
 dist_mapiinf_DATA = provider/client/kopano.inf provider/contacts/zcontacts.inf
-BUILT_SOURCES =
-CLEANFILES = ${noinst_DATA}
-EXTRA_DIST = autoconf/1126.h php-ext/mapi.sym
+CLEANFILES += ${noinst_DATA}
+EXTRA_DIST += autoconf/1126.h php-ext/mapi.sym
 default_sym = ${top_builddir}/default.sym
 default_SYFLAGS = -Wl,--version-script=${default_sym}
 plugin_SYFLAGS = -Wl,--version-script=provider/plugin.sym
@@ -771,7 +789,7 @@ CLEANFILES += spooler/PythonSWIGRuntime.h
 EXTRA_DIST += spooler/PythonSWIGRuntime.h
 
 spooler/PythonSWIGRuntime.h:
-if ENABLE_PYTHON
+if ENABLE_PYBIND
 	${SWIG_EXEC} -python -external-runtime $@
 else
 	: >$@
@@ -842,39 +860,52 @@ libkcserver_ldap_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version \
 EXTRA_libkcserver_ldap_la_DEPENDENCIES = provider/plugin.sym
 endif
 
+gdbautoloaddir = ${datadir}/gdb/auto-load/${libdir}
+dist_gdbautoload_DATA = tools/libmapi.so.1.0.0-gdb.py
+
+endif # ENABLE_BASE
+
 
 #
 # manual pages
 #
-dist_man_MANS = \
+dist_man_MANS =
+if ENABLE_BASE
+dist_man_MANS += \
 	doc/kopano.7 \
 	doc/kopano-admin.8 \
-	doc/kopano-cli.8 \
 	doc/kopano-archiver.8 doc/kopano-archiver.cfg.5 \
-	doc/kopano-autorespond.8 doc/kopano-cachestat.8 \
+	doc/kopano-autorespond.8 \
 	doc/kopano-cfgchecker.8 doc/kopano-coredump.5 \
 	doc/kopano-dagent.8 doc/kopano-dagent.cfg.5 doc/kopano-dbadm.8 \
-	doc/kopano-mr-accept.8 doc/kopano-mr-process.8 \
 	doc/kopano-fsck.1 \
 	doc/kopano-gateway.8 doc/kopano-gateway.cfg.5 doc/kopano-ibrule.1 \
 	doc/kopano-ical.8 doc/kopano-ical.cfg.5 \
 	doc/kopano-ldap.cfg.5 \
-	doc/kopano-mailbox-permissions.8 \
 	doc/kopano-monitor.8 doc/kopano-monitor.cfg.5 \
 	doc/kopano-oof.1 doc/kopano-passwd.1 \
-	doc/kopano-search.8 doc/kopano-search.cfg.5 \
-	doc/kopano-msr.8 doc/kopano-msr.cfg.5 \
 	doc/kopano-server.8 doc/kopano-server.cfg.5 \
-	doc/kopano-set-oof.1 \
-	doc/kopano-spamd.8 doc/kopano-spamd.cfg.5 \
 	doc/kopano-spooler.8 doc/kopano-spooler.cfg.5 doc/kopano-statsd.8 \
-	doc/kopano-backup.8 doc/kopano-backup.cfg.5 \
 	doc/kopano-srvadm.8 doc/kopano-stats.1 doc/kopano-storeadm.8 \
 	doc/kopano-unix.cfg.5 \
-	doc/kopano-migration-pst.8 doc/kopano-migration-pst.cfg.5 \
-	doc/kopano-archiver-aclsync.8 \
+	doc/mapi.7
+endif
+if ENABLE_PYTHON
+dist_man_MANS += \
 	doc/kopano-archiver-aclset.8 \
-	doc/kopano-archiver-restore.8 doc/mapi.7
+	doc/kopano-archiver-aclsync.8 \
+	doc/kopano-archiver-restore.8 \
+	doc/kopano-backup.8 doc/kopano-backup.cfg.5 \
+	doc/kopano-cachestat.8 \
+	doc/kopano-cli.8 \
+	doc/kopano-mailbox-permissions.8 \
+	doc/kopano-migration-pst.8 doc/kopano-migration-pst.cfg.5 \
+	doc/kopano-msr.8 doc/kopano-msr.cfg.5 \
+	doc/kopano-mr-accept.8 doc/kopano-mr-process.8 \
+	doc/kopano-search.8 doc/kopano-search.cfg.5 \
+	doc/kopano-set-oof.1 \
+	doc/kopano-spamd.8 doc/kopano-spamd.cfg.5
+endif
 
 #
 # build infrastructure
@@ -892,10 +923,6 @@ EXTRA_DIST += .version versionheader.sh \
 
 BUILT_SOURCES += source-moved-check common/include/kopano/ecversion.h
 CLEANFILES += common/include/kopano/ecversion.h
-
-dist_sbin_SCRIPTS += tools/python-scripts/kopano-cachestat
-gdbautoloaddir = ${datadir}/gdb/auto-load/${libdir}
-dist_gdbautoload_DATA = tools/libmapi.so.1.0.0-gdb.py
 
 AM_DISTCHECK_CONFIGURE_FLAGS = --with-dcprefix='$${prefix}'
 

@@ -1236,10 +1236,11 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	signal(SIGUSR2, SIG_IGN);
 	signal(SIGPIPE, SIG_IGN);
 	act.sa_handler = process_signal;
-	act.sa_flags = SA_ONSTACK | SA_RESTART;
+	act.sa_flags = SA_ONSTACK;
 	sigemptyset(&act.sa_mask);
-	sigaction(SIGINT, &act, nullptr);
 	sigaction(SIGHUP, &act, nullptr);
+	act.sa_flags = SA_ONSTACK | SA_RESETHAND;
+	sigaction(SIGINT, &act, nullptr);
 	sigaction(SIGTERM, &act, nullptr);
 	ec_setup_segv_handler("kopano-server", PROJECT_VERSION);
 
