@@ -2829,11 +2829,11 @@ static HRESULT running_service(char **argv, bool bDaemonize,
 	// Setup signals
 	struct sigaction act{};
 	sigemptyset(&act.sa_mask);
-	act.sa_flags   = SA_ONSTACK | SA_RESTART | SA_RESETHAND;
+	act.sa_flags   = SA_ONSTACK | SA_RESETHAND;
 	act.sa_handler = sigterm;
 	sigaction(SIGTERM, &act, nullptr);
 	sigaction(SIGINT, &act, nullptr);
-	act.sa_flags   = SA_ONSTACK | SA_RESTART;
+	act.sa_flags   = SA_ONSTACK;
 	act.sa_handler = sigchld;
 	sigaction(SIGCHLD, &act, nullptr);
 
@@ -3449,7 +3449,7 @@ int main(int argc, char **argv) try {
 
 	signal(SIGPIPE, SIG_IGN);
 	sigemptyset(&act.sa_mask);
-	act.sa_flags = SA_ONSTACK | SA_RESTART;
+	act.sa_flags = SA_ONSTACK;
 	act.sa_handler = sighup;
 	sigaction(SIGHUP, &act, nullptr);
 	ec_setup_segv_handler("kopano-dagent", PROJECT_VERSION);

@@ -248,7 +248,7 @@ static ECRESULT main2(int argc, char **argv)
 	// SIGSEGV backtrace support
 	struct sigaction act{};
 	sigemptyset(&act.sa_mask);
-	act.sa_flags   = SA_ONSTACK | SA_RESTART;
+	act.sa_flags   = SA_ONSTACK;
 	act.sa_handler = sighandle;
 	sigaction(SIGTERM, &act, nullptr);
 	sigaction(SIGINT, &act, nullptr);

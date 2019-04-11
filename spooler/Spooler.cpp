@@ -1075,7 +1075,7 @@ static int main2(int argc, char **argv)
 	else {
 		// notification condition
 		act.sa_handler = process_signal;
-		act.sa_flags = SA_ONSTACK | SA_RESTART;
+		act.sa_flags = SA_ONSTACK;
 		sigemptyset(&act.sa_mask);
 		sigaction(SIGHUP, &act, nullptr);
 		sigaction(SIGCHLD, &act, nullptr);
