@@ -155,7 +155,10 @@ class Appointment(object):
     @property
     def recurrence(self):
         """Appointment :class:`recurrence <Recurrence>`."""
-        return Recurrence(self)
+        try:
+            return Recurrence(self)
+        except NotFoundError:
+            pass
 
     def occurrences(self, start=None, end=None):
         """Appointment :class:`occurrences <Occurrence>` (expanding
@@ -164,7 +167,9 @@ class Appointment(object):
         :param start: start from given date (optional)
         :param end: end at given date (optional)
         """
-        if self.recurring:
+
+        recurrence = self.recurrence
+        if self.recurring and recurrence:
             for occ in self.recurrence.occurrences(start=start, end=end):
                 yield occ
         else:
@@ -173,6 +178,12 @@ class Appointment(object):
                 start = max(self.start, start) if start else self.start
                 end = min(self.end, end) if end else self.end
                 yield Occurrence(self, start, end)
+
+        if not recurrence and self.recurring:
+            self.server.log.warn("Item '{}' has no recurrence ".format(self.entryid))
+        if recurrence and not self.recurring:
+            self.server.log.warn("Item '{}' has a recurrence but is not recurring".format(self.entryid))
+
 
     def occurrence(self, id_=None):
         if self.recurring:
