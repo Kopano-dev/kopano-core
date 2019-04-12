@@ -104,6 +104,21 @@ AC_SUBST([PACKAGE_ABI])
 abs_top_srcdir=`cd $srcdir; pwd`
 abs_top_builddir=`pwd`
 
+AC_CANONICAL_HOST
+AS_CASE([$host_os],
+	[openbsd], [
+		BUILDOS="openbsd"
+		ZCPPFLAGS="$ZCPPFLAGS -DOPENBSD"
+		LN_TFSV="ln -fs"
+	],
+	[linux*], [
+		BUILDOS="linux"
+		ZCPPFLAGS="$ZCPPFLAGS -DLINUX"
+		LN_TFSV="ln -Tfsv"
+	],
+	[*], [
+		LN_TFSV="ln -fs"
+	])
 
 AS_IF([test "$want_base" != no], [
 
@@ -120,20 +135,7 @@ LDFLAGS_system=$LDFLAGS
 LIBS_system=$LIBS
 
 # check build OS
-AC_CANONICAL_HOST
 ZCPPFLAGS=""
-AS_CASE([$host_os],
-	[openbsd], [
-		BUILDOS="openbsd"
-		ZCPPFLAGS="$ZCPPFLAGS -DOPENBSD"
-		LN_TFSV="ln -fs"
-	],
-	[linux*], [
-		BUILDOS="linux"
-		ZCPPFLAGS="$ZCPPFLAGS -DLINUX"
-		LN_TFSV="ln -Tfsv"
-	])
-
 >conftest.cpp
 ZPHPCXXFLAGS=""
 AS_IF([$CXX -Wno-narrowing -c conftest.cpp], [ZPHPCXXFLAGS="-Wno-narrowing"])
