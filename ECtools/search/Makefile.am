@@ -4,7 +4,6 @@ EXTRA_DIST = setup.py		\
 	setup.cfg \
 	kopano_search/__init__.py \
 	kopano_search/plaintext.py \
-	kopano_search/magic.py \
 	kopano_search/plugin_solr.py  \
 	kopano_search/plugin_xapian.py  \
 	kopano_search/xmltotext.xslt
