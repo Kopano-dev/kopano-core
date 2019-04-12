@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 # SPDX-License-Identifier: AGPL-3.0-only
-import magic
 import mimetypes
 import os.path
 import resource
@@ -8,11 +7,23 @@ import shutil
 import subprocess
 import tempfile
 
+# distros ship incompatible magic.py projects!
+import magic
+try:
+    magic.from_buffer
+    def from_buffer(data):
+        return magic.from_buffer(data, mime=True)
+except AttributeError:
+    MAGIC = magic.open(magic.MAGIC_MIME_TYPE)
+    MAGIC.load()
+    def from_buffer(data):
+        return MAGIC.buffer(data)
+
 """
 
 convert attachment to plaint text using external commands, as given below
 
-basically the type of an attachment is determined first by its filename extension, 
+basically the type of an attachment is determined first by its filename extension,
 then stored mimetype and if neither are present by using python-magic.
 
 
@@ -93,7 +104,7 @@ def ext_mime_data(f, filename, mimetype, log):
     else:
         method = 'magic'
         data = f.read()
-        mimetype = magic.from_buffer(data, mime=True)
+        mimetype = from_buffer(data)
         ext = mimetypes.guess_extension(mimetype)
     if ext:
         ext = ext[1:]
