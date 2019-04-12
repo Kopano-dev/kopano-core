@@ -36,7 +36,6 @@ dist_doc_DATA += audit-parse.pl createuser.dotforward db-calc-storesize \
 dist_sysconf_apparmor_DATA += kopano-coredump.aa kopano-client.aa \
 	usr.sbin.kopano-dagent usr.sbin.kopano-server
 BUILT_SOURCES = ldap.openldap.cfg ldap.active-directory.cfg
-dist_sbin_SCRIPTS += kopano-autorespond
 sysconf_rotatedir = ${sysconfdir}/logrotate.d
 dist_sysconf_rotate_DATA = kopano.logrotate
 sysconf_bcdir = ${datadir}/bash-completion/completions
@@ -44,7 +43,8 @@ dist_sysconf_bc_DATA = kopano-bash-completion.sh
 endif # ENABLE_BASE
 
 if ENABLE_PYTHON
-config_files += autorespond.cfg backup.cfg migration-pst.cfg presence.cfg search.cfg spamd.cfg
+dist_sbin_SCRIPTS += kopano-autorespond
+config_files += autorespond.cfg backup.cfg migration-pst.cfg msr.cfg presence.cfg search.cfg spamd.cfg
 dist_sysconf_apparmor_DATA += usr.sbin.kopano-search
 dist_doc_DATA += ${top_srcdir}/tools/python-scripts/update-resource-recipients
 kgwdocdir = ${docdir}/../kopano-gateway

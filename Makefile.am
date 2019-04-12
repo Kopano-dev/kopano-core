@@ -875,7 +875,6 @@ dist_man_MANS += \
 	doc/kopano.7 \
 	doc/kopano-admin.8 \
 	doc/kopano-archiver.8 doc/kopano-archiver.cfg.5 \
-	doc/kopano-autorespond.8 \
 	doc/kopano-cfgchecker.8 doc/kopano-coredump.5 \
 	doc/kopano-dagent.8 doc/kopano-dagent.cfg.5 doc/kopano-dbadm.8 \
 	doc/kopano-fsck.1 \
@@ -895,6 +894,7 @@ dist_man_MANS += \
 	doc/kopano-archiver-aclset.8 \
 	doc/kopano-archiver-aclsync.8 \
 	doc/kopano-archiver-restore.8 \
+	doc/kopano-autorespond.8 \
 	doc/kopano-backup.8 doc/kopano-backup.cfg.5 \
 	doc/kopano-cachestat.8 \
 	doc/kopano-cli.8 \
