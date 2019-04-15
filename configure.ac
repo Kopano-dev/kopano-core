@@ -15,6 +15,8 @@ AC_CONFIG_MACRO_DIR([autoconf])
 AM_INIT_AUTOMAKE([1.10 foreign subdir-objects])
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 
+PKG_PROG_PKG_CONFIG
+
 dnl Directories
 uscriptlibdir='${prefix}/lib/kopano/userscripts'
 uscriptconfdir='${sysconfdir}/kopano/userscripts'
@@ -95,7 +97,6 @@ AC_PROG_CC
 AM_PROG_CC_C_O
 AC_PROG_CXX
 AC_PROG_INSTALL
-PKG_PROG_PKG_CONFIG
 
 # configure may rerun as part of git-checking out a different version,
 # so remove stale version
