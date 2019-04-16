@@ -517,6 +517,21 @@ static ECRESULT kc1375(fancydb db)
 	return erSuccess;
 }
 
+static ECRESULT kc_1444(fancydb db)
+{
+	ec_log_notice("kc-1444: updating tproperties...");
+	unsigned int aff = 0;
+	auto ret = db->DoUpdate("UPDATE tproperties AS t JOIN properties AS p"
+		" ON p.hierarchyid=t.hierarchyid AND p.tag=t.tag AND p.type=t.type"
+		" SET t.val_ulong=p.val_ulong"
+		" WHERE p.tag=" + stringify(PROP_ID(PR_MESSAGE_FLAGS)) +
+		" AND p.type=" + stringify(PROP_TYPE(PR_MESSAGE_FLAGS)), &aff);
+	if (ret != erSuccess)
+		return ret;
+	ec_log_notice("kc-1444: updated %u rows.", aff);
+	return erSuccess;
+}
+
 static ECRESULT usmp_shrink_columns(fancydb db)
 {
 	unsigned int aff = 0;
@@ -708,6 +723,8 @@ int main(int argc, char **argv)
 			ret = remove_helper_index(db);
 		else if (strcmp(argv[i], "kc-1375") == 0)
 			ret = kc1375(db);
+		else if (strcmp(argv[i], "kc-1444") == 0)
+			ret = kc_1444(db);
 		else if (strcmp(argv[i], "usmp-shrink-columns") == 0)
 			ret = usmp_shrink_columns(db);
 		else if (strcmp(argv[i], "usmp-charset") == 0)
