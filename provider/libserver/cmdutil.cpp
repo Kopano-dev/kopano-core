@@ -1644,9 +1644,9 @@ static ECRESULT LockFolders(ECDatabase *lpDatabase, bool bShared,
 	auto strQuery = "SELECT 1 FROM properties WHERE hierarchyid IN(" +
 		kc_join(setParents, ",", [](std::set<unsigned int>::key_type p) { return stringify(p); }) + ")";
 	if (bShared)
-		strQuery += "LOCK IN SHARE MODE";
+		strQuery += " LOCK IN SHARE MODE";
 	else
-		strQuery += "FOR UPDATE";
+		strQuery += " FOR UPDATE";
 	return lpDatabase->DoSelect(strQuery, NULL);
 }
 
