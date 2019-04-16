@@ -46,7 +46,7 @@ implicit '*' at the end. not every search engine may perform well for this, but 
 
 CONFIG = {
     'coredump_enabled': Config.ignore(),
-    'index_attachments': Config.boolean(default=True),
+    'index_attachments': Config.boolean(default=False),
     'index_attachment_extension_filter': Config.ignore(),
     'index_attachment_mime_filter': Config.ignore(),
     'index_attachment_max_size': Config.size(default=2**24),
