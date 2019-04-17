@@ -1,5 +1,5 @@
-8.7.x
-=====
+8.7.1 (2019-04-17)
+==================
 Fixes:
 * dagent: standard casing for RFC 5322 headers [KF-2100]
 * daemons: do not fail startup on IPv4-only systems [KC-1400]
