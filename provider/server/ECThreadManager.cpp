@@ -119,8 +119,7 @@ void WORKITEM::run()
 	pthread_t thrself = pthread_self();
 	struct soap *soap = lpWorkItem->xsoap;
 	lpWorkItem->xsoap = nullptr; /* Snatch soap away from ~WORKITEM */
-
-	set_thread_name(thrself, format("z-s: %s", soap->host).c_str());
+	set_thread_name(thrself, (m_worker->m_pool->m_poolname + "/" + soap->host).c_str());
 
 	// For SSL connections, we first must do the handshake and pass it back to the queue
 	if (soap->ctx && soap->ssl == nullptr) {
@@ -207,7 +206,7 @@ done:
 	soap_end(soap);
 	// We're done processing the item, the workitem's socket is returned to the queue
 	dispatcher->NotifyDone(soap);
-	set_thread_name(thrself, "z-s: idle thread");
+	set_thread_name(thrself, (m_worker->m_pool->m_poolname + "/idle").c_str());
 }
 
 ECWatchDog::ECWatchDog(ECConfig *lpConfig, ECDispatcher *lpDispatcher) :
@@ -219,7 +218,7 @@ ECWatchDog::ECWatchDog(ECConfig *lpConfig, ECDispatcher *lpDispatcher) :
 		return;
 	}
 	m_thread_active = true;
-	set_thread_name(m_thread, "ECWatchDog");
+	set_thread_name(m_thread, "watchdog");
 }
 
 ECWatchDog::~ECWatchDog()

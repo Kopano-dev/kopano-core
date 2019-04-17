@@ -153,7 +153,7 @@ WSMessageStreamImporter::WSMessageStreamImporter(ULONG ulFlags, ULONG ulSyncId, 
 , m_sConflictItems(sConflictItems)
 , m_ptrTransport(lpTransport, true)
 , m_fifoBuffer(ulBufferSize)
-, m_threadPool(1)
+, m_threadPool("msgstrmimport", 1)
 , m_ulTimeout(ulTimeout)
 {
 }

@@ -292,8 +292,10 @@ void ECStatsCollector::start()
 	if (thread_running)
 		return;
 	auto ret = pthread_create(&countsSubmitThread, nullptr, submitThread, this);
-	if (ret == 0)
-		thread_running = true;
+	if (ret != 0)
+		return;
+	thread_running = true;
+	set_thread_name(countsSubmitThread, "statscl");
 }
 
 void ECStatsCollector::AddStat(SCName index, SCType type, const char *name,

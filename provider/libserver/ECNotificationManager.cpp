@@ -118,7 +118,7 @@ ECNotificationManager::ECNotificationManager(void)
 		return;
 	}
 	m_thread_active = true;
-    set_thread_name(m_thread, "NotificationManager");
+	set_thread_name(m_thread, "notify_mgr");
 }
 
 ECNotificationManager::~ECNotificationManager()

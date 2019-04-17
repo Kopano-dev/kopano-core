@@ -29,7 +29,8 @@ namespace KC {
  * Construct an ECThreadPool instance.
  * @param[in]	ulThreadCount	The amount of worker hreads to create.
  */
-ECThreadPool::ECThreadPool(unsigned ulThreadCount)
+ECThreadPool::ECThreadPool(const std::string &pname, unsigned int ulThreadCount) :
+	m_poolname(pname)
 {
 	setThreadCount(ulThreadCount);
 }
@@ -203,7 +204,7 @@ void* ECThreadPool::threadFunc(void *lpVoid)
 {
 	auto worker = static_cast<ECThreadWorker *>(lpVoid);
 	auto lpPool = worker->m_pool;
-	set_thread_name(pthread_self(), "ECThreadPool");
+	set_thread_name(pthread_self(), (lpPool->m_poolname + "/idle").c_str());
 	if (!worker->init())
 		return nullptr;
 
@@ -310,7 +311,7 @@ ECScheduler::ECScheduler()
 		return;
 	}
 	m_thread_active = true;
-	set_thread_name(m_hMainThread, "ECScheduler:main");
+	set_thread_name(m_hMainThread, "sch");
 }
 
 ECScheduler::~ECScheduler()
@@ -413,7 +414,7 @@ void *ECScheduler::ScheduleThread(void *lpTmpScheduler)
 					ec_log_err("Could not create ECScheduler worker thread: %s", strerror(err));
 					goto task_fail;
 				}
-				set_thread_name(hThread, "ECScheduler:worker");
+				set_thread_name(hThread, "scw");
 				sl.tLastRunTime = ttime;
 				err = pthread_join(hThread, reinterpret_cast<void **>(&lperThread));
 				if (err != 0) {

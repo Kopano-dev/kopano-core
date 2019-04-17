@@ -105,7 +105,7 @@ public:
 
 protected:
 	std::shared_ptr<KC::ECConfig> m_lpConfig;
-	KC::ECThreadPool m_pool{0}, m_prio{0};
+	KC::ECThreadPool m_pool{"net", 0}, m_prio{"prio", 0};
 	std::map<int, ACTIVESOCKET> m_setSockets;
 	std::map<int, std::unique_ptr<struct soap, KC::ec_soap_deleter>> m_setListenSockets;
 	std::mutex m_poolcount, m_mutexSockets;

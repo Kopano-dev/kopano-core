@@ -61,7 +61,7 @@ ECSessionManager::ECSessionManager(std::shared_ptr<ECConfig> cfg,
 		ec_log_crit("Could not create SessionCleaner thread: %s", strerror(err));
 	} else {
 		m_thread_active = true;
-	        set_thread_name(m_hSessionCleanerThread, "SessionCleanUp");
+	        set_thread_name(m_hSessionCleanerThread, "ses_cleaner");
 	}
 
 	m_lpNotificationManager.reset(new ECNotificationManager());

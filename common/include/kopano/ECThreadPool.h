@@ -47,13 +47,15 @@ class _kc_export ECThreadPool {
 	typedef std::list<STaskInfo> TaskList;
 
 public:
-	ECThreadPool(unsigned ulThreadCount);
+	ECThreadPool(const std::string &name, unsigned int thr_count);
 	virtual ~ECThreadPool();
 	bool enqueue(ECTask *lpTask, bool bTakeOwnership = false);
 	void setThreadCount(unsigned int cuont, bool wait = false);
 	time_duration front_item_age() const;
 	size_t queue_length() const;
 	void thread_counts(size_t *active, size_t *idle) const;
+
+	std::string m_poolname = "noname";
 
 	protected:
 	virtual std::unique_ptr<ECThreadWorker> make_worker();

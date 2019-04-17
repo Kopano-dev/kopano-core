@@ -104,7 +104,7 @@ void da_task::run()
 }
 
 da_exec::da_exec(std::shared_ptr<ECConfig> c, size_t z) :
-	ECThreadPool(z), m_config(std::move(c))
+	ECThreadPool("exec", z), m_config(std::move(c))
 {
 	auto ret = m_db.Connect(m_config.get(), true, 0, 0);
 	if (ret != hrSuccess) {
