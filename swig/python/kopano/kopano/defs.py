@@ -13,7 +13,8 @@ from MAPI.Defs import DEFINE_OLEGUID, DEFINE_GUID
 from MAPI.Struct import MAPINAMEID
 from MAPI import Tags
 from MAPI.Tags import (
-    PS_PUBLIC_STRINGS
+    PS_PUBLIC_STRINGS, respNone, respOrganized, respTentative, respAccepted,
+    respDeclined, respNotResponded,
 )
 from MAPI import MNID_STRING, MAPI_DISTLIST, MNID_ID
 
@@ -272,3 +273,12 @@ FB_STATUS = {
     3: 'outofoffice',
 }
 STATUS_FB = dict((b, a) for (a, b) in FB_STATUS.items())
+
+RESPONSE_STATUS = {
+        respNone: 'None',
+        respOrganized: 'Organizer',
+        respTentative: 'TentativelyAccepted',
+        respAccepted: 'Accepted',
+        respDeclined: 'Declined',
+        respNotResponded: 'NotResponded',
+}
