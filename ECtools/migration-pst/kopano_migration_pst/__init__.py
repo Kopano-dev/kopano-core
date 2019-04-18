@@ -273,8 +273,8 @@ class Service(kopano.Service):
         mapiobj.ModifyRecipients(0, recipients)
 
     def import_pst(self, p, store):
-        folders = p.folder_generator()
-        root_path = rev_cp1252(next(folders).path) # skip root
+        folders = list(p.folder_generator())
+        root_path = rev_cp1252(folders[0].path)
         self.distlist_entryids = []
         self.entryid_map = {}
 
@@ -290,10 +290,14 @@ class Service(kopano.Service):
                     if not import_nids:
                         continue
 
-                path = rev_cp1252(folder.path[len(root_path)+1:])
+                path = rev_cp1252(folder.path[len(root_path)+1:]) or '(root)'
+                if path == '(root)' and folder.ContentCount == 0:
+                    continue
+
                 if self.options.folders and \
                    path.lower() not in [f.lower() for f in self.options.folders]:
                     continue
+
                 self.log.info("importing folder '%s'", path)
                 if self.options.import_root:
                     path = self.options.import_root + '/' + path
@@ -412,8 +416,8 @@ def show_contents(args, options):
     writer = csv.writer(sys.stdout)
     for arg in args:
         p = pst.PST(arg)
-        folders = p.folder_generator()
-        root_path = rev_cp1252(next(folders).path) # skip root
+        folders = list(p.folder_generator())
+        root_path = rev_cp1252(folders[0]).path
 
         if options.summary:
             print("Folders:       %s" % sum(1 for f in folders))
@@ -421,7 +425,9 @@ def show_contents(args, options):
             print("Attachments:   %s" %  p.get_total_attachment_count())
         else:
             for folder in folders:
-                path = rev_cp1252(folder.path[len(root_path)+1:])
+                path = rev_cp1252(folder.path[len(root_path)+1:]) or '(root)'
+                if path == '(root)' and folder.ContentCount == 0:
+                    continue
                 if options.folders and path.lower() not in [f.lower() for f in options.folders]:
                     continue
                 if options.stats:
