@@ -29,7 +29,7 @@ from .compat import (
 )
 from .defs import (
     PSETID_Appointment, ASF_CANCELED, NR_COLOR, COLOR_NR, FB_STATUS,
-    STATUS_FB, ASF_MEETING,
+    STATUS_FB, ASF_MEETING, RESPONSE_STATUS,
 )
 from .pidlid import (
     PidLidReminderSet, PidLidReminderDelta, PidLidAppointmentSubType,
@@ -249,6 +249,13 @@ class Appointment(object):
     def response_requested(self):
         """Is appointment response requested."""
         return self.get(PR_RESPONSE_REQUESTED, False)
+
+    @property
+    def response_status(self):
+        try:
+            return RESPONSE_STATUS.get(self[PidLidResponseStatus])
+        except NotFoundError:
+            return 'None'
 
     @property
     def icaluid(self):
