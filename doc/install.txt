@@ -1,7 +1,7 @@
 
 Mandatory build-time dependencies and their minimum versions (if any):
 
-	* g++ 5.x or clang++ 3.8
+	* C++14 compiler: g++ 5.x or clang++ 3.8
 	* binutils 2.22
 	* pkg-config
 	* gsoap 2.8.49, generator and library
@@ -14,7 +14,7 @@ Mandatory build-time dependencies and their minimum versions (if any):
 	* libmysqlclient: MySQL-compatible C connector library
 	* libncurses 5
 	* libpython 2.x & swig 2.x
-	* libuuid from util-linux
+	* libuuid from util-linux or BSD
 	* libvmime 0.9.2
 	* libxml2 2.6
 	* zlib
