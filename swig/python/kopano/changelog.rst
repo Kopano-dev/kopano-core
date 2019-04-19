@@ -2,6 +2,14 @@
 Python-kopano Change Log
 ==========
 
+`8.7.1`_ (2019-04-19)
+-------------------------
+* Optimized user listing pagination
+* Improved some meetingrequest-related properties
+* Fix regression introduced in 8.7.0, for recurrences
+  and busystatus
+* Further minor fixes
+
 `8.7.0`_ (2019-01-21)
 -------------------------
 
