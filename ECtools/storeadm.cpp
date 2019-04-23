@@ -54,7 +54,7 @@ static constexpr const struct HXoption adm_options[] = {
 	{nullptr, 'k', HXTYPE_STRING, &opt_companyname, nullptr, nullptr, 0, "Name of the company for creating a public store in a multi-tenant setup", "NAME"},
 	{nullptr, 'l', HXTYPE_STRING, &opt_lang, nullptr, nullptr, 0, "Use given locale for selecting folder names", "LOCALE"},
 	{nullptr, 'n', HXTYPE_STRING, &opt_entity_name, nullptr, nullptr, 0, "User/group/company account to work on for -A,-C,-D", "NAME"},
-	{nullptr, 'p', HXTYPE_NONE, &opt_copytopublic, nullptr, nullptr, 0, "Copy an orphaned store's root to a subfolder in the public store"},
+	{nullptr, 'p', HXTYPE_NONE, &opt_copytopublic, nullptr, nullptr, 0, "Copy an orphaned store's root (with -A) to a subfolder in the public store"},
 	{nullptr, 't', HXTYPE_STRING, &opt_entity_type, nullptr, nullptr, 0, "Store type for the -n argument (user, archive, group, company)", "TYPE"},
 	HXOPT_AUTOHELP,
 	HXOPT_TABLEEND,
