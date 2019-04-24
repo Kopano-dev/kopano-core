@@ -1,5 +1,3 @@
-SUBDIRS=plugins
-
 EXTRA_DIST = mapiplugin.py pluginmanager.py plugintemplates.py wraplogger.py wraplogger.py zconfig.py zinterval.py zunit.py
 
 kopano_dagentdir = ${datadir}/kopano-dagent/python
