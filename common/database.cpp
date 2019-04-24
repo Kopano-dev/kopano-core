@@ -215,11 +215,7 @@ ECRESULT KDatabase::CreateDatabase(ECConfig *cfg, bool reconnect)
 		return KCERR_DATABASE_ERROR;
 	}
 	query = "USE `" + std::string(cfg->GetSetting("mysql_database")) + "`";
-	er = DoInsert(query);
-	if (er != erSuccess)
-		return er;
-	ec_log_info("Database structure has been created");
-	return erSuccess;
+	return DoInsert(query);
 }
 
 ECRESULT KDatabase::CreateTables(ECConfig *cfg, const char **charsetp)
