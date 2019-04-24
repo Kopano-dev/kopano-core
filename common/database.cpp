@@ -107,7 +107,7 @@ ECRESULT KDatabase::Connect(ECConfig *cfg, bool reconnect,
 		socket = nullptr;
 	auto er = InitEngine(reconnect);
 	if (er != erSuccess) {
-		ec_log_crit("KDatabase::Connect(): InitEngine failed %d", er);
+		ec_log_hrcode(er, EC_LOGLEVEL_CRIT, "%s: InitEngine failed: %s (%x)", __PRETTY_FUNCTION__);
 		goto exit;
 	}
 	if (mysql_real_connect(&m_lpMySQL, cfg->GetSetting("mysql_host"),
@@ -127,19 +127,19 @@ ECRESULT KDatabase::Connect(ECConfig *cfg, bool reconnect,
 	// Check if the database is available, but empty
 	er = DoSelect("SHOW tables", &result);
 	if (er != erSuccess) {
-		ec_log_err("KDatabase::Connect(): \"SHOW tables\" failed %d", er);
+		kc_perrorf("\"SHOW tables\" failed", er);
 		goto exit;
 	}
 	if (result.get_num_rows() == 0) {
 		er = KCERR_DATABASE_NOT_FOUND;
-		ec_log_err("KDatabase::Connect(): database missing %d", er);
+		kc_perrorf("Tables missing inside database", er);
 		goto exit;
 	}
 
 	query = "SHOW variables LIKE 'max_allowed_packet'";
 	er = DoSelect(query, &result);
 	if (er != erSuccess) {
-		ec_log_err("KDatabase::Connect(): max_allowed_packet retrieval failed %d", er);
+		kc_perrorf("max_allowed_packet retrieval failed", er);
 		goto exit;
 	}
 
@@ -203,7 +203,7 @@ ECRESULT KDatabase::CreateDatabase(ECConfig *cfg, bool reconnect)
 		ec_log_crit("Unable to create database: Unknown database");
 		return KCERR_DATABASE_ERROR;
 	}
-	ec_log_notice("Create database %s", dbname);
+	ec_log_notice("Creating database \"%s\"", dbname);
 	er = IsEngineSupported(cfg->GetSetting("mysql_engine"));
 	if (er != erSuccess)
 		return er;
@@ -211,7 +211,7 @@ ECRESULT KDatabase::CreateDatabase(ECConfig *cfg, bool reconnect)
 	auto query = "CREATE DATABASE IF NOT EXISTS `" +
 	        std::string(cfg->GetSetting("mysql_database")) + "`";
 	if (Query(query) != erSuccess) {
-		ec_log_err("Unable to create database: %s", GetError());
+		ec_log_err("Unable to create database \"%s\": %s", cfg->GetSetting("mysql_database"), GetError());
 		return KCERR_DATABASE_ERROR;
 	}
 	query = "USE `" + std::string(cfg->GetSetting("mysql_database")) + "`";
@@ -240,7 +240,7 @@ ECRESULT KDatabase::CreateTables(ECConfig *cfg, const char **charsetp)
 			ec_log_debug("Table \"%s\" exists", tables[i].lpComment);
 			continue;
 		}
-		ec_log_info("Create table: %s", tables[i].lpComment);
+		ec_log_info("Creating table \"%s\"", tables[i].lpComment);
 		if (charset != nullptr) {
 			er = DoInsert(format(tables[i].lpSQL, engine, charset));
 		} else {
@@ -249,7 +249,7 @@ ECRESULT KDatabase::CreateTables(ECConfig *cfg, const char **charsetp)
 			if (er != erSuccess) {
 				ec_log_notice("K-1245: Database does not accept 4-byte UTF-8. Retrying with 3-byte UTF-8. The content of some mails may not be representable.");
 				charset = "utf8";
-				ec_log_info("Create table: %s", tables[i].lpComment);
+				ec_log_info("Creating table \"%s\"", tables[i].lpComment);
 				er = DoInsert(format(tables[i].lpSQL, engine, charset));
 			}
 			if (charsetp != nullptr)
@@ -369,7 +369,7 @@ ECRESULT KDatabase::DoSequence(const std::string &seq, unsigned int count,
 	auto er = DoUpdate("UPDATE settings SET value=LAST_INSERT_ID(value+1)+" +
 	          stringify(count - 1) + " WHERE name = '" + seq + "'", &aff);
 	if (er != erSuccess) {
-		ec_log_err("KDatabase::DoSequence() UPDATE failed %d", er);
+		kc_perrorf("UPDATE failed", er);
 		return er;
 	}
 	/*
@@ -381,7 +381,7 @@ ECRESULT KDatabase::DoSequence(const std::string &seq, unsigned int count,
 		er = Query("INSERT INTO settings (name, value) VALUES('" +
 		     seq + "',LAST_INSERT_ID(1)+" + stringify(count - 1) + ")");
 		if (er != erSuccess) {
-			ec_log_crit("KDatabase::DoSequence() INSERT INTO failed %d", er);
+			kc_perrorf("INSERT INTO failed", er);
 			return er;
 		}
 	}
