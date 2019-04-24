@@ -160,10 +160,13 @@ ECRESULT KDatabase::Connect(ECConfig *cfg, bool reconnect,
 		ec_log_warn("max_allowed_packet is smaller than 16M (%d). You are advised to increase this value by adding max_allowed_packet=16M in the [mysqld] section of my.cnf.", m_ulMaxAllowedPacket);
 
 	m_bConnected = true;
-	if (mysql_set_character_set(&m_lpMySQL, "utf8mb4")) {
-		ec_log_err("Unable to set character set to \"utf8mb4\"");
-		er = KCERR_DATABASE_ERROR;
-		goto exit;
+	if (mysql_set_character_set(&m_lpMySQL, "utf8mb4") != 0) {
+		if (mysql_set_character_set(&m_lpMySQL, "utf8") != 0) {
+			ec_log_err("Unable to switch to character sets \"utf8mb4\" and \"utf8\"");
+			er = KCERR_DATABASE_ERROR;
+			goto exit;
+		}
+		ec_log_notice("K-1246: Database connection does not support 4-byte UTF-8. Going for 3-byte UTF-8. The content of some mails may not be representable.");
 	}
 	er = setup_gcm(gcm, reconnect);
  exit:
@@ -242,16 +245,22 @@ ECRESULT KDatabase::CreateTables(ECConfig *cfg, const char **charsetp)
 			continue;
 		}
 		ec_log_info("Create table: %s", tables[i].lpComment);
-		if (charset == nullptr) {
-			er = DoInsert(format(tables[i].lpSQL, engine, "utf8mb4"));
-			charset = er == erSuccess ? "utf8mb4" : "utf8";
+		if (charset != nullptr) {
+			er = DoInsert(format(tables[i].lpSQL, engine, charset));
+		} else {
+			charset = "utf8mb4";
+			er = DoInsert(format(tables[i].lpSQL, engine, charset));
+			if (er != erSuccess) {
+				ec_log_notice("K-1245: Database does not accept 4-byte UTF-8. Retrying with 3-byte UTF-8. The content of some mails may not be representable.");
+				charset = "utf8";
+				ec_log_info("Create table: %s", tables[i].lpComment);
+				er = DoInsert(format(tables[i].lpSQL, engine, charset));
+			}
 			if (charsetp != nullptr)
 				*charsetp = charset;
-		} else {
-			er = DoInsert(format(tables[i].lpSQL, engine, charset));
-			if (er != erSuccess)
-				return er;
 		}
+		if (er != erSuccess)
+			return er;
 	}
 	return erSuccess;
 }
