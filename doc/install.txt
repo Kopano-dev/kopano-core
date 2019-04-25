@@ -34,7 +34,7 @@ Optional build-time dependencies and their minimum versions:
 
 Mandatory components during runtime:
 
-	* MySQL 5.5.3 or higher, or MariaDB
+	* MySQL 5.1.73 or higher, or MariaDB
 
 Optional components during runtime:
 
