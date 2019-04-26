@@ -180,9 +180,9 @@ class Appointment(object):
                 yield Occurrence(self, start, end)
 
         if not recurrence and self.recurring:
-            self.server.log.warn("Item '{}' has no recurrence ".format(self.entryid))
+            self.server.log.warn("Item '%s' has no recurrence ", self.entryid)
         if recurrence and not self.recurring:
-            self.server.log.warn("Item '{}' has a recurrence but is not recurring".format(self.entryid))
+            self.server.log.warn("Item '%s' has a recurrence but is not recurring", self.entryid)
 
 
     def occurrence(self, id_=None):

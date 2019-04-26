@@ -130,10 +130,16 @@ class Recurrence(object):
         # we throw a MAPI exception which might not be desirable
 
         self.item = item
+        self.parsed = False
         self._tzinfo = item.tzinfo
 
         if parse:
-            self._parse()
+            try:
+                self._parse()
+                self.parsed = True
+            except struct.error as exc:
+                self.item.server.log.warn("Item '%s' recurrence cannot be parsed, unpack failed '%s'",
+                    self.item.entryid, exc)
 
     @property
     def pattern(self):
@@ -787,7 +793,7 @@ class Recurrence(object):
                 overrideflags = exception['override_flags']
 
                 if overrideflags & ARO_SUBJECT or overrideflags & ARO_LOCATION:
-                    data += struct.pack('<I', 
+                    data += struct.pack('<I',
                         extended_exception['start_datetime'])
                     data += struct.pack('<I',
                         extended_exception['end_datetime'])
@@ -816,6 +822,8 @@ class Recurrence(object):
     @property
     def recurrences(self):
         rule = rruleset()
+        if not self.parsed:
+            return rule
 
         start = self.start + datetime.timedelta(minutes=self._starttime_offset)
         if self.range_type == 'forever':
