@@ -3,10 +3,6 @@ from MAPI.Defs import *
 from MAPI.Tags import *
 from MAPI.Struct import *
 
-import sys
-if sys.version_info[0] > 2:
-    unicode = str
-
 MUIDECSAB = DEFINE_GUID(0x50a921ac, 0xd340, 0x48ee, 0xb3, 0x19, 0xfb, 0xa7, 0x53, 0x30, 0x44, 0x25)
 
 def GetGab(session):
@@ -69,7 +65,7 @@ def GetAbObjectList(session, restriction = None, companyname = None, flags = 0):
                 companyUsers = _GetAbObjectList(company, restriction, flags)
                 users.extend(companyUsers)
     else:
-        if isinstance(companyname, unicode):
+        if isinstance(companyname, str):
             tag_dispname = PR_DISPLAY_NAME_W
         else:
             tag_dispname = PR_DISPLAY_NAME_A
