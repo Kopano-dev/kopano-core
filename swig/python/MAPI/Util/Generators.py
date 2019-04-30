@@ -2,10 +2,6 @@
 import MAPI
 from MAPI.Util import *
 
-import sys
-if sys.version_info[0] > 2:
-    unicode = str
-
 def GetStores(session, users = None, flags = MDB_WRITE):
     # Get rid of potential MAPI_UNICODE flag, which was allowed in
     # previous versions to specify the string typ of the users list,
@@ -19,7 +15,7 @@ def GetStores(session, users = None, flags = MDB_WRITE):
 
     for user in users:
         try:
-            if isinstance(user, unicode):
+            if isinstance(user, str):
                 fMapiUnicode = MAPI_UNICODE
             else:
                 fMapiUnicode = 0
