@@ -14,7 +14,6 @@ import functools
 import os
 import sys
 import traceback
-import warnings
 
 try:
     import cPickle as pickle
@@ -70,7 +69,7 @@ from MAPI.Tags import (
     PR_READ_RECEIPT_REQUESTED, PR_ORIGINATOR_DELIVERY_REPORT_REQUESTED,
     PR_REPLY_RECIPIENT_ENTRIES, PR_EC_BODY_FILTERED, PR_SENSITIVITY,
     PR_SEARCH_KEY, PR_LAST_VERB_EXECUTED, PR_LAST_VERB_EXECUTION_TIME,
-    PR_ROWID, respNotResponded, respOrganized
+    PR_ROWID, respOrganized
 )
 
 from MAPI.Tags import (
@@ -94,7 +93,7 @@ from .defs import (
     PSETID_Archive, URGENCY, REV_URGENCY, ASF_MEETING,
 )
 from .errors import (
-    Error, NotFoundError, _DeprecationWarning
+    Error, NotFoundError
 )
 
 from .attachment import Attachment
