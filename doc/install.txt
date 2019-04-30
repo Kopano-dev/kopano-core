@@ -13,7 +13,7 @@ Mandatory build-time dependencies and their minimum versions (if any):
 	* libcrypto and libssl from LibreSSL or OpenSSL 0.9.8
 	* libmysqlclient: MySQL-compatible C connector library
 	* libncurses 5
-	* libpython 2.x & swig 2.x
+	* libpython 3.5 & swig 2.x
 	* libuuid from util-linux
 	* libvmime 0.9.2
 	* libxml2 2.6
