@@ -92,6 +92,13 @@ the system for use with a crash report. For details, see the
 \fBkopano\-coredump\fP(5) manpage.
 .PP
 Default: \fIsystemdefault\fP
+.SS process_model
+.PP
+You can change the process model between \fBfork\fP and \fBthread\fP. The
+forked model uses more resources.
+.PP
+Default:
+\fIthread\fP
 .SS sslkey_file
 .PP
 Use this file as key to logon to the server. This is only used when server_socket is set to an HTTPS transport. See the
@@ -262,7 +269,7 @@ Default:
 Enable or disable the spooler plugin framework.
 .PP
 Default:
-\fIyes\fR
+\fIno\fR
 .SS plugin_manager_path
 .PP
 The path to the spooler plugin manager.

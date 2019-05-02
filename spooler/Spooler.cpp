@@ -925,7 +925,7 @@ static int main2(int argc, char **argv)
 		{ "expand_groups", "no", CONFIGSETTING_RELOADABLE },
 		{ "archive_on_send", "no", CONFIGSETTING_RELOADABLE },
 		{ "enable_dsn", "yes", CONFIGSETTING_RELOADABLE },
-        { "plugin_enabled", "yes" },
+		{"plugin_enabled", "no"},
         { "plugin_path", "/var/lib/kopano/spooler/plugins" },
         { "plugin_manager_path", "/usr/share/kopano-spooler/python" },
 		{"statsclient_url", "unix:/var/run/kopano/statsd.sock", CONFIGSETTING_RELOADABLE},
@@ -934,7 +934,7 @@ static int main2(int argc, char **argv)
 		{ "tmp_path", "/tmp" },
 		{"log_raw_message_path", "/var/lib/kopano", CONFIGSETTING_RELOADABLE},
 		{"log_raw_message_stage1", "no", CONFIGSETTING_RELOADABLE},
-		{"process_model", "fork", CONFIGSETTING_NONEMPTY},
+		{"process_model", "thread", CONFIGSETTING_NONEMPTY},
 		{ NULL, NULL },
 	};
     // SIGSEGV backtrace support
