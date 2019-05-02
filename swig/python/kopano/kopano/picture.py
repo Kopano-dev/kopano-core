@@ -8,8 +8,11 @@ Copyright 2018 - Kopano and its licensors (see LICENSE file for details)
 import io
 import mimetypes
 
+
+WITH_PIL = False
 try:
     from PIL import Image
+    WITH_PIL = True
 except ImportError: # pragma: no cover
     pass
 
@@ -26,7 +29,7 @@ class Picture(object):
 
     @property
     def _img(self):
-        if self.__img is None:
+        if self.__img is None and WITH_PIL:
             self.__img = Image.open(io.BytesIO(self.data))
         return self.__img
 
@@ -51,6 +54,8 @@ class Picture(object):
         return (self.width, self.height)
 
     def scale(self, size):
+        if not WITH_PIL:
+            raise NotImplementedError('PIL is not available')
         img = Image.open(io.BytesIO(self.data))
         img.thumbnail(size)
         b = io.BytesIO()
