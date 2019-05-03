@@ -3,8 +3,10 @@
  * Copyright 2017 - Kopano and its licensors
  */
 #include <algorithm>
+#include <list>
 #include <memory>
 #include <new>
+#include <string>
 #include <utility>
 #include <kopano/ECLogger.h>
 #include <kopano/ECRestriction.h>
@@ -15,6 +17,7 @@
 #include <kopano/namedprops.h>
 #include <kopano/platform.h>
 #include <kopano/stringutil.h>
+#include <kopano/timeutil.hpp>
 #include <libical/vcc.h>
 #include <libical/vobject.h>
 #include <mapi.h>
@@ -51,6 +54,10 @@ class vcftomapi_impl final : public vcftomapi {
 	HRESULT vobject_to_named_prop(VObject *, SPropValue &, ULONG named_proptype);
 	HRESULT unicode_to_named_prop(const wchar_t *, SPropValue &, ULONG named_proptype);
 
+	std::list<SPropValue> props;
+	std::string photo;
+	enum photo_type_enum { PHOTO_NONE, PHOTO_JPEG, PHOTO_PNG, PHOTO_GIF } ;
+	photo_type_enum phototype = PHOTO_NONE;
 	size_t email_count = 0;
 };
 
