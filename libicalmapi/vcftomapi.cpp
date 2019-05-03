@@ -37,28 +37,33 @@ class vcftomapi_impl final : public vcftomapi {
 	 */
 	vcftomapi_impl(IMAPIProp *o) : vcftomapi(o) {}
 	HRESULT parse_vcf(const std::string &) override;
-	HRESULT get_item(IMessage *) override;
+	size_t get_item_count() override;
+	HRESULT get_item(IMessage *, unsigned int pos) override;
 
 	private:
+	enum photo_type_enum { PHOTO_NONE, PHOTO_JPEG, PHOTO_PNG, PHOTO_GIF } ;
+	struct contact {
+		std::vector<SPropValue> props;
+		std::string photo;
+		size_t email_count = 0;
+		photo_type_enum phototype = PHOTO_NONE;
+	};
+
 	HRESULT alloc(size_t, void **);
 	HRESULT parse_vcard(VObject *);
-	HRESULT save_photo(IMessage *);
-	HRESULT handle_N(VObject *);
-	HRESULT handle_TEL(VObject *);
-	HRESULT handle_EMAIL(VObject *);
-	HRESULT handle_ADR(VObject *);
-	HRESULT handle_UID(VObject *);
-	HRESULT handle_ORG(VObject *);
-	HRESULT handle_PHOTO(VObject *);
+	HRESULT save_photo(const contact &, IMessage *);
+	HRESULT handle_N(VObject *, contact &);
+	HRESULT handle_TEL(VObject *, contact &);
+	HRESULT handle_EMAIL(VObject *, contact &);
+	HRESULT handle_ADR(VObject *, contact &);
+	HRESULT handle_UID(VObject *, contact &);
+	HRESULT handle_ORG(VObject *, contact &);
+	HRESULT handle_PHOTO(VObject *, contact &);
 	HRESULT vobject_to_prop(VObject *, SPropValue &, ULONG proptype);
 	HRESULT vobject_to_named_prop(VObject *, SPropValue &, ULONG named_proptype);
 	HRESULT unicode_to_named_prop(const wchar_t *, SPropValue &, ULONG named_proptype);
 
-	std::vector<SPropValue> props;
-	std::string photo;
-	enum photo_type_enum { PHOTO_NONE, PHOTO_JPEG, PHOTO_PNG, PHOTO_GIF } ;
-	photo_type_enum phototype = PHOTO_NONE;
-	size_t email_count = 0;
+	std::vector<contact> m_contacts;
 	/* Fake buffer for attaching MAPIAllocateMore buffers */
 	memory_ptr<char> m_propblk;
 };
@@ -119,7 +124,7 @@ static bool date_string_to_filetime(const std::string &date_string, FILETIME &fi
 	return true;
 }
 
-HRESULT vcftomapi_impl::handle_N(VObject *v)
+HRESULT vcftomapi_impl::handle_N(VObject *v, contact &ct)
 {
 	VObjectIterator tt;
 
@@ -132,33 +137,33 @@ HRESULT vcftomapi_impl::handle_N(VObject *v)
 			auto ret = vobject_to_prop(vv, s, PR_SURNAME);
 			if (ret != hrSuccess)
 				return ret;
-			props.emplace_back(std::move(s));
+			ct.props.emplace_back(std::move(s));
 		} else if (strcmp(name, VCGivenNameProp) == 0) {
 			auto ret = vobject_to_prop(vv, s, PR_GIVEN_NAME);
 			if (ret != hrSuccess)
 				return ret;
-			props.emplace_back(std::move(s));
+			ct.props.emplace_back(std::move(s));
 		} else if (strcmp(name, VCAdditionalNamesProp) == 0) {
 			auto ret = vobject_to_prop(vv, s, PR_MIDDLE_NAME);
 			if (ret != hrSuccess)
 				return ret;
-			props.emplace_back(std::move(s));
+			ct.props.emplace_back(std::move(s));
 		} else if (strcmp(name, VCNameSuffixesProp) == 0) {
 			auto ret = vobject_to_prop(vv, s, PR_GENERATION);
 			if (ret != hrSuccess)
 				return ret;
-			props.emplace_back(std::move(s));
+			ct.props.emplace_back(std::move(s));
 		} else if (strcmp(name, VCNamePrefixesProp) == 0) {
 			auto ret = vobject_to_prop(vv, s, PR_DISPLAY_NAME_PREFIX);
 			if (ret != hrSuccess)
 				return ret;
-			props.emplace_back(std::move(s));
+			ct.props.emplace_back(std::move(s));
 		}
 	}
 	return hrSuccess;
 }
 
-HRESULT vcftomapi_impl::handle_TEL(VObject *v)
+HRESULT vcftomapi_impl::handle_TEL(VObject *v, contact &ct)
 {
 	VObjectIterator t;
 
@@ -183,7 +188,7 @@ HRESULT vcftomapi_impl::handle_TEL(VObject *v)
 				auto ret = vobject_to_prop(v, s, prop);
 				if (ret != hrSuccess)
 					return ret;
-				props.emplace_back(std::move(s));
+				ct.props.emplace_back(std::move(s));
 			}
 			else if (strcasecmp(token.c_str(), "MOBILE") == 0 || strcasecmp(token.c_str(), "CELL") == 0) {
 				if (is_fax)
@@ -192,21 +197,21 @@ HRESULT vcftomapi_impl::handle_TEL(VObject *v)
 				auto ret = vobject_to_prop(v, s, PR_MOBILE_TELEPHONE_NUMBER);
 				if (ret != hrSuccess)
 					return ret;
-				props.emplace_back(std::move(s));
+				ct.props.emplace_back(std::move(s));
 			}
 			else if (strcasecmp(token.c_str(), "WORK") == 0) {
 				auto prop = is_fax ? PR_BUSINESS_FAX_NUMBER : PR_BUSINESS_TELEPHONE_NUMBER;
 				auto ret = vobject_to_prop(v, s, prop);
 				if (ret != hrSuccess)
 					return ret;
-				props.emplace_back(std::move(s));
+				ct.props.emplace_back(std::move(s));
 			}
 			else if (strcasecmp(token.c_str(), "MAIN") == 0) {
 				auto prop = is_fax ? PR_PRIMARY_FAX_NUMBER : PR_PRIMARY_TELEPHONE_NUMBER;
 				auto ret = vobject_to_prop(v, s, prop);
 				if (ret != hrSuccess)
 					return ret;
-				props.emplace_back(std::move(s));
+				ct.props.emplace_back(std::move(s));
 			}
 			else if (strcasecmp(token.c_str(), "PAGER") == 0) {
 				if (is_fax)
@@ -215,81 +220,80 @@ HRESULT vcftomapi_impl::handle_TEL(VObject *v)
 				auto ret = vobject_to_prop(v, s, PR_PAGER_TELEPHONE_NUMBER);
 				if (ret != hrSuccess)
 					return ret;
-				props.emplace_back(std::move(s));
+				ct.props.emplace_back(std::move(s));
 			} else if (strcasecmp(token.c_str(), "CAR") == 0) {
 				auto ret = vobject_to_prop(v, s, PR_CAR_TELEPHONE_NUMBER);
 				if (ret != hrSuccess)
 					return ret;
-				props.emplace_back(std::move(s));
+				ct.props.emplace_back(std::move(s));
 			} else if (strcasecmp(token.c_str(), "ISDN") == 0) {
 				auto ret = vobject_to_prop(v, s, PR_ISDN_NUMBER);
 				if (ret != hrSuccess)
 					return ret;
-				props.emplace_back(std::move(s));
+				ct.props.emplace_back(std::move(s));
 			} else if (strcasecmp(token.c_str(), "ASSISTANT") == 0) {
 				auto ret = vobject_to_prop(v, s, PR_ASSISTANT_TELEPHONE_NUMBER);
 				if (ret != hrSuccess)
 					return ret;
-				props.emplace_back(std::move(s));
+				ct.props.emplace_back(std::move(s));
 			} else if (strcasecmp(token.c_str(), "X-EVOLUTION-CALLBACK") == 0) {
 				auto ret = vobject_to_prop(v, s, PR_CALLBACK_TELEPHONE_NUMBER);
 				if (ret != hrSuccess)
 					return ret;
-				props.emplace_back(std::move(s));
+				ct.props.emplace_back(std::move(s));
 			} else if (strcasecmp(token.c_str(), "X-EVOLUTION-RADIO") == 0) {
 				auto ret = vobject_to_prop(v, s, PR_RADIO_TELEPHONE_NUMBER);
 				if (ret != hrSuccess)
 					return ret;
-				props.emplace_back(std::move(s));
+				ct.props.emplace_back(std::move(s));
 			} else if (strcasecmp(token.c_str(), "X-EVOLUTION-TELEX") == 0) {
 				auto ret = vobject_to_prop(v, s, PR_TELEX_NUMBER);
 				if (ret != hrSuccess)
 					return ret;
-				props.emplace_back(std::move(s));
+				ct.props.emplace_back(std::move(s));
 			} else if (strcasecmp(token.c_str(), "TEXTPHONE") == 0 ||
 			    strcasecmp(token.c_str(), "X-EVOLUTION-TTYTTD") == 0) {
 				auto ret = vobject_to_prop(v, s, PR_TTYTDD_PHONE_NUMBER);
 				if (ret != hrSuccess)
 					return ret;
-				props.emplace_back(std::move(s));
+				ct.props.emplace_back(std::move(s));
 			}
 		}
 	}
 	return hrSuccess;
 }
 
-HRESULT vcftomapi_impl::handle_EMAIL(VObject *v)
+HRESULT vcftomapi_impl::handle_EMAIL(VObject *v, contact &ct)
 {
 	// we can only accept 3 email addresses
-	if (email_count > 2)
+	if (ct.email_count >= 3)
 		return hrSuccess;
 
-	unsigned int prop_id = 0x8083 + (email_count * 0x10);
+	unsigned int prop_id = 0x8083 + ct.email_count * 0x10;
 	SPropValue s;
 	vobject_to_named_prop(v, s, prop_id);
-	props.emplace_back(std::move(s));
+	ct.props.emplace_back(std::move(s));
 
-	prop_id = 0x8084 + (email_count * 0x10);
+	prop_id = 0x8084 + ct.email_count * 0x10;
 	vobject_to_named_prop(v, s, prop_id);
-	props.emplace_back(std::move(s));
+	ct.props.emplace_back(std::move(s));
 
 	// add email as displayname
-	prop_id = 0x8080 + (email_count * 0x10);
+	prop_id = 0x8080 + ct.email_count * 0x10;
 	auto dname = std::wstring(L"(") + vObjectUStringZValue(v) + std::wstring(L")");
 	unicode_to_named_prop(dname.c_str(), s, prop_id);
-	props.emplace_back(std::move(s));
+	ct.props.emplace_back(std::move(s));
 
-	prop_id = 0x8082 + (email_count * 0x10);
+	prop_id = 0x8082 + ct.email_count * 0x10;
 	auto ret = unicode_to_named_prop(L"SMTP", s, prop_id);
 	if (ret != hrSuccess)
 		return ret;
-	props.emplace_back(std::move(s));
-
-	email_count++;
+	ct.props.emplace_back(std::move(s));
+	++ct.email_count;
 	return hrSuccess;
 }
 
-HRESULT vcftomapi_impl::handle_ADR(VObject *v)
+HRESULT vcftomapi_impl::handle_ADR(VObject *v, contact &ct)
 {
 	enum { OTHER, WORK, HOME } adr_type = OTHER;
 	VObjectIterator t;
@@ -345,7 +349,7 @@ HRESULT vcftomapi_impl::handle_ADR(VObject *v)
 			vobject_to_prop(vv, s, PR_OTHER_ADDRESS_COUNTRY);
 
 		if (s.ulPropTag > 0)
-			props.emplace_back(std::move(s));
+			ct.props.emplace_back(std::move(s));
 	}
 
 	return hrSuccess;
@@ -361,7 +365,7 @@ HRESULT vcftomapi_impl::alloc(size_t z, void **ptr)
 	return MAPIAllocateMore(z, m_propblk.get(), ptr);
 }
 
-HRESULT vcftomapi_impl::handle_UID(VObject *v)
+HRESULT vcftomapi_impl::handle_UID(VObject *v, contact &ct)
 {
 	auto value_type = vObjectValueType(v);
 	if (value_type != VCVT_USTRINGZ)
@@ -399,12 +403,11 @@ HRESULT vcftomapi_impl::handle_UID(VObject *v)
 	hr = KAllocCopy(prop->Value.bin.lpb, prop->Value.bin.cb, reinterpret_cast<void **>(&s.Value.bin.lpb), m_propblk);
 	if (hr != hrSuccess)
 		return hr;
-	props.emplace_back(std::move(s));
-
+	ct.props.emplace_back(std::move(s));
 	return hrSuccess;
 }
 
-HRESULT vcftomapi_impl::handle_ORG(VObject *v)
+HRESULT vcftomapi_impl::handle_ORG(VObject *v, contact &ct)
 {
 	VObjectIterator t;
 	initPropIterator(&t, v);
@@ -418,20 +421,20 @@ HRESULT vcftomapi_impl::handle_ORG(VObject *v)
 		auto hr = vobject_to_prop(vv, s, PR_COMPANY_NAME);
 		if (hr != hrSuccess)
 			return hr;
-		props.emplace_back(std::move(s));
+		ct.props.emplace_back(std::move(s));
 	}
 	if (strcmp(name, "OUN") == 0) {
 		auto hr = vobject_to_prop(vv, s, PR_DEPARTMENT_NAME);
 		if (hr != hrSuccess)
 			return hr;
-		props.emplace_back(std::move(s));
+		ct.props.emplace_back(std::move(s));
 	}
 	return hrSuccess;
 }
 
-HRESULT vcftomapi_impl::handle_PHOTO(VObject *v)
+HRESULT vcftomapi_impl::handle_PHOTO(VObject *v, contact &ct)
 {
-	phototype = PHOTO_NONE;
+	ct.phototype = PHOTO_NONE;
 	bool base64 = false;
 
 	VObjectIterator t;
@@ -454,19 +457,18 @@ HRESULT vcftomapi_impl::handle_PHOTO(VObject *v)
 			auto real_value = strcmp(name, "TYPE") == 0 ? value : name;
 			if (elem.first != real_value)
 				continue;
-			phototype = elem.second;
+			ct.phototype = elem.second;
 			break;
 		}
 	}
 
 	if (!base64 || vObjectValueType(v) != VCVT_USTRINGZ)
-		phototype = PHOTO_NONE;
-
-	if (phototype == PHOTO_NONE)
+		ct.phototype = PHOTO_NONE;
+	if (ct.phototype == PHOTO_NONE)
 		return hrSuccess;
 
 	auto tmp = convert_to<std::string>(vObjectUStringZValue(v));
-	std::copy_if(tmp.cbegin(), tmp.cend(), std::back_inserter(photo), [&](char c) { return c != ' '; });
+	std::copy_if(tmp.cbegin(), tmp.cend(), std::back_inserter(ct.photo), [&](char c) { return c != ' '; });
 	return hrSuccess;
 }
 
@@ -504,11 +506,17 @@ HRESULT vcftomapi_impl::parse_vcf(const std::string &ical)
 	std::unique_ptr<VObject, ical_deleter> root(Parse_MIME(tmp_ical.c_str(), tmp_ical.length()));
 	if (root == nullptr)
 		return MAPI_E_CORRUPT_DATA;
-	return parse_vcard(root.get());
+	for (auto vcard = root.get(); vcard != nullptr; vcard = nextVObjectInList(vcard)) {
+		auto ret = parse_vcard(vcard);
+		if (ret != hrSuccess)
+			return ret;
+	}
+	return hrSuccess;
 }
 
 HRESULT vcftomapi_impl::parse_vcard(VObject *vcard)
 {
+	contact ct;
 	VObjectIterator t;
 	for (initPropIterator(&t, vcard); moreIteration(&t); ) {
 		SPropValue s;
@@ -516,59 +524,59 @@ HRESULT vcftomapi_impl::parse_vcard(VObject *vcard)
 		auto name = vObjectName(v);
 
 		if (strcmp(name, VCNameProp) == 0) {
-			auto hr = handle_N(v);
+			auto hr = handle_N(v, ct);
 			if (hr != hrSuccess)
 				return hr;
 		} else if (strcmp(name, VCFullNameProp) == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
 			auto hr = vobject_to_prop(v, s, PR_DISPLAY_NAME);
 			if (hr != hrSuccess)
 				return hr;
-			props.emplace_back(std::move(s));
+			ct.props.emplace_back(std::move(s));
 		} else if (strcmp(name, VCTitleProp) == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
 			auto hr = vobject_to_prop(v, s, PR_TITLE);
 			if (hr != hrSuccess)
 				return hr;
-			props.emplace_back(std::move(s));
+			ct.props.emplace_back(std::move(s));
 		} else if (strcmp(name, "URL") == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
 			auto hr = vobject_to_named_prop(v, s, dispidWebPage);
 			if (hr != hrSuccess)
 				return hr;
-			props.emplace_back(std::move(s));
+			ct.props.emplace_back(std::move(s));
 		} else if (strcmp(name, "NICKNAME") == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
 			auto hr = vobject_to_prop(v, s, PR_NICKNAME);
 			if (hr != hrSuccess)
 				return hr;
-			props.emplace_back(std::move(s));
+			ct.props.emplace_back(std::move(s));
 		} else if (strcasecmp(name, "X-KADDRESSBOOK-X-Profession") == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
 			auto hr = vobject_to_prop(v, s, PR_PROFESSION);
 			if (hr != hrSuccess)
 				return hr;
-			props.emplace_back(std::move(s));
+			ct.props.emplace_back(std::move(s));
 		} else if (strcasecmp(name, "X-KADDRESSBOOK-X-SpouseName") == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
 			auto hr = vobject_to_prop(v, s, PR_SPOUSE_NAME);
 			if (hr != hrSuccess)
 				return hr;
-			props.emplace_back(std::move(s));
+			ct.props.emplace_back(std::move(s));
 		} else if (strcasecmp(name, "X-KADDRESSBOOK-X-ManagersName") == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
 			auto hr = vobject_to_prop(v, s, PR_MANAGER_NAME);
 			if (hr != hrSuccess)
 				return hr;
-			props.emplace_back(std::move(s));
+			ct.props.emplace_back(std::move(s));
 		} else if (strcasecmp(name, "X-KADDRESSBOOK-X-AssistantsName") == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
 			auto hr = vobject_to_prop(v, s, PR_ASSISTANT);
 			if (hr != hrSuccess)
 				return hr;
-			props.emplace_back(std::move(s));
+			ct.props.emplace_back(std::move(s));
 		} else if (strcasecmp(name, "X-KADDRESSBOOK-X-Office") == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
 			auto hr = vobject_to_prop(v, s, PR_OFFICE_LOCATION);
 			if (hr != hrSuccess)
 				return hr;
-			props.emplace_back(std::move(s));
+			ct.props.emplace_back(std::move(s));
 		} else if (strcmp(name, "NOTE") == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
 			auto hr = vobject_to_prop(v, s, PR_BODY);
 			if (hr != hrSuccess)
 				return hr;
-			props.emplace_back(std::move(s));
+			ct.props.emplace_back(std::move(s));
 		} else if (strcmp(name, "BDAY") == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
 			FILETIME filetime;
 			auto input = convert_to<std::string>(vObjectUStringZValue(v));
@@ -578,7 +586,7 @@ HRESULT vcftomapi_impl::parse_vcard(VObject *vcard)
 
 			s.ulPropTag = PR_BIRTHDAY;
 			s.Value.ft = filetime;
-			props.emplace_back(std::move(s));
+			ct.props.emplace_back(std::move(s));
 		} else if (strcmp(name, "X-ANNIVERSAY") == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
 			FILETIME filetime;
 			auto res = date_string_to_filetime(convert_to<std::string>(vObjectUStringZValue(v)), filetime);
@@ -586,38 +594,40 @@ HRESULT vcftomapi_impl::parse_vcard(VObject *vcard)
 				continue;
 			s.ulPropTag = PR_WEDDING_ANNIVERSARY;
 			s.Value.ft = filetime;
-			props.emplace_back(std::move(s));
+			ct.props.emplace_back(std::move(s));
 		} else if (strcmp(name, VCOrgProp) == 0) {
-			auto hr = handle_ORG(v);
+			auto hr = handle_ORG(v, ct);
 			if (hr != hrSuccess)
 				return hr;
 		} else if (strcmp(name, VCTelephoneProp) == 0) {
-			auto hr = handle_TEL(v);
+			auto hr = handle_TEL(v, ct);
 			if (hr != hrSuccess)
 				return hr;
 		} else if (strcmp(name, VCEmailAddressProp) == 0) {
-			auto hr = handle_EMAIL(v);
+			auto hr = handle_EMAIL(v, ct);
 			if (hr != hrSuccess)
 				return hr;
 		} else if (strcmp(name, "IMPP") == 0) {
 			auto hr = vobject_to_named_prop(v, s, dispidInstMsg);
 			if (hr != hrSuccess)
 				return hr;
-			props.emplace_back(std::move(s));
+			ct.props.emplace_back(std::move(s));
 		} else if (strcmp(name, VCAdrProp) == 0) {
-			auto hr = handle_ADR(v);
+			auto hr = handle_ADR(v, ct);
 			if (hr != hrSuccess)
 				return hr;
 		} else if (strcmp(name, "UID") == 0) {
-			auto hr = handle_UID(v);
+			auto hr = handle_UID(v, ct);
 			if (hr != hrSuccess)
 				return hr;
 		} else if (strcmp(name, "PHOTO") == 0) {
-			auto hr = handle_PHOTO(v);
+			auto hr = handle_PHOTO(v, ct);
 			if (hr != hrSuccess)
 				return hr;
 		}
 	}
+	if (ct.props.size() > 0)
+		m_contacts.emplace_back(std::move(ct));
 	return hrSuccess;
 }
 
@@ -684,13 +694,20 @@ HRESULT vcftomapi_impl::unicode_to_named_prop(const wchar_t *v, SPropValue &s,
 	return hrSuccess;
 }
 
+size_t vcftomapi_impl::get_item_count()
+{
+	return m_contacts.size();
+}
+
 /**
  * Sets mapi properties in Imessage object from the icalitem.
  */
-HRESULT vcftomapi_impl::get_item(IMessage *msg)
+HRESULT vcftomapi_impl::get_item(IMessage *msg, unsigned int pos)
 {
 	if (msg == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
+	if (pos >= m_contacts.size())
+		return MAPI_E_NOT_FOUND;
 
 	SPropValue s;
 	s.ulPropTag = CHANGE_PROP_TYPE(PR_MESSAGE_CLASS, PT_STRING8);
@@ -711,19 +728,21 @@ HRESULT vcftomapi_impl::get_item(IMessage *msg)
 		return hr;
 	s.ulPropTag = CHANGE_PROP_TYPE(proptag->aulPropTag[0], PT_BOOLEAN);
 	s.Value.b = true;
-	props.emplace_back(std::move(s));
-
-	hr = msg->SetProps(props.size(), &props[0], nullptr);
+	hr = msg->SetProps(1, &s, nullptr);
 	if (hr != hrSuccess)
 		return hr;
-	if (phototype != PHOTO_NONE)
-		hr = save_photo(msg);
+	const auto &ct = m_contacts[pos];
+	hr = msg->SetProps(ct.props.size(), &ct.props[0], nullptr);
+	if (hr != hrSuccess)
+		return hr;
+	if (ct.phototype != PHOTO_NONE)
+		hr = save_photo(ct, msg);
 	return hr;
 }
 
-HRESULT vcftomapi_impl::save_photo(IMessage *mapiprop)
+HRESULT vcftomapi_impl::save_photo(const contact &ct, IMessage *mapiprop)
 {
-	auto bytes = base64_decode(photo);
+	auto bytes = base64_decode(ct.photo);
 	ULONG tmp = 0;
 	object_ptr<IAttach> att;
 	auto hr = mapiprop->CreateAttach(nullptr, 0, &tmp, &~att);
@@ -748,7 +767,7 @@ HRESULT vcftomapi_impl::save_photo(IMessage *mapiprop)
 		return hr;
 
 	const wchar_t *filename, *mimetype;
-	switch (phototype) {
+	switch (ct.phototype) {
 	case PHOTO_JPEG:
 		filename = L"image.jpeg";
 		mimetype = L"image/jpeg";
