@@ -40,6 +40,7 @@ class vcftomapi_impl final : public vcftomapi {
 	HRESULT get_item(IMessage *) override;
 
 	private:
+	HRESULT alloc(size_t, void **);
 	HRESULT save_photo(IMessage *);
 	HRESULT save_props(const std::vector<SPropValue> &, IMessage *);
 	HRESULT handle_N(VObject *);
@@ -58,6 +59,8 @@ class vcftomapi_impl final : public vcftomapi {
 	enum photo_type_enum { PHOTO_NONE, PHOTO_JPEG, PHOTO_PNG, PHOTO_GIF } ;
 	photo_type_enum phototype = PHOTO_NONE;
 	size_t email_count = 0;
+	/* Fake buffer for attaching MAPIAllocateMore buffers */
+	memory_ptr<char> m_propblk;
 };
 
 struct ical_deleter {
@@ -348,6 +351,16 @@ HRESULT vcftomapi_impl::handle_ADR(VObject *v)
 	return hrSuccess;
 }
 
+HRESULT vcftomapi_impl::alloc(size_t z, void **ptr)
+{
+	if (m_propblk == nullptr) {
+		auto ret = MAPIAllocateBuffer(1, &~m_propblk);
+		if (ret != hrSuccess)
+			return ret;
+	}
+	return MAPIAllocateMore(z, m_propblk.get(), ptr);
+}
+
 HRESULT vcftomapi_impl::handle_UID(VObject *v)
 {
 	auto value_type = vObjectValueType(v);
@@ -358,6 +371,10 @@ HRESULT vcftomapi_impl::handle_UID(VObject *v)
 	auto uid_string = convert_to<std::string>(uid_wstring);
 
 	memory_ptr<SPropValue> prop;
+	/*
+	 * uid needs to be attached to an autodestructed buffer,
+	 * in case GetIDsFromNames fails.
+	 */
 	auto hr = MAPIAllocateBuffer(sizeof(SPropValue), &~prop);
 	if (hr != hrSuccess)
 		return hr;
@@ -379,7 +396,7 @@ HRESULT vcftomapi_impl::handle_UID(VObject *v)
 	SPropValue s;
 	s.ulPropTag = CHANGE_PROP_TYPE(proptag->aulPropTag[0], PT_BINARY);
 	s.Value.bin.cb = prop->Value.bin.cb;
-	hr = KAllocCopy(prop->Value.bin.lpb, prop->Value.bin.cb, reinterpret_cast<void **>(&s.Value.bin.lpb));
+	hr = KAllocCopy(prop->Value.bin.lpb, prop->Value.bin.cb, reinterpret_cast<void **>(&s.Value.bin.lpb), m_propblk);
 	if (hr != hrSuccess)
 		return hr;
 	props.emplace_back(std::move(s));
@@ -606,7 +623,7 @@ HRESULT vcftomapi_impl::vobject_to_prop(VObject *v, SPropValue &s, ULONG proptyp
 	if (value_type == VCVT_STRINGZ) {
 		s.ulPropTag = CHANGE_PROP_TYPE(proptype, PT_STRING8);
 		auto val = vObjectStringZValue(v);
-		auto ret = MAPIAllocateBuffer(strlen(val) + 1, reinterpret_cast<void **>(&s.Value.lpszA));
+		auto ret = alloc(strlen(val) + 1, reinterpret_cast<void **>(&s.Value.lpszA));
 		if (ret != hrSuccess)
 			return ret;
 		strcpy(s.Value.lpszA, val);
@@ -614,7 +631,7 @@ HRESULT vcftomapi_impl::vobject_to_prop(VObject *v, SPropValue &s, ULONG proptyp
 	else if (value_type == VCVT_USTRINGZ) {
 		s.ulPropTag = CHANGE_PROP_TYPE(proptype, PT_UNICODE);
 		auto uval = vObjectUStringZValue(v);
-		auto ret = MAPIAllocateBuffer(sizeof(wchar_t) * (wcslen(uval) + 1), reinterpret_cast<void **>(&s.Value.lpszW));
+		auto ret = alloc(sizeof(wchar_t) * (wcslen(uval) + 1), reinterpret_cast<void **>(&s.Value.lpszW));
 		if (ret != hrSuccess)
 			return ret;
 		wcscpy(s.Value.lpszW, uval);
@@ -655,7 +672,7 @@ HRESULT vcftomapi_impl::unicode_to_named_prop(const wchar_t *v, SPropValue &s,
 	if (hr != hrSuccess)
 		return hr;
 	s.ulPropTag = CHANGE_PROP_TYPE(proptag->aulPropTag[0], PT_UNICODE);
-	auto ret = MAPIAllocateBuffer(sizeof(wchar_t) * (wcslen(v) + 1),
+	auto ret = alloc(sizeof(wchar_t) * (wcslen(v) + 1),
                reinterpret_cast<void **>(&s.Value.lpszW));
 	if (ret != hrSuccess)
 		return hr;
@@ -776,15 +793,6 @@ HRESULT vcftomapi_impl::save_props(const std::vector<SPropValue> &proplist,
     IMessage *mapiprop)
 {
 	auto ret = mapiprop->SetProps(proplist.size(), &proplist[0], nullptr);
-	for (const auto &prop : proplist) {
-		if (PROP_TYPE(prop.ulPropTag) == PT_UNICODE)
-			MAPIFreeBuffer(prop.Value.lpszW);
-		else if (PROP_TYPE(prop.ulPropTag) == PT_STRING8)
-			MAPIFreeBuffer(prop.Value.lpszA);
-		else if (PROP_TYPE(prop.ulPropTag) == PT_BINARY)
-			MAPIFreeBuffer(prop.Value.bin.lpb);
-	}
-
 	if (ret != hrSuccess)
 		return ret;
 
