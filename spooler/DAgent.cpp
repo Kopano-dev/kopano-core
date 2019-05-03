@@ -1461,6 +1461,110 @@ static HRESULT HrMessageExpired(StatsClient *sc, IMessage *lpMessage, bool *bExp
 	return hr;
 }
 
+static HRESULT recip_in_distlist(IAddrBook *ab, const SBinary &eid,
+    ECRecipient *rcpt, bool &pres)
+{
+	static constexpr const SizedSPropTagArray(2, cols) = {2, {PR_OBJECT_TYPE, PR_ENTRYID}};
+	unsigned int objtype = 0;
+	object_ptr<IDistList> dl;
+	auto ret = ab->OpenEntry(eid.cb, reinterpret_cast<ENTRYID *>(eid.lpb), &iid_of(dl), 0, &objtype, &~dl);
+	if (ret != hrSuccess)
+		return ret;
+	object_ptr<IMAPITable> tbl;
+	ret = dl->GetContentsTable(0, &~tbl);
+	if (ret != hrSuccess)
+		return ret;
+	ret = tbl->SetColumns(cols, 0);
+	if (ret != hrSuccess)
+		return kc_perrorf("SetColumns", ret);
+	SPropValue scmp[4];
+	scmp[0].ulPropTag   = PR_OBJECT_TYPE;
+	scmp[0].Value.ul    = MAPI_DISTLIST;
+	scmp[1].ulPropTag   = PR_OBJECT_TYPE;
+	scmp[1].Value.ul    = MAPI_MAILUSER;
+	scmp[2].ulPropTag   = PR_ADDRTYPE_A;
+	scmp[2].Value.lpszA = const_cast<char *>("ZARAFA");
+	scmp[3].ulPropTag   = PR_SMTP_ADDRESS_A;
+	scmp[3].Value.lpszA = const_cast<char *>(rcpt->strSMTP.c_str());
+	ret = ECOrRestriction(
+		ECPropertyRestriction(RELOP_EQ, PR_OBJECT_TYPE, &scmp[0], ECRestriction::Cheap) +
+		ECAndRestriction(
+			ECPropertyRestriction(RELOP_EQ, PR_OBJECT_TYPE, &scmp[1], ECRestriction::Cheap) +
+			ECPropertyRestriction(RELOP_EQ, PR_ADDRTYPE_A, &scmp[2], ECRestriction::Cheap) +
+			ECPropertyRestriction(RELOP_EQ, PR_SMTP_ADDRESS_A, &scmp[3], ECRestriction::Cheap)
+		)
+	).RestrictTable(tbl, ECRestriction::Cheap);
+	if (ret != hrSuccess)
+		return kc_perrorf("RestrictTable", ret);
+	rowset_ptr rset;
+	ret = tbl->QueryRows(-1, 0, &~rset);
+	if (ret != hrSuccess)
+		return kc_perrorf("QueryRows", ret);
+
+	for (unsigned int i = 0; i < rset->cRows; ++i) {
+		const auto &row = rset->aRow[i];
+		if (row.lpProps[0].Value.ul == MAPI_MAILUSER) {
+			pres = true;
+			return hrSuccess;
+		}
+		ret = recip_in_distlist(ab, row.lpProps[1].Value.bin, rcpt, pres);
+		if (ret != hrSuccess)
+			return ret;
+	}
+	return hrSuccess;
+}
+
+static HRESULT recip_me_check(IAddrBook *ab, IMAPITable *tbl,
+    ECRecipient *rcpt, bool &xto, bool &xcc, bool &xdl)
+{
+	static constexpr const SizedSPropTagArray(3, cols) =
+		// MAPI_TO, MAPI_MAILUSER, ...
+		// MAPI_CC, MAPI_DISTLIST, ...
+		{3, {PR_RECIPIENT_TYPE, PR_OBJECT_TYPE, PR_ENTRYID}};
+	auto ret = tbl->SetColumns(cols, 0);
+	if (ret != hrSuccess)
+		return kc_perrorf("SetColumns failed", ret);
+
+	SPropValue scmp[4];
+	scmp[0].ulPropTag   = PR_OBJECT_TYPE;
+	scmp[0].Value.ul    = MAPI_DISTLIST;
+	scmp[1].ulPropTag   = PR_OBJECT_TYPE;
+	scmp[1].Value.ul    = MAPI_MAILUSER;
+	scmp[2].ulPropTag   = PR_ADDRTYPE_A;
+	scmp[2].Value.lpszA = const_cast<char *>("ZARAFA");
+	scmp[3].ulPropTag   = PR_SMTP_ADDRESS_A;
+	scmp[3].Value.lpszA = const_cast<char *>(rcpt->strSMTP.c_str());
+	ret = ECOrRestriction(
+		ECPropertyRestriction(RELOP_EQ, PR_OBJECT_TYPE, &scmp[0], ECRestriction::Cheap) +
+		ECAndRestriction(
+			ECPropertyRestriction(RELOP_EQ, PR_OBJECT_TYPE, &scmp[1], ECRestriction::Cheap) +
+			ECPropertyRestriction(RELOP_EQ, PR_ADDRTYPE_A, &scmp[2], ECRestriction::Cheap) +
+			ECPropertyRestriction(RELOP_EQ, PR_SMTP_ADDRESS_A, &scmp[3], ECRestriction::Cheap)
+		)
+	).RestrictTable(tbl, ECRestriction::Cheap);
+	if (ret != hrSuccess)
+		return kc_perrorf("RestrictTable", ret);
+	rowset_ptr rset;
+	ret = tbl->QueryRows(-1, 0, &~rset);
+	if (ret != hrSuccess)
+		return kc_perrorf("QueryRows", ret);
+
+	for (unsigned int i = 0; i < rset->cRows; ++i) {
+		const auto &row = rset->aRow[i];
+		if (row.lpProps[1].Value.ul == MAPI_DISTLIST) {
+			ret = recip_in_distlist(ab, row.lpProps[2].Value.bin, rcpt, xdl);
+			if (ret != hrSuccess)
+				return ret;
+			continue;
+		}
+		if (row.lpProps[0].Value.ul == MAPI_TO)
+			xto = true;
+		if (row.lpProps[0].Value.ul == MAPI_CC)
+			xcc = true;
+	}
+	return hrSuccess;
+}
+
 /**
  * Replace To recipient data in message with new recipient
  *
@@ -1469,67 +1573,27 @@ static HRESULT HrMessageExpired(StatsClient *sc, IMessage *lpMessage, bool *bExp
  *
  * @return MAPI Error code
  */
-static HRESULT HrOverrideRecipProps(IMessage *lpMessage, ECRecipient *lpRecip)
+static HRESULT HrOverrideRecipProps(IAddrBook *ab,
+    IMessage *lpMessage, ECRecipient *lpRecip)
 {
 	object_ptr<IMAPITable> lpRecipTable;
-	memory_ptr<SRestriction> lpRestrictRecipient;
-	SPropValue sPropRecip[4], sCmp[2];
-	bool bToMe = false, bCcMe = false, bBccMe = false, bRecipMe = false;
-	static constexpr const SizedSPropTagArray(2, sptaColumns) =
-		{2, {PR_RECIPIENT_TYPE, PR_ENTRYID}};
+	SPropValue sPropRecip[4];
+	bool bToMe = false, bCcMe = false, distgrp = false;
 
 	auto hr = lpMessage->GetRecipientTable (0, &~lpRecipTable);
 	if (hr != hrSuccess)
 		return kc_perrorf("GetRecipientTable failed", hr);
-	hr = lpRecipTable->SetColumns(sptaColumns, 0);
+	hr = recip_me_check(ab, lpRecipTable, lpRecip, bToMe, bCcMe, distgrp);
 	if (hr != hrSuccess)
-		return kc_perrorf("SetColumns failed", hr);
-
-	sCmp[0].ulPropTag = PR_ADDRTYPE_A;
-	sCmp[0].Value.lpszA = const_cast<char *>("ZARAFA");
-	sCmp[1].ulPropTag = PR_SMTP_ADDRESS_A;
-	sCmp[1].Value.lpszA = (char*)lpRecip->strSMTP.c_str();
-
-	hr = ECAndRestriction(
-		ECExistRestriction(PR_RECIPIENT_TYPE) +
-		ECPropertyRestriction(RELOP_EQ, PR_ADDRTYPE_A, &sCmp[0], ECRestriction::Cheap) +
-		ECPropertyRestriction(RELOP_EQ, PR_SMTP_ADDRESS_A, &sCmp[1], ECRestriction::Cheap)
-	).CreateMAPIRestriction(&~lpRestrictRecipient, ECRestriction::Cheap);
-	if (hr != hrSuccess)
-		return hr;
-
-	hr = lpRecipTable->FindRow(lpRestrictRecipient, BOOKMARK_BEGINNING, 0);
-	if (hr == hrSuccess) {
-		rowset_ptr lpsRows;
-		hr = lpRecipTable->QueryRows(1, 0, &~lpsRows);
-		if (hr != hrSuccess)
-			return kc_perrorf("QueryRows failed", hr);
-		bRecipMe = (lpsRows->cRows == 1);
-		if (bRecipMe) {
-			auto lpProp = lpsRows[0].cfind(PR_RECIPIENT_TYPE);
-			if (lpProp) {
-				bToMe = (lpProp->Value.ul == MAPI_TO);
-				bCcMe = (lpProp->Value.ul == MAPI_CC);
-				bBccMe = lpProp->Value.ul == MAPI_BCC;
-			}
-		}
-	} else {
-		/*
-		 * No recipients were found, message was not to me.
-		 * Don't report error to caller, since we should set
-		 * the properties to indicate this message is not for us.
-		 */
-		hr = hrSuccess;
-	}
-
-	sPropRecip[0].ulPropTag = PR_MESSAGE_RECIP_ME;
-	sPropRecip[0].Value.b = bRecipMe;
+		/* ignore */;
 	sPropRecip[1].ulPropTag = PR_MESSAGE_TO_ME;
 	sPropRecip[1].Value.b = bToMe;
 	sPropRecip[2].ulPropTag = PR_MESSAGE_CC_ME;
 	sPropRecip[2].Value.b = bCcMe;
 	sPropRecip[3].ulPropTag = PR_EC_MESSAGE_BCC_ME;
-	sPropRecip[3].Value.b = bBccMe;
+	sPropRecip[3].Value.b = !bToMe && !bCcMe && !distgrp;
+	sPropRecip[0].ulPropTag = PR_MESSAGE_RECIP_ME;
+	sPropRecip[0].Value.b = bToMe || bCcMe || sPropRecip[3].Value.b;
 	hr = lpMessage->SetProps(4, sPropRecip, NULL);
 	if (hr != hrSuccess)
 		return kc_perror("SetProps failed", hr);
@@ -1982,7 +2046,7 @@ static HRESULT ProcessDeliveryToRecipient(pym_plugin_intf *lppyMapiPlugin,
 			return kc_perrorf("HrCopyMessageForDelivery failed", hr);
 	}
 
-	hr = HrOverrideRecipProps(lpDeliveryMessage, lpRecip);
+	hr = HrOverrideRecipProps(lpAdrBook, lpDeliveryMessage, lpRecip);
 	if (hr != hrSuccess)
 		return kc_perrorf("HrOverrideRecipProps failed", hr);
 
