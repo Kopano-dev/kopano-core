@@ -42,7 +42,6 @@ class vcftomapi_impl final : public vcftomapi {
 	private:
 	HRESULT alloc(size_t, void **);
 	HRESULT save_photo(IMessage *);
-	HRESULT save_props(const std::vector<SPropValue> &, IMessage *);
 	HRESULT handle_N(VObject *);
 	HRESULT handle_TEL(VObject *);
 	HRESULT handle_EMAIL(VObject *);
@@ -606,7 +605,12 @@ HRESULT vcftomapi_impl::get_item(IMessage *msg)
 	s.Value.b = true;
 	props.emplace_back(std::move(s));
 
-	return save_props(props, msg);
+	hr = msg->SetProps(props.size(), &props[0], nullptr);
+	if (hr != hrSuccess)
+		return hr;
+	if (phototype != PHOTO_NONE)
+		hr = save_photo(msg);
+	return hr;
 }
 
 HRESULT vcftomapi_impl::save_photo(IMessage *mapiprop)
@@ -671,26 +675,6 @@ HRESULT vcftomapi_impl::save_photo(IMessage *mapiprop)
 	if (hr != hrSuccess)
 		return hr;
 	return hrSuccess;
-}
-
-/**
- * Helper function for GetItem. Saves all properties converted from
- * ICal to MAPI in the MAPI object. Does not call SaveChanges.
- *
- * @param[in] lpPropList list of properties to save in lpMapiProp
- * @param[in] lpMapiProp The MAPI object to save properties in
- *
- * @return MAPI error code
- */
-HRESULT vcftomapi_impl::save_props(const std::vector<SPropValue> &proplist,
-    IMessage *mapiprop)
-{
-	auto ret = mapiprop->SetProps(proplist.size(), &proplist[0], nullptr);
-	if (ret != hrSuccess)
-		return ret;
-	if (phototype != PHOTO_NONE)
-		ret = save_photo(mapiprop);
-	return ret;
 }
 
 } /* namespace */
