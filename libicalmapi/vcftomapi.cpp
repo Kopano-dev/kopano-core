@@ -3,7 +3,6 @@
  * Copyright 2017 - Kopano and its licensors
  */
 #include <algorithm>
-#include <list>
 #include <memory>
 #include <new>
 #include <string>
@@ -42,7 +41,7 @@ class vcftomapi_impl final : public vcftomapi {
 
 	private:
 	HRESULT save_photo(IMessage *);
-	HRESULT save_props(const std::list<SPropValue> &, IMessage *);
+	HRESULT save_props(const std::vector<SPropValue> &, IMessage *);
 	HRESULT handle_N(VObject *);
 	HRESULT handle_TEL(VObject *);
 	HRESULT handle_EMAIL(VObject *);
@@ -54,7 +53,7 @@ class vcftomapi_impl final : public vcftomapi {
 	HRESULT vobject_to_named_prop(VObject *, SPropValue &, ULONG named_proptype);
 	HRESULT unicode_to_named_prop(const wchar_t *, SPropValue &, ULONG named_proptype);
 
-	std::list<SPropValue> props;
+	std::vector<SPropValue> props;
 	std::string photo;
 	enum photo_type_enum { PHOTO_NONE, PHOTO_JPEG, PHOTO_PNG, PHOTO_GIF } ;
 	photo_type_enum phototype = PHOTO_NONE;
@@ -773,19 +772,10 @@ HRESULT vcftomapi_impl::save_photo(IMessage *mapiprop)
  *
  * @return MAPI error code
  */
-HRESULT vcftomapi_impl::save_props(const std::list<SPropValue> &proplist,
+HRESULT vcftomapi_impl::save_props(const std::vector<SPropValue> &proplist,
     IMessage *mapiprop)
 {
-	memory_ptr<SPropValue> propvals;
-	HRESULT hr = MAPIAllocateBuffer(proplist.size() * sizeof(SPropValue),
-	             &~propvals);
-	if (hr != hrSuccess)
-		return hr;
-
-	size_t i = 0;
-	for (const auto &prop : proplist)
-		propvals[i++] = std::move(prop);
-	auto ret = mapiprop->SetProps(i, propvals, nullptr);
+	auto ret = mapiprop->SetProps(proplist.size(), &proplist[0], nullptr);
 	for (const auto &prop : proplist) {
 		if (PROP_TYPE(prop.ulPropTag) == PT_UNICODE)
 			MAPIFreeBuffer(prop.Value.lpszW);
