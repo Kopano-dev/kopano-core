@@ -104,10 +104,10 @@ void *ECWatchdog::watcher(void *param)
  * Construct an ECThreadPool instance.
  * @param[in]	ulThreadCount	The amount of worker hreads to create.
  */
-ECThreadPool::ECThreadPool(const std::string &pname, unsigned int ulThreadCount) :
+ECThreadPool::ECThreadPool(const std::string &pname, unsigned int spares) :
 	m_poolname(pname)
 {
-	setThreadCount(ulThreadCount);
+	set_thread_count(spares);
 }
 
 /**
@@ -116,7 +116,7 @@ ECThreadPool::ECThreadPool(const std::string &pname, unsigned int ulThreadCount)
  */
 ECThreadPool::~ECThreadPool()
 {
-	setThreadCount(0, true);
+	set_thread_count(0, 0, true);
 }
 
 void ECThreadPool::enable_watchdog(bool e, std::shared_ptr<ECConfig> cfg)
@@ -186,23 +186,29 @@ HRESULT ECThreadPool::create_thread_unlocked()
 void ECThreadPool::add_extra_thread()
 {
 	ulock_normal lk(m_hMutex);
-	create_thread_unlocked();
+	if (m_setThreads.size() < m_threads_max)
+		create_thread_unlocked();
 }
 
 /**
  * Set the amount of worker threads for the threadpool.
- * @param[in]	ulThreadCount	The amount of required worker threads.
+ * @ulThreadCount:	The amount of worker threads that should be alive at all times (spares).
+ * @thrmax:		Upper thread limit (spares + on-demand threads)
  * @param[in]	bWait			If the requested amount of worker threads is less
  *                              than the current amount, this method will wait until
  *                              the extra threads have exited if this argument is true.
  */
-void ECThreadPool::setThreadCount(unsigned ulThreadCount, bool bWait)
+void ECThreadPool::set_thread_count(unsigned int ulThreadCount,
+    unsigned int thrmax, bool bWait)
 {
 	if (ulThreadCount == 0)
 		m_watchdog.reset();
+	if (thrmax < ulThreadCount)
+		thrmax = ulThreadCount;
 
 	ulock_normal locker(m_hMutex);
-	m_target_threads = ulThreadCount;
+	m_threads_spares = ulThreadCount;
+	m_threads_max = thrmax;
 	if (ulThreadCount == threadCount() - 1) {
 		++m_ulTermReq;
 		m_hCondition.notify_one();
@@ -261,7 +267,7 @@ bool ECThreadPool::getNextTask(STaskInfo *lpsTaskInfo, ulock_normal &locker)
 	 * checked for.
 	 */
 	while (!(bTerminate = m_ulTermReq > 0) && m_listTasks.empty()) {
-		if (m_setThreads.size() > m_target_threads) {
+		if (m_setThreads.size() > m_threads_spares) {
 			bTerminate = ++m_ulTermReq;
 			break;
 		}

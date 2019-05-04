@@ -489,10 +489,23 @@ Default:
 .SH "EXPLANATION OF THE THREADING PARAMETERS"
 .SS threads
 .PP
-Number of server threads.
+For the network request handling thread pool, this directive specifies the
+number of threads to keep available at all times, idle periods included.
+.PP
+For the search folder processing thread pool, this directive specifies the
+number of threads to launch at kopano-server startup.
 .PP
 Default:
 \fI8\fR
+.SS thread_limit
+.PP
+If and when \fBwatchdog_frequency\fP is greater than 0 and a network request
+has been waiting for longer than \fBwatchdog_max_age\fP to be dispatched to a
+thread, the thread pool may increase the number of threads up to the specified
+limit.
+.PP
+Default:
+\fI8\fP
 .SS watchdog_frequency
 .PP
 Watchdog frequency. The number of watchdog checks per second.

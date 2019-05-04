@@ -129,7 +129,7 @@ ECRESULT da_exec::quiesce()
 	locker.unlock();
 
 	if (adm_quit)
-		setThreadCount(0, true);
+		set_thread_count(0, 0, true);
 	return ret;
 }
 

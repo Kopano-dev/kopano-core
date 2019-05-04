@@ -59,7 +59,6 @@ public:
 	void GetThreadCount(unsigned int *total, unsigned int *idle);
 	KC::time_duration front_item_age();
 	size_t queue_length();
-	void SetThreadCount(unsigned int nthr);
 	void AddListenSocket(std::unique_ptr<struct soap, KC::ec_soap_deleter> &&);
 	void QueueItem(struct soap *);
 

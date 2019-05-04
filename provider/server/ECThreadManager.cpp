@@ -292,18 +292,13 @@ void ECDispatcher::NotifyDone(struct soap *soap)
 	NotifyRestart(socket);
 }
 
-// Set the nominal thread count
-void ECDispatcher::SetThreadCount(unsigned int ulThreads)
-{
-	m_pool.setThreadCount(ulThreads);
-}
-
 ECRESULT ECDispatcher::DoHUP()
 {
 	m_nRecvTimeout = atoi(m_lpConfig->GetSetting("server_recv_timeout"));
 	m_nReadTimeout = atoi(m_lpConfig->GetSetting("server_read_timeout"));
 	m_nSendTimeout = atoi(m_lpConfig->GetSetting("server_send_timeout"));
-	SetThreadCount(atoi(m_lpConfig->GetSetting("threads")));
+	m_pool.set_thread_count(atoui(m_lpConfig->GetSetting("threads")),
+		atoui(m_lpConfig->GetSetting("thread_limit")));
 
 	for (auto const &p : m_setListenSockets) {
 		auto ulType = SOAP_CONNECTION_TYPE(p.second);
@@ -362,9 +357,9 @@ ECRESULT ECDispatcherSelect::MainLoop()
 		pollfd[n].events = POLLIN;
 
     // This will start the threads
-	m_pool.setThreadCount(atoui(m_lpConfig->GetSetting("threads")));
+	m_pool.set_thread_count(atoui(m_lpConfig->GetSetting("threads")), atoui(m_lpConfig->GetSetting("thread_limit")));
 	m_pool.enable_watchdog(true, m_lpConfig);
-	m_prio.setThreadCount(1);
+	m_prio.set_thread_count(1);
 
     // Main loop
     while(!m_bExit) {
@@ -501,8 +496,8 @@ ECRESULT ECDispatcherSelect::MainLoop()
 	}
 
     // Set the thread count to zero so that threads will exit
-	m_pool.setThreadCount(0, true);
-	m_prio.setThreadCount(0, true);
+	m_pool.set_thread_count(0, 0, true);
+	m_prio.set_thread_count(0, 0, true);
 
 	// Close all sockets. This will cause all that we were listening on clients to get an EOF
 	ulock_normal l_sock(m_mutexSockets);
@@ -566,9 +561,9 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 	}
 
 	// This will start the threads
-	m_pool.setThreadCount(atoui(m_lpConfig->GetSetting("threads")));
+	m_pool.set_thread_count(atoui(m_lpConfig->GetSetting("threads")), atoui(m_lpConfig->GetSetting("thread_limit")));
 	m_pool.enable_watchdog(true, m_lpConfig);
-	m_prio.setThreadCount(1);
+	m_prio.set_thread_count(1);
 
 	while (!m_bExit) {
 		time(&now);
@@ -658,8 +653,8 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 		l_sock.unlock();
 	}
 
-	m_pool.setThreadCount(0, true);
-	m_prio.setThreadCount(0, true);
+	m_pool.set_thread_count(0, 0, true);
+	m_prio.set_thread_count(0, 0, true);
 
     // Close all sockets. This will cause all that we were listening on clients to get an EOF
 	ulock_normal l_sock(m_mutexSockets);
