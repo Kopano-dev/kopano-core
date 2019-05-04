@@ -146,7 +146,6 @@ static ECRESULT main2(int argc, char **argv)
 		OPT_HELP = UCHAR_MAX + 1,
 		OPT_HOST,
 		OPT_CONFIG,
-		OPT_FOREGROUND,
 		OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS,
 		OPT_DUMP_CONFIG,
 	};
@@ -154,7 +153,6 @@ static ECRESULT main2(int argc, char **argv)
 		{ "help", 0, NULL, OPT_HELP },
 		{ "host", 1, NULL, OPT_HOST },
 		{ "config", 1, NULL, OPT_CONFIG },
-		{ "foreground", 1, NULL, OPT_FOREGROUND },
 		{ "ignore-unknown-config-options", 0, NULL, OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS },
 		{"dump-config", no_argument, nullptr, OPT_DUMP_CONFIG},
 		{ NULL, 0, NULL, 0 }
@@ -181,7 +179,6 @@ static ECRESULT main2(int argc, char **argv)
 		case 'i': // Install service
 		case 'u': // Uninstall service
 			break;
-		case OPT_FOREGROUND:
 		case 'F':
 			daemonize = 0;
 			break;
