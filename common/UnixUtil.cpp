@@ -27,7 +27,7 @@
 
 namespace KC {
 
-static int unix_runpath(ECConfig *conf)
+static int unix_runpath()
 {
 	auto ret = chdir("/");
 	if (ret != 0)
@@ -78,7 +78,7 @@ int unix_runas(ECConfig *lpConfig)
 {
 	const char *group = lpConfig->GetSetting("run_as_group");
 	const char *user  = lpConfig->GetSetting("run_as_user");
-	auto ret = unix_runpath(lpConfig);
+	auto ret = unix_runpath();
 	if (ret != 0)
 		return ret;
 
@@ -237,7 +237,7 @@ int unix_create_pidfile(const char *argv0, ECConfig *lpConfig, bool bForce)
 int unix_daemonize(ECConfig *lpConfig)
 {
 	// make sure we daemonize in an always existing directory
-	auto ret = unix_runpath(lpConfig);
+	auto ret = unix_runpath();
 	if (ret != 0)
 		return ret;
 
