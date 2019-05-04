@@ -41,6 +41,7 @@ class vcftomapi_impl final : public vcftomapi {
 
 	private:
 	HRESULT alloc(size_t, void **);
+	HRESULT parse_vcard(VObject *);
 	HRESULT save_photo(IMessage *);
 	HRESULT handle_N(VObject *);
 	HRESULT handle_TEL(VObject *);
@@ -439,9 +440,13 @@ HRESULT vcftomapi_impl::parse_vcf(const std::string &ical)
 	std::unique_ptr<VObject, ical_deleter> root(Parse_MIME(tmp_ical.c_str(), tmp_ical.length()));
 	if (root == nullptr)
 		return MAPI_E_CORRUPT_DATA;
+	return parse_vcard(root.get());
+}
 
+HRESULT vcftomapi_impl::parse_vcard(VObject *vcard)
+{
 	VObjectIterator t;
-	for (initPropIterator(&t, root.get()); moreIteration(&t); ) {
+	for (initPropIterator(&t, vcard); moreIteration(&t); ) {
 		SPropValue s;
 		auto v = nextVObject(&t);
 		auto name = vObjectName(v);
