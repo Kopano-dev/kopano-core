@@ -209,52 +209,6 @@ done:
 	set_thread_name(thrself, (m_worker->m_pool->m_poolname + "/idle").c_str());
 }
 
-ECWatchDog::ECWatchDog(ECConfig *lpConfig, ECDispatcher *lpDispatcher) :
-	m_lpConfig(lpConfig), m_lpDispatcher(lpDispatcher)
-{
-	auto ret = pthread_create(&m_thread, nullptr, ECWatchDog::Watch, this);
-	if (ret != 0) {
-		ec_log_crit("Could not create ECWatchDog thread: %s", strerror(ret));
-		return;
-	}
-	m_thread_active = true;
-	set_thread_name(m_thread, "watchdog");
-}
-
-ECWatchDog::~ECWatchDog()
-{
-    void *ret;
-
-	ulock_normal l_exit(m_mutexExit);
-	m_bExit = true;
-	m_condExit.notify_one();
-	l_exit.unlock();
-	if (m_thread_active)
-		pthread_join(m_thread, &ret);
-}
-
-void *ECWatchDog::Watch(void *lpParam)
-{
-	auto lpThis = static_cast<ECWatchDog *>(lpParam);
-	kcsrv_blocksigs();
-
-	while (!lpThis->m_bExit) {
-        double dblMaxFreq = atoi(lpThis->m_lpConfig->GetSetting("watchdog_frequency"));
-
-        // If the age of the front item in the queue is older than the specified maximum age, force
-        // a new thread to be started
-		if (lpThis->m_lpDispatcher->front_item_age() >
-		    std::chrono::milliseconds(atoi(lpThis->m_lpConfig->GetSetting("watchdog_max_age"))))
-			lpThis->m_lpDispatcher->force_add_threads(1);
-
-        // Check to see if exit flag is set, and limit rate to dblMaxFreq Hz
-		ulock_normal l_exit(lpThis->m_mutexExit);
-		if (!lpThis->m_bExit)
-			lpThis->m_condExit.wait_for(l_exit, std::chrono::duration<double>(1 / dblMaxFreq));
-    }
-    return NULL;
-}
-
 ECDispatcher::ECDispatcher(std::shared_ptr<ECConfig> lpConfig) :
 	m_lpConfig(std::move(lpConfig))
 {
@@ -344,14 +298,6 @@ void ECDispatcher::SetThreadCount(unsigned int ulThreads)
 	m_pool.setThreadCount(ulThreads);
 }
 
-void ECDispatcher::force_add_threads(size_t n)
-{
-	size_t a, i;
-	scoped_lock lk(m_poolcount);
-	m_pool.thread_counts(&a, &i);
-	m_pool.setThreadCount(a + i + n);
-}
-
 ECRESULT ECDispatcher::DoHUP()
 {
 	m_nRecvTimeout = atoi(m_lpConfig->GetSetting("server_recv_timeout"));
@@ -417,9 +363,8 @@ ECRESULT ECDispatcherSelect::MainLoop()
 
     // This will start the threads
 	m_pool.setThreadCount(atoui(m_lpConfig->GetSetting("threads")));
+	m_pool.enable_watchdog(true, m_lpConfig);
 	m_prio.setThreadCount(1);
-    // Start the watchdog
-	auto lpWatchDog = std::make_unique<ECWatchDog>(m_lpConfig.get(), this);
 
     // Main loop
     while(!m_bExit) {
@@ -555,8 +500,6 @@ ECRESULT ECDispatcherSelect::MainLoop()
 		}
 	}
 
-    // Delete the watchdog. This makes sure no new threads will be started.
-	lpWatchDog.reset();
     // Set the thread count to zero so that threads will exit
 	m_pool.setThreadCount(0, true);
 	m_prio.setThreadCount(0, true);
@@ -624,9 +567,8 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 
 	// This will start the threads
 	m_pool.setThreadCount(atoui(m_lpConfig->GetSetting("threads")));
+	m_pool.enable_watchdog(true, m_lpConfig);
 	m_prio.setThreadCount(1);
-	// Start the watchdog
-	auto lpWatchDog = std::make_unique<ECWatchDog>(m_lpConfig.get(), this);
 
 	while (!m_bExit) {
 		time(&now);
@@ -716,8 +658,6 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 		l_sock.unlock();
 	}
 
-	// Delete the watchdog. This makes sure no new threads will be started.
-	lpWatchDog.reset();
 	m_pool.setThreadCount(0, true);
 	m_prio.setThreadCount(0, true);
 

@@ -47,30 +47,6 @@ private:
 class ECDispatcher;
 
 /*
- * Represents the watchdog thread. This monitors the dispatcher and acts when needed.
- *
- * We check the age of the first item in the queue dblMaxFreq times per second. If it is higher
- * than dblMaxAge, a new thread is added
- *
- * Thread deletion is done by the Thread Manager.
- */
-class ECWatchDog final {
-public:
-	ECWatchDog(KC::ECConfig *, ECDispatcher *);
-    ~ECWatchDog();
-private:
-    // Main watch thread
-    static void *Watch(void *);
-
-	KC::ECConfig *m_lpConfig;
-    ECDispatcher *		m_lpDispatcher;
-    pthread_t			m_thread;
-	bool m_thread_active = false, m_bExit = false;
-	std::mutex m_mutexExit;
-	std::condition_variable m_condExit;
-};
-
-/*
  * The main dispatcher; The dispatcher monitors open connections for activity and queues processing on the
  * work item queue. It is the owner of the thread manager and watchdog. Workers will query the dispatcher for
  * work items and will inform the dispatcher when a work item is done.
@@ -84,7 +60,6 @@ public:
 	KC::time_duration front_item_age();
 	size_t queue_length();
 	void SetThreadCount(unsigned int nthr);
-	void force_add_threads(size_t);
 	void AddListenSocket(std::unique_ptr<struct soap, KC::ec_soap_deleter> &&);
 	void QueueItem(struct soap *);
 

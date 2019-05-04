@@ -5,6 +5,7 @@
 #define _GNU_SOURCE 1 /* pthread_setname_np */
 #include <chrono>
 #include <condition_variable>
+#include <mutex>
 #include <string>
 #include <utility>
 #include <cerrno>
@@ -17,13 +18,94 @@
 #	include <sys/syscall.h>
 #endif
 #include <kopano/platform.h>
+#include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
 #include <kopano/ECScheduler.h>
 #include <kopano/ECThreadPool.h>
+#include <kopano/stringutil.h>
 #include <algorithm>
 #define SCHEDULER_POLL_FREQUENCY	5
 
 namespace KC {
+
+/**
+ * Represents the watchdog thread. This monitors the pool and
+ * acts when needed.
+ *
+ * We check the age of the first item in the queue dblMaxFreq times
+ * per second. If it is higher than dblMaxAge, a new thread is added.
+ *
+ * Thread deletion is done by the Thread Manager.
+ */
+class ECWatchdog final {
+	public:
+	ECWatchdog(std::shared_ptr<ECConfig>, ECThreadPool *);
+	~ECWatchdog();
+
+	private:
+	static void *watcher(void *);
+	std::shared_ptr<ECConfig> m_config;
+	ECThreadPool *m_pool = nullptr;
+	pthread_t m_thread{};
+	bool m_thread_active = false, m_exit = false;
+	std::mutex m_exit_mtx;
+	std::condition_variable m_condexit;
+};
+
+ECWatchdog::ECWatchdog(std::shared_ptr<ECConfig> cfg, ECThreadPool *parent) :
+	m_config(std::move(cfg)), m_pool(parent)
+{
+	assert(m_config != nullptr);
+	auto ret = pthread_create(&m_thread, nullptr, watcher, this);
+	if (ret != 0) {
+		ec_log_crit("Could not create ECWatchDog thread: %s", strerror(ret));
+		return;
+	}
+	m_thread_active = true;
+	set_thread_name(m_thread, "watchdog");
+}
+
+ECWatchdog::~ECWatchdog()
+{
+	void *ret;
+	ulock_normal l_exit(m_exit_mtx);
+	m_exit = true;
+	m_condexit.notify_one();
+	l_exit.unlock();
+	if (m_thread_active)
+		pthread_join(m_thread, &ret);
+}
+
+void *ECWatchdog::watcher(void *param)
+{
+	auto self = static_cast<ECWatchdog *>(param);
+	kcsrv_blocksigs();
+	while (!self->m_exit) {
+		auto freq = atoui(self->m_config->GetSetting("watchdog_frequency"));
+		auto age = self->m_pool->front_item_age();
+		using namespace std::chrono;
+		auto max = milliseconds(atoui(self->m_config->GetSetting("watchdog_max_age")));
+		if (age > max) {
+			/*
+			 * If the age of the front item in the queue is older
+			 * than the specified maximum age, force a new thread
+			 * to be started.
+			 */
+			ec_log_info("K-1357: Request age exceeded watchdog_max_age, %lu > %lu ms.",
+				duration_cast<milliseconds>(age).count(), max.count());
+			/* Force-add a thread */
+			size_t a = 0, i = 0;
+			self->m_pool->thread_counts(&a, &i);
+			self->m_pool->setThreadCount(a + i + 1);
+			ec_log_notice("K-1359: watchdog: bumping thread count %zu->%zu.", a + i, a + i + 1);
+		}
+
+		ulock_normal l_exit(self->m_exit_mtx);
+		if (!self->m_exit)
+			self->m_condexit.wait_for(l_exit, duration<double>(1.0 / freq));
+	}
+	return nullptr;
+}
 
 /**
  * Construct an ECThreadPool instance.
@@ -42,6 +124,14 @@ ECThreadPool::ECThreadPool(const std::string &pname, unsigned int ulThreadCount)
 ECThreadPool::~ECThreadPool()
 {
 	setThreadCount(0, true);
+}
+
+void ECThreadPool::enable_watchdog(bool e, std::shared_ptr<ECConfig> cfg)
+{
+	if (!e)
+		m_watchdog.reset();
+	else if (m_watchdog == nullptr && cfg != nullptr)
+		m_watchdog = make_unique_nt<ECWatchdog>(std::move(cfg), this);
 }
 
 /**
@@ -96,6 +186,9 @@ size_t ECThreadPool::threadCount() const
  */
 void ECThreadPool::setThreadCount(unsigned ulThreadCount, bool bWait)
 {
+	if (ulThreadCount == 0)
+		m_watchdog.reset();
+
 	ulock_normal locker(m_hMutex);
 
 	if (ulThreadCount == threadCount() - 1) {

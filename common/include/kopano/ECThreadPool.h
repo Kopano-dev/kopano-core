@@ -17,8 +17,10 @@
 
 namespace KC {
 
+class ECConfig;
 class ECTask;
 class ECThreadPool;
+class ECWatchdog;
 
 class _kc_export ECThreadWorker {
 	public:
@@ -49,6 +51,7 @@ class _kc_export ECThreadPool {
 public:
 	ECThreadPool(const std::string &name, unsigned int thr_count);
 	virtual ~ECThreadPool();
+	void enable_watchdog(bool, std::shared_ptr<ECConfig> = {});
 	bool enqueue(ECTask *lpTask, bool bTakeOwnership = false);
 	void setThreadCount(unsigned int cuont, bool wait = false);
 	time_duration front_item_age() const;
@@ -71,6 +74,7 @@ public:
 	std::condition_variable m_hCondition, m_hCondTerminated;
 	mutable std::condition_variable m_hCondTaskDone;
 	std::atomic<size_t> m_active{0}, m_ulTermReq{0};
+	std::unique_ptr<ECWatchdog> m_watchdog;
 
 	ECThreadPool(const ECThreadPool &) = delete;
 	ECThreadPool &operator=(const ECThreadPool &) = delete;
