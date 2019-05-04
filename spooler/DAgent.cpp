@@ -2824,7 +2824,6 @@ static void *HandlerLMTP(void *lpArg)
  * connection.  Only accepts the incoming connection when the maximum
  * number of processes hasn't been reached.
  *
- * @param[in]	bDaemonize	Starts a forked process in this loop to run in the background if true.
  * @param[in]	lpArgs		Struct containing delivery parameters
  * @retval MAPI error code
  */
@@ -2862,8 +2861,7 @@ static int dagent_listen(ECConfig *cfg, std::vector<struct pollfd> &pollers,
 	return 0;
 }
 
-static HRESULT running_service(char **argv, bool bDaemonize,
-    DeliveryArgs *lpArgs)
+static HRESULT running_service(char **argv, DeliveryArgs *lpArgs)
 {
 	HRESULT hr = hrSuccess;
 	unsigned int nMaxThreads;
@@ -2901,10 +2899,6 @@ static HRESULT running_service(char **argv, bool bDaemonize,
 	act.sa_handler = sigchld;
 	sigaction(SIGCHLD, &act, nullptr);
 
-	if (bDaemonize && unix_daemonize(g_lpConfig.get()))
-		return hr;
-	if (!bDaemonize)
-		setsid();
 	unix_create_pidfile(argv[0], g_lpConfig.get());
 	if (!g_use_threads)
 		g_lpLogger = StartLoggerProcess(g_lpConfig.get(), std::move(g_lpLogger)); // maybe replace logger
@@ -3148,7 +3142,7 @@ static void print_help(const char *name)
 	cout << name << " <recipient>" << endl;
 	cout << " [-h|--host <serverpath>] [-c|--config <configfile>] [-f|--file <email-file>]" << endl;
 	cout << " [-j|--junk] [-F|--folder <foldername>] [-P|--public <foldername>] [-p <separator>] [-C|--create]" << endl;
-	cout<<	" [-d|--deamonize] [-l|--listen] [-r|--read] [-s] [-v] [-q] [-e] [-n] [-R]" << endl;
+	cout << " [-l|--listen] [-r|--read] [-s] [-v] [-q] [-e] [-n] [-R]" << endl;
 	cout << endl;
 	cout << "  <recipient> Username or e-mail address of recipient" << endl;
 	cout << "  -f file\t read e-mail from file" << endl;
@@ -3169,7 +3163,6 @@ static void print_help(const char *name)
 	cout << "  -N\t\t Do not send a new mail notification to clients looking at this inbox. (Fixes Outlook 2000 running rules too)." << endl;
 	cout << "  -r\t\t Mark mail as read on delivery. Default: mark mail as new unread mail." << endl;
 	cout << "  -l\t\t Run DAgent as LMTP listener" << endl;
-	cout << "  -d\t\t Run DAgent as LMTP daemon, implicates -l. DAgent will run in the background." << endl;
 	cout << endl;
 	cout << "  -a responder\t path to autoresponder (e.g. /usr/local/bin/autoresponder)" << endl;
 	cout << "\t\t The autoresponder is called with </path/to/autoresponder> <from> <to> <subject> <kopano-username> <messagefile>" << endl;
@@ -3196,7 +3189,6 @@ int main(int argc, char **argv) try {
 	HRESULT hr = hrSuccess;
 	bool bDefaultConfigWarning = false; // Provide warning when default configuration is used
 	bool bExplicitConfig = false; // User added config option to commandline
-	bool bDaemonize = false; // The dagent is not daemonized by default
 	bool bListenLMTP = false; // Do not listen for LMTP by default
 	bool qmail = false, strip_email = false;
 	int loglevel = EC_LOGLEVEL_WARNING;	// normally, log warnings and up
@@ -3301,7 +3293,7 @@ int main(int argc, char **argv) try {
 	}
 
 	while (1) {
-		auto c = my_getopt_long_permissive(argc, argv, "c:jf:dh:a:F:P:p:qsvenCVrRlN", long_options, nullptr);
+		auto c = my_getopt_long_permissive(argc, argv, "c:jf:h:a:F:P:p:qsvenCVrRlN", long_options, nullptr);
 		if (c == -1)
 			break;
 		switch (c) {
@@ -3316,6 +3308,7 @@ int main(int argc, char **argv) try {
 			break;
 		case OPT_FILE:
 		case 'f':				// use file as input
+			bListenLMTP = false;
 			fp = fopen(optarg, "rb");
 			if(!fp) {
 				cerr << "Unable to open file '" << optarg << "' for reading" << endl;
@@ -3324,12 +3317,6 @@ int main(int argc, char **argv) try {
 			break;
 		case OPT_LISTEN:
 		case 'l':
-			bListenLMTP = true;
-			break;
-		case OPT_DAEMONIZE:
-		case 'd':
-			//-d the Dagent is daemonized; service LMTP over socket starts listening on port 2003
-			bDaemonize = true;
 			bListenLMTP = true;
 			break;
 		case OPT_HOST:
@@ -3531,7 +3518,7 @@ int main(int argc, char **argv) try {
 
 	if (bListenLMTP) {
 		/* MAPIInitialize done inside running_service */
-		hr = running_service(argv, bDaemonize, &sDeliveryArgs);
+		hr = running_service(argv, &sDeliveryArgs);
 		if (hr != hrSuccess)
 			return get_return_value(hr, true, qmail);
 	}

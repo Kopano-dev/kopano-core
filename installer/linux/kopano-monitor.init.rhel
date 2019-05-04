@@ -41,7 +41,7 @@ start() {
 	# Start in background, always succeeds
 	echo -n $"Starting $monitor: "
 	install -dm0775 -o kopano -g kopano /var/run/kopano
-	daemon --pidfile="$pidfile" $MONITORPROGRAM $MONITORCONFIG_OPT
+	daemon --pidfile="$pidfile" $MONITORPROGRAM $MONITORCONFIG_OPT &
 	RETVAL=$?
 	unset LC_ALL LANG
 	echo

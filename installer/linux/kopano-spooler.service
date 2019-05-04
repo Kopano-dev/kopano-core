@@ -4,7 +4,7 @@ Documentation=man:kopano-spooler(8) man:kopano-spooler.cfg(5)
 
 [Service]
 Type=simple
-ExecStart=/usr/sbin/kopano-spooler -F
+ExecStart=/usr/sbin/kopano-spooler
 ExecReload=/bin/kill -HUP $MAINPID
 
 [Install]

@@ -41,7 +41,7 @@ start() {
 	# Start in background, always succeeds
 	echo -n $"Starting $gateway: "
 	install -dm0775 -o kopano -g kopano /var/run/kopano
-	daemon --pidfile="$pidfile" $GATEWAYPROGRAM $GATEWAYCONFIG_OPT
+	daemon --pidfile="$pidfile" $GATEWAYPROGRAM $GATEWAYCONFIG_OPT &
 	RETVAL=$?
 	unset LC_ALL LANG
 	echo

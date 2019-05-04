@@ -5,7 +5,7 @@ After=network.target mysql.service mariadb.service
 
 [Service]
 Type=simple
-ExecStart=/usr/sbin/kopano-server -F
+ExecStart=/usr/sbin/kopano-server
 ExecReload=/bin/kill -HUP $MAINPID
 TimeoutStopSec=60
 
