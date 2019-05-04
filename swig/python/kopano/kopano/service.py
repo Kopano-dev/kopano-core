@@ -57,10 +57,8 @@ def _daemon_helper(func, service, log):
 def _daemonize(func, options=None, foreground=False, log=None, config=None,
         service=None):
     uid = gid = None
-    working_directory = '/'
     pidfile = None
     if config:
-        working_directory = config.get('running_path')
         pidfile = config.get('pid_file')
         if config.get('run_as_user'):
             uid = pwd.getpwnam(config.get('run_as_user')).pw_uid
@@ -89,12 +87,11 @@ def _daemonize(func, options=None, foreground=False, log=None, config=None,
                 os.chown(h.baseFilename, uid, gid)
     if options and options.foreground:
         foreground = options.foreground
-        working_directory = os.getcwd()
     with daemon.DaemonContext(
             pidfile=pidfile,
             uid=uid,
             gid=gid,
-            working_directory=working_directory,
+            working_directory='/',
             files_preserve=[h.stream for h in log.handlers if \
                 isinstance(h, logging.handlers.WatchedFileHandler)] \
                     if log else None,
