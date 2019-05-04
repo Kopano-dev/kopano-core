@@ -670,8 +670,8 @@ exit:
 	return er;
 }
 
-ECRESULT ECCacheManager::get_all_user_objects(objectclass_t ocls,
-    std::map<unsigned int, ECsUserObject> &out)
+ECRESULT ECCacheManager::get_all_user_objects(objectclass_t ocls, bool hosted,
+    unsigned int company, std::map<unsigned int, ECsUserObject> &out)
 {
 	ECDatabase *db = nullptr;
 	DB_RESULT result;
@@ -680,8 +680,22 @@ ECRESULT ECCacheManager::get_all_user_objects(objectclass_t ocls,
 	auto ret = m_lpDatabaseFactory->get_tls_db(&db);
 	if (ret != erSuccess)
 		return ret;
-	ret = db->DoSelect("SELECT externid, objectclass, signature, company, id "
-	      "FROM users WHERE " + OBJECTCLASS_COMPARE_SQL("objectclass", ocls), &result);
+	auto query = "SELECT externid, objectclass, signature, company, id "
+              "FROM users WHERE " + OBJECTCLASS_COMPARE_SQL("objectclass", ocls);
+	/*
+	 * As long as the Offline server has partial hosted support, we must
+	 * comment out this additional where statement...
+	 */
+	if (hosted)
+		/*
+		 * Everyone and SYSTEM do not have a company but must be
+		 * included by the query, so write exception case for them.
+		 */
+		query += " AND (company=" + stringify(company) +
+		         " OR id=" + stringify(company) +
+		         " OR id=" + stringify(KOPANO_UID_SYSTEM) +
+		         " OR id=" + stringify(KOPANO_UID_EVERYONE) + ")";
+	ret = db->DoSelect(query, &result);
 	if (ret != erSuccess)
 		return KCERR_DATABASE_ERROR;
 

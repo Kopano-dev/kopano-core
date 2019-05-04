@@ -264,7 +264,7 @@ public:
 	ECRESULT GetUserObject(unsigned int ulUserId, objectid_t *lpExternId, unsigned int *lpulCompanyId, std::string *lpstrSignature);
 	ECRESULT GetUserObject(const objectid_t &sExternId, unsigned int *lpulUserId, unsigned int *lpulCompanyId, std::string *lpstrSignature);
 	ECRESULT GetUserObjects(const std::list<objectid_t> &lstExternObjIds, std::map<objectid_t, unsigned int> *lpmapLocalObjIds);
-	ECRESULT get_all_user_objects(objectclass_t, std::map<unsigned int, ECsUserObject> &out);
+	ECRESULT get_all_user_objects(objectclass_t, bool hosted, unsigned int company, std::map<unsigned int, ECsUserObject> &out);
 
 	// Cache user information
 	ECRESULT GetUserDetails(unsigned int ulUserId, objectdetails_t *details);

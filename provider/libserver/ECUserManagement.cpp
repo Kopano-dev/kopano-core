@@ -364,7 +364,8 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass,
 	if (er != erSuccess)
 		return er;
 
-	if (m_lpSession->GetSessionManager()->IsHostedSupported()) {
+	auto smgr = m_lpSession->GetSessionManager();
+	if (smgr->IsHostedSupported()) {
 		/* When hosted is enabled, the companyid _must_ have an external id,
 		 * unless we are requesting the companylist in which case the companyid is 0 and doesn't
 		 * need to be resolved at all.*/
@@ -381,7 +382,8 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass,
 	}
 
 	std::map<unsigned int, ECsUserObject> alluser;
-	er = m_lpSession->GetSessionManager()->GetCacheManager()->get_all_user_objects(objclass, alluser);
+	er = smgr->GetCacheManager()->get_all_user_objects(objclass,
+	     smgr->IsHostedSupported(), ulCompanyId, alluser);
 	if (er != erSuccess)
 		return er;
 
@@ -400,6 +402,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass,
 			if (ulFlags & USERMANAGEMENT_IDS_ONLY)
 				details = objectdetails_t(details.GetClass());
 			objs.emplace_back(pair.first, std::move(details));
+			continue;
 		}
 		mapSignatureIdToLocal.emplace(
 			objectid_t{std::move(pair.second.strExternId), pair.second.ulClass},
