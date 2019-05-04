@@ -54,7 +54,7 @@ def _daemon_helper(func, service, log):
             service.log_queue.close()
             service.log_queue.join_thread()
 
-def _daemonize(func, options=None, foreground=False, log=None, config=None,
+def _daemonize(func, options=None, log=None, config=None,
         service=None):
     uid = gid = None
     pidfile = None
@@ -85,8 +85,6 @@ def _daemonize(func, options=None, foreground=False, log=None, config=None,
         for h in log.handlers:
             if isinstance(h, logging.handlers.WatchedFileHandler):
                 os.chown(h.baseFilename, uid, gid)
-    if options and options.foreground:
-        foreground = options.foreground
     with daemon.DaemonContext(
             pidfile=pidfile,
             uid=uid,
@@ -96,7 +94,7 @@ def _daemonize(func, options=None, foreground=False, log=None, config=None,
                 isinstance(h, logging.handlers.WatchedFileHandler)] \
                     if log else None,
             prevent_core=False,
-            detach_process=not foreground,
+            detach_process=False,
             stdout=sys.stdout,
             stderr=sys.stderr,
     ):
@@ -135,8 +133,6 @@ Encapsulates everything to create a simple Kopano service, such as:
             # TODO useful during testing.
             # could be generalized with optparse callback?
             options.config_file = os.path.abspath(options.config_file)
-        if not getattr(options, 'service', True):
-            options.foreground = True
         #: Service :class:`configuration <Config>` instance.
         self.config = _config.Config(config2, service=name, options=options)
         self.config.data['server_socket'] = \
