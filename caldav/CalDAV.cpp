@@ -207,7 +207,6 @@ int main(int argc, char **argv) {
 		{ "run_as_user", "kopano" },
 		{ "run_as_group", "kopano" },
 		{ "pid_file", "/var/run/kopano/ical.pid" },
-		{"running_path", "/var/lib/kopano/empty", CONFIGSETTING_OBSOLETE},
 		{"process_model", "thread", CONFIGSETTING_NONEMPTY},
 		{"coredump_enabled", "systemdefault"},
 		{"socketspec", "", CONFIGSETTING_OBSOLETE},
