@@ -389,24 +389,24 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass,
 
 	objs.clear();
 	for (const auto &pair : alluser) {
-		if (IsInternalObject(pair.first)) {
-			// Local user, add it to the result array directly
-			objectdetails_t details;
-			er = GetLocalObjectDetails(pair.first, &details);
-			if(er != erSuccess)
-				return er;
-			if (ulFlags & USERMANAGEMENT_ADDRESSBOOK &&
-			    MustHide(*lpSecurity, ulFlags, details))
-				continue;
-			// Reset details, this saves time copying unwanted data, but keep the correct class
-			if (ulFlags & USERMANAGEMENT_IDS_ONLY)
-				details = objectdetails_t(details.GetClass());
-			objs.emplace_back(pair.first, std::move(details));
+		if (!IsInternalObject(pair.first)) {
+			mapSignatureIdToLocal.emplace(
+				objectid_t{std::move(pair.second.strExternId), pair.second.ulClass},
+				std::make_pair(pair.first, std::move(pair.second.strSignature)));
 			continue;
 		}
-		mapSignatureIdToLocal.emplace(
-			objectid_t{std::move(pair.second.strExternId), pair.second.ulClass},
-			std::make_pair(pair.first, std::move(pair.second.strSignature)));
+		// Local user, add it to the result array directly
+		objectdetails_t details;
+		er = GetLocalObjectDetails(pair.first, &details);
+		if (er != erSuccess)
+			return er;
+		if (ulFlags & USERMANAGEMENT_ADDRESSBOOK &&
+		    MustHide(*lpSecurity, ulFlags, details))
+			continue;
+		// Reset details, this saves time copying unwanted data, but keep the correct class
+		if (ulFlags & USERMANAGEMENT_IDS_ONLY)
+			details = objectdetails_t(details.GetClass());
+		objs.emplace_back(pair.first, std::move(details));
 	}
 	alluser.clear();
 
