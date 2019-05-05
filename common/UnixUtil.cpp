@@ -409,6 +409,9 @@ bool unix_system(const char *lpszLogName, const std::vector<std::string> &cmd,
 		return false;
 	}
 	close(fdin);
+	int newfd = ec_relocate_fd(fdout);
+	if (newfd >= 0)
+		fdout = newfd;
 	FILE *fp = fdopen(fdout, "rb");
 	if (fp == nullptr) {
 		close(fdout);
