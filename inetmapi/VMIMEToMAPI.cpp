@@ -267,7 +267,7 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 			return hr;
 
 		if (m_mailState.bAttachSignature && !m_dopt.parse_smime_signed) {
-			hr = save_raw_smime(input, hdr_end, vmMessage, lpMessage);
+			hr = save_raw_smime(input, hdr_end, vmMessage->getHeader(), lpMessage);
 			if (hr != hrSuccess)
 				return hr;
 		}
@@ -288,7 +288,7 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 }
 
 HRESULT VMIMEToMAPI::save_raw_smime(const std::string &input, size_t posHeaderEnd,
-    const vmime::shared_ptr<vmime::message> &vmMessage, IMessage *lpMessage)
+    const vmime::shared_ptr<vmime::header> &vmHeader, IMessage *lpMessage)
 {
 	static constexpr const SizedSPropTagArray(2, sptaAttach) =
 			{2, {PR_ATTACH_NUM, PR_ATTACHMENT_HIDDEN}};
@@ -296,10 +296,9 @@ HRESULT VMIMEToMAPI::save_raw_smime(const std::string &input, size_t posHeaderEn
 	object_ptr<IStream> lpStream;
 	ULONG ulAttNr, nProps = 0;
 	SPropValue attProps[3], sPropSMIMEClass;
-	HRESULT hr;
 	// Remove the parsed attachments since the client should be reading them from the 
 	// signed RFC 2822 data we are about to add.
-	hr = lpMessage->GetAttachmentTable(0, &~lpAttachTable);
+	auto hr = lpMessage->GetAttachmentTable(0, &~lpAttachTable);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -314,7 +313,6 @@ HRESULT VMIMEToMAPI::save_raw_smime(const std::string &input, size_t posHeaderEn
 	}
 
 	// Include the entire RFC 2822 data in an attachment for the client to check
-	auto vmHeader = vmMessage->getHeader();
 	object_ptr<IAttach> lpAtt;
 	hr = lpMessage->CreateAttach(nullptr, 0, &ulAttNr, &~lpAtt);
 	if (hr != hrSuccess)
@@ -365,20 +363,17 @@ static void vtm_hide_attachment(IMessage *lpMessage)
 	 */
 	MAPINAMEID sNameID, *lpNameID = &sNameID;
 	memory_ptr<SPropTagArray> lpPropTag;
-	SPropValue attProps[1];
-	HRESULT hr;
+	SPropValue atprop;
 
 	sNameID.lpguid = const_cast<GUID *>(&PSETID_Common);
 	sNameID.ulKind = MNID_ID;
 	sNameID.Kind.lID = dispidSmartNoAttach;
-
-	hr = lpMessage->GetIDsFromNames(1, &lpNameID, MAPI_CREATE, &~lpPropTag);
+	auto hr = lpMessage->GetIDsFromNames(1, &lpNameID, MAPI_CREATE, &~lpPropTag);
 	if (hr != hrSuccess)
 		return;
-
-	attProps[0].ulPropTag = CHANGE_PROP_TYPE(lpPropTag->aulPropTag[0], PT_BOOLEAN);
-	attProps[0].Value.b = TRUE;
-	hr = lpMessage->SetProps(1, attProps, NULL);
+	atprop.ulPropTag = CHANGE_PROP_TYPE(lpPropTag->aulPropTag[0], PT_BOOLEAN);
+	atprop.Value.b = true;
+	hr = lpMessage->SetProps(1, &atprop, nullptr);
 	if (hr != hrSuccess)
 		return;
 }
