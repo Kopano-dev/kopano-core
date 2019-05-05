@@ -105,6 +105,7 @@ AC_SUBST([PACKAGE_ABI])
 abs_top_srcdir=`cd $srcdir; pwd`
 abs_top_builddir=`pwd`
 
+ZCPPFLAGS=""
 AC_CANONICAL_HOST
 AS_CASE([$host_os],
 	[openbsd], [
@@ -135,8 +136,6 @@ CPPFLAGS_system=$CPPFLAGS
 LDFLAGS_system=$LDFLAGS
 LIBS_system=$LIBS
 
-# check build OS
-ZCPPFLAGS=""
 >conftest.cpp
 ZPHPCXXFLAGS=""
 AS_IF([$CXX -Wno-narrowing -c conftest.cpp], [ZPHPCXXFLAGS="-Wno-narrowing"])
