@@ -1427,32 +1427,7 @@ SOAP_ENTRY_START(loadProp, lpsResponse->er, const entryId &sEntryId,
 	if(er != erSuccess)
 		return er;
 
-	if (ulPropTag != PR_ATTACH_DATA_BIN && ulPropTag != PR_EC_IMAP_EMAIL) {
-		if (ulPropTag & MV_FLAG)
-			strQuery = "SELECT " + (std::string)MVPROPCOLORDER + " FROM mvproperties WHERE hierarchyid="+stringify(ulObjId)+ " AND tag = " + stringify(PROP_ID(ulPropTag))+" GROUP BY hierarchyid, tag";
-		else
-			strQuery = "SELECT " PROPCOLORDER " FROM properties WHERE hierarchyid = " + stringify(ulObjId) + " AND tag = " + stringify(PROP_ID(ulPropTag));
-		strQuery += " LIMIT 2";
-		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
-		if(er != erSuccess)
-			return er;
-		if (lpDBResult.get_num_rows() != 1)
-			return KCERR_NOT_FOUND;
-
-		lpDBRow = lpDBResult.fetch_row();
-		lpDBLen = lpDBResult.fetch_row_lengths();
-		if (lpDBRow == NULL || lpDBLen == NULL)
-		{
-			ec_log_err("loadProp(): no rows from db");
-			return KCERR_DATABASE_ERROR;
-		}
-
-		lpsResponse->lpPropVal = s_alloc<propVal>(soap);
-		memset(lpsResponse->lpPropVal,0,sizeof(struct propVal));
-		er = CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, lpsResponse->lpPropVal);
-		if (er != erSuccess)
-			return er;
-	} else {
+	if (ulPropTag == PR_ATTACH_DATA_BIN || ulPropTag == PR_EC_IMAP_EMAIL) {
 		lpsResponse->lpPropVal = s_alloc<propVal>(soap);
 		memset(lpsResponse->lpPropVal,0,sizeof(struct propVal));
 		lpsResponse->lpPropVal->ulPropTag = ulPropTag;
@@ -1465,11 +1440,27 @@ SOAP_ENTRY_START(loadProp, lpsResponse->er, const entryId &sEntryId,
 		size_t atsize = 0;
 		er = lpAttachmentStorage->LoadAttachment(soap, ulObjId, PROP_ID(ulPropTag), &atsize, &lpsResponse->lpPropVal->Value.bin->__ptr);
 		lpsResponse->lpPropVal->Value.bin->__size = atsize;
-		if (er != erSuccess)
-			return er;
+		return er;
 	}
-
-	return erSuccess;
+	if (ulPropTag & MV_FLAG)
+		strQuery = "SELECT " + (std::string)MVPROPCOLORDER + " FROM mvproperties WHERE hierarchyid=" + stringify(ulObjId) + " AND tag = " + stringify(PROP_ID(ulPropTag)) + " GROUP BY hierarchyid, tag";
+	else
+		strQuery = "SELECT " PROPCOLORDER " FROM properties WHERE hierarchyid = " + stringify(ulObjId) + " AND tag = " + stringify(PROP_ID(ulPropTag));
+	strQuery += " LIMIT 2";
+	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+	if (er != erSuccess)
+		return er;
+	if (lpDBResult.get_num_rows() != 1)
+		return KCERR_NOT_FOUND;
+	lpDBRow = lpDBResult.fetch_row();
+	lpDBLen = lpDBResult.fetch_row_lengths();
+	if (lpDBRow == NULL || lpDBLen == NULL) {
+		ec_log_err("loadProp(): no rows from db");
+		return KCERR_DATABASE_ERROR;
+	}
+	lpsResponse->lpPropVal = s_alloc<propVal>(soap);
+	memset(lpsResponse->lpPropVal, 0, sizeof(struct propVal));
+	return CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, lpsResponse->lpPropVal);
 }
 SOAP_ENTRY_END()
 
