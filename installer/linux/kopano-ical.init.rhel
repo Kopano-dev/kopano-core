@@ -18,6 +18,7 @@
 
 ICALCONFIG=/etc/kopano/ical.cfg
 ICALPROGRAM=/usr/sbin/kopano-ical
+DAEMON_COREFILE_LIMIT=unlimited
 
 # Sanity checks.
 [ -x $ICALPROGRAM ] || exit 0
