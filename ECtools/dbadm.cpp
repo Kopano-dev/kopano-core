@@ -10,6 +10,7 @@
 #include <csignal>
 #include <cstdlib>
 #include <getopt.h>
+#include <mapitags.h>
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
 #include <kopano/ECThreadPool.h>
