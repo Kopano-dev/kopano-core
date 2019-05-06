@@ -16,6 +16,7 @@
 #include <vmime/parsedMessageAttachment.hpp>
 #include <vmime/emptyContentHandler.hpp>
 #include <kopano/memory.hpp>
+#include <kopano/namedprops.h>
 #include <kopano/tie.hpp>
 #include <mapi.h>
 #include <mapiutil.h>
@@ -1455,11 +1456,11 @@ HRESULT MAPIToVMIME::handleContactEntryID(ULONG cValues, LPSPropValue lpProps, w
 	MAPINAMEID mnNamedProps[5] = {
 #define PS const_cast<GUID *>(&PSETID_Address)
 		// offset 0, every offset < 3 is + 0x10
-		{PS, MNID_ID, {0x8080}}, /* display name */
-		{PS, MNID_ID, {0x8082}}, /* address type */
-		{PS, MNID_ID, {0x8083}}, /* email address */
-		{PS, MNID_ID, {0x8084}}, /* original display name (unused) */
-		{PS, MNID_ID, {0x8085}}, /* real entryid */
+		{PS, MNID_ID, {dispidEmail1DisplayName}},
+		{PS, MNID_ID, {dispidEmail1AddressType}},
+		{PS, MNID_ID, {dispidEmail1Address}},
+		{PS, MNID_ID, {dispidEmail1OriginalDisplayName}},
+		{PS, MNID_ID, {dispidEmail1OriginalEntryID}},
 #undef PS
 	};
 
@@ -1627,9 +1628,11 @@ HRESULT MAPIToVMIME::handleReplyTo(IMessage *lpMessage,
 	wstring			strName, strType, strEmail;
 
 	// "Email1DisplayName","Email1AddressType","Email1Address","Email1EntryID"
-	static const ULONG lpulNamesIDs[] = {0x8080, 0x8082, 0x8083, 0x8085,
-				0x8090, 0x8092, 0x8093, 0x8095,
-				0x80A0, 0x80A2, 0x80A3, 0x80A5};
+	static const unsigned int lpulNamesIDs[] = {
+		dispidEmail1DisplayName, dispidEmail1AddressType, dispidEmail1Address, dispidEmail1OriginalEntryID,
+		dispidEmail2DisplayName, dispidEmail2AddressType, dispidEmail2Address, dispidEmail2OriginalEntryID,
+		dispidEmail3DisplayName, dispidEmail3AddressType, dispidEmail3Address, dispidEmail3OriginalEntryID,
+	};
 	memory_ptr<MAPINAMEID> lpNames;
 	memory_ptr<MAPINAMEID *> lppNames;
 	memory_ptr<SPropTagArray> lpNameTagArray;

@@ -215,22 +215,22 @@ HRESULT vcftomapi_impl::handle_EMAIL(VObject *v, contact &ct)
 	if (ct.email_count >= 3)
 		return hrSuccess;
 
-	unsigned int prop_id = 0x8083 + ct.email_count * 0x10;
+	unsigned int prop_id = dispidEmail1Address + ct.email_count * 0x10;
 	SPropValue s;
 	vobject_to_named_prop(v, s, prop_id);
 	ct.props.emplace_back(std::move(s));
 
-	prop_id = 0x8084 + ct.email_count * 0x10;
+	prop_id = dispidEmail1OriginalDisplayName + ct.email_count * 0x10;
 	vobject_to_named_prop(v, s, prop_id);
 	ct.props.emplace_back(std::move(s));
 
 	// add email as displayname
-	prop_id = 0x8080 + ct.email_count * 0x10;
+	prop_id = dispidEmail1DisplayName + ct.email_count * 0x10;
 	auto dname = std::wstring(L"(") + vObjectUStringZValue(v) + std::wstring(L")");
 	unicode_to_named_prop(dname.c_str(), s, prop_id);
 	ct.props.emplace_back(std::move(s));
 
-	prop_id = 0x8082 + ct.email_count * 0x10;
+	prop_id = dispidEmail1AddressType + ct.email_count * 0x10;
 	auto ret = unicode_to_named_prop(L"SMTP", s, prop_id);
 	if (ret != hrSuccess)
 		return ret;
@@ -272,15 +272,15 @@ HRESULT vcftomapi_impl::handle_ADR(VObject *v, contact &ct)
 		else if (adr_type == HOME && !strcmp(name, "C"))
 			vobject_to_prop(vv, s, PR_HOME_ADDRESS_COUNTRY);
 		else if (adr_type == WORK && !strcmp(name, "STREET"))
-			vobject_to_named_prop(vv, s, 0x8045);
+			vobject_to_named_prop(vv, s, dispidWorkAddressStreet);
 		else if (adr_type == WORK && !strcmp(name, "L"))
-			vobject_to_named_prop(vv, s, 0x8046);
+			vobject_to_named_prop(vv, s, dispidWorkAddressCity);
 		else if (adr_type == WORK && !strcmp(name, "R"))
-			vobject_to_named_prop(vv, s, 0x8047);
+			vobject_to_named_prop(vv, s, dispidWorkAddressState);
 		else if (adr_type == WORK && !strcmp(name, "PC"))
-			vobject_to_named_prop(vv, s, 0x8048);
+			vobject_to_named_prop(vv, s, dispidWorkAddressPostalCode);
 		else if (adr_type == WORK && !strcmp(name, "C"))
-			vobject_to_named_prop(vv, s, 0x8049);
+			vobject_to_named_prop(vv, s, dispidWorkAddressCountry);
 		else if (adr_type == OTHER && !strcmp(name, "STREET"))
 			vobject_to_prop(vv, s, PR_OTHER_ADDRESS_STREET);
 		else if (adr_type == OTHER && !strcmp(name, "L"))
