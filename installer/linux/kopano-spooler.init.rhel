@@ -18,6 +18,7 @@
 
 SPOOLERCONFIG=/etc/kopano/spooler.cfg
 SPOOLERPROGRAM=/usr/sbin/kopano-spooler
+DAEMON_COREFILE_LIMIT=unlimited
 
 # Sanity checks.
 [ -x $SPOOLERPROGRAM ] || exit 0
