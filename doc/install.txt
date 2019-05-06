@@ -15,7 +15,8 @@ Mandatory build-time dependencies and their minimum versions (if any):
 	* libncurses 5
 	* libpython 2.x & swig 2.x
 	* libuuid from util-linux or BSD
-	* libvmime 0.9.2
+	* libvmime 0.9.2k1 (github.com/kopano-dev/vmime)
+	  or libvmime 0.9.2-56-gf173b0a (github.com/kisli/vmime; see below)
 	* libxml2 2.6
 	* zlib
 
@@ -49,3 +50,15 @@ The following additional noteworthy configure options are available:
 	* --enable-debug: adds -DDEBUG to set some very unusual debug values.
 	  This does not enable CXXFLAGS=-ggdb3 which is separate!
 	* --enable-release: adds -O2 -fno-strict-aliasing and disables asserts.
+
+About VMIME
+
+Upstream VMIME is presently not doing regular releases and there is no trivial
+way to enforce a particular version. Therefore, Kopano's VMIME repository
+updates the Version tag itself and uses that as a minimum requirement for the
+PKG_CHECK_MODULE check.
+
+To use a non-Kopano vmime, the version check needs to be overridden with:
+
+	./configure vmime_CFLAGS="$(pkg-config vmime --cflags)" \
+		vmime_LIBS="$(pkg-config vmime --libs)"
