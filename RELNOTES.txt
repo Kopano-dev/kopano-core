@@ -1,5 +1,13 @@
-8.7.x
+8.7.2
 =====
+Fixes:
+* server: complete utf8mb4->utf8 fallback for RHEL6 [KC-1423]
+* inetmapi: modified appointments need to produce a new Message-ID [KC-1458]
+* dagent: set Bcc/RecipMe flags appropriately [KC-319]
+
+
+8.7.1 (2019-04-17)
+==================
 Fixes:
 * dagent: standard casing for RFC 5322 headers [KF-2100]
 * daemons: do not fail startup on IPv4-only systems [KC-1400]

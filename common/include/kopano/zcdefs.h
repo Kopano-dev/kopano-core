@@ -19,6 +19,9 @@
 #	define _kc_hidden
 #	define _kc_export
 #else
+#	if !defined(__cplusplus) || __cplusplus < 201400L
+#		error KGWC needs at least C++14
+#	endif
 #	define _kc_hidden __attribute__((visibility("hidden")))
 #	define _kc_export __attribute__((visibility("default")))
 #endif

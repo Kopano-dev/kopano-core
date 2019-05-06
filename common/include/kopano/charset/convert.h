@@ -88,9 +88,9 @@ class _kc_export iconv_context_base {
 	 */
 	_kc_hidden virtual void append(const char *buf, size_t bufsize) = 0;
 
-	iconv_t	m_cd;
-	bool m_bForce;
-	bool m_bHTML;
+	iconv_t	m_cd = reinterpret_cast<iconv_t>(-1);
+	bool m_bForce = true; /* Ignore illegal sequences by default. */
+	bool m_bHTML = false;
 
 	iconv_context_base(const iconv_context_base &) = delete;
 	iconv_context_base &operator=(const iconv_context_base &) = delete;

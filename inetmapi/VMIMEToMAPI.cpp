@@ -1096,14 +1096,6 @@ HRESULT VMIMEToMAPI::handleRecipients(vmime::shared_ptr<vmime::header> vmHeader,
 			if (hr != hrSuccess)
 				return hr;
 		}
-
-		if (!lpVMAListBlCpRecip->isEmpty()) {
-			hr = modifyRecipientList(lpRecipients, lpVMAListBlCpRecip, MAPI_BCC);
-			if (hr != hrSuccess)
-				return hr;
-		}
-		
-		// Handle PR_MESSAGE_*_ME props
 		hr = handleMessageToMeProps(lpMessage, lpRecipients);
 		if (hr != hrSuccess)
 			return hr;

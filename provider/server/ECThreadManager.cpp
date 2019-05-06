@@ -720,8 +720,8 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 
 	// Delete the watchdog. This makes sure no new threads will be started.
 	lpWatchDog.reset();
-	m_pool.setThreadCount(0);
-	m_prio.setThreadCount(0);
+	m_pool.setThreadCount(0, true);
+	m_prio.setThreadCount(0, true);
 
     // Close all sockets. This will cause all that we were listening on clients to get an EOF
 	ulock_normal l_sock(m_mutexSockets);

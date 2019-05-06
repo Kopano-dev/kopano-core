@@ -7,8 +7,7 @@ if ENABLE_BASE
 SUBDIRS += ECtools/archiver/include/kopano \
 	common/include/kopano m4lcommon/include/kopano \
 	mapi4linux/include inetmapi/include/inetmapi provider/include \
-	spooler/python installer installer/quotamail \
-	installer/userscripts po
+	installer installer/quotamail installer/userscripts po
 if ENABLE_PYBIND
 SUBDIRS += swig
 endif
@@ -17,7 +16,8 @@ SUBDIRS += installer/linux
 if ENABLE_PYTHON
 SUBDIRS += ECtools/backup ECtools/cli ECtools/migration-pst \
 	ECtools/presence ECtools/search ECtools/spamd \
-	ECtools/msr ECtools/utils installer/searchscripts swig/python/kopano
+	ECtools/msr ECtools/utils installer/searchscripts spooler/python \
+	spooler/python/plugins swig/python/kopano
 endif
 BUILT_SOURCES =
 CLEANFILES =

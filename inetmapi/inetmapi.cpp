@@ -71,9 +71,12 @@ static std::string generate_message_id(IMessage *msg)
 {
 #define IDLEN 38
 	memory_ptr<SPropValue> prop;
-	auto hr = HrGetOneProp(msg, PR_SEARCH_KEY, &~prop);
+	static constexpr const SizedSPropTagArray(2, tags) =
+		{2, {PR_RECORD_KEY, PR_LAST_MODIFICATION_TIME}};
+	unsigned int nvals = 0;
+	auto hr = msg->GetProps(tags, 0, &nvals, &~prop);
+	char id[IDLEN];
 	if (hr != hrSuccess) {
-		char id[IDLEN] = {0};
 		// Fallback: the same format as the vmime generator
 		// but with more randomness
 		snprintf(id, IDLEN, "kcim.%lx.%x.%08x%08x",
@@ -81,7 +84,13 @@ static std::string generate_message_id(IMessage *msg)
 			rand_mt(), rand_mt());
 		return string(id, strlen(id));
 	}
-	return "kcis." + bin2hex(prop->Value.bin);
+	/*
+	 * PR_RECORD_KEY seems to include the store UID (in KC,
+	 * anyway), so there is not that much need to include the
+	 * serverguid.
+	 */
+	snprintf(id, sizeof(id), "%x.%08x", prop[1].Value.ft.dwHighDateTime, prop[1].Value.ft.dwLowDateTime);
+	return "kcRK." + strToLower(bin2hex(prop[0].Value.bin)) + "." + id;
 #undef IDLEN
 }
 

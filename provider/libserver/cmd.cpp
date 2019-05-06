@@ -4270,6 +4270,8 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
     strQuery += " WHERE properties.hierarchyid IN(";
     lHierarchyIDs.clear();
 	strQuery += kc_join(lObjectIds, ",", [](const auto &p) { return stringify(p.first); });
+	for (const auto &o : lObjectIds)
+		lHierarchyIDs.emplace_back(o.first);
 	strQuery += ") AND properties.tag = " + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + "  AND properties.type = " + stringify(PROP_TYPE(PR_MESSAGE_FLAGS));
    	// Update the database
    	er = lpDatabase->DoUpdate(strQuery);
