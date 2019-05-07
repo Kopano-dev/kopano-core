@@ -20,6 +20,7 @@
 #include <kopano/ecversion.h>
 #include <kopano/ECRestriction.h>
 #include <kopano/mapiext.h>
+#include <kopano/namedprops.h>
 #include <kopano/timeutil.hpp>
 #include <kopano/Util.h>
 #include "mapitovcf.hpp"
@@ -159,7 +160,7 @@ HRESULT mapitovcf_impl::add_adr(IMessage *lpMessage, VObject *root)
 	for (size_t i = 0; i < 5; ++i) {
 		nameids[i].lpguid = const_cast<GUID *>(&PSETID_Address);
 		nameids[i].ulKind = MNID_ID;
-		nameids[i].Kind.lID = 0x8045 + i;
+		nameids[i].Kind.lID = dispidWorkAddressStreet + i;
 		nameids_ptrs[i] = &nameids[i];
 	}
 
@@ -190,9 +191,9 @@ HRESULT mapitovcf_impl::add_adr(IMessage *lpMessage, VObject *root)
 HRESULT mapitovcf_impl::add_email(IMessage *lpMessage, VObject *root)
 {
 	MAPINAMEID name, *namep = &name;
-	const int first_email_id = 0x8083, last_email_id = 0x80a3;
+	const unsigned int first_email_id = dispidEmail1Address, last_email_id = dispidEmail3Address;
 
-	for (int lid = first_email_id; lid <= last_email_id; lid += 0x10) {
+	for (unsigned int lid = first_email_id; lid <= last_email_id; lid += 0x10) {
 		name.lpguid = const_cast<GUID *>(&PSETID_Address);
 		name.ulKind = MNID_ID;
 		name.Kind.lID = lid;
