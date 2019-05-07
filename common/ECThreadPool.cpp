@@ -177,6 +177,19 @@ size_t ECThreadPool::threadCount() const
 	return m_setThreads.size() - m_ulTermReq;
 }
 
+HRESULT ECThreadPool::create_thread_unlocked()
+{
+	pthread_t hThread;
+	auto wk = make_worker();
+	auto ret = pthread_create(&hThread, nullptr, &threadFunc, wk.get());
+	if (ret != 0) {
+		ec_log_err("Could not create ECThreadPool worker thread: %s", strerror(ret));
+		return ret;
+	}
+	m_setThreads.emplace(hThread, std::move(wk));
+	return hrSuccess;
+}
+
 /**
  * Set the amount of worker threads for the threadpool.
  * @param[in]	ulThreadCount	The amount of required worker threads.
@@ -209,16 +222,10 @@ void ECThreadPool::setThreadCount(unsigned ulThreadCount, bool bWait)
 			m_ulTermReq = 0;
 
 			for (unsigned i = 0; i < ulThreadsToAdd; ++i) {
-				auto wk = make_worker();
-				pthread_t hThread;
-
-				auto ret = pthread_create(&hThread, nullptr, &threadFunc, wk.get());
-				if (ret != 0) {
-					ec_log_err("Could not create ECThreadPool worker thread: %s", strerror(ret));
+				auto ret = create_thread_unlocked();
+				if (ret != 0)
 					/* If there were no resources, stop trying. */
 					break;
-				}
-				m_setThreads.emplace(hThread, std::move(wk));
 			}
 		}
 	}
