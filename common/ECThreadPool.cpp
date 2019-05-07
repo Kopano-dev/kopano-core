@@ -85,20 +85,13 @@ void *ECWatchdog::watcher(void *param)
 		auto age = self->m_pool->front_item_age();
 		using namespace std::chrono;
 		auto max = milliseconds(atoui(self->m_config->GetSetting("watchdog_max_age")));
-		if (age > max) {
+		if (age > max)
 			/*
 			 * If the age of the front item in the queue is older
 			 * than the specified maximum age, force a new thread
 			 * to be started.
 			 */
-			ec_log_info("K-1357: Request age exceeded watchdog_max_age, %lu > %lu ms.",
-				duration_cast<milliseconds>(age).count(), max.count());
-			/* Force-add a thread */
-			size_t a = 0, i = 0;
-			self->m_pool->thread_counts(&a, &i);
-			self->m_pool->setThreadCount(a + i + 1);
-			ec_log_notice("K-1359: watchdog: bumping thread count %zu->%zu.", a + i, a + i + 1);
-		}
+			self->m_pool->add_extra_thread();
 
 		ulock_normal l_exit(self->m_exit_mtx);
 		if (!self->m_exit)
@@ -190,6 +183,12 @@ HRESULT ECThreadPool::create_thread_unlocked()
 	return hrSuccess;
 }
 
+void ECThreadPool::add_extra_thread()
+{
+	ulock_normal lk(m_hMutex);
+	create_thread_unlocked();
+}
+
 /**
  * Set the amount of worker threads for the threadpool.
  * @param[in]	ulThreadCount	The amount of required worker threads.
@@ -203,7 +202,7 @@ void ECThreadPool::setThreadCount(unsigned ulThreadCount, bool bWait)
 		m_watchdog.reset();
 
 	ulock_normal locker(m_hMutex);
-
+	m_target_threads = ulThreadCount;
 	if (ulThreadCount == threadCount() - 1) {
 		++m_ulTermReq;
 		m_hCondition.notify_one();
@@ -255,8 +254,19 @@ bool ECThreadPool::getNextTask(STaskInfo *lpsTaskInfo, ulock_normal &locker)
 	assert(locker.owns_lock());
 	assert(lpsTaskInfo != NULL);
 	bool bTerminate = false;
-	while (!(bTerminate = m_ulTermReq > 0) && m_listTasks.empty())
+
+	/*
+	 * If "hard" termination requests are pending, heed that right away.
+	 * Else enter the idle loop - in which "soft" termination requests are
+	 * checked for.
+	 */
+	while (!(bTerminate = m_ulTermReq > 0) && m_listTasks.empty()) {
+		if (m_setThreads.size() > m_target_threads) {
+			bTerminate = ++m_ulTermReq;
+			break;
+		}
 		m_hCondition.wait(locker);
+	}
 
 	if (bTerminate) {
 		pthread_t self = pthread_self();

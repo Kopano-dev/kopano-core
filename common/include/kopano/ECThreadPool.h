@@ -54,6 +54,7 @@ public:
 	void enable_watchdog(bool, std::shared_ptr<ECConfig> = {});
 	bool enqueue(ECTask *lpTask, bool bTakeOwnership = false);
 	void setThreadCount(unsigned int cuont, bool wait = false);
+	void add_extra_thread();
 	time_duration front_item_age() const;
 	size_t queue_length() const;
 	void thread_counts(size_t *active, size_t *idle) const;
@@ -74,7 +75,7 @@ public:
 	mutable std::mutex m_hMutex;
 	std::condition_variable m_hCondition, m_hCondTerminated;
 	mutable std::condition_variable m_hCondTaskDone;
-	std::atomic<size_t> m_active{0}, m_ulTermReq{0};
+	std::atomic<size_t> m_active{0}, m_ulTermReq{0}, m_target_threads{0};
 	std::unique_ptr<ECWatchdog> m_watchdog;
 
 	ECThreadPool(const ECThreadPool &) = delete;
