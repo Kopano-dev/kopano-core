@@ -48,9 +48,6 @@ def bdec(s):
     else:
         return codecs.decode(s, _BIN_ENCODING)
 
-def is_int(i):
-    return isinstance(i, int)
-
 def is_file(f):
     return isinstance(f, io.IOBase)
 
