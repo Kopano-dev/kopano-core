@@ -31,9 +31,6 @@ def pickle_loads(s):
 def hex(s):
     return codecs.encode(s, 'hex').upper().decode('ascii')
 
-def unhex(s):
-    return codecs.decode(s, 'hex')
-
 def benc(s):
     if _BIN_ENCODING == 'hex':
         return codecs.encode(s, _BIN_ENCODING).strip().upper().decode('ascii')
