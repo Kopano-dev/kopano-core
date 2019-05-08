@@ -54,9 +54,6 @@ def repr(o):
 def fake_unicode(s): # TODO inline.. remove str() also in most cases?
     return str(s)
 
-def decode(s):
-    return s
-
 def encode(s):
     return s.encode()
 
