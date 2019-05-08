@@ -664,7 +664,7 @@ class Store(Properties):
             RELOP_EQ, PR_SUBJECT_W, SPropValue(PR_SUBJECT_W, name)), 0)
         rows = table.QueryRows(1, 0)
         # No config item found, create new message
-        if len(rows) == 0:
+        if not rows:
             item = self.subtree.associated.create_item(
                 message_class='IPM.Zarafa.Configuration', subject=name)
         else:

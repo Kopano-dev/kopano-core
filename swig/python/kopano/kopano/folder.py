@@ -721,7 +721,7 @@ class Folder(Properties):
             PR_DISPLAY_NAME_W, SPropValue(PR_DISPLAY_NAME_W, _unicode(name))))
 
         folders = list(self.folders(recurse=recurse, restriction=restriction))
-        if len(folders) == 0:
+        if not folders:
             raise NotFoundError("no such folder: '%s'" % path)
 
         return folders[0]

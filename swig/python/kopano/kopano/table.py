@@ -63,7 +63,7 @@ class Table(object):
         try:
             while True:
                 result = self.mapitable.QueryRows(batch_size, offset)
-                if len(result) == 0:
+                if not result:
                     break
 
                 for row in result:
