@@ -90,12 +90,12 @@ Default:
 .PP
 After correctly starting, the monitor process will become this user, dropping root privileges. Note that the log file needs to be writeable by this user, and the directory too to create new logfiles after logrotation. This can also be achieved by setting the correct group and permissions.
 .PP
-Default value is empty, not changing the user after starting.
+Default: \fIkopano\fP
 .SS run_as_group
 .PP
 After correctly starting, the monitor process will become this group, dropping root privileges.
 .PP
-Default value is empty, not changing the group after starting.
+Default: \fIkopano\fP
 .SS pid_file
 .PP
 Write the process ID number to this file. This is used by the init.d script to correctly stop/restart the service.

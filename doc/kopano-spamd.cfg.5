@@ -71,14 +71,14 @@ Example: !include common.cfg
 .RS 4
 After correctly starting, the server process will become this user, dropping root privileges. Note that the log file needs to be writeable by this user, and the directory too to create new logfiles after logrotation. This can also be achieved by setting the correct group and permissions.
 .sp
-Default value is empty, not changing the user after starting.
+Default: \fIkopano\fP
 .RE
 .PP
 \fBrun_as_group\fR
 .RS 4
 After correctly starting, the server process will become this group, dropping root privileges.
 .sp
-Default value is empty, not changing the group after starting.
+Default: \fIkopano\fP
 .RE
 .PP
 \fBpid_file\fR
