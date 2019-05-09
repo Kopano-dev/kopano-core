@@ -702,10 +702,11 @@ ECRESULT ECCacheManager::get_all_user_objects(objectclass_t ocls, bool hosted,
 	out.clear();
 	while ((row = result.fetch_row()) != nullptr) {
 		ECsUserObject u;
+		auto lengths = result.fetch_row_lengths();
 		if (row[0] != nullptr)
-			u.strExternId = row[0];
+			u.strExternId.assign(row[0], lengths[0]);
 		u.ulClass = static_cast<objectclass_t>(atoui(row[1]));
-		u.strSignature = row[2];
+		u.strSignature.assign(row[2], lengths[2]);
 		u.ulCompanyId = atoui(row[3]);
 		I_AddUserObject(atoui(row[4]), u.ulClass, u.ulCompanyId, u.strExternId, u.strSignature);
 		out.emplace(atoui(row[4]), std::move(u));
