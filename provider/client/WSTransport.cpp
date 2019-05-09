@@ -145,8 +145,10 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 		 * All connections except pipes request compression. The server
 		 * can still reject the request.
 		 */
+#ifdef WITH_ZLIB
 		if(! (sProfileProps.ulProfileFlags & EC_PROFILE_FLAGS_NO_COMPRESSION))
 			ulCapabilities |= KOPANO_CAP_COMPRESSION; // only to remote server .. windows?
+#endif
 	} else if (sProfileProps.ulProfileFlags & EC_PROFILE_FLAGS_NO_UID_AUTH) {
 		ulLogonFlags |= KOPANO_LOGON_NO_UID_AUTH;
 	}
@@ -209,6 +211,7 @@ auth: // User have a logon
 		goto exit;
 	}
 
+#ifdef WITH_ZLIB
 	if (ulServerCapabilities & KOPANO_CAP_COMPRESSION) {
 		/*
 		 * GSOAP autodetects incoming compression, so even if not
@@ -217,6 +220,7 @@ auth: // User have a logon
 		soap_set_imode(lpCmd->soap, SOAP_ENC_ZLIB);
 		soap_set_omode(lpCmd->soap, SOAP_ENC_ZLIB | SOAP_IO_CHUNK);
 	}
+#endif
 
 	m_sProfileProps = sProfileProps;
 	m_ulServerCapabilities = ulServerCapabilities;
