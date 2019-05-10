@@ -130,7 +130,6 @@ EXTRA_DIST = helpers_python.i \
 	MAPI/Tags.py \
 	MAPI/Time.py \
 	MAPI/Util/__init__.py \
-	MAPI/Util/Generators.py \
 	MAPI/Util/AddressBook.py \
 	MAPI/Util/codepage.py \
 	archiver_python.i
