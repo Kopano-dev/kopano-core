@@ -41,7 +41,7 @@ start() {
 	# Start in background, always succeeds
 	echo -n $"Starting $spooler: "
 	install -dm0775 -o kopano -g kopano /var/run/kopano
-	daemon --pidfile="$pidfile" $SPOOLERPROGRAM $SPOOLERCONFIG_OPT
+	daemon --pidfile="$pidfile" $SPOOLERPROGRAM $SPOOLERCONFIG_OPT &
 	RETVAL=$?
 	unset LC_ALL LANG
 	echo

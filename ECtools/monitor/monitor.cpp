@@ -101,8 +101,7 @@ static void sighup(int signr)
 static void print_help(const char *name)
 {
 	cout << "Usage:\n" << endl;
-	cout << name << " [-F] [-h|--host <serverpath>] [-c|--config <configfile>]" << endl;
-	cout << "  -F\t\tDo not run in the background" << endl;
+	cout << name << " [-h|--host <serverpath>] [-c|--config <configfile>]" << endl;
 	cout << "  -h path\tUse alternate connect path (e.g. file:///var/run/socket).\n\t\tDefault: file:///var/run/kopano/server.sock" << endl;
 	cout << "  -c filename\tUse alternate config file (e.g. /etc/kopano-monitor.cfg)\n\t\tDefault: /etc/kopano/monitor.cfg" << endl;
 	cout << endl;
@@ -112,7 +111,6 @@ static ECRESULT main2(int argc, char **argv)
 {
 	const char *szConfig = ECConfig::GetDefaultPath("monitor.cfg");
 	const char *szPath = NULL;
-	int daemonize = 1;
 	bool bIgnoreUnknownConfigOptions = false, exp_config = false;
 
 	// Default settings
@@ -122,7 +120,6 @@ static ECRESULT main2(int argc, char **argv)
 		{ "run_as_user", "kopano" },
 		{ "run_as_group", "kopano" },
 		{ "pid_file", "/var/run/kopano/monitor.pid" },
-		{"running_path", "/var/lib/kopano/empty", CONFIGSETTING_OBSOLETE},
 		{"log_method", "auto", CONFIGSETTING_NONEMPTY},
 		{"log_file", ""},
 		{"log_level", "3", CONFIGSETTING_NONEMPTY | CONFIGSETTING_RELOADABLE},
@@ -147,7 +144,6 @@ static ECRESULT main2(int argc, char **argv)
 		OPT_HELP = UCHAR_MAX + 1,
 		OPT_HOST,
 		OPT_CONFIG,
-		OPT_FOREGROUND,
 		OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS,
 		OPT_DUMP_CONFIG,
 	};
@@ -155,7 +151,6 @@ static ECRESULT main2(int argc, char **argv)
 		{ "help", 0, NULL, OPT_HELP },
 		{ "host", 1, NULL, OPT_HOST },
 		{ "config", 1, NULL, OPT_CONFIG },
-		{ "foreground", 1, NULL, OPT_FOREGROUND },
 		{ "ignore-unknown-config-options", 0, NULL, OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS },
 		{"dump-config", no_argument, nullptr, OPT_DUMP_CONFIG},
 		{ NULL, 0, NULL, 0 }
@@ -181,10 +176,7 @@ static ECRESULT main2(int argc, char **argv)
 			break;
 		case 'i': // Install service
 		case 'u': // Uninstall service
-			break;
-		case OPT_FOREGROUND:
-		case 'F':
-			daemonize = 0;
+		case 'F': /* foreground operation */
 			break;
 		case OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS:
 			bIgnoreUnknownConfigOptions = true;
@@ -255,11 +247,6 @@ static ECRESULT main2(int argc, char **argv)
 	act.sa_handler = sighup;
 	sigaction(SIGHUP, &act, nullptr);
 	ec_setup_segv_handler("kopano-monitor", PROJECT_VERSION);
-
-	if (daemonize && unix_daemonize(m_lpThreadMonitor->lpConfig.get()))
-		return E_FAIL;
-	if (!daemonize)
-		setsid();
 	if (unix_create_pidfile(argv[0], m_lpThreadMonitor->lpConfig.get(), false) < 0)
 		return E_FAIL;
 	// Init exit threads

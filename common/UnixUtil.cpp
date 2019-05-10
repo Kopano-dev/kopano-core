@@ -27,7 +27,7 @@
 
 namespace KC {
 
-static int unix_runpath(ECConfig *conf)
+static int unix_runpath()
 {
 	auto ret = chdir("/");
 	if (ret != 0)
@@ -78,7 +78,7 @@ int unix_runas(ECConfig *lpConfig)
 {
 	const char *group = lpConfig->GetSetting("run_as_group");
 	const char *user  = lpConfig->GetSetting("run_as_user");
-	auto ret = unix_runpath(lpConfig);
+	auto ret = unix_runpath();
 	if (ret != 0)
 		return ret;
 
@@ -231,36 +231,6 @@ int unix_create_pidfile(const char *argv0, ECConfig *lpConfig, bool bForce)
 
 	fprintf(pidfile, "%d\n", getpid());
 	fclose(pidfile);
-	return 0;
-}
-
-int unix_daemonize(ECConfig *lpConfig)
-{
-	// make sure we daemonize in an always existing directory
-	auto ret = unix_runpath(lpConfig);
-	if (ret != 0)
-		return ret;
-
-	ret = fork();
-	if (ret == -1) {
-		ec_log_crit("Daemonizing failed on 1st step");
-		return -1;
-	}
-	if (ret)
-		_exit(0);				// close parent process
-	setsid();					// start new session
-	ret = fork();
-	if (ret == -1) {
-		ec_log_crit("Daemonizing failed on 2nd step");
-		return -1;
-	}
-	if (ret)
-		_exit(0);				// close parent process
-
-	// close output to console. a logger which logged to the console is now diverted to /dev/null
-	fclose(stdin);
-	freopen("/dev/null", "a+", stdout);
-	freopen("/dev/null", "a+", stderr);
 	return 0;
 }
 

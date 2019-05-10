@@ -34,11 +34,6 @@ Displays the values of \fBserver.cfg\fP configuration parameters and the
 implied defaults.
 .RE
 .PP
-\fB\-\-foreground\fR, \fB\-F\fR
-.RS 4
-Run in the foreground. Normally the server will daemonize and run in the background.
-.RE
-.PP
 \fB\-\-restart\-searches\fR, \fB\-R\fR
 .RS 4
 Rebuild all search folders. This may take some time and is only needed when your search folders have become out of sync with the actual data in the database. The sync will start synchronously at the start of the server, and you will have to wait for all searches to complete before connecting to the server.
@@ -61,7 +56,7 @@ When you upgrade/downgrade from/to multiserver setups, the server will not start
 .PP
 \fB\-\-force\-database\-upgrade\fR
 .RS 4
-Forcing the kopano\-server do the normal upgrade as usual. The server will only daemonize when the upgrade is complete. Simple progress can be followed in the log output of the server.
+Forcing the kopano\-server do the normal upgrade as usual. Simple progress can be followed in the log output of the server.
 .RE
 .PP
 \fB\-V\fR

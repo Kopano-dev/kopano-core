@@ -75,7 +75,6 @@ using std::string;
 
 static const char upgrade_lock_file[] = "/tmp/kopano-upgrade-lock";
 static int g_Quit = 0;
-static int daemonize = 1;
 static int restart_searches = 0;
 static bool m_bIgnoreDatabaseVersionConflict = false;
 static bool m_bIgnoreAttachmentStorageConflict = false;
@@ -674,7 +673,6 @@ int main(int argc, char* argv[])
 			cout << endl;
 			cout << argv[0] << " [options...]" << endl;
 			cout << "  -c --config=FILE                           Set new config file location. Default: " << default_config << endl;
-			cout << "  -F                                         Do not start in the background." << endl;
 			cout << "  -V                                         Print version info." << endl;
 			cout << "  -R --restart-searches                      Rebuild searchfolders." << endl;
 			cout << "     --ignore-database-version-conflict      Start even if database version conflict with server version" << endl;
@@ -686,9 +684,6 @@ int main(int argc, char* argv[])
 		case 'V':
 			cout << "kopano-server " PROJECT_VERSION << endl;
 			return 0;
-		case 'F':
-			daemonize = 0;
-			break;
 		case 'R':
 		case OPT_RESTART_SEARCHES:
 			restart_searches = 1;
@@ -858,7 +853,6 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{ "run_as_user",			"kopano" }, // drop root privileges, and run as this user/group
 		{ "run_as_group",			"kopano" },
 		{ "pid_file",					"/var/run/kopano/server.pid" },
-		{"running_path", "/var/lib/kopano/empty", CONFIGSETTING_OBSOLETE},
 		{"allocator_library", "libtcmalloc_minimal.so.4"},
 		{ "coredump_enabled",			"yes" },
 
@@ -1218,14 +1212,6 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	ec_log_notice("Connection to database '%s' succeeded", g_lpConfig->GetSetting("mysql_database"));
 	hosted = parseBool(g_lpConfig->GetSetting("enable_hosted_kopano"));
 	distributed = parseBool(g_lpConfig->GetSetting("enable_distributed_kopano"));
-	// fork if needed and drop privileges as requested.
-	// this must be done before we do anything with pthreads
-	if (daemonize && unix_daemonize(g_lpConfig.get())) {
-		er = MAPI_E_CALL_FAILED;
-		return retval;
-	}
-	if (!daemonize)
-		setsid();
 	unix_create_pidfile(szName, g_lpConfig.get());
 	mainthread = pthread_self();
 

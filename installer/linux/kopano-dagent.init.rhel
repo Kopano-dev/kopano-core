@@ -24,7 +24,7 @@ DAEMON_COREFILE_LIMIT=unlimited
 [ -x $DAGENTPROGRAM ] || exit 0
 
 # the -d option is required to run LMTP mode deamonized
-DAGENTCONFIG_OPT="-d"
+DAGENTCONFIG_OPT="-l"
 [ ! -z $DAGENTCONFIG -a -f $DAGENTCONFIG ] && DAGENTCONFIG_OPT="$DAGENTCONFIG_OPT -c $DAGENTCONFIG"
 
 # Switch to C, like at boot time.
@@ -45,7 +45,7 @@ start() {
 	if [ -f /opt/rh/rh-php56/enable ]; then
 		. /opt/rh/rh-php56/enable
 	fi
-	daemon --pidfile="$pidfile" $DAGENTPROGRAM $DAGENTCONFIG_OPT
+	daemon --pidfile="$pidfile" $DAGENTPROGRAM $DAGENTCONFIG_OPT &
 	RETVAL=$?
 	unset LC_ALL LANG
 	echo

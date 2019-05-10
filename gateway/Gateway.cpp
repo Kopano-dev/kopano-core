@@ -66,7 +66,6 @@ struct socks {
 	std::vector<bool> pop3, ssl;
 };
 
-static int daemonize = 1;
 int quit = 0;
 static bool bThreads, g_dump_config;
 static const char *szPath;
@@ -119,8 +118,7 @@ static HRESULT running_service(char **argv);
 static void print_help(const char *name)
 {
 	cout << "Usage:\n" << endl;
-	cout << name << " [-F] [-h|--host <serverpath>] [-c|--config <configfile>]" << endl;
-	cout << "  -F\t\tDo not run in the background" << endl;
+	cout << name << " [-h|--host <serverpath>] [-c|--config <configfile>]" << endl;
 	cout << "  -h path\tUse alternate connect path (e.g. file:///var/run/socket).\n\t\tDefault: file:///var/run/kopano/server.sock" << endl;
 	cout << "  -V Print version info." << endl;
 	cout << "  -c filename\tUse alternate config file (e.g. /etc/kopano-gateway.cfg)\n\t\tDefault: /etc/kopano/gateway.cfg" << endl;
@@ -304,7 +302,6 @@ int main(int argc, char *argv[]) {
 		{ "run_as_user", "kopano" },
 		{ "run_as_group", "kopano" },
 		{ "pid_file", "/var/run/kopano/gateway.pid" },
-		{"running_path", "/var/lib/kopano/empty", CONFIGSETTING_OBSOLETE},
 		{ "process_model", "thread" },
 		{"coredump_enabled", "systemdefault"},
 		{"pop3_listen", "*:110"},
@@ -350,7 +347,6 @@ int main(int argc, char *argv[]) {
 		OPT_HELP = UCHAR_MAX + 1,
 		OPT_HOST,
 		OPT_CONFIG,
-		OPT_FOREGROUND,
 		OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS,
 		OPT_DUMP_CONFIG,
 	};
@@ -358,7 +354,6 @@ int main(int argc, char *argv[]) {
 		{"help", 0, NULL, OPT_HELP},
 		{"host", 1, NULL, OPT_HOST},
 		{"config", 1, NULL, OPT_CONFIG},
-		{"foreground", 1, NULL, OPT_FOREGROUND},
 		{ "ignore-unknown-config-options", 0, NULL, OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS },
 		{"dump-config", no_argument, nullptr, OPT_DUMP_CONFIG},
 		{NULL, 0, NULL, 0}
@@ -383,10 +378,7 @@ int main(int argc, char *argv[]) {
 			break;
 		case 'i':				// Install service
 		case 'u':				// Uninstall service
-			break;
-		case OPT_FOREGROUND:
-		case 'F':
-			daemonize = 0;
+		case 'F': /* foreground operation */
 			break;
 		case OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS:
 			bIgnoreUnknownConfigOptions = true;
@@ -648,13 +640,6 @@ static HRESULT running_service(char **argv)
 	act.sa_handler = sigchld;
 	sigaction(SIGCHLD, &act, nullptr);
 	ec_setup_segv_handler("kopano-dagent", PROJECT_VERSION);
-
-	// fork if needed and drop privileges as requested.
-	// this must be done before we do anything with pthreads
-	if (daemonize && unix_daemonize(g_lpConfig.get()))
-		return MAPI_E_CALL_FAILED;
-	if (!daemonize)
-		setsid();
 	unix_create_pidfile(argv[0], g_lpConfig.get());
 	if (!bThreads)
 		g_lpLogger = StartLoggerProcess(g_lpConfig.get(), std::move(g_lpLogger)); // maybe replace logger

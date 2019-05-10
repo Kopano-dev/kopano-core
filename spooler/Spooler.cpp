@@ -146,8 +146,7 @@ static HRESULT handle_child_exit(IMAPISession *, IECSpooler *, StatsClient *, pi
 static void print_help(const char *name)
 {
 	cout << "Usage:\n" << endl;
-	cout << name << " [-F] [-h|--host <serverpath>] [-c|--config <configfile>] [smtp server]" << endl;
-	cout << "  -F\t\tDo not run in the background" << endl;
+	cout << name << " [-h|--host <serverpath>] [-c|--config <configfile>] [smtp server]" << endl;
 	cout << "  -h path\tUse alternate connect path (e.g. file:///var/run/socket).\n\t\tDefault: file:///var/run/kopano/server.sock" << endl;
 	cout << "  -V Print version info." << endl;
 	cout << "  -c filename\tUse alternate config file (e.g. /etc/kopano-spooler.cfg)\n\t\tDefault: /etc/kopano/spooler.cfg" << endl;
@@ -273,7 +272,7 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
 
 	std::string strPort = stringify(ulSMTPPort);
 	// execute the new spooler process to send the email
-	const char *argv[18];
+	const char *argv[17];
 	int argc = 0;
 	argv[argc++] = szCommand;
 	std::unique_ptr<char[], cstdlib_deleter> bname(strdup(szCommand));
@@ -293,7 +292,6 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
 	}
 	argv[argc++] = "--host";
 	argv[argc++] = szPath;
-	argv[argc++] = "--foreground",
 	argv[argc++] = szSMTP;
 	argv[argc++] = "--port";
 	argv[argc++] = strPort.c_str();
@@ -858,7 +856,7 @@ static int main2(int argc, char **argv)
 {
 	HRESULT hr = hrSuccess;
 	const char *szPath = nullptr, *szSMTP = nullptr;
-	int ulPort = 0, daemonize = 1, logfd = -1;
+	int ulPort = 0, logfd = -1;
 	bool bForked = false;
 	std::string strMsgEntryId;
 	std::wstring strUsername;
@@ -883,7 +881,6 @@ static int main2(int argc, char **argv)
 		{ "help", 0, NULL, OPT_HELP },		// help text
 		{ "config", 1, NULL, OPT_CONFIG },	// config file
 		{ "host", 1, NULL, OPT_HOST },		// kopano host location
-		{ "foreground", 0, NULL, OPT_FOREGROUND },		// do not daemonize
 		// only called by spooler itself
 		{ "send-message-entryid", 1, NULL, OPT_SEND_MESSAGE_ENTRYID },	// entryid of message to send
 		{ "send-username-enc", 1, NULL, OPT_SEND_USERNAME },			// owner's username of message to send in hex-utf8
@@ -902,7 +899,6 @@ static int main2(int argc, char **argv)
 		{ "run_as_user", "kopano" },
 		{ "run_as_group", "kopano" },
 		{ "pid_file", "/var/run/kopano/spooler.pid" },
-		{"running_path", "/var/lib/kopano/empty", CONFIGSETTING_OBSOLETE},
 		{"coredump_enabled", "systemdefault"},
 		{"log_method", "auto", CONFIGSETTING_NONEMPTY},
 		{"log_file", ""},
@@ -962,10 +958,7 @@ static int main2(int argc, char **argv)
 			break;
 		case 'i': // Install service
 		case 'u': // Uninstall service
-			break;
-		case 'F':
-		case OPT_FOREGROUND:
-			daemonize = 0;
+		case 'F': /* foreground operation */
 			break;
 		case OPT_SEND_MESSAGE_ENTRYID:
 			bForked = true;
@@ -1103,12 +1096,6 @@ static int main2(int argc, char **argv)
 			ec_log_notice("K-1240: Failed to re-exec self: %s. "
 				"Continuing with restricted coredumps.", strerror(-ret));
 	}
-	if (daemonize && unix_daemonize(g_lpConfig.get())) {
-		ec_log_crit("main(): failed daemonizing");
-		return MAPI_E_CALL_FAILED;
-	}
-	if (!daemonize)
-		setsid();
 	if (!bForked && unix_create_pidfile(argv[0], g_lpConfig.get(), false) < 0) {
 		ec_log_crit("main(): Failed creating PID file");
 		return MAPI_E_CALL_FAILED;

@@ -41,7 +41,7 @@ start() {
 	# Start in background, always succeeds
 	echo -n $"Starting $ical: "
 	install -dm0775 -o kopano -g kopano /var/run/kopano
-	daemon --pidfile="$pidfile" $ICALPROGRAM $ICALCONFIG_OPT
+	daemon --pidfile="$pidfile" $ICALPROGRAM $ICALCONFIG_OPT &
 	RETVAL=$?
 	unset LC_ALL LANG
 	echo

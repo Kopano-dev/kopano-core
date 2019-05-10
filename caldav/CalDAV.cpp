@@ -56,7 +56,7 @@ struct socks {
 	std::vector<bool> ssl;
 };
 
-static bool g_bDaemonize = true, g_bQuit, g_bThreads, g_dump_config;
+static bool g_bQuit, g_bThreads, g_dump_config;
 static std::shared_ptr<ECLogger> g_lpLogger;
 static std::shared_ptr<ECConfig> g_lpConfig;
 static pthread_t mainthread;
@@ -134,10 +134,6 @@ static HRESULT running_service(char **argv)
 	act.sa_handler = sigchld;
 	sigaction(SIGCHLD, &act, nullptr);
 	ec_setup_segv_handler("kopano-ical", PROJECT_VERSION);
-	if (g_bDaemonize && unix_daemonize(g_lpConfig.get()))
-		return MAPI_E_CALL_FAILED;
-	if (!g_bDaemonize)
-		setsid();
 	unix_create_pidfile(argv[0], g_lpConfig.get());
 	if (!g_bThreads)
 		g_lpLogger = StartLoggerProcess(g_lpConfig.get(), std::move(g_lpLogger));
@@ -184,8 +180,7 @@ using std::endl;
 static void PrintHelp(const char *name)
 {
 	cout << "Usage:\n" << endl;
-	cout << name << " [-h] [-F] [-V] [-c <configfile>]" << endl;
-	cout << "  -F\t\tDo not run in the background" << endl;
+	cout << name << " [-h] [-V] [-c <configfile>]" << endl;
 	cout << "  -h\t\tShows this help." << endl;
 	cout << "  -V\t\tPrint version info." << endl;
 	cout << "  -c filename\tUse alternate config file (e.g. /etc/kopano/ical.cfg)\n\t\tDefault: /etc/kopano/ical.cfg" << endl;
@@ -207,7 +202,6 @@ int main(int argc, char **argv) {
 		{ "run_as_user", "kopano" },
 		{ "run_as_group", "kopano" },
 		{ "pid_file", "/var/run/kopano/ical.pid" },
-		{"running_path", "/var/lib/kopano/empty", CONFIGSETTING_OBSOLETE},
 		{"process_model", "thread", CONFIGSETTING_NONEMPTY},
 		{"coredump_enabled", "systemdefault"},
 		{"socketspec", "", CONFIGSETTING_OBSOLETE},
@@ -242,7 +236,6 @@ int main(int argc, char **argv) {
 		{"help", no_argument, NULL, 'h'},
 		{"config", required_argument, NULL, 'c'},
 		{"version", no_argument, NULL, 'v'},
-		{"foreground", no_argument, NULL, 'F'},
 		{"ignore-unknown-config-options", 0, NULL, OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS },
 		{"dump-config", no_argument, nullptr, OPT_DUMP_CONFIG},
 		{NULL, 0, NULL, 0}
@@ -260,7 +253,6 @@ int main(int argc, char **argv) {
 			exp_config = true;
 			break;
 		case 'F':
-			g_bDaemonize = false;
 			break;
 		case OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS:
 			bIgnoreUnknownConfigOptions = true;
