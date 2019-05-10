@@ -5182,8 +5182,10 @@ SOAP_ENTRY_START(createCompany, lpsResponse->er, struct company *lpsCompany, str
 
 	if (lpsCompany == nullptr)
 		return KCERR_INVALID_PARAMETER;
-	if (!g_lpSessionManager->IsHostedSupported())
+	if (!g_lpSessionManager->IsHostedSupported()) {
+		ec_log_debug("Received createCompany RPC, but hosted mode is disabled on this server.");
 		return KCERR_NO_SUPPORT;
+	}
 
 	// Check permission, only the system user is allowed to create or delete a company
 	er = lpecSession->GetSecurity()->IsAdminOverUserObject(KOPANO_UID_SYSTEM);
