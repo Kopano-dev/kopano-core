@@ -79,6 +79,7 @@ static int getCharsetFromHTML(const string &, vmime::charset *);
 static HRESULT postWriteFixups(IMessage *);
 static size_t countBodyLines(const std::string &, size_t, size_t);
 static std::string parameterizedFieldToStructure(vmime::shared_ptr<vmime::parameterizedHeaderField>);
+static void vtm_hide_attachment(IMessage *);
 
 static const char im_charset_unspec[] = "unspecified";
 
@@ -195,6 +196,26 @@ HRESULT VMIMEToMAPI::createIMAPProperties(const std::string &input, std::string 
 	return hrSuccess;
 }
 
+static size_t extract_headers_raw(IMessage *msg, const std::string &input)
+{
+	auto end = input.find("\r\n\r\n");
+	bool unix = false;
+	if (end == std::string::npos) {
+		/* Input was not RFC compliant, try Unix enters */
+		end = input.find("\n\n");
+		unix = true;
+	}
+	if (end == std::string::npos)
+		return end;
+	auto headers = input.substr(0, end);
+	KPropbuffer<1> prop;
+	if (unix)
+		StringLFtoCRLF(headers);
+	prop.set(0, PR_TRANSPORT_MESSAGE_HEADERS, std::move(headers));
+	HrSetOneProp(msg, prop.get());
+	return end;
+}
+
 /** 
  * Entry point for the conversion from RFC 2822 mail to IMessage MAPI object.
  *
@@ -210,33 +231,11 @@ HRESULT VMIMEToMAPI::createIMAPProperties(const std::string &input, std::string 
  * @retval		MAPI_E_CALL_FAILED	Caught an exception, which breaks the conversion.
  */
 HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage) {
-	// signature variables
-	object_ptr<IStream> lpStream;
-	ULONG ulAttNr, nProps = 0;
-	SPropValue attProps[3], sPropSMIMEClass;
-	object_ptr<IMAPITable> lpAttachTable;
-	bool bUnix = false;
 
 	try {
 		if (m_mailState.ulMsgInMsg == 0)
 			m_mailState = sMailState();
-
-		// get raw headers
-		auto posHeaderEnd = input.find("\r\n\r\n");
-		if (posHeaderEnd == std::string::npos) {
-			// input was not rfc compliant, try Unix enters
-			posHeaderEnd = input.find("\n\n");
-			bUnix = true;
-		}
-		if (posHeaderEnd != std::string::npos) {
-			auto strHeaders = input.substr(0, posHeaderEnd);
-			KPropbuffer<1> prop;
-			// make sure we have US-ASCII headers
-			if (bUnix)
-				StringLFtoCRLF(strHeaders);
-			prop.set(0, PR_TRANSPORT_MESSAGE_HEADERS, std::move(strHeaders));
-			HrSetOneProp(lpMessage, prop.get());
-		}
+		auto hdr_end = extract_headers_raw(lpMessage, input);
 		/*
 		 * Add PR_MESSAGE_SIZE initially to the size of the RFC2822
 		 * part. PR_MESSAGE_SIZE is needed for rule processing; if this
@@ -268,98 +267,12 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 			return hr;
 
 		if (m_mailState.bAttachSignature && !m_dopt.parse_smime_signed) {
-			static constexpr const SizedSPropTagArray(2, sptaAttach) =
-				{2, {PR_ATTACH_NUM, PR_ATTACHMENT_HIDDEN}};
-			// Remove the parsed attachments since the client should be reading them from the 
-			// signed RFC 2822 data we are about to add.
-			
-			hr = lpMessage->GetAttachmentTable(0, &~lpAttachTable);
-			if(hr != hrSuccess)
-				return hr;
-
-			rowset_ptr lpAttachRows;
-			hr = HrQueryAllRows(lpAttachTable, sptaAttach, nullptr, nullptr, -1, &~lpAttachRows);
-			if(hr != hrSuccess)
-				return hr;
-				
-			for (unsigned int i = 0; i < lpAttachRows->cRows; ++i) {
-				hr = lpMessage->DeleteAttach(lpAttachRows[i].lpProps[0].Value.ul, 0, nullptr, 0);
-				if(hr != hrSuccess)
-					return hr;
-			}
-			
-			// Include the entire RFC 2822 data in an attachment for the client to check
-			auto vmHeader = vmMessage->getHeader();
-			object_ptr<IAttach> lpAtt;
-			hr = lpMessage->CreateAttach(nullptr, 0, &ulAttNr, &~lpAtt);
+			hr = save_raw_smime(input, hdr_end, vmMessage->getHeader(), lpMessage);
 			if (hr != hrSuccess)
 				return hr;
-
-			// open stream
-			hr = lpAtt->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, STGM_WRITE | STGM_TRANSACTED,
-			     MAPI_CREATE | MAPI_MODIFY, &~lpStream);
-			if (hr != hrSuccess)
-				return hr;
-
-			outputStreamMAPIAdapter os(lpStream);
-			// get the content-type string from the headers
-			vmHeader->ContentType()->generate(m_genctx, os);
-			// find the original received body
-			// vmime re-generates different headers and spacings, so we can't use this.
-			if (posHeaderEnd != string::npos)
-				os.write(input.c_str() + posHeaderEnd, input.size() - posHeaderEnd);
-			hr = lpStream->Commit(0);
-			if (hr != hrSuccess)
-				return hr;
-
-			attProps[nProps].ulPropTag = PR_ATTACH_METHOD;
-			attProps[nProps++].Value.ul = ATTACH_BY_VALUE;
-
-			attProps[nProps].ulPropTag = PR_ATTACH_MIME_TAG_W;
-			attProps[nProps++].Value.lpszW = const_cast<wchar_t *>(L"multipart/signed");
-			attProps[nProps].ulPropTag = PR_RENDERING_POSITION;
-			attProps[nProps++].Value.ul = -1;
-
-			hr = lpAtt->SetProps(nProps, attProps, NULL);
-			if (hr != hrSuccess)
-				return hr;
-			hr = lpAtt->SaveChanges(0);
-			if (hr != hrSuccess)
-				return hr;
-				
-			// saved, so mark the message so outlook knows how to find the encoded message
-			sPropSMIMEClass.ulPropTag = PR_MESSAGE_CLASS_W;
-			sPropSMIMEClass.Value.lpszW = const_cast<wchar_t *>(L"IPM.Note.SMIME.MultipartSigned");
-
-			hr = lpMessage->SetProps(1, &sPropSMIMEClass, NULL);
-			if (hr != hrSuccess) {
-				ec_log_err("Unable to set message class");
-				return hr;
-			}
 		}
-
-		if ((m_mailState.attachLevel == ATTACH_INLINE && m_mailState.bodyLevel == BODY_HTML) || (m_mailState.bAttachSignature && m_mailState.attachLevel <= ATTACH_INLINE)) {
-			/* Hide the attachment flag if:
-			 * - We have an HTML body and there are only INLINE attachments (don't need to hide no attachments)
-			 * - We have a signed message and there are only INLINE attachments or no attachments at all (except for the signed message)
-			 */
-			MAPINAMEID sNameID, *lpNameID = &sNameID;
-			memory_ptr<SPropTagArray> lpPropTag;
-
-			sNameID.lpguid = const_cast<GUID *>(&PSETID_Common);
-			sNameID.ulKind = MNID_ID;
-			sNameID.Kind.lID = dispidSmartNoAttach;
-
-			hr = lpMessage->GetIDsFromNames(1, &lpNameID, MAPI_CREATE, &~lpPropTag);
-			if (hr != hrSuccess)
-				return hrSuccess;
-
-			attProps[0].ulPropTag = CHANGE_PROP_TYPE(lpPropTag->aulPropTag[0], PT_BOOLEAN);
-			attProps[0].Value.b = TRUE;
-			hr = lpMessage->SetProps(1, attProps, NULL);
-			if (hr != hrSuccess)
-				return hrSuccess;
-		}
+		if ((m_mailState.attachLevel == ATTACH_INLINE && m_mailState.bodyLevel == BODY_HTML) || (m_mailState.bAttachSignature && m_mailState.attachLevel <= ATTACH_INLINE))
+			vtm_hide_attachment(lpMessage);
 	} catch (const vmime::exception &e) {
 		ec_log_err("VMIME exception: %s", e.what());
 		return MAPI_E_CALL_FAILED;
@@ -372,6 +285,97 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 		return MAPI_E_CALL_FAILED;
 	}
 	return hrSuccess;
+}
+
+HRESULT VMIMEToMAPI::save_raw_smime(const std::string &input, size_t posHeaderEnd,
+    const vmime::shared_ptr<vmime::header> &vmHeader, IMessage *lpMessage)
+{
+	static constexpr const SizedSPropTagArray(2, sptaAttach) =
+			{2, {PR_ATTACH_NUM, PR_ATTACHMENT_HIDDEN}};
+	object_ptr<IMAPITable> lpAttachTable;
+	object_ptr<IStream> lpStream;
+	ULONG ulAttNr, nProps = 0;
+	SPropValue attProps[3], sPropSMIMEClass;
+	// Remove the parsed attachments since the client should be reading them from the 
+	// signed RFC 2822 data we are about to add.
+	auto hr = lpMessage->GetAttachmentTable(0, &~lpAttachTable);
+	if (hr != hrSuccess)
+		return hr;
+
+	rowset_ptr lpAttachRows;
+	hr = HrQueryAllRows(lpAttachTable, sptaAttach, nullptr, nullptr, -1, &~lpAttachRows);
+	if (hr != hrSuccess)
+		return hr;
+	for (unsigned int i = 0; i < lpAttachRows->cRows; ++i) {
+		hr = lpMessage->DeleteAttach(lpAttachRows[i].lpProps[0].Value.ul, 0, nullptr, 0);
+		if (hr != hrSuccess)
+			return hr;
+	}
+
+	// Include the entire RFC 2822 data in an attachment for the client to check
+	object_ptr<IAttach> lpAtt;
+	hr = lpMessage->CreateAttach(nullptr, 0, &ulAttNr, &~lpAtt);
+	if (hr != hrSuccess)
+		return hr;
+	// open stream
+	hr = lpAtt->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, STGM_WRITE | STGM_TRANSACTED,
+	     MAPI_CREATE | MAPI_MODIFY, &~lpStream);
+	if (hr != hrSuccess)
+		return hr;
+
+	outputStreamMAPIAdapter os(lpStream);
+	// get the content-type string from the headers
+	vmHeader->ContentType()->generate(m_genctx, os);
+	// find the original received body
+	// vmime re-generates different headers and spacings, so we can't use this.
+	if (posHeaderEnd != string::npos)
+		os.write(input.c_str() + posHeaderEnd, input.size() - posHeaderEnd);
+	hr = lpStream->Commit(0);
+	if (hr != hrSuccess)
+		return hr;
+
+	attProps[nProps].ulPropTag = PR_ATTACH_METHOD;
+	attProps[nProps++].Value.ul = ATTACH_BY_VALUE;
+	attProps[nProps].ulPropTag = PR_ATTACH_MIME_TAG_W;
+	attProps[nProps++].Value.lpszW = const_cast<wchar_t *>(L"multipart/signed");
+	attProps[nProps].ulPropTag = PR_RENDERING_POSITION;
+	attProps[nProps++].Value.ul = -1;
+	hr = lpAtt->SetProps(nProps, attProps, NULL);
+	if (hr != hrSuccess)
+		return hr;
+	hr = lpAtt->SaveChanges(0);
+	if (hr != hrSuccess)
+		return hr;
+	// saved, so mark the message so outlook knows how to find the encoded message
+	sPropSMIMEClass.ulPropTag = PR_MESSAGE_CLASS_W;
+	sPropSMIMEClass.Value.lpszW = const_cast<wchar_t *>(L"IPM.Note.SMIME.MultipartSigned");
+	hr = lpMessage->SetProps(1, &sPropSMIMEClass, NULL);
+	if (hr != hrSuccess)
+		ec_log_err("Unable to set message class");
+	return hr;
+}
+
+static void vtm_hide_attachment(IMessage *lpMessage)
+{
+	/* Hide the attachment flag if:
+	 * - We have an HTML body and there are only INLINE attachments (don't need to hide no attachments)
+	 * - We have a signed message and there are only INLINE attachments or no attachments at all (except for the signed message)
+	 */
+	MAPINAMEID sNameID, *lpNameID = &sNameID;
+	memory_ptr<SPropTagArray> lpPropTag;
+	SPropValue atprop;
+
+	sNameID.lpguid = const_cast<GUID *>(&PSETID_Common);
+	sNameID.ulKind = MNID_ID;
+	sNameID.Kind.lID = dispidSmartNoAttach;
+	auto hr = lpMessage->GetIDsFromNames(1, &lpNameID, MAPI_CREATE, &~lpPropTag);
+	if (hr != hrSuccess)
+		return;
+	atprop.ulPropTag = CHANGE_PROP_TYPE(lpPropTag->aulPropTag[0], PT_BOOLEAN);
+	atprop.Value.b = true;
+	hr = lpMessage->SetProps(1, &atprop, nullptr);
+	if (hr != hrSuccess)
+		return;
 }
 
 /**

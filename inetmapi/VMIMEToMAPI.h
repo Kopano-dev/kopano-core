@@ -81,6 +81,7 @@ public:
 	HRESULT messagePartToStructure(const std::string &input, vmime::shared_ptr<vmime::bodyPart>, std::string *simple, std::string *extended);
 	HRESULT bodyPartToStructure(const std::string &input, vmime::shared_ptr<vmime::bodyPart>, std::string *simple, std::string *extended);
 	std::string getStructureExtendedFields(vmime::shared_ptr<vmime::header> part);
+	HRESULT save_raw_smime(const std::string &input, size_t hdr_end, const vmime::shared_ptr<vmime::header> &in, IMessage *out);
 };
 
 } /* namespace */
