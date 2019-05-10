@@ -1007,11 +1007,11 @@ def main():
     elif len(args) != 0:
         fatal('too many arguments')
     if options.deletes and options.deletes not in ('yes', 'no'):
-        fatal("--deletes option takes 'yes' or 'no'")
+        fatal("the --deletes option takes 'yes' or 'no'")
     if options.folders and (options.differential or (options.purge is not None) or options.merge):
-        fatal('invalid use of --folder option')
+        fatal('the --folder option cannot be combined with --differential, --purge or --merge')
     if options.output_dir and options.differential:
-        fatal('invalid use of --output-dir option')
+        fatal('the --output-dir option cannot be combined with --differential')
 
     if options.stats or options.index:
         # handle --stats/--index
