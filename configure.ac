@@ -97,6 +97,8 @@ AC_PROG_CC
 AM_PROG_CC_C_O
 AC_PROG_CXX
 AC_PROG_INSTALL
+dnl Needed, at the very least, for `make dist` (hence outside enable_base)
+AC_PATH_PROG([SWIG_EXEC], [swig])
 
 # configure may rerun as part of git-checking out a different version,
 # so remove stale version
@@ -675,7 +677,6 @@ AC_ARG_ENABLE([pybind], [AS_HELP_STRING([--disable-pybind],
 AS_IF([test "$want_pybind" != no], [
 	PKG_CHECK_MODULES([PYTHON], [$PYTHON_PC], [], [:])
 	AS_IF([test -n "$PYTHON_LIBS"], [
-		AC_PATH_PROG([SWIG_EXEC], [swig])
 		AS_IF([test -z "$SWIG_EXEC"], [AC_MSG_ERROR([swig is required for Python])])
 	], [test "$want_python" = yes], [
 		AC_MSG_ERROR([python requested but not satisfiable])

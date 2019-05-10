@@ -3444,6 +3444,9 @@ ZEND_FUNCTION(mapi_getprops)
 	MAPI_G(hr) = lpMapiProp->GetProps(lpTagArray, 0, &cValues, &~lpPropValues);
 	if (FAILED(MAPI_G(hr)))
 		return;
+	MAPI_G(hr) = spv_postload_large_props(lpMapiProp, lpTagArray, cValues, lpPropValues);
+	if (FAILED(MAPI_G(hr)))
+		return;
 
 	MAPI_G(hr) = PropValueArraytoPHPArray(cValues, lpPropValues, &zval_prop_value TSRMLS_CC);
 
