@@ -75,7 +75,6 @@ AS_IF([test -n "$PYTHON"], [
 ])
 AS_IF([test "$PYTHON_MAJOR_VERSION" = "3"], [PYTHON_PC="python3"], [PYTHON_PC="python"])
 AM_CONDITIONAL([WITH_PYTHON3], [test "x$PYTHON_MAJOR_VERSION" = "x3"])
-AM_CONDITIONAL([WITH_PYTHON2], [test "x$PYTHON_MAJRO_VERSION" = "x2"])
 
 dnl Top-level component selection
 AC_ARG_ENABLE([base], [AS_HELP_STRING([--disable-base],
