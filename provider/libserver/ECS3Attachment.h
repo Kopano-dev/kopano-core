@@ -98,6 +98,7 @@ class ECS3Attachment final : public ECAttachmentStorage {
 	ECRESULT del_marked_att(const ext_siid &);
 	virtual ECRESULT Commit() override;
 	virtual ECRESULT Rollback() override;
+	ECRESULT s3_get(struct s3_cd &, const char *filename);
 
 	/* Variables: */
 	ECS3Config &m_config;

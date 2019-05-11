@@ -410,6 +410,43 @@ int ECS3Attachment::put_obj(int bufferSize, char *buffer, void *cbdata)
 	return toRead;
 }
 
+ECRESULT ECS3Attachment::s3_get(struct s3_cd &cd, const char *fn)
+{
+	ECRESULT ret = KCERR_DATABASE_ERROR;
+	struct s3_cdw cwdata;
+	cwdata.caller = this;
+	cwdata.cbdata = &cd;
+	ec_log_debug("S3: loading %s into buffer", fn);
+	/*
+	 * Loop at most S3_RETRIES times, to make sure that if the servers of S3
+	 * reply with a redirect, we actually try again and process it.
+	 */
+	unsigned int tries = S3_RETRIES;
+	do {
+		m_config.DY_get_object(&m_config.m_bkctx, fn, &m_config.m_get_conditions,
+			0, 0, nullptr, 0, &m_config.m_get_obj_handler, &cwdata);
+		if (m_config.DY_status_is_retryable(cd.status))
+			ec_log_debug("S3: load %s: retryable status: %s",
+				fn, m_config.DY_get_status_name(cd.status));
+	} while (m_config.DY_status_is_retryable(cd.status) && should_retry(tries));
+
+	ec_log_debug("S3: load %s: %s", fn, m_config.DY_get_status_name(cd.status));
+	if (cd.size != cd.processed)
+		ec_log_err("S3: load %s: short read %zu/%zu bytes",
+			fn, cd.processed, cd.size);
+	else if (cd.data == nullptr)
+		ret = KCERR_NOT_ENOUGH_MEMORY;
+	else if (cd.status != S3StatusOK)
+		ret = KCERR_NETWORK_ERROR;
+	else
+		ret = erSuccess;
+	if (ret != erSuccess && cd.data != nullptr && cd.soap == nullptr) {
+		s_free(nullptr, cd.data);
+		cd.data = nullptr;
+	}
+	return ret;
+}
+
 /**
  * Load instance data using soap and return as blob.
  *
@@ -427,58 +464,27 @@ int ECS3Attachment::put_obj(int bufferSize, char *buffer, void *cbdata)
 ECRESULT ECS3Attachment::LoadAttachmentInstance(struct soap *soap,
     const ext_siid &ins_id, size_t *size_p, unsigned char **data_p)
 {
-	ECRESULT ret = KCERR_NOT_FOUND;
 	struct s3_cd cd;
 	cd.alloc_data = true;
 	cd.soap = soap;
-	struct s3_cdw cwdata;
-	cwdata.caller = this;
-	cwdata.cbdata = &cd;
-
-	auto filename = make_att_filename(ins_id, false);
-	auto fn = filename.c_str();
-	ec_log_debug("S3: loading %s into buffer", fn);
+	auto ret = s3_get(cd, make_att_filename(ins_id, false).c_str());
+	if (ret != hrSuccess)
+		return ret;
+	*size_p = cd.size;
 	/*
-	 * Loop at most S3_RETRIES times, to make sure that if the servers of S3
-	 * reply with a redirect, we actually try again and process it.
+	 * We allocated the data in cd.data, which is referred to by
+	 * data_p. The caller of this function is responsible for freeing the
+	 * memory after its use.
 	 */
-	unsigned int tries = S3_RETRIES;
-	do {
-		m_config.DY_get_object(&m_config.m_bkctx, fn, &m_config.m_get_conditions,
-			0, 0, nullptr, 0, &m_config.m_get_obj_handler, &cwdata);
-		if (m_config.DY_status_is_retryable(cd.status))
-			ec_log_debug("S3: load %s: retryable status: %s",
-				fn, m_config.DY_get_status_name(cd.status));
-	} while (m_config.DY_status_is_retryable(cd.status) && should_retry(tries));
-
-	ec_log_debug("S3: load %s: %s", fn, m_config.DY_get_status_name(cd.status));
-	if (cd.size != cd.processed) {
-		ec_log_err("S3: load %s: short read %zu/%zu bytes",
-			fn, cd.processed, cd.size);
-		ret = KCERR_DATABASE_ERROR;
-	} else if (cd.data == nullptr) {
-		ret = KCERR_NOT_ENOUGH_MEMORY;
-	} else if (cd.status != S3StatusOK) {
-		ret = KCERR_NETWORK_ERROR;
-	} else {
-		/*
-		 * We allocated the data in cd.data, which is referred to by
-		 * data_p. The caller of this function is responsible for freeing the
-		 * memory after its use.
-		 */
-		*size_p = cd.size;
-		*data_p = cd.data;
-		ret = erSuccess;
-		scoped_lock locker(m_config.m_cachelock);
-		m_config.m_cache[ins_id.siid] = {now_positive(), cd.size};
-	}
-	if (ret != erSuccess && cd.data != nullptr && cd.soap == nullptr)
-		s_free(nullptr, cd.data);
+	*data_p = cd.data;
 	/*
 	 * Make sure we clear the cd.data variable so we cannot write
 	 * to it after it is freed externally.
 	 */
 	cd.data = nullptr;
+
+	scoped_lock locker(m_config.m_cachelock);
+	m_config.m_cache[ins_id.siid] = {now_positive(), cd.size};
 	return ret;
 }
 
@@ -495,49 +501,22 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(struct soap *soap,
 ECRESULT ECS3Attachment::LoadAttachmentInstance(const ext_siid &ins_id,
     size_t *size_p, ECSerializer *sink)
 {
-	ECRESULT ret = KCERR_NOT_FOUND;
 	struct s3_cd cd;
 	cd.sink = sink;
-	struct s3_cdw cwdata;
-	cwdata.caller = this;
-	cwdata.cbdata = &cd;
-
-	auto filename = make_att_filename(ins_id, false);
-	auto fn = filename.c_str();
-	ec_log_debug("S3: loading %s into serializer", fn);
-	/*
-	 * Loop at most S3_RETRIES times, to make sure that if the servers of S3
-	 * reply with a redirect, we actually try again and process it.
-	 */
-	unsigned int tries = S3_RETRIES;
-	do {
-		m_config.DY_get_object(&m_config.m_bkctx, fn, &m_config.m_get_conditions,
-			0, 0, nullptr, 0, &m_config.m_get_obj_handler, &cwdata);
-		if (m_config.DY_status_is_retryable(cd.status))
-			ec_log_debug("S3: load %s: retryable status: %s",
-				fn, m_config.DY_get_status_name(cd.status));
-	} while (m_config.DY_status_is_retryable(cd.status) && should_retry(tries));
-
-	ec_log_debug("S3: load %s: %s", fn, m_config.DY_get_status_name(cd.status));
-	if (cd.size != cd.processed) {
-		ec_log_err("S3: load %s: short read %zu/%zu bytes",
-			fn, cd.processed, cd.size);
-		ret = KCERR_DATABASE_ERROR;
-	} else if (cd.data == nullptr) {
-		ret = KCERR_NOT_ENOUGH_MEMORY;
-	} else if (cd.status != S3StatusOK) {
+	auto ret = s3_get(cd, make_att_filename(ins_id, false).c_str());
+	if (ret == KCERR_NETWORK_ERROR)
 		/* The entire stream would abort if we return non-success. */
 		ret = erSuccess;
-	} else {
-		scoped_lock locker(m_config.m_cachelock);
-		m_config.m_cache[ins_id.siid] = {now_positive(), cd.size};
-		*size_p = cd.size;
-	}
 	/*
 	 * Make sure we do not write to the sink accidentally, therefore reset
 	 * it to NULL.
 	 */
 	cd.sink = nullptr;
+	if (ret != erSuccess)
+		return ret;
+	scoped_lock locker(m_config.m_cachelock);
+	m_config.m_cache[ins_id.siid] = {now_positive(), cd.size};
+	*size_p = cd.size;
 	return ret;
 }
 
