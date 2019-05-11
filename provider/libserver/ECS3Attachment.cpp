@@ -469,6 +469,8 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(struct soap *soap,
 		*size_p = cd.size;
 		*data_p = cd.data;
 		ret = erSuccess;
+		scoped_lock locker(m_config.m_cachelock);
+		m_config.m_cache[ins_id.siid] = {now_positive(), cd.size};
 	}
 	if (ret != erSuccess && cd.data != nullptr && soap == nullptr)
 		s_free(nullptr, cd.data);
