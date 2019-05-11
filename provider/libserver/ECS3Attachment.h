@@ -93,7 +93,7 @@ class ECS3Attachment final : public ECAttachmentStorage {
 	S3Status get_obj(int, const char *, void *);
 	int put_obj(int, char *, void *);
 	std::string make_att_filename(const ext_siid &, bool);
-	bool should_retry(struct s3_cd &);
+	bool should_retry(unsigned int &);
 	struct s3_cd create_cd(void);
 	ECRESULT del_marked_att(const ext_siid &);
 	virtual ECRESULT Commit() override;

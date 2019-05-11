@@ -47,7 +47,6 @@ struct s3_cd {
 	ECSerializer *sink = nullptr;
 	bool alloc_data = false;
 	size_t size = 0, processed = 0;
-	int retries = 0;
 	S3Status status = S3StatusOK;
 };
 
@@ -443,14 +442,14 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(struct soap *soap,
 	 * Loop at most S3_RETRIES times, to make sure that if the servers of S3
 	 * reply with a redirect, we actually try again and process it.
 	 */
-	cd.retries = S3_RETRIES;
+	unsigned int tries = S3_RETRIES;
 	do {
 		m_config.DY_get_object(&m_config.m_bkctx, fn, &m_config.m_get_conditions,
 			0, 0, nullptr, 0, &m_config.m_get_obj_handler, &cwdata);
 		if (m_config.DY_status_is_retryable(cd.status))
 			ec_log_debug("S3: load %s: retryable status: %s",
 				fn, m_config.DY_get_status_name(cd.status));
-	} while (m_config.DY_status_is_retryable(cd.status) && should_retry(cd));
+	} while (m_config.DY_status_is_retryable(cd.status) && should_retry(tries));
 
 	ec_log_debug("S3: load %s: %s", fn, m_config.DY_get_status_name(cd.status));
 	if (cd.size != cd.processed) {
@@ -508,14 +507,14 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(const ext_siid &ins_id,
 	 * Loop at most S3_RETRIES times, to make sure that if the servers of S3
 	 * reply with a redirect, we actually try again and process it.
 	 */
-	cd.retries = S3_RETRIES;
+	unsigned int tries = S3_RETRIES;
 	do {
 		m_config.DY_get_object(&m_config.m_bkctx, fn, &m_config.m_get_conditions,
 			0, 0, nullptr, 0, &m_config.m_get_obj_handler, &cwdata);
 		if (m_config.DY_status_is_retryable(cd.status))
 			ec_log_debug("S3: load %s: retryable status: %s",
 				fn, m_config.DY_get_status_name(cd.status));
-	} while (m_config.DY_status_is_retryable(cd.status) && should_retry(cd));
+	} while (m_config.DY_status_is_retryable(cd.status) && should_retry(tries));
 
 	ec_log_debug("S3: load %s: %s", fn, m_config.DY_get_status_name(cd.status));
 	if (cd.size != cd.processed) {
@@ -568,14 +567,14 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ext_siid &ins_id,
 	 * Loop at most S3_RETRIES times, to make sure that if the servers of S3
 	 * reply with a redirect, we actually try again and process it.
 	 */
-	cd.retries = S3_RETRIES;
+	unsigned int tries = S3_RETRIES;
 	do {
 		m_config.DY_put_object(&m_config.m_bkctx, fn, size, nullptr,
 			nullptr, 0, &m_config.m_put_obj_handler, &cwdata);
 		if (m_config.DY_status_is_retryable(cd.status))
 			ec_log_debug("S3: save %s: retryable status: %s",
 				fn, m_config.DY_get_status_name(cd.status));
-	} while (m_config.DY_status_is_retryable(cd.status) && should_retry(cd));
+	} while (m_config.DY_status_is_retryable(cd.status) && should_retry(tries));
 
 	ec_log_debug("S3: save %s: %s", fn, m_config.DY_get_status_name(cd.status));
 	/* set in transaction before disk full check to remove empty file */
@@ -624,14 +623,14 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ext_siid &ins_id,
 	 * Loop at most S3_RETRIES times, to make sure that if the servers of S3
 	 * reply with a redirect, we actually try again and process it.
 	 */
-	cd.retries = S3_RETRIES;
+	unsigned int tries = S3_RETRIES;
 	do {
 		m_config.DY_put_object(&m_config.m_bkctx, fn, size, nullptr,
 			nullptr, 0, &m_config.m_put_obj_handler, &cwdata);
 		if (m_config.DY_status_is_retryable(cd.status))
 			ec_log_debug("S3: save %s: retryable status: %s",
 				fn, m_config.DY_get_status_name(cd.status));
-	} while (m_config.DY_status_is_retryable(cd.status) && should_retry(cd));
+	} while (m_config.DY_status_is_retryable(cd.status) && should_retry(tries));
 
 	ec_log_debug("S3: save %s: %s", fn, m_config.DY_get_status_name(cd.status));
 	/* set in transaction before disk full check to remove empty file */
@@ -692,14 +691,14 @@ ECRESULT ECS3Attachment::del_marked_att(const ext_siid &ins_id)
 	 * Loop at most S3_RETRIES times, to make sure that if the servers of
 	 * S3 reply with a redirect, we actually try again and process it.
 	 */
-	cd.retries = S3_RETRIES;
+	unsigned int tries = S3_RETRIES;
 	do {
 		m_config.DY_delete_object(&m_config.m_bkctx, fn, nullptr, 0,
 			&m_config.m_response_handler, &cwdata);
 		if (m_config.DY_status_is_retryable(cd.status))
 			ec_log_debug("S3: delete %s: retryable status: %s",
 				fn, m_config.DY_get_status_name(cd.status));
-	} while (m_config.DY_status_is_retryable(cd.status) && should_retry(cd));
+	} while (m_config.DY_status_is_retryable(cd.status) && should_retry(tries));
 
 	ec_log_debug("S3: delete %s: %s", fn, m_config.DY_get_status_name(cd.status));
 	if (cd.status == S3StatusOK || cd.status == S3StatusHttpErrorNotFound) {
@@ -752,11 +751,11 @@ std::string ECS3Attachment::make_att_filename(const ext_siid &esid, bool comp)
  *
  * @return whether we should retry
  */
-bool ECS3Attachment::should_retry(struct s3_cd &cd)
+bool ECS3Attachment::should_retry(unsigned int &tries)
 {
-	if (cd.retries <= 0)
+	if (tries <= 0)
 		return false;
-	--cd.retries;
+	--tries;
 	sleep(S3_SLEEP_DELAY);
 	return true;
 }
@@ -800,14 +799,14 @@ ECRESULT ECS3Attachment::GetSizeInstance(const ext_siid &ins_id,
 	 * Loop at most S3_RETRIES times, to make sure that if the servers of
 	 * S3 reply with a redirect, we actually try again and process it.
 	 */
-	cd.retries = S3_RETRIES;
+	unsigned int tries = S3_RETRIES;
 	do {
 		m_config.DY_head_object(&m_config.m_bkctx, fn, nullptr, 0,
 			&m_config.m_response_handler, &cwdata);
 		if (m_config.DY_status_is_retryable(cd.status))
 			ec_log_debug("S3: getsize %s: retryable status: %s",
 				fn, m_config.DY_get_status_name(cd.status));
-	} while (m_config.DY_status_is_retryable(cd.status) && should_retry(cd));
+	} while (m_config.DY_status_is_retryable(cd.status) && should_retry(tries));
 
 	ec_log_debug("S3: getsize %s: %s, %zu bytes",
 		fn, m_config.DY_get_status_name(cd.status), cd.size);
