@@ -526,6 +526,7 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(const ext_siid &ins_id,
 	} else if (cd.data == nullptr) {
 		ret = KCERR_NOT_ENOUGH_MEMORY;
 	} else if (cd.status != S3StatusOK) {
+		/* The entire stream would abort if we return non-success. */
 		ret = erSuccess;
 	} else {
 		scoped_lock locker(m_config.m_cachelock);
