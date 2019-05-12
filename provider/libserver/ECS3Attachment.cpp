@@ -40,6 +40,50 @@ namespace KC {
 #define now_positive() (steady_clock::now() + 600s)
 #define now_negative() (steady_clock::now() + 60s)
 
+class ECS3Attachment final : public ECAttachmentStorage {
+	public:
+	ECS3Attachment(ECS3Config &, ECDatabase *);
+
+	protected:
+	virtual ~ECS3Attachment(void);
+
+	/* Single Instance Attachment handlers */
+	virtual ECRESULT LoadAttachmentInstance(struct soap *, const ext_siid &, size_t *, unsigned char **) override;
+	virtual ECRESULT LoadAttachmentInstance(const ext_siid &, size_t *, ECSerializer *) override;
+	virtual ECRESULT SaveAttachmentInstance(ext_siid &, ULONG, size_t, unsigned char *) override;
+	virtual ECRESULT SaveAttachmentInstance(ext_siid &, ULONG, size_t, ECSerializer *) override;
+	virtual ECRESULT DeleteAttachmentInstances(const std::list<ext_siid> &, bool replace) override;
+	virtual ECRESULT DeleteAttachmentInstance(const ext_siid &, bool replace) override;
+	virtual ECRESULT GetSizeInstance(const ext_siid &, size_t *, bool * = nullptr) override;
+	virtual kd_trans Begin(ECRESULT &) override;
+
+	private:
+	static S3Status response_prop_cb(const S3ResponseProperties *, void *);
+	static void response_complete_cb(S3Status, const S3ErrorDetails *, void *);
+	static S3Status get_obj_cb(int, const char *, void *);
+	static int put_obj_cb(int, char *, void *);
+
+	S3Status response_prop(const S3ResponseProperties *, void *);
+	void response_complete(S3Status, const S3ErrorDetails *, void *);
+	S3Status get_obj(int, const char *, void *);
+	int put_obj(int, char *, void *);
+	std::string make_att_filename(const ext_siid &, bool);
+	bool should_retry(unsigned int &);
+	struct s3_cd create_cd(void);
+	ECRESULT del_marked_att(const ext_siid &);
+	virtual ECRESULT Commit() override;
+	virtual ECRESULT Rollback() override;
+	ECRESULT s3_get(struct s3_cd &, const char *filename);
+	ECRESULT s3_put(struct s3_cd &, const char *filename);
+
+	/* Variables: */
+	ECS3Config &m_config;
+	std::set<ext_siid> m_new_att, m_marked_att;
+	bool m_transact = false;
+
+	friend class ECS3Config;
+};
+
 /* callback data */
 struct s3_cd {
 	struct soap *soap = nullptr;
