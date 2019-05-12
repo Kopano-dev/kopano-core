@@ -520,30 +520,11 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(const ext_siid &ins_id,
 	return ret;
 }
 
-/**
- * Save a property in a new instance from a blob
- *
- * @param[in] ins_id InstanceID to save data under
- * @param[in] propid unused, required by interface, see ECDatabaseAttachment
- * @param[in] size size of data
- * @param[in] data Data of property
- *
- * @return Kopano error code
- */
-ECRESULT ECS3Attachment::SaveAttachmentInstance(ext_siid &ins_id,
-    ULONG propid, size_t size, unsigned char *data)
+ECRESULT ECS3Attachment::s3_put(struct s3_cd &cd, const char *fn)
 {
-	ECRESULT ret = KCERR_NOT_FOUND;
-	bool comp = false;
-	struct s3_cd cd;
-	cd.data = data;
-	cd.size = size;
 	struct s3_cdw cwdata;
 	cwdata.caller = this;
 	cwdata.cbdata = &cd;
-
-	auto filename = make_att_filename(ins_id, comp && cd.size != 0);
-	auto fn = filename.c_str();
 	ec_log_debug("S3: saving %s (buffer of %zu bytes)", fn, cd.size);
 	/*
 	 * Loop at most S3_RETRIES times, to make sure that if the servers of S3
@@ -559,18 +540,37 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ext_siid &ins_id,
 	} while (m_config.DY_status_is_retryable(cd.status) && should_retry(tries));
 
 	ec_log_debug("S3: save %s: %s", fn, m_config.DY_get_status_name(cd.status));
+	if (cd.size == cd.processed)
+		return erSuccess;
+	ec_log_err("S3: save %s: processed only %zu/%zu bytes",
+		fn, cd.processed, cd.size);
+	return KCERR_DATABASE_ERROR;
+}
+
+/**
+ * Save a property in a new instance from a blob
+ *
+ * @param[in] ins_id InstanceID to save data under
+ * @param[in] propid unused, required by interface, see ECDatabaseAttachment
+ * @param[in] size size of data
+ * @param[in] data Data of property
+ *
+ * @return Kopano error code
+ */
+ECRESULT ECS3Attachment::SaveAttachmentInstance(ext_siid &ins_id,
+    ULONG propid, size_t size, unsigned char *data)
+{
+	bool comp = false;
+	struct s3_cd cd;
+	cd.data = data;
+	cd.size = size;
+	auto ret = s3_put(cd, make_att_filename(ins_id, comp && size != 0).c_str());
 	/* set in transaction before disk full check to remove empty file */
 	if (m_transact)
 		m_new_att.emplace(ins_id);
-
-	if (cd.size != cd.processed) {
-		ec_log_err("S3: save %s: processed only %zu/%zu bytes",
-			fn, cd.processed, cd.size);
-		ret = KCERR_DATABASE_ERROR;
-	} else if (cd.status == S3StatusOK) {
+	if (ret == erSuccess && cd.status == S3StatusOK) {
 		scoped_lock locker(m_config.m_cachelock);
 		m_config.m_cache[ins_id.siid] = {now_positive(), cd.size};
-		ret = erSuccess;
 	}
 	cd.data = NULL;
 	return ret;
@@ -589,44 +589,17 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ext_siid &ins_id,
 ECRESULT ECS3Attachment::SaveAttachmentInstance(ext_siid &ins_id,
     ULONG propid, size_t size, ECSerializer *source)
 {
-	ECRESULT ret = KCERR_NOT_FOUND;
 	bool comp = false;
 	struct s3_cd cd;
 	cd.sink = source;
 	cd.size = size;
-	struct s3_cdw cwdata;
-	cwdata.caller = this;
-	cwdata.cbdata = &cd;
-
-	auto filename = make_att_filename(ins_id, comp && cd.size != 0);
-	auto fn = filename.c_str();
-	ec_log_debug("S3: saving %s (serializer with %zu bytes)", fn, cd.size);
-	/*
-	 * Loop at most S3_RETRIES times, to make sure that if the servers of S3
-	 * reply with a redirect, we actually try again and process it.
-	 */
-	unsigned int tries = S3_RETRIES;
-	do {
-		m_config.DY_put_object(&m_config.m_bkctx, fn, cd.size, nullptr,
-			nullptr, 0, &m_config.m_put_obj_handler, &cwdata);
-		if (m_config.DY_status_is_retryable(cd.status))
-			ec_log_debug("S3: save %s: retryable status: %s",
-				fn, m_config.DY_get_status_name(cd.status));
-	} while (m_config.DY_status_is_retryable(cd.status) && should_retry(tries));
-
-	ec_log_debug("S3: save %s: %s", fn, m_config.DY_get_status_name(cd.status));
+	auto ret = s3_put(cd, make_att_filename(ins_id, comp && size != 0).c_str());
 	/* set in transaction before disk full check to remove empty file */
 	if (m_transact)
 		m_new_att.emplace(ins_id);
-
-	if (cd.size != cd.processed) {
-		ec_log_err("S3: save %s: processed only %zu/%zu bytes",
-			fn, cd.processed, cd.size);
-		ret = KCERR_DATABASE_ERROR;
-	} else if (cd.status == S3StatusOK) {
+	if (ret == erSuccess && cd.status == S3StatusOK) {
 		scoped_lock locker(m_config.m_cachelock);
 		m_config.m_cache[ins_id.siid] = {now_positive(), cd.size};
-		ret = erSuccess;
 	}
 	cd.sink = NULL;
 	return ret;
