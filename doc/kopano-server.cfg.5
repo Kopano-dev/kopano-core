@@ -352,10 +352,21 @@ can only be used to raise it.
 Default: \fI21844\fP
 .SS attachment_storage
 .PP
-The location where attachments are stored. This can be in the MySQL database, or as separate files. The drawback of \*(Aqdatabase\*(Aq is that the large data of attachment will push useful data from the MySQL cache. The drawback of separate files is that a mysqldump is not enough for a full disaster recovery.
-.PP
-Possible values: \fBdatabase\fP, \fBfiles\fP, \fBfiles_v2\fP (experimental),
-and, if built with libs3/AWS support, \fBs3\fP.
+The attachment backend to use. Different ones are available:
+.TP
+db
+Attachments will be stored as 384KB BLOB chunks in the database itself (in the
+"lob" table). Not sharable between kopano-server instances.
+.TP
+files
+Basic file backend. Not shareable.
+.TP
+files_v2
+Autonomous opportunistically deduplicating file-based backend for shared
+filesystems supporting atomic rename. (Experimental)
+.TP
+s3
+Basic S3 backend for AWS/Minio. Not shareable.
 .PP
 Default:
 \fIfiles\fR
