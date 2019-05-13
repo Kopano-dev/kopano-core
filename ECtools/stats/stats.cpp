@@ -100,17 +100,17 @@ static const ULONG ulTableProps[] = {
 };
 
 struct TIMES {
-	double dblUser, dblSystem, dblReal;
-    unsigned int ulRequests;
+	double dblUser = 0, dblSystem = 0, dblReal = 0;
+	unsigned int ulRequests = 0;
 };
 
 struct SESSION {
-	unsigned long long ullSessionId, ullSessionGroupId;
+	unsigned long long ullSessionId = 0, ullSessionGroupId = 0;
 	TIMES times, dtimes;
 
-    unsigned int ulIdle;
-    int ulPeerPid;
-    bool bLocked;
+	unsigned int ulIdle = 0;
+	int ulPeerPid = 0;
+	bool bLocked = false;
 	std::string strUser, strIP, strBusy, strState, strPeer;
 	std::string strClientVersion, strClientApp, strClientAppVersion;
 	std::string strClientAppMisc;
