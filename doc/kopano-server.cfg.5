@@ -128,6 +128,12 @@ Use MySQL.
 .PP
 Default:
 \fImysql\fR
+.SS allow_local_users
+.PP
+A boolean that controls whether Unix users can authenticate as the Kopano user
+of the same name without a password through the Unix socket.
+.PP
+Default: \fIyes\fP
 .SS local_admin_users
 .PP
 Named Unix users which connect through the unix socket (server_pipe_name) which are added here, those users will become the internal SYSTEM user in Kopano, and have administrative rights. Normally, this is only \*(Aqroot\*(Aq, so the unix root user can use the kopano\-admin tool. You can add a generic user to be used by the kopano\-dagent here. This user is most likely called \*(Aqvmail\*(Aq. Note that the field is SPACE separated.
