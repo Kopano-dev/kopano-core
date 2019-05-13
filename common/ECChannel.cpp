@@ -991,13 +991,7 @@ int ec_listen_generic(const char *spec, int *pfd, int mode)
 
 bool ec_bindaddr_less::operator()(const std::string &a, const std::string &b) const
 {
-	auto p = ec_parse_bindaddr(a.c_str());
-	auto q = ec_parse_bindaddr(b.c_str());
-	if (p.first < q.first)
-		return true;
-	if (p.first == q.first && p.second < q.second)
-		return true;
-	return false;
+	return ec_parse_bindaddr(a.c_str()) < ec_parse_bindaddr(b.c_str());
 }
 
 /**
