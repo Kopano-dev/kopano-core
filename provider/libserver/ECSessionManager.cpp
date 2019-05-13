@@ -350,11 +350,13 @@ ECRESULT ECSessionManager::ValidateBTSession(struct soap *soap,
 		return er;
 	}
 
+#ifdef WITH_ZLIB
 	/* Enable compression if client desired and granted */
 	if (lpSession->GetCapabilities() & KOPANO_CAP_COMPRESSION) {
 		soap_set_imode(soap, SOAP_ENC_ZLIB);
 		soap_set_omode(soap, SOAP_ENC_ZLIB | SOAP_IO_CHUNK);
 	}
+#endif
 	// Enable streaming support if client is capable
 	if (lpSession->GetCapabilities() & KOPANO_CAP_ENHANCED_ICS) {
 		soap_set_omode(soap, SOAP_ENC_MTOM | SOAP_IO_CHUNK);

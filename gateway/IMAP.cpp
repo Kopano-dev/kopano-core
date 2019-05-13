@@ -3278,13 +3278,16 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 
 HRESULT IMAP::save_generated_properties(const std::string &text, IMessage *message)
 {
-	ec_log_debug("Setting IMAP props");
 	auto hr = createIMAPBody(text, message, true);
 	if (hr != hrSuccess)
 		return kc_pwarn("Failed to create IMAP body", hr);
+	/*
+	 * Saving can fail if the mail belongs to another user. In that case,
+	 * the envelope data remains temporary (memory only).
+	 */
 	hr = message->SaveChanges(0);
 	if (hr != hrSuccess)
-		return kc_pwarn("Failed to save IMAP props", hr);
+		/* ignore */;
 	return hrSuccess;
 }
 
@@ -3396,6 +3399,7 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 				vProps.emplace_back("(" + string_strip_crlf(lpProp->Value.lpszA) + ")");
 			}
 			else if (lpMessage) {
+				/* Autogenerate envelope on the fly */
 				memory_ptr<SPropValue> prop;
 				sopt.headers_only = false;
 				hr = IMToINet(lpSession, lpAddrBook, lpMessage, oss, sopt);

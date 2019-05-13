@@ -558,7 +558,12 @@ int KCmdService::logon(const char *user, const char *pass,
 	 * Create(Auth)Session remembers them, re-evaluates CAP_COMPRESSION,
 	 * and would otherwise turn on compression again.
 	 */
-	if (zcp_peerfd_is_local(soap->socket) <= 0 && (clientCaps & KOPANO_CAP_COMPRESSION)) {
+#ifdef WITH_ZLIB
+	static constexpr const bool has_zlib = true;
+#else
+	static constexpr const bool has_zlib = false;
+#endif
+	if (has_zlib && zcp_peerfd_is_local(soap->socket) <= 0 && clientCaps & KOPANO_CAP_COMPRESSION) {
 		lpsResponse->ulCapabilities |= KOPANO_CAP_COMPRESSION;
 		// (ECSessionManager::ValidateSession() will do this for all other functions)
 		soap_set_imode(soap, SOAP_ENC_ZLIB);	// also autodetected

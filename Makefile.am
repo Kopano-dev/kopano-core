@@ -9,7 +9,7 @@ SUBDIRS += ECtools/archiver/include/kopano \
 	mapi4linux/include inetmapi/include/inetmapi provider/include \
 	installer installer/quotamail installer/userscripts po
 if ENABLE_PYBIND
-SUBDIRS += swig
+SUBDIRS += swig swig/python
 endif
 endif # ENABLE_BASE
 SUBDIRS += installer/linux
@@ -71,7 +71,6 @@ if HAVE_TIDY
 check_PROGRAMS += tests/rosie
 endif
 noinst_PROGRAMS += ${check_PROGRAMS}
-SUBDIRS += swig
 endif # ENABLE_BASE
 
 if ENABLE_PYTHON
