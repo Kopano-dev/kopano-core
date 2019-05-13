@@ -72,7 +72,6 @@ if HAVE_TIDY
 check_PROGRAMS += tests/rosie
 endif
 noinst_PROGRAMS += ${check_PROGRAMS}
-SUBDIRS += swig
 endif # ENABLE_BASE
 
 if ENABLE_PYTHON
