@@ -1,5 +1,5 @@
-8.7.2
-=====
+8.7.2 (2019-05-13)
+==================
 Fixes:
 * server: complete utf8mb4->utf8 fallback for RHEL6 [KC-1423]
 * inetmapi: modified appointments need to produce a new Message-ID [KC-1458]
