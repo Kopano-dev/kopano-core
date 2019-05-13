@@ -472,7 +472,7 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(struct soap *soap,
 		scoped_lock locker(m_config.m_cachelock);
 		m_config.m_cache[ins_id.siid] = {now_positive(), cd.size};
 	}
-	if (ret != erSuccess && cd.data != nullptr && soap == nullptr)
+	if (ret != erSuccess && cd.data != nullptr && cd.soap == nullptr)
 		s_free(nullptr, cd.data);
 	/*
 	 * Make sure we clear the cd.data variable so we cannot write
@@ -563,16 +563,16 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ext_siid &ins_id,
 	cwdata.caller = this;
 	cwdata.cbdata = &cd;
 
-	auto filename = make_att_filename(ins_id, comp && size != 0);
+	auto filename = make_att_filename(ins_id, comp && cd.size != 0);
 	auto fn = filename.c_str();
-	ec_log_debug("S3: saving %s (buffer of %zu bytes)", fn, size);
+	ec_log_debug("S3: saving %s (buffer of %zu bytes)", fn, cd.size);
 	/*
 	 * Loop at most S3_RETRIES times, to make sure that if the servers of S3
 	 * reply with a redirect, we actually try again and process it.
 	 */
 	unsigned int tries = S3_RETRIES;
 	do {
-		m_config.DY_put_object(&m_config.m_bkctx, fn, size, nullptr,
+		m_config.DY_put_object(&m_config.m_bkctx, fn, cd.size, nullptr,
 			nullptr, 0, &m_config.m_put_obj_handler, &cwdata);
 		if (m_config.DY_status_is_retryable(cd.status))
 			ec_log_debug("S3: save %s: retryable status: %s",
@@ -619,16 +619,16 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ext_siid &ins_id,
 	cwdata.caller = this;
 	cwdata.cbdata = &cd;
 
-	auto filename = make_att_filename(ins_id, comp && size != 0);
+	auto filename = make_att_filename(ins_id, comp && cd.size != 0);
 	auto fn = filename.c_str();
-	ec_log_debug("S3: saving %s (serializer with %zu bytes)", fn, size);
+	ec_log_debug("S3: saving %s (serializer with %zu bytes)", fn, cd.size);
 	/*
 	 * Loop at most S3_RETRIES times, to make sure that if the servers of S3
 	 * reply with a redirect, we actually try again and process it.
 	 */
 	unsigned int tries = S3_RETRIES;
 	do {
-		m_config.DY_put_object(&m_config.m_bkctx, fn, size, nullptr,
+		m_config.DY_put_object(&m_config.m_bkctx, fn, cd.size, nullptr,
 			nullptr, 0, &m_config.m_put_obj_handler, &cwdata);
 		if (m_config.DY_status_is_retryable(cd.status))
 			ec_log_debug("S3: save %s: retryable status: %s",
