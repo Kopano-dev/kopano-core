@@ -1,7 +1,5 @@
 # -*- Makefile -*-
 
-SUBDIRS = python
-
 EXTRA_DIST = edkmdb.i mapi.i mapiutil.i mapidefs.i mapicode.i mapix.i	\
 	mapinotifsink.i helpers.i IECExportChanges.i \
 	IECMultiStoreTable.i IECServiceAdmin.i IECSpooler.i					\
