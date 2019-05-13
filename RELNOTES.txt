@@ -1,3 +1,28 @@
+8.7.81 (8.8.x Milestone 1)
+==========================
+Enhancements:
+* ldapplugin: 22% speedup in retriving the entire user list [KC-1399]
+* client: avoid double-fetching PR_RTF_COMPRESSED_DATA [KC-1349]
+Changes:
+* dagent, spooler: plugins are disabled by default now [KC-1475]
+  Add plugin_enabled=yes to your .cfg if needed.
+* dagent, spooler: threaded more is enabled by default now [KC-1475]
+* search: index_attachments is disabled by default now [KC-1455]
+* daemons: the -F option is removed, daemons always start in foreground
+  mode now [KC-1428]
+* server: support for non-Unicode connections used by ZCP 5.x was removed
+* server: support for some legacy RPCs used by ZCP 6.30 was removed
+* Support for Python 2.x was removed
+* The python-zarafa compat module was removed
+* The object-oriented MAPI classes (written in PHP) were removed from KC.
+  A copy survives in kopano-webapp. What remains in KC is the set of
+  MAPI-related procedural functions provided by the PHP plugin
+  (written in C++).
+* kopano-rest has been moved to a separate git repository
+Packaging changes:
+* gsoap 2.8.73 or higher is now required
+
+
 8.7.2 (2019-05-13)
 ==================
 Fixes:
