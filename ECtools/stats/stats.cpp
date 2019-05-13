@@ -19,6 +19,7 @@
 #include <map>
 #include <set>
 #include <getopt.h>
+#include <libHX/defs.h>
 #include <kopano/CommonUtil.h>
 #include <kopano/stringutil.h>
 #include <kopano/ECTags.h>
@@ -481,8 +482,11 @@ static std::string mapitable_ToString(const SPropValue *lpProp)
 		return stringify(lpProp->Value.dbl);
 	case PT_FLOAT:
 		return stringify(lpProp->Value.flt);
-	case PT_I8:
-		return stringify_int64(lpProp->Value.li.QuadPart);
+	case PT_I8: {
+		char buf[HXSIZEOF_Z64+2];
+		snprintf(buf, sizeof(buf), "0x%lx", lpProp->Value.li.QuadPart);
+		return buf;
+	}
 	case PT_SYSTIME: {
 		char buf[32]; // must be at least 26 bytes
 		auto t = FileTimeToUnixTime(lpProp->Value.ft);
