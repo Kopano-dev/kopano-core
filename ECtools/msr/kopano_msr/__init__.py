@@ -174,7 +174,6 @@ class ControlWorker(kopano.Worker):
                 try:
                     conn = None
                     conn, _ = s.accept()
-                    fields_terms = []
                     for data in conn.makefile():
                         self.log.info('CMD: %s', data.strip())
                         data = data.split()
