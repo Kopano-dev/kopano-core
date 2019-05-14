@@ -22,9 +22,6 @@
 #include <kopano/stringutil.h>
 #include "ECGenericObjectTable.h"
 #include <algorithm>
-#ifdef LINUX
-#include <sys/sysinfo.h>
-#endif
 
 namespace KC {
 

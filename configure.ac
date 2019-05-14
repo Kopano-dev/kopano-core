@@ -75,7 +75,6 @@ AS_IF([test -n "$PYTHON"], [
 ])
 AS_IF([test "$PYTHON_MAJOR_VERSION" = "3"], [PYTHON_PC="python3"], [PYTHON_PC="python"])
 AM_CONDITIONAL([WITH_PYTHON3], [test "x$PYTHON_MAJOR_VERSION" = "x3"])
-AM_CONDITIONAL([WITH_PYTHON2], [test "x$PYTHON_MAJRO_VERSION" = "x2"])
 
 dnl Top-level component selection
 AC_ARG_ENABLE([base], [AS_HELP_STRING([--disable-base],
@@ -107,6 +106,7 @@ AC_SUBST([PACKAGE_ABI])
 abs_top_srcdir=`cd $srcdir; pwd`
 abs_top_builddir=`pwd`
 
+ZCPPFLAGS=""
 AC_CANONICAL_HOST
 AS_CASE([$host_os],
 	[openbsd], [
@@ -137,8 +137,6 @@ CPPFLAGS_system=$CPPFLAGS
 LDFLAGS_system=$LDFLAGS
 LIBS_system=$LIBS
 
-# check build OS
-ZCPPFLAGS=""
 >conftest.cpp
 ZPHPCXXFLAGS=""
 AS_IF([$CXX -Wno-narrowing -c conftest.cpp], [ZPHPCXXFLAGS="-Wno-narrowing"])
@@ -376,21 +374,14 @@ CXXFLAGS="$CXXFLAGS_system $ZCXXFLAGS"
 LDFLAGS="$LDFLAGS_system $ZLDFLAGS"
 AC_CHECK_FUNCS([pthread_getname_np])
 
-dnl Must check for 2.8.73!
+dnl Broken .pc file until (not including) 2.8.83
 PKG_CHECK_MODULES([GSOAP], [gsoapssl++ >= 2.8])
-AC_MSG_CHECKING([for soapcpp2])
-mkdir "conftest.d$$"
-if ! soapcpp2 -d "conftest.d$$" -z1 "${srcdir}/autoconf/1126.h" 2>"conftest.d$$/fail.log"; then
-	cat "conftest.d$$/fail.log" || :
-	AC_MSG_ERROR([Failed to run soapcpp])
-	exit 1
-fi
-if grep -Fq "int foo" "conftest.d$$/soapStub.h" 2>/dev/null; then
-	AC_MSG_ERROR([ERROR: gsoap generator is too old -- version 2.8.49 or higher is required. http://sf.net/p/gsoap2/bugs/1126/])
-	exit 1
-fi
-AC_MSG_RESULT([ok])
-rm -Rf "conftest.d$$"
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([
+	#include <stdsoap2.h>
+	#if GSOAP_VERSION < 20873
+	#	error too old
+	#endif
+])], [], [AC_MSG_ERROR([Need gsoap >= 2.8.73])])
 PKG_CHECK_MODULES([ICAL], [libical >= 0.42])
 PKG_CHECK_MODULES([curl], [libcurl], [], [:])
 CPPFLAGS="$CPPFLAGS $curl_CFLAGS"

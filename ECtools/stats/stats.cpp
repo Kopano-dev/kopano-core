@@ -19,11 +19,13 @@
 #include <map>
 #include <set>
 #include <getopt.h>
+#include <libHX/defs.h>
 #include <kopano/CommonUtil.h>
 #include <kopano/stringutil.h>
 #include <kopano/ECTags.h>
 #include <kopano/automapi.hpp>
 #include <kopano/ecversion.h>
+#include <kopano/mapiext.h>
 #include <kopano/memory.hpp>
 #include <kopano/ECLogger.h>
 #include <kopano/mapi_ptr.h>
@@ -98,17 +100,17 @@ static const ULONG ulTableProps[] = {
 };
 
 struct TIMES {
-	double dblUser, dblSystem, dblReal;
-    unsigned int ulRequests;
+	double dblUser = 0, dblSystem = 0, dblReal = 0;
+	unsigned int ulRequests = 0;
 };
 
 struct SESSION {
-	unsigned long long ullSessionId, ullSessionGroupId;
+	unsigned long long ullSessionId = 0, ullSessionGroupId = 0;
 	TIMES times, dtimes;
 
-    unsigned int ulIdle;
-    int ulPeerPid;
-    bool bLocked;
+	unsigned int ulIdle = 0;
+	int ulPeerPid = 0;
+	bool bLocked = false;
 	std::string strUser, strIP, strBusy, strState, strPeer;
 	std::string strClientVersion, strClientApp, strClientAppVersion;
 	std::string strClientAppMisc;
@@ -480,8 +482,11 @@ static std::string mapitable_ToString(const SPropValue *lpProp)
 		return stringify(lpProp->Value.dbl);
 	case PT_FLOAT:
 		return stringify(lpProp->Value.flt);
-	case PT_I8:
-		return stringify_int64(lpProp->Value.li.QuadPart);
+	case PT_I8: {
+		char buf[HXSIZEOF_Z64+2];
+		snprintf(buf, sizeof(buf), "0x%lx", lpProp->Value.li.QuadPart);
+		return buf;
+	}
 	case PT_SYSTIME: {
 		char buf[32]; // must be at least 26 bytes
 		auto t = FileTimeToUnixTime(lpProp->Value.ft);
@@ -506,6 +511,7 @@ static std::string getMapiPropertyString(ULONG ulPropTag)
 #define PROP_TO_STRING(__proptag) \
 case PROP_ID(__proptag): return #__proptag
 
+	/* Keep synchronized with ECTableManager.cpp prop lists */
 	switch (PROP_ID(ulPropTag)) {
 	PROP_TO_STRING(PR_DISPLAY_NAME);
 	PROP_TO_STRING(PR_EC_USERNAME);
@@ -518,6 +524,41 @@ case PROP_ID(__proptag): return #__proptag
 	PROP_TO_STRING(PR_EC_STATS_SERVER_PROXYURL);
 	PROP_TO_STRING(PR_EC_STATS_SERVER_HTTPSURL);
 	PROP_TO_STRING(PR_EC_STATS_SERVER_FILEURL);
+
+	PROP_TO_STRING(PR_EC_STATS_SESSION_ID);
+	PROP_TO_STRING(PR_EC_STATS_SESSION_GROUP_ID);
+	PROP_TO_STRING(PR_EC_STATS_SESSION_IPADDRESS);
+	PROP_TO_STRING(PR_EC_STATS_SESSION_IDLETIME);
+	PROP_TO_STRING(PR_EC_STATS_SESSION_CAPABILITY);
+	PROP_TO_STRING(PR_EC_STATS_SESSION_LOCKED);
+	PROP_TO_STRING(PR_EC_STATS_SESSION_BUSYSTATES);
+	PROP_TO_STRING(PR_EC_STATS_SESSION_PROCSTATES);
+	PROP_TO_STRING(PR_EC_STATS_SESSION_CPU_USER);
+	PROP_TO_STRING(PR_EC_STATS_SESSION_CPU_SYSTEM);
+	PROP_TO_STRING(PR_EC_STATS_SESSION_CPU_REAL);
+	PROP_TO_STRING(PR_EC_STATS_SESSION_PEER_PID);
+	PROP_TO_STRING(PR_EC_STATS_SESSION_CLIENT_VERSION);
+	PROP_TO_STRING(PR_EC_STATS_SESSION_CLIENT_APPLICATION);
+	PROP_TO_STRING(PR_EC_STATS_SESSION_REQUESTS);
+	PROP_TO_STRING(PR_EC_STATS_SESSION_PORT);
+	PROP_TO_STRING(PR_EC_STATS_SESSION_PROXY);
+	PROP_TO_STRING(PR_EC_STATS_SESSION_URL);
+	PROP_TO_STRING(PR_EC_STATS_SESSION_CLIENT_APPLICATION_VERSION);
+	PROP_TO_STRING(PR_EC_STATS_SESSION_CLIENT_APPLICATION_MISC);
+
+	PROP_TO_STRING(PR_SMTP_ADDRESS);
+	PROP_TO_STRING(PR_EC_NONACTIVE);
+	PROP_TO_STRING(PR_EC_ADMINISTRATOR);
+	PROP_TO_STRING(PR_EC_HOMESERVER_NAME);
+	PROP_TO_STRING(PR_MESSAGE_SIZE);
+	PROP_TO_STRING(PR_QUOTA_WARNING_THRESHOLD);
+	PROP_TO_STRING(PR_QUOTA_SEND_THRESHOLD);
+	PROP_TO_STRING(PR_QUOTA_RECEIVE_THRESHOLD);
+	PROP_TO_STRING(PR_EC_QUOTA_MAIL_TIME);
+	PROP_TO_STRING(PR_EC_OUTOFOFFICE);
+	PROP_TO_STRING(PR_LAST_LOGON_TIME);
+	PROP_TO_STRING(PR_LAST_LOGOFF_TIME);
+
 	default:
 		return stringify_hex(ulPropTag);
 	}

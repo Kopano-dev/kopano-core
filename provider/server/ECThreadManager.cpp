@@ -399,6 +399,7 @@ ECDispatcherSelect::ECDispatcherSelect(std::shared_ptr<ECConfig> lpConfig) :
 {
     int pipes[2];
     pipe(pipes);
+	/* No fd relocation, as this is using select. */
 	// Create a pipe that we can use to trigger select() to return
     m_fdRescanRead = pipes[0];
     m_fdRescanWrite = pipes[1];

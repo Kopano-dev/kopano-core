@@ -8,6 +8,7 @@
 #include <string>
 #include <utility>
 #include <cerrno>
+#include <csignal>
 #include <cstdlib>
 #include <cstring>
 #include <pthread.h>
