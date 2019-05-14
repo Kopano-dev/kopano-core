@@ -31,9 +31,6 @@ def pickle_loads(s):
 def hex(s):
     return codecs.encode(s, 'hex').upper().decode('ascii')
 
-def unhex(s):
-    return codecs.decode(s, 'hex')
-
 def benc(s):
     if _BIN_ENCODING == 'hex':
         return codecs.encode(s, _BIN_ENCODING).strip().upper().decode('ascii')
@@ -48,9 +45,6 @@ def bdec(s):
     else:
         return codecs.decode(s, _BIN_ENCODING)
 
-def is_int(i):
-    return isinstance(i, int)
-
 def is_file(f):
     return isinstance(f, io.IOBase)
 
@@ -59,9 +53,6 @@ def repr(o):
 
 def fake_unicode(s): # TODO inline.. remove str() also in most cases?
     return str(s)
-
-def decode(s):
-    return s
 
 def encode(s):
     return s.encode()

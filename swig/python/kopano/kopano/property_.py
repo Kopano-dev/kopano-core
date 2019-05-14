@@ -37,7 +37,7 @@ from .defs import (
     REV_TAG, REV_TYPE, GUID_NAMESPACE, MAPINAMEID, NAMESPACE_GUID, STR_GUID,
 )
 from .compat import (
-    benc as _benc, repr as _repr, fake_unicode as _unicode, is_int as _is_int,
+    benc as _benc, repr as _repr, fake_unicode as _unicode,
     is_str as _is_str,
 )
 from .errors import Error, NotFoundError
@@ -156,7 +156,7 @@ def _name_to_proptag(proptag, mapiobj, proptype=None):
 
 # TODO self
 def create_prop(self, mapiobj, proptag, value=None, proptype=None):
-    if _is_int(proptag) or \
+    if isinstance(proptag, int) or \
        (_is_str(proptag) and ':' not in proptag):
         if _is_str(proptag):
             proptag2 = getattr(MAPI.Tags, proptag)
@@ -200,7 +200,7 @@ def create_prop(self, mapiobj, proptag, value=None, proptype=None):
 
 # TODO self
 def prop(self, mapiobj, proptag, create=False, value=None, proptype=None):
-    if _is_int(proptag) or \
+    if isinstance(proptag, int) or \
        (_is_str(proptag) and ':' not in proptag):
         # search for property
         if _is_str(proptag):

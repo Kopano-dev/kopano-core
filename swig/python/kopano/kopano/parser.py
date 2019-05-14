@@ -10,7 +10,6 @@ from datetime import datetime
 import optparse
 import sys
 
-from .compat import decode as _decode
 
 def parse_date(option, opt_str, value, parser):
     setattr(parser.values, option.dest, datetime.strptime(value, '%Y-%m-%d'))
@@ -19,10 +18,10 @@ def parse_loglevel(option, opt_str, value, parser):
     setattr(parser.values, option.dest, value.upper())
 
 def parse_str(option, opt_str, value, parser):
-    setattr(parser.values, option.dest, _decode(value))
+    setattr(parser.values, option.dest, value)
 
 def parse_list_str(option, opt_str, value, parser):
-    getattr(parser.values, option.dest).append(_decode(value))
+    getattr(parser.values, option.dest).append(value)
 
 def parse_bool(option, opt_str, value, parser):
     if value.lower() not in ('yes', 'no', 'true', 'false'):

@@ -32,7 +32,7 @@ from .autoaccept import AutoAccept
 from .autoprocess import AutoProcess
 from .company import Company
 from .compat import (
-    set_bin_encoding, set_missing_none, hex, unhex, benc, bdec
+    set_bin_encoding, set_missing_none, hex, benc, bdec
 )
 from .contact import Contact
 from .delegation import Delegation

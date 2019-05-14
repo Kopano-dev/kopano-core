@@ -8,7 +8,6 @@ Copyright 2016 - 2019 Kopano and its licensors (see LICENSE file)
 
 import os
 
-from .compat import decode as _decode
 from .errors import ConfigError
 
 from . import utils as _utils
@@ -118,7 +117,7 @@ class Config:
 
     def _parse_config(self, fh):
         for line in fh:
-            line = _decode(line.strip())
+            line = line.strip()
             if line.startswith('#'):
                 continue
             pos = line.find('=')

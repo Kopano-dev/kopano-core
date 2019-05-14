@@ -22,7 +22,6 @@ import ssl
 import sys
 import traceback
 
-from .compat import decode as _decode
 
 try:
     import daemon
@@ -127,7 +126,6 @@ Encapsulates everything to create a simple Kopano service, such as:
         self.__dict__.update(kwargs)
         if not options:
             options, args = _parser.parser('CSKQUPufmvVFw').parse_args()
-            args = [_decode(arg) for arg in args]
         self.options, self.args = options, args
         self.name = name
         self.logname = logname
