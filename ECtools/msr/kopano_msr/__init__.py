@@ -438,13 +438,13 @@ class Service(kopano.Service):
                     sslkey_pass=server.sslkey_pass
                 )
             except Exception as e:
-                self.log.error("could not connect to server: %s (%s)" % (target_server, e), file=sys.stderr)
+                self.log.error("could not connect to server: %s (%s)", target_server, e, file=sys.stderr)
             try:
                 userb = server2.user(username) # TODO assuming the user is there?
                 storeb = server2.create_store(userb, _msr=True)
                 storeb.subtree.empty() # remove default english special folders
             except kopano.DuplicateError:
-                self.log.error('user already has hooked store on server %s, try to unhook first' % target_server)
+                self.log.error('user already has hooked store on server %s, try to unhook first', target_server)
                 return
         else:
             storeb = server.user(target_user).store
