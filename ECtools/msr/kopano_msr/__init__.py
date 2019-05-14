@@ -178,7 +178,11 @@ class ControlWorker(kopano.Worker):
                         self.log.info('CMD: %s', data.strip())
                         data = data.split()
 
-                        if data[0] == 'ADD':
+                        if not data:
+                            self.log.error('invalid command send')
+                            break
+
+                        if data[0] == 'ADD' and len(data) == 4:
                             user, target_user, target_server = data[1:]
                             if user in USER_INFO:
                                 self.log.error('user %s is already being relocated', user) # TODO return error
@@ -188,7 +192,7 @@ class ControlWorker(kopano.Worker):
                             response(conn, 'OK:')
                             break
 
-                        elif data[0] == 'REMOVE':
+                        elif data[0] == 'REMOVE' and len(data) == 2:
                             user = data[1]
                             if user not in USER_INFO:
                                 self.log.error('user %s is not being relocated', user) # TODO return error
@@ -210,7 +214,7 @@ class ControlWorker(kopano.Worker):
                             response(conn, 'OK:\n' + '\n'.join(lines))
                             break
 
-                        elif data[0] == 'DETAILS':
+                        elif data[0] == 'DETAILS' and len(data) == 2:
                             response(conn, 'OK:\n' + '\n'.join(self.user_details(server, data[1])))
                             break
 
