@@ -72,9 +72,6 @@ static bool IsTruncatableType(unsigned int ulTag)
 
 bool propVal_is_truncated(const struct propVal *lpsPropVal)
 {
-	if(!IsTruncatableType(lpsPropVal->ulPropTag))
-		return false;
-
 	switch(PROP_TYPE(lpsPropVal->ulPropTag)) {
 	case PT_STRING8:
 	case PT_UNICODE:
