@@ -435,8 +435,8 @@ class Service(kopano.Service):
             try:
                 server2 = kopano.server(
                     server_socket=target_server,
-                    sslkey_file = server.sslkey_file,
-                    sslkey_pass = server.sslkey_pass
+                    sslkey_file=server.sslkey_file,
+                    sslkey_pass=server.sslkey_pass
                 )
             except Exception as e:
                 self.log.error("could not connect to server: %s (%s)" % (target_server, e), file=sys.stderr)
@@ -579,8 +579,8 @@ class Service(kopano.Service):
             try:
                 ts = kopano.server(
                     server_socket=options.server,
-                    sslkey_file = self.server.sslkey_file,
-                    sslkey_pass = self.server.sslkey_pass
+                    sslkey_file=self.server.sslkey_file,
+                    sslkey_pass=self.server.sslkey_pass
                 )
             except Exception as e:
                 print("could not connect to server: %s (%s)" % (options.server, e), file=sys.stderr)
