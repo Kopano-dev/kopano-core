@@ -215,7 +215,12 @@ class ControlWorker(kopano.Worker):
                             break
 
                         elif data[0] == 'DETAILS' and len(data) == 2:
-                            response(conn, 'OK:\n' + '\n'.join(self.user_details(server, data[1])))
+                            user = data[1]
+                            if user not in USER_INFO:
+                                self.log.error('user %s is not being relocated', user) # TODO return error
+                                response(conn, 'ERROR')
+                                break
+                            response(conn, 'OK:\n' + '\n'.join(self.user_details(server, user)))
                             break
 
                         else:
