@@ -148,7 +148,7 @@ pkgconf_DATA = common/kopano.pc
 mapiinfdir = ${prefix}/lib/mapi.d
 dist_mapiinf_DATA = provider/client/kopano.inf provider/contacts/zcontacts.inf
 CLEANFILES += ${noinst_DATA}
-EXTRA_DIST += autoconf/1126.h php-ext/mapi.sym
+EXTRA_DIST += php-ext/mapi.sym
 default_sym = ${top_builddir}/default.sym
 default_SYFLAGS = -Wl,--version-script=${default_sym}
 plugin_SYFLAGS = -Wl,--version-script=provider/plugin.sym

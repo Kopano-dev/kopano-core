@@ -374,20 +374,14 @@ CXXFLAGS="$CXXFLAGS_system $ZCXXFLAGS"
 LDFLAGS="$LDFLAGS_system $ZLDFLAGS"
 AC_CHECK_FUNCS([pthread_getname_np])
 
+dnl Broken .pc file until (not including) 2.8.83
 PKG_CHECK_MODULES([GSOAP], [gsoapssl++ >= 2.8])
-AC_MSG_CHECKING([for soapcpp2])
-mkdir "conftest.d$$"
-if ! soapcpp2 -d "conftest.d$$" -z1 "${srcdir}/autoconf/1126.h" 2>"conftest.d$$/fail.log"; then
-	cat "conftest.d$$/fail.log" || :
-	AC_MSG_ERROR([Failed to run soapcpp])
-	exit 1
-fi
-if grep -Fq "int foo" "conftest.d$$/soapStub.h" 2>/dev/null; then
-	AC_MSG_ERROR([ERROR: gsoap generator is too old -- version 2.8.49 or higher is required. http://sf.net/p/gsoap2/bugs/1126/])
-	exit 1
-fi
-AC_MSG_RESULT([ok])
-rm -Rf "conftest.d$$"
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([
+	#include <stdsoap2.h>
+	#if GSOAP_VERSION < 20849
+	#	error too old
+	#endif
+])], [], [AC_MSG_ERROR([Need gsoap >= 2.8.49])])
 PKG_CHECK_MODULES([ICAL], [libical >= 0.42])
 PKG_CHECK_MODULES([curl], [libcurl], [], [:])
 CPPFLAGS="$CPPFLAGS $curl_CFLAGS"
