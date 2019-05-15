@@ -1230,7 +1230,7 @@ HRESULT TestRestriction(const SRestriction *lpCondition, IMAPIProp *lpMessage,
 			break;
 		}
 		unsigned int ulPropType = PROP_TYPE(lpCondition->res.resContent.ulPropTag);
-		hr = HrGetOneProp(lpMessage, lpCondition->res.resContent.ulPropTag, &~lpProp);
+		hr = HrGetFullProp(lpMessage, lpCondition->res.resContent.ulPropTag, &~lpProp);
 		if (hr != hrSuccess)
 			break;
 
@@ -1296,7 +1296,7 @@ HRESULT TestRestriction(const SRestriction *lpCondition, IMAPIProp *lpMessage,
 			hr = MAPI_E_TOO_COMPLEX;
 			break;
 		}
-		hr = HrGetOneProp(lpMessage, lpCondition->res.resProperty.ulPropTag, &~lpProp);
+		hr = HrGetFullProp(lpMessage, lpCondition->res.resProperty.ulPropTag, &~lpProp);
 		if (hr != hrSuccess)
 			break;
 
@@ -1309,10 +1309,10 @@ HRESULT TestRestriction(const SRestriction *lpCondition, IMAPIProp *lpMessage,
 			hr = MAPI_E_TOO_COMPLEX;
 			break;
 		}
-		hr = HrGetOneProp(lpMessage, lpCondition->res.resCompareProps.ulPropTag1, &~lpProp);
+		hr = HrGetFullProp(lpMessage, lpCondition->res.resCompareProps.ulPropTag1, &~lpProp);
 		if (hr != hrSuccess)
 			break;
-		hr = HrGetOneProp(lpMessage, lpCondition->res.resCompareProps.ulPropTag2, &~lpProp2);
+		hr = HrGetFullProp(lpMessage, lpCondition->res.resCompareProps.ulPropTag2, &~lpProp2);
 		if (hr != hrSuccess)
 			break;
 		Util::CompareProp(lpProp, lpProp2, locale, &result);
@@ -1331,7 +1331,7 @@ HRESULT TestRestriction(const SRestriction *lpCondition, IMAPIProp *lpMessage,
 			fMatch = !fMatch;
 		break;
 	case RES_SIZE:
-		hr = HrGetOneProp(lpMessage, lpCondition->res.resSize.ulPropTag, &~lpProp);
+		hr = HrGetFullProp(lpMessage, lpCondition->res.resSize.ulPropTag, &~lpProp);
 		if (hr != hrSuccess)
 			break;
 		ulSize = Util::PropSize(lpProp);
