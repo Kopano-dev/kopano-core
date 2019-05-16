@@ -173,7 +173,8 @@ std::string ECStatsCollector::survey_as_text()
 	}
 	std::unique_lock<std::mutex> lk(m_odm_lock);
 	for (const auto &key : {"userplugin", "usercnt_active", "usercnt_contact",
-	    "usercnt_equipment", "usercnt_na_user", "usercnt_nonactive", "usercnt_room"}) {
+	    "usercnt_equipment", "usercnt_na_user", "usercnt_nonactive",
+	    "usercnt_room", "attachment_storage"}) {
 		auto i = m_ondemand.find(key);
 		if (i == m_ondemand.cend())
 			continue;
