@@ -174,12 +174,15 @@ class ControlWorker(kopano.Worker):
                 try:
                     conn = None
                     conn, _ = s.accept()
-                    fields_terms = []
                     for data in conn.makefile():
                         self.log.info('CMD: %s', data.strip())
                         data = data.split()
 
-                        if data[0] == 'ADD':
+                        if not data:
+                            self.log.error('invalid command send')
+                            break
+
+                        if data[0] == 'ADD' and len(data) == 4:
                             user, target_user, target_server = data[1:]
                             if user in USER_INFO:
                                 self.log.error('user %s is already being relocated', user) # TODO return error
@@ -189,7 +192,7 @@ class ControlWorker(kopano.Worker):
                             response(conn, 'OK:')
                             break
 
-                        elif data[0] == 'REMOVE':
+                        elif data[0] == 'REMOVE' and len(data) == 2:
                             user = data[1]
                             if user not in USER_INFO:
                                 self.log.error('user %s is not being relocated', user) # TODO return error
@@ -211,8 +214,13 @@ class ControlWorker(kopano.Worker):
                             response(conn, 'OK:\n' + '\n'.join(lines))
                             break
 
-                        elif data[0] == 'DETAILS':
-                            response(conn, 'OK:\n' + '\n'.join(self.user_details(server, data[1])))
+                        elif data[0] == 'DETAILS' and len(data) == 2:
+                            user = data[1]
+                            if user not in USER_INFO:
+                                self.log.error('user %s is not being relocated', user) # TODO return error
+                                response(conn, 'ERROR')
+                                break
+                            response(conn, 'OK:\n' + '\n'.join(self.user_details(server, user)))
                             break
 
                         else:
@@ -435,17 +443,17 @@ class Service(kopano.Service):
             try:
                 server2 = kopano.server(
                     server_socket=target_server,
-                    sslkey_file = server.sslkey_file,
-                    sslkey_pass = server.sslkey_pass
+                    sslkey_file=server.sslkey_file,
+                    sslkey_pass=server.sslkey_pass
                 )
             except Exception as e:
-                self.log.error("could not connect to server: %s (%s)" % (target_server, e), file=sys.stderr)
+                self.log.error("could not connect to server: %s (%s)", target_server, e, file=sys.stderr)
             try:
                 userb = server2.user(username) # TODO assuming the user is there?
                 storeb = server2.create_store(userb, _msr=True)
                 storeb.subtree.empty() # remove default english special folders
             except kopano.DuplicateError:
-                self.log.error('user already has hooked store on server %s, try to unhook first' % target_server)
+                self.log.error('user already has hooked store on server %s, try to unhook first', target_server)
                 return
         else:
             storeb = server.user(target_user).store
@@ -579,8 +587,8 @@ class Service(kopano.Service):
             try:
                 ts = kopano.server(
                     server_socket=options.server,
-                    sslkey_file = self.server.sslkey_file,
-                    sslkey_pass = self.server.sslkey_pass
+                    sslkey_file=self.server.sslkey_file,
+                    sslkey_pass=self.server.sslkey_pass
                 )
             except Exception as e:
                 print("could not connect to server: %s (%s)" % (options.server, e), file=sys.stderr)
