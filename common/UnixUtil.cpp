@@ -8,6 +8,7 @@
 #include <kopano/ECLogger.h>
 #include <kopano/UnixUtil.h>
 #include <kopano/memory.hpp>
+#include <kopano/scope.hpp>
 #include <kopano/stringutil.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -325,44 +326,51 @@ static pid_t unix_popen_rw(const char *const *argv, int *lpulIn, int *lpulOut,
 
 	if (argv == nullptr || argv[0] == nullptr)
 		return -EINVAL;
-	if (pipe(ulIn) < 0 || pipe(ulOut) < 0) {
-		pid = -errno;
-		goto exit;
-	}
+	auto cl1 = make_scope_success([&]() {
+		if (pid > 0)
+			return;
+		if (ulIn[0] != -1)
+			close(ulIn[0]);
+		if (ulIn[1] != -1)
+			close(ulIn[1]);
+		if (ulOut[0] != -1)
+			close(ulOut[0]);
+		if (ulOut[1] != -1)
+			close(ulOut[1]);
+	});
+	if (pipe(ulIn) < 0 || pipe(ulOut) < 0)
+		return -errno;
 	memset(&fa, 0, sizeof(fa));
-	if (posix_spawn_file_actions_init(&fa) < 0) {
-		pid = -errno;
-		goto exit;
-	}
-	if (posix_spawn_file_actions_addclose(&fa, STDIN_FILENO) < 0 ||
-	    posix_spawn_file_actions_addclose(&fa, STDOUT_FILENO) < 0 ||
-	    posix_spawn_file_actions_addclose(&fa, STDERR_FILENO) < 0 ||
-	    posix_spawn_file_actions_adddup2(&fa, ulIn[STDIN_FILENO], STDIN_FILENO) < 0 ||
-	    posix_spawn_file_actions_adddup2(&fa, ulOut[STDOUT_FILENO], STDOUT_FILENO) < 0 ||
-	    posix_spawn_file_actions_adddup2(&fa, ulOut[STDOUT_FILENO], STDERR_FILENO) < 0 ||
-	    posix_spawn(&pid, argv[0], &fa, nullptr, const_cast<char **>(argv),
-	    const_cast<char **>(env)) < 0) {
-		pid = -errno;
-		goto exit2;
-	}
+	auto ret = posix_spawn_file_actions_init(&fa);
+	if (ret != 0)
+		return -ret;
+	auto cl2 = make_scope_success([&]() { posix_spawn_file_actions_destroy(&fa); });
+	ret = posix_spawn_file_actions_addclose(&fa, STDIN_FILENO);
+	if (ret != 0)
+		return -ret;
+	ret = posix_spawn_file_actions_addclose(&fa, STDOUT_FILENO);
+	if (ret != 0)
+		return -ret;
+	ret = posix_spawn_file_actions_addclose(&fa, STDERR_FILENO);
+	if (ret != 0)
+		return -ret;
+	ret = posix_spawn_file_actions_adddup2(&fa, ulIn[STDIN_FILENO], STDIN_FILENO);
+	if (ret != 0)
+		return -ret;
+	ret = posix_spawn_file_actions_adddup2(&fa, ulOut[STDOUT_FILENO], STDOUT_FILENO);
+	if (ret != 0)
+		return -ret;
+	ret = posix_spawn_file_actions_adddup2(&fa, ulOut[STDOUT_FILENO], STDERR_FILENO);
+	if (ret != 0)
+		return -ret;
+	ret = posix_spawn(&pid, argv[0], &fa, nullptr, const_cast<char **>(argv), const_cast<char **>(env));
+	if (ret != 0)
+		return -ret;
 	*lpulIn = ulIn[STDOUT_FILENO];
 	close(ulIn[STDIN_FILENO]);
 	*lpulOut = ulOut[STDIN_FILENO];
 	close(ulOut[STDOUT_FILENO]);
-	posix_spawn_file_actions_destroy(&fa);
 	return pid;
-exit2:
-	posix_spawn_file_actions_destroy(&fa);
-exit:
-	if (ulIn[0] != -1)
-		close(ulIn[0]);
-	if (ulIn[1] != -1)
-		close(ulIn[1]);
-	if (ulOut[0] != -1)
-		close(ulOut[0]);
-	if (ulOut[1] != -1)
-		close(ulOut[1]);
-	return -pid;
 }
 
 /**
@@ -401,6 +409,9 @@ bool unix_system(const char *lpszLogName, const std::vector<std::string> &cmd,
 		return false;
 	}
 	close(fdin);
+	int newfd = ec_relocate_fd(fdout);
+	if (newfd >= 0)
+		fdout = newfd;
 	FILE *fp = fdopen(fdout, "rb");
 	if (fp == nullptr) {
 		close(fdout);
