@@ -132,11 +132,8 @@ void MAPISMTPTransport::connect()
 	//
 	// eg:  C: <connection to server>
 	// ---  S: 220 smtp.domain.com Service ready
-
-	vmime::shared_ptr<SMTPResponse> resp;
-
-	if ((resp = readResponse())->getCode() != 220)
-	{
+	auto resp = readResponse();
+	if (resp->getCode() != 220) {
 		internalDisconnect();
 		throw exceptions::connection_greeting_error(resp->getText());
 	}
@@ -191,19 +188,16 @@ void MAPISMTPTransport::helo()
 	//      S: 250 SIZE 2555555555
 
 	sendRequest("EHLO " + platform::getHandler()->getHostName());
-
-	vmime::shared_ptr<SMTPResponse> resp;
-	if ((resp = readResponse())->getCode() != 250)
-	{
+	auto resp = readResponse();
+	if (resp->getCode() != 250) {
 		// Next, try "Basic" SMTP
 		//
 		// eg:  C: HELO thismachine.ourdomain.com
 		//      S: 250 OK
 
 		sendRequest("HELO " + platform::getHandler()->getHostName());
-
-		if ((resp = readResponse())->getCode() != 250)
-		{
+		resp = readResponse();
+		if (resp->getCode() != 250) {
 			internalDisconnect();
 			throw exceptions::connection_greeting_error(resp->getLastLine().getText());
 		}
@@ -549,8 +543,8 @@ void MAPISMTPTransport::send(const mailbox &expeditor,
 	sendRequest("DATA");
 
 	// we also stop here if all recipients failed before
-	if ((resp = readResponse())->getCode() != 354)
-	{
+	resp = readResponse();
+	if (resp->getCode() != 354) {
 		internalDisconnect();
 		throw exceptions::command_error("DATA", format("%d %s", resp->getCode(), resp->getText().c_str()));
 	}
@@ -565,9 +559,8 @@ void MAPISMTPTransport::send(const mailbox &expeditor,
 
 	// Send end-of-data delimiter
 	m_socket->sendRaw(reinterpret_cast<const vmime::byte_t *>("\r\n.\r\n"), 5);
-
-	if ((resp = readResponse())->getCode() != 250)
-	{
+	resp = readResponse();
+	if (resp->getCode() != 250) {
 		internalDisconnect();
 		throw exceptions::command_error("DATA", format("%d %s", resp->getCode(), resp->getText().c_str()));
 	}

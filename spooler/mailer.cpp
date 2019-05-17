@@ -1019,7 +1019,9 @@ static HRESULT SMTPToZarafa(IAddrBook *lpAddrBook, const SBinary &smtp,
 		return hrSuccess;
 	lpAList->cEntries = 0;
 	lpAList->aEntries[0].cValues = 1;
-	if ((hr = MAPIAllocateBuffer(sizeof(SPropValue) * lpAList->aEntries[0].cValues, (void**)&lpAList->aEntries[0].rgPropVals)) != hrSuccess)
+	hr = MAPIAllocateBuffer(sizeof(SPropValue) * lpAList->aEntries[0].cValues,
+	     (void **)&lpAList->aEntries[0].rgPropVals);
+	if (hr != hrSuccess)
 		return hrSuccess;
 	++lpAList->cEntries;
 	lpAList->aEntries[0].rgPropVals[0].ulPropTag = PR_DISPLAY_NAME_W;

@@ -445,7 +445,8 @@ static void showtop(LPMDB lpStore)
 
         wrefresh(win);
         timeout(1000);
-        if((key = getch()) != ERR) {
+		key = getch();
+		if (key != ERR) {
 			if (key == 27 || key == 'q')				// escape key
 				break;
 			if (key == KEY_RESIZE)		// resize action

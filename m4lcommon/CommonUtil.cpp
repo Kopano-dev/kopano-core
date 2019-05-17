@@ -510,14 +510,16 @@ HRESULT ECParseOneOff(const ENTRYID *lpEntryID, ULONG cbEntryID,
 		str.assign(reinterpret_cast<std::u16string::const_pointer>(lpBuffer));
 		if (str.length() == 0)
 			return MAPI_E_INVALID_PARAMETER;
-		if ((hr = TryConvert(str, type)) != hrSuccess)
+		hr = TryConvert(str, type);
+		if (hr != hrSuccess)
 			return hr;
 		lpBuffer += (str.length() + 1) * sizeof(unsigned short);
 
 		str.assign(reinterpret_cast<std::u16string::const_pointer>(lpBuffer));
 		if (str.length() == 0)
 			return MAPI_E_INVALID_PARAMETER;
-		if ((hr = TryConvert(str, addr)) != hrSuccess)
+		hr = TryConvert(str, addr);
+		if (hr != hrSuccess)
 			return hr;
 		lpBuffer += (str.length() + 1) * sizeof(unsigned short);
 	} else {
@@ -535,14 +537,16 @@ HRESULT ECParseOneOff(const ENTRYID *lpEntryID, ULONG cbEntryID,
 		str = (char*)lpBuffer;
 		if (str.length() == 0)
 			return MAPI_E_INVALID_PARAMETER;
-		if ((hr = TryConvert(str, type)) != hrSuccess)
+		hr = TryConvert(str, type);
+		if (hr != hrSuccess)
 			return hr;
 		lpBuffer += str.length() + 1;
 
 		str = (char*)lpBuffer;
 		if (str.length() == 0)
 			return MAPI_E_INVALID_PARAMETER;
-		if ((hr = TryConvert(str, addr)) != hrSuccess)
+		hr = TryConvert(str, addr);
+		if (hr != hrSuccess)
 			return hr;
 		lpBuffer += str.length() + 1;
 	}
@@ -1149,7 +1153,8 @@ static HRESULT GetRestrictTags(const SRestriction *lpRestriction,
 	HRESULT hr = GetRestrictTagsRecursive(lpRestriction, &lstTags, 0);
 	if(hr != hrSuccess)
 		return hr;
-	if ((hr = MAPIAllocateBuffer(CbNewSPropTagArray(lstTags.size()), (void **) &lpTags)) != hrSuccess)
+	hr = MAPIAllocateBuffer(CbNewSPropTagArray(lstTags.size()), (void **)&lpTags);
+	if (hr != hrSuccess)
 		return hr;
 	lpTags->cValues = lstTags.size();
 
@@ -1744,7 +1749,8 @@ HRESULT spv_postload_large_props(IMAPIProp *lpProp,
 		std::string strData;
 		if (Util::HrStreamToString(lpStream.get(), strData) != hrSuccess)
 			continue;
-		if ((hr = MAPIAllocateMore(strData.size() + sizeof(WCHAR), lpProps, (void **)&lpData)) != hrSuccess)
+		hr = MAPIAllocateMore(strData.size() + sizeof(WCHAR), lpProps, (void **)&lpData);
+		if (hr != hrSuccess)
 			return hr;
 		memcpy(lpData, strData.data(), strData.size());
 		lpProps[i].ulPropTag = lpTags->aulPropTag[i];

@@ -973,13 +973,15 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			memory_ptr<MAPINAMEID> lpNameID;
 			memory_ptr<SPropTagArray> lpPropTags;
 
-			if ((hr = MAPIAllocateBuffer(sizeof(MAPINAMEID), &~lpNameID)) != hrSuccess)
+			hr = MAPIAllocateBuffer(sizeof(MAPINAMEID), &~lpNameID);
+			if (hr != hrSuccess)
 				return hr;
 			lpNameID->lpguid = const_cast<GUID *>(&PS_INTERNET_HEADERS);
 			lpNameID->ulKind = MNID_STRING;
 
 			int vlen = mbstowcs(NULL, name.c_str(), 0) +1;
-			if ((hr = MAPIAllocateMore(vlen*sizeof(WCHAR), lpNameID, (void**)&lpNameID->Kind.lpwstrName)) != hrSuccess)
+			hr = MAPIAllocateMore(vlen * sizeof(WCHAR), lpNameID, (void **)&lpNameID->Kind.lpwstrName);
+			if (hr != hrSuccess)
 				return hr;
 			mbstowcs(lpNameID->Kind.lpwstrName, name.c_str(), vlen);
 			hr = lpMessage->GetIDsFromNames(1, &+lpNameID, MAPI_CREATE, &~lpPropTags);

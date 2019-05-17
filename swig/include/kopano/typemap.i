@@ -188,7 +188,8 @@
   if($input == Py_None)
       $1 = 0;
   else {
-      if(!(buf = PyBytes_AsString($input))) {
+		buf = PyBytes_AsString($input);
+		if (!buf) {
         %argument_fail(SWIG_ERROR, "$type", $symname, $argnum);
       }
       $1 = %reinterpret_cast(buf, $1_ltype);

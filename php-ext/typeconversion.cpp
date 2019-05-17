@@ -424,7 +424,10 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 			CHECK_EMPTY_MV_ARRAY(MVft, lpft);
 
 			lpPropValue[cvalues].Value.MVft.cValues = countarray;
-			if ((MAPI_G(hr) = MAPIAllocateMore(sizeof(FILETIME) * countarray, lpBase ? lpBase : lpPropValue, (void **)&lpPropValue[cvalues].Value.MVft.lpft)) != hrSuccess)
+			MAPI_G(hr) = MAPIAllocateMore(sizeof(FILETIME) * countarray,
+			             lpBase != nullptr ? lpBase : lpPropValue,
+			             (void **)&lpPropValue[cvalues].Value.MVft.lpft);
+			if (MAPI_G(hr) != hrSuccess)
 				return MAPI_G(hr);
 			for (j = 0; j < countarray; ++j, zend_hash_move_forward_ex(dataHash, &dhpos)) {
 				zend_hash_get_current_data_ex(dataHash, reinterpret_cast<void **>(&dataEntry), &dhpos);
@@ -438,7 +441,10 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 		case PT_MV_BINARY:
 			GET_MV_HASH();
 			CHECK_EMPTY_MV_ARRAY(MVbin, lpbin);
-			if ((MAPI_G(hr) = MAPIAllocateMore(sizeof(SBinary) * countarray, lpBase ? lpBase : lpPropValue, (void **)&lpPropValue[cvalues].Value.MVbin.lpbin)) != hrSuccess)
+			MAPI_G(hr) = MAPIAllocateMore(sizeof(SBinary) * countarray,
+			             lpBase != nullptr ? lpBase : lpPropValue,
+			             (void **)&lpPropValue[cvalues].Value.MVbin.lpbin);
+			if (MAPI_G(hr) != hrSuccess)
 				return MAPI_G(hr);
 			for (h = 0, j = 0; j < countarray; ++j, zend_hash_move_forward_ex(dataHash, &dhpos)) {
 				zend_hash_get_current_data_ex(dataHash, reinterpret_cast<void **>(&dataEntry), &dhpos);
@@ -455,7 +461,10 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 		case PT_MV_STRING8:
 			GET_MV_HASH();
 			CHECK_EMPTY_MV_ARRAY(MVszA, lppszA);
-			if ((MAPI_G(hr) = MAPIAllocateMore(sizeof(char*) * countarray, lpBase ? lpBase : lpPropValue, (void **)&lpPropValue[cvalues].Value.MVszA.lppszA)) != hrSuccess)
+			MAPI_G(hr) = MAPIAllocateMore(sizeof(char *) * countarray,
+			             lpBase != nullptr ? lpBase : lpPropValue,
+			             (void **)&lpPropValue[cvalues].Value.MVszA.lppszA);
+			if (MAPI_G(hr) != hrSuccess)
 				return MAPI_G(hr);
 			for (h = 0, j = 0; j < countarray; ++j, zend_hash_move_forward_ex(dataHash, &dhpos)) {
 				zend_hash_get_current_data_ex(dataHash, reinterpret_cast<void **>(&dataEntry), &dhpos);
@@ -471,7 +480,10 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 		case PT_MV_CLSID:
 			GET_MV_HASH();
 			CHECK_EMPTY_MV_ARRAY(MVguid, lpguid);
-			if ((MAPI_G(hr) = MAPIAllocateMore(sizeof(GUID) * countarray, lpBase ? lpBase : lpPropValue, (void **)&lpPropValue[cvalues].Value.MVguid.lpguid)) != hrSuccess)
+			MAPI_G(hr) = MAPIAllocateMore(sizeof(GUID) * countarray,
+			             lpBase != nullptr ? lpBase : lpPropValue,
+			             (void **)&lpPropValue[cvalues].Value.MVguid.lpguid);
+			if (MAPI_G(hr) != hrSuccess)
 				return MAPI_G(hr);
 			for (h = 0, j = 0; j < countarray; ++j, zend_hash_move_forward_ex(dataHash, &dhpos)) {
 				zend_hash_get_current_data_ex(dataHash, reinterpret_cast<void **>(&dataEntry), &dhpos);
@@ -500,12 +512,18 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 				php_error_docref(NULL TSRMLS_CC, E_WARNING, "PT_ACTIONS is empty");
 				return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 			}
-			if ((MAPI_G(hr) = MAPIAllocateMore(sizeof(ACTIONS), lpBase ? lpBase : lpPropValue, (void **)&lpPropValue[cvalues].Value.lpszA)) != hrSuccess)
+			MAPI_G(hr) = MAPIAllocateMore(sizeof(ACTIONS),
+			             lpBase != nullptr ? lpBase : lpPropValue,
+			             (void **)&lpPropValue[cvalues].Value.lpszA);
+			if (MAPI_G(hr) != hrSuccess)
 				return MAPI_G(hr);
 			lpActions = (ACTIONS*)lpPropValue[cvalues].Value.lpszA;
 			lpActions->ulVersion = EDK_RULES_VERSION;
 			lpActions->cActions = countarray;
-			if ((MAPI_G(hr) = MAPIAllocateMore(sizeof(ACTION) * lpActions->cActions, lpBase ? lpBase : lpPropValue, (void**)&lpActions->lpAction)) != hrSuccess)
+			MAPI_G(hr) = MAPIAllocateMore(sizeof(ACTION) * lpActions->cActions,
+			             lpBase != nullptr ? lpBase : lpPropValue,
+			             (void **)&lpActions->lpAction);
+			if (MAPI_G(hr) != hrSuccess)
 				return MAPI_G(hr);
 			memset(lpActions->lpAction, 0, sizeof(ACTION) * lpActions->cActions);
 

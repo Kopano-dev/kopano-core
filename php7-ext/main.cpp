@@ -6780,7 +6780,8 @@ ZEND_FUNCTION(mapi_enable_exceptions)
 	
     if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "S", &str_class) == FAILURE) return;
     
-    if ((ce = *(zend_class_entry **)zend_hash_find(CG(class_table), str_class)) != NULL) {
+	ce = *(zend_class_entry **)zend_hash_find(CG(class_table), str_class);
+	if (ce != nullptr) {
         MAPI_G(exceptions_enabled) = true;
         MAPI_G(exception_ce) = ce;
         RETVAL_TRUE;

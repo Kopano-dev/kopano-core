@@ -544,23 +544,27 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn,
 		}
 
 		LOG_PLUGIN_DEBUG("Trying to connect to %s", currentServer.c_str());
-		if ((rc = ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION, &version)) != LDAP_OPT_SUCCESS) {
+		rc = ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION, &version);
+		if (rc != LDAP_OPT_SUCCESS) {
 			ec_log_err("LDAP_OPT_PROTOCOL_VERSION failed: %s", ldap_err2string(rc));
 			goto fail;
 		}
 		// Disable response message size restrictions (but the server's
 		// restrictions still apply)
-		if ((rc = ldap_set_option(ld, LDAP_OPT_SIZELIMIT, &limit)) != LDAP_OPT_SUCCESS) {
+		rc = ldap_set_option(ld, LDAP_OPT_SIZELIMIT, &limit);
+		if (rc != LDAP_OPT_SUCCESS) {
 			ec_log_err("LDAP_OPT_SIZELIMIT failed: %s", ldap_err2string(rc));
 			goto fail;
 		}
 		// Search referrals are never accepted  - FIXME maybe needs config option
-		if ((rc = ldap_set_option(ld, LDAP_OPT_REFERRALS, LDAP_OPT_OFF)) != LDAP_OPT_SUCCESS) {
+		rc = ldap_set_option(ld, LDAP_OPT_REFERRALS, LDAP_OPT_OFF);
+		if (rc != LDAP_OPT_SUCCESS) {
 			ec_log_err("LDAP_OPT_REFERRALS failed: %s", ldap_err2string(rc));
 			goto fail;
 		}
 		// Set network timeout (for connect)
-		if ((rc = ldap_set_option(ld, LDAP_OPT_NETWORK_TIMEOUT, &m_timeout)) != LDAP_OPT_SUCCESS) {
+		rc = ldap_set_option(ld, LDAP_OPT_NETWORK_TIMEOUT, &m_timeout);
+		if (rc != LDAP_OPT_SUCCESS) {
 			ec_log_err("LDAP_OPT_NETWORK_TIMEOUT failed: %s", ldap_err2string(rc));
 			goto fail;
 		}
@@ -587,7 +591,8 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn,
 		// For these two values: if they are both NULL, anonymous bind
 		// will be used (ldap_binddn, ldap_bindpw)
 		LOG_PLUGIN_DEBUG("Issuing LDAP bind");
-		if ((rc = ldap_simple_bind_s(ld, (char *)bind_dn, (char *)bind_pw)) == LDAP_SUCCESS)
+		rc = ldap_simple_bind_s(ld, (char *)bind_dn, (char *)bind_pw);
+		if (rc == LDAP_SUCCESS)
 			break;
 		ec_log_warn("LDAP (simple) bind on %s failed: %s", bind_dn, ldap_err2string(rc));
 	fail:
