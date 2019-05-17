@@ -81,7 +81,8 @@ HRESULT ZCABLogon::Logoff(ULONG ulFlags)
  * 
  * @return MAPI Error code
  */
-HRESULT ZCABLogon::AddFolder(const WCHAR* lpwDisplayName, ULONG cbStore, LPBYTE lpStore, ULONG cbFolder, LPBYTE lpFolder)
+HRESULT ZCABLogon::AddFolder(const wchar_t *lpwDisplayName, ULONG cbStore,
+    LPBYTE lpStore, ULONG cbFolder, LPBYTE lpFolder)
 {
 	zcabFolderEntry entry;
 

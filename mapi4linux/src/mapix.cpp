@@ -1628,19 +1628,19 @@ HRESULT M4LAddrBook::ResolveName(ULONG_PTR ulUIParam, ULONG ulFlags,
 		lpNewProps[0].Value.bin.cb = cbOneEntryID;
 		if (ulFlags & MAPI_UNICODE) {
 			lpNewProps[1].ulPropTag = PR_DISPLAY_NAME_W;
-			hr = MAPIAllocateMore(sizeof(WCHAR) * (strwDisplay.length() + 1),
+			hr = MAPIAllocateMore(sizeof(wchar_t) * (strwDisplay.length() + 1),
 			     lpNewProps, (void **)&lpNewProps[1].Value.lpszW);
 			if (hr != hrSuccess)
 				return hr;
 			wcscpy(lpNewProps[1].Value.lpszW, strwDisplay.c_str());
 			lpNewProps[2].ulPropTag = PR_ADDRTYPE_W;
-			hr = MAPIAllocateMore(sizeof(WCHAR) * (strwType.length() + 1),
+			hr = MAPIAllocateMore(sizeof(wchar_t) * (strwType.length() + 1),
 			     lpNewProps, (void **)&lpNewProps[2].Value.lpszW);
 			if (hr != hrSuccess)
 				return hr;
 			wcscpy(lpNewProps[2].Value.lpszW, strwType.c_str());
 			lpNewProps[3].ulPropTag = PR_EMAIL_ADDRESS_W;
-			hr = MAPIAllocateMore(sizeof(WCHAR) * (strwAddress.length() + 1),
+			hr = MAPIAllocateMore(sizeof(wchar_t) * (strwAddress.length() + 1),
 			     lpNewProps, (void **)&lpNewProps[3].Value.lpszW);
 			if (hr != hrSuccess)
 				return hr;

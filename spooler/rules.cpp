@@ -225,7 +225,7 @@ static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 
 		strForwardText += L"\nSent: ";
 		if (PROP_TYPE(ptrInfo[2].ulPropTag) != PT_ERROR) {
-			WCHAR buffer[64];
+			wchar_t buffer[64];
 			struct tm date;
 			auto t = FileTimeToUnixTime(ptrInfo[2].Value.ft);
 			localtime_r(&t, &date);

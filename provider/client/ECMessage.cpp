@@ -1837,9 +1837,9 @@ HRESULT ECMessage::GetPropHandler(unsigned int ulPropTag, void *lpProvider,
 		if (PROP_TYPE(ulPropTag) == PT_UNICODE) {
 			lpsPropValue->ulPropTag = PR_NORMALIZED_SUBJECT_W;
 
-			WCHAR *lpszColon = wcschr(lpsPropValue->Value.lpszW, ':');
+			auto lpszColon = wcschr(lpsPropValue->Value.lpszW, ':');
 			if (lpszColon && (lpszColon - lpsPropValue->Value.lpszW) > 1 && (lpszColon - lpsPropValue->Value.lpszW) < 4) {
-				WCHAR *c = lpsPropValue->Value.lpszW;
+				auto c = lpsPropValue->Value.lpszW;
 				while (c < lpszColon && iswdigit(*c))
 					++c; // test for all digits prefix
 				if (c != lpszColon) {

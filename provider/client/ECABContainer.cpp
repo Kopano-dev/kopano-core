@@ -168,7 +168,8 @@ HRESULT ECABContainer::DefaultABContainerGetProp(unsigned int ulPropTag,
 			break;
 		if (PROP_TYPE(ulPropTag) == PT_UNICODE) {
 			const std::wstring strTmp = convert_to<std::wstring>(lpszName);
-			hr = MAPIAllocateMore((strTmp.size() + 1) * sizeof(WCHAR), lpBase, (void**)&lpsPropValue->Value.lpszW);
+			hr = MAPIAllocateMore((strTmp.size() + 1) * sizeof(wchar_t),
+			     lpBase, (void **)&lpsPropValue->Value.lpszW);
 			if (hr != hrSuccess)
 				return hr;
 			wcscpy(lpsPropValue->Value.lpszW, strTmp.c_str());
@@ -208,7 +209,7 @@ HRESULT ECABContainer::TableRowGetProp(void *lpProvider,
 			lpszW = KC_W("All Address Lists");
 		else
 			return MAPI_E_NOT_FOUND;
-		size = (wcslen(lpszW) + 1) * sizeof(WCHAR);
+		size = (wcslen(lpszW) + 1) * sizeof(wchar_t);
 		lpsPropValDst->ulPropTag = lpsPropValSrc->ulPropTag;
 		return KAllocCopy(lpszW, size, reinterpret_cast<void **>(&lpsPropValDst->Value.lpszW), lpBase);
 	}

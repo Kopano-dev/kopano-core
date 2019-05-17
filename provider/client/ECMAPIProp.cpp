@@ -419,7 +419,8 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 			     lpStreamData.get(), &~lpStream);
 			break;
 		case PT_UNICODE:
-			hr = ECMemStream::Create((char*)lpsPropValue->Value.lpszW, wcslen(lpsPropValue->Value.lpszW)*sizeof(WCHAR), ulInterfaceOptions,
+			hr = ECMemStream::Create((char *)lpsPropValue->Value.lpszW,
+			     wcslen(lpsPropValue->Value.lpszW) * sizeof(wchar_t), ulInterfaceOptions,
 			     ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup,
 			     lpStreamData.get(), &~lpStream);
 			break;
@@ -681,7 +682,7 @@ HRESULT ECMAPIProp::HrStreamCommit(IStream *lpStream, void *lpData)
 		lpPropValue->Value.lpszA = buffer;
 	} else if(PROP_TYPE(lpStreamData->ulPropTag) == PT_UNICODE) {
 		wchar_t *buffer = nullptr;
-		hr = ECAllocateMore((ULONG)sStat.cbSize.QuadPart+sizeof(WCHAR), lpPropValue, (void **)&buffer);
+		hr = ECAllocateMore((ULONG)sStat.cbSize.QuadPart + sizeof(wchar_t), lpPropValue, (void **)&buffer);
 		if(hr != hrSuccess)
 			return hr;
 		// read the data into the buffer

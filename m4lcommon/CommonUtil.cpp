@@ -1477,7 +1477,7 @@ HRESULT OpenSubFolder(LPMDB lpMDB, const wchar_t *folder, wchar_t psep,
 	ULONG			ulObjType;
 	object_ptr<IMAPIFolder> lpFoundFolder;
 	LPMAPIFOLDER	lpNewFolder = NULL;
-	const WCHAR*	ptr = NULL;
+	const wchar_t *ptr = nullptr;
 
 	if(bIsPublic)
 	{
@@ -1609,7 +1609,7 @@ ECPropMapEntry::ECPropMapEntry(GUID guid, const char *strId) :
 {
     m_sMAPINameId.ulKind = MNID_STRING; 
     m_sMAPINameId.lpguid = &m_sGuid; 
-    m_sMAPINameId.Kind.lpwstrName = new WCHAR[strlen(strId)+1];
+	m_sMAPINameId.Kind.lpwstrName = new wchar_t[strlen(strId)+1];
     mbstowcs(m_sMAPINameId.Kind.lpwstrName, strId, strlen(strId)+1);
 }
     
@@ -1623,7 +1623,7 @@ ECPropMapEntry::ECPropMapEntry(const ECPropMapEntry &other) :
         m_sMAPINameId.Kind.lID = other.m_sMAPINameId.Kind.lID;
 		return;
 	}
-        m_sMAPINameId.Kind.lpwstrName = new WCHAR[wcslen( other.m_sMAPINameId.Kind.lpwstrName )+1];
+        m_sMAPINameId.Kind.lpwstrName = new wchar_t[wcslen(other.m_sMAPINameId.Kind.lpwstrName)+1];
         wcscpy(m_sMAPINameId.Kind.lpwstrName, other.m_sMAPINameId.Kind.lpwstrName);
 }
 
@@ -1749,7 +1749,8 @@ HRESULT spv_postload_large_props(IMAPIProp *lpProp,
 		std::string strData;
 		if (Util::HrStreamToString(lpStream.get(), strData) != hrSuccess)
 			continue;
-		hr = MAPIAllocateMore(strData.size() + sizeof(WCHAR), lpProps, (void **)&lpData);
+		hr = MAPIAllocateMore(strData.size() + sizeof(wchar_t), lpProps,
+		     (void **)&lpData);
 		if (hr != hrSuccess)
 			return hr;
 		memcpy(lpData, strData.data(), strData.size());
@@ -1761,7 +1762,7 @@ HRESULT spv_postload_large_props(IMAPIProp *lpProp,
 			break;
 		case PT_UNICODE:
 			lpProps[i].Value.lpszW = (wchar_t *)lpData;
-			lpProps[i].Value.lpszW[strData.size() / sizeof(WCHAR)] = 0;
+			lpProps[i].Value.lpszW[strData.size() / sizeof(wchar_t)] = 0;
 			break;
 		case PT_BINARY:
 			lpProps[i].Value.bin.lpb = (LPBYTE)lpData;

@@ -263,7 +263,7 @@ HRESULT ECExchangeModifyTable::OpenACLS(ECMAPIProp *lpecMapiProp, ULONG ulFlags,
 	object_ptr<IECSecurity> lpSecurity;
 	memory_ptr<ECPERMISSION> lpECPerms;
 	SPropValue	lpsPropMember[4];
-	WCHAR* lpMemberName = NULL;
+	wchar_t *lpMemberName = nullptr;
 	unsigned int ulUserid = 0, cPerms = 0;
 	auto hr = lpecMapiProp->QueryInterface(IID_IECSecurity, &~lpSecurity);
 	if (hr != hrSuccess)

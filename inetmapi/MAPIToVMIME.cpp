@@ -1972,9 +1972,9 @@ void MAPIToVMIME::capitalize(char *s) {
  *
  * @param[in,out]	s	String to fix enter to spaces in
  */
-void MAPIToVMIME::removeEnters(WCHAR *s) {
-	WCHAR *p = s;
-
+void MAPIToVMIME::removeEnters(wchar_t *s)
+{
+	wchar_t *p = s;
 	while (*p) {
 		if (*p == '\r' || *p == '\n')
 			*p = ' ';

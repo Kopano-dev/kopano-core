@@ -152,11 +152,11 @@ static HRESULT StreamToPropValue(IStream *lpStream, ULONG ulPropTag,
 			return hr;
 		wptr = lpPropValue->Value.bin.lpb;
 	} else if (PROP_TYPE(ulPropTag) == PT_UNICODE) {
-		hr = MAPIAllocateMore((ULONG)sStatstg.cbSize.QuadPart + sizeof(WCHAR), lpPropValue, (void**)&lpPropValue->Value.lpszW);
+		hr = MAPIAllocateMore((ULONG)sStatstg.cbSize.QuadPart + sizeof(wchar_t), lpPropValue, reinterpret_cast<void **>(&lpPropValue->Value.lpszW));
 		if (hr != hrSuccess)
 			return hr;
 		// terminate unicode string
-		lpPropValue->Value.lpszW[sStatstg.cbSize.QuadPart / sizeof(WCHAR)] = L'\0';
+		lpPropValue->Value.lpszW[sStatstg.cbSize.QuadPart / sizeof(wchar_t)] = L'\0';
 		wptr = (BYTE*)lpPropValue->Value.lpszW;
 	}
 
@@ -952,7 +952,7 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 			break;
 		case PT_MV_UNICODE:
 			lpProp->Value.MVszW.cValues = ulCount;
-			hr = MAPIAllocateMore(ulCount * sizeof(WCHAR *), lpProp, (void **)&lpProp->Value.MVszW.lppszW);
+			hr = MAPIAllocateMore(ulCount * sizeof(wchar_t *), lpProp, (void **)&lpProp->Value.MVszW.lppszW);
 			break;
 		case PT_MV_BINARY:
 			lpProp->Value.MVbin.cValues = ulCount;
@@ -1140,12 +1140,14 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 			strUnicodeName = convert_to<std::wstring>(ucs2);
 
 			if(ulPropTag & MV_FLAG) {
-				hr = MAPIAllocateMore((strUnicodeName.length()+1) * sizeof(WCHAR), lpProp, (void **)&lpProp->Value.MVszW.lppszW[ulMVProp]);
+				hr = MAPIAllocateMore((strUnicodeName.length() + 1) * sizeof(wchar_t),
+				     lpProp, (void **)&lpProp->Value.MVszW.lppszW[ulMVProp]);
 				if(hr != hrSuccess)
 					return hr;
 				wcscpy(lpProp->Value.MVszW.lppszW[ulMVProp], strUnicodeName.c_str());
 			} else {
-				hr = MAPIAllocateMore((strUnicodeName.length()+1) * sizeof(WCHAR), lpProp, (void **)&lpProp->Value.lpszW);
+				hr = MAPIAllocateMore((strUnicodeName.length() + 1) * sizeof(wchar_t),
+				     lpProp, (void **)&lpProp->Value.lpszW);
 				if(hr != hrSuccess)
 					return hr;
 				wcscpy(lpProp->Value.lpszW, strUnicodeName.c_str());

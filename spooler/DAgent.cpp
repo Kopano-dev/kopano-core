@@ -156,7 +156,7 @@ public:
 	/* Options for delivery into special subfolder */
 	bool bCreateFolder = false;
 	std::wstring strDeliveryFolder;
-	WCHAR szPathSeparator = '\\';
+	wchar_t szPathSeparator = '\\';
 
 	/* Delivery options */
 	delivery_mode ulDeliveryMode = DM_STORE;
@@ -1799,7 +1799,8 @@ static HRESULT HrCopyMessageForDelivery(IMessage *lpOrigMessage,
  * @return MAPI Error code
  */
 static HRESULT HrGetSession(const DeliveryArgs *lpArgs,
-    const WCHAR *szUsername, IMAPISession **lppSession, bool bSuppress = false)
+    const wchar_t *szUsername, IMAPISession **lppSession,
+    bool bSuppress = false)
 {
 	auto hr = HrOpenECSession(lppSession, PROJECT_VERSION, "dagent",
 	          szUsername, L"", lpArgs->strPath.c_str(), 0,

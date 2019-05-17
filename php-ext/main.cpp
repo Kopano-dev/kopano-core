@@ -3068,7 +3068,7 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 			break;
 		case IS_STRING:
 			multibytebufferlen = mbstowcs(NULL, entry[0]->value.str.val, 0);
-			MAPI_G(hr) = MAPIAllocateMore((multibytebufferlen + 1) * sizeof(WCHAR), lppNamePropId,
+			MAPI_G(hr) = MAPIAllocateMore((multibytebufferlen + 1) * sizeof(wchar_t), lppNamePropId,
 				  (void **)&lppNamePropId[i]->Kind.lpwstrName);
 			if (MAPI_G(hr) != hrSuccess)
 				goto exit;

@@ -140,7 +140,8 @@ HRESULT ECMAPIFolderPublic::GetPropHandler(unsigned int ulPropTag,
 		}
 		if (PROP_TYPE(ulPropTag) == PT_UNICODE) {
 			const std::wstring strTmp = convert_to<std::wstring>(lpszName);
-			hr = MAPIAllocateMore((strTmp.size() + 1) * sizeof(WCHAR), lpBase, (void**)&lpsPropValue->Value.lpszW);
+			hr = MAPIAllocateMore((strTmp.size() + 1) * sizeof(wchar_t),
+			     lpBase, (void **)&lpsPropValue->Value.lpszW);
 			if (hr != hrSuccess)
 				return hr;
 			wcscpy(lpsPropValue->Value.lpszW, strTmp.c_str());

@@ -1405,7 +1405,7 @@ HRESULT Utf8ToTString(LPCSTR lpszUtf8, ULONG ulFlags, LPVOID lpBase, convert_con
 		return MAPI_E_INVALID_PARAMETER;
 
 	std::string strDest = CONVERT_TO(lpConverter, std::string, ((ulFlags & MAPI_UNICODE) ? CHARSET_WCHAR : CHARSET_CHAR), lpszUtf8, rawsize(lpszUtf8), "UTF-8");
-	size_t cbDest = strDest.length() + ((ulFlags & MAPI_UNICODE) ? sizeof(WCHAR) : sizeof(CHAR));
+	size_t cbDest = strDest.length() + ((ulFlags & MAPI_UNICODE) ? sizeof(wchar_t) : sizeof(CHAR));
 	auto hr = ECAllocateMore(cbDest, lpBase, reinterpret_cast<void **>(lppszTString));
 	if (hr != hrSuccess)
 		return hr;
@@ -2231,14 +2231,14 @@ HRESULT CopyICSChangeToSOAPSourceKeys(ULONG cbChanges,
 	return hrSuccess;
 }
 
-static HRESULT ConvertString8ToUnicode(const char *lpszA, WCHAR **lppszW,
+static HRESULT ConvertString8ToUnicode(const char *lpszA, wchar_t **lppszW,
     void *base, convert_context &converter)
 {
 	if (lpszA == nullptr || lppszW == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
 	std::wstring wide;
-	WCHAR *lpszW = NULL;
+	wchar_t *lpszW = nullptr;
 	TryConvert(lpszA, wide);
 	auto hr = ECAllocateMore((wide.length() + 1) * sizeof(std::wstring::value_type),
 	          base, reinterpret_cast<void **>(&lpszW));

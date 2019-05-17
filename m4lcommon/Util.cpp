@@ -470,7 +470,7 @@ HRESULT Util::HrCopyProperty(LPSPropValue lpDest, const SPropValue *lpSrc,
 		if (hr != hrSuccess)
 			return hr;
 		for (ULONG i = 0; i < lpSrc->Value.MVszW.cValues; ++i) {
-			hr = lpfAllocMore(wcslen(lpSrc->Value.MVszW.lppszW[i]) * sizeof(WCHAR) + sizeof(WCHAR), lpBase, (void**)&lpDest->Value.MVszW.lppszW[i]);
+			hr = lpfAllocMore(wcslen(lpSrc->Value.MVszW.lppszW[i]) * sizeof(wchar_t) + sizeof(wchar_t), lpBase, reinterpret_cast<void **>(&lpDest->Value.MVszW.lppszW[i]));
 			if (hr != hrSuccess)
 				return hr;
 			wcscpy(lpDest->Value.MVszW.lppszW[i], lpSrc->Value.MVszW.lppszW[i]);
@@ -1221,7 +1221,7 @@ HRESULT Util::HrTextToHtml(IStream *text, IStream *html, ULONG ulCodepage)
 {
 	ULONG cRead;
 	std::wstring strHtml;
-	WCHAR lpBuffer[BUFSIZE];
+	wchar_t lpBuffer[BUFSIZE];
 	static const char header1[] = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2//EN\">\n" \
 					"<HTML>\n" \
 					"<HEAD>\n" \
@@ -1274,16 +1274,13 @@ HRESULT Util::HrTextToHtml(IStream *text, IStream *html, ULONG ulCodepage)
 
 	while (1) {
 		strHtml.clear();
-
-		hr = text->Read(lpBuffer, BUFSIZE*sizeof(WCHAR), &cRead);
+		hr = text->Read(lpBuffer, BUFSIZE * sizeof(wchar_t), &cRead);
 		if (hr != hrSuccess)
 			goto exit;
 
 		if (cRead == 0)
 			break;
-
-		cRead /= sizeof(WCHAR);
-
+		cRead /= sizeof(wchar_t);
 		// escape some characters in HTML
 		for (unsigned int i = 0; i < cRead; ++i) {
 			if (lpBuffer[i] != ' ') {
@@ -1324,8 +1321,8 @@ HRESULT Util::HrTextToHtml(IStream *text, IStream *html, ULONG ulCodepage)
 				goto exit;
 
 			// skip unknown character
-			readBuffer += sizeof(WCHAR);
-			stRead -= sizeof(WCHAR);
+			readBuffer += sizeof(wchar_t);
+			stRead -= sizeof(wchar_t);
 		}
 	}
 	// @todo, run through iconv?
@@ -1348,7 +1345,7 @@ exit:
  * 
  * @return MAPI Error code
  */
-HRESULT Util::HrTextToHtml(const WCHAR *text, std::string &strHTML, ULONG ulCodepage)
+HRESULT Util::HrTextToHtml(const wchar_t *text, std::string &strHTML, ULONG ulCodepage)
 {
 	const char *lpszCharset;
 	std::wstring wHTML;
@@ -1397,7 +1394,7 @@ HRESULT Util::HrTextToHtml(const WCHAR *text, std::string &strHTML, ULONG ulCode
 HRESULT Util::HrTextToRtf(IStream *text, IStream *rtf)
 {
 	ULONG cRead;
-	WCHAR c[BUFSIZE];
+	wchar_t c[BUFSIZE];
 	static const char header[] = "{\\rtf1\\ansi\\ansicpg1252\\fromtext \\deff0{\\fonttbl\n" \
 					"{\\f0\\fswiss Arial;}\n" \
 					"{\\f1\\fmodern Courier New;}\n" \
@@ -1410,11 +1407,10 @@ HRESULT Util::HrTextToRtf(IStream *text, IStream *rtf)
 	rtf->Write(header, strlen(header), NULL);
 
 	while(1) {
-		auto ret = text->Read(c, BUFSIZE * sizeof(WCHAR), &cRead);
+		auto ret = text->Read(c, BUFSIZE * sizeof(wchar_t), &cRead);
 		if (ret != hrSuccess || cRead == 0)
 			break;
-
-		cRead /= sizeof(WCHAR);
+		cRead /= sizeof(wchar_t);
 		for (unsigned int i = 0; i < cRead; ++i) {
 			switch (c[i]) {
 			case 0:
@@ -1686,7 +1682,7 @@ HRESULT Util::HrStreamToString(IStream *sInput, std::wstring &strOutput) {
 
 	if (sInput->QueryInterface(IID_ECMemStream, &~lpMemStream) == hrSuccess) {
 		// getsize, getbuffer, assign
-		strOutput.append(reinterpret_cast<wchar_t *>(lpMemStream->GetBuffer()), lpMemStream->GetSize() / sizeof(WCHAR));
+		strOutput.append(reinterpret_cast<wchar_t *>(lpMemStream->GetBuffer()), lpMemStream->GetSize() / sizeof(wchar_t));
 		return hrSuccess;
 	}
 	// manual copy
@@ -1697,7 +1693,7 @@ HRESULT Util::HrStreamToString(IStream *sInput, std::wstring &strOutput) {
 		hr = sInput->Read(buffer, BUFSIZE, &ulRead);
 		if (hr != hrSuccess || ulRead == 0)
 			break;
-		strOutput.append(reinterpret_cast<wchar_t *>(buffer), ulRead / sizeof(WCHAR));
+		strOutput.append(reinterpret_cast<wchar_t *>(buffer), ulRead / sizeof(wchar_t));
 	}
 	return hr;
 }
@@ -1760,7 +1756,7 @@ HRESULT Util::HrHtmlToText(IStream *html, IStream *text, ULONG ulCodepage)
 		return MAPI_E_CORRUPT_DATA;
 
 	std::wstring &strText = parser.GetText();
-	return text->Write(strText.data(), (strText.size()+1)*sizeof(WCHAR), NULL);
+	return text->Write(strText.data(), (strText.size() + 1) * sizeof(wchar_t), nullptr);
 }
 
 template<size_t N> static bool StrCaseCompare(const wchar_t *lpString,
@@ -1787,7 +1783,7 @@ template<size_t N> static bool StrCaseCompare(const wchar_t *lpString,
  * @param[out]	strRTF	RTF output, containing unicode chars
  * @return mapi error code
  */
-HRESULT Util::HrHtmlToRtf(const WCHAR *lpwHTML, std::string &strRTF)
+HRESULT Util::HrHtmlToRtf(const wchar_t *lpwHTML, std::string &strRTF)
 {
 	std::stack<unsigned int> stackTag;
 	size_t pos = 0;
@@ -1976,7 +1972,7 @@ HRESULT Util::HrHtmlToRtf(const WCHAR *lpwHTML, std::string &strRTF)
 
             if (lpwHTML[semicolon]) {
                 std::wstring strEntity;
-				WCHAR c;
+				wchar_t c;
                 std::string strChar;
 
 				strEntity.assign(lpwHTML + pos+1, semicolon-pos-1);

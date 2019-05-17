@@ -125,12 +125,12 @@ HRESULT M4LMAPIProp::GetProps(const SPropTagArray *lpPropTagArray,
 				// mv string8 to mv unicode
 				sConvert.ulPropTag = CHANGE_PROP_TYPE((*i)->ulPropTag, PT_MV_UNICODE);
 				sConvert.Value.MVszW.cValues = (*i)->Value.MVszA.cValues;
-				hr = MAPIAllocateMore((*i)->Value.MVszA.cValues * sizeof(WCHAR*), props, (void**)&sConvert.Value.MVszW.lppszW);
+				hr = MAPIAllocateMore((*i)->Value.MVszA.cValues * sizeof(wchar_t *), props, reinterpret_cast<void **>(&sConvert.Value.MVszW.lppszW));
 				if (hr != hrSuccess)
 					return hr;
 				for (ULONG d = 0; d < (*i)->Value.MVszA.cValues; ++d) {
 					unicode = converter.convert_to<std::wstring>((*i)->Value.MVszA.lppszA[d]);
-					hr = MAPIAllocateMore(unicode.length() * sizeof(wchar_t) + sizeof(WCHAR), props, reinterpret_cast<void **>(&sConvert.Value.MVszW.lppszW[d]));
+					hr = MAPIAllocateMore(unicode.length() * sizeof(wchar_t) + sizeof(wchar_t), props, reinterpret_cast<void **>(&sConvert.Value.MVszW.lppszW[d]));
 					if (hr != hrSuccess)
 						return hr;
 					wcscpy(sConvert.Value.MVszW.lppszW[d], unicode.c_str());

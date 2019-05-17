@@ -1153,7 +1153,8 @@ HRESULT WSTransport::HrGetNamesFromIDs(SPropTagArray *lpsPropTags,
 			     reinterpret_cast<void **>(&lppNames[i]->Kind.lpwstrName));
 			if (er != erSuccess)
 				goto exitm;
-			memcpy(lppNames[i]->Kind.lpwstrName, strNameW.c_str(), (strNameW.size() + 1) * sizeof(WCHAR));	// Also copy the trailing '\0'
+			/* Also copy the trailing '\0' */
+			memcpy(lppNames[i]->Kind.lpwstrName, strNameW.c_str(), (strNameW.size() + 1) * sizeof(wchar_t));
 			lppNames[i]->ulKind = MNID_STRING;
 		} else {
 			// not found by server, we have actually allocated memory but it doesn't really matter
@@ -1246,7 +1247,7 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags,
 			er = ECAllocateMore((unicode.length() + 1) * sizeof(wchar_t), lpsRowSet->aRow[i].lpProps, reinterpret_cast<void **>(&lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].Value.lpszW));
 			if (er != erSuccess)
 				goto exitm;
-			memcpy(lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].Value.lpszW, unicode.c_str(), (unicode.length()+1)*sizeof(WCHAR));
+			memcpy(lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].Value.lpszW, unicode.c_str(), (unicode.length() + 1) * sizeof(wchar_t));
 		} else {
 			lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].ulPropTag = PR_MESSAGE_CLASS_A;
 			nLen = strlen(sReceiveFolders.sFolderArray.__ptr[i].lpszAExplicitClass)+1;
