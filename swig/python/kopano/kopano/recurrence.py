@@ -304,7 +304,6 @@ class Recurrence(object):
                 minutes = self._endtime_offset - self._starttime_offset
                 basedate_val = startdatetime_val
 
-            d = _timezone._to_utc(d, self._tzinfo)
             e = d + datetime.timedelta(minutes=minutes)
 
             occ = Occurrence(self.item, d, e, subject, location, busystatus=busystatus, basedate_val=basedate_val, exception=exception)
