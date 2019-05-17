@@ -239,10 +239,7 @@ void *ECWatchDog::Watch(void *lpParam)
 	auto lpThis = static_cast<ECWatchDog *>(lpParam);
 	kcsrv_blocksigs();
 
-    while(1) {
-		if (lpThis->m_bExit)
-			break;
-
+	while (!lpThis->m_bExit) {
         double dblMaxFreq = atoi(lpThis->m_lpConfig->GetSetting("watchdog_frequency"));
 
         // If the age of the front item in the queue is older than the specified maximum age, force
@@ -253,11 +250,8 @@ void *ECWatchDog::Watch(void *lpParam)
 
         // Check to see if exit flag is set, and limit rate to dblMaxFreq Hz
 		ulock_normal l_exit(lpThis->m_mutexExit);
-		if (!lpThis->m_bExit) {
+		if (!lpThis->m_bExit)
 			lpThis->m_condExit.wait_for(l_exit, std::chrono::duration<double>(1 / dblMaxFreq));
-			if (lpThis->m_bExit)
-				break;
-        }
     }
     return NULL;
 }
