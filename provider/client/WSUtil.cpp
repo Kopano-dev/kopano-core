@@ -2171,11 +2171,7 @@ HRESULT CopySOAPChangeNotificationToSyncState(const struct notification *lpSrc,
 	memset(lpSBinary, 0, sizeof *lpSBinary);
 
 	lpSBinary->cb = lpSrc->ics->pSyncState->__size;
-
-	if (lpBase == NULL)
-		hr = ECAllocateMore(lpSBinary->cb, lpSBinary, reinterpret_cast<void **>(&lpSBinary->lpb));
-	else
-		hr = ECAllocateMore(lpSBinary->cb, lpBase, reinterpret_cast<void **>(&lpSBinary->lpb));
+	hr = ECAllocateMore(lpSBinary->cb, lpBase != nullptr ? lpBase : lpSBinary, reinterpret_cast<void **>(&lpSBinary->lpb));
 	if (hr != hrSuccess) {
 		MAPIFreeBuffer(lpSBinary);
 		return hr;

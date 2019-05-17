@@ -2116,10 +2116,7 @@ HRESULT Util::hex2bin(const char *input, size_t len, ULONG *outLength, LPBYTE *o
 
 	if (len % 2 != 0)
 		return MAPI_E_INVALID_PARAMETER;
-	if (parent)
-		hr = MAPIAllocateMore(len/2+1, parent, (void**)&buffer);
-	else
-		hr = MAPIAllocateBuffer(len/2+1, (void**)&buffer);
+	hr = MAPIAllocateMore(len / 2 + 1, parent, reinterpret_cast<void **>(&buffer));
 	if (hr != hrSuccess)
 		return hr;
 	hr = hex2bin(input, len, buffer);
