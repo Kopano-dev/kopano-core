@@ -607,11 +607,7 @@ HRESULT ECMsgStore::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		if(hr != hrSuccess)
 			return hr;
 		AddChild(lpMAPIFolder);
-
-		if(lpInterface)
-			hr = lpMAPIFolder->QueryInterface(*lpInterface,(void **)lppUnk);
-		else
-			hr = lpMAPIFolder->QueryInterface(IID_IMAPIFolder, (void **)lppUnk);
+		hr = lpMAPIFolder->QueryInterface(lpInterface != nullptr ? *lpInterface : IID_IMAPIFolder, reinterpret_cast<void **>(lppUnk));
 		if(lpulObjType)
 			*lpulObjType = MAPI_FOLDER;
 		break;
@@ -632,11 +628,7 @@ HRESULT ECMsgStore::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		if(hr != hrSuccess)
 			return hr;
 		AddChild(lpMessage);
-
-		if(lpInterface)
-			hr = lpMessage->QueryInterface(*lpInterface,(void **)lppUnk);
-		else
-			hr = lpMessage->QueryInterface(IID_IMessage, (void **)lppUnk);
+		hr = lpMessage->QueryInterface(lpInterface != nullptr ? *lpInterface : IID_IMessage, reinterpret_cast<void **>(lppUnk));
 		if(lpulObjType)
 			*lpulObjType = MAPI_MESSAGE;
 		break;

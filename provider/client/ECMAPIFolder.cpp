@@ -395,11 +395,7 @@ HRESULT ECMAPIFolder::CreateMessageWithEntryID(const IID *lpInterface,
 	hr = Util::HrCopyEntryId(m_cbEntryId, m_lpEntryId, &lpMessage->m_cbParentID, &~lpMessage->m_lpParentID);
 	if(hr != hrSuccess)
 		return hr;
-	if(lpInterface)
-		hr = lpMessage->QueryInterface(*lpInterface, (void **)lppMessage);
-	else
-		hr = lpMessage->QueryInterface(IID_IMessage, (void **)lppMessage);
-
+	hr = lpMessage->QueryInterface(lpInterface != nullptr ? *lpInterface : IID_IMessage, reinterpret_cast<void **>(lppMessage));
 	AddChild(lpMessage);
 	return hr;
 }

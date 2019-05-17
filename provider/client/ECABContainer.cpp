@@ -458,10 +458,7 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		hr = lpABContainer->HrSetPropStorage(lpPropStorage, TRUE);
 		if (hr != hrSuccess)
 			return hr;
-		if (lpInterface)
-			hr = lpABContainer->QueryInterface(*lpInterface,(void **)lppUnk);
-		else
-			hr = lpABContainer->QueryInterface(IID_IABContainer, (void **)lppUnk);
+		hr = lpABContainer->QueryInterface(lpInterface != nullptr ? *lpInterface : IID_IABContainer, reinterpret_cast<void **>(lppUnk));
 		if (hr != hrSuccess)
 			return hr;
 		break;
@@ -479,10 +476,7 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		hr = lpMailUser->HrSetPropStorage(lpPropStorage, TRUE);
 		if (hr != hrSuccess)
 			return hr;
-		if (lpInterface)
-			hr = lpMailUser->QueryInterface(*lpInterface,(void **)lppUnk);
-		else
-			hr = lpMailUser->QueryInterface(IID_IMailUser, (void **)lppUnk);
+		hr = lpMailUser->QueryInterface(lpInterface != nullptr ? *lpInterface : IID_IMailUser, reinterpret_cast<void **>(lppUnk));
 		if (hr != hrSuccess)
 			return hr;
 		break;
@@ -500,10 +494,7 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		hr = lpDistList->HrSetPropStorage(lpPropStorage, TRUE);
 		if (hr != hrSuccess)
 			return hr;
-		if (lpInterface)
-			hr = lpDistList->QueryInterface(*lpInterface, (void **)lppUnk);
-		else
-			hr = lpDistList->QueryInterface(IID_IDistList, (void **)lppUnk);
+		hr = lpDistList->QueryInterface(lpInterface != nullptr ? *lpInterface : IID_IDistList, reinterpret_cast<void **>(lppUnk));
 		if (hr != hrSuccess)
 			return hr;
 		break;
