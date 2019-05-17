@@ -381,7 +381,7 @@
 
 %typemap(in) KC::ECLogger *annoyingswig (int res, ECSimpleLogger *sl, ECLoggerProxy *proxy)
 {
-	res = SWIG_ConvertPtr($input, (void **)&sl, SWIGTYPE_p_ECSimpleLogger, 0 | 0);
+	res = SWIG_ConvertPtr($input, reinterpret_cast<void **>(&sl), SWIGTYPE_p_ECSimpleLogger, 0 | 0);
 	if(!SWIG_IsOK(res))
 		%argument_fail(res,"ECSimpleLogger",$symname, $argnum);
 

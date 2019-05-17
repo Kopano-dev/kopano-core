@@ -93,7 +93,7 @@ HRESULT WSMAPIPropStorage::HrLoadProp(ULONG ulObjId, ULONG ulPropTag, LPSPropVal
 	}
 	END_SOAP_CALL
 
-	hr = ECAllocateBuffer(sizeof(SPropValue), (void **)&lpsPropValDst);
+	hr = ECAllocateBuffer(sizeof(SPropValue), reinterpret_cast<void **>(&lpsPropValDst));
 	if(hr != hrSuccess)
 		goto exit;
 

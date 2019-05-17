@@ -143,7 +143,7 @@ HRESULT ECMSProvider::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 
 	// Return the variables
 	if (lppMDB) {
-		hr = lpECMsgStore->QueryInterface(IID_IMsgStore, (void **)lppMDB);
+		hr = lpECMsgStore->QueryInterface(IID_IMsgStore, reinterpret_cast<void **>(lppMDB));
 		if(hr != hrSuccess)
 			return hr;
 	}
@@ -230,7 +230,7 @@ HRESULT ECMSProvider::SpoolerLogon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 
 	// Return the variables
 	if(lppMDB) {
-		hr = lpMsgStore->QueryInterface(IID_IMsgStore, (void **)lppMDB);
+		hr = lpMsgStore->QueryInterface(IID_IMsgStore, reinterpret_cast<void **>(lppMDB));
 		if(hr != hrSuccess)
 			return hr;
 	}
@@ -461,12 +461,12 @@ HRESULT ECMSProviderSwitch::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 			return hr;
 	}
 	if (lppMSLogon) {
-		hr = lpMSLogon->QueryInterface(IID_IMSLogon, (void **)lppMSLogon);
+		hr = lpMSLogon->QueryInterface(IID_IMSLogon, reinterpret_cast<void **>(lppMSLogon));
 		if (hr != hrSuccess)
 			return hr;
 	}
 	if (lppMDB) {
-		hr = lpMDB->QueryInterface(IID_IMsgStore, (void **)lppMDB);
+		hr = lpMDB->QueryInterface(IID_IMsgStore, reinterpret_cast<void **>(lppMDB));
 		if (hr != hrSuccess)
 			return hr;
 	}
@@ -476,7 +476,7 @@ HRESULT ECMSProviderSwitch::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 	{
 		ULONG cbSpoolSecurity = sizeof(wchar_t) * (sProfileProps.strUserName.length() + sProfileProps.strPassword.length() + 1 + 1);
 
-		hr = MAPIAllocateBuffer(cbSpoolSecurity, (void **)lppbSpoolSecurity);
+		hr = MAPIAllocateBuffer(cbSpoolSecurity, reinterpret_cast<void **>(lppbSpoolSecurity));
 		if(hr != hrSuccess)
 			return hr;
 		swprintf((wchar_t*)*lppbSpoolSecurity, cbSpoolSecurity, L"%s%c%s", sProfileProps.strUserName.c_str(), 0, sProfileProps.strPassword.c_str());
@@ -522,12 +522,12 @@ HRESULT ECMSProviderSwitch::SpoolerLogon(IMAPISupport *lpMAPISup,
 		return hr;
 
 	if (lppMSLogon) {
-		hr = lpMSLogon->QueryInterface(IID_IMSLogon, (void **)lppMSLogon);
+		hr = lpMSLogon->QueryInterface(IID_IMSLogon, reinterpret_cast<void **>(lppMSLogon));
 		if (hr != hrSuccess)
 			return hr;
 	}
 	if (lppMDB) {
-		hr = lpMDB->QueryInterface(IID_IMsgStore, (void **)lppMDB);
+		hr = lpMDB->QueryInterface(IID_IMsgStore, reinterpret_cast<void **>(lppMDB));
 		if (hr != hrSuccess)
 			return hr;
 	}

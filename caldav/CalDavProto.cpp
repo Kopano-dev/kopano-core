@@ -725,7 +725,7 @@ HRESULT CalDAV::HrHandleDelete()
 	}
 
 	lpEntryList->cValues = 1;
-	hr = MAPIAllocateMore(sizeof(SBinary), lpEntryList, (void**)&lpEntryList->lpbin);
+	hr = MAPIAllocateMore(sizeof(SBinary), lpEntryList, reinterpret_cast<void **>(&lpEntryList->lpbin));
 	if (hr != hrSuccess) {
 		ec_log_debug("CalDAV::HrHandleDelete mapiallocatemore failed 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
@@ -821,7 +821,7 @@ HRESULT CalDAV::HrMoveEntry(const std::string &strGuid, LPMAPIFOLDER lpDestFolde
 	}
 
 	lpEntryList->cValues = 1;
-	hr = MAPIAllocateMore(sizeof(SBinary), lpEntryList, (void**)&lpEntryList->lpbin);
+	hr = MAPIAllocateMore(sizeof(SBinary), lpEntryList, reinterpret_cast<void **>(&lpEntryList->lpbin));
 	if (hr != hrSuccess) {
 		ec_log_debug("CalDAV::HrMoveEntry MAPIAllocateMore failed 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		return hr;

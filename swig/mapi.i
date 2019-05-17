@@ -144,7 +144,7 @@ public:
 					cb = (ULONG)(statbuf.cbSize.QuadPart - liPosition.QuadPart);
 			}
 
-			hr = MAPIAllocateBuffer(cb, (void **)&buffer);
+			hr = MAPIAllocateBuffer(cb, reinterpret_cast<void **>(&buffer));
 			if (hr != hrSuccess)
 				return hr;
 

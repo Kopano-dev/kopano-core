@@ -88,7 +88,7 @@ HRESULT ZCABContainer::Create(IMessage *lpContact, ULONG cbEntryID,
 	hr = lpDistList->QueryInterface(IID_IMAPIProp, &~lpABContainer->m_lpDistList);
 	if (hr != hrSuccess)
 		return hr;
-	return lpABContainer->QueryInterface(IID_ZCDistList, (void **)lppABContainer);
+	return lpABContainer->QueryInterface(IID_ZCDistList, reinterpret_cast<void **>(lppABContainer));
 }
 
 // IMAPIContainer

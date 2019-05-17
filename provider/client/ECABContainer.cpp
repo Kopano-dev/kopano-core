@@ -169,13 +169,14 @@ HRESULT ECABContainer::DefaultABContainerGetProp(unsigned int ulPropTag,
 		if (PROP_TYPE(ulPropTag) == PT_UNICODE) {
 			const std::wstring strTmp = convert_to<std::wstring>(lpszName);
 			hr = MAPIAllocateMore((strTmp.size() + 1) * sizeof(wchar_t),
-			     lpBase, (void **)&lpsPropValue->Value.lpszW);
+			     lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.lpszW));
 			if (hr != hrSuccess)
 				return hr;
 			wcscpy(lpsPropValue->Value.lpszW, strTmp.c_str());
 		} else {
 			const std::string strTmp = convert_to<std::string>(lpszName);
-			hr = MAPIAllocateMore(strTmp.size() + 1, lpBase, (void**)&lpsPropValue->Value.lpszA);
+			hr = MAPIAllocateMore(strTmp.size() + 1, lpBase,
+			     reinterpret_cast<void **>(&lpsPropValue->Value.lpszA));
 			if (hr != hrSuccess)
 				return hr;
 			strcpy(lpsPropValue->Value.lpszA, strTmp.c_str());
@@ -258,7 +259,7 @@ HRESULT ECABContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	hr = lpTableOps->HrSortTable(sSortByDisplayName);
 	if(hr != hrSuccess)
 		return hr;
-	hr = lpTable->QueryInterface(IID_IMAPITable, (void **)lppTable);
+	hr = lpTable->QueryInterface(IID_IMAPITable, reinterpret_cast<void **>(lppTable));
 	AddChild(lpTable);
 	return hr;
 }
@@ -279,7 +280,7 @@ HRESULT ECABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	hr = lpTable->HrSetTableOps(lpTableOps, !(ulFlags & MAPI_DEFERRED_ERRORS));
 	if(hr != hrSuccess)
 		return hr;
-	hr = lpTable->QueryInterface(IID_IMAPITable, (void **)lppTable);
+	hr = lpTable->QueryInterface(IID_IMAPITable, reinterpret_cast<void **>(lppTable));
 	AddChild(lpTable);
 	return hr;
 }
@@ -757,7 +758,7 @@ HRESULT ECABProvider::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 	if(hr != hrSuccess)
 		return hr;
 	AddChild(lpABLogon);
-	hr = lpABLogon->QueryInterface(IID_IABLogon, (void **)lppABLogon);
+	hr = lpABLogon->QueryInterface(IID_IABLogon, reinterpret_cast<void **>(lppABLogon));
 	if(hr != hrSuccess)
 		return hr;
 	if (lpulcbSecurity)
@@ -828,7 +829,7 @@ HRESULT ECABProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 	hr = lpMAPISup->SetProviderUID((LPMAPIUID)&MUIDECSAB, 0);
 	if(hr != hrSuccess)
 		return hr;
-	hr = lpABLogon->QueryInterface(IID_IABLogon, (void **)lppABLogon);
+	hr = lpABLogon->QueryInterface(IID_IABLogon, reinterpret_cast<void **>(lppABLogon));
 	if(hr != hrSuccess)
 		return hr;
 	if(lpulcbSecurity)

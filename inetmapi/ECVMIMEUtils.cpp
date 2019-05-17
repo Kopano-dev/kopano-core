@@ -179,7 +179,7 @@ HRESULT ECVMIMESender::HrExpandGroup(LPADRBOOK lpAdrBook,
 		if (hr != hrSuccess)
 			return hr;
 		lpRows->cRows = 0;
-		hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **)&lpRows->aRow[0].lpProps);
+		hr = MAPIAllocateBuffer(sizeof(SPropValue), reinterpret_cast<void **>(&lpRows->aRow[0].lpProps));
 		if (hr != hrSuccess)
 			return hr;
 		++lpRows->cRows;

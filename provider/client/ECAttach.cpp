@@ -148,7 +148,7 @@ HRESULT ECAttach::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceO
 		sPropValue[2].Value.bin.lpb = reinterpret_cast<BYTE *>(lpMapiUID.get());
 		lpMessage->SetProps(3, sPropValue, NULL);
 	}
-	hr = lpMessage->QueryInterface(IID_IMessage, (void **)lppUnk);
+	hr = lpMessage->QueryInterface(IID_IMessage, reinterpret_cast<void **>(lppUnk));
 	AddChild(lpMessage);
 	return hr;
 }

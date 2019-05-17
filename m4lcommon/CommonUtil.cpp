@@ -348,7 +348,7 @@ static HRESULT GetProxyStoreObject(IMsgStore *lpMsgStore, IMsgStore **lppMsgStor
 		lpECMsgStore = reinterpret_cast<IUnknown *>(lpPropValue->Value.lpszA);
 		if (lpECMsgStore == nullptr)
 			return MAPI_E_INVALID_PARAMETER;
-		return lpECMsgStore->QueryInterface(IID_IMsgStore, (void**)lppMsgStore);
+		return lpECMsgStore->QueryInterface(IID_IMsgStore, reinterpret_cast<void **>(lppMsgStore));
 	}
 	// Possible object already wrapped, gives the original object back
 	(*lppMsgStore) = lpMsgStore;
@@ -736,7 +736,7 @@ static HRESULT HrResolveToSMTP(LPADRBOOK lpAdrBook,
 	lpAdrList->cEntries = 0;
     lpAdrList->aEntries[0].cValues = 1;
 
-    hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **)&lpAdrList->aEntries[0].rgPropVals);
+	hr = MAPIAllocateBuffer(sizeof(SPropValue), reinterpret_cast<void **>(&lpAdrList->aEntries[0].rgPropVals));
     if(hr != hrSuccess)
 		return hr;
 	++lpAdrList->cEntries;
@@ -1153,7 +1153,7 @@ static HRESULT GetRestrictTags(const SRestriction *lpRestriction,
 	HRESULT hr = GetRestrictTagsRecursive(lpRestriction, &lstTags, 0);
 	if(hr != hrSuccess)
 		return hr;
-	hr = MAPIAllocateBuffer(CbNewSPropTagArray(lstTags.size()), (void **)&lpTags);
+	hr = MAPIAllocateBuffer(CbNewSPropTagArray(lstTags.size()), reinterpret_cast<void **>(&lpTags));
 	if (hr != hrSuccess)
 		return hr;
 	lpTags->cValues = lstTags.size();
@@ -1750,7 +1750,7 @@ HRESULT spv_postload_large_props(IMAPIProp *lpProp,
 		if (Util::HrStreamToString(lpStream.get(), strData) != hrSuccess)
 			continue;
 		hr = MAPIAllocateMore(strData.size() + sizeof(wchar_t), lpProps,
-		     (void **)&lpData);
+		     reinterpret_cast<void **>(&lpData));
 		if (hr != hrSuccess)
 			return hr;
 		memcpy(lpData, strData.data(), strData.size());
@@ -2028,7 +2028,7 @@ HRESULT OpenLocalFBMessage(DGMessageType eDGMsgType,
 			if(hr != hrSuccess)
 				return hr;
 			lpPropFBNew->ulPropTag = PR_FREEBUSY_ENTRYIDS;
-			hr = MAPIAllocateMore(sizeof(SBinary) * 4, lpPropFB, (void **)&lpPropFBNew->Value.MVbin.lpbin);
+			hr = MAPIAllocateMore(sizeof(SBinary) * 4, lpPropFB, reinterpret_cast<void **>(&lpPropFBNew->Value.MVbin.lpbin));
 			if(hr != hrSuccess)
 				return hr;
 

@@ -691,7 +691,7 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 	cUsers = 0;
 	for (const auto &user : *lplstUsers) {
 		lpAdrList->aEntries[cUsers].cValues = 1;
-		hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **)&lpAdrList->aEntries[cUsers].rgPropVals);
+		hr = MAPIAllocateBuffer(sizeof(SPropValue), reinterpret_cast<void **>(&lpAdrList->aEntries[cUsers].rgPropVals));
 		if(hr != hrSuccess)
 			return hr;
 		++lpAdrList->cEntries;
@@ -725,7 +725,7 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 			return hr;
 	}
 
-	hr = MAPIAllocateBuffer(sizeof(IFreeBusyData*)*cUsers, (void **)&lppFBData);
+	hr = MAPIAllocateBuffer(sizeof(IFreeBusyData *) * cUsers, reinterpret_cast<void **>(&lppFBData));
 	if (hr != hrSuccess)
 		return hr;
 	memset(lppFBData, '\0', sizeof(IFreeBusyData *) * cUsers);

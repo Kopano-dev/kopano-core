@@ -153,13 +153,13 @@ HRESULT ECExchangeExportChanges::GetLastError(HRESULT hResult, ULONG ulFlags, LP
 		std::wstring wstrCompName = convert_to<std::wstring>(g_strProductName.c_str());
 
 		hr = MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrErrorMsg.size() + 1),
-		     lpMapiError, (void **)&lpMapiError->lpszError);
+		     lpMapiError, reinterpret_cast<void **>(&lpMapiError->lpszError));
 		if (hr != hrSuccess)
 			return hr;
 		wcscpy((wchar_t*)lpMapiError->lpszError, wstrErrorMsg.c_str());
 
 		hr = MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrCompName.size() + 1),
-		     lpMapiError, (void **)&lpMapiError->lpszComponent);
+		     lpMapiError, reinterpret_cast<void **>(&lpMapiError->lpszComponent));
 		if (hr != hrSuccess)
 			return hr;
 		wcscpy((wchar_t*)lpMapiError->lpszComponent, wstrCompName.c_str());
@@ -168,13 +168,12 @@ HRESULT ECExchangeExportChanges::GetLastError(HRESULT hResult, ULONG ulFlags, LP
 		std::string strCompName = convert_to<std::string>(g_strProductName.c_str());
 
 		hr = MAPIAllocateMore(strErrorMsg.size() + 1, lpMapiError,
-		     (void **)&lpMapiError->lpszError);
+		     reinterpret_cast<void **>(&lpMapiError->lpszError));
 		if (hr != hrSuccess)
 			return hr;
 		strcpy((char*)lpMapiError->lpszError, strErrorMsg.c_str());
-
 		hr = MAPIAllocateMore(strCompName.size() + 1, lpMapiError,
-		     (void **)&lpMapiError->lpszComponent);
+		     reinterpret_cast<void **>(&lpMapiError->lpszComponent));
 		if (hr != hrSuccess)
 			return hr;
 		strcpy((char*)lpMapiError->lpszComponent, strCompName.c_str());

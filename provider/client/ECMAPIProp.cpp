@@ -364,7 +364,7 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 		if (hr != hrSuccess)
 			return hr;
 		lpStreamData.release();
-		lpStream->QueryInterface(IID_IStream, (void **)lppUnk);
+		lpStream->QueryInterface(IID_IStream, reinterpret_cast<void **>(lppUnk));
 		AddChild(lpStream);
 		return hr;
 	}
@@ -445,7 +445,7 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 		     ((ulFlags & MAPI_CREATE) ? STGSTRM_CREATE : 0),
 		     reinterpret_cast<IStorage **>(lppUnk));
 	else
-		hr = lpStream->QueryInterface(*lpiid, (void **)lppUnk);
+		hr = lpStream->QueryInterface(*lpiid, reinterpret_cast<void **>(lppUnk));
 	if(hr != hrSuccess)
 		return hr;
 	AddChild(lpStream);
@@ -673,7 +673,7 @@ HRESULT ECMAPIProp::HrStreamCommit(IStream *lpStream, void *lpData)
 
 	if(PROP_TYPE(lpStreamData->ulPropTag) == PT_STRING8) {
 		char *buffer = nullptr;
-		hr = ECAllocateMore((ULONG)sStat.cbSize.QuadPart+1, lpPropValue, (void **)&buffer);
+		hr = ECAllocateMore((ULONG)sStat.cbSize.QuadPart + 1, lpPropValue, reinterpret_cast<void **>(&buffer));
 		if(hr != hrSuccess)
 			return hr;
 		// read the data into the buffer
@@ -682,7 +682,8 @@ HRESULT ECMAPIProp::HrStreamCommit(IStream *lpStream, void *lpData)
 		lpPropValue->Value.lpszA = buffer;
 	} else if(PROP_TYPE(lpStreamData->ulPropTag) == PT_UNICODE) {
 		wchar_t *buffer = nullptr;
-		hr = ECAllocateMore((ULONG)sStat.cbSize.QuadPart + sizeof(wchar_t), lpPropValue, (void **)&buffer);
+		hr = ECAllocateMore((ULONG)sStat.cbSize.QuadPart + sizeof(wchar_t),
+		     lpPropValue, reinterpret_cast<void **>(&buffer));
 		if(hr != hrSuccess)
 			return hr;
 		// read the data into the buffer

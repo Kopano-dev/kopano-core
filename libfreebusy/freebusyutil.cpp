@@ -97,7 +97,7 @@ static HRESULT GetFreeBusyFolder(IMsgStore *lpPublicStore,
 	     &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpMapiFolder);
 	if(hr != hrSuccess)
 		return hr;
-	return lpMapiFolder->QueryInterface(IID_IMAPIFolder, (void**)lppFreeBusyFolder);
+	return lpMapiFolder->QueryInterface(IID_IMAPIFolder, reinterpret_cast<void **>(lppFreeBusyFolder));
 }
 
 HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IMsgStore* lpUserStore, ULONG cbUserEntryID, LPENTRYID lpUserEntryID, BOOL bCreateIfNotExist, IMessage** lppMessage)
@@ -229,7 +229,8 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 		return hr;
 
 	lpPropfbEntryidsNew->Value.MVbin.cValues = ulMvItems;
-	hr = MAPIAllocateMore(sizeof(SBinary) * lpPropfbEntryidsNew->Value.MVbin.cValues, lpPropfbEntryidsNew, (void **)&lpPropfbEntryidsNew->Value.MVbin.lpbin);
+	hr = MAPIAllocateMore(sizeof(SBinary) * lpPropfbEntryidsNew->Value.MVbin.cValues,
+	     lpPropfbEntryidsNew, reinterpret_cast<void **>(&lpPropfbEntryidsNew->Value.MVbin.lpbin));
 	if (hr != hrSuccess)
 		return hr;
 	memset(lpPropfbEntryidsNew->Value.MVbin.lpbin, 0, sizeof(SBinary) * lpPropfbEntryidsNew->Value.MVbin.cValues);

@@ -134,7 +134,7 @@ HRESULT allocNamedIdList(ULONG ulSize, LPMAPINAMEID **lpppNameArray)
 	auto hr = MAPIAllocateBuffer(ulSize * sizeof(LPMAPINAMEID), &~lppArray);
 	if (hr != hrSuccess)
 		return hr;
-	hr = MAPIAllocateMore(ulSize * sizeof(MAPINAMEID), lppArray, (void**)&lpBuffer);
+	hr = MAPIAllocateMore(ulSize * sizeof(MAPINAMEID), lppArray, reinterpret_cast<void **>(&lpBuffer));
 	if (hr != hrSuccess)
 		return hr;
 	for (ULONG i = 0; i < ulSize; ++i)

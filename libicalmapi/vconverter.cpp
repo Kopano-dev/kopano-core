@@ -248,8 +248,7 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 	ulRecpCnt = 0;
 	for (const auto &recip : *lplstIcalRecip) {
 		lpAdrList->aEntries[ulRecpCnt].cValues = 1;
-
-		hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **) &lpAdrList->aEntries[ulRecpCnt].rgPropVals);
+		hr = MAPIAllocateBuffer(sizeof(SPropValue), reinterpret_cast<void **>(&lpAdrList->aEntries[ulRecpCnt].rgPropVals));
 		if (hr != hrSuccess)
 			return hr;
 		++lpAdrList->cEntries;

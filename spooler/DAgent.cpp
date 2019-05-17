@@ -596,7 +596,7 @@ static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
 	for (const auto &recip : *lRCPT) {
 		lpAdrList->aEntries[ulRCPT].cValues = 1;
 
-		hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **) &lpAdrList->aEntries[ulRCPT].rgPropVals);
+		hr = MAPIAllocateBuffer(sizeof(SPropValue), reinterpret_cast<void **>(&lpAdrList->aEntries[ulRCPT].rgPropVals));
 		if (hr != hrSuccess)
 			return kc_perrorf("MAPIAllocateBuffer failed(3)", hr);
 		++lpAdrList->cEntries;
@@ -1344,10 +1344,10 @@ static HRESULT HrCreateMessage(IMAPIFolder *lpFolder,
 	}
 	if (hr != hrSuccess)
 		return kc_perror("Unable to create new message", hr);
-	hr = lpMessage->QueryInterface(IID_IMessage, (void**)lppMessage);
+	hr = lpMessage->QueryInterface(IID_IMessage, reinterpret_cast<void **>(lppMessage));
 	if (hr != hrSuccess)
 		return kc_perrorf("QueryInterface:message failed", hr);
-	hr = lpFolder->QueryInterface(IID_IMAPIFolder, (void**)lppDeliveryFolder);
+	hr = lpFolder->QueryInterface(IID_IMAPIFolder, reinterpret_cast<void **>(lppDeliveryFolder));
 	if (hr != hrSuccess)
 		return kc_perrorf("QueryInterface:folder failed", hr);
 	return hrSuccess;
@@ -1400,7 +1400,7 @@ static HRESULT HrStringToMAPIMessage(const string &strMail,
 	}
 
 	// return the filled (real or fallback) message
-	hr = lpMessage->QueryInterface(IID_IMessage, (void**)lppMessage);
+	hr = lpMessage->QueryInterface(IID_IMessage, reinterpret_cast<void **>(lppMessage));
 	if (hr != hrSuccess) {
 		kc_perrorf("QueryInterface failed", hr);
 		goto exit;
@@ -1782,9 +1782,9 @@ static HRESULT HrCopyMessageForDelivery(IMessage *lpOrigMessage,
 	if (hr != hrSuccess)
 		return kc_perrorf("IMAP handling failed", hr);
 	if (lppFolder)
-		lpFolder->QueryInterface(IID_IMAPIFolder, (void**)lppFolder);
+		lpFolder->QueryInterface(IID_IMAPIFolder, reinterpret_cast<void **>(lppFolder));
 	if (lppMessage)
-		lpMessage->QueryInterface(IID_IMessage, (void**)lppMessage);
+		lpMessage->QueryInterface(IID_IMessage, reinterpret_cast<void **>(lppMessage));
 	return hrSuccess;
 }
 
@@ -2068,7 +2068,7 @@ static HRESULT ProcessDeliveryToRecipient(pym_plugin_intf *lppyMapiPlugin,
 	// TODO do something with ulResult
 	if (ulResult == MP_STOP_SUCCESS) {
 		if (lppMessage)
-			lpDeliveryMessage->QueryInterface(IID_IMessage, (void**)lppMessage);
+			lpDeliveryMessage->QueryInterface(IID_IMessage, reinterpret_cast<void **>(lppMessage));
 		if (lpbFallbackDelivery)
 			*lpbFallbackDelivery = bFallbackDelivery;
 		return hr;
@@ -2159,7 +2159,7 @@ static HRESULT ProcessDeliveryToRecipient(pym_plugin_intf *lppyMapiPlugin,
 	}
 
 	if (lppMessage)
-		lpDeliveryMessage->QueryInterface(IID_IMessage, (void**)lppMessage);
+		lpDeliveryMessage->QueryInterface(IID_IMessage, reinterpret_cast<void **>(lppMessage));
 	if (lpbFallbackDelivery)
 		*lpbFallbackDelivery = bFallbackDelivery;
 	return hr;
@@ -2287,7 +2287,7 @@ static HRESULT ProcessDeliveryToServer(pym_plugin_intf *lppyMapiPlugin,
 		}
 	}
 	if (lppMessage != nullptr && lpOrigMessage)
-		lpOrigMessage->QueryInterface(IID_IMessage, (void**)lppMessage);
+		lpOrigMessage->QueryInterface(IID_IMessage, reinterpret_cast<void **>(lppMessage));
 	if (lpbFallbackDelivery)
 		*lpbFallbackDelivery = bFallbackDelivery;
 	return hr;

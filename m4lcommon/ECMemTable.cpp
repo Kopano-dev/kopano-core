@@ -922,8 +922,7 @@ HRESULT ECMemTableView::QueryRowData(const ECObjectTableList *lpsRowList,
 
 		lpRows->aRow[i].cValues = lpsPropTags->cValues;
 		lpRows->aRow[i].ulAdrEntryPad = 0;
-
-		hr = MAPIAllocateBuffer(sizeof(SPropValue) * lpsPropTags->cValues, (void **)&lpRows->aRow[i].lpProps);
+		hr = MAPIAllocateBuffer(sizeof(SPropValue) * lpsPropTags->cValues, reinterpret_cast<void **>(&lpRows->aRow[i].lpProps));
 		if(hr != hrSuccess)
 			return hr;
 		++lpRows->cRows;

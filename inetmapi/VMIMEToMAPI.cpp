@@ -981,7 +981,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 
 			int vlen = mbstowcs(NULL, name.c_str(), 0) +1;
 			hr = MAPIAllocateMore(vlen * sizeof(wchar_t), lpNameID,
-			     (void **)&lpNameID->Kind.lpwstrName);
+			     reinterpret_cast<void **>(&lpNameID->Kind.lpwstrName));
 			if (hr != hrSuccess)
 				return hr;
 			mbstowcs(lpNameID->Kind.lpwstrName, name.c_str(), vlen);

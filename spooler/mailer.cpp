@@ -1020,7 +1020,7 @@ static HRESULT SMTPToZarafa(IAddrBook *lpAddrBook, const SBinary &smtp,
 	lpAList->cEntries = 0;
 	lpAList->aEntries[0].cValues = 1;
 	hr = MAPIAllocateBuffer(sizeof(SPropValue) * lpAList->aEntries[0].cValues,
-	     (void **)&lpAList->aEntries[0].rgPropVals);
+	     reinterpret_cast<void **>(&lpAList->aEntries[0].rgPropVals));
 	if (hr != hrSuccess)
 		return hrSuccess;
 	++lpAList->cEntries;
@@ -1948,7 +1948,7 @@ exit:
 		archiveResult.Undo(lpAdminSession);
 	// We always return the processes message to the caller, whether it failed or not
 	if (lpMessage)
-		lpMessage->QueryInterface(IID_IMessage, (void**)lppMessage);
+		lpMessage->QueryInterface(IID_IMessage, reinterpret_cast<void **>(lppMessage));
 	return hr;
 }
 

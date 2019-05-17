@@ -81,7 +81,7 @@ HRESULT ECMAPIContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	hr = lpTable->HrSetTableOps(lpTableOps, !(ulFlags & MAPI_DEFERRED_ERRORS));
 	if(hr != hrSuccess)
 		return hr;
-	hr = lpTable->QueryInterface(IID_IMAPITable, (void **)lppTable);
+	hr = lpTable->QueryInterface(IID_IMAPITable, reinterpret_cast<void **>(lppTable));
 	AddChild(lpTable);
 	return hr;
 }
@@ -111,7 +111,7 @@ HRESULT ECMAPIContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	hr = lpTable->HrSetTableOps(lpTableOps, !(ulFlags & MAPI_DEFERRED_ERRORS));
 	if(hr != hrSuccess)
 		return hr;
-	hr = lpTable->QueryInterface(IID_IMAPITable, (void **)lppTable);
+	hr = lpTable->QueryInterface(IID_IMAPITable, reinterpret_cast<void **>(lppTable));
 	AddChild(lpTable);
 	return hr;
 }

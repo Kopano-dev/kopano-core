@@ -658,7 +658,7 @@ HRESULT WSTransport::HrOpenPropStorage(ULONG cbParentEntryID,
 	     m_ulServerCapabilities, this, &~lpPropStorage);
 	if(hr != hrSuccess)
 		return hr;
-	return lpPropStorage->QueryInterface(IID_IECPropStorage, (void **)lppPropStorage);
+	return lpPropStorage->QueryInterface(IID_IECPropStorage, reinterpret_cast<void **>(lppPropStorage));
 }
 
 HRESULT WSTransport::HrOpenParentStorage(ECGenericProp *lpParentObject, ULONG ulUniqueId, ULONG ulObjId, IECPropStorage *lpServerStorage, IECPropStorage **lppPropStorage)
@@ -3396,7 +3396,7 @@ HRESULT WSTransport::HrResolvePseudoUrl(const char *lpszPseudoUrl, char **lppszS
 		hr = lpCachedResult->hr;
 		if (hr == hrSuccess) {
 			ulLen = lpCachedResult->serverPath.length() + 1;
-			hr = ECAllocateBuffer(ulLen, (void**)&lpszServerPath);
+			hr = ECAllocateBuffer(ulLen, reinterpret_cast<void **>(&lpszServerPath));
 			if (hr == hrSuccess) {
 				memcpy(lpszServerPath, lpCachedResult->serverPath.c_str(), ulLen);
 				*lppszServerPath = lpszServerPath;
@@ -3431,7 +3431,7 @@ HRESULT WSTransport::HrResolvePseudoUrl(const char *lpszPseudoUrl, char **lppszS
 	}
 
 	ulLen = strlen(sResponse.lpszServerPath) + 1;
-	hr = ECAllocateBuffer(ulLen, (void**)&lpszServerPath);
+	hr = ECAllocateBuffer(ulLen, reinterpret_cast<void **>(&lpszServerPath));
 	if (hr != hrSuccess)
 		goto exitm;
 
@@ -3764,7 +3764,7 @@ HRESULT WSTransport::HrTestGet(const char *szName, char **lpszValue)
     }
     END_SOAP_CALL
 
-    hr = MAPIAllocateBuffer(strlen(sResponse.szValue)+1, (void **)&szValue);
+	hr = MAPIAllocateBuffer(strlen(sResponse.szValue) + 1, reinterpret_cast<void **>(&szValue));
     if(hr != hrSuccess)
 		goto exitm;
 
