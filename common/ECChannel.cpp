@@ -14,6 +14,7 @@
 #include <fcntl.h>
 #include <netdb.h>
 #include <poll.h>
+#include <sys/resource.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
@@ -994,12 +995,24 @@ bool ec_bindaddr_less::operator()(const std::string &a, const std::string &b) co
 	return false;
 }
 
+static int ec_fdtable_size()
+{
+	struct rlimit r;
+	if (getrlimit(RLIMIT_NOFILE, &r) == 0)
+		return std::min(static_cast<rlim_t>(INT_MAX), r.rlim_max);
+	auto v = sysconf(_SC_OPEN_MAX);
+	if (v >= 0)
+		return v;
+	return INT_MAX;
+}
+
 /**
  * Unset FD_CLOEXEC on listening sockets so that they survive an execve().
  */
 void ec_reexec_prepare_sockets()
 {
-	for (int fd = 3; fd < INT_MAX; ++fd) {
+	auto maxfd = ec_fdtable_size();
+	for (int fd = 3; fd < maxfd; ++fd) {
 		int set = 0;
 		socklen_t setlen = sizeof(set);
 		auto ret = getsockopt(fd, SOL_SOCKET, SO_ACCEPTCONN, &set, &setlen);
@@ -1018,7 +1031,8 @@ void ec_reexec_prepare_sockets()
 static int ec_fdtable_socket_ai(const struct addrinfo *ai,
     struct sockaddr_storage *oaddr, socklen_t *olen)
 {
-	for (int fd = 3; fd < INT_MAX; ++fd) {
+	auto maxfd = ec_fdtable_size();
+	for (int fd = 3; fd < maxfd; ++fd) {
 		int set = 0;
 		socklen_t arglen = sizeof(set);
 		auto ret = getsockopt(fd, SOL_SOCKET, SO_ACCEPTCONN, &set, &arglen);
