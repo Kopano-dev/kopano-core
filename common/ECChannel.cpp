@@ -1045,6 +1045,7 @@ static int ec_fdtable_socket_ai(const struct addrinfo *ai,
 		ret = getsockname(fd, reinterpret_cast<struct sockaddr *>(&addr), &arglen);
 		if (ret < 0)
 			continue;
+		arglen = std::min(static_cast<socklen_t>(sizeof(addr)), arglen);
 		for (auto sk = ai; sk != nullptr; sk = sk->ai_next) {
 			if (arglen != sk->ai_addrlen ||
 			    memcmp(&addr, sk->ai_addr, arglen) != 0)
