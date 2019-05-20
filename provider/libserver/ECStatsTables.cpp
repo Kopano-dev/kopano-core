@@ -122,7 +122,7 @@ void server_stats::fill_odm()
 	setg("usercnt_equipment", "Number of equipment", uc[usercount_t::ucEquipment]);
 	setg("usercnt_contact", "Number of contacts", uc[usercount_t::ucContact]);
 	set("userplugin", "Plugin for the user backend", g_lpSessionManager->GetConfig()->GetSetting("user_plugin"));
-
+	set("attachment_storage", "Attachment backend type", g_lpSessionManager->GetConfig()->GetSetting("attachment_storage"));
 	g_lpSessionManager->update_extra_stats();
 }
 

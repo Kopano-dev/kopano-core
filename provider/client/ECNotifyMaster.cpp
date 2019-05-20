@@ -155,7 +155,7 @@ HRESULT ECNotifyMaster::StartNotifyWatch()
 		return MAPI_E_CALL_FAILED;
 	}
 	pthread_attr_destroy(&m_hAttrib);
-	set_thread_name(m_hThread, "NotifyThread");
+	set_thread_name(m_hThread, "notify_watch");
 	m_bThreadRunning = TRUE;
 	return hrSuccess;
 }

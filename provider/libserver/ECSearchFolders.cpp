@@ -37,7 +37,7 @@ class THREADINFO final : public ECTask {
 ECSearchFolders::ECSearchFolders(ECSessionManager *lpSessionManager,
     ECDatabaseFactory *lpFactory) :
 	m_lpDatabaseFactory(lpFactory), m_lpSessionManager(lpSessionManager),
-	m_pool{atoui(lpSessionManager->GetConfig()->GetSetting("threads"))}
+	m_pool("sfp", atoui(lpSessionManager->GetConfig()->GetSetting("threads")))
 {
 	auto ret = pthread_create(&m_threadProcess, nullptr, ECSearchFolders::ProcessThread, this);
 	if (ret != 0) {
@@ -45,7 +45,7 @@ ECSearchFolders::ECSearchFolders(ECSessionManager *lpSessionManager,
 		return;
 	}
 	m_thread_active = true;
-    set_thread_name(m_threadProcess, "SearchFolders");
+	set_thread_name(m_threadProcess, "sf/master");
 }
 
 ECSearchFolders::~ECSearchFolders() {
@@ -1054,7 +1054,9 @@ ECRESULT ECSearchFolders::GetState(unsigned int ulStoreId, unsigned int ulFolder
 
 void THREADINFO::run()
 {
-	set_thread_name(pthread_self(), "SearchFolders:Folder");
+	char buf[16];
+	snprintf(buf, sizeof(buf), "sf/%u", lpFolder->ulFolderId);
+	set_thread_name(pthread_self(), buf);
 	kcsrv_blocksigs();
 	ECSearchFolders::SearchThread(this);
 }

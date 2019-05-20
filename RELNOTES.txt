@@ -23,6 +23,13 @@ Packaging changes:
 * gsoap 2.8.73 or higher is now required
 
 
+8.7.x
+=====
+Fixes:
+* stats: print "PR_..." instead of proptag numbers [KC-1495]
+* server: no more unbounded thread number increase [KC-1446]
+
+
 8.7.2 (2019-05-13)
 ==================
 Fixes:

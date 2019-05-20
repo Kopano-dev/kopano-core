@@ -470,7 +470,7 @@ static HRESULT HrStartHandlerClient(ECChannel *lpChannel, bool bUseSSL,
 	} else {
 		lpHandlerArgs.release();
 	}
-	set_thread_name(pThread, std::string("ZCalDAV") + lpChannel->peer_addr());
+	set_thread_name(pThread, "net/"s + lpChannel->peer_addr());
 	return hrSuccess;
 }
 

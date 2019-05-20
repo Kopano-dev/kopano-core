@@ -588,7 +588,7 @@ static HRESULT handler_client(size_t i)
 		ec_log_err("Could not create %s %s: %s", method, model, strerror(err));
 		return MAPI_E_CALL_FAILED;
 	}
-	set_thread_name(tid, "ZGateway " + std::string(method));
+	set_thread_name(tid, "net/" + strToLower(method));
 	lpHandlerArgs.release();
 	return hrSuccess;
 }

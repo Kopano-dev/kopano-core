@@ -5,6 +5,7 @@
 #define _GNU_SOURCE 1 /* pthread_setname_np */
 #include <chrono>
 #include <condition_variable>
+#include <mutex>
 #include <string>
 #include <utility>
 #include <cerrno>
@@ -17,21 +18,96 @@
 #	include <sys/syscall.h>
 #endif
 #include <kopano/platform.h>
+#include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
 #include <kopano/ECScheduler.h>
 #include <kopano/ECThreadPool.h>
+#include <kopano/stringutil.h>
 #include <algorithm>
 #define SCHEDULER_POLL_FREQUENCY	5
 
 namespace KC {
 
 /**
+ * Represents the watchdog thread. This monitors the pool and
+ * acts when needed.
+ *
+ * We check the age of the first item in the queue dblMaxFreq times
+ * per second. If it is higher than dblMaxAge, a new thread is added.
+ *
+ * Thread deletion is done by the Thread Manager.
+ */
+class ECWatchdog final {
+	public:
+	ECWatchdog(std::shared_ptr<ECConfig>, ECThreadPool *);
+	~ECWatchdog();
+
+	private:
+	static void *watcher(void *);
+	std::shared_ptr<ECConfig> m_config;
+	ECThreadPool *m_pool = nullptr;
+	pthread_t m_thread{};
+	bool m_thread_active = false, m_exit = false;
+	std::mutex m_exit_mtx;
+	std::condition_variable m_condexit;
+};
+
+ECWatchdog::ECWatchdog(std::shared_ptr<ECConfig> cfg, ECThreadPool *parent) :
+	m_config(std::move(cfg)), m_pool(parent)
+{
+	assert(m_config != nullptr);
+	auto ret = pthread_create(&m_thread, nullptr, watcher, this);
+	if (ret != 0) {
+		ec_log_crit("Could not create ECWatchDog thread: %s", strerror(ret));
+		return;
+	}
+	m_thread_active = true;
+	set_thread_name(m_thread, "watchdog");
+}
+
+ECWatchdog::~ECWatchdog()
+{
+	void *ret;
+	ulock_normal l_exit(m_exit_mtx);
+	m_exit = true;
+	m_condexit.notify_one();
+	l_exit.unlock();
+	if (m_thread_active)
+		pthread_join(m_thread, &ret);
+}
+
+void *ECWatchdog::watcher(void *param)
+{
+	auto self = static_cast<ECWatchdog *>(param);
+	kcsrv_blocksigs();
+	while (!self->m_exit) {
+		auto freq = atoui(self->m_config->GetSetting("watchdog_frequency"));
+		auto age = self->m_pool->front_item_age();
+		using namespace std::chrono;
+		auto max = milliseconds(atoui(self->m_config->GetSetting("watchdog_max_age")));
+		if (age > max)
+			/*
+			 * If the age of the front item in the queue is older
+			 * than the specified maximum age, force a new thread
+			 * to be started.
+			 */
+			self->m_pool->add_extra_thread();
+
+		ulock_normal l_exit(self->m_exit_mtx);
+		if (!self->m_exit)
+			self->m_condexit.wait_for(l_exit, duration<double>(1.0 / freq));
+	}
+	return nullptr;
+}
+
+/**
  * Construct an ECThreadPool instance.
  * @param[in]	ulThreadCount	The amount of worker hreads to create.
  */
-ECThreadPool::ECThreadPool(unsigned ulThreadCount)
+ECThreadPool::ECThreadPool(const std::string &pname, unsigned int spares) :
+	m_poolname(pname)
 {
-	setThreadCount(ulThreadCount);
+	set_thread_count(spares);
 }
 
 /**
@@ -40,7 +116,15 @@ ECThreadPool::ECThreadPool(unsigned ulThreadCount)
  */
 ECThreadPool::~ECThreadPool()
 {
-	setThreadCount(0, true);
+	set_thread_count(0, 0, true);
+}
+
+void ECThreadPool::enable_watchdog(bool e, std::shared_ptr<ECConfig> cfg)
+{
+	if (!e)
+		m_watchdog.reset();
+	else if (m_watchdog == nullptr && cfg != nullptr)
+		m_watchdog = make_unique_nt<ECWatchdog>(std::move(cfg), this);
 }
 
 /**
@@ -86,17 +170,45 @@ size_t ECThreadPool::threadCount() const
 	return m_setThreads.size() - m_ulTermReq;
 }
 
+HRESULT ECThreadPool::create_thread_unlocked()
+{
+	pthread_t hThread;
+	auto wk = make_worker();
+	auto ret = pthread_create(&hThread, nullptr, &threadFunc, wk.get());
+	if (ret != 0) {
+		ec_log_err("Could not create ECThreadPool worker thread: %s", strerror(ret));
+		return ret;
+	}
+	m_setThreads.emplace(hThread, std::move(wk));
+	return hrSuccess;
+}
+
+void ECThreadPool::add_extra_thread()
+{
+	ulock_normal lk(m_hMutex);
+	if (m_setThreads.size() < m_threads_max)
+		create_thread_unlocked();
+}
+
 /**
  * Set the amount of worker threads for the threadpool.
- * @param[in]	ulThreadCount	The amount of required worker threads.
+ * @ulThreadCount:	The amount of worker threads that should be alive at all times (spares).
+ * @thrmax:		Upper thread limit (spares + on-demand threads)
  * @param[in]	bWait			If the requested amount of worker threads is less
  *                              than the current amount, this method will wait until
  *                              the extra threads have exited if this argument is true.
  */
-void ECThreadPool::setThreadCount(unsigned ulThreadCount, bool bWait)
+void ECThreadPool::set_thread_count(unsigned int ulThreadCount,
+    unsigned int thrmax, bool bWait)
 {
-	ulock_normal locker(m_hMutex);
+	if (ulThreadCount == 0)
+		m_watchdog.reset();
+	if (thrmax < ulThreadCount)
+		thrmax = ulThreadCount;
 
+	ulock_normal locker(m_hMutex);
+	m_threads_spares = ulThreadCount;
+	m_threads_max = thrmax;
 	if (ulThreadCount == threadCount() - 1) {
 		++m_ulTermReq;
 		m_hCondition.notify_one();
@@ -115,16 +227,10 @@ void ECThreadPool::setThreadCount(unsigned ulThreadCount, bool bWait)
 			m_ulTermReq = 0;
 
 			for (unsigned i = 0; i < ulThreadsToAdd; ++i) {
-				auto wk = make_worker();
-				pthread_t hThread;
-
-				auto ret = pthread_create(&hThread, nullptr, &threadFunc, wk.get());
-				if (ret != 0) {
-					ec_log_err("Could not create ECThreadPool worker thread: %s", strerror(ret));
+				auto ret = create_thread_unlocked();
+				if (ret != 0)
 					/* If there were no resources, stop trying. */
 					break;
-				}
-				m_setThreads.emplace(hThread, std::move(wk));
 			}
 		}
 	}
@@ -154,8 +260,19 @@ bool ECThreadPool::getNextTask(STaskInfo *lpsTaskInfo, ulock_normal &locker)
 	assert(locker.owns_lock());
 	assert(lpsTaskInfo != NULL);
 	bool bTerminate = false;
-	while (!(bTerminate = m_ulTermReq > 0) && m_listTasks.empty())
+
+	/*
+	 * If "hard" termination requests are pending, heed that right away.
+	 * Else enter the idle loop - in which "soft" termination requests are
+	 * checked for.
+	 */
+	while (!(bTerminate = m_ulTermReq > 0) && m_listTasks.empty()) {
+		if (m_setThreads.size() > m_threads_spares) {
+			bTerminate = ++m_ulTermReq;
+			break;
+		}
 		m_hCondition.wait(locker);
+	}
 
 	if (bTerminate) {
 		pthread_t self = pthread_self();
@@ -203,7 +320,7 @@ void* ECThreadPool::threadFunc(void *lpVoid)
 {
 	auto worker = static_cast<ECThreadWorker *>(lpVoid);
 	auto lpPool = worker->m_pool;
-	set_thread_name(pthread_self(), "ECThreadPool");
+	set_thread_name(pthread_self(), (lpPool->m_poolname + "/idle").c_str());
 	if (!worker->init())
 		return nullptr;
 
@@ -310,7 +427,7 @@ ECScheduler::ECScheduler()
 		return;
 	}
 	m_thread_active = true;
-	set_thread_name(m_hMainThread, "ECScheduler:main");
+	set_thread_name(m_hMainThread, "sch");
 }
 
 ECScheduler::~ECScheduler()
@@ -413,7 +530,7 @@ void *ECScheduler::ScheduleThread(void *lpTmpScheduler)
 					ec_log_err("Could not create ECScheduler worker thread: %s", strerror(err));
 					goto task_fail;
 				}
-				set_thread_name(hThread, "ECScheduler:worker");
+				set_thread_name(hThread, "scw");
 				sl.tLastRunTime = ttime;
 				err = pthread_join(hThread, reinterpret_cast<void **>(&lperThread));
 				if (err != 0) {

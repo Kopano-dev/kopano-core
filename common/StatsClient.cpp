@@ -173,7 +173,8 @@ std::string ECStatsCollector::survey_as_text()
 	}
 	std::unique_lock<std::mutex> lk(m_odm_lock);
 	for (const auto &key : {"userplugin", "usercnt_active", "usercnt_contact",
-	    "usercnt_equipment", "usercnt_na_user", "usercnt_nonactive", "usercnt_room"}) {
+	    "usercnt_equipment", "usercnt_na_user", "usercnt_nonactive",
+	    "usercnt_room", "attachment_storage"}) {
 		auto i = m_ondemand.find(key);
 		if (i == m_ondemand.cend())
 			continue;
@@ -291,8 +292,10 @@ void ECStatsCollector::start()
 	if (thread_running)
 		return;
 	auto ret = pthread_create(&countsSubmitThread, nullptr, submitThread, this);
-	if (ret == 0)
-		thread_running = true;
+	if (ret != 0)
+		return;
+	thread_running = true;
+	set_thread_name(countsSubmitThread, "statscl");
 }
 
 void ECStatsCollector::AddStat(SCName index, SCType type, const char *name,

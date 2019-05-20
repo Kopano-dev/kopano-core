@@ -977,6 +977,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{ "search_timeout",			"10", CONFIGSETTING_RELOADABLE },
 
 		{ "threads",				"8", CONFIGSETTING_RELOADABLE },
+		{"thread_limit", "40", CONFIGSETTING_RELOADABLE},
 		{ "watchdog_max_age",		"500", CONFIGSETTING_RELOADABLE },
 		{ "watchdog_frequency",		"1", CONFIGSETTING_RELOADABLE },
 
