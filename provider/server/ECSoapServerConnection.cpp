@@ -230,7 +230,7 @@ ECRESULT ECSoapServerConnection::ListenTCP(const char *lpServerName, int nServer
 	} else {
 		lpsSoap->socket = socket = soap_bind(lpsSoap.get(), *lpServerName == '\0' ? nullptr : lpServerName, nServerPort, INT_MAX);
 		if (socket == -1) {
-			ec_log_crit("Unable to bind to port %d: %s. This is usually caused by another process (most likely another server) already using this port. This program will terminate now.", nServerPort, lpsSoap->fault->faultstring);
+			ec_log_crit("Unable to bind to port %d: %s. Terminating.", nServerPort, lpsSoap->fault->faultstring);
 			kill(0, SIGTERM);
 			exit(1);
 		}
@@ -301,7 +301,7 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char *lpServerName,
 		lpsSoap->socket = socket = soap_bind(lpsSoap.get(),
 			*lpServerName == '\0' ? nullptr : lpServerName, nServerPort, INT_MAX);
 		if (socket == -1) {
-			ec_log_crit("Unable to bind to port %d: %s (SSL). This is usually caused by another process (most likely another server) already using this port. This program will terminate now.", nServerPort, lpsSoap->fault->faultstring);
+			ec_log_crit("Unable to bind to port %d: %s (SSL). Terminating.", nServerPort, lpsSoap->fault->faultstring);
 			kill(0, SIGTERM);
 			exit(1);
 		}
