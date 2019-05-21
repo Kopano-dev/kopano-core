@@ -16,7 +16,7 @@ SUBDIRS += installer/linux
 if ENABLE_PYTHON
 SUBDIRS += ECtools/backup ECtools/cli ECtools/migration-pst \
 	ECtools/presence ECtools/search ECtools/spamd \
-	ECtools/msr ECtools/utils installer/searchscripts spooler/python \
+	ECtools/utils installer/searchscripts spooler/python \
 	spooler/python/plugins swig/python/kopano
 endif
 BUILT_SOURCES =
@@ -947,7 +947,6 @@ dist_man_MANS += \
 	doc/kopano-cli.8 \
 	doc/kopano-mailbox-permissions.8 \
 	doc/kopano-migration-pst.8 doc/kopano-migration-pst.cfg.5 \
-	doc/kopano-msr.8 doc/kopano-msr.cfg.5 \
 	doc/kopano-mr-accept.8 doc/kopano-mr-process.8 \
 	doc/kopano-search.8 doc/kopano-search.cfg.5 \
 	doc/kopano-set-oof.1 \

@@ -44,7 +44,7 @@ endif # ENABLE_BASE
 
 if ENABLE_PYTHON
 dist_sbin_SCRIPTS += kopano-autorespond
-config_files += autorespond.cfg backup.cfg migration-pst.cfg msr.cfg presence.cfg search.cfg spamd.cfg
+config_files += autorespond.cfg backup.cfg migration-pst.cfg presence.cfg search.cfg spamd.cfg
 dist_sysconf_apparmor_DATA += usr.sbin.kopano-search
 dist_doc_DATA += ${top_srcdir}/tools/python-scripts/update-resource-recipients
 kgwdocdir = ${docdir}/../kopano-gateway
