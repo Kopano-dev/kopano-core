@@ -970,6 +970,16 @@ static std::pair<int, std::list<ec_socket>> ec_bindspec_to_inetinfo(const char *
 	hints.ai_flags = AI_NUMERICHOST | AI_NUMERICSERV | AI_PASSIVE;
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
+#ifdef IPPROTO_SCTP
+	if (strncmp(spec, "sctp:", 5) == 0) {
+		/*
+		 * In glibc and FreeBSD libc, SCTP will only be returned if
+		 * explicitly asked for. OpenBSD does not have SCTP.
+		 */
+		spec += 5;
+		hints.ai_protocol = IPPROTO_SCTP;
+	}
+#endif
 
 	std::list<ec_socket> vec;
 	auto parts = ec_parse_bindaddr(spec);
@@ -999,6 +1009,10 @@ static std::pair<int, std::list<ec_socket>> ec_bindspec_to_inetinfo(const char *
 			sk.m_spec = "["s + tmp + "]:" + std::to_string(sk.m_port);
 		else
 			sk.m_spec = tmp + ":"s + std::to_string(sk.m_port);
+#ifdef IPPROTO_SCTP
+		if (hints.ai_protocol == IPPROTO_SCTP)
+			sk.m_spec.insert(0, "sctp:");
+#endif
 		vec.emplace_back(std::move(sk));
 	}
 	return {0, std::move(vec)};
