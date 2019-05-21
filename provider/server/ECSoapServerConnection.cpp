@@ -199,6 +199,19 @@ ECSoapServerConnection::~ECSoapServerConnection(void)
 	delete m_lpDispatcher;
 }
 
+static int custom_soap_bind(struct soap *soap, const char *host, int port)
+{
+	auto ret = ec_listen_inet(host, port, &soap->master);
+	if (ret < 0)
+		return ret;
+	socklen_t sl = sizeof(soap->peer.storage);
+	if (getsockname(soap->master, reinterpret_cast<struct sockaddr *>(&soap->peer.storage), &sl) == 0)
+		soap->peerlen = std::min(static_cast<socklen_t>(sizeof(soap->peer.storage)), sl);
+	soap->port = port;
+	soap->socket = soap->master;
+	return 0;
+}
+
 ECRESULT ECSoapServerConnection::ListenTCP(const char *lpServerName, int nServerPort)
 {
 	int			socket = SOAP_INVALID_SOCKET;
@@ -213,8 +226,9 @@ ECRESULT ECSoapServerConnection::ListenTCP(const char *lpServerName, int nServer
 	lpsSoap->sndbuf = lpsSoap->rcvbuf = 0;
 	lpsSoap->bind_flags = SO_REUSEADDR;
 #if GSOAP_VERSION >= 20857
-	/* The v6only field exists in 2.8.56, but has no effect. */
-	lpsSoap->bind_v6only = strcmp(lpServerName, "*") != 0;
+	/* The v6only field exists in 2.8.56, but has no effect there. */
+	/* Note: ec_parse_bindaddr converts "*" to "". */
+	lpsSoap->bind_v6only = strcmp(lpServerName, "") != 0;
 #endif
 	struct sockaddr_storage grab_addr;
 	socklen_t grab_len = 0;
@@ -227,13 +241,13 @@ ECRESULT ECSoapServerConnection::ListenTCP(const char *lpServerName, int nServer
 		soap_memcpy(&lpsSoap->peer.storage, sizeof(lpsSoap->peer.storage), &grab_addr, grab_len);
 		ec_log_info("Re-using fd %d to listen on TCP port %d", socket, nServerPort);
 	} else {
-		lpsSoap->socket = socket = soap_bind(lpsSoap.get(), *lpServerName == '\0' ? nullptr : lpServerName, nServerPort, INT_MAX);
-		if (socket == -1) {
-			ec_log_crit("Unable to bind to port %d: %s. This is usually caused by another process (most likely another server) already using this port. This program will terminate now.", nServerPort, lpsSoap->fault->faultstring);
+		if (custom_soap_bind(lpsSoap.get(), lpServerName, nServerPort) < 0) {
+			ec_log_crit("Unable to bind to port %d: %s. Terminating.", nServerPort,
+				lpsSoap->fault != nullptr ? lpsSoap->fault->faultstring : strerror(errno));
 			kill(0, SIGTERM);
 			exit(1);
 		}
-		ec_log_notice("Listening for TCP connections on port %d", nServerPort);
+		ec_log_notice("Listening for TCP connections on port %d (fd %d)", nServerPort, lpsSoap->master);
         }
 	/* Manually check for attachments, independent of streaming support. */
 	soap_post_check_mime_attachments(lpsSoap.get());
@@ -284,7 +298,7 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char *lpServerName,
 		return er;
 	lpsSoap->bind_flags = SO_REUSEADDR;
 #if GSOAP_VERSION >= 20857
-	lpsSoap->bind_v6only = strcmp(lpServerName, "*") != 0;
+	lpsSoap->bind_v6only = strcmp(lpServerName, "") != 0;
 #endif
 	struct sockaddr_storage grab_addr;
 	socklen_t grab_len = 0;
@@ -297,14 +311,13 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char *lpServerName,
 		soap_memcpy(&lpsSoap->peer.storage, sizeof(lpsSoap->peer.storage), &grab_addr, grab_len);
 		ec_log_info("Re-using fd %d to listen on SSL port %d", socket, nServerPort);
 	} else {
-		lpsSoap->socket = socket = soap_bind(lpsSoap.get(),
-			*lpServerName == '\0' ? nullptr : lpServerName, nServerPort, INT_MAX);
-		if (socket == -1) {
-			ec_log_crit("Unable to bind to port %d: %s (SSL). This is usually caused by another process (most likely another server) already using this port. This program will terminate now.", nServerPort, lpsSoap->fault->faultstring);
+		if (custom_soap_bind(lpsSoap.get(), lpServerName, nServerPort) < 0) {
+			ec_log_crit("Unable to bind to port %d: %s (SSL). Terminating.", nServerPort,
+				lpsSoap->fault != nullptr ? lpsSoap->fault->faultstring : strerror(errno));
 			kill(0, SIGTERM);
 			exit(1);
 		}
-		ec_log_notice("Listening for SSL connections on port %d", nServerPort);
+		ec_log_notice("Listening for SSL connections on port %d (fd %d)", nServerPort, lpsSoap->master);
         }
 	/* Manually check for attachments, independent of streaming support. */
 	soap_post_check_mime_attachments(lpsSoap.get());
@@ -344,7 +357,7 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriori
 		lpsSoap->socket = sPipe = create_pipe_socket(lpPipeName, m_lpConfig.get(), true, bPriority ? 0660 : 0666);
 		if (sPipe == -1)
 			return KCERR_CALL_FAILED;
-		ec_log_notice("Listening for %spipe connections on %s", bPriority ? "priority " : "", lpPipeName);
+		ec_log_notice("Listening for %spipe connections on %s (fd %d)", bPriority ? "priority " : "", lpPipeName, lpsSoap->socket);
 	}
 	lpsSoap->master = sPipe;
 	socklen = sizeof(lpsSoap->peer.storage);
