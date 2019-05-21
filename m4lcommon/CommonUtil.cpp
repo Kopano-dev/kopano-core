@@ -1736,9 +1736,6 @@ HRESULT spv_postload_large_props(IMAPIProp *lpProp,
 		if (ret != hrSuccess)
 			return ret;
 		lpTags = new_tags.get();
-		if (lpTags->cValues != cValues)
-			/* quite the corner case, don't bother. */
-			return MAPI_E_INVALID_PARAMETER;
 	}
 
 	for (unsigned int i = 0; i < cValues; ++i) {
@@ -1748,7 +1745,11 @@ HRESULT spv_postload_large_props(IMAPIProp *lpProp,
 			had_err = true;
 			continue;
 		}
-		unsigned int tag = lpTags->aulPropTag[i];
+		auto tag_iter = std::find_if(&lpTags->aulPropTag[0], &lpTags->aulPropTag[lpTags->cValues],
+			[&](unsigned int t) { return PROP_ID(lpProps[i].ulPropTag) == PROP_ID(t); });
+		if (tag_iter == &lpTags->aulPropTag[lpTags->cValues])
+			continue;
+		unsigned int tag = *tag_iter;
 		if (PROP_TYPE(tag) != PT_STRING8 && PROP_TYPE(tag) != PT_UNICODE && PROP_TYPE(tag) != PT_BINARY)
 			continue;
 		if (lpProp->OpenProperty(tag, &IID_IStream, 0, 0, &~lpStream) != hrSuccess)
