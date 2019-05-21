@@ -2835,29 +2835,25 @@ static void *HandlerLMTP(void *lpArg)
 static int dagent_listen(ECConfig *cfg, std::vector<struct pollfd> &pollers,
     std::vector<int> &closefd)
 {
-	std::set<std::string, ec_bindaddr_less> lmtp_sock;
-	lmtp_sock = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("lmtp_listen"), ' ', true));
-
+	auto lmtp_info = ec_bindspec_to_sockets(tokenize(cfg->GetSetting("lmtp_listen"), ' ', true),
+	                 S_IRWUGO, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+	if (lmtp_info.first < 0) {
+		ec_log_err("Socket binding failed");
+		return lmtp_info.first;
+	}
+	auto &lmtp_sock = lmtp_info.second;
 	auto intf = cfg->GetSetting("server_bind_intf");
 	struct pollfd x;
 	memset(&x, 0, sizeof(x));
 	x.events = POLLIN;
 	pollers.reserve(lmtp_sock.size());
 	closefd.reserve(lmtp_sock.size());
-	for (const auto &spec : lmtp_sock) {
-		auto ret = ec_listen_generic(spec.c_str(), &x.fd, S_IRWUGO,
-		           cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
-		if (ret < 0) {
-			ec_log_err("Listening on %s failed: %s", spec.c_str(), strerror(-ret));
-			return ret;
-		} else if (ret == 0) {
-			ec_log_info("Listening on %s for LMTP", spec.c_str());
-		} else if (ret == 1) {
-			ec_log_info("Re-using fd %d to listen on %s for LMTP", x.fd, spec.c_str());
-		}
+	for (auto &spec : lmtp_sock) {
+		x.fd = spec.m_fd;
+		spec.m_fd = -1;
 		pollers.push_back(x);
 		closefd.push_back(x.fd);
-		ret = zcp_bindtodevice(x.fd, intf);
+		auto ret = zcp_bindtodevice(x.fd, intf);
 		if (ret < 0) {
 			ec_log_err("SO_BINDTODEVICE: %s", strerror(-ret));
 			return ret;

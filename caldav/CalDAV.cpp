@@ -319,9 +319,16 @@ exit:
 
 static HRESULT ical_listen(ECConfig *cfg)
 {
-	std::set<std::string, ec_bindaddr_less> ical_sock, icals_sock;
-	ical_sock  = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("ical_listen"), ' ', true));
-	icals_sock = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("icals_listen"), ' ', true));
+	auto info = ec_bindspec_to_sockets(tokenize(cfg->GetSetting("ical_listen"), ' ', true),
+	            S_IRWUGO, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+	if (info.first < 0)
+		return E_FAIL;
+	auto ical_sock = std::move(info.second);
+	info = ec_bindspec_to_sockets(tokenize(cfg->GetSetting("icals_listen"), ' ', true),
+	       S_IRWUGO, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+	if (info.first < 0)
+		return E_FAIL;
+	auto icals_sock = std::move(info.second);
 
 	if (!icals_sock.empty()) {
 		auto hr = ECChannel::HrSetCtx(g_lpConfig.get());
@@ -335,32 +342,16 @@ static HRESULT ical_listen(ECConfig *cfg)
 	struct pollfd pfd;
 	memset(&pfd, 0, sizeof(pfd));
 	pfd.events = POLLIN;
-	for (const auto &spec : ical_sock) {
-		auto ret = ec_listen_generic(spec.c_str(), &pfd.fd, S_IRWUGO,
-		           cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
-		if (ret < 0) {
-			ec_log_err("Listening on %s failed: %s", spec.c_str(), strerror(-ret));
-			return MAPI_E_NETWORK_ERROR;
-		} else if (ret == 0) {
-			ec_log_notice("Listening on %s for http", spec.c_str());
-		} else if (ret == 1) {
-			ec_log_info("Re-using fd %d to listen on %s for http", pfd.fd, spec.c_str());
-		}
+	for (auto &spec : ical_sock) {
+		pfd.fd = spec.m_fd;
+		spec.m_fd = -1;
 		g_socks.pollfd.push_back(pfd);
 		g_socks.linfd.push_back(pfd.fd);
 		g_socks.ssl.push_back(false);
 	}
-	for (const auto &spec : icals_sock) {
-		auto ret = ec_listen_generic(spec.c_str(), &pfd.fd, S_IRWUGO,
-		           cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
-		if (ret < 0) {
-			ec_log_err("Listening on %s failed: %s", spec.c_str(), strerror(-ret));
-			return MAPI_E_NETWORK_ERROR;
-		} else if (ret == 0) {
-			ec_log_notice("Listening on %s for https", spec.c_str());
-		} else if (ret == 1) {
-			ec_log_info("Re-using fd %d to listen on %s for https", pfd.fd, spec.c_str());
-		}
+	for (auto &spec : icals_sock) {
+		pfd.fd = spec.m_fd;
+		spec.m_fd = -1;
 		g_socks.pollfd.push_back(pfd);
 		g_socks.linfd.push_back(pfd.fd);
 		g_socks.ssl.push_back(true);

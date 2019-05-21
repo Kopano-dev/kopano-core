@@ -65,22 +65,22 @@ static void *idx_thread_start(void *arg)
 
 static int idx_listen(ECConfig *cfg, std::vector<struct pollfd> &pollers)
 {
-	auto idx_sock = vector_to_set(tokenize(cfg->GetSetting("indexer_listen"), ' ', true));
+	auto lsock = tokenize(cfg->GetSetting("indexer_listen"), ' ', true);
 	auto old_addr = cfg->GetSetting("server_bind_name");
 	if (old_addr != nullptr && *old_addr != '\0')
-		idx_sock.emplace("unix:"s + old_addr);
+		lsock.emplace_back("unix:"s + old_addr);
+	auto rsock = ec_bindspec_to_sockets(std::move(lsock), S_IRWUG,
+	             cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+	auto &idx_sock = rsock.second;
 
 	struct pollfd x;
 	memset(&x, 0, sizeof(x));
 	x.events = POLLIN;
 	pollers.reserve(idx_sock.size());
-	for (const auto &spec : idx_sock) {
-		auto ret = ec_listen_generic(spec.c_str(), &x.fd, S_IRWUG,
-		           cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
-		if (ret < 0)
-			return ret;
-		pollers.push_back(x);
-		ec_log_info("Listening on %s for index requests", spec.c_str());
+	for (auto &spec : idx_sock) {
+		x.fd = spec.m_fd;
+		spec.m_fd = -1;
+		pollers.emplace_back(x);
 	}
 	return 0;
 }

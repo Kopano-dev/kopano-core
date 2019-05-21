@@ -197,14 +197,17 @@ static void sd_mainloop(std::vector<struct pollfd> &&sk)
 
 static HRESULT sd_listen(ECConfig *cfg, std::vector<struct pollfd> &pollfd)
 {
+	auto info = ec_bindspec_to_sockets(tokenize(sd_config->GetSetting("statsd_listen"), ' ', true),
+	            S_IRWUG, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+	if (info.first < 0)
+		return EXIT_FAILURE;
+
 	struct pollfd pfd;
 	memset(&pfd, 0, sizeof(pfd));
 	pfd.events = POLLIN;
-	for (const auto &spec : tokenize(cfg->GetSetting("statsd_listen"), ' ', true)) {
-		auto ret = ec_listen_generic(spec.c_str(), &pfd.fd, S_IRWUG,
-		           cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
-		if (ret < 0)
-			return MAPI_E_NETWORK_ERROR;
+	for (auto &spec : info.second) {
+		pfd.fd = spec.m_fd;
+		spec.m_fd = -1;
 		pollfd.push_back(pfd);
 	}
 	return hrSuccess;
