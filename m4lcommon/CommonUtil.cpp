@@ -1729,7 +1729,18 @@ HRESULT spv_postload_large_props(IMAPIProp *lpProp,
 	StreamPtr lpStream;	
 	void *lpData = NULL;
 	bool had_err = false;
-	
+	memory_ptr<SPropTagArray> new_tags;
+
+	if (lpTags == nullptr) {
+		auto ret = lpProp->GetPropList(0, &~new_tags);
+		if (ret != hrSuccess)
+			return ret;
+		lpTags = new_tags.get();
+		if (lpTags->cValues != cValues)
+			/* quite the corner case, don't bother. */
+			return MAPI_E_INVALID_PARAMETER;
+	}
+
 	for (unsigned int i = 0; i < cValues; ++i) {
 		if (PROP_TYPE(lpProps[i].ulPropTag) != PT_ERROR)
 			continue;
