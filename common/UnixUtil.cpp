@@ -125,8 +125,7 @@ int unix_chown(const char *filename, const char *username, const char *groupname
 		if (pw)
 			uid = pw->pw_uid;
 	}
-
-	return chown(filename, uid, gid);
+	return chown(filename, uid, gid) == 0 ? 0 : -errno;
 }
 
 static char *read_one_line(const char *tunable)

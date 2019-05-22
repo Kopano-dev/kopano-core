@@ -59,9 +59,9 @@ static int create_pipe_socket(const char *unix_socket, ECConfig *lpConfig,
 	auto uname = lpConfig->GetSetting("run_as_user");
 	auto gname = lpConfig->GetSetting("run_as_group");
 	er = unix_chown(unix_socket, uname, gname);
-	if(er) {
+	if (er < 0) {
 		ec_log_crit("Unable to chown socket %s, to %s:%s. Error: %s",
-			unix_socket, uname, gname, strerror(errno));
+			unix_socket, uname, gname, strerror(-er));
 		close(s);
 		return -1;
 	}
