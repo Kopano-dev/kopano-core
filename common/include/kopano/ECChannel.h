@@ -67,7 +67,7 @@ class _kc_export ec_bindaddr_less {
 /* helpers to open socket */
 extern _kc_export int ec_listen_localsock(const char *path, int *fd, int mode = -1, const char *user = nullptr, const char *group = nullptr);
 extern _kc_export int ec_listen_inet(const char *bind, uint16_t port, int *fd);
-extern _kc_export int ec_listen_generic(const char *bind, int *fd, int mode = -1);
+extern _kc_export int ec_listen_generic(const char *bind, int *fd, int mode = -1, const char *user = nullptr, const char *group = nullptr);
 /* accept data on connection */
 extern _kc_export HRESULT HrAccept(int fd, ECChannel **ch);
 extern _kc_export int zcp_bindtodevice(int fd, const char *iface);

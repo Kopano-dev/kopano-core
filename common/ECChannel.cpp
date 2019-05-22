@@ -995,10 +995,11 @@ std::pair<std::string, uint16_t> ec_parse_bindaddr(const char *spec)
  * NB: hostname and ipv4-addr are not specified to be enclosed in square
  * brackets, but ec_parse_bindaddr2 supports it by chance.
  */
-int ec_listen_generic(const char *spec, int *pfd, int mode)
+int ec_listen_generic(const char *spec, int *pfd, int mode,
+    const char *user, const char *group)
 {
 	if (strncmp(spec, "unix:", 5) == 0)
-		return ec_listen_localsock(spec + 5, pfd, mode);
+		return ec_listen_localsock(spec + 5, pfd, mode, user, group);
 	auto parts = ec_parse_bindaddr(spec);
 	if (parts.first == "!" || parts.second == 0)
 		return -EINVAL;
