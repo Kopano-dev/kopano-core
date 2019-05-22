@@ -29,7 +29,8 @@ One address:port specifier for where the service should listen for connections.
 listen for connections. IPv6 addresses need to be enclosed in square brackets
 (as in \fB[2001:db8::1]:236\fP). The asterisk denotes the network layer
 multi-protocol (IPv4/IPv6) address ("*:8001"). Local sockets are supported with
-"\fBunix:\fP\fI/path\fP". Hostnames are not allowed.
+"\fBunix:\fP\fI/path\fP". Hostnames are not allowed (as they are susceptible to
+address changes).
 .PP
 Default: \fIunix:/var/run/kopano/statsd.sock\fP
 .SS stats_rrd
