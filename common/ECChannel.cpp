@@ -804,7 +804,7 @@ static int ec_listen_localsock(const char *path, int *pfd, int mode,
 /**
  * Create PF_INET/PF_INET6 socket for listening and return the fd.
  */
-int ec_listen_inet(const char *szBind, uint16_t ulPort, int *lpulListenSocket)
+static int ec_listen_inet(const char *szBind, uint16_t ulPort, int *lpulListenSocket)
 {
 	int fd = -1, opt = 1, ret;
 	struct addrinfo *sock_res = NULL, sock_hints;

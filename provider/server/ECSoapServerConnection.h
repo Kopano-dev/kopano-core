@@ -19,8 +19,8 @@ class ECSoapServerConnection final {
 public:
 	ECSoapServerConnection(std::shared_ptr<KC::ECConfig>);
 	~ECSoapServerConnection();
-	ECRESULT ListenTCP(const char *host, int port);
-	ECRESULT ListenSSL(const char *host, int port, const char *keyfile, const char *keypass, const char *cafile, const char *capath);
+	ECRESULT ListenTCP(const char *bindspec, bool v6only, int port);
+	ECRESULT ListenSSL(const char *bindspec, bool v6only, int port, const char *keyfile, const char *keypass, const char *cafile, const char *capath);
 	ECRESULT ListenPipe(const char* lpPipeName, bool bPriority = false);
 	ECRESULT MainLoop();
 	// These can be called asynchronously from MainLoop();

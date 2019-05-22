@@ -734,7 +734,8 @@ static int ksrv_listen_inet(ECSoapServerConnection *ssc, ECConfig *cfg)
 	/* Launch */
 	for (const auto &spec : http_sock) {
 		auto p = ec_parse_bindaddr(spec.c_str());
-		auto er = ssc->ListenTCP(p.first.c_str(), p.second != 0 ? p.second : 236);
+		auto er = ssc->ListenTCP(spec.c_str(), p.first.size() == 0,
+		          p.second != 0 ? p.second : 236);
 		if (er != erSuccess)
 			return er;
 	}
@@ -745,7 +746,8 @@ static int ksrv_listen_inet(ECSoapServerConnection *ssc, ECConfig *cfg)
 	auto capath  = cfg->GetSetting("server_ssl_ca_path", "", nullptr);
 	for (const auto &spec : https_sock) {
 		auto p = ec_parse_bindaddr(spec.c_str());
-		auto er = ssc->ListenSSL(p.first.c_str(), p.second != 0 ? p.second : 237,
+		auto er = ssc->ListenSSL(spec.c_str(), p.first.size() == 0,
+		          p.second != 0 ? p.second : 237,
 		          keyfile, keypass, cafile, capath);
 		if (er != erSuccess)
 			return er;
