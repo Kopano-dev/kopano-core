@@ -777,8 +777,11 @@ int ec_listen_localsock(const char *path, int *pfd, int mode)
 	}
 	if (mode != static_cast<mode_t>(-1)) {
 		ret = chmod(path, mode);
-		if (ret < 0)
-			ec_log_err("chown %s: %s", path, strerror(errno));
+		if (ret < 0) {
+			ret = -errno;
+			ec_log_err("%s: chown %s: %s", __func__, path, strerror(-ret));
+			return ret;
+		}
 	}
 	ret = listen(fd, INT_MAX);
 	if (ret < 0) {
