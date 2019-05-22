@@ -93,9 +93,8 @@ Default: \fI(empty)\fP
 .SS pop3_listen
 .PP
 A space-separated list of address:port specifiers for where the server should
-listen for unencrypted and STARTTLS-ed POP3 connections. IPv6 addresses need to
-be enclosed in brackets (as in \fB[2001:db8::1]:236\fP), and the asterisk is
-the multi-protocol address wildcard.
+listen for unencrypted and STARTTLS-ed POP3 connections, similar to
+\fBimap_listen\fP.
 .PP
 Default: \fI*:110\fP
 .SS pop3s_listen
