@@ -43,27 +43,13 @@ static int create_pipe_socket(const char *unix_socket, ECConfig *lpConfig,
     bool bInit, int mode)
 {
 	int s;
-	auto er = ec_listen_localsock(unix_socket, &s);
+	auto uname = lpConfig->GetSetting("run_as_user");
+	auto gname = lpConfig->GetSetting("run_as_group");
+	auto er = ec_listen_localsock(unix_socket, &s, mode, uname, gname);
 	if (er < 0) {
 		ec_log_crit("Unable to bind to socket %s: %s. This program will terminate now.", unix_socket, strerror(-er));
                 kill(0, SIGTERM);
                 exit(1);
-	}
-	er = chmod(unix_socket,mode);
-	if(er) {
-		ec_log_crit("Unable to chmod socket %s. Error: %s", unix_socket, strerror(errno));
-		close(s);
-		return -1;
-	}
-
-	auto uname = lpConfig->GetSetting("run_as_user");
-	auto gname = lpConfig->GetSetting("run_as_group");
-	er = unix_chown(unix_socket, uname, gname);
-	if (er < 0) {
-		ec_log_crit("Unable to chown socket %s, to %s:%s. Error: %s",
-			unix_socket, uname, gname, strerror(-er));
-		close(s);
-		return -1;
 	}
 	return s;
 }

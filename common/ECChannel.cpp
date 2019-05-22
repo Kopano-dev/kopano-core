@@ -13,6 +13,7 @@
 #include <kopano/ECLogger.h>
 #include <kopano/memory.hpp>
 #include <kopano/stringutil.h>
+#include <kopano/UnixUtil.h>
 #include <csignal>
 #include <fcntl.h>
 #include <netdb.h>
@@ -747,7 +748,8 @@ int zcp_bindtodevice(int fd, const char *i)
 /**
  * Create a PF_LOCAL socket for listening and return the fd.
  */
-int ec_listen_localsock(const char *path, int *pfd, int mode)
+int ec_listen_localsock(const char *path, int *pfd, int mode,
+    const char *user, const char *group)
 {
 	struct sockaddr_un sk;
 	if (strlen(path) + 1 >= sizeof(sk.sun_path)) {
@@ -774,6 +776,11 @@ int ec_listen_localsock(const char *path, int *pfd, int mode)
 		ec_log_err("%s: bind %s: %s", __func__, path, strerror(saved_errno));
 		close(fd);
 		return -(errno = saved_errno);
+	}
+	ret = unix_chown(path, user, group);
+	if (ret < 0) {
+		ec_log_err("%s: chown %s: %s", __func__, path, strerror(-ret));
+		return ret;
 	}
 	if (mode != static_cast<mode_t>(-1)) {
 		ret = chmod(path, mode);
