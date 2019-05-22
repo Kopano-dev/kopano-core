@@ -17,6 +17,7 @@
 #include <fcntl.h>
 #include <netdb.h>
 #include <poll.h>
+#include <sys/resource.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
@@ -975,9 +976,7 @@ std::pair<std::string, uint16_t> ec_parse_bindaddr(const char *spec)
  * UNIXSPEC := "unix:" path
  *
  * NB: hostname and ipv4-addr are not specified to be enclosed in square
- * brackets, but ec_parse_bindaddr2 does support it by chance, and
- * dagent_listen()'s transformation of historic config directives (hopefully to
- * be gone sooner than later) currently relies on it.
+ * brackets, but ec_parse_bindaddr2 supports it by chance.
  */
 int ec_listen_generic(const char *spec, int *pfd, int mode)
 {
@@ -1000,12 +999,24 @@ bool ec_bindaddr_less::operator()(const std::string &a, const std::string &b) co
 	return false;
 }
 
+static int ec_fdtable_size()
+{
+	struct rlimit r;
+	if (getrlimit(RLIMIT_NOFILE, &r) == 0)
+		return std::min(static_cast<rlim_t>(INT_MAX), r.rlim_max);
+	auto v = sysconf(_SC_OPEN_MAX);
+	if (v >= 0)
+		return v;
+	return INT_MAX;
+}
+
 /**
  * Unset FD_CLOEXEC on listening sockets so that they survive an execve().
  */
 void ec_reexec_prepare_sockets()
 {
-	for (int fd = 3; fd < INT_MAX; ++fd) {
+	auto maxfd = ec_fdtable_size();
+	for (int fd = 3; fd < maxfd; ++fd) {
 		int set = 0;
 		socklen_t setlen = sizeof(set);
 		auto ret = getsockopt(fd, SOL_SOCKET, SO_ACCEPTCONN, &set, &setlen);
@@ -1024,7 +1035,8 @@ void ec_reexec_prepare_sockets()
 static int ec_fdtable_socket_ai(const struct addrinfo *ai,
     struct sockaddr_storage *oaddr, socklen_t *olen)
 {
-	for (int fd = 3; fd < INT_MAX; ++fd) {
+	auto maxfd = ec_fdtable_size();
+	for (int fd = 3; fd < maxfd; ++fd) {
 		int set = 0;
 		socklen_t arglen = sizeof(set);
 		auto ret = getsockopt(fd, SOL_SOCKET, SO_ACCEPTCONN, &set, &arglen);
@@ -1037,6 +1049,7 @@ static int ec_fdtable_socket_ai(const struct addrinfo *ai,
 		ret = getsockname(fd, reinterpret_cast<struct sockaddr *>(&addr), &arglen);
 		if (ret < 0)
 			continue;
+		arglen = std::min(static_cast<socklen_t>(sizeof(addr)), arglen);
 		for (auto sk = ai; sk != nullptr; sk = sk->ai_next) {
 			if (arglen != sk->ai_addrlen ||
 			    memcmp(&addr, sk->ai_addr, arglen) != 0)
