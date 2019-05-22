@@ -227,9 +227,8 @@ ECRESULT ECSoapServerConnection::ListenTCP(const char *lpServerName, int nServer
 #endif
 	struct sockaddr_storage grab_addr;
 	socklen_t grab_len = 0;
-	if (getenv("KC_REEXEC_DONE") != nullptr)
-		lpsSoap->master = lpsSoap->socket = socket =
-			ec_fdtable_socket(("["s + lpServerName + "]:" + std::to_string(nServerPort)).c_str(), &grab_addr, &grab_len);
+	lpsSoap->master = lpsSoap->socket = socket =
+		ec_fdtable_socket(("["s + lpServerName + "]:" + std::to_string(nServerPort)).c_str(), &grab_addr, &grab_len);
 	if (socket != SOAP_INVALID_SOCKET) {
 		lpsSoap->port = nServerPort;
 		lpsSoap->peerlen = grab_len;
@@ -297,9 +296,8 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char *lpServerName,
 #endif
 	struct sockaddr_storage grab_addr;
 	socklen_t grab_len = 0;
-	if (getenv("KC_REEXEC_DONE") != nullptr)
-		lpsSoap->master = lpsSoap->socket = socket =
-			ec_fdtable_socket(("["s + lpServerName + "]:" + std::to_string(nServerPort)).c_str(), &grab_addr, &grab_len);
+	lpsSoap->master = lpsSoap->socket = socket =
+		ec_fdtable_socket(("["s + lpServerName + "]:" + std::to_string(nServerPort)).c_str(), &grab_addr, &grab_len);
 	if (socket != SOAP_INVALID_SOCKET) {
 		lpsSoap->port = nServerPort;
 		lpsSoap->peerlen = grab_len;
@@ -340,9 +338,8 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriori
 	lpsSoap->sndbuf = lpsSoap->rcvbuf = 0;
 	struct sockaddr_storage grab_addr;
 	socklen_t grab_len = 0;
-	if (getenv("KC_REEXEC_DONE") != nullptr)
-		lpsSoap->master = lpsSoap->socket = sPipe =
-			ec_fdtable_socket(("unix:"s + lpPipeName).c_str(), &grab_addr, &grab_len);
+	lpsSoap->master = lpsSoap->socket = sPipe =
+		ec_fdtable_socket(("unix:"s + lpPipeName).c_str(), &grab_addr, &grab_len);
 	if (sPipe != SOAP_INVALID_SOCKET) {
 		ec_log_info("Re-using fd %d to listen on %spipe %s", sPipe, bPriority ? "priority " : "", lpPipeName);
 	} else {
