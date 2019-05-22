@@ -71,7 +71,9 @@ Example: !include common.cfg
 A space-separated list of address:port specifiers for where the server should
 listen for unencrypted connections. IPv6 addresses need to be enclosed in
 square brackets (as in \fB[2001:db8::1]:236\fP). The asterisk denotes the
-network layer multi-protocol (IPv4/IPv6) address (e.g. "*:236").
+network layer multi-protocol (IPv4/IPv6) address (e.g. "*:236"). Unlike other
+daemons, local sockets are \fBnot\fP supported with this directive, but see
+\fBserver_pipe_name\fP instead.
 .SS server_pipe_enabled
 .PP
 Enable Unix pipe connections. Should not be disabled.

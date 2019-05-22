@@ -71,7 +71,8 @@ Example: !include common.cfg
 A space-separated list of address:port specifiers for where the server should
 listen for HTTP/CalDAV connections. IPv6 addresses need to be enclosed in
 square brackets (as in \fB[2001:db8::1]:236\fP). The asterisk denotes the
-network layer multi-protocol (IPv4/IPv6) address.
+network layer multi-protocol (IPv4/IPv6) address. Local sockets are supported
+with "\fBunix:\fP\fI/path\fP".
 .PP
 Default: \fI*:8080\fP
 .SS icals_listen
