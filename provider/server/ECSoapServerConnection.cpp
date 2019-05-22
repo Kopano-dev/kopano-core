@@ -28,32 +28,6 @@
 using namespace KC;
 using namespace std::string_literals;
 
-/**
- * Creates a AF_UNIX socket in a given location and starts to listen
- * on that socket.
- *
- * @param unix_socket the file location of that socket
- * @param lpLogger a logger object
- * @param bInit unused
- * @param mode change the mode of the file to this value (octal!)
- *
- * @return the socket we're listening on, or -1 for failure.
- */
-static int create_pipe_socket(const char *unix_socket, ECConfig *lpConfig,
-    bool bInit, int mode)
-{
-	int s;
-	auto uname = lpConfig->GetSetting("run_as_user");
-	auto gname = lpConfig->GetSetting("run_as_group");
-	auto er = ec_listen_localsock(unix_socket, &s, mode, uname, gname);
-	if (er < 0) {
-		ec_log_crit("Unable to bind to socket %s: %s. This program will terminate now.", unix_socket, strerror(-er));
-                kill(0, SIGTERM);
-                exit(1);
-	}
-	return s;
-}
-
 int kc_ssl_options(struct soap *soap, char *protos, const char *ciphers,
     const char *prefciphers, const char *curves)
 {
@@ -328,9 +302,19 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriori
 		ec_log_info("Re-using fd %d to listen on %spipe %s", sPipe, bPriority ? "priority " : "", lpPipeName);
 	} else {
 		/* Set the mode stricter for the priority socket: let only the same Unix user or root connect on the priority socket, users should not be able to abuse the socket. */
-		lpsSoap->socket = sPipe = create_pipe_socket(lpPipeName, m_lpConfig.get(), true, bPriority ? 0660 : 0666);
-		if (sPipe == -1)
-			return KCERR_CALL_FAILED;
+		unsigned int mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP;
+		if (!bPriority)
+			mode |= S_IROTH | S_IWOTH;
+		auto uname = m_lpConfig->GetSetting("run_as_user");
+		auto gname = m_lpConfig->GetSetting("run_as_group");
+		auto er = ec_listen_localsock(lpPipeName, &sPipe, mode, uname, gname);
+		lpsSoap->socket = sPipe;
+		if (sPipe == -1) {
+			ec_log_crit("Unable to bind to socket %s: %s. This program will terminate now.",
+				lpPipeName, strerror(-er));
+			kill(0, SIGTERM);
+			exit(EXIT_FAILURE);
+		}
 		ec_log_notice("Listening for %spipe connections on %s (fd %d)", bPriority ? "priority " : "", lpPipeName, lpsSoap->socket);
 	}
 	lpsSoap->master = sPipe;
