@@ -296,7 +296,7 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriori
 	struct sockaddr_storage grab_addr;
 	socklen_t grab_len = 0;
 	lpsSoap->master = lpsSoap->socket = sPipe =
-		ec_fdtable_socket(("unix:"s + lpPipeName).c_str(), &grab_addr, &grab_len);
+		ec_fdtable_socket(lpPipeName, &grab_addr, &grab_len);
 	if (sPipe != SOAP_INVALID_SOCKET) {
 		lpsSoap->fshutdownsocket = ignore_shutdown;
 		ec_log_info("Re-using fd %d to listen on %spipe %s", sPipe, bPriority ? "priority " : "", lpPipeName);
@@ -307,7 +307,7 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriori
 			mode |= S_IROTH | S_IWOTH;
 		auto uname = m_lpConfig->GetSetting("run_as_user");
 		auto gname = m_lpConfig->GetSetting("run_as_group");
-		auto er = ec_listen_localsock(lpPipeName, &sPipe, mode, uname, gname);
+		auto er = ec_listen_generic(lpPipeName, &sPipe, mode, uname, gname);
 		lpsSoap->socket = sPipe;
 		if (sPipe == -1) {
 			ec_log_crit("Unable to bind to socket %s: %s. This program will terminate now.",

@@ -763,14 +763,14 @@ static int ksrv_listen_pipe(ECSoapServerConnection *ssc, ECConfig *cfg)
 	 * need to create INET sockets beforehand because of privilege drop.]
 	 */
 	for (const auto &spec : vector_to_set(tokenize(cfg->GetSetting("server_pipe_priority"), ' ', true))) {
-		auto er = ssc->ListenPipe(spec.c_str(), true);
+		auto er = ssc->ListenPipe(("unix:" + spec).c_str(), true);
 		if (er != erSuccess)
 			return er;
 	}
 	if (strcmp(cfg->GetSetting("server_pipe_enabled"), "yes") == 0) {
 		auto pipe_sock = vector_to_set(tokenize(cfg->GetSetting("server_pipe_name"), ' ', true));
 		for (const auto &spec : pipe_sock) {
-			auto er = ssc->ListenPipe(spec.c_str(), false);
+			auto er = ssc->ListenPipe(("unix:" + spec).c_str(), false);
 			if (er != erSuccess)
 				return er;
 		}

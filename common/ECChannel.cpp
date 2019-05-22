@@ -748,7 +748,7 @@ int zcp_bindtodevice(int fd, const char *i)
 /**
  * Create a PF_LOCAL socket for listening and return the fd.
  */
-int ec_listen_localsock(const char *path, int *pfd, int mode,
+static int ec_listen_localsock(const char *path, int *pfd, int mode,
     const char *user, const char *group)
 {
 	struct sockaddr_un sk;
