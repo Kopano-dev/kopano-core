@@ -66,6 +66,7 @@ ldap.active-directory.cfg: ldap.m4
 	m4 -DTYPE=ADS ${top_srcdir}/installer/linux/ldap.m4 > $@
 
 EXTRA_DIST = ${BUILT_SOURCES} ldap.m4 \
+	kopano-statsd.service.in \
 	kopano-server.init.rhel kopano-spooler.init.rhel \
 	kopano-gateway.init.rhel kopano-monitor.init.rhel \
 	kopano-ical.init.rhel kopano-dagent.init.rhel kopano-search.init.rhel \

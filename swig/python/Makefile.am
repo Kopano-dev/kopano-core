@@ -117,7 +117,7 @@ nodist__RecurrenceState_la_SOURCES = RecurrenceState_wrap.cxx
 nodist__libfreebusy_la_SOURCES = libfreebusy_wrap.cxx
 _libfreebusy_la_SOURCES = libfreebusy_conv.h libfreebusy_conv.cpp
 
-EXTRA_DIST = helpers_python.i \
+EXTRA_DIST = scl.h helpers_python.i \
 	setup.py \
 	setup.cfg \
 	MAPICore.py \
