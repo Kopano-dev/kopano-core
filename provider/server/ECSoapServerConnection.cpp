@@ -343,8 +343,6 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriori
 	if (getenv("KC_REEXEC_DONE") != nullptr)
 		lpsSoap->master = lpsSoap->socket = sPipe =
 			ec_fdtable_socket(("unix:"s + lpPipeName).c_str(), &grab_addr, &grab_len);
-	/* This just marks the socket as being a pipe, which triggers some slightly different behavior. */
-	strcpy(lpsSoap->path, "pipe");
 	if (sPipe != SOAP_INVALID_SOCKET) {
 		ec_log_info("Re-using fd %d to listen on %spipe %s", sPipe, bPriority ? "priority " : "", lpPipeName);
 	} else {
