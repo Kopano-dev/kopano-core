@@ -1,8 +1,8 @@
 # -*- Makefile -*-
-if WITH_PYTHON3
 
-EXTRA_DIST = setup.py \
-	setup.cfg \
+EXTRA_DIST = \
+	COMPAT.md README.md TODO.txt kopano-mfr.py requirements.txt setup.cfg \
+	setup.py wsgi_profiler_conf.py \
 	kopano_rest/__init__.py \
 	kopano_rest/__main__.py \
 	kopano_rest/utils.py \
@@ -24,6 +24,8 @@ EXTRA_DIST = setup.py \
 	kopano_rest/resource/profilephoto.py \
 	kopano_rest/resource/resource.py \
 	kopano_rest/resource/user.py
+
+if WITH_PYTHON3
 
 install-exec-local:
 	rm -Rf staging
