@@ -22,7 +22,9 @@ EXTRA_DIST = \
 	kopano_rest/resource/mailfolder.py \
 	kopano_rest/resource/message.py \
 	kopano_rest/resource/profilephoto.py \
+	kopano_rest/resource/reminder.py \
 	kopano_rest/resource/resource.py \
+	kopano_rest/resource/schema.py \
 	kopano_rest/resource/user.py
 
 if WITH_PYTHON3

@@ -21,7 +21,14 @@ SUBDIRS += ECtools/backup ECtools/cli ECtools/migration-pst \
 endif
 BUILT_SOURCES =
 CLEANFILES =
-EXTRA_DIST =
+EXTRA_DIST = .astylerc .clang-format .clang_complete .editorconfig .gitignore \
+	CONTRIBUTING.md README.md cppcheck.suppressions \
+	doc/Code_structure.md doc/Database_structure.md doc/adminssl.txt \
+	doc/classes.gv doc/extract_user.txt doc/hl.txt doc/install.txt \
+	doc/kopano-autorespond.py.8 doc/sanitizer.txt doc/sql_attach.txt \
+	doc/sql_messages.txt doc/sql_searchfolders.txt doc/sql_spooler.txt \
+	provider/client/README.md provider/libserver/README.md \
+	tools/describe_version
 
 
 AM_CPPFLAGS = ${ZCPPFLAGS} -DLDAP_THREAD_SAFE \

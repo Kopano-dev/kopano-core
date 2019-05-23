@@ -2,7 +2,7 @@
 
 dist_sbin_SCRIPTS = kopano-cli
 
-EXTRA_DIST = setup.py \
+EXTRA_DIST = requirements.txt setup.py \
 	setup.cfg \
 	kopano_cli/__init__.py
 

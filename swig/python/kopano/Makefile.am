@@ -1,4 +1,4 @@
-EXTRA_DIST = setup.cfg setup.py \
+EXTRA_DIST = changelog.rst requirements.txt setup.cfg setup.py \
 	kopano/__init__.py kopano/address.py kopano/appointment.py \
 	kopano/attachment.py kopano/attendee.py kopano/autoaccept.py \
 	kopano/autoprocess.py kopano/company.py kopano/compat.py \

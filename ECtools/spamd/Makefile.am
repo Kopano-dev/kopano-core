@@ -2,7 +2,7 @@
 
 dist_sbin_SCRIPTS = kopano-spamd
 
-EXTRA_DIST = setup.py \
+EXTRA_DIST = requirements.txt setup.py \
 	setup.cfg \
 	kopano_spamd/__init__.py
 
