@@ -55,7 +55,7 @@ HRESULT ECFreeBusyData::EnumBlocks(IEnumFBBlock **ppenumfb,
 	hr = ECEnumFBBlock::Create(&m_fbBlockList, &~lpECEnumFBBlock);
 	if(hr != hrSuccess)
 		return hr;
-	return lpECEnumFBBlock->QueryInterface(IID_IEnumFBBlock, (void**)ppenumfb);
+	return lpECEnumFBBlock->QueryInterface(IID_IEnumFBBlock, reinterpret_cast<void **>(ppenumfb));
 }
 
 HRESULT ECFreeBusyData::SetFBRange(LONG rtmStart, LONG rtmEnd)

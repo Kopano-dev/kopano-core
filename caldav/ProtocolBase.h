@@ -37,7 +37,7 @@ protected:
 	KC::convert_context m_converter;
 
 	std::string W2U(const std::wstring&); //!< convert widestring to UTF-8
-	std::string W2U(const WCHAR* lpwWideChar);
+	std::string W2U(const wchar_t *);
 	std::wstring U2W(const std::string&); //!< convert UTF-8 to widestring
 	std::string SPropValToString(const SPropValue *lpSprop);
 	std::string strAgent;

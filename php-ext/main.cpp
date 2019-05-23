@@ -2826,7 +2826,7 @@ ZEND_FUNCTION(mapi_stream_create)
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to instantiate new stream object");
 		goto exit;
 	}
-	MAPI_G(hr) = lpStream->QueryInterface(IID_IStream, (void**)&lpIStream);
+	MAPI_G(hr) = lpStream->QueryInterface(IID_IStream, reinterpret_cast<void **>(&lpIStream));
 	if(MAPI_G(hr) != hrSuccess)
 		goto exit;
 
@@ -3043,7 +3043,7 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 		zend_hash_get_current_data_ex(targetHash, reinterpret_cast<void **>(&entry), &thpos);
 		if(guidHash)
 			zend_hash_get_current_data_ex(guidHash, reinterpret_cast<void **>(&guidEntry), &ghpos);
-		MAPI_G(hr) = MAPIAllocateMore(sizeof(MAPINAMEID),lppNamePropId,(void **) &lppNamePropId[i]);
+		MAPI_G(hr) = MAPIAllocateMore(sizeof(MAPINAMEID), lppNamePropId, reinterpret_cast<void **>(&lppNamePropId[i]));
 		if (MAPI_G(hr) != hrSuccess)
 			goto exit;
 
@@ -3068,8 +3068,8 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 			break;
 		case IS_STRING:
 			multibytebufferlen = mbstowcs(NULL, entry[0]->value.str.val, 0);
-			MAPI_G(hr) = MAPIAllocateMore((multibytebufferlen + 1) * sizeof(WCHAR), lppNamePropId,
-				  (void **)&lppNamePropId[i]->Kind.lpwstrName);
+			MAPI_G(hr) = MAPIAllocateMore((multibytebufferlen + 1) * sizeof(wchar_t), lppNamePropId,
+			             reinterpret_cast<void **>(&lppNamePropId[i]->Kind.lpwstrName));
 			if (MAPI_G(hr) != hrSuccess)
 				goto exit;
 			mbstowcs(lppNamePropId[i]->Kind.lpwstrName, entry[0]->value.str.val, multibytebufferlen + 1);
@@ -4206,19 +4206,22 @@ ZEND_FUNCTION(mapi_zarafa_setquota)
 		lpQuota->bUseDefaultQuota = zval_is_true(*value);
 	if (zend_hash_find(data, "isuserdefault", sizeof("isuserdefault"), reinterpret_cast<void **>(&value)) == SUCCESS)
 		lpQuota->bIsUserDefaultQuota = zval_is_true(*value);
-	if (zend_hash_find(data, "warnsize", sizeof("warnsize"), (void**)&value) == SUCCESS) {
+	if (zend_hash_find(data, "warnsize", sizeof("warnsize"),
+	    reinterpret_cast<void **>(&value)) == SUCCESS) {
 		SEPARATE_ZVAL(value);
 		convert_to_long_ex(value);
 		lpQuota->llWarnSize = Z_LVAL_PP(value);
 	}
 
-	if (zend_hash_find(data, "softsize", sizeof("softsize"), (void**)&value) == SUCCESS) {
+	if (zend_hash_find(data, "softsize", sizeof("softsize"),
+	    reinterpret_cast<void **>(&value)) == SUCCESS) {
 		SEPARATE_ZVAL(value);
 		convert_to_long_ex(value);
 		lpQuota->llSoftSize = Z_LVAL_PP(value);
 	}
 
-	if (zend_hash_find(data, "hardsize", sizeof("hardsize"), (void**)&value) == SUCCESS) {
+	if (zend_hash_find(data, "hardsize", sizeof("hardsize"),
+	    reinterpret_cast<void **>(&value)) == SUCCESS) {
 		SEPARATE_ZVAL(value);
 		convert_to_long_ex(value);
 		lpQuota->llHardSize = Z_LVAL_PP(value);
@@ -5446,26 +5449,26 @@ ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
 		zend_hash_get_current_data_ex(target_hash, reinterpret_cast<void **>(&entry), &hpos);
 		// null pointer returned if perms was not array(array()).
 		data = HASH_OF(entry[0]);
-		if (zend_hash_find(data, "userid", sizeof("userid"), (void **)&value) != SUCCESS)
+		if (zend_hash_find(data, "userid", sizeof("userid"), reinterpret_cast<void **>(&value)) != SUCCESS)
 			continue;
 		SEPARATE_ZVAL(value);
 		convert_to_string_ex(value);
 		lpECPerms[j].sUserId.cb = Z_STRLEN_PP(value);
 		lpECPerms[j].sUserId.lpb = (unsigned char*)Z_STRVAL_PP(value);
 
-		if (zend_hash_find(data, "type", sizeof("type"), (void **)&value) != SUCCESS)
+		if (zend_hash_find(data, "type", sizeof("type"), reinterpret_cast<void **>(&value)) != SUCCESS)
 			continue;
 		SEPARATE_ZVAL(value);
 		convert_to_long_ex(value);
 		lpECPerms[j].ulType = Z_LVAL_PP(value);
 
-		if (zend_hash_find(data, "rights", sizeof("rights"), (void **)&value) != SUCCESS)
+		if (zend_hash_find(data, "rights", sizeof("rights"), reinterpret_cast<void **>(&value)) != SUCCESS)
 			continue;
 		SEPARATE_ZVAL(value);
 		convert_to_long_ex(value);
 		lpECPerms[j].ulRights = Z_LVAL_PP(value);
 
-		if (zend_hash_find(data, "state", sizeof("state"), (void **)&value) == SUCCESS) {
+		if (zend_hash_find(data, "state", sizeof("state"), reinterpret_cast<void **>(&value)) == SUCCESS) {
 			SEPARATE_ZVAL(value);
 		    convert_to_long_ex(value);
 			lpECPerms[j].ulState = Z_LVAL_PP(value);
@@ -5598,7 +5601,7 @@ ZEND_FUNCTION(mapi_freebusysupport_loaddata)
 		++j;
 	}
 
-	MAPI_G(hr) = MAPIAllocateBuffer(sizeof(IFreeBusyData*)*cUsers, (void**)&lppFBData);
+	MAPI_G(hr) = MAPIAllocateBuffer(sizeof(IFreeBusyData*) * cUsers, reinterpret_cast<void **>(&lppFBData));
 	if(MAPI_G(hr) != hrSuccess)
 		goto exit;
 
@@ -6674,8 +6677,7 @@ ZEND_FUNCTION(mapi_inetmapi_imtoinet)
     MAPI_G(hr) = ECMemStream::Create(lpBuffer.get(), strlen(lpBuffer.get()), 0, nullptr, nullptr, nullptr, &~lpMemStream);
     if(MAPI_G(hr) != hrSuccess)
         goto exit;
-        
-    MAPI_G(hr) = lpMemStream->QueryInterface(IID_IStream, (void **)&lpStream);
+	MAPI_G(hr) = lpMemStream->QueryInterface(IID_IStream, reinterpret_cast<void **>(&lpStream));
     if(MAPI_G(hr) != hrSuccess)
         goto exit;
         
@@ -6922,7 +6924,7 @@ ZEND_FUNCTION(mapi_enable_exceptions)
 	
     if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &szExClass, &cbExClass) == FAILURE) return;
     
-    if (zend_hash_find(CG(class_table), szExClass, cbExClass+1, (void **) &ce) == SUCCESS) {
+	if (zend_hash_find(CG(class_table), szExClass, cbExClass + 1, reinterpret_cast<void **>(&ce)) == SUCCESS) {
         MAPI_G(exceptions_enabled) = true;
         MAPI_G(exception_ce) = *ce;
         RETVAL_TRUE;

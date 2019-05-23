@@ -40,7 +40,7 @@ public:
 	virtual HRESULT PrepareRecips(ULONG ulFlags, const SPropTagArray *lpPropTagArray, LPADRLIST lpRecipList);
 
 private:
-	HRESULT AddFolder(const WCHAR* lpwDisplayName, ULONG cbStore, LPBYTE lpStore, ULONG cbFolder, LPBYTE lpFolder);
+	HRESULT AddFolder(const wchar_t *display_name, ULONG cbStore, LPBYTE lpStore, ULONG cbFolder, LPBYTE lpFolder);
 	HRESULT ClearFolderList();
 
 	LPMAPISUP			m_lpMAPISup;

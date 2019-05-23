@@ -349,22 +349,29 @@ HRESULT ECGenericProp::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR 
 		std::wstring wstrErrorMsg = convert_to<std::wstring>(lpszErrorMsg.get());
 		std::wstring wstrCompName = convert_to<std::wstring>(g_strProductName.c_str());
 
-		if ((hr = MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrErrorMsg.size() + 1), lpMapiError, (void**)&lpMapiError->lpszError)) != hrSuccess)
+		hr = MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrErrorMsg.size() + 1),
+		     lpMapiError, reinterpret_cast<void **>(&lpMapiError->lpszError));
+		if (hr != hrSuccess)
 			return hr;
 		wcscpy((wchar_t*)lpMapiError->lpszError, wstrErrorMsg.c_str());
-
-		if ((hr = MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrCompName.size() + 1), lpMapiError, (void**)&lpMapiError->lpszComponent)) != hrSuccess)
+		hr = MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrCompName.size() + 1),
+		     lpMapiError, reinterpret_cast<void **>(&lpMapiError->lpszComponent));
+		if (hr != hrSuccess)
 			return hr;
 		wcscpy((wchar_t *)lpMapiError->lpszComponent, wstrCompName.c_str());
 	} else {
 		std::string strErrorMsg = convert_to<std::string>(lpszErrorMsg.get());
 		std::string strCompName = convert_to<std::string>(g_strProductName.c_str());
 
-		if ((hr = MAPIAllocateMore(strErrorMsg.size() + 1, lpMapiError, (void**)&lpMapiError->lpszError)) != hrSuccess)
+		hr = MAPIAllocateMore(strErrorMsg.size() + 1, lpMapiError,
+		     reinterpret_cast<void **>(&lpMapiError->lpszError));
+		if (hr != hrSuccess)
 			return hr;
 		strcpy((char*)lpMapiError->lpszError, strErrorMsg.c_str());
 
-		if ((hr = MAPIAllocateMore(strCompName.size() + 1, lpMapiError, (void**)&lpMapiError->lpszComponent)) != hrSuccess)
+		hr = MAPIAllocateMore(strCompName.size() + 1, lpMapiError,
+		     reinterpret_cast<void **>(&lpMapiError->lpszComponent));
+		if (hr != hrSuccess)
 			return hr;
 		strcpy((char*)lpMapiError->lpszComponent, strCompName.c_str());
 	}

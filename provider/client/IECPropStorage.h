@@ -24,6 +24,7 @@
 #include <mapispi.h>
 #include <list>
 #include <set>
+#include <tuple>
 #include "ECPropertyEntry.h"
 #include "kcore.hpp"
 #include <kopano/Util.h>
@@ -38,8 +39,8 @@ struct MAPIOBJECT {
 	~MAPIOBJECT();
 
 	bool operator < (const MAPIOBJECT &other) const {
-		std::pair<unsigned int, unsigned int> me(ulObjType, ulUniqueId), him(other.ulObjType, other.ulUniqueId);
-		return me < him;
+		return std::tie(ulObjType, ulUniqueId) <
+		       std::tie(other.ulObjType, other.ulUniqueId);
 	};
 
 	struct CompareMAPIOBJECT {

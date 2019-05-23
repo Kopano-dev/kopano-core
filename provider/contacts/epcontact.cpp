@@ -61,7 +61,7 @@ HRESULT ABProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc,
 	auto hr = ZCABProvider::Create(&~lpABProvider);
 	if (hr != hrSuccess)
 		return hr;
-	hr = lpABProvider->QueryInterface(IID_IABProvider, (void **)lppABProvider);
+	hr = lpABProvider->QueryInterface(IID_IABProvider, reinterpret_cast<void **>(lppABProvider));
 	if (hr != hrSuccess)
 		return hr;
 	*lpulProviderVer = CURRENT_SPI_VERSION;

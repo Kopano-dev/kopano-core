@@ -300,7 +300,7 @@ HRESULT ECMsgStore::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 		object_ptr<ECChangeAdvisor> lpChangeAdvisor;
 		hr = ECChangeAdvisor::Create(this, &~lpChangeAdvisor);
 		if (hr == hrSuccess)
-			hr = lpChangeAdvisor->QueryInterface(*lpiid, (void**)lppUnk);
+			hr = lpChangeAdvisor->QueryInterface(*lpiid, reinterpret_cast<void **>(lppUnk));
 	} else if(ulPropTag == PR_EC_STATSTABLE_SYSTEM) {
 		if (*lpiid == IID_IMAPITable)
 			hr = OpenStatsTable(TABLETYPE_STATS_SYSTEM, reinterpret_cast<IMAPITable **>(lppUnk));
@@ -344,7 +344,7 @@ HRESULT ECMsgStore::OpenStatsTable(unsigned int ulTableType, LPMAPITABLE *lppTab
 	hr = lpTable->HrSetTableOps(lpTableView, true);
 	if (hr != hrSuccess)
 		return hr;
-	hr = lpTable->QueryInterface(IID_IMAPITable, (void **)lppTable);
+	hr = lpTable->QueryInterface(IID_IMAPITable, reinterpret_cast<void **>(lppTable));
 	if (hr != hrSuccess)
 		return hr;
     AddChild(lpTable);
@@ -607,11 +607,7 @@ HRESULT ECMsgStore::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		if(hr != hrSuccess)
 			return hr;
 		AddChild(lpMAPIFolder);
-
-		if(lpInterface)
-			hr = lpMAPIFolder->QueryInterface(*lpInterface,(void **)lppUnk);
-		else
-			hr = lpMAPIFolder->QueryInterface(IID_IMAPIFolder, (void **)lppUnk);
+		hr = lpMAPIFolder->QueryInterface(lpInterface != nullptr ? *lpInterface : IID_IMAPIFolder, reinterpret_cast<void **>(lppUnk));
 		if(lpulObjType)
 			*lpulObjType = MAPI_FOLDER;
 		break;
@@ -632,11 +628,7 @@ HRESULT ECMsgStore::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		if(hr != hrSuccess)
 			return hr;
 		AddChild(lpMessage);
-
-		if(lpInterface)
-			hr = lpMessage->QueryInterface(*lpInterface,(void **)lppUnk);
-		else
-			hr = lpMessage->QueryInterface(IID_IMessage, (void **)lppUnk);
+		hr = lpMessage->QueryInterface(lpInterface != nullptr ? *lpInterface : IID_IMessage, reinterpret_cast<void **>(lppUnk));
 		if(lpulObjType)
 			*lpulObjType = MAPI_MESSAGE;
 		break;
@@ -699,7 +691,7 @@ HRESULT ECMsgStore::GetReceiveFolder(const TCHAR *lpszMessageClass,
 	if (ulFlags & MAPI_UNICODE) {
 		std::wstring dst = convert_to<std::wstring>(strExplicitClass);
 
-		hr = MAPIAllocateBuffer(sizeof(std::wstring::value_type) * (dst.length() + 1), (void **)lppszExplicitClass);
+		hr = MAPIAllocateBuffer(sizeof(std::wstring::value_type) * (dst.length() + 1), reinterpret_cast<void **>(lppszExplicitClass));
 		if (hr != hrSuccess)
 			return hr;
 		wcscpy((wchar_t *)*lppszExplicitClass, dst.c_str());
@@ -707,7 +699,7 @@ HRESULT ECMsgStore::GetReceiveFolder(const TCHAR *lpszMessageClass,
 	}
 
 	std::string dst = convert_to<std::string>(strExplicitClass);
-	hr = MAPIAllocateBuffer(dst.length() + 1, (void **)lppszExplicitClass);
+	hr = MAPIAllocateBuffer(dst.length() + 1, reinterpret_cast<void **>(lppszExplicitClass));
 	if (hr != hrSuccess)
 		return hr;
 	strcpy((char *)*lppszExplicitClass, dst.c_str());
@@ -746,7 +738,7 @@ HRESULT ECMsgStore::GetReceiveFolderTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	hr = lpMemTable->HrGetView(createLocaleFromName(""), ulFlags & MAPI_UNICODE, &~lpView);
 	if(hr != hrSuccess)
 		return hr;
-	return lpView->QueryInterface(IID_IMAPITable, (void **)lppTable);
+	return lpView->QueryInterface(IID_IMAPITable, reinterpret_cast<void **>(lppTable));
 }
 
 HRESULT ECMsgStore::StoreLogoff(ULONG *lpulFlags) {
@@ -784,7 +776,7 @@ HRESULT ECMsgStore::GetOutgoingQueue(ULONG ulFlags, LPMAPITABLE *lppTable)
 	hr = lpTable->HrSetTableOps(lpTableOps, !(ulFlags & MAPI_DEFERRED_ERRORS));
 	if(hr != hrSuccess)
 		return hr;
-	hr = lpTable->QueryInterface(IID_IMAPITable, (void **)lppTable);
+	hr = lpTable->QueryInterface(IID_IMAPITable, reinterpret_cast<void **>(lppTable));
 	AddChild(lpTable);
 	return hr;
 }
@@ -1261,7 +1253,7 @@ HRESULT ECMsgStore::GetMailboxTable(const TCHAR *lpszServerName,
 	hr = lpTable->HrSetTableOps(lpTableOps, !(ulFlags & MAPI_DEFERRED_ERRORS));
 	if(hr != hrSuccess)
 		return hr;
-	hr = lpTable->QueryInterface(IID_IMAPITable, (void **)lppTable);
+	hr = lpTable->QueryInterface(IID_IMAPITable, reinterpret_cast<void **>(lppTable));
 	if(hr != hrSuccess)
 		return hr;
 	lpMsgStore->AddChild(lpTable);
@@ -1310,7 +1302,8 @@ static HRESULT CreatePrivateFreeBusyData(LPMAPIFOLDER lpRootFolder,
 	memset(lpFBPropValue, 0, sizeof(SPropValue));
 	lpFBPropValue->ulPropTag = PR_FREEBUSY_ENTRYIDS;
 	lpFBPropValue->Value.MVbin.cValues = 4;
-	hr = ECAllocateMore(sizeof(SBinary)*lpFBPropValue->Value.MVbin.cValues, lpFBPropValue, (void**)&lpFBPropValue->Value.MVbin.lpbin);
+	hr = ECAllocateMore(sizeof(SBinary)*lpFBPropValue->Value.MVbin.cValues,
+	     lpFBPropValue, reinterpret_cast<void **>(&lpFBPropValue->Value.MVbin.lpbin));
 	if(hr != hrSuccess)
 		return hr;
 
@@ -1329,7 +1322,8 @@ static HRESULT CreatePrivateFreeBusyData(LPMAPIFOLDER lpRootFolder,
 		return hr;
 
 	//Fill in position 3 of the FBProperty, with free/busy data folder entryid
-	hr = ECAllocateMore(lpPropValue->Value.bin.cb, lpFBPropValue, (void**)&lpFBPropValue->Value.MVbin.lpbin[3].lpb);
+	hr = ECAllocateMore(lpPropValue->Value.bin.cb, lpFBPropValue,
+	     reinterpret_cast<void **>(&lpFBPropValue->Value.MVbin.lpbin[3].lpb));
 	if(hr != hrSuccess)
 		return hr;
 	lpFBPropValue->Value.MVbin.lpbin[3].cb = lpPropValue->Value.bin.cb;
@@ -1370,7 +1364,8 @@ static HRESULT CreatePrivateFreeBusyData(LPMAPIFOLDER lpRootFolder,
 		return hr;
 
 	//Fill in position 1 of the FBProperty, with free/busy message entryid
-	hr = ECAllocateMore(lpPropValue->Value.bin.cb, lpFBPropValue, (void**)&lpFBPropValue->Value.MVbin.lpbin[1].lpb);
+	hr = ECAllocateMore(lpPropValue->Value.bin.cb, lpFBPropValue,
+	     reinterpret_cast<void **>(&lpFBPropValue->Value.MVbin.lpbin[1].lpb));
 	if(hr != hrSuccess)
 		return hr;
 	lpFBPropValue->Value.MVbin.lpbin[1].cb = lpPropValue->Value.bin.cb;
@@ -1405,7 +1400,8 @@ static HRESULT CreatePrivateFreeBusyData(LPMAPIFOLDER lpRootFolder,
 	if(hr != hrSuccess)
 		return hr;
 	//Fill in position 0 of the FBProperty, with associated localfreebusy message entryid
-	hr = ECAllocateMore(lpPropValue->Value.bin.cb, lpFBPropValue, (void**)&lpFBPropValue->Value.MVbin.lpbin[0].lpb);
+	hr = ECAllocateMore(lpPropValue->Value.bin.cb, lpFBPropValue,
+	     reinterpret_cast<void **>(&lpFBPropValue->Value.MVbin.lpbin[0].lpb));
 	if(hr != hrSuccess)
 		return hr;
 
@@ -2107,7 +2103,7 @@ HRESULT ECMsgStore::CreateSpecialFolder(IMAPIFolder *folder_parent_in,
 	}
 
 	if (lppMAPIFolder != nullptr)
-		hr = lpMAPIFolder->QueryInterface(IID_IMAPIFolder, (void**)lppMAPIFolder);
+		hr = lpMAPIFolder->QueryInterface(IID_IMAPIFolder, reinterpret_cast<void **>(lppMAPIFolder));
 	return hr;
 }
 
@@ -2360,7 +2356,7 @@ HRESULT ECMsgStore::OpenUserStoresTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	hr = lpTable->HrSetTableOps(lpTableView, true);
 	if (hr != hrSuccess)
 		return hr;
-	hr = lpTable->QueryInterface(IID_IMAPITable, (void **)lppTable);
+	hr = lpTable->QueryInterface(IID_IMAPITable, reinterpret_cast<void **>(lppTable));
 	if (hr != hrSuccess)
 		return hr;
 	AddChild(lpTable);
@@ -2421,8 +2417,7 @@ HRESULT ECMsgStore::GetMasterOutgoingTable(ULONG ulFlags, IMAPITable ** lppOutgo
 
 	if(hr != hrSuccess)
 		return hr;
-	hr = lpTable->QueryInterface(IID_IMAPITable, (void **)lppOutgoingTable);
-
+	hr = lpTable->QueryInterface(IID_IMAPITable, reinterpret_cast<void **>(lppOutgoingTable));
 	AddChild(lpTable);
 	return hr;
 }

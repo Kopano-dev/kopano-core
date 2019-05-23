@@ -327,7 +327,8 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
 
 %typemap(directorargout)	MAPICLASS *
 {
-  int swig_res = SWIG_ConvertPtr(DIRECTORARGOUT(DAO_RESULT), (void**)DAO_PARAMETER, $*1_descriptor, 0);
+	int swig_res = SWIG_ConvertPtr(DIRECTORARGOUT(DAO_RESULT),
+	               reinterpret_cast<void **>(DAO_PARAMETER), $*1_descriptor, 0);
   if (!SWIG_IsOK(swig_res)) {
     %dirout_fail(swig_res, "$type");
   }
@@ -402,7 +403,8 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
 // See MAPICLASS * for comments. Note that we ignore the IID. We could also still QueryInterface on $result.
 %typemap(directorargout)	LPUNKNOWN *OUTPUT_USE_IID (int swig_res)
 {
-  swig_res = SWIG_ConvertPtr(DIRECTORARGOUT(DAO_RESULT), (void**)DAO_PARAMETER, SWIGTYPE_p_IUnknown, 0);
+	swig_res = SWIG_ConvertPtr(DIRECTORARGOUT(DAO_RESULT),
+	           reinterpret_cast<void **>(DAO_PARAMETER), SWIGTYPE_p_IUnknown, 0);
   if (!SWIG_IsOK(swig_res)) {
     %dirout_fail(swig_res, "$type");
   }

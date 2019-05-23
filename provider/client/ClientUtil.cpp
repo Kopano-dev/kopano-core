@@ -454,7 +454,7 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 	if (hr != hrSuccess)
 		return hr;
 	lpMods->cEntries = 0;
-	hr = MAPIAllocateBuffer(sizeof(SPropValue) * 8, (void**)&lpMods->aEntries->rgPropVals);
+	hr = MAPIAllocateBuffer(sizeof(SPropValue) * 8, reinterpret_cast<void **>(&lpMods->aEntries->rgPropVals));
 	if (hr != hrSuccess)
 		return hr;
 	++lpMods->cEntries;

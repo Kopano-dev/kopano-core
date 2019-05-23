@@ -2698,7 +2698,8 @@ int main(int argc, char **argv) try
 			// sEnabled to sECUser.sMVPropmap ergens
 			sECUser.sMVPropmap.cEntries = 2; // @note: if we have more mv props than the feature lists, adjust this value!
 			// mapi allocate more on lpECUser, so this will be freed automatically at exit.
-			hr = MAPIAllocateMore(sizeof(MVPROPMAPENTRY) * sECUser.sMVPropmap.cEntries, lpECUser, (void**)&sECUser.sMVPropmap.lpEntries);
+			hr = MAPIAllocateMore(sizeof(MVPROPMAPENTRY) * sECUser.sMVPropmap.cEntries, lpECUser,
+			     reinterpret_cast<void **>(&sECUser.sMVPropmap.lpEntries));
 			if (hr != hrSuccess) {
 				cerr << "Memory error" << endl;
 				goto exit;

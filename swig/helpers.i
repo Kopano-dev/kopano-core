@@ -10,7 +10,7 @@
 
 %typemap(in) (IMAPIProp *lpWrapped, LPCIID USE_IID_FOR_OUTPUT) (int res)
 {
-	res = SWIG_ConvertPtr($input, (void**)&$1, $1_descriptor, 0 |  0 );
+	res = SWIG_ConvertPtr($input, reinterpret_cast<void **>(&$1), $1_descriptor, 0 | 0);
 	if (!SWIG_IsOK(res)) {
 		SWIG_exception_fail(SWIG_ArgError(res1), "BUG");
 	}
@@ -41,10 +41,10 @@ HRESULT UnwrapObject(IMAPIProp *lpWrapped, LPCIID USE_IID_FOR_OUTPUT, LPUNKNOWN*
 			goto exit;
 		}
 
-		hr = lpUnwrapped->QueryInterface(*USE_IID_FOR_OUTPUT, (void**)OUTPUT_USE_IID);
+		hr = lpUnwrapped->QueryInterface(*USE_IID_FOR_OUTPUT, reinterpret_cast<void **>(OUTPUT_USE_IID));
 	} else {
 		// Possible object already wrapped, gives the original object back
-		hr = lpWrapped->QueryInterface(*USE_IID_FOR_OUTPUT, (void**)OUTPUT_USE_IID);
+		hr = lpWrapped->QueryInterface(*USE_IID_FOR_OUTPUT, reinterpret_cast<void **>(OUTPUT_USE_IID));
 	}
 
 exit:

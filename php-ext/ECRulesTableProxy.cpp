@@ -181,7 +181,7 @@ HRESULT ECRulesTableProxy::SetCollapseState(ULONG ulFlags, ULONG cbCollapseState
 	return m_lpTable->SetCollapseState(ulFlags, cbCollapseState, pbCollapseState, lpbkLocation);
 }
 
-static HRESULT ConvertUnicodeToString8(const WCHAR *lpszW, char **lppszA,
+static HRESULT ConvertUnicodeToString8(const wchar_t *lpszW, char **lppszA,
     void *base, convert_context &converter)
 {
 	std::string local;

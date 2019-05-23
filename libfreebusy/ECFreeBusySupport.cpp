@@ -102,7 +102,7 @@ HRESULT ECFreeBusySupport::LoadFreeBusyData(ULONG cMax, FBUser *rgfbuser, IFreeB
 		// Add fbdata
 		object_ptr<ECFreeBusyData> lpECFreeBusyData;
 		ECFreeBusyData::Create(rtmStart, rtmEnd, fbBlockList, &~lpECFreeBusyData);
-		hr = lpECFreeBusyData->QueryInterface(IID_IFreeBusyData, (void**)&prgfbdata[i]);
+		hr = lpECFreeBusyData->QueryInterface(IID_IFreeBusyData, reinterpret_cast<void **>(&prgfbdata[i]));
 		if (hr != hrSuccess)
 			return hr;
 		++ulFindUsers;
@@ -136,7 +136,7 @@ HRESULT ECFreeBusySupport::LoadFreeBusyUpdate(ULONG cUsers, FBUser *lpUsers, IFr
 		hr = ECFreeBusyUpdate::Create(lpMessage, &~lpECFBUpdate);
 		if(hr != hrSuccess)
 			return hr;
-		hr = lpECFBUpdate->QueryInterface(IID_IFreeBusyUpdate, (void**)&lppFBUpdate[i]);
+		hr = lpECFBUpdate->QueryInterface(IID_IFreeBusyUpdate, reinterpret_cast<void **>(&lppFBUpdate[i]));
 		if(hr != hrSuccess)
 			return hr;
 		++cFBUpdate;

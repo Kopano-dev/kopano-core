@@ -45,7 +45,7 @@ static HRESULT DeleteEntry(LPMAPIFOLDER lpFolder,
 	HRESULT hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~lpEntryList);
 	if (hr != hrSuccess)
 		goto exit;
-	hr = MAPIAllocateMore(sizeof(SBinary), lpEntryList, (void**)&lpEntryList->lpbin);
+	hr = MAPIAllocateMore(sizeof(SBinary), lpEntryList, reinterpret_cast<void **>(&lpEntryList->lpbin));
 	if (hr != hrSuccess)
 		goto exit;
 	lpEntryList->cValues = 1;

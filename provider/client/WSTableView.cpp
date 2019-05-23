@@ -148,7 +148,7 @@ HRESULT WSTableView::HrQueryColumns(ULONG flags, SPropTagArray **lppsPropTags)
 	}
 	END_SOAP_CALL
 
-	hr = ECAllocateBuffer(CbNewSPropTagArray(sResponse.sPropTagArray.__size),(void **)&lpsPropTags);
+	hr = ECAllocateBuffer(CbNewSPropTagArray(sResponse.sPropTagArray.__size), reinterpret_cast<void **>(&lpsPropTags));
 	if(hr != hrSuccess)
 		goto exit;
 

@@ -299,7 +299,7 @@ HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBl
 	
 	if (lpcValues == 0 || lpOccrInfo == nullptr)
 		return hrSuccess;
-	hr = MAPIAllocateBuffer(sizeof(FBBlock_1)* (*lpcValues), (void**)&lpfbBlocks);
+	hr = MAPIAllocateBuffer(sizeof(FBBlock_1) * (*lpcValues), reinterpret_cast<void **>(&lpfbBlocks));
 	if (hr != hrSuccess)
 		return hr;
 	for (ULONG i = 0 ; i < *lpcValues; ++i)

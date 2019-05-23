@@ -348,7 +348,7 @@ static HRESULT GetProxyStoreObject(IMsgStore *lpMsgStore, IMsgStore **lppMsgStor
 		lpECMsgStore = reinterpret_cast<IUnknown *>(lpPropValue->Value.lpszA);
 		if (lpECMsgStore == nullptr)
 			return MAPI_E_INVALID_PARAMETER;
-		return lpECMsgStore->QueryInterface(IID_IMsgStore, (void**)lppMsgStore);
+		return lpECMsgStore->QueryInterface(IID_IMsgStore, reinterpret_cast<void **>(lppMsgStore));
 	}
 	// Possible object already wrapped, gives the original object back
 	(*lppMsgStore) = lpMsgStore;
@@ -510,14 +510,16 @@ HRESULT ECParseOneOff(const ENTRYID *lpEntryID, ULONG cbEntryID,
 		str.assign(reinterpret_cast<std::u16string::const_pointer>(lpBuffer));
 		if (str.length() == 0)
 			return MAPI_E_INVALID_PARAMETER;
-		if ((hr = TryConvert(str, type)) != hrSuccess)
+		hr = TryConvert(str, type);
+		if (hr != hrSuccess)
 			return hr;
 		lpBuffer += (str.length() + 1) * sizeof(unsigned short);
 
 		str.assign(reinterpret_cast<std::u16string::const_pointer>(lpBuffer));
 		if (str.length() == 0)
 			return MAPI_E_INVALID_PARAMETER;
-		if ((hr = TryConvert(str, addr)) != hrSuccess)
+		hr = TryConvert(str, addr);
+		if (hr != hrSuccess)
 			return hr;
 		lpBuffer += (str.length() + 1) * sizeof(unsigned short);
 	} else {
@@ -535,14 +537,16 @@ HRESULT ECParseOneOff(const ENTRYID *lpEntryID, ULONG cbEntryID,
 		str = (char*)lpBuffer;
 		if (str.length() == 0)
 			return MAPI_E_INVALID_PARAMETER;
-		if ((hr = TryConvert(str, type)) != hrSuccess)
+		hr = TryConvert(str, type);
+		if (hr != hrSuccess)
 			return hr;
 		lpBuffer += str.length() + 1;
 
 		str = (char*)lpBuffer;
 		if (str.length() == 0)
 			return MAPI_E_INVALID_PARAMETER;
-		if ((hr = TryConvert(str, addr)) != hrSuccess)
+		hr = TryConvert(str, addr);
+		if (hr != hrSuccess)
 			return hr;
 		lpBuffer += str.length() + 1;
 	}
@@ -732,7 +736,7 @@ static HRESULT HrResolveToSMTP(LPADRBOOK lpAdrBook,
 	lpAdrList->cEntries = 0;
     lpAdrList->aEntries[0].cValues = 1;
 
-    hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **)&lpAdrList->aEntries[0].rgPropVals);
+	hr = MAPIAllocateBuffer(sizeof(SPropValue), reinterpret_cast<void **>(&lpAdrList->aEntries[0].rgPropVals));
     if(hr != hrSuccess)
 		return hr;
 	++lpAdrList->cEntries;
@@ -1149,7 +1153,8 @@ static HRESULT GetRestrictTags(const SRestriction *lpRestriction,
 	HRESULT hr = GetRestrictTagsRecursive(lpRestriction, &lstTags, 0);
 	if(hr != hrSuccess)
 		return hr;
-	if ((hr = MAPIAllocateBuffer(CbNewSPropTagArray(lstTags.size()), (void **) &lpTags)) != hrSuccess)
+	hr = MAPIAllocateBuffer(CbNewSPropTagArray(lstTags.size()), reinterpret_cast<void **>(&lpTags));
+	if (hr != hrSuccess)
 		return hr;
 	lpTags->cValues = lstTags.size();
 
@@ -1472,7 +1477,7 @@ HRESULT OpenSubFolder(LPMDB lpMDB, const wchar_t *folder, wchar_t psep,
 	ULONG			ulObjType;
 	object_ptr<IMAPIFolder> lpFoundFolder;
 	LPMAPIFOLDER	lpNewFolder = NULL;
-	const WCHAR*	ptr = NULL;
+	const wchar_t *ptr = nullptr;
 
 	if(bIsPublic)
 	{
@@ -1604,7 +1609,7 @@ ECPropMapEntry::ECPropMapEntry(GUID guid, const char *strId) :
 {
     m_sMAPINameId.ulKind = MNID_STRING; 
     m_sMAPINameId.lpguid = &m_sGuid; 
-    m_sMAPINameId.Kind.lpwstrName = new WCHAR[strlen(strId)+1];
+	m_sMAPINameId.Kind.lpwstrName = new wchar_t[strlen(strId)+1];
     mbstowcs(m_sMAPINameId.Kind.lpwstrName, strId, strlen(strId)+1);
 }
     
@@ -1618,7 +1623,7 @@ ECPropMapEntry::ECPropMapEntry(const ECPropMapEntry &other) :
         m_sMAPINameId.Kind.lID = other.m_sMAPINameId.Kind.lID;
 		return;
 	}
-        m_sMAPINameId.Kind.lpwstrName = new WCHAR[wcslen( other.m_sMAPINameId.Kind.lpwstrName )+1];
+        m_sMAPINameId.Kind.lpwstrName = new wchar_t[wcslen(other.m_sMAPINameId.Kind.lpwstrName)+1];
         wcscpy(m_sMAPINameId.Kind.lpwstrName, other.m_sMAPINameId.Kind.lpwstrName);
 }
 
@@ -1744,7 +1749,9 @@ HRESULT spv_postload_large_props(IMAPIProp *lpProp,
 		std::string strData;
 		if (Util::HrStreamToString(lpStream.get(), strData) != hrSuccess)
 			continue;
-		if ((hr = MAPIAllocateMore(strData.size() + sizeof(WCHAR), lpProps, (void **)&lpData)) != hrSuccess)
+		hr = MAPIAllocateMore(strData.size() + sizeof(wchar_t), lpProps,
+		     reinterpret_cast<void **>(&lpData));
+		if (hr != hrSuccess)
 			return hr;
 		memcpy(lpData, strData.data(), strData.size());
 		lpProps[i].ulPropTag = lpTags->aulPropTag[i];
@@ -1755,7 +1762,7 @@ HRESULT spv_postload_large_props(IMAPIProp *lpProp,
 			break;
 		case PT_UNICODE:
 			lpProps[i].Value.lpszW = (wchar_t *)lpData;
-			lpProps[i].Value.lpszW[strData.size() / sizeof(WCHAR)] = 0;
+			lpProps[i].Value.lpszW[strData.size() / sizeof(wchar_t)] = 0;
 			break;
 		case PT_BINARY:
 			lpProps[i].Value.bin.lpb = (LPBYTE)lpData;
@@ -2021,7 +2028,7 @@ HRESULT OpenLocalFBMessage(DGMessageType eDGMsgType,
 			if(hr != hrSuccess)
 				return hr;
 			lpPropFBNew->ulPropTag = PR_FREEBUSY_ENTRYIDS;
-			hr = MAPIAllocateMore(sizeof(SBinary) * 4, lpPropFB, (void **)&lpPropFBNew->Value.MVbin.lpbin);
+			hr = MAPIAllocateMore(sizeof(SBinary) * 4, lpPropFB, reinterpret_cast<void **>(&lpPropFBNew->Value.MVbin.lpbin));
 			if(hr != hrSuccess)
 				return hr;
 

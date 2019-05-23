@@ -5979,7 +5979,8 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, const char *szUserName,
 	}
 
 	strQuery = "SELECT hierarchy_id, guid FROM stores WHERE user_id = " + stringify(ulObjectId) + " AND (1 << type) & " + stringify(ulStoreTypeMask) + " LIMIT 1";
-	if ((er = lpDatabase->DoSelect(strQuery, &lpDBResult)) != erSuccess) {
+	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+	if (er != erSuccess) {
 		ec_perror("resolveUserStore(): select failed", er);
 		return KCERR_DATABASE_ERROR;
 	}
@@ -7219,7 +7220,8 @@ SOAP_ENTRY_START(copyFolder, *result, const entryId &sEntryId,
 	// Move the folder to the dest. folder
 	// FIXME update modtime
 	strQuery = "UPDATE hierarchy SET parent="+stringify(ulDestFolderId)+", flags=flags&"+stringify(~MSGFLAG_DELETED)+" WHERE id="+stringify(ulFolderId);
-	if ((er = lpDatabase->DoUpdate(strQuery, &ulAffRows)) != erSuccess) {
+	er = lpDatabase->DoUpdate(strQuery, &ulAffRows);
+	if (er != erSuccess) {
 		ec_log_err("SOAP::copyFolder(): update of modification time failed: %s (%x)", GetMAPIErrorMessage(er), er);
 		return KCERR_DATABASE_ERROR;
 	}
@@ -7232,7 +7234,8 @@ SOAP_ENTRY_START(copyFolder, *result, const entryId &sEntryId,
 	// Update the folder to the destination folder
 	//Info: Always an update, It's not faster first check and than update/or not
 	strQuery = "UPDATE properties SET val_string = '" + lpDatabase->Escape(lpszNewFolderName) + "' WHERE tag=" + stringify(KOPANO_TAG_DISPLAY_NAME) + " AND hierarchyid="+stringify(ulFolderId) + " AND type=" + stringify(PT_STRING8);
-	if ((er = lpDatabase->DoUpdate(strQuery, &ulAffRows)) != erSuccess) {
+	er = lpDatabase->DoUpdate(strQuery, &ulAffRows);
+	if (er != erSuccess) {
 		ec_log_err("SOAP::copyFolder(): actual move of folder %s failed: %s (%x)", lpszNewFolderName, GetMAPIErrorMessage(er), er);
 		return KCERR_DATABASE_ERROR;
 	}
@@ -8169,7 +8172,8 @@ SOAP_ENTRY_START(getMessageStatus, lpsStatus->er, const entryId &sEntryId,
 
 	// Get the old flags
 	strQuery = "SELECT val_ulong FROM properties WHERE hierarchyid="+stringify(ulId)+" AND tag=3607 AND type=3 LIMIT 2";
-	if ((er = lpDatabase->DoSelect(strQuery, &lpDBResult)) != erSuccess) {
+	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+	if (er != erSuccess) {
 		ec_perror("getMessageStatus(): select failed", er);
 		return KCERR_DATABASE_ERROR;
 	}
@@ -8212,7 +8216,8 @@ SOAP_ENTRY_START(setMessageStatus, lpsOldStatus->er, const entryId &sEntryId,
 
 	// Get the old flags (PR_MSG_STATUS)
 	strQuery = "SELECT val_ulong FROM properties WHERE hierarchyid="+stringify(ulId)+" AND tag=3607 AND type=3 LIMIT 2";
-	if((er = lpDatabase->DoSelect(strQuery, &lpDBResult)) != erSuccess) {
+	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+	if (er != erSuccess) {
 		ec_perror("setMessageStatus(): select failed", er);
 		return er = KCERR_DATABASE_ERROR;
 	}
@@ -8335,7 +8340,8 @@ SOAP_ENTRY_START(setSyncStatus, lpsResponse->er,
 		ec_log_err("setSyncStatus(): collision");
 		return er = KCERR_COLLISION;
 	}
-	if((dummy = atoui(lpDBRow[2])) != ulChangeType){
+	dummy = atoui(lpDBRow[2]);
+	if (dummy != ulChangeType) {
 		ec_log_err("SetSyncStatus(): unexpected change type %u/%u", dummy, ulChangeType);
 		return er = KCERR_COLLISION;
 	}

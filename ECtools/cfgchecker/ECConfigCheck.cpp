@@ -46,7 +46,6 @@ static void clearCharacters(std::string &s, const std::string &whitespaces)
 
 void ECConfigCheck::readConfigFile(const char *lpszConfigFile)
 {
-	FILE *fp = NULL;
 	char cBuffer[1024];
 
 	if (!lpszConfigFile) {
@@ -54,7 +53,8 @@ void ECConfigCheck::readConfigFile(const char *lpszConfigFile)
 		return;
 	}
 
-	if(!(fp = fopen(lpszConfigFile, "rt"))) {
+	auto fp = fopen(lpszConfigFile, "rt");
+	if (fp == nullptr) {
 		m_bDirty = true;
 		return;
 	}

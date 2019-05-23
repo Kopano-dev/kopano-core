@@ -278,7 +278,8 @@ HRESULT ECChannel::HrEnableTLS(void)
 	}
 
 	SSL_set_accept_state(lpSSL);
-	if ((rc = SSL_accept(lpSSL)) != 1) {
+	rc = SSL_accept(lpSSL);
+	if (rc != 1) {
 		ec_log_err("ECChannel::HrEnableTLS(): SSL_accept failed: %d", SSL_get_error(lpSSL, rc));
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
@@ -550,7 +551,8 @@ char * ECChannel::SSL_gets(char *buf, int *lpulLen) {
 		newline = static_cast<char *>(memchr(bp, '\n', n));
 		if (newline != nullptr)
 			n = newline - bp + 1;
-		if ((n = SSL_read(lpSSL, bp, n)) < 0)
+		n = SSL_read(lpSSL, bp, n);
+		if (n < 0)
 			return NULL;
 		bp += n;
 		len -= n;
@@ -990,13 +992,7 @@ int ec_listen_generic(const char *spec, int *pfd, int mode)
 
 bool ec_bindaddr_less::operator()(const std::string &a, const std::string &b) const
 {
-	auto p = ec_parse_bindaddr(a.c_str());
-	auto q = ec_parse_bindaddr(b.c_str());
-	if (p.first < q.first)
-		return true;
-	if (p.first == q.first && p.second < q.second)
-		return true;
-	return false;
+	return ec_parse_bindaddr(a.c_str()) < ec_parse_bindaddr(b.c_str());
 }
 
 static int ec_fdtable_size()

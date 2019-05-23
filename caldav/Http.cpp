@@ -161,7 +161,6 @@ HRESULT Http::HrParseHeaders()
 	HRESULT hr;
 	std::string strAuthdata;
 	std::string strUserAgent;
-	size_t colon_pos;
 
 	auto items = tokenize(m_strAction, ' ', true);
 	if (items.size() != 3) {
@@ -210,7 +209,8 @@ HRESULT Http::HrParseHeaders()
 		return MAPI_E_LOGON_FAILED;
 	}
 	auto user_pass = base64_decode(items[1]);
-	if((colon_pos = user_pass.find(":")) == std::string::npos) {
+	auto colon_pos = user_pass.find(":");
+	if (colon_pos == std::string::npos) {
 		ec_log_debug("HrParseHeaders password missing");
 		return MAPI_E_LOGON_FAILED;
 	}

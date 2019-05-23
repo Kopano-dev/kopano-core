@@ -253,7 +253,7 @@ HRESULT ZCMAPIProp::ConvertProps(IMAPIProp *lpContact, ULONG cbEntryID,
 	hr = lpContact->GetProps(NULL, MAPI_UNICODE, &cValues, &~ptrContactProps);
 	if (FAILED(hr))
 		goto exitm;
-	hr = MAPIAllocateBuffer(sizeof(SPropValue), (void**)&m_base);
+	hr = MAPIAllocateBuffer(sizeof(SPropValue), reinterpret_cast<void **>(&m_base));
 	if (hr != hrSuccess)
 		goto exitm;
 
@@ -322,7 +322,7 @@ HRESULT ZCMAPIProp::CopyOneProp(convert_context &converter, ULONG ulFlags,
 		// copy from unicode to string8
 		lpProp->ulPropTag = CHANGE_PROP_TYPE(i->second.ulPropTag, PT_STRING8);
 		strAnsi = converter.convert_to<std::string>(i->second.Value.lpszW);
-		hr = MAPIAllocateMore(strAnsi.size() + 1, lpBase, (void**)&lpProp->Value.lpszA);
+		hr = MAPIAllocateMore(strAnsi.size() + 1, lpBase, reinterpret_cast<void **>(&lpProp->Value.lpszA));
 		if (hr != hrSuccess)
 			return hr;
 		strcpy(lpProp->Value.lpszA, strAnsi.c_str());

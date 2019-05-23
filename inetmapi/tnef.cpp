@@ -147,16 +147,18 @@ static HRESULT StreamToPropValue(IStream *lpStream, ULONG ulPropTag,
 	if (PROP_TYPE(ulPropTag) == PT_BINARY) {
 		lpPropValue->Value.bin.cb = (ULONG)sStatstg.cbSize.QuadPart;
 	
-		hr = MAPIAllocateMore((ULONG)sStatstg.cbSize.QuadPart, lpPropValue, (void**)&lpPropValue->Value.bin.lpb);
+		hr = MAPIAllocateMore((ULONG)sStatstg.cbSize.QuadPart, lpPropValue,
+		     reinterpret_cast<void **>(&lpPropValue->Value.bin.lpb));
 		if(hr != hrSuccess)
 			return hr;
 		wptr = lpPropValue->Value.bin.lpb;
 	} else if (PROP_TYPE(ulPropTag) == PT_UNICODE) {
-		hr = MAPIAllocateMore((ULONG)sStatstg.cbSize.QuadPart + sizeof(WCHAR), lpPropValue, (void**)&lpPropValue->Value.lpszW);
+		hr = MAPIAllocateMore((ULONG)sStatstg.cbSize.QuadPart + sizeof(wchar_t),
+		     lpPropValue, reinterpret_cast<void **>(&lpPropValue->Value.lpszW));
 		if (hr != hrSuccess)
 			return hr;
 		// terminate unicode string
-		lpPropValue->Value.lpszW[sStatstg.cbSize.QuadPart / sizeof(WCHAR)] = L'\0';
+		lpPropValue->Value.lpszW[sStatstg.cbSize.QuadPart / sizeof(wchar_t)] = L'\0';
 		wptr = (BYTE*)lpPropValue->Value.lpszW;
 	}
 
@@ -916,51 +918,52 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 		switch(PROP_TYPE(ulPropTag)) {
 		case PT_MV_I2:
 			lpProp->Value.MVi.cValues = ulCount;
-			hr = MAPIAllocateMore(ulCount * sizeof(unsigned short), lpProp, (void **)&lpProp->Value.MVi.lpi);
+			hr = MAPIAllocateMore(ulCount * sizeof(unsigned short), lpProp, reinterpret_cast<void **>(&lpProp->Value.MVi.lpi));
 			break;
 		case PT_MV_LONG:
 			lpProp->Value.MVl.cValues = ulCount;
-			hr = MAPIAllocateMore(ulCount * sizeof(ULONG), lpProp, (void **)&lpProp->Value.MVl.lpl);
+			hr = MAPIAllocateMore(ulCount * sizeof(ULONG), lpProp, reinterpret_cast<void **>(&lpProp->Value.MVl.lpl));
 			break;
 		case PT_MV_R4:
 			lpProp->Value.MVflt.cValues = ulCount;
-			hr = MAPIAllocateMore(ulCount * sizeof(float), lpProp, (void **)&lpProp->Value.MVflt.lpflt);
+			hr = MAPIAllocateMore(ulCount * sizeof(float), lpProp, reinterpret_cast<void **>(&lpProp->Value.MVflt.lpflt));
 			break;
 		case PT_MV_APPTIME:
 			lpProp->Value.MVat.cValues = ulCount;
-			hr = MAPIAllocateMore(ulCount * sizeof(double), lpProp, (void **)&lpProp->Value.MVat.lpat);
+			hr = MAPIAllocateMore(ulCount * sizeof(double), lpProp, reinterpret_cast<void **>(&lpProp->Value.MVat.lpat));
 			break;
 		case PT_MV_DOUBLE:
 			lpProp->Value.MVdbl.cValues = ulCount;
-			hr = MAPIAllocateMore(ulCount * sizeof(double), lpProp, (void **)&lpProp->Value.MVdbl.lpdbl);
+			hr = MAPIAllocateMore(ulCount * sizeof(double), lpProp, reinterpret_cast<void **>(&lpProp->Value.MVdbl.lpdbl));
 			break;
 		case PT_MV_CURRENCY:
 			lpProp->Value.MVcur.cValues = ulCount;
-			hr = MAPIAllocateMore(ulCount * sizeof(CURRENCY), lpProp, (void **)&lpProp->Value.MVcur.lpcur);
+			hr = MAPIAllocateMore(ulCount * sizeof(CURRENCY), lpProp, reinterpret_cast<void **>(&lpProp->Value.MVcur.lpcur));
 			break;
 		case PT_MV_SYSTIME:
 			lpProp->Value.MVft.cValues = ulCount;
-			hr = MAPIAllocateMore(ulCount * sizeof(FILETIME), lpProp, (void **)&lpProp->Value.MVft.lpft);
+			hr = MAPIAllocateMore(ulCount * sizeof(FILETIME), lpProp, reinterpret_cast<void **>(&lpProp->Value.MVft.lpft));
 			break;
 		case PT_MV_I8:
 			lpProp->Value.MVli.cValues = ulCount;
-			hr = MAPIAllocateMore(ulCount * sizeof(LARGE_INTEGER), lpProp, (void **)&lpProp->Value.MVli.lpli);
+			hr = MAPIAllocateMore(ulCount * sizeof(LARGE_INTEGER), lpProp, reinterpret_cast<void **>(&lpProp->Value.MVli.lpli));
 			break;
 		case PT_MV_STRING8:
 			lpProp->Value.MVszA.cValues = ulCount;
-			hr = MAPIAllocateMore(ulCount * sizeof(char *), lpProp, (void **)&lpProp->Value.MVszA.lppszA);
+			hr = MAPIAllocateMore(ulCount * sizeof(char *), lpProp, reinterpret_cast<void **>(&lpProp->Value.MVszA.lppszA));
 			break;
 		case PT_MV_UNICODE:
 			lpProp->Value.MVszW.cValues = ulCount;
-			hr = MAPIAllocateMore(ulCount * sizeof(WCHAR *), lpProp, (void **)&lpProp->Value.MVszW.lppszW);
+			hr = MAPIAllocateMore(ulCount * sizeof(wchar_t *),
+			     lpProp, reinterpret_cast<void **>(&lpProp->Value.MVszW.lppszW));
 			break;
 		case PT_MV_BINARY:
 			lpProp->Value.MVbin.cValues = ulCount;
-			hr = MAPIAllocateMore(ulCount * sizeof(SBinary), lpProp, (void **)&lpProp->Value.MVbin.lpbin);
+			hr = MAPIAllocateMore(ulCount * sizeof(SBinary), lpProp, reinterpret_cast<void **>(&lpProp->Value.MVbin.lpbin));
 			break;
 		case PT_MV_CLSID:
 			lpProp->Value.MVguid.cValues = ulCount;
-			hr = MAPIAllocateMore(ulCount * sizeof(GUID), lpProp, (void **)&lpProp->Value.MVguid.lpguid);
+			hr = MAPIAllocateMore(ulCount * sizeof(GUID), lpProp, reinterpret_cast<void **>(&lpProp->Value.MVguid.lpguid));
 			break;
 		default:
 			return MAPI_E_INVALID_PARAMETER;
@@ -1099,13 +1102,13 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 			if (ulSize < ulLen)
 				return MAPI_E_CORRUPT_DATA;
 			if(ulPropTag & MV_FLAG) {
-				hr = MAPIAllocateMore(ulLen+1, lpProp, (void **)&lpProp->Value.MVszA.lppszA[ulMVProp]);
+				hr = MAPIAllocateMore(ulLen + 1, lpProp, reinterpret_cast<void **>(&lpProp->Value.MVszA.lppszA[ulMVProp]));
 				if(hr != hrSuccess)
 					return hr;
 				memcpy(lpProp->Value.MVszA.lppszA[ulMVProp], lpBuffer, ulLen);
 				lpProp->Value.MVszA.lppszA[ulMVProp][ulLen] = 0; // should be terminated anyway but we terminte it just to be sure
 			} else {
-				hr = MAPIAllocateMore(ulLen+1, lpProp, (void **)&lpProp->Value.lpszA);
+				hr = MAPIAllocateMore(ulLen + 1, lpProp, reinterpret_cast<void **>(&lpProp->Value.lpszA));
 				if(hr != hrSuccess)
 					return hr;
 				memcpy(lpProp->Value.lpszA, lpBuffer, ulLen);
@@ -1140,12 +1143,14 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 			strUnicodeName = convert_to<std::wstring>(ucs2);
 
 			if(ulPropTag & MV_FLAG) {
-				hr = MAPIAllocateMore((strUnicodeName.length()+1) * sizeof(WCHAR), lpProp, (void **)&lpProp->Value.MVszW.lppszW[ulMVProp]);
+				hr = MAPIAllocateMore((strUnicodeName.length() + 1) * sizeof(wchar_t),
+				     lpProp, reinterpret_cast<void **>(&lpProp->Value.MVszW.lppszW[ulMVProp]));
 				if(hr != hrSuccess)
 					return hr;
 				wcscpy(lpProp->Value.MVszW.lppszW[ulMVProp], strUnicodeName.c_str());
 			} else {
-				hr = MAPIAllocateMore((strUnicodeName.length()+1) * sizeof(WCHAR), lpProp, (void **)&lpProp->Value.lpszW);
+				hr = MAPIAllocateMore((strUnicodeName.length() + 1) * sizeof(wchar_t),
+				     lpProp, reinterpret_cast<void **>(&lpProp->Value.lpszW));
 				if(hr != hrSuccess)
 					return hr;
 				wcscpy(lpProp->Value.lpszW, strUnicodeName.c_str());
@@ -1827,7 +1832,7 @@ HRESULT ECTNEF::HrReadStream(IStream *lpStream, void *lpBase, BYTE **lppData, UL
 	auto hr = lpStream->Stat(&sStat, STATFLAG_NONAME);
     if(hr != hrSuccess)
 		return hr;
-    hr = MAPIAllocateMore(sStat.cbSize.QuadPart, lpBase, (void **)&lpBuffer);    
+	hr = MAPIAllocateMore(sStat.cbSize.QuadPart, lpBase, reinterpret_cast<void **>(&lpBuffer));
     if(hr != hrSuccess)
 		return hr;
 	auto lpWrite = lpBuffer;

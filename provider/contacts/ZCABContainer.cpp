@@ -88,7 +88,7 @@ HRESULT ZCABContainer::Create(IMessage *lpContact, ULONG cbEntryID,
 	hr = lpDistList->QueryInterface(IID_IMAPIProp, &~lpABContainer->m_lpDistList);
 	if (hr != hrSuccess)
 		return hr;
-	return lpABContainer->QueryInterface(IID_ZCDistList, (void **)lppABContainer);
+	return lpABContainer->QueryInterface(IID_ZCDistList, reinterpret_cast<void **>(lppABContainer));
 }
 
 // IMAPIContainer
@@ -823,11 +823,7 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		if (hr != hrSuccess)
 			return hr;
 		AddChild(lpZCABContacts);
-
-		if (lpInterface)
-			hr = lpZCABContacts->QueryInterface(*lpInterface, (void**)lppUnk);
-		else
-			hr = lpZCABContacts->QueryInterface(IID_IABContainer, (void**)lppUnk);
+		hr = lpZCABContacts->QueryInterface(lpInterface != nullptr ? *lpInterface : IID_IABContainer, reinterpret_cast<void **>(lppUnk));
 	} else if (lpCABEntryID->ulObjType == MAPI_DISTLIST) {
 		// open the Original Message
 		hr = m_lpMAPISup->OpenEntry(cbFolder, lpFolder, &iid_of(ptrContact), 0, &ulObjType, &~ptrContact);
@@ -837,11 +833,7 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		if (hr != hrSuccess)
 			return hr;
 		AddChild(lpZCABContacts);
-
-		if (lpInterface)
-			hr = lpZCABContacts->QueryInterface(*lpInterface, (void**)lppUnk);
-		else
-			hr = lpZCABContacts->QueryInterface(IID_IDistList, (void**)lppUnk);
+		hr = lpZCABContacts->QueryInterface(lpInterface != nullptr ? *lpInterface : IID_IDistList, reinterpret_cast<void **>(lppUnk));
 	} else if (lpCABEntryID->ulObjType == MAPI_MAILUSER) {
 		// open the Original Message
 		hr = m_lpMAPISup->OpenEntry(cbFolder, lpFolder, &iid_of(ptrContact), 0, &ulObjType, &~ptrContact);
@@ -851,11 +843,7 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		if (hr != hrSuccess)
 			return hr;
 		AddChild(lpZCMAPIProp);
-
-		if (lpInterface)
-			hr = lpZCMAPIProp->QueryInterface(*lpInterface, (void**)lppUnk);
-		else
-			hr = lpZCMAPIProp->QueryInterface(IID_IMailUser, reinterpret_cast<void **>(lppUnk));
+		hr = lpZCMAPIProp->QueryInterface(lpInterface != nullptr ? *lpInterface : IID_IMailUser, reinterpret_cast<void **>(lppUnk));
 	} else {
 		return MAPI_E_UNKNOWN_ENTRYID;
 	}

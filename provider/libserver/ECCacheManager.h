@@ -10,6 +10,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <tuple>
 #include "ECDatabaseFactory.h"
 #include "ECDatabaseUtils.h"
 #include "ECGenericObjectTable.h"	// ECListInt
@@ -50,8 +51,8 @@ struct ECsUEIdKey {
 
 inline bool operator <(const ECsUEIdKey &a, const ECsUEIdKey &b)
 {
-	return a.ulClass < b.ulClass ||
-	       (a.ulClass == b.ulClass && a.strExternId < b.strExternId);
+	return std::tie(a.ulClass, a.strExternId) <
+	       std::tie(b.ulClass, b.strExternId);
 }
 
 /* Intern Id cache */

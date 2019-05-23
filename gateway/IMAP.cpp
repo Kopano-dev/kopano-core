@@ -3147,7 +3147,8 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 		auto hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~lpEntryList);
 		if (hr != hrSuccess)
 			return hr;
-		hr = MAPIAllocateMore(lstMails.size()*sizeof(SBinary), lpEntryList, (void**)&lpEntryList->lpbin);
+		hr = MAPIAllocateMore(lstMails.size() * sizeof(SBinary),
+		     lpEntryList, reinterpret_cast<void **>(&lpEntryList->lpbin));
 		if (hr != hrSuccess)
 			return hr;
 		lpEntryList->cValues = 0;

@@ -58,23 +58,12 @@ namespace KC {
 
 static bool IsTruncatableType(unsigned int ulTag)
 {
-    switch(PROP_TYPE(ulTag)) {
-        case PT_STRING8:
-        case PT_UNICODE:
-        case PT_BINARY:
-            return true;
-        default:
-            return false;
-    }
-
-    return false;
+	auto x = PROP_TYPE(ulTag);
+	return x == PT_STRING8 || x == PT_UNICODE || x == PT_BINARY;
 }
 
 bool propVal_is_truncated(const struct propVal *lpsPropVal)
 {
-	if(!IsTruncatableType(lpsPropVal->ulPropTag))
-		return false;
-
 	switch(PROP_TYPE(lpsPropVal->ulPropTag)) {
 	case PT_STRING8:
 	case PT_UNICODE:

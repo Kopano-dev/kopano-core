@@ -41,7 +41,8 @@ using std::wstring;
  * @return		MAPI error code
  */
 // expect input to be UTF-8 from libical ?
-HRESULT HrCopyString(convert_context& converter, std::string& strCharset, void *base, const char* lpszSrc, WCHAR** lppszDst)
+HRESULT HrCopyString(convert_context& converter, std::string& strCharset,
+    void *base, const char* lpszSrc, wchar_t **lppszDst)
 {
 	std::wstring strWide;
 	if (lpszSrc)
@@ -247,8 +248,7 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 	ulRecpCnt = 0;
 	for (const auto &recip : *lplstIcalRecip) {
 		lpAdrList->aEntries[ulRecpCnt].cValues = 1;
-
-		hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **) &lpAdrList->aEntries[ulRecpCnt].rgPropVals);
+		hr = MAPIAllocateBuffer(sizeof(SPropValue), reinterpret_cast<void **>(&lpAdrList->aEntries[ulRecpCnt].rgPropVals));
 		if (hr != hrSuccess)
 			return hr;
 		++lpAdrList->cEntries;
@@ -2149,8 +2149,8 @@ HRESULT VConverter::HrSetBody(LPMESSAGE lpMessage, icalproperty **lppicProp)
 	auto lpBody = make_unique_nt<wchar_t[]>(sStreamStat.cbSize.LowPart + sizeof(wchar_t));
 	if (lpBody == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	memset(lpBody.get(), 0, (sStreamStat.cbSize.LowPart+1) * sizeof(WCHAR));
-	hr = lpStream->Read(lpBody.get(), sStreamStat.cbSize.LowPart * sizeof(WCHAR), NULL);
+	memset(lpBody.get(), 0, (sStreamStat.cbSize.LowPart + 1) * sizeof(wchar_t));
+	hr = lpStream->Read(lpBody.get(), sStreamStat.cbSize.LowPart * sizeof(wchar_t), nullptr);
 	if (hr != hrSuccess)
 		return hr;
 

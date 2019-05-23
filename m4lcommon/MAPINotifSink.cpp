@@ -53,7 +53,7 @@ static HRESULT MAPICopyString(const char *lpSrc, void *lpBase, char **lpDst)
 static HRESULT MAPICopyUnicode(const wchar_t *lpSrc, void *lpBase, wchar_t **lpDst)
 {
 	if (lpSrc != nullptr)
-		return KAllocCopy(lpSrc, (wcslen(lpSrc) + 1) * sizeof(WCHAR), reinterpret_cast<void **>(lpDst), lpBase);
+		return KAllocCopy(lpSrc, (wcslen(lpSrc) + 1) * sizeof(wchar_t), reinterpret_cast<void **>(lpDst), lpBase);
         *lpDst = NULL;
 	return hrSuccess;
 }

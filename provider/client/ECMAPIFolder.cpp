@@ -395,11 +395,7 @@ HRESULT ECMAPIFolder::CreateMessageWithEntryID(const IID *lpInterface,
 	hr = Util::HrCopyEntryId(m_cbEntryId, m_lpEntryId, &lpMessage->m_cbParentID, &~lpMessage->m_lpParentID);
 	if(hr != hrSuccess)
 		return hr;
-	if(lpInterface)
-		hr = lpMessage->QueryInterface(*lpInterface, (void **)lppMessage);
-	else
-		hr = lpMessage->QueryInterface(IID_IMessage, (void **)lppMessage);
-
+	hr = lpMessage->QueryInterface(lpInterface != nullptr ? *lpInterface : IID_IMessage, reinterpret_cast<void **>(lppMessage));
 	AddChild(lpMessage);
 	return hr;
 }
@@ -473,14 +469,14 @@ HRESULT ECMAPIFolder::CopyMessages2(unsigned int ftype, ENTRYLIST *lpMsgList,
 	if (hr != hrSuccess)
 		return hr;
 	lpMsgListEC->cValues = 0;
-	hr = ECAllocateMore(sizeof(SBinary) * lpMsgList->cValues, lpMsgListEC, (void **)&lpMsgListEC->lpbin);
+	hr = ECAllocateMore(sizeof(SBinary) * lpMsgList->cValues, lpMsgListEC, reinterpret_cast<void **>(&lpMsgListEC->lpbin));
 	if (hr != hrSuccess)
 		return hr;
 	hr = ECAllocateBuffer(sizeof(ENTRYLIST), &~lpMsgListSupport);
 	if (hr != hrSuccess)
 		return hr;
 	lpMsgListSupport->cValues = 0;
-	hr = ECAllocateMore(sizeof(SBinary) * lpMsgList->cValues, lpMsgListSupport, (void **)&lpMsgListSupport->lpbin);
+	hr = ECAllocateMore(sizeof(SBinary) * lpMsgList->cValues, lpMsgListSupport, reinterpret_cast<void **>(&lpMsgListSupport->lpbin));
 	if (hr != hrSuccess)
 		return hr;
 	//FIXME

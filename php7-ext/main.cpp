@@ -2775,7 +2775,7 @@ ZEND_FUNCTION(mapi_stream_create)
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to instantiate new stream object");
 		return;
 	}
-	MAPI_G(hr) = lpStream->QueryInterface(IID_IStream, (void**)&lpIStream);
+	MAPI_G(hr) = lpStream->QueryInterface(IID_IStream, reinterpret_cast<void **>(&lpIStream));
 	if(MAPI_G(hr) != hrSuccess)
 		return;
 
@@ -2986,7 +2986,7 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 		entry = zend_hash_get_current_data_ex(targetHash, &thpos);
 		if(guidHash)
 			guidEntry = zend_hash_get_current_data_ex(guidHash, &ghpos);
-		MAPI_G(hr) = MAPIAllocateMore(sizeof(MAPINAMEID),lppNamePropId,(void **) &lppNamePropId[i]);
+		MAPI_G(hr) = MAPIAllocateMore(sizeof(MAPINAMEID), lppNamePropId, reinterpret_cast<void **>(&lppNamePropId[i]));
 		if (MAPI_G(hr) != hrSuccess)
 			return;
 
@@ -3011,8 +3011,8 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 			break;
 		case IS_STRING:
 			multibytebufferlen = mbstowcs(NULL, entry->value.str->val, 0);
-			MAPI_G(hr) = MAPIAllocateMore((multibytebufferlen + 1) * sizeof(WCHAR), lppNamePropId,
-				  (void **)&lppNamePropId[i]->Kind.lpwstrName);
+			MAPI_G(hr) = MAPIAllocateMore((multibytebufferlen + 1) * sizeof(wchar_t), lppNamePropId,
+			             reinterpret_cast<void **>(&lppNamePropId[i]->Kind.lpwstrName));
 			if (MAPI_G(hr) != hrSuccess)
 				return;
 			mbstowcs(lppNamePropId[i]->Kind.lpwstrName, entry->value.str->val, multibytebufferlen+1);
@@ -5487,7 +5487,7 @@ ZEND_FUNCTION(mapi_freebusysupport_loaddata)
 		++j;
 	} ZEND_HASH_FOREACH_END();
 
-	MAPI_G(hr) = MAPIAllocateBuffer(sizeof(IFreeBusyData*)*cUsers, (void**)&lppFBData);
+	MAPI_G(hr) = MAPIAllocateBuffer(sizeof(IFreeBusyData*)*cUsers, reinterpret_cast<void **>(&lppFBData));
 	if(MAPI_G(hr) != hrSuccess)
 		return;
 
@@ -6528,8 +6528,7 @@ ZEND_FUNCTION(mapi_inetmapi_imtoinet)
     MAPI_G(hr) = ECMemStream::Create(lpBuffer.get(), strlen(lpBuffer.get()), 0, nullptr, nullptr, nullptr, &~lpMemStream);
     if(MAPI_G(hr) != hrSuccess)
 		return;
-        
-    MAPI_G(hr) = lpMemStream->QueryInterface(IID_IStream, (void **)&lpStream);
+	MAPI_G(hr) = lpMemStream->QueryInterface(IID_IStream, reinterpret_cast<void **>(&lpStream));
     if(MAPI_G(hr) != hrSuccess)
 		return;
         
@@ -6780,7 +6779,8 @@ ZEND_FUNCTION(mapi_enable_exceptions)
 	
     if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "S", &str_class) == FAILURE) return;
     
-    if ((ce = *(zend_class_entry **)zend_hash_find(CG(class_table), str_class)) != NULL) {
+	ce = *(zend_class_entry **)zend_hash_find(CG(class_table), str_class);
+	if (ce != nullptr) {
         MAPI_G(exceptions_enabled) = true;
         MAPI_G(exception_ce) = ce;
         RETVAL_TRUE;

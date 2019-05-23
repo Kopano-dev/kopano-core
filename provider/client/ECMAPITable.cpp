@@ -228,7 +228,8 @@ HRESULT ECMAPITable::Restrict(const SRestriction *lpRestriction, ULONG ulFlags)
 	scoped_rlock lock(m_hLock);
 
     if(lpRestriction) {
-        if ((hr = MAPIAllocateBuffer(sizeof(SRestriction), &~m_lpRestrict)) != hrSuccess)
+		hr = MAPIAllocateBuffer(sizeof(SRestriction), &~m_lpRestrict);
+		if (hr != hrSuccess)
 			return hr;
         hr = Util::HrCopySRestriction(m_lpRestrict, lpRestriction, m_lpRestrict);
 		m_ulDeferredFlags &= ~TABLE_MULTI_CLEAR_RESTRICTION;

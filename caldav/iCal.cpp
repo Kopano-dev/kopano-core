@@ -333,7 +333,7 @@ HRESULT iCal::HrDelMessage(SBinary sbEid, bool blCensor)
 		return kc_perror("Error allocating memory", hr);
 	lpEntryList->cValues = 1;
 
-	hr = MAPIAllocateMore(sizeof(SBinary), lpEntryList, (void**)&lpEntryList->lpbin);
+	hr = MAPIAllocateMore(sizeof(SBinary), lpEntryList, reinterpret_cast<void **>(&lpEntryList->lpbin));
 	if(hr != hrSuccess)
 		return kc_perror("Error allocating memory", hr);
 	hr = m_lpUsrFld->OpenEntry(sbEid.cb, reinterpret_cast<ENTRYID *>(sbEid.lpb),

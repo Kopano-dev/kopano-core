@@ -269,7 +269,7 @@ std::string ProtocolBase::W2U(const std::wstring &strWideChar)
  * @param[in]	strWinChar	source string(windows-1252) to be converted
  * @return		string		converted string (utf-8)
  */
-std::string ProtocolBase::W2U(const WCHAR* lpwWideChar)
+std::string ProtocolBase::W2U(const wchar_t *lpwWideChar)
 {
 	return m_converter.convert_to<std::string>(m_strCharset.c_str(), lpwWideChar, rawsize(lpwWideChar), CHARSET_WCHAR);
 }
