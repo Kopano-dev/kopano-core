@@ -1089,7 +1089,7 @@ HRESULT ECMsgStore::GetWrappedServerStoreEntryID(ULONG cbEntryId, LPBYTE lpEntry
 /**
  * Implementation of the IExchangeManageStore interface
  *
- * This method creates a store entryid for a specific user optionaly on a specific server.
+ * This method creates a store entryid for a specific user optionally on a specific server.
  *
  * @param[in]	lpszMsgStoreDN
  *					The DN of the server on which the store should be searched for. The default redirect system will be
@@ -1120,7 +1120,7 @@ HRESULT ECMsgStore::CreateStoreEntryID(const TCHAR *lpszMsgStoreDN,
 	convstring		tstrMailboxDN(lpszMailboxDN, ulFlags);
 
 	if (tstrMsgStoreDN.null_or_empty()) {
-		// No messagestore DN provided. Just try the current server and let it redirect us if neeeded.
+		// No messagestore DN provided. Just try the current server and let it redirect us if needed.
 		std::string strRedirServer;
 		auto hr = lpTransport->HrResolveUserStore(tstrMailboxDN, ulFlags, nullptr, &cbStoreEntryID, &~lpStoreEntryID, &strRedirServer);
 		if (hr == MAPI_E_UNABLE_TO_COMPLETE) {

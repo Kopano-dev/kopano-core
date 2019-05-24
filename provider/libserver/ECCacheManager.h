@@ -363,7 +363,7 @@ private:
 	// User cache
 	ECCache<std::unordered_map<unsigned int, ECsUserObject>> m_UserObjectCache; /* userid to user object */
 	ECCache<std::map<ECsUEIdKey, ECsUEIdObject>> m_UEIdObjectCache; /* user type + externid to user object */
-	ECCache<std::unordered_map<unsigned int, ECsUserObjectDetails>>	m_UserObjectDetailsCache; /* userid to user obejct data */
+	ECCache<std::unordered_map<unsigned int, ECsUserObjectDetails>>	m_UserObjectDetailsCache; /* userid to user object data */
 	// ACL cache
 	ECCache<std::unordered_map<unsigned int, ECsACLs>> m_AclCache;
 	// Cell cache, include the column data of a loaded table

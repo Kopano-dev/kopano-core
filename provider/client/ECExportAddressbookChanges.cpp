@@ -289,7 +289,7 @@ HRESULT ECExportAddressbookChanges::UpdateState(LPSTREAM lpStream)
  * This function is supposed to be used as the predicate in std::stable_sort.
  *
  * The rules for determining if a certain change should precede another are as follows:
- * - Users take precendence over Groups and Companies.
+ * - Users take precedence over Groups and Companies.
  * - Groups take precedence over Companies only.
  * - Companies never take precedence.
  * - If the changes are of the same type, precedence is determined by comparing the binary
@@ -298,14 +298,14 @@ HRESULT ECExportAddressbookChanges::UpdateState(LPSTREAM lpStream)
  *   change takes precedence.
  *
  * For the ICS system it is only important to group the users, groups and companies. But for the
- * dupliacte change filter it is necessary to group changes for a single object as well. Hence the
+ * duplicate change filter it is necessary to group changes for a single object as well. Hence the
  * 4th rule.
  *
  * @param[in]	left
- *					An ICSCHANGE structure whose sSourceKey is interpreted as an ABEID stucture. It is compared to
+ *					An ICSCHANGE structure whose sSourceKey is interpreted as an ABEID structure. It is compared to
  *					the right parameter.
  * @param[in]	right
- *					An ICSCHANGE structure whose sSourceKey is interpreted as an ABEID stucture. It is compared to
+ *					An ICSCHANGE structure whose sSourceKey is interpreted as an ABEID structure. It is compared to
  *					the left parameter.
  *
  * @return		boolean

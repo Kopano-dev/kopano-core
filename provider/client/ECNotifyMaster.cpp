@@ -244,7 +244,7 @@ void* ECNotifyMaster::NotifyWatch(void *pTmpNotifyMaster)
 			 * If (1) m_bThreadExit will be set to TRUE, which means this thread is no longer desired. No
 			 * need to make a big deal out of it.
 			 * If (2) it is not a disaster (but it is a bad situation), the simple logon should do the trick
-			 * of restoring the notification retreival for all sessions for this group. Some notifications
+			 * of restoring the notification retrieval for all sessions for this group. Some notifications
 			 * might have arrived later then we might want, but that shouldn't be a total loss (the notificataions
 			 * themselves will not have disappeared since they have been queued on the server).
 			 * If (3) the problem is that _all_ sessions attached to the server has died and we have lost some
@@ -272,7 +272,7 @@ void* ECNotifyMaster::NotifyWatch(void *pTmpNotifyMaster)
 
 		if (bReconnect)
 			bReconnect = false;
-		/* This is when the connection is interupted */
+		/* This is when the connection is interrupted */
 		if (pNotifyArray == NULL)
 			continue;
 

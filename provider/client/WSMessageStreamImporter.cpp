@@ -26,7 +26,7 @@ HRESULT WSMessageStreamSink::Create(ECFifoBuffer *lpFifoBuffer, ULONG ulTimeout,
 }
 
 /**
- * Write data into the underlaying fifo buffer.
+ * Write data into the underlying fifo buffer.
  * @param[in]	lpData	Pointer to the data
  * @param[in]	cbData	The amount of data in bytes.
  */
@@ -60,7 +60,7 @@ WSMessageStreamSink::WSMessageStreamSink(ECFifoBuffer *lpFifoBuffer, ULONG ulTim
 { }
 
 /**
- * Closes the underlaying fifo buffer, causing the reader to stop reading.
+ * Closes the underlying fifo buffer, causing the reader to stop reading.
  */
 WSMessageStreamSink::~WSMessageStreamSink()
 {

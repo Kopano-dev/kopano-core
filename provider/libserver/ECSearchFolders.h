@@ -123,7 +123,7 @@ public:
      * is much simpler (just remove the item from all searchfolders)
      *
      * This function should be called AFTER the change has been written to the database and AFTER the change
-     * has been comitted, otherwise the change will be invisible to the searchfolder update code.
+     * has been committed, otherwise the change will be invisible to the searchfolder update code.
      *
      * Folder changes never need to be processed since searchfolders cannot be used for other folders
      *
@@ -138,7 +138,7 @@ public:
      * Remove a search folder because it has been deleted. Cancels the search before removing the information. It will
      * remove all results from the database.
      *
-     * This is differenct from Cancelling a search folder (see CancelSearchFolder()) because the results are actually
+     * This is different from Cancelling a search folder (see CancelSearchFolder()) because the results are actually
      * deleted after cancelling.
      *
      * @param[in] ulStoreId The store id (hierarchyid) of the folder to be removed

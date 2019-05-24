@@ -222,8 +222,8 @@ HRESULT ECArchiveAwareMessage::OpenAttach(ULONG ulAttachmentNum, LPCIID lpInterf
 	auto hr = ECMessage::OpenAttach(ulAttachmentNum, lpInterface, ulFlags, lppAttach);
 	// According to MSDN an attachment must explicitly be opened with MAPI_MODIFY or MAPI_BEST_ACCESS
 	// in order to get write access. However, practice has thought that that's not always the case. So
-	// if the parent object was openend with write access, we'll assume the object is changed the moment
-	// the attachment is openend.
+	// if the parent object was opened with write access, we'll assume the object is changed the moment
+	// the attachment is opened.
 	if (hr == hrSuccess && ((ulFlags & MAPI_MODIFY) || fModify))
 		// We have no way of knowing if the attachment will modified since it operates directly
 		// on the MAPIOBJECT data, which bypasses this subclass.
@@ -470,7 +470,7 @@ HRESULT ECArchiveAwareMsgStore::OpenEntry(ULONG cbEntryID,
 	// By default we'll try to open an archive aware message when a message is opened. The exception
 	// is when the client is not licensed to do so or when it's explicitly disabled by passing
 	// IID_IECMessageRaw as the lpInterface parameter. This is for instance needed for the archiver
-	// itself becaus it needs to operate on the non-stubbed (or raw) message.
+	// itself because it needs to operate on the non-stubbed (or raw) message.
 	// In this override, we only check for the presence of IID_IECMessageRaw. If that's found, we'll
 	// pass an ECMessageFactory instance to our parents OpenEntry.
 	// Otherwise we'll pass an ECArchiveAwareMessageFactory instance, which will check the license

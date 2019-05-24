@@ -260,7 +260,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 	 *    change key needs to be generated.
 	 * 2. fForceNewChangeKey == true. When this happens the caller has determined that a new change key
 	 *    needs to be generated. (We can't do this much earlier as we need the changeid, which we only
-	 *    get once the change has been registed in the database.) At this time this will only happen when
+	 *    get once the change has been registered in the database.) At this time this will only happen when
 	 *    no change key was sent by the client when calling ns__saveObject. This is the case when a change
 	 *    occurs on the local server (actually making check 1 superfluous) or when a change is received
 	 *    through z-push.

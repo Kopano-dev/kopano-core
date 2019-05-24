@@ -34,7 +34,7 @@ typedef std::list<std::string> dn_list_t;
  */
 class LDAPCache final {
 private:
-	/* Protect mutex from being overriden */
+	/* Protect mutex from being overridden */
 	std::recursive_mutex m_hMutex;
 	dn_cache_t m_lpCompanyCache; /* CONTAINER_COMPANY */
 	dn_cache_t m_lpGroupCache; /* OBJECTCLASS_DISTLIST */

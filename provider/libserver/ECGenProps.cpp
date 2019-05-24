@@ -570,7 +570,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 				if ((ulRights & ecRightsCreate) == ecRightsCreate)
 					sPropVal.Value.ul |= MAPI_ACCESS_CREATE_CONTENTS;
 
-				// olk2k7 fix: if we have delete access, we must set create contents access (eventhough an actual saveObject will still be denied) for deletes to work.
+				// olk2k7 fix: if we have delete access, we must set create contents access (even though an actual saveObject will still be denied) for deletes to work.
 				if ((ulRights & ecRightsDeleteAny) == ecRightsDeleteAny ||
 				    (bOwner && (ulRights & ecRightsDeleteOwned) == ecRightsDeleteOwned))
 					sPropVal.Value.ul |= MAPI_ACCESS_CREATE_CONTENTS;

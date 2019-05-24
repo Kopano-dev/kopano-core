@@ -55,7 +55,7 @@ namespace KC {
 #define OP_COMPANYADMIN		"companyadmin"
 
 /**
- * User managment helper class for database access
+ * User management helper class for database access
  * 
  * This class implements most of the Database Access functions
  * which can be shared between the DB and Unix plugin.

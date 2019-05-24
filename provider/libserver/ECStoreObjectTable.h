@@ -45,7 +45,7 @@ public:
 	//Overrides
 	virtual ECRESULT GetColumnsAll(ECListInt *props) override;
 
-	// Static database row functions, can be used externally aswell .. Obviously these are *not* threadsafe, make sure that
+	// Static database row functions, can be used externally as well .. Obviously these are *not* threadsafe, make sure that
 	// you either lock the passed arguments or all arguments are from the local stack.
 
 	static ECRESULT CopyEmptyCellToSOAPPropVal(struct soap *soap, unsigned int ulPropTag, struct propVal *lpPropVal);

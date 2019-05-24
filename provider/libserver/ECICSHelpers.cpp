@@ -215,7 +215,7 @@ public:
  * NonLegacyIncrementalProcessor: Processes accepted and rejected messages without the burden of tracking
  *                                legacy or checking for presence of messages.
  *                                This processor expects to be used in conjunction with the IncrementalQueryCreator,
- *                                which implies that all changes are genuin changes and no messages will be
+ *                                which implies that all changes are genuine changes and no messages will be
  *                                rejected through a restriction.
  **/
 class NonLegacyIncrementalProcessor final : public IMessageProcessor {

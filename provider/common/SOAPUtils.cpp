@@ -1897,7 +1897,7 @@ size_t PropValArraySize(const struct propValArray *lpSrc)
 /**
  * Calculate the restrict table size
  *
- * @param[in] lpSrc Ponter to a restrict table object
+ * @param[in] lpSrc Pointer to a restrict table object
  * @return the size of the object. If there is an error, object size is zero.
  */
 size_t RestrictTableSize(const struct restrictTable *lpSrc)

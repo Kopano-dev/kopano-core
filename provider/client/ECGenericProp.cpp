@@ -167,7 +167,7 @@ HRESULT ECGenericProp::HrGetRealProp(ULONG ulPropTag, ULONG ulFlags, void *lpBas
 		// The load should have loaded into the value pointed to by iterProps, so we can use that now
 	}
 
-	// Check if a max. size was requested, if so, dont return unless smaller than max. size
+	// Check if a max. size was requested, if so, don't return unless smaller than max. size
 	if (ulMaxSize != 0 && iterProps->second.GetProperty()->GetSize() > ulMaxSize) {
 		lpsPropValue->ulPropTag = CHANGE_PROP_TYPE(ulPropTag, PT_ERROR);
 		lpsPropValue->Value.err = MAPI_E_NOT_ENOUGH_MEMORY;
@@ -191,7 +191,7 @@ HRESULT ECGenericProp::HrGetRealProp(ULONG ulPropTag, ULONG ulFlags, void *lpBas
  * Deletes a property from the internal system
  *
  * @param ulPropTag The requested ulPropTag to remove. Property type is ignored; only the property identifier is used.
- * @param fOverwriteRO Set to TRUE if the object is to be modified eventhough it's read-only. Currently unused! @todo parameter should be removed.
+ * @param fOverwriteRO Set to TRUE if the object is to be modified even though it's read-only. Currently unused! @todo parameter should be removed.
  *
  * @return MAPI error code
  * @retval hrSuccess PropTag is set to be removed during the next SaveChanges call

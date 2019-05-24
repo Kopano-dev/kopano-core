@@ -1318,7 +1318,7 @@ static ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 		goto exit;
 
 	if (lppPropValArray) {
-		// If requested we can store upto ulCount properties. Currently we won't store them all though.
+		// If requested we can store up to ulCount properties. Currently we won't store them all though.
 		// Note that we test on lppPropValArray but allocate lpPropValArray. We'll assign that to
 		// *lppPropValArray later if all went well.
 		lpPropValArray = s_alloc<struct propValArray>(NULL);
@@ -1355,7 +1355,7 @@ static ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 				CopyPropVal(lpsPropval, lpPropValArray->__ptr + lpPropValArray->__size++);
 		}
 
-		// Make sure we dont have a colliding PR_SOURCE_KEY. This can happen if a user imports an exported message for example.
+		// Make sure we don't have a colliding PR_SOURCE_KEY. This can happen if a user imports an exported message for example.
 		if (lpsPropval->ulPropTag == PR_SOURCE_KEY) {
 			// don't use the sourcekey if found.
 			// Don't query the cache as that can be out of sync with the db in rare occasions.

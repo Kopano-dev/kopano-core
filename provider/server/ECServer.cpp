@@ -924,7 +924,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{ "storename_format",			"%f" },
 		{ "loginname_format",			"%u" },
 
-		// internal server contols
+		// internal server controls
 		{ "softdelete_lifetime",		"30", CONFIGSETTING_RELOADABLE },	// time expressed in days, 0 == never delete anything
 		{ "cache_cell_size",			"0", CONFIGSETTING_SIZE },
 		{ "cache_object_size",		"0", CONFIGSETTING_SIZE },
