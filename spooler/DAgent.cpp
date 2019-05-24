@@ -1170,7 +1170,7 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 			ec_log_debug("Avoiding OOF reply to an automated message.");
 			return erSuccess;
 		}
-		// save headers to a file so they can also be tested from the script we're runing
+		// save headers to a file so they can also be tested from the script we're running
 		snprintf(szTemp, PATH_MAX, "%s/autorespond-headers.XXXXXX", TmpPath::instance.getTempPath().c_str());
 		fd = mkstemp(szTemp);
 		if (fd >= 0) {
@@ -1704,7 +1704,7 @@ static HRESULT HrOverrideReceivedByProps(IMessage *lpMessage,
  * @param[in] lpOrigMessage The original delivered message
  * @param[in] lpDeliverFolder The delivery folder of the new message
  * @param[in] lpRecip recipient data to use
- * @param[in] lpFallbackFolder Fallback folder incase lpDeliverFolder cannot be delivered to
+ * @param[in] lpFallbackFolder Fallback folder in case lpDeliverFolder cannot be delivered to
  * @param[in] bFallbackDelivery lpOrigMessage is a fallback delivery message
  * @param[out] lppFolder folder the new message was created in
  * @param[out] lppMessage the newly copied message
@@ -1721,7 +1721,7 @@ static HRESULT HrCopyMessageForDelivery(IMessage *lpOrigMessage,
 	helpers::MAPIPropHelperPtr ptrArchiveHelper;
 	static constexpr const SizedSPropTagArray(13, sptaReceivedBy) = {
 		13, {
-			/* Overriden by HrOverrideRecipProps() */
+			/* Overridden by HrOverrideRecipProps() */
 			PR_MESSAGE_RECIP_ME,
 			PR_MESSAGE_TO_ME,
 			PR_MESSAGE_CC_ME,
@@ -1739,7 +1739,7 @@ static HRESULT HrCopyMessageForDelivery(IMessage *lpOrigMessage,
 	};
 	static constexpr const SizedSPropTagArray(12, sptaFallback) = {
 		12, {
-			/* Overriden by HrOverrideFallbackProps() */
+			/* Overridden by HrOverrideFallbackProps() */
 			PR_SENDER_ADDRTYPE,
 			PR_SENDER_EMAIL_ADDRESS,
 			PR_SENDER_ENTRYID,
@@ -1872,8 +1872,8 @@ static HRESULT HrPostDeliveryProcessing(pym_plugin_intf *lppyMapiPlugin,
 		hr = HrAutoAccept(lpArgs->sc.get(), lpRecip, lpStore, *lppMessage);
 		if(hr == hrSuccess) {
 			ec_log_info("Autoaccept processing completed successfully. Skipping further processing.");
-			// The MR autoaccepter has processed the message. Skip any further work on this message: dont
-			// run rules and dont send new mail notifications (The message should be deleted now)
+			// The MR autoaccepter has processed the message. Skip any further work on this message: don't
+			// run rules and don't send new mail notifications (The message should be deleted now)
 			return MAPI_E_CANCEL;
 		}
 		ec_log_info("Autoaccept processing failed, proceeding with rules processing: %s (%x).",
@@ -3401,7 +3401,7 @@ int main(int argc, char **argv) try {
 			// config is explicit. This causes errors from
 			// ECConfig::ParseParams to be logged. Besides that
 			// it doesn't make sense to override your config if
-			// you don't know whats in it.
+			// you don't know what's in it.
 			bExplicitConfig = true;
 
 		// ECConfig::ParseParams returns the index in the passed array,

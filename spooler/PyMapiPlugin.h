@@ -22,7 +22,7 @@
 #define MP_FAILED			1	// Whole process failed
 #define MP_STOP_SUCCESS		2	// Stop with the message processing go to the next recipient. Recpient return code OK
 #define MP_STOP_FAILED		3	// Stop with the message processing go to the next recipient. Recpient return code failed
-#define MP_EXIT				4	// Exit the all the hook calls and go futher with the mail process.
+#define MP_EXIT				4	// Exit the all the hook calls and go further with the mail process.
 #define MP_RETRY_LATER		5	// Stop Process and retry later
 
 class pym_plugin_intf {
