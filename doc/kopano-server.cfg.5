@@ -70,8 +70,11 @@ Example: !include common.cfg
 .PP
 A space-separated list of address:port specifiers for where the server should
 listen for unencrypted connections. IPv6 addresses need to be enclosed in
-brackets (as in \fB[2001:db8::1]:236\fP), and the asterisk is the
-multi-protocol address wildcard.
+square brackets (as in \fB[2001:db8::1]:236\fP). The asterisk denotes the
+network layer multi-protocol (IPv4/IPv6) address (e.g. "*:236"). Unlike other
+daemons, local sockets are \fBnot\fP supported with this directive, but see
+\fBserver_pipe_name\fP instead. Hostnames are not allowed (as they are
+susceptible to address changes).
 .SS server_pipe_enabled
 .PP
 Enable Unix pipe connections. Should not be disabled.
