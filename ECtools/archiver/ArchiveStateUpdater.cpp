@@ -421,7 +421,7 @@ HRESULT ArchiveStateUpdater::AddServerBased(const tstring &userName, const abent
  * @param[in]	userId		The entryid of the user whose primary store to
  * 							process.
  * @param[in]	info		ArchiveInfo instance containing the current and
- * 							requried state.
+ * 							required state.
  */
 HRESULT ArchiveStateUpdater::VerifyAndUpdate(const abentryid_t &userId, const ArchiveInfo& info, unsigned int ulAttachFlags)
 {

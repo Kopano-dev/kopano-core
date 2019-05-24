@@ -832,7 +832,7 @@ static void print_user_settings(IMsgStore *lpStore, const ECUSER *lpECUser,
 /**
  * Print archive store details on local server
  *
- * @param[in]	lpSession		MAPI session of the internal Kopano System adminstrator user
+ * @param[in]	lpSession		MAPI session of the internal Kopano System administrator user
  * @param[in]	lpECMsgStore	The IUnknown PR_EC_OBJECT pointer, used as IECServiceAdmin and IExchangeManageStore interface
  * @param[in]	lpszName		Name to resolve, using type in ulClass
  * @return		MAPI error code
@@ -881,7 +881,7 @@ static LPMVPROPMAPENTRY FindMVPropmapEntry(ECUSER *lpUser, ULONG ulPropTag)
  * Depending on the input ulClass, find the object on the server, and
  * print the details of the object if found.
  *
- * @param[in]	lpSession		MAPI session of the internal Kopano System adminstrator user
+ * @param[in]	lpSession		MAPI session of the internal Kopano System administrator user
  * @param[in]	lpECMsgStore	The IUnknown PR_EC_OBJECT pointer, used as IECServiceAdmin and IExchangeManageStore interface
  * @param[in]	ulClass			addressbook objectclass of input lpszName
  * @param[in]	lpszName		Name to resolve, using type in ulClass
@@ -1623,7 +1623,7 @@ class InputValidator {
 
 		/**
 		 * Checks for 'invalid' input from the command prompt. Any
-		 * non-printable or contol ascii character is not allowed.
+		 * non-printable or control ascii character is not allowed.
 		 *
 		 * @param[in] szInput command line input string
 		 *

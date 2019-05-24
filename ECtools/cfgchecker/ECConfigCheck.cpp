@@ -147,7 +147,7 @@ int ECConfigCheck::testDirectory(const config_check_t *check)
 	if (stat(check->value1.c_str(), &statfile) == 0 && S_ISDIR(statfile.st_mode))
 		return CHECK_OK;
 
-	printError(check->option1, "does not point to existing direcory: \"" + check->value1 + "\"");
+	printError(check->option1, "does not point to existing directory: \"" + check->value1 + "\"");
 	return CHECK_ERROR;
 }
 

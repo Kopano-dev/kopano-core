@@ -111,7 +111,7 @@ HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageSt
 	    !(ulState & MessageState::msStubbed))
 		// If, for some reason, both dirty and stubbed are set, it is safest to mark the message
 		// as stubbed. That might cause the archive to miss out some changes, but if we marked
-		// it as dirty, we might be rearchiving a stub, loosing all interesting information.
+		// it as dirty, we might be rearchiving a stub, losing all interesting information.
 		ulState |= MessageState::msDirty;
 
 	// Determine copy / move state.
@@ -463,7 +463,7 @@ HRESULT MAPIPropHelper::OpenPrevious(ArchiverSessionPtr ptrSession, LPMESSAGE *l
 /**
  * Remove the {72e98ebc-57d2-4ab5-b0aad50a7b531cb9}/stubbed property. Note that IsStubbed can still
  * return true if the message class is not updated properly. However, this is done in the caller
- * of this function, which has no notion of the set of named properies that are needed to remove this
+ * of this function, which has no notion of the set of named properties that are needed to remove this
  * property.
  */
 HRESULT MAPIPropHelper::RemoveStub()

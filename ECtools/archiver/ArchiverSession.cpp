@@ -52,7 +52,7 @@ HRESULT ArchiverSession::Create(ECConfig *lpConfig,
  * Create a Session object based on an existing MAPISession.
  *
  * @param[in]	ptrSession
- *					MAPISessionPtr that points to the MAPISession to contruct a
+ *					MAPISessionPtr that points to the MAPISession to construct a
  *					Session object for.
  * @param[in]	lpLogger
  * 					An ECLogger instance.
@@ -70,7 +70,7 @@ HRESULT ArchiverSession::Create(const MAPISessionPtr &ptrSession,
  * Create a ArchiverSession object based on an existing MAPISession.
  *
  * @param[in]	ptrSession
- *					MAPISessionPtr that points to the MAPISession to contruct a
+ *					MAPISessionPtr that points to the MAPISession to construct a
  *					ArchiverSession object for.
  * @param[in]	lpConfig
  * 					An ECConfig instance containing sslkey_file and sslkey_pass.
@@ -174,7 +174,7 @@ HRESULT ArchiverSession::Init(const char *lpszServerPath, const char *lpszSslPat
  * Initialize a ArchiverSession object based on an existing MAPISession.
  *
  * @param[in]	ptrSession
- *					MAPISessionPtr that points to the MAPISession to contruct this
+ *					MAPISessionPtr that points to the MAPISession to construct this
  *					ArchiverSession object for.
  */
 HRESULT ArchiverSession::Init(const MAPISessionPtr &ptrSession, const char *lpszSslPath, const char *lpszSslPass)
