@@ -41,7 +41,7 @@ HRESULT iCal::HrHandleCommand(const std::string &strMethod)
 /**
  * Handles http GET and HEAD request
  *
- * The GET request could be to retrieve one paticular msg or all calendar entries
+ * The GET request could be to retrieve one particular msg or all calendar entries
  * HEAD is just a GET without the body returned.
  *
  * @return	HRESULT
@@ -123,7 +123,7 @@ HRESULT iCal::HrHandleIcalPost()
 	SizedSPropTagArray(3, proptags) = {3, {PR_ENTRYID, PR_LAST_MODIFICATION_TIME, ulProptag}};
 	//Include PR_ENTRYID,PR_LAST_MODIFICATION_TIME & Named Prop GlobalObjUid.
 
-	//retrive entries from ical data.
+	//retrieve entries from ical data.
 	std::unique_ptr<ICalToMapi> lpICalToMapi;
 	CreateICalToMapi(m_lpActiveStore, m_lpAddrBook, false, &unique_tie(lpICalToMapi));
 	m_lpRequest.HrGetBody(&strIcal);
@@ -294,7 +294,7 @@ HRESULT iCal::HrModify( ICalToMapi *lpIcal2Mapi, SBinary sbSrvEid, ULONG ulPos, 
  * Creates a new message in the folder and sets its properties
  *
  * @param[in]	lpIcal2Mapi		ical to mapi conversion object
- * @param[in]	ulPos			the possition of the messasge in list
+ * @param[in]	ulPos			the position of the messasge in list
  * @return		HRESULT
  */
 HRESULT iCal::HrAddMessage(ICalToMapi *lpIcal2Mapi, ULONG ulPos)

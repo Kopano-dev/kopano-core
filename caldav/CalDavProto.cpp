@@ -18,7 +18,7 @@
 using namespace KC;
 
 /**
- * Maping of caldav properties to Mapi properties
+ * Mapping of caldav properties to Mapi properties
  */
 static const struct sMymap {
 	unsigned int ulPropTag;
@@ -440,7 +440,7 @@ HRESULT CalDAV::HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWeb
 		if (hr != hrSuccess)
 			ec_log_debug("Entry not found (%s), error code: 0x%08X %s", sWebDavVal.strValue.c_str(), hr, GetMAPIErrorMessage(hr));
 
-		// conversion if everthing goes ok, otherwise, add empty item with failed status field
+		// conversion if everything goes ok, otherwise, add empty item with failed status field
 		// we need to return all items requested in the multistatus reply, otherwise sunbird will stop, displaying nothing to the user.
 		rowset_ptr lpValRows;
 		if (hr == hrSuccess) {
@@ -774,10 +774,10 @@ exit:
 /**
  * Moves calendar entry to destination folder
  *
- * Function searches for the calendar refrenced by the guid value in the
+ * Function searches for the calendar referenced by the guid value in the
  * folder opened by HrGetFolder() and moves the entry to the destination folder.
  *
- * @param[in] strGuid		The Guid refrencing a calendar entry
+ * @param[in] strGuid		The Guid referencing a calendar entry
  * @param[in] lpDestFolder	The destination folder to which the entry is moved.
  *
  * @return	mapi error codes
@@ -1180,7 +1180,7 @@ HRESULT CalDAV::HrListCalendar(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lp
 	if (hr != hrSuccess)
 		return kc_perror("Error retrieving subcalendars for IPM_Subtree", hr);
 
-	// public definitly doesn't have a wastebasket to filter
+	// public definitely doesn't have a wastebasket to filter
 	if ((m_ulUrlFlag & REQ_PUBLIC) == 0)
 	{
 		// always try to get the wastebasket from the current store to filter calendars from
@@ -1583,7 +1583,7 @@ HRESULT CalDAV::HrConvertToIcal(const SPropValue *lpEid, MapiToICal *lpMtIcal,
  *
  * @param[in]	lpObj			IMAPIProp object, same as lpProps comes from
  * @param[in]	lpProps			SpropValue array containing values of requested properties
- * @param[in]	ulPropCount		Count of propety values present in lpProps
+ * @param[in]	ulPropCount		Count of property values present in lpProps
  * @param[in]	lpMtIcal		mapi to ical conversion object pointer
  * @param[in]	ulFlags			Flags used during mapi to ical conversion (currently only censor flag)
  * @param[in]	bPropsFirst		first lpProps parameter, then defaults if true
@@ -1735,7 +1735,7 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 				// @todo leave not found for messages?
 
 				// set value to 2 for tasks and non default calendar
-				// so that ical.app shows default calendar in the list first everytime
+				// so that ical.app shows default calendar in the list first every time
 				// if this value is left empty, ical.app tries to reset the order
 				sWebProperty.strValue = "2";
 			}
@@ -1861,7 +1861,7 @@ HRESULT CalDAV::HrGetCalendarOrder(SBinary sbEid, std::string *lpstrCalendarOrde
  * @return mapi error codes
  *
  * @retval MAPI_E_DECLINE_COPY	The mapi message is not moved as etag values does not match
- * @retval MAPI_E_NOT_FOUND		The mapi message refered by guid is not found
+ * @retval MAPI_E_NOT_FOUND		The mapi message referred by guid is not found
  * @retval MAPI_E_NO_ACCESS		The user does not sufficient rights on the mapi message
  *
  */
@@ -1889,7 +1889,7 @@ exit:
 	if (hr == hrSuccess)
 		m_lpRequest.HrResponseHeader(200, "OK");
 	else if (hr == MAPI_E_DECLINE_COPY)
-		m_lpRequest.HrResponseHeader(412, "Precondition Failed"); // entry is modifid on server (sunbird & TB)
+		m_lpRequest.HrResponseHeader(412, "Precondition Failed"); // entry is modified on server (sunbird & TB)
 	else if( hr == MAPI_E_NOT_FOUND)
 		m_lpRequest.HrResponseHeader(404, "Not Found");
 	else if(hr == MAPI_E_NO_ACCESS)

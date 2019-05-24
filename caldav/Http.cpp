@@ -543,7 +543,7 @@ HRESULT Http::HrFinalize()
 		char lpstrLen[10];
 		std::string::size_type szBodyLen = m_strRespBody.size();	// length of data to be sent to the client
 		std::string::size_type szBodyWritten = 0;					// length of data sent to client
-		unsigned int szPart = HTTP_CHUNK_SIZE;						// default lenght of chunk data to be written
+		unsigned int szPart = HTTP_CHUNK_SIZE;						// default length of chunk data to be written
 
 		HrResponseHeader("Transfer-Encoding", "chunked");
 		hr = HrFlushHeaders();
@@ -664,7 +664,7 @@ HRESULT Http::HrRequestAuth(const std::string &strMsg)
 
 /**
  * Write all http headers to ECChannel
- * @retrun	HRESULT
+ * @return	HRESULT
  * @retval	MAPI_E_END_OF_SESSION	If Connection type is set to close then the mapi session is ended
  */
 HRESULT Http::HrFlushHeaders()

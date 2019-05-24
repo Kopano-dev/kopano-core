@@ -39,7 +39,7 @@ HRESULT HrAddProperty(IMsgStore *lpMsgStore, SBinary sbEid, ULONG ulPropertyId, 
 //Adds property FolderID && dispidApptTsRef to the folder & message respectively, if not present else returns it.
 HRESULT HrAddProperty(IMAPIProp *lpMapiProp, ULONG ulPropertyId, bool bIsFldID, std::wstring *wstrProperty);
 
-//Finds folder from hierarchy table refering to the Folder ID, entryid or folder name
+//Finds folder from hierarchy table referring to the Folder ID, entryid or folder name
 extern HRESULT HrFindFolder(IMsgStore *, IMAPIFolder *root, SPropTagArray *lpNamedProps, const std::wstring &wstrFldId, IMAPIFolder **ufld);
 
 //Adds data to structure for acl request.
