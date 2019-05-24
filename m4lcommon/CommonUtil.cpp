@@ -94,7 +94,7 @@ const char *GetServerUnixSocket(const char *szPreferred)
  * Creates a new profile with given information.
  *
  * A new Kopano profile will be created with the information given in
- * the paramters. See common/ECTags.h for possible profileflags. These
+ * the parameters. See common/ECTags.h for possible profileflags. These
  * will be placed in PR_EC_FLAGS.
  * Any existing profile with the name in szProfName will first be removed.
  *
@@ -596,11 +596,11 @@ HRESULT HrNewMailNotification(IMsgStore* lpMDB, IMessage* lpMessage)
 
 	// Notification type
 	sNotification.ulEventType = fnevNewMail;
-	
+
 	// PR_ENTRYID
 	sNotification.info.newmail.cbEntryID = lpNewMailPropArray[NEWMAIL_ENTRYID].Value.bin.cb;
 	sNotification.info.newmail.lpEntryID = (LPENTRYID)lpNewMailPropArray[NEWMAIL_ENTRYID].Value.bin.lpb;
-	
+
 	// PR_PARENT_ENTRYID
 	sNotification.info.newmail.cbParentID = lpNewMailPropArray[NEWMAIL_PARENT_ENTRYID].Value.bin.cb;
 	sNotification.info.newmail.lpParentID = (LPENTRYID)lpNewMailPropArray[NEWMAIL_PARENT_ENTRYID].Value.bin.lpb;
@@ -659,7 +659,7 @@ HRESULT HrCreateEmailSearchKey(const char *lpszEmailType,
  * @param[out] strEmailAddress Return string for email address
  *
  * This function is a utility function to retrieve the name/type/address information for a recipient. The recipient
- * may be a direct entry in a recipient table or point to an addressbook item. 
+ * may be a direct entry in a recipient table or point to an addressbook item.
  *
  * Data is retrieved from the following places (in order)
  * 1. Addressbook (if ulPropTagEntryID is available)
@@ -681,7 +681,7 @@ HRESULT HrCreateEmailSearchKey(const char *lpszEmailType,
  * @param[out] strEmailAddress Return string for email address
  *
  * This function is a utility function to retrieve the name/type/address information for a recipient. The recipient
- * may be a direct entry in a recipient table or point to an addressbook item. 
+ * may be a direct entry in a recipient table or point to an addressbook item.
  *
  * Data is retrieved from the following places (in order)
  * 1. Addressbook (if ulPropTagEntryID is available)
@@ -707,7 +707,7 @@ HRESULT HrGetAddress(LPADRBOOK lpAdrBook, IMessage *lpMessage, ULONG ulPropTagEn
 }
 
 /*
- * Attempts to get the SMTP email address for an addressbook entity. 
+ * Attempts to get the SMTP email address for an addressbook entity.
  *
  * @param[in] lpAdrBook Addressbook object to use to lookup the address
  * @param[in] strResolve String to resolve
@@ -729,7 +729,7 @@ static HRESULT HrResolveToSMTP(LPADRBOOK lpAdrBook,
     ULONG ulType = 0;
 	object_ptr<IMAPIProp> lpMailUser;
 	memory_ptr<SPropValue> lpSMTPAddress, lpEmailAddress;
-     
+
 	auto hr = MAPIAllocateBuffer(CbNewADRLIST(1), &~lpAdrList);
 	if (hr != hrSuccess)
 		return hr;
@@ -762,9 +762,9 @@ static HRESULT HrResolveToSMTP(LPADRBOOK lpAdrBook,
 
     if (ulType == MAPI_DISTLIST && (lpSMTPAddress == NULL || wcslen(lpSMTPAddress->Value.lpszW) == 0)) {
         // For a group, we define the SMTP Address to be the same as the name of the group, unless
-        // an explicit email address has been set for the group. This sounds unlogical, but it isn't 
-        // really that strings since whenever we convert to SMTP for a group, we just put the group 
-        // name as if it were an SMTP address. 
+        // an explicit email address has been set for the group. This sounds unlogical, but it isn't
+        // really that strings since whenever we convert to SMTP for a group, we just put the group
+        // name as if it were an SMTP address.
         // (Eg. 'To: Everyone; user@domain.com')
         hr = HrGetOneProp(lpMailUser, PR_EMAIL_ADDRESS_W, &~lpEmailAddress);
         if(hr != hrSuccess)
@@ -793,7 +793,7 @@ static HRESULT HrResolveToSMTP(LPADRBOOK lpAdrBook,
  * @param[out] strEmailAddress Return string for email address
  *
  * This function is a utility function to retrieve the name/type/address information for a recipient. The recipient
- * may be a direct entry in a recipient table or point to an addressbook item. 
+ * may be a direct entry in a recipient table or point to an addressbook item.
  *
  * Data is retrieved from the following places (in order)
  * 1. Addressbook (if ulPropTagEntryID is available)
@@ -853,7 +853,7 @@ HRESULT HrGetAddress(IAddrBook *lpAdrBook, const SPropValue *lpProps,
 				strEmailAddress = converter.convert_to<std::wstring>(lpAddress->Value.lpszA);
 		}
     }
-    		
+
     // If we don't have an SMTP address yet, try to resolve the item to get the SMTP address
 	if (lpAdrBook != nullptr && lpType != nullptr &&
 	    lpAddress != nullptr && wcscasecmp(strType.c_str(), L"SMTP") != 0 &&
@@ -925,15 +925,15 @@ HRESULT DoSentMail(IMAPISession *lpSession, IMsgStore *lpMDBParam,
 		PR_DELETE_AFTER_SUBMIT, PR_STORE_ENTRYID}};
 
 	assert(lpSession != NULL || lpMDBParam != NULL);
-    
-	// Check incomming parameter
+
+	// Check incoming parameter
 	if (lpMessage == nullptr)
 		return MAPI_E_INVALID_OBJECT;
 
 	// Get Sentmail properties
 	auto hr = lpMessage->GetProps(sPropDoSentMail, 0, &cValues, &~lpPropValue);
-	if(FAILED(hr) || 
-		(lpPropValue[DSM_SENTMAIL_ENTRYID].ulPropTag != PR_SENTMAIL_ENTRYID && 
+	if(FAILED(hr) ||
+		(lpPropValue[DSM_SENTMAIL_ENTRYID].ulPropTag != PR_SENTMAIL_ENTRYID &&
 		lpPropValue[DSM_DELETE_AFTER_SUBMIT].ulPropTag != PR_DELETE_AFTER_SUBMIT)
 	  )
 		// Ignore error, leave the mail where it is
@@ -1033,7 +1033,7 @@ public:
 			} else if (Util::HrCopyProperty(&lpProps[i], lpFind, lpProps) != hrSuccess) {
 				bError = TRUE;
 			}
-			
+
 			if(bError) {
 				lpProps[i].ulPropTag = CHANGE_PROP_TYPE(lpTags->aulPropTag[i], PT_ERROR);
 				lpProps[i].Value.err = MAPI_E_NOT_FOUND;
@@ -1163,7 +1163,7 @@ static HRESULT GetRestrictTags(const SRestriction *lpRestriction,
 
 	for (auto tag : lstTags)
 		lpTags->aulPropTag[n++] = tag;
-	
+
 	lpTags->cValues = n;
 
 	*lppTags = lpTags;
@@ -1351,7 +1351,7 @@ HRESULT TestRestriction(const SRestriction *lpCondition, IMAPIProp *lpMessage,
 		break;
 	case RES_SUBRESTRICTION:
 		// A subrestriction is basically an OR restriction over all the rows in a specific
-		// table. We currently support the attachment table (PR_MESSAGE_ATTACHMENTS) and the 
+		// table. We currently support the attachment table (PR_MESSAGE_ATTACHMENTS) and the
 		// recipient table (PR_MESSAGE_RECIPIENTS) here.
 		hr = lpMessage->OpenProperty(lpCondition->res.resSub.ulSubObject, &IID_IMAPITable, 0, 0, &~lpTable);
 		if(hr != hrSuccess) {
@@ -1377,7 +1377,7 @@ HRESULT TestRestriction(const SRestriction *lpCondition, IMAPIProp *lpMessage,
 				break;
 
 			// Wrap the row into an IMAPIProp compatible object so we can recursively call
-			// this function (which obviously itself doesn't support RES_SUBRESTRICTION as 
+			// this function (which obviously itself doesn't support RES_SUBRESTRICTION as
 			// there aren't any subobjects under the subobjects .. unless we count
 			// messages in PR_ATTACH_DATA_OBJ under attachments... Well we don't support
 			// that in any case ...)
@@ -1560,7 +1560,7 @@ HRESULT HrOpenUserMsgStore(IMAPISession *lpSession, const wchar_t *lpszUser,
  * Use this to open any user store a user is allowed to open.
  *
  * @param[in]	lpSession	The IMAPISession object you received from the logon procedure.
- * @param[in]	lpStore		Optional store 
+ * @param[in]	lpStore		Optional store
  * @param[in]	lpszUser	Login name of the user's store you want to open.
  * @param[out]	lppStore	Pointer to the store of the given user.
  *
@@ -1599,20 +1599,20 @@ static HRESULT HrOpenUserMsgStore(IMAPISession *lpSession, IMsgStore *lpStore,
 ECPropMapEntry::ECPropMapEntry(GUID guid, ULONG ulId) :
 	m_sGuid(guid)
 {
-    m_sMAPINameId.ulKind = MNID_ID; 
-    m_sMAPINameId.lpguid = &m_sGuid; 
-    m_sMAPINameId.Kind.lID = ulId; 
+    m_sMAPINameId.ulKind = MNID_ID;
+    m_sMAPINameId.lpguid = &m_sGuid;
+    m_sMAPINameId.Kind.lID = ulId;
 }
-    
+
 ECPropMapEntry::ECPropMapEntry(GUID guid, const char *strId) :
 	m_sGuid(guid)
 {
-    m_sMAPINameId.ulKind = MNID_STRING; 
-    m_sMAPINameId.lpguid = &m_sGuid; 
+    m_sMAPINameId.ulKind = MNID_STRING;
+    m_sMAPINameId.lpguid = &m_sGuid;
 	m_sMAPINameId.Kind.lpwstrName = new wchar_t[strlen(strId)+1];
     mbstowcs(m_sMAPINameId.Kind.lpwstrName, strId, strlen(strId)+1);
 }
-    
+
 ECPropMapEntry::ECPropMapEntry(const ECPropMapEntry &other) :
 	m_sGuid(other.m_sGuid)
 {
@@ -1645,9 +1645,9 @@ ECPropMapEntry::~ECPropMapEntry()
 	if (m_sMAPINameId.ulKind == MNID_STRING)
 		delete[] m_sMAPINameId.Kind.lpwstrName;
 }
-    
-MAPINAMEID* ECPropMapEntry::GetMAPINameId() { 
-    return &m_sMAPINameId; 
+
+MAPINAMEID* ECPropMapEntry::GetMAPINameId() {
+    return &m_sMAPINameId;
 }
 
 ECPropMap::ECPropMap(size_t hint)
@@ -1656,7 +1656,7 @@ ECPropMap::ECPropMap(size_t hint)
 	lstVars.reserve(hint);
 	lstTypes.reserve(hint);
 }
-    
+
 void ECPropMap::AddProp(ULONG *lpId, ULONG ulType, const ECPropMapEntry &entry)
 {
 	// Add reference to proptag for later Resolve();
@@ -1664,14 +1664,14 @@ void ECPropMap::AddProp(ULONG *lpId, ULONG ulType, const ECPropMapEntry &entry)
 	lstVars.emplace_back(lpId);
 	lstTypes.emplace_back(ulType);
 }
-    
+
 HRESULT ECPropMap::Resolve(IMAPIProp *lpMAPIProp) {
     int n = 0;
 	memory_ptr<SPropTagArray> lpPropTags;
 
 	if (lpMAPIProp == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-    
+
     // Do GetIDsFromNames() and store result in correct places
 	auto lppNames = make_unique_nt<MAPINAMEID *[]>(lstNames.size());
 	if (lppNames == nullptr)
@@ -1681,7 +1681,7 @@ HRESULT ECPropMap::Resolve(IMAPIProp *lpMAPIProp) {
 	auto hr = lpMAPIProp->GetIDsFromNames(n, lppNames.get(), MAPI_CREATE, &~lpPropTags);
     if(hr != hrSuccess)
 		return hr;
-    
+
     n = 0;
 	auto k = lstTypes.begin();
 	for (auto j = lstVars.begin(); j != lstVars.end(); ++j, ++k)
@@ -1692,30 +1692,30 @@ HRESULT ECPropMap::Resolve(IMAPIProp *lpMAPIProp) {
 /**
  * Opens the Default Calendar folder of the store.
  *
- * @param[in]	lpMsgStore			Users Store. 
- * @param[out]	lppFolder			Default Calendar Folder of the store. 
- * @return		HRESULT 
- * @retval		MAPI_E_NOT_FOUND	Default Folder not found. 
- * @retval		MAPI_E_NO_ACCESS	Insufficient permissions to open the folder.  
+ * @param[in]	lpMsgStore			Users Store.
+ * @param[out]	lppFolder			Default Calendar Folder of the store.
+ * @return		HRESULT
+ * @retval		MAPI_E_NOT_FOUND	Default Folder not found.
+ * @retval		MAPI_E_NO_ACCESS	Insufficient permissions to open the folder.
  */
 HRESULT HrOpenDefaultCalendar(LPMDB lpMsgStore, LPMAPIFOLDER *lppFolder)
 {
 	memory_ptr<SPropValue> lpPropDefFld;
 	object_ptr<IMAPIFolder> lpRootFld, lpDefaultFolder;
 	ULONG ulType = 0;
-	
+
 	//open Root Container.
 	auto hr = lpMsgStore->OpenEntry(0, nullptr, &iid_of(lpRootFld), 0, &ulType, &~lpRootFld);
-	if (hr != hrSuccess || ulType != MAPI_FOLDER) 
+	if (hr != hrSuccess || ulType != MAPI_FOLDER)
 		return kc_perror("Unable to open root container", hr);
-	//retrive Entryid of Default Calendar Folder.
+	//retrieve Entryid of Default Calendar Folder.
 	hr = HrGetOneProp(lpRootFld, PR_IPM_APPOINTMENT_ENTRYID, &~lpPropDefFld);
-	if (hr != hrSuccess) 
+	if (hr != hrSuccess)
 		return kc_perror("Unable to find PR_IPM_APPOINTMENT_ENTRYID", hr);
 	hr = lpMsgStore->OpenEntry(lpPropDefFld->Value.bin.cb,
 	     reinterpret_cast<ENTRYID *>(lpPropDefFld->Value.bin.lpb),
 	     &iid_of(lpDefaultFolder), MAPI_MODIFY, &ulType, &~lpDefaultFolder);
-	if (hr != hrSuccess || ulType != MAPI_FOLDER) 
+	if (hr != hrSuccess || ulType != MAPI_FOLDER)
 		return kc_perror("Unable to open IPM_SUBTREE object", hr);
 	*lppFolder = lpDefaultFolder.release();
 	return hrSuccess;
@@ -1730,7 +1730,7 @@ HRESULT spv_postload_large_props(IMAPIProp *lpProp,
     const SPropTagArray *lpTags, unsigned int cValues, SPropValue *lpProps)
 {
 	HRESULT hr = hrSuccess;
-	StreamPtr lpStream;	
+	StreamPtr lpStream;
 	void *lpData = NULL;
 	bool had_err = false;
 	memory_ptr<SPropTagArray> new_tags;
@@ -1758,7 +1758,7 @@ HRESULT spv_postload_large_props(IMAPIProp *lpProp,
 			continue;
 		if (lpProp->OpenProperty(tag, &IID_IStream, 0, 0, &~lpStream) != hrSuccess)
 			continue;
-				
+
 		std::string strData;
 		if (Util::HrStreamToString(lpStream.get(), strData) != hrSuccess)
 			continue;
@@ -1810,7 +1810,7 @@ HRESULT HrGetFullProp(IMAPIProp *prop, unsigned int tag, SPropValue **pvout)
 	*pvout = pv.release();
 	return ret;
 }
-	
+
 /**
  * Gets all properties for passed object
  *
@@ -1846,10 +1846,10 @@ HRESULT HrGetAllProps(IMAPIProp *prop, unsigned int flags,
 /**
  * Converts a wrapped message store's entry identifier to a message store entry identifier.
  *
- * MAPI supplies a wrapped version of a store entryid which indentified a specific service provider. 
- * A MAPI client can use IMAPISupport::WrapStoreEntryID to generate a wrapped entryid. The PR_ENTRYID and 
- * PR_STORE_ENTRYID are wrapped entries which can be unwrapped by using this function. 
- * 
+ * MAPI supplies a wrapped version of a store entryid which identified a specific service provider.
+ * A MAPI client can use IMAPISupport::WrapStoreEntryID to generate a wrapped entryid. The PR_ENTRYID and
+ * PR_STORE_ENTRYID are wrapped entries which can be unwrapped by using this function.
+ *
  * @param[in] cbOrigEntry
  *				Size, in bytes, of the original entry identifier for the wrapped message store.
  * @param[in] lpOrigEntry
@@ -1872,7 +1872,7 @@ HRESULT UnWrapStoreEntryID(ULONG cbOrigEntry, const ENTRYID *lpOrigEntry,
 	if (lpOrigEntry == nullptr || lpcbUnWrappedEntry == nullptr ||
 	    lppUnWrappedEntry == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	
+
 	// Check if this a wrapped store entryid
 	if (cbOrigEntry < (4 + sizeof(GUID) + 3) ||
 	    memcmp(lpOrigEntry->ab, &muidStoreWrap, sizeof(GUID)) != 0)
@@ -1958,8 +1958,8 @@ static HRESULT CreateLocalFreeBusyMessage(LPMAPIFOLDER lpFolder, ULONG ulFlags,
 
 /*
  * Get local free/busy message to get delegate information
- * 
- * @note There is a differents between Outlook before 2003 and from 2003. 
+ *
+ * @note There is a differents between Outlook before 2003 and from 2003.
  *       The free/busy settings are written on another place.
  *       Outlook 2000 and 2002, a message in the calendar associated folder
  *       Outlook 2003 and higher, a message in the freebusydata folder
@@ -1974,7 +1974,7 @@ static HRESULT CreateLocalFreeBusyMessage(LPMAPIFOLDER lpFolder, ULONG ulFlags,
  * @param[out]	lppFBMessage
  *					The localfreebusy message with the free/busy settings
  *
- * @return MAPI_E_NOT_FOUND 
+ * @return MAPI_E_NOT_FOUND
  *			Local free/busy message is not exist
  *
  */
@@ -2089,20 +2089,20 @@ HRESULT OpenLocalFBMessage(DGMessageType eDGMsgType,
 }
 
 /**
- * Set proccessing meeting request options of a user
+ * Set processing meeting request options of a user
  *
  * Use these options if you are responsible for coordinating resources, such as conference rooms.
  *
  * @param[in] lpMsgStore user store to get the options
- * @param[out] bAutoAccept Automatically accept meeting requests and proccess cancellations
+ * @param[out] bAutoAccept Automatically accept meeting requests and process cancellations
  * @param[out] bDeclineConflict Automatically decline conflicting meeting requests
  * @param[out] bDeclineRecurring Automatically decline recurring meeting requests
  *
- * @note because a unknown issue it will update two different free/busy messages, one for 
+ * @note because a unknown issue it will update two different free/busy messages, one for
  *		outlook 2000/xp and one for outlook 2003/2007.
  *
  * @todo find out why outlook 2000/xp opened the wrong local free/busy message
- * @todo check, should the properties PR_SCHDINFO_BOSS_WANTS_COPY, PR_SCHDINFO_DONT_MAIL_DELEGATES, 
+ * @todo check, should the properties PR_SCHDINFO_BOSS_WANTS_COPY, PR_SCHDINFO_DONT_MAIL_DELEGATES,
  *		PR_SCHDINFO_BOSS_WANTS_INFO on TRUE?
  */
 HRESULT SetAutoAcceptSettings(IMsgStore *lpMsgStore, bool bAutoAccept, bool bDeclineConflict, bool bDeclineRecurring)
@@ -2147,12 +2147,12 @@ HRESULT SetAutoAcceptSettings(IMsgStore *lpMsgStore, bool bAutoAccept, bool bDec
 }
 
 /**
- * Get the proccessing meeting request options of a user
+ * Get the processing meeting request options of a user
  *
  * Use these options if you are responsible for coordinating resources, such as conference rooms.
  *
  * @param[in] lpMsgStore user store to get the options
- * @param[out] lpbAutoAccept Automatically accept meeting requests and proccess cancellations
+ * @param[out] lpbAutoAccept Automatically accept meeting requests and process cancellations
  * @param[out] lpbDeclineConflict Automatically decline conflicting meeting requests
  * @param[out] lpbDeclineRecurring Automatically decline recurring meeting requests
  *

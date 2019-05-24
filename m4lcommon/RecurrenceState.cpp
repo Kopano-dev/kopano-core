@@ -366,7 +366,7 @@ exit:
  * All exception data, including extended data, must be available in this class.
  *
  * @param[out]	lppData	output blob
- * @param[out]	lpulLen	lenght of lppData
+ * @param[out]	lpulLen	length of lppData
  * @parampin]	base	base pointer for allocation, may be NULL to start new chainn of MAPIAllocateBuffer
  */
 HRESULT RecurrenceState::GetBlob(char **lppData, size_t *lpulLen, void *base)
