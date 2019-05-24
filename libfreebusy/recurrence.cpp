@@ -78,7 +78,7 @@ HRESULT recurrence::HrGetRecurrenceState(char **lppData, size_t *lpulLen, void *
 		int weekskip = 0;
 		if ((tm.tm_wday < (int)m_sRecState.ulFirstDOW && dayskip > 0) || (tm.tm_wday+dayskip) > 6)
 			weekskip = 1;
-		// weekskip is the amount of weeks to skip from the startdate before the first occurence
+		// weekskip is the amount of weeks to skip from the startdate before the first occurrence
 
 		// The real start is start + dayskip + weekskip-1 (since dayskip will already bring us into the next week)
 		tStart += dayskip * 24 * 60 * 60 + weekskip * (m_sRecState.ulPeriod - 1) * 7 * 24 * 60 * 60;
@@ -572,7 +572,7 @@ time_t recurrence::calcStartDate() const
 		int weekskip = 0;
 		if ((tm.tm_wday < (int)m_sRecState.ulFirstDOW && dayskip > 0) || (tm.tm_wday+dayskip) > 6)
 			weekskip = 1;
-		// weekskip is the amount of weeks to skip from the startdate before the first occurence
+		// weekskip is the amount of weeks to skip from the startdate before the first occurrence
 
 		// The real start is start + dayskip + weekskip-1 (since dayskip will already bring us into the next week)
 		tStart += dayskip * 24 * 60 * 60 + weekskip * (m_sRecState.ulPeriod - 1) * 7 * 24 * 60 * 60;
@@ -599,7 +599,7 @@ time_t recurrence::calcStartDate() const
 				count = m_sRecState.ulPeriod;
 			} else if (m_sRecState.ulRecurFrequency == RF_YEARLY) {
 				if (getMonth() - 1 < tm.tm_mon || (getMonth() - 1 == tm.tm_mon && static_cast<int>(m_sRecState.ulDayOfMonth) < tm.tm_mday))
-					// Yearly, go to next occurrence in 'everyn' months minus difference in first occurence and original date
+					// Yearly, go to next occurrence in 'everyn' months minus difference in first occurrence and original date
 					count = (m_sRecState.ulPeriod - (tm.tm_mon - (getMonth()-1)));
 				else if (getMonth()-1 > tm.tm_mon)
 					count = (getMonth()-1) - tm.tm_mon;
@@ -1255,7 +1255,7 @@ bool recurrence::isDeletedOccurrence(time_t tsOccDate) const
 }
 
 /**
- * checks if the Occurrence is a modified ocurrence
+ * checks if the Occurrence is a modified occurrence
  * @param	tsOccDate	Occurrence Unix timestamp
  * @return	bool
  */

@@ -117,7 +117,7 @@ ULONG ECFBBlockList::Size()
 {
 	ULONG			size = 0;
 	auto FBIter = m_FBMap.cbegin();
-	
+
 	// seek to the first matched item
 	while (m_tmRestictStart != 0 && FBIter != m_FBMap.cend()) {
 		if( (ULONG)FBIter->second.m_tmEnd > (ULONG)m_tmRestictStart )
@@ -125,11 +125,11 @@ ULONG ECFBBlockList::Size()
 		++FBIter;
 	}
 
-	// loop while you reached end of list or doesn't mached with the restriction
+	// loop while you reached end of list or didn't match the restriction
 	while (FBIter != m_FBMap.cend() && (m_tmRestictEnd == 0 || static_cast<ULONG>(FBIter->second.m_tmStart) <= static_cast<ULONG>(m_tmRestictEnd))) {
 		++size;
 		++FBIter;
-	}	
+	}
 
 	return size;
 }
@@ -144,10 +144,10 @@ HRESULT ECFBBlockList::GetEndTime(LONG *lprtmEnd)
 
 	auto FBIter = m_FBMap.cbegin();
 	while (FBIter != m_FBMap.cend() && (m_tmRestictEnd == 0 || static_cast<ULONG>(FBIter->second.m_tmStart) <= static_cast<ULONG>(m_tmRestictEnd))) {
-		ulEnd = FBIter->second.m_tmEnd;	
+		ulEnd = FBIter->second.m_tmEnd;
 		++FBIter;
 		bFound = true;
-	}	
+	}
 
 	if (!bFound)
 		return MAPI_E_NOT_FOUND;
