@@ -111,7 +111,7 @@ bool ECConfigImpl::LoadSettings(const char *szFilename, bool ignore_missing)
  * This config option will be set to value. No processing is done on value
  * except for removing leading and trailing whitespaces.
  *
- * The aray in argv will be reordered so all non-long-option values will
+ * The array in argv will be reordered so all non-long-option values will
  * be located after the long-options. On return *lpargidx will be the
  * index of the first non-long-option in the array.
  *

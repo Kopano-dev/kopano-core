@@ -225,7 +225,7 @@ public:
 	~convert_context();
 
 	/**
-	 * @brief	Converts a string to a string wirh a different charset.
+	 * @brief	Converts a string to a string with a different charset.
 	 *
 	 * The to- and from charsets are implicitly determined by on one side the
 	 * passed To_Type and on the other side the _from argument.
@@ -240,7 +240,7 @@ public:
 	}
 
 	/**
-	 * @brief	Converts a string to a string wirh a different charset.
+	 * @brief	Converts a string to a string with a different charset.
 	 *
 	 * The to charset is implicitly determined by the passed To_Type.
 	 * The from charset is passed in fromcode.
@@ -258,7 +258,7 @@ public:
 	}
 
 	/**
-	 * @brief	Converts a string to a string wirh a different charset.
+	 * @brief	Converts a string to a string with a different charset.
 	 *
 	 * The to charset is passed in tocode.
 	 * The from charset is passed in fromcode.
@@ -442,7 +442,7 @@ private:
 		}
 	};
 
-	/** Create a context_key based on the to- and from types and optionaly the to- and from codes.
+	/** Create a context_key based on the to- and from types and optionally the to- and from codes.
 	 *
 	 * @tparam	To_Type
 	 *			The destination type.

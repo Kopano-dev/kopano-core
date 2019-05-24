@@ -57,7 +57,7 @@ void ssl_threading_cleanup() {
 /**
  * Free most of the SSL library allocated memory.
  *
- * This will remove most of the memmory used by
+ * This will remove most of the memory used by
  * the ssl library. Don't use this function in libraries
  * because it will unload the whole SSL data.
  *

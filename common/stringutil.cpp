@@ -93,7 +93,7 @@ std::unique_ptr<gtconv> gtconv::m_instance;
  * Performs a "regular" gettext and converts the result to a wide character string.
  * @domain:	The domain to use for the translation
  * @msg:	The msgid of the message to be translated.
- * Retruns the converted, translated string.
+ * Returns the converted, translated string.
  */
 const wchar_t *kopano_dcgettext_wide(const char *domain, const char *msg)
 {

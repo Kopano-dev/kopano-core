@@ -206,7 +206,7 @@ bool str_istartswith(const char *s1, const char *s2, const ECLocale &locale)
 /**
  * Compare two strings using the collator to determine the sort order.
  *
- * Both strings are expectes to be in the current locale. The comparison is
+ * Both strings are expects to be in the current locale. The comparison is
  * case insensitive. Effectively this only changes behavior compared to strcmp_unicode
  * if the two strings are the same if the case is discarded. It doesn't effect the
  * sorting in any other way.
@@ -261,7 +261,7 @@ bool str_contains(const char *haystack, const char *needle, const ECLocale &loca
 }
 
 /**
- * Find a string in another string while ignoreing case.
+ * Find a string in another string while ignoring case.
  *
  * @param[in]	haystack	The string to search in
  * @param[in]	needle		The string to search for.
@@ -366,7 +366,7 @@ bool wcs_istartswith(const wchar_t *s1, const wchar_t *s2, const ECLocale &local
 /**
  * Compare two strings using the collator to determine the sort order.
  *
- * Both strings are expectes to be in the current locale. The comparison is
+ * Both strings are expects to be in the current locale. The comparison is
  * case insensitive. Effectively this only changes behavior compared to strcmp_unicode
  * if the two strings are the same if the case is discarded. It doesn't effect the
  * sorting in any other way.
@@ -421,7 +421,7 @@ bool wcs_contains(const wchar_t *haystack, const wchar_t *needle, const ECLocale
 }
 
 /**
- * Find a string in another string while ignoreing case.
+ * Find a string in another string while ignoring case.
  *
  * @param[in]	haystack	The string to search in
  * @param[in]	needle		The string to search for.
@@ -532,7 +532,7 @@ bool u8_istartswith(const char *s1, const char *s2, const ECLocale &locale)
 /**
  * Compare two strings using the collator to determine the sort order.
  *
- * Both strings are expectes to be encoded in UTF-8. The comparison is
+ * Both strings are expects to be encoded in UTF-8. The comparison is
  * case insensitive. Effectively this only changes behavior compared to strcmp_unicode
  * if the two strings are the same if the case is discarded. It doesn't effect the
  * sorting in any other way.
@@ -587,7 +587,7 @@ bool u8_contains(const char *haystack, const char *needle, const ECLocale &local
 }
 
 /**
- * Find a string in another string while ignoreing case.
+ * Find a string in another string while ignoring case.
  *
  * @param[in]	haystack	The string to search in
  * @param[in]	needle		The string to search for.

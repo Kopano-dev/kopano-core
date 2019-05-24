@@ -133,7 +133,7 @@ int rand_mt() {
 	else
 		dummy = abs(dummy);
 
-	// this gives a slighly bias to the value 0
+	// this gives a slightly bias to the value 0
 	// also RAND_MAX is never returned which the
 	// regular rand() does do
 	return dummy % RAND_MAX;

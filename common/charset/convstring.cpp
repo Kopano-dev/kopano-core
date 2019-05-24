@@ -96,7 +96,7 @@ convstring::convstring(const wchar_t *lpsz)
  *
  * Creates an object and assumes that the provided string is encoded in
  * the current locale or as a wide character string depending on the
- * precense of the MAPI_UNICODE flag in ulFlags.
+ * presence of the MAPI_UNICODE flag in ulFlags.
  *
  * @param[in]	lpsz
  *			The string to base the new object on.

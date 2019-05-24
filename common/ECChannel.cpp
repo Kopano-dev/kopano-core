@@ -352,12 +352,12 @@ HRESULT ECChannel::HrWriteString(const std::string & strBuffer) {
 /**
  * Writes a line of data to socket
  *
- * Function takes specified lenght of data from the pointer,
+ * Function takes specified length of data from the pointer,
  * if length is not specified all the data of pointed by buffer is used.
  * It then adds CRLF to the end of the data and writes it to the socket
  *
  * @param[in]	szBuffer	pointer to the data to be written to socket
- * @param[in]	len			optional paramter to specify lenght of data in szBuffer, if empty then all data of szBuffer is written to socket.
+ * @param[in]	len			optional parameter to specify length of data in szBuffer, if empty then all data of szBuffer is written to socket.
  *
  * @retval		MAPI_E_CALL_FAILED	unable to write data to socket
  */
