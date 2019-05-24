@@ -1733,7 +1733,15 @@ HRESULT spv_postload_large_props(IMAPIProp *lpProp,
 	StreamPtr lpStream;	
 	void *lpData = NULL;
 	bool had_err = false;
-	
+	memory_ptr<SPropTagArray> new_tags;
+
+	if (lpTags == nullptr) {
+		auto ret = lpProp->GetPropList(0, &~new_tags);
+		if (ret != hrSuccess)
+			return ret;
+		lpTags = new_tags.get();
+	}
+
 	for (unsigned int i = 0; i < cValues; ++i) {
 		if (PROP_TYPE(lpProps[i].ulPropTag) != PT_ERROR)
 			continue;
@@ -1741,9 +1749,14 @@ HRESULT spv_postload_large_props(IMAPIProp *lpProp,
 			had_err = true;
 			continue;
 		}
-		if (PROP_TYPE(lpTags->aulPropTag[i]) != PT_STRING8 && PROP_TYPE(lpTags->aulPropTag[i]) != PT_UNICODE && PROP_TYPE(lpTags->aulPropTag[i]) != PT_BINARY)
+		auto tag_iter = std::find_if(&lpTags->aulPropTag[0], &lpTags->aulPropTag[lpTags->cValues],
+			[&](unsigned int t) { return PROP_ID(lpProps[i].ulPropTag) == PROP_ID(t); });
+		if (tag_iter == &lpTags->aulPropTag[lpTags->cValues])
 			continue;
-		if (lpProp->OpenProperty(lpTags->aulPropTag[i], &IID_IStream, 0, 0, &~lpStream) != hrSuccess)
+		unsigned int tag = *tag_iter;
+		if (PROP_TYPE(tag) != PT_STRING8 && PROP_TYPE(tag) != PT_UNICODE && PROP_TYPE(tag) != PT_BINARY)
+			continue;
+		if (lpProp->OpenProperty(tag, &IID_IStream, 0, 0, &~lpStream) != hrSuccess)
 			continue;
 				
 		std::string strData;
@@ -1754,8 +1767,8 @@ HRESULT spv_postload_large_props(IMAPIProp *lpProp,
 		if (hr != hrSuccess)
 			return hr;
 		memcpy(lpData, strData.data(), strData.size());
-		lpProps[i].ulPropTag = lpTags->aulPropTag[i];
-		switch (PROP_TYPE(lpTags->aulPropTag[i])) {
+		lpProps[i].ulPropTag = tag;
+		switch (PROP_TYPE(tag)) {
 		case PT_STRING8:
 			lpProps[i].Value.lpszA = (char *)lpData;
 			lpProps[i].Value.lpszA[strData.size()] = 0;

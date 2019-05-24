@@ -48,9 +48,11 @@ Example: !include common.cfg
 .SS ical_listen
 .PP
 A space-separated list of address:port specifiers for where the server should
-listen for HTTP/CalDAV connections. IPv6 addresses need to
-be enclosed in brackets (as in \fB[2001:db8::1]:236\fP), and the asterisk is
-the multi-protocol address wildcard.
+listen for HTTP/CalDAV connections. IPv6 addresses need to be enclosed in
+square brackets (as in \fB[2001:db8::1]:236\fP). The asterisk denotes the
+network layer multi-protocol (IPv4/IPv6) address. Local sockets are supported
+with "\fBunix:\fP\fI/path\fP". Hostnames are not allowed (as they are
+susceptible to address changes).
 .PP
 Default: \fI*:8080\fP
 .SS icals_listen
