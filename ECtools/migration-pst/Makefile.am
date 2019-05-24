@@ -2,9 +2,10 @@
 
 dist_sbin_SCRIPTS = kopano-migration-pst
 
-EXTRA_DIST = setup.py \
+EXTRA_DIST = requirements.txt setup.py \
 	setup.cfg \
 	kopano_migration_pst/__init__.py \
+	kopano_migration_pst/pst.py \
 	kopano_migration_pst/version.py
 
 install-exec-local:

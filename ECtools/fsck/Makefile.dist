@@ -1,4 +1,0 @@
-CXXFLAGS=-g -Wall -I. `pkg-config --cflags kopano`
-LDFLAGS=`pkg-config --libs kopano`
-
-kopano-fsck: kopano-fsck.o kopano-fsck-main.o kopano-fsck-calendar.o kopano-fsck-task.o my_getopt.o

@@ -1,6 +1,6 @@
 dist_sbin_SCRIPTS = kopano-search kopano-search-xapian-compact.py kopano-search-upgrade-findroots.py
 
-EXTRA_DIST = setup.py		\
+EXTRA_DIST = requirements.txt setup.py \
 	setup.cfg \
 	kopano_search/__init__.py \
 	kopano_search/plaintext.py \

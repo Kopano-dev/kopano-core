@@ -21,7 +21,14 @@ SUBDIRS += ECtools/backup ECtools/cli ECtools/migration-pst \
 endif
 BUILT_SOURCES =
 CLEANFILES =
-EXTRA_DIST =
+EXTRA_DIST = .astylerc .clang-format .clang_complete .editorconfig .gitignore \
+	CONTRIBUTING.md README.md cppcheck.suppressions \
+	doc/Code_structure.md doc/Database_structure.md doc/adminssl.txt \
+	doc/classes.gv doc/extract_user.txt doc/hl.txt doc/install.txt \
+	doc/kopano-autorespond.py.8 doc/sanitizer.txt doc/sql_attach.txt \
+	doc/sql_messages.txt doc/sql_searchfolders.txt doc/sql_spooler.txt \
+	provider/client/README.md provider/libserver/README.md \
+	tools/describe_version
 
 
 AM_CPPFLAGS = ${ZCPPFLAGS} -DLDAP_THREAD_SAFE \
@@ -917,10 +924,9 @@ include global.am
 
 
 #OLD TOPLEVEL FM
-EXTRA_DIST += .version versionheader.sh \
+EXTRA_DIST += versionheader.sh \
 	AGPL-3 LICENSE.txt RELNOTES.txt \
-	bootstrap.sh lddcheck global.am pwdcheck.sh \
-	common/include/kopano/ecversion.h
+	bootstrap.sh lddcheck global.am pwdcheck.sh
 
 BUILT_SOURCES += source-moved-check common/include/kopano/ecversion.h
 CLEANFILES += common/include/kopano/ecversion.h
