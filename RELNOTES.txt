@@ -1,5 +1,5 @@
-8.7.x
-=====
+8.7.3 (2019-05-27)
+==================
 Fixes:
 * stats: print "PR_..." instead of proptag numbers [KC-1495]
 * server: no more unbounded thread number increase [KC-1446]
