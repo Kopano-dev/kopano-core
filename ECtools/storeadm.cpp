@@ -782,16 +782,27 @@ static bool adm_parse_options(int &argc, const char **&argv)
 	return true;
 }
 
+static bool adm_setlocale(const char *lang)
+{
+	if (lang == nullptr || *opt_lang == '\0')
+		return true;
+	if (setlocale(LC_MESSAGES, opt_lang) != nullptr)
+		return true;
+	auto uloc = opt_lang + std::string(".UTF-8");
+	if (strchr(opt_lang, '.') == nullptr &&
+	    setlocale(LC_MESSAGES, uloc.c_str()) != nullptr)
+		return true;
+	fprintf(stderr, "Your system does not appear have the \"%s\" or \"%s\" "
+	        "locale available.\n", opt_lang, uloc.c_str());
+	return false;
+}
+
 int main(int argc, const char **argv) try
 {
 	setlocale(LC_ALL, "");
 	ec_log_get()->SetLoglevel(EC_LOGLEVEL_INFO);
-	if (!adm_parse_options(argc, argv))
+	if (!adm_parse_options(argc, argv) || !adm_setlocale(opt_lang))
 		return EXIT_FAILURE;
-	if (opt_lang != nullptr && *opt_lang != '\0' && setlocale(LC_MESSAGES, opt_lang) == nullptr) {
-		fprintf(stderr, "Your system does not have the \"%s\" locale available.\n", opt_lang);
-		return EXIT_FAILURE;
-	}
 	return adm_perform() == hrSuccess ? EXIT_SUCCESS : EXIT_FAILURE;
 } catch (...) {
 	std::terminate();
