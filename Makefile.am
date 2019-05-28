@@ -28,7 +28,25 @@ EXTRA_DIST = .astylerc .clang-format .clang_complete .editorconfig .gitignore \
 	doc/kopano-autorespond.py.8 doc/sanitizer.txt doc/sql_attach.txt \
 	doc/sql_messages.txt doc/sql_searchfolders.txt doc/sql_spooler.txt \
 	provider/client/README.md provider/libserver/README.md \
-	tools/describe_version
+	tools/describe_version \
+	tests/mails/big5.eml tests/mails/encoded-word-split.eml \
+	tests/mails/gb2312_18030.eml tests/mails/html-charset-01.eml \
+	tests/mails/html-charset-02.eml tests/mails/iconvonly01.eml \
+	tests/mails/iconvonly02.eml tests/mails/kc-138-1.eml \
+	tests/mails/kc-138-2.eml tests/mails/mime_charset_01.eml \
+	tests/mails/mime_charset_02.eml tests/mails/mime_charset_03.eml \
+	tests/mails/no-charset-01.eml tests/mails/no-charset-02.eml \
+	tests/mails/no-charset-03.eml tests/mails/no-charset-07.eml \
+	tests/mails/no-content-type-alt.eml tests/mails/no-content-type.eml \
+	tests/mails/unknown-text-charset.eml \
+	tests/mails/unknown-transfer-enc.eml tests/mails/zcp-11581.eml \
+	tests/mails/zcp-11699-p.eml tests/mails/zcp-11699-ub.eml \
+	tests/mails/zcp-11699-utf8.eml tests/mails/zcp-11713.eml \
+	tests/mails/zcp-12930.eml tests/mails/zcp-13036-0db504a2.eml \
+	tests/mails/zcp-13036-6906a338.eml tests/mails/zcp-13036-lh.eml \
+	tests/mails/zcp-13175.eml tests/mails/zcp-13337.eml \
+	tests/mails/zcp-13439-nl.eml tests/mails/zcp-13449-meca.eml \
+	tests/mails/zcp-13449-na.eml tests/mails/zcp-13473.eml
 
 
 AM_CPPFLAGS = ${ZCPPFLAGS} -DLDAP_THREAD_SAFE \
