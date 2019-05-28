@@ -2200,20 +2200,20 @@ int LDAPUserPlugin::changeAttribute(const char *dn, char *attribute, const std::
 }
 
 void LDAPUserPlugin::changeObject(const objectid_t &id, const objectdetails_t &details, const std::list<std::string> *lpDelProps) {
-	throw notimplemented("Change object is not supported when using the LDAP user plugin.");
+	throw notimplemented("Changing objects not implemented by the ldap userplugin");
 }
 
 objectsignature_t LDAPUserPlugin::createObject(const objectdetails_t &details) {
-	throw notimplemented("Creating objects is not supported when using the LDAP user plugin.");
+	throw notimplemented("Creating objects not implemented by the ldap userplugin");
 }
 
 void LDAPUserPlugin::deleteObject(const objectid_t &id) {
-	throw notimplemented("Deleting users is not supported when using the LDAP user plugin.");
+	throw notimplemented("Deleting users not implemented by the ldap userplugin");
 }
 
 void LDAPUserPlugin::modifyObjectId(const objectid_t &oldId, const objectid_t &newId)
 {
-	throw notimplemented("Modifying objectid is not supported when using the LDAP user plugin.");
+	throw notimplemented("Modifying objects not implemented by the ldap userplugin");
 }
 
 /**
@@ -2503,11 +2503,11 @@ LDAPUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 }
 
 void LDAPUserPlugin::addSubObjectRelation(userobject_relation_t relation, const objectid_t &id, const objectid_t &member) {
-	throw notimplemented("add object relations is not supported when using the LDAP user plugin.");
+	throw notimplemented("Adding object relations not implemented by the ldap userplugin");
 }
 
 void LDAPUserPlugin::deleteSubObjectRelation(userobject_relation_t relation, const objectid_t &id, const objectid_t &member) {
-	throw notimplemented("Delete object relations is not supported when using the LDAP user plugin.");
+	throw notimplemented("Deleting object relations not implemented by the ldap userplugin");
 }
 
 signatures_t
@@ -2610,7 +2610,7 @@ serverlist_t LDAPUserPlugin::getServers()
 	serverlist_t serverlist;
 
 	if (!m_bDistributed)
-		throw objectnotfound("Distributed not enabled");
+		throw objectnotfound("Multi-server is not enabled");
 
 	LOG_PLUGIN_DEBUG("%s", __FUNCTION__);
 	auto ldap_basedn = getSearchBase();
@@ -2640,7 +2640,7 @@ serverdetails_t LDAPUserPlugin::getServerDetails(const std::string &server)
 	auto_free_ldap_message res;
 
 	if (!m_bDistributed)
-		throw objectnotfound("Distributed not enabled for" +server);
+		throw objectnotfound("Multi-server is not enabled for " + server);
 
 	LOG_PLUGIN_DEBUG("%s for server %s", __FUNCTION__, server.c_str());
 	serverdetails_t serverDetails(server);
@@ -2821,7 +2821,7 @@ quotadetails_t LDAPUserPlugin::getQuota(const objectid_t &id,
 
 void LDAPUserPlugin::setQuota(const objectid_t &id, const quotadetails_t &quotadetails)
 {
-	throw notimplemented("set quota is not supported when using the LDAP user plugin.");
+	throw notimplemented("Setting quotas not implemented by the ldap userplugin");
 }
 
 abprops_t LDAPUserPlugin::getExtraAddressbookProperties()
@@ -2839,5 +2839,5 @@ abprops_t LDAPUserPlugin::getExtraAddressbookProperties()
 
 void LDAPUserPlugin::removeAllObjects(objectid_t except)
 {
-    throw notimplemented("removeAllObjects is not implemented in the LDAP user plugin.");
+	throw notimplemented("The \"remove all objects\" action not implemented by the ldap userplugin");
 }
