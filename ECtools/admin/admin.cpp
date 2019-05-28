@@ -670,7 +670,7 @@ static void print_extra_settings(const SPROPMAP *lpPropmap,
 
 static inline const char *ab_hidden(bool h)
 {
-	return h ? "Hidden" : "Visible";
+	return h ? "Hidden" : "Visible to current user";
 }
 
 /**
