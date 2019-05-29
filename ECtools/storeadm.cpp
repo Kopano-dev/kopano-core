@@ -768,13 +768,25 @@ static bool adm_parse_options(int &argc, const char **&argv)
 		fprintf(stderr, "One of -A, -C, -D, -M, -O, -P, -R, -V or -? must be specified.\n");
 		return false;
 	} else if (opt_attach_store != nullptr && ((opt_entity_name != nullptr) == !!opt_copytopublic)) {
-		fprintf(stderr, "-A needs exactly one of -n or -p\n");
+		fprintf(stderr, "-A needs exactly one of -n or -p.\n");
 		return false;
 	} else if ((opt_create_store || opt_detach_store) && opt_entity_name == nullptr) {
-		fprintf(stderr, "-C/-D need the -n option\n");
+		fprintf(stderr, "-C/-D also need the -n option.\n");
+		return false;
+	} else if (opt_companyname != nullptr && !opt_copytopublic) {
+		fprintf(stderr, "-k can only be used with -P.\n");
 		return false;
 	} else if (opt_lang != nullptr && !opt_create_store && !opt_create_public) {
 		fprintf(stderr, "-l can only be used with -C or -P.\n");
+		return false;
+	} else if (opt_entity_name != nullptr && !opt_attach_store && !opt_create_store && !opt_detach_store) {
+		fprintf(stderr, "-n can only be used with -A/-C/-D.\n");
+		return false;
+	} else if (opt_copytopublic && !opt_attach_store) {
+		fprintf(stderr, "-p can only be used with -A.\n");
+		return false;
+	} else if (opt_entity_type && opt_entity_name == nullptr) {
+		fprintf(stderr, "-t can only be used with -n.\n");
 		return false;
 	}
 	if (opt_lang == nullptr)
