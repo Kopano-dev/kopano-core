@@ -2155,7 +2155,8 @@ int main(int argc, char **argv) try
 		cerr << "Username (-u) cannot be empty" << endl;
 		return 1;
 	}
-	if (username && strcasecmp(username, "SYSTEM")==0) {
+	if (mode != MODE_DETAILS && username != nullptr &&
+	    strcasecmp(username, "SYSTEM") == 0) {
 		cerr << "Username (-u) cannot be SYSTEM" << endl;
 		return 1;
 	}
