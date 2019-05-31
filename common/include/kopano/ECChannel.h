@@ -73,7 +73,6 @@ extern int zcp_peeraddr_is_local(const struct sockaddr *, socklen_t);
 extern _kc_export int zcp_peerfd_is_local(int);
 extern _kc_export std::pair<std::string, uint16_t> ec_parse_bindaddr(const char *);
 extern _kc_export void ec_reexec_prepare_sockets();
-extern _kc_export int ec_fdtable_socket(const char *);
 
 } /* namespace KC */
 

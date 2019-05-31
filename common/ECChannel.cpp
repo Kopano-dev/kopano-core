@@ -38,6 +38,8 @@
 
 namespace KC {
 
+static int ec_fdtable_socket(const char *spec);
+
 /*
 To generate a RSA key:
 openssl genrsa -out privkey.pem 2048
@@ -998,6 +1000,10 @@ std::pair<std::string, uint16_t> ec_parse_bindaddr(const char *spec)
 int ec_listen_generic(const char *spec, int *pfd, int mode,
     const char *user, const char *group)
 {
+	*pfd = ec_fdtable_socket(spec);
+	if (*pfd >= 0)
+		return 1; /* signal takeover */
+
 	if (strncmp(spec, "unix:", 5) == 0)
 		return ec_listen_localsock(spec + 5, pfd, mode, user, group);
 	auto parts = ec_parse_bindaddr(spec);
@@ -1085,7 +1091,7 @@ static int ec_fdtable_socket_ai(const struct addrinfo *ai)
  * have both plain and SSL sockets and must match each fd with the
  * config directives.
  */
-int ec_fdtable_socket(const char *spec)
+static int ec_fdtable_socket(const char *spec)
 {
 	struct addrinfo hints{}, *res = nullptr;
 	hints.ai_flags    = AI_NUMERICHOST | AI_NUMERICSERV | AI_PASSIVE;

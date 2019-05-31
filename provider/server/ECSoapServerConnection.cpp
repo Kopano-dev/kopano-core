@@ -168,19 +168,17 @@ static void custom_soap_bind(struct soap *soap, const char *bindspec,
 #endif
 	soap->sndbuf = soap->rcvbuf = 0;
 	soap->bind_flags = SO_REUSEADDR;
-	soap->master = soap->socket = ec_fdtable_socket(bindspec);
-	if (soap->master != SOAP_INVALID_SOCKET) {
+	auto ret = ec_listen_generic(bindspec, &soap->master);
+	if (ret < 0) {
+		ec_log_crit("Unable to bind to %s: %s. Terminating.", bindspec,
+			soap->fault != nullptr ? soap->fault->faultstring : strerror(errno));
+		kill(0, SIGTERM);
+		exit(1);
+	} else if (ret == 0) {
+		ec_log_notice("Listening for connections on %s (fd %d)", bindspec, soap->master);
+	} else if (ret == 1) {
 		soap->fshutdownsocket = ignore_shutdown;
 		ec_log_info("Re-using fd %d to listen on %s", soap->socket, bindspec);
-	} else {
-		auto ret = ec_listen_generic(bindspec, &soap->master);
-		if (ret < 0) {
-			ec_log_crit("Unable to bind to %s: %s. Terminating.", bindspec,
-				soap->fault != nullptr ? soap->fault->faultstring : strerror(errno));
-			kill(0, SIGTERM);
-			exit(1);
-		}
-		ec_log_notice("Listening for connections on %s (fd %d)", bindspec, soap->master);
 	}
 	socklen_t sl = sizeof(soap->peer.storage);
 	if (getsockname(soap->master, reinterpret_cast<struct sockaddr *>(&soap->peer.storage), &sl) == 0)
