@@ -334,7 +334,7 @@ static HRESULT ical_listen(ECConfig *cfg)
 	memset(&pfd, 0, sizeof(pfd));
 	pfd.events = POLLIN;
 	for (const auto &spec : ical_sock) {
-		auto ret = ec_fdtable_socket(spec.c_str(), nullptr, nullptr);
+		auto ret = ec_fdtable_socket(spec.c_str());
 		if (ret >= 0) {
 			pfd.fd = ret;
 			ec_log_info("Re-using fd %d to listen on %s for http", ret, spec.c_str());
@@ -351,7 +351,7 @@ static HRESULT ical_listen(ECConfig *cfg)
 		g_socks.ssl.push_back(false);
 	}
 	for (const auto &spec : icals_sock) {
-		auto ret = ec_fdtable_socket(spec.c_str(), nullptr, nullptr);
+		auto ret = ec_fdtable_socket(spec.c_str());
 		if (ret >= 0) {
 			pfd.fd = ret;
 			ec_log_info("Re-using fd %d to listen on %s for https", ret, spec.c_str());

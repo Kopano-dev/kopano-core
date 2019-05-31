@@ -2841,7 +2841,7 @@ static int dagent_listen(ECConfig *cfg, std::vector<struct pollfd> &pollers,
 	pollers.reserve(lmtp_sock.size());
 	closefd.reserve(lmtp_sock.size());
 	for (const auto &spec : lmtp_sock) {
-		auto ret = ec_fdtable_socket(spec.c_str(), nullptr, nullptr);
+		auto ret = ec_fdtable_socket(spec.c_str());
 		if (ret >= 0) {
 			x.fd = ret;
 			ec_log_info("Re-using fd %d to listen on %s for LMTP", ret, spec.c_str());

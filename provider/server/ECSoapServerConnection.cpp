@@ -162,34 +162,26 @@ static int ignore_shutdown(struct soap *, SOAP_SOCKET, int shuttype)
 static void custom_soap_bind(struct soap *soap, const char *bindspec,
     bool v6only, int port)
 {
-	struct sockaddr_storage grab_addr;
-	socklen_t grab_len = 0;
-
 #if GSOAP_VERSION >= 20857
 	/* The v6only field exists in 2.8.56, but has no effect there. */
 	soap->bind_v6only = v6only;
 #endif
 	soap->sndbuf = soap->rcvbuf = 0;
 	soap->bind_flags = SO_REUSEADDR;
-	soap->master = soap->socket = ec_fdtable_socket(bindspec, &grab_addr, &grab_len);
+	soap->master = soap->socket = ec_fdtable_socket(bindspec);
 	if (soap->master != SOAP_INVALID_SOCKET) {
 		soap->fshutdownsocket = ignore_shutdown;
-		soap->port = port;
-		soap->peerlen = std::min(sizeof(soap->peer.storage), static_cast<size_t>(grab_len));
-		memcpy(&soap->peer.storage, &grab_addr, soap->peerlen);
-		if (soap->peer.addr.sa_family == AF_LOCAL)
-			SOAP_CONNECTION_TYPE(soap) = CONNECTION_TYPE_NAMED_PIPE;
 		ec_log_info("Re-using fd %d to listen on %s", soap->socket, bindspec);
-		return;
+	} else {
+		auto ret = ec_listen_generic(bindspec, &soap->master);
+		if (ret < 0) {
+			ec_log_crit("Unable to bind to %s: %s. Terminating.", bindspec,
+				soap->fault != nullptr ? soap->fault->faultstring : strerror(errno));
+			kill(0, SIGTERM);
+			exit(1);
+		}
+		ec_log_notice("Listening for connections on %s (fd %d)", bindspec, soap->master);
 	}
-	auto ret = ec_listen_generic(bindspec, &soap->master);
-	if (ret < 0) {
-		ec_log_crit("Unable to bind to %s: %s. Terminating.", bindspec,
-			soap->fault != nullptr ? soap->fault->faultstring : strerror(errno));
-		kill(0, SIGTERM);
-		exit(1);
-	}
-	ec_log_notice("Listening for connections on %s (fd %d)", bindspec, soap->master);
 	socklen_t sl = sizeof(soap->peer.storage);
 	if (getsockname(soap->master, reinterpret_cast<struct sockaddr *>(&soap->peer.storage), &sl) == 0)
 		soap->peerlen = std::min(static_cast<socklen_t>(sizeof(soap->peer.storage)), sl);

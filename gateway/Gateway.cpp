@@ -471,7 +471,7 @@ static HRESULT gw_listen(ECConfig *cfg)
 	memset(&pfd, 0, sizeof(pfd));
 	pfd.events = POLLIN;
 	for (const auto &spec : pop3_sock) {
-		auto ret = ec_fdtable_socket(spec.c_str(), nullptr, nullptr);
+		auto ret = ec_fdtable_socket(spec.c_str());
 		if (ret >= 0) {
 			pfd.fd = ret;
 			ec_log_info("Re-using fd %d to listen on %s for pop3", ret, spec.c_str());
@@ -489,7 +489,7 @@ static HRESULT gw_listen(ECConfig *cfg)
 		g_socks.ssl.push_back(false);
 	}
 	for (const auto &spec : pop3s_sock) {
-		auto ret = ec_fdtable_socket(spec.c_str(), nullptr, nullptr);
+		auto ret = ec_fdtable_socket(spec.c_str());
 		if (ret >= 0) {
 			pfd.fd = ret;
 			ec_log_info("Re-using fd %d to listen on %s for pop3s", ret, spec.c_str());
@@ -507,7 +507,7 @@ static HRESULT gw_listen(ECConfig *cfg)
 		g_socks.ssl.push_back(true);
 	}
 	for (const auto &spec : imap_sock) {
-		auto ret = ec_fdtable_socket(spec.c_str(), nullptr, nullptr);
+		auto ret = ec_fdtable_socket(spec.c_str());
 		if (ret >= 0) {
 			pfd.fd = ret;
 			ec_log_info("Re-using fd %d to listen on %s for imap", ret, spec.c_str());
@@ -525,7 +525,7 @@ static HRESULT gw_listen(ECConfig *cfg)
 		g_socks.ssl.push_back(false);
 	}
 	for (const auto &spec : imaps_sock) {
-		auto ret = ec_fdtable_socket(spec.c_str(), nullptr, nullptr);
+		auto ret = ec_fdtable_socket(spec.c_str());
 		if (ret >= 0) {
 			pfd.fd = ret;
 			ec_log_info("Re-using fd %d to listen on %s for imap", ret, spec.c_str());

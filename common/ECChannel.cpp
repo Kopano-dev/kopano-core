@@ -1049,8 +1049,7 @@ void ec_reexec_prepare_sockets()
 	}
 }
 
-static int ec_fdtable_socket_ai(const struct addrinfo *ai,
-    struct sockaddr_storage *oaddr, socklen_t *olen)
+static int ec_fdtable_socket_ai(const struct addrinfo *ai)
 {
 	auto maxfd = ec_fdtable_size();
 	for (int fd = 3; fd < maxfd; ++fd) {
@@ -1071,12 +1070,6 @@ static int ec_fdtable_socket_ai(const struct addrinfo *ai,
 			if (arglen != sk->ai_addrlen ||
 			    memcmp(&addr, sk->ai_addr, arglen) != 0)
 				continue;
-			if (oaddr != nullptr) {
-				memset(oaddr, 0, sizeof(*oaddr));
-				memcpy(oaddr, sk->ai_addr, arglen);
-			}
-			if (olen != nullptr)
-				*olen = arglen;
 			fcntl(fd, F_SETFD, FD_CLOEXEC);
 			return fd;
 		}
@@ -1092,8 +1085,7 @@ static int ec_fdtable_socket_ai(const struct addrinfo *ai,
  * have both plain and SSL sockets and must match each fd with the
  * config directives.
  */
-int ec_fdtable_socket(const char *spec, struct sockaddr_storage *oaddr,
-    socklen_t *olen)
+int ec_fdtable_socket(const char *spec)
 {
 	struct addrinfo hints{}, *res = nullptr;
 	hints.ai_flags    = AI_NUMERICHOST | AI_NUMERICSERV | AI_PASSIVE;
@@ -1104,7 +1096,7 @@ int ec_fdtable_socket(const char *spec, struct sockaddr_storage *oaddr,
 		hints.ai_family  = u.sun_family = AF_LOCAL;
 		hints.ai_addr    = reinterpret_cast<struct sockaddr *>(&u);
 		hints.ai_addrlen = sizeof(u) - sizeof(u.sun_path) + strlen(u.sun_path) + 1;
-		return ec_fdtable_socket_ai(&hints, oaddr, olen);
+		return ec_fdtable_socket_ai(&hints);
 	}
 	hints.ai_family = AF_UNSPEC;
 	auto parts = ec_parse_bindaddr(spec);
@@ -1114,7 +1106,7 @@ int ec_fdtable_socket(const char *spec, struct sockaddr_storage *oaddr,
 	           std::to_string(parts.second).c_str(), &hints, &res);
 	if (ret != 0 || res == nullptr)
 		return -1;
-	ret = ec_fdtable_socket_ai(res, oaddr, olen);
+	ret = ec_fdtable_socket_ai(res);
 	freeaddrinfo(res);
 	return ret;
 }
