@@ -1,0 +1,63 @@
+.TH "kopano\-admin.cfg" "5" "2019" "Kopano 8" "Kopano Groupware Core user reference"
+.\" http://bugs.debian.org/507673
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.SH Name
+kopano\-admin.cfg \(em Configuration file for administrative utilities
+.SH Description
+.PP
+The file consists of a single section. The parameters are written in the form:
+.PP
+\fBname\fP = \fIvalue\fP
+.PP
+The file is line-based. Each newline-terminated line represents either a
+comment, nothing, a parameter or a directive. A line beginning with \fB#\fP is
+considered a comment, and will be ignored. Parameter names are case-sensitive.
+Lines beginning with \fB!\fP are directives.
+.PP
+Directives are written in the form:
+.PP
+!\fBdirective\fP \fI[argument(s)]\fP
+.PP
+The following directives exist:
+.PP
+\fBinclude\fR
+.RS 4
+Include and process
+\fIargument\fR
+.PP
+Example: \fB!include common.cfg\fP
+.SH Option list
+.SS server_socket
+.PP
+Unix socket to find the connection to the Kopano server.
+.PP
+Default: \fIfile:///var/run/kopano/server.sock\fP
+.SS sslkey_file
+.PP
+Use this file as key to logon to the server. This is only used when
+\fBserver_socket\fP is set to an HTTPS transport. See the
+\fBkopano\-server\fR(8) manual page on how to setup SSL keys.
+.PP
+Default: (unset)
+.SS sslkey_pass
+.PP
+The password of the SSL key file that is set in sslkey_file.
+.PP
+Default: (unset)
+.SS default_store_locale
+.PP
+New folders being created as part of the initial store creation (see
+kopano\-storeadm \-C) will use the language of the locale. A suitable locale
+string is in the form of an ISO 639 code for the language, followed by an
+underscore, followed by an ISO 3166 code for the region, e.g. de_DE, en_US,
+etc.
+.PP
+Default: \fI(empty)\fP
+.SH "See also"
+.PP
+\fBkopano\-admin\fP(8), \fBkopano\-srvadm\fP(8), \fBkopano\-storeadm\fP(8)

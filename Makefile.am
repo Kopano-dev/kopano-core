@@ -929,7 +929,7 @@ dist_man_MANS =
 if ENABLE_BASE
 dist_man_MANS += \
 	doc/kopano.7 \
-	doc/kopano-admin.8 \
+	doc/kopano-admin.8 doc/kopano-admin.cfg.5 \
 	doc/kopano-archiver.8 doc/kopano-archiver.cfg.5 \
 	doc/kopano-autorespond.8 \
 	doc/kopano-cfgchecker.8 doc/kopano-coredump.5 \
