@@ -139,10 +139,6 @@ HRESULT ECUnknown::Suicide() {
 	return hrSuccess;
 }
 
-static const ABEID_FIXED g_sDefaultEid(MAPI_MAILUSER, MUIDECSAB, 0);
-unsigned char *g_lpDefaultEid = (unsigned char*)&g_sDefaultEid;
-const unsigned int g_cbDefaultEid = sizeof(g_sDefaultEid);
-
 static const ABEID_FIXED g_sEveryOneEid(MAPI_DISTLIST, MUIDECSAB, 1);
 unsigned char *g_lpEveryoneEid = (unsigned char*)&g_sEveryOneEid;
 const unsigned int g_cbEveryoneEid = sizeof(g_sEveryOneEid);
