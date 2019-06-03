@@ -1742,7 +1742,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 				// pre 6.20 behaviour
 				bAllowDelegate = true;
 				HrOpenRepresentStore(lpAddrBook, lpUserStore, lpAdminSession, lpRepEntryID->Value.bin, &~lpRepStore);
-				// ignore error if unable to open, just the copy of the mail might possibily not be done.
+				// ignore error if unable to open, just the copy of the mail might possibly not be done.
 			} else if(strcmp(g_lpConfig->GetSetting("allow_delegate_meeting_request"), "yes") == 0 &&
 			    HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &~lpMsgClass) == hrSuccess &&
 			    ((strcasecmp(lpMsgClass->Value.lpszA, "IPM.Schedule.Meeting.Request" ) == 0) ||
@@ -2043,7 +2043,7 @@ HRESULT ProcessMessageForked(const wchar_t *szUsername, const char *szSMTP,
 			lpMailer->setError(format(KC_A("Error found while trying to send your message: %s (%x)"), GetMAPIErrorMessage(hr), hr));
 		hr = SendUndeliverable(lpMailer.get(), lpUserStore, lpMessage);
 		if (hr != hrSuccess) {
-			// dont make parent complain too
+			// don't make parent complain too
 			hr = hrSuccess;
 			goto exit;
 		}

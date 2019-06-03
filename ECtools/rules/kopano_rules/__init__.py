@@ -894,7 +894,7 @@ def createrule(server, name, lastid, user, conditions=None, actions=None, except
             return
     '''
     Search for exceptions that are known Kopano rules exceptions
-    same as conditions with the differents that the SNotRestriction attibute is added to the rule
+    same as conditions with the difference that the SNotRestriction attribute is added to the rule
     '''
     for exception in exceptions:
         splitexception = exception.split(':')

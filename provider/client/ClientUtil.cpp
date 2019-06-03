@@ -93,7 +93,7 @@ HRESULT ClientUtil::HrSetIdentity(WSTransport *lpTransport, LPMAPISUP lpMAPISup,
 	memory_ptr<ECUSER> lpUser;
 	memory_ptr<SPropValue> idp;
 
-	// Get the username and email adress
+	// Get the username and email address
 	auto hr = lpTransport->HrGetUser(0, NULL, fMapiUnicode, &~lpUser);
 	if(hr != hrSuccess)
 		return hr;

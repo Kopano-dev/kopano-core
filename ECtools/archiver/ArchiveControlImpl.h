@@ -54,7 +54,7 @@ class ECArchiverLogger;
  * for both step 2 and step 3. After step 3 has been processed, the message will be
  * removed from the searchfolder for step 3, but not from the searchfolder for step 2.
  *
- * By going through the three searchfolders and executing the apropriate steps, all
+ * By going through the three searchfolders and executing the appropriate steps, all
  * messages will be processed as they're supposed to.
  *
  *

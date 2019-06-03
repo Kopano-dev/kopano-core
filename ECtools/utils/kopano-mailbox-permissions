@@ -355,7 +355,7 @@ def setMailboxPermissions(session, listfolderrights, members, mailboxes, private
         try:
             fbmsgOl2k = store.OpenEntry(inboxprops[5].Value[0], None, MAPI_MODIFY)
         except:
-            #ignore errors, we dont care
+            #ignore errors, we don't care
             fbmsgOl2k = None
             pass
 

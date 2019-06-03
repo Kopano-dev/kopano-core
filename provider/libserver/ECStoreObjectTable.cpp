@@ -132,7 +132,7 @@ ECRESULT ECStoreObjectTable::GetColumnsAll(ECListInt* lplstProps)
 	if (er != erSuccess)
 		return er;
 
-	//List always emtpy
+	//List always empty
 	lplstProps->clear();
 	ulock_rec biglock(m_hLock);
 	bool mo_has_content = !mapObjects.empty();
@@ -1007,7 +1007,7 @@ ECRESULT ECStoreObjectTable::Load()
 				continue;
 
 			cache->SetObject(atoui(lpDBRow[0]), atoui(lpDBRow[1]), atoui(lpDBRow[2]), atoui(lpDBRow[3]), atoui(lpDBRow[4]));
-            // Altough we don't want more than ulMaxItems entries, keep looping to get all the results from MySQL. We need to do this
+            // Although we don't want more than ulMaxItems entries, keep looping to get all the results from MySQL. We need to do this
             // because otherwise we can get out of sync with mysql which is still sending us results while we have already stopped
             // reading data.
             if(i > ulMaxItems)

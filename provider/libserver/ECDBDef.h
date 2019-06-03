@@ -16,7 +16,7 @@
  * abchanges         | All addressbook changes
  * acl               | User permission objects
  * changes           | Object changes
- * hierarchy         | The hiearchy between the mapi objects
+ * hierarchy         | The hierarchy between the mapi objects
  * indexedproperties | Mapi object entryid and sourcekey
  * lob               | Attachment data. Only when the setting attachment in database is enabled
  * mvproperties      | The multi value properties of a mapi object. Store, folder and message

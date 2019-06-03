@@ -526,7 +526,7 @@ static ECRESULT DeleteObjectSoft(ECSession *lpSession, ECDatabase *lpDatabase,
  * Hard delete objects, remove the data from storage
  *
  * This means we should be really deleting the actual data from the database and storage. This will be done in
- * bachtches of 32 items each because deleteing records is generally fairly slow. Also, very large delete batches
+ * bachtches of 32 items each because deleting records is generally fairly slow. Also, very large delete batches
  * can taking up to more than an hour to process. We don't want to have a transaction lasting an hour because it
  * would cause lots of locking problems. Also, each item successfully deleted and committed to the database will
  * added into a list. So, If something fails we notify the items in the 'deleted items list' only.

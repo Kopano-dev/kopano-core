@@ -79,7 +79,7 @@ HRESULT StoreHelper::Init()
 }
 
 /**
- * Open or optionaly create a folder by name from the IPM subtree.
+ * Open or optionally create a folder by name from the IPM subtree.
  *
  * @param[in]	strFolder
  *					The name of the folder to open or create.

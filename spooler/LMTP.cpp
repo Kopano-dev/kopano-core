@@ -98,7 +98,7 @@ HRESULT LMTP::HrCommandLHLO(const string &strInput, string & nameOut)
 	size_t pos = strInput.find(' ');
 	nameOut.assign(strInput.c_str() + pos + 1);
 
-	// Input definitly starts with LHLO
+	// Input definitely starts with LHLO
 	// use HrResponse("501 5.5.4 Syntax: LHLO hostname"); in case of error, but we don't.
 	ec_log_debug("LHLO ID: %s", nameOut.c_str());
 	return hrSuccess;

@@ -123,11 +123,11 @@ HRESULT ArchiveControlImpl::Init()
 }
 
 /**
- * Archive messages for all users. Optionaly only user that have their store on the server
+ * Archive messages for all users. Optionally only user that have their store on the server
  * to which the archiver is connected will have their messages archived.
  *
  * @param[in]	bLocalOnly
- *					If set to true only  messsages for users that have their store on the local server
+ *					If set to true only  messages for users that have their store on the local server
  *					will be archived.
  */
 eResult ArchiveControlImpl::ArchiveAll(bool bLocalOnly, bool bAutoAttach, unsigned int ulFlags)
@@ -214,11 +214,11 @@ eResult ArchiveControlImpl::Archive(const tstring &user, bool auto_attach,
 }
 
 /**
- * Cleanup the archive(s) of all users. Optionaly only user that have their store on the server
+ * Cleanup the archive(s) of all users. Optionally only user that have their store on the server
  * to which the archiver is connected will have their messages archived.
  *
  * @param[in]	bLocalOnly
- *					If set to true only  messsages for users that have their store on the local server
+ *					If set to true only  messages for users that have their store on the local server
  *					will be archived.
  */
 eResult ArchiveControlImpl::CleanupAll(bool bLocalOnly)
@@ -377,7 +377,7 @@ HRESULT ArchiveControlImpl::DoArchive(const tstring& strUser)
 	}
 
 	if (ptrDeleteOp) {
-		// First delete all messages that are eligible for deletion, so we do not unneccesary stub them first
+		// First delete all messages that are eligible for deletion, so we do not unnecessary stub them first
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Deleting old messages");
 		hr = ProcessFolder(ptrSearchDeleteFolder, ptrDeleteOp);
 		if (FAILED(hr)) {

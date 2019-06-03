@@ -24,8 +24,8 @@ struct ICSCHANGE {
  * SSyncState: This structure uniquely defines a sync state.
  */
 struct SSyncState {
-	syncid_t	ulSyncId;		//!< The sync id uniquely specifies a folder in a syncronization context.
-	changeid_t	ulChangeId;		//!< The change id specifies the syncronization state for a specific sync id.
+	syncid_t	ulSyncId;		//!< The sync id uniquely specifies a folder in a synchronization context.
+	changeid_t	ulChangeId;		//!< The change id specifies the synchronization state for a specific sync id.
 };
 
 /**

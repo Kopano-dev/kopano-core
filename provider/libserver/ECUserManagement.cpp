@@ -464,7 +464,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass,
 		if (bIsSafeMode)
 			ec_log_info("user_safe_mode: skipping retrieve/sync users from LDAP");
 		lpExternSignatures.clear();
-		// Dont sync, just use whatever is in the local user database
+		// Don't sync, just use whatever is in the local user database
 		for (const auto &sil : mapSignatureIdToLocal) {
 			lpExternSignatures.emplace_back(sil.first, sil.second.second);
 			mapExternIdToLocal.emplace(sil.first, sil.second.first);
@@ -1629,7 +1629,7 @@ ECRESULT ECUserManagement::QueryHierarchyRowData(struct soap *soap,
 	memset(lpsRowSet->__ptr, 0, sizeof(propValArray) * lpRowList->size());
 
 	for (const auto &row : *lpRowList) {
-		/* Although it propbably doesn't make a lot of sense, we need to check for company containers here.
+		/* Although it probably doesn't make a lot of sense, we need to check for company containers here.
 		 * this is because with convenient depth tables, the children of the Kopano Address Book will not
 		 * only be the Global Address Book, but also the company containers. */
 		if (row.ulObjId == KOPANO_UID_ADDRESS_BOOK ||
@@ -2952,7 +2952,7 @@ ECRESULT ECUserManagement::cvt_user_to_props(struct soap *soap,
 	}
 	case PR_ACCOUNT:
 	case PR_EMAIL_ADDRESS:
-		// Dont use login name for NONACTIVE_CONTACT since it doesn't have a login name
+		// Don't use login name for NONACTIVE_CONTACT since it doesn't have a login name
 		if (lpDetails->GetClass() != NONACTIVE_CONTACT)
 			lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_LOGIN).c_str());
 		else
@@ -3992,7 +3992,7 @@ ECRESULT ECUserManagement::SyncAllObjects()
 	static const unsigned int ulFlags = USERMANAGEMENT_IDS_ONLY | USERMANAGEMENT_FORCE_SYNC;
 	/*
 	 * When syncing the users we first start emptying the cache, this makes sure the
-	 * second step won't be accidently "optimized" by caching.
+	 * second step won't be accidentally "optimized" by caching.
 	 * The second step is requesting all user objects from the plugin, ECUserManagement
 	 * will then sync all results into the user database. And because the cache was
 	 * cleared all signatures in the database will be checked against the signatures

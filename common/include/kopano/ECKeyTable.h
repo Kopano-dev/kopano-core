@@ -183,7 +183,7 @@ private:
 	_kc_hidden ECRESULT CurrentRow(ECTableRow *, unsigned int *current_row);
 	_kc_hidden ECRESULT InvalidateBookmark(ECTableRow *);
 
-	// Functions for implemention AVL balancing
+	// Functions for implementation AVL balancing
 	_kc_hidden void RotateL(ECTableRow *pivot);
 	_kc_hidden void RotateR(ECTableRow *pivot);
 	_kc_hidden void RotateLR(ECTableRow *pivot);

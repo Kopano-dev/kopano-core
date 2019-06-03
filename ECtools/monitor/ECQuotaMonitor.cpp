@@ -1138,7 +1138,7 @@ HRESULT ECQuotaMonitor::Notify(ECUSER *lpecUser, ECCOMPANY *lpecCompany,
 	 *
 	 * Note that we will parse the template for each recipient separately,
 	 * this is done to support better language support later on where each user
-	 * will get a notification mail in his prefered language.
+	 * will get a notification mail in his preferred language.
 	 */
 	for (ULONG i = 0; i < cToUsers; ++i) {
 		/* Company quotas should not deliver to the first entry since that is the public store. */

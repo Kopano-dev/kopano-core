@@ -1261,7 +1261,7 @@ HRESULT Util::HrTextToHtml(IStream *text, IStream *html, ULONG ulCodepage)
 		goto exit;
 	}
 
-	// @todo, run this through iconv aswell?
+	// @todo, run this through iconv as well?
 	hr = html->Write(header1, strlen(header1), NULL);
 	if (hr != hrSuccess)
 		goto exit;
@@ -1938,7 +1938,7 @@ HRESULT Util::HrHtmlToRtf(const wchar_t *lpwHTML, std::string &strRTF)
         
         // Do actual output
         if(lpwHTML[pos] == '\r') {
-            // Ingore \r
+            // Ignore \r
         } else if(lpwHTML[pos] == '\n') {
             if(inTag || ulCommentMode || ulStyleMode)
                 strRTF += " ";
@@ -2093,7 +2093,7 @@ HRESULT	Util::HrHtmlToRtf(IStream *html, IStream *rtf, unsigned int ulCodepage)
 }
 
 /** 
- * Converts a string containing hexidecimal numbers into binary
+ * Converts a string containing hexadecimal numbers into binary
  * data. And it adds a 0 at the end of the data.
  * 
  * @todo, check usage of this function to see if the terminating 0 is
@@ -2131,7 +2131,7 @@ HRESULT Util::hex2bin(const char *input, size_t len, ULONG *outLength, LPBYTE *o
 }
 
 /** 
- * Converts a string containing hexidecimal numbers into binary
+ * Converts a string containing hexadecimal numbers into binary
  * data.
  * 
  * @param[in] input string to convert
@@ -2172,7 +2172,7 @@ ULONG Util::GetBestBody(const SPropValue *lpBody, const SPropValue *lpHtml,
 	/**
 	 * In this function we try to determine the best body based on the combination of values and error values
 	 * for PR_BODY, PR_HTML, PR_RTF_COMPRESSED and PR_RTF_IN_SYNC according to the rules as described in ECMessage.cpp.
-	 * Some checks performed here seem redundant, but are actualy required to determine if the source provider
+	 * Some checks performed here seem redundant, but are actually required to determine if the source provider
 	 * implements this scheme as we expect it (Scalix doesn't always seem to do so).
 	 */
 	const ULONG ulBodyTag = ((ulFlags & MAPI_UNICODE) ? PR_BODY_W : PR_BODY_A);
@@ -3452,7 +3452,7 @@ HRESULT Util::ReadProperty(IMAPIProp *lpProp, ULONG ulPropTag, std::string &strD
  * Write a property using OpenProperty()
  *
  * This function will open a stream to the given property and write all data from strData into
- * it usin STGM_DIRECT and MAPI_MODIFY | MAPI_CREATE. This means the existing data will be over-
+ * it using STGM_DIRECT and MAPI_MODIFY | MAPI_CREATE. This means the existing data will be over-
  * written
  *
  * @param[in] lpProp Object to write to

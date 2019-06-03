@@ -417,7 +417,7 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 
 	/* Only update when there were actually properties provided. */
 	if (!bFirstDel) {
-		/* Make sure all MV properties which are being overriden are being deleted first */
+		/* Make sure all MV properties which are being overridden are being deleted first */
 		auto er = m_lpDatabase->DoDelete(strDeleteQuery);
 		if (er != erSuccess)
 			throw runtime_error(string("db_query: ") + strerror(er));

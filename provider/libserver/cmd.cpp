@@ -1711,7 +1711,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 				lpPropValArray->__ptr[i].Value.ul = (lpPropValArray->__ptr[i].Value.ul & ~MSGFLAG_UNSETTABLE) | ulFlags;
 		}
 
-		// Make sure we dont have a colliding PR_SOURCE_KEY. This can happen if a user imports an exported message for example.
+		// Make sure we don't have a colliding PR_SOURCE_KEY. This can happen if a user imports an exported message for example.
 		if(lpPropValArray->__ptr[i].ulPropTag == PR_SOURCE_KEY)
 		{
 		    // Remove any old (deleted) indexed property if it's there
@@ -2541,7 +2541,7 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er,
 
 	// 7. notification
 	// Only Notify on MAPI_MESSAGE, MAPI_FOLDER and MAPI_STORE
-	// but don't nofity if parent object is a store and object type is attachment or message
+	// but don't notify if parent object is a store and object type is attachment or message
 	CreateNotifications(ulObjId, ulObjType, ulParentObjId, ulGrandParent, fNewItem, &lpsSaveObj->modProps, pvCommitTime);
 	lpsLoadObjectResponse->sSaveObject = sReturnObject;
 	g_lpSessionManager->m_stats->inc(SCN_DATABASE_MWOPS);
@@ -5132,7 +5132,7 @@ SOAP_ENTRY_START(getUserListOfGroup, lpsUserList->er, unsigned int ulGroupId,
 			return er;
 
 		// @todo Whoops, we can have group-in-groups. But since details of a group are almost identical to user details (e.g. name, fullname, email)
-		// this copy will succeed without any problems ... but it's definitly not correct.
+		// this copy will succeed without any problems ... but it's definitely not correct.
 		er = CopyUserDetailsToSoap(user.ulId, &sUserEid, user,
 		     lpecSession->GetCapabilities() & KOPANO_CAP_EXTENDED_ANON,
 		     soap, &lpsUserList->sUserArray.__ptr[lpsUserList->sUserArray.__size]);
@@ -5751,7 +5751,7 @@ table:
 	er = dtx.commit();
 	if(er != erSuccess)
 		return er;
-	// Remove messge from the outgoing queue
+	// Remove message from the outgoing queue
 	g_lpSessionManager->UpdateOutgoingTables(ECKeyTable::TABLE_ROW_DELETE, ulStoreId, ulObjId, ulFlags, MAPI_MESSAGE);
 
 	// The flags have changed, so we have to send a modified
@@ -6132,7 +6132,7 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 			ec_log_err("MoveObjects: GetStoreSize(%u) failed: %s (%x)", ulDestFolderId, GetMAPIErrorMessage(er), er);
 			return er;
 		}
-		// substract itemsize and check
+		// subtract itemsize and check
 		llStoreSize -= (llStoreSize >= (long long)ulItemSize)?(long long)ulItemSize:0;
 		er = sec->CheckQuota(ulDestFolderId, llStoreSize, &QuotaStatus);
 		if (er != erSuccess) {
@@ -6861,7 +6861,7 @@ static ECRESULT CopyFolderObjects(struct soap *soap, ECSession *lpecSession,
 	}
 	er = erSuccess;
 
-	// update ICS sytem with a change
+	// update ICS system with a change
 	GetSourceKey(ulDestFolderId, &sParentSourceKey);
 	GetSourceKey(ulNewDestFolderId, &sSourceKey);
 	AddChange(lpecSession, ulSyncId, sSourceKey, sParentSourceKey, ICS_FOLDER_CHANGE);
@@ -7006,7 +7006,7 @@ SOAP_ENTRY_START(copyObjects, *result, struct entryList *aMessages,
 	if(g_lpSessionManager->GetCacheManager()->GetEntryListToObjectList(aMessages, &lObjectIds) != erSuccess)
 		bPartialCompletion = true;
 
-	// @note The object type checking wille be done in MoveObjects or CopyObject
+	// @note The object type checking will be done in MoveObjects or CopyObject
 	//check copy or a move
 	if(ulFlags & FOLDER_MOVE ) { // A move
 		er = MoveObjects(lpecSession, lpDatabase, dtx, er, &lObjectIds, ulDestFolderId, ulSyncId);

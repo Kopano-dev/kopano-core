@@ -513,7 +513,7 @@ bool ECLogger_Tee::Log(unsigned int loglevel)
 /**
  * Log a message at the reuiqred loglevel to all attached loggers.
  *
- * @param[in]	loglevel	The requierd loglevel
+ * @param[in]	loglevel	The required loglevel
  * @param[in]	message		The message to log
  */
 void ECLogger_Tee::log(unsigned int level, const char *msg)
@@ -912,7 +912,7 @@ ECLogger* CreateLogger(ECConfig *lpConfig, const char *argv0,
 					else {
 						fclose(test);
 					}
-					// free known alloced memory in parent before exiting, keep valgrind from complaining
+					// free known allocated memory in parent before exiting, keep valgrind from complaining
 					delete lpConfig;
 					_exit(0);
 				}

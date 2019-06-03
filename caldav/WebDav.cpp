@@ -142,7 +142,7 @@ exit:
  * @param[out]	strXml			Return string for xml data
  *
  * @return		HRESULT
- * @retval		MAPI_E_NOT_ENOUGH_MEMORY	Error alocating memory
+ * @retval		MAPI_E_NOT_ENOUGH_MEMORY	Error allocating memory
  * @retval		MAPI_E_CALL_FAILED			Error initializing xml writer
  * @retval		MAPI_E_CALL_FAILED			Error writing xml data
  */

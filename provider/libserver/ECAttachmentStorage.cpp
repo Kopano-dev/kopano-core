@@ -132,7 +132,7 @@ using std::string;
 // chunk size for attachment blobs, must be equal or larger than MAX, MAX may never shrink below 384*1024.
 #define CHUNK_SIZE (384 * 1024)
 
-// as adviced by http://www.zlib.net/manual.html we use a 128KB buffer; default is only 8KB
+// as advised by http://www.zlib.net/manual.html we use a 128KB buffer; default is only 8KB
 #define ZLIB_BUFFER_SIZE std::max(CHUNK_SIZE, 128 * 1024)
 
 /*
@@ -1523,7 +1523,7 @@ void ECFileAttachment::my_readahead(int fd) {
 }
 
 static bool EvaluateCompressibleness(const uint8_t *const lpData, const size_t iSize) {
-	// If a file is smallar than the (usual) blocksize of the filesystem
+	// If a file is smaller than the (usual) blocksize of the filesystem
 	// then don't bother compressing it; it will give no gain as the
 	// whole block will be read anyway when it is retrieved from disk.
 	// In theory we could still try to compress it to see if the result
@@ -2226,7 +2226,7 @@ ECRESULT ECFileAttachment2::SaveAttachmentInstance(ext_siid &instance,
 
 /**
  * Streaming support. This is only used when importing messages
- * through ECExchange*, it is not used by normal e-mail receiption or
+ * through ECExchange*, it is not used by normal e-mail reception or
  * e.g. when saving a draft.
  */
 ECRESULT ECFileAttachment2::SaveAttachmentInstance(ext_siid &instance,

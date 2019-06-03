@@ -102,7 +102,7 @@ HRESULT HrAllocAdviseSink(LPNOTIFCALLBACK lpFunction, void *lpContext,
 	       .as(IID_IMAPIAdviseSink, lppSink);
 }
 
-// rtf funcions
+// rtf functions
 
 // This is called when a user calls Commit() on a wrapped (uncompressed) RTF Stream
 static HRESULT RTFCommitFunc(IStream *lpUncompressedStream, void *lpData)

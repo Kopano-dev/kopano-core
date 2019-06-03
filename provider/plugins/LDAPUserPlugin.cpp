@@ -2730,7 +2730,7 @@ quotadetails_t LDAPUserPlugin::getQuota(const objectid_t &id,
 	FOREACH_ENTRY(res) {
 		FOREACH_ATTR(entry) {
 			if (usedefaults_attr != nullptr && strcasecmp(att, usedefaults_attr) == 0)
-				// Workarround quotaoverride == !usedefaultquota
+				// Workaround quotaoverride == !usedefaultquota
 				quotaDetails.bUseDefaultQuota = !parseBool(getLDAPAttributeValue(att, entry).c_str());
 			else if (warnquota_attr != nullptr && strcasecmp(att, warnquota_attr) == 0)
 				quotaDetails.llWarnSize = fromstring<std::string, long long>(getLDAPAttributeValue(att, entry)) * multiplier;

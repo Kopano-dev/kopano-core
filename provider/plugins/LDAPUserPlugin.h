@@ -525,7 +525,7 @@ private:
 	 *					The objectclass to which this search should be restricted.
 	 *					The objectclass can be partially unknown (OBJECTCLASS_UNKNOWN, MAILUSER_UNKNOWN, ...)
 	 * @param[in]	objects
-	 *					The list of atribute data
+	 *					The list of attribute data
 	 * @param[in]	lppAttr
 	 *					The attributes which should contain the AttrData
 	 * @param[in]	company
@@ -565,11 +565,11 @@ private:
 	 *					The objectclass to which this search should be restricted.
 	 *					The objectclass can be partially unknown (OBJECTCLASS_UNKNOWN, MAILUSER_UNKNOWN, ...)
 	 * @param[in]	objects
-	 *					The list of atribute data
+	 *					The list of attribute data
 	 * @param[in]	lpAttr
 	 *					The attribute which should contain the AttrData
 	 * @param[in]	lpAttrType
-	 *					The attribute type of the attribtes, can be DN, text or binary
+	 *					The attribute type of the attribute, can be DN, text or binary
 	 * @param[in]	company
 	 *					Optional argument, The company where the possible object should belong.
 	 * @return The list of object signatures which were found
@@ -587,11 +587,11 @@ private:
 	 *					The objectclass to which this search should be restricted.
 	 *					The objectclass can be partially unknown (OBJECTCLASS_UNKNOWN, MAILUSER_UNKNOWN, ...)
 	 * @param[in]	objects
-	 *					The list of atribute data
+	 *					The list of attribute data
 	 * @param[in]	lppAttr
 	 *					The attributes which should contain the AttrData
 	 * @param[in]	lpAttrType
-	 *					The attribute type of the attribtes, can be DN, text or binary
+	 *					The attribute type of the attribute, can be DN, text or binary
 	 * @param[in]	company
 	 *					Optional argument, The company where the possible object should belong.
 	 * @return The list of object signatures which were found

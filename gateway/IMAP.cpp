@@ -569,7 +569,7 @@ HRESULT IMAP::HrCmdStarttls(const string &strTag) {
 }
 
 /**
- * @brief Handles the AUTENTICATE command
+ * @brief Handles the AUTHENTICATE command
  *
  * The authenticate command only implements the PLAIN authentication
  * method, since we require the actual password, and not just a hash
@@ -3567,14 +3567,14 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 			 *        set the \Seen flag.
 			 */
 			if (strstr(strItem.c_str(), "[]") != NULL) {
-				// Nasty: eventhough the client requests .PEEK, it may not be present in the reply.
+				// Nasty: even though the client requests .PEEK, it may not be present in the reply.
 				string strReply = item;
 
 				ulPos = strReply.find(".PEEK");
 				if (ulPos != string::npos)
 					strReply.erase(ulPos, strlen(".PEEK"));
 
-				// Nasty: eventhough the client requests <12345.12345>, it may not be present in the reply.
+				// Nasty: even though the client requests <12345.12345>, it may not be present in the reply.
 				ulPos = strReply.rfind('<');
 				if (ulPos != string::npos)
 					strReply.erase(ulPos, string::npos);
@@ -4908,7 +4908,7 @@ FILETIME IMAP::AddDay(const FILETIME &sFileTime)
  * @brief Converts an unicode string to modified UTF-7
  *
  * IMAP folder encoding is a modified form of utf-7 (+ becomes &, so & is "escaped",
- * utf-7 is a modifed form of base64, based from the utf16 character
+ * utf-7 is a modified form of base64, based from the utf16 character
  * I'll use the iconv converter for this, per character .. sigh
  *
  * @param[in]	input	unicode string to convert

@@ -305,7 +305,7 @@ HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFold
  * @param[in]	lpszArchive
  *					The username of the non-active user that's the placeholder for the archive.
  * @param[in]	lpszFolder
- *					The name of the folder that's be used as the root of the archive. If this paramater
+ *					The name of the folder that's be used as the root of the archive. If this parameter
  *					is set to NULL and the user has only one archive in the archive store, which
  *					is usually the case, that archive will be detached. If a user has multiple archives
  *					in the archive store, the exact folder need to be specified.

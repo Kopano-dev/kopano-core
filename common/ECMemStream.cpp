@@ -76,7 +76,7 @@ HRESULT ECMemBlock::WriteAt(ULONG ulPos, ULONG ulLen, const char *buffer,
 		if (lpNew == NULL)
 			return MAPI_E_NOT_ENOUGH_MEMORY;
 		lpCurrent = lpNew;
-		memset(lpCurrent+cbTotal, 0, newsize-cbTotal);	// clear new alloced mem
+		memset(lpCurrent+cbTotal, 0, newsize-cbTotal);	// clear new allocated mem
 		cbTotal = newsize;		// set new size
 	}
 

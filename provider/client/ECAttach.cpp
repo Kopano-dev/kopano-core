@@ -85,7 +85,7 @@ HRESULT ECAttach::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceO
 	BOOL			fNew = FALSE;
 	scoped_rlock lock(m_hMutexMAPIObject);
 
-	// Get the attachement method
+	// Get the attachment method
 	if (HrGetOneProp(this, PR_ATTACH_METHOD, &~lpPropAttachType) == hrSuccess)
 		ulAttachType = lpPropAttachType->Value.ul;
 	// The client is creating a new attachment, which may be embedded. Fix for the next if check

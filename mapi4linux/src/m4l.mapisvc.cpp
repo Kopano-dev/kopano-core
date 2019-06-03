@@ -346,7 +346,7 @@ HRESULT SVCService::Init(const INFLoader& cINF, const inf_section* infService)
 	auto cf = reinterpret_cast<void **>(&m_fnMSGServiceEntry);
 	*cf = dlsym(m_dl, "MSGServiceEntry");
 	if (!m_fnMSGServiceEntry) {
-		// compulsary function in provider
+		// compulsory function in provider
 		cerr << "Unable to find MSGServiceEntry in " << lpSO->Value.lpszA << ": " << dlerror() << endl;
 		return MAPI_E_NOT_FOUND;
 	}

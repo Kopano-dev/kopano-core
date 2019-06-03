@@ -379,7 +379,7 @@ HRESULT GetMailboxDataPerServer(IMAPISession *lpSession, const char *lpszPath,
 }
 
 /**
- * Build a server list from a countainer with users
+ * Build a server list from a container with users
  *
  * @param[in] lpContainer A container to get users, groups and other objects
  * @param[in,out] A set with server names. The new servers will be added

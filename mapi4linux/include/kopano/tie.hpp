@@ -6,7 +6,7 @@
 namespace KC {
 
 /*
- * For functions which return their result through an arugment pointer,
+ * For functions which return their result through an argument pointer,
  * a temporary variable may be necessary when one wishes to use unique_ptr:
  * 	unique_ptr<char> u; char *x; bla_alloc(&x); u.reset(x);
  * With unique_tie, this gets shorter:

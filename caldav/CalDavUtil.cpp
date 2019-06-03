@@ -119,7 +119,7 @@ HRESULT HrAddProperty(IMsgStore *lpMsgStore, SBinary sbEid, ULONG ulPropertyId, 
  * @param[out]	lppUsrFld		Return pointer for the folder found
  *
  * @return		mapi error codes
- * @retval		MAPI_E_NOT_FOUND	Folder refrenced by folder-id not found
+ * @retval		MAPI_E_NOT_FOUND	Folder referenced by folder-id not found
  *
  * @todo	add some check to remove the dirty >50 length check
  */
@@ -178,7 +178,7 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 	if(hr != hrSuccess)
 		return hr;
 	//When ENTRY_ID is use For Read Only Calendars assuming the folder id string
-	//not larger than lenght 50
+	//not larger than length 50
 	//FIXME: include some Entry-id identifier
 	if(wstrFldId.size()> 50)
 	{
@@ -388,7 +388,7 @@ HRESULT HrBuildACL(WEBDAVPROPERTY *lpsProperty)
  * Input string is of format '/caldav/Calendar name/asbxjk3-3980434-xn49cn4930.ics',
  * function returns 'asbxjk3-3980434-xn49cn4930'
  *
- * @param[in]	strInput	Input string contaning guid
+ * @param[in]	strInput	Input string containing guid
  * @return		string		string countaing guid
  */
 std::string StripGuid(const std::string &strInput)
@@ -542,7 +542,7 @@ bool IsPrivate(LPMESSAGE lpMessage, ULONG ulPropIDPrivate)
 }
 
 /**
- * Creates restriction to find calendar entries refrenced by strGuid.
+ * Creates restriction to find calendar entries referenced by strGuid.
  *
  * @param[in]	strGuid			Guid string of calendar entry requested by caldav client, in url-base64 mode
  * @param[in]	lpNamedProps	Named property tag array
@@ -648,7 +648,7 @@ HRESULT HrFindAndGetMessage(const std::string &strGuid, IMAPIFolder *lpUsrFld,
  * Retrieves freebusy information of attendees and converts it to ical data
  *
  * @param[in]	lpMapiToIcal	Mapi to ical conversion object
- * @param[in]	lpFBSupport		IFreebusySupport object used to retrive freebusy information of attendee
+ * @param[in]	lpFBSupport		IFreebusySupport object used to retrieve freebusy information of attendee
  * @param[in]	lpAddrBook		Addressbook used for user lookups
  * @param[in]	lplstUsers		List of attendees whose freebusy is requested
  * @param[out]	lpFbInfo		Structure which stores the retrieved ical data for the attendees

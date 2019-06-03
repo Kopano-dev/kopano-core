@@ -60,7 +60,7 @@ static inline std::wstring strToUpper(std::wstring f)
 
 static inline std::string stringify(unsigned int x)
 {
-	/* (w)stringify(-1) has a different result than to_(w)string(-1), so do not subtitute! */
+	/* (w)stringify(-1) has a different result than to_(w)string(-1), so do not substitute! */
 	return std::to_string(x);
 }
 

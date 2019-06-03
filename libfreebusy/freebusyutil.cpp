@@ -84,7 +84,7 @@ static HRESULT GetFreeBusyFolder(IMsgStore *lpPublicStore,
 		{1, {PR_FREE_BUSY_FOR_LOCAL_SITE_ENTRYID}};
 	enum eFreeBusyPos{ FBPOS_FREE_BUSY_FOR_LOCAL_SITE_ENTRYID};
 
-	// Get freebusy properies
+	// Get freebusy properties
 	auto hr = lpPublicStore->GetProps(sPropsFreeBusy, 0, &cValuesFreeBusy, &~lpPropArrayFreeBusy);
 	if (FAILED(hr))
 		return hr;
@@ -274,7 +274,7 @@ static HRESULT ParseFBEvents(FBStatus fbSts, LPSPropValue lpMonth,
 	struct tm	tmTmp;
 	FBBlock_1	fbBlock;
 
-	// Check varibales
+	// Check variables
 	if(lpEvent == NULL || lpMonth == NULL || lpfbBlockList == NULL ||
 		lpEvent->Value.MVbin.cValues != lpMonth->Value.MVl.cValues)
 		return MAPI_E_INVALID_PARAMETER;
@@ -405,7 +405,7 @@ HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULON
 	FBBlock_1		fbBlk;
 	memory_ptr<SPropValue> lpPropFBDataArray;
 
-	//Check of propertys are mv
+	//Check of properties are mv
 	if(lpfbBlockList == NULL || lppPropFBDataArray == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
