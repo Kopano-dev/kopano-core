@@ -65,7 +65,7 @@ class ECIndexWorker final : public ECThreadWorker {
  */
 class ECIndexerPool final : public ECThreadPool {
 	public:
-	ECIndexerPool(ECIndexService *i) : ECThreadPool(0), m_indexer(i) {}
+	ECIndexerPool(ECIndexService *i) : ECThreadPool("worker", 0), m_indexer(i) {}
 	virtual std::unique_ptr<ECThreadWorker> make_worker() { return make_unique_nt<ECIndexWorker>(this, m_indexer); }
 
 	private:
@@ -313,7 +313,7 @@ HRESULT ECIndexService::service_start()
 	auto ncpus = atoui(m_config->GetSetting("index_processes"));
 	if (ncpus == 0)
 		ncpus = 1;
-	m_pool.setThreadCount(atoui(m_config->GetSetting("index_processes")), false);
+	m_pool.set_thread_count(atoui(m_config->GetSetting("index_processes")), 0, false);
 
 	m_srvctx.m_app_misc = "kindexd";
 	m_srvctx.m_host = m_config->GetSetting("server_socket");
