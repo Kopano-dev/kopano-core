@@ -72,7 +72,7 @@ AM_CPPFLAGS = ${ZCPPFLAGS} -DLDAP_THREAD_SAFE \
 	${KRB5_CFLAGS} ${LDAP_FLAGS} ${libHX_CFLAGS} ${mhttpd_CFLAGS} \
 	${MYSQL_INCLUDES} ${SSL_CFLAGS} \
 	${s3_CFLAGS} ${kcoidc_CFLAGS} ${TCMALLOC_CFLAGS} ${tidy_CPPFLAGS} \
-	${VMIME_CFLAGS} ${XML2_CFLAGS}
+	${VMIME_CFLAGS} ${xapian_CFLAGS} ${XML2_CFLAGS}
 AM_CXXFLAGS = ${ZCXXFLAGS} -Wno-sign-compare
 
 
@@ -88,7 +88,7 @@ sbin_PROGRAMS = \
 	kopano-ical kopano-monitor kopano-server kopano-spooler \
 	kopano-srvadm kopano-storeadm
 noinst_PROGRAMS = kopano-cfgchecker
-pkglibexec_PROGRAMS = kscriptrun mapitime
+pkglibexec_PROGRAMS = kopano-indexd kscriptrun mapitime
 check_PROGRAMS = tests/ablookup tests/htmltext tests/imtomapi \
 	tests/kc-335 tests/mapialloctime \
 	tests/readflag tests/zcpmd5
@@ -125,7 +125,8 @@ COND_libkcrosie_la = libkcrosie.la
 COND_libkcrosie_ldd = libkcrosie.ldd
 endif
 lib_LTLIBRARIES = \
-	libkcutil.la libmapi.la libkcfreebusy.la libkcsoap.la libkcserver.la \
+	libkcutil.la libmapi.la libkcfreebusy.la libkcindex.la \
+	libkcsoap.la libkcserver.la \
 	libkcicalmapi.la ${COND_libkcrosie_la} libkcinetmapi.la \
 	libkcarchiver.la libkcarchivercore.la
 noinst_LTLIBRARIES =
@@ -134,12 +135,12 @@ noinst_DATA = \
 	kopano-archiver.ldx kopano-cfgchecker.ldx kopano-dagent.ldx \
 	kopano-dbadm.ldx kopano-fsck.ldx \
 	kopano-gateway.ldx kopano-ibrule.ldx kopano-ical.ldx \
-	kopano-monitor.ldx kopano-oof.ldx \
+	kopano-indexd.ldx kopano-monitor.ldx kopano-oof.ldx \
 	kopano-passwd.ldx kopano-server.ldx kopano-spooler.ldx \
 	kopano-srvadm.ldx kopano-storeadm.ldx kopano-stats.ldx \
 	libkcarchiver.ldd libkcarchivercore.ldd libkcclient.ldd \
 	libkccontacts.ldd libkcfreebusy.ldd libkcicalmapi.ldd \
-	libkcinetmapi.ldd ${COND_libkcrosie_ldd} \
+	libkcinetmapi.ldd libkcindex.ldd ${COND_libkcrosie_ldd} \
 	libkcserver.ldd libkcutil.ldd libmapi.ldd
 if ENABLE_PYBIND
 lib_LTLIBRARIES += libkcpyplug.la
@@ -260,6 +261,9 @@ kopano_ical_SOURCES = \
 kopano_ical_LDADD = \
 	libmapi.la libkcutil.la libkcicalmapi.la libkcfreebusy.la -lpthread \
 	${ICAL_LIBS} ${ICONV_LIBS} ${icu_uc_LIBS} ${SSL_LIBS} ${XML2_LIBS}
+
+kopano_indexd_SOURCES = ECtools/idx_net.cpp
+kopano_indexd_LDADD = libkcindex.la libkcutil.la ${libHX_LIBS}
 
 
 #
@@ -525,6 +529,13 @@ libkcicalmapi_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined -version-info 0:0:0 \
 EXTRA_libkcicalmapi_la_DEPENDENCIES = ${default_sym}
 
 
+libkcindex_la_SOURCES = ECtools/idx_handler.cpp ECtools/idx_util.cpp \
+	ECtools/idx_util.hpp ECtools/idx_xapian.cpp ECtools/indexer.hpp
+libkcindex_la_LIBADD  = libkcutil.la libmapi.la -ldb_cxx ${xapian_LIBS}
+libkcindex_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
+	${default_SYFLAGS${NO_VSYM}}
+
+
 #
 # libkcinetmapi
 #
@@ -620,6 +631,7 @@ libkcserver_la_SOURCES = \
 	provider/common/ECSearchClient.cpp provider/common/ECSearchClient.h \
 	provider/soap/soapKCmdService.h provider/soap/soapKCmdService.cpp
 libkcserver_la_LIBADD = \
+	libkcindex.la \
 	libkcutil.la libkcsoap.la -lpthread ${icu_i18n_LIBS} ${icu_uc_LIBS} \
 	${GSOAP_LIBS} ${GZ_LIBS} ${kcoidc_LIBS} \
 	${KRB5_LIBS} ${MYSQL_LIBS} ${PAM_LIBS} ${SSL_LIBS}
@@ -906,6 +918,7 @@ dist_man_MANS += \
 	doc/kopano-fsck.1 \
 	doc/kopano-gateway.8 doc/kopano-gateway.cfg.5 doc/kopano-ibrule.1 \
 	doc/kopano-ical.8 doc/kopano-ical.cfg.5 \
+	doc/kopano-indexd.8 \
 	doc/kopano-ldap.cfg.5 \
 	doc/kopano-monitor.8 doc/kopano-monitor.cfg.5 \
 	doc/kopano-oof.1 doc/kopano-passwd.1 \

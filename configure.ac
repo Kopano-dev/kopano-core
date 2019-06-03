@@ -277,7 +277,9 @@ AS_IF([test "$with_php" != "no"], [
 	)
 ])
 PKG_CHECK_MODULES([libHX], [libHX >= 1.10])
+PKG_CHECK_MODULES([xapian], [xapian-core])
 PKG_CHECK_MODULES([XML2], [libxml-2.0])
+AC_CHECK_HEADERS([db_cxx.h], [], [AC_MSG_ERROR([Berkeley DB C++ interface required])])
 
 # Checks for MySQL 4.1 or better
 AC_DEFUN([MYSQL_WITH_MYSQL_CONFIG],[

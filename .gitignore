@@ -39,6 +39,7 @@ stamp-h2
 /kopano-gateway
 /kopano-ibrule
 /kopano-ical
+/kopano-indexd
 /kopano-monitor
 /kopano-oof
 /kopano-passwd

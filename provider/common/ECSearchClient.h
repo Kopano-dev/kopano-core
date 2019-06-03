@@ -12,6 +12,7 @@
 #include <string>
 #include <soapH.h>
 #include <kopano/kcodes.h>
+#include "ECtools/indexer.hpp"
 #include "ECChannelClient.h"
 
 namespace KC {
@@ -23,18 +24,41 @@ struct SIndexedTerm {
 
 typedef std::set<unsigned int> setindexprops_t;
 
-class ECSearchClient final : public ECChannelClient {
+class ECSearchClient {
 public:
-	ECSearchClient(const char *szIndexerPath, unsigned int ulTimeOut);
+	virtual ~ECSearchClient() {}
 	ECRESULT GetProperties(setindexprops_t &mapProps);
-	ECRESULT Query(GUID *lpServerGuid, GUID *lpStoreGUID, std::list<unsigned int> &lstFolders, std::list<SIndexedTerm> &lstSearches, std::list<unsigned int> &lstMatches, std::string &suggestion);
+	ECRESULT Query(const GUID *server_guid, const GUID *store_guid, const std::list<unsigned int> &folders, const std::list<SIndexedTerm> &searches, std::list<unsigned int> &matches, std::string &suggestion);
 	ECRESULT SyncRun();
 	
 private:
+	virtual ECRESULT DoCmd(const std::string &command, std::vector<std::string> &response) = 0;
+	virtual ECRESULT Connect() { return erSuccess; }
 	ECRESULT Scope(const std::string &strServer, const std::string &strStore, const std::list<unsigned int> &ulFolders);
 	ECRESULT Find(const std::set<unsigned int> &setFields, const std::string &strTerm);
 	ECRESULT Query(std::list<unsigned int> &lstMatches);
 	ECRESULT Suggest(std::string &suggestion);
+};
+
+class ECSearchClientMM final : public ECSearchClient {
+	public:
+	ECSearchClientMM();
+
+	private:
+	virtual ECRESULT DoCmd(const std::string &c, std::vector<std::string> &r);
+	virtual ECRESULT Connect();
+
+	std::unique_ptr<IIndexer> m_indexer;
+	IIndexer::client_state m_state;
+};
+
+class ECSearchClientNET final :
+    public ECSearchClient, private ECChannelClient {
+	public:
+	ECSearchClientNET(const char *szIndexerPath, unsigned int ulTimeOut);
+	private:
+	virtual ECRESULT DoCmd(const std::string &c, std::vector<std::string> &r) { return ECChannelClient::DoCmd(c, r); }
+	virtual ECRESULT Connect() { return ECChannelClient::Connect(); }
 };
 
 } /* namespace */

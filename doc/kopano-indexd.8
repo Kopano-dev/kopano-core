@@ -1,0 +1,31 @@
+.TH kopano\-indexd 8 "August 2018" "Kopano 8" "Kopano Groupware Core user reference"
+.SH Name
+kopano-indexd \(em indexed search service
+.SH Synopsis
+\fBkpoano-indexd\fP [\fB\-c\fP \fIconfig\fP] [\fB\-S\fP]
+.SH Description
+.PP
+kopano-indexd is a daemon for indexing all users' messages in a Kopano Storage
+Server instance. Indexing messages enhances the search performance of the
+kopano-server; without this daemon, it would only perform a linear search.
+.PP
+After starting, the index daemon will continuously update the index files while
+listening for connections on the configured sockets for search requests from
+the storage server.
+.PP
+Differences over kopano-search(8):
+.IP \(bu 4
+Hierarchy discovery: parallelized breadth-first or parallelized depth-first
+(via convenient_depth).
+.IP \(bu 4
+Persistent search connections
+.IP \(bu 4
+Shared-memory threadeded processing
+.SH Options
+.TP
+\fB\-S\fP
+Run in single-threaded mode and read commands from stdin rather than the
+network. This is meant as a debug mode.
+.TP
+\fB\-c\fP \fIfile\fP
+Read an alternate config file.
