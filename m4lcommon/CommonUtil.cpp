@@ -1235,7 +1235,7 @@ HRESULT TestRestriction(const SRestriction *lpCondition, IMAPIProp *lpMessage,
 			break;
 		}
 		unsigned int ulPropType = PROP_TYPE(lpCondition->res.resContent.ulPropTag);
-		hr = HrGetOneProp(lpMessage, lpCondition->res.resContent.ulPropTag, &~lpProp);
+		hr = HrGetFullProp(lpMessage, lpCondition->res.resContent.ulPropTag, &~lpProp);
 		if (hr != hrSuccess)
 			break;
 
@@ -1301,7 +1301,7 @@ HRESULT TestRestriction(const SRestriction *lpCondition, IMAPIProp *lpMessage,
 			hr = MAPI_E_TOO_COMPLEX;
 			break;
 		}
-		hr = HrGetOneProp(lpMessage, lpCondition->res.resProperty.ulPropTag, &~lpProp);
+		hr = HrGetFullProp(lpMessage, lpCondition->res.resProperty.ulPropTag, &~lpProp);
 		if (hr != hrSuccess)
 			break;
 
@@ -1314,10 +1314,10 @@ HRESULT TestRestriction(const SRestriction *lpCondition, IMAPIProp *lpMessage,
 			hr = MAPI_E_TOO_COMPLEX;
 			break;
 		}
-		hr = HrGetOneProp(lpMessage, lpCondition->res.resCompareProps.ulPropTag1, &~lpProp);
+		hr = HrGetFullProp(lpMessage, lpCondition->res.resCompareProps.ulPropTag1, &~lpProp);
 		if (hr != hrSuccess)
 			break;
-		hr = HrGetOneProp(lpMessage, lpCondition->res.resCompareProps.ulPropTag2, &~lpProp2);
+		hr = HrGetFullProp(lpMessage, lpCondition->res.resCompareProps.ulPropTag2, &~lpProp2);
 		if (hr != hrSuccess)
 			break;
 		Util::CompareProp(lpProp, lpProp2, locale, &result);
@@ -1336,19 +1336,25 @@ HRESULT TestRestriction(const SRestriction *lpCondition, IMAPIProp *lpMessage,
 			fMatch = !fMatch;
 		break;
 	case RES_SIZE:
-		hr = HrGetOneProp(lpMessage, lpCondition->res.resSize.ulPropTag, &~lpProp);
+		hr = HrGetFullProp(lpMessage, lpCondition->res.resSize.ulPropTag, &~lpProp);
 		if (hr != hrSuccess)
 			break;
 		ulSize = Util::PropSize(lpProp);
 		result = ulSize - lpCondition->res.resSize.cb;
 		hr = TestRelop(lpCondition->res.resSize.relop, result, &fMatch);
 		break;
-	case RES_EXIST:
-		hr = HrGetOneProp(lpMessage, lpCondition->res.resExist.ulPropTag, &~lpProp);
-		if (hr != hrSuccess)
+	case RES_EXIST: {
+		SizedSPropTagArray(1, spta) = {1, {lpCondition->res.resExist.ulPropTag}};
+		unsigned int nvals = 0;
+		hr = lpMessage->GetProps(spta, 0, &nvals, &~lpProp);
+		if (HR_FAILED(hr)) {
+			fMatch = false;
 			break;
-		fMatch = true;
+		}
+		fMatch = PROP_TYPE(lpProp->ulPropTag) != PT_ERROR || lpProp->Value.err == MAPI_E_NOT_ENOUGH_MEMORY;
+		hr = fMatch ? hrSuccess : lpProp->Value.err;
 		break;
+	}
 	case RES_SUBRESTRICTION:
 		// A subrestriction is basically an OR restriction over all the rows in a specific
 		// table. We currently support the attachment table (PR_MESSAGE_ATTACHMENTS) and the

@@ -768,13 +768,25 @@ static bool adm_parse_options(int &argc, const char **&argv)
 		fprintf(stderr, "One of -A, -C, -D, -M, -O, -P, -R, -V or -? must be specified.\n");
 		return false;
 	} else if (opt_attach_store != nullptr && ((opt_entity_name != nullptr) == !!opt_copytopublic)) {
-		fprintf(stderr, "-A needs exactly one of -n or -p\n");
+		fprintf(stderr, "-A needs exactly one of -n or -p.\n");
 		return false;
 	} else if ((opt_create_store || opt_detach_store) && opt_entity_name == nullptr) {
-		fprintf(stderr, "-C/-D need the -n option\n");
+		fprintf(stderr, "-C/-D also need the -n option.\n");
+		return false;
+	} else if (opt_companyname != nullptr && !opt_copytopublic) {
+		fprintf(stderr, "-k can only be used with -P.\n");
 		return false;
 	} else if (opt_lang != nullptr && !opt_create_store && !opt_create_public) {
 		fprintf(stderr, "-l can only be used with -C or -P.\n");
+		return false;
+	} else if (opt_entity_name != nullptr && !opt_attach_store && !opt_create_store && !opt_detach_store) {
+		fprintf(stderr, "-n can only be used with -A/-C/-D.\n");
+		return false;
+	} else if (opt_copytopublic && !opt_attach_store) {
+		fprintf(stderr, "-p can only be used with -A.\n");
+		return false;
+	} else if (opt_entity_type && opt_entity_name == nullptr) {
+		fprintf(stderr, "-t can only be used with -n.\n");
 		return false;
 	}
 	if (opt_lang == nullptr)
@@ -782,16 +794,27 @@ static bool adm_parse_options(int &argc, const char **&argv)
 	return true;
 }
 
+static bool adm_setlocale(const char *lang)
+{
+	if (lang == nullptr || *opt_lang == '\0')
+		return true;
+	if (setlocale(LC_MESSAGES, opt_lang) != nullptr)
+		return true;
+	auto uloc = opt_lang + std::string(".UTF-8");
+	if (strchr(opt_lang, '.') == nullptr &&
+	    setlocale(LC_MESSAGES, uloc.c_str()) != nullptr)
+		return true;
+	fprintf(stderr, "Your system does not appear have the \"%s\" or \"%s\" "
+	        "locale available.\n", opt_lang, uloc.c_str());
+	return false;
+}
+
 int main(int argc, const char **argv) try
 {
 	setlocale(LC_ALL, "");
 	ec_log_get()->SetLoglevel(EC_LOGLEVEL_INFO);
-	if (!adm_parse_options(argc, argv))
+	if (!adm_parse_options(argc, argv) || !adm_setlocale(opt_lang))
 		return EXIT_FAILURE;
-	if (opt_lang != nullptr && *opt_lang != '\0' && setlocale(LC_MESSAGES, opt_lang) == nullptr) {
-		fprintf(stderr, "Your system does not have the \"%s\" locale available.\n", opt_lang);
-		return EXIT_FAILURE;
-	}
 	return adm_perform() == hrSuccess ? EXIT_SUCCESS : EXIT_FAILURE;
 } catch (...) {
 	std::terminate();

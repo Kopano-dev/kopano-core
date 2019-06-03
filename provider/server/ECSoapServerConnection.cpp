@@ -65,11 +65,6 @@ static int create_pipe_socket(const char *unix_socket, ECConfig *lpConfig,
 		close(s);
 		return -1;
 	}
-	if (listen(s, INT_MAX) < 0) {
-		ec_log_crit("Can't listen on unix socket %s: %s", unix_socket, strerror(errno));
-		close(s);
-		return -1;
-	}
 	return s;
 }
 
@@ -199,6 +194,11 @@ ECSoapServerConnection::~ECSoapServerConnection(void)
 	delete m_lpDispatcher;
 }
 
+static int ignore_shutdown(struct soap *, SOAP_SOCKET, int shuttype)
+{
+	return 0;
+}
+
 static int custom_soap_bind(struct soap *soap, const char *host, int port)
 {
 	auto ret = ec_listen_inet(host, port, &soap->master);
@@ -228,10 +228,10 @@ ECRESULT ECSoapServerConnection::ListenTCP(const char *lpServerName, int nServer
 	lpsSoap->bind_v6only = strcmp(lpServerName, "") != 0;
 	struct sockaddr_storage grab_addr;
 	socklen_t grab_len = 0;
-	if (getenv("KC_REEXEC_DONE") != nullptr)
-		lpsSoap->master = lpsSoap->socket = socket =
-			ec_fdtable_socket(("["s + lpServerName + "]:" + std::to_string(nServerPort)).c_str(), &grab_addr, &grab_len);
+	lpsSoap->master = lpsSoap->socket = socket =
+		ec_fdtable_socket(("["s + lpServerName + "]:" + std::to_string(nServerPort)).c_str(), &grab_addr, &grab_len);
 	if (socket != SOAP_INVALID_SOCKET) {
+		lpsSoap->fshutdownsocket = ignore_shutdown;
 		lpsSoap->port = nServerPort;
 		lpsSoap->peerlen = grab_len;
 		soap_memcpy(&lpsSoap->peer.storage, sizeof(lpsSoap->peer.storage), &grab_addr, grab_len);
@@ -292,10 +292,10 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char *lpServerName,
 	lpsSoap->bind_v6only = strcmp(lpServerName, "") != 0;
 	struct sockaddr_storage grab_addr;
 	socklen_t grab_len = 0;
-	if (getenv("KC_REEXEC_DONE") != nullptr)
-		lpsSoap->master = lpsSoap->socket = socket =
-			ec_fdtable_socket(("["s + lpServerName + "]:" + std::to_string(nServerPort)).c_str(), &grab_addr, &grab_len);
+	lpsSoap->master = lpsSoap->socket = socket =
+		ec_fdtable_socket(("["s + lpServerName + "]:" + std::to_string(nServerPort)).c_str(), &grab_addr, &grab_len);
 	if (socket != SOAP_INVALID_SOCKET) {
+		lpsSoap->fshutdownsocket = ignore_shutdown;
 		lpsSoap->port = nServerPort;
 		lpsSoap->peerlen = grab_len;
 		soap_memcpy(&lpsSoap->peer.storage, sizeof(lpsSoap->peer.storage), &grab_addr, grab_len);
@@ -335,12 +335,10 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriori
 	lpsSoap->sndbuf = lpsSoap->rcvbuf = 0;
 	struct sockaddr_storage grab_addr;
 	socklen_t grab_len = 0;
-	if (getenv("KC_REEXEC_DONE") != nullptr)
-		lpsSoap->master = lpsSoap->socket = sPipe =
-			ec_fdtable_socket(("unix:"s + lpPipeName).c_str(), &grab_addr, &grab_len);
-	/* This just marks the socket as being a pipe, which triggers some slightly different behavior. */
-	strcpy(lpsSoap->path, "pipe");
+	lpsSoap->master = lpsSoap->socket = sPipe =
+		ec_fdtable_socket(("unix:"s + lpPipeName).c_str(), &grab_addr, &grab_len);
 	if (sPipe != SOAP_INVALID_SOCKET) {
+		lpsSoap->fshutdownsocket = ignore_shutdown;
 		ec_log_info("Re-using fd %d to listen on %spipe %s", sPipe, bPriority ? "priority " : "", lpPipeName);
 	} else {
 		/* Set the mode stricter for the priority socket: let only the same Unix user or root connect on the priority socket, users should not be able to abuse the socket. */

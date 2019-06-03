@@ -1,6 +1,7 @@
 /var/log/kopano/archiver.log {
         weekly
         missingok
+	create 640 kopano kopano
         rotate 52
         compress
         delaycompress
@@ -10,54 +11,75 @@
 /var/log/kopano/dagent.log {
         weekly
         missingok
+	create 640 kopano kopano
         rotate 52
         compress
         delaycompress
         notifempty
         postrotate
+		if [ -d /run/systemd/system ] && systemctl --quiet is-active kopano-dagent; then
+			systemctl reload kopano-dagent || :
+		else
 			killall -HUP kopano-dagent 2> /dev/null || true
+		fi
         endscript
 }
 
 /var/log/kopano/gateway.log {
         weekly
         missingok
+	create 640 kopano kopano
         rotate 52
         compress
         delaycompress
         notifempty
         postrotate
+		if [ -d /run/systemd/system ] && systemctl --quiet is-active kopano-gateway; then
+			systemctl reload kopano-gateway || :
+		else
 			killall -HUP kopano-gateway 2> /dev/null || true
+		fi
         endscript
 }
 
 /var/log/kopano/ical.log {
         weekly
         missingok
+	create 640 kopano kopano
         rotate 52
         compress
         delaycompress
         notifempty
         postrotate
+		if [ -d /run/systemd/system ] && systemctl --quiet is-active kopano-ical; then
+			systemctl reload kopano-ical || :
+		else
 			killall -HUP kopano-ical 2> /dev/null || true
+		fi
         endscript
 }
 
 /var/log/kopano/search.log {
         weekly
         missingok
+	create 640 kopano kopano
         rotate 52
         compress
         delaycompress
         notifempty
         postrotate
+		if [ -d /run/systemd/system ] && systemctl --quiet is-active kopano-search; then
+			systemctl reload kopano-search || :
+		else
 			killall -HUP kopano-search 2> /dev/null || true
+		fi
         endscript
 }
 
 /var/log/kopano/backup.log {
         weekly
         missingok
+	create 640 kopano kopano
         rotate 52
         compress
         delaycompress
@@ -67,59 +89,84 @@
 /var/log/kopano/presence.log {
         weekly
         missingok
+	create 640 kopano kopano
         rotate 52
         compress
         delaycompress
         notifempty
         postrotate
+		if [ -d /run/systemd/system ] && systemctl --quiet is-active kopano-presence; then
+			systemctl reload kopano-presence || :
+		else
 			killall -HUP kopano-presence 2> /dev/null || true
+		fi
         endscript
 }
 
 /var/log/kopano/monitor.log {
         weekly
         missingok
+	create 640 kopano kopano
         rotate 52
         compress
         delaycompress
         notifempty
         postrotate
+		if [ -d /run/systemd/system ] && systemctl --quiet is-active kopano-monitor; then
+			systemctl reload kopano-monitor || :
+		else
 			killall -HUP kopano-monitor 2> /dev/null || true
+		fi
         endscript
 }
 
 /var/log/kopano/server.log /var/log/kopano/audit.log {
         weekly
         missingok
+	create 640 kopano kopano
         rotate 52
         compress
         delaycompress
         notifempty
         postrotate
+		if [ -d /run/systemd/system ] && systemctl --quiet is-active kopano-server; then
+			systemctl reload kopano-server || :
+		else
 			killall -HUP kopano-server 2> /dev/null || true
+		fi
         endscript
 }
 
 /var/log/kopano/spooler.log {
         weekly
         missingok
+	create 640 kopano kopano
         rotate 52
         compress
         delaycompress
         notifempty
         postrotate
+		if [ -d /run/systemd/system ] && systemctl --quiet is-active kopano-spooler; then
+			systemctl reload kopano-spooler || :
+		else
 			killall -HUP kopano-spooler 2> /dev/null || true
+		fi
         endscript
 }
 
 /var/log/kopano/spamd.log {
         weekly
         missingok
+	create 640 kopano kopano
         rotate 52
         compress
         delaycompress
         notifempty
         postrotate
+		if [ -d /run/systemd/system ] && systemctl --quiet is-active kopano-spamd; then
+			systemctl reload kopano-spamd || :
+		else
 			killall -HUP kopano-spamd 2> /dev/null || true
+		fi
         endscript
 }

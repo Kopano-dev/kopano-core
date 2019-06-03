@@ -1991,8 +1991,14 @@ void MAPIToVMIME::removeEnters(wchar_t *s)
  */
 vmime::text MAPIToVMIME::getVmimeTextFromWide(const wchar_t *lpszwInput)
 {
-	return vmime::text(m_converter.convert_to<std::string>(m_strCharset.c_str(),
-	       lpszwInput, rawsize(lpszwInput), CHARSET_WCHAR), m_vmCharset);
+	try {
+		/* Try keeping words unencoded if so representable (KC-1430) */
+		return vmime::text(vmime::word(m_converter.convert_to<std::string>("US-ASCII//NOIGNORE",
+		       lpszwInput, rawsize(lpszwInput), CHARSET_WCHAR), vmime::charsets::US_ASCII));
+	} catch (const convert_exception &) {
+	}
+	return vmime::text(vmime::word(m_converter.convert_to<std::string>(m_strCharset.c_str(),
+	       lpszwInput, rawsize(lpszwInput), CHARSET_WCHAR), m_vmCharset));
 }
 
 /**
@@ -2004,8 +2010,13 @@ vmime::text MAPIToVMIME::getVmimeTextFromWide(const wchar_t *lpszwInput)
  */
 vmime::text MAPIToVMIME::getVmimeTextFromWide(const std::wstring &strwInput)
 {
-	return vmime::text(m_converter.convert_to<std::string>(m_strCharset.c_str(),
-	       strwInput, rawsize(strwInput), CHARSET_WCHAR), m_vmCharset);
+	try {
+		return vmime::text(vmime::word(m_converter.convert_to<std::string>("US-ASCII//NOIGNORE",
+		       strwInput, rawsize(strwInput), CHARSET_WCHAR), vmime::charsets::US_ASCII));
+	} catch (const convert_exception &) {
+	}
+	return vmime::text(vmime::word(m_converter.convert_to<std::string>(m_strCharset.c_str(),
+	       strwInput, rawsize(strwInput), CHARSET_WCHAR), m_vmCharset));
 }
 
 } /* namespace */

@@ -1298,7 +1298,7 @@ static HRESULT CheckSendAs(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 	     lpRepresentProps[0].ulPropTag == PR_DISPLAY_NAME_W ? lpRepresentProps[0].Value.lpszW : L"<no name>",
 	     lpAddrBook, owner, lpRepresentProps[1].Value.MVbin, &ulObjType, &bAllowed);
 	if (bAllowed)
-		ec_log_err("Mail for user \"%ls\" is sent as %s \"%ls\"",
+		ec_log_info("Mail for user \"%ls\" is sent as %s \"%ls\"",
 			lpOwnerProps[0].ulPropTag == PR_DISPLAY_NAME_W ? lpOwnerProps[0].Value.lpszW : L"<no name>",
 			(ulObjType != MAPI_DISTLIST)?"user":"group",
 			lpRepresentProps[0].ulPropTag == PR_DISPLAY_NAME_W ? lpRepresentProps[0].Value.lpszW : L"<no name>");
@@ -1309,7 +1309,7 @@ exit:
 		else
 			lpMailer->setError(KC_TX("The user or group you try to send as could not be found."));
 
-		ec_log_err("User \"%ls\" is not allowed to send as user or group \"%ls\". "
+		ec_log_info("User \"%ls\" is not allowed to send as user or group \"%ls\". "
 			"You may enable all outgoing addresses by enabling the always_send_delegates option.",
 			(lpOwnerProps && PROP_TYPE(lpOwnerProps[0].ulPropTag) != PT_ERROR) ? lpOwnerProps[0].Value.lpszW : L"<unknown>",
 			(lpRepresentProps && PROP_TYPE(lpRepresentProps[0].ulPropTag) != PT_ERROR) ? lpRepresentProps[0].Value.lpszW : L"<unknown>");

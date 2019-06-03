@@ -90,10 +90,10 @@ class MAPITimezone(datetime.tzinfo):
         return datetime.timedelta(minutes=-self.timezone) + self.dst(dt)
 
     def tzname(self, dt):
-        return 'MAPITimezone()'
+        return 'MAPITimezone(%s)' % self.utcoffset(dt)
 
     def __repr__(self):
-        return 'MAPITimezone()'
+        return 'MAPITimezone(<%d,dst:%d-%d>)' % (self.timezone, self.dststartmonth, self.dstendmonth)
 
 # convert Olson timezone name to MAPI timezone struct
 

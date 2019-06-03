@@ -246,8 +246,10 @@ int main(int argc, const char **argv) try
 	}
 	int sockfd;
 	auto ret = ec_listen_generic(v.begin()->c_str(), &sockfd, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
-	if (ret < 0)
+	if (ret < 0) {
+		ec_log_err("Listening on %s failed: %s", v.begin()->c_str(), strerror(-ret));
 		return ret;
+	}
 	unix_coredump_enable(sd_config->GetSetting("coredump_enabled"));
 	ret = unix_runas(sd_config.get());
 	if (ret < 0) {

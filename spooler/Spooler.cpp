@@ -1035,7 +1035,10 @@ static int main2(int argc, char **argv)
 	if (g_dump_config)
 		return g_lpConfig->dump_config(stdout) == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 
-	ec_log_always("Starting kopano-spooler version " PROJECT_VERSION " (pid %d uid %u)", getpid(), getuid());
+	if (!bDoSentMail)
+		ec_log_always("Starting kopano-spooler version " PROJECT_VERSION " (pid %d uid %u)", getpid(), getuid());
+	else
+		ec_log_debug("Starting kopano-spooler worker");
 	if (!TmpPath::instance.OverridePath(g_lpConfig.get()))
 		ec_log_err("Ignoring invalid path setting!");
 	g_main_thread = pthread_self();

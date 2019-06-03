@@ -918,7 +918,12 @@ HRESULT HrAccept(int ulListenFD, ECChannel **lppChannel)
 		ec_log_err("Unable to accept(): %s", strerror(errno));
 		return MAPI_E_NETWORK_ERROR;
 	}
-	lpChannel.reset(new ECChannel(socket));
+	auto chn = new(std::nothrow) ECChannel(socket);
+	if (chn == nullptr) {
+		close(socket);
+		return MAPI_E_NOT_ENOUGH_MEMORY;
+	}
+	lpChannel.reset(chn);
 	lpChannel->SetIPAddress(reinterpret_cast<const struct sockaddr *>(&client), len);
 	ec_log_info("Accepted connection from %s", lpChannel->peer_addr());
 	*lppChannel = lpChannel.release();
@@ -1020,11 +1025,16 @@ void ec_reexec_prepare_sockets()
 			break;
 		else if (ret < 0 || set == 0)
 			continue;
+		/*
+		 * Linux kernel oddity: F_GETFD can fail if the socket owner is
+		 * someone else, but F_SETFD succeeds nevertheless.
+		 */
 		unsigned int flags = 0;
-		if (fcntl(fd, F_GETFD, &flags) == 0) {
-			flags &= ~FD_CLOEXEC;
-			fcntl(fd, F_SETFD, flags);
-		}
+		if (fcntl(fd, F_GETFD, &flags) != 0)
+			/* ignore */;
+		flags &= ~FD_CLOEXEC;
+		if (fcntl(fd, F_SETFD, flags) != 0)
+			ec_log_warn("fcntl F_SETFD %d: %s", fd, strerror(errno));
 	}
 }
 
