@@ -1,3 +1,21 @@
+8.7.x
+=====
+Fixes:
+* storeadm: accept -l option even if the non-UTF8 variant of that locale is
+  absent from the system [KC-1429]
+* dagent: rule matching against very large subject lines was made
+  functional [KC-1478]
+* gateway: guard against a null dereference [KC-1505]
+* inetmapi: avoid emitting multi-encoded words to work around Outlook
+  bugs [KC-1506]
+* daemons: resolved a startup failure when socket activation was used [KC-1513]
+* daemons: resolved kopano-server.socket entering a failed state after stopping
+  kopano-server.service [KC-1514]
+* dagent: cured a silent exit when "lmtp_listen" contained garbage [KC-1516]
+Enhancements:
+* logrotate will now use `systemctl reload` if available [GH-PR-14]
+
+
 8.7.3 (2019-05-27)
 ==================
 Fixes:
