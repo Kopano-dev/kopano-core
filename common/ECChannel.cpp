@@ -912,7 +912,12 @@ HRESULT HrAccept(int ulListenFD, ECChannel **lppChannel)
 		ec_log_err("Unable to accept(): %s", strerror(errno));
 		return MAPI_E_NETWORK_ERROR;
 	}
-	lpChannel.reset(new ECChannel(socket));
+	auto chn = new(std::nothrow) ECChannel(socket);
+	if (chn == nullptr) {
+		close(socket);
+		return MAPI_E_NOT_ENOUGH_MEMORY;
+	}
+	lpChannel.reset(chn);
 	lpChannel->SetIPAddress(reinterpret_cast<const struct sockaddr *>(&client), len);
 	ec_log_info("Accepted connection from %s", lpChannel->peer_addr());
 	*lppChannel = lpChannel.release();
