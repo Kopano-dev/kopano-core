@@ -1020,11 +1020,16 @@ void ec_reexec_prepare_sockets()
 			break;
 		else if (ret < 0 || set == 0)
 			continue;
+		/*
+		 * Linux kernel oddity: F_GETFD can fail if the socket owner is
+		 * someone else, but F_SETFD succeeds nevertheless.
+		 */
 		unsigned int flags = 0;
-		if (fcntl(fd, F_GETFD, &flags) == 0) {
-			flags &= ~FD_CLOEXEC;
-			fcntl(fd, F_SETFD, flags);
-		}
+		if (fcntl(fd, F_GETFD, &flags) != 0)
+			/* ignore */;
+		flags &= ~FD_CLOEXEC;
+		if (fcntl(fd, F_SETFD, flags) != 0)
+			ec_log_warn("fcntl F_SETFD %d: %s", fd, strerror(errno));
 	}
 }
 
