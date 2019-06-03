@@ -485,8 +485,10 @@ static HRESULT gw_listen(ECConfig *cfg)
 			ec_log_info("Re-using fd %d to listen on %s for pop3", ret, spec.c_str());
 		} else {
 			ret = ec_listen_generic(spec.c_str(), &pfd.fd);
-			if (ret < 0)
+			if (ret < 0) {
+				ec_log_err("Listening on %s failed: %s", spec.c_str(), strerror(-ret));
 				return MAPI_E_NETWORK_ERROR;
+			}
 			ec_log_notice("Listening on %s for pop3", spec.c_str());
 		}
 		g_socks.pollfd.push_back(pfd);
@@ -501,8 +503,10 @@ static HRESULT gw_listen(ECConfig *cfg)
 			ec_log_info("Re-using fd %d to listen on %s for pop3s", ret, spec.c_str());
 		} else {
 			ret = ec_listen_generic(spec.c_str(), &pfd.fd);
-			if (ret < 0)
+			if (ret < 0) {
+				ec_log_err("Listening on %s failed: %s", spec.c_str(), strerror(-ret));
 				return MAPI_E_NETWORK_ERROR;
+			}
 			ec_log_notice("Listening on %s for pop3s", spec.c_str());
 		}
 		g_socks.pollfd.push_back(pfd);
@@ -517,8 +521,10 @@ static HRESULT gw_listen(ECConfig *cfg)
 			ec_log_info("Re-using fd %d to listen on %s for imap", ret, spec.c_str());
 		} else {
 			ret = ec_listen_generic(spec.c_str(), &pfd.fd);
-			if (ret < 0)
+			if (ret < 0) {
+				ec_log_err("Listening on %s failed: %s", spec.c_str(), strerror(-ret));
 				return MAPI_E_NETWORK_ERROR;
+			}
 			ec_log_notice("Listening on %s for imap", spec.c_str());
 		}
 		g_socks.pollfd.push_back(pfd);
@@ -533,8 +539,10 @@ static HRESULT gw_listen(ECConfig *cfg)
 			ec_log_info("Re-using fd %d to listen on %s for imap", ret, spec.c_str());
 		} else {
 			ret = ec_listen_generic(spec.c_str(), &pfd.fd);
-			if (ret < 0)
+			if (ret < 0) {
+				ec_log_err("Listening on %s failed: %s", spec.c_str(), strerror(-ret));
 				return MAPI_E_NETWORK_ERROR;
+			}
 			ec_log_notice("Listening on %s for imaps", spec.c_str());
 		}
 		g_socks.pollfd.push_back(pfd);
