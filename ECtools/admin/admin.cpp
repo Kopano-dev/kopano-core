@@ -668,6 +668,11 @@ static void print_extra_settings(const SPROPMAP *lpPropmap,
 	ct.PrintTable();
 }
 
+static inline const char *ab_hidden(bool h)
+{
+	return h ? "Hidden" : "Visible to current user";
+}
+
 /**
  * Prints company details
  *
@@ -681,9 +686,7 @@ static void print_company_settings(const ECCOMPANY *lpECCompany,
 	cout << "Sysadmin:\t\t" << (LPSTR)lpECAdministrator->lpszUsername << endl;
 	if (lpECCompany->lpszServername != NULL && *reinterpret_cast<LPSTR>(lpECCompany->lpszServername) != '\0')
 		cout << "Home server:\t\t" << (LPSTR)lpECCompany->lpszServername << endl;
-
-	cout << "Address book:\t\t" << (lpECCompany->ulIsABHidden ? "Hidden" : "Visible") << endl;
-
+	cout << "Address book:\t\t" << ab_hidden(lpECCompany->ulIsABHidden) << endl;
 	print_extra_settings(&lpECCompany->sPropmap, &lpECCompany->sMVPropmap);
 }
 
@@ -697,8 +700,7 @@ static void print_group_settings(const ECGROUP *lpECGroup)
 	cout << "Groupname:\t\t" << (LPSTR)lpECGroup->lpszGroupname << endl;
 	cout << "Fullname:\t\t" << (LPSTR)lpECGroup->lpszFullname << endl;
 	cout << "Emailaddress:\t\t" << (LPSTR)lpECGroup->lpszFullEmail << endl;
-	cout << "Address book:\t\t" << (lpECGroup->ulIsABHidden ? "Hidden" : "Visible") << endl;
-
+	cout << "Address book:\t\t" << ab_hidden(lpECGroup->ulIsABHidden) << endl;
 	print_extra_settings(&lpECGroup->sPropmap, &lpECGroup->sMVPropmap, true);
 }
 
@@ -805,7 +807,7 @@ static void print_user_settings(IMsgStore *lpStore, const ECUSER *lpECUser,
 	if (lpECUser->ulObjClass == NONACTIVE_ROOM || lpECUser->ulObjClass == NONACTIVE_EQUIPMENT)
 		cout << "Resource capacity:\t" << lpECUser->ulCapacity << endl;
 	cout << "Administrator:\t\t" << ((lpECUser->ulIsAdmin >= 1) ? "yes" : "no") << ((lpECUser->ulIsAdmin == 2) ? " (system)" : "") << endl;
-	cout << "Address book:\t\t" << (lpECUser->ulIsABHidden ? "Hidden" : "Visible") << endl;
+	cout << "Address book:\t\t" << ab_hidden(lpECUser->ulIsABHidden) << endl;
 	cout << "Auto-accept meeting req:" << (bAutoAccept ? "yes" : "no") << endl;
 	if (bAutoAccept) {
 		cout << "Decline dbl meetingreq:\t" << (bDeclineConflict ? "yes" : "no") << endl;
