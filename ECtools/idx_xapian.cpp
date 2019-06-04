@@ -142,7 +142,8 @@ void ECXapianIndexer::commit(const std::string &sugg)
 	}
 	Xapian::TermGenerator tg;
 	tg.set_database(db);
-	tg.set_flags(!sugg.empty() ? tg.FLAG_SPELLING : 0);
+	if (!sugg.empty())
+		tg.set_flags(tg.FLAG_SPELLING);
 	for (const auto &doc : updates) {
 		Xapian::Document xdoc;
 		tg.set_document(xdoc);
