@@ -389,7 +389,6 @@ PKG_CHECK_MODULES([curl], [libcurl], [], [:])
 CPPFLAGS="$CPPFLAGS $curl_CFLAGS"
 AC_CHECK_HEADERS([curl/curl.h])
 CPPFLAGS="$CPPFLAGS_system"
-PKG_CHECK_MODULES([mhttpd], [libmicrohttpd >= 0.9.30], [], [:])
 PKG_CHECK_MODULES([rrd], [librrd >= 1.3], [], [:])
 PKG_CHECK_MODULES([TCMALLOC], [libtcmalloc_minimal], [], [:])
 CPPFLAGS="$CPPFLAGS $TCMALLOC_CFLAGS"

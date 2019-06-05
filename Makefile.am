@@ -69,7 +69,7 @@ AM_CPPFLAGS = ${ZCPPFLAGS} -DLDAP_THREAD_SAFE \
 	-I${top_srcdir}/ECtools/archiver \
 	${CRYPTO_CFLAGS} ${curl_CFLAGS} ${GSOAP_CFLAGS} ${ICAL_CFLAGS} \
 	${jsoncpp_CFLAGS} \
-	${KRB5_CFLAGS} ${LDAP_FLAGS} ${libHX_CFLAGS} ${mhttpd_CFLAGS} \
+	${KRB5_CFLAGS} ${LDAP_FLAGS} ${libHX_CFLAGS} \
 	${MYSQL_INCLUDES} ${SSL_CFLAGS} \
 	${s3_CFLAGS} ${kcoidc_CFLAGS} ${TCMALLOC_CFLAGS} ${tidy_CPPFLAGS} \
 	${VMIME_CFLAGS} ${xapian_CFLAGS} ${XML2_CFLAGS}
@@ -146,11 +146,9 @@ if ENABLE_PYBIND
 lib_LTLIBRARIES += libkcpyplug.la
 noinst_DATA += libkcpyplug.ldd
 endif
-if HAVE_MHTTPD
 if HAVE_RRD
 pkglibexec_PROGRAMS += kopano-statsd
 noinst_DATA += kopano-statsd.ldx
-endif
 endif
 # Undefined references
 #noinst_DATA += libkcsoap.ldd
@@ -319,8 +317,8 @@ kopano_storeadm_LDADD = ${jsoncpp_LIBS} ${libHX_LIBS} libmapi.la libkcutil.la
 #
 # kopano-statsd
 #
-kopano_statsd_SOURCES = ECtools/statsd.cpp
-kopano_statsd_LDADD = libkcutil.la ${jsoncpp_LIBS} ${libHX_LIBS} ${mhttpd_LIBS} ${rrd_LIBS}
+kopano_statsd_SOURCES = ECtools/statsd.cpp provider/soap/emptysoapC.cpp
+kopano_statsd_LDADD = libkcutil.la ${GSOAP_LIBS} ${jsoncpp_LIBS} ${libHX_LIBS} ${rrd_LIBS}
 
 
 #
@@ -843,14 +841,22 @@ SOAP_OUT = \
 	provider/soap/soapKCmdProxy.cpp provider/soap/soapKCmdProxy.h \
 	provider/soap/soapKCmdService.cpp provider/soap/soapKCmdService.h \
 	provider/soap/soapStub.h
+ESOAP_OUT = \
+	provider/soap/emptysoapStub.h \
+	provider/soap/emptysoapH.h provider/soap/emptysoapC.cpp
 
 ${SOAP_OUT}: provider/soap/KCmd.nsmap
+${ESOAP_OUT}: provider/soap/soap.nsmap
 provider/soap/KCmd.nsmap: ${SOAPHEADER}
 	${MKDIR_P} provider/soap
 	soapcpp2 -jxw -Iinclude/ -d provider/soap/ $<
+provider/soap/soap.nsmap:
+	${MKDIR_P} provider/soap
+	soapcpp2 -jxwp emptysoap -d provider/soap/ /dev/null
 
-BUILT_SOURCES += provider/soap/KCmd.nsmap ${SOAP_OUT}
-CLEANFILES += ${SOAP_OUT} provider/soap/*
+BUILT_SOURCES += provider/soap/KCmd.nsmap provider/soap/soap.nsmap \
+	${SOAP_OUT} ${ESOAP_OUT}
+CLEANFILES += ${SOAP_OUT} ${ESOAP_OUT} provider/soap/*
 
 
 #
