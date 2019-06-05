@@ -1,3 +1,9 @@
+8.8.x
+=====
+Changes:
+* RHEL6 is no longer officially supported
+
+
 8.7.81 (8.8.x Milestone 1)
 ==========================
 Enhancements:
