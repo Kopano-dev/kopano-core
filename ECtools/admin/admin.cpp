@@ -2648,9 +2648,6 @@ int main(int argc, char **argv) try
 		return fexech(argv[0], {"kopano-storeadm", "-Pk", companyname}, path);
 	case MODE_CREATE_USER:
 		memset(&sECUser, 0, sizeof(sECUser));
-
-		sECUser.sUserId.cb = g_cbDefaultEid;
-		sECUser.sUserId.lpb = g_lpDefaultEid;
 		sECUser.lpszUsername = (LPTSTR)username;
 
 		if (passprompt && isnonactive != 1) {
