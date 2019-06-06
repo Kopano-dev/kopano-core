@@ -95,6 +95,8 @@ class ECFileAttachment : public ECAttachmentStorage {
 	virtual kd_trans Begin(ECRESULT &) override;
 	virtual ECRESULT Commit() override;
 	virtual ECRESULT Rollback() override;
+	ECRESULT load_instance_z(struct soap *, const ext_siid &instance_id, int &fd, const std::string &filename, size_t *size, unsigned char **data);
+	ECRESULT load_instance_u(struct soap *, int &fd, const std::string &filename, size_t *size, unsigned char **data);
 	ECRESULT save_instance_data(const std::string &filename, int fd, unsigned int propid, size_t z, unsigned char *data, bool comp);
 
 	size_t attachment_size_safety_limit;
@@ -1260,6 +1262,123 @@ bool ECFileAttachment::VerifyInstanceSize(const ext_siid &instanceId,
 	return true;
 }
 
+ECRESULT ECFileAttachment::load_instance_z(struct soap *soap,
+    const ext_siid &ulInstanceId, int &fd, const std::string &filename,
+    size_t *lpiSize, unsigned char **lppData)
+{
+	std::unique_ptr<unsigned char[]> temp;
+	gz_ptr gzfp(fd, "rb");
+	if (!gzfp) {
+		// do not use KCERR_NOT_FOUND: the file is already open so it exists
+		// so something else is going wrong here
+		ec_log_err("ECFileAttachment::LoadAttachmentInstance(SOAP): cannot gzopen attachment \"%s\": %s", filename.c_str(), strerror(errno));
+		return KCERR_UNKNOWN;
+	}
+
+#if ZLIB_VERNUM >= 0x1240
+	if (gzbuffer(gzfp, ZLIB_BUFFER_SIZE) == -1)
+		ec_log_warn("gzbuffer failed");
+#endif
+
+	size_t memory_block_size = 0;
+
+	for (;;)
+	{
+		int ret = -1;
+
+		if (memory_block_size == *lpiSize) {
+			if (memory_block_size)
+				memory_block_size *= 2;
+			else
+				memory_block_size = CHUNK_SIZE;
+
+			auto new_temp = static_cast<unsigned char *>(realloc(temp.get(), memory_block_size));
+			if (!new_temp) {
+				*lpiSize = 0;
+
+				ec_log_err("ECFileAttachment::LoadAttachmentInstance(SOAP): Out of memory while reading \"%s\"", filename.c_str());
+				return KCERR_UNABLE_TO_COMPLETE;
+			}
+			temp.release();
+			temp.reset(new_temp);
+		}
+
+		ret = gzread_retry(gzfp, &temp[*lpiSize], memory_block_size - *lpiSize);
+
+		if (ret < 0) {
+			ec_log_err("ECFileAttachment::LoadAttachmentInstance(SOAP): Error while gzreading attachment data from \"%s\"", filename.c_str());
+			//return KCERR_DATABASE_ERROR;
+			*lpiSize = 0;
+			break;
+		}
+
+		if (ret == 0)
+			break;
+
+		*lpiSize += ret;
+
+		if (*lpiSize >= attachment_size_safety_limit) {
+			ec_log_err("ECFileAttachment::LoadAttachmentInstance(SOAP): Size safety limit (%zu) reached for \"%s\" (compressed)",
+				attachment_size_safety_limit, filename.c_str());
+			//return KCERR_DATABASE_ERROR;
+			*lpiSize = 0;
+			break;
+		}
+	}
+
+	VerifyInstanceSize(ulInstanceId, *lpiSize, filename);
+	*lppData = soap_new_unsignedByte(soap, *lpiSize);
+	memcpy(*lppData, temp.get(), *lpiSize);
+	return erSuccess;
+}
+
+ECRESULT ECFileAttachment::load_instance_u(struct soap *soap, int &fd,
+    const std::string &filename, size_t *lpiSize, unsigned char **lppData)
+{
+	ssize_t lReadSize = 0;
+
+	struct stat st;
+	if (fstat(fd, &st) == -1)
+	{
+		ec_log_err("ECFileAttachment::LoadAttachmentInstance(SOAP): Error while doing fstat on \"%s\": %s", filename.c_str(), strerror(errno));
+		// FIXME return KCERR_DATABASE_ERROR;
+		*lpiSize = 0;
+		*lppData = soap_new_unsignedByte(soap, *lpiSize);
+		return erSuccess;
+	}
+
+	*lpiSize = st.st_size;
+
+	if (*lpiSize >= attachment_size_safety_limit) {
+		ec_log_err("ECFileAttachment::LoadAttachmentInstance(SOAP): Size safety limit (%zu) reached for \"%s\" (uncompressed)",
+			attachment_size_safety_limit, filename.c_str());
+		// FIXME er = KCERR_DATABASE_ERROR;
+		*lpiSize = 0;
+		*lppData = soap_new_unsignedByte(soap, *lpiSize);
+		return erSuccess;
+	}
+
+	*lppData = soap_new_unsignedByte(soap, *lpiSize);
+
+	/* Uncompressed attachment */
+	lReadSize = read_retry(fd, *lppData, *lpiSize);
+	if (lReadSize < 0) {
+		ec_log_err("ECFileAttachment::LoadAttachmentInstance(SOAP): Error while reading attachment data from \"%s\": %s", filename.c_str(), strerror(errno));
+		// FIXME return KCERR_DATABASE_ERROR;
+		*lpiSize = 0;
+		return erSuccess;
+	}
+
+	if (lReadSize != static_cast<ssize_t>(*lpiSize)) {
+		ec_log_err("ECFileAttachment::LoadAttachmentInstance(SOAP): Short read while reading attachment data from \"%s\": expected %zu, got %zd.",
+			filename.c_str(), *lpiSize, lReadSize);
+		// FIXME return KCERR_DATABASE_ERROR;
+		*lpiSize = 0;
+		return erSuccess;
+	}
+	return erSuccess;
+}
+
 /**
  * Load instance data using soap and return as blob.
  *
@@ -1295,119 +1414,9 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(struct soap *soap,
 	}
 	my_readahead(fd);
 	if (bCompressed)
-		er = [this](struct soap *soap, const ext_siid &ulInstanceId, int &fd, const std::string &filename, size_t *lpiSize, unsigned char **lppData) -> ECRESULT {
-		std::unique_ptr<unsigned char[]> temp;
-		gz_ptr gzfp(fd, "rb");
-		if (!gzfp) {
-			// do not use KCERR_NOT_FOUND: the file is already open so it exists
-			// so something else is going wrong here
-			ec_log_err("ECFileAttachment::LoadAttachmentInstance(SOAP): cannot gzopen attachment \"%s\": %s", filename.c_str(), strerror(errno));
-			return KCERR_UNKNOWN;
-		}
-
-#if ZLIB_VERNUM >= 0x1240
-		if (gzbuffer(gzfp, ZLIB_BUFFER_SIZE) == -1)
-			ec_log_warn("gzbuffer failed");
-#endif
-
-		size_t memory_block_size = 0;
-
-		for(;;)
-		{
-			int ret = -1;
-
-			if (memory_block_size == *lpiSize) {
-				if (memory_block_size)
-					memory_block_size *= 2;
-				else
-					memory_block_size = CHUNK_SIZE;
-
-				auto new_temp = static_cast<unsigned char *>(realloc(temp.get(), memory_block_size));
-				if (!new_temp) {
-					*lpiSize = 0;
-
-					ec_log_err("ECFileAttachment::LoadAttachmentInstance(SOAP): Out of memory while reading \"%s\"", filename.c_str());
-					return KCERR_UNABLE_TO_COMPLETE;
-				}
-
-				temp.release();
-				temp.reset(new_temp);
-			}
-
-			ret = gzread_retry(gzfp, &temp[*lpiSize], memory_block_size - *lpiSize);
-
-			if (ret < 0) {
-				ec_log_err("ECFileAttachment::LoadAttachmentInstance(SOAP): Error while gzreading attachment data from \"%s\"", filename.c_str());
-				//return KCERR_DATABASE_ERROR;
-				*lpiSize = 0;
-				break;
-			}
-
-			if (ret == 0)
-				break;
-
-			*lpiSize += ret;
-
-			if (*lpiSize >= attachment_size_safety_limit) {
-				ec_log_err("ECFileAttachment::LoadAttachmentInstance(SOAP): Size safety limit (%zu) reached for \"%s\" (compressed)",
-					attachment_size_safety_limit, filename.c_str());
-				//return KCERR_DATABASE_ERROR;
-				*lpiSize = 0;
-				break;
-			}
-		}
-
-		VerifyInstanceSize(ulInstanceId, *lpiSize, filename);
-		*lppData = soap_new_unsignedByte(soap, *lpiSize);
-		memcpy(*lppData, temp.get(), *lpiSize);
-		return erSuccess;
-	}(soap, ulInstanceId, fd, filename, lpiSize, lppData);
+		er = load_instance_z(soap, ulInstanceId, fd, filename, lpiSize, lppData);
 	else
-		er = [this](struct soap *soap, int &fd, const std::string &filename, size_t *lpiSize, unsigned char **lppData) -> ECRESULT {
-		ssize_t lReadSize = 0;
-
-		struct stat st;
-		if (fstat(fd, &st) == -1)
-		{
-			ec_log_err("ECFileAttachment::LoadAttachmentInstance(SOAP): Error while doing fstat on \"%s\": %s", filename.c_str(), strerror(errno));
-			// FIXME return KCERR_DATABASE_ERROR;
-			*lpiSize = 0;
-			*lppData = soap_new_unsignedByte(soap, *lpiSize);
-			return erSuccess;
-		}
-
-		*lpiSize = st.st_size;
-
-		if (*lpiSize >= attachment_size_safety_limit) {
-			ec_log_err("ECFileAttachment::LoadAttachmentInstance(SOAP): Size safety limit (%zu) reached for \"%s\" (uncompressed)",
-				attachment_size_safety_limit, filename.c_str());
-			// FIXME er = KCERR_DATABASE_ERROR;
-			*lpiSize = 0;
-			*lppData = soap_new_unsignedByte(soap, *lpiSize);
-			return erSuccess;
-		}
-
-		*lppData = soap_new_unsignedByte(soap, *lpiSize);
-
-		/* Uncompressed attachment */
-		lReadSize = read_retry(fd, *lppData, *lpiSize);
-		if (lReadSize < 0) {
-			ec_log_err("ECFileAttachment::LoadAttachmentInstance(SOAP): Error while reading attachment data from \"%s\": %s", filename.c_str(), strerror(errno));
-			// FIXME return KCERR_DATABASE_ERROR;
-			*lpiSize = 0;
-			return erSuccess;
-		}
-
-		if (lReadSize != static_cast<ssize_t>(*lpiSize)) {
-			ec_log_err("ECFileAttachment::LoadAttachmentInstance(SOAP): Short read while reading attachment data from \"%s\": expected %zu, got %zd.",
-				filename.c_str(), *lpiSize, lReadSize);
-			// FIXME return KCERR_DATABASE_ERROR;
-			*lpiSize = 0;
-			return erSuccess;
-		}
-		return erSuccess;
-	}(soap, fd, filename, lpiSize, lppData);
-
+		er = load_instance_u(soap, fd, filename, lpiSize, lppData);
 	if (fd >= 0)
 		close(fd);
 	return er;
