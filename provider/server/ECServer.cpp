@@ -94,7 +94,7 @@ static bool g_dump_config;
 static int running_server(char *, const char *, bool, int, char **, int, char **);
 
 server_stats::server_stats(std::shared_ptr<ECConfig> cfg) :
-	ECStatsCollector(std::move(cfg))
+	ECStatsCollector(cfg)
 {
 	set(SCN_PROGRAM_NAME, "kopano-server");
 	AddStat(SCN_SERVER_GUID, SCT_STRING, "server_guid");
@@ -170,6 +170,11 @@ server_stats::server_stats(std::shared_ptr<ECConfig> cfg) :
 	AddStat(SCN_INDEXER_SEARCH_AVG, SCT_INTGAUGE, "index_search_avg", "Average duration of an indexed search query");
 	AddStat(SCN_INDEXED_SEARCHES, SCT_INTEGER, "search_indexed", "Number of indexed searches performed");
 	AddStat(SCN_DATABASE_SEARCHES, SCT_INTEGER, "search_database", "Number of database searches performed");
+
+	AddStat(SCN_SERVER_USERDB_BACKEND, SCT_STRING, "userplugin", "User backend plugin");
+	AddStat(SCN_SERVER_ATTACH_BACKEND, SCT_STRING, "attachment_storage", "Attachment backend type");
+	set(SCN_SERVER_USERDB_BACKEND, cfg->GetSetting("user_plugin"));
+	set(SCN_SERVER_ATTACH_BACKEND, cfg->GetSetting("attachment_storage"));
 }
 
 // This is the callback function for libserver/* so that it can notify that a delayed soap
