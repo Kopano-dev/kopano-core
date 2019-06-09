@@ -162,7 +162,7 @@ std::string ECStatsCollector::survey_as_text()
 
 	for (const auto &key : {SCN_MACHINE_ID, SCN_PROGRAM_NAME, SCN_PROGRAM_VERSION,
 	    SCN_SERVER_GUID, SCN_UTSNAME, SCN_OSRELEASE, SCN_SERVER_USERDB_BACKEND,
-	    SCN_SERVER_ATTACH_BACKEND}) {
+	    SCN_SERVER_ATTACH_BACKEND, SCN_DATABASE_MAX_OBJECTID}) {
 		auto i = m_StatData.find(key);
 		if (i == m_StatData.cend())
 			continue;

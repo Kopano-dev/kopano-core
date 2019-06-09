@@ -130,6 +130,7 @@ server_stats::server_stats(std::shared_ptr<ECConfig> cfg) :
 	AddStat(SCN_DATABASE_MERGED_RECORDS, SCT_INTEGER, "deferred_records", "Number records merged in the deferred write table");
 	AddStat(SCN_DATABASE_ROW_READS, SCT_INTEGER, "row_reads", "Number of table rows read in row order");
 	AddStat(SCN_DATABASE_COUNTER_RESYNCS, SCT_INTEGER, "counter_resyncs", "Number of time a counter resync was required");
+	AddStat(SCN_DATABASE_MAX_OBJECTID, SCT_INTGAUGE, "max_objectid", "Highest object number used");
 
 	AddStat(SCN_LOGIN_PASSWORD, SCT_INTEGER, "login_password", "Number of logins through password authentication");
 	AddStat(SCN_LOGIN_SSL, SCT_INTEGER, "login_ssl", "Number of logins through SSL certificate authentication");
