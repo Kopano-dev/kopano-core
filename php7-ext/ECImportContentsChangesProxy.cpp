@@ -4,7 +4,6 @@
  */
 #include "phpconfig.h"
 #include <kopano/platform.h>
-#include <kopano/ecversion.h>
 #include <cstdio>
 #include <ctime>
 #include <cmath>

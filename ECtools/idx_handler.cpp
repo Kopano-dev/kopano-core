@@ -18,7 +18,6 @@
 #include <kopano/ECLogger.h>
 #include <kopano/ECRestriction.h>
 #include <kopano/ECThreadPool.h>
-#include <kopano/ecversion.h>
 #include <kopano/fileutil.hpp>
 #include <kopano/MAPIErrors.h>
 #include <kopano/mapiext.h>

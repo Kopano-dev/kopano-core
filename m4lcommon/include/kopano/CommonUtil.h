@@ -14,7 +14,6 @@
 #include <kopano/ECTags.h>
 #include <kopano/IECInterfaces.hpp>
 #include <kopano/automapi.hpp>
-#include <kopano/ecversion.h>
 #include <kopano/memory.hpp>
 #include <kopano/ustringutil.h>
 
@@ -133,7 +132,7 @@ class _kc_export KServerContext {
 	HRESULT logon(const char *user = nullptr, const char *password = nullptr);
 	HRESULT inbox(IMAPIFolder **) const;
 
-	const char *m_app_misc = nullptr, *m_app_ver = PROJECT_VERSION, *m_host = nullptr;
+	const char *m_app_misc = nullptr, *m_host = nullptr;
 	const char *m_ssl_keyfile = nullptr, *m_ssl_keypass = nullptr;
 	unsigned int m_ses_flags = EC_PROFILE_FLAGS_NO_NOTIFICATIONS;
 

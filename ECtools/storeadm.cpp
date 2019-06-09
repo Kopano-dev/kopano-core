@@ -21,6 +21,7 @@
 #include <kopano/EMSAbTag.h>
 #include <kopano/IECInterfaces.hpp>
 #include <kopano/MAPIErrors.h>
+#include <kopano/ecversion.h>
 #include <kopano/platform.h>
 #include <kopano/stringutil.h>
 #include <kopano/timeutil.hpp>
