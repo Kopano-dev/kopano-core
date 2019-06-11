@@ -138,7 +138,7 @@ def _from_utc(date, tzinfo):
     return date.replace(tzinfo=UTC).astimezone(tzinfo).replace(tzinfo=None)
 
 def _to_utc(date, tzinfo): # TODO local??
-    return date.replace(tzinfo=tzinfo).astimezone(LOCAL).replace(tzinfo=None)
+    return date.replace(tzinfo=tzinfo).astimezone(UTC).replace(tzinfo=None)
 
 def _tz2(date, tz1, tz2):
     return date.replace(tzinfo=tz1).astimezone(tz2).replace(tzinfo=None)
