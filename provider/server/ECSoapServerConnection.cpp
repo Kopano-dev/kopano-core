@@ -28,46 +28,6 @@
 using namespace KC;
 using namespace std::string_literals;
 
-/**
- * Creates a AF_UNIX socket in a given location and starts to listen
- * on that socket.
- *
- * @param unix_socket the file location of that socket
- * @param lpLogger a logger object
- * @param bInit unused
- * @param mode change the mode of the file to this value (octal!)
- *
- * @return the socket we're listening on, or -1 for failure.
- */
-static int create_pipe_socket(const char *unix_socket, ECConfig *lpConfig,
-    bool bInit, int mode)
-{
-	int s;
-	auto er = ec_listen_localsock(unix_socket, &s);
-	if (er < 0) {
-		ec_log_crit("Unable to bind to socket %s: %s. This program will terminate now.", unix_socket, strerror(-er));
-                kill(0, SIGTERM);
-                exit(1);
-	}
-	er = chmod(unix_socket,mode);
-	if(er) {
-		ec_log_crit("Unable to chmod socket %s. Error: %s", unix_socket, strerror(errno));
-		close(s);
-		return -1;
-	}
-
-	auto uname = lpConfig->GetSetting("run_as_user");
-	auto gname = lpConfig->GetSetting("run_as_group");
-	er = unix_chown(unix_socket, uname, gname);
-	if(er) {
-		ec_log_crit("Unable to chown socket %s, to %s:%s. Error: %s",
-			unix_socket, uname, gname, strerror(errno));
-		close(s);
-		return -1;
-	}
-	return s;
-}
-
 int kc_ssl_options(struct soap *soap, char *protos, const char *ciphers,
     const char *prefciphers, const char *curves)
 {
@@ -199,23 +159,41 @@ static int ignore_shutdown(struct soap *, SOAP_SOCKET, int shuttype)
 	return 0;
 }
 
-static int custom_soap_bind(struct soap *soap, const char *host, int port)
+static void custom_soap_bind(struct soap *soap, const char *bindspec,
+    bool v6only, int port)
 {
-	auto ret = ec_listen_inet(host, port, &soap->master);
-	if (ret < 0)
-		return ret;
+#if GSOAP_VERSION >= 20857
+	/* The v6only field exists in 2.8.56, but has no effect there. */
+	soap->bind_v6only = v6only;
+#endif
+	soap->sndbuf = soap->rcvbuf = 0;
+	soap->bind_flags = SO_REUSEADDR;
+	auto ret = ec_listen_generic(bindspec, &soap->master);
+	if (ret < 0) {
+		ec_log_crit("Unable to bind to %s: %s. Terminating.", bindspec,
+			soap->fault != nullptr ? soap->fault->faultstring : strerror(errno));
+		kill(0, SIGTERM);
+		exit(1);
+	} else if (ret == 0) {
+		ec_log_notice("Listening for connections on %s (fd %d)", bindspec, soap->master);
+	} else if (ret == 1) {
+		soap->fshutdownsocket = ignore_shutdown;
+		ec_log_info("Re-using fd %d to listen on %s", soap->socket, bindspec);
+	}
 	socklen_t sl = sizeof(soap->peer.storage);
 	if (getsockname(soap->master, reinterpret_cast<struct sockaddr *>(&soap->peer.storage), &sl) == 0)
 		soap->peerlen = std::min(static_cast<socklen_t>(sizeof(soap->peer.storage)), sl);
 	soap->port = port;
 	soap->socket = soap->master;
-	return 0;
+	/* ec_listen_generic can return all kinds of AFs. */
+	if (soap->peer.addr.sa_family == AF_LOCAL)
+		SOAP_CONNECTION_TYPE(soap) = CONNECTION_TYPE_NAMED_PIPE;
 }
 
-ECRESULT ECSoapServerConnection::ListenTCP(const char *lpServerName, int nServerPort)
+ECRESULT ECSoapServerConnection::ListenTCP(const char *bindspec,
+    bool v6only, int nServerPort)
 {
-	int			socket = SOAP_INVALID_SOCKET;
-	if (lpServerName == nullptr)
+	if (bindspec == nullptr)
 		return KCERR_INVALID_PARAMETER;
 
 	//init soap
@@ -223,41 +201,18 @@ ECRESULT ECSoapServerConnection::ListenTCP(const char *lpServerName, int nServer
 	if (lpsSoap == nullptr)
 		return KCERR_NOT_ENOUGH_MEMORY;
 	kopano_new_soap_listener(CONNECTION_TYPE_TCP, lpsSoap.get());
-	lpsSoap->sndbuf = lpsSoap->rcvbuf = 0;
-	lpsSoap->bind_flags = SO_REUSEADDR;
-	lpsSoap->bind_v6only = strcmp(lpServerName, "") != 0;
-	struct sockaddr_storage grab_addr;
-	socklen_t grab_len = 0;
-	lpsSoap->master = lpsSoap->socket = socket =
-		ec_fdtable_socket(("["s + lpServerName + "]:" + std::to_string(nServerPort)).c_str(), &grab_addr, &grab_len);
-	if (socket != SOAP_INVALID_SOCKET) {
-		lpsSoap->fshutdownsocket = ignore_shutdown;
-		lpsSoap->port = nServerPort;
-		lpsSoap->peerlen = grab_len;
-		soap_memcpy(&lpsSoap->peer.storage, sizeof(lpsSoap->peer.storage), &grab_addr, grab_len);
-		ec_log_info("Re-using fd %d to listen on TCP port %d", socket, nServerPort);
-	} else {
-		if (custom_soap_bind(lpsSoap.get(), lpServerName, nServerPort) < 0) {
-			ec_log_crit("Unable to bind to port %d: %s. Terminating.", nServerPort,
-				lpsSoap->fault != nullptr ? lpsSoap->fault->faultstring : strerror(errno));
-			kill(0, SIGTERM);
-			exit(1);
-		}
-		ec_log_notice("Listening for TCP connections on port %d (fd %d)", nServerPort, lpsSoap->master);
-        }
+	custom_soap_bind(lpsSoap.get(), bindspec, v6only, nServerPort);
 	/* Manually check for attachments, independent of streaming support. */
 	soap_post_check_mime_attachments(lpsSoap.get());
 	m_lpDispatcher->AddListenSocket(std::move(lpsSoap));
 	return erSuccess;
 }
 
-ECRESULT ECSoapServerConnection::ListenSSL(const char *lpServerName,
+ECRESULT ECSoapServerConnection::ListenSSL(const char *bindspec, bool v6only,
     int nServerPort, const char *lpszKeyFile, const char *lpszKeyPass,
     const char *lpszCAFile, const char *lpszCAPath)
 {
-	int			socket = SOAP_INVALID_SOCKET;
-
-	if (lpServerName == nullptr)
+	if (bindspec == nullptr)
 		return KCERR_INVALID_PARAMETER;
 
 	std::unique_ptr<char[], cstdlib_deleter> server_ssl_protocols(strdup(m_lpConfig->GetSetting("server_ssl_protocols")));
@@ -268,7 +223,6 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char *lpServerName,
 	if (lpsSoap == nullptr)
 		return KCERR_NOT_ENOUGH_MEMORY;
 	kopano_new_soap_listener(CONNECTION_TYPE_SSL, lpsSoap.get());
-	lpsSoap->sndbuf = lpsSoap->rcvbuf = 0;
 	if (soap_ssl_server_context(lpsSoap.get(),
 			SOAP_SSL_DEFAULT,	// we set SSL_VERIFY_PEER and more soon ourselves
 			lpszKeyFile,		// key file
@@ -288,27 +242,7 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char *lpServerName,
 	auto er = kc_ssl_options(lpsSoap.get(), server_ssl_protocols.get(), server_ssl_ciphers, pref_ciphers, server_ssl_curves);
 	if (er != erSuccess)
 		return er;
-	lpsSoap->bind_flags = SO_REUSEADDR;
-	lpsSoap->bind_v6only = strcmp(lpServerName, "") != 0;
-	struct sockaddr_storage grab_addr;
-	socklen_t grab_len = 0;
-	lpsSoap->master = lpsSoap->socket = socket =
-		ec_fdtable_socket(("["s + lpServerName + "]:" + std::to_string(nServerPort)).c_str(), &grab_addr, &grab_len);
-	if (socket != SOAP_INVALID_SOCKET) {
-		lpsSoap->fshutdownsocket = ignore_shutdown;
-		lpsSoap->port = nServerPort;
-		lpsSoap->peerlen = grab_len;
-		soap_memcpy(&lpsSoap->peer.storage, sizeof(lpsSoap->peer.storage), &grab_addr, grab_len);
-		ec_log_info("Re-using fd %d to listen on SSL port %d", socket, nServerPort);
-	} else {
-		if (custom_soap_bind(lpsSoap.get(), lpServerName, nServerPort) < 0) {
-			ec_log_crit("Unable to bind to port %d: %s (SSL). Terminating.", nServerPort,
-				lpsSoap->fault != nullptr ? lpsSoap->fault->faultstring : strerror(errno));
-			kill(0, SIGTERM);
-			exit(1);
-		}
-		ec_log_notice("Listening for SSL connections on port %d (fd %d)", nServerPort, lpsSoap->master);
-        }
+	custom_soap_bind(lpsSoap.get(), bindspec, v6only, nServerPort);
 	/* Manually check for attachments, independent of streaming support. */
 	soap_post_check_mime_attachments(lpsSoap.get());
 	m_lpDispatcher->AddListenSocket(std::move(lpsSoap));
@@ -317,9 +251,6 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char *lpServerName,
 
 ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriority)
 {
-	int			sPipe = -1;
-	socklen_t socklen;
-
 	if (lpPipeName == nullptr)
 		return KCERR_INVALID_PARAMETER;
 
@@ -331,33 +262,7 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriori
 		kopano_new_soap_listener(CONNECTION_TYPE_NAMED_PIPE_PRIORITY, lpsSoap.get());
 	else
 		kopano_new_soap_listener(CONNECTION_TYPE_NAMED_PIPE, lpsSoap.get());
-	// Create a Unix or Windows pipe
-	lpsSoap->sndbuf = lpsSoap->rcvbuf = 0;
-	struct sockaddr_storage grab_addr;
-	socklen_t grab_len = 0;
-	lpsSoap->master = lpsSoap->socket = sPipe =
-		ec_fdtable_socket(("unix:"s + lpPipeName).c_str(), &grab_addr, &grab_len);
-	if (sPipe != SOAP_INVALID_SOCKET) {
-		lpsSoap->fshutdownsocket = ignore_shutdown;
-		ec_log_info("Re-using fd %d to listen on %spipe %s", sPipe, bPriority ? "priority " : "", lpPipeName);
-	} else {
-		/* Set the mode stricter for the priority socket: let only the same Unix user or root connect on the priority socket, users should not be able to abuse the socket. */
-		lpsSoap->socket = sPipe = create_pipe_socket(lpPipeName, m_lpConfig.get(), true, bPriority ? 0660 : 0666);
-		if (sPipe == -1)
-			return KCERR_CALL_FAILED;
-		ec_log_notice("Listening for %spipe connections on %s (fd %d)", bPriority ? "priority " : "", lpPipeName, lpsSoap->socket);
-	}
-	lpsSoap->master = sPipe;
-	socklen = sizeof(lpsSoap->peer.storage);
-	if (getsockname(lpsSoap->socket, &lpsSoap->peer.addr, &socklen) != 0) {
-		ec_log_warn("getsockname %s: %s", lpPipeName, strerror(errno));
-		socklen = 0;
-	} else if (socklen > sizeof(lpsSoap->peer.storage)) {
-		socklen = 0;
-	}
-	lpsSoap->peerlen = socklen;
-	if (socklen == 0)
-		memset(&lpsSoap->peer, 0, sizeof(lpsSoap->peer));
+	custom_soap_bind(lpsSoap.get(), lpPipeName, false, 0);
 	/* Manually check for attachments, independent of streaming support. */
 	soap_post_check_mime_attachments(lpsSoap.get());
 	m_lpDispatcher->AddListenSocket(std::move(lpsSoap));

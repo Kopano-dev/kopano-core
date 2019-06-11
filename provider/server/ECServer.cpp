@@ -734,7 +734,8 @@ static int ksrv_listen_inet(ECSoapServerConnection *ssc, ECConfig *cfg)
 	/* Launch */
 	for (const auto &spec : http_sock) {
 		auto p = ec_parse_bindaddr(spec.c_str());
-		auto er = ssc->ListenTCP(p.first.c_str(), p.second != 0 ? p.second : 236);
+		auto er = ssc->ListenTCP(spec.c_str(), p.first.size() == 0,
+		          p.second != 0 ? p.second : 236);
 		if (er != erSuccess)
 			return er;
 	}
@@ -745,7 +746,8 @@ static int ksrv_listen_inet(ECSoapServerConnection *ssc, ECConfig *cfg)
 	auto capath  = cfg->GetSetting("server_ssl_ca_path", "", nullptr);
 	for (const auto &spec : https_sock) {
 		auto p = ec_parse_bindaddr(spec.c_str());
-		auto er = ssc->ListenSSL(p.first.c_str(), p.second != 0 ? p.second : 237,
+		auto er = ssc->ListenSSL(spec.c_str(), p.first.size() == 0,
+		          p.second != 0 ? p.second : 237,
 		          keyfile, keypass, cafile, capath);
 		if (er != erSuccess)
 			return er;
@@ -763,14 +765,14 @@ static int ksrv_listen_pipe(ECSoapServerConnection *ssc, ECConfig *cfg)
 	 * need to create INET sockets beforehand because of privilege drop.]
 	 */
 	for (const auto &spec : vector_to_set(tokenize(cfg->GetSetting("server_pipe_priority"), ' ', true))) {
-		auto er = ssc->ListenPipe(spec.c_str(), true);
+		auto er = ssc->ListenPipe(("unix:" + spec).c_str(), true);
 		if (er != erSuccess)
 			return er;
 	}
 	if (strcmp(cfg->GetSetting("server_pipe_enabled"), "yes") == 0) {
 		auto pipe_sock = vector_to_set(tokenize(cfg->GetSetting("server_pipe_name"), ' ', true));
 		for (const auto &spec : pipe_sock) {
-			auto er = ssc->ListenPipe(spec.c_str(), false);
+			auto er = ssc->ListenPipe(("unix:" + spec).c_str(), false);
 			if (er != erSuccess)
 				return er;
 		}
@@ -1127,8 +1129,9 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 			return retval;
 		}
 		if (runasUser->pw_uid != dir.st_uid) {
-			if (unix_chown(g_lpConfig->GetSetting("attachment_path"), g_lpConfig->GetSetting("run_as_user"), g_lpConfig->GetSetting("run_as_group")) != 0) {
-				ec_log_err("Unable to change ownership for attachment directory '%s'", g_lpConfig->GetSetting("attachment_path"));
+			auto ret = unix_chown(g_lpConfig->GetSetting("attachment_path"), g_lpConfig->GetSetting("run_as_user"), g_lpConfig->GetSetting("run_as_group"));
+			if (ret != 0) {
+				ec_log_err("Unable to change ownership for attachment directory \"%s\": %s", g_lpConfig->GetSetting("attachment_path"), strerror(-ret));
 				er = KCERR_DATABASE_ERROR;
 				return retval;
 			}

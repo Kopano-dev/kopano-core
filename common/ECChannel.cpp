@@ -13,6 +13,7 @@
 #include <kopano/ECLogger.h>
 #include <kopano/memory.hpp>
 #include <kopano/stringutil.h>
+#include <kopano/UnixUtil.h>
 #include <csignal>
 #include <fcntl.h>
 #include <netdb.h>
@@ -36,6 +37,8 @@
 #endif
 
 namespace KC {
+
+static int ec_fdtable_socket(const char *spec);
 
 /*
 To generate a RSA key:
@@ -747,7 +750,8 @@ int zcp_bindtodevice(int fd, const char *i)
 /**
  * Create a PF_LOCAL socket for listening and return the fd.
  */
-int ec_listen_localsock(const char *path, int *pfd, int mode)
+static int ec_listen_localsock(const char *path, int *pfd, int mode,
+    const char *user, const char *group)
 {
 	struct sockaddr_un sk;
 	if (strlen(path) + 1 >= sizeof(sk.sun_path)) {
@@ -775,10 +779,18 @@ int ec_listen_localsock(const char *path, int *pfd, int mode)
 		close(fd);
 		return -(errno = saved_errno);
 	}
+	ret = unix_chown(path, user, group);
+	if (ret < 0) {
+		ec_log_err("%s: chown %s: %s", __func__, path, strerror(-ret));
+		return ret;
+	}
 	if (mode != static_cast<mode_t>(-1)) {
 		ret = chmod(path, mode);
-		if (ret < 0)
-			ec_log_err("chown %s: %s", path, strerror(errno));
+		if (ret < 0) {
+			ret = -errno;
+			ec_log_err("%s: chown %s: %s", __func__, path, strerror(-ret));
+			return ret;
+		}
 	}
 	ret = listen(fd, INT_MAX);
 	if (ret < 0) {
@@ -794,7 +806,7 @@ int ec_listen_localsock(const char *path, int *pfd, int mode)
 /**
  * Create PF_INET/PF_INET6 socket for listening and return the fd.
  */
-int ec_listen_inet(const char *szBind, uint16_t ulPort, int *lpulListenSocket)
+static int ec_listen_inet(const char *szBind, uint16_t ulPort, int *lpulListenSocket)
 {
 	int fd = -1, opt = 1, ret;
 	struct addrinfo *sock_res = NULL, sock_hints;
@@ -985,10 +997,15 @@ std::pair<std::string, uint16_t> ec_parse_bindaddr(const char *spec)
  * NB: hostname and ipv4-addr are not specified to be enclosed in square
  * brackets, but ec_parse_bindaddr2 supports it by chance.
  */
-int ec_listen_generic(const char *spec, int *pfd, int mode)
+int ec_listen_generic(const char *spec, int *pfd, int mode,
+    const char *user, const char *group)
 {
+	*pfd = ec_fdtable_socket(spec);
+	if (*pfd >= 0)
+		return 1; /* signal takeover */
+
 	if (strncmp(spec, "unix:", 5) == 0)
-		return ec_listen_localsock(spec + 5, pfd, mode);
+		return ec_listen_localsock(spec + 5, pfd, mode, user, group);
 	auto parts = ec_parse_bindaddr(spec);
 	if (parts.first == "!" || parts.second == 0)
 		return -EINVAL;
@@ -1038,8 +1055,7 @@ void ec_reexec_prepare_sockets()
 	}
 }
 
-static int ec_fdtable_socket_ai(const struct addrinfo *ai,
-    struct sockaddr_storage *oaddr, socklen_t *olen)
+static int ec_fdtable_socket_ai(const struct addrinfo *ai)
 {
 	auto maxfd = ec_fdtable_size();
 	for (int fd = 3; fd < maxfd; ++fd) {
@@ -1060,12 +1076,6 @@ static int ec_fdtable_socket_ai(const struct addrinfo *ai,
 			if (arglen != sk->ai_addrlen ||
 			    memcmp(&addr, sk->ai_addr, arglen) != 0)
 				continue;
-			if (oaddr != nullptr) {
-				memset(oaddr, 0, sizeof(*oaddr));
-				memcpy(oaddr, sk->ai_addr, arglen);
-			}
-			if (olen != nullptr)
-				*olen = arglen;
 			fcntl(fd, F_SETFD, FD_CLOEXEC);
 			return fd;
 		}
@@ -1081,8 +1091,7 @@ static int ec_fdtable_socket_ai(const struct addrinfo *ai,
  * have both plain and SSL sockets and must match each fd with the
  * config directives.
  */
-int ec_fdtable_socket(const char *spec, struct sockaddr_storage *oaddr,
-    socklen_t *olen)
+static int ec_fdtable_socket(const char *spec)
 {
 	struct addrinfo hints{}, *res = nullptr;
 	hints.ai_flags    = AI_NUMERICHOST | AI_NUMERICSERV | AI_PASSIVE;
@@ -1093,7 +1102,7 @@ int ec_fdtable_socket(const char *spec, struct sockaddr_storage *oaddr,
 		hints.ai_family  = u.sun_family = AF_LOCAL;
 		hints.ai_addr    = reinterpret_cast<struct sockaddr *>(&u);
 		hints.ai_addrlen = sizeof(u) - sizeof(u.sun_path) + strlen(u.sun_path) + 1;
-		return ec_fdtable_socket_ai(&hints, oaddr, olen);
+		return ec_fdtable_socket_ai(&hints);
 	}
 	hints.ai_family = AF_UNSPEC;
 	auto parts = ec_parse_bindaddr(spec);
@@ -1103,7 +1112,7 @@ int ec_fdtable_socket(const char *spec, struct sockaddr_storage *oaddr,
 	           std::to_string(parts.second).c_str(), &hints, &res);
 	if (ret != 0 || res == nullptr)
 		return -1;
-	ret = ec_fdtable_socket_ai(res, oaddr, olen);
+	ret = ec_fdtable_socket_ai(res);
 	freeaddrinfo(res);
 	return ret;
 }

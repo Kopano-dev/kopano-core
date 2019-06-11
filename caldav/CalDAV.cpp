@@ -334,34 +334,28 @@ static HRESULT ical_listen(ECConfig *cfg)
 	memset(&pfd, 0, sizeof(pfd));
 	pfd.events = POLLIN;
 	for (const auto &spec : ical_sock) {
-		auto ret = ec_fdtable_socket(spec.c_str(), nullptr, nullptr);
-		if (ret >= 0) {
-			pfd.fd = ret;
-			ec_log_info("Re-using fd %d to listen on %s for http", ret, spec.c_str());
-		} else {
-			ret = ec_listen_generic(spec.c_str(), &pfd.fd);
-			if (ret < 0) {
-				ec_log_err("Listening on %s failed: %s", spec.c_str(), strerror(-ret));
-				return MAPI_E_NETWORK_ERROR;
-			}
+		auto ret = ec_listen_generic(spec.c_str(), &pfd.fd);
+		if (ret < 0) {
+			ec_log_err("Listening on %s failed: %s", spec.c_str(), strerror(-ret));
+			return MAPI_E_NETWORK_ERROR;
+		} else if (ret == 0) {
 			ec_log_notice("Listening on %s for http", spec.c_str());
+		} else if (ret == 1) {
+			ec_log_info("Re-using fd %d to listen on %s for http", ret, spec.c_str());
 		}
 		g_socks.pollfd.push_back(pfd);
 		g_socks.linfd.push_back(pfd.fd);
 		g_socks.ssl.push_back(false);
 	}
 	for (const auto &spec : icals_sock) {
-		auto ret = ec_fdtable_socket(spec.c_str(), nullptr, nullptr);
-		if (ret >= 0) {
-			pfd.fd = ret;
-			ec_log_info("Re-using fd %d to listen on %s for https", ret, spec.c_str());
-		} else {
-			ret = ec_listen_generic(spec.c_str(), &pfd.fd);
-			if (ret < 0) {
-				ec_log_err("Listening on %s failed: %s", spec.c_str(), strerror(-ret));
-				return MAPI_E_NETWORK_ERROR;
-			}
+		auto ret = ec_listen_generic(spec.c_str(), &pfd.fd);
+		if (ret < 0) {
+			ec_log_err("Listening on %s failed: %s", spec.c_str(), strerror(-ret));
+			return MAPI_E_NETWORK_ERROR;
+		} else if (ret == 0) {
 			ec_log_notice("Listening on %s for https", spec.c_str());
+		} else if (ret == 1) {
+			ec_log_info("Re-using fd %d to listen on %s for https", ret, spec.c_str());
 		}
 		g_socks.pollfd.push_back(pfd);
 		g_socks.linfd.push_back(pfd.fd);

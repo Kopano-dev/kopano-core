@@ -2841,17 +2841,14 @@ static int dagent_listen(ECConfig *cfg, std::vector<struct pollfd> &pollers,
 	pollers.reserve(lmtp_sock.size());
 	closefd.reserve(lmtp_sock.size());
 	for (const auto &spec : lmtp_sock) {
-		auto ret = ec_fdtable_socket(spec.c_str(), nullptr, nullptr);
-		if (ret >= 0) {
-			x.fd = ret;
-			ec_log_info("Re-using fd %d to listen on %s for LMTP", ret, spec.c_str());
-		} else {
-			ret = ec_listen_generic(spec.c_str(), &x.fd, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
-			if (ret < 0) {
-				ec_log_err("Listening on %s failed: %s", spec.c_str(), strerror(-ret));
-				return ret;
-			}
+		auto ret = ec_listen_generic(spec.c_str(), &x.fd, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+		if (ret < 0) {
+			ec_log_err("Listening on %s failed: %s", spec.c_str(), strerror(-ret));
+			return ret;
+		} else if (ret == 0) {
 			ec_log_info("Listening on %s for LMTP", spec.c_str());
+		} else if (ret == 1) {
+			ec_log_info("Re-using fd %d to listen on %s for LMTP", ret, spec.c_str());
 		}
 		pollers.push_back(x);
 		closefd.push_back(x.fd);
