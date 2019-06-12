@@ -75,7 +75,7 @@ static int idx_listen(ECConfig *cfg, std::vector<struct pollfd> &pollers)
 	x.events = POLLIN;
 	pollers.reserve(idx_sock.size());
 	for (const auto &spec : idx_sock) {
-		auto ret = ec_listen_generic(spec.c_str(), &x.fd, S_IRUSR | S_IWUSR);
+		auto ret = ec_listen_generic(spec.c_str(), &x.fd, S_IRWUG, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
 		if (ret < 0)
 			return ret;
 		pollers.push_back(x);

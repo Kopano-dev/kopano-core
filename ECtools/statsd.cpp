@@ -205,7 +205,7 @@ static HRESULT sd_listen(ECConfig *cfg, struct socks &sk)
 	memset(&pfd, 0, sizeof(pfd));
 	pfd.events = POLLIN;
 	for (const auto &spec : tokenize(cfg->GetSetting("statsd_listen"), ' ', true)) {
-		auto ret = ec_listen_generic(spec.c_str(), &pfd.fd);
+		auto ret = ec_listen_generic(spec.c_str(), &pfd.fd, S_IRWUG | S_IROTH | S_IWOTH, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
 		if (ret < 0)
 			return MAPI_E_NETWORK_ERROR;
 		sk.pollfd.push_back(pfd);

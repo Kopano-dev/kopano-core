@@ -16,6 +16,7 @@
 #include <netdb.h>
 #include <poll.h>
 #include <sys/resource.h>
+#include <sys/stat.h>
 #include <inetmapi/inetmapi.h>
 #include <mapi.h>
 #include <mapix.h>
@@ -471,7 +472,7 @@ static HRESULT gw_listen(ECConfig *cfg)
 	memset(&pfd, 0, sizeof(pfd));
 	pfd.events = POLLIN;
 	for (const auto &spec : pop3_sock) {
-		auto ret = ec_listen_generic(spec.c_str(), &pfd.fd);
+		auto ret = ec_listen_generic(spec.c_str(), &pfd.fd, S_IRWUG | S_IROTH | S_IWOTH, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
 		if (ret < 0) {
 			ec_log_err("Listening on %s failed: %s", spec.c_str(), strerror(-ret));
 			return MAPI_E_NETWORK_ERROR;
@@ -486,7 +487,7 @@ static HRESULT gw_listen(ECConfig *cfg)
 		g_socks.ssl.push_back(false);
 	}
 	for (const auto &spec : pop3s_sock) {
-		auto ret = ec_listen_generic(spec.c_str(), &pfd.fd);
+		auto ret = ec_listen_generic(spec.c_str(), &pfd.fd, S_IRWUG | S_IROTH | S_IWOTH, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
 		if (ret < 0) {
 			ec_log_err("Listening on %s failed: %s", spec.c_str(), strerror(-ret));
 			return MAPI_E_NETWORK_ERROR;
@@ -501,7 +502,7 @@ static HRESULT gw_listen(ECConfig *cfg)
 		g_socks.ssl.push_back(true);
 	}
 	for (const auto &spec : imap_sock) {
-		auto ret = ec_listen_generic(spec.c_str(), &pfd.fd);
+		auto ret = ec_listen_generic(spec.c_str(), &pfd.fd, S_IRWUG | S_IROTH | S_IWOTH, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
 		if (ret < 0) {
 			ec_log_err("Listening on %s failed: %s", spec.c_str(), strerror(-ret));
 			return MAPI_E_NETWORK_ERROR;
@@ -516,7 +517,7 @@ static HRESULT gw_listen(ECConfig *cfg)
 		g_socks.ssl.push_back(false);
 	}
 	for (const auto &spec : imaps_sock) {
-		auto ret = ec_listen_generic(spec.c_str(), &pfd.fd);
+		auto ret = ec_listen_generic(spec.c_str(), &pfd.fd, S_IRWUG | S_IROTH | S_IWOTH, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
 		if (ret < 0) {
 			ec_log_err("Listening on %s failed: %s", spec.c_str(), strerror(-ret));
 			return MAPI_E_NETWORK_ERROR;

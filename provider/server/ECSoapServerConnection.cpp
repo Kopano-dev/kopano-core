@@ -160,7 +160,7 @@ static int ignore_shutdown(struct soap *, SOAP_SOCKET, int shuttype)
 }
 
 static void custom_soap_bind(struct soap *soap, const char *bindspec,
-    bool v6only, int port)
+    bool v6only, int port = 0, int mode = -1, const char *user = nullptr, const char *group = nullptr)
 {
 #if GSOAP_VERSION >= 20857
 	/* The v6only field exists in 2.8.56, but has no effect there. */
@@ -168,7 +168,7 @@ static void custom_soap_bind(struct soap *soap, const char *bindspec,
 #endif
 	soap->sndbuf = soap->rcvbuf = 0;
 	soap->bind_flags = SO_REUSEADDR;
-	auto ret = ec_listen_generic(bindspec, &soap->master);
+	auto ret = ec_listen_generic(bindspec, &soap->master, mode, user, group);
 	if (ret < 0) {
 		ec_log_crit("Unable to bind to %s: %s. Terminating.", bindspec,
 			soap->fault != nullptr ? soap->fault->faultstring : strerror(errno));
@@ -262,7 +262,7 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriori
 		kopano_new_soap_listener(CONNECTION_TYPE_NAMED_PIPE_PRIORITY, lpsSoap.get());
 	else
 		kopano_new_soap_listener(CONNECTION_TYPE_NAMED_PIPE, lpsSoap.get());
-	custom_soap_bind(lpsSoap.get(), lpPipeName, false, 0);
+	custom_soap_bind(lpsSoap.get(), lpPipeName, false, 0, S_IRWUG | S_IROTH | S_IWOTH, m_lpConfig->GetSetting("run_as_user"), m_lpConfig->GetSetting("run_as_group"));
 	/* Manually check for attachments, independent of streaming support. */
 	soap_post_check_mime_attachments(lpsSoap.get());
 	m_lpDispatcher->AddListenSocket(std::move(lpsSoap));

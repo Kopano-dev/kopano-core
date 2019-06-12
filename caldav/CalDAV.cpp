@@ -41,6 +41,7 @@
 #include <kopano/UnixUtil.h>
 #include <unicode/uclean.h>
 #include <openssl/ssl.h>
+#include <sys/stat.h>
 
 using namespace KC;
 using namespace std::string_literals;
@@ -334,7 +335,7 @@ static HRESULT ical_listen(ECConfig *cfg)
 	memset(&pfd, 0, sizeof(pfd));
 	pfd.events = POLLIN;
 	for (const auto &spec : ical_sock) {
-		auto ret = ec_listen_generic(spec.c_str(), &pfd.fd);
+		auto ret = ec_listen_generic(spec.c_str(), &pfd.fd, S_IRWUG | S_IROTH | S_IWOTH, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
 		if (ret < 0) {
 			ec_log_err("Listening on %s failed: %s", spec.c_str(), strerror(-ret));
 			return MAPI_E_NETWORK_ERROR;
@@ -348,7 +349,7 @@ static HRESULT ical_listen(ECConfig *cfg)
 		g_socks.ssl.push_back(false);
 	}
 	for (const auto &spec : icals_sock) {
-		auto ret = ec_listen_generic(spec.c_str(), &pfd.fd);
+		auto ret = ec_listen_generic(spec.c_str(), &pfd.fd, S_IRWUG | S_IROTH | S_IWOTH, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
 		if (ret < 0) {
 			ec_log_err("Listening on %s failed: %s", spec.c_str(), strerror(-ret));
 			return MAPI_E_NETWORK_ERROR;
