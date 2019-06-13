@@ -43,7 +43,7 @@ class FileTime(object):
 
     def __repr__(self):
         try:
-            return time.strftime("%Y/%m/%d %H:%M:%S GMT", time.gmtime(self.unixtime))
+            return self.datetime().isoformat()
         except ValueError:
             return '%d' % (self.filetime)
 
