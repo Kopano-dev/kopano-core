@@ -22,7 +22,7 @@ class FileTime(object):
         self.filetime = filetime
 
     def datetime(self):
-        return datetime.datetime.fromtimestamp(self.unixtime)
+        return datetime.datetime.utcfromtimestamp(self.unixtime)
 
     def __getattr__(self, attr):
         if attr == 'unixtime':
