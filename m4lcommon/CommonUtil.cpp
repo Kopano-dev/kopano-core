@@ -21,6 +21,7 @@
 #include <kopano/ECTags.h>
 #include <kopano/ECGuid.h>
 #include <kopano/Util.h>
+#include <kopano/ecversion.h>
 #include <kopano/stringutil.h>
 #include <kopano/mapi_ptr.h>
 #include <kopano/namedprops.h>
