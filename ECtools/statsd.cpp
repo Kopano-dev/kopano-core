@@ -39,7 +39,6 @@ struct cis_block {
 
 struct socks {
 	std::vector<struct pollfd> pollfd;
-	std::vector<int> linfd;
 };
 
 static const char *opt_config_file;
@@ -163,19 +162,19 @@ static void sd_handle_request(struct soap &&x)
 
 static void sd_check_sockets(struct socks &sk)
 {
-	for (size_t i = 0; i < sk.linfd.size(); ++i) {
+	for (size_t i = 0; i < sk.pollfd.size(); ++i) {
 		if (!(sk.pollfd[i].revents & POLLIN))
 			continue;
 		struct soap x;
 		struct sockaddr_storage peeraddr;
 		socklen_t peerlen = sizeof(peeraddr);
-		if (getsockname(sk.linfd[i], reinterpret_cast<struct sockaddr *>(&peeraddr), &peerlen) == 0 &&
+		if (getsockname(sk.pollfd[i].fd, reinterpret_cast<struct sockaddr *>(&peeraddr), &peerlen) == 0 &&
 		    peeraddr.ss_family != AF_LOCAL) {
-			x.master = sk.linfd[i];
+			x.master = sk.pollfd[i].fd;
 			soap_accept(&x);
 			x.master = -1;
 		} else {
-			x.socket = accept(sk.linfd[i], &x.peer.addr, &peerlen);
+			x.socket = accept(sk.pollfd[i].fd, &x.peer.addr, &peerlen);
 			x.peerlen = peerlen;
 			if (x.socket == SOAP_INVALID_SOCKET ||
 			    peerlen > sizeof(x.peer.storage)) {
@@ -210,7 +209,6 @@ static HRESULT sd_listen(ECConfig *cfg, struct socks &sk)
 		if (ret < 0)
 			return MAPI_E_NETWORK_ERROR;
 		sk.pollfd.push_back(pfd);
-		sk.linfd.push_back(pfd.fd);
 	}
 	return hrSuccess;
 }
