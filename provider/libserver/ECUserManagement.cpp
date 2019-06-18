@@ -958,7 +958,9 @@ ECRESULT ECUserManagement::ResolveObject(objectclass_t objclass,
  * Resolve an object name to an object id, with on-the-fly creation of the
  * specified object class.
  */
-ECRESULT ECUserManagement::ResolveObjectAndSync(objectclass_t objclass, const char* szName, unsigned int* lpulObjectId) {
+ECRESULT ECUserManagement::ResolveObjectAndSync(objectclass_t objclass,
+    const char *szName, unsigned int *lpulObjectId, bool try_resolve)
+{
 	objectsignature_t objectsignature;
 	std::string username, companyname;
 	UserPlugin *lpPlugin = NULL;
@@ -1034,12 +1036,14 @@ ECRESULT ECUserManagement::ResolveObjectAndSync(objectclass_t objclass, const ch
 	} catch (const notsupported &) {
 		return KCERR_NO_SUPPORT;
 	} catch (const objectnotfound &e) {
-		ec_log_warn("K-1515: Object not found %s \"%s\": %s",
-			ObjectClassToName(objclass), szName, e.what());
+		if (!try_resolve)
+			ec_log_warn("K-1515: Object not found %s \"%s\": %s",
+			            ObjectClassToName(objclass), szName, e.what());
 		return KCERR_NOT_FOUND;
 	} catch (const std::exception &e) {
-		ec_log_warn("K-1516: Unable to resolve %s \"%s\": %s",
-			ObjectClassToName(objclass), szName, e.what());
+		if (!try_resolve)
+			ec_log_warn("K-1516: Unable to resolve %s \"%s\": %s",
+			            ObjectClassToName(objclass), szName, e.what());
 		return KCERR_NOT_FOUND;
 	}
 	return GetLocalObjectIdOrCreate(objectsignature, lpulObjectId);

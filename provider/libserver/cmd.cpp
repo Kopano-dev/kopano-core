@@ -6141,8 +6141,9 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, const char *szUserName,
 		ulStoreTypeMask = ECSTORE_TYPE_MASK_PRIVATE | ECSTORE_TYPE_MASK_PUBLIC;
 
 	auto usrmgt = lpecSession->GetUserManagement();
-	er = usrmgt->ResolveObjectAndSync(OBJECTCLASS_USER, szUserName, &ulObjectId);
-	if ((er == KCERR_NOT_FOUND || er == KCERR_INVALID_PARAMETER) && lpecSession->GetSessionManager()->IsHostedSupported())
+	bool hosted = lpecSession->GetSessionManager()->IsHostedSupported();
+	er = usrmgt->ResolveObjectAndSync(OBJECTCLASS_USER, szUserName, &ulObjectId, hosted);
+	if ((er == KCERR_NOT_FOUND || er == KCERR_INVALID_PARAMETER) && hosted)
 		// FIXME: this function is being misused, szUserName can also be a company name
 		er = usrmgt->ResolveObjectAndSync(CONTAINER_COMPANY, szUserName, &ulObjectId);
 	if (er != erSuccess)
