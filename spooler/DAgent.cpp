@@ -1111,11 +1111,11 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 		PR_EC_OUTOFOFFICE_SUBJECT_W,
 		PR_EC_OUTOFOFFICE_FROM, PR_EC_OUTOFOFFICE_UNTIL,
 	}};
-	static constexpr const SizedSPropTagArray(5, sptaMessageProps) = {5, {
-		PR_TRANSPORT_MESSAGE_HEADERS_A, PR_MESSAGE_TO_ME,
-		PR_MESSAGE_CC_ME, PR_SUBJECT_W, PR_EC_MESSAGE_BCC_ME,
+	static constexpr const SizedSPropTagArray(4, sptaMessageProps) = {4, {
+		PR_MESSAGE_TO_ME,PR_MESSAGE_CC_ME,
+		PR_SUBJECT_W, PR_EC_MESSAGE_BCC_ME,
 	}};
-	memory_ptr<SPropValue> lpStoreProps, lpMessageProps;
+	memory_ptr<SPropValue> lpStoreProps, lpMessageProps, lpTransportHeaders;
 	ULONG cValues;
 
 	const wchar_t *szSubject = L"Out of office";
@@ -1129,7 +1129,6 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 	std::string strTmpFile, strTmpFileEnv;
 
 	sc->inc(SCN_DAGENT_OUTOFOFFICE);
-	// @fixme need to stream PR_TRANSPORT_MESSAGE_HEADERS_A and PR_EC_OUTOFOFFICE_MSG_W if they're > 8Kb
 	auto hr = lpMDB->GetProps(sptaStoreProps, 0, &cValues, &~lpStoreProps);
 	if (FAILED(hr))
 		return kc_perrorf("GetProps failed(1)", hr);
@@ -1162,26 +1161,28 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 	hr = lpMessage->GetProps(sptaMessageProps, 0, &cValues, &~lpMessageProps);
 	if (FAILED(hr))
 		return kc_perror("GetProps failed(2)", hr);
-	hr = hrSuccess;
 
 	// See if we're looping
-	if (lpMessageProps[0].ulPropTag == PR_TRANSPORT_MESSAGE_HEADERS_A) {
-		if (dagent_avoid_autoreply(tokenize(lpMessageProps[0].Value.lpszA, "\n"))) {
-			ec_log_debug("Avoiding OOF reply to an automated message.");
-			return erSuccess;
-		}
-		// save headers to a file so they can also be tested from the script we're running
-		snprintf(szTemp, PATH_MAX, "%s/autorespond-headers.XXXXXX", TmpPath::instance.getTempPath().c_str());
-		fd = mkstemp(szTemp);
-		if (fd >= 0) {
-			hr = WriteOrLogError(fd, lpMessageProps[0].Value.lpszA, strlen(lpMessageProps[0].Value.lpszA));
-			if (hr == hrSuccess)
-				strTmpFile = szTemp; // pass to script
-			else
-				unlink(szTemp);	// ignore headers, but still try oof script
-			close(fd);
-			fd = -1;
-		}
+	hr = HrGetFullProp(lpMessage, PR_TRANSPORT_MESSAGE_HEADERS_A, &~lpTransportHeaders);
+	if (FAILED(hr))
+		return kc_perror("HrGetFullProp (PR_TRANSPORT_MESSAGE_HEADERS_A) failed", hr);
+
+	if (dagent_avoid_autoreply(tokenize(lpTransportHeaders->Value.lpszA, "\n"))) {
+		ec_log_debug("Avoiding OOF reply to an automated message.");
+		return erSuccess;
+	}
+	// save headers to a file so they can also be tested from the script we're running
+	hr = hrSuccess;
+	snprintf(szTemp, PATH_MAX, "%s/autorespond-headers.XXXXXX", TmpPath::instance.getTempPath().c_str());
+	fd = mkstemp(szTemp);
+	if (fd >= 0) {
+		hr = WriteOrLogError(fd, lpTransportHeaders->Value.lpszA, strlen(lpTransportHeaders->Value.lpszA));
+		if (hr == hrSuccess)
+			strTmpFile = szTemp; // pass to script
+		else
+			unlink(szTemp);	// ignore headers, but still try oof script
+		close(fd);
+		fd = -1;
 	}
 
 	auto laters = make_scope_success([&]() {
@@ -1238,9 +1239,9 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 	if (hr != hrSuccess)
 		return kc_perrorf("WriteOrLogError failed(5)", hr);
 
-	if (lpMessageProps[3].ulPropTag == PR_SUBJECT_W)
+	if (lpMessageProps[2].ulPropTag == PR_SUBJECT_W)
 		// convert as one string because of [] characters
-		swprintf(szwHeader, PATH_MAX, L"%ls [%ls]", szSubject, lpMessageProps[3].Value.lpszW);
+		swprintf(szwHeader, PATH_MAX, L"%ls [%ls]", szSubject, lpMessageProps[2].Value.lpszW);
 	else
 		swprintf(szwHeader, PATH_MAX, L"%ls", szSubject);
 	quoted = ToQuotedBase64Header(szwHeader);
@@ -1296,9 +1297,9 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 	cmdline.emplace_back(szTemp);
 
 	// Set MESSAGE_TO_ME and MESSAGE_CC_ME in environment
-	auto strToMe = "MESSAGE_TO_ME="s + (lpMessageProps[1].ulPropTag == PR_MESSAGE_TO_ME && lpMessageProps[1].Value.b ? "1" : "0");
-	auto strCcMe = "MESSAGE_CC_ME="s + (lpMessageProps[2].ulPropTag == PR_MESSAGE_CC_ME && lpMessageProps[2].Value.b ? "1" : "0");
-	auto strBccMe = "MESSAGE_BCC_ME="s + (lpMessageProps[4].ulPropTag == PR_EC_MESSAGE_BCC_ME && lpMessageProps[4].Value.b ? "1" : "0");
+	auto strToMe = "MESSAGE_TO_ME="s + (lpMessageProps[0].ulPropTag == PR_MESSAGE_TO_ME && lpMessageProps[0].Value.b ? "1" : "0");
+	auto strCcMe = "MESSAGE_CC_ME="s + (lpMessageProps[1].ulPropTag == PR_MESSAGE_CC_ME && lpMessageProps[1].Value.b ? "1" : "0");
+	auto strBccMe = "MESSAGE_BCC_ME="s + (lpMessageProps[3].ulPropTag == PR_EC_MESSAGE_BCC_ME && lpMessageProps[3].Value.b ? "1" : "0");
 	while (environ[s] != nullptr)
 		s++;
 
