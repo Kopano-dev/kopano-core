@@ -441,6 +441,7 @@ zend_function_entry mapi_functions[] =
 	ZEND_FE(mapi_mapitoical, nullptr)
 
 	ZEND_FE(mapi_vcftomapi, nullptr)
+	ZEND_FE(mapi_vcfstomapi, nullptr)
 	ZEND_FE(mapi_mapitovcf, nullptr)
 
 	ZEND_FE(mapi_enable_exceptions, NULL)
@@ -6729,6 +6730,63 @@ ZEND_FUNCTION(mapi_vcftomapi)
 		return;
 
 	RETVAL_TRUE;
+}
+
+ZEND_FUNCTION(mapi_vcfstomapi)
+{
+	zval *resSession;
+	zval *resStore;
+	zval *resFolder;
+	php_stringsize_t cbString = 0;
+	char *szString = nullptr;
+	IMAPISession *lpMAPISession = nullptr;
+	IMAPIFolder *lpFolder = nullptr;
+	IMsgStore *lpMsgStore = nullptr;
+	std::unique_ptr<vcftomapi> conv;
+	long ulFlags = 0;
+
+	RETVAL_FALSE;
+	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rrrs",
+	    &resSession, &resStore, &resFolder, &szString,
+	    &cbString) == FAILURE)
+		return;
+
+	DEFERRED_EPILOGUE;
+	ZEND_FETCH_RESOURCE_C(lpMAPISession, IMAPISession *, &resSession, -1, name_mapi_session, le_mapi_session);
+	ZEND_FETCH_RESOURCE_C(lpMsgStore, IMsgStore *, &resStore, -1, name_mapi_msgstore, le_mapi_msgstore);
+	ZEND_FETCH_RESOURCE_C(lpFolder, IMAPIFolder *, &resFolder, -1, name_mapi_folder, le_mapi_folder);
+
+	std::string vcfMsg(szString, cbString);
+
+	create_vcftomapi(lpMsgStore, &unique_tie(conv));
+	if (conv == nullptr) {
+		MAPI_G(hr) = MAPI_E_NOT_ENOUGH_MEMORY;
+		return;
+	}
+
+	MAPI_G(hr) = conv->parse_vcf(vcfMsg);
+	if (MAPI_G(hr) != hrSuccess)
+		return;
+
+	array_init(return_value);
+	size_t index = 0;
+
+	while (true) {
+		object_ptr<IMessage> message;
+		MAPI_G(hr) = lpFolder->CreateMessage(NULL, ulFlags, &~message);
+		if (FAILED(MAPI_G(hr)))
+			return;
+
+		MAPI_G(hr) = conv->get_item(message.get());
+
+		if (MAPI_G(hr) != hrSuccess)
+			break; // No more vcards
+
+		zval messageResource;
+		ZEND_REGISTER_RESOURCE(&messageResource, message.release(), le_mapi_message);
+		add_index_zval(return_value, index++, &messageResource);
+	}
 }
 
 ZEND_FUNCTION(mapi_mapitovcf)
