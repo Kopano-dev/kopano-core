@@ -89,8 +89,8 @@ static std::string generate_message_id(IMessage *msg)
 	 * anyway), so there is not that much need to include the
 	 * serverguid.
 	 */
-	snprintf(id, sizeof(id), "%x.%08x", prop[1].Value.ft.dwHighDateTime, prop[1].Value.ft.dwLowDateTime);
-	return "kcRK." + strToLower(bin2hex(prop[0].Value.bin)) + "." + id;
+	return "kcRK." + base64_encode(prop[0].Value.bin.lpb, prop[0].Value.bin.cb) +
+	       "." + base64_encode(&prop[1].Value.ft, sizeof(prop[1].Value.ft));
 #undef IDLEN
 }
 
