@@ -6891,6 +6891,48 @@ ZEND_FUNCTION(mapi_vcftomapi)
 	DEFERRED_EPILOGUE;
 }
 
+ZEND_FUNCTION(mapi_vcftomapi2)
+{
+	zval *r_fld;
+	php_stringsize_t vcf_size = 0;
+	char *vcf_data = nullptr;
+	IMAPIFolder *fld = nullptr;
+
+	RETVAL_FALSE;
+	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs",
+	    &r_fld, &vcf_data, &vcf_size) == FAILURE)
+		return;
+
+	DEFERRED_EPILOGUE;
+	ZEND_FETCH_RESOURCE_C(fld, IMAPIFolder *, &r_fld, -1, name_mapi_folder, le_mapi_folder);
+
+	std::unique_ptr<vcftomapi> conv;
+	MAPI_G(hr) = create_vcftomapi(fld, &unique_tie(conv));
+	if (MAPI_G(hr) != hrSuccess)
+		return;
+	MAPI_G(hr) = conv->parse_vcf(std::string(vcf_data, vcf_size));
+	if (MAPI_G(hr) != hrSuccess)
+		return;
+
+	array_init(return_value);
+	for (size_t i = 0; i < conv->get_item_count(); ++i) {
+		object_ptr<IMessage> message;
+		MAPI_G(hr) = fld->CreateMessage(nullptr, 0, &~message);
+		if (FAILED(MAPI_G(hr))) {
+			RETVAL_FALSE;
+			return;
+		}
+		MAPI_G(hr) = conv->get_item(message.get(), i);
+		if (MAPI_G(hr) != hrSuccess)
+			continue;
+		zval *mres = nullptr;
+		MAKE_STD_ZVAL(mres);
+		ZEND_REGISTER_RESOURCE(mres, message.release(), le_mapi_message);
+		add_index_zval(return_value, i, mres);
+	}
+}
+
 ZEND_FUNCTION(mapi_mapitovcf)
 {
 	PMEASURE_FUNC;
