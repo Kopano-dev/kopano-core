@@ -550,7 +550,7 @@ static int peer_is_local2(int rsk, const void *buf, size_t bufsize)
  *
  * Returns negative errno code if indeterminate, otherwise false/true.
  */
-int zcp_peeraddr_is_local(const struct sockaddr *peer_sockaddr,
+static int zcp_peeraddr_is_local(const struct sockaddr *peer_sockaddr,
     socklen_t peer_socklen)
 {
 	if (peer_sockaddr->sa_family == AF_INET6) {
@@ -628,7 +628,7 @@ int zcp_peerfd_is_local(int fd)
 	if (domain == AF_LOCAL)
 		return true;
 	slen = sizeof(peer_sockaddr);
-	int ret = getsockname(fd, sa, &slen);
+	ret = getsockname(fd, sa, &slen);
 	if (ret < 0)
 		return -errno;
 	return zcp_peeraddr_is_local(sa, slen);
