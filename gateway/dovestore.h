@@ -9,6 +9,9 @@ extern "C" {
 
 extern void *kpxx_login(void);
 extern void kpxx_logout(void *);
+extern void *kpxx_store_get(void *);
+extern void kpxx_store_put(void *);
+extern char **kpxx_hierarchy_list(void *);
 
 #ifdef __cplusplus
 } /* extern "C" */

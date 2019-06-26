@@ -755,7 +755,7 @@ EXTRA_libauthdb_mapi_la_DEPENDENCIES = gateway/doveauth.sym
 # dovecot expects to find "_plugin" in filenames
 libdovemapi_plugin_la_SOURCES = gateway/dovestore1.c gateway/dovestore.cpp
 libdovemapi_plugin_la_LDFLAGS = -avoid-version -module -Wl,--version-script=${srcdir}/gateway/dovestore.sym
-libdovemapi_plugin_la_LIBADD  = libmapi.la
+libdovemapi_plugin_la_LIBADD  = ${libHX_LIBS} libmapi.la
 EXTRA_libdovemapi_plugin_la_DEPENDENCIES = gateway/dovestore.sym
 
 gateway/doveauth.sym gateway/dovestore.sym: ${top_builddir}/config.status

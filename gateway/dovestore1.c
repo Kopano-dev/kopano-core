@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Kopano and its licensors
+ * Copyright 2019 Kopano and its licensors
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published by the
@@ -25,8 +25,10 @@
 #include <dovecot/mail-storage.h>
 #include <dovecot/mail-storage-private.h>
 #include <dovecot/mailbox-list-private.h>
+#include <dovecot/mailbox-tree.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <libHX/misc.h>
 #include "dovestore.h"
 #define export __attribute__((visibility("default")))
 
@@ -42,6 +44,14 @@ struct kp_mailbox {
 
 struct kp_mailbox_list {
 	struct mailbox_list super;
+	void *mapises, *mapistore;
+};
+
+struct kp_mblist_iterctx {
+	struct mailbox_list_iterate_context super;
+	struct mailbox_info info;
+	char **mbhier;
+	unsigned int mbpos;
 };
 
 struct kp_mail {
@@ -57,7 +67,8 @@ static void kp_storage_get_list_settings(const struct mail_namespace *ns,
     struct mailbox_list_settings *set)
 {
 	fprintf(stderr, "%s\n", __func__);
-	set->layout = MAILBOX_LIST_NAME_FS;
+	if (set->layout == NULL)
+		set->layout = "mapimblist";
 	if (set->root_dir != NULL && *set->root_dir != '\0' &&
 	    set->index_dir == NULL) {
 		/* we don't really care about root_dir, but we just need to get index_dir autocreated. */
@@ -72,26 +83,91 @@ static struct mailbox_list *kp_mblist_alloc(void)
 	struct kp_mailbox_list *list = p_new(pool, struct kp_mailbox_list, 1);
 	list->super = kp_mblist_reg;
 	list->super.pool = pool;
+	list->mapistore = NULL;
 	return &list->super;
+}
+
+static int kp_mblist_init(struct mailbox_list *vmbl, const char **errp)
+{
+	fprintf(stderr, "%s\n", __func__);
+	struct kp_mailbox_list *list = (void *)vmbl;
+	list->mapises = kpxx_login();
+	if (list->mapises != NULL) {
+		list->mapistore = kpxx_store_get(list->mapises);
+		if (list->mapistore == NULL) {
+			kpxx_logout(list->mapises);
+			list->mapises = NULL;
+			return -1;
+		}
+	}
+	return 0;
+}
+
+static void kp_mblist_deinit(struct mailbox_list *vmbl)
+{
+	fprintf(stderr, "%s\n", __func__);
+	struct kp_mailbox_list *list = (void *)vmbl;
+	kpxx_store_put(list->mapistore);
+	kpxx_logout(list->mapises);
+	pool_unref(&list->super.pool);
 }
 
 static char kp_mblist_hiersep(struct mailbox_list *ml)
 {
-	fprintf(stderr, "%s\n", __func__);
 	return '/';
 }
 
-static void kp_mblist_deinit(struct mailbox_list *super)
+static int kp_mblist_getpath(struct mailbox_list *_list, const char *name,
+    enum mailbox_list_path_type type, const char **pathp)
+{
+	*pathp = NULL;
+	return 0;
+}
+
+static const char *kp_mblist_tempprefix(struct mailbox_list *vmbl, bool global)
 {
 	fprintf(stderr, "%s\n", __func__);
-	pool_unref(&super->pool);
+	return global ? mailbox_list_get_global_temp_prefix(vmbl) :
+	       mailbox_list_get_temp_prefix(vmbl);
 }
 
 static struct mailbox_list_iterate_context *
-kp_mblist_iterinit(struct mailbox_list *list_base, const char *const *patterns,
+kp_mblist_iterinit(struct mailbox_list *vmbl, const char *const *patterns,
     enum mailbox_list_iter_flags flags)
 {
-	struct kp_mblist *mblist = (void *)list_base;
+	struct kp_mailbox_list *list = (void *)vmbl;
+	pool_t pool = pool_alloconly_create("mailbox list imapc iter", 1024);
+	struct kp_mblist_iterctx *ctx = p_new(pool, struct kp_mblist_iterctx, 1);
+	ctx->super.pool  = pool;
+	ctx->super.list  = vmbl;
+	ctx->super.flags = flags;
+	array_create(&ctx->super.module_contexts, pool, sizeof(void *), 5);
+	ctx->info.vname  = NULL;
+	ctx->info.ns     = vmbl->ns;
+	ctx->mbhier      = kpxx_hierarchy_list(list->mapistore);
+	ctx->mbpos       = 0;
+	return &ctx->super;
+}
+
+static const struct mailbox_info *
+kp_mblist_iternext(struct mailbox_list_iterate_context *vctx)
+{
+	struct kp_mblist_iterctx *ctx = (void *)vctx;
+	const char *name = ctx->mbhier[ctx->mbpos++];
+	if (name == NULL)
+		return NULL;
+	fprintf(stderr, "nameiter %p %s\n", name, name);
+	ctx->info.vname = name;
+	return &ctx->info;
+}
+
+static int kp_mblist_iterdeinit(struct mailbox_list_iterate_context *vctx)
+{
+	fprintf(stderr, "%s\n", __func__);
+	struct kp_mblist_iterctx *ctx = (void *)vctx;
+	HX_zvecfree(ctx->mbhier);
+	pool_unref(&vctx->pool);
+	return 0;
 }
 
 static struct mail_storage *kp_storage_alloc(void)
@@ -171,7 +247,7 @@ static struct mailbox *kp_mailbox_alloc(struct mail_storage *storage,
 static int kp_mailbox_exists(struct mailbox *box, bool auto_boxes,
     enum mailbox_existence *r)
 {
-	fprintf(stderr, "%s\n", __func__);
+	fprintf(stderr, "%s %s\n", __func__, box->vname);
 	*r = box->inbox_any ? MAILBOX_EXISTENCE_SELECT : MAILBOX_EXISTENCE_NONE;
 	return 0;
 }
@@ -334,11 +410,17 @@ static struct mailbox_list kp_mblist_reg = {
 	.mailbox_name_max_length = MAILBOX_LIST_NAME_MAX_LENGTH,
 	.v = {
 		.alloc = kp_mblist_alloc,
-		.get_hierarchy_sep = kp_mblist_hiersep,
+		.init = kp_mblist_init,
 		.deinit = kp_mblist_deinit,
-		.iter_init = kp_mblist_iterinit,
+		.get_hierarchy_sep = kp_mblist_hiersep,
+		.get_vname = mailbox_list_default_get_vname,
 		.get_storage_name = mailbox_list_default_get_storage_name,
-		.get_path = mailbox_list_get_path,
+		.get_path = kp_mblist_getpath,
+		.get_temp_prefix = kp_mblist_tempprefix,
+		.join_refpattern = NULL,
+		.iter_init = kp_mblist_iterinit,
+		.iter_next = kp_mblist_iternext,
+		.iter_deinit = kp_mblist_iterdeinit,
 	},
 };
 
@@ -360,11 +442,11 @@ static struct mail_storage kp_storage_reg = {
 export void dovemapi_plugin_init(void)
 {
 	mail_storage_class_register(&kp_storage_reg);
-//	mailbox_list_register(&kp_mblist_reg);
+	mailbox_list_register(&kp_mblist_reg);
 }
 
 export void dovemapi_plugin_deinit(void)
 {
-//	mailbox_list_unregister(&kp_mblist_reg);
+	mailbox_list_unregister(&kp_mblist_reg);
 	mail_storage_class_unregister(&kp_storage_reg);
 }
