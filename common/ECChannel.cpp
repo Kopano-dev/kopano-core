@@ -553,9 +553,7 @@ static int peer_is_local2(int rsk, const void *buf, size_t bufsize)
 int zcp_peeraddr_is_local(const struct sockaddr *peer_sockaddr,
     socklen_t peer_socklen)
 {
-	if (peer_sockaddr->sa_family == AF_UNIX) {
-		return true;
-	} else if (peer_sockaddr->sa_family == AF_INET6) {
+	if (peer_sockaddr->sa_family == AF_INET6) {
 		if (peer_socklen < sizeof(struct sockaddr_in6))
 			return -EIO;
 	} else if (peer_sockaddr->sa_family == AF_INET) {
@@ -621,12 +619,19 @@ int zcp_peeraddr_is_local(const struct sockaddr *peer_sockaddr,
 int zcp_peerfd_is_local(int fd)
 {
 	struct sockaddr_storage peer_sockaddr;
-	socklen_t peer_socklen = sizeof(peer_sockaddr);
 	auto sa = reinterpret_cast<struct sockaddr *>(&peer_sockaddr);
-	int ret = getsockname(fd, sa, &peer_socklen);
+	int domain = AF_UNSPEC;
+	socklen_t slen = sizeof(domain);
+	auto ret = getsockopt(fd, SOL_SOCKET, SO_DOMAIN, &domain, &slen);
 	if (ret < 0)
 		return -errno;
-	return zcp_peeraddr_is_local(sa, peer_socklen);
+	if (domain == AF_LOCAL)
+		return true;
+	slen = sizeof(peer_sockaddr);
+	int ret = getsockname(fd, sa, &slen);
+	if (ret < 0)
+		return -errno;
+	return zcp_peeraddr_is_local(sa, slen);
 }
 
 int ECChannel::peer_is_local(void) const
