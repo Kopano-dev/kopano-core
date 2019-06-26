@@ -1041,6 +1041,9 @@ void ec_reexec_prepare_sockets()
 static int ec_fdtable_socket_ai(const struct addrinfo *ai,
     struct sockaddr_storage *oaddr, socklen_t *olen)
 {
+#ifdef __sunos__
+#define SO_PROTOCOL SO_PROTOTYPE
+#endif
 	auto maxfd = ec_fdtable_size();
 	for (int fd = 3; fd < maxfd; ++fd) {
 		int set = 0;
@@ -1050,6 +1053,25 @@ static int ec_fdtable_socket_ai(const struct addrinfo *ai,
 			break;
 		else if (ret < 0 || set == 0)
 			continue;
+		/*
+		 * The sockname is specific to the particular (domain, type,
+		 * protocol) socket setup tuple, and can be equal between
+		 * different protocols (think tcp:*:236 and udp:*:236), so the
+		 * tuple absolutely must be checked.
+		 */
+		int domain = 0, type = 0, proto = 0;
+		arglen = sizeof(domain);
+		ret = getsockopt(fd, SOL_SOCKET, SO_DOMAIN, &domain, &arglen);
+		if (ret < 0)
+			break;
+		arglen = sizeof(type);
+		ret = getsockopt(fd, SOL_SOCKET, SO_TYPE, &type, &arglen);
+		if (ret < 0)
+			break;
+		arglen = sizeof(proto);
+		ret = getsockopt(fd, SOL_SOCKET, SO_PROTOCOL, &proto, &arglen);
+		if (ret < 0)
+			break;
 		struct sockaddr_storage addr{};
 		arglen = sizeof(addr);
 		ret = getsockname(fd, reinterpret_cast<struct sockaddr *>(&addr), &arglen);
@@ -1057,6 +1079,9 @@ static int ec_fdtable_socket_ai(const struct addrinfo *ai,
 			continue;
 		arglen = std::min(static_cast<socklen_t>(sizeof(addr)), arglen);
 		for (auto sk = ai; sk != nullptr; sk = sk->ai_next) {
+			if (sk->ai_family != domain || sk->ai_socktype != type ||
+			    sk->ai_protocol != proto)
+				continue;
 			if (arglen != sk->ai_addrlen ||
 			    memcmp(&addr, sk->ai_addr, arglen) != 0)
 				continue;
