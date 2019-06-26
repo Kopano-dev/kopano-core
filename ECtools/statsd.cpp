@@ -162,14 +162,15 @@ static void sd_check_sockets(std::vector<struct pollfd> &pollfd)
 		if (!(pollfd[i].revents & POLLIN))
 			continue;
 		struct soap x;
-		struct sockaddr_storage peeraddr;
-		socklen_t peerlen = sizeof(peeraddr);
-		if (getsockname(pollfd[i].fd, reinterpret_cast<struct sockaddr *>(&peeraddr), &peerlen) == 0 &&
-		    peeraddr.ss_family != AF_LOCAL) {
+		int domain = AF_UNSPEC;
+		socklen_t dlen = sizeof(domain);
+		if (getsockopt(pollfd[i].fd, SOL_SOCKET, SO_DOMAIN, &domain, &dlen) == 0 &&
+		    domain != AF_LOCAL) {
 			x.master = pollfd[i].fd;
 			soap_accept(&x);
 			x.master = -1;
 		} else {
+			socklen_t peerlen = sizeof(x.peer.addr);
 			x.socket = accept(pollfd[i].fd, &x.peer.addr, &peerlen);
 			x.peerlen = peerlen;
 			if (x.socket == SOAP_INVALID_SOCKET ||
