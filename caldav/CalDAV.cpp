@@ -344,7 +344,7 @@ static HRESULT ical_listen(ECConfig *cfg)
 		} else if (ret == 0) {
 			ec_log_notice("Listening on %s for http", spec.c_str());
 		} else if (ret == 1) {
-			ec_log_info("Re-using fd %d to listen on %s for http", ret, spec.c_str());
+			ec_log_info("Re-using fd %d to listen on %s for http", pfd.fd, spec.c_str());
 		}
 		g_socks.pollfd.push_back(pfd);
 		g_socks.linfd.push_back(pfd.fd);
@@ -359,7 +359,7 @@ static HRESULT ical_listen(ECConfig *cfg)
 		} else if (ret == 0) {
 			ec_log_notice("Listening on %s for https", spec.c_str());
 		} else if (ret == 1) {
-			ec_log_info("Re-using fd %d to listen on %s for https", ret, spec.c_str());
+			ec_log_info("Re-using fd %d to listen on %s for https", pfd.fd, spec.c_str());
 		}
 		g_socks.pollfd.push_back(pfd);
 		g_socks.linfd.push_back(pfd.fd);

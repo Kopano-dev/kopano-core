@@ -115,7 +115,7 @@ static void custom_soap_bind(struct soap *soap, const char *bindspec,
 		ec_log_notice("Listening for connections on %s (fd %d)", bindspec, soap->master);
 	} else if (ret == 1) {
 		soap->fshutdownsocket = ignore_shutdown;
-		ec_log_info("Re-using fd %d to listen on %s", soap->socket, bindspec);
+		ec_log_info("Re-using fd %d to listen on %s", soap->master, bindspec);
 	}
 	socklen_t sl = sizeof(soap->peer.storage);
 	if (getsockname(soap->master, reinterpret_cast<struct sockaddr *>(&soap->peer.storage), &sl) == 0)

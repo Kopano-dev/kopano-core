@@ -481,7 +481,7 @@ static HRESULT gw_listen(ECConfig *cfg)
 		} else if (ret == 0) {
 			ec_log_notice("Listening on %s for pop3", spec.c_str());
 		} else if (ret == 1) {
-			ec_log_info("Re-using fd %d to listen on %s for pop3", ret, spec.c_str());
+			ec_log_info("Re-using fd %d to listen on %s for pop3", pfd.fd, spec.c_str());
 		}
 		g_socks.pollfd.push_back(pfd);
 		g_socks.linfd.push_back(pfd.fd);
@@ -497,7 +497,7 @@ static HRESULT gw_listen(ECConfig *cfg)
 		} else if (ret == 0) {
 			ec_log_notice("Listening on %s for pop3s", spec.c_str());
 		} else if (ret == 1) {
-			ec_log_info("Re-using fd %d to listen on %s for pop3s", ret, spec.c_str());
+			ec_log_info("Re-using fd %d to listen on %s for pop3s", pfd.fd, spec.c_str());
 		}
 		g_socks.pollfd.push_back(pfd);
 		g_socks.linfd.push_back(pfd.fd);
@@ -513,7 +513,7 @@ static HRESULT gw_listen(ECConfig *cfg)
 		} else if (ret == 0) {
 			ec_log_notice("Listening on %s for imap", spec.c_str());
 		} else if (ret == 1) {
-			ec_log_info("Re-using fd %d to listen on %s for imap", ret, spec.c_str());
+			ec_log_info("Re-using fd %d to listen on %s for imap", pfd.fd, spec.c_str());
 		}
 		g_socks.pollfd.push_back(pfd);
 		g_socks.linfd.push_back(pfd.fd);
@@ -529,7 +529,7 @@ static HRESULT gw_listen(ECConfig *cfg)
 		} else if (ret == 0) {
 			ec_log_notice("Listening on %s for imaps", spec.c_str());
 		} else if (ret == 1) {
-			ec_log_info("Re-using fd %d to listen on %s for imaps", ret, spec.c_str());
+			ec_log_info("Re-using fd %d to listen on %s for imaps", pfd.fd, spec.c_str());
 		}
 		g_socks.pollfd.push_back(pfd);
 		g_socks.linfd.push_back(pfd.fd);

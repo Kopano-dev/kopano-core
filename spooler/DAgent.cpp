@@ -2853,7 +2853,7 @@ static int dagent_listen(ECConfig *cfg, std::vector<struct pollfd> &pollers,
 		} else if (ret == 0) {
 			ec_log_info("Listening on %s for LMTP", spec.c_str());
 		} else if (ret == 1) {
-			ec_log_info("Re-using fd %d to listen on %s for LMTP", ret, spec.c_str());
+			ec_log_info("Re-using fd %d to listen on %s for LMTP", x.fd, spec.c_str());
 		}
 		pollers.push_back(x);
 		closefd.push_back(x.fd);
