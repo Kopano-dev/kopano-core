@@ -124,21 +124,15 @@ int unix_chown(int fd, const char *user, const char *group)
 }
 
 int unix_chown(const char *filename, const char *username, const char *groupname) {
-	const struct group *gr = NULL;
-	const struct passwd *pw = NULL;
-	uid_t uid;
-	gid_t gid;
-
-	gid = getgid();
+	auto gid = getgid();
 	if (groupname && strcmp(groupname,"")) {
-		gr = getgrnam(groupname);
+		auto gr = getgrnam(groupname);
 		if (gr)
 			gid = gr->gr_gid;
 	}
-
-	uid = getuid();
+	auto uid = getuid();
 	if (username && strcmp(username,"")) {
-		pw = getpwnam(username);
+		auto pw = getpwnam(username);
 		if (pw)
 			uid = pw->pw_uid;
 	}
