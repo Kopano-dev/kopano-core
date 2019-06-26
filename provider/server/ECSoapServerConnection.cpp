@@ -200,7 +200,7 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriori
 		kopano_new_soap_listener(CONNECTION_TYPE_NAMED_PIPE_PRIORITY, lpsSoap.get());
 	} else {
 		kopano_new_soap_listener(CONNECTION_TYPE_NAMED_PIPE, lpsSoap.get());
-		mode |= S_IROTH | S_IWOTH;
+		mode = S_IRWUGO;
 	}
 	custom_soap_bind(lpsSoap.get(), lpPipeName, false, 0, mode,
 		m_lpConfig->GetSetting("run_as_user"), m_lpConfig->GetSetting("run_as_group"));
