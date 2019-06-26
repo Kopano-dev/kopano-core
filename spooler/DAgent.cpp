@@ -1162,6 +1162,9 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 	hr = lpMessage->GetProps(sptaMessageProps, 0, &cValues, &~lpMessageProps);
 	if (FAILED(hr))
 		return kc_perror("GetProps failed(2)", hr);
+	hr = spv_postload_large_props(lpMessage, sptaMessageProps, cValues, lpMessageProps);
+	if (FAILED(hr))
+		kc_pwarn("SendOutOfOffice: spv_postload", hr);
 	hr = hrSuccess;
 
 	// See if we're looping
