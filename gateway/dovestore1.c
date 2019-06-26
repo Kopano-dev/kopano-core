@@ -21,6 +21,7 @@
 #include <dovecot/lib.h>
 #include <dovecot/index-mail.h>
 #include <dovecot/index-storage.h>
+#include <dovecot/mail-copy.h>
 #include <dovecot/mail-storage.h>
 #include <dovecot/mail-storage-private.h>
 #include <dovecot/mailbox-list-private.h>
@@ -43,18 +44,25 @@ struct kp_mailbox_list {
 	struct mailbox_list super;
 };
 
+struct kp_mail {
+	struct index_mail super;
+};
+
 static const struct mailbox kp_mailbox_reg;
 static struct mailbox_list kp_mblist_reg;
 static struct mail_storage kp_storage_reg;
+static const struct mail_vfuncs kp_mail_vfuncs;
 
 static void kp_storage_get_list_settings(const struct mail_namespace *ns,
     struct mailbox_list_settings *set)
 {
 	fprintf(stderr, "%s\n", __func__);
-	if (set->layout == NULL)
-		set->layout = "mapimblist";
-	if (set->subscription_fname == NULL)
-		set->subscription_fname = "subscriptions";
+	set->layout = MAILBOX_LIST_NAME_FS;
+	if (set->root_dir != NULL && *set->root_dir != '\0' &&
+	    set->index_dir == NULL) {
+		/* we don't really care about root_dir, but we just need to get index_dir autocreated. */
+		set->index_dir = set->root_dir;
+	}
 }
 
 static struct mailbox_list *kp_mblist_alloc(void)
@@ -106,6 +114,39 @@ static int kp_storage_create(struct mail_storage *super,
 	return 0;
 }
 
+static void kp_notify_changes(struct mailbox *m)
+{}
+
+static struct mail_save_context *kp_save_alloc(struct mailbox_transaction_context *t)
+{
+	struct mail_save_context *ctx = i_new(struct mail_save_context, 1);
+	ctx->transaction = t;
+	return ctx;
+}
+
+static int kp_save_begin(struct mail_save_context *ctx, struct istream *input)
+{
+	mail_storage_set_error(ctx->transaction->box->storage,
+		MAIL_ERROR_NOTPOSSIBLE, "KP does not support saving mails");
+	return -1;
+}
+
+static int kp_save_continue(struct mail_save_context *ctx)
+{
+	return -1;
+}
+
+static int kp_save_finish(struct mail_save_context *ctx)
+{
+	index_save_context_free(ctx);
+	return -1;
+}
+
+static void kp_save_cancel(struct mail_save_context *ctx)
+{
+	index_save_context_free(ctx);
+}
+
 static struct mailbox *kp_mailbox_alloc(struct mail_storage *storage,
     struct mailbox_list *mblist, const char *vname, enum mailbox_flags flags)
 {
@@ -119,8 +160,10 @@ static struct mailbox *kp_mailbox_alloc(struct mail_storage *storage,
 	m->super.name = p_strdup(pool, mailbox_list_get_storage_name(mblist, vname));
 	m->super.storage = storage;
 	m->super.list = mblist;
+	m->super.list->props |= MAILBOX_LIST_PROP_AUTOCREATE_DIRS;
 	m->super.pool = pool;
 	m->super.flags = flags;
+	m->super.mail_vfuncs = &kp_mail_vfuncs;
 	index_storage_mailbox_alloc(&m->super, vname, flags, MAIL_INDEX_PREFIX);
 	return &m->super;
 }
@@ -143,6 +186,10 @@ static int kp_mailbox_create(struct mailbox *mbox,
 static int kp_mailbox_open(struct mailbox *box)
 {
 	fprintf(stderr, "%s\n", __func__);
+	if (strcmp(box->name, "INBOX") != 0) {
+		mail_storage_set_error(box->storage, MAIL_ERROR_NOTFOUND, T_MAIL_ERR_MAILBOX_NOT_FOUND(box->vname));
+		return -1;
+	}
 	if (index_storage_mailbox_open(box, false) < 0)
 		return -1;
 	struct kp_mailbox *kbox = (void *)box;
@@ -156,6 +203,41 @@ static void kp_mailbox_close(struct mailbox *box)
 	struct kp_mailbox *kbox = (void *)box;
 	kpxx_logout(kbox->mapises);
 	index_storage_mailbox_close(box);
+}
+
+static int kp_mailbox_get_metadata(struct mailbox *box,
+    enum mailbox_metadata_items items, struct mailbox_metadata *md)
+{
+	if (items & MAILBOX_METADATA_GUID) {
+		/* so use entryid instead once we have it */
+		mail_generate_guid_128_hash(box->name, md->guid);
+		items &= ~MAILBOX_METADATA_GUID;
+	}
+	return index_mailbox_get_metadata(box, items, md);
+}
+
+static struct mailbox_sync_context *kp_mailbox_sync_init(struct mailbox *m,
+    enum mailbox_sync_flags f)
+{
+	return index_mailbox_sync_init(m, f, false);
+}
+
+static struct mail *kp_mail_alloc(struct mailbox_transaction_context *t,
+    enum mail_fetch_field wanted_fields,
+    struct mailbox_header_lookup_ctx *wanted_headers)
+{
+	pool_t pool = pool_alloconly_create("mail", 2048);
+	struct kp_mail *mail = p_new(pool, struct kp_mail, 1);
+	mail->super.mail.pool = pool;
+	index_mail_init(&mail->super, t, wanted_fields, wanted_headers);
+	return &mail->super.mail.mail;
+}
+
+static int kp_mail_get_stream(struct mail *_mail, bool get_body,
+    struct message_size *hdr_size, struct message_size *body_size,
+    struct istream **stream_r)
+{
+	return -1;
 }
 
 static const struct mail_vfuncs kp_mail_vfuncs = {
@@ -181,7 +263,7 @@ static const struct mail_vfuncs kp_mail_vfuncs = {
 	.get_first_header = index_mail_get_first_header,
 	.get_headers = index_mail_get_headers,
 	.get_header_stream = index_mail_get_header_stream,
-//	.get_stream = index_mail_get_stream,
+	.get_stream = kp_mail_get_stream,
 	.get_binary_stream = index_mail_get_binary_stream,
 	.get_special = index_mail_get_special,
 	.get_backend_mail = index_mail_get_backend_mail,
@@ -210,13 +292,39 @@ static const struct mailbox kp_mailbox_reg = {
 		.delete_box = index_storage_mailbox_delete,
 		.rename_box = index_storage_mailbox_rename,
 		.get_status = index_storage_get_status,
-		.get_metadata = index_mailbox_get_metadata,
+		.get_metadata = kp_mailbox_get_metadata,
 		.set_subscribed = index_storage_set_subscribed,
 		.attribute_set = index_storage_attribute_set,
 		.attribute_get = index_storage_attribute_get,
 		.attribute_iter_init = index_storage_attribute_iter_init,
 		.attribute_iter_next = index_storage_attribute_iter_next,
 		.attribute_iter_deinit = index_storage_attribute_iter_deinit,
+		.list_index_has_changed = index_storage_list_index_has_changed,
+		.list_index_update_sync = index_storage_list_index_update_sync,
+		.sync_init = kp_mailbox_sync_init,
+		.sync_next = index_mailbox_sync_next,
+		.sync_deinit = index_mailbox_sync_deinit,
+		.sync_notify = NULL,
+		.notify_changes = kp_notify_changes,
+		.transaction_begin = index_transaction_begin,
+		.transaction_commit = index_transaction_commit,
+		.transaction_rollback = index_transaction_rollback,
+		.get_private_flags_mask = NULL,
+		.mail_alloc = kp_mail_alloc,
+		.search_init = index_storage_search_init,
+		.search_deinit = index_storage_search_deinit,
+		.search_next_nonblock = index_storage_search_next_nonblock,
+		.search_next_update_seq = index_storage_search_next_update_seq,
+		.save_alloc = kp_save_alloc,
+		.save_begin = kp_save_begin,
+		.save_continue = kp_save_continue,
+		.save_finish = kp_save_finish,
+		.save_cancel = kp_save_cancel,
+		.copy = mail_storage_copy,
+		.transaction_save_commit_pre = NULL,
+		.transaction_save_commit_post = NULL,
+		.transaction_save_rollback = NULL,
+		.is_inconsistent = index_storage_is_inconsistent,
 	},
 };
 
@@ -252,11 +360,11 @@ static struct mail_storage kp_storage_reg = {
 export void dovemapi_plugin_init(void)
 {
 	mail_storage_class_register(&kp_storage_reg);
-	mailbox_list_register(&kp_mblist_reg);
+//	mailbox_list_register(&kp_mblist_reg);
 }
 
 export void dovemapi_plugin_deinit(void)
 {
-	mailbox_list_unregister(&kp_mblist_reg);
+//	mailbox_list_unregister(&kp_mblist_reg);
 	mail_storage_class_unregister(&kp_storage_reg);
 }
