@@ -269,6 +269,7 @@ ZEND_FUNCTION(mapi_inetmapi_imtomapi);
 ZEND_FUNCTION(mapi_icaltomapi);
 ZEND_FUNCTION(mapi_mapitoical);
 ZEND_FUNCTION(mapi_vcftomapi);
+ZEND_FUNCTION(mapi_vcfstomapi);
 ZEND_FUNCTION(mapi_mapitovcf);
 
 ZEND_FUNCTION(mapi_enable_exceptions);
