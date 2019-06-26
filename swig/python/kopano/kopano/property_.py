@@ -6,6 +6,7 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file)
 Copyright 2016 - 2019 Kopano and its licensors (see LICENSE file)
 """
 
+import calendar
 import datetime
 import sys
 import time
@@ -46,6 +47,7 @@ try:
     from . import utils as _utils
 except ImportError: # pragma: no cover
     _utils = sys.modules[__package__ + '.utils']
+from . import timezone as _timezone
 
 TYPEMAP = {
     'PT_SHORT': PT_SHORT,
@@ -185,7 +187,11 @@ def create_prop(self, mapiobj, proptag, value=None, proptype=None):
             value = 0
     else:
         if proptype2 == PT_SYSTIME:
-            value = unixtime(time.mktime(value.timetuple()))
+            if value.tzinfo is None:
+                value = _timezone._to_utc(value, _timezone.LOCAL)
+            else:
+                value = value.astimezone(_timezone.UTC)
+            value = unixtime(calendar.timegm(value.utctimetuple()))
 
     # handle invalid type versus value.
     # For example proptype=PT_UNICODE and value=True
@@ -407,10 +413,11 @@ class Property(object):
             if self.type_ == PT_SYSTIME: # TODO generalize, property?
                 # TODO add global flag to enable tz-aware UTC datetimes
                 try:
-                    self._value = datetime.datetime.fromtimestamp(
-                        self.mapiobj.Value.unixtime)
+                    value = datetime.datetime.utcfromtimestamp(self.mapiobj.Value.unixtime)
+                    value = _timezone._from_utc(value, _timezone.LOCAL)
                 except ValueError: # Y10K: datetime is limited to 4-digit years
-                    self._value = datetime.datetime(9999, 1, 1)
+                    value = datetime.datetime(9999, 1, 1)
+                self._value = value
             else:
                 self._value = self.mapiobj.Value
         return self._value
@@ -419,7 +426,12 @@ class Property(object):
     def value(self, value):
         self._value = value
         if self.type_ == PT_SYSTIME:
-            value = unixtime(time.mktime(value.timetuple()))
+            # Ensure that time is stored as UTC.
+            if value.tzinfo is None:
+                value = _timezone._to_utc(value, _timezone.LOCAL)
+            else:
+                value = value.astimezone(_timezone.UTC)
+            value = unixtime(calendar.timegm(value.utctimetuple()))
         self._parent_mapiobj.SetProps([SPropValue(self.proptag, value)])
         _utils._save(self._parent_mapiobj)
 

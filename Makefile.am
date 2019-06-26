@@ -919,7 +919,7 @@ dist_man_MANS =
 if ENABLE_BASE
 dist_man_MANS += \
 	doc/kopano.7 \
-	doc/kopano-admin.8 \
+	doc/kopano-admin.8 doc/kopano-admin.cfg.5 \
 	doc/kopano-archiver.8 doc/kopano-archiver.cfg.5 \
 	doc/kopano-cfgchecker.8 doc/kopano-coredump.5 \
 	doc/kopano-dagent.8 doc/kopano-dagent.cfg.5 doc/kopano-dbadm.8 \
@@ -931,7 +931,8 @@ dist_man_MANS += \
 	doc/kopano-monitor.8 doc/kopano-monitor.cfg.5 \
 	doc/kopano-oof.1 doc/kopano-passwd.1 \
 	doc/kopano-server.8 doc/kopano-server.cfg.5 \
-	doc/kopano-spooler.8 doc/kopano-spooler.cfg.5 doc/kopano-statsd.8 \
+	doc/kopano-spooler.8 doc/kopano-spooler.cfg.5 \
+	doc/kopano-statsd.8 doc/kopano-statsd.cfg.5 \
 	doc/kopano-srvadm.8 doc/kopano-stats.1 doc/kopano-storeadm.8 \
 	doc/kopano-unix.cfg.5 \
 	doc/mapi.7

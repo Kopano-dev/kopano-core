@@ -43,8 +43,13 @@ Fixes:
 * daemons: resolved kopano-server.socket entering a failed state after stopping
   kopano-server.service [KC-1514]
 * dagent: cured a silent exit when "lmtp_listen" contained garbage [KC-1516]
+* dagent: evalute entire transport headers [KC-1443]
+* pyko: avoid local time conversion of UTC dates
 Enhancements:
 * logrotate will now use `systemctl reload` if available [GH-PR-14]
+* doc: new manpages kopano-admin.cfg(5) and kopano-statsd.cfg(5)
+* admin: do not abort out on --details SYSTEM
+* server: report highest objectid to statsd [KC-1523]
 
 
 8.7.3 (2019-05-27)
@@ -89,6 +94,7 @@ Fixes:
 * pyko: don't mix str/int busy statuses [KC-1433]
 * oof: fix erroneous -u parsing [KC-1425]
 * oof: make --message option set the right property [KC-1435]
+* dagent: some large properties need different kind of loading [KC-1443]
 Enhancements:
 * backup: do record outofoffice settings
 * php-ext: performance measurement log now contains a timestamp, thread

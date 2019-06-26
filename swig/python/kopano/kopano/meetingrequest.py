@@ -341,8 +341,7 @@ class MeetingRequest(object):
         if blob is not None:
             y, m, d = struct.unpack_from('>HBB', blob, 16)
             if (y, m, d) != (0, 0, 0):
-                return _timezone._to_utc(datetime.datetime(y, m, d),
-                    self.item.tzinfo)
+                return datetime.datetime(y, m, d)
 
     @property
     def update_counter(self):

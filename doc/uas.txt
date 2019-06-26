@@ -1,0 +1,127 @@
+Opportunistic deduplication strategy
+
+
+== Overview ==
+
+Deduplication happens by linking to an existing attachment, i.e. making a
+reference to a shared block of data and track the in-use state.
+
+Design requirement: Must work with filesystems like VFAT, smbfs/CIFS.
+POSIX-style hardlinks, symbolic links, or file locks may not exist and their
+presence cannot be relied upon.
+
+Design wishlist item: The filesystem itself should encode all the linkage
+metadata without needing an extra database component of any sort.
+(Such would add latency, and file-based databases even have a hard time
+due to the absence of locking and protection from concurrent writers.)
+
+Design wishlist item: Avoid in-place file writes. This way,
+locks can be dispensed with, and atomics can suffice.
+
+Design note: In practice, reference decrements are rarer than reference
+increments. If there is a trade-off to be made, decrements should preferably
+take the hit.
+
+
+== States of an attachment ==
+
+digraph {
+	non-existent -> complete -> no-holders ->
+	no-intents -> non-existant;
+};
+
+The state change from "non-existent" to "complete" ought to be atomic (no
+intermediate states), lest it could block another writer or disable
+deduplication by staying in some intermediate state indefinitely.
+
+UAS expects fundamental atomic requirements, and shares this property
+with other distributed systems ([1]):
+
+	* Creating a file. If the "overwrite" parameter is false
+	  (POSIX: "O_EXCL" flag is set), the check and creation MUST
+	  be atomic.
+	* Deleting a file.
+	* Renaming a file.
+	* Renaming a directory.
+	* Creating a single directory with mkdir().
+
+[1] https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/filesystem/introduction.html#Core_Expectations_of_a_Hadoop_Compatible_FileSystem
+
+S3 does not have an atomic rename operation.
+
+
+== Names for directories/files ==
+
+Requirement: Names for server-specific (S-type) and hash-based (H-type) objects
+must never collide.
+
+S-type and H-type names are constructed such that they can never clash. For
+example, the H-type name is the base-16 representation of the hash bytes
+[0-9a-f], therefore it can never collide with the S-type name which always
+begins with "s" (which is not in [0-9a-f]).
+
+
+Because there are no intermediate states between "non-existant" and "complete",
+the cases "no-holders" and "no-intents" unambiguously mean that the attachment
+is in the process of deletion.
+
+
+== Algorithm ==
+
+1. Creation of a reference to an existing attachment.
+
+1a. Create an “intent to link” file <hash>/intent/s<server_guid>i<instance_id>.
+    If the "<hash>/intent" directory does not exist, there is no attachment yet
+    as far as this uploader is concerned; goto #2.
+
+1b. Successful intent creation indicates the attachment is already present
+    (upload was completed in the past) and that, from now on, the content file
+    will not go away (cf. #3c).
+
+1c. Rename <hash>/intent/s<server_guid>i<instance_id> to
+    <hash>/holder/s<server_guid>i<instance_id>. If "holder" did not exist, we
+    know that the attachment was undergoing deletion by another party due to
+    reaching 0 holders (#3b). That deletion will be canceled by that party due
+    to the presence of our intent-to-link file (#3c).
+
+    The "holder" directory is recreated by us and the rename is attempted
+    again. On success, we are now a co-owner of the attachment. Else, proceed
+    to #2.
+
+2. Creation of attachment
+
+2a. Upload the attachment structure into a temporary directory (S-type name).
+    This always succeeds in the context of this UAS algorithm.
+    s<server_guid>i<instance_id>/intent/ (directory of future holders)
+    s<server_guid>i<instance_id>/holders/ (directory of present holders)
+    s<server_guid>i<instance_id>/content (content file)
+    s<server_guid>i<instance_id>/holders/s<server_guid>i<instance_id>
+
+2b. Atomically rename s<server_guid>i<instance_id> to <hash>.
+
+    If successful, we were the first uploader. Record <instance_id> => <hash>
+    in the local database. Done.
+
+2c. If unsuccessful, some other party must have uploaded the attachment at the
+    same time and managed to finish first (#2b), or, the directory is
+    undergoing final deletion (#3d).
+
+    Retry from #1 for a limited number of tries. (If linking subsequently
+    succeeds, the uploaded directory from #2a is removed. Else, if linking in
+    #1a fails due to #3c, the algorithm goes to #2b again.) If retries are
+    exhausted however, record <instance_id> => s<server_guid>i<instance_id> in
+    the local database. Done.
+
+3. Deletion of attachment
+
+3a. Remove <d>/holder/s<server_guid>i<instance_id>, where <d> is whatever was
+    recorded in the local database (<hash> or
+    s<server_guid>i<instance_id>).
+
+3b. Attempt to remove <d>/holder.
+    If this fails, there are other holders; stop and done.
+
+3c. Attempt to remove <d>/intent.
+    If this fails, there are aspiring new holders; stop and done.
+
+3d. Recursively remove <d>. Done.

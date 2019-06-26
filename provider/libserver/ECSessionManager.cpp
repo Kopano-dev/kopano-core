@@ -960,6 +960,16 @@ void ECSessionManager::update_extra_stats()
 	auto cm = GetCacheManager();
 	if (cm != nullptr)
 		cm->update_extra_stats(s);
+
+	/* It's not the same as the AUTO_INCREMENT value, but good enough. */
+	ECDatabase *db = nullptr;
+	DB_RESULT result;
+	if (m_lpDatabaseFactory.get()->get_tls_db(&db) == erSuccess &&
+	    db->DoSelect("SELECT MAX(id) FROM hierarchy", &result) == erSuccess) {
+		auto row = result.fetch_row();
+		if (row != nullptr && row[0] != nullptr)
+			s.set(SCN_DATABASE_MAX_OBJECTID, atoui(row[0]));
+	}
 }
 
 /**

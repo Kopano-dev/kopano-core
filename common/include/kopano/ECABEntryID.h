@@ -11,8 +11,6 @@
 
 namespace KC {
 
-extern _kc_export unsigned char *g_lpDefaultEid;
-extern _kc_export const unsigned int g_cbDefaultEid;
 extern _kc_export unsigned char *g_lpEveryoneEid;
 extern _kc_export const unsigned int g_cbEveryoneEid;
 extern _kc_export unsigned char *g_lpSystemEid;

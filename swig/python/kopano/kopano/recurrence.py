@@ -405,7 +405,10 @@ class Recurrence(object):
                 minutes = self._endtime_offset - self._starttime_offset
                 basedate_val = startdatetime_val
 
-            d = _timezone._to_utc(d, self._tzinfo)
+            # NOTE(longsleep): Start and end of occurrences comes in as event timezone. Pyko expects
+            # local time so start and end is converted to LOCAL.
+            if self.item.tzinfo:
+                d = _timezone._tz2(d, self.item.tzinfo, _timezone.LOCAL)
             e = d + datetime.timedelta(minutes=minutes)
 
             occ = Occurrence(self.item, d, e, subject, location,
@@ -441,8 +444,13 @@ class Recurrence(object):
             end = start + datetime.timedelta(
                 minutes=self._endtime_offset - self._starttime_offset)
 
-        return Occurrence(self.item, start, end, subject, location,
-            basedate_val=basedate_val)
+        # NOTE(longsleep): Start and end of occurrences comes in as event timezone. Pyko expects
+        # local time so start and end is converted to LOCAL.
+        if self.item.tzinfo:
+            start = _timezone._tz2(start, self.item.tzinfo, _timezone.LOCAL)
+            end = _timezone._tz2(end, self.item.tzinfo, _timezone.LOCAL)
+
+        return Occurrence(self.item, start, end, subject, location, basedate_val=basedate_val)
 
     @staticmethod
     def _init(item):
@@ -483,11 +491,18 @@ class Recurrence(object):
 
     def _update_offsets(self, save=True):
         item = self.item
+        tzinfo = item.tzinfo
         start = item.start
         if start:
+            if tzinfo:
+                # Convert to item timezone to ensure the offset is correct.
+                start = _timezone._tz2(start, LOCAL, tzinfo)
             self._starttime_offset = start.hour * 60 + start.minute
         end = item.end
         if end:
+            if tzinfo:
+                # Convert to item timezone to ensure the offset is correct.
+                end = _timezone._tz2(end, LOCAL, tzinfo)
             self._endtime_offset = end.hour * 60 + end.minute
         if save:
             self._save()
