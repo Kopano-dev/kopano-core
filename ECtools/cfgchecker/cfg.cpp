@@ -7,6 +7,7 @@
 #include <list>
 #include <memory>
 #include <getopt.h>
+#include <kopano/stringutil.h>
 #include "ECConfigCheck.h"
 
 using std::cout;
@@ -101,13 +102,8 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	bool bHosted = (strHosted[0] == 'y' || strHosted[0] == 'Y' ||
-			   strHosted[0] == 't' || strHosted[0] == 'T' ||
-			   strHosted[0] == '1');
-	bool bMulti = (strMulti[0] == 'y' || strMulti[0] == 'Y' ||
-			   strMulti[0] == 't' || strMulti[0] == 'T' ||
-			   strMulti[0] == '1');
-
+	auto bHosted = KC::parseBool(strHosted.c_str());
+	auto bMulti  = KC::parseBool(strMulti.c_str());
 	for (const auto &it : check) {
 		if (it->isDirty())
 			continue;
