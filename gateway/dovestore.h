@@ -12,6 +12,8 @@ extern void kpxx_logout(void *);
 extern void *kpxx_store_get(void *);
 extern void kpxx_store_put(void *);
 extern char **kpxx_hierarchy_list(void *);
+extern int kpxx_folder_get(void *store, const char *name, void **fldp);
+extern void kpxx_folder_put(void *fld);
 
 #ifdef __cplusplus
 } /* extern "C" */

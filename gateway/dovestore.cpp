@@ -23,8 +23,9 @@
 #include <cstring>
 #include <mapix.h>
 #include <libHX/misc.h>
-#include <kopano/memory.hpp>
 #include <kopano/CommonUtil.h>
+#include <kopano/memory.hpp>
+#include <kopano/stringutil.h>
 #include <kopano/charset/convert.h>
 #include "dovestore.h"
 
@@ -61,19 +62,25 @@ void *kpxx_store_get(void *vses)
 
 void kpxx_store_put(void *vstor)
 {
-	static_cast<IMsgStore *>(vstor)->Release();
+	if (vstor != nullptr)
+		static_cast<IMsgStore *>(vstor)->Release();
 }
 
-static rowset_ptr kpxx_hierarchy_table(IMsgStore *store)
+static HRESULT kpxx_root(IMsgStore *store, object_ptr<IMAPIFolder> &root)
 {
 	memory_ptr<SPropValue> pv;
 	auto ret = HrGetOneProp(store, PR_IPM_SUBTREE_ENTRYID, &~pv);
 	if (ret != hrSuccess)
-		return nullptr;
-	object_ptr<IMAPIFolder> root;
+		return ret;
 	unsigned int type = 0;
-	ret = store->OpenEntry(pv->Value.bin.cb, reinterpret_cast<ENTRYID *>(pv->Value.bin.lpb),
-	      &iid_of(root), 0, &type, &~root);
+	return store->OpenEntry(pv->Value.bin.cb, reinterpret_cast<ENTRYID *>(pv->Value.bin.lpb),
+	       &iid_of(root), 0, &type, &~root);
+}
+
+static rowset_ptr kpxx_hierarchy_table(IMsgStore *store)
+{
+	object_ptr<IMAPIFolder> root;
+	auto ret = kpxx_root(store, root);
 	if (ret != hrSuccess)
 		return nullptr;
 	object_ptr<IMAPITable> table;
@@ -130,7 +137,6 @@ char **kpxx_hierarchy_list(void *vstor)
 		return nullptr;
 	for (unsigned int i = 0; i < rows->cRows; ++i) {
 		nl[i] = strdup(unames[i].c_str());
-		fprintf(stderr, "dovstor: %s\n", nl[i]);
 		if (nl[i] == nullptr) {
 			HX_zvecfree(nl);
 			return nullptr;
@@ -138,4 +144,69 @@ char **kpxx_hierarchy_list(void *vstor)
 	}
 	nl[rows->cRows] = nullptr;
 	return nl;
+}
+
+static int hresult_to_errno(HRESULT x)
+{
+	if (x == MAPI_E_NOT_FOUND)
+		return -ENOENT;
+	return -EINVAL;
+}
+
+int kpxx_folder_get(void *vstor, const char *name, void **fldp)
+{
+	auto store = static_cast<IMsgStore *>(vstor);
+	object_ptr<IMAPIFolder> root;
+	auto ret = kpxx_root(static_cast<IMsgStore *>(vstor), root);
+	if (ret != hrSuccess)
+		return hresult_to_errno(ret);
+
+	auto path = KC::tokenize(name, '/');
+	unsigned int pidx = 0;
+
+	while (pidx < path.size()) {
+		static constexpr const SizedSPropTagArray(2, spta) = {2, {PR_DISPLAY_NAME, PR_ENTRYID}};
+		static constexpr const SizedSSortOrderSet(1, order) =
+			{1, 0, 0, {{PR_DISPLAY_NAME, TABLE_SORT_ASCEND}}};
+		object_ptr<IMAPITable> table;
+
+		ret = root->GetHierarchyTable(MAPI_DEFERRED_ERRORS | MAPI_UNICODE, &~table);
+		if (ret != hrSuccess)
+			return hresult_to_errno(ret);
+		ret = table->SetColumns(spta, TBL_BATCH);
+		if (ret != hrSuccess)
+			return hresult_to_errno(ret);
+		ret = table->SortTable(order, TBL_BATCH); /* for bsearch */
+		if (ret != hrSuccess)
+			return hresult_to_errno(ret);
+		rowset_ptr rows;
+		ret = table->QueryRows(-1, 0, &~rows);
+		if (ret != hrSuccess)
+			return hresult_to_errno(ret);
+
+		auto row = std::lower_bound(&rows[0], &rows[rows->cRows], path[pidx],
+			[](const SRow &r, const std::string &segname) {
+				auto fn = convert_to<std::string>("UTF-8", r.lpProps[0].Value.lpszW, rawsize(r.lpProps[0].Value.lpszW), CHARSET_WCHAR);
+				std::replace(fn.begin(), fn.end(), '/', '_');
+				return fn < segname;
+			});
+		if (row == &rows[rows->cRows])
+			return ENOENT;
+		++pidx;
+		const auto &eid = row->lpProps[1].Value.bin;
+		unsigned int type = 0;
+		ret = store->OpenEntry(eid.cb, reinterpret_cast<const ENTRYID *>(eid.lpb),
+		      &iid_of(root), 0, &type, &~root);
+		if (ret != hrSuccess)
+			return hresult_to_errno(ret);
+	}
+
+	*fldp = root.release();
+	return 0;
+}
+
+void kpxx_folder_put(void *vfld)
+{
+	if (vfld != nullptr)
+		static_cast<IMAPIFolder *>(vfld)->Release();
 }

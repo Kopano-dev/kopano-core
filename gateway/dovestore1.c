@@ -39,7 +39,7 @@ struct kp_storage {
 struct kp_mailbox {
 	struct mailbox super;
 	struct kp_storage *kp_storage;
-	void *mapises;
+	void *mapises, *mapistore, *mapifld;
 };
 
 struct kp_mailbox_list {
@@ -156,14 +156,12 @@ kp_mblist_iternext(struct mailbox_list_iterate_context *vctx)
 	const char *name = ctx->mbhier[ctx->mbpos++];
 	if (name == NULL)
 		return NULL;
-	fprintf(stderr, "nameiter %p %s\n", name, name);
 	ctx->info.vname = name;
 	return &ctx->info;
 }
 
 static int kp_mblist_iterdeinit(struct mailbox_list_iterate_context *vctx)
 {
-	fprintf(stderr, "%s\n", __func__);
 	struct kp_mblist_iterctx *ctx = (void *)vctx;
 	HX_zvecfree(ctx->mbhier);
 	pool_unref(&vctx->pool);
@@ -241,6 +239,9 @@ static struct mailbox *kp_mailbox_alloc(struct mail_storage *storage,
 	m->super.flags = flags;
 	m->super.mail_vfuncs = &kp_mail_vfuncs;
 	index_storage_mailbox_alloc(&m->super, vname, flags, MAIL_INDEX_PREFIX);
+	m->mapises = NULL;
+	m->mapistore = NULL;
+	m->mapifld = NULL;
 	return &m->super;
 }
 
@@ -262,14 +263,34 @@ static int kp_mailbox_create(struct mailbox *mbox,
 static int kp_mailbox_open(struct mailbox *box)
 {
 	fprintf(stderr, "%s\n", __func__);
-	if (strcmp(box->name, "INBOX") != 0) {
-		mail_storage_set_error(box->storage, MAIL_ERROR_NOTFOUND, T_MAIL_ERR_MAILBOX_NOT_FOUND(box->vname));
-		return -1;
-	}
 	if (index_storage_mailbox_open(box, false) < 0)
 		return -1;
+	if (box->deleting || (box->flags & MAILBOX_FLAG_SAVEONLY) != 0)
+		return 0;
+	if (*box->name == '\0' &&
+	    (box->list->ns->flags & NAMESPACE_FLAG_INBOX_ANY) != 0) {
+		/* Trying to open INBOX as the namespace prefix. */
+		mail_storage_set_error(box->storage, MAIL_ERROR_NOTFOUND, "Mailbox isn't selectable");
+		mailbox_close(box);
+		return -1;
+	}
+
 	struct kp_mailbox *kbox = (void *)box;
 	kbox->mapises = kpxx_login();
+	if (kbox->mapises == NULL)
+		return -1;
+	kbox->mapistore = kpxx_store_get(kbox->mapises);
+	if (kbox->mapistore == NULL)
+		return -1;
+	int ret = kpxx_folder_get(kbox->mapistore, box->name, &kbox->mapifld);
+	if (ret == -ENOENT)
+		mail_storage_set_error(box->storage, MAIL_ERROR_NOTFOUND, T_MAIL_ERR_MAILBOX_NOT_FOUND(box->vname));
+	else if (ret == -EACCES)
+		mail_storage_set_error(box->storage, MAIL_ERROR_PERM, "EACCES");
+	else if (ret == -EINVAL)
+		mail_storage_set_error(box->storage, MAIL_ERROR_NOTFOUND, "EINVAL");
+	if (ret != 0)
+		return -1;
 	return 0;
 }
 
@@ -277,6 +298,8 @@ static void kp_mailbox_close(struct mailbox *box)
 {
 	fprintf(stderr, "%s\n", __func__);
 	struct kp_mailbox *kbox = (void *)box;
+	kpxx_folder_put(kbox->mapifld);
+	kpxx_store_put(kbox->mapistore);
 	kpxx_logout(kbox->mapises);
 	index_storage_mailbox_close(box);
 }

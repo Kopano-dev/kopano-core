@@ -132,6 +132,7 @@ AS_IF([test "$want_base" != no], [
 # Everything is C++
 AC_LANG_PUSH(C++)
 # save clean settings
+CFLAGS_system="$CFLAGS"
 CXXFLAGS_system=$CXXFLAGS
 CPPFLAGS_system=$CPPFLAGS
 LDFLAGS_system=$LDFLAGS
