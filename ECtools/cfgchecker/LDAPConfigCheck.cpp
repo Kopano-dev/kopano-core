@@ -139,6 +139,5 @@ int LDAPConfigCheck::testLdapQuery(const config_check_t *check)
 		printError(check->option1, "contains malformatted string: \"" + check->value1 + "\"");
 		return CHECK_ERROR;
 	}
-
 	return CHECK_OK;
 }

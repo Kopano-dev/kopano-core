@@ -116,7 +116,5 @@ int main(int argc, char* argv[])
 		it->loadChecks();
 		it->validate();
 	}
-
 	return 0;
 }
-
