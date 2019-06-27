@@ -20,8 +20,7 @@ namespace KC {
 struct AttachRendData {
     unsigned short usType;
     unsigned int ulPosition;
-    unsigned short usWidth;
-    unsigned short usHeight;
+	unsigned short usWidth, usHeight;
     unsigned int ulFlags;
 };
 #pragma pack(pop)

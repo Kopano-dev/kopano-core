@@ -601,10 +601,9 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 	int				nProps = 0;
 	KPropbuffer<22> msgProps;
 	// temp
-	ULONG			cbEntryID;
+	unsigned int cbEntryID, ulRecipProps;
 	memory_ptr<ENTRYID> lpEntryID;
 	memory_ptr<SPropValue> lpRecipProps, lpPropNormalizedSubject;
-	ULONG			ulRecipProps;
 
 	// order and types are important for modifyFromAddressBook()
 	static constexpr const SizedSPropTagArray(7, sptaRecipPropsSentRepr) = {7, {

@@ -401,7 +401,7 @@ mapiTextPart::embeddedObject::embeddedObject(vmime::shared_ptr<vmime::contentHan
     const vmime::mediaType &type, const std::string &name,
     const std::string &loc) :
 	m_data(vmime::dynamicCast<vmime::contentHandler>(data->clone())),
-	m_encoding(enc), m_id(id), m_type(type), m_name(name), m_loc(loc)
+	m_encoding(enc), m_type(type), m_id(id), m_name(name), m_loc(loc)
 {
 }
 

@@ -17,10 +17,9 @@
 namespace KC {
 
 struct sFailedRecip {
-	std::string strRecipEmail;
+	std::string strRecipEmail, strSMTPResponse;
 	std::wstring strRecipName;
 	unsigned int ulSMTPcode;
-	std::string strSMTPResponse;
 };
 
 // Sender Base class
@@ -28,11 +27,9 @@ struct sFailedRecip {
 class _kc_export ECSender {
 protected:
 	std::string smtphost;
-	int smtpport;
 	std::wstring error;
-	int smtpresult = 0;
-	std::vector<sFailedRecip> mTemporaryFailedRecipients;
-	std::vector<sFailedRecip> mPermanentFailedRecipients;
+	int smtpport, smtpresult = 0;
+	std::vector<sFailedRecip> mTemporaryFailedRecipients, mPermanentFailedRecipients;
 
 public:
 	_kc_hidden ECSender(const std::string &smtphost, int port);

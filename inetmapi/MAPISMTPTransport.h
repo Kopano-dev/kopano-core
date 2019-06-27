@@ -81,19 +81,17 @@ private:
 #endif // VMIME_HAVE_TLS_SUPPORT
 
 	vmime::shared_ptr<socket> m_socket;
-	bool m_authentified = false;
-	bool m_extendedSMTP = false;
+	bool m_authentified = false, m_extendedSMTP = false;
+	bool m_secured = false, m_bDSNRequest = false;
+	const bool m_isSMTPS;
 	std::map <string, std::vector <string> > m_extensions;
 	vmime::shared_ptr<timeoutHandler> m_timeoutHandler;
-	const bool m_isSMTPS;
-	bool m_secured = false;
 	vmime::shared_ptr<connectionInfos> m_cntInfos;
 	// Service infos
 	static SMTPServiceInfos sm_infos;
 	// additional data
 	std::vector<KC::sFailedRecip> mTemporaryFailedRecipients;
 	std::vector<KC::sFailedRecip> mPermanentFailedRecipients;
-	bool m_bDSNRequest = false;
 	std::string m_strDSNTrackid;
 	SMTPResponse::state m_response_state;
 };

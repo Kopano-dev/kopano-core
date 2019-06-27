@@ -38,16 +38,12 @@ struct delivery_options {
 
 struct sending_options {
 	char *alternate_boundary;		// Specifies a specific boundary prefix to use when creating MIME boundaries
-	bool no_recipients_workaround;	// Specified that we wish to accepts messages with no recipients (for example, when converting an attached email with no recipients)
-	bool msg_in_msg;
-	bool headers_only;
-	bool add_received_date;
-	int use_tnef;					// -1: minimize usage, 0: autodetect, 1: force
 	char *charset_upgrade;
-	bool allow_send_to_everyone;
+	int use_tnef;					// -1: minimize usage, 0: autodetect, 1: force
+	bool no_recipients_workaround;	// Specified that we wish to accepts messages with no recipients (for example, when converting an attached email with no recipients)
+	bool msg_in_msg, headers_only, add_received_date, allow_send_to_everyone;
 	bool enable_dsn;				/**< Enable SMTP Delivery Status Notifications */
-	bool always_expand_distr_list;
-	bool ignore_missing_attachments;
+	bool always_expand_distr_list, ignore_missing_attachments;
 };
 
 extern _kc_export void imopt_default_delivery_options(delivery_options *);

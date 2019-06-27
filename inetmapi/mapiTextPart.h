@@ -113,10 +113,8 @@ public:
 	private:
 		vmime::shared_ptr<contentHandler> m_data;
 		encoding m_encoding;
-		string m_id;
 		mediaType m_type;
-		string m_name;
-		string m_loc;
+		std::string m_id, m_name, m_loc;
 	};
 
 	/** Test the existence of an embedded object given its identifier.
@@ -205,12 +203,11 @@ public:
 private:
 	vmime::shared_ptr<contentHandler> m_plainText;
 	vmime::shared_ptr<contentHandler> m_text; /* htmlText */
-	charset m_charset;
+	charset m_charset, m_otherCharset;
 	vmime::shared_ptr<contentHandler> m_otherText;
 	mediaType m_otherMediaType;
 	encoding m_otherEncoding;
 	string m_otherMethod;			/* ical special */
-	charset m_otherCharset;
 	bool m_bHaveOtherCharset = false;
 	std::vector<vmime::shared_ptr<embeddedObject> > m_objects;
 
