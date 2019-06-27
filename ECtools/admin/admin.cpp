@@ -870,21 +870,20 @@ static void print_user_settings(IMsgStore *lpStore, const ECUSER *lpECUser,
 
 	print_extra_settings(&lpECUser->sPropmap, &lpECUser->sMVPropmap);
 
-	if (!lstArchives.empty()) {
-		cout << "Attached archives:\t" << lstArchives.size() << endl;
-		for (const auto &arc : lstArchives) {
-			cout << "\t" << arc.FolderName << " in " << arc.StoreName << " (" << arc.StoreGuid << ")";
-
-			if (arc.Rights != ARCHIVE_RIGHTS_ABSENT) {
-				if (arc.Rights == ROLE_OWNER)
-					cout << " [Read Write]";
-				else if (arc.Rights == ROLE_REVIEWER)
-					cout << " [Read Only]";
-				else
-					cout << " [Modified: " << AclRightsToString(arc.Rights) << "]";
-			}
-			cout << endl;
+	if (lstArchives.empty())
+		return;
+	cout << "Attached archives:\t" << lstArchives.size() << endl;
+	for (const auto &arc : lstArchives) {
+		cout << "\t" << arc.FolderName << " in " << arc.StoreName << " (" << arc.StoreGuid << ")";
+		if (arc.Rights != ARCHIVE_RIGHTS_ABSENT) {
+			if (arc.Rights == ROLE_OWNER)
+				cout << " [Read Write]";
+			else if (arc.Rights == ROLE_REVIEWER)
+				cout << " [Read Only]";
+			else
+				cout << " [Modified: " << AclRightsToString(arc.Rights) << "]";
 		}
+		cout << endl;
 	}
 }
 
