@@ -49,13 +49,10 @@ HRESULT ECFreeBusyUpdate::SaveChanges(const FILETIME &ftStart,
     const FILETIME &ftEnd)
 {
 	HRESULT			hr = hrSuccess;
-	ULONG			cValues = 0;
-	ULONG			cProps = 0;
-	ULONG			ulMonths;
+	unsigned int cValues = 0, cProps = 0, ulMonths;
 	memory_ptr<SPropValue> lpPropArray, lpPropFBDataArray;
 	FILETIME		ft;	
-	struct tm		tmStart;
-	struct tm		tmEnd;
+	struct tm tmStart, tmEnd;
 	static constexpr const SizedSPropTagArray(8, sPropsFBDelete) = {
 		8,
 		{

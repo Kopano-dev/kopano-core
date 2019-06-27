@@ -79,11 +79,9 @@ HRESULT ECFreeBusySupport::Close()
 
 HRESULT ECFreeBusySupport::LoadFreeBusyData(ULONG cMax, FBUser *rgfbuser, IFreeBusyData **prgfbdata, HRESULT *phrStatus, ULONG *pcRead)
 {
-	ULONG			ulFindUsers = 0;
+	unsigned int ulFindUsers = 0, i;
 	ECFBBlockList	fbBlockList;
-	LONG			rtmStart = 0;
-	LONG			rtmEnd = 0;
-	ULONG			i;
+	int rtmStart = 0, rtmEnd = 0;
 
 	if((cMax > 0 && rgfbuser == NULL) || prgfbdata == NULL)
 		return MAPI_E_INVALID_PARAMETER;

@@ -632,13 +632,12 @@ time_t recurrence::calcStartDate() const
 
 time_t recurrence::calcEndDate() const
 {
-	struct tm tm;
-
 	if (m_sRecState.ulEndType != ET_NUMBER)
 		return getEndDateTime();
 
 	auto tStart = getStartDateTime();
 	auto tEnd = tStart;
+	struct tm tm;
 
 	switch (m_sRecState.ulRecurFrequency) {
 	case RF_DAILY:

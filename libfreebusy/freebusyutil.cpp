@@ -76,10 +76,9 @@ static HRESULT getMaxMonthMinutes(short year, short month, short *minutes)
 static HRESULT GetFreeBusyFolder(IMsgStore *lpPublicStore,
     IMAPIFolder **lppFreeBusyFolder)
 {
-	ULONG			cValuesFreeBusy = 0;
+	unsigned int cValuesFreeBusy = 0, ulObjType = 0;
 	memory_ptr<SPropValue> lpPropArrayFreeBusy;
 	object_ptr<IMAPIFolder> lpMapiFolder;
-	ULONG			ulObjType = 0;
 	static constexpr const SizedSPropTagArray(1, sPropsFreeBusy) =
 		{1, {PR_FREE_BUSY_FOR_LOCAL_SITE_ENTRYID}};
 	enum eFreeBusyPos{ FBPOS_FREE_BUSY_FOR_LOCAL_SITE_ENTRYID};
