@@ -88,8 +88,7 @@ bool LDAPConfigCheck::verifyLDAPQuery(const config_check_t *check)
 			if (!contains_data || !contains_check)
 				return false;
 			stack.erase(stack.end() - 1);
-			contains_data = false;
-			contains_check = false;
+			contains_data = contains_check = false;
 			break;
 		case '|':
 		case '&':

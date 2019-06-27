@@ -29,10 +29,7 @@ enum CHECK_FLAGS {
 struct config_check_t {
 	bool hosted;
 	bool multi;
-	std::string option1;
-	std::string option2;
-	std::string value1;
-	std::string value2;
+	std::string option1, option2, value1, value2;
 	int (*check)(const config_check_t *);
 };
 

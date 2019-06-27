@@ -102,8 +102,7 @@ void ECConfigCheck::setMulti(bool multi)
 
 void ECConfigCheck::validate()
 {
-	int warnings = 0;
-	int errors = 0;
+	int warnings = 0, errors = 0;
 
 	cout << "Starting configuration validation of " << m_lpszName << endl;
 	for (auto &c : m_lChecks) {
