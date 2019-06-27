@@ -202,11 +202,11 @@ static HRESULT oof_login()
 		return kc_perror("MAPIInitialize", ret);
 	object_ptr<IMAPISession> ses;
 	if (oof_pass != nullptr || (oof_sslkey != nullptr && oof_sslpass != nullptr))
-		ret = HrOpenECSession(&~ses, "oof", PROJECT_VERSION, oof_user,
+		ret = HrOpenECSession(&~ses, PROJECT_VERSION, "oof", oof_user,
 		      oof_pass, oof_host, EC_PROFILE_FLAGS_NO_NOTIFICATIONS,
 		      oof_sslkey, oof_sslpass);
 	else
-		ret = HrOpenECSession(&~ses, "oof", PROJECT_VERSION,
+		ret = HrOpenECSession(&~ses, PROJECT_VERSION, "oof",
 		      KOPANO_SYSTEM_USER, KOPANO_SYSTEM_USER, oof_host,
 		      EC_PROFILE_FLAGS_NO_NOTIFICATIONS, oof_sslkey,
 		      oof_sslpass);
