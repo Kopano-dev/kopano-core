@@ -1266,9 +1266,6 @@ HRESULT ECTNEF::FinishComponent(ULONG flags, ULONG ulComponentID,
     if(FAILED(hr))
 		return hr;
         
-    // ignore warnings
-    hr = hrSuccess;
-    
     memset(&sData, 0, sizeof(sData));
     sData.usType =     lpAttachProps[0].ulPropTag == PR_ATTACH_METHOD && lpAttachProps[0].Value.ul == ATTACH_OLE ? AttachTypeOle : AttachTypeFile;
     sData.ulPosition = lpAttachProps[1].ulPropTag == PR_RENDERING_POSITION ? lpAttachProps[1].Value.ul : 0;
