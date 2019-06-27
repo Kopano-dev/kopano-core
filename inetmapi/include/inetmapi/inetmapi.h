@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef INETMAPI_H
 #define INETMAPI_H
 
@@ -32,7 +31,6 @@ protected:
 	int smtpport;
 	std::wstring error;
 	int smtpresult = 0;
-
 	std::vector<sFailedRecip> mTemporaryFailedRecipients;
 	std::vector<sFailedRecip> mPermanentFailedRecipients;
 
@@ -70,6 +68,7 @@ extern _kc_export HRESULT IMToINet(IMAPISession *, IAddrBook *, IMessage *, ECSe
 // Parse the RFC822 input and create IMAP Envelope, Body and Bodystructure property values
 extern _kc_export HRESULT createIMAPProperties(const std::string &input, std::string *envelope, std::string *body, std::string *bodystruct);
 extern _kc_export HRESULT createIMAPBody(const std::string &input, IMessage *lpMessage, bool envelope = false);
+
 } /* namespace */
 
 #endif // INETMAPI_H

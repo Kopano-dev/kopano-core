@@ -712,7 +712,6 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage,
 		// but VMime can set only 'manual' or 'automatic' so should be add the string '-action'
 		strActionMode = vmime::dispositionActionModes::MANUAL;
 		strActionMode+= "-action";
-
 		dispo.setActionMode(strActionMode);
 		dispo.setSendingMode(vmime::dispositionSendingModes::SENT_MANUALLY);
 
@@ -757,15 +756,12 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage,
 		// rewrite subject
 		if (HrGetFullProp(lpMessage, PR_SUBJECT_W, &~lpSubject) == hrSuccess) {
 			removeEnters(lpSubject->Value.lpszW);
-
 			strOut = lpSubject->Value.lpszW;
-
 			vmMessage->getHeader()->Subject()->setValue(getVmimeTextFromWide(strOut));
 		}
 		
 		if (!strRepEmailAdd.empty()) {
 			vmMessage->getHeader()->Sender()->setValue(expeditor);
-
 			if (strRepName.empty() || strRepName == strRepEmailAdd) 
 				vmMessage->getHeader()->From()->setValue(vmime::mailbox(m_converter.convert_to<string>(strRepEmailAdd)));
 			else
@@ -1018,7 +1014,6 @@ HRESULT MAPIToVMIME::fillVMIMEMail(IMessage *lpMessage, bool bSkipContent, vmime
 		  To convert a VMMessageBuilder to a VMMessage object, an 'expeditor' needs to be set in vmime
 		  later on, this from will be overwritten .. so maybe replace this with a dummy value?
 		 */
-
 		std::wstring strName, strType, strEmAdd;
 		hr = HrGetAddress(m_lpAdrBook, lpMessage, PR_SENDER_ENTRYID, PR_SENDER_NAME_W, PR_SENDER_ADDRTYPE_W, PR_SENDER_EMAIL_ADDRESS_W, strName, strType, strEmAdd);
 		if (hr != hrSuccess)
@@ -1110,7 +1105,6 @@ HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder 
 	// will skip enters in q-p encoding, "fixes" plaintext mails to be more plain text
 	vmime::shared_ptr<vmime::utility::encoder::encoder> vmBodyEncoder = bodyEncoding.getEncoder();
 	vmBodyEncoder->getProperties().setProperty("text", true);
-
 	*bestBody = plaintext;
 
 	// grabbing rtf
@@ -1122,7 +1116,6 @@ HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder 
 			kc_perror("Unable to create RTF text stream", hr);
 			goto exit;
 		}
-
 		hr = Util::HrStreamToString(lpUncompressedRTFStream, strRtf);
 		if (hr != hrSuccess) {
 			kc_perror("Unable to read RTF text stream", hr);
@@ -1142,7 +1135,6 @@ HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder 
 					kc_perror("Unable to read HTML text stream", hr);
 					goto exit;
 				}
-
 				// strHTMLout is now escaped us-ascii HTML, this is what we will be sending
 				// Or, if something failed, the HTML is now empty
 				*bestBody = html;
@@ -1382,7 +1374,6 @@ HRESULT MAPIToVMIME::handleExtraHeaders(IMessage *lpMessage,
 		vmime::utility::outputStreamStringAdapter out(outString);
 
 		enc->encode(in, out);
-
 		vmHeader->appendField(hff->create("Thread-Index", outString));
 	}
 
@@ -1493,7 +1484,6 @@ HRESULT MAPIToVMIME::handleContactEntryID(ULONG cValues, LPSPropValue lpProps, w
 	hr = lpContact->GetIDsFromNames(ulNames, lppNames, MAPI_CREATE, &~lpNameTags);
 	if (FAILED(hr))
 		return hr;
-
 	lpNameTags->aulPropTag[0] = CHANGE_PROP_TYPE(lpNameTags->aulPropTag[0], PT_UNICODE);
 	lpNameTags->aulPropTag[1] = CHANGE_PROP_TYPE(lpNameTags->aulPropTag[1], PT_UNICODE);
 	lpNameTags->aulPropTag[2] = CHANGE_PROP_TYPE(lpNameTags->aulPropTag[2], PT_UNICODE);
@@ -1502,7 +1492,6 @@ HRESULT MAPIToVMIME::handleContactEntryID(ULONG cValues, LPSPropValue lpProps, w
 	hr = lpContact->GetProps(lpNameTags, 0, &ulNames, &~lpNamedProps);
 	if (FAILED(hr))
 		return hr;
-
 	return HrGetAddress(m_lpAdrBook, lpNamedProps, ulNames,
 	       lpNameTags->aulPropTag[4], lpNameTags->aulPropTag[0],
 	       lpNameTags->aulPropTag[1], lpNameTags->aulPropTag[2],
@@ -1830,12 +1819,10 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
 			iUseTnef = 1;
 			strTnefReason = "Force TNEF because of delegation";
 		}
-
 		if(iUseTnef <= 0 && is_voting_request(lpMessage)) {
 			iUseTnef = 1;
 			strTnefReason = "Force TNEF because of voting request";
 		}
-
 		if (iUseTnef == 0 && has_reminder(lpMessage)) {
 			iUseTnef = 1;
 			strTnefReason = "Force TNEF because of reminder";
@@ -1873,7 +1860,6 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
 					ec_log_warn("Unable to create ical object, sending as TNEF");
 					goto tnef_anyway;
 				}
-
 				hr = mapiical->Finalize(0, &method, &ical);
 				if (hr != hrSuccess) {
 					ec_log_warn("Unable to create ical object, sending as TNEF");

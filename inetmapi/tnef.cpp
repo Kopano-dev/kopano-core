@@ -88,7 +88,6 @@ static bool PropTagInPropList(ULONG ulPropTag, const SPropTagArray *lpPropList)
 {
 	if (lpPropList == NULL)
 		return false;
-
 	for (ULONG i = 0; i < lpPropList->cValues; ++i)
 		if (PROP_ID(ulPropTag) == PROP_ID(lpPropList->aulPropTag[i]))
 			return true;
@@ -207,7 +206,6 @@ HRESULT ECTNEF::AddProps(ULONG flags, const SPropTagArray *lpPropList)
 		if (PROP_ID(lpPropListMessage->aulPropTag[i]) >= 0x6700 &&
 		    PROP_ID(lpPropListMessage->aulPropTag[i]) <= 0x67FF)
 			continue;
-
 		// unable to save these properties
 		if(PROP_TYPE(lpPropListMessage->aulPropTag[i]) == PT_OBJECT || 
 		   PROP_TYPE(lpPropListMessage->aulPropTag[i]) == PT_UNSPECIFIED ||
@@ -275,39 +273,34 @@ HRESULT ECTNEF::ExtractProps(ULONG flags, SPropTagArray *lpPropList)
 	// File is made of blocks, with each a type and size. Component and Key are ignored.
 	while(1) {
 		hr = HrReadByte(m_lpStream, &ulComponent);
-
 		if(hr != hrSuccess) {
 			hr = hrSuccess; // EOF -> no error
 			goto exit;
 		}
-
 		hr = HrReadDWord(m_lpStream, &ulType);
 		if(hr != hrSuccess)
 			goto exit;
-
 		hr = HrReadDWord(m_lpStream, &ulSize);
 		if(hr != hrSuccess)
 			goto exit;
-
 		if (ulSize == 0) {
 			// do not allocate 0 size data block
 			hr = MAPI_E_CORRUPT_DATA;
 			goto exit;
 		}
+
 		hr = MAPIAllocateBuffer(ulSize, &~lpBuffer);
 		if(hr != hrSuccess)
 			goto exit;
 		hr = HrReadData(m_lpStream, lpBuffer, ulSize);
 		if(hr != hrSuccess)
 			goto exit;
-
 		hr = HrReadWord(m_lpStream, &ulChecksum);
 		if(hr != hrSuccess)
 			goto exit;
 
 		// Loop through all the blocks of the TNEF data. We are only interested
 		// in the properties block for now (0x00069003)
-
 		switch(ulType) {
 		case ATT_MAPI_PROPS:
 			hr = HrReadPropStream(lpBuffer, ulSize, lstProps);
@@ -323,7 +316,6 @@ HRESULT ECTNEF::ExtractProps(ULONG flags, SPropTagArray *lpPropList)
 
 				// We map the Schedule+ message class to the more modern MAPI message
 				// class. The mapping should be correct as far as we can find ..
-
 				char *szMAPIClass = (char *)FindMAPIClassByScheduleClass(szSClass.get());
 				if(szMAPIClass == NULL)
 					szMAPIClass = szSClass.get(); // mapping not found, use string from TNEF file
@@ -519,7 +511,6 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 
 			ucs2 = converter.convert_to<std::u16string>(lppNames[0]->Kind.lpwstrName);
 			ulLen = ucs2.length() * sizeof(std::u16string::value_type) + sizeof(std::u16string::value_type);
-
 			hr = HrWriteDWord(lpStream, ulLen);
 			if(hr != hrSuccess)
 				return hr;
@@ -706,7 +697,6 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 			if(lpProp->ulPropTag & MV_FLAG) {
 				ucs2 = converter.convert_to<std::u16string>(lpProp->Value.MVszW.lppszW[ulMVProp]);
 				ulLen = ucs2.length() * sizeof(std::u16string::value_type) + sizeof(std::u16string::value_type);
-
 				hr = HrWriteDWord(lpStream, ulLen);
 				if(hr != hrSuccess)
 					return hr;
@@ -714,7 +704,6 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 			} else {
 				ucs2 = converter.convert_to<std::u16string>(lpProp->Value.lpszW);
 				ulLen = ucs2.length() * sizeof(std::u16string::value_type) + sizeof(std::u16string::value_type);
-
 				hr = HrWriteDWord(lpStream, 1); // unknown why this is here
 				if(hr != hrSuccess)
 					return hr;
@@ -740,21 +729,18 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 		case PT_BINARY:
 			if(lpProp->ulPropTag & MV_FLAG) {
 				ulLen = lpProp->Value.MVbin.lpbin[ulMVProp].cb;
-
 				hr = HrWriteDWord(lpStream, ulLen);
 				if(hr != hrSuccess)
 					return hr;
 				hr = HrWriteData(lpStream, lpProp->Value.MVbin.lpbin[ulMVProp].lpb, ulLen);
 			} else {
 				ulLen = lpProp->Value.bin.cb;
-
 				hr = HrWriteDWord(lpStream, 1); // unknown why this is here
 				if(hr != hrSuccess)
 					return hr;
 				hr = HrWriteDWord(lpStream, ulLen + (PROP_TYPE(lpProp->ulPropTag) == PT_OBJECT ? sizeof(GUID) : 0));
 				if(hr != hrSuccess)
 					return hr;
-
                 if(PROP_TYPE(lpProp->ulPropTag) == PT_OBJECT)
 					HrWriteData(lpStream, &IID_IStorage, sizeof(GUID));
 				hr = HrWriteData(lpStream, lpProp->Value.bin.lpb, ulLen);
@@ -881,12 +867,10 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 			// copy through u16string so we can set the boundary to the given length
 			ucs2.assign(reinterpret_cast<const std::u16string::value_type *>(lpBuffer), ulLen / sizeof(std::u16string::value_type));
 			strUnicodeName = convert_to<std::wstring>(ucs2);
-
 			sNameID.ulKind = MNID_STRING;
 			sNameID.Kind.lpwstrName = const_cast<wchar_t *>(strUnicodeName.c_str());
 			lpBuffer += ulLen;
 			ulSize -= ulLen;
-
 			// Re-align
 			lpBuffer += ulLen & 3 ? 4 - (ulLen & 3) : 0;
 			ulSize -= ulLen & 3 ? 4 - (ulLen & 3) : 0;
@@ -902,7 +886,6 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 		hr = m_lpMessage->GetIDsFromNames(1, &lpNameID, MAPI_CREATE, &~lpPropTags);
 		if(hr != hrSuccess)
 			return hr;
-
 		// Use the mapped ID, not the original ID. The original ID is discarded
 		ulPropTag = CHANGE_PROP_TYPE(lpPropTags->aulPropTag[0], PROP_TYPE(ulPropTag));
 	}
@@ -1117,7 +1100,6 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 
 			lpBuffer += ulLen;
 			ulSize -= ulLen;
-
 			// Re-align
 			lpBuffer += ulLen & 3 ? 4 - (ulLen & 3) : 0;
 			ulSize -= ulLen & 3 ? 4 - (ulLen & 3) : 0;
@@ -1158,7 +1140,6 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 
 			lpBuffer += ulLen;
 			ulSize -= ulLen;
-
 			// Re-align
 			lpBuffer += ulLen & 3 ? 4 - (ulLen & 3) : 0;
 			ulSize -= ulLen & 3 ? 4 - (ulLen & 3) : 0;
@@ -1199,7 +1180,6 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 
 			lpBuffer += ulLen;
 			ulSize -= ulLen;
-
 			// Re-align
 			lpBuffer += ulLen & 3 ? 4 - (ulLen & 3) : 0;
 			ulSize -= ulLen & 3 ? 4 - (ulLen & 3) : 0;
@@ -1311,12 +1291,10 @@ HRESULT ECTNEF::FinishComponent(ULONG flags, ULONG ulComponentID,
             hr = lpAttach->OpenProperty(lpProps[i].ulPropTag, &IID_IStream, 0, 0, &~lpStream);
             if(hr != hrSuccess)
 				return hr;
-                
             // We save the actual data same way as PT_BINARY
             hr = HrReadStream(lpStream, lpsNewProp, &lpsNewProp->Value.bin.lpb, &lpsNewProp->Value.bin.cb);
             if(hr != hrSuccess)
 				return hr;
-                
             lpsNewProp->ulPropTag = lpProps[i].ulPropTag;
         } else {
             hr = Util::HrCopyProperty(lpsNewProp, &lpProps[i], lpsNewProp);
@@ -1738,7 +1716,6 @@ HRESULT ECTNEF::HrGetChecksum(IStream *lpStream, ULONG *lpulChecksum)
 			return hr;
 		if(ulRead == 0)
 			break;
-
 		for (i = 0; i < ulRead; ++i)
 			ulChecksum += buffer[i];
 	}

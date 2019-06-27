@@ -28,7 +28,6 @@
 // a combined work based on this library.  Thus, the terms and conditions of
 // the GNU General Public License cover the whole combination.
 //
-
 #ifndef MAPI_NET_SMTP_SMTPTRANSPORT_HPP_INCLUDED
 #define MAPI_NET_SMTP_SMTPTRANSPORT_HPP_INCLUDED
 
@@ -44,31 +43,22 @@ namespace vmime {
 namespace net {
 namespace smtp {
 
-
 class SMTPResponse;
-
 
 /** SMTP transport service.
   */
 class MAPISMTPTransport final : public transport {
 public:
-
 	MAPISMTPTransport(vmime::shared_ptr<session> sess, vmime::shared_ptr<security::authenticator> auth, const bool secured = false);
 	~MAPISMTPTransport();
-
 	const std::string getProtocolName(void) const { return "mapismtp"; }
-
 	static const serviceInfos &getInfosInstance(void) { return sm_infos; }
 	const serviceInfos& getInfos() const { return sm_infos; }
-
 	void connect();
 	bool isConnected() const;
 	void disconnect();
-
 	void noop();
-
 	void send(const mailbox &expeditor, const mailboxList &recipients, utility::inputStream &, size_t, utility::progressListener * = NULL, const mailbox &sender = mailbox());
-
 	bool isSecuredConnection(void) const { return m_secured; }
 	vmime::shared_ptr<connectionInfos> getConnectionInfos(void) const { return m_cntInfos; }
 
@@ -78,18 +68,14 @@ public:
 	void requestDSN(BOOL bRequest, const std::string &strTrackid);
 
 private:
-
 	void sendRequest(const string& buffer, const bool end = true);
 	vmime::shared_ptr<SMTPResponse> readResponse(void);
-
 	void internalDisconnect();
-
 	void helo();
 	void authenticate();
 #if VMIME_HAVE_SASL_SUPPORT
 	void authenticateSASL();
 #endif // VMIME_HAVE_SASL_SUPPORT
-
 #if VMIME_HAVE_TLS_SUPPORT
 	void startTLS();
 #endif // VMIME_HAVE_TLS_SUPPORT
@@ -99,15 +85,11 @@ private:
 	bool m_extendedSMTP = false;
 	std::map <string, std::vector <string> > m_extensions;
 	vmime::shared_ptr<timeoutHandler> m_timeoutHandler;
-
 	const bool m_isSMTPS;
 	bool m_secured = false;
 	vmime::shared_ptr<connectionInfos> m_cntInfos;
-
-
 	// Service infos
 	static SMTPServiceInfos sm_infos;
-
 	// additional data
 	std::vector<KC::sFailedRecip> mTemporaryFailedRecipients;
 	std::vector<KC::sFailedRecip> mPermanentFailedRecipients;
@@ -116,10 +98,8 @@ private:
 	SMTPResponse::state m_response_state;
 };
 
-
 } // smtp
 } // net
 } // vmime
-
 
 #endif // MAPI_NET_SMTP_SMTPTRANSPORT_HPP_INCLUDED

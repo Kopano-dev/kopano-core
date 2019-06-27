@@ -28,7 +28,6 @@
 // a combined work based on this library.  Thus, the terms and conditions of
 // the GNU General Public License cover the whole combination.
 //
-
 #ifndef VMIME_MAPITEXTPART_HPP_INCLUDED
 #define VMIME_MAPITEXTPART_HPP_INCLUDED
 
@@ -45,7 +44,6 @@ namespace vmime {
 
 class mapiTextPart final : public textPart {
 public:
-
 	mapiTextPart();
 	const mediaType getType() const override;
 	const charset &getCharset() const override { return m_charset; }
@@ -120,7 +118,6 @@ public:
 		string m_name;
 		string m_loc;
 	};
-
 
 	/** Test the existence of an embedded object given its identifier.
 	  *
@@ -219,14 +216,10 @@ private:
 
 	void findEmbeddedParts(const bodyPart& part, std::vector<vmime::shared_ptr<const bodyPart> > &cidParts, std::vector<vmime::shared_ptr<const bodyPart> > &locParts);
 	void addEmbeddedObject(const bodyPart& part, const string& id);
-
 	bool findPlainTextPart(const bodyPart& part, const bodyPart& parent, const bodyPart& textPart);
-
 	static const string cleanId(const string& id);
 };
 
-
 } // vmime
-
 
 #endif // VMIME_HTMLTEXTPART_HPP_INCLUDED

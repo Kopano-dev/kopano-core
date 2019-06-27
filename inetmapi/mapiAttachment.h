@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 // -*- Mode: C++; -*-
 #ifndef MAPIATTACHMENT_H
 #define MAPIATTACHMENT_H
@@ -14,7 +13,6 @@ namespace KC {
 
 class mapiAttachment final : public vmime::defaultAttachment {
 public:
-
 	mapiAttachment(vmime::shared_ptr<const vmime::contentHandler> data,
 				   const vmime::encoding& enc,
 				   const vmime::mediaType& type,
@@ -22,11 +20,9 @@ public:
 				   const vmime::word &filename,
 				   const vmime::text& desc = vmime::NULL_TEXT,
 				   const vmime::word& name = vmime::NULL_WORD);
-
 	void addCharset(vmime::charset ch);
 
 private:
-
 	vmime::word m_filename;
 	std::string m_contentid;
 	bool m_hasCharset = false;

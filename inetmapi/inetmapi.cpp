@@ -169,7 +169,6 @@ HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
 		return hr;
 	auto lpszData = new char[oss.str().size()+1];
 	strcpy(lpszData, oss.str().c_str());
-
 	*lppbuf = lpszData;
 	return hr;
 }
@@ -198,8 +197,8 @@ HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
 			msgid = lpMessageId->Value.lpszA;
 		else
 			msgid = vmime::messageId(generate_message_id(lpMessage), vmime::platform::getHandler()->getHostName());
-		lpVMMessage->getHeader()->MessageId()->setValue(msgid);
 
+		lpVMMessage->getHeader()->MessageId()->setValue(msgid);
 		lpVMMessage->generate(adapter);
 	} catch (const vmime::exception &) {
 		return MAPI_E_NOT_FOUND;

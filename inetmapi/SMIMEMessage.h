@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef SMIMEMESSAGE_H
 #define SMIMEMESSAGE_H
 
@@ -32,7 +31,6 @@ namespace KC {
  * directly from vmime::message.
  *
  * Note that any other body data set will be override by the SMIMEBody.
- *
  */
 class SMIMEMessage final : public vmime::message {
 public:
