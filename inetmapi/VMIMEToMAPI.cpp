@@ -1103,6 +1103,18 @@ HRESULT VMIMEToMAPI::handleRecipients(vmime::shared_ptr<vmime::header> vmHeader,
 			if (hr != hrSuccess)
 				return hr;
 		}
+
+		/*
+		 * Data can also come from ActiveSync's submit mechanism, so
+		 * there may be fields that normally never exist in meaningful
+		 * Internet Email.
+		 */
+		if (!lpVMAListBlCpRecip->isEmpty()) {
+			hr = modifyRecipientList(lpRecipients, lpVMAListBlCpRecip, MAPI_BCC);
+			if (hr != hrSuccess)
+				return hr;
+		}
+
 		hr = handleMessageToMeProps(lpMessage, lpRecipients);
 		if (hr != hrSuccess)
 			return hr;
