@@ -1002,7 +1002,6 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 	case RES_PROPERTY: {
 		LPSPropValue lpProp;
 		if (lpRes->rt == RES_PROPERTY) {
-			// ULPROPTAG
 			valueEntry = zend_hash_index_find(dataHash, ULPROPTAG);
 			if (valueEntry == nullptr) {
 				php_error_docref(NULL TSRMLS_CC, E_WARNING, "RES_PROPERTY, Missing field ULPROPTAG");
@@ -1010,7 +1009,6 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 			}
 			lpRes->res.resProperty.ulPropTag = zval_get_long(valueEntry);
 
-			// RELOP
 			valueEntry = zend_hash_index_find(dataHash, RELOP);
 			if (valueEntry == nullptr) {
 				php_error_docref(NULL TSRMLS_CC, E_WARNING, "RES_PROPERTY, Missing field RELOP");
@@ -1018,7 +1016,6 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 			}
 			lpRes->res.resProperty.relop = zval_get_long(valueEntry);
 		} else {
-			// ULPROPTAG
 			valueEntry = zend_hash_index_find(dataHash, ULPROPTAG);
 			if (valueEntry == nullptr) {
 				php_error_docref(NULL TSRMLS_CC, E_WARNING, "RES_CONTENT, Missing field ULPROPTAG");
@@ -1046,7 +1043,6 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 			};
 		}
 
-		// VALUE
 		valueEntry = zend_hash_index_find(dataHash, VALUE);
 		if (valueEntry == nullptr) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "RES_PROPERTY or RES_CONTENT, Missing field VALUE");
@@ -1134,21 +1130,20 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 		break;
 	}
 	case RES_COMPAREPROPS:
-		// RELOP
 		valueEntry = zend_hash_index_find(dataHash, RELOP);
 		if (valueEntry == nullptr) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "RES_COMPAREPROPS, Missing field RELOP");
 			return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 		}
 		lpRes->res.resCompareProps.relop = zval_get_long(valueEntry);
-		// ULPROPTAG1
+
 		valueEntry = zend_hash_index_find(dataHash, ULPROPTAG1);
 		if (valueEntry == nullptr) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "RES_COMPAREPROPS, Missing field ULPROPTAG1");
 			return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 		}
 		lpRes->res.resCompareProps.ulPropTag1 = zval_get_long(valueEntry);
-		// ULPROPTAG2
+
 		valueEntry = zend_hash_index_find(dataHash, ULPROPTAG2);
 		if (valueEntry == nullptr) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "RES_COMPAREPROPS, Missing field ULPROPTAG2");
@@ -1157,21 +1152,20 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 		lpRes->res.resCompareProps.ulPropTag2 = zval_get_long(valueEntry);
 		break;
 	case RES_BITMASK:
-		// ULTYPE
 		valueEntry = zend_hash_index_find(dataHash, ULTYPE);
 		if (valueEntry == nullptr) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "RES_BITMASK, Missing field ULTYPE");
 			return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 		}
 		lpRes->res.resBitMask.relBMR = zval_get_long(valueEntry);
-		// ULMASK
+
 		valueEntry = zend_hash_index_find(dataHash, ULMASK);
 		if (valueEntry == nullptr) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "RES_BITMASK, Missing field ULMASK");
 			return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 		}
 		lpRes->res.resBitMask.ulMask = zval_get_long(valueEntry);
-		// ULPROPTAG
+
 		valueEntry = zend_hash_index_find(dataHash, ULPROPTAG);
 		if (valueEntry == nullptr) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "RES_BITMASK, Missing field ULPROPTAG");
@@ -1180,21 +1174,20 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 		lpRes->res.resBitMask.ulPropTag = zval_get_long(valueEntry);
 		break;
 	case RES_SIZE:
-		// CB
 		valueEntry = zend_hash_index_find(dataHash, CB);
 		if (valueEntry == nullptr) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "RES_SIZE, Missing field CB");
 			return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 		}
 		lpRes->res.resSize.cb = zval_get_long(valueEntry);
-		// RELOP
+
 		valueEntry = zend_hash_index_find(dataHash, RELOP);
 		if (valueEntry == nullptr) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "RES_SIZE, Missing field RELOP");
 			return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 		}
 		lpRes->res.resSize.relop = zval_get_long(valueEntry);
-		// ULPROPTAG
+
 		valueEntry = zend_hash_index_find(dataHash, ULPROPTAG);
 		if (valueEntry == nullptr) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "RES_SIZE, Missing field ULPROPTAG");
@@ -1203,7 +1196,6 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 		lpRes->res.resSize.ulPropTag = zval_get_long(valueEntry);
 		break;
 	case RES_EXIST:
-		// ULPROPTAG
 		valueEntry = zend_hash_index_find(dataHash, ULPROPTAG);
 		if (valueEntry == nullptr) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "RES_EXIST, Missing field ULPROPTAG");
