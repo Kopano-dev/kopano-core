@@ -260,13 +260,13 @@ HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
 	       sopt.allow_send_to_everyone, sopt.always_expand_distr_list);
 }
 
-/** 
+/**
  * Create BODY and BODYSTRUCTURE strings for IMAP.
- * 
+ *
  * @param[in] input an RFC 2822 email
  * @param[out] lpSimple optional BODY result
  * @param[out] lpExtended optional BODYSTRUCTURE result
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT createIMAPProperties(const std::string &input, std::string *lpEnvelope,

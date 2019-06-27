@@ -435,9 +435,9 @@ void MAPISMTPTransport::noop()
 		throw exceptions::command_error("NOOP", resp->getText());
 }
 
-//                             
+//
 // Only this function is altered, to return per recipient failure.
-//                             
+//
 void MAPISMTPTransport::send(const mailbox &expeditor,
     const mailboxList &recipients, utility::inputStream &is, size_t size,
     utility::progressListener *progress, const mailbox &sender)

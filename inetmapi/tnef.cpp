@@ -9,9 +9,9 @@
  */
 
 /**
- * @brief  
+ * @brief
  * This is our TNEF class, which has been specially designed for
- * simple TNEF reading and writing. 
+ * simple TNEF reading and writing.
  *
  * Currently does not support recipient-table properties.
  *
@@ -29,7 +29,7 @@
 #include <kopano/platform.h>
 #include <memory>
 #include <cstdint>
-#include <mapidefs.h> 
+#include <mapidefs.h>
 #include <mapiutil.h>
 #include <mapiguid.h>
 #include <kopano/mapiext.h>
@@ -142,10 +142,10 @@ static HRESULT StreamToPropValue(IStream *lpStream, ULONG ulPropTag,
 		return hr;
 
 	lpPropValue->ulPropTag = ulPropTag;
-	
+
 	if (PROP_TYPE(ulPropTag) == PT_BINARY) {
 		lpPropValue->Value.bin.cb = (ULONG)sStatstg.cbSize.QuadPart;
-	
+
 		hr = MAPIAllocateMore((ULONG)sStatstg.cbSize.QuadPart, lpPropValue,
 		     reinterpret_cast<void **>(&lpPropValue->Value.bin.lpb));
 		if(hr != hrSuccess)
@@ -207,7 +207,7 @@ HRESULT ECTNEF::AddProps(ULONG flags, const SPropTagArray *lpPropList)
 		    PROP_ID(lpPropListMessage->aulPropTag[i]) <= 0x67FF)
 			continue;
 		// unable to save these properties
-		if(PROP_TYPE(lpPropListMessage->aulPropTag[i]) == PT_OBJECT || 
+		if (PROP_TYPE(lpPropListMessage->aulPropTag[i]) == PT_OBJECT ||
 		   PROP_TYPE(lpPropListMessage->aulPropTag[i]) == PT_UNSPECIFIED ||
 		   PROP_TYPE(lpPropListMessage->aulPropTag[i]) == PT_NULL)
 			continue;
@@ -244,7 +244,7 @@ HRESULT ECTNEF::AddProps(ULONG flags, const SPropTagArray *lpPropList)
  * @param[in]	ulFlags		TNEF_PROP_INCLUDE or TNEF_PROP_EXCLUDE
  * @param[in]	lpPropList	List of properties to include from the stream if present in m_lpMessage or
  * 							List of properties to exclude from the stream if present in m_lpMessage
- * 
+ *
  * @retval	MAPI_E_CORRUPT_DATA TNEF stream input is broken, or other MAPI error codes
  */
 HRESULT ECTNEF::ExtractProps(ULONG flags, SPropTagArray *lpPropList)
@@ -354,7 +354,7 @@ HRESULT ECTNEF::ExtractProps(ULONG flags, SPropTagArray *lpPropList)
 			// Start marker of attachment
 		    if(ulSize == sizeof(struct AttachRendData) && lpBuffer) {
 				auto lpData = reinterpret_cast<AttachRendData *>(lpBuffer.get());
-		        
+
 				if (lpTnefAtt != nullptr && (lpTnefAtt->data != nullptr || !lpTnefAtt->lstProps.empty()))
 					/* end marker previous attachment */
 					lstAttachments.emplace_back(std::move(lpTnefAtt));
@@ -465,7 +465,7 @@ HRESULT ECTNEF::HrWritePropStream(IStream *lpStream, std::list<memory_ptr<SPropV
  * @param[in]		lpProp		MAPI property to write to the TNEF stream
  * @return MAPI error code
  */
-HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp) 
+HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 {
 	HRESULT hr = hrSuccess;
 	SizedSPropTagArray(1, sPropTagArray);
@@ -657,7 +657,7 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 				if(hr != hrSuccess)
 					return hr;
 				hr = HrWriteDWord(lpStream, lpProp->Value.li.HighPart);
-			} 
+			}
 			if (hr != hrSuccess)
 				return hr;
 			break;
@@ -756,7 +756,7 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 				++ulLen;
 			}
 			break;
-		
+
 		case PT_CLSID:
 			if (lpProp->ulPropTag & MV_FLAG)
 				hr = HrWriteData(lpStream, &lpProp->Value.MVguid.lpguid[ulMVProp], sizeof(GUID));
@@ -897,7 +897,7 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 		ulCount = le32_to_cpu(tmp4);
 		lpBuffer += 4;
 		ulSize -= 4;
-		
+
 		switch(PROP_TYPE(ulPropTag)) {
 		case PT_MV_I2:
 			lpProp->Value.MVi.cValues = ulCount;
@@ -1065,7 +1065,7 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 				lpProp->Value.li.LowPart = le32_to_cpu(tmp4);
 				memcpy(&tmp4, lpBuffer + 4, sizeof(tmp4));
 				lpProp->Value.li.HighPart = le32_to_cpu(tmp4);
-			} 
+			}
 
 			lpBuffer += 8;
 			ulSize -= 8;
@@ -1079,7 +1079,7 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
             }
 			memcpy(&tmp4, lpBuffer, sizeof(tmp4));
 			unsigned int ulLen = le32_to_cpu(tmp4);
-			lpBuffer += 4; 
+			lpBuffer += 4;
 			ulSize -= 4;
 
 			if (ulSize < ulLen)
@@ -1194,7 +1194,7 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 				hr = KAllocCopy(lpBuffer, sizeof(GUID), reinterpret_cast<void **>(&lpProp->Value.lpguid), lpProp);
 				if (hr != hrSuccess)
 					return hr;
-			} 
+			}
 
 			lpBuffer += sizeof(GUID);
 			ulSize -= sizeof(GUID);
@@ -1260,21 +1260,21 @@ HRESULT ECTNEF::FinishComponent(ULONG flags, ULONG ulComponentID,
 	auto hr = m_lpMessage->OpenAttach(ulComponentID, &IID_IAttachment, 0, &~lpAttach);
     if(hr != hrSuccess)
 		return hr;
-    
+
     // Get some properties we always need
 	hr = lpAttach->GetProps(sptaTags, 0, &cValues, &~lpAttachProps);
     if(FAILED(hr))
 		return hr;
-        
+
     memset(&sData, 0, sizeof(sData));
     sData.usType =     lpAttachProps[0].ulPropTag == PR_ATTACH_METHOD && lpAttachProps[0].Value.ul == ATTACH_OLE ? AttachTypeOle : AttachTypeFile;
     sData.ulPosition = lpAttachProps[1].ulPropTag == PR_RENDERING_POSITION ? lpAttachProps[1].Value.ul : 0;
-        
+
     // Get user-passed properties
 	hr = lpAttach->GetProps(lpPropList, 0, &cValues, &~lpProps);
     if(FAILED(hr))
 		return hr;
-    
+
     for (unsigned int i = 0; i < cValues; ++i) {
         // Other properties
         if(PROP_TYPE(lpProps[i].ulPropTag) == PT_ERROR)
@@ -1282,7 +1282,7 @@ HRESULT ECTNEF::FinishComponent(ULONG flags, ULONG ulComponentID,
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpsNewProp);
         if(hr != hrSuccess)
 			return hr;
-                
+
         if(PROP_TYPE(lpProps[i].ulPropTag) == PT_OBJECT) {
             // PT_OBJECT requested, open object as stream and read the data
             hr = lpAttach->OpenProperty(lpProps[i].ulPropTag, &IID_IStream, 0, 0, &~lpStream);
@@ -1297,7 +1297,7 @@ HRESULT ECTNEF::FinishComponent(ULONG flags, ULONG ulComponentID,
             hr = Util::HrCopyProperty(lpsNewProp, &lpProps[i], lpsNewProp);
             if(hr != hrSuccess)
 			return hr;
-        }        
+        }
         sTnefAttach->lstProps.emplace_back(std::move(lpsNewProp));
     }
 
@@ -1354,7 +1354,7 @@ HRESULT ECTNEF::Finish()
 			auto hr = m_lpMessage->CreateAttach(nullptr, 0, &ulAttachNum, &~lpAttach);
 			if (hr != hrSuccess)
 				return hr;
-				
+
 			sProp.ulPropTag = PR_ATTACH_METHOD;
 			if (att->rdata.usType == AttachTypeOle)
 				sProp.Value.ul = ATTACH_OLE;
@@ -1368,7 +1368,7 @@ HRESULT ECTNEF::Finish()
 			sProp.ulPropTag = PR_RENDERING_POSITION;
 			sProp.Value.ul = att->rdata.ulPosition;
 			lpAttach->SetProps(1, &sProp, NULL);
-            
+
 			for (const auto &p : att->lstProps) {
 				// must not set PR_ATTACH_NUM by ourselves
 				if (PROP_ID(p->ulPropTag) == PROP_ID(PR_ATTACH_NUM))
@@ -1684,7 +1684,7 @@ HRESULT ECTNEF::HrWriteData(IStream *lpStream, const void *vdata, size_t ulLen)
 }
 
 /**
- * TNEF uses the rather stupid checksum of adding all the bytes in the stream. 
+ * TNEF uses the rather stupid checksum of adding all the bytes in the stream.
  * Was TNEF coded by an intern or something ??
  *
  * @param[in]	lpStream		Input TNEF stream, this object will be unmodified
@@ -1721,14 +1721,14 @@ HRESULT ECTNEF::HrGetChecksum(IStream *lpStream, ULONG *lpulChecksum)
 	return hrSuccess;
 }
 
-/** 
+/**
  * Copy stream data to another stream with given TNEF block id and level number.
- * 
+ *
  * @param[in,out] lpDestStream Stream to write data to
  * @param[in] lpSourceStream Stream to read data from
  * @param[in] ulBlockID TNEF block id number
  * @param[in] ulLevel TNEF level number
- * 
+ *
  * @return MAPI error code
  */
 HRESULT ECTNEF::HrWriteBlock(IStream *lpDestStream, IStream *lpSourceStream, ULONG ulBlockID, ULONG ulLevel)
@@ -1761,15 +1761,15 @@ HRESULT ECTNEF::HrWriteBlock(IStream *lpDestStream, IStream *lpSourceStream, ULO
 	return HrWriteWord(lpDestStream, ulChecksum);
 }
 
-/** 
+/**
  * Write a buffer to a stream with given TNEF block id and level number.
- * 
+ *
  * @param[in,out] lpDestStream Stream to write data block in
  * @param[in] lpData Data block to write to stream
  * @param[in] ulLen Lenght of lpData
  * @param[in] ulBlockID TNEF Block ID number
  * @param[in] ulLevel TNEF Level number
- * 
+ *
  * @return MAPI error code
  */
 HRESULT ECTNEF::HrWriteBlock(IStream *lpDestStream, const char *lpData,
@@ -1785,14 +1785,14 @@ HRESULT ECTNEF::HrWriteBlock(IStream *lpDestStream, const char *lpData,
 	return HrWriteBlock(lpDestStream, lpStream, ulBlockID, ulLevel);
 }
 
-/** 
+/**
  * Read a complete stream into a buffer. (Don't we have this function somewhere in common/ ?)
- * 
+ *
  * @param[in] lpStream stream to read into buffer and return as BYTE array, cursor will be at the end on return
  * @param[in] lpBase pointer to use with MAPIAllocateMore, cannot be NULL
  * @param[out] lppData New allocated (more) buffer with contents of stream
  * @param[out] lpulSize size of *lppData buffer
- * 
+ *
  * @return MAPI error code
  */
 HRESULT ECTNEF::HrReadStream(IStream *lpStream, void *lpBase, BYTE **lppData, ULONG *lpulSize)
@@ -1818,7 +1818,7 @@ HRESULT ECTNEF::HrReadStream(IStream *lpStream, void *lpBase, BYTE **lppData, UL
         ulSize += ulRead;
         sStat.cbSize.QuadPart -= ulRead;
     }
-        
+
     *lppData = lpBuffer;
     *lpulSize = ulSize;
     return hrSuccess;

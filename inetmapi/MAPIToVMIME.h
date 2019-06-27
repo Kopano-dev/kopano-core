@@ -46,7 +46,7 @@ private:
 	std::string m_strHTMLCharset;	//!< HTML body charset in MAPI message (input)
 
 	enum eBestBody { plaintext, html, realRTF };
-	
+
 	HRESULT fillVMIMEMail(IMessage *lpMessage, bool bSkipContent, vmime::messageBuilder* lpVMMessageBuilder);
 
 	HRESULT handleTextparts(IMessage* lpMessage, vmime::messageBuilder* lpVMMessageBuilder, eBestBody *bestBody);
