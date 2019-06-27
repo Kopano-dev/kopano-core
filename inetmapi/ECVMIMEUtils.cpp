@@ -31,10 +31,8 @@ using namespace std::string_literals;
 
 namespace KC {
 
-class mapiTimeoutHandler : public vmime::net::timeoutHandler {
+class mapiTimeoutHandler final : public vmime::net::timeoutHandler {
 public:
-	virtual ~mapiTimeoutHandler(void) = default;
-
 	// @todo add logging
 	virtual bool isTimeOut() override { return getTime() >= (m_last + 5*60); };
 	virtual void resetTimeOut() override { m_last = getTime(); };
