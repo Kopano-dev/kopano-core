@@ -27,7 +27,6 @@
 #include <kopano/stringutil.h>
 #include <kopano/charset/convert.h>
 #include <kopano/ecversion.h>
-#include <kopano/charset/utf8string.h>
 #include <kopano/ECFeatures.hpp>
 #include "POP3.h"
 

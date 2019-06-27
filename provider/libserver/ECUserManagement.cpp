@@ -35,7 +35,6 @@
 #include "ECFeatureList.h"
 #include <kopano/EMSAbTag.h>
 #include <kopano/charset/convert.h>
-#include <kopano/charset/utf8string.h>
 #ifndef AB_UNICODE_OK
 #define AB_UNICODE_OK ((ULONG) 0x00000040)
 #endif

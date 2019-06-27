@@ -12,7 +12,6 @@
 #include <kopano/memory.hpp>
 #include <kopano/userutil.h>
 #include <kopano/ecversion.h>
-#include <kopano/charset/utf8string.h>
 #include <kopano/charset/convert.h>
 #include <kopano/ECDefs.h>
 #include <kopano/ECGuid.h>
