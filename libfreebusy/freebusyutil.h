@@ -10,7 +10,6 @@
  * @addtogroup libfreebusy
  * @{
  */
-
 #ifndef ECFREEBUSYUTIL_H
 #define ECFREEBUSYUTIL_H
 

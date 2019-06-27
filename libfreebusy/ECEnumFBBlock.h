@@ -10,7 +10,6 @@
  * @addtogroup libfreebusy
  * @{
  */
-
 #ifndef ECENUMFBBLOCK_H
 #define ECENUMFBBLOCK_H
 

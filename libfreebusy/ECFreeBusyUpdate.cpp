@@ -42,7 +42,6 @@ HRESULT ECFreeBusyUpdate::PublishFreeBusy(const FBBlock_1 *lpBlocks, ULONG nBloc
 HRESULT ECFreeBusyUpdate::ResetPublishedFreeBusy()
 {
 	m_fbBlockList.Clear();
-
 	return S_OK;
 }
 
@@ -78,7 +77,6 @@ HRESULT ECFreeBusyUpdate::SaveChanges(const FILETIME &ftStart,
 		hr = MAPI_E_INVALID_OBJECT;
 		goto exit;
 	}
-
 	if((ULONG)rtmStart > (ULONG)rtmEnd)
 	{
 		hr = MAPI_E_BAD_VALUE;
@@ -105,16 +103,12 @@ HRESULT ECFreeBusyUpdate::SaveChanges(const FILETIME &ftStart,
 
 	lpPropArray[cProps].ulPropTag = PR_FREEBUSY_LAST_MODIFIED;
 	lpPropArray[cProps++].Value.ft = ft;
-
 	lpPropArray[cProps].ulPropTag = PR_FREEBUSY_START_RANGE;
 	lpPropArray[cProps++].Value.l = rtmStart;
-
 	lpPropArray[cProps].ulPropTag = PR_FREEBUSY_END_RANGE;
 	lpPropArray[cProps++].Value.l = rtmEnd;
-
 	lpPropArray[cProps].ulPropTag = PR_FREEBUSY_NUM_MONTHS;
 	lpPropArray[cProps++].Value.l = ulMonths;	
-
 	hr = m_lpMessage->SetProps(cProps, lpPropArray, NULL);
 	if(hr != hrSuccess)
 		goto exit;
@@ -151,7 +145,6 @@ HRESULT ECFreeBusyUpdate::SaveChanges(const FILETIME &ftStart,
 	hr = m_lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
 	if(hr != hrSuccess)
 		goto exit;
-
 exit:
 	m_fbBlockList.Reset();
 	return hr;

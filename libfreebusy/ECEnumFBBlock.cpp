@@ -17,9 +17,7 @@ namespace KC {
 ECEnumFBBlock::ECEnumFBBlock(ECFBBlockList* lpFBBlock)
 {
 	FBBlock_1 sBlock;
-
 	lpFBBlock->Reset();
-
 	while(lpFBBlock->Next(&sBlock) == hrSuccess)
 		m_FBBlock.Add(sBlock);
 }
@@ -64,7 +62,6 @@ HRESULT ECEnumFBBlock::Next(LONG celt, FBBlock_1 *pblk, LONG *pcfetch)
 			break;
 		++cEltFound;
 	}
-
 	if(pcfetch)
 		*pcfetch = cEltFound;
 	return cEltFound == 0;

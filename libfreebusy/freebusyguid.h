@@ -10,7 +10,6 @@
  * @addtogroup libfreebusy
  * @{
  */
-
 #ifndef FREEBUSYGUID_INCLUDED
 #define FREEBUSYGUID_INCLUDED
 
