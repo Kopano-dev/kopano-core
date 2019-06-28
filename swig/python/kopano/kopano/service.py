@@ -54,16 +54,19 @@ def _daemon_helper(func, service, log):
         if not service or isinstance(service, Service):
             if isinstance(service, Service): # XXX
                 service.log_queue = multiprocessing.Queue()
+                service.log_queue.cancel_join_thread()
                 service.ql = _log.QueueListener(service.log_queue, *service.log.handlers)
                 service.ql.start()
             func()
         else:
             func(service)
     finally:
-        if isinstance(service, Service) and service.ql: # XXX move queue stuff into Service
-            service.ql.stop()
         if log and service:
             log.info('stopping %s', service.name)
+        if isinstance(service, Service) and service.ql: # XXX move queue stuff into Service
+            service.ql.stop()
+            service.log_queue.close()
+            service.log_queue.join_thread()
 
 def _daemonize(func, options=None, foreground=False, log=None, config=None, service=None):
     uid = gid = None
