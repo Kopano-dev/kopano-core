@@ -2382,3 +2382,49 @@ HRESULT ConvertString8ToUnicode(LPSRowSet lpRowSet)
 	}
 	return hrSuccess;
 }
+
+HRESULT convert_wsfolder_to_soapfolder(const std::vector<WSMAPIFolderOps::WSFolder> &source,
+    std::vector<new_folder> &destination)
+{
+	const auto count = source.size();
+	destination.resize(count);
+	for (unsigned int i = 0; i < count; ++i) {
+		const auto &src = source[i];
+		auto &dst       = destination[i];
+
+		dst.type           = src.folder_type;
+		dst.name           = src.name.c_str();
+		dst.comment        = src.comment.c_str();
+		dst.open_if_exists = src.open_if_exists;
+		dst.sync_id        = src.sync_id;
+
+		if (src.m_lpNewEntryId != nullptr) {
+			auto ret = CopyMAPIEntryIdToSOAPEntryId(src.m_cbNewEntryId, src.m_lpNewEntryId, &dst.entryid);
+			if (ret != hrSuccess)
+				return ret;
+		}
+		if (src.sourcekey != nullptr) {
+			dst.original_sourcekey.__ptr  = src.sourcekey->lpb;
+			dst.original_sourcekey.__size = src.sourcekey->cb;
+		} else {
+			dst.original_sourcekey.__ptr  = nullptr;
+			dst.original_sourcekey.__size = 0;
+		}
+	}
+	return hrSuccess;
+}
+
+HRESULT convert_soapfolders_to_wsfolder(const struct create_folders_response &source,
+    std::vector<WSMAPIFolderOps::WSFolder> &destination)
+{
+	const auto count = source.entryids->__size;
+	destination.resize(count);
+	for (unsigned int i = 0; i < count; ++i) {
+		const auto &dst = destination[i];
+		auto ret = CopySOAPEntryIdToMAPIEntryId(&source.entryids->__ptr[i],
+		           dst.m_lpcbEntryId, dst.m_lppEntryId);
+		if (ret != hrSuccess)
+			return ret;
+	}
+	return hrSuccess;
+}

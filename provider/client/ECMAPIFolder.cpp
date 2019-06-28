@@ -563,6 +563,69 @@ HRESULT ECMAPIFolder::CreateFolder(ULONG ulFolderType,
 	return hrSuccess;
 }
 
+/**
+ * Create the specified folder set.
+ *
+ * Note that if the server does not support batch folder creation, this will
+ * automatically fall back to sequential folder creation.
+ */
+HRESULT ECMAPIFolder::create_folders(std::vector<ECFolder> &folders)
+{
+	if (lpFolderOps == nullptr)
+		return MAPI_E_NO_SUPPORT;
+
+	const auto count = folders.size();
+	std::vector<std::pair<unsigned int, ecmem_ptr<ENTRYID>>> entry_ids(count);
+	std::vector<WSMAPIFolderOps::WSFolder> batch(count);
+	for (unsigned int i = 0; i < count; ++i) {
+		auto &src          = folders[i];
+		auto &dst          = batch[i];
+		dst.folder_type    = src.folder_type;
+		dst.name           = convstring(src.name, src.flags);
+		dst.comment        = convstring(src.comment, src.flags);
+		dst.open_if_exists = src.flags & OPEN_IF_EXISTS;
+		dst.sync_id        = 0;
+		dst.sourcekey      = nullptr;
+		dst.m_cbNewEntryId = 0;
+		dst.m_lpNewEntryId = nullptr;
+		dst.m_lpcbEntryId  = &entry_ids[i].first;
+		dst.m_lppEntryId   = &~entry_ids[i].second;
+	}
+
+	auto ret = lpFolderOps->create_folders(batch);
+	if (ret == MAPI_E_NETWORK_ERROR) {
+		/*
+		 * If the server does not support creating a batch of folders
+		 * at once, fall back to sequential creation.
+		 */
+		for (unsigned int i = 0; i < count; ++i) {
+			const ECFolder &f = folders[i];
+			/* Create the actual folder on the server */
+			ret = lpFolderOps->HrCreateFolder(f.folder_type,
+			      convstring(f.name, f.flags),
+			      convstring(f.comment, f.flags),
+			      f.flags & OPEN_IF_EXISTS, 0, nullptr, 0, nullptr,
+			      &entry_ids[i].first, &~entry_ids[i].second);
+			if (ret != hrSuccess)
+				return ret;
+		}
+	} else if (ret != hrSuccess) {
+		return ret;
+	}
+
+	for (unsigned int i = 0; i < count; ++i) {
+		unsigned int objtype = 0;
+		/* Open the folder we just created */
+		ret = GetMsgStore()->OpenEntry(entry_ids[i].first,
+		      entry_ids[i].second, folders[i].interface,
+		      MAPI_MODIFY | MAPI_DEFERRED_ERRORS, &objtype,
+		      &~folders[i].folder);
+		if (ret != hrSuccess)
+			return ret;
+	}
+	return hrSuccess;
+}
+
 HRESULT ECMAPIFolder::CopyFolder(ULONG cbEntryID, const ENTRYID *lpEntryID,
     const IID *lpInterface, void *lpDestFolder, const TCHAR *lpszNewFolderName,
     ULONG_PTR ulUIParam, IMAPIProgress *lpProgress, ULONG ulFlags)

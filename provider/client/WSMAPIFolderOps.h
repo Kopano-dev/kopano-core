@@ -16,10 +16,7 @@
 #include <mapi.h>
 #include <mapispi.h>
 #include "soapStub.h"
-
-namespace KC {
-class utf8string;
-}
+#include <kopano/charset/utf8string.h>
 
 class WSTransport;
 
@@ -29,11 +26,33 @@ protected:
 	virtual ~WSMAPIFolderOps();
 
 public:
+	struct WSFolder {
+		unsigned int folder_type;
+		KC::utf8string name, comment;
+		const SBinary *sourcekey;
+		unsigned int open_if_exists;
+		unsigned int sync_id;
+		unsigned int m_cbNewEntryId;
+		unsigned int *m_lpcbEntryId;
+		ENTRYID *m_lpNewEntryId;
+		ENTRYID **m_lppEntryId;
+	};
+
 	static HRESULT Create(KC::ECSESSIONID, ULONG eid_size, const ENTRYID *, WSTransport *, WSMAPIFolderOps **);
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 
 	// Creates a folder object with only a PR_DISPLAY_NAME and type
 	virtual HRESULT HrCreateFolder(ULONG fl_type, const KC::utf8string &name, const KC::utf8string &comment, BOOL fOpenIfExists, ULONG sync_id, const SBinary *srckey, ULONG neweid_size, ENTRYID *neweid, ULONG *eid_size, ENTRYID **eid);
+
+	/**
+	 * Create the specified 'batch' of folders with the specified 'count'
+	 * of folders.
+	 *
+	 * @param batch Batch of folders to create
+	 * @param count The number of folders in the batch
+	 * @return HRESULT
+	 */
+	virtual HRESULT create_folders(std::vector<WSFolder> &batch);
 
 	// Completely remove a folder, the messages in it, the folders in it or any combination
 	virtual HRESULT HrDeleteFolder(ULONG eid_size, const ENTRYID *, ULONG flags, ULONG sync_id);
