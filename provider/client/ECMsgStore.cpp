@@ -1489,7 +1489,6 @@ HRESULT ECMsgStore::CreateAdditionalFolder(IMAPIFolder *lpRootFolder,
 {
 	object_ptr<IMAPIFolder> lpMAPIFolder;
 	memory_ptr<SPropValue> lpPropValueEID;
-	SPropValue sPropValue;
 
 	HRESULT hr = lpSubTreeFolder->CreateFolder(FOLDER_GENERIC,
 	     const_cast<LPTSTR>(lpszFolderName),
@@ -1497,9 +1496,34 @@ HRESULT ECMsgStore::CreateAdditionalFolder(IMAPIFolder *lpRootFolder,
 	     OPEN_IF_EXISTS | fMapiUnicode, &~lpMAPIFolder);
 	if(hr != hrSuccess)
 		return hr;
+	return make_additional_folder(lpRootFolder, lpInboxFolder, ulType,
+	       lpMAPIFolder, lpszContainerType, fHidden);
+}
+
+/**
+ * Create an outlook 2007/2010 additional folder
+ *
+ * This function makes an additional folder from a precreated empty folder
+ * object and adds the folder entryid in the root folder and the inbox in the
+ * additional folders property.
+ *
+ * @lpRootFolder:	Root folder of the store to set the property on
+ * @lpInboxFolder:	Inbox folder of the store to set the property on
+ * @ulType:		Type ID For the additional folders struct
+ * @lpMAPIFolder:	Precreated folder object
+ * @lpszContainerType:	Container type for the folder
+ * @fHidden:		%true if the folder must be marked hidden with PR_ATTR_HIDDEN
+ */
+HRESULT ECMsgStore::make_additional_folder(IMAPIFolder *lpRootFolder,
+    IMAPIFolder *lpInboxFolder, unsigned int ulType,
+    KC::object_ptr<IMAPIFolder> &lpMAPIFolder, const TCHAR *lpszContainerType,
+    bool fHidden)
+{
+	memory_ptr<SPropValue> lpPropValueEID;
+	SPropValue sPropValue;
 
 	// Get entryid of the folder
-	hr = HrGetOneProp(lpMAPIFolder, PR_ENTRYID, &~lpPropValueEID);
+	auto hr = HrGetOneProp(lpMAPIFolder, PR_ENTRYID, &~lpPropValueEID);
 	if(hr != hrSuccess)
 		return hr;
 	sPropValue.ulPropTag = PR_CONTAINER_CLASS;
