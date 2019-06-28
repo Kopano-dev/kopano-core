@@ -915,6 +915,24 @@ struct ns:resetFolderCountResponse {
 	unsigned int er;
 };
 
+struct new_folder {
+	const char *name, *comment;
+	entryId *entryid;
+	bool open_if_exists;
+	unsigned int type, sync_id;
+	struct xsd__base64Binary original_sourcekey;
+};
+
+struct new_folder_set {
+	int __size;
+	struct new_folder *__ptr;
+};
+
+struct ns:create_folders_response {
+	unsigned int er;
+	struct entryList *entryids;
+};
+
 //TableType flags for function ns__tableOpen
 #define TABLETYPE_MS				1	// MessageStore tables
 #define TABLETYPE_AB				2	// Addressbook tables
@@ -951,6 +969,7 @@ int ns__saveObject(ULONG64 ulSessionId, entryId sParentEntryId, entryId sEntryId
 int ns__loadObject(ULONG64 ulSessionId, entryId sEntryId, struct notifySubscribe *lpsNotSubscribe, unsigned int ulFlags, struct ns:loadObjectResponse *lpsLoadObjectResponse);
 
 int ns__createFolder(ULONG64 ulSessionId, entryId sParentId, entryId *lpsNewEntryId, unsigned int ulType, const char *szName, const char *szComment, bool fOpenIfExists, unsigned int ulSyncId, struct xsd__base64Binary sOrigSourceKey, struct ns:createFolderResponse *lpsCreateFolderResponse);
+int ns__create_folders(ULONG64 session_id, entryId parent_eid, struct new_folder_set batch, struct ns:create_folders_response *response);
 int ns__deleteObjects(ULONG64 ulSessionId, unsigned int ulFlags, struct entryList *aMessages, unsigned int ulSyncId, unsigned int *result);
 int ns__copyObjects(ULONG64 ulSessionId, struct entryList *aMessages, entryId sDestFolderId, unsigned int ulFlags, unsigned int ulSyncId, unsigned int *result);
 int ns__emptyFolder(ULONG64 ulSessionId, entryId sEntryId,  unsigned int ulFlags, unsigned int ulSyncId, unsigned int *result);
