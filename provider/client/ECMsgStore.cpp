@@ -2068,7 +2068,6 @@ HRESULT ECMsgStore::CreateSpecialFolder(IMAPIFolder *folder_parent_in,
 	ecmem_ptr<SPropValue> lpPropValue;
 	/* Add a reference to the folders */
 	object_ptr<IMAPIFolder> lpFolderParent(folder_parent_in);
-	object_ptr<ECMAPIProp> lpFolderPropSet(folder_propset_in);
 
 	// Create the folder
 	auto hr = lpFolderParent->CreateFolder(FOLDER_GENERIC,
@@ -2077,6 +2076,18 @@ HRESULT ECMsgStore::CreateSpecialFolder(IMAPIFolder *folder_parent_in,
 	          OPEN_IF_EXISTS | fMapiUnicode, &~lpMAPIFolder);
 	if(hr != hrSuccess)
 		return hr;
+	return make_special_folder(folder_propset_in, lpMAPIFolder, ulPropTag,
+	       ulMVPos, lpszContainerClass, lppMAPIFolder);
+}
+
+HRESULT ECMsgStore::make_special_folder(ECMAPIProp *folder_propset_in,
+    KC::object_ptr<IMAPIFolder> &lpMAPIFolder, unsigned int ulPropTag,
+    unsigned int ulMVPos, const TCHAR *lpszContainerClass,
+    IMAPIFolder **lppMAPIFolder)
+{
+	ecmem_ptr<SPropValue> lpPropValue;
+	object_ptr<ECMAPIProp> lpFolderPropSet(folder_propset_in);
+	HRESULT hr = hrSuccess;
 
 	// Set the special property
 	if(lpFolderPropSet) {
