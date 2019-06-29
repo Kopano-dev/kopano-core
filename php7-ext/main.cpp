@@ -5496,7 +5496,6 @@ ZEND_FUNCTION(mapi_freebusysupport_loaddata)
 	zval*				resFBSupport = NULL;
 	zval*				resUsers = NULL;
 	ULONG				cUsers = 0;
-	IFreeBusyData**		lppFBData = NULL;
 	ULONG				cFBData = 0;
 
 	RETVAL_FALSE;
@@ -5506,8 +5505,6 @@ ZEND_FUNCTION(mapi_freebusysupport_loaddata)
 
 	// do not release fbdata, it's registered in the return_value array, but not addref'd
 	DEFERRED_EPILOGUE;
-	auto laters = make_scope_success([&]() { MAPIFreeBuffer(lppFBData); });
-
 	ZEND_FETCH_RESOURCE_C(lpFBSupport, IFreeBusySupport*, &resFBSupport, -1, name_fb_support, le_freebusy_support);
 
 	ZVAL_DEREF(resUsers);
@@ -5535,21 +5532,27 @@ ZEND_FUNCTION(mapi_freebusysupport_loaddata)
 		++j;
 	} ZEND_HASH_FOREACH_END();
 
-	MAPI_G(hr) = MAPIAllocateBuffer(sizeof(IFreeBusyData*)*cUsers, (void**)&lppFBData);
+	std::vector<object_ptr<IFreeBusyData>> fbdata(cUsers);
+	memory_ptr<IFreeBusyData *> lppFBData;
+	MAPI_G(hr) = MAPIAllocateBuffer(sizeof(IFreeBusyData *) * cUsers, &~lppFBData);
 	if(MAPI_G(hr) != hrSuccess)
 		return;
 
 	MAPI_G(hr) = lpFBSupport->LoadFreeBusyData(cUsers, lpUsers, lppFBData, NULL, &cFBData);
+	for (size_t i = 0; i < cUsers; ++i) {
+		fbdata[i].reset(lppFBData[i]);
+		lppFBData[i] = nullptr;
+	}
 	if(MAPI_G(hr) != hrSuccess)
 		return;
 
 	//Return an array of IFreeBusyData interfaces
 	array_init(return_value);
 	for (i = 0; i < cUsers; ++i) {
-		if(lppFBData[i])
-		{
+		if (fbdata[i] != nullptr) {
 			// Set resource relation
-                        rid = zend_register_resource(lppFBData[i], le_freebusy_data);
+			rid = zend_register_resource(fbdata[i], le_freebusy_data);
+			fbdata[i].release();
 			// Add item to return list
 			add_next_index_resource(return_value, rid);
 		} else {
@@ -5572,7 +5575,6 @@ ZEND_FUNCTION(mapi_freebusysupport_loadupdate)
 	zval*				resFBSupport = NULL;
 	zval*				resUsers = NULL;
 	ULONG				cUsers = 0;
-	memory_ptr<IFreeBusyUpdate *> lppFBUpdate;
 	ULONG				cFBUpdate = 0;
 
 	RETVAL_FALSE;
@@ -5608,21 +5610,27 @@ ZEND_FUNCTION(mapi_freebusysupport_loadupdate)
 		++j;
 	} ZEND_HASH_FOREACH_END();
 
+	std::vector<object_ptr<IFreeBusyUpdate>> fbupdate(cUsers);
+	memory_ptr<IFreeBusyUpdate *> lppFBUpdate;
 	MAPI_G(hr) = MAPIAllocateBuffer(sizeof(IFreeBusyUpdate*)*cUsers, &~lppFBUpdate);
 	if(MAPI_G(hr) != hrSuccess)
 		return;
 
 	MAPI_G(hr) = lpFBSupport->LoadFreeBusyUpdate(cUsers, lpUsers, lppFBUpdate, &cFBUpdate, NULL);
+	for (size_t i = 0; i < cUsers; ++i) {
+		fbupdate[i].reset(lppFBUpdate[i]);
+		lppFBUpdate[i] = nullptr;
+	}
 	if(MAPI_G(hr) != hrSuccess)
 		return;
 
 	//Return an array of IFreeBusyUpdate interfaces
 	array_init(return_value);
 	for (i = 0; i < cUsers; ++i) {
-		if(lppFBUpdate[i])
-		{
+		if (fbupdate[i] != nullptr) {
 			// Set resource relation
-                        rid = zend_register_resource(lppFBUpdate[i], le_freebusy_update);
+			rid = zend_register_resource(fbupdate[i], le_freebusy_update);
+			fbupdate[i].release();
 			// Add item to return list
 			add_next_index_resource(return_value, rid);
 		} else {
