@@ -93,21 +93,30 @@ HRESULT ECFreeBusySupport::LoadFreeBusyData(ULONG cMax, FBUser *rgfbuser, IFreeB
 		memset(phrStatus, 0, sizeof(*phrStatus) * cMax);
 	for (i = 0; i < cMax; ++i) {
 		object_ptr<IMessage> lpMessage;
-		if (GetFreeBusyMessage(m_lpSession, m_lpPublicStore, nullptr, rgfbuser[i].m_cbEid, rgfbuser[i].m_lpEid, false, &~lpMessage) != hrSuccess) {
+		auto hr = GetFreeBusyMessage(m_lpSession, m_lpPublicStore, nullptr, rgfbuser[i].m_cbEid, rgfbuser[i].m_lpEid, false, &~lpMessage);
+		if (hr != hrSuccess) {
 			/* No free busy information, gives the empty class. */
 			prgfbdata[i] = nullptr;
+			if (phrStatus != nullptr)
+				phrStatus[i] = hr;
 			continue;
 		}
 		fbBlockList.Clear();
-		auto hr = GetFreeBusyMessageData(lpMessage, &rtmStart, &rtmEnd, &fbBlockList);
-		if (FAILED(hr))
+		hr = GetFreeBusyMessageData(lpMessage, &rtmStart, &rtmEnd, &fbBlockList);
+		if (FAILED(hr)) {
+			if (phrStatus != nullptr)
+				phrStatus[i] = hr;
 			return hr;
+		}
 		// Add fbdata
 		object_ptr<ECFreeBusyData> lpECFreeBusyData;
 		ECFreeBusyData::Create(rtmStart, rtmEnd, fbBlockList, &~lpECFreeBusyData);
 		hr = lpECFreeBusyData->QueryInterface(IID_IFreeBusyData, (void**)&prgfbdata[i]);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
+			if (phrStatus != nullptr)
+				phrStatus[i] = hr;
 			return hr;
+		}
 		++ulFindUsers;
 	}
 
