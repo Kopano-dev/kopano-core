@@ -88,6 +88,9 @@ HRESULT ECFreeBusySupport::LoadFreeBusyData(ULONG cMax, FBUser *rgfbuser, IFreeB
 	if((cMax > 0 && rgfbuser == NULL) || prgfbdata == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
+	memset(prgfbdata, 0, sizeof(*prgfbdata) * cMax);
+	if (phrStatus != nullptr)
+		memset(phrStatus, 0, sizeof(*phrStatus) * cMax);
 	for (i = 0; i < cMax; ++i) {
 		object_ptr<IMessage> lpMessage;
 		if (GetFreeBusyMessage(m_lpSession, m_lpPublicStore, nullptr, rgfbuser[i].m_cbEid, rgfbuser[i].m_lpEid, false, &~lpMessage) != hrSuccess) {
@@ -121,6 +124,7 @@ HRESULT ECFreeBusySupport::LoadFreeBusyUpdate(ULONG cUsers, FBUser *lpUsers, IFr
 	if((cUsers > 0 && lpUsers == NULL) || lppFBUpdate == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
+	memset(lppFBUpdate, 0, sizeof(*lppFBUpdate) * cUsers);
 	for (unsigned int i = 0; i < cUsers; ++i) {
 		object_ptr<IMessage> lpMessage;
 
