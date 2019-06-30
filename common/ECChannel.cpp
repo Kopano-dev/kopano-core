@@ -782,6 +782,7 @@ static int ec_listen_localsock(const char *path, int *pfd, int mode,
 	ret = unix_chown(path, user, group);
 	if (ret < 0) {
 		ec_log_err("%s: chown %s: %s", __func__, path, strerror(-ret));
+		close(fd);
 		return ret;
 	}
 	if (mode != static_cast<mode_t>(-1)) {
@@ -789,6 +790,7 @@ static int ec_listen_localsock(const char *path, int *pfd, int mode,
 		if (ret < 0) {
 			ret = -errno;
 			ec_log_err("%s: chown %s: %s", __func__, path, strerror(-ret));
+			close(fd);
 			return ret;
 		}
 	}
