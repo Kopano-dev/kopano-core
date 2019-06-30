@@ -914,7 +914,7 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 		if (*lpbExit)
 			return KCERR_USER_CANCEL;
 
-		ec_log_info("Start to purge %d stores", (int)lObjectIds.size());
+		ec_log_info("Starting to purge %zu stores", lObjectIds.size());
 		for (auto iterObjectId = lObjectIds.cbegin();
 		     iterObjectId != lObjectIds.cend() && !*lpbExit;
 		     ++iterObjectId)
@@ -952,7 +952,7 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 		lpDBResult = DB_RESULT();
 		if (*lpbExit)
 			return KCERR_USER_CANCEL;
-		ec_log_info("Start to purge %d folders", (int)lObjectIds.size());
+		ec_log_info("Starting to purge %zu folders", lObjectIds.size());
 		er = DeleteObjects(lpecSession, lpDatabase, &lObjectIds, ulDeleteFlags, 0, false, false);
 		if(er != erSuccess) {
 			ec_log_err("Error while removing softdelete folder objects, error code: 0x%x.", er);
@@ -983,7 +983,7 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 		lpDBResult = DB_RESULT();
 		if (*lpbExit)
 			return KCERR_USER_CANCEL;
-		ec_log_info("Start to purge %d messages", (int)lObjectIds.size());
+		ec_log_info("Starting to purge %zu messages", lObjectIds.size());
 		er = DeleteObjects(lpecSession, lpDatabase, &lObjectIds, ulDeleteFlags, 0, false, false);
 		if(er != erSuccess) {
 			ec_log_err("Error while removing softdelete message objects, error code: 0x%x.", er);
