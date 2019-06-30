@@ -352,23 +352,10 @@ time_t recurrence::getModifiedEndDateTime(ULONG id) const
 	return RTimeToUnixTime(m_sRecState.lstExceptions[id].ulEndDateTime);
 }
 
-time_t recurrence::getModifiedOriginalDateTime(ULONG id) const
-{
-	if (id >= m_sRecState.ulModifiedInstanceCount)
-		return 0;
-	return RTimeToUnixTime(m_sRecState.lstExceptions[id].ulOriginalStartDate);
-}
-
 std::wstring recurrence::getModifiedSubject(ULONG id) const
 {
 	return id >= m_sRecState.ulModifiedInstanceCount ? std::wstring() :
 	       m_sRecState.lstExtendedExceptions[id].strWideCharSubject;
-}
-
-ULONG recurrence::getModifiedMeetingType(ULONG id) const
-{
-	return id >= m_sRecState.ulModifiedInstanceCount ? 0 :
-	       m_sRecState.lstExceptions[id].ulApptStateFlags;
 }
 
 LONG recurrence::getModifiedReminderDelta(ULONG id) const
@@ -393,18 +380,6 @@ ULONG recurrence::getModifiedBusyStatus(ULONG id) const
 {
 	return id >= m_sRecState.ulModifiedInstanceCount ? 0 :
 	       m_sRecState.lstExceptions[id].ulBusyStatus;
-}
-
-ULONG recurrence::getModifiedAttachment(ULONG id) const
-{
-	return id >= m_sRecState.ulModifiedInstanceCount ? 0 :
-	       m_sRecState.lstExceptions[id].ulAttachment;
-}
-
-ULONG recurrence::getModifiedSubType(ULONG id) const
-{
-	return id >= m_sRecState.ulModifiedInstanceCount ? 0 :
-	       m_sRecState.lstExceptions[id].ulSubType;
 }
 
 void recurrence::addModifiedException(time_t tStart, time_t tEnd,
@@ -445,17 +420,6 @@ HRESULT recurrence::setModifiedSubject(ULONG id, const std::wstring &strSubject)
 	m_sRecState.lstExceptions[id].ulOverrideFlags |= ARO_SUBJECT;
 	m_sRecState.lstExceptions[id].strSubject = convert_to<std::string>(strSubject);
 	m_sRecState.lstExtendedExceptions[id].strWideCharSubject = strSubject;
-
-	return S_OK;
-}
-
-HRESULT recurrence::setModifiedMeetingType(ULONG id, ULONG type)
-{
-	if (id >= m_sRecState.lstExceptions.size())
-		return S_FALSE;
-
-	m_sRecState.lstExceptions[id].ulOverrideFlags |= ARO_MEETINGTYPE;
-	m_sRecState.lstExceptions[id].ulApptStateFlags = type;
 
 	return S_OK;
 }
@@ -506,16 +470,6 @@ HRESULT recurrence::setModifiedBusyStatus(ULONG id, ULONG status)
 	return S_OK;
 }
 
-HRESULT recurrence::setModifiedAttachment(ULONG id)
-{
-	if (id >= m_sRecState.lstExceptions.size())
-		return S_FALSE;
-
-	m_sRecState.lstExceptions[id].ulOverrideFlags |= ARO_ATTACHMENT;
-
-	return S_OK;
-}
-
 HRESULT recurrence::setModifiedSubType(ULONG id, ULONG subtype)
 {
 	if (id >= m_sRecState.lstExceptions.size())
@@ -523,17 +477,6 @@ HRESULT recurrence::setModifiedSubType(ULONG id, ULONG subtype)
 
 	m_sRecState.lstExceptions[id].ulOverrideFlags |= ARO_SUBTYPE;
 	m_sRecState.lstExceptions[id].ulSubType = subtype;
-
-	return S_OK;
-}
-
-HRESULT recurrence::setModifiedApptColor(ULONG id, ULONG color)
-{
-	if (id >= m_sRecState.lstExceptions.size())
-		return S_FALSE;
-
-	m_sRecState.lstExceptions[id].ulOverrideFlags |= ARO_APPTCOLOR;
-	m_sRecState.lstExceptions[id].ulAppointmentColor = color;
 
 	return S_OK;
 }
@@ -876,34 +819,11 @@ ULONG recurrence::calcCount() const
 	return ulCount +1;
 }
 
-time_t recurrence::MonthsInSeconds(ULONG months)
-{
-	ULONG year = 1601, days = 0;
-	for (ULONG m = 0; m < months; ++m) {
-		days += DaysInMonth((m+1)%12, year);
-		if (m%12)
-			++year;
-	}
-	return days * 24 * 60 * 60;
-}
-
-ULONG recurrence::Minutes2Month(ULONG minutes)
-{
-	return ceil(minutes / (31.0 * 24.0 * 60.0)) + 1;
-}
-
 time_t recurrence::StartOfDay(time_t t)
 {
 	struct tm sTM;
 	gmtime_safe(t, &sTM);
 	return t - (sTM.tm_hour * 60 * 60 + sTM.tm_min * 60 + sTM.tm_sec);
-}
-
-time_t recurrence::StartOfWeek(time_t t)
-{
-	struct tm sTM;
-	gmtime_safe(t, &sTM);
-	return t - (sTM.tm_wday * 24 * 60 * 60 + sTM.tm_hour * 60 * 60 + sTM.tm_min * 60 + sTM.tm_sec);
 }
 
 time_t recurrence::StartOfMonth(time_t t)
@@ -961,13 +881,6 @@ ULONG recurrence::WeekDayFromTime(time_t t)
 	struct tm lpT;
 	gmtime_safe(t, &lpT);
 	return lpT.tm_wday;
-}
-
-ULONG recurrence::MonthDayFromTime(time_t t)
-{
-	struct tm lpT;
-	gmtime_safe(t, &lpT);
-	return lpT.tm_mday;
 }
 
 bool recurrence::CheckAddValidOccr(time_t tsNow, time_t tsStart, time_t tsEnd,

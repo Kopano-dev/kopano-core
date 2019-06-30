@@ -48,8 +48,6 @@ public:
 	HRESULT setEndType(term_type);
 	ULONG getInterval() const;
 	HRESULT setInterval(ULONG);
-	_kc_hidden ULONG getSlidingFlag() const { return m_sRecState.ulSlidingFlag; }
-	_kc_hidden void setSlidingFlag(ULONG s) { m_sRecState.ulSlidingFlag = s; }
 	_kc_hidden ULONG getFirstDOW() const { return m_sRecState.ulFirstDOW; }
 	_kc_hidden void setFirstDOW(ULONG d) { m_sRecState.ulFirstDOW = d; }
 
@@ -71,24 +69,18 @@ public:
 	time_t getModifiedEndDateTime(ULONG id) const;
 	_kc_hidden time_t getModifiedOriginalDateTime(ULONG id) const; /* used as recurrence-id */
 	std::wstring getModifiedSubject(ULONG id) const;
-	_kc_hidden ULONG getModifiedMeetingType(ULONG id) const;
 	LONG getModifiedReminderDelta(ULONG id) const;
 	ULONG getModifiedReminder(ULONG id) const;
 	std::wstring getModifiedLocation(ULONG id) const;
 	ULONG getModifiedBusyStatus(ULONG id) const;
-	_kc_hidden ULONG getModifiedAttachment(ULONG id) const;
-	ULONG getModifiedSubType(ULONG id) const;
 
 	void addModifiedException(time_t tStart, time_t tEnd, time_t tOriginalStart, ULONG *id);
 	HRESULT setModifiedSubject(ULONG id, const std::wstring &strSubject);
-	_kc_hidden HRESULT setModifiedMeetingType(ULONG id, ULONG type);
 	HRESULT setModifiedReminderDelta(ULONG id, LONG delta);
 	HRESULT setModifiedReminder(ULONG id, ULONG set);
 	HRESULT setModifiedLocation(ULONG id, const std::wstring &strLocation);
 	HRESULT setModifiedBusyStatus(ULONG id, ULONG status);
-	_kc_hidden HRESULT setModifiedAttachment(ULONG id);
 	HRESULT setModifiedSubType(ULONG id, ULONG subtype);
-	_kc_hidden HRESULT setModifiedApptColor(ULONG id, ULONG color);
 	HRESULT setModifiedBody(ULONG id);
 	_kc_hidden HRESULT AddValidOccr(time_t occr_start, time_t occr_end, ULONG busy_status, OccrInfo **fbblocksall, ULONG *nvals);
 	_kc_hidden bool isOccurrenceValid(time_t period_start, time_t period_end, time_t new_occ) const;
@@ -101,23 +93,17 @@ public:
 	time_t calcEndDate() const;
 	ULONG calcCount() const;
 	_kc_hidden static time_t MonthInSeconds(ULONG y, ULONG m) { return DaysInMonth(y, m) * 24 * 60 * 60; }
-	_kc_hidden static time_t MonthsInSeconds(ULONG months);
-	_kc_hidden static time_t Minutes2Time(ULONG m) { return (m - NANOSECS_BETWEEN_EPOCHS / 600000000) * 60; }
 	_kc_hidden static ULONG Time2Minutes(time_t t) { return (t / 60) + (NANOSECS_BETWEEN_EPOCHS / 600000000); }
-	_kc_hidden static ULONG Minutes2Month(ULONG);
 	static time_t StartOfDay(time_t);
-	_kc_hidden static time_t StartOfWeek(time_t);
 	_kc_hidden static time_t StartOfMonth(time_t);
 	_kc_hidden static time_t StartOfYear(time_t);
 	_kc_hidden static bool isLeapYear(ULONG y) { return (y % 4 == 0 && y % 100 != 0) || y % 400 == 0; }
 	_kc_hidden static ULONG DaysInMonth(ULONG);
 	_kc_hidden static ULONG DaysInMonth(ULONG, ULONG);
-	_kc_hidden static ULONG DaysInYear(ULONG y) { return isLeapYear(y) ? 366 : 365; }
 	_kc_hidden static ULONG MonthFromTime(time_t);
 	_kc_hidden static ULONG YearFromTime(time_t);
 	_kc_hidden static ULONG AllMonthsFromTime(time_t);
 	_kc_hidden static ULONG WeekDayFromTime(time_t);
-	_kc_hidden static ULONG MonthDayFromTime(time_t);
 
 private:
 	RecurrenceState m_sRecState;
