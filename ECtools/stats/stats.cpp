@@ -353,7 +353,7 @@ static void showtop(LPMDB lpStore)
         if (bColumns[5]) { wmove(win, 4, ofs); wprintw(win, "APP");			ofs += cols[6]; }
         if (bColumns[6]) { wmove(win, 4, ofs); wprintw(win, "TIME");		ofs += cols[7]; }
         if (bColumns[7]) { wmove(win, 4, ofs); wprintw(win, "CPUTIME");		ofs += cols[8]; }
-        if (bColumns[8]) { wmove(win, 4, ofs); wprintw(win, "CPU%");		ofs += cols[9]; }
+        if (bColumns[8]) { wmove(win, 4, ofs); wprintw(win, "CPU%%");		ofs += cols[9]; }
         if (bColumns[9]) { wmove(win, 4, ofs); wprintw(win, "NREQ");		ofs += cols[10]; }
         if (bColumns[10]) { wmove(win, 4, ofs); wprintw(win, "STAT");		ofs += cols[11]; }
         if (bColumns[11]) { wmove(win, 4, ofs); wprintw(win, "TASK"); }
