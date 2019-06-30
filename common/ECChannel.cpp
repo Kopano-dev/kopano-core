@@ -590,9 +590,9 @@ void ECChannel::SetIPAddress(const struct sockaddr *sa, size_t slen)
 }
 
 #ifdef LINUX
-static int peer_is_local2(int rsk, const struct nlmsghdr *nlh)
+static int peer_is_local2(int rsk, const void *buf, size_t bufsize)
 {
-	if (send(rsk, nlh, nlh->nlmsg_len, 0) < 0)
+	if (send(rsk, buf, bufsize, 0) < 0)
 		return -errno;
 	char rspbuf[512];
 	ssize_t ret = recv(rsk, rspbuf, sizeof(rspbuf), 0);
@@ -600,7 +600,7 @@ static int peer_is_local2(int rsk, const struct nlmsghdr *nlh)
 		return -errno;
 	if (static_cast<size_t>(ret) < sizeof(struct nlmsghdr))
 		return -ENODATA;
-	nlh = reinterpret_cast<const struct nlmsghdr *>(rspbuf);
+	auto nlh = reinterpret_cast<const struct nlmsghdr *>(rspbuf);
 	if (!NLMSG_OK(nlh, nlh->nlmsg_len))
 		return -EIO;
 	auto rtm = reinterpret_cast<const struct rtmsg *>(NLMSG_DATA(nlh));
@@ -675,7 +675,7 @@ int zcp_peeraddr_is_local(const struct sockaddr *peer_sockaddr,
 		req.nh.nlmsg_len = NLMSG_ALIGN(req.nh.nlmsg_len) + rta->rta_len;
 		memcpy(RTA_DATA(rta), &ad, sizeof(ad));
 	}
-	ret = peer_is_local2(rsk, &req.nh);
+	ret = peer_is_local2(rsk, &req, req.nh.nlmsg_len);
 	close(rsk);
 	return ret;
 #endif
