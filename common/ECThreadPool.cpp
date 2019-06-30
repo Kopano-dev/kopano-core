@@ -82,6 +82,8 @@ void *ECWatchdog::watcher(void *param)
 	kcsrv_blocksigs();
 	while (!self->m_exit) {
 		auto freq = atoui(self->m_config->GetSetting("watchdog_frequency"));
+		if (freq == 0)
+			freq = 1;
 		auto age = self->m_pool->front_item_age();
 		using namespace std::chrono;
 		auto max = milliseconds(atoui(self->m_config->GetSetting("watchdog_max_age")));
