@@ -12,7 +12,7 @@
  *
  * == Grab an allocation historgram ==
  * 1. Stick the following line into the MAPIFreeBuffer function:
- * 	fprintf(stderr, "!! %d\n", head->children.size());
+ * 	fprintf(stderr, "!! %zu\n", head->children.size());
  *    This tell us the size of each allocation list at the end of its lifetime.
  *
  * 2. Build KC and run the testsuite, then collect the "!!" lines from stderr

@@ -318,13 +318,13 @@ static void showtop(LPMDB lpStore)
         wprintw(win, "Last update: %s (%.1fs since last)", date, dblTime);
 
         wmove(win, 1,0);
-        wprintw(win, "Sess: %d", lstSessions.size());
+        wprintw(win, "Sess: %zu", lstSessions.size());
         wmove(win, 1, 12);
-        wprintw(win, "Sess grp: %d", mapSessionGroups.size());
+        wprintw(win, "Sess grp: %zu", mapSessionGroups.size());
         wmove(win, 1, 30);
-        wprintw(win, "Users: %d", setUsers.size());
+        wprintw(win, "Users: %zu", setUsers.size());
         wmove(win, 1, 42);
-        wprintw(win, "Hosts: %d", setHosts.size());
+        wprintw(win, "Hosts: %zu", setHosts.size());
         wmove(win, 1, 54);
         wprintw(win, "CPU: %d%%", (int)((dblUser+dblSystem)*100));
         wmove(win, 1, 64);
