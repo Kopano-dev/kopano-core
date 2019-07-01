@@ -203,21 +203,20 @@ static HRESULT ConvertUnicodeToString8(LPSRestriction lpRestriction,
     void *base, convert_context &converter)
 {
 	HRESULT hr = hrSuccess;
-	ULONG i;
 
 	if (lpRestriction == NULL)
 		return hr;
 
 	switch (lpRestriction->rt) {
 	case RES_OR:
-		for (i = 0; i < lpRestriction->res.resOr.cRes; ++i) {
+		for (unsigned int i = 0; i < lpRestriction->res.resOr.cRes; ++i) {
 			hr = ConvertUnicodeToString8(&lpRestriction->res.resOr.lpRes[i], base, converter);
 			if (hr != hrSuccess)
 				return hr;
 		}
 		break;
 	case RES_AND:
-		for (i = 0; i < lpRestriction->res.resAnd.cRes; ++i) {
+		for (unsigned int i = 0; i < lpRestriction->res.resAnd.cRes; ++i) {
 			hr = ConvertUnicodeToString8(&lpRestriction->res.resAnd.lpRes[i], base, converter);
 			if (hr != hrSuccess)
 				return hr;
@@ -234,7 +233,7 @@ static HRESULT ConvertUnicodeToString8(LPSRestriction lpRestriction,
 			if (hr != hrSuccess)
 				return hr;
 		}
-		for (i = 0; i < lpRestriction->res.resComment.cValues; ++i)
+		for (unsigned int i = 0; i < lpRestriction->res.resComment.cValues; ++i)
 			if (PROP_TYPE(lpRestriction->res.resComment.lpProp[i].ulPropTag) == PT_UNICODE) {
 				hr = ConvertUnicodeToString8(lpRestriction->res.resComment.lpProp[i].Value.lpszW, &lpRestriction->res.resComment.lpProp[i].Value.lpszA, base, converter);
 				if (hr != hrSuccess)

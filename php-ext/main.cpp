@@ -3371,7 +3371,6 @@ ZEND_FUNCTION(mapi_getnamesfromids)
 	// local
 	ULONG				cPropNames = 0;
 	memory_ptr<MAPINAMEID *> pPropNames;
-	ULONG				count = 0;
 	zval *prop;
 
 	RETVAL_FALSE;
@@ -3393,7 +3392,7 @@ ZEND_FUNCTION(mapi_getnamesfromids)
 
 	// This code should be moved to typeconversions.cpp
 	array_init(return_value);
-	for (count = 0; count < lpPropTags->cValues; ++count) {
+	for (unsigned int count = 0; count < lpPropTags->cValues; ++count) {
 		if (pPropNames[count] == NULL)
 			continue;			// FIXME: the returned array is smaller than the passed array!
 
@@ -3882,7 +3881,7 @@ ZEND_FUNCTION(mapi_zarafa_getuserlist)
 	LPENTRYID		lpCompanyId = NULL;
 	php_stringsize_t cbCompanyId = 0;
 	// local
-	ULONG		nUsers, i;
+	unsigned int nUsers;
 	memory_ptr<ECUSER> lpUsers;
 	object_ptr<IECSecurity> lpSecurity;
 
@@ -3903,7 +3902,7 @@ ZEND_FUNCTION(mapi_zarafa_getuserlist)
 		return;
 
 	array_init(return_value);
-	for (i = 0; i < nUsers; ++i) {
+	for (unsigned int i = 0; i < nUsers; ++i) {
 		MAKE_STD_ZVAL(zval_data_value);
 		array_init(zval_data_value);
 
@@ -4399,7 +4398,6 @@ ZEND_FUNCTION(mapi_zarafa_getgrouplist)
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	ULONG			ulGroups;
 	memory_ptr<ECGROUP> lpsGroups;
-	unsigned int	i;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -4418,7 +4416,7 @@ ZEND_FUNCTION(mapi_zarafa_getgrouplist)
 		return;
 
 	array_init(return_value);
-	for (i = 0; i < ulGroups; ++i) {
+	for (unsigned int i = 0; i < ulGroups; ++i) {
 		MAKE_STD_ZVAL(zval_data_value);
 		array_init(zval_data_value);
 
@@ -4443,7 +4441,6 @@ ZEND_FUNCTION(mapi_zarafa_getgrouplistofuser)
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	ULONG			ulGroups;
 	memory_ptr<ECGROUP> lpsGroups;
-	unsigned int	i;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -4462,7 +4459,7 @@ ZEND_FUNCTION(mapi_zarafa_getgrouplistofuser)
 		return;
 
 	array_init(return_value);
-	for (i = 0; i < ulGroups; ++i) {
+	for (unsigned int i = 0; i < ulGroups; ++i) {
 		MAKE_STD_ZVAL(zval_data_value);
 		array_init(zval_data_value);
 
@@ -4487,7 +4484,6 @@ ZEND_FUNCTION(mapi_zarafa_getuserlistofgroup)
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	ULONG			ulUsers;
 	memory_ptr<ECUSER> lpsUsers;
-	unsigned int	i;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -4506,7 +4502,7 @@ ZEND_FUNCTION(mapi_zarafa_getuserlistofgroup)
 		return;
 
 	array_init(return_value);
-	for (i = 0; i < ulUsers; ++i) {
+	for (unsigned int i = 0; i < ulUsers; ++i) {
 		MAKE_STD_ZVAL(zval_data_value);
 		array_init(zval_data_value);
 
@@ -4706,7 +4702,7 @@ ZEND_FUNCTION(mapi_zarafa_getcompanylist)
 		return;
 
 	array_init(return_value);
-	for (i = 0; i < nCompanies; ++i) {
+	for (unsigned int i = 0; i < nCompanies; ++i) {
 		MAKE_STD_ZVAL(zval_data_value);
 		array_init(zval_data_value);
 
@@ -5056,7 +5052,6 @@ ZEND_FUNCTION(mapi_zarafa_getpermissionrules)
 	// local
 	int type = -1;
 	object_ptr<IECSecurity> lpSecurity;
-	ULONG i;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -5088,7 +5083,7 @@ ZEND_FUNCTION(mapi_zarafa_getpermissionrules)
 		return;
 
 	array_init(return_value);
-	for (i = 0; i < cPerms; ++i) {
+	for (unsigned int i = 0; i < cPerms; ++i) {
 		MAKE_STD_ZVAL(zval_data_value);
 		array_init(zval_data_value);
 
@@ -5522,7 +5517,6 @@ ZEND_FUNCTION(mapi_freebusyenumblock_next)
 	zval*				resEnumBlock = NULL;
 	long				cElt = 0;
 	LONG				cFetch = 0;
-	LONG				i;
 	memory_ptr<FBBlock_1> lpBlk;
 	zval				*zval_data_value  = NULL;
 
@@ -5542,8 +5536,7 @@ ZEND_FUNCTION(mapi_freebusyenumblock_next)
 		return;
 
 	array_init(return_value);
-
-	for (i = 0; i < cFetch; ++i) {
+	for (unsigned int i = 0; i < cFetch; ++i) {
 		MAKE_STD_ZVAL(zval_data_value);
 		array_init(zval_data_value);
 		add_assoc_long(zval_data_value, "start", RTimeToUnixTime(lpBlk[i].m_tmStart));
