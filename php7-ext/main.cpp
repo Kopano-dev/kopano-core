@@ -4066,6 +4066,7 @@ ZEND_FUNCTION(mapi_zarafa_setquota)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsa", &res, &lpUserId, &cbUserId, &array) == FAILURE) return;
 
+	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
 	MAPI_G(hr) = GetECObject(lpMsgStore, iid_of(lpServiceAdmin), &~lpServiceAdmin);
 	if(MAPI_G(hr) != hrSuccess) {
@@ -4098,9 +4099,7 @@ ZEND_FUNCTION(mapi_zarafa_setquota)
 		goto exit;
 
 	RETVAL_TRUE;
-
-exit:
-	DEFERRED_EPILOGUE;
+ exit: ;
 }
 
 /**
@@ -5798,6 +5797,7 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish)
 
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra", &resFBUpdate, &aBlocks) == FAILURE) return;
 
+	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpFBUpdate, IFreeBusyUpdate*, &resFBUpdate, -1, name_fb_update, le_freebusy_update);
 
 	ZVAL_DEREF(aBlocks);
@@ -5840,9 +5840,7 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish)
 		goto exit;
 
 	RETVAL_TRUE;
-
-exit:
-	DEFERRED_EPILOGUE;
+ exit: ;
 }
 
 ZEND_FUNCTION(mapi_freebusyupdate_reset)
