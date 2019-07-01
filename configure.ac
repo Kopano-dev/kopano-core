@@ -194,8 +194,6 @@ AC_ARG_ENABLE([release], AS_HELP_STRING([--enable-release], [enable release mode
 AS_IF([test "$want_release" = "yes"], [
     ZCPPFLAGS="$ZCPPFLAGS -DNDEBUG"
     ZCXXFLAGS="$ZCXXFLAGS -O2 -fno-strict-aliasing"
-], [
-    ZCXXFLAGS="$ZCXXFLAGS -Wno-long-long"
 ])
 
 ZCPPFLAGS="$ZCPPFLAGS -DUNICODE"
