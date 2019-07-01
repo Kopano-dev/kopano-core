@@ -47,8 +47,6 @@ The following additional noteworthy configure options are available:
 
 	* --with-asan: shorthand for enabling Address Sanitizer
 	* --with-ubsan: shorthand for enabling UB Sanitizer
-	* --enable-debug: adds -DDEBUG to set some very unusual debug values.
-	  This does not enable CXXFLAGS=-ggdb3 which is separate!
 	* --enable-release: adds -O2 -fno-strict-aliasing and disables asserts.
 
 About VMIME
