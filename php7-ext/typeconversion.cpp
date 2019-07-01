@@ -72,13 +72,12 @@ static LONG PropTagToPHPTag(ULONG ulPropTag) {
 HRESULT PHPArraytoSBinaryArray(zval * entryid_array , void *lpBase, SBinaryArray *lpBinaryArray TSRMLS_DC)
 {
 	// local
-	HashTable		*target_hash = NULL;
 	zval			*pentry = NULL;
 	unsigned int n = 0;
 
 	MAPI_G(hr) = hrSuccess;
 
-	target_hash = HASH_OF(entryid_array);
+	auto target_hash = HASH_OF(entryid_array);
 	if (!target_hash) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No target_hash in PHPArraytoSBinaryArray");
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -153,12 +152,11 @@ HRESULT PHPArraytoSortOrderSet(zval * sortorder_array, void *lpBase, LPSSortOrde
 {
 	// local
 	LPSSortOrderSet lpSortOrderSet = NULL;
-	HashTable		*target_hash = NULL;
 	zval			*entry = NULL;
 
 	MAPI_G(hr) = hrSuccess;
 
-	target_hash = HASH_OF(sortorder_array);
+	auto target_hash = HASH_OF(sortorder_array);
 	if (!target_hash) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No target_hash in PHPArraytoSortOrderSet");
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -195,12 +193,11 @@ HRESULT PHPArraytoPropTagArray(zval * prop_value_array, void *lpBase, LPSPropTag
 {
 	// return value
 	LPSPropTagArray lpPropTagArray = NULL;
-	HashTable		*target_hash = NULL;
 	zval *entry = NULL;
 
 	MAPI_G(hr) = hrSuccess;
 
-	target_hash = HASH_OF(prop_value_array);
+	auto target_hash = HASH_OF(prop_value_array);
 	if (!target_hash) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No target_hash in PHPArraytoPropTagArray");
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -228,14 +225,12 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 	// return value
 	LPSPropValue	lpPropValue	= NULL;
 	ULONG			cvalues = 0;
-	HashTable		*target_hash = NULL;
 	HashTable		*dataHash = NULL;
 	zval			*entry = NULL;
 	ULONG			countarray = 0;
 	zval			*dataEntry = NULL;
 	HashTable		*actionHash = NULL;
 	ULONG			j, h;
-	ACTIONS			*lpActions = NULL;
 	LPSRestriction	lpRestriction = NULL;
 	ULONG			ulCountTmp = 0; // temp value
 	LPSPropValue	lpPropTmp = NULL;
@@ -256,7 +251,7 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 	}
 
-	target_hash = HASH_OF(phpArray);
+	auto target_hash = HASH_OF(phpArray);
 	if (!target_hash) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No target_hash in PHPArraytoPropValueArray");
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -469,7 +464,7 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 		case PT_MV_CURRENCY:
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "PT_MV_CURRENCY not supported");
 			return MAPI_G(hr) = MAPI_E_NO_SUPPORT;
-		case PT_ACTIONS:
+		case PT_ACTIONS: {
 			dataHash = HASH_OF(entry);
 			if (!dataHash)
 				break;
@@ -483,7 +478,7 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 			             reinterpret_cast<void **>(&lpPropValue[cvalues].Value.lpszA));
 			if (MAPI_G(hr) != hrSuccess)
 				return MAPI_G(hr);
-			lpActions = (ACTIONS *)lpPropValue[cvalues].Value.lpszA;
+			auto lpActions = reinterpret_cast<ACTIONS *>(lpPropValue[cvalues].Value.lpszA);
 			lpActions->ulVersion = EDK_RULES_VERSION;
 			lpActions->cActions = countarray;
 
@@ -633,7 +628,7 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 			} ZEND_HASH_FOREACH_END();
 			++cvalues;
 			break;
-
+		}
 		case PT_SRESTRICTION:
 			MAPI_G(hr) = PHPArraytoSRestriction(entry, lpBase ? lpBase : lpPropValue, &lpRestriction TSRMLS_CC);
 			if (MAPI_G(hr) != hrSuccess) {
@@ -659,7 +654,6 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 
 HRESULT PHPArraytoAdrList(zval *phpArray, void *lpBase, LPADRLIST *lppAdrList TSRMLS_DC) 
 {
-	HashTable		*target_hash = NULL;
 	ULONG			countProperties = 0;		// number of properties
 	ULONG			countRecipients = 0;		// number of actual recipients
 	LPADRLIST		lpAdrList = NULL;
@@ -673,7 +667,7 @@ HRESULT PHPArraytoAdrList(zval *phpArray, void *lpBase, LPADRLIST *lppAdrList TS
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 	}
 
-	target_hash = HASH_OF(phpArray);
+	auto target_hash = HASH_OF(phpArray);
 	if (!target_hash) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "phparraytoadrlist wrong data, unknown error");
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -721,12 +715,10 @@ exit:
 }
 
 HRESULT PHPArraytoRowList(zval *phpArray, void *lpBase, LPROWLIST *lppRowList TSRMLS_DC) {
-	HashTable		*target_hash = NULL;
 	ULONG			countProperties = 0;		// number of properties
 	ULONG			countRows = 0;		// number of actual recipients
 	rowlist_ptr lpRowList;
 	zval			*entry = NULL;
-	zval			*data = NULL;
 	LPSPropValue	pPropValue = NULL;
 	zstrplus str_properties(zend_string_init("properties", sizeof("properties") - 1, 0));
 	zstrplus str_rowflags(zend_string_init("rowflags", sizeof("rowflags") - 1, 0));
@@ -737,7 +729,7 @@ HRESULT PHPArraytoRowList(zval *phpArray, void *lpBase, LPROWLIST *lppRowList TS
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 	}
 
-	target_hash = HASH_OF(phpArray);
+	auto target_hash = HASH_OF(phpArray);
 	if (!target_hash) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No target_hash in PHPArraytoRowList");
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -759,7 +751,7 @@ HRESULT PHPArraytoRowList(zval *phpArray, void *lpBase, LPROWLIST *lppRowList TS
 			return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 		}
 
-		data = zend_hash_find(HASH_OF(entry), str_properties.get());
+		auto data = zend_hash_find(HASH_OF(entry), str_properties.get());
 		if (data != nullptr) {
 			MAPI_G(hr) = PHPArraytoPropValueArray(data, NULL, &countProperties, &pPropValue TSRMLS_CC);
 			if(MAPI_G(hr) != hrSuccess)
@@ -858,10 +850,6 @@ HRESULT PHPArraytoRowList(zval *phpArray, void *lpBase, LPROWLIST *lppRowList TS
 
 HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes TSRMLS_DC)
 {
-	HashTable *resHash	= NULL;
-	HashTable *dataHash = NULL;
-	zval *typeEntry  = NULL;
-	zval *valueEntry = NULL;
 	ULONG cValues = 0;
 
 	if (!phpVal || lpRes == NULL) {
@@ -870,7 +858,7 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 	}
 
 	ZVAL_DEREF(phpVal);
-	resHash = HASH_OF(phpVal);
+	auto resHash = HASH_OF(phpVal);
 	if (!resHash || zend_hash_num_elements(resHash) != 2) {		// should always be array(RES_ , array(values))
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Wrong array should be array(RES_, array(values))");
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -879,13 +867,13 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 	zend_hash_internal_pointer_reset_ex(resHash, &hpos);
 
 	// structure assumption: add more checks that valueEntry becomes php array pointer?
-	typeEntry = zend_hash_get_current_data_ex(resHash, &hpos); // 0=type, 1=array
+	auto typeEntry = zend_hash_get_current_data_ex(resHash, &hpos); // 0=type, 1=array
 	if (typeEntry == nullptr) {
 		php_error_docref(nullptr TSRMLS_CC, E_WARNING, "Wrong array should be array(RES_, array(values))");
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 	}
 	zend_hash_move_forward_ex(resHash, &hpos);
-	valueEntry = zend_hash_get_current_data_ex(resHash, &hpos);
+	auto valueEntry = zend_hash_get_current_data_ex(resHash, &hpos);
 	if (valueEntry == nullptr) {
 		php_error_docref(nullptr TSRMLS_CC, E_WARNING, "Wrong array should be array(RES_, array(values))");
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -893,7 +881,7 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 
 	lpRes->rt = typeEntry->value.lval;		// set restriction type (RES_AND, RES_OR, ...)
 	ZVAL_DEREF(valueEntry);
-	dataHash = HASH_OF(valueEntry);			// from resHash
+	auto dataHash = HASH_OF(valueEntry); // from resHash
 	if (!dataHash) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "critical error, wrong array");
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -1430,8 +1418,6 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 	zval zval_alist_value;	// adrlist in action convert
 	const SPropValue *pPropValue;
 	char ulKey[16];
-	ACTIONS *lpActions = NULL;
-	const SRestriction *lpRestriction = nullptr;
 	convert_context converter;
 
 	MAPI_G(hr) = hrSuccess;
@@ -1607,8 +1593,8 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 			//case PT_MV_I8:
 
 			// rules table properties
-		case PT_ACTIONS:
-			lpActions = (ACTIONS*)pPropValue->Value.lpszA;
+		case PT_ACTIONS: {
+			auto lpActions = reinterpret_cast<ACTIONS *>(pPropValue->Value.lpszA);
 			array_init(&zval_action_array);
 			for (unsigned int j = 0; j < lpActions->cActions; ++j) {
 				array_init(&zval_action_value);
@@ -1667,13 +1653,15 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 			}
 			add_assoc_zval(zval_prop_value, pulproptag, &zval_action_array);
 			break;
-		case PT_SRESTRICTION:
-			lpRestriction = (LPSRestriction)pPropValue->Value.lpszA;
+		}
+		case PT_SRESTRICTION: {
+			auto lpRestriction = reinterpret_cast<const SRestriction *>(pPropValue->Value.lpszA);
 			MAPI_G(hr) = SRestrictiontoPHPArray(lpRestriction, 0, &zval_action_value TSRMLS_CC);
 			if (MAPI_G(hr) != hrSuccess)
 				continue;
 			add_assoc_zval(zval_prop_value, pulproptag, &zval_action_value);
 			break;
+		}
 		}
 	}
 	return MAPI_G(hr);
@@ -1726,16 +1714,13 @@ HRESULT ReadStateArraytoPHPArray(ULONG cValues, const READSTATE *lpReadStates,
 HRESULT PHPArraytoReadStateArray(zval *zvalReadStates, void *lpBase, ULONG *lpcValues, LPREADSTATE *lppReadStates TSRMLS_DC)
 {
 	LPREADSTATE 	lpReadStates = NULL;
-	HashTable		*target_hash = NULL;
 	unsigned int count, n = 0;
-	zval			*pentry = NULL;
-	zval			*valueEntry = NULL;
 	zstrplus str_sourcekey(zend_string_init("sourcekey", sizeof("sourcekey") - 1, 0));
 	zstrplus str_flags(zend_string_init("flags", sizeof("flags") - 1, 0));
 
 	MAPI_G(hr) = hrSuccess;
 
-	target_hash = HASH_OF(zvalReadStates);
+	auto target_hash = HASH_OF(zvalReadStates);
 	if (!target_hash) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No target_hash in PHPArraytoReadStateArray");
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -1750,10 +1735,10 @@ HRESULT PHPArraytoReadStateArray(zval *zvalReadStates, void *lpBase, ULONG *lpcV
 	HashPosition hpos;
 	zend_hash_internal_pointer_reset_ex(target_hash, &hpos);
 	for (unsigned int i = 0; i < count; ++i) {
-		pentry = zend_hash_get_current_data_ex(target_hash, &hpos);
+		auto pentry = zend_hash_get_current_data_ex(target_hash, &hpos);
 		if (pentry == nullptr)
 			continue;
-		valueEntry = zend_hash_find(HASH_OF(pentry), str_sourcekey.get());
+		auto valueEntry = zend_hash_find(HASH_OF(pentry), str_sourcekey.get());
 		if (valueEntry == nullptr) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "No 'sourcekey' entry for one of the entries in the readstate list");
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -1785,14 +1770,13 @@ exit:
 
 HRESULT PHPArraytoGUIDArray(zval *phpVal, void *lpBase, ULONG *lpcValues, LPGUID *lppGUIDs TSRMLS_DC)
 {
-	HashTable *target_hash = NULL;
 	LPGUID lpGUIDs = NULL;
 	unsigned int n = 0;
 	zval			*pentry = NULL;
 
 	MAPI_G(hr) = hrSuccess;
 
-	target_hash = HASH_OF(phpVal);
+	auto target_hash = HASH_OF(phpVal);
 	if (!target_hash) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No target_hash in PHPArraytoGUIDArray");
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -1884,7 +1868,6 @@ HRESULT NotificationstoPHPArray(ULONG cNotifs, const NOTIFICATION *lpNotifs,
 HRESULT PHPArraytoSendingOptions(zval *phpArray, sending_options *lpSOPT)
 {
 	HRESULT hr = hrSuccess;
-	HashTable		*target_hash = NULL;
 	zval			*entry = NULL;
 
 	if (!phpArray) {
@@ -1893,7 +1876,7 @@ HRESULT PHPArraytoSendingOptions(zval *phpArray, sending_options *lpSOPT)
 		return hr;
 	}
 
-	target_hash = HASH_OF(phpArray);
+	auto target_hash = HASH_OF(phpArray);
 	if (!target_hash) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No target_hash in PHPArraytoSendingOptions");
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -1940,7 +1923,6 @@ HRESULT PHPArraytoSendingOptions(zval *phpArray, sending_options *lpSOPT)
 HRESULT PHPArraytoDeliveryOptions(zval *phpArray, delivery_options *lpDOPT)
 {
 	HRESULT hr = hrSuccess;
-	HashTable		*target_hash = NULL;
 	zval			*entry = NULL;
 
 	if (!phpArray) {
@@ -1949,7 +1931,7 @@ HRESULT PHPArraytoDeliveryOptions(zval *phpArray, delivery_options *lpDOPT)
 		return hr;
 	}
 
-	target_hash = HASH_OF(phpArray);
+	auto target_hash = HASH_OF(phpArray);
 	if (!target_hash) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No target_hash in PHPArraytoDeliveryOptions");
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;

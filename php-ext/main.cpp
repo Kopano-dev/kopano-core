@@ -3233,7 +3233,6 @@ ZEND_FUNCTION(mapi_openproperty)
 	if (*lpGUID == IID_IStream) {
 		if(bBackwardCompatible) {
 			STATSTG stat;
-			char *data = NULL;
 			ULONG cRead;
 
 			// do not use queryinterface, since we don't return the stream, but the contents
@@ -3243,7 +3242,7 @@ ZEND_FUNCTION(mapi_openproperty)
 				return;
 
 			// Use emalloc so that it can be returned directly to PHP without copying
-			data = (char *)emalloc(stat.cbSize.LowPart);
+			auto data = static_cast<char *>(emalloc(stat.cbSize.LowPart));
 			if (data == NULL) {
 				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to allocate memory");
 				MAPI_G(hr) = MAPI_E_NOT_ENOUGH_MEMORY;
@@ -3980,7 +3979,6 @@ ZEND_FUNCTION(mapi_zarafa_setquota)
 	// local
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	memory_ptr<ECQUOTA> lpQuota;
-	HashTable		*data = NULL;
 	zval			**value = NULL;
 
 	RETVAL_FALSE;
@@ -3999,7 +3997,7 @@ ZEND_FUNCTION(mapi_zarafa_setquota)
 	if (MAPI_G(hr) != hrSuccess)
 		return;
 
-	data = HASH_OF(array);
+	auto data = HASH_OF(array);
 	if (zend_hash_find(data, "usedefault", sizeof("usedefault"), reinterpret_cast<void **>(&value)) == SUCCESS)
 		lpQuota->bUseDefaultQuota = zval_is_true(*value);
 	if (zend_hash_find(data, "isuserdefault", sizeof("isuserdefault"), reinterpret_cast<void **>(&value)) == SUCCESS)
@@ -5108,12 +5106,9 @@ ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
 	// local
 	int type = -1;
 	object_ptr<IECSecurity> lpSecurity;
-	ULONG cPerms = 0;
 	memory_ptr<ECPERMISSION> lpECPerms;
-	HashTable *target_hash = NULL;
 	ULONG i, j;
 	zval **entry = NULL, **value = NULL;
-	HashTable *data = NULL;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -5141,7 +5136,7 @@ ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano object");
 		return;
 	}
-	target_hash = HASH_OF(perms);
+	auto target_hash = HASH_OF(perms);
 	if (!target_hash) {
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 		return;
@@ -5150,7 +5145,7 @@ ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
 	// The following code should be in typeconversion.cpp
 	HashPosition hpos;
 	zend_hash_internal_pointer_reset_ex(target_hash, &hpos);
-	cPerms = zend_hash_num_elements(target_hash);
+	auto cPerms = zend_hash_num_elements(target_hash);
 	MAPI_G(hr) = MAPIAllocateBuffer(sizeof(ECPERMISSION)*cPerms, &~lpECPerms);
 	if (MAPI_G(hr) != hrSuccess)
 		return;
@@ -5159,7 +5154,7 @@ ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
 	for (j = 0, i = 0; i < cPerms; ++i, zend_hash_move_forward_ex(target_hash, &hpos)) {
 		zend_hash_get_current_data_ex(target_hash, reinterpret_cast<void **>(&entry), &hpos);
 		// null pointer returned if perms was not array(array()).
-		data = HASH_OF(entry[0]);
+		auto data = HASH_OF(entry[0]);
 		if (zend_hash_find(data, "userid", sizeof("userid"), reinterpret_cast<void **>(&value)) != SUCCESS)
 			continue;
 		SEPARATE_ZVAL(value);
@@ -5260,14 +5255,12 @@ ZEND_FUNCTION(mapi_freebusysupport_loaddata)
 {
 	PMEASURE_FUNC;
 	LOG_BEGIN();
-	HashTable*			target_hash = NULL;
 	zval**				entry = NULL;
 	int					rid = 0;
 	memory_ptr<FBUser> lpUsers;
 	IFreeBusySupport*	lpFBSupport = NULL;
 	zval*				resFBSupport = NULL;
 	zval*				resUsers = NULL;
-	ULONG				cUsers = 0;
 	memory_ptr<IFreeBusyData *> lppFBData;
 	std::vector<object_ptr<IFreeBusyData>> fbdata;
 	ULONG				cFBData = 0;
@@ -5280,7 +5273,7 @@ ZEND_FUNCTION(mapi_freebusysupport_loaddata)
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpFBSupport, IFreeBusySupport*, &resFBSupport, -1, name_fb_support, le_freebusy_support);
 
-	target_hash = HASH_OF(resUsers);
+	auto target_hash = HASH_OF(resUsers);
 	if (!target_hash) {
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 		return;
@@ -5288,7 +5281,7 @@ ZEND_FUNCTION(mapi_freebusysupport_loaddata)
 
 	HashPosition hpos;
 	zend_hash_internal_pointer_reset_ex(target_hash, &hpos);
-	cUsers = zend_hash_num_elements(target_hash);
+	auto cUsers = zend_hash_num_elements(target_hash);
 	MAPI_G(hr) = MAPIAllocateBuffer(sizeof(FBUser)*cUsers, &~lpUsers);
 	if(MAPI_G(hr) != hrSuccess)
 		return;
@@ -5337,14 +5330,12 @@ ZEND_FUNCTION(mapi_freebusysupport_loadupdate)
 {
 	PMEASURE_FUNC;
 	LOG_BEGIN();
-	HashTable*			target_hash = NULL;
 	zval**				entry = NULL;
 	int					rid = 0;
 	memory_ptr<FBUser> lpUsers;
 	IFreeBusySupport*	lpFBSupport = NULL;
 	zval*				resFBSupport = NULL;
 	zval*				resUsers = NULL;
-	ULONG				cUsers = 0;
 	memory_ptr<IFreeBusyUpdate *> lppFBUpdate;
 	std::vector<object_ptr<IFreeBusyUpdate>> fbupdate;
 	ULONG				cFBUpdate = 0;
@@ -5357,7 +5348,7 @@ ZEND_FUNCTION(mapi_freebusysupport_loadupdate)
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpFBSupport, IFreeBusySupport*, &resFBSupport, -1, name_fb_support, le_freebusy_support);
 
-	target_hash = HASH_OF(resUsers);
+	auto target_hash = HASH_OF(resUsers);
 	if (!target_hash) {
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 		return;
@@ -5365,7 +5356,7 @@ ZEND_FUNCTION(mapi_freebusysupport_loadupdate)
 
 	HashPosition hpos;
 	zend_hash_internal_pointer_reset_ex(target_hash, &hpos);
-	cUsers = zend_hash_num_elements(target_hash);
+	auto cUsers = zend_hash_num_elements(target_hash);
 	MAPI_G(hr) = MAPIAllocateBuffer(sizeof(FBUser)*cUsers, &~lpUsers);
 	if(MAPI_G(hr) != hrSuccess)
 		return;
@@ -5659,11 +5650,8 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish)
 	IFreeBusyUpdate*	lpFBUpdate = NULL;
 	// local
 	memory_ptr<FBBlock_1> lpBlocks;
-	ULONG				cBlocks = 0;
-	HashTable*			target_hash = NULL;
 	zval**				entry = NULL;
 	zval**				value = NULL;
-	HashTable*			data = NULL;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -5673,7 +5661,7 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish)
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpFBUpdate, IFreeBusyUpdate*, &resFBUpdate, -1, name_fb_update, le_freebusy_update);
 
-	target_hash = HASH_OF(aBlocks);
+	auto target_hash = HASH_OF(aBlocks);
 	if (!target_hash) {
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 		return;
@@ -5681,14 +5669,14 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish)
 
 	HashPosition hpos;
 	zend_hash_internal_pointer_reset_ex(target_hash, &hpos);
-	cBlocks = zend_hash_num_elements(target_hash);
+	auto cBlocks = zend_hash_num_elements(target_hash);
 	MAPI_G(hr) = MAPIAllocateBuffer(sizeof(FBBlock_1)*cBlocks, &~lpBlocks);
 	if(MAPI_G(hr) != hrSuccess)
 		return;
 
 	for (unsigned int i = 0; i < cBlocks; ++i, zend_hash_move_forward_ex(target_hash, &hpos)) {
 		zend_hash_get_current_data_ex(target_hash, reinterpret_cast<void **>(&entry), &hpos);
-		data = HASH_OF(entry[0]);
+		auto data = HASH_OF(entry[0]);
 		if (zend_hash_find(data, "start", sizeof("start"), reinterpret_cast<void **>(&value)) != SUCCESS) {
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 			return;
