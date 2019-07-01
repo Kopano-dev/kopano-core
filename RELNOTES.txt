@@ -13,6 +13,7 @@ Fixes:
   kopano-server.service [KC-1514]
 * dagent: cured a silent exit when "lmtp_listen" contained garbage [KC-1516]
 * dagent: evalute entire transport headers [KC-1443]
+* freebusy: fix potential freeing of uninitialized pointers [KC-1539]
 * pyko: avoid local time conversion of UTC dates
 Enhancements:
 * logrotate will now use `systemctl reload` if available [GH-PR-14]
