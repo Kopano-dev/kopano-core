@@ -189,8 +189,8 @@ fi
 # enable/disable options
 #
 
-AC_ARG_ENABLE([release], AS_HELP_STRING([--enable-release], [enable release mode (compile flags and no DEBUG defines)]),
-  [want_release=${enableval}],[want_release=no])
+AC_ARG_ENABLE([release], [AS_HELP_STRING([--disable-release], [Deactivate workarounds for KC-937 and KC-930])],
+	[want_release=${enableval}], [want_release=yes])
 AS_IF([test "$want_release" = "yes"], [
     ZCPPFLAGS="$ZCPPFLAGS -DNDEBUG"
     ZCXXFLAGS="$ZCXXFLAGS -fno-strict-aliasing"
