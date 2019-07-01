@@ -1010,7 +1010,6 @@ ZEND_FUNCTION(mapi_openaddressbook)
 	IMAPISession *lpSession = NULL;
 	// return value
 	LPADRBOOK lpAddrBook;
-	// local
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -1089,8 +1088,6 @@ ZEND_FUNCTION(mapi_ab_resolvename) {
 	zval		*array;
 	zval		*rowset;
 	long		ulFlags = 0;
-	// return value
-
 	// local
 	adrlist_ptr lpAList;
 
@@ -1243,7 +1240,6 @@ ZEND_FUNCTION(mapi_openprofilesection)
 	LPMAPIUID lpUID = NULL;
 	// return value
 	IMAPIProp *lpProfSectProp = NULL;
-	// local
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -1943,7 +1939,6 @@ ZEND_FUNCTION(mapi_table_queryallrows)
 	zval			*restrictionArray	= NULL;
 	zval			*rowset				= NULL;
 	LPMAPITABLE		lpTable				= NULL;
-	// return value
 	// locals
 	memory_ptr<SPropTagArray> lpTagArray;
 	memory_ptr<SRestriction> lpRestrict;
@@ -3498,7 +3493,6 @@ ZEND_FUNCTION(mapi_getnamesfromids)
 	zval	*res, *array;
 	LPMDB	pMDB = NULL;
 	memory_ptr<SPropTagArray> lpPropTags;
-	// return value
 	// local
 	ULONG				cPropNames = 0;
 	memory_ptr<MAPINAMEID *> pPropNames;
@@ -3635,7 +3629,6 @@ ZEND_FUNCTION(mapi_folder_openmodifytable) {
 	LPMAPIFOLDER lpInbox = NULL;
 	// return value
 	LPEXCHANGEMODIFYTABLE lpRulesTable = NULL;
-	// locals
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -3795,8 +3788,6 @@ ZEND_FUNCTION(mapi_rules_modifytable) {
 	zval *rows;
 	LPROWLIST lpRowList = NULL;
 	long ulFlags = 0;
-	// return value
-	// locals
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -4040,8 +4031,6 @@ ZEND_FUNCTION(mapi_zarafa_getuserlist)
 	LPMDB			lpMsgStore = NULL;
 	LPENTRYID		lpCompanyId = NULL;
 	php_stringsize_t cbCompanyId = 0;
-	// return value
-
 	// local
 	ULONG		nUsers, i;
 	memory_ptr<ECUSER> lpUsers;
@@ -4096,8 +4085,6 @@ ZEND_FUNCTION(mapi_zarafa_getquota)
 	LPMDB           lpMsgStore = NULL;
 	LPENTRYID		lpUserId = NULL;
 	php_stringsize_t cbUserId = 0;
-	// return value
-
 	// local
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	memory_ptr<ECQUOTA> lpQuota;
@@ -4145,8 +4132,6 @@ ZEND_FUNCTION(mapi_zarafa_setquota)
 	LPENTRYID		lpUserId = NULL;
 	php_stringsize_t cbUserId = 0;
 	zval			*array = NULL;
-	// return value
-
 	// local
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	memory_ptr<ECQUOTA> lpQuota;
@@ -4219,8 +4204,6 @@ ZEND_FUNCTION(mapi_zarafa_getuser_by_name)
 	LPMDB		lpMsgStore = NULL;
 	char			*lpszUsername;
 	php_stringsize_t ulUsername;
-	// return value
-
 	// local
 	memory_ptr<ECUSER> lpUsers;
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
@@ -4278,8 +4261,6 @@ ZEND_FUNCTION(mapi_zarafa_getuser_by_id)
 	LPMDB			lpMsgStore = NULL;
 	LPENTRYID		lpUserId = NULL;
 	php_stringsize_t cbUserId = 0;
-	// return value
-
 	// local
 	memory_ptr<ECUSER> lpUsers;
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
@@ -4361,7 +4342,6 @@ ZEND_FUNCTION(mapi_zarafa_deletegroup)
 	LPMDB			lpMsgStore = NULL;
 	char			*lpszGroupname;
 	php_stringsize_t cbGroupname;
-	// return value
 	// locals
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	memory_ptr<ENTRYID> lpGroupId;
@@ -4404,7 +4384,6 @@ ZEND_FUNCTION(mapi_zarafa_addgroupmember)
 	LPENTRYID		lpGroupId = NULL;
 	LPENTRYID		lpUserId = NULL;
 	php_stringsize_t cbGroupId = 0, cbUserId = 0;
-	// return value
 	// locals
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	IMsgStore	*lpMsgStore = NULL;
@@ -4439,7 +4418,6 @@ ZEND_FUNCTION(mapi_zarafa_deletegroupmember)
 	LPENTRYID		lpGroupId = NULL;
 	LPENTRYID		lpUserId = NULL;
 	php_stringsize_t cbGroupId = 0, cbUserId = 0;
-	// return value
 	// locals
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	IMsgStore	*lpMsgStore = NULL;
@@ -4475,8 +4453,6 @@ ZEND_FUNCTION(mapi_zarafa_setgroup)
 	char			*lpszGroupname;
 	LPENTRYID		*lpGroupId = NULL;
 	php_stringsize_t cbGroupname, cbGroupId = 0;
-
-	// return value
 	// locals
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	ECGROUP			sGroup;
@@ -4515,7 +4491,6 @@ ZEND_FUNCTION(mapi_zarafa_getgroup_by_id)
 	LPMDB			lpMsgStore = NULL;
 	LPENTRYID		lpGroupId = NULL;
 	php_stringsize_t cbGroupId = 0;
-	// return value
 	// locals
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	memory_ptr<ECGROUP> lpsGroup;
@@ -4596,7 +4571,6 @@ ZEND_FUNCTION(mapi_zarafa_getgrouplist)
 	zval			*res = NULL;
 	LPENTRYID		lpCompanyId = NULL;
 	php_stringsize_t cbCompanyId = 0;
-	// return value
 	// locals
 	zval			*zval_data_value  = NULL;
 	LPMDB			lpMsgStore = NULL;
@@ -4643,7 +4617,6 @@ ZEND_FUNCTION(mapi_zarafa_getgrouplistofuser)
 	zval			*res = NULL;
 	LPENTRYID		lpUserId = NULL;
 	php_stringsize_t cbUserId = 0;
-	// return value
 	// locals
 	zval			*zval_data_value  = NULL;
 	LPMDB			lpMsgStore = NULL;
@@ -4690,7 +4663,6 @@ ZEND_FUNCTION(mapi_zarafa_getuserlistofgroup)
 	zval			*res = NULL;
 	LPENTRYID		lpGroupId = NULL;
 	php_stringsize_t cbGroupId = 0;
-	// return value
 	// locals
 	zval			*zval_data_value  = NULL;
 	LPMDB			lpMsgStore = NULL;
@@ -4779,7 +4751,6 @@ ZEND_FUNCTION(mapi_zarafa_deletecompany)
 	LPMDB lpMsgStore = NULL;
 	char *lpszCompanyname;
 	php_stringsize_t cbCompanyname = 0;
-	// return value
 	// locals
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	memory_ptr<ENTRYID> lpCompanyId;
@@ -4823,7 +4794,6 @@ ZEND_FUNCTION(mapi_zarafa_getcompany_by_id)
 	LPMDB			lpMsgStore = NULL;
 	LPENTRYID		lpCompanyId = NULL;
 	php_stringsize_t cbCompanyId = 0;
-	// return value
 	// locals
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	memory_ptr<ECCOMPANY> lpsCompany;
@@ -4863,7 +4833,6 @@ ZEND_FUNCTION(mapi_zarafa_getcompany_by_name)
 	php_stringsize_t ulCompanyname;
 	memory_ptr<ENTRYID> lpCompanyId;
 	unsigned int cbCompanyId = 0;
-	// return value
 	// locals
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	memory_ptr<ECCOMPANY> lpsCompany;
@@ -4906,7 +4875,6 @@ ZEND_FUNCTION(mapi_zarafa_getcompanylist)
 	zval *res = NULL;
  	zval *zval_data_value = NULL;
 	LPMDB lpMsgStore = NULL;
-	// return value
 	// local
 	ULONG nCompanies, i;
 	memory_ptr<ECCOMPANY> lpCompanies;
