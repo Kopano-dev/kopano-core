@@ -423,20 +423,21 @@ HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULON
 
 	auto &xmo = lpPropFBDataArray[0].Value.MVl;
 	auto &fbd = lpPropFBDataArray[1].Value.MVbin;
+	lpPropFBDataArray[0].ulPropTag = 0;
+	lpPropFBDataArray[1].ulPropTag = 0;
 	xmo.cValues = 0;
 	fbd.cValues = 0;
 
 	hr = MAPIAllocateMore((ulMonths + 1) * sizeof(ULONG), lpPropFBDataArray, reinterpret_cast<void **>(&xmo.lpl));  // +1 for free/busy in two months
 	if (hr != hrSuccess)
 		return hr;
+	lpPropFBDataArray[0].ulPropTag = ulPropMonths; /* PT_MV_LONG */
 	hr = MAPIAllocateMore((ulMonths + 1) * sizeof(SBinary), lpPropFBDataArray, reinterpret_cast<void **>(&fbd.lpbin)); // +1 for free/busy in two months
 	if (hr != hrSuccess)
 		return hr;
+	//memset(fbd.lpbin, 0, (ulMonths + 1) * sizeof(SBinary));
+	lpPropFBDataArray[1].ulPropTag = ulPropEvents; /* PT_MV_BINARY */
 
-	//memset(&fbd.lpbin, 0, ulArrayItems);
-
-	lpPropFBDataArray[0].ulPropTag = ulPropMonths;
-	lpPropFBDataArray[1].ulPropTag = ulPropEvents;
 	LONG iMonth = -1;
 	bool bFound = false;
 
@@ -452,11 +453,11 @@ HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULON
 			{
 				++iMonth;
 				xmo.lpl[iMonth] = FB_YEARMONTH(tmStart.tm_year + 1900, tmStart.tm_mon + 1);
-				++xmo.cValues;
-				++fbd.cValues;
 				hr = MAPIAllocateMore(ulMaxItemDataSize, lpPropFBDataArray, reinterpret_cast<void **>(&fbd.lpbin[iMonth].lpb));
 				if (hr != hrSuccess)
 					return hr;
+				++xmo.cValues;
+				++fbd.cValues;
 				fbd.lpbin[iMonth].cb = 0;
 			}
 
@@ -481,11 +482,11 @@ HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULON
 					++tmTmp.tm_mon;
 					mktime(&tmTmp);
 					xmo.lpl[iMonth] = FB_YEARMONTH(tmTmp.tm_year + 1900, tmTmp.tm_mon + 1);
-					++xmo.cValues;
-					++fbd.cValues;
 					hr = MAPIAllocateMore(ulMaxItemDataSize, lpPropFBDataArray, reinterpret_cast<void **>(&fbd.lpbin[iMonth].lpb));
 					if (hr != hrSuccess)
 						return hr;
+					++xmo.cValues;
+					++fbd.cValues;
 					fbd.lpbin[iMonth].cb = 0;
 				
 					fbEvent.rtmStart = 0;					
@@ -502,11 +503,11 @@ HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULON
 				tmTmp.tm_isdst = -1;
 				mktime(&tmTmp);
 				xmo.lpl[iMonth] = FB_YEARMONTH(tmTmp.tm_year + 1900, tmTmp.tm_mon + 1);
-				++xmo.cValues;
-				++fbd.cValues;
 				hr = MAPIAllocateMore(ulMaxItemDataSize, lpPropFBDataArray, reinterpret_cast<void **>(&fbd.lpbin[iMonth].lpb));
 				if (hr != hrSuccess)
 					return hr;
+				++xmo.cValues;
+				++fbd.cValues;
 				fbd.lpbin[iMonth].cb = 0;
 
 				fbEvent.rtmStart = 0;

@@ -659,7 +659,6 @@ HRESULT HrFindAndGetMessage(const std::string &strGuid, IMAPIFolder *lpUsrFld,
 HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, IAddrBook *lpAddrBook, std::list<std::string> *lplstUsers, WEBDAVFBINFO *lpFbInfo)
 {
 	memory_ptr<FBUser> lpUsers;
-	IFreeBusyData **lppFBData = NULL;
 	memory_ptr<FBBlock_1> lpsFBblks;
 	std::string strMethod, strIcal;
 	FILETIME ftStart = {0, 0}, ftEnd = {0, 0};
@@ -725,13 +724,19 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 			return hr;
 	}
 
-	hr = MAPIAllocateBuffer(sizeof(IFreeBusyData *) * cUsers, reinterpret_cast<void **>(&lppFBData));
+	std::vector<object_ptr<IFreeBusyData>> fbdata(cUsers);
+	memory_ptr<IFreeBusyData *> lppFBData;
+	hr = MAPIAllocateBuffer(sizeof(IFreeBusyData *) * cUsers, &~lppFBData);
 	if (hr != hrSuccess)
 		return hr;
-	memset(lppFBData, '\0', sizeof(IFreeBusyData *) * cUsers);
 
 	// retrieve freebusy for the attendees
 	hr = lpFBSupport->LoadFreeBusyData(cUsers, lpUsers, lppFBData, NULL, &cFBData);
+	for (size_t i = 0; i < cUsers; ++i) {
+		/* quickly move raw pointers into tracked storage (this is a noexcept region) */
+		fbdata[i].reset(lppFBData[i]);
+		lppFBData[i] = nullptr;
+	}
 	if (hr != hrSuccess)
 		goto exit;
 	ftStart = UnixTimeToFileTime(lpFbInfo->tStart);
@@ -742,9 +747,9 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 		object_ptr<IEnumFBBlock> lpEnumBlock;
 		strIcal.clear();
 
-		if (!lppFBData[i])
+		if (fbdata[i] == nullptr)
 			goto next;
-		hr = lppFBData[i]->EnumBlocks(&~lpEnumBlock, ftStart, ftEnd);
+		hr = fbdata[i]->EnumBlocks(&~lpEnumBlock, ftStart, ftEnd);
 		if (hr != hrSuccess)
 			goto next;
 		hr = MAPIAllocateBuffer(sizeof(FBBlock_1)*lMaxblks, &~lpsFBblks);
@@ -779,11 +784,5 @@ next:
 	hr = hrSuccess;
 
 exit:
-	if (lppFBData) {
-		for (ULONG i = 0; i < cUsers; ++i)
-			if (lppFBData[i])
-				lppFBData[i]->Release();
-		MAPIFreeBuffer(lppFBData);
-	}
 	return hr;
 }
