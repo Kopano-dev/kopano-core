@@ -171,11 +171,10 @@ HRESULT ECImportHierarchyChangesProxy::ImportFolderChange(ULONG cValues, LPSProp
     zval *pvalFuncName;
     zval *pvalReturn;
 	zval *pvalArgs;
-    HRESULT hr = hrSuccess;
     
     MAKE_STD_ZVAL(pvalFuncName);
     MAKE_STD_ZVAL(pvalReturn);
-    hr = PropValueArraytoPHPArray(cValues, lpPropArray, &pvalArgs TSRMLS_CC);
+	auto hr = PropValueArraytoPHPArray(cValues, lpPropArray, &pvalArgs TSRMLS_CC);
     if(hr != hrSuccess) {
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to convert MAPI propvalue array to PHP");
         goto exit;

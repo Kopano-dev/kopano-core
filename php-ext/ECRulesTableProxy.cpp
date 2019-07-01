@@ -202,40 +202,39 @@ static HRESULT ConvertUnicodeToString8(const wchar_t *lpszW, char **lppszA,
 static HRESULT ConvertUnicodeToString8(LPSRestriction lpRestriction,
     void *base, convert_context &converter)
 {
-	HRESULT hr = hrSuccess;
-
 	if (lpRestriction == NULL)
-		return hr;
+		return hrSuccess;
 
 	switch (lpRestriction->rt) {
 	case RES_OR:
 		for (unsigned int i = 0; i < lpRestriction->res.resOr.cRes; ++i) {
-			hr = ConvertUnicodeToString8(&lpRestriction->res.resOr.lpRes[i], base, converter);
+			auto hr = ConvertUnicodeToString8(&lpRestriction->res.resOr.lpRes[i], base, converter);
 			if (hr != hrSuccess)
 				return hr;
 		}
 		break;
 	case RES_AND:
 		for (unsigned int i = 0; i < lpRestriction->res.resAnd.cRes; ++i) {
-			hr = ConvertUnicodeToString8(&lpRestriction->res.resAnd.lpRes[i], base, converter);
+			auto hr = ConvertUnicodeToString8(&lpRestriction->res.resAnd.lpRes[i], base, converter);
 			if (hr != hrSuccess)
 				return hr;
 		}
 		break;
-	case RES_NOT:
-		hr = ConvertUnicodeToString8(lpRestriction->res.resNot.lpRes, base, converter);
+	case RES_NOT: {
+		auto hr = ConvertUnicodeToString8(lpRestriction->res.resNot.lpRes, base, converter);
 		if (hr != hrSuccess)
 			return hr;
 		break;
+	}
 	case RES_COMMENT:
 		if (lpRestriction->res.resComment.lpRes) {
-			hr = ConvertUnicodeToString8(lpRestriction->res.resComment.lpRes, base, converter);
+			auto hr = ConvertUnicodeToString8(lpRestriction->res.resComment.lpRes, base, converter);
 			if (hr != hrSuccess)
 				return hr;
 		}
 		for (unsigned int i = 0; i < lpRestriction->res.resComment.cValues; ++i)
 			if (PROP_TYPE(lpRestriction->res.resComment.lpProp[i].ulPropTag) == PT_UNICODE) {
-				hr = ConvertUnicodeToString8(lpRestriction->res.resComment.lpProp[i].Value.lpszW, &lpRestriction->res.resComment.lpProp[i].Value.lpszA, base, converter);
+				auto hr = ConvertUnicodeToString8(lpRestriction->res.resComment.lpProp[i].Value.lpszW, &lpRestriction->res.resComment.lpProp[i].Value.lpszA, base, converter);
 				if (hr != hrSuccess)
 					return hr;
 				lpRestriction->res.resComment.lpProp[i].ulPropTag = CHANGE_PROP_TYPE(lpRestriction->res.resComment.lpProp[i].ulPropTag, PT_STRING8);
@@ -245,7 +244,7 @@ static HRESULT ConvertUnicodeToString8(LPSRestriction lpRestriction,
 		break;
 	case RES_CONTENT:
 		if (PROP_TYPE(lpRestriction->res.resContent.ulPropTag) == PT_UNICODE) {
-			hr = ConvertUnicodeToString8(lpRestriction->res.resContent.lpProp->Value.lpszW, &lpRestriction->res.resContent.lpProp->Value.lpszA, base, converter);
+			auto hr = ConvertUnicodeToString8(lpRestriction->res.resContent.lpProp->Value.lpszW, &lpRestriction->res.resContent.lpProp->Value.lpszA, base, converter);
 			if (hr != hrSuccess)
 				return hr;
 			lpRestriction->res.resContent.lpProp->ulPropTag = CHANGE_PROP_TYPE(lpRestriction->res.resContent.lpProp->ulPropTag, PT_STRING8);
@@ -254,20 +253,21 @@ static HRESULT ConvertUnicodeToString8(LPSRestriction lpRestriction,
 		break;
 	case RES_PROPERTY:
 		if (PROP_TYPE(lpRestriction->res.resProperty.ulPropTag) == PT_UNICODE) {
-			hr = ConvertUnicodeToString8(lpRestriction->res.resProperty.lpProp->Value.lpszW, &lpRestriction->res.resProperty.lpProp->Value.lpszA, base, converter);
+			auto hr = ConvertUnicodeToString8(lpRestriction->res.resProperty.lpProp->Value.lpszW, &lpRestriction->res.resProperty.lpProp->Value.lpszA, base, converter);
 			if (hr != hrSuccess)
 				return hr;
 			lpRestriction->res.resProperty.lpProp->ulPropTag = CHANGE_PROP_TYPE(lpRestriction->res.resProperty.lpProp->ulPropTag, PT_STRING8);
 			lpRestriction->res.resProperty.ulPropTag = CHANGE_PROP_TYPE(lpRestriction->res.resProperty.ulPropTag, PT_STRING8);
 		}
 		break;
-	case RES_SUBRESTRICTION:
-		hr = ConvertUnicodeToString8(lpRestriction->res.resSub.lpRes, base, converter);
+	case RES_SUBRESTRICTION: {
+		auto hr = ConvertUnicodeToString8(lpRestriction->res.resSub.lpRes, base, converter);
 		if (hr != hrSuccess)
 			return hr;
 		break;
 	}
-	return hr;
+	}
+	return hrSuccess;
 }
 
 static HRESULT ConvertUnicodeToString8(const SRow *lpRow, void *base,

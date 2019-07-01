@@ -54,14 +54,11 @@ using namespace KC;
 ZEND_EXTERN_MODULE_GLOBALS(mapi)
 
 static LONG PropTagToPHPTag(ULONG ulPropTag) {
-	LONG PHPTag = 0;
 	if (PROP_TYPE(ulPropTag) == PT_UNICODE)
-		PHPTag = (LONG)CHANGE_PROP_TYPE(ulPropTag, PT_STRING8);
+		return CHANGE_PROP_TYPE(ulPropTag, PT_STRING8);
 	else if (PROP_TYPE(ulPropTag) == PT_MV_UNICODE)
-		PHPTag = (LONG)CHANGE_PROP_TYPE(ulPropTag, PT_MV_STRING8);
-	else
-		PHPTag = (LONG)ulPropTag;
-	return PHPTag;
+		return CHANGE_PROP_TYPE(ulPropTag, PT_MV_STRING8);
+	return ulPropTag;
 }
 
 /*
@@ -1867,20 +1864,19 @@ HRESULT NotificationstoPHPArray(ULONG cNotifs, const NOTIFICATION *lpNotifs,
  */
 HRESULT PHPArraytoSendingOptions(zval *phpArray, sending_options *lpSOPT)
 {
-	HRESULT hr = hrSuccess;
 	zval			*entry = NULL;
 
 	if (!phpArray) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No phpArray in PHPArraytoSendingOptions");
 		// not an error
-		return hr;
+		return hrSuccess;
 	}
 
 	auto target_hash = HASH_OF(phpArray);
 	if (!target_hash) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No target_hash in PHPArraytoSendingOptions");
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-		return hr;
+		return hrSuccess;
 	}
 
 	zend_string *keyIndex = nullptr;
@@ -1914,7 +1910,7 @@ HRESULT PHPArraytoSendingOptions(zval *phpArray, sending_options *lpSOPT)
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unknown or disallowed sending option %s", keyIndex->val);
 		}
 	} ZEND_HASH_FOREACH_END();
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -1922,20 +1918,19 @@ HRESULT PHPArraytoSendingOptions(zval *phpArray, sending_options *lpSOPT)
  */
 HRESULT PHPArraytoDeliveryOptions(zval *phpArray, delivery_options *lpDOPT)
 {
-	HRESULT hr = hrSuccess;
 	zval			*entry = NULL;
 
 	if (!phpArray) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No phpArray in PHPArraytoDeliveryOptions");
 		// not an error
-		return hr;
+		return hrSuccess;
 	}
 
 	auto target_hash = HASH_OF(phpArray);
 	if (!target_hash) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No target_hash in PHPArraytoDeliveryOptions");
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-		return hr;
+		return hrSuccess;
 	}
 
 	zend_string *keyIndex = nullptr;
@@ -1964,5 +1959,5 @@ HRESULT PHPArraytoDeliveryOptions(zval *phpArray, delivery_options *lpDOPT)
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unknown or disallowed delivery option %s", keyIndex->val);
 		}
 	} ZEND_HASH_FOREACH_END();
-	return hr;
+	return hrSuccess;
 }
