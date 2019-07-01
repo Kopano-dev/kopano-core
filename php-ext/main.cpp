@@ -607,10 +607,6 @@ PHP_MINIT_FUNCTION(mapi) {
 	});
 // Used at the end of each MAPI call to throw exceptions if mapi_enable_exceptions() has been called
 
-/**
-*
-*
-*/
 PHP_MSHUTDOWN_FUNCTION(mapi)
 {
 	UNREGISTER_INI_ENTRIES();
@@ -1367,11 +1363,6 @@ exit:
 	DEFERRED_EPILOGUE;
 }
 
-/**
-* mapi_folder_createmessage
-*
-*
-*/
 ZEND_FUNCTION(mapi_folder_createmessage)
 {
 	PMEASURE_FUNC;
@@ -1399,11 +1390,6 @@ exit:
 	DEFERRED_EPILOGUE;
 }
 
-/**
-* mapi_folder_deletemessage
-*
-*
-*/
 ZEND_FUNCTION(mapi_folder_deletemessages)
 {
 	PMEASURE_FUNC;
@@ -2167,11 +2153,6 @@ exit:
 	DEFERRED_EPILOGUE;
 }
 
-/**
-*
-*
-*
-*/
 ZEND_FUNCTION(mapi_table_sort)
 {
 	PMEASURE_FUNC;
@@ -2204,11 +2185,6 @@ exit:
 	DEFERRED_EPILOGUE;
 }
 
-/**
-*
-*
-*
-*/
 ZEND_FUNCTION(mapi_table_getrowcount)
 {
 	PMEASURE_FUNC;
@@ -2235,11 +2211,6 @@ exit:
 	DEFERRED_EPILOGUE;
 }
 
-/**
-*
-*
-*
-*/
 ZEND_FUNCTION(mapi_table_restrict)
 {
 	PMEASURE_FUNC;
@@ -2482,11 +2453,6 @@ exit:
 	DEFERRED_EPILOGUE;
 }
 
-/**
-* mapi_message_submitmessage
-*
-*
-*/
 ZEND_FUNCTION(mapi_message_submitmessage)
 {
 	PMEASURE_FUNC;

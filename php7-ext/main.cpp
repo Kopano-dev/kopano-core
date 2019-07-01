@@ -620,10 +620,6 @@ PHP_MINIT_FUNCTION(mapi) {
 	});
 // Used at the end of each MAPI call to throw exceptions if mapi_enable_exceptions() has been called
 
-/**
-*
-*
-*/
 PHP_MSHUTDOWN_FUNCTION(mapi)
 {
 	UNREGISTER_INI_ENTRIES();
@@ -1371,11 +1367,6 @@ ZEND_FUNCTION(mapi_folder_getcontentstable)
 	ZEND_REGISTER_RESOURCE(return_value, pTable, le_mapi_table);
 }
 
-/**
-* mapi_folder_createmessage
-*
-*
-*/
 ZEND_FUNCTION(mapi_folder_createmessage)
 {
 	PMEASURE_FUNC;
@@ -1403,11 +1394,6 @@ ZEND_FUNCTION(mapi_folder_createmessage)
 	ZEND_REGISTER_RESOURCE(return_value, pMessage, le_mapi_message);
 }
 
-/**
-* mapi_folder_deletemessage
-*
-*
-*/
 ZEND_FUNCTION(mapi_folder_deletemessages)
 {
 	PMEASURE_FUNC;
@@ -2140,11 +2126,6 @@ ZEND_FUNCTION(mapi_table_seekrow)
 	RETVAL_LONG(lRowsSought);
 }
 
-/**
-*
-*
-*
-*/
 ZEND_FUNCTION(mapi_table_sort)
 {
 	PMEASURE_FUNC;
@@ -2176,11 +2157,6 @@ ZEND_FUNCTION(mapi_table_sort)
 	RETVAL_TRUE;
 }
 
-/**
-*
-*
-*
-*/
 ZEND_FUNCTION(mapi_table_getrowcount)
 {
 	PMEASURE_FUNC;
@@ -2206,11 +2182,6 @@ ZEND_FUNCTION(mapi_table_getrowcount)
 	RETVAL_LONG(count);
 }
 
-/**
-*
-*
-*
-*/
 ZEND_FUNCTION(mapi_table_restrict)
 {
 	PMEASURE_FUNC;
@@ -2443,11 +2414,6 @@ ZEND_FUNCTION(mapi_message_modifyrecipients)
 	RETVAL_TRUE;
 }
 
-/**
-* mapi_message_submitmessage
-*
-*
-*/
 ZEND_FUNCTION(mapi_message_submitmessage)
 {
 	PMEASURE_FUNC;
