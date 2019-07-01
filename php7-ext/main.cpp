@@ -4071,11 +4071,11 @@ ZEND_FUNCTION(mapi_zarafa_setquota)
 	MAPI_G(hr) = GetECObject(lpMsgStore, iid_of(lpServiceAdmin), &~lpServiceAdmin);
 	if(MAPI_G(hr) != hrSuccess) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
-		goto exit;
+		return;
 	}
 	MAPI_G(hr) = lpServiceAdmin->GetQuota(cbUserId, lpUserId, false, &~lpQuota);
 	if (MAPI_G(hr) != hrSuccess)
-		goto exit;
+		return;
 
 	ZVAL_DEREF(array);
 	data = HASH_OF(array);
@@ -4096,10 +4096,8 @@ ZEND_FUNCTION(mapi_zarafa_setquota)
 		lpQuota->llHardSize = zval_get_long(value);
 	MAPI_G(hr) = lpServiceAdmin->SetQuota(cbUserId, lpUserId, lpQuota);
 	if (MAPI_G(hr) != hrSuccess)
-		goto exit;
-
+		return;
 	RETVAL_TRUE;
- exit: ;
 }
 
 /**
@@ -5804,13 +5802,13 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish)
 	target_hash = HASH_OF(aBlocks);
 	if (!target_hash) {
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-		goto exit;
+		return;
 	}
 
 	cBlocks = zend_hash_num_elements(target_hash);
 	MAPI_G(hr) = MAPIAllocateBuffer(sizeof(FBBlock_1)*cBlocks, &~lpBlocks);
 	if(MAPI_G(hr) != hrSuccess)
-		goto exit;
+		return;
 
 	i = 0;
 	ZEND_HASH_FOREACH_VAL(target_hash, entry) {
@@ -5819,28 +5817,27 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish)
 		value = zend_hash_find(data, str_start.get());
 		if (value == nullptr) {
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-			goto exit;
+			return;
 		}
 		lpBlocks[i].m_tmStart = UnixTimeToRTime(Z_LVAL_P(value));
 		value = zend_hash_find(data, str_end.get());
 		if (value == nullptr) {
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-			goto exit;
+			return;
 		}
 		lpBlocks[i].m_tmEnd = UnixTimeToRTime(Z_LVAL_P(value));
 		value = zend_hash_find(data, str_status.get());
 		if (value == nullptr) {
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-			goto exit;
+			return;
 		}
 		lpBlocks[i++].m_fbstatus = (enum FBStatus)Z_LVAL_P(value);
 	} ZEND_HASH_FOREACH_END();
+
 	MAPI_G(hr) = lpFBUpdate->PublishFreeBusy(lpBlocks, cBlocks);
 	if(MAPI_G(hr) != hrSuccess)
-		goto exit;
-
+		return;
 	RETVAL_TRUE;
- exit: ;
 }
 
 ZEND_FUNCTION(mapi_freebusyupdate_reset)

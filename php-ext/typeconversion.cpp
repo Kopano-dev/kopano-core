@@ -798,19 +798,17 @@ HRESULT PHPArraytoRowList(zval *phpArray, void *lpBase, LPROWLIST *lppRowList TS
 		zend_hash_get_current_data_ex(target_hash, reinterpret_cast<void **>(&entry), &hpos);
 		if (Z_TYPE_PP(entry) != IS_ARRAY) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "PHPArraytoRowList, Row not wrapped in array");
-			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-			goto exit;
+			return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 		}
 
 		if (zend_hash_find(HASH_OF(entry[0]), "properties", sizeof("properties"),
 		    reinterpret_cast<void **>(&data)) == SUCCESS) {
 			MAPI_G(hr) = PHPArraytoPropValueArray(data[0], NULL, &countProperties, &pPropValue TSRMLS_CC);
 			if(MAPI_G(hr) != hrSuccess)
-				goto exit;
+				return MAPI_G(hr);
 		}else {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "PHPArraytoRowList, Missing field properties");
-			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-			goto exit;
+			return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 		}
 
 		if (pPropValue) {
@@ -819,20 +817,17 @@ HRESULT PHPArraytoRowList(zval *phpArray, void *lpBase, LPROWLIST *lppRowList TS
 				lpRowList->aEntries[countRows].ulRowFlags = Z_LVAL_PP(data);
 			} else {
 				php_error_docref(NULL TSRMLS_CC, E_WARNING, "PHPArraytoRowList, Missing field rowflags");
-				MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-				goto exit;
+				return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 			}
 			++lpRowList->cEntries;
 			lpRowList->aEntries[countRows].rgPropVals = pPropValue;
 			lpRowList->aEntries[countRows++].cValues = countProperties;
 		}else {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "PHPArraytoRowList, critical error");
-			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-			goto exit;
+			return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 		}
 	}
 	*lppRowList = lpRowList.release();
-exit:
 	return MAPI_G(hr);
 }
 
