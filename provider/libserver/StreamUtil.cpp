@@ -1323,7 +1323,6 @@ static ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 		// *lppPropValArray later if all went well.
 		lpPropValArray = s_alloc<struct propValArray>(NULL);
 		lpPropValArray->__ptr = s_alloc<struct propVal>(NULL, ulCount);
-		memset(lpPropValArray->__ptr, 0, sizeof(struct propVal) * ulCount);
 		lpPropValArray->__size = 0;
 	}
 

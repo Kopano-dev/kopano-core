@@ -531,8 +531,8 @@ static ECRESULT getchanges_hier1(struct soap *soap, ECDatabase *lpDatabase, cons
 		/* Do not allow initial sync of all server folders */
 		return KCERR_NO_SUPPORT;
 	/* New sync, just return all the folders as changes */
-	lpChanges = (icsChangesArray *)soap_malloc(soap, sizeof(icsChangesArray));
-	lpChanges->__ptr = (icsChange *)soap_malloc(soap, sizeof(icsChange) * lstFolderIds.size());
+	lpChanges = s_alloc<icsChangesArray>(soap);
+	lpChanges->__ptr = s_alloc<icsChange>(soap, lstFolderIds.size());
 
 	/* Search folder changed folders */
 	std::string strQuery = "SELECT MAX(id) FROM changes";
@@ -571,10 +571,10 @@ static ECRESULT getchanges_hier1(struct soap *soap, ECDatabase *lpDatabase, cons
 		if (lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL)
 			continue;
 		lpChanges->__ptr[i].ulChangeId = ulMaxChange; // All items have the latest change ID because this is an initial sync
-		lpChanges->__ptr[i].sSourceKey.__ptr = (unsigned char *)soap_malloc(soap, lpDBLen[0]);
+		lpChanges->__ptr[i].sSourceKey.__ptr = s_alloc<unsigned char>(soap, lpDBLen[0]);
 		lpChanges->__ptr[i].sSourceKey.__size = lpDBLen[0];
 		memcpy(lpChanges->__ptr[i].sSourceKey.__ptr, lpDBRow[0], lpDBLen[0]);
-		lpChanges->__ptr[i].sParentSourceKey.__ptr = (unsigned char *)soap_malloc(soap, lpDBLen[1]);
+		lpChanges->__ptr[i].sParentSourceKey.__ptr = s_alloc<unsigned char>(soap, lpDBLen[1]);
 		lpChanges->__ptr[i].sParentSourceKey.__size = lpDBLen[1];
 		memcpy(lpChanges->__ptr[i].sParentSourceKey.__ptr, lpDBRow[1], lpDBLen[1]);
 		lpChanges->__ptr[i].ulChangeType = ICS_FOLDER_NEW;
@@ -588,8 +588,8 @@ static ECRESULT getchanges_hier1(struct soap *soap, ECDatabase *lpDatabase, cons
 static ECRESULT getchanges_hier2(struct soap *soap, ECDatabase *lpDatabase, const std::list<unsigned int> &lstChanges, unsigned int &ulMaxChange, struct icsChangesArray *&lpChanges)
 {
 	/* Return all the found changes */
-	lpChanges = (icsChangesArray *)soap_malloc(soap, sizeof(icsChangesArray));
-	lpChanges->__ptr = (icsChange *)soap_malloc(soap, sizeof(icsChange) * lstChanges.size());
+	lpChanges = s_alloc<icsChangesArray>(soap);
+	lpChanges->__ptr = s_alloc<icsChange>(soap, lstChanges.size());
 	lpChanges->__size = lstChanges.size();
 	unsigned int i = 0;
 
@@ -612,10 +612,10 @@ static ECRESULT getchanges_hier2(struct soap *soap, ECDatabase *lpDatabase, cons
 		lpChanges->__ptr[i].ulChangeId = atoui(lpDBRow[0]);
 		if (lpChanges->__ptr[i].ulChangeId > ulMaxChange)
 			ulMaxChange = lpChanges->__ptr[i].ulChangeId;
-		lpChanges->__ptr[i].sSourceKey.__ptr = (unsigned char *)soap_malloc(soap, lpDBLen[1]);
+		lpChanges->__ptr[i].sSourceKey.__ptr = s_alloc<unsigned char>(soap, lpDBLen[1]);
 		lpChanges->__ptr[i].sSourceKey.__size = lpDBLen[1];
 		memcpy(lpChanges->__ptr[i].sSourceKey.__ptr, lpDBRow[1], lpDBLen[1]);
-		lpChanges->__ptr[i].sParentSourceKey.__ptr = (unsigned char *)soap_malloc(soap, lpDBLen[2]);
+		lpChanges->__ptr[i].sParentSourceKey.__ptr = s_alloc<unsigned char>(soap, lpDBLen[2]);
 		lpChanges->__ptr[i].sParentSourceKey.__size = lpDBLen[2];
 		memcpy(lpChanges->__ptr[i].sParentSourceKey.__ptr, lpDBRow[2], lpDBLen[2]);
 		lpChanges->__ptr[i].ulChangeType = atoui(lpDBRow[3]);
@@ -760,10 +760,9 @@ static ECRESULT getchanges_ab1(struct soap *soap, ECSession *lpSession,
 	 * use it all.
 	 */
 	auto ulChanges = lstChanges.size();
-	lpChanges = (icsChangesArray *)soap_malloc(soap, sizeof(icsChangesArray));
-	lpChanges->__ptr = (icsChange *)soap_malloc(soap, sizeof(icsChange) * ulChanges);
+	lpChanges = s_alloc<icsChangesArray>(soap);
+	lpChanges->__ptr = s_alloc<icsChange>(soap, ulChanges);
 	lpChanges->__size = 0;
-	memset(lpChanges->__ptr, 0, sizeof(icsChange) * ulChanges);
 	unsigned int i = 0;
 
 	for (const auto &iter : lstChanges) {
@@ -829,10 +828,9 @@ static ECRESULT getchanges_ab2(struct soap *soap, ECSession *lpSession,
 	if (er != erSuccess)
 		return er;
 	auto ulChanges = lpDBResult.get_num_rows();
-	lpChanges = (icsChangesArray *)soap_malloc(soap, sizeof(icsChangesArray));
-	lpChanges->__ptr = (icsChange *)soap_malloc(soap, sizeof(icsChange) * ulChanges);
+	lpChanges = s_alloc<icsChangesArray>(soap);
+	lpChanges->__ptr = s_alloc<icsChange>(soap, ulChanges);
 	lpChanges->__size = 0;
-	memset(lpChanges->__ptr, 0, sizeof(icsChange) * ulChanges);
 
 	unsigned int i = 0;
 	auto usrmgt = lpSession->GetUserManagement();
@@ -958,7 +956,7 @@ ECRESULT GetSyncStates(struct soap *soap, ECSession *lpSession, mv_long ulaSyncI
 	DB_ROW			lpDBRow;
 
 	if (ulaSyncId.__size == 0) {
-		memset(lpsaSyncState, 0, sizeof *lpsaSyncState);
+		soap_default_syncStateArray(soap, lpsaSyncState);
 		return erSuccess;
 	}
 	auto er = lpSession->GetDatabase(&lpDatabase);
@@ -975,7 +973,7 @@ ECRESULT GetSyncStates(struct soap *soap, ECSession *lpSession, mv_long ulaSyncI
 
 	unsigned int ulResults = lpDBResult.get_num_rows();
     if (ulResults == 0){
-		memset(lpsaSyncState, 0, sizeof *lpsaSyncState);
+		soap_default_syncStateArray(soap, lpsaSyncState);
 		return erSuccess;
     }
 

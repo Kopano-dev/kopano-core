@@ -591,7 +591,7 @@ ECRESULT DeleteObjectHard(ECSession *lpSession, ECDatabase *lpDatabase, ECAttach
 
 			if(!(ulFlags&EC_DELETE_STORE) && iterDeleteItems->ulParentType == MAPI_FOLDER && iterDeleteItems->fRoot) {
 				// Track counter changes
-				memset(&pi, 0, sizeof(pi));
+				pi = decltype(pi)();
 				pi.ulStoreId = iterDeleteItems->ulStoreId;
 				mapFolderCounts.emplace(iterDeleteItems->ulParent, pi);
 
@@ -1386,7 +1386,6 @@ ECRESULT GetNamesFromIDs(struct soap *soap, ECDatabase *lpDatabase, struct propT
 	// Allocate memory for return object
 	lpsNames->__ptr = s_alloc<namedProp>(soap, lpPropTags->__size);
 	lpsNames->__size = lpPropTags->__size;
-	memset(lpsNames->__ptr, 0, sizeof(struct namedProp) * lpPropTags->__size);
 
 	for (gsoap_size_t i = 0; i < lpPropTags->__size; ++i) {
 		auto strQuery = "SELECT nameid, namestring, guid FROM names WHERE id=" + stringify(lpPropTags->__ptr[i]-1) + " LIMIT 1";

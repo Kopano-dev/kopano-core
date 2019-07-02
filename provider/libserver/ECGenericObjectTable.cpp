@@ -1091,16 +1091,13 @@ ECRESULT ECGenericObjectTable::GetCollapseState(struct soap *soap, struct xsd__b
     if(er != erSuccess)
         goto exit;
 
-    memset(&sCollapseState, 0, sizeof(sCollapseState));
     // Generate a binary collapsestate which is simply an XML stream of all categories with their collapse state
     sCollapseState.sCategoryStates.__size = m_mapCategories.size();
     sCollapseState.sCategoryStates.__ptr = s_alloc<struct categoryState>(soap, sCollapseState.sCategoryStates.__size);
-    memset(sCollapseState.sCategoryStates.__ptr, 0, sizeof(struct categoryState) * sCollapseState.sCategoryStates.__size);
 
 	for (const auto &p : m_mapCategories) {
 		sCollapseState.sCategoryStates.__ptr[n].fExpanded = p.second->m_fExpanded;
 		sCollapseState.sCategoryStates.__ptr[n].sProps.__ptr = s_alloc<struct propVal>(soap, p.second->m_cProps);
-		memset(sCollapseState.sCategoryStates.__ptr[n].sProps.__ptr, 0, sizeof(struct propVal) * p.second->m_cProps);
 		for (unsigned int i = 0; i < p.second->m_cProps; ++i) {
 			er = CopyPropVal(&p.second->m_lpProps[i], &sCollapseState.sCategoryStates.__ptr[n].sProps.__ptr[i], soap);
             if (er != erSuccess)

@@ -42,7 +42,6 @@ ECNotification::ECNotification(const notification &notification)
 void ECNotification::Init()
 {
 	m_lpsNotification = s_alloc<notification>(nullptr);
-	memset(m_lpsNotification, 0, sizeof(notification));
 }
 
 ECNotification& ECNotification::operator=(const ECNotification &x)
@@ -240,7 +239,7 @@ void *ECNotificationManager::Work() {
                         } else {
                             // No notifications and we're out of time, just respond OK with 0 notifications
                             er = erSuccess;
-                            notifications.pNotificationArray = (struct notificationArray *)soap_malloc(iterRequest->second.soap, sizeof(notificationArray));
+							notifications.pNotificationArray = s_alloc<notificationArray>(iterRequest->second.soap);
                             soap_default_notificationArray(iterRequest->second.soap, notifications.pNotificationArray);
                         }
                     }

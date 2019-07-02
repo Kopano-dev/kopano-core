@@ -803,7 +803,6 @@ HRESULT WSTransport::HrNotify(const NOTIFICATION *lpNotification)
 
 	sNotification.ulEventType = lpNotification->ulEventType;
 	sNotification.newmail = s_alloc<notificationNewMail>(nullptr);
-	memset(sNotification.newmail, 0, sizeof(notificationNewMail));
 
 	hr = CopyMAPIEntryIdToSOAPEntryId(lpNotification->info.newmail.cbEntryID, (LPENTRYID)lpNotification->info.newmail.lpEntryID, &sNotification.newmail->pEntryId);
 	if(hr != hrSuccess)

@@ -1434,11 +1434,9 @@ SOAP_ENTRY_START(loadProp, lpsResponse->er, const entryId &sEntryId,
 
 	if (ulPropTag == PR_ATTACH_DATA_BIN || ulPropTag == PR_EC_IMAP_EMAIL) {
 		lpsResponse->lpPropVal = s_alloc<propVal>(soap);
-		memset(lpsResponse->lpPropVal,0,sizeof(struct propVal));
 		lpsResponse->lpPropVal->ulPropTag = ulPropTag;
 		lpsResponse->lpPropVal->__union = SOAP_UNION_propValData_bin;
 		lpsResponse->lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-		memset(lpsResponse->lpPropVal->Value.bin, 0, sizeof(struct xsd__base64Binary));
 		std::unique_ptr<ECAttachmentStorage> lpAttachmentStorage(g_lpSessionManager->get_atxconfig()->new_handle(lpDatabase));
 		if (lpAttachmentStorage == nullptr)
 			return KCERR_NOT_ENOUGH_MEMORY;
@@ -1464,7 +1462,6 @@ SOAP_ENTRY_START(loadProp, lpsResponse->er, const entryId &sEntryId,
 		return KCERR_DATABASE_ERROR;
 	}
 	lpsResponse->lpPropVal = s_alloc<propVal>(soap);
-	memset(lpsResponse->lpPropVal, 0, sizeof(struct propVal));
 	return CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, lpsResponse->lpPropVal);
 }
 SOAP_ENTRY_END()
@@ -2592,7 +2589,6 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
 	USE_DATABASE();
 	CHILDPROPS sEmptyProps(soap);
 
-	memset(&sSavedObject, 0, sizeof(saveObject));
 	// Check permission
 	if (ulObjType == MAPI_STORE || (ulObjType == MAPI_FOLDER && ulParentObjType == MAPI_STORE))
 		// Always read rights on the store and the root folder
@@ -2684,7 +2680,6 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
 			return er;
 		sSavedObject.__size = lpDBResult.get_num_rows();
 		sSavedObject.__ptr = s_alloc<saveObject>(soap, sSavedObject.__size);
-		memset(sSavedObject.__ptr, 0, sizeof(saveObject) * sSavedObject.__size);
 
 		for (gsoap_size_t i = 0; i < sSavedObject.__size; ++i) {
 			lpDBRow = lpDBResult.fetch_row();
@@ -3773,7 +3768,6 @@ SOAP_ENTRY_START(getRights, lpsRightResponse->er, const entryId &sEntryId,
 	if(er != erSuccess)
 		return er;
 	lpsRightArray = s_alloc<rightsArray>(nullptr);
-	memset(lpsRightArray, 0, sizeof(struct rightsArray));
 	er = lpecSession->GetSecurity()->GetRights(ulobjid, ulType, lpsRightArray);
 	if(er != erSuccess)
 		goto exit;
@@ -4498,8 +4492,6 @@ SOAP_ENTRY_START(getUser, lpsGetUserResponse->er, unsigned int ulUserId,
 	if (er != erSuccess)
 		return er;
 	lpsGetUserResponse->lpsUser = s_alloc<user>(soap);
-	memset(lpsGetUserResponse->lpsUser, 0, sizeof(struct user));
-
 	if (ulUserId == 0)
 		ulUserId = lpecSession->GetSecurity()->GetUserId();
 	er = lpecSession->GetUserManagement()->GetObjectDetails(ulUserId, &details);
@@ -4720,7 +4712,6 @@ SOAP_ENTRY_START(createStore, *result, unsigned int ulStoreType,
 	struct rightsArray srightsArray;
 	USE_DATABASE();
 
-	memset(&srightsArray, 0 , sizeof(srightsArray));
 	auto cleanup = make_scope_success([&]() {
 		if (er == KCERR_NO_ACCESS)
 			ec_log_err("Failed to create store access denied");
@@ -4861,7 +4852,6 @@ SOAP_ENTRY_START(createStore, *result, unsigned int ulStoreType,
 		srightsArray.__ptr[0].ulUserid = ulUserId;
 		srightsArray.__ptr[0].ulState = RIGHT_NEW|RIGHT_AUTOUPDATE_DENIED;
 		srightsArray.__ptr[0].ulType = ACCESS_TYPE_GRANT;
-		memset(&srightsArray.__ptr[0].sUserId, 0, sizeof(entryId));
 		srightsArray.__size = 1;
 		er = lpecSession->GetSecurity()->SetRights(ulStoreId, &srightsArray);
 		if(er != erSuccess)
@@ -5308,7 +5298,6 @@ SOAP_ENTRY_START(getCompany, lpsResponse->er, unsigned int ulCompanyId,
 		return er;
 
 	lpsResponse->lpsCompany = s_alloc<company>(soap);
-	memset(lpsResponse->lpsCompany, 0, sizeof(company));
 	return CopyCompanyDetailsToSoap(ulCompanyId, &sTmpCompanyId, ulAdmin, &sAdminEid, details, lpecSession->GetCapabilities() & KOPANO_CAP_EXTENDED_ANON, soap, lpsResponse->lpsCompany);
 }
 SOAP_ENTRY_END()
@@ -7846,10 +7835,8 @@ SOAP_ENTRY_START(abResolveNames, lpsABResolveNames->er, struct propTagArray* lpa
 
 	lpsABResolveNames->aFlags.__size = lpaFlags->__size;
 	lpsABResolveNames->aFlags.__ptr = s_alloc<unsigned int>(soap, lpaFlags->__size);
-	memset(lpsABResolveNames->aFlags.__ptr, 0, sizeof(unsigned int) * lpaFlags->__size);
 	lpsABResolveNames->sRowSet.__size = lpsRowSet->__size;
 	lpsABResolveNames->sRowSet.__ptr = s_alloc<propValArray>(soap, lpsRowSet->__size);
-	memset(lpsABResolveNames->sRowSet.__ptr, 0, sizeof(struct propValArray) * lpsRowSet->__size);
 
 	auto usrmgt = lpecSession->GetUserManagement();
 	for (gsoap_size_t i = 0; i < lpsRowSet->__size; ++i) {
@@ -8490,7 +8477,6 @@ SOAP_ENTRY_START(getServerDetails, lpsResponse->er,
 		return erSuccess;
 	lpsResponse->sServerList.__size = szaSvrNameList.__size;
 	lpsResponse->sServerList.__ptr = s_alloc<struct server>(soap, szaSvrNameList.__size);
-	memset(lpsResponse->sServerList.__ptr, 0, szaSvrNameList.__size * sizeof *lpsResponse->sServerList.__ptr);
 	for (gsoap_size_t i = 0; i < szaSvrNameList.__size; ++i) {
 		er = usrmgt->GetServerDetails(szaSvrNameList.__ptr[i], &sDetails);
 		if (er != erSuccess)
@@ -8774,7 +8760,7 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er,
 			continue;
         }
 
-		auto lpStreamInfo = static_cast<MTOMStreamInfo *>(soap_malloc(soap, sizeof(MTOMStreamInfo)));
+		auto lpStreamInfo = s_alloc<MTOMStreamInfo>(soap);
 		static_assert(std::is_trivially_constructible<MTOMStreamInfo>::value, "MTOMStreamInfo must remain TC");
 		lpStreamInfo->ulObjectId = ulObjectId;
 		lpStreamInfo->ulStoreId = ulStoreId;
@@ -8789,7 +8775,6 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er,
 			strQuery += "call StreamObj(" + stringify(ulObjectId) + "," + stringify(ulDepth) + ", " + stringify(ulMode) + ");";
 
 		// Setup the MTOM Attachments
-		memset(&lpsResponse->sMsgStreams.__ptr[ulObjCnt].sStreamData, 0, sizeof(lpsResponse->sMsgStreams.__ptr[ulObjCnt].sStreamData));
 		lpsResponse->sMsgStreams.__ptr[ulObjCnt].sStreamData.xop__Include.__ptr = (unsigned char*)lpStreamInfo;
 		lpsResponse->sMsgStreams.__ptr[ulObjCnt].sStreamData.xop__Include.type = s_strcpy(soap, "application/binary");
 		lpsResponse->sMsgStreams.__ptr[ulObjCnt].sStreamData.xop__Include.id = s_strcpy(soap, ("emcas-" + stringify(ulObjCnt)).c_str());
@@ -9048,7 +9033,7 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags,
 	// We usually do not pass database objects to other threads. However, since
 	// we want to be able to perform a complete rollback we need to pass it
 	// to thread that processes the data and puts it in the database.
-	lpsStreamInfo = (MTOMStreamInfo *)soap_malloc(soap, sizeof(MTOMStreamInfo));
+	lpsStreamInfo = s_alloc<MTOMStreamInfo>(soap);
 	lpsStreamInfo->ulObjectId = ulObjectId;
 	lpsStreamInfo->ulStoreId = ulStoreId;
 	lpsStreamInfo->bNewItem = bIsNew;
