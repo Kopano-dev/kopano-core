@@ -244,15 +244,10 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 {
 	// return value
 	LPSPropValue	lpPropValue	= NULL;
-	ULONG			cvalues = 0;
-	HashTable		*dataHash = NULL;
-	zval			**entry = NULL;
-	ULONG			countarray = 0;
-	zval			**dataEntry = NULL;
-	HashTable		*actionHash = NULL;
-	ULONG			j, h;
+	unsigned int cvalues = 0, countarray = 0, ulCountTmp = 0, j, h;
+	HashTable *dataHash = nullptr, *actionHash = nullptr;
+	zval **entry = nullptr, **dataEntry = nullptr;
 	LPSRestriction	lpRestriction = NULL;
-	ULONG			ulCountTmp = 0; // temp value
 	LPSPropValue	lpPropTmp = NULL;
 
 	if (!phpArray) {
@@ -754,8 +749,7 @@ HRESULT PHPArraytoRowList(zval *phpArray, void *lpBase, LPROWLIST *lppRowList TS
 	ULONG			countProperties = 0;		// number of properties
 	ULONG			countRows = 0;		// number of actual recipients
 	rowlist_ptr lpRowList;
-	zval			**entry = NULL;
-	zval			**data = NULL;
+	zval **entry = nullptr, **data = nullptr;
 	LPSPropValue	pPropValue = NULL;
 
 	MAPI_G(hr) = hrSuccess;
@@ -887,8 +881,7 @@ HRESULT PHPArraytoRowList(zval *phpArray, void *lpBase, LPROWLIST *lppRowList TS
 
 HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes TSRMLS_DC)
 {
-	zval **typeEntry  = NULL;
-	zval **valueEntry = NULL;
+	zval **typeEntry = nullptr, **valueEntry = nullptr;
 	ULONG cValues = 0;
 
 	if (!phpVal || lpRes == NULL) {
@@ -1261,12 +1254,9 @@ exit:
 HRESULT SRestrictiontoPHPArray(const SRestriction *lpRes, int level,
     zval **pret TSRMLS_DC)
 {
-	zval *entry = NULL;
 	char key[16];
-	zval *array = NULL;
-	zval *props = NULL;
-	zval *restriction = NULL;
-	zval *ret;
+	zval *entry = nullptr, *array = nullptr, *props = nullptr;
+	zval *restriction = nullptr, *ret;
 
 	if (!lpRes) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No restriction in SRestrictiontoPHPArray");
@@ -1755,8 +1745,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 
 HRESULT RowSettoPHPArray(const SRowSet *lpRowSet, zval **pret TSRMLS_DC)
 {
-	zval	*zval_prop_value = NULL;
-	zval 	*ret;
+	zval *zval_prop_value = nullptr, *ret;
 	
 	MAPI_G(hr) = hrSuccess;
 
@@ -1809,8 +1798,7 @@ HRESULT ReadStateArraytoPHPArray(ULONG cValues, const READSTATE *lpReadStates,
 HRESULT PHPArraytoReadStateArray(zval *zvalReadStates, void *lpBase, ULONG *lpcValues, LPREADSTATE *lppReadStates TSRMLS_DC)
 {
 	LPREADSTATE 	lpReadStates = NULL;
-	zval			**ppentry = NULL;
-	zval			**valueEntry = NULL;
+	zval **ppentry = nullptr, **valueEntry = nullptr;
 	unsigned int n = 0;
 
 	MAPI_G(hr) = hrSuccess;
@@ -1919,8 +1907,7 @@ exit:
 HRESULT NotificationstoPHPArray(ULONG cNotifs, const NOTIFICATION *lpNotifs,
     zval **pret TSRMLS_DC)
 {
-	zval *zvalRet = NULL;
-	zval *zvalProps = NULL;
+	zval *zvalRet = nullptr, *zvalProps = nullptr;
 	
 	MAPI_G(hr) = hrSuccess;
 	

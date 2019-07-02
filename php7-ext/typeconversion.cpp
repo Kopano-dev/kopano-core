@@ -221,15 +221,10 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 {
 	// return value
 	LPSPropValue	lpPropValue	= NULL;
-	ULONG			cvalues = 0;
-	HashTable		*dataHash = NULL;
-	zval			*entry = NULL;
-	ULONG			countarray = 0;
-	zval			*dataEntry = NULL;
-	HashTable		*actionHash = NULL;
-	ULONG			j, h;
+	unsigned int cvalues = 0, countarray = 0, ulCountTmp = 0, j, h;
+	HashTable *dataHash = nullptr, *actionHash = nullptr;
+	zval *entry = nullptr, *dataEntry = nullptr;
 	LPSRestriction	lpRestriction = NULL;
-	ULONG			ulCountTmp = 0; // temp value
 	LPSPropValue	lpPropTmp = NULL;
 	zstrplus str_action(zend_string_init("action", sizeof("action") - 1, 0));
 	zstrplus str_flags(zend_string_init("flags", sizeof("flags") - 1, 0));
@@ -1214,11 +1209,8 @@ exit:
 HRESULT SRestrictiontoPHPArray(const SRestriction *lpRes, int level,
     zval *ret TSRMLS_DC)
 {
-	zval entry;
 	char key[16];
-	zval array;
-	zval props;
-	zval restriction;
+	zval entry, array, props, restriction;
 
 	if (!lpRes) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No restriction in SRestrictiontoPHPArray");

@@ -750,9 +750,7 @@ ZEND_FUNCTION(mapi_createoneoff)
 
 	LOG_BEGIN();
 	// params
-	char *szDisplayName = NULL;
-	char *szType = NULL;
-	char *szEmailAddress = NULL;
+	char *szDisplayName = nullptr, *szType = nullptr, *szEmailAddress = nullptr;
 	php_stringsize_t ulDisplayNameLen = 0, ulTypeLen = 0, ulEmailAddressLen = 0;
 	long ulFlags = MAPI_SEND_NO_RICH_INFO;
 	// return value
@@ -806,12 +804,8 @@ ZEND_FUNCTION(mapi_parseoneoff)
 	LPENTRYID lpEntryID = NULL;
 	php_stringsize_t cbEntryID = 0;
 	// return value
-	utf8string strDisplayName;
-	utf8string strType;
-	utf8string strAddress;
-	std::wstring wstrDisplayName;
-	std::wstring wstrType;
-	std::wstring wstrAddress;
+	utf8string strDisplayName, strType, strAddress;
+	std::wstring wstrDisplayName, wstrType, wstrAddress;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -860,13 +854,9 @@ ZEND_FUNCTION(mapi_logon_zarafa)
 
 	LOG_BEGIN();
 	// params
-	char		*username = NULL;
-	char		*password = NULL;
-	const char *server = NULL;
-	const char *sslcert = "";
-	const char *sslpass = "";
-	const char *wa_version = "";
-	const char *misc_version = "";
+	char *username = nullptr, *password = nullptr;
+	const char *server = nullptr, *sslcert = "", *sslpass = "";
+	const char *wa_version = "", *misc_version = "";
 	php_stringsize_t username_len = 0, password_len = 0, server_len = 0;
 	php_stringsize_t sslcert_len = 0, sslpass_len = 0, wa_version_len = 0;
 	php_stringsize_t misc_version_len = 0;
@@ -1074,10 +1064,8 @@ ZEND_FUNCTION(mapi_ab_resolvename) {
 	PMEASURE_FUNC;
 	LOG_BEGIN();
 	// params
-	zval		*res;
 	LPADRBOOK	lpAddrBook = NULL;
-	zval		*array;
-	zval		*rowset;
+	zval *res, *array, *rowset;
 	long		ulFlags = 0;
 	// local
 	adrlist_ptr lpAList;
@@ -1374,8 +1362,7 @@ ZEND_FUNCTION(mapi_folder_deletemessages)
 	LOG_BEGIN();
 	// params
 	LPMAPIFOLDER	pFolder = NULL;
-	zval			*res = NULL;
-	zval			*entryid_array = NULL;
+	zval *res = nullptr, *entryid_array = nullptr;
 	long			ulFlags = 0;
 	// local
 	memory_ptr<ENTRYLIST> lpEntryList;
@@ -1411,8 +1398,7 @@ ZEND_FUNCTION(mapi_folder_copymessages)
 	LOG_BEGIN();
 	// params
 	LPMAPIFOLDER	lpSrcFolder = NULL, lpDestFolder = NULL;
-	zval			*srcFolder = NULL, *destFolder = NULL;
-	zval			*msgArray = NULL;
+	zval *srcFolder = nullptr, *destFolder = nullptr, *msgArray = nullptr;
 	long			flags = 0;
 	// local
 	memory_ptr<ENTRYLIST> lpEntryList;
@@ -1662,8 +1648,7 @@ ZEND_FUNCTION(mapi_msgstore_getarchiveentryid)
 	// params
 	zval		*res;
 	LPMDB		pMDB		= NULL;
-	LPSTR		sUser = NULL;
-	LPSTR		sServer = NULL;
+	LPSTR sUser = nullptr, sServer = nullptr;
 	php_stringsize_t lUser = 0, lServer = 0;
 	// return value
 	ULONG		cbEntryID	= 0;
@@ -1750,10 +1735,9 @@ ZEND_FUNCTION(mapi_msgstore_entryidfromsourcekey)
 	PMEASURE_FUNC;
 	LOG_BEGIN();
 	zval	*resStore = NULL;
-	BYTE 	*lpSourceKeyMessage = NULL;
+	BYTE *lpSourceKeyMessage = nullptr, *lpSourceKeyFolder = nullptr;
 	php_stringsize_t cbSourceKeyMessage = 0, cbSourceKeyFolder = 0;
 	LPMDB	lpMsgStore = NULL;
-	BYTE	*lpSourceKeyFolder = NULL;
 	memory_ptr<ENTRYID> lpEntryId;
 	ULONG		cbEntryId = 0;
 	object_ptr<IExchangeManageStore> lpIEMS;
@@ -1779,8 +1763,7 @@ ZEND_FUNCTION(mapi_msgstore_advise)
 {
 	PMEASURE_FUNC;
 	LOG_BEGIN();
-	zval	*resStore = NULL;
-	zval	*resSink = NULL;
+	zval *resStore = nullptr, *resSink = nullptr;
 	LPMDB	lpMsgStore = NULL;
 	IMAPIAdviseSink *lpSink = NULL;
 	LPENTRYID lpEntryId = NULL;
@@ -1844,8 +1827,7 @@ ZEND_FUNCTION(mapi_sink_timedwait)
 {
 	PMEASURE_FUNC;
 	LOG_BEGIN();
-	zval *resSink = NULL;
-	zval *notifications = NULL;
+	zval *resSink = nullptr, *notifications = nullptr;
 	long ulTime = 0;
 	MAPINotifSink *lpSink = NULL;
 	ULONG cNotifs = 0;
@@ -1883,10 +1865,8 @@ ZEND_FUNCTION(mapi_table_queryallrows)
 	PMEASURE_FUNC;
 	LOG_BEGIN();
 	// params
-	zval			*res				= NULL;
-	zval			*tagArray			= NULL;
-	zval			*restrictionArray	= NULL;
-	zval			*rowset				= NULL;
+	zval *res = nullptr, *tagArray = nullptr, *rowset = nullptr;
+	zval *restrictionArray = nullptr;
 	LPMAPITABLE		lpTable				= NULL;
 	// locals
 	memory_ptr<SPropTagArray> lpTagArray;
@@ -1950,10 +1930,8 @@ ZEND_FUNCTION(mapi_table_queryrows)
 	PMEASURE_FUNC;
 	LOG_BEGIN();
 	// params
-	zval		*res	= NULL;
 	LPMAPITABLE	lpTable = NULL;
-	zval		*tagArray = NULL;
-	zval		*rowset = NULL;
+	zval *res = nullptr, *tagArray = nullptr, *rowset = nullptr;
 	memory_ptr<SPropTagArray> lpTagArray;
 	long		lRowCount = 0, start = 0;
 	// local
@@ -2019,9 +1997,8 @@ ZEND_FUNCTION(mapi_table_setcolumns)
 	PMEASURE_FUNC;
 	LOG_BEGIN();
 	// params
-	zval		*res	= NULL;
 	LPMAPITABLE	lpTable = NULL;
-	zval		*tagArray = NULL;
+	zval *res = nullptr, *tagArray = nullptr;
 	long		lFlags = 0;
 	// local
 	memory_ptr<SPropTagArray> lpTagArray;
@@ -2066,9 +2043,7 @@ ZEND_FUNCTION(mapi_table_seekrow)
 	// params
 	zval		*res	= NULL;
 	LPMAPITABLE	lpTable = NULL;
-	long		lRowCount = 0, lbookmark = BOOKMARK_BEGINNING;
-	// return
-	long lRowsSought = 0;
+	long lRowCount = 0, lbookmark = BOOKMARK_BEGINNING, lRowsSought = 0;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -2094,8 +2069,7 @@ ZEND_FUNCTION(mapi_table_sort)
 	PMEASURE_FUNC;
 	LOG_BEGIN();
 	// params
-	zval * res;
-	zval * sortArray;
+	zval *res, *sortArray;
 	long ulFlags = 0;
 	// local
 	LPMAPITABLE	lpTable				= NULL;
@@ -2148,8 +2122,7 @@ ZEND_FUNCTION(mapi_table_restrict)
 	PMEASURE_FUNC;
 	LOG_BEGIN();
 	// params
-	zval			*res;
-	zval			*restrictionArray;
+	zval *res, *restrictionArray;
 	ulong			ulFlags = 0;
 	// local
 	LPMAPITABLE		lpTable = NULL;
@@ -2186,16 +2159,12 @@ ZEND_FUNCTION(mapi_table_findrow)
 	PMEASURE_FUNC;
 	LOG_BEGIN();
 	// params
-	zval			*res;
-	zval			*restrictionArray;
-	ulong			bkOrigin = BOOKMARK_BEGINNING;
-	ulong			ulFlags = 0;
+	zval *res, *restrictionArray;
+	unsigned long bkOrigin = BOOKMARK_BEGINNING, ulFlags = 0;
 	// local
 	LPMAPITABLE		lpTable = NULL;
 	memory_ptr<SRestriction> lpRestrict;
-	ULONG ulRow = 0;
-	ULONG ulNumerator = 0;
-	ULONG ulDenominator = 0;
+	unsigned int ulRow = 0, ulNumerator = 0, ulDenominator = 0;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -2311,9 +2280,8 @@ ZEND_FUNCTION(mapi_msgstore_getreceivefolder)
 	// return value
 	object_ptr<IMAPIFolder> lpFolder;
 	// locals
-	ULONG			cbEntryID	= 0;
+	unsigned int cbEntryID	= 0, ulObjType = 0;
 	memory_ptr<ENTRYID> lpEntryID;
-	ULONG			ulObjType	= 0;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -2854,10 +2822,8 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 	PMEASURE_FUNC;
 	LOG_BEGIN();
 	// params
-	zval	*messageStore	= NULL;
 	LPMDB	lpMessageStore	= NULL;
-	zval	*propNameArray	= NULL;
-	zval	*guidArray		= NULL;
+	zval *messageStore = nullptr, *propNameArray = nullptr, *guidArray = nullptr;
 	// return value
 	memory_ptr<SPropTagArray> lpPropTagArray;
 	memory_ptr<MAPINAMEID *> lppNamePropId;
@@ -3011,10 +2977,8 @@ ZEND_FUNCTION(mapi_copyto)
 	ULONG cExcludeIIDs = 0;
 
 	// params
-	zval *srcres = NULL;
-	zval *dstres = NULL;
-	zval *excludeprops = NULL;
-	zval *excludeiid = NULL;
+	zval *srcres = nullptr, *dstres = nullptr;
+	zval *excludeprops = nullptr, *excludeiid = nullptr;
 	long flags = 0;
 
 	// local
@@ -3368,7 +3332,7 @@ ZEND_FUNCTION(mapi_getnamesfromids)
 	LPMDB	pMDB = NULL;
 	memory_ptr<SPropTagArray> lpPropTags;
 	// local
-	ULONG				cPropNames = 0;
+	unsigned int cPropNames = 0, count = 0;
 	memory_ptr<MAPINAMEID *> pPropNames;
 	zval *prop;
 
@@ -3435,8 +3399,7 @@ ZEND_FUNCTION(mapi_decompressrtf)
 	// return value
 	std::unique_ptr<char[]> htmlbuf;
 	// local
-	ULONG actualWritten = 0;
-	ULONG cbRead = 0;
+	unsigned int actualWritten = 0, cbRead = 0;
 	object_ptr<IStream> pStream, deCompressedStream;
 	LARGE_INTEGER begin = { { 0, 0 } };
 	std::string strUncompressed;
@@ -3517,9 +3480,7 @@ ZEND_FUNCTION(mapi_folder_getsearchcriteria) {
 	PMEASURE_FUNC;
 	LOG_BEGIN();
 	// params
-	zval *res = NULL;
-	zval *restriction = NULL;
-	zval *folderlist = NULL;
+	zval *res = nullptr, *restriction = nullptr, *folderlist = nullptr;
 	LPMAPIFOLDER lpFolder = NULL;
 	long ulFlags = 0;
 	// local
@@ -3556,9 +3517,7 @@ ZEND_FUNCTION(mapi_folder_setsearchcriteria) {
 	PMEASURE_FUNC;
 	LOG_BEGIN();
 	// param
-	zval *res = NULL;
-	zval *restriction = NULL;
-	zval *folderlist = NULL;
+	zval *res = nullptr, *restriction = nullptr, *folderlist = nullptr;
 	long ulFlags = 0;
 	// local
 	LPMAPIFOLDER lpFolder = NULL;
@@ -3641,9 +3600,8 @@ ZEND_FUNCTION(mapi_rules_modifytable) {
 	PMEASURE_FUNC;
 	LOG_BEGIN();
 	// params
-	zval *res;
+	zval *res, *rows;
 	LPEXCHANGEMODIFYTABLE lpRulesTable = NULL;
-	zval *rows;
 	LPROWLIST lpRowList = NULL;
 	long ulFlags = 0;
 
@@ -3678,13 +3636,10 @@ ZEND_FUNCTION(mapi_zarafa_createuser)
 	// params
 	zval			*res = NULL;
 	LPMDB			lpMsgStore = NULL;
-	char			*lpszUsername = NULL;
-	char			*lpszFullname = NULL;
-	char			*lpszEmail = NULL;
-	char			*lpszPassword = NULL;
+	char *lpszUsername = nullptr, *lpszFullname = nullptr;
+	char *lpszEmail = nullptr, *lpszPassword = nullptr;
 	php_stringsize_t ulUsernameLen = 0, ulFullname = 0, ulEmail = 0, ulPassword = 0;
-	long			ulIsNonactive = false;
-	long			ulIsAdmin = false;
+	long ulIsNonactive = false, ulIsAdmin = false;
 
 	// return value
 	ULONG			cbUserId = 0;
@@ -3735,13 +3690,10 @@ ZEND_FUNCTION(mapi_zarafa_setuser)
 	zval			*res = NULL;
 	LPMDB			lpMsgStore = NULL;
 	LPENTRYID		lpUserId = NULL;
-	char			*lpszUsername = NULL;
-	char			*lpszFullname = NULL;
-	char			*lpszEmail = NULL;
-	char			*lpszPassword = NULL;
+	char *lpszUsername = nullptr, *lpszFullname = nullptr;
+	char *lpszEmail = nullptr, *lpszPassword = nullptr;
 	php_stringsize_t cbUserId = 0, ulUsername = 0, ulFullname = 0, ulEmail = 0, ulPassword = 0;
-	long			ulIsNonactive = 0;
-	long			ulIsAdmin = 0;
+	long ulIsNonactive = 0, ulIsAdmin = 0;
 
 	// local
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
@@ -3838,8 +3790,7 @@ ZEND_FUNCTION(mapi_zarafa_createstore)
 	// local
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	memory_ptr<ENTRYID> lpStoreID, lpRootID;
-	ULONG			cbStoreID = 0;
-	ULONG			cbRootID = 0;
+	unsigned int cbStoreID = 0, cbRootID = 0;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -3874,8 +3825,7 @@ ZEND_FUNCTION(mapi_zarafa_getuserlist)
 	PMEASURE_FUNC;
 	LOG_BEGIN();
 	// params
-	zval			*res = NULL;
-	zval*			zval_data_value = NULL;
+	zval *res = nullptr, *zval_data_value = nullptr;
 	LPMDB			lpMsgStore = NULL;
 	LPENTRYID		lpCompanyId = NULL;
 	php_stringsize_t cbCompanyId = 0;
@@ -3971,7 +3921,7 @@ ZEND_FUNCTION(mapi_zarafa_setquota)
 	PMEASURE_FUNC;
 	LOG_BEGIN();
 	// params
-	zval            *res = NULL;
+	zval *res = nullptr, *array = nullptr;
 	LPMDB           lpMsgStore = NULL;
 	LPENTRYID		lpUserId = NULL;
 	php_stringsize_t cbUserId = 0;
@@ -4213,8 +4163,7 @@ ZEND_FUNCTION(mapi_zarafa_addgroupmember)
 	LOG_BEGIN();
 	// params
 	zval 			*res = NULL;
-	LPENTRYID		lpGroupId = NULL;
-	LPENTRYID		lpUserId = NULL;
+	ENTRYID *lpGroupId = nullptr, *lpUserId = nullptr;
 	php_stringsize_t cbGroupId = 0, cbUserId = 0;
 	// locals
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
@@ -4244,8 +4193,7 @@ ZEND_FUNCTION(mapi_zarafa_deletegroupmember)
 	LOG_BEGIN();
 	// params
 	zval 			*res = NULL;
-	LPENTRYID		lpGroupId = NULL;
-	LPENTRYID		lpUserId = NULL;
+	ENTRYID *lpGroupId = nullptr, *lpUserId = nullptr;
 	php_stringsize_t cbGroupId = 0, cbUserId = 0;
 	// locals
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
