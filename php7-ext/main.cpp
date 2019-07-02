@@ -684,8 +684,8 @@ ZEND_FUNCTION(mapi_prop_type)
 {
 	long ulPropTag;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &ulPropTag) == FAILURE) return;
-
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &ulPropTag) == FAILURE)
+		return;
 	RETURN_LONG(PROP_TYPE(ulPropTag));
 }
 
@@ -697,8 +697,8 @@ ZEND_FUNCTION(mapi_prop_id)
 {
 	long ulPropTag;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &ulPropTag) == FAILURE) return;
-
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &ulPropTag) == FAILURE)
+		return;
 	RETURN_LONG(PROP_ID(ulPropTag));
 }
 
@@ -709,8 +709,8 @@ ZEND_FUNCTION(mapi_is_error)
 {
 	long errorcode;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &errorcode) == FAILURE) return;
-
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &errorcode) == FAILURE)
+		return;
 	RETURN_BOOL(IS_ERROR(errorcode));
 }
 
@@ -725,8 +725,8 @@ ZEND_FUNCTION(mapi_make_scode)
 {
 	long sev, code;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ll", &sev, &code) == FAILURE) return;
-
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ll", &sev, &code) == FAILURE)
+		return;
 	/*
 	 * sev has two possible values: 0 for a warning, 1 for an error
 	 * err is the error code for the specific error.
@@ -742,7 +742,9 @@ ZEND_FUNCTION(mapi_prop_tag)
 {
 	long ulPropID, ulPropType;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ll", &ulPropType, &ulPropID) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ll",
+	    &ulPropType, &ulPropID) == FAILURE)
+		return;
 
 	// PHP uses variable type 'long' internally. If a number in a string as key is used in add_assoc_*(),
 	// it is re-interpreted a a number when it's smaller than LONG_MAX.
@@ -778,7 +780,8 @@ ZEND_FUNCTION(mapi_createoneoff)
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sss|l",
 		&szDisplayName, &ulDisplayNameLen,
 		&szType, &ulTypeLen,
-		&szEmailAddress, &ulEmailAddressLen, &ulFlags) == FAILURE) return;
+		&szEmailAddress, &ulEmailAddressLen, &ulFlags) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	MAPI_G(hr) = TryConvert(szDisplayName, name);
@@ -821,8 +824,9 @@ ZEND_FUNCTION(mapi_parseoneoff)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &lpEntryID, &cbEntryID) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",
+	    &lpEntryID, &cbEntryID) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	MAPI_G(hr) = ECParseOneOff(lpEntryID, cbEntryID, wstrDisplayName, wstrType, wstrAddress);
@@ -886,7 +890,8 @@ ZEND_FUNCTION(mapi_logon_zarafa)
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss|ssslss",
 		&username, &username_len, &password, &password_len, &server, &server_len,
 		&sslcert, &sslcert_len, &sslpass, &sslpass_len, &ulFlags,
-		&wa_version, &wa_version_len, &misc_version, &misc_version_len) == FAILURE) return;
+		&wa_version, &wa_version_len, &misc_version, &misc_version_len) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	if (!server) {
@@ -966,8 +971,9 @@ ZEND_FUNCTION(mapi_openentry)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|sl", &res, &lpEntryID, &cbEntryID, &ulFlags) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|sl", &res,
+	    &lpEntryID, &cbEntryID, &ulFlags) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpSession, IMAPISession *, &res, -1, name_mapi_session, le_mapi_session);
@@ -1010,8 +1016,8 @@ ZEND_FUNCTION(mapi_openaddressbook)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &res) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &res) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpSession, IMAPISession*, &res, -1, name_mapi_session, le_mapi_session);
@@ -1037,8 +1043,9 @@ ZEND_FUNCTION(mapi_ab_openentry) {
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|sl", &res, &lpEntryID, &cbEntryID, &ulFlags) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|sl", &res,
+	    &lpEntryID, &cbEntryID, &ulFlags) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	if(Z_RES_P(res)->type != le_mapi_addrbook) {
@@ -1090,8 +1097,9 @@ ZEND_FUNCTION(mapi_ab_resolvename) {
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra|l", &res, &array, &ulFlags) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra|l", &res,
+	    &array, &ulFlags) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpAddrBook, LPADRBOOK, &res, -1, name_mapi_addrbook, le_mapi_addrbook);
@@ -1126,8 +1134,8 @@ ZEND_FUNCTION(mapi_ab_getdefaultdir) {
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &res) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &res) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpAddrBook, LPADRBOOK, &res, -1, name_mapi_addrbook, le_mapi_addrbook);
@@ -1159,8 +1167,8 @@ ZEND_FUNCTION(mapi_getmsgstorestable)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &res) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &res) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpSession, IMAPISession *, &res, -1, name_mapi_session, le_mapi_session);
@@ -1195,9 +1203,9 @@ ZEND_FUNCTION(mapi_openmsgstore)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs",
-		&res, (char *)&lpEntryID, &cbEntryID) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &res,
+	    reinterpret_cast<char *>(&lpEntryID), &cbEntryID) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpSession, IMAPISession *, &res, -1, name_mapi_session, le_mapi_session);
@@ -1234,8 +1242,9 @@ ZEND_FUNCTION(mapi_openprofilesection)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &res, &lpUID, &uidlen) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs",
+	    &res, &lpUID, &uidlen) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	if (uidlen != sizeof(MAPIUID))
@@ -1269,8 +1278,8 @@ ZEND_FUNCTION(mapi_folder_gethierarchytable)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &res, &ulFlags) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &res, &ulFlags) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	type = Z_RES_P(res)->type;
@@ -1321,8 +1330,8 @@ ZEND_FUNCTION(mapi_folder_getcontentstable)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &res, &ulFlags) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &res, &ulFlags) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	type = Z_RES_P(res)->type;
@@ -1364,8 +1373,8 @@ ZEND_FUNCTION(mapi_folder_createmessage)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &res, &ulFlags) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &res, &ulFlags) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(pFolder, LPMAPIFOLDER, &res, -1, name_mapi_folder, le_mapi_folder);
@@ -1391,8 +1400,9 @@ ZEND_FUNCTION(mapi_folder_deletemessages)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra|l", &res, &entryid_array, &ulFlags) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra|l", &res,
+	    &entryid_array, &ulFlags) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(pFolder, LPMAPIFOLDER, &res, -1, name_mapi_folder, le_mapi_folder);
@@ -1428,8 +1438,9 @@ ZEND_FUNCTION(mapi_folder_copymessages)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rar|l", &srcFolder, &msgArray, &destFolder, &flags) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rar|l",
+	    &srcFolder, &msgArray, &destFolder, &flags) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpSrcFolder, LPMAPIFOLDER, &srcFolder, -1, name_mapi_folder, le_mapi_folder);
@@ -1466,8 +1477,9 @@ ZEND_FUNCTION(mapi_folder_setreadflags)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra|l", &res, &entryArray, &flags) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra|l", &res,
+	    &entryArray, &flags) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpFolder, LPMAPIFOLDER, &res, -1, name_mapi_folder, le_mapi_folder);
@@ -1504,8 +1516,10 @@ ZEND_FUNCTION(mapi_folder_createfolder) {
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs|sll", &srcFolder, &lpszFolderName, &FolderNameLen, &lpszFolderComment, &FolderCommentLen, &ulFlags, &folderType) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs|sll",
+	    &srcFolder, &lpszFolderName, &FolderNameLen, &lpszFolderComment,
+	    &FolderCommentLen, &ulFlags, &folderType) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	if (FolderNameLen == 0) {
@@ -1537,8 +1551,9 @@ ZEND_FUNCTION(mapi_folder_deletefolder)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs|l", &res, &lpEntryID, &cbEntryID, &ulFlags) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs|l", &res,
+	    &lpEntryID, &cbEntryID, &ulFlags) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpFolder, LPMAPIFOLDER, &res, -1, name_mapi_folder, le_mapi_folder);
@@ -1561,8 +1576,8 @@ ZEND_FUNCTION(mapi_folder_emptyfolder)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &res, &ulFlags) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &res, &ulFlags) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpFolder, LPMAPIFOLDER, &res, -1, name_mapi_folder, le_mapi_folder);
@@ -1596,7 +1611,10 @@ ZEND_FUNCTION(mapi_folder_copyfolder)
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 
 	// Params: (SrcFolder, entryid, DestFolder, (opt) New foldername, (opt) Flags)
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsr|sl", &zvalSrcFolder, &lpEntryID, &cbEntryID, &zvalDestFolder, &lpszNewFolderName, &cbNewFolderNameLen, &ulFlags) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsr|sl",
+	    &zvalSrcFolder, &lpEntryID, &cbEntryID, &zvalDestFolder,
+	    &lpszNewFolderName, &cbNewFolderNameLen, &ulFlags) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpSrcFolder, LPMAPIFOLDER, &zvalSrcFolder, -1, name_mapi_folder, le_mapi_folder);
@@ -1644,8 +1662,9 @@ ZEND_FUNCTION(mapi_msgstore_createentryid)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &res, &sMailboxDN, &lMailboxDN) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &res,
+	    &sMailboxDN, &lMailboxDN) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(pMDB, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
@@ -1688,8 +1707,9 @@ ZEND_FUNCTION(mapi_msgstore_getarchiveentryid)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &res, &sUser, &lUser, &sServer, &lServer) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &res,
+	    &sUser, &lUser, &sServer, &lServer) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(pMDB, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
@@ -1729,8 +1749,9 @@ ZEND_FUNCTION(mapi_msgstore_openentry)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|sl", &res, &lpEntryID, &cbEntryID, &ulFlags) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|sl", &res,
+	    &lpEntryID, &cbEntryID, &ulFlags) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(pMDB, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
@@ -1774,8 +1795,10 @@ ZEND_FUNCTION(mapi_msgstore_entryidfromsourcekey)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs|s", &resStore, &lpSourceKeyFolder, &cbSourceKeyFolder, &lpSourceKeyMessage, &cbSourceKeyMessage) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs|s", &resStore,
+	    &lpSourceKeyFolder, &cbSourceKeyFolder, &lpSourceKeyMessage,
+	    &cbSourceKeyMessage) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &resStore, -1, name_mapi_msgstore, le_mapi_msgstore);
@@ -1804,8 +1827,9 @@ ZEND_FUNCTION(mapi_msgstore_advise)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rslr", &resStore, &lpEntryId, &cbEntryId, &ulMask, &resSink) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rslr", &resStore,
+	    &lpEntryId, &cbEntryId, &ulMask, &resSink) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &resStore, -1, name_mapi_msgstore, le_mapi_msgstore);
@@ -1831,8 +1855,9 @@ ZEND_FUNCTION(mapi_msgstore_unadvise)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &resStore, &ulConnection) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl",
+	    &resStore, &ulConnection) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &resStore, -1, name_mapi_msgstore, le_mapi_msgstore);
@@ -1868,8 +1893,8 @@ ZEND_FUNCTION(mapi_sink_timedwait)
     
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &resSink, &ulTime) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &resSink, &ulTime) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpSink, MAPINotifSink *, &resSink, -1, name_mapi_advisesink, le_mapi_advisesink);
@@ -1908,8 +1933,9 @@ ZEND_FUNCTION(mapi_table_queryallrows)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|aa", &res, &tagArray, &restrictionArray) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|aa", &res,
+	    &tagArray, &restrictionArray) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpTable, LPMAPITABLE, &res, -1, name_mapi_table, le_mapi_table);
@@ -1972,8 +1998,9 @@ ZEND_FUNCTION(mapi_table_queryrows)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|a!ll", &res, &tagArray, &start, &lRowCount) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|a!ll", &res,
+	    &tagArray, &start, &lRowCount) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpTable, LPMAPITABLE, &res, -1, name_mapi_table, le_mapi_table);
@@ -2037,8 +2064,9 @@ ZEND_FUNCTION(mapi_table_setcolumns)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra|l", &res, &tagArray, &lFlags) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra|l", &res,
+	    &tagArray, &lFlags) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpTable, LPMAPITABLE, &res, -1, name_mapi_table, le_mapi_table);
@@ -2081,8 +2109,9 @@ ZEND_FUNCTION(mapi_table_seekrow)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rll", &res, &lbookmark, &lRowCount) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rll", &res,
+	    &lbookmark, &lRowCount) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpTable, LPMAPITABLE, &res, -1, name_mapi_table, le_mapi_table);
@@ -2111,8 +2140,9 @@ ZEND_FUNCTION(mapi_table_sort)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra|l", &res, &sortArray, &ulFlags) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra|l", &res,
+	    &sortArray, &ulFlags) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpTable, LPMAPITABLE, &res, -1, name_mapi_table, le_mapi_table);
@@ -2140,8 +2170,8 @@ ZEND_FUNCTION(mapi_table_getrowcount)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &res) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &res) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpTable, LPMAPITABLE, &res, -1, name_mapi_table, le_mapi_table);
@@ -2166,8 +2196,9 @@ ZEND_FUNCTION(mapi_table_restrict)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra|l", &res, &restrictionArray, &ulFlags) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra|l", &res,
+	    &restrictionArray, &ulFlags) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpTable, LPMAPITABLE, &res, -1, name_mapi_table, le_mapi_table);
@@ -2205,8 +2236,9 @@ ZEND_FUNCTION(mapi_table_findrow)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra|ll", &res, &restrictionArray, &bkOrigin, &ulFlags) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra|ll", &res,
+	    &restrictionArray, &bkOrigin, &ulFlags) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpTable, LPMAPITABLE, &res, -1, name_mapi_table, le_mapi_table);
@@ -2252,8 +2284,8 @@ ZEND_FUNCTION(mapi_table_createbookmark)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &res) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &res) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpTable, LPMAPITABLE, &res, -1, name_mapi_table, le_mapi_table);
@@ -2287,8 +2319,8 @@ ZEND_FUNCTION(mapi_table_freebookmark)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &res, &lbookmark) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &res, &lbookmark) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpTable, LPMAPITABLE, &res, -1, name_mapi_table, le_mapi_table);
@@ -2324,8 +2356,8 @@ ZEND_FUNCTION(mapi_msgstore_getreceivefolder)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &res) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &res) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(pMDB, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
@@ -2359,8 +2391,9 @@ ZEND_FUNCTION(mapi_message_modifyrecipients)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rla", &res, &flags, &adrlist) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rla", &res,
+	    &flags, &adrlist) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(pMessage, LPMESSAGE, &res, -1, name_mapi_message, le_mapi_message);
@@ -2389,8 +2422,8 @@ ZEND_FUNCTION(mapi_message_submitmessage)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &res) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &res) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(pMessage, LPMESSAGE, &res, -1, name_mapi_message, le_mapi_message);
@@ -2419,8 +2452,8 @@ ZEND_FUNCTION(mapi_message_getattachmenttable)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &res) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &res) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(pMessage, LPMESSAGE, &res, -1, name_mapi_message, le_mapi_message);
@@ -2451,8 +2484,8 @@ ZEND_FUNCTION(mapi_message_openattach)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &res, &attach_num) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &res, &attach_num) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(pMessage, LPMESSAGE, &res, -1, name_mapi_message, le_mapi_message);
@@ -2480,8 +2513,9 @@ ZEND_FUNCTION(mapi_message_createattach)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &zvalMessage, &ulFlags) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l",
+	    &zvalMessage, &ulFlags) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpMessage, LPMESSAGE, &zvalMessage, -1, name_mapi_message, le_mapi_message);
@@ -2505,8 +2539,9 @@ ZEND_FUNCTION(mapi_message_deleteattach)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl|l", &zvalMessage, &attachNum, &ulFlags) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl|l",
+	    &zvalMessage, &attachNum, &ulFlags) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpMessage, LPMESSAGE, &zvalMessage, -1, name_mapi_message, le_mapi_message);
@@ -2533,8 +2568,8 @@ ZEND_FUNCTION(mapi_stream_read)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &res, &lgetBytes) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &res, &lgetBytes) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(pStream, LPSTREAM, &res, -1, name_istream, le_istream);
@@ -2561,8 +2596,9 @@ ZEND_FUNCTION(mapi_stream_seek)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl|l", &res, &moveBytes, &seekFlag) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl|l", &res,
+	    &moveBytes, &seekFlag) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(pStream, LPSTREAM, &res, -1, name_istream, le_istream);
@@ -2589,8 +2625,8 @@ ZEND_FUNCTION(mapi_stream_setsize)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &res, &newSize) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &res, &newSize) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(pStream, LPSTREAM, &res, -1, name_istream, le_istream);
@@ -2615,8 +2651,8 @@ ZEND_FUNCTION(mapi_stream_commit)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &res) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &res) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(pStream, LPSTREAM, &res, -1, name_istream, le_istream);
@@ -2643,8 +2679,8 @@ ZEND_FUNCTION(mapi_stream_write)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &res, &pv, &cb) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &res, &pv, &cb) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(pStream, LPSTREAM, &res, -1, name_istream, le_istream);
@@ -2672,8 +2708,8 @@ ZEND_FUNCTION(mapi_stream_stat)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &res) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &res) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(pStream, LPSTREAM, &res, -1, name_istream, le_istream);
@@ -2740,8 +2776,9 @@ ZEND_FUNCTION(mapi_openpropertytostream)
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 	php_error_docref("mapi_openpropertytostream", E_DEPRECATED, "Use of mapi_openpropertytostream is deprecated, use mapi_openproperty");
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl|ls", &res, &proptag, &flags, &guidStr, &guidLen) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl|ls", &res,
+	    &proptag, &flags, &guidStr, &guidLen) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	type = Z_RES_P(res)->type;
@@ -2794,8 +2831,8 @@ ZEND_FUNCTION(mapi_message_getrecipienttable)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &res) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &res) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(pMessage, LPMESSAGE, &res, -1, name_mapi_message, le_mapi_message);
@@ -2819,8 +2856,8 @@ ZEND_FUNCTION(mapi_message_setreadflag)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &res, &flag) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &res, &flag) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(pMessage, LPMESSAGE, &res, -1, name_mapi_message, le_mapi_message);
@@ -2851,8 +2888,8 @@ ZEND_FUNCTION(mapi_attach_openobj)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &res, &ulFlags) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &res, &ulFlags) == FAILURE)
+		return;
 
 	ZEND_FETCH_RESOURCE_C(pAttach, LPATTACH, &res, -1, name_mapi_attachment, le_mapi_attachment);
 
@@ -2888,8 +2925,9 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra|a", &messageStore, &propNameArray, &guidArray) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra|a",
+	    &messageStore, &propNameArray, &guidArray) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpMessageStore, LPMDB, &messageStore, -1, name_mapi_msgstore, le_mapi_msgstore);
@@ -2983,8 +3021,9 @@ ZEND_FUNCTION(mapi_setprops)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra", &res, &propValueArray) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra",
+	    &res, &propValueArray) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	type = Z_RES_P(res)->type;
@@ -3039,8 +3078,9 @@ ZEND_FUNCTION(mapi_copyto)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "raar|l", &srcres, &excludeiid, &excludeprops, &dstres, &flags) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "raar|l", &srcres,
+	    &excludeiid, &excludeprops, &dstres, &flags) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	type = Z_RES_P(srcres)->type;
@@ -3110,8 +3150,8 @@ ZEND_FUNCTION(mapi_savechanges)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &res, &flags) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &res, &flags) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	if (Z_TYPE_P(res) != IS_RESOURCE) {
@@ -3156,8 +3196,9 @@ ZEND_FUNCTION(mapi_deleteprops)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra", &res, &propTagArray) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra",
+	    &res, &propTagArray) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	type = Z_RES_P(res)->type;
@@ -3211,8 +3252,8 @@ ZEND_FUNCTION(mapi_openproperty)
 
 	if(ZEND_NUM_ARGS() == 2) {
 		// BACKWARD COMPATIBILITY MODE.. this means that we just read the entire stream and return it as a string
-		if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &res, &proptag) == FAILURE) return;
-
+		if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &res, &proptag) == FAILURE)
+			return;
 		bBackwardCompatible = true;
 
 		guidStr = (char *)&IID_IStream;
@@ -3328,8 +3369,8 @@ ZEND_FUNCTION(mapi_getprops)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|a", &res, &tagArray) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|a", &res, &tagArray) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	type = Z_RES_P(res)->type;
@@ -3399,8 +3440,8 @@ ZEND_FUNCTION(mapi_getnamesfromids)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra", &res, &array) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra", &res, &array) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(pMDB, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
@@ -3465,8 +3506,9 @@ ZEND_FUNCTION(mapi_decompressrtf)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &rtfBuffer, &rtfBufferLen) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",
+	    &rtfBuffer, &rtfBufferLen) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	// make and fill the stream
@@ -3523,8 +3565,8 @@ ZEND_FUNCTION(mapi_folder_openmodifytable) {
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &res) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &res) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpInbox, LPMAPIFOLDER, &res, -1, name_mapi_folder, le_mapi_folder);
@@ -3550,8 +3592,8 @@ ZEND_FUNCTION(mapi_folder_getsearchcriteria) {
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &res, &ulFlags) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &res, &ulFlags) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpFolder, LPMAPIFOLDER, &res, -1, name_mapi_folder, le_mapi_folder);
@@ -3588,8 +3630,9 @@ ZEND_FUNCTION(mapi_folder_setsearchcriteria) {
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "raal", &res, &restriction, &folderlist, &ulFlags) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "raal", &res,
+	    &restriction, &folderlist, &ulFlags) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpFolder, LPMAPIFOLDER, &res, -1, name_mapi_folder, le_mapi_folder);
@@ -3634,8 +3677,8 @@ ZEND_FUNCTION(mapi_rules_gettable) {
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &res) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &res) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpRulesTable, LPEXCHANGEMODIFYTABLE, &res, -1, name_mapi_modifytable, le_mapi_modifytable);
@@ -3677,8 +3720,9 @@ ZEND_FUNCTION(mapi_rules_modifytable) {
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra|l", &res, &rows, &ulFlags) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra|l",
+	    &res, &rows, &ulFlags) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	auto laters = make_scope_success([&]() {
@@ -3729,7 +3773,8 @@ ZEND_FUNCTION(mapi_zarafa_createuser)
 							&lpszPassword, &ulPassword,
 							&lpszFullname, &ulFullname,
 							&lpszEmail, &ulEmail,
-							&ulIsNonactive, &ulIsAdmin) == FAILURE) return;
+							&ulIsNonactive, &ulIsAdmin) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
@@ -3774,8 +3819,11 @@ ZEND_FUNCTION(mapi_zarafa_setuser)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsssssll", &res, &lpUserId, &cbUserId, &lpszUsername, &ulUsername, &lpszFullname, &ulFullname, &lpszEmail, &ulEmail, &lpszPassword, &ulPassword, &ulIsNonactive, &ulIsAdmin) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsssssll", &res,
+	    &lpUserId, &cbUserId, &lpszUsername, &ulUsername, &lpszFullname,
+	    &ulFullname, &lpszEmail, &ulEmail, &lpszPassword, &ulPassword,
+	    &ulIsNonactive, &ulIsAdmin) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
@@ -3824,8 +3872,9 @@ ZEND_FUNCTION(mapi_zarafa_deleteuser)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &res, &lpszUserName, &ulUserName) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &res,
+	    &lpszUserName, &ulUserName) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
@@ -3868,8 +3917,9 @@ ZEND_FUNCTION(mapi_zarafa_createstore)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rls", &res, &ulStoreType, &lpUserId, &cbUserId) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rls", &res,
+	    &ulStoreType, &lpUserId, &cbUserId) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
@@ -3910,8 +3960,9 @@ ZEND_FUNCTION(mapi_zarafa_getuserlist)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|s", &res, &lpCompanyId, &cbCompanyId) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|s", &res,
+	    &lpCompanyId, &cbCompanyId) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
@@ -3960,8 +4011,9 @@ ZEND_FUNCTION(mapi_zarafa_getquota)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &res, &lpUserId, &cbUserId) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &res,
+	    &lpUserId, &cbUserId) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
@@ -4009,8 +4061,9 @@ ZEND_FUNCTION(mapi_zarafa_setquota)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsa", &res, &lpUserId, &cbUserId, &array) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsa", &res,
+	    &lpUserId, &cbUserId, &array) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
@@ -4069,8 +4122,9 @@ ZEND_FUNCTION(mapi_zarafa_getuser_by_name)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &res, &lpszUsername, &ulUsername) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &res,
+	    &lpszUsername, &ulUsername) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
@@ -4122,8 +4176,9 @@ ZEND_FUNCTION(mapi_zarafa_getuser_by_id)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &res, &lpUserId, &cbUserId) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &res,
+	    &lpUserId, &cbUserId) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
@@ -4165,8 +4220,9 @@ ZEND_FUNCTION(mapi_zarafa_creategroup)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &res, &sGroup.lpszGroupname, &cbGroupname) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &res,
+	    &sGroup.lpszGroupname, &cbGroupname) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
@@ -4202,8 +4258,9 @@ ZEND_FUNCTION(mapi_zarafa_deletegroup)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &res, &lpszGroupname, &cbGroupname) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &res,
+	    &lpszGroupname, &cbGroupname) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
@@ -4240,8 +4297,9 @@ ZEND_FUNCTION(mapi_zarafa_addgroupmember)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &res, &lpGroupId, &cbGroupId, &lpUserId, &cbUserId) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &res,
+	    &lpGroupId, &cbGroupId, &lpUserId, &cbUserId) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
@@ -4271,8 +4329,9 @@ ZEND_FUNCTION(mapi_zarafa_deletegroupmember)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &res, &lpGroupId, &cbGroupId, &lpUserId, &cbUserId) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &res,
+	    &lpGroupId, &cbGroupId, &lpUserId, &cbUserId) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
@@ -4304,8 +4363,9 @@ ZEND_FUNCTION(mapi_zarafa_setgroup)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &res, &lpGroupId, &cbGroupId, &lpszGroupname, &cbGroupname) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &res,
+	    &lpGroupId, &cbGroupId, &lpszGroupname, &cbGroupname) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
@@ -4340,8 +4400,9 @@ ZEND_FUNCTION(mapi_zarafa_getgroup_by_id)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &res, &lpGroupId, &cbGroupId) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &res,
+	    &lpGroupId, &cbGroupId) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
@@ -4377,8 +4438,9 @@ ZEND_FUNCTION(mapi_zarafa_getgroup_by_name)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &res, &lpszGroupname, &ulGroupname) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &res,
+	    &lpszGroupname, &ulGroupname) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
@@ -4419,8 +4481,9 @@ ZEND_FUNCTION(mapi_zarafa_getgrouplist)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|s", &res, &lpCompanyId, &cbCompanyId) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|s", &res,
+	    &lpCompanyId, &cbCompanyId) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
@@ -4461,8 +4524,9 @@ ZEND_FUNCTION(mapi_zarafa_getgrouplistofuser)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &res, &lpUserId, &cbUserId) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &res,
+	    &lpUserId, &cbUserId) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
@@ -4503,8 +4567,9 @@ ZEND_FUNCTION(mapi_zarafa_getuserlistofgroup)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &res, &lpGroupId, &cbGroupId) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &res,
+	    &lpGroupId, &cbGroupId) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
@@ -5068,8 +5133,8 @@ ZEND_FUNCTION(mapi_zarafa_getpermissionrules)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &res, &ulType) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &res, &ulType) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	type = Z_RES_P(res)->type;
@@ -5130,8 +5195,8 @@ ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra", &res, &perms) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra", &res, &perms) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	auto type = Z_RES_P(res)->type;
@@ -5245,8 +5310,9 @@ ZEND_FUNCTION(mapi_freebusysupport_open)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|r", &resSession, &resStore) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|r",
+	    &resSession, &resStore) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpSession, IMAPISession*, &resSession, -1, name_mapi_session, le_mapi_session);
@@ -5279,8 +5345,8 @@ ZEND_FUNCTION(mapi_freebusysupport_close)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &resFBSupport) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &resFBSupport) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpFBSupport, IFreeBusySupport*, &resFBSupport, -1, name_fb_support, le_freebusy_support);
@@ -5304,8 +5370,9 @@ ZEND_FUNCTION(mapi_freebusysupport_loaddata)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra", &resFBSupport,&resUsers) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra",
+	    &resFBSupport, &resUsers) == FAILURE)
+		return;
 
 	// do not release fbdata, it's registered in the return_value array, but not addref'd
 	DEFERRED_EPILOGUE;
@@ -5378,8 +5445,9 @@ ZEND_FUNCTION(mapi_freebusysupport_loadupdate)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra", &resFBSupport,&resUsers) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra",
+	    &resFBSupport, &resUsers) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpFBSupport, IFreeBusySupport*, &resFBSupport, -1, name_fb_support, le_freebusy_support);
@@ -5451,8 +5519,9 @@ ZEND_FUNCTION(mapi_freebusydata_enumblocks)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rll", &resFBData, &ulUnixStart, &ulUnixEnd) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rll", &resFBData,
+	    &ulUnixStart, &ulUnixEnd) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpFBData, IFreeBusyData*, &resFBData, -1, name_fb_data, le_freebusy_data);
@@ -5477,8 +5546,8 @@ ZEND_FUNCTION(mapi_freebusydata_getpublishrange)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &resFBData) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &resFBData) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpFBData, IFreeBusyData*, &resFBData, -1, name_fb_data, le_freebusy_data);
@@ -5502,8 +5571,9 @@ ZEND_FUNCTION(mapi_freebusydata_setrange)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rll", &resFBData, &ulUnixStart, &ulUnixEnd) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rll", &resFBData,
+	    &ulUnixStart, &ulUnixEnd) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpFBData, IFreeBusyData*, &resFBData, -1, name_fb_data, le_freebusy_data);
@@ -5523,8 +5593,8 @@ ZEND_FUNCTION(mapi_freebusyenumblock_reset)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &resEnumBlock) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &resEnumBlock) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpEnumBlock, IEnumFBBlock*, &resEnumBlock, -1, name_fb_enumblock, le_freebusy_enumblock);
@@ -5549,8 +5619,9 @@ ZEND_FUNCTION(mapi_freebusyenumblock_next)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &resEnumBlock, &cElt) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl",
+	    &resEnumBlock, &cElt) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpEnumBlock, IEnumFBBlock*, &resEnumBlock, -1, name_fb_enumblock, le_freebusy_enumblock);
@@ -5584,8 +5655,9 @@ ZEND_FUNCTION(mapi_freebusyenumblock_skip)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &resEnumBlock, &ulSkip) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl",
+	    &resEnumBlock, &ulSkip) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpEnumBlock, IEnumFBBlock*, &resEnumBlock, -1, name_fb_enumblock, le_freebusy_enumblock);
@@ -5608,8 +5680,9 @@ ZEND_FUNCTION(mapi_freebusyenumblock_restrict)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rll", &resEnumBlock, &ulUnixStart, &ulUnixEnd) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rll",
+	    &resEnumBlock, &ulUnixStart, &ulUnixEnd) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpEnumBlock, IEnumFBBlock*, &resEnumBlock, -1, name_fb_enumblock, le_freebusy_enumblock);
@@ -5691,8 +5764,9 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra", &resFBUpdate, &aBlocks) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra",
+	    &resFBUpdate, &aBlocks) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpFBUpdate, IFreeBusyUpdate*, &resFBUpdate, -1, name_fb_update, le_freebusy_update);
@@ -5748,8 +5822,8 @@ ZEND_FUNCTION(mapi_freebusyupdate_reset)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &resFBUpdate) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &resFBUpdate) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpFBUpdate, IFreeBusyUpdate*, &resFBUpdate, -1, name_fb_update, le_freebusy_update);
@@ -5774,8 +5848,9 @@ ZEND_FUNCTION(mapi_freebusyupdate_savechanges)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rll", &resFBUpdate, &ulUnixStart, &ulUnixEnd) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rll",
+	    &resFBUpdate, &ulUnixStart, &ulUnixEnd) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpFBUpdate, IFreeBusyUpdate*, &resFBUpdate, -1, name_fb_update, le_freebusy_update);
@@ -5813,8 +5888,10 @@ ZEND_FUNCTION(mapi_exportchanges_config)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rrlzzzzl", &resExportChanges, &resStream, &ulFlags, &resImportChanges, &aRestrict, &aIncludeProps, &aExcludeProps, &ulBuffersize) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rrlzzzzl",
+	    &resExportChanges, &resStream, &ulFlags, &resImportChanges,
+	    &aRestrict, &aIncludeProps, &aExcludeProps, &ulBuffersize) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpExportChanges, IExchangeExportChanges *, &resExportChanges, -1, name_mapi_exportchanges, le_mapi_exportchanges);
@@ -5884,8 +5961,8 @@ ZEND_FUNCTION(mapi_exportchanges_synchronize)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &resExportChanges) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &resExportChanges) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpExportChanges, IExchangeExportChanges *, &resExportChanges, -1, name_mapi_exportchanges, le_mapi_exportchanges);
@@ -5914,8 +5991,9 @@ ZEND_FUNCTION(mapi_exportchanges_updatestate)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-    if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rr", &resExportChanges, &resStream) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rr",
+	    &resExportChanges, &resStream) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
     ZEND_FETCH_RESOURCE_C(lpExportChanges, IExchangeExportChanges *, &resExportChanges, -1, name_mapi_exportchanges, le_mapi_exportchanges);
@@ -5940,8 +6018,8 @@ ZEND_FUNCTION(mapi_exportchanges_getchangecount)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-    if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &resExportChanges) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &resExportChanges) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
     ZEND_FETCH_RESOURCE_C(lpExportChanges, IExchangeExportChanges *, &resExportChanges, -1, name_mapi_exportchanges, le_mapi_exportchanges);
@@ -5970,8 +6048,9 @@ ZEND_FUNCTION(mapi_importcontentschanges_config)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rrl", &resImportContentsChanges, &resStream, &ulFlags) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rrl",
+	    &resImportContentsChanges, &resStream, &ulFlags) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpImportContentsChanges, IExchangeImportContentsChanges *, &resImportContentsChanges, -1, name_mapi_importcontentschanges, le_mapi_importcontentschanges);
@@ -5995,8 +6074,9 @@ ZEND_FUNCTION(mapi_importcontentschanges_updatestate)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-    if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|r", &resImportContentsChanges, &resStream) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|r",
+	    &resImportContentsChanges, &resStream) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
     ZEND_FETCH_RESOURCE_C(lpImportContentsChanges, IExchangeImportContentsChanges *, &resImportContentsChanges, -1, name_mapi_importcontentschanges, le_mapi_importcontentschanges);
@@ -6026,8 +6106,9 @@ ZEND_FUNCTION(mapi_importcontentschanges_importmessagechange)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-    if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ralz", &resImportContentsChanges, &resProps, &ulFlags, &resMessage) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ralz",
+	    &resImportContentsChanges, &resProps, &ulFlags, &resMessage) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
     ZEND_FETCH_RESOURCE_C(lpImportContentsChanges, IExchangeImportContentsChanges *, &resImportContentsChanges, -1, name_mapi_importcontentschanges, le_mapi_importcontentschanges);
@@ -6057,8 +6138,9 @@ ZEND_FUNCTION(mapi_importcontentschanges_importmessagedeletion)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rla", &resImportContentsChanges, &ulFlags, &resMessages) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rla",
+	    &resImportContentsChanges, &ulFlags, &resMessages) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpImportContentsChanges, IExchangeImportContentsChanges *, &resImportContentsChanges, -1, name_mapi_importcontentschanges, le_mapi_importcontentschanges);
@@ -6085,8 +6167,9 @@ ZEND_FUNCTION(mapi_importcontentschanges_importperuserreadstatechange)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra", &resImportContentsChanges, &resReadStates) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra",
+	    &resImportContentsChanges, &resReadStates) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpImportContentsChanges, IExchangeImportContentsChanges *, &resImportContentsChanges, -1, name_mapi_importcontentschanges, le_mapi_importcontentschanges);
@@ -6125,7 +6208,8 @@ ZEND_FUNCTION(mapi_importcontentschanges_importmessagemove)
 																	&pbSourceKeySrcMessage, &cbSourceKeySrcMessage,
 																	&pbPCLMessage, &cbPCLMessage,
 																	&pbSourceKeyDestMessage, &cbSourceKeyDestMessage,
-																	&pbChangeNumDestMessage, &cbChangeNumDestMessage) == FAILURE) return;
+																	&pbChangeNumDestMessage, &cbChangeNumDestMessage) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpImportContentsChanges, IExchangeImportContentsChanges *, &resImportContentsChanges, -1, name_mapi_importcontentschanges, le_mapi_importcontentschanges);
@@ -6146,8 +6230,9 @@ ZEND_FUNCTION(mapi_importhierarchychanges_config)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rrl", &resImportHierarchyChanges, &resStream, &ulFlags) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rrl",
+	    &resImportHierarchyChanges, &resStream, &ulFlags) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpImportHierarchyChanges, IExchangeImportHierarchyChanges *, &resImportHierarchyChanges, -1, name_mapi_importhierarchychanges, le_mapi_importhierarchychanges);
@@ -6170,8 +6255,9 @@ ZEND_FUNCTION(mapi_importhierarchychanges_updatestate)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-    if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|r", &resImportHierarchyChanges, &resStream) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|r",
+	    &resImportHierarchyChanges, &resStream) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
     ZEND_FETCH_RESOURCE_C(lpImportHierarchyChanges, IExchangeImportHierarchyChanges *, &resImportHierarchyChanges, -1, name_mapi_importhierarchychanges, le_mapi_importhierarchychanges);
@@ -6198,8 +6284,9 @@ ZEND_FUNCTION(mapi_importhierarchychanges_importfolderchange)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra", &resImportHierarchyChanges, &resProps) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra",
+	    &resImportHierarchyChanges, &resProps) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpImportHierarchyChanges, IExchangeImportHierarchyChanges *, &resImportHierarchyChanges, -1, name_mapi_importhierarchychanges, le_mapi_importhierarchychanges);
@@ -6228,8 +6315,9 @@ ZEND_FUNCTION(mapi_importhierarchychanges_importfolderdeletion)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rla", &resImportHierarchyChanges, &ulFlags, &resFolders) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rla",
+	    &resImportHierarchyChanges, &ulFlags, &resFolders) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpImportHierarchyChanges, IExchangeImportHierarchyChanges *, &resImportHierarchyChanges, -1, name_mapi_importhierarchychanges, le_mapi_importhierarchychanges);
@@ -6271,8 +6359,9 @@ ZEND_FUNCTION(mapi_wrap_importcontentschanges)
 
     RETVAL_FALSE;
     MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-    if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "o", &objImportContentsChanges) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "o",
+	    &objImportContentsChanges) == FAILURE)
+		return;
 
     lpImportContentsChanges = new ECImportContentsChangesProxy(objImportContentsChanges TSRMLS_CC);
 
@@ -6292,8 +6381,9 @@ ZEND_FUNCTION(mapi_wrap_importhierarchychanges)
 
     RETVAL_FALSE;
     MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-    if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "o", &objImportHierarchyChanges) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "o",
+	    &objImportHierarchyChanges) == FAILURE)
+		return;
 
     lpImportHierarchyChanges = new ECImportHierarchyChangesProxy(objImportHierarchyChanges TSRMLS_CC);
 
@@ -6322,8 +6412,9 @@ ZEND_FUNCTION(mapi_inetmapi_imtoinet)
     
     RETVAL_FALSE;
     MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-    
-    if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rrra", &resSession, &resAddrBook, &resMessage, &resOptions) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rrra",
+	    &resSession, &resAddrBook, &resMessage, &resOptions) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
     ZEND_FETCH_RESOURCE_C(lpMAPISession, IMAPISession *, &resSession, -1, name_mapi_session, le_mapi_session);
@@ -6365,8 +6456,10 @@ ZEND_FUNCTION(mapi_inetmapi_imtomapi)
     
     RETVAL_FALSE;
     MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-    
-    if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rrrrsa", &resSession, &resStore, &resAddrBook, &resMessage, &szString, &cbString, &resOptions) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rrrrsa",
+	    &resSession, &resStore, &resAddrBook, &resMessage, &szString,
+	    &cbString, &resOptions) == FAILURE)
+		return;
 
 	DEFERRED_EPILOGUE;
     ZEND_FETCH_RESOURCE_C(lpMAPISession, IMAPISession *, &resSession, -1, name_mapi_session, le_mapi_session);
@@ -6627,9 +6720,8 @@ ZEND_FUNCTION(mapi_enable_exceptions)
 	zend_string *str_class;
 
 	RETVAL_FALSE;
-	
-    if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "S", &str_class) == FAILURE) return;
-    
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "S", &str_class) == FAILURE)
+		return;
 	ce = *(zend_class_entry **)zend_hash_find(CG(class_table), str_class);
 	if (ce != nullptr) {
         MAPI_G(exceptions_enabled) = true;
@@ -6651,8 +6743,9 @@ ZEND_FUNCTION(mapi_feature)
 	php_stringsize_t cbFeature = 0;
     
     RETVAL_FALSE;
-    
-    if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &szFeature, &cbFeature) == FAILURE) return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",
+	    &szFeature, &cbFeature) == FAILURE)
+		return;
 	for (size_t i = 0; i < ARRAY_SIZE(features); ++i)
         if(strcasecmp(features[i], szFeature) == 0) {
             RETVAL_TRUE;
