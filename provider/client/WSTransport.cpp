@@ -3491,8 +3491,10 @@ HRESULT WSTransport::HrResolvePseudoUrl(const char *lpszPseudoUrl, char **lppszS
 	cachedResult.hr = hr;
 	if (hr == hrSuccess) {
 		cachedResult.isPeer = sResponse.bIsPeer;
-		if (sResponse.lpszServerPath != nullptr)
+		if (sResponse.lpszServerPath != nullptr) {
 			cachedResult.serverPath = sResponse.lpszServerPath;
+			ulLen = strlen(sResponse.lpszServerPath) + 1;
+		}
 	}
 
 	{
@@ -3500,7 +3502,6 @@ HRESULT WSTransport::HrResolvePseudoUrl(const char *lpszPseudoUrl, char **lppszS
 		m_ResolveResultCache.AddCacheItem(lpszPseudoUrl, std::move(cachedResult));
 	}
 
-	ulLen = strlen(sResponse.lpszServerPath) + 1;
 	hr = ECAllocateBuffer(ulLen, (void**)&lpszServerPath);
 	if (hr != hrSuccess)
 		goto exitm;

@@ -318,13 +318,13 @@ static void showtop(LPMDB lpStore)
         wprintw(win, "Last update: %s (%.1fs since last)", date, dblTime);
 
         wmove(win, 1,0);
-        wprintw(win, "Sess: %d", lstSessions.size());
+        wprintw(win, "Sess: %zu", lstSessions.size());
         wmove(win, 1, 12);
-        wprintw(win, "Sess grp: %d", mapSessionGroups.size());
+        wprintw(win, "Sess grp: %zu", mapSessionGroups.size());
         wmove(win, 1, 30);
-        wprintw(win, "Users: %d", setUsers.size());
+        wprintw(win, "Users: %zu", setUsers.size());
         wmove(win, 1, 42);
-        wprintw(win, "Hosts: %d", setHosts.size());
+        wprintw(win, "Hosts: %zu", setHosts.size());
         wmove(win, 1, 54);
         wprintw(win, "CPU: %d%%", (int)((dblUser+dblSystem)*100));
         wmove(win, 1, 64);
@@ -353,7 +353,7 @@ static void showtop(LPMDB lpStore)
         if (bColumns[5]) { wmove(win, 4, ofs); wprintw(win, "APP");			ofs += cols[6]; }
         if (bColumns[6]) { wmove(win, 4, ofs); wprintw(win, "TIME");		ofs += cols[7]; }
         if (bColumns[7]) { wmove(win, 4, ofs); wprintw(win, "CPUTIME");		ofs += cols[8]; }
-        if (bColumns[8]) { wmove(win, 4, ofs); wprintw(win, "CPU%");		ofs += cols[9]; }
+        if (bColumns[8]) { wmove(win, 4, ofs); wprintw(win, "CPU%%");		ofs += cols[9]; }
         if (bColumns[9]) { wmove(win, 4, ofs); wprintw(win, "NREQ");		ofs += cols[10]; }
         if (bColumns[10]) { wmove(win, 4, ofs); wprintw(win, "STAT");		ofs += cols[11]; }
         if (bColumns[11]) { wmove(win, 4, ofs); wprintw(win, "TASK"); }
