@@ -839,8 +839,9 @@ static HRESULT ResolveServerToPath(IMAPISession *lpSession,
 			ec_log_err("Server '%s' not found", (char*)lpSrvList->lpsaServer[i].lpszName);
 			return MAPI_E_NOT_FOUND;
 		}
-		ec_log_debug("%d recipient(s) on server '%ls' (url %ls)", (int)iter->second.size(),
-						lpSrvList->lpsaServer[i].lpszName, lpSrvList->lpsaServer[i].lpszPreferedPath);
+		ec_log_debug("%zu recipient(s) on server \"%ls\" (URL %ls)",
+			iter->second.size(), lpSrvList->lpsaServer[i].lpszName,
+			lpSrvList->lpsaServer[i].lpszPreferedPath);
 		lpServerPathRecips->emplace(reinterpret_cast<wchar_t *>(lpSrvList->lpsaServer[i].lpszPreferedPath), iter->second);
 	}
 	return hrSuccess;

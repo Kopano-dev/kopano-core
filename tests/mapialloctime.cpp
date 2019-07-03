@@ -12,7 +12,7 @@
  *
  * == Grab an allocation historgram ==
  * 1. Stick the following line into the MAPIFreeBuffer function:
- * 	fprintf(stderr, "!! %d\n", head->children.size());
+ * 	fprintf(stderr, "!! %zu\n", head->children.size());
  *    This tell us the size of each allocation list at the end of its lifetime.
  *
  * 2. Build KC and run the testsuite, then collect the "!!" lines from stderr
@@ -56,7 +56,6 @@ static constexpr size_t alloc_size = 32;
 int main(void)
 {
 	struct timespec gstart, gstop, start, stop;
-	void *ibuf, *jbuf;
 	size_t cnt_alloc = 0, cnt_more = 0;
 	clock_gettime(CLOCK_MONOTONIC, &gstart);
 
@@ -68,9 +67,15 @@ int main(void)
 		cnt_more += noccr * nchildren;
 		clock_gettime(CLOCK_MONOTONIC, &start);
 		for (decltype(noccr) i = 0; i < noccr; ++i) {
-			MAPIAllocateBuffer(alloc_size, &ibuf);
-			for (decltype(nchildren) j = 0; j < nchildren; ++j)
-				MAPIAllocateMore(alloc_size, ibuf, &jbuf);
+			void *ibuf = nullptr;
+			auto ret = MAPIAllocateBuffer(alloc_size, &ibuf);
+			if (ret != hrSuccess)
+				abort();
+			for (decltype(nchildren) j = 0; j < nchildren; ++j) {
+				void *jbuf = nullptr;
+				if (MAPIAllocateMore(alloc_size, ibuf, &jbuf) != hrSuccess)
+					/* nothing */;
+			}
 			MAPIFreeBuffer(ibuf);
 		}
 		clock_gettime(CLOCK_MONOTONIC, &stop);

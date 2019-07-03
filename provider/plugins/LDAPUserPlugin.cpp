@@ -1642,8 +1642,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 	std::map<objectid_t, objectdetails_t> mapdetails;
 	auto_free_ldap_message res;
 
-	LOG_PLUGIN_DEBUG("%s N=%d", __FUNCTION__, (int)objectids.size() );
-
+	LOG_PLUGIN_DEBUG("%s N=%zu", __FUNCTION__, objectids.size());
 	/* That was easy ... */
 	if (objectids.empty())
 		return mapdetails;

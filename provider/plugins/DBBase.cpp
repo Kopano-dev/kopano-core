@@ -82,8 +82,7 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 	if(objectids.empty())
 		return mapdetails;
 
-	LOG_PLUGIN_DEBUG("%s N=%d", __FUNCTION__, (int)objectids.size());
-
+	LOG_PLUGIN_DEBUG("%s N=%zu", __FUNCTION__, objectids.size());
 	for (const auto &id : objectids) {
 		if (!objectstrings[id.objclass].empty())
 			objectstrings[id.objclass] += ", ";
