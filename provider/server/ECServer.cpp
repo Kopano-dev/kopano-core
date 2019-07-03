@@ -74,7 +74,7 @@ using std::endl;
 using std::string;
 
 static const char upgrade_lock_file[] = "/tmp/kopano-upgrade-lock";
-static const char default_atx_backend[] = "files"; /* for new installs */
+static const char default_atx_backend[] = "files_v2"; /* for new installs */
 static int g_Quit = 0;
 static int restart_searches = 0;
 static bool m_bIgnoreDatabaseVersionConflict = false;
