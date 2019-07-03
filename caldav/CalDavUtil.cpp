@@ -28,8 +28,8 @@ using namespace KC;
  * @return		HRESULT
  * @retval		MAPI_E_LOGON_FAILED		Unable to login with the specified user-name and password
  */
-HRESULT HrAuthenticate(const std::string &appVersion,
-    const std::string &appMisc, const std::wstring &wstrUser,
+HRESULT HrAuthenticate(const std::string &appMisc,
+    const std::string &appVersion, const std::wstring &wstrUser,
     const std::wstring &wstrPass, const std::string &strPath,
     IMAPISession **lppSession)
 {

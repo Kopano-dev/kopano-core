@@ -31,7 +31,7 @@
 #define TASKS_FOLDER	0x03
 
 //Performs login to the Kopano server and returns Session.
-extern HRESULT HrAuthenticate(const std::string &app_vers, const std::string &app_misc, const std::wstring &user, const std::wstring &pass, const std::string &path, IMAPISession **);
+extern HRESULT HrAuthenticate(const std::string &app_misc, const std::string &app_ver, const std::wstring &user, const std::wstring &pass, const std::string &path, IMAPISession **);
 
 //Adds property FolderID to the folder if not present else returns it.
 HRESULT HrAddProperty(IMsgStore *lpMsgStore, SBinary sbEid, ULONG ulPropertyId, bool bIsFldID, std::wstring *wstrProperty);
