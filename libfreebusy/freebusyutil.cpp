@@ -76,10 +76,9 @@ static HRESULT getMaxMonthMinutes(short year, short month, short *minutes)
 static HRESULT GetFreeBusyFolder(IMsgStore *lpPublicStore,
     IMAPIFolder **lppFreeBusyFolder)
 {
-	ULONG			cValuesFreeBusy = 0;
+	unsigned int cValuesFreeBusy = 0, ulObjType = 0;
 	memory_ptr<SPropValue> lpPropArrayFreeBusy;
 	object_ptr<IMAPIFolder> lpMapiFolder;
-	ULONG			ulObjType = 0;
 	static constexpr const SizedSPropTagArray(1, sPropsFreeBusy) =
 		{1, {PR_FREE_BUSY_FOR_LOCAL_SITE_ENTRYID}};
 	enum eFreeBusyPos{ FBPOS_FREE_BUSY_FOR_LOCAL_SITE_ENTRYID};
@@ -159,7 +158,6 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 	hr = lpFreeBusyFolder->CreateMessage(nullptr, 0, &~lpMessage);
 	if (hr != hrSuccess)
 		return hr;
-
 	// Set the user entry id
 	hr = lpMessage->SetProps(1, &sPropUser, NULL);
 	if (hr != hrSuccess)
@@ -186,19 +184,16 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 	hr = lpMessage->SetProps(1, lpPropName, NULL);
 	if (hr != hrSuccess)
 		return hr;
-
 	// Set the subject with accountname
 	lpPropName->ulPropTag = PR_SUBJECT;
 	hr = lpMessage->SetProps(1, lpPropName, NULL);
 	if (hr != hrSuccess)
 		return hr;
-
 	// Set the PR_FREEBUSY_EMA with the email address
 	lpPropEmail->ulPropTag = PR_FREEBUSY_EMAIL_ADDRESS;
 	hr = lpMessage->SetProps(1, lpPropEmail, NULL);
 	if (hr != hrSuccess)
 		return hr;
-
 	// Save message
 	hr = lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
 	if (hr != hrSuccess)
@@ -208,12 +203,10 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 	if (lpUserStore == nullptr)
 		return lpMessage->QueryInterface(IID_IMessage,
 		       reinterpret_cast<void **>(lppMessage));
-
 	// Get entryid
 	hr = HrGetOneProp(lpMessage, PR_ENTRYID, &~lpPropFBMessage);
 	if (hr != hrSuccess)
 		return hr;
-
 	// Open root folder
 	object_ptr<IMAPIFolder> lpFolder;
 	hr = lpUserStore->OpenEntry(0, NULL, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpFolder);
@@ -253,7 +246,6 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 	hr = lpUserStore->GetReceiveFolder(nullptr, 0, &cbInBoxEntry, &~lpInboxEntry, nullptr);
 	if (hr != hrSuccess)
 		return hr;
-
 	// Open the inbox
 	hr = lpUserStore->OpenEntry(cbInBoxEntry, lpInboxEntry, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpFolder);
 	if (hr != hrSuccess)
@@ -488,7 +480,6 @@ HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULON
 					++xmo.cValues;
 					++fbd.cValues;
 					fbd.lpbin[iMonth].cb = 0;
-				
 					fbEvent.rtmStart = 0;					
 					getMaxMonthMinutes((short)tmTmp.tm_year+1900, (short)tmTmp.tm_mon, (short*)&fbEvent.rtmEnd);
 
@@ -509,7 +500,6 @@ HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULON
 				++xmo.cValues;
 				++fbd.cValues;
 				fbd.lpbin[iMonth].cb = 0;
-
 				fbEvent.rtmStart = 0;
 				fbEvent.rtmEnd = (short)( ((tmEnd.tm_mday-1)*24*60) + (tmEnd.tm_hour*60) + tmEnd.tm_min);
 			} else {
@@ -520,10 +510,8 @@ HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULON
 			// Add item to struct
 			memcpy(fbd.lpbin[iMonth].lpb + fbd.lpbin[iMonth].cb, &fbEvent, sizeof(sfbEvent));
 			fbd.lpbin[iMonth].cb += sizeof(sfbEvent);
-
 			ulLastYear = tmEnd.tm_year;
 			ulLastMonth = tmEnd.tm_mon;
-
 			bFound = true;
 			assert(fbd.lpbin[iMonth].cb <= ulMaxItemDataSize);
 		}

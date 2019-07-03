@@ -10,7 +10,6 @@
  * @addtogroup libfreebusy
  * @{
  */
-
 #ifndef ECFREEBUSYUPDATE_H
 #define ECFREEBUSYUPDATE_H
 

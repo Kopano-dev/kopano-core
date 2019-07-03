@@ -42,11 +42,9 @@ HRESULT ECFBBlockList::Next(FBBlock_1* pblk)
 {
 	if (pblk == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-
 	// Set iter on the begin of the list
 	if (!m_bInitIter)
 		Restrict(m_tmRestictStart, m_tmRestictEnd);
-
 	// Check if you are at the end of the list or the item doesn't matched with the restriction
 	if (m_FBIter == m_FBMap.cend() || (m_tmRestictEnd != 0 && static_cast<ULONG>(m_FBIter->second.m_tmStart) > static_cast<ULONG>(m_tmRestictEnd)))
 		return MAPI_E_NOT_FOUND;
@@ -55,7 +53,6 @@ HRESULT ECFBBlockList::Next(FBBlock_1* pblk)
 	// blocks before the start time get capped on the start time
 	if (pblk->m_tmStart < m_tmRestictStart)
 		pblk->m_tmStart = m_tmRestictStart;
-
 	++m_FBIter;
 	return hrSuccess;
 }
@@ -63,7 +60,6 @@ HRESULT ECFBBlockList::Next(FBBlock_1* pblk)
 HRESULT ECFBBlockList::Reset()
 {
 	m_bInitIter = false;
-
 	return hrSuccess;
 }
 
@@ -78,7 +74,6 @@ HRESULT ECFBBlockList::Skip(LONG items)
 			break; // FIXME: gives an error or always ok?
 		++m_FBIter;
 	}
-
 	return hrSuccess;
 }
 
@@ -86,7 +81,6 @@ HRESULT ECFBBlockList::Restrict(LONG tmStart, LONG tmEnd)
 {
 	m_tmRestictStart = tmStart;
 	m_tmRestictEnd = tmEnd;
-
 	m_FBIter = m_FBMap.begin();
 	m_bInitIter = true;
 
@@ -96,7 +90,6 @@ HRESULT ECFBBlockList::Restrict(LONG tmStart, LONG tmEnd)
 			break;
 		++m_FBIter;
 	}
-
 	return S_OK;
 }
 
@@ -111,7 +104,6 @@ void ECFBBlockList::Clear()
 
 /*
 	Get the size of fbBlocks, restriction proof
-
 */
 ULONG ECFBBlockList::Size()
 {
@@ -124,7 +116,6 @@ ULONG ECFBBlockList::Size()
 			break;
 		++FBIter;
 	}
-
 	// loop while you reached end of list or didn't match the restriction
 	while (FBIter != m_FBMap.cend() && (m_tmRestictEnd == 0 || static_cast<ULONG>(FBIter->second.m_tmStart) <= static_cast<ULONG>(m_tmRestictEnd))) {
 		++size;
