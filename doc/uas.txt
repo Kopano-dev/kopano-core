@@ -11,9 +11,9 @@ POSIX-style hardlinks, symbolic links, or file locks may not exist and their
 presence cannot be relied upon.
 
 Design wishlist item: The filesystem itself should encode all the linkage
-metadata without needing an extra database component of any sort.
-(Such would add latency, and file-based databases even have a hard time
-due to the absence of locking and protection from concurrent writers.)
+metadata without needing an extra database component of any sort. (Such would
+add latency, and file-based databases like sqlite even have a hard time due to
+the absence of locking and protection from concurrent writers.)
 
 Design wishlist item: Avoid in-place file writes. This way,
 locks can be dispensed with, and atomics can suffice.
@@ -27,43 +27,76 @@ take the hit.
 
 digraph {
 	non-existent -> complete -> no-holders ->
-	no-intents -> non-existant;
+	no-intents -> non-existent;
 };
 
 The state change from "non-existent" to "complete" ought to be atomic (no
 intermediate states), lest it could block another writer or disable
 deduplication by staying in some intermediate state indefinitely.
 
-UAS expects fundamental atomic requirements, and shares this property
-with other distributed systems ([1]):
+Because there are no intermediate states between "non-existent" and "complete",
+the cases "no-holders" and "no-intents" unambiguously mean that the attachment
+is in the process of deletion.
 
-	* Creating a file. If the "overwrite" parameter is false
-	  (POSIX: "O_EXCL" flag is set), the check and creation MUST
-	  be atomic.
-	* Deleting a file.
-	* Renaming a file.
-	* Renaming a directory.
-	* Creating a single directory with mkdir().
+UAS expects the underlying storage mechanism to exhibit the atomicity and
+consistency requirements laid out in [1].
+
+	* Test-and-create (open(2) with O_EXCL) for a file must be atomic
+	* Renaming of a file must be atomic
+	* Deletion of a file must be atomic
+	* Creation of a directory must be atomic
+	* Renaming of a directory must be atomic
+	  (in particular when that directory already has contents)
+	* Deletion of an empty directory must be atomic
 
 [1] https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/filesystem/introduction.html#Core_Expectations_of_a_Hadoop_Compatible_FileSystem
 
-S3 does not have an atomic rename operation.
+S3 does not offer an atomic rename operation and therefore cannot support UAS.
+(In S3, rename is copy+delete, which means that another kopano-server instance
+accessing the same S3 bucket could observe a state inbetween "non-existent" and
+"complete".)
 
 
 == Names for directories/files ==
 
-Requirement: Names for server-specific (S-type) and hash-based (H-type) objects
-must never collide.
+Because uploading an attachment is not an atomic operation, attachments will
+carry a temporary name while in that state. This name needs to be chosen such
+that there is no collision with any other kopano-server instance also uploading
+something (possibly the same content). This is referred to as the S-type
+(server-sepcific) name.
 
-S-type and H-type names are constructed such that they can never clash. For
-example, the H-type name is the base-16 representation of the hash bytes
-[0-9a-f], therefore it can never collide with the S-type name which always
-begins with "s" (which is not in [0-9a-f]).
+When the upload is complete, the attachment will be renamed to the so-called
+H-type (hash-based) name which depends solely on the content and no
+server-specific characteristics. This name must not collide with any S-type
+names.
 
+=== files_v2 ===
 
-Because there are no intermediate states between "non-existant" and "complete",
-the cases "no-holders" and "no-intents" unambiguously mean that the attachment
-is in the process of deletion.
+In the files_v2 implementation of UAS, the H-type name in files_v2 is the
+base-16 representation of the SHA-256 content hash, which consists solely of
+[0-9a-f] characters. The S-type name is constructed from 's', the server GUID,
+'i', and a per-server monotonically increasing counter. The presence of 's'
+(which is outside the [0-9a-f] alphabet) means it will never collide with any
+H-type name.
+
+	H: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+	   (<hash>)
+	S: scf1e8c14e54505f60aa10ceb8d5d8ab3i43981
+	   (s<server_guid>i<instance_id>)
+
+To facilitate directory fanout, the actual S/H names used in files_v2 actually
+differ a little, but without changing the aforementioned anti-collision
+properties.
+
+	H: e3/b0/c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+	S: cd/ab/scf1e8c14e54505f60aa10ceb8d5d8ab3i43981
+
+The naming scheme in files_v2 also allows switching the hash algorithm, so long
+as the new names are collision-free, which is possible by using more of the
+remaining characters from [^0-9a-fsi]. A move to SHA-512 could look like
+
+	H: xcf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e
+	H: cf/83/xe1357eefb8bdf154... (fanout variant)
 
 
 == Algorithm ==
