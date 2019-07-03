@@ -1063,15 +1063,15 @@ static int ec_fdtable_socket_ai(const struct addrinfo *ai,
 		arglen = sizeof(domain);
 		ret = getsockopt(fd, SOL_SOCKET, SO_DOMAIN, &domain, &arglen);
 		if (ret < 0)
-			break;
+			continue;
 		arglen = sizeof(type);
 		ret = getsockopt(fd, SOL_SOCKET, SO_TYPE, &type, &arglen);
 		if (ret < 0)
-			break;
+			continue;
 		arglen = sizeof(proto);
 		ret = getsockopt(fd, SOL_SOCKET, SO_PROTOCOL, &proto, &arglen);
 		if (ret < 0)
-			break;
+			continue;
 		struct sockaddr_storage addr{};
 		arglen = sizeof(addr);
 		ret = getsockname(fd, reinterpret_cast<struct sockaddr *>(&addr), &arglen);
