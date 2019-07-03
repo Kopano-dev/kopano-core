@@ -1,14 +1,25 @@
 8.8.x
 =====
+
+
+8.7.82 (8.8.x Milestone 2)
+==========================
+All changes from the 8.7.x branch up to 8.7.4 included.
+Enhancements:
+* php: added PHP API to read multi-vcard VCF [KC-1487]
 Changes:
 * RHEL6 is no longer officially supported
+Fixes:
+* server: cure emission of repeated K-1515 messages [KC-1519]
 
 
 8.7.81 (8.8.x Milestone 1)
 ==========================
+All changes from the 8.7.x branch up to 8.7.2 included.
 Enhancements:
 * ldapplugin: 22% speedup in retriving the entire user list [KC-1399]
 * client: avoid double-fetching PR_RTF_COMPRESSED_DATA [KC-1349]
+* inetmapi: added C++ API to read multi-vcard VCF [KC-1291]
 Changes:
 * dagent, spooler: plugins are disabled by default now [KC-1475]
   Add plugin_enabled=yes to your .cfg if needed.
