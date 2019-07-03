@@ -1,5 +1,5 @@
-8.7.x
-=====
+8.7.4 (2019-07-03)
+==================
 Fixes:
 * storeadm: accept -l option even if the non-UTF8 variant of that locale is
   absent from the system [KC-1429]
