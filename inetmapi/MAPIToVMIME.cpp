@@ -142,12 +142,14 @@ MAPIToVMIME::MAPIToVMIME(IMAPISession *lpSession, IAddrBook *lpAddrBook,
     sending_options so) :
 	m_parsectx(imopt_default_parsectx()), sopt(so), m_lpSession(lpSession)
 {
+	HRESULT ret;
 	rand_init();
 	if (lpSession != nullptr && lpAddrBook == nullptr)
-		lpSession->OpenAddressBook(0, nullptr, AB_NO_DIALOG, &~m_lpAdrBook);
-		// ignore error
+		ret = lpSession->OpenAddressBook(0, nullptr, AB_NO_DIALOG, &~m_lpAdrBook);
 	else
-		lpAddrBook->QueryInterface(IID_IAddrBook, &~m_lpAdrBook);
+		ret = lpAddrBook->QueryInterface(IID_IAddrBook, &~m_lpAdrBook);
+	if (ret != hrSuccess)
+		/* no further action needed [cov-scan] */;
 }
 
 /**
