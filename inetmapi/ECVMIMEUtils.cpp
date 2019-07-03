@@ -31,10 +31,8 @@ using namespace std::string_literals;
 
 namespace KC {
 
-class mapiTimeoutHandler : public vmime::net::timeoutHandler {
+class mapiTimeoutHandler final : public vmime::net::timeoutHandler {
 public:
-	virtual ~mapiTimeoutHandler(void) = default;
-
 	// @todo add logging
 	virtual bool isTimeOut() override { return getTime() >= (m_last + 5*60); };
 	virtual void resetTimeOut() override { m_last = getTime(); };
@@ -94,7 +92,7 @@ HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpT
 			if (setRecips.find(strEmail) == setRecips.end()) {
 				recipients.appendMailbox(vmime::make_shared<vmime::mailbox>(convert_to<std::string>(strEmail)));
 				setRecips.emplace(strEmail);
-				ec_log_debug("RCPT TO: %ls", strEmail.c_str());	
+				ec_log_debug("RCPT TO: %ls", strEmail.c_str());
 			}
 			continue;
 		}
@@ -107,10 +105,10 @@ HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpT
 		auto lpGroupEntryID = lpRowSet[i].cfind(PR_ENTRYID);
 		if (lpGroupName == nullptr || lpGroupEntryID == nullptr)
 			return MAPI_E_NOT_FOUND;
-	
+
 		if (!bAllowEveryone) {
 			bool bEveryone = false;
-			
+
 			if (EntryIdIsEveryone(lpGroupEntryID->Value.bin.cb, (LPENTRYID)lpGroupEntryID->Value.bin.lpb, &bEveryone) == hrSuccess && bEveryone) {
 				ec_log_err("Denying send to Everyone");
 				error = L"You are not allowed to send to the \"Everyone\" group"s;
@@ -153,7 +151,7 @@ HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpT
  * @param setRecips Set of recipients already processed, used for duplicate-recip detection
  *
  * This function expands the specified group by opening the group and adding all user entries to the recipients list, and
- * recursively expanding groups in the group. 
+ * recursively expanding groups in the group.
  *
  * lpGroupEntryID may be NULL, in which case lpGroupName is used to resolve the group via the addressbook. If
  * both parameters are set, lpGroupEntryID is used, and lpGroupName is ignored.
@@ -209,7 +207,7 @@ HRESULT ECVMIMESender::HrExpandGroup(LPADRBOOK lpAdrBook,
 	if (setGroups.find(lpEmailAddress->Value.lpszW) != setGroups.end())
 		// Group loops in nesting
 		return MAPI_E_TOO_COMPLEX;
-	
+
 	// Add group name to list of processed groups
 	setGroups.emplace(lpEmailAddress->Value.lpszW);
 	hr = lpGroup->GetContentsTable(MAPI_UNICODE, &~lpTable);
@@ -228,7 +226,7 @@ HRESULT ECVMIMESender::HrMakeRecipientsList(LPADRBOOK lpAdrBook,
 	std::set<std::wstring> setGroups; // Set of groups to make sure we don't get into an expansion-loop
 	std::set<std::wstring> setRecips; // Set of recipients to make sure we don't send two identical RCPT TOs
 	memory_ptr<SPropValue> lpMessageFlags;
-	
+
 	auto hr = HrGetOneProp(lpMessage, PR_MESSAGE_FLAGS, &~lpMessageFlags);
 	if (hr != hrSuccess)
 		return hr;
@@ -329,7 +327,7 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage,
 		 */
 		const std::string &str(oss.str()); // copy?
 		vmime::utility::inputStreamStringAdapter isAdapter(str); // direct oss.str() ?
-		
+
 		// send the email already!
 		bool ok = false;
 		try {

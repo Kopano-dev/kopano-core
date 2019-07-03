@@ -164,7 +164,7 @@ VMIMEToMAPI::VMIMEToMAPI() :
 
 /**
  * Adds user set addressbook (to minimize opens on this object) and delivery options.
- * 
+ *
  * @param[in]	lpAdrBook	Addressbook of a user.
  * @param[in]	dopt		delivery options handle differences in DAgent and Gateway behaviour.
  */
@@ -173,15 +173,15 @@ VMIMEToMAPI::VMIMEToMAPI(IAddrBook *ab, delivery_options &&dopt) :
 {
 }
 
-/** 
+/**
  * Parse a RFC 2822 email, and return the IMAP BODY and BODYSTRUCTURE
  * fetch values.
- * 
+ *
  * @param[in] input The email to parse
  * @param[out] lpSimple The BODY value
  * @param[out] lpExtended The BODYSTRUCTURE value
- * 
- * @return 
+ *
+ * @return
  */
 HRESULT VMIMEToMAPI::createIMAPProperties(const std::string &input, std::string *lpEnvelope, std::string *lpBody, std::string *lpBodyStructure)
 {
@@ -189,10 +189,8 @@ HRESULT VMIMEToMAPI::createIMAPProperties(const std::string &input, std::string 
 	vmMessage->parse(m_parsectx, input);
 	if (lpBody || lpBodyStructure)
 		messagePartToStructure(input, vmMessage, lpBody, lpBodyStructure);
-
 	if (lpEnvelope)
 		*lpEnvelope = createIMAPEnvelope(vmMessage);
-
 	return hrSuccess;
 }
 
@@ -216,7 +214,7 @@ static size_t extract_headers_raw(IMessage *msg, const std::string &input)
 	return end;
 }
 
-/** 
+/**
  * Entry point for the conversion from RFC 2822 mail to IMessage MAPI object.
  *
  * Finds the first block of headers to place in the
@@ -296,7 +294,7 @@ HRESULT VMIMEToMAPI::save_raw_smime(const std::string &input, size_t posHeaderEn
 	object_ptr<IStream> lpStream;
 	ULONG ulAttNr, nProps = 0;
 	SPropValue attProps[3], sPropSMIMEClass;
-	// Remove the parsed attachments since the client should be reading them from the 
+	// Remove the parsed attachments since the client should be reading them from the
 	// signed RFC 2822 data we are about to add.
 	auto hr = lpMessage->GetAttachmentTable(0, &~lpAttachTable);
 	if (hr != hrSuccess)
@@ -418,13 +416,12 @@ HRESULT VMIMEToMAPI::fillMAPIMail(vmime::shared_ptr<vmime::message> vmMessage,
 
 	try {
 		// turn buffer into a message
-
 		// get the part header and find out what it is...
 		auto vmHeader = vmMessage->getHeader();
 		auto vmBody = vmMessage->getBody();
 		auto mt = vmime::dynamicCast<vmime::mediaType>(vmHeader->ContentType()->getValue());
 
-		// pass recipients somewhere else 
+		// pass recipients somewhere else
 		hr = handleRecipients(vmHeader, lpMessage);
 		if (hr != hrSuccess) {
 			ec_log_err("Unable to parse mail recipients");
@@ -517,7 +514,6 @@ HRESULT VMIMEToMAPI::fillMAPIMail(vmime::shared_ptr<vmime::message> vmMessage,
 
 	if (m_dopt.add_imap_data)
 		createIMAPEnvelope(vmMessage, lpMessage);
-
 	// ignore error/warings from fixup function: it's not critical for correct delivery
 	postWriteFixups(lpMessage);
 	return hrSuccess;
@@ -605,10 +601,9 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 	int				nProps = 0;
 	KPropbuffer<22> msgProps;
 	// temp
-	ULONG			cbEntryID;
+	unsigned int cbEntryID, ulRecipProps;
 	memory_ptr<ENTRYID> lpEntryID;
 	memory_ptr<SPropValue> lpRecipProps, lpPropNormalizedSubject;
-	ULONG			ulRecipProps;
 
 	// order and types are important for modifyFromAddressBook()
 	static constexpr const SizedSPropTagArray(7, sptaRecipPropsSentRepr) = {7, {
@@ -624,7 +619,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 		PR_SENDER_SEARCH_KEY, PR_NULL /* PR_xxx_SMTP_ADDRESS not available */
 	} };
 
-	try { 
+	try {
 		// internet message ID
 		auto field = vmHeader->findField(vmime::fields::MESSAGE_ID);
 		if (field != nullptr)
@@ -746,7 +741,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 				// SetProps is later on...
 			}
 		}
-		
+
 		if (vmHeader->hasField(vmime::fields::SENDER) || vmHeader->hasField(vmime::fields::FROM)) {
 			// The original sender of the mail account (if non sender exist then the FROM)
 			auto strSenderEmail = vmime::dynamicCast<vmime::mailbox>(vmHeader->Sender()->getValue())->getEmail().toString();
@@ -804,7 +799,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			SPropValue sConTopic;
 			sConTopic.ulPropTag = PR_CONVERSATION_TOPIC_W;
 			sConTopic.Value.lpszW = lpPropNormalizedSubject->Value.lpszW;
-			
+
 			hr = lpMessage->SetProps(1, &sConTopic, NULL);
 			if (hr != hrSuccess)
 				return hr;
@@ -817,20 +812,18 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			SPropValue sThreadIndex;
 			auto threadIndex = generate_wrap(vmHeader->findField("Thread-Index")->getValue());
 			auto enc = vmime::utility::encoder::encoderFactory::getInstance()->create("base64");
-			vmime::utility::inputStreamStringAdapter in(threadIndex);			
+			vmime::utility::inputStreamStringAdapter in(threadIndex);
 			vmime::utility::outputStreamStringAdapter out(outString);
-
 			enc->decode(in, out);
 
 			sThreadIndex.ulPropTag = PR_CONVERSATION_INDEX;
 			sThreadIndex.Value.bin.cb = outString.size();
 			sThreadIndex.Value.bin.lpb = (LPBYTE)outString.c_str();
-
 			hr = lpMessage->SetProps(1, &sThreadIndex, NULL);
 			if (hr != hrSuccess)
 				return hr;
 		}
-		
+
 		if (vmHeader->hasField("Importance")) {
 			SPropValue sPriority[2];
 			sPriority[0].ulPropTag = PR_PRIORITY;
@@ -918,7 +911,6 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			vmime::datetime expiry(generate_wrap(field->getValue()));
 			sExpiryTime.ulPropTag = PR_EXPIRY_TIME;
 			sExpiryTime.Value.ft = vmimeDatetimeToFiletime(expiry);
-
 			hr = lpMessage->SetProps(1, &sExpiryTime, NULL);
 			if (hr != hrSuccess)
 				return hr;
@@ -945,10 +937,8 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 				KPropbuffer<4> sRRProps;
 				sRRProps[0].ulPropTag = PR_READ_RECEIPT_REQUESTED;
 				sRRProps[0].Value.b = true;
-				
 				sRRProps[1].ulPropTag = PR_MESSAGE_FLAGS;
 				sRRProps[1].Value.ul = (m_dopt.mark_as_read ? MSGFLAG_READ : 0) | MSGFLAG_UNMODIFIED | MSGFLAG_RN_PENDING | MSGFLAG_NRN_PENDING;
-
 				sRRProps[2].ulPropTag = PR_REPORT_ENTRYID;
 				sRRProps[2].Value.bin.cb = cbEntryID;
 				sRRProps[2].Value.bin.lpb = reinterpret_cast<unsigned char *>(lpEntryID.get());
@@ -1033,20 +1023,17 @@ HRESULT VMIMEToMAPI::handleMessageToMeProps(IMessage *lpMessage, LPADRLIST lpRec
 		auto lpEntryId = lpRecipients->aEntries[i].cfind(PR_ENTRYID);
 		if(lpRecipType == NULL)
 			continue;
-
 		if(lpEntryId == NULL)
 			continue;
 
 		// The user matches if the entryid of the recipient is equal to ours
 		if(lpEntryId->Value.bin.cb != m_dopt.user_entryid->cb)
 			continue;
-
 		if(memcmp(lpEntryId->Value.bin.lpb, m_dopt.user_entryid->lpb, lpEntryId->Value.bin.cb) != 0)
 			continue;
 
 		// Users match, check what type
 		bRecipMe = true;
-
 		if(lpRecipType->Value.ul == MAPI_TO)
 			bToMe = true;
 		else if(lpRecipType->Value.ul == MAPI_CC)
@@ -1060,7 +1047,6 @@ HRESULT VMIMEToMAPI::handleMessageToMeProps(IMessage *lpMessage, LPADRLIST lpRec
 	sProps[1].Value.b = bToMe;
 	sProps[2].ulPropTag = PR_MESSAGE_CC_ME;
 	sProps[2].Value.b = bCcMe;
-
 	lpMessage->SetProps(3, sProps, NULL);
 	return hrSuccess;
 }
@@ -1084,9 +1070,9 @@ HRESULT VMIMEToMAPI::handleRecipients(vmime::shared_ptr<vmime::header> vmHeader,
 		auto lpVMAListCopyRecip = vmime::dynamicCast<vmime::addressList>(vmHeader->Cc()->getValue());
 		auto lpVMAListBlCpRecip = vmime::dynamicCast<vmime::addressList>(vmHeader->Bcc()->getValue());
 		int iAdresCount = lpVMAListRecip->getAddressCount() + lpVMAListCopyRecip->getAddressCount() + lpVMAListBlCpRecip->getAddressCount();
-
 		if (iAdresCount == 0)
 			return hrSuccess;
+
 		auto hr = MAPIAllocateBuffer(CbNewADRLIST(iAdresCount), &~lpRecipients);
 		if (hr != hrSuccess)
 			return hr;
@@ -1097,13 +1083,11 @@ HRESULT VMIMEToMAPI::handleRecipients(vmime::shared_ptr<vmime::header> vmHeader,
 			if (hr != hrSuccess)
 				return hr;
 		}
-
 		if (!lpVMAListCopyRecip->isEmpty()) {
 			hr = modifyRecipientList(lpRecipients, lpVMAListCopyRecip, MAPI_CC);
 			if (hr != hrSuccess)
 				return hr;
 		}
-
 		/*
 		 * Data can also come from ActiveSync's submit mechanism, so
 		 * there may be fields that normally never exist in meaningful
@@ -1114,11 +1098,9 @@ HRESULT VMIMEToMAPI::handleRecipients(vmime::shared_ptr<vmime::header> vmHeader,
 			if (hr != hrSuccess)
 				return hr;
 		}
-
 		hr = handleMessageToMeProps(lpMessage, lpRecipients);
 		if (hr != hrSuccess)
 			return hr;
-
 		// actually modify recipients in mapi object
 		hr = lpMessage->ModifyRecipients(0, lpRecipients);
 		if (hr != hrSuccess)
@@ -1170,7 +1152,7 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients,
 		try {
 			vmime::text vmText;
 			auto vmAddress = vmAddressList->getAddressAt(iRecip);
-			
+
 			if (vmAddress->isGroup()) {
 				auto grp = vmime::dynamicCast<vmime::mailboxGroup>(vmAddress);
 				if (!grp)
@@ -1308,7 +1290,6 @@ HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals,
 
 	if (m_lpAdrBook == nullptr)
 		return MAPI_E_NOT_FOUND;
-
 	if ((email == nullptr || *email == '\0') &&
 	    (fullname == nullptr || *fullname == '\0'))
 		// we have no data to lookup
@@ -1469,7 +1450,7 @@ HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals,
 	return hr;
 }
 
-/** 
+/**
  * Order alternatives in a body according to local preference.
  *
  * Parts in the incoming mail are ordered in increasing preference
@@ -1582,7 +1563,6 @@ void VMIMEToMAPI::dissect_message(vmime::shared_ptr<vmime::body> vmBody,
 	object_ptr<IMessage> lpNewMessage;
 	memory_ptr<SPropValue> lpSubject;
 	SPropValue sAttachMethod;
-
 	std::string newMessage;
 	vmime::utility::outputStreamStringAdapter os(newMessage);
 	vmBody->generate(m_genctx, os);
@@ -1595,7 +1575,6 @@ void VMIMEToMAPI::dissect_message(vmime::shared_ptr<vmime::body> vmBody,
 
 	// and remove from string
 	newMessage.erase(0, lpszBody - lpszBodyOrig);
-
 	auto hr = lpMessage->CreateAttach(nullptr, 0, &ulAttNr, &~pAtt);
 	if (hr != hrSuccess)
 		return;
@@ -1608,12 +1587,10 @@ void VMIMEToMAPI::dissect_message(vmime::shared_ptr<vmime::body> vmBody,
 	auto savedState = m_mailState;
 	m_mailState = sMailState();
 	++m_mailState.ulMsgInMsg;
-
 	hr = convertVMIMEToMAPI(newMessage, lpNewMessage);
 
 	// return to previous state
 	m_mailState = savedState;
-
 	if (hr != hrSuccess)
 		return;
 	if (HrGetFullProp(lpNewMessage, PR_SUBJECT_W, &~lpSubject) == hrSuccess) {
@@ -1625,7 +1602,6 @@ void VMIMEToMAPI::dissect_message(vmime::shared_ptr<vmime::body> vmBody,
 	sAttachMethod.ulPropTag = PR_ATTACH_METHOD;
 	sAttachMethod.Value.ul = ATTACH_EMBEDDED_MSG;
 	pAtt->SetProps(1, &sAttachMethod, NULL);
-
 	lpNewMessage->SaveChanges(0);
 	pAtt->SaveChanges(0);
 }
@@ -1654,9 +1630,7 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 	if (strCharset == "us-ascii")
 		// We can safely upgrade from US-ASCII to UTF-8 since that is compatible
 		strCharset = "utf-8";
-
 	vmBody->getContents()->extract(os);
-
 	if (m_mailState.bodyLevel > BODY_NONE)
 		/* Force attachment if we already have some text. */
 		bIsAttachment = true;
@@ -1674,13 +1648,10 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 
 		sAttProps[0].ulPropTag = PR_ATTACH_METHOD;
 		sAttProps[0].Value.ul = ATTACH_EMBEDDED_MSG;
-
 		sAttProps[1].ulPropTag = PR_ATTACHMENT_HIDDEN;
 		sAttProps[1].Value.b = FALSE;
-
 		sAttProps[2].ulPropTag = PR_ATTACH_FLAGS;
 		sAttProps[2].Value.ul = 0;
-
 		hr = ptrAttach->SetProps(3, sAttProps, NULL);
 		if (hr != hrSuccess)
 			return kc_perror("K-1811: Unable to create message attachment for iCal data", hr);
@@ -1703,7 +1674,6 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 		if (hr != hrSuccess)
 			return kc_perror("K-1833: Error while converting iCal to MAPI", hr);
 	}
-
 	if (bIsAttachment)
 		ical_mapi_flags |= IC2M_NO_BODY;
 
@@ -1723,7 +1693,6 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 	// give attachment name of calendar item
 	if (HrGetFullProp(ptrNewMessage, PR_SUBJECT_W, &~ptrSubject) == hrSuccess) {
 		ptrSubject->ulPropTag = PR_DISPLAY_NAME_W;
-
 		hr = ptrAttach->SetProps(1, ptrSubject, NULL);
 		if (hr != hrSuccess)
 			return hr;
@@ -1735,7 +1704,6 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 	hr = ptrAttach->SaveChanges(0);
 	if (hr != hrSuccess)
 		return kc_perror("K-1856: Unable to save iCal message attachment", hr);
-
 	// make sure we show the attachment icon
 	m_mailState.attachLevel = ATTACH_NORMAL;
 	return hrSuccess;
@@ -1760,7 +1728,7 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
  *	application			octet-stream, postscript
  *
  * composite:
- *	multipart			mixed, alternative, digest ( contains message ), paralell, 
+ *	multipart			mixed, alternative, digest (contains message), paralell,
  *	message				rfc 2822, partial ( please no fragmentation and reassembly ), external-body
  *
  * @param[in]	vmHeader		vmime header part which describes the contents of the body in vmBody.
@@ -1834,19 +1802,18 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 			dissect_message(vmBody, lpMessage);
 		} else if(mt->getType() == vmime::mediaTypes::APPLICATION && mt->getSubType() == "ms-tnef") {
 			LARGE_INTEGER zero = {{0,0}};
-			
+
 			hr = CreateStreamOnHGlobal(nullptr, TRUE, &~lpStream);
 			if(hr != hrSuccess)
 				return hr;
-				
+
 			outputStreamMAPIAdapter str(lpStream);
 			vmBody->getContents()->extract(str);
 			hr = lpStream->Seek(zero, STREAM_SEEK_SET, NULL);
 			if(hr != hrSuccess)
 				return hr;
-			
-			ECTNEF tnef(TNEF_DECODE, lpMessage, lpStream);
 
+			ECTNEF tnef(TNEF_DECODE, lpMessage, lpStream);
 			hr = tnef.ExtractProps(TNEF_PROP_EXCLUDE, NULL);
 			if (hr == hrSuccess) {
 				hr = tnef.Finish();
@@ -1864,7 +1831,7 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 		} else if ((flags & DIS_FILTER_DOUBLE) && mt->getType() == vmime::mediaTypes::APPLICATION && mt->getSubType() == "mac-binhex40") {
 				// ignore appledouble parts
 				// mac-binhex40 is appledouble v1, applefile is v2
-				// see: http://www.iana.org/assignments/media-types/multipart/appledouble			
+				// see: http://www.iana.org/assignments/media-types/multipart/appledouble
 		} else if (mt->getType() == vmime::mediaTypes::APPLICATION && (mt->getSubType() == "pkcs7-signature" || mt->getSubType() == "x-pkcs7-signature")) {
 			// smime signature (smime.p7s)
 			// must be handled a level above to get all headers and bodies beloning to the signed message
@@ -1881,7 +1848,6 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 			// Mark the message so outlook knows how to find the encoded message
 			sPropSMIMEClass.ulPropTag = PR_MESSAGE_CLASS_W;
 			sPropSMIMEClass.Value.lpszW = const_cast<wchar_t *>(L"IPM.Note.SMIME");
-
 			hr = lpMessage->SetProps(1, &sPropSMIMEClass, NULL);
 			if (hr != hrSuccess)
 				return kc_perror("Unable to set message class", hr);
@@ -1967,10 +1933,8 @@ static vmime::charset get_mime_encoding(vmime::shared_ptr<vmime::header> im_head
     vmime::shared_ptr<vmime::body> im_body)
 {
 	auto ctf = vmime::dynamicCast<vmime::contentTypeField>(im_header->ContentType());
-
 	if (ctf != NULL && ctf->hasParameter("charset"))
 		return im_body->getCharset();
-
 	return vmime::charset(im_charset_unspec);
 }
 
@@ -2064,7 +2028,6 @@ HRESULT VMIMEToMAPI::handleTextpart(vmime::shared_ptr<vmime::header> vmHeader,
     vmime::shared_ptr<vmime::body> vmBody, IMessage* lpMessage, bool bAppendBody)
 {
 	object_ptr<IStream> lpStream;
-
 	bool append = m_mailState.bodyLevel < BODY_PLAIN ||
 	              (m_mailState.bodyLevel == BODY_PLAIN && bAppendBody);
 
@@ -2200,7 +2163,6 @@ static bool filter_html(IMessage *msg, IStream *stream, ULONG flags,
 			GetMAPIErrorMessage(ret), ret);
 		return false;
 	}
-
 	ret = stream->Commit(0);
 	if (ret != hrSuccess) {
 		ec_log_warn("Commit(PR_EC_BODY_FILTERED) failed: %s (%x)",
@@ -2381,12 +2343,10 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::shared_ptr<vmime::header> vmHeade
 
 				// Convert previous body part to UTF-8
 				std::string strCurrentHTML;
-
 				hr = Util::ReadProperty(lpMessage, PR_HTML, strCurrentHTML);
 				if (hr != hrSuccess)
 					return hr;
 				strCurrentHTML = m_converter.convert_to<std::string>("UTF-8", strCurrentHTML, rawsize(strCurrentHTML), lpszCharset);
-
 				hr = Util::WriteProperty(lpMessage, PR_HTML, strCurrentHTML);
 				if (hr != hrSuccess)
 					return hr;
@@ -2401,7 +2361,6 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::shared_ptr<vmime::header> vmHeade
 		}
 
 		m_mailState.ulLastCP = sCodepage.Value.ul;
-
 		sCodepage.ulPropTag = PR_INTERNET_CPID;
 		HrSetOneProp(lpMessage, &sCodepage);
 
@@ -2520,10 +2479,9 @@ HRESULT VMIMEToMAPI::handleAttachment(vmime::shared_ptr<vmime::header> vmHeader,
 		hr = lpStream->Commit(0);
 		if (hr != hrSuccess)
 			return kc_perrorf("Commit", hr);
-			
+
 		// Free memory used by the stream
 		lpStream.reset();
-
 		// set info on attachment
 		attProps[nProps].ulPropTag = PR_ATTACH_METHOD;
 		attProps[nProps++].Value.ul = ATTACH_BY_VALUE;
@@ -2553,22 +2511,17 @@ HRESULT VMIMEToMAPI::handleAttachment(vmime::shared_ptr<vmime::header> vmHeader,
 		{
 			attProps[nProps].ulPropTag = PR_ATTACHMENT_HIDDEN;
 			attProps[nProps++].Value.b = TRUE;
-
 			attProps[nProps].ulPropTag = PR_ATTACH_FLAGS;
 			attProps[nProps++].Value.ul = 4; // ATT_MHTML_REF
-
 			attProps[nProps].ulPropTag = PR_ATTACHMENT_FLAGS;
 			attProps[nProps++].Value.ul = 8; // unknown, for now
-
 			if (m_mailState.attachLevel < ATTACH_NORMAL)
 				m_mailState.attachLevel = ATTACH_INLINE;
 		} else {
 			attProps[nProps].ulPropTag = PR_ATTACHMENT_HIDDEN;
 			attProps[nProps++].Value.b = FALSE;
-
 			attProps[nProps].ulPropTag = PR_ATTACH_FLAGS;
 			attProps[nProps++].Value.ul = 0;
-
 			m_mailState.attachLevel = ATTACH_NORMAL;
 		}
 
@@ -2796,20 +2749,20 @@ exit:
 	return ret;
 }
 
-/** 
+/**
  * Convert a vmime::text object to wstring.  This function may force
  * another charset on the words in the text object for compatibility
  * reasons.
- * 
+ *
  * @param[in] vmText vmime text object containing encoded words (string + charset)
- * 
+ *
  * @return converted text in unicode
  */
 std::wstring VMIMEToMAPI::getWideFromVmimeText(const vmime::text &vmText)
 {
 	std::wstring ret;
-
 	const auto &words = vmText.getWordList();
+
 	for (auto i = words.cbegin(); i != words.cend(); ++i) {
 		/*
 		 * RFC 5322 §2.2 specifies header field bodies consist of
@@ -2902,7 +2855,6 @@ static HRESULT postWriteFixups(IMessage *lpMessage)
 	hr = HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &~lpMessageClass);
 	if (hr != hrSuccess)
 		return hr;
-
 	if (strncasecmp(lpMessageClass->Value.lpszA, "IPM.Schedule.Meeting.", strlen("IPM.Schedule.Meeting.")) != 0)
 		return hrSuccess;
 
@@ -3089,11 +3041,11 @@ static std::string StringEscape(const char *input, const char *tokens,
 	return strEscaped;
 }
 
-/** 
+/**
  * Convert a vmime mailbox to an IMAP envelope list part
- * 
+ *
  * @param[in] mbox vmime mailbox (email address) to convert
- * 
+ *
  * @return string with IMAP envelope list part
  */
 static std::string mailboxToEnvelope(vmime::shared_ptr<vmime::mailbox> &&mbox)
@@ -3104,7 +3056,7 @@ static std::string mailboxToEnvelope(vmime::shared_ptr<vmime::mailbox> &&mbox)
 
 	if (!mbox || mbox->isEmpty())
 		throw vmime::exceptions::no_such_field();
-	
+
 	// (( "personal name" NIL "mailbox name" "domain name" ))
 
 	mbox->getName().generate(os);
@@ -3122,11 +3074,11 @@ static std::string mailboxToEnvelope(vmime::shared_ptr<vmime::mailbox> &&mbox)
 	return "(" + kc_join(lMBox, " ") + ")";
 }
 
-/** 
+/**
  * Convert a vmime addresslist (To/Cc/Bcc) to an IMAP envelope list part.
- * 
+ *
  * @param[in] aList vmime addresslist to convert
- * 
+ *
  * @return string with IMAP envelope list part
  */
 static std::string addressListToEnvelope(vmime::shared_ptr<vmime::addressList> &&aList)
@@ -3164,10 +3116,10 @@ static std::string addressListToEnvelope(vmime::shared_ptr<vmime::mailboxList> &
 	return buffer.size() == 0 ? "NIL"s : ("(" + buffer + ")");
 }
 
-/** 
+/**
  * Create the IMAP ENVELOPE property, so we don't need to open the
  * message to create this in the gateway.
- * 
+ *
  * Format:
  * ENVELOPE ("date" "subject" (from) (sender) (reply-to) ((to)*) ((cc)*) ((bcc)*) "in-reply-to" "message-id")
  *
@@ -3175,7 +3127,7 @@ static std::string addressListToEnvelope(vmime::shared_ptr<vmime::mailboxList> &
  *
  * @param[in] vmMessage vmime message to create the envelope from
  * @param[in] lpMessage message to store the data in
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT VMIMEToMAPI::createIMAPEnvelope(vmime::shared_ptr<vmime::message> vmMessage,
@@ -3189,11 +3141,11 @@ HRESULT VMIMEToMAPI::createIMAPEnvelope(vmime::shared_ptr<vmime::message> vmMess
 	return lpMessage->SetProps(1, sEnvelope.get(), nullptr);
 }
 
-/** 
+/**
  * Create IMAP ENVELOPE() data from a vmime::message.
- * 
+ *
  * @param[in] vmMessage message to create envelope for
- * 
+ *
  * @return ENVELOPE data
  */
 std::string VMIMEToMAPI::createIMAPEnvelope(vmime::shared_ptr<vmime::message> vmMessage)
@@ -3284,13 +3236,13 @@ std::string VMIMEToMAPI::createIMAPEnvelope(vmime::shared_ptr<vmime::message> vm
 	return kc_join(lItems, " ");
 }
 
-/** 
+/**
  * Store the complete received email in a hidden property and the size
  * of that property too, for RFC822.SIZE requests.
- * 
+ *
  * @param[in] input the received email
  * @param[in] lpMessage message to store the data in
- * 
+ *
  * @return MAPI error code
  */
 HRESULT VMIMEToMAPI::createIMAPBody(const string &input,
@@ -3303,7 +3255,6 @@ HRESULT VMIMEToMAPI::createIMAPBody(const string &input,
 
 	sProps[0].ulPropTag = PR_EC_IMAP_EMAIL_SIZE;
 	sProps[0].Value.ul = input.length();
-
 	sProps[1].ulPropTag = PR_EC_IMAP_EMAIL;
 	sProps[1].Value.bin.lpb = (BYTE*)input.c_str();
 	sProps[1].Value.bin.cb = input.length();
@@ -3312,14 +3263,14 @@ HRESULT VMIMEToMAPI::createIMAPBody(const string &input,
 	return lpMessage->SetProps(4, sProps.get(), nullptr);
 }
 
-/** 
- * Convert a vmime message to a 
- * 
+/**
+ * Convert a vmime message to a
+ *
  * @param[in] input The original email
  * @param[in] vmBodyPart Any message or body part to convert
  * @param[out] lpSimple BODY result
  * @param[out] lpExtended BODYSTRUCTURE result
- * 
+ *
  * @return always success
  */
 HRESULT VMIMEToMAPI::messagePartToStructure(const string &input,
@@ -3386,19 +3337,18 @@ HRESULT VMIMEToMAPI::messagePartToStructure(const string &input,
 	}
 
 	// add () around results?
-
 	return hr;
 }
 
-/** 
+/**
  * Convert a non-multipart body part to an IMAP BODY and BODYSTRUCTURE
  * string.
- * 
+ *
  * @param[in] input The original email
  * @param[in] vmBodyPart the bodyPart to convert
  * @param[out] lpSimple BODY result
  * @param[out] lpExtended BODYSTRUCTURE result
- * 
+ *
  * @return always success
  */
 HRESULT VMIMEToMAPI::bodyPartToStructure(const string &input,
@@ -3452,7 +3402,6 @@ HRESULT VMIMEToMAPI::bodyPartToStructure(const string &input,
 		// body part size
 		buffer = stringify(vmBodyPart->getBody()->getParsedLength());
 		lBody.emplace_back(buffer);
-
 		// body part number of lines
 		buffer = stringify(countBodyLines(input, vmBodyPart->getBody()->getParsedOffset(), vmBodyPart->getBody()->getParsedLength()));
 		lBody.emplace_back(buffer);
@@ -3493,23 +3442,21 @@ HRESULT VMIMEToMAPI::bodyPartToStructure(const string &input,
 nil:
 	if (lpSimple)
 		*lpSimple = "(" + kc_join(lBody, " ") + ")";
-
 	/* just push some NILs or also inbetween? */
 	lBodyStructure.emplace_back("NIL"); // MD5 of body (use Content-MD5 header?)
 	lBodyStructure.emplace_back(getStructureExtendedFields(vmHeaderPart));
 	if (lpExtended)
 		*lpExtended = "(" + kc_join(lBodyStructure, " ") + ")";
-
 	return hrSuccess;
 }
 
-/** 
+/**
  * Return an IMAP list part containing the extended properties for a
  * BODYSTRUCTURE.
- * Adds disposition list, language and location. 
+ * Adds disposition list, language and location.
  *
  * @param[in] vmHeaderPart The header to get the values from
- * 
+ *
  * @return IMAP list part
  */
 std::string VMIMEToMAPI::getStructureExtendedFields(vmime::shared_ptr<vmime::header> vmHeaderPart)
@@ -3542,11 +3489,11 @@ std::string VMIMEToMAPI::getStructureExtendedFields(vmime::shared_ptr<vmime::hea
 	return kc_join(lItems, " ");
 }
 
-/** 
+/**
  * Return an IMAP list containing the parameters of a specified header field as ("name" "value")
- * 
+ *
  * @param[in] vmParamField The paramiterized header field to "convert"
- * 
+ *
  * @return IMAP list
  */
 static std::string parameterizedFieldToStructure(vmime::shared_ptr<vmime::parameterizedHeaderField> vmParamField)
@@ -3570,14 +3517,14 @@ static std::string parameterizedFieldToStructure(vmime::shared_ptr<vmime::parame
 	return "(" + kc_join(lParams, " ") + ")";
 }
 
-/** 
+/**
  * Return the number of lines in a string, with defined start and
  * length.
- * 
+ *
  * @param[in] input count number of \n chars in this string
  * @param[in] start start from this point in input
  * @param[in] length until the end, but no further than this length
- * 
+ *
  * @return number of lines
  */
 static size_t countBodyLines(const std::string &input, size_t start, size_t length)
@@ -3590,7 +3537,7 @@ static size_t countBodyLines(const std::string &input, size_t start, size_t leng
 			break;
 		++pos;
 		++lines;
-	} 
+	}
 
 	return lines;
 }

@@ -22,7 +22,6 @@ void SMIMEMessage::generateImpl(const vmime::generationContext &ctx,
 
         // Concatenate S/MIME body without CRLF since it also contains some additional headers
         os << m_body;
-        
     	if (newLinePos)
 	    	*newLinePos = 0;
 }

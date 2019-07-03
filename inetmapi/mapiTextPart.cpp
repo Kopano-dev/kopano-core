@@ -95,7 +95,6 @@ void mapiTextPart::generateIn(const vmime::shared_ptr<bodyPart> &/* message */,
 		// Create a "multipart/related" body part
 		auto relPart = vmime::make_shared<bodyPart>();
 		parent->getBody()->appendPart(relPart);
-
 		relPart->getHeader()->ContentType()->
 			setValue(mediaType(mediaTypes::MULTIPART, mediaTypes::MULTIPART_RELATED));
 
@@ -112,7 +111,6 @@ void mapiTextPart::generateIn(const vmime::shared_ptr<bodyPart> &/* message */,
 				id = id.substr(4);
 
 			// throw an error when id and location are empty?
-
 			objPart->getHeader()->ContentType()->setValue(obj->getType());
 			if (!id.empty())
 				objPart->getHeader()->ContentId()->setValue(messageId("<" + id + ">"));
@@ -179,7 +177,6 @@ void mapiTextPart::addEmbeddedObject(const bodyPart& part, const string& id)
 	// identified by both a Content-Id and a Content-Location. In this
 	// case, there will be two embedded objects with two different IDs
 	// but referencing the same content.
-
 	mediaType type;
 
 	if (part.getHeader()->hasField(fields::CONTENT_TYPE)) {
@@ -399,13 +396,12 @@ const string mapiTextPart::cleanId(const string& id)
 //
 // mapiTextPart::embeddedObject
 //
-
 mapiTextPart::embeddedObject::embeddedObject(vmime::shared_ptr<vmime::contentHandler> data,
     const vmime::encoding &enc, const std::string &id,
     const vmime::mediaType &type, const std::string &name,
     const std::string &loc) :
 	m_data(vmime::dynamicCast<vmime::contentHandler>(data->clone())),
-	m_encoding(enc), m_id(id), m_type(type), m_name(name), m_loc(loc)
+	m_encoding(enc), m_type(type), m_id(id), m_name(name), m_loc(loc)
 {
 }
 

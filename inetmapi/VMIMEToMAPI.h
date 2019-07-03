@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef VMIMETOMAPI
 #define VMIMETOMAPI
 
@@ -43,7 +42,6 @@ class VMIMEToMAPI final {
 public:
 	VMIMEToMAPI();
 	VMIMEToMAPI(IAddrBook *, delivery_options &&);
-
 	HRESULT convertVMIMEToMAPI(const std::string &input, IMessage *lpMessage);
 	HRESULT createIMAPProperties(const std::string &input, std::string *envelope, std::string *body, std::string *bodystruct);
 	HRESULT createIMAPBody(const std::string &input, vmime::shared_ptr<vmime::message>, IMessage *);

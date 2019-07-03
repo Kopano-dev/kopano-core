@@ -18,14 +18,14 @@ FILETIME vmimeDatetimeToFiletime(const vmime::datetime &dt)
 	struct tm when;
 	int iYear, iMonth, iDay, iHour, iMinute, iSecond, iZone;
 
-	dt.getDate( iYear, iMonth, iDay );	
+	dt.getDate(iYear, iMonth, iDay);
 	dt.getTime( iHour, iMinute, iSecond, iZone );
 
-	when.tm_hour	= iHour;	
+	when.tm_hour	= iHour;
 	when.tm_min		= iMinute - iZone; // Zone is expressed in minutes. mktime() will normalize negative values or values over 60
 	when.tm_sec		= iSecond;
-	when.tm_mon		= iMonth - 1;	
-	when.tm_mday	= iDay;	
+	when.tm_mon	= iMonth - 1;
+	when.tm_mday	= iDay;
 	when.tm_year	= iYear - 1900;
 	when.tm_isdst	= -1;		// ignore dst
 	auto lTmpTime = timegm(&when);

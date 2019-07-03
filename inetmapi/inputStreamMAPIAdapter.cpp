@@ -25,9 +25,7 @@ size_t inputStreamMAPIAdapter::read(unsigned char *data, size_t count)
 void inputStreamMAPIAdapter::reset()
 {
 	LARGE_INTEGER move;
-
 	move.QuadPart = 0;
-
 	lpStream->Seek(move, SEEK_SET, NULL);
 	ateof = false;
 }
@@ -38,9 +36,7 @@ size_t inputStreamMAPIAdapter::skip(size_t count)
 	LARGE_INTEGER move;
 
 	move.QuadPart = count;
-
 	lpStream->Seek(move, SEEK_CUR, &ulSize);
-
 	if (ulSize.QuadPart != count)
 		ateof = true;
 	return ulSize.QuadPart;
