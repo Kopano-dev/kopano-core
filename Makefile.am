@@ -557,16 +557,11 @@ libkcinetmapi_la_SOURCES = \
 	inetmapi/mapiTextPart.cpp inetmapi/mapiTextPart.h \
 	inetmapi/serviceRegistration.inl \
 	inetmapi/tnef.cpp inetmapi/tnef.h
-# Add '-z now' -> -Wl,-z, -Wl,now to LD flags so that we do early binding of
-# symbols. This fixes a problem in which libvmime attempts to resolve a symbol
-# in libinetmapi.so during the unload of vmime, initiated by the unload of
-# libinetmapi. On some systems, this fails to resolve the symbol during unload,
-# resulting in a crash in __cxa_finalize during unload of mapi.so
 libkcinetmapi_la_LIBADD = \
 	libmapi.la libkcutil.la libkcicalmapi.la \
 	${COND_libkcrosie_la} ${ICONV_LIBS} ${VMIME_LIBS} ${XML2_LIBS}
 libkcinetmapi_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
-	-version-info 0:0:0 -Wl,-z -Wl,now ${default_SYFLAGS${NO_VSYM}}
+	-version-info 0:0:0 ${default_SYFLAGS${NO_VSYM}}
 EXTRA_libkcinetmapi_la_DEPENDENCIES = ${default_sym}
 
 
