@@ -37,12 +37,11 @@ global:
 	extern "C++" {
 		operator*SBinary*;
 		KC::*;
-		typeinfo*;
-		vtable*;
-		VTT*;
-		/* workaround gcc issue 78747 */
 		std::*::_S_*;
 	};
+	_ZG*;
+	_ZT*;
+
 	PCpropFindProp;
 	/* workaround RHBZ issue 1403609 */
 	_ZNKR2KC*;

@@ -1,11 +1,10 @@
 KC_@PACKAGE_ABI@ {
 global:
 	extern "C++" {
-		typeinfo*;
-		vtable*;
-		VTT*;
 		std::*::_S_*;
 	};
+	_ZG*;
+	_ZT*;
 
 	plugin_manager_init;
 	plugin_manager_exit;

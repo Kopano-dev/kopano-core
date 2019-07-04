@@ -4,12 +4,12 @@ global:
 	getUserPluginInstance;
 	getUserPluginVersion;
 	kcsrv_plugin_version;
+
 	extern "C++" {
-		typeinfo*;
-		vtable*;
-		VTT*;
 		std::*::_S_*;
 	};
+	_ZG*;
+	_ZT*;
 local:
 	*;
 };
