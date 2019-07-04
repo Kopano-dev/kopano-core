@@ -25,15 +25,13 @@
 #include <memory>
 #include <vmime/net/serviceFactory.hpp>
 
-#ifndef VMIME_BUILDING_DOC
+namespace KC {
 
-
-namespace vmime {
-namespace net {
-
+using namespace vmime;
+using namespace vmime::net;
 
 template <class S>
-class registeredServiceImpl : public serviceFactory::registeredService {
+class registeredServiceImpl : public vmime::net::serviceFactory::registeredService {
 public:
 
 	registeredServiceImpl(const string& name, const int type)
@@ -77,19 +75,12 @@ public:
 	serviceRegisterer(const string& protocol, const service::Type type)
 	{
 		serviceFactory::getInstance()->registerService
-			(vmime::make_shared<net::registeredServiceImpl<S> >(protocol, type));
+			(vmime::make_shared<registeredServiceImpl<S>>(protocol, type));
 	}
 };
 
-
-} // net
-} // vmime
-
+} /* namespace */
 
 #define REGISTER_SERVICE(p_class, p_name, p_type) \
-	vmime::net::serviceRegisterer <vmime::net::p_class> \
+	KC::serviceRegisterer<p_class> \
 		p_name(#p_name, vmime::net::service::p_type)
-
-
-#endif // VMIME_BUILDING_DOC
-

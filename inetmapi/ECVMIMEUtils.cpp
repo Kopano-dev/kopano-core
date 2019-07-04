@@ -282,7 +282,7 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage,
 		vmTransport->setTimeoutHandlerFactory(vmime::make_shared<mapiTimeoutHandlerFactory>());
 
 		/* cast to access interface extras */
-		auto mapiTransport = vmime::dynamicCast<vmime::net::smtp::MAPISMTPTransport>(vmTransport);
+		auto mapiTransport = vmime::dynamicCast<MAPISMTPTransport>(vmTransport);
 
 		// get expeditor for 'mail from:' smtp command
 		if (vmMessage->getHeader()->hasField(vmime::fields::FROM))

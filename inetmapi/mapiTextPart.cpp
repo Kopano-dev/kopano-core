@@ -39,7 +39,9 @@
 #include <vmime/stringContentHandler.hpp>
 #include <vmime/utility/outputStreamAdapter.hpp>
 
-namespace vmime {
+namespace KC {
+
+using namespace vmime;
 
 mapiTextPart::mapiTextPart()
 	: m_plainText(vmime::make_shared<emptyContentHandler>()),
@@ -409,4 +411,4 @@ mapiTextPart::embeddedObject::embeddedObject(vmime::shared_ptr<vmime::contentHan
 {
 }
 
-} // vmime
+} /* namespace */
