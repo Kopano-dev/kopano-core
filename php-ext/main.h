@@ -117,9 +117,6 @@ ZEND_FUNCTION(mapi_table_setcolumns);
 ZEND_FUNCTION(mapi_table_seekrow);
 ZEND_FUNCTION(mapi_table_sort);
 ZEND_FUNCTION(mapi_table_restrict);
-ZEND_FUNCTION(mapi_table_findrow);
-ZEND_FUNCTION(mapi_table_createbookmark);
-ZEND_FUNCTION(mapi_table_freebookmark);
 
 ZEND_FUNCTION(mapi_folder_gethierarchytable);
 ZEND_FUNCTION(mapi_folder_getcontentstable);

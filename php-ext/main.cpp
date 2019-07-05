@@ -296,9 +296,6 @@ zend_function_entry mapi_functions[] =
 	ZEND_FE(mapi_table_seekrow, NULL)
 	ZEND_FE(mapi_table_sort, NULL)
 	ZEND_FE(mapi_table_restrict, NULL)
-	ZEND_FE(mapi_table_findrow, NULL)
-	ZEND_FE(mapi_table_createbookmark, NULL)
-	ZEND_FE(mapi_table_freebookmark, NULL)
 
 	ZEND_FE(mapi_folder_gethierarchytable, NULL)
 	ZEND_FE(mapi_folder_getcontentstable, NULL)
@@ -2132,116 +2129,6 @@ ZEND_FUNCTION(mapi_table_restrict)
 	RETVAL_TRUE;
 }
 
-ZEND_FUNCTION(mapi_table_findrow)
-{
-	PMEASURE_FUNC;
-	LOG_BEGIN();
-	// params
-	zval *res, *restrictionArray;
-	unsigned long bkOrigin = BOOKMARK_BEGINNING, ulFlags = 0;
-	// local
-	LPMAPITABLE		lpTable = NULL;
-	memory_ptr<SRestriction> lpRestrict;
-	unsigned int ulRow = 0, ulNumerator = 0, ulDenominator = 0;
-
-	RETVAL_FALSE;
-	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra|ll", &res, &restrictionArray, &bkOrigin, &ulFlags) == FAILURE) return;
-
-	DEFERRED_EPILOGUE;
-	ZEND_FETCH_RESOURCE_C(lpTable, LPMAPITABLE, &res, -1, name_mapi_table, le_mapi_table);
-
-	if (!restrictionArray || zend_hash_num_elements(Z_ARRVAL_P(restrictionArray)) == 0) {
-		// reset restriction
-		lpRestrict.reset();
-	} else {
-		// create restrict array
-		MAPI_G(hr) = PHPArraytoSRestriction(restrictionArray, NULL, &~lpRestrict TSRMLS_CC);
-		if (MAPI_G(hr) != hrSuccess) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed to convert the PHP srestriction Array");
-			return;
-		}
-	}
-
-	MAPI_G(hr) = lpTable->FindRow(lpRestrict, bkOrigin, ulFlags);
-	if(MAPI_G(hr) != hrSuccess)
-		return;
-	MAPI_G(hr) = lpTable->QueryPosition(&ulRow, &ulNumerator, &ulDenominator);
-	if (FAILED(MAPI_G(hr)))
-		return;
-	RETVAL_LONG(ulRow);
-}
-
-/**
- * mapi_table_createbookmark
- * Execute create bookmark on a table
- * @param Resource MAPITable
- * @return long bookmark
- */
-ZEND_FUNCTION(mapi_table_createbookmark)
-{
-	PMEASURE_FUNC;
-	LOG_BEGIN();
-	// params
-	zval		*res	= NULL;
-	LPMAPITABLE	lpTable = NULL;
-	// return
-	long lbookmark = 0;
-
-	RETVAL_FALSE;
-	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &res) == FAILURE) return;
-
-	DEFERRED_EPILOGUE;
-	ZEND_FETCH_RESOURCE_C(lpTable, LPMAPITABLE, &res, -1, name_mapi_table, le_mapi_table);
-
-	MAPI_G(hr) = lpTable->CreateBookmark((BOOKMARK*)&lbookmark);
-
-	if (FAILED(MAPI_G(hr))) {
-		php_error_docref(nullptr TSRMLS_CC, E_WARNING, "Create bookmark failed: %s (%x)",
-			GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr));
-		return;
-	}
-
-	RETVAL_LONG(lbookmark);
-}
-
-/**
- * mapi_table_freebookmark
- * Execute free bookmark on a table
- * @param Resource MAPITable
- * @param long bookmark
- * @return true/false
- */
-ZEND_FUNCTION(mapi_table_freebookmark)
-{
-	PMEASURE_FUNC;
-	LOG_BEGIN();
-	// params
-	zval		*res	= NULL;
-	LPMAPITABLE	lpTable = NULL;
-	long lbookmark = 0;
-
-	RETVAL_FALSE;
-	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &res, &lbookmark) == FAILURE) return;
-
-	DEFERRED_EPILOGUE;
-	ZEND_FETCH_RESOURCE_C(lpTable, LPMAPITABLE, &res, -1, name_mapi_table, le_mapi_table);
-
-	MAPI_G(hr) = lpTable->FreeBookmark((BOOKMARK)lbookmark);
-
-	if (FAILED(MAPI_G(hr))) {
-		php_error_docref(nullptr TSRMLS_CC, E_WARNING, "Free bookmark failed: %s (%x)",
-			GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr));
-		return;
-	}
-
-	RETVAL_TRUE;	
-}
 /**
 * mapi_msgstore_getreceivefolder
 *
