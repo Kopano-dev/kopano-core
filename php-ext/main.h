@@ -197,12 +197,7 @@ ZEND_FUNCTION(mapi_zarafa_getgroup_by_name);
 ZEND_FUNCTION(mapi_zarafa_getgrouplist);
 ZEND_FUNCTION(mapi_zarafa_getgrouplistofuser);
 ZEND_FUNCTION(mapi_zarafa_getuserlistofgroup);
-
-ZEND_FUNCTION(mapi_zarafa_getcompany_by_id);
-ZEND_FUNCTION(mapi_zarafa_getcompany_by_name);
 ZEND_FUNCTION(mapi_zarafa_getcompanylist);
-ZEND_FUNCTION(mapi_zarafa_get_remote_viewlist);
-ZEND_FUNCTION(mapi_zarafa_get_remote_adminlist);
 
 // permissions functions
 ZEND_FUNCTION(mapi_zarafa_getpermissionrules);
