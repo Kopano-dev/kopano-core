@@ -154,7 +154,6 @@ ZEND_FUNCTION(mapi_rules_modifytable);
 
 ZEND_FUNCTION(mapi_stream_write);
 ZEND_FUNCTION(mapi_stream_read);
-ZEND_FUNCTION(mapi_openpropertytostream);
 ZEND_FUNCTION(mapi_stream_stat);
 ZEND_FUNCTION(mapi_stream_seek);
 ZEND_FUNCTION(mapi_stream_commit);

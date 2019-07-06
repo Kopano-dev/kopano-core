@@ -331,7 +331,6 @@ zend_function_entry mapi_functions[] =
 	ZEND_FE(mapi_message_submitmessage, NULL)
 	ZEND_FE(mapi_message_setreadflag, NULL)
 
-	ZEND_FE(mapi_openpropertytostream, NULL)
 	ZEND_FE(mapi_stream_write, NULL)
 	ZEND_FE(mapi_stream_read, NULL)
 	ZEND_FE(mapi_stream_stat, NULL)
@@ -2608,70 +2607,6 @@ ZEND_FUNCTION(mapi_stream_create)
 		return;
 
 	ZEND_REGISTER_RESOURCE(return_value, lpIStream, le_istream);
-}
-
-/*
-	Opens property to a stream
-
-	THIS FUNCTION IS DEPRECATED. USE mapi_openproperty() INSTEAD
-
-*/
-
-ZEND_FUNCTION(mapi_openpropertytostream)
-{
-	PMEASURE_FUNC;
-	LOG_BEGIN();
-	// params
-	zval		*res		= NULL;
-	LPMAPIPROP	lpMapiProp	= NULL;
-	long		proptag		= 0, flags = 0; // open default readable
-	char		*guidStr	= NULL; // guid is given as a char array
-	php_stringsize_t guidLen = 0;
-	// return value
-	LPSTREAM	pStream		= NULL;
-	// local
-	LPGUID		lpGuid;			// pointer to string param or static guid
-	int			type = -1;
-
-	RETVAL_FALSE;
-	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-	php_error_docref("mapi_openpropertytostream", E_DEPRECATED, "Use of mapi_openpropertytostream is deprecated, use mapi_openproperty");
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl|ls", &res,
-	    &proptag, &flags, &guidStr, &guidLen) == FAILURE)
-		return;
-
-	DEFERRED_EPILOGUE;
-	type = Z_RES_P(res)->type;
-
-	if(type == le_mapi_message) {
-		ZEND_FETCH_RESOURCE_C(lpMapiProp, LPMESSAGE, &res, -1, name_mapi_message, le_mapi_message);
-	} else if (type == le_mapi_folder) {
-		ZEND_FETCH_RESOURCE_C(lpMapiProp, LPMAPIFOLDER, &res, -1, name_mapi_folder, le_mapi_folder);
-	} else if (type == le_mapi_attachment) {
-		ZEND_FETCH_RESOURCE_C(lpMapiProp, LPATTACH, &res, -1, name_mapi_attachment, le_mapi_attachment);
-	} else if (type == le_mapi_msgstore) {
-		ZEND_FETCH_RESOURCE_C(lpMapiProp, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
-	} else {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unknown resource type");
-		return;
-	}
-
-	if (guidStr == NULL) {
-		// when no guidstring is provided default to IStream
-		lpGuid = (LPGUID)&IID_IStream;
-	} else if (guidLen == sizeof(GUID)) { // assume we have a guid if the length is right
-		lpGuid = (LPGUID)guidStr;
-	} else {
-		php_error_docref(NULL TSRMLS_CC, E_NOTICE, "Using the default GUID because the given GUIDs length is not right");
-		lpGuid = (LPGUID)&IID_IStream;
-	}
-
-	MAPI_G(hr) = lpMapiProp->OpenProperty(proptag, lpGuid, 0, flags, (LPUNKNOWN *) &pStream);
-
-	if (MAPI_G(hr) != hrSuccess)
-		return;
-
-	ZEND_REGISTER_RESOURCE(return_value, pStream, le_istream);
 }
 
 /**

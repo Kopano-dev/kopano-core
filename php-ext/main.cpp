@@ -320,7 +320,6 @@ zend_function_entry mapi_functions[] =
 	ZEND_FE(mapi_message_submitmessage, NULL)
 	ZEND_FE(mapi_message_setreadflag, NULL)
 
-	ZEND_FE(mapi_openpropertytostream, NULL)
 	ZEND_FE(mapi_stream_write, NULL)
 	ZEND_FE(mapi_stream_read, NULL)
 	ZEND_FE(mapi_stream_stat, NULL)
