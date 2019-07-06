@@ -185,13 +185,6 @@ ZEND_FUNCTION(mapi_zarafa_getuserlist);
 ZEND_FUNCTION(mapi_zarafa_getquota);
 ZEND_FUNCTION(mapi_zarafa_setquota);
 
-ZEND_FUNCTION(mapi_zarafa_creategroup);
-ZEND_FUNCTION(mapi_zarafa_deletegroup);
-ZEND_FUNCTION(mapi_zarafa_setgroup);
-
-ZEND_FUNCTION(mapi_zarafa_addgroupmember);
-ZEND_FUNCTION(mapi_zarafa_deletegroupmember);
-
 ZEND_FUNCTION(mapi_zarafa_getgroup_by_id);
 ZEND_FUNCTION(mapi_zarafa_getgroup_by_name);
 ZEND_FUNCTION(mapi_zarafa_getgrouplist);
