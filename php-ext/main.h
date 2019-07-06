@@ -198,21 +198,11 @@ ZEND_FUNCTION(mapi_zarafa_getgrouplist);
 ZEND_FUNCTION(mapi_zarafa_getgrouplistofuser);
 ZEND_FUNCTION(mapi_zarafa_getuserlistofgroup);
 
-ZEND_FUNCTION(mapi_zarafa_createcompany);
-ZEND_FUNCTION(mapi_zarafa_deletecompany);
 ZEND_FUNCTION(mapi_zarafa_getcompany_by_id);
 ZEND_FUNCTION(mapi_zarafa_getcompany_by_name);
 ZEND_FUNCTION(mapi_zarafa_getcompanylist);
-
-ZEND_FUNCTION(mapi_zarafa_add_company_remote_viewlist);
-ZEND_FUNCTION(mapi_zarafa_del_company_remote_viewlist);
 ZEND_FUNCTION(mapi_zarafa_get_remote_viewlist);
-ZEND_FUNCTION(mapi_zarafa_add_user_remote_adminlist);
-ZEND_FUNCTION(mapi_zarafa_del_user_remote_adminlist);
 ZEND_FUNCTION(mapi_zarafa_get_remote_adminlist);
-ZEND_FUNCTION(mapi_zarafa_add_quota_recipient);
-ZEND_FUNCTION(mapi_zarafa_del_quota_recipient);
-ZEND_FUNCTION(mapi_zarafa_get_quota_recipientlist);
 
 // permissions functions
 ZEND_FUNCTION(mapi_zarafa_getpermissionrules);

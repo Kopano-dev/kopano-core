@@ -366,20 +366,11 @@ zend_function_entry mapi_functions[] =
 	ZEND_FE(mapi_zarafa_getgrouplist, NULL)
 	ZEND_FE(mapi_zarafa_getgrouplistofuser, NULL)
 	ZEND_FE(mapi_zarafa_getuserlistofgroup, NULL)
-	ZEND_FE(mapi_zarafa_createcompany, NULL)
-	ZEND_FE(mapi_zarafa_deletecompany, NULL)
 	ZEND_FE(mapi_zarafa_getcompany_by_id, NULL)
 	ZEND_FE(mapi_zarafa_getcompany_by_name, NULL)
 	ZEND_FE(mapi_zarafa_getcompanylist, NULL)
-	ZEND_FE(mapi_zarafa_add_company_remote_viewlist, NULL)
-	ZEND_FE(mapi_zarafa_del_company_remote_viewlist, NULL)
 	ZEND_FE(mapi_zarafa_get_remote_viewlist, NULL)
-	ZEND_FE(mapi_zarafa_add_user_remote_adminlist, NULL)
-	ZEND_FE(mapi_zarafa_del_user_remote_adminlist, NULL)
 	ZEND_FE(mapi_zarafa_get_remote_adminlist, NULL)
-	ZEND_FE(mapi_zarafa_add_quota_recipient, NULL)
-	ZEND_FE(mapi_zarafa_del_quota_recipient, NULL)
-	ZEND_FE(mapi_zarafa_get_quota_recipientlist, NULL)
 	ZEND_FE(mapi_zarafa_getpermissionrules, NULL)
 	ZEND_FE(mapi_zarafa_setpermissionrules, NULL)
 
@@ -4462,83 +4453,6 @@ ZEND_FUNCTION(mapi_zarafa_getuserlistofgroup)
 	}
 }
 
-ZEND_FUNCTION(mapi_zarafa_createcompany)
-{
-	PMEASURE_FUNC;
-	LOG_BEGIN();
-	// params
-	zval *res = NULL;
-	LPMDB lpMsgStore = NULL;
-	ECCOMPANY sCompany;
-	php_stringsize_t cbCompanyname;
-	// return value
-	memory_ptr<ENTRYID> lpCompanyId;
-	unsigned int	cbCompanyId = 0;
-	// locals
-	object_ptr<IECServiceAdmin> lpServiceAdmin;
-
-	RETVAL_FALSE;
-	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &res, &sCompany.lpszCompanyname, &cbCompanyname) == FAILURE)
-	return;
-
-	DEFERRED_EPILOGUE;
-	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
-	MAPI_G(hr) = GetECObject(lpMsgStore, iid_of(lpServiceAdmin), &~lpServiceAdmin);
-	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
-		return;
-	}
-	MAPI_G(hr) = lpServiceAdmin->CreateCompany(&sCompany, 0, (ULONG*)&cbCompanyId, &~lpCompanyId);
-	if (MAPI_G(hr) != hrSuccess) {
-		php_error_docref(nullptr TSRMLS_CC, E_WARNING, "Unable to create company: %s (%x)",
-			GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr));
-		return;
-	}
-	RETVAL_STRINGL(reinterpret_cast<const char *>(lpCompanyId.get()), cbCompanyId, 1);
-}
-
-ZEND_FUNCTION(mapi_zarafa_deletecompany)
-{
-	PMEASURE_FUNC;
-	LOG_BEGIN();
-	// params
-	zval *res = NULL;
-	LPMDB lpMsgStore = NULL;
-	char *lpszCompanyname;
-	php_stringsize_t cbCompanyname = 0;
-	// locals
-	object_ptr<IECServiceAdmin> lpServiceAdmin;
-	memory_ptr<ENTRYID> lpCompanyId;
-	unsigned int	cbCompanyId = 0;
-
-	RETVAL_FALSE;
-	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &res, &lpszCompanyname, &cbCompanyname) == FAILURE)
-	return;
-
-	DEFERRED_EPILOGUE;
-	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
-	MAPI_G(hr) = GetECObject(lpMsgStore, iid_of(lpServiceAdmin), &~lpServiceAdmin);
-	if(MAPI_G(hr) != hrSuccess) {
-		 php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
-		 return;
-	}
-	MAPI_G(hr) = lpServiceAdmin->ResolveCompanyName((TCHAR*)lpszCompanyname, 0, (ULONG*)&cbCompanyId, &~lpCompanyId);
-	if (MAPI_G(hr) != hrSuccess) {
-		php_error_docref(nullptr TSRMLS_CC, E_WARNING, "Company not found: %s (%x)",
-			GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr));
-		return;
-	}
-
-	MAPI_G(hr) = lpServiceAdmin->DeleteCompany(cbCompanyId, lpCompanyId);
-	if(MAPI_G(hr) != hrSuccess)
-		return;
-	RETVAL_TRUE;
-}
-
 ZEND_FUNCTION(mapi_zarafa_getcompany_by_id)
 {
 	PMEASURE_FUNC;
@@ -4658,70 +4572,6 @@ ZEND_FUNCTION(mapi_zarafa_getcompanylist)
 	}
 }
 
-ZEND_FUNCTION(mapi_zarafa_add_company_remote_viewlist)
-{
-	PMEASURE_FUNC;
-	LOG_BEGIN();
-	zval			*res = NULL;
-	LPENTRYID		lpSetCompanyId = NULL;
-	LPENTRYID		lpCompanyId = NULL;
-	php_stringsize_t cbSetCompanyId = 0, cbCompanyId = 0;
-
-	/* Locals */
-	object_ptr<IECServiceAdmin> lpServiceAdmin;
-	IMsgStore		*lpMsgStore = NULL;
-
-	RETVAL_FALSE;
-	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &res, &lpSetCompanyId, &cbSetCompanyId, &lpCompanyId, &cbCompanyId) == FAILURE)
-	return;
-
-	DEFERRED_EPILOGUE;
-	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
-	MAPI_G(hr) = GetECObject(lpMsgStore, iid_of(lpServiceAdmin), &~lpServiceAdmin);
-	if (MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
-		return;
-	}
-	MAPI_G(hr) = lpServiceAdmin->AddCompanyToRemoteViewList(cbSetCompanyId, lpSetCompanyId, cbCompanyId, lpCompanyId);
-	if (MAPI_G(hr) != hrSuccess)
-		return;
-	RETVAL_TRUE;
-}
-
-ZEND_FUNCTION(mapi_zarafa_del_company_remote_viewlist)
-{
-	PMEASURE_FUNC;
-	LOG_BEGIN();
-	zval			*res = NULL;
-	LPENTRYID		lpSetCompanyId = NULL;
-	LPENTRYID		lpCompanyId = NULL;
-	php_stringsize_t cbSetCompanyId = 0, cbCompanyId = 0;
-
-	/* Locals */
-	object_ptr<IECServiceAdmin> lpServiceAdmin;
-	IMsgStore		*lpMsgStore = NULL;
-
-	RETVAL_FALSE;
-	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &res, &lpSetCompanyId, &cbSetCompanyId, &lpCompanyId, &cbCompanyId) == FAILURE)
-	return;
-
-	DEFERRED_EPILOGUE;
-	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
-	MAPI_G(hr) = GetECObject(lpMsgStore, iid_of(lpServiceAdmin), &~lpServiceAdmin);
-	if (MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
-		return;
-	}
-	MAPI_G(hr) = lpServiceAdmin->DelCompanyFromRemoteViewList(cbSetCompanyId, lpSetCompanyId, cbCompanyId, lpCompanyId);
-	if (MAPI_G(hr) != hrSuccess)
-		return;
-	RETVAL_TRUE;
-}
-
 ZEND_FUNCTION(mapi_zarafa_get_remote_viewlist)
 {
 	PMEASURE_FUNC;
@@ -4765,70 +4615,6 @@ ZEND_FUNCTION(mapi_zarafa_get_remote_viewlist)
 	}
 }
 
-ZEND_FUNCTION(mapi_zarafa_add_user_remote_adminlist)
-{
-	PMEASURE_FUNC;
-	LOG_BEGIN();
-	zval			*res = NULL;
-	LPENTRYID		lpUserId = NULL;
-	LPENTRYID		lpCompanyId = NULL;
-	php_stringsize_t cbUserId = 0, cbCompanyId = 0;
-
-	/* Locals */
-	object_ptr<IECServiceAdmin> lpServiceAdmin;
-	IMsgStore		*lpMsgStore = NULL;
-
-	RETVAL_FALSE;
-	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &res, &lpUserId, &cbUserId, &lpCompanyId, &cbCompanyId) == FAILURE)
-	return;
-
-	DEFERRED_EPILOGUE;
-	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
-	MAPI_G(hr) = GetECObject(lpMsgStore, iid_of(lpServiceAdmin), &~lpServiceAdmin);
-	if (MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
-		return;
-	}
-	MAPI_G(hr) = lpServiceAdmin->AddUserToRemoteAdminList(cbUserId, lpUserId, cbCompanyId, lpCompanyId);
-	if (MAPI_G(hr) != hrSuccess)
-		return;
-	RETVAL_TRUE;
-}
-
-ZEND_FUNCTION(mapi_zarafa_del_user_remote_adminlist)
-{
-	PMEASURE_FUNC;
-	LOG_BEGIN();
-	zval			*res = NULL;
-	LPENTRYID		lpUserId = NULL;
-	LPENTRYID		lpCompanyId = NULL;
-	php_stringsize_t cbUserId = 0, cbCompanyId = 0;
-
-	/* Locals */
-	object_ptr<IECServiceAdmin> lpServiceAdmin;
-	IMsgStore		*lpMsgStore = NULL;
-
-	RETVAL_FALSE;
-	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &res, &lpUserId, &cbUserId, &lpCompanyId, &cbCompanyId) == FAILURE)
-	return;
-
-	DEFERRED_EPILOGUE;
-	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
-	MAPI_G(hr) = GetECObject(lpMsgStore, iid_of(lpServiceAdmin), &~lpServiceAdmin);
-	if (MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
-		return;
-	}
-	MAPI_G(hr) = lpServiceAdmin->DelUserFromRemoteAdminList(cbUserId, lpUserId, cbCompanyId, lpCompanyId);
-	if (MAPI_G(hr) != hrSuccess)
-		return;
-	RETVAL_TRUE;
-}
-
 ZEND_FUNCTION(mapi_zarafa_get_remote_adminlist)
 {
 	PMEASURE_FUNC;
@@ -4858,115 +4644,6 @@ ZEND_FUNCTION(mapi_zarafa_get_remote_adminlist)
 		return;
 	}
 	MAPI_G(hr) = lpServiceAdmin->GetRemoteAdminList(cbCompanyId, lpCompanyId, 0, &ulUsers, &~lpsUsers);
-	if (MAPI_G(hr) != hrSuccess)
-		return;
-
-	array_init(return_value);
-	for (unsigned int i = 0; i < ulUsers; ++i) {
-		MAKE_STD_ZVAL(zval_data_value);
-		array_init(zval_data_value);
-
-		add_assoc_stringl(zval_data_value, "userid", (char*)lpsUsers[i].sUserId.lpb, lpsUsers[i].sUserId.cb, 1);
-		add_assoc_string(zval_data_value, "username", (char*)lpsUsers[i].lpszUsername, 1);
-		add_assoc_zval(return_value, (char*)lpsUsers[i].lpszUsername, zval_data_value);
-	}
-}
-
-ZEND_FUNCTION(mapi_zarafa_add_quota_recipient)
-{
-	PMEASURE_FUNC;
-	LOG_BEGIN();
-	zval			*res = NULL;
-	LPENTRYID		lpRecipientId = NULL;
-	LPENTRYID		lpCompanyId = NULL;
-	php_stringsize_t cbRecipientId = 0, cbCompanyId = 0;
-	long			ulType = 0;
-
-	/* Locals */
-	object_ptr<IECServiceAdmin> lpServiceAdmin;
-	IMsgStore		*lpMsgStore = NULL;
-
-	RETVAL_FALSE;
-	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rssl", &res, &lpCompanyId, &cbCompanyId, &lpRecipientId, &cbRecipientId, &ulType) == FAILURE)
-	return;
-
-	DEFERRED_EPILOGUE;
-	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
-	MAPI_G(hr) = GetECObject(lpMsgStore, iid_of(lpServiceAdmin), &~lpServiceAdmin);
-	if (MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
-		return;
-	}
-	MAPI_G(hr) = lpServiceAdmin->AddQuotaRecipient(cbCompanyId, lpCompanyId, cbRecipientId, lpRecipientId, ulType);
-	if (MAPI_G(hr) != hrSuccess)
-		return;
-	RETVAL_TRUE;
-}
-
-ZEND_FUNCTION(mapi_zarafa_del_quota_recipient)
-{
-	PMEASURE_FUNC;
-	LOG_BEGIN();
-	zval			*res = NULL;
-	LPENTRYID		lpRecipientId = NULL;
-	LPENTRYID		lpCompanyId = NULL;
-	php_stringsize_t cbRecipientId = 0, cbCompanyId = 0;
-	long			ulType = 0;
-
-	/* Locals */
-	object_ptr<IECServiceAdmin> lpServiceAdmin;
-	IMsgStore		*lpMsgStore = NULL;
-
-	RETVAL_FALSE;
-	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rssl", &res, &lpCompanyId, &cbCompanyId, &lpRecipientId, &cbRecipientId, &ulType) == FAILURE)
-	return;
-
-	DEFERRED_EPILOGUE;
-	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
-	MAPI_G(hr) = GetECObject(lpMsgStore, iid_of(lpServiceAdmin), &~lpServiceAdmin);
-	if (MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
-		return;
-	}
-	MAPI_G(hr) = lpServiceAdmin->DeleteQuotaRecipient(cbCompanyId, lpCompanyId, cbRecipientId, lpRecipientId, ulType);
-	if (MAPI_G(hr) != hrSuccess)
-		return;
-	RETVAL_TRUE;
-}
-
-ZEND_FUNCTION(mapi_zarafa_get_quota_recipientlist)
-{
-	PMEASURE_FUNC;
-	LOG_BEGIN();
-	zval			*res = NULL;
-	LPENTRYID		lpObjectId = NULL;
-	php_stringsize_t cbObjectId = 0;
-
-	/* Locals */
-	zval			*zval_data_value  = NULL;
-	object_ptr<IECServiceAdmin> lpServiceAdmin;
-	IMsgStore		*lpMsgStore = NULL;
-	ULONG			ulUsers = 0;
-	memory_ptr<ECUSER> lpsUsers;
-
-	RETVAL_FALSE;
-	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &res, &lpObjectId, &cbObjectId) == FAILURE)
-	return;
-
-	DEFERRED_EPILOGUE;
-	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
-	MAPI_G(hr) = GetECObject(lpMsgStore, iid_of(lpServiceAdmin), &~lpServiceAdmin);
-	if (MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
-		return;
-	}
-	MAPI_G(hr) = lpServiceAdmin->GetQuotaRecipients(cbObjectId, lpObjectId, 0, &ulUsers, &~lpsUsers);
 	if (MAPI_G(hr) != hrSuccess)
 		return;
 
