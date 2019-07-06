@@ -367,8 +367,6 @@ zend_function_entry mapi_functions[] =
 	ZEND_FE(mapi_zarafa_getuserlist, NULL)
 	ZEND_FE(mapi_zarafa_getquota, NULL)
 	ZEND_FE(mapi_zarafa_setquota, NULL)
-	ZEND_FE(mapi_zarafa_getgroup_by_id, NULL)
-	ZEND_FE(mapi_zarafa_getgroup_by_name, NULL)
 	ZEND_FE(mapi_zarafa_getgrouplist, NULL)
 	ZEND_FE(mapi_zarafa_getgrouplistofuser, NULL)
 	ZEND_FE(mapi_zarafa_getuserlistofgroup, NULL)
@@ -4183,85 +4181,6 @@ ZEND_FUNCTION(mapi_zarafa_getuser_by_id)
 	add_assoc_string(return_value, "fullname", (char*)lpUsers->lpszFullName);
 	add_assoc_string(return_value, "emailaddress", (char*)lpUsers->lpszMailAddress);
 	add_assoc_long(return_value, "admin", lpUsers->ulIsAdmin);
-}
-
-ZEND_FUNCTION(mapi_zarafa_getgroup_by_id)
-{
-	PMEASURE_FUNC;
-	LOG_BEGIN();
-	// params
-	zval			*res = NULL;
-	LPMDB			lpMsgStore = NULL;
-	LPENTRYID		lpGroupId = NULL;
-	php_stringsize_t cbGroupId = 0;
-	// locals
-	object_ptr<IECServiceAdmin> lpServiceAdmin;
-	memory_ptr<ECGROUP> lpsGroup;
-
-	RETVAL_FALSE;
-	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &res,
-	    &lpGroupId, &cbGroupId) == FAILURE)
-		return;
-
-	DEFERRED_EPILOGUE;
-	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
-	MAPI_G(hr) = GetECObject(lpMsgStore, iid_of(lpServiceAdmin), &~lpServiceAdmin);
-	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
-		return;
-	}
-	MAPI_G(hr) = lpServiceAdmin->GetGroup(cbGroupId, lpGroupId, 0, &~lpsGroup);
-	if(MAPI_G(hr) != hrSuccess)
-		return;
-
-	array_init(return_value);
-	add_assoc_stringl(return_value, "groupid", (char*)lpGroupId, cbGroupId);
-	add_assoc_string(return_value, "groupname", (char*)lpsGroup->lpszGroupname);
-}
-
-ZEND_FUNCTION(mapi_zarafa_getgroup_by_name)
-{
-	PMEASURE_FUNC;
-	LOG_BEGIN();
-	// params
-	zval			*res = NULL;
-	char			*lpszGroupname = NULL;
-	php_stringsize_t ulGroupname;
-	// locals
-	LPMDB lpMsgStore = NULL;
-	object_ptr<IECServiceAdmin> lpServiceAdmin;
-	memory_ptr<ECGROUP> lpsGroup;
-	// return value
-	memory_ptr<ENTRYID> lpGroupId;
-	unsigned int cbGroupId = 0;
-
-	RETVAL_FALSE;
-	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &res,
-	    &lpszGroupname, &ulGroupname) == FAILURE)
-		return;
-
-	DEFERRED_EPILOGUE;
-	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
-	MAPI_G(hr) = GetECObject(lpMsgStore, iid_of(lpServiceAdmin), &~lpServiceAdmin);
-	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a Kopano store");
-		return;
-	}
-	MAPI_G(hr) = lpServiceAdmin->ResolveGroupName((TCHAR*)lpszGroupname, 0, (ULONG*)&cbGroupId, &~lpGroupId);
-	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(nullptr TSRMLS_CC, E_WARNING, "Unable to resolve group: %s (%x)",
-			GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr));
-		return;
-	}
-	MAPI_G(hr) = lpServiceAdmin->GetGroup(cbGroupId, lpGroupId, 0, &~lpsGroup);
-	if(MAPI_G(hr) != hrSuccess)
-		return;
-
-	array_init(return_value);
-	add_assoc_stringl(return_value, "groupid", reinterpret_cast<char *>(lpGroupId.get()), cbGroupId);
-	add_assoc_string(return_value, "groupname", (char*)lpsGroup->lpszGroupname);
 }
 
 ZEND_FUNCTION(mapi_zarafa_getgrouplist)
