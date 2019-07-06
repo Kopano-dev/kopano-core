@@ -173,11 +173,6 @@ ZEND_FUNCTION(mapi_openproperty);
 ZEND_FUNCTION(mapi_deleteprops);
 ZEND_FUNCTION(mapi_savechanges);
 
-ZEND_FUNCTION(mapi_zarafa_createstore);
-
-ZEND_FUNCTION(mapi_zarafa_createuser);
-ZEND_FUNCTION(mapi_zarafa_deleteuser);
-ZEND_FUNCTION(mapi_zarafa_setuser);
 ZEND_FUNCTION(mapi_zarafa_getuser_by_id);
 ZEND_FUNCTION(mapi_zarafa_getuser_by_name);
 ZEND_FUNCTION(mapi_zarafa_getuserlist);
