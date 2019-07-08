@@ -29,6 +29,7 @@
 #include "ECMapiUtils.h"
 #include <kopano/ECLogger.h>
 #include <kopano/mapi_ptr.h>
+#include "../provider/include/kcore.hpp"
 
 using std::string;
 using std::wstring;
@@ -84,10 +85,20 @@ static std::string generate_message_id(IMessage *msg)
 			rand_mt(), rand_mt());
 		return string(id, strlen(id));
 	}
+	if (prop[0].Value.bin.cb == sizeof(EID_FIXED)) {
+		auto e = reinterpret_cast<const EID_FIXED *>(prop[0].Value.bin.lpb);
+		/*
+		 * Using substr here to get rid of the base64 pad chars (=)
+		 * that are always there due to the fixed size of the input.
+		 * The resulting kcEE string will be just 39 characters long,
+		 * fulfilling RFC 5321 §4.5.3.1.1 just in case.
+		 */
+		return "kcEE." + base64_encode(&e->uniqueId, sizeof(e->uniqueId)).substr(0, 22) +
+		       "." + base64_encode(&prop[1].Value.ft, sizeof(prop[1].Value.ft)).substr(0, 11);
+	}
 	/*
-	 * PR_RECORD_KEY seems to include the store UID (in KC,
-	 * anyway), so there is not that much need to include the
-	 * serverguid.
+	 * The resulting string is generally 82 characters long.
+	 * (The older non-base64 variant was 118 long.)
 	 */
 	return "kcRK." + base64_encode(prop[0].Value.bin.lpb, prop[0].Value.bin.cb) +
 	       "." + base64_encode(&prop[1].Value.ft, sizeof(prop[1].Value.ft));
