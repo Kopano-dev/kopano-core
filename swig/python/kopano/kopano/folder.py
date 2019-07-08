@@ -39,7 +39,7 @@ from MAPI.Tags import (
     PR_EC_PUBLIC_IPM_SUBTREE_ENTRYID, PR_CHANGE_KEY, PR_EXCEPTION_STARTTIME,
     PR_EXCEPTION_ENDTIME, PR_RULE_ID, PR_RULE_STATE, ST_ENABLED,
     PR_RULE_PROVIDER_DATA, PR_RULE_SEQUENCE, PR_RULE_NAME_W,
-    PR_RULE_CONDITION, PT_LONG,
+    PR_RULE_CONDITION, PT_LONG, PR_ATTR_HIDDEN,
 )
 from MAPI.Defs import (
     HrGetOneProp, CHANGE_PROP_TYPE
@@ -293,6 +293,19 @@ class Folder(Properties):
     @container_class.setter
     def container_class(self, value):
         prop = SPropValue(PR_CONTAINER_CLASS_W, _unicode(value))
+        self.mapiobj.SetProps([prop])
+        _utils._save(self.mapiobj)
+
+    @property
+    def hidden(self):
+        try:
+            return self.prop(PR_ATTR_HIDDEN).value
+        except NotFoundError:
+            return False
+
+    @hidden.setter
+    def hidden(self, value):
+        prop = SPropValue(PR_ATTR_HIDDEN, value)
         self.mapiobj.SetProps([prop])
         _utils._save(self.mapiobj)
 
