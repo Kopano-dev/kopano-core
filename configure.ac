@@ -381,7 +381,7 @@ AC_COMPILE_IFELSE([AC_LANG_SOURCE([
 	#endif
 ])], [], [AC_MSG_ERROR([Need gsoap >= 2.8.49])])
 PKG_CHECK_MODULES([ICAL], [libical >= 0.42])
-PKG_CHECK_MODULES([curl], [libcurl], [], [:])
+PKG_CHECK_MODULES([curl], [libcurl >= 7], [], [:])
 CPPFLAGS="$CPPFLAGS $curl_CFLAGS"
 AC_CHECK_HEADERS([curl/curl.h])
 CPPFLAGS="$CPPFLAGS_system"
