@@ -194,12 +194,14 @@ HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
 		// else, try PR_MESSAGE_DELIVERY_TIME, maybe other timestamps?
 
 		vmime::messageId msgid;
-		if (HrGetOneProp(lpMessage, PR_INTERNET_MESSAGE_ID_A, &~lpMessageId) == hrSuccess)
+		if (HrGetOneProp(lpMessage, PR_INTERNET_MESSAGE_ID_A, &~lpMessageId) == hrSuccess) {
 			msgid = lpMessageId->Value.lpszA;
-		else
+			ec_log_debug("K-1250: Using fixed Message-Id \"%s\" set a priori", lpMessageId->Value.lpszA);
+		} else {
 			msgid = vmime::messageId(generate_message_id(lpMessage), vmime::platform::getHandler()->getHostName());
+			ec_log_debug("K-1251: Generated Message-Id \"%s\" for the RFC5322 mail", msgid.getId().c_str());
+		}
 		lpVMMessage->getHeader()->MessageId()->setValue(msgid);
-
 		lpVMMessage->generate(adapter);
 	} catch (const vmime::exception &) {
 		return MAPI_E_NOT_FOUND;
@@ -238,14 +240,17 @@ HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
 	try {
 		vmime::messageId msgId;
 		hr = lpMessage->GetProps(sptaForwardProps, 0, &cValues, &~ptrProps);
-		if (!FAILED(hr) && ptrProps[0].ulPropTag == PR_AUTO_FORWARDED && ptrProps[0].Value.b == TRUE && ptrProps[1].ulPropTag == PR_INTERNET_MESSAGE_ID_A)
+		if (!FAILED(hr) && ptrProps[0].ulPropTag == PR_AUTO_FORWARDED &&
+		    ptrProps[0].Value.b && ptrProps[1].ulPropTag == PR_INTERNET_MESSAGE_ID_A) {
 			// only allow mapi programs to set a messageId for an outgoing message when it comes from rules processing
 			msgId = ptrProps[1].Value.lpszA;
-		else
+			ec_log_debug("K-1252: Using fixed Message-Id \"%s\" set a priori", ptrProps[1].Value.lpszA);
+		} else {
 			// vmime::messageId::generateId() is not random enough since we use forking in the spooler
 			msgId = vmime::messageId(generate_message_id(lpMessage), vmime::platform::getHandler()->getHostName());
+			ec_log_debug("K-1253: Generated Message-Id \"%s\" for the RFC5322 mail", msgId.getId().c_str());
+		}
 		vmMessage->getHeader()->MessageId()->setValue(msgId);
-		ec_log_debug("Sending message with Message-ID: " + msgId.getId());
 	} catch (const vmime::exception &e) {
 		mailer->setError(e.what());
 		return MAPI_E_NOT_FOUND;
