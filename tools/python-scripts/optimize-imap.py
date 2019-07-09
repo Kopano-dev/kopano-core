@@ -28,18 +28,11 @@ def generate_imap_message(item):
     eml = item.eml(received_date=True)
     envelope, body, bodystructure = inetmapi.createIMAPProperties(eml)
 
-    if sys.hexversion >= 0x03000000:
-        item.create_prop(PR_EC_IMAP_EMAIL, eml)
-        item.create_prop(PR_EC_IMAP_EMAIL_SIZE, len(eml))
-        item.create_prop(PR_EC_IMAP_BODYSTRUCTURE_W, bodystructure)
-        item.create_prop(PR_EC_IMAP_BODY_W, body)
-        item.create_prop('imap:1', envelope, proptype=PT_UNICODE)
-    else:
-        item.create_prop(PR_EC_IMAP_EMAIL, eml)
-        item.create_prop(PR_EC_IMAP_EMAIL_SIZE, len(eml))
-        item.create_prop(PR_EC_IMAP_BODYSTRUCTURE, bodystructure)
-        item.create_prop(PR_EC_IMAP_BODY, body)
-        item.create_prop('imap:1', envelope, proptype=PT_STRING8)
+    item.create_prop(PR_EC_IMAP_EMAIL, eml)
+    item.create_prop(PR_EC_IMAP_EMAIL_SIZE, len(eml))
+    item.create_prop(PR_EC_IMAP_BODYSTRUCTURE_W, bodystructure)
+    item.create_prop(PR_EC_IMAP_BODY_W, body)
+    item.create_prop('imap:1', envelope, proptype=PT_UNICODE)
 
     item.mapiobj.SaveChanges(0)
 
