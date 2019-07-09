@@ -5684,6 +5684,7 @@ ZEND_FUNCTION(mapi_freebusysupport_loadupdate)
 		++j;
 	}
 
+	fbupdate.resize(cUsers);
 	MAPI_G(hr) = MAPIAllocateBuffer(sizeof(IFreeBusyUpdate*)*cUsers, &~lppFBUpdate);
 	if(MAPI_G(hr) != hrSuccess)
 		goto exit;

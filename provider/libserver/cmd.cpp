@@ -2561,10 +2561,10 @@ static HRESULT loadobject_cache(ECCacheManager *cache,
 		return ret;
 
 	struct propVal pv{};
-	for (int i = 0, j = 0; i < pta.__size && j < arr.__size; ++i) {
+	for (unsigned int i = 0, j = 0; i < pta.__size; ++i) {
 		/* Assumes that @arr and @pta have their things in the same order */
 		sObjectTableKey key(objid, 0);
-		if (pta.__ptr[i] != arr.__ptr[j].ulPropTag) {
+		if (j >= arr.__size || pta.__ptr[i] != arr.__ptr[j].ulPropTag) {
 			pv.ulPropTag = CHANGE_PROP_TYPE(pta.__ptr[i], PT_NULL);
 			cache->SetCell(&key, pta.__ptr[i], &pv);
 			continue;

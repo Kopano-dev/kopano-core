@@ -383,7 +383,7 @@ AC_COMPILE_IFELSE([AC_LANG_SOURCE([
 	#endif
 ])], [], [AC_MSG_ERROR([Need gsoap >= 2.8.73])])
 PKG_CHECK_MODULES([ICAL], [libical >= 0.42])
-PKG_CHECK_MODULES([curl], [libcurl], [], [:])
+PKG_CHECK_MODULES([curl], [libcurl >= 7], [], [:])
 CPPFLAGS="$CPPFLAGS $curl_CFLAGS"
 AC_CHECK_HEADERS([curl/curl.h])
 CPPFLAGS="$CPPFLAGS_system"
@@ -750,42 +750,3 @@ AC_CONFIG_FILES([swig/python/MAPI/version.py], [])
 
 AC_OUTPUT
 $LN_TFSV "$abs_top_srcdir" "@"
-
-AC_MSG_RESULT([
-Install prefix	:	$prefix
-Quota dir	:	$QUOTATEMPLATEDIR
-Search scripts dir	:	$SEARCHSCRIPTSDIR
-
-Build host	:	$host
-Compile flags	:	$ZCPPFLAGS $CPPFLAGS $ZCXXFLAGS $CXXFLAGS
-PHP version	:	$PHP_VERSION
-PHP ext dir	:	$PHP_EXTENSION_DIR
-PHP config dir	:	$PHP_SYSCONF_DIR
-PHP flags	:	$PHP_INCLUDES
-PHP libs	:	$PHP_LIBS
-gSOAP flags	:	$GSOAP_CFLAGS
-gSOAP libs	:	$GSOAP_LIBS
-OpenSSL libs	:	$SSL_LIBS
-MySQL flags	:	$MYSQL_INCLUDES
-MySQL libs	:	$MYSQL_LIBS
-VMime flags	:	$VMIME_CFLAGS
-VMime libs	:	$VMIME_LIBS
-XML2 flags	:	$XML2_CFLAGS
-XML2 libs	:	$XML2_LIBS
-ICal flags	:	$ICAL_CFLAGS
-ICal libs	:	$ICAL_LIBS
-ncurses libs	:	$NCURSES_LIBS
-LDAP support	:	$want_ldap
-LDAP flags	:	$LDAP_FLAGS
-LDAP libs	:	$LDAP_LIBS
-Curl libs	:	$curl_LIBS
-Pam libs	:	$PAM_LIBS
-Krb5 libs	:	$KRB5_LIBS
-TCMalloc lib	:	$TCMALLOC_LIBS
-S3 lib		:	$s3_LIBS
-KCOIDC lib	:	$kcoidc_LIBS
-ICU libs	:	$icu_uc_LIBS $icu_i18n_LIBS
-Python flags	:	$PYTHON_CFLAGS
-Python libs	:	$PYTHON_LIBS
-Python version  :       $PYTHON_MAJOR_VERSION
-])
