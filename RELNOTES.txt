@@ -1,5 +1,5 @@
-8.7.5
-=====
+8.7.5 (2019-07-09)
+==================
 Fixes:
 * php: add a missing vector resize call to
   mapi_freebusysupport_loadupdate [KC-1539]
