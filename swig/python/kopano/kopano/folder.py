@@ -346,11 +346,11 @@ class Folder(Properties):
                 self._content_flag)
         except MAPIErrorNotFound:
             if sourcekey is not None:
-                raise NotFoundError("no item with sourcekey '%s'" % sourcekey)
+                raise NotFoundError("no item with sourcekey '%s'" % sourcekey) from None
             else:
-                raise NotFoundError("no item with entryid '%s'" % entryid)
+                raise NotFoundError("no item with entryid '%s'" % entryid) from None
         except MAPIErrorInvalidEntryid:
-            raise ArgumentError("invalid entryid: %r" % entryid)
+            raise ArgumentError("invalid entryid: %r" % entryid) from None
 
         item = _item.Item(self, mapiobj=mapiobj)
         return item
