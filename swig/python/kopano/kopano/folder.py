@@ -292,6 +292,8 @@ class Folder(Properties):
 
     @container_class.setter
     def container_class(self, value):
+        if value is None:
+            return
         prop = SPropValue(PR_CONTAINER_CLASS_W, _unicode(value))
         self.mapiobj.SetProps([prop])
         _utils._save(self.mapiobj)
