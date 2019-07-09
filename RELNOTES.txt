@@ -1,3 +1,11 @@
+8.7.5
+=====
+Fixes:
+* php: add a missing vector resize call to
+  mapi_freebusysupport_loadupdate [KC-1539]
+* libserver: fix "withholding" of properties from clients [KC-1547]
+
+
 8.7.4 (2019-07-03)
 ==================
 Fixes:
