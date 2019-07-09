@@ -65,7 +65,7 @@ from .group import Group
 from .query import _query_to_restriction
 
 from .compat import (
-    repr as _repr, is_str as _is_str, benc as _benc,
+    repr as _repr, benc as _benc,
     bdec as _bdec, fake_unicode as _unicode,
 )
 
@@ -845,7 +845,7 @@ password incorrect')
         :param guid: Store GUID (optional)
         :param entryid: Store entryid (optional)
         """
-        if _is_str(guid) and _unicode(guid).split('@')[0] == 'public':
+        if isinstance(guid, str) and _unicode(guid).split('@')[0] == 'public':
             return self._pubstore(guid)
         else:
             return _store.Store(guid=guid, entryid=entryid, server=self)
