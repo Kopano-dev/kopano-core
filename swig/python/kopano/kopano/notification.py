@@ -9,7 +9,7 @@ import copy
 import sys
 
 from MAPI import (
-    MAPI_MESSAGE, MAPI_FOLDER, MAPIAdviseSink, fnevObjectModified,
+    MAPI_MESSAGE, MAPI_FOLDER, MAPI_STORE, MAPIAdviseSink, fnevObjectModified,
     fnevObjectCreated, fnevObjectMoved, fnevObjectCopied, fnevObjectDeleted,
 )
 
@@ -68,6 +68,10 @@ def _split(mapiobj, store):
 
         notif.object = folder
         notif.object_type = 'folder'
+
+    elif mapiobj.ulObjType == MAPI_STORE:
+        notif.object = store
+        notif.object_type = 'store'
 
     # event
     if mapiobj.ulEventType in (fnevObjectCreated, fnevObjectCopied):
