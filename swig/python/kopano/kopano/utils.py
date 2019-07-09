@@ -205,7 +205,7 @@ def _bdec_eid(entryid):
     try:
         return _bdec(entryid)
     except (TypeError, AttributeError, binascii.Error):
-        raise ArgumentError("invalid entryid: %r" % entryid)
+        raise ArgumentError("invalid entryid: %r" % entryid) from None
 
 def _save(mapiobj):
     # retry on deadlock or other temporary issue
