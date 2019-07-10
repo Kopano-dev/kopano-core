@@ -6195,7 +6195,6 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, const char *szUserName,
 				return KCERR_NOT_FOUND;
 		}
 		else {
-			assert(false);
 			return KCERR_NOT_FOUND;
 		}
 	}
