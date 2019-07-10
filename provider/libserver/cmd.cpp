@@ -7314,7 +7314,6 @@ SOAP_ENTRY_START(copyFolder, *result, const entryId &sEntryId,
 	}
 	if(ulDestStoreId != ulSourceStoreId) {
 		ec_log_err("SOAP::copyFolder copy from/to different stores (from %u to %u) is not supported", ulSourceStoreId, ulDestStoreId);
-		assert(false);
 		return KCERR_NO_SUPPORT;
 	}
 
