@@ -5948,18 +5948,17 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, const char *szUserName,
 			if (strServerName.empty())
 				return KCERR_NOT_FOUND;
 
-			if (strcasecmp(strServerName.c_str(), cfg->GetSetting("server_name")) != 0) {
-				if ((ulFlags & OPENSTORE_OVERRIDE_HOME_MDB) == 0) {
-					std::string strServerPath;
+			if (strcasecmp(strServerName.c_str(), cfg->GetSetting("server_name")) != 0 &&
+			    !(ulFlags & OPENSTORE_OVERRIDE_HOME_MDB)) {
+				std::string strServerPath;
 
-					er = GetBestServerPath(soap, lpecSession, strServerName, &strServerPath);
-					if (er != erSuccess)
-						return er;
-					lpsResponse->lpszServerPath = s_strcpy(soap, strServerPath.c_str());
-					ec_log_info("Redirecting request to \"%s\'", lpsResponse->lpszServerPath);
-					g_lpSessionManager->m_stats->inc(SCN_REDIRECT_COUNT);
-					return KCERR_UNABLE_TO_COMPLETE;
-                }
+				er = GetBestServerPath(soap, lpecSession, strServerName, &strServerPath);
+				if (er != erSuccess)
+					return er;
+				lpsResponse->lpszServerPath = s_strcpy(soap, strServerPath.c_str());
+				ec_log_info("Redirecting request to \"%s\"", lpsResponse->lpszServerPath);
+				g_lpSessionManager->m_stats->inc(SCN_REDIRECT_COUNT);
+				return KCERR_UNABLE_TO_COMPLETE;
 			}
 		}
 		else if (ulStoreTypeMask & ECSTORE_TYPE_MASK_ARCHIVE) {
