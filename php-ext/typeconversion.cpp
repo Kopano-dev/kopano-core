@@ -51,14 +51,11 @@ using namespace KC;
 ZEND_EXTERN_MODULE_GLOBALS(mapi)
 
 static LONG PropTagToPHPTag(ULONG ulPropTag) {
-	LONG PHPTag = 0;
 	if (PROP_TYPE(ulPropTag) == PT_UNICODE)
-		PHPTag = (LONG)CHANGE_PROP_TYPE(ulPropTag, PT_STRING8);
+		return CHANGE_PROP_TYPE(ulPropTag, PT_STRING8);
 	else if (PROP_TYPE(ulPropTag) == PT_MV_UNICODE)
-		PHPTag = (LONG)CHANGE_PROP_TYPE(ulPropTag, PT_MV_STRING8);
-	else
-		PHPTag = (LONG)ulPropTag;
-	return PHPTag;
+		return CHANGE_PROP_TYPE(ulPropTag, PT_MV_STRING8);
+	return ulPropTag;
 }
 
 /*
@@ -69,14 +66,12 @@ static LONG PropTagToPHPTag(ULONG ulPropTag) {
 HRESULT PHPArraytoSBinaryArray(zval * entryid_array , void *lpBase, SBinaryArray *lpBinaryArray TSRMLS_DC)
 {
 	// local
-	HashTable		*target_hash = NULL;
 	zval			**ppentry = NULL;
-	zval			*pentry = NULL;
 	unsigned int n = 0;
 
 	MAPI_G(hr) = hrSuccess;
 
-	target_hash = HASH_OF(entryid_array);
+	auto target_hash = HASH_OF(entryid_array);
 	if (!target_hash) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No target_hash in PHPArraytoSBinaryArray");
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -97,7 +92,7 @@ HRESULT PHPArraytoSBinaryArray(zval * entryid_array , void *lpBase, SBinaryArray
 	zend_hash_internal_pointer_reset_ex(target_hash, &hpos);
 	for (unsigned int i = 0; i < count; ++i, zend_hash_move_forward_ex(target_hash, &hpos)) {
 		zend_hash_get_current_data_ex(target_hash, reinterpret_cast<void **>(&ppentry), &hpos);
-		pentry = *ppentry;
+		auto pentry = *ppentry;
 		SEPARATE_ZVAL(&pentry);
 		convert_to_string_ex(&pentry);
 		lpBinaryArray->lpbin[n].cb = pentry->value.str.len;
@@ -132,16 +127,13 @@ HRESULT PHPArraytoSBinaryArray(zval * entryid_array , void *lpBase, SBinaryArray
 HRESULT SBinaryArraytoPHPArray(const SBinaryArray *lpBinaryArray,
     zval **ppvalRet TSRMLS_DC)
 {
-	unsigned int i = 0;
-	
 	MAPI_G(hr) = hrSuccess;
 	
 	zval *pvalRet;
 	
 	MAKE_STD_ZVAL(pvalRet);
 	array_init(pvalRet);
-	
-	for (i = 0; i < lpBinaryArray->cValues; ++i)
+	for (unsigned int i = 0; i < lpBinaryArray->cValues; ++i)
 		add_next_index_stringl(pvalRet, (char *)lpBinaryArray->lpbin[i].lpb, lpBinaryArray->lpbin[i].cb, 1);
 	*ppvalRet = pvalRet;
 	
@@ -165,12 +157,11 @@ HRESULT PHPArraytoSortOrderSet(zval * sortorder_array, void *lpBase, LPSSortOrde
 {
 	// local
 	LPSSortOrderSet lpSortOrderSet = NULL;
-	HashTable		*target_hash = NULL;
 	zval			**entry = NULL;
 
 	MAPI_G(hr) = hrSuccess;
 
-	target_hash = HASH_OF(sortorder_array);
+	auto target_hash = HASH_OF(sortorder_array);
 	if (!target_hash) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No target_hash in PHPArraytoSortOrderSet");
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -217,12 +208,11 @@ HRESULT PHPArraytoPropTagArray(zval * prop_value_array, void *lpBase, LPSPropTag
 {
 	// return value
 	LPSPropTagArray lpPropTagArray = NULL;
-	HashTable		*target_hash = NULL;
 	zval ** entry = NULL;
 
 	MAPI_G(hr) = hrSuccess;
 
-	target_hash = HASH_OF(prop_value_array);
+	auto target_hash = HASH_OF(prop_value_array);
 	if (!target_hash) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No target_hash in PHPArraytoPropTagArray");
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -254,17 +244,10 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 {
 	// return value
 	LPSPropValue	lpPropValue	= NULL;
-	ULONG			cvalues = 0;
-	HashTable		*target_hash = NULL;
-	HashTable		*dataHash = NULL;
-	zval			**entry = NULL;
-	ULONG			countarray = 0;
-	zval			**dataEntry = NULL;
-	HashTable		*actionHash = NULL;
-	ULONG			j, h;
-	ACTIONS			*lpActions = NULL;
+	unsigned int cvalues = 0, countarray = 0, ulCountTmp = 0, j, h;
+	HashTable *dataHash = nullptr, *actionHash = nullptr;
+	zval **entry = nullptr, **dataEntry = nullptr;
 	LPSRestriction	lpRestriction = NULL;
-	ULONG			ulCountTmp = 0; // temp value
 	LPSPropValue	lpPropTmp = NULL;
 
 	if (!phpArray) {
@@ -272,7 +255,7 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 	}
 
-	target_hash = HASH_OF(phpArray);
+	auto target_hash = HASH_OF(phpArray);
 	if (!target_hash) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No target_hash in PHPArraytoPropValueArray");
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -504,7 +487,7 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 		case PT_MV_CURRENCY:
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "PT_MV_CURRENCY not supported");
 			return MAPI_G(hr) = MAPI_E_NO_SUPPORT;
-		case PT_ACTIONS:
+		case PT_ACTIONS: {
 			dataHash = HASH_OF(entry[0]);
 			if (!dataHash)
 				break;
@@ -519,7 +502,7 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 			             reinterpret_cast<void **>(&lpPropValue[cvalues].Value.lpszA));
 			if (MAPI_G(hr) != hrSuccess)
 				return MAPI_G(hr);
-			lpActions = (ACTIONS*)lpPropValue[cvalues].Value.lpszA;
+			auto lpActions = reinterpret_cast<ACTIONS *>(lpPropValue[cvalues].Value.lpszA);
 			lpActions->ulVersion = EDK_RULES_VERSION;
 			lpActions->cActions = countarray;
 			MAPI_G(hr) = MAPIAllocateMore(sizeof(ACTION) * lpActions->cActions,
@@ -674,6 +657,7 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 			}
 			++cvalues;
 			break;
+		}
 
 		case PT_SRESTRICTION:
 			MAPI_G(hr) = PHPArraytoSRestriction(entry[0], lpBase ? lpBase : lpPropValue, &lpRestriction TSRMLS_CC);
@@ -700,7 +684,6 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 
 HRESULT PHPArraytoAdrList(zval *phpArray, void *lpBase, LPADRLIST *lppAdrList TSRMLS_DC) 
 {
-	HashTable		*target_hash = NULL;
 	ULONG			countProperties = 0;		// number of properties
 	ULONG			countRecipients = 0;		// number of actual recipients
 	LPADRLIST		lpAdrList = NULL;
@@ -714,7 +697,7 @@ HRESULT PHPArraytoAdrList(zval *phpArray, void *lpBase, LPADRLIST *lppAdrList TS
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 	}
 
-	target_hash = HASH_OF(phpArray);
+	auto target_hash = HASH_OF(phpArray);
 	if (!target_hash) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "phparraytoadrlist wrong data, unknown error");
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -763,12 +746,10 @@ exit:
 }
 
 HRESULT PHPArraytoRowList(zval *phpArray, void *lpBase, LPROWLIST *lppRowList TSRMLS_DC) {
-	HashTable		*target_hash = NULL;
 	ULONG			countProperties = 0;		// number of properties
 	ULONG			countRows = 0;		// number of actual recipients
 	rowlist_ptr lpRowList;
-	zval			**entry = NULL;
-	zval			**data = NULL;
+	zval **entry = nullptr, **data = nullptr;
 	LPSPropValue	pPropValue = NULL;
 
 	MAPI_G(hr) = hrSuccess;
@@ -778,7 +759,7 @@ HRESULT PHPArraytoRowList(zval *phpArray, void *lpBase, LPROWLIST *lppRowList TS
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 	}
 
-	target_hash = HASH_OF(phpArray);
+	auto target_hash = HASH_OF(phpArray);
 	if (!target_hash) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No target_hash in PHPArraytoRowList");
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -798,19 +779,17 @@ HRESULT PHPArraytoRowList(zval *phpArray, void *lpBase, LPROWLIST *lppRowList TS
 		zend_hash_get_current_data_ex(target_hash, reinterpret_cast<void **>(&entry), &hpos);
 		if (Z_TYPE_PP(entry) != IS_ARRAY) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "PHPArraytoRowList, Row not wrapped in array");
-			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-			goto exit;
+			return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 		}
 
 		if (zend_hash_find(HASH_OF(entry[0]), "properties", sizeof("properties"),
 		    reinterpret_cast<void **>(&data)) == SUCCESS) {
 			MAPI_G(hr) = PHPArraytoPropValueArray(data[0], NULL, &countProperties, &pPropValue TSRMLS_CC);
 			if(MAPI_G(hr) != hrSuccess)
-				goto exit;
+				return MAPI_G(hr);
 		}else {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "PHPArraytoRowList, Missing field properties");
-			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-			goto exit;
+			return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 		}
 
 		if (pPropValue) {
@@ -819,20 +798,17 @@ HRESULT PHPArraytoRowList(zval *phpArray, void *lpBase, LPROWLIST *lppRowList TS
 				lpRowList->aEntries[countRows].ulRowFlags = Z_LVAL_PP(data);
 			} else {
 				php_error_docref(NULL TSRMLS_CC, E_WARNING, "PHPArraytoRowList, Missing field rowflags");
-				MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-				goto exit;
+				return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 			}
 			++lpRowList->cEntries;
 			lpRowList->aEntries[countRows].rgPropVals = pPropValue;
 			lpRowList->aEntries[countRows++].cValues = countProperties;
 		}else {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "PHPArraytoRowList, critical error");
-			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-			goto exit;
+			return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 		}
 	}
 	*lppRowList = lpRowList.release();
-exit:
 	return MAPI_G(hr);
 }
 
@@ -905,10 +881,7 @@ exit:
 
 HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes TSRMLS_DC)
 {
-	HashTable *resHash	= NULL;
-	HashTable *dataHash = NULL;
-	zval **typeEntry  = NULL;
-	zval **valueEntry = NULL;
+	zval **typeEntry = nullptr, **valueEntry = nullptr;
 	ULONG cValues = 0;
 
 	if (!phpVal || lpRes == NULL) {
@@ -916,7 +889,7 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 	}
 
-	resHash = HASH_OF(phpVal);
+	auto resHash = HASH_OF(phpVal);
 	if (!resHash || zend_hash_num_elements(resHash) != 2) {		// should always be array(RES_ , array(values))
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Wrong array should be array(RES_, array(values))");
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -930,7 +903,7 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 	zend_hash_get_current_data_ex(resHash, reinterpret_cast<void **>(&valueEntry), &rhpos);
 
 	lpRes->rt = typeEntry[0]->value.lval;		// set restriction type (RES_AND, RES_OR, ...)
-	dataHash = HASH_OF(valueEntry[0]);			// from resHash
+	auto dataHash = HASH_OF(valueEntry[0]); // from resHash
 	if (!dataHash) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "critical error, wrong array");
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -1029,7 +1002,6 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 	case RES_PROPERTY: {
 		LPSPropValue lpProp;
 		if (lpRes->rt == RES_PROPERTY) {
-			// ULPROPTAG
 			if (zend_hash_index_find(dataHash, ULPROPTAG, reinterpret_cast<void **>(&valueEntry)) == FAILURE) {
 				php_error_docref(NULL TSRMLS_CC, E_WARNING, "RES_PROPERTY, Missing field ULPROPTAG");
 				return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -1038,7 +1010,6 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 			convert_to_long_ex(valueEntry);
 			lpRes->res.resProperty.ulPropTag = valueEntry[0]->value.lval;
 
-			// RELOP
 			if (zend_hash_index_find(dataHash, RELOP, reinterpret_cast<void **>(&valueEntry)) == FAILURE) {
 				php_error_docref(NULL TSRMLS_CC, E_WARNING, "RES_PROPERTY, Missing field RELOP");
 				return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -1047,7 +1018,6 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 			convert_to_long_ex(valueEntry);
 			lpRes->res.resProperty.relop = valueEntry[0]->value.lval;
 		} else {
-			// ULPROPTAG
 			if (zend_hash_index_find(dataHash, ULPROPTAG, reinterpret_cast<void **>(&valueEntry)) == FAILURE) {
 				php_error_docref(NULL TSRMLS_CC, E_WARNING, "RES_CONTENT, Missing field ULPROPTAG");
 				return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -1077,7 +1047,6 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 			};
 		}
 
-		// VALUE
 		if (zend_hash_index_find(dataHash, VALUE, reinterpret_cast<void **>(&valueEntry)) == FAILURE) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "RES_PROPERTY or RES_CONTENT, Missing field VALUE");
 			return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -1173,7 +1142,6 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 		break;
 	}
 	case RES_COMPAREPROPS:
-		// RELOP
 		if (zend_hash_index_find(dataHash, RELOP, reinterpret_cast<void **>(&valueEntry)) == FAILURE) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "RES_COMPAREPROPS, Missing field RELOP");
 			return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -1181,7 +1149,7 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 		SEPARATE_ZVAL(valueEntry);
 		convert_to_long_ex(valueEntry);
 		lpRes->res.resCompareProps.relop = valueEntry[0]->value.lval;
-		// ULPROPTAG1
+
 		if (zend_hash_index_find(dataHash, ULPROPTAG1, reinterpret_cast<void **>(&valueEntry)) == FAILURE) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "RES_COMPAREPROPS, Missing field ULPROPTAG1");
 			return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -1189,7 +1157,7 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 		SEPARATE_ZVAL(valueEntry);
 		convert_to_long_ex(valueEntry);
 		lpRes->res.resCompareProps.ulPropTag1 = valueEntry[0]->value.lval;
-		// ULPROPTAG2
+
 		if (zend_hash_index_find(dataHash, ULPROPTAG2, reinterpret_cast<void **>(&valueEntry)) == FAILURE) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "RES_COMPAREPROPS, Missing field ULPROPTAG2");
 			return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -1199,7 +1167,6 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 		lpRes->res.resCompareProps.ulPropTag2 = valueEntry[0]->value.lval;
 		break;
 	case RES_BITMASK:
-		// ULTYPE
 		if (zend_hash_index_find(dataHash, ULTYPE, reinterpret_cast<void **>(&valueEntry)) == FAILURE) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "RES_BITMASK, Missing field ULTYPE");
 			return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -1207,7 +1174,7 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 		SEPARATE_ZVAL(valueEntry);
 		convert_to_long_ex(valueEntry);
 		lpRes->res.resBitMask.relBMR = valueEntry[0]->value.lval;
-		// ULMASK
+
 		if (zend_hash_index_find(dataHash, ULMASK, reinterpret_cast<void **>(&valueEntry)) == FAILURE) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "RES_BITMASK, Missing field ULMASK");
 			return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -1215,7 +1182,7 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 		SEPARATE_ZVAL(valueEntry);
 		convert_to_long_ex(valueEntry);
 		lpRes->res.resBitMask.ulMask = valueEntry[0]->value.lval;
-		// ULPROPTAG
+
 		if (zend_hash_index_find(dataHash, ULPROPTAG, reinterpret_cast<void **>(&valueEntry)) == FAILURE) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "RES_BITMASK, Missing field ULPROPTAG");
 			return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -1225,7 +1192,6 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 		lpRes->res.resBitMask.ulPropTag = valueEntry[0]->value.lval;
 		break;
 	case RES_SIZE:
-		// CB
 		if (zend_hash_index_find(dataHash, CB, reinterpret_cast<void **>(&valueEntry)) == FAILURE) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "RES_SIZE, Missing field CB");
 			return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -1233,7 +1199,7 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 		SEPARATE_ZVAL(valueEntry);
 		convert_to_long_ex(valueEntry);
 		lpRes->res.resSize.cb = valueEntry[0]->value.lval;
-		// RELOP
+
 		if (zend_hash_index_find(dataHash, RELOP, reinterpret_cast<void **>(&valueEntry)) == FAILURE) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "RES_SIZE, Missing field RELOP");
 			return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -1241,7 +1207,7 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 		SEPARATE_ZVAL(valueEntry);
 		convert_to_long_ex(valueEntry);
 		lpRes->res.resSize.relop = valueEntry[0]->value.lval;
-		// ULPROPTAG
+
 		if (zend_hash_index_find(dataHash, ULPROPTAG, reinterpret_cast<void **>(&valueEntry)) == FAILURE) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "RES_SIZE, Missing field ULPROPTAG");
 			return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -1251,7 +1217,6 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 		lpRes->res.resSize.ulPropTag = valueEntry[0]->value.lval;
 		break;
 	case RES_EXIST:
-		// ULPROPTAG
 		if (zend_hash_index_find(dataHash, ULPROPTAG, reinterpret_cast<void **>(&valueEntry)) == FAILURE) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "RES_EXIST, Missing field ULPROPTAG");
 			return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -1289,12 +1254,9 @@ exit:
 HRESULT SRestrictiontoPHPArray(const SRestriction *lpRes, int level,
     zval **pret TSRMLS_DC)
 {
-	zval *entry = NULL;
 	char key[16];
-	zval *array = NULL;
-	zval *props = NULL;
-	zval *restriction = NULL;
-	zval *ret;
+	zval *entry = nullptr, *array = nullptr, *props = nullptr;
+	zval *restriction = nullptr, *ret;
 
 	if (!lpRes) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No restriction in SRestrictiontoPHPArray");
@@ -1487,14 +1449,12 @@ HRESULT PropTagArraytoPHPArray(ULONG cValues,
     const SPropTagArray *lpPropTagArray, zval **pret TSRMLS_DC)
 {
 	zval *zvalRet = NULL;
-	unsigned int i = 0;
 	
 	MAPI_G(hr) = hrSuccess;
 	
 	MAKE_STD_ZVAL(zvalRet);
 	array_init(zvalRet);
-	
-	for (i = 0; i < cValues; ++i)
+	for (unsigned int i = 0; i < cValues; ++i)
 		add_next_index_long(zvalRet, PropTagToPHPTag(lpPropTagArray->aulPropTag[i]));
 	*pret = zvalRet;
 	
@@ -1517,10 +1477,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 	zval * zval_action_value;	// action converts
 	zval * zval_alist_value;	// adrlist in action convert
 	const SPropValue *pPropValue;
-	ULONG col, j;
 	char ulKey[16];
-	ACTIONS *lpActions = NULL;
-	const SRestriction *lpRestriction = nullptr;
 	convert_context converter;
 
 	MAPI_G(hr) = hrSuccess;
@@ -1528,7 +1485,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 	MAKE_STD_ZVAL(zval_prop_value);
 	array_init(zval_prop_value);
 
-	for (col = 0; col < cValues; ++col) {
+	for (unsigned int col = 0; col < cValues; ++col) {
 		char pulproptag[16];
 
 		pPropValue = &pPropValueArray[col];
@@ -1605,8 +1562,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 		case PT_MV_I2:
 			MAKE_STD_ZVAL(zval_mvprop_value);
 			array_init(zval_mvprop_value);
-
-			for (j = 0; j < pPropValue->Value.MVi.cValues; ++j) {
+			for (unsigned int j = 0; j < pPropValue->Value.MVi.cValues; ++j) {
 					sprintf(ulKey, "%i", j);
 					add_assoc_long(zval_mvprop_value, ulKey, pPropValue->Value.MVi.lpi[j]);
 				}
@@ -1616,8 +1572,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 		case PT_MV_LONG:
 			MAKE_STD_ZVAL(zval_mvprop_value);
 			array_init(zval_mvprop_value);
-
-			for (j = 0; j < pPropValue->Value.MVl.cValues; ++j) {
+			for (unsigned int j = 0; j < pPropValue->Value.MVl.cValues; ++j) {
 				sprintf(ulKey, "%i", j);
 				add_assoc_long(zval_mvprop_value, ulKey, pPropValue->Value.MVl.lpl[j]);
 			}
@@ -1627,8 +1582,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 		case PT_MV_R4:
 			MAKE_STD_ZVAL(zval_mvprop_value);
 			array_init(zval_mvprop_value);
-
-			for (j = 0; j < pPropValue->Value.MVflt.cValues; ++j) {
+			for (unsigned int j = 0; j < pPropValue->Value.MVflt.cValues; ++j) {
 				sprintf(ulKey, "%i", j);
 				add_assoc_double(zval_mvprop_value, ulKey, pPropValue->Value.MVflt.lpflt[j]);
 			}
@@ -1638,8 +1592,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 		case PT_MV_DOUBLE:
 			MAKE_STD_ZVAL(zval_mvprop_value);
 			array_init(zval_mvprop_value);
-
-			for (j = 0; j < pPropValue->Value.MVdbl.cValues; ++j) {
+			for (unsigned int j = 0; j < pPropValue->Value.MVdbl.cValues; ++j) {
 				sprintf(ulKey, "%i", j);
 				add_assoc_double(zval_mvprop_value, ulKey, pPropValue->Value.MVdbl.lpdbl[j]);
 			}
@@ -1649,8 +1602,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 		case PT_MV_APPTIME:
 			MAKE_STD_ZVAL(zval_mvprop_value);
 			array_init(zval_mvprop_value);
-
-			for (j = 0; j < pPropValue->Value.MVat.cValues; ++j) {
+			for (unsigned int j = 0; j < pPropValue->Value.MVat.cValues; ++j) {
 				sprintf(ulKey, "%i", j);
 				add_assoc_double(zval_mvprop_value, ulKey, pPropValue->Value.MVat.lpat[j]);
 			}
@@ -1660,8 +1612,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 		case PT_MV_SYSTIME:
 			MAKE_STD_ZVAL(zval_mvprop_value);
 			array_init(zval_mvprop_value);
-
-			for (j = 0; j < pPropValue->Value.MVft.cValues; ++j) {
+			for (unsigned int j = 0; j < pPropValue->Value.MVft.cValues; ++j) {
 				sprintf(ulKey, "%i", j);
 				add_assoc_long(zval_mvprop_value, ulKey, FileTimeToUnixTime(pPropValue->Value.MVft.lpft[j]));
 			}
@@ -1671,8 +1622,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 		case PT_MV_BINARY:
 			MAKE_STD_ZVAL(zval_mvprop_value);
 			array_init(zval_mvprop_value);
-
-			for (j = 0; j < pPropValue->Value.MVbin.cValues; ++j) {
+			for (unsigned int j = 0; j < pPropValue->Value.MVbin.cValues; ++j) {
 				sprintf(ulKey, "%i", j);
 				add_assoc_stringl(zval_mvprop_value, ulKey,
 								  (char*)pPropValue->Value.MVbin.lpbin[j].lpb, pPropValue->Value.MVbin.lpbin[j].cb, 1);
@@ -1683,8 +1633,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 		case PT_MV_STRING8:
 			MAKE_STD_ZVAL(zval_mvprop_value);
 			array_init(zval_mvprop_value);
-
-			for (j = 0; j < pPropValue->Value.MVszA.cValues; ++j) {
+			for (unsigned int j = 0; j < pPropValue->Value.MVszA.cValues; ++j) {
 				sprintf(ulKey, "%i", j);
 				add_assoc_string(zval_mvprop_value, ulKey, pPropValue->Value.MVszA.lppszA[j], 1);
 			}
@@ -1694,8 +1643,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 		case PT_MV_UNICODE:
 			MAKE_STD_ZVAL(zval_mvprop_value);
 			array_init(zval_mvprop_value);
-
-			for (j = 0; j < pPropValue->Value.MVszW.cValues; ++j) {
+			for (unsigned int j = 0; j < pPropValue->Value.MVszW.cValues; ++j) {
 				sprintf(ulKey, "%i", j);
 				add_assoc_string(zval_mvprop_value, ulKey, BEFORE_PHP7_2(converter.convert_to<std::string>(pPropValue->Value.MVszW.lppszW[j]).c_str()), 1);
 			}
@@ -1705,8 +1653,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 		case PT_MV_CLSID:
 			MAKE_STD_ZVAL(zval_mvprop_value);
 			array_init(zval_mvprop_value);
-
-			for (j = 0; j < pPropValue->Value.MVguid.cValues; ++j) {
+			for (unsigned int j = 0; j < pPropValue->Value.MVguid.cValues; ++j) {
 				sprintf(ulKey, "%i", j);
 				add_assoc_stringl(zval_mvprop_value, pulproptag, (char *)&pPropValue->Value.MVguid.lpguid[j], sizeof(GUID), 1);
 			}
@@ -1717,11 +1664,11 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 			//case PT_MV_I8:
 
 			// rules table properties
-		case PT_ACTIONS:
-			lpActions = (ACTIONS*)pPropValue->Value.lpszA;
+		case PT_ACTIONS: {
+			auto lpActions = reinterpret_cast<ACTIONS *>(pPropValue->Value.lpszA);
 			MAKE_STD_ZVAL(zval_action_array);
 			array_init(zval_action_array);
-			for (j = 0; j < lpActions->cActions; ++j) {
+			for (unsigned int j = 0; j < lpActions->cActions; ++j) {
 				MAKE_STD_ZVAL(zval_action_value);
 				array_init(zval_action_value);
 
@@ -1779,14 +1726,16 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 			}
 			add_assoc_zval(zval_prop_value, pulproptag, zval_action_array);
 			break;
-		case PT_SRESTRICTION:
-			lpRestriction = (LPSRestriction)pPropValue->Value.lpszA;
+		}
+		case PT_SRESTRICTION: {
+			auto lpRestriction = reinterpret_cast<const SRestriction *>(pPropValue->Value.lpszA);
 			zval_action_value = NULL;
 			MAPI_G(hr) = SRestrictiontoPHPArray(lpRestriction, 0, &zval_action_value TSRMLS_CC);
 			if (MAPI_G(hr) != hrSuccess)
 				continue;
 			add_assoc_zval(zval_prop_value, pulproptag, zval_action_value);
 			break;
+		}
 		}
 	}
 	
@@ -1796,9 +1745,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 
 HRESULT RowSettoPHPArray(const SRowSet *lpRowSet, zval **pret TSRMLS_DC)
 {
-	zval	*zval_prop_value = NULL;
-	ULONG	crow	= 0;
-	zval 	*ret;
+	zval *zval_prop_value = nullptr, *ret;
 	
 	MAPI_G(hr) = hrSuccess;
 
@@ -1806,7 +1753,7 @@ HRESULT RowSettoPHPArray(const SRowSet *lpRowSet, zval **pret TSRMLS_DC)
 	array_init(ret);
 
 	// make a PHP-array from the rowset resource.
-	for (crow = 0; crow < lpRowSet->cRows; ++crow) {
+	for (unsigned int crow = 0; crow < lpRowSet->cRows; ++crow) {
 		PropValueArraytoPHPArray(lpRowSet->aRow[crow].cValues, lpRowSet->aRow[crow].lpProps, &zval_prop_value TSRMLS_CC);
 		zend_hash_next_index_insert(HASH_OF(ret), &zval_prop_value, sizeof(zval *), NULL);
 	}
@@ -1823,14 +1770,12 @@ HRESULT ReadStateArraytoPHPArray(ULONG cValues, const READSTATE *lpReadStates,
     zval **ppvalRet TSRMLS_DC)
 {
 	zval *pvalRet;
-	unsigned int i=0;
 	
 	MAPI_G(hr) = hrSuccess;
 	
 	MAKE_STD_ZVAL(pvalRet);
 	array_init(pvalRet);
-	
-	for (i = 0; i < cValues; ++i) {
+	for (unsgined int i = 0; i < cValues; ++i) {
 		zval *pvalEntry;
 		MAKE_STD_ZVAL(pvalEntry);
 		array_init(pvalEntry);
@@ -1853,15 +1798,12 @@ HRESULT ReadStateArraytoPHPArray(ULONG cValues, const READSTATE *lpReadStates,
 HRESULT PHPArraytoReadStateArray(zval *zvalReadStates, void *lpBase, ULONG *lpcValues, LPREADSTATE *lppReadStates TSRMLS_DC)
 {
 	LPREADSTATE 	lpReadStates = NULL;
-	HashTable		*target_hash = NULL;
-	zval			**ppentry = NULL;
-	zval			*pentry = NULL;
-	zval			**valueEntry = NULL;
+	zval **ppentry = nullptr, **valueEntry = nullptr;
 	unsigned int n = 0;
 
 	MAPI_G(hr) = hrSuccess;
 
-	target_hash = HASH_OF(zvalReadStates);
+	auto target_hash = HASH_OF(zvalReadStates);
 	if (!target_hash) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No target_hash in PHPArraytoReadStateArray");
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -1875,7 +1817,7 @@ HRESULT PHPArraytoReadStateArray(zval *zvalReadStates, void *lpBase, ULONG *lpcV
 	zend_hash_internal_pointer_reset_ex(target_hash, &hpos);
 	for (unsigned int i = 0; i < count; ++i) {
 		zend_hash_get_current_data_ex(target_hash, reinterpret_cast<void **>(&ppentry), &hpos);
-		pentry = *ppentry;
+		auto pentry = *ppentry;
 
 		if (zend_hash_find(HASH_OF(pentry), "sourcekey", sizeof("sourcekey"), reinterpret_cast<void **>(&valueEntry)) == FAILURE) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "No 'sourcekey' entry for one of the entries in the readstate list");
@@ -1916,15 +1858,13 @@ exit:
 
 HRESULT PHPArraytoGUIDArray(zval *phpVal, void *lpBase, ULONG *lpcValues, LPGUID *lppGUIDs TSRMLS_DC)
 {
-	HashTable *target_hash = NULL;
 	LPGUID lpGUIDs = NULL;
 	unsigned int n = 0;
 	zval			**ppentry = NULL;
-	zval			*pentry = NULL;
 
 	MAPI_G(hr) = hrSuccess;
 
-	target_hash = HASH_OF(phpVal);
+	auto target_hash = HASH_OF(phpVal);
 	if (!target_hash) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No target_hash in PHPArraytoGUIDArray");
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -1943,7 +1883,7 @@ HRESULT PHPArraytoGUIDArray(zval *phpVal, void *lpBase, ULONG *lpcValues, LPGUID
 	zend_hash_internal_pointer_reset_ex(target_hash, &hpos);
 	for (unsigned int i = 0; i < count; ++i, zend_hash_move_forward_ex(target_hash, &hpos)) {
 		zend_hash_get_current_data_ex(target_hash, reinterpret_cast<void **>(&ppentry), &hpos);
-		pentry = *ppentry;
+		auto pentry = *ppentry;
 		SEPARATE_ZVAL(&pentry);
 		convert_to_string_ex(&pentry);
 		
@@ -1967,16 +1907,13 @@ exit:
 HRESULT NotificationstoPHPArray(ULONG cNotifs, const NOTIFICATION *lpNotifs,
     zval **pret TSRMLS_DC)
 {
-	zval *zvalRet = NULL;
-	zval *zvalProps = NULL;
-	unsigned int i = 0;
+	zval *zvalRet = nullptr, *zvalProps = nullptr;
 	
 	MAPI_G(hr) = hrSuccess;
 	
 	MAKE_STD_ZVAL(zvalRet);
 	array_init(zvalRet);
-	
-	for (i = 0; i < cNotifs; ++i) {
+	for (unsigned int i = 0; i < cNotifs; ++i) {
 		zval *zvalNotif = NULL;
 		MAKE_STD_ZVAL(zvalNotif);
 		array_init(zvalNotif);
@@ -2025,21 +1962,19 @@ HRESULT NotificationstoPHPArray(ULONG cNotifs, const NOTIFICATION *lpNotifs,
 
 HRESULT PHPArraytoSendingOptions(zval *phpArray, sending_options *lpSOPT)
 {
-	HRESULT hr = hrSuccess;
-	HashTable		*target_hash = NULL;
 	zval			**entry = NULL;
 
 	if (!phpArray) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No phpArray in PHPArraytoSendingOptions");
 		// not an error
-		return hr;
+		return hrSuccess;
 	}
 
-	target_hash = HASH_OF(phpArray);
+	auto target_hash = HASH_OF(phpArray);
 	if (!target_hash) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No target_hash in PHPArraytoSendingOptions");
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-		return hr;
+		return hrSuccess;
 	}
 
 	auto count = zend_hash_num_elements(target_hash);
@@ -2080,26 +2015,24 @@ HRESULT PHPArraytoSendingOptions(zval *phpArray, sending_options *lpSOPT)
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unknown or disallowed sending option %s", keyIndex);
 		}
 	}
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT PHPArraytoDeliveryOptions(zval *phpArray, delivery_options *lpDOPT)
 {
-	HRESULT hr = hrSuccess;
-	HashTable		*target_hash = NULL;
 	zval			**entry = NULL;
 
 	if (!phpArray) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No phpArray in PHPArraytoDeliveryOptions");
 		// not an error
-		return hr;
+		return hrSuccess;
 	}
 
-	target_hash = HASH_OF(phpArray);
+	auto target_hash = HASH_OF(phpArray);
 	if (!target_hash) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No target_hash in PHPArraytoDeliveryOptions");
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-		return hr;
+		return hrSuccess;
 	}
 
 	auto count = zend_hash_num_elements(target_hash);
@@ -2134,5 +2067,5 @@ HRESULT PHPArraytoDeliveryOptions(zval *phpArray, delivery_options *lpDOPT)
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unknown or disallowed delivery option %s", keyIndex);
 		}
 	}
-	return hr;
+	return hrSuccess;
 }

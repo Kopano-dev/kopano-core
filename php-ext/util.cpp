@@ -20,7 +20,6 @@ static std::string last_error;
 HRESULT mapi_util_createprof(const char *szProfName, const char *szServiceName,
     ULONG cValues, LPSPropValue lpPropVals)
 {
-	HRESULT			hr = hrSuccess;
 	object_ptr<IProfAdmin> lpProfAdmin;
 	object_ptr<IMsgServiceAdmin> lpServiceAdmin1;
 	object_ptr<IMsgServiceAdmin2> lpServiceAdmin;
@@ -29,7 +28,7 @@ HRESULT mapi_util_createprof(const char *szProfName, const char *szServiceName,
 	MAPIUID service_uid;
 
 	// Get the MAPI Profile administration object
-	hr = MAPIAdminProfiles(0, &~lpProfAdmin);
+	auto hr = MAPIAdminProfiles(0, &~lpProfAdmin);
 	if(hr != hrSuccess) {
 		last_error = "Unable to get IProfAdmin object";
 		return hr;
@@ -78,10 +77,8 @@ HRESULT mapi_util_createprof(const char *szProfName, const char *szServiceName,
 HRESULT mapi_util_deleteprof(const char *szProfName)
 {
 	object_ptr<IProfAdmin> lpProfAdmin;
-	HRESULT hr = hrSuccess;
-
 	// Get the MAPI Profile administration object
-	hr = MAPIAdminProfiles(0, &~lpProfAdmin);
+	auto hr = MAPIAdminProfiles(0, &~lpProfAdmin);
 	if(hr != hrSuccess) {
 		last_error = "Unable to get IProfAdmin object";
 		return hr;

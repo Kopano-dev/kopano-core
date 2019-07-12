@@ -117,9 +117,6 @@ ZEND_FUNCTION(mapi_table_setcolumns);
 ZEND_FUNCTION(mapi_table_seekrow);
 ZEND_FUNCTION(mapi_table_sort);
 ZEND_FUNCTION(mapi_table_restrict);
-ZEND_FUNCTION(mapi_table_findrow);
-ZEND_FUNCTION(mapi_table_createbookmark);
-ZEND_FUNCTION(mapi_table_freebookmark);
 
 ZEND_FUNCTION(mapi_folder_gethierarchytable);
 ZEND_FUNCTION(mapi_folder_getcontentstable);
@@ -157,7 +154,6 @@ ZEND_FUNCTION(mapi_rules_modifytable);
 
 ZEND_FUNCTION(mapi_stream_write);
 ZEND_FUNCTION(mapi_stream_read);
-ZEND_FUNCTION(mapi_openpropertytostream);
 ZEND_FUNCTION(mapi_stream_stat);
 ZEND_FUNCTION(mapi_stream_seek);
 ZEND_FUNCTION(mapi_stream_commit);
@@ -173,11 +169,6 @@ ZEND_FUNCTION(mapi_openproperty);
 ZEND_FUNCTION(mapi_deleteprops);
 ZEND_FUNCTION(mapi_savechanges);
 
-ZEND_FUNCTION(mapi_zarafa_createstore);
-
-ZEND_FUNCTION(mapi_zarafa_createuser);
-ZEND_FUNCTION(mapi_zarafa_deleteuser);
-ZEND_FUNCTION(mapi_zarafa_setuser);
 ZEND_FUNCTION(mapi_zarafa_getuser_by_id);
 ZEND_FUNCTION(mapi_zarafa_getuser_by_name);
 ZEND_FUNCTION(mapi_zarafa_getuserlist);
@@ -185,34 +176,10 @@ ZEND_FUNCTION(mapi_zarafa_getuserlist);
 ZEND_FUNCTION(mapi_zarafa_getquota);
 ZEND_FUNCTION(mapi_zarafa_setquota);
 
-ZEND_FUNCTION(mapi_zarafa_creategroup);
-ZEND_FUNCTION(mapi_zarafa_deletegroup);
-ZEND_FUNCTION(mapi_zarafa_setgroup);
-
-ZEND_FUNCTION(mapi_zarafa_addgroupmember);
-ZEND_FUNCTION(mapi_zarafa_deletegroupmember);
-
-ZEND_FUNCTION(mapi_zarafa_getgroup_by_id);
-ZEND_FUNCTION(mapi_zarafa_getgroup_by_name);
 ZEND_FUNCTION(mapi_zarafa_getgrouplist);
 ZEND_FUNCTION(mapi_zarafa_getgrouplistofuser);
 ZEND_FUNCTION(mapi_zarafa_getuserlistofgroup);
-
-ZEND_FUNCTION(mapi_zarafa_createcompany);
-ZEND_FUNCTION(mapi_zarafa_deletecompany);
-ZEND_FUNCTION(mapi_zarafa_getcompany_by_id);
-ZEND_FUNCTION(mapi_zarafa_getcompany_by_name);
 ZEND_FUNCTION(mapi_zarafa_getcompanylist);
-
-ZEND_FUNCTION(mapi_zarafa_add_company_remote_viewlist);
-ZEND_FUNCTION(mapi_zarafa_del_company_remote_viewlist);
-ZEND_FUNCTION(mapi_zarafa_get_remote_viewlist);
-ZEND_FUNCTION(mapi_zarafa_add_user_remote_adminlist);
-ZEND_FUNCTION(mapi_zarafa_del_user_remote_adminlist);
-ZEND_FUNCTION(mapi_zarafa_get_remote_adminlist);
-ZEND_FUNCTION(mapi_zarafa_add_quota_recipient);
-ZEND_FUNCTION(mapi_zarafa_del_quota_recipient);
-ZEND_FUNCTION(mapi_zarafa_get_quota_recipientlist);
 
 // permissions functions
 ZEND_FUNCTION(mapi_zarafa_getpermissionrules);

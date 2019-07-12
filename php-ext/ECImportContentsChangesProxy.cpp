@@ -90,10 +90,7 @@ HRESULT ECImportContentsChangesProxy::GetLastError(HRESULT hResult, ULONG ulFlag
 
 HRESULT ECImportContentsChangesProxy::Config(LPSTREAM lpStream, ULONG ulFlags) {
     HRESULT hr = hrSuccess;
-    
-    zval *pvalFuncName;
-    zval *pvalReturn;
-    zval *pvalArgs[2];
+	zval *pvalFuncName, *pvalReturn, *pvalArgs[2];
     
     MAKE_STD_ZVAL(pvalFuncName);
     MAKE_STD_ZVAL(pvalReturn);
@@ -133,10 +130,7 @@ exit:
 
 HRESULT ECImportContentsChangesProxy::UpdateState(LPSTREAM lpStream) {
     HRESULT hr = hrSuccess;
-    
-    zval *pvalFuncName;
-    zval *pvalReturn;
-	zval *pvalArgs;
+	zval *pvalFuncName, *pvalReturn, *pvalArgs;
     
     MAKE_STD_ZVAL(pvalFuncName);
     MAKE_STD_ZVAL(pvalReturn);
@@ -168,16 +162,13 @@ exit:
 }
 
 HRESULT ECImportContentsChangesProxy::ImportMessageChange(ULONG cValues, LPSPropValue lpPropArray, ULONG ulFlags, LPMESSAGE * lppMessage)  {
-    zval *pvalFuncName;
-    zval *pvalReturn;
-    zval *pvalArgs[3];
+	zval *pvalFuncName, *pvalReturn, *pvalArgs[3];
     IMessage *lpMessage = NULL;
-    HRESULT hr = hrSuccess;
     
     MAKE_STD_ZVAL(pvalFuncName);
     MAKE_STD_ZVAL(pvalReturn);
 
-    hr = PropValueArraytoPHPArray(cValues, lpPropArray, &pvalArgs[0] TSRMLS_CC);
+	auto hr = PropValueArraytoPHPArray(cValues, lpPropArray, &pvalArgs[0] TSRMLS_CC);
     if(hr != hrSuccess) {
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to convert MAPI propvalue array to PHP");
         goto exit;
@@ -226,10 +217,7 @@ exit:
 
 HRESULT ECImportContentsChangesProxy::ImportMessageDeletion(ULONG ulFlags, LPENTRYLIST lpSourceEntryList) {
     HRESULT hr = hrSuccess;
-    
-    zval *pvalFuncName;
-    zval *pvalReturn;
-    zval *pvalArgs[2];
+	zval *pvalFuncName, *pvalReturn, *pvalArgs[2];
     
     MAKE_STD_ZVAL(pvalFuncName);
     MAKE_STD_ZVAL(pvalReturn);
@@ -262,10 +250,7 @@ exit:
 
 HRESULT ECImportContentsChangesProxy::ImportPerUserReadStateChange(ULONG cElements, LPREADSTATE lpReadState) {
     HRESULT hr = hrSuccess;
-    
-    zval *pvalFuncName;
-    zval *pvalReturn;
-	zval *pvalArgs;
+	zval *pvalFuncName, *pvalReturn, *pvalArgs;
     
     MAKE_STD_ZVAL(pvalFuncName);
     MAKE_STD_ZVAL(pvalReturn);
