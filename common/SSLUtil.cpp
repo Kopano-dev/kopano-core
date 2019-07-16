@@ -102,4 +102,40 @@ void ssl_random(bool b64bit, uint64_t *id)
 		*id &= 0xFFFFFFFF;
 }
 
+bool ec_tls_minproto(SSL_CTX *ctx, const char *p)
+{
+#if defined(LIBRESSL_VERSION_NUMBER) || (defined(OPENSSL_VERSION_NUMBER) && OPENSSL_VERSION_NUMBER >= 0x10100000L)
+	if (strcmp(p, "tls1.3") == 0)
+#ifdef TLS1_3_VERSION
+		SSL_CTX_set_min_proto_version(ctx, TLS1_3_VERSION);
+#else
+		return false;
+#endif
+	else if (strcmp(p, "tls1.2") == 0)
+		SSL_CTX_set_min_proto_version(ctx, TLS1_2_VERSION);
+	else if (strcmp(p, "tls1.1") == 0)
+		SSL_CTX_set_min_proto_version(ctx, TLS1_1_VERSION);
+	else if (strcmp(p, "tls1.0") == 0)
+		SSL_CTX_set_min_proto_version(ctx, TLS1_VERSION);
+	else if (strcmp(p, "ssl3") == 0)
+		SSL_CTX_set_min_proto_version(ctx, SSL3_VERSION);
+	else
+		return false;
+#else
+	if (strcmp(p, "ssl3") == 0)
+		SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2);
+	else if (strcmp(p, "tls1.0") == 0)
+		SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3);
+	else if (strcmp(p, "tls1.1") == 0)
+		SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1);
+	else if (strcmp(p, "tls1.2") == 0)
+		SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1);
+	else if (strcmp(p, "tls1.3") == 0)
+		SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1 | SSL_OP_NO_TLSv1_2);
+	else
+		return false;
+#endif
+	return true;
+}
+
 } /* namespace */

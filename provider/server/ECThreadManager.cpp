@@ -309,11 +309,7 @@ ECRESULT ECDispatcher::DoHUP()
 			ec_log_crit("K-3904: Unable to setup ssl context: %s", *soap_faultdetail(p.second.get()));
 			return KCERR_CALL_FAILED;
 		}
-
-		std::unique_ptr<char[], cstdlib_deleter> server_ssl_protocols(strdup(m_lpConfig->GetSetting("server_ssl_protocols")));
-		if (server_ssl_protocols == nullptr)
-			return KCERR_NOT_ENOUGH_MEMORY;
-		auto er = kc_ssl_options(p.second.get(), server_ssl_protocols.get(),
+		auto er = kc_ssl_options(p.second.get(), m_lpConfig->GetSetting("server_tls_min_proto"),
 			m_lpConfig->GetSetting("server_ssl_ciphers"),
 			m_lpConfig->GetSetting("server_ssl_prefer_server_ciphers"),
 			m_lpConfig->GetSetting("server_ssl_curves"));

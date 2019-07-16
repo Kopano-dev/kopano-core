@@ -20,6 +20,7 @@
 #endif
 #include "ECSoapServerConnection.h"
 #include "ECServerEntrypoint.h"
+#include "SSLUtil.h"
 #	include <dirent.h>
 #	include <fcntl.h>
 #	include <unistd.h>
@@ -28,15 +29,12 @@
 using namespace KC;
 using namespace std::string_literals;
 
-int kc_ssl_options(struct soap *soap, char *protos, const char *ciphers,
+int kc_ssl_options(struct soap *soap, const char *protos, const char *ciphers,
     const char *prefciphers, const char *curves)
 {
 #if !defined(OPENSSL_NO_ECDH) && defined(NID_X9_62_prime256v1)
 	EC_KEY *ecdh;
 #endif
-	char *ssl_name = nullptr;
-	int ssl_op = 0, ssl_include = 0, ssl_exclude = 0;
-
 #ifndef SSL_OP_NO_RENEGOTIATION
 #	define SSL_OP_NO_RENEGOTIATION 0 /* unavailable in openSSL 1.0 */
 #endif
@@ -49,72 +47,10 @@ int kc_ssl_options(struct soap *soap, char *protos, const char *ciphers,
 		EC_KEY_free(ecdh);
 	}
 #endif
-	ssl_name = strtok(protos, " ");
-	while (ssl_name != nullptr) {
-		int ssl_proto = 0;
-		bool ssl_neg = false;
-
-		if (*ssl_name == '!') {
-			++ssl_name;
-			ssl_neg = true;
-		}
-
-		if (strcasecmp(ssl_name, SSL_TXT_SSLV3) == 0)
-			ssl_proto = 0x02;
-#ifdef SSL_TXT_SSLV2
-		else if (strcasecmp(ssl_name, SSL_TXT_SSLV2) == 0)
-			ssl_proto = 0x01;
-#endif
-		else if (strcasecmp(ssl_name, SSL_TXT_TLSV1) == 0 ||
-		    strcasecmp(ssl_name, "TLSv1.0") == 0)
-			ssl_proto = 0x04;
-#ifdef SSL_TXT_TLSV1_1
-		else if (strcasecmp(ssl_name, SSL_TXT_TLSV1_1) == 0)
-			ssl_proto = 0x08;
-#endif
-#ifdef SSL_TXT_TLSV1_2
-		else if (strcasecmp(ssl_name, SSL_TXT_TLSV1_2) == 0)
-			ssl_proto = 0x10;
-#endif
-#ifdef SSL_OP_NO_TLSv1_3
-		else if (strcasecmp(ssl_name, "TLSv1.3") == 0)
-			ssl_proto = 0x20;
-#endif
-		else if (!ssl_neg) {
-			ec_log_crit("Unknown protocol \"%s\" in protos setting", ssl_name);
-			return KCERR_CALL_FAILED;
-		}
-
-		if (ssl_neg)
-			ssl_exclude |= ssl_proto;
-		else
-			ssl_include |= ssl_proto;
-		ssl_name = strtok(nullptr, " ");
+	if (!ec_tls_minproto(soap->ctx, protos)) {
+		ec_log_crit("Unknown protocol \"%s\" in protos setting", protos);
+		return KCERR_CALL_FAILED;
 	}
-
-	if (ssl_include != 0)
-		// Exclude everything, except those that are included (and let excludes still override those)
-		ssl_exclude |= 0x1f & ~ssl_include;
-	if ((ssl_exclude & 0x01) != 0)
-		ssl_op |= SSL_OP_NO_SSLv2;
-	if ((ssl_exclude & 0x02) != 0)
-		ssl_op |= SSL_OP_NO_SSLv3;
-	if ((ssl_exclude & 0x04) != 0)
-		ssl_op |= SSL_OP_NO_TLSv1;
-#ifdef SSL_OP_NO_TLSv1_1
-	if ((ssl_exclude & 0x08) != 0)
-		ssl_op |= SSL_OP_NO_TLSv1_1;
-#endif
-#ifdef SSL_OP_NO_TLSv1_2
-	if ((ssl_exclude & 0x10) != 0)
-		ssl_op |= SSL_OP_NO_TLSv1_2;
-#endif
-#ifdef SSL_OP_NO_TLSv1_3
-	if ((ssl_exclude & 0x20) != 0)
-		ssl_op |= SSL_OP_NO_TLSv1_3;
-#endif
-	if (protos != nullptr)
-		SSL_CTX_set_options(soap->ctx, ssl_op);
 	if (ciphers && SSL_CTX_set_cipher_list(soap->ctx, ciphers) != 1) {
 		ec_log_crit("Can not set SSL cipher list to \"%s\": %s",
 			ciphers, ERR_error_string(ERR_get_error(), 0));
@@ -216,7 +152,6 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char *bindspec, bool v6only,
 	if (bindspec == nullptr)
 		return KCERR_INVALID_PARAMETER;
 
-	std::unique_ptr<char[], cstdlib_deleter> server_ssl_protocols(strdup(m_lpConfig->GetSetting("server_ssl_protocols")));
 	const char *server_ssl_ciphers = m_lpConfig->GetSetting("server_ssl_ciphers");
 	const char *server_ssl_curves = m_lpConfig->GetSetting("server_ssl_curves");
 	auto pref_ciphers = m_lpConfig->GetSetting("server_ssl_prefer_server_ciphers");
@@ -240,7 +175,8 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char *bindspec, bool v6only,
 		ec_log_crit("K-2170: Unable to setup SSL context: soap_ssl_server_context: %s: %s", *soap_faultdetail(lpsSoap.get()), se);
 		return KCERR_CALL_FAILED;
 	}
-	auto er = kc_ssl_options(lpsSoap.get(), server_ssl_protocols.get(), server_ssl_ciphers, pref_ciphers, server_ssl_curves);
+	auto er = kc_ssl_options(lpsSoap.get(), m_lpConfig->GetSetting("server_tls_min_proto"),
+	          server_ssl_ciphers, pref_ciphers, server_ssl_curves);
 	if (er != erSuccess)
 		return er;
 	custom_soap_bind(lpsSoap.get(), bindspec, v6only, nServerPort);

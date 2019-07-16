@@ -217,16 +217,13 @@ Default: value not set.
 The path with the files to verify the clients certificates with.
 .PP
 Default: value not set.
-.SS ssl_protocols
+.SS tls_min_proto
 .PP
-A space-separated list of disabled or enabled protocol names.
-Supported protocol names depend on the system's SSL library;
-depending on version, one or more of the following are available:
-\fBTLSv1.3\fP, \fBTLSv1.2\fP, \fBTLSv1.1\fP, \fBSSLv3\fP,
-\fBSSLv2\fP. To disable a protocol, prefix the name with an
-exclamation mark.
+The lowest SSL/TLS version to offer. Possible values are: \fBssl3\fP,
+\fBtls1.0\fP, \fBtls1.1\fP, \fBtls1.2\fP, and, if supported by the system,
+\fBtls1.3\fP.
 .PP
-Default: \fI!SSLv2 !SSLv3 !TLSv1 !TLSv1.1\fP
+Default: \fItls1.2\fP
 .SS ssl_ciphers
 .PP
 A colon-separated list of disabled or enabled SSL/TLS ciphers. Supported cipher
