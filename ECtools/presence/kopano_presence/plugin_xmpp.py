@@ -3,9 +3,6 @@ from kopano import log_exc
 import sleekxmpp
 import sys
 
-if sys.hexversion >= 0x03000000:
-    unicode = str
-
 STATUS_MAP = {  # map xmpp statuses to statuses supported by kopano-presence
     'available': 'available',
     'chat': 'available',
@@ -36,9 +33,9 @@ class XmppPresence(sleekxmpp.ClientXMPP):
 
         with log_exc(self.service.log):
             if self.service.config['xmpp_user_id_strip_domain']:
-                username = unicode(msg['from']).split('/')[0].split('@')[0] # strip entire domain
+                username = str(msg['from']).split('/')[0].split('@')[0] # strip entire domain
             else:
-                username = unicode(msg['from']).split('/')[0].replace('@chat.', '@') # XXX chat?
+                username = str(msg['from']).split('/')[0].replace('@chat.', '@') # XXX chat?
             self.service.data_set(username, 'xmpp', STATUS_MAP[msg['type']], msg['status'])
 
 class Plugin:

@@ -82,7 +82,7 @@ from .pidlid import (
 )
 
 from .compat import (
-    is_str as _is_str, pickle_load as _pickle_load,
+    pickle_load as _pickle_load,
     pickle_loads as _pickle_loads, fake_unicode as _unicode,
     is_file as _is_file, benc as _benc, bdec as _bdec,
     default as _default,
@@ -1029,7 +1029,7 @@ class Item(Properties, Contact, Appointment):
         if rows:
             self.mapiobj.ModifyRecipients(MODRECIP_REMOVE, rows)
 
-        if _is_str(addrs):
+        if isinstance(addrs, str):
             addrs = [x.strip() for x in _unicode(addrs).split(';')]
         elif isinstance(addrs, _user.User):
             addrs = [addrs]

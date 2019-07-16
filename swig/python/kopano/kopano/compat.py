@@ -19,9 +19,6 @@ _BIN_ENCODING = 'hex'
 _MISSING_NONE = False
 
 # TODO inline some of these again, now that we're python3-only
-def is_str(s):
-    return isinstance(s, str)
-
 def pickle_load(f):
     return pickle.load(f, encoding='bytes')
 
@@ -53,9 +50,6 @@ def repr(o):
 
 def fake_unicode(s): # TODO inline.. remove str() also in most cases?
     return str(s)
-
-def encode(s):
-    return s.encode()
 
 def set_bin_encoding(encoding):
     """Override encoding to use for binary identifiers (hex or base64)."""

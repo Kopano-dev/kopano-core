@@ -72,7 +72,7 @@ from .restriction import Restriction
 from . import notification as _notification
 
 from .compat import (
-    encode as _encode, bdec as _bdec, benc as _benc, fake_unicode as _unicode,
+    bdec as _bdec, benc as _benc, fake_unicode as _unicode,
 )
 
 from . import server as _server
@@ -617,7 +617,7 @@ class Store(Properties):
     # TODO store.findroot.create_folder()?
     def create_searchfolder(self, text=None):
         mapiobj = self.findroot.mapiobj.CreateFolder(FOLDER_SEARCH,
-            _encode(str(uuid.uuid4())), _encode('comment'), None, 0)
+            str(uuid.uuid4()).encode(), 'comment'.encode(), None, 0)
         return _folder.Folder(self, mapiobj=mapiobj)
 
     def item(self, entryid=None, guid=None):

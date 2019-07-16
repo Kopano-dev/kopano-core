@@ -292,6 +292,8 @@ class Folder(Properties):
 
     @container_class.setter
     def container_class(self, value):
+        if value is None:
+            return
         prop = SPropValue(PR_CONTAINER_CLASS_W, _unicode(value))
         self.mapiobj.SetProps([prop])
         _utils._save(self.mapiobj)
@@ -346,11 +348,11 @@ class Folder(Properties):
                 self._content_flag)
         except MAPIErrorNotFound:
             if sourcekey is not None:
-                raise NotFoundError("no item with sourcekey '%s'" % sourcekey)
+                raise NotFoundError("no item with sourcekey '%s'" % sourcekey) from None
             else:
-                raise NotFoundError("no item with entryid '%s'" % entryid)
+                raise NotFoundError("no item with entryid '%s'" % entryid) from None
         except MAPIErrorInvalidEntryid:
-            raise ArgumentError("invalid entryid: %r" % entryid)
+            raise ArgumentError("invalid entryid: %r" % entryid) from None
 
         item = _item.Item(self, mapiobj=mapiobj)
         return item

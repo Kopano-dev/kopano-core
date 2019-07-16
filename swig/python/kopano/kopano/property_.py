@@ -39,7 +39,6 @@ from .defs import (
 )
 from .compat import (
     benc as _benc, repr as _repr, fake_unicode as _unicode,
-    is_str as _is_str,
 )
 from .errors import Error, NotFoundError
 
@@ -159,8 +158,8 @@ def _name_to_proptag(proptag, mapiobj, proptype=None):
 # TODO self
 def create_prop(self, mapiobj, proptag, value=None, proptype=None):
     if isinstance(proptag, int) or \
-       (_is_str(proptag) and ':' not in proptag):
-        if _is_str(proptag):
+       (isinstance(proptag, str) and ':' not in proptag):
+        if isinstance(proptag, str):
             proptag2 = getattr(MAPI.Tags, proptag)
         else:
             proptag2 = proptag
@@ -207,9 +206,9 @@ def create_prop(self, mapiobj, proptag, value=None, proptype=None):
 # TODO self
 def prop(self, mapiobj, proptag, create=False, value=None, proptype=None):
     if isinstance(proptag, int) or \
-       (_is_str(proptag) and ':' not in proptag):
+       (isinstance(proptag, str) and ':' not in proptag):
         # search for property
-        if _is_str(proptag):
+        if isinstance(proptag, str):
             proptag = getattr(MAPI.Tags, proptag)
         try:
             sprop = HrGetOneProp(mapiobj, proptag)
