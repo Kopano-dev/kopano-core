@@ -55,10 +55,8 @@ int ServerConfigCheck::testAttachment(const config_check_t *check)
 {
 	if (check->value1.empty())
 		return CHECK_OK;
-
 	if (check->value1 == "database" || check->value1 == "files")
 		return CHECK_OK;
-
 	printError(check->option1, "contains unknown storage type: \"" + check->value1 + "\"");
 	return CHECK_ERROR;
 }
@@ -73,7 +71,6 @@ int ServerConfigCheck::testAttachmentPath(const config_check_t *check)
 	check2.multi = check->multi;
 	check2.option1 = check->option2;
 	check2.value1 = check->value2;
-
 	return testDirectory(&check2);
 }
 
@@ -95,7 +92,6 @@ int ServerConfigCheck::testPlugin(const config_check_t *check)
 
 	if (check->value1 == "ldap" || check->value1 == "ldapms" || check->value1 == "unix" || check->value1 == "db")
 		return CHECK_OK;
-
 	printError(check->option1, "contains unknown plugin: \"" + check->value1 + "\"");
 	return CHECK_ERROR;
 }
@@ -109,7 +105,6 @@ int ServerConfigCheck::testPluginConfig(const config_check_t *check)
 	check2.hosted = check->hosted;
 	check2.option1 = check->option2;
 	check2.value1 = check->value2;
-
 	return testFile(&check2);
 }
 
@@ -117,12 +112,10 @@ int ServerConfigCheck::testPluginPath(const config_check_t *check)
 {
 	if (check->value1 != "ldap" && check->value1 != "unix")
 		return CHECK_OK;
-
 	config_check_t check2;
 	check2.hosted = check->hosted;
 	check2.option1 = check->option2;
 	check2.value1 = check->value2;
-
 	return testDirectory(&check2);
 }
 
@@ -161,7 +154,6 @@ int ServerConfigCheck::testLoginname(const config_check_t *check)
 		printError(check->option2, "multi-tenancy disabled, but value contains %c: \"" + check->value2 + "\"");
 		return CHECK_ERROR;
 	}
-
 	return CHECK_OK;
 }
 
