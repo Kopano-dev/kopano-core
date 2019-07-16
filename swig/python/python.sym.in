@@ -5,9 +5,8 @@ global:
 		List_to_*;
 		Object_from_*;
 		Object_to_*;
-		typeinfo*;
-		vtable*;
-		VTT*;
 		std::*::_S_*;
 	};
+	_ZG*;
+	_ZT*;
 };

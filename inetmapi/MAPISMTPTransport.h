@@ -40,48 +40,35 @@
 #include <vmime/net/smtp/SMTPServiceInfos.hpp>
 #include <inetmapi/inetmapi.h>
 
-namespace vmime {
-namespace net {
-namespace smtp {
-
-
-class SMTPResponse;
-
+namespace KC {
 
 /** SMTP transport service.
   */
-class MAPISMTPTransport final : public transport {
+class MAPISMTPTransport final : public vmime::net::transport {
 public:
-
-	MAPISMTPTransport(vmime::shared_ptr<session> sess, vmime::shared_ptr<security::authenticator> auth, const bool secured = false);
+	MAPISMTPTransport(vmime::shared_ptr<vmime::net::session> sess, vmime::shared_ptr<vmime::security::authenticator> auth, const bool secured = false);
 	~MAPISMTPTransport();
 
 	const std::string getProtocolName(void) const { return "mapismtp"; }
-
-	static const serviceInfos &getInfosInstance(void) { return sm_infos; }
-	const serviceInfos& getInfos() const { return sm_infos; }
-
+	static const vmime::net::serviceInfos &getInfosInstance() { return sm_infos; }
+	const vmime::net::serviceInfos &getInfos() const { return sm_infos; }
 	void connect();
 	bool isConnected() const;
 	void disconnect();
 
 	void noop();
-
-	void send(const mailbox &expeditor, const mailboxList &recipients, utility::inputStream &, size_t, utility::progressListener * = NULL, const mailbox &sender = mailbox());
-
+	void send(const vmime::mailbox &expeditor, const vmime::mailboxList &recipients, vmime::utility::inputStream &, size_t, vmime::utility::progressListener * = nullptr, const vmime::mailbox &sender = {});
 	bool isSecuredConnection(void) const { return m_secured; }
-	vmime::shared_ptr<connectionInfos> getConnectionInfos(void) const { return m_cntInfos; }
+	vmime::shared_ptr<vmime::net::connectionInfos> getConnectionInfos() const { return m_cntInfos; }
 
 	// additional functions
-	const std::vector<KC::sFailedRecip> &getPermanentFailedRecipients(void) const { return mPermanentFailedRecipients; }
-	const std::vector<KC::sFailedRecip> &getTemporaryFailedRecipients(void) const { return mTemporaryFailedRecipients; }
+	const std::vector<sFailedRecip> &getPermanentFailedRecipients() const { return mPermanentFailedRecipients; }
+	const std::vector<sFailedRecip> &getTemporaryFailedRecipients() const { return mTemporaryFailedRecipients; }
 	void requestDSN(BOOL bRequest, const std::string &strTrackid);
 
 private:
-
-	void sendRequest(const string& buffer, const bool end = true);
-	vmime::shared_ptr<SMTPResponse> readResponse(void);
-
+	void sendRequest(const std::string &buffer, const bool end = true);
+	vmime::shared_ptr<vmime::net::smtp::SMTPResponse> readResponse();
 	void internalDisconnect();
 
 	void helo();
@@ -93,33 +80,27 @@ private:
 #if VMIME_HAVE_TLS_SUPPORT
 	void startTLS();
 #endif // VMIME_HAVE_TLS_SUPPORT
-
-	vmime::shared_ptr<socket> m_socket;
+	vmime::shared_ptr<vmime::net::socket> m_socket;
 	bool m_authentified = false;
 	bool m_extendedSMTP = false;
-	std::map <string, std::vector <string> > m_extensions;
-	vmime::shared_ptr<timeoutHandler> m_timeoutHandler;
+	std::map<std::string, std::vector<std::string>> m_extensions;
+	vmime::shared_ptr<vmime::net::timeoutHandler> m_timeoutHandler;
 
 	const bool m_isSMTPS;
 	bool m_secured = false;
-	vmime::shared_ptr<connectionInfos> m_cntInfos;
-
+	vmime::shared_ptr<vmime::net::connectionInfos> m_cntInfos;
 
 	// Service infos
-	static SMTPServiceInfos sm_infos;
+	static vmime::net::smtp::SMTPServiceInfos sm_infos;
 
 	// additional data
-	std::vector<KC::sFailedRecip> mTemporaryFailedRecipients;
-	std::vector<KC::sFailedRecip> mPermanentFailedRecipients;
+	std::vector<sFailedRecip> mTemporaryFailedRecipients;
+	std::vector<sFailedRecip> mPermanentFailedRecipients;
 	bool m_bDSNRequest = false;
 	std::string m_strDSNTrackid;
-	SMTPResponse::state m_response_state;
+	vmime::net::smtp::SMTPResponse::state m_response_state;
 };
 
-
-} // smtp
-} // net
-} // vmime
-
+} /* namespace */
 
 #endif // MAPI_NET_SMTP_SMTPTRANSPORT_HPP_INCLUDED
