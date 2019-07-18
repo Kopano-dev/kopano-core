@@ -132,6 +132,7 @@ AS_IF([test "$want_base" != no], [
 # Everything is C++
 AC_LANG_PUSH(C++)
 # save clean settings
+CFLAGS_system="$CFLAGS"
 CXXFLAGS_system=$CXXFLAGS
 CPPFLAGS_system=$CPPFLAGS
 LDFLAGS_system=$LDFLAGS
@@ -228,6 +229,8 @@ AC_ARG_ENABLE(coverage,
 	  ])
     ])
 
+AC_ARG_ENABLE([dovecot], [AS_HELP_STRING([--enable-dovecot], [Build dovecot modules (default: disabled)])])
+AM_CONDITIONAL([WITH_DOVECOT], [test "$enable_dovecot" = yes])
 
 # stats client requires ncurses(w) for --top
 # check wide version before non-wide version
@@ -719,6 +722,7 @@ AC_CONFIG_FILES([Makefile
 		swig/python/kopano/Makefile
 		common/kopano.pc common/libkcutil.sym
 		default.sym
+		gateway/doveauth.sym gateway/dovestore.sym
 		mapi4linux/src/libmapi.sym
 		provider/plugin.sym provider/provider.sym
 		provider/libkcserver.sym provider/libkcsoap.sym

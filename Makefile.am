@@ -153,6 +153,10 @@ endif
 # Undefined references
 #noinst_DATA += libkcsoap.ldd
 pkglib_LTLIBRARIES = libkcclient.la libkccontacts.la
+dovmoddir = ${libdir}/dovecot/modules
+if WITH_DOVECOT
+dovmod_LTLIBRARIES = libauthdb_mapi.la libdovemapi_plugin.la
+endif
 
 
 #
@@ -738,6 +742,23 @@ mapi4linux/src/libmapi.sym: ${top_builddir}/config.status
 
 libm4lcommondir = ${includedir}/mapi4linux
 libm4lcommon_HEADERS = m4lcommon/include/edkguid.h
+
+
+#
+#
+#
+libauthdb_mapi_la_SOURCES = gateway/doveauth1.c gateway/doveauth.cpp
+libauthdb_mapi_la_LDFLAGS = -avoid-version -module -Wl,--version-script=${srcdir}/gateway/doveauth.sym
+libauthdb_mapi_la_LIBADD  = libmapi.la
+EXTRA_libauthdb_mapi_la_DEPENDENCIES = gateway/doveauth.sym
+
+# dovecot expects to find "_plugin" in filenames
+libdovemapi_plugin_la_SOURCES = gateway/dovestore1.c gateway/dovestore.cpp
+libdovemapi_plugin_la_LDFLAGS = -avoid-version -module -Wl,--version-script=${srcdir}/gateway/dovestore.sym
+libdovemapi_plugin_la_LIBADD  = ${libHX_LIBS} libmapi.la
+EXTRA_libdovemapi_plugin_la_DEPENDENCIES = gateway/dovestore.sym
+
+gateway/doveauth.sym gateway/dovestore.sym: ${top_builddir}/config.status
 
 
 #

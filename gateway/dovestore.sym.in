@@ -1,0 +1,8 @@
+DOVE {
+global:
+	dovemapi_*;
+};
+KC_@PACKAGE_VERSION@ {
+local:
+	*;
+};
