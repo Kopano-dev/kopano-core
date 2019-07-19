@@ -9,7 +9,7 @@ import sys
 
 from MAPI import (
     PT_SYSTIME, MNID_ID, PT_BOOLEAN, MODRECIP_ADD,
-    PT_LONG
+    PT_LONG, PT_UNICODE,
 )
 
 from MAPI.Tags import (
@@ -351,3 +351,16 @@ class Appointment(object):
             self[PidLidAppointmentColor] = COLOR_NR[value]
         except KeyError:
             raise ArgumentError('invalid color: %r' % value)
+
+    @property
+    def onlinemeetingurl(self):
+        try:
+            return self.prop('public:OnlineMeetingExternalLink').value
+        except NotFoundError:
+            return ''
+
+    @onlinemeetingurl.setter
+    def onlinemeetingurl(self, value):
+        if not isinstance(value, str):
+            raise ArgumentError('meeting url must be a string')
+        self.create_prop('public:OnlineMeetingExternalLink', proptype=PT_UNICODE, value=value)
