@@ -3535,6 +3535,15 @@ int main(int argc, char **argv) try {
 	unix_coredump_enable(g_lpConfig->GetSetting("coredump_enabled"));
 	umask(S_IRWXG | S_IRWXO);
 
+	if (parseBool(g_lpConfig->GetSetting("plugin_enabled"))) {
+		std::string strEnvPython = g_lpConfig->GetSetting("plugin_manager_path");
+		auto lpEnvPython = getenv("PYTHONPATH");
+		if (lpEnvPython)
+			strEnvPython += std::string(":") + lpEnvPython;
+		setenv("PYTHONPATH", strEnvPython.c_str(), 1);
+		ec_log_debug("PYTHONPATH = %s", strEnvPython.c_str());
+	}
+
 	if (bListenLMTP) {
 		/* MAPIInitialize done inside running_service */
 		hr = running_service(argv, bDaemonize, &sDeliveryArgs);
