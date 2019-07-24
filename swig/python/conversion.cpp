@@ -25,13 +25,6 @@
 
 using KC::pyobj_ptr;
 
-// Get Py_ssize_t for older versions of python
-#if PY_VERSION_HEX < 0x02050000 && !defined(PY_SSIZE_T_MIN)
-typedef int Py_ssize_t;
-#	define PY_SSIZE_T_MAX INT_MAX
-#	define PY_SSIZE_T_MIN INT_MIN
-#endif
-
 /**
  * Default version of conv_out, which is intended to convert one script value
  * to a native value.
@@ -64,11 +57,7 @@ template<> void conv_out<TCHAR *>(PyObject *value, void *base,
 	if (MAPIAllocateMore((len + 1) * sizeof(wchar_t), base, reinterpret_cast<void **>(resp)) != hrSuccess)
 		throw std::bad_alloc();
 	/* FIXME: Required for the PyUnicodeObject cast */
-#if PY_MAJOR_VERSION >= 3
 	len = PyUnicode_AsWideChar(value, *reinterpret_cast<wchar_t **>(resp), len);
-#else
-	len = PyUnicode_AsWideChar(reinterpret_cast<PyUnicodeObject *>(value), *reinterpret_cast<wchar_t **>(resp), len);
-#endif
 	(*reinterpret_cast<wchar_t **>(resp))[len] = L'\0';
 }
 
@@ -196,13 +185,6 @@ static PyObject *PyTypeFiletime;
 #define PyLong_AsINT64 PyLong_AsLongLong
 #endif
 
-// Get Py_ssize_t for older versions of python
-#if PY_VERSION_HEX < 0x02050000 && !defined(PY_SSIZE_T_MIN)
-typedef int Py_ssize_t;
-# define PY_SSIZE_T_MAX INT_MAX
-# define PY_SSIZE_T_MIN INT_MIN
-#endif
-
 // Depending on native vs python unicode representation, set NATIVE_UNICODE
   #define WCHAR_T_SIZE __SIZEOF_WCHAR_T__
 
@@ -283,11 +265,7 @@ wchar_t * CopyPyUnicode(wchar_t **lpWide, PyObject *o, void *lpBase)
 
 	auto size = PyUnicode_GetSize(unicode);
 	if (MAPIAllocateMore((size + 1) * sizeof(wchar_t), lpBase, reinterpret_cast<void **>(lpWide)) == hrSuccess) {
-	    #if PY_MAJOR_VERSION >= 3
-		PyUnicode_AsWideChar(unicode, *lpWide, size);
-	    #else
-		PyUnicode_AsWideChar((PyUnicodeObject *)unicode.get(), *lpWide, size);
-	    #endif
+	    PyUnicode_AsWideChar(unicode, *lpWide, size);
 
 	    (*lpWide)[size] = '\0';
 	    return *lpWide;
@@ -304,11 +282,7 @@ FILETIME Object_to_FILETIME(PyObject *object)
 		return ft;
 	}
 
-	#if PY_MAJOR_VERSION >= 3
 	auto periods = PyLong_AsUnsignedLongLongMask(filetime);
-	#else
-	auto periods = PyInt_AsUnsignedLongLongMask(filetime);
-	#endif
 	ft.dwHighDateTime = periods >> 32;
 	ft.dwLowDateTime = periods & 0xffffffff;
 	return ft;
@@ -1153,30 +1127,18 @@ PyObject *		Object_from_LPACTION(LPACTION lpAction)
 	switch(lpAction->acttype) {
 	case OP_MOVE:
 	case OP_COPY:
-#if PY_VERSION_HEX >= 0x03000000	// 3.0.0
 		act = PyObject_CallFunction(PyTypeActMoveCopy, "y#y#",
-#else
-		act = PyObject_CallFunction(PyTypeActMoveCopy, "s#s#",
-#endif
 									lpAction->actMoveCopy.lpStoreEntryId, lpAction->actMoveCopy.cbStoreEntryId,
 									lpAction->actMoveCopy.lpFldEntryId, lpAction->actMoveCopy.cbFldEntryId);
 		break;
 	case OP_REPLY:
 	case OP_OOF_REPLY:
-#if PY_VERSION_HEX >= 0x03000000	// 3.0.0
 		act = PyObject_CallFunction(PyTypeActReply, "y#y#",
-#else
-		act = PyObject_CallFunction(PyTypeActReply, "s#s#",
-#endif
 									lpAction->actReply.lpEntryId, lpAction->actReply.cbEntryId,
 									&lpAction->actReply.guidReplyTemplate, sizeof(GUID));
 		break;
 	case OP_DEFER_ACTION:
-#if PY_VERSION_HEX >= 0x03000000	// 3.0.0
 		act = PyObject_CallFunction(PyTypeActDeferAction, "y#",
-#else
-		act = PyObject_CallFunction(PyTypeActDeferAction, "s#",
-#endif
 									lpAction->actDeferAction.pbData, lpAction->actDeferAction.cbData);
 		break;
 	case OP_BOUNCE:
@@ -1753,11 +1715,7 @@ PyObject *		Object_from_LPNOTIFICATION(NOTIFICATION *lpNotif)
 		pyobj_ptr proptags(List_from_LPSPropTagArray(lpNotif->info.obj.lpPropTagArray));
 		if (!proptags)
 			return NULL;
-#if PY_VERSION_HEX >= 0x03000000	// 3.0.0
 		elem = PyObject_CallFunction(PyTypeOBJECT_NOTIFICATION, "(ly#ly#y#y#O)",
-#else
-		elem = PyObject_CallFunction(PyTypeOBJECT_NOTIFICATION, "(ls#ls#s#s#O)",
-#endif
 			lpNotif->ulEventType,
 			lpNotif->info.obj.lpEntryID, lpNotif->info.obj.cbEntryID,
 			lpNotif->info.obj.ulObjType,
@@ -1781,11 +1739,7 @@ PyObject *		Object_from_LPNOTIFICATION(NOTIFICATION *lpNotif)
 		break;
 	}
 	case fnevNewMail:
-#if PY_VERSION_HEX >= 0x03000000	// 3.0.0
 		elem = PyObject_CallFunction(PyTypeNEWMAIL_NOTIFICATION, "(y#y#lsl)",
-#else
-		elem = PyObject_CallFunction(PyTypeNEWMAIL_NOTIFICATION, "(s#s#lsl)",
-#endif
 		        lpNotif->info.newmail.lpEntryID, lpNotif->info.newmail.cbEntryID,
 			lpNotif->info.newmail.lpParentID, lpNotif->info.newmail.cbParentID,
 			lpNotif->info.newmail.ulFlags,
@@ -2333,19 +2287,9 @@ LPROWLIST List_to_LPROWLIST(PyObject *object, ULONG ulFlags)
 
 void DoException(HRESULT hr)
 {
-#if PY_VERSION_HEX >= 0x02040300	// 2.4.3
 	pyobj_ptr hrObj(Py_BuildValue("I", static_cast<unsigned int>(hr)));
-#else
-	// Python 2.4.2 and earlier don't support the "I" format so create a
-	// PyLong object instead.
-	pyobj_ptr hrObj(PyLong_FromUnsignedLong(static_cast<unsigned int>(hr)));
-#endif
 
-	#if PY_MAJOR_VERSION >= 3
 	pyobj_ptr attr_name(PyUnicode_FromString("_errormap"));
-	#else
-	pyobj_ptr attr_name(PyString_FromString("_errormap"));
-	#endif
 	pyobj_ptr errormap(PyObject_GetAttr(PyTypeMAPIError, attr_name)), ex;
 	PyObject *errortype = nullptr;
 	if (errormap != NULL) {
