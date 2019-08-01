@@ -824,7 +824,7 @@ ECRESULT ECCacheManager::GetUserObjects(const std::list<objectid_t> &lstExternOb
 
 	for (const auto &objid : lstExternObjIds) {
 		unsigned int ulLocalId;
-		LOG_USERCACHE_DEBUG(" Get user objects from externid \"%s\", class %d",
+		LOG_USERCACHE_DEBUG("Get user objects from externid \"%s\", class %d",
 			bin2txt(objid.id).c_str(), objid.objclass);
 		if (I_GetUEIdObject(objid.id, objid.objclass, NULL, &ulLocalId, NULL) == erSuccess)
 			/* Object was found in cache. */
@@ -864,7 +864,7 @@ ECRESULT ECCacheManager::GetUserObjects(const std::list<objectid_t> &lstExternOb
 		auto ulCompanyId = atoi(lpDBRow[4]);
 		lpmapLocalObjIds->insert({sExternId, ulLocalId});
 		I_AddUEIdObject(sExternId.id, sExternId.objclass, ulCompanyId, ulLocalId, strSignature);
-		LOG_USERCACHE_DEBUG(" Get user objects result company %d, userid %d, signature \"%s\"",
+		LOG_USERCACHE_DEBUG("Get user objects result company %d, userid %d, signature \"%s\"",
 			ulCompanyId, ulLocalId, bin2txt(strSignature).c_str());
 	}
 
@@ -1069,7 +1069,7 @@ ECRESULT ECCacheManager::GetACLs(unsigned int ulObjId, struct rightsArray **lppR
 			lpRights->__ptr[i].ulType = atoi(lpRow[1]);
 			lpRights->__ptr[i].ulRights = atoi(lpRow[2]);
 
-			LOG_USERCACHE_DEBUG(" Get ACLs result for objectid %d: userid %d, type %d, permissions %d", ulObjId, lpRights->__ptr[i].ulUserid, lpRights->__ptr[i].ulType, lpRights->__ptr[i].ulRights);
+			LOG_USERCACHE_DEBUG("Get ACLs result for objectid %d: userid %d, type %d, permissions %d", ulObjId, lpRights->__ptr[i].ulUserid, lpRights->__ptr[i].ulType, lpRights->__ptr[i].ulRights);
 		}
 	}
 
