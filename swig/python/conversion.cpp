@@ -15,22 +15,8 @@
 #include <kopano/conversion.h>
 #include "pymem.hpp"
 
-#if PY_MAJOR_VERSION >= 3
-#	define PyString_AsString(val) PyBytes_AsString(val)
-#	define PyString_AsStringAndSize(val, lpstr, size) PyBytes_AsStringAndSize(val, lpstr, size)
-#	define PyString_FromStringAndSize(val, size) PyBytes_FromStringAndSize(val, size)
-#	define PyString_FromString(val) PyBytes_FromString(val)
-#	define PyInt_AsLong(id) PyLong_AsLong(id)
-#endif
 
 using KC::pyobj_ptr;
-
-// Get Py_ssize_t for older versions of python
-#if PY_VERSION_HEX < 0x02050000 && !defined(PY_SSIZE_T_MIN)
-typedef int Py_ssize_t;
-#	define PY_SSIZE_T_MAX INT_MAX
-#	define PY_SSIZE_T_MIN INT_MIN
-#endif
 
 /**
  * Default version of conv_out, which is intended to convert one script value
@@ -57,18 +43,14 @@ template<> void conv_out<TCHAR *>(PyObject *value, void *base,
 	}
 	/* FIXME: General helper function as improvement */
 	if ((flags & MAPI_UNICODE) == 0) {
-		*reinterpret_cast<char **>(resp) = PyString_AsString(value);
+		*reinterpret_cast<char **>(resp) = PyBytes_AsString(value);
 		return;
 	}
 	int len = PyUnicode_GetSize(value);
 	if (MAPIAllocateMore((len + 1) * sizeof(wchar_t), base, reinterpret_cast<void **>(resp)) != hrSuccess)
 		throw std::bad_alloc();
 	/* FIXME: Required for the PyUnicodeObject cast */
-#if PY_MAJOR_VERSION >= 3
 	len = PyUnicode_AsWideChar(value, *reinterpret_cast<wchar_t **>(resp), len);
-#else
-	len = PyUnicode_AsWideChar(reinterpret_cast<PyUnicodeObject *>(value), *reinterpret_cast<wchar_t **>(resp), len);
-#endif
 	(*reinterpret_cast<wchar_t **>(resp))[len] = L'\0';
 }
 
@@ -101,7 +83,7 @@ template<> void conv_out<SBinary>(PyObject *value, void *base,
 {
 	char *data;
 	Py_ssize_t size;
-	if (value == Py_None || PyString_AsStringAndSize(value, &data, &size) < 0) {
+	if (value == Py_None || PyBytes_AsStringAndSize(value, &data, &size) < 0) {
 		res->cb = 0;
 		res->lpb = nullptr;
 		return;
@@ -196,13 +178,6 @@ static PyObject *PyTypeFiletime;
 #define PyLong_AsINT64 PyLong_AsLongLong
 #endif
 
-// Get Py_ssize_t for older versions of python
-#if PY_VERSION_HEX < 0x02050000 && !defined(PY_SSIZE_T_MIN)
-typedef int Py_ssize_t;
-# define PY_SSIZE_T_MAX INT_MAX
-# define PY_SSIZE_T_MIN INT_MIN
-#endif
-
 // Depending on native vs python unicode representation, set NATIVE_UNICODE
   #define WCHAR_T_SIZE __SIZEOF_WCHAR_T__
 
@@ -283,11 +258,7 @@ wchar_t * CopyPyUnicode(wchar_t **lpWide, PyObject *o, void *lpBase)
 
 	auto size = PyUnicode_GetSize(unicode);
 	if (MAPIAllocateMore((size + 1) * sizeof(wchar_t), lpBase, reinterpret_cast<void **>(lpWide)) == hrSuccess) {
-	    #if PY_MAJOR_VERSION >= 3
-		PyUnicode_AsWideChar(unicode, *lpWide, size);
-	    #else
-		PyUnicode_AsWideChar((PyUnicodeObject *)unicode.get(), *lpWide, size);
-	    #endif
+	    PyUnicode_AsWideChar(unicode, *lpWide, size);
 
 	    (*lpWide)[size] = '\0';
 	    return *lpWide;
@@ -304,11 +275,7 @@ FILETIME Object_to_FILETIME(PyObject *object)
 		return ft;
 	}
 
-	#if PY_MAJOR_VERSION >= 3
 	auto periods = PyLong_AsUnsignedLongLongMask(filetime);
-	#else
-	auto periods = PyInt_AsUnsignedLongLongMask(filetime);
-	#endif
 	ft.dwHighDateTime = periods >> 32;
 	ft.dwLowDateTime = periods & 0xffffffff;
 	return ft;
@@ -328,13 +295,13 @@ PyObject *Object_from_SPropValue(const SPropValue *lpProp)
 
 	switch(PROP_TYPE(lpProp->ulPropTag)) {
 	case PT_STRING8:
-		Value.reset(PyString_FromString(lpProp->Value.lpszA));
+		Value.reset(PyBytes_FromString(lpProp->Value.lpszA));
 		break;
 	case PT_UNICODE:
 		Value.reset(PyUnicode_FromWideChar(lpProp->Value.lpszW, wcslen(lpProp->Value.lpszW)));
 		break;
 	case PT_BINARY:
-		Value.reset(PyString_FromStringAndSize(reinterpret_cast<const char *>(lpProp->Value.bin.lpb), lpProp->Value.bin.cb));
+		Value.reset(PyBytes_FromStringAndSize(reinterpret_cast<const char *>(lpProp->Value.bin.lpb), lpProp->Value.bin.cb));
 		break;
 	case PT_SHORT:
 		Value.reset(PyLong_FromLong(lpProp->Value.i));
@@ -367,7 +334,7 @@ PyObject *Object_from_SPropValue(const SPropValue *lpProp)
 		Value.reset(Object_from_FILETIME(lpProp->Value.ft));
 		break;
 	case PT_CLSID:
-		Value.reset(PyString_FromStringAndSize(reinterpret_cast<const char *>(lpProp->Value.lpguid), sizeof(GUID)));
+		Value.reset(PyBytes_FromStringAndSize(reinterpret_cast<const char *>(lpProp->Value.lpguid), sizeof(GUID)));
 		break;
 	case PT_OBJECT:
 		Py_INCREF(Py_None);
@@ -413,11 +380,11 @@ PyObject *Object_from_SPropValue(const SPropValue *lpProp)
 		}
 		break;
 	case PT_MV_STRING8:
-		PT_MV_CASE(szA, pszA, PyString_FromString, BASE)
+		PT_MV_CASE(szA, pszA, PyBytes_FromString, BASE)
 	case PT_MV_BINARY:
 		Value.reset(PyList_New(0));
 		for (unsigned int i = 0; i < lpProp->Value.MVbin.cValues; ++i) {
-			pyobj_ptr elem(PyString_FromStringAndSize(reinterpret_cast<const char *>(lpProp->Value.MVbin.lpbin[i].lpb), lpProp->Value.MVbin.lpbin[i].cb));
+			pyobj_ptr elem(PyBytes_FromStringAndSize(reinterpret_cast<const char *>(lpProp->Value.MVbin.lpbin[i].lpb), lpProp->Value.MVbin.lpbin[i].cb));
 			PyList_Append(Value, elem);
 		}
 		break;
@@ -432,7 +399,7 @@ PyObject *Object_from_SPropValue(const SPropValue *lpProp)
 	case PT_MV_CLSID:
 		Value.reset(PyList_New(0));
 		for (unsigned int i = 0; i < lpProp->Value.MVguid.cValues; ++i) {
-			pyobj_ptr elem(PyString_FromStringAndSize(reinterpret_cast<const char *>(&lpProp->Value.MVguid.lpguid[i]), sizeof(GUID)));
+			pyobj_ptr elem(PyBytes_FromStringAndSize(reinterpret_cast<const char *>(&lpProp->Value.MVguid.lpguid[i]), sizeof(GUID)));
 			PyList_Append(Value, elem);
 		}
 		break;
@@ -491,10 +458,10 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 		break;
 	case PT_STRING8:
 		if (ulFlags == CONV_COPY_SHALLOW) {
-			lpProp->Value.lpszA = PyString_AsString(Value);
+			lpProp->Value.lpszA = PyBytes_AsString(Value);
 			break;
 		}
-		if (PyString_AsStringAndSize(Value, &lpstr, &size) < 0 ||
+		if (PyBytes_AsStringAndSize(Value, &lpstr, &size) < 0 ||
 		    KAllocCopy(lpstr, size + 1, reinterpret_cast<void **>(&lpProp->Value.lpszA), lpBase) != hrSuccess)
 			return;
 		break;
@@ -535,7 +502,7 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 		lpProp->Value.ft = Object_to_FILETIME(Value);
 		break;
 	case PT_CLSID:
-		if (PyString_AsStringAndSize(Value, &lpstr, &size) < 0)
+		if (PyBytes_AsStringAndSize(Value, &lpstr, &size) < 0)
 			return;
 		if (size != sizeof(GUID)) {
 			PyErr_Format(PyExc_TypeError, "PT_CLSID Value must be exactly %d bytes", (int)sizeof(GUID));
@@ -549,7 +516,7 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 			return;
 		break;
 	case PT_BINARY:
-		if (PyString_AsStringAndSize(Value, &lpstr, &size) < 0)
+		if (PyBytes_AsStringAndSize(Value, &lpstr, &size) < 0)
 			return;
 		if (ulFlags == CONV_COPY_SHALLOW)
 			lpProp->Value.bin.lpb = (LPBYTE)lpstr;
@@ -634,8 +601,8 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 			if (elem == nullptr)
 				break;
 			if (ulFlags == CONV_COPY_SHALLOW)
-				lpProp->Value.MVszA.lppszA[n] = PyString_AsString(elem);
-			else if (PyString_AsStringAndSize(elem, &lpstr, &size) < 0 ||
+				lpProp->Value.MVszA.lppszA[n] = PyBytes_AsString(elem);
+			else if (PyBytes_AsStringAndSize(elem, &lpstr, &size) < 0 ||
 			    KAllocCopy(lpstr, size + 1, reinterpret_cast<void **>(&lpProp->Value.MVszA.lppszA[n]), lpBase) != hrSuccess)
 				return;
 			++n;
@@ -656,7 +623,7 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 			pyobj_ptr elem(PyIter_Next(iter));
 			if (elem == nullptr)
 				break;
-			if (PyString_AsStringAndSize(elem, &lpstr, &size) < 0)
+			if (PyBytes_AsStringAndSize(elem, &lpstr, &size) < 0)
 				return;
 			if (ulFlags == CONV_COPY_SHALLOW)
 				lpProp->Value.MVbin.lpbin[n].lpb = (LPBYTE)lpstr;
@@ -704,7 +671,7 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 			pyobj_ptr elem(PyIter_Next(iter));
 			if (elem == nullptr)
 				break;
-			if (PyString_AsStringAndSize(elem, &guid, &size) < 0)
+			if (PyBytes_AsStringAndSize(elem, &guid, &size) < 0)
 				return;
 			if (size != sizeof(GUID)) {
 				PyErr_Format(PyExc_TypeError, "PT_CLSID Value must be exactly %d bytes", (int)sizeof(GUID));
@@ -1153,30 +1120,18 @@ PyObject *		Object_from_LPACTION(LPACTION lpAction)
 	switch(lpAction->acttype) {
 	case OP_MOVE:
 	case OP_COPY:
-#if PY_VERSION_HEX >= 0x03000000	// 3.0.0
 		act = PyObject_CallFunction(PyTypeActMoveCopy, "y#y#",
-#else
-		act = PyObject_CallFunction(PyTypeActMoveCopy, "s#s#",
-#endif
 									lpAction->actMoveCopy.lpStoreEntryId, lpAction->actMoveCopy.cbStoreEntryId,
 									lpAction->actMoveCopy.lpFldEntryId, lpAction->actMoveCopy.cbFldEntryId);
 		break;
 	case OP_REPLY:
 	case OP_OOF_REPLY:
-#if PY_VERSION_HEX >= 0x03000000	// 3.0.0
 		act = PyObject_CallFunction(PyTypeActReply, "y#y#",
-#else
-		act = PyObject_CallFunction(PyTypeActReply, "s#s#",
-#endif
 									lpAction->actReply.lpEntryId, lpAction->actReply.cbEntryId,
 									&lpAction->actReply.guidReplyTemplate, sizeof(GUID));
 		break;
 	case OP_DEFER_ACTION:
-#if PY_VERSION_HEX >= 0x03000000	// 3.0.0
 		act = PyObject_CallFunction(PyTypeActDeferAction, "y#",
-#else
-		act = PyObject_CallFunction(PyTypeActDeferAction, "s#",
-#endif
 									lpAction->actDeferAction.pbData, lpAction->actDeferAction.cbData);
 		break;
 	case OP_BOUNCE:
@@ -1242,10 +1197,10 @@ void Object_to_LPACTION(PyObject *object, ACTION *lpAction, void *lpBase)
 		pyobj_ptr poStore(PyObject_GetAttrString(poActObject, "StoreEntryId"));
 		pyobj_ptr poFolder(PyObject_GetAttrString(poActObject, "FldEntryId"));
 		Py_ssize_t size;
-		if (PyString_AsStringAndSize(poStore, reinterpret_cast<char **>(&lpAction->actMoveCopy.lpStoreEntryId), &size) < 0)
+		if (PyBytes_AsStringAndSize(poStore, reinterpret_cast<char **>(&lpAction->actMoveCopy.lpStoreEntryId), &size) < 0)
 			break;
 		lpAction->actMoveCopy.cbStoreEntryId = size;
-		if (PyString_AsStringAndSize(poFolder, reinterpret_cast<char **>(&lpAction->actMoveCopy.lpFldEntryId), &size) < 0)
+		if (PyBytes_AsStringAndSize(poFolder, reinterpret_cast<char **>(&lpAction->actMoveCopy.lpFldEntryId), &size) < 0)
 			break;
 		lpAction->actMoveCopy.cbFldEntryId = size;
 		break;
@@ -1257,10 +1212,10 @@ void Object_to_LPACTION(PyObject *object, ACTION *lpAction, void *lpBase)
 		pyobj_ptr poGuid(PyObject_GetAttrString(poActObject, "guidReplyTemplate"));
 		char *ptr;
 		Py_ssize_t size;
-		if (PyString_AsStringAndSize(poEntryId, reinterpret_cast<char **>(&lpAction->actReply.lpEntryId), &size) < 0)
+		if (PyBytes_AsStringAndSize(poEntryId, reinterpret_cast<char **>(&lpAction->actReply.lpEntryId), &size) < 0)
 			break;
 		lpAction->actReply.cbEntryId = size;
-		if (PyString_AsStringAndSize(poGuid, &ptr, &size) < 0)
+		if (PyBytes_AsStringAndSize(poGuid, &ptr, &size) < 0)
 			break;
 		if (size == sizeof(GUID))
 			memcpy(&lpAction->actReply.guidReplyTemplate, ptr, size);
@@ -1272,7 +1227,7 @@ void Object_to_LPACTION(PyObject *object, ACTION *lpAction, void *lpBase)
 	{
 		pyobj_ptr poData(PyObject_GetAttrString(poActObject, "data"));
 		Py_ssize_t size;
-		if (PyString_AsStringAndSize(poData, reinterpret_cast<char **>(&lpAction->actDeferAction.pbData), &size) < 0)
+		if (PyBytes_AsStringAndSize(poData, reinterpret_cast<char **>(&lpAction->actDeferAction.pbData), &size) < 0)
 			break;
 		lpAction->actDeferAction.cbData = size;
 		break;
@@ -1558,7 +1513,7 @@ PyObject * Object_from_LPMAPINAMEID(LPMAPINAMEID lpMAPINameId)
 		return Py_None;
 	}
 
-	pyobj_ptr guid(PyString_FromStringAndSize(reinterpret_cast<char *>(lpMAPINameId->lpguid), sizeof(GUID)));
+	pyobj_ptr guid(PyBytes_FromStringAndSize(reinterpret_cast<char *>(lpMAPINameId->lpguid), sizeof(GUID)));
 	if(lpMAPINameId->ulKind == MNID_ID)
 		return PyObject_CallFunction(PyTypeMAPINAMEID, "(Oll)", guid.get(), MNID_ID, lpMAPINameId->Kind.lID);
 	return PyObject_CallFunction(PyTypeMAPINAMEID, "(Olu)", guid.get(), MNID_STRING, lpMAPINameId->Kind.lpwstrName);
@@ -1601,7 +1556,7 @@ void Object_to_LPMAPINAMEID(PyObject *elem, LPMAPINAMEID *lppName, void *lpBase)
 
 	if(!kind) {
 		// Detect kind from type of 'id' parameter by first trying to use it as an int, then as string
-		PyInt_AsLong(id);
+		PyLong_AsLong(id);
 		if(PyErr_Occurred()) {
 			// Clear error
 			PyErr_Clear();
@@ -1610,12 +1565,12 @@ void Object_to_LPMAPINAMEID(PyObject *elem, LPMAPINAMEID *lppName, void *lpBase)
 			ulKind = MNID_ID;
 		}
 	} else {
-		ulKind = PyInt_AsLong(kind);
+		ulKind = PyLong_AsLong(kind);
 	}
 
 	lpName->ulKind = ulKind;
 	if(ulKind == MNID_ID) {
-		lpName->Kind.lID = PyInt_AsLong(id);
+		lpName->Kind.lID = PyLong_AsLong(id);
 	} else {
 		if(!PyUnicode_Check(id)) {
 			PyErr_SetString(PyExc_RuntimeError, "Must pass unicode string for MNID_STRING ID part of MAPINAMEID");
@@ -1624,7 +1579,7 @@ void Object_to_LPMAPINAMEID(PyObject *elem, LPMAPINAMEID *lppName, void *lpBase)
 		CopyPyUnicode(&lpName->Kind.lpwstrName, id, lpBase);
 	}
 
-	if (PyString_AsStringAndSize(guid, reinterpret_cast<char **>(&lpName->lpguid), &len) == -1)
+	if (PyBytes_AsStringAndSize(guid, reinterpret_cast<char **>(&lpName->lpguid), &len) == -1)
 		return;
 	if(len != sizeof(GUID)) {
 		PyErr_Format(PyExc_RuntimeError, "GUID parameter of MAPINAMEID must be exactly %d bytes", (int)sizeof(GUID));
@@ -1687,7 +1642,7 @@ ENTRYLIST *List_to_p_ENTRYLIST(PyObject *list)
 		char *ptr;
 		Py_ssize_t strlen;
 
-		if (PyString_AsStringAndSize(elem, &ptr, &strlen) == -1 ||
+		if (PyBytes_AsStringAndSize(elem, &ptr, &strlen) == -1 ||
 		    PyErr_Occurred())
 			return retval_or_null(lpEntryList);
 		lpEntryList->lpbin[i].cb = strlen;
@@ -1710,7 +1665,7 @@ PyObject *		List_from_LPENTRYLIST(LPENTRYLIST lpEntryList)
 	if (lpEntryList == nullptr)
 		return list.release();
 	for (unsigned int i = 0; i < lpEntryList->cValues; ++i) {
-		pyobj_ptr elem(PyString_FromStringAndSize(reinterpret_cast<const char *>(lpEntryList->lpbin[i].lpb), lpEntryList->lpbin[i].cb));
+		pyobj_ptr elem(PyBytes_FromStringAndSize(reinterpret_cast<const char *>(lpEntryList->lpbin[i].lpb), lpEntryList->lpbin[i].cb));
 		if (PyErr_Occurred())
 			return nullptr;
 		PyList_Append(list, elem);
@@ -1753,11 +1708,7 @@ PyObject *		Object_from_LPNOTIFICATION(NOTIFICATION *lpNotif)
 		pyobj_ptr proptags(List_from_LPSPropTagArray(lpNotif->info.obj.lpPropTagArray));
 		if (!proptags)
 			return NULL;
-#if PY_VERSION_HEX >= 0x03000000	// 3.0.0
 		elem = PyObject_CallFunction(PyTypeOBJECT_NOTIFICATION, "(ly#ly#y#y#O)",
-#else
-		elem = PyObject_CallFunction(PyTypeOBJECT_NOTIFICATION, "(ls#ls#s#s#O)",
-#endif
 			lpNotif->ulEventType,
 			lpNotif->info.obj.lpEntryID, lpNotif->info.obj.cbEntryID,
 			lpNotif->info.obj.ulObjType,
@@ -1781,11 +1732,7 @@ PyObject *		Object_from_LPNOTIFICATION(NOTIFICATION *lpNotif)
 		break;
 	}
 	case fnevNewMail:
-#if PY_VERSION_HEX >= 0x03000000	// 3.0.0
 		elem = PyObject_CallFunction(PyTypeNEWMAIL_NOTIFICATION, "(y#y#lsl)",
-#else
-		elem = PyObject_CallFunction(PyTypeNEWMAIL_NOTIFICATION, "(s#s#lsl)",
-#endif
 		        lpNotif->info.newmail.lpEntryID, lpNotif->info.newmail.cbEntryID,
 			lpNotif->info.newmail.lpParentID, lpNotif->info.newmail.cbParentID,
 			lpNotif->info.newmail.ulFlags,
@@ -1819,7 +1766,7 @@ NOTIFICATION *	Object_to_LPNOTIFICATION(PyObject *obj)
 		return retval_or_null(lpNotif);
 	}
 	if (oTmp != Py_None) {
-		if (PyString_AsStringAndSize(oTmp, reinterpret_cast<char **>(&lpNotif->info.newmail.lpEntryID), &size) < 0)
+		if (PyBytes_AsStringAndSize(oTmp, reinterpret_cast<char **>(&lpNotif->info.newmail.lpEntryID), &size) < 0)
 			return retval_or_null(lpNotif);
 		lpNotif->info.newmail.cbEntryID = size;
 	}
@@ -1829,7 +1776,7 @@ NOTIFICATION *	Object_to_LPNOTIFICATION(PyObject *obj)
 		return retval_or_null(lpNotif);
 	}
 	if (oTmp != Py_None) {
-		if (PyString_AsStringAndSize(oTmp, reinterpret_cast<char **>(&lpNotif->info.newmail.lpParentID), &size) < 0)
+		if (PyBytes_AsStringAndSize(oTmp, reinterpret_cast<char **>(&lpNotif->info.newmail.lpParentID), &size) < 0)
 			return retval_or_null(lpNotif);
 		lpNotif->info.newmail.cbParentID = size;
 	}
@@ -1859,7 +1806,7 @@ NOTIFICATION *	Object_to_LPNOTIFICATION(PyObject *obj)
 	if (oTmp != Py_None) {
 		if (lpNotif->info.newmail.ulFlags & MAPI_UNICODE)
 		    CopyPyUnicode(&lpNotif->info.newmail.lpszMessageClass, oTmp, lpNotif);
-		else if (PyString_AsStringAndSize(oTmp, reinterpret_cast<char **>(&lpNotif->info.newmail.lpszMessageClass), nullptr) == -1)
+		else if (PyBytes_AsStringAndSize(oTmp, reinterpret_cast<char **>(&lpNotif->info.newmail.lpszMessageClass), nullptr) == -1)
 			return retval_or_null(lpNotif);
 	}
 	return retval_or_null(lpNotif);
@@ -1942,7 +1889,7 @@ LPREADSTATE		List_to_LPREADSTATE(PyObject *list, ULONG *lpcElements)
 		lpList[i].ulFlags = PyLong_AsUnsignedLong(flags);
 		if (PyErr_Occurred())
 			return nullptr;
-		if (PyString_AsStringAndSize(sourcekey, &ptr, &len) == -1 ||
+		if (PyBytes_AsStringAndSize(sourcekey, &ptr, &len) == -1 ||
 		    PyErr_Occurred())
 			return retval_or_null(lpList);
 		auto hr = KAllocCopy(ptr, len, reinterpret_cast<void **>(&lpList[i].pbSourceKey), lpList);
@@ -1962,7 +1909,7 @@ PyObject *		List_from_LPREADSTATE(LPREADSTATE lpReadState, ULONG cElements)
 {
 	pyobj_ptr list(PyList_New(0));
 	for (unsigned int i = 0; i < cElements; ++i) {
-		pyobj_ptr sourcekey(PyString_FromStringAndSize(reinterpret_cast<char *>(lpReadState[i].pbSourceKey), lpReadState[i].cbSourceKey));
+		pyobj_ptr sourcekey(PyBytes_FromStringAndSize(reinterpret_cast<char *>(lpReadState[i].pbSourceKey), lpReadState[i].cbSourceKey));
 		if (PyErr_Occurred())
 			return nullptr;
 		pyobj_ptr elem(PyObject_CallFunction(PyTypeREADSTATE, "(Ol)", sourcekey.get(), lpReadState[i].ulFlags));
@@ -1996,7 +1943,7 @@ LPCIID			List_to_LPCIID(PyObject *list, ULONG *cInterfaces)
 		char *ptr = NULL;
 		Py_ssize_t strlen = 0;
 
-		if (PyString_AsStringAndSize(elem, &ptr, &strlen) == -1 ||
+		if (PyBytes_AsStringAndSize(elem, &ptr, &strlen) == -1 ||
 		    PyErr_Occurred())
 			return retval_or_null(lpList);
 		if (strlen != sizeof(*lpList)) {
@@ -2020,7 +1967,7 @@ PyObject *List_from_LPCIID(LPCIID iids, ULONG cElements)
 
 	pyobj_ptr list(PyList_New(0));
 	for (unsigned int i = 0; i < cElements; ++i) {
-		pyobj_ptr iid(PyString_FromStringAndSize(reinterpret_cast<const char *>(&iids[i]), sizeof(IID)));
+		pyobj_ptr iid(PyBytes_FromStringAndSize(reinterpret_cast<const char *>(&iids[i]), sizeof(IID)));
 		if (PyErr_Occurred())
 			return nullptr;
 		PyList_Append(list, iid);
@@ -2079,7 +2026,7 @@ Object_to_MVPROPMAP(PyObject *elem, T *&lpObj, ULONG ulFlags)
 				continue;
 			if ((ulFlags & MAPI_UNICODE) == 0)
 				// XXX: meh, not sure what todo here. Maybe use process_conv_out??
-				lpObj->sMVPropmap.lpEntries[i].lpszValues[j] = reinterpret_cast<TCHAR *>(PyString_AsString(ListItem));
+				lpObj->sMVPropmap.lpEntries[i].lpszValues[j] = reinterpret_cast<TCHAR *>(PyBytes_AsString(ListItem));
 			else
 				CopyPyUnicode(&lpObj->sMVPropmap.lpEntries[i].lpszValues[j], ListItem, lpObj);
 		}
@@ -2121,7 +2068,7 @@ PyObject *Object_from_MVPROPMAP(MVPROPMAP propmap, ULONG ulFlags)
 			if (ulFlags & MAPI_UNICODE)
 				MVPropValue.reset(PyUnicode_FromWideChar(strval, wcslen(strval)));
 			else
-				MVPropValue.reset(PyString_FromStringAndSize(str.c_str(), str.length()));
+				MVPropValue.reset(PyBytes_FromStringAndSize(str.c_str(), str.length()));
 			PyList_Append(MVPropValues, MVPropValue);
 		}
 
@@ -2333,19 +2280,9 @@ LPROWLIST List_to_LPROWLIST(PyObject *object, ULONG ulFlags)
 
 void DoException(HRESULT hr)
 {
-#if PY_VERSION_HEX >= 0x02040300	// 2.4.3
 	pyobj_ptr hrObj(Py_BuildValue("I", static_cast<unsigned int>(hr)));
-#else
-	// Python 2.4.2 and earlier don't support the "I" format so create a
-	// PyLong object instead.
-	pyobj_ptr hrObj(PyLong_FromUnsignedLong(static_cast<unsigned int>(hr)));
-#endif
 
-	#if PY_MAJOR_VERSION >= 3
 	pyobj_ptr attr_name(PyUnicode_FromString("_errormap"));
-	#else
-	pyobj_ptr attr_name(PyString_FromString("_errormap"));
-	#endif
 	pyobj_ptr errormap(PyObject_GetAttr(PyTypeMAPIError, attr_name)), ex;
 	PyObject *errortype = nullptr;
 	if (errormap != NULL) {
@@ -2440,7 +2377,7 @@ ECSVRNAMELIST *List_to_LPECSVRNAMELIST(PyObject *object)
 		char *ptr = NULL;
 		Py_ssize_t strlen = 0;
 
-		if (PyString_AsStringAndSize(elem, &ptr, &strlen) == -1 ||
+		if (PyBytes_AsStringAndSize(elem, &ptr, &strlen) == -1 ||
 		    PyErr_Occurred())
 			return retval_or_null(lpSvrNameList);
 		auto hr = KAllocCopy(ptr, strlen, reinterpret_cast<void **>(&lpSvrNameList->lpszaServer[lpSvrNameList->cServers]), lpSvrNameList);

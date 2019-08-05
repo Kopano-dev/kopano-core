@@ -100,9 +100,7 @@ static HRESULT PyHandleError(PyObject *pyobj)
 		ptraceback.reset(Py_None);
 		Py_INCREF(ptraceback);
 	}
-#if PY_MAJOR_VERSION >= 3
 	PyException_SetTraceback(pvalue, ptraceback);
-#endif
 	if (ptype == nullptr) {
 		assert(false);
 		return S_FALSE;
