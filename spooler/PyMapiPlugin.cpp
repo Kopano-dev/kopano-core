@@ -288,12 +288,8 @@ HRESULT plugin_manager_init(ECConfig *lpConfig,
 {
 	HRESULT			hr = S_OK;
 	std::string strPluginPath = lpConfig->GetSetting("plugin_path");
-	std::string strEnvPython = lpConfig->GetSetting("plugin_manager_path");
 	auto lpEnvPython = getenv("PYTHONPATH");
-	if (lpEnvPython)
-		strEnvPython += std::string(":") + lpEnvPython;
-	setenv("PYTHONPATH", strEnvPython.c_str(), 1);
-	ec_log_debug("PYTHONPATH = %s", strEnvPython.c_str());
+	ec_log_debug("PYTHONPATH = %s", lpEnvPython);
 	Py_Initialize();
 	PyObjectAPtr ptrModule(PyImport_ImportModule("MAPI"));
 	PY_HANDLE_ERROR(ptrModule);
