@@ -12,6 +12,7 @@ import sys
 from collections import defaultdict
 
 from MAPI.Util import *
+from MAPI.Struct import MAPIErrorNetworkError, MAPIErrorDiskError
 from MAPI.Tags import (PS_COMMON, PS_ARCHIVE,
                        PR_SENDER_EMAIL_ADDRESS_W, PR_SENDER_ENTRYID,
                        PR_SENDER_NAME_W, PR_SENDER_ADDRTYPE_W,
@@ -301,12 +302,17 @@ class Service(kopano.Service):
                 self.log.info("importing folder '%s'", path)
                 if self.options.import_root:
                     path = self.options.import_root + '/' + path
-
-                folder2 = store.folder(path, create=True)
-                if self.options.clean_folders:
-                    folder2.empty()
-                if folder.ContainerClass:
-                    folder2.container_class = folder.ContainerClass
+                while True:
+                    try:
+                        folder2 = store.folder(path, create=True)
+                        if self.options.clean_folders:
+                            folder2.empty()
+                        if folder.ContainerClass:
+                            folder2.container_class = folder.ContainerClass
+                        break
+                    except (MAPIErrorNetworkError, MAPIErrorDiskError) as e:
+                        self.log.warning("{}: Connection to server lost, retrying in 5 sec".format(e))
+                        time.sleep(5)
 
                 if import_nids:
                     for nid in import_nids:
@@ -332,13 +338,20 @@ class Service(kopano.Service):
             type_ = 'item'
 
         with log_exc(self.log, self.stats):
-            self.log.debug("importing %s '%s' (NID=%d)" % (type_, rev_cp1252(message.Subject or ''), message.nid.nid))
-            message2 = folder2.create_item(save=False)
-            self.entryid_map[message.EntryId] = message2.entryid
-            self.import_attachments(message, message2.mapiobj)
-            self.import_recipients(message, message2.mapiobj)
-            self.import_props(message, message2.mapiobj)
-            self.stats['messages'] += 1
+            while True:
+                try:
+                    self.log.debug("importing %s '%s' (NID=%d)" % (type_, rev_cp1252(message.Subject or ''), message.nid.nid))
+                    message2 = folder2.create_item(save=False)
+                    self.entryid_map[message.EntryId] = message2.entryid
+                    self.import_attachments(message, message2.mapiobj)
+                    self.import_recipients(message, message2.mapiobj)
+                    self.import_props(message, message2.mapiobj)
+                    self.stats['messages'] += 1
+                    break
+                except (MAPIErrorNetworkError, MAPIErrorDiskError) as e:
+                    self.log.warning("{}: Connection to server lost, retrying in 5 sec".format(e))
+                    time.sleep(5)
+
 
     def rewrite_entryids(self, store):
         # distribution lists
