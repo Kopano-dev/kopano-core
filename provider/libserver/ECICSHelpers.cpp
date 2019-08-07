@@ -755,7 +755,8 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 	// stop doing work here. Also, if we have converted from a non-restricted to a restricted set, we have to write
 	// the new set of messages, even if there are no changes.
 	if (m_ulChangeCnt == 0 && m_ulChangeId > 0 && !(m_setLegacyMessages.empty() && m_lpsRestrict) ) {
-		assert(ulMaxChange >= m_ulChangeId);
+		if (!(ulMaxChange >= m_ulChangeId))
+			ec_log_warn("K-1254: soft assert (ulMaxChange >= m_ulChangeId) failed");
 		*lpulMaxChange = ulMaxChange;
 		// Delete all entries that have a changeid that are greater to the new change id.
 		std::string strQuery = "DELETE FROM syncedmessages WHERE sync_id=" + stringify(m_ulSyncId) + " AND change_id>" + stringify(ulMaxChange);
@@ -844,7 +845,8 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 		std::copy(setChangeIds.begin(), iter, std::inserter(setDeleteIds, setDeleteIds.begin()));
 
 		if (!setDeleteIds.empty()) {
-			assert(setChangeIds.size() - setDeleteIds.size() <= 9);
+			if (!(setChangeIds.size() - setDeleteIds.size() <= 9))
+				ec_log_warn("K-1255: soft assert (setChangeIds.size() - setDeleteIds.size() <= 9) failed");
 			strQuery = "DELETE FROM syncedmessages WHERE sync_id=" + stringify(m_ulSyncId) + " AND change_id IN (";
 			for (auto del_id : setDeleteIds) {
 				strQuery.append(stringify(del_id));

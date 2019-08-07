@@ -5963,7 +5963,6 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, const char *szUserName,
 				return KCERR_NOT_FOUND;
 		}
 		else {
-			assert(false);
 			return KCERR_NOT_FOUND;
 		}
 	}
@@ -7082,7 +7081,6 @@ SOAP_ENTRY_START(copyFolder, *result, const entryId &sEntryId,
 	}
 	if(ulDestStoreId != ulSourceStoreId) {
 		ec_log_err("SOAP::copyFolder copy from/to different stores (from %u to %u) is not supported", ulSourceStoreId, ulDestStoreId);
-		assert(false);
 		return KCERR_NO_SUPPORT;
 	}
 

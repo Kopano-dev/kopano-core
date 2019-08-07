@@ -25,11 +25,10 @@ global:
 	pbGlobalProfileSectionGuid;
 	extern "C++" {
 		KC::*;
-		typeinfo*;
-		vtable*;
-		VTT*;
 		std::*::_S_*;
 	};
+	_ZG*;
+	_ZT*;
 local:
 	*;
 };

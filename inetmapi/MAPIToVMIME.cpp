@@ -384,7 +384,7 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 				lpVMMessageBuilder->getTextPart()->getType() == vmime::mediaType(vmime::mediaTypes::TEXT, vmime::mediaTypes::TEXT_HTML))
 			{
 				// add inline object to html part
-				vmime::mapiTextPart& textPart = dynamic_cast<vmime::mapiTextPart&>(*lpVMMessageBuilder->getTextPart());
+				auto &textPart = dynamic_cast<mapiTextPart &>(*lpVMMessageBuilder->getTextPart());
 				// had szFilename .. but how, on inline?
 				// @todo find out how Content-Disposition receives highchar filename... always UTF-8?
 				if (inputDataStream != nullptr)
@@ -1179,7 +1179,7 @@ HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder 
 			if (m_vmCharset.getName() != m_strHTMLCharset)
 				// convert from HTML charset to vmime output charset
 				strHTMLOut = m_converter.convert_to<string>(m_vmCharset.getName().c_str(), strHTMLOut, rawsize(strHTMLOut), m_strHTMLCharset.c_str());
-			vmime::shared_ptr<vmime::mapiTextPart> textPart = vmime::dynamicCast<vmime::mapiTextPart>(lpVMMessageBuilder->getTextPart());
+			auto textPart = vmime::dynamicCast<mapiTextPart>(lpVMMessageBuilder->getTextPart());
 			textPart->setText(vmime::make_shared<vmime::stringContentHandler>(strHTMLOut));
 			textPart->setCharset(m_vmCharset);
 			if (!strBodyConverted.empty())
@@ -1201,7 +1201,7 @@ HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder 
 			vmime::utility::outputStreamStringAdapter out(outString);
 			vmBodyEncoder->encode(in, out);
 			lpVMMessageBuilder->getTextPart()->setCharset(m_vmCharset);
-			vmime::dynamicCast<vmime::mapiTextPart>(lpVMMessageBuilder->getTextPart())->setPlainText(vmime::make_shared<vmime::stringContentHandler>(outString, bodyEncoding));
+			vmime::dynamicCast<mapiTextPart>(lpVMMessageBuilder->getTextPart())->setPlainText(vmime::make_shared<vmime::stringContentHandler>(outString, bodyEncoding));
 		}
 	} catch (const vmime::exception &e) {
 		ec_log_err("VMIME exception: %s", e.what());
@@ -1868,7 +1868,7 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
 					goto tnef_anyway;
 				}
 
-				vmime::shared_ptr<vmime::mapiTextPart> lpvmMapiText = vmime::dynamicCast<vmime::mapiTextPart>(lpVMMessageBuilder->getTextPart());
+				auto lpvmMapiText = vmime::dynamicCast<mapiTextPart>(lpVMMessageBuilder->getTextPart());
 				lpvmMapiText->setOtherText(vmime::make_shared<vmime::stringContentHandler>(ical));
 				lpvmMapiText->setOtherContentType(vmime::mediaType(vmime::mediaTypes::TEXT, "calendar"));
 				lpvmMapiText->setOtherContentEncoding(vmime::encoding(vmime::encodingTypes::EIGHT_BIT));

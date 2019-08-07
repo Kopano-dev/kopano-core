@@ -63,13 +63,13 @@
 
 // register new service, really hacked from (src/net/builtinServices.inl)
 #include "serviceRegistration.inl"
-REGISTER_SERVICE(smtp::MAPISMTPTransport, mapismtp, TYPE_TRANSPORT);
+REGISTER_SERVICE(KC::MAPISMTPTransport, mapismtp, TYPE_TRANSPORT);
 
-using namespace KC;
+namespace KC {
 
-namespace vmime {
-namespace net {
-namespace smtp {
+using namespace vmime;
+using namespace vmime::net;
+using namespace vmime::net::smtp;
 
 MAPISMTPTransport::MAPISMTPTransport(vmime::shared_ptr<session> sess,
     vmime::shared_ptr<security::authenticator> auth, const bool secured) :
@@ -581,6 +581,4 @@ vmime::shared_ptr<SMTPResponse> MAPISMTPTransport::readResponse(void)
 
 SMTPServiceInfos MAPISMTPTransport::sm_infos(false);
 
-} // smtp
-} // net
-} // vmime
+} /* namespace */

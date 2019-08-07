@@ -7,11 +7,10 @@ global:
 KC_@PACKAGE_ABI@ {
 global:
 	extern "C++" {
-		typeinfo*;
-		vtable*;
-		VTT*;
 		std::*::_S_*;
 	};
+	_ZG*;
+	_ZT*;
 	/* unlucky gsoap linkage */
 	namespaces;
 local:

@@ -118,8 +118,8 @@ Hex representation that might show up during debug:
 
 	00000000D6B33C45FF074F2288F544E3492E4D0D0100000001000000~
 	--------ggggggggggggggggggggggggggggggggvvvvvvvvttttffff~
-	~58178E703AD6441C9F78DDAB015453D300000000
-	~uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuPPPPPPPP
+	~58178E703AD6441C9F78DDAB015453D3..
+	~uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuSS+PP+
 
 	-: standard entryid flags, e.g. lifetime/scope
 	g: store GUID
@@ -127,9 +127,11 @@ Hex representation that might show up during debug:
 	t: type (MAPI_FOLDER / MAPI_MESSAGE / ...)
 	f: flags
 	u: randomly-generated GUID, different for each object
+	S: redirect URL
 	P: padding
 
-	Size: always 48 bytes
+	Size: 48 bytes
+	Size: 48+variadic (for stores under certain circumstances)
 
 EID v1 is not conforming to AF2. Whether this was a historic design mistake or
 an acceptable choice has not been researched as of yet.
@@ -137,6 +139,45 @@ an acceptable choice has not been researched as of yet.
 Because the portion left of the pad bytes always has a multiple-of-4 length,
 the padding turns out to be redundant. This is a historic design mistake
 throughout many EID forms.
+
+
+== Server part of an entryid ==
+
+The IExchangeManageStore::CreateEntryStoreID routine can be used to obtain the
+store entryid for given a user/mailbox name. This causes a resolveUserStore
+RPC, whose respones contains:
+
+	* userid: owner of the store (see section "Security objects")
+	* sUserId: ABEID of owner
+	* sStoreId: PR_ENTRYID from SQL indexedproperties.val_binary
+	* guid: store GUID from SQL stores.guid column
+	* lpszServerPath: pseudo:// + server_name
+	* return code is generally erSuccess
+
+If the store is located on another homeserver, a redirect (KC "redirect", not
+HTTP 301/302/307 Redirect) is issued:
+
+	* lpszServerPath: scheme:// + homeserver
+	* other fields: 0/empty
+	* return code is KCERR_UNABLE_TO_COMPLETE
+
+The error code is used (by a caller) to determine if a redirect needs to be
+followed or not. The raison d'être for pseudo:// is not entirely clear, but it
+is a second indicator for the same thing. Since clients may be relying on the
+behavior, it cannot easily be changed, though.
+
+Similar to the resolveUserStore RPC, there is also the getPublicStore RPC. This
+one is only invokable with a WSTransport, which is internal to libkcclient and
+therefore not exposed to MAPI users. The RPC equally yields
+
+	* scheme:// and KCERR_UNABLE_TO_COMPLETE when a redirect is needed
+	* otherwise pseudo:// and erSuccess.
+
+Such redirects are only issued in these two instances, and both involve
+querying stores as part of getting ready to open them. Once the redirect is
+processed, the server field is set to the zero-length string and thus
+essentially removed, leaving only the padding, giving EIDs the familiar 48-byte
+look.
 
 
 == ZCP/KC EID v0 ==
@@ -148,8 +189,8 @@ hard-coded always-there objects.
 hardcoded entryids only appear in SQL statements and so there was no need
 (unlike abcont_1, see below) to have an instantiable variant.
 
-	000000008962FFEFFB7B4D639BC5967C4BB5823400000000010000000100000000000000
-	--------ggggggggggggggggggggggggggggggggvvvvvvvvttttffffnnnnnnnnPPPPPPPP
+	000000008962FFEFFB7B4D639BC5967C4BB58234000000000100000001000000..
+	--------ggggggggggggggggggggggggggggggggvvvvvvvvttttffffnnnnnnnnSS+PP+
 
 	-: standard entryid flags
 	g: store GUID
@@ -157,6 +198,7 @@ hardcoded entryids only appear in SQL statements and so there was no need
 	t: type (MAPI_FOLDER / MAPI_MESSAGE / ...)
 	f: flags
 	n: object id (id in SQL "hierarchy" table; hierarchyid in others)
+	S: redirect URL
 	P: padding
 
 	Size: always 36 bytes
@@ -342,17 +384,6 @@ ZCP/KC:
 This non-standard layout is not just a mapi4linux thing; in fact,
 zarafa6client.dll (which uses MAPI32 and not mapi4linux) always sends ZCP-style
 storewrap EIDs when it does.
-
-
-== IExchangeManageStore::CreateStoreEntryID ==
-
-Lookup happens by user/mailbox name.
-The resolveUserStore RPC respones contains:
-
-	* userid: owner of the store (see section "Security objects")
-	* sUserId: ABEID of owner
-	* sStoreId: PR_ENTRYID from SQL indexedproperties.val_binary
-	* guid: store GUID from SQL stores.guid column
 
 
 == Basic private store layout ==
