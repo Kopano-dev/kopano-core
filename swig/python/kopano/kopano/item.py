@@ -15,10 +15,7 @@ import os
 import sys
 import traceback
 
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
+import pickle
 
 import inetmapi
 import icalmapi
