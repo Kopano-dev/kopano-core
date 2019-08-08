@@ -1,4 +1,5 @@
 pytz
+tzlocal
 dateutil
 PIL
 MAPI

@@ -41,7 +41,6 @@ from MAPI.Time import (
 from dateutil.rrule import (
     DAILY, WEEKLY, MONTHLY, MO, TU, TH, FR, WE, SA, SU, rrule, rruleset
 )
-import dateutil.tz
 
 from .compat import (
     repr as _repr, benc as _benc, bdec as _bdec, fake_unicode as _unicode
@@ -54,8 +53,6 @@ from .defs import (
     ARO_LOCATION, ARO_BUSYSTATUS, ARO_ATTACHMENT, ARO_SUBTYPE,
     ARO_APPTCOLOR, ASF_CANCELED, FB_STATUS, STATUS_FB
 )
-
-LOCAL = dateutil.tz.tzlocal()
 
 from .attendee import Attendee
 
@@ -376,8 +373,8 @@ class Recurrence(object):
         """
         recurrences = self.recurrences
         if start and end:
-            start = _timezone._tz2(start, LOCAL, self._tzinfo)
-            end = _timezone._tz2(end, LOCAL, self._tzinfo)
+            start = _timezone._tz2(start, _timezone.LOCAL, self._tzinfo)
+            end = _timezone._tz2(end, _timezone.LOCAL, self._tzinfo)
             recurrences = recurrences.between(start, end)
 
         start_exc_ext = {}
@@ -496,13 +493,13 @@ class Recurrence(object):
         if start:
             if tzinfo:
                 # Convert to item timezone to ensure the offset is correct.
-                start = _timezone._tz2(start, LOCAL, tzinfo)
+                start = _timezone._tz2(start, _timezone.LOCAL, tzinfo)
             self._starttime_offset = start.hour * 60 + start.minute
         end = item.end
         if end:
             if tzinfo:
                 # Convert to item timezone to ensure the offset is correct.
-                end = _timezone._tz2(end, LOCAL, tzinfo)
+                end = _timezone._tz2(end, _timezone.LOCAL, tzinfo)
             self._endtime_offset = end.hour * 60 + end.minute
         if save:
             self._save()
@@ -1013,7 +1010,7 @@ class Recurrence(object):
         if (cal_item.get(PidLidReminderSet) and \
             cal_item.get(PidLidReminderDelta)):
             next_date = self.recurrences.after(
-                datetime.datetime.now(self._tzinfo).replace(tzinfo=None))
+                datetime.datetime.now(_timezone.UTC).astimezone(self._tzinfo).replace(tzinfo=None))
             if next_date:
                 next_date = _timezone._to_utc(next_date, self._tzinfo)
                 dueby = next_date - datetime.timedelta(
