@@ -5,14 +5,14 @@ set -e
 # created by make, unmodified $PACKAGE_VERSION
 acver=$(cat .version)
 if test -z "$acver"; then
-	echo "Missing the .version file as created by make."
+	>&2 echo "Missing the .version file as created by make."
 	exit 1
 fi
 # created by user/buildservice, with desired suffixes
 version=$(cat version 2>/dev/null || .)
 if test -z "$version"; then version="$acver"; fi
 if perl -e 'exit!($ARGV[1]!~/^\Q$ARGV[0]\E\b/)' "$acver" "$version"; then
-	echo "You can only append, not override, the version specified in AC_INIT."
+	>&2 echo "You can only append, not override, the version specified in AC_INIT."
 	exit 1
 fi
 set -- $(echo "$version" | sed -e 's/ .*//g;s/[^0-9a-z][^0-9a-z]*/ /g' 2>/dev/null)
