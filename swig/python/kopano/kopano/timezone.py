@@ -17,15 +17,15 @@ import calendar
 import datetime
 import struct
 
-import dateutil.tz
 from dateutil.relativedelta import (
     relativedelta, MO, TU, TH, FR, WE, SA, SU
 )
 import pytz
+import tzlocal
 
 RRULE_WEEKDAYS = {0: SU, 1: MO, 2: TU, 3: WE, 4: TH, 5: FR, 6: SA}
-UTC = dateutil.tz.tzutc()
-LOCAL = dateutil.tz.tzlocal()
+UTC = pytz.utc
+LOCAL = tzlocal.get_localzone()
 TZFMT = '<lll H HHHHHHHH H HHHHHHHH'
 
 # convert MAPI timezone struct to datetime-compatible tzinfo class
@@ -157,11 +157,22 @@ def _timezone_struct(name):
 
 # conversion helpers
 
+def _to_naive(date):
+    if date.tzinfo is not None:
+        date = date.replace(tzinfo=None)
+    return date
+
+def _to_tz(date, tzinfo):
+    if hasattr(tzinfo, 'localize'):
+        return tzinfo.localize(_to_naive(date))
+    else:
+        return date.replace(tzinfo=tzinfo)
+
 def _from_utc(date, tzinfo):
-    return date.replace(tzinfo=UTC).astimezone(tzinfo).replace(tzinfo=None)
+    return UTC.localize(_to_naive(date)).astimezone(tzinfo).replace(tzinfo=None)
 
 def _to_utc(date, tzinfo): # TODO local??
-    return date.replace(tzinfo=tzinfo).astimezone(UTC).replace(tzinfo=None)
+    return _to_tz(date, tzinfo).astimezone(UTC).replace(tzinfo=None)
 
 def _tz2(date, tz1, tz2):
-    return date.replace(tzinfo=tz1).astimezone(tz2).replace(tzinfo=None)
+    return _to_tz(date, tz1).astimezone(tz2).replace(tzinfo=None)
