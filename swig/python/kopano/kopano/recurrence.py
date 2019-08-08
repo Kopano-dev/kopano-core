@@ -842,11 +842,15 @@ class Recurrence(object):
             end = None
         else:
             end = self.end + datetime.timedelta(minutes=self._endtime_offset)
-            # FIXME: add one day, so that we don't miss the last recurrence,
-            # since the end date is for example 11-3-2015 on 1:00
-            # But the recurrence is on 8:00 that day and we should include it.
+            # NOTE(longsleep): Move time to end of the last day so that we don't
+            # miss the last recurrence, since the end date is for example
+            # 11-3-2015 on 1:00 but the recurrence is on 8:00 that day and we
+            # should include it.
+            # TODO(longsleep): Figure out why this is not done for start as well.
+            # TODO(longsleep): Figure out why this is not done for monthly.
+            # TODO(longsleep): Maybe this can be removed? Add test case.
             if self._pattern_type == PATTERN_WEEKLY:
-                end += datetime.timedelta(days=1)
+                end = end.replace(hour=23, minute=59, second=59, microsecond=999999)
 
         # TODO for occurrence count?
 
