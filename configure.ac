@@ -123,6 +123,9 @@ AS_CASE([$host_os],
 		LN_TFSV="ln -fs"
 	])
 
+AC_ARG_ENABLE([dovecot], [AS_HELP_STRING([--enable-dovecot], [Build dovecot modules (default: disabled)])])
+AM_CONDITIONAL([WITH_DOVECOT], [test "$enable_dovecot" = yes])
+
 AS_IF([test "$want_base" != no], [
 
 #
@@ -228,9 +231,6 @@ AC_ARG_ENABLE(coverage,
 		ZLDFLAGS="$ZLDFLAGS -lgcov"
 	  ])
     ])
-
-AC_ARG_ENABLE([dovecot], [AS_HELP_STRING([--enable-dovecot], [Build dovecot modules (default: disabled)])])
-AM_CONDITIONAL([WITH_DOVECOT], [test "$enable_dovecot" = yes])
 
 # stats client requires ncurses(w) for --top
 # check wide version before non-wide version
