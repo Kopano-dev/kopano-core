@@ -371,7 +371,12 @@ class Recurrence(object):
         :param start: start of time window (optional)
         :param end: end of time window (optional)
         """
-        recurrences = self.recurrences
+        try:
+            recurrences = self.recurrences
+        except Exception:
+            self.item.server.log.exception('failed to expand recurrence, skipped %r', self.item.entryid)
+            return
+
         if start and end:
             start = _timezone._tz2(start, _timezone.LOCAL, self._tzinfo)
             end = _timezone._tz2(end, _timezone.LOCAL, self._tzinfo)
