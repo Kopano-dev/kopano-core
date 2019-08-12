@@ -213,7 +213,7 @@ class Recurrence(object):
              (PATTERN_WEEKLY, PATTERN_MONTHNTH, PATTERN_HJMONTHNTH)):
             pts = 0
             for weekday in value:
-                pts |= (1 << WEEKDAYS_REV[weekday])
+                pts |= (1 << WEEKDAYS_REV[weekday.lower()])
             self._pattern_type_specific[0] = pts
 
         self._weekdays = value
