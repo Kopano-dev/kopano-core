@@ -428,7 +428,7 @@ AC_ARG_WITH(vmime-prefix,
 AC_SUBST(VMIME_CFLAGS)
 AC_SUBST(VMIME_LIBS)
 
-PKG_CHECK_MODULES([GSOAP], [gsoapssl++ >= 2.8.49])
+PKG_CHECK_MODULES([GSOAP], [gsoapssl++ >= 2.8.73])
 
 ICAL_CFLAGS=""
 ICAL_LIBS="-lical -licalss"

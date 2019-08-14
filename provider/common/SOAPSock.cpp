@@ -128,13 +128,13 @@ HRESULT CreateSoapTransport(ULONG ulUIFlags,
 	soap_set_imode(lpCmd->soap, iSoapiMode);
 	soap_set_omode(lpCmd->soap, iSoapoMode);
 
-	lpCmd->endpoint = strdup(strServerPath);
+	lpCmd->soap_endpoint_url = strdup(strServerPath);
 
 	// default allow SSLv3, TLSv1, TLSv1.1 and TLSv1.2
 	lpCmd->soap->ctx = SSL_CTX_new(SSLv23_method());
 
 #ifdef WITH_OPENSSL
-	if (strncmp("https:", lpCmd->endpoint, 6) == 0) {
+	if (strncmp("https:", lpCmd->soap_endpoint_url, 6) == 0) {
 		// no need to add certificates to call, since soap also calls SSL_CTX_set_default_verify_paths()
 		if(soap_ssl_client_context(lpCmd->soap,
 								SOAP_SSL_DEFAULT | SOAP_SSL_SKIP_HOST_CHECK,
@@ -158,7 +158,7 @@ HRESULT CreateSoapTransport(ULONG ulUIFlags,
 	}
 #endif
 
-	if(strncmp("file:", lpCmd->endpoint, 5) == 0) {
+	if (strncmp("file:", lpCmd->soap_endpoint_url, 5) == 0) {
 		lpCmd->soap->fconnect = gsoap_connect_pipe;
 		lpCmd->soap->fpost = http_post;
 	} else {
@@ -179,7 +179,7 @@ HRESULT CreateSoapTransport(ULONG ulUIFlags,
 exit:
 	if (hr != hrSuccess && lpCmd) {
 		/* strdup'd them earlier */
-		free(const_cast<char *>(lpCmd->endpoint));
+		free(const_cast<char *>(lpCmd->soap_endpoint_url));
 		delete lpCmd;
 	}
 
@@ -192,7 +192,7 @@ VOID DestroySoapTransport(KCmd *lpCmd)
 		return;
 
 	/* strdup'd all of them earlier */
-	free(const_cast<char *>(lpCmd->endpoint));
+	free(const_cast<char *>(lpCmd->soap_endpoint_url));
 	free(const_cast<char *>(lpCmd->soap->proxy_host));
 	free(const_cast<char *>(lpCmd->soap->proxy_userid));
 	free(const_cast<char *>(lpCmd->soap->proxy_passwd));
