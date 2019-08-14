@@ -1036,7 +1036,7 @@ static int main2(int argc, char **argv)
 		return g_lpConfig->dump_config(stdout) == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 
 	if (!bDoSentMail)
-		ec_log_always("Starting kopano-spooler version " PROJECT_VERSION " (pid %d uid %u)", getpid(), getuid());
+                ec_log_always("Starting kopano-spooler version " PROJECT_VERSION " (pid %d uid %u)", getpid(), getuid());
 	else
 		ec_log_debug("Starting kopano-spooler worker");
 	if (!TmpPath::instance.OverridePath(g_lpConfig.get()))
@@ -1051,6 +1051,17 @@ static int main2(int argc, char **argv)
 			ec_log_err("Use of Python (plugin_enabled=yes) forces process_model=fork");
 		else
 			g_use_threads = true;
+	}
+	 // set python-path environment if plugins are enabled. Set only once.
+	 const char* env_spooler_flag = "KC_SPOOLER_ENV";
+	 if (parseBool(g_lpConfig->GetSetting("plugin_enabled")) && getenv(env_spooler_flag) == nullptr) {
+	 	setenv(env_spooler_flag, "1", 1);
+	        std::string strEnvPython = g_lpConfig->GetSetting("plugin_manager_path");
+	        auto lpEnvPython = getenv("PYTHONPATH");
+	        if (lpEnvPython)
+	 		strEnvPython += std::string(":") + lpEnvPython;
+	        setenv("PYTHONPATH", strEnvPython.c_str(), 1);
+	        ec_log_debug("PYTHONPATH = %s", strEnvPython.c_str());
 	}
 	if (g_use_threads)
 		g_lpLogger->SetLogprefix(LP_TID);
