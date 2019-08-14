@@ -70,9 +70,6 @@ public:
 	virtual const std::list<std::string> *GetWarnings(void) = 0;
 	virtual bool	HasErrors() = 0;
 	virtual const std::list<std::string> *GetErrors(void) = 0;
-
-	virtual bool WriteSettingToFile(const char *szName, const char *szValue, const char* szFileName) = 0;
-	virtual bool WriteSettingsToFile(const char* szFileName) = 0;
 };
 
 #endif // ECCONFIG_H
