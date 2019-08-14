@@ -428,12 +428,7 @@ AC_ARG_WITH(vmime-prefix,
 AC_SUBST(VMIME_CFLAGS)
 AC_SUBST(VMIME_LIBS)
 
-dnl Stupid gsoap not abstracting properly! If our -Ds do not match with what
-dnl gsoap was compiled with, we are in trouble.
-GSOAP_CFLAGS="-DWITH_OPENSSL -DWITH_GZIP -DHAVE_OPENSSL_SSL_H -DHAVE_ZLIB_H"
-GSOAP_LIBS="-lgsoapssl++"
-AC_SUBST(GSOAP_CFLAGS)
-AC_SUBST(GSOAP_LIBS)
+PKG_CHECK_MODULES([GSOAP], [gsoapssl++ >= 2.8.49])
 
 ICAL_CFLAGS=""
 ICAL_LIBS="-lical -licalss"
@@ -819,7 +814,6 @@ PHP flags	:	$PHP_INCLUDES
 PHP libs	:	$PHP_LIBS
 gSOAP flags	:	$GSOAP_CFLAGS
 gSOAP libs	:	$GSOAP_LIBS
-gSOAP soapcpp2	:	$GSOAP_SOAPCPP2
 OpenSSL libs	:	$SSL_LIBS
 MySQL flags	:	$MYSQL_INCLUDES
 MySQL libs	:	$MYSQL_LIBS
