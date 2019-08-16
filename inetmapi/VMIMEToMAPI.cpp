@@ -18,6 +18,7 @@
 #include <kopano/hl.hpp>
 #include <kopano/memory.hpp>
 #include <kopano/scope.hpp>
+#include <kopano/tie.hpp>
 #include <algorithm>
 #include <memory>
 #include <string>
@@ -1635,9 +1636,7 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 	AttachPtr ptrAttach;
 	ULONG ulAttNr = 0;
 	std::unique_ptr<ICalToMapi> lpIcalMapi;
-	ICalToMapi *tmpicalmapi;
 	SPropValuePtr ptrSubject;
-	ULONG ical_mapi_flags = IC2M_NO_RECIPIENTS | IC2M_APPEND_ONLY;
 	/*
 	 * Some senders send UTF-8 iCalendar information without a charset
 	 * (Exchange does this). Default to UTF-8 if no charset was specified,
@@ -1680,8 +1679,7 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 		lpIcalMessage = ptrNewMessage.get();
 	}
 
-	auto hr = CreateICalToMapi(lpMessage, m_lpAdrBook, true, &tmpicalmapi);
-	lpIcalMapi.reset(tmpicalmapi);
+	auto hr = CreateICalToMapi(lpMessage, m_lpAdrBook, true, &unique_tie(lpIcalMapi));
 	if (hr != hrSuccess)
 		return kc_perror("K-1820: Unable to create iCal converter", hr);
 	hr = lpIcalMapi->ParseICal(icaldata, strCharset, "UTC" , NULL, 0);
@@ -1692,18 +1690,22 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 	}
 
 	if (lpIcalMessage != lpMessage) {
+		/* condition equivalent to bAttachment */
 		hr = lpIcalMapi->GetItem(0, 0, lpIcalMessage);
 		if (hr != hrSuccess)
 			return kc_perror("K-1833: Error while converting iCal to MAPI", hr);
+		memory_ptr<SPropValue> pv;
+		hr = HrGetOneProp(lpIcalMessage, PR_MESSAGE_CLASS_W, &~pv);
+		if (hr == hrSuccess && wcscmp(pv->Value.lpszW, L"IPM.Schedule.Meeting.Request") == 0) {
+			hr = lpIcalMapi->GetItem(0, IC2M_NO_RECIPIENTS | IC2M_APPEND_ONLY | IC2M_NO_BODY, lpMessage);
+			if (hr != hrSuccess)
+				return kc_perror("K-1834: Error while converting iCal to MAPI", hr);
+		}
+	} else {
+		hr = lpIcalMapi->GetItem(0, IC2M_NO_RECIPIENTS | IC2M_APPEND_ONLY, lpMessage);
+		if (hr != hrSuccess)
+			return kc_perror("K-1835: Error while converting iCal to MAPI", hr);
 	}
-
-	if (bIsAttachment)
-		ical_mapi_flags |= IC2M_NO_BODY;
-
-	/* Calendar properties need to be on the main message in any case. */
-	hr = lpIcalMapi->GetItem(0, ical_mapi_flags, lpMessage);
-	if (hr != hrSuccess)
-		return kc_perror("K-1834: Error while converting iCal to MAPI", hr);
 
 	/* Evaluate whether vconverter gave us an initial body */
 	if (!bIsAttachment && m_mailState.bodyLevel < BODY_PLAIN &&
