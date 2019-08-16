@@ -452,9 +452,22 @@ class Server(object):
         if _company and _company.name != 'Default':
             htable = gab.GetHierarchyTable(0)
             htable.SetColumns([PR_ENTRYID], TBL_BATCH)
-            htable.FindRow(SContentRestriction(FL_FULLSTRING|FL_IGNORECASE, PR_DISPLAY_NAME_W, SPropValue(PR_DISPLAY_NAME_W, _company.name)), BOOKMARK_BEGINNING, 0)
-            row = htable.QueryRows(1, 0)[0]
-            container = gab.OpenEntry(row[0].Value, None, 0)
+            # TODO(longsleep): Find a way to avoid finding the limited table,
+            # if the gab is itself already limited to the same.
+            try:
+                htable.FindRow(SContentRestriction(
+                        FL_FULLSTRING | FL_IGNORECASE,
+                        PR_DISPLAY_NAME_W,
+                        SPropValue(PR_DISPLAY_NAME_W, _company.name)),
+                    BOOKMARK_BEGINNING, 0)
+            except MAPIErrorNotFound:
+                # If not, found we do not have permission to access that row. and
+                # instead fall back to the gab and let it handle access and
+                # limits based on user authentication.
+                container = gab
+            else:
+                row = htable.QueryRows(1, 0)[0]
+                container = gab.OpenEntry(row[0].Value, None, 0)
         else:
             container = gab
 
