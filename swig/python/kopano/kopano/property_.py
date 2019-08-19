@@ -9,7 +9,6 @@ Copyright 2016 - 2019 Kopano and its licensors (see LICENSE file)
 import calendar
 import datetime
 import sys
-import time
 
 from MAPI import (
     PT_ERROR, PT_BINARY, PT_MV_BINARY, PT_UNICODE, PT_LONG, PT_OBJECT,

@@ -61,7 +61,6 @@ except ImportError: # pragma: no cover
     _utils = sys.modules[__package__ + '.utils']
 
 from . import property_ as _prop
-from . import timezone as _timezone
 
 # TODO move all pidlids into separate definition file, plus short description
 # of their meanings
