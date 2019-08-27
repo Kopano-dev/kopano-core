@@ -1119,8 +1119,9 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		 * parent directory needs to exist with right permissions.
 		 * (Official KC builds use #2 as of this writing.)
 		 */
-		if (CreatePath(g_lpConfig->GetSetting("attachment_path")) != 0) {
-			ec_log_err("Unable to create attachment directory '%s'", g_lpConfig->GetSetting("attachment_path"));
+		auto ret = CreatePath(g_lpConfig->GetSetting("attachment_path"));
+		if (ret < 0) {
+			ec_log_err("Unable to create attachment directory \"%s\": %s", g_lpConfig->GetSetting("attachment_path"), strerror(-ret));
 			er = KCERR_DATABASE_ERROR;
 			return retval;
 		}

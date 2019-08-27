@@ -13,7 +13,6 @@
 #include <string>
 #include <map>
 #include <kopano/charset/convert.h>
-#include <kopano/charset/utf8string.h>
 #include "soapKCmdProxy.h"
 
 using namespace KC;

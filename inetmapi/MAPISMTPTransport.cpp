@@ -577,8 +577,6 @@ vmime::shared_ptr<SMTPResponse> MAPISMTPTransport::readResponse(void)
 	return resp;
 }
 
-// Service infos
-
 SMTPServiceInfos MAPISMTPTransport::sm_infos(false);
 
 } /* namespace */

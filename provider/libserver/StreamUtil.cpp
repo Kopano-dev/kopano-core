@@ -20,7 +20,6 @@
 #include <kopano/MAPIErrors.h>
 #include <kopano/scope.hpp>
 #include <kopano/charset/convert.h>
-#include <kopano/charset/utf8string.h>
 #include <ECFifoBuffer.h>
 #include <ECSerializer.h>
 #include <kopano/stringutil.h>

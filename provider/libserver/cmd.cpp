@@ -4761,7 +4761,15 @@ SOAP_ENTRY_START(createStore, *result, unsigned int ulStoreType,
 	er = GetStoreGuidFromEntryId(sStoreId.__size, sStoreId.__ptr, &guidStore);
 	if(er != erSuccess)
 		return er;
-	// Check if there's already a store for the user or group
+	/*
+	 * Check if there is already a store for the user or group.
+	 * [There is a little loophole here: It is possible to create up to one
+	 * store for a given (LDAP) user, per server, because
+	 * 1. There is no check for the homeserver.
+	 * 2. The homeserver can be changed in the LDAP anyway,
+	 *    defeating such a check.
+	 * ]
+	 */
 	strQuery = "SELECT 0 FROM stores WHERE (type=" + stringify(ulStoreType) + " AND user_id=" + stringify(ulUserId) + ") OR guid=" + lpDatabase->EscapeBinary(&guidStore, sizeof(GUID)) + " LIMIT 1";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
@@ -5940,18 +5948,17 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, const char *szUserName,
 			if (strServerName.empty())
 				return KCERR_NOT_FOUND;
 
-			if (strcasecmp(strServerName.c_str(), cfg->GetSetting("server_name")) != 0) {
-				if ((ulFlags & OPENSTORE_OVERRIDE_HOME_MDB) == 0) {
-					std::string strServerPath;
+			if (strcasecmp(strServerName.c_str(), cfg->GetSetting("server_name")) != 0 &&
+			    !(ulFlags & OPENSTORE_OVERRIDE_HOME_MDB)) {
+				std::string strServerPath;
 
-					er = GetBestServerPath(soap, lpecSession, strServerName, &strServerPath);
-					if (er != erSuccess)
-						return er;
-					lpsResponse->lpszServerPath = s_strcpy(soap, strServerPath.c_str());
-					ec_log_info("Redirecting request to \"%s\'", lpsResponse->lpszServerPath);
-					g_lpSessionManager->m_stats->inc(SCN_REDIRECT_COUNT);
-					return KCERR_UNABLE_TO_COMPLETE;
-                }
+				er = GetBestServerPath(soap, lpecSession, strServerName, &strServerPath);
+				if (er != erSuccess)
+					return er;
+				lpsResponse->lpszServerPath = s_strcpy(soap, strServerPath.c_str());
+				ec_log_info("Redirecting request to \"%s\"", lpsResponse->lpszServerPath);
+				g_lpSessionManager->m_stats->inc(SCN_REDIRECT_COUNT);
+				return KCERR_UNABLE_TO_COMPLETE;
 			}
 		}
 		else if (ulStoreTypeMask & ECSTORE_TYPE_MASK_ARCHIVE) {

@@ -18,6 +18,7 @@
 #include <cstdarg>
 #include <cstdlib>
 #include <csignal>
+#include <fcntl.h>
 #include <zlib.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
@@ -828,6 +829,20 @@ static bool eclog_sockable(const char *path)
 #endif
 }
 
+/**
+ * Determines whether the program was (likely) started from a shell.
+ * Generally, shells and their active subprocess have a controlling terminal,
+ * and stderr outputs to the terminal as well. Both of these conditions
+ * are indicators that the program daemon is run in a developer setting.
+ */
+static bool eclog_have_ttys()
+{
+	auto fd = open("/dev/tty", 0);
+	auto ok = fd >= 0 && isatty(STDERR_FILENO);
+	close(fd);
+	return ok;
+}
+
 static void resolve_auto_logger(ECConfig *cfg)
 {
 	auto meth = cfg->GetSetting("log_method");
@@ -836,10 +851,13 @@ static void resolve_auto_logger(ECConfig *cfg)
 		return;
 	if (*file != '\0') {
 		cfg->AddSetting("log_method", "file");
-	} else {
-		cfg->AddSetting("log_method", eclog_sockable("/dev/log") ? "syslog" : "file");
-		cfg->AddSetting("log_file", "-");
+		return;
 	}
+	cfg->AddSetting("log_file", "-");
+	if (eclog_have_ttys() || !eclog_sockable("/dev/log"))
+		cfg->AddSetting("log_method", "file");
+	else
+		cfg->AddSetting("log_method", "syslog");
 }
 
 /**

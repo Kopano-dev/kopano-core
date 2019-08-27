@@ -84,8 +84,6 @@ private:
 	const bool m_isSMTPS;
 	bool m_secured = false;
 	vmime::shared_ptr<vmime::net::connectionInfos> m_cntInfos;
-
-	// Service infos
 	static vmime::net::smtp::SMTPServiceInfos sm_infos;
 
 	// additional data
