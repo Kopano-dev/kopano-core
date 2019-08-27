@@ -114,6 +114,13 @@ typedef object_ptr<WSTransport> WSTransportPtr;
 // FIXME: from libserver/ECMAPI.h
 #define MSGFLAG_DELETED                           ((ULONG) 0x00000400)
 
+static HRESULT CreateSpecialFolder(IMAPIFolder *container, ECMAPIProp *sp_folder, const TCHAR *name, const TCHAR *comment, unsigned int proptag, unsigned int mvpos, const TCHAR *cls, IMAPIFolder **outfld);
+static HRESULT make_additional_folder(IMAPIFolder *root, IMAPIFolder *inbox, unsigned int type, KC::object_ptr<IMAPIFolder> &out, const TCHAR *container, bool hidden);
+static HRESULT make_special_folder(ECMAPIProp *container, KC::object_ptr<IMAPIFolder> &sp_folder, unsigned int proptag, unsigned int mvpos, const TCHAR *cls, IMAPIFolder **outfld);
+static HRESULT SetSpecialEntryIdOnFolder(IMAPIFolder *sp_folder, ECMAPIProp *container, unsigned int proptag, unsigned int mvpos);
+static HRESULT CreateAdditionalFolder(IMAPIFolder *root, IMAPIFolder *inbox, IMAPIFolder *subtree, unsigned int type, const TCHAR *name, const TCHAR *comment, const TCHAR *cont_type, bool hidden);
+static HRESULT MsgStoreDnToPseudoUrl(const KC::utf8string &store_dn, KC::utf8string *pseudo_url);
+
 /**
  * ECMsgStore
  **/
@@ -1434,7 +1441,8 @@ static HRESULT CreatePrivateFreeBusyData(LPMAPIFOLDER lpRootFolder,
  * @param lpEntryID EntryID of the folder to add
  * @return result
  */
-HRESULT ECMsgStore::AddRenAdditionalFolder(IMAPIFolder *lpFolder, ULONG ulType, SBinary *lpEntryID)
+static HRESULT AddRenAdditionalFolder(IMAPIFolder *lpFolder,
+    unsigned int ulType, SBinary *lpEntryID)
 {
 	memory_ptr<SPropValue> lpRenEntryIDs;
 	SPropValue sPropValue;
@@ -1482,7 +1490,7 @@ HRESULT ECMsgStore::AddRenAdditionalFolder(IMAPIFolder *lpFolder, ULONG ulType, 
  * @param fHidden TRUE if the folder must be marked hidden with PR_ATTR_HIDDEN
  * @return result
  */
-HRESULT ECMsgStore::CreateAdditionalFolder(IMAPIFolder *lpRootFolder,
+static HRESULT CreateAdditionalFolder(IMAPIFolder *lpRootFolder,
     IMAPIFolder *lpInboxFolder, IMAPIFolder *lpSubTreeFolder, ULONG ulType,
     const TCHAR *lpszFolderName, const TCHAR *lpszComment,
     const TCHAR *lpszContainerType, bool fHidden)
@@ -1514,7 +1522,7 @@ HRESULT ECMsgStore::CreateAdditionalFolder(IMAPIFolder *lpRootFolder,
  * @lpszContainerType:	Container type for the folder
  * @fHidden:		%true if the folder must be marked hidden with PR_ATTR_HIDDEN
  */
-HRESULT ECMsgStore::make_additional_folder(IMAPIFolder *lpRootFolder,
+static HRESULT make_additional_folder(IMAPIFolder *lpRootFolder,
     IMAPIFolder *lpInboxFolder, unsigned int ulType,
     KC::object_ptr<IMAPIFolder> &lpMAPIFolder, const TCHAR *lpszContainerType,
     bool fHidden)
@@ -1548,7 +1556,7 @@ HRESULT ECMsgStore::make_additional_folder(IMAPIFolder *lpRootFolder,
 	return AddRenAdditionalFolder(lpInboxFolder, ulType, &lpPropValueEID->Value.bin);
 }
 
-HRESULT ECMsgStore::create_store_public(ECMsgStore *store,
+static HRESULT create_store_public(ECMsgStore *store,
     IMAPIFolder *root, IMAPIFolder *st, const ENTRYID *user, size_t usize)
 {
 	object_ptr<IMAPIFolder> nst, fld, fld2, fld3;
@@ -1635,7 +1643,7 @@ HRESULT ECMsgStore::create_store_public(ECMsgStore *store,
 	return store->SetProps(2, pv, nullptr);
 }
 
-HRESULT ECMsgStore::create_store_private(ECMsgStore *store,
+static HRESULT create_store_private(ECMsgStore *store,
     ECMAPIFolder *ecroot, IMAPIFolder *root, IMAPIFolder *st)
 {
 	object_ptr<IMAPIFolder> fld, fld3, inbox, cal;
@@ -2028,7 +2036,8 @@ HRESULT ECMsgStore::RemoveStore(const GUID *lpGuid)
 	return lpTransport->HrRemoveStore(lpGuid, 0);
 }
 
-HRESULT ECMsgStore::SetSpecialEntryIdOnFolder(LPMAPIFOLDER lpFolder, ECMAPIProp *lpFolderPropSet, unsigned int ulPropTag, unsigned int ulMVPos)
+static HRESULT SetSpecialEntryIdOnFolder(IMAPIFolder *lpFolder,
+    ECMAPIProp *lpFolderPropSet, unsigned int ulPropTag, unsigned int ulMVPos)
 {
 	ecmem_ptr<SPropValue> lpPropValue, lpPropMVValueNew;
 	LPSPropValue	lpPropMVValue = NULL;
@@ -2079,7 +2088,7 @@ HRESULT ECMsgStore::SetSpecialEntryIdOnFolder(LPMAPIFOLDER lpFolder, ECMAPIProp 
 	return lpFolderPropSet->SetProps(1, lpPropMVValueNew, nullptr);
 }
 
-HRESULT ECMsgStore::CreateSpecialFolder(IMAPIFolder *folder_parent_in,
+static HRESULT CreateSpecialFolder(IMAPIFolder *folder_parent_in,
     ECMAPIProp *folder_propset_in, const TCHAR *lpszFolderName,
     const TCHAR *lpszFolderComment, unsigned int ulPropTag,
     unsigned int ulMVPos, const TCHAR *lpszContainerClass,
@@ -2104,7 +2113,7 @@ HRESULT ECMsgStore::CreateSpecialFolder(IMAPIFolder *folder_parent_in,
 	       ulMVPos, lpszContainerClass, lppMAPIFolder);
 }
 
-HRESULT ECMsgStore::make_special_folder(ECMAPIProp *folder_propset_in,
+static HRESULT make_special_folder(ECMAPIProp *folder_propset_in,
     KC::object_ptr<IMAPIFolder> &lpMAPIFolder, unsigned int ulPropTag,
     unsigned int ulMVPos, const TCHAR *lpszContainerClass,
     IMAPIFolder **lppMAPIFolder)
@@ -2513,7 +2522,7 @@ HRESULT ECMsgStore::TestGet(const char *szName, char **szValue)
  *											'Unknown'. This cannot be resolved. In that case MAPI_E_NO_SUPPORT is returned
  *											So a different strategy can be selected by the calling method.
  */
-HRESULT ECMsgStore::MsgStoreDnToPseudoUrl(const utf8string &strMsgStoreDN, utf8string *lpstrPseudoUrl)
+static HRESULT MsgStoreDnToPseudoUrl(const utf8string &strMsgStoreDN, utf8string *lpstrPseudoUrl)
 {
 	auto parts = tokenize(strMsgStoreDN.str(), "/");
 
