@@ -156,15 +156,15 @@ public:
 	HRESULT GetWrappedServerStoreEntryID(ULONG cbEntryId, LPBYTE lpEntryId, ULONG* lpcbWrapped, LPENTRYID* lppWrapped);
 	HRESULT InternalAdvise(ULONG eid_size, const ENTRYID *, ULONG evt_mask, IMAPIAdviseSink *, ULONG *conn);
 private:
-	HRESULT create_store_public(ECMsgStore *, IMAPIFolder *, IMAPIFolder *, const ENTRYID *, size_t);
-	HRESULT create_store_private(ECMsgStore *, ECMAPIFolder *, IMAPIFolder *, IMAPIFolder *);
-	HRESULT CreateSpecialFolder(LPMAPIFOLDER lpFolderParent, ECMAPIProp *lpFolderPropSet, const TCHAR *lpszFolderName, const TCHAR *lpszFolderComment, unsigned int ulPropTag, unsigned int ulMVPos, const TCHAR *lpszContainerClass, LPMAPIFOLDER *lppMAPIFolder);
-	HRESULT make_special_folder(ECMAPIProp *container, KC::object_ptr<IMAPIFolder> &sp_folder, unsigned int proptag, unsigned int mvpos, const TCHAR *cls, IMAPIFolder **outfld);
-	HRESULT SetSpecialEntryIdOnFolder(LPMAPIFOLDER lpFolder, ECMAPIProp *lpFolderPropSet, unsigned int ulPropTag, unsigned int ulMVPos);
+	static HRESULT create_store_public(ECMsgStore *, IMAPIFolder *, IMAPIFolder *, const ENTRYID *, size_t);
+	static HRESULT create_store_private(ECMsgStore *, ECMAPIFolder *, IMAPIFolder *, IMAPIFolder *);
+	static HRESULT CreateSpecialFolder(IMAPIFolder *container, ECMAPIProp *sp_folder, const TCHAR *name, const TCHAR *comment, unsigned int proptag, unsigned int mvpos, const TCHAR *cls, IMAPIFolder **outfld);
+	static HRESULT make_special_folder(ECMAPIProp *container, KC::object_ptr<IMAPIFolder> &sp_folder, unsigned int proptag, unsigned int mvpos, const TCHAR *cls, IMAPIFolder **outfld);
+	static HRESULT SetSpecialEntryIdOnFolder(IMAPIFolder *sp_folder, ECMAPIProp *container, unsigned int proptag, unsigned int mvpos);
 	HRESULT OpenStatsTable(unsigned int ulTableType, LPMAPITABLE *lppTable);
-	HRESULT CreateAdditionalFolder(IMAPIFolder *lpRootFolder, IMAPIFolder *lpInboxFolder, IMAPIFolder *lpSubTreeFolder, ULONG ulType, const TCHAR *lpszFolderName, const TCHAR *lpszComment, const TCHAR *lpszContainerType, bool fHidden);
-	HRESULT make_additional_folder(IMAPIFolder *root, IMAPIFolder *inbox, unsigned int type, KC::object_ptr<IMAPIFolder> &out, const TCHAR *container, bool hidden);
-	HRESULT AddRenAdditionalFolder(IMAPIFolder *lpFolder, ULONG ulType, SBinary *lpEntryID);
+	static HRESULT CreateAdditionalFolder(IMAPIFolder *root, IMAPIFolder *inbox, IMAPIFolder *subtree, unsigned int type, const TCHAR *name, const TCHAR *comment, const TCHAR *cont_type, bool hidden);
+	static HRESULT make_additional_folder(IMAPIFolder *root, IMAPIFolder *inbox, unsigned int type, KC::object_ptr<IMAPIFolder> &out, const TCHAR *container, bool hidden);
+	static HRESULT AddRenAdditionalFolder(IMAPIFolder *folder, unsigned int type, SBinary *entryid);
 	static HRESULT MsgStoreDnToPseudoUrl(const KC::utf8string &store_dn, KC::utf8string *pseudo_url);
 
 public:
