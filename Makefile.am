@@ -776,27 +776,10 @@ dist_phpsysconf_DATA = php-ext/mapi.ini
 # PHP extension
 #
 phplibdir = ${dcprefix}${PHP_EXTENSION_DIR}
-phplib_LTLIBRARIES =
-mapi_la_CPPFLAGS = ${AM_CPPFLAGS} ${PHP_INCLUDES}
+mapi_la_CPPFLAGS = ${AM_CPPFLAGS} ${PHP_INCLUDES} -I${srcdir}/php-ext
 mapi_la_CXXFLAGS = ${AM_CXXFLAGS} ${ZPHPCXXFLAGS}
-mapi_la_SOURCES =
-if WITH_PHP7
-phplib_LTLIBRARIES += mapi.la
-mapi_la_CPPFLAGS += -I${srcdir}/php7-ext -I${srcdir}/php-ext
-mapi_la_SOURCES += \
-	php7-ext/ECImportContentsChangesProxy.cpp \
-	php7-ext/ECImportContentsChangesProxy.h \
-	php7-ext/ECImportHierarchyChangesProxy.cpp \
-	php7-ext/ECImportHierarchyChangesProxy.h \
-	php-ext/ECRulesTableProxy.cpp php-ext/ECRulesTableProxy.h \
-	php-ext/globals.h php7-ext/main.cpp php-ext/main.h \
-	php-ext/phpconfig.h \
-	php7-ext/typeconversion.cpp php7-ext/typeconversion.h \
-	php-ext/util.cpp php-ext/util.h
-endif
-if WITH_PHP5
-phplib_LTLIBRARIES += mapi.la
-mapi_la_SOURCES += \
+phplib_LTLIBRARIES = mapi.la
+mapi_la_SOURCES = \
 	php-ext/ECImportContentsChangesProxy.cpp \
 	php-ext/ECImportContentsChangesProxy.h \
 	php-ext/ECImportHierarchyChangesProxy.cpp \
@@ -806,7 +789,6 @@ mapi_la_SOURCES += \
 	php-ext/phpconfig.h \
 	php-ext/typeconversion.cpp php-ext/typeconversion.h \
 	php-ext/util.cpp php-ext/util.h
-endif
 mapi_la_LIBADD = libmapi.la libkcutil.la libkcfreebusy.la \
 	libkcinetmapi.la libkcicalmapi.la -lpthread
 mapi_la_SYFLAGS = -Wl,--version-script=${srcdir}/php-ext/mapi.sym

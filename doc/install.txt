@@ -30,7 +30,7 @@ Optional build-time dependencies and their minimum versions:
 	* libtidy 5.0 from tidy-html
 	* Linux-PAM 1.1
 	* OpenLDAP libldap_r 2.4
-	* PHP 5.4
+	* PHP 7.0
 	* Python 3.5 & swig 2.x
 	* rrdtool librrd 1.3
 
