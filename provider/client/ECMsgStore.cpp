@@ -118,7 +118,6 @@ static HRESULT CreateSpecialFolder(IMAPIFolder *container, ECMAPIProp *sp_folder
 static HRESULT make_additional_folder(IMAPIFolder *root, IMAPIFolder *inbox, unsigned int type, KC::object_ptr<IMAPIFolder> &out, const TCHAR *container, bool hidden);
 static HRESULT make_special_folder(ECMAPIProp *container, KC::object_ptr<IMAPIFolder> &sp_folder, unsigned int proptag, unsigned int mvpos, const TCHAR *cls, IMAPIFolder **outfld);
 static HRESULT SetSpecialEntryIdOnFolder(IMAPIFolder *sp_folder, ECMAPIProp *container, unsigned int proptag, unsigned int mvpos);
-static HRESULT CreateAdditionalFolder(IMAPIFolder *root, IMAPIFolder *inbox, IMAPIFolder *subtree, unsigned int type, const TCHAR *name, const TCHAR *comment, const TCHAR *cont_type, bool hidden);
 static HRESULT MsgStoreDnToPseudoUrl(const KC::utf8string &store_dn, KC::utf8string *pseudo_url);
 
 /**
@@ -1485,40 +1484,6 @@ static HRESULT AddRenAdditionalFolder(IMAPIFolder *lpFolder,
 
 	// Set on root folder
 	return lpFolder->SetProps(1, &sPropValue, NULL);
-}
-
-/**
- * Create an outlook 2007/2010 additional folder
- *
- * This function creates an additional folder, and adds the folder entryid in the root folder
- * and the inbox in the additional folders property.
- *
- * @param lpRootFolder Root folder of the store to set the property on
- * @param lpInboxFolder Inbox folder of the store to set the property on
- * @param lpSubTreeFolder Folder to create the folder in
- * @param ulType Type ID For the additional folders struct
- * @param lpszFolderName Folder name
- * @param lpszComment Comment for the folder
- * @param lpszContainerType Container type for the folder
- * @param fHidden TRUE if the folder must be marked hidden with PR_ATTR_HIDDEN
- * @return result
- */
-static HRESULT CreateAdditionalFolder(IMAPIFolder *lpRootFolder,
-    IMAPIFolder *lpInboxFolder, IMAPIFolder *lpSubTreeFolder, ULONG ulType,
-    const TCHAR *lpszFolderName, const TCHAR *lpszComment,
-    const TCHAR *lpszContainerType, bool fHidden)
-{
-	object_ptr<IMAPIFolder> lpMAPIFolder;
-	memory_ptr<SPropValue> lpPropValueEID;
-
-	HRESULT hr = lpSubTreeFolder->CreateFolder(FOLDER_GENERIC,
-	     const_cast<LPTSTR>(lpszFolderName),
-	     const_cast<LPTSTR>(lpszComment), &IID_IMAPIFolder,
-	     OPEN_IF_EXISTS | fMapiUnicode, &~lpMAPIFolder);
-	if(hr != hrSuccess)
-		return hr;
-	return make_additional_folder(lpRootFolder, lpInboxFolder, ulType,
-	       lpMAPIFolder, lpszContainerType, fHidden);
 }
 
 /**
