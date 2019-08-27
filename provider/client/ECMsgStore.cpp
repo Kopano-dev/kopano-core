@@ -2058,6 +2058,8 @@ static HRESULT SetSpecialEntryIdOnFolder(IMAPIFolder *lpFolder,
 	ecmem_ptr<SPropValue> lpPropValue, lpPropMVValueNew;
 	LPSPropValue	lpPropMVValue = NULL;
 
+	if (ulPropTag == 0)
+		return hrSuccess;
 	// Get entryid of the folder
 	HRESULT hr = HrGetOneProp(lpFolder, PR_ENTRYID, &~lpPropValue);
 	if(hr != hrSuccess)
