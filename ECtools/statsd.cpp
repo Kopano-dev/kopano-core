@@ -39,11 +39,6 @@ struct cis_block {
 	std::string udata;
 };
 
-struct socks {
-	std::vector<struct pollfd> pollfd;
-	std::vector<int> linfd;
-};
-
 static const char *opt_config_file;
 static std::shared_ptr<ECConfig> sd_config;
 static std::condition_variable sd_cond_exit;
@@ -163,21 +158,22 @@ static void sd_handle_request(struct soap &&x)
 	x.destroy();
 }
 
-static void sd_check_sockets(struct socks &sk)
+static void sd_check_sockets(std::vector<struct pollfd> &pollfd)
 {
-	for (size_t i = 0; i < sk.linfd.size(); ++i) {
-		if (!(sk.pollfd[i].revents & POLLIN))
+	for (size_t i = 0; i < pollfd.size(); ++i) {
+		if (!(pollfd[i].revents & POLLIN))
 			continue;
 		struct soap x;
-		struct sockaddr_storage peeraddr;
-		socklen_t peerlen = sizeof(peeraddr);
-		if (getsockname(sk.linfd[i], reinterpret_cast<struct sockaddr *>(&peeraddr), &peerlen) == 0 &&
-		    peeraddr.ss_family != AF_LOCAL) {
-			x.master = sk.linfd[i];
+		int domain = AF_UNSPEC;
+		socklen_t dlen = sizeof(domain);
+		if (getsockopt(pollfd[i].fd, SOL_SOCKET, SO_DOMAIN, &domain, &dlen) == 0 &&
+		    domain != AF_LOCAL) {
+			x.master = pollfd[i].fd;
 			soap_accept(&x);
 			x.master = -1;
 		} else {
-			x.socket = accept(sk.linfd[i], &x.peer.addr, &peerlen);
+			socklen_t peerlen = sizeof(x.peer.addr);
+			x.socket = accept(pollfd[i].fd, &x.peer.addr, &peerlen);
 			x.peerlen = peerlen;
 			if (x.socket == SOAP_INVALID_SOCKET ||
 			    peerlen > sizeof(x.peer.storage)) {
@@ -191,28 +187,30 @@ static void sd_check_sockets(struct socks &sk)
 	}
 }
 
-static void sd_mainloop(struct socks &&sk)
+static void sd_mainloop(std::vector<struct pollfd> &&sk)
 {
 	while (!sd_quit) {
-		auto n = poll(&sk.pollfd[0], sk.pollfd.size(), 86400 * 1000);
+		auto n = poll(&sk[0], sk.size(), 86400 * 1000);
 		if (n < 0)
 			continue; /* signalled */
 		sd_check_sockets(sk);
 	}
 }
 
-static HRESULT sd_listen(ECConfig *cfg, struct socks &sk)
+static HRESULT sd_listen(ECConfig *cfg, std::vector<struct pollfd> &pollfd)
 {
+	auto info = ec_bindspec_to_sockets(tokenize(sd_config->GetSetting("statsd_listen"), ' ', true),
+	            S_IRWUG, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+	if (info.first < 0)
+		return EXIT_FAILURE;
+
 	struct pollfd pfd;
 	memset(&pfd, 0, sizeof(pfd));
 	pfd.events = POLLIN;
-	for (const auto &spec : tokenize(cfg->GetSetting("statsd_listen"), ' ', true)) {
-		auto ret = ec_listen_generic(spec.c_str(), &pfd.fd, S_IRWUG,
-		           cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
-		if (ret < 0)
-			return MAPI_E_NETWORK_ERROR;
-		sk.pollfd.push_back(pfd);
-		sk.linfd.push_back(pfd.fd);
+	for (auto &spec : info.second) {
+		pfd.fd = spec.m_fd;
+		spec.m_fd = -1;
+		pollfd.push_back(pfd);
 	}
 	return hrSuccess;
 }
@@ -257,7 +255,7 @@ int main(int argc, const char **argv) try
 	sigaction(SIGTERM, &act, nullptr);
 	ec_setup_segv_handler("kopano-statsd", PROJECT_VERSION);
 
-	struct socks sk;
+	std::vector<struct pollfd> sk;
 	auto ret = sd_listen(sd_config.get(), sk);
 	if (ret != hrSuccess)
 		return EXIT_FAILURE;

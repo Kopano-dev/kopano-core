@@ -3,8 +3,10 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
+#include <list>
 #include <memory>
 #include <new>
+#include <vector>
 #include <climits>
 #include <cstdint>
 #include <cstdlib>
@@ -14,6 +16,7 @@
 #include <kopano/memory.hpp>
 #include <kopano/stringutil.h>
 #include <kopano/UnixUtil.h>
+#include <kopano/tie.hpp>
 #include <csignal>
 #include <fcntl.h>
 #include <netdb.h>
@@ -37,9 +40,14 @@
 #define hrSuccess 0
 #endif
 
+using namespace std::string_literals;
+
 namespace KC {
 
-static int ec_fdtable_socket(const char *spec);
+class ai_deleter {
+	public:
+	void operator()(struct addrinfo *ai) { freeaddrinfo(ai); }
+};
 
 /*
 To generate a RSA key:
@@ -550,12 +558,10 @@ static int peer_is_local2(int rsk, const void *buf, size_t bufsize)
  *
  * Returns negative errno code if indeterminate, otherwise false/true.
  */
-int zcp_peeraddr_is_local(const struct sockaddr *peer_sockaddr,
+static int zcp_peeraddr_is_local(const struct sockaddr *peer_sockaddr,
     socklen_t peer_socklen)
 {
-	if (peer_sockaddr->sa_family == AF_UNIX) {
-		return true;
-	} else if (peer_sockaddr->sa_family == AF_INET6) {
+	if (peer_sockaddr->sa_family == AF_INET6) {
 		if (peer_socklen < sizeof(struct sockaddr_in6))
 			return -EIO;
 	} else if (peer_sockaddr->sa_family == AF_INET) {
@@ -621,50 +627,24 @@ int zcp_peeraddr_is_local(const struct sockaddr *peer_sockaddr,
 int zcp_peerfd_is_local(int fd)
 {
 	struct sockaddr_storage peer_sockaddr;
-	socklen_t peer_socklen = sizeof(peer_sockaddr);
 	auto sa = reinterpret_cast<struct sockaddr *>(&peer_sockaddr);
-	int ret = getsockname(fd, sa, &peer_socklen);
+	int domain = AF_UNSPEC;
+	socklen_t slen = sizeof(domain);
+	auto ret = getsockopt(fd, SOL_SOCKET, SO_DOMAIN, &domain, &slen);
 	if (ret < 0)
 		return -errno;
-	return zcp_peeraddr_is_local(sa, peer_socklen);
+	if (domain == AF_LOCAL)
+		return true;
+	slen = sizeof(peer_sockaddr);
+	ret = getsockname(fd, sa, &slen);
+	if (ret < 0)
+		return -errno;
+	return zcp_peeraddr_is_local(sa, slen);
 }
 
 int ECChannel::peer_is_local(void) const
 {
 	return zcp_peeraddr_is_local(reinterpret_cast<const struct sockaddr *>(&peer_sockaddr), peer_salen);
-}
-
-/**
- * getaddrinfo() adheres to the preference weights given in /etc/gai.conf,
- * but only for connect sockets. For AI_PASSIVE, sockets may be returned in
- * any order. This function will reorder an addrinfo linked list and place
- * IPv6 in the front.
- */
-static struct addrinfo *reorder_addrinfo_ipv6(struct addrinfo *node)
-{
-	struct addrinfo v6head, othead;
-	v6head.ai_next = NULL;
-	othead.ai_next = node;
-	struct addrinfo *v6tail = &v6head, *prev = &othead;
-
-	while (node != NULL) {
-		if (node->ai_family != AF_INET6) {
-			prev = node;
-			node = node->ai_next;
-			continue;
-		}
-		/* disconnect current node (INET6) */
-		prev->ai_next = node->ai_next;
-		node->ai_next = NULL;
-		/* - reattach to v6 list */
-		v6tail->ai_next = node;
-		v6tail = node;
-		/* continue in ot list */
-		node = prev->ai_next;
-	}
-	/* join list */
-	v6tail->ai_next = othead.ai_next;
-	return v6head.ai_next;
 }
 
 int zcp_bindtodevice(int fd, const char *i)
@@ -683,168 +663,64 @@ int zcp_bindtodevice(int fd, const char *i)
 #endif
 }
 
-/**
- * Create a PF_LOCAL socket for listening and return the fd.
- */
-static int ec_listen_localsock(const char *path, int *pfd, int mode,
+static int ec_listen_generic(const struct ec_socket &sk, unsigned int mode,
     const char *user, const char *group)
 {
-	struct sockaddr_un sk;
-	if (strlen(path) + 1 >= sizeof(sk.sun_path)) {
-		ec_log_err("%s: \"%s\" is too long", __func__, path);
-		return -EINVAL;
-	}
-	struct stat sb;
-	auto ret = lstat(path, &sb);
-	if (ret == 0 && !S_ISSOCK(sb.st_mode)) {
-		ec_log_err("%s: file already exists, but it is not a socket", path);
-		return -EADDRINUSE;
-	}
-	unlink(path);
-	int fd = socket(PF_LOCAL, SOCK_STREAM, 0);
-	if (fd < 0) {
-		ec_log_err("%s: socket: %s", __func__, strerror(errno));
+	auto fd = socket(sk.m_ai->ai_family, sk.m_ai->ai_socktype, sk.m_ai->ai_protocol);
+	if (fd < 0)
 		return -errno;
+	if (sk.m_ai->ai_family == PF_LOCAL && sk.m_ai->ai_addrlen >= offsetof(struct sockaddr_un, sun_path)) {
+		auto u = reinterpret_cast<const struct sockaddr_un *>(sk.m_ai->ai_addr);
+		struct stat sb;
+		if (u->sun_path[0] == '\0')
+			/* abstract socket */;
+		else if (strnlen(u->sun_path, sizeof(u->sun_path)) == sizeof(u->sun_path))
+			/* cannot test */;
+		else if (lstat(u->sun_path, &sb) != 0)
+			/* cannot test */;
+		else if (!S_ISSOCK(sb.st_mode))
+			ec_log_warn("\"%s\" already exists, but it is not a socket", u->sun_path);
+		else
+			unlink(u->sun_path);
 	}
-	sk.sun_family = AF_LOCAL;
-	kc_strlcpy(sk.sun_path, path, sizeof(sk.sun_path));
-	ret = bind(fd, reinterpret_cast<const sockaddr *>(&sk), sizeof(sk));
+	int y = 1;
+	if (sk.m_ai->ai_family == PF_INET6 &&
+	    setsockopt(fd, SOL_IPV6, IPV6_V6ONLY, &y, sizeof(y)) < 0)
+		ec_log_warn("Unable to set IPV6_V6ONLY: %s", strerror(errno));
+	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char *>(&y), sizeof(y)) < 0)
+		ec_log_warn("Unable to set reuseaddr socket option: %s", strerror(errno));
+	auto ret = bind(fd, sk.m_ai->ai_addr, sk.m_ai->ai_addrlen);
 	if (ret < 0) {
-		int saved_errno = errno;
-		ec_log_err("%s: bind %s: %s", __func__, path, strerror(saved_errno));
+		ret = -errno;
 		close(fd);
-		return -(errno = saved_errno);
-	}
-	ret = unix_chown(path, user, group);
-	if (ret < 0) {
-		ec_log_err("%s: chown %s: %s", __func__, path, strerror(-ret));
-		close(fd);
+		ec_log_err("bind %s: %s", sk.m_spec.c_str(), strerror(-ret));
 		return ret;
 	}
-	if (mode != static_cast<mode_t>(-1)) {
-		ret = chmod(path, mode);
+	ret = unix_chown(fd, user, group);
+	if (ret < 0) {
+		ret = -errno;
+		close(fd);
+		ec_log_err("%s: chown %s: %s", __func__, sk.m_spec.c_str(), strerror(-ret));
+		return ret;
+	}
+	if (mode != static_cast<unsigned int>(-1)) {
+		ret = fchmod(fd, mode);
 		if (ret < 0) {
 			ret = -errno;
-			ec_log_err("%s: chown %s: %s", __func__, path, strerror(-ret));
 			close(fd);
+			ec_log_err("%s: chmod %s: %s", __func__, sk.m_spec.c_str(), strerror(-ret));
 			return ret;
 		}
 	}
 	ret = listen(fd, INT_MAX);
 	if (ret < 0) {
-		int saved_errno = errno;
-		ec_log_err("%s: listen: %s", __func__, strerror(saved_errno));
+		ret = -errno;
 		close(fd);
-		return -(errno = saved_errno);
+		ec_log_err("%s: listen %s: %s", __func__, sk.m_spec.c_str(), strerror(-ret));
+		return ret;
 	}
-	*pfd = fd;
-	return 0;
-}
-
-/**
- * Create PF_INET/PF_INET6 socket for listening and return the fd.
- */
-static int ec_listen_inet(const char *szBind, uint16_t ulPort, int *lpulListenSocket)
-{
-	int fd = -1, opt = 1, ret;
-	struct addrinfo *sock_res = NULL, sock_hints;
-	const struct addrinfo *sock_addr, *sock_last = NULL;
-	char port_string[sizeof("65535")];
-
-	if (lpulListenSocket == nullptr || ulPort == 0 || szBind == nullptr)
-		return -EINVAL;
-
-	snprintf(port_string, sizeof(port_string), "%u", ulPort);
-	memset(&sock_hints, 0, sizeof(sock_hints));
-	/*
-	 * AI_NUMERICHOST is reflected in the kopano documentation:
-	 * an address is required for the "server_bind" parameter.
-	 */
-	sock_hints.ai_flags = AI_NUMERICHOST | AI_NUMERICSERV | AI_PASSIVE;
-	sock_hints.ai_socktype = SOCK_STREAM;
-	ret = getaddrinfo(*szBind == '\0' ? NULL : szBind,
-	      port_string, &sock_hints, &sock_res);
-	if (ret == EAI_SYSTEM) {
-		ec_log_err("getaddrinfo [%s]:%u: %s", szBind, ulPort, strerror(errno));
-		return -errno;
-	} else if (ret != 0) {
-		ec_log_err("getaddrinfo [%s]:%u: %s", szBind, ulPort, gai_strerror(ret));
-		return -EINVAL;
-	}
-	sock_res = reorder_addrinfo_ipv6(sock_res);
-
-	errno = 0;
-	for (sock_addr = sock_res; sock_addr != NULL;
-	     sock_addr = sock_addr->ai_next)
-	{
-		sock_last = sock_addr;
-		fd = socket(sock_addr->ai_family, sock_addr->ai_socktype,
-		     sock_addr->ai_protocol);
-		if (fd < 0) {
-			if (errno != EAFNOSUPPORT)
-				break;
-			continue;
-		}
-
-		if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR,
-		    reinterpret_cast<const char *>(&opt), sizeof(opt)) < 0)
-			ec_log_warn("Unable to set reuseaddr socket option: %s",
-				strerror(errno));
-
-		ret = bind(fd, sock_addr->ai_addr, sock_addr->ai_addrlen);
-		if (ret < 0 && errno == EADDRINUSE) {
-			/*
-			 * If the port is used, drop out early. Do not let it
-			 * happen that we move to an AF where it happens to be
-			 * unused.
-			 */
-			int saved_errno = errno;
-			close(fd);
-			fd = -1;
-			errno = saved_errno;
-			break;
-		}
-		if (ret < 0) {
-			int saved_errno = errno;
-			close(fd);
-			fd = -1;
-			errno = saved_errno;
-			continue;
-		}
-
-		if (listen(fd, INT_MAX) < 0) {
-			auto saved_errno = errno;
-			ec_log_err("Unable to start listening on socket [%s]:%d: %s",
-				szBind, ulPort, strerror(errno));
-			errno = saved_errno;
-			goto exit;
-		}
-		/*
-		 * Function signature currently only permits a single fd, so if
-		 * we have a good socket, try no more. The IPv6 socket is
-		 * generally returned first, and is also IPv4-capable
-		 * (through mapped addresses).
-		 */
-		break;
-	}
-	if (fd < 0 && sock_last != NULL) {
-		ec_log_crit("Unable to create socket for [%s]:%u (family=%u protocol=%u): %s",
-			szBind, ulPort, sock_last->ai_family,
-			sock_last->ai_protocol, strerror(errno));
-		goto exit;
-	} else if (fd < 0) {
-		ec_log_err("OS proposed no sockets for \"[%s]:%u\"", szBind, ulPort);
-		errno = ENOENT;
-		goto exit;
-	}
-	*lpulListenSocket = fd;
-	errno = 0;
-exit:
-	int saved_errno = errno;
-	if (sock_res != NULL)
-		freeaddrinfo(sock_res);
-	errno = saved_errno;
-	return -errno;
+	ec_log_info("Listening on %s (fd %d)", sk.m_spec.c_str(), fd);
+	return fd;
 }
 
 HRESULT HrAccept(int ulListenFD, ECChannel **lppChannel)
@@ -894,7 +770,7 @@ ec_parse_bindaddr2(const char *spec)
 			return {"!", 0};
 		return {std::string(spec, y - spec), port};
 	}
-	/* IPv6 */
+	/* address (v4/v6) */
 	auto y = strchr(spec + 1, ']');
 	if (y == nullptr)
 		return {"!", 0};
@@ -923,36 +799,6 @@ std::pair<std::string, uint16_t> ec_parse_bindaddr(const char *spec)
 		/* getaddrinfo/soap_bind want the empty string for wildcard binding */
 		parts.first.clear();
 	return parts;
-}
-
-/**
- * Create a listening socket.
- * @spec:	a string in the form of { INETSPEC | UNIXSPEC }
- *
- * INETSPEC := { hostname | ipv4-addr | "[" ipv6-addr "]" } [ ":" portnumber ]
- * UNIXSPEC := "unix:" path
- *
- * NB: hostname and ipv4-addr are not specified to be enclosed in square
- * brackets, but ec_parse_bindaddr2 supports it by chance.
- */
-int ec_listen_generic(const char *spec, int *pfd, int mode,
-    const char *user, const char *group)
-{
-	*pfd = ec_fdtable_socket(spec);
-	if (*pfd >= 0)
-		return 1; /* signal takeover */
-
-	if (strncmp(spec, "unix:", 5) == 0)
-		return ec_listen_localsock(spec + 5, pfd, mode, user, group);
-	auto parts = ec_parse_bindaddr(spec);
-	if (parts.first == "!" || parts.second == 0)
-		return -EINVAL;
-	return ec_listen_inet(parts.first.c_str(), parts.second, pfd);
-}
-
-bool ec_bindaddr_less::operator()(const std::string &a, const std::string &b) const
-{
-	return ec_parse_bindaddr(a.c_str()) < ec_parse_bindaddr(b.c_str());
 }
 
 static int ec_fdtable_size()
@@ -993,6 +839,12 @@ void ec_reexec_prepare_sockets()
 	}
 }
 
+/**
+ * @ai:		a single addrinfo (no list)
+ *
+ * Search the file descriptor table for a listening socket matching
+ * the host:port specification, and return the fd and exact sockaddr.
+ */
 static int ec_fdtable_socket_ai(const struct addrinfo *ai)
 {
 #ifdef __sunos__
@@ -1032,13 +884,10 @@ static int ec_fdtable_socket_ai(const struct addrinfo *ai)
 		if (ret < 0)
 			continue;
 		arglen = std::min(static_cast<socklen_t>(sizeof(addr)), arglen);
-		for (auto sk = ai; sk != nullptr; sk = sk->ai_next) {
-			if (sk->ai_family != domain || sk->ai_socktype != type ||
-			    sk->ai_protocol != proto)
-				continue;
-			if (arglen != sk->ai_addrlen ||
-			    memcmp(&addr, sk->ai_addr, arglen) != 0)
-				continue;
+		if (ai->ai_family != domain || ai->ai_socktype != type ||
+		    ai->ai_protocol != proto)
+			continue;
+		if (arglen == ai->ai_addrlen && memcmp(&addr, ai->ai_addr, arglen) == 0) {
 			fcntl(fd, F_SETFD, FD_CLOEXEC);
 			return fd;
 		}
@@ -1046,38 +895,182 @@ static int ec_fdtable_socket_ai(const struct addrinfo *ai)
 	return -1;
 }
 
-/**
- * Search the file descriptor table for a listening socket matching
- * the host:port specification, and return the fd and exact sockaddr.
- *
- * This somewhat convoluted search is necessary because some daemons
- * have both plain and SSL sockets and must match each fd with the
- * config directives.
- */
-static int ec_fdtable_socket(const char *spec)
+ec_socket::~ec_socket()
 {
-	struct addrinfo hints{}, *res = nullptr;
-	hints.ai_flags    = AI_NUMERICHOST | AI_NUMERICSERV | AI_PASSIVE;
-	hints.ai_socktype = SOCK_STREAM;
-	if (strncmp(spec, "unix:", 5) == 0) {
-		struct sockaddr_un u{};
-		kc_strlcpy(u.sun_path, spec + 5, sizeof(u.sun_path));
-		hints.ai_family  = u.sun_family = AF_LOCAL;
-		hints.ai_addr    = reinterpret_cast<struct sockaddr *>(&u);
-		hints.ai_addrlen = sizeof(u) - sizeof(u.sun_path) + strlen(u.sun_path) + 1;
-		return ec_fdtable_socket_ai(&hints);
+	freeaddrinfo(m_ai);
+	if (m_fd >= 0)
+		close(m_fd);
+}
+
+ec_socket::ec_socket(ec_socket &&o) :
+	m_spec(std::move(o.m_spec)), m_ai(o.m_ai), m_fd(o.m_fd), m_port(o.m_port)
+{
+	o.m_ai = nullptr;
+	o.m_fd = -1;
+}
+
+bool ec_socket::operator==(const ec_socket &other) const
+{
+	if (m_ai == nullptr || other.m_ai == nullptr ||
+	    m_ai->ai_family != other.m_ai->ai_family)
+		return false;
+	if (m_ai->ai_family != AF_LOCAL &&
+	    m_ai->ai_protocol != other.m_ai->ai_protocol)
+		return false;
+	if (m_ai->ai_addrlen != other.m_ai->ai_addrlen)
+		return false;
+	return memcmp(m_ai->ai_addr, other.m_ai->ai_addr, m_ai->ai_addrlen) == 0;
+}
+
+bool ec_socket::operator<(const ec_socket &other) const
+{
+	if (m_ai == nullptr || other.m_ai == nullptr)
+		return other.m_ai != nullptr;
+	if (m_ai->ai_family < other.m_ai->ai_family)
+		return true;
+	else if (m_ai->ai_family > other.m_ai->ai_family)
+		return false;
+	if (m_ai->ai_family != AF_LOCAL) {
+		if (m_ai->ai_protocol < other.m_ai->ai_protocol)
+			return true;
+		else if (m_ai->ai_protocol > other.m_ai->ai_protocol)
+			return false;
 	}
+	if (m_ai->ai_addrlen < other.m_ai->ai_addrlen)
+		return true;
+	else if (m_ai->ai_addrlen > other.m_ai->ai_addrlen)
+		return false;
+	return memcmp(m_ai->ai_addr, other.m_ai->ai_addr, m_ai->ai_addrlen) < 0;
+}
+
+static ec_socket ec_bindspec_to_unixinfo(std::string &&spec)
+{
+	ec_socket sk;
+	sk.m_spec = std::move(spec);
+	if (sk.m_spec.size() - 5 >= sizeof(sockaddr_un::sun_path)) {
+		sk.m_err = -ENAMETOOLONG;
+		return sk;
+	}
+
+	auto ai = sk.m_ai = static_cast<struct addrinfo *>(calloc(1, sizeof(struct addrinfo) + sizeof(struct sockaddr_storage)));
+	ai->ai_family   = AF_LOCAL;
+	ai->ai_socktype = SOCK_STREAM;
+	ai->ai_addrlen  = sizeof(struct sockaddr_un);
+	auto u = reinterpret_cast<struct sockaddr_un *>(ai + 1);
+	ai->ai_addr     = reinterpret_cast<struct sockaddr *>(u);
+	u->sun_family   = AF_LOCAL;
+	strncpy(u->sun_path, sk.m_spec.c_str() + 5, sizeof(u->sun_path));
+	u->sun_path[sizeof(u->sun_path)-1] = '\0';
+	return sk;
+}
+
+static std::pair<int, std::list<ec_socket>> ec_bindspec_to_inetinfo(const char *spec)
+{
+	struct addrinfo hints{};
+	hints.ai_flags = AI_NUMERICHOST | AI_NUMERICSERV | AI_PASSIVE;
 	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+#ifdef IPPROTO_SCTP
+	if (strncmp(spec, "sctp:", 5) == 0) {
+		/*
+		 * In glibc and FreeBSD libc, SCTP will only be returned if
+		 * explicitly asked for. OpenBSD does not have SCTP.
+		 */
+		spec += 5;
+		hints.ai_protocol = IPPROTO_SCTP;
+	}
+#endif
+
+	std::list<ec_socket> vec;
 	auto parts = ec_parse_bindaddr(spec);
 	if (parts.first == "!" || parts.second == 0)
-		return -EINVAL;
-	auto ret = getaddrinfo(parts.first[0] == '\0' ? nullptr : parts.first.c_str(),
-	           std::to_string(parts.second).c_str(), &hints, &res);
-	if (ret != 0 || res == nullptr)
-		return -1;
-	ret = ec_fdtable_socket_ai(res);
-	freeaddrinfo(res);
-	return ret;
+		return {-EINVAL, std::move(vec)};
+	std::unique_ptr<struct addrinfo, ai_deleter> res;
+	auto ret = getaddrinfo(parts.first.size() != 0 ? parts.first.c_str() : nullptr,
+	           std::to_string(parts.second).c_str(), &hints, &unique_tie(res));
+	if (ret != 0) {
+		ec_log_warn("getaddrinfo: %s", gai_strerror(ret));
+		return {-EINVAL, std::move(vec)};
+	}
+
+	while (res != nullptr) {
+		ec_socket sk;
+		auto curr = res.release();
+		res.reset(curr->ai_next);
+		curr->ai_next = nullptr;
+		sk.m_ai = curr;
+		sk.m_port = parts.second;
+		char tmp[256];
+		if (getnameinfo(curr->ai_addr, curr->ai_addrlen, tmp,
+		    sizeof(tmp), nullptr, 0, NI_NUMERICHOST) != 0)
+			sk.m_spec = tmp + " <type-"s + std::to_string(curr->ai_family) +
+			            "-" + std::to_string(curr->ai_protocol) + ">";
+		else if (curr->ai_family == AF_INET6)
+			sk.m_spec = "["s + tmp + "]:" + std::to_string(sk.m_port);
+		else
+			sk.m_spec = tmp + ":"s + std::to_string(sk.m_port);
+#ifdef IPPROTO_SCTP
+		if (hints.ai_protocol == IPPROTO_SCTP)
+			sk.m_spec.insert(0, "sctp:");
+#endif
+		vec.emplace_back(std::move(sk));
+	}
+	return {0, std::move(vec)};
+}
+
+static std::pair<int, std::list<ec_socket>> ec_bindspec_to_sockinfo(std::string &&spec)
+{
+	if (kc_starts_with(spec, "unix:")) {
+		std::list<ec_socket> skl;
+		auto sk = ec_bindspec_to_unixinfo(std::move(spec));
+		if (sk.m_err >= 0)
+			skl.emplace_back(std::move(sk));
+		return {sk.m_err, std::move(skl)};
+	}
+	return ec_bindspec_to_inetinfo(spec.c_str());
+}
+
+/**
+ * Create listening sockets (or snatch them from environment).
+ * @spec:      vector of strings in the form of { INETSPEC | UNIXSPEC }
+ *
+ * INETSPEC := { hostname | ipv4-addr | "[" ipv6-addr "]" } [ ":" portnumber ]
+ * UNIXSPEC := "unix:" path
+ *
+ * NB: hostname and ipv4-addr are not specified to be enclosed in square
+ * brackets, but ec_parse_bindaddr2 supports it by chance.
+ */
+std::pair<int, std::list<ec_socket>> ec_bindspec_to_sockets(std::vector<std::string> &&in,
+    unsigned int mode, const char *user, const char *group)
+{
+	std::list<ec_socket> out;
+	int xerr = 0;
+
+	for (auto &&spec : in) {
+		auto p = ec_bindspec_to_sockinfo(std::move(spec));
+		if (p.first != 0)
+			return {p.first, std::move(out)};
+		out.splice(out.end(), std::move(p.second));
+	}
+	out.sort();
+	out.unique();
+
+	for (auto &sk : out) {
+		auto fd = ec_fdtable_socket_ai(sk.m_ai);
+		if (fd >= 0) {
+			ec_log_info("Re-using fd %d for %s", fd, sk.m_spec.c_str());
+			sk.m_fd = fd;
+			continue;
+		}
+		fd = ec_listen_generic(sk, mode, user, group);
+		if (fd < 0)
+			sk.m_err = fd;
+		else
+			sk.m_fd = fd;
+		if (xerr == 0 && sk.m_err != 0)
+			xerr = sk.m_err;
+	}
+	return {xerr, std::move(out)};
 }
 
 } /* namespace */

@@ -450,11 +450,29 @@ exit:
 
 static HRESULT gw_listen(ECConfig *cfg)
 {
-	std::set<std::string, ec_bindaddr_less> pop3_sock, pop3s_sock, imap_sock, imaps_sock;
-	pop3_sock  = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("pop3_listen"), ' ', true));
-	pop3s_sock = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("pop3s_listen"), ' ', true));
-	imap_sock  = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("imap_listen"), ' ', true));
-	imaps_sock = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("imaps_listen"), ' ', true));
+	auto info = ec_bindspec_to_sockets(tokenize(cfg->GetSetting("pop3_listen"), ' ', true),
+	            S_IRWUGO, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+	if (info.first < 0)
+		return E_FAIL;
+	auto pop3_sock = std::move(info.second);
+
+	info = ec_bindspec_to_sockets(tokenize(cfg->GetSetting("pop3s_listen"), ' ', true),
+	       S_IRWUGO, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+	if (info.first < 0)
+		return E_FAIL;
+	auto pop3s_sock = std::move(info.second);
+
+	info = ec_bindspec_to_sockets(tokenize(cfg->GetSetting("imap_listen"), ' ', true),
+	       S_IRWUGO, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+	if (info.first < 0)
+		return E_FAIL;
+	auto imap_sock = std::move(info.second);
+
+	info = ec_bindspec_to_sockets(tokenize(cfg->GetSetting("imaps_listen"), ' ', true),
+	       S_IRWUGO, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+	if (info.first < 0)
+		return E_FAIL;
+	auto imaps_sock = std::move(info.second);
 
 	if ((!pop3s_sock.empty() || !imaps_sock.empty()) &&
 	    ECChannel::HrSetCtx(g_lpConfig.get()) != hrSuccess) {
@@ -472,65 +490,33 @@ static HRESULT gw_listen(ECConfig *cfg)
 	struct pollfd pfd;
 	memset(&pfd, 0, sizeof(pfd));
 	pfd.events = POLLIN;
-	for (const auto &spec : pop3_sock) {
-		auto ret = ec_listen_generic(spec.c_str(), &pfd.fd, S_IRWUG | S_IROTH | S_IWOTH,
-		           cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
-		if (ret < 0) {
-			ec_log_err("Listening on %s failed: %s", spec.c_str(), strerror(-ret));
-			return MAPI_E_NETWORK_ERROR;
-		} else if (ret == 0) {
-			ec_log_notice("Listening on %s for pop3", spec.c_str());
-		} else if (ret == 1) {
-			ec_log_info("Re-using fd %d to listen on %s for pop3", ret, spec.c_str());
-		}
+	for (auto &spec : pop3_sock) {
+		pfd.fd = spec.m_fd;
+		spec.m_fd = -1;
 		g_socks.pollfd.push_back(pfd);
 		g_socks.linfd.push_back(pfd.fd);
 		g_socks.pop3.push_back(true);
 		g_socks.ssl.push_back(false);
 	}
-	for (const auto &spec : pop3s_sock) {
-		auto ret = ec_listen_generic(spec.c_str(), &pfd.fd, S_IRWUG | S_IROTH | S_IWOTH,
-		           cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
-		if (ret < 0) {
-			ec_log_err("Listening on %s failed: %s", spec.c_str(), strerror(-ret));
-			return MAPI_E_NETWORK_ERROR;
-		} else if (ret == 0) {
-			ec_log_notice("Listening on %s for pop3s", spec.c_str());
-		} else if (ret == 1) {
-			ec_log_info("Re-using fd %d to listen on %s for pop3s", ret, spec.c_str());
-		}
+	for (auto &spec : pop3s_sock) {
+		pfd.fd = spec.m_fd;
+		spec.m_fd = -1;
 		g_socks.pollfd.push_back(pfd);
 		g_socks.linfd.push_back(pfd.fd);
 		g_socks.pop3.push_back(true);
 		g_socks.ssl.push_back(true);
 	}
-	for (const auto &spec : imap_sock) {
-		auto ret = ec_listen_generic(spec.c_str(), &pfd.fd, S_IRWUG | S_IROTH | S_IWOTH,
-		           cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
-		if (ret < 0) {
-			ec_log_err("Listening on %s failed: %s", spec.c_str(), strerror(-ret));
-			return MAPI_E_NETWORK_ERROR;
-		} else if (ret == 0) {
-			ec_log_notice("Listening on %s for imap", spec.c_str());
-		} else if (ret == 1) {
-			ec_log_info("Re-using fd %d to listen on %s for imap", ret, spec.c_str());
-		}
+	for (auto &spec : imap_sock) {
+		pfd.fd = spec.m_fd;
+		spec.m_fd = -1;
 		g_socks.pollfd.push_back(pfd);
 		g_socks.linfd.push_back(pfd.fd);
 		g_socks.pop3.push_back(false);
 		g_socks.ssl.push_back(false);
 	}
-	for (const auto &spec : imaps_sock) {
-		auto ret = ec_listen_generic(spec.c_str(), &pfd.fd, S_IRWUG | S_IROTH | S_IWOTH,
-		           cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
-		if (ret < 0) {
-			ec_log_err("Listening on %s failed: %s", spec.c_str(), strerror(-ret));
-			return MAPI_E_NETWORK_ERROR;
-		} else if (ret == 0) {
-			ec_log_notice("Listening on %s for imaps", spec.c_str());
-		} else if (ret == 1) {
-			ec_log_info("Re-using fd %d to listen on %s for imaps", ret, spec.c_str());
-		}
+	for (auto &spec : imaps_sock) {
+		pfd.fd = spec.m_fd;
+		spec.m_fd = -1;
 		g_socks.pollfd.push_back(pfd);
 		g_socks.linfd.push_back(pfd.fd);
 		g_socks.pop3.push_back(false);

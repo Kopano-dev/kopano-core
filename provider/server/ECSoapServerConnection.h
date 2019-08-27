@@ -12,6 +12,9 @@
 #include "soapH.h"
 #include <kopano/ECConfig.h>
 
+namespace KC {
+struct ec_socket;
+}
 using KC::ECRESULT;
 extern int kc_ssl_options(struct soap *, const char *proto, const char *ciphers, const char *prefciphers, const char *curves);
 
@@ -19,9 +22,9 @@ class ECSoapServerConnection final {
 public:
 	ECSoapServerConnection(std::shared_ptr<KC::ECConfig>);
 	~ECSoapServerConnection();
-	ECRESULT ListenTCP(const char *bindspec, bool v6only, int port);
-	ECRESULT ListenSSL(const char *bindspec, bool v6only, int port, const char *keyfile, const char *keypass, const char *cafile, const char *capath);
-	ECRESULT ListenPipe(const char* lpPipeName, bool bPriority = false);
+	ECRESULT ListenTCP(struct KC::ec_socket &);
+	ECRESULT ListenSSL(struct KC::ec_socket &, const char *keyfile, const char *keypass, const char *cafile, const char *capath);
+	ECRESULT ListenPipe(struct KC::ec_socket &, bool priority = false);
 	ECRESULT MainLoop();
 	// These can be called asynchronously from MainLoop();
 	void NotifyDone(struct soap *);

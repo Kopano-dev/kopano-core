@@ -734,14 +734,20 @@ static void InitBindTextDomain(void)
 
 static int ksrv_listen_inet(ECSoapServerConnection *ssc, ECConfig *cfg)
 {
-	auto http_sock  = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("server_listen"), ' ', true));
-	auto https_sock = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("server_listen_tls"), ' ', true));
+	auto info = ec_bindspec_to_sockets(tokenize(cfg->GetSetting("server_listen"), ' ', true),
+	            S_IRWUGO, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+	if (info.first < 0)
+		return info.first;
+	auto http_sock = std::move(info.second);
+	info = ec_bindspec_to_sockets(tokenize(cfg->GetSetting("server_listen_tls"), ' ', true),
+	       S_IRWUGO, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+	if (info.first < 0)
+		return info.first;
+	auto https_sock = std::move(info.second);
 
 	/* Launch */
-	for (const auto &spec : http_sock) {
-		auto p = ec_parse_bindaddr(spec.c_str());
-		auto er = ssc->ListenTCP(spec.c_str(), p.first.size() == 0,
-		          p.second != 0 ? p.second : 236);
+	for (auto &spec : http_sock) {
+		auto er = ssc->ListenTCP(spec);
 		if (er != erSuccess)
 			return er;
 	}
@@ -750,11 +756,8 @@ static int ksrv_listen_inet(ECSoapServerConnection *ssc, ECConfig *cfg)
 	auto keypass = cfg->GetSetting("server_ssl_key_pass", "", nullptr);
 	auto cafile  = cfg->GetSetting("server_ssl_ca_file", "", nullptr);
 	auto capath  = cfg->GetSetting("server_ssl_ca_path", "", nullptr);
-	for (const auto &spec : https_sock) {
-		auto p = ec_parse_bindaddr(spec.c_str());
-		auto er = ssc->ListenSSL(spec.c_str(), p.first.size() == 0,
-		          p.second != 0 ? p.second : 237,
-		          keyfile, keypass, cafile, capath);
+	for (auto &spec : https_sock) {
+		auto er = ssc->ListenSSL(spec, keyfile, keypass, cafile, capath);
 		if (er != erSuccess)
 			return er;
 	}
@@ -765,20 +768,34 @@ static int ksrv_listen_inet(ECSoapServerConnection *ssc, ECConfig *cfg)
 
 static int ksrv_listen_pipe(ECSoapServerConnection *ssc, ECConfig *cfg)
 {
+	auto list = tokenize(cfg->GetSetting("server_pipe_priority"), ' ', true);
+	for (auto &e : list)
+		e.insert(0, "unix:");
+	auto prio = ec_bindspec_to_sockets(std::move(list), S_IRWUG,
+	            cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+	if (prio.first < 0)
+		return prio.first;
 	/*
 	 * Priority queue is always enabled, create as first socket, so this
 	 * socket is returned first too on activity. [This is no longer true…
 	 * need to create INET sockets beforehand because of privilege drop.]
 	 */
-	for (const auto &spec : vector_to_set(tokenize(cfg->GetSetting("server_pipe_priority"), ' ', true))) {
-		auto er = ssc->ListenPipe(("unix:" + spec).c_str(), true);
+	for (auto &spec : prio.second) {
+		auto er = ssc->ListenPipe(spec, true);
 		if (er != erSuccess)
 			return er;
 	}
 	if (strcmp(cfg->GetSetting("server_pipe_enabled"), "yes") == 0) {
-		auto pipe_sock = vector_to_set(tokenize(cfg->GetSetting("server_pipe_name"), ' ', true));
-		for (const auto &spec : pipe_sock) {
-			auto er = ssc->ListenPipe(("unix:" + spec).c_str(), false);
+		list = tokenize(cfg->GetSetting("server_pipe_name"), ' ', true);
+		for (auto &e : list)
+			e.insert(0, "unix:");
+		auto info = ec_bindspec_to_sockets(std::move(list), S_IRWUGO,
+		            cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+		if (info.first < 0)
+			return info.first;
+		auto pipe_sock = std::move(info.second);
+		for (auto &spec : pipe_sock) {
+			auto er = ssc->ListenPipe(spec, false);
 			if (er != erSuccess)
 				return er;
 		}
