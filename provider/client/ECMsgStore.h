@@ -71,6 +71,7 @@ public:
 	virtual HRESULT GetPublicFolderTable(const TCHAR *server, IMAPITable **, ULONG flags) override;
 	virtual HRESULT SetEntryId(ULONG eid_size, const ENTRYID *eid);
 	virtual ULONG Release() override;
+	HRESULT enable_transaction(bool enable);
 
 	// IECSpooler
 	virtual HRESULT GetMasterOutgoingTable(ULONG flags, IMAPITable **) override;
@@ -212,6 +213,7 @@ public:
 
 private:
 	BOOL m_fIsSpooler, m_fIsDefaultStore;
+	bool m_transact = false;
 	std::string			m_strProfname;
 	std::set<ULONG>		m_setAdviseConnections;
 	ALLOC_WRAP_FRIEND;
