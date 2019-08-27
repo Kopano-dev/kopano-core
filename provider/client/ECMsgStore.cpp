@@ -1624,7 +1624,6 @@ static HRESULT create_store_public(ECMsgStore *store,
 static HRESULT create_store_private(ECMsgStore *store,
     ECMAPIFolder *ecroot, IMAPIFolder *root, IMAPIFolder *st)
 {
-	object_ptr<IMAPIFolder> fld, fld3, inbox, cal;
 	object_ptr<ECMAPIFolder> ecst;
 
 	HRESULT ret = st->QueryInterface(IID_ECMAPIFolder, &~ecst);
@@ -1679,7 +1678,6 @@ static HRESULT create_store_private(ECMsgStore *store,
 	      PR_FINDER_ENTRYID, 0, nullptr);
 	if (ret != hrSuccess)
 		return ret;
-	fld3 = root_batch[idx_finder].folder;
 
 	object_ptr<IECSecurity> sec;
 	ECPERMISSION perm;
@@ -1688,7 +1686,7 @@ static HRESULT create_store_private(ECMsgStore *store,
 	perm.ulType      = ACCESS_TYPE_GRANT;
 	perm.sUserId.cb  = g_cbEveryoneEid;
 	perm.sUserId.lpb = g_lpEveryoneEid;
-	ret = fld3->QueryInterface(IID_IECSecurity, &~sec);
+	ret = root_batch[idx_finder].folder->QueryInterface(IID_IECSecurity, &~sec);
 	if (ret != hrSuccess)
 		return ret;
 	ret = sec->SetPermissionRules(1, &perm);
@@ -1709,7 +1707,7 @@ static HRESULT create_store_private(ECMsgStore *store,
 	if (ret != hrSuccess)
 		return ret;
 
-	inbox = st_batch[idx_inbox].folder;
+	auto &inbox = st_batch[idx_inbox].folder;
 	memory_ptr<SPropValue> pv;
 	ret = HrGetOneProp(inbox, PR_ENTRYID, &~pv);
 	if (ret != hrSuccess)
@@ -1747,8 +1745,7 @@ static HRESULT create_store_private(ECMsgStore *store,
 	      PR_IPM_CONTACT_ENTRYID, 0, KC_T("IPF.Contact"));
 	if (ret != hrSuccess)
 		return ret;
-	fld = st_batch[idx_contacts].folder;
-	ret = SetSpecialEntryIdOnFolder(fld, ecroot, PR_IPM_CONTACT_ENTRYID, 0);
+	ret = SetSpecialEntryIdOnFolder(st_batch[idx_contacts].folder, ecroot, PR_IPM_CONTACT_ENTRYID, 0);
 	if (ret != hrSuccess)
 		return ret;
 
@@ -1756,8 +1753,7 @@ static HRESULT create_store_private(ECMsgStore *store,
 	      PR_IPM_APPOINTMENT_ENTRYID, 0, KC_T("IPF.Appointment"));
 	if (ret != hrSuccess)
 		return ret;
-	cal = st_batch[idx_calendar].folder;
-	ret = SetSpecialEntryIdOnFolder(cal, ecroot, PR_IPM_APPOINTMENT_ENTRYID, 0);
+	ret = SetSpecialEntryIdOnFolder(st_batch[idx_calendar].folder, ecroot, PR_IPM_APPOINTMENT_ENTRYID, 0);
 	if (ret != hrSuccess)
 		return ret;
 
@@ -1765,8 +1761,7 @@ static HRESULT create_store_private(ECMsgStore *store,
 	      PR_IPM_DRAFTS_ENTRYID, 0, KC_T("IPF.Note"));
 	if (ret != hrSuccess)
 		return ret;
-	fld = st_batch[idx_drafts].folder;
-	ret = SetSpecialEntryIdOnFolder(fld, ecroot, PR_IPM_DRAFTS_ENTRYID, 0);
+	ret = SetSpecialEntryIdOnFolder(st_batch[idx_drafts].folder, ecroot, PR_IPM_DRAFTS_ENTRYID, 0);
 	if (ret != hrSuccess)
 		return ret;
 
@@ -1774,8 +1769,7 @@ static HRESULT create_store_private(ECMsgStore *store,
 	      PR_IPM_JOURNAL_ENTRYID, 0, KC_T("IPF.Journal"));
 	if (ret != hrSuccess)
 		return ret;
-	fld = st_batch[idx_journal].folder;
-	ret = SetSpecialEntryIdOnFolder(fld, ecroot, PR_IPM_JOURNAL_ENTRYID, 0);
+	ret = SetSpecialEntryIdOnFolder(st_batch[idx_journal].folder, ecroot, PR_IPM_JOURNAL_ENTRYID, 0);
 	if (ret != hrSuccess)
 		return ret;
 
@@ -1783,8 +1777,7 @@ static HRESULT create_store_private(ECMsgStore *store,
 	      PR_IPM_NOTE_ENTRYID, 0, KC_T("IPF.StickyNote"));
 	if (ret != hrSuccess)
 		return ret;
-	fld = st_batch[idx_notes].folder;
-	ret = SetSpecialEntryIdOnFolder(fld, ecroot, PR_IPM_NOTE_ENTRYID, 0);
+	ret = SetSpecialEntryIdOnFolder(st_batch[idx_notes].folder, ecroot, PR_IPM_NOTE_ENTRYID, 0);
 	if (ret != hrSuccess)
 		return ret;
 
@@ -1792,8 +1785,7 @@ static HRESULT create_store_private(ECMsgStore *store,
 	      PR_IPM_TASK_ENTRYID, 0, KC_T("IPF.Task"));
 	if (ret != hrSuccess)
 		return ret;
-	fld = st_batch[idx_tasks].folder;
-	ret = SetSpecialEntryIdOnFolder(fld, ecroot, PR_IPM_TASK_ENTRYID, 0);
+	ret = SetSpecialEntryIdOnFolder(st_batch[idx_tasks].folder, ecroot, PR_IPM_TASK_ENTRYID, 0);
 	if (ret != hrSuccess)
 		return ret;
 
@@ -1802,11 +1794,10 @@ static HRESULT create_store_private(ECMsgStore *store,
 	      PR_ADDITIONAL_REN_ENTRYIDS, 4, KC_T("IPF.Note"));
 	if (ret != hrSuccess)
 		return ret;
-	fld = st_batch[idx_junk].folder;
-	ret = SetSpecialEntryIdOnFolder(fld, ecroot, PR_ADDITIONAL_REN_ENTRYIDS, 4);
+	ret = SetSpecialEntryIdOnFolder(st_batch[idx_junk].folder, ecroot, PR_ADDITIONAL_REN_ENTRYIDS, 4);
 	if (ret != hrSuccess)
 		return ret;
-	ret = CreatePrivateFreeBusyData(root, inbox, cal);
+	ret = CreatePrivateFreeBusyData(root, inbox, st_batch[idx_calendar].folder);
 	if (ret != hrSuccess)
 		return ret;
 
