@@ -116,7 +116,7 @@ typedef object_ptr<WSTransport> WSTransportPtr;
 
 static HRESULT CreateSpecialFolder(IMAPIFolder *container, ECMAPIProp *sp_folder, const TCHAR *name, const TCHAR *comment, unsigned int proptag, unsigned int mvpos, const TCHAR *cls, IMAPIFolder **outfld);
 static HRESULT make_additional_folder(IMAPIFolder *root, IMAPIFolder *inbox, unsigned int type, KC::object_ptr<IMAPIFolder> &out, const TCHAR *container, bool hidden);
-static HRESULT make_special_folder(ECMAPIProp *container, KC::object_ptr<IMAPIFolder> &sp_folder, unsigned int proptag, unsigned int mvpos, const TCHAR *cls, IMAPIFolder **outfld);
+static HRESULT make_special_folder(ECMAPIProp *container, KC::object_ptr<IMAPIFolder> &sp_folder, unsigned int proptag, unsigned int mvpos, const TCHAR *cls);
 static HRESULT SetSpecialEntryIdOnFolder(IMAPIFolder *sp_folder, ECMAPIProp *container, unsigned int proptag, unsigned int mvpos);
 static HRESULT MsgStoreDnToPseudoUrl(const KC::utf8string &store_dn, KC::utf8string *pseudo_url);
 
@@ -1667,18 +1667,19 @@ static HRESULT create_store_private(ECMsgStore *store,
 
 	/* folder holds views that are standard for the message store */
 	ret = make_special_folder(store, root_batch[idx_ipmcviews].folder,
-	      PR_COMMON_VIEWS_ENTRYID, 0, nullptr, nullptr);
+	      PR_COMMON_VIEWS_ENTRYID, 0, nullptr);
 	if (ret != hrSuccess)
 		return ret;
 	/* Personal: folder holds views that are defined by a particular user */
 	ret = make_special_folder(store, root_batch[idx_ipmviews].folder,
-	      PR_VIEWS_ENTRYID, 0, nullptr, nullptr);
+	      PR_VIEWS_ENTRYID, 0, nullptr);
 	if (ret != hrSuccess)
 		return ret;
 	ret = make_special_folder(store, root_batch[idx_finder].folder,
-	      PR_FINDER_ENTRYID, 0, nullptr, &~fld3);
+	      PR_FINDER_ENTRYID, 0, nullptr);
 	if (ret != hrSuccess)
 		return ret;
+	fld3 = root_batch[idx_finder].folder;
 
 	object_ptr<IECSecurity> sec;
 	ECPERMISSION perm;
@@ -1696,18 +1697,19 @@ static HRESULT create_store_private(ECMsgStore *store,
 
 	/* Shortcuts for the favorites */
 	ret = make_special_folder(store, root_batch[idx_shortcut].folder,
-	      PR_IPM_FAVORITES_ENTRYID, 0, nullptr, nullptr);
+	      PR_IPM_FAVORITES_ENTRYID, 0, nullptr);
 	if (ret != hrSuccess)
 		return ret;
 	ret = make_special_folder(store, root_batch[idx_schedule].folder,
-	      PR_SCHEDULE_FOLDER_ENTRYID, 0, nullptr, nullptr);
+	      PR_SCHEDULE_FOLDER_ENTRYID, 0, nullptr);
 	if (ret != hrSuccess)
 		return ret;
 	ret = make_special_folder(nullptr, st_batch[idx_inbox].folder,
-	      0, 0, nullptr, &~inbox);
+	      0, 0, nullptr);
 	if (ret != hrSuccess)
 		return ret;
 
+	inbox = st_batch[idx_inbox].folder;
 	memory_ptr<SPropValue> pv;
 	ret = HrGetOneProp(inbox, PR_ENTRYID, &~pv);
 	if (ret != hrSuccess)
@@ -1730,70 +1732,77 @@ static HRESULT create_store_private(ECMsgStore *store,
 		return ret;
 
 	ret = make_special_folder(store, st_batch[idx_outbox].folder,
-	      PR_IPM_OUTBOX_ENTRYID, 0, nullptr, nullptr);
+	      PR_IPM_OUTBOX_ENTRYID, 0, nullptr);
 	if (ret != hrSuccess)
 		return ret;
 	ret = make_special_folder(store, st_batch[idx_deleted].folder,
-	      PR_IPM_WASTEBASKET_ENTRYID, 0, nullptr, nullptr);
+	      PR_IPM_WASTEBASKET_ENTRYID, 0, nullptr);
 	if (ret != hrSuccess)
 		return ret;
 	ret = make_special_folder(store, st_batch[idx_sent].folder,
-	      PR_IPM_SENTMAIL_ENTRYID, 0, nullptr, nullptr);
+	      PR_IPM_SENTMAIL_ENTRYID, 0, nullptr);
 	if (ret != hrSuccess)
 		return ret;
 	ret = make_special_folder(ecinbox, st_batch[idx_contacts].folder,
-	      PR_IPM_CONTACT_ENTRYID, 0, KC_T("IPF.Contact"), &~fld);
+	      PR_IPM_CONTACT_ENTRYID, 0, KC_T("IPF.Contact"));
 	if (ret != hrSuccess)
 		return ret;
+	fld = st_batch[idx_contacts].folder;
 	ret = SetSpecialEntryIdOnFolder(fld, ecroot, PR_IPM_CONTACT_ENTRYID, 0);
 	if (ret != hrSuccess)
 		return ret;
 
 	ret = make_special_folder(ecinbox, st_batch[idx_calendar].folder,
-	      PR_IPM_APPOINTMENT_ENTRYID, 0, KC_T("IPF.Appointment"), &~cal);
+	      PR_IPM_APPOINTMENT_ENTRYID, 0, KC_T("IPF.Appointment"));
 	if (ret != hrSuccess)
 		return ret;
+	cal = st_batch[idx_calendar].folder;
 	ret = SetSpecialEntryIdOnFolder(cal, ecroot, PR_IPM_APPOINTMENT_ENTRYID, 0);
 	if (ret != hrSuccess)
 		return ret;
 
 	ret = make_special_folder(ecinbox, st_batch[idx_drafts].folder,
-	      PR_IPM_DRAFTS_ENTRYID, 0, KC_T("IPF.Note"), &~fld);
+	      PR_IPM_DRAFTS_ENTRYID, 0, KC_T("IPF.Note"));
 	if (ret != hrSuccess)
 		return ret;
+	fld = st_batch[idx_drafts].folder;
 	ret = SetSpecialEntryIdOnFolder(fld, ecroot, PR_IPM_DRAFTS_ENTRYID, 0);
 	if (ret != hrSuccess)
 		return ret;
 
 	ret = make_special_folder(ecinbox, st_batch[idx_journal].folder,
-	      PR_IPM_JOURNAL_ENTRYID, 0, KC_T("IPF.Journal"), &~fld);
+	      PR_IPM_JOURNAL_ENTRYID, 0, KC_T("IPF.Journal"));
 	if (ret != hrSuccess)
 		return ret;
+	fld = st_batch[idx_journal].folder;
 	ret = SetSpecialEntryIdOnFolder(fld, ecroot, PR_IPM_JOURNAL_ENTRYID, 0);
 	if (ret != hrSuccess)
 		return ret;
 
 	ret = make_special_folder(ecinbox, st_batch[idx_notes].folder,
-	      PR_IPM_NOTE_ENTRYID, 0, KC_T("IPF.StickyNote"), &~fld);
+	      PR_IPM_NOTE_ENTRYID, 0, KC_T("IPF.StickyNote"));
 	if (ret != hrSuccess)
 		return ret;
+	fld = st_batch[idx_notes].folder;
 	ret = SetSpecialEntryIdOnFolder(fld, ecroot, PR_IPM_NOTE_ENTRYID, 0);
 	if (ret != hrSuccess)
 		return ret;
 
 	ret = make_special_folder(ecinbox, st_batch[idx_tasks].folder,
-	      PR_IPM_TASK_ENTRYID, 0, KC_T("IPF.Task"), &~fld);
+	      PR_IPM_TASK_ENTRYID, 0, KC_T("IPF.Task"));
 	if (ret != hrSuccess)
 		return ret;
+	fld = st_batch[idx_tasks].folder;
 	ret = SetSpecialEntryIdOnFolder(fld, ecroot, PR_IPM_TASK_ENTRYID, 0);
 	if (ret != hrSuccess)
 		return ret;
 
 	/* Create Junk mail (position 5(4 in array) in the mvprop PR_ADDITIONAL_REN_ENTRYIDS) */
 	ret = make_special_folder(ecinbox, st_batch[idx_junk].folder,
-	      PR_ADDITIONAL_REN_ENTRYIDS, 4, KC_T("IPF.Note"), &~fld);
+	      PR_ADDITIONAL_REN_ENTRYIDS, 4, KC_T("IPF.Note"));
 	if (ret != hrSuccess)
 		return ret;
+	fld = st_batch[idx_junk].folder;
 	ret = SetSpecialEntryIdOnFolder(fld, ecroot, PR_ADDITIONAL_REN_ENTRYIDS, 4);
 	if (ret != hrSuccess)
 		return ret;
@@ -2125,14 +2134,19 @@ static HRESULT CreateSpecialFolder(IMAPIFolder *folder_parent_in,
 	          OPEN_IF_EXISTS | fMapiUnicode, &~lpMAPIFolder);
 	if(hr != hrSuccess)
 		return hr;
-	return make_special_folder(folder_propset_in, lpMAPIFolder, ulPropTag,
-	       ulMVPos, lpszContainerClass, lppMAPIFolder);
+	hr = make_special_folder(folder_propset_in, lpMAPIFolder, ulPropTag,
+	     ulMVPos, lpszContainerClass);
+	if (hr != hrSuccess)
+		return hr;
+	*lppMAPIFolder = lpMAPIFolder;
+	if (lppMAPIFolder != nullptr)
+		hr = lpMAPIFolder->QueryInterface(IID_IMAPIFolder, reinterpret_cast<void **>(lppMAPIFolder));
+	return hr;
 }
 
 static HRESULT make_special_folder(ECMAPIProp *folder_propset_in,
     KC::object_ptr<IMAPIFolder> &lpMAPIFolder, unsigned int ulPropTag,
-    unsigned int ulMVPos, const TCHAR *lpszContainerClass,
-    IMAPIFolder **lppMAPIFolder)
+    unsigned int ulMVPos, const TCHAR *lpszContainerClass)
 {
 	ecmem_ptr<SPropValue> lpPropValue;
 	object_ptr<ECMAPIProp> lpFolderPropSet(folder_propset_in);
@@ -2161,10 +2175,7 @@ static HRESULT make_special_folder(ECMAPIProp *folder_propset_in,
 		if(hr != hrSuccess)
 			return hr;
 	}
-
-	if (lppMAPIFolder != nullptr)
-		hr = lpMAPIFolder->QueryInterface(IID_IMAPIFolder, reinterpret_cast<void **>(lppMAPIFolder));
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECMsgStore::CreateUser(ECUSER *lpECUser, ULONG ulFlags,
