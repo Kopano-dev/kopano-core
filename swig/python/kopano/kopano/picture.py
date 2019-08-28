@@ -42,7 +42,7 @@ class Picture(object):
     @property
     def mimetype(self):
         """Picture MIME type."""
-        if not self._mimetype:
+        if not self._mimetype and self._img is not None:
             ext = self._img.format
             if ext:
                 self._mimetype = mimetypes.types_map.get('.'+ext.lower(), '')

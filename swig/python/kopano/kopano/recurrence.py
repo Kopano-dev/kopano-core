@@ -213,7 +213,7 @@ class Recurrence(object):
              (PATTERN_WEEKLY, PATTERN_MONTHNTH, PATTERN_HJMONTHNTH)):
             pts = 0
             for weekday in value:
-                pts |= (1 << WEEKDAYS_REV[weekday])
+                pts |= (1 << WEEKDAYS_REV[weekday.lower()])
             self._pattern_type_specific[0] = pts
 
         self._weekdays = value
@@ -371,7 +371,12 @@ class Recurrence(object):
         :param start: start of time window (optional)
         :param end: end of time window (optional)
         """
-        recurrences = self.recurrences
+        try:
+            recurrences = self.recurrences
+        except Exception:
+            self.item.server.log.exception('failed to expand recurrence, skipped %r', self.item.entryid)
+            return
+
         if start and end:
             start = _timezone._tz2(start, _timezone.LOCAL, self._tzinfo)
             end = _timezone._tz2(end, _timezone.LOCAL, self._tzinfo)
