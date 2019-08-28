@@ -193,18 +193,19 @@ ldap_group_unique_attribute_type = S(`text',`binary')
 ldap_groupname_attribute = cn
 
 # Optional, default = member
-# Active directory: member
-# LDAP: memberUid
+# RFC2256 & Active Directory: member
+# RFC2307: memberUid
+# memberUid does not support Group-in-Group-Membership!
 ldap_groupmembers_attribute = S(`memberUid',`member')
 
 # Optional, default = text
-# Active directory: dn
-# LDAP: text
+# RFC2256 & Active Directory: dn
+# RFC2307: text
 ldap_groupmembers_attribute_type = S(`text',`dn')
 
 # The attribute of the user which is listed in ldap_groupmember_attribute
-# Active directory: empty, matching DNs
-# LDAP: uid, matching users in ldap_loginname_attribute
+# RFC2256 & Active Directory: empty, matching DNs
+# RFC2307: uid, matching users in ldap_loginname_attribute
 ldap_groupmembers_relation_attribute = S(`uid',`')
 
 # A group can also be used for security, e.g. setting permissions on folders.
