@@ -72,9 +72,9 @@ public:
 	virtual size_t GetObjectSize(void) const;
 
 private:
-	ECRESULT GetGroupsForUser(unsigned int ulUserId, std::list<localobjectdetails_t> &groups);
-	ECRESULT GetViewableCompanies(unsigned int ulFlags, std::list<localobjectdetails_t> &objs) const;
-	ECRESULT GetAdminCompanies(unsigned int ulFlags, std::list<localobjectdetails_t> &objs);
+	ECRESULT GetGroupsForUser(unsigned int user_id, std::unique_ptr<std::list<localobjectdetails_t>> &groups);
+	ECRESULT GetViewableCompanies(unsigned int flags, std::unique_ptr<std::list<localobjectdetails_t>> &objs) const;
+	ECRESULT GetAdminCompanies(unsigned int flags, std::unique_ptr<std::list<localobjectdetails_t>> &objs);
 	ECRESULT HaveObjectPermission(unsigned int ulObjId, unsigned int ulACLMask);
 
 protected:
