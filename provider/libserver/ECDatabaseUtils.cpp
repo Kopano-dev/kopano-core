@@ -531,7 +531,7 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 
 		lpPropVal->__union = SOAP_UNION_propValData_mvl;
 		lpPropVal->Value.mvl.__size = atoi(lpRow[FIELD_NR_ID]);
-		lpPropVal->Value.mvl.__ptr = s_alloc<unsigned int>(soap, lpPropVal->Value.mvl.__size);
+		lpPropVal->Value.mvl.__ptr = soap_new_unsignedInt(soap, lpPropVal->Value.mvl.__size);
 		ulLastPos = 0;
 		for (gsoap_size_t i = 0; i < lpPropVal->Value.mvl.__size; ++i) {
 			ParseMVProp(lpRow[FIELD_NR_ULONG], lpLen[FIELD_NR_ULONG], &ulLastPos, &strData);

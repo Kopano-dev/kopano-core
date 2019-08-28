@@ -2251,7 +2251,7 @@ static unsigned int SaveObject(struct soap *soap, ECSession *lpecSession,
 	// we can skip PR_ACCESS and PR_ACCESS_LEVEL because the client already inherited those from the parent
 	// we need to alloc 2 properties for PR_CHANGE_KEY and PR_PREDECESSOR_CHANGE_LIST
 	lpsReturnObj->delProps.__size = 8;
-	lpsReturnObj->delProps.__ptr = s_alloc<unsigned int>(soap, lpsReturnObj->delProps.__size);
+	lpsReturnObj->delProps.__ptr  = soap_new_unsignedInt(soap, lpsReturnObj->delProps.__size);
 	lpsReturnObj->modProps.__size = 8;
 	lpsReturnObj->modProps.__ptr = s_alloc<struct propVal>(soap, lpsReturnObj->modProps.__size);
 	n = 0;
@@ -3884,7 +3884,7 @@ SOAP_ENTRY_START(getIDsFromNames, lpsResponse->er,  struct namedPropArray *lpsNa
 
 	if (lpsNamedProps == nullptr)
 		return KCERR_INVALID_PARAMETER;
-	lpsResponse->lpsPropTags.__ptr = s_alloc<unsigned int>(soap, lpsNamedProps->__size);
+	lpsResponse->lpsPropTags.__ptr  = soap_new_unsignedInt(soap, lpsNamedProps->__size);
 	lpsResponse->lpsPropTags.__size = 0;
 
 	strQuery = "SELECT id, nameid, namestring, guid FROM names WHERE ";
@@ -7813,7 +7813,7 @@ SOAP_ENTRY_START(readABProps, readPropsResponse->er, const entryId &sEntryId,
 
 	ptaProps.__size = ulProps;
 	ptaProps.__size += lExtraProps.size();
-	ptaProps.__ptr = s_alloc<unsigned int>(soap, ptaProps.__size);
+	ptaProps.__ptr   = soap_new_unsignedInt(soap, ptaProps.__size);
 	/* Copy fixed properties */
 	memcpy(ptaProps.__ptr, lpProps, ulProps * sizeof(unsigned int));
 	int i = ulProps;
@@ -7864,7 +7864,7 @@ SOAP_ENTRY_START(readABProps, readPropsResponse->er, const entryId &sEntryId,
 
 	/* Copy properties which have been correctly read to tag array */
 	readPropsResponse->aPropTag.__size = 0;
-	readPropsResponse->aPropTag.__ptr = s_alloc<unsigned int>(soap, ptaProps.__size);
+	readPropsResponse->aPropTag.__ptr  = soap_new_unsignedInt(soap, ptaProps.__size);
 	for (gsoap_size_t j = 0; j < readPropsResponse->aPropVal.__size; ++j)
 		if (PROP_TYPE(readPropsResponse->aPropVal.__ptr[j].ulPropTag) != PT_ERROR)
 			readPropsResponse->aPropTag.__ptr[readPropsResponse->aPropTag.__size++] = readPropsResponse->aPropVal.__ptr[j].ulPropTag;
@@ -7887,7 +7887,7 @@ SOAP_ENTRY_START(abResolveNames, lpsABResolveNames->er, struct propTagArray* lpa
 	struct propVal *lpDisplayName = NULL;
 
 	lpsABResolveNames->aFlags.__size = lpaFlags->__size;
-	lpsABResolveNames->aFlags.__ptr = s_alloc<unsigned int>(soap, lpaFlags->__size);
+	lpsABResolveNames->aFlags.__ptr   = soap_new_unsignedInt(soap, lpaFlags->__size);
 	lpsABResolveNames->sRowSet.__size = lpsRowSet->__size;
 	lpsABResolveNames->sRowSet.__ptr = s_alloc<propValArray>(soap, lpsRowSet->__size);
 

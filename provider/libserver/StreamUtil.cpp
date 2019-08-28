@@ -1162,7 +1162,7 @@ static ECRESULT DeserializePropVal(struct soap *soap,
 		if (er != erSuccess)
 			break;
 		lpsPropval->Value.mvl.__size = ulCount;
-		lpsPropval->Value.mvl.__ptr = s_alloc<unsigned int>(soap, ulCount);
+		lpsPropval->Value.mvl.__ptr  = soap_new_unsignedInt(soap, ulCount);
 		er = lpSource->Read(lpsPropval->Value.mvl.__ptr, sizeof *lpsPropval->Value.mvl.__ptr, ulCount);
 		break;
 	case PT_MV_R4:

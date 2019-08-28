@@ -331,7 +331,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 		}
 		break;
 	case PROP_ID(PR_USER_ENTRYID):
-		sPropTagArray.__ptr = s_alloc<unsigned int>(nullptr, 1);
+		sPropTagArray.__ptr = soap_new_unsignedInt(nullptr, 1);
 		sPropTagArray.__ptr[0] = PR_ENTRYID;
 		sPropTagArray.__size = 1;
 		ulUserId = sec->GetUserId();
@@ -347,7 +347,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 		}
 		break;
 	case PROP_ID(PR_USER_NAME):
-		sPropTagArray.__ptr = s_alloc<unsigned int>(nullptr, 1);
+		sPropTagArray.__ptr = soap_new_unsignedInt(nullptr, 1);
 		sPropTagArray.__ptr[0] = PR_ACCOUNT;
 		sPropTagArray.__size = 1;
 		ulUserId = sec->GetUserId();
@@ -382,7 +382,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 		break;
 	}
 	case PROP_ID(PR_MAILBOX_OWNER_NAME):
-		sPropTagArray.__ptr = s_alloc<unsigned int>(nullptr, 1);
+		sPropTagArray.__ptr = soap_new_unsignedInt(nullptr, 1);
 		sPropTagArray.__ptr[0] = PR_DISPLAY_NAME;
 		sPropTagArray.__size = 1;
 
@@ -399,7 +399,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 		}
 		break;
 	case PROP_ID(PR_MAILBOX_OWNER_ENTRYID):
-		sPropTagArray.__ptr = s_alloc<unsigned int>(nullptr, 1);
+		sPropTagArray.__ptr = soap_new_unsignedInt(nullptr, 1);
 		sPropTagArray.__ptr[0] = PR_ENTRYID;
 		sPropTagArray.__size = 1;
 
@@ -416,7 +416,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 		}
 		break;
 	case PROP_ID(PR_EC_MAILBOX_OWNER_ACCOUNT):
-		sPropTagArray.__ptr = s_alloc<unsigned int>(nullptr, 1);
+		sPropTagArray.__ptr = soap_new_unsignedInt(nullptr, 1);
 		sPropTagArray.__ptr[0] = PR_ACCOUNT;
 		sPropTagArray.__size = 1;
 
@@ -647,7 +647,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 
 	*lpPropVal = std::move(sPropVal);
 exit:
-	s_free(nullptr, sPropTagArray.__ptr);
+	soap_del_propTagArray(&sPropTagArray);
 	if(soap == NULL) { // soap != NULL gsoap will cleanup the memory
 		s_free(nullptr, sPropValArray.__ptr);
 		if (er != erSuccess)
@@ -712,7 +712,7 @@ ECRESULT ECGenProps::GetStoreName(struct soap *soap, ECSession* lpSession, unsig
 	if(ulUserId == KOPANO_UID_EVERYONE || ulUserId == ulCompanyId) {
 		strFormat = KC_A("Public Folders");
 	} else {
-		sPropTagArray.__ptr = s_alloc<unsigned int>(nullptr, 3);
+		sPropTagArray.__ptr = soap_new_unsignedInt(nullptr, 3);
         sPropTagArray.__ptr[0] = PR_DISPLAY_NAME;
         sPropTagArray.__ptr[1] = PR_ACCOUNT;
         sPropTagArray.__ptr[2] = PR_EC_COMPANY_NAME;
@@ -761,7 +761,7 @@ ECRESULT ECGenProps::GetStoreName(struct soap *soap, ECSession* lpSession, unsig
 	strcpy(lpStoreName, strFormat.c_str());
 	*lppStoreName = lpStoreName;
 exit:
-	s_free(nullptr, sPropTagArray.__ptr);
+	soap_del_propTagArray(&sPropTagArray);
 	return er;
 }
 

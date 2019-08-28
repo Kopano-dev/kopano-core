@@ -442,7 +442,7 @@ ECRESULT ECGenericObjectTable::SetColumns(const struct propTagArray *lpsPropTags
 	FreePropTagArray(lpsPropTagArray);
 	lpsPropTagArray = s_alloc<propTagArray>(nullptr);
 	lpsPropTagArray->__size = lpsPropTags->__size;
-	lpsPropTagArray->__ptr = s_alloc<unsigned int>(nullptr, lpsPropTags->__size);
+	lpsPropTagArray->__ptr  = soap_new_unsignedInt(nullptr, lpsPropTags->__size);
 	if (bDefaultSet) {
 		for (gsoap_size_t n = 0; n < lpsPropTags->__size; ++n) {
 			if (PROP_TYPE(lpsPropTags->__ptr[n]) == PT_STRING8 || PROP_TYPE(lpsPropTags->__ptr[n]) == PT_UNICODE)
@@ -479,7 +479,7 @@ ECRESULT ECGenericObjectTable::GetColumns(struct soap *soap, ULONG ulFlags, stru
 		// Convert them all over to a struct propTagArray
         lpsPropTags = s_alloc<propTagArray>(soap);
         lpsPropTags->__size = lstProps.size();
-        lpsPropTags->__ptr = s_alloc<unsigned int>(soap, lstProps.size());
+		lpsPropTags->__ptr  = soap_new_unsignedInt(soap, lstProps.size());
 
 		size_t n = 0;
 		for (auto prop_int : lstProps) {
@@ -495,8 +495,7 @@ ECRESULT ECGenericObjectTable::GetColumns(struct soap *soap, ULONG ulFlags, stru
 
 		if(lpsPropTagArray) {
 			lpsPropTags->__size = lpsPropTagArray->__size;
-
-			lpsPropTags->__ptr = s_alloc<unsigned int>(soap, lpsPropTagArray->__size);
+			lpsPropTags->__ptr  = soap_new_unsignedInt(soap, lpsPropTagArray->__size);
 			memcpy(lpsPropTags->__ptr, lpsPropTagArray->__ptr, sizeof(unsigned int) * lpsPropTagArray->__size);
 		} else {
 			lpsPropTags->__size = 0;
@@ -770,7 +769,7 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 
 	++sPropTagArray.__size;	// for PR_INSTANCE_KEY
 	++sPropTagArray.__size; // for PR_MESSAGE_FLAGS
-	sPropTagArray.__ptr = s_alloc<unsigned int>(nullptr, sPropTagArray.__size);
+	sPropTagArray.__ptr = soap_new_unsignedInt(nullptr, sPropTagArray.__size);
 	sPropTagArray.__ptr[n++]= PR_INSTANCE_KEY;
 	if(m_ulCategories > 0)
 		sPropTagArray.__ptr[n++]= PR_MESSAGE_FLAGS;
@@ -861,10 +860,9 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 exit:
 	biglock.unlock();
 	FreeRowSet(lpRowSet);
-	if(lpsRestrictPropTagArray != NULL)
-		s_free(nullptr, lpsRestrictPropTagArray->__ptr);
+	soap_del_propTagArray(lpsRestrictPropTagArray);
 	s_free(nullptr, lpsRestrictPropTagArray);
-	s_free(nullptr, sPropTagArray.__ptr);
+	soap_del_propTagArray(&sPropTagArray);
 	return er;
 }
 
@@ -1494,7 +1492,7 @@ ECRESULT ECGenericObjectTable::GetRestrictPropTags(const struct restrictTable *l
 	lpPropTagArray = s_alloc<propTagArray>(nullptr);
 	// Put the data into an array
 	lpPropTagArray->__size = lstPropTags.size();
-	lpPropTagArray->__ptr = s_alloc<unsigned int>(nullptr, lpPropTagArray->__size);
+	lpPropTagArray->__ptr  = soap_new_unsignedInt(nullptr, lpPropTagArray->__size);
 	copy(lstPropTags.begin(), lstPropTags.end(), lpPropTagArray->__ptr);
 	*lppPropTags = lpPropTagArray;
 	return erSuccess;

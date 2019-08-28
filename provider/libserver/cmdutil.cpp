@@ -1408,7 +1408,7 @@ ECRESULT GetNamesFromIDs(struct soap *soap, ECDatabase *lpDatabase, struct propT
 		}
 		if (lpDBRow[0] != NULL) {
 			// It's an ID type
-			lpsNames->__ptr[i].lpId = s_alloc<unsigned int>(soap);
+			lpsNames->__ptr[i].lpId  = soap_new_unsignedInt(soap);
 			*lpsNames->__ptr[i].lpId = atoi(lpDBRow[0]);
 		} else if (lpDBRow[1] != NULL) {
 			// It's a String type

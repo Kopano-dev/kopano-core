@@ -142,7 +142,7 @@ HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(const MAPIOBJECT *lpsMapiObj
 	// deleted props
 	unsigned int size = lpsMapiObject->lstDeleted.size();
 	if (size != 0) {
-		lpSaveObj->delProps.__ptr = s_alloc<unsigned int>(nullptr, size);
+		lpSaveObj->delProps.__ptr = soap_new_unsignedInt(nullptr, size);
 		lpSaveObj->delProps.__size = size;
 		unsigned int i = 0;
 		for (auto id : lpsMapiObject->lstDeleted)
@@ -279,7 +279,7 @@ void WSMAPIPropStorage::DeleteSoapObject(struct saveObject *lpSaveObj)
 			FreePropVal(&lpSaveObj->modProps.__ptr[i], false);
 		s_free(nullptr, lpSaveObj->modProps.__ptr);
 	}
-	s_free(nullptr, lpSaveObj->delProps.__ptr);
+	soap_del_propTagArray(&lpSaveObj->delProps);
 	if (lpSaveObj->lpInstanceIds)
 		FreeEntryList(lpSaveObj->lpInstanceIds, true);
 }

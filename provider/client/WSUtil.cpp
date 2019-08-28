@@ -128,7 +128,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 	case PT_MV_LONG:
 		dp->__union = SOAP_UNION_propValData_mvl;
 		dp->Value.mvl.__size = sp->Value.MVl.cValues;
-		dp->Value.mvl.__ptr = s_alloc<unsigned int>(nullptr, dp->Value.mvl.__size);
+		dp->Value.mvl.__ptr  = soap_new_unsignedInt(nullptr, dp->Value.mvl.__size);
 		memcpy(dp->Value.mvl.__ptr, sp->Value.MVl.lpl, sizeof(unsigned int) * dp->Value.mvl.__size);
 		break;
 	case PT_MV_R4:

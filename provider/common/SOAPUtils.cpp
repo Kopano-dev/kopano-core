@@ -150,7 +150,7 @@ ECRESULT CopyPropTagArray(struct soap *soap,
 	lpPTsDst->__size = lpPTsSrc->__size;
 
 	if(lpPTsSrc->__size > 0) {
-		lpPTsDst->__ptr = s_alloc<unsigned int>(soap, lpPTsSrc->__size );
+		lpPTsDst->__ptr = soap_new_unsignedInt(soap, lpPTsSrc->__size);
 		memcpy(lpPTsDst->__ptr, lpPTsSrc->__ptr, sizeof(unsigned int) * lpPTsSrc->__size);
 	} else {
 		lpPTsDst->__ptr = NULL;
@@ -163,7 +163,7 @@ void FreePropTagArray(struct propTagArray *lpsPropTags, bool bFreeBase)
 {
 	if(lpsPropTags == NULL)
 		return;
-	s_free(nullptr, lpsPropTags->__ptr);
+	soap_del_propTagArray(lpsPropTags);
 	if(bFreeBase)
 		s_free(nullptr, lpsPropTags);
 }
@@ -740,7 +740,7 @@ ECRESULT FreePropVal(struct propVal *lpProp, bool bBasePointerDel)
 		soap_del_mv_i2(&lpProp->Value.mvi);
 		break;
 	case PT_MV_LONG:
-		s_free(nullptr, lpProp->Value.mvl.__ptr);
+		soap_del_mv_long(&lpProp->Value.mvl);
 		break;
 	case PT_MV_R4:
 		soap_del_mv_r4(&lpProp->Value.mvflt);
@@ -996,7 +996,7 @@ ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal *lpDst,
 		if (lpSrc->Value.mvl.__ptr == NULL)
 			return KCERR_INVALID_TYPE;
 		lpDst->Value.mvl.__size = lpSrc->Value.mvl.__size;
-		lpDst->Value.mvl.__ptr = s_alloc<unsigned int>(soap, lpSrc->Value.mvl.__size);
+		lpDst->Value.mvl.__ptr  = soap_new_unsignedInt(soap, lpSrc->Value.mvl.__size);
 		memcpy(lpDst->Value.mvl.__ptr, lpSrc->Value.mvl.__ptr, sizeof(unsigned int) * lpDst->Value.mvl.__size);
 		break;
 	case PT_MV_R4:
@@ -1851,7 +1851,7 @@ ECRESULT DynamicPropTagArray::GetPropTagArray(struct propTagArray *lpsPropTagArr
 	size_t n = 0;
     
     lpsPropTagArray->__size = m_lstPropTags.size();
-    lpsPropTagArray->__ptr = s_alloc<unsigned int>(m_soap, lpsPropTagArray->__size);
+	lpsPropTagArray->__ptr = soap_new_unsignedInt(m_soap, lpsPropTagArray->__size);
 	for (auto tag : m_lstPropTags)
 		lpsPropTagArray->__ptr[n++] = tag;
 	return erSuccess;
