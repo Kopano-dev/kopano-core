@@ -106,14 +106,12 @@ ECGenericObjectTable::ECGenericObjectTable(ECSession *ses,
 	m_ulObjType(ulObjType), m_ulFlags(ulFlags), m_locale(locale)
 {
 	// No columns by default
-	lpsPropTagArray = s_alloc<propTagArray>(nullptr);
-	lpsPropTagArray->__size = 0;
-	lpsPropTagArray->__ptr = nullptr;
+	lpsPropTagArray = soap_new_propTagArray(nullptr);
 }
 
 ECGenericObjectTable::~ECGenericObjectTable()
 {
-	FreePropTagArray(lpsPropTagArray);
+	soap_del_PointerTopropTagArray(&lpsPropTagArray);
 	soap_del_PointerTosortOrderArray(&lpsSortOrderArray);
 	FreeRestrictTable(lpsRestrict);
 	for (const auto &p : m_mapCategories)
@@ -222,7 +220,7 @@ ECRESULT ECGenericObjectTable::FindRow(struct restrictTable *rt,
 	}
 
 	// Get the columns we will be needing for this search
-	auto cleanup = make_scope_success([&]() { FreePropTagArray(lpPropTags); });
+	auto cleanup = make_scope_success([&]() { soap_del_PointerTopropTagArray(&lpPropTags); });
 	er = GetRestrictPropTags(rt, nullptr, &lpPropTags);
 	if(er != erSuccess)
 		return er;
@@ -439,10 +437,10 @@ ECRESULT ECGenericObjectTable::SetColumns(const struct propTagArray *lpsPropTags
 	scoped_rlock biglock(m_hLock);
 
 	// Delete the old column set
-	FreePropTagArray(lpsPropTagArray);
-	lpsPropTagArray = s_alloc<propTagArray>(nullptr);
+	soap_del_PointerTopropTagArray(&lpsPropTagArray);
+	lpsPropTagArray = soap_new_propTagArray(nullptr);
 	lpsPropTagArray->__size = lpsPropTags->__size;
-	lpsPropTagArray->__ptr  = soap_new_unsignedInt(nullptr, lpsPropTags->__size);
+	lpsPropTagArray->__ptr = soap_new_unsignedInt(nullptr, lpsPropTags->__size);
 	if (bDefaultSet) {
 		for (gsoap_size_t n = 0; n < lpsPropTags->__size; ++n) {
 			if (PROP_TYPE(lpsPropTags->__ptr[n]) == PT_STRING8 || PROP_TYPE(lpsPropTags->__ptr[n]) == PT_UNICODE)
@@ -477,9 +475,9 @@ ECRESULT ECGenericObjectTable::GetColumns(struct soap *soap, ULONG ulFlags, stru
 		lstProps.sort();
 		lstProps.unique();
 		// Convert them all over to a struct propTagArray
-        lpsPropTags = s_alloc<propTagArray>(soap);
+		lpsPropTags = soap_new_propTagArray(soap);
         lpsPropTags->__size = lstProps.size();
-		lpsPropTags->__ptr  = soap_new_unsignedInt(soap, lstProps.size());
+		lpsPropTags->__ptr = soap_new_unsignedInt(soap, lstProps.size());
 
 		size_t n = 0;
 		for (auto prop_int : lstProps) {
@@ -491,8 +489,7 @@ ECRESULT ECGenericObjectTable::GetColumns(struct soap *soap, ULONG ulFlags, stru
 			++n;
 		}
 	} else {
-		lpsPropTags = s_alloc<propTagArray>(soap);
-
+		lpsPropTags = soap_new_propTagArray(soap);
 		if(lpsPropTagArray) {
 			lpsPropTags->__size = lpsPropTagArray->__size;
 			lpsPropTags->__ptr  = soap_new_unsignedInt(soap, lpsPropTagArray->__size);
@@ -1475,7 +1472,6 @@ ECRESULT ECGenericObjectTable::GetRestrictPropTagsRecursive(const struct restric
 ECRESULT ECGenericObjectTable::GetRestrictPropTags(const struct restrictTable *lpsRestrict,
     std::list<ULONG> *lstPrefix, struct propTagArray **lppPropTags)
 {
-	struct propTagArray *lpPropTagArray;
 	std::list<ULONG> 	lstPropTags;
 
 	// Just go through all the properties, adding the properties one-by-one
@@ -1489,10 +1485,10 @@ ECRESULT ECGenericObjectTable::GetRestrictPropTags(const struct restrictTable *l
 	// Prefix if needed
 	if(lstPrefix)
 		lstPropTags.insert(lstPropTags.begin(), lstPrefix->begin(), lstPrefix->end());
-	lpPropTagArray = s_alloc<propTagArray>(nullptr);
+	auto lpPropTagArray = soap_new_propTagArray(nullptr);
 	// Put the data into an array
 	lpPropTagArray->__size = lstPropTags.size();
-	lpPropTagArray->__ptr  = soap_new_unsignedInt(nullptr, lpPropTagArray->__size);
+	lpPropTagArray->__ptr = soap_new_unsignedInt(nullptr, lpPropTagArray->__size);
 	copy(lstPropTags.begin(), lstPropTags.end(), lpPropTagArray->__ptr);
 	*lppPropTags = lpPropTagArray;
 	return erSuccess;

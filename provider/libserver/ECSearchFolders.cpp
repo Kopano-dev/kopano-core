@@ -577,7 +577,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 						}
 				}
 
-				FreePropTagArray(lpPropTags);
+				soap_del_PointerTopropTagArray(&lpPropTags);
 				lpPropTags = nullptr;
 				FreeRowSet(lpRowSet);
 				lpRowSet = nullptr;
@@ -655,8 +655,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
     }
  exit:
 	l_sf.unlock();
-    if(lpPropTags)
-        FreePropTagArray(lpPropTags);
+	soap_del_PointerTopropTagArray(&lpPropTags);
     if(lpSession) {
 		lpSession->unlock();
         m_lpSessionManager->RemoveSessionInternal(lpSession);
@@ -914,7 +913,7 @@ ECRESULT ECSearchFolders::search_r1(ECDatabase *lpDatabase, ECSession *lpSession
 	std::list<unsigned int> lstPrefix;
 	lstPrefix.emplace_back(PR_MESSAGE_FLAGS);
 	struct propTagArray *lpPropTags = nullptr;
-	auto cleantags = make_scope_success([&]() { FreePropTagArray(lpPropTags); });
+	auto cleantags = make_scope_success([&]() { soap_del_PointerTopropTagArray(&lpPropTags); });
 	er = ECGenericObjectTable::GetRestrictPropTags(lpAdditionalRestrict, &lstPrefix, &lpPropTags);
 	if (er != erSuccess)
 		return ec_perror("ECSearchFolders::Search() ECGenericObjectTable::GetRestrictPropTags failed", er);
@@ -969,7 +968,7 @@ ECRESULT ECSearchFolders::search_r2(ECDatabase *lpDatabase, ECSession *lpSession
 	std::list<unsigned int> lstPrefix;
 	lstPrefix.emplace_back(PR_MESSAGE_FLAGS);
 	struct propTagArray *lpPropTags = nullptr;
-	auto cleantags = make_scope_success([&]() { FreePropTagArray(lpPropTags); });
+	auto cleantags = make_scope_success([&]() { soap_del_PointerTopropTagArray(&lpPropTags); });
 	auto er = ECGenericObjectTable::GetRestrictPropTags(lpSearchCrit->lpRestrict, &lstPrefix, &lpPropTags);
 	if (er != erSuccess)
 		return ec_perror("ECSearchFolders::Search() ECGenericObjectTable::GetRestrictPropTags failed", er);

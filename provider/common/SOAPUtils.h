@@ -24,7 +24,6 @@ extern int CompareSortOrderArray(const struct sortOrderArray *lpsSortOrder1, con
 
 // PropTagArrays
 extern ECRESULT CopyPropTagArray(struct soap *soap, const struct propTagArray* lpPTsSrc, struct propTagArray** lppsPTsDst);
-extern void FreePropTagArray(struct propTagArray *lpsPropTags, bool bFreeBase = true);
 
 // RowSets
 extern void FreeRowSet(struct rowSet *);

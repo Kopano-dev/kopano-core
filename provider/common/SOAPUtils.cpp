@@ -137,8 +137,9 @@ ECRESULT CopyPropTagArray(struct soap *soap,
 	if (lppsPTsDst == nullptr || lpPTsSrc == nullptr)
 		return KCERR_INVALID_PARAMETER;
 
-	struct propTagArray *lpPTsDst = nullptr;
-	lpPTsDst = s_alloc<struct propTagArray>(soap);
+	auto lpPTsDst = soap_new_propTagArray(soap);
+	if (lpPTsDst == nullptr)
+		return KCERR_NOT_ENOUGH_MEMORY;
 	lpPTsDst->__size = lpPTsSrc->__size;
 
 	if(lpPTsSrc->__size > 0) {
@@ -149,15 +150,6 @@ ECRESULT CopyPropTagArray(struct soap *soap,
 	}
 	*lppsPTsDst = lpPTsDst;
 	return erSuccess;
-}
-
-void FreePropTagArray(struct propTagArray *lpsPropTags, bool bFreeBase)
-{
-	if(lpsPropTags == NULL)
-		return;
-	soap_del_propTagArray(lpsPropTags);
-	if(bFreeBase)
-		s_free(nullptr, lpsPropTags);
 }
 
 /**
@@ -1276,7 +1268,7 @@ ECRESULT FreeNotificationStruct(notification *lpNotification, bool bFreeBase)
 		return erSuccess;
 
 	if(lpNotification->obj != NULL){
-		FreePropTagArray(lpNotification->obj->pPropTagArray);
+		soap_del_PointerTopropTagArray(&lpNotification->obj->pPropTagArray);
 		soap_del_PointerToentryId(&lpNotification->obj->pEntryId);
 		soap_del_PointerToentryId(&lpNotification->obj->pOldId);
 		soap_del_PointerToentryId(&lpNotification->obj->pOldParentId);

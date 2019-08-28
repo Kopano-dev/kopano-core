@@ -274,7 +274,7 @@ ECRESULT ECTableManager::OpenOutgoingQueueTable(unsigned int ulStoreId, unsigned
 		lpTable->SetColumns(lpsPropTags, false);
 	lpTable->SeekRow(BOOKMARK_BEGINNING, 0, NULL);
 exit:
-	FreePropTagArray(lpsPropTags);
+	soap_del_PointerTopropTagArray(&lpsPropTags);
 	return er;
 }
 
