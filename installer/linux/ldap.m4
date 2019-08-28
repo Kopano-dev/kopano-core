@@ -1,6 +1,7 @@
 dnl m4 defines:
 dnl    TYPE == OPENLDAP or ADS
 dnl
+define(`S', `ifelse(TYPE,`OPENLDAP',$1,$2)')
 ##############################################################
 #  LDAP/ACTIVE DIRECTORY USER PLUGIN SETTINGS
 #
@@ -10,20 +11,20 @@ dnl
 # When an object (user/group/company) is changed, this attribute will also change:
 # Active directory: uSNChanged
 # LDAP: modifyTimestamp
-ldap_last_modification_attribute = ifelse(TYPE,`OPENLDAP',`modifyTimestamp',`uSNChanged')
+ldap_last_modification_attribute = S(`modifyTimestamp',`uSNChanged')
 
 ##########
 # Object settings
 
 # attribute name which is/(should: was) used in ldap_user_search_filter
 ldap_object_type_attribute = objectClass
-ldap_user_type_attribute_value = ifelse(TYPE,`OPENLDAP',`posixAccount',`user')
-ldap_group_type_attribute_value = ifelse(TYPE,`OPENLDAP',`posixGroup',`group')
-ldap_contact_type_attribute_value = ifelse(TYPE,`OPENLDAP',`kopano-contact',`contact')
+ldap_user_type_attribute_value = S(`posixAccount',`user')
+ldap_group_type_attribute_value = S(`posixGroup',`group')
+ldap_contact_type_attribute_value = S(`kopano-contact',`contact')
 ldap_company_type_attribute_value = organizationalUnit
-ldap_addresslist_type_attribute_value = ifelse(TYPE,`OPENLDAP',`kopano-addresslist',`kopanoAddresslist')
-ldap_dynamicgroup_type_attribute_value = ifelse(TYPE,`OPENLDAP',`kopano-dynamicgroup',`kopanoDynamicGroup')
-ldap_server_type_attribute_value = ifelse(TYPE,`OPENLDAP',`ipHost',`computer')
+ldap_addresslist_type_attribute_value = S(`kopano-addresslist',`kopanoAddresslist')
+ldap_dynamicgroup_type_attribute_value = S(`kopano-dynamicgroup',`kopanoDynamicGroup')
+ldap_server_type_attribute_value = S(`ipHost',`computer')
 
 ##########
 # There should be no need to edit any values below this line
@@ -45,7 +46,7 @@ ldap_server_type_attribute_value = ifelse(TYPE,`OPENLDAP',`ipHost',`computer')
 #   (objectCategory=Person)
 # For LDAP with posix users:
 #   no need to use the search filter.
-ldap_user_search_filter = ifelse(TYPE,`OPENLDAP',`',`(objectCategory=Person)')
+ldap_user_search_filter = S(`',`(objectCategory=Person)')
 
 # unique user id for find the user
 # Required
@@ -57,7 +58,7 @@ ifelse(TYPE,`OPENLDAP',`dnl
 # Note: contacts also use this field for uniqueness. If you change this,
 # you might need to update the kopano.schema file too, and change
 # the MUST uidNumber to whatever you set here.')dnl
-ldap_user_unique_attribute = ifelse(TYPE,`OPENLDAP',`uidNumber',`objectGUID')
+ldap_user_unique_attribute = S(`uidNumber',`objectGUID')
 
 # Type of unique user id
 # default: text
@@ -65,24 +66,24 @@ ldap_user_unique_attribute = ifelse(TYPE,`OPENLDAP',`uidNumber',`objectGUID')
 #		binary
 # For LDAP with posix user, use:
 #		text
-ldap_user_unique_attribute_type = ifelse(TYPE,`OPENLDAP',`text',`binary')
+ldap_user_unique_attribute_type = S(`text',`binary')
 
 # Optional, default = cn
 # For active directory, use:
 #   cn or displayName
 # For LDAP with posix user, use:
 #   cn
-ldap_fullname_attribute = ifelse(TYPE,`OPENLDAP',`cn',`cn')
+ldap_fullname_attribute = S(`cn',`cn')
 
 # Optional, default = uid
 # Active directory: sAMAccountName
 # LDAP: uid
-ldap_loginname_attribute = ifelse(TYPE,`OPENLDAP',`uid',`sAMAccountName')
+ldap_loginname_attribute = S(`uid',`sAMAccountName')
 
 # Optional, default = userPassword
 # Active directory: unicodePwd
 # LDAP: userPassword
-ldap_password_attribute = ifelse(TYPE,`OPENLDAP',`userPassword',`unicodePwd')
+ldap_password_attribute = S(`userPassword',`unicodePwd')
 
 # If set to bind, users are authenticated by trying to bind to the
 # LDAP tree using their username + password.  Otherwise, the
@@ -101,7 +102,7 @@ ldap_emailaddress_attribute = mail
 # Optional, default = kopanoAliases
 # Active directory: kopanoAliases
 # LDAP: kopanoAliases
-ldap_emailaliases_attribute = ifelse(TYPE,`OPENLDAP',`kopanoAliases',`otherMailbox')
+ldap_emailaliases_attribute = S(`kopanoAliases',`otherMailbox')
 
 # Whether the user is an admin.  The field is interpreted as a
 # boolean, 0 and false (case insensitive) meaning no, all other values
@@ -141,17 +142,17 @@ ldap_sendas_attribute = kopanoSendAsPrivilege
 # Optional, default = text
 # Active directory: dn
 # LDAP: text
-ldap_sendas_attribute_type = ifelse(TYPE,`OPENLDAP',`text',`dn')
+ldap_sendas_attribute_type = S(`text',`dn')
 
 # The attribute of the user and group which is listed in 
 # the ldap_sendas_attribute
 # Empty default, using ldap_user_unique_attribute
-ldap_sendas_relation_attribute = ifelse(TYPE,`OPENLDAP',`',`distinguishedName')
+ldap_sendas_relation_attribute = S(`',`distinguishedName')
 
 # Optional, default = userCertificate
 # Active directory: userCertificate
 # LDAP: userCertificate;binary
-ldap_user_certificate_attribute = userCertificate`'ifelse(TYPE,`OPENLDAP',`;binary',`')
+ldap_user_certificate_attribute = userCertificate`'S(`;binary',`')
 
 # Load extra user properties from the propmap file
 !propmap /usr/share/kopano/ldap.propmap.cfg
@@ -168,7 +169,7 @@ ldap_user_certificate_attribute = userCertificate`'ifelse(TYPE,`OPENLDAP',`;bina
 #   (objectCategory=Group)
 # For LDAP with posix groups, use:
 #   no need to set the search filter
-ldap_group_search_filter = ifelse(TYPE,`OPENLDAP',`',`(objectCategory=Group)')
+ldap_group_search_filter = S(`',`(objectCategory=Group)')
 
 # unique group id for find the group
 # Required
@@ -176,7 +177,7 @@ ldap_group_search_filter = ifelse(TYPE,`OPENLDAP',`',`(objectCategory=Group)')
 #    objectSid
 # For LDAP with posix group, use:
 #    gidNumber
-ldap_group_unique_attribute = ifelse(TYPE,`OPENLDAP',`gidNumber',`objectSid')
+ldap_group_unique_attribute = S(`gidNumber',`objectSid')
 
 # Type of unique group id
 # default: text
@@ -184,7 +185,7 @@ ldap_group_unique_attribute = ifelse(TYPE,`OPENLDAP',`gidNumber',`objectSid')
 #		binary
 # For LDAP with posix group, use:
 #		text
-ldap_group_unique_attribute_type = ifelse(TYPE,`OPENLDAP',`text',`binary')
+ldap_group_unique_attribute_type = S(`text',`binary')
 
 # Optional, default = cn
 # Active directory: cn
@@ -194,24 +195,24 @@ ldap_groupname_attribute = cn
 # Optional, default = member
 # Active directory: member
 # LDAP: memberUid
-ldap_groupmembers_attribute = ifelse(TYPE,`OPENLDAP',`memberUid',`member')
+ldap_groupmembers_attribute = S(`memberUid',`member')
 
 # Optional, default = text
 # Active directory: dn
 # LDAP: text
-ldap_groupmembers_attribute_type = ifelse(TYPE,`OPENLDAP',`text',`dn')
+ldap_groupmembers_attribute_type = S(`text',`dn')
 
 # The attribute of the user which is listed in ldap_groupmember_attribute
 # Active directory: empty, matching DNs
 # LDAP: uid, matching users in ldap_loginname_attribute
-ldap_groupmembers_relation_attribute = ifelse(TYPE,`OPENLDAP',`uid',`')
+ldap_groupmembers_relation_attribute = S(`uid',`')
 
 # A group can also be used for security, e.g. setting permissions on folders.
 # This makes a group a security group. The kopanoSecurityGroup value is boolean.
 # Optional, default = kopanoSecurityGroup
 # Active directory = groupType
 # LDAP: kopanoSecurityGroup
-ldap_group_security_attribute = ifelse(TYPE,`OPENLDAP',`kopanoSecurityGroup',`groupType')
+ldap_group_security_attribute = S(`kopanoSecurityGroup',`groupType')
 
 # In ADS servers, a special bitmask action is required on the groupType field.
 # This is actived by setting the ldap_group_security_attribute_type to `''ads`''
@@ -219,7 +220,7 @@ ldap_group_security_attribute = ifelse(TYPE,`OPENLDAP',`kopanoSecurityGroup',`gr
 # Optional, default = boolean
 # Active directory = ads
 # LDAP: boolean
-ldap_group_security_attribute_type = ifelse(TYPE,`OPENLDAP',`boolean',`ads')
+ldap_group_security_attribute_type = S(`boolean',`ads')
 
 ##########
 # Company settings
@@ -237,12 +238,12 @@ ldap_company_search_filter =
 # unique company id for find the company
 # Active directory: objectGUID
 # LDAP: ou
-ldap_company_unique_attribute = ifelse(TYPE,`OPENLDAP',`ou',`objectGUID')
+ldap_company_unique_attribute = S(`ou',`objectGUID')
 
 # Optional, default = text
 # Active directory: binary
 # LDAP: text
-ldap_company_unique_attribute_type = ifelse(TYPE,`OPENLDAP',`text',`binary')
+ldap_company_unique_attribute_type = S(`text',`binary')
 
 # Optional, default = ou
 # Active directory: ou
@@ -255,7 +256,7 @@ ldap_companyname_attribute = ou
 ldap_company_view_attribute = kopanoViewPrivilege
 
 # Optional, default = text
-ldap_company_view_attribute_type = ifelse(TYPE,`OPENLDAP',`text',`dn')
+ldap_company_view_attribute_type = S(`text',`dn')
 
 # The attribute of the company which is listed in the
 # ldap_company_view_attribute
@@ -270,7 +271,7 @@ ldap_company_admin_attribute = kopanoAdminPrivilege
 # Optional, default = text
 # Active directory: dn
 # LDAP: text
-ldap_company_admin_attribute_type = ifelse(TYPE,`OPENLDAP',`text',`dn')
+ldap_company_admin_attribute_type = S(`text',`dn')
 
 # The attribute of the company which is listed in the
 # ldap_company_admin_attribute
@@ -284,7 +285,7 @@ ldap_company_system_admin_attribute = kopanoSystemAdmin
 # Optional, default = text
 # Active directory: dn
 # LDAP: text
-ldap_company_system_admin_attribute_type = ifelse(TYPE,`OPENLDAP',`text',`dn')
+ldap_company_system_admin_attribute_type = S(`text',`dn')
 
 # The attribute of the company which is listed in the
 # ldap_company_system_admin attribute
@@ -401,7 +402,7 @@ ldap_userdefault_hardquota_attribute = kopanoUserDefaultQuotaHard
 
 # Mapping from the quota attributes to a number of bytes.  Qmail-LDAP
 # schema uses bytes (1), ADS uses kilobytes (1024*1024).
-ldap_quota_multiplier = ifelse(TYPE,`OPENLDAP',`1',`1048576')
+ldap_quota_multiplier = S(`1',`1048576')
 
 ##########
 # Misc. settings
@@ -416,7 +417,7 @@ ldap_addressbook_hide_attribute = kopanoHidden
 # Default: empty
 # ADS recommended: (anr=%s)
 # OpenLDAP optional: (|(mail=%s*)(uid=%s*)(givenName=*%s*)(sn=*%s*))
-ldap_object_search_filter = ifelse(TYPE,`OPENLDAP',`(|(mail=*%s*)(givenName=*%s*)(sn=*%s*))',`(anr=%s)')
+ldap_object_search_filter = S(`(|(mail=*%s*)(givenName=*%s*)(sn=*%s*))',`(anr=%s)')
 
 # If a request want more objects than this value, it will download the
 # full ldap tree (from the base with the search filter) and discard
@@ -438,7 +439,7 @@ ldap_company_server_attribute = kopanoCompanyServer
 # Optional
 # Active directory: kopanoHostAddress
 # LDAP: ipHostNumber
-ldap_server_address_attribute = ifelse(TYPE,`OPENLDAP',`ipHostNumber',`kopanoHostAddress')
+ldap_server_address_attribute = S(`ipHostNumber',`kopanoHostAddress')
 
 # Optional, default = kopanoHttpPort
 # Active directory: kopanoHttpPort
@@ -474,7 +475,7 @@ ldap_server_proxy_path_attribute = kopanoProxyURL
 #   (objectCategory=Computer)
 # For LDAP with posix users, use:
 #   
-ldap_server_search_filter = ifelse(TYPE,`OPENLDAP',`',`(objectCategory=Computer)')
+ldap_server_search_filter = S(`',`(objectCategory=Computer)')
 
 # Unique user id to find the server
 # Required
