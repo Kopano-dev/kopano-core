@@ -111,14 +111,6 @@ private:
 	struct propVal *m_lpMVProp;
 };
 
-void FreeSortOrderArray(struct sortOrderArray *lpsSortOrder)
-{
-	if(lpsSortOrder == NULL)
-		return;
-	s_free(nullptr, lpsSortOrder->__ptr);
-	s_free(nullptr, lpsSortOrder);
-}
-
 int CompareSortOrderArray(const struct sortOrderArray *lpsSortOrder1,
     const struct sortOrderArray *lpsSortOrder2)
 {

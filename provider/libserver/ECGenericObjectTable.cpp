@@ -114,7 +114,7 @@ ECGenericObjectTable::ECGenericObjectTable(ECSession *ses,
 ECGenericObjectTable::~ECGenericObjectTable()
 {
 	FreePropTagArray(lpsPropTagArray);
-	FreeSortOrderArray(lpsSortOrderArray);
+	soap_del_PointerTosortOrderArray(&lpsSortOrderArray);
 	FreeRestrictTable(lpsRestrict);
 	for (const auto &p : m_mapCategories)
 		delete p.second;
@@ -555,13 +555,13 @@ ECRESULT ECGenericObjectTable::SetSortOrder(const struct sortOrderArray *lpsSort
 	m_ulExpanded = ulExpanded;
 
 	// Save the sort order requested
-	FreeSortOrderArray(lpsSortOrderArray);
-	lpsSortOrderArray = s_alloc<sortOrderArray>(nullptr);
+	soap_del_PointerTosortOrderArray(&lpsSortOrderArray);
+	lpsSortOrderArray = soap_new_sortOrderArray(nullptr);
 	lpsSortOrderArray->__size = lpsSortOrder->__size;
 	if(lpsSortOrder->__size == 0 ) {
 		lpsSortOrderArray->__ptr = nullptr;
 	} else {
-		lpsSortOrderArray->__ptr = s_alloc<sortOrder>(nullptr, lpsSortOrder->__size);
+		lpsSortOrderArray->__ptr = soap_new_sortOrder(nullptr, lpsSortOrder->__size);
 		memcpy(lpsSortOrderArray->__ptr, lpsSortOrder->__ptr, sizeof(struct sortOrder) * lpsSortOrder->__size);
 	}
 

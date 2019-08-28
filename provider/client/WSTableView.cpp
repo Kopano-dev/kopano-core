@@ -173,7 +173,7 @@ HRESULT WSTableView::HrSortTable(const SSortOrderSet *lpsSortOrderSet)
 	memcpy(m_lpsSortOrderSet, lpsSortOrderSet, CbSSortOrderSet(lpsSortOrderSet));
 
 	sSort.__size = lpsSortOrderSet->cSorts;
-	sSort.__ptr = s_alloc<sortOrder>(nullptr, lpsSortOrderSet->cSorts);
+	sSort.__ptr  = soap_new_sortOrder(nullptr, lpsSortOrderSet->cSorts);
 	for (unsigned int i = 0; i < lpsSortOrderSet->cSorts; ++i) {
 		sSort.__ptr[i].ulOrder = lpsSortOrderSet->aSort[i].ulOrder;
 		sSort.__ptr[i].ulPropTag = lpsSortOrderSet->aSort[i].ulPropTag;
@@ -196,7 +196,7 @@ HRESULT WSTableView::HrSortTable(const SSortOrderSet *lpsSortOrderSet)
 exit:
 	spg.unlock();
 	delete[] lpOld;
-	s_free(nullptr, sSort.__ptr);
+	soap_del_sortOrderArray(&sSort);
 	return hr;
 }
 
@@ -535,7 +535,7 @@ HRESULT WSTableView::HrMulti(ULONG ulDeferredFlags,
 
 		// Copy sort order for call
         sSort.sSortOrder.__size = lpsSortOrderSet->cSorts;
-		sSort.sSortOrder.__ptr = s_alloc<sortOrder>(nullptr, lpsSortOrderSet->cSorts);
+		sSort.sSortOrder.__ptr  = soap_new_sortOrder(nullptr, lpsSortOrderSet->cSorts);
 		for (unsigned int i = 0; i < lpsSortOrderSet->cSorts; ++i) {
             sSort.sSortOrder.__ptr[i].ulOrder = lpsSortOrderSet->aSort[i].ulOrder;
             sSort.sSortOrder.__ptr[i].ulPropTag = lpsSortOrderSet->aSort[i].ulPropTag;
@@ -567,7 +567,7 @@ HRESULT WSTableView::HrMulti(ULONG ulDeferredFlags,
 		hr = CopySOAPRowSetToMAPIRowSet(m_lpProvider, &sResponse.sRowSet, lppRowSet, ulType);
 exit:
 	spg.unlock();
-	s_free(nullptr, sSort.sSortOrder.__ptr);
+	soap_del_sortOrderArray(&sSort.sSortOrder);
 	if(lpsRestrictTable)
 		FreeRestrictTable(lpsRestrictTable);
 	return hr;
