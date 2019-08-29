@@ -9,7 +9,7 @@ if test -z "$acver"; then
 	exit 1
 fi
 # created by user/buildservice, with desired suffixes
-version=$(cat version 2>/dev/null || .)
+version=$(cat version 2>/dev/null || :)
 if test -z "$version"; then version="$acver"; fi
 if perl -e 'exit!($ARGV[1]!~/^\Q$ARGV[0]\E\b/)' "$acver" "$version"; then
 	>&2 echo "You can only append, not override, the version specified in AC_INIT."
