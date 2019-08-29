@@ -40,12 +40,6 @@ HRESULT WSStoreTableView::Create(ULONG ulType, ULONG ulFlags,
 	       .as(IID_ECTableView, lppTableView);
 }
 
-HRESULT WSStoreTableView::QueryInterface(REFIID refiid, void **lppInterface)
-{
-	REGISTER_INTERFACE3(ECTableView, WSTableView, this);
-	return MAPI_E_INTERFACE_NOT_SUPPORTED;
-}
-
 /*
   Miscellaneous tables are not really store tables, but the is the same, so it inherits from the store table
   Supported tables are the stats tables, and userstores table.

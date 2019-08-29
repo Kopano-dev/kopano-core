@@ -16,7 +16,6 @@ protected:
 	virtual ~WSStoreTableView(void) = default;
 public:
 	static HRESULT Create(ULONG type, ULONG flags, KC::ECSESSIONID, ULONG eid_size, const ENTRYID *eid, ECMsgStore *, WSTransport *, WSTableView **);
-	virtual	HRESULT	QueryInterface(const IID &, void **) override;
 	ALLOC_WRAP_FRIEND;
 };
 
