@@ -29,11 +29,21 @@ https://docs.microsoft.com/en-us/office/client-developer/outlook/mapi/entryid
 https://docs.microsoft.com/en-us/office/client-developer/outlook/mapi/mapi-entry-identifiers
 
 Four flag bytes, and then variadic length identifier that only means something
-to MAPI. And maybe kopano-admin. Do not attempt to parse.
+to the particular MAPI provider it was generated in. Yet, there is the AF2 form
+that adds extra distinguishing semantics, but the conformance to AF2 is not
+guaranteed. Do not attempt to parse entryids.
 
-mapi4linux's IMAPISession::CompareEntryIDs and IMAPISupport::CompareEntryIDs do
-a byte-level compare only. This is not in line with what MSDN says MAPI32
-implements.
+Entryid comparison:
+
+  * IMAPISession::CompareEntryIDs is specified to do an entry ID comparison for
+    arbitrary providers, so long as the two entryids presented actually belong
+    to the _same_ provider.
+  * IMAPISupport::CompareEntryIDs offers the comparison as well. Since
+    IMAPISupport objects are tied to a provider, it is always using the right
+    comparison function.
+  * mapi4linux's IMAPISession::CompareEntryIDs and
+    IMAPISupport::CompareEntryIDs do a byte-level compare only, and thus do not
+    adhere to the MSDN MAPI specification.
 
 
 == Profiles ==
@@ -384,6 +394,15 @@ ZCP/KC:
 This non-standard layout is not just a mapi4linux thing; in fact,
 zarafa6client.dll (which uses MAPI32 and not mapi4linux) always sends ZCP-style
 storewrap EIDs when it does.
+
+Entryids are only understood by a particular provider. When the Kopano server
+reveals the entryid for a particular store, e.g. by way of the getStore RPC,
+the client needs to remember that this entryid is to be used in conjunction
+with the particular provider, so that IMAPISession::OpenMsgStore will invoke
+the login procedure on the right provider. (Otherwise, OpenMsgStore would have
+to trial-and-error through all providers, which is neither fast nor correct.)
+muidwrapping essentially preprends the provider UID, thereby remembering the
+provider for later.
 
 
 == Basic private store layout ==
