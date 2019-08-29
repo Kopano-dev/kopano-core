@@ -62,191 +62,191 @@ protected:
 public:
 	static HRESULT Create(WSTransport **);
 	virtual HRESULT QueryInterface(const IID &, void **) override;
-	virtual HRESULT HrLogon(const struct sGlobalProfileProps &);
-	virtual HRESULT HrReLogon();
-	virtual HRESULT HrClone(WSTransport **lppTransport);
-	virtual HRESULT HrLogOff();
-	HRESULT logoff_nd(void);
-	virtual HRESULT HrSetRecvTimeout(unsigned int ulSeconds);
-	virtual HRESULT CreateAndLogonAlternate(LPCSTR szServer, WSTransport **lppTransport) const;
-	virtual HRESULT CloneAndRelogon(WSTransport **lppTransport) const;
-	virtual HRESULT HrGetStore(ULONG meid_size, const ENTRYID *master_eid, ULONG *seid_size, ENTRYID **store_eid, ULONG *reid_size, ENTRYID **root_eid, std::string *redir_srv = nullptr);
-	virtual HRESULT HrGetStoreName(ULONG seid_size, const ENTRYID *store_eid, ULONG flags, TCHAR **store_name);
-	virtual HRESULT HrGetStoreType(ULONG seid_size, const ENTRYID *store_eid, ULONG *store_type);
-	virtual HRESULT HrGetPublicStore(ULONG ulFlags, ULONG* lpcbStoreID, LPENTRYID* lppStoreID, std::string *lpstrRedirServer = NULL);
+	HRESULT HrLogon(const struct sGlobalProfileProps &);
+	HRESULT HrReLogon();
+	HRESULT HrClone(WSTransport **out);
+	HRESULT HrLogOff();
+	HRESULT logoff_nd();
+	HRESULT HrSetRecvTimeout(unsigned int seconds);
+	HRESULT CreateAndLogonAlternate(const char *server, WSTransport **out) const;
+	HRESULT CloneAndRelogon(WSTransport **out) const;
+	HRESULT HrGetStore(unsigned int meid_size, const ENTRYID *master_eid, unsigned int *seid_size, ENTRYID **store_eid, unsigned int *reid_size, ENTRYID **root_eid, std::string *redir_srv = nullptr);
+	HRESULT HrGetStoreName(unsigned int seid_size, const ENTRYID *store_eid, unsigned int flags, TCHAR **store_name);
+	HRESULT HrGetStoreType(unsigned int seid_size, const ENTRYID *store_eid, unsigned int *store_type);
+	HRESULT HrGetPublicStore(unsigned int flags, unsigned int *store_siz, ENTRYID **store_eid, std::string *redir_srv = nullptr);
 
 	// Check item exist with flags
-	virtual HRESULT HrCheckExistObject(ULONG eid_size, const ENTRYID *eid, ULONG flags);
+	HRESULT HrCheckExistObject(unsigned int eid_size, const ENTRYID *eid, unsigned int flags);
 
 	// Interface to get/set properties
-	virtual HRESULT HrOpenPropStorage(ULONG parent_eid_size, const ENTRYID *parent, ULONG eid_size, const ENTRYID *eid, ULONG flags, IECPropStorage **);
-	virtual HRESULT HrOpenParentStorage(ECGenericProp *lpParentObject, ULONG ulUniqueId, ULONG ulObjId, IECPropStorage *lpServerStorage, IECPropStorage **lppPropStorage);
-	virtual HRESULT HrOpenABPropStorage(ULONG eid_size, const ENTRYID *eid, IECPropStorage **);
+	HRESULT HrOpenPropStorage(unsigned int parent_eid_size, const ENTRYID *parent, unsigned int eid_size, const ENTRYID *eid, unsigned int flags, IECPropStorage **);
+	HRESULT HrOpenParentStorage(ECGenericProp *parent, unsigned int unique_id, unsigned int obj_id, IECPropStorage *srv_storage, IECPropStorage **prop_storage);
+	HRESULT HrOpenABPropStorage(unsigned int eid_size, const ENTRYID *eid, IECPropStorage **);
 
 	// Interface for folder operations (create/delete)
-	virtual HRESULT HrOpenFolderOps(ULONG eid_size, const ENTRYID *eid, WSMAPIFolderOps **);
-	virtual HRESULT HrExportMessageChangesAsStream(ULONG ulFlags, ULONG ulPropTag, const ICSCHANGE *lpChanges, ULONG ulStart, ULONG ulChanges, const SPropTagArray *lpsProps, WSMessageStreamExporter **lppsStreamExporter);
-	virtual HRESULT HrGetMessageStreamImporter(ULONG flags, ULONG sync_id, ULONG eid_size, const ENTRYID *eid, ULONG feid_size, const ENTRYID *folder_eid, bool newmsg, const SPropValue *conflict, WSMessageStreamImporter **);
+	HRESULT HrOpenFolderOps(unsigned int eid_size, const ENTRYID *eid, WSMAPIFolderOps **);
+	HRESULT HrExportMessageChangesAsStream(unsigned int flags, unsigned int proptag, const ICSCHANGE *changes, unsigned int start, unsigned int nchanges, const SPropTagArray *props, WSMessageStreamExporter **);
+	HRESULT HrGetMessageStreamImporter(unsigned int flags, unsigned int sync_id, unsigned int eid_size, const ENTRYID *eid, unsigned int feid_size, const ENTRYID *folder_eid, bool newmsg, const SPropValue *conflict, WSMessageStreamImporter **);
 
 	// Interface for table operations
-	virtual HRESULT HrOpenTableOps(ULONG type, ULONG flags, ULONG eid_size, const ENTRYID *eid, ECMsgStore *, WSTableView **);
-	virtual HRESULT HrOpenABTableOps(ULONG type, ULONG flags, ULONG eid_size, const ENTRYID *eid, ECABLogon *, WSTableView **);
-	virtual HRESULT HrOpenMailBoxTableOps(ULONG ulFlags, ECMsgStore *lpMsgStore, WSTableView **lppTableOps);
+	HRESULT HrOpenTableOps(unsigned int type, unsigned int flags, unsigned int eid_size, const ENTRYID *eid, ECMsgStore *, WSTableView **);
+	HRESULT HrOpenABTableOps(unsigned int type, unsigned int flags, unsigned int eid_size, const ENTRYID *eid, ECABLogon *, WSTableView **);
+	HRESULT HrOpenMailBoxTableOps(unsigned int flags, ECMsgStore *, WSTableView **tblops);
 
 	//Interface for outgoigqueue
-	virtual HRESULT HrOpenTableOutGoingQueueOps(ULONG seid_size, const ENTRYID *store_eid, ECMsgStore *, WSTableOutGoingQueue **);
+	HRESULT HrOpenTableOutGoingQueueOps(unsigned int seid_size, const ENTRYID *store_eid, ECMsgStore *, WSTableOutGoingQueue **);
 
 	// Delete objects
-	virtual HRESULT HrDeleteObjects(ULONG flags, const ENTRYLIST *msglist, ULONG sync_id);
+	HRESULT HrDeleteObjects(unsigned int flags, const ENTRYLIST *msglist, unsigned int sync_id);
 
 	// Notification
-	virtual HRESULT HrSubscribe(ULONG cbKey, LPBYTE lpKey, ULONG ulConnection, ULONG ulEventMask);
-	virtual HRESULT HrSubscribe(ULONG ulSyncId, ULONG ulChangeId, ULONG ulConnection, ULONG ulEventMask);
-	virtual HRESULT HrSubscribeMulti(const ECLISTSYNCADVISE &lstSyncAdvises, ULONG ulEventMask);
-	virtual HRESULT HrUnSubscribe(ULONG ulConnection);
-	virtual HRESULT HrUnSubscribeMulti(const ECLISTCONNECTION &lstConnections);
-	virtual	HRESULT HrNotify(const NOTIFICATION *);
+	HRESULT HrSubscribe(unsigned int key_size, BYTE *key, unsigned int conn, unsigned int evt_mask);
+	HRESULT HrSubscribe(unsigned int sync_id, unsigned int change_id, unsigned int conn, unsigned int evt_mask);
+	HRESULT HrSubscribeMulti(const ECLISTSYNCADVISE &, unsigned int evt_mask);
+	HRESULT HrUnSubscribe(unsigned int conn);
+	HRESULT HrUnSubscribeMulti(const ECLISTCONNECTION &);
+	HRESULT HrNotify(const NOTIFICATION *);
 
 	// Named properties
-	virtual HRESULT HrGetIDsFromNames(LPMAPINAMEID *lppPropNamesUnresolved, ULONG cUnresolved, ULONG ulFlags, ULONG **lpServerIDs);
-	virtual HRESULT HrGetNamesFromIDs(SPropTagArray *tags, MAPINAMEID ***names, ULONG *resolved);
+	HRESULT HrGetIDsFromNames(MAPINAMEID **unresolved_names, unsigned int unres_count, unsigned int flags, unsigned int **server_ids);
+	HRESULT HrGetNamesFromIDs(SPropTagArray *tags, MAPINAMEID ***names, unsigned int *resolved);
 
 	// ReceiveFolder
-	virtual HRESULT HrGetReceiveFolder(ULONG store_eid_size, const ENTRYID *store_eid, const KC::utf8string &cls, ULONG *eid_size, ENTRYID **folder_eid, KC::utf8string *exp_class);
-	virtual HRESULT HrSetReceiveFolder(ULONG store_eid_size, const ENTRYID *store_eid, const KC::utf8string &cls, ULONG eid_size, const ENTRYID *folder_eid);
-	virtual HRESULT HrGetReceiveFolderTable(ULONG flags, ULONG store_eid_size, const ENTRYID *store_eid, SRowSet **);
+	HRESULT HrGetReceiveFolder(unsigned int store_eid_size, const ENTRYID *store_eid, const KC::utf8string &cls, unsigned int *eid_size, ENTRYID **folder_eid, KC::utf8string *exp_class);
+	HRESULT HrSetReceiveFolder(unsigned int store_eid_size, const ENTRYID *store_eid, const KC::utf8string &cls, unsigned int eid_size, const ENTRYID *folder_eid);
+	HRESULT HrGetReceiveFolderTable(unsigned int flags, unsigned int store_eid_size, const ENTRYID *store_eid, SRowSet **);
 
 	// Read / Unread
-	virtual HRESULT HrSetReadFlag(ULONG eid_size, const ENTRYID *eid, ULONG flags, ULONG sync_id);
+	HRESULT HrSetReadFlag(unsigned int eid_size, const ENTRYID *eid, unsigned int flags, unsigned int sync_id);
 
 	// Add message into the Outgoing Queue
-	virtual HRESULT HrSubmitMessage(ULONG eid_size, const ENTRYID *msg_eid, ULONG flags);
+	HRESULT HrSubmitMessage(unsigned int eid_size, const ENTRYID *msg_eid, unsigned int flags);
 
 	// Outgoing Queue Finished message
-	virtual HRESULT HrFinishedMessage(ULONG cbEntryID, const ENTRYID *lpEntryID, ULONG ulFlags);
-	virtual HRESULT HrAbortSubmit(ULONG eid_size, const ENTRYID *);
+	HRESULT HrFinishedMessage(unsigned int eid_size, const ENTRYID *, unsigned int flags);
+	HRESULT HrAbortSubmit(unsigned int eid_size, const ENTRYID *);
 
 	// Get user information
-	virtual HRESULT HrResolveUserStore(const KC::utf8string &username, ULONG flags, ULONG *user_id, ULONG *eid_size, ENTRYID **store_eid, std::string *redir_srv = nullptr);
-	virtual HRESULT HrResolveTypedStore(const KC::utf8string &username, ULONG store_type, ULONG *eid_size, ENTRYID **store_eid);
+	HRESULT HrResolveUserStore(const KC::utf8string &username, unsigned int flags, unsigned int *user_id, unsigned int *eid_size, ENTRYID **store_eid, std::string *redir_srv = nullptr);
+	HRESULT HrResolveTypedStore(const KC::utf8string &username, unsigned int store_type, unsigned int *eid_size, ENTRYID **store_eid);
 
 	// IECServiceAdmin functions
-	virtual HRESULT HrCreateUser(KC::ECUSER *, ULONG flags, ULONG *eid_size, ENTRYID **user_eid);
-	virtual HRESULT HrDeleteUser(ULONG eid_size, const ENTRYID *user_eid);
-	virtual HRESULT HrSetUser(KC::ECUSER *, ULONG flags);
-	virtual HRESULT HrGetUser(ULONG eid_size, const ENTRYID *user_eid, ULONG flags, KC::ECUSER **);
-	virtual HRESULT HrCreateStore(ULONG store_type, ULONG user_size, const ENTRYID *user_eid, ULONG store_size, const ENTRYID *store_eid, ULONG root_size, const ENTRYID *root_eid, ULONG flags);
-	virtual HRESULT HrHookStore(ULONG store_type, ULONG user_size, const ENTRYID *user_eid, const GUID *, ULONG sync_id);
-	virtual HRESULT HrUnhookStore(ULONG store_type, ULONG user_size, const ENTRYID *user_eid, ULONG sync_id);
-	virtual HRESULT HrRemoveStore(const GUID *, ULONG sync_id);
-	virtual HRESULT HrGetUserList(ULONG eid_size, const ENTRYID *comp_eid, ULONG flags, ULONG *nusers, KC::ECUSER **);
-	virtual HRESULT HrResolveUserName(LPCTSTR lpszUserName, ULONG ulFlags, ULONG *lpcbUserId, LPENTRYID *lppUserId);
+	HRESULT HrCreateUser(KC::ECUSER *, unsigned int flags, unsigned int *eid_size, ENTRYID **user_eid);
+	HRESULT HrDeleteUser(unsigned int eid_size, const ENTRYID *user_eid);
+	HRESULT HrSetUser(KC::ECUSER *, unsigned int flags);
+	HRESULT HrGetUser(unsigned int eid_size, const ENTRYID *user_eid, unsigned int flags, KC::ECUSER **);
+	HRESULT HrCreateStore(unsigned int store_type, unsigned int user_size, const ENTRYID *user_eid, unsigned int store_size, const ENTRYID *store_eid, unsigned int root_size, const ENTRYID *root_eid, unsigned int flags);
+	HRESULT HrHookStore(unsigned int store_type, unsigned int user_size, const ENTRYID *user_eid, const GUID *, unsigned int sync_id);
+	HRESULT HrUnhookStore(unsigned int store_type, unsigned int user_size, const ENTRYID *user_eid, unsigned int sync_id);
+	HRESULT HrRemoveStore(const GUID *, unsigned int sync_id);
+	HRESULT HrGetUserList(unsigned int eid_size, const ENTRYID *comp_eid, unsigned int flags, unsigned int *nusers, KC::ECUSER **);
+	HRESULT HrResolveUserName(const TCHAR *name, unsigned int flags, unsigned int *eid_size, ENTRYID **user_id);
 
-	virtual HRESULT HrGetSendAsList(ULONG ueid_size, const ENTRYID *user_eid, ULONG flags, ULONG *nsenders, KC::ECUSER **senders);
-	virtual HRESULT HrAddSendAsUser(ULONG ueid_size, const ENTRYID *user_eid, ULONG seid_size, const ENTRYID *sender_eid);
-	virtual HRESULT HrDelSendAsUser(ULONG ueid_size, const ENTRYID *user_eid, ULONG seid_size, const ENTRYID *sender_eid);
+	HRESULT HrGetSendAsList(unsigned int ueid_size, const ENTRYID *user_eid, unsigned int flags, unsigned int *nsenders, KC::ECUSER **senders);
+	HRESULT HrAddSendAsUser(unsigned int ueid_size, const ENTRYID *user_eid, unsigned int seid_size, const ENTRYID *sender_eid);
+	HRESULT HrDelSendAsUser(unsigned int ueid_size, const ENTRYID *user_eid, unsigned int seid_size, const ENTRYID *sender_eid);
 
 	// Quota
-	virtual HRESULT GetQuota(ULONG ueid_size, const ENTRYID *user_eid, bool get_dfl, KC::ECQUOTA **);
-	virtual HRESULT SetQuota(ULONG ueid_size, const ENTRYID *user_eid, KC::ECQUOTA *);
-	virtual HRESULT AddQuotaRecipient(ULONG ceid_size, const ENTRYID *com_eid, ULONG reid_size, const ENTRYID *recip_eid, ULONG type);
-	virtual HRESULT DeleteQuotaRecipient(ULONG ceid_size, const ENTRYID *com_eid, ULONG reid_size, const ENTRYID *recip_eid, ULONG type);
-	virtual HRESULT GetQuotaRecipients(ULONG ueid_size, const ENTRYID *user_eid, ULONG flags, ULONG *nusers, KC::ECUSER **);
-	virtual HRESULT GetQuotaStatus(ULONG ueid_size, const ENTRYID *user_eid, KC::ECQUOTASTATUS **);
+	HRESULT GetQuota(unsigned int ueid_size, const ENTRYID *user_eid, bool get_dfl, KC::ECQUOTA **);
+	HRESULT SetQuota(unsigned int ueid_size, const ENTRYID *user_eid, KC::ECQUOTA *);
+	HRESULT AddQuotaRecipient(unsigned int ceid_size, const ENTRYID *com_eid, unsigned int reid_size, const ENTRYID *recip_eid, unsigned int type);
+	HRESULT DeleteQuotaRecipient(unsigned int ceid_size, const ENTRYID *com_eid, unsigned int reid_size, const ENTRYID *recip_eid, unsigned int type);
+	HRESULT GetQuotaRecipients(unsigned int ueid_size, const ENTRYID *user_eid, unsigned int flags, unsigned int *nusers, KC::ECUSER **);
+	HRESULT GetQuotaStatus(unsigned int ueid_size, const ENTRYID *user_eid, KC::ECQUOTASTATUS **);
 
-	virtual HRESULT HrPurgeSoftDelete(ULONG ulDays);
-	virtual HRESULT HrPurgeCache(ULONG ulFlags);
-	virtual HRESULT HrPurgeDeferredUpdates(ULONG *lpulRemaining);
+	HRESULT HrPurgeSoftDelete(unsigned int days);
+	HRESULT HrPurgeCache(unsigned int flags);
+	HRESULT HrPurgeDeferredUpdates(unsigned int *remain);
 
 	// MultiServer
-	virtual HRESULT HrResolvePseudoUrl(const char *lpszPseudoUrl, char **lppszServerPath, bool *lpbIsPeer);
-	virtual HRESULT HrGetServerDetails(KC::ECSVRNAMELIST *, ULONG flags, KC::ECSERVERLIST **out);
+	HRESULT HrResolvePseudoUrl(const char *url, char **path, bool *is_peer);
+	HRESULT HrGetServerDetails(KC::ECSVRNAMELIST *, unsigned int flags, KC::ECSERVERLIST **out);
 
 	// IECServiceAdmin group functions
-	virtual HRESULT HrResolveGroupName(LPCTSTR lpszGroupName, ULONG ulFlags, ULONG *lpcbGroupId, LPENTRYID *lppGroupId);
-	virtual HRESULT HrCreateGroup(KC::ECGROUP *, ULONG flags, ULONG *eid_size, ENTRYID **grp_eid);
-	virtual HRESULT HrSetGroup(KC::ECGROUP *, ULONG flags);
-	virtual HRESULT HrGetGroup(ULONG grp_size, const ENTRYID *grp_eid, ULONG flags, KC::ECGROUP **);
-	virtual HRESULT HrDeleteGroup(ULONG eid_size, const ENTRYID *grp_eid);
-	virtual HRESULT HrGetGroupList(ULONG eid_size, const ENTRYID *comp_eid, ULONG flags, ULONG *ngrp, KC::ECGROUP **);
+	HRESULT HrResolveGroupName(const TCHAR *name, unsigned int flags, unsigned int *eid_size, ENTRYID **grp_eid);
+	HRESULT HrCreateGroup(KC::ECGROUP *, unsigned int flags, unsigned int *eid_size, ENTRYID **grp_eid);
+	HRESULT HrSetGroup(KC::ECGROUP *, unsigned int flags);
+	HRESULT HrGetGroup(unsigned int grp_size, const ENTRYID *grp_eid, unsigned int flags, KC::ECGROUP **);
+	HRESULT HrDeleteGroup(unsigned int eid_size, const ENTRYID *grp_eid);
+	HRESULT HrGetGroupList(unsigned int eid_size, const ENTRYID *comp_eid, unsigned int flags, unsigned int *ngrp, KC::ECGROUP **);
 
 	// IECServiceAdmin Group and user functions
-	virtual HRESULT HrDeleteGroupUser(ULONG geid_size, const ENTRYID *group_eid, ULONG ueid_size, const ENTRYID *user_eid);
-	virtual HRESULT HrAddGroupUser(ULONG geid_size, const ENTRYID *group_eid, ULONG ueid_size, const ENTRYID *user_eid);
-	virtual HRESULT HrGetUserListOfGroup(ULONG geid_size, const ENTRYID *group_eid, ULONG flags, ULONG *nusers, KC::ECUSER **);
-	virtual HRESULT HrGetGroupListOfUser(ULONG ueid_size, const ENTRYID *user_eid, ULONG flags, ULONG *ngroups, KC::ECGROUP **);
+	HRESULT HrDeleteGroupUser(unsigned int geid_size, const ENTRYID *group_eid, unsigned int ueid_size, const ENTRYID *user_eid);
+	HRESULT HrAddGroupUser(unsigned int geid_size, const ENTRYID *group_eid, unsigned int ueid_size, const ENTRYID *user_eid);
+	HRESULT HrGetUserListOfGroup(unsigned int geid_size, const ENTRYID *group_eid, unsigned int flags, unsigned int *nusers, KC::ECUSER **);
+	HRESULT HrGetGroupListOfUser(unsigned int ueid_size, const ENTRYID *user_eid, unsigned int flags, unsigned int *ngroups, KC::ECGROUP **);
 
 	// IECServiceAdmin company functions
-	virtual HRESULT HrCreateCompany(KC::ECCOMPANY *, ULONG flags, ULONG *eid_size, ENTRYID **comp_eid);
-	virtual HRESULT HrDeleteCompany(ULONG ceid_size, const ENTRYID *comp_eid);
-	virtual HRESULT HrSetCompany(KC::ECCOMPANY *, ULONG flags);
-	virtual HRESULT HrGetCompany(ULONG cmp_size, const ENTRYID *cmp_eid, ULONG flags, KC::ECCOMPANY **);
-	virtual HRESULT HrResolveCompanyName(LPCTSTR lpszCompanyName, ULONG ulFlags, ULONG *lpcbCompanyId, LPENTRYID *lppCompanyId);
-	virtual HRESULT HrGetCompanyList(ULONG flags, ULONG *ncomp, KC::ECCOMPANY **companies);
-	virtual HRESULT HrAddCompanyToRemoteViewList(ULONG sc_size, const ENTRYID *scom, ULONG ceid_size, const ENTRYID *com_eid);
-	virtual HRESULT HrDelCompanyFromRemoteViewList(ULONG sc_size, const ENTRYID *scom, ULONG ceid_size, const ENTRYID *com_eid);
-	virtual HRESULT HrGetRemoteViewList(ULONG ceid_size, const ENTRYID *com_eid, ULONG flags, ULONG *ncom, KC::ECCOMPANY **);
-	virtual HRESULT HrAddUserToRemoteAdminList(ULONG ueid_size, const ENTRYID *user_eid, ULONG ceid_size, const ENTRYID *com_eid);
-	virtual HRESULT HrDelUserFromRemoteAdminList(ULONG ueid_size, const ENTRYID *user_eid, ULONG ceid_size, const ENTRYID *com_eid);
-	virtual HRESULT HrGetRemoteAdminList(ULONG ceid_size, const ENTRYID *com_eid, ULONG flags, ULONG *nusers, KC::ECUSER **);
+	HRESULT HrCreateCompany(KC::ECCOMPANY *, unsigned int flags, unsigned int *eid_size, ENTRYID **comp_eid);
+	HRESULT HrDeleteCompany(unsigned int ceid_size, const ENTRYID *comp_eid);
+	HRESULT HrSetCompany(KC::ECCOMPANY *, unsigned int flags);
+	HRESULT HrGetCompany(unsigned int cmp_size, const ENTRYID *cmp_eid, unsigned int flags, KC::ECCOMPANY **);
+	HRESULT HrResolveCompanyName(const TCHAR *name, unsigned int flags, unsigned int *eid_size, ENTRYID **comp_eid);
+	HRESULT HrGetCompanyList(unsigned int flags, unsigned int *ncomp, KC::ECCOMPANY **companies);
+	HRESULT HrAddCompanyToRemoteViewList(unsigned int sc_size, const ENTRYID *scom, unsigned int ceid_size, const ENTRYID *com_eid);
+	HRESULT HrDelCompanyFromRemoteViewList(unsigned int sc_size, const ENTRYID *scom, unsigned int ceid_size, const ENTRYID *com_eid);
+	HRESULT HrGetRemoteViewList(unsigned int ceid_size, const ENTRYID *com_eid, unsigned int flags, unsigned int *ncom, KC::ECCOMPANY **);
+	HRESULT HrAddUserToRemoteAdminList(unsigned int ueid_size, const ENTRYID *user_eid, unsigned int ceid_size, const ENTRYID *com_eid);
+	HRESULT HrDelUserFromRemoteAdminList(unsigned int ueid_size, const ENTRYID *user_eid, unsigned int ceid_size, const ENTRYID *com_eid);
+	HRESULT HrGetRemoteAdminList(unsigned int ceid_size, const ENTRYID *com_eid, unsigned int flags, unsigned int *nusers, KC::ECUSER **);
 
 	// IECServiceAdmin company and user functions
 	// Get the object rights
-	virtual HRESULT HrGetPermissionRules(int type, ULONG eid_size, const ENTRYID *, ULONG *nperm, KC::ECPERMISSION **);
+	HRESULT HrGetPermissionRules(int type, unsigned int eid_size, const ENTRYID *, unsigned int *nperm, KC::ECPERMISSION **);
 	// Set the object rights
-	virtual HRESULT HrSetPermissionRules(ULONG eid_size, const ENTRYID *eid, ULONG nperm, const KC::ECPERMISSION *);
+	HRESULT HrSetPermissionRules(unsigned int eid_size, const ENTRYID *eid, unsigned int nperm, const KC::ECPERMISSION *);
 	// Get owner information
-	virtual HRESULT HrGetOwner(ULONG eid_size, const ENTRYID *, ULONG *ouid_size, ENTRYID **owner_eid);
+	HRESULT HrGetOwner(unsigned int eid_size, const ENTRYID *, unsigned int *ouid_size, ENTRYID **owner_eid);
 	//Addressbook function
-	virtual HRESULT HrResolveNames(const SPropTagArray *lpPropTagArray, ULONG ulFlags, LPADRLIST lpAdrList, LPFlagList lpFlagList);
-	virtual HRESULT HrSyncUsers(ULONG ceid_size, const ENTRYID *com_eid);
+	HRESULT HrResolveNames(const SPropTagArray *tagarr, unsigned int flags, ADRLIST *, FlagList *);
+	HRESULT HrSyncUsers(unsigned int ceid_size, const ENTRYID *com_eid);
 
 	// Incremental Change Synchronization
-	virtual HRESULT HrGetChanges(const std::string &sourcekey, ULONG sync_id, ULONG change_id, ULONG sync_type, ULONG flags, const SRestriction *, ULONG *max_change, ULONG *nchanges, ICSCHANGE **);
-	virtual HRESULT HrSetSyncStatus(const std::string& sourcekey, ULONG ulSyncId, ULONG ulChangeId, ULONG ulSyncType, ULONG ulFlags, ULONG* lpulSyncId);
-	virtual HRESULT HrEntryIDFromSourceKey(ULONG seid_size, const ENTRYID *store, ULONG fsk_size, BYTE *folder_sk, ULONG msk_size, BYTE *msg_sk, ULONG *eid_size, ENTRYID **eid);
-	virtual HRESULT HrGetSyncStates(const ECLISTSYNCID &lstSyncId, ECLISTSYNCSTATE *lplstSyncState);
+	HRESULT HrGetChanges(const std::string &sourcekey, unsigned int sync_id, unsigned int change_id, unsigned int sync_type, unsigned int flags, const SRestriction *, unsigned int *max_change, unsigned int *nchanges, ICSCHANGE **);
+	HRESULT HrSetSyncStatus(const std::string &sourcekey, unsigned int sync_id, unsigned int change_id, unsigned int sync_type, unsigned int flags, unsigned int *syncid_out);
+	HRESULT HrEntryIDFromSourceKey(unsigned int seid_size, const ENTRYID *store, unsigned int fsk_size, BYTE *folder_sk, unsigned int msk_size, BYTE *msg_sk, unsigned int *eid_size, ENTRYID **eid);
+	HRESULT HrGetSyncStates(const ECLISTSYNCID &, ECLISTSYNCSTATE *);
 
-	virtual const char* GetServerName();
+	const char *GetServerName();
 
 	/* statistics tables (system, threads, users), ulTableType is proto.h TABLETYPE_STATS_... */
 	/* userstores table TABLETYPE_USERSTORE */
-	virtual HRESULT HrOpenMiscTable(ULONG table_type, ULONG flags, ULONG eid_size, const ENTRYID *eid, ECMsgStore *, WSTableView **);
+	HRESULT HrOpenMiscTable(unsigned int table_type, unsigned int flags, unsigned int eid_size, const ENTRYID *eid, ECMsgStore *, WSTableView **);
 
 	/* Message locking */
-	virtual HRESULT HrSetLockState(ULONG eid_size, const ENTRYID *, bool locked);
+	HRESULT HrSetLockState(unsigned int eid_size, const ENTRYID *, bool locked);
 
 	/* expose capabilities */
-	virtual HRESULT HrCheckCapabilityFlags(ULONG ulFlags, BOOL *lpbResult);
+	HRESULT HrCheckCapabilityFlags(unsigned int flags, BOOL *result);
 
 	/* Test protocol */
-	virtual HRESULT HrTestPerform(const char *cmd, unsigned int argc, char **args);
-	virtual HRESULT HrTestSet(const char *szName, const char *szValue);
-	virtual HRESULT HrTestGet(const char *szName, char **szValue);
+	HRESULT HrTestPerform(const char *cmd, unsigned int argc, char **args);
+	HRESULT HrTestSet(const char *name, const char *value);
+	HRESULT HrTestGet(const char *name, char **value);
 
 	/* Return Session information */
-	virtual HRESULT HrGetSessionId(KC::ECSESSIONID *, KC::ECSESSIONGROUPID *);
+	HRESULT HrGetSessionId(KC::ECSESSIONID *, KC::ECSESSIONGROUPID *);
 
 	/* Get profile properties (connect info) */
-	virtual sGlobalProfileProps GetProfileProps();
+	sGlobalProfileProps GetProfileProps();
 
 	/* Get the server GUID obtained at logon */
-	virtual HRESULT GetServerGUID(LPGUID lpsServerGuid);
+	HRESULT GetServerGUID(GUID *);
 
 	/* These are called by other WS* classes to register themselves for session changes */
-	virtual HRESULT AddSessionReloadCallback(void *lpParam, SESSIONRELOADCALLBACK callback, ULONG * lpulId);
-	virtual HRESULT RemoveSessionReloadCallback(ULONG ulId);
+	HRESULT AddSessionReloadCallback(void *param, SESSIONRELOADCALLBACK, unsigned int *id);
+	HRESULT RemoveSessionReloadCallback(unsigned int id);
 
 	/* notifications */
-	virtual HRESULT HrGetNotify(struct notificationArray **lppsArrayNotifications);
-	virtual HRESULT HrCancelIO();
+	HRESULT HrGetNotify(struct notificationArray **out);
+	HRESULT HrCancelIO();
 
-	virtual HRESULT HrResetFolderCount(ULONG eid_size, const ENTRYID *eid, ULONG *nupdates);
+	HRESULT HrResetFolderCount(unsigned int eid_size, const ENTRYID *eid, unsigned int *nupdates);
 
 	std::string m_server_version;
 
 private:
-	virtual HRESULT HrLogon2(const struct sGlobalProfileProps &);
+	HRESULT HrLogon2(const struct sGlobalProfileProps &);
 	// Returns name of calling application (eg 'program.exe' or 'httpd')
 	std::string GetAppName();
 
