@@ -139,6 +139,7 @@ public:
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 
 private:
+	std::mutex m_storemap_mtx;
 	std::map<GUID, KC::object_ptr<IMsgStore>> mapStores;
 	/* @todo need a status row per provider */
 	ULONG m_cValuesStatus = 0;

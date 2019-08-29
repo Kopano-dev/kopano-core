@@ -1050,15 +1050,20 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	memcpy(&guidProvider, &lpEntryID->ab, sizeof(GUID));
         
 	// See if we already have the store open
+	object_ptr<IMsgStore> lpMDB;
+	ulock_normal storemap_lock(m_storemap_mtx);
 	decltype(mapStores)::const_iterator iterStores = mapStores.find(guidProvider);
-	if (iterStores != mapStores.cend()) {
+	if (iterStores != mapStores.cend())
+		lpMDB = iterStores->second;
+	storemap_lock.unlock();
+	if (lpMDB != nullptr) {
 		if (bStoreEntryID) {
-			hr = iterStores->second->QueryInterface(IID_IMsgStore, reinterpret_cast<void **>(lppUnk));
+			hr = lpMDB->QueryInterface(IID_IMsgStore, reinterpret_cast<void **>(lppUnk));
 			if (hr == hrSuccess)
 				*lpulObjType = MAPI_STORE;
 		}
 		else {
-			hr = iterStores->second->OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
+			hr = lpMDB->OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
 		}
 
 		if (hr != hrSuccess)
@@ -1118,7 +1123,9 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 			return kc_perrorf("OpenMsgStore failed", hr);
 
 		// Keep the store open in case somebody else needs it later (only via this function)
+		storemap_lock.lock();
 		mapStores.emplace(guidProvider, lpMDB);
+		storemap_lock.unlock();
 		if (bStoreEntryID) {
 			hr = lpMDB->QueryInterface(IID_IMsgStore, reinterpret_cast<void **>(lppUnk));
 			if (hr == hrSuccess)
