@@ -669,19 +669,22 @@ static int ec_listen_generic(const struct ec_socket &sk, unsigned int mode,
 	auto fd = socket(sk.m_ai->ai_family, sk.m_ai->ai_socktype, sk.m_ai->ai_protocol);
 	if (fd < 0)
 		return -errno;
+	auto has_sun_path = false;
+	auto sk_addr = reinterpret_cast<const struct sockaddr_un *>(sk.m_ai->ai_addr);
 	if (sk.m_ai->ai_family == PF_LOCAL && sk.m_ai->ai_addrlen >= offsetof(struct sockaddr_un, sun_path)) {
-		auto u = reinterpret_cast<const struct sockaddr_un *>(sk.m_ai->ai_addr);
 		struct stat sb;
-		if (u->sun_path[0] == '\0')
+		if (sk_addr->sun_path[0] == '\0')
 			/* abstract socket */;
-		else if (strnlen(u->sun_path, sizeof(u->sun_path)) == sizeof(u->sun_path))
+		else if (strnlen(sk_addr->sun_path, sizeof(sk_addr->sun_path)) == sizeof(sk_addr->sun_path))
 			/* cannot test */;
-		else if (lstat(u->sun_path, &sb) != 0)
+		else if (lstat(sk_addr->sun_path, &sb) != 0)
 			/* cannot test */;
 		else if (!S_ISSOCK(sb.st_mode))
-			ec_log_warn("\"%s\" already exists, but it is not a socket", u->sun_path);
-		else
-			unlink(u->sun_path);
+			ec_log_warn("\"%s\" already exists, but it is not a socket", sk_addr->sun_path);
+		else{
+			unlink(sk_addr->sun_path);
+			has_sun_path = true;
+		}
 	}
 	int y = 1;
 	if (sk.m_ai->ai_family == PF_INET6 &&
@@ -703,8 +706,10 @@ static int ec_listen_generic(const struct ec_socket &sk, unsigned int mode,
 		ec_log_err("%s: chown %s: %s", __func__, sk.m_spec.c_str(), strerror(-ret));
 		return ret;
 	}
-	if (mode != static_cast<unsigned int>(-1)) {
-		ret = fchmod(fd, mode);
+	/* fchmod: If fd refers to a socket, the behavior of fchmod() is unspecified. */ 
+	if (has_sun_path && mode != static_cast<unsigned int>(-1)) {
+		/* chown: The effect on file descriptors for files open at the time of a call to chmod() is implementation-defined. */
+		ret = chmod(sk_addr->sun_path, mode);
 		if (ret < 0) {
 			ret = -errno;
 			close(fd);
