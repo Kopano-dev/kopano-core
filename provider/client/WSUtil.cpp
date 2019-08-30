@@ -1897,10 +1897,10 @@ HRESULT SoapServerListToServerList(const struct serverList *lpsServerList,
 	return hrSuccess;
 }
 
-HRESULT CreateSoapTransport(ULONG ulUIFlags, const sGlobalProfileProps
-    &sProfileProps, KCmdProxy **const lppCmd)
+HRESULT CreateSoapTransport(const sGlobalProfileProps &sProfileProps,
+    KCmdProxy **lppCmd)
 {
-	return CreateSoapTransport(ulUIFlags,
+	return CreateSoapTransport(
 		sProfileProps.strServerPath.c_str(),
 		sProfileProps.strSSLKeyFile.c_str(),
 		sProfileProps.strSSLKeyPass.c_str(),

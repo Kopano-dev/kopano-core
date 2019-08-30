@@ -98,7 +98,7 @@ HRESULT ECMSProvider::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 	    lpsPropArray[1].Value.ul & STATUS_DEFAULT_STORE)
 		fIsDefaultStore = TRUE;
 	// Create a transport for this message store
-	hr = WSTransport::Create(ulFlags, &~lpTransport);
+	hr = WSTransport::Create(&~lpTransport);
 	if(hr != hrSuccess)
 		return hr;
 	hr = LogonByEntryID(lpTransport, &sProfileProps, cbEntryID, lpEntryID);
@@ -209,7 +209,7 @@ HRESULT ECMSProvider::SpoolerLogon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 	sProfileProps.strPassword = strSep;
 
 	// Create a transport for this message store
-	hr = WSTransport::Create(ulFlags, &~lpTransport);
+	hr = WSTransport::Create(&~lpTransport);
 	if(hr != hrSuccess)
 		return hr;
 	hr = LogonByEntryID(lpTransport, &sProfileProps, cbEntryID, lpEntryID);

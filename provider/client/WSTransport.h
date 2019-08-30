@@ -56,11 +56,11 @@ class ECABLogon;
 
 class WSTransport KC_FINAL_OPG : public KC::ECUnknown, public WSSoap {
 protected:
-	WSTransport(ULONG ulUIFlags);
+	WSTransport();
 	virtual ~WSTransport();
 
 public:
-	static HRESULT Create(ULONG ulUIFlags, WSTransport **lppTransport);
+	static HRESULT Create(WSTransport **);
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 	virtual HRESULT HrLogon2(const struct sGlobalProfileProps &);
 	virtual HRESULT HrLogon(const struct sGlobalProfileProps &);
@@ -257,8 +257,6 @@ protected:
 	std::recursive_mutex m_mutexSessionReload;
 	unsigned int m_ulReloadId = 1;
 	unsigned int m_ulServerCapabilities = 0;
-	unsigned long long m_llFlags = 0; // license flags
-	ULONG			m_ulUIFlags;	// UI flags for logon
 	sGlobalProfileProps m_sProfileProps;
 	std::string		m_strAppName;
 	GUID			m_sServerGuid;

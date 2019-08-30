@@ -747,7 +747,7 @@ HRESULT ECABProvider::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 	if(hr != hrSuccess)
 		return hr;
 	// Create a transport for this provider
-	hr = WSTransport::Create(ulFlags, &~lpTransport);
+	hr = WSTransport::Create(&~lpTransport);
 	if(hr != hrSuccess)
 		return hr;
 	// Log on the transport to the server

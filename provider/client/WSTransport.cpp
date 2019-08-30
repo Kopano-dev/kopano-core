@@ -66,11 +66,11 @@ using namespace KC;
 	if(hr != hrSuccess) \
 		goto exitm;
 
-static KC::ECRESULT KCOIDCLogon(KCmdProxy *, const char *server, const utf8string &user, const utf8string &imp_user, const utf8string &password, unsigned int caps, ECSESSIONGROUPID, const char *app_name, ECSESSIONID *, unsigned int *srv_caps, unsigned long long *flags, GUID *srv_guid, const std::string &cl_app_ver, const std::string &cl_app_misc);
-static KC::ECRESULT TrySSOLogon(KCmdProxy *, const char *server, const utf8string &user, const utf8string &imp_user, unsigned int caps, ECSESSIONGROUPID, const char *app_name, ECSESSIONID *, unsigned int *srv_caps, unsigned long long *flags, GUID *srv_guid, const std::string &cl_app_ver, const std::string &cl_app_misc);
+static KC::ECRESULT KCOIDCLogon(KCmdProxy *, const utf8string &user, const utf8string &imp_user, const utf8string &password, unsigned int caps, ECSESSIONGROUPID, const char *app_name, ECSESSIONID *, unsigned int *srv_caps, GUID *srv_guid, const std::string &cl_app_ver, const std::string &cl_app_misc);
+static KC::ECRESULT TrySSOLogon(KCmdProxy *, const utf8string &user, const utf8string &imp_user, unsigned int caps, ECSESSIONGROUPID, const char *app_name, ECSESSIONID *, unsigned int *srv_caps, GUID *srv_guid, const std::string &cl_app_ver, const std::string &cl_app_misc);
 
-WSTransport::WSTransport(ULONG ulUIFlags) :
-	ECUnknown("WSTransport"), m_ulUIFlags(ulUIFlags),
+WSTransport::WSTransport() :
+	ECUnknown("WSTransport"),
 	m_ResolveResultCache("ResolveResult", 4096, 300), m_has_session(false)
 {
 	memset(&m_sServerGuid, 0, sizeof(m_sServerGuid));
@@ -88,20 +88,19 @@ HRESULT WSTransport::QueryInterface(REFIID refiid, void **lppInterface)
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
-HRESULT WSTransport::Create(ULONG ulUIFlags, WSTransport **lppTransport)
+HRESULT WSTransport::Create(WSTransport **lppTransport)
 {
-	return alloc_wrap<WSTransport>(ulUIFlags).put(lppTransport);
+	return alloc_wrap<WSTransport>().put(lppTransport);
 }
 
 /* Creates a transport working on the same session and session group as this transport */
 HRESULT WSTransport::HrClone(WSTransport **lppTransport)
 {
 	WSTransport *lpTransport = NULL;
-	auto hr = WSTransport::Create(m_ulUIFlags, &lpTransport);
+	auto hr = WSTransport::Create(&lpTransport);
 	if(hr != hrSuccess)
 		return hr;
-
-	hr = CreateSoapTransport(m_ulUIFlags, m_sProfileProps, &lpTransport->m_lpCmd);
+	hr = CreateSoapTransport(m_sProfileProps, &lpTransport->m_lpCmd);
 	if(hr != hrSuccess)
 		return hr;
 	lpTransport->m_ecSessionId = m_ecSessionId;
@@ -120,8 +119,6 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 	KCmdProxy *lpCmd = nullptr;
 	auto bPipeConnection = strncmp("file:", sProfileProps.strServerPath.c_str(), 5) == 0;
 	struct logonResponse sResponse;
-	struct xsd__base64Binary sLicenseRequest;
-
 	convert_context	converter;
 	utf8string	strUserName = converter.convert_to<utf8string>(sProfileProps.strUserName);
 	utf8string	strPassword = converter.convert_to<utf8string>(sProfileProps.strPassword);
@@ -130,7 +127,7 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 
 	if (m_lpCmd != nullptr) {
 		lpCmd = m_lpCmd;
-	} else if (CreateSoapTransport(m_ulUIFlags, sProfileProps, &lpCmd) != hrSuccess) {
+	} else if (CreateSoapTransport(sProfileProps, &lpCmd) != hrSuccess) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
@@ -157,7 +154,11 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 	}
 
 	if (sProfileProps.ulProfileFlags & EC_PROFILE_FLAGS_OIDC) {
-		er = KCOIDCLogon(lpCmd, GetServerNameFromPath(sProfileProps.strServerPath.c_str()).c_str(), strUserName, strImpersonateUser, strPassword, ulCapabilities, m_ecSessionGroupId, GetAppName().c_str(), &ecSessionId, &ulServerCapabilities, &m_llFlags, &m_sServerGuid, sProfileProps.strClientAppVersion, sProfileProps.strClientAppMisc);
+		er = KCOIDCLogon(lpCmd, strUserName, strImpersonateUser,
+		     strPassword, ulCapabilities, m_ecSessionGroupId,
+		     GetAppName().c_str(), &ecSessionId, &ulServerCapabilities,
+		     &m_sServerGuid, sProfileProps.strClientAppVersion,
+		     sProfileProps.strClientAppMisc);
 		if (er == erSuccess)
 			goto auth;
 		else
@@ -165,14 +166,17 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 	}
 
 	// try single signon logon
-	er = TrySSOLogon(lpCmd, GetServerNameFromPath(sProfileProps.strServerPath.c_str()).c_str(), strUserName, strImpersonateUser, ulCapabilities, m_ecSessionGroupId, (char *)GetAppName().c_str(), &ecSessionId, &ulServerCapabilities, &m_llFlags, &m_sServerGuid, sProfileProps.strClientAppVersion, sProfileProps.strClientAppMisc);
+	er = TrySSOLogon(lpCmd, strUserName, strImpersonateUser, ulCapabilities,
+	     m_ecSessionGroupId, GetAppName().c_str(), &ecSessionId,
+	     &ulServerCapabilities, &m_sServerGuid,
+	     sProfileProps.strClientAppVersion, sProfileProps.strClientAppMisc);
 	if (er == erSuccess)
 		goto auth;
 
 	// Login with username and password
 	if (lpCmd->logon(strUserName.c_str(), strPassword.c_str(),
 	    strImpersonateUser.c_str(), PROJECT_VERSION, ulCapabilities,
-	    ulLogonFlags, sLicenseRequest, m_ecSessionGroupId,
+	    ulLogonFlags, {}, m_ecSessionGroupId,
 	    GetAppName().c_str(), sProfileProps.strClientAppVersion.c_str(),
 	    sProfileProps.strClientAppMisc.c_str(), &sResponse) != SOAP_OK) {
 		auto d = soap_fault_detail(lpCmd->soap);
@@ -272,7 +276,7 @@ HRESULT WSTransport::CreateAndLogonAlternate(LPCSTR szServer, WSTransport **lppT
 
 	object_ptr<WSTransport> lpTransport;
 	sGlobalProfileProps	sProfileProps = m_sProfileProps;
-	auto hr = WSTransport::Create(m_ulUIFlags, &~lpTransport);
+	auto hr = WSTransport::Create(&~lpTransport);
 	if (hr != hrSuccess)
 		return hr;
 	sProfileProps.strServerPath = szServer;
@@ -297,7 +301,7 @@ HRESULT WSTransport::CloneAndRelogon(WSTransport **lppTransport) const
 		return MAPI_E_INVALID_PARAMETER;
 
 	object_ptr<WSTransport> lpTransport;
-	auto hr = WSTransport::Create(m_ulUIFlags, &~lpTransport);
+	auto hr = WSTransport::Create(&~lpTransport);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpTransport->HrLogon(m_sProfileProps);
@@ -320,14 +324,13 @@ HRESULT WSTransport::HrReLogon()
 	return hrSuccess;
 }
 
-static ECRESULT KCOIDCLogon(KCmdProxy *cmd, const char *server,
-    const utf8string &user, const utf8string &imp_user,
-    const utf8string &password, unsigned int caps, ECSESSIONGROUPID ses_grp_id,
-    const char *app_name, ECSESSIONID *ses_id, unsigned int *srv_caps,
-    unsigned long long *flags, GUID *srv_guid, const std::string &cl_app_ver,
+static ECRESULT KCOIDCLogon(KCmdProxy *cmd, const utf8string &user,
+    const utf8string &imp_user, const utf8string &password, unsigned int caps,
+    ECSESSIONGROUPID ses_grp_id, const char *app_name, ECSESSIONID *ses_id,
+    unsigned int *srv_caps, GUID *srv_guid, const std::string &cl_app_ver,
     const std::string &cl_app_misc)
 {
-	struct xsd__base64Binary sso_data, licreq;
+	struct xsd__base64Binary sso_data;
 	struct ssoLogonResponse resp;
 
 	resp.ulSessionId = 0;
@@ -338,7 +341,7 @@ static ECRESULT KCOIDCLogon(KCmdProxy *cmd, const char *server,
 
 	if (cmd->ssoLogon(resp.ulSessionId, user.c_str(),
 	    imp_user.c_str(), &sso_data, PROJECT_VERSION,
-	    caps, licreq, ses_grp_id, app_name,
+	    caps, {}, ses_grp_id, app_name,
 	    cl_app_ver.c_str(), cl_app_misc.c_str(), &resp) != SOAP_OK)
 		return KCERR_LOGON_FAILED;
 
@@ -352,11 +355,10 @@ static ECRESULT KCOIDCLogon(KCmdProxy *cmd, const char *server,
 	return resp.er;
 }
 
-static ECRESULT TrySSOLogon(KCmdProxy *lpCmd, const char *szServer,
-    const utf8string &strUsername, const utf8string &strImpersonateUser,
-    unsigned int ulCapabilities, ECSESSIONGROUPID ecSessionGroupId,
-    const char *szAppName, ECSESSIONID *lpSessionId,
-    unsigned int *lpulServerCapabilities, unsigned long long *lpllFlags,
+static ECRESULT TrySSOLogon(KCmdProxy *lpCmd, const utf8string &strUsername,
+    const utf8string &strImpersonateUser, unsigned int ulCapabilities,
+    ECSESSIONGROUPID ecSessionGroupId, const char *szAppName,
+    ECSESSIONID *lpSessionId, unsigned int *lpulServerCapabilities,
     GUID *lpsServerGuid, const std::string &appVersion,
     const std::string &appMisc)
 {
@@ -369,7 +371,7 @@ static ECRESULT TrySSOLogon(KCmdProxy *lpCmd, const char *szServer,
 	gss_ctx_id_t gss_ctx = GSS_C_NO_CONTEXT;
 	gss_OID_desc mech_spnego = {6, const_cast<char *>("\053\006\001\005\005\002")};
 	gss_buffer_desc secbufout, secbufin;
-	struct xsd__base64Binary sso_data, licreq;
+	struct xsd__base64Binary sso_data;
 	struct ssoLogonResponse resp;
 
 	pr_buf.value = const_cast<char *>(KOPANO_GSS_SERVICE);
@@ -396,7 +398,7 @@ static ECRESULT TrySSOLogon(KCmdProxy *lpCmd, const char *szServer,
 
 		if (lpCmd->ssoLogon(resp.ulSessionId, strUsername.c_str(),
 		    strImpersonateUser.c_str(), &sso_data, PROJECT_VERSION,
-		    ulCapabilities, licreq, ecSessionGroupId, szAppName,
+		    ulCapabilities, {}, ecSessionGroupId, szAppName,
 		    appVersion.c_str(), appMisc.c_str(), &resp) != SOAP_OK)
 			goto exit;
 		if (resp.er != KCERR_SSO_CONTINUE)

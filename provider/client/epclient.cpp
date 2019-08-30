@@ -421,7 +421,7 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 			d.transport.reset(reinterpret_cast<WSTransport *>(tpprop->Value.lpszA));
 	}
 	if (d.transport == nullptr) {
-		hr = WSTransport::Create(0, &~d.transport);
+		hr = WSTransport::Create(&~d.transport);
 		if (hr != hrSuccess)
 			return hr;
 		hr = d.transport->HrLogon(sProfileProps);
@@ -593,7 +593,7 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 		hr = HrGetOneProp(ptrGlobalProfSect, PR_EC_TRANSPORTOBJECT, &~lpsPropValue);
 		if (hr == hrSuccess && lpsPropValue != nullptr && lpsPropValue->Value.lpszA != nullptr)
 			reinterpret_cast<WSTransport *>(lpsPropValue->Value.lpszA)->Release();
-		hr = WSTransport::Create(ulFlags & SERVICE_UI_ALLOWED ? 0 : MDB_NO_DIALOG, &~lpTransport);
+		hr = WSTransport::Create(&~lpTransport);
 		if(hr != hrSuccess)
 			return hr;
 		spv.ulPropTag = PR_EC_TRANSPORTOBJECT;

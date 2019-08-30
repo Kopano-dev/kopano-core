@@ -93,7 +93,7 @@ static int gsoap_connect_pipe(struct soap *soap, const char *endpoint,
    	return SOAP_OK;
 }
 
-HRESULT CreateSoapTransport(ULONG ulUIFlags,
+HRESULT CreateSoapTransport(
 	const char *strServerPath,
 	const char *strSSLKeyFile,
 	const char *strSSLKeyPass,

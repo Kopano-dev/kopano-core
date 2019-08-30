@@ -16,7 +16,7 @@ int ssl_verify_callback_kopano_control(int ok, X509_STORE_CTX *store, BOOL bShow
 
 HRESULT LoadCertificatesFromRegistry();
 
-HRESULT CreateSoapTransport(ULONG ulUIFlags,
+HRESULT CreateSoapTransport(
 	const char *strServerPath,
 	const char *strSSLKeyFile,
 	const char *strSSLKeyPass,
