@@ -8,10 +8,10 @@
 #include "WSABPropStorage.h"
 #include "Mem.h"
 #include <kopano/ECGuid.h>
+#include "SOAPSock.h"
 #include "SOAPUtils.h"
 #include "WSUtil.h"
 #include <kopano/charset/convert.h>
-#include "soapKCmdProxy.h"
 
 #define START_SOAP_CALL retry:
 #define END_SOAP_CALL   \

@@ -7,10 +7,10 @@
 #include "WSTableView.h"
 #include "Mem.h"
 #include <kopano/ECGuid.h>
+#include "SOAPSock.h"
 #include "SOAPUtils.h"
 #include "WSUtil.h"
 #include <kopano/charset/convert.h>
-#include "soapKCmdProxy.h"
 
 /*
  * TableView operations for WS transport

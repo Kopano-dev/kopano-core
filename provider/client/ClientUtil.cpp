@@ -25,7 +25,7 @@
 #include <kopano/timeutil.hpp>
 #include <kopano/charset/convstring.h>
 #include "EntryPoint.h"
-#include "soapKCmdProxy.h"
+#include "SOAPSock.h"
 
 using namespace KC;
 

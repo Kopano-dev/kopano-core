@@ -7,12 +7,12 @@
 #include "WSMAPIPropStorage.h"
 #include "Mem.h"
 #include <kopano/ECGuid.h>
+#include "SOAPSock.h"
 #include "SOAPUtils.h"
 #include "WSUtil.h"
 #include <kopano/Util.h>
 #include "pcutil.hpp"
 #include <kopano/charset/convert.h>
-#include "soapKCmdProxy.h"
 
 /*
  * This is a PropStorage object for use with the WebServices storage platform

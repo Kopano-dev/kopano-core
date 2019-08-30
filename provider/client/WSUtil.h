@@ -15,7 +15,7 @@ namespace KC {
 class convert_context;
 }
 
-class KCmdProxy;
+class KCmdProxy2;
 
 extern HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dst, const SPropValue *src, KC::convert_context * = nullptr);
 extern HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dst, const struct propVal *src, void *base, KC::convert_context * = nullptr);

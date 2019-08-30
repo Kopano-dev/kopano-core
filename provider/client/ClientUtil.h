@@ -12,7 +12,7 @@
 #include <edkmdb.h>
 #include <kopano/zcdefs.h>
 
-class KCmdProxy;
+class KCmdProxy2;
 class WSTransport;
 struct sGlobalProfileProps;
 
@@ -32,7 +32,7 @@ public:
 
 class WSSoap {
 	public:
-	KCmdProxy *m_lpCmd = nullptr;
+	std::unique_ptr<KCmdProxy2> m_lpCmd;
 	std::recursive_mutex m_hDataLock;
 };
 

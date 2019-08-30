@@ -4,6 +4,7 @@
  */
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
+#include <kopano/tie.hpp>
 #include <mapidefs.h>
 #include <mapicode.h>
 #include <mapitags.h>
@@ -17,7 +18,6 @@
 #include "soapH.h"
 #include "pcutil.hpp"
 #include <kopano/kcodes.h>
-#include "soapKCmdProxy.h"
 #include "KCmd.nsmap"
 #include "Mem.h"
 #include <kopano/ECGuid.h>
@@ -66,8 +66,8 @@ using namespace KC;
 	if(hr != hrSuccess) \
 		goto exitm;
 
-static KC::ECRESULT KCOIDCLogon(KCmdProxy *, const utf8string &user, const utf8string &imp_user, const utf8string &password, unsigned int caps, ECSESSIONGROUPID, const char *app_name, ECSESSIONID *, unsigned int *srv_caps, GUID *srv_guid, const std::string &cl_app_ver, const std::string &cl_app_misc);
-static KC::ECRESULT TrySSOLogon(KCmdProxy *, const utf8string &user, const utf8string &imp_user, unsigned int caps, ECSESSIONGROUPID, const char *app_name, ECSESSIONID *, unsigned int *srv_caps, GUID *srv_guid, const std::string &cl_app_ver, const std::string &cl_app_misc);
+static KC::ECRESULT KCOIDCLogon(KCmdProxy2 *, const utf8string &user, const utf8string &imp_user, const utf8string &password, unsigned int caps, ECSESSIONGROUPID, const char *app_name, ECSESSIONID *, unsigned int *srv_caps, GUID *srv_guid, const std::string &cl_app_ver, const std::string &cl_app_misc);
+static KC::ECRESULT TrySSOLogon(KCmdProxy2 *, const utf8string &user, const utf8string &imp_user, unsigned int caps, ECSESSIONGROUPID, const char *app_name, ECSESSIONID *, unsigned int *srv_caps, GUID *srv_guid, const std::string &cl_app_ver, const std::string &cl_app_misc);
 
 WSTransport::WSTransport() :
 	ECUnknown("WSTransport"),
@@ -100,7 +100,7 @@ HRESULT WSTransport::HrClone(WSTransport **lppTransport)
 	auto hr = WSTransport::Create(&lpTransport);
 	if(hr != hrSuccess)
 		return hr;
-	hr = CreateSoapTransport(m_sProfileProps, &lpTransport->m_lpCmd);
+	hr = CreateSoapTransport(m_sProfileProps, &unique_tie(lpTransport->m_lpCmd));
 	if(hr != hrSuccess)
 		return hr;
 	lpTransport->m_ecSessionId = m_ecSessionId;
@@ -116,7 +116,8 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 	unsigned int ulCapabilities = KOPANO_CAP_GIFN32, ulLogonFlags = 0;
 	unsigned int ulServerCapabilities = 0, ulServerVersion = 0;
 	ECSESSIONID	ecSessionId = 0;
-	KCmdProxy *lpCmd = nullptr;
+	std::unique_ptr<KCmdProxy2> new_cmd;
+	KCmdProxy2 *lpCmd = nullptr;
 	auto bPipeConnection = strncmp("file:", sProfileProps.strServerPath.c_str(), 5) == 0;
 	struct logonResponse sResponse;
 	convert_context	converter;
@@ -126,10 +127,12 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 	soap_lock_guard spg(*this);
 
 	if (m_lpCmd != nullptr) {
-		lpCmd = m_lpCmd;
-	} else if (CreateSoapTransport(sProfileProps, &lpCmd) != hrSuccess) {
+		lpCmd = m_lpCmd.get();
+	} else if (CreateSoapTransport(sProfileProps, &unique_tie(new_cmd)) != hrSuccess) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
+	} else {
+		lpCmd = new_cmd.get();
 	}
 
 	assert(!sProfileProps.strProfileName.empty());
@@ -237,16 +240,10 @@ auth: // User have a logon
 	m_ulServerCapabilities = ulServerCapabilities;
 	m_ecSessionId = ecSessionId;
 	m_has_session = true;
-	m_lpCmd = lpCmd;
-
+	if (new_cmd != nullptr)
+		m_lpCmd = std::move(new_cmd);
 exit:
 	spg.unlock();
-	if (hr != hrSuccess && lpCmd != nullptr && lpCmd != m_lpCmd)
-	    // UGLY FIX: due to the ugly code above that does lpCmd = m_lpCmd
-	    // we need to check that we're not deleting our m_lpCmd. We also cannot
-	    // set m_lpCmd to NULL since various functions in WSTransport rely on the
-	    // fact that m_lpCmd is good after a successful HrLogon() call.
-		DestroySoapTransport(lpCmd);
 	return hr;
 }
 
@@ -324,7 +321,7 @@ HRESULT WSTransport::HrReLogon()
 	return hrSuccess;
 }
 
-static ECRESULT KCOIDCLogon(KCmdProxy *cmd, const utf8string &user,
+static ECRESULT KCOIDCLogon(KCmdProxy2 *cmd, const utf8string &user,
     const utf8string &imp_user, const utf8string &password, unsigned int caps,
     ECSESSIONGROUPID ses_grp_id, const char *app_name, ECSESSIONID *ses_id,
     unsigned int *srv_caps, GUID *srv_guid, const std::string &cl_app_ver,
@@ -355,7 +352,7 @@ static ECRESULT KCOIDCLogon(KCmdProxy *cmd, const utf8string &user,
 	return resp.er;
 }
 
-static ECRESULT TrySSOLogon(KCmdProxy *lpCmd, const utf8string &strUsername,
+static ECRESULT TrySSOLogon(KCmdProxy2 *lpCmd, const utf8string &strUsername,
     const utf8string &strImpersonateUser, unsigned int ulCapabilities,
     ECSESSIONGROUPID ecSessionGroupId, const char *szAppName,
     ECSESSIONID *lpSessionId, unsigned int *lpulServerCapabilities,
@@ -605,9 +602,7 @@ HRESULT WSTransport::HrLogOff()
 			er = KCERR_NETWORK_ERROR;
 		else
 			m_has_session = false;
-
-		DestroySoapTransport(m_lpCmd);
-		m_lpCmd = NULL;
+		m_lpCmd.reset();
 	}
 	END_SOAP_CALL
  exitm:
