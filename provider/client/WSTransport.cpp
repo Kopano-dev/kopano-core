@@ -3670,7 +3670,7 @@ HRESULT WSTransport::HrGetSyncStates(const ECLISTSYNCID &lstSyncId, ECLISTSYNCST
 	return hr;
 }
 
-const char* WSTransport::GetServerName()
+const char *WSTransport::GetServerName() const
 {
 	return m_sProfileProps.strServerPath.c_str();
 }
@@ -3805,12 +3805,12 @@ HRESULT WSTransport::HrGetSessionId(ECSESSIONID *lpSessionId, ECSESSIONGROUPID *
     return hr;
 }
 
-sGlobalProfileProps WSTransport::GetProfileProps()
+const sGlobalProfileProps &WSTransport::GetProfileProps() const
 {
     return m_sProfileProps;
 }
 
-HRESULT WSTransport::GetServerGUID(LPGUID lpsServerGuid)
+HRESULT WSTransport::GetServerGUID(GUID *lpsServerGuid) const
 {
 	if (m_sServerGuid == GUID_NULL)
 		return MAPI_E_NOT_FOUND;

@@ -207,7 +207,7 @@ public:
 	HRESULT HrEntryIDFromSourceKey(unsigned int seid_size, const ENTRYID *store, unsigned int fsk_size, BYTE *folder_sk, unsigned int msk_size, BYTE *msg_sk, unsigned int *eid_size, ENTRYID **eid);
 	HRESULT HrGetSyncStates(const ECLISTSYNCID &, ECLISTSYNCSTATE *);
 
-	const char *GetServerName();
+	const char *GetServerName() const;
 
 	/* statistics tables (system, threads, users), ulTableType is proto.h TABLETYPE_STATS_... */
 	/* userstores table TABLETYPE_USERSTORE */
@@ -228,10 +228,10 @@ public:
 	HRESULT HrGetSessionId(KC::ECSESSIONID *, KC::ECSESSIONGROUPID *);
 
 	/* Get profile properties (connect info) */
-	sGlobalProfileProps GetProfileProps();
+	const sGlobalProfileProps &GetProfileProps() const;
 
 	/* Get the server GUID obtained at logon */
-	HRESULT GetServerGUID(GUID *);
+	HRESULT GetServerGUID(GUID *) const;
 
 	/* These are called by other WS* classes to register themselves for session changes */
 	HRESULT AddSessionReloadCallback(void *param, SESSIONRELOADCALLBACK, unsigned int *id);
