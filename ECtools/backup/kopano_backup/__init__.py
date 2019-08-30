@@ -306,7 +306,9 @@ class BackupWorker(kopano.Worker):
         open(data_path+'/folder', 'wb').write(dump_props(folder.props(), stats, self.log))
         if not options.skip_meta:
             open(data_path+'/acl', 'wb').write(dump_acl(folder, user, server, stats, self.log))
-            open(data_path+'/rules', 'wb').write(dump_rules(folder, user, server, stats, self.log))
+            rules = dump_rules(folder, user, server, stats, self.log)
+            if rules:
+                open(data_path+'/rules', 'wb').write(rules)
         if options.only_meta:
             return
 
@@ -507,7 +509,8 @@ class Service(kopano.Service):
             self.log.info('restoring metadata')
             for (folder, fpath) in restored:
                 load_acl(folder, user, self.server, open(fpath+'/acl', 'rb').read(), stats, self.log)
-                load_rules(folder, user, self.server, open(fpath+'/rules', 'rb').read(), stats, self.log)
+                if os.path.exists(fpath+'/rules'):
+                    load_rules(folder, user, self.server, open(fpath+'/rules', 'rb').read(), stats, self.log)
 
         # restore store-level metadata (webapp/mapi settings)
         if user and not (self.options.folders or self.options.restore_root or self.options.skip_meta or self.options.sourcekeys):
@@ -922,7 +925,11 @@ def dump_rules(folder, user, server, stats, log):
                         f.text = path
                     except Exception as e:
                         log.warning("could not resolve rule target: %s", str(e))
-            ruledata = ElementTree.tostring(etxml)
+            try:            
+                ruledata = ElementTree.tostring(etxml)
+            except ElementTree.ParseError as e:
+                log.warning("Unable to backup rules for folder {} : {}".format(folder.name,  str(e)))
+                return None
     return pickle_dumps(ruledata)
 
 def load_rules(folder, user, server, data, stats, log):
