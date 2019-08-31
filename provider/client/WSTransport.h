@@ -62,7 +62,6 @@ protected:
 public:
 	static HRESULT Create(WSTransport **);
 	virtual HRESULT QueryInterface(const IID &, void **) override;
-	virtual HRESULT HrLogon2(const struct sGlobalProfileProps &);
 	virtual HRESULT HrLogon(const struct sGlobalProfileProps &);
 	virtual HRESULT HrReLogon();
 	virtual HRESULT HrClone(WSTransport **lppTransport);
@@ -247,6 +246,7 @@ public:
 	std::string m_server_version;
 
 private:
+	virtual HRESULT HrLogon2(const struct sGlobalProfileProps &);
 	// Returns name of calling application (eg 'program.exe' or 'httpd')
 	std::string GetAppName();
 
