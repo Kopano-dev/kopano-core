@@ -247,11 +247,6 @@ public:
 	std::string m_server_version;
 
 private:
-	static SOAP_SOCKET RefuseConnect(struct soap*, const char*, const char*, int);
-	static KC::ECRESULT KCOIDCLogon(KCmdProxy *, const char *server, const KC::utf8string &user, const KC::utf8string &imp_user, const KC::utf8string &password, unsigned int caps, KC::ECSESSIONGROUPID, const char *app_name, KC::ECSESSIONID *, unsigned int *srv_caps, unsigned long long *flags, GUID *srv_guid, const std::string &cl_app_ver, const std::string &cl_app_misc);
-	//TODO: Move this function to the right file
-	static KC::ECRESULT TrySSOLogon(KCmdProxy *, const char *server, const KC::utf8string &user, const KC::utf8string &imp_user, unsigned int caps, KC::ECSESSIONGROUPID, const char *app_name, KC::ECSESSIONID *, unsigned int *srv_caps, unsigned long long *flags, GUID *srv_guid, const std::string &cl_app_ver, const std::string &cl_app_misc);
-
 	// Returns name of calling application (eg 'program.exe' or 'httpd')
 	std::string GetAppName();
 

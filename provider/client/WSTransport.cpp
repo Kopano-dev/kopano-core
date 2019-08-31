@@ -66,6 +66,9 @@ using namespace KC;
 	if(hr != hrSuccess) \
 		goto exitm;
 
+static KC::ECRESULT KCOIDCLogon(KCmdProxy *, const char *server, const utf8string &user, const utf8string &imp_user, const utf8string &password, unsigned int caps, ECSESSIONGROUPID, const char *app_name, ECSESSIONID *, unsigned int *srv_caps, unsigned long long *flags, GUID *srv_guid, const std::string &cl_app_ver, const std::string &cl_app_misc);
+static KC::ECRESULT TrySSOLogon(KCmdProxy *, const char *server, const utf8string &user, const utf8string &imp_user, unsigned int caps, ECSESSIONGROUPID, const char *app_name, ECSESSIONID *, unsigned int *srv_caps, unsigned long long *flags, GUID *srv_guid, const std::string &cl_app_ver, const std::string &cl_app_misc);
+
 WSTransport::WSTransport(ULONG ulUIFlags) :
 	ECUnknown("WSTransport"), m_ulUIFlags(ulUIFlags),
 	m_ResolveResultCache("ResolveResult", 4096, 300), m_has_session(false)
@@ -317,7 +320,12 @@ HRESULT WSTransport::HrReLogon()
 	return hrSuccess;
 }
 
-ECRESULT WSTransport::KCOIDCLogon(KCmdProxy *cmd, const char *server, const utf8string &user, const utf8string &imp_user, const utf8string &password, unsigned int caps, ECSESSIONGROUPID ses_grp_id, const char *app_name, ECSESSIONID *ses_id, unsigned int *srv_caps, unsigned long long *flags, GUID *srv_guid, const std::string &cl_app_ver, const std::string &cl_app_misc)
+static ECRESULT KCOIDCLogon(KCmdProxy *cmd, const char *server,
+    const utf8string &user, const utf8string &imp_user,
+    const utf8string &password, unsigned int caps, ECSESSIONGROUPID ses_grp_id,
+    const char *app_name, ECSESSIONID *ses_id, unsigned int *srv_caps,
+    unsigned long long *flags, GUID *srv_guid, const std::string &cl_app_ver,
+    const std::string &cl_app_misc)
 {
 	struct xsd__base64Binary sso_data, licreq;
 	struct ssoLogonResponse resp;
@@ -344,7 +352,7 @@ ECRESULT WSTransport::KCOIDCLogon(KCmdProxy *cmd, const char *server, const utf8
 	return resp.er;
 }
 
-ECRESULT WSTransport::TrySSOLogon(KCmdProxy *lpCmd, const char *szServer,
+static ECRESULT TrySSOLogon(KCmdProxy *lpCmd, const char *szServer,
     const utf8string &strUsername, const utf8string &strImpersonateUser,
     unsigned int ulCapabilities, ECSESSIONGROUPID ecSessionGroupId,
     const char *szAppName, ECSESSIONID *lpSessionId,
@@ -3827,7 +3835,7 @@ HRESULT WSTransport::RemoveSessionReloadCallback(ULONG ulId)
 	return m_mapSessionReload.erase(ulId) == 0 ? MAPI_E_NOT_FOUND : hrSuccess;
 }
 
-SOAP_SOCKET WSTransport::RefuseConnect(struct soap* soap, const char* endpoint, const char* host, int port)
+static SOAP_SOCKET RefuseConnect(struct soap* soap, const char* endpoint, const char* host, int port)
 {
 	soap->error = SOAP_TCP_ERROR;
 	return SOAP_ERR;
@@ -3855,7 +3863,7 @@ HRESULT WSTransport::HrCancelIO()
 		return hrSuccess;
 
 	// Override the SOAP connect (fopen) so that all new connections will fail with a network error
-	m_lpCmd->soap->fopen = WSTransport::RefuseConnect;
+	m_lpCmd->soap->fopen = RefuseConnect;
 
 	// If there is a socket currently open, close it now
 	int s = m_lpCmd->soap->socket;
