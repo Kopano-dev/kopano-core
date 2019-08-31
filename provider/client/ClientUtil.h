@@ -26,19 +26,20 @@ struct sGlobalProfileProps {
 	unsigned int ulProxyFlags = 0, ulProxyPort = 0;
 };
 
-class ClientUtil final {
-public:
-	static HRESULT	HrInitializeStatusRow (const char * lpszProviderDisplay, ULONG ulResourceType, LPMAPISUP lpMAPISup, LPSPropValue lpspvIdentity, ULONG ulFlags);
-	static HRESULT	HrSetIdentity(WSTransport *lpTransport, LPMAPISUP lpMAPISup, LPSPropValue* lppIdentityProps);
-	static HRESULT ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAGE* lppEmptyMessage);
+namespace ClientUtil {
 
-	// Get the global properties
-	static HRESULT GetGlobalProfileProperties(LPPROFSECT lpGlobalProfSect, struct sGlobalProfileProps* lpsProfileProps);
-	static HRESULT GetGlobalProfileProperties(LPMAPISUP lpMAPISup, struct sGlobalProfileProps* lpsProfileProps);
+extern HRESULT HrInitializeStatusRow(const char *provider_display, unsigned int res_type, IMAPISupport *, SPropValue *identity, unsigned int flags);
+extern HRESULT HrSetIdentity(WSTransport *, IMAPISupport *, SPropValue **idprops);
+extern HRESULT ReadReceipt(unsigned int flags, IMessage *read_msg, IMessage **empty_msg);
 
-	/* Get the delegate stores from the global profile. */
-	static HRESULT GetGlobalProfileDelegateStoresProp(LPPROFSECT lpGlobalProfSect, ULONG *lpcDelegates, LPBYTE *lppDelegateStores);
-};
+/* Get the global properties */
+extern HRESULT GetGlobalProfileProperties(IProfSect *global, struct sGlobalProfileProps *);
+extern HRESULT GetGlobalProfileProperties(IMAPISupport *, struct sGlobalProfileProps *);
+
+/* Get the delegate stores from the global profile. */
+extern HRESULT GetGlobalProfileDelegateStoresProp(IProfSect *global, unsigned int *ndelegates, BYTE **dlg_stores);
+
+}
 
 class WSSoap {
 	public:
