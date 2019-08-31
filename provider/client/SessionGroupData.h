@@ -8,11 +8,12 @@
 #include <kopano/zcdefs.h>
 #include <atomic>
 #include <mutex>
+#include <string>
 #include <mapispi.h>
 #include <kopano/kcodes.h>
 #include <kopano/Util.h>
 #include <kopano/memory.hpp>
-#include "ClientUtil.h"
+#include "SOAPSock.h"
 
 class ECNotifyMaster;
 class WSTransport;

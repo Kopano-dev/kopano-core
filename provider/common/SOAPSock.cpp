@@ -93,26 +93,13 @@ static int gsoap_connect_pipe(struct soap *soap, const char *endpoint,
    	return SOAP_OK;
 }
 
-HRESULT CreateSoapTransport(
-	const char *strServerPath,
-	const char *strSSLKeyFile,
-	const char *strSSLKeyPass,
-	ULONG ulConnectionTimeOut,
-	const char *strProxyHost,
-	WORD wProxyPort,
-	const char *strProxyUserName,
-	const char *strProxyPassword,
-	ULONG ulProxyFlags,
-	int				iSoapiMode,
-	int				iSoapoMode,
-	KCmdProxy **lppCmd)
+HRESULT CreateSoapTransport(const sGlobalProfileProps &prof, KCmdProxy **lppCmd)
 {
-	if (strServerPath == NULL || *strServerPath == '\0' || lppCmd == NULL)
+	if (prof.strServerPath.size() == 0 || lppCmd == nullptr)
 		return E_INVALIDARG;
-	auto lpCmd = new KCmdProxy();
-	soap_set_imode(lpCmd->soap, iSoapiMode);
-	soap_set_omode(lpCmd->soap, iSoapoMode);
-	lpCmd->soap_endpoint = strdup(strServerPath);
+	auto lpCmd = new KCmdProxy(SOAP_IO_KEEPALIVE | SOAP_C_UTFSTRING,
+	             SOAP_IO_KEEPALIVE | SOAP_XML_TREE | SOAP_C_UTFSTRING);
+	lpCmd->soap_endpoint = strdup(prof.strServerPath.c_str());
 	lpCmd->soap->sndbuf = lpCmd->soap->rcvbuf = 0;
 	lpCmd->soap->maxoccurs = SIZE_MAX; // override default limit of 100000, as this breaks ICS for large folders at least
 	// default allow SSLv3, TLSv1, TLSv1.1 and TLSv1.2
@@ -122,10 +109,9 @@ HRESULT CreateSoapTransport(
 	if (strncmp("https:", lpCmd->soap_endpoint, 6) == 0) {
 		// no need to add certificates to call, since soap also calls SSL_CTX_set_default_verify_paths()
 		if (soap_ssl_client_context(lpCmd->soap, SOAP_SSL_DEFAULT,
-								strSSLKeyFile != NULL && *strSSLKeyFile != '\0' ? strSSLKeyFile : NULL,
-								strSSLKeyPass != NULL && *strSSLKeyPass != '\0' ? strSSLKeyPass : NULL,
-								NULL, NULL,
-								NULL)) {
+		    prof.strSSLKeyFile.size() > 0 ? prof.strSSLKeyFile.c_str() : nullptr,
+		    prof.strSSLKeyPass.size() > 0 ? prof.strSSLKeyPass.c_str() : nullptr,
+		    nullptr, nullptr, nullptr)) {
 			free(const_cast<char *>(lpCmd->soap_endpoint));
 			lpCmd->destroy();
 			delete lpCmd;
@@ -140,15 +126,16 @@ HRESULT CreateSoapTransport(
 		lpCmd->soap->fconnect = gsoap_connect_pipe;
 		lpCmd->soap->fpost = http_post;
 	} else {
-		if ((ulProxyFlags&0x0000001/*EC_PROFILE_PROXY_FLAGS_USE_PROXY*/) && strProxyHost != NULL && *strProxyHost != '\0') {
-			lpCmd->soap->proxy_host = strdup(strProxyHost);
-			lpCmd->soap->proxy_port = wProxyPort;
-			if (strProxyUserName != NULL && *strProxyUserName != '\0')
-				lpCmd->soap->proxy_userid = strdup(strProxyUserName);
-			if (strProxyPassword != NULL && *strProxyPassword != '\0')
-				lpCmd->soap->proxy_passwd = strdup(strProxyPassword);
+		if ((prof.ulProxyFlags & 0x0000001 /* EC_PROFILE_PROXY_FLAGS_USE_PROXY */) &&
+		    prof.strProxyHost.size() > 0) {
+			lpCmd->soap->proxy_host = strdup(prof.strProxyHost.c_str());
+			lpCmd->soap->proxy_port = prof.ulProxyPort;
+			if (prof.strProxyUserName.size() > 0)
+				lpCmd->soap->proxy_userid = strdup(prof.strProxyUserName.c_str());
+			if (prof.strProxyPassword.size() > 0)
+				lpCmd->soap->proxy_passwd = strdup(prof.strProxyPassword.c_str());
 		}
-		lpCmd->soap->connect_timeout = ulConnectionTimeOut;
+		lpCmd->soap->connect_timeout = prof.ulConnectionTimeOut;
 	}
 	*lppCmd = lpCmd;
 	return hrSuccess;

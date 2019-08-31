@@ -14,17 +14,7 @@
 
 class KCmdProxy;
 class WSTransport;
-
-struct sGlobalProfileProps {
-	std::string strServerPath, strProfileName;
-	std::wstring strUserName, strPassword, strImpersonateUser;
-	std::string strSSLKeyFile, strSSLKeyPass;
-	std::string strProxyHost;
-	std::string strProxyUserName, strProxyPassword;
-	std::string strClientAppVersion, strClientAppMisc;
-	unsigned int ulProfileFlags = 0, ulConnectionTimeOut = 10;
-	unsigned int ulProxyFlags = 0, ulProxyPort = 0;
-};
+struct sGlobalProfileProps;
 
 class ClientUtil final {
 public:

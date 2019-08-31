@@ -1897,24 +1897,6 @@ HRESULT SoapServerListToServerList(const struct serverList *lpsServerList,
 	return hrSuccess;
 }
 
-HRESULT CreateSoapTransport(const sGlobalProfileProps &sProfileProps,
-    KCmdProxy **lppCmd)
-{
-	return CreateSoapTransport(
-		sProfileProps.strServerPath.c_str(),
-		sProfileProps.strSSLKeyFile.c_str(),
-		sProfileProps.strSSLKeyPass.c_str(),
-		sProfileProps.ulConnectionTimeOut,
-		sProfileProps.strProxyHost.c_str(),
-		sProfileProps.ulProxyPort,
-		sProfileProps.strProxyUserName.c_str(),
-		sProfileProps.strProxyPassword.c_str(),
-		sProfileProps.ulProxyFlags,
-		SOAP_IO_KEEPALIVE | SOAP_C_UTFSTRING,
-		SOAP_IO_KEEPALIVE | SOAP_XML_TREE | SOAP_C_UTFSTRING,
-		lppCmd);
-}
-
 // Wrap the server store entryid to client store entry. (Add a servername)
 HRESULT WrapServerClientStoreEntry(const char *lpszServerName,
     const entryId *lpsStoreId, ULONG *lpcbStoreID, ENTRYID **lppStoreID)
