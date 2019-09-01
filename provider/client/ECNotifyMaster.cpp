@@ -74,7 +74,7 @@ HRESULT ECNotifyMaster::ConnectToSession()
 	}
 
 	/* Open notification transport */
-	return m_lpSessionGroupData->GetTransport(&~m_lpTransport);
+	return m_lpSessionGroupData->create_transport(&~m_lpTransport);
 }
 
 HRESULT ECNotifyMaster::AddSession(ECNotifyClient* lpClient)

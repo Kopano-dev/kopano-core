@@ -58,7 +58,7 @@ public:
 	SessionGroupData(KC::ECSESSIONGROUPID, ECSessionGroupInfo *, const sGlobalProfileProps &);
 	static HRESULT Create(KC::ECSESSIONGROUPID, ECSessionGroupInfo *, const sGlobalProfileProps &, SessionGroupData **out);
 	HRESULT GetOrCreateNotifyMaster(ECNotifyMaster **lppMaster);
-	HRESULT GetTransport(WSTransport **lppTransport);
+	HRESULT create_transport(WSTransport **);
 	ULONG AddRef();
 	ULONG Release();
 	BOOL IsOrphan();
