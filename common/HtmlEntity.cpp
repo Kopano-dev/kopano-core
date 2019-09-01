@@ -14,7 +14,7 @@ namespace KC {
 static const struct HTMLEntity_t {
 	const wchar_t *s;
 	wchar_t c;
-} _HTMLEntity[] = {
+} HTMLEntity[] = {
 	{L"AElig", 198},
 	{L"Aacute", 193},
 	{L"Acirc", 194},
@@ -258,12 +258,12 @@ static const struct HTMLEntity_t {
 	{L"zwnj", 8204}
 };
 
-static const size_t cHTMLEntity = ARRAY_SIZE(_HTMLEntity);
+static const size_t cHTMLEntity = ARRAY_SIZE(HTMLEntity);
 
 static const struct HTMLEntityToName_t {
 	wchar_t c;
 	const wchar_t *s;
-} _HTMLEntityToName[] = {
+} HTMLEntityToName[] = {
 	{34, L"quot"},
 	{38, L"amp"},
 	{60, L"lt"},
@@ -506,7 +506,7 @@ static const struct HTMLEntityToName_t {
 	{9829, L"hearts"},
 	{9830, L"diams"}
 };
-static const size_t cHTMLEntityToName = ARRAY_SIZE(_HTMLEntityToName);
+static const size_t cHTMLEntityToName = ARRAY_SIZE(HTMLEntityToName);
 
 static int compareHTMLEntityToChar(const void *m1, const void *m2)
 {
@@ -526,7 +526,7 @@ wchar_t CHtmlEntity::toChar(const wchar_t *name)
 {
 	HTMLEntity_t key = {0};
 	key.s = name;
-	auto result = static_cast<HTMLEntity_t *>(bsearch(&key, &_HTMLEntity, cHTMLEntity, sizeof(HTMLEntity_t), compareHTMLEntityToChar));
+	auto result = static_cast<HTMLEntity_t *>(bsearch(&key, &HTMLEntity, cHTMLEntity, sizeof(HTMLEntity_t), compareHTMLEntityToChar));
 	return result != nullptr ? result->c : 0;
 }
 
@@ -534,7 +534,7 @@ const wchar_t *CHtmlEntity::toName(wchar_t c)
 {
 	HTMLEntityToName_t key = {0};
 	key.c = c;
-	auto result = static_cast<HTMLEntityToName_t *>(bsearch(&key, &_HTMLEntityToName, cHTMLEntityToName, sizeof(HTMLEntityToName_t), compareHTMLEntityToName));
+	auto result = static_cast<HTMLEntityToName_t *>(bsearch(&key, &HTMLEntityToName, cHTMLEntityToName, sizeof(HTMLEntityToName_t), compareHTMLEntityToName));
 	return result != nullptr ? result->s : nullptr;
 }
 

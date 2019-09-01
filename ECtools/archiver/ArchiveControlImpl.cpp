@@ -441,7 +441,7 @@ HRESULT ArchiveControlImpl::DoCleanup(const tstring &strUser)
 
 		li.LowPart = m_ftCurrent.dwLowDateTime;
 		li.HighPart = m_ftCurrent.dwHighDateTime;
-		li.QuadPart -= (m_ulPurgeAfter * _DAY);
+		li.QuadPart -= m_ulPurgeAfter * ARC_DAY;
 		sPropRefTime.ulPropTag = PROP_TAG(PT_SYSTIME, 0);
 		sPropRefTime.Value.ft.dwLowDateTime = li.LowPart;
 		sPropRefTime.Value.ft.dwHighDateTime = li.HighPart;
@@ -588,9 +588,7 @@ HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
 	// Create the common restriction that determines which messages are old enough to purge.
 	li.LowPart = m_ftCurrent.dwLowDateTime;
 	li.HighPart = m_ftCurrent.dwHighDateTime;
-
-	li.QuadPart -= (m_ulPurgeAfter * _DAY);
-
+	li.QuadPart -= m_ulPurgeAfter * ARC_DAY;
 	sPropCreationTime.ulPropTag = PR_MESSAGE_DELIVERY_TIME;
 	sPropCreationTime.Value.ft.dwLowDateTime = li.LowPart;
 	sPropCreationTime.Value.ft.dwHighDateTime = li.HighPart;

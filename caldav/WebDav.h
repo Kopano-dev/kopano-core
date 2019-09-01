@@ -2,8 +2,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef _WEBDAV_H_
-#define _WEBDAV_H_
+#ifndef CALDAV_WEBDAV_H
+#define CALDAV_WEBDAV_H
 
 #include <libxml/tree.h>
 #include <libxml/xmlwriter.h>

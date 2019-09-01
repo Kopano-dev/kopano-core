@@ -2,8 +2,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef _ICAL_H_
-#define _ICAL_H_
+#ifndef CALDAV_ICAL_H
+#define CALDAV_ICAL_H
 
 #include "Http.h"
 #include <mapi.h>

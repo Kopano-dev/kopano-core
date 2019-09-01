@@ -1,5 +1,5 @@
-#ifndef _KC_TIE_HPP
-#define _KC_TIE_HPP 1
+#ifndef EC_TIE_HPP
+#define EC_TIE_HPP 1
 
 #include <memory>
 
@@ -30,4 +30,4 @@ unique_tie(std::unique_ptr<T, D> &u)
 
 } /* namespace */
 
-#endif /* _KC_TIE_HPP */
+#endif

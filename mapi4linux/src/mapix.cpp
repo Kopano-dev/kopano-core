@@ -35,8 +35,8 @@
 #include <string>
 #include <map>
 #include <kopano/charset/convert.h>
-#define _MAPI_MEM_DEBUG 0
-#define _MAPI_MEM_MORE_DEBUG 0
+#define MAPI_MEM_DEBUG 0
+#define MAPI_MEM_MORE_DEBUG 0
 
 namespace KC {
 
@@ -81,7 +81,7 @@ struct alignas(::max_align_t) mapiext_head {
 struct alignas(::max_align_t) mapibuf_head {
 	std::mutex mtx;
 	struct mapiext_head *child; /* singly-linked list */
-#if _MAPI_MEM_MORE_DEBUG
+#if MAPI_MEM_MORE_DEBUG
 	enum mapibuf_ident ident;
 #endif
 	alignas(::max_align_t) char data[];
@@ -2079,7 +2079,7 @@ SCODE MAPIAllocateMore(ULONG cbSize, LPVOID lpObject, LPVOID *lppBuffer)
 	}
 
 	auto head = container_of(lpObject, struct mapibuf_head, data);
-#if _MAPI_MEM_MORE_DEBUG
+#if MAPI_MEM_MORE_DEBUG
 	if (head->ident != MAPIBUF_BASE)
 		assert("AllocateMore on something that was not allocated with MAPIAllocateBuffer!\n" == nullptr);
 #endif
@@ -2087,7 +2087,7 @@ SCODE MAPIAllocateMore(ULONG cbSize, LPVOID lpObject, LPVOID *lppBuffer)
 	bfr->child = head->child;
 	head->child = bfr;
 	*lppBuffer = bfr->data;
-#if _MAPI_MEM_DEBUG
+#if MAPI_MEM_DEBUG
 	fprintf(stderr, "Extra buffer: %p on %p\n", *lppBuffer, lpObject);
 #endif
 	return hrSuccess;
@@ -2105,17 +2105,17 @@ ULONG MAPIFreeBuffer(LPVOID lpBuffer)
 	/* Well it could happen, especially according to the MSDN.. */
 	if (!lpBuffer)
 		return S_OK;
-#if _MAPI_MEM_DEBUG
+#if MAPI_MEM_DEBUG
 	fprintf(stderr, "Freeing: %p\n", lpBuffer);
 #endif
 	auto head = container_of(lpBuffer, struct mapibuf_head, data);
-#if _MAPI_MEM_MORE_DEBUG
+#if MAPI_MEM_MORE_DEBUG
 	assert(head->ident == MAPIBUF_BASE);
 #endif
 	auto p = head->child;
 	while (p != nullptr) {
 		auto q = p->child;
-#if _MAPI_MEM_DEBUG
+#if MAPI_MEM_DEBUG
 		fprintf(stderr, "  Freeing: %p\n", i);
 #endif
 		free(p);
@@ -2216,10 +2216,10 @@ HRESULT MAPILogonEx(ULONG_PTR ulUIParam, const TCHAR *lpszProfileName,
  * Some (bad behaving) MAPI clients (i.e. CalHelper.exe) might call MAPIInitialize/MAPIUnitialize
  * multiple times, obviously this is very bad behavior, but it shouldn't hurt to at least
  * builtin some protection against this.
- * _MAPIInitializeCount simply counts the number of times MAPIInitialize is called, and will
+ * MAPIInitializeCount simply counts the number of times MAPIInitialize is called, and will
  * not cleanup anything in MAPIUnitialize until the counter is back to 0.
  */
-static int _MAPIInitializeCount = 0;
+static int MAPIInitializeCount = 0;
 static std::mutex g_MAPILock;
 
 /**
@@ -2239,7 +2239,7 @@ HRESULT MAPIInitialize(LPVOID lpMapiInit)
 {
 	scoped_lock l_mapi(g_MAPILock);
 
-	if (_MAPIInitializeCount++) {
+	if (MAPIInitializeCount++ > 0) {
 		assert(localProfileAdmin);
 		localProfileAdmin->AddRef();
 		return hrSuccess;
@@ -2270,7 +2270,7 @@ void MAPIUninitialize(void)
 {
 	scoped_lock l_mapi(g_MAPILock);
 
-	if (_MAPIInitializeCount == 0)
+	if (MAPIInitializeCount == 0)
 		abort();
 
 	/* MAPIInitialize always AddRefs localProfileAdmin */
@@ -2278,7 +2278,7 @@ void MAPIUninitialize(void)
 		localProfileAdmin->Release();
 
 	/* Only clean everything up when this is the last MAPIUnitialize call. */
-	if ((--_MAPIInitializeCount) == 0) {
+	if (--MAPIInitializeCount == 0) {
 		delete m4l_lpMAPISVC;
 
 		localProfileAdmin = NULL;

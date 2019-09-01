@@ -352,7 +352,7 @@ void CHtmlToTextParser::parseTagBR()
 
 void CHtmlToTextParser::parseTagTR()
 {
-	_TableRow t;
+	TableRow t;
 	t.bFirstCol = true;
 	addNewLine( false );
 	stackTableRow.push(t);

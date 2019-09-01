@@ -46,7 +46,7 @@ static const unsigned int EC_LOGLEVEL_SEARCH       = 0x00400000;
 
 static const unsigned int EC_LOGLEVEL_EXTENDED_MASK = 0xFFFF0000;
 
-#define _LOG_BUFSIZE		10240
+#define EC_LOG_BUFSIZE 10240
 
 #define ZLOG_DEBUG(plog, ...) \
 	do { \
@@ -201,7 +201,7 @@ class KC_EXPORT_DYCAST ECLogger_File KC_FINAL : public ECLogger {
 	printf_func fnPrintf;
 	fileno_func fnFileno;
 	const char *szMode;
-	char prevmsg[_LOG_BUFSIZE];
+	char prevmsg[EC_LOG_BUFSIZE];
 	int prevcount;
 	unsigned int prevloglevel;
 	_kc_hidden bool DupFilter(unsigned int level, const char *);

@@ -43,10 +43,10 @@ namespace KC {
 #define ARCH_NEVER_STUB				0x00000002
 #define ARCH_NEVER_DELETE			0x00000004
 
-#define _SECOND ((__int64) 10000000)
-#define _MINUTE (60 * _SECOND)
-#define _HOUR   (60 * _MINUTE)
-#define _DAY    (24 * _HOUR)
+#define ARC_SECOND (static_cast<int64_t>(10000000))
+#define ARC_MINUTE (60 * ARC_SECOND)
+#define ARC_HOUR   (60 * ARC_MINUTE)
+#define ARC_DAY    (24 * ARC_HOUR)
 
 /**
  * Utility class for easy handling of non-addressbook entryids.

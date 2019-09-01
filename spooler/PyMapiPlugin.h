@@ -2,9 +2,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef _PYMAPIPLUGIN_H
-#define _PYMAPIPLUGIN_H
+#ifndef SPOOLER_PYMAPIPLUGIN_H
+#define SPOOLER_PYMAPIPLUGIN_H 1
 
 #include <memory>
 #include <kopano/zcdefs.h>

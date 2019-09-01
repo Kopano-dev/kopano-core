@@ -2,8 +2,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef _STRINGUTIL_H
-#define _STRINGUTIL_H
+#ifndef EC_STRINGUTIL_H
+#define EC_STRINGUTIL_H 1
 
 #include <algorithm>
 #include <cctype>

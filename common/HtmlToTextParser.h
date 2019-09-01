@@ -77,7 +77,7 @@ protected:
 		ParseMethodType parserMethod = nullptr;
 	};
 
-	struct _TableRow {
+	struct TableRow {
 		bool bFirstCol;
 	};
 
@@ -88,7 +88,7 @@ protected:
 	};
 
 	typedef std::map<std::wstring, std::wstring>	MapAttrs;
-	std::stack<_TableRow> stackTableRow;
+	std::stack<TableRow> stackTableRow;
 	std::map<std::wstring, tagParser> tagMap;
 	std::stack<MapAttrs> stackAttrs;
 	ListInfo 		listInfo;

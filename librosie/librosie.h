@@ -1,5 +1,5 @@
-#ifndef _LIBROSIE_H
-#define _LIBROSIE_H 1
+#ifndef EC_LIBROSIE_H
+#define EC_LIBROSIE_H 1
 
 #include <kopano/zcdefs.h>
 #include <string>
@@ -11,4 +11,4 @@ extern _kc_export bool rosie_clean_html(const std::string &in, std::string *out,
 
 }
 
-#endif /* LIBROSIE_H */
+#endif

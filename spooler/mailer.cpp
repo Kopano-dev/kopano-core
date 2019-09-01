@@ -563,8 +563,8 @@ static void mdnprop_populate(SPropValue *p, unsigned int &n,
 	p[n].ulPropTag     = PR_SENDER_NAME_W;
 	p[n++].Value.lpszW = const_cast<wchar_t *>(L"Mail Delivery System");
 	/*
-	 * Although lpszA is used, we just copy pointers. By not forcing _A or
-	 * _W, this works in unicode and normal compile mode. Set the
+	 * Although lpszA is used, we just copy pointers. By not forcing KC_A or
+	 * KC_W, this works in Unicode and normal compile mode. Set the
 	 * properties PR_RCVD_REPRESENTING_* and PR_RECEIVED_BY_* and
 	 * PR_ORIGINAL_SENDER_* and PR_ORIGINAL_SENT_*.
 	 */
@@ -737,7 +737,7 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 	const std::vector<sFailedRecip> &temporaryFailedRecipients = lpMailer->getTemporaryFailedRecipients();
 	const std::vector<sFailedRecip> &permanentFailedRecipients = lpMailer->getPermanentFailedRecipients();
 
-	// These props are on purpose without _A and _W
+	/* These props are on purpose without KC_A and KC_W */
 	static constexpr const SizedSPropTagArray(16, sPropsOriginal) = {
 		16,
 		{ PR_DISPLAY_TO, PR_DISPLAY_CC,

@@ -27,8 +27,8 @@ using KC::pyobj_ptr;
  * @value:	The scripted value to convert. (in)
  * @flags:	%MAPI_UNICODE or 0.
  */
-template<typename _Type> static void conv_out(PyObject *value,
-    void */*base*/, unsigned int /*flags*/, _Type *result)
+template<typename SomeType> static void conv_out(PyObject *value,
+    void */*base*/, unsigned int /*flags*/, SomeType *result)
 {
 	/* Just generate an error here */
 	value = result;
