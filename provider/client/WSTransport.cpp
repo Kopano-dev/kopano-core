@@ -57,6 +57,7 @@ using namespace KC;
 
 #define START_SOAP_CALL retry: \
     if(m_lpCmd == NULL) { \
+        ec_log_debug("K-0159: cannot issue RPCs: m_lpCmd is unset"); \
         hr = MAPI_E_NETWORK_ERROR; \
         goto exitm; \
     }

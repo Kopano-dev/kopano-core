@@ -580,13 +580,8 @@ HRESULT ECArchiveAwareMsgStore::GetArchiveStore(LPSBinary lpStoreEID, ECMsgStore
 			return hr;
 		if (!bIsPeer)
 			ServerURL = strServer;
-		else {
-			// We can't just use the transport from ptrOnlineStore as that will be
-			// logged off when ptrOnlineStore gets destroyed (at the end of this finction).
-			hr = ptrOnlineStore->lpTransport->CloneAndRelogon(&~ptrTransport);
-			if (hr != hrSuccess)
-				return hr;
-		}
+		else
+			ptrTransport = ptrOnlineStore->lpTransport;
 	}
 
 	if (!ptrTransport) {
