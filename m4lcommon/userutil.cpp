@@ -96,7 +96,9 @@ HRESULT DataCollector::GetRestriction(LPMAPIPROP lpProp, LPSRestriction *lppRest
 }
 
 template<typename string_type, ULONG prAccount>
-UserListCollector<string_type, prAccount>::UserListCollector(IMAPISession *lpSession): m_ptrSession(lpSession, true) {}
+UserListCollector<string_type, prAccount>::UserListCollector(IMAPISession *lpSession) :
+	m_ptrSession(lpSession)
+{}
 
 template<typename string_type, ULONG prAccount>
 HRESULT	UserListCollector<string_type, prAccount>::GetRequiredPropTags(LPMAPIPROP /*lpProp*/, LPSPropTagArray *lppPropTagArray) const {

@@ -104,7 +104,7 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 	}
 
 	// Verify if we have at least one archive that's in the current multi-server cluster.
-	hr = MAPIPropHelper::Create(MAPIPropPtr(lpMessage, true), &ptrMsgHelper);
+	hr = MAPIPropHelper::Create(object_ptr<IMAPIProp>(lpMessage), &ptrMsgHelper);
 	if (hr != hrSuccess)
 		return Logger()->perr("Failed to create prop helper", hr);
 	hr = ptrMsgHelper->GetArchiveList(&lstMsgArchives);

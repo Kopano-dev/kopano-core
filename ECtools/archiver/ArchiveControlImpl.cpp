@@ -1197,7 +1197,7 @@ HRESULT ArchiveControlImpl::MoveAndDetachFolder(ArchiveHelperPtr ptrArchiveHelpe
 	hr = ptrArchiveHelper->GetDeletedItemsFolder(&~ptrDelItemsFolder);
 	if (hr != hrSuccess)
 		return m_lpLogger->perr("Failed to get deleted items folder", hr);
-	hr = MAPIPropHelper::Create(MAPIPropPtr(lpArchiveFolder, true), &ptrHelper);
+	hr = MAPIPropHelper::Create(object_ptr<IMAPIProp>(lpArchiveFolder), &ptrHelper);
 	if (hr != hrSuccess)
 		return m_lpLogger->perr("Failed to create helper object", hr);
 	hr = ptrHelper->ClearReference(true);
@@ -1209,7 +1209,7 @@ HRESULT ArchiveControlImpl::MoveAndDetachFolder(ArchiveHelperPtr ptrArchiveHelpe
 		for (ECFolderIterator i = ECFolderIterator(lpArchiveFolder, fMapiDeferredErrors, 0); i != iEnd; ++i) {
 			MAPIPropHelperPtr ptrSubHelper;
 
-			hr = MAPIPropHelper::Create(MAPIPropPtr(*i, true), &ptrSubHelper);
+			hr = MAPIPropHelper::Create(object_ptr<IMAPIProp>(*i), &ptrSubHelper);
 			if (hr != hrSuccess)
 				return hr;
 			hr = ptrSubHelper->ClearReference(true);

@@ -54,7 +54,7 @@ HRESULT Archive::Create(IMAPISession *lpSession, ArchivePtr *lpptrArchive)
 }
 
 Archive::Archive(IMAPISession *lpSession)
-: m_ptrSession(lpSession, true)
+: m_ptrSession(lpSession)
 {
 }
 
@@ -165,7 +165,7 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
 	// Now add the references to the original message.
 	lstReferences.sort();
 	lstReferences.unique();
-	hr = MAPIPropHelper::Create(MAPIPropPtr(lpMessage, true), &ptrMsgHelper);
+	hr = MAPIPropHelper::Create(object_ptr<IMAPIProp>(lpMessage), &ptrMsgHelper);
 	if (hr != hrSuccess)
 		return kc_pwarn("Archive::HrArchiveMessageForDelivery(): failed creating reference to original message", hr);
 	return ptrMsgHelper->SetArchiveList(lstReferences, true);

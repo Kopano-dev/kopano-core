@@ -189,9 +189,9 @@ template<typename T> class object_ptr {
 	typedef T *pointer;
 	constexpr object_ptr(void) noexcept {}
 	constexpr object_ptr(std::nullptr_t) noexcept {}
-	explicit object_ptr(T *p, bool addref = true) : m_ptr(p)
+	explicit object_ptr(T *p) : m_ptr(p)
 	{
-		if (addref && m_ptr != pointer())
+		if (m_ptr != pointer())
 			m_ptr->AddRef();
 	}
 	~object_ptr(void)

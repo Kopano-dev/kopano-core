@@ -64,7 +64,7 @@ HRESULT ArchiveManage::Create(IMAPISession *lpSession,
 {
 	ArchiverSessionPtr ptrArchiverSession;
 
-	auto hr = ArchiverSession::Create(MAPISessionPtr(lpSession, true), NULL, lpLogger, &ptrArchiverSession);
+	auto hr = ArchiverSession::Create(object_ptr<IMAPISession>(lpSession), nullptr, lpLogger, &ptrArchiverSession);
 	if (hr != hrSuccess)
 		return hr;
 

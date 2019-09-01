@@ -10,7 +10,7 @@
 namespace KC {
 
 ECHierarchyIteratorBase::ECHierarchyIteratorBase(LPMAPICONTAINER lpContainer, ULONG ulFlags, ULONG ulDepth)
-: m_ptrContainer(lpContainer, true)
+: m_ptrContainer(lpContainer)
 , m_ulFlags(ulFlags)
 , m_ulDepth(ulDepth)
 , m_ulRowIndex(0)

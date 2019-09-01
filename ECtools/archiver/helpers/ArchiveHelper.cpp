@@ -112,14 +112,14 @@ HRESULT ArchiveHelper::Create(ArchiverSessionPtr ptrSession,
 }
 
 ArchiveHelper::ArchiveHelper(LPMDB lpArchiveStore, const tstring &strFolder, const std::string &strServerPath)
-: m_ptrArchiveStore(lpArchiveStore, true)
+: m_ptrArchiveStore(lpArchiveStore)
 , m_strFolder(strFolder)
 , m_strServerPath(strServerPath), m_propmap(4)
 { }
 
 ArchiveHelper::ArchiveHelper(LPMDB lpArchiveStore, LPMAPIFOLDER lpArchiveFolder, const std::string &strServerPath)
-: m_ptrArchiveStore(lpArchiveStore, true)
-, m_ptrArchiveFolder(lpArchiveFolder, true)
+: m_ptrArchiveStore(lpArchiveStore)
+, m_ptrArchiveFolder(lpArchiveFolder)
 , m_strServerPath(strServerPath)
 { }
 
