@@ -21,11 +21,7 @@ class ECSessionGroupInfo final {
 public:
 	std::string strServer, strProfile;
 
-	ECSessionGroupInfo()
-		: strServer(), strProfile()
-	{
-	}
-
+	ECSessionGroupInfo() = default;
 	ECSessionGroupInfo(const std::string &server, const std::string &profile) :
 		strServer(server), strProfile(profile)
 	{
