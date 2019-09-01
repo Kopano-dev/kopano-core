@@ -36,7 +36,7 @@ using namespace KC;
 
 static int opt_create_store, opt_create_public, opt_detach_store;
 static int opt_copytopublic, opt_list_orphan, opt_show_version;
-static int opt_list_mbt, opt_localize_folders;
+static int opt_list_mbt, opt_localize_folders, opt_loglevel = 3;
 static const char *opt_attach_store, *opt_remove_store;
 static const char *opt_config_file, *opt_host;
 static const char *opt_entity_name, *opt_entity_type;
@@ -60,6 +60,7 @@ static constexpr const struct HXoption adm_options[] = {
 	{nullptr, 'n', HXTYPE_STRING, &opt_entity_name, nullptr, nullptr, 0, "User/group/company account to work on for -A,-C,-D", "NAME"},
 	{nullptr, 'p', HXTYPE_NONE, &opt_copytopublic, nullptr, nullptr, 0, "Copy an orphaned store's root (with -A) to a subfolder in the public store"},
 	{nullptr, 't', HXTYPE_STRING, &opt_entity_type, nullptr, nullptr, 0, "Store type for the -n argument (user, archive, group, company)", "TYPE"},
+	{nullptr, 'v', HXTYPE_NONE | HXOPT_INC, &opt_loglevel, nullptr, nullptr, 0, "Raise loglevel by one count"},
 	HXOPT_AUTOHELP,
 	HXOPT_TABLEEND,
 };
@@ -904,6 +905,9 @@ static bool adm_parse_options(int &argc, const char **&argv)
 
 	if (HX_getopt(adm_options, &argc, &argv, HXOPT_USAGEONERR) != HXOPT_ERR_SUCCESS)
 		return false;
+	if (opt_loglevel > EC_LOGLEVEL_DEBUG)
+		opt_loglevel = EC_LOGLEVEL_ALWAYS;
+	ec_log_get()->SetLoglevel(opt_loglevel);
 	if (opt_config_file != nullptr) {
 		adm_config->LoadSettings(opt_config_file);
 		if (adm_config->HasErrors()) {

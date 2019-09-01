@@ -6,7 +6,7 @@ kopano\-storeadm \(em store management utility
 \fIguid\fP|\fB\-C\fP|\fB\-D\fP|\fB\-M\fP|\fB\-O\fP|\fB\-P\fP|\fB\-R\fP
 \fIguid\fP|\fB\-V\fP|\fB\-Y\fP} [\fB\-c\fP \fIfile\fP] [\fB\-h\fP \fIuri\fP]
 [\fB\-k\fP \fIcompany\fP] [\fB\-n\fP \fIname\fP] [\fB\-p\fP] [\fB\-t\fP
-{\fBuser\fP|\fBarchive\fP|\fBgroup\fP|\fBcompany\fP}]
+{\fBuser\fP|\fBarchive\fP|\fBgroup\fP|\fBcompany\fP}] [\fB\-v\fP]
 .SH Description
 .PP
 This tool is used to manage message stores on the Kopano server. Specifically,
@@ -87,6 +87,9 @@ User - username".  The orphaned store is left unmodified.
 The store type for the entity specified with \fB\-n\fP. If not specified,
 \fB\-t user\fP is implicitly assumed. (This option only has an effect when used
 with \fB\-A\fP or \fB\-D\fP.)
+.TP
+\fB\-v\fP
+Raise the loglevel by one count. (The default level is 3; maximum is 6.)
 .SH Examples
 .IP \(bu 4
 Create new store for user: kopano\-storeadm \-Cn user1
