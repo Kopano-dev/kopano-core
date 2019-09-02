@@ -737,7 +737,7 @@ ECRESULT FreePropVal(struct propVal *lpProp, bool bBasePointerDel)
 		s_free(nullptr, lpProp->Value.bin);
 		break;
 	case PT_MV_I2:
-		s_free(nullptr, lpProp->Value.mvi.__ptr);
+		soap_del_mv_i2(&lpProp->Value.mvi);
 		break;
 	case PT_MV_LONG:
 		s_free(nullptr, lpProp->Value.mvl.__ptr);
@@ -750,7 +750,7 @@ ECRESULT FreePropVal(struct propVal *lpProp, bool bBasePointerDel)
 		soap_del_mv_double(&lpProp->Value.mvdbl);
 		break;
 	case PT_MV_I8:
-		s_free(nullptr, lpProp->Value.mvli.__ptr);
+		soap_del_mv_i8(&lpProp->Value.mvli);
 		break;
 	case PT_MV_SYSTIME:
 	case PT_MV_CURRENCY:
@@ -989,7 +989,7 @@ ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal *lpDst,
 		if (lpSrc->Value.mvi.__ptr == NULL)
 			return KCERR_INVALID_TYPE;
 		lpDst->Value.mvi.__size = lpSrc->Value.mvi.__size;
-		lpDst->Value.mvi.__ptr = s_alloc<short int>(soap, lpSrc->Value.mvi.__size);
+		lpDst->Value.mvi.__ptr  = soap_new_short(soap, lpSrc->Value.mvi.__size);
 		memcpy(lpDst->Value.mvi.__ptr, lpSrc->Value.mvi.__ptr, sizeof(short int) * lpDst->Value.mvi.__size);
 		break;
 	case PT_MV_LONG:
@@ -1018,7 +1018,7 @@ ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal *lpDst,
 		if (lpSrc->Value.mvli.__ptr == NULL)
 			return KCERR_INVALID_TYPE;
 		lpDst->Value.mvli.__size = lpSrc->Value.mvli.__size;
-		lpDst->Value.mvli.__ptr = s_alloc<LONG64>(soap, lpSrc->Value.mvli.__size);
+		lpDst->Value.mvli.__ptr  = soap_new_LONG64(soap, lpSrc->Value.mvli.__size);
 		memcpy(lpDst->Value.mvli.__ptr, lpSrc->Value.mvli.__ptr, sizeof(LONG64) * lpDst->Value.mvli.__size);
 		break;
 	case PT_MV_CURRENCY:

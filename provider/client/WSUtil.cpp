@@ -122,7 +122,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 	case PT_MV_I2:
 		dp->__union = SOAP_UNION_propValData_mvi;
 		dp->Value.mvi.__size = sp->Value.MVi.cValues;
-		dp->Value.mvi.__ptr = s_alloc<short int>(nullptr, dp->Value.mvi.__size);
+		dp->Value.mvi.__ptr  = soap_new_short(nullptr, dp->Value.mvi.__size);
 		memcpy(dp->Value.mvi.__ptr, sp->Value.MVi.lpi, sizeof(short int) * dp->Value.mvi.__size);
 		break;
 	case PT_MV_LONG:
@@ -226,7 +226,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 	case PT_MV_I8:
 		dp->__union = SOAP_UNION_propValData_mvli;
 		dp->Value.mvli.__size = sp->Value.MVli.cValues;
-		dp->Value.mvli.__ptr = s_alloc<LONG64>(nullptr, dp->Value.mvli.__size);
+		dp->Value.mvli.__ptr  = soap_new_LONG64(nullptr, dp->Value.mvli.__size);
 		for (gsoap_size_t i = 0; i < dp->Value.mvli.__size; ++i)
 			dp->Value.mvli.__ptr[i] = sp->Value.MVli.lpli[i].QuadPart;
 		break;

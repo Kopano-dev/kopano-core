@@ -1153,7 +1153,7 @@ static ECRESULT DeserializePropVal(struct soap *soap,
 		if (er != erSuccess)
 			break;
 		lpsPropval->Value.mvi.__size = ulCount;
-		lpsPropval->Value.mvi.__ptr = s_alloc<short>(soap, ulCount);
+		lpsPropval->Value.mvi.__ptr  = soap_new_short(soap, ulCount);
 		er = lpSource->Read(lpsPropval->Value.mvi.__ptr, sizeof *lpsPropval->Value.mvi.__ptr, ulCount);
 		break;
 	case PT_MV_LONG:
@@ -1239,7 +1239,7 @@ static ECRESULT DeserializePropVal(struct soap *soap,
 		if (er != erSuccess)
 			break;
 		lpsPropval->Value.mvli.__size = ulCount;
-		lpsPropval->Value.mvli.__ptr = s_alloc<LONG64>(soap, ulCount);
+		lpsPropval->Value.mvli.__ptr  = soap_new_LONG64(soap, ulCount);
 		er = lpSource->Read(lpsPropval->Value.mvli.__ptr, sizeof *lpsPropval->Value.mvli.__ptr, ulCount);
 		break;
 	default:
