@@ -110,6 +110,40 @@ exit:
 	return hr;
 }
 
+HRESULT WSMAPIFolderOps::create_folders(std::vector<WSFolder> &batch)
+{
+	HRESULT hr = hrSuccess;
+	ECRESULT er = erSuccess;
+	struct create_folders_response rsp;
+	std::vector<new_folder> folders(batch.size());
+	convert_wsfolder_to_soapfolder(batch, folders);
+
+	new_folder_set soap_batch;
+	soap_batch.__size = folders.size();
+	soap_batch.__ptr  = folders.data();
+
+	soap_lock_guard spg(*m_lpTransport);
+	START_SOAP_CALL
+	{
+		if (m_lpTransport->m_lpCmd->create_folders(ecSessionId, m_sEntryId, soap_batch, &rsp) != SOAP_OK)
+			er = KCERR_NETWORK_ERROR;
+		else
+			er = rsp.er;
+	}
+	END_SOAP_CALL
+	if (rsp.entryids->__size != batch.size()) {
+		hr = MAPI_E_CALL_FAILED;
+		goto exit;
+	}
+	hr = convert_soapfolders_to_wsfolder(rsp, batch);
+ exit:
+	spg.unlock();
+	for (auto &folder : folders)
+		if (folder.entryid != nullptr)
+			FreeEntryId(folder.entryid, true);
+	return hr;
+}
+
 HRESULT WSMAPIFolderOps::HrDeleteFolder(ULONG cbEntryId,
     const ENTRYID *lpEntryId, ULONG ulFlags, ULONG ulSyncId)
 {

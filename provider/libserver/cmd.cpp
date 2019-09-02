@@ -3070,6 +3070,53 @@ SOAP_ENTRY_START(createFolder, lpsResponse->er, const entryId &sParentId,
 SOAP_ENTRY_END()
 
 /**
+ * Create the specified set of folders within the folder specified by
+ * @parent_eid.
+ */
+SOAP_ENTRY_START(create_folders, rsp->er, const entryId &parent_eid,
+    const new_folder_set &batch, struct create_folders_response *rsp)
+{
+	for (size_t i = 0; i < batch.__size; ++i)
+		if (batch.__ptr[i].name == nullptr)
+			return KCERR_INVALID_PARAMETER;
+
+	std::vector<unsigned int> folder_ids(batch.__size);
+	USE_DATABASE_NORESULT();
+	auto dtx = lpDatabase->Begin(er);
+	if (er != erSuccess)
+		return er;
+
+	auto laters = make_scope_success([&]() { ROLLBACK_ON_ERROR(); });
+	unsigned int parent_id = 0;
+	er = lpecSession->GetObjectFromEntryId(&parent_eid, &parent_id);
+	if (er != erSuccess)
+		return er;
+
+	for (size_t i = 0; i < batch.__size; ++i) {
+		const auto f = batch.__ptr[i];
+		er = CreateFolder(lpecSession, lpDatabase, parent_id, f.entryid,
+		     f.type, f.name, f.comment, f.open_if_exists,
+		     true /* notify */, f.sync_id, &f.original_sourcekey,
+		     &folder_ids[i], nullptr);
+		if (er != erSuccess)
+			return er;
+	}
+	er = dtx.commit();
+	if (er != erSuccess)
+		return er;
+
+	rsp->entryids         = s_alloc<entryList>(soap);
+	rsp->entryids->__size = folder_ids.size();
+	rsp->entryids->__ptr  = s_alloc<entryId>(soap, folder_ids.size());
+
+	for (size_t i = 0; i < folder_ids.size() && er == erSuccess; ++i)
+		er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(
+		     folder_ids[i], soap, 0, rsp->entryids->__ptr + i);
+	return er;
+}
+SOAP_ENTRY_END()
+
+/**
  * tableOpen: Open a mapi table
  *
  * @param[in]	lpecSession	server session object, cannot be NULL
