@@ -1136,7 +1136,7 @@ ECRESULT ECGenericObjectTable::GetCollapseState(struct soap *soap, struct xsd__b
     soap_end_send(&xmlsoap);
     // os.str() now contains serialized objects, copy into return structure
     lpsCollapseState->__size = os.str().size();
-    lpsCollapseState->__ptr = s_alloc<unsigned char>(soap, os.str().size());
+	lpsCollapseState->__ptr  = soap_new_unsignedByte(soap, os.str().size());
     memcpy(lpsCollapseState->__ptr, os.str().c_str(), os.str().size());
 exit:
 	soap_destroy(&xmlsoap);
@@ -2469,7 +2469,7 @@ ECRESULT ECGenericObjectTable::GetPropCategory(struct soap *soap, unsigned int u
             lpPropVal->__union = SOAP_UNION_propValData_bin;
             lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
             lpPropVal->Value.bin->__size = sizeof(unsigned int) * 2;
-            lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(unsigned int) * 2);
+			lpPropVal->Value.bin->__ptr  = soap_new_unsignedByte(soap, sizeof(unsigned int) * 2);
 			tmp4 = cpu_to_le32(sKey.ulObjId);
 			memcpy(lpPropVal->Value.bin->__ptr, &tmp4, sizeof(tmp4));
 			tmp4 = cpu_to_le32(sKey.ulOrderId);

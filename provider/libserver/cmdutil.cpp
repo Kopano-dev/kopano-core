@@ -45,7 +45,7 @@ ECRESULT GetSourceKey(unsigned int ulObjId, SOURCEKEY *lpSourceKey)
 	          ulObjId, nullptr, &cbData, &lpData);
 	if (er == erSuccess)
 		*lpSourceKey = SOURCEKEY(cbData, lpData);
-	s_free(nullptr, lpData);
+	SOAP_FREE(nullptr, lpData);
 	return er;
 }
 
@@ -1042,7 +1042,7 @@ ECRESULT WriteLocalCommitTimeMax(struct soap *soap, ECDatabase *lpDatabase, unsi
 
 static void FreeDeleteItem(DELETEITEM *src)
 {
-	s_free(nullptr, src->sEntryId.__ptr);
+	soap_del_entryId(&src->sEntryId);
 }
 
 void FreeDeletedItems(ECListDeleteItems *lplstDeleteItems)
@@ -1420,7 +1420,7 @@ ECRESULT GetNamesFromIDs(struct soap *soap, ECDatabase *lpDatabase, struct propT
 		// Got a GUID (should always do so ...)
 		lpsNames->__ptr[i].lpguid = s_alloc<struct xsd__base64Binary>(soap);
 		lpsNames->__ptr[i].lpguid->__size = lpDBLen[2];
-		lpsNames->__ptr[i].lpguid->__ptr = s_alloc<unsigned char>(soap, lpDBLen[2]);
+		lpsNames->__ptr[i].lpguid->__ptr  = soap_new_unsignedByte(soap, lpDBLen[2]);
 		memcpy(lpsNames->__ptr[i].lpguid->__ptr, lpDBRow[2], lpDBLen[2]);
 	}
 	return erSuccess;

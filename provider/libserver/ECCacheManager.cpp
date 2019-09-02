@@ -1499,7 +1499,7 @@ ECRESULT ECCacheManager::GetPropFromObject(unsigned int ulTag, unsigned int ulOb
 		er = m_ObjectToPropCache.GetCacheItem(sObjectKey, &sObject);
 
 		if(er == erSuccess) {
-			*lppData = s_alloc<unsigned char>(soap, sObject->cbData);
+			*lppData  = soap_new_unsignedByte(soap, sObject->cbData);
 			*lpcbData = sObject->cbData;
 
 			memcpy(*lppData, sObject->lpData, sObject->cbData);
@@ -1531,7 +1531,7 @@ ECRESULT ECCacheManager::GetPropFromObject(unsigned int ulTag, unsigned int ulOb
 	if(er != erSuccess)
 		goto exit;
 	sObject = &sNewObject;
-	*lppData = s_alloc<unsigned char>(soap, sObject->cbData);
+	*lppData  = soap_new_unsignedByte(soap, sObject->cbData);
 	*lpcbData = sObject->cbData;
 	memcpy(*lppData, sObject->lpData, sObject->cbData);
 exit:

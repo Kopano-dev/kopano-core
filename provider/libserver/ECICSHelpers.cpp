@@ -691,10 +691,10 @@ ECRESULT ECGetContentChangesHelper::ProcessRows(const std::vector<DB_ROW> &db_ro
 			continue;
 
 		m_lpChanges->__ptr[m_ulChangeCnt].ulChangeId = lpDBRow[icsID] ? atoui(lpDBRow[icsID]) : 0;
-		m_lpChanges->__ptr[m_ulChangeCnt].sSourceKey.__ptr = s_alloc<unsigned char>(m_soap, lpDBLen[icsSourceKey]);
+		m_lpChanges->__ptr[m_ulChangeCnt].sSourceKey.__ptr  = soap_new_unsignedByte(m_soap, lpDBLen[icsSourceKey]);
 		m_lpChanges->__ptr[m_ulChangeCnt].sSourceKey.__size = lpDBLen[icsSourceKey];
 		memcpy(m_lpChanges->__ptr[m_ulChangeCnt].sSourceKey.__ptr, lpDBRow[icsSourceKey], lpDBLen[icsSourceKey]);
-		m_lpChanges->__ptr[m_ulChangeCnt].sParentSourceKey.__ptr = s_alloc<unsigned char>(m_soap, lpDBLen[icsParentSourceKey]);
+		m_lpChanges->__ptr[m_ulChangeCnt].sParentSourceKey.__ptr  = soap_new_unsignedByte(m_soap, lpDBLen[icsParentSourceKey]);
 		m_lpChanges->__ptr[m_ulChangeCnt].sParentSourceKey.__size = lpDBLen[icsParentSourceKey];
 		memcpy(m_lpChanges->__ptr[m_ulChangeCnt].sParentSourceKey.__ptr, lpDBRow[icsParentSourceKey], lpDBLen[icsParentSourceKey]);
 		m_lpChanges->__ptr[m_ulChangeCnt].ulChangeType = ulChangeType;
@@ -719,10 +719,10 @@ ECRESULT ECGetContentChangesHelper::ProcessResidualMessages()
 
 		ec_log(EC_LOGLEVEL_ICS, "ProcessResidualMessages: sourcekey=%s", bin2hex(p.first).c_str());
 		m_lpChanges->__ptr[m_ulChangeCnt].ulChangeId = 0;
-		m_lpChanges->__ptr[m_ulChangeCnt].sSourceKey.__ptr = s_alloc<unsigned char>(m_soap, p.first.size());
+		m_lpChanges->__ptr[m_ulChangeCnt].sSourceKey.__ptr  = soap_new_unsignedByte(m_soap, p.first.size());
 		m_lpChanges->__ptr[m_ulChangeCnt].sSourceKey.__size = p.first.size();
 		memcpy(m_lpChanges->__ptr[m_ulChangeCnt].sSourceKey.__ptr, p.first, p.first.size());
-		m_lpChanges->__ptr[m_ulChangeCnt].sParentSourceKey.__ptr = s_alloc<unsigned char>(m_soap, p.second.sParentSourceKey.size());
+		m_lpChanges->__ptr[m_ulChangeCnt].sParentSourceKey.__ptr  = soap_new_unsignedByte(m_soap, p.second.sParentSourceKey.size());
 		m_lpChanges->__ptr[m_ulChangeCnt].sParentSourceKey.__size = p.second.sParentSourceKey.size();
 		memcpy(m_lpChanges->__ptr[m_ulChangeCnt].sParentSourceKey.__ptr, p.second.sParentSourceKey, p.second.sParentSourceKey.size());
 		m_lpChanges->__ptr[m_ulChangeCnt].ulChangeType = ICS_HARD_DELETE;

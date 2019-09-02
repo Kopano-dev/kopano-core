@@ -194,7 +194,7 @@ ECRESULT ECSystemStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis,
 				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
 				lpsRowSet->__ptr[i].__ptr[k].Value.bin = s_alloc<xsd__base64Binary>(soap);
 				lpsRowSet->__ptr[i].__ptr[k].Value.bin->__size = sizeof(sObjectTableKey);
-				lpsRowSet->__ptr[i].__ptr[k].Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(sObjectTableKey));
+				lpsRowSet->__ptr[i].__ptr[k].Value.bin->__ptr  = soap_new_unsignedByte(soap, sizeof(sObjectTableKey));
 				memcpy(lpsRowSet->__ptr[i].__ptr[k].Value.bin->__ptr, &row, sizeof(sObjectTableKey));
 				break;
 
@@ -353,7 +353,7 @@ ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis,
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
 				m.Value.bin = s_alloc<xsd__base64Binary>(soap);
 				m.Value.bin->__size = sizeof(sObjectTableKey);
-				m.Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(sObjectTableKey));
+				m.Value.bin->__ptr  = soap_new_unsignedByte(soap, sizeof(sObjectTableKey));
 				memcpy(m.Value.bin->__ptr, &row, sizeof(sObjectTableKey));
 				break;
 
@@ -619,7 +619,7 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
 				m.Value.bin = s_alloc<xsd__base64Binary>(soap);
 				m.Value.bin->__size = sizeof(sObjectTableKey);
-				m.Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(sObjectTableKey));
+				m.Value.bin->__ptr  = soap_new_unsignedByte(soap, sizeof(sObjectTableKey));
 				memcpy(m.Value.bin->__ptr, &row, sizeof(sObjectTableKey));
 				break;
 
@@ -858,7 +858,7 @@ ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
 				m.Value.bin = s_alloc<xsd__base64Binary>(soap);
 				m.Value.bin->__size = sizeof(sObjectTableKey);
-				m.Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(sObjectTableKey));
+				m.Value.bin->__ptr  = soap_new_unsignedByte(soap, sizeof(sObjectTableKey));
 				memcpy(m.Value.bin->__ptr, &row, sizeof(sObjectTableKey));
 				break;
 
@@ -1023,7 +1023,7 @@ ECRESULT ECServerStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
 				m.Value.bin = s_alloc<xsd__base64Binary>(soap);
 				m.Value.bin->__size = sizeof(sObjectTableKey);
-				m.Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(sObjectTableKey));
+				m.Value.bin->__ptr  = soap_new_unsignedByte(soap, sizeof(sObjectTableKey));
 				memcpy(m.Value.bin->__ptr, &row, sizeof(sObjectTableKey));
 				break;
 			case PROP_ID(PR_EC_STATS_SERVER_NAME):

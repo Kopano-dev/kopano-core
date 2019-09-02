@@ -1100,7 +1100,7 @@ ECRESULT ECAuthSession::ValidateSSOData_KCOIDC(struct soap* soap, const char* na
 		// we need to send data back to the client, no need to consider retval
 		lpOutput = s_alloc<struct xsd__base64Binary>(soap);
 		lpOutput->__size = gssOutputToken.length;
-		lpOutput->__ptr = s_alloc<unsigned char>(soap, gssOutputToken.length);
+		lpOutput->__ptr  = soap_new_unsignedByte(soap, gssOutputToken.length);
 		memcpy(lpOutput->__ptr, gssOutputToken.value, gssOutputToken.length);
 		gss_release_buffer(&status, &gssOutputToken);
 	}
@@ -1338,7 +1338,7 @@ retry:
 
 		lpOutput = s_alloc<struct xsd__base64Binary>(soap);
 		lpOutput->__size = strDecoded.length();
-		lpOutput->__ptr = s_alloc<unsigned char>(soap, strDecoded.length());
+		lpOutput->__ptr  = soap_new_unsignedByte(soap, strDecoded.length());
 		memcpy(lpOutput->__ptr, strDecoded.data(), strDecoded.length());
 
 		er = KCERR_SSO_CONTINUE;

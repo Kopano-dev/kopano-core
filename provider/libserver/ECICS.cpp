@@ -572,10 +572,10 @@ static ECRESULT getchanges_hier1(struct soap *soap, ECDatabase *lpDatabase, cons
 		if (lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL)
 			continue;
 		lpChanges->__ptr[i].ulChangeId = ulMaxChange; // All items have the latest change ID because this is an initial sync
-		lpChanges->__ptr[i].sSourceKey.__ptr = s_alloc<unsigned char>(soap, lpDBLen[0]);
+		lpChanges->__ptr[i].sSourceKey.__ptr  = soap_new_unsignedByte(soap, lpDBLen[0]);
 		lpChanges->__ptr[i].sSourceKey.__size = lpDBLen[0];
 		memcpy(lpChanges->__ptr[i].sSourceKey.__ptr, lpDBRow[0], lpDBLen[0]);
-		lpChanges->__ptr[i].sParentSourceKey.__ptr = s_alloc<unsigned char>(soap, lpDBLen[1]);
+		lpChanges->__ptr[i].sParentSourceKey.__ptr  = soap_new_unsignedByte(soap, lpDBLen[1]);
 		lpChanges->__ptr[i].sParentSourceKey.__size = lpDBLen[1];
 		memcpy(lpChanges->__ptr[i].sParentSourceKey.__ptr, lpDBRow[1], lpDBLen[1]);
 		lpChanges->__ptr[i].ulChangeType = ICS_FOLDER_NEW;
@@ -613,10 +613,10 @@ static ECRESULT getchanges_hier2(struct soap *soap, ECDatabase *lpDatabase, cons
 		lpChanges->__ptr[i].ulChangeId = atoui(lpDBRow[0]);
 		if (lpChanges->__ptr[i].ulChangeId > ulMaxChange)
 			ulMaxChange = lpChanges->__ptr[i].ulChangeId;
-		lpChanges->__ptr[i].sSourceKey.__ptr = s_alloc<unsigned char>(soap, lpDBLen[1]);
+		lpChanges->__ptr[i].sSourceKey.__ptr  = soap_new_unsignedByte(soap, lpDBLen[1]);
 		lpChanges->__ptr[i].sSourceKey.__size = lpDBLen[1];
 		memcpy(lpChanges->__ptr[i].sSourceKey.__ptr, lpDBRow[1], lpDBLen[1]);
-		lpChanges->__ptr[i].sParentSourceKey.__ptr = s_alloc<unsigned char>(soap, lpDBLen[2]);
+		lpChanges->__ptr[i].sParentSourceKey.__ptr  = soap_new_unsignedByte(soap, lpDBLen[2]);
 		lpChanges->__ptr[i].sParentSourceKey.__size = lpDBLen[2];
 		memcpy(lpChanges->__ptr[i].sParentSourceKey.__ptr, lpDBRow[2], lpDBLen[2]);
 		lpChanges->__ptr[i].ulChangeType = atoui(lpDBRow[3]);
@@ -637,7 +637,7 @@ static ECRESULT getchanges_hier(struct soap *soap, ECSession *lpSession,
 {
 	class sfree_delete {
 		public:
-		void operator()(void *x) const { s_free(nullptr, x); }
+		void operator()(void *x) const { SOAP_FREE(nullptr, x); }
 	};
 	/*
 	 * We traverse the tree by just looking at the current hierarchy. This
@@ -861,7 +861,7 @@ static ECRESULT getchanges_ab2(struct soap *soap, ECSession *lpSession,
 		if (er != erSuccess)
 			return er;
 		lpChanges->__ptr[i].sParentSourceKey.__size = sizeof(abcont_1);
-		lpChanges->__ptr[i].sParentSourceKey.__ptr = s_alloc<unsigned char>(soap, sizeof(abcont_1));
+		lpChanges->__ptr[i].sParentSourceKey.__ptr  = soap_new_unsignedByte(soap, sizeof(abcont_1));
 		memcpy(lpChanges->__ptr[i].sParentSourceKey.__ptr, &abcont_1, sizeof(abcont_1));
 		lpChanges->__ptr[i].ulChangeType = ICS_AB_NEW;
 		++i;

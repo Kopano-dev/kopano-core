@@ -251,7 +251,7 @@ ECRESULT ECGenProps::GetPropComputed(struct soap *soap, unsigned int ulObjType, 
 		lpPropVal->ulPropTag = PR_RECORD_KEY;
 		lpPropVal->__union = SOAP_UNION_propValData_bin;
 		lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ULONG));
+		lpPropVal->Value.bin->__ptr  = soap_new_unsignedByte(soap, sizeof(ULONG));
 		lpPropVal->Value.bin->__size = sizeof(ULONG);
 		memcpy(lpPropVal->Value.bin->__ptr, &ulObjId, sizeof(ULONG));
 		return erSuccess;
@@ -322,7 +322,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 		sPropVal.__union = SOAP_UNION_propValData_bin;
 		sPropVal.ulPropTag = ulPropTag;
 		sPropVal.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-		sPropVal.Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(GUID));
+		sPropVal.Value.bin->__ptr  = soap_new_unsignedByte(soap, sizeof(GUID));
 		sPropVal.Value.bin->__size = sizeof(GUID);
 		er = cache->GetStore(ulStoreId, 0, reinterpret_cast<GUID *>(sPropVal.Value.bin->__ptr));
 		if (er != erSuccess) {
@@ -455,7 +455,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 		sPropVal.ulPropTag = ulPropTag;
 		sPropVal.__union = SOAP_UNION_propValData_bin;
 		sPropVal.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-		sPropVal.Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ULONG) * 2);
+		sPropVal.Value.bin->__ptr  = soap_new_unsignedByte(soap, sizeof(ULONG) * 2);
 		sPropVal.Value.bin->__size = sizeof(ULONG) * 2;
 		memcpy(sPropVal.Value.bin->__ptr, &ulObjId, sizeof(ULONG));
 		memcpy(sPropVal.Value.bin->__ptr+sizeof(ULONG), &ulOrderId, sizeof(ULONG));
@@ -622,7 +622,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 	case PROP_ID(PR_MAPPING_SIGNATURE):
 		sPropVal.ulPropTag = ulPropTag;
 		sPropVal.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-		sPropVal.Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(GUID));
+		sPropVal.Value.bin->__ptr = soap_new_unsignedByte(soap, sizeof(GUID));
 		sPropVal.__union = SOAP_UNION_propValData_bin;
 		sPropVal.Value.bin->__size = sizeof(GUID);
 		er = lpSession->GetServerGUID(reinterpret_cast<GUID *>(sPropVal.Value.bin->__ptr));

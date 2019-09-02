@@ -114,7 +114,7 @@ static ECRESULT CreateEntryId(GUID guidStore, unsigned int ulObjType,
 	eid.usType = ulObjType;
 	auto lpEntryId = s_alloc<entryId>(nullptr);
 	lpEntryId->__size = sizeof(eid);
-	lpEntryId->__ptr = s_alloc<unsigned char>(nullptr, lpEntryId->__size);
+	lpEntryId->__ptr  = soap_new_unsignedByte(nullptr, lpEntryId->__size);
 	memcpy(lpEntryId->__ptr, &eid, lpEntryId->__size);
 	*lppEntryId = lpEntryId;
 	return erSuccess;
@@ -1099,7 +1099,7 @@ SOAP_ENTRY_START(getPublicStore, lpsResponse->er, unsigned int ulFlags, struct g
 	if(er != erSuccess)
 		return er;
 	lpsResponse->guid.__size= lpDBLen[1];
-	lpsResponse->guid.__ptr = s_alloc<unsigned char>(soap, lpDBLen[1]);
+	lpsResponse->guid.__ptr  = soap_new_unsignedByte(soap, lpDBLen[1]);
 	memcpy(lpsResponse->guid.__ptr, lpDBRow[1], lpDBLen[1]);
 	if (lpDBRow[3] == nullptr || lpDBLen[1] != sizeof(GUID))
 		return erSuccess;
@@ -1201,7 +1201,7 @@ SOAP_ENTRY_START(getStore, lpsResponse->er, entryId* lpsEntryId, struct getStore
 	if(er != erSuccess)
 		return er;
 	lpsResponse->guid.__size= lpDBLen[1];
-	lpsResponse->guid.__ptr = s_alloc<unsigned char>(soap, lpDBLen[1]);
+	lpsResponse->guid.__ptr  = soap_new_unsignedByte(soap, lpDBLen[1]);
 	memcpy(lpsResponse->guid.__ptr, lpDBRow[1], lpDBLen[1]);
 	if (lpDBRow[3] == nullptr || lpDBLen[1] != sizeof(GUID))
 		return erSuccess;
@@ -2502,7 +2502,7 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er,
 			mod.__union = SOAP_UNION_propValData_bin;
 			mod.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
 			mod.Value.bin->__size = strChangeKey.size();
-			mod.Value.bin->__ptr = s_alloc<unsigned char>(soap, strChangeKey.size());
+			mod.Value.bin->__ptr  = soap_new_unsignedByte(soap, strChangeKey.size());
 			memcpy(mod.Value.bin->__ptr, strChangeKey.c_str(), strChangeKey.size());
 			++sReturnObject.modProps.__size;
 		}
@@ -2515,7 +2515,7 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er,
 			mod.__union = SOAP_UNION_propValData_bin;
 			mod.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
 			mod.Value.bin->__size = strChangeList.size();
-			mod.Value.bin->__ptr = s_alloc<unsigned char>(soap, strChangeList.size());
+			mod.Value.bin->__ptr  = soap_new_unsignedByte(soap, strChangeList.size());
 			memcpy(mod.Value.bin->__ptr, strChangeList.c_str(), strChangeList.size());
 			++sReturnObject.modProps.__size;
 		}
@@ -3826,7 +3826,7 @@ SOAP_ENTRY_START(getRights, lpsRightResponse->er, const entryId &sEntryId,
 exit:
 	if (lpsRightArray) {
 		for (gsoap_size_t i = 0; i < lpsRightArray->__size; ++i)
-			s_free(nullptr, lpsRightArray->__ptr[i].sUserId.__ptr);
+			soap_del_entryId(&lpsRightArray->__ptr[i].sUserId);
 		s_free(nullptr, lpsRightArray->__ptr);
 		s_free(nullptr, lpsRightArray);
 	}
@@ -5945,7 +5945,7 @@ SOAP_ENTRY_START(resolveStore, lpsResponse->er,
 	if(er != erSuccess)
 		return er;
 	lpsResponse->guid.__size = lpDBLen[2];
-	lpsResponse->guid.__ptr = s_alloc<unsigned char>(soap, lpDBLen[2]);
+	lpsResponse->guid.__ptr  = soap_new_unsignedByte(soap, lpDBLen[2]);
 	memcpy(lpsResponse->guid.__ptr, lpDBRow[2], lpDBLen[2]);
 	return erSuccess;
 }
@@ -6051,7 +6051,7 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, const char *szUserName,
 
 	lpsResponse->ulUserId = ulObjectId;
 	lpsResponse->guid.__size = lpDBLen[1];
-	lpsResponse->guid.__ptr = s_alloc<unsigned char>(soap, lpDBLen[1]);
+	lpsResponse->guid.__ptr  = soap_new_unsignedByte(soap, lpDBLen[1]);
 	memcpy(lpsResponse->guid.__ptr, lpDBRow[1], lpDBLen[1]);
 	return erSuccess;
 }
@@ -9203,7 +9203,7 @@ SOAP_ENTRY_START(getChangeInfo, lpsResponse->er, const entryId &sEntryId,
 		lpsResponse->sPropCK.__union = SOAP_UNION_propValData_bin;
 		lpsResponse->sPropCK.Value.bin = s_alloc<xsd__base64Binary>(soap, 1);
 		lpsResponse->sPropCK.Value.bin->__size = lpDBLen[0];
-		lpsResponse->sPropCK.Value.bin->__ptr = s_alloc<unsigned char>(soap, lpDBLen[0]);
+		lpsResponse->sPropCK.Value.bin->__ptr  = soap_new_unsignedByte(soap, lpDBLen[0]);
 		memcpy(lpsResponse->sPropCK.Value.bin->__ptr, lpDBRow[0], lpDBLen[0]);
 	} else {
 		return KCERR_NOT_FOUND;
@@ -9225,7 +9225,7 @@ SOAP_ENTRY_START(getChangeInfo, lpsResponse->er, const entryId &sEntryId,
 	lpsResponse->sPropPCL.__union = SOAP_UNION_propValData_bin;
 	lpsResponse->sPropPCL.Value.bin = s_alloc<xsd__base64Binary>(soap, 1);
 	lpsResponse->sPropPCL.Value.bin->__size = lpDBLen[0];
-	lpsResponse->sPropPCL.Value.bin->__ptr = s_alloc<unsigned char>(soap, lpDBLen[0]);
+	lpsResponse->sPropPCL.Value.bin->__ptr  = soap_new_unsignedByte(soap, lpDBLen[0]);
 	memcpy(lpsResponse->sPropPCL.Value.bin->__ptr, lpDBRow[0], lpDBLen[0]);
 	return erSuccess;
 }

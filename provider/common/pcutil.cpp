@@ -258,11 +258,13 @@ ECRESULT ABIDToEntryID(struct soap *soap, unsigned int ulID, const objectid_t& s
 		return KCERR_INVALID_PARAMETER;
 	auto strEncExId = base64_encode(sExternId.id.c_str(), sExternId.id.size());
 	unsigned int ulLen = CbNewABEID(strEncExId.c_str());
-	auto lpUserEid = reinterpret_cast<ABEID *>(s_alloc<char>(soap, ulLen));
+	auto eidbytes = soap_new_unsignedByte(soap, ulLen);
+	auto lpUserEid = reinterpret_cast<ABEID *>(eidbytes);
 	lpUserEid->ulId = ulID;
 	auto er = TypeToMAPIType(sExternId.objclass, &lpUserEid->ulType);
 	if (er != erSuccess) {
-		s_free(soap, lpUserEid);
+		if (soap == nullptr)
+			SOAP_FREE(nullptr, eidbytes);
 		return er; /* or make default type user? */
 	}
 
@@ -275,7 +277,7 @@ ECRESULT ABIDToEntryID(struct soap *soap, unsigned int ulID, const objectid_t& s
 		memcpy(lpUserEid->szExId, strEncExId.c_str(), strEncExId.length()+1);
 	}
 	lpsEntryId->__size = ulLen;
-	lpsEntryId->__ptr = (unsigned char*)lpUserEid;
+	lpsEntryId->__ptr  = eidbytes;
 	return erSuccess;
 }
 
