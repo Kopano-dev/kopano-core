@@ -182,6 +182,7 @@ ECMsgStore::ECMsgStore(const char *lpszProfname, IMAPISupport *sup,
 }
 
 ECMsgStore::~ECMsgStore() {
+	enable_transaction(false);
 	if(lpTransport)
 		lpTransport->HrLogOff();
 	// remove all advices
@@ -278,6 +279,9 @@ HRESULT ECMsgStore::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 	HRESULT hr = ECMAPIProp::SetProps(cValues, lpPropArray, lppProblems);
 	if (hr != hrSuccess)
 		return hr;
+	if (m_transact)
+		return hrSuccess;
+	/* MSDN: "stores do not support transactions" */
 	return ECMAPIProp::SaveChanges(KEEP_OPEN_READWRITE);
 }
 
@@ -287,12 +291,16 @@ HRESULT ECMsgStore::DeleteProps(const SPropTagArray *lpPropTagArray,
 	HRESULT hr = ECMAPIProp::DeleteProps(lpPropTagArray, lppProblems);
 	if (hr != hrSuccess)
 		return hr;
+	if (m_transact)
+		return hrSuccess;
 	return ECMAPIProp::SaveChanges(KEEP_OPEN_READWRITE);
 }
 
 HRESULT ECMsgStore::SaveChanges(ULONG ulFlags)
 {
-	return hrSuccess;
+	if (!m_transact)
+		return hrSuccess;
+	return ECMAPIProp::SaveChanges(ulFlags);
 }
 
 HRESULT ECMsgStore::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk)
@@ -616,6 +624,8 @@ HRESULT ECMsgStore::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		hr = ECMAPIFolder::Create(this, fModifyObject, lpFolderOps, &~lpMAPIFolder);
 		if(hr != hrSuccess)
 			return hr;
+		if (m_transact)
+			lpMAPIFolder->enable_transaction(true);
 		hr = lpTransport->HrOpenPropStorage(m_cbEntryId, m_lpEntryId, cbEntryID, lpEntryID, (ulFlags & SHOW_SOFT_DELETES) ? MSGFLAG_DELETED : 0, &~lpPropStorage);
 		if(hr != hrSuccess)
 			return hr;
@@ -1869,6 +1879,9 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId,
 	else
 		memcpy(&lpecMsgStore->m_guidMDB_Provider, &KOPANO_STORE_PUBLIC_GUID, sizeof(MAPIUID));
 
+	lpecMsgStore->enable_transaction(true);
+	auto cleanup = make_scope_success([&]() { lpecMsgStore->enable_transaction(false); });
+
 	// Get user or company information depending on the store type.
 	if (ulStoreType == ECSTORE_TYPE_PRIVATE)
 		hr = lpTransport->HrGetUser(cbUserId, lpUserId, 0, &~lpECUser);
@@ -2609,6 +2622,23 @@ HRESULT ECMsgStore::ExportMessageChangesAsStream(ULONG ulFlags, ULONG ulPropTag,
 
 	*lppsStreamExporter = ptrStreamExporter.release();
 	return hrSuccess;
+}
+
+HRESULT ECMsgStore::enable_transaction(bool x)
+{
+	HRESULT ret = hrSuccess;
+	if (m_transact && !x) {
+		/* It's being turned off now */
+		for (auto c : lstChildren) {
+			object_ptr<ECMAPIFolder> ecf;
+			if (c->QueryInterface(IID_ECMAPIFolder, &~ecf) != hrSuccess)
+				continue;
+			ecf->enable_transaction(false);
+		}
+		ret = SaveChanges(KEEP_OPEN_READWRITE);
+	}
+	m_transact = x;
+	return ret;
 }
 
 // IMsgStoreProxy interface

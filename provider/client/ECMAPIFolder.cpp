@@ -72,6 +72,7 @@ ECMAPIFolder::ECMAPIFolder(ECMsgStore *lpMsgStore, BOOL modify,
 
 ECMAPIFolder::~ECMAPIFolder()
 {
+	enable_transaction(false);
 	lpFolderOps.reset();
 	if (m_ulConnection > 0)
 		GetMsgStore()->m_lpNotifyClient->UnRegisterAdvise(m_ulConnection);
@@ -283,7 +284,9 @@ HRESULT ECMAPIFolder::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 	auto hr = ECMAPIContainer::SetProps(cValues, lpPropArray, lppProblems);
 	if (hr != hrSuccess)
 		return hr;
-
+	if (m_transact)
+		return hrSuccess;
+	/* MSDN be like: "MAPI Folders do not support transactions" */
 	return ECMAPIContainer::SaveChanges(KEEP_OPEN_READWRITE);
 }
 
@@ -293,12 +296,16 @@ HRESULT ECMAPIFolder::DeleteProps(const SPropTagArray *lpPropTagArray,
 	auto hr = ECMAPIContainer::DeleteProps(lpPropTagArray, lppProblems);
 	if (hr != hrSuccess)
 		return hr;
+	if (m_transact)
+		return hrSuccess;
 	return ECMAPIContainer::SaveChanges(KEEP_OPEN_READWRITE);
 }
 
 HRESULT ECMAPIFolder::SaveChanges(ULONG ulFlags)
 {
-	return hrSuccess;
+	if (!m_transact)
+		return hrSuccess;
+	return ECMAPIContainer::SaveChanges(ulFlags);
 }
 
 HRESULT ECMAPIFolder::SetSearchCriteria(const SRestriction *lpRestriction,
@@ -846,4 +853,21 @@ HRESULT ECMAPIFolder::UpdateMessageFromStream(ULONG ulSyncId, ULONG cbEntryID,
 		return hr;
 	*lppsStreamImporter = ptrStreamImporter.release();
 	return hrSuccess;
+}
+
+HRESULT ECMAPIFolder::enable_transaction(bool x)
+{
+	HRESULT ret = hrSuccess;
+	if (m_transact && !x) {
+		/* It's being turned off now */
+		for (auto c : lstChildren) {
+			object_ptr<ECMAPIFolder> ecf;
+			if (c->QueryInterface(IID_ECMAPIFolder, &~ecf) != hrSuccess)
+				continue;
+			ecf->enable_transaction(false);
+		}
+		ret = SaveChanges(KEEP_OPEN_READWRITE);
+	}
+	m_transact = x;
+	return ret;
 }

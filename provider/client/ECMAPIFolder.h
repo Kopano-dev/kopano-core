@@ -33,6 +33,7 @@ public:
 	static HRESULT Create(ECMsgStore *lpMsgStore, BOOL fModify, WSMAPIFolderOps *lpFolderOps, ECMAPIFolder **lppECMAPIFolder);
 	static HRESULT GetPropHandler(unsigned int tag, void *prov, unsigned int flags, SPropValue *, ECGenericProp *lpParam, void *base);
 	static HRESULT SetPropHandler(unsigned int tag, void *prov, const SPropValue *, ECGenericProp *);
+	HRESULT enable_transaction(bool);
 
 	// Our table-row getprop handler (handles client-side generation of table columns)
 	static HRESULT TableRowGetProp(void *prov, const struct propVal *src, SPropValue *dst, void **base, ULONG type);
@@ -84,6 +85,9 @@ protected:
 	KC::object_ptr<IMAPIAdviseSink> m_lpFolderAdviseSink;
 	KC::object_ptr<WSMAPIFolderOps> lpFolderOps;
 	ULONG m_ulConnection = 0;
+
+	private:
+	bool m_transact = false;
 
 	friend class		ECExchangeImportHierarchyChanges;	// Allowed access to lpFolderOps
 	ALLOC_WRAP_FRIEND;
