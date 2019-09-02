@@ -546,7 +546,7 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 
 		lpPropVal->__union = SOAP_UNION_propValData_mvflt;
 		lpPropVal->Value.mvflt.__size = atoi(lpRow[FIELD_NR_ID]);
-		lpPropVal->Value.mvflt.__ptr = s_alloc<float>(soap, lpPropVal->Value.mvflt.__size);
+		lpPropVal->Value.mvflt.__ptr  = soap_new_float(soap, lpPropVal->Value.mvflt.__size);
 		ulLastPos = 0;
 		for (gsoap_size_t i = 0; i < lpPropVal->Value.mvflt.__size; ++i) {
 			ParseMVProp(lpRow[FIELD_NR_DOUBLE], lpLen[FIELD_NR_DOUBLE], &ulLastPos, &strData);
@@ -562,7 +562,7 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 
 		lpPropVal->__union = SOAP_UNION_propValData_mvdbl;
 		lpPropVal->Value.mvdbl.__size = atoi(lpRow[FIELD_NR_ID]);
-		lpPropVal->Value.mvdbl.__ptr = s_alloc<double>(soap, lpPropVal->Value.mvdbl.__size);
+		lpPropVal->Value.mvdbl.__ptr  = soap_new_double(soap, lpPropVal->Value.mvdbl.__size);
 		ulLastPos = 0;
 		for (gsoap_size_t i = 0; i < lpPropVal->Value.mvdbl.__size; ++i) {
 			ParseMVProp(lpRow[FIELD_NR_DOUBLE], lpLen[FIELD_NR_DOUBLE], &ulLastPos, &strData);

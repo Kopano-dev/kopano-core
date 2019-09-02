@@ -134,13 +134,13 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 	case PT_MV_R4:
 		dp->__union = SOAP_UNION_propValData_mvflt;
 		dp->Value.mvflt.__size = sp->Value.MVflt.cValues;
-		dp->Value.mvflt.__ptr = s_alloc<float>(nullptr, dp->Value.mvflt.__size);
+		dp->Value.mvflt.__ptr  = soap_new_float(nullptr, dp->Value.mvflt.__size);
 		memcpy(dp->Value.mvflt.__ptr, sp->Value.MVflt.lpflt, sizeof(float) * dp->Value.mvflt.__size);
 		break;
 	case PT_MV_DOUBLE:
 		dp->__union = SOAP_UNION_propValData_mvdbl;
 		dp->Value.mvdbl.__size = sp->Value.MVdbl.cValues;
-		dp->Value.mvdbl.__ptr = s_alloc<double>(nullptr, dp->Value.mvdbl.__size);
+		dp->Value.mvdbl.__ptr  = soap_new_double(nullptr, dp->Value.mvdbl.__size);
 		memcpy(dp->Value.mvdbl.__ptr, sp->Value.MVdbl.lpdbl, sizeof(double) * dp->Value.mvdbl.__size);
 		break;
 	case PT_MV_CURRENCY:
@@ -155,7 +155,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 	case PT_MV_APPTIME:
 		dp->__union = SOAP_UNION_propValData_mvdbl;
 		dp->Value.mvdbl.__size = sp->Value.MVat.cValues;
-		dp->Value.mvdbl.__ptr = s_alloc<double>(nullptr, dp->Value.mvdbl.__size);
+		dp->Value.mvdbl.__ptr  = soap_new_double(nullptr, dp->Value.mvdbl.__size);
 		memcpy(dp->Value.mvdbl.__ptr, sp->Value.MVat.lpat, sizeof(double) * dp->Value.mvdbl.__size);
 		break;
 	case PT_MV_SYSTIME:

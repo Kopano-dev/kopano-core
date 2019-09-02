@@ -1171,7 +1171,7 @@ static ECRESULT DeserializePropVal(struct soap *soap,
 		if (er != erSuccess)
 			break;
 		lpsPropval->Value.mvflt.__size = ulCount;
-		lpsPropval->Value.mvflt.__ptr = s_alloc<float>(soap, ulCount);
+		lpsPropval->Value.mvflt.__ptr  = soap_new_float(soap, ulCount);
 		er = lpSource->Read(lpsPropval->Value.mvflt.__ptr, sizeof *lpsPropval->Value.mvflt.__ptr, ulCount);
 		break;
 	case PT_MV_DOUBLE:
@@ -1181,7 +1181,7 @@ static ECRESULT DeserializePropVal(struct soap *soap,
 		if (er != erSuccess)
 			break;
 		lpsPropval->Value.mvdbl.__size = ulCount;
-		lpsPropval->Value.mvdbl.__ptr = s_alloc<double>(soap, ulCount);
+		lpsPropval->Value.mvdbl.__ptr  = soap_new_double(soap, ulCount);
 		er = lpSource->Read(lpsPropval->Value.mvdbl.__ptr, sizeof *lpsPropval->Value.mvdbl.__ptr, ulCount);
 		break;
 	case PT_MV_CURRENCY:

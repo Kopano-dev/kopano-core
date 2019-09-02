@@ -743,11 +743,11 @@ ECRESULT FreePropVal(struct propVal *lpProp, bool bBasePointerDel)
 		s_free(nullptr, lpProp->Value.mvl.__ptr);
 		break;
 	case PT_MV_R4:
-		s_free(nullptr, lpProp->Value.mvflt.__ptr);
+		soap_del_mv_r4(&lpProp->Value.mvflt);
 		break;
 	case PT_MV_DOUBLE:
 	case PT_MV_APPTIME:
-		s_free(nullptr, lpProp->Value.mvdbl.__ptr);
+		soap_del_mv_double(&lpProp->Value.mvdbl);
 		break;
 	case PT_MV_I8:
 		s_free(nullptr, lpProp->Value.mvli.__ptr);
@@ -1003,7 +1003,7 @@ ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal *lpDst,
 		if (lpSrc->Value.mvflt.__ptr == NULL)
 			return KCERR_INVALID_TYPE;
 		lpDst->Value.mvflt.__size = lpSrc->Value.mvflt.__size;
-		lpDst->Value.mvflt.__ptr = s_alloc<float>(soap, lpSrc->Value.mvflt.__size);
+		lpDst->Value.mvflt.__ptr  = soap_new_float(soap, lpSrc->Value.mvflt.__size);
 		memcpy(lpDst->Value.mvflt.__ptr, lpSrc->Value.mvflt.__ptr, sizeof(float) * lpDst->Value.mvflt.__size);
 		break;
 	case PT_MV_DOUBLE:
@@ -1011,7 +1011,7 @@ ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal *lpDst,
 		if (lpSrc->Value.mvdbl.__ptr == NULL)
 			return KCERR_INVALID_TYPE;
 		lpDst->Value.mvdbl.__size = lpSrc->Value.mvdbl.__size;
-		lpDst->Value.mvdbl.__ptr = s_alloc<double>(soap, lpSrc->Value.mvdbl.__size);
+		lpDst->Value.mvdbl.__ptr  = soap_new_double(soap, lpSrc->Value.mvdbl.__size);
 		memcpy(lpDst->Value.mvdbl.__ptr, lpSrc->Value.mvdbl.__ptr, sizeof(double) * lpDst->Value.mvdbl.__size);
 		break;
 	case PT_MV_I8:
