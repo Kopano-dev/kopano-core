@@ -243,7 +243,7 @@ ECRESULT ECSessionGroup::AddNotificationTable(ECSESSIONID ulSessionId, unsigned 
 		auto &p = lpNotify->tab->propIndex;
 		p.ulPropTag = PR_INSTANCE_KEY;
 		p.__union = SOAP_UNION_propValData_bin;
-		p.Value.bin = s_alloc<xsd__base64Binary>(nullptr);
+		p.Value.bin = soap_new_xsd__base64Binary(nullptr);
 		p.Value.bin->__ptr  = soap_new_unsignedByte(nullptr, sizeof(uint32_t) * 2);
 		p.Value.bin->__size = sizeof(ULONG) * 2;
 		memcpy(p.Value.bin->__ptr, &lpsChildRow->ulObjId, sizeof(ULONG));
@@ -258,7 +258,7 @@ ECRESULT ECSessionGroup::AddNotificationTable(ECSESSIONID ulSessionId, unsigned 
 		auto &p = lpNotify->tab->propPrior;
 		p.ulPropTag = PR_INSTANCE_KEY;
 		p.__union = SOAP_UNION_propValData_bin;
-		p.Value.bin = s_alloc<xsd__base64Binary>(nullptr);
+		p.Value.bin = soap_new_xsd__base64Binary(nullptr);
 		p.Value.bin->__ptr  = soap_new_unsignedByte(nullptr, sizeof(uint32_t) * 2);
 		p.Value.bin->__size = sizeof(ULONG) * 2;
 		memcpy(p.Value.bin->__ptr, &lpsPrevRow->ulObjId, sizeof(ULONG));

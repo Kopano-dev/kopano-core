@@ -118,9 +118,7 @@ HRESULT WSMessageStreamImporter::Create(ULONG ulFlags, ULONG ulSyncId,
 exit:
 	soap_del_entryId(&sEntryId);
 	soap_del_entryId(&sFolderEntryId);
-	if (sConflictItems.Value.bin)
-		soap_del_xsd__base64Binary(sConflictItems.Value.bin);
-	s_free(nullptr, sConflictItems.Value.bin);
+	soap_del_PointerToxsd__base64Binary(&sConflictItems.Value.bin);
 	return hr;
 }
 
@@ -169,9 +167,7 @@ WSMessageStreamImporter::~WSMessageStreamImporter()
 {
 	soap_del_entryId(&m_sEntryId);
 	soap_del_entryId(&m_sFolderEntryId);
-	if (m_sConflictItems.Value.bin)
-		soap_del_xsd__base64Binary(m_sConflictItems.Value.bin);
-	s_free(nullptr, m_sConflictItems.Value.bin);
+	soap_del_PointerToxsd__base64Binary(&m_sConflictItems.Value.bin);
 }
 
 void WSMessageStreamImporter::run()

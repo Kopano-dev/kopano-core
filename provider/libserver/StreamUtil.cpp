@@ -1142,7 +1142,7 @@ static ECRESULT DeserializePropVal(struct soap *soap,
 		er = lpSource->Read(&ulLen, sizeof(ulLen), 1);
 		if (er != erSuccess)
 			break;
-		lpsPropval->Value.bin = s_alloc<xsd__base64Binary>(soap);
+		lpsPropval->Value.bin = soap_new_xsd__base64Binary(soap);
 		lpsPropval->Value.bin->__size = ulLen;
 		lpsPropval->Value.bin->__ptr  = soap_new_unsignedByte(soap, ulLen);
 		er = lpSource->Read(lpsPropval->Value.bin->__ptr, 1, ulLen);
@@ -1206,7 +1206,7 @@ static ECRESULT DeserializePropVal(struct soap *soap,
 		if (er != erSuccess)
 			break;
 		lpsPropval->Value.mvbin.__size = ulCount;
-		lpsPropval->Value.mvbin.__ptr = s_alloc<xsd__base64Binary>(soap, ulCount);
+		lpsPropval->Value.mvbin.__ptr  = soap_new_xsd__base64Binary(soap, ulCount);
 		for (gsoap_size_t x = 0; er == erSuccess && x < ulCount; ++x) {
 			er = lpSource->Read(&ulLen, sizeof(ulLen), 1);
 			if (er != erSuccess)

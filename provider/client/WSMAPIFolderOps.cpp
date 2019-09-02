@@ -41,7 +41,7 @@ WSMAPIFolderOps::WSMAPIFolderOps(ECSESSIONID sid, ULONG cbEntryId,
 WSMAPIFolderOps::~WSMAPIFolderOps()
 {
 	m_lpTransport->RemoveSessionReloadCallback(m_ulSessionReloadCallback);
-	FreeEntryId(&m_sEntryId, false);
+	soap_del_entryId(&m_sEntryId);
 }
 
 HRESULT WSMAPIFolderOps::Create(ECSESSIONID ecSessionId, ULONG cbEntryId,
@@ -107,8 +107,7 @@ HRESULT WSMAPIFolderOps::HrCreateFolder(ULONG ulFolderType,
 
 exit:
 	spg.unlock();
-	if(lpsEntryId)
-		FreeEntryId(lpsEntryId, true);
+	soap_del_PointerToentryId(&lpsEntryId);
 	return hr;
 }
 
@@ -142,7 +141,7 @@ HRESULT WSMAPIFolderOps::create_folders(std::vector<WSFolder> &batch)
 	spg.unlock();
 	for (auto &folder : folders)
 		if (folder.entryid != nullptr)
-			FreeEntryId(folder.entryid, true);
+			soap_del_PointerToentryId(&folder.entryid);
 	return hr;
 }
 

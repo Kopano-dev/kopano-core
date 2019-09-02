@@ -102,14 +102,14 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 		break;
 	case PT_CLSID:
 		dp->__union = SOAP_UNION_propValData_bin;
-		dp->Value.bin = s_alloc<xsd__base64Binary>(nullptr);
+		dp->Value.bin = soap_new_xsd__base64Binary(nullptr);
 		dp->Value.bin->__ptr  = soap_new_unsignedByte(nullptr, sizeof(GUID));
 		dp->Value.bin->__size = sizeof(GUID);
 		memcpy(dp->Value.bin->__ptr, sp->Value.lpguid, sizeof(GUID));
 		break;
 	case PT_BINARY:
 		dp->__union = SOAP_UNION_propValData_bin;
-		dp->Value.bin = s_alloc<xsd__base64Binary>(nullptr);
+		dp->Value.bin = soap_new_xsd__base64Binary(nullptr);
 		if (sp->Value.bin.cb == 0 || sp->Value.bin.lpb == nullptr) {
 			dp->Value.bin->__ptr = nullptr;
 			dp->Value.bin->__size = 0;
@@ -170,7 +170,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 	case PT_MV_BINARY:
 		dp->__union = SOAP_UNION_propValData_mvbin;
 		dp->Value.mvbin.__size = sp->Value.MVbin.cValues;
-		dp->Value.mvbin.__ptr = s_alloc<xsd__base64Binary>(nullptr, dp->Value.mvbin.__size);
+		dp->Value.mvbin.__ptr  = soap_new_xsd__base64Binary(nullptr, dp->Value.mvbin.__size);
 		for (gsoap_size_t i = 0; i < dp->Value.mvbin.__size; ++i) {
 			if (sp->Value.MVbin.lpbin[i].cb == 0 ||
 			    sp->Value.MVbin.lpbin[i].lpb == nullptr) {
@@ -216,7 +216,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 	case PT_MV_CLSID:
 		dp->__union = SOAP_UNION_propValData_mvbin;
 		dp->Value.mvbin.__size = sp->Value.MVguid.cValues;
-		dp->Value.mvbin.__ptr = s_alloc<xsd__base64Binary>(nullptr, dp->Value.mvbin.__size);
+		dp->Value.mvbin.__ptr  = soap_new_xsd__base64Binary(nullptr, dp->Value.mvbin.__size);
 		for (gsoap_size_t i = 0; i < dp->Value.mvbin.__size; ++i) {
 			dp->Value.mvbin.__ptr[i].__size = sizeof(GUID);
 			dp->Value.mvbin.__ptr[i].__ptr  = soap_new_unsignedByte(nullptr, dp->Value.mvbin.__ptr[i].__size);
@@ -808,10 +808,10 @@ HRESULT CopySOAPRowToMAPIRow(void *lpProvider,
 HRESULT CopyMAPIEntryIdToSOAPEntryId(ULONG cbEntryIdSrc,
     const ENTRYID *lpEntryIdSrc, entryId **lppDest)
 {
-	auto lpDest = s_alloc<entryId>(nullptr);
+	auto lpDest = soap_new_entryId(nullptr);
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryIdSrc, lpEntryIdSrc, lpDest, false);
 	if (hr != hrSuccess) {
-		s_free(nullptr, lpDest);
+		soap_del_PointerToentryId(&lpDest);
 		return hr;
 	}
 	*lppDest = lpDest;
@@ -901,8 +901,7 @@ HRESULT CopyMAPIEntryListToSOAPEntryList(const ENTRYLIST *lpMsgList,
 	}
 
 	unsigned int i = 0;
-
-	lpsEntryList->__ptr = s_alloc<entryId>(nullptr, lpMsgList->cValues);
+	lpsEntryList->__ptr = soap_new_entryId(nullptr, lpMsgList->cValues);
 	for (i = 0; i < lpMsgList->cValues; ++i) {
 		lpsEntryList->__ptr[i].__ptr = soap_new_unsignedByte(nullptr, lpMsgList->lpbin[i].cb);
 		memcpy(lpsEntryList->__ptr[i].__ptr, lpMsgList->lpbin[i].lpb, lpMsgList->lpbin[i].cb);

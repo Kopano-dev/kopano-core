@@ -1634,10 +1634,10 @@ ECRESULT ECCacheManager::SetObjectProp(unsigned int ulTag, unsigned int cbData,
 
 ECRESULT ECCacheManager::GetEntryIdFromObject(unsigned int ulObjId, struct soap *soap, unsigned int ulFlags, entryId** lppEntryId)
 {
-	entryId*	lpEntryId = s_alloc<entryId>(soap);
+	auto lpEntryId = soap_new_entryId(soap);
 	auto er = GetEntryIdFromObject(ulObjId, soap, ulFlags, lpEntryId);
 	if (er != erSuccess) {
-		s_free(nullptr, lpEntryId);
+		soap_del_PointerToentryId(&lpEntryId);
 		return er;
 	}
 	// Flags already set by GetEntryIdFromObject(4args)

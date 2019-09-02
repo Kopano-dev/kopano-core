@@ -41,7 +41,7 @@ WSTableView::~WSTableView()
 	HrCloseTable();
 	delete[] m_lpsPropTagArray;
 	delete[] m_lpsSortOrderSet;
-	FreeEntryId(&m_sEntryId, false);
+	soap_del_entryId(&m_sEntryId);
 }
 
 HRESULT WSTableView::QueryInterface(REFIID refiid, void **lppInterface)

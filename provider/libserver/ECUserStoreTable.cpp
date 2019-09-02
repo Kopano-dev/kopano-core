@@ -71,7 +71,7 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis,
 				// generate key
 				m.__union = SOAP_UNION_propValData_bin;
 				m.ulPropTag = PR_INSTANCE_KEY;
-				m.Value.bin = s_alloc<xsd__base64Binary>(soap);
+				m.Value.bin = soap_new_xsd__base64Binary(soap);
 				m.Value.bin->__size = sizeof(sObjectTableKey);
 				m.Value.bin->__ptr  = soap_new_unsignedByte(soap, sizeof(sObjectTableKey));
 				memcpy(m.Value.bin->__ptr, &row, sizeof(sObjectTableKey));
@@ -96,7 +96,7 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis,
 					break;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
 				m.__union = SOAP_UNION_propValData_bin;
-				m.Value.bin = s_alloc<xsd__base64Binary>(soap);
+				m.Value.bin = soap_new_xsd__base64Binary(soap);
 				m.Value.bin->__size = sizeof(GUID);
 				m.Value.bin->__ptr  = soap_new_unsignedByte(soap, sizeof(GUID));
 				memcpy(m.Value.bin->__ptr, &pThis->m_mapUserStoreData[row.ulObjId].sGuid, sizeof(GUID));

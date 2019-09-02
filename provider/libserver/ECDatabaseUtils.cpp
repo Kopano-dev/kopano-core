@@ -492,7 +492,7 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 			goto exit;
 		}
 		lpPropVal->__union = SOAP_UNION_propValData_bin;
-		lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+		lpPropVal->Value.bin = soap_new_xsd__base64Binary(soap);
 		lpPropVal->Value.bin->__ptr = soap_new_unsignedByte(soap, lpLen[FIELD_NR_BINARY]);
 		memcpy(lpPropVal->Value.bin->__ptr, lpRow[FIELD_NR_BINARY],lpLen[FIELD_NR_BINARY]);
 		lpPropVal->Value.bin->__size = lpLen[FIELD_NR_BINARY];
@@ -503,7 +503,7 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 			goto exit;
 		}
 		lpPropVal->__union = SOAP_UNION_propValData_bin;
-		lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+		lpPropVal->Value.bin = soap_new_xsd__base64Binary(soap);
 		lpPropVal->Value.bin->__ptr = soap_new_unsignedByte(soap, lpLen[FIELD_NR_BINARY]);
 		memcpy(lpPropVal->Value.bin->__ptr, lpRow[FIELD_NR_BINARY],lpLen[FIELD_NR_BINARY]);
 		lpPropVal->Value.bin->__size = lpLen[FIELD_NR_BINARY];
@@ -599,7 +599,7 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 		}
 		lpPropVal->__union = SOAP_UNION_propValData_mvbin;
 		lpPropVal->Value.mvbin.__size = atoi(lpRow[FIELD_NR_ID]);
-		lpPropVal->Value.mvbin.__ptr = s_alloc<struct xsd__base64Binary>(soap, lpPropVal->Value.mvbin.__size);
+		lpPropVal->Value.mvbin.__ptr  = soap_new_xsd__base64Binary(soap, lpPropVal->Value.mvbin.__size);
 		ulLastPos = 0;
 		for (gsoap_size_t i = 0; i < lpPropVal->Value.mvbin.__size; ++i) {
 			ParseMVProp(lpRow[FIELD_NR_BINARY], lpLen[FIELD_NR_BINARY], &ulLastPos, &strData);

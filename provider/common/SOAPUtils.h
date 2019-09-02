@@ -60,7 +60,6 @@ ECRESULT			FreeEntryList(struct entryList *lpEntryList, bool bFreeBase = true);
 
 // EntryId
 ECRESULT			CopyEntryId(struct soap *soap, entryId* lpSrc, entryId** lppDst);
-ECRESULT			FreeEntryId(entryId* lpEntryId, bool bFreeBase);
 
 // Notification
 ECRESULT			FreeNotificationStruct(notification *lpNotification, bool bFreeBase=true);

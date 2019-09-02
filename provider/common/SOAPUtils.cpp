@@ -731,10 +731,7 @@ ECRESULT FreePropVal(struct propVal *lpProp, bool bBasePointerDel)
 		break;
 	case PT_CLSID:
 	case PT_BINARY:
-		if (lpProp->Value.bin == nullptr)
-			break;
-		soap_del_xsd__base64Binary(lpProp->Value.bin);
-		s_free(nullptr, lpProp->Value.bin);
+		soap_del_PointerToxsd__base64Binary(&lpProp->Value.bin);
 		break;
 	case PT_MV_I2:
 		soap_del_mv_i2(&lpProp->Value.mvi);
@@ -758,11 +755,7 @@ ECRESULT FreePropVal(struct propVal *lpProp, bool bBasePointerDel)
 		break;
 	case PT_MV_CLSID:
 	case PT_MV_BINARY:
-		if (lpProp->Value.mvbin.__ptr == nullptr)
-			break;
-		for (gsoap_size_t i = 0; i < lpProp->Value.mvbin.__size; ++i)
-			soap_del_xsd__base64Binary(&lpProp->Value.mvbin.__ptr[i]);
-		s_free(nullptr, lpProp->Value.mvbin.__ptr);
+		soap_del_mv_binary(&lpProp->Value.mvbin);
 		break;
 	case PT_MV_STRING8:
 	case PT_MV_UNICODE:
@@ -977,7 +970,7 @@ ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal *lpDst,
 	case PT_CLSID:
 		if (lpSrc->Value.bin == NULL)
 			return KCERR_INVALID_TYPE;
-		lpDst->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+		lpDst->Value.bin = soap_new_xsd__base64Binary(soap);
 		lpDst->Value.bin->__size = lpSrc->Value.bin->__size;
 		if (bTruncate && lpDst->Value.bin->__size > TABLE_CAP_BINARY)
 			lpDst->Value.bin->__size = TABLE_CAP_BINARY;
@@ -1047,7 +1040,7 @@ ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal *lpDst,
 		if (lpSrc->Value.mvbin.__ptr == NULL)
 			return KCERR_INVALID_TYPE;
 		lpDst->Value.mvbin.__size = lpSrc->Value.mvbin.__size;
-		lpDst->Value.mvbin.__ptr = s_alloc<struct xsd__base64Binary>(soap, lpSrc->Value.mvbin.__size);
+		lpDst->Value.mvbin.__ptr  = soap_new_xsd__base64Binary(soap, lpSrc->Value.mvbin.__size);
 		for (gsoap_size_t i = 0; i < lpSrc->Value.mvbin.__size; ++i) {
 			lpDst->Value.mvbin.__ptr[i].__ptr = soap_new_unsignedByte(soap, lpSrc->Value.mvbin.__ptr[i].__size);
 			if(lpSrc->Value.mvbin.__ptr[i].__ptr == NULL) {
@@ -1247,7 +1240,7 @@ ECRESULT CopyEntryId(struct soap *soap, entryId* lpSrc, entryId** lppDst)
 {
 	if (lpSrc == nullptr)
 		return KCERR_INVALID_PARAMETER;
-	auto lpDst = s_alloc<entryId>(soap);
+	auto lpDst = soap_new_entryId(soap);
 	lpDst->__size = lpSrc->__size;
 
 	if(lpSrc->__size > 0) {
@@ -1268,7 +1261,7 @@ ECRESULT CopyEntryList(struct soap *soap, struct entryList *lpSrc, struct entryL
 	auto lpDst = s_alloc<entryList>(soap);
 	lpDst->__size = lpSrc->__size;
 	if(lpSrc->__size > 0)
-		lpDst->__ptr = s_alloc<entryId>(soap, lpSrc->__size);
+		lpDst->__ptr = soap_new_entryId(soap, lpSrc->__size);
 	else
 		lpDst->__ptr = NULL;
 
@@ -1301,10 +1294,10 @@ ECRESULT FreeNotificationStruct(notification *lpNotification, bool bFreeBase)
 
 	if(lpNotification->obj != NULL){
 		FreePropTagArray(lpNotification->obj->pPropTagArray);
-		FreeEntryId(lpNotification->obj->pEntryId, true);
-		FreeEntryId(lpNotification->obj->pOldId, true);
-		FreeEntryId(lpNotification->obj->pOldParentId, true);
-		FreeEntryId(lpNotification->obj->pParentId, true);
+		soap_del_PointerToentryId(&lpNotification->obj->pEntryId);
+		soap_del_PointerToentryId(&lpNotification->obj->pOldId);
+		soap_del_PointerToentryId(&lpNotification->obj->pOldParentId);
+		soap_del_PointerToentryId(&lpNotification->obj->pParentId);
 		s_free(nullptr, lpNotification->obj);
 	}
 
@@ -1318,12 +1311,12 @@ ECRESULT FreeNotificationStruct(notification *lpNotification, bool bFreeBase)
 
 	if (lpNotification->newmail != NULL) {
 		s_free(nullptr, lpNotification->newmail->lpszMessageClass);
-		FreeEntryId(lpNotification->newmail->pEntryId, true);
-		FreeEntryId(lpNotification->newmail->pParentId, true);
+		soap_del_PointerToentryId(&lpNotification->newmail->pEntryId);
+		soap_del_PointerToentryId(&lpNotification->newmail->pParentId);
 		s_free(nullptr, lpNotification->newmail);
 	}
 	if(lpNotification->ics != NULL) {
-		FreeEntryId(lpNotification->ics->pSyncState, true);
+		soap_del_PointerToentryId(&lpNotification->ics->pSyncState);
 		s_free(nullptr, lpNotification->ics);
 	}
 	if(bFreeBase)
@@ -1405,18 +1398,6 @@ ECRESULT CopyNotificationArrayStruct(notificationArray *lpNotifyArrayFrom, notif
 	lpNotifyArrayTo->__size = lpNotifyArrayFrom->__size;
 	for (gsoap_size_t i = 0; i < lpNotifyArrayFrom->__size; ++i)
 		CopyNotificationStruct(NULL, &lpNotifyArrayFrom->__ptr[i], lpNotifyArrayTo->__ptr[i]);
-	return erSuccess;
-}
-
-ECRESULT FreeEntryId(entryId* lpEntryId, bool bFreeBase)
-{
-	if(lpEntryId == NULL)
-		return erSuccess;
-	soap_del_entryId(lpEntryId);
-	if (bFreeBase)
-		s_free(nullptr, lpEntryId);
-	else
-		lpEntryId->__size = 0;
 	return erSuccess;
 }
 

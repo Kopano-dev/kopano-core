@@ -192,7 +192,7 @@ ECRESULT ECSystemStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis,
 				// generate key
 				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_bin;
 				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.bin = s_alloc<xsd__base64Binary>(soap);
+				lpsRowSet->__ptr[i].__ptr[k].Value.bin = soap_new_xsd__base64Binary(soap);
 				lpsRowSet->__ptr[i].__ptr[k].Value.bin->__size = sizeof(sObjectTableKey);
 				lpsRowSet->__ptr[i].__ptr[k].Value.bin->__ptr  = soap_new_unsignedByte(soap, sizeof(sObjectTableKey));
 				memcpy(lpsRowSet->__ptr[i].__ptr[k].Value.bin->__ptr, &row, sizeof(sObjectTableKey));
@@ -351,7 +351,7 @@ ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis,
 				// generate key
 				m.__union = SOAP_UNION_propValData_bin;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
-				m.Value.bin = s_alloc<xsd__base64Binary>(soap);
+				m.Value.bin = soap_new_xsd__base64Binary(soap);
 				m.Value.bin->__size = sizeof(sObjectTableKey);
 				m.Value.bin->__ptr  = soap_new_unsignedByte(soap, sizeof(sObjectTableKey));
 				memcpy(m.Value.bin->__ptr, &row, sizeof(sObjectTableKey));
@@ -617,7 +617,7 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 				// generate key
 				m.__union = SOAP_UNION_propValData_bin;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
-				m.Value.bin = s_alloc<xsd__base64Binary>(soap);
+				m.Value.bin = soap_new_xsd__base64Binary(soap);
 				m.Value.bin->__size = sizeof(sObjectTableKey);
 				m.Value.bin->__ptr  = soap_new_unsignedByte(soap, sizeof(sObjectTableKey));
 				memcpy(m.Value.bin->__ptr, &row, sizeof(sObjectTableKey));
@@ -856,7 +856,7 @@ ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 				// generate key
 				m.__union = SOAP_UNION_propValData_bin;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
-				m.Value.bin = s_alloc<xsd__base64Binary>(soap);
+				m.Value.bin = soap_new_xsd__base64Binary(soap);
 				m.Value.bin->__size = sizeof(sObjectTableKey);
 				m.Value.bin->__ptr  = soap_new_unsignedByte(soap, sizeof(sObjectTableKey));
 				memcpy(m.Value.bin->__ptr, &row, sizeof(sObjectTableKey));
@@ -1021,7 +1021,7 @@ ECRESULT ECServerStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 				// generate key
 				m.__union = SOAP_UNION_propValData_bin;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
-				m.Value.bin = s_alloc<xsd__base64Binary>(soap);
+				m.Value.bin = soap_new_xsd__base64Binary(soap);
 				m.Value.bin->__size = sizeof(sObjectTableKey);
 				m.Value.bin->__ptr  = soap_new_unsignedByte(soap, sizeof(sObjectTableKey));
 				memcpy(m.Value.bin->__ptr, &row, sizeof(sObjectTableKey));

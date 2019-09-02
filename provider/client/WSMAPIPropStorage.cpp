@@ -46,9 +46,8 @@ WSMAPIPropStorage::~WSMAPIPropStorage()
 		soap_lock_guard spg(*m_lpTransport);
 		m_lpTransport->m_lpCmd->notifyUnSubscribe(ecSessionId, m_ulConnection, &er);
 	}
-
-	FreeEntryId(&m_sEntryId, false);
-	FreeEntryId(&m_sParentEntryId, false);
+	soap_del_entryId(&m_sEntryId);
+	soap_del_entryId(&m_sParentEntryId);
 	m_lpTransport->RemoveSessionReloadCallback(m_ulSessionReloadCallback);
 }
 
@@ -125,7 +124,7 @@ HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(const MAPIOBJECT *lpsMapiObj
 	if (lpsMapiObject->lpInstanceID) {
 		lpSaveObj->lpInstanceIds = s_alloc<entryList>(nullptr);
 		lpSaveObj->lpInstanceIds->__size = 1;
-		lpSaveObj->lpInstanceIds->__ptr = s_alloc<entryId>(nullptr, lpSaveObj->lpInstanceIds->__size);
+		lpSaveObj->lpInstanceIds->__ptr  = soap_new_entryId(nullptr, lpSaveObj->lpInstanceIds->__size);
 
 		if ((m_lpTransport->GetServerGUID(&sServerGUID) != hrSuccess) ||
 		    HrSIEntryIDToID(lpsMapiObject->cbInstanceID, lpsMapiObject->lpInstanceID, &sSIGUID, nullptr, &ulPropId) != hrSuccess ||

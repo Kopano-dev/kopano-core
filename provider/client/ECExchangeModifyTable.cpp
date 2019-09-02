@@ -370,7 +370,7 @@ HRESULT ECExchangeModifyTable::SaveACLS(ECMAPIProp *lpecMapiProp, ECMemTable *lp
 			hr = KAllocCopy(sEntryId.__ptr, sEntryId.__size, reinterpret_cast<void **>(&lpECPermissions[cECPerm].sUserId.lpb), lpECPermissions);
 			if (hr != hrSuccess)
 				return hr;
-			FreeEntryId(&sEntryId, false);
+			soap_del_entryId(&sEntryId);
 		}
 
 		lpECPermissions[cECPerm].ulRights = lpMemberRights->Value.ul&ecRightsAll;

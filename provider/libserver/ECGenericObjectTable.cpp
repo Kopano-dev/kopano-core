@@ -2467,7 +2467,7 @@ ECRESULT ECGenericObjectTable::GetPropCategory(struct soap *soap, unsigned int u
     switch(ulPropTag) {
         case PR_INSTANCE_KEY:
             lpPropVal->__union = SOAP_UNION_propValData_bin;
-            lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+			lpPropVal->Value.bin = soap_new_xsd__base64Binary(soap);
             lpPropVal->Value.bin->__size = sizeof(unsigned int) * 2;
 			lpPropVal->Value.bin->__ptr  = soap_new_unsignedByte(soap, sizeof(unsigned int) * 2);
 			tmp4 = cpu_to_le32(sKey.ulObjId);

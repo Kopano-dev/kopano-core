@@ -112,7 +112,7 @@ static ECRESULT CreateEntryId(GUID guidStore, unsigned int ulObjType,
 
 	eid.guid = guidStore;
 	eid.usType = ulObjType;
-	auto lpEntryId = s_alloc<entryId>(nullptr);
+	auto lpEntryId = soap_new_entryId(nullptr);
 	lpEntryId->__size = sizeof(eid);
 	lpEntryId->__ptr  = soap_new_unsignedByte(nullptr, lpEntryId->__size);
 	memcpy(lpEntryId->__ptr, &eid, lpEntryId->__size);
@@ -1438,7 +1438,7 @@ SOAP_ENTRY_START(loadProp, lpsResponse->er, const entryId &sEntryId,
 		lpsResponse->lpPropVal = s_alloc<propVal>(soap);
 		lpsResponse->lpPropVal->ulPropTag = ulPropTag;
 		lpsResponse->lpPropVal->__union = SOAP_UNION_propValData_bin;
-		lpsResponse->lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+		lpsResponse->lpPropVal->Value.bin = soap_new_xsd__base64Binary(soap);
 		std::unique_ptr<ECAttachmentStorage> lpAttachmentStorage(g_lpSessionManager->get_atxconfig()->new_handle(lpDatabase));
 		if (lpAttachmentStorage == nullptr)
 			return KCERR_NOT_ENOUGH_MEMORY;
@@ -1654,7 +1654,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 			return er;
 		lpsReturnObj->lpInstanceIds = s_alloc<entryList>(soap);
 		lpsReturnObj->lpInstanceIds->__size = 1;
-		lpsReturnObj->lpInstanceIds->__ptr = s_alloc<entryId>(soap, lpsReturnObj->lpInstanceIds->__size);
+		lpsReturnObj->lpInstanceIds->__ptr  = soap_new_entryId(soap, lpsReturnObj->lpInstanceIds->__size);
 		er = SIIDToEntryID(soap, &sGuidServer, ulInstanceId, ulInstanceTag, &lpsReturnObj->lpInstanceIds->__ptr[0]);
 		if (er != erSuccess) {
 			lpsReturnObj->lpInstanceIds = NULL;
@@ -1750,7 +1750,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 				return er;
 			lpsReturnObj->lpInstanceIds = s_alloc<entryList>(soap);
 			lpsReturnObj->lpInstanceIds->__size = 1;
-			lpsReturnObj->lpInstanceIds->__ptr = s_alloc<entryId>(soap, lpsReturnObj->lpInstanceIds->__size);
+			lpsReturnObj->lpInstanceIds->__ptr  = soap_new_entryId(soap, lpsReturnObj->lpInstanceIds->__size);
 			er = SIIDToEntryID(soap, &sGuidServer, ulInstanceId, PROP_ID(lpPropValArray->__ptr[i].ulPropTag), &lpsReturnObj->lpInstanceIds->__ptr[0]);
 			if (er != erSuccess) {
 				lpsReturnObj->lpInstanceIds = NULL;
@@ -2500,7 +2500,7 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er,
 			auto &mod = sReturnObject.modProps.__ptr[sReturnObject.modProps.__size];
 			mod.ulPropTag = PR_CHANGE_KEY;
 			mod.__union = SOAP_UNION_propValData_bin;
-			mod.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+			mod.Value.bin = soap_new_xsd__base64Binary(soap);
 			mod.Value.bin->__size = strChangeKey.size();
 			mod.Value.bin->__ptr  = soap_new_unsignedByte(soap, strChangeKey.size());
 			memcpy(mod.Value.bin->__ptr, strChangeKey.c_str(), strChangeKey.size());
@@ -2513,7 +2513,7 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er,
 			auto &mod = sReturnObject.modProps.__ptr[sReturnObject.modProps.__size];
 			mod.ulPropTag = PR_PREDECESSOR_CHANGE_LIST;
 			mod.__union = SOAP_UNION_propValData_bin;
-			mod.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+			mod.Value.bin = soap_new_xsd__base64Binary(soap);
 			mod.Value.bin->__size = strChangeList.size();
 			mod.Value.bin->__ptr  = soap_new_unsignedByte(soap, strChangeList.size());
 			memcpy(mod.Value.bin->__ptr, strChangeList.c_str(), strChangeList.size());
@@ -2917,7 +2917,7 @@ static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
 		}
 		auto laters = make_scope_success([&]() {
 			if (bFreeNewEntryId)
-				FreeEntryId(lpsNewEntryId, true);
+				soap_del_PointerToentryId(&lpsNewEntryId);
 		});
 
 		//Create entryid, 0x0FFF = PR_ENTRYID
@@ -3109,7 +3109,7 @@ SOAP_ENTRY_START(create_folders, rsp->er, const entryId &parent_eid,
 
 	rsp->entryids         = s_alloc<entryList>(soap);
 	rsp->entryids->__size = folder_ids.size();
-	rsp->entryids->__ptr  = s_alloc<entryId>(soap, folder_ids.size());
+	rsp->entryids->__ptr  = soap_new_entryId(soap, folder_ids.size());
 
 	for (size_t i = 0; i < folder_ids.size() && er == erSuccess; ++i)
 		er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(
@@ -6099,8 +6099,8 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 	auto cleanup = make_scope_success([&]() {
 		if (lpDatabase != nullptr && er != erSuccess && er != KCWARN_PARTIAL_COMPLETION)
 			lpDatabase->Rollback();
-		FreeEntryId(lpsNewEntryId, true);
-		FreeEntryId(lpsOldEntryId, true);
+		soap_del_PointerToentryId(&lpsNewEntryId);
+		soap_del_PointerToentryId(&lpsOldEntryId);
 	});
 	if(lplObjectIds->empty())
 		return erSuccess; /* Nothing to do */
@@ -6210,7 +6210,7 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 			continue;
 		}
 		cop.sOldEntryId = EntryId(lpsOldEntryId);
-		FreeEntryId(lpsOldEntryId, true);
+		soap_del_PointerToentryId(&lpsOldEntryId);
 		lpsOldEntryId = NULL;
 
 		er = CreateEntryId(guidStore, MAPI_MESSAGE, &lpsNewEntryId);
@@ -6219,7 +6219,7 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 			return er;
 		}
 		cop.sNewEntryId = EntryId(lpsNewEntryId);
-		FreeEntryId(lpsNewEntryId, true);
+		soap_del_PointerToentryId(&lpsNewEntryId);
 		lpsNewEntryId = NULL;
 
 		// Update entryid (changes on move)
@@ -6500,7 +6500,7 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 	auto cache = lpecSession->GetSessionManager()->GetCacheManager();
 	std::unique_ptr<ECAttachmentStorage> lpInternalAttachmentStorage;
 	kd_trans atx, dtx;
-	auto cleanup = make_scope_success([&]() { FreeEntryId(lpsNewEntryId, true); });
+	auto cleanup = make_scope_success([&]() { soap_del_PointerToentryId(&lpsNewEntryId); });
 	if (!lpAttachmentStorage) {
 		if (!bIsRoot) {
 			ec_log_err("CopyObject: \"!attachmentstore && !isroot\" clause failed: %s (%x)", GetMAPIErrorMessage(er), er);
@@ -6643,7 +6643,7 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 		}
 	}
 
-	FreeEntryId(lpsNewEntryId, true);
+	soap_del_PointerToentryId(&lpsNewEntryId);
 	lpsNewEntryId = nullptr;
 	// Get child items of the message like , attachment, recipient...
 	strQuery = "SELECT id FROM hierarchy WHERE parent="+stringify(ulObjId);
@@ -9201,7 +9201,7 @@ SOAP_ENTRY_START(getChangeInfo, lpsResponse->er, const entryId &sEntryId,
 		lpDBLen = lpDBResult.fetch_row_lengths();
 		lpsResponse->sPropCK.ulPropTag = PR_CHANGE_KEY;
 		lpsResponse->sPropCK.__union = SOAP_UNION_propValData_bin;
-		lpsResponse->sPropCK.Value.bin = s_alloc<xsd__base64Binary>(soap, 1);
+		lpsResponse->sPropCK.Value.bin = soap_new_xsd__base64Binary(soap);
 		lpsResponse->sPropCK.Value.bin->__size = lpDBLen[0];
 		lpsResponse->sPropCK.Value.bin->__ptr  = soap_new_unsignedByte(soap, lpDBLen[0]);
 		memcpy(lpsResponse->sPropCK.Value.bin->__ptr, lpDBRow[0], lpDBLen[0]);
@@ -9223,7 +9223,7 @@ SOAP_ENTRY_START(getChangeInfo, lpsResponse->er, const entryId &sEntryId,
 	lpDBLen = lpDBResult.fetch_row_lengths();
 	lpsResponse->sPropPCL.ulPropTag = PR_PREDECESSOR_CHANGE_LIST;
 	lpsResponse->sPropPCL.__union = SOAP_UNION_propValData_bin;
-	lpsResponse->sPropPCL.Value.bin = s_alloc<xsd__base64Binary>(soap, 1);
+	lpsResponse->sPropPCL.Value.bin = soap_new_xsd__base64Binary(soap);
 	lpsResponse->sPropPCL.Value.bin->__size = lpDBLen[0];
 	lpsResponse->sPropPCL.Value.bin->__ptr  = soap_new_unsignedByte(soap, lpDBLen[0]);
 	memcpy(lpsResponse->sPropPCL.Value.bin->__ptr, lpDBRow[0], lpDBLen[0]);
