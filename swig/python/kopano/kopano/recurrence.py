@@ -1003,6 +1003,12 @@ class Recurrence(object):
             exception['appointment_color'] = appointment_color
 
         if extended:
+            # set start/end date when location or subject is overriden as per MS-OXOCAL 2.2.1.44.2
+            if exception['override_flags'] & ARO_SUBJECT or exception['override_flags'] & ARO_LOCATION:
+                # Retrieve the start date
+                extended_exception['start_datetime'] = exception['start_datetime']
+                extended_exception['end_datetime'] = exception['end_datetime']
+
             if startdate:
                 extended_exception['start_datetime'] = startdate_val
             if enddate:

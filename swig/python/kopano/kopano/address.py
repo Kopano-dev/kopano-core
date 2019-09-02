@@ -70,6 +70,13 @@ class Address(object):
                     b':' in self._searchkey and b'@' in self._searchkey):
                 email_bin = self._searchkey.split(b':')[1].rstrip(b'\x00')
                 email = email_bin.decode('ascii').lower()
+                # Distlists have no email in the searchkey but in PR_SMTP_ADDRESS_W.
+
+            # fallback to the PR_SMTP_ADDRESS_W property.
+            if not email and self._props:
+                for prop in self._props:
+                    if prop.idname == 'PR_SMTP_ADDRESS_W':
+                        return prop.value
         else:
             email = self._email or ''
         return email

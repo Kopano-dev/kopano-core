@@ -8,10 +8,7 @@ Copyright 2016 - 2019 Kopano and its licensors (see LICENSE file)
 
 import contextlib
 import logging.handlers
-try:
-    from Queue import Empty
-except ImportError:
-    from queue import Empty
+from queue import Empty
 import sys
 import threading
 import traceback
