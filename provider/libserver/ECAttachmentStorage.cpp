@@ -49,13 +49,13 @@ class ECFileAttachmentConfig : public ECAttachmentConfig {
 
 	protected:
 	std::string m_dir;
-	unsigned int m_complvl;
+	unsigned int m_complvl, m_l1 = 0, m_l2 = 0;
 	bool m_sync_files;
 };
 
 class ECFileAttachment : public ECAttachmentStorage {
 	public:
-	ECFileAttachment(ECDatabase *, const std::string &basepath, unsigned int compr_lvl, bool sync);
+	ECFileAttachment(ECDatabase *, const std::string &basepath, unsigned int compr_lvl, unsigned int l1, unsigned int l2, bool sync);
 
 	protected:
 	virtual ~ECFileAttachment(void);
@@ -90,6 +90,7 @@ class ECFileAttachment : public ECAttachmentStorage {
 	ECRESULT RestoreMarkedAttachment(const ext_siid &);
 
 	int m_dirFd = -1;
+	unsigned int m_l1 = 0, m_l2 = 0;
 	DIR *m_dirp = nullptr;
 	bool m_bTransaction = false;
 	std::set<ext_siid> m_setNewAttachment, m_setDeletedAttachment, m_setMarkedAttachment;
@@ -238,14 +239,23 @@ ECAttachmentStorage::ECAttachmentStorage(ECDatabase *lpDatabase, unsigned int ul
 	m_CompressionLevel = stringify(ulCompressionLevel);
 }
 
+static bool filesv1_extract_fanout(const char *s, unsigned int *x, unsigned int *y)
+{
+	if (strcmp(s, "files") == 0)
+		s = "files_v1-10-20";
+	return sscanf(s, "files_v1-%u-%u", x, y) == 2;
+}
+
 ECRESULT ECAttachmentConfig::create(const GUID &sguid,
     std::shared_ptr<ECConfig> config, ECAttachmentConfig **atcp)
 {
 	auto type = config->GetSetting("attachment_storage");
 	std::unique_ptr<ECAttachmentConfig> a;
+	unsigned int ignore;
+
 	if (type == nullptr || strcmp(type, "database") == 0) {
 		a.reset(new(std::nothrow) ECDatabaseAttachmentConfig);
-	} else if (strcmp(type, "files") == 0) {
+	} else if (filesv1_extract_fanout(type, &ignore, &ignore)) {
 		a.reset(new(std::nothrow) ECFileAttachmentConfig);
 	} else if (strcmp(type, "files_v2") == 0) {
 		a.reset(new(std::nothrow) ECFileAttachmentConfig2(sguid));
@@ -281,6 +291,8 @@ ECRESULT ECFileAttachmentConfig::init(std::shared_ptr<ECConfig> config)
 		ec_log_err("No attachment_path set despite attachment_storage=files.");
 		return KCERR_CALL_FAILED;
 	}
+	if (!filesv1_extract_fanout(config->GetSetting("attachment_storage"), &m_l1, &m_l2))
+		return MAPI_E_CALL_FAILED;
 	auto sync_files_par = config->GetSetting("attachment_files_fsync");
 	auto comp = config->GetSetting("attachment_compression");
 	m_dir = dir;
@@ -291,7 +303,7 @@ ECRESULT ECFileAttachmentConfig::init(std::shared_ptr<ECConfig> config)
 
 ECAttachmentStorage *ECFileAttachmentConfig::new_handle(ECDatabase *db)
 {
-	return new(std::nothrow) ECFileAttachment(db, m_dir, m_complvl, m_sync_files);
+	return new(std::nothrow) ECFileAttachment(db, m_dir, m_complvl, m_l1, m_l2, m_sync_files);
 }
 
 /**
@@ -1087,9 +1099,9 @@ ECRESULT ECDatabaseAttachment::Rollback()
 // Attachment storage is in separate files
 ECFileAttachment::ECFileAttachment(ECDatabase *lpDatabase,
     const std::string &basepath, unsigned int ulCompressionLevel,
-    bool sync_to_disk) :
+    unsigned int l1, unsigned int l2, bool sync_to_disk) :
 	ECAttachmentStorage(lpDatabase, ulCompressionLevel),
-	m_basepath(basepath)
+	m_basepath(basepath), m_l1(l1), m_l2(l2)
 {
 	if (m_basepath.empty())
 		m_basepath = "/var/lib/kopano";
@@ -1942,8 +1954,8 @@ ECRESULT ECFileAttachment::DeleteAttachmentInstance(const ext_siid &ulInstanceId
  */
 std::string ECFileAttachment::CreateAttachmentFilename(const ext_siid &esid, bool bCompressed)
 {
-	unsigned int l1 = esid.siid % ATTACH_PATHDEPTH_LEVEL1;
-	unsigned int l2 = (esid.siid / ATTACH_PATHDEPTH_LEVEL1) % ATTACH_PATHDEPTH_LEVEL2;
+	unsigned int l1 = esid.siid % m_l1;
+	unsigned int l2 = (esid.siid / m_l1) % m_l2;
 	auto filename = m_basepath + PATH_SEPARATOR + stringify(l1) + PATH_SEPARATOR + stringify(l2) + PATH_SEPARATOR + stringify(esid.siid);
 	if (bCompressed)
 		filename += ".gz";
@@ -2130,7 +2142,7 @@ ECAttachmentStorage *ECFileAttachmentConfig2::new_handle(ECDatabase *db)
 ECFileAttachment2::ECFileAttachment2(ECFileAttachmentConfig2 &acf,
     ECDatabase *db, const std::string &basepath, unsigned int complvl,
     bool sync) :
-	ECFileAttachment(db, basepath, complvl, sync), m_config(acf)
+	ECFileAttachment(db, basepath, complvl, 0, 0, sync), m_config(acf)
 {}
 
 ECRESULT ECFileAttachment2::SaveAttachmentInstance(ext_siid &instance,

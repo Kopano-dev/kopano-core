@@ -347,7 +347,10 @@ Attachments will be stored as 384KB BLOB chunks in the database itself (in the
 "lob" table). Not sharable between kopano-server instances.
 .TP
 files
-Basic file backend. Not shareable.
+An alias for \fBfiles_v1-10-20\fP.
+.TP
+files_v1-\fIx\fP-\fIy\fP
+A basic file backend that fans out into x*y directories. Not shareable.
 .TP
 files_v2
 Autonomous opportunistically deduplicating file-based backend for shared

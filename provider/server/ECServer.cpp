@@ -273,6 +273,13 @@ static ECRESULT check_database_engine(ECDatabase *lpDatabase)
 	return er;
 }
 
+static bool filesv1_extract_fanout(const char *s, unsigned int *x, unsigned int *y)
+{
+	if (strcmp(s, "files") == 0)
+		s = "files_v1-10-20";
+	return sscanf(s, "files_v1-%u-%u", x, y) == 2;
+}
+
 static ECRESULT check_database_attachments(ECDatabase *lpDatabase)
 {
 	ECRESULT er = erSuccess;
@@ -305,12 +312,12 @@ static ECRESULT check_database_attachments(ECDatabase *lpDatabase)
 		return er;
 	}
 
-	// Create attachment directories
-	if (strcmp(g_lpConfig->GetSetting("attachment_storage"), "files") != 0)
+	unsigned int l1, l2;
+	if (!filesv1_extract_fanout(g_lpConfig->GetSetting("attachment_storage"), &l1, &l2))
 		return erSuccess;
-	// These values are hard coded .. if they change, the hash algorithm will fail, and you'll be FUCKED.
-	for (int i = 0; i < ATTACH_PATHDEPTH_LEVEL1; ++i)
-		for (int j = 0; j < ATTACH_PATHDEPTH_LEVEL2; ++j) {
+	// Create attachment directories
+	for (unsigned int i = 0; i < l1; ++i)
+		for (unsigned int j = 0; j < l2; ++j) {
 			string path = (string)g_lpConfig->GetSetting("attachment_path") + PATH_SEPARATOR + stringify(i) + PATH_SEPARATOR + stringify(j);
 			auto ret = CreatePath(path.c_str());
 			if (ret != 0) {
@@ -1130,7 +1137,8 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	}
 
 	auto aback = g_lpConfig->GetSetting("attachment_storage");
-	if (strcmp(aback, "files") == 0 || strcmp(aback, "files_v2") == 0) {
+	unsigned int ignore;
+	if (filesv1_extract_fanout(aback, &ignore, &ignore) || strcmp(aback, "files_v2") == 0) {
 		/*
 		 * Either (1.) the attachment directory or (2.) its immediate
 		 * parent directory needs to exist with right permissions.
