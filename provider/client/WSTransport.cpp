@@ -2964,7 +2964,7 @@ HRESULT WSTransport::HrSetPermissionRules(ULONG cbEntryID,
 		if(lpECPermissions[i].ulState != RIGHT_NORMAL)
 			++nChangedItems;
 
-	rArray.__ptr = s_alloc<rights>(m_lpCmd->soap, nChangedItems);
+	rArray.__ptr  = soap_new_rights(m_lpCmd->soap, nChangedItems);
 	rArray.__size = nChangedItems;
 
 	nItem = 0;

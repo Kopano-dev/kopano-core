@@ -3825,9 +3825,7 @@ SOAP_ENTRY_START(getRights, lpsRightResponse->er, const entryId &sEntryId,
 		goto exit;
 exit:
 	if (lpsRightArray) {
-		for (gsoap_size_t i = 0; i < lpsRightArray->__size; ++i)
-			soap_del_entryId(&lpsRightArray->__ptr[i].sUserId);
-		s_free(nullptr, lpsRightArray->__ptr);
+		soap_del_rightsArray(lpsRightArray);
 		s_free(nullptr, lpsRightArray);
 	}
 }
@@ -4767,7 +4765,7 @@ SOAP_ENTRY_START(createStore, *result, unsigned int ulStoreType,
 		else if (er != erSuccess)
 			ec_log_err("Failed to create store (id=%d): %s (%x)",
 				ulUserId, GetMAPIErrorMessage(kcerr_to_mapierr(er)), er);
-		s_free(nullptr, srightsArray.__ptr);
+		soap_del_rightsArray(&srightsArray);
 		ROLLBACK_ON_ERROR();
 	});
 	if (static_cast<size_t>(sStoreId.__size) < SIZEOF_EID_V0_FIXED)
@@ -4904,7 +4902,7 @@ SOAP_ENTRY_START(createStore, *result, unsigned int ulStoreType,
 	if(ulStoreType == ECSTORE_TYPE_PUBLIC) {
 		// ulUserId == a group
 		// ulUserId 1 = group everyone
-		srightsArray.__ptr = s_alloc<rights>(nullptr, 1);
+		srightsArray.__ptr = soap_new_rights(nullptr, 1);
 		srightsArray.__ptr[0].ulRights = ecRightsDefaultPublic;
 		srightsArray.__ptr[0].ulUserid = ulUserId;
 		srightsArray.__ptr[0].ulState = RIGHT_NEW|RIGHT_AUTOUPDATE_DENIED;
