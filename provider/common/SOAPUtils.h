@@ -54,7 +54,6 @@ extern ECRESULT CopyPropVal(const struct propVal *src, struct propVal **dst, str
 
 // EntryList
 ECRESULT			CopyEntryList(struct soap *soap, struct entryList *lpSrc, struct entryList **lppDst);
-ECRESULT			FreeEntryList(struct entryList *lpEntryList, bool bFreeBase = true);
 
 // EntryId
 ECRESULT			CopyEntryId(struct soap *soap, entryId* lpSrc, entryId** lppDst);

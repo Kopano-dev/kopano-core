@@ -1233,7 +1233,7 @@ ECRESULT CopyEntryList(struct soap *soap, struct entryList *lpSrc, struct entryL
 {
 	if (lpSrc == nullptr)
 		return KCERR_INVALID_PARAMETER;
-	auto lpDst = s_alloc<entryList>(soap);
+	auto lpDst = soap_new_entryList(soap);
 	lpDst->__size = lpSrc->__size;
 	if(lpSrc->__size > 0)
 		lpDst->__ptr = soap_new_entryId(soap, lpSrc->__size);
@@ -1247,18 +1247,6 @@ ECRESULT CopyEntryList(struct soap *soap, struct entryList *lpSrc, struct entryL
 	}
 
 	*lppDst = lpDst;
-	return erSuccess;
-}
-
-ECRESULT FreeEntryList(struct entryList *lpEntryList, bool bFreeBase)
-{
-	if(lpEntryList == NULL)
-		return erSuccess;
-	for (unsigned int i = 0; i < lpEntryList->__size; ++i)
-		soap_del_entryId(&lpEntryList->__ptr[i]);
-	s_free(nullptr, lpEntryList->__ptr);
-	if (bFreeBase)
-		s_free(nullptr, lpEntryList);
 	return erSuccess;
 }
 
@@ -1478,7 +1466,7 @@ ECRESULT CopySearchCriteria(struct soap *soap,
 exit:
 	if (er != erSuccess && lpDst != NULL) {
 		FreeRestrictTable(lpDst->lpRestrict, true);
-		FreeEntryList(lpDst->lpFolders, true);
+		soap_del_PointerToentryList(&lpDst->lpFolders);
 		s_free(nullptr, lpDst);
 	}
 	return er;
@@ -1490,8 +1478,7 @@ ECRESULT FreeSearchCriteria(struct searchCriteria *lpSearchCriteria)
 		return erSuccess;
 	if(lpSearchCriteria->lpRestrict)
 		FreeRestrictTable(lpSearchCriteria->lpRestrict);
-	if(lpSearchCriteria->lpFolders)
-		FreeEntryList(lpSearchCriteria->lpFolders);
+	soap_del_PointerToentryList(&lpSearchCriteria->lpFolders);
 	s_free(nullptr, lpSearchCriteria);
 	return erSuccess;
 }

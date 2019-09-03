@@ -122,7 +122,7 @@ HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(const MAPIOBJECT *lpsMapiObj
 	GUID sServerGUID = {0}, sSIGUID = {0};
 
 	if (lpsMapiObject->lpInstanceID) {
-		lpSaveObj->lpInstanceIds = s_alloc<entryList>(nullptr);
+		lpSaveObj->lpInstanceIds = soap_new_entryList(nullptr);
 		lpSaveObj->lpInstanceIds->__size = 1;
 		lpSaveObj->lpInstanceIds->__ptr  = soap_new_entryId(nullptr, lpSaveObj->lpInstanceIds->__size);
 
@@ -131,7 +131,7 @@ HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(const MAPIOBJECT *lpsMapiObj
 			(sSIGUID != sServerGUID) ||
 			(CopyMAPIEntryIdToSOAPEntryId(lpsMapiObject->cbInstanceID, (LPENTRYID)lpsMapiObject->lpInstanceID, &lpSaveObj->lpInstanceIds->__ptr[0]) != hrSuccess)) {
 				ulPropId = 0;
-				FreeEntryList(lpSaveObj->lpInstanceIds, true);
+				soap_del_PointerToentryList(&lpSaveObj->lpInstanceIds);
 				lpSaveObj->lpInstanceIds = NULL;
 		}
 	} else {
@@ -221,7 +221,7 @@ HRESULT WSMAPIPropStorage::HrUpdateSoapObject(const MAPIOBJECT *lpsMapiObject,
 		if (hr != hrSuccess)
 			return hr;
 		/* Instance ID was incorrect, remove it */
-		FreeEntryList(lpsSaveObj->lpInstanceIds, true);
+		soap_del_PointerToentryList(&lpsSaveObj->lpInstanceIds);
 		lpsSaveObj->lpInstanceIds = NULL;
 
 		/* Search for the correct property and copy it into the soap object, note that we already allocated the required memory... */
@@ -279,8 +279,7 @@ void WSMAPIPropStorage::DeleteSoapObject(struct saveObject *lpSaveObj)
 		s_free(nullptr, lpSaveObj->modProps.__ptr);
 	}
 	soap_del_propTagArray(&lpSaveObj->delProps);
-	if (lpSaveObj->lpInstanceIds)
-		FreeEntryList(lpSaveObj->lpInstanceIds, true);
+	soap_del_PointerToentryList(&lpSaveObj->lpInstanceIds);
 }
 
 ECRESULT WSMAPIPropStorage::EcFillPropTags(const struct saveObject *lpsSaveObj,

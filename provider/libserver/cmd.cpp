@@ -1652,7 +1652,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 		er = lpAttachmentStorage->SaveAttachment(ulObjId, ulInstanceTag, !fNewItem, ulInstanceId, &ulInstanceId);
 		if (er != erSuccess)
 			return er;
-		lpsReturnObj->lpInstanceIds = s_alloc<entryList>(soap);
+		lpsReturnObj->lpInstanceIds = soap_new_entryList(soap);
 		lpsReturnObj->lpInstanceIds->__size = 1;
 		lpsReturnObj->lpInstanceIds->__ptr  = soap_new_entryId(soap, lpsReturnObj->lpInstanceIds->__size);
 		er = SIIDToEntryID(soap, &sGuidServer, ulInstanceId, ulInstanceTag, &lpsReturnObj->lpInstanceIds->__ptr[0]);
@@ -1748,7 +1748,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 			     lpPropValArray->__ptr[i].Value.bin->__ptr, &ulInstanceId);
 			if (er != erSuccess)
 				return er;
-			lpsReturnObj->lpInstanceIds = s_alloc<entryList>(soap);
+			lpsReturnObj->lpInstanceIds = soap_new_entryList(soap);
 			lpsReturnObj->lpInstanceIds->__size = 1;
 			lpsReturnObj->lpInstanceIds->__ptr  = soap_new_entryId(soap, lpsReturnObj->lpInstanceIds->__size);
 			er = SIIDToEntryID(soap, &sGuidServer, ulInstanceId, PROP_ID(lpPropValArray->__ptr[i].ulPropTag), &lpsReturnObj->lpInstanceIds->__ptr[0]);
@@ -3107,7 +3107,7 @@ SOAP_ENTRY_START(create_folders, rsp->er, const entryId &parent_eid,
 	if (er != erSuccess)
 		return er;
 
-	rsp->entryids         = s_alloc<entryList>(soap);
+	rsp->entryids         = soap_new_entryList(soap);
 	rsp->entryids->__size = folder_ids.size();
 	rsp->entryids->__ptr  = soap_new_entryId(soap, folder_ids.size());
 

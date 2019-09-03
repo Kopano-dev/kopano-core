@@ -212,7 +212,7 @@ HRESULT WSMAPIFolderOps::HrSetReadFlags(ENTRYLIST *lpMsgList, ULONG ulFlags, ULO
 
 exit:
 	spg.unlock();
-	FreeEntryList(&sEntryList, false);
+	soap_del_entryList(&sEntryList);
 	return hr;
 }
 
@@ -226,7 +226,7 @@ HRESULT WSMAPIFolderOps::HrSetSearchCriteria(const ENTRYLIST *lpMsgList,
 	soap_lock_guard spg(*m_lpTransport);
 
 	if(lpMsgList) {
-		lpsEntryList = s_alloc<entryList>(nullptr);
+		lpsEntryList = soap_new_entryList(nullptr);
 		hr = CopyMAPIEntryListToSOAPEntryList(lpMsgList, lpsEntryList);
 		if(hr != hrSuccess)
 			goto exit;
@@ -253,8 +253,7 @@ exit:
 	spg.unlock();
 	if(lpsRestrict)
 		FreeRestrictTable(lpsRestrict);
-	if(lpsEntryList)
-		FreeEntryList(lpsEntryList, true);
+	soap_del_PointerToentryList(&lpsEntryList);
 	return hr;
 }
 
@@ -355,7 +354,7 @@ HRESULT WSMAPIFolderOps::HrCopyMessage(ENTRYLIST *lpMsgList, ULONG cbEntryDest,
 
 exit:
 	spg.unlock();
-	FreeEntryList(&sEntryList, false);
+	soap_del_entryList(&sEntryList);
 	return hr;
 }
 

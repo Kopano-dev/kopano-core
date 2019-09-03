@@ -792,8 +792,7 @@ HRESULT WSTransport::HrDeleteObjects(ULONG ulFlags, const ENTRYLIST *lpMsgList, 
 	}
 	END_SOAP_CALL
  exitm:
-	FreeEntryList(&sEntryList, false);
-
+	soap_del_entryList(&sEntryList);
 	return hr;
 }
 
