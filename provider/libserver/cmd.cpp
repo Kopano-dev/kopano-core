@@ -1936,7 +1936,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 
 		// Get current time
 		auto ft = UnixTimeToFileTime(time(nullptr));
-		sPropTime.Value.hilo = s_alloc<struct hiloLong>(soap);
+		sPropTime.Value.hilo = soap_new_hiloLong(soap);
 		sPropTime.Value.hilo->hi = ft.dwHighDateTime;
 		sPropTime.Value.hilo->lo = ft.dwLowDateTime;
 		sPropTime.__union = SOAP_UNION_propValData_hilo;
@@ -2288,7 +2288,7 @@ static unsigned int SaveObject(struct soap *soap, ECSession *lpecSession,
 	auto mod = &lpsReturnObj->modProps.__ptr[n];
 	mod->__union = SOAP_UNION_propValData_hilo;
 	mod->ulPropTag = PR_LAST_MODIFICATION_TIME;
-	mod->Value.hilo = s_alloc<hiloLong>(soap);
+	mod->Value.hilo = soap_new_hiloLong(soap);
 	mod->Value.hilo->hi = ftModified.dwHighDateTime;
 	mod->Value.hilo->lo = ftModified.dwLowDateTime;
 	++n;
@@ -2298,7 +2298,7 @@ static unsigned int SaveObject(struct soap *soap, ECSession *lpecSession,
 		mod = &lpsReturnObj->modProps.__ptr[n];
 		mod->__union = SOAP_UNION_propValData_hilo;
 		mod->ulPropTag = PR_CREATION_TIME;
-		mod->Value.hilo = s_alloc<hiloLong>(soap);
+		mod->Value.hilo = soap_new_hiloLong(soap);
 		mod->Value.hilo->hi = ftCreated.dwHighDateTime;
 		mod->Value.hilo->lo = ftCreated.dwLowDateTime;
 		++n;

@@ -1023,7 +1023,7 @@ ECRESULT WriteLocalCommitTimeMax(struct soap *soap, ECDatabase *lpDatabase, unsi
 		pvTime = s_alloc<propVal>(soap);
 		pvTime->ulPropTag = PR_LOCAL_COMMIT_TIME_MAX;
 		pvTime->__union = SOAP_UNION_propValData_hilo;
-		pvTime->Value.hilo = s_alloc<hiloLong>(soap);
+		pvTime->Value.hilo = soap_new_hiloLong(soap);
 		pvTime->Value.hilo->hi = ftNow.dwHighDateTime;
 		pvTime->Value.hilo->lo = ftNow.dwLowDateTime;
 	}

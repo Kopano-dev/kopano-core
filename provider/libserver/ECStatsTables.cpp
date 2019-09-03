@@ -733,7 +733,7 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 				auto lpDBRow = lpDBResult.fetch_row();
 				m.__union = SOAP_UNION_propValData_hilo;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
-				m.Value.hilo = s_alloc<hiloLong>(soap);
+				m.Value.hilo = soap_new_hiloLong(soap);
 				m.Value.hilo->hi = atoi(lpDBRow[0]);
 				m.Value.hilo->lo = atoi(lpDBRow[1]);
 				break;
@@ -928,7 +928,7 @@ ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 				auto lpDBRow = lpDBResult.fetch_row();
 				m.__union = SOAP_UNION_propValData_hilo;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
-				m.Value.hilo = s_alloc<hiloLong>(soap);
+				m.Value.hilo = soap_new_hiloLong(soap);
 				m.Value.hilo->hi = atoi(lpDBRow[0]);
 				m.Value.hilo->lo = atoi(lpDBRow[1]);
 				break;

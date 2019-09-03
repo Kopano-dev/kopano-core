@@ -1117,7 +1117,7 @@ static ECRESULT DeserializePropVal(struct soap *soap,
 	case PT_CURRENCY:
 	case PT_SYSTIME:
 		lpsPropval->__union = SOAP_UNION_propValData_hilo;
-		lpsPropval->Value.hilo = s_alloc<hiloLong>(soap);
+		lpsPropval->Value.hilo = soap_new_hiloLong(soap);
 		er = lpSource->Read(&lpsPropval->Value.hilo->hi, sizeof(lpsPropval->Value.hilo->hi), 1);
 		if (er == erSuccess)
 			er = lpSource->Read(&lpsPropval->Value.hilo->lo, sizeof(lpsPropval->Value.hilo->lo), 1);
@@ -1191,7 +1191,7 @@ static ECRESULT DeserializePropVal(struct soap *soap,
 		if (er != erSuccess)
 			break;
 		lpsPropval->Value.mvhilo.__size = ulCount;
-		lpsPropval->Value.mvhilo.__ptr = s_alloc<hiloLong>(soap, ulCount);
+		lpsPropval->Value.mvhilo.__ptr  = soap_new_hiloLong(soap, ulCount);
 		for (gsoap_size_t x = 0; er == erSuccess && x < ulCount; ++x) {
 			er = lpSource->Read(&lpsPropval->Value.mvhilo.__ptr[x].hi, sizeof(lpsPropval->Value.mvhilo.__ptr[x].hi), ulCount);
 			if (er != erSuccess)

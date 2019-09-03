@@ -134,7 +134,7 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis,
 				auto ftTmp = UnixTimeToFileTime(pThis->m_mapUserStoreData[row.ulObjId].tModTime);
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
 				m.__union = SOAP_UNION_propValData_hilo;
-				m.Value.hilo = s_alloc<struct hiloLong>(soap);
+				m.Value.hilo = soap_new_hiloLong(soap);
 				m.Value.hilo->hi = ftTmp.dwHighDateTime;
 				m.Value.hilo->lo = ftTmp.dwLowDateTime;
 				break;

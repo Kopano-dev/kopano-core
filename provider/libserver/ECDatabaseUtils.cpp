@@ -444,7 +444,7 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 			goto exit;
 		}
 		lpPropVal->__union = SOAP_UNION_propValData_hilo;
-		lpPropVal->Value.hilo = s_alloc<hiloLong>(soap);
+		lpPropVal->Value.hilo = soap_new_hiloLong(soap);
 		lpPropVal->Value.hilo->hi = atoi(lpRow[FIELD_NR_HI]);
 		lpPropVal->Value.hilo->lo = atoui(lpRow[FIELD_NR_LO]);
 		break;
@@ -462,7 +462,7 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 			goto exit;
 		}
 		lpPropVal->__union = SOAP_UNION_propValData_hilo;
-		lpPropVal->Value.hilo = s_alloc<hiloLong>(soap);
+		lpPropVal->Value.hilo = soap_new_hiloLong(soap);
 		lpPropVal->Value.hilo->hi = atoi(lpRow[FIELD_NR_HI]);
 		lpPropVal->Value.hilo->lo = atoui(lpRow[FIELD_NR_LO]);
 		break;
@@ -577,7 +577,7 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 		}
 		lpPropVal->__union = SOAP_UNION_propValData_mvhilo;
 		lpPropVal->Value.mvhilo.__size = atoi(lpRow[FIELD_NR_ID]);
-		lpPropVal->Value.mvhilo.__ptr = s_alloc<hiloLong>(soap, lpPropVal->Value.mvhilo.__size);
+		lpPropVal->Value.mvhilo.__ptr  = soap_new_hiloLong(soap, lpPropVal->Value.mvhilo.__size);
 		//Scan low
 		ulLastPos = 0;
 		for (gsoap_size_t i = 0; i < lpPropVal->Value.mvhilo.__size; ++i) {

@@ -723,7 +723,7 @@ ECRESULT FreePropVal(struct propVal *lpProp, bool bBasePointerDel)
 		break;
 	case PT_SYSTIME:
 	case PT_CURRENCY:
-		s_free(nullptr, lpProp->Value.hilo);
+		soap_del_PointerTohiloLong(&lpProp->Value.hilo);
 		break;
 	case PT_STRING8:
 	case PT_UNICODE:
@@ -754,7 +754,7 @@ ECRESULT FreePropVal(struct propVal *lpProp, bool bBasePointerDel)
 		break;
 	case PT_MV_SYSTIME:
 	case PT_MV_CURRENCY:
-		s_free(nullptr, lpProp->Value.mvhilo.__ptr);
+		soap_del_mv_hiloLong(&lpProp->Value.mvhilo);
 		break;
 	case PT_MV_CLSID:
 	case PT_MV_BINARY:
@@ -958,7 +958,7 @@ ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal *lpDst,
 	case PT_SYSTIME:
 		if (lpSrc->Value.hilo == NULL)
 			return KCERR_INVALID_TYPE;
-		lpDst->Value.hilo = s_alloc<hiloLong>(soap);
+		lpDst->Value.hilo = soap_new_hiloLong(soap);
 		lpDst->Value.hilo->hi = lpSrc->Value.hilo->hi;
 		lpDst->Value.hilo->lo = lpSrc->Value.hilo->lo;
 		break;
@@ -1026,7 +1026,7 @@ ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal *lpDst,
 		if (lpSrc->Value.mvhilo.__ptr == NULL)
 			return KCERR_INVALID_TYPE;
 		lpDst->Value.mvhilo.__size = lpSrc->Value.mvhilo.__size;
-		lpDst->Value.mvhilo.__ptr = s_alloc<hiloLong>(soap, lpSrc->Value.mvhilo.__size);
+		lpDst->Value.mvhilo.__ptr  = soap_new_hiloLong(soap, lpSrc->Value.mvhilo.__size);
 		memcpy(lpDst->Value.mvhilo.__ptr, lpSrc->Value.mvhilo.__ptr, sizeof(hiloLong) * lpDst->Value.mvhilo.__size);
 		break;
 	case PT_MV_STRING8:

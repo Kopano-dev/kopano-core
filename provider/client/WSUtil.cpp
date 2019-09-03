@@ -56,7 +56,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 		break;
 	case PT_CURRENCY:
 		dp->__union = SOAP_UNION_propValData_hilo;
-		dp->Value.hilo = s_alloc<hiloLong>(nullptr);
+		dp->Value.hilo = soap_new_hiloLong(nullptr);
 		dp->Value.hilo->hi = sp->Value.cur.Hi;
 		dp->Value.hilo->lo = sp->Value.cur.Lo;
 		break;
@@ -96,7 +96,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 	}
 	case PT_SYSTIME:
 		dp->__union = SOAP_UNION_propValData_hilo;
-		dp->Value.hilo = s_alloc<hiloLong>(nullptr);
+		dp->Value.hilo = soap_new_hiloLong(nullptr);
 		dp->Value.hilo->hi = sp->Value.ft.dwHighDateTime;
 		dp->Value.hilo->lo = sp->Value.ft.dwLowDateTime;
 		break;
@@ -146,7 +146,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 	case PT_MV_CURRENCY:
 		dp->__union = SOAP_UNION_propValData_mvhilo;
 		dp->Value.mvhilo.__size = sp->Value.MVcur.cValues;
-		dp->Value.mvhilo.__ptr = s_alloc<hiloLong>(nullptr, dp->Value.mvhilo.__size);
+		dp->Value.mvhilo.__ptr  = soap_new_hiloLong(nullptr, dp->Value.mvhilo.__size);
 		for (gsoap_size_t i = 0; i < dp->Value.mvhilo.__size; ++i) {
 			dp->Value.mvhilo.__ptr[i].hi = sp->Value.MVcur.lpcur[i].Hi;
 			dp->Value.mvhilo.__ptr[i].lo = sp->Value.MVcur.lpcur[i].Lo;
@@ -161,7 +161,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 	case PT_MV_SYSTIME:
 		dp->__union = SOAP_UNION_propValData_mvhilo;
 		dp->Value.mvhilo.__size = sp->Value.MVft.cValues;
-		dp->Value.mvhilo.__ptr = s_alloc<hiloLong>(nullptr, dp->Value.mvhilo.__size);
+		dp->Value.mvhilo.__ptr  = soap_new_hiloLong(nullptr, dp->Value.mvhilo.__size);
 		for (gsoap_size_t i = 0; i < dp->Value.mvhilo.__size; ++i) {
 			dp->Value.mvhilo.__ptr[i].hi = sp->Value.MVft.lpft[i].dwHighDateTime;
 			dp->Value.mvhilo.__ptr[i].lo = sp->Value.MVft.lpft[i].dwLowDateTime;
