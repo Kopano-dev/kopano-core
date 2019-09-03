@@ -77,7 +77,7 @@ ECRESULT TestSet(const char *szVarName, const char *szValue)
 ECRESULT TestGet(struct soap *soap, const char *szVarName, char **szValue)
 {
 	if (strcasecmp(szVarName, "ping") == 0)
-		*szValue = s_strcpy(soap, "pong");
+		*szValue = soap_strdup(soap, "pong");
 	else
 		return KCERR_NOT_FOUND;
 	return erSuccess;

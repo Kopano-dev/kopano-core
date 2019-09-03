@@ -1569,13 +1569,13 @@ static ECRESULT CopyAnonymousDetailsToSoap(struct soap *soap,
 			if (PROP_TYPE(iter.first) == PT_BINARY && bCopyBinary) {
 				auto strData = base64_encode(iter.second.data(), iter.second.size());
 				lpsoapPropmap->__ptr[lpsoapPropmap->__size].ulPropId = iter.first;
-				lpsoapPropmap->__ptr[lpsoapPropmap->__size++].lpszValue = s_strcpy(soap, strData.c_str());
+				lpsoapPropmap->__ptr[lpsoapPropmap->__size++].lpszValue = soap_strdup(soap, strData.c_str());
 				continue;
 			}
 			if (PROP_TYPE(iter.first) != PT_STRING8 && PROP_TYPE(iter.first) != PT_UNICODE)
 				continue;
 			lpsoapPropmap->__ptr[lpsoapPropmap->__size].ulPropId = iter.first;
-			lpsoapPropmap->__ptr[lpsoapPropmap->__size++].lpszValue = s_strcpy(soap, iter.second.c_str());
+			lpsoapPropmap->__ptr[lpsoapPropmap->__size++].lpszValue = soap_strdup(soap, iter.second.c_str());
 		}
 	}
 
@@ -1591,8 +1591,7 @@ static ECRESULT CopyAnonymousDetailsToSoap(struct soap *soap,
 				lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__ptr = s_alloc<char *>(soap, lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__size);
 				for (const auto &entry : iter.second) {
 					auto strData = base64_encode(entry.data(), entry.size());
-					lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__ptr[j] = s_strcpy(soap, strData.c_str());
-					++j;
+					lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__ptr[j++] = soap_strdup(soap, strData.c_str());
 				}
 				++lpsoapMVPropmap->__size;
 				continue;
@@ -1605,10 +1604,8 @@ static ECRESULT CopyAnonymousDetailsToSoap(struct soap *soap,
 			lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].ulPropId = iter.first;
 			lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__size = iter.second.size();
 			lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__ptr = s_alloc<char *>(soap, lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__size);
-			for (const auto &entry : iter.second) {
-				lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__ptr[j] = s_strcpy(soap, entry.c_str());
-				++j;
-			}
+			for (const auto &entry : iter.second)
+				lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__ptr[j++] = soap_strdup(soap, entry.c_str());
 			++lpsoapMVPropmap->__size;
 		}
 	}
@@ -1651,14 +1648,14 @@ ECRESULT CopyUserDetailsToSoap(unsigned int ulId, entryId *lpUserEid, const obje
 
 	// assert(OBJECTCLASS_TYPE(objClass) == OBJECTTYPE_MAILUSER);
 	lpUser->ulUserId = ulId;
-	lpUser->lpszUsername = s_strcpy(soap, details.GetPropString(OB_PROP_S_LOGIN).c_str());
+	lpUser->lpszUsername = soap_strdup(soap, details.GetPropString(OB_PROP_S_LOGIN).c_str());
 	lpUser->ulIsNonActive = 0;
 	lpUser->ulObjClass = objClass;
-	lpUser->lpszMailAddress = s_strcpy(soap, details.GetPropString(OB_PROP_S_EMAIL).c_str());
-	lpUser->lpszFullName = s_strcpy(soap, details.GetPropString(OB_PROP_S_FULLNAME).c_str());
+	lpUser->lpszMailAddress = soap_strdup(soap, details.GetPropString(OB_PROP_S_EMAIL).c_str());
+	lpUser->lpszFullName = soap_strdup(soap, details.GetPropString(OB_PROP_S_FULLNAME).c_str());
 	lpUser->ulIsAdmin = details.GetPropInt(OB_PROP_I_ADMINLEVEL);
 	lpUser->lpszPassword = const_cast<char *>("");
-	lpUser->lpszServername = s_strcpy(soap, details.GetPropString(OB_PROP_S_SERVERNAME).c_str());
+	lpUser->lpszServername = soap_strdup(soap, details.GetPropString(OB_PROP_S_SERVERNAME).c_str());
 	lpUser->ulIsABHidden = details.GetPropBool(OB_PROP_B_AB_HIDDEN);
 	lpUser->ulCapacity = details.GetPropInt(OB_PROP_I_RESOURCE_CAPACITY);
 	lpUser->lpsPropmap = NULL;
@@ -1701,9 +1698,9 @@ ECRESULT CopyGroupDetailsToSoap(unsigned int ulId, entryId *lpGroupEid, const ob
 {
 	// assert(OBJECTCLASS_TYPE(details.GetClass()) == OBJECTTYPE_DISTLIST);
 	lpGroup->ulGroupId = ulId;
-	lpGroup->lpszGroupname = s_strcpy(soap, details.GetPropString(OB_PROP_S_LOGIN).c_str());
-	lpGroup->lpszFullname = s_strcpy(soap, details.GetPropString(OB_PROP_S_FULLNAME).c_str());
-	lpGroup->lpszFullEmail = s_strcpy(soap, details.GetPropString(OB_PROP_S_EMAIL).c_str());
+	lpGroup->lpszGroupname = soap_strdup(soap, details.GetPropString(OB_PROP_S_LOGIN).c_str());
+	lpGroup->lpszFullname = soap_strdup(soap, details.GetPropString(OB_PROP_S_FULLNAME).c_str());
+	lpGroup->lpszFullEmail = soap_strdup(soap, details.GetPropString(OB_PROP_S_EMAIL).c_str());
 	lpGroup->ulIsABHidden = details.GetPropBool(OB_PROP_B_AB_HIDDEN);
 	lpGroup->lpsPropmap = NULL;
 	lpGroup->lpsMVPropmap = NULL;
@@ -1735,9 +1732,9 @@ ECRESULT CopyCompanyDetailsToSoap(unsigned int ulId, entryId *lpCompanyEid, unsi
 {
 	// assert(details.GetClass() == CONTAINER_COMPANY);
 	lpCompany->ulCompanyId = ulId;
-	lpCompany->lpszCompanyname = s_strcpy(soap, details.GetPropString(OB_PROP_S_FULLNAME).c_str());
+	lpCompany->lpszCompanyname = soap_strdup(soap, details.GetPropString(OB_PROP_S_FULLNAME).c_str());
 	lpCompany->ulAdministrator = ulAdmin;
-	lpCompany->lpszServername = s_strcpy(soap, details.GetPropString(OB_PROP_S_SERVERNAME).c_str());
+	lpCompany->lpszServername = soap_strdup(soap, details.GetPropString(OB_PROP_S_SERVERNAME).c_str());
 	lpCompany->ulIsABHidden = details.GetPropBool(OB_PROP_B_AB_HIDDEN);
 	lpCompany->lpsPropmap = NULL;
 	lpCompany->lpsMVPropmap = NULL;
