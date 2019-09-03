@@ -1378,15 +1378,6 @@ ECRESULT CopyRightsArrayToSoap(struct soap *soap, struct rightsArray *lpRightsAr
 	return erSuccess;
 }
 
-ECRESULT FreeRightsArray(struct rightsArray *lpRights)
-{
-	if(lpRights == NULL)
-		return erSuccess;
-	soap_del_rightsArray(lpRights);
-	s_free(nullptr, lpRights);
-	return erSuccess;
-}
-
 static const struct propVal *
 SpropValFindPropVal(const struct propValArray *lpsPropValArray,
     unsigned int ulPropTag)

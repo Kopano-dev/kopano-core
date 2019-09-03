@@ -65,7 +65,6 @@ ECRESULT			FreeNotificationArrayStruct(notificationArray *lpNotifyArray, bool bF
 ECRESULT			CopyNotificationArrayStruct(notificationArray *lpNotifyArrayFrom, notificationArray *lpNotifyArrayTo);
 
 // Rights
-ECRESULT			FreeRightsArray(struct rightsArray *lpRights);
 ECRESULT			CopyRightsArrayToSoap(struct soap *soap, struct rightsArray *lpRightsArraySrc, struct rightsArray **lppRightsArrayDst);
 
 // userobjects
