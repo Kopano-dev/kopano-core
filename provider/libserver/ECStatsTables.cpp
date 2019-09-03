@@ -156,7 +156,7 @@ ECRESULT ECSystemStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis,
     struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
 {
 	auto lpThis = static_cast<ECSystemStatsTable *>(lpGenericThis);
-	auto lpsRowSet = s_alloc<rowSet>(soap);
+	auto lpsRowSet = soap_new_rowSet(soap);
 	lpsRowSet->__size = 0;
 	lpsRowSet->__ptr = NULL;
 
@@ -167,12 +167,12 @@ ECRESULT ECSystemStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis,
 
 	// We return a square array with all the values
 	lpsRowSet->__size = lpRowList->size();
-	lpsRowSet->__ptr = s_alloc<propValArray>(soap, lpsRowSet->__size);
+	lpsRowSet->__ptr  = soap_new_propValArray(soap, lpsRowSet->__size);
 
 	// Allocate memory for all rows
 	for (gsoap_size_t i = 0; i < lpsRowSet->__size; ++i) {
 		lpsRowSet->__ptr[i].__size = lpsPropTagArray->__size;
-		lpsRowSet->__ptr[i].__ptr = s_alloc<propVal>(soap, lpsPropTagArray->__size);
+		lpsRowSet->__ptr[i].__ptr  = soap_new_propVal(soap, lpsPropTagArray->__size);
 	}
 
 	gsoap_size_t i = 0;
@@ -312,7 +312,7 @@ ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis,
     struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
 {
 	auto lpThis = static_cast<ECSessionStatsTable *>(lpGenericThis);
-	auto lpsRowSet = s_alloc<rowSet>(soap);
+	auto lpsRowSet = soap_new_rowSet(soap);
 	lpsRowSet->__size = 0;
 	lpsRowSet->__ptr = NULL;
 
@@ -323,12 +323,12 @@ ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis,
 
 	// We return a square array with all the values
 	lpsRowSet->__size = lpRowList->size();
-	lpsRowSet->__ptr = s_alloc<propValArray>(soap, lpsRowSet->__size);
+	lpsRowSet->__ptr  = soap_new_propValArray(soap, lpsRowSet->__size);
 
 	// Allocate memory for all rows
 	for (gsoap_size_t i = 0; i < lpsRowSet->__size; ++i) {
 		lpsRowSet->__ptr[i].__size = lpsPropTagArray->__size;
-		lpsRowSet->__ptr[i].__ptr = s_alloc<propVal>(soap, lpsPropTagArray->__size);
+		lpsRowSet->__ptr[i].__ptr  = soap_new_propVal(soap, lpsPropTagArray->__size);
 	}
 
 	gsoap_size_t i = 0;
@@ -566,7 +566,7 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 	if (er != erSuccess)
 		return er;
 
-	auto lpsRowSet = s_alloc<rowSet>(soap);
+	auto lpsRowSet = soap_new_rowSet(soap);
 	lpsRowSet->__size = 0;
 	lpsRowSet->__ptr = NULL;
 
@@ -577,12 +577,12 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 
 	// We return a square array with all the values
 	lpsRowSet->__size = lpRowList->size();
-	lpsRowSet->__ptr = s_alloc<propValArray>(soap, lpsRowSet->__size);
+	lpsRowSet->__ptr  = soap_new_propValArray(soap, lpsRowSet->__size);
 
 	// Allocate memory for all rows
 	for (gsoap_size_t i = 0; i < lpsRowSet->__size; ++i) {
 		lpsRowSet->__ptr[i].__size = lpsPropTagArray->__size;
-		lpsRowSet->__ptr[i].__ptr = s_alloc<propVal>(soap, lpsPropTagArray->__size);
+		lpsRowSet->__ptr[i].__ptr  = soap_new_propVal(soap, lpsPropTagArray->__size);
 	}
 
 	gsoap_size_t i = 0;
@@ -791,7 +791,7 @@ ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 	if (er != erSuccess)
 		return er;
 
-	auto lpsRowSet = s_alloc<rowSet>(soap);
+	auto lpsRowSet = soap_new_rowSet(soap);
 	lpsRowSet->__size = 0;
 	lpsRowSet->__ptr = NULL;
 
@@ -802,12 +802,12 @@ ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 
 	// We return a square array with all the values
 	lpsRowSet->__size = lpRowList->size();
-	lpsRowSet->__ptr = s_alloc<propValArray>(soap, lpsRowSet->__size);
+	lpsRowSet->__ptr  = soap_new_propValArray(soap, lpsRowSet->__size);
 
 	// Allocate memory for all rows
 	for (gsoap_size_t i = 0; i < lpsRowSet->__size; ++i) {
 		lpsRowSet->__ptr[i].__size = lpsPropTagArray->__size;
-		lpsRowSet->__ptr[i].__ptr = s_alloc<propVal>(soap, lpsPropTagArray->__size);
+		lpsRowSet->__ptr[i].__ptr  = soap_new_propVal(soap, lpsPropTagArray->__size);
 	}
 
 	gsoap_size_t i = 0;
@@ -964,7 +964,7 @@ ECRESULT ECServerStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 	serverdetails_t details;
 	auto lpStats = static_cast<ECServerStatsTable *>(lpThis);
 
-	lpsRowSet = s_alloc<rowSet>(soap);
+	lpsRowSet = soap_new_rowSet(soap);
 	lpsRowSet->__size = 0;
 	lpsRowSet->__ptr = NULL;
 
@@ -975,12 +975,12 @@ ECRESULT ECServerStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 
 	// We return a square array with all the values
 	lpsRowSet->__size = lpRowList->size();
-	lpsRowSet->__ptr = s_alloc<propValArray>(soap, lpsRowSet->__size);
+	lpsRowSet->__ptr  = soap_new_propValArray(soap, lpsRowSet->__size);
 
 	// Allocate memory for all rows
 	for (gsoap_size_t i = 0; i < lpsRowSet->__size; ++i) {
 		lpsRowSet->__ptr[i].__size = lpsPropTagArray->__size;
-		lpsRowSet->__ptr[i].__ptr = s_alloc<propVal>(soap, lpsPropTagArray->__size);
+		lpsRowSet->__ptr[i].__ptr  = soap_new_propVal(soap, lpsPropTagArray->__size);
 	}
 
 	gsoap_size_t i = 0;

@@ -275,8 +275,7 @@ HRESULT WSTableView::HrFindRow(const SRestriction *lpsRestriction,
 
 exit:
 	spg.unlock();
-	if(lpRestrict)
-		FreeRestrictTable(lpRestrict);
+	soap_del_PointerTorestrictTable(&lpRestrict);
 	return hr;
 }
 
@@ -568,8 +567,7 @@ HRESULT WSTableView::HrMulti(ULONG ulDeferredFlags,
 exit:
 	spg.unlock();
 	soap_del_sortOrderArray(&sSort.sSortOrder);
-	if(lpsRestrictTable)
-		FreeRestrictTable(lpsRestrictTable);
+	soap_del_PointerTorestrictTable(&lpsRestrictTable);
 	return hr;
 }
 

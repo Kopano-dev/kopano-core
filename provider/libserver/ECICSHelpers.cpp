@@ -950,7 +950,7 @@ ECRESULT ECGetContentChangesHelper::MatchRestrictions(const std::vector<DB_ROW> 
 exit:
 	delete sODStore.lpGuid;
 	soap_del_PointerTopropTagArray(&lpPropTags);
-	FreeRowSet(lpRowSet);
+	soap_del_PointerTorowSet(&lpRowSet);
 	return er;
 }
 

@@ -151,7 +151,7 @@ ECConvenientDepthABObjectTable::ECConvenientDepthABObjectTable(ECSession *ses,
 	 * abtable_initially_empty. Requestors using CONVENIENT_DEPTH normally
 	 * want all the entries, so give it to them.
 	 */
-	FreeRestrictTable(lpsRestrict);
+	soap_del_PointerTorestrictTable(&lpsRestrict);
 	lpsRestrict = nullptr;
 }
 

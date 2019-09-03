@@ -113,7 +113,7 @@ ECGenericObjectTable::~ECGenericObjectTable()
 {
 	soap_del_PointerTopropTagArray(&lpsPropTagArray);
 	soap_del_PointerTosortOrderArray(&lpsSortOrderArray);
-	FreeRestrictTable(lpsRestrict);
+	soap_del_PointerTorestrictTable(&lpsRestrict);
 	for (const auto &p : m_mapCategories)
 		delete p.second;
 }
@@ -237,7 +237,7 @@ ECRESULT ECGenericObjectTable::FindRow(struct restrictTable *rt,
 
 		// Get the rowdata from the QueryRowData function
 		struct rowSet *lpRowSet = nullptr;
-		auto rowset_clean = make_scope_success([&]() { FreeRowSet(lpRowSet); });
+		auto rowset_clean = make_scope_success([&]() { soap_del_PointerTorowSet(&lpRowSet); });
 		er = m_lpfnQueryRowData(this, NULL, lpSession, &ecRowList, lpPropTags, m_lpObjectData, &lpRowSet, true, false);
 		if(er != erSuccess)
 			return er;
@@ -694,7 +694,7 @@ ECRESULT ECGenericObjectTable::Restrict(struct restrictTable *rt)
 	if (lpsRestrict == nullptr && rt == nullptr)
 		return er;
 	// Copy the restriction so we can remember it
-	FreeRestrictTable(lpsRestrict);
+	soap_del_PointerTorestrictTable(&lpsRestrict);
 	lpsRestrict = nullptr;
 	if (rt != nullptr) {
 		er = CopyRestrictTable(nullptr, rt, &lpsRestrict);
@@ -848,7 +848,7 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 			++ulLoaded;
 		}
 
-		FreeRowSet(lpRowSet);
+		soap_del_PointerTorowSet(&lpRowSet);
 		lpRowSet = NULL;
 	}
 
@@ -856,7 +856,7 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 		*lpulLoaded = ulLoaded;
 exit:
 	biglock.unlock();
-	FreeRowSet(lpRowSet);
+	soap_del_PointerTorowSet(&lpRowSet);
 	soap_del_PointerTopropTagArray(&lpsRestrictPropTagArray);
 	soap_del_propTagArray(&sPropTagArray);
 	return er;
@@ -900,7 +900,7 @@ ECRESULT ECGenericObjectTable::AddTableNotif(ECKeyTable::UpdateType ulAction, sO
 
     if(ulAction == ECKeyTable::TABLE_ROW_ADD || ulAction == ECKeyTable::TABLE_ROW_MODIFY) {
 		lstItems.emplace_back(sRowItem);
-		auto cleanup = make_scope_success([&]() { FreeRowSet(lpRowSetNotif); });
+		auto cleanup = make_scope_success([&]() { soap_del_PointerTorowSet(&lpRowSetNotif); });
 		er = m_lpfnQueryRowData(this, nullptr, lpSession, &lstItems, lpsPropTagArray, m_lpObjectData, &lpRowSetNotif, true, true);
         if(er != erSuccess)
 			return er;
@@ -938,7 +938,7 @@ ECRESULT ECGenericObjectTable::QueryRows(struct soap *soap, unsigned int ulRowCo
 		return er;
 	assert(ecRowList.size() <= mapObjects.size() + m_mapCategories.size());
 	if(ecRowList.empty()) {
-		lpRowSet = s_alloc<rowSet>(soap);
+		lpRowSet = soap_new_rowSet(soap);
 		lpRowSet->__size = 0;
 		lpRowSet->__ptr = NULL;
 	} else {
@@ -1007,7 +1007,7 @@ ECRESULT ECGenericObjectTable::ExpandRow(struct soap *soap, xsd__base64Binary sI
     // Get the row data to return, if required
     if(lppRowSet) {
         if(lstUnhidden.empty()){
-    		lpRowSet = s_alloc<rowSet>(soap);
+			lpRowSet = soap_new_rowSet(soap);
     		lpRowSet->__size = 0;
     		lpRowSet->__ptr = NULL;
     	} else {
@@ -1091,7 +1091,7 @@ ECRESULT ECGenericObjectTable::GetCollapseState(struct soap *soap, struct xsd__b
 
 	for (const auto &p : m_mapCategories) {
 		sCollapseState.sCategoryStates.__ptr[n].fExpanded = p.second->m_fExpanded;
-		sCollapseState.sCategoryStates.__ptr[n].sProps.__ptr = s_alloc<struct propVal>(soap, p.second->m_cProps);
+		sCollapseState.sCategoryStates.__ptr[n].sProps.__ptr = soap_new_propVal(soap, p.second->m_cProps);
 		for (unsigned int i = 0; i < p.second->m_cProps; ++i) {
 			er = CopyPropVal(&p.second->m_lpProps[i], &sCollapseState.sCategoryStates.__ptr[n].sProps.__ptr[i], soap);
             if (er != erSuccess)
@@ -2306,7 +2306,7 @@ ECRESULT ECGenericObjectTable::UpdateKeyTableRow(ECCategory *lpCategory, sObject
 exit:
 	if (lpOrderedProps != nullptr)
 		for (unsigned int i = 0; i < cValues; ++i)
-			FreePropVal(&lpOrderedProps[i], false);
+			soap_del_propVal(&lpOrderedProps[i]);
 	return er;
 }
 
@@ -2393,8 +2393,9 @@ ECRESULT ECGenericObjectTable::RemoveCategoryAfterRemoveRow(sObjectTableKey sObj
 						goto exit;
 					if ((ulFlags & OBJECTTABLE_NOTIFY) && !fHidden)
 						AddTableNotif(ulAction, obj, &sPrevRow);
-					FreePropVal(&sProp, false);
+					soap_del_propVal(&sProp);
 					sProp.ulPropTag = PR_NULL;
+					sProp.__union   = 0;
 				}
 			}
 		}
@@ -2435,8 +2436,9 @@ ECRESULT ECGenericObjectTable::RemoveCategoryAfterRemoveRow(sObjectTableKey sObj
     // All done
 	assert(m_mapCategories.size() == m_mapSortedCategories.size());
 exit:
-	FreePropVal(&sProp, false);
+	soap_del_propVal(&sProp);
 	sProp.ulPropTag = PR_NULL;
+	sProp.__union   = 0;
 	return er;
 }
 
@@ -2541,7 +2543,7 @@ ECCategory::ECCategory(unsigned int ulCategory, struct propVal *lpProps,
 {
     unsigned int i;
 
-	m_lpProps = s_alloc<propVal>(nullptr, nProps);
+	m_lpProps = soap_new_propVal(nullptr, nProps);
 	for (i = 0; i < cProps; ++i)
 		CopyPropVal(&lpProps[i], &m_lpProps[i]);
 	for (; i < nProps; ++i) {
@@ -2556,10 +2558,10 @@ ECCategory::~ECCategory()
     unsigned int i;
 
 	for (i = 0; i < m_cProps; ++i)
-		FreePropVal(&m_lpProps[i], false);
+		soap_del_propVal(&m_lpProps[i]);
 	for (const auto &p : m_mapMinMax)
-		FreePropVal(p.second, true);
-	s_free(nullptr, m_lpProps);
+		soap_del_PointerTopropVal(&p.second);
+	SOAP_DELETE_ARRAY(nullptr, m_lpProps, struct propVal);
 }
 
 ECRESULT ECCategory::GetProp(struct soap *soap, unsigned int ulPropTag, struct propVal* lpPropVal)
@@ -2580,7 +2582,7 @@ ECRESULT ECCategory::GetProp(struct soap *soap, unsigned int ulPropTag, struct p
 ECRESULT ECCategory::SetProp(unsigned int i, struct propVal* lpPropVal)
 {
     assert(i < m_cProps);
-    FreePropVal(&m_lpProps[i], false);
+	soap_del_propVal(&m_lpProps[i]);
 	return CopyPropVal(lpPropVal, &m_lpProps[i], nullptr);
 }
 
@@ -2621,7 +2623,8 @@ ECRESULT ECCategory::UpdateMinMax(const sObjectTableKey &sKey, unsigned int i, s
 	if (iterMinMax == m_mapMinMax.cend()) {
 		m_mapMinMax.emplace(sKey, lpNew);
 	} else {
-		FreePropVal(iterMinMax->second, true); // NOTE this may free lpNewValue, so you can't use that anymore now
+		/* NOTE this may free lpNewValue, so you cannot use that anymore now */
+		soap_del_PointerTopropVal(&iterMinMax->second);
 		iterMinMax->second = lpNew;
 	}
 
@@ -2658,14 +2661,15 @@ ECRESULT ECCategory::UpdateMinMaxRemove(const sObjectTableKey &sKey, unsigned in
 	if (iterMinMax == m_mapMinMax.cend())
 		return KCERR_NOT_FOUND;
 
-	FreePropVal(iterMinMax->second, true);
+	soap_del_PointerTopropVal(&iterMinMax->second);
 	m_mapMinMax.erase(iterMinMax);
 
 	if(m_sCurMinMax == sKey) {
 		fModified = true;
 		// Reset old value
-		FreePropVal(&m_lpProps[i], false);
+		soap_del_propVal(&m_lpProps[i]);
 		m_lpProps[i].ulPropTag = PR_NULL;
+		m_lpProps[i].__union   = 0;
 		// The min/max value until now was updated. Find the next min/max value.
 		for (iterMinMax = m_mapMinMax.begin();
 		     iterMinMax != m_mapMinMax.end(); ++iterMinMax)

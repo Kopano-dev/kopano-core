@@ -262,12 +262,12 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
 		return er;
 
 	auto cache = lpSession->GetSessionManager()->GetCacheManager();
-	auto lpsRowSet = s_alloc<rowSet>(soap);
+	auto lpsRowSet = soap_new_rowSet(soap);
 	lpsRowSet->__size = 0;
 	lpsRowSet->__ptr = NULL;
 	auto cleanup = make_scope_success([&] {
 		if (soap == nullptr)
-			FreeRowSet(lpsRowSet);
+			soap_del_PointerTorowSet(&lpsRowSet);
 	});
 
 	if (lpRowList == nullptr || lpRowList->empty()) {
@@ -281,12 +281,12 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
 
 	// We return a square array with all the values
 	lpsRowSet->__size = lpRowList->size();
-	lpsRowSet->__ptr = s_alloc<propValArray>(soap, lpsRowSet->__size);
+	lpsRowSet->__ptr  = soap_new_propValArray(soap, lpsRowSet->__size);
 
 	// Allocate memory for all rows
 	for (i = 0; i < lpsRowSet->__size; ++i) {
 		lpsRowSet->__ptr[i].__size = lpsPropTagArray->__size;
-		lpsRowSet->__ptr[i].__ptr = s_alloc<propVal>(soap, lpsPropTagArray->__size);
+		lpsRowSet->__ptr[i].__ptr  = soap_new_propVal(soap, lpsPropTagArray->__size);
 	}
 
 	// Scan cache for anything that we can find, and generate any properties that don't come from normal database queries.
@@ -655,7 +655,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
 				auto &pv = lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second];
 				// free prop if we're not allocing by soap
 				if (soap == nullptr && pv.ulPropTag != 0) {
-					FreePropVal(&pv, false);
+					soap_del_propVal(&pv);
 					soap_default_propVal(soap, &pv);
 				}
 				if (CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, &pv) != erSuccess) {
@@ -821,7 +821,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 				// free prop if we're not allocing by soap
 				auto &m = lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second];
 				if (soap == nullptr && m.ulPropTag != 0) {
-					FreePropVal(&m, false);
+					soap_del_propVal(&m);
 					soap_default_propVal(soap, &m);
 				}
 
@@ -860,7 +860,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 			auto &pv = lpsRowSet->__ptr[ob.second].__ptr[col.second];
 			// We may be overwriting a value that was retrieved from the cache before.
 			if (soap == nullptr && pv.ulPropTag != 0)
-				FreePropVal(&pv, false);
+				soap_del_propVal(&pv);
 			CopyEmptyCellToSOAPPropVal(soap, col.first, &pv);
 			if (propVal_is_truncated(&pv))
 				continue;
@@ -1108,7 +1108,7 @@ ECRESULT ECStoreObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int *
     	er = ECGenericObjectTable::AddRowKey(&sMatchedRows, lpulLoaded, ulFlags, bLoad, true, lpNewRestrict);
 exit:
 	biglock.unlock();
-	FreeRestrictTable(lpNewRestrict);
+	soap_del_PointerTorestrictTable(&lpNewRestrict);
 	return er;
 }
 

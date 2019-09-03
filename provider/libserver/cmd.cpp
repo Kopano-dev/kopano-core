@@ -1435,7 +1435,7 @@ SOAP_ENTRY_START(loadProp, lpsResponse->er, const entryId &sEntryId,
 		return er;
 
 	if (ulPropTag == PR_ATTACH_DATA_BIN || ulPropTag == PR_EC_IMAP_EMAIL) {
-		lpsResponse->lpPropVal = s_alloc<propVal>(soap);
+		lpsResponse->lpPropVal = soap_new_propVal(soap);
 		lpsResponse->lpPropVal->ulPropTag = ulPropTag;
 		lpsResponse->lpPropVal->__union = SOAP_UNION_propValData_bin;
 		lpsResponse->lpPropVal->Value.bin = soap_new_xsd__base64Binary(soap);
@@ -1463,7 +1463,7 @@ SOAP_ENTRY_START(loadProp, lpsResponse->er, const entryId &sEntryId,
 		ec_log_err("loadProp(): no rows from db");
 		return KCERR_DATABASE_ERROR;
 	}
-	lpsResponse->lpPropVal = s_alloc<propVal>(soap);
+	lpsResponse->lpPropVal = soap_new_propVal(soap);
 	return CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, lpsResponse->lpPropVal);
 }
 SOAP_ENTRY_END()
@@ -2253,7 +2253,7 @@ static unsigned int SaveObject(struct soap *soap, ECSession *lpecSession,
 	lpsReturnObj->delProps.__size = 8;
 	lpsReturnObj->delProps.__ptr  = soap_new_unsignedInt(soap, lpsReturnObj->delProps.__size);
 	lpsReturnObj->modProps.__size = 8;
-	lpsReturnObj->modProps.__ptr = s_alloc<struct propVal>(soap, lpsReturnObj->modProps.__size);
+	lpsReturnObj->modProps.__ptr  = soap_new_propVal(soap, lpsReturnObj->modProps.__size);
 	n = 0;
 
 	// set the PR_RECORD_KEY
@@ -7882,7 +7882,7 @@ SOAP_ENTRY_START(abResolveNames, lpsABResolveNames->er, struct propTagArray* lpa
 	lpsABResolveNames->aFlags.__size = lpaFlags->__size;
 	lpsABResolveNames->aFlags.__ptr   = soap_new_unsignedInt(soap, lpaFlags->__size);
 	lpsABResolveNames->sRowSet.__size = lpsRowSet->__size;
-	lpsABResolveNames->sRowSet.__ptr = s_alloc<propValArray>(soap, lpsRowSet->__size);
+	lpsABResolveNames->sRowSet.__ptr  = soap_new_propValArray(soap, lpsRowSet->__size);
 
 	auto usrmgt = lpecSession->GetUserManagement();
 	for (gsoap_size_t i = 0; i < lpsRowSet->__size; ++i) {
@@ -8958,7 +8958,7 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags,
 
 	auto cleanup = make_scope_success([&]() {
 		if (lpsStreamInfo != nullptr)
-			FreePropValArray(lpsStreamInfo->lpPropValArray, true);
+			soap_del_PointerTopropValArray(&lpsStreamInfo->lpPropValArray);
 		FreeDeletedItems(&lstDeleteItems);
 		ROLLBACK_ON_ERROR();
 		if (er == erSuccess)

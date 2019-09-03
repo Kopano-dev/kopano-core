@@ -994,7 +994,7 @@ ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, 
 
 			iterChild->second.lpPropVals->GetPropValArray(&props);
 			er = SerializeProps(&props, lpStreamCaps, lpSink, &mapNamedPropDefs);
-			FreePropValArray(&props, false);
+			soap_del_propValArray(&props);
 			if(er != erSuccess)
 				goto exit;
 		}
@@ -1086,7 +1086,7 @@ static ECRESULT DeserializePropVal(struct soap *soap,
 	std::string		strNameString;
 	convert_context	converter;
 
-	auto lpsPropval = s_alloc<propVal>(soap);
+	auto lpsPropval = soap_new_propVal(soap);
 	auto er = lpSource->Read(&lpsPropval->ulPropTag, sizeof(lpsPropval->ulPropTag), 1);
 	if (er != erSuccess)
 		return er;
@@ -1318,8 +1318,8 @@ static ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 		// If requested we can store up to ulCount properties. Currently we won't store them all though.
 		// Note that we test on lppPropValArray but allocate lpPropValArray. We'll assign that to
 		// *lppPropValArray later if all went well.
-		lpPropValArray = s_alloc<struct propValArray>(NULL);
-		lpPropValArray->__ptr = s_alloc<struct propVal>(NULL, ulCount);
+		lpPropValArray = soap_new_propValArray(nullptr);
+		lpPropValArray->__ptr  = soap_new_propVal(nullptr, ulCount);
 		lpPropValArray->__size = 0;
 	}
 
@@ -1467,7 +1467,7 @@ next_property:
 		lpPropValArray = NULL;
 	}
 exit:
-	FreePropValArray(lpPropValArray, true);
+	soap_del_PointerTopropValArray(&lpPropValArray);
 	if (soap) {
 		soap_destroy(soap);
 		soap_end(soap);
@@ -1622,7 +1622,7 @@ exit:
 		lpSource->Flush(); // Flush the whole stream
 		ec_log_err("DeserializeObject failed with error code 0x%08x %s", er, GetMAPIErrorMessage(kcerr_to_mapierr(er, ~0U /* anything that yields UNKNOWN */)));
 	}
-	FreePropValArray(lpPropValArray, true);
+	soap_del_PointerTopropValArray(&lpPropValArray);
 	return er;
 }
 

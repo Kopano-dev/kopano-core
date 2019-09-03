@@ -3106,8 +3106,7 @@ HRESULT WSTransport::HrResolveNames(const SPropTagArray *lpPropTagArray,
 	}
  exitm:
 	spg.unlock();
-	if(lpsRowSet)
-		FreeRowSet(lpsRowSet);
+	soap_del_PointerTorowSet(&lpsRowSet);
 	return hr;
 }
 
@@ -3560,8 +3559,7 @@ HRESULT WSTransport::HrGetChanges(const std::string &sourcekey, ULONG ulSyncId,
 	*lppChanges = lpChanges.release();
  exitm:
 	spg.unlock();
-	if(lpsSoapRestrict)
-	    FreeRestrictTable(lpsSoapRestrict);
+	soap_del_PointerTorestrictTable(&lpsSoapRestrict);
 	return hr;
 }
 

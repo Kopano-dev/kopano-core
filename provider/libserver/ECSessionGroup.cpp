@@ -270,7 +270,7 @@ ECRESULT ECSessionGroup::AddNotificationTable(ECSESSIONID ulSessionId, unsigned 
 
 	lpNotify->tab->ulObjType = ulObjType;
 	if(lpRow) {
-		lpNotify->tab->pRow = s_alloc<propValArray>(nullptr);
+		lpNotify->tab->pRow = soap_new_propValArray(nullptr);
 		lpNotify->tab->pRow->__ptr = lpRow->__ptr;
 		lpNotify->tab->pRow->__size = lpRow->__size;
 	}

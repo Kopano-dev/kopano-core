@@ -227,8 +227,8 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 		// NOTE: we placed the object pointer in lpszA to make sure it is on the same offset as Value.x on 32-bit and 64-bit machines
 		auto lpSrcActions = reinterpret_cast<const ACTIONS *>(sp->Value.lpszA);
 		dp->__union = SOAP_UNION_propValData_actions;
-		dp->Value.actions = s_alloc<actions>(nullptr);
-		dp->Value.actions->__ptr = s_alloc<action>(nullptr, lpSrcActions->cActions);
+		dp->Value.actions = soap_new_actions(nullptr);
+		dp->Value.actions->__ptr  = soap_new_action(nullptr, lpSrcActions->cActions);
 		dp->Value.actions->__size = lpSrcActions->cActions;
 
 		for (unsigned int i = 0; i < lpSrcActions->cActions; ++i) {
@@ -280,7 +280,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 				break;
 			case OP_TAG:
 				da->__union = SOAP_UNION__act_prop;
-				da->act.prop = s_alloc<propVal>(nullptr);
+				da->act.prop = soap_new_propVal(nullptr);
 				hr = CopyMAPIPropValToSOAPPropVal(da->act.prop, &sa->propTag, lpConverter);
 				break;
 			case OP_DELETE:
@@ -963,14 +963,14 @@ HRESULT CopyMAPIRowToSOAPRow(const SRow *lpRowSrc,
 		return CopyMAPIRowToSOAPRow(lpRowSrc, lpsRowDst, &converter);
 	}
 
-	auto lpPropVal = s_alloc<propVal>(nullptr, lpRowSrc->cValues);
+	auto lpPropVal = soap_new_propVal(nullptr, lpRowSrc->cValues);
 	lpsRowDst->__ptr = lpPropVal;
 	lpsRowDst->__size = 0;
 
 	for (unsigned int i = 0; i < lpRowSrc->cValues; ++i) {
 		auto hr = CopyMAPIPropValToSOAPPropVal(&lpPropVal[i], &lpRowSrc->lpProps[i], lpConverter);
 		if (hr != hrSuccess) {
-			FreePropValArray(lpsRowDst, false);
+			soap_del_propValArray(lpsRowDst);
 			lpsRowDst->__ptr = nullptr;
 			return hr;
 		}
@@ -986,17 +986,17 @@ HRESULT CopyMAPIRowSetToSOAPRowSet(const SRowSet *lpRowSetSrc,
 		convert_context converter;
 		return CopyMAPIRowSetToSOAPRowSet(lpRowSetSrc, lppsRowSetDst, &converter);
 	}
-	auto lpsRowSetDst = s_alloc<rowSet>(nullptr);
+	auto lpsRowSetDst = soap_new_rowSet(nullptr);
 	lpsRowSetDst->__ptr = NULL;
 	lpsRowSetDst->__size = 0;
 	if (lpRowSetSrc->cRows > 0) {
-		lpsRowSetDst->__ptr = s_alloc<propValArray>(nullptr, lpRowSetSrc->cRows);
+		lpsRowSetDst->__ptr  = soap_new_propValArray(nullptr, lpRowSetSrc->cRows);
 		lpsRowSetDst->__size = 0;
 
 		for (unsigned int i = 0; i < lpRowSetSrc->cRows; ++i) {
 			auto hr = CopyMAPIRowToSOAPRow(&lpRowSetSrc->aRow[i], &lpsRowSetDst->__ptr[i], lpConverter);
 			if (hr != hrSuccess) {
-				FreeRowSet(lpsRowSetDst);
+				soap_del_PointerTorowSet(&lpsRowSetDst);
 				return hr;
 			}
 			++lpsRowSetDst->__size;
@@ -1203,8 +1203,8 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 	HRESULT hr = hrSuccess;
 	struct restrictTable *lpDst = NULL;
 	auto laters = make_scope_success([&]() {
-		if(hr != hrSuccess && lpDst != NULL)
-			FreeRestrictTable(lpDst);
+		if (hr != hrSuccess)
+			soap_del_PointerTorestrictTable(&lpDst);
 	});
 
 	if (lpConverter == NULL) {
@@ -1212,13 +1212,13 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 		return CopyMAPIRestrictionToSOAPRestriction(lppDst, lpSrc, &converter);
 	}
 
-	lpDst = s_alloc<restrictTable>(nullptr);
+	lpDst = soap_new_restrictTable(nullptr);
 	lpDst->ulType = lpSrc->rt;
 
 	switch(lpSrc->rt) {
 	case RES_OR:
-		lpDst->lpOr = s_alloc<restrictOr>(nullptr);
-		lpDst->lpOr->__ptr = s_alloc<restrictTable *>(nullptr, lpSrc->res.resOr.cRes);
+		lpDst->lpOr = soap_new_restrictOr(nullptr);
+		lpDst->lpOr->__ptr  = reinterpret_cast<restrictTable **>(soap_malloc(nullptr, sizeof(restrictTable *) * lpSrc->res.resOr.cRes));
 		lpDst->lpOr->__size = lpSrc->res.resOr.cRes;
 		for (unsigned int i = 0; i < lpSrc->res.resOr.cRes; ++i) {
 			hr = CopyMAPIRestrictionToSOAPRestriction(&(lpDst->lpOr->__ptr[i]), &lpSrc->res.resOr.lpRes[i], lpConverter);
@@ -1229,8 +1229,8 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 		break;
 
 	case RES_AND:
-		lpDst->lpAnd = s_alloc<restrictAnd>(nullptr);
-		lpDst->lpAnd->__ptr = s_alloc<restrictTable *>(nullptr, lpSrc->res.resAnd.cRes);
+		lpDst->lpAnd = soap_new_restrictAnd(nullptr);
+		lpDst->lpAnd->__ptr  = reinterpret_cast<restrictTable **>(soap_malloc(nullptr, sizeof(restrictTable *) * lpSrc->res.resAnd.cRes));
 		lpDst->lpAnd->__size = lpSrc->res.resAnd.cRes;
 		for (unsigned int i = 0; i < lpSrc->res.resAnd.cRes; ++i) {
 			hr = CopyMAPIRestrictionToSOAPRestriction(&lpDst->lpAnd->__ptr[i], &lpSrc->res.resAnd.lpRes[i], lpConverter);
@@ -1241,15 +1241,15 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 		break;
 
 	case RES_BITMASK:
-		lpDst->lpBitmask = s_alloc<restrictBitmask>(nullptr);
+		lpDst->lpBitmask = soap_new_restrictBitmask(nullptr);
 		lpDst->lpBitmask->ulMask = lpSrc->res.resBitMask.ulMask;
 		lpDst->lpBitmask->ulPropTag = lpSrc->res.resBitMask.ulPropTag;
 		lpDst->lpBitmask->ulType = lpSrc->res.resBitMask.relBMR;
 		break;
 
 	case RES_COMMENT:
-		lpDst->lpComment = s_alloc<restrictComment>(nullptr);
-		lpDst->lpComment->sProps.__ptr = s_alloc<propVal>(nullptr, lpSrc->res.resComment.cValues);
+		lpDst->lpComment = soap_new_restrictComment(nullptr);
+		lpDst->lpComment->sProps.__ptr  = soap_new_propVal(nullptr, lpSrc->res.resComment.cValues);
 		lpDst->lpComment->sProps.__size = lpSrc->res.resComment.cValues;
 		for (unsigned int i = 0; i < lpSrc->res.resComment.cValues; ++i) {
 			hr = CopyMAPIPropValToSOAPPropVal(&lpDst->lpComment->sProps.__ptr[i], &lpSrc->res.resComment.lpProp[i], lpConverter);
@@ -1263,14 +1263,14 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 		break;
 
 	case RES_COMPAREPROPS:
-		lpDst->lpCompare = s_alloc<restrictCompare>(nullptr);
+		lpDst->lpCompare = soap_new_restrictCompare(nullptr);
 		lpDst->lpCompare->ulPropTag1 = lpSrc->res.resCompareProps.ulPropTag1;
 		lpDst->lpCompare->ulPropTag2 = lpSrc->res.resCompareProps.ulPropTag2;
 		lpDst->lpCompare->ulType = lpSrc->res.resCompareProps.relop;
 		break;
 
 	case RES_CONTENT:
-		lpDst->lpContent = s_alloc<restrictContent>(nullptr);
+		lpDst->lpContent = soap_new_restrictContent(nullptr);
 		if( (PROP_TYPE(lpSrc->res.resContent.lpProp->ulPropTag) != PT_BINARY &&
 			PROP_TYPE(lpSrc->res.resContent.lpProp->ulPropTag) != PT_MV_BINARY &&
 			PROP_TYPE(lpSrc->res.resContent.lpProp->ulPropTag) != PT_STRING8 &&
@@ -1284,28 +1284,28 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 
 		lpDst->lpContent->ulFuzzyLevel = lpSrc->res.resContent.ulFuzzyLevel;
 		lpDst->lpContent->ulPropTag = lpSrc->res.resContent.ulPropTag;
-		lpDst->lpContent->lpProp = s_alloc<propVal>(nullptr);
+		lpDst->lpContent->lpProp = soap_new_propVal(nullptr);
 		hr = CopyMAPIPropValToSOAPPropVal(lpDst->lpContent->lpProp, lpSrc->res.resContent.lpProp, lpConverter);
 		if(hr != hrSuccess)
 			return hr;
 		break;
 
 	case RES_EXIST:
-		lpDst->lpExist = s_alloc<restrictExist>(nullptr);
+		lpDst->lpExist = soap_new_restrictExist(nullptr);
 		lpDst->lpExist->ulPropTag = lpSrc->res.resExist.ulPropTag;
 		break;
 
 	case RES_NOT:
-		lpDst->lpNot = s_alloc<restrictNot>(nullptr);
+		lpDst->lpNot = soap_new_restrictNot(nullptr);
 		hr = CopyMAPIRestrictionToSOAPRestriction(&lpDst->lpNot->lpNot, lpSrc->res.resNot.lpRes, lpConverter);
 		if(hr != hrSuccess)
 			return hr;
 		break;
 
 	case RES_PROPERTY:
-		lpDst->lpProp = s_alloc<restrictProp>(nullptr);
+		lpDst->lpProp = soap_new_restrictProp(nullptr);
 		lpDst->lpProp->ulType = lpSrc->res.resProperty.relop;
-		lpDst->lpProp->lpProp = s_alloc<propVal>(nullptr);
+		lpDst->lpProp->lpProp = soap_new_propVal(nullptr);
 		lpDst->lpProp->ulPropTag = lpSrc->res.resProperty.ulPropTag;
 
 		hr = CopyMAPIPropValToSOAPPropVal(lpDst->lpProp->lpProp, lpSrc->res.resProperty.lpProp, lpConverter);
@@ -1314,14 +1314,14 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 		break;
 
 	case RES_SIZE:
-		lpDst->lpSize = s_alloc<restrictSize>(nullptr);
+		lpDst->lpSize = soap_new_restrictSize(nullptr);
 		lpDst->lpSize->cb = lpSrc->res.resSize.cb;
 		lpDst->lpSize->ulPropTag = lpSrc->res.resSize.ulPropTag;
 		lpDst->lpSize->ulType = lpSrc->res.resSize.relop;
 		break;
 
 	case RES_SUBRESTRICTION:
-		lpDst->lpSub = s_alloc<restrictSub>(nullptr);
+		lpDst->lpSub = soap_new_restrictSub(nullptr);
 		lpDst->lpSub->ulSubObject = lpSrc->res.resSub.ulSubObject;
 		hr = CopyMAPIRestrictionToSOAPRestriction(&lpDst->lpSub->lpSubObject, lpSrc->res.resSub.lpRes, lpConverter);
 		if(hr != hrSuccess)

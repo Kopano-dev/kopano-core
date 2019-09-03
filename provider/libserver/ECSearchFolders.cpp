@@ -579,7 +579,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 
 				soap_del_PointerTopropTagArray(&lpPropTags);
 				lpPropTags = nullptr;
-				FreeRowSet(lpRowSet);
+				soap_del_PointerTorowSet(&lpRowSet);
 				lpRowSet = nullptr;
 			} else {
 				// Not in a target folder, remove from search results
@@ -660,8 +660,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 		lpSession->unlock();
         m_lpSessionManager->RemoveSessionInternal(lpSession);
     }
-    if(lpRowSet)
-		FreeRowSet(lpRowSet);
+	soap_del_PointerTorowSet(&lpRowSet);
     return er;
 }
 
@@ -751,7 +750,7 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase,
 	auto cache = lpSession->GetSessionManager()->GetCacheManager();
 
     // Get the row data for the search
-	auto cleanup = make_scope_success([&]() { FreeRowSet(lpRowSet); });
+	auto cleanup = make_scope_success([&]() { soap_del_PointerTorowSet(&lpRowSet); });
 	auto er = ECStoreObjectTable::QueryRowData(nullptr, nullptr, lpSession, &ecRows, lpPropTags, lpODStore, &lpRowSet, false, false);
 	if(er != erSuccess) {
 		ec_log_err("ECSearchFolders::ProcessCandidateRows() ECStoreObjectTable::QueryRowData failed %d", er);
@@ -844,7 +843,7 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 	auto cleanup = make_scope_success([&]() {
 		lpSession->unlock();
 		m_lpSessionManager->RemoveSessionInternal(lpSession);
-		FreeRestrictTable(lpAdditionalRestrict);
+		soap_del_PointerTorestrictTable(&lpAdditionalRestrict);
 	});
 	er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)

@@ -77,8 +77,6 @@ class ECSearchObjectTable final : public ECStoreObjectTable {
 	ALLOC_WRAP_FRIEND;
 };
 
-extern void FreeRowSet(struct rowSet *);
-
 static const unsigned int sContentsProps[] = {
 	PR_ENTRYID, PR_DISPLAY_NAME, PR_MESSAGE_FLAGS, PR_SUBJECT,
 	PR_STORE_ENTRYID, PR_STORE_RECORD_KEY, PR_STORE_SUPPORT_MASK,

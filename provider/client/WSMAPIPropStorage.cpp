@@ -154,7 +154,7 @@ HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(const MAPIOBJECT *lpsMapiObj
 	// modified props
 	size = lpsMapiObject->lstModified.size();
 	if (size != 0) {
-		lpSaveObj->modProps.__ptr = s_alloc<propVal>(nullptr, size);
+		lpSaveObj->modProps.__ptr = soap_new_propVal(nullptr, size);
 		unsigned int i = 0;
 		for (const auto &prop : lpsMapiObject->lstModified) {
 			SPropValue tmp = prop.GetMAPIPropValRef();
@@ -273,11 +273,7 @@ void WSMAPIPropStorage::DeleteSoapObject(struct saveObject *lpSaveObj)
 			DeleteSoapObject(&lpSaveObj->__ptr[i]);
 		s_free(nullptr, lpSaveObj->__ptr);
 	}
-	if (lpSaveObj->modProps.__ptr) {
-		for (gsoap_size_t i = 0; i < lpSaveObj->modProps.__size; ++i)
-			FreePropVal(&lpSaveObj->modProps.__ptr[i], false);
-		s_free(nullptr, lpSaveObj->modProps.__ptr);
-	}
+	soap_del_propValArray(&lpSaveObj->modProps);
 	soap_del_propTagArray(&lpSaveObj->delProps);
 	soap_del_PointerToentryList(&lpSaveObj->lpInstanceIds);
 }
