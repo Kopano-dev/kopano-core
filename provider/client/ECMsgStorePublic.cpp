@@ -391,7 +391,8 @@ HRESULT ECMsgStorePublic::BuildIPMSubTree()
 
 	lpProps[cProps].ulPropTag = PR_INSTANCE_KEY;
 	lpProps[cProps].Value.bin.cb = sizeof(ULONG)*2;
-	hr = MAPIAllocateMore(lpProps[cProps].Value.bin.cb, lpProps, (void**)&lpProps[cProps].Value.bin.lpb);
+	hr = MAPIAllocateMore(lpProps[cProps].Value.bin.cb, lpProps,
+	     reinterpret_cast<void **>(&lpProps[cProps].Value.bin.lpb));
 	if(hr != hrSuccess)
 		return hr;
 
@@ -482,7 +483,8 @@ HRESULT ECMsgStorePublic::BuildIPMSubTree()
 
 	lpProps[cProps].ulPropTag = PR_INSTANCE_KEY;
 	lpProps[cProps].Value.bin.cb = sizeof(ULONG)*2;
-	hr = MAPIAllocateMore(lpProps[cProps].Value.bin.cb, lpProps, (void**)&lpProps[cProps].Value.bin.lpb);
+	hr = MAPIAllocateMore(lpProps[cProps].Value.bin.cb, lpProps,
+	     reinterpret_cast<void **>(&lpProps[cProps].Value.bin.lpb));
 	if(hr != hrSuccess)
 		return hr;
 	memset(lpProps[cProps].Value.bin.lpb, 0, lpProps[cProps].Value.bin.cb );

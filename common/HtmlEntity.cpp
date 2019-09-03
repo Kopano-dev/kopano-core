@@ -12,8 +12,8 @@ using namespace std::string_literals;
 namespace KC {
 
 static const struct HTMLEntity_t {
-	const WCHAR *s;
-	WCHAR c;
+	const wchar_t *s;
+	wchar_t c;
 } _HTMLEntity[] = {
 	{L"AElig", 198},
 	{L"Aacute", 193},
@@ -261,8 +261,8 @@ static const struct HTMLEntity_t {
 static const size_t cHTMLEntity = ARRAY_SIZE(_HTMLEntity);
 
 static const struct HTMLEntityToName_t {
-	WCHAR c;
-	const WCHAR *s;
+	wchar_t c;
+	const wchar_t *s;
 } _HTMLEntityToName[] = {
 	{34, L"quot"},
 	{38, L"amp"},
@@ -522,7 +522,7 @@ static int compareHTMLEntityToName(const void *m1, const void *m2)
 	return (e1->c < e2->c) ? -1 : (e1->c == e2->c) ? 0 : 1;
 }
 
-WCHAR CHtmlEntity::toChar( const WCHAR *name )
+wchar_t CHtmlEntity::toChar(const wchar_t *name)
 {
 	HTMLEntity_t key = {0};
 	key.s = name;
@@ -530,7 +530,7 @@ WCHAR CHtmlEntity::toChar( const WCHAR *name )
 	return result != nullptr ? result->c : 0;
 }
 
-const WCHAR *CHtmlEntity::toName( WCHAR c )
+const wchar_t *CHtmlEntity::toName(wchar_t c)
 {
 	HTMLEntityToName_t key = {0};
 	key.c = c;
@@ -548,7 +548,7 @@ const WCHAR *CHtmlEntity::toName( WCHAR c )
  *
  * @return false if no conversion took place, true if it did.
  */
-bool CHtmlEntity::CharToHtmlEntity(WCHAR c, std::wstring &strHTML)
+bool CHtmlEntity::CharToHtmlEntity(wchar_t c, std::wstring &strHTML)
 {
 	bool bHTML = false;
 
@@ -569,7 +569,7 @@ bool CHtmlEntity::CharToHtmlEntity(WCHAR c, std::wstring &strHTML)
 		bHTML = true;
 		break;
 	default:
-		const WCHAR *lpChar = CHtmlEntity::toName(c);
+		auto lpChar = CHtmlEntity::toName(c);
 		if (lpChar == nullptr)
 			break;
 		strHTML = L"&"s + lpChar + L";";
@@ -615,7 +615,7 @@ bool CHtmlEntity::validateHtmlEntity(const std::wstring &strEntity)
  *
  * @return wide character for entity, or ? if conversion failed.
  */
-WCHAR CHtmlEntity::HtmlEntityToChar(const std::wstring &strEntity)
+wchar_t CHtmlEntity::HtmlEntityToChar(const std::wstring &strEntity)
 {
 	if (strEntity[0] != '#') {
 		unsigned int ulCode = toChar(strEntity.c_str());
@@ -632,7 +632,7 @@ WCHAR CHtmlEntity::HtmlEntityToChar(const std::wstring &strEntity)
 
 	unsigned int ulCode = wcstoul(pNum, nullptr, base);
 	if (ulCode <= 0xFFFF /*USHRT_MAX*/)
-		return (WCHAR)ulCode;
+		return ulCode;
 	strUnicode.append(1, (ulCode & 0xff));
 	strUnicode.append(1, (ulCode >> 8) & 0xff);
 	strUnicode.append(1, (ulCode >> 16) & 0xff);

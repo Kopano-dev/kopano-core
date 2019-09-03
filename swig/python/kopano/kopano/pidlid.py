@@ -2,7 +2,7 @@
 """
 Part of the high-level python bindings for Kopano
 
-Copyright 2018 - Kopano and its licensors (see LICENSE file for details)
+Copyright 2018 - 2019 Kopano and its licensors (see LICENSE file)
 """
 
 PidLidEmail1AddressType = 'PT_UNICODE:PSETID_Address:0x8082'

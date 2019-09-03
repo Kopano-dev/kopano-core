@@ -1,40 +1,19 @@
-'\" t
-.\"     Title: kopano-set-oof
-.\"    Author: [see the "Author" section]
-.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
-.\"      Date: November 2016
-.\"    Manual: Kopano Core user reference
-.\"    Source: Kopano 8
-.\"  Language: English
-.\"
 .TH "KOPANO\-SET\-OOF" "1" "November 2016" "Kopano 8" "Kopano Core user reference"
-.\" -----------------------------------------------------------------
-.\" * Define some portability stuff
-.\" -----------------------------------------------------------------
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .\" http://bugs.debian.org/507673
-.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
-.\" -----------------------------------------------------------------
-.\" * set default formatting
-.\" -----------------------------------------------------------------
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
 .ad l
-.\" -----------------------------------------------------------------
-.\" * MAIN CONTENT STARTS HERE *
-.\" -----------------------------------------------------------------
 .SH "NAME"
-kopano-set-oof \- Control a user\*(Aqs out of office settings.
+kopano-set-oof \- Control a user's out of office settings.
 .SH "SYNOPSIS"
 .HP \w'\fBkopano\-set\-oof\fR\ 'u
 \fBkopano\-set\-oof\fR [\-h\ \fIhostname\fR] [\-m\ \fImode\fR] [\-n\ \fImsgfile\fR] [\-p\ \fIkeypass\fR] [\-s\ \fIkeyfile\fR] [\-t\ \fIsubject\fR] [\-u\ \fIusername\fR] [\-\-from\ \fIdatetime\fR\ \-\-until\ \fIdatetime\fR]
 .SH "DESCRIPTION"
 .PP
-This tool can be used to change a user\*(Aqs out of office settings. The storage server must be running for
+This tool can be used to change a user's out of office settings. The storage server must be running for
 \fBkopano\-set\-oof\fR
 to work.
 .SH "OPTIONS"
@@ -46,24 +25,24 @@ Connect to the given storage server. This defaults to file:///var/run/kopano/ser
 .PP
 \fB\-m\fR, \fB\-\-mode\fR \fB0\fR
 .RS 4
-Disable the user\*(Aqs out of office reply.
+Disable the user's out of office reply.
 .RE
 .PP
 \fB\-m\fR, \fB\-\-mode\fR \fB1\fR
 .RS 4
-Enable the user\*(Aqs out of office reply.
+Enable the user's out of office reply.
 .RE
 .PP
 \fB\-m\fR, \fB\-\-mode\fR \fB\-\fR
 .RS 4
-Don\*(Aqt enable or disable the user\*(Aqs out of office reply. Just update the subject and message, unless the user\*(Aqs out of office reply is enabled. This is the default mode.
+Do not enable or disable the user's out of office reply. Just update the subject and message, unless the user's out of office reply is enabled. This is the default mode.
 .sp
 This is useful to update all out of office settings without enabling them and without changing the messages of enabled replies because that might overwrite some useful information that a user has set.
 .RE
 .PP
 \fB\-n\fR, \fB\-\-message\fR \fIfile\fR
 .RS 4
-Reads the given text file and uses its contents for the autoreply\*(Aqs message body.
+Reads the given text file and uses its contents for the autoreply's message body.
 .RE
 .PP
 \fB\-p\fR, \fB\-\-sslkey\-pass\fR \fIpassword\fR
@@ -90,6 +69,3 @@ Modify the Out Of Office settings for the particular user.
 .RS 4
 Limit the OOF responder to the given timeframe. Both options, or neither of the two, must be specified. The format to use as argument is to be in the form of "2015\-04\-01 23:50" (ISO\-8601\-like), and is taken to be in local time.
 .RE
-.SH "AUTHOR"
-.PP
-Written by Kopano.

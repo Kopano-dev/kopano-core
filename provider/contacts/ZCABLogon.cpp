@@ -81,7 +81,8 @@ HRESULT ZCABLogon::Logoff(ULONG ulFlags)
  * 
  * @return MAPI Error code
  */
-HRESULT ZCABLogon::AddFolder(const WCHAR* lpwDisplayName, ULONG cbStore, LPBYTE lpStore, ULONG cbFolder, LPBYTE lpFolder)
+HRESULT ZCABLogon::AddFolder(const wchar_t *lpwDisplayName, ULONG cbStore,
+    LPBYTE lpStore, ULONG cbFolder, LPBYTE lpFolder)
 {
 	zcabFolderEntry entry;
 
@@ -98,7 +99,7 @@ HRESULT ZCABLogon::AddFolder(const WCHAR* lpwDisplayName, ULONG cbStore, LPBYTE 
 	memcpy(entry.lpStore, lpStore, cbStore);
 
 	entry.cbFolder = cbFolder;
-	hr = MAPIAllocateBuffer(cbFolder, (void**)&entry.lpFolder);
+	hr = MAPIAllocateBuffer(cbFolder, reinterpret_cast<void **>(&entry.lpFolder));
 	if (hr != hrSuccess)
 		return hr;
 	memcpy(entry.lpFolder, lpFolder, cbFolder);
@@ -198,17 +199,10 @@ HRESULT ZCABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	}
 
 	if (lpContact) {
-		if(lpInterface)
-			hr = lpContact->QueryInterface(*lpInterface, (void **)lppUnk);
-		else
-			hr = lpContact->QueryInterface(IID_IDistList, reinterpret_cast<void **>(lppUnk));
+		hr = lpContact->QueryInterface(lpInterface != nullptr ? *lpInterface : IID_IDistList, reinterpret_cast<void **>(lppUnk));
 	} else {
 		*lpulObjType = MAPI_ABCONT;
-
-		if(lpInterface)
-			hr = lpRootContainer->QueryInterface(*lpInterface, (void **)lppUnk);
-		else
-			hr = lpRootContainer->QueryInterface(IID_IABContainer, (void **)lppUnk);
+		hr = lpRootContainer->QueryInterface(lpInterface != nullptr ? *lpInterface : IID_IABContainer, reinterpret_cast<void **>(lppUnk));
 	}
 	if(hr != hrSuccess)
 		return hr;

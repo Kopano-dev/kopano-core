@@ -17,8 +17,10 @@
 
 namespace KC {
 
+class ECConfig;
 class ECTask;
 class ECThreadPool;
+class ECWatchdog;
 
 class _kc_export ECThreadWorker {
 	public:
@@ -47,19 +49,24 @@ class _kc_export ECThreadPool {
 	typedef std::list<STaskInfo> TaskList;
 
 public:
-	ECThreadPool(unsigned ulThreadCount);
+	ECThreadPool(const std::string &name, unsigned int spares);
 	virtual ~ECThreadPool();
+	void enable_watchdog(bool, std::shared_ptr<ECConfig> = {});
 	bool enqueue(ECTask *lpTask, bool bTakeOwnership = false);
-	void setThreadCount(unsigned int cuont, bool wait = false);
+	void set_thread_count(unsigned int spares, unsigned int tmax = 0, bool wait = false);
+	void add_extra_thread();
 	time_duration front_item_age() const;
 	size_t queue_length() const;
 	void thread_counts(size_t *active, size_t *idle) const;
+
+	std::string m_poolname = "noname";
 
 	protected:
 	virtual std::unique_ptr<ECThreadWorker> make_worker();
 	_kc_hidden size_t threadCount() const; /* unlocked variant */
 	_kc_hidden bool getNextTask(STaskInfo *, std::unique_lock<std::mutex> &);
 	_kc_hidden void joinTerminated(std::unique_lock<std::mutex> &);
+	_kc_hidden HRESULT create_thread_unlocked();
 	_kc_hidden static void *threadFunc(void *);
 
 	ThreadSet m_setThreads, m_setTerminated;
@@ -69,6 +76,8 @@ public:
 	std::condition_variable m_hCondition, m_hCondTerminated;
 	mutable std::condition_variable m_hCondTaskDone;
 	std::atomic<size_t> m_active{0}, m_ulTermReq{0};
+	std::atomic<size_t> m_threads_spares{0}, m_threads_max{0};
+	std::unique_ptr<ECWatchdog> m_watchdog;
 
 	ECThreadPool(const ECThreadPool &) = delete;
 	ECThreadPool &operator=(const ECThreadPool &) = delete;

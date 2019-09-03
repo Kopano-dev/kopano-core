@@ -39,7 +39,9 @@
 #include <vmime/stringContentHandler.hpp>
 #include <vmime/utility/outputStreamAdapter.hpp>
 
-namespace vmime {
+namespace KC {
+
+using namespace vmime;
 
 mapiTextPart::mapiTextPart()
 	: m_plainText(vmime::make_shared<emptyContentHandler>()),
@@ -62,8 +64,8 @@ size_t mapiTextPart::getPartCount() const
 	       !m_otherText->isEmpty();
 }
 
-void mapiTextPart::generateIn(vmime::shared_ptr<bodyPart> /* message */,
-    vmime::shared_ptr<bodyPart> parent) const
+void mapiTextPart::generateIn(const vmime::shared_ptr<bodyPart> &/* message */,
+    const vmime::shared_ptr<bodyPart> &parent) const
 {
 	// Plain text
 	if (!m_plainText->isEmpty())
@@ -95,7 +97,6 @@ void mapiTextPart::generateIn(vmime::shared_ptr<bodyPart> /* message */,
 		// Create a "multipart/related" body part
 		auto relPart = vmime::make_shared<bodyPart>();
 		parent->getBody()->appendPart(relPart);
-
 		relPart->getHeader()->ContentType()->
 			setValue(mediaType(mediaTypes::MULTIPART, mediaTypes::MULTIPART_RELATED));
 
@@ -112,7 +113,6 @@ void mapiTextPart::generateIn(vmime::shared_ptr<bodyPart> /* message */,
 				id = id.substr(4);
 
 			// throw an error when id and location are empty?
-
 			objPart->getHeader()->ContentType()->setValue(obj->getType());
 			if (!id.empty())
 				objPart->getHeader()->ContentId()->setValue(messageId("<" + id + ">"));
@@ -179,7 +179,6 @@ void mapiTextPart::addEmbeddedObject(const bodyPart& part, const string& id)
 	// identified by both a Content-Id and a Content-Location. In this
 	// case, there will be two embedded objects with two different IDs
 	// but referencing the same content.
-
 	mediaType type;
 
 	if (part.getHeader()->hasField(fields::CONTENT_TYPE)) {
@@ -192,9 +191,9 @@ void mapiTextPart::addEmbeddedObject(const bodyPart& part, const string& id)
 		part.getBody()->getEncoding(), id, type, string(), string()));
 }
 
-void mapiTextPart::parse(vmime::shared_ptr<const vmime::bodyPart> message,
-    vmime::shared_ptr<const vmime::bodyPart> parent,
-    vmime::shared_ptr<const vmime::bodyPart> text_part)
+void mapiTextPart::parse(const vmime::shared_ptr<const vmime::bodyPart> &message,
+    const vmime::shared_ptr<const vmime::bodyPart> &parent,
+    const vmime::shared_ptr<const vmime::bodyPart> &text_part)
 {
 	// Search for possible embedded objects in the _whole_ message.
 	std::vector<vmime::shared_ptr<const vmime::bodyPart>> cidParts, locParts;
@@ -330,7 +329,7 @@ void mapiTextPart::setOtherCharset(const charset& ch)
        m_bHaveOtherCharset = true;
 }
 
-void mapiTextPart::setText(vmime::shared_ptr<vmime::contentHandler> text)
+void mapiTextPart::setText(const vmime::shared_ptr<vmime::contentHandler> &text)
 {
 	m_text = text->clone();
 }
@@ -399,14 +398,13 @@ const string mapiTextPart::cleanId(const string& id)
 //
 // mapiTextPart::embeddedObject
 //
-
 mapiTextPart::embeddedObject::embeddedObject(vmime::shared_ptr<vmime::contentHandler> data,
     const vmime::encoding &enc, const std::string &id,
     const vmime::mediaType &type, const std::string &name,
     const std::string &loc) :
 	m_data(vmime::dynamicCast<vmime::contentHandler>(data->clone())),
-	m_encoding(enc), m_id(id), m_type(type), m_name(name), m_loc(loc)
+	m_encoding(enc), m_type(type), m_id(id), m_name(name), m_loc(loc)
 {
 }
 
-} // vmime
+} /* namespace */

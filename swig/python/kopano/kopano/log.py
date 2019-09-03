@@ -3,15 +3,12 @@
 Part of the high-level python bindings for Kopano
 
 Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file)
-Copyright 2016 - Kopano and its licensors (see LICENSE file)
+Copyright 2016 - 2019 Kopano and its licensors (see LICENSE file)
 """
 
 import contextlib
 import logging.handlers
-try:
-    from Queue import Empty
-except ImportError:
-    from queue import Empty
+from queue import Empty
 import sys
 import threading
 import traceback
@@ -27,6 +24,9 @@ def _kopano_logger():
     fh.setFormatter(formatter)
     return log
 
+# general python-kopano logger, called 'kopano'
+# by default it records all logging from python-kopano, such as
+# warnings about weird situations
 LOG = _kopano_logger()
 
 def _loglevel(options, config):
@@ -36,7 +36,7 @@ def _loglevel(options, config):
     elif config:
         log_level = config.get('log_level')
     log_level = log_level or 'warning'
-    return { # XXX NONE?
+    return { # TODO NONE?
         '0': logging.NOTSET,
         '1': logging.CRITICAL,
         '2': logging.ERROR,
@@ -63,7 +63,7 @@ def logger(service, options=None, stdout=False, config=None, name=''):
         log_file = config.get('log_file') or log_file
     log_level = _loglevel(options, config)
     if name:
-        log_file = log_file.replace(service, name) # XXX
+        log_file = log_file.replace(service, name) # TODO
     fh = None
     if log_method == 'file':
         if log_file == '-':

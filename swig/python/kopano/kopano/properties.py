@@ -3,7 +3,7 @@
 Part of the high-level python bindings for Kopano
 
 Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file)
-Copyright 2017 - Kopano and its licensors (see LICENSE file)
+Copyright 2017 - 2019 Kopano and its licensors (see LICENSE file)
 """
 
 import sys
@@ -26,7 +26,12 @@ except ImportError: # pragma: no cover
     _utils = sys.modules[__package__ + '.utils']
 
 class Properties(object):
-    """Property mixin class"""
+    """Property mixin class
+
+    MAPI property-specific functionality, mixed into several
+    classes whose instances represent sets of MAPI properties,
+    such as :class:`Item <Item>` and :class:`Folder <Folder>`.
+    """
 
     def prop(self, proptag, create=False, proptype=None):
         """Return :class:`property <Property>` with given property tag.

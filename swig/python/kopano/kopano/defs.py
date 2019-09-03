@@ -3,7 +3,7 @@
 Part of the high-level python bindings for Kopano.
 
 Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file)
-Copyright 2016 - Kopano and its licensors (see LICENSE file)
+Copyright 2016 - 2019 Kopano and its licensors (see LICENSE file)
 """
 
 import re
@@ -13,7 +13,8 @@ from MAPI.Defs import DEFINE_OLEGUID, DEFINE_GUID
 from MAPI.Struct import MAPINAMEID
 from MAPI import Tags
 from MAPI.Tags import (
-    PS_PUBLIC_STRINGS
+    PS_PUBLIC_STRINGS, respNone, respOrganized, respTentative, respAccepted,
+    respDeclined, respNotResponded,
 )
 from MAPI import MNID_STRING, MAPI_DISTLIST, MNID_ID
 
@@ -78,24 +79,24 @@ PSETID_KC = DEFINE_GUID(
 )
 
 NAMED_PROPS_INTERNET_HEADERS = [
-    MAPINAMEID(PS_INTERNET_HEADERS, MNID_STRING, u'x-original-to'),
+    MAPINAMEID(PS_INTERNET_HEADERS, MNID_STRING, 'x-original-to'),
 ]
 
 NAMED_PROPS_ARCHIVER = [
-    MAPINAMEID(PSETID_Archive, MNID_STRING, u'store-entryids'),
-    MAPINAMEID(PSETID_Archive, MNID_STRING, u'item-entryids'),
-    MAPINAMEID(PSETID_Archive, MNID_STRING, u'stubbed'),
-    MAPINAMEID(PSETID_Archive, MNID_STRING, u'ref-store-entryid'),
-    MAPINAMEID(PSETID_Archive, MNID_STRING, u'ref-item-entryid'),
-    MAPINAMEID(PSETID_Archive, MNID_STRING, u'ref-prev-entryid'),
-    MAPINAMEID(PSETID_Archive, MNID_STRING, u'flags')
+    MAPINAMEID(PSETID_Archive, MNID_STRING, 'store-entryids'),
+    MAPINAMEID(PSETID_Archive, MNID_STRING, 'item-entryids'),
+    MAPINAMEID(PSETID_Archive, MNID_STRING, 'stubbed'),
+    MAPINAMEID(PSETID_Archive, MNID_STRING, 'ref-store-entryid'),
+    MAPINAMEID(PSETID_Archive, MNID_STRING, 'ref-item-entryid'),
+    MAPINAMEID(PSETID_Archive, MNID_STRING, 'ref-prev-entryid'),
+    MAPINAMEID(PSETID_Archive, MNID_STRING, 'flags')
 ]
 
 NAMED_PROPS_KC = [
     MAPINAMEID(PSETID_KC, MNID_ID, 0x0001)
 ]
 
-NAMED_PROP_CATEGORY = MAPINAMEID(PS_PUBLIC_STRINGS, MNID_STRING, u'Keywords')
+NAMED_PROP_CATEGORY = MAPINAMEID(PS_PUBLIC_STRINGS, MNID_STRING, 'Keywords')
 
 GUID_NAMESPACE = {
     PSETID_Archive: 'archive',
@@ -142,7 +143,7 @@ STR_GUID = {
     'PS_PUBLIC_STRINGS': PS_PUBLIC_STRINGS,
 }
 
-# XXX copied from common/ECDefs.h
+# TODO copied from common/ECDefs.h
 def OBJECTCLASS(__type, __class):
     return (__type << 16) | (__class & 0xFFFF)
 
@@ -152,7 +153,7 @@ ACTIVE_USER = OBJECTCLASS(OBJECTTYPE_MAILUSER, 1)
 NONACTIVE_USER = OBJECTCLASS(OBJECTTYPE_MAILUSER, 2)
 CONTAINER_COMPANY = OBJECTCLASS(OBJECTTYPE_CONTAINER, 1)
 
-# XXX copied from msr/main.py
+# TODO copied from msr/main.py
 MUIDECSAB = DEFINE_GUID(
     0x50a921ac, 0xd340, 0x48ee, 0xb3, 0x19, 0xfb, 0xa7, 0x53, 0x30, 0x44, 0x25
 )
@@ -208,7 +209,7 @@ RSF_PID_RSS_SUBSCRIPTION = 0x8001
 RSF_PID_TODO_SEARCH = 0x8004
 RSF_PID_SUGGESTED_CONTACTS = 0x8008
 
-# XXX should we make the names pretty much identical, except for case?
+# TODO should we make the names pretty much identical, except for case?
 ENGLISH_FOLDER_MAP = {
     'Inbox': 'inbox',
     'Drafts': 'drafts',
@@ -240,9 +241,9 @@ RIGHT_NAME = {
 NAME_RIGHT = dict((b, a) for (a, b) in RIGHT_NAME.items())
 
 URGENCY = {
-    0: u'low',
-    1: u'normal',
-    2: u'high'
+    0: 'low',
+    1: 'normal',
+    2: 'high'
 }
 
 REV_URGENCY = dict((b, a) for (a, b) in URGENCY.items())
@@ -272,3 +273,12 @@ FB_STATUS = {
     3: 'outofoffice',
 }
 STATUS_FB = dict((b, a) for (a, b) in FB_STATUS.items())
+
+RESPONSE_STATUS = {
+        respNone: 'None',
+        respOrganized: 'Organizer',
+        respTentative: 'TentativelyAccepted',
+        respAccepted: 'Accepted',
+        respDeclined: 'Declined',
+        respNotResponded: 'NotResponded',
+}

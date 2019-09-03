@@ -1,10 +1,11 @@
 xdirs = createcompany.d creategroup.d createuser.d deletecompany.d deletegroup.d deleteuser.d
+EXTRA_DIST = createcompany.in creategroup.in createuser.in deletecompany.in deletegroup.in deleteuser.in
 dist_bin_SCRIPTS = createcompany creategroup createuser deletecompany deletegroup deleteuser
 bindir = ${dcprefix}${uscriptlibdir}
 cudir = ${bindir}/createuser.d
-cu_SCRIPTS = 00createstore
+dist_cu_SCRIPTS = 00createstore
 ccdir = ${bindir}/createcompany.d
-cc_SCRIPTS = 00createpublic
+dist_cc_SCRIPTS = 00createpublic
 
 replcmd = ${AM_V_GEN}${SED} -e 's|[@]pkglibexecdir@|${pkglibexecdir}|g' -e 's|[@]uscriptlibdir@|${uscriptlibdir}|g' -e 's|[@]uscriptconfdir@|${uscriptconfdir}|g' <"$<" >"$@"
 

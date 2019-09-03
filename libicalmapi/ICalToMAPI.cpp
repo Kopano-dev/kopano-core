@@ -493,7 +493,9 @@ HRESULT ICalToMapiImpl::SaveRecipList(const std::list<icalrecip> *lplstRecip,
 		// cbEntryID, lpEntryID
 		if ((ulFlag & IC2M_NO_ORGANIZER) && recip.ulRecipientType == MAPI_ORIG)
 			continue;
-		if ((hr = MAPIAllocateBuffer(sizeof(SPropValue)*10, (void**)&lpRecipients->aEntries[i].rgPropVals)) != hrSuccess)
+		hr = MAPIAllocateBuffer(sizeof(SPropValue) * 10,
+		     reinterpret_cast<void **>(&lpRecipients->aEntries[i].rgPropVals));
+		if (hr != hrSuccess)
 			return hr;
 		lpRecipients->aEntries[i].cValues = 10;
 

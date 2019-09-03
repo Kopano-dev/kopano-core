@@ -569,7 +569,7 @@ HRESULT IMAP::HrCmdStarttls(const string &strTag) {
 }
 
 /**
- * @brief Handles the AUTENTICATE command
+ * @brief Handles the AUTHENTICATE command
  *
  * The authenticate command only implements the PLAIN authentication
  * method, since we require the actual password, and not just a hash
@@ -748,7 +748,7 @@ HRESULT IMAP::HrCmdLogin(const std::string &strTag,
 	}
 	hr = HrMakeSpecialsList();
 	if (hr != hrSuccess) {
-		ec_log_warn("Failed to find special folder properties");
+		kc_pwarn("Failed to find special folder properties", hr);
 		HrResponse(RESP_TAGGED_NO, strTag, "LOGIN can't find special folder properties");
 		return hr;
 	}
@@ -2074,7 +2074,7 @@ std::string IMAP::PropsToFlags(LPSPropValue lpProps, unsigned int cValues, bool 
  *
  * @return MAPI Error code
  */
-LONG IMAP::IdleAdviseCallback(void *lpContext, ULONG cNotif,
+int IMAP::IdleAdviseCallback2(void *lpContext, unsigned int cNotif,
     LPNOTIFICATION lpNotif)
 {
 	auto lpIMAP = static_cast<IMAP *>(lpContext);
@@ -2121,37 +2121,36 @@ LONG IMAP::IdleAdviseCallback(void *lpContext, ULONG cNotif,
 			++ulRecent;
 			break;
 
-		case TABLE_ROW_DELETED:
+		case TABLE_ROW_DELETED: {
 			// find number and print N EXPUNGE
-			if (lpNotif[i].info.tab.propIndex.ulPropTag == PR_INSTANCE_KEY) {
-				auto iterMail = lpIMAP->lstFolderMailEIDs.begin();
-				for (; iterMail != lpIMAP->lstFolderMailEIDs.cend(); ++iterMail)
-					if (iterMail->sInstanceKey == lpNotif[i].info.tab.propIndex.Value.bin)
-						break;
-				if (iterMail != lpIMAP->lstFolderMailEIDs.cend()) {
-					ulMailNr = iterMail - lpIMAP->lstFolderMailEIDs.cbegin();
-					// remove mail from list
-					lpIMAP->HrResponse(RESP_UNTAGGED, stringify(ulMailNr+1) + " EXPUNGE");
-					lpIMAP->lstFolderMailEIDs.erase(iterMail);
-				}
-			}
+			if (lpNotif[i].info.tab.propIndex.ulPropTag != PR_INSTANCE_KEY)
+				break;
+			auto iterMail = lpIMAP->lstFolderMailEIDs.begin();
+			for (; iterMail != lpIMAP->lstFolderMailEIDs.cend(); ++iterMail)
+				if (iterMail->sInstanceKey == lpNotif[i].info.tab.propIndex.Value.bin)
+					break;
+			if (iterMail == lpIMAP->lstFolderMailEIDs.cend())
+				break;
+			ulMailNr = iterMail - lpIMAP->lstFolderMailEIDs.cbegin();
+			// remove mail from list
+			lpIMAP->HrResponse(RESP_UNTAGGED, stringify(ulMailNr + 1) + " EXPUNGE");
+			lpIMAP->lstFolderMailEIDs.erase(iterMail);
 			break;
-
-		case TABLE_ROW_MODIFIED:
+		}
+		case TABLE_ROW_MODIFIED: {
 			// find number and print N FETCH (FLAGS (flags...))
 			strFlags.clear();
-
-			if (lpNotif[i].info.tab.row.lpProps[IMAPID].ulPropTag == PR_EC_IMAP_ID) {
-				auto iterMail = find(lpIMAP->lstFolderMailEIDs.cbegin(), lpIMAP->lstFolderMailEIDs.cend(), lpNotif[i].info.tab.row.lpProps[IMAPID].Value.ul);
-				// not found probably means the client needs to sync
-				if (iterMail != lpIMAP->lstFolderMailEIDs.cend()) {
-					ulMailNr = iterMail - lpIMAP->lstFolderMailEIDs.cbegin();
-					strFlags = lpIMAP->PropsToFlags(lpNotif[i].info.tab.row.lpProps, lpNotif[i].info.tab.row.cValues, iterMail->bRecent, false);
-					lpIMAP->HrResponse(RESP_UNTAGGED, stringify(ulMailNr+1) + " FETCH (FLAGS (" + strFlags + "))");
-				}
-			}
+			if (lpNotif[i].info.tab.row.lpProps[IMAPID].ulPropTag != PR_EC_IMAP_ID)
+				break;
+			auto iterMail = find(lpIMAP->lstFolderMailEIDs.cbegin(), lpIMAP->lstFolderMailEIDs.cend(), lpNotif[i].info.tab.row.lpProps[IMAPID].Value.ul);
+			// not found probably means the client needs to sync
+			if (iterMail == lpIMAP->lstFolderMailEIDs.cend())
+				break;
+			ulMailNr = iterMail - lpIMAP->lstFolderMailEIDs.cbegin();
+			strFlags = lpIMAP->PropsToFlags(lpNotif[i].info.tab.row.lpProps, lpNotif[i].info.tab.row.cValues, iterMail->bRecent, false);
+			lpIMAP->HrResponse(RESP_UNTAGGED, stringify(ulMailNr+1) + " FETCH (FLAGS (" + strFlags + "))");
 			break;
-
+		}
 		case TABLE_RELOAD:
 			// TABLE_RELOAD is unused in Kopano
 		case TABLE_CHANGED:
@@ -2160,11 +2159,22 @@ LONG IMAP::IdleAdviseCallback(void *lpContext, ULONG cNotif,
 		};
 	}
 
-	if (ulRecent) {
-		lpIMAP->HrResponse(RESP_UNTAGGED, stringify(ulRecent) + " RECENT");
-		lpIMAP->HrResponse(RESP_UNTAGGED, stringify(lpIMAP->lstFolderMailEIDs.size()) + " EXISTS");
-	}
+	if (ulRecent == 0)
+		return S_OK;
+	lpIMAP->HrResponse(RESP_UNTAGGED, stringify(ulRecent) + " RECENT");
+	lpIMAP->HrResponse(RESP_UNTAGGED, stringify(lpIMAP->lstFolderMailEIDs.size()) + " EXISTS");
 	return S_OK;
+}
+
+int IMAP::IdleAdviseCallback(void *ctx, unsigned int z, NOTIFICATION *nt)
+{
+	int ret = S_OK;
+	try {
+		ret = IdleAdviseCallback2(ctx, z, nt);
+	} catch (const KMAPIError &e) {
+		return e.code();
+	}
+	return ret;
 }
 
 /**
@@ -2676,7 +2686,7 @@ HRESULT IMAP::HrMakeSpecialsList() {
 
 	auto hr = lpStore->GetProps(sPropsStore, 0, &cValues, &~lpPropArrayStore);
 	if (hr != hrSuccess)
-		return hr;
+		return kc_perror("GetProps SOT", hr);
 	for (ULONG i = 0; i < cValues; ++i)
 		if (PROP_TYPE(lpPropArrayStore[i].ulPropTag) == PT_BINARY)
 			lstSpecialEntryIDs.emplace(BinaryArray(lpPropArrayStore[i].Value.bin), lpPropArrayStore[i].ulPropTag);
@@ -3136,7 +3146,8 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 		auto hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~lpEntryList);
 		if (hr != hrSuccess)
 			return hr;
-		hr = MAPIAllocateMore(lstMails.size()*sizeof(SBinary), lpEntryList, (void**)&lpEntryList->lpbin);
+		hr = MAPIAllocateMore(lstMails.size() * sizeof(SBinary),
+		     lpEntryList, reinterpret_cast<void **>(&lpEntryList->lpbin));
 		if (hr != hrSuccess)
 			return hr;
 		lpEntryList->cValues = 0;
@@ -3267,13 +3278,16 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 
 HRESULT IMAP::save_generated_properties(const std::string &text, IMessage *message)
 {
-	ec_log_debug("Setting IMAP props");
 	auto hr = createIMAPBody(text, message, true);
 	if (hr != hrSuccess)
 		return kc_pwarn("Failed to create IMAP body", hr);
+	/*
+	 * Saving can fail if the mail belongs to another user. In that case,
+	 * the envelope data remains temporary (memory only).
+	 */
 	hr = message->SaveChanges(0);
 	if (hr != hrSuccess)
-		return kc_pwarn("Failed to save IMAP props", hr);
+		/* ignore */;
 	return hrSuccess;
 }
 
@@ -3385,6 +3399,7 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 				vProps.emplace_back("(" + string_strip_crlf(lpProp->Value.lpszA) + ")");
 			}
 			else if (lpMessage) {
+				/* Autogenerate envelope on the fly */
 				memory_ptr<SPropValue> prop;
 				sopt.headers_only = false;
 				hr = IMToINet(lpSession, lpAddrBook, lpMessage, oss, sopt);
@@ -3551,14 +3566,14 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 			 *        set the \Seen flag.
 			 */
 			if (strstr(strItem.c_str(), "[]") != NULL) {
-				// Nasty: eventhough the client requests .PEEK, it may not be present in the reply.
+				// Nasty: even though the client requests .PEEK, it may not be present in the reply.
 				string strReply = item;
 
 				ulPos = strReply.find(".PEEK");
 				if (ulPos != string::npos)
 					strReply.erase(ulPos, strlen(".PEEK"));
 
-				// Nasty: eventhough the client requests <12345.12345>, it may not be present in the reply.
+				// Nasty: even though the client requests <12345.12345>, it may not be present in the reply.
 				ulPos = strReply.rfind('<');
 				if (ulPos != string::npos)
 					strReply.erase(ulPos, string::npos);
@@ -4892,7 +4907,7 @@ FILETIME IMAP::AddDay(const FILETIME &sFileTime)
  * @brief Converts an unicode string to modified UTF-7
  *
  * IMAP folder encoding is a modified form of utf-7 (+ becomes &, so & is "escaped",
- * utf-7 is a modifed form of base64, based from the utf16 character
+ * utf-7 is a modified form of base64, based from the utf16 character
  * I'll use the iconv converter for this, per character .. sigh
  *
  * @param[in]	input	unicode string to convert

@@ -5,7 +5,6 @@ from collections import defaultdict
 from datetime import datetime
 
 import kopano
-from MAPI.Tags import PR_EC_STATSTABLE_SYSTEM, PR_DISPLAY_NAME_W, PR_EC_STATS_SYSTEM_VALUE, PR_EC_STATS_SYSTEM_DESCRIPTION
 
 """
 
@@ -16,15 +15,9 @@ as compared to the more low-level "kopano-stats --system"
 
 options, _ = kopano.parser('ksp').parse_args()
 server = kopano.Server(options=options, auth_user='SYSTEM', auth_pass='')
-# XXX: When python-kopano supports sorting, simplify the loop by sorting on display_name in descending order.
-table = server.table(PR_EC_STATSTABLE_SYSTEM, columns=[PR_DISPLAY_NAME_W, PR_EC_STATS_SYSTEM_VALUE, PR_EC_STATS_SYSTEM_DESCRIPTION])
 
 cstat = defaultdict(dict)
-for row in table.rows():
-    name, value, _ = row
-    name = name.value
-    value = value.value
-
+for name, value in server.stats().items():
     if name == 'server_start_date':
         serverstarttime = value
 

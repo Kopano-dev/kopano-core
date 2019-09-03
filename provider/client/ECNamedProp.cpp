@@ -372,10 +372,8 @@ HRESULT ECNamedProp::HrCopyNameId(LPMAPINAMEID lpSrc, LPMAPINAMEID *lppDst, void
 
 	lpDst->ulKind = lpSrc->ulKind;
 	if(lpSrc->lpguid) {
-		if(lpBase)
-			hr = ECAllocateMore(sizeof(GUID), lpBase, (void **) &lpDst->lpguid);
-		else
-			hr = ECAllocateMore(sizeof(GUID), lpDst, (void **) &lpDst->lpguid);
+		hr = ECAllocateMore(sizeof(GUID), lpBase != nullptr ? lpBase : lpDst,
+		     reinterpret_cast<void **>(&lpDst->lpguid));
 		if(hr != hrSuccess)
 			goto exit;
 		memcpy(lpDst->lpguid, lpSrc->lpguid, sizeof(GUID));
@@ -388,12 +386,9 @@ HRESULT ECNamedProp::HrCopyNameId(LPMAPINAMEID lpSrc, LPMAPINAMEID *lppDst, void
 		lpDst->Kind.lID = lpSrc->Kind.lID;
 		break;
 	case MNID_STRING:
-		if(lpBase)
-			hr = ECAllocateMore(wcslen(lpSrc->Kind.lpwstrName) * sizeof(wchar_t) + sizeof(wchar_t),
-			     lpBase, reinterpret_cast<void **>(&lpDst->Kind.lpwstrName));
-		else
-			hr = ECAllocateMore(wcslen(lpSrc->Kind.lpwstrName) * sizeof(wchar_t) + sizeof(wchar_t),
-			     lpDst, reinterpret_cast<void **>(&lpDst->Kind.lpwstrName));
+		hr = ECAllocateMore(wcslen(lpSrc->Kind.lpwstrName) * sizeof(wchar_t) + sizeof(wchar_t),
+		     lpBase != nullptr ? lpBase : lpDst,
+		     reinterpret_cast<void **>(&lpDst->Kind.lpwstrName));
 		if (hr != hrSuccess)
 			return hr;
 		wcscpy(lpDst->Kind.lpwstrName, lpSrc->Kind.lpwstrName);

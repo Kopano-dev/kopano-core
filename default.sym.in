@@ -2,11 +2,17 @@ KC_@PACKAGE_ABI@ {
 global:
 	extern "C++" {
 		KC::*;
-		typeinfo*;
-		vtable*;
-		VTT*;
+
+		/*
+		 * local:* is a questionable sledgehammer, but we seem to be
+		 * getting away with it, if a few key symbols are kept
+		 * global. (cf. gcc/#78747, gcc/#91806)
+		 */
 		std::*::_S_*;
 	};
+	/* "special names" (cp-demangle.c) */
+	_ZG*;
+	_ZT*;
 local:
 	*;
 };

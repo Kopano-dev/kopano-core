@@ -63,13 +63,13 @@
 
 // register new service, really hacked from (src/net/builtinServices.inl)
 #include "serviceRegistration.inl"
-REGISTER_SERVICE(smtp::MAPISMTPTransport, mapismtp, TYPE_TRANSPORT);
+REGISTER_SERVICE(KC::MAPISMTPTransport, mapismtp, TYPE_TRANSPORT);
 
-using namespace KC;
+namespace KC {
 
-namespace vmime {
-namespace net {
-namespace smtp {
+using namespace vmime;
+using namespace vmime::net;
+using namespace vmime::net::smtp;
 
 MAPISMTPTransport::MAPISMTPTransport(vmime::shared_ptr<session> sess,
     vmime::shared_ptr<security::authenticator> auth, const bool secured) :
@@ -114,7 +114,6 @@ void MAPISMTPTransport::connect()
 		auto tlsSession = tls::TLSSession::create(getCertificateVerifier(), getSession()->getTLSProperties());
 		auto tlsSocket = tlsSession->getSocket(m_socket);
 		m_socket = tlsSocket;
-
 		m_secured = true;
 		m_cntInfos = vmime::make_shared<tls::TLSSecuredConnectionInfos>(address, port, tlsSession, tlsSocket);
 	}
@@ -132,11 +131,8 @@ void MAPISMTPTransport::connect()
 	//
 	// eg:  C: <connection to server>
 	// ---  S: 220 smtp.domain.com Service ready
-
-	vmime::shared_ptr<SMTPResponse> resp;
-
-	if ((resp = readResponse())->getCode() != 220)
-	{
+	auto resp = readResponse();
+	if (resp->getCode() != 220) {
 		internalDisconnect();
 		throw exceptions::connection_greeting_error(resp->getText());
 	}
@@ -191,23 +187,19 @@ void MAPISMTPTransport::helo()
 	//      S: 250 SIZE 2555555555
 
 	sendRequest("EHLO " + platform::getHandler()->getHostName());
-
-	vmime::shared_ptr<SMTPResponse> resp;
-	if ((resp = readResponse())->getCode() != 250)
-	{
+	auto resp = readResponse();
+	if (resp->getCode() != 250) {
 		// Next, try "Basic" SMTP
 		//
 		// eg:  C: HELO thismachine.ourdomain.com
 		//      S: 250 OK
 
 		sendRequest("HELO " + platform::getHandler()->getHostName());
-
-		if ((resp = readResponse())->getCode() != 250)
-		{
+		resp = readResponse();
+		if (resp->getCode() != 250) {
 			internalDisconnect();
 			throw exceptions::connection_greeting_error(resp->getLastLine().getText());
 		}
-
 		m_extendedSMTP = false;
 		m_extensions.clear();
 		return;
@@ -259,7 +251,6 @@ void MAPISMTPTransport::authenticate()
 		try
 		{
 			authenticateSASL();
-
 			m_authentified = true;
 			return;
 		} catch (const exceptions::authentication_error &e) {
@@ -330,7 +321,6 @@ void MAPISMTPTransport::authenticateSASL()
 		auto mech = mechList[i];
 		auto saslSession = saslContext->createSession("smtp", getAuthenticator(), mech);
 		saslSession->init();
-
 		sendRequest("AUTH " + mech->getName());
 
 		for (bool cont = true ; cont ; )
@@ -363,7 +353,6 @@ void MAPISMTPTransport::authenticateSASL()
 				break;
 			}
 			default:
-
 				cont = false;
 				break;
 			}
@@ -390,9 +379,7 @@ void MAPISMTPTransport::startTLS()
 		auto tlsSession = tls::TLSSession::create(getCertificateVerifier(), getSession()->getTLSProperties());
 		auto tlsSocket = tlsSession->getSocket(m_socket);
 		tlsSocket->handshake();
-
 		m_socket = tlsSocket;
-
 		m_secured = true;
 		m_cntInfos = vmime::make_shared<tls::TLSSecuredConnectionInfos>
 			(m_cntInfos->getHost(), m_cntInfos->getPort(), tlsSession, tlsSocket);
@@ -417,7 +404,6 @@ void MAPISMTPTransport::disconnect()
 {
 	if (!isConnected())
 		throw exceptions::not_connected();
-
 	internalDisconnect();
 }
 
@@ -432,12 +418,9 @@ void MAPISMTPTransport::internalDisconnect()
 
 	m_socket->disconnect();
 	m_socket = NULL;
-
 	m_timeoutHandler = NULL;
-
 	m_authentified = false;
 	m_extendedSMTP = false;
-
 	m_secured = false;
 	m_cntInfos = NULL;
 }
@@ -446,24 +429,21 @@ void MAPISMTPTransport::noop()
 {
 	if (!isConnected())
 		throw exceptions::not_connected();
-
 	sendRequest("NOOP");
-
 	auto resp = readResponse();
 	if (resp->getCode() != 250)
 		throw exceptions::command_error("NOOP", resp->getText());
 }
 
-//                             
+//
 // Only this function is altered, to return per recipient failure.
-//                             
+//
 void MAPISMTPTransport::send(const mailbox &expeditor,
     const mailboxList &recipients, utility::inputStream &is, size_t size,
     utility::progressListener *progress, const mailbox &sender)
 {
 	if (!isConnected())
 		throw exceptions::not_connected();
-
 	// If no recipient/expeditor was found, throw an exception
 	if (recipients.isEmpty())
 		throw exceptions::no_recipient();
@@ -472,7 +452,6 @@ void MAPISMTPTransport::send(const mailbox &expeditor,
 
 	// Emit the "MAIL" command
 	bool bDSN = m_bDSNRequest;
-	
 	if(bDSN && m_extensions.find("DSN") == m_extensions.end()) {
 		ec_log_notice("SMTP server does not support Delivery Status Notifications (DSN)");
 		bDSN = false; // Disable DSN because the server does not support this.
@@ -549,8 +528,8 @@ void MAPISMTPTransport::send(const mailbox &expeditor,
 	sendRequest("DATA");
 
 	// we also stop here if all recipients failed before
-	if ((resp = readResponse())->getCode() != 354)
-	{
+	resp = readResponse();
+	if (resp->getCode() != 354) {
 		internalDisconnect();
 		throw exceptions::command_error("DATA", format("%d %s", resp->getCode(), resp->getText().c_str()));
 	}
@@ -558,16 +537,13 @@ void MAPISMTPTransport::send(const mailbox &expeditor,
 	// Stream copy with "\n." to "\n.." transformation
 	utility::outputStreamSocketAdapter sos(*m_socket);
 	utility::dotFilteredOutputStream fos(sos);
-
 	utility::bufferedStreamCopy(is, fos, size, progress);
-
 	fos.flush();
 
 	// Send end-of-data delimiter
 	m_socket->sendRaw(reinterpret_cast<const vmime::byte_t *>("\r\n.\r\n"), 5);
-
-	if ((resp = readResponse())->getCode() != 250)
-	{
+	resp = readResponse();
+	if (resp->getCode() != 250) {
 		internalDisconnect();
 		throw exceptions::command_error("DATA", format("%d %s", resp->getCode(), resp->getText().c_str()));
 	}
@@ -601,10 +577,6 @@ vmime::shared_ptr<SMTPResponse> MAPISMTPTransport::readResponse(void)
 	return resp;
 }
 
-// Service infos
-
 SMTPServiceInfos MAPISMTPTransport::sm_infos(false);
 
-} // smtp
-} // net
-} // vmime
+} /* namespace */

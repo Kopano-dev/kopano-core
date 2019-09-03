@@ -12,12 +12,9 @@ class ECImportHierarchyChangesProxy final :
     public IExchangeImportHierarchyChanges {
 private:
     ULONG m_cRef;
-    zval *m_lpObj;
-#ifdef ZTS
-	TSRMLS_D;
-#endif
+	zval m_lpObj;
 public:
-    ECImportHierarchyChangesProxy(zval *objTarget TSRMLS_DC);
+	ECImportHierarchyChangesProxy(const zval *v TSRMLS_DC);
     ~ECImportHierarchyChangesProxy();
 	virtual ULONG AddRef() override;
 	virtual ULONG Release() override;

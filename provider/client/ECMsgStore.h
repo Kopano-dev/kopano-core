@@ -71,6 +71,7 @@ public:
 	virtual HRESULT GetPublicFolderTable(const TCHAR *server, IMAPITable **, ULONG flags) override;
 	virtual HRESULT SetEntryId(ULONG eid_size, const ENTRYID *eid);
 	virtual ULONG Release() override;
+	HRESULT enable_transaction(bool enable);
 
 	// IECSpooler
 	virtual HRESULT GetMasterOutgoingTable(ULONG flags, IMAPITable **) override;
@@ -156,14 +157,7 @@ public:
 	HRESULT GetWrappedServerStoreEntryID(ULONG cbEntryId, LPBYTE lpEntryId, ULONG* lpcbWrapped, LPENTRYID* lppWrapped);
 	HRESULT InternalAdvise(ULONG eid_size, const ENTRYID *, ULONG evt_mask, IMAPIAdviseSink *, ULONG *conn);
 private:
-	HRESULT create_store_public(ECMsgStore *, IMAPIFolder *, IMAPIFolder *, const ENTRYID *, size_t);
-	HRESULT create_store_private(ECMsgStore *, ECMAPIFolder *, IMAPIFolder *, IMAPIFolder *);
-	HRESULT CreateSpecialFolder(LPMAPIFOLDER lpFolderParent, ECMAPIProp *lpFolderPropSet, const TCHAR *lpszFolderName, const TCHAR *lpszFolderComment, unsigned int ulPropTag, unsigned int ulMVPos, const TCHAR *lpszContainerClass, LPMAPIFOLDER *lppMAPIFolder);
-	HRESULT SetSpecialEntryIdOnFolder(LPMAPIFOLDER lpFolder, ECMAPIProp *lpFolderPropSet, unsigned int ulPropTag, unsigned int ulMVPos);
 	HRESULT OpenStatsTable(unsigned int ulTableType, LPMAPITABLE *lppTable);
-	HRESULT CreateAdditionalFolder(IMAPIFolder *lpRootFolder, IMAPIFolder *lpInboxFolder, IMAPIFolder *lpSubTreeFolder, ULONG ulType, const TCHAR *lpszFolderName, const TCHAR *lpszComment, const TCHAR *lpszContainerType, bool fHidden);
-	HRESULT AddRenAdditionalFolder(IMAPIFolder *lpFolder, ULONG ulType, SBinary *lpEntryID);
-	static HRESULT MsgStoreDnToPseudoUrl(const KC::utf8string &store_dn, KC::utf8string *pseudo_url);
 
 public:
 	class xMsgStoreProxy final :
@@ -212,6 +206,7 @@ public:
 
 private:
 	BOOL m_fIsSpooler, m_fIsDefaultStore;
+	bool m_transact = false;
 	std::string			m_strProfname;
 	std::set<ULONG>		m_setAdviseConnections;
 	ALLOC_WRAP_FRIEND;

@@ -1,32 +1,11 @@
-'\" t
-.\"     Title: kopano-dagent
-.\"    Author: [see the "Author" section]
-.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
-.\"      Date: November 2016
-.\"    Manual: Kopano Core user reference
-.\"    Source: Kopano 8
-.\"  Language: English
-.\"
 .TH "KOPANO\-DAGENT" "8" "November 2016" "Kopano 8" "Kopano Core user reference"
-.\" -----------------------------------------------------------------
-.\" * Define some portability stuff
-.\" -----------------------------------------------------------------
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .\" http://bugs.debian.org/507673
-.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
-.\" -----------------------------------------------------------------
-.\" * set default formatting
-.\" -----------------------------------------------------------------
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
 .ad l
-.\" -----------------------------------------------------------------
-.\" * MAIN CONTENT STARTS HERE *
-.\" -----------------------------------------------------------------
 .SH "NAME"
 kopano-dagent \- Deliver mails to Kopano.
 .SH "SYNOPSIS"
@@ -68,11 +47,6 @@ Default:
 \fI/etc/kopano/dagent.cfg\fR
 .RE
 .PP
-\fB\-\-deamonize\fR, \fB\-d\fR
-.RS 4
-Daemonize after starting. This implies \-\-listen and is only used when LMTP is active.
-.RE
-.PP
 \fB\-\-dump\-config\fP
 .RS 4
 Displays the values of \fBdagent.cfg\fP configuration parameters and the
@@ -86,7 +60,7 @@ Deliver in the Junk mail folder of the specified user.
 .PP
 \fB\-\-file\fR, \fB\-f\fR \fIfile\fR
 .RS 4
-Read e\-mail input from file. When not given, input is read from standard in.
+Read e-mail input from file. When not given, input is read from standard in.
 .RE
 .PP
 \fB\-\-host\fR, \fB\-h\fR \fIpath\fR
@@ -116,26 +90,26 @@ Silent mode. No output will be printed by the DAgent, except when wrong paramete
 .PP
 \fB\-v\fR
 .RS 4
-Verbose mode. More output can be printed when processing the e\-mail for rules.
+Verbose mode. More output can be printed when processing the e-mail for rules.
 .sp
 When given a second time, more debugging output will be printed.
 .RE
 .PP
 \fB\-e\fR
 .RS 4
-Strip the domain from the given username. For example, when the DAgent is called with \*(Aq\-e\*(Aq and the username is \*(Aqname@domain.com\*(Aq, the delivery will be started for user \*(Aqname\*(Aq instead of \*(Aqname@domain.com\*(Aq.
+Strip the domain from the given username. For example, when the DAgent is called with \fB\-e\fP and the username is \fIname@domain.com\fP, the delivery will be started for user \fIname\fP instead of \fIname@domain.com\fP.
 .RE
 .PP
 \fB\-R\fR
 .RS 4
-The passed recipient name will always be resolved first. This means that the recipient can be a username, e\-mail address or any other resolvable, unique identifier for the user. However, if the resolve fails (e.g. when running as a non\-trusted user), the passed name will be assumed to be a loginname of a user. Passing the \-R option will disable this and will cause kopano\-dagent to exit with an error when the resolve fails.
+The passed recipient name will always be resolved first. This means that the recipient can be a username, e-mail address or any other resolvable, unique identifier for the user. However, if the resolve fails (e.g. when running as a non\-trusted user), the passed name will be assumed to be a loginname of a user. Passing the \fB\-R\fP option will disable this and will cause kopano\-dagent to exit with an error when the resolve fails.
 .sp
 In practice, the resolve will only fail if kopano\-dagent is not running in a trusted account and is therefore only really here for backward\-compatibility of earlier kopano\-dagent versions.
 .RE
 .PP
 \fB\-n\fR
 .RS 4
-Use \*(Aqnow\*(Aq as the delivery time. Normally, the dagent will use the date from the first Received header, which is most likely to be the header from your own mailserver.
+Use \fBnow\fP as the delivery time. Normally, the dagent will use the date from the first Received header, which is most likely to be the header from your own mailserver.
 .RE
 .PP
 \fB\-\-do\-not\-notify\fR, \fB\-N\fR
@@ -143,19 +117,19 @@ Use \*(Aqnow\*(Aq as the delivery time. Normally, the dagent will use the date f
 Do not send a new mail notification to othere connected clients. This option can be useful when you have connected Outlook 2000 clients, which will also process rules when the mail is delivered. This is a bug workaround, and this option may disappear in the future.
 .RE
 .PP
-\fB\-\-folder\fR, \fB\-F\fR \fIpath\eto\efolder\fR
+\fB\-\-folder\fR, \fB\-F\fR \fIpath\\to\\folder\fR
 .RS 4
-Deliver the incoming email to a specified subfolder of the store. Eg. \-\-folder \*(AqInbox\eimportant\*(Aq. Note that the \*(AqInbox\*(Aq folder is language specific. If the folder does not exist, delivery is reverted to the normal Inbox of the user, or use the \-\-create flag.
+Deliver the incoming email to a specified subfolder of the store, e.g. \fB\-\-folder\fP \fIInbox\\important\fP. Note that the "Inbox" folder is language specific. If the folder does not exist, delivery is reverted to the normal Inbox of the user, or use the \fB\-\-create\fP flag.
 .RE
 .PP
-\fB\-\-public\fR, \fB\-P\fR \fIpath\eto\efolder\fR
+\fB\-\-public\fR, \fB\-P\fR \fIpath\\to\\folder\fR
 .RS 4
-Deliver the incoming email to a specified subfolder of the public store. Eg. \-\-public \*(Aqsales\eincoming\*(Aq. If the folder does not exist, delivery is reverted to the normal Inbox of the user, or use the \-\-create flag.
+Deliver the incoming email to a specified subfolder of the public store, e.g. \fB\-\-public\fP \fIsales\\incoming\fP. If the folder does not exist, delivery is reverted to the normal Inbox of the user, or use the \fB\-\-create\fP flag.
 .RE
 .PP
 \fB\-p\fR \fI<path separator>\fR
 .RS 4
-Use a different path separator. The default is \*(Aq\e\*(Aq. If your delivery path contains a \e character, you can use this to alter the separator. Eg. \-p _ \-\-folder \*(AqInbox_resellers\edealers\*(Aq. The mail will now be delivered in a folder called \*(Aqresellers\edealers\*(Aq as a subfolder of the Inbox.
+Use a different path separator. The default is \fB\\\fP. If your delivery path contains a \\ character, you can use this to alter the separator, e.g. \fB\-p _ \-\-folder\fP \fIInbox_resellers\\dealers\fP. The mail will now be delivered in a folder called \fIresellers\\dealers\fP as a subfolder of the Inbox.
 .RE
 .PP
 \fB\-\-create\fR, \fB\-C\fR
@@ -175,16 +149,16 @@ Path to autoresponder, e.g.
 \fIX\-Kopano\-Vacation\fR
 or
 \fIPrecedence\fR
-was found in the received e\-mail, this program will not be called to avoid loops. The Precedence header is often used in mailing lists. Other loop protections can be archieved in this separate program. This program or script will be called with the following arguments, in order:
+was found in the received e-mail, this program will not be called to avoid loops. The Precedence header is often used in mailing lists. Other loop protections can be archieved in this separate program. This program or script will be called with the following arguments, in order:
 .PP
 \fIfrom\fR
 .RS 4
-The e\-mail address of the Kopano user sending the vacation message
+The e-mail address of the Kopano user sending the vacation message
 .RE
 .PP
 \fIto\fR
 .RS 4
-The e\-mail address of the user to send the response to
+The e-mail address of the user to send the response to
 .RE
 .PP
 \fIsubject\fR
@@ -224,7 +198,7 @@ Default:
 .RE
 .SH "USAGE"
 .PP
-To deliver an e\-mail to a Kopano user\*(Aqs mailbox:
+To deliver an e-mail to a Kopano user's mailbox:
 .PP
 \fBkopano\-dagent \fR\fB\fIusername\fR\fR\fB < \fR\fB\fImailfile\fR\fR
 .PP
@@ -283,9 +257,6 @@ Delivery was temporarily failed. This happens when the storage server is unavail
 \fB\-q\fR
 option is used, this value is changed to 111, otherwise 75 is returned.
 .RE
-.SH "AUTHOR"
-.PP
-Written by Kopano.
 .SH "SEE ALSO"
 .PP
 \fBkopano-server\fR(8),

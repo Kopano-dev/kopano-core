@@ -1,0 +1,390 @@
+Opportunistic deduplication strategy
+
+
+== Overview ==
+
+Deduplication happens by linking to an existing attachment, i.e. making a
+reference to a shared block of data and track the in-use state.
+
+Design requirement: Must work with filesystems like VFAT, smbfs/CIFS.
+POSIX-style hardlinks, symbolic links, or filesystem locks may not exist and
+their presence cannot be relied upon.
+
+Design wishlist item: The filesystem itself should encode all the linkage
+metadata without needing an extra database component of any sort. (Such would
+add latency, and file-based databases like sqlite even have a hard time due to
+the absence of locking and protection from concurrent writers.)
+
+Design wishlist item: Avoid in-place file writes. This way,
+locks can be dispensed with, and atomics can suffice.
+
+Design note: Reference decrements are considered to occur more seldom than
+reference increments. If there is a trade-off to be made, decrements should
+preferably take the hit.
+
+
+== Intro: Atomics in hardware ==
+
+Abstractly speaking, objects that are intended to be shared need to keep a
+reference count that tracks the number of holders. When, and only if, the
+number of holders reaches zero, the object can be cleaned up. This concept is
+widely implemented, for example in POSIX Filesystem Hard Links, C++
+std::shared_ptr.
+
+Such a reference count must necessarily be atomic, that is, a change must leave
+no traces of an intermediate state to any party, and it must be synchronized
+(also referred to as coherency/consistency), that is, all parties see the
+change when next accessing the count/the data item.
+
+In case of computer programs, the reference count is stored in computer memory,
+and the hardware has to provide the atomic operations. Such atomic operations
+then allow building mutual exclusion devices (mutexes). A filesystem driver may
+use such locks to give the user of the filesystem API atomic semantics with
+regard to (certain) filesystem operations.
+
+A filesystem does not offer storing reference counts, not directly anyway;
+instead, it stores file objects (regular files, directories, etc.). For UAS to
+keep a reference count (a number) for itself, it would have to put that number
+into a text file, which is an action everyone can relate to. However, updating
+file content is generally not atomic; commonly, two actions are required, one
+read operation to load the current number, and one write operation to store the
+updated number. Furthermore, most contemporary implementations of operating
+systems split writes into chunks at some point, making a single write request
+(as far as an application is concerned) non-atomic. Even more so, because some
+filesystem drivers also do caching, synchronization of writes is also out the
+window, in particular with networked filesystems.
+
+
+== Atomics in filesystems ==
+
+Typical local filesystems only offer a few number of atomic operations usable
+as buildings blocks: creation, rename and deletion of regular files and single
+directories (and sometimes some other entities as well). Yet, operating systems
+also already have caveats in the basics too.
+
+The rename(2) manual page of linux-man-pages-4.16 for example states: "there
+will probably be a window in which both @oldpath and @newpath refer to the file
+being renamed", which means rename is not truly atomic. UAS is not affected by
+this particular property however, similar to how the non-synchronicity of
+(certain parts of) NFS is not a dealbreaker to many users.
+
+
+== Reference counting with a filesystem ==
+
+Now, as file writes are seldomly atomic, a text file cannot be used to hold the
+reference count — at least not without a lock. File-based locks are a
+well-established practice, but locks introduce wait states which could
+indefinitely delay the operation, which is something we would like to avoid, if
+so possible.
+
+The thought then goes further into the realm of mathematics: Express the
+reference count using _the count_ of some items. A pushdown automaton for
+example has a stack on which it can do a "push" operation for every new
+reference holder, a "pop" whenever a reference is to be removed, and then
+detect when it reaches zero holders. In terms of a filesystem, the presence of
+a set of files inside a directory can express a count. This alleviates the need
+to write the count as a number into a text file.
+
+To add a reference, an empty file is created in that directory. To remove a
+reference, a file is deleted. If there are zero files in the directory, the
+directory can be removed to signal to other UAS participants that the
+attachment is gone. All these three operations, create-file, delete-file and
+delete-directory are atomic, which is great, and it makes this bolt-on
+refcounting behave just like the link count of a real file, without depending
+on the presence of a POSIX hardlink feature (see design requirements in the
+Overview section).
+
+Because objects in a filesystem are always named (lest they practically do not
+exist), the reference count is now actually also a _list of (named) holders_.
+This has the benefit of resilience a certain class of accidental reference
+count changes. If only a reference count was used, a hypothetical misbehaving
+process erroneously believing it still holds one or more references could lead
+to the reference count being set to 0 to the detriment of holders. By using
+named references, the process can detect and diagnose when its supposed
+references are not present in the holder list.
+
+
+== Attachment construction ==
+
+With the reference counting being successfully laid out, it is time to look at
+the data of an attachment, hereinafter referred to as "content".
+
+In kopano-server, attachments are modeled as immutable/copy-on-write. More
+specifically, kopano-server does not implement in-place writes and therefore
+every "save attachment" request constitutes a new attachment. This tremendously
+simplifies the requirements on the UAS backing storage since file writes are
+now eliminated from the picture, which is great.
+
+The content, the holder directory and the reference list are (at least) three
+separate pieces of information and therefore are not atomic to modify as a
+whole. Again, file-based locks could be utilized, but this will not be
+necessary as will be shown.
+
+An attachment always starts off with at least one holder just like a regular
+file in any filesystem. (There is no point in storing an attachment that is not
+referenced by any message.) It will be necessary to store and make visible
+three entities at once: the content file, the holder directory, and the first
+reference file. It is possible to do so by putting these three objects into one
+more (temporary) directory, the construction of which is not required to be
+atomic, and then utilizing the atomic rename functionality of the filesystem to
+make it instantly "visible" to all other parties.
+
+An "attachment", subsequently, refers to that one directory containing all the
+different bits of information.
+
+
+== Attachment linking ==//
+
+In anticipation that an attachment may already exist, the algorithm needs to
+check for the presence of such attachment before going off to do the first-time
+construction.
+
+If, during construction, the final rename fails during the construction phase,
+then that would indicate that another instance was quicker in uploading, at
+which point the algorithm should retry making a reference instead.
+
+
+== Soft deletes ==
+
+kopano-server implements a soft-delete functionality for all mail objects
+(messages, attachments, contacts, etc.) even after items have been purged from
+one's wastebasket. This means that, by default, the attachment and SQL
+subsystems see deletes deferred and much less frequently. (In fact, the
+softdelete purge action is manual as of KC 8.7.4 and requires some kind of
+admin action to trigger, at the very least, setting up a periodic system
+timer.)
+
+Nonwithstanding the default soft-delete strategy, it is the developers' belief
+that a situation in which an attachment would be simultaneously deleted and
+reintroduced to the system would occur rather seldom, very seldom even. If
+there is a high chance for a sever to repeatedly receive the same attachment,
+for example a logo in an e-mail signature, then there is also a high chance
+that at least one (human) recipient has not yet gotten around to delete said
+mail in time. In other words, high-volume same-attachments are considered to be
+"prone" to stay above a 0 reference count most of the time. For corporations,
+there may also be e-mail retention laws that outright rule out reaching a zero
+refcount anytime soon.
+
+This will impact choices in the section about attachment deletion.
+
+
+== Attachment deletion ==
+
+Once the reference count of an attachment reaches zero, it can be deleted.
+(Generally, reference-count based systems operate under the general
+anticipation that no new holders desiring the exact same data are going to show
+up anytime soon. A few systems, mostly caches, extend the lifetime of
+unreferenced objects, and use MRU/LRU/some other kind of trigger for final
+eviction. Such lifetime extensions are outside the scope of UAS, though.)
+
+To prevent any new references from appearing, the holder directory needs to be
+removed. At the same time, the attachment needs to be made "invisible" by
+removal (or rename to a temporary name). These are two steps, and combined
+together, they are not atomic.
+
+Thought experiment: What if we make do with the lack of atomicity in this case
+(and avoid locks at all costs)? =>
+
+Deleting (which is not even atomic) or renaming the attachment directory first
+has the problem that the holder directory may still contain references which
+then become unresolvable by the holding instances due to the path change. This
+is very undesirable.
+
+On the other hand, removing the holder directory first, there will be a period
+where other server instances cannot make new references, but likewise cannot do
+the final rename of the construction phase (see above) because the dead
+attachment is still occupying the name for an unspecified amount of time. This
+introduces another attachment state observable by other instances, termed
+"in-deletion".
+
+Deletions are perceived to be "seldom" (see section on soft deletes), therefore
+the impact or delay on a server instance doing construction is considered to be
+negligible.
+
+
+== Names/identifiers for attachments ==
+
+Because the construction of the attachment and the write operation for the
+content file are not atomic operations, attachments need to be constructed in a
+temporary directory, that is, a directory with an arbitrary temporary name,
+hereinafter referred to as "S-name". The S-name needs to be chosen such that
+there is no anticipated collision with any other server instance also uploading
+anything, including potentially the same content.
+
+When the upload is complete, the attachment will be renamed to the so-called
+H-name (hash-based name) which depends solely on the content and no other
+characteristics. This name must not collide with any S-names either. When two
+attachments have the same content, they will derive the same H-name, in which
+case that kind of collision is acceptable and wanted.
+
+This leads to the following states of objects.
+
+
+== States of an H-name ==
+
+digraph {
+	H-non-existent -> H-complete -> H-in-deletion -> H-non-existent;
+};
+
+  * non-existent: there is no attachment directory by the name H(c).
+  * complete: there is an attachment directory with name H(c),
+    and new references can be created.
+  * in-deletion: there is an attachment directory with name H(c),
+    but no references can be created.
+
+H(c) denotes the output of hash function for the given content.
+
+Directories with an H-name are collectively owned. The one server instance
+which is first able to establish and commit that no new references can be made
+(i.e. is able to perform the H-complete -> H-in-deletion state change), shall
+also perform the the deletion and bring the state to H-non-existent.
+
+(Other instances that have observed that an attachment is in the H-in-deletion
+state must not modify it, because the state may have already changed again
+right after the observation.)
+
+
+== States of an S-name ==
+
+digraph {
+	S-non-existent -> S-in-construction -> S-complete ->
+	S-in-deletion -> S-non-existent;
+};
+
+  * non-existent: there is no attachment directory by the name of S(a).
+  * in-construction: there is an attachment directory by the name of S(a), and
+    it is currently being written to by the owning instance.
+  * complete: there is an attachment directory by the name of S(a), writes to
+    the content file are complete, and new references can be created by the
+    owning instance.
+  * in-deletion: there is an attachment directory with name S(a),
+    and no references will be created anymore.
+
+S(a) denotes the output of the S-name function for a particular
+server-specific in-server idea of an attachment object or request.
+
+Directories with an S-name are owned and exclusively managed by the particular
+instance that created them.
+
+
+== States of a logical attachment ==
+
+A logical attachment can be in one of six states, which also determines the
+kind of attachment directory name/identifier it is using. This inherently
+constructs from the S/H state sets.
+
+digraph {
+	// A-non-existent      => S-non-existent    AND H-non-existent
+	// A-S-in-construction => S-in-construction AND H-non-existent
+	// A-S-complete        => S-complete        AND H-non-existent
+	// A-S-in-deletion     => S-in-deletion     AND H-non-existent
+	// A-H-complete        => S-non-existent    AND H-complete
+	// A-H-in-deletion     => S-non-existent    AND H-in-deletion
+
+	A-non-existent -> A-S-in-construction -> A-S-complete;
+	A-S-complete -> A-S-in-deletion -> A-non-existent;
+	A-S-complete -> A-H-complete;
+	A-H-complete -> A-H-in-deletion -> A-non-existent;
+};
+
+
+== Names in files_v2 ==
+
+In the files_v2 implementation of UAS, the H-type name in files_v2 is the
+base-16 representation of the SHA-256 content hash, which consists solely of
+[0-9a-f] characters. The S-type name is constructed from 's', the server GUID,
+'i', and a per-server monotonically increasing counter. The presence of 's'
+(which is outside the [0-9a-f] alphabet) means it will never collide with any
+H-type name.
+
+	H: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+	   (<hash>)
+	S: scf1e8c14e54505f60aa10ceb8d5d8ab3i43981
+	   (s<server_guid>i<instance_id>)
+
+To facilitate directory fanout, the actual S/H names used in files_v2 actually
+differ a little, but without changing the aforementioned anti-collision
+properties.
+
+	H: e3/b0/c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+	S: cd/ab/scf1e8c14e54505f60aa10ceb8d5d8ab3i43981
+
+The naming scheme in files_v2 also allows switching the hash algorithm, so long
+as the new names are collision-free, which is possible by using more of the
+remaining characters from [^0-9a-fsi]. A move to SHA-512 could look like
+
+	H: xcf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e
+	H: cf/83/xe1357eefb8bdf154... (fanout variant)
+
+
+== Algorithm ==
+
+1. Create a "link", that is, an empty file <hash>/holders/s<server_guid>i<instance_id>.
+
+   If successful, record <instance_id> => <hash> in the local database. Done.
+
+   If the operation fails, which will happen either because the <hash>
+   directory did not exist (attachment is in state "non-existent") or because
+   the "holders" directory did not exist (attachment is in state "deleting"),
+   there is no attachment as far as this uploader is concerned; goto #2.
+
+2. Creation of attachment
+
+2a. Upload the attachment structure into a temporary directory (S-type name).
+    This always succeeds in the context of this UAS algorithm.
+    s<server_guid>i<instance_id>/holders/ (directory of holders)
+    s<server_guid>i<instance_id>/content (content file)
+    s<server_guid>i<instance_id>/holders/s<server_guid>i<instance_id>
+
+2b. Atomically rename s<server_guid>i<instance_id> to <hash>.
+
+    If successful, we were the first uploader. Record <instance_id> => <hash>
+    in the local database. Done.
+
+2c. If unsuccessful, some other party must have uploaded the attachment at the
+    same time and managed to finish first (#2b), or, the directory is
+    undergoing deletion (#3b).
+
+    Retry from #1 for a limited number of tries. If, during these attempts,
+    linking succeeds, the temporary directory from #2a is removed. Else, if
+    linking in #1a fails due to #3b, the algorithm goes to #2b again, as said
+    for a limited number. If retries are exhausted, that is to say the
+    opportunistic deduplication has failed, the temporary directory is kept
+    as-is (with its single holder) and recorded in the local database. Done.
+
+3. Deletion of attachment
+
+3a. Remove <d>/holder/s<server_guid>i<instance_id> and the corresponding
+    local database entry.
+
+3b. Attempt to remove <d>/holder.
+    If this fails, there are other holders; stop and done.
+
+    If successful, no new holders can join.
+    The attachment has now changed state from "existent" to "deleting".
+
+3d. Recursively remove <d>. Done.
+
+
+== Summary ==
+
+UAS expects eight fundamental guarantees of the underlying filesystem:
+
+  * atomic and synchronized file creation and deletion
+  * atomic and synchronized directory rename
+  * atomic and synchronized directory removal (non-recursive)
+
+UAS is impervious to directory rename being implemented as recursive copy plus
+delete, _so long_ as the recursive copy is atomic and synchronized.
+
+Many filesystems support these guarantees. HDFS has some documentation on the
+topic of atomicity and synchronization (consistency/coherency) at [1].
+
+[1] https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/filesystem/introduction.html#Core_Expectations_of_a_Hadoop_Compatible_FileSystem
+
+S3 does not offer an atomic rename operation and therefore cannot support UAS.
+In S3, rename is copy+delete, but the copy is not a directory-recursive atomic
+operation as mandated. Another kopano-server instance accessing the same S3
+bucket could observe states inbetween "S-complete" and "H-complete". Therefore,
+there is no autonomous deduplicating S3 backend offerable by kopano-server at
+this time.

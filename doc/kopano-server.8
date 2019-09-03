@@ -1,32 +1,11 @@
-'\" t
-.\"     Title: kopano-server
-.\"    Author: [see the "Author" section]
-.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
-.\"      Date: November 2016
-.\"    Manual: Kopano Core user reference
-.\"    Source: Kopano 8
-.\"  Language: English
-.\"
 .TH "KOPANO\-SERVER" "8" "November 2016" "Kopano 8" "Kopano Core user reference"
-.\" -----------------------------------------------------------------
-.\" * Define some portability stuff
-.\" -----------------------------------------------------------------
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .\" http://bugs.debian.org/507673
-.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
-.\" -----------------------------------------------------------------
-.\" * set default formatting
-.\" -----------------------------------------------------------------
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
 .ad l
-.\" -----------------------------------------------------------------
-.\" * MAIN CONTENT STARTS HERE *
-.\" -----------------------------------------------------------------
 .SH "NAME"
 kopano-server \- Start the Kopano storage server.
 .SH "SYNOPSIS"
@@ -55,34 +34,29 @@ Displays the values of \fBserver.cfg\fP configuration parameters and the
 implied defaults.
 .RE
 .PP
-\fB\-\-foreground\fR, \fB\-F\fR
-.RS 4
-Run in the foreground. Normally the server will daemonize and run in the background.
-.RE
-.PP
 \fB\-\-restart\-searches\fR, \fB\-R\fR
 .RS 4
-Rebuild all search folders. This may take some time and is only needed when your search folders have become out\-of\-sync with the actual data in the database. The sync will start synchronously at the start of the server, and you will have to wait for all searches to complete before connecting to the server.
+Rebuild all search folders. This may take some time and is only needed when your search folders have become out of sync with the actual data in the database. The sync will start synchronously at the start of the server, and you will have to wait for all searches to complete before connecting to the server.
 .RE
 .PP
 \fB\-\-ignore\-database\-version\-conflict\fR
 .RS 4
-Ignore version information from the database. Kopano will normally not start the server if the database has a newer version than the kopano\-server binary. This makes sure you cannot downgrade your server binary while keeping the same database. If you know what you\*(Aqre doing, you can use this option to bypass the start\-up version check of the database.
+Ignore version information from the database. Kopano will normally not start the server if the database has a newer version than the kopano\-server binary. This makes sure you cannot downgrade your server binary while keeping the same database. If you know what you are doing, you can use this option to bypass the start\-up version check of the database.
 .RE
 .PP
 \fB\-\-ignore\-attachment\-storage\-conflict\fR
 .RS 4
-Override the attachment storage option from the configuration file. When you change the option of the location where to store attachments after you\*(Aqve already started the kopano\-server once, this location will conflict. Attachments will not be found when they are stored in a different location.
+Override the attachment storage option from the configuration file. When you change the option of the location where to store attachments after you have already started the kopano\-server once, this location will conflict. Attachments will not be found when they are stored in a different location.
 .RE
 .PP
 \fB\-\-override\-multiserver\-lock\fR
 .RS 4
-When you upgrade/downgrade from/to multiserver setups, the server will not start, because of database differences. If you know what you\*(Aqre doing, and want to circumvent this and start the server anyway, you can use this option.
+When you upgrade/downgrade from/to multiserver setups, the server will not start, because of database differences. If you know what you are doing, and want to circumvent this and start the server anyway, you can use this option.
 .RE
 .PP
 \fB\-\-force\-database\-upgrade\fR
 .RS 4
-Forcing the kopano\-server do the normal upgrade as usual. The server will only daemonize when the upgrade is complete. Simple progress can be followed in the log output of the server.
+Forcing the kopano\-server do the normal upgrade as usual. Simple progress can be followed in the log output of the server.
 .RE
 .PP
 \fB\-V\fR
@@ -150,7 +124,7 @@ To accept SSL connections directly by the server, the storage server will need t
 \fIserver_ssl_port\fR
 setting in the configuration file.
 .PP
-Then, you must setup a signed SSL certificate. First, we\*(Aqll create a Certificate Authority to be able to sign certificate requests. We provide a script which makes it easy to create certificates on any distribution. This script is located in /usr/share/kopano, called ssl\-certificate.sh. Enter the following commands to create a certificate for the Kopano server.
+Then, you must setup a signed SSL certificate. First, we will create a Certificate Authority to be able to sign certificate requests. We provide a script which makes it easy to create certificates on any distribution. This script is located in /usr/share/kopano, called ssl\-certificate.sh. Enter the following commands to create a certificate for the Kopano server.
 .PP
 \fB mkdir \-p /etc/kopano/ssl \fR
 \fB cd /etc/kopano/ssl \fR
@@ -162,13 +136,13 @@ Now that we have a CA, we can create self\-signed certificates. The script will 
 \fIserver_ssl_ca_file\fR
 setting. We need a signed certificate for the server to start with SSL support.
 .PP
-Enter a password for the request, and enter the certificate details. Some details need to be different from what you typed when creating the CA. Type at least a different name in the \*(AqOrganizational Unit Name\*(Aq field. The challenge password at the end may be left empty.
+Enter a password for the request, and enter the certificate details. Some details need to be different from what you typed when creating the CA. Type at least a different name in the "Organizational Unit Name" field. The challenge password at the end may be left empty.
 .PP
 The script will automatically continue with signing this certificate request. You will need to enter your CA certificate password again to sign this request. Then you must accept the new certificate into the CA.
 .PP
 After accepting, a new signed certificate is created, with the name server.pem. This file contains the private key, so keep this file safe.
 .PP
-The script will ask if a public key should also be created. Since we\*(Aqre creating the certificate for the server, this is not needed. So enter \*(Aqn\*(Aq and press enter.
+The script will ask if a public key should also be created. Since we are creating the certificate for the server, this is not needed. So enter \fBn\fP and press enter.
 .PP
 The server.pem file should be set in the server.cfg file in the
 \fIserver_ssl_key_file\fR
@@ -182,7 +156,7 @@ To create a new certificate for a client service, run the script again. You can 
 .PP
 \fB sh /usr/share/kopano/ssl\-certificates.sh \fR
 .PP
-When typing the certificate information, type at least a different \*(AqOrganizational Unit Name\*(Aq field. When asked for a public key, type \*(Aqy\*(Aq and enter to create the public key.
+When typing the certificate information, type at least a different "Organizational Unit Name" field. When asked for a public key, type \fBy\fP and enter to create the public key.
 .PP
 Install the new service.pem on the server that will be logging in. Install the service\-public.pem file in the /etc/kopano/sslkeys directory:
 .PP
@@ -212,9 +186,6 @@ Also, when using
 .RS 4
 To gracefully let the server exit, the normal TERM signal is used. Because of open sessions by clients it may take up to 60 seconds for the server to completely shutdown.
 .RE
-.SH "AUTHOR"
-.PP
-Written by Kopano.
 .SH "SEE ALSO"
 .PP
 \fBkopano-server.cfg\fR(5),

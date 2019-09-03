@@ -2,9 +2,10 @@
 
 dist_sbin_SCRIPTS = kopano-migration-pst
 
-EXTRA_DIST = setup.py \
+EXTRA_DIST = requirements.txt setup.py \
 	setup.cfg \
 	kopano_migration_pst/__init__.py \
+	kopano_migration_pst/pst.py \
 	kopano_migration_pst/version.py
 
 install-exec-local:
@@ -15,7 +16,7 @@ install-exec-local:
 	cd staging/ && ${PYTHON} setup.py \
 		build --build-base="${abs_builddir}/build" \
 		install -f $${DESTDIR+--root=${DESTDIR}} \
-		--prefix ${prefix} --install-purelib ${pythondir}
+		--prefix="${prefix}" --install-purelib="${pythondir}"
 	rm -Rf build
 
 uninstall-local:

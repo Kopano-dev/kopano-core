@@ -16,6 +16,7 @@
 #include <netdb.h>
 #include <poll.h>
 #include <sys/resource.h>
+#include <sys/stat.h>
 #include <inetmapi/inetmapi.h>
 #include <mapi.h>
 #include <mapix.h>
@@ -66,7 +67,6 @@ struct socks {
 	std::vector<bool> pop3, ssl;
 };
 
-static int daemonize = 1;
 int quit = 0;
 static bool bThreads, g_dump_config;
 static const char *szPath;
@@ -119,8 +119,7 @@ static HRESULT running_service(char **argv);
 static void print_help(const char *name)
 {
 	cout << "Usage:\n" << endl;
-	cout << name << " [-F] [-h|--host <serverpath>] [-c|--config <configfile>]" << endl;
-	cout << "  -F\t\tDo not run in the background" << endl;
+	cout << name << " [-h|--host <serverpath>] [-c|--config <configfile>]" << endl;
 	cout << "  -h path\tUse alternate connect path (e.g. file:///var/run/socket).\n\t\tDefault: file:///var/run/kopano/server.sock" << endl;
 	cout << "  -V Print version info." << endl;
 	cout << "  -c filename\tUse alternate config file (e.g. /etc/kopano-gateway.cfg)\n\t\tDefault: /etc/kopano/gateway.cfg" << endl;
@@ -247,7 +246,7 @@ exit:
 	client->HrDone(false);	// HrDone does not send an error string to the client
 	delete client;
 	/** free SSL error data **/
-	#if OPENSSL_VERSION_NUMBER < 0x10100000L
+        #ifdef OLD_API
 		ERR_remove_state(0);
 	#endif
 	if (bThreads)
@@ -304,7 +303,6 @@ int main(int argc, char *argv[]) {
 		{ "run_as_user", "kopano" },
 		{ "run_as_group", "kopano" },
 		{ "pid_file", "/var/run/kopano/gateway.pid" },
-		{"running_path", "/var/lib/kopano/empty", CONFIGSETTING_OBSOLETE},
 		{ "process_model", "thread" },
 		{"coredump_enabled", "systemdefault"},
 		{"pop3_listen", "*:110"},
@@ -332,7 +330,8 @@ int main(int argc, char *argv[]) {
 		{"ssl_verify_client", "no", CONFIGSETTING_RELOADABLE},
 		{"ssl_verify_file", "", CONFIGSETTING_RELOADABLE},
 		{"ssl_verify_path", "", CONFIGSETTING_RELOADABLE},
-		{"ssl_protocols", KC_DEFAULT_SSLPROTOLIST, CONFIGSETTING_RELOADABLE},
+		{"tls_min_proto", KC_DEFAULT_TLSMINPROTO, CONFIGSETTING_RELOADABLE},
+		{"ssl_protocols", "", CONFIGSETTING_UNUSED},
 		{"ssl_ciphers", KC_DEFAULT_CIPHERLIST, CONFIGSETTING_RELOADABLE},
 		{"ssl_prefer_server_ciphers", "yes", CONFIGSETTING_RELOADABLE},
 		{"ssl_curves", KC_DEFAULT_ECDH_CURVES, CONFIGSETTING_RELOADABLE},
@@ -350,7 +349,6 @@ int main(int argc, char *argv[]) {
 		OPT_HELP = UCHAR_MAX + 1,
 		OPT_HOST,
 		OPT_CONFIG,
-		OPT_FOREGROUND,
 		OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS,
 		OPT_DUMP_CONFIG,
 	};
@@ -358,7 +356,6 @@ int main(int argc, char *argv[]) {
 		{"help", 0, NULL, OPT_HELP},
 		{"host", 1, NULL, OPT_HOST},
 		{"config", 1, NULL, OPT_CONFIG},
-		{"foreground", 1, NULL, OPT_FOREGROUND},
 		{ "ignore-unknown-config-options", 0, NULL, OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS },
 		{"dump-config", no_argument, nullptr, OPT_DUMP_CONFIG},
 		{NULL, 0, NULL, 0}
@@ -383,10 +380,7 @@ int main(int argc, char *argv[]) {
 			break;
 		case 'i':				// Install service
 		case 'u':				// Uninstall service
-			break;
-		case OPT_FOREGROUND:
-		case 'F':
-			daemonize = 0;
+		case 'F': /* foreground operation */
 			break;
 		case OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS:
 			bIgnoreUnknownConfigOptions = true;
@@ -456,11 +450,29 @@ exit:
 
 static HRESULT gw_listen(ECConfig *cfg)
 {
-	std::set<std::string, ec_bindaddr_less> pop3_sock, pop3s_sock, imap_sock, imaps_sock;
-	pop3_sock  = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("pop3_listen"), ' ', true));
-	pop3s_sock = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("pop3s_listen"), ' ', true));
-	imap_sock  = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("imap_listen"), ' ', true));
-	imaps_sock = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("imaps_listen"), ' ', true));
+	auto info = ec_bindspec_to_sockets(tokenize(cfg->GetSetting("pop3_listen"), ' ', true),
+	            S_IRWUGO, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+	if (info.first < 0)
+		return E_FAIL;
+	auto pop3_sock = std::move(info.second);
+
+	info = ec_bindspec_to_sockets(tokenize(cfg->GetSetting("pop3s_listen"), ' ', true),
+	       S_IRWUGO, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+	if (info.first < 0)
+		return E_FAIL;
+	auto pop3s_sock = std::move(info.second);
+
+	info = ec_bindspec_to_sockets(tokenize(cfg->GetSetting("imap_listen"), ' ', true),
+	       S_IRWUGO, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+	if (info.first < 0)
+		return E_FAIL;
+	auto imap_sock = std::move(info.second);
+
+	info = ec_bindspec_to_sockets(tokenize(cfg->GetSetting("imaps_listen"), ' ', true),
+	       S_IRWUGO, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+	if (info.first < 0)
+		return E_FAIL;
+	auto imaps_sock = std::move(info.second);
 
 	if ((!pop3s_sock.empty() || !imaps_sock.empty()) &&
 	    ECChannel::HrSetCtx(g_lpConfig.get()) != hrSuccess) {
@@ -478,53 +490,33 @@ static HRESULT gw_listen(ECConfig *cfg)
 	struct pollfd pfd;
 	memset(&pfd, 0, sizeof(pfd));
 	pfd.events = POLLIN;
-	for (const auto &spec : pop3_sock) {
-		auto ret = ec_fdtable_socket(spec.c_str(), nullptr, nullptr);
-		if (ret >= 0)
-			pfd.fd = ret;
-		else
-			ret = ec_listen_generic(spec.c_str(), &pfd.fd);
-		if (ret < 0)
-			return MAPI_E_NETWORK_ERROR;
+	for (auto &spec : pop3_sock) {
+		pfd.fd = spec.m_fd;
+		spec.m_fd = -1;
 		g_socks.pollfd.push_back(pfd);
 		g_socks.linfd.push_back(pfd.fd);
 		g_socks.pop3.push_back(true);
 		g_socks.ssl.push_back(false);
 	}
-	for (const auto &spec : pop3s_sock) {
-		auto ret = ec_fdtable_socket(spec.c_str(), nullptr, nullptr);
-		if (ret >= 0)
-			pfd.fd = ret;
-		else
-			ret = ec_listen_generic(spec.c_str(), &pfd.fd);
-		if (ret < 0)
-			return MAPI_E_NETWORK_ERROR;
+	for (auto &spec : pop3s_sock) {
+		pfd.fd = spec.m_fd;
+		spec.m_fd = -1;
 		g_socks.pollfd.push_back(pfd);
 		g_socks.linfd.push_back(pfd.fd);
 		g_socks.pop3.push_back(true);
 		g_socks.ssl.push_back(true);
 	}
-	for (const auto &spec : imap_sock) {
-		auto ret = ec_fdtable_socket(spec.c_str(), nullptr, nullptr);
-		if (ret >= 0)
-			pfd.fd = ret;
-		else
-			ret = ec_listen_generic(spec.c_str(), &pfd.fd);
-		if (ret < 0)
-			return MAPI_E_NETWORK_ERROR;
+	for (auto &spec : imap_sock) {
+		pfd.fd = spec.m_fd;
+		spec.m_fd = -1;
 		g_socks.pollfd.push_back(pfd);
 		g_socks.linfd.push_back(pfd.fd);
 		g_socks.pop3.push_back(false);
 		g_socks.ssl.push_back(false);
 	}
-	for (const auto &spec : imaps_sock) {
-		auto ret = ec_fdtable_socket(spec.c_str(), nullptr, nullptr);
-		if (ret >= 0)
-			pfd.fd = ret;
-		else
-			ret = ec_listen_generic(spec.c_str(), &pfd.fd);
-		if (ret < 0)
-			return MAPI_E_NETWORK_ERROR;
+	for (auto &spec : imaps_sock) {
+		pfd.fd = spec.m_fd;
+		spec.m_fd = -1;
 		g_socks.pollfd.push_back(pfd);
 		g_socks.linfd.push_back(pfd.fd);
 		g_socks.pop3.push_back(false);
@@ -584,7 +576,7 @@ static HRESULT handler_client(size_t i)
 		ec_log_err("Could not create %s %s: %s", method, model, strerror(err));
 		return MAPI_E_CALL_FAILED;
 	}
-	set_thread_name(tid, "ZGateway " + std::string(method));
+	set_thread_name(tid, "net/" + strToLower(method));
 	lpHandlerArgs.release();
 	return hrSuccess;
 }
@@ -626,22 +618,16 @@ static HRESULT running_service(char **argv)
 	// Setup signals
 	signal(SIGPIPE, SIG_IGN);
 	sigemptyset(&act.sa_mask);
-	act.sa_flags   = SA_RESTART;
+	act.sa_flags   = SA_ONSTACK | SA_RESETHAND;
 	act.sa_handler = sigterm;
 	sigaction(SIGTERM, &act, nullptr);
 	sigaction(SIGINT, &act, nullptr);
+	act.sa_flags   = SA_ONSTACK;
 	act.sa_handler = sighup;
 	sigaction(SIGHUP, &act, nullptr);
 	act.sa_handler = sigchld;
 	sigaction(SIGCHLD, &act, nullptr);
 	ec_setup_segv_handler("kopano-dagent", PROJECT_VERSION);
-
-	// fork if needed and drop privileges as requested.
-	// this must be done before we do anything with pthreads
-	if (daemonize && unix_daemonize(g_lpConfig.get()))
-		return MAPI_E_CALL_FAILED;
-	if (!daemonize)
-		setsid();
 	unix_create_pidfile(argv[0], g_lpConfig.get());
 	if (!bThreads)
 		g_lpLogger = StartLoggerProcess(g_lpConfig.get(), std::move(g_lpLogger)); // maybe replace logger

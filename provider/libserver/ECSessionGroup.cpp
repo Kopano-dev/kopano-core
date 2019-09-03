@@ -235,10 +235,7 @@ ECRESULT ECSessionGroup::AddNotificationTable(ECSESSIONID ulSessionId, unsigned 
 {
 	std::lock_guard<ECSessionGroup> holder(*this);
 	auto lpNotify = s_alloc<notification>(nullptr);
-	memset(lpNotify, 0, sizeof(notification));
 	lpNotify->tab = s_alloc<notificationTable>(nullptr);
-	memset(lpNotify->tab, 0, sizeof(notificationTable));
-
 	lpNotify->ulEventType			= fnevTableModified;
 	lpNotify->tab->ulTableEvent		= ulType;
 
@@ -384,7 +381,7 @@ ECRESULT ECSessionGroup::GetNotifyItems(struct soap *soap, ECSESSIONID ulSession
 	 * for notifications for the group.
 	 */
 	UpdateSessionTime();
-	memset(notifications, 0,  sizeof(notifyResponse));
+	soap_default_notifyResponse(soap, notifications);
 	ulock_normal l_note(m_hNotificationLock);
 
 	/* May still be nothing in there, as the signal is also fired when we should exit */

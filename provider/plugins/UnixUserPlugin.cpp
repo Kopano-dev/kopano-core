@@ -32,6 +32,8 @@
 #include <kopano/stringutil.h>
 #include "UnixUserPlugin.h"
 #include <kopano/ecversion.h>
+#define NO_HOSTED  "Multi-tenancy not implemented by unix userplugin"
+#define NO_DISTRIB "Multi-server not implemented by unix userplugin"
 
 /**
  * static buffer size for getpwnam_r() calls etc.
@@ -88,9 +90,9 @@ UnixUserPlugin::UnixUserPlugin(std::mutex &pluginlock,
 		throw runtime_error(string("Not a valid configuration file."));
 
 	if (m_bHosted)
-		throw notsupported("Hosted Kopano not supported when using the Unix Plugin");
+		throw notsupported(NO_HOSTED);
 	if (m_bDistributed)
-		throw notsupported("Distributed Kopano not supported when using the Unix Plugin");
+		throw notsupported(NO_DISTRIB);
 }
 
 void UnixUserPlugin::InitPlugin(std::shared_ptr<ECStatsCollector> sc)
@@ -605,11 +607,11 @@ void UnixUserPlugin::changeObject(const objectid_t &id, const objectdetails_t &d
 }
 
 objectsignature_t UnixUserPlugin::createObject(const objectdetails_t &details) {
-	throw notimplemented("Creating objects is not supported when using the Unix user plugin.");
+	throw notimplemented("Creating objects not implemented by unix userplugin");
 }
 
 void UnixUserPlugin::deleteObject(const objectid_t &id) {
-	throw notimplemented("Deleting objects is not supported when using the Unix user plugin.");
+	throw notimplemented("Deleting objects not implemented by unix userplugin");
 }
 
 signatures_t
@@ -740,14 +742,14 @@ UnixUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 void UnixUserPlugin::addSubObjectRelation(userobject_relation_t relation, const objectid_t &id, const objectid_t &member)
 {
 	if (relation != OBJECTRELATION_QUOTA_USERRECIPIENT && relation != OBJECTRELATION_USER_SENDAS)
-		throw notimplemented("Adding object relations is not supported when using the Unix user plugin.");
+		throw notimplemented("Adding object relations not implemented by unix userplugin");
 	DBPlugin::addSubObjectRelation(relation, id, member);
 }
 
 void UnixUserPlugin::deleteSubObjectRelation(userobject_relation_t relation, const objectid_t &id, const objectid_t &member)
 {
 	if (relation != OBJECTRELATION_QUOTA_USERRECIPIENT && relation != OBJECTRELATION_USER_SENDAS)
-		throw notimplemented("Deleting object relations is not supported when using the Unix user plugin.");
+		throw notimplemented("Deleting object relations not implemented by unix userplugin");
 	DBPlugin::deleteSubObjectRelation(relation, id, member);
 }
 
@@ -791,17 +793,17 @@ UnixUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 
 objectdetails_t UnixUserPlugin::getPublicStoreDetails()
 {
-	throw notsupported("public store details");
+	throw notsupported(NO_DISTRIB ", getPublicStoreDetails not implemented");
 }
 
 serverdetails_t UnixUserPlugin::getServerDetails(const std::string &server)
 {
-	throw notsupported("server details");
+	throw notsupported(NO_DISTRIB ", getServerDetails not implemented");
 }
 
 serverlist_t UnixUserPlugin::getServers()
 {
-	throw notsupported("server list");
+	throw notsupported(NO_DISTRIB ", getServers not implemented");
 }
 
 std::map<objectid_t, objectdetails_t>

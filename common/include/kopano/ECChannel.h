@@ -6,12 +6,19 @@
 #ifndef ECCHANNEL_H
 #define ECCHANNEL_H
 
+#include <list>
+#include <string>
+#include <utility>
+#include <vector>
+#include <kopano/zcdefs.h>
 #include <cstdint>
 #include <string>
 #include <sys/socket.h>
 #include <openssl/ssl.h>
 #include <kopano/zcdefs.h>
+#include <kopano/platform.h>
 
+struct addrinfo;
 struct sockaddr;
 
 namespace KC {
@@ -59,23 +66,33 @@ private:
 	_kc_hidden char *SSL_gets(char *buf, int *len);
 };
 
-class _kc_export ec_bindaddr_less {
+/**
+ * @m_spec:	textual representation of the socket for reporting
+ * @m_port:	m_port-parsed port number
+ * @m_ai:	addrinfo (exactly one) for m_spec
+ * @m_fd:	socket fd for this addrinfo
+ * @m_err:	errno obtained during socket creation
+ */
+struct _kc_export ec_socket {
 	public:
-	bool operator()(const std::string &, const std::string &) const;
+	ec_socket() = default;
+	ec_socket(ec_socket &&);
+	~ec_socket();
+	bool operator==(const struct ec_socket &) const;
+	bool operator<(const struct ec_socket &) const;
+
+	std::string m_spec;
+	struct addrinfo *m_ai = nullptr;
+	int m_fd = -1, m_err = 0, m_port = 0;
 };
 
-/* helpers to open socket */
-extern _kc_export int ec_listen_localsock(const char *path, int *fd, int mode = -1);
-extern _kc_export int ec_listen_inet(const char *bind, uint16_t port, int *fd);
-extern _kc_export int ec_listen_generic(const char *bind, int *fd, int mode = -1);
 /* accept data on connection */
 extern _kc_export HRESULT HrAccept(int fd, ECChannel **ch);
 extern _kc_export int zcp_bindtodevice(int fd, const char *iface);
-extern int zcp_peeraddr_is_local(const struct sockaddr *, socklen_t);
 extern _kc_export int zcp_peerfd_is_local(int);
 extern _kc_export std::pair<std::string, uint16_t> ec_parse_bindaddr(const char *);
 extern _kc_export void ec_reexec_prepare_sockets();
-extern _kc_export int ec_fdtable_socket(const char *, struct sockaddr_storage *, socklen_t *);
+extern _kc_export std::pair<int, std::list<ec_socket>> ec_bindspec_to_sockets(std::vector<std::string> &&, unsigned int mode, const char *user, const char *group);
 
 } /* namespace KC */
 

@@ -12,6 +12,7 @@
 #include <mapitags.h>
 #include <kopano/mapiext.h>
 #include <kopano/memory.hpp>
+#include <kopano/namedprops.h>
 #include <kopano/tie.hpp>
 #include <mapiutil.h>
 #include <mapidefs.h>
@@ -962,20 +963,17 @@ static HRESULT ContactToKopano(IMsgStore *lpUserStore,
 	if (hr != hrSuccess)
 		return kc_perror("No memory for named IDs from contact", hr);
 
-	// Email1EntryID
 	lpNames[0].lpguid = const_cast<GUID *>(&PSETID_Address);
 	lpNames[0].ulKind = MNID_ID;
-	lpNames[0].Kind.lID = 0x8085;
+	lpNames[0].Kind.lID = dispidEmail1OriginalEntryID;
 	lppNames[0] = &lpNames[0];
-	// Email2EntryID
 	lpNames[1].lpguid = const_cast<GUID *>(&PSETID_Address);
 	lpNames[1].ulKind = MNID_ID;
-	lpNames[1].Kind.lID = 0x8095;
+	lpNames[1].Kind.lID = dispidEmail2OriginalEntryID;
 	lppNames[1] = &lpNames[1];
-	// Email3EntryID
 	lpNames[2].lpguid = const_cast<GUID *>(&PSETID_Address);
 	lpNames[2].ulKind = MNID_ID;
-	lpNames[2].Kind.lID = 0x80A5;
+	lpNames[2].Kind.lID = dispidEmail3OriginalEntryID;
 	lppNames[2] = &lpNames[2];
 
 	hr = lpContact->GetIDsFromNames(3, lppNames, 0, &~lpPropTags);
@@ -1021,7 +1019,9 @@ static HRESULT SMTPToZarafa(IAddrBook *lpAddrBook, const SBinary &smtp,
 		return hrSuccess;
 	lpAList->cEntries = 0;
 	lpAList->aEntries[0].cValues = 1;
-	if ((hr = MAPIAllocateBuffer(sizeof(SPropValue) * lpAList->aEntries[0].cValues, (void**)&lpAList->aEntries[0].rgPropVals)) != hrSuccess)
+	hr = MAPIAllocateBuffer(sizeof(SPropValue) * lpAList->aEntries[0].cValues,
+	     reinterpret_cast<void **>(&lpAList->aEntries[0].rgPropVals));
+	if (hr != hrSuccess)
 		return hrSuccess;
 	++lpAList->cEntries;
 	lpAList->aEntries[0].rgPropVals[0].ulPropTag = PR_DISPLAY_NAME_W;
@@ -1298,7 +1298,7 @@ static HRESULT CheckSendAs(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 	     lpRepresentProps[0].ulPropTag == PR_DISPLAY_NAME_W ? lpRepresentProps[0].Value.lpszW : L"<no name>",
 	     lpAddrBook, owner, lpRepresentProps[1].Value.MVbin, &ulObjType, &bAllowed);
 	if (bAllowed)
-		ec_log_err("Mail for user \"%ls\" is sent as %s \"%ls\"",
+		ec_log_info("Mail for user \"%ls\" is sent as %s \"%ls\"",
 			lpOwnerProps[0].ulPropTag == PR_DISPLAY_NAME_W ? lpOwnerProps[0].Value.lpszW : L"<no name>",
 			(ulObjType != MAPI_DISTLIST)?"user":"group",
 			lpRepresentProps[0].ulPropTag == PR_DISPLAY_NAME_W ? lpRepresentProps[0].Value.lpszW : L"<no name>");
@@ -1309,7 +1309,7 @@ exit:
 		else
 			lpMailer->setError(KC_TX("The user or group you try to send as could not be found."));
 
-		ec_log_err("User \"%ls\" is not allowed to send as user or group \"%ls\". "
+		ec_log_info("User \"%ls\" is not allowed to send as user or group \"%ls\". "
 			"You may enable all outgoing addresses by enabling the always_send_delegates option.",
 			(lpOwnerProps && PROP_TYPE(lpOwnerProps[0].ulPropTag) != PT_ERROR) ? lpOwnerProps[0].Value.lpszW : L"<unknown>",
 			(lpRepresentProps && PROP_TYPE(lpRepresentProps[0].ulPropTag) != PT_ERROR) ? lpRepresentProps[0].Value.lpszW : L"<unknown>");
@@ -1650,7 +1650,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	}
 
 	/* Get subject for logging - ignore errors, we check for nullptr. */
-	hr = HrGetOneProp(lpMessage, PR_SUBJECT_W, &~lpSubject);
+	hr = HrGetFullProp(lpMessage, PR_SUBJECT_W, &~lpSubject);
 	if (hr != hrSuccess && hr != MAPI_E_NOT_FOUND) {
 		kc_perror("Unable to get subject", hr);
 		goto exit;
@@ -1742,7 +1742,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 				// pre 6.20 behaviour
 				bAllowDelegate = true;
 				HrOpenRepresentStore(lpAddrBook, lpUserStore, lpAdminSession, lpRepEntryID->Value.bin, &~lpRepStore);
-				// ignore error if unable to open, just the copy of the mail might possibily not be done.
+				// ignore error if unable to open, just the copy of the mail might possibly not be done.
 			} else if(strcmp(g_lpConfig->GetSetting("allow_delegate_meeting_request"), "yes") == 0 &&
 			    HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &~lpMsgClass) == hrSuccess &&
 			    ((strcasecmp(lpMsgClass->Value.lpszA, "IPM.Schedule.Meeting.Request" ) == 0) ||
@@ -1948,7 +1948,7 @@ exit:
 		archiveResult.Undo(lpAdminSession);
 	// We always return the processes message to the caller, whether it failed or not
 	if (lpMessage)
-		lpMessage->QueryInterface(IID_IMessage, (void**)lppMessage);
+		lpMessage->QueryInterface(IID_IMessage, reinterpret_cast<void **>(lppMessage));
 	return hr;
 }
 
@@ -2043,7 +2043,7 @@ HRESULT ProcessMessageForked(const wchar_t *szUsername, const char *szSMTP,
 			lpMailer->setError(format(KC_A("Error found while trying to send your message: %s (%x)"), GetMAPIErrorMessage(hr), hr));
 		hr = SendUndeliverable(lpMailer.get(), lpUserStore, lpMessage);
 		if (hr != hrSuccess) {
-			// dont make parent complain too
+			// don't make parent complain too
 			hr = hrSuccess;
 			goto exit;
 		}

@@ -245,7 +245,8 @@ HRESULT M4LMAPISupport::CopyMessages(const IID *lpSrcInterface,
 	auto hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~lpDeleteEntries);
 	if (hr != hrSuccess)
 		return hr;
-	hr = MAPIAllocateMore(sizeof(SBinary)*lpMsgList->cValues, lpDeleteEntries, (void**)&lpDeleteEntries->lpbin);
+	hr = MAPIAllocateMore(sizeof(SBinary) * lpMsgList->cValues, lpDeleteEntries,
+	     reinterpret_cast<void **>(&lpDeleteEntries->lpbin));
 	if (hr != hrSuccess)
 		return hr;
 

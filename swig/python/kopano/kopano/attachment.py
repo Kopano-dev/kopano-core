@@ -3,7 +3,7 @@
 Part of the high-level python bindings for Kopano
 
 Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file)
-Copyright 2016 - Kopano and its licensors (see LICENSE file)
+Copyright 2016 - 2019 Kopano and its licensors (see LICENSE file)
 """
 
 import sys
@@ -45,17 +45,29 @@ except ImportError: # pragma: no cover
     _prop = sys.modules[__package__ + '.property_']
 
 class Attachment(Properties):
-    """Attachment class"""
+    """Attachment class
 
-    def __init__(self, parent, mapiitem=None, entryid=None, mapiobj=None):
-        self.parent = parent
+    Attachment abstraction. Attachments may contain binary data or
+    embedded :class:`items <Item>`.
+
+    Includes all functionality from :class:`Properties`.
+    """
+
+    def __init__(self, item, mapiitem=None, entryid=None, mapiobj=None):
+        self._item = item
         self._mapiitem = mapiitem
         self._entryid = entryid
         self._mapiobj = mapiobj
         self._data = None
 
     @property
+    def parent(self): # TODO would like to call this 'item' but already used
+        """Parent :class:`item <Item>`."""
+        return self._item
+
+    @property
     def mapiobj(self):
+        """Underlying MAPI object."""
         if self._mapiobj:
             return self._mapiobj
 
@@ -64,43 +76,54 @@ class Attachment(Properties):
         )
         return self._mapiobj
 
-    def delete(self, objects):
-        objects = _utils.arg_objects(objects, (_prop.Property,), 'Attachment.delete')
-        proptags = [item.proptag for item in objects if isinstance(item, _prop.Property)]
-        if proptags:
-            self.mapiobj.DeleteProps(proptags)
-        _utils._save(self.parent.mapiobj)
-
-    @property
-    def entryid(self):
-        return _benc(HrGetOneProp(self._mapiitem, PR_ENTRYID).Value) + _benc(self[PR_RECORD_KEY])
-
     @mapiobj.setter
     def mapiobj(self, mapiobj):
         self._mapiobj = mapiobj
 
+    def delete(self, objects):
+        """Delete properties from attachment
+
+        :param objects: The properties to delete
+        """
+        objs = _utils.arg_objects(
+            objects,
+            (_prop.Property,),
+            'Attachment.delete'
+        )
+        proptags = [o.proptag for o in objs if isinstance(o, _prop.Property)]
+        if proptags:
+            self.mapiobj.DeleteProps(proptags)
+        _utils._save(self._item.mapiobj)
+
+    @property
+    def entryid(self):
+        return _benc(HrGetOneProp(self._mapiitem, PR_ENTRYID).Value) + \
+               _benc(self[PR_RECORD_KEY])
+
     @property
     def hierarchyid(self):
+        """Hierarchy (SQL) id."""
         return self.prop(PR_EC_HIERARCHYID).value
 
     @property
     def number(self):
+        """Attachment number (respective to parent item)."""
         return self.get(PR_ATTACH_NUM, 0)
 
     @property
     def mimetype(self):
-        """MIME-Type"""
-        return self.get(PR_ATTACH_MIME_TAG_W, u'')
+        """MIME type"""
+        return self.get(PR_ATTACH_MIME_TAG_W, '')
 
     @mimetype.setter
     def mimetype(self, m):
         self[PR_ATTACH_MIME_TAG_W] = _unicode(m)
-        _utils._save(self.parent.mapiobj)
+        _utils._save(self._item.mapiobj)
 
     @property
     def filename(self):
         """Filename"""
-        return self.get(PR_ATTACH_LONG_FILENAME_W, u'')
+        return self.get(PR_ATTACH_LONG_FILENAME_W, '')
 
     @property
     def hidden(self):
@@ -124,7 +147,7 @@ class Attachment(Properties):
 
     @property
     def embedded(self):
-        """Is attachment an embedded message."""
+        """Is attachment an embedded :class:`item <Item>`."""
         try:
             return self[PR_ATTACH_METHOD] == ATTACH_EMBEDDED_MSG
         except NotFoundError:
@@ -132,23 +155,27 @@ class Attachment(Properties):
 
     @property
     def item(self):
+        """Embedded :class:`item <Item>`."""
         try:
-            msg = self.mapiobj.OpenProperty(PR_ATTACH_DATA_OBJ, IID_IMessage, 0, MAPI_DEFERRED_ERRORS | MAPI_MODIFY)
+            msg = self.mapiobj.OpenProperty(PR_ATTACH_DATA_OBJ, IID_IMessage,
+                0, MAPI_DEFERRED_ERRORS | MAPI_MODIFY)
         except MAPIErrorNoAccess:
-            # XXX the following may fail for embedded items in certain public stores, while
-            # the above does work (opening read-only doesn't work, but read-write works! wut!?)
-            msg = self.mapiobj.OpenProperty(PR_ATTACH_DATA_OBJ, IID_IMessage, 0, MAPI_DEFERRED_ERRORS)
+            # TODO the following may fail for embedded items in certain
+            # public stores, while the above does work (opening read-only
+            # doesn't work, but read-write works! wut!?)
+            msg = self.mapiobj.OpenProperty(PR_ATTACH_DATA_OBJ, IID_IMessage,
+                0, MAPI_DEFERRED_ERRORS)
         item = _item.Item(mapiobj=msg)
-        item.server = self.parent.server
+        item.server = self._item.server
         return item
 
     @property
     def size(self):
-        """Size"""
-        # XXX size of the attachment object, so more than just the attachment
-        #     data
-        # XXX (useful when calculating store size, for example.. sounds
-        #     interesting to fix here)
+        """Storage size (different from binary data size!)."""
+        # TODO size of the attachment object, so more than just the attachment
+        #      data
+        # TODO (useful when calculating store size, for example.. sounds
+        #      interesting to fix here)
         return self.get(PR_ATTACH_SIZE, 0)
 
     def __len__(self):
@@ -156,7 +183,7 @@ class Attachment(Properties):
 
     @property
     def data(self):
-        """Binary data"""
+        """Binary data."""
         if self._data is None:
             self._data = _utils.stream(self.mapiobj, PR_ATTACH_DATA_BIN)
         return self._data
@@ -175,4 +202,4 @@ class Attachment(Properties):
         return self.get(PR_LAST_MODIFICATION_TIME)
 
     def __unicode__(self):
-        return u'Attachment("%s")' % self.name
+        return 'Attachment("%s")' % (self.filename or '')

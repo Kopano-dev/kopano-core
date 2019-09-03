@@ -2,7 +2,7 @@
 """
 Part of the high-level python bindings for Kopano
 
-Copyright 2018 - Kopano and its licensors (see LICENSE file for details)
+Copyright 2018 - 2019 Kopano and its licensors (see LICENSE file)
 """
 
 from MAPI.Tags import (
@@ -14,24 +14,32 @@ from MAPI.Tags import (
 from .address import Address
 from .compat import repr as _repr
 
+PROPS = (PR_ADDRTYPE_W, PR_DISPLAY_NAME_W, PR_EMAIL_ADDRESS_W,
+    PR_ENTRYID, PR_SEARCH_KEY)
+
 class Attendee(object):
-    """Attendee class"""
+    """Attendee class
+
+    Abstraction for :class:`appointment <Appointment>` attendees.
+    """
 
     def __init__(self, server, mapirow):
         self.server = server
-        self.mapirow = mapirow
-        self.row = dict([(x.proptag, x) for x in mapirow])
+        self._mapirow = mapirow
+        self._row = dict([(x.proptag, x) for x in mapirow])
 
     @property
     def address(self):
-        args = [self.row[p].value if p in self.row else None for p in
-                (PR_ADDRTYPE_W, PR_DISPLAY_NAME_W, PR_EMAIL_ADDRESS_W, PR_ENTRYID, PR_SEARCH_KEY)]
-
-        return Address(self.server, *args, props=self.mapirow)
+        """Attendee :class:`address <Address>`."""
+        args = [self._row[p].value if p in self._row else None for p in PROPS]
+        return Address(self.server, *args, props=self._mapirow)
 
     @property
     def response(self):
-        prop = self.row.get(PR_RECIPIENT_TRACKSTATUS)
+        """Attendee response status (no_response, accepted, declined,
+        tentatively_accepted, organizer).
+        """
+        prop = self._row.get(PR_RECIPIENT_TRACKSTATUS)
         if prop:
             return {
                 0: None,
@@ -44,15 +52,17 @@ class Attendee(object):
 
     @property
     def response_time(self):
-        prop = self.row.get(PR_RECIPIENT_TRACKSTATUS_TIME)
+        """Attendee response time."""
+        prop = self._row.get(PR_RECIPIENT_TRACKSTATUS_TIME)
         if prop:
             return prop.value
 
     @property
     def type_(self):
+        """Attendee type (required, optional or resource)"""
         # TODO is it just webapp which uses this?
         # (as there are explicit meeting properties for this)
-        prop = self.row.get(PR_RECIPIENT_TYPE)
+        prop = self._row.get(PR_RECIPIENT_TYPE)
         if prop:
             return {
                 1: 'required',
@@ -61,7 +71,7 @@ class Attendee(object):
             }.get(prop.value)
 
     def __unicode__(self):
-        return u'Attendee()'
+        return 'Attendee()' # TODO add self.address.name
 
     def __repr__(self):
         return _repr(self)

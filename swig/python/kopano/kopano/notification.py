@@ -2,14 +2,14 @@
 """
 Part of the high-level python bindings for Kopano
 
-Copyright 2017 - Kopano and its licensors (see LICENSE file for details)
+Copyright 2017 - 2019 Kopano and its licensors (see LICENSE file)
 """
 
 import copy
 import sys
 
 from MAPI import (
-    MAPI_MESSAGE, MAPI_FOLDER, MAPIAdviseSink, fnevObjectModified,
+    MAPI_MESSAGE, MAPI_FOLDER, MAPI_STORE, MAPIAdviseSink, fnevObjectModified,
     fnevObjectCreated, fnevObjectMoved, fnevObjectCopied, fnevObjectDeleted,
 )
 
@@ -34,16 +34,23 @@ EVENT_TYPES = ['created', 'updated', 'deleted']
 TRACER = sys.gettrace()
 
 class Notification(object):
+    """Notification class
+
+    A notification instance indicates a change to :class:`items <Item>`
+    or :class:`folders <Folder>`.
+    """
     def __init__(self, mapiobj):
+        #: The underlying MAPI notification object
         self.mapiobj = mapiobj
+        #: The changed :class:`item <Item>` or :class:`folder <Folder>`.
+        self.object = None
+        #: The type of the changed object (*item*, *folder*).
+        self.object_type = None
+        #: The type of change (*created*, *updated*, *deleted*)
+        self.event_type = None
 
 def _split(mapiobj, store):
     notif = Notification(mapiobj)
-
-    notif.mapiobj = mapiobj
-    notif.object = None
-    notif.object_type = None
-    notif.event_type = None
 
     # object
     if mapiobj.ulObjType == MAPI_MESSAGE:
@@ -56,10 +63,15 @@ def _split(mapiobj, store):
         notif.object = item
 
     elif mapiobj.ulObjType == MAPI_FOLDER:
-        folder = _folder.Folder(store=store, entryid=_benc(mapiobj.lpEntryID), _check_mapiobj=False)
+        folder = _folder.Folder(store=store, entryid=_benc(mapiobj.lpEntryID),
+            _check_mapiobj=False)
 
         notif.object = folder
         notif.object_type = 'folder'
+
+    elif mapiobj.ulObjType == MAPI_STORE:
+        notif.object = store
+        notif.object_type = 'store'
 
     # event
     if mapiobj.ulEventType in (fnevObjectCreated, fnevObjectCopied):
@@ -77,7 +89,8 @@ def _split(mapiobj, store):
         notif.event_type = 'deleted'
         yield notif
 
-    elif mapiobj.ulEventType == fnevObjectMoved: # TODO test with folders/add test
+    # TODO test with folders/add test
+    elif mapiobj.ulEventType == fnevObjectMoved:
         notif.event_type = 'created'
         yield notif
 
@@ -92,24 +105,30 @@ def _split(mapiobj, store):
             item._folder = store.folder(entryid=_benc(mapiobj.lpOldParentID))
 
         elif mapiobj.ulObjType == MAPI_FOLDER: # TODO mapiobj.lpOldID not set?
-            folder = _folder.Folder(store=store, entryid=_benc(mapiobj.lpEntryID), _check_mapiobj=False)
+            folder = _folder.Folder(store=store,
+                entryid=_benc(mapiobj.lpEntryID), _check_mapiobj=False)
             notif.object = folder
 
         notif.event_type = 'deleted'
         yield notif
 
-def _filter(notifs, folder, event_types, folder_types): # TODO can't server filter all this?
+# TODO can't server filter all this?
+def _filter(notifs, folder, event_types, folder_types):
     for notif in notifs:
         if notif.event_type not in event_types:
             continue
 
-        if folder and notif.object_type == 'item' and notif.object.folder != folder:
+        if (folder and \
+            notif.object_type == 'item' and \
+            notif.object.folder != folder):
             continue
 
-        if notif.object_type == 'item' and notif.object.folder.type_ not in folder_types:
+        if (notif.object_type == 'item' and \
+            notif.object.folder.type_ not in folder_types):
             continue
 
-        if notif.object_type == 'folder' and notif.object.type_ not in folder_types:
+        if (notif.object_type == 'folder' and \
+            notif.object.type_ not in folder_types):
             continue
 
         yield notif
@@ -162,7 +181,8 @@ def subscribe(store, folder, sink, object_types=None, folder_types=None,
         event_types=None):
 
     if not store.server.notifications:
-        raise NotSupportedError('server connection does not support notifications (try Server(notifications=True))')
+        raise NotSupportedError('server connection does not support \
+notifications (try Server(notifications=True))')
 
     object_types = object_types or OBJECT_TYPES
     folder_types = folder_types or FOLDER_TYPES

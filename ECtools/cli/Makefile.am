@@ -2,7 +2,7 @@
 
 dist_sbin_SCRIPTS = kopano-cli
 
-EXTRA_DIST = setup.py \
+EXTRA_DIST = requirements.txt setup.py \
 	setup.cfg \
 	kopano_cli/__init__.py
 
@@ -14,7 +14,7 @@ install-exec-local:
 	cd staging/ && ${PYTHON} setup.py \
 		build --build-base="${abs_builddir}/build" \
 		install -f $${DESTDIR+--root=${DESTDIR}} \
-		--prefix ${prefix} --install-purelib ${pythondir}
+		--prefix="${prefix}" --install-purelib="${pythondir}"
 	rm -Rf build
 
 uninstall-local:

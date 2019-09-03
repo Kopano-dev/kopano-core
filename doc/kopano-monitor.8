@@ -1,32 +1,11 @@
-'\" t
-.\"     Title: kopano-monitor
-.\"    Author: [see the "Author" section]
-.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
-.\"      Date: November 2016
-.\"    Manual: Kopano Core user reference
-.\"    Source: Kopano 8
-.\"  Language: English
-.\"
 .TH "KOPANO\-MONITOR" "8" "November 2016" "Kopano 8" "Kopano Core user reference"
-.\" -----------------------------------------------------------------
-.\" * Define some portability stuff
-.\" -----------------------------------------------------------------
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .\" http://bugs.debian.org/507673
-.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
-.\" -----------------------------------------------------------------
-.\" * set default formatting
-.\" -----------------------------------------------------------------
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
 .ad l
-.\" -----------------------------------------------------------------
-.\" * MAIN CONTENT STARTS HERE *
-.\" -----------------------------------------------------------------
 .SH "NAME"
 kopano-monitor \- Start the Kopano monitor.
 .SH "SYNOPSIS"
@@ -66,11 +45,6 @@ Connect to the storage server through
 file:///path/to/socket. Default:
 file:///var/run/kopano/server.sock.
 .RE
-.PP
-\fB\-\-foreground\fR, \fB\-F\fR
-.RS 4
-Run in the foreground. Normally the monitor will daemonize and run in the background.
-.RE
 .SH "SIGNALS"
 .PP
 The following signals can be sent to the kopano\-monitor process:
@@ -97,9 +71,6 @@ The monitor checks user mailbox sizes. The monitor sends a quota email when the 
 [\fIstart\fR|
 \fIstop\fR|
 \fIrestart\fR]
-.SH "AUTHOR"
-.PP
-Written by Kopano.
 .SH "SEE ALSO"
 .PP
 \fBkopano-monitor.cfg\fR(5),

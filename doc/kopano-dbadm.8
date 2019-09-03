@@ -34,6 +34,12 @@ after the k\-1216 action is done.
 Deletes all cached IMAP Envelopes that show signs of having address lists with
 excess parentheses. This action can be executed while kopano\-server is active.
 If you do so, also execute `kopano\-srvadm \-\-clear\-cache=cell` afterwards.
+.SS kc\-1444
+.PP
+Synchronizes all PR_MESSAGE_FLAGS values from the "properties" to the
+"tproperties" table. This action can be executed while kopano\-server
+is active. If you do so, execute `kopano\-srvadm
+\-\-clear\-cache=cell` afterwards.
 .SS np\-defrag
 .PP
 Compact the ID space in the namedproperties table and lowers the
@@ -81,7 +87,7 @@ database write operations, rendering the server practically
 unavailable.
 .SS usmp-shrink-columns
 .PP
-A number of table columns will be shrunk to accomodate certain MySQL index
+A number of table columns will be shrunk to accommodate certain MySQL index
 limits. This action can be executed while kopano\-server is active,
 though the SQL server may queue/block database write operations,
 rendering the server practically unavailable.

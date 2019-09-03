@@ -28,6 +28,7 @@
 #include <iostream>
 #include <string>
 #include <getopt.h>
+#include <sys/stat.h>
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
 #include <kopano/ECChannel.h>
@@ -56,7 +57,7 @@ struct socks {
 	std::vector<bool> ssl;
 };
 
-static bool g_bDaemonize = true, g_bQuit, g_bThreads, g_dump_config;
+static bool g_bQuit, g_bThreads, g_dump_config;
 static std::shared_ptr<ECLogger> g_lpLogger;
 static std::shared_ptr<ECConfig> g_lpConfig;
 static pthread_t mainthread;
@@ -124,19 +125,16 @@ static HRESULT running_service(char **argv)
 	struct sigaction act{};
 	signal(SIGPIPE, SIG_IGN);
 	sigemptyset(&act.sa_mask);
-	act.sa_flags = SA_RESTART;
+	act.sa_flags = SA_ONSTACK | SA_RESETHAND;
 	act.sa_handler = sigterm;
 	sigaction(SIGTERM, &act, nullptr);
 	sigaction(SIGINT, &act, nullptr);
+	act.sa_flags = SA_ONSTACK;
 	act.sa_handler = sighup;
 	sigaction(SIGHUP, &act, nullptr);
 	act.sa_handler = sigchld;
 	sigaction(SIGCHLD, &act, nullptr);
 	ec_setup_segv_handler("kopano-ical", PROJECT_VERSION);
-	if (g_bDaemonize && unix_daemonize(g_lpConfig.get()))
-		return MAPI_E_CALL_FAILED;
-	if (!g_bDaemonize)
-		setsid();
 	unix_create_pidfile(argv[0], g_lpConfig.get());
 	if (!g_bThreads)
 		g_lpLogger = StartLoggerProcess(g_lpConfig.get(), std::move(g_lpLogger));
@@ -183,8 +181,7 @@ using std::endl;
 static void PrintHelp(const char *name)
 {
 	cout << "Usage:\n" << endl;
-	cout << name << " [-h] [-F] [-V] [-c <configfile>]" << endl;
-	cout << "  -F\t\tDo not run in the background" << endl;
+	cout << name << " [-h] [-V] [-c <configfile>]" << endl;
 	cout << "  -h\t\tShows this help." << endl;
 	cout << "  -V\t\tPrint version info." << endl;
 	cout << "  -c filename\tUse alternate config file (e.g. /etc/kopano/ical.cfg)\n\t\tDefault: /etc/kopano/ical.cfg" << endl;
@@ -206,8 +203,7 @@ int main(int argc, char **argv) {
 		{ "run_as_user", "kopano" },
 		{ "run_as_group", "kopano" },
 		{ "pid_file", "/var/run/kopano/ical.pid" },
-		{"running_path", "/var/lib/kopano/empty", CONFIGSETTING_OBSOLETE},
-		{ "process_model", "thread" },
+		{"process_model", "thread", CONFIGSETTING_NONEMPTY},
 		{"coredump_enabled", "systemdefault"},
 		{"socketspec", "", CONFIGSETTING_OBSOLETE},
 		{"ical_listen", "*:8080"},
@@ -223,7 +219,8 @@ int main(int argc, char **argv) {
 		{ "log_buffer_size", "0" },
         { "ssl_private_key_file", "/etc/kopano/ical/privkey.pem" },
         { "ssl_certificate_file", "/etc/kopano/ical/cert.pem" },
-		{"ssl_protocols", KC_DEFAULT_SSLPROTOLIST},
+		{"tls_min_proto", KC_DEFAULT_TLSMINPROTO},
+		{"ssl_protocols", "", CONFIGSETTING_UNUSED},
 		{"ssl_ciphers", KC_DEFAULT_CIPHERLIST},
 		{"ssl_prefer_server_ciphers", "yes"},
 		{"ssl_curves", KC_DEFAULT_ECDH_CURVES},
@@ -241,7 +238,6 @@ int main(int argc, char **argv) {
 		{"help", no_argument, NULL, 'h'},
 		{"config", required_argument, NULL, 'c'},
 		{"version", no_argument, NULL, 'v'},
-		{"foreground", no_argument, NULL, 'F'},
 		{"ignore-unknown-config-options", 0, NULL, OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS },
 		{"dump-config", no_argument, nullptr, OPT_DUMP_CONFIG},
 		{NULL, 0, NULL, 0}
@@ -259,7 +255,6 @@ int main(int argc, char **argv) {
 			exp_config = true;
 			break;
 		case 'F':
-			g_bDaemonize = false;
 			break;
 		case OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS:
 			bIgnoreUnknownConfigOptions = true;
@@ -324,9 +319,16 @@ exit:
 
 static HRESULT ical_listen(ECConfig *cfg)
 {
-	std::set<std::string, ec_bindaddr_less> ical_sock, icals_sock;
-	ical_sock  = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("ical_listen"), ' ', true));
-	icals_sock = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("icals_listen"), ' ', true));
+	auto info = ec_bindspec_to_sockets(tokenize(cfg->GetSetting("ical_listen"), ' ', true),
+	            S_IRWUGO, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+	if (info.first < 0)
+		return E_FAIL;
+	auto ical_sock = std::move(info.second);
+	info = ec_bindspec_to_sockets(tokenize(cfg->GetSetting("icals_listen"), ' ', true),
+	       S_IRWUGO, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+	if (info.first < 0)
+		return E_FAIL;
+	auto icals_sock = std::move(info.second);
 
 	if (!icals_sock.empty()) {
 		auto hr = ECChannel::HrSetCtx(g_lpConfig.get());
@@ -340,26 +342,16 @@ static HRESULT ical_listen(ECConfig *cfg)
 	struct pollfd pfd;
 	memset(&pfd, 0, sizeof(pfd));
 	pfd.events = POLLIN;
-	for (const auto &spec : ical_sock) {
-		auto ret = ec_fdtable_socket(spec.c_str(), nullptr, nullptr);
-		if (ret >= 0)
-			pfd.fd = ret;
-		else
-			ret = ec_listen_generic(spec.c_str(), &pfd.fd);
-		if (ret < 0)
-			return MAPI_E_NETWORK_ERROR;
+	for (auto &spec : ical_sock) {
+		pfd.fd = spec.m_fd;
+		spec.m_fd = -1;
 		g_socks.pollfd.push_back(pfd);
 		g_socks.linfd.push_back(pfd.fd);
 		g_socks.ssl.push_back(false);
 	}
-	for (const auto &spec : icals_sock) {
-		auto ret = ec_fdtable_socket(spec.c_str(), nullptr, nullptr);
-		if (ret >= 0)
-			pfd.fd = ret;
-		else
-			ret = ec_listen_generic(spec.c_str(), &pfd.fd);
-		if (ret < 0)
-			return MAPI_E_NETWORK_ERROR;
+	for (auto &spec : icals_sock) {
+		pfd.fd = spec.m_fd;
+		spec.m_fd = -1;
 		g_socks.pollfd.push_back(pfd);
 		g_socks.linfd.push_back(pfd.fd);
 		g_socks.ssl.push_back(true);
@@ -471,7 +463,7 @@ static HRESULT HrStartHandlerClient(ECChannel *lpChannel, bool bUseSSL,
 	} else {
 		lpHandlerArgs.release();
 	}
-	set_thread_name(pThread, std::string("ZCalDAV") + lpChannel->peer_addr());
+	set_thread_name(pThread, "net/"s + lpChannel->peer_addr());
 	return hrSuccess;
 }
 

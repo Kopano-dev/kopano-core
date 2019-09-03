@@ -2,16 +2,51 @@
 
 ACLOCAL_AMFLAGS = -I autoconf
 
-SUBDIRS = . ECtools/archiver/include/kopano \
+SUBDIRS = .
+if ENABLE_BASE
+SUBDIRS += ECtools/archiver/include/kopano \
 	common/include/kopano m4lcommon/include/kopano \
 	mapi4linux/include inetmapi/include/inetmapi provider/include \
-	spooler/python
-SUBDIRS += installer po
+	installer installer/quotamail installer/userscripts po
+if ENABLE_PYBIND
+SUBDIRS += swig swig/python
+endif
+endif # ENABLE_BASE
+SUBDIRS += installer/linux
 if ENABLE_PYTHON
 SUBDIRS += ECtools/backup ECtools/cli ECtools/migration-pst \
-	ECtools/presence ECtools/rest ECtools/search ECtools/spamd \
-	ECtools/msr ECtools/utils swig
+	ECtools/presence ECtools/search ECtools/spamd \
+	ECtools/utils installer/searchscripts spooler/python \
+	spooler/python/plugins swig/python/kopano
 endif
+BUILT_SOURCES =
+CLEANFILES =
+EXTRA_DIST = .astylerc .clang-format .clang_complete .editorconfig .gitignore \
+	CONTRIBUTING.md README.md cppcheck.suppressions \
+	doc/Code_structure.md doc/Database_structure.md doc/adminssl.txt \
+	doc/classes.gv doc/extract_user.txt doc/hl.txt doc/install.txt \
+	doc/kopano-autorespond.py.8 doc/sanitizer.txt doc/sql_attach.txt \
+	doc/sql_messages.txt doc/sql_searchfolders.txt doc/sql_spooler.txt \
+	provider/client/README.md provider/libserver/README.md \
+	tools/describe_version \
+	tests/mails/big5.eml tests/mails/encoded-word-split.eml \
+	tests/mails/gb2312_18030.eml tests/mails/html-charset-01.eml \
+	tests/mails/html-charset-02.eml tests/mails/iconvonly01.eml \
+	tests/mails/iconvonly02.eml tests/mails/kc-138-1.eml \
+	tests/mails/kc-138-2.eml tests/mails/mime_charset_01.eml \
+	tests/mails/mime_charset_02.eml tests/mails/mime_charset_03.eml \
+	tests/mails/no-charset-01.eml tests/mails/no-charset-02.eml \
+	tests/mails/no-charset-03.eml tests/mails/no-charset-07.eml \
+	tests/mails/no-content-type-alt.eml tests/mails/no-content-type.eml \
+	tests/mails/unknown-text-charset.eml \
+	tests/mails/unknown-transfer-enc.eml tests/mails/zcp-11581.eml \
+	tests/mails/zcp-11699-p.eml tests/mails/zcp-11699-ub.eml \
+	tests/mails/zcp-11699-utf8.eml tests/mails/zcp-11713.eml \
+	tests/mails/zcp-12930.eml tests/mails/zcp-13036-0db504a2.eml \
+	tests/mails/zcp-13036-6906a338.eml tests/mails/zcp-13036-lh.eml \
+	tests/mails/zcp-13175.eml tests/mails/zcp-13337.eml \
+	tests/mails/zcp-13439-nl.eml tests/mails/zcp-13449-meca.eml \
+	tests/mails/zcp-13449-na.eml tests/mails/zcp-13473.eml
 
 
 AM_CPPFLAGS = ${ZCPPFLAGS} -DLDAP_THREAD_SAFE \
@@ -34,36 +69,26 @@ AM_CPPFLAGS = ${ZCPPFLAGS} -DLDAP_THREAD_SAFE \
 	-I${top_srcdir}/ECtools/archiver \
 	${CRYPTO_CFLAGS} ${curl_CFLAGS} ${GSOAP_CFLAGS} ${ICAL_CFLAGS} \
 	${jsoncpp_CFLAGS} \
-	${KRB5_CFLAGS} ${LDAP_FLAGS} ${libHX_CFLAGS} ${mhttpd_CFLAGS} \
+	${KRB5_CFLAGS} ${LDAP_FLAGS} ${libHX_CFLAGS} \
 	${MYSQL_INCLUDES} ${SSL_CFLAGS} \
 	${s3_CFLAGS} ${kcoidc_CFLAGS} ${TCMALLOC_CFLAGS} ${tidy_CPPFLAGS} \
-	${VMIME_CFLAGS} ${XML2_CFLAGS}
+	${VMIME_CFLAGS} ${xapian_CFLAGS} ${XML2_CFLAGS}
 AM_CXXFLAGS = ${ZCXXFLAGS} -Wno-sign-compare
 
 
 #
 # target programs
 #
+dist_bin_SCRIPTS =
+if ENABLE_BASE
 bin_PROGRAMS = kopano-fsck kopano-ibrule kopano-oof kopano-passwd kopano-stats
-dist_bin_SCRIPTS = ECtools/migration-imap/kopano-migration-imap \
-	ECtools/utils/kopano-set-oof
+dist_bin_SCRIPTS += ECtools/migration-imap/kopano-migration-imap
 sbin_PROGRAMS = \
 	kopano-admin kopano-archiver kopano-dagent kopano-dbadm kopano-gateway \
 	kopano-ical kopano-monitor kopano-server kopano-spooler \
 	kopano-srvadm kopano-storeadm
-dist_sbin_SCRIPTS = ECtools/utils/kopano-mailbox-permissions \
-	ECtools/archiver/scripts/kopano-archiver-aclset \
-	ECtools/archiver/scripts/kopano-archiver-aclsync \
-	ECtools/archiver/scripts/kopano-archiver-restore \
-	tools/python-scripts/kopano-fix-ipm-subtree \
-	tools/python-scripts/kopano-localize-folders \
-	tools/python-scripts/kopano-recreate-systemfolders
 noinst_PROGRAMS = kopano-cfgchecker
-pkglibexec_PROGRAMS = kscriptrun mapitime
-pkglibexec_SCRIPTS =
-if WITH_PYTHON3
-pkglibexec_SCRIPTS += ECtools/rest/kopano-mfr.py
-endif
+pkglibexec_PROGRAMS = kopano-indexd kscriptrun mapitime
 check_PROGRAMS = tests/ablookup tests/htmltext tests/imtomapi \
 	tests/kc-335 tests/mapialloctime \
 	tests/readflag tests/zcpmd5
@@ -71,7 +96,22 @@ if HAVE_TIDY
 check_PROGRAMS += tests/rosie
 endif
 noinst_PROGRAMS += ${check_PROGRAMS}
+endif # ENABLE_BASE
 
+if ENABLE_PYTHON
+dist_bin_SCRIPTS += ECtools/utils/kopano-set-oof
+dist_sbin_SCRIPTS = ECtools/utils/kopano-mailbox-permissions \
+	ECtools/archiver/scripts/kopano-archiver-aclset \
+	ECtools/archiver/scripts/kopano-archiver-aclsync \
+	ECtools/archiver/scripts/kopano-archiver-restore \
+	tools/python-scripts/kopano-fix-ipm-subtree \
+	tools/python-scripts/kopano-localize-folders \
+	tools/python-scripts/kopano-recreate-systemfolders \
+	tools/python-scripts/kopano-cachestat
+endif # ENABLE_PYTHON
+
+
+if ENABLE_BASE
 
 #
 # target libraries
@@ -85,7 +125,8 @@ COND_libkcrosie_la = libkcrosie.la
 COND_libkcrosie_ldd = libkcrosie.ldd
 endif
 lib_LTLIBRARIES = \
-	libkcutil.la libmapi.la libkcfreebusy.la libkcsoap.la libkcserver.la \
+	libkcutil.la libmapi.la libkcfreebusy.la libkcindex.la \
+	libkcsoap.la libkcserver.la \
 	libkcicalmapi.la ${COND_libkcrosie_la} libkcinetmapi.la \
 	libkcarchiver.la libkcarchivercore.la
 noinst_LTLIBRARIES =
@@ -94,26 +135,28 @@ noinst_DATA = \
 	kopano-archiver.ldx kopano-cfgchecker.ldx kopano-dagent.ldx \
 	kopano-dbadm.ldx kopano-fsck.ldx \
 	kopano-gateway.ldx kopano-ibrule.ldx kopano-ical.ldx \
-	kopano-monitor.ldx kopano-oof.ldx \
+	kopano-indexd.ldx kopano-monitor.ldx kopano-oof.ldx \
 	kopano-passwd.ldx kopano-server.ldx kopano-spooler.ldx \
 	kopano-srvadm.ldx kopano-storeadm.ldx kopano-stats.ldx \
 	libkcarchiver.ldd libkcarchivercore.ldd libkcclient.ldd \
 	libkccontacts.ldd libkcfreebusy.ldd libkcicalmapi.ldd \
-	libkcinetmapi.ldd ${COND_libkcrosie_ldd} \
+	libkcinetmapi.ldd libkcindex.ldd ${COND_libkcrosie_ldd} \
 	libkcserver.ldd libkcutil.ldd libmapi.ldd
-if ENABLE_PYTHON
+if ENABLE_PYBIND
 lib_LTLIBRARIES += libkcpyplug.la
 noinst_DATA += libkcpyplug.ldd
 endif
-if HAVE_MHTTPD
 if HAVE_RRD
 pkglibexec_PROGRAMS += kopano-statsd
 noinst_DATA += kopano-statsd.ldx
 endif
-endif
 # Undefined references
 #noinst_DATA += libkcsoap.ldd
 pkglib_LTLIBRARIES = libkcclient.la libkccontacts.la
+dovmoddir = ${libdir}/dovecot/modules
+if WITH_DOVECOT
+dovmod_LTLIBRARIES = libauthdb_mapi.la libdovemapi_plugin.la
+endif
 
 
 #
@@ -127,9 +170,8 @@ pkgconfdir = ${libdir}/pkgconfig
 pkgconf_DATA = common/kopano.pc
 mapiinfdir = ${prefix}/lib/mapi.d
 dist_mapiinf_DATA = provider/client/kopano.inf provider/contacts/zcontacts.inf
-BUILT_SOURCES =
-CLEANFILES = ${noinst_DATA}
-EXTRA_DIST = autoconf/1126.h php-ext/mapi.sym
+CLEANFILES += ${noinst_DATA}
+EXTRA_DIST += php-ext/mapi.sym
 default_sym = ${top_builddir}/default.sym
 default_SYFLAGS = -Wl,--version-script=${default_sym}
 plugin_SYFLAGS = -Wl,--version-script=provider/plugin.sym
@@ -222,6 +264,9 @@ kopano_ical_LDADD = \
 	libmapi.la libkcutil.la libkcicalmapi.la libkcfreebusy.la -lpthread \
 	${ICAL_LIBS} ${ICONV_LIBS} ${icu_uc_LIBS} ${SSL_LIBS} ${XML2_LIBS}
 
+kopano_indexd_SOURCES = ECtools/idx_net.cpp
+kopano_indexd_LDADD = libkcindex.la libkcutil.la ${libHX_LIBS}
+
 
 #
 # kopano-monitor
@@ -276,8 +321,8 @@ kopano_storeadm_LDADD = ${jsoncpp_LIBS} ${libHX_LIBS} libmapi.la libkcutil.la
 #
 # kopano-statsd
 #
-kopano_statsd_SOURCES = ECtools/statsd.cpp
-kopano_statsd_LDADD = libkcutil.la ${jsoncpp_LIBS} ${libHX_LIBS} ${mhttpd_LIBS} ${rrd_LIBS}
+kopano_statsd_SOURCES = ECtools/statsd.cpp provider/soap/emptysoapC.cpp
+kopano_statsd_LDADD = libkcutil.la ${GSOAP_LIBS} ${jsoncpp_LIBS} ${libHX_LIBS} ${rrd_LIBS}
 
 
 #
@@ -486,6 +531,15 @@ libkcicalmapi_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined -version-info 0:0:0 \
 EXTRA_libkcicalmapi_la_DEPENDENCIES = ${default_sym}
 
 
+libkcindex_la_SOURCES = ECtools/idx_handler.cpp \
+	ECtools/idx_util.cpp ECtools/idx_util.hpp \
+	ECtools/idx_xapian.cpp \
+	ECtools/idx_plugin.hpp ECtools/indexer.hpp
+libkcindex_la_LIBADD  = libkcutil.la libmapi.la -ldb_cxx ${xapian_LIBS}
+libkcindex_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
+	${default_SYFLAGS${NO_VSYM}}
+
+
 #
 # libkcinetmapi
 #
@@ -503,16 +557,11 @@ libkcinetmapi_la_SOURCES = \
 	inetmapi/mapiTextPart.cpp inetmapi/mapiTextPart.h \
 	inetmapi/serviceRegistration.inl \
 	inetmapi/tnef.cpp inetmapi/tnef.h
-# Add '-z now' -> -Wl,-z, -Wl,now to LD flags so that we do early binding of
-# symbols. This fixes a problem in which libvmime attempts to resolve a symbol
-# in libinetmapi.so during the unload of vmime, initiated by the unload of
-# libinetmapi. On some systems, this fails to resolve the symbol during unload,
-# resulting in a crash in __cxa_finalize during unload of mapi.so
 libkcinetmapi_la_LIBADD = \
 	libmapi.la libkcutil.la libkcicalmapi.la \
 	${COND_libkcrosie_la} ${ICONV_LIBS} ${VMIME_LIBS} ${XML2_LIBS}
 libkcinetmapi_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
-	-version-info 0:0:0 -Wl,-z -Wl,now ${default_SYFLAGS${NO_VSYM}}
+	-version-info 0:0:0 ${default_SYFLAGS${NO_VSYM}}
 EXTRA_libkcinetmapi_la_DEPENDENCIES = ${default_sym}
 
 
@@ -581,6 +630,7 @@ libkcserver_la_SOURCES = \
 	provider/common/ECSearchClient.cpp provider/common/ECSearchClient.h \
 	provider/soap/soapKCmdService.h provider/soap/soapKCmdService.cpp
 libkcserver_la_LIBADD = \
+	libkcindex.la \
 	libkcutil.la libkcsoap.la -lpthread ${icu_i18n_LIBS} ${icu_uc_LIBS} \
 	${GSOAP_LIBS} ${GZ_LIBS} ${kcoidc_LIBS} \
 	${KRB5_LIBS} ${MYSQL_LIBS} ${PAM_LIBS} ${SSL_LIBS}
@@ -626,9 +676,11 @@ provider/libkcsoap.sym: ${top_builddir}/config.status
 # libkcutil
 #
 noinst_HEADERS += \
-	common/ConsoleTable.h common/ECACL.h common/ECCache.h common/ECConfigImpl.h \
-	common/ECFifoBuffer.h common/ECSerializer.h common/StatsClient.h \
-	common/charset/localeutil.h
+	common/ConsoleTable.h common/ECACL.h common/ECCache.h \
+	common/ECChannelClient.h common/ECConfigImpl.h \
+	common/ECFifoBuffer.h common/ECMemStream.h common/ECSerializer.h \
+	common/HtmlEntity.h common/HtmlToTextParser.h common/SSLUtil.h \
+	common/StatsClient.h common/rtfutil.h common/charset/localeutil.h
 libkcutil_la_SOURCES = \
 	common/ConsoleTable.cpp \
 	common/ECChannel.cpp common/ECChannelClient.cpp \
@@ -688,6 +740,23 @@ libm4lcommon_HEADERS = m4lcommon/include/edkguid.h
 
 
 #
+#
+#
+libauthdb_mapi_la_SOURCES = gateway/doveauth1.c gateway/doveauth.cpp
+libauthdb_mapi_la_LDFLAGS = -avoid-version -module -Wl,--version-script=${srcdir}/gateway/doveauth.sym
+libauthdb_mapi_la_LIBADD  = libmapi.la
+EXTRA_libauthdb_mapi_la_DEPENDENCIES = gateway/doveauth.sym
+
+# dovecot expects to find "_plugin" in filenames
+libdovemapi_plugin_la_SOURCES = gateway/dovestore1.c gateway/dovestore.cpp
+libdovemapi_plugin_la_LDFLAGS = -avoid-version -module -Wl,--version-script=${srcdir}/gateway/dovestore.sym
+libdovemapi_plugin_la_LIBADD  = ${libHX_LIBS} libmapi.la
+EXTRA_libdovemapi_plugin_la_DEPENDENCIES = gateway/dovestore.sym
+
+gateway/doveauth.sym gateway/dovestore.sym: ${top_builddir}/config.status
+
+
+#
 # PHP configuration
 # Old note: Debian has a broken php-config(1) script which outputs
 # 	"--with-config-file-scan-dir=/etc/php5/apache2/conf.d"
@@ -702,27 +771,10 @@ dist_phpsysconf_DATA = php-ext/mapi.ini
 # PHP extension
 #
 phplibdir = ${dcprefix}${PHP_EXTENSION_DIR}
-phplib_LTLIBRARIES =
-mapi_la_CPPFLAGS = ${AM_CPPFLAGS} ${PHP_INCLUDES}
+mapi_la_CPPFLAGS = ${AM_CPPFLAGS} ${PHP_INCLUDES} -I${srcdir}/php-ext
 mapi_la_CXXFLAGS = ${AM_CXXFLAGS} ${ZPHPCXXFLAGS}
-mapi_la_SOURCES =
-if WITH_PHP7
-phplib_LTLIBRARIES += mapi.la
-mapi_la_CPPFLAGS += -I${srcdir}/php7-ext -I${srcdir}/php-ext
-mapi_la_SOURCES += \
-	php7-ext/ECImportContentsChangesProxy.cpp \
-	php7-ext/ECImportContentsChangesProxy.h \
-	php7-ext/ECImportHierarchyChangesProxy.cpp \
-	php7-ext/ECImportHierarchyChangesProxy.h \
-	php-ext/ECRulesTableProxy.cpp php-ext/ECRulesTableProxy.h \
-	php-ext/globals.h php7-ext/main.cpp php-ext/main.h \
-	php-ext/phpconfig.h \
-	php7-ext/typeconversion.cpp php7-ext/typeconversion.h \
-	php-ext/util.cpp php-ext/util.h
-endif
-if WITH_PHP5
-phplib_LTLIBRARIES += mapi.la
-mapi_la_SOURCES += \
+phplib_LTLIBRARIES = mapi.la
+mapi_la_SOURCES = \
 	php-ext/ECImportContentsChangesProxy.cpp \
 	php-ext/ECImportContentsChangesProxy.h \
 	php-ext/ECImportHierarchyChangesProxy.cpp \
@@ -732,7 +784,6 @@ mapi_la_SOURCES += \
 	php-ext/phpconfig.h \
 	php-ext/typeconversion.cpp php-ext/typeconversion.h \
 	php-ext/util.cpp php-ext/util.h
-endif
 mapi_la_LIBADD = libmapi.la libkcutil.la libkcfreebusy.la \
 	libkcinetmapi.la libkcicalmapi.la -lpthread
 mapi_la_SYFLAGS = -Wl,--version-script=${srcdir}/php-ext/mapi.sym
@@ -774,7 +825,7 @@ CLEANFILES += spooler/PythonSWIGRuntime.h
 EXTRA_DIST += spooler/PythonSWIGRuntime.h
 
 spooler/PythonSWIGRuntime.h:
-if ENABLE_PYTHON
+if ENABLE_PYBIND
 	${SWIG_EXEC} -python -external-runtime $@
 else
 	: >$@
@@ -790,14 +841,22 @@ SOAP_OUT = \
 	provider/soap/soapKCmdProxy.cpp provider/soap/soapKCmdProxy.h \
 	provider/soap/soapKCmdService.cpp provider/soap/soapKCmdService.h \
 	provider/soap/soapStub.h
+ESOAP_OUT = \
+	provider/soap/emptysoapStub.h \
+	provider/soap/emptysoapH.h provider/soap/emptysoapC.cpp
 
 ${SOAP_OUT}: provider/soap/KCmd.nsmap
+${ESOAP_OUT}: provider/soap/soap.nsmap
 provider/soap/KCmd.nsmap: ${SOAPHEADER}
 	${MKDIR_P} provider/soap
 	soapcpp2 -jxw -Iinclude/ -d provider/soap/ $<
+provider/soap/soap.nsmap:
+	${MKDIR_P} provider/soap
+	soapcpp2 -jxwp emptysoap -d provider/soap/ /dev/null
 
-BUILT_SOURCES += provider/soap/KCmd.nsmap ${SOAP_OUT}
-CLEANFILES += ${SOAP_OUT} provider/soap/*
+BUILT_SOURCES += provider/soap/KCmd.nsmap provider/soap/soap.nsmap \
+	${SOAP_OUT} ${ESOAP_OUT}
+CLEANFILES += ${SOAP_OUT} ${ESOAP_OUT} provider/soap/*
 
 
 #
@@ -845,39 +904,53 @@ libkcserver_ldap_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version \
 EXTRA_libkcserver_ldap_la_DEPENDENCIES = provider/plugin.sym
 endif
 
+gdbautoloaddir = ${datadir}/gdb/auto-load/${libdir}
+dist_gdbautoload_DATA = tools/libmapi.so.1.0.0-gdb.py
+
+endif # ENABLE_BASE
+
 
 #
 # manual pages
 #
-dist_man_MANS = \
+dist_man_MANS =
+if ENABLE_BASE
+dist_man_MANS += \
 	doc/kopano.7 \
-	doc/kopano-admin.8 \
-	doc/kopano-cli.8 \
+	doc/kopano-admin.8 doc/kopano-admin.cfg.5 \
 	doc/kopano-archiver.8 doc/kopano-archiver.cfg.5 \
-	doc/kopano-autorespond.8 doc/kopano-cachestat.8 \
 	doc/kopano-cfgchecker.8 doc/kopano-coredump.5 \
 	doc/kopano-dagent.8 doc/kopano-dagent.cfg.5 doc/kopano-dbadm.8 \
-	doc/kopano-mr-accept.8 doc/kopano-mr-process.8 \
 	doc/kopano-fsck.1 \
 	doc/kopano-gateway.8 doc/kopano-gateway.cfg.5 doc/kopano-ibrule.1 \
 	doc/kopano-ical.8 doc/kopano-ical.cfg.5 \
+	doc/kopano-indexd.8 \
 	doc/kopano-ldap.cfg.5 \
-	doc/kopano-mailbox-permissions.8 \
 	doc/kopano-monitor.8 doc/kopano-monitor.cfg.5 \
 	doc/kopano-oof.1 doc/kopano-passwd.1 \
-	doc/kopano-search.8 doc/kopano-search.cfg.5 \
-	doc/kopano-msr.8 doc/kopano-msr.cfg.5 \
 	doc/kopano-server.8 doc/kopano-server.cfg.5 \
-	doc/kopano-set-oof.1 \
-	doc/kopano-spamd.8 doc/kopano-spamd.cfg.5 \
-	doc/kopano-spooler.8 doc/kopano-spooler.cfg.5 doc/kopano-statsd.8 \
-	doc/kopano-backup.8 doc/kopano-backup.cfg.5 \
+	doc/kopano-spooler.8 doc/kopano-spooler.cfg.5 \
+	doc/kopano-statsd.8 doc/kopano-statsd.cfg.5 \
 	doc/kopano-srvadm.8 doc/kopano-stats.1 doc/kopano-storeadm.8 \
 	doc/kopano-unix.cfg.5 \
-	doc/kopano-migration-pst.8 doc/kopano-migration-pst.cfg.5 \
-	doc/kopano-archiver-aclsync.8 \
+	doc/mapi.7
+endif
+if ENABLE_PYTHON
+dist_man_MANS += \
 	doc/kopano-archiver-aclset.8 \
-	doc/kopano-archiver-restore.8 doc/mapi.7
+	doc/kopano-archiver-aclsync.8 \
+	doc/kopano-archiver-restore.8 \
+	doc/kopano-autorespond.8 \
+	doc/kopano-backup.8 doc/kopano-backup.cfg.5 \
+	doc/kopano-cachestat.8 \
+	doc/kopano-cli.8 \
+	doc/kopano-mailbox-permissions.8 \
+	doc/kopano-migration-pst.8 doc/kopano-migration-pst.cfg.5 \
+	doc/kopano-mr-accept.8 doc/kopano-mr-process.8 \
+	doc/kopano-search.8 doc/kopano-search.cfg.5 \
+	doc/kopano-set-oof.1 \
+	doc/kopano-spamd.8 doc/kopano-spamd.cfg.5
+endif
 
 #
 # build infrastructure
@@ -888,17 +961,12 @@ include global.am
 
 
 #OLD TOPLEVEL FM
-EXTRA_DIST += .version versionheader.sh \
+EXTRA_DIST += versionheader.sh \
 	AGPL-3 LICENSE.txt RELNOTES.txt \
-	bootstrap.sh lddcheck global.am pwdcheck.sh \
-	common/include/kopano/ecversion.h
+	bootstrap.sh lddcheck global.am pwdcheck.sh
 
 BUILT_SOURCES += source-moved-check common/include/kopano/ecversion.h
 CLEANFILES += common/include/kopano/ecversion.h
-
-dist_sbin_SCRIPTS += tools/python-scripts/kopano-cachestat
-gdbautoloaddir = ${datadir}/gdb/auto-load/${libdir}
-dist_gdbautoload_DATA = tools/libmapi.so.1.0.0-gdb.py
 
 AM_DISTCHECK_CONFIGURE_FLAGS = --with-dcprefix='$${prefix}'
 

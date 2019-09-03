@@ -1,15 +1,8 @@
 /var/log/kopano/archiver.log {
         weekly
         missingok
-	create 640 kopano adm
+        create 640 kopano adm
         rotate 52
-	postrotate
-            if [ -d /run/systemd/system ] && command systemctl >/dev/null 2>&1 && systemctl is-active --quiet kopano-archiver; then
-                systemctl kill --kill-who all --signal=SIGHUP kopano-archiver
-            elif [ -f /var/run/kopano/archiver.pid ]; then
-                 kill -HUP `cat /var/run/kopano/archiver.pid` 2> /dev/null || true
-            fi
-        endscript
         compress
         delaycompress
         notifempty
@@ -18,84 +11,77 @@
 /var/log/kopano/dagent.log {
         weekly
         missingok
-	create 640 kopano adm
+        create 640 kopano adm
         rotate 52
-	postrotate
-	    if [ -d /run/systemd/system ] && command systemctl >/dev/null 2>&1 && systemctl is-active --quiet kopano-dagent; then
-                systemctl kill --kill-who all --signal=SIGHUP kopano-dagent
-            elif [ -f /var/run/kopano/dagent.pid ]; then
-                 kill -HUP `cat /var/run/kopano/dagent.pid` 2> /dev/null || true
-            fi
-	endscript
         compress
         delaycompress
         notifempty
+        postrotate
+        if [ -d /run/systemd/system ] && systemctl --quiet is-active kopano-dagent; then
+            systemctl reload kopano-dagent || :
+        else
+            killall -HUP kopano-dagent 2> /dev/null || true
+        fi
+        endscript
 }
 
 /var/log/kopano/gateway.log {
         weekly
         missingok
-	create 640 kopano adm
+        create 640 kopano adm
         rotate 52
-	postrotate
-	    if [ -d /run/systemd/system ] && command systemctl >/dev/null 2>&1 && systemctl is-active --quiet kopano-gateway; then
-                systemctl kill --kill-who all --signal=SIGHUP kopano-gateway
-            elif [ -f /var/run/kopano/gateway.pid ]; then
-                 kill -HUP `cat /var/run/kopano/gateway.pid` 2> /dev/null || true
-            fi
-        endscript
-	compress
+        compress
         delaycompress
         notifempty
+        postrotate
+        if [ -d /run/systemd/system ] && systemctl --quiet is-active kopano-gateway; then
+            systemctl reload kopano-gateway || :
+        else
+            killall -HUP kopano-gateway 2> /dev/null || true
+        fi
+        endscript
 }
 
 /var/log/kopano/ical.log {
         weekly
         missingok
-	create 640 kopano adm
+        create 640 kopano adm
         rotate 52
-	postrotate
-	    if [ -d /run/systemd/system ] && command systemctl >/dev/null 2>&1 && systemctl is-active --quiet kopano-ical; then
-                systemctl kill --kill-who all --signal=SIGHUP kopano-ical
-            elif [ -f /var/run/kopano/ical.pid ]; then
-                 kill -HUP `cat /var/run/kopano/ical.pid` 2> /dev/null || true
-            fi
-        endscript
-		compress
+        compress
         delaycompress
         notifempty
+        postrotate
+        if [ -d /run/systemd/system ] && systemctl --quiet is-active kopano-ical; then
+            systemctl reload kopano-ical || :
+        else
+            killall -HUP kopano-ical 2> /dev/null || true
+        fi
+        endscript
 }
 
 /var/log/kopano/search.log {
         weekly
         missingok
-	create 640 kopano adm
+        create 640 kopano adm
         rotate 52
-	postrotate
-	    if [ -d /run/systemd/system ] && command systemctl >/dev/null 2>&1 && systemctl is-active --quiet kopano-search; then
-                systemctl kill --kill-who all --signal=SIGHUP kopano-search
-            elif [ -f /var/run/kopano/search.pid ]; then
-                 kill -HUP `cat /var/run/kopano/search.pid` 2> /dev/null || true
-            fi
-        endscript
-	compress
+        compress
         delaycompress
         notifempty
+        postrotate
+        if [ -d /run/systemd/system ] && systemctl --quiet is-active kopano-search; then
+            systemctl reload kopano-search || :
+        else
+            killall -HUP kopano-search 2> /dev/null || true
+        fi
+        endscript
 }
 
 /var/log/kopano/backup.log {
         weekly
         missingok
-	create 640 kopano adm
+        create 640 kopano adm
         rotate 52
-	postrotate
-	    if [ -d /run/systemd/system ] && command systemctl >/dev/null 2>&1 && systemctl is-active --quiet kopano-backup; then
-                systemctl kill --kill-who all --signal=SIGHUP kopano-backup
-            elif [ -f /var/run/kopano/backup.pid ]; then
-                 kill -HUP `cat /var/run/kopano/backup.pid` 2> /dev/null || true
-            fi
-        endscript
-	compress
+        compress
         delaycompress
         notifempty
 }
@@ -103,84 +89,84 @@
 /var/log/kopano/presence.log {
         weekly
         missingok
-	create 640 kopano adm
+        create 640 kopano kopano
         rotate 52
-	postrotate
-	    if [ -d /run/systemd/system ] && command systemctl >/dev/null 2>&1 && systemctl is-active --quiet kopano-presence; then
-                systemctl kill --kill-who all --signal=SIGHUP kopano-presence
-            elif [ -f /var/run/kopano/presence.pid ]; then
-                 kill -HUP `cat /var/run/kopano/presence.pid` 2> /dev/null || true
-            fi
-        endscript
-	compress
+        compress
         delaycompress
         notifempty
+        postrotate
+        if [ -d /run/systemd/system ] && systemctl --quiet is-active kopano-presence; then
+            systemctl reload kopano-presence || :
+        else
+            killall -HUP kopano-presence 2> /dev/null || true
+        fi
+        endscript
 }
 
 /var/log/kopano/monitor.log {
         weekly
         missingok
-	create 640 kopano adm
+        create 640 kopano adm
         rotate 52
-	postrotate
-	    if [ -d /run/systemd/system ] && command systemctl >/dev/null 2>&1 && systemctl is-active --quiet kopano-monitor; then
-                systemctl kill --kill-who all --signal=SIGHUP kopano-monitor
-            elif [ -f /var/run/kopano/monitor.pid ]; then
-                 kill -HUP `cat /var/run/kopano/monitor.pid` 2> /dev/null || true
-            fi
-        endscript
-	compress
+        compress
         delaycompress
         notifempty
+        postrotate
+        if [ -d /run/systemd/system ] && systemctl --quiet is-active kopano-monitor; then
+            systemctl reload kopano-monitor || :
+        else
+            killall -HUP kopano-monitor 2> /dev/null || true
+        fi
+        endscript
 }
 
 /var/log/kopano/server.log /var/log/kopano/audit.log {
         weekly
         missingok
-	create 640 kopano adm
+        create 640 kopano adm
         rotate 52
-	postrotate
-	    if [ -d /run/systemd/system ] && command systemctl >/dev/null 2>&1 && systemctl is-active --quiet kopano-server; then
-                systemctl kill --kill-who all --signal=SIGHUP kopano-server
-            elif [ -f /var/run/kopano/server.pid ]; then
-                 kill -HUP `cat /var/run/kopano/server.pid` 2> /dev/null || true
-            fi
-        endscript
-	compress
+        compress
         delaycompress
         notifempty
+        postrotate
+        if [ -d /run/systemd/system ] && systemctl --quiet is-active kopano-server; then
+            systemctl reload kopano-server || :
+        else
+            killall -HUP kopano-server 2> /dev/null || true
+        fi
+        endscript
 }
 
 /var/log/kopano/spooler.log {
         weekly
         missingok
-	create 640 kopano adm
+        create 640 kopano adm
         rotate 52
-	postrotate
-	    if [ -d /run/systemd/system ] && command systemctl >/dev/null 2>&1 && systemctl is-active --quiet kopano-spooler; then
-                systemctl kill --kill-who all --signal=SIGHUP kopano-spooler
-            elif [ -f /var/run/kopano/spooler.pid ]; then
-                 kill -HUP `cat /var/run/kopano/spooler.pid` 2> /dev/null || true
-            fi
-        endscript
-	compress
+        compress
         delaycompress
         notifempty
+        postrotate
+        if [ -d /run/systemd/system ] && systemctl --quiet is-active kopano-spooler; then
+            systemctl reload kopano-spooler || :
+        else
+            killall -HUP kopano-spooler 2> /dev/null || true
+        fi
+        endscript
 }
 
 /var/log/kopano/spamd.log {
         weekly
         missingok
-	create 640 kopano adm
+        create 640 kopano adm
         rotate 52
-	postrotate
-	    if [ -d /run/systemd/system ] && command systemctl >/dev/null 2>&1 && systemctl is-active --quiet kopano-spamd; then
-                systemctl kill --kill-who all --signal=SIGHUP kopano-spamd
-            elif [ -f /var/run/kopano/spamd.pid ]; then
-                 kill -HUP `cat /var/run/kopano/spamd.pid` 2> /dev/null || true
-            fi
-        endscript
-	compress
+        compress
         delaycompress
         notifempty
+        postrotate
+        if [ -d /run/systemd/system ] && systemctl --quiet is-active kopano-spamd; then
+            systemctl reload kopano-spamd || :
+        else
+            killall -HUP kopano-spamd 2> /dev/null || true
+        fi
+        endscript
 }

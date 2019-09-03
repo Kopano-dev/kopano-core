@@ -156,7 +156,7 @@ public:
 	/* Options for delivery into special subfolder */
 	bool bCreateFolder = false;
 	std::wstring strDeliveryFolder;
-	WCHAR szPathSeparator = '\\';
+	wchar_t szPathSeparator = '\\';
 
 	/* Delivery options */
 	delivery_mode ulDeliveryMode = DM_STORE;
@@ -596,7 +596,7 @@ static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
 	for (const auto &recip : *lRCPT) {
 		lpAdrList->aEntries[ulRCPT].cValues = 1;
 
-		hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **) &lpAdrList->aEntries[ulRCPT].rgPropVals);
+		hr = MAPIAllocateBuffer(sizeof(SPropValue), reinterpret_cast<void **>(&lpAdrList->aEntries[ulRCPT].rgPropVals));
 		if (hr != hrSuccess)
 			return kc_perrorf("MAPIAllocateBuffer failed(3)", hr);
 		++lpAdrList->cEntries;
@@ -839,8 +839,9 @@ static HRESULT ResolveServerToPath(IMAPISession *lpSession,
 			ec_log_err("Server '%s' not found", (char*)lpSrvList->lpsaServer[i].lpszName);
 			return MAPI_E_NOT_FOUND;
 		}
-		ec_log_debug("%d recipient(s) on server '%ls' (url %ls)", (int)iter->second.size(),
-						lpSrvList->lpsaServer[i].lpszName, lpSrvList->lpsaServer[i].lpszPreferedPath);
+		ec_log_debug("%zu recipient(s) on server \"%ls\" (URL %ls)",
+			iter->second.size(), lpSrvList->lpsaServer[i].lpszName,
+			lpSrvList->lpsaServer[i].lpszPreferedPath);
 		lpServerPathRecips->emplace(reinterpret_cast<wchar_t *>(lpSrvList->lpsaServer[i].lpszPreferedPath), iter->second);
 	}
 	return hrSuccess;
@@ -1162,6 +1163,9 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 	hr = lpMessage->GetProps(sptaMessageProps, 0, &cValues, &~lpMessageProps);
 	if (FAILED(hr))
 		return kc_perror("GetProps failed(2)", hr);
+	hr = spv_postload_large_props(lpMessage, sptaMessageProps, cValues, lpMessageProps);
+	if (FAILED(hr))
+		kc_pwarn("SendOutOfOffice: spv_postload", hr);
 	hr = hrSuccess;
 
 	// See if we're looping
@@ -1170,7 +1174,7 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 			ec_log_debug("Avoiding OOF reply to an automated message.");
 			return erSuccess;
 		}
-		// save headers to a file so they can also be tested from the script we're runing
+		// save headers to a file so they can also be tested from the script we're running
 		snprintf(szTemp, PATH_MAX, "%s/autorespond-headers.XXXXXX", TmpPath::instance.getTempPath().c_str());
 		fd = mkstemp(szTemp);
 		if (fd >= 0) {
@@ -1344,10 +1348,10 @@ static HRESULT HrCreateMessage(IMAPIFolder *lpFolder,
 	}
 	if (hr != hrSuccess)
 		return kc_perror("Unable to create new message", hr);
-	hr = lpMessage->QueryInterface(IID_IMessage, (void**)lppMessage);
+	hr = lpMessage->QueryInterface(IID_IMessage, reinterpret_cast<void **>(lppMessage));
 	if (hr != hrSuccess)
 		return kc_perrorf("QueryInterface:message failed", hr);
-	hr = lpFolder->QueryInterface(IID_IMAPIFolder, (void**)lppDeliveryFolder);
+	hr = lpFolder->QueryInterface(IID_IMAPIFolder, reinterpret_cast<void **>(lppDeliveryFolder));
 	if (hr != hrSuccess)
 		return kc_perrorf("QueryInterface:folder failed", hr);
 	return hrSuccess;
@@ -1400,7 +1404,7 @@ static HRESULT HrStringToMAPIMessage(const string &strMail,
 	}
 
 	// return the filled (real or fallback) message
-	hr = lpMessage->QueryInterface(IID_IMessage, (void**)lppMessage);
+	hr = lpMessage->QueryInterface(IID_IMessage, reinterpret_cast<void **>(lppMessage));
 	if (hr != hrSuccess) {
 		kc_perrorf("QueryInterface failed", hr);
 		goto exit;
@@ -1461,6 +1465,110 @@ static HRESULT HrMessageExpired(StatsClient *sc, IMessage *lpMessage, bool *bExp
 	return hr;
 }
 
+static HRESULT recip_in_distlist(IAddrBook *ab, const SBinary &eid,
+    ECRecipient *rcpt, bool &pres)
+{
+	static constexpr const SizedSPropTagArray(2, cols) = {2, {PR_OBJECT_TYPE, PR_ENTRYID}};
+	unsigned int objtype = 0;
+	object_ptr<IDistList> dl;
+	auto ret = ab->OpenEntry(eid.cb, reinterpret_cast<ENTRYID *>(eid.lpb), &iid_of(dl), 0, &objtype, &~dl);
+	if (ret != hrSuccess)
+		return ret;
+	object_ptr<IMAPITable> tbl;
+	ret = dl->GetContentsTable(0, &~tbl);
+	if (ret != hrSuccess)
+		return ret;
+	ret = tbl->SetColumns(cols, 0);
+	if (ret != hrSuccess)
+		return kc_perrorf("SetColumns", ret);
+	SPropValue scmp[4];
+	scmp[0].ulPropTag   = PR_OBJECT_TYPE;
+	scmp[0].Value.ul    = MAPI_DISTLIST;
+	scmp[1].ulPropTag   = PR_OBJECT_TYPE;
+	scmp[1].Value.ul    = MAPI_MAILUSER;
+	scmp[2].ulPropTag   = PR_ADDRTYPE_A;
+	scmp[2].Value.lpszA = const_cast<char *>("ZARAFA");
+	scmp[3].ulPropTag   = PR_SMTP_ADDRESS_A;
+	scmp[3].Value.lpszA = const_cast<char *>(rcpt->strSMTP.c_str());
+	ret = ECOrRestriction(
+		ECPropertyRestriction(RELOP_EQ, PR_OBJECT_TYPE, &scmp[0], ECRestriction::Cheap) +
+		ECAndRestriction(
+			ECPropertyRestriction(RELOP_EQ, PR_OBJECT_TYPE, &scmp[1], ECRestriction::Cheap) +
+			ECPropertyRestriction(RELOP_EQ, PR_ADDRTYPE_A, &scmp[2], ECRestriction::Cheap) +
+			ECPropertyRestriction(RELOP_EQ, PR_SMTP_ADDRESS_A, &scmp[3], ECRestriction::Cheap)
+		)
+	).RestrictTable(tbl, ECRestriction::Cheap);
+	if (ret != hrSuccess)
+		return kc_perrorf("RestrictTable", ret);
+	rowset_ptr rset;
+	ret = tbl->QueryRows(-1, 0, &~rset);
+	if (ret != hrSuccess)
+		return kc_perrorf("QueryRows", ret);
+
+	for (unsigned int i = 0; i < rset->cRows; ++i) {
+		const auto &row = rset->aRow[i];
+		if (row.lpProps[0].Value.ul == MAPI_MAILUSER) {
+			pres = true;
+			return hrSuccess;
+		}
+		ret = recip_in_distlist(ab, row.lpProps[1].Value.bin, rcpt, pres);
+		if (ret != hrSuccess)
+			return ret;
+	}
+	return hrSuccess;
+}
+
+static HRESULT recip_me_check(IAddrBook *ab, IMAPITable *tbl,
+    ECRecipient *rcpt, bool &xto, bool &xcc, bool &xdl)
+{
+	static constexpr const SizedSPropTagArray(3, cols) =
+		// MAPI_TO, MAPI_MAILUSER, ...
+		// MAPI_CC, MAPI_DISTLIST, ...
+		{3, {PR_RECIPIENT_TYPE, PR_OBJECT_TYPE, PR_ENTRYID}};
+	auto ret = tbl->SetColumns(cols, 0);
+	if (ret != hrSuccess)
+		return kc_perrorf("SetColumns failed", ret);
+
+	SPropValue scmp[4];
+	scmp[0].ulPropTag   = PR_OBJECT_TYPE;
+	scmp[0].Value.ul    = MAPI_DISTLIST;
+	scmp[1].ulPropTag   = PR_OBJECT_TYPE;
+	scmp[1].Value.ul    = MAPI_MAILUSER;
+	scmp[2].ulPropTag   = PR_ADDRTYPE_A;
+	scmp[2].Value.lpszA = const_cast<char *>("ZARAFA");
+	scmp[3].ulPropTag   = PR_SMTP_ADDRESS_A;
+	scmp[3].Value.lpszA = const_cast<char *>(rcpt->strSMTP.c_str());
+	ret = ECOrRestriction(
+		ECPropertyRestriction(RELOP_EQ, PR_OBJECT_TYPE, &scmp[0], ECRestriction::Cheap) +
+		ECAndRestriction(
+			ECPropertyRestriction(RELOP_EQ, PR_OBJECT_TYPE, &scmp[1], ECRestriction::Cheap) +
+			ECPropertyRestriction(RELOP_EQ, PR_ADDRTYPE_A, &scmp[2], ECRestriction::Cheap) +
+			ECPropertyRestriction(RELOP_EQ, PR_SMTP_ADDRESS_A, &scmp[3], ECRestriction::Cheap)
+		)
+	).RestrictTable(tbl, ECRestriction::Cheap);
+	if (ret != hrSuccess)
+		return kc_perrorf("RestrictTable", ret);
+	rowset_ptr rset;
+	ret = tbl->QueryRows(-1, 0, &~rset);
+	if (ret != hrSuccess)
+		return kc_perrorf("QueryRows", ret);
+
+	for (unsigned int i = 0; i < rset->cRows; ++i) {
+		const auto &row = rset->aRow[i];
+		if (row.lpProps[1].Value.ul == MAPI_DISTLIST) {
+			ret = recip_in_distlist(ab, row.lpProps[2].Value.bin, rcpt, xdl);
+			if (ret != hrSuccess)
+				return ret;
+			continue;
+		}
+		if (row.lpProps[0].Value.ul == MAPI_TO)
+			xto = true;
+		if (row.lpProps[0].Value.ul == MAPI_CC)
+			xcc = true;
+	}
+	return hrSuccess;
+}
+
 /**
  * Replace To recipient data in message with new recipient
  *
@@ -1469,67 +1577,27 @@ static HRESULT HrMessageExpired(StatsClient *sc, IMessage *lpMessage, bool *bExp
  *
  * @return MAPI Error code
  */
-static HRESULT HrOverrideRecipProps(IMessage *lpMessage, ECRecipient *lpRecip)
+static HRESULT HrOverrideRecipProps(IAddrBook *ab,
+    IMessage *lpMessage, ECRecipient *lpRecip)
 {
 	object_ptr<IMAPITable> lpRecipTable;
-	memory_ptr<SRestriction> lpRestrictRecipient;
-	SPropValue sPropRecip[4], sCmp[2];
-	bool bToMe = false, bCcMe = false, bBccMe = false, bRecipMe = false;
-	static constexpr const SizedSPropTagArray(2, sptaColumns) =
-		{2, {PR_RECIPIENT_TYPE, PR_ENTRYID}};
+	SPropValue sPropRecip[4];
+	bool bToMe = false, bCcMe = false, distgrp = false;
 
 	auto hr = lpMessage->GetRecipientTable (0, &~lpRecipTable);
 	if (hr != hrSuccess)
 		return kc_perrorf("GetRecipientTable failed", hr);
-	hr = lpRecipTable->SetColumns(sptaColumns, 0);
+	hr = recip_me_check(ab, lpRecipTable, lpRecip, bToMe, bCcMe, distgrp);
 	if (hr != hrSuccess)
-		return kc_perrorf("SetColumns failed", hr);
-
-	sCmp[0].ulPropTag = PR_ADDRTYPE_A;
-	sCmp[0].Value.lpszA = const_cast<char *>("ZARAFA");
-	sCmp[1].ulPropTag = PR_SMTP_ADDRESS_A;
-	sCmp[1].Value.lpszA = (char*)lpRecip->strSMTP.c_str();
-
-	hr = ECAndRestriction(
-		ECExistRestriction(PR_RECIPIENT_TYPE) +
-		ECPropertyRestriction(RELOP_EQ, PR_ADDRTYPE_A, &sCmp[0], ECRestriction::Cheap) +
-		ECPropertyRestriction(RELOP_EQ, PR_SMTP_ADDRESS_A, &sCmp[1], ECRestriction::Cheap)
-	).CreateMAPIRestriction(&~lpRestrictRecipient, ECRestriction::Cheap);
-	if (hr != hrSuccess)
-		return hr;
-
-	hr = lpRecipTable->FindRow(lpRestrictRecipient, BOOKMARK_BEGINNING, 0);
-	if (hr == hrSuccess) {
-		rowset_ptr lpsRows;
-		hr = lpRecipTable->QueryRows(1, 0, &~lpsRows);
-		if (hr != hrSuccess)
-			return kc_perrorf("QueryRows failed", hr);
-		bRecipMe = (lpsRows->cRows == 1);
-		if (bRecipMe) {
-			auto lpProp = lpsRows[0].cfind(PR_RECIPIENT_TYPE);
-			if (lpProp) {
-				bToMe = (lpProp->Value.ul == MAPI_TO);
-				bCcMe = (lpProp->Value.ul == MAPI_CC);
-				bBccMe = lpProp->Value.ul == MAPI_BCC;
-			}
-		}
-	} else {
-		/*
-		 * No recipients were found, message was not to me.
-		 * Don't report error to caller, since we should set
-		 * the properties to indicate this message is not for us.
-		 */
-		hr = hrSuccess;
-	}
-
-	sPropRecip[0].ulPropTag = PR_MESSAGE_RECIP_ME;
-	sPropRecip[0].Value.b = bRecipMe;
+		/* ignore */;
 	sPropRecip[1].ulPropTag = PR_MESSAGE_TO_ME;
 	sPropRecip[1].Value.b = bToMe;
 	sPropRecip[2].ulPropTag = PR_MESSAGE_CC_ME;
 	sPropRecip[2].Value.b = bCcMe;
 	sPropRecip[3].ulPropTag = PR_EC_MESSAGE_BCC_ME;
-	sPropRecip[3].Value.b = bBccMe;
+	sPropRecip[3].Value.b = !bToMe && !bCcMe && !distgrp;
+	sPropRecip[0].ulPropTag = PR_MESSAGE_RECIP_ME;
+	sPropRecip[0].Value.b = bToMe || bCcMe || sPropRecip[3].Value.b;
 	hr = lpMessage->SetProps(4, sPropRecip, NULL);
 	if (hr != hrSuccess)
 		return kc_perror("SetProps failed", hr);
@@ -1640,7 +1708,7 @@ static HRESULT HrOverrideReceivedByProps(IMessage *lpMessage,
  * @param[in] lpOrigMessage The original delivered message
  * @param[in] lpDeliverFolder The delivery folder of the new message
  * @param[in] lpRecip recipient data to use
- * @param[in] lpFallbackFolder Fallback folder incase lpDeliverFolder cannot be delivered to
+ * @param[in] lpFallbackFolder Fallback folder in case lpDeliverFolder cannot be delivered to
  * @param[in] bFallbackDelivery lpOrigMessage is a fallback delivery message
  * @param[out] lppFolder folder the new message was created in
  * @param[out] lppMessage the newly copied message
@@ -1657,7 +1725,7 @@ static HRESULT HrCopyMessageForDelivery(IMessage *lpOrigMessage,
 	helpers::MAPIPropHelperPtr ptrArchiveHelper;
 	static constexpr const SizedSPropTagArray(13, sptaReceivedBy) = {
 		13, {
-			/* Overriden by HrOverrideRecipProps() */
+			/* Overridden by HrOverrideRecipProps() */
 			PR_MESSAGE_RECIP_ME,
 			PR_MESSAGE_TO_ME,
 			PR_MESSAGE_CC_ME,
@@ -1675,7 +1743,7 @@ static HRESULT HrCopyMessageForDelivery(IMessage *lpOrigMessage,
 	};
 	static constexpr const SizedSPropTagArray(12, sptaFallback) = {
 		12, {
-			/* Overriden by HrOverrideFallbackProps() */
+			/* Overridden by HrOverrideFallbackProps() */
 			PR_SENDER_ADDRTYPE,
 			PR_SENDER_EMAIL_ADDRESS,
 			PR_SENDER_ENTRYID,
@@ -1718,9 +1786,9 @@ static HRESULT HrCopyMessageForDelivery(IMessage *lpOrigMessage,
 	if (hr != hrSuccess)
 		return kc_perrorf("IMAP handling failed", hr);
 	if (lppFolder)
-		lpFolder->QueryInterface(IID_IMAPIFolder, (void**)lppFolder);
+		lpFolder->QueryInterface(IID_IMAPIFolder, reinterpret_cast<void **>(lppFolder));
 	if (lppMessage)
-		lpMessage->QueryInterface(IID_IMessage, (void**)lppMessage);
+		lpMessage->QueryInterface(IID_IMessage, reinterpret_cast<void **>(lppMessage));
 	return hrSuccess;
 }
 
@@ -1735,7 +1803,8 @@ static HRESULT HrCopyMessageForDelivery(IMessage *lpOrigMessage,
  * @return MAPI Error code
  */
 static HRESULT HrGetSession(const DeliveryArgs *lpArgs,
-    const WCHAR *szUsername, IMAPISession **lppSession, bool bSuppress = false)
+    const wchar_t *szUsername, IMAPISession **lppSession,
+    bool bSuppress = false)
 {
 	auto hr = HrOpenECSession(lppSession, PROJECT_VERSION, "dagent",
 	          szUsername, L"", lpArgs->strPath.c_str(), 0,
@@ -1807,8 +1876,8 @@ static HRESULT HrPostDeliveryProcessing(pym_plugin_intf *lppyMapiPlugin,
 		hr = HrAutoAccept(lpArgs->sc.get(), lpRecip, lpStore, *lppMessage);
 		if(hr == hrSuccess) {
 			ec_log_info("Autoaccept processing completed successfully. Skipping further processing.");
-			// The MR autoaccepter has processed the message. Skip any further work on this message: dont
-			// run rules and dont send new mail notifications (The message should be deleted now)
+			// The MR autoaccepter has processed the message. Skip any further work on this message: don't
+			// run rules and don't send new mail notifications (The message should be deleted now)
 			return MAPI_E_CANCEL;
 		}
 		ec_log_info("Autoaccept processing failed, proceeding with rules processing: %s (%x).",
@@ -1982,7 +2051,7 @@ static HRESULT ProcessDeliveryToRecipient(pym_plugin_intf *lppyMapiPlugin,
 			return kc_perrorf("HrCopyMessageForDelivery failed", hr);
 	}
 
-	hr = HrOverrideRecipProps(lpDeliveryMessage, lpRecip);
+	hr = HrOverrideRecipProps(lpAdrBook, lpDeliveryMessage, lpRecip);
 	if (hr != hrSuccess)
 		return kc_perrorf("HrOverrideRecipProps failed", hr);
 
@@ -2003,7 +2072,7 @@ static HRESULT ProcessDeliveryToRecipient(pym_plugin_intf *lppyMapiPlugin,
 	// TODO do something with ulResult
 	if (ulResult == MP_STOP_SUCCESS) {
 		if (lppMessage)
-			lpDeliveryMessage->QueryInterface(IID_IMessage, (void**)lppMessage);
+			lpDeliveryMessage->QueryInterface(IID_IMessage, reinterpret_cast<void **>(lppMessage));
 		if (lpbFallbackDelivery)
 			*lpbFallbackDelivery = bFallbackDelivery;
 		return hr;
@@ -2094,7 +2163,7 @@ static HRESULT ProcessDeliveryToRecipient(pym_plugin_intf *lppyMapiPlugin,
 	}
 
 	if (lppMessage)
-		lpDeliveryMessage->QueryInterface(IID_IMessage, (void**)lppMessage);
+		lpDeliveryMessage->QueryInterface(IID_IMessage, reinterpret_cast<void **>(lppMessage));
 	if (lpbFallbackDelivery)
 		*lpbFallbackDelivery = bFallbackDelivery;
 	return hr;
@@ -2190,7 +2259,7 @@ static HRESULT ProcessDeliveryToServer(pym_plugin_intf *lppyMapiPlugin,
 
 				if (HrGetOneProp(lpMessageTmp, PR_INTERNET_MESSAGE_ID_W, &~lpMessageId) == hrSuccess)
 					wMessageId = lpMessageId->Value.lpszW;
-				HrGetOneProp(lpMessageTmp, PR_SUBJECT_W, &~lpSubject);
+				HrGetFullProp(lpMessageTmp, PR_SUBJECT_W, &~lpSubject);
 				ec_log_info("Delivered message to \"%ls\", Subject: \"%ls\", Message-Id: %ls, size %zu",
 					recip->wstrUsername.c_str(),
 					(lpSubject != NULL) ? lpSubject->Value.lpszW : L"<none>",
@@ -2222,7 +2291,7 @@ static HRESULT ProcessDeliveryToServer(pym_plugin_intf *lppyMapiPlugin,
 		}
 	}
 	if (lppMessage != nullptr && lpOrigMessage)
-		lpOrigMessage->QueryInterface(IID_IMessage, (void**)lppMessage);
+		lpOrigMessage->QueryInterface(IID_IMessage, reinterpret_cast<void **>(lppMessage));
 	if (lpbFallbackDelivery)
 		*lpbFallbackDelivery = bFallbackDelivery;
 	return hr;
@@ -2760,44 +2829,40 @@ static void *HandlerLMTP(void *lpArg)
  * connection.  Only accepts the incoming connection when the maximum
  * number of processes hasn't been reached.
  *
- * @param[in]	bDaemonize	Starts a forked process in this loop to run in the background if true.
  * @param[in]	lpArgs		Struct containing delivery parameters
  * @retval MAPI error code
  */
 static int dagent_listen(ECConfig *cfg, std::vector<struct pollfd> &pollers,
     std::vector<int> &closefd)
 {
-	std::set<std::string, ec_bindaddr_less> lmtp_sock;
-	lmtp_sock = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("lmtp_listen"), ' ', true));
-
+	auto lmtp_info = ec_bindspec_to_sockets(tokenize(cfg->GetSetting("lmtp_listen"), ' ', true),
+	                 S_IRWUGO, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+	if (lmtp_info.first < 0) {
+		ec_log_err("Socket binding failed");
+		return lmtp_info.first;
+	}
+	auto &lmtp_sock = lmtp_info.second;
 	auto intf = cfg->GetSetting("server_bind_intf");
 	struct pollfd x;
 	memset(&x, 0, sizeof(x));
 	x.events = POLLIN;
 	pollers.reserve(lmtp_sock.size());
 	closefd.reserve(lmtp_sock.size());
-	for (const auto &spec : lmtp_sock) {
-		auto ret = ec_fdtable_socket(spec.c_str(), nullptr, nullptr);
-		if (ret >= 0)
-			x.fd = ret;
-		else
-			ret = ec_listen_generic(spec.c_str(), &x.fd, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
-		if (ret < 0)
-			return ret;
+	for (auto &spec : lmtp_sock) {
+		x.fd = spec.m_fd;
+		spec.m_fd = -1;
 		pollers.push_back(x);
 		closefd.push_back(x.fd);
-		ret = zcp_bindtodevice(x.fd, intf);
+		auto ret = zcp_bindtodevice(x.fd, intf);
 		if (ret < 0) {
 			ec_log_err("SO_BINDTODEVICE: %s", strerror(-ret));
 			return ret;
 		}
-		ec_log_info("Listening on %s for LMTP", spec.c_str());
 	}
 	return 0;
 }
 
-static HRESULT running_service(char **argv, bool bDaemonize,
-    DeliveryArgs *lpArgs)
+static HRESULT running_service(char **argv, DeliveryArgs *lpArgs)
 {
 	HRESULT hr = hrSuccess;
 	unsigned int nMaxThreads;
@@ -2827,17 +2892,14 @@ static HRESULT running_service(char **argv, bool bDaemonize,
 	// Setup signals
 	struct sigaction act{};
 	sigemptyset(&act.sa_mask);
-	act.sa_flags   = SA_RESTART;
+	act.sa_flags   = SA_ONSTACK | SA_RESETHAND;
 	act.sa_handler = sigterm;
 	sigaction(SIGTERM, &act, nullptr);
 	sigaction(SIGINT, &act, nullptr);
+	act.sa_flags   = SA_ONSTACK;
 	act.sa_handler = sigchld;
 	sigaction(SIGCHLD, &act, nullptr);
 
-	if (bDaemonize && unix_daemonize(g_lpConfig.get()))
-		return hr;
-	if (!bDaemonize)
-		setsid();
 	unix_create_pidfile(argv[0], g_lpConfig.get());
 	if (!g_use_threads)
 		g_lpLogger = StartLoggerProcess(g_lpConfig.get(), std::move(g_lpLogger)); // maybe replace logger
@@ -3081,7 +3143,7 @@ static void print_help(const char *name)
 	cout << name << " <recipient>" << endl;
 	cout << " [-h|--host <serverpath>] [-c|--config <configfile>] [-f|--file <email-file>]" << endl;
 	cout << " [-j|--junk] [-F|--folder <foldername>] [-P|--public <foldername>] [-p <separator>] [-C|--create]" << endl;
-	cout<<	" [-d|--deamonize] [-l|--listen] [-r|--read] [-s] [-v] [-q] [-e] [-n] [-R]" << endl;
+	cout << " [-l|--listen] [-r|--read] [-s] [-v] [-q] [-e] [-n] [-R]" << endl;
 	cout << endl;
 	cout << "  <recipient> Username or e-mail address of recipient" << endl;
 	cout << "  -f file\t read e-mail from file" << endl;
@@ -3102,7 +3164,6 @@ static void print_help(const char *name)
 	cout << "  -N\t\t Do not send a new mail notification to clients looking at this inbox. (Fixes Outlook 2000 running rules too)." << endl;
 	cout << "  -r\t\t Mark mail as read on delivery. Default: mark mail as new unread mail." << endl;
 	cout << "  -l\t\t Run DAgent as LMTP listener" << endl;
-	cout << "  -d\t\t Run DAgent as LMTP daemon, implicates -l. DAgent will run in the background." << endl;
 	cout << endl;
 	cout << "  -a responder\t path to autoresponder (e.g. /usr/local/bin/autoresponder)" << endl;
 	cout << "\t\t The autoresponder is called with </path/to/autoresponder> <from> <to> <subject> <kopano-username> <messagefile>" << endl;
@@ -3129,7 +3190,6 @@ int main(int argc, char **argv) try {
 	HRESULT hr = hrSuccess;
 	bool bDefaultConfigWarning = false; // Provide warning when default configuration is used
 	bool bExplicitConfig = false; // User added config option to commandline
-	bool bDaemonize = false; // The dagent is not daemonized by default
 	bool bListenLMTP = false; // Do not listen for LMTP by default
 	bool qmail = false, strip_email = false;
 	int loglevel = EC_LOGLEVEL_WARNING;	// normally, log warnings and up
@@ -3184,7 +3244,7 @@ int main(int argc, char **argv) try {
 		{"socketspec", "", CONFIGSETTING_OBSOLETE},
 		{"lmtp_listen", "*:2003"},
 		{ "lmtp_max_threads", "20" },
-		{"process_model", "fork", CONFIGSETTING_NONEMPTY},
+		{"process_model", "thread", CONFIGSETTING_NONEMPTY},
 		{"log_method", "auto", CONFIGSETTING_NONEMPTY},
 		{"log_file", ""},
 		{"log_level", "3", CONFIGSETTING_NONEMPTY | CONFIGSETTING_RELOADABLE},
@@ -3201,7 +3261,7 @@ int main(int argc, char **argv) try {
 		{ "mr_autoaccepter", "/usr/sbin/kopano-mr-accept", CONFIGSETTING_RELOADABLE },
 		{ "mr_autoprocessor", "/usr/sbin/kopano-mr-process", CONFIGSETTING_RELOADABLE },
 		{ "autoresponder", "/usr/sbin/kopano-autorespond", CONFIGSETTING_RELOADABLE },
-		{ "plugin_enabled", "yes" },
+		{"plugin_enabled", "no"},
 		{ "plugin_path", "/var/lib/kopano/dagent/plugins" },
 		{ "plugin_manager_path", "/usr/share/kopano-dagent/python" },
 		{ "default_charset", "us-ascii"},
@@ -3234,7 +3294,7 @@ int main(int argc, char **argv) try {
 	}
 
 	while (1) {
-		auto c = my_getopt_long_permissive(argc, argv, "c:jf:dh:a:F:P:p:qsvenCVrRlN", long_options, nullptr);
+		auto c = my_getopt_long_permissive(argc, argv, "c:jf:h:a:F:P:p:qsvenCVrRlN", long_options, nullptr);
 		if (c == -1)
 			break;
 		switch (c) {
@@ -3249,6 +3309,7 @@ int main(int argc, char **argv) try {
 			break;
 		case OPT_FILE:
 		case 'f':				// use file as input
+			bListenLMTP = false;
 			fp = fopen(optarg, "rb");
 			if(!fp) {
 				cerr << "Unable to open file '" << optarg << "' for reading" << endl;
@@ -3257,12 +3318,6 @@ int main(int argc, char **argv) try {
 			break;
 		case OPT_LISTEN:
 		case 'l':
-			bListenLMTP = true;
-			break;
-		case OPT_DAEMONIZE:
-		case 'd':
-			//-d the Dagent is daemonized; service LMTP over socket starts listening on port 2003
-			bDaemonize = true;
 			bListenLMTP = true;
 			break;
 		case OPT_HOST:
@@ -3346,7 +3401,7 @@ int main(int argc, char **argv) try {
 			// config is explicit. This causes errors from
 			// ECConfig::ParseParams to be logged. Besides that
 			// it doesn't make sense to override your config if
-			// you don't know whats in it.
+			// you don't know what's in it.
 			bExplicitConfig = true;
 
 		// ECConfig::ParseParams returns the index in the passed array,
@@ -3446,7 +3501,7 @@ int main(int argc, char **argv) try {
 
 	signal(SIGPIPE, SIG_IGN);
 	sigemptyset(&act.sa_mask);
-	act.sa_flags = SA_RESTART;
+	act.sa_flags = SA_ONSTACK;
 	act.sa_handler = sighup;
 	sigaction(SIGHUP, &act, nullptr);
 	ec_setup_segv_handler("kopano-dagent", PROJECT_VERSION);
@@ -3462,9 +3517,18 @@ int main(int argc, char **argv) try {
 	unix_coredump_enable(g_lpConfig->GetSetting("coredump_enabled"));
 	umask(S_IRWXG | S_IRWXO);
 
+	if (parseBool(g_lpConfig->GetSetting("plugin_enabled"))) {
+		std::string strEnvPython = g_lpConfig->GetSetting("plugin_manager_path");
+		auto lpEnvPython = getenv("PYTHONPATH");
+		if (lpEnvPython)
+			strEnvPython += std::string(":") + lpEnvPython;
+		setenv("PYTHONPATH", strEnvPython.c_str(), 1);
+		ec_log_debug("PYTHONPATH = %s", strEnvPython.c_str());
+	}
+
 	if (bListenLMTP) {
 		/* MAPIInitialize done inside running_service */
-		hr = running_service(argv, bDaemonize, &sDeliveryArgs);
+		hr = running_service(argv, &sDeliveryArgs);
 		if (hr != hrSuccess)
 			return get_return_value(hr, true, qmail);
 	}

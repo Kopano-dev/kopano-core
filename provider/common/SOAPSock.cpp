@@ -13,7 +13,6 @@
 #include <string>
 #include <map>
 #include <kopano/charset/convert.h>
-#include <kopano/charset/utf8string.h>
 #include "soapKCmdProxy.h"
 
 using namespace KC;
@@ -26,18 +25,27 @@ http_post(struct soap *soap, const char *endpoint, const char *host, int port, c
    || strlen(host) + strlen(soap->http_version) > sizeof(soap->tmpbuf) - 80)
     return soap->error = SOAP_EOM;
   sprintf(soap->tmpbuf, "POST /%s HTTP/%s", (*path == '/' ? path + 1 : path), soap->http_version);
-  if ((err = soap->fposthdr(soap, soap->tmpbuf, NULL)) ||
-      (err = soap->fposthdr(soap, "Host", host)) ||
-      (err = soap->fposthdr(soap, "User-Agent", "gSOAP/2.8")) ||
-      (err = soap_puthttphdr(soap, SOAP_OK, count)))
-    return err;
+
+	err = soap->fposthdr(soap, soap->tmpbuf, nullptr);
+	if (err != 0)
+		return err;
+	err = soap->fposthdr(soap, "Host", host);
+	if (err != 0)
+		return err;
+	err = soap->fposthdr(soap, "User-Agent", "gSOAP/2.8");
+	if (err != 0)
+		return err;
+	err = soap_puthttphdr(soap, SOAP_OK, count);
+	if (err != 0)
+		return err;
 #ifdef WITH_ZLIB
 #ifdef WITH_GZIP
-  if ((err = soap->fposthdr(soap, "Accept-Encoding", "gzip, deflate")))
+	err = soap->fposthdr(soap, "Accept-Encoding", "gzip, deflate");
 #else
-  if ((err = soap->fposthdr(soap, "Accept-Encoding", "deflate")))
+	err = soap->fposthdr(soap, "Accept-Encoding", "deflate");
 #endif
-    return err;
+	if (err != 0)
+		return err;
 #endif
   return soap->fposthdr(soap, NULL, NULL);
 }

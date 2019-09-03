@@ -2,23 +2,27 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  * Copyright 2018, Kopano and its licensors
  */
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+#	include "config.h"
+#endif
 #include <condition_variable>
 #include <mutex>
 #include <stdexcept>
 #include <sstream>
 #include <string>
+#include <vector>
 #include <cerrno>
 #include <csignal>
 #include <cstdlib>
 #include <cstring>
+#include <poll.h>
 #include <sys/stat.h>
 #include <json/reader.h>
 #include <libHX/option.h>
-#include <microhttpd.h>
 #include <rrd.h>
 #include <mapicode.h>
 #include <mapidefs.h>
+#include <stdsoap2.h>
 #include <kopano/ECChannel.h>
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
@@ -26,6 +30,7 @@
 #include <kopano/scope.hpp>
 #include <kopano/stringutil.h>
 #include <kopano/UnixUtil.h>
+#include "../provider/soap/soap.nsmap"
 
 using namespace std::string_literals;
 using namespace KC;
@@ -129,74 +134,85 @@ static bool sd_record(Json::Value &&root)
 	return true;
 }
 
-static int sd_req_accept(void *cls, struct MHD_Connection *conn,
-    const char *url, const char *method, const char *version,
-    const char *upload_data, size_t *upload_size, void **conn_cls)
+static void sd_handle_request(struct soap &&x)
 {
-	auto rs = MHD_create_response_from_buffer(0, const_cast<char *>(""), MHD_RESPMEM_PERSISTENT);
-	if (rs == nullptr)
-		return MHD_NO;
-	auto rsclean = make_scope_success([&]() { MHD_destroy_response(rs); });
-
-	if (strcmp(method, "POST") != 0)
-		return MHD_queue_response(conn, MHD_HTTP_METHOD_NOT_ALLOWED, rs);
-	auto enc = MHD_lookup_connection_value(conn, MHD_HEADER_KIND, MHD_HTTP_HEADER_CONTENT_TYPE);
-	if (enc == nullptr || strcmp(enc, "application/json") != 0)
-		return MHD_queue_response(conn, MHD_HTTP_BAD_REQUEST, rs);
-
-	auto udata = static_cast<std::string *>(*conn_cls);
-	if (udata == nullptr) {
-		*conn_cls = udata = new(std::nothrow) std::string;
-		return udata != nullptr ? MHD_YES : MHD_NO;
-	}
-	if (*upload_size > 0) {
-		udata->append(upload_data, *upload_size);
-		*upload_size = 0;
-		return MHD_YES;
-	}
-
-	Json::Value root;
-	std::istringstream sin(std::move(*udata));
-	auto valid_json = Json::parseFromStream(Json::CharReaderBuilder(), sin, &root, nullptr);
-	delete udata;
-	*conn_cls = nullptr;
-	if (!valid_json)
-		return MHD_queue_response(conn, MHD_HTTP_BAD_REQUEST, rs);
-
-	sd_record(std::move(root));
-	return MHD_queue_response(conn, MHD_HTTP_OK, rs);
-}
-
-static void sd_req_complete(void *cls, struct MHD_Connection *conn,
-    void **conn_cls, enum MHD_RequestTerminationCode tcode)
-{
-	if (conn_cls == nullptr)
+	soap_begin(&x);
+	soap_begin_recv(&x);
+	if (x.status != SOAP_POST) {
+		soap_end_recv(&x);
+		soap_send_empty_response(&x, 501);
 		return;
-	auto cis = static_cast<std::string *>(*conn_cls);
-	delete cis;
-	*conn_cls = nullptr;
+	}
+	/* check for application/json content type */
+	auto data = soap_http_get_body(&x, nullptr);
+	soap_end_recv(&x);
+	Json::Value root;
+	std::istringstream sin(data);
+	auto valid_json = Json::parseFromStream(Json::CharReaderBuilder(), sin, &root, nullptr);
+	if (!valid_json) {
+		soap_send_empty_response(&x, 415);
+		return;
+	}
+	auto ok = sd_record(std::move(root));
+	soap_send_empty_response(&x, ok ? 202 : 400);
+	x.destroy();
 }
 
-static HRESULT sd_mainloop(int sockfd)
+static void sd_check_sockets(std::vector<struct pollfd> &pollfd)
 {
-	unsigned int flags = MHD_USE_POLL;
-#if defined(HAVE_EPOLL_CREATE) && defined(MHD_VERSION) && MHD_VERSION >= 0x00095000
-	flags = MHD_USE_EPOLL;
-#endif
-	flags |= MHD_USE_SELECT_INTERNALLY | MHD_USE_DEBUG;
-	auto daemon = MHD_start_daemon(flags, 0, nullptr, nullptr,
-	              sd_req_accept, nullptr,
-	              MHD_OPTION_NOTIFY_COMPLETED, sd_req_complete, nullptr,
-	              MHD_OPTION_LISTEN_SOCKET, sockfd, MHD_OPTION_END);
-	if (daemon == nullptr)
-		return MAPI_E_CALL_FAILED;
-	while (!sd_quit) {
-		std::mutex mtx;
-		std::unique_lock<std::mutex> lk(mtx);
-		sd_cond_exit.wait(lk);
+	for (size_t i = 0; i < pollfd.size(); ++i) {
+		if (!(pollfd[i].revents & POLLIN))
+			continue;
+		struct soap x;
+		int domain = AF_UNSPEC;
+		socklen_t dlen = sizeof(domain);
+		if (getsockopt(pollfd[i].fd, SOL_SOCKET, SO_DOMAIN, &domain, &dlen) == 0 &&
+		    domain != AF_LOCAL) {
+			x.master = pollfd[i].fd;
+			soap_accept(&x);
+			x.master = -1;
+		} else {
+			socklen_t peerlen = sizeof(x.peer.addr);
+			x.socket = accept(pollfd[i].fd, &x.peer.addr, &peerlen);
+			x.peerlen = peerlen;
+			if (x.socket == SOAP_INVALID_SOCKET ||
+			    peerlen > sizeof(x.peer.storage)) {
+				x.peerlen = 0;
+				memset(&x.peer, 0, sizeof(x.peer));
+			}
+			/* Do like gsoap's soap_accept would */
+			x.keep_alive = -(((x.imode | x.omode) & SOAP_IO_KEEPALIVE) != 0);
+		}
+		sd_handle_request(std::move(x));
 	}
-	MHD_stop_daemon(daemon);
-	return 0;
+}
+
+static void sd_mainloop(std::vector<struct pollfd> &&sk)
+{
+	while (!sd_quit) {
+		auto n = poll(&sk[0], sk.size(), 86400 * 1000);
+		if (n < 0)
+			continue; /* signalled */
+		sd_check_sockets(sk);
+	}
+}
+
+static HRESULT sd_listen(ECConfig *cfg, std::vector<struct pollfd> &pollfd)
+{
+	auto info = ec_bindspec_to_sockets(tokenize(sd_config->GetSetting("statsd_listen"), ' ', true),
+	            S_IRWUG, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+	if (info.first < 0)
+		return EXIT_FAILURE;
+
+	struct pollfd pfd;
+	memset(&pfd, 0, sizeof(pfd));
+	pfd.events = POLLIN;
+	for (auto &spec : info.second) {
+		pfd.fd = spec.m_fd;
+		spec.m_fd = -1;
+		pollfd.push_back(pfd);
+	}
+	return hrSuccess;
 }
 
 static bool sd_parse_options(int &argc, const char **&argv)
@@ -239,15 +255,10 @@ int main(int argc, const char **argv) try
 	sigaction(SIGTERM, &act, nullptr);
 	ec_setup_segv_handler("kopano-statsd", PROJECT_VERSION);
 
-	auto v = vector_to_set<std::string, ec_bindaddr_less>(tokenize(sd_config->GetSetting("statsd_listen"), ' ', true));
-	if (v.size() > 1) {
-		ec_log_err("Only one socket can be specified in statsd_listen at this time\n");
+	std::vector<struct pollfd> sk;
+	auto ret = sd_listen(sd_config.get(), sk);
+	if (ret != hrSuccess)
 		return EXIT_FAILURE;
-	}
-	int sockfd;
-	auto ret = ec_listen_generic(v.begin()->c_str(), &sockfd, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
-	if (ret < 0)
-		return ret;
 	unix_coredump_enable(sd_config->GetSetting("coredump_enabled"));
 	ret = unix_runas(sd_config.get());
 	if (ret < 0) {
@@ -261,7 +272,8 @@ int main(int argc, const char **argv) try
 			ec_log_notice("K-1240: Failed to re-exec self: %s. "
 				"Continuing with restricted coredumps.", strerror(-ret));
 	}
-	return sd_mainloop(sockfd) == hrSuccess ? EXIT_SUCCESS : EXIT_FAILURE;
+	sd_mainloop(std::move(sk));
+	return EXIT_SUCCESS;
 } catch (...) {
 	std::terminate();
 }

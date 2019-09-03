@@ -145,8 +145,10 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 		 * All connections except pipes request compression. The server
 		 * can still reject the request.
 		 */
+#ifdef WITH_ZLIB
 		if(! (sProfileProps.ulProfileFlags & EC_PROFILE_FLAGS_NO_COMPRESSION))
 			ulCapabilities |= KOPANO_CAP_COMPRESSION; // only to remote server .. windows?
+#endif
 	} else if (sProfileProps.ulProfileFlags & EC_PROFILE_FLAGS_NO_UID_AUTH) {
 		ulLogonFlags |= KOPANO_LOGON_NO_UID_AUTH;
 	}
@@ -155,6 +157,8 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 		er = KCOIDCLogon(lpCmd, GetServerNameFromPath(sProfileProps.strServerPath.c_str()).c_str(), strUserName, strImpersonateUser, strPassword, ulCapabilities, m_ecSessionGroupId, GetAppName().c_str(), &ecSessionId, &ulServerCapabilities, &m_llFlags, &m_sServerGuid, sProfileProps.strClientAppVersion, sProfileProps.strClientAppMisc);
 		if (er == erSuccess)
 			goto auth;
+		else
+			goto failed;
 	}
 
 	// try single signon logon
@@ -175,6 +179,7 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 		er = sResponse.er;
 	}
 
+failed: // Logon failed
 	hr = kcerr_to_mapierr(er, MAPI_E_LOGON_FAILED);
 	if (hr != hrSuccess)
 		goto exit;
@@ -183,6 +188,11 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 	 * Version is retrieved but not analyzed because we want to be able to
 	 * connect to old servers for development.
 	 */
+	if (sResponse.lpszVersion == nullptr) {
+		/* turn ParseKopanoVersion to take const char * in next ABI */
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
 	er = ParseKopanoVersion(sResponse.lpszVersion, &m_server_version, &ulServerVersion);
 	if (er != erSuccess) {
 		hr = MAPI_E_VERSION;
@@ -205,6 +215,7 @@ auth: // User have a logon
 		goto exit;
 	}
 
+#ifdef WITH_ZLIB
 	if (ulServerCapabilities & KOPANO_CAP_COMPRESSION) {
 		/*
 		 * GSOAP autodetects incoming compression, so even if not
@@ -213,6 +224,7 @@ auth: // User have a logon
 		soap_set_imode(lpCmd->soap, SOAP_ENC_ZLIB);
 		soap_set_omode(lpCmd->soap, SOAP_ENC_ZLIB | SOAP_IO_CHUNK);
 	}
+#endif
 
 	m_sProfileProps = sProfileProps;
 	m_ulServerCapabilities = ulServerCapabilities;
@@ -654,7 +666,7 @@ HRESULT WSTransport::HrOpenPropStorage(ULONG cbParentEntryID,
 	     m_ulServerCapabilities, this, &~lpPropStorage);
 	if(hr != hrSuccess)
 		return hr;
-	return lpPropStorage->QueryInterface(IID_IECPropStorage, (void **)lppPropStorage);
+	return lpPropStorage->QueryInterface(IID_IECPropStorage, reinterpret_cast<void **>(lppPropStorage));
 }
 
 HRESULT WSTransport::HrOpenParentStorage(ECGenericProp *lpParentObject, ULONG ulUniqueId, ULONG ulObjId, IECPropStorage *lpServerStorage, IECPropStorage **lppPropStorage)
@@ -794,7 +806,6 @@ HRESULT WSTransport::HrNotify(const NOTIFICATION *lpNotification)
 
 	sNotification.ulEventType = lpNotification->ulEventType;
 	sNotification.newmail = s_alloc<notificationNewMail>(nullptr);
-	memset(sNotification.newmail, 0, sizeof(notificationNewMail));
 
 	hr = CopyMAPIEntryIdToSOAPEntryId(lpNotification->info.newmail.cbEntryID, (LPENTRYID)lpNotification->info.newmail.lpEntryID, &sNotification.newmail->pEntryId);
 	if(hr != hrSuccess)
@@ -1149,7 +1160,8 @@ HRESULT WSTransport::HrGetNamesFromIDs(SPropTagArray *lpsPropTags,
 			     reinterpret_cast<void **>(&lppNames[i]->Kind.lpwstrName));
 			if (er != erSuccess)
 				goto exitm;
-			memcpy(lppNames[i]->Kind.lpwstrName, strNameW.c_str(), (strNameW.size() + 1) * sizeof(WCHAR));	// Also copy the trailing '\0'
+			/* Also copy the trailing '\0' */
+			memcpy(lppNames[i]->Kind.lpwstrName, strNameW.c_str(), (strNameW.size() + 1) * sizeof(wchar_t));
 			lppNames[i]->ulKind = MNID_STRING;
 		} else {
 			// not found by server, we have actually allocated memory but it doesn't really matter
@@ -1242,7 +1254,7 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags,
 			er = ECAllocateMore((unicode.length() + 1) * sizeof(wchar_t), lpsRowSet->aRow[i].lpProps, reinterpret_cast<void **>(&lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].Value.lpszW));
 			if (er != erSuccess)
 				goto exitm;
-			memcpy(lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].Value.lpszW, unicode.c_str(), (unicode.length()+1)*sizeof(WCHAR));
+			memcpy(lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].Value.lpszW, unicode.c_str(), (unicode.length() + 1) * sizeof(wchar_t));
 		} else {
 			lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].ulPropTag = PR_MESSAGE_CLASS_A;
 			nLen = strlen(sReceiveFolders.sFolderArray.__ptr[i].lpszAExplicitClass)+1;
@@ -3391,7 +3403,7 @@ HRESULT WSTransport::HrResolvePseudoUrl(const char *lpszPseudoUrl, char **lppszS
 		hr = lpCachedResult->hr;
 		if (hr == hrSuccess) {
 			ulLen = lpCachedResult->serverPath.length() + 1;
-			hr = ECAllocateBuffer(ulLen, (void**)&lpszServerPath);
+			hr = ECAllocateBuffer(ulLen, reinterpret_cast<void **>(&lpszServerPath));
 			if (hr == hrSuccess) {
 				memcpy(lpszServerPath, lpCachedResult->serverPath.c_str(), ulLen);
 				*lppszServerPath = lpszServerPath;
@@ -3416,7 +3428,10 @@ HRESULT WSTransport::HrResolvePseudoUrl(const char *lpszPseudoUrl, char **lppszS
 	cachedResult.hr = hr;
 	if (hr == hrSuccess) {
 		cachedResult.isPeer = sResponse.bIsPeer;
-		cachedResult.serverPath = sResponse.lpszServerPath;
+		if (sResponse.lpszServerPath != nullptr) {
+			cachedResult.serverPath = sResponse.lpszServerPath;
+			ulLen = strlen(sResponse.lpszServerPath) + 1;
+		}
 	}
 
 	{
@@ -3424,8 +3439,7 @@ HRESULT WSTransport::HrResolvePseudoUrl(const char *lpszPseudoUrl, char **lppszS
 		m_ResolveResultCache.AddCacheItem(lpszPseudoUrl, std::move(cachedResult));
 	}
 
-	ulLen = strlen(sResponse.lpszServerPath) + 1;
-	hr = ECAllocateBuffer(ulLen, (void**)&lpszServerPath);
+	hr = ECAllocateBuffer(ulLen, reinterpret_cast<void **>(&lpszServerPath));
 	if (hr != hrSuccess)
 		goto exitm;
 
@@ -3758,7 +3772,7 @@ HRESULT WSTransport::HrTestGet(const char *szName, char **lpszValue)
     }
     END_SOAP_CALL
 
-    hr = MAPIAllocateBuffer(strlen(sResponse.szValue)+1, (void **)&szValue);
+	hr = MAPIAllocateBuffer(strlen(sResponse.szValue) + 1, reinterpret_cast<void **>(&szValue));
     if(hr != hrSuccess)
 		goto exitm;
 

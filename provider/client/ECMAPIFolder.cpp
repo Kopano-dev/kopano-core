@@ -72,6 +72,7 @@ ECMAPIFolder::ECMAPIFolder(ECMsgStore *lpMsgStore, BOOL modify,
 
 ECMAPIFolder::~ECMAPIFolder()
 {
+	enable_transaction(false);
 	lpFolderOps.reset();
 	if (m_ulConnection > 0)
 		GetMsgStore()->m_lpNotifyClient->UnRegisterAdvise(m_ulConnection);
@@ -283,7 +284,9 @@ HRESULT ECMAPIFolder::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 	auto hr = ECMAPIContainer::SetProps(cValues, lpPropArray, lppProblems);
 	if (hr != hrSuccess)
 		return hr;
-
+	if (m_transact)
+		return hrSuccess;
+	/* MSDN be like: "MAPI Folders do not support transactions" */
 	return ECMAPIContainer::SaveChanges(KEEP_OPEN_READWRITE);
 }
 
@@ -293,12 +296,16 @@ HRESULT ECMAPIFolder::DeleteProps(const SPropTagArray *lpPropTagArray,
 	auto hr = ECMAPIContainer::DeleteProps(lpPropTagArray, lppProblems);
 	if (hr != hrSuccess)
 		return hr;
+	if (m_transact)
+		return hrSuccess;
 	return ECMAPIContainer::SaveChanges(KEEP_OPEN_READWRITE);
 }
 
 HRESULT ECMAPIFolder::SaveChanges(ULONG ulFlags)
 {
-	return hrSuccess;
+	if (!m_transact)
+		return hrSuccess;
+	return ECMAPIContainer::SaveChanges(ulFlags);
 }
 
 HRESULT ECMAPIFolder::SetSearchCriteria(const SRestriction *lpRestriction,
@@ -395,11 +402,7 @@ HRESULT ECMAPIFolder::CreateMessageWithEntryID(const IID *lpInterface,
 	hr = Util::HrCopyEntryId(m_cbEntryId, m_lpEntryId, &lpMessage->m_cbParentID, &~lpMessage->m_lpParentID);
 	if(hr != hrSuccess)
 		return hr;
-	if(lpInterface)
-		hr = lpMessage->QueryInterface(*lpInterface, (void **)lppMessage);
-	else
-		hr = lpMessage->QueryInterface(IID_IMessage, (void **)lppMessage);
-
+	hr = lpMessage->QueryInterface(lpInterface != nullptr ? *lpInterface : IID_IMessage, reinterpret_cast<void **>(lppMessage));
 	AddChild(lpMessage);
 	return hr;
 }
@@ -417,6 +420,8 @@ HRESULT ECMAPIFolder::CopyMessages2(unsigned int ftype, ENTRYLIST *lpMsgList,
 	if (lpMsgList == nullptr || lpMsgList->cValues == 0)
 		return hrSuccess;
 	if (lpMsgList->lpbin == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+	if (ftype != ECSTORE_TYPE_PRIVATE && ftype != ECSTORE_TYPE_PUBLIC)
 		return MAPI_E_INVALID_PARAMETER;
 
 	HRESULT hr = hrSuccess, hrEC = hrSuccess;
@@ -473,14 +478,14 @@ HRESULT ECMAPIFolder::CopyMessages2(unsigned int ftype, ENTRYLIST *lpMsgList,
 	if (hr != hrSuccess)
 		return hr;
 	lpMsgListEC->cValues = 0;
-	hr = ECAllocateMore(sizeof(SBinary) * lpMsgList->cValues, lpMsgListEC, (void **)&lpMsgListEC->lpbin);
+	hr = ECAllocateMore(sizeof(SBinary) * lpMsgList->cValues, lpMsgListEC, reinterpret_cast<void **>(&lpMsgListEC->lpbin));
 	if (hr != hrSuccess)
 		return hr;
 	hr = ECAllocateBuffer(sizeof(ENTRYLIST), &~lpMsgListSupport);
 	if (hr != hrSuccess)
 		return hr;
 	lpMsgListSupport->cValues = 0;
-	hr = ECAllocateMore(sizeof(SBinary) * lpMsgList->cValues, lpMsgListSupport, (void **)&lpMsgListSupport->lpbin);
+	hr = ECAllocateMore(sizeof(SBinary) * lpMsgList->cValues, lpMsgListSupport, reinterpret_cast<void **>(&lpMsgListSupport->lpbin));
 	if (hr != hrSuccess)
 		return hr;
 	//FIXME
@@ -562,6 +567,69 @@ HRESULT ECMAPIFolder::CreateFolder(ULONG ulFolderType,
 	if(hr != hrSuccess)
 		return hr;
 	*lppFolder = lpFolder.release();
+	return hrSuccess;
+}
+
+/**
+ * Create the specified folder set.
+ *
+ * Note that if the server does not support batch folder creation, this will
+ * automatically fall back to sequential folder creation.
+ */
+HRESULT ECMAPIFolder::create_folders(std::vector<ECFolder> &folders)
+{
+	if (lpFolderOps == nullptr)
+		return MAPI_E_NO_SUPPORT;
+
+	const auto count = folders.size();
+	std::vector<std::pair<unsigned int, ecmem_ptr<ENTRYID>>> entry_ids(count);
+	std::vector<WSMAPIFolderOps::WSFolder> batch(count);
+	for (unsigned int i = 0; i < count; ++i) {
+		auto &src          = folders[i];
+		auto &dst          = batch[i];
+		dst.folder_type    = src.folder_type;
+		dst.name           = convstring(src.name, src.flags);
+		dst.comment        = convstring(src.comment, src.flags);
+		dst.open_if_exists = src.flags & OPEN_IF_EXISTS;
+		dst.sync_id        = 0;
+		dst.sourcekey      = nullptr;
+		dst.m_cbNewEntryId = 0;
+		dst.m_lpNewEntryId = nullptr;
+		dst.m_lpcbEntryId  = &entry_ids[i].first;
+		dst.m_lppEntryId   = &~entry_ids[i].second;
+	}
+
+	auto ret = lpFolderOps->create_folders(batch);
+	if (ret == MAPI_E_NETWORK_ERROR) {
+		/*
+		 * If the server does not support creating a batch of folders
+		 * at once, fall back to sequential creation.
+		 */
+		for (unsigned int i = 0; i < count; ++i) {
+			const ECFolder &f = folders[i];
+			/* Create the actual folder on the server */
+			ret = lpFolderOps->HrCreateFolder(f.folder_type,
+			      convstring(f.name, f.flags),
+			      convstring(f.comment, f.flags),
+			      f.flags & OPEN_IF_EXISTS, 0, nullptr, 0, nullptr,
+			      &entry_ids[i].first, &~entry_ids[i].second);
+			if (ret != hrSuccess)
+				return ret;
+		}
+	} else if (ret != hrSuccess) {
+		return ret;
+	}
+
+	for (unsigned int i = 0; i < count; ++i) {
+		unsigned int objtype = 0;
+		/* Open the folder we just created */
+		ret = GetMsgStore()->OpenEntry(entry_ids[i].first,
+		      entry_ids[i].second, folders[i].interface,
+		      MAPI_MODIFY | MAPI_DEFERRED_ERRORS, &objtype,
+		      &~folders[i].folder);
+		if (ret != hrSuccess)
+			return ret;
+	}
 	return hrSuccess;
 }
 
@@ -785,4 +853,21 @@ HRESULT ECMAPIFolder::UpdateMessageFromStream(ULONG ulSyncId, ULONG cbEntryID,
 		return hr;
 	*lppsStreamImporter = ptrStreamImporter.release();
 	return hrSuccess;
+}
+
+HRESULT ECMAPIFolder::enable_transaction(bool x)
+{
+	HRESULT ret = hrSuccess;
+	if (m_transact && !x) {
+		/* It's being turned off now */
+		for (auto c : lstChildren) {
+			object_ptr<ECMAPIFolder> ecf;
+			if (c->QueryInterface(IID_ECMAPIFolder, &~ecf) != hrSuccess)
+				continue;
+			ecf->enable_transaction(false);
+		}
+		ret = SaveChanges(KEEP_OPEN_READWRITE);
+	}
+	m_transact = x;
+	return ret;
 }

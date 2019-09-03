@@ -9,7 +9,7 @@
 
 namespace KC {
 
-const WCHAR* nmStringNames[SIZE_NAMEDPROPS] = {
+const wchar_t *nmStringNames[SIZE_NAMEDPROPS] = {
 	L"Keywords", NULL
 };
 

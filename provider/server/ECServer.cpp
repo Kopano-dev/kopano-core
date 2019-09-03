@@ -75,7 +75,6 @@ using std::string;
 
 static const char upgrade_lock_file[] = "/tmp/kopano-upgrade-lock";
 static int g_Quit = 0;
-static int daemonize = 1;
 static int restart_searches = 0;
 static bool m_bIgnoreDatabaseVersionConflict = false;
 static bool m_bIgnoreAttachmentStorageConflict = false;
@@ -93,7 +92,7 @@ static bool g_dump_config;
 static int running_server(char *, const char *, bool, int, char **, int, char **);
 
 server_stats::server_stats(std::shared_ptr<ECConfig> cfg) :
-	ECStatsCollector(std::move(cfg))
+	ECStatsCollector(cfg)
 {
 	set(SCN_PROGRAM_NAME, "kopano-server");
 	AddStat(SCN_SERVER_GUID, SCT_STRING, "server_guid");
@@ -129,6 +128,7 @@ server_stats::server_stats(std::shared_ptr<ECConfig> cfg) :
 	AddStat(SCN_DATABASE_MERGED_RECORDS, SCT_INTEGER, "deferred_records", "Number records merged in the deferred write table");
 	AddStat(SCN_DATABASE_ROW_READS, SCT_INTEGER, "row_reads", "Number of table rows read in row order");
 	AddStat(SCN_DATABASE_COUNTER_RESYNCS, SCT_INTEGER, "counter_resyncs", "Number of time a counter resync was required");
+	AddStat(SCN_DATABASE_MAX_OBJECTID, SCT_INTGAUGE, "max_objectid", "Highest object number used");
 
 	AddStat(SCN_LOGIN_PASSWORD, SCT_INTEGER, "login_password", "Number of logins through password authentication");
 	AddStat(SCN_LOGIN_SSL, SCT_INTEGER, "login_ssl", "Number of logins through SSL certificate authentication");
@@ -165,10 +165,15 @@ server_stats::server_stats(std::shared_ptr<ECConfig> cfg) :
 	AddStat(SCN_LDAP_SEARCH_TIME_MAX, SCT_INTGAUGE, "ldap_max_search", "Longest duration (µs) of LDAP search");
 
 	AddStat(SCN_INDEXER_SEARCH_ERRORS, SCT_INTEGER, "index_search_errors", "Number of failed indexer queries");
-	AddStat(SCN_INDEXER_SEARCH_MAX, SCT_INTGAUGE, "index_search_max", "Maximum duration of an indexed search query");
-	AddStat(SCN_INDEXER_SEARCH_AVG, SCT_INTGAUGE, "index_search_avg", "Average duration of an indexed search query");
+	AddStat(SCN_INDEXER_SEARCH_MAX, SCT_INTGAUGE, "index_search_max", "Maximum duration (in µs) of an indexed search query");
+	AddStat(SCN_INDEXER_SEARCH_AVG, SCT_INTGAUGE, "index_search_avg", "Average duration (in µs) of an indexed search query");
 	AddStat(SCN_INDEXED_SEARCHES, SCT_INTEGER, "search_indexed", "Number of indexed searches performed");
 	AddStat(SCN_DATABASE_SEARCHES, SCT_INTEGER, "search_database", "Number of database searches performed");
+
+	AddStat(SCN_SERVER_USERDB_BACKEND, SCT_STRING, "userplugin", "User backend plugin");
+	AddStat(SCN_SERVER_ATTACH_BACKEND, SCT_STRING, "attachment_storage", "Attachment backend type");
+	set(SCN_SERVER_USERDB_BACKEND, cfg->GetSetting("user_plugin"));
+	set(SCN_SERVER_ATTACH_BACKEND, cfg->GetSetting("attachment_storage"));
 }
 
 // This is the callback function for libserver/* so that it can notify that a delayed soap
@@ -268,6 +273,13 @@ static ECRESULT check_database_engine(ECDatabase *lpDatabase)
 	return er;
 }
 
+static bool filesv1_extract_fanout(const char *s, unsigned int *x, unsigned int *y)
+{
+	if (strcmp(s, "files") == 0)
+		s = "files_v1-10-20";
+	return sscanf(s, "files_v1-%u-%u", x, y) == 2;
+}
+
 static ECRESULT check_database_attachments(ECDatabase *lpDatabase)
 {
 	ECRESULT er = erSuccess;
@@ -300,12 +312,12 @@ static ECRESULT check_database_attachments(ECDatabase *lpDatabase)
 		return er;
 	}
 
-	// Create attachment directories
-	if (strcmp(g_lpConfig->GetSetting("attachment_storage"), "files") != 0)
+	unsigned int l1, l2;
+	if (!filesv1_extract_fanout(g_lpConfig->GetSetting("attachment_storage"), &l1, &l2))
 		return erSuccess;
-	// These values are hard coded .. if they change, the hash algorithm will fail, and you'll be FUCKED.
-	for (int i = 0; i < ATTACH_PATHDEPTH_LEVEL1; ++i)
-		for (int j = 0; j < ATTACH_PATHDEPTH_LEVEL2; ++j) {
+	// Create attachment directories
+	for (unsigned int i = 0; i < l1; ++i)
+		for (unsigned int j = 0; j < l2; ++j) {
 			string path = (string)g_lpConfig->GetSetting("attachment_path") + PATH_SEPARATOR + stringify(i) + PATH_SEPARATOR + stringify(j);
 			auto ret = CreatePath(path.c_str());
 			if (ret != 0) {
@@ -674,7 +686,6 @@ int main(int argc, char* argv[])
 			cout << endl;
 			cout << argv[0] << " [options...]" << endl;
 			cout << "  -c --config=FILE                           Set new config file location. Default: " << default_config << endl;
-			cout << "  -F                                         Do not start in the background." << endl;
 			cout << "  -V                                         Print version info." << endl;
 			cout << "  -R --restart-searches                      Rebuild searchfolders." << endl;
 			cout << "     --ignore-database-version-conflict      Start even if database version conflict with server version" << endl;
@@ -686,9 +697,6 @@ int main(int argc, char* argv[])
 		case 'V':
 			cout << "kopano-server " PROJECT_VERSION << endl;
 			return 0;
-		case 'F':
-			daemonize = 0;
-			break;
 		case 'R':
 		case OPT_RESTART_SEARCHES:
 			restart_searches = 1;
@@ -733,13 +741,20 @@ static void InitBindTextDomain(void)
 
 static int ksrv_listen_inet(ECSoapServerConnection *ssc, ECConfig *cfg)
 {
-	auto http_sock  = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("server_listen"), ' ', true));
-	auto https_sock = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("server_listen_tls"), ' ', true));
+	auto info = ec_bindspec_to_sockets(tokenize(cfg->GetSetting("server_listen"), ' ', true),
+	            S_IRWUGO, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+	if (info.first < 0)
+		return info.first;
+	auto http_sock = std::move(info.second);
+	info = ec_bindspec_to_sockets(tokenize(cfg->GetSetting("server_listen_tls"), ' ', true),
+	       S_IRWUGO, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+	if (info.first < 0)
+		return info.first;
+	auto https_sock = std::move(info.second);
 
 	/* Launch */
-	for (const auto &spec : http_sock) {
-		auto p = ec_parse_bindaddr(spec.c_str());
-		auto er = ssc->ListenTCP(p.first.c_str(), p.second != 0 ? p.second : 236);
+	for (auto &spec : http_sock) {
+		auto er = ssc->ListenTCP(spec);
 		if (er != erSuccess)
 			return er;
 	}
@@ -748,10 +763,8 @@ static int ksrv_listen_inet(ECSoapServerConnection *ssc, ECConfig *cfg)
 	auto keypass = cfg->GetSetting("server_ssl_key_pass", "", nullptr);
 	auto cafile  = cfg->GetSetting("server_ssl_ca_file", "", nullptr);
 	auto capath  = cfg->GetSetting("server_ssl_ca_path", "", nullptr);
-	for (const auto &spec : https_sock) {
-		auto p = ec_parse_bindaddr(spec.c_str());
-		auto er = ssc->ListenSSL(p.first.c_str(), p.second != 0 ? p.second : 237,
-		          keyfile, keypass, cafile, capath);
+	for (auto &spec : https_sock) {
+		auto er = ssc->ListenSSL(spec, keyfile, keypass, cafile, capath);
 		if (er != erSuccess)
 			return er;
 	}
@@ -762,20 +775,34 @@ static int ksrv_listen_inet(ECSoapServerConnection *ssc, ECConfig *cfg)
 
 static int ksrv_listen_pipe(ECSoapServerConnection *ssc, ECConfig *cfg)
 {
+	auto list = tokenize(cfg->GetSetting("server_pipe_priority"), ' ', true);
+	for (auto &e : list)
+		e.insert(0, "unix:");
+	auto prio = ec_bindspec_to_sockets(std::move(list), S_IRWUG,
+	            cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+	if (prio.first < 0)
+		return prio.first;
 	/*
 	 * Priority queue is always enabled, create as first socket, so this
 	 * socket is returned first too on activity. [This is no longer true…
 	 * need to create INET sockets beforehand because of privilege drop.]
 	 */
-	for (const auto &spec : vector_to_set(tokenize(cfg->GetSetting("server_pipe_priority"), ' ', true))) {
-		auto er = ssc->ListenPipe(spec.c_str(), true);
+	for (auto &spec : prio.second) {
+		auto er = ssc->ListenPipe(spec, true);
 		if (er != erSuccess)
 			return er;
 	}
 	if (strcmp(cfg->GetSetting("server_pipe_enabled"), "yes") == 0) {
-		auto pipe_sock = vector_to_set(tokenize(cfg->GetSetting("server_pipe_name"), ' ', true));
-		for (const auto &spec : pipe_sock) {
-			auto er = ssc->ListenPipe(spec.c_str(), false);
+		list = tokenize(cfg->GetSetting("server_pipe_name"), ' ', true);
+		for (auto &e : list)
+			e.insert(0, "unix:");
+		auto info = ec_bindspec_to_sockets(std::move(list), S_IRWUGO,
+		            cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+		if (info.first < 0)
+			return info.first;
+		auto pipe_sock = std::move(info.second);
+		for (auto &spec : pipe_sock) {
+			auto er = ssc->ListenPipe(spec, false);
 			if (er != erSuccess)
 				return er;
 		}
@@ -858,7 +885,6 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{ "run_as_user",			"kopano" }, // drop root privileges, and run as this user/group
 		{ "run_as_group",			"kopano" },
 		{ "pid_file",					"/var/run/kopano/server.pid" },
-		{"running_path", "/var/lib/kopano/empty", CONFIGSETTING_OBSOLETE},
 		{"allocator_library", "libtcmalloc_minimal.so.4"},
 		{ "coredump_enabled",			"yes" },
 
@@ -870,7 +896,8 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{"server_ssl_key_pass", "server", CONFIGSETTING_EXACT | CONFIGSETTING_RELOADABLE},
 		{"server_ssl_ca_file", "/etc/kopano/ssl/cacert.pem", CONFIGSETTING_RELOADABLE},
 		{"server_ssl_ca_path", "", CONFIGSETTING_RELOADABLE},
-		{"server_ssl_protocols", KC_DEFAULT_SSLPROTOLIST, CONFIGSETTING_RELOADABLE},
+		{"server_tls_min_proto", KC_DEFAULT_TLSMINPROTO, CONFIGSETTING_RELOADABLE},
+		{"server_ssl_protocols", "", CONFIGSETTING_UNUSED},
 		{"server_ssl_ciphers", KC_DEFAULT_CIPHERLIST, CONFIGSETTING_RELOADABLE},
 		{"server_ssl_prefer_server_ciphers", "yes", CONFIGSETTING_RELOADABLE},
 		{"server_ssl_curves", KC_DEFAULT_ECDH_CURVES, CONFIGSETTING_RELOADABLE},
@@ -930,7 +957,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{ "storename_format",			"%f" },
 		{ "loginname_format",			"%u" },
 
-		// internal server contols
+		// internal server controls
 		{ "softdelete_lifetime",		"30", CONFIGSETTING_RELOADABLE },	// time expressed in days, 0 == never delete anything
 		{ "cache_cell_size",			"0", CONFIGSETTING_SIZE },
 		{ "cache_object_size",		"0", CONFIGSETTING_SIZE },
@@ -983,6 +1010,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{ "search_timeout",			"10", CONFIGSETTING_RELOADABLE },
 
 		{ "threads",				"8", CONFIGSETTING_RELOADABLE },
+		{"thread_limit", "40", CONFIGSETTING_RELOADABLE},
 		{ "watchdog_max_age",		"500", CONFIGSETTING_RELOADABLE },
 		{ "watchdog_frequency",		"1", CONFIGSETTING_RELOADABLE },
 
@@ -1013,6 +1041,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{ "kcoidc_insecure_skip_verify", "no", 0},
 		{ "kcoidc_initialize_timeout", "60", 0 },
 #endif
+		{"cache_cellcache_reads", "yes", CONFIGSETTING_RELOADABLE},
 		{ NULL, NULL },
 	};
 
@@ -1108,14 +1137,16 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	}
 
 	auto aback = g_lpConfig->GetSetting("attachment_storage");
-	if (strcmp(aback, "files") == 0 || strcmp(aback, "files_v2") == 0) {
+	unsigned int ignore;
+	if (filesv1_extract_fanout(aback, &ignore, &ignore) || strcmp(aback, "files_v2") == 0) {
 		/*
 		 * Either (1.) the attachment directory or (2.) its immediate
 		 * parent directory needs to exist with right permissions.
 		 * (Official KC builds use #2 as of this writing.)
 		 */
-		if (CreatePath(g_lpConfig->GetSetting("attachment_path")) != 0) {
-			ec_log_err("Unable to create attachment directory '%s'", g_lpConfig->GetSetting("attachment_path"));
+		auto ret = CreatePath(g_lpConfig->GetSetting("attachment_path"));
+		if (ret < 0) {
+			ec_log_err("Unable to create attachment directory \"%s\": %s", g_lpConfig->GetSetting("attachment_path"), strerror(-ret));
 			er = KCERR_DATABASE_ERROR;
 			return retval;
 		}
@@ -1131,8 +1162,9 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 			return retval;
 		}
 		if (runasUser->pw_uid != dir.st_uid) {
-			if (unix_chown(g_lpConfig->GetSetting("attachment_path"), g_lpConfig->GetSetting("run_as_user"), g_lpConfig->GetSetting("run_as_group")) != 0) {
-				ec_log_err("Unable to change ownership for attachment directory '%s'", g_lpConfig->GetSetting("attachment_path"));
+			auto ret = unix_chown(g_lpConfig->GetSetting("attachment_path"), g_lpConfig->GetSetting("run_as_user"), g_lpConfig->GetSetting("run_as_group"));
+			if (ret != 0) {
+				ec_log_err("Unable to change ownership for attachment directory \"%s\": %s", g_lpConfig->GetSetting("attachment_path"), strerror(-ret));
 				er = KCERR_DATABASE_ERROR;
 				return retval;
 			}
@@ -1217,14 +1249,6 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	ec_log_notice("Connection to database '%s' succeeded", g_lpConfig->GetSetting("mysql_database"));
 	hosted = parseBool(g_lpConfig->GetSetting("enable_hosted_kopano"));
 	distributed = parseBool(g_lpConfig->GetSetting("enable_distributed_kopano"));
-	// fork if needed and drop privileges as requested.
-	// this must be done before we do anything with pthreads
-	if (daemonize && unix_daemonize(g_lpConfig.get())) {
-		er = MAPI_E_CALL_FAILED;
-		return retval;
-	}
-	if (!daemonize)
-		setsid();
 	unix_create_pidfile(szName, g_lpConfig.get());
 	mainthread = pthread_self();
 
@@ -1235,10 +1259,11 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	signal(SIGUSR2, SIG_IGN);
 	signal(SIGPIPE, SIG_IGN);
 	act.sa_handler = process_signal;
-	act.sa_flags = SA_ONSTACK | SA_RESTART;
+	act.sa_flags = SA_ONSTACK;
 	sigemptyset(&act.sa_mask);
-	sigaction(SIGINT, &act, nullptr);
 	sigaction(SIGHUP, &act, nullptr);
+	act.sa_flags = SA_ONSTACK | SA_RESETHAND;
+	sigaction(SIGINT, &act, nullptr);
 	sigaction(SIGTERM, &act, nullptr);
 	ec_setup_segv_handler("kopano-server", PROJECT_VERSION);
 

@@ -1,32 +1,11 @@
-'\" t
-.\"     Title: kopano-fsck
-.\"    Author: [see the "Author" section]
-.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
-.\"      Date: November 2016
-.\"    Manual: Kopano Core user reference
-.\"    Source: Kopano 8
-.\"  Language: English
-.\"
 .TH "KOPANO\-FSCK" "1" "November 2016" "Kopano 8" "Kopano Core user reference"
-.\" -----------------------------------------------------------------
-.\" * Define some portability stuff
-.\" -----------------------------------------------------------------
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .\" http://bugs.debian.org/507673
-.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
-.\" -----------------------------------------------------------------
-.\" * set default formatting
-.\" -----------------------------------------------------------------
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
 .ad l
-.\" -----------------------------------------------------------------
-.\" * MAIN CONTENT STARTS HERE *
-.\" -----------------------------------------------------------------
 .SH "NAME"
 kopano-fsck \- Start the Kopano fsck calendar check program.
 .SH "SYNOPSIS"
@@ -37,7 +16,7 @@ kopano-fsck \- Start the Kopano fsck calendar check program.
 The program finds all items in the default calendar folder of the given user, and checks if all items are compatible with Microsoft Outlook. It specifically tests for known issues with reminders and recurrcences.
 .SH "OPTIONS"
 .PP
-Various options are possible. Only the \-\-user options is required.
+Various options are possible. Only the \fB\-\-user\fP options is required.
 .PP
 \fB\-\-user\fR, \fB\-u\fR \fIusername\fR
 .RS 4
@@ -51,19 +30,19 @@ The password of the user to login with. If this is not passed, you will be promp
 .PP
 \fB\-\-prompt\fR, \fB\-P\fR
 .RS 4
-Prompt for the password of the user to login with. Overrides the \-\-pass option.
+Prompt for the password of the user to login with. Overrides the \fB\-\-pass\fP option.
 .RE
 .PP
 \fB\-\-acceptdisclaimer\fR
 .RS 4
 Auto accept the disclaimer so no user input is needed to accept the disclaimer. This can be used for scripts along with
-\fI\-\-autofix \fRargument.
+\fB\-\-autofix\fP argument.
 .RE
 .PP
 \fB\-\-public\fR
 .RS 4
 Check the public store for user given with the
-\fI\-\-user\fRargument.
+\fB\-\-user\fP argument.
 .RE
 .PP
 \fB\-\-host\fR, \fB\-h\fR \fIpath\fR
@@ -116,9 +95,6 @@ All task folders in the store will be checked, and only task items will be tried
 .RS 4
 All filters listed above will be checked.
 .RE
-.SH "AUTHOR"
-.PP
-Written by Kopano.
 .SH "SEE ALSO"
 .PP
 \fBkopano\fR(7)

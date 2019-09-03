@@ -1,32 +1,11 @@
-'\" t
-.\"     Title: kopano-cfgchecker
-.\"    Author: [see the "Author" section]
-.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
-.\"      Date: November 2016
-.\"    Manual: Kopano Core user reference
-.\"    Source: Kopano 8
-.\"  Language: English
-.\"
 .TH "KOPANO\-CFGCHECKER" "8" "November 2016" "Kopano 8" "Kopano Core user reference"
-.\" -----------------------------------------------------------------
-.\" * Define some portability stuff
-.\" -----------------------------------------------------------------
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .\" http://bugs.debian.org/507673
-.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
-.\" -----------------------------------------------------------------
-.\" * set default formatting
-.\" -----------------------------------------------------------------
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
 .ad l
-.\" -----------------------------------------------------------------
-.\" * MAIN CONTENT STARTS HERE *
-.\" -----------------------------------------------------------------
 .SH "NAME"
 kopano-cfgchecker \- Checks kopano config files for common errors.
 .SH "SYNOPSIS"
@@ -48,10 +27,10 @@ Replace
 with the actual filename to check the ldap plugin configuration file.
 .sp
 Use the
-\fI\-c yes\fR
+\fB\-c yes\fP
 and
-\fI\-d yes\fR
-options to force hosted and multi\-server support on if you configured your server that way.
+\fB\-d yes\fP
+options to force hosted and multi-server support on if you configured your server that way.
 .RE
 .PP
 \fB\-u\fR \fIunix.cfg\fR
@@ -105,16 +84,13 @@ with the actual filename to check the dagent configuration file.
 .PP
 \fB\-c\fR \fI[yes|no]\fR
 .RS 4
-Force multi\-tenancy mode on/off. Has effect on server and plugin config files.
+Force multi-tenancy mode on/off. Has effect on server and plugin config files.
 .RE
 .PP
 \fB\-d\fR \fI[yes|no]\fR
 .RS 4
-Force multi\-server mode on/off. Has effect on server and plugin config files.
+Force multi-server mode on/off. Has effect on server and plugin config files.
 .RE
-.SH "AUTHOR"
-.PP
-Written by Kopano.
 .SH "SEE ALSO"
 .PP
 \fBkopano\fR(7)

@@ -1,32 +1,11 @@
-'\" t
-.\"     Title: kopano-spooler
-.\"    Author: [see the "Author" section]
-.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
-.\"      Date: November 2016
-.\"    Manual: Kopano Core user reference
-.\"    Source: Kopano 8
-.\"  Language: English
-.\"
 .TH "KOPANO\-SPOOLER" "8" "November 2016" "Kopano 8" "Kopano Core user reference"
-.\" -----------------------------------------------------------------
-.\" * Define some portability stuff
-.\" -----------------------------------------------------------------
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .\" http://bugs.debian.org/507673
-.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
-.\" -----------------------------------------------------------------
-.\" * set default formatting
-.\" -----------------------------------------------------------------
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
 .ad l
-.\" -----------------------------------------------------------------
-.\" * MAIN CONTENT STARTS HERE *
-.\" -----------------------------------------------------------------
 .SH "NAME"
 kopano-spooler \- Start the Kopano spooler.
 .SH "SYNOPSIS"
@@ -34,7 +13,7 @@ kopano-spooler \- Start the Kopano spooler.
 \fBkopano\-spooler\fR [\fIOPTION\fR...] [\fISERVERNAME\fR]
 .SH "DESCRIPTION"
 .PP
-The spooler sends all pending Kopano e\-mail to the recipients. When started, the program will keep running and sending messages whenever needed.
+The spooler sends all pending Kopano e-mail to the recipients. When started, the program will keep running and sending messages whenever needed.
 .PP
 The outgoing mailserver can be overwritten from the config file by specifying this on the commandline.
 .PP
@@ -63,18 +42,13 @@ Connect to the storage server through
 file:///path/to/socket. Default:
 file:///var/run/kopano/server.sock. Overrides the config file setting.
 .RE
-.PP
-\fB\-\-foreground\fR, \fB\-F\fR
-.RS 4
-Run in the foreground. Normally the spooler will daemonize and run in the background.
-.RE
 .SH "USAGE"
 .PP
-To start the spooler delivering e\-mail to recipients:
+To start the spooler delivering e-mail to recipients:
 .PP
 \fBkopano\-spooler\fR
 .PP
-To start the spooler delivering e\-mail through
+To start the spooler delivering e-mail through
 smtp.example.com:
 .PP
 \fBkopano\-spooler\fR
@@ -104,9 +78,6 @@ Also, when using
 .RS 4
 To gracefully let the service exit, the normal TERM signal is used. Because of multiple running threads, it may take up to 60 seconds for the server to completely shutdown.
 .RE
-.SH "AUTHOR"
-.PP
-Written by Kopano.
 .SH "SEE ALSO"
 .PP
 \fBkopano-spooler.cfg\fR(5),

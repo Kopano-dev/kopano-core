@@ -2,7 +2,9 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+#	include "config.h"
+#endif
 #include <kopano/platform.h>
 #include <algorithm>
 #include <cwctype>
@@ -163,7 +165,8 @@ void CHtmlToTextParser::addNewLine(bool forceLine) {
 	++cNewlines;
 }
 
-void CHtmlToTextParser::addChar(WCHAR c) {
+void CHtmlToTextParser::addChar(wchar_t c)
+{
 	if (fScriptMode || fHeadMode || fStyleMode)
 		return;
 	strText.push_back(c);
@@ -179,7 +182,7 @@ void CHtmlToTextParser::addSpace(bool force) {
 /**
  * @todo validate the entity!!
  */
-bool CHtmlToTextParser::parseEntity(const WCHAR* &lpwHTML)
+bool CHtmlToTextParser::parseEntity(const wchar_t *&lpwHTML)
 {
 	std::wstring entity;
 
@@ -205,8 +208,7 @@ bool CHtmlToTextParser::parseEntity(const WCHAR* &lpwHTML)
 			entity += *lpwHTML;
 			++lpwHTML;
 		}
-
-		WCHAR code = CHtmlEntity::toChar(entity.c_str());
+		auto code = CHtmlEntity::toChar(entity.c_str());
 		if (code > 0)
 			strText.push_back(code);
 	}
@@ -216,7 +218,7 @@ bool CHtmlToTextParser::parseEntity(const WCHAR* &lpwHTML)
 	return true;
 }
 
-void CHtmlToTextParser::parseTag(const WCHAR* &lpwHTML)
+void CHtmlToTextParser::parseTag(const wchar_t *&lpwHTML)
 {
 	bool bTagName = true, bTagEnd = false, bParseAttrs = false;
 	decltype(tagMap)::const_iterator iterTag;
@@ -281,13 +283,12 @@ void CHtmlToTextParser::parseTag(const WCHAR* &lpwHTML)
 	}
 }
 
-void CHtmlToTextParser::parseAttributes(const WCHAR* &lpwHTML)
+void CHtmlToTextParser::parseAttributes(const wchar_t *&lpwHTML)
 {
 	std::wstring attrName, attrValue;
 	bool bAttrName = true, bAttrValue = false, bEndTag = false;
 	MapAttrs mapAttrs;
-
-	WCHAR firstQuote = 0;
+	wchar_t firstQuote = 0;
 
 	while(*lpwHTML != 0 && !bEndTag) {
 		if(*lpwHTML == '>' && bAttrValue) {
@@ -396,7 +397,8 @@ void CHtmlToTextParser::parseTagBA()
 		stackAttrs.pop();
 }
 
-bool CHtmlToTextParser::addURLAttribute(const WCHAR *lpattr, bool bSpaces) {
+bool CHtmlToTextParser::addURLAttribute(const wchar_t *lpattr, bool bSpaces)
+{
 	if (stackAttrs.empty())
 		return false;
 	auto iter = stackAttrs.top().find(lpattr);
@@ -471,7 +473,7 @@ void CHtmlToTextParser::parseTagUL() {
 }
 
 static std::wstring inttostring(unsigned int x) {
-	WCHAR buf[33];
+	wchar_t buf[33];
 	swprintf(buf, 33, L"%u", x);
 	return buf;
 }

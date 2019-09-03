@@ -10,6 +10,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <tuple>
 #include "ECDatabaseFactory.h"
 #include "ECDatabaseUtils.h"
 #include "ECGenericObjectTable.h"	// ECListInt
@@ -50,8 +51,8 @@ struct ECsUEIdKey {
 
 inline bool operator <(const ECsUEIdKey &a, const ECsUEIdKey &b)
 {
-	return a.ulClass < b.ulClass ||
-	       (a.ulClass == b.ulClass && a.strExternId < b.strExternId);
+	return std::tie(a.ulClass, a.strExternId) <
+	       std::tie(b.ulClass, b.strExternId);
 }
 
 /* Intern Id cache */
@@ -230,6 +231,12 @@ namespace KC {
 
 #define CACHE_NO_PARENT 0xFFFFFFFF
 
+enum {
+	KC_GETCELL_TRUNCATE = 1 << 0,
+	KC_GETCELL_NOTRUNC  = 0,
+	KC_GETCELL_NEGATIVES = 1 << 1,
+};
+
 class ECCacheManager final {
 public:
 	ECCacheManager(std::shared_ptr<ECConfig>, ECDatabaseFactory *lpDatabase);
@@ -258,7 +265,7 @@ public:
 	ECRESULT GetUserObject(unsigned int ulUserId, objectid_t *lpExternId, unsigned int *lpulCompanyId, std::string *lpstrSignature);
 	ECRESULT GetUserObject(const objectid_t &sExternId, unsigned int *lpulUserId, unsigned int *lpulCompanyId, std::string *lpstrSignature);
 	ECRESULT GetUserObjects(const std::list<objectid_t> &lstExternObjIds, std::map<objectid_t, unsigned int> *lpmapLocalObjIds);
-	ECRESULT get_all_user_objects(objectclass_t, std::map<unsigned int, ECsUserObject> &out);
+	ECRESULT get_all_user_objects(objectclass_t, bool hosted, unsigned int company, std::map<unsigned int, ECsUserObject> &out);
 
 	// Cache user information
 	ECRESULT GetUserDetails(unsigned int ulUserId, objectdetails_t *details);
@@ -277,7 +284,7 @@ public:
 	ECRESULT GetEntryListToObjectList(struct entryList *lpEntryList, ECListInt* lplObjectList);
 
 	// Table data functions (pure cache functions, they will never access the DB themselves. Data must be provided through Set functions)
-	ECRESULT GetCell(const sObjectTableKey *, unsigned int tag, struct propVal *, struct soap *, bool computed, bool truncated = true);
+	ECRESULT GetCell(const sObjectTableKey *, unsigned int tag, struct propVal *, struct soap *, unsigned int flags = KC_GETCELL_TRUNCATE);
 	ECRESULT SetCell(const sObjectTableKey *, unsigned int tag, const struct propVal *);
 	ECRESULT UpdateCell(unsigned int ulObjId, unsigned int ulPropTag, int lDelta);
 	ECRESULT UpdateCell(unsigned int ulObjId, unsigned int ulPropTag, unsigned int ulMask, unsigned int ulValue);
@@ -307,6 +314,8 @@ public:
 	// Test
 	void DisableCellCache();
 	void EnableCellCache();
+
+	bool m_bCellCacheDisabled = false;
 
 private:
 	typedef std::unordered_map<unsigned int, ECsQuota> ECMapQuota;
@@ -354,7 +363,7 @@ private:
 	// User cache
 	ECCache<std::unordered_map<unsigned int, ECsUserObject>> m_UserObjectCache; /* userid to user object */
 	ECCache<std::map<ECsUEIdKey, ECsUEIdObject>> m_UEIdObjectCache; /* user type + externid to user object */
-	ECCache<std::unordered_map<unsigned int, ECsUserObjectDetails>>	m_UserObjectDetailsCache; /* userid to user obejct data */
+	ECCache<std::unordered_map<unsigned int, ECsUserObjectDetails>>	m_UserObjectDetailsCache; /* userid to user object data */
 	// ACL cache
 	ECCache<std::unordered_map<unsigned int, ECsACLs>> m_AclCache;
 	// Cell cache, include the column data of a loaded table
@@ -367,8 +376,6 @@ private:
 	// Properties from kopano-search
 	std::set<unsigned int> 		m_setExcludedIndexProperties;
 	std::mutex m_hExcludedIndexPropertiesMutex;
-	// Testing
-	bool m_bCellCacheDisabled = false;
 };
 
 } /* namespace */

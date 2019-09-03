@@ -10,7 +10,7 @@ kopano\-storeadm \(em store management utility
 .SH Description
 .PP
 This tool is used to manage message stores on the Kopano server. Specifically,
-it allows to create, delete, attach, detach such stores. The storage server
+it allows one to create, delete, attach, detach such stores. The storage server
 must be running for kopano-storeadm to work.
 .SH Options
 .TP
@@ -74,9 +74,9 @@ on. The store type may need to be specified with \fB\-t\fP if the implicit
 default "\fBuser\fP" is not appropriate.
 .TP
 \fB\-p\fP
-For use with \fB\-A\fP. Rather than attaching an orphaned store to a user
-account, copy the orphaned store's contents are copied into "Public
-Store\\Admin\\Deleted User - username". The orphaned store is left unmodified.
+For use with \fB\-A\fP.  Rather than attaching an orphaned store to a user
+account, copy the orphaned store's contents into "Public Store\\Admin\\Deleted
+User - username".  The orphaned store is left unmodified.
 .TP
 \fB\-t\fP {\fBuser\fP|\fBarchive\fP|\fBgroup\fP|\fBcompany\fP}
 The store type for the entity specified with \fB\-n\fP. If not specified,
@@ -100,25 +100,8 @@ Create pubilc store: kopano\-storeadm \-P
 .SH Configuration file
 .PP
 Normally, no configuration file is used or required. If the file
-\fB/etc/kopano/admin.cfg\fP exists, it is used. The following options can be
-set in the configuration file:
-.SS default_store_locale
+\fB/etc/kopano/admin.cfg\fP exists, it is used. See \fBkopano\-admin.cfg\fP(5)
+for syntax and allowed options.
+.SH "See also"
 .PP
-New folders being created as part of the initial store creation (see \-C) will
-use the language of the locale. A suitable locale string is in the form of an
-ISO 639 code for the language, followed by an underscore, followed by an ISO
-3166 code for the region, e.g. de_DE, en_US, etc.
-.PP
-Default: \fI(empty)\fP
-.SS server_socket
-.PP
-URI for the connection to the Kopano server.
-.PP
-Default: (localhost connection via socket)
-.SS sslkey_file
-.PP
-Use this file as key to logon to the server. This is only used when server_socket is set to
-an HTTPS transport. See the kopano-server(8) manual page on how to setup SSL keys.
-.SS sslkey_pass
-.PP
-The password of the SSL key file that is set in sslkey_file.
+\fBkopano\-admin.cfg\fP(5)

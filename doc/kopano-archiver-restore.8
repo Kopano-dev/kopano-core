@@ -1,32 +1,11 @@
-'\" t
-.\"     Title: kopano-archiver-restore
-.\"    Author: [see the "Author" section]
-.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
-.\"      Date: November 2016
-.\"    Manual: Kopano Core user reference
-.\"    Source: Kopano 8
-.\"  Language: English
-.\"
 .TH "KOPANO\-ARCHIVER\-RESTORE" "8" "November 2016" "Kopano 8" "Kopano Core user reference"
-.\" -----------------------------------------------------------------
-.\" * Define some portability stuff
-.\" -----------------------------------------------------------------
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .\" http://bugs.debian.org/507673
-.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
-.\" -----------------------------------------------------------------
-.\" * set default formatting
-.\" -----------------------------------------------------------------
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
 .ad l
-.\" -----------------------------------------------------------------
-.\" * MAIN CONTENT STARTS HERE *
-.\" -----------------------------------------------------------------
 .SH "NAME"
 kopano-archiver-restore \- Restore all stubbed and removed messages in a primary store with the messages found in the currently or previously attached archives(s).
 .SH "SYNOPSIS"
@@ -43,7 +22,7 @@ The strategy taken by kopano\-archiver\-restore is that it iterates through all 
 .PP
 Once the archives have been resolved, kopano\-archiver\-restore will create a list of restorable messages based on the reference entryid found in the archived copies. When multiple archives are found, multiple archived copies for the same primary message can exist. In that case kopano\-archiver\-restore will choose the most recent one.
 .PP
-Once the list of restorable messages is complete, kopano\-archiver\-restore will start restoring by first determining if the primary message, referenced by the reference entryid from the archived copies exist and if so if it is stubbed. If the primary message exists and is not stubbed, there\*(Aqs no need to restore anything. If the message exists but is stubbed, it will be destubbed. If the primary message does not exist, a new message is created based on the archived copy. In this case the archived copy is updated so it will reference the newly created message. This is needed to make sure a subsequent run of kopano\-archiver\-restore won\*(Aqt create another copy.
+Once the list of restorable messages is complete, kopano\-archiver\-restore will start restoring by first determining if the primary message, referenced by the reference entryid from the archived copies exist and if so if it is stubbed. If the primary message exists and is not stubbed, there is no need to restore anything. If the message exists but is stubbed, it will be destubbed. If the primary message does not exist, a new message is created based on the archived copy. In this case the archived copy is updated so it will reference the newly created message. This is needed to make sure a subsequent run of kopano\-archiver\-restore will not create another copy.
 .SH "OPTIONS"
 .PP
 \fB\-\-detach\fR
@@ -68,7 +47,7 @@ Run the script for just the specified user(s). By default, it runs for all users
 .PP
 \fB\-\-log\-level\fR, \fB\-l\fR \fINAME\fR
 .RS 4
-Specify log\-level, for example, \*(Aqerror\*(Aq, \*(Aqwarning\*(Aq \*(Aqinfo\*(Aq or \*(Aqdebug\*(Aq.
+Specify log\-level, for example, \fBerror\fP, \fBwarning\fP, \fBinfo\fP or \fBdebug\fP.
 .RE
 .PP
 \fB\-\-server\-socket\fR, \fB\-s\fR \fISOCKET\fR
@@ -85,6 +64,3 @@ Specify SSL key file.
 .RS 4
 Specify SSL key password.
 .RE
-.SH "AUTHOR"
-.PP
-Written by Zarafa.

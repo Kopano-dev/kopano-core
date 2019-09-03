@@ -93,7 +93,7 @@ HRESULT WSMAPIPropStorage::HrLoadProp(ULONG ulObjId, ULONG ulPropTag, LPSPropVal
 	}
 	END_SOAP_CALL
 
-	hr = ECAllocateBuffer(sizeof(SPropValue), (void **)&lpsPropValDst);
+	hr = ECAllocateBuffer(sizeof(SPropValue), reinterpret_cast<void **>(&lpsPropValDst));
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -124,7 +124,6 @@ HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(const MAPIOBJECT *lpsMapiObj
 		lpSaveObj->lpInstanceIds = s_alloc<entryList>(nullptr);
 		lpSaveObj->lpInstanceIds->__size = 1;
 		lpSaveObj->lpInstanceIds->__ptr = s_alloc<entryId>(nullptr, lpSaveObj->lpInstanceIds->__size);
-		memset(lpSaveObj->lpInstanceIds->__ptr, 0, lpSaveObj->lpInstanceIds->__size * sizeof(entryId));
 
 		if ((m_lpTransport->GetServerGUID(&sServerGUID) != hrSuccess) ||
 		    HrSIEntryIDToID(lpsMapiObject->cbInstanceID, lpsMapiObject->lpInstanceID, &sSIGUID, nullptr, &ulPropId) != hrSuccess ||
@@ -426,7 +425,7 @@ ECRESULT WSMAPIPropStorage::ECSoapObjectToMapiObject(const struct saveObject *lp
 
 	// delProps contains all the available property tag
 	EcFillPropTags(lpsSaveObj, lpsMapiObject);
-	// modProps contains all the props < 8K
+	/* modProps contains all the props < MAX_PROP_SIZE */
 	EcFillPropValues(lpsSaveObj, lpsMapiObject);
 	// delete stays false, unique id is set upon allocation
 	lpsMapiObject->ulObjId = lpsSaveObj->ulServerId;

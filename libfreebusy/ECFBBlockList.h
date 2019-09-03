@@ -10,7 +10,6 @@
  * @addtogroup libfreebusy
  * @{
  */
-
 #ifndef ECFBBLOCKLIST_H
 #define ECFBBLOCKLIST_H
 

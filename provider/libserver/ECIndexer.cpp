@@ -229,11 +229,9 @@ static ECRESULT NormalizeRestrictionMultiFieldSearch(
         // now obsolete. Since the above loop will generate an empty AND clause, we will do that here as well.
 	// Do not delete the lpRestrict itself, since we place new content in it.
 	FreeRestrictTable(lpRestrict, false);
-	memset(lpRestrict, 0, sizeof(struct restrictTable));
+	soap_default_restrictTable(nullptr, lpRestrict);
         lpRestrict->ulType = RES_AND;
 		lpRestrict->lpAnd = s_alloc<restrictAnd>(nullptr);
-        lpRestrict->lpAnd->__size = 0;
-        lpRestrict->lpAnd->__ptr = NULL;
     }
 	return erSuccess;
 }
@@ -311,9 +309,13 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig,
 		return KCERR_DATABASE_ERROR;
 	}
 	lstMatches.clear();
-	if (!parseBool(lpConfig->GetSetting("search_enabled")) || szSocket[0] == '\0')
+	auto stype = lpConfig->GetSetting("search_enabled");
+	if (stype != nullptr && strcmp(stype, "internal") == 0)
+		lpSearchClient.reset(new(std::nothrow) ECSearchClientMM);
+	else if (!parseBool(stype) || szSocket[0] == '\0')
 		return KCERR_NOT_FOUND;
-	lpSearchClient.reset(new(std::nothrow) ECSearchClient(szSocket, atoui(lpConfig->GetSetting("search_timeout"))));
+	else
+		lpSearchClient.reset(new(std::nothrow) ECSearchClientNET(szSocket, atoui(lpConfig->GetSetting("search_timeout"))));
 	if (!lpSearchClient)
 		return KCERR_NOT_ENOUGH_MEMORY;
 
@@ -345,7 +347,7 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig,
 	ec_log_debug("Using index, %zu index queries", lstMultiSearches.size());
 	tstart = decltype(tstart)::clock::now();
 	er = lpSearchClient->Query(guidServer, guidStore, lstFolders, lstMultiSearches, lstMatches, suggestion);
-	llelapsedtime = std::chrono::duration_cast<std::chrono::milliseconds>(decltype(tstart)::clock::now() - tstart).count();
+	llelapsedtime = std::chrono::duration_cast<std::chrono::microseconds>(decltype(tstart)::clock::now() - tstart).count();
 	g_lpSessionManager->m_stats->Max(SCN_INDEXER_SEARCH_MAX, llelapsedtime);
 	g_lpSessionManager->m_stats->avg(SCN_INDEXER_SEARCH_AVG, llelapsedtime);
 

@@ -15,7 +15,7 @@
 #include "DBBase.h"
 
 /**
- * @defgroup userplugin_bi_db Build-in database user plugin
+ * @defgroup userplugin_bi_db Built-in database user plugin
  * @ingroup userplugin
  * @{
  */
@@ -30,9 +30,9 @@ using KC::signatures_t;
 using KC::userobject_relation_t;
 
 /**
- * Build-in database user plugin.
+ * Built-in database user plugin.
  *
- * User management based on Mysql. This is the build-in user management system
+ * User management based on Mysql. This is the built-in user management system
  */
 class DBUserPlugin final : public KC::DBPlugin {
 public:

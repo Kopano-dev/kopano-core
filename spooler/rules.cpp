@@ -225,7 +225,7 @@ static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 
 		strForwardText += L"\nSent: ";
 		if (PROP_TYPE(ptrInfo[2].ulPropTag) != PT_ERROR) {
-			WCHAR buffer[64];
+			wchar_t buffer[64];
 			struct tm date;
 			auto t = FileTimeToUnixTime(ptrInfo[2].Value.ft);
 			localtime_r(&t, &date);
@@ -361,10 +361,10 @@ static HRESULT CreateReplyCopy(LPMAPISESSION lpSession, LPMDB lpOrigStore,
 		return hr;
 
 	// set a sensible subject
-	hr = HrGetOneProp(lpReplyMessage, PR_SUBJECT_W, &~lpProp);
+	hr = HrGetFullProp(lpReplyMessage, PR_SUBJECT_W, &~lpProp);
 	if (hr == hrSuccess && lpProp->Value.lpszW[0] == L'\0') {
 		// Exchange: uses "BT: orig subject" if empty, or only subject from template.
-		hr = HrGetOneProp(lpOrigMessage, PR_SUBJECT_W, &~lpProp);
+		hr = HrGetFullProp(lpOrigMessage, PR_SUBJECT_W, &~lpProp);
 		if (hr == hrSuccess) {
 			strwSubject = wstring(L"BT: ") + lpProp->Value.lpszW;
 			lpProp->Value.lpszW = const_cast<wchar_t *>(strwSubject.c_str());
@@ -642,7 +642,7 @@ static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMsgStore *orig_store,
 		auto rule_addr_std = convert_to<std::string>(strRuleAddress);
 		memory_ptr<SPropValue> subject;
 		std::wstring subject_wstd;
-		hr = HrGetOneProp(lpMessage, PR_SUBJECT_W, &~subject);
+		hr = HrGetFullProp(lpMessage, PR_SUBJECT_W, &~subject);
 		if (hr == hrSuccess)
 			subject_wstd = convert_to<std::wstring>(subject->Value.lpszW);
 		else if (hr != MAPI_E_NOT_FOUND)
@@ -799,7 +799,7 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 	if (hr != hrSuccess)
 		return hr;
 	// set from email ??
-	hr = HrGetOneProp(lpOrigMessage, PR_SUBJECT, &~lpOrigSubject);
+	hr = HrGetFullProp(lpOrigMessage, PR_SUBJECT, &~lpOrigSubject);
 	if (hr == hrSuccess)
 		strSubject = lpOrigSubject->Value.lpszW;
 	if(!bDoNotMunge || bForwardAsAttachment)
@@ -961,7 +961,7 @@ static struct actresult proc_op_reply(IMAPISession *ses, IMsgStore *store,
 	sc->inc(SCN_RULES_REPLY_AND_OOF);
 
 	memory_ptr<SPropValue> pv;
-	if (HrGetOneProp(*msg, PR_TRANSPORT_MESSAGE_HEADERS_A, &~pv) == hrSuccess &&
+	if (HrGetFullProp(*msg, PR_TRANSPORT_MESSAGE_HEADERS_A, &~pv) == hrSuccess &&
 	    dagent_avoid_autoreply(tokenize(pv->Value.lpszA, "\n"))) {
 		ec_log_warn("Rule \""s + rule + "\": Not replying to an autoreply");
 		return {ROP_NOOP};
@@ -1013,7 +1013,7 @@ static struct actresult proc_op_fwd(IAddrBook *abook, IMsgStore *orig_store,
 		return {ROP_NOOP};
 	}
 	memory_ptr<SPropValue> pv;
-	if (HrGetOneProp(*lppMessage, PR_TRANSPORT_MESSAGE_HEADERS_A, &~pv) == hrSuccess &&
+	if (HrGetFullProp(*lppMessage, PR_TRANSPORT_MESSAGE_HEADERS_A, &~pv) == hrSuccess &&
 	    dagent_avoid_autoreply(tokenize(pv->Value.lpszA, "\n"))) {
 		ec_log_warn("Rule \""s + rule + "\": Not forwarding autoreplies");
 		return {ROP_NOOP};

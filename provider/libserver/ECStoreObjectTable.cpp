@@ -58,23 +58,12 @@ namespace KC {
 
 static bool IsTruncatableType(unsigned int ulTag)
 {
-    switch(PROP_TYPE(ulTag)) {
-        case PT_STRING8:
-        case PT_UNICODE:
-        case PT_BINARY:
-            return true;
-        default:
-            return false;
-    }
-
-    return false;
+	auto x = PROP_TYPE(ulTag);
+	return x == PT_STRING8 || x == PT_UNICODE || x == PT_BINARY;
 }
 
 bool propVal_is_truncated(const struct propVal *lpsPropVal)
 {
-	if(!IsTruncatableType(lpsPropVal->ulPropTag))
-		return false;
-
 	switch(PROP_TYPE(lpsPropVal->ulPropTag)) {
 	case PT_STRING8:
 	case PT_UNICODE:
@@ -143,7 +132,7 @@ ECRESULT ECStoreObjectTable::GetColumnsAll(ECListInt* lplstProps)
 	if (er != erSuccess)
 		return er;
 
-	//List always emtpy
+	//List always empty
 	lplstProps->clear();
 	ulock_rec biglock(m_hLock);
 	bool mo_has_content = !mapObjects.empty();
@@ -293,13 +282,11 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
 	// We return a square array with all the values
 	lpsRowSet->__size = lpRowList->size();
 	lpsRowSet->__ptr = s_alloc<propValArray>(soap, lpsRowSet->__size);
-	memset(lpsRowSet->__ptr, 0, sizeof(propValArray) * lpsRowSet->__size);
 
 	// Allocate memory for all rows
 	for (i = 0; i < lpsRowSet->__size; ++i) {
 		lpsRowSet->__ptr[i].__size = lpsPropTagArray->__size;
 		lpsRowSet->__ptr[i].__ptr = s_alloc<propVal>(soap, lpsPropTagArray->__size);
-		memset(lpsRowSet->__ptr[i].__ptr, 0, sizeof(propVal) * lpsPropTagArray->__size);
 	}
 
 	// Scan cache for anything that we can find, and generate any properties that don't come from normal database queries.
@@ -361,7 +348,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
 			}
     	    // FIXME bComputed always false
     	    // FIXME optimisation possible to GetCell: much more efficient to get all cells in one row at once
-			if (cache->GetCell(&row, ulPropTag, &lpsRowSet->__ptr[i].__ptr[k], soap, false) == erSuccess &&
+			if (cache->GetCell(&row, ulPropTag, &lpsRowSet->__ptr[i].__ptr[k], soap) == erSuccess &&
 			    PROP_TYPE(lpsRowSet->__ptr[i].__ptr[k].ulPropTag) != PT_NULL) {
 				setCellDone.emplace(i, k);
 	            continue;
@@ -665,29 +652,26 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
             // means we have to loop through all the same-property columns and add the same data everywhere.
             for (auto iterColumns = mapColumns.lower_bound(NormalizeDBPropTag(ulPropTag));
                  iterColumns != mapColumns.cend() && CompareDBPropTag(iterColumns->first, ulPropTag); ) {
+				auto &pv = lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second];
 				// free prop if we're not allocing by soap
-				if(soap == NULL && lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second].ulPropTag != 0) {
-					FreePropVal(&lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second], false);
-					memset(&lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second], 0, sizeof(lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second]));
+				if (soap == nullptr && pv.ulPropTag != 0) {
+					FreePropVal(&pv, false);
+					soap_default_propVal(soap, &pv);
 				}
-
-                if(CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, &lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second]) != erSuccess) {
+				if (CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, &pv) != erSuccess) {
                 	// This can happen if a subquery returned a NULL field or if your database contains bad data (eg a NULL field where there shouldn't be)
 			++iterColumns;
 			continue;
                 }
 
                 // Update property tag to requested property tag; requested type may have been PT_UNICODE while database contains PT_STRING8
-                lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second].ulPropTag = iterColumns->first;
-
+				pv.ulPropTag = iterColumns->first;
 				// Cache value
-				if ((lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second].ulPropTag & MVI_FLAG) == MVI_FLAG)
+				if ((pv.ulPropTag & MVI_FLAG) == MVI_FLAG)
 					// Get rid of the MVI_FLAG
-					lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second].ulPropTag &= ~MVI_FLAG;
-				else
-					cache->SetCell(&sKey, iterColumns->first, &lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second]);
-
-
+					pv.ulPropTag &= ~MVI_FLAG;
+				else if (!propVal_is_truncated(&pv))
+					cache->SetCell(&sKey, iterColumns->first, &pv);
                 // Remove from mapColumns so we know that we got a response from SQL
 				iterColumns = mapColumns.erase(iterColumns);
             }
@@ -695,9 +679,12 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
     }
 
 	for (const auto &col : mapColumns) {
-		assert(lpsRowSet->__ptr[ulRowNum].__ptr[col.second].ulPropTag == 0);
-		CopyEmptyCellToSOAPPropVal(soap, col.first, &lpsRowSet->__ptr[ulRowNum].__ptr[col.second]);
-		cache->SetCell(&sKey, col.first, &lpsRowSet->__ptr[ulRowNum].__ptr[col.second]);
+		auto &pv = lpsRowSet->__ptr[ulRowNum].__ptr[col.second];
+		assert(pv.ulPropTag == 0);
+		CopyEmptyCellToSOAPPropVal(soap, col.first, &pv);
+		if (propVal_is_truncated(&pv))
+			continue;
+		cache->SetCell(&sKey, col.first, &pv);
 	}
 	return erSuccess;
 }
@@ -835,7 +822,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 				auto &m = lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second];
 				if (soap == nullptr && m.ulPropTag != 0) {
 					FreePropVal(&m, false);
-					memset(&m, 0, sizeof(m));
+					soap_default_propVal(soap, &m);
 				}
 
 				// Handle requesting the same tag multiple times; the data is returned only once, so we need to copy it to all the columns in which it was
@@ -851,7 +838,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 					m.ulPropTag = iterColumns->first;
 				if ((m.ulPropTag & MVI_FLAG) == MVI_FLAG)
 					m.ulPropTag &= ~MVI_FLAG;
-				else
+				else if (!propVal_is_truncated(&m))
 					cache->SetCell(const_cast<sObjectTableKey *>(&iterObjIds->first), iterColumns->first, &m);
 
 				setDone.emplace(iterObjIds->second, iterColumns->second);
@@ -867,15 +854,18 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 	}
 
 	for (const auto &col : mapColumns)
-		for (const auto &ob : mapObjIds)
-			if (setDone.count({ob.second, col.second}) == 0) {
-				// We may be overwriting a value that was retrieved from the cache before.
-				if (soap == NULL && lpsRowSet->__ptr[ob.second].__ptr[col.second].ulPropTag != 0)
-					FreePropVal(&lpsRowSet->__ptr[ob.second].__ptr[col.second], false);
-				CopyEmptyCellToSOAPPropVal(soap, col.first, &lpsRowSet->__ptr[ob.second].__ptr[col.second]);
-				cache->SetCell(const_cast<sObjectTableKey *>(&ob.first),
-					col.first, &lpsRowSet->__ptr[ob.second].__ptr[col.second]);
-			}
+		for (const auto &ob : mapObjIds) {
+			if (setDone.count({ob.second, col.second}) != 0)
+				continue;
+			auto &pv = lpsRowSet->__ptr[ob.second].__ptr[col.second];
+			// We may be overwriting a value that was retrieved from the cache before.
+			if (soap == nullptr && pv.ulPropTag != 0)
+				FreePropVal(&pv, false);
+			CopyEmptyCellToSOAPPropVal(soap, col.first, &pv);
+			if (propVal_is_truncated(&pv))
+				continue;
+			cache->SetCell(const_cast<sObjectTableKey *>(&ob.first), col.first, &pv);
+		}
 	return erSuccess;
 }
 
@@ -1015,7 +1005,7 @@ ECRESULT ECStoreObjectTable::Load()
 				continue;
 
 			cache->SetObject(atoui(lpDBRow[0]), atoui(lpDBRow[1]), atoui(lpDBRow[2]), atoui(lpDBRow[3]), atoui(lpDBRow[4]));
-            // Altough we don't want more than ulMaxItems entries, keep looping to get all the results from MySQL. We need to do this
+            // Although we don't want more than ulMaxItems entries, keep looping to get all the results from MySQL. We need to do this
             // because otherwise we can get out of sync with mysql which is still sending us results while we have already stopped
             // reading data.
             if(i > ulMaxItems)

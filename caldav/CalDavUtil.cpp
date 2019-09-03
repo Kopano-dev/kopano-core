@@ -28,8 +28,8 @@ using namespace KC;
  * @return		HRESULT
  * @retval		MAPI_E_LOGON_FAILED		Unable to login with the specified user-name and password
  */
-HRESULT HrAuthenticate(const std::string &appVersion,
-    const std::string &appMisc, const std::wstring &wstrUser,
+HRESULT HrAuthenticate(const std::string &appMisc,
+    const std::string &appVersion, const std::wstring &wstrUser,
     const std::wstring &wstrPass, const std::string &strPath,
     IMAPISession **lppSession)
 {
@@ -119,7 +119,7 @@ HRESULT HrAddProperty(IMsgStore *lpMsgStore, SBinary sbEid, ULONG ulPropertyId, 
  * @param[out]	lppUsrFld		Return pointer for the folder found
  *
  * @return		mapi error codes
- * @retval		MAPI_E_NOT_FOUND	Folder refrenced by folder-id not found
+ * @retval		MAPI_E_NOT_FOUND	Folder referenced by folder-id not found
  *
  * @todo	add some check to remove the dirty >50 length check
  */
@@ -178,7 +178,7 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 	if(hr != hrSuccess)
 		return hr;
 	//When ENTRY_ID is use For Read Only Calendars assuming the folder id string
-	//not larger than lenght 50
+	//not larger than length 50
 	//FIXME: include some Entry-id identifier
 	if(wstrFldId.size()> 50)
 	{
@@ -388,7 +388,7 @@ HRESULT HrBuildACL(WEBDAVPROPERTY *lpsProperty)
  * Input string is of format '/caldav/Calendar name/asbxjk3-3980434-xn49cn4930.ics',
  * function returns 'asbxjk3-3980434-xn49cn4930'
  *
- * @param[in]	strInput	Input string contaning guid
+ * @param[in]	strInput	Input string containing guid
  * @return		string		string countaing guid
  */
 std::string StripGuid(const std::string &strInput)
@@ -542,7 +542,7 @@ bool IsPrivate(LPMESSAGE lpMessage, ULONG ulPropIDPrivate)
 }
 
 /**
- * Creates restriction to find calendar entries refrenced by strGuid.
+ * Creates restriction to find calendar entries referenced by strGuid.
  *
  * @param[in]	strGuid			Guid string of calendar entry requested by caldav client, in url-base64 mode
  * @param[in]	lpNamedProps	Named property tag array
@@ -648,7 +648,7 @@ HRESULT HrFindAndGetMessage(const std::string &strGuid, IMAPIFolder *lpUsrFld,
  * Retrieves freebusy information of attendees and converts it to ical data
  *
  * @param[in]	lpMapiToIcal	Mapi to ical conversion object
- * @param[in]	lpFBSupport		IFreebusySupport object used to retrive freebusy information of attendee
+ * @param[in]	lpFBSupport		IFreebusySupport object used to retrieve freebusy information of attendee
  * @param[in]	lpAddrBook		Addressbook used for user lookups
  * @param[in]	lplstUsers		List of attendees whose freebusy is requested
  * @param[out]	lpFbInfo		Structure which stores the retrieved ical data for the attendees
@@ -659,7 +659,6 @@ HRESULT HrFindAndGetMessage(const std::string &strGuid, IMAPIFolder *lpUsrFld,
 HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, IAddrBook *lpAddrBook, std::list<std::string> *lplstUsers, WEBDAVFBINFO *lpFbInfo)
 {
 	memory_ptr<FBUser> lpUsers;
-	IFreeBusyData **lppFBData = NULL;
 	memory_ptr<FBBlock_1> lpsFBblks;
 	std::string strMethod, strIcal;
 	FILETIME ftStart = {0, 0}, ftEnd = {0, 0};
@@ -691,7 +690,7 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 	cUsers = 0;
 	for (const auto &user : *lplstUsers) {
 		lpAdrList->aEntries[cUsers].cValues = 1;
-		hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **)&lpAdrList->aEntries[cUsers].rgPropVals);
+		hr = MAPIAllocateBuffer(sizeof(SPropValue), reinterpret_cast<void **>(&lpAdrList->aEntries[cUsers].rgPropVals));
 		if(hr != hrSuccess)
 			return hr;
 		++lpAdrList->cEntries;
@@ -725,13 +724,19 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 			return hr;
 	}
 
-	hr = MAPIAllocateBuffer(sizeof(IFreeBusyData*)*cUsers, (void **)&lppFBData);
+	std::vector<object_ptr<IFreeBusyData>> fbdata(cUsers);
+	memory_ptr<IFreeBusyData *> lppFBData;
+	hr = MAPIAllocateBuffer(sizeof(IFreeBusyData *) * cUsers, &~lppFBData);
 	if (hr != hrSuccess)
 		return hr;
-	memset(lppFBData, '\0', sizeof(IFreeBusyData *) * cUsers);
 
 	// retrieve freebusy for the attendees
 	hr = lpFBSupport->LoadFreeBusyData(cUsers, lpUsers, lppFBData, NULL, &cFBData);
+	for (size_t i = 0; i < cUsers; ++i) {
+		/* quickly move raw pointers into tracked storage (this is a noexcept region) */
+		fbdata[i].reset(lppFBData[i]);
+		lppFBData[i] = nullptr;
+	}
 	if (hr != hrSuccess)
 		goto exit;
 	ftStart = UnixTimeToFileTime(lpFbInfo->tStart);
@@ -742,9 +747,9 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 		object_ptr<IEnumFBBlock> lpEnumBlock;
 		strIcal.clear();
 
-		if (!lppFBData[i])
+		if (fbdata[i] == nullptr)
 			goto next;
-		hr = lppFBData[i]->EnumBlocks(&~lpEnumBlock, ftStart, ftEnd);
+		hr = fbdata[i]->EnumBlocks(&~lpEnumBlock, ftStart, ftEnd);
 		if (hr != hrSuccess)
 			goto next;
 		hr = MAPIAllocateBuffer(sizeof(FBBlock_1)*lMaxblks, &~lpsFBblks);
@@ -779,11 +784,5 @@ next:
 	hr = hrSuccess;
 
 exit:
-	if (lppFBData) {
-		for (ULONG i = 0; i < cUsers; ++i)
-			if (lppFBData[i])
-				lppFBData[i]->Release();
-		MAPIFreeBuffer(lppFBData);
-	}
 	return hr;
 }

@@ -29,6 +29,7 @@
 #include "ECMapiUtils.h"
 #include <kopano/ECLogger.h>
 #include <kopano/mapi_ptr.h>
+#include "../provider/include/kcore.hpp"
 
 using std::string;
 using std::wstring;
@@ -61,7 +62,7 @@ static void InitializeVMime()
 	/* Sucky Outlook _still_ does not know RFC 2231. */
 	vmime::generationContext::getDefaultContext().setEncodedParameterValueMode(vmime::generationContext::EncodedParameterValueModes::PARAMETER_VALUE_RFC2231_AND_RFC2047);
 	// need to have a unique indentifier in the mediaType
-	vmime::textPartFactory::getInstance()->registerType<vmime::mapiTextPart>(vmime::mediaType(vmime::mediaTypes::TEXT, "mapi"));
+	vmime::textPartFactory::getInstance()->registerType<mapiTextPart>(vmime::mediaType(vmime::mediaTypes::TEXT, "mapi"));
 	// init our random engine for random message id generation
 	rand_init();
 	vmimeInitialized = true;
@@ -71,9 +72,12 @@ static std::string generate_message_id(IMessage *msg)
 {
 #define IDLEN 38
 	memory_ptr<SPropValue> prop;
-	auto hr = HrGetOneProp(msg, PR_SEARCH_KEY, &~prop);
+	static constexpr const SizedSPropTagArray(2, tags) =
+		{2, {PR_RECORD_KEY, PR_LAST_MODIFICATION_TIME}};
+	unsigned int nvals = 0;
+	auto hr = msg->GetProps(tags, 0, &nvals, &~prop);
+	char id[IDLEN];
 	if (hr != hrSuccess) {
-		char id[IDLEN] = {0};
 		// Fallback: the same format as the vmime generator
 		// but with more randomness
 		snprintf(id, IDLEN, "kcim.%lx.%x.%08x%08x",
@@ -81,7 +85,23 @@ static std::string generate_message_id(IMessage *msg)
 			rand_mt(), rand_mt());
 		return string(id, strlen(id));
 	}
-	return "kcis." + bin2hex(prop->Value.bin);
+	if (prop[0].Value.bin.cb == sizeof(EID_FIXED)) {
+		auto e = reinterpret_cast<const EID_FIXED *>(prop[0].Value.bin.lpb);
+		/*
+		 * Using substr here to get rid of the base64 pad chars (=)
+		 * that are always there due to the fixed size of the input.
+		 * The resulting kcEE string will be just 39 characters long,
+		 * fulfilling RFC 5321 §4.5.3.1.1 just in case.
+		 */
+		return "kcEE." + base64_encode(&e->uniqueId, sizeof(e->uniqueId)).substr(0, 22) +
+		       "." + base64_encode(&prop[1].Value.ft, sizeof(prop[1].Value.ft)).substr(0, 11);
+	}
+	/*
+	 * The resulting string is generally 82 characters long.
+	 * (The older non-base64 variant was 118 long.)
+	 */
+	return "kcRK." + base64_encode(prop[0].Value.bin.lpb, prop[0].Value.bin.cb) +
+	       "." + base64_encode(&prop[1].Value.ft, sizeof(prop[1].Value.ft));
 #undef IDLEN
 }
 
@@ -160,7 +180,6 @@ HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
 		return hr;
 	auto lpszData = new char[oss.str().size()+1];
 	strcpy(lpszData, oss.str().c_str());
-
 	*lppbuf = lpszData;
 	return hr;
 }
@@ -185,12 +204,14 @@ HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
 		// else, try PR_MESSAGE_DELIVERY_TIME, maybe other timestamps?
 
 		vmime::messageId msgid;
-		if (HrGetOneProp(lpMessage, PR_INTERNET_MESSAGE_ID_A, &~lpMessageId) == hrSuccess)
+		if (HrGetOneProp(lpMessage, PR_INTERNET_MESSAGE_ID_A, &~lpMessageId) == hrSuccess) {
 			msgid = lpMessageId->Value.lpszA;
-		else
+			ec_log_debug("K-1250: Using fixed Message-Id \"%s\" set a priori", lpMessageId->Value.lpszA);
+		} else {
 			msgid = vmime::messageId(generate_message_id(lpMessage), vmime::platform::getHandler()->getHostName());
+			ec_log_debug("K-1251: Generated Message-Id \"%s\" for the RFC5322 mail", msgid.getId().c_str());
+		}
 		lpVMMessage->getHeader()->MessageId()->setValue(msgid);
-
 		lpVMMessage->generate(adapter);
 	} catch (const vmime::exception &) {
 		return MAPI_E_NOT_FOUND;
@@ -230,14 +251,16 @@ HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
 		vmime::messageId msgId;
 		hr = lpMessage->GetProps(sptaForwardProps, 0, &cValues, &~ptrProps);
 		if (!FAILED(hr) && ptrProps[0].ulPropTag == PR_AUTO_FORWARDED &&
-		    ptrProps[0].Value.b && ptrProps[1].ulPropTag == PR_INTERNET_MESSAGE_ID_A)
+		    ptrProps[0].Value.b && ptrProps[1].ulPropTag == PR_INTERNET_MESSAGE_ID_A) {
 			// only allow mapi programs to set a messageId for an outgoing message when it comes from rules processing
 			msgId = ptrProps[1].Value.lpszA;
-		else
+			ec_log_debug("K-1252: Using fixed Message-Id \"%s\" set a priori", ptrProps[1].Value.lpszA);
+		} else {
 			// vmime::messageId::generateId() is not random enough since we use forking in the spooler
 			msgId = vmime::messageId(generate_message_id(lpMessage), vmime::platform::getHandler()->getHostName());
+			ec_log_debug("K-1253: Generated Message-Id \"%s\" for the RFC5322 mail", msgId.getId().c_str());
+		}
 		vmMessage->getHeader()->MessageId()->setValue(msgId);
-		ec_log_debug("Sending message with Message-ID: " + msgId.getId());
 	} catch (const vmime::exception &e) {
 		mailer->setError(e.what());
 		return MAPI_E_NOT_FOUND;
@@ -252,13 +275,13 @@ HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
 	       sopt.allow_send_to_everyone, sopt.always_expand_distr_list);
 }
 
-/** 
+/**
  * Create BODY and BODYSTRUCTURE strings for IMAP.
- * 
+ *
  * @param[in] input an RFC 2822 email
  * @param[out] lpSimple optional BODY result
  * @param[out] lpExtended optional BODYSTRUCTURE result
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT createIMAPProperties(const std::string &input, std::string *lpEnvelope,

@@ -2,7 +2,7 @@
 
 # Add files or directories to the blacklist. They should be base names, not
 # paths.
-ignore=env,setup.py,pst.py,magic.py,daemon.py,lru_cache.py,pidlockfile.py,runner.py
+ignore=env,setup.py,pst.py,magic.py,runner.py
 
 # Pickle collected data for later comparisons.
 persistent=no

@@ -1,32 +1,11 @@
-'\" t
-.\"     Title: kopano-stats
-.\"    Author: [see the "Author" section]
-.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
-.\"      Date: November 2016
-.\"    Manual: Kopano Core user reference
-.\"    Source: Kopano 8
-.\"  Language: English
-.\"
 .TH "KOPANO\-STATS" "1" "November 2016" "Kopano 8" "Kopano Core user reference"
-.\" -----------------------------------------------------------------
-.\" * Define some portability stuff
-.\" -----------------------------------------------------------------
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .\" http://bugs.debian.org/507673
-.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
-.\" -----------------------------------------------------------------
-.\" * set default formatting
-.\" -----------------------------------------------------------------
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
 .ad l
-.\" -----------------------------------------------------------------
-.\" * MAIN CONTENT STARTS HERE *
-.\" -----------------------------------------------------------------
 .SH "NAME"
 kopano-stats \- Dump kopano statistics tables.
 .SH "SYNOPSIS"
@@ -60,7 +39,7 @@ Dump the user table. This table contains information about users and user settin
 .PP
 \fB\-\-company\fR
 .RS 4
-Dump the company table. This table contains information about companies and their properties. This table is only available on multi\-tenancy enabled servers.
+Dump the company table. This table contains information about companies and their properties. This table is only available on multi-tenancy enabled servers.
 .RE
 .PP
 \fB\-\-servers\fR
@@ -70,7 +49,7 @@ Dump the servers table. This is only available in multiserver mode. Each server 
 .PP
 \fB\-\-top\fR
 .RS 4
-Shows a top\-like view of all connected clients to the server, showing versions, users, programs, ip\-adres, cpu\-usage, and other statistical information.
+Shows a top\-like view of all connected clients to the server, showing versions, users, programs, IP address, CPU usage, and other statistical information.
 .sp
 Use 1\-9 to enable/disable some columns. Use a\-g to sort on a column, press the same letter again to reverse the sorting. Press <ESC> to quit the application.
 .RE
@@ -87,9 +66,6 @@ Connect to the storage server through
 file:///path/to/socket. Default:
 file:///var/run/kopano/server.sock.
 .RE
-.SH "AUTHOR"
-.PP
-Written by Kopano.
 .SH "SEE ALSO"
 .PP
 \fBkopano-admin\fR(8)

@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef MAPITOVMIME
 #define MAPITOVMIME
 
@@ -47,7 +46,7 @@ private:
 	std::string m_strHTMLCharset;	//!< HTML body charset in MAPI message (input)
 
 	enum eBestBody { plaintext, html, realRTF };
-	
+
 	HRESULT fillVMIMEMail(IMessage *lpMessage, bool bSkipContent, vmime::messageBuilder* lpVMMessageBuilder);
 
 	HRESULT handleTextparts(IMessage* lpMessage, vmime::messageBuilder* lpVMMessageBuilder, eBestBody *bestBody);
@@ -71,9 +70,9 @@ private:
 
 	// util
 	void capitalize(char *s);
-	void removeEnters(WCHAR *s);
-	vmime::text getVmimeTextFromWide(const WCHAR* lpszwInput, bool bWrapInWord = true);
-	vmime::text getVmimeTextFromWide(const std::wstring& strwInput, bool bWrapInWord = true);
+	void removeEnters(wchar_t *);
+	vmime::text getVmimeTextFromWide(const wchar_t *);
+	vmime::text getVmimeTextFromWide(const std::wstring &);
 	bool is_voting_request(IMessage *lpMessage) const;
 	bool has_reminder(IMessage *) const ;
 };

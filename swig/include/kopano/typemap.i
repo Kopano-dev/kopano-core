@@ -188,7 +188,8 @@
   if($input == Py_None)
       $1 = 0;
   else {
-      if(!(buf = PyBytes_AsString($input))) {
+		buf = PyBytes_AsString($input);
+		if (!buf) {
         %argument_fail(SWIG_ERROR, "$type", $symname, $argnum);
       }
       $1 = %reinterpret_cast(buf, $1_ltype);
@@ -380,7 +381,7 @@
 
 %typemap(in) KC::ECLogger *annoyingswig (int res, ECSimpleLogger *sl, ECLoggerProxy *proxy)
 {
-	res = SWIG_ConvertPtr($input, (void **)&sl, SWIGTYPE_p_ECSimpleLogger, 0 | 0);
+	res = SWIG_ConvertPtr($input, reinterpret_cast<void **>(&sl), SWIGTYPE_p_ECSimpleLogger, 0 | 0);
 	if(!SWIG_IsOK(res))
 		%argument_fail(res,"ECSimpleLogger",$symname, $argnum);
 

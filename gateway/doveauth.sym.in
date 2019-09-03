@@ -1,0 +1,9 @@
+DOVE {
+global:
+	authdb_mapi_init;
+	authdb_mapi_deinit;
+};
+KC_@PACKAGE_VERSION@ {
+local:
+	*;
+};

@@ -24,10 +24,10 @@ class fs_deleter {
 };
 
 extern _kc_export int unix_runas(ECConfig *);
+extern _kc_export int unix_chown(int fd, const char *user, const char *group);
 extern _kc_export int unix_chown(const char *filename, const char *user, const char *group);
 extern _kc_export void unix_coredump_enable(const char *);
 extern _kc_export int unix_create_pidfile(const char *argv0, ECConfig *, bool force = true);
-extern _kc_export int unix_daemonize(ECConfig *);
 extern _kc_export int unix_fork_function(void *(*)(void *), void *param, int nfds, int *closefds);
 extern _kc_export bool unix_system(const char *logname, const std::vector<std::string> &cmd, const char **env);
 extern _kc_export int ec_reexec(const char *const *);

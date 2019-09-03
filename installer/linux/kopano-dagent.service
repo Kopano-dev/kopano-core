@@ -1,6 +1,7 @@
 [Unit]
 Description=Kopano Groupware Core Delivery Agent
 Documentation=man:kopano-dagent(8) man:kopano-dagent.cfg(5)
+After=network.target
 
 [Service]
 Type=simple

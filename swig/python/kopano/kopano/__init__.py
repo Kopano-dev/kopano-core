@@ -2,50 +2,16 @@
 """
 High-level python bindings for Kopano
 
-Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
-Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
+Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file)
+Copyright 2016 - 2019 Kopano and its licensors (see LICENSE file)
 
 Some goals:
 
 - To be fully object-oriented, pythonic, layer above MAPI
 - To be usable for many common system administration tasks
 - To provide full access to the underlying MAPI layer if needed
-- To return all text as unicode strings
-- To return/accept binary identifiers in readable (hex-encoded) form
+- To return/accept binary identifiers in readable form
 - To raise well-described exceptions if something goes wrong
-
-Main classes:
-
-:class:`Server`
-
-:class:`Store`
-
-:class:`User`
-
-:class:`Company`
-
-:class:`Store`
-
-:class:`Folder`
-
-:class:`Item`
-
-:class:`Body`
-
-:class:`Attachment`
-
-:class:`Address`
-
-:class:`OutOfOffice`
-
-:class:`Quota`
-
-:class:`Permission`
-
-:class:`Config`
-
-:class:`Service`
-
 
 """
 
@@ -59,10 +25,16 @@ from .errors import (
 )
 from .server import Server
 from .address import Address
+from .appointment import Appointment
 from .attachment import Attachment
+from .attendee import Attendee
 from .autoaccept import AutoAccept
+from .autoprocess import AutoProcess
 from .company import Company
-from .compat import set_bin_encoding, set_missing_none, hex, unhex, benc, bdec
+from .compat import (
+    set_bin_encoding, set_missing_none, hex, benc, bdec
+)
+from .contact import Contact
 from .delegation import Delegation
 from .distlist import DistList
 from .folder import Folder
@@ -71,8 +43,10 @@ from .group import Group
 from .item import Item
 from .log import log_exc, QueueListener, logger
 from .meetingrequest import MeetingRequest
+from .notification import Notification
 from .outofoffice import OutOfOffice
 from .property_ import Property
+from .properties import Properties
 from .permission import Permission
 from .picture import Picture
 from .quota import Quota
@@ -107,8 +81,9 @@ class Module(object):
     def public_store(self):
         return self._server.public_store
 
-    def server(self, *args, **kwargs): # TODO add 'name' argument to lookup node?
-        kwargs['_skip_check'] = True # avoid deprecation warning for calling Server()
+    # TODO add 'name' argument to lookup node?
+    def server(self, *args, **kwargs):
+        kwargs['_skip_check'] = True # avoid deprecation warning
         kwargs['parse_args'] = kwargs.get('parse_args', False)
         return Server(*args, **kwargs)
 

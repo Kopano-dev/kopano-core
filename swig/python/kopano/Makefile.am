@@ -1,13 +1,20 @@
-EXTRA_DIST = setup.cfg setup.py \
-	kopano/__init__.py \
-	kopano/lockfile.py \
-	kopano/daemon/LICENSE \
-	kopano/daemon/__init__.py \
-	kopano/daemon/daemon.py \
-	kopano/daemon/pidlockfile.py \
-	kopano/daemon/runner.py \
-	kopano/daemon/version/__init__.py \
-	kopano/daemon/version/version_info.py
+EXTRA_DIST = changelog.rst requirements.txt setup.cfg setup.py \
+	kopano/__init__.py kopano/address.py kopano/appointment.py \
+	kopano/attachment.py kopano/attendee.py kopano/autoaccept.py \
+	kopano/autoprocess.py kopano/company.py kopano/compat.py \
+	kopano/config.py kopano/contact.py kopano/defs.py \
+	kopano/delegation.py kopano/distlist.py \
+	kopano/errors.py kopano/folder.py \
+	kopano/freebusy.py kopano/group.py kopano/ics.py kopano/item.py \
+	kopano/log.py \
+	kopano/meetingrequest.py kopano/notification.py kopano/outofoffice.py \
+	kopano/parse.py kopano/parser.py kopano/permission.py \
+	kopano/picture.py kopano/pidlid.py kopano/properties.py \
+	kopano/property_.py kopano/query.py kopano/quota.py \
+	kopano/recurrence.py kopano/restriction.py kopano/rule.py \
+	kopano/server.py kopano/service.py kopano/store.py kopano/table.py \
+	kopano/timezone.py kopano/user.py kopano/utils.py \
+	kopano/version.py
 
 install-exec-local:
 	rm -Rf staging
@@ -17,7 +24,7 @@ install-exec-local:
 	cd staging/ && ${PYTHON} setup.py \
 		build --build-base="${abs_builddir}/build" \
 		install -f $${DESTDIR+--root=${DESTDIR}} \
-		--prefix="${prefix}" --install-purelib ${pythondir}
+		--prefix="${prefix}" --install-purelib="${pythondir}"
 	rm -Rf build staging
 
 uninstall-local:

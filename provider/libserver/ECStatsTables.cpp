@@ -121,8 +121,6 @@ void server_stats::fill_odm()
 	setg("usercnt_room", "Number of rooms", uc[usercount_t::ucRoom]);
 	setg("usercnt_equipment", "Number of equipment", uc[usercount_t::ucEquipment]);
 	setg("usercnt_contact", "Number of contacts", uc[usercount_t::ucContact]);
-	set("userplugin", "Plugin for the user backend", g_lpSessionManager->GetConfig()->GetSetting("user_plugin"));
-
 	g_lpSessionManager->update_extra_stats();
 }
 
@@ -170,13 +168,11 @@ ECRESULT ECSystemStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis,
 	// We return a square array with all the values
 	lpsRowSet->__size = lpRowList->size();
 	lpsRowSet->__ptr = s_alloc<propValArray>(soap, lpsRowSet->__size);
-	memset(lpsRowSet->__ptr, 0, sizeof(propValArray) * lpsRowSet->__size);
 
 	// Allocate memory for all rows
 	for (gsoap_size_t i = 0; i < lpsRowSet->__size; ++i) {
 		lpsRowSet->__ptr[i].__size = lpsPropTagArray->__size;
 		lpsRowSet->__ptr[i].__ptr = s_alloc<propVal>(soap, lpsPropTagArray->__size);
-		memset(lpsRowSet->__ptr[i].__ptr, 0, sizeof(propVal) * lpsPropTagArray->__size);
 	}
 
 	gsoap_size_t i = 0;
@@ -331,13 +327,11 @@ ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis,
 	// We return a square array with all the values
 	lpsRowSet->__size = lpRowList->size();
 	lpsRowSet->__ptr = s_alloc<propValArray>(soap, lpsRowSet->__size);
-	memset(lpsRowSet->__ptr, 0, sizeof(propValArray) * lpsRowSet->__size);
 
 	// Allocate memory for all rows
 	for (gsoap_size_t i = 0; i < lpsRowSet->__size; ++i) {
 		lpsRowSet->__ptr[i].__size = lpsPropTagArray->__size;
 		lpsRowSet->__ptr[i].__ptr = s_alloc<propVal>(soap, lpsPropTagArray->__size);
-		memset(lpsRowSet->__ptr[i].__ptr, 0, sizeof(propVal) * lpsPropTagArray->__size);
 	}
 
 	gsoap_size_t i = 0;
@@ -590,13 +584,11 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 	// We return a square array with all the values
 	lpsRowSet->__size = lpRowList->size();
 	lpsRowSet->__ptr = s_alloc<propValArray>(soap, lpsRowSet->__size);
-	memset(lpsRowSet->__ptr, 0, sizeof(propValArray) * lpsRowSet->__size);
 
 	// Allocate memory for all rows
 	for (gsoap_size_t i = 0; i < lpsRowSet->__size; ++i) {
 		lpsRowSet->__ptr[i].__size = lpsPropTagArray->__size;
 		lpsRowSet->__ptr[i].__ptr = s_alloc<propVal>(soap, lpsPropTagArray->__size);
-		memset(lpsRowSet->__ptr[i].__ptr, 0, sizeof(propVal) * lpsPropTagArray->__size);
 	}
 
 	gsoap_size_t i = 0;
@@ -832,13 +824,11 @@ ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 	// We return a square array with all the values
 	lpsRowSet->__size = lpRowList->size();
 	lpsRowSet->__ptr = s_alloc<propValArray>(soap, lpsRowSet->__size);
-	memset(lpsRowSet->__ptr, 0, sizeof(propValArray) * lpsRowSet->__size);
 
 	// Allocate memory for all rows
 	for (gsoap_size_t i = 0; i < lpsRowSet->__size; ++i) {
 		lpsRowSet->__ptr[i].__size = lpsPropTagArray->__size;
 		lpsRowSet->__ptr[i].__ptr = s_alloc<propVal>(soap, lpsPropTagArray->__size);
-		memset(lpsRowSet->__ptr[i].__ptr, 0, sizeof(propVal) * lpsPropTagArray->__size);
 	}
 
 	gsoap_size_t i = 0;
@@ -1007,13 +997,11 @@ ECRESULT ECServerStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 	// We return a square array with all the values
 	lpsRowSet->__size = lpRowList->size();
 	lpsRowSet->__ptr = s_alloc<propValArray>(soap, lpsRowSet->__size);
-	memset(lpsRowSet->__ptr, 0, sizeof(propValArray) * lpsRowSet->__size);
 
 	// Allocate memory for all rows
 	for (gsoap_size_t i = 0; i < lpsRowSet->__size; ++i) {
 		lpsRowSet->__ptr[i].__size = lpsPropTagArray->__size;
 		lpsRowSet->__ptr[i].__ptr = s_alloc<propVal>(soap, lpsPropTagArray->__size);
-		memset(lpsRowSet->__ptr[i].__ptr, 0, sizeof(propVal) * lpsPropTagArray->__size);
 	}
 
 	gsoap_size_t i = 0;

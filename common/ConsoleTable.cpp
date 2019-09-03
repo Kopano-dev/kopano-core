@@ -68,7 +68,7 @@ void ConsoleTable::Resize(size_t rows, size_t columns)
 /**
  * Sets the header name for a column. This is optional, as not all tables have headers.
  *
- * @param[in] col column numer to set header name for
+ * @param[in] col column number to set header name for
  * @param[in] entry name of the header
  * @retval		true on success, false if offsets are out of range
  */

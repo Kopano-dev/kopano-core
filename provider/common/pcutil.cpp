@@ -259,7 +259,6 @@ ECRESULT ABIDToEntryID(struct soap *soap, unsigned int ulID, const objectid_t& s
 	auto strEncExId = base64_encode(sExternId.id.c_str(), sExternId.id.size());
 	unsigned int ulLen = CbNewABEID(strEncExId.c_str());
 	auto lpUserEid = reinterpret_cast<ABEID *>(s_alloc<char>(soap, ulLen));
-	memset(lpUserEid, 0, ulLen);
 	lpUserEid->ulId = ulID;
 	auto er = TypeToMAPIType(sExternId.objclass, &lpUserEid->ulType);
 	if (er != erSuccess) {
@@ -289,8 +288,6 @@ ECRESULT SIIDToEntryID(struct soap *soap, const GUID *guidServer,
 
 	auto ulSize = SIZEOF_SIEID_FIXED + sizeof(GUID);
 	auto lpInstanceEid = reinterpret_cast<SIEID *>(s_alloc<char>(soap, ulSize));
-
-	memset(lpInstanceEid, 0, ulSize);
 	lpInstanceEid->ulId = ulInstanceId;
 	lpInstanceEid->ulType = ulPropId;
 	memcpy(&lpInstanceEid->guid, MUIDECSI_SERVER, sizeof(GUID));

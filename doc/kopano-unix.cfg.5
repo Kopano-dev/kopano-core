@@ -1,32 +1,11 @@
-'\" t
-.\"     Title: kopano-unix.cfg
-.\"    Author: [see the "Author" section]
-.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
-.\"      Date: November 2016
-.\"    Manual: Kopano Core user reference
-.\"    Source: Kopano 8
-.\"  Language: English
-.\"
 .TH "KOPANO\-UNIX.CFG" "5" "November 2016" "Kopano 8" "Kopano Core user reference"
-.\" -----------------------------------------------------------------
-.\" * Define some portability stuff
-.\" -----------------------------------------------------------------
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .\" http://bugs.debian.org/507673
-.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
-.\" -----------------------------------------------------------------
-.\" * set default formatting
-.\" -----------------------------------------------------------------
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
 .ad l
-.\" -----------------------------------------------------------------
-.\" * MAIN CONTENT STARTS HERE *
-.\" -----------------------------------------------------------------
 .SH "NAME"
 kopano-unix.cfg \- The Kopano Unix user plugin configuration file
 .SH "SYNOPSIS"
@@ -47,7 +26,7 @@ The parameters are written in the form:
 =
 \fIvalue\fR
 .PP
-The file is line\-based. Each newline\-terminated line represents either a comment, nothing, a parameter or a directive. A line beginning with `#\*(Aq is considered a comment, and will be ignored by Kopano. Parameter names are case sensitive. Lines beginning with `!\*(Aq are directives.
+The file is line\-based. Each newline\-terminated line represents either a comment, nothing, a parameter or a directive. A line beginning with \fB#\fP is considered a comment, and will be ignored by Kopano. Parameter names are case sensitive. Lines beginning with \fB!\fP are directives.
 .PP
 Directives are written in the form:
 .PP
@@ -72,7 +51,7 @@ Default:
 \fIiso\-8859\-15\fR
 .SS default_domain
 .PP
-The default domain name to set as e\-mail address. When a user is created, its email address will be set to
+The default domain name to set as e-mail address. When a user is created, its email address will be set to
 \fIusername@default_domain\fR.
 .PP
 Default:
@@ -91,7 +70,7 @@ Default:
 \fI10000\fR
 .SS except_user_uids
 .PP
-A whitespace separated list of uids that are within the min_user_uid and max_user_uid range, but shouldn\*(Aqt be considered as users.
+A whitespace separated list of uids that are within the min_user_uid and max_user_uid range, but should not be considered as users.
 .PP
 Default:
 \fIempty\fR
@@ -109,7 +88,7 @@ Default:
 \fI10000\fR
 .SS except_group_gids
 .PP
-A whitespace separated list of gids that are within the min_group_gid and max_group_gid range, but shouldn\*(Aqt be considered as groups.
+A whitespace separated list of gids that are within the min_group_gid and max_group_gid range, but should not be considered as groups.
 .PP
 Default:
 \fIempty\fR
@@ -142,7 +121,7 @@ password
 The password is in the /etc/shadow file. Kopano needs reads access to this file to correctly work with the Unix plugin.
 .RE
 .PP
-Other attributes like quota settings, admin setting and e\-mail address are kept in the database like the db user plugin does.
+Other attributes like quota settings, admin setting and e-mail address are kept in the database like the db user plugin does.
 .SH "FILES"
 .PP
 /etc/kopano/server.cfg
@@ -154,9 +133,6 @@ The server configuration file.
 .RS 4
 The Kopano Unix user plugin configuration file.
 .RE
-.SH "AUTHOR"
-.PP
-Written by Kopano.
 .SH "SEE ALSO"
 .PP
 \fBkopano-server\fR(8),

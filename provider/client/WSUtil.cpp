@@ -559,7 +559,7 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 			break;
 		}
 		dp->Value.MVszA.cValues = sp->Value.mvszA.__size;
-		hr = ECAllocateMore(sizeof(LPSTR) * dp->Value.MVszA.cValues, lpBase, (void **)&dp->Value.MVszA.lppszA);
+		hr = ECAllocateMore(sizeof(LPSTR) * dp->Value.MVszA.cValues, lpBase, reinterpret_cast<void **>(&dp->Value.MVszA.lppszA));
 
 		for (unsigned int i = 0; i < dp->Value.MVszA.cValues; ++i) {
 			if (sp->Value.mvszA.__ptr[i] != NULL) {
@@ -932,13 +932,15 @@ HRESULT CopySOAPEntryListToMAPIEntryList(const struct entryList *lpsEntryList,
 		lpMsgList->cValues = 0;
 		lpMsgList->lpbin = NULL;
 	} else {
-		hr = ECAllocateMore(lpsEntryList->__size * sizeof(SBinary), lpMsgList, (void**)&lpMsgList->lpbin);
+		hr = ECAllocateMore(lpsEntryList->__size * sizeof(SBinary),
+		     lpMsgList, reinterpret_cast<void **>(&lpMsgList->lpbin));
 		if(hr != hrSuccess)
 			return hr;
 	}
 
 	for (i = 0; i < lpsEntryList->__size; ++i) {
-		hr = ECAllocateMore(lpsEntryList->__ptr[i].__size, lpMsgList, (void**)&lpMsgList->lpbin[i].lpb);
+		hr = ECAllocateMore(lpsEntryList->__ptr[i].__size, lpMsgList,
+		     reinterpret_cast<void **>(&lpMsgList->lpbin[i].lpb));
 		if(hr != hrSuccess)
 			return hr;
 		memcpy(lpMsgList->lpbin[i].lpb, lpsEntryList->__ptr[i].__ptr, lpsEntryList->__ptr[i].__size);
@@ -977,7 +979,6 @@ HRESULT CopyMAPIRowToSOAPRow(const SRow *lpRowSrc,
 	}
 
 	auto lpPropVal = s_alloc<propVal>(nullptr, lpRowSrc->cValues);
-	memset(lpPropVal, 0, sizeof(struct propVal) *lpRowSrc->cValues);
 	lpsRowDst->__ptr = lpPropVal;
 	lpsRowDst->__size = 0;
 
@@ -1046,7 +1047,7 @@ HRESULT CopySOAPRowSetToMAPIRowSet(void *lpProvider,
 		hr = ECAllocateBuffer(sizeof(SPropValue) * lpsRowSetSrc->__ptr[i].__size, reinterpret_cast<void **>(&lpRowSet->aRow[i].lpProps));
 		if (hr != hrSuccess)
 			return hr;
-		CopySOAPRowToMAPIRow(lpProvider, &lpsRowSetSrc->__ptr[i], lpRowSet->aRow[i].lpProps, (void **)lpRowSet->aRow[i].lpProps, ulType, &converter);
+		CopySOAPRowToMAPIRow(lpProvider, &lpsRowSetSrc->__ptr[i], lpRowSet->aRow[i].lpProps, reinterpret_cast<void **>(lpRowSet->aRow[i].lpProps), ulType, &converter);
 	}
 
 	*lppRowSetDst = lpRowSet.release();
@@ -1115,7 +1116,7 @@ HRESULT CopySOAPRestrictionToMAPIRestriction(LPSRestriction lpDst,
 		if (lpSrc->lpComment == NULL)
 			return MAPI_E_INVALID_PARAMETER;
 
-		hr = ECAllocateMore(sizeof(SRestriction), lpBase, (void **) &lpDst->res.resComment.lpRes);
+		hr = ECAllocateMore(sizeof(SRestriction), lpBase, reinterpret_cast<void **>(&lpDst->res.resComment.lpRes));
 		if (hr != hrSuccess)
 			return hr;
 		hr = CopySOAPRestrictionToMAPIRestriction(lpDst->res.resComment.lpRes, lpSrc->lpComment->lpResTable, lpBase, lpConverter);
@@ -1123,7 +1124,7 @@ HRESULT CopySOAPRestrictionToMAPIRestriction(LPSRestriction lpDst,
 			return hr;
 
 		lpDst->res.resComment.cValues = lpSrc->lpComment->sProps.__size;
-		hr = ECAllocateMore(sizeof(SPropValue) * lpSrc->lpComment->sProps.__size, lpBase, (void **)&lpDst->res.resComment.lpProp);
+		hr = ECAllocateMore(sizeof(SPropValue) * lpSrc->lpComment->sProps.__size, lpBase, reinterpret_cast<void **>(&lpDst->res.resComment.lpProp));
 		if (hr != hrSuccess)
 			return hr;
 		for (gsoap_size_t i = 0; i < lpSrc->lpComment->sProps.__size; ++i) {
@@ -1148,7 +1149,7 @@ HRESULT CopySOAPRestrictionToMAPIRestriction(LPSRestriction lpDst,
 		lpDst->res.resContent.ulFuzzyLevel = lpSrc->lpContent->ulFuzzyLevel;
 		lpDst->res.resContent.ulPropTag = lpSrc->lpContent->ulPropTag;
 
-		hr = ECAllocateMore(sizeof(SPropValue), lpBase, (void **) &lpDst->res.resContent.lpProp);
+		hr = ECAllocateMore(sizeof(SPropValue), lpBase, reinterpret_cast<void **>(&lpDst->res.resContent.lpProp));
 		if(hr != hrSuccess)
 			return hr;
 
@@ -1227,16 +1228,12 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 	}
 
 	lpDst = s_alloc<restrictTable>(nullptr);
-	memset(lpDst, 0, sizeof(restrictTable));
 	lpDst->ulType = lpSrc->rt;
 
 	switch(lpSrc->rt) {
 	case RES_OR:
 		lpDst->lpOr = s_alloc<restrictOr>(nullptr);
-		memset(lpDst->lpOr,0,sizeof(restrictOr));
-
 		lpDst->lpOr->__ptr = s_alloc<restrictTable *>(nullptr, lpSrc->res.resOr.cRes);
-		memset(lpDst->lpOr->__ptr, 0, sizeof(restrictTable*) * lpSrc->res.resOr.cRes);
 		lpDst->lpOr->__size = lpSrc->res.resOr.cRes;
 		for (unsigned int i = 0; i < lpSrc->res.resOr.cRes; ++i) {
 			hr = CopyMAPIRestrictionToSOAPRestriction(&(lpDst->lpOr->__ptr[i]), &lpSrc->res.resOr.lpRes[i], lpConverter);
@@ -1248,10 +1245,7 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 
 	case RES_AND:
 		lpDst->lpAnd = s_alloc<restrictAnd>(nullptr);
-		memset(lpDst->lpAnd,0,sizeof(restrictAnd));
-
 		lpDst->lpAnd->__ptr = s_alloc<restrictTable *>(nullptr, lpSrc->res.resAnd.cRes);
-		memset(lpDst->lpAnd->__ptr, 0, sizeof(restrictTable*) * lpSrc->res.resAnd.cRes);
 		lpDst->lpAnd->__size = lpSrc->res.resAnd.cRes;
 		for (unsigned int i = 0; i < lpSrc->res.resAnd.cRes; ++i) {
 			hr = CopyMAPIRestrictionToSOAPRestriction(&lpDst->lpAnd->__ptr[i], &lpSrc->res.resAnd.lpRes[i], lpConverter);
@@ -1263,8 +1257,6 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 
 	case RES_BITMASK:
 		lpDst->lpBitmask = s_alloc<restrictBitmask>(nullptr);
-		memset(lpDst->lpBitmask, 0, sizeof(restrictBitmask));
-
 		lpDst->lpBitmask->ulMask = lpSrc->res.resBitMask.ulMask;
 		lpDst->lpBitmask->ulPropTag = lpSrc->res.resBitMask.ulPropTag;
 		lpDst->lpBitmask->ulType = lpSrc->res.resBitMask.relBMR;
@@ -1272,8 +1264,6 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 
 	case RES_COMMENT:
 		lpDst->lpComment = s_alloc<restrictComment>(nullptr);
-		memset(lpDst->lpComment, 0, sizeof(restrictComment));
-
 		lpDst->lpComment->sProps.__ptr = s_alloc<propVal>(nullptr, lpSrc->res.resComment.cValues);
 		lpDst->lpComment->sProps.__size = lpSrc->res.resComment.cValues;
 		for (unsigned int i = 0; i < lpSrc->res.resComment.cValues; ++i) {
@@ -1289,8 +1279,6 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 
 	case RES_COMPAREPROPS:
 		lpDst->lpCompare = s_alloc<restrictCompare>(nullptr);
-		memset(lpDst->lpCompare, 0, sizeof(restrictCompare));
-
 		lpDst->lpCompare->ulPropTag1 = lpSrc->res.resCompareProps.ulPropTag1;
 		lpDst->lpCompare->ulPropTag2 = lpSrc->res.resCompareProps.ulPropTag2;
 		lpDst->lpCompare->ulType = lpSrc->res.resCompareProps.relop;
@@ -1298,8 +1286,6 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 
 	case RES_CONTENT:
 		lpDst->lpContent = s_alloc<restrictContent>(nullptr);
-		memset(lpDst->lpContent, 0, sizeof(restrictContent));
-
 		if( (PROP_TYPE(lpSrc->res.resContent.lpProp->ulPropTag) != PT_BINARY &&
 			PROP_TYPE(lpSrc->res.resContent.lpProp->ulPropTag) != PT_MV_BINARY &&
 			PROP_TYPE(lpSrc->res.resContent.lpProp->ulPropTag) != PT_STRING8 &&
@@ -1314,8 +1300,6 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 		lpDst->lpContent->ulFuzzyLevel = lpSrc->res.resContent.ulFuzzyLevel;
 		lpDst->lpContent->ulPropTag = lpSrc->res.resContent.ulPropTag;
 		lpDst->lpContent->lpProp = s_alloc<propVal>(nullptr);
-		memset(lpDst->lpContent->lpProp, 0, sizeof(propVal));
-
 		hr = CopyMAPIPropValToSOAPPropVal(lpDst->lpContent->lpProp, lpSrc->res.resContent.lpProp, lpConverter);
 		if(hr != hrSuccess)
 			return hr;
@@ -1323,14 +1307,11 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 
 	case RES_EXIST:
 		lpDst->lpExist = s_alloc<restrictExist>(nullptr);
-		memset(lpDst->lpExist, 0, sizeof(restrictExist));
-
 		lpDst->lpExist->ulPropTag = lpSrc->res.resExist.ulPropTag;
 		break;
 
 	case RES_NOT:
 		lpDst->lpNot = s_alloc<restrictNot>(nullptr);
-		memset(lpDst->lpNot, 0, sizeof(restrictNot));
 		hr = CopyMAPIRestrictionToSOAPRestriction(&lpDst->lpNot->lpNot, lpSrc->res.resNot.lpRes, lpConverter);
 		if(hr != hrSuccess)
 			return hr;
@@ -1338,11 +1319,8 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 
 	case RES_PROPERTY:
 		lpDst->lpProp = s_alloc<restrictProp>(nullptr);
-		memset(lpDst->lpProp, 0, sizeof(restrictProp));
-
 		lpDst->lpProp->ulType = lpSrc->res.resProperty.relop;
 		lpDst->lpProp->lpProp = s_alloc<propVal>(nullptr);
-		memset(lpDst->lpProp->lpProp, 0, sizeof(propVal));
 		lpDst->lpProp->ulPropTag = lpSrc->res.resProperty.ulPropTag;
 
 		hr = CopyMAPIPropValToSOAPPropVal(lpDst->lpProp->lpProp, lpSrc->res.resProperty.lpProp, lpConverter);
@@ -1352,8 +1330,6 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 
 	case RES_SIZE:
 		lpDst->lpSize = s_alloc<restrictSize>(nullptr);
-		memset(lpDst->lpSize, 0, sizeof(restrictSize));
-
 		lpDst->lpSize->cb = lpSrc->res.resSize.cb;
 		lpDst->lpSize->ulPropTag = lpSrc->res.resSize.ulPropTag;
 		lpDst->lpSize->ulType = lpSrc->res.resSize.relop;
@@ -1361,8 +1337,6 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 
 	case RES_SUBRESTRICTION:
 		lpDst->lpSub = s_alloc<restrictSub>(nullptr);
-		memset(lpDst->lpSub, 0, sizeof(restrictSub));
-
 		lpDst->lpSub->ulSubObject = lpSrc->res.resSub.ulSubObject;
 		hr = CopyMAPIRestrictionToSOAPRestriction(&lpDst->lpSub->lpSubObject, lpSrc->res.resSub.lpRes, lpConverter);
 		if(hr != hrSuccess)
@@ -1405,7 +1379,7 @@ HRESULT Utf8ToTString(LPCSTR lpszUtf8, ULONG ulFlags, LPVOID lpBase, convert_con
 		return MAPI_E_INVALID_PARAMETER;
 
 	std::string strDest = CONVERT_TO(lpConverter, std::string, ((ulFlags & MAPI_UNICODE) ? CHARSET_WCHAR : CHARSET_CHAR), lpszUtf8, rawsize(lpszUtf8), "UTF-8");
-	size_t cbDest = strDest.length() + ((ulFlags & MAPI_UNICODE) ? sizeof(WCHAR) : sizeof(CHAR));
+	size_t cbDest = strDest.length() + ((ulFlags & MAPI_UNICODE) ? sizeof(wchar_t) : sizeof(CHAR));
 	auto hr = ECAllocateMore(cbDest, lpBase, reinterpret_cast<void **>(lppszTString));
 	if (hr != hrSuccess)
 		return hr;
@@ -1447,7 +1421,7 @@ HRESULT CopyABPropsFromSoap(const struct propmapPairArray *lpsoapPropmap,
 	if (lpsoapPropmap != NULL) {
 		lpPropmap->cEntries = lpsoapPropmap->__size;
 		unsigned int nLen = sizeof(*lpPropmap->lpEntries) * lpPropmap->cEntries;
-		auto hr = ECAllocateMore(nLen, lpBase, (void**)&lpPropmap->lpEntries);
+		auto hr = ECAllocateMore(nLen, lpBase, reinterpret_cast<void **>(&lpPropmap->lpEntries));
 		if (hr != hrSuccess)
 			return hr;
 
@@ -1468,7 +1442,8 @@ HRESULT CopyABPropsFromSoap(const struct propmapPairArray *lpsoapPropmap,
 
 	if (lpsoapMVPropmap != NULL) {
 		lpMVPropmap->cEntries = lpsoapMVPropmap->__size;
-		auto hr = ECAllocateMore(sizeof(*lpMVPropmap->lpEntries) * lpMVPropmap->cEntries, lpBase, (void**)&lpMVPropmap->lpEntries);
+		auto hr = ECAllocateMore(sizeof(*lpMVPropmap->lpEntries) * lpMVPropmap->cEntries,
+		          lpBase, reinterpret_cast<void **>(&lpMVPropmap->lpEntries));
 		if (hr != hrSuccess)
 			return hr;
 
@@ -1483,7 +1458,7 @@ HRESULT CopyABPropsFromSoap(const struct propmapPairArray *lpsoapPropmap,
 
 			lpMVPropmap->lpEntries[i].cValues = lpsoapMVPropmap->__ptr[i].sValues.__size;
 			unsigned int nLen = sizeof(*lpMVPropmap->lpEntries[i].lpszValues) * lpMVPropmap->lpEntries[i].cValues;
-			hr = ECAllocateMore(nLen, lpBase, (void**)&lpMVPropmap->lpEntries[i].lpszValues);
+			hr = ECAllocateMore(nLen, lpBase, reinterpret_cast<void **>(&lpMVPropmap->lpEntries[i].lpszValues));
 			if (hr != hrSuccess)
 				return hr;
 
@@ -1512,7 +1487,8 @@ HRESULT CopyABPropsToSoap(const SPROPMAP *lpPropmap,
 		if (hr != hrSuccess)
 			return hr;
 		soapPropmap->__size = lpPropmap->cEntries;
-		hr = ECAllocateMore(soapPropmap->__size * sizeof *soapPropmap->__ptr, soapPropmap, (void**)&soapPropmap->__ptr);
+		hr = ECAllocateMore(soapPropmap->__size * sizeof(*soapPropmap->__ptr),
+		     soapPropmap, reinterpret_cast<void **>(&soapPropmap->__ptr));
 		if (hr != hrSuccess)
 			return hr;
 
@@ -1536,7 +1512,8 @@ HRESULT CopyABPropsToSoap(const SPROPMAP *lpPropmap,
 		if (hr != hrSuccess)
 			return hr;
 		soapMVPropmap->__size = lpMVPropmap->cEntries;
-		hr = ECAllocateMore(soapMVPropmap->__size * sizeof *soapMVPropmap->__ptr, soapMVPropmap, (void**)&soapMVPropmap->__ptr);
+		hr = ECAllocateMore(soapMVPropmap->__size * sizeof(*soapMVPropmap->__ptr),
+		     soapMVPropmap, reinterpret_cast<void **>(&soapMVPropmap->__ptr));
 		if (hr != hrSuccess)
 			return hr;
 
@@ -1550,7 +1527,8 @@ HRESULT CopyABPropsToSoap(const SPROPMAP *lpPropmap,
 			}
 
 			soapMVPropmap->__ptr[i].sValues.__size = lpMVPropmap->lpEntries[i].cValues;
-			hr = ECAllocateMore(soapMVPropmap->__ptr[i].sValues.__size * sizeof * soapMVPropmap->__ptr[i].sValues.__ptr, soapMVPropmap, (void**)&soapMVPropmap->__ptr[i].sValues.__ptr);
+			hr = ECAllocateMore(soapMVPropmap->__ptr[i].sValues.__size * sizeof(*soapMVPropmap->__ptr[i].sValues.__ptr),
+			     soapMVPropmap, reinterpret_cast<void **>(&soapMVPropmap->__ptr[i].sValues.__ptr));
 			if (hr != hrSuccess)
 				return hr;
 
@@ -1837,7 +1815,8 @@ HRESULT SvrNameListToSoapMvString8(ECSVRNAMELIST *lpSvrNameList,
 
 	if (lpSvrNameList->cServers > 0) {
 		lpsSvrNameList->__size = lpSvrNameList->cServers;
-		hr = ECAllocateMore(lpSvrNameList->cServers * sizeof *lpsSvrNameList->__ptr, lpsSvrNameList, (void**)&lpsSvrNameList->__ptr);
+		hr = ECAllocateMore(lpSvrNameList->cServers * sizeof(*lpsSvrNameList->__ptr),
+		     lpsSvrNameList, reinterpret_cast<void **>(&lpsSvrNameList->__ptr));
 		if (hr != hrSuccess)
 			return hr;
 		memset(lpsSvrNameList->__ptr, 0, lpSvrNameList->cServers * sizeof *lpsSvrNameList->__ptr);
@@ -1870,7 +1849,7 @@ HRESULT SoapServerListToServerList(const struct serverList *lpsServerList,
 		return hrSuccess;
 	}
 	lpServerList->cServers = lpsServerList->__size;
-	hr = ECAllocateMore(lpsServerList->__size * sizeof *lpServerList->lpsaServer, lpServerList, (void **)&lpServerList->lpsaServer);
+	hr = ECAllocateMore(lpsServerList->__size * sizeof(*lpServerList->lpsaServer), lpServerList, reinterpret_cast<void **>(&lpServerList->lpsaServer));
 	if (hr != hrSuccess)
 		return hr;
 	memset(lpServerList->lpsaServer, 0, lpsServerList->__size * sizeof *lpServerList->lpsaServer);
@@ -2171,11 +2150,7 @@ HRESULT CopySOAPChangeNotificationToSyncState(const struct notification *lpSrc,
 	memset(lpSBinary, 0, sizeof *lpSBinary);
 
 	lpSBinary->cb = lpSrc->ics->pSyncState->__size;
-
-	if (lpBase == NULL)
-		hr = ECAllocateMore(lpSBinary->cb, lpSBinary, reinterpret_cast<void **>(&lpSBinary->lpb));
-	else
-		hr = ECAllocateMore(lpSBinary->cb, lpBase, reinterpret_cast<void **>(&lpSBinary->lpb));
+	hr = ECAllocateMore(lpSBinary->cb, lpBase != nullptr ? lpBase : lpSBinary, reinterpret_cast<void **>(&lpSBinary->lpb));
 	if (hr != hrSuccess) {
 		MAPIFreeBuffer(lpSBinary);
 		return hr;
@@ -2217,7 +2192,8 @@ HRESULT CopyICSChangeToSOAPSourceKeys(ULONG cbChanges,
 	if (cbChanges > 0) {
 		lpsSKPA->__size = cbChanges;
 
-		hr = MAPIAllocateMore(cbChanges * sizeof *lpsSKPA->__ptr, lpsSKPA, (void**)&lpsSKPA->__ptr);
+		hr = MAPIAllocateMore(cbChanges * sizeof(*lpsSKPA->__ptr),
+		     lpsSKPA, reinterpret_cast<void **>(&lpsSKPA->__ptr));
 		if (hr != hrSuccess)
 			return hr;
 		memset(lpsSKPA->__ptr, 0, cbChanges * sizeof *lpsSKPA->__ptr);
@@ -2235,14 +2211,14 @@ HRESULT CopyICSChangeToSOAPSourceKeys(ULONG cbChanges,
 	return hrSuccess;
 }
 
-static HRESULT ConvertString8ToUnicode(const char *lpszA, WCHAR **lppszW,
+static HRESULT ConvertString8ToUnicode(const char *lpszA, wchar_t **lppszW,
     void *base, convert_context &converter)
 {
 	if (lpszA == nullptr || lppszW == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
 	std::wstring wide;
-	WCHAR *lpszW = NULL;
+	wchar_t *lpszW = nullptr;
 	TryConvert(lpszA, wide);
 	auto hr = ECAllocateMore((wide.length() + 1) * sizeof(std::wstring::value_type),
 	          base, reinterpret_cast<void **>(&lpszW));
@@ -2403,6 +2379,52 @@ HRESULT ConvertString8ToUnicode(LPSRowSet lpRowSet)
 		auto hr = ConvertString8ToUnicode(&lpRowSet->aRow[c], NULL, converter);
 		if (hr != hrSuccess)
 			return hr;
+	}
+	return hrSuccess;
+}
+
+HRESULT convert_wsfolder_to_soapfolder(const std::vector<WSMAPIFolderOps::WSFolder> &source,
+    std::vector<new_folder> &destination)
+{
+	const auto count = source.size();
+	destination.resize(count);
+	for (unsigned int i = 0; i < count; ++i) {
+		const auto &src = source[i];
+		auto &dst       = destination[i];
+
+		dst.type           = src.folder_type;
+		dst.name           = src.name.c_str();
+		dst.comment        = src.comment.c_str();
+		dst.open_if_exists = src.open_if_exists;
+		dst.sync_id        = src.sync_id;
+
+		if (src.m_lpNewEntryId != nullptr) {
+			auto ret = CopyMAPIEntryIdToSOAPEntryId(src.m_cbNewEntryId, src.m_lpNewEntryId, &dst.entryid);
+			if (ret != hrSuccess)
+				return ret;
+		}
+		if (src.sourcekey != nullptr) {
+			dst.original_sourcekey.__ptr  = src.sourcekey->lpb;
+			dst.original_sourcekey.__size = src.sourcekey->cb;
+		} else {
+			dst.original_sourcekey.__ptr  = nullptr;
+			dst.original_sourcekey.__size = 0;
+		}
+	}
+	return hrSuccess;
+}
+
+HRESULT convert_soapfolders_to_wsfolder(const struct create_folders_response &source,
+    std::vector<WSMAPIFolderOps::WSFolder> &destination)
+{
+	const auto count = source.entryids->__size;
+	destination.resize(count);
+	for (unsigned int i = 0; i < count; ++i) {
+		const auto &dst = destination[i];
+		auto ret = CopySOAPEntryIdToMAPIEntryId(&source.entryids->__ptr[i],
+		           dst.m_lpcbEntryId, dst.m_lppEntryId);
+		if (ret != hrSuccess)
+			return ret;
 	}
 	return hrSuccess;
 }

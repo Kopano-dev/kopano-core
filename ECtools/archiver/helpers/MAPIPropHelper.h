@@ -69,7 +69,7 @@ public:
 
 private:
 	enum msFlags {
-		msStubbed	= 0x01,	//<	The message is stubbed, mutual exlusive with msDirty
+		msStubbed	= 0x01,	//<	The message is stubbed, mutual exclusive with msDirty
 		msDirty		= 0x02,	//<	The message is dirty, mutual exclusive with msStubbed
 		msCopy		= 0x04,	//< The message is copied, mutual exclusive with msMove
 		msMove		= 0x08	//< The message is moved, mutual exclusive with msCopy

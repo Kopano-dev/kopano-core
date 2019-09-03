@@ -380,7 +380,6 @@ HRESULT ECNotifyClient::NotifyReload()
 	struct notificationTable table;
 	NOTIFYLIST notifications;
 
-	memset(&table, 0, sizeof(table));
 	notif.ulEventType = fnevTableModified;
 	notif.tab = &table;
 	notif.tab->ulTableEvent = TABLE_RELOAD;
@@ -476,7 +475,8 @@ HRESULT ECNotifyClient::NotifyChange(ULONG ulConnection, const NOTIFYLIST &lNoti
 		return hr;
 	memset(lpSyncStates, 0, sizeof *lpSyncStates);
 
-	hr = MAPIAllocateMore(sizeof *lpSyncStates->lpbin * MAX_NOTIFS_PER_CALL, lpSyncStates, (void**)&lpSyncStates->lpbin);
+	hr = MAPIAllocateMore(sizeof(*lpSyncStates->lpbin) * MAX_NOTIFS_PER_CALL,
+	     lpSyncStates, reinterpret_cast<void **>(&lpSyncStates->lpbin));
 	if (hr != hrSuccess)
 		return hr;
 	memset(lpSyncStates->lpbin, 0, sizeof *lpSyncStates->lpbin * MAX_NOTIFS_PER_CALL);

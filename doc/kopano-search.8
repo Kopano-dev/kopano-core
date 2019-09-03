@@ -1,32 +1,11 @@
-'\" t
-.\"     Title: kopano-search
-.\"    Author: [see the "Author" section]
-.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
-.\"      Date: November 2016
-.\"    Manual: Kopano Core user reference
-.\"    Source: Kopano 8
-.\"  Language: English
-.\"
 .TH "KOPANO\-SEARCH" "8" "November 2016" "Kopano 8" "Kopano Core user reference"
-.\" -----------------------------------------------------------------
-.\" * Define some portability stuff
-.\" -----------------------------------------------------------------
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .\" http://bugs.debian.org/507673
-.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
-.\" -----------------------------------------------------------------
-.\" * set default formatting
-.\" -----------------------------------------------------------------
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
 .ad l
-.\" -----------------------------------------------------------------
-.\" * MAIN CONTENT STARTS HERE *
-.\" -----------------------------------------------------------------
 .SH "NAME"
 kopano-search \- Kopano Indexed Search Service.
 .SH "SYNOPSIS"
@@ -67,7 +46,7 @@ file:///var/run/kopano/server.sock.
 .RS 4
 Remove the current index of the given user or store and start to make a new index immediately.
 .sp
-Use in combination with \fI\-u\fR or \fI\-S\fR to specify one or more users or stores.
+Use in combination with \fB\-u\fP or \fB\-S\fP to specify one or more users or stores.
 .sp
 The kopano\-search daemon must already be running on the same machine.
 .RE
@@ -91,9 +70,6 @@ You may also use the init.d scripts:
 \fIstop\fR|
 \fIrestart\fR|
 \fIreload\fR]
-.SH "AUTHOR"
-.PP
-Written by Kopano.
 .SH "SEE ALSO"
 .PP
 \fBkopano-server\fR(8),

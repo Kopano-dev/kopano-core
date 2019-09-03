@@ -13,8 +13,21 @@
 #include "globals.h"
 ZEND_EXTERN_MODULE_GLOBALS(mapi)
 
+#include <memory>
 #include <kopano/charset/convert.h>
 #include <inetmapi/options.h>
+
+struct zstr_delete {
+	public:
+	void operator()(zend_string *s) { zend_string_release(s); }
+};
+
+struct zvalplus : public zval {
+	zvalplus() { ZVAL_NULL(this); }
+	~zvalplus() { zval_ptr_dtor(this); }
+};
+
+typedef std::unique_ptr<zend_string, zstr_delete> zstrplus;
 
 /*
  * PHP -> MAPI
@@ -51,12 +64,12 @@ extern HRESULT PHPArraytoDeliveryOptions(zval *, KC::delivery_options *);
  * All functions return a newly allocated ZVAL structure which must be FREE_ZVAL()'ed by the caller.
  */
  
-extern HRESULT SBinaryArraytoPHPArray(const SBinaryArray *, zval **ret TSRMLS_DC);
-extern HRESULT PropTagArraytoPHPArray(ULONG nvals, const SPropTagArray *, zval **ret TSRMLS_DC);
-extern HRESULT PropValueArraytoPHPArray(ULONG nvals, const SPropValue *, zval **ret TSRMLS_DC);
-extern HRESULT SRestrictiontoPHPArray(const SRestriction *, int level, zval **ret TSRMLS_DC);
-extern HRESULT RowSettoPHPArray(const SRowSet *, zval **ret TSRMLS_DC);
-extern HRESULT ReadStateArraytoPHPArray(ULONG nvals, const READSTATE *, zval **ret TSRMLS_DC);
-extern HRESULT NotificationstoPHPArray(ULONG nvals, const NOTIFICATION *, zval **ret TSRMLS_DC);
+extern HRESULT SBinaryArraytoPHPArray(const SBinaryArray *, zval *ret TSRMLS_DC);
+extern HRESULT PropTagArraytoPHPArray(ULONG nvals, const SPropTagArray *, zval *ret TSRMLS_DC);
+extern HRESULT PropValueArraytoPHPArray(ULONG nvals, const SPropValue *, zval *ret TSRMLS_DC);
+extern HRESULT SRestrictiontoPHPArray(const SRestriction *, int level, zval *ret TSRMLS_DC);
+extern HRESULT RowSettoPHPArray(const SRowSet *, zval *ret TSRMLS_DC);
+extern HRESULT ReadStateArraytoPHPArray(ULONG nvals, const READSTATE *, zval *ret TSRMLS_DC);
+extern HRESULT NotificationstoPHPArray(ULONG nvals, const NOTIFICATION *, zval *ret TSRMLS_DC);
 
 #endif

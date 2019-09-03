@@ -345,9 +345,10 @@ ECRESULT ECDatabase::InitLibrary(const char *lpDatabaseDir,
 	 * mysql's function signature stinks, and even their samples
 	 * do the cast :(
 	 */
-	if ((ret = mysql_library_init(ARRAY_SIZE(server_args),
-	     const_cast<char **>(server_args),
-	     const_cast<char **>(server_groups))) != 0) {
+	ret = mysql_library_init(ARRAY_SIZE(server_args),
+	      const_cast<char **>(server_args),
+	      const_cast<char **>(server_groups));
+	if (ret != 0) {
 		ec_log_crit("Unable to initialize mysql: error 0x%08X", ret);
 		return KCERR_DATABASE_ERROR;
 	}

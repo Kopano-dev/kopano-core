@@ -2,8 +2,8 @@
 """
 Part of the high-level python bindings for Kopano
 
-Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
-Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
+Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file)
+Copyright 2016 - Kopano and its licensors (see LICENSE file)
 """
 
 import collections
@@ -22,7 +22,6 @@ import ssl
 import sys
 import traceback
 
-from .compat import decode as _decode
 
 try:
     import daemon
@@ -39,20 +38,24 @@ from . import parser as _parser
 def _daemon_helper(func, service, log):
     try:
         if not service or isinstance(service, Service):
-            if isinstance(service, Service): # XXX
+            if isinstance(service, Service): # TODO
                 service.log_queue = multiprocessing.Queue()
+                service.log_queue.cancel_join_thread()
                 service.ql = _log.QueueListener(service.log_queue, *service.log.handlers)
                 service.ql.start()
             func()
         else:
             func(service)
     finally:
-        if isinstance(service, Service) and service.ql: # XXX move queue stuff into Service
-            service.ql.stop()
         if log and service:
             log.info('stopping %s', service.name)
+        if isinstance(service, Service) and service.ql: # XXX move queue stuff into Service
+            service.ql.stop()
+            service.log_queue.close()
+            service.log_queue.join_thread()
 
-def _daemonize(func, options=None, foreground=False, log=None, config=None, service=None):
+def _daemonize(func, options=None, foreground=False, log=None, config=None,
+        service=None):
     uid = gid = None
     working_directory = '/'
     pidfile = None
@@ -77,7 +80,8 @@ def _daemonize(func, options=None, foreground=False, log=None, config=None, serv
             except IOError as error:
                 if error.errno != errno.ENOENT:
                     raise
-                # errno.ENOENT indicates that no process with pid=oldpid exists, which is ok
+                # errno.ENOENT indicates that no process with pid=oldpid
+                # exists, which is ok
                 pidfile.break_lock()
     if uid is not None and gid is not None:
         for h in log.handlers:
@@ -91,7 +95,9 @@ def _daemonize(func, options=None, foreground=False, log=None, config=None, serv
             uid=uid,
             gid=gid,
             working_directory=working_directory,
-            files_preserve=[h.stream for h in log.handlers if isinstance(h, logging.handlers.WatchedFileHandler)] if log else None,
+            files_preserve=[h.stream for h in log.handlers if \
+                isinstance(h, logging.handlers.WatchedFileHandler)] \
+                    if log else None,
             prevent_core=False,
             detach_process=not foreground,
             stdout=sys.stdout,
@@ -101,25 +107,26 @@ def _daemonize(func, options=None, foreground=False, log=None, config=None, serv
 
 class Service:
     """
-Encapsulates everything to create a simple service, such as:
+Encapsulates everything to create a simple Kopano service, such as:
 
 - Locating and parsing a configuration file
 - Performing logging, as specifified in the configuration file
 - Handling common command-line options (-c, -F)
 - Daemonization (if no -F specified)
 
-:param name: name of the service; if for example 'search', the configuration file should be called ``/etc/kopano/search.cfg`` or passed with -c
+:param name: name of the service; if for example 'search', the configuration
+    file should be called ``/etc/kopano/search.cfg`` or passed with -c
 :param config: :class:`Configuration <Config>` to use
 :param options: OptionParser instance to get settings from (see :func:`parser`)
 
 """
 
-    def __init__(self, name, config=None, options=None, args=None, logname=None, **kwargs):
+    def __init__(self, name, config=None, options=None, args=None,
+            logname=None, **kwargs):
         self.name = name
         self.__dict__.update(kwargs)
         if not options:
             options, args = _parser.parser('CSKQUPufmvVFw').parse_args()
-            args = [_decode(arg) for arg in args]
         self.options, self.args = options, args
         self.name = name
         self.logname = logname
@@ -128,14 +135,22 @@ Encapsulates everything to create a simple service, such as:
         if config:
             config2.update(config)
         if getattr(options, 'config_file', None):
-            options.config_file = os.path.abspath(options.config_file) # XXX useful during testing. could be generalized with optparse callback?
+            # TODO useful during testing.
+            # could be generalized with optparse callback?
+            options.config_file = os.path.abspath(options.config_file)
         if not getattr(options, 'service', True):
             options.foreground = True
+        #: Service :class:`configuration <Config>` instance.
         self.config = _config.Config(config2, service=name, options=options)
-        self.config.data['server_socket'] = os.getenv("KOPANO_SOCKET") or self.config.data['server_socket']
+        self.config.data['server_socket'] = \
+            os.getenv("KOPANO_SOCKET") or self.config.data['server_socket']
         if getattr(options, 'worker_processes', None):
             self.config.data['worker_processes'] = options.worker_processes
-        self.log = _log.logger(self.logname or self.name, options=self.options, config=self.config) # check that this works here or daemon may die silently XXX check run_as_user..?
+        # check that this works here or daemon may die silently
+        # TODO check run_as_user..?
+        #: Service logger.
+        self.log = _log.logger(self.logname or self.name,
+            options=self.options, config=self.config)
         for msg in self.config.info:
             self.log.info(msg)
         for msg in self.config.warnings:
@@ -152,19 +167,26 @@ Encapsulates everything to create a simple service, such as:
 
     @property
     def server(self):
+        """Service :class:`server <Server>` instance."""
         if self._server is None:
-            self._server = _server.Server(options=self.options, config=self.config.data, log=self.log, service=self, _skip_check=True)
+            self._server = _server.Server(options=self.options,
+                config=self.config.data, log=self.log, service=self,
+                _skip_check=True)
         return self._server
 
     def start(self):
+        """Start service."""
         for sig in (signal.SIGTERM, signal.SIGINT):
             signal.signal(sig, lambda *args: sys.exit(-sig))
-        signal.signal(signal.SIGHUP, signal.SIG_IGN) # XXX long term, reload config?
+        # TODO long term, reload config?
+        signal.signal(signal.SIGHUP, signal.SIG_IGN)
 
         self.log.info('starting %s', self.logname or self.name)
         try:
-            if getattr(self.options, 'service', True): # do not run-as-service (eg backup)
-                _daemonize(self.main, options=self.options, log=self.log, config=self.config, service=self)
+            # do not run-as-service (eg backup)
+            if getattr(self.options, 'service', True):
+                _daemonize(self.main, options=self.options, log=self.log,
+                    config=self.config, service=self)
             else:
                 _daemon_helper(self.main, self, self.log)
         except Exception as e:
@@ -172,6 +194,10 @@ Encapsulates everything to create a simple service, such as:
             sys.exit(1)
 
 class Worker(Process):
+    """Service worker class.
+
+    Used by services to spawn multiple worker instances.
+    """
     def __init__(self, service, name, **kwargs):
         Process.__init__(self)
         self.daemon = True
@@ -182,7 +208,8 @@ class Worker(Process):
         self.log = logging.getLogger(name=self.name)
         if not self.log.handlers:
             loglevel = _log._loglevel(service.options, service.config)
-            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+            formatter = logging.Formatter(
+                '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
             qh = _log.QueueHandler(service.log_queue)
             qh.setFormatter(formatter)
             qh.setLevel(loglevel)
@@ -191,8 +218,11 @@ class Worker(Process):
 
     @property
     def server(self):
+        """Worker :class:`server <Server>` instance."""
         if self._server is None:
-            self._server = _server.Server(options=self.service.options, config=self.service.config, log=self.service.log, service=self.service, _skip_check=True)
+            self._server = _server.Server(options=self.service.options,
+                config=self.service.config, log=self.service.log,
+                service=self.service, _skip_check=True)
         return self._server
 
     def main(self):
@@ -216,9 +246,9 @@ class _ZSocket:
 
     def accept(self):
         newsocket, fromaddr = self.s.accept()
-        connstream = ssl.wrap_socket(newsocket, server_side=True, keyfile=self.ssl_key, certfile=self.ssl_cert)
+        connstream = ssl.wrap_socket(newsocket, server_side=True,
+            keyfile=self.ssl_key, certfile=self.ssl_cert)
         return connstream, fromaddr
-
 
 def server_socket(addr, ssl_key=None, ssl_cert=None, log=None):
     if addr.startswith('file://'):

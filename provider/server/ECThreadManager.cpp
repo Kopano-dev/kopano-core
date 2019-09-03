@@ -119,14 +119,13 @@ void WORKITEM::run()
 	pthread_t thrself = pthread_self();
 	struct soap *soap = lpWorkItem->xsoap;
 	lpWorkItem->xsoap = nullptr; /* Snatch soap away from ~WORKITEM */
-
-	set_thread_name(thrself, format("z-s: %s", soap->host).c_str());
+	set_thread_name(thrself, (m_worker->m_pool->m_poolname + "/" + soap->host).c_str());
 
 	// For SSL connections, we first must do the handshake and pass it back to the queue
 	if (soap->ctx && soap->ssl == nullptr) {
 		err = soap_ssl_accept(soap);
 		if (err) {
-			auto se = soap_ssl_error(soap, 0, SSL_ERROR_NONE);
+			auto se = soap->ssl != nullptr ? soap_ssl_error(soap, 0, SSL_ERROR_NONE) : 0;
 			ec_log_warn("K-2171: soap_ssl_accept: %s: %s", *soap_faultdetail(soap), se);
 			ec_log_debug("%s: %s", GetSoapError(err).c_str(), *soap_faultstring(soap));
 		}
@@ -203,59 +202,7 @@ done:
 	soap_end(soap);
 	// We're done processing the item, the workitem's socket is returned to the queue
 	dispatcher->NotifyDone(soap);
-	set_thread_name(thrself, "z-s: idle thread");
-}
-
-ECWatchDog::ECWatchDog(ECConfig *lpConfig, ECDispatcher *lpDispatcher) :
-	m_lpConfig(lpConfig), m_lpDispatcher(lpDispatcher)
-{
-	auto ret = pthread_create(&m_thread, nullptr, ECWatchDog::Watch, this);
-	if (ret != 0) {
-		ec_log_crit("Could not create ECWatchDog thread: %s", strerror(ret));
-		return;
-	}
-	m_thread_active = true;
-	set_thread_name(m_thread, "ECWatchDog");
-}
-
-ECWatchDog::~ECWatchDog()
-{
-    void *ret;
-
-	ulock_normal l_exit(m_mutexExit);
-	m_bExit = true;
-	m_condExit.notify_one();
-	l_exit.unlock();
-	if (m_thread_active)
-		pthread_join(m_thread, &ret);
-}
-
-void *ECWatchDog::Watch(void *lpParam)
-{
-	auto lpThis = static_cast<ECWatchDog *>(lpParam);
-	kcsrv_blocksigs();
-
-    while(1) {
-		if (lpThis->m_bExit)
-			break;
-
-        double dblMaxFreq = atoi(lpThis->m_lpConfig->GetSetting("watchdog_frequency"));
-
-        // If the age of the front item in the queue is older than the specified maximum age, force
-        // a new thread to be started
-		if (lpThis->m_lpDispatcher->front_item_age() >
-		    std::chrono::milliseconds(atoi(lpThis->m_lpConfig->GetSetting("watchdog_max_age"))))
-			lpThis->m_lpDispatcher->force_add_threads(1);
-
-        // Check to see if exit flag is set, and limit rate to dblMaxFreq Hz
-		ulock_normal l_exit(lpThis->m_mutexExit);
-		if (!lpThis->m_bExit) {
-			lpThis->m_condExit.wait_for(l_exit, std::chrono::duration<double>(1 / dblMaxFreq));
-			if (lpThis->m_bExit)
-				break;
-        }
-    }
-    return NULL;
+	set_thread_name(thrself, (m_worker->m_pool->m_poolname + "/idle").c_str());
 }
 
 ECDispatcher::ECDispatcher(std::shared_ptr<ECConfig> lpConfig) :
@@ -341,26 +288,13 @@ void ECDispatcher::NotifyDone(struct soap *soap)
 	NotifyRestart(socket);
 }
 
-// Set the nominal thread count
-void ECDispatcher::SetThreadCount(unsigned int ulThreads)
-{
-	m_pool.setThreadCount(ulThreads);
-}
-
-void ECDispatcher::force_add_threads(size_t n)
-{
-	size_t a, i;
-	scoped_lock lk(m_poolcount);
-	m_pool.thread_counts(&a, &i);
-	m_pool.setThreadCount(a + i + n);
-}
-
 ECRESULT ECDispatcher::DoHUP()
 {
 	m_nRecvTimeout = atoi(m_lpConfig->GetSetting("server_recv_timeout"));
 	m_nReadTimeout = atoi(m_lpConfig->GetSetting("server_read_timeout"));
 	m_nSendTimeout = atoi(m_lpConfig->GetSetting("server_send_timeout"));
-	SetThreadCount(atoi(m_lpConfig->GetSetting("threads")));
+	m_pool.set_thread_count(atoui(m_lpConfig->GetSetting("threads")),
+		atoui(m_lpConfig->GetSetting("thread_limit")));
 
 	for (auto const &p : m_setListenSockets) {
 		auto ulType = SOAP_CONNECTION_TYPE(p.second);
@@ -375,11 +309,7 @@ ECRESULT ECDispatcher::DoHUP()
 			ec_log_crit("K-3904: Unable to setup ssl context: %s", *soap_faultdetail(p.second.get()));
 			return KCERR_CALL_FAILED;
 		}
-
-		std::unique_ptr<char[], cstdlib_deleter> server_ssl_protocols(strdup(m_lpConfig->GetSetting("server_ssl_protocols")));
-		if (server_ssl_protocols == nullptr)
-			return KCERR_NOT_ENOUGH_MEMORY;
-		auto er = kc_ssl_options(p.second.get(), server_ssl_protocols.get(),
+		auto er = kc_ssl_options(p.second.get(), m_lpConfig->GetSetting("server_tls_min_proto"),
 			m_lpConfig->GetSetting("server_ssl_ciphers"),
 			m_lpConfig->GetSetting("server_ssl_prefer_server_ciphers"),
 			m_lpConfig->GetSetting("server_ssl_curves"));
@@ -399,6 +329,7 @@ ECDispatcherSelect::ECDispatcherSelect(std::shared_ptr<ECConfig> lpConfig) :
 {
     int pipes[2];
     pipe(pipes);
+	/* No fd relocation, as this is using select. */
 	// Create a pipe that we can use to trigger select() to return
     m_fdRescanRead = pipes[0];
     m_fdRescanWrite = pipes[1];
@@ -418,10 +349,9 @@ ECRESULT ECDispatcherSelect::MainLoop()
 		pollfd[n].events = POLLIN;
 
     // This will start the threads
-	m_pool.setThreadCount(atoui(m_lpConfig->GetSetting("threads")));
-	m_prio.setThreadCount(1);
-    // Start the watchdog
-	auto lpWatchDog = std::make_unique<ECWatchDog>(m_lpConfig.get(), this);
+	m_pool.set_thread_count(atoui(m_lpConfig->GetSetting("threads")), atoui(m_lpConfig->GetSetting("thread_limit")));
+	m_pool.enable_watchdog(true, m_lpConfig);
+	m_prio.set_thread_count(1);
 
     // Main loop
     while(!m_bExit) {
@@ -557,11 +487,9 @@ ECRESULT ECDispatcherSelect::MainLoop()
 		}
 	}
 
-    // Delete the watchdog. This makes sure no new threads will be started.
-	lpWatchDog.reset();
     // Set the thread count to zero so that threads will exit
-	m_pool.setThreadCount(0, true);
-	m_prio.setThreadCount(0, true);
+	m_pool.set_thread_count(0, 0, true);
+	m_prio.set_thread_count(0, 0, true);
 
 	// Close all sockets. This will cause all that we were listening on clients to get an EOF
 	ulock_normal l_sock(m_mutexSockets);
@@ -625,10 +553,9 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 	}
 
 	// This will start the threads
-	m_pool.setThreadCount(atoui(m_lpConfig->GetSetting("threads")));
-	m_prio.setThreadCount(1);
-	// Start the watchdog
-	auto lpWatchDog = std::make_unique<ECWatchDog>(m_lpConfig.get(), this);
+	m_pool.set_thread_count(atoui(m_lpConfig->GetSetting("threads")), atoui(m_lpConfig->GetSetting("thread_limit")));
+	m_pool.enable_watchdog(true, m_lpConfig);
+	m_prio.set_thread_count(1);
 
 	while (!m_bExit) {
 		time(&now);
@@ -718,10 +645,8 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 		l_sock.unlock();
 	}
 
-	// Delete the watchdog. This makes sure no new threads will be started.
-	lpWatchDog.reset();
-	m_pool.setThreadCount(0);
-	m_prio.setThreadCount(0);
+	m_pool.set_thread_count(0, 0, true);
+	m_prio.set_thread_count(0, 0, true);
 
     // Close all sockets. This will cause all that we were listening on clients to get an EOF
 	ulock_normal l_sock(m_mutexSockets);

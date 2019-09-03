@@ -261,8 +261,7 @@ static std::string rst2flt_main(const restrictTable *rt,
 {
 	/* Transform a restriction into an LDAP filter. It need not be exact:
 	 * matching more is always ok. */
-	//(gdb) p/x lpsRestrict[0].lpOr[0].__ptr[3][0].lpContent[0].ulPropTag
-	//$14 = 0x3003001e
+	static const char always_true[] = "(objectClass=*)", always_false[] = "(!(objectClass=*))";
 	switch (rt->ulType) {
 	case RES_OR:
 		return rst2flt_or(rt->lpOr, propmap, inot);
@@ -273,10 +272,10 @@ static std::string rst2flt_main(const restrictTable *rt,
 	case RES_COMMENT:
 		return rst2flt_main(rt->lpComment->lpResTable, propmap, inot);
 	case RES_SUBRESTRICTION:
-		return "(|)"; /* userdb has no concept of "sub" */
+		return always_true; /* userdb has no concept of "sub" */
 	case RES_EXIST: {
 		auto i = propmap.find(PROP_ID(rt->lpExist->ulPropTag));
-		return i == propmap.cend() ? "(|)"s : "(" + i->second + "=*)";
+		return i == propmap.cend() ? std::string(always_true) : "(" + i->second + "=*)";
 	}
 	case RES_CONTENT:
 		break;
@@ -285,15 +284,19 @@ static std::string rst2flt_main(const restrictTable *rt,
 		 * Unrepresentable restriction type (BITMASK, COMPARE,
 		 * PROPERTY, SIZE); the result is therefore indefinite.
 		 * "Indefinite" values need to evaluate to "true" in the
-		 * outermost expression such that they do not filter rows.
+		 * outermost expression such that they do not lead to row
+		 * filtering.
+		 *
+		 * AND(BITMASK) => (&(irrepr)) => (&(objectClass=*))   <=> (objectClass=*)
+		 * NOT(BITMASK) => (!(irrepr)) => (!(!(objectClass=*)) <=> (objectClass=*)
 		 */
-		return inot ? "(|)" : "(&)";
+		return inot ? always_false : always_true;
 	}
 	auto q = rt->lpContent;
 	auto pv = q->lpProp;
 	auto pt = propmap.find(PROP_ID(pv->ulPropTag));
 	if (pt == propmap.cend())
-		return "(|)";
+		return always_true;
 	std::string flt = "(" + pt->second + "=";
 	if (PROP_TYPE(pv->ulPropTag) != PT_STRING8)
 		/* Not supporting non-string checks yet */
@@ -541,23 +544,27 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn,
 		}
 
 		LOG_PLUGIN_DEBUG("Trying to connect to %s", currentServer.c_str());
-		if ((rc = ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION, &version)) != LDAP_OPT_SUCCESS) {
+		rc = ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION, &version);
+		if (rc != LDAP_OPT_SUCCESS) {
 			ec_log_err("LDAP_OPT_PROTOCOL_VERSION failed: %s", ldap_err2string(rc));
 			goto fail;
 		}
 		// Disable response message size restrictions (but the server's
 		// restrictions still apply)
-		if ((rc = ldap_set_option(ld, LDAP_OPT_SIZELIMIT, &limit)) != LDAP_OPT_SUCCESS) {
+		rc = ldap_set_option(ld, LDAP_OPT_SIZELIMIT, &limit);
+		if (rc != LDAP_OPT_SUCCESS) {
 			ec_log_err("LDAP_OPT_SIZELIMIT failed: %s", ldap_err2string(rc));
 			goto fail;
 		}
 		// Search referrals are never accepted  - FIXME maybe needs config option
-		if ((rc = ldap_set_option(ld, LDAP_OPT_REFERRALS, LDAP_OPT_OFF)) != LDAP_OPT_SUCCESS) {
+		rc = ldap_set_option(ld, LDAP_OPT_REFERRALS, LDAP_OPT_OFF);
+		if (rc != LDAP_OPT_SUCCESS) {
 			ec_log_err("LDAP_OPT_REFERRALS failed: %s", ldap_err2string(rc));
 			goto fail;
 		}
 		// Set network timeout (for connect)
-		if ((rc = ldap_set_option(ld, LDAP_OPT_NETWORK_TIMEOUT, &m_timeout)) != LDAP_OPT_SUCCESS) {
+		rc = ldap_set_option(ld, LDAP_OPT_NETWORK_TIMEOUT, &m_timeout);
+		if (rc != LDAP_OPT_SUCCESS) {
 			ec_log_err("LDAP_OPT_NETWORK_TIMEOUT failed: %s", ldap_err2string(rc));
 			goto fail;
 		}
@@ -584,7 +591,8 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn,
 		// For these two values: if they are both NULL, anonymous bind
 		// will be used (ldap_binddn, ldap_bindpw)
 		LOG_PLUGIN_DEBUG("Issuing LDAP bind");
-		if ((rc = ldap_simple_bind_s(ld, (char *)bind_dn, (char *)bind_pw)) == LDAP_SUCCESS)
+		rc = ldap_simple_bind_s(ld, (char *)bind_dn, (char *)bind_pw);
+		if (rc == LDAP_SUCCESS)
 			break;
 		ec_log_warn("LDAP (simple) bind on %s failed: %s", bind_dn, ldap_err2string(rc));
 	fail:
@@ -1634,8 +1642,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 	std::map<objectid_t, objectdetails_t> mapdetails;
 	auto_free_ldap_message res;
 
-	LOG_PLUGIN_DEBUG("%s N=%d", __FUNCTION__, (int)objectids.size() );
-
+	LOG_PLUGIN_DEBUG("%s N=%zu", __FUNCTION__, objectids.size());
 	/* That was easy ... */
 	if (objectids.empty())
 		return mapdetails;
@@ -2124,15 +2131,15 @@ objectdetails_t LDAPUserPlugin::getObjectDetails(const objectid_t &id)
 }
 
 void LDAPUserPlugin::changeObject(const objectid_t &id, const objectdetails_t &details, const std::list<std::string> *lpDelProps) {
-	throw notimplemented("Change object is not supported when using the LDAP user plugin.");
+	throw notimplemented("Changing objects not implemented by the ldap userplugin");
 }
 
 objectsignature_t LDAPUserPlugin::createObject(const objectdetails_t &details) {
-	throw notimplemented("Creating objects is not supported when using the LDAP user plugin.");
+	throw notimplemented("Creating objects not implemented by the ldap userplugin");
 }
 
 void LDAPUserPlugin::deleteObject(const objectid_t &id) {
-	throw notimplemented("Deleting users is not supported when using the LDAP user plugin.");
+	throw notimplemented("Deleting users not implemented by the ldap userplugin");
 }
 
 /**
@@ -2422,11 +2429,11 @@ LDAPUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 }
 
 void LDAPUserPlugin::addSubObjectRelation(userobject_relation_t relation, const objectid_t &id, const objectid_t &member) {
-	throw notimplemented("add object relations is not supported when using the LDAP user plugin.");
+	throw notimplemented("Adding object relations not implemented by the ldap userplugin");
 }
 
 void LDAPUserPlugin::deleteSubObjectRelation(userobject_relation_t relation, const objectid_t &id, const objectid_t &member) {
-	throw notimplemented("Delete object relations is not supported when using the LDAP user plugin.");
+	throw notimplemented("Deleting object relations not implemented by the ldap userplugin");
 }
 
 signatures_t
@@ -2529,7 +2536,7 @@ serverlist_t LDAPUserPlugin::getServers()
 	serverlist_t serverlist;
 
 	if (!m_bDistributed)
-		throw objectnotfound("Distributed not enabled");
+		throw objectnotfound("Multi-server is not enabled");
 
 	LOG_PLUGIN_DEBUG("%s", __FUNCTION__);
 	auto ldap_basedn = getSearchBase();
@@ -2559,7 +2566,7 @@ serverdetails_t LDAPUserPlugin::getServerDetails(const std::string &server)
 	auto_free_ldap_message res;
 
 	if (!m_bDistributed)
-		throw objectnotfound("Distributed not enabled for" +server);
+		throw objectnotfound("Multi-server is not enabled for " + server);
 
 	LOG_PLUGIN_DEBUG("%s for server %s", __FUNCTION__, server.c_str());
 	serverdetails_t serverDetails(server);
@@ -2722,7 +2729,7 @@ quotadetails_t LDAPUserPlugin::getQuota(const objectid_t &id,
 	FOREACH_ENTRY(res) {
 		FOREACH_ATTR(entry) {
 			if (usedefaults_attr != nullptr && strcasecmp(att, usedefaults_attr) == 0)
-				// Workarround quotaoverride == !usedefaultquota
+				// Workaround quotaoverride == !usedefaultquota
 				quotaDetails.bUseDefaultQuota = !parseBool(getLDAPAttributeValue(att, entry).c_str());
 			else if (warnquota_attr != nullptr && strcasecmp(att, warnquota_attr) == 0)
 				quotaDetails.llWarnSize = fromstring<std::string, long long>(getLDAPAttributeValue(att, entry)) * multiplier;
@@ -2740,7 +2747,7 @@ quotadetails_t LDAPUserPlugin::getQuota(const objectid_t &id,
 
 void LDAPUserPlugin::setQuota(const objectid_t &id, const quotadetails_t &quotadetails)
 {
-	throw notimplemented("set quota is not supported when using the LDAP user plugin.");
+	throw notimplemented("Setting quotas not implemented by the ldap userplugin");
 }
 
 abprops_t LDAPUserPlugin::getExtraAddressbookProperties()

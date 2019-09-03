@@ -198,7 +198,7 @@
 #define PR_EC_EXCHANGE_DN_A			PROP_TAG(PT_STRING8, 0x6788)
 #define PR_EC_EXCHANGE_DN_W			PROP_TAG(PT_UNICODE, 0x6788)
 
-// notification based syncronization
+// notification based synchronization
 #define PR_EC_CHANGE_ADVISOR			PROP_TAG(PT_OBJECT, 0x6789)
 
 // server path to home server of a user

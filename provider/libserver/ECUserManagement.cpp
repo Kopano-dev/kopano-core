@@ -35,7 +35,6 @@
 #include "ECFeatureList.h"
 #include <kopano/EMSAbTag.h>
 #include <kopano/charset/convert.h>
-#include <kopano/charset/utf8string.h>
 #ifndef AB_UNICODE_OK
 #define AB_UNICODE_OK ((ULONG) 0x00000040)
 #endif
@@ -364,7 +363,8 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass,
 	if (er != erSuccess)
 		return er;
 
-	if (m_lpSession->GetSessionManager()->IsHostedSupported()) {
+	auto smgr = m_lpSession->GetSessionManager();
+	if (smgr->IsHostedSupported()) {
 		/* When hosted is enabled, the companyid _must_ have an external id,
 		 * unless we are requesting the companylist in which case the companyid is 0 and doesn't
 		 * need to be resolved at all.*/
@@ -381,29 +381,31 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass,
 	}
 
 	std::map<unsigned int, ECsUserObject> alluser;
-	er = m_lpSession->GetSessionManager()->GetCacheManager()->get_all_user_objects(objclass, alluser);
+	er = smgr->GetCacheManager()->get_all_user_objects(objclass,
+	     smgr->IsHostedSupported(), ulCompanyId, alluser);
 	if (er != erSuccess)
 		return er;
 
 	objs.clear();
 	for (const auto &pair : alluser) {
-		if (IsInternalObject(pair.first)) {
-			// Local user, add it to the result array directly
-			objectdetails_t details;
-			er = GetLocalObjectDetails(pair.first, &details);
-			if(er != erSuccess)
-				return er;
-			if (ulFlags & USERMANAGEMENT_ADDRESSBOOK &&
-			    MustHide(*lpSecurity, ulFlags, details))
-				continue;
-			// Reset details, this saves time copying unwanted data, but keep the correct class
-			if (ulFlags & USERMANAGEMENT_IDS_ONLY)
-				details = objectdetails_t(details.GetClass());
-			objs.emplace_back(pair.first, std::move(details));
+		if (!IsInternalObject(pair.first)) {
+			mapSignatureIdToLocal.emplace(
+				objectid_t{std::move(pair.second.strExternId), pair.second.ulClass},
+				std::make_pair(pair.first, std::move(pair.second.strSignature)));
+			continue;
 		}
-		mapSignatureIdToLocal.emplace(
-			objectid_t{std::move(pair.second.strExternId), pair.second.ulClass},
-			std::make_pair(pair.first, std::move(pair.second.strSignature)));
+		// Local user, add it to the result array directly
+		objectdetails_t details;
+		er = GetLocalObjectDetails(pair.first, &details);
+		if (er != erSuccess)
+			return er;
+		if (ulFlags & USERMANAGEMENT_ADDRESSBOOK &&
+		    MustHide(*lpSecurity, ulFlags, details))
+			continue;
+		// Reset details, this saves time copying unwanted data, but keep the correct class
+		if (ulFlags & USERMANAGEMENT_IDS_ONLY)
+			details = objectdetails_t(details.GetClass());
+		objs.emplace_back(pair.first, std::move(details));
 	}
 	alluser.clear();
 
@@ -461,7 +463,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass,
 		if (bIsSafeMode)
 			ec_log_info("user_safe_mode: skipping retrieve/sync users from LDAP");
 		lpExternSignatures.clear();
-		// Dont sync, just use whatever is in the local user database
+		// Don't sync, just use whatever is in the local user database
 		for (const auto &sil : mapSignatureIdToLocal) {
 			lpExternSignatures.emplace_back(sil.first, sil.second.second);
 			mapExternIdToLocal.emplace(sil.first, sil.second.first);
@@ -870,7 +872,9 @@ ECRESULT ECUserManagement::ResolveObject(objectclass_t objclass,
  * Resolve an object name to an object id, with on-the-fly creation of the
  * specified object class.
  */
-ECRESULT ECUserManagement::ResolveObjectAndSync(objectclass_t objclass, const char* szName, unsigned int* lpulObjectId) {
+ECRESULT ECUserManagement::ResolveObjectAndSync(objectclass_t objclass,
+	const char* szName, unsigned int* lpulObjectId, bool tryResolve)
+{
 	objectsignature_t objectsignature;
 	std::string username, companyname;
 	UserPlugin *lpPlugin = NULL;
@@ -946,12 +950,14 @@ ECRESULT ECUserManagement::ResolveObjectAndSync(objectclass_t objclass, const ch
 	} catch (const notsupported &) {
 		return KCERR_NO_SUPPORT;
 	} catch (const objectnotfound &e) {
-		ec_log_warn("K-1515: Object not found %s \"%s\": %s",
-			ObjectClassToName(objclass), szName, e.what());
+		if (!tryResolve)
+			ec_log_warn("K-1515: Object not found %s \"%s\": %s",
+				    ObjectClassToName(objclass), szName, e.what());
 		return KCERR_NOT_FOUND;
 	} catch (const std::exception &e) {
-		ec_log_warn("K-1516: Unable to resolve %s \"%s\": %s",
-			ObjectClassToName(objclass), szName, e.what());
+		if (!tryResolve)
+			ec_log_warn("K-1516: Unable to resolve %s \"%s\": %s",
+				    ObjectClassToName(objclass), szName, e.what());
 		return KCERR_NOT_FOUND;
 	}
 	return GetLocalObjectIdOrCreate(objectsignature, lpulObjectId);
@@ -1487,9 +1493,9 @@ ECRESULT ECUserManagement::QueryContentsRowData(struct soap *soap,
 		goto exit;
 
 	assert(lpRowList != NULL);
-	lpsRowSet = s_alloc<struct rowSet>(soap);
-	lpsRowSet->__size = 0;
-	lpsRowSet->__ptr = NULL;
+	lpsRowSet = s_alloc_nothrow<struct rowSet>(soap);
+	if (lpsRowSet == nullptr)
+		return KCERR_NOT_ENOUGH_MEMORY;
 	if (lpRowList->empty()) {
 		*lppRowSet = lpsRowSet;
 		goto exit; // success
@@ -1498,7 +1504,6 @@ ECRESULT ECUserManagement::QueryContentsRowData(struct soap *soap,
 	// We return a square array with all the values
 	lpsRowSet->__size = lpRowList->size();
 	lpsRowSet->__ptr = s_alloc<propValArray>(soap, lpRowList->size());
-	memset(lpsRowSet->__ptr, 0, sizeof(propValArray) * lpRowList->size());
 
 	// Get Extern ID and Types for all items
 	i = 0;
@@ -1613,8 +1618,6 @@ ECRESULT ECUserManagement::QueryHierarchyRowData(struct soap *soap,
 	auto lpsRowSet = s_alloc_nothrow<struct rowSet>(soap);
 	if (lpsRowSet == NULL)
 		return KCERR_NOT_ENOUGH_MEMORY;
-	lpsRowSet->__size = 0;
-	lpsRowSet->__ptr = NULL;
 	if (lpRowList->empty()) {
 		*lppRowSet = lpsRowSet;
 		goto exit; // success
@@ -1623,10 +1626,9 @@ ECRESULT ECUserManagement::QueryHierarchyRowData(struct soap *soap,
 	// We return a square array with all the values
 	lpsRowSet->__size = lpRowList->size();
 	lpsRowSet->__ptr = s_alloc<propValArray>(soap, lpRowList->size());
-	memset(lpsRowSet->__ptr, 0, sizeof(propValArray) * lpRowList->size());
 
 	for (const auto &row : *lpRowList) {
-		/* Although it propbably doesn't make a lot of sense, we need to check for company containers here.
+		/* Although it probably doesn't make a lot of sense, we need to check for company containers here.
 		 * this is because with convenient depth tables, the children of the Kopano Address Book will not
 		 * only be the Global Address Book, but also the company containers. */
 		if (row.ulObjId == KOPANO_UID_ADDRESS_BOOK ||
@@ -2949,7 +2951,7 @@ ECRESULT ECUserManagement::cvt_user_to_props(struct soap *soap,
 	}
 	case PR_ACCOUNT:
 	case PR_EMAIL_ADDRESS:
-		// Dont use login name for NONACTIVE_CONTACT since it doesn't have a login name
+		// Don't use login name for NONACTIVE_CONTACT since it doesn't have a login name
 		if (lpDetails->GetClass() != NONACTIVE_CONTACT)
 			lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_LOGIN).c_str());
 		else
@@ -3916,18 +3918,15 @@ ECRESULT ECUserManagement::CreateABEntryID(struct soap *soap,
 			throw std::runtime_error("Internal objects must always have v0 ABEIDs");
 		ulSize = CbNewABEID("");
 		lpEid = reinterpret_cast<ABEID *>(s_alloc<unsigned char>(soap, ulSize));
-		memset(lpEid, 0, ulSize);
 	} else if (ulVersion == 0) {
 		ulSize = CbNewABEID("");
 		lpEid = reinterpret_cast<ABEID *>(s_alloc<unsigned char>(soap, ulSize));
-		memset(lpEid, 0, ulSize);
 	} else if(ulVersion == 1) {
 		if (lpExternId == NULL)
 			return KCERR_INVALID_PARAMETER;
 		strEncExId = base64_encode(lpExternId->id.c_str(), lpExternId->id.size());
 		ulSize = CbNewABEID(strEncExId.c_str());
 		lpEid = reinterpret_cast<ABEID *>(s_alloc<unsigned char>(soap, ulSize));
-		memset(lpEid, 0, ulSize);
 		// avoid FORTIFY_SOURCE checks in strcpy to an address that the compiler thinks is 1 size large
 		memcpy(lpEid->szExId, strEncExId.c_str(), strEncExId.length()+1);
 	} else {
@@ -3989,7 +3988,7 @@ ECRESULT ECUserManagement::SyncAllObjects()
 	static const unsigned int ulFlags = USERMANAGEMENT_IDS_ONLY | USERMANAGEMENT_FORCE_SYNC;
 	/*
 	 * When syncing the users we first start emptying the cache, this makes sure the
-	 * second step won't be accidently "optimized" by caching.
+	 * second step won't be accidentally "optimized" by caching.
 	 * The second step is requesting all user objects from the plugin, ECUserManagement
 	 * will then sync all results into the user database. And because the cache was
 	 * cleared all signatures in the database will be checked against the signatures

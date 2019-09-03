@@ -2,8 +2,8 @@
 """
 Part of the high-level python bindings for Kopano
 
-Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
-Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
+Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file)
+Copyright 2016 - 2019 Kopano and its licensors (see LICENSE file)
 """
 
 import codecs
@@ -39,7 +39,7 @@ from MAPI.Tags import (
     PR_EC_PUBLIC_IPM_SUBTREE_ENTRYID, PR_CHANGE_KEY, PR_EXCEPTION_STARTTIME,
     PR_EXCEPTION_ENDTIME, PR_RULE_ID, PR_RULE_STATE, ST_ENABLED,
     PR_RULE_PROVIDER_DATA, PR_RULE_SEQUENCE, PR_RULE_NAME_W,
-    PR_RULE_CONDITION, PT_LONG,
+    PR_RULE_CONDITION, PT_LONG, PR_ATTR_HIDDEN,
 )
 from MAPI.Defs import (
     HrGetOneProp, CHANGE_PROP_TYPE
@@ -113,14 +113,20 @@ PROPMAP = {
 }
 
 class Folder(Properties):
-    """Folder class"""
+    """Folder class
+
+    Abstraction for collections of :class:`items <Item>`. For example,
+    folders, calendars and contact folders.
+
+    Includes all functionality from :class:`Properties`.
+    """
 
     def __init__(self, store=None, entryid=None, associated=False,
                  deleted=False, mapiobj=None, _check_mapiobj=True, cache={}):
         if store:
             self.store = store
             self.server = store.server
-        # XXX else, determine store dynamically?
+        # TODO else, determine store dynamically?
         if mapiobj:
             self._mapiobj = mapiobj
             self._entryid = HrGetOneProp(self.mapiobj, PR_ENTRYID).Value
@@ -130,7 +136,8 @@ class Folder(Properties):
             except:
                 raise ArgumentError('invalid entryid: %r' % entryid)
 
-        self.content_flag = MAPI_ASSOCIATED if associated else (SHOW_SOFT_DELETES if deleted else 0)
+        self._content_flag = MAPI_ASSOCIATED if associated else \
+            (SHOW_SOFT_DELETES if deleted else 0)
         self._sourcekey = None
         self._mapiobj = None
 
@@ -142,18 +149,24 @@ class Folder(Properties):
 
     @property
     def mapiobj(self):
+        """Underlying MAPI object."""
         if self._mapiobj:
             return self._mapiobj
 
         try:
-            self._mapiobj = self.store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, MAPI_MODIFY)
+            self._mapiobj = self.store.mapiobj.OpenEntry(self._entryid,
+                IID_IMAPIFolder, MAPI_MODIFY)
         except (MAPIErrorNotFound, MAPIErrorInvalidEntryid):
             try:
-                self._mapiobj = self.store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, MAPI_MODIFY | SHOW_SOFT_DELETES)
+                self._mapiobj = self.store.mapiobj.OpenEntry(self._entryid,
+                    IID_IMAPIFolder, MAPI_MODIFY | SHOW_SOFT_DELETES)
+            # TODO check too late?
             except (MAPIErrorNotFound, MAPIErrorInvalidEntryid):
-                raise NotFoundError("no folder with entryid '%s'" % _benc(self._entryid)) # XXX check too late??
-        except MAPIErrorNoAccess: # XXX XXX
-            self._mapiobj = self.store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, 0)
+                raise NotFoundError(
+                    "no folder with entryid '%s'" % _benc(self._entryid))
+        except MAPIErrorNoAccess: # TODO
+            self._mapiobj = self.store.mapiobj.OpenEntry(self._entryid,
+                IID_IMAPIFolder, 0)
 
         return self._mapiobj
 
@@ -163,26 +176,24 @@ class Folder(Properties):
 
     @property
     def entryid(self):
-        """ Folder entryid """
-
+        """Folder entryid."""
         return _benc(self._entryid)
 
     @property
     def guid(self):
-        """ Folder guid """
-
         return self.entryid[56:88] # TODO assumes hex
 
     @property
     def sourcekey(self):
+        """Folder sourcekey."""
         if not self._sourcekey:
-            self._sourcekey = _benc(HrGetOneProp(self.mapiobj, PR_SOURCE_KEY).Value)
+            self._sourcekey = \
+                _benc(HrGetOneProp(self.mapiobj, PR_SOURCE_KEY).Value)
         return self._sourcekey
 
     @property
     def parent(self):
         """:class:`Parent <Folder>` folder"""
-
         parent_eid = self._get_fast(PR_PARENT_ENTRYID)
         if parent_eid:
             parent_eid = _benc(parent_eid)
@@ -191,20 +202,21 @@ class Folder(Properties):
 
     @property
     def hierarchyid(self):
+        """Folder hierarchy (SQL) id."""
+
         return self.prop(PR_EC_HIERARCHYID).value
 
     @property
     def subfolder_count(self):
-        """Number of direct subfolders"""
-
+        """Direct subfolder count."""
         return self.prop(PR_FOLDER_CHILD_COUNT).value
 
     @property
     def subfolder_count_recursive(self):
-        """Number of subfolders (recursive)"""
-
+        """Subfolder count (recursive)."""
         # TODO faster?
-        flags = MAPI_UNICODE | self.content_flag | CONVENIENT_DEPTH | MAPI_DEFERRED_ERRORS
+        flags = MAPI_UNICODE | self._content_flag | CONVENIENT_DEPTH | \
+            MAPI_DEFERRED_ERRORS
         mapitable = self.mapiobj.GetHierarchyTable(flags)
 
         table = Table(
@@ -218,8 +230,7 @@ class Folder(Properties):
 
     @property
     def name(self):
-        """Folder name"""
-
+        """Folder name."""
         name = self._get_fast(PR_DISPLAY_NAME_W)
 
         if name is not None:
@@ -227,13 +238,13 @@ class Folder(Properties):
         else:
             # root folder doesn't have PR_DISPLAY_NAME_W
             if self.entryid == self.store.root.entryid:
-                return u'ROOT'
+                return 'ROOT'
             else:
-                return u''
+                return ''
 
     @property
     def path(self):
-        """Folder path"""
+        """Folder path."""
         names = []
         parent = self
         subtree_entryid = self.store.subtree.entryid
@@ -242,7 +253,8 @@ class Folder(Properties):
         # parent entryids for certains public store folders (via getprops,
         # or store PR_IPM_SUBTREE_ENTRYID), so we match with this property,
         # which is also not converted
-        pub_entryid = _benc(self.store.get(PR_EC_PUBLIC_IPM_SUBTREE_ENTRYID, b''))
+        pub_entryid = \
+            _benc(self.store.get(PR_EC_PUBLIC_IPM_SUBTREE_ENTRYID, b''))
 
         while parent:
             parent_eid = parent.entryid
@@ -262,7 +274,8 @@ class Folder(Properties):
     @property
     def container_class(self): # TODO return '' by default?
         """
-        Property which describes the type of items a folder holds, possible values
+        Describes the type of items a folder holds. Possible values:
+
         * IPF.Appointment
         * IPF.Contact
         * IPF.Journal
@@ -272,7 +285,6 @@ class Folder(Properties):
 
         https://msdn.microsoft.com/en-us/library/aa125193(v=exchg.65).aspx
         """
-
         try:
             return self.prop(PR_CONTAINER_CLASS_W).value
         except NotFoundError:
@@ -280,27 +292,43 @@ class Folder(Properties):
 
     @container_class.setter
     def container_class(self, value):
-        self.mapiobj.SetProps([SPropValue(PR_CONTAINER_CLASS_W, _unicode(value))])
+        if value is None:
+            return
+        prop = SPropValue(PR_CONTAINER_CLASS_W, _unicode(value))
+        self.mapiobj.SetProps([prop])
+        _utils._save(self.mapiobj)
+
+    @property
+    def hidden(self):
+        try:
+            return self.prop(PR_ATTR_HIDDEN).value
+        except NotFoundError:
+            return False
+
+    @hidden.setter
+    def hidden(self, value):
+        prop = SPropValue(PR_ATTR_HIDDEN, value)
+        self.mapiobj.SetProps([prop])
         _utils._save(self.mapiobj)
 
     @property
     def unread(self):
-        """ Number of unread items """
+        """Unread item count."""
         return self._get_fast(PR_CONTENT_UNREAD)
 
     def item(self, entryid=None, sourcekey=None):
         """ Return :class:`Item` with given entryid or sourcekey
 
-        :param entryid: item entryid
-        :param sourcekey: item sourcekey
+        :param entryid: item entryid (optional)
+        :param sourcekey: item sourcekey (optional)
         """
-
         if entryid is not None:
             eid = _utils._bdec_eid(entryid)
 
-        elif sourcekey is not None: # TODO this is horribly slow with nothing cached.. 1 SQL per row!?
+        elif sourcekey is not None: # TODO 1 SQL per row with empty cache!
             try:
-                restriction = SPropertyRestriction(RELOP_EQ, PR_SOURCE_KEY, SPropValue(PR_SOURCE_KEY, _bdec(sourcekey)))
+                restriction = SPropertyRestriction(RELOP_EQ, PR_SOURCE_KEY,
+                    SPropValue(PR_SOURCE_KEY, _bdec(sourcekey)))
             except:
                 raise ArgumentError("invalid sourcekey: %r" % sourcekey)
             table = self.mapiobj.GetContentsTable(MAPI_DEFERRED_ERRORS)
@@ -316,14 +344,15 @@ class Folder(Properties):
 
         # open message with entryid
         try:
-            mapiobj = _utils.openentry_raw(self.store.mapiobj, eid, self.content_flag)
+            mapiobj = _utils.openentry_raw(self.store.mapiobj, eid,
+                self._content_flag)
         except MAPIErrorNotFound:
             if sourcekey is not None:
-                raise NotFoundError("no item with sourcekey '%s'" % sourcekey)
+                raise NotFoundError("no item with sourcekey '%s'" % sourcekey) from None
             else:
-                raise NotFoundError("no item with entryid '%s'" % entryid)
+                raise NotFoundError("no item with entryid '%s'" % entryid) from None
         except MAPIErrorInvalidEntryid:
-            raise ArgumentError("invalid entryid: %r" % entryid)
+            raise ArgumentError("invalid entryid: %r" % entryid) from None
 
         item = _item.Item(self, mapiobj=mapiobj)
         return item
@@ -338,8 +367,8 @@ class Folder(Properties):
             '-subject' (reverse order), or ('subject', '-received').
         :param page_start: skip this many items from the start
         :param page_limit: return up to this many items
+        :param query: use search query
         """
-
         # TODO determine preload columns dynamically, based on usage pattern
         columns = [
             PR_ENTRYID,
@@ -363,7 +392,8 @@ class Folder(Properties):
             table = Table(
                 self.server,
                 self.mapiobj,
-                self.mapiobj.GetContentsTable(self.content_flag | MAPI_DEFERRED_ERRORS),
+                self.mapiobj.GetContentsTable(self._content_flag | \
+                    MAPI_DEFERRED_ERRORS),
                 PR_CONTAINER_CONTENTS,
                 columns=columns,
                 restriction=restriction,
@@ -388,20 +418,29 @@ class Folder(Properties):
             item = _item.Item(
                 self,
                 entryid=row[0].value,
-                content_flag=self.content_flag,
+                content_flag=self._content_flag,
                 cache=dict(zip(columns, row))
             )
             yield item
 
-    def occurrences(self, start=None, end=None, page_start=None, page_limit=None, order=None):
+    def occurrences(self, start=None, end=None, page_start=None,
+            page_limit=None, order=None):
+        """For applicable folder types (e.g., calendars), return
+        all :class:`occurrences <Occurrence>`.
+
+        :param start: start time (optional)
+        :param end: end time (optional)
+        """
         count = 0
         pos = 0
         if start and end:
             startstamp = time.mktime(start.timetuple())
             endstamp = time.mktime(end.timetuple())
 
-            # XXX use shortcuts and default type (database) to avoid MAPI snake wrestling
-            NAMED_PROPS = [MAPINAMEID(PSETID_Appointment, MNID_ID, x) for x in (33285, 33293, 33294, 33315, 33301, 33333, 33334)]
+            # TODO use shortcuts and default type (database) to avoid
+            # MAPI snake wrestling
+            NAMED_PROPS = [MAPINAMEID(PSETID_Appointment, MNID_ID, x)
+                for x in (33285, 33293, 33294, 33315, 33301, 33333, 33334)]
             ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS, MAPI_CREATE)
             busystatus = ids[0] | PT_LONG
             startdate = ids[1] | PT_SYSTIME
@@ -414,22 +453,33 @@ class Folder(Properties):
             restriction = SOrRestriction([
                 # non-recurring: normal start/end
                 SAndRestriction([
-                    SPropertyRestriction(RELOP_GT, enddate, SPropValue(enddate, unixtime(startstamp))),
-                    SPropertyRestriction(RELOP_LT, startdate, SPropValue(startdate, unixtime(endstamp))),
+                    SPropertyRestriction(RELOP_GT, enddate,
+                        SPropValue(enddate, unixtime(startstamp))),
+                    SPropertyRestriction(RELOP_LT, startdate,
+                        SPropValue(startdate, unixtime(endstamp))),
                 ]),
                 # recurring: range start/end
                 SAndRestriction([
-                    SPropertyRestriction(RELOP_GT, clip_end, SPropValue(clip_end, unixtime(startstamp))),
-                    SPropertyRestriction(RELOP_LT, clip_start, SPropValue(clip_start, unixtime(endstamp))),
+                    SPropertyRestriction(RELOP_GT, clip_end,
+                        SPropValue(clip_end, unixtime(startstamp))),
+                    SPropertyRestriction(RELOP_LT, clip_start,
+                        SPropValue(clip_start, unixtime(endstamp))),
                 ]),
                 # exceptions: exception start/end in attachment
                 SAndRestriction([
-                    SPropertyRestriction(RELOP_EQ, recurring, SPropValue(recurring, True)),
+                    SPropertyRestriction(RELOP_EQ, recurring,
+                        SPropValue(recurring, True)),
                     SSubRestriction(
                         PR_MESSAGE_ATTACHMENTS,
                         SAndRestriction([
-                            SPropertyRestriction(RELOP_LT, PR_EXCEPTION_STARTTIME, SPropValue(PR_EXCEPTION_STARTTIME, unixtime(endstamp))),
-                            SPropertyRestriction(RELOP_GT, PR_EXCEPTION_ENDTIME, SPropValue(PR_EXCEPTION_ENDTIME, unixtime(startstamp))),
+                            SPropertyRestriction(RELOP_LT,
+                                PR_EXCEPTION_STARTTIME,
+                                SPropValue(PR_EXCEPTION_STARTTIME,
+                                    unixtime(endstamp))),
+                            SPropertyRestriction(RELOP_GT,
+                                PR_EXCEPTION_ENDTIME,
+                                SPropValue(PR_EXCEPTION_ENDTIME,
+                                    unixtime(startstamp))),
                         ])
                     )
                 ])
@@ -459,7 +509,7 @@ class Folder(Properties):
                 item = _item.Item(
                     self,
                     entryid=row[0].value,
-                    content_flag=self.content_flag,
+                    content_flag=self._content_flag,
                     cache=dict(zip(columns, row))
                 )
                 for occurrence in item.occurrences(start, end):
@@ -484,39 +534,50 @@ class Folder(Properties):
                 if page_limit is not None and count >= page_limit:
                     break
 
-    def create_item(self, eml=None, ics=None, vcf=None, load=None, loads=None, attachments=True, save=True, **kwargs): # XXX associated
+    def create_item(self, eml=None, ics=None, vcf=None, load=None, loads=None,
+            attachments=True, save=True, **kwargs): # TODO associated
+        """Create :class:`item <Item>`.
+
+        :param eml: pass eml data/file (optional)
+        :param ics: pass iCal data/file (optional)
+        :param vcf: pass vcf data/file (optional)
+        :param load: pass serialized item file (optional)
+        :param loads: pass serialized item data (optional)
+        """
         read = kwargs.get('read') # needs to be set before first save
-        item = _item.Item(self, eml=eml, ics=ics, vcf=vcf, load=load, loads=loads, attachments=attachments, create=True, save=save, read=read)
+        item = _item.Item(self, eml=eml, ics=ics, vcf=vcf, load=load,
+            loads=loads, attachments=attachments, create=True, save=save,
+            read=read)
         for key, val in kwargs.items():
             if key != 'read':
                 setattr(item, key, val)
         return item
 
-    # XXX: always hard delete or but we should also provide 'softdelete' which moves the item to the wastebasket
+    # TODO: always hard delete or but we should also provide 'softdelete' which
+    # moves the item to the wastebasket
     def empty(self, recurse=True, associated=False):
-        """ Delete folder contents
+        """Delete folder contents (items and subfolders)
 
-        :param recurse: delete subfolders
-        :param associated: delete associated contents
+        :param recurse: delete subfolders (default True)
+        :param associated: delete associated contents (default False)
         """
-
         if recurse:
             flags = DELETE_HARD_DELETE
             if associated:
                 flags |= DEL_ASSOCIATED
             self.mapiobj.EmptyFolder(0, None, flags)
         else:
-            self.delete(self.items()) # XXX look at associated flag! probably also quite slow
+            self.delete(self.items()) # TODO look at associated flag!
 
     @property
-    def size(self): # XXX bit slow perhaps? :P
-        """ Folder size """
-
+    def size(self): # TODO bit slow perhaps? :P
+        """Folder storage size."""
         try:
             table = Table(
                 self.server,
                 self.mapiobj,
-                self.mapiobj.GetContentsTable(self.content_flag | MAPI_DEFERRED_ERRORS),
+                self.mapiobj.GetContentsTable(self._content_flag | \
+                    MAPI_DEFERRED_ERRORS),
                 PR_CONTAINER_CONTENTS,
                 columns=[PR_MESSAGE_SIZE],
             )
@@ -531,15 +592,16 @@ class Folder(Properties):
 
     @property
     def count(self):
-        """ Number of items in folder """
+        """Folder item count."""
+        # reopen to get up-to-date counters..
+        # TODO use flags when opening folder?
+        folder = self.store.folder(entryid=self.entryid)
 
-        folder = self.store.folder(entryid=self.entryid) # reopen to get up-to-date counters.. (XXX use flags when opening folder?)
-
-        if self.content_flag == 0:
+        if self._content_flag == 0:
             proptag = PR_CONTENT_COUNT
-        elif self.content_flag == MAPI_ASSOCIATED:
+        elif self._content_flag == MAPI_ASSOCIATED:
             proptag = PR_ASSOC_CONTENT_COUNT
-        elif self.content_flag == SHOW_SOFT_DELETES:
+        elif self._content_flag == SHOW_SOFT_DELETES:
             proptag = PR_DELETED_MSG_COUNT
         return folder.get(proptag, 0)
 
@@ -547,38 +609,52 @@ class Folder(Properties):
         self.server.sa.ResetFolderCount(_bdec(self.entryid))
 
     def _get_entryids(self, items):
-        item_entryids = [_bdec(item.entryid) for item in items if isinstance(item, _item.Item)]
-        folder_entryids = [_bdec(item.entryid) for item in items if isinstance(item, Folder)]
+        item_entryids = [_bdec(item.entryid)
+            for item in items if isinstance(item, _item.Item)]
+        folder_entryids = [_bdec(item.entryid)
+            for item in items if isinstance(item, Folder)]
         perms = [item for item in items if isinstance(item, Permission)]
         props = [item for item in items if isinstance(item, Property)]
         occs = [item for item in items if isinstance(item, Occurrence)]
         rules = [item for item in items if isinstance(item, Rule)]
         return item_entryids, folder_entryids, perms, props, occs, rules
 
-    def delete(self, objects, soft=False): # XXX associated
+    def delete(self, objects, soft=False): # TODO associated
         """Delete items, subfolders, properties or permissions from folder.
 
         :param objects: The object(s) to delete
-        :param soft: In case of items or folders, are they soft-deleted
+        :param soft: soft-delete items/folders (default False)
         """
-        objects = _utils.arg_objects(objects, (_item.Item, Folder, Permission, Property, Occurrence, Rule), 'Folder.delete')
-        item_entryids, folder_entryids, perms, props, occs, rules = self._get_entryids(objects)
+        objects = _utils.arg_objects(
+            objects,
+            (_item.Item, Folder, Permission, Property, Occurrence, Rule),
+            'Folder.delete'
+        )
+        item_entryids, folder_entryids, perms, props, occs, rules = \
+            self._get_entryids(objects)
         if item_entryids:
             if soft:
                 self.mapiobj.DeleteMessages(item_entryids, 0, None, 0)
             else:
-                self.mapiobj.DeleteMessages(item_entryids, 0, None, DELETE_HARD_DELETE)
+                self.mapiobj.DeleteMessages(item_entryids, 0, None,
+                    DELETE_HARD_DELETE)
         for entryid in folder_entryids:
             if soft:
-                self.mapiobj.DeleteFolder(entryid, 0, None, DEL_FOLDERS | DEL_MESSAGES)
+                self.mapiobj.DeleteFolder(entryid, 0, None,
+                    DEL_FOLDERS | DEL_MESSAGES)
             else:
-                self.mapiobj.DeleteFolder(entryid, 0, None, DEL_FOLDERS | DEL_MESSAGES | DELETE_HARD_DELETE)
+                self.mapiobj.DeleteFolder(entryid, 0, None,
+                    DEL_FOLDERS | DEL_MESSAGES | DELETE_HARD_DELETE)
         for perm in perms:
-            acl_table = self.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, 0)
-            acl_table.ModifyTable(0, [ROWENTRY(ROW_REMOVE, [SPropValue(PR_MEMBER_ID, perm.mapirow[PR_MEMBER_ID])])])
+            acl_table = self.mapiobj.OpenProperty(PR_ACL_TABLE,
+                IID_IExchangeModifyTable, 0, 0)
+            acl_table.ModifyTable(0, [ROWENTRY(ROW_REMOVE,
+                [SPropValue(PR_MEMBER_ID, perm.mapirow[PR_MEMBER_ID])])])
         for rule in rules:
-            rule_table = self.mapiobj.OpenProperty(PR_RULES_TABLE, IID_IExchangeModifyTable, MAPI_UNICODE, 0)
-            rule_table.ModifyTable(0, [ROWENTRY(ROW_REMOVE, [SPropValue(PR_RULE_ID, rule.mapirow[PR_RULE_ID])])])
+            rule_table = self.mapiobj.OpenProperty(PR_RULES_TABLE,
+                IID_IExchangeModifyTable, MAPI_UNICODE, 0)
+            rule_table.ModifyTable(0, [ROWENTRY(ROW_REMOVE,
+                [SPropValue(PR_RULE_ID, rule.mapirow[PR_RULE_ID])])])
 
         if props:
             self.mapiobj.DeleteProps([prop.proptag for prop in props])
@@ -594,28 +670,34 @@ class Folder(Properties):
         :param objects: The items or subfolders to copy
         :param folder: The target folder
         """
-        objects = _utils.arg_objects(objects, (_item.Item, Folder), 'Folder.copy')
-        item_entryids, folder_entryids, _, _, _, _ = self._get_entryids(objects) # XXX copy/move perms?? XXX error for perms/props
+        objects = _utils.arg_objects(
+            objects, (_item.Item, Folder), 'Folder.copy')
+        item_entryids, folder_entryids, _, _, _, _ = \
+            self._get_entryids(objects)
+        # TODO copy/move perms?? TODO error for perms/props
         if item_entryids:
-            self.mapiobj.CopyMessages(item_entryids, IID_IMAPIFolder, folder.mapiobj, 0, None, (MESSAGE_MOVE if _delete else 0))
+            self.mapiobj.CopyMessages(item_entryids, IID_IMAPIFolder,
+                folder.mapiobj, 0, None, (MESSAGE_MOVE if _delete else 0))
         for entryid in folder_entryids:
-            self.mapiobj.CopyFolder(entryid, IID_IMAPIFolder, folder.mapiobj, None, 0, None, COPY_SUBFOLDERS | (FOLDER_MOVE if _delete else 0))
+            self.mapiobj.CopyFolder(entryid, IID_IMAPIFolder, folder.mapiobj,
+                None, 0, None,
+                COPY_SUBFOLDERS | (FOLDER_MOVE if _delete else 0))
 
     def move(self, objects, folder):
         """Move items or subfolders to folder
 
-        :param objects: The items or subfolders to move
+        :param objects: The item(s) or subfolder(s) to move
         :param folder: The target folder
         """
-
         self.copy(objects, folder, _delete=True)
 
     def folder(self, path=None, entryid=None, recurse=False, create=False):
-        """ Return :class:`Folder` with given path or entryid
+        """Return :class:`Folder` with given path or entryid
 
-            :param key: name, path or entryid
+        :param path: Folder path (optional)
+        :param entryid: Folder entryid (optional)
+        :param create: Create folder if it doesn't exist (default False)
         """
-
         if entryid is not None:
             try:
                 return Folder(self.store, entryid)
@@ -626,14 +708,15 @@ class Folder(Properties):
 
         if path is None:
             raise ArgumentError('no path or entryid specified')
-
-        if '/' in path.replace('\\/', ''): # XXX MAPI folders may contain '/' (and '\') in their names..
+        # TODO MAPI folders may contain '/' (and '\') in their names..
+        if '/' in path.replace('\\/', ''):
             subfolder = self
             for name in UNESCAPED_SLASH_RE.split(path):
-                subfolder = subfolder.folder(name, create=create, recurse=False)
+                subfolder = subfolder.folder(name, create=create,
+                    recurse=False)
             return subfolder
-
-        if self == self.store.subtree and path in ENGLISH_FOLDER_MAP: # XXX depth==0?
+        # TODO depth==0?
+        if self == self.store.subtree and path in ENGLISH_FOLDER_MAP:
             f = getattr(self.store, ENGLISH_FOLDER_MAP[path], None)
             if f:
                 path = f.name
@@ -641,23 +724,30 @@ class Folder(Properties):
         if create:
             name = path.replace('\\/', '/')
             try:
-                mapifolder = self.mapiobj.CreateFolder(FOLDER_GENERIC, _unicode(name), u'', None, MAPI_UNICODE)
-                return Folder(self.store, _benc(HrGetOneProp(mapifolder, PR_ENTRYID).Value))
+                mapifolder = self.mapiobj.CreateFolder(FOLDER_GENERIC,
+                    _unicode(name), '', None, MAPI_UNICODE)
+                return Folder(self.store, _benc(HrGetOneProp(mapifolder,
+                    PR_ENTRYID).Value))
             except MAPIErrorCollision:
                 pass
 
         name = path.replace('\\/', '/')
-        restriction = Restriction(SPropertyRestriction(RELOP_EQ, PR_DISPLAY_NAME_W, SPropValue(PR_DISPLAY_NAME_W, _unicode(name))))
+        restriction = Restriction(SPropertyRestriction(RELOP_EQ,
+            PR_DISPLAY_NAME_W, SPropValue(PR_DISPLAY_NAME_W, _unicode(name))))
 
         folders = list(self.folders(recurse=recurse, restriction=restriction))
-        if len(folders) == 0:
+        if not folders:
             raise NotFoundError("no such folder: '%s'" % path)
 
         return folders[0]
 
     def get_folder(self, path=None, entryid=None):
-        """ Return :class:`folder <Folder>` with given name/entryid or *None* if not found """
+        """Return :class:`folder <Folder>` with given name/entryid or
+        *None* if not found
 
+        :param path: Folder path (optional)
+        :param entryid: Folder entryid (optional)
+        """
         try:
             return self.folder(path, entryid=entryid)
         except NotFoundError:
@@ -682,7 +772,7 @@ class Folder(Properties):
             PR_CONTENT_UNREAD,
         ]
 
-        flags = MAPI_UNICODE | self.content_flag
+        flags = MAPI_UNICODE | self._content_flag
         if recurse:
             flags |= CONVENIENT_DEPTH | MAPI_DEFERRED_ERRORS
 
@@ -697,7 +787,7 @@ class Folder(Properties):
                 columns=columns,
                 restriction=restriction,
             )
-        except MAPIErrorNoSupport: # XXX webapp search folder?
+        except MAPIErrorNoSupport: # TODO webapp search folder?
             return
 
         # determine all folders
@@ -717,7 +807,7 @@ class Folder(Properties):
             names[_benc(row[0].value)] = row[2].value
             children[_benc(row[1].value)].append((_benc(row[0].value), folder))
 
-        # yield depth-first XXX improve server?
+        # yield depth-first TODO improve server?
         def folders_recursive(fs, depth=0):
             for feid, f in sorted(fs, key=lambda data: names[data[0]]):
                 f.depth = depth
@@ -732,13 +822,18 @@ class Folder(Properties):
         for f in folders_recursive(rootfolders):
             yield f
 
-            # SHOW_SOFT_DELETES filters out subfolders of soft-deleted folders.. XXX slow
-            if self.content_flag == SHOW_SOFT_DELETES:
+            # SHOW_SOFT_DELETES filters out subfolders of soft-deleted folders
+            # TODO slow
+            if self._content_flag == SHOW_SOFT_DELETES:
                 for g in f.folders():
                     g.depth += f.depth + 1
                     yield g
 
     def create_folder(self, path=None, **kwargs):
+        """Create folder with given (relative) path
+
+        :param path: Folder path
+        """
         if path is None:
             path = kwargs.get('path', kwargs.get('name'))
         if self.get_folder(path):
@@ -749,7 +844,9 @@ class Folder(Properties):
         return folder
 
     def rules(self):
-        rule_table = self.mapiobj.OpenProperty(PR_RULES_TABLE, IID_IExchangeModifyTable, MAPI_UNICODE, 0)
+        """Return all folder :class:`rules <Rule>`."""
+        rule_table = self.mapiobj.OpenProperty(PR_RULES_TABLE,
+            IID_IExchangeModifyTable, MAPI_UNICODE, 0)
         table = Table(
             self.server,
             self.mapiobj,
@@ -760,15 +857,21 @@ class Folder(Properties):
             yield Rule(row, rule_table)
 
     def create_rule(self, name=None, restriction=None):
+        """Create rule
+
+        :param name: Rule name (optional)
+        :param restriction: Rule :class:`restriction <Restriction>` (optional)
+        """
         if name:
             name = _unicode(name)
 
         propid = len(list(self.rules()))+1
         row = [
             SPropValue(PR_RULE_STATE, ST_ENABLED), # TODO configurable
-            SPropValue(PR_RULE_PROVIDER_DATA, codecs.decode('010000000000000074da402772c2e440', 'hex')),
+            SPropValue(PR_RULE_PROVIDER_DATA,
+                codecs.decode('010000000000000074da402772c2e440', 'hex')),
             SPropValue(PR_RULE_SEQUENCE, propid), # TODO max+1?
-            SPropValue(0x6681001f, u'RuleOrganizer'), # TODO name
+            SPropValue(0x6681001f, 'RuleOrganizer'), # TODO name
             SPropValue(PR_RULE_ID, propid), # TODO max+1
         ]
         if name:
@@ -776,13 +879,15 @@ class Folder(Properties):
         if restriction:
             row.append(SPropValue(PR_RULE_CONDITION, restriction.mapiobj))
 
-        table = self.mapiobj.OpenProperty(PR_RULES_TABLE, IID_IExchangeModifyTable, MAPI_UNICODE, 0)
+        table = self.mapiobj.OpenProperty(PR_RULES_TABLE,
+            IID_IExchangeModifyTable, MAPI_UNICODE, 0)
         table.ModifyTable(0, [ROWENTRY(ROW_ADD, row)])
 
         mapirow = dict((p.ulPropTag, p.Value) for p in row)
         return Rule(mapirow, table)
 
     def dumps(self):
+        """Serialize folder contents."""
         data = {}
 
         data['settings'] = self.settings_dumps()
@@ -791,6 +896,10 @@ class Folder(Properties):
         return _utils.pickle_dumps(data)
 
     def loads(self, data):
+        """Deserialize folder contents
+
+        :param data: Serialized data
+        """
         data = _utils.pickle_loads(data)
 
         self.settings_loads(data['settings'])
@@ -799,6 +908,7 @@ class Folder(Properties):
             self.create_item(loads=data)
 
     def settings_dumps(self):
+        """Serialize folder settings (rules, permissions)."""
         data = {}
 
         data['rules'] = self.rules_dumps()
@@ -807,12 +917,17 @@ class Folder(Properties):
         return _utils.pickle_dumps(data)
 
     def settings_loads(self, data):
+        """Deserialize folder settings (rules, permissions).
+
+        :param data: Serialized data
+        """
         data = _utils.pickle_loads(data)
 
         self.rules_loads(data['rules'])
         self.permissions_loads(data['permissions'])
 
     def rules_dumps(self, stats=None):
+        """Serialize folder rules."""
         server = self.server
         log = server.log
 
@@ -828,18 +943,23 @@ class Folder(Properties):
                     for movecopy in actions.findall('.//moveCopy'):
                         try:
                             s = movecopy.findall('store')[0]
-                            store = server.mapisession.OpenMsgStore(0, _unbase64(s.text), None, 0)
-                            entryid = HrGetOneProp(store, PR_STORE_ENTRYID).Value
+                            store = server.mapisession.OpenMsgStore(0,
+                                _unbase64(s.text), None, 0)
+                            entryid = \
+                                HrGetOneProp(store, PR_STORE_ENTRYID).Value
                             store = server.store(entryid=_benc(entryid))
                             if store.public:
                                 s.text = 'public'
                             else:
-                                s.text = store.user.name if store != self.store else ''
+                                s.text = store.user.name \
+                                    if store != self.store else ''
                             f = movecopy.findall('folder')[0]
-                            path = store.folder(entryid=_benc(_unbase64(f.text))).path
+                            path = store.folder(
+                                entryid=_benc(_unbase64(f.text))).path
                             f.text = path
                         except Exception as e:
-                            log.warning("could not resolve rule target: %s", str(e))
+                            log.warning(
+                                "could not resolve rule target: %s", str(e))
                 ruledata = ElementTree.tostring(etxml)
 
         return _utils.pickle_dumps({
@@ -847,6 +967,10 @@ class Folder(Properties):
         })
 
     def rules_loads(self, data, stats=None):
+        """Deserialize folder rules.
+
+        :param data: Serialized data
+        """
         server = self.server
         log = server.log
 
@@ -863,16 +987,20 @@ class Folder(Properties):
                             if s.text == 'public':
                                 store = server.public_store
                             else:
-                                store = server.user(s.text).store if s.text else self.store
+                                store = server.user(s.text).store \
+                                    if s.text else self.store
                             s.text = _base64(_bdec(store.entryid))
                             f = movecopy.findall('folder')[0]
-                            f.text = _base64(_bdec(store.folder(f.text).entryid))
+                            f.text = \
+                                _base64(_bdec(store.folder(f.text).entryid))
                         except Exception as e:
-                            log.warning("could not resolve rule target: %s", str(e))
+                            log.warning(
+                                "could not resolve rule target: %s", str(e))
                 etxml = ElementTree.tostring(etxml)
                 self[PR_RULES_DATA] = etxml
 
-    def table(self, name, restriction=None, order=None, columns=None): # XXX associated, PR_CONTAINER_CONTENTS?
+    # TODO associated, PR_CONTAINER_CONTENTS?
+    def table(self, name, restriction=None, order=None, columns=None):
         return Table(
             self.server,
             self.mapiobj,
@@ -883,62 +1011,91 @@ class Folder(Properties):
             columns=columns,
         )
 
-    def tables(self): # XXX associated, rules
+    def tables(self): # TODO associated, rules
         yield self.table(PR_CONTAINER_CONTENTS)
         yield self.table(PR_FOLDER_ASSOCIATED_CONTENTS)
         yield self.table(PR_CONTAINER_HIERARCHY)
 
     @property
     def state(self):
-        """ Current folder state """
+        """Folder state (for use with ICS synchronization)."""
+        return _ics.state(self.mapiobj, self._content_flag == MAPI_ASSOCIATED)
 
-        return _ics.state(self.mapiobj, self.content_flag == MAPI_ASSOCIATED)
-
-    def sync(self, importer, state=None, log=None, max_changes=None, associated=False, window=None, begin=None, end=None, stats=None):
-        """ Perform synchronization against folder
+    def sync(self, importer, state=None, log=None, max_changes=None,
+            associated=False, window=None, begin=None, end=None, stats=None):
+        """Perform synchronization against folder
 
         :param importer: importer instance with callbacks to process changes
         :param state: start from this state; if not given sync from scratch
         :log: logger instance to receive important warnings/errors
         """
-
         if state is None:
             state = _benc(8 * b'\0')
         importer.store = self.store
-        return _ics.sync(self.store.server, self.mapiobj, importer, state, max_changes, associated, window=window, begin=begin, end=end, stats=stats)
+        return _ics.sync(self.store.server, self.mapiobj, importer, state,
+            max_changes, associated, window=window, begin=begin, end=end,
+            stats=stats)
 
-    def sync_hierarchy(self, importer, state=None, stats=None): # TODO rename as sync_hierarchy? consistent with sync, sync_gab..?
+    def sync_hierarchy(self, importer, state=None, stats=None):
+        """Perform hierarchy synchronization against folder. In other words,
+        receive changes to the folder and its subfolders (recursively).
+
+        :param importer: importer instance with callbacks to process changes
+        :param state: start from this state; if not given sync from scratch
+        """
         if state is None:
             state = _benc(8 * b'\0')
         importer.store = self.store
-        return _ics.sync_hierarchy(self.store.server, self.mapiobj, importer, state, stats)
+        return _ics.sync_hierarchy(self.store.server, self.mapiobj, importer,
+            state, stats)
 
+    # TODO merge mbox/maildir functionality
     def readmbox(self, location):
+        """Import all :class:`items <Item>` from mailbox (python mailbox
+        module, mbox variant).
+
+        :param location: mailbox location
+        """
         for message in mailbox.mbox(location):
             _item.Item(self, eml=message.as_bytes(unixfrom=True), create=True)
 
-    def mbox(self, location): # FIXME: inconsistent with maildir()
+    def mbox(self, location):
+        """Export all :class:`items <Item>` to mailbox (using python mailbox
+        module, mbox variant).
+
+        :param location: mailbox location
+        """
         mboxfile = mailbox.mbox(location)
         mboxfile.lock()
         for item in self.items():
             mboxfile.add(item.eml())
         mboxfile.unlock()
 
+    def read_maildir(self, location):
+        """Import all :class:`items <Item>` from mailbox (python mailbox
+        module, maildir variant).
+
+        :param location: mailbox location
+        """
+        for message in mailbox.MH(location):
+            _item.Item(self, eml=message.as_bytes(unixfrom=True), create=True)
+
     def maildir(self, location='.'):
+        """Export all :class:`items <Item>` to mailbox (using python mailbox
+        module, maildir variant).
+
+        :param location: mailbox location
+        """
         destination = mailbox.MH(location + '/' + self.name)
         destination.lock()
         for item in self.items():
             destination.add(item.eml())
         destination.unlock()
 
-    def read_maildir(self, location):
-        for message in mailbox.MH(location):
-            _item.Item(self, eml=message.as_bytes(unixfrom=True), create=True)
-
     def read_ics(self, ics):
-        """Import a complete ics calendar into the current folder
+        """Import all :class:`items <Item>` from iCal calendar
 
-        :param ics: the ics file to import
+        :param ics: the iCal data
         """
         icm = icalmapi.CreateICalToMapi(self.mapiobj, self.server.ab, False)
         icm.ParseICal(ics, 'utf-8', '', None, 0)
@@ -948,10 +1105,7 @@ class Folder(Properties):
             _utils._save(mapiobj)
 
     def ics(self, charset="UTF-8"):
-        """Export all calendar items in the folder to an ics file
-
-        :return: ics calendar string
-        """
+        """Export all calendar items in the folder to iCal data"""
         mic = icalmapi.CreateMapiToICal(self.server.ab, charset)
         for item in self.items():
             if item.message_class.startswith('IPM.Appointment'):
@@ -961,12 +1115,12 @@ class Folder(Properties):
 
     @property
     def associated(self):
-        """ Associated folder containing hidden items """
-
+        """Folder containing hidden items."""
         return Folder(self.store, self.entryid, associated=True)
 
     @property
     def deleted(self):
+        """Folder containing soft-deleted items."""
         return Folder(self.store, self.entryid, deleted=True)
 
     def permissions(self):
@@ -974,7 +1128,8 @@ class Folder(Properties):
         return _utils.permissions(self)
 
     def permission(self, member, create=False):
-        """Return :class:`permission <Permission>` for user or group set for this folder.
+        """Return :class:`permission <Permission>` for user or group set for
+        this folder.
 
         :param member: user or group
         :param create: create new permission for this folder
@@ -982,7 +1137,13 @@ class Folder(Properties):
         return _utils.permission(self, member, create)
 
     def rights(self, member):
-        if member == self.store.user: # XXX admin-over-user, Store.rights (inheritance)
+        """Determine rights on this folder for a given :class:`user <User>`
+        or :class:`group <Group>`.
+
+        :param member: User or group
+        """
+        # TODO admin-over-user, Store.rights (inheritance)
+        if member == self.store.user:
             return NAME_RIGHT.keys()
         parent = self
         feids = set() # avoid loops
@@ -996,7 +1157,7 @@ class Folder(Properties):
                             return parent.permission(group).rights
                         except NotFoundError:
                             pass
-                    # XXX company
+                    # TODO company
             feids.add(parent.entryid)
             parent = parent.parent
         return []
@@ -1007,16 +1168,26 @@ class Folder(Properties):
         searchfolder.search_wait()
         for item in searchfolder:
             yield item
-        self.store.findroot.mapiobj.DeleteFolder(_bdec(searchfolder.entryid), 0, None, 0) # XXX store.findroot
+        self.store.findroot.mapiobj.DeleteFolder(
+            _bdec(searchfolder.entryid), 0, None, 0) # TODO store.findroot
 
     def search_start(self, folders, text, recurse=False):
         # specific restriction format, needed to reach indexer
         restriction = SOrRestriction([
-            SContentRestriction(FL_SUBSTRING | FL_IGNORECASE, PR_SUBJECT_W, SPropValue(PR_SUBJECT_W, _unicode(text))),
-            SContentRestriction(FL_SUBSTRING | FL_IGNORECASE, PR_BODY_W, SPropValue(PR_BODY_W, _unicode(text))),
-            SContentRestriction(FL_SUBSTRING | FL_IGNORECASE, PR_DISPLAY_TO_W, SPropValue(PR_DISPLAY_TO_W, _unicode(text))),
-            SContentRestriction(FL_SUBSTRING | FL_IGNORECASE, PR_DISPLAY_NAME_W, SPropValue(PR_DISPLAY_NAME_W, _unicode(text))),
-            # XXX add all default fields.. BUT perform full-text search by default!
+            SContentRestriction(FL_SUBSTRING | FL_IGNORECASE,
+                PR_SUBJECT_W,
+                SPropValue(PR_SUBJECT_W, _unicode(text))),
+            SContentRestriction(FL_SUBSTRING | FL_IGNORECASE,
+                PR_BODY_W,
+                SPropValue(PR_BODY_W, _unicode(text))),
+            SContentRestriction(FL_SUBSTRING | FL_IGNORECASE,
+                PR_DISPLAY_TO_W,
+                SPropValue(PR_DISPLAY_TO_W, _unicode(text))),
+            SContentRestriction(FL_SUBSTRING | FL_IGNORECASE,
+                PR_DISPLAY_NAME_W,
+                SPropValue(PR_DISPLAY_NAME_W, _unicode(text))),
+            # TODO add all default fields..
+            # BUT perform full-text search by default!
         ])
         if isinstance(folders, Folder):
             folders = [folders]
@@ -1024,7 +1195,8 @@ class Folder(Properties):
         search_flags = 0
         if recurse:
             search_flags = SEARCH_RECURSIVE
-        self.mapiobj.SetSearchCriteria(restriction, [_bdec(f.entryid) for f in folders], search_flags)
+        self.mapiobj.SetSearchCriteria(restriction,
+            [_bdec(f.entryid) for f in folders], search_flags)
 
     def search_wait(self):
         while True:
@@ -1034,25 +1206,31 @@ class Folder(Properties):
 
     @property
     def archive_folder(self):
-        """ Archive :class:`Folder` """
-
-        ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, MAPI_CREATE) # XXX merge namedprops stuff
+        """Archive :class:`Folder`."""
+        # TODO merge namedprops stuff
+        ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, MAPI_CREATE)
         PROP_STORE_ENTRYIDS = CHANGE_PROP_TYPE(ids[0], PT_MV_BINARY)
         PROP_ITEM_ENTRYIDS = CHANGE_PROP_TYPE(ids[1], PT_MV_BINARY)
 
         try:
-            # support for multiple archives was a mistake, and is not and _should not_ be used. so we just pick nr 0.
-            arch_storeid = HrGetOneProp(self.mapiobj, PROP_STORE_ENTRYIDS).Value[0]
-            arch_folderid = HrGetOneProp(self.mapiobj, PROP_ITEM_ENTRYIDS).Value[0]
+            # support for multiple archives was a mistake, and is not and
+            # _should not_ be used. so we just pick nr 0.
+            arch_storeid = \
+                HrGetOneProp(self.mapiobj, PROP_STORE_ENTRYIDS).Value[0]
+            arch_folderid = \
+                HrGetOneProp(self.mapiobj, PROP_ITEM_ENTRYIDS).Value[0]
         except MAPIErrorNotFound:
             return
 
         archive_store = self.server._store2(arch_storeid)
-        return _store.Store(mapiobj=archive_store, server=self.server).folder(entryid=_benc(arch_folderid))
+        return _store.Store(mapiobj=archive_store, server=self.server).folder(
+            entryid=_benc(arch_folderid))
 
     @property
     def primary_store(self):
-        ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, MAPI_CREATE) # XXX merge namedprops stuff
+        """Primary :class:`store <Store>` (for archive folders)."""
+        # TODO merge namedprops stuff
+        ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, MAPI_CREATE)
         PROP_REF_STORE_ENTRYID = CHANGE_PROP_TYPE(ids[3], PT_BINARY)
         try:
             entryid = HrGetOneProp(self.mapiobj, PROP_REF_STORE_ENTRYID).Value
@@ -1063,7 +1241,9 @@ class Folder(Properties):
 
     @property
     def primary_folder(self):
-        ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, MAPI_CREATE) # XXX merge namedprops stuff
+        """Primary :class:`folder <Folder>` (for archive folders)."""
+        # TODO merge namedprops stuff
+        ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, MAPI_CREATE)
         PROP_REF_ITEM_ENTRYID = CHANGE_PROP_TYPE(ids[4], PT_BINARY)
         try:
             entryid = HrGetOneProp(self.mapiobj, PROP_REF_ITEM_ENTRYID).Value
@@ -1078,16 +1258,29 @@ class Folder(Properties):
 
     @property
     def created(self):
+        """Folder creation date."""
         return self._get_fast(PR_CREATION_TIME)
 
     @property
     def last_modified(self):
+        """Folder last modification date."""
         return self._get_fast(PR_LAST_MODIFICATION_TIME)
 
-    def subscribe(self, sink, **kwargs):
+    def subscribe(self, sink, **kwargs): # TODO document args
+        """Subscribe to folder notifications
+
+        :param sink: Sink instance with callbacks to process notifications
+        :param object_types: Tracked objects (*item*, *folder*)
+        :param folder_types: Tracked folders (*mail*, *contacts*, *calendar*)
+        :param event_types: Event types (*created*, *updated*, *deleted*)
+        """
         _notification.subscribe(self.store, self, sink, **kwargs)
 
     def unsubscribe(self, sink):
+        """Unsubscribe from folder notifications
+
+        :param sink: Previously subscribed sink instance
+        """
         _notification.unsubscribe(self.store, sink)
 
     def event(self, eventid):
@@ -1101,6 +1294,7 @@ class Folder(Properties):
 
     @property
     def type_(self):
+        """Folder type (mail, contacts, calendar or just folder)."""
         if self.container_class in (None, 'IPF.Note'):
             return 'mail'
         elif self.container_class == 'IPF.Contact':
@@ -1111,12 +1305,17 @@ class Folder(Properties):
             return 'folder'
 
     def permissions_dumps(self, **kwargs):
+        """Serialize permissions."""
         return _permissions_dumps(self, **kwargs)
 
     def permissions_loads(self, data, **kwargs):
+        """Deserialize permissions.
+
+        :param data: Serialized data
+        """
         return _permissions_loads(self, data, **kwargs)
 
-    def __eq__(self, f): # XXX check same store?
+    def __eq__(self, f): # TODO check same store?
         if isinstance(f, Folder):
             return self._entryid == f._entryid
         return False
@@ -1136,10 +1335,10 @@ class Folder(Properties):
     def next(self):
         return self.__next__()
 
-    def __unicode__(self): # XXX associated?
+    def __unicode__(self): # TODO associated?
         try: # folder deleted via ICS
             name = self.name
         except AttributeError:
-            name = u''
+            name = ''
 
-        return u'Folder(%s)' % name
+        return 'Folder(%s)' % name

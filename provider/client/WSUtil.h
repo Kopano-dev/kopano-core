@@ -5,11 +5,13 @@
 #ifndef ECWSUTIL_H
 #define ECWSUTIL_H
 
+#include <vector>
 #include <mapidefs.h>
 #include <mapicode.h>
 #include "kcore.hpp"
 #include <kopano/kcodes.h>
 #include "ECMsgStore.h"
+#include "WSMAPIFolderOps.h"
 
 namespace KC {
 class convert_context;
@@ -54,5 +56,7 @@ extern HRESULT CopyICSChangeToSOAPSourceKeys(ULONG cbChanges, const ICSCHANGE *l
 extern HRESULT Utf8ToTString(const char *utf, ULONG flags, void *bsae, KC::convert_context *, TCHAR **);
 HRESULT ConvertString8ToUnicode(LPSRowSet lpRowSet);
 extern HRESULT ConvertString8ToUnicode(SRow *row, void *base, KC::convert_context &);
+extern HRESULT convert_wsfolder_to_soapfolder(const std::vector<WSMAPIFolderOps::WSFolder> &src, std::vector<new_folder> &dst);
+extern HRESULT convert_soapfolders_to_wsfolder(const struct create_folders_response &src, std::vector<WSMAPIFolderOps::WSFolder> &dst);
 
 #endif

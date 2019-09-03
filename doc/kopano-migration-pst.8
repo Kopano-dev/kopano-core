@@ -1,32 +1,11 @@
-'\" t
-.\"     Title: kopano-migration-pst
-.\"    Author: [see the "Author" section]
-.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
-.\"      Date: November 2016
-.\"    Manual: Kopano Core user reference
-.\"    Source: Kopano 8
-.\"  Language: English
-.\"
 .TH "KOPANO\-MIGRATION\-PST" "8" "November 2016" "Kopano 8" "Kopano Core user reference"
-.\" -----------------------------------------------------------------
-.\" * Define some portability stuff
-.\" -----------------------------------------------------------------
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .\" http://bugs.debian.org/507673
-.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
-.\" -----------------------------------------------------------------
-.\" * set default formatting
-.\" -----------------------------------------------------------------
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
 .ad l
-.\" -----------------------------------------------------------------
-.\" * MAIN CONTENT STARTS HERE *
-.\" -----------------------------------------------------------------
 .SH "NAME"
 kopano-migration-pst \- Utility to import PST files into Kopano
 .SH "SYNOPSIS"
@@ -84,7 +63,7 @@ List messages/items contained in specified PST file.
 .PP
 \fB\-\-log\-level\fR, \fB\-l\fR \fINAME\fR
 .RS 4
-Specify log\-level, for example, \*(Aqerror\*(Aq, \*(Aqwarning\*(Aq \*(Aqinfo\*(Aq or \*(Aqdebug\*(Aq.
+Specify log\-level, for example, \fBerror\fP, \fBwarning\fP, \fBinfo\fP or \fBdebug\fP.
 .RE
 .PP
 \fB\-\-ex\-mapping\fR \fIFILE\fR
@@ -94,7 +73,7 @@ Use a mapping file to look up an email address for items with only a legacyExcha
 .PP
 \fB\-\-nid\fR \fINID\fR
 .RS 4
-Import a specific nid, nid's are shown when importing a PST with log level \*(Aqdebug\*(Aq.
+Import a specific nid, NIDs are shown when importing a PST with log level \fBdebug\fP.
 .RE
 .PP
 \fB\-\-server\-socket\fR, \fB\-s\fR \fISOCKET\fR
@@ -140,6 +119,3 @@ Import PST file name "outlook.pst" to store of user "bert":
 Import PST file name "public.pst" into (new or existing) "imported" folder of public store:
 .PP
 \fBkopano\-migration\-pst \-S public --import-root=imported public.pst\fR
-.SH "AUTHOR"
-.PP
-Written by Kopano.

@@ -168,13 +168,15 @@ HRESULT ECABContainer::DefaultABContainerGetProp(unsigned int ulPropTag,
 			break;
 		if (PROP_TYPE(ulPropTag) == PT_UNICODE) {
 			const std::wstring strTmp = convert_to<std::wstring>(lpszName);
-			hr = MAPIAllocateMore((strTmp.size() + 1) * sizeof(WCHAR), lpBase, (void**)&lpsPropValue->Value.lpszW);
+			hr = MAPIAllocateMore((strTmp.size() + 1) * sizeof(wchar_t),
+			     lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.lpszW));
 			if (hr != hrSuccess)
 				return hr;
 			wcscpy(lpsPropValue->Value.lpszW, strTmp.c_str());
 		} else {
 			const std::string strTmp = convert_to<std::string>(lpszName);
-			hr = MAPIAllocateMore(strTmp.size() + 1, lpBase, (void**)&lpsPropValue->Value.lpszA);
+			hr = MAPIAllocateMore(strTmp.size() + 1, lpBase,
+			     reinterpret_cast<void **>(&lpsPropValue->Value.lpszA));
 			if (hr != hrSuccess)
 				return hr;
 			strcpy(lpsPropValue->Value.lpszA, strTmp.c_str());
@@ -208,7 +210,7 @@ HRESULT ECABContainer::TableRowGetProp(void *lpProvider,
 			lpszW = KC_W("All Address Lists");
 		else
 			return MAPI_E_NOT_FOUND;
-		size = (wcslen(lpszW) + 1) * sizeof(WCHAR);
+		size = (wcslen(lpszW) + 1) * sizeof(wchar_t);
 		lpsPropValDst->ulPropTag = lpsPropValSrc->ulPropTag;
 		return KAllocCopy(lpszW, size, reinterpret_cast<void **>(&lpsPropValDst->Value.lpszW), lpBase);
 	}
@@ -257,7 +259,7 @@ HRESULT ECABContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	hr = lpTableOps->HrSortTable(sSortByDisplayName);
 	if(hr != hrSuccess)
 		return hr;
-	hr = lpTable->QueryInterface(IID_IMAPITable, (void **)lppTable);
+	hr = lpTable->QueryInterface(IID_IMAPITable, reinterpret_cast<void **>(lppTable));
 	AddChild(lpTable);
 	return hr;
 }
@@ -278,7 +280,7 @@ HRESULT ECABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	hr = lpTable->HrSetTableOps(lpTableOps, !(ulFlags & MAPI_DEFERRED_ERRORS));
 	if(hr != hrSuccess)
 		return hr;
-	hr = lpTable->QueryInterface(IID_IMAPITable, (void **)lppTable);
+	hr = lpTable->QueryInterface(IID_IMAPITable, reinterpret_cast<void **>(lppTable));
 	AddChild(lpTable);
 	return hr;
 }
@@ -458,10 +460,7 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		hr = lpABContainer->HrSetPropStorage(lpPropStorage, TRUE);
 		if (hr != hrSuccess)
 			return hr;
-		if (lpInterface)
-			hr = lpABContainer->QueryInterface(*lpInterface,(void **)lppUnk);
-		else
-			hr = lpABContainer->QueryInterface(IID_IABContainer, (void **)lppUnk);
+		hr = lpABContainer->QueryInterface(lpInterface != nullptr ? *lpInterface : IID_IABContainer, reinterpret_cast<void **>(lppUnk));
 		if (hr != hrSuccess)
 			return hr;
 		break;
@@ -479,10 +478,7 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		hr = lpMailUser->HrSetPropStorage(lpPropStorage, TRUE);
 		if (hr != hrSuccess)
 			return hr;
-		if (lpInterface)
-			hr = lpMailUser->QueryInterface(*lpInterface,(void **)lppUnk);
-		else
-			hr = lpMailUser->QueryInterface(IID_IMailUser, (void **)lppUnk);
+		hr = lpMailUser->QueryInterface(lpInterface != nullptr ? *lpInterface : IID_IMailUser, reinterpret_cast<void **>(lppUnk));
 		if (hr != hrSuccess)
 			return hr;
 		break;
@@ -500,10 +496,7 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		hr = lpDistList->HrSetPropStorage(lpPropStorage, TRUE);
 		if (hr != hrSuccess)
 			return hr;
-		if (lpInterface)
-			hr = lpDistList->QueryInterface(*lpInterface, (void **)lppUnk);
-		else
-			hr = lpDistList->QueryInterface(IID_IDistList, (void **)lppUnk);
+		hr = lpDistList->QueryInterface(lpInterface != nullptr ? *lpInterface : IID_IDistList, reinterpret_cast<void **>(lppUnk));
 		if (hr != hrSuccess)
 			return hr;
 		break;
@@ -765,7 +758,7 @@ HRESULT ECABProvider::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 	if(hr != hrSuccess)
 		return hr;
 	AddChild(lpABLogon);
-	hr = lpABLogon->QueryInterface(IID_IABLogon, (void **)lppABLogon);
+	hr = lpABLogon->QueryInterface(IID_IABLogon, reinterpret_cast<void **>(lppABLogon));
 	if(hr != hrSuccess)
 		return hr;
 	if (lpulcbSecurity)
@@ -836,7 +829,7 @@ HRESULT ECABProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 	hr = lpMAPISup->SetProviderUID((LPMAPIUID)&MUIDECSAB, 0);
 	if(hr != hrSuccess)
 		return hr;
-	hr = lpABLogon->QueryInterface(IID_IABLogon, (void **)lppABLogon);
+	hr = lpABLogon->QueryInterface(IID_IABLogon, reinterpret_cast<void **>(lppABLogon));
 	if(hr != hrSuccess)
 		return hr;
 	if(lpulcbSecurity)

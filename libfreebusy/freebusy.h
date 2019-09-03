@@ -81,9 +81,7 @@ information and delegate access to accounts.
 		- IEnumFBBlock
 		- IFreeBusyData
 		- IFreeBusySupport
-
 */
-
 #ifndef FREEBUSY_INCLUDED
 #define FREEBUSY_INCLUDED
 
@@ -174,7 +172,6 @@ public:
  * 
  * A free/busy provider obtains this interface and the enumeration for a time range for
  * a user through IFreeBusyData. 
- * 
  */
 class IEnumFBBlock : public virtual IUnknown {
 public:
@@ -191,7 +188,6 @@ public:
 	 */
 	virtual HRESULT Next(LONG celt, FBBlock_1 *pblk, LONG *pcfetch) = 0;
 
-
 	/**
 	 * Skips a specified number of blocks of free/busy data.
 	 *
@@ -201,12 +197,10 @@ public:
 	 */
 	virtual HRESULT Skip(LONG celt) = 0;
 
-
 	/**
 	 * Resets the enumerator by setting the cursor to the beginning.
 	 */
 	virtual HRESULT Reset() = 0;
-
 
 	/**
 	 * Creates a copy of the enumerator,  using the same time restriction 
@@ -215,10 +209,8 @@ public:
 	 * @param[out] ppclone Pointer to pointer to the copy of IEnumFBBlock interface.
 	 *
 	 * @retval E_OUTOFMEMORY There is insufficient memory for making the copy.
-	 
 	 */
 	virtual HRESULT Clone(IEnumFBBlock **ppclone) = 0;
-
 
 	/**
 	 * Restricts the enumeration to a specified time period.
@@ -230,7 +222,6 @@ public:
 	 */
 	virtual HRESULT Restrict(const FILETIME &start, const FILETIME &end) = 0;
 };
-
 
 /**
  * @interface IFreeBusyData
@@ -320,11 +311,9 @@ public:
  * 	Most of the members in this interface are placeholders reserved for the internal
  *	use of Outlook and are subject to change. Free/busy providers must implement them 
  *	only as specified, returning only the specified return values.
- *
  */
 class IFreeBusySupport : public virtual IUnknown {
 public:
-
 	/**
 	 * Initialize the freebusy support object for further uses of the interface.
 	 * 
@@ -337,7 +326,6 @@ public:
 	 *		Userstore to save freebusy data. Passing NULL results in the freebusydata is readonly.
 	 * @param[in] bStore
 	 *		Unknown data, is true if lpMsgStore isn't NULL
-	 *	
 	 */
 	virtual HRESULT Open(IMAPISession *lpMAPISession, IMsgStore *lpMsgStore, BOOL bStore) = 0;
 
@@ -345,7 +333,6 @@ public:
 	 * Close the free/busy support object data.
 	 * 
 	 * It will release session and store which are initialized by IFreeBusySupport::Open
-	 * 
 	 */
 	virtual HRESULT Close() = 0;
 
@@ -520,7 +507,6 @@ public:
  *
  * \warning
  *	Missing call is CleanTombstone. This is not support in outlook 2000
- *
  */
 class IFreeBusySupportOutlook2000 : public virtual IUnknown {
 public:

@@ -550,7 +550,6 @@ ECRESULT ECSecurity::GetRights(unsigned int objid, int ulType,
 
 	lpsRightsArray->__ptr = s_alloc<rights>(nullptr, ulCount);
 	lpsRightsArray->__size = ulCount;
-	memset(lpsRightsArray->__ptr, 0, sizeof(struct rights) * ulCount);
 	auto usrmgt = m_lpSession->GetUserManagement();
 	for (unsigned int i = 0; i < ulCount; ++i) {
 		auto lpDBRow = lpDBResult.fetch_row();
@@ -835,9 +834,9 @@ ECRESULT ECSecurity::GetViewableCompanies(unsigned int ulFlags,
 		objs.clear();
 
 	/* We are going to insert the requested companyID to the list as well,
-	 * this way we guarentee that _all_ viewable companies are in the list.
+	 * this way we guarantee that _all_ viewable companies are in the list.
 	 * And we can use sort() and unique() to prevent duplicate entries while
-	 * making sure the we can savely handle things when the current company
+	 * making sure the we can safely handle things when the current company
 	 * is either added or not present in the RemoteViewableCompanies. */
 	if (m_ulCompanyID != 0) {
 		if (!(ulFlags & USERMANAGEMENT_IDS_ONLY)) {

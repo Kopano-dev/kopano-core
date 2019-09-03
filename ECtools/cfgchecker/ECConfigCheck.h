@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef ECCONFIGCHECK_H
 #define ECCONFIGCHECK_H
 
@@ -30,12 +29,7 @@ enum CHECK_FLAGS {
 struct config_check_t {
 	bool hosted;
 	bool multi;
-	std::string option1;
-	std::string option2;
-
-	std::string value1;
-	std::string value2;
-
+	std::string option1, option2, value1, value2;
 	int (*check)(const config_check_t *);
 };
 
@@ -45,18 +39,15 @@ public:
 	virtual ~ECConfigCheck(void) = default;
 	/* Must be overwritten by subclass */
 	virtual void loadChecks() = 0;
-
 	bool isDirty() const;
 	void setHosted(bool hosted);
 	void setMulti(bool multi);
 	void validate();
-
 	const std::string &getSetting(const std::string &);
 
 protected:
 	static void printError(const std::string &, const std::string &);
 	static void printWarning(const std::string &, const std::string &);
-
 	void addCheck(const std::string &, unsigned int, int (*)(const config_check_t *) = NULL);
 	void addCheck(const std::string &, const std::string &, unsigned int, int (*)(const config_check_t *) = NULL);
 

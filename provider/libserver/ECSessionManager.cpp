@@ -66,7 +66,7 @@ ECSessionManager::ECSessionManager(std::shared_ptr<ECConfig> cfg,
 		ec_log_crit("Could not create SessionCleaner thread: %s", strerror(err));
 	} else {
 		m_thread_active = true;
-	        set_thread_name(m_hSessionCleanerThread, "SessionCleanUp");
+	        set_thread_name(m_hSessionCleanerThread, "ses_cleaner");
 	}
 
 	m_lpNotificationManager.reset(new ECNotificationManager());
@@ -350,11 +350,13 @@ ECRESULT ECSessionManager::ValidateBTSession(struct soap *soap,
 		return er;
 	}
 
+#ifdef WITH_ZLIB
 	/* Enable compression if client desired and granted */
 	if (lpSession->GetCapabilities() & KOPANO_CAP_COMPRESSION) {
 		soap_set_imode(soap, SOAP_ENC_ZLIB);
 		soap_set_omode(soap, SOAP_ENC_ZLIB | SOAP_IO_CHUNK);
 	}
+#endif
 	// Enable streaming support if client is capable
 	if (lpSession->GetCapabilities() & KOPANO_CAP_ENHANCED_ICS) {
 		soap_set_omode(soap, SOAP_ENC_MTOM | SOAP_IO_CHUNK);
@@ -757,11 +759,9 @@ ECRESULT ECSessionManager::NotificationDeleted(unsigned int ulObjType, unsigned 
 	ECRESULT er = erSuccess;
 	struct notification notify;
 
-	memset(&notify, 0, sizeof(notification));
 	if(ulObjType != MAPI_MESSAGE && ulObjType != MAPI_FOLDER && ulObjType != MAPI_STORE)
 		goto exit;
 	notify.obj = s_alloc<notificationObject>(nullptr);
-	memset(notify.obj, 0, sizeof(notificationObject));
 	notify.ulEventType			= fnevObjectDeleted;
 	notify.obj->ulObjType		= ulObjType;
 	notify.obj->pEntryId		= lpEntryId;
@@ -781,12 +781,9 @@ ECRESULT ECSessionManager::NotificationModified(unsigned int ulObjType, unsigned
 {
 	struct notification notify;
 
-	memset(&notify, 0, sizeof(notification));
-
 	if(ulObjType != MAPI_MESSAGE && ulObjType != MAPI_FOLDER && ulObjType != MAPI_STORE)
 		return erSuccess;
 	notify.obj = s_alloc<notificationObject>(nullptr);
-	memset(notify.obj, 0, sizeof(notificationObject));
 	notify.ulEventType			= fnevObjectModified;
 	notify.obj->ulObjType		= ulObjType;
 	auto er = GetCacheManager()->GetEntryIdFromObject(ulObjId, nullptr, 0, &notify.obj->pEntryId);
@@ -807,11 +804,9 @@ ECRESULT ECSessionManager::NotificationCreated(unsigned int ulObjType, unsigned 
 {
 	struct notification notify;
 
-	memset(&notify, 0, sizeof(notification));
 	if(ulObjType != MAPI_MESSAGE && ulObjType != MAPI_FOLDER && ulObjType != MAPI_STORE)
 		return erSuccess;
 	notify.obj = s_alloc<notificationObject>(nullptr);
-	memset(notify.obj, 0, sizeof(notificationObject));
 	notify.ulEventType			= fnevObjectCreated;
 	notify.obj->ulObjType		= ulObjType;
 
@@ -831,11 +826,9 @@ ECRESULT ECSessionManager::NotificationMoved(unsigned int ulObjType, unsigned in
 {
 	struct notification notify;
 
-	memset(&notify, 0, sizeof(notification));
 	if(ulObjType != MAPI_MESSAGE && ulObjType != MAPI_FOLDER && ulObjType != MAPI_STORE)
 		return erSuccess;
 	notify.obj = s_alloc<notificationObject>(nullptr);
-	memset(notify.obj, 0, sizeof(notificationObject));
 	notify.ulEventType				= fnevObjectMoved;
 	notify.obj->ulObjType			= ulObjType;
 
@@ -860,11 +853,9 @@ ECRESULT ECSessionManager::NotificationCopied(unsigned int ulObjType, unsigned i
 {
 	struct notification notify;
 
-	memset(&notify, 0, sizeof(notification));
 	if(ulObjType != MAPI_MESSAGE && ulObjType != MAPI_FOLDER && ulObjType != MAPI_STORE)
 		return erSuccess;
 	notify.obj = s_alloc<notificationObject>(nullptr);
-	memset(notify.obj, 0, sizeof(notificationObject));
 	notify.ulEventType				= fnevObjectCopied;
 	notify.obj->ulObjType			= ulObjType;
 
@@ -901,9 +892,7 @@ ECRESULT ECSessionManager::NotificationSearchComplete(unsigned int ulObjId, unsi
 {
 	struct notification notify;
 
-	memset(&notify, 0, sizeof(notification));
 	notify.obj = s_alloc<notificationObject>(nullptr);
-	memset(notify.obj, 0, sizeof(notificationObject));
 	notify.ulEventType				= fnevSearchComplete;
 	notify.obj->ulObjType			= MAPI_FOLDER;
 	auto er = GetCacheManager()->GetEntryIdFromObject(ulObjId, nullptr, 0, &notify.obj->pEntryId);
@@ -958,6 +947,16 @@ void ECSessionManager::update_extra_stats()
 	auto cm = GetCacheManager();
 	if (cm != nullptr)
 		cm->update_extra_stats(s);
+
+	/* It's not the same as the AUTO_INCREMENT value, but good enough. */
+	ECDatabase *db = nullptr;
+	DB_RESULT result;
+	if (m_lpDatabaseFactory.get()->get_tls_db(&db) == erSuccess &&
+	    db->DoSelect("SELECT MAX(id) FROM hierarchy", &result) == erSuccess) {
+		auto row = result.fetch_row();
+		if (row != nullptr && row[0] != nullptr)
+			s.set(SCN_DATABASE_MAX_OBJECTID, atoui(row[0]));
+	}
 }
 
 /**
@@ -1171,7 +1170,7 @@ ECRESULT ECSessionManager::GetStoreSortLCID(ULONG ulStoreId, ULONG *lpLcid)
 	auto cache = GetCacheManager();
 	sObjectTableKey key(ulStoreId, 0);
 	struct propVal prop;
-	if (cache->GetCell(&key, PR_SORT_LOCALE_ID, &prop, nullptr, false) == erSuccess) {
+	if (cache->GetCell(&key, PR_SORT_LOCALE_ID, &prop, nullptr) == erSuccess) {
 		if (prop.ulPropTag == CHANGE_PROP_TYPE(PR_SORT_LOCALE_ID, PT_ERROR))
 			return prop.Value.ul;
 		*lpLcid = prop.Value.ul;

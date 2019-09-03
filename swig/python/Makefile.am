@@ -1,7 +1,5 @@
 # -*- Makefile -*-
 
-SUBDIRS = include/kopano kopano
-
 SWIG_CXXFLAGS = -Wall -python -c++ -threads \
 	-I${top_srcdir}/common/include -I${top_srcdir}/swig/include \
 	-I${srcdir}/include
@@ -80,6 +78,8 @@ _libfreebusy_la_LIBADD = libkcpyconv.la ${top_builddir}/libmapi.la \
 	${top_builddir}/libkcutil.la \
 	$(PYTHON_LIBS)
 
+noinst_HEADERS = include/kopano/conversion.h include/kopano/director_util.h \
+	include/kopano/typemap_python.i
 
 BUILT_SOURCES = mapi_wrap.cxx \
 				mapi_wrap.h \
@@ -130,8 +130,6 @@ EXTRA_DIST = helpers_python.i \
 	MAPI/Tags.py \
 	MAPI/Time.py \
 	MAPI/Util/__init__.py \
-	MAPI/Util/Generators.py \
-	MAPI/Util/Iterators.py \
 	MAPI/Util/AddressBook.py \
 	MAPI/Util/codepage.py \
 	archiver_python.i
@@ -176,7 +174,7 @@ install-exec-local:
 	cd staging/ && ${PYTHON} setup.py \
 		build --build-base="${abs_builddir}/build" \
 		install -f $${DESTDIR+--root=${DESTDIR}} \
-		--prefix="${prefix}" --install-purelib ${pythondir}
+		--prefix="${prefix}" --install-purelib="${pythondir}"
 	rm -Rf build
 
 uninstall-local:

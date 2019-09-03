@@ -1105,7 +1105,6 @@ ECRESULT CopyPropValArray(const struct propValArray *lpSrc,
 		return KCERR_INVALID_PARAMETER;
 	lpDst->__ptr = s_alloc<struct propVal>(soap, lpSrc->__size);
 	lpDst->__size = lpSrc->__size;
-	memset(lpDst->__ptr, 0, sizeof(propVal)*lpDst->__size);
 
 	for (gsoap_size_t i = 0; i < lpSrc->__size; ++i) {
 		auto er = CopyPropVal(&lpSrc->__ptr[i], &lpDst->__ptr[i], soap);
@@ -1127,7 +1126,6 @@ ECRESULT CopyRestrictTable(struct soap *soap,
 	if (lpSrc == nullptr)
 		return KCERR_INVALID_PARAMETER;
 	auto lpDst = s_alloc<struct restrictTable>(soap);
-	memset(lpDst, 0, sizeof(restrictTable));
 	lpDst->ulType = lpSrc->ulType;
 
 	switch(lpSrc->ulType) {
@@ -1161,7 +1159,6 @@ ECRESULT CopyRestrictTable(struct soap *soap,
 		break;
 	case RES_NOT: {
 		lpDst->lpNot = s_alloc<restrictNot>(soap);
-		memset(lpDst->lpNot, 0, sizeof(restrictNot));
 		auto er = CopyRestrictTable(soap, lpSrc->lpNot->lpNot, &lpDst->lpNot->lpNot);
 		if(er != erSuccess)
 			return er;
@@ -1169,7 +1166,6 @@ ECRESULT CopyRestrictTable(struct soap *soap,
 	}
 	case RES_CONTENT:
 		lpDst->lpContent = s_alloc<restrictContent>(soap);
-		memset(lpDst->lpContent, 0, sizeof(restrictContent));
 		lpDst->lpContent->ulFuzzyLevel = lpSrc->lpContent->ulFuzzyLevel;
 		lpDst->lpContent->ulPropTag = lpSrc->lpContent->ulPropTag;
 
@@ -1181,7 +1177,6 @@ ECRESULT CopyRestrictTable(struct soap *soap,
 		break;
 	case RES_PROPERTY: {
 		lpDst->lpProp = s_alloc<restrictProp>(soap);
-		memset(lpDst->lpProp, 0, sizeof(restrictProp));
 		lpDst->lpProp->ulType = lpSrc->lpProp->ulType;
 		lpDst->lpProp->ulPropTag = lpSrc->lpProp->ulPropTag;
 		auto er = CopyPropVal(lpSrc->lpProp->lpProp, &lpDst->lpProp->lpProp, soap);
@@ -1191,33 +1186,28 @@ ECRESULT CopyRestrictTable(struct soap *soap,
 	}
 	case RES_COMPAREPROPS:
 		lpDst->lpCompare = s_alloc<restrictCompare>(soap);
-		memset(lpDst->lpCompare, 0 , sizeof(restrictCompare));
 		lpDst->lpCompare->ulType = lpSrc->lpCompare->ulType;
 		lpDst->lpCompare->ulPropTag1 = lpSrc->lpCompare->ulPropTag1;
 		lpDst->lpCompare->ulPropTag2 = lpSrc->lpCompare->ulPropTag2;
 		break;
 	case RES_BITMASK:
 		lpDst->lpBitmask = s_alloc<restrictBitmask>(soap);
-		memset(lpDst->lpBitmask, 0, sizeof(restrictBitmask));
 		lpDst->lpBitmask->ulMask = lpSrc->lpBitmask->ulMask;
 		lpDst->lpBitmask->ulPropTag = lpSrc->lpBitmask->ulPropTag;
 		lpDst->lpBitmask->ulType = lpSrc->lpBitmask->ulType;
 		break;
 	case RES_SIZE:
 		lpDst->lpSize = s_alloc<restrictSize>(soap);
-		memset(lpDst->lpSize, 0, sizeof(restrictSize));
 		lpDst->lpSize->ulPropTag = lpSrc->lpSize->ulPropTag;
 		lpDst->lpSize->ulType = lpSrc->lpSize->ulType;
 		lpDst->lpSize->cb = lpSrc->lpSize->cb;
 		break;
 	case RES_EXIST:
 		lpDst->lpExist = s_alloc<restrictExist>(soap);
-		memset(lpDst->lpExist, 0, sizeof(restrictExist));
 		lpDst->lpExist->ulPropTag = lpSrc->lpExist->ulPropTag;
 		break;
 	case RES_COMMENT: {
 		lpDst->lpComment = s_alloc<restrictComment>(soap);
-		memset(lpDst->lpComment, 0, sizeof(restrictComment));
 		auto er = CopyPropValArray(&lpSrc->lpComment->sProps, &lpDst->lpComment->sProps, soap);
 		if (er != erSuccess)
 			return er;
@@ -1228,7 +1218,6 @@ ECRESULT CopyRestrictTable(struct soap *soap,
 	}
 	case RES_SUBRESTRICTION: {
 	    lpDst->lpSub = s_alloc<restrictSub>(soap);
-	    memset(lpDst->lpSub, 0, sizeof(restrictSub));
 	    lpDst->lpSub->ulSubObject = lpSrc->lpSub->ulSubObject;
 		auto er = CopyRestrictTable(soap, lpSrc->lpSub->lpSubObject, &lpDst->lpSub->lpSubObject);
 		if(er != erSuccess)
@@ -1357,7 +1346,6 @@ ECRESULT CopyNotificationStruct(struct soap *soap,
 
 	if(lpNotification->tab != NULL) {
 		rNotifyTo.tab =	s_alloc<notificationTable>(soap);
-		memset(rNotifyTo.tab, 0, sizeof(notificationTable));
 		rNotifyTo.tab->hResult = lpNotification->tab->hResult;
 		rNotifyTo.tab->ulTableEvent = lpNotification->tab->ulTableEvent;
 		CopyPropVal(&lpNotification->tab->propIndex, &rNotifyTo.tab->propIndex, soap);
@@ -1367,7 +1355,6 @@ ECRESULT CopyNotificationStruct(struct soap *soap,
 		rNotifyTo.tab->ulObjType = lpNotification->tab->ulObjType;
 	}else if(lpNotification->obj != NULL) {
 		rNotifyTo.obj = s_alloc<notificationObject>(soap);
-		memset(rNotifyTo.obj, 0, sizeof(notificationObject));
 		rNotifyTo.obj->ulObjType		= lpNotification->obj->ulObjType;
 		// Ignore errors, sometimes nothing to copy
 		CopyEntryId(soap, lpNotification->obj->pEntryId, &rNotifyTo.obj->pEntryId);
@@ -1377,7 +1364,6 @@ ECRESULT CopyNotificationStruct(struct soap *soap,
 		CopyPropTagArray(soap, lpNotification->obj->pPropTagArray, &rNotifyTo.obj->pPropTagArray);
 	}else if(lpNotification->newmail != NULL){
 		rNotifyTo.newmail = s_alloc<notificationNewMail>(soap);
-		memset(rNotifyTo.newmail, 0, sizeof(notificationNewMail));
 		// Ignore errors, sometimes nothing to copy
 		CopyEntryId(soap, lpNotification->newmail->pEntryId, &rNotifyTo.newmail->pEntryId);
 		CopyEntryId(soap, lpNotification->newmail->pParentId, &rNotifyTo.newmail->pParentId);
@@ -1389,7 +1375,6 @@ ECRESULT CopyNotificationStruct(struct soap *soap,
 		}
 	}else if(lpNotification->ics != NULL){
 		rNotifyTo.ics = s_alloc<notificationICS>(soap);
-		memset(rNotifyTo.ics, 0, sizeof(notificationICS));
 		// We use CopyEntryId as it just copied binary data
 		CopyEntryId(soap, lpNotification->ics->pSyncState, &rNotifyTo.ics->pSyncState);
 	}
@@ -1442,7 +1427,6 @@ ECRESULT CopyRightsArrayToSoap(struct soap *soap, struct rightsArray *lpRightsAr
 	    lppRightsArrayDst == nullptr)
 		return KCERR_INVALID_PARAMETER;
 	auto lpRightsArrayDst = s_alloc<struct rightsArray>(soap);
-	memset(lpRightsArrayDst, 0, sizeof *lpRightsArrayDst);
 	lpRightsArrayDst->__size = lpRightsArraySrc->__size;
 	lpRightsArrayDst->__ptr = s_alloc<struct rights>(soap, lpRightsArraySrc->__size);
 
@@ -1523,7 +1507,6 @@ ECRESULT CopySearchCriteria(struct soap *soap,
 
 	ECRESULT er = erSuccess;
 	auto lpDst = s_alloc<searchCriteria>(nullptr);
-	memset(lpDst, '\0', sizeof(*lpDst));
 	if(lpSrc->lpRestrict) {
 		er = CopyRestrictTable(soap, lpSrc->lpRestrict, &lpDst->lpRestrict);
 		if (er != erSuccess)
@@ -1897,7 +1880,7 @@ size_t PropValArraySize(const struct propValArray *lpSrc)
 /**
  * Calculate the restrict table size
  *
- * @param[in] lpSrc Ponter to a restrict table object
+ * @param[in] lpSrc Pointer to a restrict table object
  * @return the size of the object. If there is an error, object size is zero.
  */
 size_t RestrictTableSize(const struct restrictTable *lpSrc)

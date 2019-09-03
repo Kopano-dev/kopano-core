@@ -1,32 +1,11 @@
-'\" t
-.\"     Title: kopano-archiver-aclsync
-.\"    Author: [see the "Author" section]
-.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
-.\"      Date: November 2016
-.\"    Manual: Kopano Core user reference
-.\"    Source: Kopano 8
-.\"  Language: English
-.\"
 .TH "KOPANO\-ARCHIVER\-ACLSYNC" "8" "November 2016" "Kopano 8" "Kopano Core user reference"
-.\" -----------------------------------------------------------------
-.\" * Define some portability stuff
-.\" -----------------------------------------------------------------
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .\" http://bugs.debian.org/507673
-.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
-.\" -----------------------------------------------------------------
-.\" * set default formatting
-.\" -----------------------------------------------------------------
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
 .ad l
-.\" -----------------------------------------------------------------
-.\" * MAIN CONTENT STARTS HERE *
-.\" -----------------------------------------------------------------
 .SH "NAME"
 kopano-archiver-aclsync \- Synchronizes archive ACL settings with those of the primary store.
 .SH "SYNOPSIS"
@@ -34,7 +13,7 @@ kopano-archiver-aclsync \- Synchronizes archive ACL settings with those of the p
 \fBkopano\-archiver\-aclsync\fR [\fIOPTION\fR...]
 .SH "DESCRIPTION"
 .PP
-When a user has set permissions for others on his or her store or folders, the other user will need at least read\-permissions on this persons archive as well in order to read stubbed messages or access the archive directly. These permissions can not be set by the owner of the archive if the archive was attached without write privileges. Even if the user has write permissions, it\*(Aqs a nuisance to have to set all the permissions twice (or more if multiple archives are attached).
+When a user has set permissions for others on his or her store or folders, the other user will need at least read\-permissions on this persons archive as well in order to read stubbed messages or access the archive directly. These permissions can not be set by the owner of the archive if the archive was attached without write privileges. Even if the user has write permissions, it is a nuisance to have to set all the permissions twice (or more if multiple archives are attached).
 .PP
 \fBkopano\-archiver\-aclsync\fR
 can be used to propagate the ACL settings from the primary store to the archives. However, no user will ever get more right on a store or folder than the owner of the archive. So if the archive was attached without write permissions, no user will get write permissions on the archive.
@@ -50,7 +29,7 @@ Run the script for just the specified user(s). By default, it runs for all users
 .PP
 \fB\-\-log\-level\fR, \fB\-l\fR \fINAME\fR
 .RS 4
-Specify log\-level, for example, \*(Aqerror\*(Aq, \*(Aqwarning\*(Aq \*(Aqinfo\*(Aq or \*(Aqdebug\*(Aq.
+Specify log\-level, for example, \fBerror\fP, \fBwarning\fP \fBinfo\fP or \fBdebug\fP.
 .RE
 .PP
 \fB\-\-server\-socket\fR, \fB\-s\fR \fISOCKET\fR
@@ -67,6 +46,3 @@ Specify SSL key file.
 .RS 4
 Specify SSL key password.
 .RE
-.SH "AUTHOR"
-.PP
-Written by Kopano.

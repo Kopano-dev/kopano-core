@@ -801,7 +801,7 @@ HRESULT HrDeserializeActions(IMAPIProp * pprop, BYTE * pbActions, ULONG cbAction
 #define RULE_ERR_NO_TEMPLATE		10			//reply template is missing
 #define RULE_ERR_EXECUTION			11			//error in rule execution
 #define RULE_ERR_QUOTA_EXCEEDED		12			//mailbox quota size exceeded
-#define RULE_ERR_TOO_MANY_RECIPS	13			//number of recips exceded upper limit
+#define RULE_ERR_TOO_MANY_RECIPS	13			//number of recips exceeded upper limit
 
 #define RULE_ERR_FIRST		RULE_ERR_UNKNOWN
 #define RULE_ERR_LAST		RULE_ERR_TOO_MANY_RECIPS

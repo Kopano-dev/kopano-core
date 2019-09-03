@@ -1,0 +1,534 @@
+Cheatsheet on all ID things
+
+
+These are notes and not normative. Specifically, code should not rely
+on this document's claims.
+
+
+== GUID / MAPIUID ==
+
+DCE-type GUIDs: 1 32-bit little-endian integer, 3 16-bit little-endian
+integers, 6 bytes.
+
+  * GUIDs in the KC SQL database are stored in LE.
+
+  * GUIDs in memory are LE as well. As they are moving around in memory a lot,
+    byteswapping should happen at time of access, not at time of
+    reading/writing them from/to another place.
+
+  * Comparisons of equality with another GUID work right away.
+
+  * Comparisons of ordering need byteswapping. Sorting GUIDs by the byte does
+    not carry a lot of meaning; they are random identifiers most of the time,
+    and if one were to sort per the DCE spec, an unnatural order is the result.
+
+
+== ENTRYID ==
+
+https://docs.microsoft.com/en-us/office/client-developer/outlook/mapi/entryid
+https://docs.microsoft.com/en-us/office/client-developer/outlook/mapi/mapi-entry-identifiers
+
+Four flag bytes, and then variadic length identifier that only means something
+to the particular MAPI provider it was generated in. Yet, there is the AF2 form
+that adds extra distinguishing semantics, but the conformance to AF2 is not
+guaranteed. Do not attempt to parse entryids.
+
+Entryid comparison:
+
+  * IMAPISession::CompareEntryIDs is specified to do an entry ID comparison for
+    arbitrary providers, so long as the two entryids presented actually belong
+    to the _same_ provider.
+  * IMAPISupport::CompareEntryIDs offers the comparison as well. Since
+    IMAPISupport objects are tied to a provider, it is always using the right
+    comparison function.
+  * mapi4linux's IMAPISession::CompareEntryIDs and
+    IMAPISupport::CompareEntryIDs do a byte-level compare only, and thus do not
+    adhere to the MSDN MAPI specification.
+
+
+== Profiles ==
+
+  * Identified by name at all times.
+
+  * Contains zero or more message services.
+
+
+== Message services ==
+
+  * Identified by MAPIUID, generated randomly at instantiation and returned by
+    CreateMsgServiceEx. Exposed through IID_IProfSect as PR_SERVICE_UID.
+
+  * Instantiation call specifies the kind of service (e.g. "ZARAFA6").
+
+  * Contains one or more profile sections. Among this are the "global profile
+    section" (global to the service) and one section per provider UID.
+
+  * Contains zero or more providers.
+
+
+== Profile section ==
+
+  * Container for properties.
+
+
+== Provider ==
+
+  * Identified by MAPIUID. Fixed value declared by e.g. kopano.inf.
+
+  * Exposed through IID_IProfSect as PR_PROVIDER_UID. (PR_SERVICE_UID exposed
+    too.)
+
+  * Exposed through message store objects (IID_IMsgStore, IID_IFolder,
+    IID_IMessage, etc.) as PR_AB_PROVIDER_ID (only for MAPI_AB_PROVIDER),
+    PR_MDB_PROVIDER (only for MAPI_STORE_PROVIDER). Can be used to determine
+    whether any two objects are served by the same provider/module.
+
+  * Instantiated by from within CreateMsgServiceEx > CreateProviders. (You
+    always get them by default when instiating a message service, but can
+    delete them later through IProviderAdmin.)
+
+  * Different types of providers, e.g. MAPI_AB_PROVIDER, MAPI_STORE_PROVIDER,
+    MAPI_TRANSPORT_PROVIDER. Exposed as IID_IProfSect:PR_RESOURCE_TYPE.
+
+
+== ENTRYID forms in KC ==
+
+"Abstract form 1" (term invented here)
+"Abstract form 2"
+ZCP/KC EID v1
+ZCP/KC EID v0
+ZCP/KC ABEID v1
+ZCP/KC ABEID v0
+ZCP/KC SIEID v0
+Wrapped Store Entryids
+
+
+AF1: MAPI specifies that bytes 0–3 of an entryid are used for
+lifetime/scope/etc. flags and that the remainder is unspecified.
+
+AF2: Despite the previously declared unspecified nature of entryids, a lot of
+entryids have the 16-byte provider UID is placed at bytes 4–19 at times(when?).
+Some functions, such as the generic CompareEntryIDs (from MAPI, not the
+provider), interpret said bytes to determine which provider to forward the call
+to.
+
+
+== ZCP/KC EID v1 ==
+
+EID v1 is used for message store objects, i.e. stores, folders in stores
+(includes store root folder), and messages in such folders. It was introduced
+in ZCP 6.
+
+"struct EID" [kcore.hpp] is only used as a "looking glass", that is, it is only
+valid (and limitedly so) to use it in a pointer access, due to a flexible array
+member. C++ code must never instantiate an object of such type (and class magic
+was added to enforce this). The instantiable form is "struct EID_FIXED".
+
+Hex representation that might show up during debug:
+
+	00000000D6B33C45FF074F2288F544E3492E4D0D0100000001000000~
+	--------ggggggggggggggggggggggggggggggggvvvvvvvvttttffff~
+	~58178E703AD6441C9F78DDAB015453D3..
+	~uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuSS+PP+
+
+	-: standard entryid flags, e.g. lifetime/scope
+	g: store GUID
+	v: version (1)
+	t: type (MAPI_FOLDER / MAPI_MESSAGE / ...)
+	f: flags
+	u: randomly-generated GUID, different for each object
+	S: redirect URL
+	P: padding
+
+	Size: 48 bytes
+	Size: 48+variadic (for stores under certain circumstances)
+
+EID v1 is not conforming to AF2. Whether this was a historic design mistake or
+an acceptable choice has not been researched as of yet.
+
+Because the portion left of the pad bytes always has a multiple-of-4 length,
+the padding turns out to be redundant. This is a historic design mistake
+throughout many EID forms.
+
+
+== Server part of an entryid ==
+
+The IExchangeManageStore::CreateEntryStoreID routine can be used to obtain the
+store entryid for given a user/mailbox name. This causes a resolveUserStore
+RPC, whose respones contains:
+
+	* userid: owner of the store (see section "Security objects")
+	* sUserId: ABEID of owner
+	* sStoreId: PR_ENTRYID from SQL indexedproperties.val_binary
+	* guid: store GUID from SQL stores.guid column
+	* lpszServerPath: pseudo:// + server_name
+	* return code is generally erSuccess
+
+If the store is located on another homeserver, a redirect (KC "redirect", not
+HTTP 301/302/307 Redirect) is issued:
+
+	* lpszServerPath: scheme:// + homeserver
+	* other fields: 0/empty
+	* return code is KCERR_UNABLE_TO_COMPLETE
+
+The error code is used (by a caller) to determine if a redirect needs to be
+followed or not. The raison d'être for pseudo:// is not entirely clear, but it
+is a second indicator for the same thing. Since clients may be relying on the
+behavior, it cannot easily be changed, though.
+
+Similar to the resolveUserStore RPC, there is also the getPublicStore RPC. This
+one is only invokable with a WSTransport, which is internal to libkcclient and
+therefore not exposed to MAPI users. The RPC equally yields
+
+	* scheme:// and KCERR_UNABLE_TO_COMPLETE when a redirect is needed
+	* otherwise pseudo:// and erSuccess.
+
+Such redirects are only issued in these two instances, and both involve
+querying stores as part of getting ready to open them. Once the redirect is
+processed, the server field is set to the zero-length string and thus
+essentially removed, leaving only the padding, giving EIDs the familiar 48-byte
+look.
+
+
+== ZCP/KC EID v0 ==
+
+EID v0 was a ZCP 0.x thing. Nowadays, EID v0 only used for a few internal
+hard-coded always-there objects.
+
+"struct EID_V0" [kcore.hpp] is like EID in that it cannot be instantiated. The
+hardcoded entryids only appear in SQL statements and so there was no need
+(unlike abcont_1, see below) to have an instantiable variant.
+
+	000000008962FFEFFB7B4D639BC5967C4BB58234000000000100000001000000..
+	--------ggggggggggggggggggggggggggggggggvvvvvvvvttttffffnnnnnnnnSS+PP+
+
+	-: standard entryid flags
+	g: store GUID
+	v: version (0)
+	t: type (MAPI_FOLDER / MAPI_MESSAGE / ...)
+	f: flags
+	n: object id (id in SQL "hierarchy" table; hierarchyid in others)
+	S: redirect URL
+	P: padding
+
+	Size: always 36 bytes
+
+A maximum of 2^32 objects can be represented only.
+EID v0 is also not conforming to AF2.
+
+
+== ZCP/KC ABEID v1 ==
+
+Address book entryid from ZCP 6.30 onwards. It is used to refer to security
+objects (users, groups, companies).
+
+"struct ABEID" [kcore.hpp] is like EID in that it is not instantiable.
+See "struct ABEID_FIXED" for an instantiable form.
+
+	00000000AC21A95040D3EE48B319FBA7533044250100000006000000040000004D...
+	--------xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxvvvvvvvvttttttttiiiiiiiiee+PP+
+
+	-: standard entryid flags
+	x: provider UID (MUIDECSAB)
+	v: version (1)
+	t: type (MAPI_MAILUSER / MAPI_DISTLIST / MAPI_ABCONT)
+	i: object id (id from the "users" SQL table; user_id in some others)
+	e: base64 of externid, variable length (min 0, max 4294967268)
+	P: padding, variable length (min 1, max 4)
+
+	Common sizes: 40/44/48/52 (RFC2307) or 60 bytes (MSAD)
+
+Because of the base64-encoded part, the "e" portion is always a multiple of 4
+bytes (unless willingly corrupted), and as a consequence, the entire portion
+left of the pad bytes always has a multiple-of-4 length, the padding turns out
+to be redundant. This is a historic design mistake.
+
+ABEID v1 conforms to AF2 (the provider UID is always at bytes 4–19).
+
+
+== ZCP/KC ABEID v0 ==
+
+Another address book entryid. Used to refer to internal always-there objects
+that have no externid. The "struct ABEID" looking glass can equally be used.
+
+	00000000AC21A95040D3EE48B319FBA75330442500000000060000000200000000000000
+	--------xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxvvvvvvvvttttttttiiiiiiiiPPPPPPPP
+
+	-: standard entryid flags
+	x: provider UID (MUIDECSAB)
+	v: version (0)
+	t: type (MAPI_MAILUSER / MAPI_DISTLIST / MAPI_ABCONT)
+	i: object id (id from the "users" SQL table; user_id in some others)
+	P: padding
+
+	Size: always 36 bytes
+
+ABEID v0 conforms to AF2.
+
+
+== ZCP/KC SIEID v0 ==
+
+Single Instance entryids [kcore.hpp] were introduced in ZCP 6.30. They follow
+the MAPI ENTRYID scheme, but are actually never used at or for the MAPI level
+(calls like IMsgStore::OpenEntry or so). They only appear on the protocol
+spoken between libkcclient and server.
+
+	000000007976ED54D0D211DD9705BE5055D89593000000000137000001000000~
+	--------xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxvvvvvvvvttttttttiiiiiiii~
+	~9CF83DB275134BE981558ED7C5577CD500000000
+	~ggggggggggggggggggggggggggggggggPPPPPPPP
+
+	-: standard entryid flags
+	x: provider UID (MUIDECSI_SERVER)
+	v: version (0)
+	t: proptag (commonly PR_ATTACH_DATA_OBJ / PR_EC_IMAP_EMAIL)
+	i: object id (instanceid from the "singleinstances" SQL table)
+	g: server GUID
+	P: padding
+
+	Size: always 52 bytes
+
+kcore.hpp:SIEID declares the server GUID as a flexible member, but this is
+not strictly necessary as it is always 16 bytes.
+
+SIEID is AF2-conforming.
+
+
+== Stores ==
+
+https://docs.microsoft.com/en-us/office/client-developer/outlook/mapi/pidtagrecordkey-canonical-property
+
+Kopano stores are uniquely identified by a GUID (SQL: stores.guid). This value
+is exposed as PR_RECORD_KEY on IMsgStore. There is also PR_STORE_RECORD_KEY for
+IMsgStore, IMAPIFolder, IMessage, etc.
+
+The PR_ENTRYID for a store (also: PR_STORE_ENTRYID) is constructed at store
+creation time and follows the v1 EID.
+(ECMsgStore.cpp > CreateEmptyStore > HrCreateEntryId)
+
+Since stores are already uniquely identifiable by the "g" bits, the "u" bits
+are practically useless (for stores; not so for folders/messages) and could
+just as well be zero when PR_ENTRYID is initially generated for the store.
+
+The store's entryid is not the entryid of the root folder.
+
+The system user receives a hard-coded store GUID and hard-coded EID v0
+as PR_ENTRYID [ECDBDef.h]:
+
+	000000008962FFEFFB7B4D639BC5967C4BB5823400000000010000000100000000000000
+
+The root folder of that store is equally hard-coded:
+
+	000000008962FFEFFB7B4D639BC5967C4BB5823400000000030000000200000000000000
+	--------ggggggggggggggggggggggggggggggggvvvvvvvvttttffffnnnnnnnnPPPPPPPP
+
+Other possibly interesting store properties [ECMsgStore.cpp:141]:
+
+	PR_USER_ENTRYID
+	PR_MAILBOX_OWNER_ENTRYID
+	PR_EMSMDB_SECTION_UID
+
+
+== Wrapped store entry IDs ==
+
+https://docs.microsoft.com/en-us/office/client-developer/outlook/mapi/wrapstoreentryid
+https://blogs.msdn.microsoft.com/stephen_griffin/2011/07/21/store-entry-id-v2/
+
+Official specification:
+
+	struct {
+		char flags[4];
+		GUID provider_uid{muidStoreWrap};
+		uint8_t version = 0;
+		uint8_t flag = 0;
+		char dll_name[14];
+		uint32_t wrapped_flags = 0;
+
+		/*
+		 * 1B55FA20AA6611CD9BC800AA002FC45A: Mailbox store
+		 * 1C830210AA6611CD9BC800AA002FC45A: Public store
+		 */
+		GUID wrapped_provider_uid;
+
+		/* 0x06: public store, 0x0C: mailbox store */
+		uint32_t wrapped_type;
+
+		/*
+		 * A string of single-byte characters terminated by a single
+		 * zero byte, indicating the shortname or NetBIOS name of the
+		 * server.
+		 */
+		char server_short_name[];
+
+		/*
+		 * (optional) (variable): A string of single-byte characters
+		 * terminated by a single zero byte and representing the X500
+		 * DN of the mailbox, as specified in [MS-OXOAB]. This field is
+		 * present only for mailbox databases.
+		 */
+		char mailbox_dn[];
+
+		/*
+		 * V2 (optional) (variable): An EntryIDv2 structure giving DN
+		 * and FQDN for the server.
+		 */
+		char entryid_v2[];
+	};
+
+ZCP/KC:
+
+	struct {
+		char flags[4];
+		GUID provider_uid{muidStoreWrap};
+		uint8_t version = 0;
+		uint8_t flag = 0;
+		char dll_name[]; /* \0-terminated, no extra padding */
+		char original_entryid[];
+	};
+
+	0000000038A1BB1005E5101AA1BB08002B2A56C20000~
+	--------ggggggggggggggggggggggggggggggggvvff~
+	~7A617261666136636C69656E742E646C6C00...
+	~dddddddddddddddddddddddddddddddddddd<orig>
+
+This non-standard layout is not just a mapi4linux thing; in fact,
+zarafa6client.dll (which uses MAPI32 and not mapi4linux) always sends ZCP-style
+storewrap EIDs when it does.
+
+Entryids are only understood by a particular provider. When the Kopano server
+reveals the entryid for a particular store, e.g. by way of the getStore RPC,
+the client needs to remember that this entryid is to be used in conjunction
+with the particular provider, so that IMAPISession::OpenMsgStore will invoke
+the login procedure on the right provider. (Otherwise, OpenMsgStore would have
+to trial-and-error through all providers, which is neither fast nor correct.)
+muidwrapping essentially preprends the provider UID, thereby remembering the
+provider for later.
+
+
+== Basic private store layout ==
+
+Example hierarchy of a private store. List of folders and properties is not exhaustive.
+Cf. ECMsgStore.cpp.
+
+/
+	PR_IPM_SUBTREE_ENTRYID -> /IPM_SUBTREE
+	PR_FINDER_ENTRYID -> /FINDER_ROOT (Search Folders)
+	PR_IPM_FAVORITES_ENTRYID -> /Shortcut (Favorites)
+	PR_IPM_OUTBOX_ENTRYID -> /Outbox
+	ReceiveFolder(*) -> /IPM_SUBTREE/Inbox
+/IPM_SUBTREE
+	The subtree structure commonly presented in MUAs
+/IPM_SUBTREE/Inbox
+	Not sure why some PR_IPM_* are here rather than in some parent
+	PR_IPM_CONTACT_ENTRYID -> /IPM_SUBTREE/Contacts
+	PR_IPM_APPOINTMENT_ENTRYID -> /IPM_SUBTREE/Calendar
+	PR_IPM_DRAFTS_ENTRYID -> /IPM_SUBTREE/Drafts
+/IPM_SUBTREE/Outbox
+/IPM_SUBTREE/Drafts
+/IPM_SUBTREE/Contacts
+/IPM_SUBTREE/Calendar
+/IPM_COMMON_VIEWS
+/IPM_VIEWS
+/FINDER_ROOT
+/Shortcut
+
+
+== Basic public store layout ==
+
+Example hierarchy of a public store (also terse).
+
+/
+/IPM_SUBTREE
+	Shown as "Public folder" in MUA
+/NON_IPM_SUBTREE
+/NON_IPM_SUBTREE/SCHEDULE+ FREE BUSY
+/NON_IPM_SUBTREE/SCHEDULE+ FREE BUSY/Zarafa 1
+/FINDER_ROOT
+
+
+== Contacts ==
+
+Contacts are stored as MAPI messages, with a PR_MESSAGE_CLASS="IPM.Contact".
+Preferred folder to put these into is PR_IPM_CONTACT_ENTRYID, a folder within
+one's private store. The entryid for these contact objects therefore follow EID
+v1.
+
+
+== Address book ==
+
+ABs do not have "folders", they have "containers". Well-known containers
+(folders) [various .cpp files]:
+
+	"eidRoot" (MUIDECSAB, MAPI_ABCONT, KOPANO_UID_ADDRESS_BOOK):
+	virtual root container
+
+	"abcont_1" (MUIDECSAB, MAPI_ABCONT, KOPANO_UID_GLOBAL_ADDRESS_BOOK):
+	"Global Address Book" with all security objects
+
+	-- (MUIDECSAB, MAPI_ABCONT, KOPANO_UID_GLOBAL_ADDRESS_LISTS):
+	"All Address Lists"
+
+
+== Security objects: users/groups/companies ==
+
+The "users" SQL table contains the users, groups and companies. These objects
+are sometimes referred to as "security objects" as well, which is to mean
+they can be used in, for example, ACLs.
+
+The "users" SQL table contains a server-specific userid (integer), and the
+backend-dependent externid (binary). externid is generally the text
+representation of uidNumber (RFC2307 LDAP) or the security identifier (MSAD),
+or something autogenerated for user_plugin=db. Internal users/groups
+(SYSTEM/Everyone) do not have an externid.
+
+userids, groupids and companyids never overlap. Highest supportable objectid in
+this scheme is 2^32 - 1. As the SQL database only auto-increments and does not
+recycling, a server will eventually exhaust its number space and needs to be
+recycled.
+
+Lookup of such entities can happen by way of
+
+	* IECServiceAdmin::ResolveUser / resolveUser RPC
+	  (Similarly for groups/companies.)
+
+	* IAddrBook::GetContentsTable + IMAPITable::*
+
+	users: objectclass 0x10001: ACTIVE_USER
+	userdb groups: objectclass 0x30002: DISTLIST_SECURITY
+	companies: objectlcass 0x40001: CONTAINER_COMPANY
+
+The resolveUser RPC yields a variable-length identifier which looks similar to
+an ABEID.
+
+Because entryids are a (client-side) provider thing, a client needs to
+interpret the identifier received from the server and construct an entryid to
+use for MAPI. (The format happens to be the same at present, so there is no
+conversion, but this need not be so forever.)
+
+The objectid is specific to a server. A non-internal user can have multiple ABEIDs:
+every server (assuming shared directory like LDAP) that knows about a
+particular externid may have the user on record as a different i. Different
+amounts of padding can theoretically lead to even more ABEIDs.
+
+As a consequence, trying to reuse an ABEID of this kind for user lookup with
+another server is prone to false negatives (using objectid to search and not
+finding the user even though externid is right) and false positives (using
+objectid to search and finding a user with different externid).
+
+When issuing RPCs like getUser, the ABEID needs to be massaged into a suitable
+identifier again.
+
+The well-known hardcoded ABEIDs [ECUnknown.cpp]:
+
+	"g_sEveryOneEid" - the Everyone group
+	"g_sSystemEid" - the SYSTEM user
+
+
+== Unsorted notes ==
+
+PR_RECORD_KEY inside the IMsgServiceAdmin::GetProviderTable is
+the default store's GUID.
+
+PR_MDB_PROVIDER on a IMsgStore will be KOPANO_STORE_DELEGATE_GUID (not
+KOPANO_SERVICE_GUID) if the store is not the default store of the user.
+(Happens, for example, when accessing user stores using the SYSTEM account.)

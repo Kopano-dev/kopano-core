@@ -1,32 +1,11 @@
-'\" t
-.\"     Title: kopano-cachestat
-.\"    Author: [see the "Author" section]
-.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
-.\"      Date: November 2016
-.\"    Manual: Kopano Core user reference
-.\"    Source: Kopano 8
-.\"  Language: English
-.\"
 .TH "KOPANO\-CACHESTAT" "8" "November 2016" "Kopano 8" "Kopano Core user reference"
-.\" -----------------------------------------------------------------
-.\" * Define some portability stuff
-.\" -----------------------------------------------------------------
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .\" http://bugs.debian.org/507673
-.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
-.\" -----------------------------------------------------------------
-.\" * set default formatting
-.\" -----------------------------------------------------------------
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
 .ad l
-.\" -----------------------------------------------------------------
-.\" * MAIN CONTENT STARTS HERE *
-.\" -----------------------------------------------------------------
 .SH "NAME"
 kopano-cachestat \- Provides an easy\-to read overview of the kopano\-server cache statistics, as compared to the more low\-level "kopano\-stats \-\-system".
 .SH "SYNOPSIS"
@@ -34,7 +13,7 @@ kopano-cachestat \- Provides an easy\-to read overview of the kopano\-server cac
 \fBkopano\-cachestat\fR [\fIOPTION\fR...]
 .SH "DESCRIPTION"
 .PP
-kopano\-cachestat displays the hit ratio and memory usage ratio of all caches on the kopano\-server. The cache sizes are configurable in kopano\-server\*(Aqs server.cfg.
+kopano\-cachestat displays the hit ratio and memory usage ratio of all caches on the kopano\-server. The cache sizes are configurable in kopano\-server's server.cfg.
 .SH "OPTIONS"
 .PP
 \fB\-\-server\-socket\fR, \fB\-s\fR \fISOCKET\fR
@@ -51,6 +30,3 @@ Specify SSL key file.
 .RS 4
 Specify SSL key password.
 .RE
-.SH "AUTHOR"
-.PP
-Written by Kopano.

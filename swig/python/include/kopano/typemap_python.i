@@ -12,10 +12,6 @@
 
 #define DIRECTORARGOUT(_arg) (__tupleIndex == -1 ? (PyObject*)(_arg) : PyTuple_GetItem((_arg), __tupleIndex++))
 
-#if PY_MAJOR_VERSION >= 3
-        #define PyString_AsStringAndSize(value, input, size) \
-                PyBytes_AsStringAndSize(value, input, size)
-#endif
 %}
 
 #if SWIG_VERSION > 0x020004
@@ -200,7 +196,7 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
       char *input;
       Py_ssize_t size;
 
-      if(PyString_AsStringAndSize(o, &input, &size) != -1) {
+      if(PyBytes_AsStringAndSize(o, &input, &size) != -1) {
         strInput.assign(input, size);
         $1 = (LPTSTR)strInput.c_str();
       }
@@ -225,7 +221,7 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
 %feature("director:except") {
   if ($error != NULL) {
     HRESULT hr;
-    
+
     if (GetExceptionError($error, &hr) == 1) {
         PyErr_Clear();
         return hr;	// Early return
@@ -259,7 +255,7 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
 {
   $input = Object_from_$1_basetype($1_name);
   if(PyErr_Occurred())
-    %dirout_fail(0, "$type");  
+    %dirout_fail(0, "$type");
 }
 
 // void *    Used in CopyTo/CopyProps
@@ -327,7 +323,8 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
 
 %typemap(directorargout)	MAPICLASS *
 {
-  int swig_res = SWIG_ConvertPtr(DIRECTORARGOUT(DAO_RESULT), (void**)DAO_PARAMETER, $*1_descriptor, 0);
+	int swig_res = SWIG_ConvertPtr(DIRECTORARGOUT(DAO_RESULT),
+	               reinterpret_cast<void **>(DAO_PARAMETER), $*1_descriptor, 0);
   if (!SWIG_IsOK(swig_res)) {
     %dirout_fail(swig_res, "$type");
   }
@@ -402,7 +399,8 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
 // See MAPICLASS * for comments. Note that we ignore the IID. We could also still QueryInterface on $result.
 %typemap(directorargout)	LPUNKNOWN *OUTPUT_USE_IID (int swig_res)
 {
-  swig_res = SWIG_ConvertPtr(DIRECTORARGOUT(DAO_RESULT), (void**)DAO_PARAMETER, SWIGTYPE_p_IUnknown, 0);
+	swig_res = SWIG_ConvertPtr(DIRECTORARGOUT(DAO_RESULT),
+	           reinterpret_cast<void **>(DAO_PARAMETER), SWIGTYPE_p_IUnknown, 0);
   if (!SWIG_IsOK(swig_res)) {
     %dirout_fail(swig_res, "$type");
   }
@@ -427,7 +425,7 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
 {
     Py_ssize_t size = 0;
     char *s = NULL;
-    if(PyString_AsStringAndSize(DAO_RESULT, &s, &size) == -1)
+    if(PyBytes_AsStringAndSize(DAO_RESULT, &s, &size) == -1)
         %dirout_fail(0, "$type");
 
 	memcpy($1_name, s, size);
@@ -456,8 +454,8 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
     $2 = (char **) malloc(($1+1)*sizeof(char *));
     for (i = 0; i < $1; ++i) {
       PyObject *o = PyList_GetItem($input,i);
-      if (PyString_Check(o))
-	$2[i] = PyString_AsString(PyList_GetItem($input,i));
+      if (PyBytes_Check(o))
+	$2[i] = PyBytes_AsString(PyList_GetItem($input,i));
       else {
 	PyErr_SetString(PyExc_TypeError,"list must contain strings");
 	free($2);

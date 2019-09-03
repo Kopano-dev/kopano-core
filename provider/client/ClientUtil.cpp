@@ -93,7 +93,7 @@ HRESULT ClientUtil::HrSetIdentity(WSTransport *lpTransport, LPMAPISUP lpMAPISup,
 	memory_ptr<ECUSER> lpUser;
 	memory_ptr<SPropValue> idp;
 
-	// Get the username and email adress
+	// Get the username and email address
 	auto hr = lpTransport->HrGetUser(0, NULL, fMapiUnicode, &~lpUser);
 	if(hr != hrSuccess)
 		return hr;
@@ -454,7 +454,7 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 	if (hr != hrSuccess)
 		return hr;
 	lpMods->cEntries = 0;
-	hr = MAPIAllocateBuffer(sizeof(SPropValue) * 8, (void**)&lpMods->aEntries->rgPropVals);
+	hr = MAPIAllocateBuffer(sizeof(SPropValue) * 8, reinterpret_cast<void **>(&lpMods->aEntries->rgPropVals));
 	if (hr != hrSuccess)
 		return hr;
 	++lpMods->cEntries;

@@ -38,7 +38,6 @@ static void clearCharacters(std::string &s, const std::string &whitespaces)
 	 */
 	auto pos = s.find_first_not_of(whitespaces);
 	s.erase(0, pos);
-
 	pos = s.find_last_not_of(whitespaces);
 	if (pos != std::string::npos)
 		s.erase(pos + 1, std::string::npos);
@@ -46,27 +45,24 @@ static void clearCharacters(std::string &s, const std::string &whitespaces)
 
 void ECConfigCheck::readConfigFile(const char *lpszConfigFile)
 {
-	FILE *fp = NULL;
 	char cBuffer[1024];
 
 	if (!lpszConfigFile) {
 		m_bDirty = true;
 		return;
 	}
-
-	if(!(fp = fopen(lpszConfigFile, "rt"))) {
+	auto fp = fopen(lpszConfigFile, "rt");
+	if (fp == nullptr) {
 		m_bDirty = true;
 		return;
 	}
 
 	while (!feof(fp)) {
 		memset(&cBuffer, 0, sizeof(cBuffer));
-
 		if (!fgets(cBuffer, sizeof(cBuffer), fp))
 			continue;
 
 		std::string strLine = cBuffer, strName, strValue;
-
 		/* Skip empty lines any lines which start with # */
 		if (strLine.empty() || strLine[0] == '#')
 			continue;
@@ -84,7 +80,6 @@ void ECConfigCheck::readConfigFile(const char *lpszConfigFile)
 		if(!strName.empty())
 			m_mSettings[strName] = strValue;
 	}
-
 	fclose(fp);
 }
 
@@ -107,11 +102,9 @@ void ECConfigCheck::setMulti(bool multi)
 
 void ECConfigCheck::validate()
 {
-	int warnings = 0;
-	int errors = 0;
+	int warnings = 0, errors = 0;
 
 	cout << "Starting configuration validation of " << m_lpszName << endl;
-
 	for (auto &c : m_lChecks) {
 		c.hosted = m_bHosted;
 		c.multi = m_bMulti;
@@ -131,7 +124,6 @@ int ECConfigCheck::testMandatory(const config_check_t *check)
 {
 	if (!check->value1.empty())
 		return CHECK_OK;
-
 	printError(check->option1, "required option is empty");
 	return CHECK_ERROR;
 }
@@ -142,12 +134,10 @@ int ECConfigCheck::testDirectory(const config_check_t *check)
 
 	if (check->value1.empty())
 		return CHECK_OK;
-
 	// check if path exists, and is a directory (not a symlink)
 	if (stat(check->value1.c_str(), &statfile) == 0 && S_ISDIR(statfile.st_mode))
 		return CHECK_OK;
-
-	printError(check->option1, "does not point to existing direcory: \"" + check->value1 + "\"");
+	printError(check->option1, "does not point to existing directory: \"" + check->value1 + "\"");
 	return CHECK_ERROR;
 }
 
@@ -157,11 +147,9 @@ int ECConfigCheck::testFile(const config_check_t *check)
 
 	if (check->value1.empty())
 		return CHECK_OK;
-
 	// check if file exists, and is a normal file (not a symlink, or a directory
 	if (stat(check->value1.c_str(), &statfile) == 0 && S_ISREG(statfile.st_mode))
 		return CHECK_OK;
-
 	printError(check->option1, "does not point to existing file: \"" + check->value1 + "\"");
 	return CHECK_ERROR;
 }
@@ -170,10 +158,8 @@ int ECConfigCheck::testUsedWithHosted(const config_check_t *check)
 {
 	if (check->hosted)
 		return CHECK_OK;
-
 	if (check->value1.empty())
 		return CHECK_OK;
-
 	printWarning(check->option1, "Multi-company disabled: this option will be ignored");
 	return CHECK_WARNING;
 }
@@ -182,10 +168,8 @@ int ECConfigCheck::testUsedWithoutHosted(const config_check_t *check)
 {
 	if (!check->hosted)
 		return CHECK_OK;
-
 	if (check->value1.empty())
 		return CHECK_OK;
-
 	printWarning(check->option1, "Multi-company enabled: this option will be ignored");
 	return CHECK_WARNING;
 }
@@ -194,10 +178,8 @@ int ECConfigCheck::testUsedWithMultiServer(const config_check_t *check)
 {
 	if (check->multi)
 		return CHECK_OK;
-
 	if (check->value1.empty())
 		return CHECK_OK;
-
 	printWarning(check->option1, "Multi-server disabled: this option will be ignored");
 	return CHECK_WARNING;
 }
@@ -206,10 +188,8 @@ int ECConfigCheck::testUsedWithoutMultiServer(const config_check_t *check)
 {
 	if (!check->multi)
 		return CHECK_OK;
-
 	if (check->value1.empty())
 		return CHECK_OK;
-
 	printWarning(check->option1, "Multi-server enabled: this option will be ignored");
 	return CHECK_WARNING;
 }
@@ -222,7 +202,6 @@ int ECConfigCheck::testCharset(const config_check_t *check)
 		iconv_close(cd);
 		return CHECK_ERROR;
 	}
-
 	iconv_close(cd);
 	return CHECK_OK;
 }
@@ -233,7 +212,6 @@ int ECConfigCheck::testBoolean(const config_check_t *check)
 	if (v1.empty() || v1 == "true" || v1 == "false" || v1 == "yes" ||
 	    v1 == "no")
 		return CHECK_OK;
-
 	printError(check->option1, "does not contain boolean value: \"" + v1 + "\"");
 	return CHECK_ERROR;
 }

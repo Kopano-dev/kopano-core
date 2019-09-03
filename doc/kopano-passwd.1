@@ -1,32 +1,11 @@
-'\" t
-.\"     Title: kopano-passwd
-.\"    Author: [see the "Author" section]
-.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
-.\"      Date: November 2016
-.\"    Manual: Kopano Core user reference
-.\"    Source: Kopano 8
-.\"  Language: English
-.\"
 .TH "KOPANO\-PASSWD" "1" "November 2016" "Kopano 8" "Kopano Core user reference"
-.\" -----------------------------------------------------------------
-.\" * Define some portability stuff
-.\" -----------------------------------------------------------------
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .\" http://bugs.debian.org/507673
-.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
-.\" -----------------------------------------------------------------
-.\" * set default formatting
-.\" -----------------------------------------------------------------
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
 .ad l
-.\" -----------------------------------------------------------------
-.\" * MAIN CONTENT STARTS HERE *
-.\" -----------------------------------------------------------------
 .SH "NAME"
 kopano-passwd \- Change Kopano user password.
 .SH "SYNOPSIS"
@@ -50,9 +29,9 @@ kopano\-passwd needs an action command with the appropriate options. Valid actio
 \fB\-u\fR \fIusername\fR
 .RS 4
 Update the password. Valid parameters are:
-\fI[\-p]\fR
+[\fB\-p\fP]
 and
-\fI\-o\fR
+\fB\-o\fP
 .sp
 Default the password can be entered on the password prompt. The password will not be shown.
 .RE
@@ -60,16 +39,16 @@ Default the password can be entered on the password prompt. The password will no
 .PP
 The options used by actions are as follows:
 .PP
-\fB\-p\fR \fI\*(Aqnew password\*(Aq\fR
+\fB\-p\fR \fInew_password\fP
 .RS 4
 Set new password for a user. This option is only valid with the
-\fI\-o\fR.
+\fB\-o\fP.
 .RE
 .PP
 \fB\-o\fR \fIoldpassword\fR
 .RS 4
 old password of a user. This option is only valid with the
-\fI\-p\fR.
+\fB\-p\fP.
 .RE
 .PP
 \fB\-\-host\fR, \fB\-h\fR \fIpath\fR
@@ -79,9 +58,6 @@ Connect to the storage server through
 file:///path/to/socket. Default:
 file:///var/run/kopano/server.sock. This option can always be specified.
 .RE
-.SH "AUTHOR"
-.PP
-Written by Kopano.
 .SH "SEE ALSO"
 .PP
 \fBkopano-server\fR(8),

@@ -1,32 +1,11 @@
-'\" t
-.\"     Title: kopano-server.cfg
-.\"    Author: [see the "Author" section]
-.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
-.\"      Date: November 2016
-.\"    Manual: Kopano Core user reference
-.\"    Source: Kopano 8
-.\"  Language: English
-.\"
 .TH "KOPANO\-SERVER.CFG" "5" "November 2016" "Kopano 8" "Kopano Core user reference"
-.\" -----------------------------------------------------------------
-.\" * Define some portability stuff
-.\" -----------------------------------------------------------------
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .\" http://bugs.debian.org/507673
-.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
-.\" -----------------------------------------------------------------
-.\" * set default formatting
-.\" -----------------------------------------------------------------
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
 .ad l
-.\" -----------------------------------------------------------------
-.\" * MAIN CONTENT STARTS HERE *
-.\" -----------------------------------------------------------------
 .SH "NAME"
 kopano-server.cfg \- The Kopano configuration file
 .SH "SYNOPSIS"
@@ -49,7 +28,7 @@ The parameters are written in the form:
 =
 \fIvalue\fR
 .PP
-The file is line\-based. Each newline\-terminated line represents either a comment, nothing, a parameter or a directive. A line beginning with `#\*(Aq is considered a comment, and will be ignored by Kopano. Parameter names are case sensitive. Lines beginning with `!\*(Aq are directives.
+The file is line\-based. Each newline\-terminated line represents either a comment, nothing, a parameter or a directive. A line beginning with \fB#\fP is considered a comment, and will be ignored by Kopano. Parameter names are case sensitive. Lines beginning with \fB!\fP are directives.
 .PP
 Directives are written in the form:
 .PP
@@ -70,8 +49,11 @@ Example: !include common.cfg
 .PP
 A space-separated list of address:port specifiers for where the server should
 listen for unencrypted connections. IPv6 addresses need to be enclosed in
-brackets (as in \fB[2001:db8::1]:236\fP), and the asterisk is the
-multi-protocol address wildcard.
+square brackets (as in \fB[2001:db8::1]:236\fP). The asterisk denotes the
+network layer multi-protocol (IPv4/IPv6) address (e.g. "*:236"). Unlike other
+daemons, local sockets are \fBnot\fP supported with this directive, but see
+\fBserver_pipe_name\fP instead. Hostnames are not allowed (as they are
+susceptible to address changes).
 .SS server_pipe_enabled
 .PP
 Enable Unix pipe connections. Should not be disabled.
@@ -80,13 +62,13 @@ Default:
 \fIyes\fR
 .SS server_recv_timeout
 .PP
-TCP and SSL receive timeout in seconds. This is the time that a TCP connection may be idle (between requests) before the TCP connection is closed from the server. Settings this high makes it less necessary for clients to re\-connect, but increases the total number of concurrent open sockets in the server. You normally needn\*(Aqt change the default value.
+TCP and SSL receive timeout in seconds. This is the time that a TCP connection may be idle (between requests) before the TCP connection is closed from the server. Settings this high makes it less necessary for clients to re\-connect, but increases the total number of concurrent open sockets in the server. You normally need not change the default value.
 .PP
 Default:
 \fI5\fR
 .SP server_read_timeout
 .PP
-TCP and SSL read timeout in seconds. The read timeout is the amount of time that the server will wait to read more data from a socket, after processing of the request has started. This needn\*(Aqt be changed in most cases.
+TCP and SSL read timeout in seconds. The read timeout is the amount of time that the server will wait to read more data from a socket, after processing of the request has started. This need not be changed in most cases.
 .PP
 Default:
 \fI60\fR
@@ -110,7 +92,7 @@ Default:
 \fI/var/run/kopano/prio.sock\fR
 .SS server_name
 .PP
-Unique name for identifying the server in a multi\-server environment.
+Unique name for identifying the server in a multi-server environment.
 .PP
 Default:
 \fIKopano\fR
@@ -130,13 +112,19 @@ Default:
 \fImysql\fR
 .SS allow_local_users
 .PP
-Named Unix users which connect through the unix socket (server_pipe_name) which are added here, those users will become the internal SYSTEM user in Kopano, and have administrative rights. Normally, this is only \*(Aqroot\*(Aq, so the unix root user can use the kopano\-admin tool. You can add a generic user to be used by the kopano\-dagent here. This user is most likely called \*(Aqvmail\*(Aq. Note that the field is SPACE separated.
+A boolean that controls whether Unix users can authenticate as the Kopano user
+of the same name without a password through the Unix socket.
+.PP
+Default: \fIyes\fP
+.SS local_admin_users
+.PP
+Named Unix users which connect through the unix socket (server_pipe_name) which are added here, those users will become the internal SYSTEM user in Kopano, and have administrative rights. Normally, this is only \fBroot\fP, so the unix root user can use the kopano\-admin tool. You can add a generic user to be used by the kopano\-dagent here. This user is most likely called \fBvmail\fP. Note that the field is SPACE separated.
 .PP
 Default:
 \fIroot\fR
 .SS system_email_address
 .PP
-This is the e\-mail address of the SYSTEM user. When people receive mail from the quota monitor, or receive fallback deliveries from the kopano\-dagent, the From email address is this field. You might want to change this field so people can reply to this address.
+This is the e-mail address of the SYSTEM user. When people receive mail from the quota monitor, or receive fallback deliveries from the kopano\-dagent, the From email address is this field. You might want to change this field so people can reply to this address.
 .PP
 Default:
 \fIpostmaster@localhost\fR
@@ -144,24 +132,18 @@ Default:
 .PP
 After correctly starting, the server process will become this user, dropping root privileges. Note that the log file needs to be writeable by this user, and the directory too to create new logfiles after logrotation. This can also be achieved by setting the correct group and permissions.
 .PP
-Default value is empty, not changing the user after starting.
+Default: \fIkopano\fP
 .SS run_as_group
 .PP
 After correctly starting, the server process will become this group, dropping root privileges.
 .PP
-Default value is empty, not changing the group after starting.
+Default: \fIkopano\fP
 .SS pid_file
 .PP
 Write the process ID number to this file. This is used by the init.d script to correctly stop/restart the service.
 .PP
 Default:
 \fI/var/run/kopano/server.pid\fR
-.SS running_path
-.PP
-Change directory to this path when running in daemonize mode. When using the \-F switch to run in the foreground the directory will not be changed.
-.PP
-Default:
-\fI/\fR
 .SS coredump_enabled
 .PP
 When a crash occurs or an assertion fails, a coredump file can be generated by
@@ -179,19 +161,19 @@ Default:
 \fI300\fR
 .SS session_ip_check
 .PP
-Normally, a session is linked to an IP\-address, so this check is enabled. You may want to disable this check when you have laptop\*(Aqs which can get multiple ip\-adresses through wired and wireless networks. It is highly recommended to leave this check enabled, since the session id can be used by other machines, and thus introduces a large security risc. The session id is 64 bits.
+Normally, a session is linked to an IP address, so this check is enabled. You may want to disable this check when you have laptops which can get multiple IP addresses through wired and wireless networks. It is highly recommended to leave this check enabled, since the session id can be used by other machines, and thus introduces a large security risc. The session id is 64 bits.
 .PP
 Default:
 \fIyes\fR
 .SS hide_everyone
 .PP
-If this option is set to \*(Aqyes\*(Aq, the internal group Everyone (which always contains all users) will be hidden from the Global Addressbook. Thus, users will not be able to send e\-mail to this group anymore, and also will not be able to set access rights on folders for this group. Administrators will still be able to see and use the group.
+If this option is set to \fByes\fP, the internal group Everyone (which always contains all users) will be hidden from the Global Addressbook. Thus, users will not be able to send e-mail to this group anymore, and also will not be able to set access rights on folders for this group. Administrators will still be able to see and use the group.
 .PP
 Default:
 \fIno\fR
 .SS hide_system
 .PP
-If this option is set to \*(Aqyes\*(Aq, the internal user SYSTEM will be hidden from the Global Addressbook. Thus, users will not be able to send e\-mail to this user anymore. Administrators will still be able to see and use the user.
+If this option is set to \fByes\fP, the internal user SYSTEM will be hidden from the Global Addressbook. Thus, users will not be able to send e-mail to this user anymore. Administrators will still be able to see and use the user.
 .PP
 Default:
 \fIyes\fR
@@ -223,7 +205,7 @@ Default: \fIauto\fP
 .SS log_file
 .PP
 When logging to a file, specify the filename in this parameter. Use
-\fI\-\fR
+\fB\-\fP
 (minus sign) for stderr output.
 .PP
 Default:
@@ -251,7 +233,7 @@ ICS	0x00200000
 .TE
 .SS log_timestamp
 .PP
-Specify whether to prefix each log line with a timestamp in \*(Aqfile\*(Aq logging mode.
+Specify whether to prefix each log line with a timestamp in "file" logging mode.
 .PP
 Default:
 \fI1\fR
@@ -285,7 +267,7 @@ Default:
 .SS audit_log_file
 .PP
 When logging to a file, specify the filename in this parameter. Use
-\fI\-\fR
+\fB\-\fP
 (minus sign) for stderr output.
 .PP
 Default:
@@ -298,7 +280,7 @@ Default:
 \fI1\fR
 .SS audit_log_timestamp
 .PP
-Specify whether to prefix each log line with a timestamp in \*(Aqfile\*(Aq logging mode.
+Specify whether to prefix each log line with a timestamp in "file" logging mode.
 .PP
 Default:
 \fI1\fR
@@ -328,7 +310,7 @@ The password to use for MySQL. Leave empty for no password.
 Default:
 .SS mysql_socket
 .PP
-The socket of the MySQL server to use. This option can be used to override the default mysql socket. To use the socket, the mysql_host value must be empty or \*(Aqlocalhost\*(Aq
+The socket of the MySQL server to use. This option can be used to override the default mysql socket. To use the socket, the mysql_host value must be empty or \fBlocalhost\fP.
 .PP
 Default:
 .SS mysql_database
@@ -358,22 +340,36 @@ can only be used to raise it.
 Default: \fI21844\fP
 .SS attachment_storage
 .PP
-The location where attachments are stored. This can be in the MySQL database, or as separate files. The drawback of \*(Aqdatabase\*(Aq is that the large data of attachment will push useful data from the MySQL cache. The drawback of separate files is that a mysqldump is not enough for a full disaster recovery.
-.PP
-Possible values: \fBdatabase\fP, \fBfiles\fP, \fBfiles_v2\fP (experimental),
-and, if built with libs3/AWS support, \fBs3\fP.
+The attachment backend to use. Different ones are available:
+.TP
+db
+Attachments will be stored as 384KB BLOB chunks in the database itself (in the
+"lob" table). Not sharable between kopano-server instances.
+.TP
+files
+An alias for \fBfiles_v1-10-20\fP.
+.TP
+files_v1-\fIx\fP-\fIy\fP
+A basic file backend that fans out into x*y directories. Not shareable.
+.TP
+files_v2
+Autonomous opportunistically deduplicating file-based backend for shared
+filesystems supporting atomic rename. (Experimental)
+.TP
+s3
+Basic S3 backend for AWS/Minio. Not shareable.
 .PP
 Default:
 \fIfiles\fR
 .SS attachment_path
 .PP
-When the attachment_storage option is \*(Aqfiles\*(Aq, this option sets the location of the attachments on disk. Note that the server runs as the \*(Aqrun_as_user\*(Aq user and \*(Aqrun_as_group\*(Aq group, which will require write access to this directory.
+When the attachment_storage option is \fBfiles\fP, this option sets the location of the attachments on disk. Note that the server runs as the \fBrun_as_user\fP user and \fBrun_as_group\fP group, which will require write access to this directory.
 .PP
 Default:
 \fI/var/lib/kopano/attachments\fR
 .SS attachment_compression
 .PP
-When the attachment_storage option is \*(Aqfiles\*(Aq, this option controls the compression level for the attachments. Higher compression levels will compress data better, but at the cost of CPU usage. Lower compression levels will require less CPU but will compress data less. Setting the compression level to 0 will effectively disable compression completely.
+When the attachment_storage option is \fBfiles\fP, this option controls the compression level for the attachments. Higher compression levels will compress data better, but at the cost of CPU usage. Lower compression levels will require less CPU but will compress data less. Setting the compression level to 0 will effectively disable compression completely.
 .PP
 Changing the compression level, or switching it on or off, will not affect any existing attachments, and will remain accessible as normal.
 .PP
@@ -418,7 +414,7 @@ The CA file which was used to sign client SSL certificates. This CA will be trus
 No default set.
 .SS server_ssl_ca_path
 .PP
-When you have multiple CA\*(Aqs to trust, you may use this option. Set this to a directory which contains all your trusted CA certificates. The name of the certificate needs to be the hash of the certificate. You can get the hash value of the certificate with the following command:
+When you have multiple CAs to trust, you may use this option. Set this to a directory which contains all your trusted CA certificates. The name of the certificate needs to be the hash of the certificate. You can get the hash value of the certificate with the following command:
 .RS 4
 .nf
 \fBopenssl x509 \-hash \-noout \-in cacert.pem \fR
@@ -443,15 +439,13 @@ manual on how to create these files.
 .PP
 Default:
 \fI/etc/kopano/sslkeys\fR
-.SS server_ssl_protocols
+.SS server_tls_min_proto
 .PP
-A space-separated list of disabled or enabled protocol names. Supported
-protocol names depend on the system's SSL library; depending on version, one or
-more of the following are available: \fBTLSv1.3\fP, \fBTLSv1.2\fP,
-\fBTLSv1.1\fP, \fBSSLv3\fP, \fBSSLv2\fP. To disable a protocol, prefix the name
-with an exclamation mark.
+The lowest SSL/TLS version to offer. Possible values are: \fBssl3\fP,
+\fBtls1.0\fP, \fBtls1.1\fP, \fBtls1.2\fP, and, if supported by the system,
+\fBtls1.3\fP.
 .PP
-Default: \fI!SSLv2 !SSLv3 !TLSv1.0 !TLSv1.1\fP
+Default: \fItls1.2\fP
 .SS server_ssl_ciphers
 .PP
 A colon-separated list of disabled or enabled SSL/TLS ciphers. Supported cipher
@@ -478,10 +472,23 @@ Default:
 .SH "EXPLANATION OF THE THREADING PARAMETERS"
 .SS threads
 .PP
-Number of server threads.
+For the network request handling thread pool, this directive specifies the
+number of threads to keep available at all times, idle periods included.
+.PP
+For the search folder processing thread pool, this directive specifies the
+number of threads to launch at kopano-server startup.
 .PP
 Default:
 \fI8\fR
+.SS thread_limit
+.PP
+If and when \fBwatchdog_frequency\fP is greater than 0 and a network request
+has been waiting for longer than \fBwatchdog_max_age\fP to be dispatched to a
+thread, the thread pool may increase the number of threads up to the specified
+limit.
+.PP
+Default:
+\fI8\fP
 .SS watchdog_frequency
 .PP
 Watchdog frequency. The number of watchdog checks per second.
@@ -552,7 +559,7 @@ Default:
 \fIplugin\fR
 .SS restrict_admin_permissions
 .PP
-Normally, admin users are granted all permissions on all stores in the server, or for stores in the tenant\*(Aqs company (in multi\-tenant mode). Enabling this option restricts permissions to folder operations: Folder viewing, folder creation and importantly, folder permissions. This means that an administrator can grant himself full permissions on a folder. However, in combination with auditing, it provides an extra level of security protection against unwanted access.
+Normally, admin users are granted all permissions on all stores in the server, or for stores in the tenant's company (in multi-tenant mode). Enabling this option restricts permissions to folder operations: Folder viewing, folder creation and importantly, folder permissions. This means that an administrator can grant himself full permissions on a folder. However, in combination with auditing, it provides an extra level of security protection against unwanted access.
 .PP
 Note that some applications may require full access to all stores, which would be restricted by this option. Also, this option cannot be reset by sending a HUP signal, so a full server restart is required to change the setting.
 .PP
@@ -596,7 +603,7 @@ Default:
 .SH "EXPLANATION OF THE CACHE SETTINGS PARAMETERS"
 .SS cache_cell_size
 .PP
-Size in bytes of the cell cache. This is the main cache used in Kopano. It caches all data that comes into view in tables (ie the view of your inbox, or any other folder). In an ideal situation, all cells would be cached, so that the database does not need to be queried for data when browsing through folders, but this would require around 1.5K per message item (e\-mail, appointment task, etc) in the entire server. If you can afford it, set this value as high as possible, up to 50% of your total RAM capacity. Make sure this doesn\*(Aqt lead to swapping though. This value may contain a k, m or g multiplier.
+Size in bytes of the cell cache. This is the main cache used in Kopano. It caches all data that comes into view in tables (ie the view of your inbox, or any other folder). In an ideal situation, all cells would be cached, so that the database does not need to be queried for data when browsing through folders, but this would require around 1.5K per message item (e-mail, appointment task, etc) in the entire server. If you can afford it, set this value as high as possible, up to 50% of your total RAM capacity. Make sure this does not lead to swapping though. This value may contain a k, m or g multiplier.
 .PP
 Default:
 \fI256M\fR
@@ -624,7 +631,7 @@ Default:
 \fI1M\fR
 .SS cache_quota_lifetime
 .PP
-This sets the lifetime for quota details inside the cache. If quota details weren\*(Aqt queried during this period it is removed from the cache making room for more often requested quota details. Set to 0 to never expire, or \-1 to disable this cache.
+This sets the lifetime for quota details inside the cache. If quota details were not queried during this period it is removed from the cache making room for more often requested quota details. Set to 0 to never expire, or \-1 to disable this cache.
 .PP
 Default:
 \fI1\fR
@@ -655,7 +662,7 @@ Default:
 \fI3M\fR
 .SS cache_userdetails_lifetime
 .PP
-This sets the lifetime for user details inside the cache. If user details weren\*(Aqt queried during this period it is removed from the cache making room for more often requested user details. Set to 0 to never expire, or \-1 to disable this cache.
+This sets the lifetime for user details inside the cache. If user details were not queried during this period it is removed from the cache making room for more often requested user details. Set to 0 to never expire, or \-1 to disable this cache.
 .PP
 Default:
 \fI0\fR
@@ -668,7 +675,7 @@ Default:
 \fI1M\fR
 .SS cache_server_lifetime
 .PP
-This sets the lifetime for server location details inside the cache. If server details weren\*(Aqt queried during this period it is removed from the cache making room for more often requested server details. Set to 0 to never expire, or \-1 to disable this cache.
+This sets the lifetime for server location details inside the cache. If server details were not queried during this period it is removed from the cache making room for more often requested server details. Set to 0 to never expire, or \-1 to disable this cache.
 .PP
 Default:
 \fI30\fR
@@ -730,8 +737,7 @@ These scripts are called by the server when the external user source, like LDAP,
 .PP
 \fIKOPANO_USER\fR
 contains the new username. The script should at least call
-\fBkopano\-admin\fR
-\fI\-\-create\-store\fR
+\fBkopano\-admin \-\-create\-store\fP
 \fI"${KOPANO_USER}"\fR
 to correctly create the store for the new user.
 .PP
@@ -832,21 +838,21 @@ Default:
 .SH "EXPLANATION OF MISCELLEANIOUS PARAMETERS"
 .SS enable_hosted_kopano
 .PP
-Enable multi\-tenancy environment.
+Enable multi-tenancy environment.
 .PP
 When set to true it is possible to create companies within the kopano instance and assign all users and groups to particular companies.
 .PP
-When set to false, the normal single\-tenancy environment is created.
+When set to false, the normal single-tenancy environment is created.
 .PP
 Default:
 \fIfalse\fR
 .SS enable_distributed_kopano
 .PP
-Enable multi\-server environment.
+Enable multi-server environment.
 .PP
 When set to true it is possible to place users and companies on specific servers.
 .PP
-When set to false, the normal single\-server environment is created.
+When set to false, the normal single-server environment is created.
 .PP
 Default:
 \fIfalse\fR
@@ -869,7 +875,7 @@ Default:
 \fI%f\fR
 .SS loginname_format
 .PP
-Loginname format (for multi\-tenancy installations). When the user does not login through a system\-wide unique username (like the email address) a unique name has created by combining the username and the tenancyname. With the this configuration option you can set how the loginname should be build up.
+Loginname format (for multi-tenancy installations). When the user does not login through a system\-wide unique username (like the email address) a unique name has created by combining the username and the tenancyname. With the this configuration option you can set how the loginname should be build up.
 .PP
 Allowed variables:
 .TP
@@ -949,7 +955,7 @@ Default:
 \fIyes\fR
 .SS enable_sql_procedures
 .PP
-SQL Procedures allow for some optimized queries when streaming with enhanced ICS. This is default disabled because you must set \*(Aqthread_stack = 256k\*(Aq in your MySQL server config under the [mysqld] tag and restart your MySQL server.
+SQL Procedures allow for some optimized queries when streaming with enhanced ICS. This is default disabled because you must set \fBthread_stack = 256k\fP in your MySQL server config under the [mysqld] tag and restart your MySQL server.
 .PP
 Default:
 \fIno\fR
@@ -961,19 +967,19 @@ Default:
 \fI1000000\fR
 .SS sync_gab_realtime
 .PP
-When set to \*(Aqyes\*(Aq, kopano will synchronize the local user list whenever a list of users is requested (eg during kopano\-admin \-l or when opening the addressbook). When setting this value to \*(Aqno\*(Aq, synchronization will only occur during kopano\-admin \-\-sync. This is useful for setups which have large addressbooks (more than 1000 entries in the addressbook).
+When set to \fByes\fP, kopano will synchronize the local user list whenever a list of users is requested (eg during kopano\-admin \-l or when opening the addressbook). When setting this value to \fBno\fP, synchronization will only occur during kopano\-admin \-\-sync. This is useful for setups which have large addressbooks (more than 1000 entries in the addressbook).
 .PP
-This option is forced to \*(Aqyes\*(Aq when using the \*(Aqdb\*(Aq plugin since synchronization is implicit in that case.
+This option is forced to \fByes\fP when using the \fBdb\fP plugin since synchronization is implicit in that case.
 .PP
 Default:
 \fIyes\fR
 .SS proxy_header
 .PP
-In normal operation, a cluster of kopano\-server nodes is served by sending redirections back to the clients requesting information. The redirection URL is built from the server\*(Aqs information in the LDAP database. However, in some cases it is useful to place the kopano\-server instances behind a reverse HTTP proxy. In this case the redirected URL returned to the client cannot be the \*(Aqnormal\*(Aq hostname, but must be a URL that is handled by the proxy.
+In normal operation, a cluster of kopano\-server nodes is served by sending redirections back to the clients requesting information. The redirection URL is built from the server's information in the LDAP database. However, in some cases it is useful to place the kopano\-server instances behind a reverse HTTP proxy. In this case the redirected URL returned to the client cannot be the "normal" hostname, but must be a URL that is handled by the proxy.
 .PP
-However, internal (\*(Aqbehind\*(Aq the proxy) redirections must *not* be redirected to the proxy since this is not necessary. The strategy is that kopano\-server will redirect to the proxy URL if the connection that initiated the redirect passed through a proxy. The way that this is detected is by examining an HTTP header. If the header specified by this option is found, then redirections will be to the proxy. If it is not, then redirections will be to the internal host. If the special value \*(Aq*\*(Aq is specified for this option, then the proxy URL will always be used. Specifying an empty value disables proxy detection.
+However, internal ("behind" the proxy) redirections must *not* be redirected to the proxy since this is not necessary. The strategy is that kopano\-server will redirect to the proxy URL if the connection that initiated the redirect passed through a proxy. The way that this is detected is by examining an HTTP header. If the header specified by this option is found, then redirections will be to the proxy. If it is not, then redirections will be to the internal host. If the special value \fB*\fP is specified for this option, then the proxy URL will always be used. Specifying an empty value disables proxy detection.
 .PP
-Another effect of this option is that when a proxy connection is detected, kopano\-server attempts to use the \*(AqX\-Forwarded\-For\*(Aq header to determine the originating IP address. This is used for logging and session binding (a session initiated on a certain IP address may not be accessed from another IP address).
+Another effect of this option is that when a proxy connection is detected, kopano\-server attempts to use the "X\-Forwarded\-For" header to determine the originating IP address. This is used for logging and session binding (a session initiated on a certain IP address may not be accessed from another IP address).
 .PP
 Default:
 .SS shared_reminders
@@ -1055,9 +1061,6 @@ The Kopano LDAP user plugin configuration file.
 .RS 4
 The Kopano Unix user plugin configuration file.
 .RE
-.SH "AUTHOR"
-.PP
-Written by Kopano.
 .SH "SEE ALSO"
 .PP
 \fBkopano-server\fR(8),

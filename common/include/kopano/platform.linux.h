@@ -217,7 +217,7 @@ typedef int				SCODE;
 #define STG_E_INVALIDFUNCTION KC_HRESULT_TYPEDEF_(0x80030001L)
 
 /*
- Values are 32 bit values layed out as follows:
+ Values are 32 bit values laid out as follows:
 
   3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
   1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
@@ -415,7 +415,7 @@ extern _kc_export time_t GetProcessTime(void);
 #define TICKS_PER_SEC (sysconf(_SC_CLK_TCK))
 
 /**
- * Tell the compiler that a funtion/method behaves like printf.
+ * Tell the compiler that a function/method behaves like printf.
  * _fmt is the 1-indexed index to the format argument
  * _va is the 1-indexed index to the first va argument.
  * NOTE: For non-static methods the this pointer has index 1.

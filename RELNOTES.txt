@@ -1,5 +1,98 @@
-8.7.x
+8.8.x
 =====
+
+
+8.7.82 (8.8.x Milestone 2)
+==========================
+All changes from the 8.7.x branch up to 8.7.4 included.
+Enhancements:
+* php: added PHP API to read multi-vcard VCF [KC-1487]
+Changes:
+* RHEL6 is no longer officially supported
+Fixes:
+* server: cure emission of repeated K-1515 messages [KC-1519]
+
+
+8.7.81 (8.8.x Milestone 1)
+==========================
+All changes from the 8.7.x branch up to 8.7.2 included.
+Enhancements:
+* ldapplugin: 22% speedup in retriving the entire user list [KC-1399]
+* client: avoid double-fetching PR_RTF_COMPRESSED_DATA [KC-1349]
+* inetmapi: added C++ API to read multi-vcard VCF [KC-1291]
+Changes:
+* dagent, spooler: plugins are disabled by default now [KC-1475]
+  Add plugin_enabled=yes to your .cfg if needed.
+* dagent, spooler: threaded more is enabled by default now [KC-1475]
+* search: index_attachments is disabled by default now [KC-1455]
+* daemons: the -F option is removed, daemons always start in foreground
+  mode now [KC-1428]
+* server: support for non-Unicode connections used by ZCP 5.x was removed
+* server: support for some legacy RPCs used by ZCP 6.30 was removed
+* Support for Python 2.x was removed
+* The python-zarafa compat module was removed
+* The object-oriented MAPI classes (written in PHP) were removed from KC.
+  A copy survives in kopano-webapp. What remains in KC is the set of
+  MAPI-related procedural functions provided by the PHP plugin
+  (written in C++).
+* kopano-rest has been moved to a separate git repository
+Packaging changes:
+* gsoap 2.8.73 or higher is now required
+
+
+8.7.5 (2019-07-09)
+==================
+Fixes:
+* php: add a missing vector resize call to
+  mapi_freebusysupport_loadupdate [KC-1539]
+* libserver: fix "withholding" of properties from clients [KC-1547]
+
+
+8.7.4 (2019-07-03)
+==================
+Fixes:
+* storeadm: accept -l option even if the non-UTF8 variant of that locale is
+  absent from the system [KC-1429]
+* dagent: rule matching against very large subject lines was made
+  functional [KC-1478]
+* gateway: guard against a null dereference [KC-1505]
+* inetmapi: avoid emitting multi-encoded words to work around Outlook
+  bugs [KC-1506]
+* daemons: resolved a startup failure when socket activation was used [KC-1513]
+* daemons: resolved kopano-server.socket entering a failed state after stopping
+  kopano-server.service [KC-1514]
+* dagent: cured a silent exit when "lmtp_listen" contained garbage [KC-1516]
+* dagent: evalute entire transport headers [KC-1443]
+* freebusy: fix potential freeing of uninitialized pointers [KC-1539]
+* pyko: avoid local time conversion of UTC dates
+Enhancements:
+* logrotate will now use `systemctl reload` if available [GH-PR-14]
+* doc: new manpages kopano-admin.cfg(5) and kopano-statsd.cfg(5)
+* admin: do not abort out on --details SYSTEM
+* server: report highest objectid to statsd [KC-1523]
+
+
+8.7.3 (2019-05-27)
+==================
+Fixes:
+* stats: print "PR_..." instead of proptag numbers [KC-1495]
+* server: no more unbounded thread number increase [KC-1446]
+* php: fix crash in zif_mapi_getprops [KC-1507]
+
+
+8.7.2 (2019-05-13)
+==================
+Fixes:
+* server: complete utf8mb4->utf8 fallback for RHEL6 [KC-1423]
+* inetmapi: modified appointments need to produce a new Message-ID [KC-1458]
+* dagent: set Bcc/RecipMe flags appropriately [KC-319]
+* inetmapi: restore FQDN in Message-IDs [KC-1393]
+* inetmapi: parse fake "From:" header better to hinder proliferation of
+  impersonations [KC-1350]
+
+
+8.7.1 (2019-04-17)
+==================
 Fixes:
 * dagent: standard casing for RFC 5322 headers [KF-2100]
 * daemons: do not fail startup on IPv4-only systems [KC-1400]
@@ -8,10 +101,25 @@ Fixes:
 * server: fix crash on shutdown [KF-2179]
 * server: address a potential crash due to type mismatch [KF-2151]
 * server: use utf8mb3 with mysql 5.1 [KC-1423]
+* server: avoid entering truncated tproperties data into the cache [KC-1417]
+* server: avoid using OpenLDAP-specific filters that 389-ds does not
+  know about [KC-1402]
+* server: fixed TLS negotiation errors with openSSL 1.1.1 [KC-1439]
+* spooler: avoid unnecessary QP encoding in header fields [KC-1430]
+* spooler: fix hang on process termination [KC-1449]
 * srvadm: do not complain about default_store_locale [KC-1416]
 * dbadm: some long-running statements can now be run in parallel
   with the new -j option [KS-42617]
 * pyko: expand stubbed messages when dumping [KC-1159,KC-1168]
+* pyko: don't mix str/int busy statuses [KC-1433]
+* oof: fix erroneous -u parsing [KC-1425]
+* oof: make --message option set the right property [KC-1435]
+* dagent: some large properties need different kind of loading [KC-1443]
+Enhancements:
+* backup: do record outofoffice settings
+* php-ext: performance measurement log now contains a timestamp, thread
+  identifier, and global monotonic counter. This can be used for estimating the
+  achieved command rate.
 
 
 8.6.92 -> 8.7.0 (2019-01-24)
@@ -133,6 +241,9 @@ Fixes:
 * client: ABEIDs were parsed wrong (and it broke with gcc8) [KC-1386, KS-42325]
 * libserver: restore a missing KCERR_NOT_FOUND return code in getStore
 * php7-ext: cease modifying potentially-immutable PHP variables [KC-1355]
+*  gateway: avoid uncaught exception when client disconnects midway [KC-1452]
+* client: add a nullptr check when parsing copying resolvePseudoUrlResponse
+  struct [KC-1453]
 Enhancements:
 * dbadm: new action "usmp-shrink-columns"
 * dagent: add directive to read whitelist domains and body from file

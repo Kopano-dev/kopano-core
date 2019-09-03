@@ -54,8 +54,7 @@ HRESULT ZCABProvider::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 	if(hr != hrSuccess)
 		return hr;
 	AddChild(lpABLogon);
-
-	hr = lpABLogon->QueryInterface(IID_IABLogon, (void **)lppABLogon);
+	hr = lpABLogon->QueryInterface(IID_IABLogon, reinterpret_cast<void **>(lppABLogon));
 	if(hr != hrSuccess)
 		return hr;
 	if (lpulcbSecurity)

@@ -1,32 +1,11 @@
-'\" t
-.\"     Title: kopano-archiver-aclset
-.\"    Author: [see the "Author" section]
-.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
-.\"      Date: November 2016
-.\"    Manual: Kopano Core user reference
-.\"    Source: Kopano 8
-.\"  Language: English
-.\"
 .TH "KOPANO\-ARCHIVER\-ACLSET" "8" "November 2016" "Kopano 8" "Kopano Core user reference"
-.\" -----------------------------------------------------------------
-.\" * Define some portability stuff
-.\" -----------------------------------------------------------------
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .\" http://bugs.debian.org/507673
-.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
-.\" -----------------------------------------------------------------
-.\" * set default formatting
-.\" -----------------------------------------------------------------
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
 .ad l
-.\" -----------------------------------------------------------------
-.\" * MAIN CONTENT STARTS HERE *
-.\" -----------------------------------------------------------------
 .SH "NAME"
 kopano-archiver-aclset \- Reset the archive ACL settings for the owner.
 .SH "SYNOPSIS"
@@ -37,11 +16,11 @@ kopano-archiver-aclset \- Reset the archive ACL settings for the owner.
 \fBkopano\-archiver\-aclset\fR
 sets or updates the permissions on an archive store for the owner of that store.
 .PP
-When an archive is attached to a store, the owner of the store gets read\-only or read/write permissions on the archive based on the configuration or command line options passed at the time of attaching. Also when an archive is attached to a store of a non\-active user, no permissions for that non\-active user are set because that\*(Aqs not possible.
+When an archive is attached to a store, the owner of the store gets read\-only or read/write permissions on the archive based on the configuration or command line options passed at the time of attaching. Also when an archive is attached to a store of a non\-active user, no permissions for that non\-active user are set because that is not possible.
 .PP
 In the first case it can be desirable to change the permissions at a later time because of company policy changes or because the original setting was just wrong.
 .PP
-In the second case, if the user is converted to an active user, it\*(Aqs required to reset the permissions because the owner won\*(Aqt have any permissions on his archive.
+In the second case, if the user is converted to an active user, it is required to reset the permissions because the owner will not have any permissions on his archive.
 .SH "OPTIONS"
 .PP
 \fB\-w\fR
@@ -58,7 +37,7 @@ Run the script for just the specified user(s). By default, it runs for all users
 .PP
 \fB\-\-log\-level\fR, \fB\-l\fR \fINAME\fR
 .RS 4
-Specify log\-level, for example, \*(Aqerror\*(Aq, \*(Aqwarning\*(Aq \*(Aqinfo\*(Aq or \*(Aqdebug\*(Aq.
+Specify log\-level, for example, \fBerror\fP, \fBwarning\fP \fBinfo\fP or \fBdebug\fP.
 .RE
 .PP
 \fB\-\-server\-socket\fR, \fB\-s\fR \fISOCKET\fR
@@ -75,6 +54,3 @@ Specify SSL key file.
 .RS 4
 Specify SSL key password.
 .RE
-.SH "AUTHOR"
-.PP
-Written by Kopano.

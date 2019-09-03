@@ -215,7 +215,7 @@ public:
  * NonLegacyIncrementalProcessor: Processes accepted and rejected messages without the burden of tracking
  *                                legacy or checking for presence of messages.
  *                                This processor expects to be used in conjunction with the IncrementalQueryCreator,
- *                                which implies that all changes are genuin changes and no messages will be
+ *                                which implies that all changes are genuine changes and no messages will be
  *                                rejected through a restriction.
  **/
 class NonLegacyIncrementalProcessor final : public IMessageProcessor {
@@ -643,8 +643,8 @@ ECRESULT ECGetContentChangesHelper::QueryDatabase(DB_RESULT *lppDBResult)
 	else
 		ulChanges = 0;
 
-	m_lpChanges = (icsChangesArray*)soap_malloc(m_soap, sizeof *m_lpChanges);
-	m_lpChanges->__ptr = (icsChange*)soap_malloc(m_soap, sizeof *m_lpChanges->__ptr * ulChanges);
+	m_lpChanges = s_alloc<icsChangesArray>(m_soap);
+	m_lpChanges->__ptr = s_alloc<icsChange>(m_soap, ulChanges);
 	m_lpChanges->__size = 0;
 	assert(lppDBResult != NULL);
 	*lppDBResult = std::move(lpDBResult);
@@ -691,10 +691,10 @@ ECRESULT ECGetContentChangesHelper::ProcessRows(const std::vector<DB_ROW> &db_ro
 			continue;
 
 		m_lpChanges->__ptr[m_ulChangeCnt].ulChangeId = lpDBRow[icsID] ? atoui(lpDBRow[icsID]) : 0;
-		m_lpChanges->__ptr[m_ulChangeCnt].sSourceKey.__ptr = (unsigned char *)soap_malloc(m_soap, lpDBLen[icsSourceKey]);
+		m_lpChanges->__ptr[m_ulChangeCnt].sSourceKey.__ptr = s_alloc<unsigned char>(m_soap, lpDBLen[icsSourceKey]);
 		m_lpChanges->__ptr[m_ulChangeCnt].sSourceKey.__size = lpDBLen[icsSourceKey];
 		memcpy(m_lpChanges->__ptr[m_ulChangeCnt].sSourceKey.__ptr, lpDBRow[icsSourceKey], lpDBLen[icsSourceKey]);
-		m_lpChanges->__ptr[m_ulChangeCnt].sParentSourceKey.__ptr = (unsigned char *)soap_malloc(m_soap, lpDBLen[icsParentSourceKey]);
+		m_lpChanges->__ptr[m_ulChangeCnt].sParentSourceKey.__ptr = s_alloc<unsigned char>(m_soap, lpDBLen[icsParentSourceKey]);
 		m_lpChanges->__ptr[m_ulChangeCnt].sParentSourceKey.__size = lpDBLen[icsParentSourceKey];
 		memcpy(m_lpChanges->__ptr[m_ulChangeCnt].sParentSourceKey.__ptr, lpDBRow[icsParentSourceKey], lpDBLen[icsParentSourceKey]);
 		m_lpChanges->__ptr[m_ulChangeCnt].ulChangeType = ulChangeType;
@@ -719,10 +719,10 @@ ECRESULT ECGetContentChangesHelper::ProcessResidualMessages()
 
 		ec_log(EC_LOGLEVEL_ICS, "ProcessResidualMessages: sourcekey=%s", bin2hex(p.first).c_str());
 		m_lpChanges->__ptr[m_ulChangeCnt].ulChangeId = 0;
-		m_lpChanges->__ptr[m_ulChangeCnt].sSourceKey.__ptr = (unsigned char *)soap_malloc(m_soap, p.first.size());
+		m_lpChanges->__ptr[m_ulChangeCnt].sSourceKey.__ptr = s_alloc<unsigned char>(m_soap, p.first.size());
 		m_lpChanges->__ptr[m_ulChangeCnt].sSourceKey.__size = p.first.size();
 		memcpy(m_lpChanges->__ptr[m_ulChangeCnt].sSourceKey.__ptr, p.first, p.first.size());
-		m_lpChanges->__ptr[m_ulChangeCnt].sParentSourceKey.__ptr = (unsigned char *)soap_malloc(m_soap, p.second.sParentSourceKey.size());
+		m_lpChanges->__ptr[m_ulChangeCnt].sParentSourceKey.__ptr = s_alloc<unsigned char>(m_soap, p.second.sParentSourceKey.size());
 		m_lpChanges->__ptr[m_ulChangeCnt].sParentSourceKey.__size = p.second.sParentSourceKey.size();
 		memcpy(m_lpChanges->__ptr[m_ulChangeCnt].sParentSourceKey.__ptr, p.second.sParentSourceKey, p.second.sParentSourceKey.size());
 		m_lpChanges->__ptr[m_ulChangeCnt].ulChangeType = ICS_HARD_DELETE;
@@ -755,7 +755,8 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 	// stop doing work here. Also, if we have converted from a non-restricted to a restricted set, we have to write
 	// the new set of messages, even if there are no changes.
 	if (m_ulChangeCnt == 0 && m_ulChangeId > 0 && !(m_setLegacyMessages.empty() && m_lpsRestrict) ) {
-		assert(ulMaxChange >= m_ulChangeId);
+		if (!(ulMaxChange >= m_ulChangeId))
+			ec_log_warn("K-1254: soft assert (ulMaxChange >= m_ulChangeId) failed");
 		*lpulMaxChange = ulMaxChange;
 		// Delete all entries that have a changeid that are greater to the new change id.
 		std::string strQuery = "DELETE FROM syncedmessages WHERE sync_id=" + stringify(m_ulSyncId) + " AND change_id>" + stringify(ulMaxChange);
@@ -844,7 +845,8 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 		std::copy(setChangeIds.begin(), iter, std::inserter(setDeleteIds, setDeleteIds.begin()));
 
 		if (!setDeleteIds.empty()) {
-			assert(setChangeIds.size() - setDeleteIds.size() <= 9);
+			if (!(setChangeIds.size() - setDeleteIds.size() <= 9))
+				ec_log_warn("K-1255: soft assert (setChangeIds.size() - setDeleteIds.size() <= 9) failed");
 			strQuery = "DELETE FROM syncedmessages WHERE sync_id=" + stringify(m_ulSyncId) + " AND change_id IN (";
 			for (auto del_id : setDeleteIds) {
 				strQuery.append(stringify(del_id));

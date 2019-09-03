@@ -20,6 +20,8 @@
 #include "ECDatabaseFactory.h"
 #include "DBUserPlugin.h"
 #include <kopano/ecversion.h>
+#define NO_HOSTED  "Multi-tenancy not implemented by db userplugin"
+#define NO_DISTRIB "Multi-server not implemented by db userplugin"
 
 using namespace KC;
 
@@ -52,7 +54,7 @@ DBUserPlugin::DBUserPlugin(std::mutex &pluginlock,
 	DBPlugin(pluginlock, shareddata)
 {
 	if (m_bDistributed)
-		throw notsupported("Distributed Kopano not supported when using the Database Plugin");
+		throw notsupported(NO_DISTRIB);
 }
 
 void DBUserPlugin::InitPlugin(std::shared_ptr<ECStatsCollector> sc)
@@ -97,7 +99,7 @@ objectsignature_t DBUserPlugin::resolveName(objectclass_t objclass, const string
 		lpszSearchProperty = NULL;
 		break;
 	default:
-		throw runtime_error("Object is wrong type");
+		throw runtime_error("Object has wrong type");
 	}
 
 	/*
@@ -264,17 +266,17 @@ void DBUserPlugin::setQuota(const objectid_t &objectid, const quotadetails_t &qu
 
 objectdetails_t DBUserPlugin::getPublicStoreDetails()
 {
-	throw notsupported("public store details");
+	throw notsupported(NO_DISTRIB ", getPublicStoreDetails not implemented");
 }
 
 serverdetails_t DBUserPlugin::getServerDetails(const std::string &server)
 {
-	throw notsupported("server details");
+	throw notsupported(NO_DISTRIB ", getServerDetails not implemented");
 }
 
 serverlist_t DBUserPlugin::getServers()
 {
-	throw notsupported("server list");
+	throw notsupported(NO_DISTRIB ", getServers not implemented");
 }
 
 void DBUserPlugin::addSubObjectRelation(userobject_relation_t relation, const objectid_t &parentobject, const objectid_t &childobject)

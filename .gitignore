@@ -39,6 +39,7 @@ stamp-h2
 /kopano-gateway
 /kopano-ibrule
 /kopano-ical
+/kopano-indexd
 /kopano-monitor
 /kopano-oof
 /kopano-passwd
@@ -53,6 +54,8 @@ stamp-h2
 /mapitime
 /rosie-test
 /rtfcomp
+/gateway/doveauth.sym
+/gateway/dovestore.sym
 /mapi4linux/src/libmapi.sym
 /provider/plugin.sym
 /provider/provider.sym
@@ -68,8 +71,6 @@ stamp-h2
 /ECtools/migration-pst/kopano-migration-pst
 /ECtools/migration-pst/kopano_migration_pst/version.py
 /ECtools/migration-pst/staging/
-/ECtools/msr/kopano-msr
-/ECtools/msr/kopano_msr/version.py
 /ECtools/presence/build/
 /ECtools/presence/kopano-presence
 /ECtools/presence/kopano_presence/version.py
@@ -83,17 +84,19 @@ stamp-h2
 /ECtools/search/staging/
 /ECtools/spamd/kopano-spamd
 /ECtools/spamd/kopano_spamd/version.py
-/ECtools/utils/kopano-autorespond.py
+/ECtools/utils/kopano-autorespond
 /ECtools/utils/kopano-mr-accept
 /ECtools/utils/kopano-mr-process
 /ECtools/utils/kopano_utils/version.py
 /swig/python/kopano/kopano/version.py
 /swig/python/MAPI/version.py
 /tests/ablookup
+/tests/htmltext
 /tests/imtomapi
 /tests/kc-335
 /tests/mapialloctime
 /tests/readflag
+/tests/rosie
 /tests/zcpmd5
 
 # /autoconf/

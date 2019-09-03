@@ -85,7 +85,7 @@ HRESULT ECAttach::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceO
 	BOOL			fNew = FALSE;
 	scoped_rlock lock(m_hMutexMAPIObject);
 
-	// Get the attachement method
+	// Get the attachment method
 	if (HrGetOneProp(this, PR_ATTACH_METHOD, &~lpPropAttachType) == hrSuccess)
 		ulAttachType = lpPropAttachType->Value.ul;
 	// The client is creating a new attachment, which may be embedded. Fix for the next if check
@@ -148,7 +148,7 @@ HRESULT ECAttach::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceO
 		sPropValue[2].Value.bin.lpb = reinterpret_cast<BYTE *>(lpMapiUID.get());
 		lpMessage->SetProps(3, sPropValue, NULL);
 	}
-	hr = lpMessage->QueryInterface(IID_IMessage, (void **)lppUnk);
+	hr = lpMessage->QueryInterface(IID_IMessage, reinterpret_cast<void **>(lppUnk));
 	AddChild(lpMessage);
 	return hr;
 }

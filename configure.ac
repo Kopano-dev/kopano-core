@@ -1,5 +1,5 @@
 AC_PREREQ(2.60)
-AC_INIT([kopano], [8.7.80], [development@kopano.io])
+AC_INIT([kopano], [8.7.82], [development@kopano.io])
 
 dnl ABI tags are used to prevent inadvertent mixing of wildly different
 dnl versions of KC components without knowing it.
@@ -15,18 +15,89 @@ AC_CONFIG_MACRO_DIR([autoconf])
 AM_INIT_AUTOMAKE([1.10 foreign subdir-objects])
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 
+PKG_PROG_PKG_CONFIG
+
+dnl Directories
+uscriptlibdir='${prefix}/lib/kopano/userscripts'
+uscriptconfdir='${sysconfdir}/kopano/userscripts'
+AC_SUBST([uscriptlibdir])
+AC_SUBST([uscriptconfdir])
+
+AC_ARG_WITH(quotatemplate-prefix,
+	[AS_HELP_STRING([--with-quotatemplate-prefix=PATH], [Path to install the quota warning templates in (default SYSCONFDIR/kopano/quotamail)])],
+	[QUOTATEMPLATEDIR="$withval"], [QUOTATEMPLATEDIR='${sysconfdir}/kopano/quotamail'])
+AC_SUBST([QUOTATEMPLATEDIR])
+AC_ARG_WITH(searchscripts-prefix,
+	[AS_HELP_STRING([--with-searchscripts-prefix=PATH], [path to install the search scripts in (default SYSCONFDIR/kopano/searchscripts)])],
+	[SEARCHSCRIPTSDIR="$withval"], [SEARCHSCRIPTSDIR='${sysconfdir}/kopano/searchscripts'])
+AC_SUBST([SEARCHSCRIPTSDIR])
+AC_ARG_WITH([systemunitdir],
+	[AS_HELP_STRING([--with-systemunitdir=PATH], [Path to systemd service unit directory])],
+	[systemunitdir="$withval"],
+	[
+		systemunitdir=$("$PKG_CONFIG" systemd --variable systemdsystemunitdir 2>/dev/null)
+		AS_IF([test -z "$systemunitdir"], [systemunitdir='${prefix}/lib/systemd/system'])
+	])
+AC_SUBST([systemunitdir])
+AC_ARG_WITH([sysusersdir],
+	[AS_HELP_STRING([--with-sysusersdir=PATH], [Path to sysusers config directory])],
+	[sysusersdir="$withval"],
+	[
+		sysusersdir=$("$PKG_CONFIG" systemd --variable sysusersdir 2>/dev/null)
+		AS_IF([test -z "$sysusersdir"], [sysusersdir='${prefix}/lib/sysusers.d'])
+	])
+AC_SUBST([sysusersdir])
+AC_ARG_WITH([tmpfilesdir],
+	[AS_HELP_STRING([--with-tmpfilesdir=PATH], [Path to tmpfiles config directory])],
+	[tmpfilesdir="$withval"],
+	[
+		tmpfilesdir=$("$PKG_CONFIG" systemd --variable tmpfilesdir 2>/dev/null)
+		AS_IF([test -z "$tmpfilesdir"], [tmpfilesdir='${prefix}/lib/tmpfiles.d'])
+	])
+AC_SUBST([tmpfilesdir])
+dnl Not all files will be installed to ${prefix}, so we need to cheat a bit
+dnl to make "distcheck" succeed.
+AC_ARG_WITH([dcprefix],
+	[AS_HELP_STRING([Extra path inserted for distcheck])],
+	[dcprefix="$withval"])
+AC_SUBST([dcprefix])
+
+dnl Python interpreter selection
+AS_IF([test -n "$PYTHON"], [
+	dnl Expand e.g. PYTHON="python3 -B" to PYTHON="/usr/bin/python3 -B"
+	dnl (for embedding into #!), but keep unresolvable values as-is.
+	set -- $PYTHON
+	PYTHON=$(which "$1" 2>/dev/null)
+	AS_IF([test -z "$PYTHON"], [PYTHON="$1"])
+	shift
+	PYTHON=$(echo "$PYTHON $@")
+	PYTHON_MAJOR_VERSION=$($PYTHON -c "from __future__ import print_function;import sys;print(sys.version_info[[0]])" 2>/dev/null)
+])
+AS_IF([test "$PYTHON_MAJOR_VERSION" = "3"], [PYTHON_PC="python3"], [PYTHON_PC="python"])
+AM_CONDITIONAL([WITH_PYTHON3], [test "x$PYTHON_MAJOR_VERSION" = "x3"])
+
+dnl Top-level component selection
+AC_ARG_ENABLE([base], [AS_HELP_STRING([--disable-base],
+	[Disables building base components (default: enable)])],
+	[want_base="$enableval"], [want_base=yes])
+AM_CONDITIONAL([ENABLE_BASE], [test "$want_base" != no])
+AC_ARG_ENABLE([python], [AS_HELP_STRING([--disable-python],
+	[Disables building Python components (default: enable). Use the $PYTHON environment variable to select the script interpreter.])],
+	[want_python="$enableval"], [want_python=auto])
+AM_CONDITIONAL([ENABLE_PYTHON], [test "$want_python" != no])
+
 ECCLIENT_LIBRARY_VERSION=1:0:0
 AC_SUBST(ECCLIENT_LIBRARY_VERSION)
 
-# Checks for programs.
+dnl Checks for programs. Must be top-level (outside our want_base block).
 AC_DISABLE_STATIC	dnl must be before ac_prog_libtool
 AC_PROG_LIBTOOL
 AC_PROG_CC
 AM_PROG_CC_C_O
 AC_PROG_CXX
 AC_PROG_INSTALL
-AC_PROG_SED
-PKG_PROG_PKG_CONFIG
+dnl Needed, at the very least, for `make dist` (hence outside enable_base)
+AC_PATH_PROG([SWIG_EXEC], [swig])
 
 # configure may rerun as part of git-checking out a different version,
 # so remove stale version
@@ -35,6 +106,28 @@ AC_SUBST([PACKAGE_ABI])
 abs_top_srcdir=`cd $srcdir; pwd`
 abs_top_builddir=`pwd`
 
+ZCPPFLAGS=""
+AC_CANONICAL_HOST
+AS_CASE([$host_os],
+	[openbsd], [
+		BUILDOS="openbsd"
+		ZCPPFLAGS="$ZCPPFLAGS -DOPENBSD"
+		LN_TFSV="ln -fs"
+	],
+	[linux*], [
+		BUILDOS="linux"
+		ZCPPFLAGS="$ZCPPFLAGS -DLINUX"
+		LN_TFSV="ln -Tfsv"
+	],
+	[*], [
+		LN_TFSV="ln -fs"
+	])
+
+AC_ARG_ENABLE([dovecot], [AS_HELP_STRING([--enable-dovecot], [Build dovecot modules (default: disabled)])])
+AM_CONDITIONAL([WITH_DOVECOT], [test "$enable_dovecot" = yes])
+
+AS_IF([test "$want_base" != no], [
+
 #
 # construct default CXXFLAGS
 #
@@ -42,32 +135,15 @@ abs_top_builddir=`pwd`
 # Everything is C++
 AC_LANG_PUSH(C++)
 # save clean settings
+CFLAGS_system="$CFLAGS"
 CXXFLAGS_system=$CXXFLAGS
 CPPFLAGS_system=$CPPFLAGS
 LDFLAGS_system=$LDFLAGS
 LIBS_system=$LIBS
 
-# check build OS
-AC_CANONICAL_HOST
-ZCPPFLAGS=""
-case "$host_os" in
-	openbsd*)
-		BUILDOS="openbsd"
-		ZCPPFLAGS="$ZCPPFLAGS -DOPENBSD"
-		LN_TFSV="ln -fs"
-		;;
-	linux*)
-		BUILDOS="linux"
-		ZCPPFLAGS="$ZCPPFLAGS -DLINUX"
-		LN_TFSV="ln -Tfsv"
-		;;
-esac
-
 >conftest.cpp
 ZPHPCXXFLAGS=""
-if $CXX -Wno-narrowing -c conftest.cpp; then
-	ZPHPCXXFLAGS="-Wno-narrowing"
-fi
+AS_IF([$CXX -Wno-narrowing -c conftest.cpp], [ZPHPCXXFLAGS="-Wno-narrowing"])
 rm -f conftest.*
 AC_SUBST([ZPHPCXXFLAGS])
 
@@ -117,14 +193,12 @@ fi
 # enable/disable options
 #
 
-AC_ARG_ENABLE([release], AS_HELP_STRING([--enable-release], [enable release mode (compile flags -O2 and no DEBUG defines)]),
-  [want_release=${enableval}],[want_release=no])
-if test "$want_release" = "yes"; then
+AC_ARG_ENABLE([release], [AS_HELP_STRING([--disable-release], [Deactivate workarounds for KC-937 and KC-930])],
+	[want_release=${enableval}], [want_release=yes])
+AS_IF([test "$want_release" = "yes"], [
     ZCPPFLAGS="$ZCPPFLAGS -DNDEBUG"
-    ZCXXFLAGS="$ZCXXFLAGS -O2 -fno-strict-aliasing"
-else
-    ZCXXFLAGS="$ZCXXFLAGS -Wno-long-long"
-fi
+    ZCXXFLAGS="$ZCXXFLAGS -fno-strict-aliasing"
+])
 
 ZCPPFLAGS="$ZCPPFLAGS -DUNICODE"
 SWIG_FLAGS="-DUNICODE "
@@ -144,68 +218,19 @@ AC_SUBST([NO_VSYM])
 # profiling
 AC_ARG_ENABLE(profiling,
   AS_HELP_STRING([--enable-profiling], [enable profiling (-pg)]),
-    [ if test "${enableval}" = "yes"; then
+    [AS_IF([test "$enableval" = "yes"], [
 		ZCXXFLAGS="$ZCXXFLAGS -pg"
 		ZLDFLAGS="$ZLDFLAGS -pg"
-	  fi
+	])
     ])
 
 AC_ARG_ENABLE(coverage,
   AS_HELP_STRING([--enable-coverage], [enable coverage (--coverage)]),
-    [ if test "${enableval}" = "yes"; then
+    [AS_IF([test "$enableval" = "yes"], [
 		ZCXXFLAGS="$ZCXXFLAGS -g --coverage -fprofile-arcs -ftest-coverage"
 		ZLDFLAGS="$ZLDFLAGS -lgcov"
-	  fi
+	  ])
     ])
-
-uscriptlibdir='${prefix}/lib/kopano/userscripts'
-uscriptconfdir='${sysconfdir}/kopano/userscripts'
-AC_SUBST([uscriptlibdir])
-AC_SUBST([uscriptconfdir])
-
-# quota warning templates location
-AC_ARG_WITH(quotatemplate-prefix,
-  AS_HELP_STRING([--with-quotatemplate-prefix=PATH], [path to install the quota warning templates in (default SYSCONFDIR/kopano/quotamail)]),
-  [QUOTATEMPLATEDIR=${withval}],[QUOTATEMPLATEDIR='${sysconfdir}/kopano/quotamail'])
-AC_SUBST(QUOTATEMPLATEDIR)
-
-# search scripts location
-AC_ARG_WITH(searchscripts-prefix,
-  AS_HELP_STRING([--with-searchscripts-prefix=PATH], [path to install the search scripts in (default SYSCONFDIR/kopano/searchscripts)]),
-  [SEARCHSCRIPTSDIR=${withval}],[SEARCHSCRIPTSDIR='${sysconfdir}/kopano/searchscripts'])
-AC_SUBST(SEARCHSCRIPTSDIR)
-
-AC_ARG_WITH([systemunitdir],
-	[AS_HELP_STRING([--with-systemunitdir=PATH], [Path to systemd service unit directory])],
-	[systemunitdir="$withval"],
-	[
-		systemunitdir=$("$PKG_CONFIG" systemd --variable systemdsystemunitdir 2>/dev/null)
-		AS_IF([test -z "$systemunitdir"], [systemunitdir='${prefix}/lib/systemd/system'])
-	])
-AC_SUBST([systemunitdir])
-AC_ARG_WITH([sysusersdir],
-	[AS_HELP_STRING([--with-sysusersdir=PATH], [Path to sysusers config directory])],
-	[sysusersdir="$withval"],
-	[
-		sysusersdir=$("$PKG_CONFIG" systemd --variable sysusersdir 2>/dev/null)
-		AS_IF([test -z "$sysusersdir"], [sysusersdir='${prefix}/lib/sysusers.d'])
-	])
-AC_SUBST([sysusersdir])
-AC_ARG_WITH([tmpfilesdir],
-	[AS_HELP_STRING([--with-tmpfilesdir=PATH], [Path to tmpfiles config directory])],
-	[tmpfilesdir="$withval"],
-	[
-		tmpfilesdir=$("$PKG_CONFIG" systemd --variable tmpfilesdir 2>/dev/null)
-		AS_IF([test -z "$tmpfilesdir"], [tmpfilesdir='${prefix}/lib/tmpfiles.d'])
-	])
-AC_SUBST([tmpfilesdir])
-
-dnl Not all files will be installed to ${prefix}, so we need to cheat a bit
-dnl to make "distcheck" succeed.
-AC_ARG_WITH([dcprefix],
-	[AS_HELP_STRING([Extra path inserted for distcheck])],
-	[dcprefix="$withval"])
-AC_SUBST([dcprefix])
 
 # stats client requires ncurses(w) for --top
 # check wide version before non-wide version
@@ -248,14 +273,14 @@ AS_IF([test "$with_php" != "no"], [
 	PHP_CHECK_INCLUDES
 	echo "PHP version: $PHP_VERSION"
 	AS_CASE([$PHP_VERSION],
-		[5.*], [with_php=5],
+		[5.*], [AC_MSG_ERROR([php5 is not supported])],
 		[7.*], [with_php=7]
 	)
 ])
-AM_CONDITIONAL([WITH_PHP5], [test "$with_php" = 5])
-AM_CONDITIONAL([WITH_PHP7], [test "$with_php" = 7])
 PKG_CHECK_MODULES([libHX], [libHX >= 1.10])
+PKG_CHECK_MODULES([xapian], [xapian-core])
 PKG_CHECK_MODULES([XML2], [libxml-2.0])
+AC_CHECK_HEADERS([db_cxx.h], [], [AC_MSG_ERROR([Berkeley DB C++ interface required])])
 
 # Checks for MySQL 4.1 or better
 AC_DEFUN([MYSQL_WITH_MYSQL_CONFIG],[
@@ -352,21 +377,25 @@ CXXFLAGS="$CXXFLAGS_system $ZCXXFLAGS"
 LDFLAGS="$LDFLAGS_system $ZLDFLAGS"
 AC_CHECK_FUNCS([pthread_getname_np])
 
-PKG_CHECK_MODULES([GSOAP], [gsoapssl++ >= 2.8.73])
+dnl Broken .pc file until (not including) 2.8.83
+PKG_CHECK_MODULES([GSOAP], [gsoapssl++ >= 2.8])
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([
+	#include <stdsoap2.h>
+	#if GSOAP_VERSION < 20873
+	#	error too old
+	#endif
+])], [], [AC_MSG_ERROR([Need gsoap >= 2.8.73])])
 PKG_CHECK_MODULES([ICAL], [libical >= 0.42])
-PKG_CHECK_MODULES([curl], [libcurl], [], [:])
+PKG_CHECK_MODULES([curl], [libcurl >= 7], [], [:])
 CPPFLAGS="$CPPFLAGS $curl_CFLAGS"
 AC_CHECK_HEADERS([curl/curl.h])
 CPPFLAGS="$CPPFLAGS_system"
-PKG_CHECK_MODULES([mhttpd], [libmicrohttpd >= 0.9.30], [], [:])
 PKG_CHECK_MODULES([rrd], [librrd >= 1.3], [], [:])
-AM_CONDITIONAL([HAVE_MHTTPD], [test -n "$mhttpd_CFLAGS" -o -n "$mhttpd_LIBS"])
-AM_CONDITIONAL([HAVE_RRD], [test -n "$rrd_CFLAGS" -o -n "$rrd_LIBS"])
 PKG_CHECK_MODULES([TCMALLOC], [libtcmalloc_minimal], [], [:])
 CPPFLAGS="$CPPFLAGS $TCMALLOC_CFLAGS"
 AC_CHECK_HEADERS([gperftools/malloc_extension.h google/malloc_extension.h])
 CPPFLAGS="$CPPFLAGS_system"
-PKG_CHECK_MODULES([VMIME], [vmime >= 0.9.2])
+PKG_CHECK_MODULES([VMIME], [vmime >= 0.9.2k1])
 PKG_CHECK_MODULES([jsoncpp], [jsoncpp >= 1.4.0], [], [
 	PKG_CHECK_MODULES([jsoncpp], [jsoncpp >= 0.8 jsoncpp < 1])
 ])
@@ -412,7 +441,6 @@ LIBS=$LIBS_system
 
 AC_SUBST(LDAP_LIBS)
 AC_SUBST(LDAP_FLAGS)
-AM_CONDITIONAL([WITH_LDAP], [test "$want_ldap" = yes])
 
 LIBS="$LIBS $LDAP_LIBS"
 CXXFLAGS="$CXXFLAGS $LDAP_FLAGS"
@@ -422,7 +450,6 @@ LIBS=$LIBS_system
 CXXFLAGS=$CXXFLAGS_system
 
 AC_CHECK_HEADERS([shadow.h], [want_unix=yes], [want_unix=no])
-AM_CONDITIONAL([WITH_UNIX], [test "$want_unix" = yes])
 
 AC_MSG_CHECKING([for iconv])
 AC_LINK_IFELSE([ AC_LANG_SOURCE([
@@ -491,7 +518,6 @@ AC_CHECK_LIB([pam], [pam_start],
 		AC_DEFINE(HAVE_PAM, [1], [pam authentication available]),
 		AC_MSG_RESULT([library libpam missing or unusable]))
 AC_SUBST(PAM_LIBS)
-AM_CONDITIONAL([WITH_PAM], [test "$PAM_LIBS" != ""])
 
 # Check for kerberos library (optional)
 AC_DEFUN([LIBKRB5_WITH_KRB5_CONFIG],[
@@ -500,9 +526,9 @@ AC_DEFUN([LIBKRB5_WITH_KRB5_CONFIG],[
 
   AC_MSG_CHECKING([for krb5-config presence])
   KRB5_CONFIG=`which $KRB5_CONFIG 2>/dev/null`
-  if ! test -x "$KRB5_CONFIG"; then
+  AS_IF([test ! -x "$KRB5_CONFIG"], [
     AC_MSG_RESULT([not found])
-  else
+  ], [
     AC_MSG_RESULT([$KRB5_CONFIG])
 
     KRB5_CFLAGS=`$KRB5_CONFIG --cflags`
@@ -516,23 +542,21 @@ AC_DEFUN([LIBKRB5_WITH_KRB5_CONFIG],[
 	AC_CHECK_FUNCS([gss_acquire_cred], [AC_DEFINE(HAVE_GSSAPI, [1], [Kerberos Single Signon Authentication enabled]) ], [ use_krb=$((use_krb-1)) ])
 	AC_CHECK_FUNCS([krb5_free_unparsed_name], [ AC_DEFINE(HAVE_KRB5, [1], [Kerberos Password Authentication enabled]) ], [ use_krb=$((use_krb-1)) ])
 	AC_MSG_CHECKING([for krb5 usability])
-	if test $use_krb -eq 0; then
+	AS_IF([test "$use_krb" = 0], [
 		KRB5_CFLAGS=
 		KRB5_LIBS=
 		AC_MSG_RESULT([no])
-	else
+	], [
 		AC_MSG_RESULT([yes])
-	fi
-
+	])
 	LIBS="$LIBS_system"
 	CFLAGS="$CFLAGS_system"
 	CXXFLAGS="$CXXFLAGS_system"
 	AC_SUBST(KRB5_CFLAGS)
 	AC_SUBST(KRB5_LIBS)
-  fi
+  ])
 ])
 LIBKRB5_WITH_KRB5_CONFIG
-AM_CONDITIONAL([WITH_KRB5], [test "$KRB5_LIBS" != ""])
 
 # Check for libs3 amazon s3 availability
 LIBS_system="$LIBS"
@@ -578,7 +602,6 @@ AC_SUBST(INTL_LIBS)
 
 # check epoll support
 AC_ARG_ENABLE([epoll], AS_HELP_STRING([--disable-epoll], [disable epoll and fallback to select]), [want_epoll=${enableval}], [want_epoll=yes])
-AM_CONDITIONAL(WITH_EPOLL, test "$want_epoll" = "yes")
 AS_IF([test "$BUILDOS" = linux && test "$want_epoll" = "yes"], [
 	AC_CHECK_FUNCS([epoll_create], [ZCPPFLAGS="$ZCPPFLAGS -DUSE_EPOLL"])
 ])
@@ -586,7 +609,6 @@ AS_IF([test "$BUILDOS" = linux && test "$want_epoll" = "yes"], [
 tidy_CPPFLAGS="-I/usr/include/tidy"
 CPPFLAGS="$CPPFLAGS $tidy_CPPFLAGS"
 AC_CHECK_HEADERS([tidybuffio.h])
-AM_CONDITIONAL([HAVE_TIDY], [test "x$ac_cv_header_tidybuffio_h" = "xyes"])
 AC_SUBST([tidy_CPPFLAGS])
 CPPFLAGS="$CPPFLAGS_system"
 
@@ -642,35 +664,32 @@ AC_SUBST([ZCXXFLAGS])
 AC_SUBST([AM_CXXFLAGS])
 AC_SUBST([AM_LDFLAGS])
 
-AS_IF([test -n "$PYTHON"], [
-	dnl Expand e.g. PYTHON="python3 -B" to PYTHON="/usr/bin/python3 -B"
-	dnl (for embedding into #!), but keep unresolvable values as-is.
-	set -- $PYTHON
-	PYTHON=$(which "$1" 2>/dev/null)
-	AS_IF([test -z "$PYTHON"], [PYTHON="$1"])
-	shift
-	PYTHON=$(echo "$PYTHON $@")
-	PYTHON_MAJOR_VERSION=$($PYTHON -c "from __future__ import print_function;import sys;print(sys.version_info[[0]])" 2>/dev/null)
-])
-AS_IF([test "$PYTHON_MAJOR_VERSION" = "3"], [PYTHON_PC="python3"], [PYTHON_PC="python"])
-AH_TEMPLATE([ENABLE_PYTHON], [Build dagent/spooler with Python plugin support])
-AC_ARG_ENABLE([python], [AS_HELP_STRING([--enable-python], [Enable building of Python bindings (default: auto)])],
-	[want_python="$enableval"], [want_python=auto])
-AS_IF([test "$want_python" != no], [
+AC_ARG_ENABLE([pybind], [AS_HELP_STRING([--disable-pybind],
+	[Enables/disables building of C++↔Python bindings (default: auto-enable)])],
+	[want_pybind="$enableval"], [want_pybind=auto])
+AS_IF([test "$want_pybind" != no], [
 	PKG_CHECK_MODULES([PYTHON], [$PYTHON_PC], [], [:])
 	AS_IF([test -n "$PYTHON_LIBS"], [
-		AC_PATH_PROG([SWIG_EXEC], [swig])
-		AM_PATH_PYTHON([2.5])
 		AS_IF([test -z "$SWIG_EXEC"], [AC_MSG_ERROR([swig is required for Python])])
-		AC_DEFINE([ENABLE_PYTHON], [1])
 	], [test "$want_python" = yes], [
 		AC_MSG_ERROR([python requested but not satisfiable])
 	])
 ])
-AM_CONDITIONAL([ENABLE_PYTHON], [test "$want_python" != no -a -n "$PYTHON_LIBS"])
 
-AM_CONDITIONAL([WITH_PYTHON3], [test "x$PYTHON_MAJOR_VERSION" = "x3"])
-AM_CONDITIONAL([WITH_PYTHON2], [test "x$PYTHON_MAJRO_VERSION" = "x2"])
+]) dnl enable-cxx
+
+AM_CONDITIONAL([ENABLE_BASE], [test "$enable_base" != no])
+AM_CONDITIONAL([ENABLE_PYBIND], [test "$want_pybind" != no -a -n "$PYTHON_LIBS"])
+AM_CONDITIONAL([HAVE_MHTTPD], [test -n "$mhttpd_CFLAGS" -o -n "$mhttpd_LIBS"])
+AM_CONDITIONAL([HAVE_RRD], [test -n "$rrd_CFLAGS" -o -n "$rrd_LIBS"])
+AM_CONDITIONAL([HAVE_TIDY], [test "x$ac_cv_header_tidybuffio_h" = "xyes"])
+AM_CONDITIONAL([WITH_EPOLL], [test "$want_epoll" = "yes"])
+AM_CONDITIONAL([WITH_KRB5], [test -n "$KRB5_LIBS"])
+AM_CONDITIONAL([WITH_LDAP], [test "$want_ldap" = yes])
+AM_CONDITIONAL([WITH_PAM], [test -n "$PAM_LIBS"])
+AM_CONDITIONAL([WITH_PHP7], [test "$with_php" = 7])
+AM_CONDITIONAL([WITH_UNIX], [test "$want_unix" = yes])
+AS_IF([test -n "$PYTHON_LIBS" || test -n "$PYTHON"], [AM_PATH_PYTHON([2.5])])
 
 #
 # Output files
@@ -687,9 +706,7 @@ AC_CONFIG_FILES([Makefile
 		ECtools/backup/Makefile
 		ECtools/cli/Makefile
 		ECtools/migration-pst/Makefile
-		ECtools/msr/Makefile
 		ECtools/presence/Makefile
-		ECtools/rest/Makefile
 		ECtools/search/Makefile
 		ECtools/spamd/Makefile
 		ECtools/utils/Makefile
@@ -700,12 +717,11 @@ AC_CONFIG_FILES([Makefile
 		installer/searchscripts/Makefile
 		po/Makefile
 		swig/Makefile
-		swig/include/kopano/Makefile
 		swig/python/Makefile swig/python/python.sym
-		swig/python/include/kopano/Makefile
 		swig/python/kopano/Makefile
 		common/kopano.pc common/libkcutil.sym
 		default.sym
+		gateway/doveauth.sym gateway/dovestore.sym
 		mapi4linux/src/libmapi.sym
 		provider/plugin.sym provider/provider.sym
 		provider/libkcserver.sym provider/libkcsoap.sym
@@ -716,7 +732,6 @@ AC_CONFIG_FILES([Makefile
 
 AC_CONFIG_FILES([ECtools/search/kopano-search], [chmod +x ECtools/search/kopano-search])
 AC_CONFIG_FILES([ECtools/backup/kopano-backup], [chmod +x ECtools/backup/kopano-backup])
-AC_CONFIG_FILES([ECtools/msr/kopano-msr], [chmod +x ECtools/msr/kopano-msr])
 AC_CONFIG_FILES([ECtools/cli/kopano-cli], [chmod +x ECtools/cli/kopano-cli])
 AC_CONFIG_FILES([ECtools/rules/kopano-rules], [chmod +x ECtools/rules/kopano-rules])
 AC_CONFIG_FILES([ECtools/presence/kopano-presence], [chmod +x ECtools/presence/kopano-presence])
@@ -727,12 +742,10 @@ AC_CONFIG_FILES([ECtools/utils/kopano-mr-process], [chmod +x ECtools/utils/kopan
 AC_CONFIG_FILES([ECtools/utils/kopano-autorespond], [chmod +x ECtools/utils/kopano-autorespond])
 AC_CONFIG_FILES([ECtools/search/kopano_search/version.py], [])
 AC_CONFIG_FILES([ECtools/backup/kopano_backup/version.py], [])
-AC_CONFIG_FILES([ECtools/msr/kopano_msr/version.py], [])
 AC_CONFIG_FILES([ECtools/cli/kopano_cli/version.py], [])
 AC_CONFIG_FILES([ECtools/rules/kopano_rules/version.py], [])
 AC_CONFIG_FILES([ECtools/presence/kopano_presence/version.py], [])
 AC_CONFIG_FILES([ECtools/migration-pst/kopano_migration_pst/version.py], [])
-AC_CONFIG_FILES([ECtools/rest/kopano_rest/version.py], [])
 AC_CONFIG_FILES([ECtools/spamd/kopano_spamd/version.py], [])
 AC_CONFIG_FILES([ECtools/utils/kopano_utils/version.py], [])
 AC_CONFIG_FILES([swig/python/kopano/kopano/version.py], [])
@@ -740,42 +753,3 @@ AC_CONFIG_FILES([swig/python/MAPI/version.py], [])
 
 AC_OUTPUT
 $LN_TFSV "$abs_top_srcdir" "@"
-
-AC_MSG_RESULT([
-Install prefix	:	$prefix
-Quota dir	:	$QUOTATEMPLATEDIR
-Search scripts dir	:	$SEARCHSCRIPTSDIR
-
-Build host	:	$host
-Compile flags	:	$ZCPPFLAGS $CPPFLAGS $ZCXXFLAGS $CXXFLAGS
-PHP version	:	$PHP_VERSION
-PHP ext dir	:	$PHP_EXTENSION_DIR
-PHP config dir	:	$PHP_SYSCONF_DIR
-PHP flags	:	$PHP_INCLUDES
-PHP libs	:	$PHP_LIBS
-gSOAP flags	:	$GSOAP_CFLAGS
-gSOAP libs	:	$GSOAP_LIBS
-OpenSSL libs	:	$SSL_LIBS
-MySQL flags	:	$MYSQL_INCLUDES
-MySQL libs	:	$MYSQL_LIBS
-VMime flags	:	$VMIME_CFLAGS
-VMime libs	:	$VMIME_LIBS
-XML2 flags	:	$XML2_CFLAGS
-XML2 libs	:	$XML2_LIBS
-ICal flags	:	$ICAL_CFLAGS
-ICal libs	:	$ICAL_LIBS
-ncurses libs	:	$NCURSES_LIBS
-LDAP support	:	$want_ldap
-LDAP flags	:	$LDAP_FLAGS
-LDAP libs	:	$LDAP_LIBS
-Curl libs	:	$curl_LIBS
-Pam libs	:	$PAM_LIBS
-Krb5 libs	:	$KRB5_LIBS
-TCMalloc lib	:	$TCMALLOC_LIBS
-S3 lib		:	$s3_LIBS
-KCOIDC lib	:	$kcoidc_LIBS
-ICU libs	:	$icu_uc_LIBS $icu_i18n_LIBS
-Python flags	:	$PYTHON_CFLAGS
-Python libs	:	$PYTHON_LIBS
-Python version  :       $PYTHON_MAJOR_VERSION
-])

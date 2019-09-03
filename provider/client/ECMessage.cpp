@@ -381,7 +381,7 @@ HRESULT ECMessage::SyncPlainToRtf()
 	hr = ptrUncompressedRtfStream->Commit(0);
 	if (hr != hrSuccess)
 		return hr;
-	// Commit compresed data
+	// Commit compressed data
 	hr = ptrCompressedRtfStream->Commit(0);
 	if (hr != hrSuccess)
 		return hr;
@@ -617,7 +617,7 @@ HRESULT ECMessage::SyncHtmlToRtf()
 	hr = ptrRtfUncompressedStream->Commit(0);
 	if (hr != hrSuccess)
 		return hr;
-	// Commit compresed data
+	// Commit compressed data
 	hr = ptrRtfCompressedStream->Commit(0);
 	if (hr != hrSuccess)
 		return hr;
@@ -842,8 +842,7 @@ HRESULT ECMessage::OpenAttach(ULONG ulAttachmentNum, LPCIID lpInterface, ULONG u
 	hr = lpAttach->HrSetPropStorage(lpParentStorage, TRUE);
 	if(hr != hrSuccess)
 		return hr;
-	hr = lpAttach->QueryInterface(IID_IAttachment, (void **)lppAttach);
-
+	hr = lpAttach->QueryInterface(IID_IAttachment, reinterpret_cast<void **>(lppAttach));
 	// Register the object as a child of ours
 	AddChild(lpAttach);
 	return hr;
@@ -889,8 +888,7 @@ HRESULT ECMessage::CreateAttach(LPCIID lpInterface, ULONG ulFlags, const IAttach
 	hr = lpAttach->SetProps(1, &sID, NULL);
 	if(hr != hrSuccess)
 		return hr;
-
-	hr = lpAttach->QueryInterface(IID_IAttachment, (void **)lppAttach);
+	hr = lpAttach->QueryInterface(IID_IAttachment, reinterpret_cast<void **>(lppAttach));
 	AddChild(lpAttach);
 	*lpulAttachmentNum = sID.Value.ul;
 	// successfully created attachment, so increment counter for the next
@@ -1665,7 +1663,7 @@ HRESULT ECMessage::SyncSubject()
 		lpszColon = wcschr(lpPropArray[0].Value.lpszW, L':');
 
 	if(lpszColon == NULL) {
-		//Set emtpy PR_SUBJECT_PREFIX
+		//Set empty PR_SUBJECT_PREFIX
 		lpPropArray[1].ulPropTag = PR_SUBJECT_PREFIX_W;
 		lpPropArray[1].Value.lpszW = const_cast<wchar_t *>(L"");
 		return HrSetRealProp(&lpPropArray[1]);
@@ -1686,7 +1684,7 @@ HRESULT ECMessage::SyncSubject()
 		if (lpszEnd == lpszColon)
 			lpPropArray[1].Value.lpszW = const_cast<wchar_t *>(L""); // skip a numeric prefix
 	} else
-		lpPropArray[1].Value.lpszW = const_cast<wchar_t *>(L""); // emtpy PR_SUBJECT_PREFIX
+		lpPropArray[1].Value.lpszW = const_cast<wchar_t *>(L""); // empty PR_SUBJECT_PREFIX
 
 	return HrSetRealProp(&lpPropArray[1]);
 	// PR_SUBJECT_PREFIX and PR_SUBJECT are synchronized
@@ -1837,9 +1835,9 @@ HRESULT ECMessage::GetPropHandler(unsigned int ulPropTag, void *lpProvider,
 		if (PROP_TYPE(ulPropTag) == PT_UNICODE) {
 			lpsPropValue->ulPropTag = PR_NORMALIZED_SUBJECT_W;
 
-			WCHAR *lpszColon = wcschr(lpsPropValue->Value.lpszW, ':');
+			auto lpszColon = wcschr(lpsPropValue->Value.lpszW, ':');
 			if (lpszColon && (lpszColon - lpsPropValue->Value.lpszW) > 1 && (lpszColon - lpsPropValue->Value.lpszW) < 4) {
-				WCHAR *c = lpsPropValue->Value.lpszW;
+				auto c = lpsPropValue->Value.lpszW;
 				while (c < lpszColon && iswdigit(*c))
 					++c; // test for all digits prefix
 				if (c != lpszColon) {
@@ -1981,7 +1979,7 @@ HRESULT ECMessage::GetPropHandler(unsigned int ulPropTag, void *lpProvider,
 		lpsPropValue->ulPropTag = PR_BODY_HTML;
 		unsigned int ulSize = lpsPropValue->Value.bin.cb;
 		lpData = lpsPropValue->Value.bin.lpb;
-		hr = ECAllocateMore(ulSize + 1, lpBase, (void**)&lpsPropValue->Value.lpszA);
+		hr = ECAllocateMore(ulSize + 1, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.lpszA));
 		if (hr != hrSuccess)
 			break;
 		if (ulSize > 0 && lpData != nullptr)

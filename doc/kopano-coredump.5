@@ -11,9 +11,9 @@ Kopano daemons only have little control over it (see end of this document).
 .PP
 Ensure that the \fBkernel.core_pattern\fP sysctl specifies a template which is
 writable for the (unprivileged) daemon process. If the template is left at the
-default value ("core") and the working directory of the daemon, controlled with
-the "running_path" directive in the config file, happens to be an unwritable
-directory such as the root directory, a dump cannot be generated.
+default value ("core"), the working directory of the daemon is used, and given
+that is the root directory which is unwritable for the unprivileged user, a
+dump cannot be generated.
 .PP
 If in doubt, set \fBkernel.core_pattern\fP to something like
 \fB/tmp/core.%E.%p\fP, which produces standard uncompressed ELF cores. Ensure

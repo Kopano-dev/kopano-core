@@ -82,10 +82,6 @@ private:
  */
 iconv_context_base::iconv_context_base(const char* tocode, const char* fromcode)
 {
-	/* Ignore illegal sequences by default. */
-	m_bForce = true;
-	m_bHTML = false;
-
 	std::string strto = tocode;
 	size_t pos = strto.find("//");
 

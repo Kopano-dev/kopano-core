@@ -24,7 +24,7 @@ bool ECChangeAdvisor::CompareSyncId(const ConnectionMap::value_type &sConnection
 
 ECChangeAdvisor::ECChangeAdvisor(ECMsgStore *lpMsgStore) :
 	m_lpMsgStore(lpMsgStore), m_lpLogger(new ECLogger_Null)
-	// Need MUTEX RECURSIVE because with a reconnection the funtion PurgeStates called indirect the function Reload again:
+	// Need MUTEX RECURSIVE because with a reconnection the function PurgeStates called indirect the function Reload again:
 	// ECChangeAdvisor::Reload(....)
  	// WSTransport::HrReLogon()
  	// WSTransport::HrGetSyncStates(....)
@@ -118,7 +118,8 @@ HRESULT ECChangeAdvisor::Config(LPSTREAM lpStream, LPGUID /*lpGUID*/,
 	hr = MAPIAllocateBuffer(sizeof *lpEntryList, &~lpEntryList);
 	if (hr != hrSuccess)
 		return hr;
-	hr = MAPIAllocateMore(ulVal * sizeof *lpEntryList->lpbin, lpEntryList, (void**)&lpEntryList->lpbin);
+	hr = MAPIAllocateMore(ulVal * sizeof(*lpEntryList->lpbin), lpEntryList,
+	     reinterpret_cast<void **>(&lpEntryList->lpbin));
 	if (hr != hrSuccess)
 		return hr;
 
@@ -129,7 +130,7 @@ HRESULT ECChangeAdvisor::Config(LPSTREAM lpStream, LPGUID /*lpGUID*/,
 			return hr;
 		if (ulRead != sizeof(ulVal))
 			return MAPI_E_CALL_FAILED;
-		hr = MAPIAllocateMore(ulVal, lpEntryList, (void**)&lpEntryList->lpbin[i].lpb);
+		hr = MAPIAllocateMore(ulVal, lpEntryList, reinterpret_cast<void **>(&lpEntryList->lpbin[i].lpb));
 		if (hr != hrSuccess)
 			return hr;
 		lpEntryList->lpbin[i].cb = ulVal;

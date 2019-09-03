@@ -28,57 +28,55 @@
 // a combined work based on this library.  Thus, the terms and conditions of
 // the GNU General Public License cover the whole combination.
 //
-
 #ifndef VMIME_MAPITEXTPART_HPP_INCLUDED
 #define VMIME_MAPITEXTPART_HPP_INCLUDED
 
 #include <memory>
+#include <string>
 #include <vmime/textPart.hpp>
 #include <vmime/messageId.hpp>
 #include <vmime/encoding.hpp>
 #include <vmime/contentHandler.hpp>
 
-namespace vmime {
+namespace KC {
 
 /** Text part of type 'text/html'.
   */
-
-class mapiTextPart final : public textPart {
+class mapiTextPart final : public vmime::textPart {
 public:
-
 	mapiTextPart();
-	const mediaType getType() const override;
-	const charset &getCharset() const override { return m_charset; }
-	void setCharset(const charset &ch) override;
+	const vmime::mediaType getType() const override;
+	const vmime::charset &getCharset() const override { return m_charset; }
+	void setCharset(const vmime::charset &) override;
 
 	/* plain text */
-	vmime::shared_ptr<const contentHandler> getPlainText(void) const { return m_plainText; }
-	void setPlainText(vmime::shared_ptr<contentHandler> plainText);
+	vmime::shared_ptr<const vmime::contentHandler> getPlainText() const { return m_plainText; }
+	void setPlainText(vmime::shared_ptr<vmime::contentHandler> plain_text);
 
 	/* 'other' text */
-	vmime::shared_ptr<const contentHandler> getOtherText(void) const { return m_otherText; }
-	void setOtherText(vmime::shared_ptr<contentHandler> otherText);
+	vmime::shared_ptr<const vmime::contentHandler> getOtherText() const { return m_otherText; }
+	void setOtherText(vmime::shared_ptr<vmime::contentHandler> other_text);
 	/* extra 'other' properties */
-	void setOtherContentType(const mediaType& type);
-	void setOtherContentEncoding(const encoding& enc);
-	void setOtherMethod(const string& method);
-	void setOtherCharset(const charset& ch);
+	void setOtherContentType(const vmime::mediaType &);
+	void setOtherContentEncoding(const vmime::encoding &);
+	void setOtherMethod(const std::string &);
+	void setOtherCharset(const vmime::charset &);
 
 	/* html + plain + 'other' text */
-	const vmime::shared_ptr<const contentHandler> getText() const override { return m_text; }
-	void setText(vmime::shared_ptr<contentHandler> text) override;
+	const vmime::shared_ptr<const vmime::contentHandler> getText() const override { return m_text; }
+	void setText(const vmime::shared_ptr<vmime::contentHandler> &) override;
 
 	/** Embedded object (eg: image for &lt;IMG> tag).
 	  */
-	class embeddedObject final : public object {
+	class embeddedObject final : public vmime::object {
 	public:
-		embeddedObject(vmime::shared_ptr<contentHandler> data, const encoding &enc, const string &id, const mediaType &type, const string &name, const string &loc);
+		embeddedObject(vmime::shared_ptr<vmime::contentHandler> data, const vmime::encoding &enc, const std::string &id, const vmime::mediaType &, const std::string &name, const std::string &loc);
 
 		/** Return data stored in this embedded object.
 		  *
 		  * @return stored data
 		  */
-		vmime::shared_ptr<const contentHandler> getData(void) const { return m_data; }
+		vmime::shared_ptr<const vmime::contentHandler> getData() const { return m_data; }
 
 		/** Return the encoding used for data in this
 		  * embedded object.
@@ -104,7 +102,7 @@ public:
 		  *
 		  * @return data type
 		  */
-		const mediaType &getType(void) const { return m_type; }
+		const vmime::mediaType &getType() const { return m_type; }
 
 		/** Return the object name of this embedded object, if any
 		 *
@@ -113,14 +111,13 @@ public:
 		const std::string &getName(void) const { return m_name; }
 
 	private:
-		vmime::shared_ptr<contentHandler> m_data;
-		encoding m_encoding;
-		string m_id;
-		mediaType m_type;
-		string m_name;
-		string m_loc;
+		vmime::shared_ptr<vmime::contentHandler> m_data;
+		vmime::encoding m_encoding;
+		std::string m_id;
+		vmime::mediaType m_type;
+		std::string m_name;
+		std::string m_loc;
 	};
-
 
 	/** Test the existence of an embedded object given its identifier.
 	  *
@@ -128,7 +125,7 @@ public:
 	  * @return true if an object with this identifier exists,
 	  * false otherwise
 	  */
-	bool hasObject(const string& id) const;
+	bool hasObject(const std::string &id) const;
 
 	/** Return the embedded object with the specified identifier.
 	  *
@@ -136,7 +133,7 @@ public:
 	  * @param id object identifier
 	  * @return embedded object with the specified identifier
 	  */
-	vmime::shared_ptr<const embeddedObject> findObject(const string &id) const;
+	vmime::shared_ptr<const embeddedObject> findObject(const std::string &id) const;
 
 	/** Return the number of embedded objects.
 	  *
@@ -163,7 +160,7 @@ public:
 	  * @return an unique object identifier used to identify the new
 	  * object among all other embedded objects
 	  */
-	const string addObject(const string& data, const mediaType& type);
+	const std::string addObject(const std::string &data, const vmime::mediaType &);
 
 	/** Embed an object and returns a string which identifies it.
 	  * The returned identifier is suitable for use in the 'src' attribute
@@ -174,7 +171,7 @@ public:
 	  * @return an unique object identifier used to identify the new
 	  * object among all other embedded objects
 	  */
-	const string addObject(vmime::shared_ptr<contentHandler> data, const mediaType &type);
+	const std::string addObject(vmime::shared_ptr<vmime::contentHandler> data, const vmime::mediaType &);
 
 	/** Embed an object and returns a string which identifies it.
 	  * The returned identifier is suitable for use in the 'src' attribute
@@ -186,7 +183,7 @@ public:
 	  * @return an unique object identifier used to identify the new
 	  * object among all other embedded objects
 	  */
-	const string addObject(vmime::shared_ptr<contentHandler> data, const encoding &enc, const mediaType &type);
+	const std::string addObject(vmime::shared_ptr<vmime::contentHandler> data, const vmime::encoding &, const vmime::mediaType &);
 
 	/** Embed an object and returns a string which identifies it.
 	 *
@@ -199,34 +196,30 @@ public:
 	 * @return an unique object identifier used to identify the new
 	 * object among all other embedded objects
 	 */
-	const string addObject(vmime::shared_ptr<contentHandler> data, const encoding &enc, const mediaType &type, const string &id, const string &name = string(), const string &loc = string());
+	const std::string addObject(vmime::shared_ptr<vmime::contentHandler> data, const vmime::encoding &, const vmime::mediaType &, const std::string &id, const std::string &name = {}, const std::string &loc = {});
 
 	size_t getPartCount() const override;
-	void generateIn(vmime::shared_ptr<bodyPart> message, vmime::shared_ptr<bodyPart> parent) const override;
-	void parse(vmime::shared_ptr<const bodyPart> message, vmime::shared_ptr<const bodyPart> parent, vmime::shared_ptr<const bodyPart> textPart) override;
+	void generateIn(const vmime::shared_ptr<vmime::bodyPart> &message, const vmime::shared_ptr<vmime::bodyPart> &parent) const override;
+	void parse(const vmime::shared_ptr<const vmime::bodyPart> &message, const vmime::shared_ptr<const vmime::bodyPart> &parent, const vmime::shared_ptr<const vmime::bodyPart> &text_part) override;
 
 private:
-	vmime::shared_ptr<contentHandler> m_plainText;
-	vmime::shared_ptr<contentHandler> m_text; /* htmlText */
-	charset m_charset;
-	vmime::shared_ptr<contentHandler> m_otherText;
-	mediaType m_otherMediaType;
-	encoding m_otherEncoding;
-	string m_otherMethod;			/* ical special */
-	charset m_otherCharset;
+	vmime::shared_ptr<vmime::contentHandler> m_plainText;
+	vmime::shared_ptr<vmime::contentHandler> m_text; /* htmlText */
+	vmime::charset m_charset;
+	vmime::shared_ptr<vmime::contentHandler> m_otherText;
+	vmime::mediaType m_otherMediaType;
+	vmime::encoding m_otherEncoding;
+	std::string m_otherMethod; /* ical special */
+	vmime::charset m_otherCharset;
 	bool m_bHaveOtherCharset = false;
 	std::vector<vmime::shared_ptr<embeddedObject> > m_objects;
 
-	void findEmbeddedParts(const bodyPart& part, std::vector<vmime::shared_ptr<const bodyPart> > &cidParts, std::vector<vmime::shared_ptr<const bodyPart> > &locParts);
-	void addEmbeddedObject(const bodyPart& part, const string& id);
-
-	bool findPlainTextPart(const bodyPart& part, const bodyPart& parent, const bodyPart& textPart);
-
-	static const string cleanId(const string& id);
+	void findEmbeddedParts(const vmime::bodyPart &, std::vector<vmime::shared_ptr<const vmime::bodyPart>> &cid_parts, std::vector<vmime::shared_ptr<const vmime::bodyPart>> &loc_parts);
+	void addEmbeddedObject(const vmime::bodyPart &, const std::string &id);
+	bool findPlainTextPart(const vmime::bodyPart &, const vmime::bodyPart &parent, const vmime::bodyPart &text_prat);
+	static const std::string cleanId(const std::string &id);
 };
 
-
-} // vmime
-
+} /* namespace */
 
 #endif // VMIME_HTMLTEXTPART_HPP_INCLUDED

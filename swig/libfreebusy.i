@@ -145,7 +145,7 @@ public:
                     hr = ECFreeBusySupport::Create(&~lpFreeBusySup);
                     if(hr != hrSuccess)
 				return NULL;
-                    hr = lpFreeBusySup->QueryInterface(IID_IFreeBusySupport, (void**)&lpFreeBusySupport);
+                    hr = lpFreeBusySup->QueryInterface(IID_IFreeBusySupport, reinterpret_cast<void **>(&lpFreeBusySupport));
                     return lpFreeBusySupport;
                 }
 

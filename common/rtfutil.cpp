@@ -608,7 +608,7 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 			} else {
 				std::wstring entity;
 
-				if (!CHtmlEntity::CharToHtmlEntity((WCHAR)*szInput, entity))
+				if (!CHtmlEntity::CharToHtmlEntity(*szInput, entity))
 					sState[ulState].output.append(1, *szInput);
 				else
 					sState[ulState].output.append(entity.begin(), entity.end());
@@ -795,7 +795,7 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 					if(!sState[ulState].bInFontTbl && !sState[ulState].bRTFOnly && !sState[ulState].bInColorTbl && !sState[ulState].bInSkipTbl) {
 						std::wstring entity;
 
-						if (! CHtmlEntity::CharToHtmlEntity((WCHAR)*szInput, entity))
+						if (!CHtmlEntity::CharToHtmlEntity(*szInput, entity))
 							strOutput.append(1, (unsigned short)lArg);	// add as literal character
 						else
 							strOutput.append(entity.begin(), entity.end());

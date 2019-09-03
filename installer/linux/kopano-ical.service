@@ -1,10 +1,11 @@
 [Unit]
 Description=Kopano Groupware Core iCal/CalDAV Gateway
 Documentation=man:kopano-ical(8) man:kopano-ical.cfg(5)
+After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/sbin/kopano-ical -F
+ExecStart=/usr/sbin/kopano-ical
 ExecReload=/bin/kill -HUP $MAINPID
 
 [Install]

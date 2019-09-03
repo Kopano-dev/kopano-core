@@ -16,6 +16,7 @@
 #include <type_traits>
 #include <cassert>
 #include <cstddef>
+#include <cstring>
 #include <endian.h>
 #include <pthread.h>
 
@@ -27,6 +28,7 @@ namespace KC {
 
 #define S_IRWUG (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP)
 #define S_IRWXUG (S_IRWXU | S_IRWXG)
+#define S_IRWUGO (S_IRWUG | S_IROTH | S_IWOTH)
 
 #define KOPANO_SYSTEM_USER		"SYSTEM"
 #define KOPANO_SYSTEM_USER_W	L"SYSTEM"
@@ -94,6 +96,13 @@ template<typename T> static inline constexpr const IID &iid_of(const T &)
 #	define be64_to_cpu(x) __builtin_bswap64(x)
 #	undef KC_BIGENDIAN
 #endif
+
+static inline uint32_t get_unaligned_le32(const uint32_t *p)
+{
+	uint32_t v;
+	memcpy(&v, p, sizeof(v));
+	return le32_to_cpu(v);
+}
 
 #if __cplusplus >= 201700L
 using shared_mutex = std::shared_mutex;

@@ -7,6 +7,7 @@
 #define SOAPALLOC_H
 
 #include <new>
+#include <cstdlib>
 #include "soapH.h"
 
 namespace KC {
@@ -14,17 +15,23 @@ namespace KC {
 // The automatic soap/non-soap allocator
 template<typename Type> Type *s_alloc_nothrow(struct soap *soap, size_t size)
 {
-	return reinterpret_cast<Type *>(soap_malloc(soap, sizeof(Type) * size));
+	auto p = static_cast<Type *>(soap_malloc(soap, sizeof(Type) * size));
+	if (p != nullptr)
+		memset(p, 0, sizeof(Type) * size);
+	return p;
 }
 
 template<typename Type> Type *s_alloc_nothrow(struct soap *soap)
 {
-	return reinterpret_cast<Type *>(soap_malloc(soap, sizeof(Type)));
+	auto p = static_cast<Type *>(soap_malloc(soap, sizeof(Type)));
+	if (p != nullptr)
+		memset(p, 0, sizeof(Type));
+	return p;
 }
 
 template<typename Type> Type *s_alloc(struct soap *soap, size_t size)
 {
-	auto p = reinterpret_cast<Type *>(soap_malloc(soap, sizeof(Type) * size));
+	auto p = s_alloc_nothrow<Type>(soap, size);
 	if (p == nullptr)
 		throw std::bad_alloc();
 	return p;
@@ -32,7 +39,7 @@ template<typename Type> Type *s_alloc(struct soap *soap, size_t size)
 
 template<typename Type> Type *s_alloc(struct soap *soap)
 {
-	auto p = reinterpret_cast<Type *>(soap_malloc(soap, sizeof(Type)));
+	auto p = s_alloc_nothrow<Type>(soap);
 	if (p == nullptr)
 		throw std::bad_alloc();
 	return p;

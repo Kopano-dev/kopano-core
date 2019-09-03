@@ -22,9 +22,6 @@
 #include <kopano/stringutil.h>
 #include "ECGenericObjectTable.h"
 #include <algorithm>
-#ifdef LINUX
-#include <sys/sysinfo.h>
-#endif
 
 namespace KC {
 
@@ -670,8 +667,8 @@ exit:
 	return er;
 }
 
-ECRESULT ECCacheManager::get_all_user_objects(objectclass_t ocls,
-    std::map<unsigned int, ECsUserObject> &out)
+ECRESULT ECCacheManager::get_all_user_objects(objectclass_t ocls, bool hosted,
+    unsigned int company, std::map<unsigned int, ECsUserObject> &out)
 {
 	ECDatabase *db = nullptr;
 	DB_RESULT result;
@@ -680,18 +677,33 @@ ECRESULT ECCacheManager::get_all_user_objects(objectclass_t ocls,
 	auto ret = m_lpDatabaseFactory->get_tls_db(&db);
 	if (ret != erSuccess)
 		return ret;
-	ret = db->DoSelect("SELECT externid, objectclass, signature, company, id "
-	      "FROM users WHERE " + OBJECTCLASS_COMPARE_SQL("objectclass", ocls), &result);
+	auto query = "SELECT externid, objectclass, signature, company, id "
+              "FROM users WHERE " + OBJECTCLASS_COMPARE_SQL("objectclass", ocls);
+	/*
+	 * As long as the Offline server has partial hosted support, we must
+	 * comment out this additional where statement...
+	 */
+	if (hosted)
+		/*
+		 * Everyone and SYSTEM do not have a company but must be
+		 * included by the query, so write exception case for them.
+		 */
+		query += " AND (company=" + stringify(company) +
+		         " OR id=" + stringify(company) +
+		         " OR id=" + stringify(KOPANO_UID_SYSTEM) +
+		         " OR id=" + stringify(KOPANO_UID_EVERYONE) + ")";
+	ret = db->DoSelect(query, &result);
 	if (ret != erSuccess)
 		return KCERR_DATABASE_ERROR;
 
 	out.clear();
 	while ((row = result.fetch_row()) != nullptr) {
 		ECsUserObject u;
+		auto lengths = result.fetch_row_lengths();
 		if (row[0] != nullptr)
-			u.strExternId = row[0];
+			u.strExternId.assign(row[0], lengths[0]);
 		u.ulClass = static_cast<objectclass_t>(atoui(row[1]));
-		u.strSignature = row[2];
+		u.strSignature.assign(row[2], lengths[2]);
 		u.ulCompanyId = atoui(row[3]);
 		I_AddUserObject(atoui(row[4]), u.ulClass, u.ulCompanyId, u.strExternId, u.strSignature);
 		out.emplace(atoui(row[4]), std::move(u));
@@ -812,7 +824,7 @@ ECRESULT ECCacheManager::GetUserObjects(const std::list<objectid_t> &lstExternOb
 
 	for (const auto &objid : lstExternObjIds) {
 		unsigned int ulLocalId;
-		LOG_USERCACHE_DEBUG(" Get user objects from externid \"%s\", class %d",
+		LOG_USERCACHE_DEBUG("Get user objects from externid \"%s\", class %d",
 			bin2txt(objid.id).c_str(), objid.objclass);
 		if (I_GetUEIdObject(objid.id, objid.objclass, NULL, &ulLocalId, NULL) == erSuccess)
 			/* Object was found in cache. */
@@ -852,7 +864,7 @@ ECRESULT ECCacheManager::GetUserObjects(const std::list<objectid_t> &lstExternOb
 		auto ulCompanyId = atoi(lpDBRow[4]);
 		lpmapLocalObjIds->insert({sExternId, ulLocalId});
 		I_AddUEIdObject(sExternId.id, sExternId.objclass, ulCompanyId, ulLocalId, strSignature);
-		LOG_USERCACHE_DEBUG(" Get user objects result company %d, userid %d, signature \"%s\"",
+		LOG_USERCACHE_DEBUG("Get user objects result company %d, userid %d, signature \"%s\"",
 			ulCompanyId, ulLocalId, bin2txt(strSignature).c_str());
 	}
 
@@ -1043,7 +1055,6 @@ ECRESULT ECCacheManager::GetACLs(unsigned int ulObjId, struct rightsArray **lppR
     {
 	    lpRights->__size = ulRows;
 		lpRights->__ptr = s_alloc<rights>(nullptr, ulRows);
-		memset(lpRights->__ptr, 0, sizeof(struct rights) * ulRows);
 
 		for (unsigned int i = 0; i < ulRows; ++i) {
 			auto lpRow = lpResult.fetch_row();
@@ -1058,11 +1069,9 @@ ECRESULT ECCacheManager::GetACLs(unsigned int ulObjId, struct rightsArray **lppR
 			lpRights->__ptr[i].ulType = atoi(lpRow[1]);
 			lpRights->__ptr[i].ulRights = atoi(lpRow[2]);
 
-			LOG_USERCACHE_DEBUG(" Get ACLs result for objectid %d: userid %d, type %d, permissions %d", ulObjId, lpRights->__ptr[i].ulUserid, lpRights->__ptr[i].ulType, lpRights->__ptr[i].ulRights);
+			LOG_USERCACHE_DEBUG("Get ACLs result for objectid %d: userid %d, type %d, permissions %d", ulObjId, lpRights->__ptr[i].ulUserid, lpRights->__ptr[i].ulType, lpRights->__ptr[i].ulRights);
 		}
 	}
-	else
-	    memset(lpRights, 0, sizeof *lpRights);
 
 	SetACLs(ulObjId, *lpRights);
     *lppRights = lpRights;
@@ -1083,7 +1092,6 @@ ECRESULT ECCacheManager::I_GetACLs(unsigned int ulObjId, struct rightsArray **lp
     {
         lpRights->__size = sACL->ulACLs;
 		lpRights->__ptr = s_alloc<rights>(nullptr, sACL->ulACLs);
-        memset(lpRights->__ptr, 0, sizeof(struct rights) * sACL->ulACLs);
 
         for (unsigned int i = 0; i < sACL->ulACLs; ++i) {
             lpRights->__ptr[i].ulType = sACL->aACL[i].ulType;
@@ -1093,8 +1101,6 @@ ECRESULT ECCacheManager::I_GetACLs(unsigned int ulObjId, struct rightsArray **lp
 			LOG_USERCACHE_DEBUG("_Get ACLs result for objectid %d: userid %d, type %d, permissions %d", ulObjId, lpRights->__ptr[i].ulUserid, lpRights->__ptr[i].ulType, lpRights->__ptr[i].ulRights);
         }
     }
-	else
-		memset(lpRights, 0, sizeof *lpRights);
 
 	*lppRights = lpRights;
 	return erSuccess;
@@ -1217,7 +1223,7 @@ ECRESULT ECCacheManager::GetObjectFlags(unsigned int ulObjId, unsigned int *ulFl
 
 ECRESULT ECCacheManager::GetCell(const sObjectTableKey *lpsRowItem,
     unsigned int ulPropTag, struct propVal *lpDest, struct soap *soap,
-    bool bComputed, bool truncate)
+    unsigned int flags)
 {
     ECRESULT er = erSuccess;
     ECsCells *sCell;
@@ -1232,11 +1238,13 @@ ECRESULT ECCacheManager::GetCell(const sObjectTableKey *lpsRowItem,
 	if(er != erSuccess)
 	    goto exit;
 
-    if (!sCell->GetPropVal(ulPropTag, lpDest, soap, truncate)) {
-        if(!sCell->GetComplete() || bComputed) {
-            // Object is not complete, and item is not in cache. We simply don't know anything about
-            // the item, so return NOT_FOUND. Or, the item is complete but the requested property is computed, and therefore
-            // not in the cache.
+	if (!sCell->GetPropVal(ulPropTag, lpDest, soap, flags & KC_GETCELL_TRUNCATE)) {
+		if (!sCell->GetComplete() ||
+		    (PROP_TYPE(lpDest->ulPropTag) == PT_NULL && !(flags & KC_GETCELL_NEGATIVES))) {
+			// Object taglist is not complete, and item is not in cache. We simply don't know anything about
+			// the item, so return NOT_FOUND.
+			// Or, proptaglist is complete, but propval is not in cache,
+			// and the caller did not want to know about this special case.
 			m_CellCache.DecrementValidCount();
             er = KCERR_NOT_FOUND;
         } else {

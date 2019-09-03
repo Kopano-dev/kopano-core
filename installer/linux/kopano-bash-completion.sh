@@ -180,7 +180,7 @@ _kopano_dagent_options()
 {
 	local cur short_actions long_actions possiblelist
 
-	short_actions='-c -j -f -d -h -a -F -P -p -q -s -v -e -n -C -V -r -R -l -N'
+	short_actions='-c -j -f -h -a -F -P -p -q -s -v -e -n -C -V -r -R -l -N'
 	long_actions='--help --config --junk --file --host --daemonize --listen --folder --public --create --read --do-not-notify --add-imap-data'
 
 	COMPREPLY=()

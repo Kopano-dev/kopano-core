@@ -93,7 +93,7 @@ std::unique_ptr<gtconv> gtconv::m_instance;
  * Performs a "regular" gettext and converts the result to a wide character string.
  * @domain:	The domain to use for the translation
  * @msg:	The msgid of the message to be translated.
- * Retruns the converted, translated string.
+ * Returns the converted, translated string.
  */
 const wchar_t *kopano_dcgettext_wide(const char *domain, const char *msg)
 {
@@ -240,8 +240,9 @@ std::string GetServerPortFromPath(const char *szPath) {
 	return path;
 }
 
-std::vector<std::wstring> tokenize(const std::wstring &strInput, const WCHAR sep, bool bFilterEmpty) {
-	const WCHAR *begin, *end = NULL;
+std::vector<std::wstring> tokenize(const std::wstring &strInput, const wchar_t sep, bool bFilterEmpty)
+{
+	const wchar_t *begin, *end = nullptr;
 	std::vector<std::wstring> vct;
 
 	begin = strInput.c_str();
@@ -466,7 +467,7 @@ std::string urlEncode(const std::wstring &input, const char* charset)
 	return urlEncode(convert_to<std::string>(charset, input, rawsize(input), CHARSET_WCHAR));
 }
 
-std::string urlEncode(const WCHAR* input, const char* charset)
+std::string urlEncode(const wchar_t *input, const char *charset)
 {
 	return urlEncode(convert_to<std::string>(charset, input, rawsize(input), CHARSET_WCHAR));
 }

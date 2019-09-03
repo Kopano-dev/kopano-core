@@ -11,24 +11,14 @@ try:
 except ImportError:
     import pickle
 
-# Not unused, imported from server
-try:
-    from functools import lru_cache  # pylint: disable=unused-import
-except ImportError: # pragma: no cover
-    from .lru_cache import lru_cache  # pylint: disable=unused-import
-
 import base64
 import codecs
 import io
-import sys
 
 _BIN_ENCODING = 'hex'
 _MISSING_NONE = False
 
 # TODO inline some of these again, now that we're python3-only
-def is_str(s):
-    return isinstance(s, str)
-
 def pickle_load(f):
     return pickle.load(f, encoding='bytes')
 
@@ -37,9 +27,6 @@ def pickle_loads(s):
 
 def hex(s):
     return codecs.encode(s, 'hex').upper().decode('ascii')
-
-def unhex(s):
-    return codecs.decode(s, 'hex')
 
 def benc(s):
     if _BIN_ENCODING == 'hex':
@@ -55,9 +42,6 @@ def bdec(s):
     else:
         return codecs.decode(s, _BIN_ENCODING)
 
-def is_int(i):
-    return isinstance(i, int)
-
 def is_file(f):
     return isinstance(f, io.IOBase)
 
@@ -66,12 +50,6 @@ def repr(o):
 
 def fake_unicode(s): # TODO inline.. remove str() also in most cases?
     return str(s)
-
-def decode(s):
-    return s
-
-def encode(s):
-    return s.encode()
 
 def set_bin_encoding(encoding):
     """Override encoding to use for binary identifiers (hex or base64)."""

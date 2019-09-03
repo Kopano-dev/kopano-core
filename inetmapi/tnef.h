@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef TNEF_H
 #define TNEF_H
 
@@ -14,7 +13,6 @@
 // - No special RTF handling
 // - No recipient handling
 // - No problem reporting
-//
 
 namespace KC {
 
@@ -22,8 +20,7 @@ namespace KC {
 struct AttachRendData {
     unsigned short usType;
     unsigned int ulPosition;
-    unsigned short usWidth;
-    unsigned short usHeight;
+	unsigned short usWidth, usHeight;
     unsigned int ulFlags;
 };
 #pragma pack(pop)
@@ -34,22 +31,22 @@ struct AttachRendData {
 class ECTNEF final {
 public:
 	ECTNEF(ULONG ulFlags, IMessage *lpMessage, IStream *lpStream);
-    
+
 	// Add properties to the TNEF stream from the message
 	virtual HRESULT AddProps(ULONG ulFlags, const SPropTagArray *lpPropList);
-    
+
 	// Extract properties from the TNEF stream to the message
 	virtual HRESULT ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList);
-    
+
 	// Set some extra properties (warning!, make sure that this pointer stays in memory until Finish() is called!)
 	virtual HRESULT SetProps(ULONG cValues, LPSPropValue lpProps);
 
 	// Add other components (currently only attachments supported)
 	virtual HRESULT FinishComponent(ULONG ulFlags, ULONG ulComponentID, const SPropTagArray *lpPropList);
-    
+
 	// Finish up and write the data (write stream with TNEF_ENCODE, write to message with TNEF_DECODE)
 	virtual HRESULT Finish();
-    
+
 private:
 	HRESULT HrReadDWord(IStream *, uint32_t *value);
 	HRESULT HrReadWord(IStream *, uint16_t *value);
@@ -67,11 +64,11 @@ private:
 	HRESULT HrWriteBlock(IStream *lpDest, IStream *lpSrc, ULONG ulBlockID, ULONG ulLevel);
 	HRESULT HrWriteBlock(IStream *lpDest, const char *buf, unsigned int len, ULONG block_id, ULONG level);
     HRESULT HrReadStream(IStream *lpStream, void *lpBase, BYTE **lppData, ULONG *lpulSize);
-	
+
 	IStream *m_lpStream;
 	IMessage *m_lpMessage;
 	ULONG ulFlags;
-    
+
 	// Accumulator for properties from AddProps and SetProps
 	std::list<memory_ptr<SPropValue>> lstProps;
 

@@ -1,4 +1,4 @@
-SUBDIRS = linux userscripts quotamail searchscripts
+# -*- Makefile -*-
 
 datadir = ${docdir}
 dist_data_DATA = ldap/kopano.schema kopano.ldif

@@ -1,32 +1,11 @@
-'\" t
-.\"     Title: kopano-backup
-.\"    Author: [see the "Author" section]
-.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
-.\"      Date: November 2016
-.\"    Manual: Kopano Core user reference
-.\"    Source: Kopano 8
-.\"  Language: English
-.\"
 .TH "KOPANO\-BACKUP" "8" "November 2016" "Kopano 8" "Kopano Core user reference"
-.\" -----------------------------------------------------------------
-.\" * Define some portability stuff
-.\" -----------------------------------------------------------------
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .\" http://bugs.debian.org/507673
-.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
-.\" -----------------------------------------------------------------
-.\" * set default formatting
-.\" -----------------------------------------------------------------
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
 .ad l
-.\" -----------------------------------------------------------------
-.\" * MAIN CONTENT STARTS HERE *
-.\" -----------------------------------------------------------------
 .SH "NAME"
 kopano-backup \- The Kopano Backup tool
 .SH "SYNOPSIS"
@@ -55,7 +34,7 @@ Authenticate as specified user.
 .PP
 \fB\-\-clean-folders\fR
 .RS 4
-Empty target folders before restoring data to them. In combination with \fI\-\-folder\fR, only the respective folders are emptied.
+Empty target folders before restoring data to them. In combination with \fB\-\-folder\fP, only the respective folders are emptied.
 .RE
 .PP
 \fB\-\-company\fR, \fB\-C\fR \fINAME\fR
@@ -75,13 +54,13 @@ Backup/restore/show deleted items/folders. The default when backing up is to mai
 .PP
 \fB\-\-differential\fR
 .RS 4
-Create 'differential' backup(s), containing all changes since the previous or regular backup(s), in separate directories called 'differential/username/N'. Differential backups can be inspected using the \fI\-\-index\fR and \fI\-\-stats\fR options. See also the \fI\-\-merge\fR option.
+Create 'differential' backup(s), containing all changes since the previous or regular backup(s), in separate directories called 'differential/username/N'. Differential backups can be inspected using the \fB\-\-index\fP and \fB\-\-stats\fP options. See also the \fB\-\-merge\fP option.
 .RE
 .PP
 \fB\-\-folder\fR, \fB\-f\fR \fIPATH\fR
 .RS 4
 Backup/restore only folder(s) with specified path. Multiple folders may be specified. Subfolders may be included using
-\fI\-\-recursive\fR.
+\fB\-\-recursive\fP.
 .RE
 .PP
 \fB\-\-index\fR
@@ -91,12 +70,12 @@ List messages/items contained in specified backup directory in CSV format. Sourc
 .PP
 \fB\-\-merge\fR
 .RS 4
-Merge 'differential' backups for a given user into regular backup. See the \fI\-\-differential\fR option.
+Merge 'differential' backups for a given user into regular backup. See the \fB\-\-differential\fP option.
 .RE
 .PP
 \fB\-\-log\-level\fR, \fB\-l\fR \fINAME\fR
 .RS 4
-Specify log\-level, for example, \*(Aqerror\*(Aq, \*(Aqwarning\*(Aq \*(Aqinfo\*(Aq or \*(Aqdebug\*(Aq.
+Specify log\-level, for example, \fBerror\fP, \fBwarning\fP, \fBinfo\fP or \fBdebug\fP.
 .RE
 .PP
 \fB\-\-only\-meta\fR
@@ -111,7 +90,7 @@ Create/update backup directories in the specified directory, instead of the loca
 .PP
 \fB\-\-overwrite\fR
 .RS 4
-When restoring items (without \fI\-\-differential), overwrite duplicate items instead of skipping them.
+When restoring items (without \fB\-\-differential\fP), overwrite duplicate items instead of skipping them.
 .RE
 .PP
 \fB\-\-period\-begin\fR, \fB\-b\fR \fIDATE\fR
@@ -131,18 +110,18 @@ Permanently delete data from backup directory which has been marked as deleted m
 .PP
 \fB\-\-recursive\fR
 .RS 4
-When specifying folders (\fI\-\-folder\fR), also include subfolders in backup/restore.
+When specifying folders (\fB\-\-folder\fP), also include subfolders in backup/restore.
 .RE
 .PP
 \fB\-\-restore\fR
 .RS 4
 Restore the contents of the specified backup directory. The respective store is determined automatically, but may also be specified explicitly, for example using
-\fI\-\-user\fR.
+\fB\-\-user\fP.
 .RE
 .PP
 \fB\-\-restore\-root\fR \fIPATH\fR
 .RS 4
-When restoring, place data under folder with specific path (or name), for example \*(Aqsome_folder\*(Aq or \*(AqInbox/some_subfolder\*(Aq.
+When restoring, place data under folder with specific path (or name), for example \fIsome_folder\fP or \fIInbox/some_subfolder\fP.
 .RE
 .PP
 \fB\-\-server\-socket\fR, \fB\-s\fR \fISOCKET\fR
@@ -153,8 +132,8 @@ Connect to storage server through specified socket.
 \fB\-\-sourcekey\fR \fISOURCEKEY\fR
 .RS 4
 Restore message/item with specified sourcekey (as shown using
-\fI\-\-index\fR). Must be combined with
-\fI\-\-restore\fR. Multiple sourcekeys may be specified.
+\fB\-\-index\fP). Must be combined with
+\fB\-\-restore\fP. Multiple sourcekeys may be specified.
 .RE
 .PP
 \fB\-\-skip\-attachments\fR
@@ -199,7 +178,7 @@ List folders contained in specified backup directory in CSV format. Folder sizes
 .PP
 \fB\-\-store\fR, \fB\-S\fR \fIGUID\fR
 .RS 4
-Backup specified store. Instead of a GUID, \*(Aqpublic\*(Aq may also be specified, to denote the public store.
+Backup specified store. Instead of a GUID, \fBpublic\fP may also be specified, to denote the public store.
 .RE
 .PP
 \fB\-\-user\fR, \fB\-u\fR \fINAME\fR
@@ -213,7 +192,7 @@ When backing up data from multiple stores, process these stores in parallel, usi
 .RE
 .SH "EXAMPLES"
 .PP
-Backup user \*(Aqhenk\*(Aq, creating/updating a backup directory with the same name:
+Backup user "henk", creating/updating a backup directory with the same name:
 .PP
 \fBkopano\-backup \-u henk\fR
 .PP
@@ -221,7 +200,7 @@ Restore the same user (possibly on another server):
 .PP
 \fBkopano\-backup \-\-restore henk\fR
 .PP
-Backup users \*(Aqhenk\*(Aq and \*(Aqfred\*(Aq, in parallel, in a specified directory:
+Backup users "henk" and "fred", in parallel, in a specified directory:
 .PP
 \fBkopano\-backup \-u henk \-u fred \-w 2 \-O backups\fR
 .PP
@@ -237,7 +216,7 @@ Backup calendars of all users:
 .PP
 \fBkopano\-backup \-f Calendar \-O calendars\fR
 .PP
-Recursively restore inbox of \*(Aqfred\*(Aq into store of \*(Aqhenk\*(Aq, in certain subfolder:
+Recursively restore inbox of "fred" into store of "henk", in certain subfolder:
 .PP
 \fBkopano\-backup \-\-restore fred \-f Inbox \-u henk \-\-recursive \-\-restore\-root from_fred\fR
 .PP
@@ -245,7 +224,7 @@ Restore everything last modified in 2014:
 .PP
 \fBkopano\-backup \-\-restore fred \-b 2014\-01\-01 \-e 2015\-01\-01\fR
 .PP
-Create differential backup for \*(Aqfred\*(Aq:
+Create differential backup for "fred":
 .PP
 \fBkopano\-backup \-\-differential \-u fred\fR
 .PP
@@ -255,9 +234,6 @@ Inspect specific differential backups:
 .PP
 \fBkopano\-backup \-\-stats differential/fred/2
 .PP
-Merge differential backups for \*(Aqfred\*(Aq:
+Merge differential backups for "fred":
 .PP
 \fBkopano\-backup --merge fred\fR
-.SH "AUTHOR"
-.PP
-Written by Kopano.

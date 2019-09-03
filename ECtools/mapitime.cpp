@@ -309,7 +309,7 @@ int mpt_search::run()
 		{PR_COMPANY_MAIN_PHONE_NUMBER}, {PR_DISPLAY_CC}
 	};
 	for (size_t i = 0; i < ARRAY_SIZE(spv); ++i)
-		spv[i].Value.lpszW = const_cast<wchar_t *>(L"t1");
+		spv[i].Value.lpszW = const_cast<wchar_t *>(L"dreck");
 	for (size_t i = 0; i < ARRAY_SIZE(cls); ++i)
 		cls[i].ulPropTag = PR_MESSAGE_CLASS;
 	cls[0].Value.lpszW = const_cast<wchar_t *>(L"IPM.Note");

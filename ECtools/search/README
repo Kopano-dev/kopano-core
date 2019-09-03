@@ -9,15 +9,15 @@ INDEXING
 -for xapian, each store has its own xapian 'index database' directory, usually in /var/lib/kopano/index ('index_path' in search.cfg). format is 'serverguid-storeguid'.
 -xapian databases can be inspected with standard tool 'delve'. for example 'delve databasename' gives general info such as total item count.
 -another standard tool 'xapian-compact' can be used to defragment/compress a xapian database. the script 'kopano-search-xapian-compact.py' loops over all databases and compacts them (this should work even while search is running). customers will probably want to run this after initial indexing and then perhaps once every month or several months.
--there are two phases in indexing, initial and incremental. 
--in the initial phase, the whole history for every store is read and indexed. initial indexing can be parallized so multiple folders are indexed at the same time (option 'index_processes' in search.cfg, default 1!).
+-there are two phases in indexing, initial and incremental.
+-in the initial phase, the whole history for every store is read and indexed. initial indexing can be parallelized so multiple folders are indexed at the same time (option 'index_processes' in search.cfg, default 1!).
 -currently, our own mail server with about 1.2M items is indexed in about 30 hours (including attachments, otherwise it's closer to 10 hours).
 -when using 8 for this option for example, there will be 7 extra python processes..
 -in the second phase, incremental indexing just tries to keep up in real-time with current/recent events. it uses ICS to track all changes on the server, and indexes encountered folders in the same way as initial indexing (also in parallel)
 -in the file 'serverguid_state', we keep track of which folders have been synced already, so initial syncing does not have to fully restart when something goes wrong.
 -the file 'serverguid_mapping' is needed to fix a problem in ICS, which does not know for a 'delete event' which store/folder the delete belongs to. for each 'new/update' event we store this info here. so if the item is deleted later we know the store.
 -stores can be fully reindexed (after initial syncing), by running 'kopano-search --reindex username/storeguid'. it will then contact the running kopano-search process to queue reindexing (multiple stores can be queued at one time). kopano-search only looks in this queue when it has nothing else to do during incremental syncing, so there may be a delay. for xapian, this means the database is completely deleted, then reindexed (in parallel, again according to 'index_processes' in search.cfg)).
--(typically) in /var/log/kopano/search.log, the index process can be followed. each parallel worker process has its own prefix (index0, index1..). 
+-(typically) in /var/log/kopano/search.log, the index process can be followed. each parallel worker process has its own prefix (index0, index1..).
 -there are also many timings logged, such as how many items where processed in total and per second for initial indexing, and xapian commit time.
 -there should be no manual messing in the index directory. either delete everything, or use reindexing.
 
@@ -26,7 +26,7 @@ SEARCHING
 -searching is only enabled after initial indexing. in the meantime, searching from webapp/outlook is done against the database (using a fallback mechanism).
 -webapp/outlook send requests to the search socket (option 'search_socket' in server.cfg and 'server_bind_name' in search.cfg), through a 'mapi searchfolder'.
 -these requests are handled one at a time (not parallelized at the moment). might also be improved for very large servers.
--the request is then translated to a seemingly standard fielded query format and passed to the search engine. 
+-the request is then translated to a seemingly standard fielded query format and passed to the search engine.
 -queries are also logged in the log file, with a separate prefix. here you can see which request were sent, to which queries they were translated, how many results there were and how long searching took.
 -requests can be across multiple folders. in that case webapp/outlook just sends multiple folder ids. when leaving out folder ids, the search will be store-wide. but I don't think outlook/webapp do this actually?
 -for outlook-compatibility, searched for terms are actually prepended with a '*'. so every item which contains a word which _starts_ with a term is returned.

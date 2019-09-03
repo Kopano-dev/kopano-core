@@ -348,7 +348,7 @@ ECRESULT ECKeyTable::UpdateRow_Modify(const sObjectTableKey *lpsRowItem,
 	auto iterMap = mapRow.find(*lpsRowItem);
 	if (iterMap != mapRow.cend()) {
 		// Found the row
-		// Indiciate that we are modifying an existing row
+		// Indicate that we are modifying an existing row
 		if (lpulAction)
 			*lpulAction = TABLE_ROW_MODIFY;
 		// Create a new node
@@ -422,7 +422,7 @@ ECRESULT ECKeyTable::UpdateRow_Modify(const sObjectTableKey *lpsRowItem,
 	}
 
 	// lpRow now points to our parent, fLeft is whether we're the new left or right node of this parent
-	// Get the predecesor ID
+	// Get the predecessor ID
 	if (lpsPrevRow) {
 		if (fLeft) {
 			// Our predecessor is the parent of our rightmost parent
@@ -1132,7 +1132,7 @@ ECRESULT ECKeyTable::UpdatePartialSortKey(sObjectTableKey *lpsRowItem,
 	if (ulColumn >= lpCursor->m_cols.size())
 		return KCERR_INVALID_PARAMETER;
 
-	/* Copy the sortkeys that we used to have; modify the updated colum */
+	/* Copy the sortkeys that we used to have; modify the updated column */
 	auto copy = lpCursor->m_cols;
 	copy[ulColumn] = col;
     if(lpfHidden)

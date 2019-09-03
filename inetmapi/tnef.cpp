@@ -9,9 +9,9 @@
  */
 
 /**
- * @brief  
+ * @brief
  * This is our TNEF class, which has been specially designed for
- * simple TNEF reading and writing. 
+ * simple TNEF reading and writing.
  *
  * Currently does not support recipient-table properties.
  *
@@ -29,7 +29,7 @@
 #include <kopano/platform.h>
 #include <memory>
 #include <cstdint>
-#include <mapidefs.h> 
+#include <mapidefs.h>
 #include <mapiutil.h>
 #include <mapiguid.h>
 #include <kopano/mapiext.h>
@@ -88,7 +88,6 @@ static bool PropTagInPropList(ULONG ulPropTag, const SPropTagArray *lpPropList)
 {
 	if (lpPropList == NULL)
 		return false;
-
 	for (ULONG i = 0; i < lpPropList->cValues; ++i)
 		if (PROP_ID(ulPropTag) == PROP_ID(lpPropList->aulPropTag[i]))
 			return true;
@@ -143,20 +142,22 @@ static HRESULT StreamToPropValue(IStream *lpStream, ULONG ulPropTag,
 		return hr;
 
 	lpPropValue->ulPropTag = ulPropTag;
-	
+
 	if (PROP_TYPE(ulPropTag) == PT_BINARY) {
 		lpPropValue->Value.bin.cb = (ULONG)sStatstg.cbSize.QuadPart;
-	
-		hr = MAPIAllocateMore((ULONG)sStatstg.cbSize.QuadPart, lpPropValue, (void**)&lpPropValue->Value.bin.lpb);
+
+		hr = MAPIAllocateMore((ULONG)sStatstg.cbSize.QuadPart, lpPropValue,
+		     reinterpret_cast<void **>(&lpPropValue->Value.bin.lpb));
 		if(hr != hrSuccess)
 			return hr;
 		wptr = lpPropValue->Value.bin.lpb;
 	} else if (PROP_TYPE(ulPropTag) == PT_UNICODE) {
-		hr = MAPIAllocateMore((ULONG)sStatstg.cbSize.QuadPart + sizeof(WCHAR), lpPropValue, (void**)&lpPropValue->Value.lpszW);
+		hr = MAPIAllocateMore((ULONG)sStatstg.cbSize.QuadPart + sizeof(wchar_t),
+		     lpPropValue, reinterpret_cast<void **>(&lpPropValue->Value.lpszW));
 		if (hr != hrSuccess)
 			return hr;
 		// terminate unicode string
-		lpPropValue->Value.lpszW[sStatstg.cbSize.QuadPart / sizeof(WCHAR)] = L'\0';
+		lpPropValue->Value.lpszW[sStatstg.cbSize.QuadPart / sizeof(wchar_t)] = L'\0';
 		wptr = (BYTE*)lpPropValue->Value.lpszW;
 	}
 
@@ -205,9 +206,8 @@ HRESULT ECTNEF::AddProps(ULONG flags, const SPropTagArray *lpPropList)
 		if (PROP_ID(lpPropListMessage->aulPropTag[i]) >= 0x6700 &&
 		    PROP_ID(lpPropListMessage->aulPropTag[i]) <= 0x67FF)
 			continue;
-
 		// unable to save these properties
-		if(PROP_TYPE(lpPropListMessage->aulPropTag[i]) == PT_OBJECT || 
+		if (PROP_TYPE(lpPropListMessage->aulPropTag[i]) == PT_OBJECT ||
 		   PROP_TYPE(lpPropListMessage->aulPropTag[i]) == PT_UNSPECIFIED ||
 		   PROP_TYPE(lpPropListMessage->aulPropTag[i]) == PT_NULL)
 			continue;
@@ -244,7 +244,7 @@ HRESULT ECTNEF::AddProps(ULONG flags, const SPropTagArray *lpPropList)
  * @param[in]	ulFlags		TNEF_PROP_INCLUDE or TNEF_PROP_EXCLUDE
  * @param[in]	lpPropList	List of properties to include from the stream if present in m_lpMessage or
  * 							List of properties to exclude from the stream if present in m_lpMessage
- * 
+ *
  * @retval	MAPI_E_CORRUPT_DATA TNEF stream input is broken, or other MAPI error codes
  */
 HRESULT ECTNEF::ExtractProps(ULONG flags, SPropTagArray *lpPropList)
@@ -273,39 +273,34 @@ HRESULT ECTNEF::ExtractProps(ULONG flags, SPropTagArray *lpPropList)
 	// File is made of blocks, with each a type and size. Component and Key are ignored.
 	while(1) {
 		hr = HrReadByte(m_lpStream, &ulComponent);
-
 		if(hr != hrSuccess) {
 			hr = hrSuccess; // EOF -> no error
 			goto exit;
 		}
-
 		hr = HrReadDWord(m_lpStream, &ulType);
 		if(hr != hrSuccess)
 			goto exit;
-
 		hr = HrReadDWord(m_lpStream, &ulSize);
 		if(hr != hrSuccess)
 			goto exit;
-
 		if (ulSize == 0) {
 			// do not allocate 0 size data block
 			hr = MAPI_E_CORRUPT_DATA;
 			goto exit;
 		}
+
 		hr = MAPIAllocateBuffer(ulSize, &~lpBuffer);
 		if(hr != hrSuccess)
 			goto exit;
 		hr = HrReadData(m_lpStream, lpBuffer, ulSize);
 		if(hr != hrSuccess)
 			goto exit;
-
 		hr = HrReadWord(m_lpStream, &ulChecksum);
 		if(hr != hrSuccess)
 			goto exit;
 
 		// Loop through all the blocks of the TNEF data. We are only interested
 		// in the properties block for now (0x00069003)
-
 		switch(ulType) {
 		case ATT_MAPI_PROPS:
 			hr = HrReadPropStream(lpBuffer, ulSize, lstProps);
@@ -321,7 +316,6 @@ HRESULT ECTNEF::ExtractProps(ULONG flags, SPropTagArray *lpPropList)
 
 				// We map the Schedule+ message class to the more modern MAPI message
 				// class. The mapping should be correct as far as we can find ..
-
 				char *szMAPIClass = (char *)FindMAPIClassByScheduleClass(szSClass.get());
 				if(szMAPIClass == NULL)
 					szMAPIClass = szSClass.get(); // mapping not found, use string from TNEF file
@@ -360,7 +354,7 @@ HRESULT ECTNEF::ExtractProps(ULONG flags, SPropTagArray *lpPropList)
 			// Start marker of attachment
 		    if(ulSize == sizeof(struct AttachRendData) && lpBuffer) {
 				auto lpData = reinterpret_cast<AttachRendData *>(lpBuffer.get());
-		        
+
 				if (lpTnefAtt != nullptr && (lpTnefAtt->data != nullptr || !lpTnefAtt->lstProps.empty()))
 					/* end marker previous attachment */
 					lstAttachments.emplace_back(std::move(lpTnefAtt));
@@ -471,7 +465,7 @@ HRESULT ECTNEF::HrWritePropStream(IStream *lpStream, std::list<memory_ptr<SPropV
  * @param[in]		lpProp		MAPI property to write to the TNEF stream
  * @return MAPI error code
  */
-HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp) 
+HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 {
 	HRESULT hr = hrSuccess;
 	SizedSPropTagArray(1, sPropTagArray);
@@ -517,7 +511,6 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 
 			ucs2 = converter.convert_to<std::u16string>(lppNames[0]->Kind.lpwstrName);
 			ulLen = ucs2.length() * sizeof(std::u16string::value_type) + sizeof(std::u16string::value_type);
-
 			hr = HrWriteDWord(lpStream, ulLen);
 			if(hr != hrSuccess)
 				return hr;
@@ -664,7 +657,7 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 				if(hr != hrSuccess)
 					return hr;
 				hr = HrWriteDWord(lpStream, lpProp->Value.li.HighPart);
-			} 
+			}
 			if (hr != hrSuccess)
 				return hr;
 			break;
@@ -704,7 +697,6 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 			if(lpProp->ulPropTag & MV_FLAG) {
 				ucs2 = converter.convert_to<std::u16string>(lpProp->Value.MVszW.lppszW[ulMVProp]);
 				ulLen = ucs2.length() * sizeof(std::u16string::value_type) + sizeof(std::u16string::value_type);
-
 				hr = HrWriteDWord(lpStream, ulLen);
 				if(hr != hrSuccess)
 					return hr;
@@ -712,7 +704,6 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 			} else {
 				ucs2 = converter.convert_to<std::u16string>(lpProp->Value.lpszW);
 				ulLen = ucs2.length() * sizeof(std::u16string::value_type) + sizeof(std::u16string::value_type);
-
 				hr = HrWriteDWord(lpStream, 1); // unknown why this is here
 				if(hr != hrSuccess)
 					return hr;
@@ -738,21 +729,18 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 		case PT_BINARY:
 			if(lpProp->ulPropTag & MV_FLAG) {
 				ulLen = lpProp->Value.MVbin.lpbin[ulMVProp].cb;
-
 				hr = HrWriteDWord(lpStream, ulLen);
 				if(hr != hrSuccess)
 					return hr;
 				hr = HrWriteData(lpStream, lpProp->Value.MVbin.lpbin[ulMVProp].lpb, ulLen);
 			} else {
 				ulLen = lpProp->Value.bin.cb;
-
 				hr = HrWriteDWord(lpStream, 1); // unknown why this is here
 				if(hr != hrSuccess)
 					return hr;
 				hr = HrWriteDWord(lpStream, ulLen + (PROP_TYPE(lpProp->ulPropTag) == PT_OBJECT ? sizeof(GUID) : 0));
 				if(hr != hrSuccess)
 					return hr;
-
                 if(PROP_TYPE(lpProp->ulPropTag) == PT_OBJECT)
 					HrWriteData(lpStream, &IID_IStorage, sizeof(GUID));
 				hr = HrWriteData(lpStream, lpProp->Value.bin.lpb, ulLen);
@@ -768,7 +756,7 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 				++ulLen;
 			}
 			break;
-		
+
 		case PT_CLSID:
 			if (lpProp->ulPropTag & MV_FLAG)
 				hr = HrWriteData(lpStream, &lpProp->Value.MVguid.lpguid[ulMVProp], sizeof(GUID));
@@ -879,12 +867,10 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 			// copy through u16string so we can set the boundary to the given length
 			ucs2.assign(reinterpret_cast<const std::u16string::value_type *>(lpBuffer), ulLen / sizeof(std::u16string::value_type));
 			strUnicodeName = convert_to<std::wstring>(ucs2);
-
 			sNameID.ulKind = MNID_STRING;
 			sNameID.Kind.lpwstrName = const_cast<wchar_t *>(strUnicodeName.c_str());
 			lpBuffer += ulLen;
 			ulSize -= ulLen;
-
 			// Re-align
 			lpBuffer += ulLen & 3 ? 4 - (ulLen & 3) : 0;
 			ulSize -= ulLen & 3 ? 4 - (ulLen & 3) : 0;
@@ -900,7 +886,6 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 		hr = m_lpMessage->GetIDsFromNames(1, &lpNameID, MAPI_CREATE, &~lpPropTags);
 		if(hr != hrSuccess)
 			return hr;
-
 		// Use the mapped ID, not the original ID. The original ID is discarded
 		ulPropTag = CHANGE_PROP_TYPE(lpPropTags->aulPropTag[0], PROP_TYPE(ulPropTag));
 	}
@@ -912,55 +897,56 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 		ulCount = le32_to_cpu(tmp4);
 		lpBuffer += 4;
 		ulSize -= 4;
-		
+
 		switch(PROP_TYPE(ulPropTag)) {
 		case PT_MV_I2:
 			lpProp->Value.MVi.cValues = ulCount;
-			hr = MAPIAllocateMore(ulCount * sizeof(unsigned short), lpProp, (void **)&lpProp->Value.MVi.lpi);
+			hr = MAPIAllocateMore(ulCount * sizeof(unsigned short), lpProp, reinterpret_cast<void **>(&lpProp->Value.MVi.lpi));
 			break;
 		case PT_MV_LONG:
 			lpProp->Value.MVl.cValues = ulCount;
-			hr = MAPIAllocateMore(ulCount * sizeof(ULONG), lpProp, (void **)&lpProp->Value.MVl.lpl);
+			hr = MAPIAllocateMore(ulCount * sizeof(ULONG), lpProp, reinterpret_cast<void **>(&lpProp->Value.MVl.lpl));
 			break;
 		case PT_MV_R4:
 			lpProp->Value.MVflt.cValues = ulCount;
-			hr = MAPIAllocateMore(ulCount * sizeof(float), lpProp, (void **)&lpProp->Value.MVflt.lpflt);
+			hr = MAPIAllocateMore(ulCount * sizeof(float), lpProp, reinterpret_cast<void **>(&lpProp->Value.MVflt.lpflt));
 			break;
 		case PT_MV_APPTIME:
 			lpProp->Value.MVat.cValues = ulCount;
-			hr = MAPIAllocateMore(ulCount * sizeof(double), lpProp, (void **)&lpProp->Value.MVat.lpat);
+			hr = MAPIAllocateMore(ulCount * sizeof(double), lpProp, reinterpret_cast<void **>(&lpProp->Value.MVat.lpat));
 			break;
 		case PT_MV_DOUBLE:
 			lpProp->Value.MVdbl.cValues = ulCount;
-			hr = MAPIAllocateMore(ulCount * sizeof(double), lpProp, (void **)&lpProp->Value.MVdbl.lpdbl);
+			hr = MAPIAllocateMore(ulCount * sizeof(double), lpProp, reinterpret_cast<void **>(&lpProp->Value.MVdbl.lpdbl));
 			break;
 		case PT_MV_CURRENCY:
 			lpProp->Value.MVcur.cValues = ulCount;
-			hr = MAPIAllocateMore(ulCount * sizeof(CURRENCY), lpProp, (void **)&lpProp->Value.MVcur.lpcur);
+			hr = MAPIAllocateMore(ulCount * sizeof(CURRENCY), lpProp, reinterpret_cast<void **>(&lpProp->Value.MVcur.lpcur));
 			break;
 		case PT_MV_SYSTIME:
 			lpProp->Value.MVft.cValues = ulCount;
-			hr = MAPIAllocateMore(ulCount * sizeof(FILETIME), lpProp, (void **)&lpProp->Value.MVft.lpft);
+			hr = MAPIAllocateMore(ulCount * sizeof(FILETIME), lpProp, reinterpret_cast<void **>(&lpProp->Value.MVft.lpft));
 			break;
 		case PT_MV_I8:
 			lpProp->Value.MVli.cValues = ulCount;
-			hr = MAPIAllocateMore(ulCount * sizeof(LARGE_INTEGER), lpProp, (void **)&lpProp->Value.MVli.lpli);
+			hr = MAPIAllocateMore(ulCount * sizeof(LARGE_INTEGER), lpProp, reinterpret_cast<void **>(&lpProp->Value.MVli.lpli));
 			break;
 		case PT_MV_STRING8:
 			lpProp->Value.MVszA.cValues = ulCount;
-			hr = MAPIAllocateMore(ulCount * sizeof(char *), lpProp, (void **)&lpProp->Value.MVszA.lppszA);
+			hr = MAPIAllocateMore(ulCount * sizeof(char *), lpProp, reinterpret_cast<void **>(&lpProp->Value.MVszA.lppszA));
 			break;
 		case PT_MV_UNICODE:
 			lpProp->Value.MVszW.cValues = ulCount;
-			hr = MAPIAllocateMore(ulCount * sizeof(WCHAR *), lpProp, (void **)&lpProp->Value.MVszW.lppszW);
+			hr = MAPIAllocateMore(ulCount * sizeof(wchar_t *),
+			     lpProp, reinterpret_cast<void **>(&lpProp->Value.MVszW.lppszW));
 			break;
 		case PT_MV_BINARY:
 			lpProp->Value.MVbin.cValues = ulCount;
-			hr = MAPIAllocateMore(ulCount * sizeof(SBinary), lpProp, (void **)&lpProp->Value.MVbin.lpbin);
+			hr = MAPIAllocateMore(ulCount * sizeof(SBinary), lpProp, reinterpret_cast<void **>(&lpProp->Value.MVbin.lpbin));
 			break;
 		case PT_MV_CLSID:
 			lpProp->Value.MVguid.cValues = ulCount;
-			hr = MAPIAllocateMore(ulCount * sizeof(GUID), lpProp, (void **)&lpProp->Value.MVguid.lpguid);
+			hr = MAPIAllocateMore(ulCount * sizeof(GUID), lpProp, reinterpret_cast<void **>(&lpProp->Value.MVguid.lpguid));
 			break;
 		default:
 			return MAPI_E_INVALID_PARAMETER;
@@ -1079,7 +1065,7 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 				lpProp->Value.li.LowPart = le32_to_cpu(tmp4);
 				memcpy(&tmp4, lpBuffer + 4, sizeof(tmp4));
 				lpProp->Value.li.HighPart = le32_to_cpu(tmp4);
-			} 
+			}
 
 			lpBuffer += 8;
 			ulSize -= 8;
@@ -1093,19 +1079,19 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
             }
 			memcpy(&tmp4, lpBuffer, sizeof(tmp4));
 			unsigned int ulLen = le32_to_cpu(tmp4);
-			lpBuffer += 4; 
+			lpBuffer += 4;
 			ulSize -= 4;
 
 			if (ulSize < ulLen)
 				return MAPI_E_CORRUPT_DATA;
 			if(ulPropTag & MV_FLAG) {
-				hr = MAPIAllocateMore(ulLen+1, lpProp, (void **)&lpProp->Value.MVszA.lppszA[ulMVProp]);
+				hr = MAPIAllocateMore(ulLen + 1, lpProp, reinterpret_cast<void **>(&lpProp->Value.MVszA.lppszA[ulMVProp]));
 				if(hr != hrSuccess)
 					return hr;
 				memcpy(lpProp->Value.MVszA.lppszA[ulMVProp], lpBuffer, ulLen);
 				lpProp->Value.MVszA.lppszA[ulMVProp][ulLen] = 0; // should be terminated anyway but we terminte it just to be sure
 			} else {
-				hr = MAPIAllocateMore(ulLen+1, lpProp, (void **)&lpProp->Value.lpszA);
+				hr = MAPIAllocateMore(ulLen + 1, lpProp, reinterpret_cast<void **>(&lpProp->Value.lpszA));
 				if(hr != hrSuccess)
 					return hr;
 				memcpy(lpProp->Value.lpszA, lpBuffer, ulLen);
@@ -1114,7 +1100,6 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 
 			lpBuffer += ulLen;
 			ulSize -= ulLen;
-
 			// Re-align
 			lpBuffer += ulLen & 3 ? 4 - (ulLen & 3) : 0;
 			ulSize -= ulLen & 3 ? 4 - (ulLen & 3) : 0;
@@ -1140,12 +1125,14 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 			strUnicodeName = convert_to<std::wstring>(ucs2);
 
 			if(ulPropTag & MV_FLAG) {
-				hr = MAPIAllocateMore((strUnicodeName.length()+1) * sizeof(WCHAR), lpProp, (void **)&lpProp->Value.MVszW.lppszW[ulMVProp]);
+				hr = MAPIAllocateMore((strUnicodeName.length() + 1) * sizeof(wchar_t),
+				     lpProp, reinterpret_cast<void **>(&lpProp->Value.MVszW.lppszW[ulMVProp]));
 				if(hr != hrSuccess)
 					return hr;
 				wcscpy(lpProp->Value.MVszW.lppszW[ulMVProp], strUnicodeName.c_str());
 			} else {
-				hr = MAPIAllocateMore((strUnicodeName.length()+1) * sizeof(WCHAR), lpProp, (void **)&lpProp->Value.lpszW);
+				hr = MAPIAllocateMore((strUnicodeName.length() + 1) * sizeof(wchar_t),
+				     lpProp, reinterpret_cast<void **>(&lpProp->Value.lpszW));
 				if(hr != hrSuccess)
 					return hr;
 				wcscpy(lpProp->Value.lpszW, strUnicodeName.c_str());
@@ -1153,7 +1140,6 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 
 			lpBuffer += ulLen;
 			ulSize -= ulLen;
-
 			// Re-align
 			lpBuffer += ulLen & 3 ? 4 - (ulLen & 3) : 0;
 			ulSize -= ulLen & 3 ? 4 - (ulLen & 3) : 0;
@@ -1194,7 +1180,6 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 
 			lpBuffer += ulLen;
 			ulSize -= ulLen;
-
 			// Re-align
 			lpBuffer += ulLen & 3 ? 4 - (ulLen & 3) : 0;
 			ulSize -= ulLen & 3 ? 4 - (ulLen & 3) : 0;
@@ -1209,7 +1194,7 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 				hr = KAllocCopy(lpBuffer, sizeof(GUID), reinterpret_cast<void **>(&lpProp->Value.lpguid), lpProp);
 				if (hr != hrSuccess)
 					return hr;
-			} 
+			}
 
 			lpBuffer += sizeof(GUID);
 			ulSize -= sizeof(GUID);
@@ -1275,24 +1260,21 @@ HRESULT ECTNEF::FinishComponent(ULONG flags, ULONG ulComponentID,
 	auto hr = m_lpMessage->OpenAttach(ulComponentID, &IID_IAttachment, 0, &~lpAttach);
     if(hr != hrSuccess)
 		return hr;
-    
+
     // Get some properties we always need
 	hr = lpAttach->GetProps(sptaTags, 0, &cValues, &~lpAttachProps);
     if(FAILED(hr))
 		return hr;
-        
-    // ignore warnings
-    hr = hrSuccess;
-    
+
     memset(&sData, 0, sizeof(sData));
     sData.usType =     lpAttachProps[0].ulPropTag == PR_ATTACH_METHOD && lpAttachProps[0].Value.ul == ATTACH_OLE ? AttachTypeOle : AttachTypeFile;
     sData.ulPosition = lpAttachProps[1].ulPropTag == PR_RENDERING_POSITION ? lpAttachProps[1].Value.ul : 0;
-        
+
     // Get user-passed properties
 	hr = lpAttach->GetProps(lpPropList, 0, &cValues, &~lpProps);
     if(FAILED(hr))
 		return hr;
-    
+
     for (unsigned int i = 0; i < cValues; ++i) {
         // Other properties
         if(PROP_TYPE(lpProps[i].ulPropTag) == PT_ERROR)
@@ -1300,24 +1282,22 @@ HRESULT ECTNEF::FinishComponent(ULONG flags, ULONG ulComponentID,
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpsNewProp);
         if(hr != hrSuccess)
 			return hr;
-                
+
         if(PROP_TYPE(lpProps[i].ulPropTag) == PT_OBJECT) {
             // PT_OBJECT requested, open object as stream and read the data
             hr = lpAttach->OpenProperty(lpProps[i].ulPropTag, &IID_IStream, 0, 0, &~lpStream);
             if(hr != hrSuccess)
 				return hr;
-                
             // We save the actual data same way as PT_BINARY
             hr = HrReadStream(lpStream, lpsNewProp, &lpsNewProp->Value.bin.lpb, &lpsNewProp->Value.bin.cb);
             if(hr != hrSuccess)
 				return hr;
-                
             lpsNewProp->ulPropTag = lpProps[i].ulPropTag;
         } else {
             hr = Util::HrCopyProperty(lpsNewProp, &lpProps[i], lpsNewProp);
             if(hr != hrSuccess)
 			return hr;
-        }        
+        }
         sTnefAttach->lstProps.emplace_back(std::move(lpsNewProp));
     }
 
@@ -1374,7 +1354,7 @@ HRESULT ECTNEF::Finish()
 			auto hr = m_lpMessage->CreateAttach(nullptr, 0, &ulAttachNum, &~lpAttach);
 			if (hr != hrSuccess)
 				return hr;
-				
+
 			sProp.ulPropTag = PR_ATTACH_METHOD;
 			if (att->rdata.usType == AttachTypeOle)
 				sProp.Value.ul = ATTACH_OLE;
@@ -1388,7 +1368,7 @@ HRESULT ECTNEF::Finish()
 			sProp.ulPropTag = PR_RENDERING_POSITION;
 			sProp.Value.ul = att->rdata.ulPosition;
 			lpAttach->SetProps(1, &sProp, NULL);
-            
+
 			for (const auto &p : att->lstProps) {
 				// must not set PR_ATTACH_NUM by ourselves
 				if (PROP_ID(p->ulPropTag) == PROP_ID(PR_ATTACH_NUM))
@@ -1704,7 +1684,7 @@ HRESULT ECTNEF::HrWriteData(IStream *lpStream, const void *vdata, size_t ulLen)
 }
 
 /**
- * TNEF uses the rather stupid checksum of adding all the bytes in the stream. 
+ * TNEF uses the rather stupid checksum of adding all the bytes in the stream.
  * Was TNEF coded by an intern or something ??
  *
  * @param[in]	lpStream		Input TNEF stream, this object will be unmodified
@@ -1733,7 +1713,6 @@ HRESULT ECTNEF::HrGetChecksum(IStream *lpStream, ULONG *lpulChecksum)
 			return hr;
 		if(ulRead == 0)
 			break;
-
 		for (i = 0; i < ulRead; ++i)
 			ulChecksum += buffer[i];
 	}
@@ -1742,14 +1721,14 @@ HRESULT ECTNEF::HrGetChecksum(IStream *lpStream, ULONG *lpulChecksum)
 	return hrSuccess;
 }
 
-/** 
+/**
  * Copy stream data to another stream with given TNEF block id and level number.
- * 
+ *
  * @param[in,out] lpDestStream Stream to write data to
  * @param[in] lpSourceStream Stream to read data from
  * @param[in] ulBlockID TNEF block id number
  * @param[in] ulLevel TNEF level number
- * 
+ *
  * @return MAPI error code
  */
 HRESULT ECTNEF::HrWriteBlock(IStream *lpDestStream, IStream *lpSourceStream, ULONG ulBlockID, ULONG ulLevel)
@@ -1782,15 +1761,15 @@ HRESULT ECTNEF::HrWriteBlock(IStream *lpDestStream, IStream *lpSourceStream, ULO
 	return HrWriteWord(lpDestStream, ulChecksum);
 }
 
-/** 
+/**
  * Write a buffer to a stream with given TNEF block id and level number.
- * 
+ *
  * @param[in,out] lpDestStream Stream to write data block in
  * @param[in] lpData Data block to write to stream
  * @param[in] ulLen Lenght of lpData
  * @param[in] ulBlockID TNEF Block ID number
  * @param[in] ulLevel TNEF Level number
- * 
+ *
  * @return MAPI error code
  */
 HRESULT ECTNEF::HrWriteBlock(IStream *lpDestStream, const char *lpData,
@@ -1806,14 +1785,14 @@ HRESULT ECTNEF::HrWriteBlock(IStream *lpDestStream, const char *lpData,
 	return HrWriteBlock(lpDestStream, lpStream, ulBlockID, ulLevel);
 }
 
-/** 
+/**
  * Read a complete stream into a buffer. (Don't we have this function somewhere in common/ ?)
- * 
+ *
  * @param[in] lpStream stream to read into buffer and return as BYTE array, cursor will be at the end on return
  * @param[in] lpBase pointer to use with MAPIAllocateMore, cannot be NULL
  * @param[out] lppData New allocated (more) buffer with contents of stream
  * @param[out] lpulSize size of *lppData buffer
- * 
+ *
  * @return MAPI error code
  */
 HRESULT ECTNEF::HrReadStream(IStream *lpStream, void *lpBase, BYTE **lppData, ULONG *lpulSize)
@@ -1827,7 +1806,7 @@ HRESULT ECTNEF::HrReadStream(IStream *lpStream, void *lpBase, BYTE **lppData, UL
 	auto hr = lpStream->Stat(&sStat, STATFLAG_NONAME);
     if(hr != hrSuccess)
 		return hr;
-    hr = MAPIAllocateMore(sStat.cbSize.QuadPart, lpBase, (void **)&lpBuffer);    
+	hr = MAPIAllocateMore(sStat.cbSize.QuadPart, lpBase, reinterpret_cast<void **>(&lpBuffer));
     if(hr != hrSuccess)
 		return hr;
 	auto lpWrite = lpBuffer;
@@ -1839,7 +1818,7 @@ HRESULT ECTNEF::HrReadStream(IStream *lpStream, void *lpBase, BYTE **lppData, UL
         ulSize += ulRead;
         sStat.cbSize.QuadPart -= ulRead;
     }
-        
+
     *lppData = lpBuffer;
     *lpulSize = ulSize;
     return hrSuccess;

@@ -161,7 +161,6 @@ HRESULT Http::HrParseHeaders()
 	HRESULT hr;
 	std::string strAuthdata;
 	std::string strUserAgent;
-	size_t colon_pos;
 
 	auto items = tokenize(m_strAction, ' ', true);
 	if (items.size() != 3) {
@@ -210,7 +209,8 @@ HRESULT Http::HrParseHeaders()
 		return MAPI_E_LOGON_FAILED;
 	}
 	auto user_pass = base64_decode(items[1]);
-	if((colon_pos = user_pass.find(":")) == std::string::npos) {
+	auto colon_pos = user_pass.find(":");
+	if (colon_pos == std::string::npos) {
 		ec_log_debug("HrParseHeaders password missing");
 		return MAPI_E_LOGON_FAILED;
 	}
@@ -543,7 +543,7 @@ HRESULT Http::HrFinalize()
 		char lpstrLen[10];
 		std::string::size_type szBodyLen = m_strRespBody.size();	// length of data to be sent to the client
 		std::string::size_type szBodyWritten = 0;					// length of data sent to client
-		unsigned int szPart = HTTP_CHUNK_SIZE;						// default lenght of chunk data to be written
+		unsigned int szPart = HTTP_CHUNK_SIZE;						// default length of chunk data to be written
 
 		HrResponseHeader("Transfer-Encoding", "chunked");
 		hr = HrFlushHeaders();
@@ -664,7 +664,7 @@ HRESULT Http::HrRequestAuth(const std::string &strMsg)
 
 /**
  * Write all http headers to ECChannel
- * @retrun	HRESULT
+ * @return	HRESULT
  * @retval	MAPI_E_END_OF_SESSION	If Connection type is set to close then the mapi session is ended
  */
 HRESULT Http::HrFlushHeaders()

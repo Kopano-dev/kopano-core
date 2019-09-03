@@ -3,7 +3,7 @@
 Part of the high-level python bindings for Kopano
 
 Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file)
-Copyright 2016 - Kopano and its licensors (see LICENSE file)
+Copyright 2016 - 2019 Kopano and its licensors (see LICENSE file)
 """
 
 import sys
@@ -26,7 +26,8 @@ from MAPI.Tags import (
 
 from .pidlid import (
     PidLidEmail1AddressType, PidLidEmail1DisplayName, PidLidEmail1EmailAddress,
-    PidLidEmail1OriginalEntryId, PidLidEmail2AddressType, PidLidEmail2DisplayName,
+    PidLidEmail1OriginalEntryId, PidLidEmail2AddressType,
+    PidLidEmail2DisplayName,
     PidLidEmail2EmailAddress, PidLidEmail2OriginalEntryId, PidLidYomiFirstName,
     PidLidEmail3AddressType, PidLidEmail3DisplayName, PidLidEmail3EmailAddress,
     PidLidEmail3OriginalEntryId, PidLidYomiLastName, PidLidYomiCompanyName,
@@ -50,25 +51,39 @@ except ImportError: # pragma: no cover
     _utils = sys.modules[__package__ + '.utils']
 
 class PhysicalAddress(object):
+    """PhysicalAddress class
+
+    Abstraction for physical addresses.
+    """
     def __init__(self, item, proptags):
         street, city, postal_code, state, country = proptags
-        self.street = item.get(street, u'')
-        self.city = item.get(city, u'')
-        self.postal_code = item.get(postal_code, u'')
-        self.state = item.get(state, u'')
-        self.country = item.get(country, u'')
+        #: Street
+        self.street = item.get(street, '')
+        #: City
+        self.city = item.get(city, '')
+        #: Postal code
+        self.postal_code = item.get(postal_code, '')
+        #: State
+        self.state = item.get(state, '')
+        #: Country
+        self.country = item.get(country, '')
 
     def __repr__(self):
         return _repr(self)
 
     def __unicode__(self):
-        return u'PhysicalAddress()'
+        return 'PhysicalAddress()'
 
 class Contact(object):
-    """Contact mixin class"""
+    """Contact mixin class
+
+    Contact-specific functionality, mixed into the :class:`Item`
+    class.
+    """
 
     @property
     def email(self):
+        """Primary email address."""
         return self.email1
 
     @email.setter
@@ -88,6 +103,7 @@ class Contact(object):
 
     @property
     def address1(self):
+        """Primary :class:`address <Address>`."""
         return Address(
             self.server,
             self.get(PidLidEmail1AddressType),
@@ -107,10 +123,12 @@ class Contact(object):
         self[PidLidEmail1OriginalEntryId] = pr_entryid
 
     def addresses(self): # TODO multiple
+        """Return all :class:`addresses <Address>`."""
         yield self.address1
 
     @property
     def email2(self):
+        """Secondary email address."""
         if self.address1:
             return self.address2.email
 
@@ -120,6 +138,7 @@ class Contact(object):
 
     @property
     def address2(self):
+        """Secondary :class:`address <Address>`."""
         return Address(
             self.server,
             self.get(PidLidEmail2AddressType),
@@ -140,6 +159,7 @@ class Contact(object):
 
     @property
     def email3(self):
+        """Tertiary email address."""
         if self.address3:
             return self.address3.email
 
@@ -149,6 +169,7 @@ class Contact(object):
 
     @property
     def address3(self):
+        """Tertiary :class:`address <Address>`."""
         return Address(
             self.server,
             self.get(PidLidEmail3AddressType),
@@ -167,14 +188,23 @@ class Contact(object):
         self[PidLidEmail3EmailAddress] = pr_email
         self[PidLidEmail3OriginalEntryId] = pr_entryid
 
-    # XXX uniformize with user.photo? class Picture?
+    # TODO uniformize with user.photo? class Picture?
     @property
     def photo(self):
+        """Contact :class:`photo <Picture>`"""
         for attachment in self.attachments():
             if attachment.get(PR_ATTACHMENT_CONTACTPHOTO):
-                return Picture(data=attachment.data, name=attachment.name, mimetype=attachment.mimetype)
+                return Picture(data=attachment.data, name=attachment.name,
+                    mimetype=attachment.mimetype)
 
     def set_photo(self, name, data, mimetype):
+        """Set contact :class:`photo <Picture>`
+
+        :param name: file name
+        :param data: file binary data
+        :param mimetype: file MIME type
+        """
+
         for attachment in self.attachments():
             if attachment.get(PR_ATTACHMENT_CONTACTPHOTO):
                 self.delete(attachment)
@@ -186,38 +216,47 @@ class Contact(object):
 
     @property
     def initials(self):
-        return self.get(PR_INITIALS_W, u'')
+        """Initials."""
+        return self.get(PR_INITIALS_W, '')
 
     @property
     def first_name(self):
-        return self.get(PR_GIVEN_NAME_W, u'')
+        """First name."""
+        return self.get(PR_GIVEN_NAME_W, '')
 
     @property
     def middle_name(self):
-        return self.get(PR_MIDDLE_NAME_W, u'')
+        """Middle name."""
+        return self.get(PR_MIDDLE_NAME_W, '')
 
     @property
     def last_name(self):
-        return self.get(PR_SURNAME_W, u'')
+        """Last name."""
+        return self.get(PR_SURNAME_W, '')
 
     @property
     def nickname(self):
-        return self.get(PR_NICKNAME_W, u'')
+        """Nickname."""
+        return self.get(PR_NICKNAME_W, '')
 
     @property
     def title(self):
-        return self.get(PR_DISPLAY_NAME_PREFIX_W, u'')
+        """Title."""
+        return self.get(PR_DISPLAY_NAME_PREFIX_W, '')
 
     @property
     def generation(self):
-        return self.get(PR_GENERATION_W, u'')
+        """Generation."""
+        return self.get(PR_GENERATION_W, '')
 
     @property
     def company_name(self):
-        return self.get(PR_COMPANY_NAME_W, u'')
+        """Company name."""
+        return self.get(PR_COMPANY_NAME_W, '')
 
     @property
     def children(self):
+        """List of children names."""
         try:
             return self[PR_CHILDRENS_NAMES_W]
         except NotFoundError:
@@ -225,59 +264,73 @@ class Contact(object):
 
     @property
     def spouse(self):
-        return self.get(PR_SPOUSE_NAME_W, u'')
+        """Spouse."""
+        return self.get(PR_SPOUSE_NAME_W, '')
 
     @property
     def birthday(self):
+        """Birthday."""
         return self.get(PR_BIRTHDAY)
 
     @property
     def yomi_first_name(self):
-        return self.get(PidLidYomiFirstName, u'')
+        """Yomi (phonetic) first name."""
+        return self.get(PidLidYomiFirstName, '')
 
     @property
     def yomi_last_name(self):
-        return self.get(PidLidYomiLastName, u'')
+        """Yomi (phonetic) last name."""
+        return self.get(PidLidYomiLastName, '')
 
     @property
     def yomi_company_name(self):
-        return self.get(PidLidYomiCompanyName, u'')
+        """Yomi (phonetic) company name."""
+        return self.get(PidLidYomiCompanyName, '')
 
     @property
     def file_as(self):
-        return self.get(PidLidFileUnder, u'')
+        """File as."""
+        return self.get(PidLidFileUnder, '')
 
     @property
     def job_title(self):
-        return self.get(PR_TITLE_W, u'')
+        """Job title."""
+        return self.get(PR_TITLE_W, '')
 
     @property
     def department(self):
-        return self.get(PR_DEPARTMENT_NAME_W, u'')
+        """Department."""
+        return self.get(PR_DEPARTMENT_NAME_W, '')
 
     @property
     def office_location(self):
-        return self.get(PR_OFFICE_LOCATION_W, u'')
+        """Office location."""
+        return self.get(PR_OFFICE_LOCATION_W, '')
 
     @property
     def profession(self):
-        return self.get(PR_PROFESSION_W, u'')
+        """Profession."""
+        return self.get(PR_PROFESSION_W, '')
 
     @property
     def manager(self):
-        return self.get(PR_MANAGER_NAME_W, u'')
+        """Manager."""
+        return self.get(PR_MANAGER_NAME_W, '')
 
     @property
     def assistant(self):
-        return self.get(PR_ASSISTANT_W, u'')
+        """Assistant."""
+        return self.get(PR_ASSISTANT_W, '')
 
     @property
     def business_homepage(self):
-        return self.get(PR_BUSINESS_HOME_PAGE_W, u'')
+        """Business homepage."""
+        return self.get(PR_BUSINESS_HOME_PAGE_W, '')
 
     @property
     def mobile_phone(self):
-        return self.get(PR_MOBILE_TELEPHONE_NUMBER_W, u'')
+        """Mobile phone."""
+        return self.get(PR_MOBILE_TELEPHONE_NUMBER_W, '')
 
     def _str_list(self, proptags):
         result = []
@@ -289,20 +342,24 @@ class Contact(object):
 
     @property
     def home_phones(self):
+        """List of home phone numbers."""
         return self._str_list(
             [PR_HOME_TELEPHONE_NUMBER_W, PR_HOME2_TELEPHONE_NUMBER_W])
 
     @property
     def business_phones(self):
+        """List of business phone numbers."""
         return self._str_list(
             [PR_BUSINESS_TELEPHONE_NUMBER_W, PR_BUSINESS2_TELEPHONE_NUMBER_W])
 
     @property
     def im_addresses(self):
+        """List of instant messaging addresses."""
         return self._str_list([PidLidInstantMessagingAddress])
 
     @property
     def home_address(self):
+        """Home :class:`address <PhysicalAddress>`."""
         return PhysicalAddress(self, [
             PR_HOME_ADDRESS_STREET_W,
             PR_HOME_ADDRESS_CITY_W,
@@ -313,6 +370,7 @@ class Contact(object):
 
     @property
     def business_address(self):
+        """Business :class:`address <PhysicalAddress>`."""
         # TODO why not PR_BUSINESS_ADDRESS_*..?
         return PhysicalAddress(self, [
             PidLidWorkAddressStreet,
@@ -324,6 +382,7 @@ class Contact(object):
 
     @property
     def other_address(self):
+        """Other :class:`address <PhysicalAddress>`."""
         return PhysicalAddress(self, [
             PR_OTHER_ADDRESS_STREET_W,
             PR_OTHER_ADDRESS_CITY_W,

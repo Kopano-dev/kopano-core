@@ -1,10 +1,11 @@
 [Unit]
 Description=Kopano Groupware Core IMAP/POP3 Gateway
 Documentation=man:kopano-gateway(8) man:kopano-gateway.cfg(5)
+After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/sbin/kopano-gateway -F
+ExecStart=/usr/sbin/kopano-gateway
 ExecReload=/bin/kill -HUP $MAINPID
 
 [Install]

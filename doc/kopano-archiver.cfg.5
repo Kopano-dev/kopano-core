@@ -1,32 +1,11 @@
-'\" t
-.\"     Title: kopano-archiver.cfg
-.\"    Author: [see the "Author" section]
-.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
-.\"      Date: November 2016
-.\"    Manual: Kopano Core user reference
-.\"    Source: Kopano 8
-.\"  Language: English
-.\"
 .TH "KOPANO\-ARCHIVER.CFG" "5" "November 2016" "Kopano 8" "Kopano Core user reference"
-.\" -----------------------------------------------------------------
-.\" * Define some portability stuff
-.\" -----------------------------------------------------------------
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .\" http://bugs.debian.org/507673
-.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
-.\" -----------------------------------------------------------------
-.\" * set default formatting
-.\" -----------------------------------------------------------------
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
 .ad l
-.\" -----------------------------------------------------------------
-.\" * MAIN CONTENT STARTS HERE *
-.\" -----------------------------------------------------------------
 .SH "NAME"
 kopano-archiver.cfg \- The Kopano archiver configuration file
 .SH "SYNOPSIS"
@@ -49,7 +28,7 @@ The parameters are written in the form:
 =
 \fIvalue\fR
 .PP
-The file is line\-based. Each newline\-terminated line represents either a comment, nothing, a parameter or a directive. A line beginning with `#\*(Aq is considered a comment, and will be ignored by Kopano. Parameter names are case sensitive. Lines beginning with `!\*(Aq are directives.
+The file is line\-based. Each newline\-terminated line represents either a comment, nothing, a parameter or a directive. A line beginning with \fB#\fP is considered a comment, and will be ignored by Kopano. Parameter names are case sensitive. Lines beginning with \fB!\fP are directives.
 .PP
 Directives are written in the form:
 .PP
@@ -100,7 +79,7 @@ Default:
 .PP
 Specifies if the stub step will be performed. Stubbing is the process of removing the data from a message and only leaving a reference to one or more archived versions of that message. When such a message is opened it will be de\-stubbed on the fly, leaving the user with a normal message to work with.
 .PP
-A message will never be stubbed if it\*(Aqs not yet archived.
+A message will never be stubbed if it is not yet archived.
 .PP
 Default:
 \fIno\fR
@@ -118,9 +97,9 @@ Default:
 \fI0\fR
 .SS delete_enable
 .PP
-Specifies if the delete step will be performed. The delete step deletes messages from the users store if they\*(Aqre old enough. This way even more space is freed.
+Specifies if the delete step will be performed. The delete step deletes messages from the users store if they are old enough. This way even more space is freed.
 .PP
-A message will never be deleted if it\*(Aqs not yet archived.
+A message will never be deleted if it is not yet archived.
 .PP
 A message will never be deleted from the archive.
 .PP
@@ -158,7 +137,7 @@ Default:
 \fIno\fR
 .SS cleanup_action
 .PP
-Specify what action should be taken on archive messages whose primary message has been deleted. The options are \*(Aqstore\*(Aq and \*(Aqdelete\*(Aq, meaning store the archived message in a special \*(AqDeleted\*(Aq folder or delete the archived messages respectively.
+Specify what action should be taken on archive messages whose primary message has been deleted. The options are \fBstore\fP and \fBdelete\fP, meaning store the archived message in a special "Deleted" folder or delete the archived messages respectively.
 .PP
 Default:
 \fIstore\fR
@@ -176,7 +155,7 @@ Default:
 \fIno\fR
 .SS auto_attach_writable
 .PP
-Specify whether an auto attached archive will be granted write permissions for the user it\*(Aqs attached to.
+Specify whether an auto attached archive will be granted write permissions for the user it is attached to.
 .PP
 Default:
 \fIyes\fR
@@ -201,14 +180,14 @@ Default: \fIauto\fP
 .SS log_file
 .PP
 When logging to a file, specify the filename in this parameter. Use
-\fI\-\fR
+\fB\-\fP
 (minus sign) for stderr output.
 .PP
 Default:
 \fI\-\fR
 .SS log_timestamp
 .PP
-Specify whether to prefix each log line with a timestamp in \*(Aqfile\*(Aq logging mode.
+Specify whether to prefix each log line with a timestamp in "file" logging mode.
 .PP
 Default:
 \fI1\fR
@@ -259,7 +238,7 @@ The password to use for MySQL. Leave empty for no password.
 Default:
 .SS mysql_socket
 .PP
-The socket of the MySQL server to use. This option can be used to override the default mysql socket. To use the socket, the mysql_host value must be empty or \*(Aqlocalhost\*(Aq
+The socket of the MySQL server to use. This option can be used to override the default mysql socket. To use the socket, the mysql_host value must be empty or \fBlocalhost\fP.
 .PP
 Default:
 .SS mysql_database
@@ -283,9 +262,6 @@ Default: \fIInnoDB\fP
 .RS 4
 The Kopano archiver configuration file.
 .RE
-.SH "AUTHOR"
-.PP
-Written by Kopano.
 .SH "SEE ALSO"
 .PP
 \fBkopano-archiver\fR(8)

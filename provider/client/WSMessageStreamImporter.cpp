@@ -26,7 +26,7 @@ HRESULT WSMessageStreamSink::Create(ECFifoBuffer *lpFifoBuffer, ULONG ulTimeout,
 }
 
 /**
- * Write data into the underlaying fifo buffer.
+ * Write data into the underlying fifo buffer.
  * @param[in]	lpData	Pointer to the data
  * @param[in]	cbData	The amount of data in bytes.
  */
@@ -60,7 +60,7 @@ WSMessageStreamSink::WSMessageStreamSink(ECFifoBuffer *lpFifoBuffer, ULONG ulTim
 { }
 
 /**
- * Closes the underlaying fifo buffer, causing the reader to stop reading.
+ * Closes the underlying fifo buffer, causing the reader to stop reading.
  */
 WSMessageStreamSink::~WSMessageStreamSink()
 {
@@ -160,7 +160,7 @@ WSMessageStreamImporter::WSMessageStreamImporter(ULONG ulFlags, ULONG ulSyncId, 
 , m_sConflictItems(sConflictItems)
 , m_ptrTransport(lpTransport, true)
 , m_fifoBuffer(ulBufferSize)
-, m_threadPool(1)
+, m_threadPool("msgstrmimport", 1)
 , m_ulTimeout(ulTimeout)
 {
 }

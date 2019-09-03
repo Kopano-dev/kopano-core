@@ -175,13 +175,10 @@ HRESULT PublishFreeBusy::HrGetResctItems(IMAPITable **lppTable)
 	
 	lpsPropStart.ulPropTag = PROP_APPT_STARTWHOLE;
 	lpsPropStart.Value.ft = m_ftStart;
-
 	lpsPropEnd.ulPropTag = PROP_APPT_ENDWHOLE;
 	lpsPropEnd.Value.ft = m_ftEnd;
-
 	lpsPropIsRecc.ulPropTag = PROP_APPT_ISRECURRING;
 	lpsPropIsRecc.Value.b = true;
-
 	lpsPropReccEnd.ulPropTag = PROP_APPT_CLIPEND;
 	lpsPropReccEnd.Value.ft = m_ftStart;
 
@@ -248,7 +245,6 @@ HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBl
 		hr = lpTable->QueryRows(50, 0, &~lpRowSet);
 		if(hr != hrSuccess)
 			return hr;
-
 		if(lpRowSet->cRows == 0)
 			break;
 		
@@ -299,7 +295,7 @@ HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBl
 	
 	if (lpcValues == 0 || lpOccrInfo == nullptr)
 		return hrSuccess;
-	hr = MAPIAllocateBuffer(sizeof(FBBlock_1)* (*lpcValues), (void**)&lpfbBlocks);
+	hr = MAPIAllocateBuffer(sizeof(FBBlock_1) * (*lpcValues), reinterpret_cast<void **>(&lpfbBlocks));
 	if (hr != hrSuccess)
 		return hr;
 	for (ULONG i = 0 ; i < *lpcValues; ++i)
@@ -334,20 +330,17 @@ HRESULT PublishFreeBusy::HrMergeBlocks(FBBlock_1 **lppfbBlocks, ULONG *lpcValues
 		auto tTemp = RTimeToUnixTime(sTsitem.tsTime);
 		// @note ctime adds \n character
 		ec_log_debug("Blocks start %s", ctime(&tTemp));
-
 		mpTimestamps[sTsitem.tsTime] = sTsitem;
-		
 		sTsitem.ulType = END_TIME;
 		sTsitem.ulStatus = lpFbBlocks[i].m_fbstatus;
 		sTsitem.tsTime = lpFbBlocks[i].m_tmEnd;
-
 		mpTimestamps[sTsitem.tsTime] = sTsitem;
 	}
 	
 	for (const auto &pts : mpTimestamps) {
 		FBBlock_1 fbBlockTemp;
-
 		sTsitem = pts.second;
+
 		switch(sTsitem.ulType)
 		{
 		case START_TIME:
@@ -398,7 +391,6 @@ HRESULT PublishFreeBusy::HrMergeBlocks(FBBlock_1 **lppfbBlocks, ULONG *lpcValues
 		lpFbBlocks[i++] = vcblock;
 	*lppfbBlocks = lpFbBlocks;
 	*lpcValues = vcFBblocks.size();
-
 	ec_log_debug("Output blocks %d", *lpcValues);
 	return hrSuccess;
 }

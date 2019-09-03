@@ -202,7 +202,7 @@ HRESULT INFLoader::MakeProperty(const std::string& strTag, const std::string& st
 		sProp.ulPropTag = CHANGE_PROP_TYPE(sProp.ulPropTag, PT_STRING8);
 		/* fallthru */
 	case PT_STRING8: {
-		auto hr = MAPIAllocateMore(strData.length() + 1, base, (void**)&sProp.Value.lpszA);
+		auto hr = MAPIAllocateMore(strData.length() + 1, base, reinterpret_cast<void **>(&sProp.Value.lpszA));
 		if (hr != hrSuccess)
 			return hr;
 		strcpy(sProp.Value.lpszA, strData.c_str());
@@ -346,15 +346,14 @@ HRESULT SVCService::Init(const INFLoader& cINF, const inf_section* infService)
 	auto cf = reinterpret_cast<void **>(&m_fnMSGServiceEntry);
 	*cf = dlsym(m_dl, "MSGServiceEntry");
 	if (!m_fnMSGServiceEntry) {
-		// compulsary function in provider
+		// compulsory function in provider
 		cerr << "Unable to find MSGServiceEntry in " << lpSO->Value.lpszA << ": " << dlerror() << endl;
 		return MAPI_E_NOT_FOUND;
 	}
 
-	cf = (void**)&m_fnMSProviderInit;
+	cf  = reinterpret_cast<void **>(&m_fnMSProviderInit);
 	*cf = dlsym(m_dl, "MSProviderInit");
-
-	cf = (void**)&m_fnABProviderInit;
+	cf  = reinterpret_cast<void **>(&m_fnABProviderInit);
 	*cf = dlsym(m_dl, "ABProviderInit");
 	return hrSuccess;
 }

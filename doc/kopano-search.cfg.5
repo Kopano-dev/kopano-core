@@ -1,32 +1,11 @@
-'\" t
-.\"     Title: kopano-search.cfg
-.\"    Author: [see the "Author" section]
-.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
-.\"      Date: November 2016
-.\"    Manual: Kopano Core user reference
-.\"    Source: Kopano 8
-.\"  Language: English
-.\"
 .TH "KOPANO\-SEARCH.CFG" "5" "November 2016" "Kopano 8" "Kopano Core user reference"
-.\" -----------------------------------------------------------------
-.\" * Define some portability stuff
-.\" -----------------------------------------------------------------
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .\" http://bugs.debian.org/507673
-.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
-.\" -----------------------------------------------------------------
-.\" * set default formatting
-.\" -----------------------------------------------------------------
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
 .ad l
-.\" -----------------------------------------------------------------
-.\" * MAIN CONTENT STARTS HERE *
-.\" -----------------------------------------------------------------
 .SH "NAME"
 kopano-search.cfg \- The Kopano Search configuration file
 .SH "SYNOPSIS"
@@ -49,7 +28,7 @@ The parameters are written in the form:
 =
 \fIvalue\fR
 .PP
-The file is line\-based. Each newline\-terminated line represents either a comment, nothing, a parameter or a directive. A line beginning with `#\*(Aq is considered a comment, and will be ignored by Kopano. Parameter names are case sensitive. Lines beginning with `!\*(Aq are directives.
+The file is line\-based. Each newline\-terminated line represents either a comment, nothing, a parameter or a directive. A line beginning with \fB#\fP is considered a comment, and will be ignored by Kopano. Parameter names are case sensitive. Lines beginning with \fB#\fP are directives.
 .PP
 Directives are written in the form:
 .PP
@@ -79,14 +58,14 @@ Default:
 .RS 4
 After correctly starting, the server process will become this user, dropping root privileges. Note that the log file needs to be writeable by this user, and the directory too to create new logfiles after logrotation. This can also be achieved by setting the correct group and permissions.
 .sp
-Default value is empty, not changing the user after starting.
+Default: \fIkopano\fP
 .RE
 .PP
 \fBrun_as_group\fR
 .RS 4
 After correctly starting, the server process will become this group, dropping root privileges.
 .sp
-Default value is empty, not changing the group after starting.
+Default: \fIkopano\fP
 .RE
 .PP
 \fBpid_file\fR
@@ -99,7 +78,7 @@ Default:
 .PP
 \fBrunning_path\fR
 .RS 4
-Change directory to this path when running in daemonize mode. When using the \-F switch to run in the foreground the directory will not be changed.
+Change directory to this path when running in daemonize mode. When using the \fB\-F\fP switch to run in the foreground the directory will not be changed.
 .sp
 Default:
 \fI/\fR
@@ -121,7 +100,7 @@ Default:
 \fIfile:///var/run/kopano/server.sock\fR
 .RE
 .PP
-\fBssl_key_file\fR
+\fBsslkey_file\fR
 .RS 4
 The file containing the private key and certificate. Please read the SSL section in the
 \fBkopano-server\fR(8)
@@ -131,7 +110,7 @@ Default:
 \fI/etc/kopano/ssl/search.pem\fR
 .RE
 .PP
-\fBssl_key_pass\fR
+\fBsslkey_pass\fR
 .RS 4
 Enter your password here when your key file contains a password to be readable.
 .sp
@@ -203,7 +182,7 @@ Default:
 \fBlog_file\fR
 .RS 4
 When logging to a file, specify the filename in this parameter. Use
-\fI\-\fR
+\fB\-\fP
 (minus sign) for stderr output.
 .sp
 Default:
@@ -212,7 +191,7 @@ Default:
 .PP
 \fBlog_timestamp\fR
 .RS 4
-Specify whether to prefix each log line with a timestamp in \*(Aqfile\*(Aq logging mode.
+Specify whether to prefix each log line with a timestamp in "file" logging mode.
 .sp
 Default:
 \fI1\fR
@@ -294,9 +273,6 @@ Maxiumum file size for attachments to be indexed. Any attachment larger then thi
 Default:
 \fI5M\fR
 .RE
-.SH "AUTHOR"
-.PP
-Written by Kopano.
 .SH "SEE ALSO"
 .PP
 \fBkopano-search\fR(8)

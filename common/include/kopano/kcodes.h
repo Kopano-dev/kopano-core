@@ -109,10 +109,6 @@ typedef uint64_t ECSESSIONID, ECSESSIONGROUPID;
 #define PR_EC_SEARCHCRIT	PROP_TAG(PT_STRING8, 0x6706)
 #define PR_EC_SUGGESTION	PROP_TAG(PT_UNICODE, 0x6707)
 
-// create 200 directories for non-database attachments
-#define ATTACH_PATHDEPTH_LEVEL1 10
-#define ATTACH_PATHDEPTH_LEVEL2 20
-
 #define ec_perror(s, r)     ec_log_ercode((r), EC_LOGLEVEL_ERROR, s ": %s (%x)", nullptr)
 
 enum CONNECTION_TYPE {

@@ -4,17 +4,46 @@
  */
 #include <list>
 #include <kopano/platform.h>
-#include <sys/un.h>
-#include <sys/socket.h>
 #include <kopano/ECChannel.h>
+#include <kopano/ECConfig.h>
 #include <kopano/ECDefs.h>
 #include <kopano/ECLogger.h>
+#include <kopano/MAPIErrors.h>
 #include <kopano/stringutil.h>
+#include <kopano/tie.hpp>
+#include "ECtools/indexer.hpp"
 #include "ECSearchClient.h"
 
 namespace KC {
 
-ECSearchClient::ECSearchClient(const char *szIndexerPath, unsigned int ulTimeOut)
+ECSearchClientMM::ECSearchClientMM()
+{
+	auto file = ECConfig::GetDefaultPath("search.cfg");
+	auto ret = IIndexer::create(file, &unique_tie(m_indexer));
+	if (ret != erSuccess)
+		kc_perror("IIndexer::create", ret);
+}
+
+ECRESULT ECSearchClientMM::DoCmd(const std::string &c, std::vector<std::string> &rsp)
+{
+	if (m_indexer == nullptr)
+		return MAPI_E_NOT_FOUND;
+	auto result = m_indexer->exec1(m_state, c.c_str());
+	rsp = tokenize(result, ":;");
+	if (!rsp.empty() && rsp.front() == "OK")
+		rsp.erase(rsp.begin());
+	else
+		return KCERR_CALL_FAILED;
+	return erSuccess;
+}
+
+ECRESULT ECSearchClientMM::Connect()
+{
+	m_state = decltype(m_state)();
+	return erSuccess;
+}
+
+ECSearchClientNET::ECSearchClientNET(const char *szIndexerPath, unsigned int ulTimeOut)
 	: ECChannelClient(szIndexerPath, ":;")
 {
 	m_ulTimeout = ulTimeOut;
@@ -121,7 +150,9 @@ ECRESULT ECSearchClient::Query(std::list<unsigned int> &lstMatches)
  * @return result
  */
  
-ECRESULT ECSearchClient::Query(GUID *lpServerGuid, GUID *lpStoreGuid, std::list<unsigned int>& lstFolders, std::list<SIndexedTerm> &lstSearches, std::list<unsigned int> &lstMatches, std::string &suggestion)
+ECRESULT ECSearchClient::Query(const GUID *lpServerGuid, const GUID *lpStoreGuid,
+    const std::list<unsigned int> &lstFolders, const std::list<SIndexedTerm> &lstSearches,
+    std::list<unsigned int> &lstMatches, std::string &suggestion)
 {
 	auto strServer = bin2hex(sizeof(GUID), lpServerGuid);
 	auto strStore = bin2hex(sizeof(GUID), lpStoreGuid);

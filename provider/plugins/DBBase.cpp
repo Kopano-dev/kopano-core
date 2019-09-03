@@ -82,8 +82,7 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 	if(objectids.empty())
 		return mapdetails;
 
-	LOG_PLUGIN_DEBUG("%s N=%d", __FUNCTION__, (int)objectids.size());
-
+	LOG_PLUGIN_DEBUG("%s N=%zu", __FUNCTION__, objectids.size());
 	for (const auto &id : objectids) {
 		if (!objectstrings[id.objclass].empty())
 			objectstrings[id.objclass] += ", ";
@@ -417,7 +416,7 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 
 	/* Only update when there were actually properties provided. */
 	if (!bFirstDel) {
-		/* Make sure all MV properties which are being overriden are being deleted first */
+		/* Make sure all MV properties which are being overridden are being deleted first */
 		auto er = m_lpDatabase->DoDelete(strDeleteQuery);
 		if (er != erSuccess)
 			throw runtime_error(string("db_query: ") + strerror(er));

@@ -4,7 +4,7 @@ Documentation=man:kopano-monitor(8) man:kopano-monitor.cfg(5)
 
 [Service]
 Type=simple
-ExecStart=/usr/sbin/kopano-monitor -F
+ExecStart=/usr/sbin/kopano-monitor
 ExecReload=/bin/kill -HUP $MAINPID
 
 [Install]

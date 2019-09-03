@@ -167,7 +167,7 @@ HRESULT ECGenericProp::HrGetRealProp(ULONG ulPropTag, ULONG ulFlags, void *lpBas
 		// The load should have loaded into the value pointed to by iterProps, so we can use that now
 	}
 
-	// Check if a max. size was requested, if so, dont return unless smaller than max. size
+	// Check if a max. size was requested, if so, don't return unless smaller than max. size
 	if (ulMaxSize != 0 && iterProps->second.GetProperty()->GetSize() > ulMaxSize) {
 		lpsPropValue->ulPropTag = CHANGE_PROP_TYPE(ulPropTag, PT_ERROR);
 		lpsPropValue->Value.err = MAPI_E_NOT_ENOUGH_MEMORY;
@@ -191,7 +191,7 @@ HRESULT ECGenericProp::HrGetRealProp(ULONG ulPropTag, ULONG ulFlags, void *lpBas
  * Deletes a property from the internal system
  *
  * @param ulPropTag The requested ulPropTag to remove. Property type is ignored; only the property identifier is used.
- * @param fOverwriteRO Set to TRUE if the object is to be modified eventhough it's read-only. Currently unused! @todo parameter should be removed.
+ * @param fOverwriteRO Set to TRUE if the object is to be modified even though it's read-only. Currently unused! @todo parameter should be removed.
  *
  * @return MAPI error code
  * @retval hrSuccess PropTag is set to be removed during the next SaveChanges call
@@ -349,22 +349,29 @@ HRESULT ECGenericProp::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR 
 		std::wstring wstrErrorMsg = convert_to<std::wstring>(lpszErrorMsg.get());
 		std::wstring wstrCompName = convert_to<std::wstring>(g_strProductName.c_str());
 
-		if ((hr = MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrErrorMsg.size() + 1), lpMapiError, (void**)&lpMapiError->lpszError)) != hrSuccess)
+		hr = MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrErrorMsg.size() + 1),
+		     lpMapiError, reinterpret_cast<void **>(&lpMapiError->lpszError));
+		if (hr != hrSuccess)
 			return hr;
 		wcscpy((wchar_t*)lpMapiError->lpszError, wstrErrorMsg.c_str());
-
-		if ((hr = MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrCompName.size() + 1), lpMapiError, (void**)&lpMapiError->lpszComponent)) != hrSuccess)
+		hr = MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrCompName.size() + 1),
+		     lpMapiError, reinterpret_cast<void **>(&lpMapiError->lpszComponent));
+		if (hr != hrSuccess)
 			return hr;
 		wcscpy((wchar_t *)lpMapiError->lpszComponent, wstrCompName.c_str());
 	} else {
 		std::string strErrorMsg = convert_to<std::string>(lpszErrorMsg.get());
 		std::string strCompName = convert_to<std::string>(g_strProductName.c_str());
 
-		if ((hr = MAPIAllocateMore(strErrorMsg.size() + 1, lpMapiError, (void**)&lpMapiError->lpszError)) != hrSuccess)
+		hr = MAPIAllocateMore(strErrorMsg.size() + 1, lpMapiError,
+		     reinterpret_cast<void **>(&lpMapiError->lpszError));
+		if (hr != hrSuccess)
 			return hr;
 		strcpy((char*)lpMapiError->lpszError, strErrorMsg.c_str());
 
-		if ((hr = MAPIAllocateMore(strCompName.size() + 1, lpMapiError, (void**)&lpMapiError->lpszComponent)) != hrSuccess)
+		hr = MAPIAllocateMore(strCompName.size() + 1, lpMapiError,
+		     reinterpret_cast<void **>(&lpMapiError->lpszComponent));
+		if (hr != hrSuccess)
 			return hr;
 		strcpy((char*)lpMapiError->lpszComponent, strCompName.c_str());
 	}

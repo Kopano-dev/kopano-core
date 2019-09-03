@@ -1,32 +1,11 @@
-'\" t
-.\"     Title: kopano-gateway
-.\"    Author: [see the "Author" section]
-.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
-.\"      Date: November 2016
-.\"    Manual: Kopano Core user reference
-.\"    Source: Kopano 8
-.\"  Language: English
-.\"
 .TH "KOPANO\-GATEWAY" "8" "November 2016" "Kopano 8" "Kopano Core user reference"
-.\" -----------------------------------------------------------------
-.\" * Define some portability stuff
-.\" -----------------------------------------------------------------
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .\" http://bugs.debian.org/507673
-.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
-.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
-.\" -----------------------------------------------------------------
-.\" * set default formatting
-.\" -----------------------------------------------------------------
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
 .ad l
-.\" -----------------------------------------------------------------
-.\" * MAIN CONTENT STARTS HERE *
-.\" -----------------------------------------------------------------
 .SH "NAME"
 kopano-gateway \- Start the Kopano IMAP/POP3 Gateway.
 .SH "SYNOPSIS"
@@ -34,7 +13,7 @@ kopano-gateway \- Start the Kopano IMAP/POP3 Gateway.
 \fBkopano\-gateway\fR [\fIOPTION\fR...]
 .SH "DESCRIPTION"
 .PP
-The gateway enables other e\-mail clients to connect through POP3 or IMAP to the storage server to read their e\-mail. With IMAP, it is also possible to view the contents of other folders and subfolders. The gateway can be configured to listen for POP3, POP3S, IMAP and/or IMAPS.
+The gateway enables other e-mail clients to connect through POP3 or IMAP to the storage server to read their e-mail. With IMAP, it is also possible to view the contents of other folders and subfolders. The gateway can be configured to listen for POP3, POP3S, IMAP and/or IMAPS.
 .PP
 The default settings of the gateway program are defined in
 \fBkopano-gateway.cfg\fR(5).
@@ -63,11 +42,6 @@ Connect to the storage server through
 \fIpath\fR, e.g.
 file:///path/to/socket. Default:
 file:///var/run/kopano/server.sock. Overrides the config file setting.
-.RE
-.PP
-\fB\-\-foreground\fR, \fB\-F\fR
-.RS 4
-Run in the foreground. Normally the gateway will daemonize and run in the background.
 .RE
 .SH "SIGNALS"
 .PP
@@ -99,9 +73,6 @@ The gateway process will keep running. You may also use the init.d scripts:
 [\fIstart\fR|
 \fIstop\fR|
 \fIrestart\fR]
-.SH "AUTHOR"
-.PP
-Written by Kopano.
 .SH "SEE ALSO"
 .PP
 \fBkopano-gateway.cfg\fR(5),
