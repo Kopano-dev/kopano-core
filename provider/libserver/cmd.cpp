@@ -609,7 +609,8 @@ int KCmdService::logon(const char *user, const char *pass,
 	if (er != erSuccess)
 		goto exit;
 
-	lpsResponse->sServerGuid.__ptr = s_memcpy(soap, &sServerGuid, sizeof(sServerGuid));
+	lpsResponse->sServerGuid.__ptr = soap_new_unsignedByte(soap, sizeof(sServerGuid));
+	memcpy(lpsResponse->sServerGuid.__ptr, &sServerGuid, sizeof(sServerGuid));
 	lpsResponse->sServerGuid.__size = sizeof(sServerGuid);
     // Only save logon if credentials were supplied by the user; otherwise the logon is probably automated
     if (lpecSession && (lpecSession->GetAuthMethod() == ECSession::METHOD_USERPASSWORD || lpecSession->GetAuthMethod() == ECSession::METHOD_SSO))
@@ -746,7 +747,8 @@ int KCmdService::ssoLogon(ULONG64 ulSessionId, const char *szUsername,
     	er = g_lpSessionManager->GetServerGUID(&sServerGuid);
 		if (er != erSuccess)
 			goto exit;
-		lpsResponse->sServerGuid.__ptr = s_memcpy(soap, &sServerGuid, sizeof(sServerGuid));
+		lpsResponse->sServerGuid.__ptr = soap_new_unsignedByte(soap, sizeof(sServerGuid));
+		memcpy(lpsResponse->sServerGuid.__ptr, &sServerGuid, sizeof(sServerGuid));
     	lpsResponse->sServerGuid.__size = sizeof(sServerGuid);
     }
 
