@@ -7228,9 +7228,7 @@ SOAP_ENTRY_START(copyFolder, *result, const entryId &sEntryId,
 			ec_log_err("SOAP::copyFolder(): source name (%s) not known", name.c_str());
 			return KCERR_NOT_FOUND;
 		}
-		auto newname = s_alloc<char>(soap, strlen(lpDBRow[0]) + 1);
-		memcpy(newname, lpDBRow[0], strlen(lpDBRow[0]) + 1);
-		lpszNewFolderName = newname;
+		lpszNewFolderName = soap_strdup(soap, lpDBRow[0]);
 	}
 
 	//check copy or a move

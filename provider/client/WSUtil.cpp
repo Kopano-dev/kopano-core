@@ -80,20 +80,14 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 		dp->__union = SOAP_UNION_propValData_li;
 		dp->Value.li = sp->Value.li.QuadPart;
 		break;
-	case PT_STRING8: {
-		utf8string u8 = CONVERT_TO(lpConverter, utf8string, sp->Value.lpszA);	// SOAP lpszA = UTF-8, MAPI lpszA = current locale charset
+	case PT_STRING8:
 		dp->__union = SOAP_UNION_propValData_lpszA;
-		dp->Value.lpszA = s_alloc<char>(nullptr, u8.size() + 1);
-		strcpy(dp->Value.lpszA, u8.c_str());
+		dp->Value.lpszA = soap_strdup(nullptr, CONVERT_TO(lpConverter, utf8string, sp->Value.lpszA).c_str());
 		break;
-	}
-	case PT_UNICODE: {
-		utf8string u8 = CONVERT_TO(lpConverter, utf8string, sp->Value.lpszW);
+	case PT_UNICODE:
 		dp->__union = SOAP_UNION_propValData_lpszA;
-		dp->Value.lpszA = s_alloc<char>(nullptr, u8.size() + 1);
-		strcpy(dp->Value.lpszA, u8.c_str());
+		dp->Value.lpszA = soap_strdup(nullptr, CONVERT_TO(lpConverter, utf8string, sp->Value.lpszW).c_str());
 		break;
-	}
 	case PT_SYSTIME:
 		dp->__union = SOAP_UNION_propValData_hilo;
 		dp->Value.hilo = soap_new_hiloLong(nullptr);
@@ -191,12 +185,9 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 		}
 		dp->__union = SOAP_UNION_propValData_mvszA;
 		dp->Value.mvszA.__size = sp->Value.MVszA.cValues;
-		dp->Value.mvszA.__ptr = s_alloc<char *>(nullptr, dp->Value.mvszA.__size);
-		for (gsoap_size_t i = 0; i < dp->Value.mvszA.__size; ++i) {
-			utf8string u8 = lpConverter->convert_to<utf8string>(sp->Value.MVszA.lppszA[i]);
-			dp->Value.mvszA.__ptr[i] = s_alloc<char>(nullptr, u8.size() + 1);
-			strcpy(dp->Value.mvszA.__ptr[i], u8.c_str());
-		}
+		dp->Value.mvszA.__ptr  = soap_new_string(nullptr, dp->Value.mvszA.__size);
+		for (gsoap_size_t i = 0; i < dp->Value.mvszA.__size; ++i)
+			dp->Value.mvszA.__ptr[i] = soap_strdup(nullptr, lpConverter->convert_to<utf8string>(sp->Value.MVszA.lppszA[i]).c_str());
 		break;
 	case PT_MV_UNICODE:
 		if (lpConverter == NULL) {
@@ -206,12 +197,9 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 		}
 		dp->__union = SOAP_UNION_propValData_mvszA;
 		dp->Value.mvszA.__size = sp->Value.MVszA.cValues;
-		dp->Value.mvszA.__ptr = s_alloc<char *>(nullptr, dp->Value.mvszA.__size);
-		for (gsoap_size_t i = 0; i < dp->Value.mvszA.__size; ++i) {
-			utf8string u8 = lpConverter->convert_to<utf8string>(sp->Value.MVszW.lppszW[i]);
-			dp->Value.mvszA.__ptr[i] = s_alloc<char>(nullptr, u8.size() + 1);
-			strcpy(dp->Value.mvszA.__ptr[i], u8.c_str());
-		}
+		dp->Value.mvszA.__ptr  = soap_new_string(nullptr, dp->Value.mvszA.__size);
+		for (gsoap_size_t i = 0; i < dp->Value.mvszA.__size; ++i)
+			dp->Value.mvszA.__ptr[i] = soap_strdup(nullptr, lpConverter->convert_to<utf8string>(sp->Value.MVszW.lppszW[i]).c_str());
 		break;
 	case PT_MV_CLSID:
 		dp->__union = SOAP_UNION_propValData_mvbin;

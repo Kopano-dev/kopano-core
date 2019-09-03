@@ -825,8 +825,7 @@ HRESULT WSTransport::HrNotify(const NOTIFICATION *lpNotification)
 	if(lpNotification->info.newmail.lpszMessageClass){
 		utf8string strMessageClass = convstring(lpNotification->info.newmail.lpszMessageClass, lpNotification->info.newmail.ulFlags);
 		ulSize = strMessageClass.size() + 1;
-		sNotification.newmail->lpszMessageClass = s_alloc<char>(nullptr, ulSize);
-		memcpy(sNotification.newmail->lpszMessageClass, strMessageClass.c_str(), ulSize);
+		sNotification.newmail->lpszMessageClass = soap_strdup(nullptr, strMessageClass.c_str());
 	}
 	sNotification.newmail->ulMessageFlags = lpNotification->info.newmail.ulMessageFlags;
 

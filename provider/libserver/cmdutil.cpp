@@ -1412,8 +1412,7 @@ ECRESULT GetNamesFromIDs(struct soap *soap, ECDatabase *lpDatabase, struct propT
 			*lpsNames->__ptr[i].lpId = atoi(lpDBRow[0]);
 		} else if (lpDBRow[1] != NULL) {
 			// It's a String type
-			lpsNames->__ptr[i].lpString = s_alloc<char>(soap, strlen(lpDBRow[1]) + 1);
-			strcpy(lpsNames->__ptr[i].lpString, lpDBRow[1]);
+			lpsNames->__ptr[i].lpString = soap_strdup(soap, lpDBRow[1]);
 		}
 		if (lpDBRow[2] == nullptr)
 			continue;

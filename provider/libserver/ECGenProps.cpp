@@ -232,7 +232,7 @@ ECRESULT ECGenProps::GetPropComputed(struct soap *soap, unsigned int ulObjType, 
 			++lpszColon; // skip space
 			--newlength; // adjust length
 		}
-		lpPropVal->Value.lpszA = s_alloc<char>(soap, newlength + 1);
+		lpPropVal->Value.lpszA = soap_new_byte(soap, newlength + 1);
 		memcpy(lpPropVal->Value.lpszA, lpszColon, newlength);
 		lpPropVal->Value.lpszA[newlength] = '\0';	// add C-type string terminator
 		return erSuccess;
@@ -697,7 +697,6 @@ ECRESULT ECGenProps::GetStoreName(struct soap *soap, ECSession* lpSession, unsig
 	struct propValArray sPropValArray;
 	struct propTagArray sPropTagArray;
 	std::string strFormat;
-	char*				lpStoreName = NULL;
 
 	auto sec = lpSession->GetSecurity();
 	auto er = sec->GetStoreOwner(ulStoreId, &ulUserId);
@@ -757,9 +756,7 @@ ECRESULT ECGenProps::GetStoreName(struct soap *soap, ECSession* lpSession, unsig
 			assert(false);
     }
 
-	lpStoreName = s_alloc<char>(soap, strFormat.size() + 1);
-	strcpy(lpStoreName, strFormat.c_str());
-	*lppStoreName = lpStoreName;
+	*lppStoreName = soap_strdup(soap, strFormat.c_str());
 exit:
 	soap_del_propTagArray(&sPropTagArray);
 	return er;

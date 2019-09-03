@@ -2767,7 +2767,7 @@ ECRESULT ECUserManagement::ConvertAnonymousObjectDetailToProp(struct soap *soap,
 	case PT_MV_UNICODE: {
 		lpPropVal->ulPropTag = ulPropTag;
 		lpPropVal->Value.mvszA.__size = lstrValues.size();
-		lpPropVal->Value.mvszA.__ptr = s_alloc<char *>(soap, lstrValues.size());
+		lpPropVal->Value.mvszA.__ptr  = soap_new_string(soap, lstrValues.size());
 		unsigned int i = 0;
 		for (const auto &val : lstrValues)
 			lpPropVal->Value.mvszA.__ptr[i++] = soap_strdup(soap, val.c_str());
@@ -3033,7 +3033,7 @@ ECRESULT ECUserManagement::cvt_user_to_props(struct soap *soap,
 		unsigned int nAliases = lstAliases.size(), j = 0;
 
 		lpPropVal->__union = SOAP_UNION_propValData_mvszA;
-		lpPropVal->Value.mvszA.__ptr = s_alloc<char *>(soap, 1 + nAliases);
+		lpPropVal->Value.mvszA.__ptr = soap_new_string(soap, 1 + nAliases);
 		if (!address.empty()) {
 			address = strPrefix + address;
 			lpPropVal->Value.mvszA.__ptr[j++] = soap_strdup(soap, address.c_str());
@@ -3237,8 +3237,7 @@ ECRESULT ECUserManagement::cvt_distlist_to_props(struct soap *soap,
 		unsigned int nAliases = lstAliases.size(), j = 0;
 
 		lpPropVal->__union = SOAP_UNION_propValData_mvszA;
-		lpPropVal->Value.mvszA.__ptr = s_alloc<char *>(soap, 1 + nAliases);
-
+		lpPropVal->Value.mvszA.__ptr = soap_new_string(soap, 1 + nAliases);
 		if (!address.empty()) {
 			address = strPrefix + address;
 			lpPropVal->Value.mvszA.__ptr[j++] = soap_strdup(soap, address.c_str());

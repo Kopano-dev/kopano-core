@@ -1132,8 +1132,7 @@ static ECRESULT DeserializePropVal(struct soap *soap,
 		er = lpSource->Read(&ulLen, sizeof(ulLen), 1);
 		if (er != erSuccess)
 			break;
-		lpsPropval->Value.lpszA = s_alloc<char>(soap, ulLen + 1);
-		memset(lpsPropval->Value.lpszA, 0, ulLen + 1);
+		lpsPropval->Value.lpszA = soap_new_byte(soap, ulLen + 1);
 		er = lpSource->Read(lpsPropval->Value.lpszA, 1, ulLen);
 		break;
 	case PT_CLSID:
@@ -1223,13 +1222,12 @@ static ECRESULT DeserializePropVal(struct soap *soap,
 		if (er != erSuccess)
 			break;
 		lpsPropval->Value.mvszA.__size = ulCount;
-		lpsPropval->Value.mvszA.__ptr = s_alloc<char*>(soap, ulCount);
+		lpsPropval->Value.mvszA.__ptr  = soap_new_string(soap, ulCount);
 		for (gsoap_size_t x = 0; er == erSuccess && x < ulCount; ++x) {
 			er = lpSource->Read(&ulLen, sizeof(ulLen), 1);
 			if (er != erSuccess)
 				continue;
-			lpsPropval->Value.mvszA.__ptr[x] = s_alloc<char>(soap, ulLen + 1);
-			memset(lpsPropval->Value.mvszA.__ptr[x], 0, ulLen + 1);
+			lpsPropval->Value.mvszA.__ptr[x] = soap_new_byte(soap, ulLen + 1);
 			er = lpSource->Read(lpsPropval->Value.mvszA.__ptr[x], 1, ulLen);
 		}
 		break;

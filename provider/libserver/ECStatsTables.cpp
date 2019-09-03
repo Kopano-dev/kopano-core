@@ -201,20 +201,17 @@ ECRESULT ECSystemStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis,
 			case PROP_ID(PR_DISPLAY_NAME):
 				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
 				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_alloc<char>(soap, iterSD->second.name.length()+1);
-				strcpy(lpsRowSet->__ptr[i].__ptr[k].Value.lpszA, iterSD->second.name.c_str());
+				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = soap_strdup(soap, iterSD->second.name.c_str());
 				break;
 			case PROP_ID(PR_EC_STATS_SYSTEM_DESCRIPTION):
 				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
 				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_alloc<char>(soap, iterSD->second.description.length()+1);
-				strcpy(lpsRowSet->__ptr[i].__ptr[k].Value.lpszA, iterSD->second.description.c_str());
+				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = soap_strdup(soap, iterSD->second.description.c_str());
 				break;
 			case PROP_ID(PR_EC_STATS_SYSTEM_VALUE):
 				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
 				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_alloc<char>(soap, iterSD->second.value.length()+1);
-				strcpy(lpsRowSet->__ptr[i].__ptr[k].Value.lpszA, iterSD->second.value.c_str());
+				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = soap_strdup(soap, iterSD->second.value.c_str());
 				break;
 			}
 		}
@@ -357,14 +354,11 @@ ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis,
 				memcpy(m.Value.bin->__ptr, &row, sizeof(sObjectTableKey));
 				break;
 
-			case PROP_ID(PR_EC_USERNAME): {
-				std::string strTemp = iterSD->second.username;
+			case PROP_ID(PR_EC_USERNAME):
 				m.__union = SOAP_UNION_propValData_lpszA;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
-				m.Value.lpszA = s_alloc<char>(soap, strTemp.length() + 1);
-				strcpy(m.Value.lpszA, strTemp.c_str());
+				m.Value.lpszA = soap_strdup(soap, iterSD->second.username.c_str());
 				break;
-			}
 			case PROP_ID(PR_EC_STATS_SESSION_ID):
 				m.__union = SOAP_UNION_propValData_li;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
@@ -445,7 +439,7 @@ ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis,
 				m.__union = SOAP_UNION_propValData_mvszA;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
 				m.Value.mvszA.__size = iterSD->second.busystates.size();
-				m.Value.mvszA.__ptr = s_alloc<char *>(soap, iterSD->second.busystates.size());
+				m.Value.mvszA.__ptr  = soap_new_string(soap, iterSD->second.busystates.size());
 
 				gsoap_size_t j = 0;
 				for (const auto &bs : iterSD->second.busystates)
@@ -456,7 +450,7 @@ ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis,
 				m.__union = SOAP_UNION_propValData_mvszA;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
 				m.Value.mvszA.__size = iterSD->second.busystates.size();
-				m.Value.mvszA.__ptr = s_alloc<char *>(soap, iterSD->second.busystates.size());
+				m.Value.mvszA.__ptr  = soap_new_string(soap, iterSD->second.busystates.size());
 
 				gsoap_size_t j = 0;
 				for (const auto &bs : iterSD->second.busystates) {
@@ -623,50 +617,38 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 				memcpy(m.Value.bin->__ptr, &row, sizeof(sObjectTableKey));
 				break;
 
-			case PROP_ID(PR_EC_COMPANY_NAME): {
+			case PROP_ID(PR_EC_COMPANY_NAME):
 				if (bNoObjectDetails || lpUserManagement->GetObjectDetails(objectDetails.GetPropInt(OB_PROP_I_COMPANYID), &companyDetails) != erSuccess)
 					break;
-				auto strData = companyDetails.GetPropString(OB_PROP_S_FULLNAME);
 				// do we have a default copy function??
 				m.__union = SOAP_UNION_propValData_lpszA;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
-				m.Value.lpszA = s_alloc<char>(soap, strData.length() + 1);
-				memcpy(m.Value.lpszA, strData.data(), strData.length() + 1);
+				m.Value.lpszA = soap_strdup(soap, companyDetails.GetPropString(OB_PROP_S_FULLNAME).c_str());
 				break;
-			}
-			case PROP_ID(PR_EC_USERNAME): {
+			case PROP_ID(PR_EC_USERNAME):
 				if (bNoObjectDetails)
 					break;
-				auto strData = objectDetails.GetPropString(OB_PROP_S_LOGIN);
 				// do we have a default copy function??
 				m.__union = SOAP_UNION_propValData_lpszA;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
-				m.Value.lpszA = s_alloc<char>(soap, strData.length() + 1);
-				memcpy(m.Value.lpszA, strData.data(), strData.length() + 1);
+				m.Value.lpszA = soap_strdup(soap, objectDetails.GetPropString(OB_PROP_S_LOGIN).c_str());
 				break;
-			}
-			case PROP_ID(PR_DISPLAY_NAME): {
+			case PROP_ID(PR_DISPLAY_NAME):
 				if (bNoObjectDetails)
 					break;
-				auto strData = objectDetails.GetPropString(OB_PROP_S_FULLNAME);
 				// do we have a default copy function??
 				m.__union = SOAP_UNION_propValData_lpszA;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
-				m.Value.lpszA = s_alloc<char>(soap, strData.length() + 1);
-				memcpy(m.Value.lpszA, strData.data(), strData.length() + 1);
+				m.Value.lpszA = soap_strdup(soap, objectDetails.GetPropString(OB_PROP_S_FULLNAME).c_str());
 				break;
-			}
-			case PROP_ID(PR_SMTP_ADDRESS): {
+			case PROP_ID(PR_SMTP_ADDRESS):
 				if (bNoObjectDetails)
 					break;
-				auto strData = objectDetails.GetPropString(OB_PROP_S_EMAIL);
 				// do we have a default copy function??
 				m.__union = SOAP_UNION_propValData_lpszA;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
-				m.Value.lpszA = s_alloc<char>(soap, strData.length() + 1);
-				memcpy(m.Value.lpszA, strData.data(), strData.length() + 1);
+				m.Value.lpszA = soap_strdup(soap, objectDetails.GetPropString(OB_PROP_S_EMAIL).c_str());
 				break;
-			}
 			case PROP_ID(PR_EC_NONACTIVE):
 				m.__union = SOAP_UNION_propValData_b;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
@@ -679,18 +661,15 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
 				m.Value.ul = objectDetails.GetPropInt(OB_PROP_I_ADMINLEVEL);
 				break;
-			case PROP_ID(PR_EC_HOMESERVER_NAME): {
+			case PROP_ID(PR_EC_HOMESERVER_NAME):
 				// should always be this servername, see ::Load()
 				if (bNoObjectDetails || !lpSession->GetSessionManager()->IsDistributedSupported())
 					break;
-				auto strData = objectDetails.GetPropString(OB_PROP_S_SERVERNAME);
 				// do we have a default copy function??
 				m.__union = SOAP_UNION_propValData_lpszA;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
-				m.Value.lpszA = s_alloc<char>(soap, strData.length() + 1);
-				memcpy(m.Value.lpszA, strData.data(), strData.length() + 1);
+				m.Value.lpszA = soap_strdup(soap, objectDetails.GetPropString(OB_PROP_S_SERVERNAME).c_str());
 				break;
-			}
 			case PROP_ID(PR_MESSAGE_SIZE_EXTENDED):
 				if (llStoreSize <= 0)
 					break;

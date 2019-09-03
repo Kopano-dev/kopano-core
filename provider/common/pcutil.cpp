@@ -289,7 +289,7 @@ ECRESULT SIIDToEntryID(struct soap *soap, const GUID *guidServer,
 		return KCERR_INVALID_PARAMETER;
 
 	auto ulSize = SIZEOF_SIEID_FIXED + sizeof(GUID);
-	auto lpInstanceEid = reinterpret_cast<SIEID *>(s_alloc<char>(soap, ulSize));
+	auto lpInstanceEid = reinterpret_cast<SIEID *>(soap_new_unsignedByte(soap, ulSize));
 	lpInstanceEid->ulId = ulInstanceId;
 	lpInstanceEid->ulType = ulPropId;
 	memcpy(&lpInstanceEid->guid, MUIDECSI_SERVER, sizeof(GUID));
