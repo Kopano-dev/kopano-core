@@ -761,7 +761,7 @@ ECRESULT ECSessionManager::NotificationDeleted(unsigned int ulObjType, unsigned 
 
 	if(ulObjType != MAPI_MESSAGE && ulObjType != MAPI_FOLDER && ulObjType != MAPI_STORE)
 		goto exit;
-	notify.obj = s_alloc<notificationObject>(nullptr);
+	notify.obj = soap_new_notificationObject(nullptr);
 	notify.ulEventType			= fnevObjectDeleted;
 	notify.obj->ulObjType		= ulObjType;
 	notify.obj->pEntryId		= lpEntryId;
@@ -773,7 +773,7 @@ ECRESULT ECSessionManager::NotificationDeleted(unsigned int ulObjType, unsigned 
 	AddNotification(&notify, ulObjId, ulStoreId, ulFolderId, ulFlags);
 exit:
 	notify.obj->pEntryId = NULL;
-	FreeNotificationStruct(&notify, false);
+	soap_del_notification(&notify);
 	return er;
 }
 
@@ -783,7 +783,7 @@ ECRESULT ECSessionManager::NotificationModified(unsigned int ulObjType, unsigned
 
 	if(ulObjType != MAPI_MESSAGE && ulObjType != MAPI_FOLDER && ulObjType != MAPI_STORE)
 		return erSuccess;
-	notify.obj = s_alloc<notificationObject>(nullptr);
+	notify.obj = soap_new_notificationObject(nullptr);
 	notify.ulEventType			= fnevObjectModified;
 	notify.obj->ulObjType		= ulObjType;
 	auto er = GetCacheManager()->GetEntryIdFromObject(ulObjId, nullptr, 0, &notify.obj->pEntryId);
@@ -796,7 +796,7 @@ ECRESULT ECSessionManager::NotificationModified(unsigned int ulObjType, unsigned
 	}
 	AddNotification(&notify, ulObjId, 0, 0, 0, isCounter);
 exit:
-	FreeNotificationStruct(&notify, false);
+	soap_del_notification(&notify);
 	return er;
 }
 
@@ -806,7 +806,7 @@ ECRESULT ECSessionManager::NotificationCreated(unsigned int ulObjType, unsigned 
 
 	if(ulObjType != MAPI_MESSAGE && ulObjType != MAPI_FOLDER && ulObjType != MAPI_STORE)
 		return erSuccess;
-	notify.obj = s_alloc<notificationObject>(nullptr);
+	notify.obj = soap_new_notificationObject(nullptr);
 	notify.ulEventType			= fnevObjectCreated;
 	notify.obj->ulObjType		= ulObjType;
 
@@ -818,7 +818,7 @@ ECRESULT ECSessionManager::NotificationCreated(unsigned int ulObjType, unsigned 
 		goto exit;
 	AddNotification(&notify, ulObjId);
 exit:
-	FreeNotificationStruct(&notify, false);
+	soap_del_notification(&notify);
 	return er;
 }
 
@@ -828,7 +828,7 @@ ECRESULT ECSessionManager::NotificationMoved(unsigned int ulObjType, unsigned in
 
 	if(ulObjType != MAPI_MESSAGE && ulObjType != MAPI_FOLDER && ulObjType != MAPI_STORE)
 		return erSuccess;
-	notify.obj = s_alloc<notificationObject>(nullptr);
+	notify.obj = soap_new_notificationObject(nullptr);
 	notify.ulEventType				= fnevObjectMoved;
 	notify.obj->ulObjType			= ulObjType;
 
@@ -845,7 +845,7 @@ ECRESULT ECSessionManager::NotificationMoved(unsigned int ulObjType, unsigned in
 	AddNotification(&notify, ulObjId);
 	notify.obj->pOldId = NULL;
 exit:
-	FreeNotificationStruct(&notify, false);
+	soap_del_notification(&notify);
 	return er;
 }
 
@@ -855,7 +855,7 @@ ECRESULT ECSessionManager::NotificationCopied(unsigned int ulObjType, unsigned i
 
 	if(ulObjType != MAPI_MESSAGE && ulObjType != MAPI_FOLDER && ulObjType != MAPI_STORE)
 		return erSuccess;
-	notify.obj = s_alloc<notificationObject>(nullptr);
+	notify.obj = soap_new_notificationObject(nullptr);
 	notify.ulEventType				= fnevObjectCopied;
 	notify.obj->ulObjType			= ulObjType;
 
@@ -877,7 +877,7 @@ ECRESULT ECSessionManager::NotificationCopied(unsigned int ulObjType, unsigned i
 	}
 	AddNotification(&notify, ulObjId);
 exit:
-	FreeNotificationStruct(&notify, false);
+	soap_del_notification(&notify);
 	return er;
 }
 
@@ -892,7 +892,7 @@ ECRESULT ECSessionManager::NotificationSearchComplete(unsigned int ulObjId, unsi
 {
 	struct notification notify;
 
-	notify.obj = s_alloc<notificationObject>(nullptr);
+	notify.obj = soap_new_notificationObject(nullptr);
 	notify.ulEventType				= fnevSearchComplete;
 	notify.obj->ulObjType			= MAPI_FOLDER;
 	auto er = GetCacheManager()->GetEntryIdFromObject(ulObjId, nullptr, 0, &notify.obj->pEntryId);
@@ -900,7 +900,7 @@ ECRESULT ECSessionManager::NotificationSearchComplete(unsigned int ulObjId, unsi
 		goto exit;
 	AddNotification(&notify, ulObjId, ulStoreId);
 exit:
-	FreeNotificationStruct(&notify, false);
+	soap_del_notification(&notify);
 	return er;
 }
 

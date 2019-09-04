@@ -1033,42 +1033,6 @@ ECRESULT CopyEntryList(struct soap *soap, struct entryList *lpSrc, struct entryL
 	return erSuccess;
 }
 
-ECRESULT FreeNotificationStruct(notification *lpNotification, bool bFreeBase)
-{
-	if(lpNotification == NULL)
-		return erSuccess;
-
-	if(lpNotification->obj != NULL){
-		soap_del_PointerTopropTagArray(&lpNotification->obj->pPropTagArray);
-		soap_del_PointerToentryId(&lpNotification->obj->pEntryId);
-		soap_del_PointerToentryId(&lpNotification->obj->pOldId);
-		soap_del_PointerToentryId(&lpNotification->obj->pOldParentId);
-		soap_del_PointerToentryId(&lpNotification->obj->pParentId);
-		s_free(nullptr, lpNotification->obj);
-	}
-
-	if(lpNotification->tab != NULL) {
-		soap_del_PointerTopropValArray(&lpNotification->tab->pRow);
-		soap_del_propVal(&lpNotification->tab->propIndex);
-		soap_del_propVal(&lpNotification->tab->propPrior);
-		s_free(nullptr, lpNotification->tab);
-	}
-
-	if (lpNotification->newmail != NULL) {
-		soap_del_string(&lpNotification->newmail->lpszMessageClass);
-		soap_del_PointerToentryId(&lpNotification->newmail->pEntryId);
-		soap_del_PointerToentryId(&lpNotification->newmail->pParentId);
-		s_free(nullptr, lpNotification->newmail);
-	}
-	if(lpNotification->ics != NULL) {
-		soap_del_PointerToentryId(&lpNotification->ics->pSyncState);
-		s_free(nullptr, lpNotification->ics);
-	}
-	if(bFreeBase)
-		s_free(nullptr, lpNotification);
-	return erSuccess;
-}
-
 // Make a copy of the struct notification.
 ECRESULT CopyNotificationStruct(struct soap *soap,
     const notification *lpNotification, notification &rNotifyTo)
@@ -1080,7 +1044,7 @@ ECRESULT CopyNotificationStruct(struct soap *soap,
 	rNotifyTo.ulConnection	= lpNotification->ulConnection;
 
 	if(lpNotification->tab != NULL) {
-		rNotifyTo.tab =	s_alloc<notificationTable>(soap);
+		rNotifyTo.tab =	soap_new_notificationTable(soap);
 		rNotifyTo.tab->hResult = lpNotification->tab->hResult;
 		rNotifyTo.tab->ulTableEvent = lpNotification->tab->ulTableEvent;
 		CopyPropVal(&lpNotification->tab->propIndex, &rNotifyTo.tab->propIndex, soap);
@@ -1089,7 +1053,7 @@ ECRESULT CopyNotificationStruct(struct soap *soap,
 		CopyPropValArray(lpNotification->tab->pRow, &rNotifyTo.tab->pRow, soap);
 		rNotifyTo.tab->ulObjType = lpNotification->tab->ulObjType;
 	}else if(lpNotification->obj != NULL) {
-		rNotifyTo.obj = s_alloc<notificationObject>(soap);
+		rNotifyTo.obj = soap_new_notificationObject(soap);
 		rNotifyTo.obj->ulObjType		= lpNotification->obj->ulObjType;
 		// Ignore errors, sometimes nothing to copy
 		CopyEntryId(soap, lpNotification->obj->pEntryId, &rNotifyTo.obj->pEntryId);
@@ -1098,7 +1062,7 @@ ECRESULT CopyNotificationStruct(struct soap *soap,
 		CopyEntryId(soap, lpNotification->obj->pOldParentId, &rNotifyTo.obj->pOldParentId);
 		CopyPropTagArray(soap, lpNotification->obj->pPropTagArray, &rNotifyTo.obj->pPropTagArray);
 	}else if(lpNotification->newmail != NULL){
-		rNotifyTo.newmail = s_alloc<notificationNewMail>(soap);
+		rNotifyTo.newmail = soap_new_notificationNewMail(soap);
 		// Ignore errors, sometimes nothing to copy
 		CopyEntryId(soap, lpNotification->newmail->pEntryId, &rNotifyTo.newmail->pEntryId);
 		CopyEntryId(soap, lpNotification->newmail->pParentId, &rNotifyTo.newmail->pParentId);
@@ -1106,7 +1070,7 @@ ECRESULT CopyNotificationStruct(struct soap *soap,
 		if(lpNotification->newmail->lpszMessageClass)
 			rNotifyTo.newmail->lpszMessageClass = soap_strdup(soap, lpNotification->newmail->lpszMessageClass);
 	}else if(lpNotification->ics != NULL){
-		rNotifyTo.ics = s_alloc<notificationICS>(soap);
+		rNotifyTo.ics = soap_new_notificationICS(soap);
 		// We use CopyEntryId as it just copied binary data
 		CopyEntryId(soap, lpNotification->ics->pSyncState, &rNotifyTo.ics->pSyncState);
 	}
@@ -1118,8 +1082,8 @@ ECRESULT FreeNotificationArrayStruct(notificationArray *lpNotifyArray, bool bFre
 	if(lpNotifyArray == NULL)
 		return erSuccess;
 	for (gsoap_size_t i = 0; i < lpNotifyArray->__size; ++i)
-		FreeNotificationStruct(&lpNotifyArray->__ptr[i], false);
-	s_free(nullptr, lpNotifyArray->__ptr);
+		soap_del_notification(&lpNotifyArray->__ptr[i]);
+	SOAP_DELETE_ARRAY(nullptr, lpNotifyArray->__ptr, struct notification);
 	if(bFreeBase)
 		s_free(nullptr, lpNotifyArray);
 	else
@@ -1132,7 +1096,7 @@ ECRESULT CopyNotificationArrayStruct(notificationArray *lpNotifyArrayFrom, notif
 	if (lpNotifyArrayFrom == NULL)
 		return KCERR_INVALID_PARAMETER;
 	if (lpNotifyArrayFrom->__size > 0)
-		lpNotifyArrayTo->__ptr = s_alloc<notification>(nullptr, lpNotifyArrayFrom->__size);
+		lpNotifyArrayTo->__ptr = soap_new_notification(nullptr, lpNotifyArrayFrom->__size);
 	else
 		lpNotifyArrayTo->__ptr = NULL;
 	lpNotifyArrayTo->__size = lpNotifyArrayFrom->__size;

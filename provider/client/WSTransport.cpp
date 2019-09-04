@@ -820,7 +820,7 @@ HRESULT WSTransport::HrNotify(const NOTIFICATION *lpNotification)
 	sNotification.ulConnection = 0;// The connection id should be calculate on the server side
 
 	sNotification.ulEventType = lpNotification->ulEventType;
-	sNotification.newmail = s_alloc<notificationNewMail>(nullptr);
+	sNotification.newmail = soap_new_notificationNewMail(nullptr);
 
 	hr = CopyMAPIEntryIdToSOAPEntryId(lpNotification->info.newmail.cbEntryID, (LPENTRYID)lpNotification->info.newmail.lpEntryID, &sNotification.newmail->pEntryId);
 	if(hr != hrSuccess)
@@ -845,8 +845,7 @@ HRESULT WSTransport::HrNotify(const NOTIFICATION *lpNotification)
 	END_SOAP_CALL
  exitm:
 	spg.unlock();
-	FreeNotificationStruct(&sNotification, false);
-
+	soap_del_notification(&sNotification);
 	return hr;
 }
 

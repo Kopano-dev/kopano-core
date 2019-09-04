@@ -23,8 +23,8 @@ ECNotification::ECNotification()
 }
 
 ECNotification::~ECNotification()
-{
-	FreeNotificationStruct(m_lpsNotification, true);
+{	
+	soap_del_PointerTonotification(&m_lpsNotification);
 }
 
 ECNotification::ECNotification(const ECNotification &x)
@@ -41,7 +41,7 @@ ECNotification::ECNotification(const notification &notification)
 
 void ECNotification::Init()
 {
-	m_lpsNotification = s_alloc<notification>(nullptr);
+	m_lpsNotification = soap_new_notification(nullptr);
 }
 
 ECNotification& ECNotification::operator=(const ECNotification &x)
