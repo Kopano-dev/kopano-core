@@ -3893,7 +3893,7 @@ HRESULT WSTransport::HrGetNotify(struct notificationArray **lppsArrayNotificatio
 		goto exit;
 
 	if(sNotifications.pNotificationArray != NULL) {
-		*lppsArrayNotifications = s_alloc<notificationArray>(nullptr);
+		*lppsArrayNotifications = soap_new_notificationArray(nullptr);
 		CopyNotificationArrayStruct(sNotifications.pNotificationArray, *lppsArrayNotifications);
 	}else
 		*lppsArrayNotifications = NULL;

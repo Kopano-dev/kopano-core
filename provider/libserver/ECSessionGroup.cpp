@@ -388,7 +388,7 @@ ECRESULT ECSessionGroup::GetNotifyItems(struct soap *soap, ECSESSIONID ulSession
 	if (!m_listNotification.empty()) {
 		ULONG ulSize = (ULONG)m_listNotification.size();
 
-		notifications->pNotificationArray = s_alloc<notificationArray>(soap);
+		notifications->pNotificationArray = soap_new_notificationArray(soap);
 		notifications->pNotificationArray->__ptr  = soap_new_notification(soap, ulSize);
 		notifications->pNotificationArray->__size = ulSize;
 

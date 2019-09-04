@@ -54,7 +54,6 @@ ECRESULT			CopyEntryId(struct soap *soap, entryId* lpSrc, entryId** lppDst);
 
 // Notification
 ECRESULT			CopyNotificationStruct(struct soap *, const notification *from, notification &to);
-ECRESULT			FreeNotificationArrayStruct(notificationArray *lpNotifyArray, bool bFreeBase);
 ECRESULT			CopyNotificationArrayStruct(notificationArray *lpNotifyArrayFrom, notificationArray *lpNotifyArrayTo);
 
 // Rights

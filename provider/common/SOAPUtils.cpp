@@ -1077,20 +1077,6 @@ ECRESULT CopyNotificationStruct(struct soap *soap,
 	return erSuccess;
 }
 
-ECRESULT FreeNotificationArrayStruct(notificationArray *lpNotifyArray, bool bFreeBase)
-{
-	if(lpNotifyArray == NULL)
-		return erSuccess;
-	for (gsoap_size_t i = 0; i < lpNotifyArray->__size; ++i)
-		soap_del_notification(&lpNotifyArray->__ptr[i]);
-	SOAP_DELETE_ARRAY(nullptr, lpNotifyArray->__ptr, struct notification);
-	if(bFreeBase)
-		s_free(nullptr, lpNotifyArray);
-	else
-		lpNotifyArray->__size = 0;
-	return erSuccess;
-}
-
 ECRESULT CopyNotificationArrayStruct(notificationArray *lpNotifyArrayFrom, notificationArray *lpNotifyArrayTo)
 {
 	if (lpNotifyArrayFrom == NULL)
