@@ -1165,7 +1165,7 @@ ECRESULT CopySearchCriteria(struct soap *soap,
 		return KCERR_NOT_FOUND;
 
 	ECRESULT er = erSuccess;
-	auto lpDst = s_alloc<searchCriteria>(nullptr);
+	auto lpDst = soap_new_searchCriteria(nullptr);
 	if(lpSrc->lpRestrict) {
 		er = CopyRestrictTable(soap, lpSrc->lpRestrict, &lpDst->lpRestrict);
 		if (er != erSuccess)
@@ -1185,22 +1185,9 @@ ECRESULT CopySearchCriteria(struct soap *soap,
 	lpDst->ulFlags = lpSrc->ulFlags;
 	*lppDst = lpDst;
 exit:
-	if (er != erSuccess && lpDst != NULL) {
-		soap_del_PointerTorestrictTable(&lpDst->lpRestrict);
-		soap_del_PointerToentryList(&lpDst->lpFolders);
-		s_free(nullptr, lpDst);
-	}
+	if (er != erSuccess && soap == nullptr)
+		soap_del_PointerTosearchCriteria(&lpDst);
 	return er;
-}
-
-ECRESULT FreeSearchCriteria(struct searchCriteria *lpSearchCriteria)
-{
-	if (lpSearchCriteria == nullptr)
-		return erSuccess;
-	soap_del_PointerTorestrictTable(&lpSearchCriteria->lpRestrict);
-	soap_del_PointerToentryList(&lpSearchCriteria->lpFolders);
-	s_free(nullptr, lpSearchCriteria);
-	return erSuccess;
 }
 
 /**

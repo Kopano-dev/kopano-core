@@ -3312,7 +3312,7 @@ SOAP_ENTRY_START(tableGetSearchCriteria, lpsResponse->er,
 	if(er != erSuccess)
 		return er;
 
-	auto laters = make_scope_success([&]() { FreeSearchCriteria(lpSearchCriteria); });
+	auto laters = make_scope_success([&]() { soap_del_PointerTosearchCriteria(&lpSearchCriteria); });
 	er = CopyRestrictTable(soap, lpSearchCriteria->lpRestrict, &lpsResponse->lpRestrict);
 	if(er != erSuccess)
 		return er;

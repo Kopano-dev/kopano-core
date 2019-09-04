@@ -113,12 +113,11 @@ ECRESULT ECSearchFolders::LoadSearchFolders()
 			er = erSuccess; // just try to skip the error
 			continue;
 		}
-		FreeSearchCriteria(lpSearchCriteria);
+		soap_del_PointerTosearchCriteria(&lpSearchCriteria);
 		lpSearchCriteria = nullptr;
     }
 
-    if(lpSearchCriteria)
-        FreeSearchCriteria(lpSearchCriteria);
+	soap_del_PointerTosearchCriteria(&lpSearchCriteria);
 	ec_log_notice("Done loading search folders.");
     return er;
 }
@@ -169,7 +168,7 @@ ECRESULT ECSearchFolders::AddSearchFolder(unsigned int ulStoreId,
     struct searchCriteria *lpCriteria = NULL;
     unsigned int ulParent = 0;
 	ulock_rec l_sf(m_mutexMapSearchFolders, std::defer_lock_t());
-	auto cleanup = make_scope_success([&]() { FreeSearchCriteria(lpCriteria); });
+	auto cleanup = make_scope_success([&]() { soap_del_PointerTosearchCriteria(&lpCriteria); });
 
     if(lpSearchCriteria == NULL) {
 		auto er = LoadSearchCriteria(ulFolderId, &lpCriteria);

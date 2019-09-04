@@ -30,7 +30,6 @@ extern ECRESULT CopyRestrictTable(struct soap *soap, const struct restrictTable 
 
 // SearchCriteria
 extern ECRESULT CopySearchCriteria(struct soap *soap, const struct searchCriteria *lpSrc, struct searchCriteria **lppDst);
-extern ECRESULT FreeSearchCriteria(struct searchCriteria *lpSearchCriteria);
 
 // PropValArrays
 extern struct propVal *FindProp(const struct propValArray *lpPropValArray, unsigned int ulPropTag);

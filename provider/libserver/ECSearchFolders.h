@@ -31,7 +31,7 @@ struct SEARCHFOLDER final {
 		ulStoreId(store_id), ulFolderId(folder_id)
 	{}
 	~SEARCHFOLDER() {
-		FreeSearchCriteria(lpSearchCriteria);
+		soap_del_PointerTosearchCriteria(&lpSearchCriteria);
 	}
 
 	struct searchCriteria *lpSearchCriteria = nullptr;
