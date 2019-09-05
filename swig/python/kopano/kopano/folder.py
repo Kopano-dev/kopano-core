@@ -960,7 +960,11 @@ class Folder(Properties):
                         except Exception as e:
                             log.warning(
                                 "could not resolve rule target: %s", str(e))
-                ruledata = ElementTree.tostring(etxml)
+                try:
+                    ruledata = ElementTree.tostring(etxml)
+                except ElementTree.ParseError as e:
+                    log.warning("Unable to backup rules for folder {} : {}".format(folder.name,  str(e)))
+                    return None
 
         return _utils.pickle_dumps({
             b'data': ruledata

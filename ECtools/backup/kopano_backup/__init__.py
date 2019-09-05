@@ -266,7 +266,9 @@ class BackupWorker(kopano.Worker):
         open(data_path+'/folder', 'wb').write(dump_props(folder.props(), stats, self.log))
         if not options.skip_meta:
             open(data_path+'/acl', 'wb').write(folder.permissions_dumps(stats=stats))
-            open(data_path+'/rules', 'wb').write(folder.rules_dumps(stats=stats))
+            rules = folder.rules_dumps(stats=stats)
+            if rules:
+                open(data_path+'/rules', 'wb').write(rules)
         if options.only_meta:
             return
 
@@ -526,7 +528,8 @@ class Service(kopano.Service):
             self.log.info('restoring metadata')
             for (folder, fpath) in meta_folders:
                 folder.permissions_loads(open(fpath+'/acl', 'rb').read(), stats=stats)
-                folder.rules_loads(open(fpath+'/rules', 'rb').read(), stats=stats)
+                if os.path.exists(fpath+'/rules'):
+                    folder.rules_loads(open(fpath+'/rules', 'rb').read(), stats=stats)
 
         # restore store-level metadata (webapp/mapi settings)
         if user and not (self.options.folders or self.options.restore_root or self.options.skip_meta or self.options.sourcekeys):
@@ -901,7 +904,6 @@ def dump_props(props, stats, log):
     with log_exc(log, stats):
         data = dict((prop.proptag, prop.mapiobj.Value) for prop in props)
     return pickle_dumps(data)
-
 
 def main():
     # select common options

@@ -2225,8 +2225,23 @@ static std::mutex g_MAPILock;
 /**
  * MAPIInitialize is the first function called.
  *
- * In Linux, this will already open the libkcclient.so file, and will retrieve
- * the entry point function pointers. If these are not present, the function will fail.
+ * MAPIInitialize loads the MAPI profiles from the user registry. The profile
+ * includes the entryids of stores directly available to the end-user, in other
+ * words, things such as Private Store ("inbox"), Public Store, and personal
+ * address book (ZCONTACTS).
+ *
+ * Under Windows, profiles are generally created _a priori_ (using e.g. the
+ * control panel applet), and it is at this time that a provider discovery is
+ * performed and the store entryids are retrieved. For this reason, if one's
+ * inbox entryid changes, the profile needs to be recreated.
+ *
+ * Under mapi4linux, the MAPI subsystem always starts with an empty profile
+ * list, and the list is never saved on program exit either, as there is no
+ * standard user registry. A profile thus needs to be created after
+ * MAPIInitialize everytime. Profile creation and actual logon can be carried
+ * out by the HrOpenECSession helper function.
+ *
+ * For profile persistence, KC offers the kc_session_save/restore API.
  *
  * @param[in] lpMapiInit
  *			Optional pointer to MAPIINIT struct. Unused in Linux.
