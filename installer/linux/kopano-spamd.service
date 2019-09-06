@@ -5,7 +5,7 @@ Documentation=man:kopano-spamd(8) man:kopano-spamd.cfg(5)
 [Service]
 Type=simple
 Environment=LC_ALL=C LANG=C
-ExecStart=/usr/sbin/kopano-spamd -F
+ExecStart=/usr/sbin/kopano-spamd
 ExecReload=/bin/kill -HUP $MAINPID
 
 [Install]

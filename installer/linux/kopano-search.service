@@ -4,7 +4,7 @@ Documentation=man:kopano-search(8) man:kopano-search.cfg(5)
 
 [Service]
 Type=simple
-ExecStart=/usr/sbin/kopano-search -F
+ExecStart=/usr/sbin/kopano-search
 ExecReload=/bin/kill -HUP $MAINPID
 
 [Install]

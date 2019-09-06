@@ -103,8 +103,6 @@ Available options:
 
 -e, --period-end: Run program for specific period
 
--F, --foreground: Run service in foreground
-
 -m, --modify: Enable modification (python-kopano does not check this!)
 
 -l, --log-level: Set log level (debug, info, warning, error, critical)
@@ -206,10 +204,7 @@ Available options:
         )
 
     if 'F' in options:
-        parser.add_option(
-            '-F', '--foreground', dest='foreground',
-            action='store_true', help='run program in foreground'
-        )
+        parser.add_option('-F')
 
     if 'm' in options:
         parser.add_option(
