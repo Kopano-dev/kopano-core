@@ -58,14 +58,15 @@ Special developer-only treats:
 	  Amends the API/ABI such that calling AddRef() and Release()
 	  on an object_ptr<T> is disallowed.
 
-Building
+
+== Building ==
 
 As is common for autotools-based projects, if there is no "configure" file
 in your download, it has to be created with `autoreconf -fi`. There is a
 `bootstrap.sh` file in KC that can also be used.
 
 
-About VMIME
+== About VMIME ==
 
 Upstream VMIME is presently not doing regular releases and there is no trivial
 way to enforce a particular version. Therefore, Kopano's VMIME repository
@@ -76,3 +77,8 @@ To use a non-Kopano vmime, the version check needs to be overridden with:
 
 	./configure vmime_CFLAGS="$(pkg-config vmime --cflags)" \
 		vmime_LIBS="$(pkg-config vmime --libs)"
+
+
+== Testsuite ==
+
+	./setupenv make -C tests/ check
