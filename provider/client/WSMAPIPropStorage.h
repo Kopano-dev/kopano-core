@@ -52,7 +52,6 @@ private:
 	virtual KC::ECRESULT EcFillPropValues(const struct saveObject *, MAPIOBJECT *);
 	virtual HRESULT HrMapiObjectToSoapObject(const MAPIOBJECT *, struct saveObject *, KC::convert_context *);
 	virtual HRESULT HrUpdateSoapObject(const MAPIOBJECT *, struct saveObject *, KC::convert_context *);
-	virtual void    DeleteSoapObject(struct saveObject *lpSaveObj);
 	virtual HRESULT HrUpdateMapiObject(MAPIOBJECT *, const struct saveObject *);
 	virtual KC::ECRESULT ECSoapObjectToMapiObject(const struct saveObject *, MAPIOBJECT *);
 	static HRESULT Reload(void *parm, KC::ECSESSIONID);
