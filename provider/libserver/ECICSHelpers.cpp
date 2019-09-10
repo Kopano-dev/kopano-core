@@ -643,8 +643,8 @@ ECRESULT ECGetContentChangesHelper::QueryDatabase(DB_RESULT *lppDBResult)
 	else
 		ulChanges = 0;
 
-	m_lpChanges = s_alloc<icsChangesArray>(m_soap);
-	m_lpChanges->__ptr = s_alloc<icsChange>(m_soap, ulChanges);
+	m_lpChanges = soap_new_icsChangesArray(m_soap);
+	m_lpChanges->__ptr  = soap_new_icsChange(m_soap, ulChanges);
 	m_lpChanges->__size = 0;
 	assert(lppDBResult != NULL);
 	*lppDBResult = std::move(lpDBResult);

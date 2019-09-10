@@ -1384,7 +1384,7 @@ ECRESULT GetNamesFromIDs(struct soap *soap, ECDatabase *lpDatabase, struct propT
 {
 	DB_RESULT lpDBResult;
 	// Allocate memory for return object
-	lpsNames->__ptr = s_alloc<namedProp>(soap, lpPropTags->__size);
+	lpsNames->__ptr  = soap_new_namedProp(soap, lpPropTags->__size);
 	lpsNames->__size = lpPropTags->__size;
 
 	for (gsoap_size_t i = 0; i < lpPropTags->__size; ++i) {
