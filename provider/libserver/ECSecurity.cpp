@@ -31,22 +31,6 @@
 
 namespace KC {
 
-template<typename Z> class unique_feeder {
-	public:
-	unique_feeder(std::unique_ptr<Z> &arg) : m_ptr(arg), m_data(new Z) {}
-	unique_feeder(unique_feeder<Z> &&o) = default;
-	~unique_feeder() { m_ptr = std::move(m_data); }
-	Z &operator*() { return *m_data; }
-	private:
-	typename std::unique_ptr<Z> &m_ptr;
-	typename std::unique_ptr<Z> m_data;
-};
-
-template<typename Z> static unique_feeder<Z> make_feeder(std::unique_ptr<Z> &arg)
-{
-	return unique_feeder<Z>(arg);
-}
-
 #define MAX_PARENT_LIMIT 64
 
 static const char *RightsToString(unsigned int ulecRights)
@@ -147,8 +131,10 @@ public:
  *
  * @return Kopano error code
  */
-ECRESULT ECSecurity::GetGroupsForUser(unsigned int ulUserId, std::list<localobjectdetails_t> &groups)
+ECRESULT ECSecurity::GetGroupsForUser(unsigned int ulUserId,
+    std::unique_ptr<std::list<localobjectdetails_t>> &group_out)
 {
+	std::list<localobjectdetails_t> groups;
 	cUniqueGroup cSeenGroups;
 
 	/* Gets the current user's membership information.
@@ -182,6 +168,9 @@ ECRESULT ECSecurity::GetGroupsForUser(unsigned int ulUserId, std::list<localobje
 		// Ignore error (e.g. cannot use that function on group Everyone)
 		++iterGroups;
 	}
+	group_out = make_unique_nt<decltype(groups)>(std::move(groups));
+	if (group_out == nullptr)
+		return KCERR_NOT_ENOUGH_MEMORY;
 	return erSuccess;
 }
 
@@ -221,7 +210,7 @@ ECRESULT ECSecurity::GetObjectPermission(unsigned int ulObjId, unsigned int* lpu
 					bFoundACL = true;
 				}
 			// Also check for groups that we are in, and add those permissions
-			if (m_lpGroups || GetGroupsForUser(m_ulUserID, *make_feeder(m_lpGroups)) == erSuccess)
+			if (m_lpGroups != nullptr || GetGroupsForUser(m_ulUserID, m_lpGroups) == erSuccess)
 				for (const auto &grp : *m_lpGroups)
 					for (gsoap_size_t i = 0; i < lpRights->__size; ++i)
 						if (lpRights->__ptr[i].ulType == ACCESS_TYPE_GRANT &&
@@ -740,7 +729,7 @@ ECRESULT ECSecurity::GetViewableCompanyIds(unsigned int ulFlags,
 	 * want all details while others will only want the IDs.
 	 */
 	if (!m_lpViewCompanies) {
-		auto er = GetViewableCompanies(0, *make_feeder(m_lpViewCompanies));
+		auto er = GetViewableCompanies(0, m_lpViewCompanies);
 		if (er != erSuccess)
 			return er;
 	}
@@ -792,7 +781,7 @@ ECRESULT ECSecurity::IsUserObjectVisible(unsigned int ulUserObjectId)
 	if (sExternId.objclass == CONTAINER_COMPANY)
 		ulCompanyId = ulUserObjectId;
 	if (!m_lpViewCompanies) {
-		er = GetViewableCompanies(0, *make_feeder(m_lpViewCompanies));
+		er = GetViewableCompanies(0, m_lpViewCompanies);
 		if (er != erSuccess)
 			return er;
 	}
@@ -816,8 +805,9 @@ ECRESULT ECSecurity::IsUserObjectVisible(unsigned int ulUserObjectId)
  * @return
  */
 ECRESULT ECSecurity::GetViewableCompanies(unsigned int ulFlags,
-    std::list<localobjectdetails_t> &objs) const
+    std::unique_ptr<std::list<localobjectdetails_t>> &obj_out) const
 {
+	std::list<localobjectdetails_t> objs;
 	ECRESULT er = erSuccess;
 	objectdetails_t details;
 	auto usrmgt = m_lpSession->GetUserManagement();
@@ -850,6 +840,9 @@ ECRESULT ECSecurity::GetViewableCompanies(unsigned int ulFlags,
 	}
 	objs.sort();
 	objs.unique();
+	obj_out = make_unique_nt<decltype(objs)>(std::move(objs));
+	if (obj_out == nullptr)
+		return KCERR_NOT_ENOUGH_MEMORY;
 	return erSuccess;
 }
 
@@ -862,8 +855,9 @@ ECRESULT ECSecurity::GetViewableCompanies(unsigned int ulFlags,
  * @return Kopano error code
  */
 ECRESULT ECSecurity::GetAdminCompanies(unsigned int ulFlags,
-    std::list<localobjectdetails_t> &objs)
+    std::unique_ptr<std::list<localobjectdetails_t>> &obj_out)
 {
+	std::list<localobjectdetails_t> objs;
 	ECRESULT er = erSuccess;
 	auto usrmgt = m_lpSession->GetUserManagement();
 
@@ -883,6 +877,9 @@ ECRESULT ECSecurity::GetAdminCompanies(unsigned int ulFlags,
 		else
 			++iterObjects;
 
+	obj_out = make_unique_nt<decltype(objs)>(std::move(objs));
+	if (obj_out == nullptr)
+		return KCERR_NOT_ENOUGH_MEMORY;
 	return erSuccess;
 }
 
@@ -1023,7 +1020,7 @@ ECRESULT ECSecurity::IsAdminOverUserObject(unsigned int ulUserObjectId)
 		return KCERR_NO_ACCESS;
 	}
 	if (!m_lpAdminCompanies) {
-		er = GetAdminCompanies(USERMANAGEMENT_IDS_ONLY, *make_feeder(m_lpAdminCompanies));
+		er = GetAdminCompanies(USERMANAGEMENT_IDS_ONLY, m_lpAdminCompanies);
 		if (er != erSuccess)
 			return er;
 	}
