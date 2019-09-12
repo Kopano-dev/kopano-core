@@ -1,5 +1,17 @@
 8.8.x
 =====
+All changes from the 8.7.x branch up to 8.7.5 are included.
+Enhancements:
+* daemons: a new config variable "tls_min_proto" is available
+  (kopano-server: "server_tls_min_proto") [KC-1439]
+* daemons: SCTP socket support [KC-1508]
+* server/client: new RPC for batch creation of folders; this improves
+  store creation time by +5–8% [KC-1258]
+* client: enable write-caching for properties on stores and folders;
+  improves e.g. store creation time by another +17% [KC-1585]
+* server: configurable fanout factor for files_v1 attachment backend [KC-1540]
+Changes:
+* PHP5 support has been dropped [KC-1042]
 
 
 8.7.82 (8.8.x Milestone 2)
@@ -15,7 +27,7 @@ Fixes:
 
 8.7.81 (8.8.x Milestone 1)
 ==========================
-All changes from the 8.7.x branch up to 8.7.2 included.
+All changes from the 8.7.x branch up to 8.7.2 are included.
 Enhancements:
 * ldapplugin: 22% speedup in retriving the entire user list [KC-1399]
 * client: avoid double-fetching PR_RTF_COMPRESSED_DATA [KC-1349]
