@@ -1,5 +1,9 @@
 8.8.x
 =====
+
+
+8.7.83 (2019-09-12)
+===================
 All changes from the 8.7.x branch up to 8.7.5 are included.
 Enhancements:
 * daemons: a new config variable "tls_min_proto" is available
@@ -14,8 +18,8 @@ Changes:
 * PHP5 support has been dropped [KC-1042]
 
 
-8.7.82 (8.8.x Milestone 2)
-==========================
+8.7.82 (2019-07-03)
+===================
 All changes from the 8.7.x branch up to 8.7.4 included.
 Enhancements:
 * php: added PHP API to read multi-vcard VCF [KC-1487]
@@ -25,8 +29,8 @@ Fixes:
 * server: cure emission of repeated K-1515 messages [KC-1519]
 
 
-8.7.81 (8.8.x Milestone 1)
-==========================
+8.7.81 (2019-05-14)
+===================
 All changes from the 8.7.x branch up to 8.7.2 are included.
 Enhancements:
 * ldapplugin: 22% speedup in retriving the entire user list [KC-1399]
