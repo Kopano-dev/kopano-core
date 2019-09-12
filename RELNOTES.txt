@@ -1,3 +1,12 @@
+8.7.6
+=====
+Fixes:
+* spooler: shorter Message-Ids to adhere to RFC [KC-1548]
+* spooler: avoid setting PYTHONPATH repeatedly [KC-1558]
+* server: remove assertions on normal behavior [KC-1551, KC-1552, KC-1011]
+* server: avoid emission of K-1504 log messages [KC-1589]
+
+
 8.7.5 (2019-07-09)
 ==================
 Fixes:
