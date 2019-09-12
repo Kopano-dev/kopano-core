@@ -58,7 +58,7 @@ An interface name may be appended to the address with a percent sign to make
 use of the Linux-specific SO_BINDTODEVICE socket option, e.g.
 "[fe80::1]%eth0:8080").
 .PP
-Default: \fI*:8080\fP
+Default: \fI*%lo:8080\fP
 .SS icals_listen
 A space-separated list of address:port spcifiers for implicit-SSL CalDAV/HTTPS
 connections, similar to \fBical_listen\fP. Previous versions of ZCP/KC
