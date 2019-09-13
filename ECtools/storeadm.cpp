@@ -16,12 +16,14 @@
 #include <kopano/CommonUtil.h>
 #include <kopano/ECABEntryID.h>
 #include <kopano/ECConfig.h>
+#include <kopano/ECGetText.h>
 #include <kopano/ECLogger.h>
 #include <kopano/ECRestriction.h>
 #include <kopano/EMSAbTag.h>
 #include <kopano/IECInterfaces.hpp>
 #include <kopano/MAPIErrors.h>
 #include <kopano/ecversion.h>
+#include <kopano/mapiext.h>
 #include <kopano/platform.h>
 #include <kopano/stringutil.h>
 #include <kopano/timeutil.hpp>
@@ -34,7 +36,7 @@ using namespace KC;
 
 static int opt_create_store, opt_create_public, opt_detach_store;
 static int opt_copytopublic, opt_list_orphan, opt_show_version;
-static int opt_list_mbt;
+static int opt_list_mbt, opt_localize_folders;
 static const char *opt_attach_store, *opt_remove_store;
 static const char *opt_config_file, *opt_host;
 static const char *opt_entity_name, *opt_entity_type;
@@ -50,6 +52,7 @@ static constexpr const struct HXoption adm_options[] = {
 	{nullptr, 'P', HXTYPE_NONE, &opt_create_public, nullptr, nullptr, 0, "Create a public store"},
 	{nullptr, 'R', HXTYPE_STRING, &opt_remove_store, nullptr, nullptr, 0, "Remove an orphaned store by GUID", "GUID"},
 	{nullptr, 'V', HXTYPE_NONE, &opt_show_version, nullptr, nullptr, 0, "Show the program version"},
+	{nullptr, 'Y', HXTYPE_NONE, &opt_localize_folders, nullptr, nullptr, 0, "Re-localize standard folders"},
 	{nullptr, 'c', HXTYPE_STRING, &opt_config_file, nullptr, nullptr, 0, "Specify alternate config file", "FILENAME"},
 	{nullptr, 'h', HXTYPE_STRING, &opt_host, nullptr, nullptr, 0, "URI for server", "URI"},
 	{nullptr, 'k', HXTYPE_STRING, &opt_companyname, nullptr, nullptr, 0, "Name of the company for creating a public store in a multi-tenant setup", "NAME"},
@@ -711,6 +714,154 @@ static HRESULT adm_remove_store(IECServiceAdmin *svcadm, const char *hexguid)
 	return hrSuccess;
 }
 
+static HRESULT adm_snreport(HRESULT ret, const char *old, const wchar_t *nw)
+{
+	if (ret == MAPI_E_NOT_FOUND)
+		ec_log_info("Skipping %s (no such proptag/folder)", old);
+	else if (ret != hrSuccess)
+		ec_log_err("Error during lookup of %s: %s", old, GetMAPIErrorMessage(ret));
+	else
+		ec_log_notice("Renamed %s -> \"%s\"", old, convert_to<std::string>(nw).c_str());
+	return ret;
+}
+
+static HRESULT adm_setname(IMAPIProp *fld, const char *plain)
+{
+	SPropValue pv;
+	pv.ulPropTag   = PR_DISPLAY_NAME_W;
+	pv.Value.lpszW = KC_TX(plain);
+	return adm_snreport(HrSetOneProp(fld, &pv), plain, pv.Value.lpszW);
+}
+
+template<typename C> static HRESULT
+adm_setname(C &parent, unsigned int tag, const char *plain)
+{
+	memory_ptr<SPropValue> pv;
+	auto ret = HrGetOneProp(parent, tag, &~pv);
+	if (ret != hrSuccess)
+		return adm_snreport(ret, plain, L"");
+	object_ptr<IMAPIFolder> fld;
+	unsigned int type = 0;
+	ret = parent->OpenEntry(pv->Value.bin.cb, reinterpret_cast<const ENTRYID *>(pv->Value.bin.lpb),
+	      &iid_of(fld), MAPI_MODIFY, &type, &~fld);
+	if (ret != hrSuccess)
+		return adm_snreport(ret, plain, L"");
+	return adm_setname(fld, plain);
+}
+
+static HRESULT adm_setname_ren(IMsgStore *store, IMAPIContainer *parent,
+    unsigned int atag, unsigned int mvpos, const char *plain)
+{
+	memory_ptr<SPropValue> pv;
+	auto ret = HrGetOneProp(parent, PR_ADDITIONAL_REN_ENTRYIDS, &~pv);
+	if (ret != hrSuccess)
+		return adm_snreport(ret, plain, L"");
+	if (mvpos >= pv->Value.MVbin.cValues)
+		return adm_snreport(MAPI_E_NOT_FOUND, plain, L"");
+	object_ptr<IMAPIFolder> fld;
+	unsigned int type = 0;
+	const auto &eid = pv->Value.MVbin.lpbin[mvpos];
+	ret = store->OpenEntry(eid.cb, reinterpret_cast<const ENTRYID *>(eid.lpb),
+	      &iid_of(fld), MAPI_MODIFY, &type, &~fld);
+	if (ret != hrSuccess)
+		return adm_snreport(ret, plain, L"");
+	return adm_setname(fld, plain);
+}
+
+static HRESULT adm_setname_rsf(IMsgStore *store, IMAPIContainer *parent,
+    unsigned int search_type, const char *plain)
+{
+	struct elbuf {
+		uint16_t type, unknown1, block_type, eid_size;
+	} elb;
+	memory_ptr<SPropValue> pv;
+	auto ret = HrGetOneProp(parent, PR_IPM_OL2007_ENTRYIDS, &~pv);
+	if (ret != hrSuccess)
+		return adm_snreport(ret, plain, L"");
+	auto &rem = pv->Value.bin.cb;
+	for (auto ptr = pv->Value.bin.lpb; rem >= sizeof(elbuf); ) {
+		memcpy(&elb, ptr, sizeof(elb));
+		elb.type = le16_to_cpu(elb.type);
+		elb.eid_size = le16_to_cpu(elb.eid_size);
+		if (elb.type == 0 || rem < elb.eid_size + sizeof(elb))
+			break;
+		if (elb.type == search_type) {
+			object_ptr<IMAPIFolder> fld;
+			unsigned int type = 0;
+			ret = store->OpenEntry(elb.eid_size, reinterpret_cast<const ENTRYID *>(ptr + sizeof(elb)),
+			      &iid_of(fld), MAPI_MODIFY, &type, &~fld);
+			if (ret != hrSuccess)
+				break;
+			return adm_setname(fld, plain);
+		}
+		ptr += elb.eid_size + sizeof(elb);
+		rem -= elb.eid_size + sizeof(elb);
+	}
+	return adm_snreport(MAPI_E_NOT_FOUND, plain, L"");
+}
+
+static HRESULT adm_localize(KServerContext &srvctx)
+{
+	object_ptr<IExchangeManageStore> ms;
+	auto ret = srvctx.m_admstore->QueryInterface(IID_IExchangeManageStore, &~ms);
+	if (ret != hrSuccess)
+		return kc_perrorf("QueryInterface", ret);
+	unsigned int type = 0, pv_size = 0;
+	memory_ptr<ENTRYID> pv_eid;
+	ret = ms->CreateStoreEntryID(reinterpret_cast<const TCHAR *>(""), reinterpret_cast<const TCHAR *>(opt_entity_name),
+	      0, &pv_size, &~pv_eid);
+	if (ret != hrSuccess)
+		return kc_perrorf("CreateStoreEntryID", ret);
+	object_ptr<IMsgStore> ustore;
+	ret = srvctx.m_session->OpenMsgStore(0, pv_size, pv_eid, &iid_of(ustore), MDB_WRITE, &~ustore);
+	if (ret != hrSuccess)
+		return kc_perrorf("OpenMsgStore", ret);
+	object_ptr<IMAPIFolder> root, inbox;
+	ret = ustore->OpenEntry(0, nullptr, &iid_of(root), MAPI_BEST_ACCESS | MAPI_MODIFY, &type, &~root);
+	if (ret != hrSuccess)
+		return kc_perrorf("open_root", ret);
+
+	/* keep in sync with ECMsgStore.cpp and ECExchangeImportContentsChanges.cpp */
+	adm_setname(ustore, PR_COMMON_VIEWS_ENTRYID, "IPM_COMMON_VIEWS");
+	adm_setname(ustore, PR_VIEWS_ENTRYID, "IPM_VIEWS");
+	adm_setname(ustore, PR_FINDER_ENTRYID, "FINDER_ROOT");
+	adm_setname(ustore, PR_IPM_FAVORITES_ENTRYID, "Shortcut");
+	adm_setname(ustore, PR_SCHEDULE_FOLDER_ENTRYID, "Schedule");
+	adm_setname(ustore, PR_IPM_OUTBOX_ENTRYID, "Outbox");
+	adm_setname(ustore, PR_IPM_WASTEBASKET_ENTRYID, "Deleted Items");
+	adm_setname(ustore, PR_IPM_SENTMAIL_ENTRYID, "Sent Items");
+
+	ret = ustore->GetReceiveFolder(reinterpret_cast<const TCHAR *>("IPM"), 0, &pv_size, &~pv_eid, nullptr);
+	if (ret == MAPI_E_NOT_FOUND)
+		return hrSuccess;
+	else if (ret != hrSuccess)
+		return kc_perrorf("GetReceiveFolder", ret);
+	ret = root->OpenEntry(pv_size, reinterpret_cast<const ENTRYID *>(pv_eid.get()),
+	      &iid_of(inbox), MAPI_BEST_ACCESS | MAPI_MODIFY, &type, &~inbox);
+	if (ret == MAPI_E_NOT_FOUND)
+		return hrSuccess;
+	else if (ret != hrSuccess)
+		return ret;
+
+	adm_setname(inbox, "Inbox");
+	adm_setname(inbox, PR_IPM_CONTACT_ENTRYID, "Contacts");
+	adm_setname(inbox, PR_IPM_APPOINTMENT_ENTRYID, "Calendar");
+	adm_setname(inbox, PR_IPM_DRAFTS_ENTRYID, "Drafts");
+	adm_setname(inbox, PR_IPM_JOURNAL_ENTRYID, "Journal");
+	adm_setname(inbox, PR_IPM_NOTE_ENTRYID, "Notes");
+	adm_setname(inbox, PR_IPM_TASK_ENTRYID, "Tasks");
+	adm_setname_ren(ustore, inbox, PR_ADDITIONAL_REN_ENTRYIDS, 0, "Conflicts");
+	adm_setname_ren(ustore, inbox, PR_ADDITIONAL_REN_ENTRYIDS, 1, "Sync Issues");
+	adm_setname_ren(ustore, inbox, PR_ADDITIONAL_REN_ENTRYIDS, 2, "Local Failures");
+	adm_setname_ren(ustore, inbox, PR_ADDITIONAL_REN_ENTRYIDS, 3, "Server Failures");
+	adm_setname_ren(ustore, inbox, PR_ADDITIONAL_REN_ENTRYIDS, 4, "Junk E-mail");
+	adm_setname_rsf(ustore, inbox, RSF_PID_RSS_SUBSCRIPTION, "RSS Feeds");
+	adm_setname_rsf(ustore, inbox, RSF_PID_CONV_ACTIONS, "Conversation Action Settings");
+	adm_setname_rsf(ustore, inbox, RSF_PID_COMBINED_ACTIONS, "Quick Step Settings");
+	adm_setname_rsf(ustore, inbox, RSF_PID_SUGGESTED_CONTACTS, "Suggested Contacts");
+	return hrSuccess;
+}
+
 static HRESULT adm_perform()
 {
 	if (opt_show_version) {
@@ -741,6 +892,8 @@ static HRESULT adm_perform()
 		return adm_list_orphans(srvctx.m_svcadm);
 	if (opt_list_mbt)
 		return adm_list_mbt(srvctx);
+	if (opt_localize_folders)
+		return adm_localize(srvctx);
 	return MAPI_E_CALL_FAILED;
 }
 
@@ -761,12 +914,12 @@ static bool adm_parse_options(int &argc, const char **&argv)
 	}
 	auto act = !!opt_attach_store + !!opt_detach_store + !!opt_create_store +
 	           !!opt_remove_store + !!opt_create_public + !!opt_list_orphan +
-	           !!opt_list_mbt + !!opt_show_version;
+	           !!opt_list_mbt + !!opt_show_version + !!opt_localize_folders;
 	if (act > 1) {
-		fprintf(stderr, "-A, -C, -D, -M, -O, -P, -R and -V are mutually exclusive.\n");
+		fprintf(stderr, "-A, -C, -D, -M, -O, -P, -R, -V and -Y are mutually exclusive.\n");
 		return false;
 	} else if (act == 0) {
-		fprintf(stderr, "One of -A, -C, -D, -M, -O, -P, -R, -V or -? must be specified.\n");
+		fprintf(stderr, "One of -A, -C, -D, -M, -O, -P, -R, -V, -Y or -? must be specified.\n");
 		return false;
 	} else if (opt_attach_store != nullptr && ((opt_entity_name != nullptr) == !!opt_copytopublic)) {
 		fprintf(stderr, "-A needs exactly one of -n or -p.\n");
@@ -777,11 +930,12 @@ static bool adm_parse_options(int &argc, const char **&argv)
 	} else if (opt_companyname != nullptr && !opt_copytopublic) {
 		fprintf(stderr, "-k can only be used with -P.\n");
 		return false;
-	} else if (opt_lang != nullptr && !opt_create_store && !opt_create_public) {
-		fprintf(stderr, "-l can only be used with -C or -P.\n");
+	} else if (opt_lang != nullptr && !opt_create_store && !opt_create_public && !opt_localize_folders) {
+		fprintf(stderr, "-l can only be used with -C/-P/-Y.\n");
 		return false;
-	} else if (opt_entity_name != nullptr && !opt_attach_store && !opt_create_store && !opt_detach_store) {
-		fprintf(stderr, "-n can only be used with -A/-C/-D.\n");
+	} else if (opt_entity_name != nullptr && !opt_attach_store && !opt_create_store &&
+	    !opt_detach_store && !opt_localize_folders) {
+		fprintf(stderr, "-n can only be used with -A/-C/-D/-Y.\n");
 		return false;
 	} else if (opt_copytopublic && !opt_attach_store) {
 		fprintf(stderr, "-p can only be used with -A.\n");
@@ -790,8 +944,12 @@ static bool adm_parse_options(int &argc, const char **&argv)
 		fprintf(stderr, "-t can only be used with -n.\n");
 		return false;
 	}
-	if (opt_lang == nullptr)
+	if (opt_lang == nullptr) {
 		opt_lang = adm_config->GetSetting("default_store_locale");
+		if (opt_localize_folders)
+			fprintf(stderr, "The -l option was not specified; "
+			        "\"%s\" will be used as language.\n", opt_lang);
+	}
 	return true;
 }
 
