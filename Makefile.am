@@ -105,7 +105,6 @@ dist_sbin_SCRIPTS = ECtools/utils/kopano-mailbox-permissions \
 	ECtools/archiver/scripts/kopano-archiver-aclsync \
 	ECtools/archiver/scripts/kopano-archiver-restore \
 	tools/python-scripts/kopano-fix-ipm-subtree \
-	tools/python-scripts/kopano-localize-folders \
 	tools/python-scripts/kopano-recreate-systemfolders \
 	tools/python-scripts/kopano-cachestat
 endif # ENABLE_PYTHON
