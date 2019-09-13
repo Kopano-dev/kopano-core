@@ -25,6 +25,7 @@
 #include <kopano/memory.hpp>
 #include "StatsClient.h"
 #include <kopano/stringutil.h>
+#include "LDAPCache.h"
 #include "LDAPUserPlugin.h"
 #include "ldappasswords.h"
 #include <kopano/ecversion.h>
@@ -223,7 +224,7 @@ static HRESULT BintoEscapeSequence(const char *data, size_t size, std::string *)
 static std::string StringEscapeSequence(const std::string &);
 static std::string StringEscapeSequence(const char *, size_t);
 
-std::unique_ptr<LDAPCache> LDAPUserPlugin::m_lpCache(new LDAPCache());
+std::unique_ptr<LDAPCache> LDAPUserPlugin::m_lpCache{std::make_unique<LDAPCache>()};
 
 template<typename T> static constexpr inline LONGLONG dur2us(const T &t)
 {
@@ -2156,6 +2157,10 @@ LDAPUserPlugin::getParentObjectsForObject(userobject_relation_t relation,
 	const char *unique_attr = nullptr, *member_attr = nullptr;
 	const char *member_attr_type = nullptr, *member_attr_rel = nullptr;
 
+	auto cache_result = m_lpCache->get_parents(relation, childobject);
+	if (cache_result.first)
+		return cache_result.second;
+
 	switch (childobject.objclass) {
 	case OBJECTCLASS_USER:
 	case ACTIVE_USER:
@@ -2247,8 +2252,10 @@ LDAPUserPlugin::getParentObjectsForObject(userobject_relation_t relation,
 		member_data = objectUniqueIDtoAttributeData(childobject, member_attr_rel);
 
 	ldap_filter = "(&" + ldap_filter + "(" + member_attr + "=" + StringEscapeSequence(member_data) + "))";
-	return getAllObjectsByFilter(ldap_basedn, LDAP_SCOPE_SUBTREE,
+	cache_result.second = getAllObjectsByFilter(ldap_basedn, LDAP_SCOPE_SUBTREE,
 	       ldap_filter, string(), false);
+	m_lpCache->set_parents(relation, childobject, cache_result.second);
+	return cache_result.second;
 }
 
 signatures_t

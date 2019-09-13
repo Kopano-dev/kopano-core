@@ -158,3 +158,32 @@ bool LDAPCache::isDNInList(const dn_list_t &lpList, const std::string &dn)
 
 	return false;
 }
+
+std::pair<bool, signatures_t> LDAPCache::get_parents(userobject_relation_t rel,
+    const objectid_t &child)
+{
+	ulock_normal lock(m_parents_lock);
+	signatures_t sigstor;
+	timed_sglist_t *sigp = nullptr;
+	auto ci = m_parent_cache.find(rel);
+	if (ci == m_parent_cache.cend())
+		return {false, sigstor};
+	auto &cac = ci->second;
+	auto ret = cac.GetCacheItem(child, &sigp);
+	if (ret != erSuccess)
+		return {false, sigstor};
+	sigstor = *sigp;
+	lock.unlock();
+	return {true, sigstor};
+}
+
+void LDAPCache::set_parents(userobject_relation_t rel, const objectid_t &child,
+    const signatures_t &sig)
+{
+	std::lock_guard<std::mutex> lock(m_parents_lock);
+	auto ci = m_parent_cache.find(rel);
+	if (ci == m_parent_cache.cend())
+		ci = m_parent_cache.emplace(rel, parent_cache_t("ldapcache-parent", 256000, 300)).first;
+	auto &cac = ci->second;
+	cac.AddCacheItem(child, sig);
+}

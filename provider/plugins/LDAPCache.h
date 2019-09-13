@@ -14,8 +14,13 @@
 #include <map>
 #include <mutex>
 #include <string>
+#include <unordered_map>
+#include <utility>
 #include <kopano/ECDefs.h>
 #include <kopano/pcuser.hpp>
+#include <kopano/timeutil.hpp>
+#include "ECCache.h"
+#include "plugin.h"
 
 using namespace KC;
 class LDAPUserPlugin;
@@ -37,12 +42,21 @@ typedef std::list<std::string> dn_list_t;
  */
 class LDAPCache final {
 private:
-	/* Protect mutex from being overridden */
+	/* objectid => DN */
 	std::recursive_mutex m_hMutex;
 	dn_cache_t m_lpCompanyCache; /* CONTAINER_COMPANY */
 	dn_cache_t m_lpGroupCache; /* OBJECTCLASS_DISTLIST */
 	dn_cache_t m_lpUserCache; /* OBJECTCLASS_USER */
 	dn_cache_t m_lpAddressListCache; /* CONTAINER_ADDRESSLIST */
+	/* objectid => signatures */
+	class timed_sglist_t : public signatures_t, public ECsCacheEntry {
+		public:
+		timed_sglist_t(const signatures_t &a) : signatures_t(a) {}
+		timed_sglist_t(signatures_t &&a) : signatures_t(std::move(a)) {}
+	};
+	typedef ECCache<std::map<objectid_t, timed_sglist_t>> parent_cache_t;
+	std::mutex m_parents_lock;
+	std::map<userobject_relation_t, parent_cache_t> m_parent_cache;
 
 public:
 	/**
@@ -120,6 +134,9 @@ public:
 	 * @return TRUE if the DN is found in the list
 	 */
 	static bool isDNInList(const dn_list_t &, const std::string &dn);
+
+	std::pair<bool, signatures_t> get_parents(userobject_relation_t, const objectid_t &);
+	void set_parents(userobject_relation_t, const objectid_t &, const signatures_t &);
 };
 
 /** @} */
