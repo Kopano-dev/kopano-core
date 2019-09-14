@@ -613,7 +613,7 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn,
 	m_lpStatsCollector->inc(SCN_LDAP_CONNECTS);
 	m_lpStatsCollector->inc(SCN_LDAP_CONNECT_TIME, llelapsedtime);
 	m_lpStatsCollector->Max(SCN_LDAP_CONNECT_TIME_MAX, llelapsedtime);
-	LOG_PLUGIN_DEBUG("ldaptiming [%08.2f] connected to ldap", llelapsedtime / 1000000.0);
+	LOG_PLUGIN_DEBUG("ldaptiming [%luµs] connected to ldap", static_cast<unsigned long>(llelapsedtime));
 	return ld;
 }
 
@@ -689,7 +689,7 @@ void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char 
 	}
 
 	llelapsedtime = dur2us(decltype(tstart)::clock::now() - tstart);
-	LOG_PLUGIN_DEBUG("ldaptiming [%08.2f] (\"%s\" \"%s\" %s), results: %d", llelapsedtime/1000000.0, base, filter, req.c_str(), ldap_count_entries(m_ldap, res));
+	LOG_PLUGIN_DEBUG("ldaptiming [%luµs] (\"%s\" \"%s\" %s), results: %d", llelapsedtime, base, filter, req.c_str(), ldap_count_entries(m_ldap, res));
 	*lppres = res.release(); // deref the pointer from object
 	m_lpStatsCollector->inc(SCN_LDAP_SEARCH);
 	m_lpStatsCollector->inc(SCN_LDAP_SEARCH_TIME, llelapsedtime);
