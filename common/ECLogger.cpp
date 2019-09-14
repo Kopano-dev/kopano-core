@@ -122,13 +122,15 @@ void ECLogger::SetLoglevel(unsigned int max_ll) {
 
 size_t ECLogger::MakeTimestamp(char *buffer, size_t z)
 {
-	time_t now = time(NULL);
+	struct timespec ts;
+	clock_gettime(CLOCK_REALTIME, &ts);
 	tm local;
 
-	localtime_r(&now, &local);
-	if (timelocale)
-		return strftime_l(buffer, z, "%c", &local, timelocale);
-	return strftime(buffer, z, "%c", &local);
+	localtime_r(&ts.tv_sec, &local);
+	if (strftime(buffer, z, "%FT%T", &local) == 0)
+		return 0;
+	snprintf(buffer + strlen(buffer), z - strlen(buffer), ".%06ld", ts.tv_nsec / 1000);
+	return strlen(buffer);
 }
 
 bool ECLogger::Log(unsigned int loglevel) {
