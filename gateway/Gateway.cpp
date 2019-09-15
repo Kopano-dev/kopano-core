@@ -582,8 +582,9 @@ static HRESULT handler_client(size_t i)
 		if (unix_fork_function(Handler, lpHandlerArgs.get(), g_socks.linfd.size(), &g_socks.linfd[0]) < 0) {
 			ec_log_err("Could not create %s %s: %s", method, model, strerror(errno));
 			--nChildren;
+			return MAPI_E_CALL_FAILED;
 		}
-		return MAPI_E_CALL_FAILED;
+		return hrSuccess;
 	}
 	pthread_attr_t attr;
 	if (pthread_attr_init(&attr) != 0)
