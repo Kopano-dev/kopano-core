@@ -152,7 +152,7 @@ static void *Handler(void *lpArg)
 	else
 		client = new IMAP(szPath, lpChannel, lpConfig);
 	// not required anymore
-	lpHandlerArgs.release();
+	lpHandlerArgs.reset();
 	// make sure the pipe logger does not exit when this handler exits, but only frees the memory.
 	auto pipelog = dynamic_cast<ECLogger_Pipe *>(lpLogger.get());
 	if (pipelog != nullptr)
