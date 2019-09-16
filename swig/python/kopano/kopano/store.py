@@ -201,8 +201,12 @@ class Store(Properties):
                 value = 5 * [b'']
             value[idx] = _bdec(folder.entryid)
             _root.SetProps([SPropValue(proptag, value)])
+            if self.inbox:
+                self.inbox.mapiobj.SetProps([SPropValue(proptag, value)])
         else:
             _root.SetProps([SPropValue(proptag, _bdec(folder.entryid))])
+            if self.inbox:
+                self.inbox.mapiobj.SetProps([SPropValue(proptag, _bdec(folder.entryid))])
         _utils._save(self._root)
 
         if container_class:
