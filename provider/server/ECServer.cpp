@@ -74,6 +74,7 @@ using std::endl;
 using std::string;
 
 static const char upgrade_lock_file[] = "/tmp/kopano-upgrade-lock";
+static const char default_atx_backend[] = "files"; /* for new installs */
 static int g_Quit = 0;
 static int restart_searches = 0;
 static bool m_bIgnoreDatabaseVersionConflict = false;
@@ -295,9 +296,12 @@ static ECRESULT check_database_attachments(ECDatabase *lpDatabase)
 
 	auto lpRow = lpResult.fetch_row();
 	auto backend = g_lpConfig->GetSetting("attachment_storage");
+	auto autopick = strcmp(backend, "auto") == 0;
+	if (autopick)
+		backend = lpRow != nullptr && lpRow[0] != nullptr ? lpRow[0] : default_atx_backend;
 	if (lpRow != nullptr && lpRow[0] != nullptr &&
 	    // check if the mode is the same as last time
-	    strcmp(lpRow[0], backend) != 0) {
+	    !autopick && strcmp(lpRow[0], backend) != 0) {
 		if (!m_bIgnoreAttachmentStorageConflict) {
 			ec_log_err("Attachments are stored with option \"%s\", but \"%s\" is selected.", lpRow[0], backend);
 			return KCERR_DATABASE_ERROR;
@@ -306,12 +310,14 @@ static ECRESULT check_database_attachments(ECDatabase *lpDatabase)
 	}
 
 	// first time we start, set the database to the selected mode
-	auto strQuery = "REPLACE INTO settings VALUES ('attachment_storage', "s + lpDatabase->Escape(backend) + ")";
+	auto strQuery = "REPLACE INTO settings VALUES ('attachment_storage', '"s + lpDatabase->Escape(backend) + "')";
 	er = lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess) {
 		ec_log_err("Unable to update database settings");
 		return er;
 	}
+	ec_log_info("Using the \"%s\" attachment storage backend", backend);
+	g_lpConfig->AddSetting("attachment_storage", backend, 0);
 
 	unsigned int l1, l2;
 	if (!filesv1_extract_fanout(backend, &l1, &l2))
@@ -898,7 +904,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{ "mysql_database",				"kopano" },
 		{ "mysql_socket",				"" },
 		{ "mysql_engine",				"InnoDB"},
-		{ "attachment_storage",			"files" },
+		{"attachment_storage", "auto"},
 #ifdef HAVE_LIBS3_H
 		{"attachment_s3_hostname", ""},
 		{"attachment_s3_protocol", "https"},
@@ -1120,7 +1126,8 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	}
 
 	auto aback = g_lpConfig->GetSetting("attachment_storage");
-	if (strcmp(aback, "files_v2") == 0 || is_filesv1(aback)) {
+	if (strcmp(aback, "files_v2") == 0 || is_filesv1(aback) ||
+	    strcmp(aback, "auto") == 0) {
 		/*
 		 * Either (1.) the attachment directory or (2.) its immediate
 		 * parent directory needs to exist with right permissions.
