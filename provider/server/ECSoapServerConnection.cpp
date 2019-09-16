@@ -77,17 +77,12 @@ ECSoapServerConnection::ECSoapServerConnection(std::shared_ptr<ECConfig> lpConfi
 	m_lpConfig(std::move(lpConfig))
 {
 #ifdef USE_EPOLL
-	m_lpDispatcher = new ECDispatcherEPoll(m_lpConfig);
+	m_lpDispatcher = std::make_unique<ECDispatcherEPoll>(m_lpConfig);
 	ec_log_info("Using epoll events");
 #else
-	m_lpDispatcher = new ECDispatcherSelect(m_lpConfig);
+	m_lpDispatcher = std::make_unique<ECDispatcherSelect>(m_lpConfig);
 	ec_log_info("Using select events");
 #endif
-}
-
-ECSoapServerConnection::~ECSoapServerConnection(void)
-{
-	delete m_lpDispatcher;
 }
 
 static int ignore_shutdown(struct soap *, SOAP_SOCKET, int shuttype)
