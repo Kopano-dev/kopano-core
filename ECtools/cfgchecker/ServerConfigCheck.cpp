@@ -56,7 +56,8 @@ int ServerConfigCheck::testAttachment(const config_check_t *check)
 	if (check->value1.empty())
 		return CHECK_OK;
 
-	if (check->value1 == "database" || check->value1 == "files")
+	if (check->value1 == "database" || check->value1 == "files" ||
+	    check->value1 == "files_v2")
 		return CHECK_OK;
 
 	printError(check->option1, "contains unknown storage type: \"" + check->value1 + "\"");
@@ -65,7 +66,7 @@ int ServerConfigCheck::testAttachment(const config_check_t *check)
 
 int ServerConfigCheck::testAttachmentPath(const config_check_t *check)
 {
-	if (check->value1 != "files")
+	if (check->value1 != "files" && check->value1 != "files_v2")
 		return CHECK_OK;
 
 	config_check_t check2;
