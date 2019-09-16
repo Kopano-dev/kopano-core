@@ -8,9 +8,9 @@
 #include "WSStoreTableView.h"
 #include "Mem.h"
 #include <kopano/ECGuid.h>
+#include "SOAPSock.h"
 #include "SOAPUtils.h"
 #include "WSUtil.h"
-#include "soapKCmdProxy.h"
 
 using namespace KC;
 

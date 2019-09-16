@@ -12,19 +12,9 @@
 #include <edkmdb.h>
 #include <kopano/zcdefs.h>
 
-class KCmdProxy;
+class KCmdProxy2;
 class WSTransport;
-
-struct sGlobalProfileProps {
-	std::string strServerPath, strProfileName;
-	std::wstring strUserName, strPassword, strImpersonateUser;
-	std::string strSSLKeyFile, strSSLKeyPass;
-	std::string strProxyHost;
-	std::string strProxyUserName, strProxyPassword;
-	std::string strClientAppVersion, strClientAppMisc;
-	unsigned int ulProfileFlags = 0, ulConnectionTimeOut = 10;
-	unsigned int ulProxyFlags = 0, ulProxyPort = 0;
-};
+struct sGlobalProfileProps;
 
 class ClientUtil final {
 public:
@@ -42,7 +32,7 @@ public:
 
 class WSSoap {
 	public:
-	KCmdProxy *m_lpCmd = nullptr;
+	std::unique_ptr<KCmdProxy2> m_lpCmd;
 	std::recursive_mutex m_hDataLock;
 };
 

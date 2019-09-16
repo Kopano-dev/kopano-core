@@ -7,12 +7,12 @@
 #include <new>
 #include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
+#include "SOAPSock.h"
 #include "WSMessageStreamExporter.h"
 #include "WSSerializedMessage.h"
 #include "WSTransport.h"
 #include <kopano/charset/convert.h>
 #include "WSUtil.h"
-#include "soapKCmdProxy.h"
 
 using namespace KC;
 

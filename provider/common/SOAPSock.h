@@ -6,30 +6,33 @@
 #ifndef SOAPSOCK_H
 #define SOAPSOCK_H
 
+#include <string>
 #include <openssl/ssl.h>
+#include "soapKCmdProxy.h"
 
-class KCmdProxy;
+class KCmdProxy2 final : public KCmdProxy {
+	public:
+	using KCmdProxy::KCmdProxy;
+	virtual ~KCmdProxy2();
+};
+
+/* A simpler form of profile props (which are stashed in SPropValues) */
+struct sGlobalProfileProps {
+	std::string strServerPath, strProfileName;
+	std::wstring strUserName, strPassword, strImpersonateUser;
+	std::string strSSLKeyFile, strSSLKeyPass;
+	std::string strProxyHost;
+	std::string strProxyUserName, strProxyPassword;
+	std::string strClientAppVersion, strClientAppMisc;
+	unsigned int ulProfileFlags = 0, ulConnectionTimeOut = 10;
+	unsigned int ulProxyFlags = 0, ulProxyPort = 0;
+};
 
 int ssl_verify_callback_kopano_silent(int ok, X509_STORE_CTX *store);
 int ssl_verify_callback_kopano(int ok, X509_STORE_CTX *store);
 int ssl_verify_callback_kopano_control(int ok, X509_STORE_CTX *store, BOOL bShowDlg);
 
 HRESULT LoadCertificatesFromRegistry();
-
-HRESULT CreateSoapTransport(ULONG ulUIFlags,
-	const char *strServerPath,
-	const char *strSSLKeyFile,
-	const char *strSSLKeyPass,
-	ULONG ulConnectionTimeOut,
-	const char *strProxyHost,
-	WORD wProxyPort,
-	const char *strProxyUserName,
-	const char *strProxyPassword,
-	ULONG ulProxyFlags,
-	int				iSoapiMode,
-	int				iSoapoMode,
-	KCmdProxy **lppCmd);
-
-extern void DestroySoapTransport(KCmdProxy *lpCmd);
+extern HRESULT CreateSoapTransport(const sGlobalProfileProps &, KCmdProxy2 **);
 
 #endif

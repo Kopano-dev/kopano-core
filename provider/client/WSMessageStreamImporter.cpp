@@ -5,10 +5,10 @@
 #include <kopano/platform.h>
 #include <new>
 #include <cstdlib>
+#include "SOAPSock.h"
 #include "SOAPUtils.h"
 #include "WSMessageStreamImporter.h"
 #include "WSUtil.h"
-#include "soapKCmdProxy.h"
 
 using namespace KC;
 
