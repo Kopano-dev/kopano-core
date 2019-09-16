@@ -57,7 +57,7 @@ int ServerConfigCheck::testAttachment(const config_check_t *check)
 		return CHECK_OK;
 
 	if (check->value1 == "database" || check->value1 == "files" ||
-	    check->value1 == "files_v2")
+	    check->value1 == "files_v2" || check->value1 == "s3")
 		return CHECK_OK;
 
 	printError(check->option1, "contains unknown storage type: \"" + check->value1 + "\"");
