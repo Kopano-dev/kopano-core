@@ -45,19 +45,6 @@ template<typename Type> Type *s_alloc(struct soap *soap)
 	return p;
 }
 
-inline char *s_strcpy(struct soap *soap, const char *str) {
-	char *s = s_alloc<char>(soap, strlen(str)+1);
-	strcpy(s, str);
-	return s;
-}
-
-inline unsigned char *s_memcpy(struct soap *soap, const void *str, unsigned int len)
-{
-	auto s = s_alloc<unsigned char>(soap, len);
-	memcpy(s, str, len);
-	return s;
-}
-
 template<typename Type>
 inline void s_free(struct soap *soap, Type *p) {
 	/*

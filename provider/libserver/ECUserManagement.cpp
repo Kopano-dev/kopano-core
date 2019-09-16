@@ -2760,7 +2760,7 @@ ECRESULT ECUserManagement::ConvertAnonymousObjectDetailToProp(struct soap *soap,
 	case PT_STRING8:
 	case PT_UNICODE:
 		lpPropVal->ulPropTag = ulPropTag;
-		lpPropVal->Value.lpszA = s_strcpy(soap, strValue.c_str());
+		lpPropVal->Value.lpszA = soap_strdup(soap, strValue.c_str());
 		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 		break;
 	case PT_MV_STRING8:
@@ -2770,7 +2770,7 @@ ECRESULT ECUserManagement::ConvertAnonymousObjectDetailToProp(struct soap *soap,
 		lpPropVal->Value.mvszA.__ptr = s_alloc<char *>(soap, lstrValues.size());
 		unsigned int i = 0;
 		for (const auto &val : lstrValues)
-			lpPropVal->Value.mvszA.__ptr[i++] = s_strcpy(soap, val.c_str());
+			lpPropVal->Value.mvszA.__ptr[i++] = soap_strdup(soap, val.c_str());
 		lpPropVal->__union = SOAP_UNION_propValData_mvszA;
 		break;
 	}
@@ -2823,30 +2823,30 @@ ECRESULT ECUserManagement::cvt_user_to_props(struct soap *soap,
 		break;
 	case PR_EC_COMPANY_NAME: {
 		if (IsInternalObject(ulId) || (! m_lpSession->GetSessionManager()->IsHostedSupported())) {
-			lpPropVal->Value.lpszA = s_strcpy(soap, "");
+			lpPropVal->Value.lpszA = soap_strdup(soap, "");
 		} else {
 			objectdetails_t sCompanyDetails;
 			er = GetObjectDetails(lpDetails->GetPropInt(OB_PROP_I_COMPANYID), &sCompanyDetails);
 			if (er != erSuccess)
 				return er;
-			lpPropVal->Value.lpszA = s_strcpy(soap, sCompanyDetails.GetPropString(OB_PROP_S_FULLNAME).c_str());
+			lpPropVal->Value.lpszA = soap_strdup(soap, sCompanyDetails.GetPropString(OB_PROP_S_FULLNAME).c_str());
 		}
 		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 		break;
 	}
 	case PR_SMTP_ADDRESS:
-		lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_EMAIL).c_str());
+		lpPropVal->Value.lpszA = soap_strdup(soap, lpDetails->GetPropString(OB_PROP_S_EMAIL).c_str());
 		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 		break;
 	case PR_MESSAGE_CLASS:
-		lpPropVal->Value.lpszA = s_strcpy(soap, "IPM.Contact");
+		lpPropVal->Value.lpszA = soap_strdup(soap, "IPM.Contact");
 		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 		break;
 	case PR_NORMALIZED_SUBJECT:
 	case PR_7BIT_DISPLAY_NAME:
 	case PR_DISPLAY_NAME:
 	case PR_TRANSMITABLE_DISPLAY_NAME:
-		lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_FULLNAME).c_str());
+		lpPropVal->Value.lpszA = soap_strdup(soap, lpDetails->GetPropString(OB_PROP_S_FULLNAME).c_str());
 		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 		break;
 	case PR_INSTANCE_KEY: {
@@ -2918,7 +2918,7 @@ ECRESULT ECUserManagement::cvt_user_to_props(struct soap *soap,
 			}
 		}
 		lpPropVal->ulPropTag = proptag;
-		lpPropVal->Value.lpszA = s_strcpy(soap, strDesc.c_str());
+		lpPropVal->Value.lpszA = soap_strdup(soap, strDesc.c_str());
 		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 		break;
 	}
@@ -2932,7 +2932,7 @@ ECRESULT ECUserManagement::cvt_user_to_props(struct soap *soap,
 		break;
 	}
 	case PR_ADDRTYPE:
-		lpPropVal->Value.lpszA = s_strcpy(soap, "ZARAFA");
+		lpPropVal->Value.lpszA = soap_strdup(soap, "ZARAFA");
 		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 		break;
 	case PR_RECORD_KEY:
@@ -2948,7 +2948,7 @@ ECRESULT ECUserManagement::cvt_user_to_props(struct soap *soap,
 		if (serverName.empty())
 			serverName = "Unknown";
 		auto hostname = "/o=Domain/ou=Location/cn=Configuration/cn=Servers/cn=" + serverName + "/cn=Microsoft Private MDB";
-		lpPropVal->Value.lpszA = s_strcpy(soap, hostname.c_str());
+		lpPropVal->Value.lpszA = soap_strdup(soap, hostname.c_str());
 		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 		break;
 	}
@@ -2956,9 +2956,9 @@ ECRESULT ECUserManagement::cvt_user_to_props(struct soap *soap,
 	case PR_EMAIL_ADDRESS:
 		// Don't use login name for NONACTIVE_CONTACT since it doesn't have a login name
 		if (lpDetails->GetClass() != NONACTIVE_CONTACT)
-			lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_LOGIN).c_str());
+			lpPropVal->Value.lpszA = soap_strdup(soap, lpDetails->GetPropString(OB_PROP_S_LOGIN).c_str());
 		else
-			lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_FULLNAME).c_str());
+			lpPropVal->Value.lpszA = soap_strdup(soap, lpDetails->GetPropString(OB_PROP_S_FULLNAME).c_str());
 
 		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 		break;
@@ -3036,19 +3036,19 @@ ECRESULT ECUserManagement::cvt_user_to_props(struct soap *soap,
 		lpPropVal->Value.mvszA.__ptr = s_alloc<char *>(soap, 1 + nAliases);
 		if (!address.empty()) {
 			address = strPrefix + address;
-			lpPropVal->Value.mvszA.__ptr[j++] = s_strcpy(soap, address.c_str());
+			lpPropVal->Value.mvszA.__ptr[j++] = soap_strdup(soap, address.c_str());
 		}
 		// Use lower-case 'smtp' prefix for aliases
 		strPrefix = "smtp:";
 		for (const auto &alias : lstAliases)
-			lpPropVal->Value.mvszA.__ptr[j++] = s_strcpy(soap, (strPrefix + alias).c_str());
+			lpPropVal->Value.mvszA.__ptr[j++] = soap_strdup(soap, (strPrefix + alias).c_str());
 		lpPropVal->Value.mvszA.__size = j;
 		break;
 	}
 	case PR_EC_EXCHANGE_DN: {
 		std::string exchangeDN = lpDetails->GetPropString(OB_PROP_S_EXCH_DN);
 		if (!exchangeDN.empty()) {
-			lpPropVal->Value.lpszA = s_strcpy(soap, exchangeDN.c_str());
+			lpPropVal->Value.lpszA = soap_strdup(soap, exchangeDN.c_str());
 			lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 			break;
 		}
@@ -3060,7 +3060,7 @@ ECRESULT ECUserManagement::cvt_user_to_props(struct soap *soap,
 	case PR_EC_HOMESERVER_NAME: {
 		std::string serverName = lpDetails->GetPropString(OB_PROP_S_SERVERNAME);
 		if (!serverName.empty()) {
-			lpPropVal->Value.lpszA = s_strcpy(soap, serverName.c_str());
+			lpPropVal->Value.lpszA = soap_strdup(soap, serverName.c_str());
 			lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 			break;
 		}
@@ -3089,13 +3089,13 @@ ECRESULT ECUserManagement::cvt_distlist_to_props(struct soap *soap,
 	switch (NormalizePropTag(proptag)) {
 	case PR_EC_COMPANY_NAME: {
 		if (IsInternalObject(ulId) || (! m_lpSession->GetSessionManager()->IsHostedSupported())) {
-			lpPropVal->Value.lpszA = s_strcpy(soap, "");
+			lpPropVal->Value.lpszA = soap_strdup(soap, "");
 		} else {
 			objectdetails_t sCompanyDetails;
 			er = GetObjectDetails(lpDetails->GetPropInt(OB_PROP_I_COMPANYID), &sCompanyDetails);
 			if (er != erSuccess)
 				return er;
-			lpPropVal->Value.lpszA = s_strcpy(soap, sCompanyDetails.GetPropString(OB_PROP_S_FULLNAME).c_str());
+			lpPropVal->Value.lpszA = soap_strdup(soap, sCompanyDetails.GetPropString(OB_PROP_S_FULLNAME).c_str());
 		}
 		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 		break;
@@ -3111,15 +3111,15 @@ ECRESULT ECUserManagement::cvt_distlist_to_props(struct soap *soap,
 		break;
 	}
 	case PR_ADDRTYPE:
-		lpPropVal->Value.lpszA = s_strcpy(soap, "ZARAFA");
+		lpPropVal->Value.lpszA = soap_strdup(soap, "ZARAFA");
 		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 		break;
 	case PR_EMAIL_ADDRESS:
-		lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_LOGIN).c_str());
+		lpPropVal->Value.lpszA = soap_strdup(soap, lpDetails->GetPropString(OB_PROP_S_LOGIN).c_str());
 		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 		break;
 	case PR_MESSAGE_CLASS:
-		lpPropVal->Value.lpszA = s_strcpy(soap, "IPM.DistList");
+		lpPropVal->Value.lpszA = soap_strdup(soap, "IPM.DistList");
 		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 		break;
 	case PR_ENTRYID:
@@ -3130,12 +3130,12 @@ ECRESULT ECUserManagement::cvt_distlist_to_props(struct soap *soap,
 	case PR_NORMALIZED_SUBJECT:
 	case PR_DISPLAY_NAME:
 	case PR_TRANSMITABLE_DISPLAY_NAME:
-		lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_FULLNAME).c_str());
+		lpPropVal->Value.lpszA = soap_strdup(soap, lpDetails->GetPropString(OB_PROP_S_FULLNAME).c_str());
 		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 		break;
 	case PR_SMTP_ADDRESS:
 		if (lpDetails->HasProp(OB_PROP_S_EMAIL)) {
-			lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_EMAIL).c_str());
+			lpPropVal->Value.lpszA = soap_strdup(soap, lpDetails->GetPropString(OB_PROP_S_EMAIL).c_str());
 			lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 			break;
 		}
@@ -3195,7 +3195,7 @@ ECRESULT ECUserManagement::cvt_distlist_to_props(struct soap *soap,
 		memcpy(lpPropVal->Value.bin->__ptr, &ulId, sizeof(ULONG));
 		break;
 	case PR_ACCOUNT:
-		lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_LOGIN).c_str());
+		lpPropVal->Value.lpszA = soap_strdup(soap, lpDetails->GetPropString(OB_PROP_S_LOGIN).c_str());
 		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 		break;
 	case PR_AB_PROVIDER_ID:
@@ -3241,20 +3241,20 @@ ECRESULT ECUserManagement::cvt_distlist_to_props(struct soap *soap,
 
 		if (!address.empty()) {
 			address = strPrefix + address;
-			lpPropVal->Value.mvszA.__ptr[j++] = s_strcpy(soap, address.c_str());
+			lpPropVal->Value.mvszA.__ptr[j++] = soap_strdup(soap, address.c_str());
 		}
 
 		// Use lower-case 'smtp' prefix for aliases
 		strPrefix = "smtp:";
 		for (const auto &alias : lstAliases)
-			lpPropVal->Value.mvszA.__ptr[j++] = s_strcpy(soap, (strPrefix + alias).c_str());
+			lpPropVal->Value.mvszA.__ptr[j++] = soap_strdup(soap, (strPrefix + alias).c_str());
 		lpPropVal->Value.mvszA.__size = j;
 		break;
 	}
 	case PR_EC_HOMESERVER_NAME: {
 		std::string serverName = lpDetails->GetPropString(OB_PROP_S_SERVERNAME);
 		if (!serverName.empty()) {
-			lpPropVal->Value.lpszA = s_strcpy(soap, serverName.c_str());
+			lpPropVal->Value.lpszA = soap_strdup(soap, serverName.c_str());
 			lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 			break;
 		}
@@ -3376,7 +3376,7 @@ ECRESULT ECUserManagement::cvt_adrlist_to_props(struct soap *soap,
 	case PR_NORMALIZED_SUBJECT:
 	case PR_DISPLAY_NAME:
 	case 0x3A20001E:// PR_TRANSMITABLE_DISPLAY_NAME
-		lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_FULLNAME).c_str());
+		lpPropVal->Value.lpszA = soap_strdup(soap, lpDetails->GetPropString(OB_PROP_S_FULLNAME).c_str());
 		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 		break;
 	case PR_INSTANCE_KEY:
@@ -3434,7 +3434,7 @@ ECRESULT ECUserManagement::cvt_company_to_props(struct soap *soap,
 	uint32_t tmp4;
 	switch (NormalizePropTag(proptag)) {
 	case PR_CONTAINER_CLASS:
-		lpPropVal->Value.lpszA = s_strcpy(soap, "IPM.Contact");
+		lpPropVal->Value.lpszA = soap_strdup(soap, "IPM.Contact");
 		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 		break;
 	case PR_ENTRYID: {
@@ -3456,11 +3456,11 @@ ECRESULT ECUserManagement::cvt_company_to_props(struct soap *soap,
 	case PR_NORMALIZED_SUBJECT:
 	case PR_DISPLAY_NAME:
 	case 0x3A20001E:// PR_TRANSMITABLE_DISPLAY_NAME
-		lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_FULLNAME).c_str());
+		lpPropVal->Value.lpszA = soap_strdup(soap, lpDetails->GetPropString(OB_PROP_S_FULLNAME).c_str());
 		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 		break;
 	case PR_EC_COMPANY_NAME:
-		lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_FULLNAME).c_str());
+		lpPropVal->Value.lpszA = soap_strdup(soap, lpDetails->GetPropString(OB_PROP_S_FULLNAME).c_str());
 		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 		break;
 	case PR_INSTANCE_KEY:
@@ -3511,7 +3511,7 @@ ECRESULT ECUserManagement::cvt_company_to_props(struct soap *soap,
 	case PR_EC_HOMESERVER_NAME: {
 		std::string serverName = lpDetails->GetPropString(OB_PROP_S_SERVERNAME);
 		if (!serverName.empty()) {
-			lpPropVal->Value.lpszA = s_strcpy(soap, serverName.c_str());
+			lpPropVal->Value.lpszA = soap_strdup(soap, serverName.c_str());
 			lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 			break;
 		}
@@ -3611,7 +3611,7 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap,
 			memcpy(lpPropVal->Value.bin->__ptr, &abeid, sizeof(abeid));
 			break;
 		case PR_CONTAINER_CLASS:
-			lpPropVal->Value.lpszA = s_strcpy(soap, "IPM.Contact");
+			lpPropVal->Value.lpszA = soap_strdup(soap, "IPM.Contact");
 			lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 			break;
 		case PR_ENTRYID:
@@ -3625,7 +3625,7 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap,
 		case PR_NORMALIZED_SUBJECT:
 		case PR_DISPLAY_NAME:
 		case 0x3A20001E:// PR_TRANSMITABLE_DISPLAY_NAME
-			lpPropVal->Value.lpszA = s_strcpy(soap, strName.c_str());
+			lpPropVal->Value.lpszA = soap_strdup(soap, strName.c_str());
 			lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 			break;
 		case PR_INSTANCE_KEY:

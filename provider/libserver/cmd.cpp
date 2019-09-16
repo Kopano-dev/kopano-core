@@ -609,7 +609,8 @@ int KCmdService::logon(const char *user, const char *pass,
 	if (er != erSuccess)
 		goto exit;
 
-	lpsResponse->sServerGuid.__ptr = s_memcpy(soap, &sServerGuid, sizeof(sServerGuid));
+	lpsResponse->sServerGuid.__ptr = soap_new_unsignedByte(soap, sizeof(sServerGuid));
+	memcpy(lpsResponse->sServerGuid.__ptr, &sServerGuid, sizeof(sServerGuid));
 	lpsResponse->sServerGuid.__size = sizeof(sServerGuid);
     // Only save logon if credentials were supplied by the user; otherwise the logon is probably automated
     if (lpecSession && (lpecSession->GetAuthMethod() == ECSession::METHOD_USERPASSWORD || lpecSession->GetAuthMethod() == ECSession::METHOD_SSO))
@@ -746,7 +747,8 @@ int KCmdService::ssoLogon(ULONG64 ulSessionId, const char *szUsername,
     	er = g_lpSessionManager->GetServerGUID(&sServerGuid);
 		if (er != erSuccess)
 			goto exit;
-		lpsResponse->sServerGuid.__ptr = s_memcpy(soap, &sServerGuid, sizeof(sServerGuid));
+		lpsResponse->sServerGuid.__ptr = soap_new_unsignedByte(soap, sizeof(sServerGuid));
+		memcpy(lpsResponse->sServerGuid.__ptr, &sServerGuid, sizeof(sServerGuid));
     	lpsResponse->sServerGuid.__size = sizeof(sServerGuid);
     }
 
@@ -1058,7 +1060,7 @@ SOAP_ENTRY_START(getPublicStore, lpsResponse->er, unsigned int ulFlags, struct g
 			auto er = GetBestServerPath(soap, lpecSession, strStoreServer, &strServerPath);
 			if (er != erSuccess)
 				return er;
-			lpsResponse->lpszServerPath = s_strcpy(soap, strServerPath.c_str());
+			lpsResponse->lpszServerPath = soap_strdup(soap, strServerPath.c_str());
 			ec_log_info("Redirecting request to \"%s\"", lpsResponse->lpszServerPath);
 			g_lpSessionManager->m_stats->inc(SCN_REDIRECT_COUNT);
 			return KCERR_UNABLE_TO_COMPLETE;
@@ -1092,7 +1094,7 @@ SOAP_ENTRY_START(getPublicStore, lpsResponse->er, unsigned int ulFlags, struct g
 	if(er != erSuccess)
 		return er;
 	if ((ulFlags & EC_OVERRIDE_HOMESERVER) == 0)
-		lpsResponse->lpszServerPath = s_strcpy(soap, ("pseudo://"s + strStoreServer).c_str());
+		lpsResponse->lpszServerPath = soap_strdup(soap, ("pseudo://"s + strStoreServer).c_str());
 	er = gcache->GetEntryIdFromObject(atoui(lpDBRow[2]), soap, ulFlags, &lpsResponse->sStoreId);
 	if(er != erSuccess)
 		return er;
@@ -1137,7 +1139,7 @@ SOAP_ENTRY_START(getStore, lpsResponse->er, entryId* lpsEntryId, struct getStore
                 er = GetBestServerPath(soap, lpecSession, strServerName, &strServerPath);
                 if (er != erSuccess)
 					return er;
-				lpsResponse->lpszServerPath = s_strcpy(soap, (strServerPath.c_str()));
+				lpsResponse->lpszServerPath = soap_strdup(soap, strServerPath.c_str());
                 ec_log_info("Redirecting request to \"%s\"", lpsResponse->lpszServerPath);
 				g_lpSessionManager->m_stats->inc(SCN_REDIRECT_COUNT);
 				return KCERR_UNABLE_TO_COMPLETE;
@@ -1150,7 +1152,7 @@ SOAP_ENTRY_START(getStore, lpsResponse->er, entryId* lpsEntryId, struct getStore
     if (strServerName.empty())
         strServerName = g_lpSessionManager->GetConfig()->GetSetting("server_name" ,"", "Unknown");
     // Always return a pseudo URL
-	lpsResponse->lpszServerPath = s_strcpy(soap, ("pseudo://"s + strServerName).c_str());
+	lpsResponse->lpszServerPath = soap_strdup(soap, ("pseudo://"s + strServerName).c_str());
 
 	strQuery = "SELECT hierarchy.id, stores.guid, stores.hierarchy_id, stores.type "
 	           "FROM stores join hierarchy on stores.hierarchy_id=hierarchy.parent ";
@@ -1934,7 +1936,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 
 		// Get current time
 		auto ft = UnixTimeToFileTime(time(nullptr));
-		sPropTime.Value.hilo = s_alloc<struct hiloLong>(soap);
+		sPropTime.Value.hilo = soap_new_hiloLong(soap);
 		sPropTime.Value.hilo->hi = ft.dwHighDateTime;
 		sPropTime.Value.hilo->lo = ft.dwLowDateTime;
 		sPropTime.__union = SOAP_UNION_propValData_hilo;
@@ -2286,7 +2288,7 @@ static unsigned int SaveObject(struct soap *soap, ECSession *lpecSession,
 	auto mod = &lpsReturnObj->modProps.__ptr[n];
 	mod->__union = SOAP_UNION_propValData_hilo;
 	mod->ulPropTag = PR_LAST_MODIFICATION_TIME;
-	mod->Value.hilo = s_alloc<hiloLong>(soap);
+	mod->Value.hilo = soap_new_hiloLong(soap);
 	mod->Value.hilo->hi = ftModified.dwHighDateTime;
 	mod->Value.hilo->lo = ftModified.dwLowDateTime;
 	++n;
@@ -2296,7 +2298,7 @@ static unsigned int SaveObject(struct soap *soap, ECSession *lpecSession,
 		mod = &lpsReturnObj->modProps.__ptr[n];
 		mod->__union = SOAP_UNION_propValData_hilo;
 		mod->ulPropTag = PR_CREATION_TIME;
-		mod->Value.hilo = s_alloc<hiloLong>(soap);
+		mod->Value.hilo = soap_new_hiloLong(soap);
 		mod->Value.hilo->hi = ftCreated.dwHighDateTime;
 		mod->Value.hilo->lo = ftCreated.dwLowDateTime;
 		++n;
@@ -4062,7 +4064,7 @@ SOAP_ENTRY_START(getReceiveFolder, lpsReceiveFolder->er,
 	er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(atoui(lpDBRow[0]), soap, 0, &lpsReceiveFolder->sReceiveFolder.sEntryId);
 	if (er != erSuccess)
 		return er;
-	lpsReceiveFolder->sReceiveFolder.lpszAExplicitClass = s_strcpy(soap, lpDBRow[1]);
+	lpsReceiveFolder->sReceiveFolder.lpszAExplicitClass = soap_strdup(soap, lpDBRow[1]);
 	return erSuccess;
 }
 SOAP_ENTRY_END()
@@ -6002,7 +6004,7 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, const char *szUserName,
 				er = GetBestServerPath(soap, lpecSession, strServerName, &strServerPath);
 				if (er != erSuccess)
 					return er;
-				lpsResponse->lpszServerPath = s_strcpy(soap, strServerPath.c_str());
+				lpsResponse->lpszServerPath = soap_strdup(soap, strServerPath.c_str());
 				ec_log_info("Redirecting request to \"%s\"", lpsResponse->lpszServerPath);
 				g_lpSessionManager->m_stats->inc(SCN_REDIRECT_COUNT);
 				return KCERR_UNABLE_TO_COMPLETE;
@@ -6039,7 +6041,7 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, const char *szUserName,
     /* We found the store, so we don't need to check if this is the correct server. */
 	std::string strServerName = cfg->GetSetting("server_name", "", "Unknown");
     // Always return the pseudo URL.
-	lpsResponse->lpszServerPath = s_strcpy(soap, ("pseudo://"s + strServerName).c_str());
+	lpsResponse->lpszServerPath = soap_strdup(soap, ("pseudo://"s + strServerName).c_str());
     er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(atoui(lpDBRow[0]), soap, ulFlags & OPENSTORE_OVERRIDE_HOME_MDB, &lpsResponse->sStoreId);
 	if(er != erSuccess)
 		return er;
@@ -7429,8 +7431,7 @@ SOAP_ENTRY_START(getReceiveFolderTable, lpsReceiveFolderTable->er,
 			er = erSuccess;
 			continue;
 		}
-		lpsReceiveFolderTable->sFolderArray.__ptr[i].lpszAExplicitClass = s_strcpy(soap, lpDBRow[1]);
-		++i;
+		lpsReceiveFolderTable->sFolderArray.__ptr[i++].lpszAExplicitClass = soap_strdup(soap, lpDBRow[1]);
 	}
 
 	lpsReceiveFolderTable->sFolderArray.__size = i;
@@ -8491,7 +8492,7 @@ SOAP_ENTRY_START(resolvePseudoUrl, lpsResponse->er, const char *lpszPseudoUrl,
 	er = GetBestServerPath(soap, lpecSession, lpszPseudoUrl + 9, &strServerPath);
 	if (er != erSuccess)
 		return er;
-	lpsResponse->lpszServerPath = s_strcpy(soap, strServerPath.c_str());
+	lpsResponse->lpszServerPath = soap_strdup(soap, strServerPath.c_str());
 	lpsResponse->bIsPeer = strcasecmp(g_lpSessionManager->GetConfig()->GetSetting("server_name"), lpszPseudoUrl + 9) == 0;
 	return erSuccess;
 }
@@ -8539,16 +8540,16 @@ SOAP_ENTRY_START(getServerDetails, lpsResponse->er,
 		if (!strPublicServer.empty() && strcasecmp(sDetails.GetServerName().c_str(), strPublicServer.c_str()) == 0)
 			lpsResponse->sServerList.__ptr[i].ulFlags |= EC_SDFLAG_HAS_PUBLIC;
 		if (!(ulFlags & EC_SERVERDETAIL_NO_NAME) && !sDetails.GetServerName().empty())
-			lpsResponse->sServerList.__ptr[i].lpszName = s_strcpy(soap, sDetails.GetServerName().c_str());
+			lpsResponse->sServerList.__ptr[i].lpszName = soap_strdup(soap, sDetails.GetServerName().c_str());
 		if (ulFlags & EC_SERVERDETAIL_FILEPATH && !sDetails.GetFilePath().empty())
-			lpsResponse->sServerList.__ptr[i].lpszFilePath = s_strcpy(soap, sDetails.GetFilePath().c_str());
+			lpsResponse->sServerList.__ptr[i].lpszFilePath = soap_strdup(soap, sDetails.GetFilePath().c_str());
 		if (ulFlags & EC_SERVERDETAIL_HTTPPATH && sDetails.GetHttpPort() != 0)
-			lpsResponse->sServerList.__ptr[i].lpszHttpPath = s_strcpy(soap, sDetails.GetHttpPath().c_str());
+			lpsResponse->sServerList.__ptr[i].lpszHttpPath = soap_strdup(soap, sDetails.GetHttpPath().c_str());
 		if (ulFlags & EC_SERVERDETAIL_SSLPATH && sDetails.GetSslPort() != 0)
-			lpsResponse->sServerList.__ptr[i].lpszSslPath = s_strcpy(soap, sDetails.GetSslPath().c_str());
+			lpsResponse->sServerList.__ptr[i].lpszSslPath = soap_strdup(soap, sDetails.GetSslPath().c_str());
 		if (ulFlags & EC_SERVERDETAIL_PREFEREDPATH &&
 		    GetBestServerPath(soap, lpecSession, sDetails.GetServerName(), &strServerPath) == erSuccess)
-			lpsResponse->sServerList.__ptr[i].lpszPreferedPath = s_strcpy(soap, strServerPath.c_str());
+			lpsResponse->sServerList.__ptr[i].lpszPreferedPath = soap_strdup(soap, strServerPath.c_str());
 	}
 	return erSuccess;
 }
@@ -8828,8 +8829,8 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er,
 
 		// Setup the MTOM Attachments
 		lpsResponse->sMsgStreams.__ptr[ulObjCnt].sStreamData.xop__Include.__ptr = (unsigned char*)lpStreamInfo;
-		lpsResponse->sMsgStreams.__ptr[ulObjCnt].sStreamData.xop__Include.type = s_strcpy(soap, "application/binary");
-		lpsResponse->sMsgStreams.__ptr[ulObjCnt].sStreamData.xop__Include.id = s_strcpy(soap, ("emcas-" + stringify(ulObjCnt)).c_str());
+		lpsResponse->sMsgStreams.__ptr[ulObjCnt].sStreamData.xop__Include.type = soap_strdup(soap, "application/binary");
+		lpsResponse->sMsgStreams.__ptr[ulObjCnt].sStreamData.xop__Include.id = soap_strdup(soap, ("emcas-" + stringify(ulObjCnt)).c_str());
 		++ulObjCnt;
 		// Remember the object ID since we need it later
 		rows.emplace_back(ulObjectId, 0);

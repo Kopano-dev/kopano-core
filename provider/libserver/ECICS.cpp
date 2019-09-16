@@ -132,7 +132,8 @@ static ECRESULT ConvertABEntryIDToSoapSourceKey(struct soap *soap,
 	}
 
 	lpSourceKey->__size = cbAbeid;
-	lpSourceKey->__ptr = s_memcpy(soap, lpAbeid, cbAbeid);
+	lpSourceKey->__ptr  = soap_new_unsignedByte(soap, cbAbeid);
+	memcpy(lpSourceKey->__ptr, lpAbeid, cbAbeid);
 	return erSuccess;
 }
 
@@ -775,7 +776,8 @@ static ECRESULT getchanges_ab1(struct soap *soap, ECSession *lpSession,
 			continue;
 		}
 		lpChanges->__ptr[i].ulChangeId = iter.id;
-		lpChanges->__ptr[i].sParentSourceKey.__ptr = s_memcpy(soap, iter.strParent.data(), iter.strParent.size());
+		lpChanges->__ptr[i].sParentSourceKey.__ptr = soap_new_unsignedByte(soap, iter.strParent.size());
+		memcpy(lpChanges->__ptr[i].sParentSourceKey.__ptr, iter.strParent.data(), iter.strParent.size());
 		lpChanges->__ptr[i].sParentSourceKey.__size = iter.strParent.size();
 		lpChanges->__ptr[i].ulChangeType = iter.change_type;
 		if (iter.id > ulMaxChange)

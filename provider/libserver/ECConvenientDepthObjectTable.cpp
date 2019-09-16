@@ -192,7 +192,7 @@ ECRESULT ECConvenientDepthABObjectTable::QueryRowData(ECGenericObjectTable *lpGe
 		}
 		lpProp = FindProp(&(*lppRowSet)->__ptr[n], CHANGE_PROP_TYPE(PR_EMS_AB_HIERARCHY_PATH, PT_ERROR));
 		if (lpProp != nullptr) {
-			lpProp->Value.lpszA = s_strcpy(soap, lpThis->m_mapPath[row.ulObjId].c_str());
+			lpProp->Value.lpszA = soap_strdup(soap, lpThis->m_mapPath[row.ulObjId].c_str());
 			lpProp->ulPropTag = PR_EMS_AB_HIERARCHY_PATH;
 			lpProp->__union = SOAP_UNION_propValData_lpszA;
 		}

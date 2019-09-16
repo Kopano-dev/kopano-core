@@ -723,7 +723,7 @@ ECRESULT FreePropVal(struct propVal *lpProp, bool bBasePointerDel)
 		break;
 	case PT_SYSTIME:
 	case PT_CURRENCY:
-		s_free(nullptr, lpProp->Value.hilo);
+		soap_del_PointerTohiloLong(&lpProp->Value.hilo);
 		break;
 	case PT_STRING8:
 	case PT_UNICODE:
@@ -737,24 +737,24 @@ ECRESULT FreePropVal(struct propVal *lpProp, bool bBasePointerDel)
 		s_free(nullptr, lpProp->Value.bin);
 		break;
 	case PT_MV_I2:
-		s_free(nullptr, lpProp->Value.mvi.__ptr);
+		soap_del_mv_i2(&lpProp->Value.mvi);
 		break;
 	case PT_MV_LONG:
 		s_free(nullptr, lpProp->Value.mvl.__ptr);
 		break;
 	case PT_MV_R4:
-		s_free(nullptr, lpProp->Value.mvflt.__ptr);
+		soap_del_mv_r4(&lpProp->Value.mvflt);
 		break;
 	case PT_MV_DOUBLE:
 	case PT_MV_APPTIME:
-		s_free(nullptr, lpProp->Value.mvdbl.__ptr);
+		soap_del_mv_double(&lpProp->Value.mvdbl);
 		break;
 	case PT_MV_I8:
-		s_free(nullptr, lpProp->Value.mvli.__ptr);
+		soap_del_mv_i8(&lpProp->Value.mvli);
 		break;
 	case PT_MV_SYSTIME:
 	case PT_MV_CURRENCY:
-		s_free(nullptr, lpProp->Value.mvhilo.__ptr);
+		soap_del_mv_hiloLong(&lpProp->Value.mvhilo);
 		break;
 	case PT_MV_CLSID:
 	case PT_MV_BINARY:
@@ -958,7 +958,7 @@ ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal *lpDst,
 	case PT_SYSTIME:
 		if (lpSrc->Value.hilo == NULL)
 			return KCERR_INVALID_TYPE;
-		lpDst->Value.hilo = s_alloc<hiloLong>(soap);
+		lpDst->Value.hilo = soap_new_hiloLong(soap);
 		lpDst->Value.hilo->hi = lpSrc->Value.hilo->hi;
 		lpDst->Value.hilo->lo = lpSrc->Value.hilo->lo;
 		break;
@@ -989,7 +989,7 @@ ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal *lpDst,
 		if (lpSrc->Value.mvi.__ptr == NULL)
 			return KCERR_INVALID_TYPE;
 		lpDst->Value.mvi.__size = lpSrc->Value.mvi.__size;
-		lpDst->Value.mvi.__ptr = s_alloc<short int>(soap, lpSrc->Value.mvi.__size);
+		lpDst->Value.mvi.__ptr  = soap_new_short(soap, lpSrc->Value.mvi.__size);
 		memcpy(lpDst->Value.mvi.__ptr, lpSrc->Value.mvi.__ptr, sizeof(short int) * lpDst->Value.mvi.__size);
 		break;
 	case PT_MV_LONG:
@@ -1003,7 +1003,7 @@ ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal *lpDst,
 		if (lpSrc->Value.mvflt.__ptr == NULL)
 			return KCERR_INVALID_TYPE;
 		lpDst->Value.mvflt.__size = lpSrc->Value.mvflt.__size;
-		lpDst->Value.mvflt.__ptr = s_alloc<float>(soap, lpSrc->Value.mvflt.__size);
+		lpDst->Value.mvflt.__ptr  = soap_new_float(soap, lpSrc->Value.mvflt.__size);
 		memcpy(lpDst->Value.mvflt.__ptr, lpSrc->Value.mvflt.__ptr, sizeof(float) * lpDst->Value.mvflt.__size);
 		break;
 	case PT_MV_DOUBLE:
@@ -1011,14 +1011,14 @@ ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal *lpDst,
 		if (lpSrc->Value.mvdbl.__ptr == NULL)
 			return KCERR_INVALID_TYPE;
 		lpDst->Value.mvdbl.__size = lpSrc->Value.mvdbl.__size;
-		lpDst->Value.mvdbl.__ptr = s_alloc<double>(soap, lpSrc->Value.mvdbl.__size);
+		lpDst->Value.mvdbl.__ptr  = soap_new_double(soap, lpSrc->Value.mvdbl.__size);
 		memcpy(lpDst->Value.mvdbl.__ptr, lpSrc->Value.mvdbl.__ptr, sizeof(double) * lpDst->Value.mvdbl.__size);
 		break;
 	case PT_MV_I8:
 		if (lpSrc->Value.mvli.__ptr == NULL)
 			return KCERR_INVALID_TYPE;
 		lpDst->Value.mvli.__size = lpSrc->Value.mvli.__size;
-		lpDst->Value.mvli.__ptr = s_alloc<LONG64>(soap, lpSrc->Value.mvli.__size);
+		lpDst->Value.mvli.__ptr  = soap_new_LONG64(soap, lpSrc->Value.mvli.__size);
 		memcpy(lpDst->Value.mvli.__ptr, lpSrc->Value.mvli.__ptr, sizeof(LONG64) * lpDst->Value.mvli.__size);
 		break;
 	case PT_MV_CURRENCY:
@@ -1026,7 +1026,7 @@ ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal *lpDst,
 		if (lpSrc->Value.mvhilo.__ptr == NULL)
 			return KCERR_INVALID_TYPE;
 		lpDst->Value.mvhilo.__size = lpSrc->Value.mvhilo.__size;
-		lpDst->Value.mvhilo.__ptr = s_alloc<hiloLong>(soap, lpSrc->Value.mvhilo.__size);
+		lpDst->Value.mvhilo.__ptr  = soap_new_hiloLong(soap, lpSrc->Value.mvhilo.__size);
 		memcpy(lpDst->Value.mvhilo.__ptr, lpSrc->Value.mvhilo.__ptr, sizeof(hiloLong) * lpDst->Value.mvhilo.__size);
 		break;
 	case PT_MV_STRING8:
@@ -1569,13 +1569,13 @@ static ECRESULT CopyAnonymousDetailsToSoap(struct soap *soap,
 			if (PROP_TYPE(iter.first) == PT_BINARY && bCopyBinary) {
 				auto strData = base64_encode(iter.second.data(), iter.second.size());
 				lpsoapPropmap->__ptr[lpsoapPropmap->__size].ulPropId = iter.first;
-				lpsoapPropmap->__ptr[lpsoapPropmap->__size++].lpszValue = s_strcpy(soap, strData.c_str());
+				lpsoapPropmap->__ptr[lpsoapPropmap->__size++].lpszValue = soap_strdup(soap, strData.c_str());
 				continue;
 			}
 			if (PROP_TYPE(iter.first) != PT_STRING8 && PROP_TYPE(iter.first) != PT_UNICODE)
 				continue;
 			lpsoapPropmap->__ptr[lpsoapPropmap->__size].ulPropId = iter.first;
-			lpsoapPropmap->__ptr[lpsoapPropmap->__size++].lpszValue = s_strcpy(soap, iter.second.c_str());
+			lpsoapPropmap->__ptr[lpsoapPropmap->__size++].lpszValue = soap_strdup(soap, iter.second.c_str());
 		}
 	}
 
@@ -1591,8 +1591,7 @@ static ECRESULT CopyAnonymousDetailsToSoap(struct soap *soap,
 				lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__ptr = s_alloc<char *>(soap, lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__size);
 				for (const auto &entry : iter.second) {
 					auto strData = base64_encode(entry.data(), entry.size());
-					lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__ptr[j] = s_strcpy(soap, strData.c_str());
-					++j;
+					lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__ptr[j++] = soap_strdup(soap, strData.c_str());
 				}
 				++lpsoapMVPropmap->__size;
 				continue;
@@ -1605,10 +1604,8 @@ static ECRESULT CopyAnonymousDetailsToSoap(struct soap *soap,
 			lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].ulPropId = iter.first;
 			lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__size = iter.second.size();
 			lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__ptr = s_alloc<char *>(soap, lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__size);
-			for (const auto &entry : iter.second) {
-				lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__ptr[j] = s_strcpy(soap, entry.c_str());
-				++j;
-			}
+			for (const auto &entry : iter.second)
+				lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__ptr[j++] = soap_strdup(soap, entry.c_str());
 			++lpsoapMVPropmap->__size;
 		}
 	}
@@ -1651,14 +1648,14 @@ ECRESULT CopyUserDetailsToSoap(unsigned int ulId, entryId *lpUserEid, const obje
 
 	// assert(OBJECTCLASS_TYPE(objClass) == OBJECTTYPE_MAILUSER);
 	lpUser->ulUserId = ulId;
-	lpUser->lpszUsername = s_strcpy(soap, details.GetPropString(OB_PROP_S_LOGIN).c_str());
+	lpUser->lpszUsername = soap_strdup(soap, details.GetPropString(OB_PROP_S_LOGIN).c_str());
 	lpUser->ulIsNonActive = 0;
 	lpUser->ulObjClass = objClass;
-	lpUser->lpszMailAddress = s_strcpy(soap, details.GetPropString(OB_PROP_S_EMAIL).c_str());
-	lpUser->lpszFullName = s_strcpy(soap, details.GetPropString(OB_PROP_S_FULLNAME).c_str());
+	lpUser->lpszMailAddress = soap_strdup(soap, details.GetPropString(OB_PROP_S_EMAIL).c_str());
+	lpUser->lpszFullName = soap_strdup(soap, details.GetPropString(OB_PROP_S_FULLNAME).c_str());
 	lpUser->ulIsAdmin = details.GetPropInt(OB_PROP_I_ADMINLEVEL);
 	lpUser->lpszPassword = const_cast<char *>("");
-	lpUser->lpszServername = s_strcpy(soap, details.GetPropString(OB_PROP_S_SERVERNAME).c_str());
+	lpUser->lpszServername = soap_strdup(soap, details.GetPropString(OB_PROP_S_SERVERNAME).c_str());
 	lpUser->ulIsABHidden = details.GetPropBool(OB_PROP_B_AB_HIDDEN);
 	lpUser->ulCapacity = details.GetPropInt(OB_PROP_I_RESOURCE_CAPACITY);
 	lpUser->lpsPropmap = NULL;
@@ -1701,9 +1698,9 @@ ECRESULT CopyGroupDetailsToSoap(unsigned int ulId, entryId *lpGroupEid, const ob
 {
 	// assert(OBJECTCLASS_TYPE(details.GetClass()) == OBJECTTYPE_DISTLIST);
 	lpGroup->ulGroupId = ulId;
-	lpGroup->lpszGroupname = s_strcpy(soap, details.GetPropString(OB_PROP_S_LOGIN).c_str());
-	lpGroup->lpszFullname = s_strcpy(soap, details.GetPropString(OB_PROP_S_FULLNAME).c_str());
-	lpGroup->lpszFullEmail = s_strcpy(soap, details.GetPropString(OB_PROP_S_EMAIL).c_str());
+	lpGroup->lpszGroupname = soap_strdup(soap, details.GetPropString(OB_PROP_S_LOGIN).c_str());
+	lpGroup->lpszFullname = soap_strdup(soap, details.GetPropString(OB_PROP_S_FULLNAME).c_str());
+	lpGroup->lpszFullEmail = soap_strdup(soap, details.GetPropString(OB_PROP_S_EMAIL).c_str());
 	lpGroup->ulIsABHidden = details.GetPropBool(OB_PROP_B_AB_HIDDEN);
 	lpGroup->lpsPropmap = NULL;
 	lpGroup->lpsMVPropmap = NULL;
@@ -1735,9 +1732,9 @@ ECRESULT CopyCompanyDetailsToSoap(unsigned int ulId, entryId *lpCompanyEid, unsi
 {
 	// assert(details.GetClass() == CONTAINER_COMPANY);
 	lpCompany->ulCompanyId = ulId;
-	lpCompany->lpszCompanyname = s_strcpy(soap, details.GetPropString(OB_PROP_S_FULLNAME).c_str());
+	lpCompany->lpszCompanyname = soap_strdup(soap, details.GetPropString(OB_PROP_S_FULLNAME).c_str());
 	lpCompany->ulAdministrator = ulAdmin;
-	lpCompany->lpszServername = s_strcpy(soap, details.GetPropString(OB_PROP_S_SERVERNAME).c_str());
+	lpCompany->lpszServername = soap_strdup(soap, details.GetPropString(OB_PROP_S_SERVERNAME).c_str());
 	lpCompany->ulIsABHidden = details.GetPropBool(OB_PROP_B_AB_HIDDEN);
 	lpCompany->lpsPropmap = NULL;
 	lpCompany->lpsMVPropmap = NULL;

@@ -56,7 +56,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 		break;
 	case PT_CURRENCY:
 		dp->__union = SOAP_UNION_propValData_hilo;
-		dp->Value.hilo = s_alloc<hiloLong>(nullptr);
+		dp->Value.hilo = soap_new_hiloLong(nullptr);
 		dp->Value.hilo->hi = sp->Value.cur.Hi;
 		dp->Value.hilo->lo = sp->Value.cur.Lo;
 		break;
@@ -96,7 +96,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 	}
 	case PT_SYSTIME:
 		dp->__union = SOAP_UNION_propValData_hilo;
-		dp->Value.hilo = s_alloc<hiloLong>(nullptr);
+		dp->Value.hilo = soap_new_hiloLong(nullptr);
 		dp->Value.hilo->hi = sp->Value.ft.dwHighDateTime;
 		dp->Value.hilo->lo = sp->Value.ft.dwLowDateTime;
 		break;
@@ -122,7 +122,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 	case PT_MV_I2:
 		dp->__union = SOAP_UNION_propValData_mvi;
 		dp->Value.mvi.__size = sp->Value.MVi.cValues;
-		dp->Value.mvi.__ptr = s_alloc<short int>(nullptr, dp->Value.mvi.__size);
+		dp->Value.mvi.__ptr  = soap_new_short(nullptr, dp->Value.mvi.__size);
 		memcpy(dp->Value.mvi.__ptr, sp->Value.MVi.lpi, sizeof(short int) * dp->Value.mvi.__size);
 		break;
 	case PT_MV_LONG:
@@ -134,19 +134,19 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 	case PT_MV_R4:
 		dp->__union = SOAP_UNION_propValData_mvflt;
 		dp->Value.mvflt.__size = sp->Value.MVflt.cValues;
-		dp->Value.mvflt.__ptr = s_alloc<float>(nullptr, dp->Value.mvflt.__size);
+		dp->Value.mvflt.__ptr  = soap_new_float(nullptr, dp->Value.mvflt.__size);
 		memcpy(dp->Value.mvflt.__ptr, sp->Value.MVflt.lpflt, sizeof(float) * dp->Value.mvflt.__size);
 		break;
 	case PT_MV_DOUBLE:
 		dp->__union = SOAP_UNION_propValData_mvdbl;
 		dp->Value.mvdbl.__size = sp->Value.MVdbl.cValues;
-		dp->Value.mvdbl.__ptr = s_alloc<double>(nullptr, dp->Value.mvdbl.__size);
+		dp->Value.mvdbl.__ptr  = soap_new_double(nullptr, dp->Value.mvdbl.__size);
 		memcpy(dp->Value.mvdbl.__ptr, sp->Value.MVdbl.lpdbl, sizeof(double) * dp->Value.mvdbl.__size);
 		break;
 	case PT_MV_CURRENCY:
 		dp->__union = SOAP_UNION_propValData_mvhilo;
 		dp->Value.mvhilo.__size = sp->Value.MVcur.cValues;
-		dp->Value.mvhilo.__ptr = s_alloc<hiloLong>(nullptr, dp->Value.mvhilo.__size);
+		dp->Value.mvhilo.__ptr  = soap_new_hiloLong(nullptr, dp->Value.mvhilo.__size);
 		for (gsoap_size_t i = 0; i < dp->Value.mvhilo.__size; ++i) {
 			dp->Value.mvhilo.__ptr[i].hi = sp->Value.MVcur.lpcur[i].Hi;
 			dp->Value.mvhilo.__ptr[i].lo = sp->Value.MVcur.lpcur[i].Lo;
@@ -155,13 +155,13 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 	case PT_MV_APPTIME:
 		dp->__union = SOAP_UNION_propValData_mvdbl;
 		dp->Value.mvdbl.__size = sp->Value.MVat.cValues;
-		dp->Value.mvdbl.__ptr = s_alloc<double>(nullptr, dp->Value.mvdbl.__size);
+		dp->Value.mvdbl.__ptr  = soap_new_double(nullptr, dp->Value.mvdbl.__size);
 		memcpy(dp->Value.mvdbl.__ptr, sp->Value.MVat.lpat, sizeof(double) * dp->Value.mvdbl.__size);
 		break;
 	case PT_MV_SYSTIME:
 		dp->__union = SOAP_UNION_propValData_mvhilo;
 		dp->Value.mvhilo.__size = sp->Value.MVft.cValues;
-		dp->Value.mvhilo.__ptr = s_alloc<hiloLong>(nullptr, dp->Value.mvhilo.__size);
+		dp->Value.mvhilo.__ptr  = soap_new_hiloLong(nullptr, dp->Value.mvhilo.__size);
 		for (gsoap_size_t i = 0; i < dp->Value.mvhilo.__size; ++i) {
 			dp->Value.mvhilo.__ptr[i].hi = sp->Value.MVft.lpft[i].dwHighDateTime;
 			dp->Value.mvhilo.__ptr[i].lo = sp->Value.MVft.lpft[i].dwLowDateTime;
@@ -226,7 +226,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 	case PT_MV_I8:
 		dp->__union = SOAP_UNION_propValData_mvli;
 		dp->Value.mvli.__size = sp->Value.MVli.cValues;
-		dp->Value.mvli.__ptr = s_alloc<LONG64>(nullptr, dp->Value.mvli.__size);
+		dp->Value.mvli.__ptr  = soap_new_LONG64(nullptr, dp->Value.mvli.__size);
 		for (gsoap_size_t i = 0; i < dp->Value.mvli.__size; ++i)
 			dp->Value.mvli.__ptr[i] = sp->Value.MVli.lpli[i].QuadPart;
 		break;

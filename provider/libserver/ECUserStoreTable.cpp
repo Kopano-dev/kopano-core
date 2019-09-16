@@ -82,14 +82,14 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis,
 					break;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
 				m.__union = SOAP_UNION_propValData_lpszA;
-				m.Value.lpszA = s_strcpy(soap, const_cast<char *>(pThis->m_mapUserStoreData[row.ulObjId].strUsername.c_str()));
+				m.Value.lpszA = soap_strdup(soap, pThis->m_mapUserStoreData[row.ulObjId].strUsername.c_str());
 				break;
 			case PROP_ID(PR_DISPLAY_NAME):
 				if (pThis->m_mapUserStoreData[row.ulObjId].strGuessname.empty())
 					break;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
 				m.__union = SOAP_UNION_propValData_lpszA;
-				m.Value.lpszA = s_strcpy(soap, const_cast<char *>(pThis->m_mapUserStoreData[row.ulObjId].strGuessname.c_str()));
+				m.Value.lpszA = soap_strdup(soap, pThis->m_mapUserStoreData[row.ulObjId].strGuessname.c_str());
 				break;
 			case PROP_ID(PR_EC_STOREGUID):
 				if (pThis->m_mapUserStoreData[row.ulObjId].sGuid == sZeroGuid)
@@ -118,7 +118,7 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis,
 					break;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
 				m.__union = SOAP_UNION_propValData_lpszA;
-				m.Value.lpszA = s_strcpy(soap, const_cast<char *>(pThis->m_mapUserStoreData[row.ulObjId].strCompanyName.c_str()));
+				m.Value.lpszA = soap_strdup(soap, pThis->m_mapUserStoreData[row.ulObjId].strCompanyName.c_str());
 				break;
 			case PROP_ID(PR_STORE_ENTRYID):
 				// ignore errors
@@ -134,7 +134,7 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis,
 				auto ftTmp = UnixTimeToFileTime(pThis->m_mapUserStoreData[row.ulObjId].tModTime);
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
 				m.__union = SOAP_UNION_propValData_hilo;
-				m.Value.hilo = s_alloc<struct hiloLong>(soap);
+				m.Value.hilo = soap_new_hiloLong(soap);
 				m.Value.hilo->hi = ftTmp.dwHighDateTime;
 				m.Value.hilo->lo = ftTmp.dwLowDateTime;
 				break;

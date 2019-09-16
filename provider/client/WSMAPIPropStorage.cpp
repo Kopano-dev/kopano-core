@@ -183,14 +183,16 @@ HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(const MAPIOBJECT *lpsMapiObj
 		size = lpsMapiObject->lstChildren.size();
 		if (size != 0) {
 			lpSaveObj->__ptr = s_alloc<saveObject>(nullptr, size);
-			size = 0;
 			for (const auto &cld : lpsMapiObject->lstChildren)
 				// Only send children if:
 				// - Modified AND NOT deleted
 				// - Deleted AND loaded from server (locally created/deleted items with no server ID needn't be sent)
-				if ((cld->bChanged && !cld->bDelete) || (cld->ulObjId && cld->bDelete))
-					hr = HrMapiObjectToSoapObject(cld, &lpSaveObj->__ptr[size++], lpConverter);
-			lpSaveObj->__size = size;
+				if ((cld->bChanged && !cld->bDelete) || (cld->ulObjId && cld->bDelete)) {
+					hr = HrMapiObjectToSoapObject(cld, &lpSaveObj->__ptr[lpSaveObj->__size], lpConverter);
+					if (hr != hrSuccess)
+						return hr;
+					++lpSaveObj->__size;
+				}
 		}
 	}
 
@@ -381,7 +383,11 @@ HRESULT WSMAPIPropStorage::HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject
 	struct loadObjectResponse sResponse;
 	convert_context converter;
 
-	HrMapiObjectToSoapObject(lpsMapiObject, &sSaveObj, &converter);
+	hr = HrMapiObjectToSoapObject(lpsMapiObject, &sSaveObj, &converter);
+	if (hr != hrSuccess) {
+		DeleteSoapObject(&sSaveObj);
+		return hr;
+	}
 	soap_lock_guard spg(*m_lpTransport);
 	// ulFlags == object flags, e.g. MAPI_ASSOCIATE for messages, FOLDER_SEARCH on folders...
 	START_SOAP_CALL

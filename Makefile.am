@@ -849,7 +849,7 @@ ${SOAP_OUT}: provider/soap/KCmd.nsmap
 ${ESOAP_OUT}: provider/soap/soap.nsmap
 provider/soap/KCmd.nsmap: ${SOAPHEADER}
 	${MKDIR_P} provider/soap
-	soapcpp2 -jxw -Iinclude/ -d provider/soap/ $<
+	soapcpp2 -Ed -jxw -Iinclude/ -d provider/soap/ $<
 provider/soap/soap.nsmap:
 	${MKDIR_P} provider/soap
 	soapcpp2 -jxwp emptysoap -d provider/soap/ /dev/null

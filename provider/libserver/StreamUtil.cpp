@@ -1117,7 +1117,7 @@ static ECRESULT DeserializePropVal(struct soap *soap,
 	case PT_CURRENCY:
 	case PT_SYSTIME:
 		lpsPropval->__union = SOAP_UNION_propValData_hilo;
-		lpsPropval->Value.hilo = s_alloc<hiloLong>(soap);
+		lpsPropval->Value.hilo = soap_new_hiloLong(soap);
 		er = lpSource->Read(&lpsPropval->Value.hilo->hi, sizeof(lpsPropval->Value.hilo->hi), 1);
 		if (er == erSuccess)
 			er = lpSource->Read(&lpsPropval->Value.hilo->lo, sizeof(lpsPropval->Value.hilo->lo), 1);
@@ -1153,7 +1153,7 @@ static ECRESULT DeserializePropVal(struct soap *soap,
 		if (er != erSuccess)
 			break;
 		lpsPropval->Value.mvi.__size = ulCount;
-		lpsPropval->Value.mvi.__ptr = s_alloc<short>(soap, ulCount);
+		lpsPropval->Value.mvi.__ptr  = soap_new_short(soap, ulCount);
 		er = lpSource->Read(lpsPropval->Value.mvi.__ptr, sizeof *lpsPropval->Value.mvi.__ptr, ulCount);
 		break;
 	case PT_MV_LONG:
@@ -1171,7 +1171,7 @@ static ECRESULT DeserializePropVal(struct soap *soap,
 		if (er != erSuccess)
 			break;
 		lpsPropval->Value.mvflt.__size = ulCount;
-		lpsPropval->Value.mvflt.__ptr = s_alloc<float>(soap, ulCount);
+		lpsPropval->Value.mvflt.__ptr  = soap_new_float(soap, ulCount);
 		er = lpSource->Read(lpsPropval->Value.mvflt.__ptr, sizeof *lpsPropval->Value.mvflt.__ptr, ulCount);
 		break;
 	case PT_MV_DOUBLE:
@@ -1181,7 +1181,7 @@ static ECRESULT DeserializePropVal(struct soap *soap,
 		if (er != erSuccess)
 			break;
 		lpsPropval->Value.mvdbl.__size = ulCount;
-		lpsPropval->Value.mvdbl.__ptr = s_alloc<double>(soap, ulCount);
+		lpsPropval->Value.mvdbl.__ptr  = soap_new_double(soap, ulCount);
 		er = lpSource->Read(lpsPropval->Value.mvdbl.__ptr, sizeof *lpsPropval->Value.mvdbl.__ptr, ulCount);
 		break;
 	case PT_MV_CURRENCY:
@@ -1191,7 +1191,7 @@ static ECRESULT DeserializePropVal(struct soap *soap,
 		if (er != erSuccess)
 			break;
 		lpsPropval->Value.mvhilo.__size = ulCount;
-		lpsPropval->Value.mvhilo.__ptr = s_alloc<hiloLong>(soap, ulCount);
+		lpsPropval->Value.mvhilo.__ptr  = soap_new_hiloLong(soap, ulCount);
 		for (gsoap_size_t x = 0; er == erSuccess && x < ulCount; ++x) {
 			er = lpSource->Read(&lpsPropval->Value.mvhilo.__ptr[x].hi, sizeof(lpsPropval->Value.mvhilo.__ptr[x].hi), ulCount);
 			if (er != erSuccess)
@@ -1239,7 +1239,7 @@ static ECRESULT DeserializePropVal(struct soap *soap,
 		if (er != erSuccess)
 			break;
 		lpsPropval->Value.mvli.__size = ulCount;
-		lpsPropval->Value.mvli.__ptr = s_alloc<LONG64>(soap, ulCount);
+		lpsPropval->Value.mvli.__ptr  = soap_new_LONG64(soap, ulCount);
 		er = lpSource->Read(lpsPropval->Value.mvli.__ptr, sizeof *lpsPropval->Value.mvli.__ptr, ulCount);
 		break;
 	default:
