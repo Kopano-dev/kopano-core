@@ -16,7 +16,7 @@
 namespace KC {
 
 /* Extern object */
-struct objectid_t {
+struct objectid_t final {
 	objectid_t(void) = default;
 	objectid_t(objectclass_t xoc) : objclass(xoc) {}
 	objectid_t(const std::string &xid, objectclass_t xoc) :
@@ -26,6 +26,7 @@ struct objectid_t {
 	bool operator==(const objectid_t &x) const noexcept;
 	bool operator!=(const objectid_t &x) const noexcept;
 	std::string tostring() const;
+	size_t get_object_size() const;
 
 	std::string id;
 	objectclass_t objclass = OBJECTCLASS_UNKNOWN;
@@ -135,7 +136,7 @@ public:
 
 /** Server Details
 */
-class serverdetails_t {
+class serverdetails_t final {
 public:
 	serverdetails_t(const std::string &servername = std::string());
 
@@ -154,6 +155,7 @@ public:
 	std::string	GetHttpPath() const;
 	std::string	GetSslPath() const;
 	const std::string &GetProxyPath(void) const;
+	size_t get_object_size() const;
 
 private:
 	std::string m_strServerName;

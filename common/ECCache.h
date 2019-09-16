@@ -13,6 +13,7 @@
 #include <utility>
 #include <cassert>
 #include <cstdint>
+#include <kopano/ECLogger.h>
 #include <kopano/platform.h>
 #include <kopano/kcodes.h> /* ECRESULT */
 
@@ -29,9 +30,21 @@ bool KeyEntryOrder(const KeyEntry<Key> &a, const KeyEntry<Key> &b) {
 	return a.ulLastAccess < b.ulLastAccess;
 }
 
-template<typename Value> size_t GetCacheAdditionalSize(const Value &val)
+template<typename Value> inline size_t GetCacheAdditionalSize(const Value &val)
 {
+	/*
+	 * Trivial destructability is an indicator for a "simple" struct.
+	 * Conversely, !TD indicates there may be pointers, which a
+	 * specialization of GCA should analyze.
+	 */
+	if (!std::is_trivially_destructible<Value>::value)
+		ec_log_notice("K-1035: dev: please specialize for %s", __PRETTY_FUNCTION__);
 	return 0;
+}
+
+template<> inline size_t GetCacheAdditionalSize(const std::string &s)
+{
+	return MEMORY_USAGE_STRING(s);
 }
 
 class ECsCacheEntry {

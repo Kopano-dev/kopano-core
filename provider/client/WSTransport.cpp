@@ -66,6 +66,15 @@ using namespace KC;
 	if(hr != hrSuccess) \
 		goto exitm;
 
+namespace KC {
+
+template<> size_t GetCacheAdditionalSize(const ECsResolveResult &v)
+{
+	return MEMORY_USAGE_STRING(v.serverPath);
+}
+
+}
+
 WSTransport::WSTransport(ULONG ulUIFlags) :
 	ECUnknown("WSTransport"), m_ulUIFlags(ulUIFlags),
 	m_ResolveResultCache("ResolveResult", 4096, 300), m_has_session(false)

@@ -34,30 +34,61 @@ namespace KC {
 	ec_log(EC_LOGLEVEL_DEBUG | EC_LOGLEVEL_CACHE, "cellcache: " _msg, ##__VA_ARGS__)
 
 // Specialization for ECsACL
-template<> size_t GetCacheAdditionalSize(const ECsACLs &val)
+template<> inline size_t GetCacheAdditionalSize(const ECsACLs &val)
 {
 	return val.ulACLs * sizeof(val.aACL[0]);
 }
 
-template<> size_t GetCacheAdditionalSize(const ECsIndexProp &val)
+template<> inline size_t GetCacheAdditionalSize(const ECsIndexProp &val)
 {
 	return val.cbData;
 }
 
 // Specialization for ECsCell
-template<> size_t GetCacheAdditionalSize(const ECsCells &val)
+template<> inline size_t GetCacheAdditionalSize(const ECsCells &val)
 {
 	return val.GetSize();
 }
 
-template<> size_t GetCacheAdditionalSize(const std::string &val)
-{
-	return MEMORY_USAGE_STRING(val);
-}
-
-template<> size_t GetCacheAdditionalSize(const ECsUEIdKey &val)
+template<> inline size_t GetCacheAdditionalSize(const ECsUEIdKey &val)
 {
 	return MEMORY_USAGE_STRING(val.strExternId);
+}
+
+template<> inline size_t GetCacheAdditionalSize(const ECsUEIdObject &v)
+{
+	return MEMORY_USAGE_STRING(v.strSignature);
+}
+
+template<> inline size_t GetCacheAdditionalSize(const ECsUserObject &v)
+{
+	return MEMORY_USAGE_STRING(v.strExternId) +
+	       MEMORY_USAGE_STRING(v.strSignature);
+}
+
+template<> inline size_t GetCacheAdditionalSize(const objectid_t &v)
+{
+	return v.get_object_size() - sizeof(v);
+}
+
+template<> inline size_t GetCacheAdditionalSize(const objectdetails_t &v)
+{
+	return v.GetObjectSize() - sizeof(v);
+}
+
+template<> inline size_t GetCacheAdditionalSize(const serverdetails_t &v)
+{
+	return v.get_object_size() - sizeof(v);
+}
+
+template<> inline size_t GetCacheAdditionalSize(const ECsServerDetails &v)
+{
+	return GetCacheAdditionalSize(v.sDetails);
+}
+
+template<> inline size_t GetCacheAdditionalSize(const ECsUserObjectDetails &v)
+{
+	return GetCacheAdditionalSize(v.sDetails);
 }
 
 ECCacheManager::ECCacheManager(std::shared_ptr<ECConfig> lpConfig,
