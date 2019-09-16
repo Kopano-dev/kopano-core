@@ -278,6 +278,12 @@ static bool filesv1_extract_fanout(const char *s, unsigned int *x, unsigned int 
 	return sscanf(s, "files_v1-%u-%u", x, y) == 2;
 }
 
+static inline bool is_filesv1(const char *s)
+{
+	unsigned int ign;
+	return filesv1_extract_fanout(s, &ign, &ign);
+}
+
 static ECRESULT check_database_attachments(ECDatabase *lpDatabase)
 {
 	DB_RESULT lpResult;
@@ -325,7 +331,7 @@ static ECRESULT check_database_attachments(ECDatabase *lpDatabase)
 
 static ECRESULT check_attachment_storage_permissions(void)
 {
-	if (strcmp(g_lpConfig->GetSetting("attachment_storage"), "files") == 0) {
+	if (is_filesv1(g_lpConfig->GetSetting("attachment_storage"))) {
 		std::string strtestpath = g_lpConfig->GetSetting("attachment_path");
 		strtestpath += "/testfile";
 		auto tmpfile = fopen(strtestpath.c_str(), "w");
@@ -1114,8 +1120,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	}
 
 	auto aback = g_lpConfig->GetSetting("attachment_storage");
-	unsigned int ignore;
-	if (filesv1_extract_fanout(aback, &ignore, &ignore) || strcmp(aback, "files_v2") == 0) {
+	if (strcmp(aback, "files_v2") == 0 || is_filesv1(aback)) {
 		/*
 		 * Either (1.) the attachment directory or (2.) its immediate
 		 * parent directory needs to exist with right permissions.
