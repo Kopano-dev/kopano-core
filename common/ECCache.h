@@ -112,7 +112,7 @@ public:
 	size_type Size(void) const _kc_override
 	{
 		/* It works with map and unordered_map. */
-		return m_map.size() * (sizeof(typename MapType::value_type) + sizeof(MapType)) + m_ulSize;
+		return m_map.size() * sizeof(typename MapType::value_type) + sizeof(MapType) + m_ulSize;
 	}
 
 	ECRESULT RemoveCacheItem(const key_type &key)
