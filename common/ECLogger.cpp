@@ -80,8 +80,8 @@ class ECLogger_Syslog KC_FINAL : public ECLogger {
 
 static void ec_log_bt(unsigned int, const char *, ...);
 
-static constexpr const size_t _LOG_TSSIZE = 64;
-static constexpr const size_t LOG_PFXSIZE = _LOG_TSSIZE + 32 + 16; /* +threadname+pid */
+static constexpr const size_t EC_LOG_TSSIZE = 64;
+static constexpr const size_t LOG_PFXSIZE = EC_LOG_TSSIZE + 32 + 16; /* +threadname+pid */
 static constexpr const size_t LOG_LVLSIZE = 12;
 
 static const char *const ll_names[] = {
@@ -410,9 +410,9 @@ static const char msgtrunc[] = "(message truncated due to size)";
 
 void ECLogger_File::logv(unsigned int level, const char *format, va_list &va)
 {
-	char msgbuffer[_LOG_BUFSIZE];
+	char msgbuffer[EC_LOG_BUFSIZE];
 	auto len = _vsnprintf_l(msgbuffer, sizeof msgbuffer, format, datalocale, va);
-	static_assert(_LOG_BUFSIZE >= sizeof(msgtrunc), "pick a better basic _LOG_BUFSIZE");
+	static_assert(EC_LOG_BUFSIZE >= sizeof(msgtrunc), "pick a better basic EC_LOG_BUFSIZE");
 	if (len >= sizeof(msgbuffer))
 		strcpy(msgbuffer + sizeof(msgbuffer) - sizeof(msgtrunc), msgtrunc);
 	log(level, msgbuffer);
@@ -474,7 +474,7 @@ void ECLogger_Syslog::logv(unsigned int loglevel, const char *format, va_list &v
 #if HAVE_VSYSLOG
 	vsyslog(levelmap[loglevel & EC_LOGLEVEL_MASK], format, va);
 #else
-	char msgbuffer[_LOG_BUFSIZE];
+	char msgbuffer[EC_LOG_BUFSIZE];
 	if (_vsnprintf_l(msgbuffer, sizeof(msgbuffer), format, datalocale, va) >= sizeof(msgbuffer))
 		strcpy(msgbuffer + sizeof(msgbuffer) - sizeof(msgtrunc), msgtrunc);
 	syslog(levelmap[loglevel & EC_LOGLEVEL_MASK], "%s", msgbuffer);
@@ -540,7 +540,7 @@ void ECLogger_Tee::logf(unsigned int level, const char *format, ...)
 
 void ECLogger_Tee::logv(unsigned int level, const char *format, va_list &va)
 {
-	char msgbuffer[_LOG_BUFSIZE];
+	char msgbuffer[EC_LOG_BUFSIZE];
 	if (_vsnprintf_l(msgbuffer, sizeof msgbuffer, format, datalocale, va) >= sizeof(msgbuffer))
 		strcpy(msgbuffer + sizeof(msgbuffer) - sizeof(msgtrunc), msgtrunc);
 	for (auto log : m_loggers)
@@ -589,7 +589,7 @@ void ECLogger_Pipe::Reset() {
 
 void ECLogger_Pipe::log(unsigned int loglevel, const char *message)
 {
-	char msgbuffer[_LOG_BUFSIZE];
+	char msgbuffer[EC_LOG_BUFSIZE];
 	msgbuffer[0] = loglevel;
 	msgbuffer[1] = '\0';
 	size_t off = 1, rem = sizeof(msgbuffer) - 1;
@@ -617,7 +617,7 @@ void ECLogger_Pipe::logf(unsigned int level, const char *format, ...)
 
 void ECLogger_Pipe::logv(unsigned int loglevel, const char *format, va_list &va)
 {
-	char msgbuffer[_LOG_BUFSIZE];
+	char msgbuffer[EC_LOG_BUFSIZE];
 	msgbuffer[0] = loglevel;
 	msgbuffer[1] = '\0';
 	size_t off = 1, rem = sizeof(msgbuffer) - 1;
@@ -684,7 +684,7 @@ namespace PrivatePipe {
 	    ECConfig *lpConfig)
 	{
 		ssize_t ret;
-		char buffer[_LOG_BUFSIZE] = {0};
+		char buffer[EC_LOG_BUFSIZE] = {0};
 		std::string complete;
 		const char *p = NULL;
 		int s;

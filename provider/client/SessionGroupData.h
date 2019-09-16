@@ -22,11 +22,7 @@ class ECSessionGroupInfo final {
 public:
 	std::string strServer, strProfile;
 
-	ECSessionGroupInfo()
-		: strServer(), strProfile()
-	{
-	}
-
+	ECSessionGroupInfo() = default;
 	ECSessionGroupInfo(const std::string &server, const std::string &profile) :
 		strServer(server), strProfile(profile)
 	{
@@ -63,7 +59,7 @@ public:
 	SessionGroupData(KC::ECSESSIONGROUPID, ECSessionGroupInfo *, const sGlobalProfileProps &);
 	static HRESULT Create(KC::ECSESSIONGROUPID, ECSessionGroupInfo *, const sGlobalProfileProps &, SessionGroupData **out);
 	HRESULT GetOrCreateNotifyMaster(ECNotifyMaster **lppMaster);
-	HRESULT GetTransport(WSTransport **lppTransport);
+	HRESULT create_transport(WSTransport **);
 	ULONG AddRef();
 	ULONG Release();
 	BOOL IsOrphan();

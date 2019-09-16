@@ -2,8 +2,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef _CALDAVPROTO_H_
-#define _CALDAVPROTO_H_
+#ifndef CALDAV_PROTO_H
+#define CALDAV_PROTO_H
 
 #include "WebDav.h"
 #include "CalDavUtil.h"

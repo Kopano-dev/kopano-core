@@ -55,6 +55,8 @@ HRESULT WSMAPIFolderOps::Create(ECSESSIONID ecSessionId, ULONG cbEntryId,
 HRESULT WSMAPIFolderOps::QueryInterface(REFIID refiid, void **lppInterface)
 {
 	REGISTER_INTERFACE3(ECMAPIFolderOps, WSMAPIFolderOps, this);
+	REGISTER_INTERFACE2(ECUnknown, this);
+	REGISTER_INTERFACE2(IUnknown, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 

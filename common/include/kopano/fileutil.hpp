@@ -2,9 +2,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef _FILEUTIL_H
-#define _FILEUTIL_H
+#ifndef EC_FILEUTIL_HPP
+#define EC_FILEUTIL_HPP 1
 
 #include <kopano/zcdefs.h>
 #include <string>

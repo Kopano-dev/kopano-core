@@ -3,8 +3,8 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  * Copyright 2016 Kopano and its licensors
  */
-#ifndef _KC_MEMORY_HPP
-#define _KC_MEMORY_HPP 1
+#ifndef EC_MEMORY_HPP
+#define EC_MEMORY_HPP 1
 
 #include <kopano/zcdefs.h>
 #include <type_traits> /* std::is_base_of */
@@ -404,4 +404,4 @@ make_unique_nt(Args &&...) = delete;
 
 } /* namespace */
 
-#endif /* _KC_MEMORY_HPP */
+#endif

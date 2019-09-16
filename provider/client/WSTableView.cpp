@@ -47,6 +47,8 @@ WSTableView::~WSTableView()
 HRESULT WSTableView::QueryInterface(REFIID refiid, void **lppInterface)
 {
 	REGISTER_INTERFACE3(ECTableView, WSTableView, this);
+	REGISTER_INTERFACE2(ECUnknown, this);
+	REGISTER_INTERFACE2(IUnknown, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
@@ -619,6 +621,8 @@ HRESULT WSTableOutGoingQueue::Create(ECSESSIONID ecSessionId, ULONG cbEntryId,
 HRESULT	WSTableOutGoingQueue::QueryInterface(REFIID refiid, void **lppInterface)
 {
 	REGISTER_INTERFACE3(ECTableOutGoingQueue, WSTableOutGoingQueue, this);
+	REGISTER_INTERFACE2(ECUnknown, this);
+	REGISTER_INTERFACE2(IUnknown, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 

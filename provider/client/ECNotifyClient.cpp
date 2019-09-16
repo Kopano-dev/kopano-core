@@ -97,6 +97,8 @@ HRESULT ECNotifyClient::Create(ULONG ulProviderType, void *lpProvider, ULONG ulF
 HRESULT ECNotifyClient::QueryInterface(REFIID refiid, void **lppInterface)
 {
 	REGISTER_INTERFACE2(ECNotifyClient, this);
+	REGISTER_INTERFACE2(ECUnknown, this);
+	REGISTER_INTERFACE2(IUnknown, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 

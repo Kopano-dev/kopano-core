@@ -41,7 +41,7 @@ HRESULT SessionGroupData::GetOrCreateNotifyMaster(ECNotifyMaster **lppMaster)
 	return hr;
 }
 
-HRESULT SessionGroupData::GetTransport(WSTransport **lppTransport)
+HRESULT SessionGroupData::create_transport(WSTransport **lppTransport)
 {
 	WSTransport *lpTransport = NULL;
 	auto hr = WSTransport::Create(&lpTransport);

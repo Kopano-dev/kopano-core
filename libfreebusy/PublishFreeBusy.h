@@ -2,8 +2,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef _PublishFreeBusy_H_
-#define _PublishFreeBusy_H_
+#ifndef FB_PUBLISHFREEBUSY_H
+#define FB_PUBLISHFREEBUSY_H
 
 #include <kopano/zcdefs.h>
 #include <mapidefs.h>
@@ -18,4 +18,4 @@ extern _kc_export HRESULT HrPublishDefaultCalendar(IMAPISession *, IMsgStore *, 
 
 } /* namespace */
 
-#endif //_PublishFreeBusy_H_
+#endif

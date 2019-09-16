@@ -1,5 +1,5 @@
-#ifndef _KC_HL_HPP
-#define _KC_HL_HPP 1
+#ifndef EC_HL_HPP
+#define EC_HL_HPP 1
 
 #include <kopano/zcdefs.h>
 #include <kopano/memory.hpp>
@@ -56,4 +56,4 @@ template<size_t N> class KPropbuffer {
 
 } /* namespace */
 
-#endif /* _KC_HL_HPP */
+#endif
