@@ -288,18 +288,19 @@ static ECRESULT check_database_attachments(ECDatabase *lpDatabase)
 	}
 
 	auto lpRow = lpResult.fetch_row();
+	auto backend = g_lpConfig->GetSetting("attachment_storage");
 	if (lpRow != nullptr && lpRow[0] != nullptr &&
 	    // check if the mode is the same as last time
-	    strcmp(lpRow[0], g_lpConfig->GetSetting("attachment_storage")) != 0) {
+	    strcmp(lpRow[0], backend) != 0) {
 		if (!m_bIgnoreAttachmentStorageConflict) {
-			ec_log_err("Attachments are stored with option '%s', but '%s' is selected.", lpRow[0], g_lpConfig->GetSetting("attachment_storage"));
+			ec_log_err("Attachments are stored with option \"%s\", but \"%s\" is selected.", lpRow[0], backend);
 			return KCERR_DATABASE_ERROR;
 		}
-		ec_log_warn("Ignoring attachment storing conflict as requested. Attachments are now stored with option '%s'", g_lpConfig->GetSetting("attachment_storage"));
+		ec_log_warn("Ignoring attachment storing conflict as requested. Attachments are now stored with option \"%s\".", backend);
 	}
 
 	// first time we start, set the database to the selected mode
-	auto strQuery = (string)"REPLACE INTO settings VALUES ('attachment_storage', '" + g_lpConfig->GetSetting("attachment_storage") + "')";
+	auto strQuery = "REPLACE INTO settings VALUES ('attachment_storage', "s + lpDatabase->Escape(backend) + ")";
 	er = lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess) {
 		ec_log_err("Unable to update database settings");
@@ -307,7 +308,7 @@ static ECRESULT check_database_attachments(ECDatabase *lpDatabase)
 	}
 
 	unsigned int l1, l2;
-	if (!filesv1_extract_fanout(g_lpConfig->GetSetting("attachment_storage"), &l1, &l2))
+	if (!filesv1_extract_fanout(backend, &l1, &l2))
 		return erSuccess;
 	// Create attachment directories
 	for (unsigned int i = 0; i < l1; ++i)
