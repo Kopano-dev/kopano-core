@@ -884,7 +884,7 @@ ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(struct soap *soap,
 	er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		return ec_perror("ECAttachmentStorage::LoadAttachmentInstance(): DoSelect(2) failed", er);
-	auto lpData = s_alloc<unsigned char>(soap, iSize);
+	auto lpData = soap_new_unsignedByte(soap, iSize);
 	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 		if (lpDBRow[0] == NULL) {
 			// broken attachment!
@@ -902,7 +902,7 @@ ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(struct soap *soap,
 
 exit:
 	if (er != erSuccess && !soap)
-		delete [] lpData;
+		soap_del_PointerTounsignedByte(&lpData);
 	return er;
 }
 
@@ -1344,8 +1344,7 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(struct soap *soap,
 		if (er == erSuccess)
 			VerifyInstanceSize(ulInstanceId, *lpiSize, filename);
 		if (er == erSuccess) {
-			lpData = s_alloc<unsigned char>(soap, *lpiSize);
-
+			lpData = soap_new_unsignedByte(soap, *lpiSize);
 			memcpy(lpData, temp, *lpiSize);
 		}
 
@@ -1360,7 +1359,7 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(struct soap *soap,
 			ec_log_err("ECFileAttachment::LoadAttachmentInstance(SOAP): Error while doing fstat on \"%s\": %s", filename.c_str(), strerror(errno));
 			// FIXME er = KCERR_DATABASE_ERROR;
 			*lpiSize = 0;
-			lpData = s_alloc<unsigned char>(soap, *lpiSize);
+			lpData   = soap_new_unsignedByte(soap, *lpiSize);
 			*lppData = lpData;
 			goto exit;
 		}
@@ -1372,12 +1371,12 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(struct soap *soap,
 				attachment_size_safety_limit, filename.c_str());
 			// FIXME er = KCERR_DATABASE_ERROR;
 			*lpiSize = 0;
-			lpData = s_alloc<unsigned char>(soap, *lpiSize);
+			lpData   = soap_new_unsignedByte(soap, *lpiSize);
 			*lppData = lpData;
 			goto exit;
 		}
 
-		lpData = s_alloc<unsigned char>(soap, *lpiSize);
+		lpData = soap_new_unsignedByte(soap, *lpiSize);
 
 		/* Uncompressed attachment */
 		lReadSize = read_retry(fd, lpData, *lpiSize);
@@ -1402,9 +1401,8 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(struct soap *soap,
 	*lppData = lpData;
 
 exit:
-	if (er != erSuccess)
-		delete [] lpData;
-
+	if (er != erSuccess && soap == nullptr)
+		soap_del_PointerTounsignedByte(&lpData);
 	if (gzfp)
 		gzclose(gzfp);
 	else if (fd >= 0)
@@ -2388,10 +2386,10 @@ ECRESULT ECFileAttachment2::LoadAttachmentInstance(struct soap *soap,
 		ec_log_err("K-1285: fstat: %s", strerror(errno));
 		close(fd);
 		*dsize = 0;
-		*data  = s_alloc<unsigned char>(soap, 0);
+		*data  = soap_new_unsignedByte(soap, 0);
 		return KCERR_NO_ACCESS;
 	}
-	*data = s_alloc<unsigned char>(soap, sb.st_size);
+	*data = soap_new_unsignedByte(soap, sb.st_size);
 	auto rd = read_retry(fd, *data, sb.st_size);
 	if (rd < 0) {
 		ec_log_err("K-1284: read: %s", strerror(errno));

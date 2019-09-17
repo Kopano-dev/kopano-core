@@ -1054,12 +1054,12 @@ ECRESULT ECCacheManager::GetACLs(unsigned int ulObjId, struct rightsArray **lppR
     if (ulRows > 0)
     {
 	    lpRights->__size = ulRows;
-		lpRights->__ptr = s_alloc<rights>(nullptr, ulRows);
+		lpRights->__ptr  = soap_new_rights(nullptr, ulRows);
 
 		for (unsigned int i = 0; i < ulRows; ++i) {
 			auto lpRow = lpResult.fetch_row();
 			if(lpRow == NULL || lpRow[0] == NULL || lpRow[1] == NULL || lpRow[2] == NULL) {
-				s_free(nullptr, lpRights->__ptr);
+				soap_del_rightsArray(lpRights);
 				s_free(nullptr, lpRights);
 				ec_perror("ECCacheManager::GetACLs(): ROW or COLUMNS null", er);
 				return KCERR_DATABASE_ERROR;
@@ -1091,7 +1091,7 @@ ECRESULT ECCacheManager::I_GetACLs(unsigned int ulObjId, struct rightsArray **lp
     if (sACL->ulACLs > 0)
     {
         lpRights->__size = sACL->ulACLs;
-		lpRights->__ptr = s_alloc<rights>(nullptr, sACL->ulACLs);
+		lpRights->__ptr  = soap_new_rights(nullptr, sACL->ulACLs);
 
         for (unsigned int i = 0; i < sACL->ulACLs; ++i) {
             lpRights->__ptr[i].ulType = sACL->aACL[i].ulType;
@@ -1499,7 +1499,7 @@ ECRESULT ECCacheManager::GetPropFromObject(unsigned int ulTag, unsigned int ulOb
 		er = m_ObjectToPropCache.GetCacheItem(sObjectKey, &sObject);
 
 		if(er == erSuccess) {
-			*lppData = s_alloc<unsigned char>(soap, sObject->cbData);
+			*lppData  = soap_new_unsignedByte(soap, sObject->cbData);
 			*lpcbData = sObject->cbData;
 
 			memcpy(*lppData, sObject->lpData, sObject->cbData);
@@ -1531,7 +1531,7 @@ ECRESULT ECCacheManager::GetPropFromObject(unsigned int ulTag, unsigned int ulOb
 	if(er != erSuccess)
 		goto exit;
 	sObject = &sNewObject;
-	*lppData = s_alloc<unsigned char>(soap, sObject->cbData);
+	*lppData  = soap_new_unsignedByte(soap, sObject->cbData);
 	*lpcbData = sObject->cbData;
 	memcpy(*lppData, sObject->lpData, sObject->cbData);
 exit:
@@ -1634,10 +1634,10 @@ ECRESULT ECCacheManager::SetObjectProp(unsigned int ulTag, unsigned int cbData,
 
 ECRESULT ECCacheManager::GetEntryIdFromObject(unsigned int ulObjId, struct soap *soap, unsigned int ulFlags, entryId** lppEntryId)
 {
-	entryId*	lpEntryId = s_alloc<entryId>(soap);
+	auto lpEntryId = soap_new_entryId(soap);
 	auto er = GetEntryIdFromObject(ulObjId, soap, ulFlags, lpEntryId);
 	if (er != erSuccess) {
-		s_free(nullptr, lpEntryId);
+		soap_del_PointerToentryId(&lpEntryId);
 		return er;
 	}
 	// Flags already set by GetEntryIdFromObject(4args)

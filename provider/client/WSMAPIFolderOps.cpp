@@ -41,7 +41,7 @@ WSMAPIFolderOps::WSMAPIFolderOps(ECSESSIONID sid, ULONG cbEntryId,
 WSMAPIFolderOps::~WSMAPIFolderOps()
 {
 	m_lpTransport->RemoveSessionReloadCallback(m_ulSessionReloadCallback);
-	FreeEntryId(&m_sEntryId, false);
+	soap_del_entryId(&m_sEntryId);
 }
 
 HRESULT WSMAPIFolderOps::Create(ECSESSIONID ecSessionId, ULONG cbEntryId,
@@ -107,8 +107,7 @@ HRESULT WSMAPIFolderOps::HrCreateFolder(ULONG ulFolderType,
 
 exit:
 	spg.unlock();
-	if(lpsEntryId)
-		FreeEntryId(lpsEntryId, true);
+	soap_del_PointerToentryId(&lpsEntryId);
 	return hr;
 }
 
@@ -142,7 +141,7 @@ HRESULT WSMAPIFolderOps::create_folders(std::vector<WSFolder> &batch)
 	spg.unlock();
 	for (auto &folder : folders)
 		if (folder.entryid != nullptr)
-			FreeEntryId(folder.entryid, true);
+			soap_del_PointerToentryId(&folder.entryid);
 	return hr;
 }
 
@@ -213,7 +212,7 @@ HRESULT WSMAPIFolderOps::HrSetReadFlags(ENTRYLIST *lpMsgList, ULONG ulFlags, ULO
 
 exit:
 	spg.unlock();
-	FreeEntryList(&sEntryList, false);
+	soap_del_entryList(&sEntryList);
 	return hr;
 }
 
@@ -227,7 +226,7 @@ HRESULT WSMAPIFolderOps::HrSetSearchCriteria(const ENTRYLIST *lpMsgList,
 	soap_lock_guard spg(*m_lpTransport);
 
 	if(lpMsgList) {
-		lpsEntryList = s_alloc<entryList>(nullptr);
+		lpsEntryList = soap_new_entryList(nullptr);
 		hr = CopyMAPIEntryListToSOAPEntryList(lpMsgList, lpsEntryList);
 		if(hr != hrSuccess)
 			goto exit;
@@ -254,8 +253,7 @@ exit:
 	spg.unlock();
 	if(lpsRestrict)
 		FreeRestrictTable(lpsRestrict);
-	if(lpsEntryList)
-		FreeEntryList(lpsEntryList, true);
+	soap_del_PointerToentryList(&lpsEntryList);
 	return hr;
 }
 
@@ -356,7 +354,7 @@ HRESULT WSMAPIFolderOps::HrCopyMessage(ENTRYLIST *lpMsgList, ULONG cbEntryDest,
 
 exit:
 	spg.unlock();
-	FreeEntryList(&sEntryList, false);
+	soap_del_entryList(&sEntryList);
 	return hr;
 }
 

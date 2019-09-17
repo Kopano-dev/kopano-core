@@ -20,12 +20,10 @@ namespace KC {
 
 extern std::string FilterBMP(const std::string &strToFilter);
 // SortOrderSets
-extern void FreeSortOrderArray(struct sortOrderArray *lpsSortOrder);
 extern int CompareSortOrderArray(const struct sortOrderArray *lpsSortOrder1, const struct sortOrderArray *lpsSortOrder2);
 
 // PropTagArrays
 extern ECRESULT CopyPropTagArray(struct soap *soap, const struct propTagArray* lpPTsSrc, struct propTagArray** lppsPTsDst);
-extern void FreePropTagArray(struct propTagArray *lpsPropTags, bool bFreeBase = true);
 
 // RowSets
 extern void FreeRowSet(struct rowSet *);
@@ -56,11 +54,9 @@ extern ECRESULT CopyPropVal(const struct propVal *src, struct propVal **dst, str
 
 // EntryList
 ECRESULT			CopyEntryList(struct soap *soap, struct entryList *lpSrc, struct entryList **lppDst);
-ECRESULT			FreeEntryList(struct entryList *lpEntryList, bool bFreeBase = true);
 
 // EntryId
 ECRESULT			CopyEntryId(struct soap *soap, entryId* lpSrc, entryId** lppDst);
-ECRESULT			FreeEntryId(entryId* lpEntryId, bool bFreeBase);
 
 // Notification
 ECRESULT			FreeNotificationStruct(notification *lpNotification, bool bFreeBase=true);

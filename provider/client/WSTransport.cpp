@@ -792,8 +792,7 @@ HRESULT WSTransport::HrDeleteObjects(ULONG ulFlags, const ENTRYLIST *lpMsgList, 
 	}
 	END_SOAP_CALL
  exitm:
-	FreeEntryList(&sEntryList, false);
-
+	soap_del_entryList(&sEntryList);
 	return hr;
 }
 
@@ -825,8 +824,7 @@ HRESULT WSTransport::HrNotify(const NOTIFICATION *lpNotification)
 	if(lpNotification->info.newmail.lpszMessageClass){
 		utf8string strMessageClass = convstring(lpNotification->info.newmail.lpszMessageClass, lpNotification->info.newmail.ulFlags);
 		ulSize = strMessageClass.size() + 1;
-		sNotification.newmail->lpszMessageClass = s_alloc<char>(nullptr, ulSize);
-		memcpy(sNotification.newmail->lpszMessageClass, strMessageClass.c_str(), ulSize);
+		sNotification.newmail->lpszMessageClass = soap_strdup(nullptr, strMessageClass.c_str());
 	}
 	sNotification.newmail->ulMessageFlags = lpNotification->info.newmail.ulMessageFlags;
 
@@ -943,7 +941,7 @@ HRESULT WSTransport::HrUnSubscribeMulti(const ECLISTCONNECTION &lstConnections)
 	unsigned i = 0;
 
 	ulConnArray.__size = lstConnections.size();
-	ulConnArray.__ptr = s_alloc<unsigned int>(nullptr, ulConnArray.__size);
+	ulConnArray.__ptr  = soap_new_unsignedInt(nullptr, ulConnArray.__size);
 
 	soap_lock_guard spg(*this);
 	for (const auto &p : lstConnections)
@@ -957,7 +955,7 @@ HRESULT WSTransport::HrUnSubscribeMulti(const ECLISTCONNECTION &lstConnections)
 	END_SOAP_CALL
  exitm:
 	spg.unlock();
-	s_free(nullptr, ulConnArray.__ptr);
+	soap_del_mv_long(&ulConnArray);
 	return hr;
 }
 
@@ -2966,7 +2964,7 @@ HRESULT WSTransport::HrSetPermissionRules(ULONG cbEntryID,
 		if(lpECPermissions[i].ulState != RIGHT_NORMAL)
 			++nChangedItems;
 
-	rArray.__ptr = s_alloc<rights>(m_lpCmd->soap, nChangedItems);
+	rArray.__ptr  = soap_new_rights(m_lpCmd->soap, nChangedItems);
 	rArray.__size = nChangedItems;
 
 	nItem = 0;
@@ -3643,7 +3641,7 @@ HRESULT WSTransport::HrGetSyncStates(const ECLISTSYNCID &lstSyncId, ECLISTSYNCST
 	soap_lock_guard spg(*this);
 	if (lstSyncId.empty())
 		goto exitm;
-	ulaSyncId.__ptr = s_alloc<unsigned int>(nullptr, lstSyncId.size());
+	ulaSyncId.__ptr = soap_new_unsignedInt(nullptr, lstSyncId.size());
 	for (auto sync_id : lstSyncId)
 		ulaSyncId.__ptr[ulaSyncId.__size++] = sync_id;
 
@@ -3663,7 +3661,7 @@ HRESULT WSTransport::HrGetSyncStates(const ECLISTSYNCID &lstSyncId, ECLISTSYNCST
 	}
  exitm:
 	spg.unlock();
-	s_free(nullptr, ulaSyncId.__ptr);
+	soap_del_mv_long(&ulaSyncId);
 	return hr;
 }
 

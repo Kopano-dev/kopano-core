@@ -40,7 +40,7 @@ WSABPropStorage::WSABPropStorage(ULONG cbEntryId, const ENTRYID *lpEntryId,
 WSABPropStorage::~WSABPropStorage()
 {
     m_lpTransport->RemoveSessionReloadCallback(m_ulSessionReloadCallback);
-	FreeEntryId(&m_sEntryId, false);
+	soap_del_entryId(&m_sEntryId);
 }
 
 HRESULT WSABPropStorage::QueryInterface(REFIID refiid, void **lppInterface)

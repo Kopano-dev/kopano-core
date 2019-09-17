@@ -232,7 +232,7 @@ ECRESULT ECGenProps::GetPropComputed(struct soap *soap, unsigned int ulObjType, 
 			++lpszColon; // skip space
 			--newlength; // adjust length
 		}
-		lpPropVal->Value.lpszA = s_alloc<char>(soap, newlength + 1);
+		lpPropVal->Value.lpszA = soap_new_byte(soap, newlength + 1);
 		memcpy(lpPropVal->Value.lpszA, lpszColon, newlength);
 		lpPropVal->Value.lpszA[newlength] = '\0';	// add C-type string terminator
 		return erSuccess;
@@ -250,8 +250,8 @@ ECRESULT ECGenProps::GetPropComputed(struct soap *soap, unsigned int ulObjType, 
 			return KCERR_NOT_FOUND;
 		lpPropVal->ulPropTag = PR_RECORD_KEY;
 		lpPropVal->__union = SOAP_UNION_propValData_bin;
-		lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ULONG));
+		lpPropVal->Value.bin = soap_new_xsd__base64Binary(soap);
+		lpPropVal->Value.bin->__ptr  = soap_new_unsignedByte(soap, sizeof(ULONG));
 		lpPropVal->Value.bin->__size = sizeof(ULONG);
 		memcpy(lpPropVal->Value.bin->__ptr, &ulObjId, sizeof(ULONG));
 		return erSuccess;
@@ -313,7 +313,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 		}
 		sPropVal.ulPropTag = ulPropTag;
 		sPropVal.__union = SOAP_UNION_propValData_bin;
-		sPropVal.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+		sPropVal.Value.bin = soap_new_xsd__base64Binary(soap);
 		sPropVal.Value.bin->__ptr = sEntryId.__ptr;
 		sPropVal.Value.bin->__size = sEntryId.__size;
 		break;
@@ -321,8 +321,8 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 	case PROP_ID(PR_STORE_RECORD_KEY):
 		sPropVal.__union = SOAP_UNION_propValData_bin;
 		sPropVal.ulPropTag = ulPropTag;
-		sPropVal.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-		sPropVal.Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(GUID));
+		sPropVal.Value.bin = soap_new_xsd__base64Binary(soap);
+		sPropVal.Value.bin->__ptr  = soap_new_unsignedByte(soap, sizeof(GUID));
 		sPropVal.Value.bin->__size = sizeof(GUID);
 		er = cache->GetStore(ulStoreId, 0, reinterpret_cast<GUID *>(sPropVal.Value.bin->__ptr));
 		if (er != erSuccess) {
@@ -331,7 +331,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 		}
 		break;
 	case PROP_ID(PR_USER_ENTRYID):
-		sPropTagArray.__ptr = s_alloc<unsigned int>(nullptr, 1);
+		sPropTagArray.__ptr = soap_new_unsignedInt(nullptr, 1);
 		sPropTagArray.__ptr[0] = PR_ENTRYID;
 		sPropTagArray.__size = 1;
 		ulUserId = sec->GetUserId();
@@ -347,7 +347,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 		}
 		break;
 	case PROP_ID(PR_USER_NAME):
-		sPropTagArray.__ptr = s_alloc<unsigned int>(nullptr, 1);
+		sPropTagArray.__ptr = soap_new_unsignedInt(nullptr, 1);
 		sPropTagArray.__ptr[0] = PR_ACCOUNT;
 		sPropTagArray.__size = 1;
 		ulUserId = sec->GetUserId();
@@ -382,7 +382,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 		break;
 	}
 	case PROP_ID(PR_MAILBOX_OWNER_NAME):
-		sPropTagArray.__ptr = s_alloc<unsigned int>(nullptr, 1);
+		sPropTagArray.__ptr = soap_new_unsignedInt(nullptr, 1);
 		sPropTagArray.__ptr[0] = PR_DISPLAY_NAME;
 		sPropTagArray.__size = 1;
 
@@ -399,7 +399,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 		}
 		break;
 	case PROP_ID(PR_MAILBOX_OWNER_ENTRYID):
-		sPropTagArray.__ptr = s_alloc<unsigned int>(nullptr, 1);
+		sPropTagArray.__ptr = soap_new_unsignedInt(nullptr, 1);
 		sPropTagArray.__ptr[0] = PR_ENTRYID;
 		sPropTagArray.__size = 1;
 
@@ -416,7 +416,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 		}
 		break;
 	case PROP_ID(PR_EC_MAILBOX_OWNER_ACCOUNT):
-		sPropTagArray.__ptr = s_alloc<unsigned int>(nullptr, 1);
+		sPropTagArray.__ptr = soap_new_unsignedInt(nullptr, 1);
 		sPropTagArray.__ptr[0] = PR_ACCOUNT;
 		sPropTagArray.__size = 1;
 
@@ -454,8 +454,8 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 	case PROP_ID(PR_INSTANCE_KEY):
 		sPropVal.ulPropTag = ulPropTag;
 		sPropVal.__union = SOAP_UNION_propValData_bin;
-		sPropVal.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-		sPropVal.Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ULONG) * 2);
+		sPropVal.Value.bin = soap_new_xsd__base64Binary(soap);
+		sPropVal.Value.bin->__ptr  = soap_new_unsignedByte(soap, sizeof(ULONG) * 2);
 		sPropVal.Value.bin->__size = sizeof(ULONG) * 2;
 		memcpy(sPropVal.Value.bin->__ptr, &ulObjId, sizeof(ULONG));
 		memcpy(sPropVal.Value.bin->__ptr+sizeof(ULONG), &ulOrderId, sizeof(ULONG));
@@ -468,7 +468,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 	case PROP_ID(PR_SOURCE_KEY):
 		sPropVal.ulPropTag = PR_SOURCE_KEY;
 		sPropVal.__union = SOAP_UNION_propValData_bin;
-		sPropVal.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+		sPropVal.Value.bin = soap_new_xsd__base64Binary(soap);
 		sPropVal.Value.bin->__size = 0;
 		sPropVal.Value.bin->__ptr = NULL;
 		er = cache->GetPropFromObject(PROP_ID(PR_SOURCE_KEY), ulObjId, soap, reinterpret_cast<unsigned int *>(&sPropVal.Value.bin->__size), &sPropVal.Value.bin->__ptr);
@@ -476,7 +476,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 	case PROP_ID(PR_PARENT_SOURCE_KEY):
 		sPropVal.ulPropTag = PR_PARENT_SOURCE_KEY;
 		sPropVal.__union = SOAP_UNION_propValData_bin;
-		sPropVal.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+		sPropVal.Value.bin = soap_new_xsd__base64Binary(soap);
 		sPropVal.Value.bin->__size = 0;
 		sPropVal.Value.bin->__ptr = NULL;
 		if (ulParentId == 0) {
@@ -621,8 +621,8 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 		break;
 	case PROP_ID(PR_MAPPING_SIGNATURE):
 		sPropVal.ulPropTag = ulPropTag;
-		sPropVal.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-		sPropVal.Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(GUID));
+		sPropVal.Value.bin = soap_new_xsd__base64Binary(soap);
+		sPropVal.Value.bin->__ptr = soap_new_unsignedByte(soap, sizeof(GUID));
 		sPropVal.__union = SOAP_UNION_propValData_bin;
 		sPropVal.Value.bin->__size = sizeof(GUID);
 		er = lpSession->GetServerGUID(reinterpret_cast<GUID *>(sPropVal.Value.bin->__ptr));
@@ -647,7 +647,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 
 	*lpPropVal = std::move(sPropVal);
 exit:
-	s_free(nullptr, sPropTagArray.__ptr);
+	soap_del_propTagArray(&sPropTagArray);
 	if(soap == NULL) { // soap != NULL gsoap will cleanup the memory
 		s_free(nullptr, sPropValArray.__ptr);
 		if (er != erSuccess)
@@ -697,7 +697,6 @@ ECRESULT ECGenProps::GetStoreName(struct soap *soap, ECSession* lpSession, unsig
 	struct propValArray sPropValArray;
 	struct propTagArray sPropTagArray;
 	std::string strFormat;
-	char*				lpStoreName = NULL;
 
 	auto sec = lpSession->GetSecurity();
 	auto er = sec->GetStoreOwner(ulStoreId, &ulUserId);
@@ -712,7 +711,7 @@ ECRESULT ECGenProps::GetStoreName(struct soap *soap, ECSession* lpSession, unsig
 	if(ulUserId == KOPANO_UID_EVERYONE || ulUserId == ulCompanyId) {
 		strFormat = KC_A("Public Folders");
 	} else {
-		sPropTagArray.__ptr = s_alloc<unsigned int>(nullptr, 3);
+		sPropTagArray.__ptr = soap_new_unsignedInt(nullptr, 3);
         sPropTagArray.__ptr[0] = PR_DISPLAY_NAME;
         sPropTagArray.__ptr[1] = PR_ACCOUNT;
         sPropTagArray.__ptr[2] = PR_EC_COMPANY_NAME;
@@ -757,11 +756,9 @@ ECRESULT ECGenProps::GetStoreName(struct soap *soap, ECSession* lpSession, unsig
 			assert(false);
     }
 
-	lpStoreName = s_alloc<char>(soap, strFormat.size() + 1);
-	strcpy(lpStoreName, strFormat.c_str());
-	*lppStoreName = lpStoreName;
+	*lppStoreName = soap_strdup(soap, strFormat.c_str());
 exit:
-	s_free(nullptr, sPropTagArray.__ptr);
+	soap_del_propTagArray(&sPropTagArray);
 	return er;
 }
 

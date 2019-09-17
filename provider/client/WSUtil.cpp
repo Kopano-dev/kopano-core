@@ -80,20 +80,14 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 		dp->__union = SOAP_UNION_propValData_li;
 		dp->Value.li = sp->Value.li.QuadPart;
 		break;
-	case PT_STRING8: {
-		utf8string u8 = CONVERT_TO(lpConverter, utf8string, sp->Value.lpszA);	// SOAP lpszA = UTF-8, MAPI lpszA = current locale charset
+	case PT_STRING8:
 		dp->__union = SOAP_UNION_propValData_lpszA;
-		dp->Value.lpszA = s_alloc<char>(nullptr, u8.size() + 1);
-		strcpy(dp->Value.lpszA, u8.c_str());
+		dp->Value.lpszA = soap_strdup(nullptr, CONVERT_TO(lpConverter, utf8string, sp->Value.lpszA).c_str());
 		break;
-	}
-	case PT_UNICODE: {
-		utf8string u8 = CONVERT_TO(lpConverter, utf8string, sp->Value.lpszW);
+	case PT_UNICODE:
 		dp->__union = SOAP_UNION_propValData_lpszA;
-		dp->Value.lpszA = s_alloc<char>(nullptr, u8.size() + 1);
-		strcpy(dp->Value.lpszA, u8.c_str());
+		dp->Value.lpszA = soap_strdup(nullptr, CONVERT_TO(lpConverter, utf8string, sp->Value.lpszW).c_str());
 		break;
-	}
 	case PT_SYSTIME:
 		dp->__union = SOAP_UNION_propValData_hilo;
 		dp->Value.hilo = soap_new_hiloLong(nullptr);
@@ -102,20 +96,20 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 		break;
 	case PT_CLSID:
 		dp->__union = SOAP_UNION_propValData_bin;
-		dp->Value.bin = s_alloc<xsd__base64Binary>(nullptr);
-		dp->Value.bin->__ptr = s_alloc<unsigned char>(nullptr, sizeof(GUID));
+		dp->Value.bin = soap_new_xsd__base64Binary(nullptr);
+		dp->Value.bin->__ptr  = soap_new_unsignedByte(nullptr, sizeof(GUID));
 		dp->Value.bin->__size = sizeof(GUID);
 		memcpy(dp->Value.bin->__ptr, sp->Value.lpguid, sizeof(GUID));
 		break;
 	case PT_BINARY:
 		dp->__union = SOAP_UNION_propValData_bin;
-		dp->Value.bin = s_alloc<xsd__base64Binary>(nullptr);
+		dp->Value.bin = soap_new_xsd__base64Binary(nullptr);
 		if (sp->Value.bin.cb == 0 || sp->Value.bin.lpb == nullptr) {
 			dp->Value.bin->__ptr = nullptr;
 			dp->Value.bin->__size = 0;
 			break;
 		}
-		dp->Value.bin->__ptr = s_alloc<unsigned char>(nullptr, sp->Value.bin.cb);
+		dp->Value.bin->__ptr  = soap_new_unsignedByte(nullptr, sp->Value.bin.cb);
 		dp->Value.bin->__size = sp->Value.bin.cb;
 		memcpy(dp->Value.bin->__ptr, sp->Value.bin.lpb, sp->Value.bin.cb);
 		break;
@@ -128,7 +122,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 	case PT_MV_LONG:
 		dp->__union = SOAP_UNION_propValData_mvl;
 		dp->Value.mvl.__size = sp->Value.MVl.cValues;
-		dp->Value.mvl.__ptr = s_alloc<unsigned int>(nullptr, dp->Value.mvl.__size);
+		dp->Value.mvl.__ptr  = soap_new_unsignedInt(nullptr, dp->Value.mvl.__size);
 		memcpy(dp->Value.mvl.__ptr, sp->Value.MVl.lpl, sizeof(unsigned int) * dp->Value.mvl.__size);
 		break;
 	case PT_MV_R4:
@@ -170,7 +164,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 	case PT_MV_BINARY:
 		dp->__union = SOAP_UNION_propValData_mvbin;
 		dp->Value.mvbin.__size = sp->Value.MVbin.cValues;
-		dp->Value.mvbin.__ptr = s_alloc<xsd__base64Binary>(nullptr, dp->Value.mvbin.__size);
+		dp->Value.mvbin.__ptr  = soap_new_xsd__base64Binary(nullptr, dp->Value.mvbin.__size);
 		for (gsoap_size_t i = 0; i < dp->Value.mvbin.__size; ++i) {
 			if (sp->Value.MVbin.lpbin[i].cb == 0 ||
 			    sp->Value.MVbin.lpbin[i].lpb == nullptr) {
@@ -179,7 +173,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 				continue;
 			}
 			dp->Value.mvbin.__ptr[i].__size = sp->Value.MVbin.lpbin[i].cb;
-			dp->Value.mvbin.__ptr[i].__ptr = s_alloc<unsigned char>(nullptr, dp->Value.mvbin.__ptr[i].__size);
+			dp->Value.mvbin.__ptr[i].__ptr  = soap_new_unsignedByte(nullptr, dp->Value.mvbin.__ptr[i].__size);
 			memcpy(dp->Value.mvbin.__ptr[i].__ptr, sp->Value.MVbin.lpbin[i].lpb, dp->Value.mvbin.__ptr[i].__size);
 		}
 		break;
@@ -191,12 +185,9 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 		}
 		dp->__union = SOAP_UNION_propValData_mvszA;
 		dp->Value.mvszA.__size = sp->Value.MVszA.cValues;
-		dp->Value.mvszA.__ptr = s_alloc<char *>(nullptr, dp->Value.mvszA.__size);
-		for (gsoap_size_t i = 0; i < dp->Value.mvszA.__size; ++i) {
-			utf8string u8 = lpConverter->convert_to<utf8string>(sp->Value.MVszA.lppszA[i]);
-			dp->Value.mvszA.__ptr[i] = s_alloc<char>(nullptr, u8.size() + 1);
-			strcpy(dp->Value.mvszA.__ptr[i], u8.c_str());
-		}
+		dp->Value.mvszA.__ptr  = soap_new_string(nullptr, dp->Value.mvszA.__size);
+		for (gsoap_size_t i = 0; i < dp->Value.mvszA.__size; ++i)
+			dp->Value.mvszA.__ptr[i] = soap_strdup(nullptr, lpConverter->convert_to<utf8string>(sp->Value.MVszA.lppszA[i]).c_str());
 		break;
 	case PT_MV_UNICODE:
 		if (lpConverter == NULL) {
@@ -206,20 +197,17 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 		}
 		dp->__union = SOAP_UNION_propValData_mvszA;
 		dp->Value.mvszA.__size = sp->Value.MVszA.cValues;
-		dp->Value.mvszA.__ptr = s_alloc<char *>(nullptr, dp->Value.mvszA.__size);
-		for (gsoap_size_t i = 0; i < dp->Value.mvszA.__size; ++i) {
-			utf8string u8 = lpConverter->convert_to<utf8string>(sp->Value.MVszW.lppszW[i]);
-			dp->Value.mvszA.__ptr[i] = s_alloc<char>(nullptr, u8.size() + 1);
-			strcpy(dp->Value.mvszA.__ptr[i], u8.c_str());
-		}
+		dp->Value.mvszA.__ptr  = soap_new_string(nullptr, dp->Value.mvszA.__size);
+		for (gsoap_size_t i = 0; i < dp->Value.mvszA.__size; ++i)
+			dp->Value.mvszA.__ptr[i] = soap_strdup(nullptr, lpConverter->convert_to<utf8string>(sp->Value.MVszW.lppszW[i]).c_str());
 		break;
 	case PT_MV_CLSID:
 		dp->__union = SOAP_UNION_propValData_mvbin;
 		dp->Value.mvbin.__size = sp->Value.MVguid.cValues;
-		dp->Value.mvbin.__ptr = s_alloc<xsd__base64Binary>(nullptr, dp->Value.mvbin.__size);
+		dp->Value.mvbin.__ptr  = soap_new_xsd__base64Binary(nullptr, dp->Value.mvbin.__size);
 		for (gsoap_size_t i = 0; i < dp->Value.mvbin.__size; ++i) {
 			dp->Value.mvbin.__ptr[i].__size = sizeof(GUID);
-			dp->Value.mvbin.__ptr[i].__ptr = s_alloc<unsigned char>(nullptr, dp->Value.mvbin.__ptr[i].__size);
+			dp->Value.mvbin.__ptr[i].__ptr  = soap_new_unsignedByte(nullptr, dp->Value.mvbin.__ptr[i].__size);
 			memcpy(dp->Value.mvbin.__ptr[i].__ptr, &sp->Value.MVguid.lpguid[i], dp->Value.mvbin.__ptr[i].__size);
 		}
 		break;
@@ -255,12 +243,10 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 			case OP_MOVE:
 			case OP_COPY:
 				da->__union = SOAP_UNION__act_moveCopy;
-
-				da->act.moveCopy.store.__ptr = s_alloc<unsigned char>(nullptr, sa->actMoveCopy.cbStoreEntryId);
+				da->act.moveCopy.store.__ptr = soap_new_unsignedByte(nullptr, sa->actMoveCopy.cbStoreEntryId);
 				memcpy(da->act.moveCopy.store.__ptr, sa->actMoveCopy.lpStoreEntryId, sa->actMoveCopy.cbStoreEntryId);
 				da->act.moveCopy.store.__size = sa->actMoveCopy.cbStoreEntryId;
-
-				da->act.moveCopy.folder.__ptr = s_alloc<unsigned char>(nullptr, sa->actMoveCopy.cbFldEntryId);
+				da->act.moveCopy.folder.__ptr = soap_new_unsignedByte(nullptr, sa->actMoveCopy.cbFldEntryId);
 				memcpy(da->act.moveCopy.folder.__ptr, sa->actMoveCopy.lpFldEntryId, sa->actMoveCopy.cbFldEntryId);
 				da->act.moveCopy.folder.__size = sa->actMoveCopy.cbFldEntryId;
 
@@ -268,16 +254,16 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 			case OP_REPLY:
 			case OP_OOF_REPLY:
 				da->__union = SOAP_UNION__act_reply;
-				da->act.reply.message.__ptr = s_alloc<unsigned char>(nullptr, sa->actReply.cbEntryId);
+				da->act.reply.message.__ptr = soap_new_unsignedByte(nullptr, sa->actReply.cbEntryId);
 				memcpy(da->act.reply.message.__ptr, sa->actReply.lpEntryId, sa->actReply.cbEntryId);
 				da->act.reply.message.__size = sa->actReply.cbEntryId;
 				da->act.reply.guid.__size = sizeof(GUID);
-				da->act.reply.guid.__ptr = s_alloc<unsigned char>(nullptr, sizeof(GUID));
+				da->act.reply.guid.__ptr = soap_new_unsignedByte(nullptr, sizeof(GUID));
 				memcpy(da->act.reply.guid.__ptr, &sa->actReply.guidReplyTemplate, sizeof(GUID));
 				break;
 			case OP_DEFER_ACTION:
 				da->__union = SOAP_UNION__act_defer;
-				da->act.defer.bin.__ptr = s_alloc<unsigned char>(nullptr, sa->actDeferAction.cbData);
+				da->act.defer.bin.__ptr = soap_new_unsignedByte(nullptr, sa->actDeferAction.cbData);
 				da->act.defer.bin.__size = sa->actDeferAction.cbData;
 				memcpy(da->act.defer.bin.__ptr,sa->actDeferAction.pbData, sa->actDeferAction.cbData);
 				break;
@@ -810,10 +796,10 @@ HRESULT CopySOAPRowToMAPIRow(void *lpProvider,
 HRESULT CopyMAPIEntryIdToSOAPEntryId(ULONG cbEntryIdSrc,
     const ENTRYID *lpEntryIdSrc, entryId **lppDest)
 {
-	auto lpDest = s_alloc<entryId>(nullptr);
+	auto lpDest = soap_new_entryId(nullptr);
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryIdSrc, lpEntryIdSrc, lpDest, false);
 	if (hr != hrSuccess) {
-		s_free(nullptr, lpDest);
+		soap_del_PointerToentryId(&lpDest);
 		return hr;
 	}
 	*lppDest = lpDest;
@@ -832,7 +818,7 @@ HRESULT CopyMAPIEntryIdToSOAPEntryId(ULONG cbEntryIdSrc,
 		return hrSuccess;
 	}
 	if (!bCheapCopy) {
-		lpDest->__ptr = s_alloc<unsigned char>(nullptr, cbEntryIdSrc);
+		lpDest->__ptr = soap_new_unsignedByte(nullptr, cbEntryIdSrc);
 		memcpy(lpDest->__ptr, lpEntryIdSrc, cbEntryIdSrc);
 	}else{
 		lpDest->__ptr = (LPBYTE)lpEntryIdSrc;
@@ -903,10 +889,9 @@ HRESULT CopyMAPIEntryListToSOAPEntryList(const ENTRYLIST *lpMsgList,
 	}
 
 	unsigned int i = 0;
-
-	lpsEntryList->__ptr = s_alloc<entryId>(nullptr, lpMsgList->cValues);
+	lpsEntryList->__ptr = soap_new_entryId(nullptr, lpMsgList->cValues);
 	for (i = 0; i < lpMsgList->cValues; ++i) {
-		lpsEntryList->__ptr[i].__ptr = s_alloc<unsigned char>(nullptr, lpMsgList->lpbin[i].cb);
+		lpsEntryList->__ptr[i].__ptr = soap_new_unsignedByte(nullptr, lpMsgList->lpbin[i].cb);
 		memcpy(lpsEntryList->__ptr[i].__ptr, lpMsgList->lpbin[i].lpb, lpMsgList->lpbin[i].cb);
 
 		lpsEntryList->__ptr[i].__size = lpMsgList->lpbin[i].cb;

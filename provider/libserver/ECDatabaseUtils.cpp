@@ -481,8 +481,7 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 			goto exit;
 		}
 		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
-		lpPropVal->Value.lpszA = s_alloc<char>(soap, lpLen[FIELD_NR_STRING]+1);
-		strcpy(lpPropVal->Value.lpszA, lpRow[FIELD_NR_STRING]);
+		lpPropVal->Value.lpszA = soap_strdup(soap, lpRow[FIELD_NR_STRING]);
 		ulPropTag = CHANGE_PROP_TYPE(ulPropTag, PT_UNICODE); // return unicode strings to client, because database contains UTF-8
 
 		break;
@@ -492,8 +491,8 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 			goto exit;
 		}
 		lpPropVal->__union = SOAP_UNION_propValData_bin;
-		lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, lpLen[FIELD_NR_BINARY]);
+		lpPropVal->Value.bin = soap_new_xsd__base64Binary(soap);
+		lpPropVal->Value.bin->__ptr = soap_new_unsignedByte(soap, lpLen[FIELD_NR_BINARY]);
 		memcpy(lpPropVal->Value.bin->__ptr, lpRow[FIELD_NR_BINARY],lpLen[FIELD_NR_BINARY]);
 		lpPropVal->Value.bin->__size = lpLen[FIELD_NR_BINARY];
 		break;
@@ -503,8 +502,8 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 			goto exit;
 		}
 		lpPropVal->__union = SOAP_UNION_propValData_bin;
-		lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, lpLen[FIELD_NR_BINARY]);
+		lpPropVal->Value.bin = soap_new_xsd__base64Binary(soap);
+		lpPropVal->Value.bin->__ptr = soap_new_unsignedByte(soap, lpLen[FIELD_NR_BINARY]);
 		memcpy(lpPropVal->Value.bin->__ptr, lpRow[FIELD_NR_BINARY],lpLen[FIELD_NR_BINARY]);
 		lpPropVal->Value.bin->__size = lpLen[FIELD_NR_BINARY];
 		break;
@@ -531,7 +530,7 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 
 		lpPropVal->__union = SOAP_UNION_propValData_mvl;
 		lpPropVal->Value.mvl.__size = atoi(lpRow[FIELD_NR_ID]);
-		lpPropVal->Value.mvl.__ptr = s_alloc<unsigned int>(soap, lpPropVal->Value.mvl.__size);
+		lpPropVal->Value.mvl.__ptr = soap_new_unsignedInt(soap, lpPropVal->Value.mvl.__size);
 		ulLastPos = 0;
 		for (gsoap_size_t i = 0; i < lpPropVal->Value.mvl.__size; ++i) {
 			ParseMVProp(lpRow[FIELD_NR_ULONG], lpLen[FIELD_NR_ULONG], &ulLastPos, &strData);
@@ -599,12 +598,12 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 		}
 		lpPropVal->__union = SOAP_UNION_propValData_mvbin;
 		lpPropVal->Value.mvbin.__size = atoi(lpRow[FIELD_NR_ID]);
-		lpPropVal->Value.mvbin.__ptr = s_alloc<struct xsd__base64Binary>(soap, lpPropVal->Value.mvbin.__size);
+		lpPropVal->Value.mvbin.__ptr  = soap_new_xsd__base64Binary(soap, lpPropVal->Value.mvbin.__size);
 		ulLastPos = 0;
 		for (gsoap_size_t i = 0; i < lpPropVal->Value.mvbin.__size; ++i) {
 			ParseMVProp(lpRow[FIELD_NR_BINARY], lpLen[FIELD_NR_BINARY], &ulLastPos, &strData);
 			lpPropVal->Value.mvbin.__ptr[i].__size = strData.size();
-			lpPropVal->Value.mvbin.__ptr[i].__ptr = s_alloc<unsigned char>(soap, lpPropVal->Value.mvbin.__ptr[i].__size);
+			lpPropVal->Value.mvbin.__ptr[i].__ptr = soap_new_unsignedByte(soap, lpPropVal->Value.mvbin.__ptr[i].__size);
 			memcpy(lpPropVal->Value.mvbin.__ptr[i].__ptr, strData.c_str(), lpPropVal->Value.mvbin.__ptr[i].__size);
 		}
 		break;
@@ -616,12 +615,11 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 		}
 		lpPropVal->__union = SOAP_UNION_propValData_mvszA;
 		lpPropVal->Value.mvszA.__size = atoi(lpRow[FIELD_NR_ID]);
-		lpPropVal->Value.mvszA.__ptr = s_alloc<char *>(soap, lpPropVal->Value.mvszA.__size);
+		lpPropVal->Value.mvszA.__ptr  = soap_new_string(soap, lpPropVal->Value.mvszA.__size);
 		ulLastPos = 0;
 		for (gsoap_size_t i = 0; i < lpPropVal->Value.mvszA.__size; ++i) {
 			ParseMVProp(lpRow[FIELD_NR_STRING], lpLen[FIELD_NR_STRING], &ulLastPos, &strData);
-			lpPropVal->Value.mvszA.__ptr[i] = s_alloc<char>(soap, strData.size() + 1);
-			memcpy(lpPropVal->Value.mvszA.__ptr[i], strData.c_str(), strData.size() + 1);
+			lpPropVal->Value.mvszA.__ptr[i] = soap_strdup(soap, strData.c_str());
 		}
 		ulPropTag = CHANGE_PROP_TYPE(ulPropTag, PT_MV_UNICODE); // return unicode strings to client, because database contains UTF-8
 		break;

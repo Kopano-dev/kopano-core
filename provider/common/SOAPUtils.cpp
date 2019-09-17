@@ -111,14 +111,6 @@ private:
 	struct propVal *m_lpMVProp;
 };
 
-void FreeSortOrderArray(struct sortOrderArray *lpsSortOrder)
-{
-	if(lpsSortOrder == NULL)
-		return;
-	s_free(nullptr, lpsSortOrder->__ptr);
-	s_free(nullptr, lpsSortOrder);
-}
-
 int CompareSortOrderArray(const struct sortOrderArray *lpsSortOrder1,
     const struct sortOrderArray *lpsSortOrder2)
 {
@@ -145,27 +137,19 @@ ECRESULT CopyPropTagArray(struct soap *soap,
 	if (lppsPTsDst == nullptr || lpPTsSrc == nullptr)
 		return KCERR_INVALID_PARAMETER;
 
-	struct propTagArray *lpPTsDst = nullptr;
-	lpPTsDst = s_alloc<struct propTagArray>(soap);
+	auto lpPTsDst = soap_new_propTagArray(soap);
+	if (lpPTsDst == nullptr)
+		return KCERR_NOT_ENOUGH_MEMORY;
 	lpPTsDst->__size = lpPTsSrc->__size;
 
 	if(lpPTsSrc->__size > 0) {
-		lpPTsDst->__ptr = s_alloc<unsigned int>(soap, lpPTsSrc->__size );
+		lpPTsDst->__ptr = soap_new_unsignedInt(soap, lpPTsSrc->__size);
 		memcpy(lpPTsDst->__ptr, lpPTsSrc->__ptr, sizeof(unsigned int) * lpPTsSrc->__size);
 	} else {
 		lpPTsDst->__ptr = NULL;
 	}
 	*lppsPTsDst = lpPTsDst;
 	return erSuccess;
-}
-
-void FreePropTagArray(struct propTagArray *lpsPropTags, bool bFreeBase)
-{
-	if(lpsPropTags == NULL)
-		return;
-	s_free(nullptr, lpsPropTags->__ptr);
-	if(bFreeBase)
-		s_free(nullptr, lpsPropTags);
 }
 
 /**
@@ -727,20 +711,17 @@ ECRESULT FreePropVal(struct propVal *lpProp, bool bBasePointerDel)
 		break;
 	case PT_STRING8:
 	case PT_UNICODE:
-		s_free(nullptr, lpProp->Value.lpszA);
+		soap_del_string(&lpProp->Value.lpszA);
 		break;
 	case PT_CLSID:
 	case PT_BINARY:
-		if (lpProp->Value.bin == nullptr)
-			break;
-		s_free(nullptr, lpProp->Value.bin->__ptr);
-		s_free(nullptr, lpProp->Value.bin);
+		soap_del_PointerToxsd__base64Binary(&lpProp->Value.bin);
 		break;
 	case PT_MV_I2:
 		soap_del_mv_i2(&lpProp->Value.mvi);
 		break;
 	case PT_MV_LONG:
-		s_free(nullptr, lpProp->Value.mvl.__ptr);
+		soap_del_mv_long(&lpProp->Value.mvl);
 		break;
 	case PT_MV_R4:
 		soap_del_mv_r4(&lpProp->Value.mvflt);
@@ -758,19 +739,11 @@ ECRESULT FreePropVal(struct propVal *lpProp, bool bBasePointerDel)
 		break;
 	case PT_MV_CLSID:
 	case PT_MV_BINARY:
-		if (lpProp->Value.mvbin.__ptr == nullptr)
-			break;
-		for (gsoap_size_t i = 0; i < lpProp->Value.mvbin.__size; ++i)
-			s_free(nullptr, lpProp->Value.mvbin.__ptr[i].__ptr);
-		s_free(nullptr, lpProp->Value.mvbin.__ptr);
+		soap_del_mv_binary(&lpProp->Value.mvbin);
 		break;
 	case PT_MV_STRING8:
 	case PT_MV_UNICODE:
-		if (lpProp->Value.mvszA.__ptr == nullptr)
-			break;
-		for (gsoap_size_t i = 0; i < lpProp->Value.mvszA.__size; ++i)
-			s_free(nullptr, lpProp->Value.mvszA.__ptr[i]);
-		s_free(nullptr, lpProp->Value.mvszA.__ptr);
+		soap_del_mv_string8(&lpProp->Value.mvszA);
 		break;
 	case PT_SRESTRICTION:
 		if(lpProp->Value.res)
@@ -787,16 +760,16 @@ ECRESULT FreePropVal(struct propVal *lpProp, bool bBasePointerDel)
 			switch(lpAction->acttype) {
 			case OP_COPY:
 			case OP_MOVE:
-				s_free(nullptr, lpAction->act.moveCopy.store.__ptr);
-				s_free(nullptr, lpAction->act.moveCopy.folder.__ptr);
+				soap_del_xsd__base64Binary(&lpAction->act.moveCopy.store);
+				soap_del_xsd__base64Binary(&lpAction->act.moveCopy.folder);
 				break;
 			case OP_REPLY:
 			case OP_OOF_REPLY:
-				s_free(nullptr, lpAction->act.reply.message.__ptr);
-				s_free(nullptr, lpAction->act.reply.guid.__ptr);
+				soap_del_xsd__base64Binary(&lpAction->act.reply.message);
+				soap_del_xsd__base64Binary(&lpAction->act.reply.guid);
 				break;
 			case OP_DEFER_ACTION:
-				s_free(nullptr, lpAction->act.defer.bin.__ptr);
+				soap_del_xsd__base64Binary(&lpAction->act.defer.bin);
 				break;
 			case OP_BOUNCE:
 				break;
@@ -968,7 +941,7 @@ ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal *lpDst,
 			return KCERR_INVALID_TYPE;
 		size_t len = !bTruncate ? strlen(lpSrc->Value.lpszA) :
 		             u8_cappedbytes(lpSrc->Value.lpszA, TABLE_CAP_STRING);
-		lpDst->Value.lpszA = s_alloc<char>(soap, len + 1);
+		lpDst->Value.lpszA = soap_new_byte(soap, len + 1);
 		strncpy(lpDst->Value.lpszA, lpSrc->Value.lpszA, len);
 		lpDst->Value.lpszA[len] = '\0'; // null terminate after strncpy
 		break;
@@ -977,12 +950,11 @@ ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal *lpDst,
 	case PT_CLSID:
 		if (lpSrc->Value.bin == NULL)
 			return KCERR_INVALID_TYPE;
-		lpDst->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+		lpDst->Value.bin = soap_new_xsd__base64Binary(soap);
 		lpDst->Value.bin->__size = lpSrc->Value.bin->__size;
 		if (bTruncate && lpDst->Value.bin->__size > TABLE_CAP_BINARY)
 			lpDst->Value.bin->__size = TABLE_CAP_BINARY;
-		
-		lpDst->Value.bin->__ptr = s_alloc<unsigned char>(soap, lpSrc->Value.bin->__size);
+		lpDst->Value.bin->__ptr = soap_new_unsignedByte(soap, lpSrc->Value.bin->__size);
 		memcpy(lpDst->Value.bin->__ptr, lpSrc->Value.bin->__ptr, lpDst->Value.bin->__size);
 		break;
 	case PT_MV_I2:
@@ -996,7 +968,7 @@ ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal *lpDst,
 		if (lpSrc->Value.mvl.__ptr == NULL)
 			return KCERR_INVALID_TYPE;
 		lpDst->Value.mvl.__size = lpSrc->Value.mvl.__size;
-		lpDst->Value.mvl.__ptr = s_alloc<unsigned int>(soap, lpSrc->Value.mvl.__size);
+		lpDst->Value.mvl.__ptr  = soap_new_unsignedInt(soap, lpSrc->Value.mvl.__size);
 		memcpy(lpDst->Value.mvl.__ptr, lpSrc->Value.mvl.__ptr, sizeof(unsigned int) * lpDst->Value.mvl.__size);
 		break;
 	case PT_MV_R4:
@@ -1034,23 +1006,18 @@ ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal *lpDst,
 		if (lpSrc->Value.mvszA.__ptr == NULL)
 			return KCERR_INVALID_TYPE;
 		lpDst->Value.mvszA.__size = lpSrc->Value.mvszA.__size;
-		lpDst->Value.mvszA.__ptr = s_alloc<char*>(soap, lpSrc->Value.mvszA.__size);
-		for (gsoap_size_t i = 0; i < lpSrc->Value.mvszA.__size; ++i) {
-			lpDst->Value.mvszA.__ptr[i] = s_alloc<char>(soap, strlen(lpSrc->Value.mvszA.__ptr[i]) + 1);
-			if (lpSrc->Value.mvszA.__ptr[i] == NULL)
-				strcpy(lpDst->Value.mvszA.__ptr[i], "");
-			else
-				strcpy(lpDst->Value.mvszA.__ptr[i], lpSrc->Value.mvszA.__ptr[i]);
-		}
+		lpDst->Value.mvszA.__ptr  = soap_new_string(soap, lpSrc->Value.mvszA.__size);
+		for (gsoap_size_t i = 0; i < lpSrc->Value.mvszA.__size; ++i)
+			lpDst->Value.mvszA.__ptr[i] = soap_strdup(soap, lpSrc->Value.mvszA.__ptr[i] == nullptr ? "" : lpSrc->Value.mvszA.__ptr[i]);
 		break;
 	case PT_MV_BINARY:
 	case PT_MV_CLSID:
 		if (lpSrc->Value.mvbin.__ptr == NULL)
 			return KCERR_INVALID_TYPE;
 		lpDst->Value.mvbin.__size = lpSrc->Value.mvbin.__size;
-		lpDst->Value.mvbin.__ptr = s_alloc<struct xsd__base64Binary>(soap, lpSrc->Value.mvbin.__size);
+		lpDst->Value.mvbin.__ptr  = soap_new_xsd__base64Binary(soap, lpSrc->Value.mvbin.__size);
 		for (gsoap_size_t i = 0; i < lpSrc->Value.mvbin.__size; ++i) {
-			lpDst->Value.mvbin.__ptr[i].__ptr = s_alloc<unsigned char>(soap, lpSrc->Value.mvbin.__ptr[i].__size);
+			lpDst->Value.mvbin.__ptr[i].__ptr = soap_new_unsignedByte(soap, lpSrc->Value.mvbin.__ptr[i].__size);
 			if(lpSrc->Value.mvbin.__ptr[i].__ptr == NULL) {
 				lpDst->Value.mvbin.__ptr[i].__size = 0;
 			} else {
@@ -1248,11 +1215,11 @@ ECRESULT CopyEntryId(struct soap *soap, entryId* lpSrc, entryId** lppDst)
 {
 	if (lpSrc == nullptr)
 		return KCERR_INVALID_PARAMETER;
-	auto lpDst = s_alloc<entryId>(soap);
+	auto lpDst = soap_new_entryId(soap);
 	lpDst->__size = lpSrc->__size;
 
 	if(lpSrc->__size > 0) {
-		lpDst->__ptr = s_alloc<unsigned char>(soap, lpSrc->__size);
+		lpDst->__ptr = soap_new_unsignedByte(soap, lpSrc->__size);
 		memcpy(lpDst->__ptr, lpSrc->__ptr, lpSrc->__size);
 	} else {
 		lpDst->__ptr = NULL;
@@ -1266,32 +1233,20 @@ ECRESULT CopyEntryList(struct soap *soap, struct entryList *lpSrc, struct entryL
 {
 	if (lpSrc == nullptr)
 		return KCERR_INVALID_PARAMETER;
-	auto lpDst = s_alloc<entryList>(soap);
+	auto lpDst = soap_new_entryList(soap);
 	lpDst->__size = lpSrc->__size;
 	if(lpSrc->__size > 0)
-		lpDst->__ptr = s_alloc<entryId>(soap, lpSrc->__size);
+		lpDst->__ptr = soap_new_entryId(soap, lpSrc->__size);
 	else
 		lpDst->__ptr = NULL;
 
 	for (unsigned int i = 0; i < lpSrc->__size; ++i) {
 		lpDst->__ptr[i].__size = lpSrc->__ptr[i].__size;
-		lpDst->__ptr[i].__ptr = s_alloc<unsigned char>(soap, lpSrc->__ptr[i].__size);
+		lpDst->__ptr[i].__ptr  = soap_new_unsignedByte(soap, lpSrc->__ptr[i].__size);
 		memcpy(lpDst->__ptr[i].__ptr, lpSrc->__ptr[i].__ptr, lpSrc->__ptr[i].__size);
 	}
 
 	*lppDst = lpDst;
-	return erSuccess;
-}
-
-ECRESULT FreeEntryList(struct entryList *lpEntryList, bool bFreeBase)
-{
-	if(lpEntryList == NULL)
-		return erSuccess;
-	for (unsigned int i = 0; i < lpEntryList->__size; ++i)
-		s_free(nullptr, lpEntryList->__ptr[i].__ptr);
-	s_free(nullptr, lpEntryList->__ptr);
-	if (bFreeBase)
-		s_free(nullptr, lpEntryList);
 	return erSuccess;
 }
 
@@ -1301,11 +1256,11 @@ ECRESULT FreeNotificationStruct(notification *lpNotification, bool bFreeBase)
 		return erSuccess;
 
 	if(lpNotification->obj != NULL){
-		FreePropTagArray(lpNotification->obj->pPropTagArray);
-		FreeEntryId(lpNotification->obj->pEntryId, true);
-		FreeEntryId(lpNotification->obj->pOldId, true);
-		FreeEntryId(lpNotification->obj->pOldParentId, true);
-		FreeEntryId(lpNotification->obj->pParentId, true);
+		soap_del_PointerTopropTagArray(&lpNotification->obj->pPropTagArray);
+		soap_del_PointerToentryId(&lpNotification->obj->pEntryId);
+		soap_del_PointerToentryId(&lpNotification->obj->pOldId);
+		soap_del_PointerToentryId(&lpNotification->obj->pOldParentId);
+		soap_del_PointerToentryId(&lpNotification->obj->pParentId);
 		s_free(nullptr, lpNotification->obj);
 	}
 
@@ -1318,13 +1273,13 @@ ECRESULT FreeNotificationStruct(notification *lpNotification, bool bFreeBase)
 	}
 
 	if (lpNotification->newmail != NULL) {
-		s_free(nullptr, lpNotification->newmail->lpszMessageClass);
-		FreeEntryId(lpNotification->newmail->pEntryId, true);
-		FreeEntryId(lpNotification->newmail->pParentId, true);
+		soap_del_string(&lpNotification->newmail->lpszMessageClass);
+		soap_del_PointerToentryId(&lpNotification->newmail->pEntryId);
+		soap_del_PointerToentryId(&lpNotification->newmail->pParentId);
 		s_free(nullptr, lpNotification->newmail);
 	}
 	if(lpNotification->ics != NULL) {
-		FreeEntryId(lpNotification->ics->pSyncState, true);
+		soap_del_PointerToentryId(&lpNotification->ics->pSyncState);
 		s_free(nullptr, lpNotification->ics);
 	}
 	if(bFreeBase)
@@ -1336,8 +1291,6 @@ ECRESULT FreeNotificationStruct(notification *lpNotification, bool bFreeBase)
 ECRESULT CopyNotificationStruct(struct soap *soap,
     const notification *lpNotification, notification &rNotifyTo)
 {
-	int nLen;
-
 	if (lpNotification == NULL)
 		return KCERR_INVALID_PARAMETER;
 	rNotifyTo = notification();
@@ -1368,11 +1321,8 @@ ECRESULT CopyNotificationStruct(struct soap *soap,
 		CopyEntryId(soap, lpNotification->newmail->pEntryId, &rNotifyTo.newmail->pEntryId);
 		CopyEntryId(soap, lpNotification->newmail->pParentId, &rNotifyTo.newmail->pParentId);
 		rNotifyTo.newmail->ulMessageFlags	= lpNotification->newmail->ulMessageFlags;
-		if(lpNotification->newmail->lpszMessageClass) {
-			nLen = (int)strlen(lpNotification->newmail->lpszMessageClass)+1;
-			rNotifyTo.newmail->lpszMessageClass = s_alloc<char>(soap, nLen);
-			memcpy(rNotifyTo.newmail->lpszMessageClass, lpNotification->newmail->lpszMessageClass, nLen);
-		}
+		if(lpNotification->newmail->lpszMessageClass)
+			rNotifyTo.newmail->lpszMessageClass = soap_strdup(soap, lpNotification->newmail->lpszMessageClass);
 	}else if(lpNotification->ics != NULL){
 		rNotifyTo.ics = s_alloc<notificationICS>(soap);
 		// We use CopyEntryId as it just copied binary data
@@ -1409,18 +1359,6 @@ ECRESULT CopyNotificationArrayStruct(notificationArray *lpNotifyArrayFrom, notif
 	return erSuccess;
 }
 
-ECRESULT FreeEntryId(entryId* lpEntryId, bool bFreeBase)
-{
-	if(lpEntryId == NULL)
-		return erSuccess;
-	s_free(nullptr, lpEntryId->__ptr);
-	if (bFreeBase)
-		s_free(nullptr, lpEntryId);
-	else
-		lpEntryId->__size = 0;
-	return erSuccess;
-}
-
 ECRESULT CopyRightsArrayToSoap(struct soap *soap, struct rightsArray *lpRightsArraySrc, struct rightsArray **lppRightsArrayDst)
 {
 	if (soap == nullptr || lpRightsArraySrc == nullptr ||
@@ -1432,7 +1370,7 @@ ECRESULT CopyRightsArrayToSoap(struct soap *soap, struct rightsArray *lpRightsAr
 
 	for (gsoap_size_t i = 0; i < lpRightsArraySrc->__size; ++i) {
 		lpRightsArrayDst->__ptr[i] = lpRightsArraySrc->__ptr[i];
-		lpRightsArrayDst->__ptr[i].sUserId.__ptr = s_alloc<unsigned char>(soap, lpRightsArrayDst->__ptr[i].sUserId.__size);
+		lpRightsArrayDst->__ptr[i].sUserId.__ptr = soap_new_unsignedByte(soap, lpRightsArrayDst->__ptr[i].sUserId.__size);
 		memcpy(lpRightsArrayDst->__ptr[i].sUserId.__ptr, lpRightsArraySrc->__ptr[i].sUserId.__ptr, lpRightsArraySrc->__ptr[i].sUserId.__size);
 	}
 	
@@ -1444,9 +1382,7 @@ ECRESULT FreeRightsArray(struct rightsArray *lpRights)
 {
 	if(lpRights == NULL)
 		return erSuccess;
-	for (gsoap_size_t i = 0; i < lpRights->__size; ++i)
-		s_free(nullptr, lpRights->__ptr[i].sUserId.__ptr);
-	s_free(nullptr, lpRights->__ptr);
+	soap_del_rightsArray(lpRights);
 	s_free(nullptr, lpRights);
 	return erSuccess;
 }
@@ -1528,7 +1464,7 @@ ECRESULT CopySearchCriteria(struct soap *soap,
 exit:
 	if (er != erSuccess && lpDst != NULL) {
 		FreeRestrictTable(lpDst->lpRestrict, true);
-		FreeEntryList(lpDst->lpFolders, true);
+		soap_del_PointerToentryList(&lpDst->lpFolders);
 		s_free(nullptr, lpDst);
 	}
 	return er;
@@ -1540,8 +1476,7 @@ ECRESULT FreeSearchCriteria(struct searchCriteria *lpSearchCriteria)
 		return erSuccess;
 	if(lpSearchCriteria->lpRestrict)
 		FreeRestrictTable(lpSearchCriteria->lpRestrict);
-	if(lpSearchCriteria->lpFolders)
-		FreeEntryList(lpSearchCriteria->lpFolders);
+	soap_del_PointerToentryList(&lpSearchCriteria->lpFolders);
 	s_free(nullptr, lpSearchCriteria);
 	return erSuccess;
 }
@@ -1588,7 +1523,7 @@ static ECRESULT CopyAnonymousDetailsToSoap(struct soap *soap,
 				j = 0;
 				lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].ulPropId = iter.first;
 				lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__size = iter.second.size();
-				lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__ptr = s_alloc<char *>(soap, lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__size);
+				lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__ptr  = soap_new_string(soap, lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__size);
 				for (const auto &entry : iter.second) {
 					auto strData = base64_encode(entry.data(), entry.size());
 					lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__ptr[j++] = soap_strdup(soap, strData.c_str());
@@ -1603,7 +1538,7 @@ static ECRESULT CopyAnonymousDetailsToSoap(struct soap *soap,
 			j = 0;
 			lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].ulPropId = iter.first;
 			lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__size = iter.second.size();
-			lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__ptr = s_alloc<char *>(soap, lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__size);
+			lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__ptr  = soap_new_string(soap, lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__size);
 			for (const auto &entry : iter.second)
 				lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__ptr[j++] = soap_strdup(soap, entry.c_str());
 			++lpsoapMVPropmap->__size;
@@ -1851,7 +1786,7 @@ ECRESULT DynamicPropTagArray::GetPropTagArray(struct propTagArray *lpsPropTagArr
 	size_t n = 0;
     
     lpsPropTagArray->__size = m_lstPropTags.size();
-    lpsPropTagArray->__ptr = s_alloc<unsigned int>(m_soap, lpsPropTagArray->__size);
+	lpsPropTagArray->__ptr = soap_new_unsignedInt(m_soap, lpsPropTagArray->__size);
 	for (auto tag : m_lstPropTags)
 		lpsPropTagArray->__ptr[n++] = tag;
 	return erSuccess;

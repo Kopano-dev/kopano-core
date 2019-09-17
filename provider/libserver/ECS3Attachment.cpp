@@ -323,7 +323,7 @@ S3Status ECS3Attachment::response_prop(const S3ResponseProperties *properties, v
 	 */
 	if (data->sink != nullptr || !data->alloc_data || data->data != nullptr)
 		return S3StatusOK;
-	data->data = s_alloc_nothrow<unsigned char>(data->soap, data->size);
+	data->data = soap_new_unsignedByte(data->soap, data->size);
 	if (data->data == NULL) {
 		ec_log_err("S3: cannot allocate %zu bytes", data->size);
 		return S3StatusAbortedByCallback;
@@ -485,7 +485,7 @@ ECRESULT ECS3Attachment::s3_get(struct s3_cd &cd, const char *fn)
 	else
 		ret = erSuccess;
 	if (ret != erSuccess && cd.data != nullptr && cd.soap == nullptr) {
-		s_free(nullptr, cd.data);
+		SOAP_FREE(nullptr, cd.data);
 		cd.data = nullptr;
 	}
 	return ret;

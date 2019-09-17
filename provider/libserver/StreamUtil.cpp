@@ -1018,11 +1018,11 @@ ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, 
 			ulLen = (unsigned int)temp;
 			er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
 			if (er != erSuccess) {
-				s_free(NULL, data);
+				SOAP_FREE(nullptr, data);
 				goto exit;
 			}
 			er = lpSink->Write(data, 1, ulLen);
-			s_free(NULL, data);
+			SOAP_FREE(nullptr, data);
 			if (er != erSuccess)
 				goto exit;
 		} else {
@@ -1132,8 +1132,7 @@ static ECRESULT DeserializePropVal(struct soap *soap,
 		er = lpSource->Read(&ulLen, sizeof(ulLen), 1);
 		if (er != erSuccess)
 			break;
-		lpsPropval->Value.lpszA = s_alloc<char>(soap, ulLen + 1);
-		memset(lpsPropval->Value.lpszA, 0, ulLen + 1);
+		lpsPropval->Value.lpszA = soap_new_byte(soap, ulLen + 1);
 		er = lpSource->Read(lpsPropval->Value.lpszA, 1, ulLen);
 		break;
 	case PT_CLSID:
@@ -1142,9 +1141,9 @@ static ECRESULT DeserializePropVal(struct soap *soap,
 		er = lpSource->Read(&ulLen, sizeof(ulLen), 1);
 		if (er != erSuccess)
 			break;
-		lpsPropval->Value.bin = s_alloc<xsd__base64Binary>(soap);
+		lpsPropval->Value.bin = soap_new_xsd__base64Binary(soap);
 		lpsPropval->Value.bin->__size = ulLen;
-		lpsPropval->Value.bin->__ptr = s_alloc<unsigned char>(soap, ulLen);
+		lpsPropval->Value.bin->__ptr  = soap_new_unsignedByte(soap, ulLen);
 		er = lpSource->Read(lpsPropval->Value.bin->__ptr, 1, ulLen);
 		break;
 	case PT_MV_I2:
@@ -1162,7 +1161,7 @@ static ECRESULT DeserializePropVal(struct soap *soap,
 		if (er != erSuccess)
 			break;
 		lpsPropval->Value.mvl.__size = ulCount;
-		lpsPropval->Value.mvl.__ptr = s_alloc<unsigned int>(soap, ulCount);
+		lpsPropval->Value.mvl.__ptr  = soap_new_unsignedInt(soap, ulCount);
 		er = lpSource->Read(lpsPropval->Value.mvl.__ptr, sizeof *lpsPropval->Value.mvl.__ptr, ulCount);
 		break;
 	case PT_MV_R4:
@@ -1206,13 +1205,13 @@ static ECRESULT DeserializePropVal(struct soap *soap,
 		if (er != erSuccess)
 			break;
 		lpsPropval->Value.mvbin.__size = ulCount;
-		lpsPropval->Value.mvbin.__ptr = s_alloc<xsd__base64Binary>(soap, ulCount);
+		lpsPropval->Value.mvbin.__ptr  = soap_new_xsd__base64Binary(soap, ulCount);
 		for (gsoap_size_t x = 0; er == erSuccess && x < ulCount; ++x) {
 			er = lpSource->Read(&ulLen, sizeof(ulLen), 1);
 			if (er != erSuccess)
 				continue;
 			lpsPropval->Value.mvbin.__ptr[x].__size = ulLen;
-			lpsPropval->Value.mvbin.__ptr[x].__ptr = s_alloc<unsigned char>(soap, ulLen);
+			lpsPropval->Value.mvbin.__ptr[x].__ptr  = soap_new_unsignedByte(soap, ulLen);
 			er = lpSource->Read(lpsPropval->Value.mvbin.__ptr[x].__ptr, 1, ulLen);
 		}
 		break;
@@ -1223,13 +1222,12 @@ static ECRESULT DeserializePropVal(struct soap *soap,
 		if (er != erSuccess)
 			break;
 		lpsPropval->Value.mvszA.__size = ulCount;
-		lpsPropval->Value.mvszA.__ptr = s_alloc<char*>(soap, ulCount);
+		lpsPropval->Value.mvszA.__ptr  = soap_new_string(soap, ulCount);
 		for (gsoap_size_t x = 0; er == erSuccess && x < ulCount; ++x) {
 			er = lpSource->Read(&ulLen, sizeof(ulLen), 1);
 			if (er != erSuccess)
 				continue;
-			lpsPropval->Value.mvszA.__ptr[x] = s_alloc<char>(soap, ulLen + 1);
-			memset(lpsPropval->Value.mvszA.__ptr[x], 0, ulLen + 1);
+			lpsPropval->Value.mvszA.__ptr[x] = soap_new_byte(soap, ulLen + 1);
 			er = lpSource->Read(lpsPropval->Value.mvszA.__ptr[x], 1, ulLen);
 		}
 		break;

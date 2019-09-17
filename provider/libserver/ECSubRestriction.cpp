@@ -219,9 +219,7 @@ static ECRESULT RunSubRestriction(ECSession *lpSession, const void *lpECODStore,
 exit:
     if(lpRowSet)
 		FreeRowSet(lpRowSet);
-    if(lpPropTags)
-        FreePropTagArray(lpPropTags);
-
+	soap_del_PointerTopropTagArray(&lpPropTags);
     return er;
 }
 

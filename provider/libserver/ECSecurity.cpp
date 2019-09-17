@@ -537,7 +537,7 @@ ECRESULT ECSecurity::GetRights(unsigned int objid, int ulType,
 		return erSuccess;
 	}
 
-	lpsRightsArray->__ptr = s_alloc<rights>(nullptr, ulCount);
+	lpsRightsArray->__ptr  = soap_new_rights(nullptr, ulCount);
 	lpsRightsArray->__size = ulCount;
 	auto usrmgt = m_lpSession->GetUserManagement();
 	for (unsigned int i = 0; i < ulCount; ++i) {

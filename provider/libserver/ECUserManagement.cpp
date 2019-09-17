@@ -2719,7 +2719,7 @@ ECRESULT ECUserManagement::ConvertAnonymousObjectDetailToProp(struct soap *soap,
 		lpPropVal->__union = SOAP_UNION_propValData_mvbin;
 		lpPropVal->ulPropTag = ulPropTag;
 		lpPropVal->Value.mvbin.__size = 0;
-		lpPropVal->Value.mvbin.__ptr = s_alloc<struct xsd__base64Binary>(soap, lobjValues.size());
+		lpPropVal->Value.mvbin.__ptr  = soap_new_xsd__base64Binary(soap, lobjValues.size());
 
 		unsigned int i = 0;
 		for (const auto &obj : lobjValues) {
@@ -2767,7 +2767,7 @@ ECRESULT ECUserManagement::ConvertAnonymousObjectDetailToProp(struct soap *soap,
 	case PT_MV_UNICODE: {
 		lpPropVal->ulPropTag = ulPropTag;
 		lpPropVal->Value.mvszA.__size = lstrValues.size();
-		lpPropVal->Value.mvszA.__ptr = s_alloc<char *>(soap, lstrValues.size());
+		lpPropVal->Value.mvszA.__ptr  = soap_new_string(soap, lstrValues.size());
 		unsigned int i = 0;
 		for (const auto &val : lstrValues)
 			lpPropVal->Value.mvszA.__ptr[i++] = soap_strdup(soap, val.c_str());
@@ -2776,20 +2776,20 @@ ECRESULT ECUserManagement::ConvertAnonymousObjectDetailToProp(struct soap *soap,
 	}
 	case PT_BINARY:
 		lpPropVal->ulPropTag = ulPropTag;
-		lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+		lpPropVal->Value.bin = soap_new_xsd__base64Binary(soap);
 		lpPropVal->Value.bin->__size = strValue.size();
-		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, strValue.size());
+		lpPropVal->Value.bin->__ptr  = soap_new_unsignedByte(soap, strValue.size());
 		memcpy(lpPropVal->Value.bin->__ptr, strValue.data(), strValue.size());
 		lpPropVal->__union = SOAP_UNION_propValData_bin;
 		break;
 	case PT_MV_BINARY: {
 		lpPropVal->ulPropTag = ulPropTag;
 		lpPropVal->Value.mvbin.__size = lstrValues.size();
-		lpPropVal->Value.mvbin.__ptr = s_alloc<struct xsd__base64Binary>(soap, lstrValues.size());
+		lpPropVal->Value.mvbin.__ptr  = soap_new_xsd__base64Binary(soap, lstrValues.size());
 		unsigned int i = 0;
 		for (const auto &val : lstrValues) {
 			lpPropVal->Value.mvbin.__ptr[i].__size = val.size();
-			lpPropVal->Value.mvbin.__ptr[i].__ptr = s_alloc<unsigned char>(soap, val.size());
+			lpPropVal->Value.mvbin.__ptr[i].__ptr  = soap_new_unsignedByte(soap, val.size());
 			memcpy(lpPropVal->Value.mvbin.__ptr[i++].__ptr, val.data(), val.size());
 		}
 		lpPropVal->__union = SOAP_UNION_propValData_mvbin;
@@ -2850,8 +2850,8 @@ ECRESULT ECUserManagement::cvt_user_to_props(struct soap *soap,
 		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 		break;
 	case PR_INSTANCE_KEY: {
-		lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, 2 * sizeof(ULONG));
+		lpPropVal->Value.bin = soap_new_xsd__base64Binary(soap);
+		lpPropVal->Value.bin->__ptr  = soap_new_unsignedByte(soap, 2 * sizeof(uint32_t));
 		lpPropVal->Value.bin->__size = 2*sizeof(ULONG);
 		lpPropVal->__union = SOAP_UNION_propValData_bin;
 		memcpy(lpPropVal->Value.bin->__ptr, &ulId, sizeof(ULONG));
@@ -2924,8 +2924,8 @@ ECRESULT ECUserManagement::cvt_user_to_props(struct soap *soap,
 	}
 	case PR_SEARCH_KEY: {
 		std::string strSearchKey = "ZARAFA:"s + strToUpper(lpDetails->GetPropString(OB_PROP_S_EMAIL));
-		lpPropVal->Value.bin = s_alloc<xsd__base64Binary>(soap);
-		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, strSearchKey.size()+1);
+		lpPropVal->Value.bin = soap_new_xsd__base64Binary(soap);
+		lpPropVal->Value.bin->__ptr  = soap_new_unsignedByte(soap, strSearchKey.size() + 1);
 		lpPropVal->Value.bin->__size = strSearchKey.size()+1;
 		lpPropVal->__union = SOAP_UNION_propValData_bin;
 		strcpy((char *)lpPropVal->Value.bin->__ptr, strSearchKey.c_str());
@@ -2936,8 +2936,8 @@ ECRESULT ECUserManagement::cvt_user_to_props(struct soap *soap,
 		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 		break;
 	case PR_RECORD_KEY:
-		lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ULONG));
+		lpPropVal->Value.bin = soap_new_xsd__base64Binary(soap);
+		lpPropVal->Value.bin->__ptr  = soap_new_unsignedByte(soap, sizeof(uint32_t));
 		lpPropVal->Value.bin->__size = sizeof(ULONG);
 		lpPropVal->__union = SOAP_UNION_propValData_bin;
 		memcpy(lpPropVal->Value.bin->__ptr, &ulId, sizeof(ULONG));
@@ -2971,8 +2971,8 @@ ECRESULT ECUserManagement::cvt_user_to_props(struct soap *soap,
 		lpPropVal->__union = SOAP_UNION_propValData_b;
 		break;
 	case PR_AB_PROVIDER_ID:
-		lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(GUID));
+		lpPropVal->Value.bin = soap_new_xsd__base64Binary(soap);
+		lpPropVal->Value.bin->__ptr  = soap_new_unsignedByte(soap, sizeof(GUID));
 		lpPropVal->Value.bin->__size = sizeof(GUID);
 
 		lpPropVal->__union = SOAP_UNION_propValData_bin;
@@ -2994,10 +2994,10 @@ ECRESULT ECUserManagement::cvt_user_to_props(struct soap *soap,
 		unsigned int j = 0;
 		lpPropVal->__union = SOAP_UNION_propValData_mvbin;
 		lpPropVal->Value.mvbin.__size = strCerts.size();
-		lpPropVal->Value.mvbin.__ptr = s_alloc<struct xsd__base64Binary>(soap, strCerts.size());
+		lpPropVal->Value.mvbin.__ptr  = soap_new_xsd__base64Binary(soap, strCerts.size());
 		for (const auto &cert : strCerts) {
 			lpPropVal->Value.mvbin.__ptr[j].__size = cert.size();
-			lpPropVal->Value.mvbin.__ptr[j].__ptr = s_alloc<unsigned char>(soap, cert.size());
+			lpPropVal->Value.mvbin.__ptr[j].__ptr  = soap_new_unsignedByte(soap, cert.size());
 			memcpy(lpPropVal->Value.mvbin.__ptr[j++].__ptr, cert.data(), cert.size());
 		}
 		break;
@@ -3014,7 +3014,7 @@ ECRESULT ECUserManagement::cvt_user_to_props(struct soap *soap,
 		struct propVal sPropVal;
 		lpPropVal->__union = SOAP_UNION_propValData_mvbin;
 		lpPropVal->Value.mvbin.__size = 0;
-		lpPropVal->Value.mvbin.__ptr = s_alloc<struct xsd__base64Binary>(soap, userIds.size());
+		lpPropVal->Value.mvbin.__ptr  = soap_new_xsd__base64Binary(soap, userIds.size());
 		for (const auto &uid : userIds) {
 			er = CreateABEntryID(soap, uid, &sPropVal);
 			if (er != erSuccess)
@@ -3033,7 +3033,7 @@ ECRESULT ECUserManagement::cvt_user_to_props(struct soap *soap,
 		unsigned int nAliases = lstAliases.size(), j = 0;
 
 		lpPropVal->__union = SOAP_UNION_propValData_mvszA;
-		lpPropVal->Value.mvszA.__ptr = s_alloc<char *>(soap, 1 + nAliases);
+		lpPropVal->Value.mvszA.__ptr = soap_new_string(soap, 1 + nAliases);
 		if (!address.empty()) {
 			address = strPrefix + address;
 			lpPropVal->Value.mvszA.__ptr[j++] = soap_strdup(soap, address.c_str());
@@ -3102,8 +3102,8 @@ ECRESULT ECUserManagement::cvt_distlist_to_props(struct soap *soap,
 	}
 	case PR_SEARCH_KEY: {
 		std::string strSearchKey = "ZARAFA:"s + strToUpper(lpDetails->GetPropString(OB_PROP_S_FULLNAME));
-		lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, strSearchKey.size()+1);
+		lpPropVal->Value.bin = soap_new_xsd__base64Binary(soap);
+		lpPropVal->Value.bin->__ptr  = soap_new_unsignedByte(soap, strSearchKey.size() + 1);
 		lpPropVal->Value.bin->__size = strSearchKey.size()+1;
 		lpPropVal->__union = SOAP_UNION_propValData_bin;
 
@@ -3144,8 +3144,8 @@ ECRESULT ECUserManagement::cvt_distlist_to_props(struct soap *soap,
 		lpPropVal->__union = SOAP_UNION_propValData_ul;
 		break;
 	case PR_INSTANCE_KEY: {
-		lpPropVal->Value.bin = s_alloc<xsd__base64Binary>(soap);
-		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, 2 * sizeof(ULONG));
+		lpPropVal->Value.bin = soap_new_xsd__base64Binary(soap);
+		lpPropVal->Value.bin->__ptr  = soap_new_unsignedByte(soap, 2 * sizeof(uint32_t));
 		lpPropVal->Value.bin->__size = 2*sizeof(ULONG);
 		lpPropVal->__union = SOAP_UNION_propValData_bin;
 
@@ -3187,8 +3187,8 @@ ECRESULT ECUserManagement::cvt_distlist_to_props(struct soap *soap,
 		lpPropVal->__union = SOAP_UNION_propValData_ul;
 		break;
 	case PR_RECORD_KEY:
-		lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ULONG));
+		lpPropVal->Value.bin = soap_new_xsd__base64Binary(soap);
+		lpPropVal->Value.bin->__ptr  = soap_new_unsignedByte(soap, sizeof(uint32_t));
 		lpPropVal->Value.bin->__size = sizeof(ULONG);
 		lpPropVal->__union = SOAP_UNION_propValData_bin;
 
@@ -3199,8 +3199,8 @@ ECRESULT ECUserManagement::cvt_distlist_to_props(struct soap *soap,
 		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 		break;
 	case PR_AB_PROVIDER_ID:
-		lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(GUID));
+		lpPropVal->Value.bin = soap_new_xsd__base64Binary(soap);
+		lpPropVal->Value.bin->__ptr  = soap_new_unsignedByte(soap, sizeof(GUID));
 		lpPropVal->Value.bin->__size = sizeof(GUID);
 
 		lpPropVal->__union = SOAP_UNION_propValData_bin;
@@ -3218,7 +3218,7 @@ ECRESULT ECUserManagement::cvt_distlist_to_props(struct soap *soap,
 		struct propVal sPropVal;
 		lpPropVal->__union = SOAP_UNION_propValData_mvbin;
 		lpPropVal->Value.mvbin.__size = 0;
-		lpPropVal->Value.mvbin.__ptr = s_alloc<struct xsd__base64Binary>(soap, userIds.size());
+		lpPropVal->Value.mvbin.__ptr  = soap_new_xsd__base64Binary(soap, userIds.size());
 		for (const auto &uid : userIds) {
 			er = CreateABEntryID(soap, uid, &sPropVal);
 			if (er != erSuccess)
@@ -3237,8 +3237,7 @@ ECRESULT ECUserManagement::cvt_distlist_to_props(struct soap *soap,
 		unsigned int nAliases = lstAliases.size(), j = 0;
 
 		lpPropVal->__union = SOAP_UNION_propValData_mvszA;
-		lpPropVal->Value.mvszA.__ptr = s_alloc<char *>(soap, 1 + nAliases);
-
+		lpPropVal->Value.mvszA.__ptr = soap_new_string(soap, 1 + nAliases);
 		if (!address.empty()) {
 			address = strPrefix + address;
 			lpPropVal->Value.mvszA.__ptr[j++] = soap_strdup(soap, address.c_str());
@@ -3366,8 +3365,8 @@ ECRESULT ECUserManagement::cvt_adrlist_to_props(struct soap *soap,
 		break;
 	}
 	case PR_PARENT_ENTRYID: {
-		lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(abcont_1));
+		lpPropVal->Value.bin = soap_new_xsd__base64Binary(soap);
+		lpPropVal->Value.bin->__ptr  = soap_new_unsignedByte(soap, sizeof(abcont_1));
 		lpPropVal->Value.bin->__size = sizeof(abcont_1);
 		lpPropVal->__union = SOAP_UNION_propValData_bin;
 		memcpy(lpPropVal->Value.bin->__ptr, &abcont_1, sizeof(abcont_1));
@@ -3380,8 +3379,8 @@ ECRESULT ECUserManagement::cvt_adrlist_to_props(struct soap *soap,
 		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 		break;
 	case PR_INSTANCE_KEY:
-		lpPropVal->Value.bin = s_alloc<xsd__base64Binary>(soap);
-		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, 2 * sizeof(ULONG));
+		lpPropVal->Value.bin = soap_new_xsd__base64Binary(soap);
+		lpPropVal->Value.bin->__ptr  = soap_new_unsignedByte(soap, 2 * sizeof(uint32_t));
 		lpPropVal->Value.bin->__size = 2*sizeof(ULONG);
 		lpPropVal->__union = SOAP_UNION_propValData_bin;
 		tmp4 = cpu_to_le32(ulId);
@@ -3402,16 +3401,16 @@ ECRESULT ECUserManagement::cvt_adrlist_to_props(struct soap *soap,
 		lpPropVal->__union = SOAP_UNION_propValData_ul;
 		break;
 	case PR_RECORD_KEY:
-		lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ULONG));
+		lpPropVal->Value.bin = soap_new_xsd__base64Binary(soap);
+		lpPropVal->Value.bin->__ptr  = soap_new_unsignedByte(soap, sizeof(uint32_t));
 		lpPropVal->Value.bin->__size = sizeof(ULONG);
 		lpPropVal->__union = SOAP_UNION_propValData_bin;
 		tmp4 = cpu_to_le32(ulId);
 		memcpy(lpPropVal->Value.bin->__ptr, &tmp4, sizeof(tmp4));
 		break;
 	case PR_AB_PROVIDER_ID:
-		lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(GUID));
+		lpPropVal->Value.bin = soap_new_xsd__base64Binary(soap);
+		lpPropVal->Value.bin->__ptr  = soap_new_unsignedByte(soap, sizeof(GUID));
 		lpPropVal->Value.bin->__size = sizeof(GUID);
 
 		lpPropVal->__union = SOAP_UNION_propValData_bin;
@@ -3445,8 +3444,8 @@ ECRESULT ECUserManagement::cvt_company_to_props(struct soap *soap,
 	}
 	case PR_EMS_AB_PARENT_ENTRYID:
 	case PR_PARENT_ENTRYID: {
-		lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(abcont_1));
+		lpPropVal->Value.bin = soap_new_xsd__base64Binary(soap);
+		lpPropVal->Value.bin->__ptr  = soap_new_unsignedByte(soap, sizeof(abcont_1));
 		lpPropVal->Value.bin->__size = sizeof(abcont_1);
 		lpPropVal->__union = SOAP_UNION_propValData_bin;
 		memcpy(lpPropVal->Value.bin->__ptr, &abcont_1, sizeof(abcont_1));
@@ -3464,8 +3463,8 @@ ECRESULT ECUserManagement::cvt_company_to_props(struct soap *soap,
 		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 		break;
 	case PR_INSTANCE_KEY:
-		lpPropVal->Value.bin = s_alloc<xsd__base64Binary>(soap);
-		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, 2 * sizeof(ULONG));
+		lpPropVal->Value.bin = soap_new_xsd__base64Binary(soap);
+		lpPropVal->Value.bin->__ptr  = soap_new_unsignedByte(soap, 2 * sizeof(uint32_t));
 		lpPropVal->Value.bin->__size = 2 * sizeof(ULONG);
 		lpPropVal->__union = SOAP_UNION_propValData_bin;
 		tmp4 = cpu_to_le32(ulId);
@@ -3482,8 +3481,8 @@ ECRESULT ECUserManagement::cvt_company_to_props(struct soap *soap,
 		lpPropVal->__union = SOAP_UNION_propValData_ul;
 		break;
 	case PR_RECORD_KEY:
-		lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ULONG));
+		lpPropVal->Value.bin = soap_new_xsd__base64Binary(soap);
+		lpPropVal->Value.bin->__ptr  = soap_new_unsignedByte(soap, sizeof(uint32_t));
 		lpPropVal->Value.bin->__size = sizeof(ULONG);
 		lpPropVal->__union = SOAP_UNION_propValData_bin;
 		tmp4 = cpu_to_le32(ulId);
@@ -3494,8 +3493,8 @@ ECRESULT ECUserManagement::cvt_company_to_props(struct soap *soap,
 		lpPropVal->__union = SOAP_UNION_propValData_ul;
 		break;
 	case PR_AB_PROVIDER_ID:
-		lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(GUID));
+		lpPropVal->Value.bin = soap_new_xsd__base64Binary(soap);
+		lpPropVal->Value.bin->__ptr  = soap_new_unsignedByte(soap, sizeof(GUID));
 		lpPropVal->Value.bin->__size = sizeof(GUID);
 		lpPropVal->__union = SOAP_UNION_propValData_bin;
 		memcpy(lpPropVal->Value.bin->__ptr, &MUIDECSAB, sizeof(GUID));
@@ -3604,8 +3603,8 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap,
 		switch (NormalizePropTag(lpPropTagArray->__ptr[i])) {
 		uint32_t tmp4;
 		case PR_SEARCH_KEY:
-			lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-			lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(abeid));
+			lpPropVal->Value.bin = soap_new_xsd__base64Binary(soap);
+			lpPropVal->Value.bin->__ptr  = soap_new_unsignedByte(soap, sizeof(abeid));
 			lpPropVal->Value.bin->__size = sizeof(abeid);
 			lpPropVal->__union = SOAP_UNION_propValData_bin;
 			memcpy(lpPropVal->Value.bin->__ptr, &abeid, sizeof(abeid));
@@ -3615,8 +3614,8 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap,
 			lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 			break;
 		case PR_ENTRYID:
-			lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-			lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(abeid));
+			lpPropVal->Value.bin = soap_new_xsd__base64Binary(soap);
+			lpPropVal->Value.bin->__ptr  = soap_new_unsignedByte(soap, sizeof(abeid));
 			lpPropVal->Value.bin->__size = sizeof(abeid);
 			lpPropVal->__union = SOAP_UNION_propValData_bin;
 			memcpy(lpPropVal->Value.bin->__ptr, &abeid, sizeof(abeid));
@@ -3629,8 +3628,8 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap,
 			lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 			break;
 		case PR_INSTANCE_KEY:
-			lpPropVal->Value.bin = s_alloc<xsd__base64Binary>(soap);
-			lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, 2 * sizeof(ULONG));
+			lpPropVal->Value.bin = soap_new_xsd__base64Binary(soap);
+			lpPropVal->Value.bin->__ptr  = soap_new_unsignedByte(soap, 2 * sizeof(uint32_t));
 			lpPropVal->Value.bin->__size = 2 * sizeof(ULONG);
 			lpPropVal->__union = SOAP_UNION_propValData_bin;
 			tmp4 = cpu_to_le32(ulId);
@@ -3656,8 +3655,8 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap,
 			lpPropVal->__union = SOAP_UNION_propValData_ul;
 			break;
 		case PR_RECORD_KEY:
-			lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-			lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(abeid));
+			lpPropVal->Value.bin = soap_new_xsd__base64Binary(soap);
+			lpPropVal->Value.bin->__ptr  = soap_new_unsignedByte(soap, sizeof(abeid));
 			lpPropVal->Value.bin->__size = sizeof(abeid);
 			lpPropVal->__union = SOAP_UNION_propValData_bin;
 			memcpy(lpPropVal->Value.bin->__ptr, &abeid, sizeof(abeid));
@@ -3678,8 +3677,8 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap,
 			std::string strApp;
 			ECSession *lpSession = NULL;
 
-			lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-			lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(GUID));
+			lpPropVal->Value.bin = soap_new_xsd__base64Binary(soap);
+			lpPropVal->Value.bin->__ptr  = soap_new_unsignedByte(soap, sizeof(GUID));
 			lpPropVal->Value.bin->__size = sizeof(GUID);
 			lpPropVal->__union = SOAP_UNION_propValData_bin;
 			lpSession = dynamic_cast<ECSession *>(m_lpSession);
@@ -3713,8 +3712,8 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap,
 				lpPropVal->__union = SOAP_UNION_propValData_ul;
 				break;
 			}
-			lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-			lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(abcont_uab));
+			lpPropVal->Value.bin = soap_new_xsd__base64Binary(soap);
+			lpPropVal->Value.bin->__ptr  = soap_new_unsignedByte(soap, sizeof(abcont_uab));
 			lpPropVal->Value.bin->__size = sizeof(abcont_uab);
 			lpPropVal->__union = SOAP_UNION_propValData_bin;
 			memcpy(lpPropVal->Value.bin->__ptr, &abcont_uab, sizeof(abcont_uab));
@@ -3920,16 +3919,16 @@ ECRESULT ECUserManagement::CreateABEntryID(struct soap *soap,
 		if (ulVersion != 0)
 			throw std::runtime_error("Internal objects must always have v0 ABEIDs");
 		ulSize = CbNewABEID("");
-		lpEid = reinterpret_cast<ABEID *>(s_alloc<unsigned char>(soap, ulSize));
+		lpEid = reinterpret_cast<ABEID *>(soap_new_unsignedByte(soap, ulSize));
 	} else if (ulVersion == 0) {
 		ulSize = CbNewABEID("");
-		lpEid = reinterpret_cast<ABEID *>(s_alloc<unsigned char>(soap, ulSize));
+		lpEid = reinterpret_cast<ABEID *>(soap_new_unsignedByte(soap, ulSize));
 	} else if(ulVersion == 1) {
 		if (lpExternId == NULL)
 			return KCERR_INVALID_PARAMETER;
 		strEncExId = base64_encode(lpExternId->id.c_str(), lpExternId->id.size());
 		ulSize = CbNewABEID(strEncExId.c_str());
-		lpEid = reinterpret_cast<ABEID *>(s_alloc<unsigned char>(soap, ulSize));
+		lpEid = reinterpret_cast<ABEID *>(soap_new_unsignedByte(soap, ulSize));
 		// avoid FORTIFY_SOURCE checks in strcpy to an address that the compiler thinks is 1 size large
 		memcpy(lpEid->szExId, strEncExId.c_str(), strEncExId.length()+1);
 	} else {
@@ -3967,7 +3966,7 @@ ECRESULT ECUserManagement::CreateABEntryID(struct soap *soap,
 		ulVersion = 1;
 	}
 
-	lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+	lpPropVal->Value.bin = soap_new_xsd__base64Binary(soap);
 	lpPropVal->__union = SOAP_UNION_propValData_bin;
 	return CreateABEntryID(soap, ulVersion, ulObjId, ulType, &sExternId,
 	       &lpPropVal->Value.bin->__size,
