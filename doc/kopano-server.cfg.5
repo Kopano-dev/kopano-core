@@ -354,13 +354,13 @@ A basic file backend that fans out into x*y directories. Not shareable.
 .TP
 files_v2
 Autonomous opportunistically deduplicating file-based backend for shared
-filesystems supporting atomic rename. (Experimental)
+filesystems supporting atomic rename.
 .TP
 s3
 Basic S3 backend for AWS/Minio. Not shareable.
 .PP
 Default:
-\fIfiles\fR
+\fIfiles_v2\fP
 .SS attachment_path
 .PP
 When the attachment_storage option is \fBfiles\fP, this option sets the location of the attachments on disk. Note that the server runs as the \fBrun_as_user\fP user and \fBrun_as_group\fP group, which will require write access to this directory.

@@ -74,6 +74,7 @@ using std::endl;
 using std::string;
 
 static const char upgrade_lock_file[] = "/tmp/kopano-upgrade-lock";
+static const char default_atx_backend[] = "files_v2"; /* for new installs */
 static int g_Quit = 0;
 static int restart_searches = 0;
 static bool m_bIgnoreDatabaseVersionConflict = false;
@@ -251,14 +252,12 @@ static void process_signal(int sig)
 
 static ECRESULT check_database_engine(ECDatabase *lpDatabase)
 {
-	ECRESULT er = erSuccess;
-	string strQuery;
 	DB_RESULT lpResult;
 	DB_ROW lpRow = NULL;
 
 	auto engine = g_lpConfig->GetSetting("mysql_engine");
 	// Only supported from mysql 5.0
-	er = lpDatabase->DoSelect(format("SHOW TABLE STATUS WHERE engine != '%s'", engine), &lpResult);
+	auto er = lpDatabase->DoSelect(format("SHOW TABLE STATUS WHERE engine != '%s'", engine), &lpResult);
 	if (er != erSuccess)
 		return er;
 	while ((lpRow = lpResult.fetch_row()) != nullptr) {
@@ -280,40 +279,48 @@ static bool filesv1_extract_fanout(const char *s, unsigned int *x, unsigned int 
 	return sscanf(s, "files_v1-%u-%u", x, y) == 2;
 }
 
+static inline bool is_filesv1(const char *s)
+{
+	unsigned int ign;
+	return filesv1_extract_fanout(s, &ign, &ign);
+}
+
 static ECRESULT check_database_attachments(ECDatabase *lpDatabase)
 {
-	ECRESULT er = erSuccess;
-	string strQuery;
 	DB_RESULT lpResult;
-	DB_ROW lpRow = NULL;
-
-	er = lpDatabase->DoSelect("SELECT value FROM settings WHERE name = 'attachment_storage'", &lpResult);
+	auto er = lpDatabase->DoSelect("SELECT value FROM settings WHERE name = 'attachment_storage'", &lpResult);
 	if (er != erSuccess) {
 		ec_log_crit("Unable to read from database");
 		return er;
 	}
 
-	lpRow = lpResult.fetch_row();
+	auto lpRow = lpResult.fetch_row();
+	auto backend = g_lpConfig->GetSetting("attachment_storage");
+	auto autopick = strcmp(backend, "auto") == 0;
+	if (autopick)
+		backend = lpRow != nullptr && lpRow[0] != nullptr ? lpRow[0] : default_atx_backend;
 	if (lpRow != nullptr && lpRow[0] != nullptr &&
 	    // check if the mode is the same as last time
-	    strcmp(lpRow[0], g_lpConfig->GetSetting("attachment_storage")) != 0) {
+	    !autopick && strcmp(lpRow[0], backend) != 0) {
 		if (!m_bIgnoreAttachmentStorageConflict) {
-			ec_log_err("Attachments are stored with option '%s', but '%s' is selected.", lpRow[0], g_lpConfig->GetSetting("attachment_storage"));
+			ec_log_err("Attachments are stored with option \"%s\", but \"%s\" is selected.", lpRow[0], backend);
 			return KCERR_DATABASE_ERROR;
 		}
-		ec_log_warn("Ignoring attachment storing conflict as requested. Attachments are now stored with option '%s'", g_lpConfig->GetSetting("attachment_storage"));
+		ec_log_warn("Ignoring attachment storing conflict as requested. Attachments are now stored with option \"%s\".", backend);
 	}
 
 	// first time we start, set the database to the selected mode
-	strQuery = (string)"REPLACE INTO settings VALUES ('attachment_storage', '" + g_lpConfig->GetSetting("attachment_storage") + "')";
+	auto strQuery = "REPLACE INTO settings VALUES ('attachment_storage', '"s + lpDatabase->Escape(backend) + "')";
 	er = lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess) {
 		ec_log_err("Unable to update database settings");
 		return er;
 	}
+	ec_log_info("Using the \"%s\" attachment storage backend", backend);
+	g_lpConfig->AddSetting("attachment_storage", backend, 0);
 
 	unsigned int l1, l2;
-	if (!filesv1_extract_fanout(g_lpConfig->GetSetting("attachment_storage"), &l1, &l2))
+	if (!filesv1_extract_fanout(backend, &l1, &l2))
 		return erSuccess;
 	// Create attachment directories
 	for (unsigned int i = 0; i < l1; ++i)
@@ -330,53 +337,43 @@ static ECRESULT check_database_attachments(ECDatabase *lpDatabase)
 
 static ECRESULT check_attachment_storage_permissions(void)
 {
-	ECRESULT er = erSuccess;
-	FILE *tmpfile = NULL;
-	string strtestpath;
-
-	if (strcmp(g_lpConfig->GetSetting("attachment_storage"), "files") == 0) {
-		strtestpath = g_lpConfig->GetSetting("attachment_path");
+	if (is_filesv1(g_lpConfig->GetSetting("attachment_storage"))) {
+		std::string strtestpath = g_lpConfig->GetSetting("attachment_path");
 		strtestpath += "/testfile";
-		tmpfile = fopen(strtestpath.c_str(), "w");
+		auto tmpfile = fopen(strtestpath.c_str(), "w");
 		if (!tmpfile) {
 			 ec_log_err("Unable to write attachments to the directory '%s' - %s. Please check the directory and sub directories.",  g_lpConfig->GetSetting("attachment_path"), strerror(errno));
 			return KCERR_NO_ACCESS;
 		}
-	}
-	if (tmpfile) {
 		fclose(tmpfile);
 		unlink(strtestpath.c_str());
 	}
-	return er;
+	return erSuccess;
 }
 
 static ECRESULT check_database_tproperties_key(ECDatabase *lpDatabase)
 {
-	ECRESULT er = erSuccess;
-	string strQuery, strTable;
-	string::size_type start, end;
 	DB_RESULT lpResult;
-	DB_ROW lpRow = NULL;
 
-	strQuery = "SHOW CREATE TABLE `tproperties`";
-	er = lpDatabase->DoSelect(strQuery, &lpResult);
+	std::string strQuery = "SHOW CREATE TABLE `tproperties`";
+	auto er = lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess) {
 		ec_log_err("Unable to read from database");
 		return er;
 	}
 	er = KCERR_DATABASE_ERROR;
-	lpRow = lpResult.fetch_row();
+	auto lpRow = lpResult.fetch_row();
 	if (!lpRow || !lpRow[1]) {
 		ec_log_crit("No tproperties table definition found");
 		return er;
 	}
-	strTable = lpRow[1];
-	start = strTable.find("PRIMARY KEY");
+	std::string strTable = lpRow[1];
+	auto start = strTable.find("PRIMARY KEY");
 	if (start == string::npos) {
 		ec_log_crit("No primary key found in tproperties table");
 		return er;
 	}
-	end = strTable.find(")", start);
+	auto end = strTable.find(")", start);
 	if (end == string::npos) {
 		ec_log_crit("No end of primary key found in tproperties table");
 		return er;
@@ -410,27 +407,23 @@ static ECRESULT check_database_tproperties_key(ECDatabase *lpDatabase)
 
 static ECRESULT check_database_thread_stack(ECDatabase *lpDatabase)
 {
-	ECRESULT er = erSuccess;
-	string strQuery;
 	DB_RESULT lpResult;
-	DB_ROW lpRow = NULL;
-	unsigned ulThreadStack = 0;
 
 	// only required when procedures are used
 	if (!parseBool(g_lpConfig->GetSetting("enable_sql_procedures")))
-		return er;
-	strQuery = "SHOW VARIABLES LIKE 'thread_stack'";
-	er = lpDatabase->DoSelect(strQuery, &lpResult);
+		return erSuccess;
+	std::string strQuery = "SHOW VARIABLES LIKE 'thread_stack'";
+	auto er = lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess) {
 		ec_log_err("Unable to read from database");
 		return er;
 	}
-	lpRow = lpResult.fetch_row();
+	auto lpRow = lpResult.fetch_row();
 	if (!lpRow || !lpRow[1]) {
 		ec_log_err("No thread_stack variable returned");
 		return er;
 	}
-	ulThreadStack = atoui(lpRow[1]);
+	auto ulThreadStack = atoui(lpRow[1]);
 	if (ulThreadStack < MYSQL_MIN_THREAD_STACK) {
 		ec_log_warn("MySQL thread_stack is set to %u, which is too small", ulThreadStack);
 		ec_log_warn("Please set thread_stack to %uK or higher in your MySQL configuration", MYSQL_MIN_THREAD_STACK / 1024);
@@ -449,16 +442,14 @@ static ECRESULT check_database_thread_stack(ECDatabase *lpDatabase)
 static ECRESULT check_server_fqdn(void)
 {
 	ECRESULT er = erSuccess;
-	int rc;
 	char hostname[256] = {0};
 	struct addrinfo *aiResult = NULL;
-	const char *option;
 
 	// If admin has set the option, we're not using DNS to check the name
-	option = g_lpConfig->GetSetting("server_hostname");
+	auto option = g_lpConfig->GetSetting("server_hostname");
 	if (option && option[0] != '\0')
 		return erSuccess;
-	rc = gethostname(hostname, sizeof(hostname));
+	auto rc = gethostname(hostname, sizeof(hostname));
 	if (rc != 0)
 		return KCERR_NOT_FOUND;
 
@@ -490,14 +481,12 @@ exit:
  */
 static ECRESULT check_server_configuration(void)
 {
-	ECRESULT		er = erSuccess;
-	bool bHaveErrors = false, bCheck = false;
-	std::string		strServerName;
+	bool bHaveErrors = false;
 	ECSession		*lpecSession = NULL;
 	serverdetails_t	sServerDetails;
 
 	// Upgrade 'enable_sso_ntlmauth' to 'enable_sso'
-	bCheck = parseBool(g_lpConfig->GetSetting("enable_sso_ntlmauth"));
+	auto bCheck = parseBool(g_lpConfig->GetSetting("enable_sso_ntlmauth"));
 	if (bCheck)
 		g_lpConfig->AddSetting("enable_sso", g_lpConfig->GetSetting("enable_sso_ntlmauth"));
 	// Find FQDN if Kerberos is enabled (remove check if we're using 'server_hostname' for other purposes)
@@ -507,14 +496,14 @@ static ECRESULT check_server_configuration(void)
 	// all other checks are only required for multi-server environments
 	if (!parseBool(g_lpConfig->GetSetting("enable_distributed_kopano")))
 		return erSuccess;
-	strServerName = g_lpConfig->GetSetting("server_name");
+	std::string strServerName = g_lpConfig->GetSetting("server_name");
 	if (strServerName.empty()) {
 		ec_log_crit("ERROR: No 'server_name' specified while operating in multiserver mode.");
 		return KCERR_INVALID_PARAMETER;
 		// unable to check any other server details if we have no name, skip other tests
 	}
 
-	er = g_lpSessionManager->CreateSessionInternal(&lpecSession);
+	auto er = g_lpSessionManager->CreateSessionInternal(&lpecSession);
 	if (er != erSuccess) {
 		ec_log_crit("Internal error 0x%08x while checking distributed configuration", er);
 		return er;
@@ -915,7 +904,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{ "mysql_database",				"kopano" },
 		{ "mysql_socket",				"" },
 		{ "mysql_engine",				"InnoDB"},
-		{ "attachment_storage",			"files" },
+		{"attachment_storage", "auto"},
 #ifdef HAVE_LIBS3_H
 		{"attachment_s3_hostname", ""},
 		{"attachment_s3_protocol", "https"},
@@ -1137,8 +1126,8 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	}
 
 	auto aback = g_lpConfig->GetSetting("attachment_storage");
-	unsigned int ignore;
-	if (filesv1_extract_fanout(aback, &ignore, &ignore) || strcmp(aback, "files_v2") == 0) {
+	if (strcmp(aback, "files_v2") == 0 || is_filesv1(aback) ||
+	    strcmp(aback, "auto") == 0) {
 		/*
 		 * Either (1.) the attachment directory or (2.) its immediate
 		 * parent directory needs to exist with right permissions.

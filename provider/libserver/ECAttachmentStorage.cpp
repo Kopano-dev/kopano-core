@@ -291,8 +291,7 @@ ECRESULT ECFileAttachmentConfig::init(std::shared_ptr<ECConfig> config)
 		ec_log_err("No attachment_path set despite attachment_storage=files.");
 		return KCERR_CALL_FAILED;
 	}
-	if (!filesv1_extract_fanout(config->GetSetting("attachment_storage"), &m_l1, &m_l2))
-		return MAPI_E_CALL_FAILED;
+	filesv1_extract_fanout(config->GetSetting("attachment_storage"), &m_l1, &m_l2);
 	auto sync_files_par = config->GetSetting("attachment_files_fsync");
 	auto comp = config->GetSetting("attachment_compression");
 	m_dir = dir;

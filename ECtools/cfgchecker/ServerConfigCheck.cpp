@@ -2,11 +2,18 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
+#include <cstring>
 #include <kopano/platform.h>
 #include "ECConfigCheck.h"
 #include <kopano/stringutil.h>
 
 using namespace KC;
+
+static inline bool is_filesv1(const std::string &s)
+{
+	unsigned int a, b;
+	return s == "files" || sscanf(s.c_str(), "files_v1-%u-%u", &a, &b) == 2;
+}
 
 ServerConfigCheck::ServerConfigCheck(const char *lpszConfigFile) : ECConfigCheck("Server Configuration file", lpszConfigFile)
 {
@@ -55,7 +62,7 @@ int ServerConfigCheck::testAttachment(const config_check_t *check)
 {
 	if (check->value1.empty())
 		return CHECK_OK;
-	if (check->value1 == "database" || check->value1 == "files")
+	if (check->value1 == "database" || is_filesv1(check->value1))
 		return CHECK_OK;
 	printError(check->option1, "contains unknown storage type: \"" + check->value1 + "\"");
 	return CHECK_ERROR;
@@ -63,7 +70,7 @@ int ServerConfigCheck::testAttachment(const config_check_t *check)
 
 int ServerConfigCheck::testAttachmentPath(const config_check_t *check)
 {
-	if (check->value1 != "files")
+	if (!is_filesv1(check->value1))
 		return CHECK_OK;
 
 	config_check_t check2;
