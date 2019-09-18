@@ -3,7 +3,7 @@
 pipeline {
 	agent {
 		docker {
-			image 'debian:9'
+			image 'debian:10-slim'
 			args '-u 0'
 		}
 	}
