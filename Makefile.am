@@ -99,7 +99,6 @@ noinst_PROGRAMS += ${check_PROGRAMS}
 endif # ENABLE_BASE
 
 if ENABLE_PYTHON
-dist_bin_SCRIPTS += ECtools/utils/kopano-set-oof
 dist_sbin_SCRIPTS = ECtools/utils/kopano-mailbox-permissions \
 	ECtools/archiver/scripts/kopano-archiver-aclset \
 	ECtools/archiver/scripts/kopano-archiver-aclsync \
@@ -947,7 +946,6 @@ dist_man_MANS += \
 	doc/kopano-migration-pst.8 doc/kopano-migration-pst.cfg.5 \
 	doc/kopano-mr-accept.8 doc/kopano-mr-process.8 \
 	doc/kopano-search.8 doc/kopano-search.cfg.5 \
-	doc/kopano-set-oof.1 \
 	doc/kopano-spamd.8 doc/kopano-spamd.cfg.5
 endif
 
