@@ -507,7 +507,7 @@ static HRESULT HrHandleRequest(ECChannel *lpChannel)
 	std::string strUrl, strMethod, strCharset;
 	std::string strServerTZ = g_lpConfig->GetSetting("server_timezone");
 	std::string strUserAgent, strUserAgentVersion;
-	KC::object_ptr<IMAPISession> lpSession;
+	object_ptr<IMAPISession> lpSession;
 	Http lpRequest(lpChannel, g_lpConfig);
 	std::unique_ptr<ProtocolBase> lpBase;
 	ULONG ulFlag = 0;

@@ -229,7 +229,7 @@ static void *Handler(void *lpArg)
 		try {
 			/* Process IMAP command */
 			hr = client->HrProcessCommand(inBuffer);
-		} catch (const KC::KMAPIError &e) {
+		} catch (const KMAPIError &e) {
 			hr = e.code();
 		}
 		if (hr == MAPI_E_NETWORK_ERROR) {

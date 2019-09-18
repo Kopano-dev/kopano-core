@@ -115,10 +115,10 @@ typedef object_ptr<WSTransport> WSTransportPtr;
 #define MSGFLAG_DELETED                           ((ULONG) 0x00000400)
 
 static HRESULT CreateSpecialFolder(IMAPIFolder *container, ECMAPIProp *sp_folder, const TCHAR *name, const TCHAR *comment, unsigned int proptag, unsigned int mvpos, const TCHAR *cls, IMAPIFolder **outfld);
-static HRESULT make_additional_folder(IMAPIFolder *root, IMAPIFolder *inbox, unsigned int type, KC::object_ptr<IMAPIFolder> &out, const TCHAR *container, bool hidden);
-static HRESULT make_special_folder(ECMAPIProp *container, KC::object_ptr<IMAPIFolder> &sp_folder, unsigned int proptag, unsigned int mvpos, const TCHAR *cls);
+static HRESULT make_additional_folder(IMAPIFolder *root, IMAPIFolder *inbox, unsigned int type, object_ptr<IMAPIFolder> &out, const TCHAR *container, bool hidden);
+static HRESULT make_special_folder(ECMAPIProp *container, object_ptr<IMAPIFolder> &sp_folder, unsigned int proptag, unsigned int mvpos, const TCHAR *cls);
 static HRESULT SetSpecialEntryIdOnFolder(IMAPIFolder *sp_folder, ECMAPIProp *container, unsigned int proptag, unsigned int mvpos);
-static HRESULT MsgStoreDnToPseudoUrl(const KC::utf8string &store_dn, KC::utf8string *pseudo_url);
+static HRESULT MsgStoreDnToPseudoUrl(const utf8string &store_dn, utf8string *pseudo_url);
 
 /**
  * Appends a generic MAPI folder with the specified name and comment to the
@@ -1512,7 +1512,7 @@ static HRESULT AddRenAdditionalFolder(IMAPIFolder *lpFolder,
  */
 static HRESULT make_additional_folder(IMAPIFolder *lpRootFolder,
     IMAPIFolder *lpInboxFolder, unsigned int ulType,
-    KC::object_ptr<IMAPIFolder> &lpMAPIFolder, const TCHAR *lpszContainerType,
+    object_ptr<IMAPIFolder> &lpMAPIFolder, const TCHAR *lpszContainerType,
     bool fHidden)
 {
 	memory_ptr<SPropValue> lpPropValueEID;
@@ -2151,7 +2151,7 @@ static HRESULT CreateSpecialFolder(IMAPIFolder *folder_parent_in,
 }
 
 static HRESULT make_special_folder(ECMAPIProp *folder_propset_in,
-    KC::object_ptr<IMAPIFolder> &lpMAPIFolder, unsigned int ulPropTag,
+    object_ptr<IMAPIFolder> &lpMAPIFolder, unsigned int ulPropTag,
     unsigned int ulMVPos, const TCHAR *lpszContainerClass)
 {
 	ecmem_ptr<SPropValue> lpPropValue;

@@ -176,8 +176,8 @@ template<typename T, typename Deleter = default_delete> class memory_ptr {
 /* Extra proxy class to forbid AddRef/Release */
 template<typename T> class object_rcguard final : public T {
 	private:
-	virtual unsigned int AddRef() = 0;
-	virtual unsigned int Release() = 0;
+	virtual unsigned int AddRef() { return T::AddRef(); }
+	virtual unsigned int Release() { return T::Release(); }
 };
 
 /**

@@ -31,7 +31,7 @@ using namespace KC;
  */
 HRESULT WSMessageStreamExporter::Create(ULONG ulOffset, ULONG ulCount, const messageStreamArray &streams, WSTransport *lpTransport, WSMessageStreamExporter **lppStreamExporter)
 {
-	KC::convert_context converter;
+	convert_context converter;
 	WSMessageStreamExporterPtr ptrStreamExporter(new(std::nothrow) WSMessageStreamExporter);
 	if (ptrStreamExporter == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
@@ -87,7 +87,7 @@ HRESULT WSMessageStreamExporter::GetSerializedMessage(ULONG ulIndex, WSSerialize
 		++m_ulExpectedIndex;
 		return SYNC_E_OBJECT_DELETED;
 	}
-	KC::object_ptr<WSSerializedMessage> ptrMessage(new(std::nothrow) WSSerializedMessage(m_ptrTransport->m_lpCmd->soap, iStreamInfo->second->id, iStreamInfo->second->cbPropVals, iStreamInfo->second->ptrPropVals.get()));
+	object_ptr<WSSerializedMessage> ptrMessage(new(std::nothrow) WSSerializedMessage(m_ptrTransport->m_lpCmd->soap, iStreamInfo->second->id, iStreamInfo->second->cbPropVals, iStreamInfo->second->ptrPropVals.get()));
 	if (ptrMessage == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 

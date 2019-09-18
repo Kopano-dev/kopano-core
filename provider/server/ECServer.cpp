@@ -186,7 +186,7 @@ static void kcsrv_notify_done(struct soap *soap)
 
 // Called from ECStatsTables to get server stats
 static void kcsrv_get_server_stats(unsigned int *lpulQueueLength,
-    KC::time_duration *lpdblAge, unsigned int *lpulThreadCount,
+    time_duration *lpdblAge, unsigned int *lpulThreadCount,
     unsigned int *lpulIdleThreads)
 {
     g_lpSoapServerConn->GetStats(lpulQueueLength, lpdblAge, lpulThreadCount, lpulIdleThreads);

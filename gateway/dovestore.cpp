@@ -161,7 +161,7 @@ int kpxx_folder_get(void *vstor, const char *name, void **fldp)
 	if (ret != hrSuccess)
 		return hresult_to_errno(ret);
 
-	auto path = KC::tokenize(name, '/');
+	auto path = tokenize(name, '/');
 	unsigned int pidx = 0;
 
 	while (pidx < path.size()) {

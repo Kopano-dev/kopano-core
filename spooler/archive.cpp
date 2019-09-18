@@ -59,7 +59,7 @@ Archive::Archive(IMAPISession *lpSession)
 }
 
 HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
-    std::shared_ptr<KC::ECLogger> logger)
+    std::shared_ptr<ECLogger> logger)
 {
 	HRESULT hr = hrSuccess;
 	unsigned int cMsgProps, ulType;
@@ -172,7 +172,7 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
 }
 
 HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
-    ArchiveResult *lpResult, std::shared_ptr<KC::ECLogger> logger)
+    ArchiveResult *lpResult, std::shared_ptr<ECLogger> logger)
 {
 	HRESULT hr = hrSuccess;
 	ULONG cMsgProps;

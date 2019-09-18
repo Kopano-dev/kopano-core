@@ -814,7 +814,7 @@ int KCmdService::fname(ULONG64 ulSessionId, ##__VA_ARGS__) \
     clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTimes); \
 	LOG_SOAP_DEBUG("%020" PRIu64 ": S %s", ulSessionId, szFname); \
 	auto er = g_lpSessionManager->ValidateSession(soap, ulSessionId, &lpecSession); \
-	auto xx_endtimer = KC::make_scope_success([&]() { \
+	auto xx_endtimer = make_scope_success([&]() { \
 		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &endTimes); \
 		LOG_SOAP_DEBUG("%020" PRIu64 ": E %s 0x%08x %f %f", ulSessionId, szFname, er, \
 			timespec2dbl(endTimes) - timespec2dbl(startTimes), \
@@ -827,7 +827,7 @@ int KCmdService::fname(ULONG64 ulSessionId, ##__VA_ARGS__) \
 	soap_info(soap)->ulLastSessionId = ulSessionId; \
 	soap_info(soap)->szFname = szFname; \
 	lpecSession->AddBusyState(pthread_self(), szFname, soap_info(soap)->threadstart, soap_info(soap)->start); \
-	auto xx_unbusy = KC::make_scope_success([&]() { \
+	auto xx_unbusy = make_scope_success([&]() { \
 		lpecSession->UpdateBusyState(pthread_self(), SESSION_STATE_SENDING); \
 		lpecSession->unlock(); \
 	}); \
