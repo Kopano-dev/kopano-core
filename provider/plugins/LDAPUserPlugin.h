@@ -14,7 +14,6 @@
 #include <set>
 #include <ldap.h>
 #include "plugin.h"
-#include "LDAPCache.h"
 
 /**
  * @defgroup userplugin_ldap LDAP userplugin
@@ -24,6 +23,7 @@
 namespace KC { class ECStatsCollector; }
 using namespace KC;
 class restrictTable;
+class LDAPCache;
 
 /** 
  * LDAP user plugin

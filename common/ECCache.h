@@ -198,6 +198,34 @@ public:
 		return erSuccess;
 	}
 
+#if __cplusplus >= 201700L
+	ECRESULT AddCacheItem(const key_type &key, mapped_type &&value)
+	{
+		if (MaxSize() == 0)
+			return erSuccess;
+		auto result = m_map.try_emplace(key, std::move(value));
+		if (!result.second) {
+			/*
+			 * The key already exists but its value is unmodified,
+			 * so update it now. insert_or_assign cannot be used,
+			 * because then the old value is gone and its size
+			 * could not be subtracted.
+			 */
+			m_ulSize += GetCacheAdditionalSize(value);
+			m_ulSize -= GetCacheAdditionalSize(result.first->second);
+			result.first->second = std::move(value);
+			result.first->second.ulLastAccess = GetProcessTime();
+			return erSuccess;
+		}
+		/* New entry */
+		m_ulSize += GetCacheAdditionalSize(result.first->second);
+		m_ulSize += GetCacheAdditionalSize(key);
+		result.first->second.ulLastAccess = GetProcessTime();
+		UpdateCache(0.05);
+		return erSuccess;
+	}
+#endif
+
 	// Used in ECCacheManager::SetCell, where the content of a cache item is modified.
 	ECRESULT AddToSize(int64_t ulSize)
 	{
