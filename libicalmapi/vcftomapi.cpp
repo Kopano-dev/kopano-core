@@ -129,6 +129,21 @@ HRESULT vcftomapi_impl::handle_N(VObject *v)
 			if (ret != hrSuccess)
 				return ret;
 			props.emplace_back(s);
+		} else if (strcmp(name, VCAdditionalNamesProp) == 0) {
+			auto ret = vobject_to_prop(vv, s, PR_MIDDLE_NAME);
+			if (ret != hrSuccess)
+				return ret;
+			props.emplace_back(s);
+		} else if (strcmp(name, VCNameSuffixesProp) == 0) {
+			auto ret = vobject_to_prop(vv, s, PR_GENERATION);
+			if (ret != hrSuccess)
+				return ret;
+			props.emplace_back(s);
+		} else if (strcmp(name, VCNamePrefixesProp) == 0) {
+			auto ret = vobject_to_prop(vv, s, PR_DISPLAY_NAME_PREFIX);
+			if (ret != hrSuccess)
+				return ret;
+			props.emplace_back(s);
 		}
 	}
 	return hrSuccess;
