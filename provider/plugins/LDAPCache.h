@@ -48,12 +48,16 @@ private:
 	dn_cache_t m_lpGroupCache; /* OBJECTCLASS_DISTLIST */
 	dn_cache_t m_lpUserCache; /* OBJECTCLASS_USER */
 	dn_cache_t m_lpAddressListCache; /* CONTAINER_ADDRESSLIST */
+
+	public:
 	/* objectid => signatures */
 	class timed_sglist_t : public signatures_t, public ECsCacheEntry {
 		public:
 		timed_sglist_t(const signatures_t &a) : signatures_t(a) {}
 		timed_sglist_t(signatures_t &&a) : signatures_t(std::move(a)) {}
 	};
+
+	private:
 	typedef ECCache<std::map<objectid_t, timed_sglist_t>> parent_cache_t;
 	std::mutex m_parents_lock;
 	std::map<userobject_relation_t, parent_cache_t> m_parent_cache;

@@ -9,6 +9,28 @@
 
 using namespace KC;
 
+namespace KC {
+
+template<> inline size_t GetCacheAdditionalSize(const objectsignature_t &v)
+{
+	return v.get_object_size() - sizeof(v);
+}
+
+template<> inline size_t GetCacheAdditionalSize(const objectid_t &v)
+{
+	return v.get_object_size() - sizeof(v);
+}
+
+template<> size_t GetCacheAdditionalSize(const LDAPCache::timed_sglist_t &t)
+{
+	size_t z = 0;
+	for (const auto &e : t)
+		z += GetCacheAdditionalSize(e);
+	return z;
+}
+
+}
+
 bool LDAPCache::isObjectTypeCached(objectclass_t objclass)
 {
 	scoped_rlock biglock(m_hMutex);
