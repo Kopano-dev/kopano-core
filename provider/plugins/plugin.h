@@ -80,6 +80,8 @@ public:
 	 */
 	bool operator<(const objectsignature_t &sig) const noexcept { return id.id < sig.id.id; };
 
+	size_t get_object_size() const { return sizeof(*this) + id.get_object_size() + MEMORY_USAGE_STRING(signature); }
+
 	/**
 	 * externid with objectclass
 	 */

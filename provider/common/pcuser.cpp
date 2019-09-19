@@ -29,6 +29,11 @@ bool objectid_t::operator!=(const objectid_t &x) const noexcept
 	return objclass != x.objclass || id != x.id;
 }
 
+size_t objectid_t::get_object_size() const
+{
+	return sizeof(*this) + MEMORY_USAGE_STRING(id);
+}
+
 std::string objectid_t::tostring() const
 {
 	return stringify(objclass) + ";" + bin2hex(id);
@@ -309,6 +314,14 @@ std::string serverdetails_t::GetSslPath() const {
 
 const std::string &serverdetails_t::GetProxyPath() const {
 	return m_strProxyPath;
+}
+
+size_t serverdetails_t::get_object_size() const
+{
+	return sizeof(*this) + MEMORY_USAGE_STRING(m_strServerName) +
+	       MEMORY_USAGE_STRING(m_strHostAddress) +
+	       MEMORY_USAGE_STRING(m_strFilePath) +
+	       MEMORY_USAGE_STRING(m_strProxyPath);
 }
 
 } /* namespace */

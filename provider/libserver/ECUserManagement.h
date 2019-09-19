@@ -67,9 +67,8 @@ public:
 	/* Add a member to a group, with on-the-fly deletion of the specified group id. */
 	_kc_hidden virtual ECRESULT AddSubObjectToObjectAndSync(userobject_relation_t, unsigned int parent_id, unsigned int child_id);
 	_kc_hidden virtual ECRESULT DeleteSubObjectFromObjectAndSync(userobject_relation_t, unsigned int parent_id, unsigned int child_id);
-	/* Resolve a user name to a user id, with on-the-fly creation of the
-	   specified user. When 'tryResolve' is set surpress logging warnings */
-	_kc_hidden virtual ECRESULT ResolveObjectAndSync(objectclass_t, const char *name, unsigned int *obj_id, bool tryResolve = false);
+	/* Resolve a user name to a user id, with on-the-fly creation of the specified user. */
+	_kc_hidden virtual ECRESULT ResolveObjectAndSync(objectclass_t, const char *name, unsigned int *obj_id, bool try_resolve = false);
 
 	// Get a local object ID for a part of a name
 	virtual ECRESULT SearchObjectAndSync(const char *search_string, unsigned int flags, unsigned int *id);

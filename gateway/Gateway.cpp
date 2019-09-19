@@ -151,7 +151,7 @@ static void *Handler(void *lpArg)
 	else
 		client = new IMAP(szPath, lpChannel, lpConfig);
 	// not required anymore
-	lpHandlerArgs.release();
+	lpHandlerArgs.reset();
 	// make sure the pipe logger does not exit when this handler exits, but only frees the memory.
 	auto pipelog = dynamic_cast<ECLogger_Pipe *>(lpLogger.get());
 	if (pipelog != nullptr)
@@ -554,8 +554,9 @@ static HRESULT handler_client(size_t i)
 		if (unix_fork_function(Handler, lpHandlerArgs.get(), g_socks.linfd.size(), &g_socks.linfd[0]) < 0) {
 			ec_log_err("Could not create %s %s: %s", method, model, strerror(errno));
 			--nChildren;
+			return MAPI_E_CALL_FAILED;
 		}
-		return MAPI_E_CALL_FAILED;
+		return hrSuccess;
 	}
 	pthread_attr_t attr;
 	if (pthread_attr_init(&attr) != 0)

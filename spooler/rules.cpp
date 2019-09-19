@@ -73,9 +73,18 @@ struct wlparam {
 };
 
 /**
- * Contains all the exact-match header names that will inhibit autoreplies.
+ * Exact-match header names that will inhibit forwarding of autoreplies.
  */
-static const std::unordered_set<std::string, kc_icase_hash, kc_icase_equal> kc_stopreply_hdr = {
+using header_set = std::unordered_set<std::string, kc_icase_hash, kc_icase_equal>;
+static const header_set kc_stopfwd_hdr = {
+	"X-Kopano-Vacation",
+	"Auto-Submitted",
+};
+
+/**
+ * Exact-match header names that will inhibit autoreplies to autoreplies.
+ */
+static const header_set kc_stopreply_hdr = {
 	/* Kopano - Vacation header already present, do not send vacation reply. */
 	"X-Kopano-Vacation",
 	/* RFC 3834 - Precedence: list/bulk/junk, do not reply to these mails. */
@@ -93,7 +102,7 @@ static const std::unordered_set<std::string, kc_icase_hash, kc_icase_equal> kc_s
 };
 
 /* A list of prefix searches for entire header-value lines */
-static const std::unordered_set<std::string, kc_icase_hash, kc_icase_equal> kc_stopreply_hdr2 = {
+static const header_set kc_stopreply_hdr2 = {
 	/* From the package "vacation" */
 	"X-Spam-Flag: YES",
 	/* From openSUSE's vacation package */
@@ -102,11 +111,8 @@ static const std::unordered_set<std::string, kc_icase_hash, kc_icase_equal> kc_s
 	"X-LinkedIn",
 };
 
-/**
- * Determines from a set of lines from internet headers (can be wrapped or
- * not) whether to inhibit autoreplies.
- */
-bool dagent_avoid_autoreply(const std::vector<std::string> &hl)
+static bool dagent_header_present(const std::vector<std::string> &hl,
+    const header_set &exact_patterns, const header_set &prefix_patterns)
 {
 	for (const auto &line : hl) {
 		if (isspace(line[0]))
@@ -114,13 +120,27 @@ bool dagent_avoid_autoreply(const std::vector<std::string> &hl)
 		size_t pos = line.find_first_of(':');
 		if (pos == std::string::npos || pos == 0)
 			continue;
-		if (kc_stopreply_hdr.find(line.substr(0, pos)) != kc_stopreply_hdr.cend())
+		if (exact_patterns.find(line.substr(0, pos)) != exact_patterns.cend())
 			return true;
-		for (const auto &elem : kc_stopreply_hdr2)
-			if (kc_stopreply_hdr2.find(line.substr(0, elem.size())) != kc_stopreply_hdr2.cend())
+		for (const auto &elem : prefix_patterns)
+			if (prefix_patterns.find(line.substr(0, elem.size())) != prefix_patterns.cend())
 				return true;
 	}
 	return false;
+}
+
+static bool dagent_avoid_autofwd(const std::vector<std::string> &hl)
+{
+	return dagent_header_present(hl, kc_stopfwd_hdr, {});
+}
+
+/**
+ * Determines from a set of lines from internet headers (can be wrapped or
+ * not) whether to inhibit autoreplies.
+ */
+bool dagent_avoid_autoreply(const std::vector<std::string> &hl)
+{
+	return dagent_header_present(hl, kc_stopreply_hdr, kc_stopreply_hdr2);
 }
 
 static HRESULT GetRecipStrings(LPMESSAGE lpMessage, std::wstring &wstrTo,
@@ -1014,7 +1034,7 @@ static struct actresult proc_op_fwd(IAddrBook *abook, IMsgStore *orig_store,
 	}
 	memory_ptr<SPropValue> pv;
 	if (HrGetFullProp(*lppMessage, PR_TRANSPORT_MESSAGE_HEADERS_A, &~pv) == hrSuccess &&
-	    dagent_avoid_autoreply(tokenize(pv->Value.lpszA, "\n"))) {
+	    dagent_avoid_autofwd(tokenize(pv->Value.lpszA, "\n"))) {
 		ec_log_warn("Rule \""s + rule + "\": Not forwarding autoreplies");
 		return {ROP_NOOP};
 	}

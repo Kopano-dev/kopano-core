@@ -69,6 +69,15 @@ using namespace KC;
 static ECRESULT KCOIDCLogon(KCmdProxy2 *, const utf8string &user, const utf8string &imp_user, const utf8string &password, unsigned int caps, ECSESSIONGROUPID, const char *app_name, ECSESSIONID *, unsigned int *srv_caps, GUID *srv_guid, const std::string &cl_app_ver, const std::string &cl_app_misc);
 static ECRESULT TrySSOLogon(KCmdProxy2 *, const utf8string &user, const utf8string &imp_user, unsigned int caps, ECSESSIONGROUPID, const char *app_name, ECSESSIONID *, unsigned int *srv_caps, GUID *srv_guid, const std::string &cl_app_ver, const std::string &cl_app_misc);
 
+namespace KC {
+
+template<> size_t GetCacheAdditionalSize(const ECsResolveResult &v)
+{
+	return MEMORY_USAGE_STRING(v.serverPath);
+}
+
+}
+
 WSTransport::WSTransport() :
 	ECUnknown("WSTransport"),
 	m_ResolveResultCache("ResolveResult", 4096, 300), m_has_session(false)

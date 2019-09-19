@@ -63,6 +63,10 @@ Fixes:
 * spooler: avoid setting PYTHONPATH repeatedly [KC-1558]
 * server: remove assertions on normal behavior [KC-1551, KC-1552, KC-1011]
 * server: avoid emission of K-1504 log messages [KC-1589]
+* gateway: plug a memory leak [KC-1397]
+* server: reduce K-1515 warnings in normal situations [KF-2677]
+* server: cure use-after-free on shutdown [KC-1531]
+* dagent: split OP_REPLY/OP_FORWARD header match lists [KC-1445]
 
 
 8.7.5 (2019-07-09)
