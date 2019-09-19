@@ -453,6 +453,8 @@ LDAPUserPlugin::LDAPUserPlugin(std::mutex &pluginlock,
 		{ "ldap_object_search_filter", "", CONFIGSETTING_RELOADABLE },
 		{ "ldap_filter_cutoff_elements", "1000", CONFIGSETTING_RELOADABLE },
 		{ "ldap_page_size", "1000", CONFIGSETTING_RELOADABLE }, // MaxPageSize in ADS defaults to 1000
+		{"ldap_membership_cache_size", "256k", CONFIGSETTING_SIZE},
+		{"ldap_membership_cache_lifetime", "5", 0},
 
 		/* Aliases, they should be loaded through the propmap directive */
 		{ "0x6788001E", "", 0, CONFIGGROUP_PROPMAP },								/* PR_EC_EXCHANGE_DN */
@@ -2254,7 +2256,7 @@ LDAPUserPlugin::getParentObjectsForObject(userobject_relation_t relation,
 	ldap_filter = "(&" + ldap_filter + "(" + member_attr + "=" + StringEscapeSequence(member_data) + "))";
 	cache_result.second = getAllObjectsByFilter(ldap_basedn, LDAP_SCOPE_SUBTREE,
 	       ldap_filter, string(), false);
-	m_lpCache->set_parents(relation, childobject, cache_result.second);
+	m_lpCache->set_parents(relation, childobject, cache_result.second, m_config);
 	return cache_result.second;
 }
 

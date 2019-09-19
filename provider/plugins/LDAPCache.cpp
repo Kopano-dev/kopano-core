@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
+#include <kopano/ECConfig.h>
 #include "LDAPCache.h"
 #include "LDAPUserPlugin.h"
 #include <kopano/stringutil.h>
@@ -200,12 +201,23 @@ std::pair<bool, signatures_t> LDAPCache::get_parents(userobject_relation_t rel,
 }
 
 void LDAPCache::set_parents(userobject_relation_t rel, const objectid_t &child,
-    const signatures_t &sig)
+    const signatures_t &sig, ECConfig *cfg)
 {
 	std::lock_guard<std::mutex> lock(m_parents_lock);
 	auto ci = m_parent_cache.find(rel);
-	if (ci == m_parent_cache.cend())
-		ci = m_parent_cache.emplace(rel, parent_cache_t("ldapcache-parent", 256000, 300)).first;
+	if (ci == m_parent_cache.cend()) {
+		size_t size = 256 << 10;
+		unsigned int lft = 300;
+		if (cfg != nullptr) {
+			auto v = cfg->GetSetting("ldap_membership_cache_size");
+			if (v != nullptr)
+				size = strtoull(v, nullptr, 0);
+			v = cfg->GetSetting("ldap_membership_cache_lifetime");
+			if (v != nullptr)
+				lft = strtoul(v, nullptr, 0) * 60;
+		}
+		ci = m_parent_cache.emplace(rel, parent_cache_t("ldapcache-parent", size, lft)).first;
+	}
 	auto &cac = ci->second;
 	cac.AddCacheItem(child, sig);
 }

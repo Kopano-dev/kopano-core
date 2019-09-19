@@ -780,6 +780,22 @@ Setting this value to 0 will never limit the filter, setting it to a value of 1 
 Default:
 \fI1000\fR
 .RE
+.SS ldap_membership_cache_size
+.PP
+Memberships information (users being member of groups, groups being members of
+groups, etc.) is cached.
+.PP
+Default: \fI256K\fP
+.PP
+When ldap_user_unique_attribute=uidNumber, each object and each membership
+("entity \\in group") occupies 72 and 88 units, respectively.
+.SS ldap_membership_cache_lifetime
+.PP
+Validity period for entries in the membership cache, in minutes. If a change to
+the memberships is made in LDAP, it may take up to this amount of time for the
+LDAP plugin to pick it up.
+.PP
+Default: \fI5\fP
 .SH "FILES"
 .PP
 /etc/kopano/server.cfg
