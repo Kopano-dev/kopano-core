@@ -377,19 +377,26 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 	auto prodid = L"-//Kopano//libicalmapi " + convert_to<std::wstring>(PROJECT_VERSION) + L"//EN";
 	to_prop(root, "PRODID", prodid.c_str());
 
-	static constexpr const SizedSPropTagArray(5, proptags) =
-		{5, {PR_DISPLAY_NAME_PREFIX, PR_GIVEN_NAME, PR_MIDDLE_NAME,
-		PR_SURNAME, PR_GENERATION}};
+	static constexpr const SizedSPropTagArray(21, proptags) =
+		{21, {PR_DISPLAY_NAME_PREFIX, PR_GIVEN_NAME, PR_MIDDLE_NAME,
+		PR_SURNAME, PR_GENERATION, PR_DISPLAY_NAME, PR_TITLE,
+		PR_NICKNAME, PR_COMPANY_NAME, PR_DEPARTMENT_NAME,
+		PR_PRIMARY_TELEPHONE_NUMBER, PR_HOME_TELEPHONE_NUMBER,
+		PR_MOBILE_TELEPHONE_NUMBER, PR_BUSINESS_TELEPHONE_NUMBER,
+		PR_PAGER_TELEPHONE_NUMBER, PR_PRIMARY_FAX_NUMBER,
+		PR_HOME_FAX_NUMBER, PR_BUSINESS_FAX_NUMBER, PR_BODY,
+		PR_BIRTHDAY, PR_LAST_MODIFICATION_TIME}};
 	memory_ptr<SPropValue> msgprop;
 	unsigned int nprops = 0;
 	hr = lpMessage->GetProps(proptags, MAPI_UNICODE, &nprops, &~msgprop);
 	if (FAILED(hr))
 		return hr;
 	hr = spv_postload_large_props(lpMessage, proptags, nprops, msgprop);
-	if (hr != hrSuccess)
-		kc_perrorf("postload_large_props", hr);
+	if (FAILED(hr))
+		return kc_perrorf("postload_large_props", hr);
 
-	if (std::any_of(&msgprop[0], &msgprop[5], [](const SPropValue &p) { return PROP_TYPE(p.ulPropTag) != PT_ERROR; })) {
+	if (std::any_of(&msgprop[0], &msgprop[5],
+	    [](const SPropValue &p) { return PROP_TYPE(p.ulPropTag) != PT_ERROR; })) {
 		auto node = addGroup(root, VCNameProp);
 		CV(0, node, VCNamePrefixesProp);
 		CV(1, node, VCGivenNameProp);
@@ -398,102 +405,76 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 		CV(4, node, VCNameSuffixesProp);
 	}
 
-	hr = HrGetOneProp(lpMessage, PR_DISPLAY_NAME, &~msgprop);
-	if (hr == hrSuccess)
-		to_prop(root, VCFullNameProp, *msgprop);
-	else if (hr != MAPI_E_NOT_FOUND)
-		return hr;
-
-	hr = HrGetOneProp(lpMessage, PR_TITLE, &~msgprop);
-	if (hr == hrSuccess)
-		to_prop(root, VCTitleProp, *msgprop);
-	else if (hr != MAPI_E_NOT_FOUND)
-		return hr;
-
-	hr = HrGetOneProp(lpMessage, PR_NICKNAME, &~msgprop);
-	if (hr == hrSuccess)
-		to_prop(root, "NICKNAME", *msgprop);
-	else if (hr != MAPI_E_NOT_FOUND)
-		return hr;
-
-	hr = HrGetOneProp(lpMessage, PR_COMPANY_NAME, &~msgprop);
-	if (hr == hrSuccess && !prop_is_empty(*msgprop)) {
-		auto node = addGroup(root, VCOrgProp);
-		to_prop(node, "ORGNAME", *msgprop);
-		hr = HrGetOneProp(lpMessage, PR_DEPARTMENT_NAME, &~msgprop);
-		if (hr == hrSuccess)
-			to_prop(node, "OUN", *msgprop);
-		else if (hr != MAPI_E_NOT_FOUND)
-			return hr;
-	} else if (hr != MAPI_E_NOT_FOUND && !prop_is_empty(*msgprop)) {
-		return hr;
+	CV(5, root, VCFullNameProp);
+	CV(6, root, VCTitleProp);
+	CV(7, root, "NICKNAME");
+	if (PROP_TYPE(msgprop[8].ulPropTag) != PT_ERROR) {
+		if (!prop_is_empty(msgprop[8])) {
+			auto node = addGroup(root, VCOrgProp);
+			CV(8, node, VCOrgNameProp);
+			CV(9, node, VCOrgUnitProp);
+		}
+	} else if (msgprop[8].Value.err != MAPI_E_NOT_FOUND) {
+		return msgprop[8].Value.err;
 	}
 
-	hr = HrGetOneProp(lpMessage, PR_PRIMARY_TELEPHONE_NUMBER, &~msgprop);
-	if (hr == hrSuccess) {
-		auto node = to_prop(root, VCTelephoneProp, *msgprop);
+	if (PROP_TYPE(msgprop[10].ulPropTag) != PT_ERROR) {
+		auto node = to_prop(root, VCTelephoneProp, msgprop[10]);
 		to_prop(node, "TYPE", L"MAIN");
-	} else if (hr != MAPI_E_NOT_FOUND) {
-		return hr;
+	} else if (msgprop[10].Value.err != MAPI_E_NOT_FOUND) {
+		return msgprop[10].Value.err;
 	}
 
-	hr = HrGetOneProp(lpMessage, PR_HOME_TELEPHONE_NUMBER, &~msgprop);
-	if (hr == hrSuccess) {
-		auto node = to_prop(root, VCTelephoneProp, *msgprop);
+	if (PROP_TYPE(msgprop[11].ulPropTag) != PT_ERROR) {
+		auto node = to_prop(root, VCTelephoneProp, msgprop[11]);
 		to_prop(node, "TYPE", L"HOME");
-	} else if (hr != MAPI_E_NOT_FOUND) {
-		return hr;
+	} else if (msgprop[11].Value.err != MAPI_E_NOT_FOUND) {
+		return msgprop[11].Value.err;
 	}
 
-	hr = HrGetOneProp(lpMessage, PR_MOBILE_TELEPHONE_NUMBER, &~msgprop);
-	if (hr == hrSuccess) {
-		auto node = to_prop(root, VCTelephoneProp, *msgprop);
+	if (PROP_TYPE(msgprop[12].ulPropTag) != PT_ERROR) {
+		auto node = to_prop(root, VCTelephoneProp, msgprop[12]);
 		to_prop(node, "TYPE", L"MOBILE");
-	} else if (hr != MAPI_E_NOT_FOUND) {
-		return hr;
+	} else if (msgprop[12].Value.err != MAPI_E_NOT_FOUND) {
+		return msgprop[12].Value.err;
 	}
 
-	hr = HrGetOneProp(lpMessage, PR_BUSINESS_TELEPHONE_NUMBER, &~msgprop);
-	if (hr == hrSuccess) {
-		auto node = to_prop(root, VCTelephoneProp, *msgprop);
+	if (PROP_TYPE(msgprop[13].ulPropTag) != PT_ERROR) {
+		auto node = to_prop(root, VCTelephoneProp, msgprop[13]);
 		to_prop(node, "TYPE", L"WORK");
-	} else if (hr != MAPI_E_NOT_FOUND) {
-		return hr;
+	} else if (msgprop[13].Value.err != MAPI_E_NOT_FOUND) {
+		return msgprop[13].Value.err;
 	}
 
-	hr = HrGetOneProp(lpMessage, PR_PAGER_TELEPHONE_NUMBER, &~msgprop);
-	if (hr == hrSuccess) {
-		auto node = to_prop(root, VCTelephoneProp, *msgprop);
+	if (PROP_TYPE(msgprop[14].ulPropTag) != PT_ERROR) {
+		auto node = to_prop(root, VCTelephoneProp, msgprop[14]);
 		to_prop(node, "TYPE", L"PAGER");
-	} else if (hr != MAPI_E_NOT_FOUND) {
-		return hr;
+	} else if (msgprop[14].Value.err != MAPI_E_NOT_FOUND) {
+		return msgprop[14].Value.err;
 	}
 
-	hr = HrGetOneProp(lpMessage, PR_PRIMARY_FAX_NUMBER, &~msgprop);
-	if (hr == hrSuccess) {
-		auto node = to_prop(root, VCTelephoneProp, *msgprop);
+	if (PROP_TYPE(msgprop[15].ulPropTag) != PT_ERROR) {
+		auto node = to_prop(root, VCTelephoneProp, msgprop[15]);
 		to_prop(node, "TYPE", L"MAIN");
 		to_prop(node, "TYPE", L"FAX");
-	} else if (hr != MAPI_E_NOT_FOUND) {
-		return hr;
+	} else if (msgprop[15].Value.err != MAPI_E_NOT_FOUND) {
+		return msgprop[15].Value.err;
 	}
 
-	hr = HrGetOneProp(lpMessage, PR_HOME_FAX_NUMBER, &~msgprop);
-	if (hr == hrSuccess) {
-		auto node = to_prop(root, VCTelephoneProp, *msgprop);
+	if (PROP_TYPE(msgprop[16].ulPropTag) != PT_ERROR) {
+		auto node = to_prop(root, VCTelephoneProp, msgprop[16]);
 		to_prop(node, "TYPE", L"HOME");
 		to_prop(node, "TYPE", L"FAX");
-	} else if (hr != MAPI_E_NOT_FOUND) {
-		return hr;
+	} else if (msgprop[16].Value.err != MAPI_E_NOT_FOUND) {
+		return msgprop[16].Value.err;
 	}
 
-	hr = HrGetOneProp(lpMessage, PR_BUSINESS_FAX_NUMBER, &~msgprop);
-	if (hr == hrSuccess) {
-		auto node = to_prop(root, VCTelephoneProp, *msgprop);
+	if (PROP_TYPE(msgprop[17].ulPropTag) != PT_ERROR) {
+		auto node = to_prop(root, VCTelephoneProp, msgprop[17]);
 		to_prop(node, "TYPE", L"WORK");
 		to_prop(node, "TYPE", L"FAX");
-	} else if (hr != MAPI_E_NOT_FOUND) {
-		return hr;
+	} else if (msgprop[17].Value.err != MAPI_E_NOT_FOUND) {
+		return msgprop[17].Value.err;
 	}
 
 	hr = add_adr(lpMessage, root);
@@ -509,23 +490,10 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 	if (hr != hrSuccess)
 		return hr;
 
-	hr = HrGetFullProp(lpMessage, PR_BODY, &~msgprop);
-	if (hr == hrSuccess)
-		to_prop(root, "NOTE", *msgprop);
-	else if (hr != MAPI_E_NOT_FOUND)
-		return hr;
+	CV(18, root, VCCommentProp);
+	CV(19, root, "BDAY");
+	CV(20, root, "REV");
 
-	hr = HrGetOneProp(lpMessage, PR_BIRTHDAY, &~msgprop);
-	if (hr == hrSuccess)
-		to_prop(root, "BDAY", *msgprop);
-	else if (hr != MAPI_E_NOT_FOUND)
-		return hr;
-
-	hr = HrGetOneProp(lpMessage, PR_LAST_MODIFICATION_TIME, &~msgprop);
-	if (hr == hrSuccess)
-		to_prop(root, "REV", *msgprop);
-	else if (hr != MAPI_E_NOT_FOUND)
-		return hr;
 	hr = add_photo(lpMessage, root);
 	if (hr != hrSuccess)
 		return hr;
