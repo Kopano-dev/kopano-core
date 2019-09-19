@@ -45,8 +45,10 @@ void ECDatabaseFactory::S_thread_end(void *q)
 		ec_log_err("K-1249: abandoned dfpair/ECDatabase instance");
 		return;
 	}
+	/* .erase will drop the refcount on db, so pick it up first */
+	decltype(p->db) db(std::move(p->db));
 	fac->m_children.erase(i);
-	p->db->ThreadEnd();
+	db->ThreadEnd();
 }
 
 void ECDatabaseFactory::destroy_database(ECDatabase *db)
