@@ -11,6 +11,7 @@
 #include <mapiutil.h>
 #include <mapix.h>
 #include <kopano/CommonUtil.h>
+#include <kopano/ECLogger.h>
 #include <kopano/memory.hpp>
 #include <kopano/platform.h>
 #include <kopano/mapiguidext.h>
@@ -355,6 +356,14 @@ HRESULT mapitovcf_impl::add_photo(IMessage *lpMessage, VObject *root)
 
 HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 {
+#define CV(i, parent, key) \
+	do { \
+		if (PROP_TYPE(msgprop[i].ulPropTag) != PT_ERROR) \
+			to_prop(parent, key, msgprop[i]); \
+		else if (msgprop[i].Value.err != MAPI_E_NOT_FOUND) \
+			return msgprop[i].Value.err; \
+	} while (false)
+
 	memory_ptr<SPropValue> lpMessageClass;
 
 	if (lpMessage == nullptr)
@@ -370,19 +379,25 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 	auto prodid = L"-//Kopano//libicalmapi " + convert_to<std::wstring>(PROJECT_VERSION) + L"//EN";
 	to_prop(root, "PRODID", prodid.c_str());
 
-	memory_ptr<SPropValue> msgprop, msgprop2;
-	hr = HrGetOneProp(lpMessage, PR_GIVEN_NAME, &~msgprop);
-	HRESULT hr2 = HrGetOneProp(lpMessage, PR_SURNAME, &~msgprop2);
-	if (hr == hrSuccess || hr2 == hrSuccess) {
-		auto node = addGroup(root, VCNameProp);
-		if (msgprop != nullptr)
-			to_prop(node, VCGivenNameProp, *msgprop);
-		if (msgprop2 != nullptr)
-			to_prop(node, VCFamilyNameProp, *msgprop2);
-	} else if (hr != MAPI_E_NOT_FOUND) {
+	static constexpr const SizedSPropTagArray(5, proptags) =
+		{5, {PR_DISPLAY_NAME_PREFIX, PR_GIVEN_NAME, PR_MIDDLE_NAME,
+		PR_SURNAME, PR_GENERATION}};
+	memory_ptr<SPropValue> msgprop;
+	unsigned int nprops = 0;
+	hr = lpMessage->GetProps(proptags, MAPI_UNICODE, &nprops, &~msgprop);
+	if (FAILED(hr))
 		return hr;
-	} else if (hr2 != MAPI_E_NOT_FOUND) {
-		return hr2;
+	hr = spv_postload_large_props(lpMessage, proptags, nprops, msgprop);
+	if (hr != hrSuccess)
+		kc_perrorf("postload_large_props", hr);
+
+	if (std::any_of(&msgprop[0], &msgprop[5], [](const SPropValue &p) { return PROP_TYPE(p.ulPropTag) != PT_ERROR; })) {
+		auto node = addGroup(root, VCNameProp);
+		CV(0, node, VCNamePrefixesProp);
+		CV(1, node, VCGivenNameProp);
+		CV(2, node, VCAdditionalNamesProp);
+		CV(3, node, VCFamilyNameProp);
+		CV(4, node, VCNameSuffixesProp);
 	}
 
 	hr = HrGetOneProp(lpMessage, PR_DISPLAY_NAME, &~msgprop);
@@ -530,6 +545,7 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 	free(cresult);
 	cleanVObject(root);
 	return hrSuccess;
+#undef CV
 }
 
 HRESULT mapitovcf_impl::finalize(std::string *s)
