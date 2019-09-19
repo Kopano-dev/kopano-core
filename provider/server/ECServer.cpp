@@ -325,11 +325,12 @@ static ECRESULT check_database_attachments(ECDatabase *lpDatabase)
 
 static ECRESULT check_attachment_storage_permissions(void)
 {
+	auto backend = g_lpConfig->GetSetting("attachment_storage");
 	ECRESULT er = erSuccess;
 	FILE *tmpfile = NULL;
 	string strtestpath;
 
-	if (strcmp(g_lpConfig->GetSetting("attachment_storage"), "files") == 0) {
+	if (strcmp(backend, "files_v2") == 0 || strcmp(backend, "files") == 0) {
 		strtestpath = g_lpConfig->GetSetting("attachment_path");
 		strtestpath += "/testfile";
 		tmpfile = fopen(strtestpath.c_str(), "w");
