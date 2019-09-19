@@ -857,8 +857,7 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 exit:
 	biglock.unlock();
 	FreeRowSet(lpRowSet);
-	soap_del_propTagArray(lpsRestrictPropTagArray);
-	s_free(nullptr, lpsRestrictPropTagArray);
+	soap_del_PointerTopropTagArray(&lpsRestrictPropTagArray);
 	soap_del_propTagArray(&sPropTagArray);
 	return er;
 }

@@ -1081,7 +1081,7 @@ ECRESULT ECCacheManager::GetACLs(unsigned int ulObjId, struct rightsArray **lppR
 		return er;
 
 	auto ulRows = lpResult.get_num_rows();
-	auto lpRights = s_alloc<rightsArray>(nullptr);
+	auto lpRights = soap_new_rightsArray(nullptr);
     if (ulRows > 0)
     {
 	    lpRights->__size = ulRows;
@@ -1090,8 +1090,7 @@ ECRESULT ECCacheManager::GetACLs(unsigned int ulObjId, struct rightsArray **lppR
 		for (unsigned int i = 0; i < ulRows; ++i) {
 			auto lpRow = lpResult.fetch_row();
 			if(lpRow == NULL || lpRow[0] == NULL || lpRow[1] == NULL || lpRow[2] == NULL) {
-				soap_del_rightsArray(lpRights);
-				s_free(nullptr, lpRights);
+				soap_del_PointerTorightsArray(&lpRights);
 				ec_perror("ECCacheManager::GetACLs(): ROW or COLUMNS null", er);
 				return KCERR_DATABASE_ERROR;
 			}
@@ -1118,7 +1117,7 @@ ECRESULT ECCacheManager::I_GetACLs(unsigned int ulObjId, struct rightsArray **lp
 	if(er != erSuccess)
 		return er;
 
-	auto lpRights = s_alloc<rightsArray>(nullptr);
+	auto lpRights = soap_new_rightsArray(nullptr);
     if (sACL->ulACLs > 0)
     {
         lpRights->__size = sACL->ulACLs;

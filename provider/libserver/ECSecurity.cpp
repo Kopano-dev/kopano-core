@@ -220,7 +220,7 @@ ECRESULT ECSecurity::GetObjectPermission(unsigned int ulObjId, unsigned int* lpu
 						}
 		}
 
-		FreeRightsArray(lpRights);
+		soap_del_PointerTorightsArray(&lpRights);
 		lpRights = nullptr;
 		if (bFoundACL)
 			// If any of the ACLs at this level were for us, then use these ACLs.

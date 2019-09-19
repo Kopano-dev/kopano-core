@@ -228,6 +228,9 @@ void ECConfigImpl::InsertOrReplace(settingmap_t *lpMap, const settingkey_t &s, c
 		// Insert new value
 		data = new char[1024];
 		lpMap->insert({s, data});
+	} else if (i->second == szValue) {
+		/* Our pointer was handed back to us (AddSetting("x", GetSetting("x"))) */
+		return;
 	} else {
 		// Actually remove and re-insert the map entry since we may be modifying
 		// cs_flags in the key (this is a bit of a hack, since you shouldn't be modifying

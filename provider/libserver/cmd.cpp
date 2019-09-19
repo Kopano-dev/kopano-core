@@ -3816,7 +3816,7 @@ SOAP_ENTRY_START(getRights, lpsRightResponse->er, const entryId &sEntryId,
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulobjid);
 	if(er != erSuccess)
 		return er;
-	lpsRightArray = s_alloc<rightsArray>(nullptr);
+	lpsRightArray = soap_new_rightsArray(nullptr);
 	er = lpecSession->GetSecurity()->GetRights(ulobjid, ulType, lpsRightArray);
 	if(er != erSuccess)
 		goto exit;
@@ -3824,10 +3824,7 @@ SOAP_ENTRY_START(getRights, lpsRightResponse->er, const entryId &sEntryId,
 	if (er != erSuccess)
 		goto exit;
 exit:
-	if (lpsRightArray) {
-		soap_del_rightsArray(lpsRightArray);
-		s_free(nullptr, lpsRightArray);
-	}
+	soap_del_PointerTorightsArray(&lpsRightArray);
 }
 SOAP_ENTRY_END()
 
