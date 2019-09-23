@@ -23,8 +23,8 @@ ECNotification::ECNotification()
 }
 
 ECNotification::~ECNotification()
-{
-	FreeNotificationStruct(m_lpsNotification, true);
+{	
+	soap_del_PointerTonotification(&m_lpsNotification);
 }
 
 ECNotification::ECNotification(const ECNotification &x)
@@ -41,7 +41,7 @@ ECNotification::ECNotification(const notification &notification)
 
 void ECNotification::Init()
 {
-	m_lpsNotification = s_alloc<notification>(nullptr);
+	m_lpsNotification = soap_new_notification(nullptr);
 }
 
 ECNotification& ECNotification::operator=(const ECNotification &x)
@@ -239,7 +239,7 @@ void *ECNotificationManager::Work() {
                         } else {
                             // No notifications and we're out of time, just respond OK with 0 notifications
                             er = erSuccess;
-							notifications.pNotificationArray = s_alloc<notificationArray>(iterRequest->second.soap);
+							notifications.pNotificationArray = soap_new_notificationArray(iterRequest->second.soap);
                             soap_default_notificationArray(iterRequest->second.soap, notifications.pNotificationArray);
                         }
                     }

@@ -1497,9 +1497,7 @@ ECRESULT ECUserManagement::QueryContentsRowData(struct soap *soap,
 		goto exit;
 
 	assert(lpRowList != NULL);
-	lpsRowSet = s_alloc_nothrow<struct rowSet>(soap);
-	if (lpsRowSet == nullptr)
-		return KCERR_NOT_ENOUGH_MEMORY;
+	lpsRowSet = soap_new_rowSet(soap);
 	if (lpRowList->empty()) {
 		*lppRowSet = lpsRowSet;
 		goto exit; // success
@@ -1507,7 +1505,7 @@ ECRESULT ECUserManagement::QueryContentsRowData(struct soap *soap,
 
 	// We return a square array with all the values
 	lpsRowSet->__size = lpRowList->size();
-	lpsRowSet->__ptr = s_alloc<propValArray>(soap, lpRowList->size());
+	lpsRowSet->__ptr  = soap_new_propValArray(soap, lpRowList->size());
 
 	// Get Extern ID and Types for all items
 	i = 0;
@@ -1590,7 +1588,7 @@ ECRESULT ECUserManagement::QueryContentsRowData(struct soap *soap,
 			if(er != erSuccess)
 				goto exit;
 		} else if (lpsRowSet->__ptr[i].__ptr == NULL) {
-			lpsRowSet->__ptr[i].__ptr = s_alloc<propVal>(soap, lpPropTagArray->__size);
+			lpsRowSet->__ptr[i].__ptr  = soap_new_propVal(soap, lpPropTagArray->__size);
 			lpsRowSet->__ptr[i].__size = lpPropTagArray->__size;
 			for (gsoap_size_t j = 0; j < lpPropTagArray->__size; ++j) {
 				lpsRowSet->__ptr[i].__ptr[j].ulPropTag = CHANGE_PROP_TYPE(lpPropTagArray->__ptr[j], PT_ERROR);
@@ -1604,10 +1602,8 @@ ECRESULT ECUserManagement::QueryContentsRowData(struct soap *soap,
 	// All done
 	*lppRowSet = lpsRowSet;
 exit:
-	if (er != erSuccess && lpsRowSet != NULL) {
-		s_free(soap, lpsRowSet->__ptr);
-		s_free(soap, lpsRowSet);
-	}
+	if (er != erSuccess && soap == nullptr)
+		soap_del_PointerTorowSet(&lpsRowSet);
 	return er;
 }
 
@@ -1619,9 +1615,7 @@ ECRESULT ECUserManagement::QueryHierarchyRowData(struct soap *soap,
 	unsigned int i = 0;
 
 	assert(lpRowList != NULL);
-	auto lpsRowSet = s_alloc_nothrow<struct rowSet>(soap);
-	if (lpsRowSet == NULL)
-		return KCERR_NOT_ENOUGH_MEMORY;
+	auto lpsRowSet = soap_new_rowSet(soap);
 	if (lpRowList->empty()) {
 		*lppRowSet = lpsRowSet;
 		goto exit; // success
@@ -1629,7 +1623,7 @@ ECRESULT ECUserManagement::QueryHierarchyRowData(struct soap *soap,
 
 	// We return a square array with all the values
 	lpsRowSet->__size = lpRowList->size();
-	lpsRowSet->__ptr = s_alloc<propValArray>(soap, lpRowList->size());
+	lpsRowSet->__ptr  = soap_new_propValArray(soap, lpRowList->size());
 
 	for (const auto &row : *lpRowList) {
 		/* Although it probably doesn't make a lot of sense, we need to check for company containers here.
@@ -1661,10 +1655,8 @@ ECRESULT ECUserManagement::QueryHierarchyRowData(struct soap *soap,
 	// All done
 	*lppRowSet = lpsRowSet;
 exit:
-	if (er != erSuccess) {
-		s_free(soap, lpsRowSet->__ptr);
-		s_free(soap, lpsRowSet);
-	}
+	if (er != erSuccess && soap == nullptr)
+		soap_del_PointerTorowSet(&lpsRowSet);
 	return er;
 }
 
@@ -3310,7 +3302,7 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
 	er = TypeToMAPIType(lpDetails->GetClass(), &ulMapiType);
 	if (er != erSuccess)
 		goto exit;
-	lpPropVals->__ptr = s_alloc<struct propVal>(soap, lpPropTags->__size);
+	lpPropVals->__ptr  = soap_new_propVal(soap, lpPropTags->__size);
 	lpPropVals->__size = lpPropTags->__size;
 
 	for (gsoap_size_t i = 0; i < lpPropTags->__size; ++i) {
@@ -3348,7 +3340,7 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
 
 exit:
 	if (er != erSuccess && soap == NULL)
-		s_free(nullptr, lpPropVals->__ptr);
+		soap_del_propValArray(lpPropVals);
 	return er;
 }
 
@@ -3549,7 +3541,7 @@ ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soa
 	er = TypeToMAPIType(lpDetails->GetClass(), &ulMapiType);
 	if (er != erSuccess)
 		return er;
-	lpPropVals->__ptr = s_alloc<struct propVal>(soap, lpPropTags->__size);
+	lpPropVals->__ptr  = soap_new_propVal(soap, lpPropTags->__size);
 	lpPropVals->__size = lpPropTags->__size;
 
 	for (gsoap_size_t i = 0; i < lpPropTags->__size; ++i) {
@@ -3584,7 +3576,7 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap,
 	std::string strName;
 	const ABEID_FIXED abeid(MAPI_ABCONT, MUIDECSAB, ulId);
 
-	lpPropValArray->__ptr = s_alloc<struct propVal>(soap, lpPropTagArray->__size);
+	lpPropValArray->__ptr  = soap_new_propVal(soap, lpPropTagArray->__size);
 	lpPropValArray->__size = lpPropTagArray->__size;
 	// FIXME: Should this name be hardcoded like this?
 	// Are there any other values that might be passed as name?

@@ -40,7 +40,7 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis,
 	if (pThis == nullptr)
 		return KCERR_INVALID_PARAMETER;
 	static constexpr const GUID sZeroGuid = {0};
-	auto lpsRowSet = s_alloc<rowSet>(soap);
+	auto lpsRowSet = soap_new_rowSet(soap);
 	lpsRowSet->__size = 0;
 	lpsRowSet->__ptr = NULL;
 	if(lpRowList->empty()) {
@@ -50,12 +50,12 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis,
 
 	// We return a square array with all the values
 	lpsRowSet->__size = lpRowList->size();
-	lpsRowSet->__ptr = s_alloc<propValArray>(soap, lpsRowSet->__size);
+	lpsRowSet->__ptr  = soap_new_propValArray(soap, lpsRowSet->__size);
 
 	// Allocate memory for all rows
 	for (gsoap_size_t i = 0; i < lpsRowSet->__size; ++i) {
 		lpsRowSet->__ptr[i].__size = lpsPropTagArray->__size;
-		lpsRowSet->__ptr[i].__ptr = s_alloc<propVal>(soap, lpsPropTagArray->__size);
+		lpsRowSet->__ptr[i].__ptr  = soap_new_propVal(soap, lpsPropTagArray->__size);
 	}
 
 	gsoap_size_t i = 0;

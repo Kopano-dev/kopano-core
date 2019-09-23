@@ -310,7 +310,7 @@ void* ECNotifyMaster::NotifyWatch(void *pTmpNotifyMaster)
 
 		/* Cleanup */
 		if (pNotifyArray != NULL) {
-			FreeNotificationArrayStruct(pNotifyArray, true);
+			soap_del_PointerTonotificationArray(&pNotifyArray);
 			pNotifyArray = NULL;
 		}
 	}

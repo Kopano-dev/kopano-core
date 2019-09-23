@@ -532,8 +532,8 @@ static ECRESULT getchanges_hier1(struct soap *soap, ECDatabase *lpDatabase, cons
 		/* Do not allow initial sync of all server folders */
 		return KCERR_NO_SUPPORT;
 	/* New sync, just return all the folders as changes */
-	lpChanges = s_alloc<icsChangesArray>(soap);
-	lpChanges->__ptr = s_alloc<icsChange>(soap, lstFolderIds.size());
+	lpChanges = soap_new_icsChangesArray(soap);
+	lpChanges->__ptr = soap_new_icsChange(soap, lstFolderIds.size());
 
 	/* Search folder changed folders */
 	std::string strQuery = "SELECT MAX(id) FROM changes";
@@ -589,8 +589,8 @@ static ECRESULT getchanges_hier1(struct soap *soap, ECDatabase *lpDatabase, cons
 static ECRESULT getchanges_hier2(struct soap *soap, ECDatabase *lpDatabase, const std::list<unsigned int> &lstChanges, unsigned int &ulMaxChange, struct icsChangesArray *&lpChanges)
 {
 	/* Return all the found changes */
-	lpChanges = s_alloc<icsChangesArray>(soap);
-	lpChanges->__ptr = s_alloc<icsChange>(soap, lstChanges.size());
+	lpChanges = soap_new_icsChangesArray(soap);
+	lpChanges->__ptr  = soap_new_icsChange(soap, lstChanges.size());
 	lpChanges->__size = lstChanges.size();
 	unsigned int i = 0;
 
@@ -761,8 +761,8 @@ static ECRESULT getchanges_ab1(struct soap *soap, ECSession *lpSession,
 	 * use it all.
 	 */
 	auto ulChanges = lstChanges.size();
-	lpChanges = s_alloc<icsChangesArray>(soap);
-	lpChanges->__ptr = s_alloc<icsChange>(soap, ulChanges);
+	lpChanges = soap_new_icsChangesArray(soap);
+	lpChanges->__ptr  = soap_new_icsChange(soap, ulChanges);
 	lpChanges->__size = 0;
 	unsigned int i = 0;
 
@@ -830,8 +830,8 @@ static ECRESULT getchanges_ab2(struct soap *soap, ECSession *lpSession,
 	if (er != erSuccess)
 		return er;
 	auto ulChanges = lpDBResult.get_num_rows();
-	lpChanges = s_alloc<icsChangesArray>(soap);
-	lpChanges->__ptr = s_alloc<icsChange>(soap, ulChanges);
+	lpChanges = soap_new_icsChangesArray(soap);
+	lpChanges->__ptr  = soap_new_icsChange(soap, ulChanges);
 	lpChanges->__size = 0;
 
 	unsigned int i = 0;
@@ -980,7 +980,7 @@ ECRESULT GetSyncStates(struct soap *soap, ECSession *lpSession, mv_long ulaSyncI
     }
 
 	lpsaSyncState->__size = 0;
-	lpsaSyncState->__ptr = s_alloc<syncState>(soap, ulResults);
+	lpsaSyncState->__ptr  = soap_new_syncState(soap, ulResults);
 
 	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL) {

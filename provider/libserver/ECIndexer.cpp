@@ -70,38 +70,49 @@ static BOOL NormalizeRestrictionIsFalse(const struct restrictTable *lpRestrict)
 static ECRESULT NormalizeRestrictionNestedAnd(struct restrictTable *lpRestrict)
 {
     std::list<struct restrictTable *> lstClauses;
+	auto und = lpRestrict->lpAnd;
     bool bModified = false;
 
     if(lpRestrict->ulType != RES_AND)
 		return erSuccess;
 
-    for (gsoap_size_t i = 0; i < lpRestrict->lpAnd->__size; ++i) {
-		if (lpRestrict->lpAnd->__ptr[i]->ulType != RES_AND) {
-			lstClauses.emplace_back(lpRestrict->lpAnd->__ptr[i]);
+	/*
+	 * There is some raw pointer juggling going on. @bModified also
+	 * indicates who of @und or @lstClauses "owns" the subrestrictions. All
+	 * the subres end up in @lstClauses, so if bModified is set, @und or
+	 * parts thereof must not be recursively deleted, just the tops.
+	 */
+	for (gsoap_size_t i = 0; i < und->__size; ++i) {
+		if (und->__ptr[i]->ulType != RES_AND) {
+			lstClauses.emplace_back(und->__ptr[i]);
+			/* do not set to nullptr, ownership of rawptrs may still be in flux */
 			continue;
 		}
 		// First, flatten our subchild
-		auto er = NormalizeRestrictionNestedAnd(lpRestrict->lpAnd->__ptr[i]);
+		auto ptr = und->__ptr[i];
+		auto er = NormalizeRestrictionNestedAnd(ptr);
 		if (er != erSuccess)
 			return er;
 		// Now, get all the clauses from the child AND-clause and push them to this AND-clause
-		for (gsoap_size_t j = 0; j < lpRestrict->lpAnd->__ptr[i]->lpAnd->__size; ++j)
-			lstClauses.emplace_back(lpRestrict->lpAnd->__ptr[i]->lpAnd->__ptr[j]);
-		s_free(nullptr, lpRestrict->lpAnd->__ptr[i]->lpAnd->__ptr);
-		s_free(nullptr, lpRestrict->lpAnd->__ptr[i]->lpAnd);
-		s_free(nullptr, lpRestrict->lpAnd->__ptr[i]);
+		for (gsoap_size_t j = 0; j < ptr->lpAnd->__size; ++j) {
+			lstClauses.emplace_back(ptr->lpAnd->__ptr[j]);
+			/* ownership of all rawptrs will change, so nullptr is ok */
+			ptr->lpAnd->__ptr[j] = nullptr;
+		}
+		ptr->lpAnd->__size = 0; /* speed up soap_del */
+		soap_del_PointerTorestrictTable(&ptr);
 		bModified = true;
     }
 
 	if (!bModified)
 		return erSuccess;
 	// We changed something, free the previous toplevel data and create a new list of children
-	s_free(nullptr, lpRestrict->lpAnd->__ptr);
-	lpRestrict->lpAnd->__ptr = s_alloc<restrictTable *>(NULL, lstClauses.size());
+	SOAP_FREE(nullptr, und->__ptr);
+	und->__ptr = static_cast<restrictTable **>(soap_malloc(nullptr, sizeof(restrictTable *) * lstClauses.size()));
 	int n = 0;
 	for (const auto rt : lstClauses)
-		lpRestrict->lpAnd->__ptr[n++] = rt;
-	lpRestrict->lpAnd->__size = n;
+		und->__ptr[n++] = rt;
+	und->__size = n;
 	return erSuccess;
 }
 
@@ -217,7 +228,7 @@ static ECRESULT NormalizeRestrictionMultiFieldSearch(
 	    }
 			lpMultiSearches->emplace_back(sMultiSearch);
             // Remove it from the restriction since it is now handled as a multisearch
-            FreeRestrictTable(lpRestrict->lpAnd->__ptr[i]);
+			soap_del_PointerTorestrictTable(&lpRestrict->lpAnd->__ptr[i]);
             memmove(&lpRestrict->lpAnd->__ptr[i], &lpRestrict->lpAnd->__ptr[i+1], sizeof(struct restrictTable *) * (lpRestrict->lpAnd->__size - i - 1));
             --lpRestrict->lpAnd->__size;
         }
@@ -228,10 +239,10 @@ static ECRESULT NormalizeRestrictionMultiFieldSearch(
         // We now have to remove the entire restriction since the top-level restriction here is
         // now obsolete. Since the above loop will generate an empty AND clause, we will do that here as well.
 	// Do not delete the lpRestrict itself, since we place new content in it.
-	FreeRestrictTable(lpRestrict, false);
-	soap_default_restrictTable(nullptr, lpRestrict);
+		soap_del_restrictTable(lpRestrict);
+		soap_default_restrictTable(nullptr, lpRestrict);
         lpRestrict->ulType = RES_AND;
-		lpRestrict->lpAnd = s_alloc<restrictAnd>(nullptr);
+		lpRestrict->lpAnd = soap_new_restrictAnd(nullptr);
     }
 	return erSuccess;
 }
@@ -297,7 +308,7 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig,
 	const char* szSocket = lpConfig->GetSetting("search_socket");
 
 	auto laters = make_scope_success([&]() {
-		FreeRestrictTable(lpOptimizedRestrict);
+		soap_del_PointerTorestrictTable(&lpOptimizedRestrict);
 		if (er != erSuccess)
 			g_lpSessionManager->m_stats->inc(SCN_DATABASE_SEARCHES);
 		else

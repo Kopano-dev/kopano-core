@@ -820,7 +820,7 @@ HRESULT WSTransport::HrNotify(const NOTIFICATION *lpNotification)
 	sNotification.ulConnection = 0;// The connection id should be calculate on the server side
 
 	sNotification.ulEventType = lpNotification->ulEventType;
-	sNotification.newmail = s_alloc<notificationNewMail>(nullptr);
+	sNotification.newmail = soap_new_notificationNewMail(nullptr);
 
 	hr = CopyMAPIEntryIdToSOAPEntryId(lpNotification->info.newmail.cbEntryID, (LPENTRYID)lpNotification->info.newmail.lpEntryID, &sNotification.newmail->pEntryId);
 	if(hr != hrSuccess)
@@ -845,8 +845,7 @@ HRESULT WSTransport::HrNotify(const NOTIFICATION *lpNotification)
 	END_SOAP_CALL
  exitm:
 	spg.unlock();
-	FreeNotificationStruct(&sNotification, false);
-
+	soap_del_notification(&sNotification);
 	return hr;
 }
 
@@ -3106,8 +3105,7 @@ HRESULT WSTransport::HrResolveNames(const SPropTagArray *lpPropTagArray,
 	}
  exitm:
 	spg.unlock();
-	if(lpsRowSet)
-		FreeRowSet(lpsRowSet);
+	soap_del_PointerTorowSet(&lpsRowSet);
 	return hr;
 }
 
@@ -3560,8 +3558,7 @@ HRESULT WSTransport::HrGetChanges(const std::string &sourcekey, ULONG ulSyncId,
 	*lppChanges = lpChanges.release();
  exitm:
 	spg.unlock();
-	if(lpsSoapRestrict)
-	    FreeRestrictTable(lpsSoapRestrict);
+	soap_del_PointerTorestrictTable(&lpsSoapRestrict);
 	return hr;
 }
 
@@ -3896,7 +3893,7 @@ HRESULT WSTransport::HrGetNotify(struct notificationArray **lppsArrayNotificatio
 		goto exit;
 
 	if(sNotifications.pNotificationArray != NULL) {
-		*lppsArrayNotifications = s_alloc<notificationArray>(nullptr);
+		*lppsArrayNotifications = soap_new_notificationArray(nullptr);
 		CopyNotificationArrayStruct(sNotifications.pNotificationArray, *lppsArrayNotifications);
 	}else
 		*lppsArrayNotifications = NULL;

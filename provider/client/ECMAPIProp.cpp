@@ -498,7 +498,7 @@ HRESULT ECMAPIProp::GetSerializedACLData(LPVOID lpBase, LPSPropValue lpsPropValu
 		return hr;
 
 	rights.__size = cPerms;
-	rights.__ptr = s_alloc<struct rights>(&soap, cPerms);
+	rights.__ptr  = soap_new_rights(&soap, cPerms);
 	std::transform(ptrPerms.get(), ptrPerms + cPerms, rights.__ptr, &ECPermToRightsCheap);
 
 	soap_set_omode(&soap, SOAP_C_UTFSTRING);

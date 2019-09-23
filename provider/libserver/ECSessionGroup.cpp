@@ -234,8 +234,8 @@ ECRESULT ECSessionGroup::AddNotificationTable(ECSESSIONID ulSessionId, unsigned 
 											  sObjectTableKey* lpsChildRow, sObjectTableKey* lpsPrevRow, struct propValArray *lpRow)
 {
 	std::lock_guard<ECSessionGroup> holder(*this);
-	auto lpNotify = s_alloc<notification>(nullptr);
-	lpNotify->tab = s_alloc<notificationTable>(nullptr);
+	auto lpNotify = soap_new_notification(nullptr);
+	lpNotify->tab = soap_new_notificationTable(nullptr);
 	lpNotify->ulEventType			= fnevTableModified;
 	lpNotify->tab->ulTableEvent		= ulType;
 
@@ -270,7 +270,7 @@ ECRESULT ECSessionGroup::AddNotificationTable(ECSESSIONID ulSessionId, unsigned 
 
 	lpNotify->tab->ulObjType = ulObjType;
 	if(lpRow) {
-		lpNotify->tab->pRow = s_alloc<propValArray>(nullptr);
+		lpNotify->tab->pRow = soap_new_propValArray(nullptr);
 		lpNotify->tab->pRow->__ptr = lpRow->__ptr;
 		lpNotify->tab->pRow->__size = lpRow->__size;
 	}
@@ -283,7 +283,7 @@ ECRESULT ECSessionGroup::AddNotificationTable(ECSESSIONID ulSessionId, unsigned 
 	}
 
 	//Free struct
-	FreeNotificationStruct(lpNotify);
+	soap_del_PointerTonotification(&lpNotify);
 	return erSuccess;
 }
 
@@ -388,8 +388,8 @@ ECRESULT ECSessionGroup::GetNotifyItems(struct soap *soap, ECSESSIONID ulSession
 	if (!m_listNotification.empty()) {
 		ULONG ulSize = (ULONG)m_listNotification.size();
 
-		notifications->pNotificationArray = s_alloc<notificationArray>(soap);
-		notifications->pNotificationArray->__ptr = s_alloc<notification>(soap, ulSize);
+		notifications->pNotificationArray = soap_new_notificationArray(soap);
+		notifications->pNotificationArray->__ptr  = soap_new_notification(soap, ulSize);
 		notifications->pNotificationArray->__size = ulSize;
 
 		size_t nPos = 0;

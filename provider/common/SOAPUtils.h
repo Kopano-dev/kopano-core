@@ -25,19 +25,13 @@ extern int CompareSortOrderArray(const struct sortOrderArray *lpsSortOrder1, con
 // PropTagArrays
 extern ECRESULT CopyPropTagArray(struct soap *soap, const struct propTagArray* lpPTsSrc, struct propTagArray** lppsPTsDst);
 
-// RowSets
-extern void FreeRowSet(struct rowSet *);
-
 // Restrictions
-extern ECRESULT FreeRestrictTable(struct restrictTable *lpRestrict, bool base = true);
 extern ECRESULT CopyRestrictTable(struct soap *soap, const struct restrictTable *lpSrc, struct restrictTable **lppDst);
 
 // SearchCriteria
 extern ECRESULT CopySearchCriteria(struct soap *soap, const struct searchCriteria *lpSrc, struct searchCriteria **lppDst);
-extern ECRESULT FreeSearchCriteria(struct searchCriteria *lpSearchCriteria);
 
 // PropValArrays
-extern ECRESULT FreePropValArray(struct propValArray *lpPropValArray, bool bFreeBase = false);
 extern struct propVal *FindProp(const struct propValArray *lpPropValArray, unsigned int ulPropTag);
 extern ECRESULT CopyPropValArray(const struct propValArray *lpSrc, struct propValArray *lpDst, struct soap *soap);
 extern ECRESULT CopyPropValArray(const struct propValArray *lpSrc, struct propValArray **lppDst, struct soap *soap);
@@ -48,7 +42,6 @@ extern ECRESULT CompareProp(const struct propVal *lpProp1, const struct propVal 
 extern ECRESULT CompareMVPropWithProp(struct propVal *lpMVProp1, const struct propVal *lpProp2, unsigned int ulType, const ECLocale &locale, bool* lpfMatch);
 
 size_t PropSize(const struct propVal *);
-ECRESULT			FreePropVal(struct propVal *lpProp, bool bBasePointerDel);
 extern ECRESULT CopyPropVal(const struct propVal *src, struct propVal *dst, struct soap * = nullptr, bool truncate = false);
 extern ECRESULT CopyPropVal(const struct propVal *src, struct propVal **dst, struct soap * = nullptr, bool truncate = false); /* allocates new lpDst and calls other version */
 
@@ -59,9 +52,7 @@ ECRESULT			CopyEntryList(struct soap *soap, struct entryList *lpSrc, struct entr
 ECRESULT			CopyEntryId(struct soap *soap, entryId* lpSrc, entryId** lppDst);
 
 // Notification
-ECRESULT			FreeNotificationStruct(notification *lpNotification, bool bFreeBase=true);
 ECRESULT			CopyNotificationStruct(struct soap *, const notification *from, notification &to);
-ECRESULT			FreeNotificationArrayStruct(notificationArray *lpNotifyArray, bool bFreeBase);
 ECRESULT			CopyNotificationArrayStruct(notificationArray *lpNotifyArrayFrom, notificationArray *lpNotifyArrayTo);
 
 // Rights

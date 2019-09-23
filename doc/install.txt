@@ -49,6 +49,9 @@ The following additional developer options are available:
 	* --with-asan: shorthand for enabling Address Sanitizer
 	* --with-ubsan: shorthand for enabling UB Sanitizer
 	* --disable-release: disable workarounds for known issues
+	* Some ASAN features (e.g. Leak Sanitizer and double-free) are
+	  available through LD_PRELOAD-ing libasan.so, even when not enabled
+	  during build.
 
 Special developer-only treats:
 

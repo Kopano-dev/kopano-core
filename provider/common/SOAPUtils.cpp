@@ -690,211 +690,6 @@ size_t PropSize(const struct propVal *lpProp)
 	}
 }
 
-ECRESULT FreePropVal(struct propVal *lpProp, bool bBasePointerDel)
-{
-	if (lpProp == nullptr)
-		return erSuccess;
-	ECRESULT er = erSuccess;
-	switch(PROP_TYPE(lpProp->ulPropTag)) {
-	case PT_I2:
-	case PT_LONG:
-	case PT_R4:
-	case PT_BOOLEAN:
-	case PT_DOUBLE:
-	case PT_APPTIME:
-	case PT_I8:
-		// no extra cleanup needed
-		break;
-	case PT_SYSTIME:
-	case PT_CURRENCY:
-		soap_del_PointerTohiloLong(&lpProp->Value.hilo);
-		break;
-	case PT_STRING8:
-	case PT_UNICODE:
-		soap_del_string(&lpProp->Value.lpszA);
-		break;
-	case PT_CLSID:
-	case PT_BINARY:
-		soap_del_PointerToxsd__base64Binary(&lpProp->Value.bin);
-		break;
-	case PT_MV_I2:
-		soap_del_mv_i2(&lpProp->Value.mvi);
-		break;
-	case PT_MV_LONG:
-		soap_del_mv_long(&lpProp->Value.mvl);
-		break;
-	case PT_MV_R4:
-		soap_del_mv_r4(&lpProp->Value.mvflt);
-		break;
-	case PT_MV_DOUBLE:
-	case PT_MV_APPTIME:
-		soap_del_mv_double(&lpProp->Value.mvdbl);
-		break;
-	case PT_MV_I8:
-		soap_del_mv_i8(&lpProp->Value.mvli);
-		break;
-	case PT_MV_SYSTIME:
-	case PT_MV_CURRENCY:
-		soap_del_mv_hiloLong(&lpProp->Value.mvhilo);
-		break;
-	case PT_MV_CLSID:
-	case PT_MV_BINARY:
-		soap_del_mv_binary(&lpProp->Value.mvbin);
-		break;
-	case PT_MV_STRING8:
-	case PT_MV_UNICODE:
-		soap_del_mv_string8(&lpProp->Value.mvszA);
-		break;
-	case PT_SRESTRICTION:
-		if(lpProp->Value.res)
-			FreeRestrictTable(lpProp->Value.res);
-		break;
-	case PT_ACTIONS: {
-		if (lpProp->Value.actions == nullptr)
-			break;
-
-		struct actions *lpActions = lpProp->Value.actions;
-		for (gsoap_size_t i = 0; i < lpActions->__size; ++i) {
-			struct action *lpAction = &lpActions->__ptr[i];
-
-			switch(lpAction->acttype) {
-			case OP_COPY:
-			case OP_MOVE:
-				soap_del_xsd__base64Binary(&lpAction->act.moveCopy.store);
-				soap_del_xsd__base64Binary(&lpAction->act.moveCopy.folder);
-				break;
-			case OP_REPLY:
-			case OP_OOF_REPLY:
-				soap_del_xsd__base64Binary(&lpAction->act.reply.message);
-				soap_del_xsd__base64Binary(&lpAction->act.reply.guid);
-				break;
-			case OP_DEFER_ACTION:
-				soap_del_xsd__base64Binary(&lpAction->act.defer.bin);
-				break;
-			case OP_BOUNCE:
-				break;
-			case OP_FORWARD:
-			case OP_DELEGATE:
-				FreeRowSet(lpAction->act.adrlist);
-				break;
-			case OP_TAG:
-				FreePropVal(lpAction->act.prop, true);
-				break;
-			}
-		}
-		s_free(nullptr, lpActions->__ptr);
-		s_free(nullptr, lpProp->Value.actions);
-		break;
-	}
-	default:
-		er = KCERR_INVALID_TYPE;
-	}
-
-	if(bBasePointerDel)
-		s_free(nullptr, lpProp);
-	return er;
-}
-
-void FreeRowSet(struct rowSet *lpRowSet)
-{
-	if(lpRowSet == NULL)
-		return;
-	for (gsoap_size_t i = 0; i < lpRowSet->__size; ++i)
-		FreePropValArray(&lpRowSet->__ptr[i]);
-	s_free(nullptr, lpRowSet->__ptr);
-	s_free(nullptr, lpRowSet);
-}
-
-/** 
- * Frees a soap restriction table
- * 
- * @param[in] lpRestrict the soap restriction table to free and everything below it
- * @param[in] base always true, except when you know what you're doing (aka restriction optimizer for the kopano-search)
- * 
- * @return 
- */
-ECRESULT FreeRestrictTable(struct restrictTable *lpRestrict, bool base)
-{
-	ECRESULT er;
-
-	if(lpRestrict == NULL)
-		return erSuccess;
-
-	switch(lpRestrict->ulType) {
-	case RES_OR:
-		if(lpRestrict->lpOr && lpRestrict->lpOr->__ptr) {
-			for (gsoap_size_t i = 0; i < lpRestrict->lpOr->__size; ++i) {
-				er = FreeRestrictTable(lpRestrict->lpOr->__ptr[i]);
-				if(er != erSuccess)
-					return er;
-			}
-			s_free(nullptr, lpRestrict->lpOr->__ptr);
-		}
-		s_free(nullptr, lpRestrict->lpOr);
-		break;
-	case RES_AND:
-		if(lpRestrict->lpAnd && lpRestrict->lpAnd->__ptr) {
-			for (gsoap_size_t i = 0; i < lpRestrict->lpAnd->__size; ++i) {
-				er = FreeRestrictTable(lpRestrict->lpAnd->__ptr[i]);
-				if(er != erSuccess)
-					return er;
-			}
-			s_free(nullptr, lpRestrict->lpAnd->__ptr);
-		}
-		s_free(nullptr, lpRestrict->lpAnd);
-		break;
-	case RES_NOT:
-		if(lpRestrict->lpNot && lpRestrict->lpNot->lpNot)
-			FreeRestrictTable(lpRestrict->lpNot->lpNot);
-		s_free(nullptr, lpRestrict->lpNot);
-		break;
-	case RES_CONTENT:
-		if(lpRestrict->lpContent && lpRestrict->lpContent->lpProp)
-			FreePropVal(lpRestrict->lpContent->lpProp, true);
-		s_free(nullptr, lpRestrict->lpContent);
-		break;
-	case RES_PROPERTY:
-		if(lpRestrict->lpProp && lpRestrict->lpProp->lpProp)
-			FreePropVal(lpRestrict->lpProp->lpProp, true);
-		s_free(nullptr, lpRestrict->lpProp);
-		break;
-	case RES_COMPAREPROPS:
-		s_free(nullptr, lpRestrict->lpCompare);
-		break;
-	case RES_BITMASK:
-		s_free(nullptr, lpRestrict->lpBitmask);
-		break;
-	case RES_SIZE:
-		s_free(nullptr, lpRestrict->lpSize);
-		break;
-	case RES_EXIST:
-		s_free(nullptr, lpRestrict->lpExist);
-		break;
-	case RES_COMMENT:
-		if (lpRestrict->lpComment == nullptr)
-			break;
-		if (lpRestrict->lpComment->lpResTable)
-			FreeRestrictTable(lpRestrict->lpComment->lpResTable);
-		FreePropValArray(&lpRestrict->lpComment->sProps);
-		s_free(nullptr, lpRestrict->lpComment);
-		break;
-	case RES_SUBRESTRICTION:
-		if(lpRestrict->lpSub && lpRestrict->lpSub->lpSubObject)
-			FreeRestrictTable(lpRestrict->lpSub->lpSubObject);
-		s_free(nullptr, lpRestrict->lpSub);
-		break;
-	default:
-		er = KCERR_INVALID_TYPE;
-		// NOTE: don't exit here, delete lpRestrict
-		break;
-	}
-
-	// only when we're optimizing restrictions we must keep the base pointer, so we can replace it with new content
-	if (base)
-		s_free(nullptr, lpRestrict);
-	return erSuccess;
-}
-
 ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal *lpDst,
     struct soap *soap, bool bTruncate)
 {
@@ -1035,12 +830,12 @@ ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal *lpDst,
 ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal **lppDst,
     struct soap *soap, bool bTruncate)
 {
-	auto lpDst = s_alloc<struct propVal>(soap);
+	auto lpDst = soap_new_propVal(soap);
 	auto er = CopyPropVal(lpSrc, lpDst, soap, bTruncate);
 	if (er != erSuccess) {
 		// there is no sub-alloc when there's an error, so we can remove lpDst
 		if (!soap)
-			s_free(nullptr, lpDst);
+			soap_del_PointerTopropVal(&lpDst);
 		return er;
 	}
 	*lppDst = lpDst;
@@ -1052,7 +847,7 @@ ECRESULT CopyPropValArray(const struct propValArray *lpSrc,
 {
 	if (lpSrc == nullptr || lppDst == nullptr)
 		return KCERR_INVALID_PARAMETER;
-	auto lpDst = s_alloc<struct propValArray>(soap);
+	auto lpDst = soap_new_propValArray(soap);
 	if(lpSrc->__size > 0) {
 		auto er = CopyPropValArray(lpSrc, lpDst, soap);
 		if(er != erSuccess)
@@ -1070,14 +865,14 @@ ECRESULT CopyPropValArray(const struct propValArray *lpSrc,
 {
 	if (lpSrc == nullptr)
 		return KCERR_INVALID_PARAMETER;
-	lpDst->__ptr = s_alloc<struct propVal>(soap, lpSrc->__size);
+	lpDst->__ptr  = soap_new_propVal(soap, lpSrc->__size);
 	lpDst->__size = lpSrc->__size;
 
 	for (gsoap_size_t i = 0; i < lpSrc->__size; ++i) {
 		auto er = CopyPropVal(&lpSrc->__ptr[i], &lpDst->__ptr[i], soap);
 		if(er != erSuccess) {
 			if (!soap) {
-				s_free(nullptr, lpDst->__ptr);
+				soap_del_propValArray(lpDst);
 				lpDst->__ptr = NULL;
 			}
 			lpDst->__size = 0;
@@ -1092,15 +887,15 @@ ECRESULT CopyRestrictTable(struct soap *soap,
 {
 	if (lpSrc == nullptr)
 		return KCERR_INVALID_PARAMETER;
-	auto lpDst = s_alloc<struct restrictTable>(soap);
+	auto lpDst = soap_new_restrictTable(soap);
 	lpDst->ulType = lpSrc->ulType;
 
 	switch(lpSrc->ulType) {
 	case RES_OR:
 		if (lpSrc->lpOr == NULL)
 			return KCERR_INVALID_TYPE;
-		lpDst->lpOr = s_alloc<restrictOr>(soap);
-		lpDst->lpOr->__ptr = s_alloc<restrictTable *>(soap, lpSrc->lpOr->__size);
+		lpDst->lpOr = soap_new_restrictOr(soap);
+		lpDst->lpOr->__ptr  = reinterpret_cast<restrictTable **>(soap_malloc(soap, sizeof(restrictTable *) * lpSrc->lpOr->__size));
 		lpDst->lpOr->__size = lpSrc->lpOr->__size;
 		memset(lpDst->lpOr->__ptr, 0, sizeof(restrictTable *) * lpSrc->lpOr->__size);
 
@@ -1113,8 +908,8 @@ ECRESULT CopyRestrictTable(struct soap *soap,
 	case RES_AND:
 		if(lpSrc->lpAnd == NULL)
 			return KCERR_INVALID_TYPE;
-		lpDst->lpAnd = s_alloc<restrictAnd>(soap);
-		lpDst->lpAnd->__ptr = s_alloc<restrictTable *>(soap, lpSrc->lpAnd->__size);
+		lpDst->lpAnd = soap_new_restrictAnd(soap);
+		lpDst->lpAnd->__ptr  = reinterpret_cast<restrictTable **>(soap_malloc(soap, sizeof(restrictTable *) * lpSrc->lpAnd->__size));
 		lpDst->lpAnd->__size = lpSrc->lpAnd->__size;
 		memset(lpDst->lpAnd->__ptr, 0, sizeof(restrictTable *) * lpSrc->lpAnd->__size);
 
@@ -1125,14 +920,14 @@ ECRESULT CopyRestrictTable(struct soap *soap,
 		}
 		break;
 	case RES_NOT: {
-		lpDst->lpNot = s_alloc<restrictNot>(soap);
+		lpDst->lpNot = soap_new_restrictNot(soap);
 		auto er = CopyRestrictTable(soap, lpSrc->lpNot->lpNot, &lpDst->lpNot->lpNot);
 		if(er != erSuccess)
 			return er;
 		break;
 	}
 	case RES_CONTENT:
-		lpDst->lpContent = s_alloc<restrictContent>(soap);
+		lpDst->lpContent = soap_new_restrictContent(soap);
 		lpDst->lpContent->ulFuzzyLevel = lpSrc->lpContent->ulFuzzyLevel;
 		lpDst->lpContent->ulPropTag = lpSrc->lpContent->ulPropTag;
 
@@ -1143,7 +938,7 @@ ECRESULT CopyRestrictTable(struct soap *soap,
 		}
 		break;
 	case RES_PROPERTY: {
-		lpDst->lpProp = s_alloc<restrictProp>(soap);
+		lpDst->lpProp = soap_new_restrictProp(soap);
 		lpDst->lpProp->ulType = lpSrc->lpProp->ulType;
 		lpDst->lpProp->ulPropTag = lpSrc->lpProp->ulPropTag;
 		auto er = CopyPropVal(lpSrc->lpProp->lpProp, &lpDst->lpProp->lpProp, soap);
@@ -1152,29 +947,29 @@ ECRESULT CopyRestrictTable(struct soap *soap,
 		break;
 	}
 	case RES_COMPAREPROPS:
-		lpDst->lpCompare = s_alloc<restrictCompare>(soap);
+		lpDst->lpCompare = soap_new_restrictCompare(soap);
 		lpDst->lpCompare->ulType = lpSrc->lpCompare->ulType;
 		lpDst->lpCompare->ulPropTag1 = lpSrc->lpCompare->ulPropTag1;
 		lpDst->lpCompare->ulPropTag2 = lpSrc->lpCompare->ulPropTag2;
 		break;
 	case RES_BITMASK:
-		lpDst->lpBitmask = s_alloc<restrictBitmask>(soap);
+		lpDst->lpBitmask = soap_new_restrictBitmask(soap);
 		lpDst->lpBitmask->ulMask = lpSrc->lpBitmask->ulMask;
 		lpDst->lpBitmask->ulPropTag = lpSrc->lpBitmask->ulPropTag;
 		lpDst->lpBitmask->ulType = lpSrc->lpBitmask->ulType;
 		break;
 	case RES_SIZE:
-		lpDst->lpSize = s_alloc<restrictSize>(soap);
+		lpDst->lpSize = soap_new_restrictSize(soap);
 		lpDst->lpSize->ulPropTag = lpSrc->lpSize->ulPropTag;
 		lpDst->lpSize->ulType = lpSrc->lpSize->ulType;
 		lpDst->lpSize->cb = lpSrc->lpSize->cb;
 		break;
 	case RES_EXIST:
-		lpDst->lpExist = s_alloc<restrictExist>(soap);
+		lpDst->lpExist = soap_new_restrictExist(soap);
 		lpDst->lpExist->ulPropTag = lpSrc->lpExist->ulPropTag;
 		break;
 	case RES_COMMENT: {
-		lpDst->lpComment = s_alloc<restrictComment>(soap);
+		lpDst->lpComment = soap_new_restrictComment(soap);
 		auto er = CopyPropValArray(&lpSrc->lpComment->sProps, &lpDst->lpComment->sProps, soap);
 		if (er != erSuccess)
 			return er;
@@ -1184,7 +979,7 @@ ECRESULT CopyRestrictTable(struct soap *soap,
 		break;
 	}
 	case RES_SUBRESTRICTION: {
-	    lpDst->lpSub = s_alloc<restrictSub>(soap);
+	    lpDst->lpSub = soap_new_restrictSub(soap);
 	    lpDst->lpSub->ulSubObject = lpSrc->lpSub->ulSubObject;
 		auto er = CopyRestrictTable(soap, lpSrc->lpSub->lpSubObject, &lpDst->lpSub->lpSubObject);
 		if(er != erSuccess)
@@ -1196,18 +991,6 @@ ECRESULT CopyRestrictTable(struct soap *soap,
 	}
 
 	*lppDst = lpDst;
-	return erSuccess;
-}
-
-ECRESULT FreePropValArray(struct propValArray *lpPropValArray, bool bFreeBase)
-{
-	if (lpPropValArray == nullptr)
-		return erSuccess;
-	for (gsoap_size_t i = 0; i < lpPropValArray->__size; ++i)
-		FreePropVal(&(lpPropValArray->__ptr[i]), false);
-	s_free(nullptr, lpPropValArray->__ptr);
-	if (bFreeBase)
-		s_free(nullptr, lpPropValArray);
 	return erSuccess;
 }
 
@@ -1250,43 +1033,6 @@ ECRESULT CopyEntryList(struct soap *soap, struct entryList *lpSrc, struct entryL
 	return erSuccess;
 }
 
-ECRESULT FreeNotificationStruct(notification *lpNotification, bool bFreeBase)
-{
-	if(lpNotification == NULL)
-		return erSuccess;
-
-	if(lpNotification->obj != NULL){
-		soap_del_PointerTopropTagArray(&lpNotification->obj->pPropTagArray);
-		soap_del_PointerToentryId(&lpNotification->obj->pEntryId);
-		soap_del_PointerToentryId(&lpNotification->obj->pOldId);
-		soap_del_PointerToentryId(&lpNotification->obj->pOldParentId);
-		soap_del_PointerToentryId(&lpNotification->obj->pParentId);
-		s_free(nullptr, lpNotification->obj);
-	}
-
-	if(lpNotification->tab != NULL) {
-		if(lpNotification->tab->pRow != NULL)
-			FreePropValArray(lpNotification->tab->pRow, true);
-		FreePropVal(&lpNotification->tab->propIndex, false);
-		FreePropVal(&lpNotification->tab->propPrior, false);
-		s_free(nullptr, lpNotification->tab);
-	}
-
-	if (lpNotification->newmail != NULL) {
-		soap_del_string(&lpNotification->newmail->lpszMessageClass);
-		soap_del_PointerToentryId(&lpNotification->newmail->pEntryId);
-		soap_del_PointerToentryId(&lpNotification->newmail->pParentId);
-		s_free(nullptr, lpNotification->newmail);
-	}
-	if(lpNotification->ics != NULL) {
-		soap_del_PointerToentryId(&lpNotification->ics->pSyncState);
-		s_free(nullptr, lpNotification->ics);
-	}
-	if(bFreeBase)
-		s_free(nullptr, lpNotification);
-	return erSuccess;
-}
-
 // Make a copy of the struct notification.
 ECRESULT CopyNotificationStruct(struct soap *soap,
     const notification *lpNotification, notification &rNotifyTo)
@@ -1298,7 +1044,7 @@ ECRESULT CopyNotificationStruct(struct soap *soap,
 	rNotifyTo.ulConnection	= lpNotification->ulConnection;
 
 	if(lpNotification->tab != NULL) {
-		rNotifyTo.tab =	s_alloc<notificationTable>(soap);
+		rNotifyTo.tab =	soap_new_notificationTable(soap);
 		rNotifyTo.tab->hResult = lpNotification->tab->hResult;
 		rNotifyTo.tab->ulTableEvent = lpNotification->tab->ulTableEvent;
 		CopyPropVal(&lpNotification->tab->propIndex, &rNotifyTo.tab->propIndex, soap);
@@ -1307,7 +1053,7 @@ ECRESULT CopyNotificationStruct(struct soap *soap,
 		CopyPropValArray(lpNotification->tab->pRow, &rNotifyTo.tab->pRow, soap);
 		rNotifyTo.tab->ulObjType = lpNotification->tab->ulObjType;
 	}else if(lpNotification->obj != NULL) {
-		rNotifyTo.obj = s_alloc<notificationObject>(soap);
+		rNotifyTo.obj = soap_new_notificationObject(soap);
 		rNotifyTo.obj->ulObjType		= lpNotification->obj->ulObjType;
 		// Ignore errors, sometimes nothing to copy
 		CopyEntryId(soap, lpNotification->obj->pEntryId, &rNotifyTo.obj->pEntryId);
@@ -1316,7 +1062,7 @@ ECRESULT CopyNotificationStruct(struct soap *soap,
 		CopyEntryId(soap, lpNotification->obj->pOldParentId, &rNotifyTo.obj->pOldParentId);
 		CopyPropTagArray(soap, lpNotification->obj->pPropTagArray, &rNotifyTo.obj->pPropTagArray);
 	}else if(lpNotification->newmail != NULL){
-		rNotifyTo.newmail = s_alloc<notificationNewMail>(soap);
+		rNotifyTo.newmail = soap_new_notificationNewMail(soap);
 		// Ignore errors, sometimes nothing to copy
 		CopyEntryId(soap, lpNotification->newmail->pEntryId, &rNotifyTo.newmail->pEntryId);
 		CopyEntryId(soap, lpNotification->newmail->pParentId, &rNotifyTo.newmail->pParentId);
@@ -1324,24 +1070,10 @@ ECRESULT CopyNotificationStruct(struct soap *soap,
 		if(lpNotification->newmail->lpszMessageClass)
 			rNotifyTo.newmail->lpszMessageClass = soap_strdup(soap, lpNotification->newmail->lpszMessageClass);
 	}else if(lpNotification->ics != NULL){
-		rNotifyTo.ics = s_alloc<notificationICS>(soap);
+		rNotifyTo.ics = soap_new_notificationICS(soap);
 		// We use CopyEntryId as it just copied binary data
 		CopyEntryId(soap, lpNotification->ics->pSyncState, &rNotifyTo.ics->pSyncState);
 	}
-	return erSuccess;
-}
-
-ECRESULT FreeNotificationArrayStruct(notificationArray *lpNotifyArray, bool bFreeBase)
-{
-	if(lpNotifyArray == NULL)
-		return erSuccess;
-	for (gsoap_size_t i = 0; i < lpNotifyArray->__size; ++i)
-		FreeNotificationStruct(&lpNotifyArray->__ptr[i], false);
-	s_free(nullptr, lpNotifyArray->__ptr);
-	if(bFreeBase)
-		s_free(nullptr, lpNotifyArray);
-	else
-		lpNotifyArray->__size = 0;
 	return erSuccess;
 }
 
@@ -1350,7 +1082,7 @@ ECRESULT CopyNotificationArrayStruct(notificationArray *lpNotifyArrayFrom, notif
 	if (lpNotifyArrayFrom == NULL)
 		return KCERR_INVALID_PARAMETER;
 	if (lpNotifyArrayFrom->__size > 0)
-		lpNotifyArrayTo->__ptr = s_alloc<notification>(nullptr, lpNotifyArrayFrom->__size);
+		lpNotifyArrayTo->__ptr = soap_new_notification(nullptr, lpNotifyArrayFrom->__size);
 	else
 		lpNotifyArrayTo->__ptr = NULL;
 	lpNotifyArrayTo->__size = lpNotifyArrayFrom->__size;
@@ -1364,9 +1096,9 @@ ECRESULT CopyRightsArrayToSoap(struct soap *soap, struct rightsArray *lpRightsAr
 	if (soap == nullptr || lpRightsArraySrc == nullptr ||
 	    lppRightsArrayDst == nullptr)
 		return KCERR_INVALID_PARAMETER;
-	auto lpRightsArrayDst = s_alloc<struct rightsArray>(soap);
+	auto lpRightsArrayDst = soap_new_rightsArray(soap);
 	lpRightsArrayDst->__size = lpRightsArraySrc->__size;
-	lpRightsArrayDst->__ptr = s_alloc<struct rights>(soap, lpRightsArraySrc->__size);
+	lpRightsArrayDst->__ptr  = soap_new_rights(soap, lpRightsArraySrc->__size);
 
 	for (gsoap_size_t i = 0; i < lpRightsArraySrc->__size; ++i) {
 		lpRightsArrayDst->__ptr[i] = lpRightsArraySrc->__ptr[i];
@@ -1400,7 +1132,7 @@ ECRESULT MergePropValArray(struct soap *soap,
     const struct propValArray *lpsPropValArray2,
     struct propValArray *lpPropValArrayNew)
 {
-	lpPropValArrayNew->__ptr = s_alloc<struct propVal>(soap, lpsPropValArray1->__size + lpsPropValArray2->__size);
+	lpPropValArrayNew->__ptr  = soap_new_propVal(soap, lpsPropValArray1->__size + lpsPropValArray2->__size);
 	lpPropValArrayNew->__size = 0;
 
 	for (gsoap_size_t i = 0; i < lpsPropValArray1->__size; ++i) {
@@ -1433,7 +1165,7 @@ ECRESULT CopySearchCriteria(struct soap *soap,
 		return KCERR_NOT_FOUND;
 
 	ECRESULT er = erSuccess;
-	auto lpDst = s_alloc<searchCriteria>(nullptr);
+	auto lpDst = soap_new_searchCriteria(nullptr);
 	if(lpSrc->lpRestrict) {
 		er = CopyRestrictTable(soap, lpSrc->lpRestrict, &lpDst->lpRestrict);
 		if (er != erSuccess)
@@ -1453,23 +1185,9 @@ ECRESULT CopySearchCriteria(struct soap *soap,
 	lpDst->ulFlags = lpSrc->ulFlags;
 	*lppDst = lpDst;
 exit:
-	if (er != erSuccess && lpDst != NULL) {
-		FreeRestrictTable(lpDst->lpRestrict, true);
-		soap_del_PointerToentryList(&lpDst->lpFolders);
-		s_free(nullptr, lpDst);
-	}
+	if (er != erSuccess && soap == nullptr)
+		soap_del_PointerTosearchCriteria(&lpDst);
 	return er;
-}
-
-ECRESULT FreeSearchCriteria(struct searchCriteria *lpSearchCriteria)
-{
-	if (lpSearchCriteria == nullptr)
-		return erSuccess;
-	if(lpSearchCriteria->lpRestrict)
-		FreeRestrictTable(lpSearchCriteria->lpRestrict);
-	soap_del_PointerToentryList(&lpSearchCriteria->lpFolders);
-	s_free(nullptr, lpSearchCriteria);
-	return erSuccess;
 }
 
 /**
@@ -1488,9 +1206,9 @@ static ECRESULT CopyAnonymousDetailsToSoap(struct soap *soap,
 	unsigned int j = 0;
 
 	if (!propmap.empty()) {
-		lpsoapPropmap = s_alloc<struct propmapPairArray>(soap, 1);
+		lpsoapPropmap = soap_new_propmapPairArray(soap, 1);
 		lpsoapPropmap->__size = 0;
-		lpsoapPropmap->__ptr = s_alloc<struct propmapPair>(soap, propmap.size());
+		lpsoapPropmap->__ptr  = soap_new_propmapPair(soap, propmap.size());
 		for (const auto &iter : propmap) {
 			if (PROP_TYPE(iter.first) == PT_BINARY && bCopyBinary) {
 				auto strData = base64_encode(iter.second.data(), iter.second.size());
@@ -1506,9 +1224,9 @@ static ECRESULT CopyAnonymousDetailsToSoap(struct soap *soap,
 	}
 
 	if (!propmvmap.empty()) {
-		lpsoapMVPropmap = s_alloc<struct propmapMVPairArray>(soap, 1);
+		lpsoapMVPropmap = soap_new_propmapMVPairArray(soap, 1);
 		lpsoapMVPropmap->__size = 0;
-		lpsoapMVPropmap->__ptr = s_alloc<struct propmapMVPair>(soap, propmvmap.size());
+		lpsoapMVPropmap->__ptr  = soap_new_propmapMVPair(soap, propmvmap.size());
 		for (const auto &iter : propmvmap) {
 			if (PROP_TYPE(iter.first) == PT_MV_BINARY && bCopyBinary) {
 				j = 0;
@@ -1695,7 +1413,7 @@ DynamicPropValArray::DynamicPropValArray(struct soap *soap,
     unsigned int ulHint) :
 	m_soap(soap), m_ulCapacity(ulHint)
 {
-    m_lpPropVals = s_alloc<struct propVal>(m_soap, m_ulCapacity);
+	m_lpPropVals = soap_new_propVal(m_soap, m_ulCapacity);
 }
 
 DynamicPropValArray::~DynamicPropValArray()
@@ -1703,8 +1421,8 @@ DynamicPropValArray::~DynamicPropValArray()
 	if (m_lpPropVals == nullptr || m_soap != nullptr)
 		return;
 	for (unsigned int i = 0; i < m_ulPropCount; ++i)
-		FreePropVal(&m_lpPropVals[i], false);
-	s_free(nullptr, m_lpPropVals);
+		soap_del_propVal(&m_lpPropVals[i]);
+	SOAP_DELETE_ARRAY(nullptr, m_lpPropVals, struct propVal);
 }
     
 ECRESULT DynamicPropValArray::AddPropVal(struct propVal &propVal)
@@ -1739,9 +1457,7 @@ ECRESULT DynamicPropValArray::Resize(unsigned int ulSize)
 {
 	if (ulSize < m_ulCapacity)
 		return KCERR_INVALID_PARAMETER;
-	auto lpNew = s_alloc_nothrow<struct propVal>(m_soap, ulSize);
-	if (lpNew == NULL)
-		return KCERR_NOT_ENOUGH_MEMORY;
+	auto lpNew = soap_new_propVal(m_soap, ulSize);
     
 	for (unsigned int i = 0; i < m_ulPropCount; ++i) {
 		auto er = CopyPropVal(&m_lpPropVals[i], &lpNew[i], m_soap);
@@ -1751,8 +1467,8 @@ ECRESULT DynamicPropValArray::Resize(unsigned int ulSize)
     
     if(!m_soap) {
 		for (unsigned int i = 0; i < m_ulPropCount; ++i)
-			FreePropVal(&m_lpPropVals[i], false);
-		s_free(nullptr, m_lpPropVals);
+			soap_del_propVal(&m_lpPropVals[i]);
+		SOAP_DELETE_ARRAY(nullptr, m_lpPropVals, struct propVal);
 	}
     m_lpPropVals = lpNew;
     m_ulCapacity = ulSize;

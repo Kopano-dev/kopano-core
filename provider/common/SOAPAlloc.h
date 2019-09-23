@@ -12,49 +12,12 @@
 
 namespace KC {
 
-// The automatic soap/non-soap allocator
-template<typename Type> Type *s_alloc_nothrow(struct soap *soap, size_t size)
+inline void soap_del_PointerTosearchCriteria(struct searchCriteria **a)
 {
-	auto p = static_cast<Type *>(soap_malloc(soap, sizeof(Type) * size));
-	if (p != nullptr)
-		memset(p, 0, sizeof(Type) * size);
-	return p;
-}
-
-template<typename Type> Type *s_alloc_nothrow(struct soap *soap)
-{
-	auto p = static_cast<Type *>(soap_malloc(soap, sizeof(Type)));
-	if (p != nullptr)
-		memset(p, 0, sizeof(Type));
-	return p;
-}
-
-template<typename Type> Type *s_alloc(struct soap *soap, size_t size)
-{
-	auto p = s_alloc_nothrow<Type>(soap, size);
-	if (p == nullptr)
-		throw std::bad_alloc();
-	return p;
-}
-
-template<typename Type> Type *s_alloc(struct soap *soap)
-{
-	auto p = s_alloc_nothrow<Type>(soap);
-	if (p == nullptr)
-		throw std::bad_alloc();
-	return p;
-}
-
-template<typename Type>
-inline void s_free(struct soap *soap, Type *p) {
-	/*
-	 * Horrible implementation detail because gsoap does not expose
-	 * a proper function that is completely symmetric to soap_malloc.
-	 */
-	if (soap == NULL)
-		SOAP_FREE(soap, p);
-	else
-		soap_dealloc(soap, p);
+	if (a == nullptr || *a == nullptr)
+		return;
+	soap_del_searchCriteria(*a);
+	SOAP_DELETE(nullptr, *a, struct searchCriteria);
 }
 
 } /* namespace */

@@ -341,6 +341,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 			sPropVal.__union = sPropValArray.__ptr[0].__union;
 			sPropVal.ulPropTag = PR_USER_ENTRYID;
 			sPropVal.Value.bin = sPropValArray.__ptr[0].Value.bin; // memory is allocated in GetUserData(..)
+			sPropValArray.__ptr[0].__union = 0;
 		} else {
 			er = KCERR_NOT_FOUND;
 			goto exit;
@@ -357,6 +358,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 			sPropVal.__union = sPropValArray.__ptr[0].__union;
 			sPropVal.ulPropTag = CHANGE_PROP_TYPE(PR_USER_NAME, (PROP_TYPE(ulPropTag)));
 			sPropVal.Value.lpszA = sPropValArray.__ptr[0].Value.lpszA;// memory is allocated in GetUserData(..)
+			sPropValArray.__ptr[0].__union = 0;
 		} else {
 			er = KCERR_NOT_FOUND;
 			goto exit;
@@ -393,6 +395,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 			sPropVal.__union = sPropValArray.__ptr[0].__union;
 			sPropVal.ulPropTag = CHANGE_PROP_TYPE(PR_MAILBOX_OWNER_NAME, (PROP_TYPE(ulPropTag)));
 			sPropVal.Value.lpszA = sPropValArray.__ptr[0].Value.lpszA; // memory is allocated in GetUserData(..)
+			sPropValArray.__ptr[0].__union = 0;
 		} else {
 			er = KCERR_NOT_FOUND;
 			goto exit;
@@ -410,6 +413,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 			sPropVal.__union = sPropValArray.__ptr[0].__union;
 			sPropVal.ulPropTag = PR_MAILBOX_OWNER_ENTRYID;
 			sPropVal.Value.bin = sPropValArray.__ptr[0].Value.bin;// memory is allocated in GetUserData(..)
+			sPropValArray.__ptr[0].__union = 0;
 		} else {
 			er = KCERR_NOT_FOUND;
 			goto exit;
@@ -426,6 +430,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 			sPropVal.__union = sPropValArray.__ptr[0].__union;
 			sPropVal.ulPropTag = CHANGE_PROP_TYPE(PR_EC_MAILBOX_OWNER_ACCOUNT, (PROP_TYPE(ulPropTag)));
 			sPropVal.Value.lpszA = sPropValArray.__ptr[0].Value.lpszA; // memory is allocated in GetUserData(..)
+			sPropValArray.__ptr[0].__union = 0;
 		} else {
 			er = KCERR_NOT_FOUND;
 			goto exit;
@@ -649,9 +654,9 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 exit:
 	soap_del_propTagArray(&sPropTagArray);
 	if(soap == NULL) { // soap != NULL gsoap will cleanup the memory
-		s_free(nullptr, sPropValArray.__ptr);
+		soap_del_propValArray(&sPropValArray);
 		if (er != erSuccess)
-			FreePropVal(&sPropVal, false);
+			soap_del_propVal(&sPropVal);
 	}
 	return er;
 }

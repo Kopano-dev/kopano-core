@@ -251,8 +251,7 @@ HRESULT WSMAPIFolderOps::HrSetSearchCriteria(const ENTRYLIST *lpMsgList,
 
 exit:
 	spg.unlock();
-	if(lpsRestrict)
-		FreeRestrictTable(lpsRestrict);
+	soap_del_PointerTorestrictTable(&lpsRestrict);
 	soap_del_PointerToentryList(&lpsEntryList);
 	return hr;
 }

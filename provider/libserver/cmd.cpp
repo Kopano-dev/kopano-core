@@ -1435,7 +1435,7 @@ SOAP_ENTRY_START(loadProp, lpsResponse->er, const entryId &sEntryId,
 		return er;
 
 	if (ulPropTag == PR_ATTACH_DATA_BIN || ulPropTag == PR_EC_IMAP_EMAIL) {
-		lpsResponse->lpPropVal = s_alloc<propVal>(soap);
+		lpsResponse->lpPropVal = soap_new_propVal(soap);
 		lpsResponse->lpPropVal->ulPropTag = ulPropTag;
 		lpsResponse->lpPropVal->__union = SOAP_UNION_propValData_bin;
 		lpsResponse->lpPropVal->Value.bin = soap_new_xsd__base64Binary(soap);
@@ -1463,7 +1463,7 @@ SOAP_ENTRY_START(loadProp, lpsResponse->er, const entryId &sEntryId,
 		ec_log_err("loadProp(): no rows from db");
 		return KCERR_DATABASE_ERROR;
 	}
-	lpsResponse->lpPropVal = s_alloc<propVal>(soap);
+	lpsResponse->lpPropVal = soap_new_propVal(soap);
 	return CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, lpsResponse->lpPropVal);
 }
 SOAP_ENTRY_END()
@@ -2141,7 +2141,7 @@ static unsigned int SaveObject(struct soap *soap, ECSession *lpecSession,
 	// check children
 	if (lpsSaveObj->__size > 0) {
 		lpsReturnObj->__size = lpsSaveObj->__size;
-		lpsReturnObj->__ptr = s_alloc<struct saveObject>(soap, lpsReturnObj->__size);
+		lpsReturnObj->__ptr  = soap_new_saveObject(soap, lpsReturnObj->__size);
 		for (gsoap_size_t i = 0; i < lpsSaveObj->__size; ++i) {
 			er = SaveObject(soap, lpecSession, lpDatabase, lpAttachmentStorage, ulStoreId, /*myself as parent*/lpsReturnObj->ulServerId, lpsReturnObj->ulObjType, 0, ulSyncId, &lpsSaveObj->__ptr[i], &lpsReturnObj->__ptr[i], lpsReturnObj->ulObjType == MAPI_MESSAGE ? ulLevel-1 : ulLevel);
 			if (er != erSuccess)
@@ -2253,7 +2253,7 @@ static unsigned int SaveObject(struct soap *soap, ECSession *lpecSession,
 	lpsReturnObj->delProps.__size = 8;
 	lpsReturnObj->delProps.__ptr  = soap_new_unsignedInt(soap, lpsReturnObj->delProps.__size);
 	lpsReturnObj->modProps.__size = 8;
-	lpsReturnObj->modProps.__ptr = s_alloc<struct propVal>(soap, lpsReturnObj->modProps.__size);
+	lpsReturnObj->modProps.__ptr  = soap_new_propVal(soap, lpsReturnObj->modProps.__size);
 	n = 0;
 
 	// set the PR_RECORD_KEY
@@ -2681,7 +2681,7 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
 		if(er != erSuccess)
 			return er;
 		sSavedObject.__size = lpDBResult.get_num_rows();
-		sSavedObject.__ptr = s_alloc<saveObject>(soap, sSavedObject.__size);
+		sSavedObject.__ptr  = soap_new_saveObject(soap, sSavedObject.__size);
 
 		for (gsoap_size_t i = 0; i < sSavedObject.__size; ++i) {
 			lpDBRow = lpDBResult.fetch_row();
@@ -3312,7 +3312,7 @@ SOAP_ENTRY_START(tableGetSearchCriteria, lpsResponse->er,
 	if(er != erSuccess)
 		return er;
 
-	auto laters = make_scope_success([&]() { FreeSearchCriteria(lpSearchCriteria); });
+	auto laters = make_scope_success([&]() { soap_del_PointerTosearchCriteria(&lpSearchCriteria); });
 	er = CopyRestrictTable(soap, lpSearchCriteria->lpRestrict, &lpsResponse->lpRestrict);
 	if(er != erSuccess)
 		return er;
@@ -4535,7 +4535,7 @@ SOAP_ENTRY_START(getUser, lpsGetUserResponse->er, unsigned int ulUserId,
 	er = lpecSession->GetSecurity()->IsUserObjectVisible(ulUserId);
 	if (er != erSuccess)
 		return er;
-	lpsGetUserResponse->lpsUser = s_alloc<user>(soap);
+	lpsGetUserResponse->lpsUser = soap_new_user(soap);
 	if (ulUserId == 0)
 		ulUserId = lpecSession->GetSecurity()->GetUserId();
 	er = lpecSession->GetUserManagement()->GetObjectDetails(ulUserId, &details);
@@ -4575,7 +4575,7 @@ SOAP_ENTRY_START(getUserList, lpsUserList->er, unsigned int ulCompanyId,
 		return er;
 
     lpsUserList->sUserArray.__size = 0;
-    lpsUserList->sUserArray.__ptr = s_alloc<user>(soap, users.size());
+    lpsUserList->sUserArray.__ptr  = soap_new_user(soap, users.size());
 
 	for (const auto &user : users) {
 		if (OBJECTCLASS_TYPE(user.GetClass()) != OBJECTTYPE_MAILUSER ||
@@ -4615,7 +4615,7 @@ SOAP_ENTRY_START(getSendAsList, lpsUserList->er, unsigned int ulUserId,
 
 	auto userIds = userDetails.GetPropListInt(OB_PROP_LI_SENDAS);
 	lpsUserList->sUserArray.__size = 0;
-	lpsUserList->sUserArray.__ptr = s_alloc<user>(soap, userIds.size());
+	lpsUserList->sUserArray.__ptr  = soap_new_user(soap, userIds.size());
 
 	for (auto user_id : userIds) {
 		if (sec->IsUserObjectVisible(user_id) != erSuccess)
@@ -5000,7 +5000,7 @@ SOAP_ENTRY_START(getGroup, lpsResponse->er, unsigned int ulGroupId,
 	if (OBJECTCLASS_TYPE(details.GetClass()) != OBJECTTYPE_DISTLIST)
 		return KCERR_NOT_FOUND;
 
-	lpsResponse->lpsGroup = s_alloc<group>(soap);
+	lpsResponse->lpsGroup = soap_new_group(soap);
 	er = GetABEntryID(ulGroupId, soap, &sTmpGroupId);
 	if (er == erSuccess)
 		er = CopyGroupDetailsToSoap(ulGroupId, &sTmpGroupId, details, lpecSession->GetCapabilities() & KOPANO_CAP_EXTENDED_ANON, soap, lpsResponse->lpsGroup);
@@ -5033,7 +5033,7 @@ SOAP_ENTRY_START(getGroupList, lpsGroupList->er, unsigned int ulCompanyId,
 		return er;
 
 	lpsGroupList->sGroupArray.__size = 0;
-	lpsGroupList->sGroupArray.__ptr = s_alloc<group>(soap, groups.size());
+	lpsGroupList->sGroupArray.__ptr  = soap_new_group(soap, groups.size());
 	for (const auto &grp : groups) {
 		if (OBJECTCLASS_TYPE(grp.GetClass()) != OBJECTTYPE_DISTLIST)
 			continue;
@@ -5164,7 +5164,7 @@ SOAP_ENTRY_START(getUserListOfGroup, lpsUserList->er, unsigned int ulGroupId,
     if(er != erSuccess)
 		return er;
     lpsUserList->sUserArray.__size = 0;
-	lpsUserList->sUserArray.__ptr = s_alloc<user>(soap, users.size());
+	lpsUserList->sUserArray.__ptr = soap_new_user(soap, users.size());
 
 	for (const auto &user : users) {
 		if (sec->IsUserObjectVisible(user.ulId) != erSuccess)
@@ -5204,7 +5204,7 @@ SOAP_ENTRY_START(getGroupListOfUser, lpsGroupList->er, unsigned int ulUserId,
 		return er;
 
 	lpsGroupList->sGroupArray.__size = 0;
-	lpsGroupList->sGroupArray.__ptr = s_alloc<group>(soap, groups.size());
+	lpsGroupList->sGroupArray.__ptr  = soap_new_group(soap, groups.size());
 	for (const auto &grp : groups) {
 		if (sec->IsUserObjectVisible(grp.ulId) != erSuccess)
 			continue;
@@ -5349,7 +5349,7 @@ SOAP_ENTRY_START(getCompany, lpsResponse->er, unsigned int ulCompanyId,
 	if (er != erSuccess)
 		return er;
 
-	lpsResponse->lpsCompany = s_alloc<company>(soap);
+	lpsResponse->lpsCompany = soap_new_company(soap);
 	return CopyCompanyDetailsToSoap(ulCompanyId, &sTmpCompanyId, ulAdmin, &sAdminEid, details, lpecSession->GetCapabilities() & KOPANO_CAP_EXTENDED_ANON, soap, lpsResponse->lpsCompany);
 }
 SOAP_ENTRY_END()
@@ -5392,7 +5392,7 @@ SOAP_ENTRY_START(getCompanyList, lpsCompanyList->er, struct companyListResponse 
 		return er;
 
 	lpsCompanyList->sCompanyArray.__size = 0;
-	lpsCompanyList->sCompanyArray.__ptr = s_alloc<company>(soap, companies.size());
+	lpsCompanyList->sCompanyArray.__ptr  = soap_new_company(soap, companies.size());
 	for (const auto &com : companies) {
 		auto ulAdmin = com.GetPropInt(OB_PROP_I_SYSADMIN);
 		er = sec->IsUserObjectVisible(ulAdmin);
@@ -5483,7 +5483,7 @@ SOAP_ENTRY_START(getRemoteViewList, lpsCompanyList->er,
 		return er;
 
 	lpsCompanyList->sCompanyArray.__size = 0;
-	lpsCompanyList->sCompanyArray.__ptr = s_alloc<company>(soap, companies.size());
+	lpsCompanyList->sCompanyArray.__ptr  = soap_new_company(soap, companies.size());
 
 	for (const auto &com : companies) {
 		if (sec->IsUserObjectVisible(com.ulId) != erSuccess)
@@ -5578,7 +5578,7 @@ SOAP_ENTRY_START(getRemoteAdminList, lpsUserList->er, unsigned int ulCompanyId,
 		return er;
 
 	lpsUserList->sUserArray.__size = 0;
-	lpsUserList->sUserArray.__ptr = s_alloc<user>(soap, users.size());
+	lpsUserList->sUserArray.__ptr  = soap_new_user(soap, users.size());
 	for (const auto &user : users) {
 		if (sec->IsUserObjectVisible(user.ulId) != erSuccess)
 			continue;
@@ -7409,7 +7409,7 @@ SOAP_ENTRY_START(getReceiveFolderTable, lpsReceiveFolderTable->er,
 	if(er != erSuccess)
 		return er;
 	auto ulRows = lpDBResult.get_num_rows();
-	lpsReceiveFolderTable->sFolderArray.__ptr = s_alloc<receiveFolder>(soap, ulRows);
+	lpsReceiveFolderTable->sFolderArray.__ptr  = soap_new_receiveFolder(soap, ulRows);
 	lpsReceiveFolderTable->sFolderArray.__size = 0;
 
 	int i = 0;
@@ -7882,7 +7882,7 @@ SOAP_ENTRY_START(abResolveNames, lpsABResolveNames->er, struct propTagArray* lpa
 	lpsABResolveNames->aFlags.__size = lpaFlags->__size;
 	lpsABResolveNames->aFlags.__ptr   = soap_new_unsignedInt(soap, lpaFlags->__size);
 	lpsABResolveNames->sRowSet.__size = lpsRowSet->__size;
-	lpsABResolveNames->sRowSet.__ptr = s_alloc<propValArray>(soap, lpsRowSet->__size);
+	lpsABResolveNames->sRowSet.__ptr  = soap_new_propValArray(soap, lpsRowSet->__size);
 
 	auto usrmgt = lpecSession->GetUserManagement();
 	for (gsoap_size_t i = 0; i < lpsRowSet->__size; ++i) {
@@ -8109,7 +8109,7 @@ SOAP_ENTRY_START(GetQuotaRecipients, lpsUserList->er, unsigned int ulUserid,
 	}
 
 	lpsUserList->sUserArray.__size = 0;
-	lpsUserList->sUserArray.__ptr = s_alloc<user>(soap, users.size());
+	lpsUserList->sUserArray.__ptr  = soap_new_user(soap, users.size());
 
 	for (const auto &user : users) {
 		if ((OBJECTCLASS_TYPE(user.GetClass()) != OBJECTTYPE_MAILUSER) ||
@@ -8522,7 +8522,7 @@ SOAP_ENTRY_START(getServerDetails, lpsResponse->er,
 	if (szaSvrNameList.__size == 0 || szaSvrNameList.__ptr == nullptr)
 		return erSuccess;
 	lpsResponse->sServerList.__size = szaSvrNameList.__size;
-	lpsResponse->sServerList.__ptr = s_alloc<struct server>(soap, szaSvrNameList.__size);
+	lpsResponse->sServerList.__ptr  = soap_new_server(soap, szaSvrNameList.__size);
 	for (gsoap_size_t i = 0; i < szaSvrNameList.__size; ++i) {
 		er = usrmgt->GetServerDetails(szaSvrNameList.__ptr[i], &sDetails);
 		if (er != erSuccess)
@@ -8761,7 +8761,7 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er,
 	lpMTOMSessionInfo->lpThreadPool.reset(new ECThreadPool("mtomexport", 1));
 	soap_info(soap)->fdone = MTOMSessionDone;
 	soap_info(soap)->fdoneparam = lpMTOMSessionInfo;
-	lpsResponse->sMsgStreams.__ptr = s_alloc<messageStream>(soap, sSourceKeyPairs.__size);
+	lpsResponse->sMsgStreams.__ptr = soap_new_messageStream(soap, sSourceKeyPairs.__size);
 
 	std::string strQuery;
 	for (gsoap_size_t i = 0; i < sSourceKeyPairs.__size; ++i) {
@@ -8806,8 +8806,10 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er,
 			continue;
         }
 
-		auto lpStreamInfo = s_alloc<MTOMStreamInfo>(soap);
-		static_assert(std::is_trivially_constructible<MTOMStreamInfo>::value, "MTOMStreamInfo must remain TC");
+		auto lpStreamInfo = static_cast<MTOMStreamInfo *>(soap_malloc(soap, sizeof(MTOMStreamInfo)));
+		static_assert(std::is_trivially_destructible<MTOMStreamInfo>::value,
+			"MTOMStreamInfo must remain TD so that gsoap can free "
+			"it up without requiring knowledge about the type.");
 		lpStreamInfo->ulObjectId = ulObjectId;
 		lpStreamInfo->ulStoreId = ulStoreId;
 		lpStreamInfo->bNewItem = false;
@@ -8958,7 +8960,7 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags,
 
 	auto cleanup = make_scope_success([&]() {
 		if (lpsStreamInfo != nullptr)
-			FreePropValArray(lpsStreamInfo->lpPropValArray, true);
+			soap_del_PointerTopropValArray(&lpsStreamInfo->lpPropValArray);
 		FreeDeletedItems(&lstDeleteItems);
 		ROLLBACK_ON_ERROR();
 		if (er == erSuccess)
@@ -9079,7 +9081,7 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags,
 	// We usually do not pass database objects to other threads. However, since
 	// we want to be able to perform a complete rollback we need to pass it
 	// to thread that processes the data and puts it in the database.
-	lpsStreamInfo = s_alloc<MTOMStreamInfo>(soap);
+	lpsStreamInfo = static_cast<MTOMStreamInfo *>(soap_malloc(soap, sizeof(MTOMStreamInfo)));
 	lpsStreamInfo->ulObjectId = ulObjectId;
 	lpsStreamInfo->ulStoreId = ulStoreId;
 	lpsStreamInfo->bNewItem = bIsNew;

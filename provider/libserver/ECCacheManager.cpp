@@ -1808,14 +1808,14 @@ ECsCells::ECsCells(const ECsCells &src)
 
 ECsCells::~ECsCells() {
 	for (auto &p : mapPropVals)
-		FreePropVal(&p.second, false);
+		soap_del_propVal(&p.second);
 }
 
 ECsCells &ECsCells::operator=(const ECsCells &src)
 {
 	struct propVal val;
 	for (auto &p : mapPropVals)
-		FreePropVal(&p.second, false);
+		soap_del_propVal(&p.second);
 	mapPropVals.clear();
 	for (const auto &p : src.mapPropVals) {
 		CopyPropVal(const_cast<struct propVal *>(&p.second), &val);
@@ -1834,7 +1834,7 @@ void ECsCells::AddPropVal(unsigned int ulPropTag, const struct propVal *lpPropVa
 	val.ulPropTag = NormalizeDBPropTag(val.ulPropTag);
 	auto res = mapPropVals.emplace(ulPropTag, val);
 	if (!res.second) {
-		FreePropVal(&res.first->second, false);
+		soap_del_propVal(&res.first->second);
 		res.first->second = val; /* reassign */
 	}
 }

@@ -1020,7 +1020,7 @@ ECRESULT WriteLocalCommitTimeMax(struct soap *soap, ECDatabase *lpDatabase, unsi
 	GetSystemTimeAsFileTime(&ftNow);
 
 	if (soap && ppvTime) {
-		pvTime = s_alloc<propVal>(soap);
+		pvTime = soap_new_propVal(soap);
 		pvTime->ulPropTag = PR_LOCAL_COMMIT_TIME_MAX;
 		pvTime->__union = SOAP_UNION_propValData_hilo;
 		pvTime->Value.hilo = soap_new_hiloLong(soap);
@@ -1384,7 +1384,7 @@ ECRESULT GetNamesFromIDs(struct soap *soap, ECDatabase *lpDatabase, struct propT
 {
 	DB_RESULT lpDBResult;
 	// Allocate memory for return object
-	lpsNames->__ptr = s_alloc<namedProp>(soap, lpPropTags->__size);
+	lpsNames->__ptr  = soap_new_namedProp(soap, lpPropTags->__size);
 	lpsNames->__size = lpPropTags->__size;
 
 	for (gsoap_size_t i = 0; i < lpPropTags->__size; ++i) {
@@ -1928,7 +1928,7 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase,
 				continue;
             iterChild->second.lpPropVals->AddPropVal(sPropVal);
 			if (!soap)
-				FreePropVal(&sPropVal, false);
+				soap_del_propVal(&sPropVal);
         }
     }
 
@@ -2010,7 +2010,7 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase,
             continue;
         iterChild->second.lpPropVals->AddPropVal(sPropVal);
 		if (!soap)
-			FreePropVal(&sPropVal, false);
+			soap_del_propVal(&sPropVal);
     }
 	return erSuccess;
 }

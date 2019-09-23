@@ -154,7 +154,7 @@ HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(const MAPIOBJECT *lpsMapiObj
 	// modified props
 	size = lpsMapiObject->lstModified.size();
 	if (size != 0) {
-		lpSaveObj->modProps.__ptr = s_alloc<propVal>(nullptr, size);
+		lpSaveObj->modProps.__ptr = soap_new_propVal(nullptr, size);
 		unsigned int i = 0;
 		for (const auto &prop : lpsMapiObject->lstModified) {
 			SPropValue tmp = prop.GetMAPIPropValRef();
@@ -181,7 +181,7 @@ HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(const MAPIOBJECT *lpsMapiObj
 	if (!lpsMapiObject->bDelete) {
 		size = lpsMapiObject->lstChildren.size();
 		if (size != 0) {
-			lpSaveObj->__ptr = s_alloc<saveObject>(nullptr, size);
+			lpSaveObj->__ptr = soap_new_saveObject(nullptr, size);
 			for (const auto &cld : lpsMapiObject->lstChildren)
 				// Only send children if:
 				// - Modified AND NOT deleted
@@ -264,22 +264,6 @@ HRESULT WSMAPIPropStorage::HrUpdateSoapObject(const MAPIOBJECT *lpsMapiObject,
 		}
 	}
 	return hrSuccess;
-}
-
-void WSMAPIPropStorage::DeleteSoapObject(struct saveObject *lpSaveObj)
-{
-	if (lpSaveObj->__ptr) {
-		for (gsoap_size_t i = 0; i < lpSaveObj->__size; ++i)
-			DeleteSoapObject(&lpSaveObj->__ptr[i]);
-		s_free(nullptr, lpSaveObj->__ptr);
-	}
-	if (lpSaveObj->modProps.__ptr) {
-		for (gsoap_size_t i = 0; i < lpSaveObj->modProps.__size; ++i)
-			FreePropVal(&lpSaveObj->modProps.__ptr[i], false);
-		s_free(nullptr, lpSaveObj->modProps.__ptr);
-	}
-	soap_del_propTagArray(&lpSaveObj->delProps);
-	soap_del_PointerToentryList(&lpSaveObj->lpInstanceIds);
 }
 
 ECRESULT WSMAPIPropStorage::EcFillPropTags(const struct saveObject *lpsSaveObj,
@@ -383,7 +367,7 @@ HRESULT WSMAPIPropStorage::HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject
 
 	hr = HrMapiObjectToSoapObject(lpsMapiObject, &sSaveObj, &converter);
 	if (hr != hrSuccess) {
-		DeleteSoapObject(&sSaveObj);
+		soap_del_saveObject(&sSaveObj);
 		return hr;
 	}
 	soap_lock_guard spg(*m_lpTransport);
@@ -419,7 +403,7 @@ HRESULT WSMAPIPropStorage::HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject
 	// ECGenericProps, the properties in
 exit:
 	spg.unlock();
-	DeleteSoapObject(&sSaveObj);
+	soap_del_saveObject(&sSaveObj);
 	return hr;
 }
 
