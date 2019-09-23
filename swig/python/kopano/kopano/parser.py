@@ -204,7 +204,10 @@ Available options:
         )
 
     if 'F' in options:
-        parser.add_option('-F')
+        parser.add_option(
+             '-F', action='store_false', dest='donotevaluate',
+             help='(historic command-line compatibility option)'
+        )
 
     if 'm' in options:
         parser.add_option(
