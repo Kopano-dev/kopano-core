@@ -1506,6 +1506,22 @@ class Occurrence(object):
         else:
             self.item.send(copy_to_sentmail)
 
+    @property
+    def text(self):
+        return self.item.text
+
+    @text.setter
+    def text(self, value):
+        setattr(self.item, 'text', value)
+
+    @property
+    def onlinemeetingurl(self):
+        return self.item.onlinemeetingurl
+
+    @onlinemeetingurl.setter
+    def onlinemeetingurl(self, value):
+        setattr(self.item, 'onlinemeetingurl', value)
+
     # TODO get from exception message by default? eg subject, attendees..
     def __getattr__(self, x):
         return getattr(self.item, x)
