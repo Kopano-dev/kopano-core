@@ -341,7 +341,7 @@ class Service(kopano.Service):
         with log_exc(self.log, self.stats):
             while True:
                 try:
-                    self.log.debug("importing %s '%s' (NID=%d)" % (type_, rev_cp1252(message.Subject or ''), message.nid.nid))
+                    self.log.debug("importing %s '%s' (NID=%d)", type_, rev_cp1252(message.Subject or ''), message.nid.nid)
                     message2 = folder2.create_item(save=False)
                     self.entryid_map[message.EntryId] = message2.entryid
                     self.import_attachments(message, message2.mapiobj)

@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 from kopano import log_exc
 import sleekxmpp
-import sys
 
 STATUS_MAP = {  # map xmpp statuses to statuses supported by kopano-presence
     'available': 'available',
