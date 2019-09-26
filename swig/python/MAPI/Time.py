@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 import datetime
-import sys
-import time
 
 # PT_SYSTIME properties store the number of 100-nanosecond units since 1601,1,1 ..
 # unixtime is represented by the number of seconds since 1970,1,1
