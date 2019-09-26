@@ -282,3 +282,5 @@ RESPONSE_STATUS = {
         respDeclined: 'Declined',
         respNotResponded: 'NotResponded',
 }
+
+STATUS_RESPONSE = dict((b, a) for (a, b) in RESPONSE_STATUS.items())
