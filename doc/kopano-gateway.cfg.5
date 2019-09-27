@@ -65,6 +65,10 @@ denotes the network layer multi-protocol (IPv4/IPv6) address. Local sockets are
 supported with "\fBunix:\fP\fI/path\fP". Hostnames are not allowed (as they are
 susceptible to address changes).
 .PP
+An interface name may be appended to the address with a percent sign to make
+use of the Linux-specific SO_BINDTODEVICE socket option, e.g.
+"[fe80::1]%eth0:143").
+.PP
 Default: \fI*:143\fP
 .SS imaps_listen
 A space-separated list of address:port spcifiers for implicit-SSL IMAP

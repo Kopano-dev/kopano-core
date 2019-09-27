@@ -81,7 +81,7 @@ struct _kc_export ec_socket {
 	bool operator==(const struct ec_socket &) const;
 	bool operator<(const struct ec_socket &) const;
 
-	std::string m_spec;
+	std::string m_spec, m_intf;
 	struct addrinfo *m_ai = nullptr;
 	int m_fd = -1, m_err = 0, m_port = 0;
 };

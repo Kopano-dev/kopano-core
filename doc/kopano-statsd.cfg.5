@@ -41,6 +41,10 @@ multi-protocol (IPv4/IPv6) address ("*:8001"). Local sockets are supported with
 "\fBunix:\fP\fI/path\fP". Hostnames are not allowed (as they are susceptible to
 address changes).
 .PP
+An interface name may be appended to the address with a percent sign to make
+use of the Linux-specific SO_BINDTODEVICE socket option, e.g.
+"[fe80::1]%eth0:32000").
+.PP
 Default: \fIunix:/var/run/kopano/statsd.sock\fP
 .SS stats_rrd
 .PP
