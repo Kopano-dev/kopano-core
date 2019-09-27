@@ -88,7 +88,6 @@ struct _kc_export ec_socket {
 
 /* accept data on connection */
 extern _kc_export HRESULT HrAccept(int fd, ECChannel **ch);
-extern _kc_export int zcp_bindtodevice(int fd, const char *iface);
 extern _kc_export int zcp_peerfd_is_local(int);
 extern _kc_export ec_socket ec_parse_bindaddr(const char *);
 extern _kc_export void ec_reexec_prepare_sockets();

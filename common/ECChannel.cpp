@@ -647,22 +647,6 @@ int ECChannel::peer_is_local(void) const
 	return zcp_peeraddr_is_local(reinterpret_cast<const struct sockaddr *>(&peer_sockaddr), peer_salen);
 }
 
-int zcp_bindtodevice(int fd, const char *i)
-{
-	if (i == NULL || strcmp(i, "any") == 0 || strcmp(i, "all") == 0 ||
-	    strcmp(i, "") == 0)
-		return 0;
-#ifdef LINUX
-	if (setsockopt(fd, SOL_SOCKET, SO_BINDTODEVICE, i, strlen(i)) >= 0)
-		return 0;
-	ec_log_err("Unable to bind to interface %s: %s", i, strerror(errno));
-	return -errno;
-#else
-	ec_log_err("Bind-to-interface not supported.");
-	return -ENOSYS;
-#endif
-}
-
 static int ec_listen_generic(const struct ec_socket &sk, unsigned int mode,
     const char *user, const char *group)
 {

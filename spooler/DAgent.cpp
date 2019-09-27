@@ -2842,7 +2842,6 @@ static int dagent_listen(ECConfig *cfg, std::vector<struct pollfd> &pollers,
 		return lmtp_info.first;
 	}
 	auto &lmtp_sock = lmtp_info.second;
-	auto intf = cfg->GetSetting("server_bind_intf");
 	struct pollfd x;
 	memset(&x, 0, sizeof(x));
 	x.events = POLLIN;
@@ -2853,11 +2852,6 @@ static int dagent_listen(ECConfig *cfg, std::vector<struct pollfd> &pollers,
 		spec.m_fd = -1;
 		pollers.push_back(x);
 		closefd.push_back(x.fd);
-		auto ret = zcp_bindtodevice(x.fd, intf);
-		if (ret < 0) {
-			ec_log_err("SO_BINDTODEVICE: %s", strerror(-ret));
-			return ret;
-		}
 	}
 	return 0;
 }
@@ -3236,7 +3230,7 @@ int main(int argc, char **argv) try {
 	};
 	// Default settings
 	static const configsetting_t lpDefaults[] = {
-		{ "server_bind_intf", "" },
+		{"server_bind_intf", "", CONFIGSETTING_OBSOLETE},
 		{ "run_as_user", "kopano" },
 		{ "run_as_group", "kopano" },
 		{ "pid_file", "/var/run/kopano/dagent.pid" },
