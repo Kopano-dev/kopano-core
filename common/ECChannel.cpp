@@ -1025,14 +1025,13 @@ static std::pair<int, std::list<ec_socket>> ec_bindspec_to_inetinfo(const char *
 
 static std::pair<int, std::list<ec_socket>> ec_bindspec_to_sockinfo(std::string &&spec)
 {
-	if (kc_starts_with(spec, "unix:")) {
-		std::list<ec_socket> skl;
-		auto sk = ec_bindspec_to_unixinfo(std::move(spec));
-		if (sk.m_err >= 0)
-			skl.emplace_back(std::move(sk));
-		return {sk.m_err, std::move(skl)};
-	}
-	return ec_bindspec_to_inetinfo(spec.c_str());
+	if (!kc_starts_with(spec, "unix:"))
+		return ec_bindspec_to_inetinfo(spec.c_str());
+	std::list<ec_socket> skl;
+	auto sk = ec_bindspec_to_unixinfo(std::move(spec));
+	if (sk.m_err >= 0)
+		skl.emplace_back(std::move(sk));
+	return {sk.m_err, std::move(skl)};
 }
 
 /**
