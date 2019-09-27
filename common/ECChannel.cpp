@@ -1003,6 +1003,8 @@ static std::pair<int, std::list<ec_socket>> ec_bindspec_to_inetinfo(const char *
 		curr->ai_next = nullptr;
 		sk.m_ai = curr;
 		sk.m_port = parts.second;
+
+		/* Resolve "*" in spec into AF-specific host number */
 		char tmp[256];
 		if (getnameinfo(curr->ai_addr, curr->ai_addrlen, tmp,
 		    sizeof(tmp), nullptr, 0, NI_NUMERICHOST) != 0)
@@ -1056,6 +1058,7 @@ std::pair<int, std::list<ec_socket>> ec_bindspec_to_sockets(std::vector<std::str
 		out.splice(out.end(), std::move(p.second));
 	}
 	out.sort();
+	/* Avoid picking up a socket from environment into two ec_socket structs. */
 	out.unique();
 
 	for (auto &sk : out) {
