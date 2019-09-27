@@ -759,32 +759,48 @@ HRESULT HrAccept(int ulListenFD, ECChannel **lppChannel)
 	return hrSuccess;
 }
 
-static std::pair<std::string, uint16_t>
-ec_parse_bindaddr2(const char *spec)
+static ec_socket ec_parse_bindaddr2(const char *spec)
 {
+	ec_socket ret;
 	char *e = nullptr;
 	if (*spec != '[') { /* ] */
 		/* IPv4 or hostname */
 		auto y = strchr(spec, ':');
-		if (y == nullptr)
-			return {spec, 0};
-		uint16_t port = strtoul(y + 1, &e, 10);
-		if (e == nullptr || *e != '\0')
-			return {"!", 0};
-		return {std::string(spec, y - spec), port};
+		if (y == nullptr) {
+			ret.m_spec = spec;
+			return ret;
+		}
+		ret.m_port = strtoul(y + 1, &e, 10);
+		if (e == nullptr || *e != '\0') {
+			ret.m_spec = "!";
+			ret.m_port = 0;
+			return ret;
+		}
+		ret.m_spec.assign(spec, y - spec);
+		return ret;
 	}
 	/* address (v4/v6) */
 	auto y = strchr(spec + 1, ']');
-	if (y == nullptr)
-		return {"!", 0};
-	if (*++y == '\0')
-		return {std::string(spec + 1, y - spec - 2), 0};
-	if (*y != ':')
-		return {"!", 0};
-	uint16_t port = strtoul(y + 1, &e, 10);
-	if (e == nullptr || *e != '\0')
-		return {"!", 0};
-	return {std::string(spec + 1, y - spec - 2), port};
+	if (y == nullptr) {
+		ret.m_spec = "!";
+		return ret;
+	}
+	if (*++y == '\0') {
+		ret.m_spec.assign(spec + 1, y - spec - 2);
+		return ret;
+	}
+	if (*y != ':') {
+		ret.m_spec = "!";
+		return ret;
+	}
+	ret.m_port = strtoul(y + 1, &e, 10);
+	if (e == nullptr || *e != '\0') {
+		ret.m_spec = "!";
+		ret.m_port = 0;
+		return ret;
+	}
+	ret.m_spec.assign(spec + 1, y - spec - 2);
+	return ret;
 }
 
 /**
@@ -795,12 +811,12 @@ ec_parse_bindaddr2(const char *spec)
  * of a port part will result in port being emitted as 0 - the caller needs to
  * check for this, because unfiltered, this means "random port" to the OS.
  */
-std::pair<std::string, uint16_t> ec_parse_bindaddr(const char *spec)
+struct ec_socket ec_parse_bindaddr(const char *spec)
 {
 	auto parts = ec_parse_bindaddr2(spec);
-	if (parts.first == "*")
+	if (parts.m_spec == "*")
 		/* getaddrinfo/soap_bind want the empty string for wildcard binding */
-		parts.first.clear();
+		parts.m_spec.clear();
 	return parts;
 }
 
@@ -986,11 +1002,11 @@ static std::pair<int, std::list<ec_socket>> ec_bindspec_to_inetinfo(const char *
 
 	std::list<ec_socket> vec;
 	auto parts = ec_parse_bindaddr(spec);
-	if (parts.first == "!" || parts.second == 0)
+	if (parts.m_spec == "!" || parts.m_port == 0)
 		return {-EINVAL, std::move(vec)};
 	std::unique_ptr<struct addrinfo, ai_deleter> res;
-	auto ret = getaddrinfo(parts.first.size() != 0 ? parts.first.c_str() : nullptr,
-	           std::to_string(parts.second).c_str(), &hints, &unique_tie(res));
+	auto ret = getaddrinfo(parts.m_spec.size() != 0 ? parts.m_spec.c_str() : nullptr,
+	           std::to_string(parts.m_port).c_str(), &hints, &unique_tie(res));
 	if (ret != 0) {
 		ec_log_warn("getaddrinfo: %s", gai_strerror(ret));
 		return {-EINVAL, std::move(vec)};
@@ -1002,7 +1018,7 @@ static std::pair<int, std::list<ec_socket>> ec_bindspec_to_inetinfo(const char *
 		res.reset(curr->ai_next);
 		curr->ai_next = nullptr;
 		sk.m_ai = curr;
-		sk.m_port = parts.second;
+		sk.m_port = parts.m_port;
 
 		/* Resolve "*" in spec into AF-specific host number */
 		char tmp[256];
