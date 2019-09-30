@@ -2266,7 +2266,6 @@ ECRESULT ECGenericObjectTable::UpdateKeyTableRow(ECCategory *lpCategory, sObject
 
 	auto lpOrderedProps = std::make_unique<propVal[]>(cValues);
 	std::vector<ECSortCol> zort(cValues);
-	memset(lpOrderedProps.get(), 0, sizeof(struct propVal) * cValues);
 
 	for (unsigned int i = 0; i < cValues; ++i) {
 		if (ISMINMAX(soa->__ptr[i].ulOrder)) {
