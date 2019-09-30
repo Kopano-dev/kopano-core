@@ -901,8 +901,6 @@ ECLogger* CreateLogger(ECConfig *lpConfig, const char *argv0,
 		char *argzero = strdup(argv0);
 		lpLogger = new ECLogger_Syslog(loglevel, basename(argzero), syslog_facility);
 		free(argzero);
-	} else if (strcasecmp(log_method, "eventlog") == 0) {
-		fprintf(stderr, "eventlog logging is only available on windows.\n");
 	} else if (strcasecmp(log_method, "file") == 0) {
 		int ret = 0;
 		const struct passwd *pw = NULL;
