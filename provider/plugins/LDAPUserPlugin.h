@@ -22,7 +22,7 @@
  */
 namespace KC { class ECStatsCollector; }
 using namespace KC;
-class restrictTable;
+struct restrictTable;
 class LDAPCache;
 
 /** 

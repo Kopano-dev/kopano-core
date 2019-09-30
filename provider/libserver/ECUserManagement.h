@@ -20,8 +20,8 @@
 #include <kopano/ECDefs.h>
 #include "plugin.h"
 
+struct restrictTable;
 struct soap;
-class restrictTable;
 
 namespace KC {
 

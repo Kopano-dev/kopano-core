@@ -29,7 +29,7 @@ using KC::serverdetails_t;
 using KC::serverlist_t;
 using KC::signatures_t;
 using KC::userobject_relation_t;
-class restrictTable;
+struct restrictTable;
 
 /**
  * UNIX user plugin

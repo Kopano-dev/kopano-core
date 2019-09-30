@@ -202,7 +202,7 @@ std::string NullQueryCreator::CreateOrderQuery() const
 /**
  * IMessageProcessor: Interface to the message processors.
  **/
-class IMessageProcessor {
+struct IMessageProcessor {
 public:
 	virtual ~IMessageProcessor(void) = default;
 	virtual ECRESULT ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags) = 0;

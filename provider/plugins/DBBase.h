@@ -15,7 +15,7 @@
 #include "ECDatabase.h"
 #include <kopano/ECDefs.h>
 
-class restrictTable;
+struct restrictTable;
 
 namespace KC {
 

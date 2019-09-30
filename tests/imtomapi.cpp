@@ -37,7 +37,7 @@ enum {
 static const char *t_ascii_upgrade = "utf-8";
 ECLogger_File t_logger(EC_LOGLEVEL_DEBUG, false, "-", 0);
 
-class ictx final {
+struct ictx final {
 	public:
 	void complete_init(void);
 	const SPropValue *find(unsigned int) const;
@@ -54,7 +54,7 @@ class ictx final {
 
 class t_base {
 	protected:
-	int (*m_analyze)(const struct ictx &);
+	int (*m_analyze)(const ictx &);
 
 	public:
 	delivery_options m_dopt;

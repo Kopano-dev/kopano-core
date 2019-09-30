@@ -23,7 +23,7 @@
 #include <kopano/ECLogger.h>
 #include <kopano/ECPluginSharedData.h>
 
-class restrictTable;
+struct restrictTable;
 
 namespace KC {
 /**
