@@ -955,15 +955,15 @@ static ec_socket ec_bindspec_to_unixinfo(std::string &&spec)
 		return sk;
 	}
 
-	auto ai = sk.m_ai = static_cast<struct addrinfo *>(calloc(1, sizeof(struct addrinfo) + sizeof(struct sockaddr_storage)));
+	auto ai = sk.m_ai = static_cast<struct addrinfo *>(calloc(1, sizeof(struct addrinfo) + sizeof(struct sockaddr_un)));
 	ai->ai_family   = AF_LOCAL;
 	ai->ai_socktype = SOCK_STREAM;
-	ai->ai_addrlen  = sizeof(struct sockaddr_un);
 	auto u = reinterpret_cast<struct sockaddr_un *>(ai + 1);
 	ai->ai_addr     = reinterpret_cast<struct sockaddr *>(u);
 	u->sun_family   = AF_LOCAL;
 	strncpy(u->sun_path, sk.m_spec.c_str() + 5, sizeof(u->sun_path));
 	u->sun_path[sizeof(u->sun_path)-1] = '\0';
+	ai->ai_addrlen  = sizeof(struct sockaddr_un) - sizeof(u->sun_path) + strlen(u->sun_path) + 1;
 	return sk;
 }
 
