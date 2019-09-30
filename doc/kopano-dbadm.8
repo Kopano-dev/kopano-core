@@ -73,8 +73,11 @@ Show statistics for the namedproperties table. This action can be executed
 while kopano\-server is active.
 .SS populate
 .PP
-Create and populate database specified in the configuration file. Useful when
-the server can't create it itself, e.g. behind an SQL proxy.
+Create and populate the server database as specified in the configuration file.
+kopano-server normally does this itself if it detects an empty database. When,
+however, an SQL application layer gateway is used that prevents DDL statements,
+calling dbadm populate (with a separate config file specifying not the gateway,
+but rather the origin server) can be used.
 .SS rm\-helper\-index
 .PP
 Remove helper indices again. This action can be executed while kopano\-server
