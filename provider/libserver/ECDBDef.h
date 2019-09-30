@@ -112,7 +112,7 @@
 										KEY `hi` (`hierarchyid`) \
 	) ENGINE=%s CHARACTER SET %s;"
 
-#define Z_TABLEDEF_DELAYEDUPDATE	"CREATE TABLE `deferredupdate` (\
+#define Z_TABLEDEF_DEFERREDUPDATE	"CREATE TABLE `deferredupdate` (\
                                         `hierarchyid` int(11) unsigned NOT NULL, \
                                         `folderid` int(11) unsigned NOT NULL, \
                                         `srcfolderid` int(11) unsigned, \

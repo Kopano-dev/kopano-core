@@ -930,7 +930,7 @@ static constexpr const sSQLDatabase_t kcsrv_tables[] = {
 	{"mvproperties", Z_TABLEDEF_MVPROPERTIES},
 	{"tproperties", Z_TABLEDEF_TPROPERTIES},
 	{"properties", Z_TABLEDEF_PROPERTIES},
-	{"delayedupdate", Z_TABLEDEF_DELAYEDUPDATE},
+	{"deferredupdate", Z_TABLEDEF_DEFERREDUPDATE},
 	{"receivefolder", Z_TABLEDEF_RECEIVEFOLDER},
 	{"stores", Z_TABLEDEF_STORES},
 	{"users", Z_TABLEDEF_USERS},
