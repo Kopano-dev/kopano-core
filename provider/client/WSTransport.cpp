@@ -603,11 +603,9 @@ HRESULT WSTransport::HrGetStoreType(ULONG cbStoreID, const ENTRYID *lpStoreID,
 
 HRESULT WSTransport::HrLogOff()
 {
-	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
 	soap_lock_guard spg(*this);
 
-	START_SOAP_CALL
 	{
 		if (m_lpCmd->logoff(m_ecSessionId, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
@@ -615,8 +613,8 @@ HRESULT WSTransport::HrLogOff()
 			m_has_session = false;
 		m_lpCmd.reset();
 	}
-	END_SOAP_CALL
- exitm:
+	if (er == KCERR_END_OF_SESSION)
+		return hrSuccess;
 	return hrSuccess; // NOTE hrSuccess, never fails since we don't really mind that it failed.
 }
 
