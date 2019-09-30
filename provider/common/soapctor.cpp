@@ -6,10 +6,9 @@
 #include <cstring>
 #include "soapH.h"
 #include "soapStub.h"
-#define C(X) X::X(void) { static_assert(std::is_standard_layout<X>::value, ""); memset(this, 0, sizeof(*this)); }
-C(_act)
-C(propValData)
 
+_act::_act() : moveCopy() {}
+propValData::propValData() : mvhilo() {}
 mv_binary::mv_binary() : __ptr(), __size() {}
 mv_double::mv_double() : __ptr(), __size() {}
 mv_hiloLong::mv_hiloLong() : __ptr(), __size() {}
