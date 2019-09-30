@@ -1051,8 +1051,10 @@ std::pair<int, std::list<ec_socket>> ec_bindspec_to_sockets(std::vector<std::str
 
 	for (auto &&spec : in) {
 		auto p = ec_bindspec_to_sockinfo(std::move(spec));
-		if (p.first != 0)
+		if (p.first != 0) {
+			ec_log_err("Unrecognized format in bindspec: \"%s\"", spec.c_str());
 			return {p.first, std::move(out)};
+		}
 		out.splice(out.end(), std::move(p.second));
 	}
 	out.sort();
