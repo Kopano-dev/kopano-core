@@ -18,8 +18,8 @@ protected:
 public:
 	static  HRESULT Create(ZCABProvider **lppZCABProvider);
 	virtual HRESULT QueryInterface(const IID &, void **) override;
-    virtual HRESULT Shutdown(ULONG * lpulFlags);
-	virtual HRESULT Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam, const TCHAR *lpszProfileName, ULONG ulFlags, ULONG *lpulcbSecurity, LPBYTE *lppbSecurity, LPMAPIERROR *lppMAPIError, LPABLOGON *lppABLogon);
+	virtual HRESULT Shutdown(unsigned int *flags) override;
+	virtual HRESULT Logon(IMAPISupport *, ULONG_PTR ui_param, const TCHAR *profile, unsigned int flags, unsigned int *sec_size, BYTE **sec, MAPIERROR **, IABLogon **) override;
 
 private:
 	ALLOC_WRAP_FRIEND;
