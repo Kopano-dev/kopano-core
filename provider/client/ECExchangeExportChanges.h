@@ -26,12 +26,11 @@ protected:
 public:
 	static	HRESULT Create(ECMsgStore *lpStore, REFIID iid, const std::string& strSK, const wchar_t *szDisplay, unsigned int ulSyncType, LPEXCHANGEEXPORTCHANGES* lppExchangeExportChanges);
 	virtual HRESULT QueryInterface(const IID &, void **) override;
-	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
-	virtual HRESULT Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKNOWN lpCollector, LPSRestriction lpRestriction, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize);
-	virtual HRESULT Synchronize(ULONG *pulSteps, ULONG *pulProgress);
-	virtual HRESULT UpdateState(LPSTREAM lpStream);
-
-	virtual HRESULT GetChangeCount(ULONG *lpcChanges);
+	virtual HRESULT GetLastError(HRESULT, unsigned int flags, MAPIERROR **) override;
+	virtual HRESULT Config(IStream *, unsigned int, IUnknown *collector, SRestriction *, SPropTagArray *inclprop, SPropTagArray *exclprop, unsigned int bufsize) override;
+	virtual HRESULT Synchronize(unsigned int *steps, unsigned int *progress) override;
+	virtual HRESULT UpdateState(IStream *) override;
+	virtual HRESULT GetChangeCount(unsigned int *nchg) override;
 
 private:
 	void LogMessageProps(int loglevel, ULONG cValues, LPSPropValue lpPropArray);

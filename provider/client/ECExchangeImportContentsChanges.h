@@ -28,16 +28,16 @@ public:
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 
 	// IExchangeImportContentsChanges
-	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
-	virtual HRESULT Config(LPSTREAM lpStream, ULONG ulFlags);
-	virtual HRESULT UpdateState(LPSTREAM lpStream);
-	virtual HRESULT ImportMessageChange(ULONG cValue, LPSPropValue lpPropArray, ULONG ulFlags, LPMESSAGE * lppMessage);
-	virtual HRESULT ImportMessageDeletion(ULONG ulFlags, LPENTRYLIST lpSourceEntryList);
-	virtual HRESULT ImportPerUserReadStateChange(ULONG cElements, LPREADSTATE lpReadState);
-	virtual HRESULT ImportMessageMove(ULONG cbSourceKeySrcFolder, BYTE *pbSourceKeySrcFolder, ULONG cbSourceKeySrcMessage, BYTE *pbSourceKeySrcMessage, ULONG cbPCLMessage, BYTE *pbPCLMessage, ULONG cbSourceKeyDestMessage, BYTE *pbSourceKeyDestMessage, ULONG cbChangeNumDestMessage, BYTE *pbChangeNumDestMessage);
+	virtual HRESULT GetLastError(HRESULT result, unsigned int flags, MAPIERROR **) override;
+	virtual HRESULT Config(IStream *, unsigned int flags) override;
+	virtual HRESULT UpdateState(IStream *) override;
+	virtual HRESULT ImportMessageChange(unsigned int nvals, SPropValue *, unsigned int flags, IMessage **) override;
+	virtual HRESULT ImportMessageDeletion(unsigned int flags, ENTRYLIST *source_entry) override;
+	virtual HRESULT ImportPerUserReadStateChange(unsigned int nelem, READSTATE *) override;
+	virtual HRESULT ImportMessageMove(unsigned int srcfld_size, BYTE *sk_srcfld, unsigned int msg_size, BYTE *sk_msg, unsigned int pclmsg_size, BYTE *pclmsg, unsigned int dstmsg_size, BYTE *sk_dstmsg, unsigned int cbChangeNumDestMessage, BYTE *pbChangeNumDestMessage) override;
 
 	// IECImportContentsChanges
-	virtual HRESULT ImportMessageChangeAsAStream(ULONG cValue, LPSPropValue lpPropArray, ULONG ulFlags, LPSTREAM *lppstream);
+	virtual HRESULT ImportMessageChangeAsAStream(unsigned int nvals, SPropValue *, unsigned int flags, IStream **) override;
 
 private:
 	bool IsProcessed(const SPropValue *remote_ck, const SPropValue *local_pcl);

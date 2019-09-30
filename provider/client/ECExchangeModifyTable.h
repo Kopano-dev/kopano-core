@@ -18,10 +18,10 @@ class ECExchangeModifyTable KC_FINAL_OPG :
 public:
 	ECExchangeModifyTable(ULONG unique_tag, KC::ECMemTable *table, ECMAPIProp *parent, ULONG start_rule, ULONG flags);
 	virtual HRESULT QueryInterface(const IID &, void **) override;
-	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
-	virtual HRESULT GetTable(ULONG ulFlags, LPMAPITABLE *lppTable);
-	virtual HRESULT ModifyTable(ULONG ulFlags, LPROWLIST lpMods);
-	virtual HRESULT DisablePushToServer();
+	virtual HRESULT GetLastError(HRESULT, unsigned int, MAPIERROR **) override;
+	virtual HRESULT GetTable(unsigned int flags, IMAPITable **) override;
+	virtual HRESULT ModifyTable(unsigned int flags, ROWLIST *mods) override;
+	virtual HRESULT DisablePushToServer() override;
 
 	/* static creates */
 	static HRESULT CreateRulesTable(ECMAPIProp *lpParent, ULONG ulFlags, LPEXCHANGEMODIFYTABLE *lppObj);

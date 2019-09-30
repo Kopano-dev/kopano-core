@@ -38,7 +38,7 @@ public:
 	// Our table-row getprop handler (handles client-side generation of table columns)
 	static HRESULT TableRowGetProp(void *prov, const struct propVal *src, SPropValue *dst, void **base, ULONG type);
 	virtual HRESULT	QueryInterface(const IID &, void **) override;
-	virtual HRESULT OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk);
+	virtual HRESULT OpenProperty(unsigned int proptag, const IID *intf, unsigned int intf_opts, unsigned int flags, IUnknown **) override;
 
 	// Override IMAPIProp
 	virtual HRESULT SaveChanges(unsigned int flags) override;
@@ -50,28 +50,28 @@ public:
 
 	// We override from IMAPIContainer
 	virtual HRESULT SetSearchCriteria(const SRestriction *, const ENTRYLIST *container, ULONG flags) override;
-	virtual HRESULT GetSearchCriteria(ULONG ulFlags, LPSRestriction *lppRestriction, LPENTRYLIST *lppContainerList, ULONG *lpulSearchState);
+	virtual HRESULT GetSearchCriteria(unsigned int flags, SRestriction **, ENTRYLIST **containers, unsigned int *state) override;
 
-	virtual HRESULT CreateMessage(LPCIID lpInterface, ULONG ulFlags, LPMESSAGE *lppMessage);
+	virtual HRESULT CreateMessage(const IID *intf, unsigned int flags, IMessage **) override;
 	virtual HRESULT CreateMessageWithEntryID(const IID *intf, ULONG flags, ULONG eid_size, const ENTRYID *eid, IMessage **);
-	virtual HRESULT CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, LPVOID lpDestFolder, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags);
-	virtual HRESULT DeleteMessages(LPENTRYLIST lpMsgList, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags);
+	virtual HRESULT CopyMessages(ENTRYLIST *msglist, const IID *intf, void *dst_fld, unsigned int ui_param, IMAPIProgress *, unsigned int flags) override;
+	virtual HRESULT DeleteMessages(ENTRYLIST *msglist, unsigned int ui_param, IMAPIProgress *, unsigned int flags) override;
 	virtual HRESULT CreateFolder(ULONG folder_type, const TCHAR *name, const TCHAR *comment, const IID *intf, ULONG flags, IMAPIFolder **) override;
 	virtual HRESULT create_folders(std::vector<ECFolder> &folders);
-	virtual HRESULT CopyFolder(ULONG eid_size, const ENTRYID *eid, const IID *intf, void *dst_fld, const TCHAR *newname, ULONG_PTR ui_param, IMAPIProgress *, ULONG flags);
+	virtual HRESULT CopyFolder(unsigned int eid_size, const ENTRYID *eid, const IID *intf, void *dst_fld, const TCHAR *newname, ULONG_PTR ui_param, IMAPIProgress *, unsigned int flags) override;
 	virtual HRESULT DeleteFolder(ULONG eid_size, const ENTRYID *, ULONG ui_param, IMAPIProgress *, ULONG flags) override;
-	virtual HRESULT SetReadFlags(LPENTRYLIST lpMsgList, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags);
+	virtual HRESULT SetReadFlags(ENTRYLIST *msglist, unsigned int ui_param, IMAPIProgress *, unsigned int flags) override;
 	virtual HRESULT GetMessageStatus(ULONG eid_size, const ENTRYID *, ULONG flags, ULONG *status) override;
 	virtual HRESULT SetMessageStatus(ULONG eid_size, const ENTRYID *, ULONG new_status, ULONG stmask, ULONG *old_status) override;
-	virtual HRESULT SaveContentsSort(const SSortOrderSet *lpSortCriteria, ULONG ulFlags);
-	virtual HRESULT EmptyFolder(ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags);
+	virtual HRESULT SaveContentsSort(const SSortOrderSet *criteria, unsigned int flags) override;
+	virtual HRESULT EmptyFolder(unsigned int ui_param, IMAPIProgress *, unsigned int flags) override;
 
 	// Override IFolderSupport
-	virtual HRESULT GetSupportMask(DWORD * pdwSupportMask);
+	virtual HRESULT GetSupportMask(unsigned int *mask) override;
 
 	// Override genericprops
 	virtual HRESULT SetEntryId(ULONG eid_size, const ENTRYID *eid);
-	virtual HRESULT HrSetPropStorage(IECPropStorage *lpStorage, BOOL fLoadProps);
+	virtual HRESULT HrSetPropStorage(IECPropStorage *, BOOL load_props) override;
 
 	// Streaming support
 	virtual HRESULT CreateMessageFromStream(ULONG flags, ULONG sync_id, ULONG eid_size, const ENTRYID *eid, WSMessageStreamImporter **);

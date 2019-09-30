@@ -20,24 +20,24 @@ public:
 	static HRESULT GetPropHandler(unsigned int tag, void *prov, unsigned int flags, SPropValue *, ECGenericProp *lpParam, void *base);
 	static HRESULT SetPropHandler(unsigned int tag, void *prov, const SPropValue *, ECGenericProp *);
 	virtual HRESULT QueryInterface(const IID &, void **) override;
-	virtual HRESULT SetEntryId(ULONG eid_size, const ENTRYID *eid);
+	virtual HRESULT SetEntryId(unsigned int eid_size, const ENTRYID *eid) override;
 
 public:
 	// Override ECMAPIContainer
-	virtual HRESULT GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable);
-	virtual HRESULT GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable);
-	virtual HRESULT OpenEntry(ULONG eid_size, const ENTRYID *eid, const IID *intf, ULONG flags, ULONG *obj_type, IUnknown **);
-	virtual HRESULT SetProps(ULONG cValues, const SPropValue *lpPropArray, LPSPropProblemArray *lppProblems);
-	virtual HRESULT DeleteProps(const SPropTagArray *lpPropTagArray, LPSPropProblemArray *lppProblems);
-	virtual HRESULT CreateMessage(LPCIID lpInterface, ULONG ulFlags, LPMESSAGE *lppMessage);
-	virtual HRESULT CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, LPVOID lpDestFolder, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags);
-	virtual HRESULT CopyFolder(ULONG eid_size, const ENTRYID *eid, const IID *intf, void *dst_fld, const TCHAR *newname, ULONG_PTR ui_param, IMAPIProgress *, ULONG flags);
+	virtual HRESULT GetContentsTable(unsigned int flags, IMAPITable **) override;
+	virtual HRESULT GetHierarchyTable(unsigned int flags, IMAPITable **) override;
+	virtual HRESULT OpenEntry(unsigned int eid_size, const ENTRYID *eid, const IID *intf, unsigned int flags, unsigned int *obj_type, IUnknown **) override;
+	virtual HRESULT SetProps(unsigned int nvals, const SPropValue *props, SPropProblemArray **) override;
+	virtual HRESULT DeleteProps(const SPropTagArray *props, SPropProblemArray **) override;
+	virtual HRESULT CreateMessage(const IID *intf, unsigned int flags, IMessage **) override;
+	virtual HRESULT CopyMessages(ENTRYLIST *msglist, const IID *Intf, void *dst_fld, unsigned int ui_param, IMAPIProgress *, unsigned int flags) override;
+	virtual HRESULT CopyFolder(unsigned int eid_size, const ENTRYID *eid, const IID *intf, void *dst_fld, const TCHAR *newname, ULONG_PTR ui_param, IMAPIProgress *, unsigned int flags) override;
 	virtual HRESULT DeleteFolder(ULONG eid_size, const ENTRYID *, ULONG ui_param, IMAPIProgress *, ULONG flags) override;
 
 	enumPublicEntryID	m_ePublicEntryID;
 
 protected:
-	virtual HRESULT SaveChanges(ULONG ulFlags);
+	virtual HRESULT SaveChanges(unsigned int flags) override;
 	ALLOC_WRAP_FRIEND;
 };
 
