@@ -1052,6 +1052,14 @@ static int main2(int argc, char **argv)
 		else
 			g_use_threads = true;
 	}
+	if (parseBool(g_lpConfig->GetSetting("plugin_enabled"))) {
+		std::string path = g_lpConfig->GetSetting("plugin_manager_path");
+		auto prev_path = getenv("PYTHONPATH");
+		if (prev_path != nullptr)
+			path += std::string(":") + prev_path;
+		setenv("PYTHONPATH", path.c_str(), 1);
+		ec_log_debug("PYTHONPATH = %s", path.c_str());
+	}
 	if (g_use_threads)
 		g_lpLogger->SetLogprefix(LP_TID);
 	// set socket filename

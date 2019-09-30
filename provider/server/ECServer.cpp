@@ -337,7 +337,9 @@ static ECRESULT check_database_attachments(ECDatabase *lpDatabase)
 
 static ECRESULT check_attachment_storage_permissions(void)
 {
-	if (is_filesv1(g_lpConfig->GetSetting("attachment_storage"))) {
+	auto backend = g_lpConfig->GetSetting("attachment_storage");
+
+	if (strcmp(backend, "files_v2") == 0 || is_filesv1(backend)) {
 		std::string strtestpath = g_lpConfig->GetSetting("attachment_path");
 		strtestpath += "/testfile";
 		auto tmpfile = fopen(strtestpath.c_str(), "w");
