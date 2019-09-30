@@ -894,16 +894,13 @@ HRESULT WSTransport::HrSubscribe(ULONG ulSyncId, ULONG ulChangeId, ULONG ulConne
 HRESULT WSTransport::HrSubscribeMulti(const ECLISTSYNCADVISE &lstSyncAdvises, ULONG ulEventMask)
 {
 	ECRESULT	er = erSuccess;
+	HRESULT hr = hrSuccess;
 	notifySubscribeArray notSubscribeArray;
 	unsigned	i = 0;
 	soap_lock_guard spg(*this);
 
 	notSubscribeArray.__size = lstSyncAdvises.size();
-	auto hr = MAPIAllocateBuffer(notSubscribeArray.__size * sizeof(*notSubscribeArray.__ptr), reinterpret_cast<void **>(&notSubscribeArray.__ptr));
-	if (hr != hrSuccess)
-		goto exitm;
-	memset(notSubscribeArray.__ptr, 0, notSubscribeArray.__size * sizeof *notSubscribeArray.__ptr);
-
+	notSubscribeArray.__ptr  = soap_new_notifySubscribe(nullptr, notSubscribeArray.__size);
 	for (const auto &adv : lstSyncAdvises) {
 		notSubscribeArray.__ptr[i].ulConnection = adv.ulConnection;
 		notSubscribeArray.__ptr[i].sSyncState.ulSyncId = adv.sSyncState.ulSyncId;
@@ -919,7 +916,7 @@ HRESULT WSTransport::HrSubscribeMulti(const ECLISTSYNCADVISE &lstSyncAdvises, UL
 	}
 	END_SOAP_CALL
  exitm:
-	MAPIFreeBuffer(notSubscribeArray.__ptr);
+	soap_del_notifySubscribeArray(&notSubscribeArray);
 	return hr;
 }
 
@@ -1047,6 +1044,7 @@ HRESULT WSTransport::HrGetMessageStreamImporter(ULONG ulFlags, ULONG ulSyncId,
 
 HRESULT WSTransport::HrGetIDsFromNames(LPMAPINAMEID *lppPropNames, ULONG cNames, ULONG ulFlags, ULONG **lpServerIDs)
 {
+	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
 	struct namedPropArray sNamedProps;
 	struct getIDsFromNamesResponse sResponse;
@@ -1055,27 +1053,18 @@ HRESULT WSTransport::HrGetIDsFromNames(LPMAPINAMEID *lppPropNames, ULONG cNames,
 
 	// Convert our data into a structure that the server can take
 	sNamedProps.__size = cNames;
-	auto er = ECAllocateBuffer(sizeof(struct namedProp) * cNames, reinterpret_cast<void **>(&sNamedProps.__ptr));
-	if (er != erSuccess)
-		goto exitm;
-	memset(sNamedProps.__ptr, 0 , sizeof(struct namedProp) * cNames);
+	sNamedProps.__ptr  = soap_new_namedProp(nullptr, cNames);
 
 	for (unsigned int i = 0; i < cNames; ++i) {
 		switch(lppPropNames[i]->ulKind) {
 		case MNID_ID:
-			er = ECAllocateMore(sizeof(unsigned int), sNamedProps.__ptr, reinterpret_cast<void **>(&sNamedProps.__ptr[i].lpId));
-			if (er != erSuccess)
-				goto exitm;
+			sNamedProps.__ptr[i].lpId = soap_new_unsignedInt(nullptr);
 			*sNamedProps.__ptr[i].lpId = lppPropNames[i]->Kind.lID;
 			break;
 		case MNID_STRING: {
 			// The string is actually UTF-8, not windows-1252. This enables full support for wide char strings.
 			utf8string strNameUTF8 = convertContext.convert_to<utf8string>(lppPropNames[i]->Kind.lpwstrName);
-
-			er = ECAllocateMore(strNameUTF8.length() + 1, sNamedProps.__ptr, reinterpret_cast<void **>(&sNamedProps.__ptr[i].lpString));
-			if (er != erSuccess)
-				goto exitm;
-			strcpy(sNamedProps.__ptr[i].lpString, strNameUTF8.c_str());
+			sNamedProps.__ptr[i].lpString = soap_strdup(nullptr, strNameUTF8.c_str());
 			break;
 		}
 		default:
@@ -1084,13 +1073,10 @@ HRESULT WSTransport::HrGetIDsFromNames(LPMAPINAMEID *lppPropNames, ULONG cNames,
 		}
 
 		if(lppPropNames[i]->lpguid) {
-			er = ECAllocateMore(sizeof( xsd__base64Binary) , sNamedProps.__ptr, reinterpret_cast<void **>(&sNamedProps.__ptr[i].lpguid));
-			if (er != erSuccess)
-				goto exitm;
-			sNamedProps.__ptr[i].lpguid->__ptr = (unsigned char *)lppPropNames[i]->lpguid;
+			sNamedProps.__ptr[i].lpguid = soap_new_xsd__base64Binary(nullptr);
+			sNamedProps.__ptr[i].lpguid->__ptr = soap_new_unsignedByte(nullptr, sizeof(GUID));
 			sNamedProps.__ptr[i].lpguid->__size = sizeof(GUID);
-		} else {
-			sNamedProps.__ptr[i].lpguid = NULL;
+			memcpy(sNamedProps.__ptr[i].lpguid->__ptr, lppPropNames[i]->lpguid, sizeof(GUID));
 		}
 	}
 
@@ -1116,9 +1102,7 @@ HRESULT WSTransport::HrGetIDsFromNames(LPMAPINAMEID *lppPropNames, ULONG cNames,
 	memcpy(*lpServerIDs, sResponse.lpsPropTags.__ptr, sizeof(ULONG) * sResponse.lpsPropTags.__size);
  exitm:
 	spg.unlock();
-	if(sNamedProps.__ptr)
-		ECFreeBuffer(sNamedProps.__ptr);
-
+	soap_del_namedPropArray(&sNamedProps);
 	return hr;
 }
 
