@@ -258,7 +258,7 @@ exit:
 	return hr;
 }
 
-HRESULT WSTransport::HrLogon(const struct sGlobalProfileProps &in_props)
+HRESULT WSTransport::HrLogon(const struct sGlobalProfileProps &in_props) try
 {
 	if (m_has_session)
 		logoff_nd();
@@ -267,6 +267,8 @@ HRESULT WSTransport::HrLogon(const struct sGlobalProfileProps &in_props)
 	struct sGlobalProfileProps p = in_props;
 	p.strServerPath = "file:///var/run/kopano/server.sock";
 	return HrLogon2(p);
+} catch (const unknown_charset_exception &) {
+	return MAPI_E_INVALID_PARAMETER;
 }
 
 HRESULT WSTransport::HrSetRecvTimeout(unsigned int ulSeconds)
