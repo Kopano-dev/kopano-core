@@ -2130,17 +2130,13 @@ HRESULT CopySOAPChangeNotificationToSyncState(const struct notification *lpSrc,
 }
 
 static HRESULT CopyMAPISourceKeyToSoapSourceKey(const SBinary *lpsMAPISourceKey,
-    struct xsd__base64Binary *lpsSoapSourceKey, void *lpBase)
+    struct xsd__base64Binary *lpsSoapSourceKey)
 {
 	if (lpsMAPISourceKey == nullptr || lpsSoapSourceKey == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-
-	struct xsd__base64Binary sSoapSourceKey;
-	sSoapSourceKey.__size = (int)lpsMAPISourceKey->cb;
-	auto hr = KAllocCopy(lpsMAPISourceKey->lpb, lpsMAPISourceKey->cb, reinterpret_cast<void **>(&sSoapSourceKey.__ptr), lpBase);
-	if (hr != hrSuccess)
-		return hr;
-	*lpsSoapSourceKey = sSoapSourceKey;
+	lpsSoapSourceKey->__ptr  = soap_new_unsignedByte(nullptr, lpsSoapSourceKey->__size);
+	lpsSoapSourceKey->__size = lpsMAPISourceKey->cb;
+	memcpy(lpsSoapSourceKey->__ptr, lpsMAPISourceKey->lpb, lpsSoapSourceKey->__size);
 	return hrSuccess;
 }
 
@@ -2150,31 +2146,20 @@ HRESULT CopyICSChangeToSOAPSourceKeys(ULONG cbChanges,
 	if (lpsChanges == nullptr || lppsSKPA == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	memory_ptr<sourceKeyPairArray> lpsSKPA;
-	auto hr = MAPIAllocateBuffer(sizeof(*lpsSKPA), &~lpsSKPA);
-	if (hr != hrSuccess)
-		return hr;
-	memset(lpsSKPA, 0, sizeof *lpsSKPA);
-
+	auto lpsSKPA = *lppsSKPA = soap_new_sourceKeyPairArray(nullptr);
 	if (cbChanges > 0) {
 		lpsSKPA->__size = cbChanges;
-
-		hr = MAPIAllocateMore(cbChanges * sizeof(*lpsSKPA->__ptr),
-		     lpsSKPA, reinterpret_cast<void **>(&lpsSKPA->__ptr));
-		if (hr != hrSuccess)
-			return hr;
-		memset(lpsSKPA->__ptr, 0, cbChanges * sizeof *lpsSKPA->__ptr);
+		lpsSKPA->__ptr  = soap_new_sourceKeyPair(nullptr, cbChanges);
 
 		for (unsigned i = 0; i < cbChanges; ++i) {
-			hr = CopyMAPISourceKeyToSoapSourceKey(&lpsChanges[i].sSourceKey, &lpsSKPA->__ptr[i].sObjectKey, lpsSKPA);
+			auto hr = CopyMAPISourceKeyToSoapSourceKey(&lpsChanges[i].sSourceKey, &lpsSKPA->__ptr[i].sObjectKey);
 			if (hr != hrSuccess)
 				return hr;
-			hr = CopyMAPISourceKeyToSoapSourceKey(&lpsChanges[i].sParentSourceKey, &lpsSKPA->__ptr[i].sParentKey, lpsSKPA);
+			hr = CopyMAPISourceKeyToSoapSourceKey(&lpsChanges[i].sParentSourceKey, &lpsSKPA->__ptr[i].sParentKey);
 			if (hr != hrSuccess)
 				return hr;
 		}
 	}
-	*lppsSKPA = lpsSKPA.release();
 	return hrSuccess;
 }
 

@@ -962,6 +962,14 @@ HRESULT WSTransport::HrUnSubscribeMulti(const ECLISTCONNECTION &lstConnections)
 	return hr;
 }
 
+static inline void soap_del_PointerTosourceKeyPairArray(struct sourceKeyPairArray **a)
+{
+	if (a == nullptr || *a == nullptr)
+		return;
+	soap_del_sourceKeyPairArray(*a);
+	SOAP_DELETE(nullptr, *a, struct sourceKeyPairArray);
+}
+
 /**
  * Export a set of messages as stream.
  * This method MUST be called on a WSTransport that's dedicated for exporting because no locking is performed.
@@ -989,12 +997,12 @@ HRESULT WSTransport::HrExportMessageChangesAsStream(ULONG ulFlags,
 
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
-	memory_ptr<sourceKeyPairArray> ptrsSourceKeyPairs;
+	sourceKeyPairArray *ptrsSourceKeyPairs = nullptr;
 	WSMessageStreamExporterPtr ptrStreamExporter;
 	propTagArray sPropTags = {0, 0};
 	exportMessageChangesAsStreamResponse sResponse;
 
-	hr = CopyICSChangeToSOAPSourceKeys(ulChanges, lpChanges + ulStart, &~ptrsSourceKeyPairs);
+	hr = CopyICSChangeToSOAPSourceKeys(ulChanges, lpChanges + ulStart, &ptrsSourceKeyPairs);
 	if (hr != hrSuccess)
 		goto exitm;
 	sPropTags.__size = lpsProps->cValues;
@@ -1021,6 +1029,7 @@ HRESULT WSTransport::HrExportMessageChangesAsStream(ULONG ulFlags,
 		goto exitm;
 	*lppsStreamExporter = ptrStreamExporter.release();
  exitm:
+	soap_del_PointerTosourceKeyPairArray(&ptrsSourceKeyPairs);
 	return hr;
 }
 
