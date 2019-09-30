@@ -348,9 +348,11 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 			bHidden = lpHidden->Value.b;
 
         // Optimize: if we're only outputting headers, we needn't bother with attachment data
-        if(sopt.headers_only)
-            CreateStreamOnHGlobal(nullptr, true, &~lpStream);
-        else {
+		if (sopt.headers_only) {
+			hr = CreateStreamOnHGlobal(nullptr, true, &~lpStream);
+			if (hr != hrSuccess)
+				return hr;
+		} else {
             hr = lpAttach->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, 0, MAPI_DEFERRED_ERRORS, &~lpStream);
             if (hr != hrSuccess) {
 				ec_log_err("Could not open data of attachment %d: %s (%x)",
