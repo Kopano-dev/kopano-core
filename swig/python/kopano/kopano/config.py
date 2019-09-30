@@ -189,7 +189,7 @@ CONFIG = {
     'run_as_user': Config.string(default=None),
     'run_as_group': Config.string(default=None),
     'server_socket': Config.string(default=None),
-    'sslkey_file': Config.string(default=None),
+    'sslkey_file': Config.path(default=None),
     'sslkey_pass': Config.string(default=None),
     'worker_processes': Config.integer(default=1),
 }
