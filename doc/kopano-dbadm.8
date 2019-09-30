@@ -21,6 +21,10 @@ This may improve or worsen the overall time to process ALTER statements,
 depending on the underlying storage of the SQL database.
 The default is \fI1\fP.
 .SH Actions
+.SS index\-tags
+.PP
+Create helper indices for the "tag" columns. This action can be executed while
+kopano\-server is active.
 .SS k\-1216
 .PP
 This is an alias for the combination of: index\-tags, np\-remove\-highid,
@@ -67,18 +71,14 @@ Repairs duplicate named properties (only IDs below or equal to 31485).
 .PP
 Show statistics for the namedproperties table. This action can be executed
 while kopano\-server is active.
-.SS index\-tags
-.PP
-Create helper indices for the "tag" columns. This action can be executed while
-kopano\-server is active.
-.SS rm\-helper\-index
-.PP
-Remove helper indices again. This action can be executed while kopano\-server
-is active.
 .SS populate
 .PP
 Create and populate database specified in the configuration file. Useful when
 the server can't create it itself, e.g. behind an SQL proxy.
+.SS rm\-helper\-index
+.PP
+Remove helper indices again. This action can be executed while kopano\-server
+is active.
 .SS usmp
 .PP
 This is an alias for the combination of: usmp\-shrink\-columns, usmp\-charset.
