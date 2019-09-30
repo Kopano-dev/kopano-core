@@ -2112,10 +2112,11 @@ HRESULT OpenLocalFBMessage(DGMessageType eDGMsgType,
  * @todo check, should the properties PR_SCHDINFO_BOSS_WANTS_COPY, PR_SCHDINFO_DONT_MAIL_DELEGATES,
  *		PR_SCHDINFO_BOSS_WANTS_INFO on TRUE?
  */
-HRESULT SetAutoAcceptSettings(IMsgStore *lpMsgStore, bool bAutoAccept, bool bDeclineConflict, bool bDeclineRecurring)
+HRESULT SetAutoAcceptSettings(IMsgStore *lpMsgStore, bool bAutoAccept,
+    bool bDeclineConflict, bool bDeclineRecurring, bool auto_proc)
 {
 	object_ptr<IMessage> lpLocalFBMessage;
-	SPropValue FBProps[6];
+	SPropValue FBProps[7];
 
 	// Meaning of these values are unknown, but are always TRUE in cases seen until now
 	FBProps[0].ulPropTag = PR_SCHDINFO_BOSS_WANTS_COPY;
@@ -2136,7 +2137,19 @@ HRESULT SetAutoAcceptSettings(IMsgStore *lpMsgStore, bool bAutoAccept, bool bDec
 	auto hr = OpenLocalFBMessage(dgFreebusydata, lpMsgStore, true, &~lpLocalFBMessage);
 	if(hr != hrSuccess)
 		return hr;
-	hr = lpLocalFBMessage->SetProps(6, FBProps, NULL);
+
+	MAPINAMEID name, *namep = &name;
+	memory_ptr<SPropTagArray> proptagarr;
+	name.lpguid = const_cast<GUID *>(&PSETID_KC);
+	name.ulKind = MNID_ID;
+	name.Kind.lID = dispidAutoProcess;
+	hr = lpLocalFBMessage->GetIDsFromNames(1, &namep, MAPI_CREATE, &~proptagarr);
+	if (FAILED(hr))
+		return hr;
+	FBProps[6].ulPropTag = CHANGE_PROP_TYPE(proptagarr->aulPropTag[0], PT_BOOLEAN);
+	FBProps[6].Value.b   = auto_proc;
+
+	hr = lpLocalFBMessage->SetProps(ARRAY_SIZE(FBProps), FBProps, nullptr);
 	if(hr != hrSuccess)
 		return hr;
 	hr = lpLocalFBMessage->SaveChanges(0);

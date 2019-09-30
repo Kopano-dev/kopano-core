@@ -79,9 +79,8 @@ to enable or disable specific features for users.
 .sp
 This action is also required for all options to control the autoaccept of meeting requests. See the
 \fB\-\-mr\-accept\fP,
-\fB\-\-mr\-decline\-conflict\fP
-and
-\fB\-\-mr\-decline\-recurring\fP
+\fB\-\-mr\-decline\-conflict\fP,
+\fB\-\-mr\-decline\-recurring\fP and \fB\-\-mr\-process\fP
 options.
 .RE
 .PP
@@ -651,6 +650,13 @@ switch.
 This option only has effect when \-\-mr\-accept=yes is in effect. When specifying \-\-mr\-decline\-recurring, meeting requests that are recurring will be declined. The user on which to operate is select using the
 \fB\-u\fP
 switch.
+.RE
+.PP
+\fB\-\-mr\-process\fP [\fByes\fP|\fBno\fP]
+.PP
+.RS 4
+Controls the meeting request autoprocessing flag. The user on which to operate
+is selected using the \fB\-u\fP switch.
 .RE
 .PP
 \fB\-\-add\-sendas\fR \fIsender\fR
