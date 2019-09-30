@@ -872,10 +872,9 @@ static void resolve_auto_logger(ECConfig *cfg)
  *
  * @return Log object, or NULL on error
  */
-ECLogger* CreateLogger(ECConfig *lpConfig, const char *argv0,
+std::shared_ptr<ECLogger> CreateLogger(ECConfig *lpConfig, const char *argv0,
     const char *lpszServiceName, bool bAudit)
 {
-	ECLogger *lpLogger = NULL;
 	std::string prepend;
 	int loglevel = 0;
 	int syslog_facility = LOG_MAIL;
@@ -899,13 +898,13 @@ ECLogger* CreateLogger(ECConfig *lpConfig, const char *argv0,
 	loglevel = strtol(lpConfig->GetSetting((prepend+"log_level").c_str()), NULL, 0);
 	if (strcasecmp(log_method, "syslog") == 0) {
 		char *argzero = strdup(argv0);
-		lpLogger = new ECLogger_Syslog(loglevel, basename(argzero), syslog_facility);
+		auto logger = std::make_shared<ECLogger_Syslog>(loglevel, basename(argzero), syslog_facility);
 		free(argzero);
-		return lpLogger;
+		return logger;
 	} else if (strcasecmp(log_method, "file") != 0) {
 		fprintf(stderr, "Incorrect logging method selected. Reverting to stderr.\n");
 		auto logtimestamp = parseBool(lpConfig->GetSetting((prepend + "log_timestamp").c_str()));
-		return new ECLogger_File(loglevel, logtimestamp, "-", false);
+		return std::make_shared<ECLogger_File>(loglevel, logtimestamp, "-", false);
 	}
 
 	int ret = 0;
@@ -950,7 +949,7 @@ ECLogger* CreateLogger(ECConfig *lpConfig, const char *argv0,
 	if (ret != 0) {
 		fprintf(stderr, "Not enough permissions to append logfile \"%s\". Reverting to stderr.\n", log_file);
 		auto logtimestamp = parseBool(lpConfig->GetSetting((prepend + "log_timestamp").c_str()));
-		return new ECLogger_File(loglevel, logtimestamp, "-", false);
+		return std::make_shared<ECLogger_File>(loglevel, logtimestamp, "-", false);
 	}
 
 	auto logtimestamp = parseBool(lpConfig->GetSetting((prepend + "log_timestamp").c_str()));
@@ -958,9 +957,8 @@ ECLogger* CreateLogger(ECConfig *lpConfig, const char *argv0,
 	const char *log_buffer_size_str = lpConfig->GetSetting("log_buffer_size");
 	if (log_buffer_size_str)
 		log_buffer_size = strtoul(log_buffer_size_str, NULL, 0);
-	auto log = new ECLogger_File(loglevel, logtimestamp, log_file, false);
-	log->reinit_buffer(log_buffer_size);
-	lpLogger = log;
+	auto logger = std::make_shared<ECLogger_File>(loglevel, logtimestamp, log_file, false);
+	logger->reinit_buffer(log_buffer_size);
 	// chown file
 	if (pw || gr) {
 		uid_t uid = -1;
@@ -971,7 +969,7 @@ ECLogger* CreateLogger(ECConfig *lpConfig, const char *argv0,
 			gid = gr->gr_gid;
 		chown(log_file, uid, gid);
 	}
-	return lpLogger;
+	return logger;
 }
 
 void LogConfigErrors(ECConfig *lpConfig)

@@ -1061,7 +1061,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		return g_lpConfig->dump_config(stdout) == 0 ? hrSuccess : MAPI_E_CALL_FAILED;
 
 	// setup logging
-	g_lpLogger.reset(CreateLogger(g_lpConfig.get(), szName, "KopanoServer"));
+	g_lpLogger = CreateLogger(g_lpConfig.get(), szName, "KopanoServer");
 	if (!g_lpLogger) {
 		fprintf(stderr, "Error in log configuration, unable to resume.\n");
 		er = MAPI_E_UNCONFIGURED;
@@ -1072,7 +1072,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		LogConfigErrors(g_lpConfig.get());
 	if (!TmpPath::instance.OverridePath(g_lpConfig.get()))
 		ec_log_err("Ignoring invalid path-setting!");
-	g_lpAudit.reset(CreateLogger(g_lpConfig.get(), szName, "KopanoServer", true));
+	g_lpAudit = CreateLogger(g_lpConfig.get(), szName, "KopanoServer", true);
 	if (g_lpAudit)
 		g_lpAudit->logf(EC_LOGLEVEL_NOTICE, "server startup uid=%d", getuid());
 	else

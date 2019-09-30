@@ -115,7 +115,7 @@ static HRESULT idx_startup_net(const char **argv)
 {
 	ec_log_always("Starting kopano-indexd " PACKAGE_VERSION " (uid %u)", getuid());
 	auto cfg = g_indexer->get_config();
-	std::shared_ptr<ECLogger> logger(CreateLogger(cfg.get(), "kindexd", "kindexd"));
+	auto logger = CreateLogger(cfg.get(), "kindexd", "kindexd");
 	if (logger == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	logger->SetLogprefix(LP_TID);

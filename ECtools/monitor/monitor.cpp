@@ -214,7 +214,7 @@ static ECRESULT main2(int argc, char **argv)
 	mainthread = pthread_self();
 
 	// setup logging
-	g_lpLogger.reset(CreateLogger(m_lpThreadMonitor->lpConfig.get(), argv[0], "Kopano-Monitor"));
+	g_lpLogger = CreateLogger(m_lpThreadMonitor->lpConfig.get(), argv[0], "Kopano-Monitor");
 	ec_log_set(g_lpLogger);
 	if ((bIgnoreUnknownConfigOptions && m_lpThreadMonitor->lpConfig->HasErrors()) || m_lpThreadMonitor->lpConfig->HasWarnings())
 		LogConfigErrors(m_lpThreadMonitor->lpConfig.get());

@@ -287,7 +287,7 @@ extern _kc_export void ec_log(unsigned int level, const std::string &msg);
 #define kc_pwarn(s, r)      ec_log_hrcode((r), EC_LOGLEVEL_WARNING, s ": %s (%x)", nullptr)
 
 extern _kc_export HRESULT ec_log_hrcode(HRESULT, unsigned int level, const char *fmt, const char *func);
-extern _kc_export ECLogger *CreateLogger(ECConfig *, const char *argv0, const char *service, bool audit = false);
+extern _kc_export std::shared_ptr<ECLogger> CreateLogger(ECConfig *, const char *argv0, const char *service, bool audit = false);
 extern _kc_export void LogConfigErrors(ECConfig *);
 extern _kc_export void ec_setup_segv_handler(const char *app, const char *vers);
 extern _kc_export const std::string &ec_os_pretty_name();
