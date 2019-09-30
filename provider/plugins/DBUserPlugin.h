@@ -67,7 +67,7 @@ public:
 	 * @throw objectnotfound When no object was found.
 	 * @throw toomanyobjects When more then one object was found.
 	 */
-	virtual objectsignature_t resolveName(objectclass_t objclass, const std::string &name, const objectid_t &company);
+	virtual objectsignature_t resolveName(objectclass_t, const std::string &name, const objectid_t &company) override;
 
     /**
 	 * Authenticate user with username and password
@@ -83,7 +83,7 @@ public:
 	 * @throw runtime_error When a Database error occurred.
 	 * @throw login_error When no user was found or the password was incorrect.
 	 */
-	virtual objectsignature_t authenticateUser(const std::string &username, const std::string &password, const objectid_t &company);
+	virtual objectsignature_t authenticateUser(const std::string &user, const std::string &password, const objectid_t &company) override;
 
     /**
 	 * Search for all objects which match the given string,
@@ -113,7 +113,7 @@ public:
 	 * @throw runtime_error When a Database error occurred.
 	 * @throw objectnotfound When the object was not found.
 	 */
-	virtual void setQuota(const objectid_t &id, const quotadetails_t &quotadetails);
+	virtual void setQuota(const objectid_t &, const quotadetails_t &) override;
 
     /**
 	 * Obtain details for the public store
@@ -162,8 +162,7 @@ public:
 	 * @throw runtime_error When a Database error occurred
 	 * @throw objectnotfound When the parent does not exist.
 	 */
-	virtual void addSubObjectRelation(userobject_relation_t relation,
-									  const objectid_t &parentobject, const objectid_t &childobject);
+	virtual void addSubObjectRelation(userobject_relation_t, const objectid_t &parent, const objectid_t &child) override;
 };
 
 extern "C" {

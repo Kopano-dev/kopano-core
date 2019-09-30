@@ -81,7 +81,7 @@ public:
 	 * @throw objectnotfound When no object was found with the requested name or objectclass
 	 * @throw collison_error When more then one object was found with the requested name
 	 */
-	virtual objectsignature_t resolveName(objectclass_t objclass, const std::string &name, const objectid_t &company);
+	virtual objectsignature_t resolveName(objectclass_t, const std::string &name, const objectid_t &company) override;
 
 	/**
 	 * Authenticate user with username and password
@@ -98,7 +98,7 @@ public:
 	 *					This objectid can be empty.
 	 * @return The objectsignature of the authenticated user
 	 */
-	virtual objectsignature_t authenticateUser(const std::string &username, const std::string &password, const objectid_t &company);
+	virtual objectsignature_t authenticateUser(const std::string &user, const std::string &password, const objectid_t &company) override;
 
 	/**
 	 * Request a list of objects for a particular company and specified objectclass.
@@ -221,7 +221,7 @@ public:
 	 *					List of configuration names which should be removed from the object
 	 * @throw notimplemented Always when the function is called.
 	 */
-	virtual void changeObject(const objectid_t &id, const objectdetails_t &details, const std::list<std::string> *lpRemove);
+	virtual void changeObject(const objectid_t &, const objectdetails_t &, const std::list<std::string> *removals) override;
 
 	/**
 	 * Create object in plugin
@@ -233,7 +233,7 @@ public:
 	 * @return The objectsignature of the created object.
 	 * @throw notimplemented Always when the function is called.
 	 */
-	virtual objectsignature_t createObject(const objectdetails_t &details);
+	virtual objectsignature_t createObject(const objectdetails_t &) override;
 
     /**
 	 * Delete object from plugin
@@ -244,7 +244,7 @@ public:
 	 *					The objectid which should be deleted
 	 * @throw notimplemented Always when the function is called.
 	 */
-	virtual void deleteObject(const objectid_t &id);
+	virtual void deleteObject(const objectid_t &) override;
 
 	/**
 	 * Add relation between child and parent. This can be used
@@ -262,8 +262,7 @@ public:
 	 *					The child object.
 	 * @throw notimplemented Always when the function is called.
 	 */
-	virtual void addSubObjectRelation(userobject_relation_t relation,
-									  const objectid_t &parentobject, const objectid_t &childobject);
+	virtual void addSubObjectRelation(userobject_relation_t, const objectid_t &parent, const objectid_t &child) override;
 
 	/**
 	 * Delete relation between child and parent, this can be used
@@ -280,8 +279,7 @@ public:
 	 *					The child object.
 	 * @throw notimplemented Always when the function is called.
 	 */
-	virtual void deleteSubObjectRelation(userobject_relation_t relation,
-										 const objectid_t& parentobject, const objectid_t &childobject);
+	virtual void deleteSubObjectRelation(userobject_relation_t, const objectid_t &parent, const objectid_t &child) override;
 
 	/**
 	 * Get quota information from object.
@@ -309,7 +307,7 @@ public:
 	 *					The quota information which should be written to the object
 	 * @throw notimplemented Always when the function is called.
 	 */
-	virtual void setQuota(const objectid_t &id, const quotadetails_t &quotadetails);
+	virtual void setQuota(const objectid_t &, const quotadetails_t &) override;
 
 	/**
 	 * Get extra properties which are set in the object details for the addressbook
