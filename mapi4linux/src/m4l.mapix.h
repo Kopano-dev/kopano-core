@@ -54,15 +54,15 @@ private:
     decltype(profiles)::iterator findProfile(const TCHAR *name);
 
 public:
-	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
-	virtual HRESULT GetProfileTable(ULONG ulFlags, LPMAPITABLE *lppTable);
-	virtual HRESULT CreateProfile(const TCHAR *name, const TCHAR *password, ULONG_PTR ui_param, ULONG flags);
-	virtual HRESULT DeleteProfile(const TCHAR *name, ULONG flags);
-	virtual HRESULT ChangeProfilePassword(const TCHAR *name, const TCHAR *oldpw, const TCHAR *newpw, ULONG flags);
-	virtual HRESULT CopyProfile(const TCHAR *oldname, const TCHAR *oldpw, const TCHAR *newpw, ULONG_PTR ui_param, ULONG flags);
-	virtual HRESULT RenameProfile(const TCHAR *oldname, const TCHAR *oldpw, const TCHAR *newname, ULONG_PTR ui_param, ULONG flags);
-	virtual HRESULT SetDefaultProfile(const TCHAR *name, ULONG flags);
-	virtual HRESULT AdminServices(const TCHAR *name, const TCHAR *password, ULONG_PTR ui_param, ULONG flags, IMsgServiceAdmin **);
+	virtual HRESULT GetLastError(HRESULT, unsigned int flags, MAPIERROR **) override;
+	virtual HRESULT GetProfileTable(unsigned int flags, IMAPITable **) override;
+	virtual HRESULT CreateProfile(const TCHAR *name, const TCHAR *password, ULONG_PTR ui_param, unsigned int flags) override;
+	virtual HRESULT DeleteProfile(const TCHAR *name, unsigned int flags) override;
+	virtual HRESULT ChangeProfilePassword(const TCHAR *name, const TCHAR *oldpw, const TCHAR *newpw, unsigned int flags) override;
+	virtual HRESULT CopyProfile(const TCHAR *oldname, const TCHAR *oldpw, const TCHAR *newpw, ULONG_PTR ui_param, unsigned int flags) override;
+	virtual HRESULT RenameProfile(const TCHAR *oldname, const TCHAR *oldpw, const TCHAR *newname, ULONG_PTR ui_param, unsigned int flags) override;
+	virtual HRESULT SetDefaultProfile(const TCHAR *name, unsigned int flags) override;
+	virtual HRESULT AdminServices(const TCHAR *name, const TCHAR *password, ULONG_PTR ui_param, unsigned int flags, IMsgServiceAdmin **) override;
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 
 	friend class KC::SessionRestorer;
@@ -85,19 +85,19 @@ private:
 public:
     M4LMsgServiceAdmin(M4LProfSect *profilesection);
 	~M4LMsgServiceAdmin();
-	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
-	virtual HRESULT GetMsgServiceTable(ULONG ulFlags, LPMAPITABLE *lppTable);
-	virtual HRESULT CreateMsgService(const TCHAR *service, const TCHAR *display_name, ULONG_PTR ui_param, ULONG flags);
-	virtual HRESULT CreateMsgServiceEx(const char *service, const char *display_name, ULONG_PTR ui_param, ULONG flags, MAPIUID *out);
-	virtual HRESULT DeleteMsgService(const MAPIUID *uid);
-	virtual HRESULT CopyMsgService(const MAPIUID *uid, const TCHAR *display_name, const IID *ifsrc, const IID *ifdst, void *obj_dst, ULONG_PTR ui_param, ULONG flags);
-	virtual HRESULT RenameMsgService(const MAPIUID *uid, ULONG flags, const TCHAR *display_name);
-	virtual HRESULT ConfigureMsgService(const MAPIUID *uid, ULONG_PTR ui_param, ULONG flags, ULONG nvals, const SPropValue *props);
-	virtual HRESULT OpenProfileSection(const MAPIUID *uid, const IID *intf, ULONG flags, IProfSect **);
-	virtual HRESULT MsgServiceTransportOrder(ULONG nuids, const MAPIUID *uids, ULONG flags);
-	virtual HRESULT AdminProviders(const MAPIUID *uid, ULONG flags, IProviderAdmin **);
-	virtual HRESULT SetPrimaryIdentity(const MAPIUID *uid, ULONG flags);
-	virtual HRESULT GetProviderTable(ULONG ulFlags, LPMAPITABLE *lppTable);
+	virtual HRESULT GetLastError(HRESULT, unsigned int flags, MAPIERROR **) override;
+	virtual HRESULT GetMsgServiceTable(unsigned int flags, IMAPITable **) override;
+	virtual HRESULT CreateMsgService(const TCHAR *service, const TCHAR *display_name, ULONG_PTR ui_param, unsigned int flags) override;
+	virtual HRESULT CreateMsgServiceEx(const char *service, const char *display_name, ULONG_PTR ui_param, unsigned int flags, MAPIUID *out) override;
+	virtual HRESULT DeleteMsgService(const MAPIUID *uid) override;
+	virtual HRESULT CopyMsgService(const MAPIUID *uid, const TCHAR *display_name, const IID *ifsrc, const IID *ifdst, void *obj_dst, ULONG_PTR ui_param, unsigned int flags) override;
+	virtual HRESULT RenameMsgService(const MAPIUID *uid, unsigned int flags, const TCHAR *display_name) override;
+	virtual HRESULT ConfigureMsgService(const MAPIUID *uid, ULONG_PTR ui_param, unsigned int flags, unsigned int nvals, const SPropValue *props) override;
+	virtual HRESULT OpenProfileSection(const MAPIUID *uid, const IID *intf, unsigned int flags, IProfSect **) override;
+	virtual HRESULT MsgServiceTransportOrder(unsigned int nuids, const MAPIUID *uids, unsigned int flags) override;
+	virtual HRESULT AdminProviders(const MAPIUID *uid, unsigned int flags, IProviderAdmin **) override;
+	virtual HRESULT SetPrimaryIdentity(const MAPIUID *uid, unsigned int flags) override;
+	virtual HRESULT GetProviderTable(unsigned int flags, IMAPITable **) override;
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 
 	friend class M4LProviderAdmin;
@@ -118,25 +118,25 @@ private:
 
 public:
 	M4LMAPISession(const TCHAR *profname, M4LMsgServiceAdmin *);
-	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
-	virtual HRESULT GetMsgStoresTable(ULONG ulFlags, LPMAPITABLE *lppTable);
+	virtual HRESULT GetLastError(HRESULT, unsigned int flags, MAPIERROR **) override;
+	virtual HRESULT GetMsgStoresTable(unsigned int flags, IMAPITable **) override;
 	virtual HRESULT OpenMsgStore(ULONG_PTR ui_param, ULONG eid_size, const ENTRYID *, const IID *intf, ULONG flags, IMsgStore **) override;
-	virtual HRESULT OpenAddressBook(ULONG_PTR ulUIParam, LPCIID lpInterface, ULONG ulFlags, LPADRBOOK *lppAdrBook);
-	virtual HRESULT OpenProfileSection(const MAPIUID *uid, const IID *intf, ULONG flags, IProfSect **);
-	virtual HRESULT GetStatusTable(ULONG ulFlags, LPMAPITABLE *lppTable);
-	virtual HRESULT OpenEntry(ULONG eid_size, const ENTRYID *eid, const IID *intf, ULONG flags, ULONG *obj_type, IUnknown **);
-	virtual HRESULT CompareEntryIDs(ULONG asize, const ENTRYID *a, ULONG bsize, const ENTRYID *b, ULONG cmp_flags, ULONG *result);
+	virtual HRESULT OpenAddressBook(ULONG_PTR ui_param, const IID *intf, unsigned int flags, IAddrBook **) override;
+	virtual HRESULT OpenProfileSection(const MAPIUID *uid, const IID *intf, unsigned int flags, IProfSect **) override;
+	virtual HRESULT GetStatusTable(unsigned int flags, IMAPITable **) override;
+	virtual HRESULT OpenEntry(unsigned int eid_size, const ENTRYID *eid, const IID *intf, unsigned int flags, unsigned int *obj_type, IUnknown **) override;
+	virtual HRESULT CompareEntryIDs(unsigned int asize, const ENTRYID *a, unsigned int bsize, const ENTRYID *b, unsigned int cmp_flags, unsigned int *result) override;
 	virtual HRESULT Advise(ULONG eid_size, const ENTRYID *eid, ULONG evt_mask, IMAPIAdviseSink *, ULONG *conn_id) override;
-	virtual HRESULT Unadvise(ULONG ulConnection);
+	virtual HRESULT Unadvise(unsigned int conn) override;
 	virtual HRESULT MessageOptions(ULONG_PTR ui_param, ULONG flags, const TCHAR *addrtype, IMessage *) override;
 	virtual HRESULT QueryDefaultMessageOpt(const TCHAR *addrtype, ULONG flags, ULONG *nvals, SPropValue **opts) override;
 	virtual HRESULT EnumAdrTypes(ULONG flags, ULONG *ntyps, TCHAR ***) override;
-	virtual HRESULT QueryIdentity(ULONG *lpcbEntryID, LPENTRYID *lppEntryID);
-	virtual HRESULT Logoff(ULONG_PTR ulUIParam, ULONG ulFlags, ULONG ulReserved);
+	virtual HRESULT QueryIdentity(unsigned int *eid_size, ENTRYID **) override;
+	virtual HRESULT Logoff(ULONG_PTR ui_param, unsigned int flags, unsigned int unused) override;
 	virtual HRESULT SetDefaultStore(ULONG flags, ULONG eid_size, const ENTRYID *) override;
-	virtual HRESULT AdminServices(ULONG ulFlags, LPSERVICEADMIN *lppServiceAdmin);
+	virtual HRESULT AdminServices(unsigned int flags, IMsgServiceAdmin **) override;
 	virtual HRESULT ShowForm(ULONG_PTR ui_param, IMsgStore *, IMAPIFolder *parent, const IID *intf, ULONG msg_token, IMessage *sesnt, ULONG flags, ULONG msg_status, ULONG msg_flags, ULONG access, const char *msg_class) override;
-	virtual HRESULT PrepareForm(LPCIID lpInterface, LPMESSAGE lpMessage, ULONG *lpulMessageToken);
+	virtual HRESULT PrepareForm(const IID *intf, IMessage *, unsigned int *token) override;
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 
 private:
@@ -154,24 +154,24 @@ class M4LAddrBook KC_FINAL_OPG : public M4LMAPIProp, public IAddrBook {
 public:
 	M4LAddrBook(M4LMsgServiceAdmin *new_serviceAdmin, LPMAPISUP newlpMAPISup);
 	virtual ~M4LAddrBook();
-	virtual HRESULT OpenEntry(ULONG eid_size, const ENTRYID *eid, const IID *intf, ULONG flags, ULONG *obj_type, IUnknown **);
-	virtual HRESULT CompareEntryIDs(ULONG asize, const ENTRYID *a, ULONG bsize, const ENTRYID *b, ULONG cmp_flags, ULONG *result);
+	virtual HRESULT OpenEntry(unsigned int eid_size, const ENTRYID *eid, const IID *intf, unsigned int flags, unsigned int *obj_type, IUnknown **) override;
+	virtual HRESULT CompareEntryIDs(unsigned int asize, const ENTRYID *a, unsigned int bsize, const ENTRYID *b, unsigned int cmp_flags, unsigned int *result) override;
 	virtual HRESULT Advise(ULONG eid_size, const ENTRYID *, ULONG evt_mask, IMAPIAdviseSink *, ULONG *conn) override;
-	virtual HRESULT Unadvise(ULONG ulConnection);
+	virtual HRESULT Unadvise(unsigned int conn) override;
 	virtual HRESULT CreateOneOff(const TCHAR *name, const TCHAR *addrtype, const TCHAR *addr, ULONG flags, ULONG *eid_size, ENTRYID **) override;
 	virtual HRESULT NewEntry(ULONG_PTR ui_param, ULONG flags, ULONG eid_size, const ENTRYID *eid_cont, ULONG tpl_size, const ENTRYID *tpl, ULONG *new_size, ENTRYID **new_eid) override;
 	virtual HRESULT ResolveName(ULONG_PTR ui_param, ULONG flags, const TCHAR *new_title, ADRLIST *adrlist) override;
-	virtual HRESULT Address(ULONG_PTR *lpulUIParam, LPADRPARM lpAdrParms, LPADRLIST *lppAdrList);
+	virtual HRESULT Address(ULONG_PTR *ui_param, ADRPARM *, ADRLIST **) override;
 	virtual HRESULT Details(ULONG_PTR *ui_param, DISMISSMODELESS *, void *dismiss_ctx, ULONG eid_size, const ENTRYID *, LPFNBUTTON callback, void *btn_ctx, const TCHAR *btn_text, ULONG flags) override;
 	virtual HRESULT RecipOptions(ULONG_PTR ui_param, ULONG flags, const ADRENTRY *recip) override;
 	virtual HRESULT QueryDefaultRecipOpt(const TCHAR *addrtype, ULONG flags, ULONG *nvals, SPropValue **opts) override;
-	virtual HRESULT GetPAB(ULONG *lpcbEntryID, LPENTRYID *lppEntryID);
+	virtual HRESULT GetPAB(unsigned int *eid_size, ENTRYID **) override;
 	virtual HRESULT SetPAB(ULONG eid_size, const ENTRYID *) override;
-	virtual HRESULT GetDefaultDir(ULONG *lpcbEntryID, LPENTRYID *lppEntryID);
+	virtual HRESULT GetDefaultDir(unsigned int *eid_size, ENTRYID **) override;
 	virtual HRESULT SetDefaultDir(ULONG eid_size, const ENTRYID *) override;
-	virtual HRESULT GetSearchPath(ULONG ulFlags, LPSRowSet *lppSearchPath);
+	virtual HRESULT GetSearchPath(unsigned int flags, SRowSet **) override;
 	virtual HRESULT SetSearchPath(ULONG flags, const SRowSet *) override;
-	virtual HRESULT PrepareRecips(ULONG ulFlags, const SPropTagArray *lpPropTagArray, LPADRLIST lpRecipList);
+	virtual HRESULT PrepareRecips(unsigned int flags, const SPropTagArray *, ADRLIST *recips) override;
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 
 private:
