@@ -137,15 +137,18 @@ static bool sd_record(Json::Value &&root)
 static void sd_handle_request(struct soap &&x)
 {
 	soap_begin(&x);
-	soap_begin_recv(&x);
+	if (soap_begin_recv(&x) != 0)
+		return;
 	if (x.status != SOAP_POST) {
-		soap_end_recv(&x);
+		if (soap_end_recv(&x) != 0)
+			return;
 		soap_send_empty_response(&x, 501);
 		return;
 	}
 	/* check for application/json content type */
 	auto data = soap_http_get_body(&x, nullptr);
-	soap_end_recv(&x);
+	if (soap_end_recv(&x) != 0)
+		return;
 	Json::Value root;
 	std::istringstream sin(data);
 	auto valid_json = Json::parseFromStream(Json::CharReaderBuilder(), sin, &root, nullptr);
