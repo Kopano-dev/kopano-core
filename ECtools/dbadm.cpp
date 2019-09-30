@@ -634,15 +634,14 @@ static ECRESULT db_populate(std::shared_ptr<ECConfig> cfg)
 	auto ret = fac->CreateDatabaseObject(&unique_tie(db), err);
 	if (ret == KCERR_DATABASE_NOT_FOUND) {
 		ret = fac->CreateDatabase();
-		if (ret != erSuccess) {
-			ec_log_err("Failed to create database.");
-			return ret;
-		}
+		if (ret != erSuccess)
+			return ec_perror("Failed to create database", ret);
 		ec_log_notice("Database created and populated.");
 	} else if (ret == erSuccess) {
 		ec_log_info("Database exists and is not empty. If corrupt, drop it manually.");
 	} else {
-		ec_log_err("Failed to connect to database.");
+		ec_log_err("DB: %s", err.c_str());
+		return ec_perror("Failed to connect to database", ret);
 	}
 
 	return ret;
