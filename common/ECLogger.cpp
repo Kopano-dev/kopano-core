@@ -780,7 +780,7 @@ std::shared_ptr<ECLogger> StartLoggerProcess(ECConfig *lpConfig,
 	int pipefds[2];
 
 	if (lpFileLogger == NULL)
-		return lpLogger;
+		return std::move(lpLogger);
 	auto filefd = lpFileLogger->GetFileDescriptor();
 	auto child = pipe(pipefds);
 	if (child < 0)
