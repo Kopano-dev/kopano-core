@@ -42,28 +42,28 @@ public:
 		virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 
 		// IFreeBusySupport
-		virtual HRESULT Open(IMAPISession* lpMAPISession, IMsgStore* lpMsgStore, BOOL bStore);
-		virtual HRESULT Close();
-		_kc_hidden virtual HRESULT LoadFreeBusyData(ULONG max, FBUser *fbuser, IFreeBusyData **fbdata, HRESULT *status, ULONG *have_read);
-		_kc_hidden virtual HRESULT LoadFreeBusyUpdate(ULONG nusers, FBUser *users, IFreeBusyUpdate **fbup, ULONG *nfbup, void *data4);
-		_kc_hidden virtual HRESULT CommitChanges(void) { return S_OK; }
+	virtual HRESULT Open(IMAPISession *, IMsgStore *, BOOL do_store) override;
+	virtual HRESULT Close() override;
+	_kc_hidden virtual HRESULT LoadFreeBusyData(unsigned int max, FBUser *fbuser, IFreeBusyData **fbdata, HRESULT *status, unsigned int *have_read) override;
+	_kc_hidden virtual HRESULT LoadFreeBusyUpdate(unsigned int nusers, FBUser *users, IFreeBusyUpdate **fbup, unsigned int *nfbup, void *data4) override;
+	_kc_hidden virtual HRESULT CommitChanges() override { return S_OK; }
 	_kc_hidden virtual HRESULT GetDelegateInfo(const FBUser &, void *) override { return E_NOTIMPL; }
-		_kc_hidden virtual HRESULT SetDelegateInfo(void *) { return E_NOTIMPL; }
-		_kc_hidden virtual HRESULT AdviseFreeBusy(void *) { return E_NOTIMPL; }
-		_kc_hidden virtual HRESULT Reload(void *) { return E_NOTIMPL; }
-		_kc_hidden virtual HRESULT GetFBDetailSupport(void **, BOOL) { return E_NOTIMPL; }
-		_kc_hidden virtual HRESULT HrHandleServerSched(void *) { return E_NOTIMPL; }
-		_kc_hidden virtual HRESULT HrHandleServerSchedAccess(void) { return S_OK; }
-		_kc_hidden virtual BOOL FShowServerSched(BOOL) { return FALSE; }
-		_kc_hidden virtual HRESULT HrDeleteServerSched(void) { return S_OK; }
-		_kc_hidden virtual HRESULT GetFReadOnly(void *) { return E_NOTIMPL; }
-		_kc_hidden virtual HRESULT SetLocalFB(void *) { return E_NOTIMPL; }
-		_kc_hidden virtual HRESULT PrepareForSync(void) { return E_NOTIMPL; }
-		_kc_hidden virtual HRESULT GetFBPublishMonthRange(void *) { return E_NOTIMPL; }
-		_kc_hidden virtual HRESULT PublishRangeChanged(void) { return E_NOTIMPL; }
-		_kc_hidden virtual HRESULT CleanTombstone(void) { return E_NOTIMPL; }
+	_kc_hidden virtual HRESULT SetDelegateInfo(void *) override { return E_NOTIMPL; }
+	_kc_hidden virtual HRESULT AdviseFreeBusy(void *) override { return E_NOTIMPL; }
+	_kc_hidden virtual HRESULT Reload(void *) override { return E_NOTIMPL; }
+	_kc_hidden virtual HRESULT GetFBDetailSupport(void **, BOOL) override { return E_NOTIMPL; }
+	_kc_hidden virtual HRESULT HrHandleServerSched(void *) override { return E_NOTIMPL; }
+	_kc_hidden virtual HRESULT HrHandleServerSchedAccess() override { return S_OK; }
+	_kc_hidden virtual BOOL FShowServerSched(BOOL) override { return FALSE; }
+	_kc_hidden virtual HRESULT HrDeleteServerSched() override { return S_OK; }
+	_kc_hidden virtual HRESULT GetFReadOnly(void *) override { return E_NOTIMPL; }
+	_kc_hidden virtual HRESULT SetLocalFB(void *) override { return E_NOTIMPL; }
+	_kc_hidden virtual HRESULT PrepareForSync() override { return E_NOTIMPL; }
+	_kc_hidden virtual HRESULT GetFBPublishMonthRange(void *) override { return E_NOTIMPL; }
+	_kc_hidden virtual HRESULT PublishRangeChanged() override { return E_NOTIMPL; }
+	_kc_hidden virtual HRESULT CleanTombstone() override { return E_NOTIMPL; }
 	_kc_hidden virtual HRESULT GetDelegateInfoEx(const FBUser &, unsigned int *status, unsigned int *start, unsigned int *end) override { return E_NOTIMPL; }
-		_kc_hidden virtual HRESULT PushDelegateInfoToWorkspace(void) { return E_NOTIMPL; }
+	_kc_hidden virtual HRESULT PushDelegateInfoToWorkspace() override { return E_NOTIMPL; }
 
 private:
 	object_ptr<IMAPISession> m_lpSession;

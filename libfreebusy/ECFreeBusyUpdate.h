@@ -36,8 +36,8 @@ private:
 public:
 	static HRESULT Create(IMessage* lpMessage, ECFreeBusyUpdate **lppECFreeBusyUpdate);
 	virtual HRESULT QueryInterface(const IID &, void **) override;
-	virtual HRESULT PublishFreeBusy(const FBBlock_1 *, ULONG nblks);
-	virtual HRESULT ResetPublishedFreeBusy();
+	virtual HRESULT PublishFreeBusy(const FBBlock_1 *, unsigned int nblks) override;
+	virtual HRESULT ResetPublishedFreeBusy() override;
 	virtual HRESULT SaveChanges(const FILETIME &start, const FILETIME &end) override;
 
 private:
