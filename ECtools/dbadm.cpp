@@ -632,19 +632,18 @@ static ECRESULT db_populate(std::shared_ptr<ECConfig> cfg)
 	auto stats = std::make_shared<ECStatsCollector>(cfg);
 	auto fac = std::make_unique<ECDatabaseFactory>(cfg, stats);
 	auto ret = fac->CreateDatabaseObject(&unique_tie(db), err);
-	if (ret == KCERR_DATABASE_NOT_FOUND) {
-		ret = fac->CreateDatabase();
-		if (ret != erSuccess)
-			return ec_perror("Failed to create database", ret);
-		ec_log_notice("Database created and populated.");
-	} else if (ret == erSuccess) {
+	if (ret == erSuccess) {
 		ec_log_info("Database exists and is not empty. If corrupt, drop it manually.");
-	} else {
+		return erSuccess;
+	} else if (ret != KCERR_DATABASE_NOT_FOUND) {
 		ec_log_err("DB: %s", err.c_str());
 		return ec_perror("Failed to connect to database", ret);
 	}
-
-	return ret;
+	ret = fac->CreateDatabase();
+	if (ret != erSuccess)
+		return ec_perror("Failed to create database", ret);
+	ec_log_notice("Database created and populated.");
+	return erSuccess;
 }
 
 static void adm_sigterm(int sig)
