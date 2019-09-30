@@ -28,7 +28,6 @@ private:
 	HRESULT HrParseAddress(const std::string &buffer, std::string &email);
 
 	KC::ECChannel *m_lpChannel;
-	KC::ECConfig *m_lpConfig;
 	std::string		m_strPath;
 };
 

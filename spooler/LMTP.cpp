@@ -31,7 +31,7 @@ using namespace KC;
 using std::string;
 
 LMTP::LMTP(ECChannel *lpChan, const char *szServerPath, ECConfig *lpConf) :
-	m_lpChannel(lpChan), m_lpConfig(lpConf), m_strPath(szServerPath)
+	m_lpChannel(lpChan), m_strPath(szServerPath)
 {}
 
 /**

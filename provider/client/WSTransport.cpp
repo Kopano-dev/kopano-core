@@ -814,7 +814,6 @@ HRESULT WSTransport::HrNotify(const NOTIFICATION *lpNotification)
 	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
 	struct notification sNotification;
-	int ulSize = 0;
 	soap_lock_guard spg(*this);
 
 	sNotification.ulConnection = 0;// The connection id should be calculate on the server side
@@ -832,7 +831,6 @@ HRESULT WSTransport::HrNotify(const NOTIFICATION *lpNotification)
 
 	if(lpNotification->info.newmail.lpszMessageClass){
 		utf8string strMessageClass = convstring(lpNotification->info.newmail.lpszMessageClass, lpNotification->info.newmail.ulFlags);
-		ulSize = strMessageClass.size() + 1;
 		sNotification.newmail->lpszMessageClass = soap_strdup(nullptr, strMessageClass.c_str());
 	}
 	sNotification.newmail->ulMessageFlags = lpNotification->info.newmail.ulMessageFlags;

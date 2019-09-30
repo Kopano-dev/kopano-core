@@ -193,7 +193,7 @@ HRESULT M4LProfAdmin::CreateProfile(const TCHAR *lpszProfileName,
 		return MAPI_E_NOT_ENOUGH_MEMORY;
     }
     // This is the so-called global profile section.
-	profilesection.reset(new M4LProfSect(TRUE));
+	profilesection.reset(new M4LProfSect);
 
 	// Set the default profilename
 	sPropValue.ulPropTag = PR_PROFILE_NAME_A;
