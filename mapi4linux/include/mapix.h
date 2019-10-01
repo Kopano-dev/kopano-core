@@ -17,9 +17,9 @@
 #include <mapiguid.h>
 #include <mapitags.h>
 
-class IProfAdmin;
-class IMsgServiceAdmin;
-class IMAPISession;
+struct IProfAdmin;
+struct IMsgServiceAdmin;
+struct IMAPISession;
 
 typedef IProfAdmin* LPPROFADMIN;
 typedef IMsgServiceAdmin* LPSERVICEADMIN;
@@ -133,7 +133,7 @@ extern _kc_export MAPIADMINPROFILES MAPIAdminProfiles;
 #define MAPI_POST_MESSAGE       0x00000001  /* Selects post/send semantics */
 #define MAPI_NEW_MESSAGE        0x00000002  /* Governs copying during submission */
 
-class IMAPISession : public virtual IUnknown {
+struct IMAPISession : public virtual IUnknown {
 public:
     virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError) = 0;
     virtual HRESULT GetMsgStoresTable(ULONG ulFlags, LPMAPITABLE* lppTable) = 0;
@@ -160,9 +160,7 @@ IID_OF(IMAPISession)
 /*DECLARE_MAPI_INTERFACE_PTR(IMAPISession, LPMAPISESSION);*/
 
 /* IAddrBook Interface ----------------------------------------------------- */
-
-
-class IAddrBook : public virtual IMAPIProp {
+struct IAddrBook : public virtual IMAPIProp {
 public:
 	virtual HRESULT OpenEntry(ULONG eid_size, const ENTRYID *eid, const IID *intf, ULONG flags, ULONG *obj_type, IUnknown **) = 0;
 	virtual HRESULT CompareEntryIDs(ULONG asize, const ENTRYID *a, ULONG bsize, const ENTRYID *b, ULONG cmp_flags, ULONG *result) = 0;
@@ -193,8 +191,7 @@ typedef IAddrBook* LPADRBOOK;
 
 #define MAPI_DEFAULT_SERVICES           0x00000001
 
-
-class IProfAdmin : public virtual IUnknown {
+struct IProfAdmin : public virtual IUnknown {
 public:
     virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError) = 0;
     virtual HRESULT GetProfileTable(ULONG ulFlags, LPMAPITABLE* lppTable) = 0;
@@ -220,8 +217,7 @@ IID_OF(IProfAdmin)
 #define SERVICE_PRIMARY_IDENTITY    0x00000008
 #define SERVICE_NO_PRIMARY_IDENTITY 0x00000020
 
-
-class IMsgServiceAdmin : public virtual IUnknown {
+struct IMsgServiceAdmin : public virtual IUnknown {
 public:
     virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError) = 0;
     virtual HRESULT GetMsgServiceTable(ULONG ulFlags, LPMAPITABLE* lppTable) = 0;
@@ -238,7 +234,7 @@ public:
 };
 IID_OF(IMsgServiceAdmin)
 
-class IMsgServiceAdmin2 : public IMsgServiceAdmin {
+struct IMsgServiceAdmin2 : public IMsgServiceAdmin {
 	public:
 	virtual HRESULT CreateMsgServiceEx(const char *service, const char *display_name, ULONG_PTR ui_param, ULONG flags, MAPIUID *out) = 0;
 };

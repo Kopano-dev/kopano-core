@@ -122,7 +122,7 @@ public:
 	_kc_hidden virtual ECSESSIONGROUPID GetSessionGroupId() const final { return m_ecSessionGroupId; }
 	_kc_hidden virtual int GetConnectingPid() const final { return m_ulConnectingPid; }
 	_kc_hidden virtual ~ECSession(void);
-	_kc_hidden virtual ECRESULT Shutdown(unsigned int timeout);
+	_kc_hidden virtual ECRESULT Shutdown(unsigned int timeout) override;
 	_kc_hidden virtual ECUserManagement *GetUserManagement(void) const override final { return m_lpUserManagement.get(); }
 
 	/* Notification functions all wrap directly to SessionGroup */
@@ -146,7 +146,7 @@ public:
 	_kc_hidden void GetClocks(double *user, double *system, double *real);
 	_kc_hidden void GetClientVersion(std::string *version);
 	_kc_hidden void GetClientApp(std::string *client_app);
-	_kc_hidden size_t GetObjectSize(void);
+	_kc_hidden size_t GetObjectSize() override;
 	_kc_hidden unsigned int ClientVersion(void) const { return m_ulClientVersion; }
 	_kc_hidden AUTHMETHOD GetAuthMethod(void) const { return m_ulAuthMethod; }
 
@@ -182,7 +182,7 @@ public:
 	_kc_hidden ECRESULT ValidateUserCertificate(struct soap *, const char *name, const char *imp_user);
 	_kc_hidden ECRESULT ValidateSSOData(struct soap *, const char *name, const char *imp_user, const char *cl_ver, const char *cl_app, const char *cl_app_ver, const char *cl_app_misc, const struct xsd__base64Binary *input, struct xsd__base64Binary **output);
 	_kc_hidden virtual ECRESULT CreateECSession(ECSESSIONGROUPID, const std::string &cl_ver, const std::string &cl_app, const std::string &cl_app_ver, const std::string &cl_app_misc, ECSESSIONID *retid, ECSession **ret);
-	_kc_hidden size_t GetObjectSize(void);
+	_kc_hidden size_t GetObjectSize() override;
 	_kc_hidden virtual ECUserManagement *GetUserManagement(void) const override final { return m_lpUserManagement.get(); }
 
 protected:

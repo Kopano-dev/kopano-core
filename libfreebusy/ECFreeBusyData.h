@@ -32,9 +32,9 @@ public:
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	virtual HRESULT Reload(void *) { return E_NOTIMPL; }
 	virtual HRESULT EnumBlocks(IEnumFBBlock **ppenumfb, const FILETIME &start, const FILETIME &end) override;
-	virtual HRESULT GetDelegateInfo(void *) { return E_NOTIMPL; }
-	virtual HRESULT SetFBRange(LONG rtmStart, LONG rtmEnd);
-	virtual HRESULT GetFBPublishRange(LONG *prtmStart, LONG *prtmEnd);
+	virtual HRESULT GetDelegateInfo(void *) override { return E_NOTIMPL; }
+	virtual HRESULT SetFBRange(int start, int end) override;
+	virtual HRESULT GetFBPublishRange(int *start, int *end) override;
 
 private:
 	ECFreeBusyData(LONG start, LONG end, const ECFBBlockList &);

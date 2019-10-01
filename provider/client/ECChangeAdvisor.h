@@ -63,11 +63,11 @@ public:
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 
 	// IECChangeAdvisor
-	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
-	virtual HRESULT Config(IStream *, GUID *guid, KC::IECChangeAdviseSink *, ULONG flags);
-	virtual HRESULT UpdateState(LPSTREAM lpStream);
-	virtual HRESULT AddKeys(LPENTRYLIST lpEntryList);
-	virtual HRESULT UpdateSyncState(syncid_t ulSyncId, changeid_t ulChangeId);
+	virtual HRESULT GetLastError(HRESULT, unsigned int flags, MAPIERROR **) override;
+	virtual HRESULT Config(IStream *, GUID *, KC::IECChangeAdviseSink *, unsigned int flags) override;
+	virtual HRESULT UpdateState(IStream *) override;
+	virtual HRESULT AddKeys(ENTRYLIST *) override;
+	virtual HRESULT UpdateSyncState(syncid_t sync_id, changeid_t change_id) override;
 
 private:
 	typedef std::map<syncid_t, connection_t> ConnectionMap;

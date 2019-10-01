@@ -19,11 +19,11 @@ protected:
 public:
 	static	HRESULT Create(ECMAPIFolder *lpFolder, LPEXCHANGEIMPORTHIERARCHYCHANGES* lppExchangeImportHierarchyChanges);
 	virtual HRESULT QueryInterface(const IID &, void **) override;
-	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
-	virtual HRESULT Config(LPSTREAM lpStream, ULONG ulFlags);
-	virtual HRESULT UpdateState(LPSTREAM lpStream);
-	virtual HRESULT ImportFolderChange(ULONG cValue, LPSPropValue lpPropArray);
-	virtual HRESULT ImportFolderDeletion(ULONG ulFlags, LPENTRYLIST lpSourceEntryList);
+	virtual HRESULT GetLastError(HRESULT result, unsigned int flags, MAPIERROR **) override;
+	virtual HRESULT Config(IStream *, unsigned int flags) override;
+	virtual HRESULT UpdateState(IStream *) override;
+	virtual HRESULT ImportFolderChange(unsigned int nvals, SPropValue *) override;
+	virtual HRESULT ImportFolderDeletion(unsigned int flags, ENTRYLIST *source_entry) override;
 
 private:
 	KC::object_ptr<ECMAPIFolder> m_lpFolder;

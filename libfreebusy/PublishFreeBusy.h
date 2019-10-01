@@ -9,8 +9,8 @@
 #include <mapidefs.h>
 #include <ctime>
 
-class IMAPISession;
-class IMsgStore;
+struct IMAPISession;
+struct IMsgStore;
 
 namespace KC {
 

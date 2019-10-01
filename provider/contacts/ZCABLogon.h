@@ -28,16 +28,16 @@ protected:
 public:
 	static HRESULT Create(IMAPISupport *, ULONG profile_flags, const GUID *, ZCABLogon **);
 	virtual HRESULT QueryInterface(const IID &, void **) override;
-	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
-	virtual HRESULT Logoff(ULONG ulFlags);
-	virtual HRESULT OpenEntry(ULONG eid_size, const ENTRYID *eid, const IID *intf, ULONG flags, ULONG *obj_type, IUnknown **);
-	virtual HRESULT CompareEntryIDs(ULONG asize, const ENTRYID *a, ULONG bsize, const ENTRYID *b, ULONG cmp_flags, ULONG *result);
+	virtual HRESULT GetLastError(HRESULT, unsigned int flags, MAPIERROR **) override;
+	virtual HRESULT Logoff(unsigned int flags) override;
+	virtual HRESULT OpenEntry(unsigned int eid_size, const ENTRYID *eid, const IID *intf, unsigned int flags, unsigned int *obj_type, IUnknown **) override;
+	virtual HRESULT CompareEntryIDs(unsigned int asize, const ENTRYID *a, unsigned int bsize, const ENTRYID *b, unsigned int cmp_flags, unsigned int *result) override;
 	virtual HRESULT Advise(ULONG eid_size, const ENTRYID *, ULONG evt_mask, IMAPIAdviseSink *, ULONG *conn) override;
-	virtual HRESULT Unadvise(ULONG ulConnection);
-	virtual HRESULT OpenStatusEntry(LPCIID lpInterface, ULONG ulFlags, ULONG *lpulObjType, LPMAPISTATUS * lppMAPIStatus);
+	virtual HRESULT Unadvise(unsigned int conn) override;
+	virtual HRESULT OpenStatusEntry(const IID *intf, unsigned int flags, unsigned int *obj_type, IMAPIStatus **) override;
 	virtual HRESULT OpenTemplateID(ULONG tpl_size, const ENTRYID *tpl_eid, ULONG tpl_flags, IMAPIProp *propdata, const IID *intf, IMAPIProp **propnew, IMAPIProp *sibling) override;
-	virtual HRESULT GetOneOffTable(ULONG ulFlags, LPMAPITABLE * lppTable);
-	virtual HRESULT PrepareRecips(ULONG ulFlags, const SPropTagArray *lpPropTagArray, LPADRLIST lpRecipList);
+	virtual HRESULT GetOneOffTable(unsigned int flags, IMAPITable **) override;
+	virtual HRESULT PrepareRecips(unsigned int flags, const SPropTagArray *props, ADRLIST *recips) override;
 
 private:
 	HRESULT AddFolder(const wchar_t *display_name, ULONG cbStore, LPBYTE lpStore, ULONG cbFolder, LPBYTE lpFolder);

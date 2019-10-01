@@ -35,7 +35,7 @@ public:
 	 * Override ArchiveOperationBaseEx's GetRestriction to add some more
 	 * magic.
 	 */
-	_kc_hidden HRESULT GetRestriction(LPMAPIPROP p, LPSRestriction *ret);
+	_kc_hidden HRESULT GetRestriction(IMAPIProp *, SRestriction **ret) override;
 
 	/**
 	 * Set the operation that will perform the deletion if required.

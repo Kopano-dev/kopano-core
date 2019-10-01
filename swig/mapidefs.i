@@ -115,7 +115,7 @@
 #define MNID_ID                 0
 #define MNID_STRING             1
 
-class IMAPIProp : public virtual IUnknown {
+struct IMAPIProp : public virtual IUnknown {
 public:
     //    virtual ~IMAPIProp() = 0;
 
@@ -148,7 +148,7 @@ public:
 #define FOREGROUND_SEARCH       (0x00000010)
 #define BACKGROUND_SEARCH       (0x00000020)
 
-class IMAPIContainer : public virtual IMAPIProp {
+struct IMAPIContainer : public virtual IMAPIProp {
 public:
     //    virtual ~IMAPIContainer() = 0;
 
@@ -188,7 +188,7 @@ public:
 #define TABLE_RELOAD        9
 
 /* Interface used for registering and issuing notification callbacks. */
-class IMAPIAdviseSink : public IUnknown {
+struct IMAPIAdviseSink : public IUnknown {
 public:
     virtual ULONG OnNotify(ULONG cNotif, LPNOTIFICATION lpNotifications) = 0;
 	%extend {
@@ -257,7 +257,7 @@ public:
 #define FOLDER_COMMON_VIEWS_VALID       (0x00000040)
 #define FOLDER_FINDER_VALID             (0x00000080)
 
-class IMsgStore : public IMAPIProp {
+struct IMsgStore : public IMAPIProp {
 public:
     //    virtual ~IMsgStore() = 0;
 
@@ -283,7 +283,7 @@ public:
 	}
 };
 
-class IProxyStoreObject : public virtual IUnknown {
+struct IProxyStoreObject : public virtual IUnknown {
 public:
     %extend {
         ~IProxyStoreObject() { self->Release(); }
@@ -323,7 +323,7 @@ public:
 #define FLDSTATUS_HIDDEN        (0x00000004)
 #define FLDSTATUS_DELMARKED     (0x00000008)
 
-class IMAPIFolder : public virtual IMAPIContainer {
+struct IMAPIFolder : public virtual IMAPIContainer {
 public:
     //    virtual ~IMAPIFolder() = 0;
 
@@ -381,7 +381,7 @@ public:
 #define IMPORTANCE_NORMAL       (1)
 #define IMPORTANCE_HIGH         (2)
 
-class IMessage : public virtual IMAPIProp {
+struct IMessage : public virtual IMAPIProp {
 public:
     //    virtual ~IMessage() = 0;
 
@@ -406,7 +406,7 @@ public:
 #define ATTACH_EMBEDDED_MSG     (0x00000005)
 #define ATTACH_OLE              (0x00000006)
 
-class IAttach : public virtual IMAPIProp {
+struct IAttach : public virtual IMAPIProp {
 public:
 	%extend {
 		~IAttach() { self->Release(); }
@@ -426,7 +426,7 @@ public:
 #define MAPI_AMBIGUOUS          (0x00000001)
 #define MAPI_RESOLVED           (0x00000002)
 
-class IABContainer : public virtual IMAPIContainer {
+struct IABContainer : public virtual IMAPIContainer {
 public:
 	virtual HRESULT CreateEntry(ULONG cbEntryID, const ENTRYID *lpEntryID, ULONG flags, IMAPIProp **OUTPUT /*lppMAPIPropEntry*/) = 0;
     virtual HRESULT CopyEntries(LPENTRYLIST lpEntries, ULONG ulUIParam, IMAPIProgress * lpProgress, ULONG ulFlags) = 0;
@@ -498,14 +498,14 @@ public:
 #define MAPI_MH_DP_PDS_PATRON                       (5)
 #define MAPI_MH_DP_OTHER_AU                         (6)
 
-class IMailUser : public virtual IMAPIProp {
+struct IMailUser : public virtual IMAPIProp {
 public:
 	%extend {
 		~IMailUser() { self->Release(); }
 	}
 };
 
-class IDistList : public virtual IMAPIContainer {
+struct IDistList : public virtual IMAPIContainer {
 public:
 	virtual HRESULT CreateEntry(ULONG cbEntryID, const ENTRYID *lpEntryID, ULONG create_flags, IMAPIProp **OUTPUT /*lppMAPIPropEntry*/) = 0;
     virtual HRESULT CopyEntries(LPENTRYLIST lpEntries, ULONG ulUIParam, IMAPIProgress * lpProgress, ULONG ulFlags) = 0;
@@ -516,8 +516,7 @@ public:
 	}
 };
 
-
-class IMAPIStatus : public IMAPIProp {
+struct IMAPIStatus : public IMAPIProp {
 public:
     //    virtual ~IMAPIStatus() = 0;
 	virtual HRESULT ValidateState(ULONG ulUIParam, ULONG ulFlags) = 0;
@@ -600,7 +599,7 @@ typedef ULONG       BOOKMARK;
 
 #define TBL_NOADVANCE       0x00000001
 
-class IMAPITable : public virtual IUnknown {
+struct IMAPITable : public virtual IUnknown {
 public:
     //    virtual ~IMAPITable() = 0;
 
@@ -694,7 +693,7 @@ public:
 #define FLUSH_NO_UI         (0x00000010)
 #define FLUSH_ASYNC_OK      (0x00000020)
 
-class IProfSect : public virtual IMAPIProp {
+struct IProfSect : public virtual IMAPIProp {
 public:
 	%extend {
 		~IProfSect() { self->Release(); }
@@ -703,7 +702,7 @@ public:
 
 #define MAPI_TOP_LEVEL      (0x00000001)
 
-class IMAPIProgress : public IUnknown {
+struct IMAPIProgress : public IUnknown {
 public:
     virtual HRESULT Progress(ULONG ulValue, ULONG ulCount, ULONG ulTotal) = 0;
     virtual HRESULT GetFlags(ULONG* lpulFlags) = 0;
@@ -720,7 +719,7 @@ public:
 #define SERVICE_UI_ALLOWED          0x00000010
 #define UI_CURRENT_PROVIDER_FIRST   0x00000004
 
-class IProviderAdmin : public IUnknown {
+struct IProviderAdmin : public IUnknown {
 public:
     virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* OUTPUT /*lppMAPIError*/) = 0;
     virtual HRESULT GetProviderTable(ULONG ulFlags, LPMAPITABLE* OUTPUT /*lppTable*/) = 0;

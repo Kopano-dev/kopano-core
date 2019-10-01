@@ -24,9 +24,9 @@ public:
 	ECExportAddressbookChanges(ECMsgStore *lpContainer);
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 	// IECExportAddressbookChanges
-	virtual HRESULT Config(IStream *state, ULONG flags, KC::IECImportAddressbookChanges *collector);
-	virtual HRESULT Synchronize(ULONG *lpulSteps, ULONG *lpulProgress);
-	virtual HRESULT UpdateState(LPSTREAM lpState);
+	virtual HRESULT Config(IStream *state, unsigned int flags, KC::IECImportAddressbookChanges *collector) override;
+	virtual HRESULT Synchronize(unsigned int *steps, unsigned int *progress) override;
+	virtual HRESULT UpdateState(IStream *) override;
 
 private:
 	static bool LeftPrecedesRight(const ICSCHANGE &left, const ICSCHANGE &right);

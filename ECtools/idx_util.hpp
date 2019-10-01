@@ -4,7 +4,7 @@
 #include <string>
 #include <mapidefs.h>
 
-class IMAPIProp;
+struct IMAPIProp;
 
 namespace KC {
 

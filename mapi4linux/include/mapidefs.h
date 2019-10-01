@@ -508,22 +508,22 @@ struct MAPIERROR {
 typedef MAPIERROR *LPMAPIERROR;
 
 // pre definitions
-class IMsgStore;
-class IMAPIFolder;
-class IMessage;
-class IAttach;
-class IAddrBook;
-class IABContainer;
-class IMailUser;
-class IDistList;
-class IMAPIStatus;
-class IMAPITable;
-class IProfSect;
-class IMAPIProp;
-class IMAPIContainer;
-class IMAPIAdviseSink;
-class IMAPIProgress;
-class IProviderAdmin;
+struct IMsgStore;
+struct IMAPIFolder;
+struct IMessage;
+struct IAttach;
+struct IAddrBook;
+struct IABContainer;
+struct IMailUser;
+struct IDistList;
+struct IMAPIStatus;
+struct IMAPITable;
+struct IProfSect;
+struct IMAPIProp;
+struct IMAPIContainer;
+struct IMAPIAdviseSink;
+struct IMAPIProgress;
+struct IProviderAdmin;
 
 typedef IMsgStore* LPMDB;
 typedef IMAPIFolder* LPMAPIFOLDER;
@@ -579,7 +579,7 @@ struct MAPINAMEID {
 typedef struct MAPINAMEID *LPMAPINAMEID;
 
 /* IUnknown Interface */
-class IUnknown {
+struct IUnknown {
 public:
 	virtual ~IUnknown() = default;
 	virtual ULONG AddRef() = 0;
@@ -590,14 +590,14 @@ IID_OF(IUnknown)
 typedef IUnknown *LPUNKNOWN;
 
 /* IStream Interface */
-class ISequentialStream : public virtual IUnknown {
+struct ISequentialStream : public virtual IUnknown {
 	public:
 	virtual HRESULT Read(void *pv, ULONG cb, ULONG *pcbRead) = 0;
 	virtual HRESULT Write(const void *pv, ULONG cb, ULONG *pcbWritten) = 0;
 };
 IID_OF(ISequentialStream)
 
-class IEnumSTATSTG : public virtual IUnknown {
+struct IEnumSTATSTG : public virtual IUnknown {
 	public:
 	virtual HRESULT Next(ULONG celt, STATSTG *rgelt, ULONG *pceltFetched) = 0;
 	virtual HRESULT Skip(ULONG celt) = 0;
@@ -609,7 +609,7 @@ DEFINE_OLEGUID(IID_IEnumSTATSTG, 0x0D, 0, 0);
 #endif
 IID_OF(IEnumSTATSTG)
 
-class IStream : public virtual ISequentialStream {
+struct IStream : public virtual ISequentialStream {
 	public:
 	virtual HRESULT Seek(LARGE_INTEGER dlibMove, DWORD dwOrigin, ULARGE_INTEGER *plibNewPosition) = 0;
 	virtual HRESULT SetSize(ULARGE_INTEGER libNewSize) = 0;
@@ -624,7 +624,7 @@ class IStream : public virtual ISequentialStream {
 IID_OF(IStream)
 typedef IStream *LPSTREAM;
 
-class IMalloc : public virtual IUnknown {
+struct IMalloc : public virtual IUnknown {
 	public:
 	virtual void *Alloc(ULONG cb) = 0;
 	virtual void *Realloc(void *pv, ULONG cb) = 0;
@@ -635,7 +635,7 @@ class IMalloc : public virtual IUnknown {
 };
 typedef IMalloc *LPMALLOC;
 
-class IStorage : public virtual IUnknown {
+struct IStorage : public virtual IUnknown {
 	public:
 	virtual HRESULT CreateStream(const OLECHAR *pwcsName, DWORD grfMode, DWORD reserved1, DWORD reserved2, IStream **ppstm) = 0;
 	virtual HRESULT OpenStream(const OLECHAR *pwcsName, void *reserved1, DWORD grfMode, DWORD reserved2, IStream **ppstm) = 0;
@@ -656,7 +656,7 @@ class IStorage : public virtual IUnknown {
 IID_OF(IStorage)
 typedef IStorage *LPSTORAGE;
 
-class IMAPIProp : public virtual IUnknown {
+struct IMAPIProp : public virtual IUnknown {
 public:
     virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError) = 0;
     virtual HRESULT SaveChanges(ULONG ulFlags) = 0;
@@ -688,7 +688,7 @@ IID_OF(IMAPIProp)
 #define FOREGROUND_SEARCH       ((ULONG) 0x00000010)
 #define BACKGROUND_SEARCH       ((ULONG) 0x00000020)
 
-class IMAPIContainer : public virtual IMAPIProp {
+struct IMAPIContainer : public virtual IMAPIProp {
 public:
     virtual HRESULT GetContentsTable(ULONG ulFlags, LPMAPITABLE* lppTable) = 0;
     virtual HRESULT GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) = 0;
@@ -823,7 +823,7 @@ typedef NOTIFCALLBACK *LPNOTIFCALLBACK;
 
 
 /* Interface used for registering and issuing notification callbacks. */
-class IMAPIAdviseSink : public virtual IUnknown {
+struct IMAPIAdviseSink : public virtual IUnknown {
 public:
     virtual ULONG OnNotify(ULONG cNotif, LPNOTIFICATION lpNotifications) = 0;
 };
@@ -870,7 +870,7 @@ IID_OF(IMAPIAdviseSink)
 #define FOLDER_COMMON_VIEWS_VALID       ((ULONG) 0x00000040)
 #define FOLDER_FINDER_VALID             ((ULONG) 0x00000080)
 
-class IMsgStore : public virtual IMAPIProp {
+struct IMsgStore : public virtual IMAPIProp {
 public:
 	virtual HRESULT Advise(ULONG eid_size, const ENTRYID *, ULONG evt_mask, IMAPIAdviseSink *, ULONG *conn) = 0;
     virtual HRESULT Unadvise(ULONG ulConnection) = 0;
@@ -947,7 +947,7 @@ struct SSortOrderSet_ ## name { \
 #define FLDSTATUS_HIDDEN        ((ULONG) 0x00000004)
 #define FLDSTATUS_DELMARKED     ((ULONG) 0x00000008)
 
-class IMAPIFolder : public virtual IMAPIContainer {
+struct IMAPIFolder : public virtual IMAPIContainer {
 public:
     virtual HRESULT CreateMessage(LPCIID lpInterface, ULONG ulFlags, LPMESSAGE* lppMessage) = 0;
     virtual HRESULT CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, LPVOID lpDestFolder, ULONG ulUIParam,
@@ -1002,7 +1002,7 @@ IID_OF(IMAPIFolder)
 #define IMPORTANCE_NORMAL       ((long) 1)
 #define IMPORTANCE_HIGH         ((long) 2)
 
-class IMessage : public virtual IMAPIProp {
+struct IMessage : public virtual IMAPIProp {
 public:
     virtual HRESULT GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable) = 0;
     virtual HRESULT OpenAttach(ULONG ulAttachmentNum, LPCIID lpInterface, ULONG ulFlags, LPATTACH *lppAttach) = 0;
@@ -1026,7 +1026,7 @@ IID_OF(IMessage)
 #define ATTACH_EMBEDDED_MSG     ((ULONG) 0x00000005)
 #define ATTACH_OLE              ((ULONG) 0x00000006)
 
-class IAttach : public virtual IMAPIProp {
+struct IAttach : public virtual IMAPIProp {
 public:
 };
 IID_OF2(IAttach, IAttachment)
@@ -1081,7 +1081,7 @@ class IABContainer_DistList_base : public virtual IMAPIContainer {
 
 } /* namespace KC */
 
-class IABContainer : public virtual KC::IABContainer_DistList_base {
+struct IABContainer : public virtual KC::IABContainer_DistList_base {
 };
 IID_OF(IABContainer)
 
@@ -1155,7 +1155,7 @@ IID_OF(IABContainer)
 #define MAPI_MH_DP_PDS_PATRON                       ((ULONG) 5)
 #define MAPI_MH_DP_OTHER_AU                         ((ULONG) 6)
 
-class IMailUser : public virtual IMAPIProp {
+struct IMailUser : public virtual IMAPIProp {
 public:
 };
 IID_OF(IMailUser)
@@ -1163,11 +1163,11 @@ IID_OF(IMailUser)
 /*
  * IDistList Interface
  */
-class IDistList : public virtual KC::IABContainer_DistList_base {
+struct IDistList : public virtual KC::IABContainer_DistList_base {
 };
 IID_OF(IDistList)
 
-class IMAPIStatus : public IMAPIProp {
+struct IMAPIStatus : public IMAPIProp {
 public:
 	virtual HRESULT ValidateState(ULONG ulUIParam, ULONG ulFlags) = 0;
     virtual HRESULT SettingsDialog(ULONG ulUIParam, ULONG ulFlags) = 0;
@@ -1361,7 +1361,7 @@ struct SRestriction {
 
 #define TBL_NOADVANCE       ((ULONG) 0x00000001)
 
-class IMAPITable : public virtual IUnknown {
+struct IMAPITable : public virtual IUnknown {
 public:
     virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
     virtual HRESULT Advise(ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG * lpulConnection) = 0;
@@ -1462,7 +1462,7 @@ IID_OF(IMAPITable)
 #define FLUSH_NO_UI         ((ULONG) 0x00000010)
 #define FLUSH_ASYNC_OK      ((ULONG) 0x00000020)
 
-class IProfSect : public virtual IMAPIProp {
+struct IProfSect : public virtual IMAPIProp {
 public:
 };
 IID_OF(IProfSect)
@@ -1472,7 +1472,7 @@ IID_OF(IProfSect)
  */
 #define MAPI_TOP_LEVEL      ((ULONG) 0x00000001)
 
-class IMAPIProgress : public virtual IUnknown {
+struct IMAPIProgress : public virtual IUnknown {
 public:
     virtual HRESULT Progress(ULONG ulValue, ULONG ulCount, ULONG ulTotal) = 0;
     virtual HRESULT GetFlags(ULONG* lpulFlags) = 0;
@@ -1490,7 +1490,7 @@ IID_OF(IMAPIProgress)
 #define SERVICE_UI_ALLOWED          0x00000010
 #define UI_CURRENT_PROVIDER_FIRST   0x00000004
 
-class IProviderAdmin : public virtual IUnknown {
+struct IProviderAdmin : public virtual IUnknown {
 public:
     virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError) = 0;
     virtual HRESULT GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable) = 0;
@@ -1624,7 +1624,7 @@ typedef struct ADRPARM *LPADRPARM;
  */
 #define  MAPI_ENABLED       ((ULONG) 0x00000000)
 #define  MAPI_DISABLED      ((ULONG) 0x00000001)
-class IMAPIControl : public virtual IUnknown {
+struct IMAPIControl : public virtual IUnknown {
 public:
     virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError) = 0;
     virtual HRESULT Activate(ULONG ulFlags, ULONG ulUIParam) = 0;

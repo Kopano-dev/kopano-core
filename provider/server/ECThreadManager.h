@@ -94,7 +94,7 @@ private:
 
 public:
 	ECDispatcherSelect(std::shared_ptr<KC::ECConfig>);
-    virtual ECRESULT MainLoop();
+	virtual ECRESULT MainLoop() override;
 	void ShutDown();
 	virtual void NotifyRestart(SOAP_SOCKET) override;
 };
@@ -107,7 +107,7 @@ private:
 public:
 	ECDispatcherEPoll(std::shared_ptr<KC::ECConfig>);
     virtual ~ECDispatcherEPoll();
-    virtual ECRESULT MainLoop();
+	virtual ECRESULT MainLoop() override;
 	virtual void NotifyRestart(SOAP_SOCKET) override;
 };
 #endif

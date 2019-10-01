@@ -28,7 +28,7 @@
 #include <initializer_list>
 #include <edkguid.h>
 
-class IExchangeManageStore : public virtual IUnknown {
+struct IExchangeManageStore : public virtual IUnknown {
 public:
 	virtual HRESULT CreateStoreEntryID(const TCHAR *store_dn, const TCHAR *mbox_dn, ULONG flags, ULONG *eid_size, ENTRYID **eid) = 0;
 	virtual HRESULT EntryIDFromSourceKey(ULONG cFolderKeySize, BYTE *lpFolderSourceKey, ULONG cMessageKeySize, BYTE *lpMessageSourceKey, ULONG *lpcbEntryID, LPENTRYID *lppEntryID) = 0;
@@ -589,7 +589,7 @@ typedef struct ROWLIST *LPROWLIST;
 #define CbNewROWLIST(centries) \
 	(offsetof(ROWLIST, aEntries) + (centries) * sizeof(ROWENTRY))
 
-class IExchangeModifyTable : public virtual IUnknown {
+struct IExchangeModifyTable : public virtual IUnknown {
 public:
 	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
 	virtual HRESULT GetTable(ULONG ulFlags, LPMAPITABLE *lppTable) = 0;
@@ -812,7 +812,7 @@ HRESULT HrDeserializeActions(IMAPIProp * pprop, BYTE * pbActions, ULONG cbAction
  * Used for get actions from a Deferred Action Message.
  */
 
-class IExchangeRuleAction : public virtual IUnknown {
+struct IExchangeRuleAction : public virtual IUnknown {
 public:
 	virtual HRESULT ActionCount(ULONG *lpcActions) = 0;
 	virtual HRESULT GetAction(ULONG ulActionNumber, LARGE_INTEGER *lpruleid, LPACTION *lppAction) = 0;
@@ -822,7 +822,7 @@ typedef IExchangeRuleAction* LPEXCHANGERULEACTION;
 
 
 //Outlook 2007, Blocked Attachments
-class IAttachmentSecurity : public virtual IUnknown {
+struct IAttachmentSecurity : public virtual IUnknown {
 public:
 	virtual HRESULT IsAttachmentBlocked(LPCWSTR pwszFileName, BOOL *pfBlocked) = 0;
 };
@@ -904,7 +904,7 @@ typedef struct READSTATE *LPREADSTATE;
 
 #define SYNC_READ					0x01
 
-class IExchangeExportChanges : public virtual IUnknown {
+struct IExchangeExportChanges : public virtual IUnknown {
 public:
 	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
 	virtual HRESULT Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKNOWN lpCollector, LPSRestriction lpRestriction, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize) = 0;
@@ -914,7 +914,7 @@ public:
 
 typedef IExchangeExportChanges* LPEXCHANGEEXPORTCHANGES;
 
-class IExchangeImportContentsChanges : public virtual IUnknown {
+struct IExchangeImportContentsChanges : public virtual IUnknown {
 public:
 	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
 	virtual HRESULT Config(LPSTREAM lpStream, ULONG ulFlags) = 0;
@@ -927,7 +927,7 @@ public:
 
 typedef IExchangeImportContentsChanges* LPEXCHANGEIMPORTCONTENTSCHANGES;
 
-class IExchangeImportHierarchyChanges : public virtual IUnknown {
+struct IExchangeImportHierarchyChanges : public virtual IUnknown {
 public:
 	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
 	virtual HRESULT Config(LPSTREAM lpStream, ULONG ulFlags) = 0;
@@ -938,7 +938,7 @@ public:
 
 typedef IExchangeImportHierarchyChanges* LPEXCHANGEIMPORTHIERARCHYCHANGES;
 
-class IProxyStoreObject : public virtual IUnknown {
+struct IProxyStoreObject : public virtual IUnknown {
 public:
 	virtual HRESULT UnwrapNoRef(LPVOID *ppvObject) = 0;
 };
@@ -950,14 +950,14 @@ typedef IProxyStoreObject* LPPROXYSTOREOBJECT;
 
 // Outlook 2007
 // Provides information about a folder's support for sharing.
-class IFolderSupport : public virtual IUnknown {
+struct IFolderSupport : public virtual IUnknown {
 public:
 	virtual HRESULT GetSupportMask(DWORD *pdwSupportMask) = 0;
 };
 
 typedef IFolderSupport* LPIFOLDERSUPPORT;
 
-class IExchangeFavorites : public virtual IUnknown {
+struct IExchangeFavorites : public virtual IUnknown {
 public:
 	virtual HRESULT GetLastError(HRESULT hr, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
 	virtual HRESULT AddFavorites(LPENTRYLIST lpEntryList) = 0;
@@ -965,7 +965,7 @@ public:
 };
 
 /* New from Outlook 2010 MAPI Extension */
-class IMAPIGetSession : public virtual IUnknown {
+struct IMAPIGetSession : public virtual IUnknown {
 public:
 	virtual HRESULT GetMAPISession(LPUNKNOWN *lppSession) = 0;
 };

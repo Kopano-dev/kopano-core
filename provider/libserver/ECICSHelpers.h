@@ -37,7 +37,7 @@ typedef std::map<SOURCEKEY,SAuxMessageData>	MESSAGESET, *LPMESSAGESET;
 
 // Forward declarations of interfaces used by ECGetContentChangesHelper
 class IDbQueryCreator;
-class IMessageProcessor;
+struct IMessageProcessor;
 
 class ECGetContentChangesHelper final {
 public:

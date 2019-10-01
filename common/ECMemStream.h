@@ -62,17 +62,17 @@ public:
 	_kc_hidden static HRESULT Create(ECMemBlock *, ULONG flags, CommitFunc, DeleteFunc, void *param, ECMemStream **ret);
 	virtual ULONG Release(void) _kc_override;
 	virtual HRESULT QueryInterface(REFIID refiid, void **iface) _kc_override;
-	_kc_hidden virtual HRESULT Read(void *buf, ULONG bytes, ULONG *have_read);
-	_kc_hidden virtual HRESULT Write(const void *buf, ULONG bytes, ULONG *have_written);
-	_kc_hidden virtual HRESULT Seek(LARGE_INTEGER pos, DWORD origin, ULARGE_INTEGER *newpos);
-	_kc_hidden virtual HRESULT SetSize(ULARGE_INTEGER size);
-	_kc_hidden virtual HRESULT CopyTo(IStream *, ULARGE_INTEGER cb, ULARGE_INTEGER *have_read, ULARGE_INTEGER *have_written);
-	_kc_hidden virtual HRESULT Commit(DWORD commit_flags);
-	_kc_hidden virtual HRESULT Revert(void);
-	_kc_hidden virtual HRESULT LockRegion(ULARGE_INTEGER offset, ULARGE_INTEGER size, DWORD lock_type);
-	_kc_hidden virtual HRESULT UnlockRegion(ULARGE_INTEGER offset, ULARGE_INTEGER size, DWORD lock_type);
-	_kc_hidden virtual HRESULT Stat(STATSTG *, DWORD stat_flag);
-	_kc_hidden virtual HRESULT Clone(IStream **);
+	_kc_hidden virtual HRESULT Read(void *buf, unsigned int bytes, unsigned int *have_read) override;
+	_kc_hidden virtual HRESULT Write(const void *buf, unsigned int bytes, unsigned int *have_written) override;
+	_kc_hidden virtual HRESULT Seek(LARGE_INTEGER pos, unsigned int origin, ULARGE_INTEGER *newpos) override;
+	_kc_hidden virtual HRESULT SetSize(ULARGE_INTEGER size) override;
+	_kc_hidden virtual HRESULT CopyTo(IStream *, ULARGE_INTEGER cb, ULARGE_INTEGER *have_read, ULARGE_INTEGER *have_written) override;
+	_kc_hidden virtual HRESULT Commit(unsigned int commit_flags) override;
+	_kc_hidden virtual HRESULT Revert() override;
+	_kc_hidden virtual HRESULT LockRegion(ULARGE_INTEGER offset, ULARGE_INTEGER size, unsigned int lock_type) override;
+	_kc_hidden virtual HRESULT UnlockRegion(ULARGE_INTEGER offset, ULARGE_INTEGER size, unsigned int lock_type) override;
+	_kc_hidden virtual HRESULT Stat(STATSTG *, unsigned int stat_flag) override;
+	_kc_hidden virtual HRESULT Clone(IStream **) override;
 	virtual ULONG GetSize();
 	virtual char* GetBuffer();
 

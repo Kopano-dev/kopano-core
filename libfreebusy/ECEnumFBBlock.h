@@ -32,10 +32,10 @@ private:
 public:
 	static HRESULT Create(ECFBBlockList* lpFBBlock, ECEnumFBBlock **lppECEnumFBBlock);
 	virtual HRESULT QueryInterface(const IID &, void **) override;
-	virtual HRESULT Next(LONG celt, FBBlock_1 *pblk, LONG *pcfetch);
-	virtual HRESULT Skip(LONG celt) { return m_FBBlock.Skip(celt); }
-	virtual HRESULT Reset() { return m_FBBlock.Reset(); }
-	virtual HRESULT Clone(IEnumFBBlock **) { return E_NOTIMPL; }
+	virtual HRESULT Next(int nelem, FBBlock_1 *pblk, int *nfetch) override;
+	virtual HRESULT Skip(int nelem) override { return m_FBBlock.Skip(nelem); }
+	virtual HRESULT Reset() override { return m_FBBlock.Reset(); }
+	virtual HRESULT Clone(IEnumFBBlock **) override { return E_NOTIMPL; }
 	virtual HRESULT Restrict(const FILETIME &start, const FILETIME &end) override;
 
 	ECFBBlockList	m_FBBlock; /**< Freebusy time blocks */

@@ -27,19 +27,19 @@ public:
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 
 	// ISequentialStream
-	virtual HRESULT Read(void *pv, ULONG cb, ULONG *pcbRead);
-	virtual HRESULT Write(const void *pv, ULONG cb, ULONG *pcbWritten);
+	virtual HRESULT Read(void *pv, unsigned int cb, unsigned int *has_read) override;
+	virtual HRESULT Write(const void *pv, unsigned int cb, unsigned int *has_written) override;
 
 	// IStream
-	virtual HRESULT Seek(LARGE_INTEGER dlibMove, DWORD dwOrigin, ULARGE_INTEGER *plibNewPosition);
-	virtual HRESULT SetSize(ULARGE_INTEGER libNewSize);
-	virtual HRESULT CopyTo(IStream *pstm, ULARGE_INTEGER cb, ULARGE_INTEGER *pcbRead, ULARGE_INTEGER *pcbWritten);
-	virtual HRESULT Commit(DWORD grfCommitFlags);
-	virtual HRESULT Revert(void);
-	virtual HRESULT LockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType);
-	virtual HRESULT UnlockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType);
-	virtual HRESULT Stat(STATSTG *pstatstg, DWORD grfStatFlag);
-	virtual HRESULT Clone(IStream **ppstm);
+	virtual HRESULT Seek(LARGE_INTEGER move, unsigned int origin, ULARGE_INTEGER *newpos) override;
+	virtual HRESULT SetSize(ULARGE_INTEGER newsize) override;
+	virtual HRESULT CopyTo(IStream *, ULARGE_INTEGER size, ULARGE_INTEGER *has_read, ULARGE_INTEGER *has_written) override;
+	virtual HRESULT Commit(unsigned int flags) override;
+	virtual HRESULT Revert() override;
+	virtual HRESULT LockRegion(ULARGE_INTEGER offset, ULARGE_INTEGER size, unsigned int lock_type) override;
+	virtual HRESULT UnlockRegion(ULARGE_INTEGER offset, ULARGE_INTEGER size, unsigned int lock_type) override;
+	virtual HRESULT Stat(STATSTG *, unsigned int flag) override;
+	virtual HRESULT Clone(IStream **) override;
 
 	protected:
 	~ECMessageStreamImporterIStreamAdapter();

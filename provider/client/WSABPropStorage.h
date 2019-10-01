@@ -30,11 +30,11 @@ public:
 
 private:
 	// Get a single (large) property
-	virtual HRESULT HrLoadProp(ULONG ulObjId, ULONG ulPropTag, LPSPropValue *lppsPropValue);
+	virtual HRESULT HrLoadProp(unsigned int obj_id, unsigned int proptag, SPropValue **) override;
 	// Save complete object to disk
-	virtual HRESULT HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject);
+	virtual HRESULT HrSaveObject(unsigned int flags, MAPIOBJECT *) override;
 	// Load complete object from disk
-	virtual HRESULT HrLoadObject(MAPIOBJECT **lppsMapiObject);
+	virtual HRESULT HrLoadObject(MAPIOBJECT **) override;
 	virtual IECPropStorage *GetServerStorage() override { return this; }
 
 private:

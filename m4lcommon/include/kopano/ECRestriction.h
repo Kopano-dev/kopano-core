@@ -164,12 +164,12 @@ public:
 	ECRestriction *Clone(void) const & _kc_override;
 	_kc_hidden ECRestriction *Clone(void) && _kc_override { return new ECAndRestriction(std::move(*this)); }
 
-	ECRestriction *operator+=(const ECRestriction &restriction)
+	ECRestriction *operator+=(const ECRestriction &restriction) override
 	{
 		m_lstRestrictions.emplace_back(restriction.Clone());
 		return m_lstRestrictions.back().get();
 	}
-	ECRestriction *operator+=(ECRestriction &&o)
+	ECRestriction *operator+=(ECRestriction &&o) override
 	{
 		m_lstRestrictions.emplace_back(std::move(o).Clone());
 		return m_lstRestrictions.back().get();
@@ -193,12 +193,12 @@ public:
 	ECRestriction *Clone(void) const & _kc_override;
 	ECRestriction *Clone(void) && _kc_override { return new ECOrRestriction(std::move(*this)); }
 
-	ECRestriction *operator+=(const ECRestriction &restriction)
+	ECRestriction *operator+=(const ECRestriction &restriction) override
 	{
 		m_lstRestrictions.emplace_back(restriction.Clone());
 		return m_lstRestrictions.back().get();
 	}
-	ECRestriction *operator+=(ECRestriction &&o)
+	ECRestriction *operator+=(ECRestriction &&o) override
 	{
 		m_lstRestrictions.emplace_back(std::move(o).Clone());
 		return m_lstRestrictions.back().get();
@@ -224,12 +224,12 @@ public:
 	_kc_hidden HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
 	ECRestriction *Clone(void) const & _kc_override;
 	ECRestriction *Clone(void) && _kc_override { return new ECNotRestriction(std::move(*this)); }
-	ECRestriction *operator+=(const ECRestriction &r)
+	ECRestriction *operator+=(const ECRestriction &r) override
 	{
 		m_ptrRestriction.reset(r.Clone());
 		return m_ptrRestriction.get();
 	}
-	ECRestriction *operator+=(ECRestriction &&r)
+	ECRestriction *operator+=(ECRestriction &&r) override
 	{
 		m_ptrRestriction.reset(std::move(r).Clone());
 		return m_ptrRestriction.get();

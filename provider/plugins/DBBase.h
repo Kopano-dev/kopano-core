@@ -15,7 +15,7 @@
 #include "ECDatabase.h"
 #include <kopano/ECDefs.h>
 
-class restrictTable;
+struct restrictTable;
 
 namespace KC {
 
@@ -160,7 +160,7 @@ public:
 	 *					List of configuration names which should be removed from the object
 	 * @throw runtime_error when SQL problems occur.
 	 */
-	virtual void changeObject(const objectid_t &id, const objectdetails_t &details, const std::list<std::string> *lpRemove);
+	virtual void changeObject(const objectid_t &, const objectdetails_t &, const std::list<std::string> *removals) override;
 
 	/**
 	 * Create object in plugin
@@ -171,7 +171,7 @@ public:
 	 * @throw runtime_error When SQL problems occur.
 	 * @throw collison_error When the object already exists.
 	 */
-	virtual objectsignature_t createObject(const objectdetails_t &details);
+	virtual objectsignature_t createObject(const objectdetails_t &) override;
 
 	/**
 	 * Delete object from plugin
@@ -181,7 +181,7 @@ public:
 	 * @throw runtime_error When SQL problems occur.
 	 * @throw objectnotfound When the object did not exist.
 	 */
-	virtual void deleteObject(const objectid_t &id);
+	virtual void deleteObject(const objectid_t &id) override;
 
     /**
 	 * Add relation between child and parent. This can be used
@@ -198,8 +198,7 @@ public:
 	 * @throw runtime_error When SQL problems occur.
 	 * @throw collison_error When the relation already exists.
 	 */
-	virtual void addSubObjectRelation(userobject_relation_t relation,
-									  const objectid_t &parentobject, const objectid_t &childobject);
+	virtual void addSubObjectRelation(userobject_relation_t, const objectid_t &parent, const objectid_t &child) override;
 
 	/**
 	 * Delete relation between child and parent, this can be used
@@ -216,8 +215,7 @@ public:
 	 * @throw runtime_error When SQL problems occur.
 	 * @throw objectnotfound When the relation did not exist.
 	 */
-	virtual void deleteSubObjectRelation(userobject_relation_t relation,
-										 const objectid_t &parentobject, const objectid_t &childobject);
+	virtual void deleteSubObjectRelation(userobject_relation_t, const objectid_t &parent, const objectid_t &child) override;
 
 	/**
 	 * Request quota information from object
@@ -240,7 +238,7 @@ public:
 	 *					The quota details which must be written to the Database
 	 * @throw runtime_error when SQL problems occur
 	 */
-	virtual void setQuota(const objectid_t &id, const quotadetails_t &quotadetails);
+	virtual void setQuota(const objectid_t &, const quotadetails_t &) override;
 
 	/**
 	 * Get extra properties which are set in the object details for the addressbook
