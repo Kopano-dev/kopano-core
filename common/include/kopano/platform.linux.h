@@ -28,11 +28,7 @@
 #include <clocale>
 
 #define __STDC_FORMAT_MACROS
-#if defined(__cplusplus) && __cplusplus >= 200300L
-#	include <cstdint>
-#else
-#	include <stdint.h>
-#endif
+#include <cstdint>
 #include <string>
 #ifdef HAVE_UNISTD_H
   #include <unistd.h>
