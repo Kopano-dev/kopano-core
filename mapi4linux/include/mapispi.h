@@ -68,13 +68,13 @@ struct NOTIFKEY {
 };
 typedef struct NOTIFKEY *LPNOTIFKEY;
 
-#define CbNewNOTIFKEY(_cb)      (offsetof(NOTIFKEY,ab) + (_cb))
-#define CbNOTIFKEY(_lpkey)      (offsetof(NOTIFKEY,ab) + (_lpkey)->cb)
-#define SizedNOTIFKEY(_cb, _name) \
-struct _NOTIFKEY_ ## _name { \
+#define CbNewNOTIFKEY(cb) (offsetof(NOTIFKEY, ab) + (cb))
+#define CbNOTIFKEY(lpkey) (offsetof(NOTIFKEY, ab) + (lpkey)->cb)
+#define SizedNOTIFKEY(cb, name) \
+struct _NOTIFKEY_ ## name { \
     ULONG       cb; \
-    BYTE        ab[_cb]; \
-} _name
+	BYTE ab[cb]; \
+} name
 
 /* For Subscribe() */
 #define NOTIFY_SYNC             ((ULONG) 0x40000000)

@@ -209,7 +209,7 @@ typedef int				SCODE;
 #define E_ACCESSDENIED ((HRESULT)0x80070005)
 
 /* winerror.h definitions */
-#define KC_HRESULT_TYPEDEF_(_sc) ((HRESULT)_sc)
+#define KC_HRESULT_TYPEDEF_(sc) static_cast<HRESULT>(sc)
 #define STG_E_INVALIDFUNCTION KC_HRESULT_TYPEDEF_(0x80030001L)
 
 /*

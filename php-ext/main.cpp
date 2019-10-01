@@ -167,7 +167,7 @@ ZEND_END_ARG_INFO()
 #include <kopano/charset/utf8string.h>
 #include "charset/localeutil.h"
 
-#define PMEASURE_FUNC pmeasure __pmobject(__PRETTY_FUNCTION__);
+#define PMEASURE_FUNC pmeasure pmobject(__PRETTY_FUNCTION__);
 
 using namespace KC;
 

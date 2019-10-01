@@ -20,11 +20,11 @@ namespace KC {
  * @param[in]	_interface	The class which implements the interface
  * @note guid variable must be named 'refiid', return variable must be named lppInterface.
  */
-#define REGISTER_INTERFACE(_guid, _interface)	\
+#define REGISTER_INTERFACE(guid, interface) \
 	do { \
-		if (refiid == (_guid)) { \
+		if (refiid == (guid)) { \
 			AddRef(); \
-			*lppInterface = reinterpret_cast<void *>(_interface); \
+			*lppInterface = reinterpret_cast<void *>(interface); \
 			return hrSuccess; \
 		} \
 	} while (false)

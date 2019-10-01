@@ -53,25 +53,18 @@ namespace KC {
 #define RIGHT_DELETED				0x04
 #define RIGHT_AUTOUPDATE_DENIED		0x08
 
-#define OBJECTCLASS(__type, __class) \
-	( (((__type) << 16) | ((__class) & 0xffff)) )
-#define OBJECTCLASS_CLASSTYPE(__class) \
-	( ((__class) & 0xffff0000) )
-#define OBJECTCLASS_TYPE(__class) \
-	( (objecttype_t)(((__class) >> 16) & 0xffff) )
-#define OBJECTCLASS_ISTYPE(__class) \
-	( ((__class) & 0xffff) == 0 && ((__class) >> 16) != 0)
-#define OBJECTCLASS_FIELD_COMPARE(__left, __right) \
-	( !(__left) || !(__right) || (__left) == (__right) )
-#define OBJECTCLASS_COMPARE(__left, __right) \
-	( OBJECTCLASS_FIELD_COMPARE(OBJECTCLASS_TYPE(__left), OBJECTCLASS_TYPE(__right)) && \
-	  OBJECTCLASS_FIELD_COMPARE((__left) & 0xffff, (__right) & 0xffff) )
-#define OBJECTCLASS_COMPARE_SQL(__column, __objclass) \
-	std::string(((__objclass) == 0) ? \
-			"TRUE" : \
-			((__objclass) & 0xffff) ? \
-				__column " = " + stringify(__objclass) : \
-				"(" __column " & 4294901760) = " + stringify((__objclass) & 0xffff0000))
+#define OBJECTCLASS(type, cls) (((type) << 16) | ((cls) & 0xffff))
+#define OBJECTCLASS_CLASSTYPE(cls) ((cls) & 0xffff0000)
+#define OBJECTCLASS_TYPE(cls) static_cast<objecttype_t>(((cls) >> 16) & 0xffff)
+#define OBJECTCLASS_ISTYPE(cls) (((cls) & 0xffff) == 0 && ((cls) >> 16) != 0)
+#define OBJECTCLASS_FIELD_COMPARE(left, right) (!(left) || !(right) || (left) == (right))
+#define OBJECTCLASS_COMPARE(left, right) \
+	(OBJECTCLASS_FIELD_COMPARE(OBJECTCLASS_TYPE(left), OBJECTCLASS_TYPE(right)) && \
+	OBJECTCLASS_FIELD_COMPARE((left) & 0xffff, (right) & 0xffff))
+#define OBJECTCLASS_COMPARE_SQL(column, objclass) \
+	std::string(((objclass) == 0) ? "TRUE" : ((objclass) & 0xffff) ? \
+		column " = " + stringify(objclass) : \
+		"(" column " & 4294901760) = " + stringify((objclass) & 0xffff0000))
 
 enum objecttype_t {
 	OBJECTTYPE_UNKNOWN		= 0,

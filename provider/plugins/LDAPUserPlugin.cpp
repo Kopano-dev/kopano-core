@@ -214,10 +214,10 @@ private:
 };
 
 /* Make life a bit less boring */
-#define CONFIG_TO_ATTR(__attrs, __var, __config)			\
-	const char *__var = m_config->GetSetting(__config, "", NULL);	\
-	if (__var)												\
-		(__attrs)->add(__var);
+#define CONFIG_TO_ATTR(attrs, var, config) \
+	const char *var = m_config->GetSetting(config, "", nullptr); \
+	if (var != nullptr) \
+		(attrs)->add(var);
 
 static std::string rst2flt_main(const restrictTable *, const std::map<unsigned int, std::string> &, bool inot);
 static HRESULT BintoEscapeSequence(const char *data, size_t size, std::string *);

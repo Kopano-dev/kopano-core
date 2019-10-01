@@ -31,24 +31,24 @@ namespace KC {
 #define PROPCOL_HI		"val_hi"
 #define PROPCOL_LO		"val_lo"
 
-#define I_PROPCOL_ULONG(_tab)	#_tab "." PROPCOL_ULONG
-#define I_PROPCOL_STRING(_tab)	#_tab "." PROPCOL_STRING
-#define I_PROPCOL_BINARY(_tab)	#_tab "." PROPCOL_BINARY
-#define I_PROPCOL_DOUBLE(_tab)	#_tab "." PROPCOL_DOUBLE
-#define I_PROPCOL_LONGINT(_tab)	#_tab "." PROPCOL_LONGINT
-#define I_PROPCOL_HI(_tab)	#_tab "." PROPCOL_HI
-#define I_PROPCOL_LO(_tab)	#_tab "." PROPCOL_LO
+#define I_PROPCOL_ULONG(tab)    #tab "." PROPCOL_ULONG
+#define I_PROPCOL_STRING(tab)   #tab "." PROPCOL_STRING
+#define I_PROPCOL_BINARY(tab)   #tab "." PROPCOL_BINARY
+#define I_PROPCOL_DOUBLE(tab)   #tab "." PROPCOL_DOUBLE
+#define I_PROPCOL_LONGINT(tab)  #tab "." PROPCOL_LONGINT
+#define I_PROPCOL_HI(tab)       #tab "." PROPCOL_HI
+#define I_PROPCOL_LO(tab)       #tab "." PROPCOL_LO
 
 #define PROPCOL_HILO		PROPCOL_HI "," PROPCOL_LO
-#define I_PROPCOL_HILO(_tab)	PROPCOL_HI(_tab) "," PROPCOL_LO(_tab)
+#define I_PROPCOL_HILO(tab)	PROPCOL_HI(tab) "," PROPCOL_LO(tab)
 
 /* make string of define value */
 #define STRINGIFY(x) #x
 #define STR(macro) STRINGIFY(macro)
 
 // Warning! Code references the ordering of these values! Do not change unless you know what you're doing!
-#define PROPCOLVALUEORDER(_tab) I_PROPCOL_ULONG(_tab) "," I_PROPCOL_STRING(_tab) "," I_PROPCOL_BINARY(_tab) "," I_PROPCOL_DOUBLE(_tab) "," I_PROPCOL_LONGINT(_tab) "," I_PROPCOL_HI(_tab) "," I_PROPCOL_LO(_tab)
-#define PROPCOLVALUEORDER_TRUNCATED(_tab) I_PROPCOL_ULONG(_tab) ", LEFT(" I_PROPCOL_STRING(_tab) "," STR(TABLE_CAP_STRING) "),LEFT(" I_PROPCOL_BINARY(_tab) "," STR(TABLE_CAP_BINARY) ")," I_PROPCOL_DOUBLE(_tab) "," I_PROPCOL_LONGINT(_tab) "," I_PROPCOL_HI(_tab) "," I_PROPCOL_LO(_tab)
+#define PROPCOLVALUEORDER(tab) I_PROPCOL_ULONG(tab) "," I_PROPCOL_STRING(tab) "," I_PROPCOL_BINARY(tab) "," I_PROPCOL_DOUBLE(tab) "," I_PROPCOL_LONGINT(tab) "," I_PROPCOL_HI(tab) "," I_PROPCOL_LO(tab)
+#define PROPCOLVALUEORDER_TRUNCATED(tab) I_PROPCOL_ULONG(tab) ", LEFT(" I_PROPCOL_STRING(tab) "," STR(TABLE_CAP_STRING) "),LEFT(" I_PROPCOL_BINARY(tab) "," STR(TABLE_CAP_BINARY) ")," I_PROPCOL_DOUBLE(tab) "," I_PROPCOL_LONGINT(tab) "," I_PROPCOL_HI(tab) "," I_PROPCOL_LO(tab)
 enum { VALUE_NR_ULONG=0, VALUE_NR_STRING, VALUE_NR_BINARY, VALUE_NR_DOUBLE, VALUE_NR_LONGINT, VALUE_NR_HILO, VALUE_NR_MAX };
 
 #define PROPCOLORDER "0,properties.tag,properties.type," PROPCOLVALUEORDER(properties)
@@ -104,8 +104,8 @@ private:
  *   do_something_else_with(lpDatabase);
  * }
  */
-#define WITH_SUPPRESSED_LOGGING(_db)	\
-	for (SuppressLockErrorLogging suppressor(_db), *ptr = NULL; ptr == NULL; ptr = &suppressor)
+#define WITH_SUPPRESSED_LOGGING(db) \
+	for (SuppressLockErrorLogging suppressor(db), *ptr = nullptr; ptr == nullptr; ptr = &suppressor)
 
 } /* namespace */
 

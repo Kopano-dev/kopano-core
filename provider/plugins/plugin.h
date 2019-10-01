@@ -33,8 +33,8 @@ namespace KC {
 
 class ECStatsCollector;
 
-#define LOG_PLUGIN_DEBUG(_msg, ...) \
-	ec_log(EC_LOGLEVEL_DEBUG | EC_LOGLEVEL_PLUGIN, "plugin: " _msg, ##__VA_ARGS__)
+#define LOG_PLUGIN_DEBUG(msg, ...) \
+	ec_log(EC_LOGLEVEL_DEBUG | EC_LOGLEVEL_PLUGIN, "plugin: " msg, ##__VA_ARGS__)
 
 /**
  * The objectsignature combines the object id with the

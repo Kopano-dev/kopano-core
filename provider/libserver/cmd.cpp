@@ -72,8 +72,8 @@
 #	include <google/malloc_extension_c.h>
 #	define HAVE_TCMALLOC 1
 #endif
-#define LOG_SOAP_DEBUG(_msg, ...) \
-	ec_log(EC_LOGLEVEL_DEBUG | EC_LOGLEVEL_SOAP, "soap: " _msg, ##__VA_ARGS__)
+#define LOG_SOAP_DEBUG(msg, ...) \
+	ec_log(EC_LOGLEVEL_DEBUG | EC_LOGLEVEL_SOAP, "soap: " msg, ##__VA_ARGS__)
 
 using namespace std::string_literals;
 using namespace KC;

@@ -127,8 +127,8 @@
  * use of any hidden tricks.
  */
 #ifndef HR_SUCCEEDED
-#define HR_SUCCEEDED(_hr) SUCCEEDED((SCODE)(_hr))
-#define HR_FAILED(_hr) FAILED((SCODE)(_hr))
+#define HR_SUCCEEDED(hr) SUCCEEDED(static_cast<SCODE>(hr))
+#define HR_FAILED(hr) FAILED(static_cast<SCODE>(hr))
 #endif
 
 #endif  /* MAPICODE_H */
