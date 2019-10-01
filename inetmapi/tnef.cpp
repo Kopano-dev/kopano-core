@@ -54,7 +54,7 @@ enum {
 
 // The mapping between Microsoft Mail IPM classes and those used in MAPI
 // see: http://msdn2.microsoft.com/en-us/library/ms527360.aspx
-static const struct _sClassMap {
+static const struct {
 	const char *szScheduleClass, *szMAPIClass;
 } sClassMap[] = {
 	{ "IPM.Microsoft Schedule.MtgReq",		"IPM.Schedule.Meeting.Request" },

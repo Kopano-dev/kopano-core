@@ -270,9 +270,9 @@ public:
 	 */
 	template<typename To_Type, typename From_Type>
 	_kc_hidden To_Type convert_to(const char *tocode,
-	    const From_Type &_from, size_t cbBytes, const char *fromcode)
+	    const From_Type &from, size_t cbBytes, const char *fromcode)
 	{
-		return helper<To_Type>(*this).convert(tocode, _from, cbBytes, fromcode);
+		return helper<To_Type>(*this).convert(tocode, from, cbBytes, fromcode);
 	}
 
 private:

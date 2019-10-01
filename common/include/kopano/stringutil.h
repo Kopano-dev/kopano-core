@@ -159,15 +159,15 @@ std::vector<std::basic_string<T> > tokenize(const T* str, const T* delimiters)
 }
 
 template<typename InputIterator, typename Tp>
-Tp join(InputIterator __first, InputIterator __last, Tp __sep)
+Tp join(InputIterator first, InputIterator last, Tp sep)
 {
 	Tp s;
-    for (; __first != __last; ++__first) {
-        if(!s.empty())
-            s += __sep;
-        s += *__first;
-    }
-    return s;
+	for (; first != last; ++first) {
+		if (!s.empty())
+			s += sep;
+		s += *first;
+	}
+	return s;
 }
 
 extern _kc_export std::string format(const char *fmt, ...) KC_LIKE_PRINTF(1, 2);

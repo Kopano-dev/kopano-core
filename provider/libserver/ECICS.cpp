@@ -31,17 +31,13 @@ struct ABChangeRecord {
 	std::string strItem, strParent;
 	ULONG change_type;
 
-	ABChangeRecord(ULONG id, const std::string &strItem, const std::string &strParent, ULONG change_type);
+	ABChangeRecord(unsigned int xid, const std::string &item,
+	    const std::string &parent, unsigned int ct) :
+		id(xid), strItem(item), strParent(parent), change_type(ct)
+	{}
 };
 
 static const ABEID_FIXED abcont_1(MAPI_ABCONT, MUIDECSAB, 1);
-
-inline ABChangeRecord::ABChangeRecord(ULONG _id, const std::string &_strItem, const std::string &_strParent, ULONG _change_type)
-: id(_id)
-, strItem(_strItem)
-, strParent(_strParent)
-, change_type(_change_type)
-{ }
 
 typedef std::list<ABChangeRecord> ABChangeRecordList;
 

@@ -191,9 +191,9 @@ public:
 	}
 };
 
-template<typename Type> size_t rawsize(const Type &_x)
+template<typename Type> size_t rawsize(const Type &x)
 {
-	return iconv_charset<Type>::rawsize(_x);
+	return iconv_charset<Type>::rawsize(x);
 }
 
 } /* namespace */
