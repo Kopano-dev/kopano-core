@@ -67,6 +67,7 @@ AC_DEFUN([PHP_WITH_PHP_CONFIG],[
 dnl php-config can be in a different package that the header files (suse 9.1)
 dnl so we explicitly check if something would compile with the found include parameters
 AC_DEFUN([PHP_CHECK_INCLUDES],[
+CFLAGS="$CFLAGS $PHP_INCLUDES"
 CXXFLAGS="$CXXFLAGS $PHP_INCLUDES"
 AC_MSG_CHECKING([acquired PHP settings])
 AC_LINK_IFELSE([
