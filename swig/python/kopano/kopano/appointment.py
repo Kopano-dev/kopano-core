@@ -9,7 +9,7 @@ import sys
 
 from MAPI import (
     PT_SYSTIME, MNID_ID, PT_BOOLEAN, MODRECIP_ADD,
-    PT_LONG, PT_UNICODE,
+    PT_LONG, PT_UNICODE, PT_BINARY,
 )
 
 from MAPI.Tags import (
@@ -51,6 +51,7 @@ START_NAME = (PSETID_Appointment, MNID_ID, 33293)
 END_NAME = (PSETID_Appointment, MNID_ID, 33294)
 RECURRING_NAME = (PSETID_Appointment, MNID_ID, 33315)
 BUSYSTATUS = (PSETID_Appointment, MNID_ID, 33285)
+TZINFO = (PSETID_Appointment, MNID_ID, 0x8233)
 
 class Appointment(object):
     """Appointment mixin class
@@ -286,7 +287,8 @@ class Appointment(object):
     @property
     def tzinfo(self):
         """Appointment timezone as datetime compatible tzinfo object."""
-        tzdata = self.get(PidLidTimeZoneStruct)
+        proptag = self.store._name_id(TZINFO) | PT_BINARY
+        tzdata = self._get_fast(proptag)
         if tzdata:
             return _timezone.MAPITimezone(tzdata)
 

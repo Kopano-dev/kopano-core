@@ -440,7 +440,7 @@ class Folder(Properties):
             # TODO use shortcuts and default type (database) to avoid
             # MAPI snake wrestling
             NAMED_PROPS = [MAPINAMEID(PSETID_Appointment, MNID_ID, x)
-                for x in (33285, 33293, 33294, 33315, 33301, 33333, 33334)]
+                for x in (33285, 33293, 33294, 33315, 33301, 33333, 33334, 33331, 33302)]
             ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS, MAPI_CREATE)
             busystatus = ids[0] | PT_LONG
             startdate = ids[1] | PT_SYSTIME
@@ -449,6 +449,8 @@ class Folder(Properties):
             all_day = ids[4] | PT_BOOLEAN
             clip_start = ids[5] | PT_SYSTIME
             clip_end = ids[6] | PT_SYSTIME
+            tzinfo = ids[7] | PT_BINARY
+            blob = ids[8] | PT_BINARY
 
             restriction = SOrRestriction([
                 # non-recurring: normal start/end
@@ -494,7 +496,9 @@ class Folder(Properties):
                 enddate,
                 recurring,
                 all_day,
-                busystatus
+                busystatus,
+                tzinfo,
+                blob, # watch out: can be larger then 255 chars.
             ]
 
             table = Table(
