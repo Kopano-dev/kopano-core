@@ -50,9 +50,9 @@ class _kc_export ECUnknown : public virtual IUnknown {
 public:
 	ECUnknown(const char *szClassName = NULL);
 	virtual ~ECUnknown(void);
-	virtual ULONG AddRef(void) _kc_override;
-	virtual ULONG Release(void) _kc_override;
-	virtual HRESULT QueryInterface(REFIID refiid, void **iface) _kc_override;
+	virtual ULONG AddRef() KC_OVERRIDE;
+	virtual ULONG Release() KC_OVERRIDE;
+	virtual HRESULT QueryInterface(REFIID refiid, void **iface) KC_OVERRIDE;
 	virtual HRESULT AddChild(ECUnknown *lpChild);
 	virtual HRESULT RemoveChild(ECUnknown *lpChild);
 

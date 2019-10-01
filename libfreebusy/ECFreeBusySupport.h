@@ -39,7 +39,7 @@ public:
 	static HRESULT Create(ECFreeBusySupport** lppFreeBusySupport);
 
 	// From IUnknown
-		virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) KC_OVERRIDE;
 
 		// IFreeBusySupport
 	virtual HRESULT Open(IMAPISession *, IMsgStore *, BOOL do_store) override;

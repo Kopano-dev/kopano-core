@@ -22,10 +22,10 @@ namespace KC {
 class _kc_export MAPINotifSink KC_FINAL_OPG : public IMAPIAdviseSink {
 public:
     static HRESULT Create(MAPINotifSink **lppSink);
-	_kc_hidden virtual ULONG AddRef(void) _kc_override;
-	virtual ULONG Release(void) _kc_override;
-	_kc_hidden virtual HRESULT QueryInterface(REFIID iid, void **iface) _kc_override;
-	_kc_hidden virtual ULONG OnNotify(ULONG n, LPNOTIFICATION notif) _kc_override;
+	_kc_hidden virtual ULONG AddRef() KC_OVERRIDE;
+	virtual ULONG Release() KC_OVERRIDE;
+	_kc_hidden virtual HRESULT QueryInterface(REFIID iid, void **iface) KC_OVERRIDE;
+	_kc_hidden virtual ULONG OnNotify(ULONG n, LPNOTIFICATION notif) KC_OVERRIDE;
 	virtual HRESULT GetNotifications(ULONG *n, LPNOTIFICATION *notif, BOOL fNonBlock, ULONG timeout);
 
 private:

@@ -156,7 +156,7 @@ class KC_EXPORT_DYCAST iconv_context KC_FINAL :
 	}
 
 	private:
-	_kc_hidden void append(const char *lpBuf, size_t cbBuf) _kc_override
+	_kc_hidden void append(const char *lpBuf, size_t cbBuf) KC_OVERRIDE
 	{
 		m_to.append(reinterpret_cast<typename To_Type::const_pointer>(lpBuf),
 			cbBuf / sizeof(typename To_Type::value_type));

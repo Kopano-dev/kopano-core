@@ -35,11 +35,11 @@
 /* Swig is not bright enough to grok all C++11. */
 #if defined(SWIG)
 #	define KC_FINAL
-#	define _kc_override
+#	define KC_OVERRIDE
 #else
 	/* From g++ 4.7 onwards */
 #	define KC_FINAL final
-#	define _kc_override override
+#	define KC_OVERRIDE override
 #endif
 
 /* Mark classes which explicitly must not be final in the C++ side… for SWIG */
