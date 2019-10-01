@@ -12,7 +12,7 @@ import sys
 from collections import defaultdict
 
 from MAPI.Util import *
-from MAPI.Struct import MAPIErrorNetworkError, MAPIErrorDiskError
+from MAPI.Struct import MAPIErrorNetworkError
 from MAPI.Tags import (PS_COMMON, PS_ARCHIVE,
                        PR_SENDER_EMAIL_ADDRESS_W, PR_SENDER_ENTRYID,
                        PR_SENDER_NAME_W, PR_SENDER_ADDRTYPE_W,
@@ -310,7 +310,7 @@ class Service(kopano.Service):
                         if folder.ContainerClass:
                             folder2.container_class = folder.ContainerClass
                         break
-                    except (MAPIErrorNetworkError, MAPIErrorDiskError) as e:
+                    except MAPIErrorNetworkError as e:
                         self.log.warning("{}: Connection to server lost, retrying in 5 sec".format(e))
                         time.sleep(5)
 
@@ -348,7 +348,7 @@ class Service(kopano.Service):
                     self.import_props(message, message2.mapiobj)
                     self.stats['messages'] += 1
                     break
-                except (MAPIErrorNetworkError, MAPIErrorDiskError) as e:
+                except MAPIErrorNetworkError as e:
                     self.log.warning("{}: Connection to server lost, retrying in 5 sec".format(e))
                     time.sleep(5)
 
