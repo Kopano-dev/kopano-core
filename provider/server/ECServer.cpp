@@ -544,9 +544,9 @@ static ECRESULT check_server_configuration(void)
 	auto http = tokenize(g_lpConfig->GetSetting("server_listen"), ' ', true);
 	auto https = tokenize(g_lpConfig->GetSetting("server_listen_tls"), ' ', true);
 	auto http_ok = http.size() == 0 || std::any_of(http.cbegin(), http.cend(),
-		[&](const auto &i) { return sServerDetails.GetHttpPort() == ec_parse_bindaddr(i.c_str()).second; });
+		[&](const auto &i) { return sServerDetails.GetHttpPort() == ec_parse_bindaddr(i.c_str()).m_port; });
 	auto https_ok = https.size() == 0 || std::any_of(https.cbegin(), https.cend(),
-		[&](const auto &i) { return sServerDetails.GetSslPort() == ec_parse_bindaddr(i.c_str()).second; });
+		[&](const auto &i) { return sServerDetails.GetSslPort() == ec_parse_bindaddr(i.c_str()).m_port; });
 	if (http.size() > 0) {
 		if (sServerDetails.GetHttpPath().empty()) {
 			ec_log_warn("WARNING: \"server_listen\" is set, but LDAP host entry contains nothing.");

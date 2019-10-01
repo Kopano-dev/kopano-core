@@ -67,11 +67,11 @@ private:
 };
 
 /**
- * @m_spec:	textual representation of the socket for reporting
- * @m_port:	m_port-parsed port number
- * @m_ai:	addrinfo (exactly one) for m_spec
- * @m_fd:	socket fd for this addrinfo
- * @m_err:	errno obtained during socket creation
+ * @spec:	textual representation of the socket for reporting
+ * @port:	m_port-parsed port number
+ * @ai:		addrinfo (exactly one) for m_spec
+ * @fd:		socket fd for this addrinfo
+ * @err:	errno obtained during socket creation
  */
 struct _kc_export ec_socket {
 	public:
@@ -81,16 +81,15 @@ struct _kc_export ec_socket {
 	bool operator==(const struct ec_socket &) const;
 	bool operator<(const struct ec_socket &) const;
 
-	std::string m_spec;
+	std::string m_spec, m_intf;
 	struct addrinfo *m_ai = nullptr;
 	int m_fd = -1, m_err = 0, m_port = 0;
 };
 
 /* accept data on connection */
 extern _kc_export HRESULT HrAccept(int fd, ECChannel **ch);
-extern _kc_export int zcp_bindtodevice(int fd, const char *iface);
 extern _kc_export int zcp_peerfd_is_local(int);
-extern _kc_export std::pair<std::string, uint16_t> ec_parse_bindaddr(const char *);
+extern _kc_export ec_socket ec_parse_bindaddr(const char *);
 extern _kc_export void ec_reexec_prepare_sockets();
 extern _kc_export std::pair<int, std::list<ec_socket>> ec_bindspec_to_sockets(std::vector<std::string> &&, unsigned int mode, const char *user, const char *group);
 

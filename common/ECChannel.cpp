@@ -647,22 +647,6 @@ int ECChannel::peer_is_local(void) const
 	return zcp_peeraddr_is_local(reinterpret_cast<const struct sockaddr *>(&peer_sockaddr), peer_salen);
 }
 
-int zcp_bindtodevice(int fd, const char *i)
-{
-	if (i == NULL || strcmp(i, "any") == 0 || strcmp(i, "all") == 0 ||
-	    strcmp(i, "") == 0)
-		return 0;
-#ifdef LINUX
-	if (setsockopt(fd, SOL_SOCKET, SO_BINDTODEVICE, i, strlen(i)) >= 0)
-		return 0;
-	ec_log_err("Unable to bind to interface %s: %s", i, strerror(errno));
-	return -errno;
-#else
-	ec_log_err("Bind-to-interface not supported.");
-	return -ENOSYS;
-#endif
-}
-
 static int ec_listen_generic(const struct ec_socket &sk, unsigned int mode,
     const char *user, const char *group)
 {
@@ -692,6 +676,11 @@ static int ec_listen_generic(const struct ec_socket &sk, unsigned int mode,
 		ec_log_warn("Unable to set IPV6_V6ONLY: %s", strerror(errno));
 	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char *>(&y), sizeof(y)) < 0)
 		ec_log_warn("Unable to set reuseaddr socket option: %s", strerror(errno));
+#ifdef LINUX
+	if (!sk.m_intf.empty() && setsockopt(fd, SOL_SOCKET, SO_BINDTODEVICE, sk.m_intf.c_str(), sk.m_intf.size()) < 0)
+		ec_log_warn("Unable to limit socket %s to %s: %s", sk.m_spec.c_str(), sk.m_intf.c_str(), strerror(errno));
+#endif
+
 	auto ret = bind(fd, sk.m_ai->ai_addr, sk.m_ai->ai_addrlen);
 	if (ret < 0) {
 		ret = -errno;
@@ -759,32 +748,43 @@ HRESULT HrAccept(int ulListenFD, ECChannel **lppChannel)
 	return hrSuccess;
 }
 
-static std::pair<std::string, uint16_t>
-ec_parse_bindaddr2(const char *spec)
+static ec_socket ec_parse_bindaddr2(const char *spec)
 {
+	ec_socket ret;
 	char *e = nullptr;
-	if (*spec != '[') { /* ] */
-		/* IPv4 or hostname */
-		auto y = strchr(spec, ':');
-		if (y == nullptr)
-			return {spec, 0};
-		uint16_t port = strtoul(y + 1, &e, 10);
-		if (e == nullptr || *e != '\0')
-			return {"!", 0};
-		return {std::string(spec, y - spec), port};
+	auto y = spec;
+
+	if (*spec == '[') {
+		++spec;
+		while (*y != '\0' && *y != ']')
+			++y;
+		ret.m_spec.assign(spec, y - spec);
+		if (*y == '\0') {
+			ret.m_spec = "!";
+			return ret;
+		}
+		++y;
+	} else {
+		while (*y != '\0' && *y != '%' && *y != ':')
+			++y;
+		ret.m_spec.assign(spec, y - spec);
 	}
-	/* address (v4/v6) */
-	auto y = strchr(spec + 1, ']');
-	if (y == nullptr)
-		return {"!", 0};
-	if (*++y == '\0')
-		return {std::string(spec + 1, y - spec - 2), 0};
-	if (*y != ':')
-		return {"!", 0};
-	uint16_t port = strtoul(y + 1, &e, 10);
-	if (e == nullptr || *e != '\0')
-		return {"!", 0};
-	return {std::string(spec + 1, y - spec - 2), port};
+
+	if (*y == '%') {
+		spec = ++y;
+		while (*y != '\0' && *y != ':')
+			++y;
+		ret.m_intf.assign(spec, y - spec);
+	}
+	if (*y == ':') {
+		ret.m_port = strtoul(++y, &e, 10);
+		y = e;
+	}
+	if (*y == '\0')
+		return ret;
+	ret.m_spec = "!";
+	ret.m_port = 0;
+	return ret;
 }
 
 /**
@@ -795,12 +795,12 @@ ec_parse_bindaddr2(const char *spec)
  * of a port part will result in port being emitted as 0 - the caller needs to
  * check for this, because unfiltered, this means "random port" to the OS.
  */
-std::pair<std::string, uint16_t> ec_parse_bindaddr(const char *spec)
+struct ec_socket ec_parse_bindaddr(const char *spec)
 {
 	auto parts = ec_parse_bindaddr2(spec);
-	if (parts.first == "*")
+	if (parts.m_spec == "*")
 		/* getaddrinfo/soap_bind want the empty string for wildcard binding */
-		parts.first.clear();
+		parts.m_spec.clear();
 	return parts;
 }
 
@@ -848,7 +848,7 @@ void ec_reexec_prepare_sockets()
  * Search the file descriptor table for a listening socket matching
  * the host:port specification, and return the fd and exact sockaddr.
  */
-static int ec_fdtable_socket_ai(const struct addrinfo *ai)
+static int ec_fdtable_socket_ai(const ec_socket &sk)
 {
 #ifdef __sunos__
 #define SO_PROTOCOL SO_PROTOTYPE
@@ -881,14 +881,24 @@ static int ec_fdtable_socket_ai(const struct addrinfo *ai)
 		ret = getsockopt(fd, SOL_SOCKET, SO_PROTOCOL, &proto, &arglen);
 		if (ret < 0)
 			continue;
+		char ifnam[24];
+		arglen = sizeof(ifnam);
+		ret = getsockopt(fd, SOL_SOCKET, SO_BINDTODEVICE, ifnam, &arglen);
+		if (ret != 0)
+			ifnam[0] = '\0';
+		else if (arglen < sizeof(ifnam))
+			ifnam[arglen] = '\0';
+		else
+			ifnam[sizeof(ifnam)-1] = '\0';
 		struct sockaddr_storage addr{};
 		arglen = sizeof(addr);
 		ret = getsockname(fd, reinterpret_cast<struct sockaddr *>(&addr), &arglen);
 		if (ret < 0)
 			continue;
 		arglen = std::min(static_cast<socklen_t>(sizeof(addr)), arglen);
+		auto ai = sk.m_ai;
 		if (ai->ai_family != domain || ai->ai_socktype != type ||
-		    ai->ai_protocol != proto)
+		    ai->ai_protocol != proto || strcmp(sk.m_intf.c_str(), ifnam) != 0)
 			continue;
 		if (arglen == ai->ai_addrlen && memcmp(&addr, ai->ai_addr, arglen) == 0) {
 			fcntl(fd, F_SETFD, FD_CLOEXEC);
@@ -906,7 +916,8 @@ ec_socket::~ec_socket()
 }
 
 ec_socket::ec_socket(ec_socket &&o) :
-	m_spec(std::move(o.m_spec)), m_ai(o.m_ai), m_fd(o.m_fd), m_port(o.m_port)
+	m_spec(std::move(o.m_spec)), m_intf(std::move(o.m_intf)),
+	m_ai(o.m_ai), m_fd(o.m_fd), m_port(o.m_port)
 {
 	o.m_ai = nullptr;
 	o.m_fd = -1;
@@ -917,9 +928,12 @@ bool ec_socket::operator==(const ec_socket &other) const
 	if (m_ai == nullptr || other.m_ai == nullptr ||
 	    m_ai->ai_family != other.m_ai->ai_family)
 		return false;
-	if (m_ai->ai_family != AF_LOCAL &&
-	    m_ai->ai_protocol != other.m_ai->ai_protocol)
-		return false;
+	if (m_ai->ai_family != AF_LOCAL) {
+		if (m_ai->ai_protocol != other.m_ai->ai_protocol)
+			return false;
+		if (m_intf != other.m_intf)
+			return false;
+	}
 	if (m_ai->ai_addrlen != other.m_ai->ai_addrlen)
 		return false;
 	return memcmp(m_ai->ai_addr, other.m_ai->ai_addr, m_ai->ai_addrlen) == 0;
@@ -934,6 +948,11 @@ bool ec_socket::operator<(const ec_socket &other) const
 	else if (m_ai->ai_family > other.m_ai->ai_family)
 		return false;
 	if (m_ai->ai_family != AF_LOCAL) {
+		auto r = m_intf.compare(other.m_intf);
+		if (r < 0)
+			return true;
+		else if (r > 0)
+			return false;
 		if (m_ai->ai_protocol < other.m_ai->ai_protocol)
 			return true;
 		else if (m_ai->ai_protocol > other.m_ai->ai_protocol)
@@ -986,11 +1005,11 @@ static std::pair<int, std::list<ec_socket>> ec_bindspec_to_inetinfo(const char *
 
 	std::list<ec_socket> vec;
 	auto parts = ec_parse_bindaddr(spec);
-	if (parts.first == "!" || parts.second == 0)
+	if (parts.m_spec == "!" || parts.m_port == 0)
 		return {-EINVAL, std::move(vec)};
 	std::unique_ptr<struct addrinfo, ai_deleter> res;
-	auto ret = getaddrinfo(parts.first.size() != 0 ? parts.first.c_str() : nullptr,
-	           std::to_string(parts.second).c_str(), &hints, &unique_tie(res));
+	auto ret = getaddrinfo(parts.m_spec.size() != 0 ? parts.m_spec.c_str() : nullptr,
+	           std::to_string(parts.m_port).c_str(), &hints, &unique_tie(res));
 	if (ret != 0) {
 		ec_log_warn("getaddrinfo: %s", gai_strerror(ret));
 		return {-EINVAL, std::move(vec)};
@@ -1001,17 +1020,24 @@ static std::pair<int, std::list<ec_socket>> ec_bindspec_to_inetinfo(const char *
 		auto curr = res.release();
 		res.reset(curr->ai_next);
 		curr->ai_next = nullptr;
-		sk.m_ai = curr;
-		sk.m_port = parts.second;
+		sk.m_ai   = curr;
+		sk.m_intf = parts.m_intf;
+		sk.m_port = parts.m_port;
+
+		/* Resolve "*" in spec into AF-specific host number */
 		char tmp[256];
 		if (getnameinfo(curr->ai_addr, curr->ai_addrlen, tmp,
 		    sizeof(tmp), nullptr, 0, NI_NUMERICHOST) != 0)
-			sk.m_spec = tmp + " <type-"s + std::to_string(curr->ai_family) +
+			sk.m_spec = "<unresolvable-type-"s + std::to_string(curr->ai_family) +
 			            "-" + std::to_string(curr->ai_protocol) + ">";
 		else if (curr->ai_family == AF_INET6)
-			sk.m_spec = "["s + tmp + "]:" + std::to_string(sk.m_port);
+			sk.m_spec = "["s + tmp + "]";
 		else
-			sk.m_spec = tmp + ":"s + std::to_string(sk.m_port);
+			sk.m_spec = tmp;
+		if (!sk.m_intf.empty())
+			sk.m_spec += "%" + sk.m_intf;
+		if (hints.ai_family != AF_LOCAL)
+			sk.m_spec += ":" + std::to_string(sk.m_port);
 #ifdef IPPROTO_SCTP
 		if (hints.ai_protocol == IPPROTO_SCTP)
 			sk.m_spec.insert(0, "sctp:");
@@ -1023,14 +1049,13 @@ static std::pair<int, std::list<ec_socket>> ec_bindspec_to_inetinfo(const char *
 
 static std::pair<int, std::list<ec_socket>> ec_bindspec_to_sockinfo(std::string &&spec)
 {
-	if (kc_starts_with(spec, "unix:")) {
-		std::list<ec_socket> skl;
-		auto sk = ec_bindspec_to_unixinfo(std::move(spec));
-		if (sk.m_err >= 0)
-			skl.emplace_back(std::move(sk));
-		return {sk.m_err, std::move(skl)};
-	}
-	return ec_bindspec_to_inetinfo(spec.c_str());
+	if (!kc_starts_with(spec, "unix:"))
+		return ec_bindspec_to_inetinfo(spec.c_str());
+	std::list<ec_socket> skl;
+	auto sk = ec_bindspec_to_unixinfo(std::move(spec));
+	if (sk.m_err >= 0)
+		skl.emplace_back(std::move(sk));
+	return {sk.m_err, std::move(skl)};
 }
 
 /**
@@ -1056,10 +1081,11 @@ std::pair<int, std::list<ec_socket>> ec_bindspec_to_sockets(std::vector<std::str
 		out.splice(out.end(), std::move(p.second));
 	}
 	out.sort();
+	/* Avoid picking up a socket from environment into two ec_socket structs. */
 	out.unique();
 
 	for (auto &sk : out) {
-		auto fd = ec_fdtable_socket_ai(sk.m_ai);
+		auto fd = ec_fdtable_socket_ai(sk);
 		if (fd >= 0) {
 			ec_log_info("Re-using fd %d for %s", fd, sk.m_spec.c_str());
 			sk.m_fd = fd;
