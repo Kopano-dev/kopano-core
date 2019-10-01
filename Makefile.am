@@ -67,8 +67,8 @@ AM_CPPFLAGS = ${ZCPPFLAGS} -DLDAP_THREAD_SAFE \
 	-I${top_srcdir}/libicalmapi \
 	-I${top_srcdir}/librosie \
 	-I${top_srcdir}/ECtools/archiver \
-	${CRYPTO_CFLAGS} ${curl_CFLAGS} ${GSOAP_CFLAGS} ${ICAL_CFLAGS} \
-	${jsoncpp_CFLAGS} \
+	${CRYPTO_CFLAGS} ${curl_CFLAGS} ${dbcxx_CPPFLAGS} \
+	${GSOAP_CFLAGS} ${ICAL_CFLAGS} ${jsoncpp_CFLAGS} \
 	${KRB5_CFLAGS} ${LDAP_FLAGS} ${libHX_CFLAGS} \
 	${MYSQL_INCLUDES} ${SSL_CFLAGS} \
 	${s3_CFLAGS} ${kcoidc_CFLAGS} ${TCMALLOC_CFLAGS} ${tidy_CPPFLAGS} \
@@ -533,7 +533,7 @@ libkcindex_la_SOURCES = ECtools/idx_handler.cpp \
 	ECtools/idx_util.cpp ECtools/idx_util.hpp \
 	ECtools/idx_xapian.cpp \
 	ECtools/idx_plugin.hpp ECtools/indexer.hpp
-libkcindex_la_LIBADD  = libkcutil.la libmapi.la -ldb_cxx ${xapian_LIBS}
+libkcindex_la_LIBADD  = libkcutil.la libmapi.la ${dbcxx_LIBS} ${xapian_LIBS}
 libkcindex_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	${default_SYFLAGS${NO_VSYM}}
 
