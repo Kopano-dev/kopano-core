@@ -9,6 +9,7 @@ Fixes:
 * server: reduce K-1515 warnings in normal situations [KF-2677]
 * server: cure use-after-free on shutdown [KC-1531]
 * dagent: split OP_REPLY/OP_FORWARD header match lists [KC-1445]
+* dagent: mails with ICS attachments now remain IPM.Note [KC-1555]
 Enhancements:
 * icalmapi: import and export middle names, prefixes and suffixes
   from/to vCards [KC-1595]
