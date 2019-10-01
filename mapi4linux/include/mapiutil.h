@@ -3,8 +3,8 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 /* mapiutil.h – Defines utility interfaces and functions */
-#ifndef __M4L_MAPIUTIL_H_
-#define __M4L_MAPIUTIL_H_
+#ifndef M4L_MAPIUTIL_H
+#define M4L_MAPIUTIL_H
 #define MAPIUTIL_H
 
 #include <kopano/zcdefs.h>

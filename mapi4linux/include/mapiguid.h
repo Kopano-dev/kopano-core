@@ -3,10 +3,10 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 /* mapiguid.h – Defines GUIDs. */
-#ifndef __M4L_MAPIGUID_H_
+#ifndef M4L_MAPIGUID_H
 
 #ifdef  INITGUID		/* only when INITGUID? */
-#define __M4L_MAPIGUID_H_
+#define M4L_MAPIGUID_H
 #define MAPIGUID_H
 #endif
 

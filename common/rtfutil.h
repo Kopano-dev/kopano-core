@@ -2,9 +2,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef __RTFUTIL_H
-#define __RTFUTIL_H
+#ifndef EC_RTFUTIL_H
+#define EC_RTFUTIL_H
 
 #include <kopano/zcdefs.h>
 #include <kopano/CommonUtil.h>

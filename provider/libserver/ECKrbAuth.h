@@ -2,8 +2,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef __ECAUTHKRB5_H_
+#ifndef EC_KRBAUTH_H
+#define EC_KRBAUTH_H
 
 #include <string>
 #include <kopano/platform.h>

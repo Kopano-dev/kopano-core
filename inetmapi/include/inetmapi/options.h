@@ -2,8 +2,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef __INETMAPI_OPTIONS_H
-#define __INETMAPI_OPTIONS_H
+#ifndef EC_INETMAPI_OPTIONS_H
+#define EC_INETMAPI_OPTIONS_H
 
 #include <kopano/zcdefs.h>
 #include <map>

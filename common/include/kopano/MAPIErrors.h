@@ -16,7 +16,7 @@
 #include <kopano/platform.h>	// for declaration of HRESULT
 #include <string>
 
-#ifndef __M4L_MAPICODE_H_
+#ifndef M4L_MAPICODE_H
 #ifndef MAPICODE_H
 const HRESULT MAPI_E_CALL_FAILED					= 0x80004005;
 const HRESULT MAPI_E_NOT_ENOUGH_MEMORY				= 0x8007000E;

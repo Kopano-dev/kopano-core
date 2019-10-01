@@ -2,8 +2,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef __M4L_INITGUID_H_
-#define __M4L_INITGUID_H_
+#ifndef M4L_INITGUID_H
+#define M4L_INITGUID_H
 
 /* Overwrite DEFINE_GUID to really create the guid data, not just declare. */
 #include <kopano/platform.h>

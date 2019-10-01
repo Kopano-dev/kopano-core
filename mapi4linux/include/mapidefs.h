@@ -6,8 +6,8 @@
  * mapidefs.h – Defines frequently used event types, property types, flags,
  * structures and interfaces.
  */
-#ifndef __M4L_MAPIDEFS_H_
-#define __M4L_MAPIDEFS_H_
+#ifndef M4L_MAPIDEFS_H
+#define M4L_MAPIDEFS_H
 #define MAPIDEFS_H
 
 #include <kopano/platform.h>

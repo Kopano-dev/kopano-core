@@ -4,8 +4,8 @@
  */
 
 // -*- Mode: C++ -*-
-#ifndef __PHP_EXT_MAIN_H
-#define __PHP_EXT_MAIN_H
+#ifndef EC_PHPEXT_MAIN_H
+#define EC_PHPEXT_MAIN_H
 
 /***************************************************************
 * Thread safe global variable

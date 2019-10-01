@@ -4,8 +4,8 @@
  */
 
 // -*- Mode: c++ -*-
-#ifndef __DBBASE_H
-#define __DBBASE_H
+#ifndef EC_DBBASE_H
+#define EC_DBBASE_H
 
 #include <kopano/zcdefs.h>
 #include "plugin.h"

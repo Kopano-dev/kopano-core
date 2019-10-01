@@ -2,9 +2,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef __STATSCLIENT_H__
-#define __STATSCLIENT_H__
+#ifndef EC_STATSCLIENT_H
+#define EC_STATSCLIENT_H
 
 #include <kopano/zcdefs.h>
 #include <atomic>

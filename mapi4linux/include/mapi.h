@@ -4,9 +4,8 @@
  */
 
 /* mapi.h – Defines structures and constants */
-
-#ifndef __M4L_MAPI_H_
-#define __M4L_MAPI_H_
+#ifndef M4L_MAPI_H
+#define M4L_MAPI_H
 #define MAPI_H
 
 #include <kopano/platform.h>

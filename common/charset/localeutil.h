@@ -2,9 +2,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef __CHARSET_UTIL_H
-#define __CHARSET_UTIL_H
+#ifndef EC_CHARSET_UTIL_H
+#define EC_CHARSET_UTIL_H
 
 #include <kopano/zcdefs.h>
 

@@ -2,8 +2,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef __UNIXUTIL_H
-#define __UNIXUTIL_H
+#ifndef EC_UNIXUTIL_H
+#define EC_UNIXUTIL_H
 
 #include <string>
 #include <vector>

@@ -3,8 +3,8 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 /* mapix.h – Defines flags and interfaces that MAPI implements for clients */
-#ifndef __M4L_MAPIX_H_
-#define __M4L_MAPIX_H_
+#ifndef M4L_MAPIX_H
+#define M4L_MAPIX_H
 #define MAPIX_H
 
 #include <kopano/zcdefs.h>

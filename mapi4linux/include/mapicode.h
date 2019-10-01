@@ -3,8 +3,8 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 /* mapicode.h – Defines status codes for error values */
-#ifndef __M4L_MAPICODE_H_
-#define __M4L_MAPICODE_H_
+#ifndef M4L_MAPICODE_H
+#define M4L_MAPICODE_H
 #define MAPICODE_H
 
 #include <kopano/platform.h>

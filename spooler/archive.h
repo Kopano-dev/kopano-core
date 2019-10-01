@@ -2,9 +2,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef __DAGENT_ARCHIVE_H
-#define __DAGENT_ARCHIVE_H
+#ifndef DAGENT_ARCHIVE_H
+#define DAGENT_ARCHIVE_H
 
 #include <mapidefs.h>
 #include <mapix.h>
