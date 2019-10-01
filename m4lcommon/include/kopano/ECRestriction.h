@@ -251,9 +251,7 @@ public:
 private:
 	_kc_hidden ECContentRestriction(ULONG fuzzy_level, ULONG tag, PropPtr prop);
 
-private:
-	ULONG	m_ulFuzzyLevel;
-	ULONG	m_ulPropTag;
+	unsigned int m_ulFuzzyLevel, m_ulPropTag;
 	PropPtr	m_ptrProp;
 };
 
@@ -270,9 +268,7 @@ public:
 	_kc_hidden ECRestriction *Clone(void) && _kc_override { return new ECBitMaskRestriction(std::move(*this)); }
 
 private:
-	ULONG	m_relBMR;
-	ULONG	m_ulPropTag;
-	ULONG	m_ulMask;
+	unsigned int m_relBMR, m_ulPropTag, m_ulMask;
 };
 
 class _kc_export ECPropertyRestriction KC_FINAL : public ECRestriction {
@@ -285,8 +281,7 @@ public:
 private:
 	_kc_hidden ECPropertyRestriction(ULONG relop, ULONG proptag, PropPtr prop);
 
-	ULONG	m_relop;
-	ULONG	m_ulPropTag;
+	unsigned int m_relop, m_ulPropTag;
 	PropPtr	m_ptrProp;
 };
 
@@ -303,9 +298,7 @@ public:
 	_kc_hidden ECRestriction *Clone(void) && _kc_override { return new ECComparePropsRestriction(std::move(*this)); }
 
 private:
-	ULONG	m_relop;
-	ULONG	m_ulPropTag1;
-	ULONG	m_ulPropTag2;
+	unsigned int m_relop, m_ulPropTag1, m_ulPropTag2;
 };
 
 class _kc_export ECExistRestriction KC_FINAL : public ECRestriction {

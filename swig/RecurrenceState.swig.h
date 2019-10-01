@@ -68,34 +68,21 @@ namespace KC {
 /* do not inline for swig */
 class Exception {
 public:
-    unsigned int ulStartDateTime;
-    unsigned int ulEndDateTime;
-    unsigned int ulOriginalStartDate;
-    unsigned int ulOverrideFlags;
-    std::string strSubject;
-    unsigned int ulMeetingType;
-    unsigned int ulReminderDelta;
-    unsigned int ulReminderSet;
-    std::string strLocation;
-    unsigned int ulBusyStatus;
-    unsigned int ulAttachment;
-    unsigned int ulSubType;
-    unsigned int ulAppointmentColor;
+	std::string strSubject, strLocation;
+	unsigned int ulStartDateTime, ulEndDateTime;
+	unsigned int ulOriginalStartDate, ulOverrideFlags;
+	unsigned int ulApptStateFlags, ulReminderDelta, ulReminderSet;
+	unsigned int ulBusyStatus, ulAttachment, ulSubType;
+	unsigned int ulAppointmentColor;
 };
 
 class ExtendedException {
 public:
-    unsigned int ulChangeHighlightValue;
-    std::string strReserved;
-    std::string strReservedBlock1;
-    unsigned int ulStartDateTime;
-    unsigned int ulEndDateTime;
-    unsigned int ulOriginalStartDate;
-    std::wstring strWideCharSubject;
-    std::wstring strWideCharLocation;
-    std::string strReservedBlock2;
+	unsigned int ulChangeHighlightValue, ulStartDateTime;
+	unsigned int ulEndDateTime, ulOriginalStartDate;
+	std::wstring strWideCharSubject, strWideCharLocation;
+	std::string strReserved, strReservedBlock1, strReservedBlock2;
 };
-
 
 class RecurrenceState {
 public:
@@ -108,9 +95,7 @@ public:
 	unsigned int ulWriterVersion = 0x3004;
 	unsigned int ulRecurFrequency = 0; /* "invalid" */
 	unsigned int ulPatternType = PT_DAY;
-	unsigned int ulCalendarType = 0;
-	unsigned int ulFirstDateTime = 0;
-	unsigned int ulPeriod = 0;
+	unsigned int ulCalendarType = 0, ulFirstDateTime = 0, ulPeriod = 0;
 	unsigned int ulSlidingFlag = 0;
 
 	// pattern type specific:
@@ -118,15 +103,11 @@ public:
 	unsigned int ulDayOfMonth = 0; // monthly, day in month
 	unsigned int ulWeekNumber = 0; // monthly, 1-4 or 5 for last
 
-	unsigned int ulEndType = 0;
-	unsigned int ulOccurrenceCount = 0;
+	unsigned int ulEndType = 0, ulOccurrenceCount = 0;
 	unsigned int ulFirstDOW = DOW_MONDAY; /* default Outlook */
-	unsigned int ulDeletedInstanceCount = 0;
-	std::vector<unsigned int> lstDeletedInstanceDates;
-	unsigned int ulModifiedInstanceCount = 0;
-	std::vector<unsigned int> lstModifiedInstanceDates;
-	unsigned int ulStartDate = 0;
-	unsigned int ulEndDate = 0;
+	unsigned int ulDeletedInstanceCount = 0, ulModifiedInstanceCount = 0;
+	unsigned int ulStartDate = 0, ulEndDate = 0;
+	std::vector<unsigned int> lstDeletedInstanceDates, lstModifiedInstanceDates;
 
 	unsigned int ulReaderVersion2 = 0x3006;
 	unsigned int ulWriterVersion2 = 0x3008; /* can also be 3009, but Outlook (2003) sets 3008 */
@@ -135,9 +116,8 @@ public:
 
 	unsigned int ulExceptionCount = 0;
 	std::vector<Exception> lstExceptions;
-	std::string strReservedBlock1;
 	std::vector<ExtendedException> lstExtendedExceptions;
-	std::string strReservedBlock2;
+	std::string strReservedBlock1, strReservedBlock2;
 };
 
 } /* namespace */

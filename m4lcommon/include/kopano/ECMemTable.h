@@ -23,9 +23,7 @@ namespace KC {
 
 struct ECTableEntry {
 	memory_ptr<SPropValue> lpsPropVal, lpsID;
-	BOOL			fDeleted;
-	BOOL			fDirty;
-	BOOL			fNew;
+	BOOL fDeleted, fDirty, fNew;
 	ULONG			cValues;
 };
 
