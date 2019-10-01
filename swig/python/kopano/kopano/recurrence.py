@@ -51,7 +51,7 @@ from .errors import (
 from .defs import (
     ARO_SUBJECT, ARO_MEETINGTYPE, ARO_REMINDERDELTA, ARO_REMINDERSET,
     ARO_LOCATION, ARO_BUSYSTATUS, ARO_ATTACHMENT, ARO_SUBTYPE,
-    ARO_APPTCOLOR, ASF_CANCELED, FB_STATUS, STATUS_FB, PSETID_Appointment,
+    ARO_APPTCOLOR, ASF_CANCELED, FB_STATUS, STATUS_FB,
 )
 
 
@@ -392,6 +392,7 @@ class Recurrence(object):
                 _utils.unixtime_to_rectime(calendar.timegm(d.timetuple()))
 
             subject = self.item.subject
+            # TODO: lazy load location move logic to Occurrence class
             location = self.item.location
             busystatus = self.item.busystatus
             exception = False

@@ -8,8 +8,7 @@ Copyright 2016 - 2019 Kopano and its licensors (see LICENSE file)
 import sys
 
 from MAPI import (
-    PT_SYSTIME, MNID_ID, PT_BOOLEAN, MODRECIP_ADD,
-    PT_LONG, PT_UNICODE, PT_BINARY,
+    PT_SYSTIME, MODRECIP_ADD, PT_LONG, PT_UNICODE,
 )
 
 from MAPI.Tags import (
@@ -28,7 +27,7 @@ from .compat import (
     benc as _benc, bdec as _bdec, fake_unicode as _unicode,
 )
 from .defs import (
-    PSETID_Appointment, ASF_CANCELED, NR_COLOR, COLOR_NR, FB_STATUS,
+    ASF_CANCELED, NR_COLOR, COLOR_NR, FB_STATUS,
     STATUS_FB, ASF_MEETING, RESPONSE_STATUS,
 )
 from .pidlid import (
