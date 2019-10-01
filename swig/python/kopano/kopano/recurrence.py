@@ -15,7 +15,6 @@ import time
 from MAPI import (
     MAPI_UNICODE, MODRECIP_ADD, MODRECIP_MODIFY,
     MSGFLAG_READ, MSGFLAG_UNSENT, ATTACH_EMBEDDED_MSG,
-    PT_BINARY, MNID_ID,
 )
 
 from MAPI.Tags import (
@@ -55,7 +54,6 @@ from .defs import (
     ARO_APPTCOLOR, ASF_CANCELED, FB_STATUS, STATUS_FB, PSETID_Appointment,
 )
 
-BLOB = (PSETID_Appointment, MNID_ID, 0x8216)
 
 from .attendee import Attendee
 
@@ -519,8 +517,7 @@ class Recurrence(object):
         self._month = None
 
         # AppointmentRecurrencePattern
-        proptag = self.item.store._name_id(BLOB) | PT_BINARY
-        value = self.item._get_fast(proptag)
+        value = self.item._get_fast(self.item.store._pidlid_proptag(PidLidAppointmentRecur))
         # TODO: throw NotFound exception instead if value is None?
         if not value:
             value = self.item.prop(PidLidAppointmentRecur).value

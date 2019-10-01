@@ -62,7 +62,7 @@ from .properties import Properties
 from .autoaccept import AutoAccept
 from .autoprocess import AutoProcess
 from .outofoffice import OutOfOffice
-from .property_ import Property
+from .property_ import Property, _name_to_proptag
 from .delegation import Delegation
 from .permission import Permission, _permissions_dumps, _permissions_loads
 from .freebusy import FreeBusy
@@ -142,6 +142,7 @@ class Store(Properties):
         self.__root = None
 
         self._name_id_cache = {}
+        self._pidlid_cache = {}
 
     @property
     def _root(self):
@@ -1114,6 +1115,7 @@ class Store(Properties):
         return FreeBusy(self)
 
     def _name_id(self, name_tuple):
+        # TODO: use _pidlid_proptag everywhere
         id_ = self._name_id_cache.get(name_tuple)
         if id_ is None:
             named_props = [MAPINAMEID(*name_tuple)]
@@ -1121,6 +1123,13 @@ class Store(Properties):
             # potential db overflow?
             id_ = self.mapiobj.GetIDsFromNames(named_props, 0)[0]
             self._name_id_cache[name_tuple] = id_
+        return id_
+
+    def _pidlid_proptag(self, pidlid):
+        id_ = self._pidlid_cache.get(pidlid)
+        if id_ is None:
+            id_ = _name_to_proptag(pidlid, self.mapiobj)[0]
+            self._pidlid_cache[pidlid] = id_
         return id_
 
     def __eq__(self, s): # TODO check same server?
