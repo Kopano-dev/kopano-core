@@ -117,12 +117,12 @@ public:
 		return erSuccess;
 	}
 
-	count_type ItemCount(void) const _kc_override
+	count_type ItemCount() const override
 	{
 		return m_map.size();
 	}
 
-	size_type Size(void) const _kc_override
+	size_type Size() const override
 	{
 		/* It works with map and unordered_map. */
 		return m_map.size() * sizeof(typename MapType::value_type) + sizeof(MapType) + m_ulSize;

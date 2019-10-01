@@ -26,9 +26,9 @@ private:
 
 public:
 	static HRESULT Create(const char *buffer, ULONG len, ULONG flags, ECMemBlock **out);
-	virtual HRESULT QueryInterface(REFIID refiid, void **iface) _kc_override;
-	virtual HRESULT	ReadAt(ULONG ulPos, ULONG ulLen, char *buffer, ULONG *ulBytesRead);
-	virtual HRESULT WriteAt(ULONG ulPos, ULONG ulLen, const char *buffer, ULONG *ulBytesWritten);
+	virtual HRESULT QueryInterface(const IID &, void **) override;
+	virtual HRESULT	ReadAt(unsigned int pos, unsigned int len, char *buffer, unsigned int *have_read);
+	virtual HRESULT WriteAt(unsigned int pos, unsigned int len, const char *buffer, unsigned int *have_written);
 	virtual HRESULT Commit();
 	virtual HRESULT Revert();
 	virtual HRESULT SetSize(ULONG ulSize);
@@ -60,8 +60,8 @@ private:
 public:
 	static  HRESULT	Create(char *buffer, ULONG ulDataLen, ULONG ulFlags, CommitFunc lpCommitFunc, DeleteFunc lpDeleteFunc, void *lpParam, ECMemStream **lppStream);
 	_kc_hidden static HRESULT Create(ECMemBlock *, ULONG flags, CommitFunc, DeleteFunc, void *param, ECMemStream **ret);
-	virtual ULONG Release(void) _kc_override;
-	virtual HRESULT QueryInterface(REFIID refiid, void **iface) _kc_override;
+	virtual unsigned int Release() override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
 	_kc_hidden virtual HRESULT Read(void *buf, unsigned int bytes, unsigned int *have_read) override;
 	_kc_hidden virtual HRESULT Write(const void *buf, unsigned int bytes, unsigned int *have_written) override;
 	_kc_hidden virtual HRESULT Seek(LARGE_INTEGER pos, unsigned int origin, ULARGE_INTEGER *newpos) override;

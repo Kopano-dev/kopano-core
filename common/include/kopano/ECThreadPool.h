@@ -139,7 +139,7 @@ public:
 	};
 
 	virtual ~ECWaitableTask();
-	virtual void execute(void) _kc_override;
+	virtual void execute() override;
 	bool done() const { return m_state == Done; }
 	bool wait(unsigned timeout = WAIT_INFINITE, unsigned waitMask = Done) const;
 
@@ -168,10 +168,7 @@ public:
 	ECDeferredFunc(Fn fn, const At &arg) : m_fn(fn), m_arg(arg)
 	{ }
 
-	virtual void run(void) _kc_override
-	{
-		m_result = m_fn(m_arg);
-	}
+	virtual void run() override { m_result = m_fn(m_arg); }
 
 	/**
 	 * Get the result of the asynchronous function. This method will
