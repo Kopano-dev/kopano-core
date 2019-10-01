@@ -38,10 +38,7 @@ public:
 };
 
 class M4LProfSect KC_FINAL_OPG : public IProfSect, public M4LMAPIProp {
-private:
-	BOOL bGlobalProf;
 public:
-	M4LProfSect(BOOL gp = false) : bGlobalProf(gp) {}
 	virtual HRESULT ValidateState(ULONG ulUIParam, ULONG ulFlags);
 	virtual HRESULT SettingsDialog(ULONG ulUIParam, ULONG ulFlags);
 	virtual HRESULT ChangePassword(const TCHAR *oldpw, const TCHAR *newpw, ULONG flags);

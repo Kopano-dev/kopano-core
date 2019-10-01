@@ -94,7 +94,7 @@ class spooler_stats final : public StatsClient {
 	spooler_stats(std::shared_ptr<ECConfig>);
 };
 
-static std::unique_ptr<StatsClient> sc;
+static std::unique_ptr<spooler_stats> sc;
 
 // spooler exit codes
 #define EXIT_WAIT 2

@@ -780,7 +780,7 @@ std::shared_ptr<ECLogger> StartLoggerProcess(ECConfig *lpConfig,
 	int pipefds[2];
 
 	if (lpFileLogger == NULL)
-		return lpLogger;
+		return std::move(lpLogger);
 	auto filefd = lpFileLogger->GetFileDescriptor();
 	auto child = pipe(pipefds);
 	if (child < 0)
@@ -840,7 +840,9 @@ static bool eclog_sockable(const char *path)
 static bool eclog_have_ttys()
 {
 	auto fd = open("/dev/tty", 0);
-	auto ok = fd >= 0 && isatty(STDERR_FILENO);
+	if (fd < 0)
+		return false;
+	auto ok = isatty(STDERR_FILENO);
 	close(fd);
 	return ok;
 }

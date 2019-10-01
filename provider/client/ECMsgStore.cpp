@@ -2144,10 +2144,9 @@ static HRESULT CreateSpecialFolder(IMAPIFolder *folder_parent_in,
 	     ulMVPos, lpszContainerClass);
 	if (hr != hrSuccess)
 		return hr;
-	*lppMAPIFolder = lpMAPIFolder;
 	if (lppMAPIFolder != nullptr)
 		hr = lpMAPIFolder->QueryInterface(IID_IMAPIFolder, reinterpret_cast<void **>(lppMAPIFolder));
-	return hr;
+	return hrSuccess;
 }
 
 static HRESULT make_special_folder(ECMAPIProp *folder_propset_in,

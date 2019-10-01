@@ -258,7 +258,7 @@ exit:
 	return hr;
 }
 
-HRESULT WSTransport::HrLogon(const struct sGlobalProfileProps &in_props)
+HRESULT WSTransport::HrLogon(const struct sGlobalProfileProps &in_props) try
 {
 	if (m_has_session)
 		logoff_nd();
@@ -267,6 +267,8 @@ HRESULT WSTransport::HrLogon(const struct sGlobalProfileProps &in_props)
 	struct sGlobalProfileProps p = in_props;
 	p.strServerPath = "file:///var/run/kopano/server.sock";
 	return HrLogon2(p);
+} catch (const unknown_charset_exception &) {
+	return MAPI_E_INVALID_PARAMETER;
 }
 
 HRESULT WSTransport::HrSetRecvTimeout(unsigned int ulSeconds)
@@ -603,11 +605,9 @@ HRESULT WSTransport::HrGetStoreType(ULONG cbStoreID, const ENTRYID *lpStoreID,
 
 HRESULT WSTransport::HrLogOff()
 {
-	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
 	soap_lock_guard spg(*this);
 
-	START_SOAP_CALL
 	{
 		if (m_lpCmd->logoff(m_ecSessionId, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
@@ -615,8 +615,8 @@ HRESULT WSTransport::HrLogOff()
 			m_has_session = false;
 		m_lpCmd.reset();
 	}
-	END_SOAP_CALL
- exitm:
+	if (er == KCERR_END_OF_SESSION)
+		return hrSuccess;
 	return hrSuccess; // NOTE hrSuccess, never fails since we don't really mind that it failed.
 }
 
@@ -814,7 +814,6 @@ HRESULT WSTransport::HrNotify(const NOTIFICATION *lpNotification)
 	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
 	struct notification sNotification;
-	int ulSize = 0;
 	soap_lock_guard spg(*this);
 
 	sNotification.ulConnection = 0;// The connection id should be calculate on the server side
@@ -832,7 +831,6 @@ HRESULT WSTransport::HrNotify(const NOTIFICATION *lpNotification)
 
 	if(lpNotification->info.newmail.lpszMessageClass){
 		utf8string strMessageClass = convstring(lpNotification->info.newmail.lpszMessageClass, lpNotification->info.newmail.ulFlags);
-		ulSize = strMessageClass.size() + 1;
 		sNotification.newmail->lpszMessageClass = soap_strdup(nullptr, strMessageClass.c_str());
 	}
 	sNotification.newmail->ulMessageFlags = lpNotification->info.newmail.ulMessageFlags;

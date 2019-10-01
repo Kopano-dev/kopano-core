@@ -193,7 +193,7 @@ HRESULT M4LProfAdmin::CreateProfile(const TCHAR *lpszProfileName,
 		return MAPI_E_NOT_ENOUGH_MEMORY;
     }
     // This is the so-called global profile section.
-	profilesection.reset(new M4LProfSect(TRUE));
+	profilesection.reset(new M4LProfSect);
 
 	// Set the default profilename
 	sPropValue.ulPropTag = PR_PROFILE_NAME_A;
@@ -1437,9 +1437,9 @@ HRESULT M4LAddrBook::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 			// PR_ENTRYID, PR_RECORD_KEY, PR_SEARCH_KEY, PR_SEND_INTERNET_ENCODING, PR_SEND_RICH_INFO
 			lpMailUser->SetProps(5, sProps.get(), nullptr);
 			if (lpInterface == nullptr || *lpInterface == IID_IMailUser)
-				*lppUnk = reinterpret_cast<IUnknown *>(static_cast<IMailUser *>(lpMailUser));
+				*lppUnk = reinterpret_cast<IUnknown *>(static_cast<void *>(static_cast<IMailUser *>(lpMailUser)));
 			else if (*lpInterface == IID_IMAPIProp)
-				*lppUnk = reinterpret_cast<IUnknown *>(static_cast<IMAPIProp *>(lpMailUser));
+				*lppUnk = reinterpret_cast<IUnknown *>(static_cast<void *>(static_cast<IMAPIProp *>(lpMailUser)));
 			else if (*lpInterface == IID_IUnknown)
 				*lppUnk = static_cast<IUnknown *>(lpMailUser);
 			*lpulObjType = MAPI_MAILUSER;

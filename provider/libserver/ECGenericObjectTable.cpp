@@ -967,7 +967,7 @@ ECRESULT ECGenericObjectTable::FreeBookmark(unsigned int ulbkPosition)
 // Expand the category identified by sInstanceKey
 ECRESULT ECGenericObjectTable::ExpandRow(struct soap *soap, xsd__base64Binary sInstanceKey, unsigned int ulRowCount, unsigned int ulFlags, struct rowSet **lppRowSet, unsigned int *lpulRowsLeft)
 {
-	sObjectTableKey sKey, sPrevRow;
+	sObjectTableKey sKey;
     ECCategoryMap::const_iterator iterCategory;
     ECCategory *lpCategory = NULL;
     ECObjectTableList lstUnhidden;
@@ -1029,7 +1029,7 @@ ECRESULT ECGenericObjectTable::ExpandRow(struct soap *soap, xsd__base64Binary sI
 // Collapse the category row identified by sInstanceKey
 ECRESULT ECGenericObjectTable::CollapseRow(xsd__base64Binary sInstanceKey, unsigned int ulFlags, unsigned int *lpulRows)
 {
-	sObjectTableKey sKey, sPrevRow;
+	sObjectTableKey sKey;
     ECCategoryMap::const_iterator iterCategory;
     ECCategory *lpCategory = NULL;
     ECObjectTableList lstHidden;

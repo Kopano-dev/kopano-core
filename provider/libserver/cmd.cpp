@@ -8140,7 +8140,6 @@ SOAP_ENTRY_END()
 SOAP_ENTRY_START(GetQuotaStatus, lpsQuotaStatus->er, unsigned int ulUserid,
     const entryId &sUserId, struct quotaStatus *lpsQuotaStatus)
 {
-	quotadetails_t	quotadetails;
 	long long		llStoreSize = 0;
 	objectid_t		sExternId;
 	bool			bHasLocalStore = false;

@@ -207,7 +207,6 @@ class mpt_search final : public mpt_job {
 	int run() override;
 
 	private:
-	unsigned int m_rfsize = 0;
 	object_ptr<IMAPIFolder> m_findroot, m_find;
 	memory_ptr<ENTRYLIST> m_scanfld;
 	memory_ptr<SRestriction> m_rst;

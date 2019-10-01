@@ -3095,7 +3095,7 @@ ZEND_FUNCTION(mapi_openproperty)
 			ULONG cRead;
 
 			// do not use queryinterface, since we don't return the stream, but the contents
-			lpStream.reset(reinterpret_cast<IStream *>(lpUnk), false);
+			lpStream.reset(reinterpret_cast<IStream *>(static_cast<void *>(lpUnk)), false);
 			MAPI_G(hr) = lpStream->Stat(&stat, STATFLAG_NONAME);
 			if(MAPI_G(hr) != hrSuccess)
 				return;

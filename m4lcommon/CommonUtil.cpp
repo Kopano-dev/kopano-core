@@ -1928,7 +1928,7 @@ static HRESULT CreateLocalFreeBusyMessage(LPMAPIFOLDER lpFolder, ULONG ulFlags,
     LPMESSAGE *lppMessage)
 {
 	object_ptr<IMessage> lpMessage;
-	SPropValue sPropValMessage[6] = {0};
+	SPropValue sPropValMessage[6]{};
 
 	if (lpFolder == nullptr || lppMessage == nullptr || (ulFlags & ~MAPI_ASSOCIATED) != 0)
 		return MAPI_E_INVALID_PARAMETER;
