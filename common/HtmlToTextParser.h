@@ -11,7 +11,7 @@
 
 namespace KC {
 
-class _kc_export CHtmlToTextParser KC_FINAL {
+class KC_EXPORT CHtmlToTextParser KC_FINAL {
 public:
 	CHtmlToTextParser(void);
 	bool Parse(const wchar_t *lpwHTML);
@@ -96,6 +96,6 @@ protected:
 	std::stack<ListInfo> listInfoStack;
 };
 
-extern _kc_export bool rosie_clean_html(const std::string &in, std::string *out, std::vector<std::string> *err);
+extern KC_EXPORT bool rosie_clean_html(const std::string &in, std::string *out, std::vector<std::string> *err);
 
 } /* namespace */

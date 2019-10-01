@@ -42,7 +42,7 @@ struct sSQLDatabase_t {
 class ECConfig;
 class KDatabase;
 
-class _kc_export DB_RESULT KC_FINAL {
+class KC_EXPORT DB_RESULT KC_FINAL {
 	public:
 	DB_RESULT(void) = default;
 	DB_RESULT(KDatabase *d, void *r) : m_res(r), m_db(d) {}
@@ -81,7 +81,7 @@ class kt_completion {
  * Essentially, this gives the programmer an implicit commit/rollback,
  * depending on whether the ECRESULT was erSuccess at the time of ~kd_trans.
  */
-class _kc_export kd_trans final {
+class KC_EXPORT kd_trans final {
 	public:
 	kd_trans();
 	kd_trans(kt_completion &d, ECRESULT &r) : m_db(&d), m_result(&r) {}
@@ -97,7 +97,7 @@ class _kc_export kd_trans final {
 	bool m_done = false;
 };
 
-class _kc_export KDatabase : public kt_completion {
+class KC_EXPORT KDatabase : public kt_completion {
 	public:
 	KDatabase(void);
 	virtual ~KDatabase() { Close(); }

@@ -102,8 +102,8 @@ const HRESULT MAPI_E_STORE_FULL						= 0x8004060c;
 
 namespace KC {
 
-extern _kc_export const char *GetMAPIErrorMessage(HRESULT);
-extern _kc_export std::string getMapiCodeString(HRESULT, const char *object = "object");
+extern KC_EXPORT const char *GetMAPIErrorMessage(HRESULT);
+extern KC_EXPORT std::string getMapiCodeString(HRESULT, const char *object = "object");
 
 } /* namespace */
 

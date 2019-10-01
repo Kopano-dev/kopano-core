@@ -36,48 +36,48 @@ enum DGMessageType {
 };
 
 /* darn, no sane place because of depend include on mapidefs.h */
-extern _kc_export bool operator==(const SBinary &, const SBinary &) noexcept;
-extern _kc_export bool operator<(const SBinary &, const SBinary &) noexcept;
+extern KC_EXPORT bool operator==(const SBinary &, const SBinary &) noexcept;
+extern KC_EXPORT bool operator<(const SBinary &, const SBinary &) noexcept;
 
 namespace KC {
 
-extern _kc_export const char *GetServerUnixSocket(const char *pref = nullptr);
-extern _kc_export HRESULT HrOpenECAdminSession(IMAPISession **, const char *const app_ver, const char *app_misc, const char *path = nullptr, ULONG profflags = 0, const char *sslkey_file = nullptr, const char *sslkey_password = nullptr);
-extern _kc_export HRESULT HrOpenECSession(IMAPISession **ses, const char *app_ver, const char *app_misc, const char *user, const char *pass, const char *path = nullptr, ULONG profile_flags = 0, const char *sslkey_file = nullptr, const char *sslkey_password = nullptr, const char *profname = nullptr);
-extern _kc_export HRESULT HrOpenECSession(IMAPISession **ses, const char *app_ver, const char *app_misc, const wchar_t *user, const wchar_t *pass, const char *path = nullptr, ULONG profile_flags = 0, const char *sslkey_file = nullptr, const char *sslkey_password = nullptr, const char *profname = nullptr);
-extern _kc_export HRESULT HrOpenECPublicStoreOnline(IMAPISession *, IMsgStore **ret);
-extern _kc_export HRESULT ECCreateOneOff(const TCHAR * name, const TCHAR * addrtype, const TCHAR * addr, ULONG flags, ULONG *eid_size, LPENTRYID *eid);
-extern _kc_export HRESULT ECParseOneOff(const ENTRYID *eid, ULONG eid_size, std::wstring &name, std::wstring &type, std::wstring &addr);
-extern _kc_export HRESULT HrNewMailNotification(IMsgStore *, IMessage *);
-extern _kc_export HRESULT HrCreateEmailSearchKey(const char *type, const char *addr, ULONG *size, LPBYTE *out);
-extern _kc_export HRESULT DoSentMail(IMAPISession *, IMsgStore *, ULONG flags, object_ptr<IMessage>);
-extern _kc_export HRESULT GetClientVersion(unsigned int *);
-extern _kc_export HRESULT OpenSubFolder(LPMDB, const wchar_t *folder, wchar_t psep, bool is_public, bool create_folder, LPMAPIFOLDER *subfolder);
-extern _kc_export HRESULT spv_postload_large_props(IMAPIProp *, const SPropTagArray *, unsigned int, SPropValue *);
-extern _kc_export HRESULT HrOpenDefaultCalendar(LPMDB, LPMAPIFOLDER *default_folder);
-extern _kc_export HRESULT HrGetFullProp(IMAPIProp *prop, unsigned int tag, SPropValue **);
-extern _kc_export HRESULT HrGetAllProps(IMAPIProp *prop, ULONG flags, ULONG *nvals, LPSPropValue *props);
-extern _kc_export HRESULT UnWrapStoreEntryID(ULONG eid_size, const ENTRYID *eid, ULONG *ret_size, ENTRYID **ret);
-extern _kc_export HRESULT GetECObject(IMAPIProp *, const IID &, void **);
+extern KC_EXPORT const char *GetServerUnixSocket(const char *pref = nullptr);
+extern KC_EXPORT HRESULT HrOpenECAdminSession(IMAPISession **, const char *const app_ver, const char *app_misc, const char *path = nullptr, unsigned int profflags = 0, const char *sslkey_file = nullptr, const char *sslkey_password = nullptr);
+extern KC_EXPORT HRESULT HrOpenECSession(IMAPISession **ses, const char *app_ver, const char *app_misc, const char *user, const char *pass, const char *path = nullptr, unsigned int profile_flags = 0, const char *sslkey_file = nullptr, const char *sslkey_password = nullptr, const char *profname = nullptr);
+extern KC_EXPORT HRESULT HrOpenECSession(IMAPISession **ses, const char *app_ver, const char *app_misc, const wchar_t *user, const wchar_t *pass, const char *path = nullptr, unsigned int profile_flags = 0, const char *sslkey_file = nullptr, const char *sslkey_password = nullptr, const char *profname = nullptr);
+extern KC_EXPORT HRESULT HrOpenECPublicStoreOnline(IMAPISession *, IMsgStore **ret);
+extern KC_EXPORT HRESULT ECCreateOneOff(const TCHAR * name, const TCHAR * addrtype, const TCHAR * addr, unsigned int flags, unsigned int *eid_size, ENTRYID **eid);
+extern KC_EXPORT HRESULT ECParseOneOff(const ENTRYID *eid, unsigned int eid_size, std::wstring &name, std::wstring &type, std::wstring &addr);
+extern KC_EXPORT HRESULT HrNewMailNotification(IMsgStore *, IMessage *);
+extern KC_EXPORT HRESULT HrCreateEmailSearchKey(const char *type, const char *addr, unsigned int *size, BYTE **out);
+extern KC_EXPORT HRESULT DoSentMail(IMAPISession *, IMsgStore *, unsigned int flags, object_ptr<IMessage>);
+extern KC_EXPORT HRESULT GetClientVersion(unsigned int *);
+extern KC_EXPORT HRESULT OpenSubFolder(IMsgStore *, const wchar_t *folder, wchar_t psep, bool is_public, bool create_folder, IMAPIFolder **subfolder);
+extern KC_EXPORT HRESULT spv_postload_large_props(IMAPIProp *, const SPropTagArray *, unsigned int, SPropValue *);
+extern KC_EXPORT HRESULT HrOpenDefaultCalendar(IMsgStore *, IMAPIFolder **default_folder);
+extern KC_EXPORT HRESULT HrGetFullProp(IMAPIProp *prop, unsigned int tag, SPropValue **);
+extern KC_EXPORT HRESULT HrGetAllProps(IMAPIProp *prop, unsigned int flags, unsigned int *nvals, SPropValue **props);
+extern KC_EXPORT HRESULT UnWrapStoreEntryID(unsigned int eid_size, const ENTRYID *eid, unsigned int *ret_size, ENTRYID **ret);
+extern KC_EXPORT HRESULT GetECObject(IMAPIProp *, const IID &, void **);
 
 // Auto-accept settings
-extern _kc_export HRESULT HrGetRemoteAdminStore(IMAPISession *, IMsgStore *, LPCTSTR server, ULONG flags, IMsgStore **ret);
+extern KC_EXPORT HRESULT HrGetRemoteAdminStore(IMAPISession *, IMsgStore *, const TCHAR *server, unsigned int flags, IMsgStore **ret);
 
-extern _kc_export HRESULT HrOpenDefaultStore(IMAPISession *, IMsgStore **ret);
-extern _kc_export HRESULT HrOpenDefaultStore(IMAPISession *, ULONG flags, IMsgStore **ret);
-extern _kc_export HRESULT HrOpenECPublicStore(IMAPISession *, IMsgStore **ret);
-extern _kc_export HRESULT HrGetAddress(LPADRBOOK, IMessage *, ULONG tag_eid, ULONG tag_name, ULONG tag_type, ULONG tag_addr, std::wstring &name, std::wstring &type, std::wstring &addr);
-extern _kc_export HRESULT HrGetAddress(IAddrBook *, const SPropValue *props, ULONG nvals, ULONG tag_eid, ULONG tag_name, ULONG tag_type, ULONG tag_addr, std::wstring &name, std::wstring &type, std::wstring &addr);
-extern _kc_export HRESULT HrGetAddress(IAddrBook *, const ENTRYID *eid, ULONG eid_size, std::wstring &name, std::wstring &type, std::wstring &addr);
-extern _kc_export std::string ToQuotedBase64Header(const std::wstring &);
+extern KC_EXPORT HRESULT HrOpenDefaultStore(IMAPISession *, IMsgStore **ret);
+extern KC_EXPORT HRESULT HrOpenDefaultStore(IMAPISession *, unsigned int flags, IMsgStore **ret);
+extern KC_EXPORT HRESULT HrOpenECPublicStore(IMAPISession *, IMsgStore **ret);
+extern KC_EXPORT HRESULT HrGetAddress(IAddrBook *, IMessage *, unsigned int tag_eid, unsigned int tag_name, unsigned int tag_type, unsigned int tag_addr, std::wstring &name, std::wstring &type, std::wstring &addr);
+extern KC_EXPORT HRESULT HrGetAddress(IAddrBook *, const SPropValue *props, unsigned int nvals, unsigned int tag_eid, unsigned int tag_name, unsigned int tag_type, unsigned int tag_addr, std::wstring &name, std::wstring &type, std::wstring &addr);
+extern KC_EXPORT HRESULT HrGetAddress(IAddrBook *, const ENTRYID *eid, unsigned int eid_size, std::wstring &name, std::wstring &type, std::wstring &addr);
+extern KC_EXPORT std::string ToQuotedBase64Header(const std::wstring &);
 extern HRESULT TestRestriction(const SRestriction *cond, ULONG nvals, const SPropValue *props, const ECLocale &, ULONG level = 0);
-extern _kc_export HRESULT TestRestriction(const SRestriction *cond, IMAPIProp *msg, const ECLocale &, ULONG level = 0);
-extern _kc_export HRESULT HrOpenUserMsgStore(LPMAPISESSION, const wchar_t *user, LPMDB *store);
-extern _kc_export HRESULT OpenLocalFBMessage(DGMessageType eDGMsgType, IMsgStore *lpMsgStore, bool bCreateIfMissing, IMessage **lppFBMessage);
+extern KC_EXPORT HRESULT TestRestriction(const SRestriction *cond, IMAPIProp *msg, const ECLocale &, unsigned int level = 0);
+extern KC_EXPORT HRESULT HrOpenUserMsgStore(IMAPISession *, const wchar_t *user, IMsgStore **store);
+extern KC_EXPORT HRESULT OpenLocalFBMessage(DGMessageType eDGMsgType, IMsgStore *lpMsgStore, bool bCreateIfMissing, IMessage **lppFBMessage);
 
 // Auto-accept settings
-extern _kc_export HRESULT SetAutoAcceptSettings(IMsgStore *, bool auto_accept, bool decline_conflict, bool decline_recurring, bool autoprocess_ptr);
-extern _kc_export HRESULT GetAutoAcceptSettings(IMsgStore *, bool *auto_accept, bool *decline_conflict, bool *decline_recurring, bool *autoprocess_ptr = nullptr);
+extern KC_EXPORT HRESULT SetAutoAcceptSettings(IMsgStore *, bool auto_accept, bool decline_conflict, bool decline_recurring, bool autoprocess_ptr);
+extern KC_EXPORT HRESULT GetAutoAcceptSettings(IMsgStore *, bool *auto_accept, bool *decline_conflict, bool *decline_recurring, bool *autoprocess_ptr = nullptr);
 
 /**
  * NAMED PROPERTY utilities
@@ -96,7 +96,7 @@ extern _kc_export HRESULT GetAutoAcceptSettings(IMsgStore *, bool *auto_accept, 
  * printf("%X %X\n", PROP_RECURRING, PROP_START);
  *
  */
-class _kc_export ECPropMapEntry KC_FINAL {
+class KC_EXPORT ECPropMapEntry KC_FINAL {
 public:
     ECPropMapEntry(GUID guid, ULONG ulId);
     ECPropMapEntry(GUID guid, const char *strName);
@@ -109,7 +109,7 @@ private:
     GUID m_sGuid;
 };
 
-class _kc_export ECPropMap KC_FINAL {
+class KC_EXPORT ECPropMap KC_FINAL {
 public:
     ECPropMap(size_t = 0);
     void AddProp(ULONG *lpId, ULONG ulType, const ECPropMapEntry &entry);
@@ -127,7 +127,7 @@ private:
 #define PROPMAP_DEF_NAMED_ID(name) ULONG PROP_##name = 0;
 #define PROPMAP_INIT_NAMED_ID(name, type, guid, id) m_propmap.AddProp(&PROP_##name, type, KC::ECPropMapEntry(guid, id));
 
-class _kc_export KServerContext {
+class KC_EXPORT KServerContext {
 	public:
 	HRESULT logon(const char *user = nullptr, const char *password = nullptr);
 	HRESULT inbox(IMAPIFolder **) const;

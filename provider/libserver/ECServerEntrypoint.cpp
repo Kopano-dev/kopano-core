@@ -21,7 +21,7 @@ namespace KC {
 
 pthread_key_t plugin_key;
 
-_kc_export std::unique_ptr<ECSessionManager> g_lpSessionManager;
+KC_EXPORT std::unique_ptr<ECSessionManager> g_lpSessionManager;
 static bool g_bInitLib = false;
 
 static void plugin_destroy(void *lpParam)

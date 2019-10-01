@@ -11,11 +11,11 @@
 
 namespace KC {
 
-extern _kc_export bool isrtfhtml(const char *, unsigned int);
-extern _kc_export bool isrtftext(const char *, unsigned int);
-extern _kc_export HRESULT HrExtractHTMLFromRTF(const std::string &rtf, std::string &html, ULONG codepage);
-extern _kc_export HRESULT HrExtractHTMLFromTextRTF(const std::string &rtf, std::string &html, ULONG codepage);
-extern _kc_export HRESULT HrExtractHTMLFromRealRTF(const std::string &rtf, std::string &html, ULONG codepage);
+extern KC_EXPORT bool isrtfhtml(const char *, unsigned int);
+extern KC_EXPORT bool isrtftext(const char *, unsigned int);
+extern KC_EXPORT HRESULT HrExtractHTMLFromRTF(const std::string &rtf, std::string &html, unsigned int codepage);
+extern KC_EXPORT HRESULT HrExtractHTMLFromTextRTF(const std::string &rtf, std::string &html, unsigned int codepage);
+extern KC_EXPORT HRESULT HrExtractHTMLFromRealRTF(const std::string &rtf, std::string &html, unsigned int codepage);
 
 } /* namespace */
 

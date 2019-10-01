@@ -32,7 +32,7 @@ class ECConfig;
 // this ensures that the ECChannel class is responsible for reading, writing
 // and culling newline characters.
 
-class _kc_export ECChannel KC_FINAL {
+class KC_EXPORT ECChannel KC_FINAL {
 public:
 	_kc_hidden ECChannel(int sockfd);
 	~ECChannel();
@@ -73,7 +73,7 @@ private:
  * @fd:		socket fd for this addrinfo
  * @err:	errno obtained during socket creation
  */
-struct _kc_export ec_socket {
+struct KC_EXPORT ec_socket {
 	public:
 	ec_socket() = default;
 	ec_socket(ec_socket &&);
@@ -87,11 +87,11 @@ struct _kc_export ec_socket {
 };
 
 /* accept data on connection */
-extern _kc_export HRESULT HrAccept(int fd, ECChannel **ch);
-extern _kc_export int zcp_peerfd_is_local(int);
-extern _kc_export ec_socket ec_parse_bindaddr(const char *);
-extern _kc_export void ec_reexec_prepare_sockets();
-extern _kc_export std::pair<int, std::list<ec_socket>> ec_bindspec_to_sockets(std::vector<std::string> &&, unsigned int mode, const char *user, const char *group);
+extern KC_EXPORT HRESULT HrAccept(int fd, ECChannel **ch);
+extern KC_EXPORT int zcp_peerfd_is_local(int);
+extern KC_EXPORT ec_socket ec_parse_bindaddr(const char *);
+extern KC_EXPORT void ec_reexec_prepare_sockets();
+extern KC_EXPORT std::pair<int, std::list<ec_socket>> ec_bindspec_to_sockets(std::vector<std::string> &&, unsigned int mode, const char *user, const char *group);
 
 } /* namespace KC */
 

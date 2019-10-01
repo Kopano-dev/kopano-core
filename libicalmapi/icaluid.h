@@ -11,12 +11,12 @@
 
 namespace KC {
 
-extern _kc_export bool IsOutlookUid(const std::string &);
+extern KC_EXPORT bool IsOutlookUid(const std::string &);
 HRESULT HrGenerateUid(std::string *lpStrUid);
-extern _kc_export HRESULT HrCreateGlobalID(ULONG named_tag, void *base, LPSPropValue *pv);
-extern _kc_export HRESULT HrGetICalUidFromBinUid(const SBinary &, std::string *uid);
-extern _kc_export HRESULT HrMakeBinUidFromICalUid(const std::string &uid, std::string *binuid);
-extern _kc_export HRESULT HrMakeBinaryUID(const std::string &strUid, void *base, SPropValue *lpPropValue);
+extern KC_EXPORT HRESULT HrCreateGlobalID(unsigned int named_tag, void *base, SPropValue **pv);
+extern KC_EXPORT HRESULT HrGetICalUidFromBinUid(const SBinary &, std::string *uid);
+extern KC_EXPORT HRESULT HrMakeBinUidFromICalUid(const std::string &uid, std::string *binuid);
+extern KC_EXPORT HRESULT HrMakeBinaryUID(const std::string &strUid, void *base, SPropValue *lpPropValue);
 
 } /* namespace */
 

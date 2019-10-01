@@ -125,7 +125,7 @@ typedef GUID  UUID;		// needed? existing?
 /* #   define EXTERN_C extern */
 /* # endif */
   #define GUID_EXT extern "C"
-  #define DEFINE_GUID(n,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) GUID_EXT _kc_export const GUID n
+  #define DEFINE_GUID(n,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) GUID_EXT KC_EXPORT const GUID n
 #endif
 
 #define DEFINE_OLEGUID(n,l,w1,w2) DEFINE_GUID(n,l,w1,w2,0xC0,0,0,0,0,0,0,0x46)
@@ -370,24 +370,24 @@ typedef OLECHAR** SNB;
 typedef DWORD LCID;
 
 /* functions */
-extern _kc_export bool operator!=(const GUID &, const GUID &) noexcept;
-extern _kc_export bool operator==(REFIID, const GUID &) noexcept;
+extern KC_EXPORT bool operator!=(const GUID &, const GUID &) noexcept;
+extern KC_EXPORT bool operator==(const IID &, const GUID &) noexcept;
 
 extern "C" {
 
-extern _kc_export HRESULT CoCreateGuid(LPGUID);
-extern _kc_export void GetSystemTimeAsFileTime(FILETIME *);
+extern KC_EXPORT HRESULT CoCreateGuid(GUID *);
+extern KC_EXPORT void GetSystemTimeAsFileTime(FILETIME *);
 
 #define _tcslen	wcslen
 #define _tcscpy wcscpy
 #define _tcscmp wcscmp
 #define _tcsicmp wcscasecmp
 
-extern _kc_export void Sleep(unsigned int usec);
+extern KC_EXPORT void Sleep(unsigned int usec);
 
 /* because the flags are not used linux, they do not match the windows flags! */
 #define GPTR 0
-extern _kc_export void * GlobalAlloc(UINT flags, ULONG size);
+extern KC_EXPORT void *GlobalAlloc(unsigned int flags, unsigned int size);
 
 } /* extern "C" */
 
@@ -403,8 +403,8 @@ typedef void * DLIB;
 
 namespace KC {
 
-extern _kc_export void le_to_cpu(SYSTEMTIME &);
-extern _kc_export time_t GetProcessTime(void);
+extern KC_EXPORT void le_to_cpu(SYSTEMTIME &);
+extern KC_EXPORT time_t GetProcessTime();
 
 #define GetTickCount() 0L
 

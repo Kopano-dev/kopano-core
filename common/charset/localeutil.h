@@ -9,7 +9,7 @@
 
 namespace KC {
 
-extern _kc_export bool forceUTF8Locale(bool output, std::string *prev_lcoale = nullptr);
+extern KC_EXPORT bool forceUTF8Locale(bool output, std::string *prev_lcoale = nullptr);
 locale_t createUTF8Locale();
 
 } /* namespace */

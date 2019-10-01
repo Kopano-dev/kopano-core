@@ -132,7 +132,7 @@ struct ECStat2 {
 
 typedef std::map<SCName, ECStat> SCMap;
 
-class _kc_export ECStatsCollector {
+class KC_EXPORT ECStatsCollector {
 	public:
 	ECStatsCollector(std::shared_ptr<ECConfig>);
 	virtual ~ECStatsCollector();

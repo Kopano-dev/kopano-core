@@ -127,7 +127,7 @@ class usercount_t final {
 	unsigned int m_counts[ucMAX]{};
 };
 
-class _kc_export server_stats final : public ECStatsCollector {
+class KC_EXPORT server_stats final : public ECStatsCollector {
 	public:
 	_kc_hidden server_stats(std::shared_ptr<ECConfig>);
 	void fill_odm() override;
@@ -138,7 +138,7 @@ class _kc_export server_stats final : public ECStatsCollector {
 
 class SOURCEKEY;
 
-class _kc_export ECSessionManager final {
+class KC_EXPORT ECSessionManager final {
 public:
 	_kc_hidden ECSessionManager(std::shared_ptr<ECConfig>, std::shared_ptr<ECLogger> audit, std::shared_ptr<server_stats>, bool hosted, bool distributed);
 	_kc_hidden virtual ~ECSessionManager(void);
@@ -265,8 +265,8 @@ protected:
 	usercount_t m_usercount;
 };
 
-extern _kc_export void (*kopano_get_server_stats)(unsigned int *qlen, KC::time_duration *qage, unsigned int *nthr, unsigned int *nidlethr);
-extern _kc_export std::unique_ptr<ECSessionManager> g_lpSessionManager;
+extern KC_EXPORT void (*kopano_get_server_stats)(unsigned int *qlen, KC::time_duration *qage, unsigned int *nthr, unsigned int *nidlethr);
+extern KC_EXPORT std::unique_ptr<ECSessionManager> g_lpSessionManager;
 
 } /* namespace */
 

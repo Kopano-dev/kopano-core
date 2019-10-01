@@ -14,7 +14,7 @@
 
 namespace KC {
 
-class _kc_export convstring KC_FINAL {
+class KC_EXPORT convstring KC_FINAL {
 public:
 	static convstring from_SPropValue(const SPropValue *lpsPropVal);
 	_kc_hidden static convstring from_SPropValue(const SPropValue &);

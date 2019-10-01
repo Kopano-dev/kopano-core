@@ -119,8 +119,8 @@ enum CONNECTION_TYPE {
 };
 
 //Functions
-extern _kc_export HRESULT kcerr_to_mapierr(ECRESULT, HRESULT hrDefault = 0x80070005 /* MAPI_E_NO_ACCESS */);
-extern _kc_export ECRESULT ec_log_ercode(ECRESULT, unsigned int level, const char *fmt, const char *func);
+extern KC_EXPORT HRESULT kcerr_to_mapierr(ECRESULT, HRESULT hrDefault = 0x80070005 /* MAPI_E_NO_ACCESS */);
+extern KC_EXPORT ECRESULT ec_log_ercode(ECRESULT, unsigned int level, const char *fmt, const char *func);
 
 } /* namespace */
 

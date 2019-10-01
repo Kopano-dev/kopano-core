@@ -22,7 +22,7 @@ class ECStatsCollector;
 // The ECDatabaseFactory creates database objects connected to the server database. Which
 // database is returned is chosen by the database_engine configuration setting.
 
-class _kc_export ECDatabaseFactory final {
+class KC_EXPORT ECDatabaseFactory final {
 public:
 	struct dfpair {
 		ECDatabaseFactory *factory;

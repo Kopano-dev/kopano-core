@@ -14,7 +14,7 @@ struct IMsgStore;
 
 namespace KC {
 
-extern _kc_export HRESULT HrPublishDefaultCalendar(IMAPISession *, IMsgStore *, time_t start, ULONG months);
+extern KC_EXPORT HRESULT HrPublishDefaultCalendar(IMAPISession *, IMsgStore *, time_t start, unsigned int months);
 
 } /* namespace */
 

@@ -106,7 +106,7 @@ class ECSortColView {
 	}
 };
 
-class _kc_export ECTableRow KC_FINAL {
+class KC_EXPORT ECTableRow KC_FINAL {
 public:
 	ECTableRow(const sObjectTableKey &, const std::vector<ECSortCol> &, bool hidden);
 	ECTableRow(const sObjectTableKey &, std::vector<ECSortCol> &&, bool hidden);
@@ -141,7 +141,7 @@ struct sBookmarkPosition {
 
 typedef std::map<unsigned int, sBookmarkPosition> ECBookmarkMap;
 
-class _kc_export ECKeyTable KC_FINAL {
+class KC_EXPORT ECKeyTable KC_FINAL {
 public:
 	/* this MUST be the same definitions as TABLE_NOTIFICATION event types passed in ulTableEvent */
 

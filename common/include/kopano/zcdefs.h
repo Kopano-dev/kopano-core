@@ -17,19 +17,19 @@
 #ifdef SWIG
 	/* why does this not surprise me */
 #	define _kc_hidden
-#	define _kc_export
+#	define KC_EXPORT
 #else
 #	if !defined(__cplusplus) || __cplusplus < 201400L
 #		error KGWC needs at least C++14
 #	endif
 #	define _kc_hidden __attribute__((visibility("hidden")))
-#	define _kc_export __attribute__((visibility("default")))
+#	define KC_EXPORT __attribute__((visibility("default")))
 #endif
 
 /* Exported because something was using dynamic_cast<C> */
-#define KC_EXPORT_DYCAST _kc_export
+#define KC_EXPORT_DYCAST KC_EXPORT
 /* Exported because something was using throw C; */
-#define KC_EXPORT_THROW _kc_export
+#define KC_EXPORT_THROW KC_EXPORT
 
 /* Minimum requirement for KC is g++ 4.7, g++0x mode. */
 /* Swig is not bright enough to grok all C++11. */

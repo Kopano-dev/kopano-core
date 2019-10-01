@@ -38,7 +38,7 @@ enum eIDNamedProps {
 };
 
 /* call this function to get the IDs from the listed namedprops above */
-extern _kc_export HRESULT HrLookupNames(IMAPIProp *propobj, LPSPropTagArray *namedprops);
+extern KC_EXPORT HRESULT HrLookupNames(IMAPIProp *propobj, SPropTagArray **namedprops);
 
 } /* namespace */
 

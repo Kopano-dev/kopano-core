@@ -45,7 +45,7 @@ private:
 /*
  * This is an IStream-compatible wrapper for ECMemBlock
  */
-class _kc_export ECMemStream KC_FINAL_OPG : public ECUnknown, public IStream {
+class KC_EXPORT ECMemStream KC_FINAL_OPG : public ECUnknown, public IStream {
 public:
 	typedef HRESULT (*CommitFunc)(IStream *lpStream, void *lpParam);
 	typedef HRESULT (*DeleteFunc)(void *lpParam); /* Caller's function to remove lpParam data from memory */

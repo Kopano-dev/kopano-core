@@ -49,8 +49,8 @@ private:
 
 extern "C" {
 
-extern _kc_export HRESULT plugin_manager_init(KC::ECConfig *, const char *, pym_plugin_intf **);
-extern _kc_export void plugin_manager_exit();
+extern KC_EXPORT HRESULT plugin_manager_init(KC::ECConfig *, const char *, pym_plugin_intf **);
+extern KC_EXPORT void plugin_manager_exit();
 
 }
 

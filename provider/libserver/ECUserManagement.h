@@ -42,7 +42,7 @@ public:
 #define USERMANAGEMENT_FORCE_SYNC		0x4		// Force sync with external database
 #define USERMANAGEMENT_SHOW_HIDDEN		0x8		// Show hidden entries
 
-class _kc_export ECUserManagement final {
+class KC_EXPORT ECUserManagement final {
 public:
 	_kc_hidden ECUserManagement(BTSession *, ECPluginFactory *, std::shared_ptr<ECConfig>);
 	_kc_hidden virtual ~ECUserManagement(void) = default;

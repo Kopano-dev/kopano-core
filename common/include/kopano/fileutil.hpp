@@ -14,7 +14,7 @@ namespace KC {
 
 class ECConfig;
 
-class _kc_export TmpPath KC_FINAL {
+class KC_EXPORT TmpPath KC_FINAL {
 	private:
 	std::string path;
 
@@ -22,7 +22,7 @@ class _kc_export TmpPath KC_FINAL {
 	_kc_hidden TmpPath(void);
 	bool OverridePath(ECConfig *const ec);
 	_kc_hidden const std::string &getTempPath(void) const { return path; }
-	static _kc_export TmpPath instance;
+	static TmpPath instance;
 };
 
 class file_deleter {
@@ -30,13 +30,13 @@ class file_deleter {
 	void operator()(FILE *f) { fclose(f); }
 };
 
-extern _kc_export HRESULT HrFileLFtoCRLF(FILE *fin, FILE **fout);
-extern _kc_export HRESULT HrMapFileToString(FILE *f, std::string *buf);
-extern _kc_export bool DuplicateFile(FILE *, std::string &newname);
-extern _kc_export int CreatePath(std::string, unsigned int = 0770);
-extern _kc_export ssize_t read_retry(int, void *, size_t);
-extern _kc_export ssize_t write_retry(int, const void *, size_t);
-extern _kc_export bool force_buffers_to_disk(int fd);
+extern KC_EXPORT HRESULT HrFileLFtoCRLF(FILE *fin, FILE **fout);
+extern KC_EXPORT HRESULT HrMapFileToString(FILE *f, std::string *buf);
+extern KC_EXPORT bool DuplicateFile(FILE *, std::string &newname);
+extern KC_EXPORT int CreatePath(std::string, unsigned int = 0770);
+extern KC_EXPORT ssize_t read_retry(int, void *, size_t);
+extern KC_EXPORT ssize_t write_retry(int, const void *, size_t);
+extern KC_EXPORT bool force_buffers_to_disk(int fd);
 
 } /* namespace */
 

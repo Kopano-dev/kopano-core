@@ -30,7 +30,7 @@ namespace KC {
 /**
  * Implementatie of the IFreeBusySupport interface
  */
-class _kc_export ECFreeBusySupport KC_FINAL_OPG :
+class KC_EXPORT ECFreeBusySupport KC_FINAL_OPG :
     public ECUnknown, public IFreeBusySupport,
     public IFreeBusySupportOutlook2000 {
 private:

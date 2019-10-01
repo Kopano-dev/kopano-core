@@ -10,7 +10,7 @@
 
 namespace KC {
 
-extern _kc_export void *SoftDeleteRemover(void *);
+extern KC_EXPORT void *SoftDeleteRemover(void *);
 
 } /* namespace */
 

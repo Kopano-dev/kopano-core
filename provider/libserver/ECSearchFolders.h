@@ -71,7 +71,7 @@ struct sSearchFolderStats {
  * except rebuilding searchfolders; when the server starts and finds a searchfolder that was only half-built, a complete
  * rebuild is started since we don't know how far the rebuild got last time.
  */
-class _kc_export ECSearchFolders final {
+class KC_EXPORT ECSearchFolders final {
 public:
 	_kc_hidden ECSearchFolders(ECSessionManager *, ECDatabaseFactory *);
 	_kc_hidden virtual ~ECSearchFolders(void);

@@ -34,7 +34,7 @@ enum ACLRIGHTS {
 	ROLE_NONE = 0x400
 };
 
-extern _kc_export std::string AclRightsToString(unsigned int rights);
+extern KC_EXPORT std::string AclRightsToString(unsigned int rights);
 
 } /* namespace */
 

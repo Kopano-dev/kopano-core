@@ -40,10 +40,10 @@ typedef int gsoap_size_t;
  * Platform independent functions
  */
 // Random-number generators
-extern _kc_export void rand_init(void);
-extern _kc_export int rand_mt(void);
-extern _kc_export void rand_get(char *p, int n);
-extern _kc_export char *get_password(const char *prompt);
+extern KC_EXPORT void rand_init();
+extern KC_EXPORT int rand_mt();
+extern KC_EXPORT void rand_get(char *p, int n);
+extern KC_EXPORT char *get_password(const char *prompt);
 
 /**
  * Memory usage calculation macros
@@ -56,10 +56,10 @@ extern _kc_export char *get_password(const char *prompt);
 #define MEMORY_USAGE_STRING(str)			(str.capacity() + 1)
 #define MEMORY_USAGE_MULTIMAP(items, map)	MEMORY_USAGE_MAP(items, map)
 
-extern _kc_export void set_thread_name(pthread_t, const std::string &);
-extern _kc_export int ec_relocate_fd(int);
-extern _kc_export void kcsrv_blocksigs(void);
-extern _kc_export unsigned long kc_threadid(void);
+extern KC_EXPORT void set_thread_name(pthread_t, const std::string &);
+extern KC_EXPORT int ec_relocate_fd(int);
+extern KC_EXPORT void kcsrv_blocksigs();
+extern KC_EXPORT unsigned long kc_threadid();
 
 /* Determine the size of an array */
 template<typename T, size_t N> constexpr inline size_t ARRAY_SIZE(T (&)[N]) { return N; }

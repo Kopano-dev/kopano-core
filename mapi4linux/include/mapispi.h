@@ -233,7 +233,7 @@ typedef HRESULT (ABPROVIDERINIT)(
     LPABPROVIDER *  lppABProvider
 );
 
-_kc_export ABPROVIDERINIT ABProviderInit;
+KC_EXPORT ABPROVIDERINIT ABProviderInit;
 }
 
 /********************************************************************/
@@ -433,7 +433,7 @@ typedef HRESULT (MSPROVIDERINIT)(
     LPMSPROVIDER *      lppMSProvider
 );
 
-_kc_export MSPROVIDERINIT MSProviderInit;
+KC_EXPORT MSPROVIDERINIT MSProviderInit;
 }
 
 /********************************************************************/

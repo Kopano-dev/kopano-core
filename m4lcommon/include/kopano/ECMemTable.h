@@ -51,7 +51,7 @@ typedef std::map<int, ECMEMADVISE *> ECMapMemAdvise;
  */
 class ECMemTableView;
 
-class _kc_export ECMemTable : public ECUnknown {
+class KC_EXPORT ECMemTable : public ECUnknown {
 protected:
 	ECMemTable(const SPropTagArray *lpsPropTagArray, ULONG ulRowPropTag);
 	virtual ~ECMemTable();
@@ -86,7 +86,7 @@ protected:
 	ALLOC_WRAP_FRIEND;
 };
 
-class _kc_export ECMemTableView KC_FINAL_OPG :
+class KC_EXPORT ECMemTableView KC_FINAL_OPG :
     public ECUnknown, public IMAPITable {
 protected:
 	_kc_hidden ECMemTableView(ECMemTable *, const ECLocale &, ULONG flags);

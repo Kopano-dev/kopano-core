@@ -25,7 +25,7 @@ typedef std::unique_ptr<StoreHelper> StoreHelperPtr;
  * The StoreHelper class provides some common utility functions that relate to IMsgStore
  * objects in the archiver context.
  */
-class _kc_export StoreHelper final : public MAPIPropHelper {
+class KC_EXPORT StoreHelper final : public MAPIPropHelper {
 public:
 	static HRESULT Create(MsgStorePtr &ptrMsgStore, StoreHelperPtr *lpptrStoreHelper);
 	_kc_hidden HRESULT GetFolder(const tstring &name, bool create, LPMAPIFOLDER *ret);

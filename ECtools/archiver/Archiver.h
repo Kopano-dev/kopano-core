@@ -19,7 +19,7 @@ class ECConfig;
 
 struct configsetting_t;
 
-class _kc_export Archiver {
+class KC_EXPORT Archiver {
 public:
 	enum {
 		RequireConfig		= 0x00000001,

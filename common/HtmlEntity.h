@@ -7,7 +7,7 @@
 
 namespace KC {
 
-class _kc_export CHtmlEntity KC_FINAL {
+class KC_EXPORT CHtmlEntity KC_FINAL {
 public:
 	_kc_hidden static wchar_t toChar(const wchar_t *);
 	_kc_hidden static const wchar_t *toName(wchar_t);

@@ -14,7 +14,7 @@ class ECIndexService;
 using FIELDTERM = std::pair<std::vector<unsigned int>, std::vector<std::string>>;
 using FIELDTERMS = std::vector<FIELDTERM>;
 
-class _kc_export IIndexer {
+class KC_EXPORT IIndexer {
 	public:
 	struct client_state {
 		private:

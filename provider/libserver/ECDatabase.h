@@ -17,7 +17,7 @@ class ECConfig;
 class ECStatsCollector;
 class zcp_versiontuple;
 
-class _kc_export ECDatabase final : public KDatabase {
+class KC_EXPORT ECDatabase final : public KDatabase {
 public:
 	ECDatabase(std::shared_ptr<ECConfig>, std::shared_ptr<ECStatsCollector>);
 	static ECRESULT	InitLibrary(const char *dir, const char *config_file);
@@ -59,7 +59,7 @@ public:
 #endif
 };
 
-extern _kc_export bool searchfolder_restart_required;
+extern KC_EXPORT bool searchfolder_restart_required;
 
 } /* namespace */
 

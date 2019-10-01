@@ -57,7 +57,7 @@ struct ECCacheStat {
 	uint64_t items, size, maxsize, req, hit;
 };
 
-class _kc_export ECCacheBase {
+class KC_EXPORT ECCacheBase {
 public:
 	typedef unsigned long		count_type;
 	typedef size_t size_type;

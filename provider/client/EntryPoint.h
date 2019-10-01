@@ -11,7 +11,7 @@
 
 extern "C" {
 
-extern _kc_export HRESULT MSGServiceEntry(HINSTANCE, IMalloc *, IMAPISupport *, ULONG ui_param, ULONG se_flags, ULONG ctx, ULONG nprops, const SPropValue *props, IProviderAdmin *, MAPIERROR **);
+extern KC_EXPORT HRESULT MSGServiceEntry(HINSTANCE, IMalloc *, IMAPISupport *, unsigned int ui_param, unsigned int se_flags, unsigned int ctx, unsigned int nprops, const SPropValue *props, IProviderAdmin *, MAPIERROR **);
 
 }
 

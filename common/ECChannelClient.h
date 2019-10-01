@@ -16,7 +16,7 @@
 
 namespace KC {
 
-class _kc_export ECChannelClient {
+class KC_EXPORT ECChannelClient {
 public:
 	ECChannelClient(const char *szPath, const char *szTokenizer);
 	ECRESULT DoCmd(const std::string &strCommand, std::vector<std::string> &lstResponse);

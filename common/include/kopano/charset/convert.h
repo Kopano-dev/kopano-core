@@ -58,7 +58,7 @@ class KC_EXPORT_THROW illegal_sequence_exception KC_FINAL :
 /**
  * @brief	Performs the generic iconv processing.
  */
-class _kc_export iconv_context_base {
+class KC_EXPORT iconv_context_base {
 	public:
 	virtual ~iconv_context_base();
 
@@ -219,7 +219,7 @@ inline To_Type convert_to(const char *tocode, const From_Type &from,
  * same context. This basically means that the iconv_context classes can
  * be reused, removing the need to recreate them for each conversion.
  */
-class _kc_export convert_context KC_FINAL {
+class KC_EXPORT convert_context KC_FINAL {
 public:
 	convert_context(void) = default;
 	~convert_context();
@@ -635,7 +635,7 @@ private:
  */
 #define TO_UTF8_DEF(ptr) TO_UTF8(converter, (ptr), ulFlags)
 
-extern _kc_export HRESULT HrFromException(const convert_exception &);
+extern KC_EXPORT HRESULT HrFromException(const convert_exception &);
 
 #ifdef MAPIDEFS_H
 

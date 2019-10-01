@@ -51,7 +51,7 @@ namespace KC {
 /**
  * Utility class for easy handling of non-addressbook entryids.
  */
-class _kc_export entryid_t final {
+class KC_EXPORT entryid_t final {
 public:
 	/**
 	 * Constructs an empty entryid.
@@ -484,8 +484,8 @@ private:
 	entryid_t m_sEntryId;
 };
 
-extern _kc_export eResult MAPIErrorToArchiveError(HRESULT);
-extern _kc_export const char *ArchiveResultString(eResult);
+extern KC_EXPORT eResult MAPIErrorToArchiveError(HRESULT);
+extern KC_EXPORT const char *ArchiveResultString(eResult);
 
 } /* namespace */
 

@@ -6,12 +6,13 @@
 #define M4L_INITGUID_H
 
 /* Overwrite DEFINE_GUID to really create the guid data, not just declare. */
+#include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 
 #define INITGUID
 #undef DEFINE_GUID
 #define DEFINE_GUID(n,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) \
-	GUID_EXT _kc_export constexpr const GUID n = \
+	GUID_EXT KC_EXPORT constexpr const GUID n = \
 		{cpu_to_le32(l), cpu_to_le16(w1), cpu_to_le16(w2), \
 		{b1, b2, b3, b4, b5, b6, b7, b8}}
 

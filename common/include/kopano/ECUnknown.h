@@ -46,7 +46,7 @@ namespace KC {
 		} \
 	} while (false)
 
-class _kc_export ECUnknown : public virtual IUnknown {
+class KC_EXPORT ECUnknown : public virtual IUnknown {
 public:
 	ECUnknown(const char *szClassName = NULL);
 	virtual ~ECUnknown(void);

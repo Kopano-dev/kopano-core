@@ -39,21 +39,21 @@ struct TIMEZONE_STRUCT {
 	}
 };
 
-extern _kc_export time_t LocalToUTC(time_t local, const TIMEZONE_STRUCT &);
-extern _kc_export time_t UTCToLocal(time_t utc, const TIMEZONE_STRUCT &);
-extern _kc_export FILETIME UnixTimeToFileTime(time_t);
-extern _kc_export time_t FileTimeToUnixTime(const FILETIME &);
-extern _kc_export void UnixTimeToFileTime(time_t, int *hi, unsigned int *lo);
-extern _kc_export LONG FileTimeToRTime(const FILETIME &);
-extern _kc_export int FileTimeToTimestamp(const FILETIME &, time_t &, char *, size_t);
-extern _kc_export LONG UnixTimeToRTime(time_t);
-extern _kc_export time_t RTimeToUnixTime(LONG rtime);
-extern _kc_export struct tm *gmtime_safe(time_t, struct tm *);
-extern _kc_export double timespec2dbl(const struct timespec &);
+extern KC_EXPORT time_t LocalToUTC(time_t local, const TIMEZONE_STRUCT &);
+extern KC_EXPORT time_t UTCToLocal(time_t utc, const TIMEZONE_STRUCT &);
+extern KC_EXPORT FILETIME UnixTimeToFileTime(time_t);
+extern KC_EXPORT time_t FileTimeToUnixTime(const FILETIME &);
+extern KC_EXPORT void UnixTimeToFileTime(time_t, int *hi, unsigned int *lo);
+extern KC_EXPORT LONG FileTimeToRTime(const FILETIME &);
+extern KC_EXPORT int FileTimeToTimestamp(const FILETIME &, time_t &, char *, size_t);
+extern KC_EXPORT LONG UnixTimeToRTime(time_t);
+extern KC_EXPORT time_t RTimeToUnixTime(int rtime);
+extern KC_EXPORT struct tm *gmtime_safe(time_t, struct tm *);
+extern KC_EXPORT double timespec2dbl(const struct timespec &);
 extern bool operator==(const FILETIME &, const FILETIME &) noexcept;
-extern _kc_export bool operator>(const FILETIME &, const FILETIME &) noexcept;
+extern KC_EXPORT bool operator>(const FILETIME &, const FILETIME &) noexcept;
 extern bool operator>=(const FILETIME &, const FILETIME &) noexcept;
-extern _kc_export bool operator<(const FILETIME &, const FILETIME &) noexcept;
+extern KC_EXPORT bool operator<(const FILETIME &, const FILETIME &) noexcept;
 extern bool operator<=(const FILETIME &, const FILETIME &) noexcept;
 #ifndef HAVE_TIMEGM
 /* convert struct tm to time_t in timezone UTC0 (GM time) */

@@ -39,7 +39,7 @@ protected:
 	bool m_bNoRecipients;
 };
 
-extern _kc_export HRESULT CreateICalToMapi(IMAPIProp *propobj, LPADRBOOK, bool no_recipients, ICalToMapi **ret);
+extern KC_EXPORT HRESULT CreateICalToMapi(IMAPIProp *propobj, IAddrBook *, bool no_recipients, ICalToMapi **ret);
 
 } /* namespace */
 

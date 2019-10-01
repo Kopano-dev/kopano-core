@@ -31,7 +31,7 @@ class vcftomapi {
 	IMAPIProp *m_propobj;
 };
 
-extern _kc_export HRESULT create_vcftomapi(IMAPIProp *, vcftomapi **);
+extern KC_EXPORT HRESULT create_vcftomapi(IMAPIProp *, vcftomapi **);
 
 } /* namespace */
 
