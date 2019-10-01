@@ -52,28 +52,18 @@ In the propmap the configuration names must be the hex property tag of the reque
 Example: !propmap ldap.propmap.cfg
 .RE
 .SH "EXPLANATION OF EACH PARAMETER"
-.SS ldap_host, ldap_port, ldap_protocol
-.PP
-These historic directives specify a single LDAP server to use. Its use
-is discouraged in favor of \fBldap_uri\fP.
-.PP
-Defaults: ldap_host=\fIlocalhost\fP, ldap_port=\fI389\fP,
-ldap_protocol=\fIldap\fP
 .SS ldap_uri
 .PP
-Specifies the URI of one or more LDAP server(s) to use, without any DN portion,
+Specifies the URIs of one or more LDAP server(s) to use, without any DN portion,
 such as "\fBldap://server:389/\fP", "\fBldaps://server:636/\fP" or
-"\fBldapi:///\fP". If \fBldap_uri\fP is set, the values of the historic
-directives \fBldap_host\fP, \fBldap_port\fP and \fBldap_protocol\fP are
-ignored.
+"\fBldapi:///\fP".
 .PP
-Default: (empty, such that URI list is constructed from ldap_host, ldap_port,
-ldap_protocol)
+Default: \fIldap://localhost:389/\fP
 .SS ldap_starttls
 .PP
 Request that any LDAP connections be secured with TLS, and reject the
 connection if this security cannot be established. See the OpenLDAP
-documentation for setting up ldap.cfg and TLS requirements.
+documentation for setting up (/etc/openldap/)ldap.cfg and TLS requirements.
 .PP
 Default: \fIno\fP
 .SS ldap_server_charset

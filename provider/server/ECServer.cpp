@@ -487,12 +487,8 @@ static ECRESULT check_server_configuration(void)
 	ECSession		*lpecSession = NULL;
 	serverdetails_t	sServerDetails;
 
-	// Upgrade 'enable_sso_ntlmauth' to 'enable_sso'
-	auto bCheck = parseBool(g_lpConfig->GetSetting("enable_sso_ntlmauth"));
-	if (bCheck)
-		g_lpConfig->AddSetting("enable_sso", g_lpConfig->GetSetting("enable_sso_ntlmauth"));
 	// Find FQDN if Kerberos is enabled (remove check if we're using 'server_hostname' for other purposes)
-	bCheck = parseBool(g_lpConfig->GetSetting("enable_sso"));
+	auto bCheck = parseBool(g_lpConfig->GetSetting("enable_sso"));
 	if (bCheck && check_server_fqdn() != erSuccess)
 		ec_log_err("WARNING: Unable to find FQDN, please specify in 'server_hostname'. Now using '%s'.", g_lpConfig->GetSetting("server_hostname"));
 	// all other checks are only required for multi-server environments
@@ -860,8 +856,6 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{ "server_recv_timeout",		"5", CONFIGSETTING_RELOADABLE },	// timeout before reading next XML request
 		{ "server_read_timeout",		"60", CONFIGSETTING_RELOADABLE }, // timeout during reading of XML request
 		{ "server_send_timeout",		"60", CONFIGSETTING_RELOADABLE },
-		{"server_max_keep_alive_requests", "100", CONFIGSETTING_UNUSED},
-		{"thread_stacksize", "512", CONFIGSETTING_UNUSED},
 		{ "allow_local_users",			"yes", CONFIGSETTING_RELOADABLE },			// allow any user connect through the Unix socket
 		{ "local_admin_users",			"root", CONFIGSETTING_RELOADABLE },			// this local user is admin
 		{ "run_as_user",			"kopano" }, // drop root privileges, and run as this user/group
@@ -870,9 +864,6 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{"allocator_library", "libtcmalloc_minimal.so.4"},
 		{ "coredump_enabled",			"yes" },
 
-		{ "license_path",			"/etc/kopano/license", CONFIGSETTING_UNUSED },
-		{ "license_socket",			"/var/run/kopano/licensed.sock" },
-		{ "license_timeout", 		"10", CONFIGSETTING_RELOADABLE},
 		{ "system_email_address",		"postmaster@localhost", CONFIGSETTING_RELOADABLE },
 		{"server_ssl_key_file", "/etc/kopano/ssl/server.pem", CONFIGSETTING_RELOADABLE},
 		{"server_ssl_key_pass", "server", CONFIGSETTING_EXACT | CONFIGSETTING_RELOADABLE},
@@ -883,7 +874,6 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{"server_ssl_ciphers", KC_DEFAULT_CIPHERLIST, CONFIGSETTING_RELOADABLE},
 		{"server_ssl_prefer_server_ciphers", "yes", CONFIGSETTING_RELOADABLE},
 		{"server_ssl_curves", KC_DEFAULT_ECDH_CURVES, CONFIGSETTING_RELOADABLE},
-		{"socketspec", "", CONFIGSETTING_OBSOLETE},
 		{"server_listen", "*%lo:236"},
 		{"server_listen_tls", ""},
 		{ "sslkeys_path",				"/etc/kopano/sslkeys" },	// login keys
@@ -924,7 +914,6 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{ "audit_log_timestamp",		"0" },
 
 		// user plugin
-		{"plugin_path", "(ignored)", CONFIGSETTING_UNUSED},
 		{ "user_plugin",				"db" },
 		{ "user_plugin_config",			"/etc/kopano/ldap.cfg" },
 		{"createuser_script", "/usr/lib/kopano/userscripts/createuser", CONFIGSETTING_RELOADABLE},
@@ -958,14 +947,10 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{ "quota_soft",				"0", CONFIGSETTING_RELOADABLE },
 		{ "quota_hard",				"0", CONFIGSETTING_RELOADABLE },
 		{ "companyquota_warn",		"0", CONFIGSETTING_RELOADABLE },
-		{ "companyquota_soft",		"0", CONFIGSETTING_UNUSED },
-		{ "companyquota_hard",		"0", CONFIGSETTING_UNUSED },
 		{ "session_timeout",		"300", CONFIGSETTING_RELOADABLE },		// 5 minutes
 		{ "sync_lifetime",			"90", CONFIGSETTING_RELOADABLE },		// 90 days
-		{"sync_log_all_changes", "default", CONFIGSETTING_UNUSED}, // Log All ICS changes
 		{ "auth_method",			"plugin", CONFIGSETTING_RELOADABLE },		// plugin (default), pam, kerberos
 		{ "pam_service",			"passwd", CONFIGSETTING_RELOADABLE },		// pam service, found in /etc/pam.d/
-		{ "enable_sso_ntlmauth",	"no", CONFIGSETTING_UNUSED },			// default disables ntlm_auth, so we don't log errors on useless things
 		{ "enable_sso",				"no", CONFIGSETTING_RELOADABLE },			// autodetect between Kerberos and NTLM
 		{ "session_ip_check",		"yes", CONFIGSETTING_RELOADABLE },			// check session id comes from same ip address (or not)
 		{ "hide_everyone",			"no", CONFIGSETTING_RELOADABLE },			// whether internal group Everyone should be removed for users
@@ -975,18 +960,6 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
         { "enable_enhanced_ics",    "yes", CONFIGSETTING_RELOADABLE },			// (dis)allow enhanced ICS operations (stream and notifications)
         { "enable_sql_procedures",  "no" },			// (dis)allow SQL procedures (requires mysql config stack adjustment), not reloadable because in the middle of the streaming flip
 
-		{"report_path", "/etc/kopano/report", CONFIGSETTING_RELOADABLE | CONFIGSETTING_UNUSED},
-		{"report_ca_path", "/etc/kopano/report-ca", CONFIGSETTING_RELOADABLE | CONFIGSETTING_UNUSED},
-
-		{ "cache_sortkey_size",		"0", CONFIGSETTING_UNUSED }, // Option not support, only for backward compatibility of all configurations under the 6.20
-
-		{"client_update_enabled", "no", CONFIGSETTING_UNUSED},
-		{"client_update_log_level", "1", CONFIGSETTING_UNUSED | CONFIGSETTING_RELOADABLE},
-		{"client_update_path", "/var/lib/kopano/client", CONFIGSETTING_UNUSED | CONFIGSETTING_RELOADABLE},
-		{"client_update_log_path", "/var/log/kopano/autoupdate", CONFIGSETTING_UNUSED | CONFIGSETTING_RELOADABLE},
-		{ "index_services_enabled", "", CONFIGSETTING_UNUSED },
-		{ "index_services_path",    "", CONFIGSETTING_UNUSED },
-		{ "index_services_search_timeout", "", CONFIGSETTING_UNUSED },
 		{ "search_enabled",			"yes", CONFIGSETTING_RELOADABLE },
 		{ "search_socket",			"file:///var/run/kopano/search.sock", CONFIGSETTING_RELOADABLE },
 		{ "search_timeout",			"10", CONFIGSETTING_RELOADABLE },
@@ -1003,7 +976,6 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{ "max_deferred_records_folder", "20", CONFIGSETTING_RELOADABLE },
 		{ "enable_test_protocol",		"no", CONFIGSETTING_RELOADABLE },
 		{ "disabled_features", "imap pop3", CONFIGSETTING_RELOADABLE },
-		{ "counter_reset", "", CONFIGSETTING_UNUSED },
 		{ "mysql_group_concat_max_len", "21844", CONFIGSETTING_RELOADABLE },
 		{ "restrict_admin_permissions", "no", 0 },
 		{"embedded_attachment_limit", "20", CONFIGSETTING_NONEMPTY | CONFIGSETTING_RELOADABLE},

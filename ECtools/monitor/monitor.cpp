@@ -131,8 +131,6 @@ static ECRESULT main2(int argc, char **argv)
 		{ "userquota_soft_template", "/etc/kopano/quotamail/usersoft.mail", CONFIGSETTING_RELOADABLE },
 		{ "userquota_hard_template", "/etc/kopano/quotamail/userhard.mail", CONFIGSETTING_RELOADABLE },
 		{ "companyquota_warning_template", "/etc/kopano/quotamail/companywarning.mail", CONFIGSETTING_RELOADABLE },
-		{ "companyquota_soft_template", "", CONFIGSETTING_UNUSED },
-		{ "companyquota_hard_template", "", CONFIGSETTING_UNUSED },
 		{ "servers", "" },
 		{"coredump_enabled", "systemdefault"},
 		{ NULL, NULL },

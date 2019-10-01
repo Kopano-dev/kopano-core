@@ -894,42 +894,6 @@ Companyname
 .PP
 Default:
 \fI%u\fR
-.SS client_update_enabled
-.PP
-Enable client updates.
-.PP
-You can place the Kopano Outlook Client installer in the client_update_path directory, and enable this option. Windows clients which have the automatic updater program installed will be able to download the latest client from the storage server.
-.PP
-Default:
-\fIfalse\fR
-.SS client_update_path
-.PP
-This is the path where you will place the Kopano Outlook Client MSI install program for Windows clients to download. You need the
-\fBclient_update_enabled\fR
-option set to
-\fItrue\fR
-for clients to actually download this file through the storage server.
-.PP
-Default:
-\fI/var/lib/kopano/client\fR
-.SS client_update_log_level
-.PP
-Receive the log information from the client auto update service.
-.PP
-Options: 0 disable, 1 sent only with errors, 2 always sent
-.PP
-Default:
-\fI1\fR
-.SS client_update_log_path
-.PP
-Log location for the client auto update files
-.PP
-You need the
-\fBclient_update_log_level\fR
-option set to non\-zero value to receive log files from the client.
-.PP
-Default:
-\fI/var/log/kopano/autoupdate\fR
 .SS search_enabled
 .PP
 Use the kopano\-search indexing service for faster searching. Enabling this option requires the

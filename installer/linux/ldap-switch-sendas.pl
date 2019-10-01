@@ -72,16 +72,9 @@ if (!defined($ldapopt{ldap_sendas_attribute}) || !defined($ldapopt{ldap_sendas_a
 
 my ($ldap_search_base, $ldap_search_filter);
 
-if (!defined($ldapopt{ldap_search_base})) {
-	print "Using pre 6.40 ldap config\n";
-	$ldap_search_base = $ldapopt{ldap_user_search_base};
-	$ldap_search_filter = $ldapopt{ldap_user_search_filter};
-} else {
-	print "Using post 6.40 ldap config\n";
-	$ldap_search_base = $ldapopt{ldap_search_base};
-	$ldap_search_filter = "(&(".$ldapopt{ldap_object_type_attribute}."=".$ldapopt{ldap_user_type_attribute_value}.")".$ldapopt{ldap_user_search_filter}.")";
-	$ldapopt{ldap_user_scope} = "sub";
-}
+$ldap_search_base = $ldapopt{ldap_search_base};
+$ldap_search_filter = "(&(".$ldapopt{ldap_object_type_attribute}."=".$ldapopt{ldap_user_type_attribute_value}.")".$ldapopt{ldap_user_search_filter}.")";
+$ldapopt{ldap_user_scope} = "sub";
 
 my $ldapuri = $ldapopt{ldap_protocol}."://".$ldapopt{ldap_host}.":".$ldapopt{ldap_port};
 my $ldap = Net::LDAP->new($ldapuri) or die("LDAP connection failed");

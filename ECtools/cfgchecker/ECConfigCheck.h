@@ -112,7 +112,6 @@ class ServerConfigCheck final : public ECConfigCheck {
 	static int testPluginConfig(const config_check_t *);
 	static int testAttachmentPath(const config_check_t *);
 	static int testPlugin(const config_check_t *);
-	static int testPluginPath(const config_check_t *);
 	static int testStorename(const config_check_t *);
 	static int testLoginname(const config_check_t *);
 	static int testAuthMethod(const config_check_t *);
