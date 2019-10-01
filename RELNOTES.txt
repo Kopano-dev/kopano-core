@@ -1,5 +1,5 @@
-8.7.6
-=====
+8.7.6 (2019-10-01)
+==================
 Fixes:
 * spooler: shorter Message-Ids to adhere to RFC [KC-1548]
 * spooler: avoid setting PYTHONPATH repeatedly [KC-1558]
