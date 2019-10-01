@@ -66,7 +66,7 @@ public:
 	 * @param[in]	BkOrigin	The location to start searching from. Directly passed to FindRow.
 	 * @param[in]	ulFlags		Flags controlling search behaviour. Directly passed to FindRow.
 	 */
-	_kc_export HRESULT FindRowIn(LPMAPITABLE, BOOKMARK origin, ULONG flags) const;
+	HRESULT FindRowIn(IMAPITable *, BOOKMARK origin, unsigned int flags) const;
 
 	/**
 	 * Populate an SRestriction structure based on the objects state.

@@ -153,7 +153,7 @@ public:
 
 	_kc_hidden virtual ECRESULT GetSessionGroup(ECSESSIONGROUPID, ECSession *, ECSessionGroup **);
 	_kc_hidden virtual ECRESULT DeleteIfOrphaned(ECSessionGroup *);
-	_kc_export ECRESULT RemoveAllSessions();
+	ECRESULT RemoveAllSessions();
 	_kc_hidden ECRESULT CancelAllSessions(ECSESSIONID except = 0);
 	_kc_hidden ECRESULT ForEachSession(void (*cb)(ECSession *, void *), void *obj);
 	_kc_hidden ECRESULT LoadSettings(void);

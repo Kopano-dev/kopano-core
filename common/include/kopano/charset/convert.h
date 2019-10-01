@@ -568,7 +568,7 @@ private:
 	 *
 	 * @param[in,out]	key		The key for which the second field will be persisted.
 	 */
-	_kc_export void persist_code(context_key &key, unsigned flags);
+	void persist_code(context_key &key, unsigned flags);
 
 	/**
 	 * Persist the string so a raw pointer to its content can be used.
