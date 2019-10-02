@@ -109,7 +109,7 @@ abs_top_builddir=`pwd`
 ZCPPFLAGS=""
 AC_CANONICAL_HOST
 AS_CASE([$host_os],
-	[openbsd], [
+	[openbsd*], [
 		BUILDOS="openbsd"
 		ZCPPFLAGS="$ZCPPFLAGS -DOPENBSD"
 		LN_TFSV="ln -fs"
