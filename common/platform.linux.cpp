@@ -2,6 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
+#include "config.h"
 #include <chrono>
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
@@ -24,6 +25,9 @@
 #include <string>
 #include <map>
 #include <vector>
+#ifdef HAVE_SYS_RANDOM_H
+#	include <sys/random.h>
+#endif
 #ifndef HAVE_UUID_CREATE
 #	include <uuid/uuid.h>
 #else
@@ -84,6 +88,12 @@ void Sleep(unsigned int msec) {
 
 namespace KC {
 
+#if defined(HAVE_SYS_RANDOM_H) && defined(HAVE_GETRANDOM)
+void rand_get(char *p, int n)
+{
+	getrandom(p, n, 0);
+}
+#else
 static void rand_fail(void)
 {
 	fprintf(stderr, "Cannot access/use /dev/urandom, this is fatal (%s)\n", strerror(errno));
@@ -112,8 +122,9 @@ void rand_get(char *p, int n)
 		p += rc;
 		n -= rc;
 	}
-		close(fd);
-	}
+	close(fd);
+}
+#endif
 
 void rand_init() {
 	if (rand_init_done)
