@@ -29,7 +29,7 @@
 #else
 #	include <uuid.h>
 #endif
-#if defined(__GLIBC__) || defined(OPENBSD)
+#if defined(__GLIBC__)
 #	include <execinfo.h>
 #	define WITH_BACKTRACE 1
 #endif
