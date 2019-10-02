@@ -19,9 +19,17 @@
 #include <kopano/scope.hpp>
 #include <kopano/stringutil.h>
 #include <kopano/timeutil.hpp>
+#include <kopano/tie.hpp>
+#include "ECDatabase.h"
+#include "ECDatabaseFactory.h"
+#include "ECDatabaseUtils.h"
+#include "StatsClient.h"
+#include "ECSessionManager.h"
+#include "ECStatsTables.h"
 
 using namespace std::string_literals;
 using namespace KC;
+
 class da_exec;
 
 class da_task final : public ECTask {
@@ -617,6 +625,27 @@ static ECRESULT usmp(fancydb db)
 	return usmp_charset(db);
 }
 
+static ECRESULT db_populate(std::shared_ptr<ECConfig> cfg)
+{
+	std::unique_ptr<ECDatabase> db;
+	std::string err;
+	auto stats = std::make_shared<ECStatsCollector>(cfg);
+	auto fac = std::make_unique<ECDatabaseFactory>(cfg, stats);
+	auto ret = fac->CreateDatabaseObject(&unique_tie(db), err);
+	if (ret == erSuccess) {
+		ec_log_info("Database exists and is not empty. If corrupt, drop it manually.");
+		return erSuccess;
+	} else if (ret != KCERR_DATABASE_NOT_FOUND) {
+		ec_log_err("DB: %s", err.c_str());
+		return ec_perror("Failed to connect to database", ret);
+	}
+	ret = fac->CreateDatabase();
+	if (ret != erSuccess)
+		return ec_perror("Failed to create database", ret);
+	ec_log_notice("Database created and populated.");
+	return erSuccess;
+}
+
 static void adm_sigterm(int sig)
 {
 	if (--adm_sigterm_count <= 0) {
@@ -655,6 +684,7 @@ static bool adm_setup_signals()
 int main(int argc, char **argv)
 {
 	const configsetting_t defaults[] = {
+		{"database_engine", "mysql"},
 		{"mysql_host", "localhost"},
 		{"mysql_port", "3306"},
 		{"mysql_user", "root"},
@@ -665,6 +695,7 @@ int main(int argc, char **argv)
 		{"log_level", "3", CONFIGSETTING_NONEMPTY | CONFIGSETTING_RELOADABLE},
 		{"log_method", ""},
 		{"log_timestamp", "1", CONFIGSETTING_RELOADABLE},
+		{"mysql_group_concat_max_len", "21844", CONFIGSETTING_RELOADABLE},
 		{nullptr, nullptr},
 	};
 	const char *cfg_file = ECConfig::GetDefaultPath("server.cfg");
@@ -732,6 +763,8 @@ int main(int argc, char **argv)
 			ret = usmp_charset(db);
 		else if (strcmp(argv[i], "usmp") == 0)
 			ret = usmp(db);
+		else if (strcmp(argv[i], "populate") == 0)
+			ret = db_populate(cfg);
 		if (ret == KCERR_NOT_FOUND) {
 			ec_log_err("dbadm: unknown action \"%s\"", argv[i]);
 			return EXIT_FAILURE;

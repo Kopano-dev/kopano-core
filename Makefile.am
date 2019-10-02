@@ -221,7 +221,7 @@ kopano_dagent_LDADD = \
 kopano_dbadm_SOURCES = ECtools/dbadm.cpp \
 	common/database.cpp common/include/kopano/database.hpp
 kopano_dbadm_CPPFLAGS = ${AM_CPPFLAGS}
-kopano_dbadm_LDADD = libkcutil.la ${MYSQL_LIBS}
+kopano_dbadm_LDADD = libkcutil.la libkcserver.la ${MYSQL_LIBS}
 
 
 #

@@ -21,6 +21,10 @@ This may improve or worsen the overall time to process ALTER statements,
 depending on the underlying storage of the SQL database.
 The default is \fI1\fP.
 .SH Actions
+.SS index\-tags
+.PP
+Create helper indices for the "tag" columns. This action can be executed while
+kopano\-server is active.
 .SS k\-1216
 .PP
 This is an alias for the combination of: index\-tags, np\-remove\-highid,
@@ -67,10 +71,13 @@ Repairs duplicate named properties (only IDs below or equal to 31485).
 .PP
 Show statistics for the namedproperties table. This action can be executed
 while kopano\-server is active.
-.SS index\-tags
+.SS populate
 .PP
-Create helper indices for the "tag" columns. This action can be executed while
-kopano\-server is active.
+Create and populate the server database as specified in the configuration file.
+kopano-server normally does this itself if it detects an empty database. When,
+however, an SQL application layer gateway is used that prevents DDL statements,
+calling dbadm populate (with a separate config file specifying not the gateway,
+but rather the origin server) can be used.
 .SS rm\-helper\-index
 .PP
 Remove helper indices again. This action can be executed while kopano\-server
