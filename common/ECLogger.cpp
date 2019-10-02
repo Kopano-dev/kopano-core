@@ -874,10 +874,9 @@ static void resolve_auto_logger(ECConfig *cfg)
  *
  * @return Log object, or NULL on error
  */
-ECLogger* CreateLogger(ECConfig *lpConfig, const char *argv0,
+std::shared_ptr<ECLogger> CreateLogger(ECConfig *lpConfig, const char *argv0,
     const char *lpszServiceName, bool bAudit)
 {
-	ECLogger *lpLogger = NULL;
 	std::string prepend;
 	int loglevel = 0;
 	int syslog_facility = LOG_MAIL;
@@ -901,82 +900,78 @@ ECLogger* CreateLogger(ECConfig *lpConfig, const char *argv0,
 	loglevel = strtol(lpConfig->GetSetting((prepend+"log_level").c_str()), NULL, 0);
 	if (strcasecmp(log_method, "syslog") == 0) {
 		char *argzero = strdup(argv0);
-		lpLogger = new ECLogger_Syslog(loglevel, basename(argzero), syslog_facility);
+		auto logger = std::make_shared<ECLogger_Syslog>(loglevel, basename(argzero), syslog_facility);
 		free(argzero);
-	} else if (strcasecmp(log_method, "eventlog") == 0) {
-		fprintf(stderr, "eventlog logging is only available on windows.\n");
-	} else if (strcasecmp(log_method, "file") == 0) {
-		int ret = 0;
-		const struct passwd *pw = NULL;
-		const struct group *gr = NULL;
-		if (strcmp(log_file, "-") != 0) {
-			auto s = lpConfig->GetSetting("run_as_user");
-			pw = s != nullptr && *s != '\0' ? getpwnam(s) : getpwuid(getuid());
-			s = lpConfig->GetSetting("run_as_group");
-			gr = s != nullptr && *s != '\0' ? getgrnam(s) : getgrgid(getgid());
-
-			// see if we can open the file as the user we're supposed to run as
-			if (pw || gr) {
-				ret = fork();
-				if (ret == 0) {
-					// client test program
-					setgroups(0, NULL);
-					if (gr)
-						setgid(gr->gr_gid);
-					if (pw)
-						setuid(pw->pw_uid);
-					auto test = fopen(log_file, "a");
-					if (!test) {
-						fprintf(stderr, "Unable to open logfile '%s' as user '%s'\n",
-						        log_file, pw != nullptr ? pw->pw_name : "???");
-						_exit(1);
-					}
-					else {
-						fclose(test);
-					}
-					// free known allocated memory in parent before exiting, keep valgrind from complaining
-					delete lpConfig;
-					_exit(0);
-				}
-				if (ret > 0) {	// correct parent, (fork != -1)
-					wait(&ret);
-					ret = WEXITSTATUS(ret);
-				}
-			}
-		}
-		if (ret == 0) {
-			bool logtimestamp = parseBool(lpConfig->GetSetting((prepend + "log_timestamp").c_str()));
-
-			size_t log_buffer_size = 0;
-			const char *log_buffer_size_str = lpConfig->GetSetting("log_buffer_size");
-			if (log_buffer_size_str)
-				log_buffer_size = strtoul(log_buffer_size_str, NULL, 0);
-			auto log = new ECLogger_File(loglevel, logtimestamp, log_file, false);
-			log->reinit_buffer(log_buffer_size);
-			lpLogger = log;
-			// chown file
-			if (pw || gr) {
-				uid_t uid = -1;
-				gid_t gid = -1;
-				if (pw)
-					uid = pw->pw_uid;
-				if (gr)
-					gid = gr->gr_gid;
-				chown(log_file, uid, gid);
-			}
-		} else {
-			fprintf(stderr, "Not enough permissions to append logfile '%s'. Reverting to stderr.\n", log_file);
-			bool logtimestamp = parseBool(lpConfig->GetSetting((prepend + "log_timestamp").c_str()));
-			lpLogger = new ECLogger_File(loglevel, logtimestamp, "-", false);
-		}
-	}
-
-	if (!lpLogger) {
+		return logger;
+	} else if (strcasecmp(log_method, "file") != 0) {
 		fprintf(stderr, "Incorrect logging method selected. Reverting to stderr.\n");
-		bool logtimestamp = parseBool(lpConfig->GetSetting((prepend + "log_timestamp").c_str()));
-		lpLogger = new ECLogger_File(loglevel, logtimestamp, "-", false);
+		auto logtimestamp = parseBool(lpConfig->GetSetting((prepend + "log_timestamp").c_str()));
+		return std::make_shared<ECLogger_File>(loglevel, logtimestamp, "-", false);
 	}
-	return lpLogger;
+
+	int ret = 0;
+	const struct passwd *pw = NULL;
+	const struct group *gr = NULL;
+	if (strcmp(log_file, "-") != 0) {
+		auto s = lpConfig->GetSetting("run_as_user");
+		pw = s != nullptr && *s != '\0' ? getpwnam(s) : getpwuid(getuid());
+		s = lpConfig->GetSetting("run_as_group");
+		gr = s != nullptr && *s != '\0' ? getgrnam(s) : getgrgid(getgid());
+
+		// see if we can open the file as the user we're supposed to run as
+		if (pw || gr) {
+			ret = fork();
+			if (ret == 0) {
+				// client test program
+				setgroups(0, NULL);
+				if (gr)
+					setgid(gr->gr_gid);
+				if (pw)
+					setuid(pw->pw_uid);
+				auto test = fopen(log_file, "a");
+				if (!test) {
+					fprintf(stderr, "Unable to open logfile '%s' as user '%s'\n",
+					        log_file, pw != nullptr ? pw->pw_name : "???");
+					_exit(1);
+				}
+				else {
+					fclose(test);
+				}
+				// free known allocated memory in parent before exiting, keep valgrind from complaining
+				delete lpConfig;
+				_exit(0);
+			}
+			if (ret > 0) {	// correct parent, (fork != -1)
+				wait(&ret);
+				ret = WEXITSTATUS(ret);
+			}
+		}
+	}
+
+	if (ret != 0) {
+		fprintf(stderr, "Not enough permissions to append logfile \"%s\". Reverting to stderr.\n", log_file);
+		auto logtimestamp = parseBool(lpConfig->GetSetting((prepend + "log_timestamp").c_str()));
+		return std::make_shared<ECLogger_File>(loglevel, logtimestamp, "-", false);
+	}
+
+	auto logtimestamp = parseBool(lpConfig->GetSetting((prepend + "log_timestamp").c_str()));
+	size_t log_buffer_size = 0;
+	const char *log_buffer_size_str = lpConfig->GetSetting("log_buffer_size");
+	if (log_buffer_size_str)
+		log_buffer_size = strtoul(log_buffer_size_str, NULL, 0);
+	auto logger = std::make_shared<ECLogger_File>(loglevel, logtimestamp, log_file, false);
+	logger->reinit_buffer(log_buffer_size);
+	// chown file
+	if (pw || gr) {
+		uid_t uid = -1;
+		gid_t gid = -1;
+		if (pw)
+			uid = pw->pw_uid;
+		if (gr)
+			gid = gr->gr_gid;
+		chown(log_file, uid, gid);
+	}
+	return logger;
 }
 
 void LogConfigErrors(ECConfig *lpConfig)

@@ -844,15 +844,6 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 {
 	int retval = -1;
 	ECRESULT		er = erSuccess;
-	std::unique_ptr<ECDatabaseFactory> lpDatabaseFactory;
-	std::unique_ptr<ECDatabase> lpDatabase;
-	std::string		dbError;
-	// Connections
-	bool			hosted = false;
-	bool			distributed = false;
-	int tmplock = -1;
-	struct stat dir = {0};
-	struct passwd *runasUser = NULL;
 	const configsetting_t lpDefaults[] = {
 		// Aliases
 		{"server_port", "server_tcp_port", CONFIGSETTING_ALIAS | CONFIGSETTING_OBSOLETE},
@@ -1072,7 +1063,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		return g_lpConfig->dump_config(stdout) == 0 ? hrSuccess : MAPI_E_CALL_FAILED;
 
 	// setup logging
-	g_lpLogger.reset(CreateLogger(g_lpConfig.get(), szName, "KopanoServer"));
+	g_lpLogger = CreateLogger(g_lpConfig.get(), szName, "KopanoServer");
 	if (!g_lpLogger) {
 		fprintf(stderr, "Error in log configuration, unable to resume.\n");
 		er = MAPI_E_UNCONFIGURED;
@@ -1083,7 +1074,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		LogConfigErrors(g_lpConfig.get());
 	if (!TmpPath::instance.OverridePath(g_lpConfig.get()))
 		ec_log_err("Ignoring invalid path-setting!");
-	g_lpAudit.reset(CreateLogger(g_lpConfig.get(), szName, "KopanoServer", true));
+	g_lpAudit = CreateLogger(g_lpConfig.get(), szName, "KopanoServer", true);
 	if (g_lpAudit)
 		g_lpAudit->logf(EC_LOGLEVEL_NOTICE, "server startup uid=%d", getuid());
 	else
@@ -1141,12 +1132,13 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 			er = KCERR_DATABASE_ERROR;
 			return retval;
 		}
+		struct stat dir;
 		if (stat(g_lpConfig->GetSetting("attachment_path"), &dir) != 0) {
 			ec_log_err("Unable to stat attachment directory '%s', error: %s", g_lpConfig->GetSetting("attachment_path"), strerror(errno));
 			er = KCERR_DATABASE_ERROR;
 			return retval;
 		}
-		runasUser = getpwnam(g_lpConfig->GetSetting("run_as_user","","root"));
+		auto runasUser = getpwnam(g_lpConfig->GetSetting("run_as_user","","root"));
 		if (runasUser == NULL) {
 			ec_log_err("Fatal: run_as_user '%s' is unknown", g_lpConfig->GetSetting("run_as_user","","root"));
 			er = MAPI_E_UNCONFIGURED;
@@ -1213,8 +1205,9 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 
 	// Test database settings
 	auto stats = std::make_shared<server_stats>(g_lpConfig);
-	auto scleanup = make_scope_success([&]() { stats->stop(); });
-	lpDatabaseFactory.reset(new(std::nothrow) ECDatabaseFactory(g_lpConfig, stats));
+	auto lpDatabaseFactory = std::make_unique<ECDatabaseFactory>(g_lpConfig, stats);
+	std::unique_ptr<ECDatabase> lpDatabase;
+	std::string dbError;
 	// open database
 	er = lpDatabaseFactory->CreateDatabaseObject(&unique_tie(lpDatabase), dbError);
 	if(er == KCERR_DATABASE_NOT_FOUND) {
@@ -1238,8 +1231,8 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	}
 
 	ec_log_notice("Connection to database '%s' succeeded", g_lpConfig->GetSetting("mysql_database"));
-	hosted = parseBool(g_lpConfig->GetSetting("enable_hosted_kopano"));
-	distributed = parseBool(g_lpConfig->GetSetting("enable_distributed_kopano"));
+	auto hosted = parseBool(g_lpConfig->GetSetting("enable_hosted_kopano"));
+	auto distributed = parseBool(g_lpConfig->GetSetting("enable_distributed_kopano"));
 	unix_create_pidfile(szName, g_lpConfig.get());
 	mainthread = pthread_self();
 
@@ -1262,7 +1255,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	// all these signals will be reset after the database upgrade part.
 	m_bDatabaseUpdateIgnoreSignals = true;
 	// add a lock file to disable the /etc/init.d scripts
-	tmplock = open(upgrade_lock_file, O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
+	auto tmplock = open(upgrade_lock_file, O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
 	if (tmplock == -1)
 		ec_log_warn("WARNING: Unable to place upgrade lockfile: %s", strerror(errno));
 
@@ -1350,6 +1343,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	stats->SetTime(SCN_SERVER_STARTTIME, time(nullptr));
 
 	// Enter main accept loop
+	auto scleanup = make_scope_success([&]() { stats->stop(); });
 	stats->start();
 	retval = 0;
 	while(!g_Quit) {

@@ -46,7 +46,7 @@ eResult ArchiverImpl::Init(const char *lpszAppName, const char *lpszConfig, cons
 		return InvalidConfig;
 	}
 
-	m_lpLogLogger.reset(CreateLogger(m_lpsConfig.get(), const_cast<char *>(lpszAppName), ""));
+	m_lpLogLogger = CreateLogger(m_lpsConfig.get(), const_cast<char *>(lpszAppName), "");
 	if (ulFlags & InhibitErrorLogging) {
 		// We need to check if we're logging to stderr. If so we'll replace
 		// the logger with a NULL logger.

@@ -289,7 +289,7 @@ int main(int argc, char **argv) {
 	}
 	if (g_dump_config)
 		return g_lpConfig->dump_config(stdout) == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
-	g_lpLogger.reset(CreateLogger(g_lpConfig.get(), argv[0], "KopanoICal"));
+	g_lpLogger = CreateLogger(g_lpConfig.get(), argv[0], "KopanoICal");
 	if (!g_lpLogger) {
 		fprintf(stderr, "Error loading configuration or parsing commandline arguments.\n");
 		goto exit;

@@ -499,7 +499,7 @@ static int LoadSettingsFile(void)
 			return FAILURE;
 
                 if (cfg->LoadSettings(cfg_file))
-			lpLogger.reset(CreateLogger(cfg, "php-mapi", "PHPMapi"));
+			lpLogger = CreateLogger(cfg, "php-mapi", "PHPMapi");
 
 		const char *temp = cfg->GetSetting(CE_PHP_MAPI_PERFORMANCE_TRACE_FILE);
 		if (temp != NULL) {
