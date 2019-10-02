@@ -51,8 +51,9 @@ from .errors import (
 from .defs import (
     ARO_SUBJECT, ARO_MEETINGTYPE, ARO_REMINDERDELTA, ARO_REMINDERSET,
     ARO_LOCATION, ARO_BUSYSTATUS, ARO_ATTACHMENT, ARO_SUBTYPE,
-    ARO_APPTCOLOR, ASF_CANCELED, FB_STATUS, STATUS_FB
+    ARO_APPTCOLOR, ASF_CANCELED, FB_STATUS, STATUS_FB,
 )
+
 
 from .attendee import Attendee
 
@@ -391,6 +392,7 @@ class Recurrence(object):
                 _utils.unixtime_to_rectime(calendar.timegm(d.timetuple()))
 
             subject = self.item.subject
+            # TODO: lazy load location move logic to Occurrence class
             location = self.item.location
             busystatus = self.item.busystatus
             exception = False
@@ -516,7 +518,10 @@ class Recurrence(object):
         self._month = None
 
         # AppointmentRecurrencePattern
-        value = self.item.prop(PidLidAppointmentRecur).value
+        value = self.item._get_fast(self.item.store._pidlid_proptag(PidLidAppointmentRecur))
+        # TODO: throw NotFound exception instead if value is None?
+        if not value:
+            value = self.item.prop(PidLidAppointmentRecur).value
 
         # RecurrencePattern
         self._reader_version = _utils.unpack_short(value, 0)

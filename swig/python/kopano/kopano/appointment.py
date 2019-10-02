@@ -8,8 +8,7 @@ Copyright 2016 - 2019 Kopano and its licensors (see LICENSE file)
 import sys
 
 from MAPI import (
-    PT_SYSTIME, MNID_ID, PT_BOOLEAN, MODRECIP_ADD,
-    PT_LONG, PT_UNICODE,
+    PT_SYSTIME, MODRECIP_ADD, PT_LONG, PT_UNICODE,
 )
 
 from MAPI.Tags import (
@@ -28,7 +27,7 @@ from .compat import (
     benc as _benc, bdec as _bdec, fake_unicode as _unicode,
 )
 from .defs import (
-    PSETID_Appointment, ASF_CANCELED, NR_COLOR, COLOR_NR, FB_STATUS,
+    ASF_CANCELED, NR_COLOR, COLOR_NR, FB_STATUS,
     STATUS_FB, ASF_MEETING, RESPONSE_STATUS,
 )
 from .pidlid import (
@@ -36,6 +35,7 @@ from .pidlid import (
     PidLidBusyStatus, PidLidGlobalObjectId, PidLidRecurring,
     PidLidTimeZoneStruct, PidLidTimeZoneDescription, PidLidLocation,
     PidLidAppointmentStateFlags, PidLidAppointmentColor, PidLidResponseStatus,
+    PidLidAppointmentStartWhole, PidLidAppointmentEndWhole
 )
 
 try:
@@ -45,12 +45,6 @@ except ImportError: # pragma: no cover
 
 from . import timezone as _timezone
 
-# TODO use pidlids instead!
-ALL_DAY_NAME = (PSETID_Appointment, MNID_ID, 0x8215)
-START_NAME = (PSETID_Appointment, MNID_ID, 33293)
-END_NAME = (PSETID_Appointment, MNID_ID, 33294)
-RECURRING_NAME = (PSETID_Appointment, MNID_ID, 33315)
-BUSYSTATUS = (PSETID_Appointment, MNID_ID, 33285)
 
 class Appointment(object):
     """Appointment mixin class
@@ -62,7 +56,7 @@ class Appointment(object):
     @property
     def all_day(self):
         """Appointment is all-day."""
-        proptag = self.store._name_id(ALL_DAY_NAME) | PT_BOOLEAN
+        proptag = self.store._pidlid_proptag(PidLidAppointmentSubType)
         return self._get_fast(proptag)
 
     @all_day.setter
@@ -91,8 +85,7 @@ class Appointment(object):
     @property
     def start(self):
         """Appointment start."""
-        proptag = self.store._name_id(START_NAME) | PT_SYSTIME
-        return self._get_fast(proptag)
+        return self._get_fast(self.store._pidlid_proptag(PidLidAppointmentStartWhole))
 
     @start.setter
     def start(self, val): # TODO update/invalidate cache
@@ -105,8 +98,7 @@ class Appointment(object):
     @property
     def end(self):
         """Appointment end."""
-        proptag = self.store._name_id(END_NAME) | PT_SYSTIME
-        return self._get_fast(proptag)
+        return self._get_fast(self.store._pidlid_proptag(PidLidAppointmentEndWhole))
 
     @end.setter
     def end(self, val): # TODO update/invalidate cache
@@ -128,8 +120,7 @@ class Appointment(object):
     @property
     def recurring(self):
         """Appointment is recurring."""
-        proptag = self.store._name_id(RECURRING_NAME) | PT_BOOLEAN
-        return self._get_fast(proptag)
+        return self._get_fast(self.store._pidlid_proptag(PidLidRecurring))
 
     @recurring.setter
     def recurring(self, value): # TODO update/invalidate cache
@@ -140,7 +131,7 @@ class Appointment(object):
 
     @property
     def busystatus(self): # TODO deprecate and use busy_status instead?
-        proptag = self.store._name_id(BUSYSTATUS) | PT_LONG
+        proptag = self.store._pidlid_proptag(PidLidBusyStatus)
         return FB_STATUS.get(self._get_fast(proptag))
 
     @busystatus.setter
@@ -286,7 +277,7 @@ class Appointment(object):
     @property
     def tzinfo(self):
         """Appointment timezone as datetime compatible tzinfo object."""
-        tzdata = self.get(PidLidTimeZoneStruct)
+        tzdata = self._get_fast(self.store._pidlid_proptag(PidLidTimeZoneStruct))
         if tzdata:
             return _timezone.MAPITimezone(tzdata)
 
