@@ -101,6 +101,7 @@ enum {
 	OPT_MR_ACCEPT,
 	OPT_MR_DECLINE_CONFLICT,
 	OPT_MR_DECLINE_RECURRING,
+	OPT_MR_PROCESS,
 	OPT_ADD_SENDAS,
 	OPT_DEL_SENDAS,
 	OPT_LIST_SENDAS,
@@ -169,6 +170,7 @@ static const struct option long_options[] = {
 	{ "mr-accept", 1, NULL, OPT_MR_ACCEPT },
 	{ "mr-decline-conflict", 1, NULL, OPT_MR_DECLINE_CONFLICT },
 	{ "mr-decline-recurring", 1, NULL, OPT_MR_DECLINE_RECURRING },
+	{"mr-process", 1, nullptr, OPT_MR_PROCESS},
 	{ "add-sendas", 1, NULL, OPT_ADD_SENDAS },
 	{ "del-sendas", 1, NULL, OPT_DEL_SENDAS },
 	{ "list-sendas", 1, NULL, OPT_LIST_SENDAS },
@@ -815,7 +817,7 @@ static void adm_oof_status(const SPropValue *const prop)
  */
 static void print_user_settings(IMsgStore *lpStore, const ECUSER *lpECUser,
     bool bAutoAccept, bool bDeclineConflict, bool bDeclineRecur,
-    const ArchiveList &lstArchives)
+    bool auto_proc, const ArchiveList &lstArchives)
 {
 	memory_ptr<SPropValue> lpProps;
 	static constexpr const SizedSPropTagArray(6, sptaProps) =
@@ -842,6 +844,7 @@ static void print_user_settings(IMsgStore *lpStore, const ECUSER *lpECUser,
 		cout << "Decline dbl meetingreq:\t" << (bDeclineConflict ? "yes" : "no") << endl;
 		cout << "Decline recur meet.req:\t" << (bDeclineRecur ? "yes" : "no") << endl;
 	}
+	cout << "Auto-process meeting req:" << (auto_proc ? "yes" : "no") << endl;
 	if (lpECUser->lpszServername != NULL && *reinterpret_cast<LPSTR>(lpECUser->lpszServername) != '\0')
 		cout << "Home server:\t\t" << (LPSTR)lpECUser->lpszServername << endl;
 
@@ -961,6 +964,7 @@ static HRESULT print_details(LPMAPISESSION lpSession,
 	object_ptr<IMsgStore> lpStore;
 	object_ptr<IExchangeManageStore> lpIEMS;
 	bool bAutoAccept = false, bDeclineConflict = false, bDeclineRecurring = false;
+	bool auto_proc = false;
 	ULONG cbObjectId = 0;
 	memory_ptr<ENTRYID> lpObjectId;
 	ArchiveManagePtr ptrArchiveManage;
@@ -1071,7 +1075,7 @@ static HRESULT print_details(LPMAPISESSION lpSession,
 				cerr << "Unable to open user store." << endl;
 				return hr;
 			}
-			GetAutoAcceptSettings(lpStore, &bAutoAccept, &bDeclineConflict, &bDeclineRecurring);
+			GetAutoAcceptSettings(lpStore, &bAutoAccept, &bDeclineConflict, &bDeclineRecurring, &auto_proc);
 			/* Ignore return value */
 		}
 		hr = lpServiceAdmin->GetGroupListOfUser(cbObjectId, lpObjectId, 0, &cGroups, &~lpECGroups);
@@ -1093,7 +1097,7 @@ static HRESULT print_details(LPMAPISESSION lpSession,
 			}
 		}
 		show_eid_data(lpECUser->sUserId);
-		print_user_settings(lpStore, lpECUser, bAutoAccept, bDeclineConflict, bDeclineRecurring, lstArchives);
+		print_user_settings(lpStore, lpECUser, bAutoAccept, bDeclineConflict, bDeclineRecurring, auto_proc, lstArchives);
 		break;
 	}
 
@@ -1812,11 +1816,12 @@ int main(int argc, char **argv) try
 	int quota = -1, ud_quota = -1, isadmin = -1, isnonactive = -1;
 	long long quotahard = -1, quotasoft = -1, quotawarn = -1;
 	long long ud_quotahard = -1, ud_quotasoft = -1, ud_quotawarn = -1;
-	int mr_accept = -1, mr_decline_conflict = -1, mr_decline_recurring = -1;
+	int mr_accept = -1, mr_process = -1, mr_decline_conflict = -1, mr_decline_recurring = -1;
 	int sendas_action = -1, passprompt = 0;
 	modes mode = MODE_INVALID;
 	std::list<std::string> lstUsernames;
 	bool bAutoAccept = false, bDeclineConflict = false, bDeclineRecurring = false;
+	bool auto_proc = false;
 	object_ptr<IExchangeManageStore> lpIEMS;
 	unsigned int loglevel = EC_LOGLEVEL_NONE;
 	std::shared_ptr<ECLogger> lpLogger;
@@ -2009,6 +2014,9 @@ int main(int argc, char **argv) try
 			break;
 		case OPT_MR_DECLINE_RECURRING:
 			mr_decline_recurring = parse_yesno(optarg);
+			break;
+		case OPT_MR_PROCESS:
+			mr_process = parse_yesno(optarg);
 			break;
 		case OPT_LIST_SENDAS:
 			mode = MODE_LIST_SENDAS;
@@ -2285,7 +2293,7 @@ int main(int argc, char **argv) try
 	if (mode == MODE_UPDATE_USER && password == NULL && passprompt == 0 &&
 			emailadr == NULL && fullname == NULL && new_username == NULL && isadmin == -1 &&
 			quota == -1 && quotahard == -1 && quotasoft == -1 && quotawarn == -1 &&
-			mr_accept == -1 && mr_decline_conflict == -1 && mr_decline_recurring == -1 &&
+			mr_accept == -1 && mr_decline_conflict == -1 && mr_decline_recurring == -1 && mr_process == -1 &&
 			sendas_user == NULL && isnonactive == -1 && feature == NULL) {
 		cerr << "Missing information to update user (e.g. password, quota, see --help)." << endl;
 		return 1;
@@ -2778,8 +2786,7 @@ int main(int argc, char **argv) try
 				goto exit;
 		}
 
-		if (mr_accept != -1 || mr_decline_conflict != -1 || mr_decline_recurring != -1)
-		{
+		if (mr_accept != -1 || mr_decline_conflict != -1 || mr_decline_recurring != -1 || mr_process != -1) {
 			hr = lpServiceAdmin->QueryInterface(IID_IExchangeManageStore, &~lpIEMS);
 			if (hr != hrSuccess) {
 				cerr << "Unable to get admin interface." << endl;
@@ -2795,7 +2802,7 @@ int main(int argc, char **argv) try
 				cerr << "Unable to open user store." << endl;
 				goto exit;
 			}
-			hr = GetAutoAcceptSettings(lpUserStore, &bAutoAccept, &bDeclineConflict, &bDeclineRecurring);
+			hr = GetAutoAcceptSettings(lpUserStore, &bAutoAccept, &bDeclineConflict, &bDeclineRecurring, &auto_proc);
 			if (hr != hrSuccess)
 				// ignore and assume 'false' for all values
 				hr = hrSuccess;
@@ -2805,8 +2812,10 @@ int main(int argc, char **argv) try
 				bDeclineConflict = mr_decline_conflict;
 			if (mr_decline_recurring != -1)
 				bDeclineRecurring = mr_decline_recurring;
+			if (mr_process != -1)
+				auto_proc = mr_process;
 
-			hr = SetAutoAcceptSettings(lpUserStore, bAutoAccept, bDeclineConflict, bDeclineRecurring);
+			hr = SetAutoAcceptSettings(lpUserStore, bAutoAccept, bDeclineConflict, bDeclineRecurring, auto_proc);
 			if (hr != hrSuccess) {
 				cerr << "Unable to set auto-accept settings." << endl;
 				goto exit;

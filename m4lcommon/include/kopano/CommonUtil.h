@@ -76,7 +76,7 @@ extern _kc_export HRESULT HrOpenUserMsgStore(LPMAPISESSION, const wchar_t *user,
 extern _kc_export HRESULT OpenLocalFBMessage(DGMessageType eDGMsgType, IMsgStore *lpMsgStore, bool bCreateIfMissing, IMessage **lppFBMessage);
 
 // Auto-accept settings
-extern _kc_export HRESULT SetAutoAcceptSettings(IMsgStore *, bool auto_accept, bool decline_conflict, bool decline_recurring);
+extern _kc_export HRESULT SetAutoAcceptSettings(IMsgStore *, bool auto_accept, bool decline_conflict, bool decline_recurring, bool autoprocess_ptr);
 extern _kc_export HRESULT GetAutoAcceptSettings(IMsgStore *, bool *auto_accept, bool *decline_conflict, bool *decline_recurring, bool *autoprocess_ptr = nullptr);
 
 /**
