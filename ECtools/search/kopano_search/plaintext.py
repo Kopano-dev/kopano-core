@@ -58,7 +58,7 @@ for (X, C) in DB:
 # python-coverage doesn't work for call-backs from thread created in C,
 # so skip coverage
 def setlimits(): # pragma: no cover
-    resource.setrlimit(resource.RLIMIT_AS, (MAX_MEMORY, MAX_MEMORY))
+    resource.setrlimit(resource.RLIMIT_DATA, (MAX_MEMORY, MAX_MEMORY))
     resource.setrlimit(resource.RLIMIT_CPU, (MAX_TIME, MAX_TIME))
 
 def convert(cmd, data, log):
