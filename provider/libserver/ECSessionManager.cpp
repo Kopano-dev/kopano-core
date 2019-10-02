@@ -772,7 +772,8 @@ ECRESULT ECSessionManager::NotificationDeleted(unsigned int ulObjType, unsigned 
 	}
 	AddNotification(&notify, ulObjId, ulStoreId, ulFolderId, ulFlags);
 exit:
-	notify.obj->pEntryId = NULL;
+	if (notify.obj != nullptr)
+		notify.obj->pEntryId = NULL;
 	soap_del_notification(&notify);
 	return er;
 }
