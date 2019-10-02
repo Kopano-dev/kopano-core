@@ -257,7 +257,7 @@ AC_DEFUN([LIBNCURSES_WITH_CONFIG],[
 LIBNCURSES_WITH_CONFIG
 
 AC_CHECK_HEADERS([syslog.h sys/random.h sys/stat.h sys/un.h malloc.h])
-AC_CHECK_FUNCS([mallinfo timegm getpeereid getpwnam_r getrandom vsyslog vsnprintf_l])
+AC_CHECK_FUNCS([arc4random_buf mallinfo timegm getpeereid getpwnam_r getrandom vsyslog vsnprintf_l])
 AC_CHECK_MEMBERS([siginfo_t.si_fd siginfo_t.si_utime], [], [], [#include <csignal>])
 AC_CHECK_MEMBERS([sockpeercred.uid], [], [], [#include <sys/socket.h>])
 
