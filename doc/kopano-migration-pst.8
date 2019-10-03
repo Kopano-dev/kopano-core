@@ -119,3 +119,11 @@ Import PST file name "outlook.pst" to store of user "bert":
 Import PST file name "public.pst" into (new or existing) "imported" folder of public store:
 .PP
 \fBkopano\-migration\-pst \-S public --import-root=imported public.pst\fR
+.PP
+Create mapping file with legacyExchangeDN to email addresses from multiple pst files.
+.PP
+\fBkopano\-migration\-pst \--create-ex-mapping mapping.json user2.pst user1.pst\fR
+.PP
+Use mapping file when importing a PST with legacyExchangeDN addresses.
+.PP
+\fBkopano\-migration\-pst \-u user1 \--ex-mapping mapping.json user1.pst\fR
