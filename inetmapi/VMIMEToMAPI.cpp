@@ -28,7 +28,6 @@
 #include <cctype>
 #include <cstdlib>
 #include <cstring>
-#include <librosie.h>
 #include <vmime/vmime.hpp>
 #include <vmime/platforms/posix/posixHandler.hpp>
 #include <vmime/contentTypeField.hpp>
@@ -52,6 +51,7 @@
 #include <kopano/mapi_ptr.h>
 #include "ECMapiUtils.h"
 #include "ECVMIMEUtils.h"
+#include "HtmlToTextParser.h"
 #include "inputStreamMAPIAdapter.h"
 #include "ICalToMAPI.h"
 

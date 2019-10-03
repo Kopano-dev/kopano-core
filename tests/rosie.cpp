@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "librosie.h"
+#include "HtmlToTextParser.h"
 
 int main(int argc, char **argv)
 {
