@@ -174,6 +174,7 @@ class Service(kopano.Service):
                 legacyExchangeDN = legacyExchangeDN.lower()
                 try:
                     email = self.mapping[legacyExchangeDN]
+                    self.log.debug('found legacyExchangeDN: \'%s\' in mapping', legacyExchangeDN)
                 except KeyError:
                     if legacyExchangeDN not in self.nomapping:
                         self.log.warning('legacyExchangeDN: \'%s\' was not found in mapping', legacyExchangeDN)
