@@ -649,6 +649,8 @@ ECRESULT ECUserManagement::GetParentObjectsOfObjectAndSync(userobject_relation_t
 			return KCERR_NO_SUPPORT;
 		} catch (const data_error &) {
 			/* most likely a RFC2307 system that does not support GIG */
+			if (lppObjects != nullptr)
+				*lppObjects = lpObjects.release();
 			return erSuccess;
 		} catch (const std::exception &e) {
 			ec_log_warn("K-1504: Unable to retrieve parents for %s relation %d: %s.",
