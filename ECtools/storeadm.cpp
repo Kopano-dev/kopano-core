@@ -773,7 +773,7 @@ static bool adm_parse_options(int &argc, const char **&argv)
 	} else if ((opt_create_store || opt_detach_store) && opt_entity_name == nullptr) {
 		fprintf(stderr, "-C/-D also need the -n option.\n");
 		return false;
-	} else if (opt_companyname != nullptr && !opt_copytopublic) {
+	} else if (opt_companyname != nullptr && !opt_create_public) {
 		fprintf(stderr, "-k can only be used with -P.\n");
 		return false;
 	} else if (opt_lang != nullptr && !opt_create_store && !opt_create_public) {
