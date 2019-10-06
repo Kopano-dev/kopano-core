@@ -1587,7 +1587,7 @@ static HRESULT create_store_public(ECMsgStore *store,
 	ret = sec->SetPermissionRules(1, &perm);
 	if (ret != hrSuccess)
 		return ret;
-	ret = CreateSpecialFolder(fld, store, KC_T("Zarafa 1"), KC_T(""),
+	ret = CreateSpecialFolder(fld, store, KC_TX("Zarafa 1"), KC_T(""),
 	      PR_FREE_BUSY_FOR_LOCAL_SITE_ENTRYID, 0, nullptr, &~fld2);
 	if (ret != hrSuccess)
 		return ret;
@@ -1646,8 +1646,8 @@ static HRESULT create_store_private(ECMsgStore *store,
 	auto idx_ipmcviews  = batch_append_folder(root_batch, KC_T("IPM_COMMON_VIEWS"), KC_T(""));
 	auto idx_ipmviews   = batch_append_folder(root_batch, KC_T("IPM_VIEWS"), KC_T(""));
 	auto idx_finder     = batch_append_folder(root_batch, KC_T("FINDER_ROOT"), KC_T(""));
-	auto idx_shortcut   = batch_append_folder(root_batch, KC_T("Shortcut"), KC_T(""));
-	auto idx_schedule   = batch_append_folder(root_batch, KC_T("Schedule"), KC_T(""));
+	auto idx_shortcut   = batch_append_folder(root_batch, KC_TX("Shortcut"), KC_T(""));
+	auto idx_schedule   = batch_append_folder(root_batch, KC_TX("Schedule"), KC_T(""));
 	ret                 = ecroot->create_folders(root_batch);
 	if (ret != hrSuccess)
 		return ret;
@@ -1655,21 +1655,21 @@ static HRESULT create_store_private(ECMsgStore *store,
 	/* Create folders with IPM_SUBTREE as parent. */
 	std::vector<ECMAPIFolder::ECFolder> st_batch;
 	st_batch.reserve(15);
-	auto idx_inbox    = batch_append_folder(st_batch, KC_T("Inbox"), KC_T(""));
-	auto idx_outbox   = batch_append_folder(st_batch, KC_T("Outbox"), KC_T(""));
-	auto idx_deleted  = batch_append_folder(st_batch, KC_T("Deleted Items"), KC_T(""));
-	auto idx_sent     = batch_append_folder(st_batch, KC_T("Sent Items"), KC_T(""));
-	auto idx_contacts = batch_append_folder(st_batch, KC_T("Contacts"), KC_T(""));
-	auto idx_calendar = batch_append_folder(st_batch, KC_T("Calendar"), KC_T(""));
-	auto idx_drafts   = batch_append_folder(st_batch, KC_T("Drafts"), KC_T(""));
-	auto idx_journal  = batch_append_folder(st_batch, KC_T("Journal"), KC_T(""));
-	auto idx_notes    = batch_append_folder(st_batch, KC_T("Notes"), KC_T(""));
-	auto idx_tasks    = batch_append_folder(st_batch, KC_T("Tasks"), KC_T(""));
-	auto idx_junk     = batch_append_folder(st_batch, KC_T("Junk E-mail"), KC_T(""));
-	auto idx_rss      = batch_append_folder(st_batch, KC_T("RSS Feeds"), KC_T("RSS Feed comment"));
-	auto idx_cas      = batch_append_folder(st_batch, KC_T("Conversation Action Settings"), KC_T(""));
-	auto idx_qss      = batch_append_folder(st_batch, KC_T("Quick Step Settings"), KC_T(""));
-	auto idx_sc       = batch_append_folder(st_batch, KC_T("Suggested Contacts"), KC_T(""));
+	auto idx_inbox    = batch_append_folder(st_batch, KC_TX("Inbox"), KC_T(""));
+	auto idx_outbox   = batch_append_folder(st_batch, KC_TX("Outbox"), KC_T(""));
+	auto idx_deleted  = batch_append_folder(st_batch, KC_TX("Deleted Items"), KC_T(""));
+	auto idx_sent     = batch_append_folder(st_batch, KC_TX("Sent Items"), KC_T(""));
+	auto idx_contacts = batch_append_folder(st_batch, KC_TX("Contacts"), KC_T(""));
+	auto idx_calendar = batch_append_folder(st_batch, KC_TX("Calendar"), KC_T(""));
+	auto idx_drafts   = batch_append_folder(st_batch, KC_TX("Drafts"), KC_T(""));
+	auto idx_journal  = batch_append_folder(st_batch, KC_TX("Journal"), KC_T(""));
+	auto idx_notes    = batch_append_folder(st_batch, KC_TX("Notes"), KC_T(""));
+	auto idx_tasks    = batch_append_folder(st_batch, KC_TX("Tasks"), KC_T(""));
+	auto idx_junk     = batch_append_folder(st_batch, KC_TX("Junk E-mail"), KC_T(""));
+	auto idx_rss      = batch_append_folder(st_batch, KC_TX("RSS Feeds"), KC_TX("RSS Feed comment"));
+	auto idx_cas      = batch_append_folder(st_batch, KC_TX("Conversation Action Settings"), KC_T(""));
+	auto idx_qss      = batch_append_folder(st_batch, KC_TX("Quick Step Settings"), KC_T(""));
+	auto idx_sc       = batch_append_folder(st_batch, KC_TX("Suggested Contacts"), KC_T(""));
 	ret               = ecst->create_folders(st_batch);
 	if (ret != hrSuccess)
 		return ret;
