@@ -43,52 +43,6 @@
  * - when using "s" in zend_parse_parameters(), the string length is "int" in PHP5 and "size_t" in PHP7. Use our php_stringsize_t typedef.
  *
  */
-
-/*
- * Some information on objects, refcounts, and how PHP manages memory:
- *
- * Each ZVAL is allocated when doing MAKE_STD_ZVAL or INIT_ALLOC_ZVAL. These allocate the
- * space for the ZVAL struct and nothing else. When you put a value in it, INTs and other small
- * values are stored in the ZVAL itself. When you add a string, more memory is allocated
- * (eg through ZVAL_STRING()) to the ZVAL. Some goes for arrays and associated arrays.
- *
- * The data is freed by PHP by traversing the entire ZVAL and freeing each part of the ZVAL
- * it encounters. So, for an array or string ZVAL, it will be doing more frees than just the base
- * value. The freeing is done in zval_dtor().
- *
- * This system means that MAKE_STD_ZVAL(&zval); ZVAL_STRING(zval, "hello", 0); zval_dtor(zval) will
- * segfault. This is because it will try to free the "hello" string, which was not allocated by PHP.
- * So, always use the 'copy' flag when using constant strings (eg ZVAL_STRING(zval, "hello", 1)). This
- * wastes memory, but makes life a lot easier.
- *
- * There is also a referencing system in PHP that is basically the same as the AddRef() and Release()
- * COM scheme. When you MAKE_STD_ZVAL or ALLOC_INIT_ZVAL, the refcount is 1. You should then always
- * make sure that you never destroy the value with zval_dtor (directly calls the destructor and then
- * calls FREE_ZVAL) when somebody else *could* have a reference to it. Using zval_dtor on values that
- * users may have a reference to is a security hole. (see http://www.php-security.org/MOPB/MOPB-24-2007.html)
- * Although I think this should only happen when you're calling into PHP user space with call_user_function()
- *
- * What you *should* do is use zval_ptr_dtor(). This is not just the same as zval_dtor!!! It first decreases
- * the refcount, and *then* destroys the zval, but only if the refcount is 0. So zval_ptr_dtor is the
- * same as Release() in COM.
- *
- * This means that you should basically always use MAKE_STD_ZVAL and then zval_ptr_dtor(), and you
- * should always be safe. You can easily break things by calling ZVAL_DELREF() too many times. Worst thing is,
- * you won't notice that you've broken it until a while later in the PHP script ...
- *
- * We have one thing here which doesn't follow this pattern: some functions use RETVAL_ZVAL to copy the value
- * of one zval into the 'return_value' zval. Seen as we don't want to do a real copy and then a free, we use
- * RETVAL_ZVAL(val, 0, 0), specifying that the value of the zval should not be copied, but just referenced, and
- * we also specify 0 for the 'dtor' flag. This would cause PHP to destruct the old value, but the old value is
- * pointing at the same data als the return_value zval! So we want to release *only* the ZVAL itself, which we do
- * via FREE_ZVAL.
- *
- * I think.
- *
- *   Steve
- *
- */
-
 // we need to include this in c++ space because php.h also includes it in
 // 'extern "C"'-space which doesn't work in win32
 #include <cmath>
