@@ -120,7 +120,7 @@ if ENABLE_BASE
 lib_LTLIBRARIES = \
 	libkcutil.la libmapi.la libkcfreebusy.la libkcindex.la \
 	libkcsoap.la libkcserver.la \
-	libkcicalmapi.la libkcinetmapi.la libkcarchiver.la libkcarchivercore.la
+	libkcicalmapi.la libkcinetmapi.la libkcarchiver.la
 noinst_LTLIBRARIES =
 noinst_DATA = \
 	kopano-admin.ldx \
@@ -130,7 +130,7 @@ noinst_DATA = \
 	kopano-indexd.ldx kopano-monitor.ldx kopano-oof.ldx \
 	kopano-passwd.ldx kopano-server.ldx kopano-spooler.ldx \
 	kopano-srvadm.ldx kopano-storeadm.ldx kopano-stats.ldx \
-	libkcarchiver.ldd libkcarchivercore.ldd libkcclient.ldd \
+	libkcarchiver.ldd libkcclient.ldd \
 	libkccontacts.ldd libkcfreebusy.ldd libkcicalmapi.ldd \
 	libkcinetmapi.ldd libkcindex.ldd \
 	libkcserver.ldd libkcutil.ldd libmapi.ldd
@@ -181,8 +181,7 @@ kopano_admin_LDADD = \
 # kopano-archiver
 #
 kopano_archiver_SOURCES = ECtools/archiver/main.cpp
-kopano_archiver_LDADD = \
-	libmapi.la libkcutil.la libkcarchiver.la libkcarchivercore.la
+kopano_archiver_LDADD = libmapi.la libkcutil.la libkcarchiver.la
 
 
 #
@@ -204,16 +203,14 @@ kopano_dagent_SOURCES = \
 	spooler/archive.cpp spooler/archive.h \
 	spooler/rules.cpp spooler/rules.h
 kopano_dagent_LDADD = \
-	libkcinetmapi.la libmapi.la libkcutil.la \
-	libkcarchiver.la libkcarchivercore.la -lpthread \
+	libkcinetmapi.la libmapi.la libkcutil.la libkcarchiver.la -lpthread \
 	${DL_LIBS} ${INTL_LIBS} ${SSL_LIBS} ${XML2_LIBS} ${icu_uc_LIBS}
 
 
 #
 # kopano-dbadm
 #
-kopano_dbadm_SOURCES = ECtools/dbadm.cpp \
-	common/database.cpp common/include/kopano/database.hpp
+kopano_dbadm_SOURCES = ECtools/dbadm.cpp
 kopano_dbadm_CPPFLAGS = ${AM_CPPFLAGS}
 kopano_dbadm_LDADD = libkcutil.la libkcserver.la ${MYSQL_LIBS}
 
@@ -289,7 +286,7 @@ kopano_spooler_SOURCES = \
 	spooler/mailer.cpp spooler/mailer.h
 kopano_spooler_LDADD = \
 	libkcinetmapi.la libmapi.la libkcutil.la libkcarchiver.la \
-	libkcarchivercore.la -lpthread ${DL_LIBS} ${INTL_LIBS} ${XML2_LIBS}
+	-lpthread ${DL_LIBS} ${INTL_LIBS} ${XML2_LIBS}
 
 
 kopano_srvadm_SOURCES = ECtools/srvadm.cpp
@@ -347,17 +344,7 @@ libkcarchiver_la_SOURCES = \
 	ECtools/archiver/helpers/StoreHelper.cpp ECtools/archiver/helpers/StoreHelper.h \
 	ECtools/archiver/helpers/MAPIPropHelper.cpp ECtools/archiver/helpers/MAPIPropHelper.h \
 	ECtools/archiver/ECArchiverLogger.cpp ECtools/archiver/ECArchiverLogger.h \
-	ECtools/archiver/ECIterators.cpp ECtools/archiver/ECIterators.h
-libkcarchiver_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
-	${default_SYFLAGS${NO_VSYM}}
-libkcarchiver_la_LIBADD = libmapi.la libkcutil.la ${INTL_LIBS}
-EXTRA_libkcarchiver_la_DEPENDENCIES = ${default_sym}
-
-
-#
-# libkcarchivercore
-#
-libkcarchivercore_la_SOURCES = \
+	ECtools/archiver/ECIterators.cpp ECtools/archiver/ECIterators.h \
 	ECtools/archiver/Archiver.cpp ECtools/archiver/Archiver.h \
 	ECtools/archiver/ArchiverImpl.cpp ECtools/archiver/ArchiverImpl.h \
 	ECtools/archiver/operations/instanceidmapper.cpp \
@@ -381,11 +368,11 @@ libkcarchivercore_la_SOURCES = \
 	ECtools/archiver/ArchiveControlImpl.cpp ECtools/archiver/ArchiveControlImpl.h \
 	ECtools/archiver/arc_mysql.cpp ECtools/archiver/arc_mysql.hpp \
 	common/database.cpp common/include/kopano/database.hpp
-libkcarchivercore_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
+libkcarchiver_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	${default_SYFLAGS${NO_VSYM}}
-libkcarchivercore_la_LIBADD = \
-	libmapi.la libkcarchiver.la ${SSL_LIBS} ${MYSQL_LIBS}
-EXTRA_libkcarchivercore_la_DEPENDENCIES = ${default_sym}
+libkcarchiver_la_LIBADD = libmapi.la libkcutil.la \
+	${INTL_LIBS} ${MYSQL_LIBS} ${SSL_LIBS}
+EXTRA_libkcarchiver_la_DEPENDENCIES = ${default_sym}
 
 
 #
