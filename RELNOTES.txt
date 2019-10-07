@@ -1,3 +1,10 @@
+8.7.7
+=====
+Fixes:
+* libserver: avoid null deref when GIG on RFC2307 is attempted [KC-1606]
+* storeadm: allow combining -P and -k [KF-2741]
+
+
 8.7.6 (2019-10-01)
 ==================
 Fixes:
