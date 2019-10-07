@@ -93,6 +93,11 @@
 // 'extern "C"'-space which doesn't work in win32
 #include <cmath>
 #if __GNUC_PREREQ(5, 0) && !__GNUC_PREREQ(6, 0)
+/*
+ * Bug/missing feature in preliminary C++ support in GNU libstdc++-v3 5.x;
+ * there is also no macro to distinguish between GNU libstdc++ and clang libc++,
+ * so that is what you get for clang defining __GNU*.
+ */
 using std::isfinite;
 using std::isnan;
 #endif

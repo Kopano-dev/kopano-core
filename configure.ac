@@ -109,7 +109,7 @@ abs_top_builddir=`pwd`
 ZCPPFLAGS=""
 AC_CANONICAL_HOST
 AS_CASE([$host_os],
-	[openbsd], [
+	[openbsd*], [
 		BUILDOS="openbsd"
 		ZCPPFLAGS="$ZCPPFLAGS -DOPENBSD"
 		LN_TFSV="ln -fs"
@@ -256,8 +256,8 @@ AC_DEFUN([LIBNCURSES_WITH_CONFIG],[
 ])
 LIBNCURSES_WITH_CONFIG
 
-AC_CHECK_HEADERS([syslog.h sys/un.h sys/stat.h malloc.h])
-AC_CHECK_FUNCS([mallinfo timegm getpeereid getpwnam_r vsyslog vsnprintf_l])
+AC_CHECK_HEADERS([syslog.h sys/random.h sys/stat.h sys/un.h malloc.h])
+AC_CHECK_FUNCS([arc4random_buf mallinfo timegm getpeereid getpwnam_r getrandom vsyslog vsnprintf_l])
 AC_CHECK_MEMBERS([siginfo_t.si_fd siginfo_t.si_utime], [], [], [#include <csignal>])
 AC_CHECK_MEMBERS([sockpeercred.uid], [], [], [#include <sys/socket.h>])
 
@@ -280,7 +280,14 @@ AS_IF([test "$with_php" != "no"], [
 PKG_CHECK_MODULES([libHX], [libHX >= 1.10])
 PKG_CHECK_MODULES([xapian], [xapian-core])
 PKG_CHECK_MODULES([XML2], [libxml-2.0])
+
+dbcxx_CPPFLAGS=""
+dbcxx_LIBS="-ldb_cxx"
+CPPFLAGS="$CPPFLAGS_system $dbcxx_CPPFLAGS"
 AC_CHECK_HEADERS([db_cxx.h], [], [AC_MSG_ERROR([Berkeley DB C++ interface required])])
+CPPFLAGS="$CPPFLAGS_system"
+AC_SUBST([dbcxx_CPPFLAGS])
+AC_SUBST([dbcxx_LIBS])
 
 # Checks for MySQL 4.1 or better
 AC_DEFUN([MYSQL_WITH_MYSQL_CONFIG],[

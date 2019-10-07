@@ -4,9 +4,10 @@
  */
 #pragma once
 #include <kopano/zcdefs.h>
-#include <string>
 #include <map>
 #include <stack>
+#include <string>
+#include <vector>
 
 namespace KC {
 
@@ -94,5 +95,7 @@ protected:
 	ListInfo 		listInfo;
 	std::stack<ListInfo> listInfoStack;
 };
+
+extern _kc_export bool rosie_clean_html(const std::string &in, std::string *out, std::vector<std::string> *err);
 
 } /* namespace */

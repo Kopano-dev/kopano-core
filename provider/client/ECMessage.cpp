@@ -32,8 +32,8 @@
 #include "WSUtil.h"
 #include "ClientUtil.h"
 #include "ECMemStream.h"
+#include "HtmlToTextParser.h"
 #include <kopano/charset/convert.h>
-#include <librosie.h>
 
 using namespace KC;
 

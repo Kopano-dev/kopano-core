@@ -65,10 +65,9 @@ AM_CPPFLAGS = ${ZCPPFLAGS} -DLDAP_THREAD_SAFE \
 	-I${top_srcdir}/provider/plugins \
 	-I${top_srcdir}/libfreebusy \
 	-I${top_srcdir}/libicalmapi \
-	-I${top_srcdir}/librosie \
 	-I${top_srcdir}/ECtools/archiver \
-	${CRYPTO_CFLAGS} ${curl_CFLAGS} ${GSOAP_CFLAGS} ${ICAL_CFLAGS} \
-	${jsoncpp_CFLAGS} \
+	${CRYPTO_CFLAGS} ${curl_CFLAGS} ${dbcxx_CPPFLAGS} \
+	${GSOAP_CFLAGS} ${ICAL_CFLAGS} ${jsoncpp_CFLAGS} \
 	${KRB5_CFLAGS} ${LDAP_FLAGS} ${libHX_CFLAGS} \
 	${MYSQL_INCLUDES} ${SSL_CFLAGS} \
 	${s3_CFLAGS} ${kcoidc_CFLAGS} ${TCMALLOC_CFLAGS} ${tidy_CPPFLAGS} \
@@ -118,15 +117,10 @@ if ENABLE_BASE
 # so the order of lib_LTLIBRARIES is important! Dependant libs go to the right.
 # (Order was previously implied by the SUBDIRS variable.)
 #
-if HAVE_TIDY
-COND_libkcrosie_la = libkcrosie.la
-COND_libkcrosie_ldd = libkcrosie.ldd
-endif
 lib_LTLIBRARIES = \
 	libkcutil.la libmapi.la libkcfreebusy.la libkcindex.la \
 	libkcsoap.la libkcserver.la \
-	libkcicalmapi.la ${COND_libkcrosie_la} libkcinetmapi.la \
-	libkcarchiver.la libkcarchivercore.la
+	libkcicalmapi.la libkcinetmapi.la libkcarchiver.la libkcarchivercore.la
 noinst_LTLIBRARIES =
 noinst_DATA = \
 	kopano-admin.ldx \
@@ -138,7 +132,7 @@ noinst_DATA = \
 	kopano-srvadm.ldx kopano-storeadm.ldx kopano-stats.ldx \
 	libkcarchiver.ldd libkcarchivercore.ldd libkcclient.ldd \
 	libkccontacts.ldd libkcfreebusy.ldd libkcicalmapi.ldd \
-	libkcinetmapi.ldd libkcindex.ldd ${COND_libkcrosie_ldd} \
+	libkcinetmapi.ldd libkcindex.ldd \
 	libkcserver.ldd libkcutil.ldd libmapi.ldd
 if ENABLE_PYBIND
 lib_LTLIBRARIES += libkcpyplug.la
@@ -452,7 +446,7 @@ libkcclient_la_SOURCES = \
 	provider/soap/soapKCmdProxy.h provider/soap/soapKCmdProxy.cpp
 libkcclient_la_LIBADD = \
 	libkcutil.la libkcfreebusy.la \
-	libmapi.la ${COND_libkcrosie_la} libkcsoap.la -lstdc++ \
+	libmapi.la libkcsoap.la \
 	${GSOAP_LIBS} ${ICU_LIBS} ${INTL_LIBS} ${SSL_LIBS} ${KRB5_LIBS}
 libkcclient_la_SYFLAGS = -Wl,--version-script=provider/provider.sym
 libkcclient_la_LDFLAGS = ${AM_LDFLAGS} -avoid-version -module \
@@ -470,7 +464,7 @@ libkccontacts_la_SOURCES = \
 	provider/contacts/ZCABProvider.h provider/contacts/ZCABProvider.cpp \
 	provider/contacts/ZCMAPIProp.h provider/contacts/ZCMAPIProp.cpp
 libkccontacts_la_LIBADD = \
-	libkcutil.la libmapi.la -lstdc++ ${ICU_LIBS}
+	libkcutil.la libmapi.la ${ICU_LIBS}
 libkccontacts_la_SYFLAGS = -Wl,--version-script=provider/provider.sym
 libkccontacts_la_LDFLAGS = ${AM_LDFLAGS} -avoid-version -module \
 	${libkccontacts_la_SYFLAGS${NO_VSYM}}
@@ -533,7 +527,7 @@ libkcindex_la_SOURCES = ECtools/idx_handler.cpp \
 	ECtools/idx_util.cpp ECtools/idx_util.hpp \
 	ECtools/idx_xapian.cpp \
 	ECtools/idx_plugin.hpp ECtools/indexer.hpp
-libkcindex_la_LIBADD  = libkcutil.la libmapi.la -ldb_cxx ${xapian_LIBS}
+libkcindex_la_LIBADD  = libkcutil.la libmapi.la ${dbcxx_LIBS} ${xapian_LIBS}
 libkcindex_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	${default_SYFLAGS${NO_VSYM}}
 
@@ -557,7 +551,7 @@ libkcinetmapi_la_SOURCES = \
 	inetmapi/tnef.cpp inetmapi/tnef.h
 libkcinetmapi_la_LIBADD = \
 	libmapi.la libkcutil.la libkcicalmapi.la \
-	${COND_libkcrosie_la} ${ICONV_LIBS} ${VMIME_LIBS} ${XML2_LIBS}
+	${ICONV_LIBS} ${VMIME_LIBS} ${XML2_LIBS}
 libkcinetmapi_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	-version-info 0:0:0 ${default_SYFLAGS${NO_VSYM}}
 EXTRA_libkcinetmapi_la_DEPENDENCIES = ${default_sym}
@@ -638,17 +632,6 @@ libkcserver_la_LDFLAGS = ${AM_LDFLAGS} \
 EXTRA_libkcserver_la_DEPENDENCIES = provider/libkcserver.sym
 
 provider/libkcserver.sym: ${top_builddir}/config.status
-
-
-#
-# libkcrosie
-#
-include_HEADERS = librosie/librosie.h
-libkcrosie_la_SOURCES = librosie/librosie.cpp
-libkcrosie_la_LIBADD  = libkcutil.la -ltidy
-libkcrosie_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined -version-info 0:0:0 \
-	${default_SYFLAGS${NO_VSYM}}
-EXTRA_libkcrosie_la_DEPENDENCIES = ${default_sym}
 
 
 #
@@ -810,7 +793,7 @@ tests_mapialloctime_LDADD = libmapi.la ${clock_LIBS}
 tests_readflag_SOURCES = tests/readflag.cpp tests/tbi.hpp
 tests_readflag_LDADD = libmapi.la libkcutil.la
 tests_rosie_SOURCES = tests/rosie.cpp
-tests_rosie_LDADD = libkcrosie.la
+tests_rosie_LDADD = libkcutil.la
 tests_zcpmd5_SOURCES = tests/zcpmd5.cpp
 tests_zcpmd5_LDADD = ${CRYPTO_LIBS} libkcutil.la
 
