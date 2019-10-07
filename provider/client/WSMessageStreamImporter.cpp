@@ -156,7 +156,7 @@ WSMessageStreamImporter::WSMessageStreamImporter(ULONG ulFlags, ULONG ulSyncId, 
 , m_sFolderEntryId(sFolderEntryId)
 , m_bNewMessage(bNewMessage)
 , m_sConflictItems(sConflictItems)
-, m_ptrTransport(lpTransport, true)
+, m_ptrTransport(lpTransport)
 , m_fifoBuffer(ulBufferSize)
 , m_threadPool("msgstrmimport", 1)
 , m_ulTimeout(ulTimeout)

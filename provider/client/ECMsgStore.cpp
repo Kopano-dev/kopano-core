@@ -188,8 +188,6 @@ ECMsgStore::~ECMsgStore() {
 	// remove all advices
 	if(m_lpNotifyClient)
 		m_lpNotifyClient->ReleaseAll();
-	// Release this->ECMAPIProp::lpStorage since it is registered on lpTransport.
-	lpStorage.reset();
 }
 
 //FIXME: remove duplicate profilename

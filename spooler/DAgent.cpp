@@ -1773,7 +1773,7 @@ static HRESULT HrCopyMessageForDelivery(IMessage *lpOrigMessage,
 		lpMessage->DeleteProps(sptaFallback, 0);
 
 	// Make sure the message is not attached to an archive
-	hr = helpers::MAPIPropHelper::Create(MAPIPropPtr(lpMessage, true), &ptrArchiveHelper);
+	hr = helpers::MAPIPropHelper::Create(object_ptr<IMAPIProp>(lpMessage), &ptrArchiveHelper);
 	if (hr != hrSuccess)
 		return kc_perrorf("helpers::MAPIPropHelper::Create failed", hr);
 	hr = ptrArchiveHelper->DetachFromArchives();

@@ -1016,7 +1016,6 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
     HRESULT hr = hrSuccess;
 	object_ptr<IMAPITable> lpTable;
 	object_ptr<IAddrBook> lpAddrBook;
-    IMsgStore *lpMDB = NULL;
     ULONG cbUnWrappedID = 0;
 	memory_ptr<ENTRYID> lpUnWrappedID;
 	SizedSPropTagArray(3, sptaProviders) = { 3, {PR_ENTRYID, PR_RECORD_KEY, PR_RESOURCE_TYPE} };
@@ -1112,13 +1111,14 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 			return hr;
 		}
 
+		object_ptr<IMsgStore> lpMDB;
 		hr = OpenMsgStore(0, lpsRows[0].lpProps[0].Value.bin.cb, reinterpret_cast<const ENTRYID *>(lpsRows[0].lpProps[0].Value.bin.lpb),
-		     &IID_IMsgStore, MDB_WRITE | MDB_NO_DIALOG | MDB_TEMPORARY, &lpMDB);
+		     &IID_IMsgStore, MDB_WRITE | MDB_NO_DIALOG | MDB_TEMPORARY, &~lpMDB);
 		if (hr != hrSuccess)
 			return kc_perrorf("OpenMsgStore failed", hr);
 
 		// Keep the store open in case somebody else needs it later (only via this function)
-		mapStores.emplace(guidProvider, object_ptr<IMsgStore>(lpMDB, false));
+		mapStores.emplace(guidProvider, lpMDB);
 		if (bStoreEntryID) {
 			hr = lpMDB->QueryInterface(IID_IMsgStore, reinterpret_cast<void **>(lppUnk));
 			if (hr == hrSuccess)

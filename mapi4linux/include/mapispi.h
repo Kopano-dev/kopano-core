@@ -2,12 +2,10 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 /*
  * mapispi.h – Defines flags and interfaces that MAPI implements for service
  * providers and message services.
  */
-
 #ifndef __M4L_MAPISPI_H_
 #define __M4L_MAPISPI_H_
 #define MAPISPI_H
@@ -18,7 +16,6 @@
 #include <mapicode.h>
 #include <mapiguid.h>
 #include <mapitags.h>
-
 
 /*  The MAPI SPI has a version number.  MAPIX.DLL knows and supports
  *  one or more versions of the SPI.  Each provider supports one or
@@ -63,7 +60,6 @@ typedef IMAPISupport* LPMAPISUP;
  */
 
 /* Notification key structure for the MAPI notification engine */
-
 struct NOTIFKEY {
 	NOTIFKEY(void) = delete;
 	template<typename T> NOTIFKEY(std::initializer_list<T>) = delete;
@@ -80,22 +76,16 @@ struct _NOTIFKEY_ ## _name { \
     BYTE        ab[_cb]; \
 } _name
 
-
 /* For Subscribe() */
-
 #define NOTIFY_SYNC             ((ULONG) 0x40000000)
 
 /* For Notify() */
-
 #define NOTIFY_CANCELED         ((ULONG) 0x80000000)
 
-
 /* From the Notification Callback function (well, this is really a ulResult) */
-
 #define CALLBACK_DISCONTINUE    ((ULONG) 0x80000000)
 
 /* For Transport's SpoolerNotify() */
-
 #define NOTIFY_NEWMAIL          ((ULONG) 0x00000001)
 #define NOTIFY_READYTOSEND      ((ULONG) 0x00000002)
 #define NOTIFY_SENTDEFERRED     ((ULONG) 0x00000004)
@@ -105,15 +95,12 @@ struct _NOTIFKEY_ ## _name { \
 #define NOTIFY_CRITICAL_ERROR   ((ULONG) 0x10000000)
 
 /* For Message Store's SpoolerNotify() */
-
 #define NOTIFY_NEWMAIL_RECEIVED ((ULONG) 0x20000000)
 
 /* For ModifyStatusRow() */
-
 #define STATUSROW_UPDATE        ((ULONG) 0x10000000)
 
 /* For IStorageFromStream() */
-
 #define STGSTRM_RESET           ((ULONG) 0x00000000)
 #define STGSTRM_CURRENT         ((ULONG) 0x10000000)
 #define STGSTRM_MODIFY          ((ULONG) 0x00000002)
@@ -125,7 +112,6 @@ struct _NOTIFKEY_ ## _name { \
 /* Preprocessor calls: */
 
 /* PreprocessMessage, first ordinal in RegisterPreprocessor(). */
-
 typedef HRESULT (PREPROCESSMESSAGE)(
                     LPVOID lpvSession,
                     LPMESSAGE lpMessage,
@@ -139,7 +125,6 @@ typedef HRESULT (PREPROCESSMESSAGE)(
                     LPADRLIST* lppRecipList);
 
 /* RemovePreprocessInfo, second ordinal in RegisterPreprocessor(). */
-
 typedef HRESULT (REMOVEPREPROCESSINFO)(LPMESSAGE lpMessage);
 
 /* Function pointer for GetReleaseInfo */
@@ -251,7 +236,6 @@ typedef HRESULT (ABPROVIDERINIT)(
 ABPROVIDERINIT ABProviderInit;
 }
 
-
 /********************************************************************/
 /*                                                                  */
 /*                          TRANSPORT SPI                           */
@@ -259,14 +243,11 @@ ABPROVIDERINIT ABProviderInit;
 /********************************************************************/
 
 /* For DeinitTransport */
-
 #define DEINIT_NORMAL               ((ULONG) 0x00000001)
 #define DEINIT_HURRY                ((ULONG) 0x80000000)
 
 /* For TransportLogon */
-
 /* Flags that the Spooler may pass to the transport: */
-
 #define LOGON_NO_DIALOG             ((ULONG) 0x00000001)
 #define LOGON_NO_CONNECT            ((ULONG) 0x00000004)
 #define LOGON_NO_INBOUND            ((ULONG) 0x00000008)
@@ -274,11 +255,9 @@ ABPROVIDERINIT ABProviderInit;
 /*#define MAPI_UNICODE              ((ULONG) 0x80000000) in mapidefs.h */
 
 /* Flags that the transport may pass to the Spooler: */
-
 #define LOGON_SP_IDLE               ((ULONG) 0x00010000)
 #define LOGON_SP_POLL               ((ULONG) 0x00020000)
 #define LOGON_SP_RESOLVE            ((ULONG) 0x00040000)
-
 
 class IXPProvider;
 typedef IXPProvider* LPXPPROVIDER;
@@ -293,7 +272,6 @@ public:
 };
 
 /* OptionData returned from call to RegisterOptions */
-
 #define OPTION_TYPE_RECIPIENT       ((ULONG) 0x00000001)
 #define OPTION_TYPE_MESSAGE         ((ULONG) 0x00000002)
 
@@ -322,7 +300,6 @@ typedef SCODE (OPTIONCALLBACK)(
             LPMAPIERROR *   lppMAPIError);
 
 /* For TransportNotify */
-
 #define NOTIFY_ABORT_DEFERRED       ((ULONG) 0x40000000)
 #define NOTIFY_CANCEL_MESSAGE       ((ULONG) 0x80000000)
 #define NOTIFY_BEGIN_INBOUND        ((ULONG) 0x00000001)
@@ -335,20 +312,16 @@ typedef SCODE (OPTIONCALLBACK)(
 #define NOTIFY_END_OUTBOUND_FLUSH   ((ULONG) 0x00080000)
 
 /* For TransportLogoff */
-
 #define LOGOFF_NORMAL               ((ULONG) 0x00000001)
 #define LOGOFF_HURRY                ((ULONG) 0x80000000)
 
 /* For SubmitMessage */
-
 #define BEGIN_DEFERRED              ((ULONG) 0x00000001)
 
 /* For EndMessage */
-
 /* Flags that the Spooler may pass to the Transport: */
 
 /* Flags that the transport may pass to the Spooler: */
-
 #define END_RESEND_NOW              ((ULONG) 0x00010000)
 #define END_RESEND_LATER            ((ULONG) 0x00020000)
 #define END_DONT_RESEND             ((ULONG) 0x00040000)
@@ -370,7 +343,6 @@ public:
     virtual HRESULT FlushQueues(ULONG ulUIParam, ULONG cbTargetTransport, LPENTRYID lpTargetTransport, ULONG ulFlags) = 0;
 };
 
-
 /* Transport Provider Entry Point */
 typedef HRESULT (XPPROVIDERINIT)(
     HINSTANCE           hInstance,
@@ -390,16 +362,13 @@ typedef HRESULT (XPPROVIDERINIT)(
 /********************************************************************/
 
 /* Flags and enums */
-
 /* GetCredentials, SetCredentials */
-
 #define LOGON_SP_TRANSPORT      ((ULONG) 0x00000001)
 #define LOGON_SP_PROMPT         ((ULONG) 0x00000002)
 #define LOGON_SP_NEWPW          ((ULONG) 0x00000004)
 #define LOGON_CHANGED           ((ULONG) 0x00000008)
 
 /* DoMCDialog */
-
 #define DIALOG_FOLDER           ((ULONG) 0x00000001)
 #define DIALOG_MESSAGE          ((ULONG) 0x00000002)
 #define DIALOG_PROP             ((ULONG) 0x00000004)
@@ -413,12 +382,10 @@ typedef HRESULT (XPPROVIDERINIT)(
 #define DIALOG_CONFIRM_CANCEL   ((ULONG) 0x00000100)
 
 /* ExpandRecips */
-
 #define NEEDS_PREPROCESSING     ((ULONG) 0x00000001)
 #define NEEDS_SPOOLER           ((ULONG) 0x00000002)
 
 /* PrepareSubmit */
-
 #define CHECK_SENDER            ((ULONG) 0x00000001)
 #define NON_STANDARD            ((ULONG) 0x00010000)
 
@@ -476,12 +443,10 @@ MSPROVIDERINIT MSProviderInit;
 /********************************************************************/
 
 /* Flags for service configuration entry point */
-
 #define MSG_SERVICE_UI_READ_ONLY     0x00000008 /* display parameters only */
 #define SERVICE_LOGON_FAILED         0x00000020 /* reconfigure provider */
 
 /* Contexts for service configuration entry point */
-
 #define MSG_SERVICE_INSTALL         0x00000001
 #define MSG_SERVICE_CREATE          0x00000002
 #define MSG_SERVICE_CONFIGURE       0x00000003

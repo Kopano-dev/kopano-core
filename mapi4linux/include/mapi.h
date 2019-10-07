@@ -12,18 +12,14 @@
 #include <kopano/platform.h>
 
 struct MapiFileDesc {
-    ULONG ulReserved;
-    ULONG flFlags;
-    ULONG nPosition;
-    LPSTR lpszPathName;
-    LPSTR lpszFileName;
+	unsigned int ulReserved, flFlags, nPosition;
+	char *lpszPathName, *lpszFileName;
     LPVOID lpFileType;
 };
 typedef struct MapiFileDesc *lpMapiFileDesc;
 
 struct MapiFileTagExt {
-    ULONG ulReserved;
-    ULONG cbTag;
+	unsigned int ulReserved, cbTag;
     LPBYTE lpTag;
     ULONG cbEncoding;
     LPBYTE lpEncoding;
@@ -42,8 +38,7 @@ typedef struct MapiFileTagExt *lpMapiFileTagExt;
 struct MapiRecepDesc {
     ULONG ulReserved;
     ULONG ulRecipClass;		/* MAPI_TO, MAPI_CC, MAPI_BCC, MAPI_ORIG    */
-    LPSTR lpszName;
-    LPSTR lpszAddress;
+	char *lpszName, *lpszAddress;
     ULONG ulEIDSize;
     LPVOID lpEntryID;
 };

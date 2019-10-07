@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 /* mapiguid.h – Defines GUIDs. */
-
 #ifndef __M4L_MAPIGUID_H_
 
 #ifdef  INITGUID		/* only when INITGUID? */
@@ -176,7 +174,6 @@ DEFINE_OLEGUID(IID_IMAPIFormInfo,   0x00020324, 0, 0);
 DEFINE_OLEGUID(IID_IMAPIForm,   0x00020327, 0, 0);
 #endif
 
-
 /* Well known guids for name<->id mappings */
 
 /*  The name of MAPI's property set  */
@@ -234,8 +231,6 @@ DEFINE_OLEGUID(IID_IMAPIFormFactory, 0x00020350, 0, 0);
 DEFINE_OLEGUID(IID_IMAPIMessageSite, 0x00020370, 0, 0);
 #endif
 
-
-
 /* Well known guids routing property sets.
    Useful when writing applications that route documents
    (i.e. Workflow) across gateways.  Gateways that speak MAPI
@@ -274,6 +269,5 @@ DEFINE_OLEGUID(PS_ROUTING_SEARCH_KEY,   0x00020384, 0, 0);
 #if !defined(INITGUID) || defined(USES_MUID_PROFILE_INSTANCE)
 DEFINE_OLEGUID(MUID_PROFILE_INSTANCE, 0x00020385, 0, 0);
 #endif
-
 
 #endif  /* MAPIGUID_H */

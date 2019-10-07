@@ -98,7 +98,7 @@ HRESULT ECMessageStreamImporterIStreamAdapter::Clone(IStream** /*ppstm*/)
 }
 
 ECMessageStreamImporterIStreamAdapter::ECMessageStreamImporterIStreamAdapter(WSMessageStreamImporter *lpStreamImporter)
-: m_ptrStreamImporter(lpStreamImporter, true)
+: m_ptrStreamImporter(lpStreamImporter)
 { }
 
 ECMessageStreamImporterIStreamAdapter::~ECMessageStreamImporterIStreamAdapter()

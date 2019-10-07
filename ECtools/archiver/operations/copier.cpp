@@ -32,7 +32,7 @@ Copier::Helper::Helper(ArchiverSessionPtr ptrSession, std::shared_ptr<ECLogger> 
     const InstanceIdMapperPtr &ptrMapper, const SPropTagArray *lpExcludeProps,
     LPMAPIFOLDER lpFolder) :
 	m_ptrSession(ptrSession), m_lpLogger(std::move(lpLogger)),
-	m_lpExcludeProps(lpExcludeProps), m_ptrFolder(lpFolder, true),
+	m_lpExcludeProps(lpExcludeProps), m_ptrFolder(lpFolder),
 	// do an AddRef so we don't take ownership of the folder
 	m_ptrMapper(ptrMapper)
 {
@@ -130,7 +130,7 @@ HRESULT Copier::Helper::ArchiveMessage(LPMESSAGE lpSource, const SObjectEntry *l
 	hr = lpDest->SetProps(1, &sPropArchFlags, NULL);
 	if (hr != hrSuccess)
 		return m_lpLogger->perr("Failed to set flags on archive message", hr);
-	hr = MAPIPropHelper::Create(MAPIPropPtr(lpDest, true), &ptrMsgHelper);
+	hr = MAPIPropHelper::Create(object_ptr<IMAPIProp>(lpDest), &ptrMsgHelper);
 	if (hr != hrSuccess)
 		return m_lpLogger->perr("Failed to create prop helper", hr);
 	if (lpMsgEntry) {
@@ -252,7 +252,7 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 			hrTmp = m_ptrMapper->GetMappedInstanceId(ptrSourceServerUID->Value.bin, cbSourceSIID, ptrSourceSIID, ptrDestServerUID->Value.bin, &cbDestSIID, &~ptrDestSIID);
 			if (hrTmp == MAPI_E_NOT_FOUND) {
 				m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "No mapped IID found, list message for deferred creation of mapping");
-				lstDeferred.emplace_back(new TaskMapInstanceId(ptrSourceAttach, MessagePtr(lpDest, true), i));
+				lstDeferred.emplace_back(new TaskMapInstanceId(ptrSourceAttach, object_ptr<IMessage>(lpDest), i));
 				continue;
 			}
 			if (hrTmp != hrSuccess) {
@@ -287,7 +287,7 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 				continue;
 			}
 
-			lstDeferred.emplace_back(new TaskVerifyAndUpdateInstanceId(ptrSourceAttach, MessagePtr(lpDest, true), i, cbDestSIID, ptrDestSIID));
+			lstDeferred.emplace_back(new TaskVerifyAndUpdateInstanceId(ptrSourceAttach, object_ptr<IMessage>(lpDest), i, cbDestSIID, ptrDestSIID));
 		}
 	}
 
@@ -856,7 +856,7 @@ HRESULT Copier::UpdateHistoryRefs(LPMESSAGE lpArchivedMsg, const SObjectEntry &r
 {
 	MAPIPropHelperPtr ptrPropHelper;
 	MessagePtr ptrMessage;
-	auto hr = MAPIPropHelper::Create(MAPIPropPtr(lpArchivedMsg, true), &ptrPropHelper);
+	auto hr = MAPIPropHelper::Create(object_ptr<IMAPIProp>(lpArchivedMsg), &ptrPropHelper);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrPropHelper->OpenPrevious(m_ptrSession, &~ptrMessage);

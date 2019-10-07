@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 /* mapicode.h – Defines status codes for error values */
-
 #ifndef __M4L_MAPICODE_H_
 #define __M4L_MAPICODE_H_
 #define MAPICODE_H
@@ -122,7 +120,6 @@
 #define MAPI_E_AMBIGUOUS_RECIP                          MAKE_MAPI_E( 0x700 )
 
 /* The range 0x0800 to 0x08FF is reserved */
-
 
 /* We expect these to eventually be defined by OLE, but for now,
  * here they are.  When OLE defines them they can be much more

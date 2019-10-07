@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef __M4L_MAPIDEFS_IMPL_H
 #define __M4L_MAPIDEFS_IMPL_H
 
@@ -102,7 +101,6 @@ public:
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 };
 
-
 /* for ABContainer */
 class M4LMAPIContainer : public M4LMAPIProp, public virtual IMAPIContainer {
 public:
@@ -123,7 +121,6 @@ struct abEntry {
 
 class M4LABContainer final : public IABContainer, public M4LMAPIContainer {
 private:
-	/*  */
 	const std::list<abEntry> &m_lABEntries;
 
 public:

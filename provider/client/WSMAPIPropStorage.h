@@ -10,6 +10,7 @@
 #include <kopano/Util.h>
 #include "IECPropStorage.h"
 #include <kopano/kcodes.h>
+#include <kopano/memory.hpp>
 #include <kopano/zcdefs.h>
 #include "WSTransport.h"
 #include <mapi.h>
@@ -65,7 +66,7 @@ private:
 	unsigned int	ulServerCapabilities;
 	ULONG m_ulSyncId = 0, m_ulConnection = 0, m_ulEventMask = 0;
 	unsigned int m_ulFlags, m_ulSessionReloadCallback;
-	WSTransport		*m_lpTransport;
+	KC::object_ptr<WSTransport> m_lpTransport;
 	bool m_bSubscribed = false;
 	ALLOC_WRAP_FRIEND;
 };

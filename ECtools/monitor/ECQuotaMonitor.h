@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef ECQUOTAMONITOR
 #define ECQUOTAMONITOR
 
@@ -13,13 +12,8 @@
 struct TemplateVariables {
 	KC::objectclass_t ulClass;
 	KC::eQuotaStatus ulStatus;
-	std::string strUserName;
-	std::string strFullName;
-	std::string strCompany;
-	std::string strStoreSize;
-	std::string strWarnSize;
-	std::string strSoftSize;
-	std::string strHardSize;
+	std::string strUserName, strFullName, strCompany, strStoreSize;
+	std::string strWarnSize, strSoftSize, strHardSize;
 };
 
 class ECQuotaMonitor final {
@@ -28,7 +22,6 @@ private:
 
 public:
 	static void* Create(void* lpVoid);
-
 	HRESULT	CheckQuota();
 	HRESULT CheckCompanyQuota(KC::ECCOMPANY *);
 	HRESULT CheckServerQuota(ULONG cUsers, KC::ECUSER *userlist, KC::ECCOMPANY *, LPMDB lpAdminStore);
@@ -40,7 +33,6 @@ private:
 	HRESULT SendQuotaWarningMail(IMsgStore* lpMDB, ULONG cPropSize, LPSPropValue lpPropArray, LPADRLIST lpAddrList);
 	HRESULT CreateQuotaWarningMail(TemplateVariables *, IMsgStore *, KC::ECUSER *to, KC::ECUSER *from, ADRLIST *);
 	HRESULT OpenUserStore(TCHAR *name, KC::objectclass_t, IMsgStore **);
-	HRESULT GetConfigMessage(LPMDB, const char *msgname, IMessage **msgout);
 	HRESULT CheckQuotaInterval(LPMDB lpStore, LPMESSAGE *lppMessage, bool *lpbTimeout);
 	HRESULT UpdateQuotaTimestamp(LPMESSAGE lpMessage);
 	HRESULT Notify(KC::ECUSER *, KC::ECCOMPANY *, KC::ECQUOTASTATUS *, IMsgStore *);
@@ -50,6 +42,5 @@ private:
 	KC::object_ptr<IMsgStore> m_lpMDBAdmin;
 	ULONG m_ulProcessed = 0, m_ulFailed = 0;
 };
-
 
 #endif

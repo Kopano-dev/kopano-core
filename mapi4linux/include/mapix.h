@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 /* mapix.h – Defines flags and interfaces that MAPI implements for clients */
-
 #ifndef __M4L_MAPIX_H_
 #define __M4L_MAPIX_H_
 #define MAPIX_H
@@ -47,7 +45,6 @@ typedef IMAPISession* LPMAPISESSION;
 #define MAPI_SIMPLE_EXPLICIT (MAPI_NEW_SESSION | MAPI_FORCE_DOWNLOAD | MAPI_EXPLICIT_PROFILE)
 
 /* Structure passed to MAPIInitialize(), and its ulFlags values */
-
 struct MAPIINIT_0 {
 	ULONG ulVersion, ulFlags;
 };
@@ -112,16 +109,13 @@ extern _kc_export MAPIADMINPROFILES MAPIAdminProfiles;
  */
 
 /* Flags for OpenEntry and others */
-
 /*#define MAPI_MODIFY               ((ULONG) 0x00000001) */
 
 /* Flags for Logoff */
-
 #define MAPI_LOGOFF_SHARED      0x00000001  /* Close all shared sessions    */
 #define MAPI_LOGOFF_UI          0x00000002  /* It's OK to present UI        */
 
 /* Flags for SetDefaultStore. They are mutually exclusive. */
-
 #define MAPI_DEFAULT_STORE          0x00000001  /* for incoming messages */
 #define MAPI_SIMPLE_STORE_TEMPORARY 0x00000002  /* for simple MAPI and CMC */
 #define MAPI_SIMPLE_STORE_PERMANENT 0x00000003  /* for simple MAPI and CMC */
@@ -129,7 +123,6 @@ extern _kc_export MAPIADMINPROFILES MAPIAdminProfiles;
 #define MAPI_SECONDARY_STORE        0x00000005  /* Used by some clients */
 
 /* Flags for ShowForm. */
-
 #define MAPI_POST_MESSAGE       0x00000001  /* Selects post/send semantics */
 #define MAPI_NEW_MESSAGE        0x00000002  /* Governs copying during submission */
 
@@ -188,7 +181,6 @@ typedef IAddrBook* LPADRBOOK;
 /*
  * IProfAdmin Interface
  */
-
 #define MAPI_DEFAULT_SERVICES           0x00000001
 
 struct IProfAdmin : public virtual IUnknown {
@@ -210,7 +202,6 @@ IID_OF(IProfAdmin)
  */
 
 /* Values for PR_RESOURCE_FLAGS in message service table */
-
 #define SERVICE_DEFAULT_STORE       0x00000001
 #define SERVICE_SINGLE_COPY         0x00000002
 #define SERVICE_CREATE_WITH_STORE   0x00000004

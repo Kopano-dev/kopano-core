@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 /* mapiutil.h – Defines utility interfaces and functions */
-
 #ifndef __M4L_MAPIUTIL_H_
 #define __M4L_MAPIUTIL_H_
 #define MAPIUTIL_H
@@ -51,7 +49,6 @@ extern _kc_export HRESULT WrapStoreEntryID(ULONG flags, const TCHAR *dllname, UL
 #define RTF_SYNC_BODY_CHANGED   ((ULONG) 0x00000002)
 
 extern _kc_export HRESULT RTFSync(LPMESSAGE, ULONG flags, BOOL *msg_updated);
-
 
 /* Flags for WrapCompressedRTFStream() */
 
