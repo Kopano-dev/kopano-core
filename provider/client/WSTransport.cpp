@@ -13,6 +13,7 @@
 #include <new>
 #include <string>
 #include <kopano/ECLogger.h>
+#include <kopano/scope.hpp>
 #include "WSTransport.h"
 #include "ProviderUtil.h"
 #include "soapH.h"
@@ -376,11 +377,10 @@ static ECRESULT TrySSOLogon(KCmdProxy2 *lpCmd, const utf8string &strUsername,
 	ECRESULT er = KCERR_LOGON_FAILED;
 #ifdef HAVE_GSSAPI
 	OM_uint32 minor, major;
-	gss_buffer_desc pr_buf;
+	gss_buffer_desc pr_buf, secbufin{};
 	gss_name_t principal = GSS_C_NO_NAME;
 	gss_ctx_id_t gss_ctx = GSS_C_NO_CONTEXT;
 	gss_OID_desc mech_spnego = {6, const_cast<char *>("\053\006\001\005\005\002")};
-	gss_buffer_desc secbufout, secbufin;
 	struct xsd__base64Binary sso_data;
 	struct ssoLogonResponse resp;
 
@@ -394,6 +394,7 @@ static ECRESULT TrySSOLogon(KCmdProxy2 *lpCmd, const utf8string &strUsername,
 
 	resp.ulSessionId = 0;
 	do {
+		gss_buffer_desc secbufout{};
 		major = gss_init_sec_context(&minor, GSS_C_NO_CREDENTIAL,
 		        &gss_ctx, principal, &mech_spnego, GSS_C_CONF_FLAG,
 		        GSS_C_INDEFINITE, GSS_C_NO_CHANNEL_BINDINGS,
@@ -401,6 +402,9 @@ static ECRESULT TrySSOLogon(KCmdProxy2 *lpCmd, const utf8string &strUsername,
 		        nullptr, &secbufout, nullptr, nullptr);
 		if (GSS_ERROR(major))
 			goto exit;
+		auto cleanup = make_scope_success([&]() {
+			gss_release_buffer(&minor, &secbufout);
+		});
 
 		/* Send GSS state to kopano-server */
 		sso_data.__ptr = reinterpret_cast<unsigned char *>(secbufout.value);
@@ -416,7 +420,6 @@ static ECRESULT TrySSOLogon(KCmdProxy2 *lpCmd, const utf8string &strUsername,
 
 		secbufin.value = static_cast<void *>(resp.lpOutput->__ptr);
 		secbufin.length = resp.lpOutput->__size;
-		gss_release_buffer(&minor, &secbufout);
 		/* Return kopano-server response to GSS */
 	} while (true);
 	er = resp.er;
@@ -428,7 +431,6 @@ static ECRESULT TrySSOLogon(KCmdProxy2 *lpCmd, const utf8string &strUsername,
 	    resp.sServerGuid.__size == sizeof(*lpsServerGuid))
 		memcpy(lpsServerGuid, resp.sServerGuid.__ptr, sizeof(*lpsServerGuid));
  exit:
-	gss_release_buffer(&minor, &secbufout);
 	gss_delete_sec_context(&minor, &gss_ctx, nullptr);
 	gss_release_name(&minor, &principal);
 #endif
