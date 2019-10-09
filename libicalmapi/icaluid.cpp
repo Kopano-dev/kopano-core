@@ -164,7 +164,6 @@ HRESULT HrMakeBinUidFromICalUid(const std::string &strUid, std::string *lpStrBin
  */
 HRESULT HrMakeBinaryUID(const std::string &strUid, void *base, SPropValue *lpPropValue)
 {
-	SPropValue sPropValue;
 	std::string strBinUid, strByteArrayID = "040000008200E00074C5B7101A82E008";
 
 	// Check whether this is a default Outlook UID
@@ -179,13 +178,9 @@ HRESULT HrMakeBinaryUID(const std::string &strUid, void *base, SPropValue *lpPro
 		HrMakeBinUidFromICalUid(strUid, &strBinUid);
 
 	// Caller sets .ulPropTag
-	sPropValue.Value.bin.cb = strBinUid.size();
-	auto hr = KAllocCopy(strBinUid.data(), sPropValue.Value.bin.cb, reinterpret_cast<void **>(&sPropValue.Value.bin.lpb), base);
-	if (hr != hrSuccess)
-		return hr;
-	// set return value
-	lpPropValue->Value.bin = sPropValue.Value.bin;
-	return hrSuccess;
+	lpPropValue->Value.bin.cb = strBinUid.size();
+	return KAllocCopy(strBinUid.data(), strBinUid.size(),
+	       reinterpret_cast<void **>(&lpPropValue->Value.bin.lpb), base);
 }
 
 } /* namespace */
