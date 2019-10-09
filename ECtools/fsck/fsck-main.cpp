@@ -258,7 +258,7 @@ HRESULT Fsck::DeleteRecipientList(LPMESSAGE lpMessage, std::list<unsigned int> &
 
 	lpMods->cEntries = 0;
 	for (const auto &recip : mapiReciptDel) {
-		auto &ent = lpMods->aEntries[lpMods->cEntries];
+		auto &ent = lpMods->aEntries[lpMods->cEntries++];
 		ent.cValues = 1;
 		hr = MAPIAllocateMore(sizeof(SPropValue), lpMods, reinterpret_cast<void **>(&ent.rgPropVals));
 		if (hr != hrSuccess)
