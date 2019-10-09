@@ -60,10 +60,7 @@ _icalmapi_la_LIBADD = libkcpyconv.la \
 
 _archiver_la_CPPFLAGS = ${AM_CPPFLAGS} -I${top_srcdir}/ECtools/archiver
 _archiver_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version -rpath '$(libdir)'
-_archiver_la_LIBADD = \
-	${top_builddir}/libkcarchiver.la \
-	${top_builddir}/libkcarchivercore.la \
-	$(PYTHON_LIBS)
+_archiver_la_LIBADD = ${top_builddir}/libkcarchiver.la ${PYTHON_LIBS}
 
 _RecurrenceState_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version -rpath '$(libdir)'
 _RecurrenceState_la_LIBADD = libkcpyconv.la \
