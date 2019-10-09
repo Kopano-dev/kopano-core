@@ -7,6 +7,7 @@
 #define _FILEUTIL_H
 
 #include <kopano/zcdefs.h>
+#include <kopano/platform.h>
 #include <string>
 #include <cstdio>
 
