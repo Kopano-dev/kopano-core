@@ -477,7 +477,7 @@ HRESULT vcftomapi_impl::parse_vcf(const std::string &ical)
 	}
 
 	if (!check_libical_bug_353())
-		ec_log_err("libical bug #353 detected. VCF import can produce garbage. (KC-1247)");
+		ec_log_warn("libical bug #353 detected. VCF import can produce garbage. (KC-1247)");
 	std::unique_ptr<VObject, ical_deleter> root(Parse_MIME(tmp_ical.c_str(), tmp_ical.length()));
 	if (root == nullptr)
 		return MAPI_E_CORRUPT_DATA;
