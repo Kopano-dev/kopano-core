@@ -79,9 +79,6 @@ HRESULT HrFileLFtoCRLF(FILE *fin, FILE** fout)
  */
 HRESULT HrMapFileToString(FILE *f, std::string *lpstrBuffer)
 {
-	struct stat sb;
-	if (fstat(fileno(f), &sb) != 0)
-		return MAPI_E_CALL_FAILED;
 	lpstrBuffer->clear();
 	char buf[BLOCKSIZE];
 	while (!feof(f)) {
