@@ -56,9 +56,9 @@ are susceptible to address changes).
 .PP
 An interface name may be appended to the address with a percent sign to make
 use of the Linux-specific SO_BINDTODEVICE socket option, e.g.
-"[fe80::1]%eth0:236").
+"[fe80::1]%eth0:236"). On other operating systems, %xxx has no effect.
 .PP
-Default: \fI*:236\fP
+Default: \fI*%lo:236\fP
 .SS server_pipe_enabled
 .PP
 Enable Unix pipe connections. Should not be disabled.

@@ -884,7 +884,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{"server_ssl_prefer_server_ciphers", "yes", CONFIGSETTING_RELOADABLE},
 		{"server_ssl_curves", KC_DEFAULT_ECDH_CURVES, CONFIGSETTING_RELOADABLE},
 		{"socketspec", "", CONFIGSETTING_OBSOLETE},
-		{"server_listen", "*:236"},
+		{"server_listen", "*%lo:236"},
 		{"server_listen_tls", ""},
 		{ "sslkeys_path",				"/etc/kopano/sslkeys" },	// login keys
 		// Database options

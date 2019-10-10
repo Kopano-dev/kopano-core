@@ -67,9 +67,9 @@ susceptible to address changes).
 .PP
 An interface name may be appended to the address with a percent sign to make
 use of the Linux-specific SO_BINDTODEVICE socket option, e.g.
-"[fe80::1]%eth0:143").
+"[fe80::1]%eth0:143"). On other operating systems, %xxx has no effect.
 .PP
-Default: \fI*:143\fP
+Default: \fI*%lo:143\fP
 .SS imaps_listen
 A space-separated list of address:port spcifiers for implicit-SSL IMAP
 connections, similar to \fBimap_listen\fP. Normally placed on port 993.
@@ -81,7 +81,7 @@ A space-separated list of address:port specifiers for where the server should
 listen for unencrypted and STARTTLS-ed POP3 connections, similar to
 \fBimap_listen\fP.
 .PP
-Default: \fI*:110\fP
+Default: \fI*%lo:110\fP
 .SS pop3s_listen
 A space-separated list of address:port spcifiers for implicit-SSL POP3
 connections, similar to \fBpop3_listen\fP. Normally placed on port 995.
