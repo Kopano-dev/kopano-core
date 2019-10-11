@@ -64,7 +64,7 @@ from .group import Group
 from .query import _query_to_restriction
 
 from .compat import (
-    repr as _repr, benc as _benc,
+    benc as _benc,
     bdec as _bdec, fake_unicode as _unicode,
 )
 
@@ -1100,4 +1100,4 @@ multi-tenant setup')
         return 'Server(%s)' % self.server_socket
 
     def __repr__(self):
-        return _repr(self)
+        return self.__unicode__()

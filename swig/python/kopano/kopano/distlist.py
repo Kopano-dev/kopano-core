@@ -8,7 +8,6 @@ Copyright 2018 - 2019 Kopano and its licensors (see LICENSE file)
 import codecs
 
 from .address import Address
-from .compat import repr as _repr
 from .pidlid import (
     PidLidDistributionListMembers,
     PidLidDistributionListOneOffMembers
@@ -64,4 +63,4 @@ class DistList(object):
         return 'DistList(%s)' % self.item.name
 
     def __repr__(self):
-        return _repr(self)
+        return self.__unicode__()

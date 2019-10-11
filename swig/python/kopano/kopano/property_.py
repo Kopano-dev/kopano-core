@@ -37,7 +37,7 @@ from .defs import (
     REV_TAG, REV_TYPE, GUID_NAMESPACE, MAPINAMEID, NAMESPACE_GUID, STR_GUID,
 )
 from .compat import (
-    benc as _benc, repr as _repr, fake_unicode as _unicode,
+    benc as _benc, fake_unicode as _unicode,
 )
 from .errors import Error, NotFoundError
 
@@ -465,4 +465,4 @@ class Property(object):
 
     # TODO: check if data is binary and convert it to hex
     def __repr__(self):
-        return _repr(self)
+        return self.__unicode__()

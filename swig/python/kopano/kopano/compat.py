@@ -41,9 +41,6 @@ def bdec(s):
 def is_file(f):
     return isinstance(f, io.IOBase)
 
-def repr(o):
-    return o.__unicode__()
-
 def fake_unicode(s): # TODO inline.. remove str() also in most cases?
     return str(s)
 

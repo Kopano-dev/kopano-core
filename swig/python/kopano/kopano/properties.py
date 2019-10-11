@@ -15,7 +15,6 @@ from MAPI import (
 from MAPI.Defs import PROP_TYPE
 from MAPI.Struct import SPropValue
 
-from .compat import repr as _repr
 from .errors import NotFoundError
 
 from . import property_ as _prop
@@ -129,4 +128,4 @@ class Properties(object):
         _utils._save(self.mapiobj)
 
     def __repr__(self):
-        return _repr(self)
+        return self.__unicode__()

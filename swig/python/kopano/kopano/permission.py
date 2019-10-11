@@ -20,7 +20,7 @@ from MAPI.Tags import (
 )
 
 from .compat import (
-    bdec as _bdec, benc as _benc, repr as _repr
+    bdec as _bdec, benc as _benc
 )
 from .defs import RIGHT_NAME, NAME_RIGHT
 from .errors import NotFoundError
@@ -150,4 +150,4 @@ class Permission(object):
         return "Permission('%s')" % self.member.name
 
     def __repr__(self):
-        return _repr(self)
+        return self.__unicode__()

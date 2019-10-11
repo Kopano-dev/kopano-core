@@ -43,7 +43,7 @@ from dateutil.rrule import (
 )
 
 from .compat import (
-    repr as _repr, benc as _benc, bdec as _bdec, fake_unicode as _unicode
+    benc as _benc, bdec as _bdec, fake_unicode as _unicode
 )
 from .errors import (
     ArgumentError,
@@ -1321,7 +1321,7 @@ class Recurrence(object):
         return 'Recurrence()'
 
     def __repr__(self):
-        return _repr(self)
+        return self.__unicode__()
 
 
 class Occurrence(object):

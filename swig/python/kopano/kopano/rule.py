@@ -20,7 +20,7 @@ from MAPI.Struct import (
 )
 
 from .compat import (
-    repr as _repr, bdec as _bdec
+    bdec as _bdec
 )
 
 from .restriction import Restriction
@@ -85,7 +85,7 @@ class Rule(object):
         return "Rule('%s')" % self.name
 
     def __repr__(self):
-        return _repr(self)
+        return self.__unicode__()
 
 class Action(object):
     """:class:`Rule <Rule>` action class."""

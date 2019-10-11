@@ -17,7 +17,6 @@ try:
 except ImportError: # pragma: no cover
     pass
 
-from .compat import repr as _repr
 
 
 if WITH_PIL:
@@ -88,4 +87,4 @@ class Picture(object):
         return 'Picture(%s)' % (self.name or '')
 
     def __repr__(self):
-        return _repr(self)
+        return self.__unicode__()

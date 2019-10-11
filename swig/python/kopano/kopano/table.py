@@ -20,7 +20,7 @@ from MAPI.Defs import PpropFindProp
 from MAPI.Struct import MAPIErrorNotFound, SSort, SSortOrderSet
 
 from .defs import REV_TAG
-from .compat import fake_unicode as _unicode, repr as _repr
+from .compat import fake_unicode as _unicode
 
 from . import property_ as _prop
 
@@ -152,4 +152,4 @@ class Table(object):
         return 'Table(%s)' % tablename
 
     def __repr__(self):
-        return _repr(self)
+        return self.__unicode__()

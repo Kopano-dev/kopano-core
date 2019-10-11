@@ -29,7 +29,7 @@ from MAPI.Struct import (
     SExistRestriction,
 )
 from .compat import (
-    bdec as _bdec, repr as _repr,
+    bdec as _bdec
 )
 from .errors import NotFoundError
 
@@ -220,4 +220,4 @@ class Delegation(object):
         return "Delegation('%s')" % self.user.name
 
     def __repr__(self):
-        return _repr(self)
+        return self.__unicode__()

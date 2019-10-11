@@ -36,7 +36,6 @@ from .pidlid import (
     PidLidWorkAddressCountry,
 )
 
-from .compat import repr as _repr
 
 from .address import Address
 from .errors import NotFoundError
@@ -69,7 +68,7 @@ class PhysicalAddress(object):
         self.country = item.get(country, '')
 
     def __repr__(self):
-        return _repr(self)
+        return self.__unicode__()
 
     def __unicode__(self):
         return 'PhysicalAddress()'

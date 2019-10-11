@@ -18,7 +18,7 @@ from MAPI.Tags import (
 from MAPI.Struct import SPropValue
 from MAPI.Time import unixtime
 
-from .compat import repr as _repr, fake_unicode as _unicode
+from .compat import fake_unicode as _unicode
 from .errors import NotFoundError
 
 try:
@@ -143,7 +143,7 @@ class OutOfOffice(object):
         return 'OutOfOffice(%s)' % self.subject
 
     def __repr__(self):
-        return _repr(self)
+        return self.__unicode__()
 
     def update(self, **kwargs):
         for key, val in kwargs.items():

@@ -51,7 +51,6 @@ from .defs import (
     ASF_MEETING, ASF_RECEIVED, ASF_CANCELED
 )
 
-from .compat import repr as _repr
 from .errors import Error
 from .restriction import Restriction
 
@@ -746,4 +745,4 @@ class MeetingRequest(object):
         return 'MeetingRequest()'
 
     def __repr__(self):
-        return _repr(self)
+        return self.__unicode__()

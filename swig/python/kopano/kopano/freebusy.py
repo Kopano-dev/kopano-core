@@ -23,7 +23,7 @@ from MAPI.Time import (
 import MAPI.Struct
 
 from .compat import (
-    bdec as _bdec, repr as _repr
+    bdec as _bdec
     )
 
 # TODO to utils.py?
@@ -61,7 +61,7 @@ class FreeBusyBlock(object):
         return 'FreeBusyBlock()'
 
     def __repr__(self):
-        return _repr(self)
+        return self.__unicode__()
 
 class FreeBusy(object):
     """FreeBusy class
