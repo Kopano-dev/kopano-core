@@ -345,6 +345,7 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 	    !prop_is_empty(FIND_N(PA, dispidWorkAddressPostalCode)) ||
 	    !prop_is_empty(FIND_N(PA, dispidWorkAddressCountry))) {
 		auto adrnode = addProp(root, VCAdrProp);
+		to_prop(adrnode, "TYPE", L"WORK");
 		ADD_N(adrnode, VCStreetAddressProp, PA, dispidWorkAddressStreet);
 		ADD_N(adrnode, VCCityProp, PA, dispidWorkAddressCity);
 		ADD_N(adrnode, VCRegionProp, PA, dispidWorkAddressState);
