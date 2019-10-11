@@ -512,6 +512,31 @@ HRESULT vcftomapi_impl::parse_vcf(const std::string &ical)
 			if (hr != hrSuccess)
 				return hr;
 			props.emplace_back(s);
+		} else if (strcasecmp(name, "X-KADDRESSBOOK-X-Profession") == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
+			auto hr = vobject_to_prop(v, s, PR_PROFESSION);
+			if (hr != hrSuccess)
+				return hr;
+			props.emplace_back(s);
+		} else if (strcasecmp(name, "X-KADDRESSBOOK-X-SpouseName") == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
+			auto hr = vobject_to_prop(v, s, PR_SPOUSE_NAME);
+			if (hr != hrSuccess)
+				return hr;
+			props.emplace_back(s);
+		} else if (strcasecmp(name, "X-KADDRESSBOOK-X-ManagersName") == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
+			auto hr = vobject_to_prop(v, s, PR_MANAGER_NAME);
+			if (hr != hrSuccess)
+				return hr;
+			props.emplace_back(std::move(s));
+		} else if (strcasecmp(name, "X-KADDRESSBOOK-X-AssistantsName") == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
+			auto hr = vobject_to_prop(v, s, PR_ASSISTANT);
+			if (hr != hrSuccess)
+				return hr;
+			props.emplace_back(std::move(s));
+		} else if (strcasecmp(name, "X-KADDRESSBOOK-X-Office") == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
+			auto hr = vobject_to_prop(v, s, PR_OFFICE_LOCATION);
+			if (hr != hrSuccess)
+				return hr;
+			props.emplace_back(std::move(s));
 		} else if (strcmp(name, "NOTE") == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
 			auto hr = vobject_to_prop(v, s, PR_BODY);
 			if (hr != hrSuccess)
@@ -527,6 +552,14 @@ HRESULT vcftomapi_impl::parse_vcf(const std::string &ical)
 			s.ulPropTag = PR_BIRTHDAY;
 			s.Value.ft = filetime;
 			props.emplace_back(s);
+		} else if (strcmp(name, "X-ANNIVERSAY") == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
+			FILETIME filetime;
+			auto res = date_string_to_filetime(convert_to<std::string>(vObjectUStringZValue(v)), filetime);
+			if (!res)
+				continue;
+			s.ulPropTag = PR_WEDDING_ANNIVERSARY;
+			s.Value.ft = filetime;
+			props.emplace_back(s);
 		} else if (strcmp(name, VCOrgProp) == 0) {
 			auto hr = handle_ORG(v);
 			if (hr != hrSuccess)
@@ -539,6 +572,11 @@ HRESULT vcftomapi_impl::parse_vcf(const std::string &ical)
 			auto hr = handle_EMAIL(v);
 			if (hr != hrSuccess)
 				return hr;
+		} else if (strcmp(name, "IMPP") == 0) {
+			auto hr = vobject_to_named_prop(v, s, dispidInstMsg);
+			if (hr != hrSuccess)
+				return hr;
+			props.emplace_back(s);
 		} else if (strcmp(name, VCAdrProp) == 0) {
 			auto hr = handle_ADR(v);
 			if (hr != hrSuccess)

@@ -242,6 +242,7 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 		{PA, MNID_ID, dispidEmail2Address},
 		{PA, MNID_ID, dispidEmail3Address},
 		{PA, MNID_ID, dispidWebPage},
+		{PA, MNID_ID, dispidInstMsg},
 	}, *nameids_ptrs[ARRAY_SIZE(nameids)];
 	for (size_t i = 0; i < ARRAY_SIZE(nameids); ++i)
 		nameids_ptrs[i] = &nameids[i];
@@ -411,8 +412,15 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 	to_prop(root, "UID", convert_to<std::wstring>(icaluid).c_str());
 
 	ADD_N(root, VCURLProp, PA, dispidWebPage);
+	ADD_N(root, "IMPP", PA, dispidInstMsg);
 	ADD(root, VCNoteProp, PR_BODY);
 	ADD(root, VCBirthDateProp, PR_BIRTHDAY);
+	ADD(root, "X-ANNIVERSARY", PR_WEDDING_ANNIVERSARY);
+	ADD(root, "X-KADDRESSBOOK-X-Profession", PR_PROFESSION);
+	ADD(root, "X-KADDRESSBOOK-X-SpouseName", PR_SPOUSE_NAME);
+	ADD(root, "X-KADDRESSBOOK-X-ManagersName", PR_MANAGER_NAME);
+	ADD(root, "X-KADDRESSBOOK-X-AssistantsName", PR_ASSISTANT);
+	ADD(root, "X-KADDRESSBOOK-X-Office", PR_OFFICE_LOCATION);
 	ADD(root, VCLastRevisedProp, PR_LAST_MODIFICATION_TIME);
 
 	hr = add_photo(lpMessage, root);
