@@ -339,10 +339,13 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 		ADD(adrnode, VCPostalCodeProp, PR_OTHER_ADDRESS_POSTAL_CODE);
 		ADD(adrnode, VCCountryNameProp, PR_OTHER_ADDRESS_COUNTRY);
 	}
-	sp = FIND_N(PA, dispidWorkAddressStreet);
-	if (sp != nullptr && !prop_is_empty(*sp)) {
+	if (!prop_is_empty(FIND_N(PA, dispidWorkAddressStreet)) ||
+	    !prop_is_empty(FIND_N(PA, dispidWorkAddressCity)) ||
+	    !prop_is_empty(FIND_N(PA, dispidWorkAddressState)) ||
+	    !prop_is_empty(FIND_N(PA, dispidWorkAddressPostalCode)) ||
+	    !prop_is_empty(FIND_N(PA, dispidWorkAddressCountry))) {
 		auto adrnode = addProp(root, VCAdrProp);
-		to_prop(adrnode, VCStreetAddressProp, *sp);
+		ADD_N(adrnode, VCStreetAddressProp, PA, dispidWorkAddressStreet);
 		ADD_N(adrnode, VCCityProp, PA, dispidWorkAddressCity);
 		ADD_N(adrnode, VCRegionProp, PA, dispidWorkAddressState);
 		ADD_N(adrnode, VCPostalCodeProp, PA, dispidWorkAddressPostalCode);
