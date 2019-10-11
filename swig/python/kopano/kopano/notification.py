@@ -134,12 +134,12 @@ def _filter(notifs, folder, event_types, folder_types):
         yield notif
 
 class AdviseSink(MAPIAdviseSink):
-    def __init__(self, store, folder, event_types, folder_types, sink):
+    def __init__(self, store, folder, event_types, folder_types, delegate):
         MAPIAdviseSink.__init__(self, [IID_IMAPIAdviseSink])
 
         self.store = store
         self.folder = folder
-        self.sink = sink
+        self.delegate = delegate
         self.event_types = event_types
         self.folder_types = folder_types
 
@@ -155,11 +155,11 @@ class AdviseSink(MAPIAdviseSink):
         return self._on_notify(notifications) # method call to start tracing
 
     def _on_notify(self, notifications):
-        if hasattr(self.sink, 'update'):
+        if hasattr(self.delegate, 'update'):
             for n in notifications:
                 for m in _filter(_split(n, self.store), self.folder,
                         self.event_types, self.folder_types):
-                    self.sink.update(m)
+                    self.delegate.update(m)
         return 0
 
 def _flags(object_types, event_types):
@@ -177,7 +177,7 @@ def _flags(object_types, event_types):
 
     return flags
 
-def subscribe(store, folder, sink, object_types=None, folder_types=None,
+def subscribe(store, folder, delegate, object_types=None, folder_types=None,
         event_types=None):
 
     if not store.server.notifications:
@@ -190,13 +190,13 @@ notifications (try Server(notifications=True))')
 
     flags = _flags(object_types, event_types)
 
-    sink._store = store
-    sink2 = AdviseSink(store, folder, event_types, folder_types, sink)
+    delegate._store = store
+    sink = AdviseSink(store, folder, event_types, folder_types, delegate)
 
     if folder:
-        sink._conn = store.mapiobj.Advise(_bdec(folder.entryid), flags, sink2)
+        delegate._conn = store.mapiobj.Advise(_bdec(folder.entryid), flags, sink)
     else:
-        sink._conn = store.mapiobj.Advise(None, flags, sink2)
+        delegate._conn = store.mapiobj.Advise(None, flags, sink)
 
-def unsubscribe(store, sink):
-    store.mapiobj.Unadvise(sink._conn)
+def unsubscribe(store, delegate):
+    store.mapiobj.Unadvise(delegate._conn)
