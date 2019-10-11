@@ -29,7 +29,7 @@ from .errors import (
     NotFoundError, DuplicateError
 )
 from .compat import (
-    benc as _benc, bdec as _bdec, fake_unicode as _unicode,
+    benc as _benc, bdec as _bdec,
 )
 
 try:
@@ -52,7 +52,7 @@ class Company(Properties):
         self.server = server or \
             _server.Server(_skip_check=True, parse_args=False)
 
-        self._name = name = _unicode(name)
+        self._name = name = str(name)
         if name != 'Default': # TODO
             try:
                 id_ = self.server.sa.ResolveCompanyName(name, MAPI_UNICODE)
@@ -106,7 +106,7 @@ class Company(Properties):
 
     @name.setter
     def name(self, value):
-        value = _unicode(value)
+        value = str(value)
         self._eccompany.Companyname = value
         self._name = value
         self.server.sa.SetCompany(self._eccompany, MAPI_UNICODE)

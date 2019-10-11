@@ -37,7 +37,7 @@ from .defs import (
     REV_TAG, REV_TYPE, GUID_NAMESPACE, MAPINAMEID, NAMESPACE_GUID, STR_GUID,
 )
 from .compat import (
-    benc as _benc, fake_unicode as _unicode,
+    benc as _benc,
 )
 from .errors import Error, NotFoundError
 
@@ -450,14 +450,14 @@ class Property(object):
             elif isinstance(v, bool):
                 return str(v)
             elif isinstance(v, datetime.datetime):
-                return _unicode(v.isoformat(' '))
+                return str(v.isoformat(' '))
             elif v is None:
                 return ''
             elif (self.type_ in (PT_BINARY, PT_MV_BINARY) or \
                   isinstance(v, bytes)):
                 return _benc(v)
             else:
-                return _unicode(v)
+                return str(v)
         return flatten(self.value)
 
     def __unicode__(self):

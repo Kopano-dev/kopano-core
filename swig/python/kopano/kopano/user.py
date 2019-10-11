@@ -37,7 +37,7 @@ from .errors import (
     Error, NotFoundError, NotSupportedError, DuplicateError, ArgumentError
 )
 from .compat import (
-    fake_unicode as _unicode, benc as _benc, bdec as _bdec,
+    benc as _benc, bdec as _bdec,
 )
 from .picture import Picture
 
@@ -74,17 +74,17 @@ class User(Properties):
         elif email or name:
             if email:
                 try:
-                    self._name = _unicode(self.server.gab.ResolveNames(
+                    self._name = str(self.server.gab.ResolveNames(
                         [PR_EMAIL_ADDRESS_W],
                         MAPI_UNICODE | EMS_AB_ADDRESS_LOOKUP,
-                        [[SPropValue(PR_DISPLAY_NAME_W, _unicode(email))]],
+                        [[SPropValue(PR_DISPLAY_NAME_W, str(email))]],
                         [MAPI_UNRESOLVED]
                     )[0][0][1].Value)
                 except (MAPIErrorNotFound, MAPIErrorInvalidParameter, \
                     IndexError):
                     raise NotFoundError("no such user '%s'" % email)
             else:
-                self._name = _unicode(name)
+                self._name = str(name)
 
             try:
                 self._ecuser = self.server.sa.GetUser(
@@ -139,7 +139,7 @@ class User(Properties):
 
     @name.setter
     def name(self, value):
-        self._update(username=_unicode(value))
+        self._update(username=str(value))
 
     @property
     def fullname(self):
@@ -148,7 +148,7 @@ class User(Properties):
 
     @fullname.setter
     def fullname(self, value):
-        self._update(fullname=_unicode(value))
+        self._update(fullname=str(value))
 
     @property
     def email(self):
@@ -157,7 +157,7 @@ class User(Properties):
 
     @email.setter
     def email(self, value):
-        self._update(email=_unicode(value))
+        self._update(email=str(value))
 
     @property
     def password(self):
@@ -166,7 +166,7 @@ class User(Properties):
 
     @password.setter
     def password(self, value):
-        self._update(password=_unicode(value))
+        self._update(password=str(value))
 
     # TODO uniform with contact.photo.. class Picture (filename, dimensions..)?
     @property
@@ -210,7 +210,7 @@ class User(Properties):
 
         :param feature: The feature
         """
-        feature = _unicode(feature)
+        feature = str(feature)
         if feature in self.features:
             raise DuplicateError("feature '%s' already enabled for user \
 '%s'" % (feature, self.name))
@@ -225,7 +225,7 @@ class User(Properties):
         # TODO: improvement?
         features = self.features[:]
         try:
-            features.remove(_unicode(feature))
+            features.remove(str(feature))
         except ValueError:
             raise NotFoundError("no feature '%s' enabled for user '%s'" % \
                 (feature, self.name))
@@ -425,8 +425,8 @@ store" % self.name)
     def _update(self, **kwargs):
         username = kwargs.get('username', self.name)
         password = kwargs.get('password', self._ecuser.Password)
-        email = kwargs.get('email', _unicode(self._ecuser.Email))
-        fullname = kwargs.get('fullname', _unicode(self._ecuser.FullName))
+        email = kwargs.get('email', str(self._ecuser.Email))
+        fullname = kwargs.get('fullname', str(self._ecuser.FullName))
         user_class = kwargs.get('user_class', self._ecuser.Class)
         admin = kwargs.get('admin', self._ecuser.IsAdmin)
 

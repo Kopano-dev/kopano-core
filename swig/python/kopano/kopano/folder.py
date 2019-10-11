@@ -67,7 +67,7 @@ from .errors import NotFoundError, ArgumentError, DuplicateError
 from .query import _query_to_restriction
 
 from .compat import (
-    fake_unicode as _unicode, bdec as _bdec, benc as _benc
+    bdec as _bdec, benc as _benc
 )
 
 try:
@@ -268,7 +268,7 @@ class Folder(Properties):
 
     @name.setter
     def name(self, name):
-        self.mapiobj.SetProps([SPropValue(PR_DISPLAY_NAME_W, _unicode(name))])
+        self.mapiobj.SetProps([SPropValue(PR_DISPLAY_NAME_W, str(name))])
         _utils._save(self.mapiobj)
 
     @property
@@ -294,7 +294,7 @@ class Folder(Properties):
     def container_class(self, value):
         if value is None:
             return
-        prop = SPropValue(PR_CONTAINER_CLASS_W, _unicode(value))
+        prop = SPropValue(PR_CONTAINER_CLASS_W, str(value))
         self.mapiobj.SetProps([prop])
         _utils._save(self.mapiobj)
 
@@ -729,7 +729,7 @@ class Folder(Properties):
             name = path.replace('\\/', '/')
             try:
                 mapifolder = self.mapiobj.CreateFolder(FOLDER_GENERIC,
-                    _unicode(name), '', None, MAPI_UNICODE)
+                    str(name), '', None, MAPI_UNICODE)
                 return Folder(self.store, _benc(HrGetOneProp(mapifolder,
                     PR_ENTRYID).Value))
             except MAPIErrorCollision:
@@ -737,7 +737,7 @@ class Folder(Properties):
 
         name = path.replace('\\/', '/')
         restriction = Restriction(SPropertyRestriction(RELOP_EQ,
-            PR_DISPLAY_NAME_W, SPropValue(PR_DISPLAY_NAME_W, _unicode(name))))
+            PR_DISPLAY_NAME_W, SPropValue(PR_DISPLAY_NAME_W, str(name))))
 
         folders = list(self.folders(recurse=recurse, restriction=restriction))
         if not folders:
@@ -867,7 +867,7 @@ class Folder(Properties):
         :param restriction: Rule :class:`restriction <Restriction>` (optional)
         """
         if name:
-            name = _unicode(name)
+            name = str(name)
 
         propid = len(list(self.rules()))+1
         row = [
@@ -1184,16 +1184,16 @@ class Folder(Properties):
         restriction = SOrRestriction([
             SContentRestriction(FL_SUBSTRING | FL_IGNORECASE,
                 PR_SUBJECT_W,
-                SPropValue(PR_SUBJECT_W, _unicode(text))),
+                SPropValue(PR_SUBJECT_W, str(text))),
             SContentRestriction(FL_SUBSTRING | FL_IGNORECASE,
                 PR_BODY_W,
-                SPropValue(PR_BODY_W, _unicode(text))),
+                SPropValue(PR_BODY_W, str(text))),
             SContentRestriction(FL_SUBSTRING | FL_IGNORECASE,
                 PR_DISPLAY_TO_W,
-                SPropValue(PR_DISPLAY_TO_W, _unicode(text))),
+                SPropValue(PR_DISPLAY_TO_W, str(text))),
             SContentRestriction(FL_SUBSTRING | FL_IGNORECASE,
                 PR_DISPLAY_NAME_W,
-                SPropValue(PR_DISPLAY_NAME_W, _unicode(text))),
+                SPropValue(PR_DISPLAY_NAME_W, str(text))),
             # TODO add all default fields..
             # BUT perform full-text search by default!
         ])

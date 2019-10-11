@@ -41,9 +41,6 @@ def bdec(s):
 def is_file(f):
     return isinstance(f, io.IOBase)
 
-def fake_unicode(s): # TODO inline.. remove str() also in most cases?
-    return str(s)
-
 def set_bin_encoding(encoding):
     """Override encoding to use for binary identifiers (hex or base64)."""
     global _BIN_ENCODING

@@ -24,7 +24,7 @@ from .errors import NotFoundError, ArgumentError
 from .recurrence import Recurrence, Occurrence
 
 from .compat import (
-    benc as _benc, bdec as _bdec, fake_unicode as _unicode,
+    benc as _benc, bdec as _bdec,
 )
 from .defs import (
     ASF_CANCELED, NR_COLOR, COLOR_NR, FB_STATUS,
@@ -236,8 +236,8 @@ class Appointment(object):
         names.append([
             SPropValue(PR_RECIPIENT_TYPE, reciptype),
             SPropValue(PR_DISPLAY_NAME_W, pr_dispname),
-            SPropValue(PR_ADDRTYPE_W, _unicode(pr_addrtype)),
-            SPropValue(PR_EMAIL_ADDRESS_W, _unicode(pr_email)),
+            SPropValue(PR_ADDRTYPE_W, str(pr_addrtype)),
+            SPropValue(PR_EMAIL_ADDRESS_W, str(pr_email)),
             SPropValue(PR_ENTRYID, pr_entryid),
         ])
         self.mapiobj.ModifyRecipients(MODRECIP_ADD, names)
@@ -288,7 +288,7 @@ class Appointment(object):
 
     @timezone.setter
     def timezone(self, value):
-        self[PidLidTimeZoneDescription] = _unicode(value)
+        self[PidLidTimeZoneDescription] = str(value)
         self[PidLidTimeZoneStruct] = _timezone._timezone_struct(value)
 
     def accept(self, comment=None, tentative=False, respond=True):

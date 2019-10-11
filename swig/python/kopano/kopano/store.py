@@ -72,7 +72,7 @@ from .restriction import Restriction
 from . import notification as _notification
 
 from .compat import (
-    bdec as _bdec, benc as _benc, fake_unicode as _unicode,
+    bdec as _bdec, benc as _benc
 )
 
 from . import server as _server
@@ -662,7 +662,7 @@ class Store(Properties):
 
         :param name: The config item name
         """
-        name = _unicode(name)
+        name = str(name)
         table = self.subtree.mapiobj.GetContentsTable(
             MAPI_DEFERRED_ERRORS | MAPI_ASSOCIATED)
         table.Restrict(SPropertyRestriction(

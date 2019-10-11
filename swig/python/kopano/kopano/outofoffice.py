@@ -18,7 +18,6 @@ from MAPI.Tags import (
 from MAPI.Struct import SPropValue
 from MAPI.Time import unixtime
 
-from .compat import fake_unicode as _unicode
 from .errors import NotFoundError
 
 try:
@@ -61,7 +60,7 @@ class OutOfOffice(object):
             self.store.mapiobj.DeleteProps([PR_EC_OUTOFOFFICE_SUBJECT_W])
         else:
             self.store.mapiobj.SetProps(
-                [SPropValue(PR_EC_OUTOFOFFICE_SUBJECT_W, _unicode(value))])
+                [SPropValue(PR_EC_OUTOFOFFICE_SUBJECT_W, str(value))])
         _utils._save(self.store.mapiobj)
 
     @property
@@ -78,7 +77,7 @@ class OutOfOffice(object):
             self.store.mapiobj.DeleteProps([PR_EC_OUTOFOFFICE_MSG_W])
         else:
             self.store.mapiobj.SetProps(
-                [SPropValue(PR_EC_OUTOFOFFICE_MSG_W, _unicode(value))])
+                [SPropValue(PR_EC_OUTOFOFFICE_MSG_W, str(value))])
         _utils._save(self.store.mapiobj)
 
     @property
