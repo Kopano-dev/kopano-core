@@ -6,14 +6,10 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file)
 Copyright 2016 - Kopano and its licensors (see LICENSE file)
 """
 
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
-
 import base64
 import codecs
 import io
+import pickle
 
 _BIN_ENCODING = 'hex'
 _MISSING_NONE = False
