@@ -207,6 +207,42 @@ HRESULT vcftomapi_impl::handle_TEL(VObject *v)
 				if (ret != hrSuccess)
 					return ret;
 				props.emplace_back(s);
+			} else if (strcasecmp(token.c_str(), "CAR") == 0) {
+				auto ret = vobject_to_prop(v, s, PR_CAR_TELEPHONE_NUMBER);
+				if (ret != hrSuccess)
+					return ret;
+				props.emplace_back(s);
+			} else if (strcasecmp(token.c_str(), "ISDN") == 0) {
+				auto ret = vobject_to_prop(v, s, PR_ISDN_NUMBER);
+				if (ret != hrSuccess)
+					return ret;
+				props.emplace_back(s);
+			} else if (strcasecmp(token.c_str(), "ASSISTANT") == 0) {
+				auto ret = vobject_to_prop(v, s, PR_ASSISTANT_TELEPHONE_NUMBER);
+				if (ret != hrSuccess)
+					return ret;
+				props.emplace_back(s);
+			} else if (strcasecmp(token.c_str(), "X-EVOLUTION-CALLBACK") == 0) {
+				auto ret = vobject_to_prop(v, s, PR_CALLBACK_TELEPHONE_NUMBER);
+				if (ret != hrSuccess)
+					return ret;
+				props.emplace_back(s);
+			} else if (strcasecmp(token.c_str(), "X-EVOLUTION-RADIO") == 0) {
+				auto ret = vobject_to_prop(v, s, PR_RADIO_TELEPHONE_NUMBER);
+				if (ret != hrSuccess)
+					return ret;
+				props.emplace_back(s);
+			} else if (strcasecmp(token.c_str(), "X-EVOLUTION-TELEX") == 0) {
+				auto ret = vobject_to_prop(v, s, PR_TELEX_NUMBER);
+				if (ret != hrSuccess)
+					return ret;
+				props.emplace_back(s);
+			} else if (strcasecmp(token.c_str(), "TEXTPHONE") == 0 ||
+			    strcasecmp(token.c_str(), "X-EVOLUTION-TTYTTD") == 0) {
+				auto ret = vobject_to_prop(v, s, PR_TTYTDD_PHONE_NUMBER);
+				if (ret != hrSuccess)
+					return ret;
+				props.emplace_back(s);
 			}
 		}
 	}

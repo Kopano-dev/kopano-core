@@ -288,10 +288,19 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 	node = ADD(root, VCTelephoneProp, PR_HOME_TELEPHONE_NUMBER);
 	if (node != nullptr)
 		to_prop(node, "TYPE", L"HOME");
+	node = ADD(root, VCTelephoneProp, PR_HOME2_TELEPHONE_NUMBER);
+	if (node != nullptr)
+		to_prop(node, "TYPE", L"HOME");
 	node = ADD(root, VCTelephoneProp, PR_MOBILE_TELEPHONE_NUMBER);
 	if (node != nullptr)
 		to_prop(node, "TYPE", L"MOBILE");
 	node = ADD(root, VCTelephoneProp, PR_BUSINESS_TELEPHONE_NUMBER);
+	if (node != nullptr)
+		to_prop(node, "TYPE", L"WORK");
+	node = ADD(root, VCTelephoneProp, PR_BUSINESS2_TELEPHONE_NUMBER);
+	if (node != nullptr)
+		to_prop(node, "TYPE", L"WORK");
+	node = ADD(root, VCTelephoneProp, PR_COMPANY_MAIN_PHONE_NUMBER);
 	if (node != nullptr)
 		to_prop(node, "TYPE", L"WORK");
 	node = ADD(root, VCTelephoneProp, PR_PAGER_TELEPHONE_NUMBER);
@@ -312,6 +321,27 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 		to_prop(node, "TYPE", L"WORK");
 		to_prop(node, "TYPE", L"FAX");
 	}
+	node = ADD(root, VCTelephoneProp, PR_CALLBACK_TELEPHONE_NUMBER);
+	if (node != nullptr)
+		to_prop(node, "TYPE", L"X-EVOLUTION-CALLBACK");
+	node = ADD(root, VCTelephoneProp, PR_RADIO_TELEPHONE_NUMBER);
+	if (node != nullptr)
+		to_prop(node, "TYPE", L"X-EVOLUTION-RADIO");
+	node = ADD(root, VCTelephoneProp, PR_CAR_TELEPHONE_NUMBER);
+	if (node != nullptr)
+		to_prop(node, "TYPE", L"CAR");
+	node = ADD(root, VCTelephoneProp, PR_OTHER_TELEPHONE_NUMBER);
+	if (node != nullptr)
+		to_prop(node, "TYPE", L"X-EVOLUTION-TELEX");
+	node = ADD(root, VCTelephoneProp, PR_ISDN_NUMBER);
+	if (node != nullptr)
+		to_prop(node, "TYPE", L"ISDN");
+	node = ADD(root, VCTelephoneProp, PR_ASSISTANT_TELEPHONE_NUMBER);
+	if (node != nullptr)
+		to_prop(node, "TYPE", L"ASSISTANT");
+	node = ADD(root, VCTelephoneProp, PR_TTYTDD_PHONE_NUMBER);
+	if (node != nullptr)
+		to_prop(node, "TYPE", L"TEXTPHONE");
 
 	if (!prop_is_empty(FIND(PR_HOME_ADDRESS_STREET)) ||
 	    !prop_is_empty(FIND(PR_HOME_ADDRESS_CITY)) ||
