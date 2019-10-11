@@ -36,6 +36,11 @@ class mapitovcf_impl final : public mapitovcf {
 
 	private:
 	bool prop_is_empty(const SPropValue &s) const;
+	inline bool prop_is_empty(const SPropValue *s) const
+	{
+		return s == nullptr || prop_is_empty(*s);
+	}
+
 	VObject *to_prop(VObject *node, const char *prop, const SPropValue &value);
 	VObject *to_prop(VObject *node, const char *prop, const wchar_t *value);
 	HRESULT add_adr(IMessage *lpMessage, VObject *root);
@@ -352,9 +357,11 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 	auto prodid = L"-//Kopano//libicalmapi " + convert_to<std::wstring>(PROJECT_VERSION) + L"//EN";
 	to_prop(root, "PRODID", prodid.c_str());
 
-	if (FIND(PR_DISPLAY_NAME_PREFIX) || FIND(PR_GIVEN_NAME) ||
-	    FIND(PR_MIDDLE_NAME) || FIND(PR_SURNAME) ||
-	    FIND(PR_GENERATION)) {
+	if (!prop_is_empty(FIND(PR_DISPLAY_NAME_PREFIX)) ||
+	    !prop_is_empty(FIND(PR_GIVEN_NAME)) ||
+	    !prop_is_empty(FIND(PR_MIDDLE_NAME)) ||
+	    !prop_is_empty(FIND(PR_SURNAME)) ||
+	    !prop_is_empty(FIND(PR_GENERATION))) {
 		auto node = addGroup(root, VCNameProp);
 		ADD(node, VCNamePrefixesProp, PR_DISPLAY_NAME_PREFIX);
 		ADD(node, VCGivenNameProp, PR_GIVEN_NAME);
