@@ -313,12 +313,15 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 		to_prop(node, "TYPE", L"FAX");
 	}
 
-	sp = FIND(PR_HOME_ADDRESS_STREET);
-	if (sp != nullptr && !prop_is_empty(*sp)) {
+	if (!prop_is_empty(FIND(PR_HOME_ADDRESS_STREET)) ||
+	    !prop_is_empty(FIND(PR_HOME_ADDRESS_CITY)) ||
+	    !prop_is_empty(FIND(PR_HOME_ADDRESS_STATE_OR_PROVINCE)) ||
+	    !prop_is_empty(FIND(PR_HOME_ADDRESS_POSTAL_CODE)) ||
+	    !prop_is_empty(FIND(PR_HOME_ADDRESS_COUNTRY))) {
 		auto adrnode = addProp(root, VCAdrProp);
 		auto node = addProp(adrnode, "TYPE");
 		setVObjectStringZValue(node, "HOME");
-		to_prop(adrnode, VCStreetAddressProp, *sp);
+		ADD(adrnode, VCStreetAddressProp, PR_HOME_ADDRESS_STREET);
 		ADD(adrnode, VCCityProp, PR_HOME_ADDRESS_CITY);
 		ADD(adrnode, VCRegionProp, PR_HOME_ADDRESS_STATE_OR_PROVINCE);
 		ADD(adrnode, VCPostalCodeProp, PR_HOME_ADDRESS_POSTAL_CODE);
