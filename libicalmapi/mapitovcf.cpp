@@ -327,10 +327,13 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 		ADD(adrnode, VCPostalCodeProp, PR_HOME_ADDRESS_POSTAL_CODE);
 		ADD(adrnode, VCCountryNameProp, PR_HOME_ADDRESS_COUNTRY);
 	}
-	sp = FIND(PR_OTHER_ADDRESS_STREET);
-	if (sp != nullptr && !prop_is_empty(*sp)) {
+	if (!prop_is_empty(FIND(PR_OTHER_ADDRESS_STREET)) ||
+	    !prop_is_empty(FIND(PR_OTHER_ADDRESS_CITY)) ||
+	    !prop_is_empty(FIND(PR_OTHER_ADDRESS_STATE_OR_PROVINCE)) ||
+	    !prop_is_empty(FIND(PR_OTHER_ADDRESS_POSTAL_CODE)) ||
+	    !prop_is_empty(FIND(PR_OTHER_ADDRESS_COUNTRY))) {
 		auto adrnode = addProp(root, VCAdrProp);
-		to_prop(adrnode, VCStreetAddressProp, *sp);
+		ADD(adrnode, VCStreetAddressProp, PR_OTHER_ADDRESS_STREET);
 		ADD(adrnode, VCCityProp, PR_OTHER_ADDRESS_CITY);
 		ADD(adrnode, VCRegionProp, PR_OTHER_ADDRESS_STATE_OR_PROVINCE);
 		ADD(adrnode, VCPostalCodeProp, PR_OTHER_ADDRESS_POSTAL_CODE);
