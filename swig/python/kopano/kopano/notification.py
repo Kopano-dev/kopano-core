@@ -7,6 +7,7 @@ Copyright 2017 - 2019 Kopano and its licensors (see LICENSE file)
 
 import copy
 import sys
+import weakref
 
 from MAPI import (
     MAPI_MESSAGE, MAPI_FOLDER, MAPI_STORE, MAPIAdviseSink, fnevObjectModified,
@@ -137,8 +138,8 @@ class AdviseSink(MAPIAdviseSink):
     def __init__(self, store, folder, event_types, folder_types, delegate):
         MAPIAdviseSink.__init__(self, [IID_IMAPIAdviseSink])
 
-        self.store = store
-        self.folder = folder
+        self.store = weakref.ref(store) if store is not None else None
+        self.folder = weakref.ref(folder) if folder is not None else None
         self.delegate = delegate
         self.event_types = event_types
         self.folder_types = folder_types
@@ -155,11 +156,14 @@ class AdviseSink(MAPIAdviseSink):
         return self._on_notify(notifications) # method call to start tracing
 
     def _on_notify(self, notifications):
-        if hasattr(self.delegate, 'update'):
-            for n in notifications:
-                for m in _filter(_split(n, self.store), self.folder,
-                        self.event_types, self.folder_types):
-                    self.delegate.update(m)
+        if not hasattr(self.delegate, 'update'):
+            return 0
+        store  = self.store() if self.store else None
+        folder = self.folder() if self.folder else None
+        for n in notifications:
+            for m in _filter(_split(n, store), folder,
+                    self.event_types, self.folder_types):
+                self.delegate.update(m)
         return 0
 
 def _flags(object_types, event_types):
@@ -189,8 +193,6 @@ notifications (try Server(notifications=True))')
     event_types = event_types or EVENT_TYPES
 
     flags = _flags(object_types, event_types)
-
-    delegate._store = store
     sink = AdviseSink(store, folder, event_types, folder_types, delegate)
 
     if folder:
