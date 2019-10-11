@@ -43,10 +43,6 @@ class mapitovcf_impl final : public mapitovcf {
 
 	VObject *to_prop(VObject *node, const char *prop, const SPropValue &value);
 	VObject *to_prop(VObject *node, const char *prop, const wchar_t *value);
-	HRESULT add_adr(IMessage *lpMessage, VObject *root);
-	HRESULT add_email(IMessage *lpMessage, VObject *root);
-	HRESULT add_uid(IMessage *lpMessage, VObject *root);
-	HRESULT add_url(IMessage *lpMessage, VObject *root);
 	HRESULT add_photo(IMessage *lpMessage, VObject *root);
 
 	std::string m_result;
@@ -115,138 +111,6 @@ VObject *mapitovcf_impl::to_prop(VObject *node, const char *prop,
 	auto str = convert_to<std::string>("utf-8", value, rawsize(value), CHARSET_WCHAR);
 	setVObjectStringZValue(newnode, str.c_str());
 	return newnode;
-}
-
-HRESULT mapitovcf_impl::add_adr(IMessage *lpMessage, VObject *root)
-{
-	memory_ptr<SPropValue> msgprop_array;
-	unsigned int count;
-	memory_ptr<SPropTagArray> proptag;
-
-	MAPINAMEID nameids[5], *nameids_ptrs[5];
-	for (size_t i = 0; i < 5; ++i) {
-		nameids[i].lpguid = const_cast<GUID *>(&PSETID_Address);
-		nameids[i].ulKind = MNID_ID;
-		nameids[i].Kind.lID = 0x8045 + i;
-		nameids_ptrs[i] = &nameids[i];
-	}
-
-	auto hr = lpMessage->GetIDsFromNames(5, nameids_ptrs, MAPI_BEST_ACCESS, &~proptag);
-	if (FAILED(hr))
-		return hrSuccess;
-	for (size_t i = 0; i < 5; ++i)
-		if (PROP_TYPE(proptag->aulPropTag[i]) != PT_ERROR)
-			proptag->aulPropTag[i] = CHANGE_PROP_TYPE(proptag->aulPropTag[i], PT_UNICODE);
-	hr = lpMessage->GetProps(proptag, MAPI_UNICODE, &count, &~msgprop_array);
-	if (FAILED(hr) || PROP_TYPE(msgprop_array[0].ulPropTag) != PT_UNICODE || prop_is_empty(msgprop_array[0]))
-		return hrSuccess;
-	auto adrnode = addProp(root, VCAdrProp);
-	auto node = addProp(adrnode, "TYPE");
-	setVObjectStringZValue(node, "WORK");
-	to_prop(adrnode, "STREET", msgprop_array[0].Value.lpszW);
-	if (PROP_TYPE(msgprop_array[1].ulPropTag) == PT_UNICODE)
-		to_prop(adrnode, "L", msgprop_array[1].Value.lpszW);
-	if (PROP_TYPE(msgprop_array[2].ulPropTag) == PT_UNICODE)
-		to_prop(adrnode, "R", msgprop_array[2].Value.lpszW);
-	if (PROP_TYPE(msgprop_array[3].ulPropTag) == PT_UNICODE)
-		to_prop(adrnode, "PC", msgprop_array[3].Value.lpszW);
-	if (PROP_TYPE(msgprop_array[4].ulPropTag) == PT_UNICODE)
-		to_prop(adrnode, "C", msgprop_array[4].Value.lpszW);
-	return hrSuccess;
-}
-
-HRESULT mapitovcf_impl::add_email(IMessage *lpMessage, VObject *root)
-{
-	MAPINAMEID name, *namep = &name;
-	const int first_email_id = 0x8083, last_email_id = 0x80a3;
-
-	for (int lid = first_email_id; lid <= last_email_id; lid += 0x10) {
-		name.lpguid = const_cast<GUID *>(&PSETID_Address);
-		name.ulKind = MNID_ID;
-		name.Kind.lID = lid;
-
-		memory_ptr<SPropTagArray> proptag;
-		auto hr = lpMessage->GetIDsFromNames(1, &namep, MAPI_BEST_ACCESS, &~proptag);
-		if (hr != hrSuccess)
-			continue;
-
-		ULONG proptype = CHANGE_PROP_TYPE(proptag->aulPropTag[0], PT_UNICODE);
-		memory_ptr<SPropValue> prop;
-		hr = HrGetOneProp(lpMessage, proptype, &~prop);
-		if (hr == hrSuccess) {
-			auto node = to_prop(root, VCEmailAddressProp, *prop);
-			std::wstring email_type = L"INTERNET";
-			if (lid == first_email_id)
-				/* first email address */
-				email_type += L",PREF";
-			to_prop(node, "TYPE", email_type.c_str());
-		} else if (hr != MAPI_E_NOT_FOUND) {
-			continue;
-		}
-	}
-
-	return hrSuccess;
-}
-
-HRESULT mapitovcf_impl::add_uid(IMessage *lpMessage, VObject *root)
-{
-	MAPINAMEID name, *namep = &name;
-	name.lpguid = const_cast<GUID *>(&PSETID_Meeting);
-	name.ulKind = MNID_ID;
-	name.Kind.lID = dispidGlobalObjectID;
-
-	std::string uid;
-	memory_ptr<SPropTagArray> proptag;
-	auto hr = lpMessage->GetIDsFromNames(1, &namep, MAPI_BEST_ACCESS, &~proptag);
-	if (hr == hrSuccess) {
-		proptag->aulPropTag[0] = CHANGE_PROP_TYPE(proptag->aulPropTag[0], PT_BINARY);
-
-		unsigned int count;
-		memory_ptr<SPropValue> msgprop_array;
-		hr = lpMessage->GetProps(proptag, 0, &count, &~msgprop_array);
-		if (hr == hrSuccess) {
-			HrGetICalUidFromBinUid(msgprop_array[0].Value.bin, &uid);
-			auto uid_wstr = convert_to<std::wstring>(uid);
-			to_prop(root, "UID", uid_wstr.c_str());
-		}
-	}
-	/* Object did not have guid, let us generate one, and save it
-	   if possible */
-	if (uid.size() != 0)
-		return hrSuccess;
-	HrGenerateUid(&uid);
-	auto binstr = hex2bin(uid);
-	SPropValue prop;
-	prop.ulPropTag = CHANGE_PROP_TYPE(proptag->aulPropTag[0], PT_BINARY);
-	prop.Value.bin.lpb = (LPBYTE)binstr.c_str();
-	prop.Value.bin.cb = binstr.length();
-	hr = HrSetOneProp(lpMessage, &prop);
-	if (hr == hrSuccess) {
-		hr = lpMessage->SaveChanges(0);
-		if (hr != hrSuccess)
-			/* ignore */;
-	}
-	to_prop(root, "UID", prop);
-	return hrSuccess;
-}
-
-HRESULT mapitovcf_impl::add_url(IMessage *lpMessage, VObject *root)
-{
-	MAPINAMEID name, *namep = &name;
-	name.lpguid = const_cast<GUID *>(&PSETID_Address);
-	name.ulKind = MNID_ID;
-	name.Kind.lID = dispidWebPage;
-
-	memory_ptr<SPropTagArray> proptag;
-	auto hr = lpMessage->GetIDsFromNames(1, &namep, MAPI_BEST_ACCESS, &~proptag);
-	if (hr != hrSuccess)
-		return hrSuccess;
-	ULONG proptype = CHANGE_PROP_TYPE(proptag->aulPropTag[0], PT_UNICODE);
-	memory_ptr<SPropValue> prop;
-	hr = HrGetOneProp(lpMessage, proptype, &~prop);
-	if (hr == hrSuccess)
-		to_prop(root, "URL", *prop);
-	return hrSuccess;
 }
 
 HRESULT mapitovcf_impl::add_photo(IMessage *lpMessage, VObject *root)
@@ -330,11 +194,26 @@ static const SPropValue *tagbsearch(const SPropValue *pv, size_t z, unsigned int
 
 HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 {
+#define PA const_cast<GUID *>(&PSETID_Address)
+#define PM const_cast<GUID *>(&PSETID_Meeting)
 #define FIND(xtag) tagbsearch(proplist, pnum, (xtag))
 #define ADD(xnode, xkey, xtag) \
 	({ \
 		auto sp = tagbsearch(proplist, pnum, (xtag)); \
 		sp != nullptr ? to_prop((xnode), (xkey), *sp) : nullptr; \
+	})
+#define FIND_N2(xsect, xtag, xtype) \
+	({ \
+		auto i = std::find_if(&nameids[0], &nameids[ARRAY_SIZE(nameids)], \
+			[](const MAPINAMEID &a) { return memcmp(a.lpguid, (xsect), sizeof(*(xsect))) == 0 && a.Kind.lID == (xtag); }); \
+		i != &nameids[ARRAY_SIZE(nameids)] ? FIND(CHANGE_PROP_TYPE(namtags->aulPropTag[i - &nameids[0]], (xtype))) : nullptr; \
+	})
+#define FIND_N(xsect, xtag) FIND_N2((xsect), (xtag), PT_UNICODE)
+#define ADD_N(xnode, xkey, xsect, xtag) \
+	({ \
+		auto i = std::find_if(&nameids[0], &nameids[ARRAY_SIZE(nameids)], \
+			[](const MAPINAMEID &a) { return memcmp(a.lpguid, (xsect), sizeof(*(xsect))) == 0 && a.Kind.lID == (xtag); }); \
+		i != &nameids[ARRAY_SIZE(nameids)] ? ADD((xnode), (xkey), CHANGE_PROP_TYPE(namtags->aulPropTag[i - &nameids[0]], PT_UNICODE)) : nullptr; \
 	})
 
 	if (lpMessage == nullptr)
@@ -351,6 +230,29 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 	auto sp = FIND(PR_MESSAGE_CLASS);
 	if (sp == nullptr || _tcscmp(sp->Value.LPSZ, KC_T("IPM.Contact")) != 0)
 		return MAPI_E_INVALID_PARAMETER;
+
+	MAPINAMEID nameids[] = {
+		{PM, MNID_ID, dispidGlobalObjectID},
+		{PA, MNID_ID, dispidWorkAddressStreet},
+		{PA, MNID_ID, dispidWorkAddressCity},
+		{PA, MNID_ID, dispidWorkAddressState},
+		{PA, MNID_ID, dispidWorkAddressPostalCode},
+		{PA, MNID_ID, dispidWorkAddressCountry},
+		{PA, MNID_ID, dispidEmail1Address},
+		{PA, MNID_ID, dispidEmail2Address},
+		{PA, MNID_ID, dispidEmail3Address},
+		{PA, MNID_ID, dispidWebPage},
+	}, *nameids_ptrs[ARRAY_SIZE(nameids)];
+	for (size_t i = 0; i < ARRAY_SIZE(nameids); ++i)
+		nameids_ptrs[i] = &nameids[i];
+
+	memory_ptr<SPropTagArray> namtags;
+	hr = lpMessage->GetIDsFromNames(ARRAY_SIZE(nameids_ptrs), nameids_ptrs, MAPI_BEST_ACCESS, &~namtags);
+	if (FAILED(hr))
+		return hr;
+	namtags->aulPropTag[0] = CHANGE_PROP_TYPE(namtags->aulPropTag[0], PT_BINARY);
+	for (size_t i = 1; i < ARRAY_SIZE(nameids); ++i)
+		namtags->aulPropTag[i] = CHANGE_PROP_TYPE(namtags->aulPropTag[i], PT_UNICODE);
 
 	auto root = newVObject(VCCardProp);
 	to_prop(root, "VERSION", L"3.0");
@@ -431,22 +333,44 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 		ADD(adrnode, VCPostalCodeProp, PR_OTHER_ADDRESS_POSTAL_CODE);
 		ADD(adrnode, VCCountryNameProp, PR_OTHER_ADDRESS_COUNTRY);
 	}
-	hr = add_adr(lpMessage, root);
-	if (hr != hrSuccess)
-		return hr;
+	sp = FIND_N(PA, dispidWorkAddressStreet);
+	if (sp != nullptr && !prop_is_empty(*sp)) {
+		auto adrnode = addProp(root, VCAdrProp);
+		to_prop(adrnode, VCStreetAddressProp, *sp);
+		ADD_N(adrnode, VCCityProp, PA, dispidWorkAddressCity);
+		ADD_N(adrnode, VCRegionProp, PA, dispidWorkAddressState);
+		ADD_N(adrnode, VCPostalCodeProp, PA, dispidWorkAddressPostalCode);
+		ADD_N(adrnode, VCCountryNameProp, PA, dispidWorkAddressCountry);
+	}
 
-	hr = add_email(lpMessage, root);
-	if (hr != hrSuccess)
-		return hr;
+	node = ADD_N(root, VCEmailAddressProp, PA, dispidEmail1Address);
+	if (node != nullptr)
+		to_prop(node, "TYPE", L"INTERNET,PREF");
+	node = ADD_N(root, VCEmailAddressProp, PA, dispidEmail2Address);
+	if (node != nullptr)
+		to_prop(node, "TYPE", L"INTERNET");
+	node = ADD_N(root, VCEmailAddressProp, PA, dispidEmail3Address);
+	if (node != nullptr)
+		to_prop(node, "TYPE", L"INTERNET");
 
-	hr = add_uid(lpMessage, root);
-	if (hr != hrSuccess)
-		return hr;
+	std::string icaluid;
+	sp = FIND_N2(PM, dispidGlobalObjectID, PT_BINARY);
+	if (sp != nullptr) {
+		HrGetICalUidFromBinUid(sp->Value.bin, &icaluid);
+	} else {
+		HrGenerateUid(&icaluid);
+		auto binstr = hex2bin(icaluid);
+		SPropValue uprop;
+		uprop.ulPropTag     = CHANGE_PROP_TYPE(namtags->aulPropTag[0], PT_BINARY);
+		uprop.Value.bin.lpb = reinterpret_cast<BYTE *>(const_cast<char *>(binstr.c_str()));
+		uprop.Value.bin.cb  = binstr.length();
+		hr = HrSetOneProp(lpMessage, &uprop);
+		if (hr == hrSuccess)
+			lpMessage->SaveChanges(0);
+	}
+	to_prop(root, "UID", convert_to<std::wstring>(icaluid).c_str());
 
-	hr = add_url(lpMessage, root);
-	if (hr != hrSuccess)
-		return hr;
-
+	ADD_N(root, VCURLProp, PA, dispidWebPage);
 	ADD(root, VCNoteProp, PR_BODY);
 	ADD(root, VCBirthDateProp, PR_BIRTHDAY);
 	ADD(root, VCLastRevisedProp, PR_LAST_MODIFICATION_TIME);
@@ -465,7 +389,12 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 	cleanVObject(root);
 	return hrSuccess;
 #undef ADD
+#undef ADD_N
 #undef FIND
+#undef FIND_N
+#undef FIND_N2
+#undef PA
+#undef PM
 }
 
 HRESULT mapitovcf_impl::finalize(std::string *s)
