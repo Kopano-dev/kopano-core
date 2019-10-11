@@ -275,10 +275,10 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 	ADD(root, VCTitleProp, PR_TITLE);
 	ADD(root, "NICKNAME", PR_NICKNAME);
 
-	sp = FIND(PR_COMPANY_NAME);
-	if (sp != nullptr && !prop_is_empty(*sp)) {
+	if (!prop_is_empty(FIND(PR_COMPANY_NAME)) ||
+	    !prop_is_empty(FIND(PR_DEPARTMENT_NAME))) {
 		auto node = addGroup(root, VCOrgProp);
-		to_prop(node, VCOrgNameProp, *sp);
+		ADD(node, VCOrgNameProp, PR_COMPANY_NAME);
 		ADD(node, VCOrgUnitProp, PR_DEPARTMENT_NAME);
 	}
 
