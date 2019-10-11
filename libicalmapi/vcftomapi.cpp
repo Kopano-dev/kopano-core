@@ -176,7 +176,7 @@ HRESULT vcftomapi_impl::handle_TEL(VObject *v)
 					return ret;
 				props.emplace_back(s);
 			}
-			if (strcasecmp(token.c_str(), "MOBILE") == 0 || strcasecmp(token.c_str(), "CELL") == 0) {
+			else if (strcasecmp(token.c_str(), "MOBILE") == 0 || strcasecmp(token.c_str(), "CELL") == 0) {
 				if (is_fax)
 					continue;
 
@@ -185,21 +185,21 @@ HRESULT vcftomapi_impl::handle_TEL(VObject *v)
 					return ret;
 				props.emplace_back(s);
 			}
-			if (strcasecmp(token.c_str(), "WORK") == 0) {
+			else if (strcasecmp(token.c_str(), "WORK") == 0) {
 				auto prop = is_fax ? PR_BUSINESS_FAX_NUMBER : PR_BUSINESS_TELEPHONE_NUMBER;
 				auto ret = vobject_to_prop(v, s, prop);
 				if (ret != hrSuccess)
 					return ret;
 				props.emplace_back(s);
 			}
-			if (strcasecmp(token.c_str(), "MAIN") == 0) {
+			else if (strcasecmp(token.c_str(), "MAIN") == 0) {
 				auto prop = is_fax ? PR_PRIMARY_FAX_NUMBER : PR_PRIMARY_TELEPHONE_NUMBER;
 				auto ret = vobject_to_prop(v, s, prop);
 				if (ret != hrSuccess)
 					return ret;
 				props.emplace_back(s);
 			}
-			if (strcasecmp(token.c_str(), "PAGER") == 0) {
+			else if (strcasecmp(token.c_str(), "PAGER") == 0) {
 				if (is_fax)
 					continue;
 
