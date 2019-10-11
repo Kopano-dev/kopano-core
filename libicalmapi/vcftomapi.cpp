@@ -331,11 +331,8 @@ HRESULT vcftomapi_impl::handle_UID(VObject *v, contact &ct)
 
 	auto uid_wstring = vObjectUStringZValue(v);
 	auto uid_string = convert_to<std::string>(uid_wstring);
-	memory_ptr<SPropValue> prop;
-	auto hr = alloc(sizeof(SPropValue), &~prop);
-	if (hr != hrSuccess)
-		return hr;
-	hr = HrMakeBinaryUID(uid_string, prop, prop);
+	SPropValue s;
+	auto hr = HrMakeBinaryUID(uid_string, nullptr, &s);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -349,12 +346,7 @@ HRESULT vcftomapi_impl::handle_UID(VObject *v, contact &ct)
 	if (FAILED(hr))
 		return hr;
 
-	SPropValue s;
 	s.ulPropTag = CHANGE_PROP_TYPE(proptag->aulPropTag[0], PT_BINARY);
-	s.Value.bin.cb = prop->Value.bin.cb;
-	hr = KAllocCopy(prop->Value.bin.lpb, prop->Value.bin.cb, reinterpret_cast<void **>(&s.Value.bin.lpb));
-	if (hr != hrSuccess)
-		return hr;
 	ct.props.emplace_back(std::move(s));
 	return hrSuccess;
 }
