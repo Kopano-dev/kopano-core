@@ -97,9 +97,6 @@ extern ULONG MAPIFindNext(LHANDLE lhSession, ULONG_PTR ulUIParam, const char *lp
 extern ULONG MAPIReadMail(LHANDLE lhSession, ULONG_PTR ulUIParam, const char *lpszMessageID, FLAGS flFlags, ULONG ulReserved, lpMapiMessage *lppMessage);
 extern ULONG MAPISaveMail(LHANDLE lhSession, ULONG_PTR ulUIParam, lpMapiMessage lpMessage, FLAGS flFlags, ULONG ulReserved, const char *lpszMessageID);
 extern ULONG MAPIDeleteMail(LHANDLE lhSession, ULONG_PTR ulUIParam, const char *lpszMessageID, FLAGS flFlags, ULONG ulReserved);
-ULONG MAPIFreeBuffer(
-    LPVOID pv
-);
 extern ULONG MAPIAddress(LHANDLE lhSession, ULONG_PTR ulUIParam, const char *lpszCaption, ULONG nEditFields, const char *lpszLabels, ULONG nRecips, lpMapiRecipDesc lpRecips, FLAGS flFlags, ULONG ulReserved, LPULONG lpnNewRecips, lpMapiRecipDesc *lppNewRecips);
 extern ULONG MAPIDetails(LHANDLE lhSession, ULONG_PTR ulUIParam, lpMapiRecipDesc lpRecip, FLAGS flFlags, ULONG ulReserved);
 extern ULONG MAPIResolveName(LHANDLE lhSession, ULONG_PTR ulUIParam, const char *lpszName, FLAGS flFlags, ULONG ulReserved, lpMapiRecipDesc *lppRecip);
