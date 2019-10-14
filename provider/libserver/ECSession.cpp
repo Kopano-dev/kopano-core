@@ -703,7 +703,9 @@ ECRESULT ECAuthSession::ValidateUserSocket(int socket, const char *lpszName,
 	struct passwd *pw;
 	auto uid = ~static_cast<uid_t>(0);
 	pid_t pid = 0;
+#ifdef HAVE_GETPWNAM_R
 	char strbuf[1024];
+#endif
 	auto er = kc_peer_cred(socket, &uid, &pid);
 	if (er != erSuccess)
 		return er;
