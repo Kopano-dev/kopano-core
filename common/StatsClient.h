@@ -136,7 +136,7 @@ typedef std::map<SCName, ECStat> SCMap;
 class _kc_export ECStatsCollector {
 	public:
 	ECStatsCollector(std::shared_ptr<ECConfig>);
-	~ECStatsCollector();
+	virtual ~ECStatsCollector();
 	virtual void fill_odm() {}
 	void start();
 	void stop();
