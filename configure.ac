@@ -161,7 +161,7 @@ ZCPPFLAGS="$ZCPPFLAGS \
 	-I\${top_srcdir}/swig/include \
 	-I\${top_srcdir}/swig/python/include \
 	-I\${top_srcdir}"
-ZCXXFLAGS="-Wall -Wmissing-declarations"
+ZCXXFLAGS="-Wall -Wmissing-declarations -Wredundant-decls"
 
 # programs that use files >2GB need 64-bit file support
 LFS_CFLAGS=`getconf LFS_CFLAGS`
