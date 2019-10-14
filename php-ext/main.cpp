@@ -5490,9 +5490,12 @@ ZEND_FUNCTION(mapi_vcfstomapi)
 			return;
 
 		MAPI_G(hr) = conv->get_item(message.get());
-
-		if (MAPI_G(hr) != hrSuccess)
+		if (MAPI_G(hr) == MAPI_E_NOT_FOUND) {
+			RETVAL_TRUE;
 			break; // No more vcards
+		} else if (MAPI_G(hr) != hrSuccess) {
+			break; // some issue
+		}
 
 		zval messageResource;
 		ZEND_REGISTER_RESOURCE(&messageResource, message.release(), le_mapi_message);
