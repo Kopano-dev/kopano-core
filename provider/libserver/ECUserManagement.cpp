@@ -350,7 +350,6 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass,
 	std::map<objectid_t, unsigned int> mapExternIdToLocal;
 	std::map<objectid_t, std::pair<unsigned int, std::string> > mapSignatureIdToLocal;
 	objectid_t extcompany, externid;
-	std::string signature;
 	unsigned ulObjectId = 0;
 	bool bMoved = false;
 	ECSecurity *lpSecurity = NULL;
@@ -1490,7 +1489,6 @@ ECRESULT ECUserManagement::QueryContentsRowData(struct soap *soap,
 	std::map<objectid_t, objectdetails_t> mapAllObjectDetails, mapExternObjectDetails;
 	std::map<objectid_t, unsigned int> mapExternIdToRowId, mapExternIdToObjectId;
 	UserPlugin *lpPlugin = NULL;
-	std::string signature;
 	auto cache = m_lpSession->GetSessionManager()->GetCacheManager();
 	auto er = GetThreadLocalPlugin(m_lpPluginFactory, &lpPlugin);
 	if (er != erSuccess)

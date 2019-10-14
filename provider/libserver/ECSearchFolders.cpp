@@ -493,8 +493,6 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 				ecOBStore.lpGuid = NULL;
 
 				if(ulType == ECKeyTable::TABLE_ROW_ADD || ulType == ECKeyTable::TABLE_ROW_MODIFY) {
-					std::list<ULONG> lstPropTags;
-
 					// Get the restriction ready for this search folder
 					er = ECGenericObjectTable::GetRestrictPropTags(folder.second->lpSearchCriteria->lpRestrict, &lstPrefix, &lpPropTags);
 					if(er != erSuccess) {

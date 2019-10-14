@@ -889,7 +889,7 @@ ECRESULT ECGetContentChangesHelper::MatchRestrictions(const std::vector<DB_ROW> 
 	struct propTagArray *lpPropTags = NULL;
 	struct rowSet *lpRowSet = NULL;
 	std::set<SOURCEKEY> matches;
-	std::vector<unsigned int> cbdata, objectids;
+	std::vector<unsigned int> cbdata;
 	std::vector<unsigned char *> lpdata;
 
 	memset(&sODStore, 0, sizeof(sODStore));

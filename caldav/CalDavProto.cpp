@@ -857,7 +857,7 @@ HRESULT CalDAV::HrMoveEntry(const std::string &strGuid, LPMAPIFOLDER lpDestFolde
  */
 HRESULT CalDAV::HrPut()
 {
-	std::string strUrl, strIcal, strIfMatch;
+	std::string strUrl, strIcal;
 	SPropValuePtr ptrPropModTime;
 	memory_ptr<SPropValue> lpsPropVal;
 	eIcalType etype = VEVENT;

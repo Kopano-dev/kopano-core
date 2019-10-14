@@ -1551,7 +1551,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 	ULONG ulInstanceId = 0, ulInstanceTag = 0;
 	bool bAttachmentStored = false;
 	entryId sUserId;
-	std::string	strColData, strInsert, strInsertTProp;
+	std::string	strColData, strInsert;
 	SOURCEKEY sSourceKey, sParentSourceKey;
 	DB_RESULT lpDBResult;
 

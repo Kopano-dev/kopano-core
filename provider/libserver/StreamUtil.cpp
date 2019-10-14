@@ -361,7 +361,7 @@ static ECRESULT SerializeDatabasePropVal(const StreamCaps *lpStreamCaps,
     DB_ROW lpRow, DB_LENGTHS lpLen, ECSerializer *lpSink)
 {
 	unsigned int type = 0, ulPropTag = 0;
-	std::string strData, strNameString;
+	std::string strData;
 	auto loc = newlocale(LC_NUMERIC_MASK, "C", nullptr);
 	convert_context converter;
 	hiloLong hilo;
@@ -1288,7 +1288,7 @@ static ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 	struct soap		*soap = NULL;
 	struct propValArray *lpPropValArray = NULL;
 	NamedPropertyMapper namedPropertyMapper(lpDatabase);
-	std::string strQuery, strInsertQuery, strInsertTProp, strColData, strColName;
+	std::string strQuery, strInsertQuery, strColData, strColName;
 	SOURCEKEY		sSourceKey;
 	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow = NULL;

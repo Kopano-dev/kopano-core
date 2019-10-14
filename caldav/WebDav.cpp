@@ -73,7 +73,7 @@ HRESULT WebDav::HrPropfind()
 	WEBDAVMULTISTATUS sDavMStatus;
 	WEBDAVREQSTPROPS sDavReqsProps;
 	WEBDAVPROP sDavPropRet;
-	std::string strFldPath, strXml;
+	std::string strXml;
 	xmlNode * lpXmlNode = NULL;
 
 	// libxml parser parses the xml data and returns the DomTree pointer.
@@ -1176,7 +1176,6 @@ HRESULT WebDav::HrPropPatch()
 {
 	WEBDAVPROP sDavProp;
 	WEBDAVMULTISTATUS sDavMStatus;
-	std::string strFldPath;
 	std::string strXml;
 	xmlNode * lpXmlNode = NULL;
 

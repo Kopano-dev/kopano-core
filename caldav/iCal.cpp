@@ -411,7 +411,6 @@ HRESULT iCal::HrGetIcal(IMAPITable *lpTable, bool blCensorPrivate, std::string *
 {
 	ULONG ulObjType = 0;
 	std::unique_ptr<MapiToICal> lpMtIcal;
-	std::string strical;
 	unsigned int ulTagPrivate = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_PRIVATE], PT_BOOLEAN);
 	auto hr = CreateMapiToICal(m_lpAddrBook, "utf-8", &unique_tie(lpMtIcal));
 	if (hr != hrSuccess) {

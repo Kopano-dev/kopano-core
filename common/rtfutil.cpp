@@ -884,7 +884,6 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 			}
 			else if(*szInput == '\'') {
 				unsigned int ulChar;
-				std::wstring wstrUnicode;
 
 				if (!bPar) {
 					sState[ulState].output.append("<p>");
