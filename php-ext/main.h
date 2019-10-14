@@ -147,6 +147,7 @@ ZEND_FUNCTION(mapi_getnamesfromids);
 ZEND_FUNCTION(mapi_getidsfromnames);
 
 ZEND_FUNCTION(mapi_decompressrtf);
+ZEND_FUNCTION(mapi_createconversationindex);
 
 ZEND_FUNCTION(mapi_folder_openmodifytable);
 ZEND_FUNCTION(mapi_rules_gettable);
