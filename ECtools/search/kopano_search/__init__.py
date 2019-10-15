@@ -63,7 +63,7 @@ CONFIG = {
     'index_exclude_properties': Config.integer(multiple=True, base=16, default=[0x007D, 0x0064, 0x0C1E, 0x0075, 0x678E, 0x678F, 0x001A]),
     'index_path': Config.string(default='/var/lib/kopano/search/'),
     'index_processes': Config.integer(default=1),
-    'limit_results': Config.integer(default=0),
+    'limit_results': Config.integer(default=1000),
     'optimize_age': Config.ignore(),
     'optimize_start': Config.ignore(),
     'optimize_stop': Config.ignore(),
