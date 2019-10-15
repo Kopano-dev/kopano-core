@@ -343,7 +343,7 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 		} \
 	}
 
-#define COPY_MV_PROPS(type, mapimvmember, mapilpmember, phpmember) \
+#define COPY_MV_PROPS(type, mapimvmember, mapilpmember) \
 	GET_MV_HASH() \
 	CHECK_EMPTY_MV_ARRAY(mapimvmember, mapilpmember) \
 	lpPropValue[cvalues].Value.mapimvmember.cValues = countarray; \
@@ -356,23 +356,23 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 	} ZEND_HASH_FOREACH_END();
 
 		case PT_MV_I2:
-			COPY_MV_PROPS(long, MVi, lpi, lval);
+			COPY_MV_PROPS(long, MVi, lpi);
 			++cvalues;
 			break;
 		case PT_MV_LONG:
-			COPY_MV_PROPS(long, MVl, lpl, lval);
+			COPY_MV_PROPS(long, MVl, lpl);
 			++cvalues;
 			break;
 		case PT_MV_R4:
-			COPY_MV_PROPS(double, MVflt, lpflt, dval);
+			COPY_MV_PROPS(double, MVflt, lpflt);
 			++cvalues;
 			break;
 		case PT_MV_DOUBLE:
-			COPY_MV_PROPS(double, MVdbl, lpdbl, dval);
+			COPY_MV_PROPS(double, MVdbl, lpdbl);
 			++cvalues;
 			break;
 		case PT_MV_APPTIME:
-			COPY_MV_PROPS(double, MVat, lpat, dval);
+			COPY_MV_PROPS(double, MVat, lpat);
 			++cvalues;
 			break;
 		case PT_MV_SYSTIME:
