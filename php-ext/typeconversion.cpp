@@ -756,7 +756,7 @@ HRESULT PHPArraytoRowList(zval *phpArray, void *lpBase, LPROWLIST *lppRowList TS
 		if (pPropValue) {
 			data = zend_hash_find(HASH_OF(entry), str_rowflags.get());
 			if (data != nullptr) {
-				lpRowList->aEntries[countRows].ulRowFlags = Z_LVAL_P(data);
+				lpRowList->aEntries[countRows].ulRowFlags = zval_get_long(data);
 			} else {
 				php_error_docref(NULL TSRMLS_CC, E_WARNING, "PHPArraytoRowList, Missing field rowflags");
 				return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -871,7 +871,7 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 	}
 
-	lpRes->rt = typeEntry->value.lval;		// set restriction type (RES_AND, RES_OR, ...)
+	lpRes->rt = zval_get_long(typeEntry); // set restriction type (RES_AND, RES_OR, ...)
 	ZVAL_DEREF(valueEntry);
 	auto dataHash = HASH_OF(valueEntry); // from resHash
 	if (!dataHash) {
@@ -943,7 +943,7 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "RES_SUBRESTRICTION, Missing field ULPROPTAG");
 			return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 		}
-		lpRes->res.resSub.ulSubObject = valueEntry->value.lval;
+		lpRes->res.resSub.ulSubObject = zval_get_long(valueEntry);
 
 		break;
 	case RES_COMMENT:
