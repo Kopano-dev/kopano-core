@@ -22,15 +22,11 @@ ZCABLogon::ZCABLogon(IMAPISupport *lpMAPISup, ULONG ulProfileFlags,
 {
 	// The specific GUID for *this* addressbook provider, if available
 	m_ABPGuid = lpGUID != nullptr ? *lpGUID : GUID_NULL;
-	if(m_lpMAPISup)
-		m_lpMAPISup->AddRef();
 }
 
 ZCABLogon::~ZCABLogon()
 {
 	ClearFolderList();
-	if (m_lpMAPISup != nullptr)
-		m_lpMAPISup->Release();
 }
 
 HRESULT ZCABLogon::Create(IMAPISupport *lpMAPISup, ULONG ulProfileFlags,
@@ -55,19 +51,11 @@ HRESULT ZCABLogon::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lpp
 
 HRESULT ZCABLogon::Logoff(ULONG ulFlags)
 {
-	HRESULT hr = hrSuccess;
-
 	//FIXME: Release all Other open objects ?
 	//Releases all open objects, such as any subobjects or the status object. 
 	//Releases the provider's support object.
-
-	if(m_lpMAPISup)
-	{
-		m_lpMAPISup->Release();
-		m_lpMAPISup = NULL;
-	}
-
-	return hr;
+	m_lpMAPISup.reset();
+	return hrSuccess;
 }
 
 /** 
