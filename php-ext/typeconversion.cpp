@@ -1706,6 +1706,7 @@ HRESULT PHPArraytoReadStateArray(zval *zvalReadStates, void *lpBase, ULONG *lpcV
 	unsigned int count, n = 0;
 	zstrplus str_sourcekey(zend_string_init("sourcekey", sizeof("sourcekey") - 1, 0));
 	zstrplus str_flags(zend_string_init("flags", sizeof("flags") - 1, 0));
+	zval *pentry = nullptr;
 
 	MAPI_G(hr) = hrSuccess;
 
@@ -1721,12 +1722,7 @@ HRESULT PHPArraytoReadStateArray(zval *zvalReadStates, void *lpBase, ULONG *lpcV
 	if(MAPI_G(hr) != hrSuccess) 
 		goto exit;
 
-	HashPosition hpos;
-	zend_hash_internal_pointer_reset_ex(target_hash, &hpos);
-	for (unsigned int i = 0; i < count; ++i) {
-		auto pentry = zend_hash_get_current_data_ex(target_hash, &hpos);
-		if (pentry == nullptr)
-			continue;
+	ZEND_HASH_FOREACH_VAL(target_hash, pentry) {
 		auto valueEntry = zend_hash_find(HASH_OF(pentry), str_sourcekey.get());
 		if (valueEntry == nullptr) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "No 'sourcekey' entry for one of the entries in the readstate list");
@@ -1746,7 +1742,7 @@ HRESULT PHPArraytoReadStateArray(zval *zvalReadStates, void *lpBase, ULONG *lpcV
 			goto exit;
 		}
 		lpReadStates[n++].ulFlags = zval_get_long(valueEntry);
-	}
+	} ZEND_HASH_FOREACH_END();
 	
 	*lppReadStates = lpReadStates;
 	*lpcValues = n;
