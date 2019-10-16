@@ -93,7 +93,9 @@ HRESULT ECImportHierarchyChangesProxy::Config(LPSTREAM lpStream, ULONG ulFlags) 
 		ZVAL_RES(&pvalArgs[0], zend_register_resource(lpStream, le_istream));
 		if (Z_RES(pvalArgs[0]))
 			lpStream->AddRef();
-    }
+	} else {
+		ZVAL_NULL(&pvalArgs[0]);
+	}
     
     ZVAL_LONG(&pvalArgs[1], ulFlags);
     
@@ -113,7 +115,9 @@ HRESULT ECImportHierarchyChangesProxy::UpdateState(LPSTREAM lpStream) {
 		ZVAL_RES(&pvalArgs, zend_register_resource(lpStream, le_istream));
 		if (Z_RES(pvalArgs))
 			lpStream->AddRef();
-    }
+	} else {
+		ZVAL_NULL(&pvalArgs);
+	}
     
     ZVAL_STRING(&pvalFuncName, "UpdateState");
     if (call_user_function(NULL, &m_lpObj, &pvalFuncName, &pvalReturn, 1, &pvalArgs TSRMLS_CC) == FAILURE) {
