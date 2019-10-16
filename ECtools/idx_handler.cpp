@@ -198,7 +198,7 @@ static constexpr const configsetting_t idx_defaults[] = {
 	{"index_exclude_properties", "0x007d 0x0064 0x0c1e 0x0075 0x678e 0x678f 0x001a", CONFIGSETTING_RELOADABLE},
 	{"index_path", "/var/lib/kopano/search"},
 	{"index_processes", "0"},
-	{"limit_results", "0"},
+	{"limit_results", "1000"},
 	{"optimize_age", "", CONFIGSETTING_UNUSED},
 	{"optimize_start", "", CONFIGSETTING_UNUSED},
 	{"optimize_stop", "", CONFIGSETTING_UNUSED},
