@@ -7,6 +7,7 @@ Copyright 2017 - 2019 Kopano and its licensors (see LICENSE file)
 
 import copy
 import sys
+import weakref
 
 from MAPI import (
     MAPI_MESSAGE, MAPI_FOLDER, MAPI_STORE, MAPIAdviseSink, fnevObjectModified,
@@ -134,12 +135,12 @@ def _filter(notifs, folder, event_types, folder_types):
         yield notif
 
 class AdviseSink(MAPIAdviseSink):
-    def __init__(self, store, folder, event_types, folder_types, sink):
+    def __init__(self, store, folder, event_types, folder_types, delegate):
         MAPIAdviseSink.__init__(self, [IID_IMAPIAdviseSink])
 
-        self.store = store
-        self.folder = folder
-        self.sink = sink
+        self.store = weakref.ref(store) if store is not None else None
+        self.folder = weakref.ref(folder) if folder is not None else None
+        self.delegate = delegate
         self.event_types = event_types
         self.folder_types = folder_types
 
@@ -155,11 +156,14 @@ class AdviseSink(MAPIAdviseSink):
         return self._on_notify(notifications) # method call to start tracing
 
     def _on_notify(self, notifications):
-        if hasattr(self.sink, 'update'):
-            for n in notifications:
-                for m in _filter(_split(n, self.store), self.folder,
-                        self.event_types, self.folder_types):
-                    self.sink.update(m)
+        if not hasattr(self.delegate, 'update'):
+            return 0
+        store  = self.store() if self.store else None
+        folder = self.folder() if self.folder else None
+        for n in notifications:
+            for m in _filter(_split(n, store), folder,
+                    self.event_types, self.folder_types):
+                self.delegate.update(m)
         return 0
 
 def _flags(object_types, event_types):
@@ -177,7 +181,7 @@ def _flags(object_types, event_types):
 
     return flags
 
-def subscribe(store, folder, sink, object_types=None, folder_types=None,
+def subscribe(store, folder, delegate, object_types=None, folder_types=None,
         event_types=None):
 
     if not store.server.notifications:
@@ -189,14 +193,12 @@ notifications (try Server(notifications=True))')
     event_types = event_types or EVENT_TYPES
 
     flags = _flags(object_types, event_types)
-
-    sink._store = store
-    sink2 = AdviseSink(store, folder, event_types, folder_types, sink)
+    sink = AdviseSink(store, folder, event_types, folder_types, delegate)
 
     if folder:
-        sink._conn = store.mapiobj.Advise(_bdec(folder.entryid), flags, sink2)
+        delegate._conn = store.mapiobj.Advise(_bdec(folder.entryid), flags, sink)
     else:
-        sink._conn = store.mapiobj.Advise(None, flags, sink2)
+        delegate._conn = store.mapiobj.Advise(None, flags, sink)
 
-def unsubscribe(store, sink):
-    store.mapiobj.Unadvise(sink._conn)
+def unsubscribe(store, delegate):
+    store.mapiobj.Unadvise(delegate._conn)
