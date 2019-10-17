@@ -1486,7 +1486,7 @@ ECRESULT ECUserManagement::QueryContentsRowData(struct soap *soap,
 	struct rowSet *lpsRowSet = NULL;
 	objectid_t externid;
 	std::list<objectid_t> lstObjects;
-	std::map<objectid_t, objectdetails_t> mapAllObjectDetails, mapExternObjectDetails;
+	std::map<objectid_t, objectdetails_t> mapAllObjectDetails;
 	std::map<objectid_t, unsigned int> mapExternIdToRowId, mapExternIdToObjectId;
 	UserPlugin *lpPlugin = NULL;
 	auto cache = m_lpSession->GetSessionManager()->GetCacheManager();
