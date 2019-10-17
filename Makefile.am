@@ -89,7 +89,7 @@ sbin_PROGRAMS = \
 	kopano-ical kopano-monitor kopano-server kopano-spooler \
 	kopano-srvadm kopano-storeadm
 noinst_PROGRAMS = kopano-cfgchecker
-pkglibexec_PROGRAMS = kscriptrun mapitime
+pkglibexec_PROGRAMS = eidprint kscriptrun mapitime
 check_PROGRAMS = tests/ablookup tests/htmltext tests/imtomapi \
 	tests/kc-335 tests/mapialloctime \
 	tests/readflag tests/zcpmd5
@@ -815,6 +815,8 @@ dist_phpdata_DATA = \
 #
 # auxiliary programs
 #
+eidprint_SOURCES = ECtools/eidprint.cpp
+eidprint_LDADD = libkcutil.la
 kscriptrun_SOURCES = ECtools/scriptrun.cpp
 mapitime_SOURCES = ECtools/mapitime.cpp
 mapitime_LDADD = ${clock_LIBS} libmapi.la libkcutil.la \

@@ -96,6 +96,13 @@ template<typename T> static inline constexpr const IID &iid_of(const T &)
 #	undef KC_BIGENDIAN
 #endif
 
+static inline uint16_t get_unaligned_le16(const uint16_t *p)
+{
+	uint16_t v;
+	memcpy(&v, p, sizeof(v));
+	return le16_to_cpu(v);
+}
+
 static inline uint32_t get_unaligned_le32(const uint32_t *p)
 {
 	uint32_t v;
