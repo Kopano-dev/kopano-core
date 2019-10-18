@@ -371,7 +371,7 @@ bool ECConfigImpl::ReadConfigFile(const std::string &file,
 	m_readFiles.emplace(m_currentFile);
 	std::unique_ptr<FILE, file_deleter> fp(fopen(file.c_str(), "rt"));
 	if (fp == nullptr) {
-		errors.emplace_back("Unable to open config file \"" + file + "\"");
+		errors.emplace_back(format("Unable to open config file \"%s\": %s", file.c_str(), strerror(errno)));
 		return false;
 	}
 
