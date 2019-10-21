@@ -16,6 +16,7 @@ Some goals:
 """
 
 import sys
+import types
 
 from .version import __version__
 from .config import Config, CONFIG
@@ -23,7 +24,7 @@ from .errors import (
     Error, ConfigError, DuplicateError, NotFoundError, LogonError,
     NotSupportedError, ArgumentError,
 )
-from .server import Server
+from .server import Server as _Server
 from .address import Address
 from .appointment import Appointment
 from .attachment import Attachment
@@ -59,58 +60,85 @@ from .user import User
 from .parser import parser
 from .service import Service, Worker, server_socket, client_socket
 
+
 # interactive shortcuts
 
 # TODO add kopano.servers?
 
-class Module(object):
-    def __init__(self, module):
-        self.__module = module
-        self.__server = None
+class Module(types.ModuleType):
+    def __init__(self):
+        super().__init__(__name__)
+        self.__dict__.update(sys.modules[__name__].__dict__)
 
-    def __getattr__(self, name):
-        return getattr(self.__module, name)
+        class DeprecatedServer(_Server):
+            def __init__(self, *args, **kwargs):
+                kwargs['_skip_check'] = False  # force deprecation warning
+                kwargs['parse_args'] = kwargs.get('parse_args', True)
+                super().__init__(*args, **kwargs)
+
+        class CallableSubModule(types.ModuleType):
+            def __init__(self, name, callFunc):
+                super().__init__(__name__ + '.' + name)
+                self.__dict__.update(sys.modules[__name__ + '.' + name].__dict__)
+                self.__callFunc = callFunc
+
+            def __call__(self, *args, **kwargs):
+                return self.__callFunc(*args, **kwargs)
+
+        # Make our submodules which clash with our public API available while
+        # retaining callable public API functions.
+        self.server = CallableSubModule('server', self.__serverFactory)
+        self.user = CallableSubModule('user', self.__userFactory)
+        self.group = CallableSubModule('group', self.__groupFactory)
+        self.store = CallableSubModule('store', self.__storeFactory)
+        self.company = CallableSubModule('company', self.__companyFactory)
+
+        # Deprecated API.
+        self.Server = DeprecatedServer
+
+        # Internals.
+        self.__server = None
 
     @property
     def _server(self):
         if not self.__server:
-            self.__server = Server(_skip_check=True, parse_args=False)
+            self.__server = _Server(_skip_check=True, parse_args=False)
         return self.__server
 
-    @property # this is the reason we need a class
-    def public_store(self):
-        return self._server.public_store
-
     # TODO add 'name' argument to lookup node?
-    def server(self, *args, **kwargs):
-        kwargs['_skip_check'] = True # avoid deprecation warning
+    def __serverFactory(self, *args, **kwargs):
         kwargs['parse_args'] = kwargs.get('parse_args', False)
-        return Server(*args, **kwargs)
+        return _Server(*args, **kwargs)
 
     # TODO add servers() for multiserver
 
-    def user(self, *args, **kwargs):
+    def __userFactory(self, *args, **kwargs):
         return self._server.user(*args, **kwargs)
 
     def users(self, *args, **kwargs):
         return self._server.users(*args, **kwargs)
 
-    def group(self, *args, **kwargs):
+    def __groupFactory(self, *args, **kwargs):
         return self._server.group(*args, **kwargs)
 
     def groups(self, *args, **kwargs):
         return self._server.groups(*args, **kwargs)
 
-    def store(self, *args, **kwargs):
+    def __storeFactory(self, *args, **kwargs):
         return self._server.store(*args, **kwargs)
 
     def stores(self, *args, **kwargs):
         return self._server.stores(*args, **kwargs)
 
-    def company(self, *args, **kwargs):
+    def __companyFactory(self, *args, **kwargs):
         return self._server.company(*args, **kwargs)
 
     def companies(self, *args, **kwargs):
         return self._server.companies(*args, **kwargs)
 
-sys.modules[__name__] = Module(sys.modules[__name__])
+    @property
+    def public_store(self):
+        return self._server.public_store
+
+
+sys.modules[__name__] = Module()
