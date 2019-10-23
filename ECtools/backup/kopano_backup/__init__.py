@@ -452,8 +452,10 @@ class Service(kopano.Service):
 
         try:
             if self.options.users:
+                username = self.options.users[0]
                 store = self._store(self.options.users[0])
             elif self.options.stores:
+                username = self.options.stores[0]
                 store = self.server.store(self.options.stores[0])
             else:
                 store = self._store(username)
