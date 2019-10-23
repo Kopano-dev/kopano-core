@@ -269,7 +269,7 @@ class Service(kopano.Service):
                     props.append(recip_prop(PROP_ID(PR_ADDRTYPE), u'SMTP'))
                     props.append(recip_prop(PROP_ID(PR_EMAIL_ADDRESS), email))
                 else:
-                    self.log.warning("no email address for recipient '%s'" % r.DisplayName or '')
+                    self.log.warning("no email address for recipient '%s'", r.DisplayName or '')
 
             recipients.append(props)
         mapiobj.ModifyRecipients(0, recipients)
@@ -312,7 +312,7 @@ class Service(kopano.Service):
                             folder2.container_class = folder.ContainerClass
                         break
                     except MAPIErrorNetworkError as e:
-                        self.log.warning("{}: Connection to server lost, retrying in 5 sec".format(e))
+                        self.log.warning("%s: Connection to server lost, retrying in 5 sec", e)
                         time.sleep(5)
 
                 if import_nids:
