@@ -2715,10 +2715,10 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 		lppNamePropId[i]->lpguid = &guidOutlook;
 
 		if(guidHash) {
-			if (Z_TYPE_P(guidEntry) != IS_STRING || sizeof(GUID) != guidEntry->value.str->len) {
+			if (Z_TYPE_P(guidEntry) != IS_STRING || Z_STRLEN_P(guidEntry) != sizeof(GUID)) {
 				php_error_docref(nullptr TSRMLS_CC, E_WARNING, "The GUID with index number %u that is passed is not of the right length, cannot convert to GUID", i);
 			} else {
-				MAPI_G(hr) = KAllocCopy(guidEntry->value.str->val, sizeof(GUID), reinterpret_cast<void **>(&lppNamePropId[i]->lpguid), lppNamePropId);
+				MAPI_G(hr) = KAllocCopy(Z_STRVAL_P(guidEntry), sizeof(GUID), reinterpret_cast<void **>(&lppNamePropId[i]->lpguid), lppNamePropId);
 				if (MAPI_G(hr) != hrSuccess)
 					return;
 			}
@@ -2728,20 +2728,20 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 		{
 		case IS_LONG:
 			lppNamePropId[i]->ulKind = MNID_ID;
-			lppNamePropId[i]->Kind.lID = entry->value.lval;
+			lppNamePropId[i]->Kind.lID = zval_get_long(entry);
 			break;
 		case IS_STRING:
-			multibytebufferlen = mbstowcs(NULL, entry->value.str->val, 0);
+			multibytebufferlen = mbstowcs(nullptr, Z_STRVAL_P(entry), 0);
 			MAPI_G(hr) = MAPIAllocateMore((multibytebufferlen + 1) * sizeof(wchar_t), lppNamePropId,
 			             reinterpret_cast<void **>(&lppNamePropId[i]->Kind.lpwstrName));
 			if (MAPI_G(hr) != hrSuccess)
 				return;
-			mbstowcs(lppNamePropId[i]->Kind.lpwstrName, entry->value.str->val, multibytebufferlen+1);
+			mbstowcs(lppNamePropId[i]->Kind.lpwstrName, Z_STRVAL_P(entry), multibytebufferlen + 1);
 			lppNamePropId[i]->ulKind = MNID_STRING;
 			break;
 		case IS_DOUBLE:
 			lppNamePropId[i]->ulKind = MNID_ID;
-			lppNamePropId[i]->Kind.lID = (LONG) entry->value.dval;
+			lppNamePropId[i]->Kind.lID = zval_get_double(entry);
 			break;
 		default:
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Entry is of an unknown type: %08X", Z_TYPE_P(entry));
@@ -4614,19 +4614,19 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish)
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 			return;
 		}
-		lpBlocks[i].m_tmStart = UnixTimeToRTime(Z_LVAL_P(value));
+		lpBlocks[i].m_tmStart = UnixTimeToRTime(zval_get_long(value));
 		value = zend_hash_find(data, str_end.get());
 		if (value == nullptr) {
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 			return;
 		}
-		lpBlocks[i].m_tmEnd = UnixTimeToRTime(Z_LVAL_P(value));
+		lpBlocks[i].m_tmEnd = UnixTimeToRTime(zval_get_long(value));
 		value = zend_hash_find(data, str_status.get());
 		if (value == nullptr) {
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 			return;
 		}
-		lpBlocks[i++].m_fbstatus = (enum FBStatus)Z_LVAL_P(value);
+		lpBlocks[i++].m_fbstatus = static_cast<enum FBStatus>(zval_get_long(value));
 	} ZEND_HASH_FOREACH_END();
 
 	MAPI_G(hr) = lpFBUpdate->PublishFreeBusy(lpBlocks, cBlocks);

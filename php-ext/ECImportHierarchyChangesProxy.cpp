@@ -93,7 +93,9 @@ HRESULT ECImportHierarchyChangesProxy::Config(LPSTREAM lpStream, ULONG ulFlags) 
 		ZVAL_RES(&pvalArgs[0], zend_register_resource(lpStream, le_istream));
 		if (Z_RES(pvalArgs[0]))
 			lpStream->AddRef();
-    }
+	} else {
+		ZVAL_NULL(&pvalArgs[0]);
+	}
     
     ZVAL_LONG(&pvalArgs[1], ulFlags);
     
@@ -106,17 +108,19 @@ HRESULT ECImportHierarchyChangesProxy::Config(LPSTREAM lpStream, ULONG ulFlags) 
 }
 
 HRESULT ECImportHierarchyChangesProxy::UpdateState(LPSTREAM lpStream) {
-	zvalplus pvalFuncName, pvalArgs[1];
+	zvalplus pvalFuncName, pvalArgs;
 	zval pvalReturn;
     
     if(lpStream) {
-		ZVAL_RES(&pvalArgs[0], zend_register_resource(lpStream, le_istream));
-		if (Z_RES(pvalArgs[0]))
+		ZVAL_RES(&pvalArgs, zend_register_resource(lpStream, le_istream));
+		if (Z_RES(pvalArgs))
 			lpStream->AddRef();
-    }
+	} else {
+		ZVAL_NULL(&pvalArgs);
+	}
     
     ZVAL_STRING(&pvalFuncName, "UpdateState");
-    if (call_user_function(NULL, &m_lpObj, &pvalFuncName, &pvalReturn, 1, pvalArgs TSRMLS_CC) == FAILURE) {
+    if (call_user_function(NULL, &m_lpObj, &pvalFuncName, &pvalReturn, 1, &pvalArgs TSRMLS_CC) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "UpdateState method not present on ImportHierarchyChanges object");
         return MAPI_E_CALL_FAILED;
     }
@@ -124,16 +128,16 @@ HRESULT ECImportHierarchyChangesProxy::UpdateState(LPSTREAM lpStream) {
 }
 
 HRESULT ECImportHierarchyChangesProxy::ImportFolderChange(ULONG cValues, LPSPropValue lpPropArray)  {
-	zvalplus pvalFuncName, pvalArgs[1];
+	zvalplus pvalFuncName, pvalArgs;
 	zval pvalReturn;
-    HRESULT hr = PropValueArraytoPHPArray(cValues, lpPropArray, &pvalArgs[0] TSRMLS_CC);
+	HRESULT hr = PropValueArraytoPHPArray(cValues, lpPropArray, &pvalArgs TSRMLS_CC);
     if(hr != hrSuccess) {
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to convert MAPI propvalue array to PHP");
         return hr;
     }
     
     ZVAL_STRING(&pvalFuncName, "ImportFolderChange");
-    if (call_user_function(NULL, &m_lpObj, &pvalFuncName, &pvalReturn, 1, pvalArgs TSRMLS_CC) == FAILURE) {
+    if (call_user_function(NULL, &m_lpObj, &pvalFuncName, &pvalReturn, 1, &pvalArgs TSRMLS_CC) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "ImportFolderChange method not present on ImportHierarchyChanges object");
         return MAPI_E_CALL_FAILED;
     }

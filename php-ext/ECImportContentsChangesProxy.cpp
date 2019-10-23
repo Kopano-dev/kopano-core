@@ -93,7 +93,9 @@ HRESULT ECImportContentsChangesProxy::Config(LPSTREAM lpStream, ULONG ulFlags) {
 		ZVAL_RES(&pvalArgs[0], zend_register_resource(lpStream, le_istream));
 		if (Z_RES(pvalArgs[0]) != nullptr)
 			lpStream->AddRef();
-    }
+	} else {
+		ZVAL_NULL(&pvalArgs[0]);
+	}
     
     ZVAL_LONG(&pvalArgs[1], ulFlags);
     
@@ -113,7 +115,9 @@ HRESULT ECImportContentsChangesProxy::UpdateState(LPSTREAM lpStream) {
 		ZVAL_RES(&pvalArgs, zend_register_resource(lpStream, le_istream));
 		if (Z_RES(pvalArgs) != nullptr)
 			lpStream->AddRef();
-    }
+	} else {
+		ZVAL_NULL(&pvalArgs);
+	}
     
     ZVAL_STRING(&pvalFuncName, "UpdateState");
 	if (call_user_function(nullptr, &m_lpObj, &pvalFuncName, &pvalReturn, 1, &pvalArgs TSRMLS_CC) == FAILURE) {
@@ -135,6 +139,7 @@ HRESULT ECImportContentsChangesProxy::ImportMessageChange(ULONG cValues, LPSProp
     }
         
     ZVAL_LONG(&pvalArgs[1], ulFlags);
+    ZVAL_NULL(&pvalArgs[2]);
     ZVAL_STRING(&pvalFuncName, "ImportMessageChange");
     if (call_user_function(NULL, &m_lpObj, &pvalFuncName, &pvalReturn, 3, pvalArgs TSRMLS_CC) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "ImportMessageChange method not present on ImportContentsChanges object");

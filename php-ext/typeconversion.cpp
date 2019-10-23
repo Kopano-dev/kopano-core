@@ -343,7 +343,7 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 		} \
 	}
 
-#define COPY_MV_PROPS(type, mapimvmember, mapilpmember, phpmember) \
+#define COPY_MV_PROPS(type, mapimvmember, mapilpmember) \
 	GET_MV_HASH() \
 	CHECK_EMPTY_MV_ARRAY(mapimvmember, mapilpmember) \
 	lpPropValue[cvalues].Value.mapimvmember.cValues = countarray; \
@@ -356,23 +356,23 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 	} ZEND_HASH_FOREACH_END();
 
 		case PT_MV_I2:
-			COPY_MV_PROPS(long, MVi, lpi, lval);
+			COPY_MV_PROPS(long, MVi, lpi);
 			++cvalues;
 			break;
 		case PT_MV_LONG:
-			COPY_MV_PROPS(long, MVl, lpl, lval);
+			COPY_MV_PROPS(long, MVl, lpl);
 			++cvalues;
 			break;
 		case PT_MV_R4:
-			COPY_MV_PROPS(double, MVflt, lpflt, dval);
+			COPY_MV_PROPS(double, MVflt, lpflt);
 			++cvalues;
 			break;
 		case PT_MV_DOUBLE:
-			COPY_MV_PROPS(double, MVdbl, lpdbl, dval);
+			COPY_MV_PROPS(double, MVdbl, lpdbl);
 			++cvalues;
 			break;
 		case PT_MV_APPTIME:
-			COPY_MV_PROPS(double, MVat, lpat, dval);
+			COPY_MV_PROPS(double, MVat, lpat);
 			++cvalues;
 			break;
 		case PT_MV_SYSTIME:
@@ -756,7 +756,7 @@ HRESULT PHPArraytoRowList(zval *phpArray, void *lpBase, LPROWLIST *lppRowList TS
 		if (pPropValue) {
 			data = zend_hash_find(HASH_OF(entry), str_rowflags.get());
 			if (data != nullptr) {
-				lpRowList->aEntries[countRows].ulRowFlags = Z_LVAL_P(data);
+				lpRowList->aEntries[countRows].ulRowFlags = zval_get_long(data);
 			} else {
 				php_error_docref(NULL TSRMLS_CC, E_WARNING, "PHPArraytoRowList, Missing field rowflags");
 				return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -871,7 +871,7 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 	}
 
-	lpRes->rt = typeEntry->value.lval;		// set restriction type (RES_AND, RES_OR, ...)
+	lpRes->rt = zval_get_long(typeEntry); // set restriction type (RES_AND, RES_OR, ...)
 	ZVAL_DEREF(valueEntry);
 	auto dataHash = HASH_OF(valueEntry); // from resHash
 	if (!dataHash) {
@@ -943,7 +943,7 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "RES_SUBRESTRICTION, Missing field ULPROPTAG");
 			return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 		}
-		lpRes->res.resSub.ulSubObject = valueEntry->value.lval;
+		lpRes->res.resSub.ulSubObject = zval_get_long(valueEntry);
 
 		break;
 	case RES_COMMENT:
@@ -1706,6 +1706,7 @@ HRESULT PHPArraytoReadStateArray(zval *zvalReadStates, void *lpBase, ULONG *lpcV
 	unsigned int count, n = 0;
 	zstrplus str_sourcekey(zend_string_init("sourcekey", sizeof("sourcekey") - 1, 0));
 	zstrplus str_flags(zend_string_init("flags", sizeof("flags") - 1, 0));
+	zval *pentry = nullptr;
 
 	MAPI_G(hr) = hrSuccess;
 
@@ -1721,12 +1722,7 @@ HRESULT PHPArraytoReadStateArray(zval *zvalReadStates, void *lpBase, ULONG *lpcV
 	if(MAPI_G(hr) != hrSuccess) 
 		goto exit;
 
-	HashPosition hpos;
-	zend_hash_internal_pointer_reset_ex(target_hash, &hpos);
-	for (unsigned int i = 0; i < count; ++i) {
-		auto pentry = zend_hash_get_current_data_ex(target_hash, &hpos);
-		if (pentry == nullptr)
-			continue;
+	ZEND_HASH_FOREACH_VAL(target_hash, pentry) {
 		auto valueEntry = zend_hash_find(HASH_OF(pentry), str_sourcekey.get());
 		if (valueEntry == nullptr) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "No 'sourcekey' entry for one of the entries in the readstate list");
@@ -1746,7 +1742,7 @@ HRESULT PHPArraytoReadStateArray(zval *zvalReadStates, void *lpBase, ULONG *lpcV
 			goto exit;
 		}
 		lpReadStates[n++].ulFlags = zval_get_long(valueEntry);
-	}
+	} ZEND_HASH_FOREACH_END();
 	
 	*lppReadStates = lpReadStates;
 	*lpcValues = n;
