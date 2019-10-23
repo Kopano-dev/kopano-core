@@ -191,8 +191,8 @@ class Server(object):
     def __init__(self, options=None, config=None, sslkey_file=None,
             sslkey_pass=None, server_socket=None, auth_user=None,
             auth_pass=None, log=None, service=None, mapisession=None,
-            parse_args=True, notifications=False, store_cache=True,
-            oidc=False, _skip_check=False):
+            parse_args=False, notifications=False, store_cache=True,
+            oidc=False, _skip_check=True):
         """
         Create Server instance.
 
