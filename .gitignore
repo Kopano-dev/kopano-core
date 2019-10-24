@@ -30,6 +30,7 @@ stamp-h2
 
 /spooler/libkcpyplug.sym
 /spooler/PythonSWIGRuntime.h
+/eidprint
 /kopano-admin
 /kopano-archiver
 /kopano-cfgchecker
