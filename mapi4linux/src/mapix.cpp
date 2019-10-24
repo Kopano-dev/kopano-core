@@ -865,6 +865,9 @@ HRESULT M4LMAPISession::OpenMsgStore(ULONG_PTR ulUIParam, ULONG cbEntryID,
 	hr = m4l_lpMAPISVC->GetService((char*)lpEntryID+4+sizeof(GUID)+2, &service);
 	if (hr != hrSuccess)
 		return kc_perrorf("GetService failed", hr);
+	auto minit = service->MSProviderInit();
+	if (minit == nullptr)
+		return kc_perror("Provider \"%s\" has no MSProviderInit function", MAPI_E_NO_SUPPORT);
 	
 	// Find the profile section associated with this entryID
 	hr = serviceAdmin->GetProviderTable(0, &~lpTable);
@@ -896,7 +899,7 @@ HRESULT M4LMAPISession::OpenMsgStore(ULONG_PTR ulUIParam, ULONG cbEntryID,
 		lpISupport.reset(new M4LMAPISupport(this, &sProviderUID, service));
 
 	// call kopano client for the Message Store Provider (provider/client/EntryPoint.cpp)
-	hr = service->MSProviderInit()(0, nullptr, MAPIAllocateBuffer, MAPIAllocateMore, MAPIFreeBuffer, ulFlags, CURRENT_SPI_VERSION, &mdbver, &~msp);
+	hr = minit(0, nullptr, MAPIAllocateBuffer, MAPIAllocateMore, MAPIFreeBuffer, ulFlags, CURRENT_SPI_VERSION, &mdbver, &~msp);
 	if (hr != hrSuccess)
 		return kc_perrorf("MSProviderInit failed", hr);
 	hr = msp->Logon(lpISupport, 0, (LPTSTR)profileName.c_str(), cbStoreEntryID, lpStoreEntryID, ulFlags, nullptr, &sizeSpoolSec, &~pSpoolSec, nullptr, nullptr, &~mdb);
