@@ -1459,7 +1459,7 @@ HRESULT CalDAV::HrHandleFreebusy(ICalToMapi *lpIcalToMapi)
 	sWebFbInfo.tStart = tStart;
 	sWebFbInfo.tEnd = tEnd;
 	sWebFbInfo.strUID = strUID;
-	hr = HrGetFreebusy(lpMapiToIcal.get(), lpFBSupport, m_lpAddrBook, lstUsers, &sWebFbInfo);
+	hr = HrGetFreebusy(lpMapiToIcal.get(), lpFBSupport, m_lpAddrBook, *lstUsers, &sWebFbInfo);
 	if (hr != hrSuccess) {
 		// @todo, print which users?
 		ec_log_err("Unable to get freebusy information for %zu users: %s (%x)",

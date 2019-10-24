@@ -656,7 +656,8 @@ HRESULT HrFindAndGetMessage(const std::string &strGuid, IMAPIFolder *lpUsrFld,
  * @return MAPI error code
  * @retval hrSuccess valid users have freebusy blocks, invalid users have empty string in ical data. (see xml converter for request-status code)
  */
-HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, IAddrBook *lpAddrBook, std::list<std::string> *lplstUsers, WEBDAVFBINFO *lpFbInfo)
+HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport *lpFBSupport,
+    IAddrBook *lpAddrBook, const std::list<std::string> &users, WEBDAVFBINFO *lpFbInfo)
 {
 	memory_ptr<FBUser> lpUsers;
 	memory_ptr<FBBlock_1> lpsFBblks;
@@ -677,7 +678,7 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 	hr = lpAddrBook->OpenEntry(cbEntryId, ptrEntryId, &iid_of(ptrABDir), 0, &ulObj, &~ptrABDir);
 	if (hr != hrSuccess)
 		return hr;
-	unsigned int cUsers = lplstUsers->size();
+	auto cUsers = users.size();
 	hr = MAPIAllocateBuffer(CbNewADRLIST(cUsers), &~lpAdrList);
 	if(hr != hrSuccess)
 		return hr;
@@ -688,7 +689,7 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 
 	ptrFlagList->cFlags = cUsers;
 	cUsers = 0;
-	for (const auto &user : *lplstUsers) {
+	for (const auto &user : users) {
 		lpAdrList->aEntries[cUsers].cValues = 1;
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), reinterpret_cast<void **>(&lpAdrList->aEntries[cUsers].rgPropVals));
 		if(hr != hrSuccess)
@@ -741,7 +742,7 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 		goto exit;
 	ftStart = UnixTimeToFileTime(lpFbInfo->tStart);
 	ftEnd   = UnixTimeToFileTime(lpFbInfo->tEnd);
-	itUsers = lplstUsers->cbegin();
+	itUsers = users.cbegin();
 	// iterate through all users
 	for (ULONG i = 0; i < cUsers; ++i) {
 		object_ptr<IEnumFBBlock> lpEnumBlock;
