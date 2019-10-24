@@ -68,7 +68,9 @@ HRESULT HrGetFbInfo(icalcomponent *lpFbcomp, time_t *lptStart, time_t *lptEnd, s
  * 
  * @return MAPI error code
  */
-HRESULT HrFbBlock2ICal(FBBlock_1 *lpsFbblk, LONG ulBlocks, time_t tDtStart, time_t tDtEnd, const std::string &strOrganiser, const std::string &strUser, const std::string &strUID, icalcomponent **lpicFbComponent)
+HRESULT HrFbBlock2ICal(const FBBlock_1 *lpsFbblk, int ulBlocks, time_t tDtStart,
+    time_t tDtEnd, const std::string &strOrganiser, const std::string &strUser,
+    const std::string &strUID, icalcomponent **lpicFbComponent)
 {
 	icalperiodtype icalPeriod;
 	icalcomp_ptr lpFbComp(icalcomponent_new(ICAL_VFREEBUSY_COMPONENT));
