@@ -688,14 +688,14 @@ static int ec_listen_generic(const struct ec_socket &sk, unsigned int mode,
 		ec_log_err("bind %s: %s", sk.m_spec.c_str(), strerror(-ret));
 		return ret;
 	}
-	ret = unix_chown(fd, user, group);
-	if (ret < 0) {
-		ret = -errno;
-		close(fd);
-		ec_log_err("%s: chown %s: %s", __func__, sk.m_spec.c_str(), strerror(-ret));
-		return ret;
-	}
 	if (has_sun_path && mode != static_cast<unsigned int>(-1)) {
+		ret = unix_chown(u->sun_path, user, group);
+		if (ret < 0) {
+			ret = -errno;
+			close(fd);
+			ec_log_err("%s: chown %s: %s", __func__, sk.m_spec.c_str(), strerror(-ret));
+			return ret;
+		}
 		ret = chmod(u->sun_path, mode);
 		if (ret < 0) {
 			ret = -errno;
