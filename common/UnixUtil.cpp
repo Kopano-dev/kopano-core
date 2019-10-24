@@ -106,23 +106,6 @@ int unix_runas(ECConfig *lpConfig)
 	return ret;
 }
 
-int unix_chown(int fd, const char *user, const char *group)
-{
-	auto gid = getgid();
-	if (group != nullptr) {
-		auto g = getgrnam(group);
-		if (g != nullptr)
-			gid = g->gr_gid;
-	}
-	auto uid = getuid();
-	if (user != nullptr) {
-		auto u = getpwnam(user);
-		if (u != nullptr)
-			uid = u->pw_uid;
-	}
-	return fchown(fd, uid, gid) == 0 ? 0 : -errno;
-}
-
 int unix_chown(const char *filename, const char *username, const char *groupname) {
 	auto gid = getgid();
 	if (groupname && strcmp(groupname,"")) {
