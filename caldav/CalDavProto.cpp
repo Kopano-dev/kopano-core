@@ -1421,7 +1421,7 @@ HRESULT CalDAV::HrHandleFreebusy(ICalToMapi *lpIcalToMapi)
 	object_ptr<IFreeBusySupport> lpFBSupport;
 	std::unique_ptr<MapiToICal> lpMapiToIcal;
 	time_t tStart = 0, tEnd = 0;
-	std::list<std::string> *lstUsers = NULL;
+	const std::list<std::string> *lstUsers;
 	std::string strUID;
 	WEBDAVFBINFO sWebFbInfo;
 	SPropValuePtr ptrEmail;

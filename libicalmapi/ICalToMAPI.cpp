@@ -40,7 +40,7 @@ public:
 	unsigned int GetItemCount() override;
 	HRESULT GetItemInfo(unsigned int pos, eIcalType *, time_t *last_mod, SBinary *uid) override;
 	HRESULT GetItem(unsigned int pos, unsigned int flags, IMessage *) override;
-	HRESULT GetFreeBusyInfo(time_t *start, time_t *end, std::string *uid, std::list<std::string> **users) override;
+	HRESULT GetFreeBusyInfo(time_t *start, time_t *end, std::string *uid, const std::list<std::string> **users) override;
 
 private:
 	void Clean();
@@ -288,7 +288,8 @@ HRESULT ICalToMapiImpl::GetItemInfo(ULONG ulPosition, eIcalType *lpType, time_t 
  * 
  * @return MAPI error code
  */
-HRESULT ICalToMapiImpl::GetFreeBusyInfo(time_t *lptstart, time_t *lptend, std::string *lpstrUID, std::list<std::string> **lplstUsers)
+HRESULT ICalToMapiImpl::GetFreeBusyInfo(time_t *lptstart, time_t *lptend,
+    std::string *lpstrUID, const std::list<std::string> **lplstUsers)
 {
 	if (!m_bHaveFreeBusy)
 		return MAPI_E_NOT_FOUND;
