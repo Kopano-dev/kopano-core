@@ -248,7 +248,7 @@ HRESULT VEventConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent 
 {
 	SPropValue sPropVal;
 	icalproperty *lpicOrigDTStartProp = nullptr, *lpicOrigDTEndProp = nullptr;
-	std::unique_ptr<icalproperty, icalmapi_delete> lpicFreeDTStartProp, lpicFreeDTEndProp;
+	icalprop_ptr lpicFreeDTStartProp, lpicFreeDTEndProp;
 	time_t timeDTStartUTC = 0, timeDTEndUTC = 0;
 	time_t timeDTStartLocal = 0, timeDTEndLocal = 0;
 	time_t timeEndOffset = 0, timeStartOffset = 0;

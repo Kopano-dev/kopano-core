@@ -8,6 +8,7 @@
 #include <mapiutil.h>
 #include <kopano/mapiext.h>
 #include <kopano/timeutil.hpp>
+#include "icalmem.hpp"
 #include "nameids.h"
 
 namespace KC {
@@ -70,99 +71,98 @@ HRESULT HrGetFbInfo(icalcomponent *lpFbcomp, time_t *lptStart, time_t *lptEnd, s
 HRESULT HrFbBlock2ICal(FBBlock_1 *lpsFbblk, LONG ulBlocks, time_t tDtStart, time_t tDtEnd, const std::string &strOrganiser, const std::string &strUser, const std::string &strUID, icalcomponent **lpicFbComponent)
 {
 	icalperiodtype icalPeriod;
-
-	auto lpFbComp = icalcomponent_new(ICAL_VFREEBUSY_COMPONENT);
+	icalcomp_ptr lpFbComp(icalcomponent_new(ICAL_VFREEBUSY_COMPONENT));
 	if (lpFbComp == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	
 	//DTSTART
 	auto ittStamp = icaltime_from_timet_with_zone(tDtStart, false, icaltimezone_get_utc_timezone());
-	auto lpicProp = icalproperty_new(ICAL_DTSTART_PROPERTY);
+	icalprop_ptr lpicProp(icalproperty_new(ICAL_DTSTART_PROPERTY));
 	if (lpicProp == NULL)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	icalproperty_set_value(lpicProp, icalvalue_new_datetime(ittStamp));
-	icalcomponent_add_property(lpFbComp, lpicProp);
+	icalproperty_set_value(lpicProp.get(), icalvalue_new_datetime(ittStamp));
+	icalcomponent_add_property(lpFbComp.get(), lpicProp.release());
 
 	//DTEND
 	ittStamp = icaltime_from_timet_with_zone(tDtEnd, false, icaltimezone_get_utc_timezone());	
-	lpicProp = icalproperty_new(ICAL_DTEND_PROPERTY);
+	lpicProp.reset(icalproperty_new(ICAL_DTEND_PROPERTY));
 	if (lpicProp == NULL)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	icalproperty_set_value(lpicProp, icalvalue_new_datetime(ittStamp));
-	icalcomponent_add_property(lpFbComp, lpicProp);
+	icalproperty_set_value(lpicProp.get(), icalvalue_new_datetime(ittStamp));
+	icalcomponent_add_property(lpFbComp.get(), lpicProp.release());
 
 	//DTSTAMP
 	ittStamp = icaltime_from_timet_with_zone(time(NULL), false, icaltimezone_get_utc_timezone());	
-	lpicProp = icalproperty_new(ICAL_DTSTAMP_PROPERTY);
+	lpicProp.reset(icalproperty_new(ICAL_DTSTAMP_PROPERTY));
 	if (lpicProp == NULL)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	icalproperty_set_value(lpicProp, icalvalue_new_datetime(ittStamp));
-	icalcomponent_add_property(lpFbComp, lpicProp);
+	icalproperty_set_value(lpicProp.get(), icalvalue_new_datetime(ittStamp));
+	icalcomponent_add_property(lpFbComp.get(), lpicProp.release());
 	
 	//UID
 	if (strUID.size() > 0) {
-		lpicProp = icalproperty_new(ICAL_UID_PROPERTY);
+		lpicProp.reset(icalproperty_new(ICAL_UID_PROPERTY));
 		if (lpicProp == NULL)
 			return MAPI_E_NOT_ENOUGH_MEMORY;
-		icalproperty_set_uid(lpicProp, strUID.c_str());
-		icalcomponent_add_property(lpFbComp, lpicProp);
+		icalproperty_set_uid(lpicProp.get(), strUID.c_str());
+		icalcomponent_add_property(lpFbComp.get(), lpicProp.release());
 	}
 
 	//ORGANIZER
-	lpicProp = icalproperty_new(ICAL_ORGANIZER_PROPERTY);
+	lpicProp.reset(icalproperty_new(ICAL_ORGANIZER_PROPERTY));
 	if (lpicProp == NULL)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	icalproperty_set_organizer(lpicProp, strOrganiser.c_str());
-	icalcomponent_add_property(lpFbComp, lpicProp);
+	icalproperty_set_organizer(lpicProp.get(), strOrganiser.c_str());
+	icalcomponent_add_property(lpFbComp.get(), lpicProp.release());
 	
 	//ATTENDEE
 	auto strEmail = "mailto:" + strUser;
-	lpicProp = icalproperty_new_attendee(strEmail.c_str());
+	lpicProp.reset(icalproperty_new_attendee(strEmail.c_str()));
 	if (lpicProp == NULL)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	
 	// param PARTSTAT
-	auto icalParam = icalparameter_new_partstat(ICAL_PARTSTAT_ACCEPTED);
-	icalproperty_add_parameter(lpicProp, icalParam);
+	icalparam_ptr icalParam(icalparameter_new_partstat(ICAL_PARTSTAT_ACCEPTED));
+	icalproperty_add_parameter(lpicProp.get(), icalParam.release());
 	
 	// param CUTYPE
-	icalParam = icalparameter_new_cutype(ICAL_CUTYPE_INDIVIDUAL);
-	icalproperty_add_parameter(lpicProp, icalParam);
+	icalParam.reset(icalparameter_new_cutype(ICAL_CUTYPE_INDIVIDUAL));
+	icalproperty_add_parameter(lpicProp.get(), icalParam.release());
 
-	icalcomponent_add_property(lpFbComp, lpicProp);
+	icalcomponent_add_property(lpFbComp.get(), lpicProp.release());
 
 	// add all freebusy blocks
 	for (int i = 0; i < ulBlocks; ++i) {
 		// FREEBUSY
-		lpicProp = icalproperty_new(ICAL_FREEBUSY_PROPERTY);
+		lpicProp.reset(icalproperty_new(ICAL_FREEBUSY_PROPERTY));
 		if (lpicProp == NULL)
 			return MAPI_E_NOT_ENOUGH_MEMORY;
 		icalPeriod.start = icaltime_from_timet_with_zone(RTimeToUnixTime(lpsFbblk[i].m_tmStart), false, icaltimezone_get_utc_timezone());
 		icalPeriod.end = icaltime_from_timet_with_zone(RTimeToUnixTime(lpsFbblk[i].m_tmEnd), false, icaltimezone_get_utc_timezone());
-		icalproperty_set_freebusy(lpicProp, icalPeriod);
+		icalproperty_set_freebusy(lpicProp.get(), icalPeriod);
 
 		switch (lpsFbblk[i].m_fbstatus)
 		{	
 		case fbBusy:
-			icalParam = icalparameter_new_fbtype (ICAL_FBTYPE_BUSY);
+			icalParam.reset(icalparameter_new_fbtype(ICAL_FBTYPE_BUSY));
 			break;
 		case fbTentative:
-			icalParam = icalparameter_new_fbtype (ICAL_FBTYPE_BUSYTENTATIVE);
+			icalParam.reset(icalparameter_new_fbtype(ICAL_FBTYPE_BUSYTENTATIVE));
 			break;
 		case fbOutOfOffice:
-			icalParam = icalparameter_new_fbtype (ICAL_FBTYPE_BUSYUNAVAILABLE);
+			icalParam.reset(icalparameter_new_fbtype (ICAL_FBTYPE_BUSYUNAVAILABLE));
 			break;
 		default:
-			icalParam = icalparameter_new_fbtype (ICAL_FBTYPE_FREE);
+			icalParam.reset(icalparameter_new_fbtype(ICAL_FBTYPE_FREE));
 			break;
 		}
 		
-		icalproperty_add_parameter (lpicProp, icalParam);
-		icalcomponent_add_property(lpFbComp,lpicProp);
+		icalproperty_add_parameter(lpicProp.get(), icalParam.release());
+		icalcomponent_add_property(lpFbComp.get(), lpicProp.release());
 	}
 	
-	icalcomponent_end_component(lpFbComp, ICAL_VFREEBUSY_COMPONENT);
-	*lpicFbComponent = lpFbComp;
+	icalcomponent_end_component(lpFbComp.get(), ICAL_VFREEBUSY_COMPONENT);
+	*lpicFbComponent = lpFbComp.release();
 	return hrSuccess;
 }
 
