@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 import struct
-import sys
 import MAPI.Struct
 
 EC_ADDRTYPE = 'ZARAFA'
