@@ -309,6 +309,7 @@ zend_function_entry mapi_functions[] =
 	ZEND_FE(mapi_getidsfromnames, NULL)
 
 	ZEND_FE(mapi_decompressrtf, NULL)
+	ZEND_FE(mapi_createconversationindex, nullptr)
 
 	ZEND_FE(mapi_rules_gettable, NULL)
 	ZEND_FE(mapi_rules_modifytable, NULL)
@@ -3301,6 +3302,33 @@ ZEND_FUNCTION(mapi_decompressrtf)
 	}
 
 	RETVAL_STRINGL((char *)strUncompressed.c_str(), strUncompressed.size());
+}
+
+/**
+ * $new_convindex = mapi_createconversationindex($old_convindex)
+ * old_convindex:	PR_CONVERSATION_INDEX of the message to which a reply
+ * 			is to be made
+ * new_convindex:	PR_CONVERSATION_INDEX for the reply message
+ */
+ZEND_FUNCTION(mapi_createconversationindex)
+{
+	PMEASURE_FUNC;
+	LOG_BEGIN();
+	RETVAL_FALSE;
+	php_stringsize_t parent_size = 0;
+	unsigned int conv_size = 0;
+	char *parent_blob = nullptr;
+	memory_ptr<BYTE> conv_blob = nullptr;
+
+	RETVAL_FALSE;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",
+	    &parent_blob, &parent_size) == FAILURE)
+		return;
+	DEFERRED_EPILOGUE;
+	MAPI_G(hr) = ScCreateConversationIndex(parent_size, reinterpret_cast<BYTE *>(parent_blob), &conv_size, &~conv_blob);
+	if (MAPI_G(hr) != hrSuccess)
+		return;
+	RETVAL_STRINGL(reinterpret_cast<char *>(conv_blob.get()), conv_size);
 }
 
 /**
