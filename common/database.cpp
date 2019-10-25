@@ -119,8 +119,7 @@ ECRESULT KDatabase::Connect(ECConfig *cfg, bool reconnect,
 			er = KCERR_DATABASE_NOT_FOUND;
 		else
 			er = KCERR_DATABASE_ERROR;
-		ec_log_err("KDatabase::Connect(): database access error %s (0x%x), mysql error: %s",
-			GetMAPIErrorMessage(er), er, GetError());
+		ec_log_err("mysql_real_connect: %s", GetError());
 		goto exit;
 	}
 

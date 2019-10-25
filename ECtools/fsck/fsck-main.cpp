@@ -203,7 +203,7 @@ HRESULT Fsck::ValidateMessage(LPMESSAGE lpMessage,
 	cout << "Validating entry: \"" << strName << "\"" << endl;
 	++ulEntries;
 	auto hr = ValidateItem(lpMessage, strClass);
-	cout << "Validating of entry \"" << strName << "\" ended" << endl;
+	cout << "Validation of entry \"" << strName << "\" complete" << endl;
 	return hr;
 }
 
@@ -213,7 +213,7 @@ HRESULT Fsck::ValidateFolder(LPMAPIFOLDER lpFolder,
 	cout << "Validating folder \"" << strName << "\"" << endl;
 	++ulFolders;
 	HRESULT hr = ProcessFolder(this, lpFolder, strName);
-	cout << "Validating of folder \"" << strName << "\" ended" << endl;
+	cout << "Validation of folder \"" << strName << "\" complete" << endl;
 	return hr;
 }
 
@@ -258,7 +258,7 @@ HRESULT Fsck::DeleteRecipientList(LPMESSAGE lpMessage, std::list<unsigned int> &
 
 	lpMods->cEntries = 0;
 	for (const auto &recip : mapiReciptDel) {
-		auto &ent = lpMods->aEntries[lpMods->cEntries];
+		auto &ent = lpMods->aEntries[lpMods->cEntries++];
 		ent.cValues = 1;
 		hr = MAPIAllocateMore(sizeof(SPropValue), lpMods, reinterpret_cast<void **>(&ent.rgPropVals));
 		if (hr != hrSuccess)

@@ -74,9 +74,13 @@ Packaging changes:
 
 8.7.7
 =====
+Enhancements:
+* icalmapi: export more MAPI field to VCF and import vice-versa [KC-1608]
 Fixes:
 * libserver: avoid null deref when GIG on RFC2307 is attempted [KC-1606]
 * storeadm: allow combining -P and -k [KF-2741]
+* fsck: fix broken recipient lists deduplication [KC-1562]
+* oof: -x option should prompt for plain password [KC-1617]
 
 
 8.7.6 (2019-10-01)

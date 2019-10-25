@@ -135,12 +135,14 @@ Default:
 \fIpostmaster@localhost\fR
 .SS run_as_user
 .PP
-After correctly starting, the server process will become this user, dropping root privileges. Note that the log file needs to be writeable by this user, and the directory too to create new logfiles after logrotation. This can also be achieved by setting the correct group and permissions.
+During startup, the process will switch to run using this user identity. Note
+that the log file and directory need to be writeable by this user (this is
+normally the case when using packages).
 .PP
 Default: \fIkopano\fP
 .SS run_as_group
 .PP
-After correctly starting, the server process will become this group, dropping root privileges.
+During startup, the process will switch to run using this user identity.
 .PP
 Default: \fIkopano\fP
 .SS pid_file

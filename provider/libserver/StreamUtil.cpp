@@ -1071,7 +1071,8 @@ ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, 
 		lpStreamDatabase->FinalizeMulti();
 exit:
 	if (er != erSuccess)
-		ec_log_err("SerializeObject failed with error code 0x%08x for object %d", er, ulObjId );
+		ec_log_err("SerializeObject obj %d failed: %s (%x)",
+			ulObjId, GetMAPIErrorMessage(kcerr_to_mapierr(er)), er);
 	return er;
 }
 
@@ -1620,7 +1621,8 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 exit:
 	if (er != erSuccess) {
 		lpSource->Flush(); // Flush the whole stream
-		ec_log_err("DeserializeObject failed with error code 0x%08x %s", er, GetMAPIErrorMessage(kcerr_to_mapierr(er, ~0U /* anything that yields UNKNOWN */)));
+		ec_log_err("DeserializeObject failed: %s (%x)",
+			GetMAPIErrorMessage(kcerr_to_mapierr(er, ~0U /* anything that yields UNKNOWN */)), er);
 	}
 	soap_del_PointerTopropValArray(&lpPropValArray);
 	return er;

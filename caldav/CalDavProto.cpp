@@ -18,7 +18,7 @@
 using namespace KC;
 
 /**
- * Mapping of caldav properties to Mapi properties
+ * Mapping of CalDAV properties to MAPI properties
  */
 static const struct sMymap {
 	unsigned int ulPropTag;

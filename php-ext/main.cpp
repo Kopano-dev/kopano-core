@@ -5456,12 +5456,9 @@ ZEND_FUNCTION(mapi_vcftomapi)
 
 	std::string vcfMsg(szString, cbString);
 
-	create_vcftomapi(lpMsgStore, &unique_tie(conv));
-	if (conv == nullptr) {
-		MAPI_G(hr) = MAPI_E_NOT_ENOUGH_MEMORY;
+	MAPI_G(hr) = create_vcftomapi(lpMsgStore, &unique_tie(conv));
+	if (MAPI_G(hr) != hrSuccess)
 		return;
-	}
-
 	MAPI_G(hr) = conv->parse_vcf(vcfMsg);
 	if (MAPI_G(hr) != hrSuccess)
 		return;

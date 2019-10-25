@@ -189,7 +189,7 @@ HRESULT vcftomapi_impl::handle_TEL(VObject *v, contact &ct)
 					return ret;
 				ct.props.emplace_back(std::move(s));
 			}
-			if (strcasecmp(token.c_str(), "MOBILE") == 0 || strcasecmp(token.c_str(), "CELL") == 0) {
+			else if (strcasecmp(token.c_str(), "MOBILE") == 0 || strcasecmp(token.c_str(), "CELL") == 0) {
 				if (is_fax)
 					continue;
 				auto ret = vobject_to_prop(v, s, PR_MOBILE_TELEPHONE_NUMBER);
@@ -197,24 +197,60 @@ HRESULT vcftomapi_impl::handle_TEL(VObject *v, contact &ct)
 					return ret;
 				ct.props.emplace_back(std::move(s));
 			}
-			if (strcasecmp(token.c_str(), "WORK") == 0) {
+			else if (strcasecmp(token.c_str(), "WORK") == 0) {
 				auto prop = is_fax ? PR_BUSINESS_FAX_NUMBER : PR_BUSINESS_TELEPHONE_NUMBER;
 				auto ret = vobject_to_prop(v, s, prop);
 				if (ret != hrSuccess)
 					return ret;
 				ct.props.emplace_back(std::move(s));
 			}
-			if (strcasecmp(token.c_str(), "MAIN") == 0) {
+			else if (strcasecmp(token.c_str(), "MAIN") == 0) {
 				auto prop = is_fax ? PR_PRIMARY_FAX_NUMBER : PR_PRIMARY_TELEPHONE_NUMBER;
 				auto ret = vobject_to_prop(v, s, prop);
 				if (ret != hrSuccess)
 					return ret;
 				ct.props.emplace_back(std::move(s));
 			}
-			if (strcasecmp(token.c_str(), "PAGER") == 0) {
+			else if (strcasecmp(token.c_str(), "PAGER") == 0) {
 				if (is_fax)
 					continue;
 				auto ret = vobject_to_prop(v, s, PR_PAGER_TELEPHONE_NUMBER);
+				if (ret != hrSuccess)
+					return ret;
+				ct.props.emplace_back(std::move(s));
+			} else if (strcasecmp(token.c_str(), "CAR") == 0) {
+				auto ret = vobject_to_prop(v, s, PR_CAR_TELEPHONE_NUMBER);
+				if (ret != hrSuccess)
+					return ret;
+				ct.props.emplace_back(std::move(s));
+			} else if (strcasecmp(token.c_str(), "ISDN") == 0) {
+				auto ret = vobject_to_prop(v, s, PR_ISDN_NUMBER);
+				if (ret != hrSuccess)
+					return ret;
+				ct.props.emplace_back(std::move(s));
+			} else if (strcasecmp(token.c_str(), "ASSISTANT") == 0) {
+				auto ret = vobject_to_prop(v, s, PR_ASSISTANT_TELEPHONE_NUMBER);
+				if (ret != hrSuccess)
+					return ret;
+				ct.props.emplace_back(std::move(s));
+			} else if (strcasecmp(token.c_str(), "X-EVOLUTION-CALLBACK") == 0) {
+				auto ret = vobject_to_prop(v, s, PR_CALLBACK_TELEPHONE_NUMBER);
+				if (ret != hrSuccess)
+					return ret;
+				ct.props.emplace_back(std::move(s));
+			} else if (strcasecmp(token.c_str(), "X-EVOLUTION-RADIO") == 0) {
+				auto ret = vobject_to_prop(v, s, PR_RADIO_TELEPHONE_NUMBER);
+				if (ret != hrSuccess)
+					return ret;
+				ct.props.emplace_back(std::move(s));
+			} else if (strcasecmp(token.c_str(), "X-EVOLUTION-TELEX") == 0) {
+				auto ret = vobject_to_prop(v, s, PR_TELEX_NUMBER);
+				if (ret != hrSuccess)
+					return ret;
+				ct.props.emplace_back(std::move(s));
+			} else if (strcasecmp(token.c_str(), "TEXTPHONE") == 0 ||
+			    strcasecmp(token.c_str(), "X-EVOLUTION-TTYTTD") == 0) {
+				auto ret = vobject_to_prop(v, s, PR_TTYTDD_PHONE_NUMBER);
 				if (ret != hrSuccess)
 					return ret;
 				ct.props.emplace_back(std::move(s));
@@ -445,7 +481,7 @@ HRESULT vcftomapi_impl::parse_vcf(const std::string &ical)
 	}
 
 	if (!check_libical_bug_353())
-		ec_log_err("libical bug #353 detected. VCF import can produce garbage. (KC-1247)");
+		ec_log_warn("libical bug #353 detected. VCF import can produce garbage. (KC-1247)");
 	std::unique_ptr<VObject, ical_deleter> root(Parse_MIME(tmp_ical.c_str(), tmp_ical.length()));
 	if (root == nullptr)
 		return MAPI_E_CORRUPT_DATA;
@@ -490,6 +526,31 @@ HRESULT vcftomapi_impl::parse_vcard(VObject *vcard)
 			if (hr != hrSuccess)
 				return hr;
 			ct.props.emplace_back(std::move(s));
+		} else if (strcasecmp(name, "X-KADDRESSBOOK-X-Profession") == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
+			auto hr = vobject_to_prop(v, s, PR_PROFESSION);
+			if (hr != hrSuccess)
+				return hr;
+			ct.props.emplace_back(std::move(s));
+		} else if (strcasecmp(name, "X-KADDRESSBOOK-X-SpouseName") == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
+			auto hr = vobject_to_prop(v, s, PR_SPOUSE_NAME);
+			if (hr != hrSuccess)
+				return hr;
+			ct.props.emplace_back(std::move(s));
+		} else if (strcasecmp(name, "X-KADDRESSBOOK-X-ManagersName") == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
+			auto hr = vobject_to_prop(v, s, PR_MANAGER_NAME);
+			if (hr != hrSuccess)
+				return hr;
+			ct.props.emplace_back(std::move(s));
+		} else if (strcasecmp(name, "X-KADDRESSBOOK-X-AssistantsName") == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
+			auto hr = vobject_to_prop(v, s, PR_ASSISTANT);
+			if (hr != hrSuccess)
+				return hr;
+			ct.props.emplace_back(std::move(s));
+		} else if (strcasecmp(name, "X-KADDRESSBOOK-X-Office") == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
+			auto hr = vobject_to_prop(v, s, PR_OFFICE_LOCATION);
+			if (hr != hrSuccess)
+				return hr;
+			ct.props.emplace_back(std::move(s));
 		} else if (strcmp(name, "NOTE") == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
 			auto hr = vobject_to_prop(v, s, PR_BODY);
 			if (hr != hrSuccess)
@@ -504,6 +565,14 @@ HRESULT vcftomapi_impl::parse_vcard(VObject *vcard)
 			s.ulPropTag = PR_BIRTHDAY;
 			s.Value.ft = filetime;
 			ct.props.emplace_back(std::move(s));
+		} else if (strcmp(name, "X-ANNIVERSAY") == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
+			FILETIME filetime;
+			auto res = date_string_to_filetime(convert_to<std::string>(vObjectUStringZValue(v)), filetime);
+			if (!res)
+				continue;
+			s.ulPropTag = PR_WEDDING_ANNIVERSARY;
+			s.Value.ft = filetime;
+			ct.props.emplace_back(std::move(s));
 		} else if (strcmp(name, VCOrgProp) == 0) {
 			auto hr = handle_ORG(v, ct);
 			if (hr != hrSuccess)
@@ -516,6 +585,11 @@ HRESULT vcftomapi_impl::parse_vcard(VObject *vcard)
 			auto hr = handle_EMAIL(v, ct);
 			if (hr != hrSuccess)
 				return hr;
+		} else if (strcmp(name, "IMPP") == 0) {
+			auto hr = vobject_to_named_prop(v, s, dispidInstMsg);
+			if (hr != hrSuccess)
+				return hr;
+			ct.props.emplace_back(std::move(s));
 		} else if (strcmp(name, VCAdrProp) == 0) {
 			auto hr = handle_ADR(v, ct);
 			if (hr != hrSuccess)

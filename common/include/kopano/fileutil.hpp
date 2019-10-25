@@ -6,6 +6,7 @@
 #define EC_FILEUTIL_HPP 1
 
 #include <kopano/zcdefs.h>
+#include <kopano/platform.h>
 #include <string>
 #include <cstdio>
 

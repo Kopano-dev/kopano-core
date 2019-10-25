@@ -34,7 +34,7 @@ static struct tm oof_fromtm, oof_untiltm;
 static int oof_mode = -1, oof_passpr, oof_sslpr;
 static constexpr const struct HXoption oof_options[] = {
 	{"user", 'u', HXTYPE_STRING, &oof_user, nullptr, nullptr, 0, "User to set out of office message for", "NAME"},
-	{nullptr, 'x', HXTYPE_NONE, &oof_sslpr, nullptr, nullptr, 0, "Prompt for plain password to use for login"},
+	{nullptr, 'x', HXTYPE_NONE, &oof_passpr, nullptr, nullptr, 0, "Prompt for plain password to use for login"},
 	{"mode", 'm', HXTYPE_INT, &oof_mode, nullptr, nullptr, 0, "0 to disable out of office, 1 to enable", "INT"},
 	{"from", 0, HXTYPE_STRING, &oof_from, nullptr, nullptr, 0, "Date/time (Y-m-d H:M) when OOF should become active", "TIMESPEC"},
 	{"until", 0, HXTYPE_STRING, &oof_until, nullptr, nullptr, 0, "Date/time or \"infinity\" when OOF should become inactive again", "TIMESPEC"},
