@@ -6,17 +6,24 @@ Copyright 2018 - 2019 Kopano and its licensors (see LICENSE file)
 """
 
 import io
+import logging
 import mimetypes
 
 
 WITH_PIL = False
 try:
-    from PIL import Image
+    from PIL import Image, PngImagePlugin
     WITH_PIL = True
 except ImportError: # pragma: no cover
     pass
 
 from .compat import repr as _repr
+
+
+if WITH_PIL:
+    # Get rid of "STREAM" debug messages which might show up for PNG pictures,
+    # when the global logger is at DEBUG level.
+    logging.getLogger(PngImagePlugin.__name__).setLevel(logging.INFO)
 
 class Picture(object):
     """Picture class
