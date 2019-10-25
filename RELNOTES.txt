@@ -5,17 +5,17 @@
 8.7.84 (2019-10-04)
 ===================
 All changes from the 8.7.x branch up to 8.7.6 are included.
-Changes:
-* server: new installations will use files_v2 by default [KC-567]
-* icalmapi: vCard 4.0 (RFC 6350) is now emitted
-* kopano-set-oof has been removed; use `kopano-oof` instead [KC-981]
-* kopano-localize-folders has been removed; use `kopano-storeadm -Y` instead
 Enhancements:
 * admin: the --mr-process option has been added
 * dbadm: the "populate" action has been added
 * daemons: the {pop3,imap,etc.}_listen directives can now take an
   interface specifier similar to ping(8), e.g. "%eth0"
 * server/ldapplugin: LDAP group membership cache [KC-1588]
+Changes:
+* server: new installations will use files_v2 by default [KC-567]
+* icalmapi: vCard 4.0 (RFC 6350) is now emitted
+* kopano-set-oof has been removed; use `kopano-oof` instead [KC-981]
+* kopano-localize-folders has been removed; use `kopano-storeadm -Y` instead
 
 
 8.7.83 (2019-09-12)
