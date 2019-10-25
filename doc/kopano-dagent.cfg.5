@@ -104,9 +104,9 @@ susceptible to address changes).
 .PP
 An interface name may be appended to the address with a percent sign to make
 use of the Linux-specific SO_BINDTODEVICE socket option, e.g.
-"[fe80::1]%eth0:2003").
+"[fe80::1]%eth0:2003"). On other operating systems, %xxx has no effect.
 .PP
-Default: \fI*:2003\fP
+Default: \fI*%lo:2003\fP
 .PP
 To set up a secure local socket that is only accessible by Postfix, a directory
 like this may be created:

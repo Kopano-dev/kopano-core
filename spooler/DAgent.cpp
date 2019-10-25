@@ -3236,7 +3236,7 @@ int main(int argc, char **argv) try {
 		{ "pid_file", "/var/run/kopano/dagent.pid" },
 		{"coredump_enabled", "systemdefault"},
 		{"socketspec", "", CONFIGSETTING_OBSOLETE},
-		{"lmtp_listen", "*:2003"},
+		{"lmtp_listen", "*%lo:2003"},
 		{ "lmtp_max_threads", "20" },
 		{"process_model", "thread", CONFIGSETTING_NONEMPTY},
 		{"log_method", "auto", CONFIGSETTING_NONEMPTY},
