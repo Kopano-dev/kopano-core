@@ -139,7 +139,11 @@ WARNING: The log options create huge amounts of log entries in production enviro
 .PP
 The normal way for user clients to connect to the server is over TCP, either direct using the Kopano port, or over HTTP when Apache is setup as a proxy. Users can only login with their username and password.
 .PP
-The normal way for admin clients, like the spooler and admin tool, to connect to the server is through the Unix socket on Unix type servers. The admin clients are able to login when they are run as root or as the user the storage server process is running as. Most of the time this will be root only, since the storage server process runs as root by default.
+The normal way for admin clients, like the spooler and admin tool, to connect
+to the server is through the Unix socket on Unix type servers. The admin
+clients are able to login when they are run as root or as the user the storage
+server process is running as. The storage server process runs as "kopano" by
+default.
 .PP
 As an exception for the dagent, a unix user can also connect to its own store without a password. Any other store cannot be accessed this way.
 .PP
