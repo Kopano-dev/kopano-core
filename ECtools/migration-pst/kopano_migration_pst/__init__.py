@@ -13,7 +13,7 @@ from collections import defaultdict
 
 from MAPI.Util import *
 from MAPI.Struct import MAPIErrorNetworkError
-from MAPI.Tags import (PS_COMMON, PS_ARCHIVE,
+from MAPI.Tags import (PS_COMMON, PS_ARCHIVE, PS_ADDRESS,
                        PR_SENDER_EMAIL_ADDRESS_W, PR_SENDER_ENTRYID,
                        PR_SENDER_NAME_W, PR_SENDER_ADDRTYPE_W,
                        PR_SENDER_SEARCH_KEY,
@@ -31,7 +31,13 @@ from kopano import log_exc
 
 from kopano.pidlid import (
     PidLidDistributionListMembers,
-    PidLidDistributionListOneOffMembers
+    PidLidDistributionListOneOffMembers,
+    PidLidEmail1AddressType,
+    PidLidEmail2AddressType,
+    PidLidEmail3AddressType,
+    PidLidEmail1EmailAddress,
+    PidLidEmail2EmailAddress,
+    PidLidEmail3EmailAddress,
 )
 
 from . import pst
@@ -82,7 +88,40 @@ RECEIVED_REPR_PROPS = {
     'smtp': pst.PropIdEnum.PidTagReceivedRepresentingSmtpAddress,
 }
 
+# Contact email address definitions
+CONTACT_ADDRTYPES = [int(pidlid.split(':')[2], 16) for pidlid in [PidLidEmail1AddressType, PidLidEmail2AddressType, PidLidEmail3AddressType]]
+CONTACT_EMAILS = [int(pidlid.split(':')[2], 16) for pidlid in [PidLidEmail1EmailAddress, PidLidEmail2EmailAddress, PidLidEmail3EmailAddress]]
+CONTACT_ORIG_DISPLAYNAME = [0x8084, 0x8094, 0x80A4]
+
+CONTACT_EMAIL_ADDRESS1 = {
+    'addrtype': CONTACT_ADDRTYPES[0],
+    'email': CONTACT_EMAILS[0],
+    'origdisplayname': CONTACT_ORIG_DISPLAYNAME[0],
+}
+
+CONTACT_ADDRTYPE_MAP = {
+    CONTACT_ADDRTYPES[0]: {
+        'email': CONTACT_EMAILS[0],
+        'origdisplayname': CONTACT_ORIG_DISPLAYNAME[0],
+    },
+    CONTACT_ADDRTYPES[1]: {
+        'email': CONTACT_EMAILS[1],
+        'origdisplayname': CONTACT_ORIG_DISPLAYNAME[1],
+    },
+    CONTACT_ADDRTYPES[2]: {
+        'email': CONTACT_EMAILS[2],
+        'origdisplayname': CONTACT_ORIG_DISPLAYNAME[2],
+    },
+}
+
+CONTACT_EMAIL_ADDRESS3 = {
+    'addrtype': CONTACT_ADDRTYPES[2],
+    'email': CONTACT_EMAILS[2],
+    'origdisplayname': CONTACT_ORIG_DISPLAYNAME[2],
+}
+
 EMAIL_RECIP_PROPS = [SENDER_PROPS, SENT_REPRESENTING_PROPS, RECEIVED_PROPS, RECEIVED_REPR_PROPS]
+
 
 def recip_prop(propid, value):
     # PST not generated with full unicode?
@@ -104,6 +143,8 @@ class Service(kopano.Service):
         attach_method = subnode_nid = None
         reminder_in_past = False
         reminder_set_id = None
+        contact_email_props = {}
+
         for k, v in parent.pc.props.items():
             propid, proptype, value = k, v.wPropType, v.value
 
@@ -126,6 +167,9 @@ class Service(kopano.Service):
                             reminder_in_past = True
                     elif nameid[2] == REMINDER_SET_ID:
                         reminder_set_id = propid
+                elif nameid[0] == PS_ADDRESS:
+                    if nameid[2] in CONTACT_ADDRTYPES and value and value == 'EX':
+                        contact_email_props[nameid[2]] = True
 
             if propid == (PR_SUBJECT_W>>16) and value and ord(value[0]) == 0x01:
                 value = value[2:] # \x01 plus another char indicates normalized-subject-prefix-length
@@ -160,8 +204,42 @@ class Service(kopano.Service):
             if addrtype and addrtype == 'EX':
                 proplist.extend(self.convert_exchange_recipient(parent, prop_dict))
 
+        if contact_email_props:
+            proplist.extend(self.convert_exchange_contact(contact_email_props, mapiobj, parent))
+
         mapiobj.SetProps(proplist)
         mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+
+
+    def convert_exchange_contact(self, contact_email_props, mapiobj, parent):
+        props = []
+
+        for addrtype in contact_email_props:
+            emailproptag = None
+            newemail = None
+            email = CONTACT_ADDRTYPE_MAP[addrtype]['email']
+            origdisplayname = CONTACT_ADDRTYPE_MAP[addrtype]['origdisplayname']
+
+            for k, v in parent.pc.props.items():
+                propid, proptype, value = k, v.wPropType, v.value
+                nameid = self.propid_nameid.get(propid)
+                if not nameid:
+                    continue
+
+                if nameid[0] != PS_ADDRESS:
+                    continue
+
+                if nameid[2] == origdisplayname:
+                    newemail = value
+
+                if nameid[2] == email:
+                    propid = PROP_ID(mapiobj.GetIDsFromNames([MAPINAMEID(*nameid)], MAPI_CREATE)[0])
+                    emailproptag = PROP_TAG(proptype, propid)
+
+            if newemail and emailproptag:
+                props.append(SPropValue(emailproptag, newemail))
+
+        return props
 
     def convert_exchange_recipient(self, parent, convertprops):
         props = []
