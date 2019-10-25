@@ -25,8 +25,6 @@ struct M4LSUPPORTADVISE {
 	LPMAPIADVISESINK lpAdviseSink;
 };
 
-typedef std::map<ULONG, M4LSUPPORTADVISE> M4LSUPPORTADVISES;
-
 class M4LMAPIGetSession : public M4LUnknown, public IMAPIGetSession {
 private:
 	KC::object_ptr<IMAPISession> session;
@@ -45,7 +43,7 @@ private:
 	std::unique_ptr<MAPIUID> lpsProviderUID;
 	SVCService*			service;
 	std::mutex m_advises_mutex;
-	M4LSUPPORTADVISES	m_advises;
+	std::map<unsigned int, M4LSUPPORTADVISE> m_advises;
 	ULONG m_connections = 0;
 
 public:

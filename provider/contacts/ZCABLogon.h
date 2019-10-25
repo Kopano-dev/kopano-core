@@ -10,6 +10,7 @@
 #include <mapispi.h>
 #include <kopano/ECUnknown.h>
 #include <kopano/Util.h>
+#include <kopano/memory.hpp>
 #include <kopano/zcdefs.h>
 
 struct zcabFolderEntry {
@@ -43,7 +44,7 @@ private:
 	HRESULT AddFolder(const wchar_t *display_name, ULONG cbStore, LPBYTE lpStore, ULONG cbFolder, LPBYTE lpFolder);
 	HRESULT ClearFolderList();
 
-	LPMAPISUP			m_lpMAPISup;
+	KC::object_ptr<IMAPISupport> m_lpMAPISup;
 	GUID				m_ABPGuid;
 
 	std::vector<zcabFolderEntry> m_lFolders;
