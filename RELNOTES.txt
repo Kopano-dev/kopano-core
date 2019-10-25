@@ -1,5 +1,16 @@
 8.8.x
 =====
+Enhancements:
+* daemons: support "%xxx"-style interface identifiers in bindspecs
+Fixes:
+* daemons: AF_LOCAL sockets were erroneously owned by root rather than
+  run_as_user [KC-1616]
+* pyko: avoid circular strong reference from notification to store [KC-1572]
+* php: add missing successful return value for zif_mapi_vcfstomapi [KC-1487]
+* client: unbreak translation of newly created store folder names [KC-1607]
+Changes:
+* dagent: the server_bind_intf option is removed in favor of %xxx
+* search: put back the old value for limit_results=1000
 
 
 8.7.84 (2019-10-04)
