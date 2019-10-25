@@ -113,4 +113,4 @@ class Action(object):
         return "Action('%s')" % self.operator
 
     def __repr__(self):
-        return _repr(self)
+        return self.__unicode__()

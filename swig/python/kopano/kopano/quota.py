@@ -135,4 +135,4 @@ class Quota(object):
         )
 
     def __repr__(self):
-        return self.__unicode()
+        return self.__unicode__()
