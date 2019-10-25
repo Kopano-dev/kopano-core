@@ -26,15 +26,15 @@ CONFIG = {
     'run_as_user': Config.string(default="kopano"),
     'run_as_group': Config.string(default="kopano"),
     'server_bind': Config.string(default="127.0.0.1"),
-    'server_port': Config.integer(default="1234"),
+    'server_port': Config.integer(default=1234),
     'server_auth_user': Config.string(default="presence"),
     'server_auth_password': Config.string(default="presence"),
     'server_secret_key': Config.string(),
-    'server_token_expire': Config.integer(default="5"),
+    'server_token_expire': Config.integer(default=5),
     'xmpp_jid': Config.string(default=None),
     'xmpp_password': Config.string(default=None),
     'xmpp_user_id_strip_domain': Config.boolean(default=None),
-    'spreed_auto_unavailable': Config.integer(default="2"),
+    'spreed_auto_unavailable': Config.integer(default=2),
 }
 
 STATUSES = ['available', 'busy', 'away', 'unavailable'] # XXX check these?
