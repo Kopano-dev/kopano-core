@@ -135,6 +135,9 @@ class _kc_export RecurrenceState KC_FINAL {
 	std::string strReservedBlock1;
 	std::vector<ExtendedException> lstExtendedExceptions;
 	std::string strReservedBlock2;
+
+	private:
+	HRESULT ParseBlob2(const char *data, size_t len, unsigned int flags, bool &readvalid, bool &ext);
 };
 
 } /* namespace */

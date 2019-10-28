@@ -130,19 +130,15 @@ private:
 
 #define READDATA(x, type) \
 	do { \
-		if (data.Read##type(&(x)) < 0) { \
-			hr = MAPI_E_NOT_FOUND; \
-			goto exit; \
-		} \
+		if (data.Read##type(&(x)) < 0) \
+			return MAPI_E_NOT_FOUND; \
 		DEBUGPRINT("%s\n", #x); \
 	} while (false)
 
 #define READSTRING(x, len) \
 	do { \
-		if (data.ReadString(&(x), len) < 0) { \
-			hr = MAPI_E_NOT_FOUND; \
-			goto exit; \
-		} \
+		if (data.ReadString(&(x), len) < 0) \
+			return MAPI_E_NOT_FOUND; \
 		if (len > 0) \
 			DEBUGPRINT("%s\n", #x); \
 	} while (false)
@@ -163,30 +159,13 @@ private:
 		data.WriteString((x), (l)); \
 	} while (false)
 
-/**
- * Reads exception data from outlook blob.
- *
- * If extended version is not available, it will be synced here. If it is available, it will overwrite the subject and location exceptions (if any) from extended to normal.
- *
- * @param[in]	lpData	blob data
- * @param[in]	ulLen	length of lpData
- * @param[in]	ulFlags	possible task flag
- */
-HRESULT RecurrenceState::ParseBlob(const char *lpData, size_t ulLen,
-    ULONG ulFlags)
+HRESULT RecurrenceState::ParseBlob2(const char *lpData, size_t ulLen,
+    unsigned int ulFlags, bool &bReadValid, bool &bExtended)
 {
-    HRESULT hr = hrSuccess;
     unsigned int ulReservedBlock1Size, ulReservedBlock2Size;
-    bool bReadValid = false; // Read is valid if first set of exceptions was read ok
-	bool bExtended = false;	 // false if we need to sync extended data from "normal" data
 	convert_context converter;
 
     BinReader data(lpData, ulLen);
-
-	lstDeletedInstanceDates.clear();
-	lstModifiedInstanceDates.clear();
-	lstExceptions.clear();
-	lstExtendedExceptions.clear();
 
     READSHORT(ulReaderVersion);     READSHORT(ulWriterVersion);
     READSHORT(ulRecurFrequency);    READSHORT(ulPatternType);
@@ -330,8 +309,31 @@ HRESULT RecurrenceState::ParseBlob(const char *lpData, size_t ulLen,
     DEBUGPRINT("%d Bytes left\n", ulLen - data.GetCursorPos());
     
 	if (ulLen - data.GetCursorPos() != 0)
-		hr = MAPI_E_NOT_FOUND;
-exit:
+		return MAPI_E_NOT_FOUND;
+	return hrSuccess;
+}
+
+/**
+ * Reads exception data from outlook blob.
+ *
+ * If extended version is not available, it will be synced here. If it is available, it will overwrite the subject and location exceptions (if any) from extended to normal.
+ *
+ * @param[in]	lpData	blob data
+ * @param[in]	ulLen	length of lpData
+ * @param[in]	ulFlags	possible task flag
+ */
+HRESULT RecurrenceState::ParseBlob(const char *lpData, size_t ulLen,
+    ULONG ulFlags)
+{
+	convert_context converter;
+    bool bReadValid = false; // Read is valid if first set of exceptions was read ok
+	bool bExtended = false;	 // false if we need to sync extended data from "normal" data
+
+	lstDeletedInstanceDates.clear();
+	lstModifiedInstanceDates.clear();
+	lstExceptions.clear();
+	lstExtendedExceptions.clear();
+	auto hr = ParseBlob2(lpData, ulLen, ulFlags, bReadValid, bExtended);
 	if (hr == hrSuccess || !bReadValid)
 		return hr;
         hr = MAPI_W_ERRORS_RETURNED;
