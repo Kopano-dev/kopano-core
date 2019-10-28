@@ -51,13 +51,9 @@ BOOL ECMAPITable::IsDeferred()
 
 ECMAPITable::~ECMAPITable()
 {
-	// Remove all advises
-	auto iterMapInt = m_ulConnectionList.cbegin();
-	while (iterMapInt != m_ulConnectionList.cend()) {
-		auto iterMapIntDel = iterMapInt;
-		++iterMapInt;
-		Unadvise(*iterMapIntDel);
-	}
+	for (auto i = m_ulConnectionList.cbegin(); i != m_ulConnectionList.cend(); )
+		/* Unadvise modifies the list too, so advance before Unadvise */
+		Unadvise(*i++);
 	/* ~WSTableView closes the table on the server too */
 }
 

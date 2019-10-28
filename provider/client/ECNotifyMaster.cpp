@@ -108,8 +108,18 @@ HRESULT ECNotifyMaster::ReleaseSession(ECNotifyClient* lpClient)
 
 HRESULT ECNotifyMaster::ReserveConnection(ULONG *lpulConnection)
 {
-	*lpulConnection = m_ulConnection++;
-	return hrSuccess;
+	while (true) {
+		unsigned int old = m_ulConnection.load();
+		if (old == UINT_MAX) {
+			ec_log_err("K-1550: no more connection ids available in this ECNotifyMaster; restart the session");
+			return MAPI_E_CALL_FAILED;
+		}
+		auto nu = old + 1;
+		if (!m_ulConnection.compare_exchange_weak(old, nu))
+			continue;
+		*lpulConnection = nu;
+		return hrSuccess;
+	}
 }
 
 HRESULT ECNotifyMaster::ClaimConnection(ECNotifyClient* lpClient, NOTIFYCALLBACK fnCallback, ULONG ulConnection)
