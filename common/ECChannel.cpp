@@ -660,11 +660,11 @@ static int ec_listen_generic(const struct ec_socket &sk, unsigned int mode,
 		if (u->sun_path[0] == '\0')
 			/* abstract socket */;
 		else if (strnlen(u->sun_path, sizeof(u->sun_path)) == sizeof(u->sun_path))
-			/* cannot test */;
+			ec_log_warn("K-1553: socket path is very long, won't chown/chmod");
 		else if (lstat(u->sun_path, &sb) != 0)
-			/* cannot test */;
+			ec_log_warn("K-1554: stat \"%s\": %s", u->sun_path, strerror(errno));
 		else if (!S_ISSOCK(sb.st_mode))
-			ec_log_warn("\"%s\" already exists, but it is not a socket", u->sun_path);
+			ec_log_warn("K-1555: \"%s\" already exists, but it is not a socket", u->sun_path);
 		else {
 			unlink(u->sun_path);
 			has_sun_path = true;
@@ -673,19 +673,19 @@ static int ec_listen_generic(const struct ec_socket &sk, unsigned int mode,
 	int y = 1;
 	if (sk.m_ai->ai_family == PF_INET6 &&
 	    setsockopt(fd, SOL_IPV6, IPV6_V6ONLY, &y, sizeof(y)) < 0)
-		ec_log_warn("Unable to set IPV6_V6ONLY: %s", strerror(errno));
+		ec_log_warn("K-1556: Unable to set IPV6_V6ONLY: %s", strerror(errno));
 	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char *>(&y), sizeof(y)) < 0)
-		ec_log_warn("Unable to set reuseaddr socket option: %s", strerror(errno));
+		ec_log_warn("K-1557: Unable to set reuseaddr socket option: %s", strerror(errno));
 #ifdef LINUX
 	if (!sk.m_intf.empty() && setsockopt(fd, SOL_SOCKET, SO_BINDTODEVICE, sk.m_intf.c_str(), sk.m_intf.size()) < 0)
-		ec_log_warn("Unable to limit socket %s to %s: %s", sk.m_spec.c_str(), sk.m_intf.c_str(), strerror(errno));
+		ec_log_warn("K-1558: Unable to limit socket %s to %s: %s", sk.m_spec.c_str(), sk.m_intf.c_str(), strerror(errno));
 #endif
 
 	auto ret = bind(fd, sk.m_ai->ai_addr, sk.m_ai->ai_addrlen);
 	if (ret < 0) {
 		ret = -errno;
 		close(fd);
-		ec_log_err("bind %s: %s", sk.m_spec.c_str(), strerror(-ret));
+		ec_log_err("K-1559: bind %s: %s", sk.m_spec.c_str(), strerror(-ret));
 		return ret;
 	}
 	if (has_sun_path && mode != static_cast<unsigned int>(-1)) {
@@ -693,22 +693,25 @@ static int ec_listen_generic(const struct ec_socket &sk, unsigned int mode,
 		if (ret < 0) {
 			ret = -errno;
 			close(fd);
-			ec_log_err("%s: chown %s: %s", __func__, sk.m_spec.c_str(), strerror(-ret));
+			ec_log_err("K-1560: chown \"%s\": %s", u->sun_path, strerror(-ret));
 			return ret;
 		}
 		ret = chmod(u->sun_path, mode);
 		if (ret < 0) {
 			ret = -errno;
 			close(fd);
-			ec_log_err("%s: chmod %s: %s", __func__, sk.m_spec.c_str(), strerror(-ret));
+			ec_log_err("K-1561: chmod \"%s\": %s", u->sun_path, strerror(-ret));
 			return ret;
 		}
+		ec_log_debug("K-1562: changed owner \"%s\" to %s:%s mode %0o",
+			u->sun_path, user != nullptr ? user : "(unchanged)",
+			group != nullptr ? group : "(unchanged)", mode);
 	}
 	ret = listen(fd, INT_MAX);
 	if (ret < 0) {
 		ret = -errno;
 		close(fd);
-		ec_log_err("%s: listen %s: %s", __func__, sk.m_spec.c_str(), strerror(-ret));
+		ec_log_err("K-1563: listen %s: %s", sk.m_spec.c_str(), strerror(-ret));
 		return ret;
 	}
 	ec_log_info("Listening on %s (fd %d)", sk.m_spec.c_str(), fd);
