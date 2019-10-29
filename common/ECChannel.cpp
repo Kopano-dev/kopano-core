@@ -688,7 +688,7 @@ static int ec_listen_generic(const struct ec_socket &sk, unsigned int mode,
 		ec_log_err("K-1559: bind %s: %s", sk.m_spec.c_str(), strerror(-ret));
 		return ret;
 	}
-	if (has_sun_path && mode != static_cast<unsigned int>(-1)) {
+	if (has_sun_path) {
 		ret = unix_chown(u->sun_path, user, group);
 		if (ret < 0) {
 			ret = -errno;
@@ -696,6 +696,8 @@ static int ec_listen_generic(const struct ec_socket &sk, unsigned int mode,
 			ec_log_err("K-1560: chown \"%s\": %s", u->sun_path, strerror(-ret));
 			return ret;
 		}
+	}
+	if (has_sun_path && mode != static_cast<unsigned int>(-1)) {
 		ret = chmod(u->sun_path, mode);
 		if (ret < 0) {
 			ret = -errno;
@@ -703,10 +705,11 @@ static int ec_listen_generic(const struct ec_socket &sk, unsigned int mode,
 			ec_log_err("K-1561: chmod \"%s\": %s", u->sun_path, strerror(-ret));
 			return ret;
 		}
+	}
+	if (has_sun_path)
 		ec_log_debug("K-1562: changed owner \"%s\" to %s:%s mode %0o",
 			u->sun_path, user != nullptr ? user : "(unchanged)",
 			group != nullptr ? group : "(unchanged)", mode);
-	}
 	ret = listen(fd, INT_MAX);
 	if (ret < 0) {
 		ret = -errno;
