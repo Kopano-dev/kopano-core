@@ -100,6 +100,25 @@ static const char *store_type_string(unsigned int t)
 	return "<unrecognized>";
 }
 
+static inline std::string objclass_to_str(const SPropValue *p)
+{
+	if (p == nullptr)
+		return "(undefined)";
+	switch (p->Value.ul) {
+	case ACTIVE_USER: return "User";
+	case NONACTIVE_USER: return "Shared store";
+	case NONACTIVE_ROOM: return "Room";
+	case NONACTIVE_EQUIPMENT: return "Equipment";
+	case NONACTIVE_CONTACT: return "Contact";
+	case DISTLIST_GROUP: return "Group";
+	case DISTLIST_SECURITY: return "Security group";
+	case DISTLIST_DYNAMIC: return "Dynamic group";
+	case CONTAINER_COMPANY: return "Company";
+	case CONTAINER_ADDRESSLIST: return "Address list";
+	default: return std::to_string(p->Value.ul);
+	}
+}
+
 /**
  * List users without a store, and stores without a user.
  *
@@ -128,11 +147,11 @@ static HRESULT adm_list_orphans(IECServiceAdmin *svcadm)
 		return kc_perror("SortTable", ret);
 	ct.set_lead("");
 	ct.SetHeader(0, "Store GUID");
-	ct.SetHeader(1, "Guessed username");
+	ct.SetHeader(1, "Guessed owner");
 	ct.SetHeader(2, "Last login");
 	ct.SetHeader(3, "Store size");
 	ct.SetHeader(4, "Store type");
-	printf("Stores without users:\n");
+	printf("Stores without an owner:\n");
 
 	while (true) {
 		rowset_ptr rowset;
@@ -147,6 +166,7 @@ static HRESULT adm_list_orphans(IECServiceAdmin *svcadm)
 			auto userp = rowset[i].cfind(PR_EC_USERNAME_A);
 			if (guid != nullptr && userp != nullptr)
 				continue;
+			auto objcls = rowset[i].cfind(PR_OBJECT_TYPE);
 			auto mtime = rowset[i].cfind(PR_LAST_MODIFICATION_TIME);
 			auto ssize = rowset[i].cfind(PR_MESSAGE_SIZE_EXTENDED);
 			auto stype = rowset[i].cfind(PR_EC_STORETYPE);
@@ -158,14 +178,16 @@ static HRESULT adm_list_orphans(IECServiceAdmin *svcadm)
 				if (listing_orphans) {
 					listing_orphans = false;
 					ct.PrintTable();
-					ct.Resize(50, 1);
-					ct.SetHeader(0, "Username");
-					printf("\nUsers without stores:\n");
+					ct.Resize(50, 2);
+					ct.SetHeader(0, "Type");
+					ct.SetHeader(1, "Name");
+					printf("\nEntities without stores:\n");
 				}
 				user = userp->Value.lpszA;
 			}
 			if (guid == nullptr) {
-				ct.AddColumn(0, user);
+				ct.AddColumn(0, objclass_to_str(objcls));
+				ct.AddColumn(1, user);
 				continue;
 			}
 			ct.AddColumn(0, strToLower(bin2hex(guid->Value.bin)));
