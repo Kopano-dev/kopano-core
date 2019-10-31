@@ -548,12 +548,13 @@ HRESULT HrAddFBBlock(const OccrInfo &sOccrInfo, OccrInfo **lppsOccrInfo,
 {
 	memory_ptr<OccrInfo> lpsNewOccrInfo;
 	OccrInfo *lpsInputOccrInfo = *lppsOccrInfo;
-	ULONG ulModVal = lpcValues != NULL ? *lpcValues + 1 : 1;
+	unsigned int oldval = lpcValues != nullptr ? *lpcValues : 0;
+	unsigned int ulModVal = oldval + 1;
 	HRESULT hr = MAPIAllocateBuffer(sizeof(sOccrInfo) * ulModVal, &~lpsNewOccrInfo);
 	if (hr != hrSuccess)
 		return hr;
 	if (lpsInputOccrInfo != nullptr)
-		for (ULONG i = 0; i < ulModVal; ++i)
+		for (ULONG i = 0; i < oldval; ++i)
 			lpsNewOccrInfo[i] = lpsInputOccrInfo[i];
 	if (lpcValues != NULL)
 		*lpcValues = ulModVal;
