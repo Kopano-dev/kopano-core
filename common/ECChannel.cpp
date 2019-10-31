@@ -660,9 +660,10 @@ static int ec_listen_generic(const struct ec_socket &sk, unsigned int mode,
 		if (u->sun_path[0] == '\0')
 			/* abstract socket */;
 		else if (strnlen(u->sun_path, sizeof(u->sun_path)) == sizeof(u->sun_path))
-			ec_log_warn("K-1553: socket path is very long, won't chown/chmod");
+			ec_log_warn("K-1553: socket path is too long and not representable");
 		else if (lstat(u->sun_path, &sb) != 0)
-			ec_log_warn("K-1554: stat \"%s\": %s", u->sun_path, strerror(errno));
+			/* does not exist, which is ok: bind will create it */
+			has_sun_path = true;
 		else if (!S_ISSOCK(sb.st_mode))
 			ec_log_warn("K-1555: \"%s\" already exists, but it is not a socket", u->sun_path);
 		else {
