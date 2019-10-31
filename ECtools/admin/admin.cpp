@@ -205,10 +205,10 @@ static const struct option long_options[] = {
 	{ "version", no_argument, NULL, OPT_VERSION },
 	{"list-users", no_argument, nullptr, OPT_LIST_USERS},
 	{"list-groups", no_argument, nullptr, OPT_LIST_GROUPS},
-	{"password", no_argument, nullptr, OPT_PASSWORD},
+	{"password", required_argument, nullptr, OPT_PASSWORD},
 	{"password-prompt", no_argument, nullptr, OPT_PASSWORD_PROMPT},
-	{"fullname", no_argument, nullptr, OPT_FULLNAME},
-	{"email", no_argument, nullptr, OPT_EMAIL},
+	{"fullname", required_argument, nullptr, OPT_FULLNAME},
+	{"email", required_argument, nullptr, OPT_EMAIL},
 	{ NULL, 0, NULL, 0 }
 };
 
