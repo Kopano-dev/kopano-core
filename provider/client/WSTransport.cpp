@@ -166,8 +166,8 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 		er = KCOIDCLogon(lpCmd, GetServerNameFromPath(sProfileProps.strServerPath.c_str()).c_str(), strUserName, strImpersonateUser, strPassword, ulCapabilities, m_ecSessionGroupId, GetAppName().c_str(), &ecSessionId, &ulServerCapabilities, &m_llFlags, &m_sServerGuid, sProfileProps.strClientAppVersion, sProfileProps.strClientAppMisc);
 		if (er == erSuccess)
 			goto auth;
-		else
-			goto failed;
+		hr = kcerr_to_mapierr(er, MAPI_E_LOGON_FAILED);
+		goto exit;
 	}
 
 	// try single signon logon
@@ -192,7 +192,6 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 		er = sResponse.er;
 	}
 
-failed: // Logon failed
 	hr = kcerr_to_mapierr(er, MAPI_E_LOGON_FAILED);
 	if (hr != hrSuccess)
 		goto exit;
