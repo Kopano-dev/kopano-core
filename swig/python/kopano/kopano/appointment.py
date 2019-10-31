@@ -346,7 +346,7 @@ class Appointment(object):
     @property
     def onlinemeetingurl(self):
         try:
-            return self.prop('public:OnlineMeetingExternalLink').value
+            return self.prop('public:OnlineMeetingExternalLink', proptype=PT_UNICODE).value
         except NotFoundError:
             return ''
 
@@ -354,4 +354,4 @@ class Appointment(object):
     def onlinemeetingurl(self, value):
         if not isinstance(value, str):
             raise ArgumentError('meeting url must be a string')
-        self.create_prop('public:OnlineMeetingExternalLink', proptype=PT_UNICODE, value=value)
+        self.create_prop('public:OnlineMeetingExternalLink', value, proptype=PT_UNICODE)
