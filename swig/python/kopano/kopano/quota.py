@@ -11,7 +11,6 @@ import sys
 from MAPI.Struct import ECQUOTA, MAPIErrorNotFound, MAPIErrorCollision
 
 from .defs import CONTAINER_COMPANY, ACTIVE_USER
-from .compat import repr as _repr
 from .errors import NotFoundError, DuplicateError
 
 try:
@@ -136,4 +135,4 @@ class Quota(object):
         )
 
     def __repr__(self):
-        return _repr(self)
+        return self.__unicode__()

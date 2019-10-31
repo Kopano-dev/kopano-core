@@ -8,7 +8,6 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 from MAPI.Struct import MAPIErrorNotFound
 from MAPI.Util import TestRestriction
 
-from .compat import repr as _repr
 
 class Restriction(object):
     """Restriction class"""
@@ -27,4 +26,4 @@ class Restriction(object):
         return u'Restriction()'
 
     def __repr__(self):
-        return _repr(self)
+        return self.__unicode__()

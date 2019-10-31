@@ -43,7 +43,7 @@ from dateutil.rrule import (
 )
 
 from .compat import (
-    repr as _repr, benc as _benc, bdec as _bdec, fake_unicode as _unicode
+    benc as _benc, bdec as _bdec
 )
 from .errors import (
     ArgumentError,
@@ -276,7 +276,7 @@ class Recurrence(object):
                 'third': 3,
                 'fourth': 4,
                 'last': 5,
-            }[_unicode(value)]
+            }[str(value)]
         except KeyError:
             raise ArgumentError('invalid recurrence index: %s' % value)
 
@@ -1321,7 +1321,7 @@ class Recurrence(object):
         return 'Recurrence()'
 
     def __repr__(self):
-        return _repr(self)
+        return self.__unicode__()
 
 
 class Occurrence(object):
@@ -1369,7 +1369,7 @@ class Occurrence(object):
 
     @location.setter
     def location(self, value):
-        value = _unicode(value)
+        value = str(value)
         self._update(location=value)
         self._location = value
 
@@ -1379,7 +1379,7 @@ class Occurrence(object):
 
     @subject.setter
     def subject(self, value):
-        value = _unicode(value)
+        value = str(value)
         self._update(subject=value)
         self._subject = value
 
@@ -1535,4 +1535,4 @@ class Occurrence(object):
         return 'Occurrence(%s)' % self.subject
 
     def __repr__(self):
-        return _repr(self)
+        return self.__unicode__()

@@ -20,7 +20,6 @@ from MAPI.Defs import PpropFindProp
 from MAPI.Struct import MAPIErrorNotFound, SSort, SSortOrderSet
 
 from .defs import REV_TAG
-from .compat import fake_unicode as _unicode, repr as _repr
 
 from . import property_ as _prop
 
@@ -50,7 +49,7 @@ class Table(object):
     @property
     def header(self):
         """Return all table column names."""
-        return [_unicode(REV_TAG.get(c, hex(c))) \
+        return [str(REV_TAG.get(c, hex(c))) \
             for c in self.mapitable.QueryColumns(0)]
 
     def rows(self, batch_size=100, page_start=None, page_limit=None):
@@ -152,4 +151,4 @@ class Table(object):
         return 'Table(%s)' % tablename
 
     def __repr__(self):
-        return _repr(self)
+        return self.__unicode__()

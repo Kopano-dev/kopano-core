@@ -64,8 +64,8 @@ from .group import Group
 from .query import _query_to_restriction
 
 from .compat import (
-    repr as _repr, benc as _benc,
-    bdec as _bdec, fake_unicode as _unicode,
+    benc as _benc,
+    bdec as _bdec
 )
 
 try:
@@ -606,16 +606,16 @@ password incorrect')
         :param fullname: User full name (optional)
         :param create_store: Should a store be created (default True)
         """
-        fullname = _unicode(fullname or name or '')
-        name = _unicode(name)
+        fullname = str(fullname or name or '')
+        name = str(name)
         if email:
-            email = _unicode(email)
+            email = str(email)
         else:
             email = '%s@%s' % (name, socket.gethostname())
         if password:
-            password = _unicode(password)
+            password = str(password)
         if company:
-            company = _unicode(company)
+            company = str(company)
         if company and company != 'Default':
             self.sa.CreateUser(ECUSER('%s@%s' % (name, company), password,
                 email, fullname), MAPI_UNICODE)
@@ -723,7 +723,7 @@ password incorrect')
 
         :param name: Company name
         """
-        name = _unicode(name)
+        name = str(name)
         try:
             self.sa.CreateCompany(ECCOMPANY(name, None), MAPI_UNICODE)
         except MAPIErrorCollision:
@@ -795,9 +795,9 @@ password incorrect')
         :param hidden: hide the group (optional)
         :param groupid: the id of the group (optional)
         """
-        name = _unicode(name) # TODO: fullname/email unicode?
-        email = _unicode(email)
-        fullname = _unicode(fullname)
+        name = str(name) # TODO: fullname/email unicode?
+        email = str(email)
+        fullname = str(fullname)
         try:
             self.sa.CreateGroup(ECGROUP(name, fullname, email, int(hidden),
                 groupid), MAPI_UNICODE)
@@ -853,7 +853,7 @@ password incorrect')
         :param guid: Store GUID (optional)
         :param entryid: Store entryid (optional)
         """
-        if isinstance(guid, str) and _unicode(guid).split('@')[0] == 'public':
+        if isinstance(guid, str) and str(guid).split('@')[0] == 'public':
             return self._pubstore(guid)
         else:
             return _store.Store(guid=guid, entryid=entryid, server=self)
@@ -1100,4 +1100,4 @@ multi-tenant setup')
         return 'Server(%s)' % self.server_socket
 
     def __repr__(self):
-        return _repr(self)
+        return self.__unicode__()

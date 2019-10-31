@@ -80,7 +80,7 @@ from .pidlid import (
 
 from .compat import (
     pickle_load as _pickle_load,
-    pickle_loads as _pickle_loads, fake_unicode as _unicode,
+    pickle_loads as _pickle_loads,
     is_file as _is_file, benc as _benc, bdec as _bdec,
     default as _default,
 )
@@ -135,7 +135,7 @@ class PersistentList(list):
         @functools.wraps(func)
         def _func(*args, **kwargs):
             ret = func(*args, **kwargs)
-            data = [_unicode(x) for x in self]
+            data = [str(x) for x in self]
             self.mapiobj.SetProps([SPropValue(self.proptag, data)])
             _utils._save(self.mapiobj)
             return ret
@@ -322,7 +322,7 @@ class Item(Properties, Contact, Appointment):
             if prop:
                 self.delete(prop)
         else:
-            self._set_fast(PR_SUBJECT_W, _unicode(x))
+            self._set_fast(PR_SUBJECT_W, str(x))
 
     @property
     def name(self):
@@ -334,7 +334,7 @@ class Item(Properties, Contact, Appointment):
 
     @name.setter
     def name(self, x):
-        self.mapiobj.SetProps([SPropValue(PR_DISPLAY_NAME_W, _unicode(x))])
+        self.mapiobj.SetProps([SPropValue(PR_DISPLAY_NAME_W, str(x))])
         _utils._save(self.mapiobj)
 
     @property
@@ -376,7 +376,7 @@ class Item(Properties, Contact, Appointment):
         * IPM.Task                       - task
         """
         self.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS_W,
-            _unicode(messageclass))])
+            str(messageclass))])
         _utils._save(self.mapiobj)
 
     @property
@@ -464,7 +464,7 @@ class Item(Properties, Contact, Appointment):
         proptag = self.mapiobj.GetIDsFromNames([NAMED_PROP_CATEGORY],
             MAPI_CREATE)[0]
         proptag = CHANGE_PROP_TYPE(proptag, PT_MV_UNICODE)
-        data = [_unicode(x) for x in value]
+        data = [str(x) for x in value]
         self.mapiobj.SetProps([SPropValue(proptag, data)])
         _utils._save(self.mapiobj)
 
@@ -575,7 +575,7 @@ class Item(Properties, Contact, Appointment):
             name = os.path.basename(filename)
 
         (id_, attach) = self.mapiobj.CreateAttach(None, 0)
-        name = _unicode(name)
+        name = str(name)
         props = [SPropValue(PR_ATTACH_LONG_FILENAME_W, name),
             SPropValue(PR_ATTACH_METHOD, ATTACH_BY_VALUE)]
         attach.SetProps(props)
@@ -626,7 +626,7 @@ class Item(Properties, Contact, Appointment):
 
     @text.setter
     def text(self, x):
-        self.create_prop(PR_BODY_W, _unicode(x))
+        self.create_prop(PR_BODY_W, str(x))
 
     @property
     def html(self):
@@ -850,7 +850,7 @@ class Item(Properties, Contact, Appointment):
         pr_addrtype, pr_dispname, pr_email, pr_entryid = self._addr_props(addr)
         self.mapiobj.SetProps([
             # TODO pr_addrtype should be unicode already
-            SPropValue(PR_SENDER_ADDRTYPE_W, _unicode(pr_addrtype)),
+            SPropValue(PR_SENDER_ADDRTYPE_W, str(pr_addrtype)),
             SPropValue(PR_SENDER_NAME_W, pr_dispname),
             SPropValue(PR_SENDER_EMAIL_ADDRESS_W, pr_email),
             SPropValue(PR_SENDER_ENTRYID, pr_entryid),
@@ -876,7 +876,7 @@ class Item(Properties, Contact, Appointment):
         pr_addrtype, pr_dispname, pr_email, pr_entryid = self._addr_props(addr)
         self.mapiobj.SetProps([
             # TODO pr_addrtype should be unicode already
-            SPropValue(PR_SENT_REPRESENTING_ADDRTYPE_W, _unicode(pr_addrtype)),
+            SPropValue(PR_SENT_REPRESENTING_ADDRTYPE_W, str(pr_addrtype)),
             SPropValue(PR_SENT_REPRESENTING_NAME_W, pr_dispname),
             SPropValue(PR_SENT_REPRESENTING_EMAIL_ADDRESS_W, pr_email),
             SPropValue(PR_SENT_REPRESENTING_ENTRYID, pr_entryid),
@@ -996,12 +996,12 @@ class Item(Properties, Contact, Appointment):
             pr_email = addr.email
             pr_entryid = addr.entryid
         else:
-            addr = _unicode(addr)
+            addr = str(addr)
             pr_addrtype = 'SMTP'
             pr_dispname, pr_email = email_utils.parseaddr(addr)
             pr_dispname = pr_dispname or addr
             pr_entryid = self.server.ab.CreateOneOff(
-                pr_dispname, 'SMTP', _unicode(pr_email), MAPI_UNICODE)
+                pr_dispname, 'SMTP', str(pr_email), MAPI_UNICODE)
         return pr_addrtype, pr_dispname, pr_email, pr_entryid
 
     def _recipients(self, reciptype, addrs):
@@ -1027,7 +1027,7 @@ class Item(Properties, Contact, Appointment):
             self.mapiobj.ModifyRecipients(MODRECIP_REMOVE, rows)
 
         if isinstance(addrs, str):
-            addrs = [x.strip() for x in _unicode(addrs).split(';')]
+            addrs = [x.strip() for x in str(addrs).split(';')]
         elif isinstance(addrs, _user.User):
             addrs = [addrs]
         names = []
@@ -1038,8 +1038,8 @@ class Item(Properties, Contact, Appointment):
             names.append([
                 SPropValue(PR_RECIPIENT_TYPE, reciptype),
                 SPropValue(PR_DISPLAY_NAME_W, pr_dispname),
-                SPropValue(PR_ADDRTYPE_W, _unicode(pr_addrtype)),
-                SPropValue(PR_EMAIL_ADDRESS_W, _unicode(pr_email)),
+                SPropValue(PR_ADDRTYPE_W, str(pr_addrtype)),
+                SPropValue(PR_EMAIL_ADDRESS_W, str(pr_email)),
                 SPropValue(PR_ENTRYID, pr_entryid),
             ])
         self.mapiobj.ModifyRecipients(MODRECIP_ADD, names)
@@ -1321,7 +1321,7 @@ entryid %s', _main_item.entryid)
         ])
         if kwargs.get('subject'):
             attach.SetProps([
-                SPropValue(PR_DISPLAY_NAME_W, _unicode(kwargs.get('subject'))),
+                SPropValue(PR_DISPLAY_NAME_W, str(kwargs.get('subject'))),
             ])
 
         msg = attach.OpenProperty(PR_ATTACH_DATA_OBJ, IID_IMessage, 0,

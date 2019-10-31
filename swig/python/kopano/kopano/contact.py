@@ -36,13 +36,9 @@ from .pidlid import (
     PidLidWorkAddressCountry,
 )
 
-from .compat import repr as _repr
 
 from .address import Address
 from .errors import NotFoundError
-from .compat import (
-    fake_unicode as _unicode,
-)
 from .picture import Picture
 
 try:
@@ -69,7 +65,7 @@ class PhysicalAddress(object):
         self.country = item.get(country, '')
 
     def __repr__(self):
-        return _repr(self)
+        return self.__unicode__()
 
     def __unicode__(self):
         return 'PhysicalAddress()'
@@ -117,7 +113,7 @@ class Contact(object):
         pr_addrtype, pr_dispname, pr_email, pr_entryid = \
             self._addr_props(addr)
 
-        self[PidLidEmail1AddressType] = _unicode(pr_addrtype)
+        self[PidLidEmail1AddressType] = str(pr_addrtype)
         self[PidLidEmail1DisplayName] = pr_dispname
         self[PidLidEmail1EmailAddress] = pr_email
         self[PidLidEmail1OriginalEntryId] = pr_entryid
@@ -152,7 +148,7 @@ class Contact(object):
         pr_addrtype, pr_dispname, pr_email, pr_entryid = \
             self._addr_props(addr)
 
-        self[PidLidEmail2AddressType] = _unicode(pr_addrtype)
+        self[PidLidEmail2AddressType] = str(pr_addrtype)
         self[PidLidEmail2DisplayName] = pr_dispname
         self[PidLidEmail2EmailAddress] = pr_email
         self[PidLidEmail2OriginalEntryId] = pr_entryid
@@ -183,7 +179,7 @@ class Contact(object):
         pr_addrtype, pr_dispname, pr_email, pr_entryid = \
             self._addr_props(addr)
 
-        self[PidLidEmail3AddressType] = _unicode(pr_addrtype)
+        self[PidLidEmail3AddressType] = str(pr_addrtype)
         self[PidLidEmail3DisplayName] = pr_dispname
         self[PidLidEmail3EmailAddress] = pr_email
         self[PidLidEmail3OriginalEntryId] = pr_entryid

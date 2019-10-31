@@ -8,7 +8,6 @@ Copyright 2016 - 2019 Kopano and its licensors (see LICENSE file)
 
 import codecs
 
-from .compat import repr as _repr
 
 # TODO use ECParseOneOff? TODO assumes unicode
 def _parse_oneoff(content):
@@ -95,4 +94,4 @@ class Address(object):
         return 'Address(%s)' % (self.name or self.email or '')
 
     def __repr__(self):
-        return _repr(self)
+        return self.__unicode__()

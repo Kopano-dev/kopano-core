@@ -12,7 +12,6 @@ from MAPI.Tags import (
 )
 
 from .address import Address
-from .compat import repr as _repr
 
 PROPS = (PR_ADDRTYPE_W, PR_DISPLAY_NAME_W, PR_EMAIL_ADDRESS_W,
     PR_ENTRYID, PR_SEARCH_KEY)
@@ -74,4 +73,4 @@ class Attendee(object):
         return 'Attendee()' # TODO add self.address.name
 
     def __repr__(self):
-        return _repr(self)
+        return self.__unicode__()

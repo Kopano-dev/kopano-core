@@ -15,7 +15,7 @@ from MAPI.Struct import (
 )
 from .properties import Properties
 from .errors import NotFoundError, DuplicateError
-from .compat import fake_unicode as _unicode, benc as _benc
+from .compat import benc as _benc
 
 try:
     from . import server as _server
@@ -36,7 +36,7 @@ class Group(Properties):
     def __init__(self, name, server=None):
         self.server = server or \
             _server.Server(_skip_check=True, parse_args=False)
-        self._name = _unicode(name)
+        self._name = str(name)
         try:
             self._ecgroup = self.server.sa.GetGroup(
                 self.server.sa.ResolveGroupName(self._name, MAPI_UNICODE),
@@ -96,7 +96,7 @@ class Group(Properties):
 
     @name.setter
     def name(self, value):
-        self._update(name=_unicode(value))
+        self._update(name=str(value))
 
     @property
     def email(self):
@@ -105,7 +105,7 @@ class Group(Properties):
 
     @email.setter
     def email(self, value):
-        self._update(email=_unicode(value))
+        self._update(email=str(value))
 
     @property
     def fullname(self): # currently identical to name (may change later?)
@@ -113,7 +113,7 @@ class Group(Properties):
 
     @fullname.setter
     def fullname(self, value):
-        self._update(fullname=_unicode(value))
+        self._update(fullname=str(value))
 
     @property
     def hidden(self):
