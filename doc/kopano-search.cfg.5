@@ -149,13 +149,13 @@ Default:
 .RS 4
 The method which should be used for logging. Valid values are:
 .PP
-\fIsyslog\fR
+\fBsyslog\fP
 .RS 4
 Use the Linux system log. All messages will be written to the mail facility. See also
 \fBsyslog.conf\fR(5).
 .RE
 .PP
-\fIfile\fR
+\fBfile\fP
 .RS 4
 Log to a file. The filename will be specified in
 \fBlog_file\fR.
@@ -204,49 +204,49 @@ Default:
 .RS 4
 Backend search engine (currently only xapian is supported).
 .sp
-Default: xapian
+Default: \fIxapian\fP
 .RE
 .PP
 \fBterm_cache_size\fR
 .RS 4
 The size in bytes of the term cache used when writing terms to the index. A larger term cache will increase indexing speed when indexing large number of documents in a single store. This will barely affect incremental updates after the initial indexing has finished. This value may contain a k, m or g multiplier.
 .sp
-Default: 64M
+Default: \fI64M\fP
 .RE
 .PP
 \fBindex_exclude_properties\fR
 .RS 4
 Some properties are ignored because they contain unrelated information for users to find their messages on. A default set of ignored property ids is set here, but can be expanded. Only the id part of a property is needed, and must be string typed properties. The field is space separated.
 .sp
-Default: 007D 0064 0C1E 0075 678E 678F
+Default: \fI007D 0064 0C1E 0075 678E 678F\fP
 .RE
 .PP
 \fBindex_processes\fR
 .RS 4
 Number of indexing processes used during initial indexing. Setting this to a higher value can greatly speed up initial indexing, especially when attachments are indexed.
 .sp
-Default: 1
+Default: \fI1\fP
 .RE
 .PP
 \fBindex_drafts\fR
 .RS 4
 Index drafts folders
 .sp
-Default: yes
+Default: \fIyes\fP
 .RE
 .PP
 \fBindex_junk\fR
 .RS 4
 Index junk folders
 .sp
-Default: yes
+Default: \fIyes\fP
 .RE
 .PP
 \fBsuggestions\fR
 .RS 4
 Prepare search suggestions ("did\-you\-mean?") during indexing. Junk folders are excluded. This takes up a large percentage of the used disk space.
 .sp
-Default: yes
+Default: \fIyes\fP
 .RE
 .SH "EXPLANATION OF THE ATTACHMENT SETTINGS PARAMETERS"
 .PP
