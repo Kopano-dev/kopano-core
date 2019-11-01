@@ -182,11 +182,15 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 	    GetAppName().c_str(), sProfileProps.strClientAppVersion.c_str(),
 	    sProfileProps.strClientAppMisc.c_str(), &sResponse) != SOAP_OK) {
 #if GSOAP_VERSION >= 20871
+		auto d1 = soap_fault_string(lpCmd->soap);
 		auto d = soap_fault_detail(lpCmd->soap);
 #else
-		const char *d = soap_check_faultdetail(lpCmd->soap);
+		auto d1 = soap_check_faultstring(lpCmd->soap);
+		auto d = soap_check_faultdetail(lpCmd->soap);
 #endif
-		ec_log_err("gsoap connect: %s", d == nullptr ? "()" : d);
+		ec_log_err("Logon to %s: %s (%s)", sProfileProps.strServerPath.c_str(),
+			d1 != nullptr ? d1 : "(no error set)",
+			d != nullptr ? d : "");
 		er = KCERR_SERVER_NOT_RESPONDING;
 	} else {
 		er = sResponse.er;
