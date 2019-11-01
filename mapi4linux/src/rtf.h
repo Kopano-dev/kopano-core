@@ -9,9 +9,9 @@
 
 namespace KC {
 
-extern _kc_export unsigned int rtf_get_uncompressed_length(const char *data, unsigned int size);
-extern _kc_export unsigned int rtf_decompress(char *dst, const char *src, unsigned int src_size);
-extern _kc_export unsigned int rtf_compress(char **dst, unsigned int *dst_size, const char *src, unsigned int src_size);
+extern KC_EXPORT unsigned int rtf_get_uncompressed_length(const char *data, unsigned int size);
+extern KC_EXPORT unsigned int rtf_decompress(char *dst, const char *src, unsigned int src_size);
+extern KC_EXPORT unsigned int rtf_compress(char **dst, unsigned int *dst_size, const char *src, unsigned int src_size);
 
 }
 

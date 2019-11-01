@@ -104,8 +104,8 @@ ECRESULT AddChange(BTSession *lpecSession, unsigned int ulSyncId, const SOURCEKE
 extern ECRESULT AddABChange(BTSession *, unsigned int change, SOURCEKEY &&sk, SOURCEKEY &&parent);
 ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sSourceKeyFolder, unsigned int ulSyncId, unsigned int ulChangeId, unsigned int ulChangeType, unsigned int ulFlags, struct restrictTable *lpsRestrict, unsigned int *lpulMaxChangeId, icsChangesArray **lppChanges);
 ECRESULT GetSyncStates(struct soap *soap, ECSession *lpSession, mv_long ulaSyncId, syncStateArray *lpsaSyncState);
-extern _kc_export void *CleanupSyncsTable(void *);
-extern _kc_export void *CleanupSyncedMessagesTable(void *);
+extern KC_EXPORT void *CleanupSyncsTable(void *);
+extern KC_EXPORT void *CleanupSyncedMessagesTable(void *);
 
 /**
  * Adds the message specified by sSourceKey to the last set of syncedmessages for the syncer identified by

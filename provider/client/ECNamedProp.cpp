@@ -53,8 +53,7 @@ using namespace KC;
  * - The ulMappedIds must not overlap the previous row
  * - The ulMappedIds must be in ascending order
  */
-
-static const struct _sLocalNames {
+static const struct {
 	GUID guid;
 	LONG ulMin, ulMax;
 	ULONG ulMappedId; // mapped ID of the FIRST property in the range

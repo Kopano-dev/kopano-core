@@ -89,23 +89,23 @@
 #define ARGS_9(s1, s2, s3, s4, s5, s6, s7, s8, s9) ARGSSET s1, ARGSSET s2, ARGSSET s3, ARGSSET s4, ARGSSET s5, ARGSSET s6, ARGSSET s7, ARGSSET s8, ARGSSET s9
 #define ARGS_10(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10) ARGSSET s1, ARGSSET s2, ARGSSET s3, ARGSSET s4, ARGSSET s5, ARGSSET s6, ARGSSET s7, ARGSSET s8, ARGSSET s9, ARGSSET s10
 #define ARGS_11(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11) ARGSSET s1, ARGSSET s2, ARGSSET s3, ARGSSET s4, ARGSSET s5, ARGSSET s6, ARGSSET s7, ARGSSET s8, ARGSSET s9, ARGSSET s10, ARGSSET s11
-#define XCLASS(_iface) x ##_iface
-#define CLASSMETHOD(_class, _method) _class::_method
-#define METHODSTR_HELPER1(_method) METHODSTR_HELPER2(_method)
-#define METHODSTR_HELPER2(_method) #_method
-#define DEF_ULONGMETHOD1(_trace, _class, _iface, _method, ...) \
-ULONG CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__)) \
+#define XCLASS(iface) x ## iface
+#define CLASSMETHOD(cls, method) cls::method
+#define METHODSTR_HELPER1(method) METHODSTR_HELPER2(method)
+#define METHODSTR_HELPER2(method) #method
+#define DEF_ULONGMETHOD1(trace, cls, iface, method, ...) \
+unsigned int CLASSMETHOD(cls, CLASSMETHOD(XCLASS(iface), method))(ARGLIST(__VA_ARGS__)) \
 { \
-	METHOD_PROLOGUE_(_class, _iface); \
-	return pThis->_method(ARGS(__VA_ARGS__)); \
+	METHOD_PROLOGUE_(cls, iface); \
+	return pThis->method(ARGS(__VA_ARGS__)); \
 }
 
 /* without exception passthrough */
-#define DEF_HRMETHOD1(_trace, _class, _iface, _method, ...) \
-HRESULT CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__)) \
+#define DEF_HRMETHOD1(trace, cls, iface, method, ...) \
+HRESULT CLASSMETHOD(cls, CLASSMETHOD(XCLASS(iface), method))(ARGLIST(__VA_ARGS__)) \
 { \
-	METHOD_PROLOGUE_(_class, _iface); \
-	return pThis->_method(ARGS(__VA_ARGS__)); \
+	METHOD_PROLOGUE_(cls, iface); \
+	return pThis->method(ARGS(__VA_ARGS__)); \
 }
 
 using namespace KC;

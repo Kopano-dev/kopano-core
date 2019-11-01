@@ -2,8 +2,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef __MAPI_SVC_H
-#define __MAPI_SVC_H
+#ifndef MAPI_SVC_H
+#define MAPI_SVC_H
 
 #include <map>
 #include <set>

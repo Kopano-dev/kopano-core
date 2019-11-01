@@ -3,8 +3,8 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 /* mapicode.h – Defines status codes for error values */
-#ifndef __M4L_MAPICODE_H_
-#define __M4L_MAPICODE_H_
+#ifndef M4L_MAPICODE_H
+#define M4L_MAPICODE_H
 #define MAPICODE_H
 
 #include <kopano/platform.h>
@@ -127,8 +127,8 @@
  * use of any hidden tricks.
  */
 #ifndef HR_SUCCEEDED
-#define HR_SUCCEEDED(_hr) SUCCEEDED((SCODE)(_hr))
-#define HR_FAILED(_hr) FAILED((SCODE)(_hr))
+#define HR_SUCCEEDED(hr) SUCCEEDED(static_cast<SCODE>(hr))
+#define HR_FAILED(hr) FAILED(static_cast<SCODE>(hr))
 #endif
 
 #endif  /* MAPICODE_H */

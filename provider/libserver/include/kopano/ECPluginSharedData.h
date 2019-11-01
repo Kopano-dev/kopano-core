@@ -23,7 +23,7 @@ class ECStatsCollector;
  * Each instance of the UserPlugin share the contents
  * of ECPluginSharedData.
  */
-class _kc_export ECPluginSharedData final {
+class KC_EXPORT ECPluginSharedData final {
 private:
 	/**
 	 * Singleton instance of ECPluginSharedData
@@ -103,7 +103,7 @@ public:
 	 *					Supported configuration file directives.
 	 * @return The ECConfig pointer. NULL if configuration file could not be loaded.
 	 */
-	_kc_export virtual ECConfig *CreateConfig(const configsetting_t *dfl, const char *const *directives = lpszDEFAULTDIRECTIVES);
+	virtual ECConfig *CreateConfig(const configsetting_t *dfl, const char *const *directives = lpszDEFAULTDIRECTIVES);
 
 	/**
 	 * Obtain the Stats collector

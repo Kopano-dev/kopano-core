@@ -29,7 +29,7 @@ namespace KC {
 class ECFreeBusyData KC_FINAL_OPG : public ECUnknown, public IFreeBusyData {
 public:
 	static HRESULT Create(LONG start, LONG end, const ECFBBlockList &, ECFreeBusyData **);
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) KC_OVERRIDE;
 	virtual HRESULT Reload(void *) { return E_NOTIMPL; }
 	virtual HRESULT EnumBlocks(IEnumFBBlock **ppenumfb, const FILETIME &start, const FILETIME &end) override;
 	virtual HRESULT GetDelegateInfo(void *) override { return E_NOTIMPL; }

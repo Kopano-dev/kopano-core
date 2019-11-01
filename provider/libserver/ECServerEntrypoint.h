@@ -33,21 +33,21 @@ static inline bool SOAP_CONNECTION_TYPE_NAMED_PIPE(struct soap *soap)
 	       si->ulConnectionType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY;
 }
 
-extern _kc_export ECRESULT kopano_init(std::shared_ptr<ECConfig>, std::shared_ptr<ECLogger> audit, std::shared_ptr<server_stats>, bool hosted_kopano, bool distr_kopano);
-extern _kc_export ECRESULT kopano_exit(void);
+extern KC_EXPORT ECRESULT kopano_init(std::shared_ptr<ECConfig>, std::shared_ptr<ECLogger> audit, std::shared_ptr<server_stats>, bool hosted_kopano, bool distr_kopano);
+extern KC_EXPORT ECRESULT kopano_exit();
 
 // server init function
-extern _kc_export ECRESULT kopano_initlibrary(const char *dbdir, const char *config_file); // Init mysql library
-extern _kc_export ECRESULT kopano_unloadlibrary(void); // Unload mysql library
+extern KC_EXPORT ECRESULT kopano_initlibrary(const char *dbdir, const char *config_file); /* Init mysql library */
+extern KC_EXPORT ECRESULT kopano_unloadlibrary(); /* Unload mysql library */
 
 // Exported functions
-extern _kc_export ECRESULT GetDatabaseObject(std::shared_ptr<ECStatsCollector>, ECDatabase **);
+extern KC_EXPORT ECRESULT GetDatabaseObject(std::shared_ptr<ECStatsCollector>, ECDatabase **);
 
 // SOAP connection management
-extern _kc_export void kopano_new_soap_connection(CONNECTION_TYPE, struct soap *);
-extern _kc_export void kopano_end_soap_connection(struct soap *);
-extern _kc_export void kopano_new_soap_listener(CONNECTION_TYPE, struct soap *);
-extern _kc_export void kopano_end_soap_listener(struct soap *);
+extern KC_EXPORT void kopano_new_soap_connection(CONNECTION_TYPE, struct soap *);
+extern KC_EXPORT void kopano_end_soap_connection(struct soap *);
+extern KC_EXPORT void kopano_new_soap_listener(CONNECTION_TYPE, struct soap *);
+extern KC_EXPORT void kopano_end_soap_listener(struct soap *);
 
 } /* namespace */
 

@@ -6,8 +6,8 @@
  * edkmdb.h – Defines additional properties and interfaces offered by the
  * server-side information store.
  */
-#ifndef __M4L_EDKMDB_H_
-#define __M4L_EDKMDB_H_
+#ifndef M4L_EDKMDB_H
+#define M4L_EDKMDB_H
 
 /*
  * No, this is not the edkmdb.h file,

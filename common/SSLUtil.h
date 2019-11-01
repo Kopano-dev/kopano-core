@@ -12,12 +12,12 @@
 
 namespace KC {
 
-extern _kc_export void ssl_threading_setup(void);
-extern _kc_export void ssl_threading_cleanup(void);
-extern _kc_export void SSL_library_cleanup(void);
-extern _kc_export void ssl_random_init(void);
-extern _kc_export void ssl_random(bool b64bit, uint64_t *out);
-extern _kc_export bool ec_tls_minproto(SSL_CTX *, const char *min_proto);
+extern KC_EXPORT void ssl_threading_setup();
+extern KC_EXPORT void ssl_threading_cleanup();
+extern KC_EXPORT void SSL_library_cleanup();
+extern KC_EXPORT void ssl_random_init();
+extern KC_EXPORT void ssl_random(bool b64bit, uint64_t *out);
+extern KC_EXPORT bool ec_tls_minproto(SSL_CTX *, const char *min_proto);
 
 #define KC_DEFAULT_TLSMINPROTO "tls1.2"
 #define KC_DEFAULT_CIPHERLIST "DEFAULT:!LOW:!SSLv2:!SSLv3:!TLSv1.0:!TLSv1.1:!EXPORT:!DH:!PSK:!kRSA:!aDSS:!aNULL:+AES"

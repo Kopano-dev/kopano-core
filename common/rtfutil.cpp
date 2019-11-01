@@ -26,7 +26,7 @@ static const char szHex[] = "0123456789ABCDEF";
 // Charsets used in \fcharsetXXX (from http://msdn.microsoft.com/library/default.asp?url=/library/en-us/dnrtfspec/html/rtfspec_6.asp )
 // charset "" is the ANSI codepage specified in \ansicpg
 // charset NULL means 'no conversion', ie direct 1-to-1 translation to UNICODE
-static const struct _rtfcharset {
+static const struct {
 	int id;
 	const char *charset;
 } RTFCHARSET[] = {

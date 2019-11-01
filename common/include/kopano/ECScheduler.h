@@ -33,7 +33,7 @@ struct ECSCHEDULE {
 
 typedef std::list<ECSCHEDULE> ECScheduleList;
 
-class _kc_export ECScheduler KC_FINAL {
+class KC_EXPORT ECScheduler KC_FINAL {
 public:
 	ECScheduler();
 	~ECScheduler(void);

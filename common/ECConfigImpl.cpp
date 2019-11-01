@@ -5,8 +5,10 @@
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <list>
+#include <map>
 #include <memory>
 #include <mutex>
+#include <set>
 #include <shared_mutex>
 #include <string>
 #include <utility>
@@ -18,14 +20,91 @@
 #include <algorithm>
 #include <cassert>
 #include <sys/stat.h>
+#include <kopano/ECConfig.h>
 #include <kopano/memory.hpp>
 #include <kopano/scope.hpp>
 #include <kopano/stringutil.h>
-#include "ECConfigImpl.h"
 #include <kopano/fileutil.hpp>
 #include <kopano/charset/convert.h>
+#define MAXLINELEN 4096
+
+/* Flags for the InitDefaults & InitConfigFile functions */
+enum {
+	LOADSETTING_INITIALIZING     = 1 << 0, /* ECConfig is initializing, turns on extra debug information */
+	LOADSETTING_UNKNOWN          = 1 << 1, /* Allow adding new configuration options */
+	LOADSETTING_OVERWRITE        = 1 << 2, /* Allow overwriting predefined configuration options */
+	LOADSETTING_OVERWRITE_GROUP  = 1 << 3, /* Same as CONFIG_LOAD_OVERWRITE but only if options are in the same group */
+	LOADSETTING_OVERWRITE_RELOAD = 1 << 4, /* Same as CONFIG_LOAD_OVERWRITE but only if option is marked reloadable */
+	LOADSETTING_CMDLINE_PARAM    = 1 << 5, /* This setting is being set from commandline parameters. Sets the option non-reloadable */
+	LOADSETTING_MARK_DEFAULT     = 1 << 6, /* This setting is at its default value */
+};
 
 namespace KC {
+
+class ECConfigImpl;
+
+struct settingkey_t {
+	char s[256];
+	unsigned short cs_flags, ulGroup;
+	bool operator<(const settingkey_t &o) const noexcept { return strcmp(s, o.s) < 0; }
+};
+
+struct directive_t {
+	const char *lpszDirective;
+	bool (ECConfigImpl::*fExecute)(const char *, unsigned int);
+};
+
+/* Note: char* in map is allocated ONCE to 1024, and GetSetting will always return the same pointer to this buffer */
+typedef std::map<settingkey_t, char *> settingmap_t;
+
+class ECConfigImpl KC_FINAL : public ECConfig {
+	public:
+	ECConfigImpl(const configsetting_t *defaults, const char *const *directives);
+	~ECConfigImpl();
+	virtual bool LoadSettings(const char *file, bool ignore_missing = false) override;
+	virtual int ParseParams(int argc, char **argv) override;
+	const char *GetSettingsPath() const override { return m_szConfigFile; }
+	bool ReloadSettings() override;
+	bool AddSetting(const char *name, const char *value, const unsigned int group = 0) override;
+	const char *GetSetting(const char *name) override;
+	const char *GetSetting(const char *name, const char *equal, const char *other) override;
+	std::list<configsetting_t> GetSettingGroup(unsigned int group) override;
+	std::list<configsetting_t> GetAllSettings() override;
+	bool HasWarnings() override;
+	const std::list<std::string> *GetWarnings() override { return &warnings; }
+	bool HasErrors() override;
+	const std::list<std::string> *GetErrors() override { return &errors; }
+	int dump_config(FILE *) override;
+
+	private:
+	bool InitDefaults(unsigned int flags);
+	bool InitConfigFile(unsigned int flags);
+	bool ReadConfigFile(const std::string &file, unsigned int flags, unsigned int group = 0);
+	bool HandleDirective(const std::string &line, unsigned int flags);
+	bool HandleInclude(const char *args, unsigned int flags);
+	bool HandlePropMap(const char *args, unsigned int fags);
+	size_t GetSize(const char *value);
+	void InsertOrReplace(settingmap_t *, const settingkey_t &s, const char *value, bool is_size);
+	const char *GetMapEntry(const settingmap_t *, const char *name);
+	const char *GetAlias(const char *alias);
+	bool AddSetting(const configsetting_t &, unsigned int flags);
+	void AddAlias(const configsetting_t &alias);
+	static bool CopyConfigSetting(const configsetting_t &, settingkey_t *);
+	static bool CopyConfigSetting(const settingkey_t *, const char *value, configsetting_t *);
+
+	const configsetting_t *m_lpDefaults = nullptr;
+	const char *m_szConfigFile = nullptr;
+	std::list<std::string> m_lDirectives;
+
+	/* m_mapSettings & m_mapAliases are protected by m_settingsLock */
+	KC::shared_mutex m_settingsRWLock;
+	settingmap_t m_mapSettings, m_mapAliases;
+	std::list<std::string> warnings, errors;
+	std::string m_currentFile;
+	std::set<std::string> m_readFiles;
+	std::map<const char *, std::wstring> m_convertCache;
+	static const directive_t s_sDirectives[];
+};
 
 using std::string;
 

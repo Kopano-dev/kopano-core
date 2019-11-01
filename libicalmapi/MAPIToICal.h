@@ -28,7 +28,7 @@ public:
 	virtual HRESULT ResetObject() = 0;
 };
 
-extern _kc_export HRESULT CreateMapiToICal(LPADRBOOK, const std::string &charset, MapiToICal **ret);
+extern KC_EXPORT HRESULT CreateMapiToICal(IAddrBook *, const std::string &charset, MapiToICal **ret);
 
 } /* namespace */
 

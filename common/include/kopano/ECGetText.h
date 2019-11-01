@@ -14,7 +14,7 @@
 #define KC_W(string) const_cast<wchar_t *>(kopano_dcgettext_wide("kopano", string))
 
 namespace KC {
-extern _kc_export const wchar_t *kopano_dcgettext_wide(const char *domain, const char *msg);
+extern KC_EXPORT const wchar_t *kopano_dcgettext_wide(const char *domain, const char *msg);
 }
 
 #ifdef UNICODE

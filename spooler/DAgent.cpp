@@ -122,12 +122,11 @@ using std::min;
 using std::string;
 using std::wstring;
 
-enum _dt {
+typedef enum {
 	DM_STORE=0,
 	DM_JUNK,
 	DM_PUBLIC
-};
-typedef _dt delivery_mode;
+} delivery_mode;
 
 class DeliveryArgs final {
 public:

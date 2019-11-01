@@ -69,22 +69,22 @@ static inline std::wstring wstringify(unsigned int x)
 	return std::to_wstring(x);
 }
 
-extern _kc_export std::string stringify_hex(unsigned int);
-extern _kc_export std::string stringify_signed(int);
-extern _kc_export std::string stringify_int64(int64_t, bool usehex = false);
-extern _kc_export std::string stringify_float(double);
-extern _kc_export std::string stringify_double(double, int prec = 18, bool locale = false);
-extern _kc_export std::wstring wstringify_hex(unsigned int);
+extern KC_EXPORT std::string stringify_hex(unsigned int);
+extern KC_EXPORT std::string stringify_signed(int);
+extern KC_EXPORT std::string stringify_int64(int64_t, bool usehex = false);
+extern KC_EXPORT std::string stringify_float(double);
+extern KC_EXPORT std::string stringify_double(double, int prec = 18, bool locale = false);
+extern KC_EXPORT std::wstring wstringify_hex(unsigned int);
 
 #define tstringify			wstringify
 #define tstringify_hex wstringify_hex
 
 static inline unsigned int atoui(const char *s) { return strtoul(s, nullptr, 10); }
 static inline unsigned int xtoi(const char *s) { return strtoul(s, nullptr, 16); }
-extern _kc_export int memsubstr(const void *haystack, size_t hsize, const void *needle, size_t nsize);
-extern _kc_export std::string str_storage(uint64_t bytes, bool unlimited = true);
-extern _kc_export std::string GetServerNameFromPath(const char *);
-extern _kc_export std::string GetServerPortFromPath(const char *);
+extern KC_EXPORT int memsubstr(const void *haystack, size_t hsize, const void *needle, size_t nsize);
+extern KC_EXPORT std::string str_storage(uint64_t bytes, bool unlimited = true);
+extern KC_EXPORT std::string GetServerNameFromPath(const char *);
+extern KC_EXPORT std::string GetServerPortFromPath(const char *);
 
 static inline bool parseBool(const char *s)
 {
@@ -92,26 +92,26 @@ static inline bool parseBool(const char *s)
 	       strcmp(s, "false") != 0 && strcmp(s, "no") != 0);
 }
 
-extern _kc_export std::vector<std::wstring> tokenize(const std::wstring &, const wchar_t sep, bool filter_empty = false);
-extern _kc_export std::vector<std::string> tokenize(const std::string &, const char sep, bool filter_empty = false);
-extern _kc_export std::string trim(const std::string &input, const std::string &trim = " ");
-extern _kc_export unsigned char x2b(char);
-extern _kc_export std::string hex2bin(const std::string &);
-extern _kc_export std::string hex2bin(const std::wstring &);
-extern _kc_export std::string bin2hex(const std::string &);
-extern _kc_export std::string bin2hex(size_t len, const void *input);
-extern _kc_export std::string bin2hex(const SBinary &);
-extern _kc_export std::string bin2txt(const void *, size_t);
-extern _kc_export std::string bin2txt(const SBinary &);
+extern KC_EXPORT std::vector<std::wstring> tokenize(const std::wstring &, const wchar_t sep, bool filter_empty = false);
+extern KC_EXPORT std::vector<std::string> tokenize(const std::string &, const char sep, bool filter_empty = false);
+extern KC_EXPORT std::string trim(const std::string &input, const std::string &trim = " ");
+extern KC_EXPORT unsigned char x2b(char);
+extern KC_EXPORT std::string hex2bin(const std::string &);
+extern KC_EXPORT std::string hex2bin(const std::wstring &);
+extern KC_EXPORT std::string bin2hex(const std::string &);
+extern KC_EXPORT std::string bin2hex(size_t len, const void *input);
+extern KC_EXPORT std::string bin2hex(const SBinary &);
+extern KC_EXPORT std::string bin2txt(const void *, size_t);
+extern KC_EXPORT std::string bin2txt(const SBinary &);
 inline std::string bin2txt(const std::string &s) { return bin2txt(s.data(), s.size()); }
-extern _kc_export std::string urlEncode(const std::string &);
-extern _kc_export std::string urlEncode(const std::wstring &, const char *charset);
-extern _kc_export std::string urlEncode(const wchar_t *input, const char *charset);
-extern _kc_export std::string urlDecode(const std::string &);
-extern _kc_export void BufferLFtoCRLF(size_t size, const char *input, char *output, size_t *outsize);
-extern _kc_export void StringCRLFtoLF(const std::wstring &in, std::wstring *out);
-extern _kc_export void StringLFtoCRLF(std::string &inout);
-extern _kc_export void StringTabtoSpaces(const std::wstring &in, std::wstring *out);
+extern KC_EXPORT std::string urlEncode(const std::string &);
+extern KC_EXPORT std::string urlEncode(const std::wstring &, const char *charset);
+extern KC_EXPORT std::string urlEncode(const wchar_t *input, const char *charset);
+extern KC_EXPORT std::string urlDecode(const std::string &);
+extern KC_EXPORT void BufferLFtoCRLF(size_t size, const char *input, char *output, size_t *outsize);
+extern KC_EXPORT void StringCRLFtoLF(const std::wstring &in, std::wstring *out);
+extern KC_EXPORT void StringLFtoCRLF(std::string &inout);
+extern KC_EXPORT void StringTabtoSpaces(const std::wstring &in, std::wstring *out);
 
 template<typename T>
 std::vector<T> tokenize(const T &str, const T &delimiters)
@@ -159,22 +159,22 @@ std::vector<std::basic_string<T> > tokenize(const T* str, const T* delimiters)
 }
 
 template<typename InputIterator, typename Tp>
-Tp join(InputIterator __first, InputIterator __last, Tp __sep)
+Tp join(InputIterator first, InputIterator last, Tp sep)
 {
 	Tp s;
-    for (; __first != __last; ++__first) {
-        if(!s.empty())
-            s += __sep;
-        s += *__first;
-    }
-    return s;
+	for (; first != last; ++first) {
+		if (!s.empty())
+			s += sep;
+		s += *first;
+	}
+	return s;
 }
 
-extern _kc_export std::string format(const char *fmt, ...) KC_LIKE_PRINTF(1, 2);
-extern _kc_export char *kc_strlcpy(char *dst, const char *src, size_t n);
-extern _kc_export bool kc_starts_with(const std::string &, const std::string &);
-extern _kc_export bool kc_istarts_with(const std::string &, const std::string &);
-extern _kc_export bool kc_ends_with(const std::string &, const std::string &);
+extern KC_EXPORT std::string format(const char *fmt, ...) KC_LIKE_PRINTF(1, 2);
+extern KC_EXPORT char *kc_strlcpy(char *dst, const char *src, size_t n);
+extern KC_EXPORT bool kc_starts_with(const std::string &, const std::string &);
+extern KC_EXPORT bool kc_istarts_with(const std::string &, const std::string &);
+extern KC_EXPORT bool kc_ends_with(const std::string &, const std::string &);
 
 template<typename Iter> std::string kc_join(Iter cur, Iter end, const char *sep)
 {
@@ -215,15 +215,15 @@ kc_join(const C &v, const char *sep, F &&func)
 	return result;
 }
 
-extern _kc_export std::string base64_encode(const void *, unsigned int);
-extern _kc_export std::string base64_decode(const std::string &);
-extern _kc_export std::string zcp_md5_final_hex(MD5_CTX *);
-extern _kc_export std::string string_strip_crlf(const char *);
-extern _kc_export bool SymmetricIsCrypted(const char *);
-extern _kc_export std::string SymmetricDecrypt(const char *);
-extern _kc_export std::string content_type_get_charset(const char *in, const char *dflt);
+extern KC_EXPORT std::string base64_encode(const void *, unsigned int);
+extern KC_EXPORT std::string base64_decode(const std::string &);
+extern KC_EXPORT std::string zcp_md5_final_hex(MD5_CTX *);
+extern KC_EXPORT std::string string_strip_crlf(const char *);
+extern KC_EXPORT bool SymmetricIsCrypted(const char *);
+extern KC_EXPORT std::string SymmetricDecrypt(const char *);
+extern KC_EXPORT std::string content_type_get_charset(const char *in, const char *dflt);
 /* Permit unknown long options, move them to end of argv like arguments */
-extern _kc_export int my_getopt_long_permissive(int, char **, const char *, const struct option *, int *);
+extern KC_EXPORT int my_getopt_long_permissive(int, char **, const char *, const struct option *, int *);
 
 } /* namespace */
 

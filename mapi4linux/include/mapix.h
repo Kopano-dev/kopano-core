@@ -3,8 +3,8 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 /* mapix.h – Defines flags and interfaces that MAPI implements for clients */
-#ifndef __M4L_MAPIX_H_
-#define __M4L_MAPIX_H_
+#ifndef M4L_MAPIX_H
+#define M4L_MAPIX_H
 #define MAPIX_H
 
 #include <kopano/zcdefs.h>
@@ -67,14 +67,14 @@ typedef MAPIINITIALIZE* LPMAPIINITIALIZE;
 
 typedef void (MAPIUNINITIALIZE)(void);
 typedef MAPIUNINITIALIZE* LPMAPIUNINITIALIZE;
-extern _kc_export MAPIINITIALIZE MAPIInitialize;
-extern _kc_export MAPIUNINITIALIZE MAPIUninitialize;
+extern KC_EXPORT MAPIINITIALIZE MAPIInitialize;
+extern KC_EXPORT MAPIUNINITIALIZE MAPIUninitialize;
 
 /*  Extended MAPI Logon function */
 
 typedef HRESULT (MAPILOGONEX)(ULONG_PTR ui_param, const TCHAR *profname, const TCHAR *password, ULONG flags, IMAPISession **);
 typedef MAPILOGONEX* LPMAPILOGONEX;
-extern _kc_export MAPILOGONEX MAPILogonEx;
+extern KC_EXPORT MAPILOGONEX MAPILogonEx;
 
 typedef SCODE (MAPIALLOCATEBUFFER)(
     ULONG           cbSize,
@@ -91,16 +91,16 @@ typedef ULONG (MAPIFREEBUFFER)(
 typedef MAPIALLOCATEBUFFER  *LPMAPIALLOCATEBUFFER;
 typedef MAPIALLOCATEMORE    *LPMAPIALLOCATEMORE;
 typedef MAPIFREEBUFFER      *LPMAPIFREEBUFFER;
-extern _kc_export MAPIALLOCATEBUFFER MAPIAllocateBuffer;
-extern _kc_export MAPIALLOCATEMORE MAPIAllocateMore;
-extern _kc_export MAPIFREEBUFFER MAPIFreeBuffer;
+extern KC_EXPORT MAPIALLOCATEBUFFER MAPIAllocateBuffer;
+extern KC_EXPORT MAPIALLOCATEMORE MAPIAllocateMore;
+extern KC_EXPORT MAPIFREEBUFFER MAPIFreeBuffer;
 
 typedef HRESULT (MAPIADMINPROFILES)(
     ULONG ulFlags,
     LPPROFADMIN *lppProfAdmin
 );
 typedef MAPIADMINPROFILES *LPMAPIADMINPROFILES;
-extern _kc_export MAPIADMINPROFILES MAPIAdminProfiles;
+extern KC_EXPORT MAPIADMINPROFILES MAPIAdminProfiles;
 
 } // EXTERN "C"
 
@@ -233,9 +233,9 @@ IID_OF(IMsgServiceAdmin2)
 
 namespace KC {
 
-extern _kc_export HRESULT kc_session_save(IMAPISession *, std::string &);
-extern _kc_export HRESULT kc_session_restore(const std::string &, IMAPISession **);
-extern _kc_export SCODE KAllocCopy(const void *src, size_t z, void **dst, void *base = nullptr);
+extern KC_EXPORT HRESULT kc_session_save(IMAPISession *, std::string &);
+extern KC_EXPORT HRESULT kc_session_restore(const std::string &, IMAPISession **);
+extern KC_EXPORT SCODE KAllocCopy(const void *src, size_t z, void **dst, void *base = nullptr);
 
 }
 

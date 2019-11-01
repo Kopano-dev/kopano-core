@@ -11,12 +11,12 @@
 
 namespace KC {
 
-extern _kc_export unsigned char *g_lpEveryoneEid;
-extern _kc_export const unsigned int g_cbEveryoneEid;
-extern _kc_export unsigned char *g_lpSystemEid;
-extern _kc_export const unsigned int g_cbSystemEid;
-extern _kc_export HRESULT EntryIdIsEveryone(unsigned int eid_size, const ENTRYID *eid, bool *result);
-extern _kc_export HRESULT GetNonPortableObjectType(unsigned int eid_size, const ENTRYID *eid, ULONG *obj_type);
+extern KC_EXPORT unsigned char *g_lpEveryoneEid;
+extern KC_EXPORT const unsigned int g_cbEveryoneEid;
+extern KC_EXPORT unsigned char *g_lpSystemEid;
+extern KC_EXPORT const unsigned int g_cbSystemEid;
+extern KC_EXPORT HRESULT EntryIdIsEveryone(unsigned int eid_size, const ENTRYID *eid, bool *result);
+extern KC_EXPORT HRESULT GetNonPortableObjectType(unsigned int eid_size, const ENTRYID *eid, unsigned int *obj_type);
 
 } /* namespace */
 

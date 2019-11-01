@@ -74,7 +74,7 @@ enum logprefix { LP_NONE, LP_TID, LP_PID };
  * ECLogger object logs messages to a specific
  * destination. Destinations are created in derived classes.
  */
-class _kc_export ECLogger {
+class KC_EXPORT ECLogger {
 	private:
 	std::atomic<unsigned> m_ulRef{1};
 
@@ -170,13 +170,13 @@ class _kc_export ECLogger {
 /**
  * Dummy null logger, drops every log message.
  */
-class _kc_export ECLogger_Null KC_FINAL : public ECLogger {
+class KC_EXPORT ECLogger_Null KC_FINAL : public ECLogger {
 	public:
 	ECLogger_Null(void);
-	_kc_hidden virtual void Reset(void) _kc_override;
-	_kc_hidden virtual void log(unsigned int level, const char *msg) _kc_override;
-	_kc_hidden virtual void logf(unsigned int level, const char *fmt, ...) _kc_override KC_LIKE_PRINTF(3, 4);
-	_kc_hidden virtual void logv(unsigned int level, const char *fmt, va_list &) _kc_override;
+	_kc_hidden virtual void Reset() KC_OVERRIDE;
+	_kc_hidden virtual void log(unsigned int level, const char *msg) KC_OVERRIDE;
+	_kc_hidden virtual void logf(unsigned int level, const char *fmt, ...) KC_OVERRIDE KC_LIKE_PRINTF(3, 4);
+	_kc_hidden virtual void logv(unsigned int level, const char *fmt, va_list &) KC_OVERRIDE;
 };
 
 /**
@@ -211,11 +211,11 @@ class KC_EXPORT_DYCAST ECLogger_File KC_FINAL : public ECLogger {
 	ECLogger_File(unsigned int max_ll, bool add_timestamp, const char *filename, bool compress);
 	~ECLogger_File(void);
 	_kc_hidden void reinit_buffer(size_t size);
-	_kc_hidden virtual void Reset(void) _kc_override;
-	_kc_hidden virtual void log(unsigned int level, const char *msg) _kc_override;
-	_kc_hidden virtual void logf(unsigned int level, const char *fmt, ...) _kc_override KC_LIKE_PRINTF(3, 4);
-	_kc_hidden virtual void logv(unsigned int level, const char *fmt, va_list &) _kc_override;
-	_kc_hidden int GetFileDescriptor(void) _kc_override;
+	_kc_hidden virtual void Reset() KC_OVERRIDE;
+	_kc_hidden virtual void log(unsigned int level, const char *msg) KC_OVERRIDE;
+	_kc_hidden virtual void logf(unsigned int level, const char *fmt, ...) KC_OVERRIDE KC_LIKE_PRINTF(3, 4);
+	_kc_hidden virtual void logv(unsigned int level, const char *fmt, va_list &) KC_OVERRIDE;
+	_kc_hidden int GetFileDescriptor() KC_OVERRIDE;
 	bool IsStdErr() const { return logname == "-"; }
 
 	private:
@@ -238,15 +238,15 @@ class KC_EXPORT_DYCAST ECLogger_Pipe KC_FINAL : public ECLogger {
 	public:
 	ECLogger_Pipe(int fd, pid_t childpid, int loglevel);
 	~ECLogger_Pipe(void);
-	_kc_hidden virtual void Reset(void) _kc_override;
-	_kc_hidden virtual void log(unsigned int level, const char *msg) _kc_override;
-	_kc_hidden virtual void logf(unsigned int level, const char *fmt, ...) _kc_override KC_LIKE_PRINTF(3, 4);
-	_kc_hidden virtual void logv(unsigned int level, const char *fmt, va_list &) _kc_override;
-	_kc_hidden int GetFileDescriptor(void) _kc_override { return m_fd; }
+	_kc_hidden virtual void Reset() KC_OVERRIDE;
+	_kc_hidden virtual void log(unsigned int level, const char *msg) KC_OVERRIDE;
+	_kc_hidden virtual void logf(unsigned int level, const char *fmt, ...) KC_OVERRIDE KC_LIKE_PRINTF(3, 4);
+	_kc_hidden virtual void logv(unsigned int level, const char *fmt, va_list &) KC_OVERRIDE;
+	_kc_hidden int GetFileDescriptor() KC_OVERRIDE { return m_fd; }
 	void Disown();
 };
 
-extern _kc_export std::shared_ptr<ECLogger> StartLoggerProcess(ECConfig *, std::shared_ptr<ECLogger> &&file_logger);
+extern KC_EXPORT std::shared_ptr<ECLogger> StartLoggerProcess(ECConfig *, std::shared_ptr<ECLogger> &&file_logger);
 
 /**
  * This class can be used if log messages need to go to
@@ -255,24 +255,24 @@ extern _kc_export std::shared_ptr<ECLogger> StartLoggerProcess(ECConfig *, std::
  *
  * Each attached logger can have its own loglevel.
  */
-class _kc_export ECLogger_Tee KC_FINAL : public ECLogger {
+class KC_EXPORT ECLogger_Tee KC_FINAL : public ECLogger {
 	private:
 	std::list<std::shared_ptr<ECLogger>> m_loggers;
 
 	public:
 	ECLogger_Tee();
-	_kc_hidden virtual void Reset(void) _kc_override;
-	_kc_hidden virtual bool Log(unsigned int level) _kc_override;
-	_kc_hidden virtual void log(unsigned int level, const char *msg) _kc_override;
-	_kc_hidden virtual void logf(unsigned int level, const char *fmt, ...) _kc_override KC_LIKE_PRINTF(3, 4);
-	_kc_hidden virtual void logv(unsigned int level, const char *fmt, va_list &) _kc_override;
+	_kc_hidden virtual void Reset() KC_OVERRIDE;
+	_kc_hidden virtual bool Log(unsigned int level) KC_OVERRIDE;
+	_kc_hidden virtual void log(unsigned int level, const char *msg) KC_OVERRIDE;
+	_kc_hidden virtual void logf(unsigned int level, const char *fmt, ...) KC_OVERRIDE KC_LIKE_PRINTF(3, 4);
+	_kc_hidden virtual void logv(unsigned int level, const char *fmt, va_list &) KC_OVERRIDE;
 	void AddLogger(std::shared_ptr<ECLogger>);
 };
 
-extern _kc_export ECLogger *ec_log_get(void);
-extern _kc_export void ec_log_set(std::shared_ptr<ECLogger>);
-extern _kc_export void ec_log(unsigned int level, const char *msg, ...) KC_LIKE_PRINTF(2, 3);
-extern _kc_export void ec_log(unsigned int level, const std::string &msg);
+extern KC_EXPORT ECLogger *ec_log_get();
+extern KC_EXPORT void ec_log_set(std::shared_ptr<ECLogger>);
+extern KC_EXPORT void ec_log(unsigned int level, const char *msg, ...) KC_LIKE_PRINTF(2, 3);
+extern KC_EXPORT void ec_log(unsigned int level, const std::string &msg);
 
 #define ec_log_always(...)  ec_log(EC_LOGLEVEL_ALWAYS, __VA_ARGS__)
 #define ec_log_fatal(...)   ec_log(EC_LOGLEVEL_CRIT, __VA_ARGS__)
@@ -286,11 +286,11 @@ extern _kc_export void ec_log(unsigned int level, const std::string &msg);
 #define kc_perrorf(s, r)    ec_log_hrcode((r), EC_LOGLEVEL_ERROR, "%s: " s ": %s (%x)", __PRETTY_FUNCTION__)
 #define kc_pwarn(s, r)      ec_log_hrcode((r), EC_LOGLEVEL_WARNING, s ": %s (%x)", nullptr)
 
-extern _kc_export HRESULT ec_log_hrcode(HRESULT, unsigned int level, const char *fmt, const char *func);
-extern _kc_export std::shared_ptr<ECLogger> CreateLogger(ECConfig *, const char *argv0, const char *service, bool audit = false);
-extern _kc_export void LogConfigErrors(ECConfig *);
-extern _kc_export void ec_setup_segv_handler(const char *app, const char *vers);
-extern _kc_export const std::string &ec_os_pretty_name();
+extern KC_EXPORT HRESULT ec_log_hrcode(HRESULT, unsigned int level, const char *fmt, const char *func);
+extern KC_EXPORT std::shared_ptr<ECLogger> CreateLogger(ECConfig *, const char *argv0, const char *service, bool audit = false);
+extern KC_EXPORT void LogConfigErrors(ECConfig *);
+extern KC_EXPORT void ec_setup_segv_handler(const char *app, const char *vers);
+extern KC_EXPORT const std::string &ec_os_pretty_name();
 
 } /* namespace */
 

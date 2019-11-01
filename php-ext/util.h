@@ -2,9 +2,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef __PHP_EXT_UTIL_H
-#define __PHP_EXT_UTIL_H
+#ifndef EC_PHPEXT_UTIL_H
+#define EC_PHPEXT_UTIL_H
 
 #include <string>
 

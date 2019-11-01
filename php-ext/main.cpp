@@ -75,7 +75,7 @@ extern "C" {
 typedef size_t php_stringsize_t; /* cf. va_arg call in php/Zend/zend_API.c */
 
 // Destructor functions needed for the PHP resources.
-static void _php_free_mapi_rowset(zend_resource *rsrc TSRMLS_DC);
+static void php_free_mapi_rowset(zend_resource *rsrc TSRMLS_DC);
 
 // Not defined anymore in PHP 5.3.0
 #if ZEND_MODULE_API_NO >= 20071006
@@ -167,7 +167,7 @@ ZEND_END_ARG_INFO()
 #include <kopano/charset/utf8string.h>
 #include "charset/localeutil.h"
 
-#define PMEASURE_FUNC pmeasure __pmobject(__PRETTY_FUNCTION__);
+#define PMEASURE_FUNC pmeasure pmobject(__PRETTY_FUNCTION__);
 
 using namespace KC;
 
@@ -486,7 +486,7 @@ static int LoadSettingsFile(void)
 }
 
 template<typename T> static void
-_php_free_mapi_object(zend_resource *rsrc TSRMLS_DC)
+php_free_mapi_object(zend_resource *rsrc TSRMLS_DC)
 {
 	if (rsrc->ptr != nullptr)
 		static_cast<T *>(rsrc->ptr)->Release();
@@ -500,32 +500,32 @@ PHP_MINIT_FUNCTION(mapi) {
 	if (ret != SUCCESS)
 		return ret;
 
-	le_mapi_session = zend_register_list_destructors_ex(_php_free_mapi_object<IMAPISession>, nullptr, const_cast<char *>(name_mapi_session), module_number);
-	le_mapi_table = zend_register_list_destructors_ex(_php_free_mapi_object<IMAPITable>, nullptr, const_cast<char *>(name_mapi_table), module_number);
-	le_mapi_rowset = zend_register_list_destructors_ex(_php_free_mapi_rowset, NULL, const_cast<char *>(name_mapi_rowset), module_number);
-	le_mapi_msgstore = zend_register_list_destructors_ex(_php_free_mapi_object<IMsgStore>, nullptr, const_cast<char *>(name_mapi_msgstore), module_number);
-	le_mapi_addrbook = zend_register_list_destructors_ex(_php_free_mapi_object<IAddrBook>, nullptr, const_cast<char *>(name_mapi_addrbook), module_number);
-	le_mapi_mailuser = zend_register_list_destructors_ex(_php_free_mapi_object<IMailUser>, nullptr, const_cast<char *>(name_mapi_mailuser), module_number);
-	le_mapi_distlist = zend_register_list_destructors_ex(_php_free_mapi_object<IDistList>, nullptr, const_cast<char *>(name_mapi_distlist), module_number);
-	le_mapi_abcont = zend_register_list_destructors_ex(_php_free_mapi_object<IABContainer>, nullptr, const_cast<char *>(name_mapi_abcont), module_number);
-	le_mapi_folder = zend_register_list_destructors_ex(_php_free_mapi_object<IMAPIFolder>, nullptr, const_cast<char *>(name_mapi_folder), module_number);
-	le_mapi_message = zend_register_list_destructors_ex(_php_free_mapi_object<IMessage>, nullptr, const_cast<char *>(name_mapi_message), module_number);
-	le_mapi_attachment = zend_register_list_destructors_ex(_php_free_mapi_object<IAttach>, nullptr, const_cast<char *>(name_mapi_attachment), module_number);
-	le_mapi_property = zend_register_list_destructors_ex(_php_free_mapi_object<IMAPIProp>, nullptr, const_cast<char *>(name_mapi_property), module_number);
-	le_mapi_modifytable = zend_register_list_destructors_ex(_php_free_mapi_object<IExchangeModifyTable>, nullptr, const_cast<char *>(name_mapi_modifytable), module_number);
-	le_mapi_advisesink = zend_register_list_destructors_ex(_php_free_mapi_object<IMAPIAdviseSink>, nullptr, const_cast<char *>(name_mapi_advisesink), module_number);
-	le_istream = zend_register_list_destructors_ex(_php_free_mapi_object<IStream>, nullptr, const_cast<char *>(name_istream), module_number);
+	le_mapi_session = zend_register_list_destructors_ex(php_free_mapi_object<IMAPISession>, nullptr, const_cast<char *>(name_mapi_session), module_number);
+	le_mapi_table = zend_register_list_destructors_ex(php_free_mapi_object<IMAPITable>, nullptr, const_cast<char *>(name_mapi_table), module_number);
+	le_mapi_rowset = zend_register_list_destructors_ex(php_free_mapi_rowset, NULL, const_cast<char *>(name_mapi_rowset), module_number);
+	le_mapi_msgstore = zend_register_list_destructors_ex(php_free_mapi_object<IMsgStore>, nullptr, const_cast<char *>(name_mapi_msgstore), module_number);
+	le_mapi_addrbook = zend_register_list_destructors_ex(php_free_mapi_object<IAddrBook>, nullptr, const_cast<char *>(name_mapi_addrbook), module_number);
+	le_mapi_mailuser = zend_register_list_destructors_ex(php_free_mapi_object<IMailUser>, nullptr, const_cast<char *>(name_mapi_mailuser), module_number);
+	le_mapi_distlist = zend_register_list_destructors_ex(php_free_mapi_object<IDistList>, nullptr, const_cast<char *>(name_mapi_distlist), module_number);
+	le_mapi_abcont = zend_register_list_destructors_ex(php_free_mapi_object<IABContainer>, nullptr, const_cast<char *>(name_mapi_abcont), module_number);
+	le_mapi_folder = zend_register_list_destructors_ex(php_free_mapi_object<IMAPIFolder>, nullptr, const_cast<char *>(name_mapi_folder), module_number);
+	le_mapi_message = zend_register_list_destructors_ex(php_free_mapi_object<IMessage>, nullptr, const_cast<char *>(name_mapi_message), module_number);
+	le_mapi_attachment = zend_register_list_destructors_ex(php_free_mapi_object<IAttach>, nullptr, const_cast<char *>(name_mapi_attachment), module_number);
+	le_mapi_property = zend_register_list_destructors_ex(php_free_mapi_object<IMAPIProp>, nullptr, const_cast<char *>(name_mapi_property), module_number);
+	le_mapi_modifytable = zend_register_list_destructors_ex(php_free_mapi_object<IExchangeModifyTable>, nullptr, const_cast<char *>(name_mapi_modifytable), module_number);
+	le_mapi_advisesink = zend_register_list_destructors_ex(php_free_mapi_object<IMAPIAdviseSink>, nullptr, const_cast<char *>(name_mapi_advisesink), module_number);
+	le_istream = zend_register_list_destructors_ex(php_free_mapi_object<IStream>, nullptr, const_cast<char *>(name_istream), module_number);
 
 	// Freebusy functions
-	le_freebusy_support = zend_register_list_destructors_ex(_php_free_mapi_object<IFreeBusySupport>, nullptr, const_cast<char *>(name_fb_support), module_number);
-	le_freebusy_data = zend_register_list_destructors_ex(_php_free_mapi_object<IFreeBusyData>, nullptr, const_cast<char *>(name_fb_data), module_number);
-	le_freebusy_update = zend_register_list_destructors_ex(_php_free_mapi_object<IFreeBusyUpdate>, nullptr, const_cast<char *>(name_fb_update), module_number);
-	le_freebusy_enumblock = zend_register_list_destructors_ex(_php_free_mapi_object<IEnumFBBlock>, nullptr, const_cast<char *>(name_fb_enumblock), module_number);
+	le_freebusy_support = zend_register_list_destructors_ex(php_free_mapi_object<IFreeBusySupport>, nullptr, const_cast<char *>(name_fb_support), module_number);
+	le_freebusy_data = zend_register_list_destructors_ex(php_free_mapi_object<IFreeBusyData>, nullptr, const_cast<char *>(name_fb_data), module_number);
+	le_freebusy_update = zend_register_list_destructors_ex(php_free_mapi_object<IFreeBusyUpdate>, nullptr, const_cast<char *>(name_fb_update), module_number);
+	le_freebusy_enumblock = zend_register_list_destructors_ex(php_free_mapi_object<IEnumFBBlock>, nullptr, const_cast<char *>(name_fb_enumblock), module_number);
 
 	// ICS interfaces
-	le_mapi_exportchanges = zend_register_list_destructors_ex(_php_free_mapi_object<IExchangeExportChanges>, nullptr, const_cast<char *>(name_mapi_exportchanges), module_number);
-	le_mapi_importhierarchychanges = zend_register_list_destructors_ex(_php_free_mapi_object<IExchangeImportHierarchyChanges>, nullptr, const_cast<char *>(name_mapi_importhierarchychanges), module_number);
-	le_mapi_importcontentschanges = zend_register_list_destructors_ex(_php_free_mapi_object<IExchangeImportContentsChanges>, nullptr, const_cast<char *>(name_mapi_importcontentschanges), module_number);
+	le_mapi_exportchanges = zend_register_list_destructors_ex(php_free_mapi_object<IExchangeExportChanges>, nullptr, const_cast<char *>(name_mapi_exportchanges), module_number);
+	le_mapi_importhierarchychanges = zend_register_list_destructors_ex(php_free_mapi_object<IExchangeImportHierarchyChanges>, nullptr, const_cast<char *>(name_mapi_importhierarchychanges), module_number);
+	le_mapi_importcontentschanges = zend_register_list_destructors_ex(php_free_mapi_object<IExchangeImportContentsChanges>, nullptr, const_cast<char *>(name_mapi_importcontentschanges), module_number);
 	MAPIINIT_0 mapiinit = {0, MAPI_MULTITHREAD_NOTIFICATIONS};
 
 	// There is also a MAPI_NT_SERVICE flag, see help page for MAPIInitialize
@@ -594,7 +594,7 @@ PHP_RSHUTDOWN_FUNCTION(mapi) {
 ***************************************************************/
 
 // This is called when our proxy object goes out of scope
-static void _php_free_mapi_rowset(zend_resource *rsrc TSRMLS_DC)
+static void php_free_mapi_rowset(zend_resource *rsrc TSRMLS_DC)
 {
 	auto pRowSet = static_cast<SRowSet *>(rsrc->ptr);
 	if (pRowSet) FreeProws(pRowSet);

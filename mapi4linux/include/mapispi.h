@@ -6,8 +6,8 @@
  * mapispi.h – Defines flags and interfaces that MAPI implements for service
  * providers and message services.
  */
-#ifndef __M4L_MAPISPI_H_
-#define __M4L_MAPISPI_H_
+#ifndef M4L_MAPISPI_H
+#define M4L_MAPISPI_H
 #define MAPISPI_H
 
 #include <kopano/platform.h>
@@ -68,13 +68,13 @@ struct NOTIFKEY {
 };
 typedef struct NOTIFKEY *LPNOTIFKEY;
 
-#define CbNewNOTIFKEY(_cb)      (offsetof(NOTIFKEY,ab) + (_cb))
-#define CbNOTIFKEY(_lpkey)      (offsetof(NOTIFKEY,ab) + (_lpkey)->cb)
-#define SizedNOTIFKEY(_cb, _name) \
-struct _NOTIFKEY_ ## _name { \
+#define CbNewNOTIFKEY(cb) (offsetof(NOTIFKEY, ab) + (cb))
+#define CbNOTIFKEY(lpkey) (offsetof(NOTIFKEY, ab) + (lpkey)->cb)
+#define SizedNOTIFKEY(cb, name) \
+struct _NOTIFKEY_ ## name { \
     ULONG       cb; \
-    BYTE        ab[_cb]; \
-} _name
+	BYTE ab[cb]; \
+} name
 
 /* For Subscribe() */
 #define NOTIFY_SYNC             ((ULONG) 0x40000000)
@@ -233,7 +233,7 @@ typedef HRESULT (ABPROVIDERINIT)(
     LPABPROVIDER *  lppABProvider
 );
 
-_kc_export ABPROVIDERINIT ABProviderInit;
+KC_EXPORT ABPROVIDERINIT ABProviderInit;
 }
 
 /********************************************************************/
@@ -433,7 +433,7 @@ typedef HRESULT (MSPROVIDERINIT)(
     LPMSPROVIDER *      lppMSProvider
 );
 
-_kc_export MSPROVIDERINIT MSProviderInit;
+KC_EXPORT MSPROVIDERINIT MSProviderInit;
 }
 
 /********************************************************************/

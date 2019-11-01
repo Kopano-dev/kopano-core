@@ -688,10 +688,10 @@ private:
 };
 
 extern "C" {
-	extern _kc_export UserPlugin *getUserPluginInstance(std::mutex &, ECPluginSharedData *);
-	extern _kc_export void deleteUserPluginInstance(UserPlugin *);
-	extern _kc_export unsigned long getUserPluginVersion(void);
-	extern _kc_export const char kcsrv_plugin_version[];
+	extern KC_EXPORT UserPlugin *getUserPluginInstance(std::mutex &, ECPluginSharedData *);
+	extern KC_EXPORT void deleteUserPluginInstance(UserPlugin *);
+	extern KC_EXPORT unsigned long getUserPluginVersion();
+	extern KC_EXPORT const char kcsrv_plugin_version[];
 }
 /** @} */
 

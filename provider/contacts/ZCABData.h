@@ -13,6 +13,6 @@ struct cabEntryID {
 	ULONG ulOffset;				/* offset in m_lpFolders or email address of contact object */
 	BYTE origEntryID[1];		/* entryid of wrapped object */
 };
-#define CbNewCABENTRYID(_cb)	(offsetof(cabEntryID,origEntryID) + (_cb))
+#define CbNewCABENTRYID(cb) (offsetof(cabEntryID, origEntryID) + (cb))
 
 #endif

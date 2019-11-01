@@ -64,7 +64,7 @@ private:
 	std::condition_variable m_condSessions;
 };
 
-extern _kc_export void (*kopano_notify_done)(struct soap *);
+extern KC_EXPORT void (*kopano_notify_done)(struct soap *);
 
 } /* namespace */
 

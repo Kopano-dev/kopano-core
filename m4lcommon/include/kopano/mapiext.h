@@ -693,7 +693,7 @@ PR_ADDITIONAL_REN_ENTRYIDS:
 /* from edkmapi.h .. or so they say on internet */
 /* Values of PR_NDR_REASON_CODE */
 #ifndef MAPI_REASON
-#define MAPI_REASON(_code)	((LONG) _code)
+#define MAPI_REASON(code) static_cast<int>(code)
 #define MAPI_REASON_TRANSFER_FAILED           MAPI_REASON( 0 )
 #define MAPI_REASON_TRANSFER_IMPOSSIBLE       MAPI_REASON( 1 )
 #define MAPI_REASON_CONVERSION_NOT_PERFORMED  MAPI_REASON( 2 )

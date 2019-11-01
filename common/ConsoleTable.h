@@ -2,9 +2,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef __CONSOLE_TABLE_H
-#define __CONSOLE_TABLE_H
+#ifndef EC_CONSOLE_TABLE_H
+#define EC_CONSOLE_TABLE_H
 
 #include <kopano/zcdefs.h>
 #include <string>
@@ -13,7 +12,7 @@
 
 namespace KC {
 
-class _kc_export ConsoleTable KC_FINAL {
+class KC_EXPORT ConsoleTable KC_FINAL {
 public:
 	ConsoleTable(size_t rows, size_t columns);
 	_kc_hidden void Clear(void);

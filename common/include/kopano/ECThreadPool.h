@@ -22,7 +22,7 @@ class ECTask;
 class ECThreadPool;
 class ECWatchdog;
 
-class _kc_export ECThreadWorker {
+class KC_EXPORT ECThreadWorker {
 	public:
 	ECThreadWorker(ECThreadPool *);
 	virtual ~ECThreadWorker() {}
@@ -37,7 +37,7 @@ class _kc_export ECThreadWorker {
  * The amount of workers can be modified at run time, but is not automatically
  * adjusted based on the task queue length or age.
  */
-class _kc_export ECThreadPool {
+class KC_EXPORT ECThreadPool {
 	protected:
 	struct STaskInfo {
 		ECTask			*lpTask;
@@ -91,7 +91,7 @@ public:
  * executed.
  * There is no way of knowing when the task is done.
  */
-class _kc_export ECTask {
+class KC_EXPORT ECTask {
 public:
 	virtual ~ECTask(void) = default;
 	virtual void execute(void);
@@ -128,7 +128,7 @@ inline bool ECTask::queue_on(ECThreadPool *p, bool own)
  * derived object. It's similar to an ECTask, but one can wait for the task
  * to be finished.
  */
-class _kc_export ECWaitableTask : public ECTask {
+class KC_EXPORT ECWaitableTask : public ECTask {
 public:
 	static const unsigned WAIT_INFINITE = (unsigned)-1;
 
@@ -139,7 +139,7 @@ public:
 	};
 
 	virtual ~ECWaitableTask();
-	virtual void execute(void) _kc_override;
+	virtual void execute() override;
 	bool done() const { return m_state == Done; }
 	bool wait(unsigned timeout = WAIT_INFINITE, unsigned waitMask = Done) const;
 
@@ -168,10 +168,7 @@ public:
 	ECDeferredFunc(Fn fn, const At &arg) : m_fn(fn), m_arg(arg)
 	{ }
 
-	virtual void run(void) _kc_override
-	{
-		m_result = m_fn(m_arg);
-	}
+	virtual void run() override { m_result = m_fn(m_arg); }
 
 	/**
 	 * Get the result of the asynchronous function. This method will

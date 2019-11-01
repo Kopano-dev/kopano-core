@@ -19,53 +19,53 @@ namespace KC {
 
 namespace Util {
 
-extern _kc_export HRESULT HrAddToPropertyArray(const SPropValue *src, unsigned int srcvals, const SPropValue *add, SPropValue **dest, unsigned int *ndestvals);
-extern _kc_export HRESULT HrMergePropertyArrays(const SPropValue *src, unsigned int srcvals, const SPropValue *adds, unsigned int naddvals, SPropValue **dest, unsigned int *destvals);
-extern _kc_export HRESULT HrCopyPropertyArray(const SPropValue *src, unsigned int srcvals, SPropValue **dest, unsigned int *destvals, bool excl_errors = false);
+extern KC_EXPORT HRESULT HrAddToPropertyArray(const SPropValue *src, unsigned int srcvals, const SPropValue *add, SPropValue **dest, unsigned int *ndestvals);
+extern KC_EXPORT HRESULT HrMergePropertyArrays(const SPropValue *src, unsigned int srcvals, const SPropValue *adds, unsigned int naddvals, SPropValue **dest, unsigned int *destvals);
+extern KC_EXPORT HRESULT HrCopyPropertyArray(const SPropValue *src, unsigned int srcvals, SPropValue **dest, unsigned int *destvals, bool excl_errors = false);
 extern HRESULT HrCopyPropertyArrayByRef(const SPropValue *src, unsigned int srcvals, SPropValue **dest, unsigned int *destvals, bool excl_errors = false);
 extern HRESULT HrCopyPropertyArray(const SPropValue *src, unsigned int srcvals, SPropValue *dest, void *base);
 extern HRESULT HrCopyPropertyArrayByRef(const SPropValue *src, unsigned int srcvals, SPropValue *dest);
-extern _kc_export HRESULT HrCopyProperty(SPropValue *dest, const SPropValue *src, void *base, ALLOCATEMORE * = nullptr);
+extern KC_EXPORT HRESULT HrCopyProperty(SPropValue *dest, const SPropValue *src, void *base, ALLOCATEMORE * = nullptr);
 extern HRESULT HrCopyPropertyByRef(SPropValue *dest, const SPropValue *src);
-extern _kc_export HRESULT HrCopySRestriction(SRestriction *dst, const SRestriction *src, void *base);
-extern _kc_export HRESULT  HrCopySRestriction(SRestriction **dst, const SRestriction *src);
+extern KC_EXPORT HRESULT HrCopySRestriction(SRestriction *dst, const SRestriction *src, void *base);
+extern KC_EXPORT HRESULT  HrCopySRestriction(SRestriction **dst, const SRestriction *src);
 extern HRESULT HrCopySRowSet(SRowSet *dest, const SRowSet *src, void *base);
-extern _kc_export HRESULT HrCopySRow(SRow *dest, const SRow *src, void *base);
-extern _kc_export HRESULT HrCopyPropTagArray(const SPropTagArray *src, SPropTagArray **dst);
-extern _kc_export void proptag_change_unicode(unsigned int flags, SPropTagArray &);
-extern _kc_export HRESULT HrCopyBinary(unsigned int size, const BYTE *src, unsigned int *destsize, BYTE **dest, void *base = nullptr);
-extern _kc_export HRESULT HrCopyEntryId(unsigned int size, const ENTRYID *src, unsigned int *destsize, ENTRYID **dest, void *base = nullptr);
-extern _kc_export int CompareSBinary(const SBinary &, const SBinary &);
-extern _kc_export HRESULT CompareProp(const SPropValue *, const SPropValue *, const ECLocale &, int *res);
+extern KC_EXPORT HRESULT HrCopySRow(SRow *dest, const SRow *src, void *base);
+extern KC_EXPORT HRESULT HrCopyPropTagArray(const SPropTagArray *src, SPropTagArray **dst);
+extern KC_EXPORT void proptag_change_unicode(unsigned int flags, SPropTagArray &);
+extern KC_EXPORT HRESULT HrCopyBinary(unsigned int size, const BYTE *src, unsigned int *destsize, BYTE **dest, void *base = nullptr);
+extern KC_EXPORT HRESULT HrCopyEntryId(unsigned int size, const ENTRYID *src, unsigned int *destsize, ENTRYID **dest, void *base = nullptr);
+extern KC_EXPORT int CompareSBinary(const SBinary &, const SBinary &);
+extern KC_EXPORT HRESULT CompareProp(const SPropValue *, const SPropValue *, const ECLocale &, int *res);
 extern unsigned int PropSize(const SPropValue *);
-extern _kc_export int FindPropInArray(const SPropTagArray *proptags, unsigned int tag);
-extern _kc_export HRESULT HrStreamToString(IStream *in, std::string &out);
-extern _kc_export HRESULT HrStreamToString(IStream *in, std::wstring &out);
-extern _kc_export HRESULT HrTextToRtf(IStream *text, IStream *rtf);
-extern _kc_export HRESULT HrTextToHtml(IStream *text, IStream *html, unsigned int codepage);
-extern _kc_export HRESULT HrTextToHtml(const wchar_t *text, std::string &html, unsigned int codepage);
-extern _kc_export HRESULT HrHtmlToText(IStream *html, IStream *text, unsigned int codepage);
-extern _kc_export HRESULT HrHtmlToRtf(IStream *html, IStream *rtf, unsigned int codepage);
+extern KC_EXPORT int FindPropInArray(const SPropTagArray *proptags, unsigned int tag);
+extern KC_EXPORT HRESULT HrStreamToString(IStream *in, std::string &out);
+extern KC_EXPORT HRESULT HrStreamToString(IStream *in, std::wstring &out);
+extern KC_EXPORT HRESULT HrTextToRtf(IStream *text, IStream *rtf);
+extern KC_EXPORT HRESULT HrTextToHtml(IStream *text, IStream *html, unsigned int codepage);
+extern KC_EXPORT HRESULT HrTextToHtml(const wchar_t *text, std::string &html, unsigned int codepage);
+extern KC_EXPORT HRESULT HrHtmlToText(IStream *html, IStream *text, unsigned int codepage);
+extern KC_EXPORT HRESULT HrHtmlToRtf(IStream *html, IStream *rtf, unsigned int codepage);
 extern HRESULT HrHtmlToRtf(const wchar_t *whtml, std::string &rtf);
 extern unsigned int GetBestBody(const SPropValue *body, const SPropValue *html, const SPropValue *rtfcomp, const SPropValue *rtfinsync, unsigned int flags);
-extern _kc_export unsigned int GetBestBody(IMAPIProp *obj, unsigned int flags);
-extern _kc_export unsigned int GetBestBody(SPropValue *props, unsigned int nvals, unsigned int flags);
-extern _kc_export bool IsBodyProp(unsigned int tag);
-extern _kc_export HRESULT HrMAPIErrorToText(HRESULT, TCHAR **err, void *base = nullptr);
-extern _kc_export bool ValidatePropTagArray(const SPropTagArray *);
-extern _kc_export HRESULT hex2bin(const char *input, size_t len, unsigned int *outlen, BYTE **output, void *parent = nullptr);
+extern KC_EXPORT unsigned int GetBestBody(IMAPIProp *obj, unsigned int flags);
+extern KC_EXPORT unsigned int GetBestBody(SPropValue *props, unsigned int nvals, unsigned int flags);
+extern KC_EXPORT bool IsBodyProp(unsigned int tag);
+extern KC_EXPORT HRESULT HrMAPIErrorToText(HRESULT, TCHAR **err, void *base = nullptr);
+extern KC_EXPORT bool ValidatePropTagArray(const SPropTagArray *);
+extern KC_EXPORT HRESULT hex2bin(const char *input, size_t len, unsigned int *outlen, BYTE **output, void *parent = nullptr);
 extern HRESULT hex2bin(const char *input, size_t len, BYTE *output);
-extern _kc_export HRESULT CopyAttachments(IMessage *src, IMessage *dst, SRestriction *r);
-extern _kc_export HRESULT DoCopyTo(const IID *src_intf, void *src_obj, unsigned int ciidExclude, const IID *rgiidExclude, const SPropTagArray *exclprop, unsigned int ui_param, IMAPIProgress *, const IID *dst_intf, void *dst_obj, unsigned int flags, SPropProblemArray **);
-extern _kc_export HRESULT DoCopyProps(const IID *src_intf, void *src_obj, const SPropTagArray *inclprop, unsigned int ui_param, IMAPIProgress *, const IID *dst_intf, void *dst_obj, unsigned int flags, SPropProblemArray **);
-extern _kc_export HRESULT HrCopyIMAPData(IMessage *src, IMessage *dst);
-extern _kc_export HRESULT HrDeleteIMAPData(IMessage *);
-extern _kc_export HRESULT HrGetQuotaStatus(IMsgStore *, ECQUOTA *, ECQUOTASTATUS **ret);
-extern _kc_export HRESULT HrDeleteAttachments(IMessage *);
-extern _kc_export HRESULT HrDeleteMessage(IMAPISession *, IMessage *);
-extern _kc_export HRESULT ReadProperty(IMAPIProp *, unsigned int tag, std::string &data);
-extern _kc_export HRESULT WriteProperty(IMAPIProp *, unsigned int tag, const std::string &data);
-extern _kc_export HRESULT ExtractSuggestedContactsEntryID(SPropValue *prop_blob, unsigned int *eid_size, ENTRYID **eid);
+extern KC_EXPORT HRESULT CopyAttachments(IMessage *src, IMessage *dst, SRestriction *r);
+extern KC_EXPORT HRESULT DoCopyTo(const IID *src_intf, void *src_obj, unsigned int ciidExclude, const IID *rgiidExclude, const SPropTagArray *exclprop, unsigned int ui_param, IMAPIProgress *, const IID *dst_intf, void *dst_obj, unsigned int flags, SPropProblemArray **);
+extern KC_EXPORT HRESULT DoCopyProps(const IID *src_intf, void *src_obj, const SPropTagArray *inclprop, unsigned int ui_param, IMAPIProgress *, const IID *dst_intf, void *dst_obj, unsigned int flags, SPropProblemArray **);
+extern KC_EXPORT HRESULT HrCopyIMAPData(IMessage *src, IMessage *dst);
+extern KC_EXPORT HRESULT HrDeleteIMAPData(IMessage *);
+extern KC_EXPORT HRESULT HrGetQuotaStatus(IMsgStore *, ECQUOTA *, ECQUOTASTATUS **ret);
+extern KC_EXPORT HRESULT HrDeleteAttachments(IMessage *);
+extern KC_EXPORT HRESULT HrDeleteMessage(IMAPISession *, IMessage *);
+extern KC_EXPORT HRESULT ReadProperty(IMAPIProp *, unsigned int tag, std::string &data);
+extern KC_EXPORT HRESULT WriteProperty(IMAPIProp *, unsigned int tag, const std::string &data);
+extern KC_EXPORT HRESULT ExtractSuggestedContactsEntryID(SPropValue *prop_blob, unsigned int *eid_size, ENTRYID **eid);
 extern HRESULT ExtractAdditionalRenEntryID(SPropValue *prop_blob, unsigned short block_type, unsigned int *eid_size, ENTRYID **eid);
 
 } /* namespace Util */
@@ -119,7 +119,7 @@ template<typename T> class alloc_wrap {
 
 #define ALLOC_WRAP_FRIEND template<typename T> friend class ::KC::alloc_wrap
 
-extern _kc_export HRESULT qi_void_to_imapiprop(void *, const IID &, IMAPIProp **);
+extern KC_EXPORT HRESULT qi_void_to_imapiprop(void *, const IID &, IMAPIProp **);
 
 } /* namespace */
 

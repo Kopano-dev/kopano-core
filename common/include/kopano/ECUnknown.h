@@ -20,11 +20,11 @@ namespace KC {
  * @param[in]	_interface	The class which implements the interface
  * @note guid variable must be named 'refiid', return variable must be named lppInterface.
  */
-#define REGISTER_INTERFACE(_guid, _interface)	\
+#define REGISTER_INTERFACE(guid, interface) \
 	do { \
-		if (refiid == (_guid)) { \
+		if (refiid == (guid)) { \
 			AddRef(); \
-			*lppInterface = reinterpret_cast<void *>(_interface); \
+			*lppInterface = reinterpret_cast<void *>(interface); \
 			return hrSuccess; \
 		} \
 	} while (false)
@@ -46,13 +46,13 @@ namespace KC {
 		} \
 	} while (false)
 
-class _kc_export ECUnknown : public virtual IUnknown {
+class KC_EXPORT ECUnknown : public virtual IUnknown {
 public:
 	ECUnknown(const char *szClassName = NULL);
 	virtual ~ECUnknown(void);
-	virtual ULONG AddRef(void) _kc_override;
-	virtual ULONG Release(void) _kc_override;
-	virtual HRESULT QueryInterface(REFIID refiid, void **iface) _kc_override;
+	virtual ULONG AddRef() KC_OVERRIDE;
+	virtual ULONG Release() KC_OVERRIDE;
+	virtual HRESULT QueryInterface(REFIID refiid, void **iface) KC_OVERRIDE;
 	virtual HRESULT AddChild(ECUnknown *lpChild);
 	virtual HRESULT RemoveChild(ECUnknown *lpChild);
 

@@ -26,7 +26,7 @@ namespace operations {
 /**
  * Performs the copy part of the archive operation.
  */
-class _kc_export Copier final : public ArchiveOperationBaseEx {
+class KC_EXPORT Copier final : public ArchiveOperationBaseEx {
 public:
 	_kc_hidden Copier(ArchiverSessionPtr, ECConfig *, std::shared_ptr<ECArchiverLogger>, const ObjectEntryList &archives, const SPropTagArray *exclprop, int age, bool process_unread);
 	_kc_hidden ~Copier(void);
@@ -49,7 +49,7 @@ public:
 	 */
 	_kc_hidden void SetStubOperation(StubberPtr);
 
-	class _kc_export Helper { // For lack of a better name
+	class KC_EXPORT Helper { // For lack of a better name
 	public:
 		Helper(ArchiverSessionPtr, std::shared_ptr<ECLogger>, const InstanceIdMapperPtr &, const SPropTagArray *exclprop, LPMAPIFOLDER folder);
 

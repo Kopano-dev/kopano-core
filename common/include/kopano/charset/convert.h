@@ -58,7 +58,7 @@ class KC_EXPORT_THROW illegal_sequence_exception KC_FINAL :
 /**
  * @brief	Performs the generic iconv processing.
  */
-class _kc_export iconv_context_base {
+class KC_EXPORT iconv_context_base {
 	public:
 	virtual ~iconv_context_base();
 
@@ -156,7 +156,7 @@ class KC_EXPORT_DYCAST iconv_context KC_FINAL :
 	}
 
 	private:
-	_kc_hidden void append(const char *lpBuf, size_t cbBuf) _kc_override
+	_kc_hidden void append(const char *lpBuf, size_t cbBuf) KC_OVERRIDE
 	{
 		m_to.append(reinterpret_cast<typename To_Type::const_pointer>(lpBuf),
 			cbBuf / sizeof(typename To_Type::value_type));
@@ -219,7 +219,7 @@ inline To_Type convert_to(const char *tocode, const From_Type &from,
  * same context. This basically means that the iconv_context classes can
  * be reused, removing the need to recreate them for each conversion.
  */
-class _kc_export convert_context KC_FINAL {
+class KC_EXPORT convert_context KC_FINAL {
 public:
 	convert_context(void) = default;
 	~convert_context();
@@ -270,9 +270,9 @@ public:
 	 */
 	template<typename To_Type, typename From_Type>
 	_kc_hidden To_Type convert_to(const char *tocode,
-	    const From_Type &_from, size_t cbBytes, const char *fromcode)
+	    const From_Type &from, size_t cbBytes, const char *fromcode)
 	{
-		return helper<To_Type>(*this).convert(tocode, _from, cbBytes, fromcode);
+		return helper<To_Type>(*this).convert(tocode, from, cbBytes, fromcode);
 	}
 
 private:
@@ -568,7 +568,7 @@ private:
 	 *
 	 * @param[in,out]	key		The key for which the second field will be persisted.
 	 */
-	_kc_export void persist_code(context_key &key, unsigned flags);
+	void persist_code(context_key &key, unsigned flags);
 
 	/**
 	 * Persist the string so a raw pointer to its content can be used.
@@ -635,7 +635,7 @@ private:
  */
 #define TO_UTF8_DEF(ptr) TO_UTF8(converter, (ptr), ulFlags)
 
-extern _kc_export HRESULT HrFromException(const convert_exception &);
+extern KC_EXPORT HRESULT HrFromException(const convert_exception &);
 
 #ifdef MAPIDEFS_H
 

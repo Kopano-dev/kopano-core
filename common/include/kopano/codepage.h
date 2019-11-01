@@ -9,8 +9,8 @@
 
 namespace KC {
 
-extern _kc_export HRESULT HrGetCharsetByCP(ULONG cp, const char **ret);
-extern _kc_export HRESULT HrGetCPByCharset(const char *cset, ULONG *cp);
+extern KC_EXPORT HRESULT HrGetCharsetByCP(unsigned int cp, const char **ret);
+extern KC_EXPORT HRESULT HrGetCPByCharset(const char *cset, unsigned int *cp);
 
 } /* namespace */
 

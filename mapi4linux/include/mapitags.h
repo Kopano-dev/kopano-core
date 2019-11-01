@@ -3,8 +3,8 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 /* mapitags.h – Defines property tags */
-#ifndef __M4L_MAPITAGS_H_
-#define __M4L_MAPITAGS_H_
+#ifndef M4L_MAPITAGS_H
+#define M4L_MAPITAGS_H
 #define MAPITAGS_H
 
 #include <kopano/platform.h>

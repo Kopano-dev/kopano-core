@@ -14,8 +14,7 @@
  * IUnknownImplementor takes care of the IUnknown part of an IUnknown
  * derived interface.
  */
-template <typename _Interface>
-class IUnknownImplementor : public _Interface {
+template<typename Interface> class IUnknownImplementor : public Interface {
 public:
 	IUnknownImplementor(ULONG cInterfaces, LPCIID lpInterfaces)
 	: m_interfaces(lpInterfaces, lpInterfaces + cInterfaces, &IIDLess)

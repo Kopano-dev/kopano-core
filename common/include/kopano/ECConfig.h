@@ -29,7 +29,7 @@ struct configsetting_t {
 
 static const char *const lpszDEFAULTDIRECTIVES[] = {"include", NULL};
 
-class _kc_export ECConfig {
+class KC_EXPORT ECConfig {
 public:
 	static ECConfig *Create(const configsetting_t *defaults, const char *const *directives = lpszDEFAULTDIRECTIVES);
 	static ECConfig *Create(const std::nothrow_t &, const configsetting_t *defaults, const char *const *directives = lpszDEFAULTDIRECTIVES);

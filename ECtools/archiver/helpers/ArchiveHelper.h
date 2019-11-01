@@ -38,7 +38,7 @@ enum AttachType {
  * The ArchiveHelper class is a utility class that operates on a message store that's used as
  * an archive.
  */
-class _kc_export ArchiveHelper final {
+class KC_EXPORT ArchiveHelper final {
 public:
 	_kc_hidden static HRESULT Create(LPMDB arc_store, const tstring &folder, const char *server_path, ArchiveHelperPtr *);
 	_kc_hidden static HRESULT Create(LPMDB arc_store, LPMAPIFOLDER arc_folder, const char *server_path, ArchiveHelperPtr *);

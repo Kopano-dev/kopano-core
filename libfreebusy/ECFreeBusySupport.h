@@ -30,7 +30,7 @@ namespace KC {
 /**
  * Implementatie of the IFreeBusySupport interface
  */
-class _kc_export ECFreeBusySupport KC_FINAL_OPG :
+class KC_EXPORT ECFreeBusySupport KC_FINAL_OPG :
     public ECUnknown, public IFreeBusySupport,
     public IFreeBusySupportOutlook2000 {
 private:
@@ -39,7 +39,7 @@ public:
 	static HRESULT Create(ECFreeBusySupport** lppFreeBusySupport);
 
 	// From IUnknown
-		virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) KC_OVERRIDE;
 
 		// IFreeBusySupport
 	virtual HRESULT Open(IMAPISession *, IMsgStore *, BOOL do_store) override;

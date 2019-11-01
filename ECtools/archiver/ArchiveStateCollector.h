@@ -25,7 +25,7 @@ typedef std::shared_ptr<ArchiveStateCollector> ArchiveStateCollectorPtr;
  * should-be archive state, which is the set of attached archives for each
  * primary store as specified in LDAP/ADS.
  */
-class _kc_export ArchiveStateCollector final {
+class KC_EXPORT ArchiveStateCollector final {
 public:
 	static HRESULT Create(const ArchiverSessionPtr &ptrSession, std::shared_ptr<ECLogger>, ArchiveStateCollectorPtr *lpptrCollector);
 	HRESULT GetArchiveStateUpdater(ArchiveStateUpdaterPtr *lpptrUpdater);

@@ -509,8 +509,8 @@ static std::string mapitable_ToString(const SPropValue *lpProp)
 
 static std::string getMapiPropertyString(ULONG ulPropTag)
 {
-#define PROP_TO_STRING(__proptag) \
-case PROP_ID(__proptag): return #__proptag
+#define PROP_TO_STRING(tag) \
+	case PROP_ID(tag): return #tag
 
 	/* Keep synchronized with ECTableManager.cpp prop lists */
 	switch (PROP_ID(ulPropTag)) {

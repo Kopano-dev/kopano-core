@@ -24,7 +24,7 @@ struct sFailedRecip {
 
 // Sender Base class
 // implementation of smtp sender in ECVMIMEUtils as ECVMIMESender
-class _kc_export ECSender {
+class KC_EXPORT ECSender {
 protected:
 	std::string smtphost;
 	std::wstring error;
@@ -44,27 +44,27 @@ public:
 };
 
 /* c wrapper to create object */
-extern _kc_export ECSender *CreateSender(const std::string &smtphost, int port);
+extern KC_EXPORT ECSender *CreateSender(const std::string &smtphost, int port);
 
 // Read char Buffer and set properties on open lpMessage object
-extern _kc_export HRESULT IMToMAPI(IMAPISession *, IMsgStore *, IAddrBook *, IMessage *, const std::string &input, delivery_options dopt);
+extern KC_EXPORT HRESULT IMToMAPI(IMAPISession *, IMsgStore *, IAddrBook *, IMessage *, const std::string &input, delivery_options dopt);
 
 // Read properties from lpMessage object and fill a buffer with internet rfc822 format message
 // Use this one for retrieving messages not in outgoing que, they already have PR_SENDER_EMAIL/NAME
 // This can be used in making pop3 / imap server
 
 // Read properties from lpMessage object and fill buffer with internet rfc822 format message
-extern _kc_export HRESULT IMToINet(IMAPISession *, IAddrBook *, IMessage *, char **lppbuf, sending_options);
+extern KC_EXPORT HRESULT IMToINet(IMAPISession *, IAddrBook *, IMessage *, char **lppbuf, sending_options);
 
 // Read properties from lpMessage object and output to stream with internet rfc822 format message
-extern _kc_export HRESULT IMToINet(IMAPISession *, IAddrBook *, IMessage *, std::ostream &, sending_options);
+extern KC_EXPORT HRESULT IMToINet(IMAPISession *, IAddrBook *, IMessage *, std::ostream &, sending_options);
 
 // Read properties from lpMessage object and send using  lpSMTPHost
-extern _kc_export HRESULT IMToINet(IMAPISession *, IAddrBook *, IMessage *, ECSender *mailer, sending_options);
+extern KC_EXPORT HRESULT IMToINet(IMAPISession *, IAddrBook *, IMessage *, ECSender *mailer, sending_options);
 
 // Parse the RFC822 input and create IMAP Envelope, Body and Bodystructure property values
-extern _kc_export HRESULT createIMAPProperties(const std::string &input, std::string *envelope, std::string *body, std::string *bodystruct);
-extern _kc_export HRESULT createIMAPBody(const std::string &input, IMessage *lpMessage, bool envelope = false);
+extern KC_EXPORT HRESULT createIMAPProperties(const std::string &input, std::string *envelope, std::string *body, std::string *bodystruct);
+extern KC_EXPORT HRESULT createIMAPBody(const std::string &input, IMessage *lpMessage, bool envelope = false);
 
 } /* namespace */
 

@@ -13,7 +13,7 @@ class mapitovcf {
 	virtual HRESULT finalize(std::string *) = 0;
 };
 
-extern _kc_export HRESULT create_mapitovcf(mapitovcf **);
+extern KC_EXPORT HRESULT create_mapitovcf(mapitovcf **);
 
 } /* namespace */
 

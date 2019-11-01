@@ -57,7 +57,7 @@ struct BUSYSTATE {
 /*
   BaseType session
 */
-class _kc_export BTSession {
+class KC_EXPORT BTSession {
 public:
 	_kc_hidden BTSession(const char *addr, ECSESSIONID, ECDatabaseFactory *, ECSessionManager *, unsigned int caps);
 	_kc_hidden virtual ~BTSession(void) = default;

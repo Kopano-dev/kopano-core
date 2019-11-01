@@ -27,7 +27,7 @@
 
 using namespace KC;
 
-#define CONVERT_TO(_context, _charset, ...) ((_context) ? (_context)->convert_to<_charset>(__VA_ARGS__) : convert_to<_charset>(__VA_ARGS__))
+#define CONVERT_TO(ctx, cset, ...) ((ctx) ? (ctx)->convert_to<cset>(__VA_ARGS__) : convert_to<cset>(__VA_ARGS__))
 
 HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
     convert_context *lpConverter)

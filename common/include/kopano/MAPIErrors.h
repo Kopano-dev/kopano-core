@@ -16,7 +16,7 @@
 #include <kopano/platform.h>	// for declaration of HRESULT
 #include <string>
 
-#ifndef __M4L_MAPICODE_H_
+#ifndef M4L_MAPICODE_H
 #ifndef MAPICODE_H
 const HRESULT MAPI_E_CALL_FAILED					= 0x80004005;
 const HRESULT MAPI_E_NOT_ENOUGH_MEMORY				= 0x8007000E;
@@ -102,8 +102,8 @@ const HRESULT MAPI_E_STORE_FULL						= 0x8004060c;
 
 namespace KC {
 
-extern _kc_export const char *GetMAPIErrorMessage(HRESULT);
-extern _kc_export std::string getMapiCodeString(HRESULT, const char *object = "object");
+extern KC_EXPORT const char *GetMAPIErrorMessage(HRESULT);
+extern KC_EXPORT std::string getMapiCodeString(HRESULT, const char *object = "object");
 
 } /* namespace */
 

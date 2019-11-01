@@ -25,7 +25,7 @@ class MessageState;
  * The MAPIPropHelper class provides some common utility functions that relate to IMAPIProp
  * objects in the archiver context.
  */
-class _kc_export MAPIPropHelper {
+class KC_EXPORT MAPIPropHelper {
 public:
 	static HRESULT Create(MAPIPropPtr ptrMapiProp, MAPIPropHelperPtr *lpptrMAPIPropHelper);
 	_kc_hidden virtual ~MAPIPropHelper(void) = default;
