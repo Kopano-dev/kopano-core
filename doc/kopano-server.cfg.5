@@ -105,7 +105,7 @@ Default:
 .PP
 DNS name of the server. This is used for the Kerberos single sign\-on environment. If empty (default), the FQDN or hostname will be used.
 .PP
-Default:
+Default: (empty)
 .SS database_engine
 .PP
 The database engine to use. Values can be:
@@ -314,12 +314,12 @@ Default:
 .PP
 The password to use for MySQL. Leave empty for no password.
 .PP
-Default:
+Default: (empty)
 .SS mysql_socket
 .PP
 The socket of the MySQL server to use. This option can be used to override the default mysql socket. To use the socket, the mysql_host value must be empty or \fBlocalhost\fP.
 .PP
-Default:
+Default: (empty)
 .SS mysql_database
 .PP
 The MySQL database to connect to.
@@ -988,7 +988,7 @@ However, internal ("behind" the proxy) redirections must *not* be redirected to 
 .PP
 Another effect of this option is that when a proxy connection is detected, kopano\-server attempts to use the "X\-Forwarded\-For" header to determine the originating IP address. This is used for logging and session binding (a session initiated on a certain IP address may not be accessed from another IP address).
 .PP
-Default:
+Default: (empty)
 .SS shared_reminders
 .PP
 Enable/disable reminders for shared stores.
