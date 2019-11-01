@@ -42,85 +42,63 @@ Include and process
 Example: !include common.cfg
 .RE
 .SH "EXPLANATION OF THE SERVER SETTINGS PARAMETERS"
+.SS server_socket
 .PP
-\fBserver_socket\fR
-.RS 4
 Socket to find the connection to the Kopano server.
-.sp
+.PP
 Default:
 \fIfile:///var/run/kopano/server.sock\fR
-.RE
+.SS sslkey_file
 .PP
-\fBsslkey_file\fR
-.RS 4
 The file containing the private key and certificate. Please read the SSL section in the
 \fBkopano-server\fR(8)
 manual on how to create this file.
-.sp
+.PP
 Default:
 \fI/etc/kopano/ssl/search.pem\fR
-.RE
+.SS sslkey_pass
 .PP
-\fBsslkey_pass\fR
-.RS 4
 Enter your password here when your key file contains a password to be readable.
-.sp
+.PP
 No default set.
-.RE
 .SH "EXPLANATION OF THE LOG SETTINGS PARAMETERS"
+.SS log_method
 .PP
-\fBlog_method\fR
-.RS 4
 The method which should be used for logging. Valid values are:
-.PP
+.TP
 \fBsyslog\fP
-.RS 4
-Use the Linux system log. All messages will be written to the mail facility. See also
-\fBsyslog.conf\fR(5).
-.RE
-.PP
+Use the Linux system log. All messages will be written to the mail facility. See also \fBsyslog.conf\fR(5).
+.TP
 \fBfile\fP
-.RS 4
-Log to a file. The filename will be specified in
-\fBlog_file\fR.
-.RE
-.sp
+Log to a file. The filename will be specified in \fBlog_file\fR.
+.PP
 Default:
 \fIfile\fR
-.RE
+.SS log_level
 .PP
-\fBlog_level\fR
-.RS 4
 The level of output for logging in the range from 0 to 5. 0 means no logging, 5 means full logging.
-.sp
+.PP
 Default:
 \fI3\fR
-.RE
+.SS log_file
 .PP
-\fBlog_file\fR
-.RS 4
 When logging to a file, specify the filename in this parameter. Use
 \fB\-\fP
 (minus sign) for stderr output.
-.sp
+.PP
 Default:
 \fI\-\fP
-.RE
 .SH "EXPLANATION OF THE BACKUP SETTINGS PARAMETERS"
+.SS worker_processes
 .PP
-\fBworker_processes\fR
-.RS 4
 Maximum number of stores to backup in parallel
-.sp
-Default: \fI1\fP
-.RE
 .PP
-\fBbackup_servers\fR
-.RS 4
+Default: \fI1\fP
+.SS backup_servers
+.PP
 Only servers in this list will be processed by the backup tool. Servernames are SPACE separated. Default is empty which will process all servers.
-.sp
+.PP
 Default: (empty)
-.RE
 .SH "SEE ALSO"
 .PP
 \fBkopano-backup\fR(8)

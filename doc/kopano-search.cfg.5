@@ -45,228 +45,171 @@ Include and process
 Example: !include common.cfg
 .RE
 .SH "EXPLANATION OF THE SERVICE SETTINGS PARAMETERS"
+.SS index_path
 .PP
-\fBindex_path\fR
-.RS 4
 Directory under which all index files will be placed.
-.sp
+.PP
 Default:
 \fI/var/lib/kopano/index/\fR
-.RE
+.SS run_as_user
 .PP
-\fBrun_as_user\fR
-.RS 4
 During startup, the process will switch to run using this user identity. Note
 that the log file and directory need to be writeable by this user (this is
 normally the case when using packages).
-.sp
-Default: \fIkopano\fP
-.RE
 .PP
-\fBrun_as_group\fR
-.RS 4
+Default: \fIkopano\fP
+.SS run_as_group
+.PP
 During startup, the process will switch to run using this user identity.
-.sp
-Default: \fIkopano\fP
-.RE
 .PP
-\fBpid_file\fR
-.RS 4
+Default: \fIkopano\fP
+.SS pid_file
+.PP
 Write the process ID number to this file. This can be used by sysvinit scripts.
-.sp
+.PP
 Default:
 \fI/var/run/kopano/search.pid\fR
-.RE
+.SS limit_results
 .PP
-\fBlimit_results\fR
-.RS 4
 Limit the number of results returned to the server. If set to a nonzero value, only the N most relevant results will be returned to the server. This in turn limits the number of results that the user will see. If the limit is set to 0, all results will be returned.
-.sp
-Default:\fI1000\fR
-.RE
-.SH "EXPLANATION OF THE SERVER SETTINGS PARAMETERS"
 .PP
-\fBserver_socket\fR
-.RS 4
+Default:\fI1000\fR
+.SH "EXPLANATION OF THE SERVER SETTINGS PARAMETERS"
+.SS server_socket
+.PP
 Socket to find the connection to the Kopano server.
-.sp
+.PP
 Default:
 \fIfile:///var/run/kopano/server.sock\fR
-.RE
+.SS sslkey_file
 .PP
-\fBsslkey_file\fR
-.RS 4
 The file containing the private key and certificate. Please read the SSL section in the
 \fBkopano-server\fR(8)
 manual on how to create this file.
-.sp
+.PP
 Default:
 \fI/etc/kopano/ssl/search.pem\fR
-.RE
+.SS sslkey_pass
 .PP
-\fBsslkey_pass\fR
-.RS 4
 Enter your password here when your key file contains a password to be readable.
-.sp
-No default set.
-.RE
-.SH "EXPLANATION OF THE LISTEN SETTINGS PARAMETERS"
 .PP
-\fBserver_bind_name\fR
-.RS 4
+No default set.
+.SH "EXPLANATION OF THE LISTEN SETTINGS PARAMETERS"
+.SS server_bind_name
+.PP
 Connection path to which other processes can connect with the kopano\-search for performing search queries.
-.sp
+.PP
 Use
 \fIhttp://0.0.0.0:port\fR
 to listen as an HTTP service on all IPv4 interfaces on the given
 \fIport\fR
 number.
-.sp
+.PP
 Default:
 \fIfile:///var/run/kopano/search.sock\fR
-.RE
+.SS ssl_private_key_file
 .PP
-\fBssl_private_key_file\fR
-.RS 4
 kopano\-search will use this file as private key for SSL TLS. This file can be created with:
 \fBopenssl genrsa \-out /etc/kopano/search/privkey.pem 2048\fR.
-.sp
+.PP
 Default:
 \fI/etc/kopano/search/privkey.pem\fR
-.RE
+.SS ssl_certificate_file
 .PP
-\fBssl_certificate_file\fR
-.RS 4
 kopano\-search will use this file as certificate for SSL TLS. A self\-signed certificate can be created with:
 \fBopenssl req \-new \-x509 \-key /etc/kopano/search/privkey.pem \-out /etc/kopano/search/cert.pem \-days 1095\fR.
-.sp
+.PP
 Default:
 \fI/etc/kopano/search/cert.pem\fR
-.RE
 .SH "EXPLANATION OF THE LOG SETTINGS PARAMETERS"
+.SS log_method
 .PP
-\fBlog_method\fR
-.RS 4
 The method which should be used for logging. Valid values are:
-.PP
+.TP
 \fBsyslog\fP
-.RS 4
-Use the Linux system log. All messages will be written to the mail facility. See also
-\fBsyslog.conf\fR(5).
-.RE
-.PP
+Use the Linux system log. All messages will be written to the mail facility. See also \fBsyslog.conf\fR(5).
+.TP
 \fBfile\fP
-.RS 4
-Log to a file. The filename will be specified in
-\fBlog_file\fR.
-.RE
-.sp
+Log to a file. The filename will be specified in \fBlog_file\fR.
+.PP
 Default:
 \fIfile\fR
-.RE
+.SS log_level
 .PP
-\fBlog_level\fR
-.RS 4
 The level of output for logging in the range from 0 to 5. 0 means no logging, 5 means full logging.
-.sp
+.PP
 Default:
 \fI3\fR
-.RE
+.SS log_file
 .PP
-\fBlog_file\fR
-.RS 4
 When logging to a file, specify the filename in this parameter. Use
 \fB\-\fP
 (minus sign) for stderr output.
-.sp
+.PP
 Default:
 \fI\-\fP
-.RE
+.SS log_timestamp
 .PP
-\fBlog_timestamp\fR
-.RS 4
 Specify whether to prefix each log line with a timestamp in "file" logging mode.
-.sp
+.PP
 Default:
 \fI1\fR
-.RE
+.SS log_buffer_size
 .PP
-\fBlog_buffer_size\fR
-.RS 4
 Buffer logging in what sized blocks. The special value 0 selects line buffering.
-.sp
+.PP
 Default:
 \fI0\fR
-.RE
 .SH "EXPLANATION OF THE ADVANCED SETTINGS PARAMETERS"
+.SS search_engine
 .PP
-\fBsearch_engine\fR
-.RS 4
 Backend search engine (currently only xapian is supported).
-.sp
+.PP
 Default: \fIxapian\fP
-.RE
 .PP
-\fBterm_cache_size\fR
-.RS 4
 The size in bytes of the term cache used when writing terms to the index. A larger term cache will increase indexing speed when indexing large number of documents in a single store. This will barely affect incremental updates after the initial indexing has finished. This value may contain a k, m or g multiplier.
-.sp
+.PP
 Default: \fI64M\fP
-.RE
+.SS index_exclude_properties
 .PP
-\fBindex_exclude_properties\fR
-.RS 4
 Some properties are ignored because they contain unrelated information for users to find their messages on. A default set of ignored property ids is set here, but can be expanded. Only the id part of a property is needed, and must be string typed properties. The field is space separated.
-.sp
+.PP
 Default: \fI007D 0064 0C1E 0075 678E 678F\fP
-.RE
+.SS index_processes
 .PP
-\fBindex_processes\fR
-.RS 4
-Number of indexing processes used during initial indexing. Setting this to a higher value can greatly speed up initial indexing, especially when attachments are indexed.
-.sp
+<<<<<<< HEAD
+.PP
 Default: \fI1\fP
-.RE
+.SS index_drafts
 .PP
-\fBindex_drafts\fR
-.RS 4
 Index drafts folders
-.sp
-Default: \fIyes\fP
-.RE
 .PP
-\fBindex_junk\fR
-.RS 4
+Default: \fIyes\fP
+.SS index_junk
+.PP
 Index junk folders
-.sp
-Default: \fIyes\fP
-.RE
 .PP
-\fBsuggestions\fR
-.RS 4
+Default: \fIyes\fP
+.SS suggestions
+.PP
 Prepare search suggestions ("did\-you\-mean?") during indexing. Junk folders are excluded. This takes up a large percentage of the used disk space.
-.sp
-Default: \fIyes\fP
-.RE
-.SH "EXPLANATION OF THE ATTACHMENT SETTINGS PARAMETERS"
 .PP
-\fBindex_attachments\fR
-.RS 4
+Default: \fIyes\fP
+.SH "EXPLANATION OF THE ATTACHMENT SETTINGS PARAMETERS"
+.SS index_attachments
+.PP
 Enable indexing of attachments. When attachments are being indexed, searching for keywords in the body of a message will automatically cause the attachment to be searched as well.
-.sp
+.PP
 This will slow down the indexing process, require more system memory and increases index file size.
-.sp
+.PP
 Default:
 \fIno\fR
-.RE
+.SS index_attachment_max_size
 .PP
-\fBindex_attachment_max_size\fR
-.RS 4
 Maxiumum file size for attachments to be indexed. Any attachment larger then this amount will not be indexed. This value may contain a k, m or g multiplier.
-.sp
+.PP
 Default:
 \fI5M\fR
-.RE
 .SH "SEE ALSO"
 .PP
 \fBkopano-search\fR(8)
