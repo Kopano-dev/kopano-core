@@ -222,7 +222,7 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 auth: // User have a logon
 	// See if the server supports impersonation. If it doesn't but imporsonation was attempted,
 	// we should fail now because the client won't expect his own store to be returned.
-	if (!strImpersonateUser.empty() && (sResponse.ulCapabilities & KOPANO_CAP_IMPERSONATION) == 0) {
+	if (!strImpersonateUser.empty() && !(ulServerCapabilities & KOPANO_CAP_IMPERSONATION)) {
 		hr = MAPI_E_NO_SUPPORT;	// or just MAPI_E_LOGON_FAILED?
 		goto exit;
 	}
