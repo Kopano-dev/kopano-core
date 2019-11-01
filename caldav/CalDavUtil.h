@@ -65,6 +65,6 @@ bool HasDelegatePerm(IMsgStore *lpDefStore, IMsgStore *lpSharedStore);
 
 HRESULT HrMakeRestriction(const std::string &strGuid, LPSPropTagArray lpNamedProps, LPSRestriction *lpsRectrict);
 extern HRESULT HrFindAndGetMessage(const std::string &guid, IMAPIFolder *, SPropTagArray *props, IMessage **);
-extern HRESULT HrGetFreebusy(KC::MapiToICal *, IFreeBusySupport *, IAddrBook *, std::list<std::string> *users, WEBDAVFBINFO *);
+extern HRESULT HrGetFreebusy(KC::MapiToICal *, IFreeBusySupport *, IAddrBook *, const std::list<std::string> &users, WEBDAVFBINFO *);
 
 #endif

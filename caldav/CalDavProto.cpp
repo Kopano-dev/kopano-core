@@ -1421,7 +1421,7 @@ HRESULT CalDAV::HrHandleFreebusy(ICalToMapi *lpIcalToMapi)
 	object_ptr<IFreeBusySupport> lpFBSupport;
 	std::unique_ptr<MapiToICal> lpMapiToIcal;
 	time_t tStart = 0, tEnd = 0;
-	std::list<std::string> *lstUsers = NULL;
+	const std::list<std::string> *lstUsers;
 	std::string strUID;
 	WEBDAVFBINFO sWebFbInfo;
 	SPropValuePtr ptrEmail;
@@ -1459,7 +1459,7 @@ HRESULT CalDAV::HrHandleFreebusy(ICalToMapi *lpIcalToMapi)
 	sWebFbInfo.tStart = tStart;
 	sWebFbInfo.tEnd = tEnd;
 	sWebFbInfo.strUID = strUID;
-	hr = HrGetFreebusy(lpMapiToIcal.get(), lpFBSupport, m_lpAddrBook, lstUsers, &sWebFbInfo);
+	hr = HrGetFreebusy(lpMapiToIcal.get(), lpFBSupport, m_lpAddrBook, *lstUsers, &sWebFbInfo);
 	if (hr != hrSuccess) {
 		// @todo, print which users?
 		ec_log_err("Unable to get freebusy information for %zu users: %s (%x)",
