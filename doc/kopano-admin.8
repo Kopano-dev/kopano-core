@@ -290,7 +290,7 @@ This option is only available in multi-tenancy Kopano.
 .RS 4
 Add
 \fIuser\fP
-as recipient to userquota warning emails. You can optionally use
+as recipient to userquota warning emails. You must use
 \fB\-I\fP
 to set the tenant space to apply the recipient action on.
 .RE
@@ -299,7 +299,7 @@ to set the tenant space to apply the recipient action on.
 .RS 4
 Delete
 \fIuser\fP
-as recipient to userquota warning emails. You can optionally use
+as recipient to userquota warning emails. You must use
 \fB\-I\fP
 to set the tenant space to apply the recipient action on.
 .RE
@@ -315,7 +315,7 @@ to request the recipient list for a particular tenant space.
 .RS 4
 Add
 \fIuser\fP
-as recipient to tenant quota warning emails. You can optionally use
+as recipient to tenant quota warning emails. You must use
 \fB\-I\fP
 to set the tenant space to apply the recipient action on.
 .RE
@@ -324,7 +324,7 @@ to set the tenant space to apply the recipient action on.
 .RS 4
 Delete
 \fIuser\fP
-as recipient to tenant quota warning emails. You can optionally use
+as recipient to tenant quota warning emails. You must use
 \fB\-I\fP
 to set the tenant space to apply the recipient action on.
 .RE
@@ -487,6 +487,8 @@ The options used by actions are as follows:
 \fB\-\-verbose\fR \fIlevel\fR
 .RS 4
 Set the verbosity level (0=critical, ..., 6=debug).
+.sp
+Default: \fI3\fP
 .RE
 .PP
 \fB\-v\fR

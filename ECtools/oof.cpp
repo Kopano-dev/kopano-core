@@ -103,7 +103,7 @@ static int oof_show(IMsgStore *store)
 	Json::Value root;
 	auto dump = make_scope_success([&]() { puts(Json::writeString(Json::StreamWriterBuilder(), root).c_str()); });
 	if (props[0].ulPropTag != PR_EC_OUTOFOFFICE) {
-		root["set"] = Json::Value::null;
+		root["set"] = false;
 		return hrSuccess;
 	}
 	root["set"] = static_cast<bool>(props[0].Value.b);

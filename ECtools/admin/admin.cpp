@@ -207,10 +207,10 @@ static const struct option long_options[] = {
 	{ "version", no_argument, NULL, OPT_VERSION },
 	{"list-users", no_argument, nullptr, OPT_LIST_USERS},
 	{"list-groups", no_argument, nullptr, OPT_LIST_GROUPS},
-	{"password", no_argument, nullptr, OPT_PASSWORD},
+	{"password", required_argument, nullptr, OPT_PASSWORD},
 	{"password-prompt", no_argument, nullptr, OPT_PASSWORD_PROMPT},
-	{"fullname", no_argument, nullptr, OPT_FULLNAME},
-	{"email", no_argument, nullptr, OPT_EMAIL},
+	{"fullname", required_argument, nullptr, OPT_FULLNAME},
+	{"email", required_argument, nullptr, OPT_EMAIL},
 	{ NULL, 0, NULL, 0 }
 };
 
@@ -340,8 +340,8 @@ static void print_help(const char *name)
 	ct.AddColumn(0, "-h path"); ct.AddColumn(1, "Connect through <path>, e.g. file:///var/run/socket");
 	ct.AddColumn(0, "--node name"); ct.AddColumn(1, "Execute the command on cluster node <name>");
 	ct.AddColumn(0, "--utf8"); ct.AddColumn(1, "Force the current locale to UTF-8");
-	ct.AddColumn(0, "-v"); ct.AddColumn(1, "Increase verbosity. A maximum of 7 is possible where 1=fatal errors only, 6=debug and 7=everything.");
-	ct.AddColumn(0, "--verbosity x"); ct.AddColumn(1, "Set verbosity to value 'x': 0...7 (0 = disable)");
+	ct.AddColumn(0, "-v"); ct.AddColumn(1, "Increase verbosity by one.");
+	ct.AddColumn(0, "--verbose x"); ct.AddColumn(1, "Set verbosity to value 'x': 0...6 (0=disable, default=3)");
 	ct.AddColumn(0, "-V"); ct.AddColumn(1, "Print version info.");
 	ct.AddColumn(0, "--version"); ct.AddColumn(1, "Print version info.");
 	ct.AddColumn(0, "--help"); ct.AddColumn(1, "Show this help text.");
