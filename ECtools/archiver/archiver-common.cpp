@@ -26,9 +26,9 @@ bool entryid_t::operator>(const entryid_t &other) const
 
 bool entryid_t::wrap(const std::string &strPath)
 {
-	if (!kc_istarts_with(strPath, "file://") &&
-	    !kc_istarts_with(strPath, "http://") &&
-	    !kc_istarts_with(strPath, "https://"))
+	if (!kc_istarts_with(strPath, "file:") &&
+	    !kc_istarts_with(strPath, "http:") &&
+	    !kc_istarts_with(strPath, "https:"))
 		return false;
 	/* The '\0' from strPath is included; used as a separator in the wrapped EID. */
 	m_eid.insert(m_eid.begin(), strPath.c_str(), strPath.c_str() + strPath.size() + 1);
@@ -51,9 +51,9 @@ bool entryid_t::unwrap(std::string *lpstrPath)
 
 bool entryid_t::isWrapped() const
 {
-	return kc_istarts_with(m_eid, "file://") ||
-	       kc_istarts_with(m_eid, "http://") ||
-	       kc_istarts_with(m_eid, "https://");
+	return kc_istarts_with(m_eid, "file:") ||
+	       kc_istarts_with(m_eid, "http:") ||
+	       kc_istarts_with(m_eid, "https:");
 }
 
 entryid_t entryid_t::getUnwrapped() const

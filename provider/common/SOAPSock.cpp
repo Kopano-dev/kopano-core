@@ -58,7 +58,7 @@ static int gsoap_connect_pipe(struct soap *soap, const char *endpoint,
 	memset(&saddr, 0, sizeof(struct sockaddr_un));
 	soap->socket = SOAP_INVALID_SOCKET;
 
-	if (strncmp(endpoint, "file://", 7) != 0)
+	if (strncmp(endpoint, "file:", 5) != 0)
 		return SOAP_EOF;
 	const char *socket_name = strchr(endpoint + 7, '/');
 	// >= because there also needs to be room for the 0x00
