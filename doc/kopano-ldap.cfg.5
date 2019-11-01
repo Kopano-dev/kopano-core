@@ -86,12 +86,12 @@ Default:
 .PP
 The bind dn as to connect to the LDAP server. Leave empty to connect anonymous.
 .PP
-Default value is empty.
+Default: (empty)
 .SS ldap_bind_passwd
 .PP
 When ldap_bind_user is a valid DN, this should be filled in too.
 .PP
-Default value is empty.
+Default: (empty)
 .SS ldap_network_timeout
 .PP
 The timeout for network operations in seconds.
@@ -192,7 +192,7 @@ Adds an extra filter to the user search.
 .PP
 Hint: Use the kopanoAccount attribute in the filter to differentiate between non\-kopano and kopano users.
 .PP
-Default for OpenLDAP is empty.
+Default for OpenLDAP: (empty)
 .PP
 Default for ADS:
 \fI(objectCategory=Person)\fR
@@ -333,7 +333,7 @@ Defaults to empty value, using the
 \fBldap_user_unique_attribute\fR
 setting. By using the DN, you can also add groups to the sendas list.
 .PP
-Default for OpenLDAP is empty.
+Default for OpenLDAP: (empty)
 .PP
 Default for ADS:
 \fIdistinguishedName\fR
@@ -349,7 +349,7 @@ Adds an extra filter to the group search.
 .PP
 Hint: Use the kopanoAccount attribute in the filter to differentiate between non\-kopano and kopano groups.
 .PP
-Default for OpenLDAP is empty.
+Default for OpenLDAP: (empty)
 .PP
 Default for ADS:
 \fI(objectCategory=Group)\fR
@@ -417,7 +417,7 @@ Defaults to empty value, using the
 \fBldap_user_unique_attribute\fR
 setting.
 .PP
-Default is empty.
+Default: (empty)
 .SS ldap_group_security_attribute
 .PP
 If this attribute is present, you can make a group a security group. These groups can be used to place permissions on folders.
@@ -447,7 +447,7 @@ Add an extra filter to the tenant search.
 .PP
 Hint: Use the kopanoAccount attribute in the filter to differentiate between non\-kopano and kopano companies.
 .PP
-Default for OpenLDAP is empty.
+Default for OpenLDAP: (empty)
 .PP
 Default for ADS:
 \fI(objectCategory=Company)\fR
@@ -506,8 +506,8 @@ Default for ADS:
 The attribute of the tenant which is listed in
 \fBldap_company_view_attribute\fR.
 .PP
-Default: Empty, using the
-\fBldap_company_unique_attribute\fR
+Default: (empty, using the
+\fBldap_company_unique_attribute\fR)
 .SS ldap_company_admin_attribute
 .PP
 This attribute contains the list of users outside of the selected tenant space who are administrator over the selected tenant space. Note that local users should not be listed as administrator here, those users need the
@@ -536,8 +536,8 @@ Default for ADS:
 The attribute of the user which is listed in
 \fBldap_company_admin_attribute\fR.
 .PP
-Default: Empty, using the
-\fBldap_user_unique_attribute\fR
+Default: (empty, using the
+\fBldap_user_unique_attribute\fR)
 .SS ldap_company_system_admin_attribute
 .PP
 This attribute contains the user who acts as the system administrator of this tenatn space. This can either be a local user or a user from a different tenant space. At the moment this user is set as the sender of quota warning emails.
@@ -564,8 +564,8 @@ Default for ADS:
 The attribute of the user which is listed in
 \fBldap_system_admin_attribute\fR.
 .PP
-Default: Empty, using the
-\fBldap_user_unique_attribute\fR
+Default: (empty, using the
+\fBldap_user_unique_attribute\fR)
 .SS ldap_addresslist_search_filter
 .PP
 Add a filter to the addresslist search.
@@ -618,7 +618,7 @@ Add an extra filter to the dynamicgroup search.
 .PP
 Hint: Use the kopanoAccount attribute in the filter to differentiate between non\-kopano and kopano dynamic groups.
 .PP
-Default is empty.
+Default: (empty)
 .SS ldap_dynamicgroup_unique_attribute
 .PP
 This is the unique attribute of a dynamicgroup which is never going to change, unless the dynamicgroup is removed from LDAP. When this value changes, Kopano will remove the previous dynamicgroup from the database, and create a new dynamicgroup with this unique value.
@@ -719,8 +719,8 @@ Default:
 The attribute of the user which is listed in
 \fBldap_quota_userwarning_recipients_attribute\fR
 .PP
-Default: Empty, using
-\fIldap_user_unique_attribute\fR
+Default: (empty, using
+\fIldap_user_unique_attribute\fR)
 .SS ldap_quota_companywarning_recipients_attribute
 .PP
 This attribute contains the list of users who will receive an email when a tenant exceeds its quota. The system administrator of the tenant that is over quota will automatically be added to the recipients list, this list only indicates who else will be notified.
@@ -746,8 +746,8 @@ Default:
 The attribute of the user which is listed in
 \fBldap_quota_companywarning_recipients_attribute\fR
 .PP
-Default: Empty, using
-\fIldap_user_unique_attribute\fR
+Default: (empty, using
+\fIldap_user_unique_attribute\fR)
 .SS ldap_addressbook_hide_attribute
 .PP
 The attribute indicating the object must be hidden from the addressbook. The object will still be detected as kopano user and is allowed to login and work as regular kopano user, but will not be visible in the addressbook for other users.
