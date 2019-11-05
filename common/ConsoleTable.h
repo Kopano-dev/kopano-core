@@ -15,7 +15,7 @@ namespace KC {
 class KC_EXPORT ConsoleTable KC_FINAL {
 public:
 	ConsoleTable(size_t rows, size_t columns);
-	_kc_hidden void Clear(void);
+	KC_HIDDEN void Clear();
 	void Resize(size_t rows, size_t columns);
 	bool SetHeader(size_t col, const std::string& entry);
 	void set_lead(const char *lead) { m_lead = lead; }
@@ -33,8 +33,8 @@ private:
 	convert_context m_converter;
 	bool bHaveHeader = false;
 
-	_kc_hidden void PrintRow(const std::vector<std::wstring> &row);
-	_kc_hidden void DumpRow(const std::vector<std::wstring> &row);
+	KC_HIDDEN void PrintRow(const std::vector<std::wstring> &row);
+	KC_HIDDEN void DumpRow(const std::vector<std::wstring> &row);
 };
 
 } /* namespace */

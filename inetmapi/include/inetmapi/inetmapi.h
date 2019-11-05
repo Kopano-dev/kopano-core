@@ -32,15 +32,15 @@ protected:
 	std::vector<sFailedRecip> mTemporaryFailedRecipients, mPermanentFailedRecipients;
 
 public:
-	_kc_hidden ECSender(const std::string &smtphost, int port);
-	_kc_hidden virtual ~ECSender(void) = default;
-	_kc_hidden virtual int getSMTPResult() const { return smtpresult; }
-	_kc_hidden virtual const wchar_t *getErrorString() const { return error.c_str(); }
-	_kc_hidden virtual void setError(const std::wstring &e) { error = e; }
-	_kc_hidden virtual void setError(const std::string &);
-	_kc_hidden virtual bool haveError() const { return !error.empty(); }
-	_kc_hidden virtual const std::vector<sFailedRecip> &getPermanentFailedRecipients(void) const { return mPermanentFailedRecipients; }
-	_kc_hidden virtual const std::vector<sFailedRecip> &getTemporaryFailedRecipients(void) const { return mTemporaryFailedRecipients; }
+	KC_HIDDEN ECSender(const std::string &smtphost, int port);
+	KC_HIDDEN virtual ~ECSender() = default;
+	KC_HIDDEN virtual int getSMTPResult() const { return smtpresult; }
+	KC_HIDDEN virtual const wchar_t *getErrorString() const { return error.c_str(); }
+	KC_HIDDEN virtual void setError(const std::wstring &e) { error = e; }
+	KC_HIDDEN virtual void setError(const std::string &);
+	KC_HIDDEN virtual bool haveError() const { return !error.empty(); }
+	KC_HIDDEN virtual const std::vector<sFailedRecip> &getPermanentFailedRecipients() const { return mPermanentFailedRecipients; }
+	KC_HIDDEN virtual const std::vector<sFailedRecip> &getTemporaryFailedRecipients() const { return mTemporaryFailedRecipients; }
 };
 
 /* c wrapper to create object */

@@ -22,15 +22,15 @@ namespace KC {
 class KC_EXPORT MAPINotifSink KC_FINAL_OPG : public IMAPIAdviseSink {
 public:
     static HRESULT Create(MAPINotifSink **lppSink);
-	_kc_hidden virtual ULONG AddRef() KC_OVERRIDE;
+	KC_HIDDEN virtual ULONG AddRef() KC_OVERRIDE;
 	virtual ULONG Release() KC_OVERRIDE;
-	_kc_hidden virtual HRESULT QueryInterface(REFIID iid, void **iface) KC_OVERRIDE;
-	_kc_hidden virtual ULONG OnNotify(ULONG n, LPNOTIFICATION notif) KC_OVERRIDE;
+	KC_HIDDEN virtual HRESULT QueryInterface(REFIID iid, void **iface) KC_OVERRIDE;
+	KC_HIDDEN virtual ULONG OnNotify(ULONG n, LPNOTIFICATION notif) KC_OVERRIDE;
 	virtual HRESULT GetNotifications(ULONG *n, LPNOTIFICATION *notif, BOOL fNonBlock, ULONG timeout);
 
 private:
-	_kc_hidden MAPINotifSink(void) = default;
-	_kc_hidden virtual ~MAPINotifSink(void);
+	KC_HIDDEN MAPINotifSink() = default;
+	KC_HIDDEN virtual ~MAPINotifSink();
 
 	std::mutex m_hMutex;
 	std::condition_variable m_hCond;

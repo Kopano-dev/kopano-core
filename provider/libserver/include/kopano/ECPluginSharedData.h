@@ -28,17 +28,17 @@ private:
 	/**
 	 * Singleton instance of ECPluginSharedData
 	 */
-	_kc_hidden static ECPluginSharedData *m_lpSingleton;
+	KC_HIDDEN static ECPluginSharedData *m_lpSingleton;
 
 	/**
 	 * Lock for m_lpSingleton access
 	 */
-	_kc_hidden static std::mutex m_SingletonLock;
+	KC_HIDDEN static std::mutex m_SingletonLock;
 
 	/**
 	 * Lock for CreateConfig
 	 */
-	_kc_hidden static std::mutex m_CreateConfigLock;
+	KC_HIDDEN static std::mutex m_CreateConfigLock;
 
 	/**
 	 * Reference count, used to destroy object when no users are left.
@@ -60,8 +60,8 @@ private:
 	 * 					Plugins are allowed to throw an exception when bDistributed is true
 	 *					while the plugin doesn't support multi-server.
 	 */
-	_kc_hidden ECPluginSharedData(std::shared_ptr<ECConfig> parent, std::shared_ptr<ECStatsCollector>, bool hosted, bool distributed);
-	_kc_hidden virtual ~ECPluginSharedData(void);
+	KC_HIDDEN ECPluginSharedData(std::shared_ptr<ECConfig> parent, std::shared_ptr<ECStatsCollector>, bool hosted, bool distributed);
+	KC_HIDDEN virtual ~ECPluginSharedData();
 
 public:
 	/**
@@ -82,17 +82,17 @@ public:
 	 * 					Plugins are allowed to throw an exception when bDistributed is true
 	 *					while the plugin doesn't support multi-server.
 	 */
-	_kc_hidden static void GetSingleton(ECPluginSharedData **out, std::shared_ptr<ECConfig> parent, std::shared_ptr<ECStatsCollector>, bool hosted, bool distributed);
+	KC_HIDDEN static void GetSingleton(ECPluginSharedData **out, std::shared_ptr<ECConfig> parent, std::shared_ptr<ECStatsCollector>, bool hosted, bool distributed);
 
 	/**
 	 * Increase reference count
 	 */
-	_kc_hidden virtual void AddRef(void);
+	KC_HIDDEN virtual void AddRef();
 
 	/**
 	 * Decrease reference count, object might be destroyed before this function returns.
 	 */
-	_kc_hidden virtual void Release(void);
+	KC_HIDDEN virtual void Release();
 
 	/**
 	 * Load plugin configuration file
@@ -110,21 +110,21 @@ public:
 	 *
 	 * @return the ECStatsCollector pointer
 	 */
-	_kc_hidden virtual std::shared_ptr<ECStatsCollector> GetStatsCollector() const { return m_lpStatsCollector; }
+	KC_HIDDEN virtual std::shared_ptr<ECStatsCollector> GetStatsCollector() const { return m_lpStatsCollector; }
 
 	/**
 	 * Check for multi-company support
 	 *
 	 * @return True if multi-company support is enabled.
 	 */
-	_kc_hidden virtual bool IsHosted(void) const { return m_bHosted; }
+	KC_HIDDEN virtual bool IsHosted() const { return m_bHosted; }
 
 	/**
 	 * Check for multi-server support
 	 *
 	 * @return True if multi-server support is enabled.
 	 */
-	_kc_hidden virtual bool IsDistributed(void) const { return m_bDistributed; }
+	KC_HIDDEN virtual bool IsDistributed() const { return m_bDistributed; }
 
 	/**
 	 * Signal handler for userspace signals like SIGHUP
@@ -132,7 +132,7 @@ public:
 	 * @param[in]	signal
 	 *					The signal ID to be handled
 	 */
-	_kc_hidden virtual void Signal(int s);
+	KC_HIDDEN virtual void Signal(int s);
 
 private:
 	/**

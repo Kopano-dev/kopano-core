@@ -21,10 +21,10 @@
 class KC_EXPORT_DYCAST ECArchiveAwareMsgStore KC_FINAL_OPG :
     public ECMsgStore {
 	public:
-	_kc_hidden ECArchiveAwareMsgStore(const char *profname, IMAPISupport *, WSTransport *, BOOL modify, ULONG profflags, BOOL is_spooler, BOOL is_dfl_store, BOOL offline_store);
-	_kc_hidden static HRESULT Create(const char *profname, IMAPISupport *, WSTransport *, BOOL modify, ULONG profflags, BOOL is_spooler, BOOL is_dfl_store, BOOL offline_store, ECMsgStore **ret);
-	_kc_hidden virtual HRESULT OpenEntry(ULONG eid_size, const ENTRYID *eid, const IID *intf, ULONG flags, ULONG *obj_type, IUnknown **);
-	_kc_hidden virtual HRESULT OpenItemFromArchive(LPSPropValue propstore_eids, LPSPropValue propitem_eids, ECMessage **ret);
+	KC_HIDDEN ECArchiveAwareMsgStore(const char *profname, IMAPISupport *, WSTransport *, BOOL modify, unsigned int profflags, BOOL is_spooler, BOOL is_dfl_store, BOOL offline_store);
+	KC_HIDDEN static HRESULT Create(const char *profname, IMAPISupport *, WSTransport *, BOOL modify, unsigned int profflags, BOOL is_spooler, BOOL is_dfl_store, BOOL offline_store, ECMsgStore **ret);
+	KC_HIDDEN virtual HRESULT OpenEntry(unsigned int eid_size, const ENTRYID *eid, const IID *intf, unsigned int flags, unsigned int *obj_type, IUnknown **);
+	KC_HIDDEN virtual HRESULT OpenItemFromArchive(SPropValue *propstore_eids, SPropValue *propitem_eids, ECMessage **ret);
 
 	private:
 	typedef std::list<SBinary *> BinaryList;
@@ -33,8 +33,8 @@ class KC_EXPORT_DYCAST ECArchiveAwareMsgStore KC_FINAL_OPG :
 	typedef std::vector<BYTE> EntryID;
 	typedef std::map<EntryID, ECMsgStorePtr> MsgStoreMap;
 
-	_kc_hidden HRESULT CreateCacheBasedReorderedList(SBinaryArray b_store_eids, SBinaryArray b_item_eids, BinaryList *store_eids, BinaryList *item_eids);
-	_kc_hidden HRESULT GetArchiveStore(LPSBinary store_eid, ECMsgStore **ret);
+	KC_HIDDEN HRESULT CreateCacheBasedReorderedList(SBinaryArray b_store_eids, SBinaryArray b_item_eids, BinaryList *store_eids, BinaryList *item_eids);
+	KC_HIDDEN HRESULT GetArchiveStore(SBinary *store_eid, ECMsgStore **ret);
 
 	MsgStoreMap m_mapStores;
 	ALLOC_WRAP_FRIEND;
@@ -48,8 +48,8 @@ protected:
 	 * \param fModify		Specifies whether the message is writable.
 	 * \param ulFlags		Flags.
 	 */
-	_kc_hidden ECArchiveAwareMessage(ECArchiveAwareMsgStore *, BOOL fNew, BOOL modify, ULONG flags);
-	_kc_hidden virtual ~ECArchiveAwareMessage(void) = default;
+	KC_HIDDEN ECArchiveAwareMessage(ECArchiveAwareMsgStore *, BOOL fNew, BOOL modify, unsigned int flags);
+	KC_HIDDEN virtual ~ECArchiveAwareMessage() = default;
 
 public:
 	/**
@@ -65,25 +65,25 @@ public:
 	 *
 	 * \return hrSuccess on success.
 	 */
-	_kc_hidden static HRESULT Create(ECArchiveAwareMsgStore *store, BOOL fNew, BOOL modify, ULONG flags, ECMessage **);
-	_kc_hidden virtual HRESULT HrLoadProps() override;
-	_kc_hidden virtual HRESULT HrSetRealProp(const SPropValue *) override;
-	_kc_hidden virtual HRESULT OpenProperty(ULONG proptag, const IID *intf, ULONG iface_opts, ULONG flags, IUnknown **) override;
-	_kc_hidden virtual HRESULT OpenAttach(ULONG atnum, const IID *iface, ULONG flags, IAttach **) override;
-	_kc_hidden virtual HRESULT CreateAttach(const IID *intf, ULONG flags, ULONG *atnum, IAttach **) override;
-	_kc_hidden virtual HRESULT DeleteAttach(ULONG atnum, ULONG ui_param, IMAPIProgress *, ULONG flags) override;
-	_kc_hidden virtual HRESULT ModifyRecipients(ULONG flags, const ADRLIST *mods) override;
-	_kc_hidden virtual HRESULT SaveChanges(ULONG flags) override;
-	_kc_hidden static HRESULT SetPropHandler(unsigned int tag, void *prov, const SPropValue *, ECGenericProp *);
-	_kc_hidden bool IsLoading(void) const { return m_bLoading; }
+	KC_HIDDEN static HRESULT Create(ECArchiveAwareMsgStore *store, BOOL fNew, BOOL modify, unsigned int flags, ECMessage **);
+	KC_HIDDEN virtual HRESULT HrLoadProps() override;
+	KC_HIDDEN virtual HRESULT HrSetRealProp(const SPropValue *) override;
+	KC_HIDDEN virtual HRESULT OpenProperty(unsigned int proptag, const IID *intf, unsigned int iface_opts, unsigned int flags, IUnknown **) override;
+	KC_HIDDEN virtual HRESULT OpenAttach(unsigned int atnum, const IID *iface, unsigned int flags, IAttach **) override;
+	KC_HIDDEN virtual HRESULT CreateAttach(const IID *intf, unsigned int flags, unsigned int *atnum, IAttach **) override;
+	KC_HIDDEN virtual HRESULT DeleteAttach(unsigned int atnum, unsigned int ui_param, IMAPIProgress *, unsigned int flags) override;
+	KC_HIDDEN virtual HRESULT ModifyRecipients(unsigned int flags, const ADRLIST *mods) override;
+	KC_HIDDEN virtual HRESULT SaveChanges(unsigned int flags) override;
+	KC_HIDDEN static HRESULT SetPropHandler(unsigned int tag, void *prov, const SPropValue *, ECGenericProp *);
+	KC_HIDDEN bool IsLoading() const { return m_bLoading; }
 
 protected:
-	_kc_hidden virtual HRESULT HrDeleteRealProp(ULONG proptag, BOOL overwrite_ro) override;
+	KC_HIDDEN virtual HRESULT HrDeleteRealProp(unsigned int proptag, BOOL overwrite_ro) override;
 
 private:
-	_kc_hidden HRESULT MapNamedProps(void);
-	_kc_hidden HRESULT CreateInfoMessage(const SPropTagArray *deleteprop, const std::string &bodyhtml);
-	_kc_hidden std::string CreateErrorBodyUtf8(HRESULT);
+	KC_HIDDEN HRESULT MapNamedProps();
+	KC_HIDDEN HRESULT CreateInfoMessage(const SPropTagArray *deleteprop, const std::string &bodyhtml);
+	KC_HIDDEN std::string CreateErrorBodyUtf8(HRESULT);
 
 	bool	m_bLoading, m_bNamedPropsMapped;
 	PROPMAP_DECL()

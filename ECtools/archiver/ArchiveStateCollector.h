@@ -40,9 +40,9 @@ public:
 	typedef std::map<abentryid_t, ArchiveInfo> ArchiveInfoMap;
 
 private:
-	_kc_hidden ArchiveStateCollector(const ArchiverSessionPtr &, std::shared_ptr<ECLogger>);
-	_kc_hidden HRESULT PopulateUserList(void);
-	_kc_hidden HRESULT PopulateFromContainer(LPABCONT container);
+	KC_HIDDEN ArchiveStateCollector(const ArchiverSessionPtr &, std::shared_ptr<ECLogger>);
+	KC_HIDDEN HRESULT PopulateUserList();
+	KC_HIDDEN HRESULT PopulateFromContainer(IABContainer *);
 
 	ArchiverSessionPtr m_ptrSession;
 	std::shared_ptr<ECArchiverLogger> m_lpLogger;

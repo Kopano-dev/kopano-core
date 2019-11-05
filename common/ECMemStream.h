@@ -51,28 +51,28 @@ public:
 	typedef HRESULT (*DeleteFunc)(void *lpParam); /* Caller's function to remove lpParam data from memory */
 
 private:
-	_kc_hidden ECMemStream(const char *buffer, ULONG data_len, ULONG flags, CommitFunc, DeleteFunc, void *param);
-	_kc_hidden ECMemStream(ECMemBlock *, ULONG flags, CommitFunc, DeleteFunc, void *param);
+	KC_HIDDEN ECMemStream(const char *buffer, unsigned int data_len, unsigned int flags, CommitFunc, DeleteFunc, void *param);
+	KC_HIDDEN ECMemStream(ECMemBlock *, unsigned int flags, CommitFunc, DeleteFunc, void *param);
 
 	protected:
-	_kc_hidden ~ECMemStream(void);
+	KC_HIDDEN ~ECMemStream();
 
 public:
 	static  HRESULT	Create(char *buffer, ULONG ulDataLen, ULONG ulFlags, CommitFunc lpCommitFunc, DeleteFunc lpDeleteFunc, void *lpParam, ECMemStream **lppStream);
-	_kc_hidden static HRESULT Create(ECMemBlock *, ULONG flags, CommitFunc, DeleteFunc, void *param, ECMemStream **ret);
+	KC_HIDDEN static HRESULT Create(ECMemBlock *, unsigned int flags, CommitFunc, DeleteFunc, void *param, ECMemStream **ret);
 	virtual unsigned int Release() override;
 	virtual HRESULT QueryInterface(const IID &, void **) override;
-	_kc_hidden virtual HRESULT Read(void *buf, unsigned int bytes, unsigned int *have_read) override;
-	_kc_hidden virtual HRESULT Write(const void *buf, unsigned int bytes, unsigned int *have_written) override;
-	_kc_hidden virtual HRESULT Seek(LARGE_INTEGER pos, unsigned int origin, ULARGE_INTEGER *newpos) override;
-	_kc_hidden virtual HRESULT SetSize(ULARGE_INTEGER size) override;
-	_kc_hidden virtual HRESULT CopyTo(IStream *, ULARGE_INTEGER cb, ULARGE_INTEGER *have_read, ULARGE_INTEGER *have_written) override;
-	_kc_hidden virtual HRESULT Commit(unsigned int commit_flags) override;
-	_kc_hidden virtual HRESULT Revert() override;
-	_kc_hidden virtual HRESULT LockRegion(ULARGE_INTEGER offset, ULARGE_INTEGER size, unsigned int lock_type) override;
-	_kc_hidden virtual HRESULT UnlockRegion(ULARGE_INTEGER offset, ULARGE_INTEGER size, unsigned int lock_type) override;
-	_kc_hidden virtual HRESULT Stat(STATSTG *, unsigned int stat_flag) override;
-	_kc_hidden virtual HRESULT Clone(IStream **) override;
+	KC_HIDDEN virtual HRESULT Read(void *buf, unsigned int bytes, unsigned int *have_read) override;
+	KC_HIDDEN virtual HRESULT Write(const void *buf, unsigned int bytes, unsigned int *have_written) override;
+	KC_HIDDEN virtual HRESULT Seek(LARGE_INTEGER pos, unsigned int origin, ULARGE_INTEGER *newpos) override;
+	KC_HIDDEN virtual HRESULT SetSize(ULARGE_INTEGER size) override;
+	KC_HIDDEN virtual HRESULT CopyTo(IStream *, ULARGE_INTEGER cb, ULARGE_INTEGER *have_read, ULARGE_INTEGER *have_written) override;
+	KC_HIDDEN virtual HRESULT Commit(unsigned int commit_flags) override;
+	KC_HIDDEN virtual HRESULT Revert() override;
+	KC_HIDDEN virtual HRESULT LockRegion(ULARGE_INTEGER offset, ULARGE_INTEGER size, unsigned int lock_type) override;
+	KC_HIDDEN virtual HRESULT UnlockRegion(ULARGE_INTEGER offset, ULARGE_INTEGER size, unsigned int lock_type) override;
+	KC_HIDDEN virtual HRESULT Stat(STATSTG *, unsigned int stat_flag) override;
+	KC_HIDDEN virtual HRESULT Clone(IStream **) override;
 	virtual ULONG GetSize();
 	virtual char* GetBuffer();
 

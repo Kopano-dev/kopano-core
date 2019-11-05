@@ -20,21 +20,21 @@ public:
 	typedef ArchiveStateCollector::ArchiveInfo		ArchiveInfo;
 	typedef ArchiveStateCollector::ArchiveInfoMap	ArchiveInfoMap;
 
-	_kc_hidden static HRESULT Create(const ArchiverSessionPtr &, std::shared_ptr<ECLogger>, const ArchiveInfoMap &, ArchiveStateUpdaterPtr *);
+	KC_HIDDEN static HRESULT Create(const ArchiverSessionPtr &, std::shared_ptr<ECLogger>, const ArchiveInfoMap &, ArchiveStateUpdaterPtr *);
 	HRESULT UpdateAll(unsigned int ulAttachFlags);
 	HRESULT Update(const tstring &userName, unsigned int ulAttachFlags);
 
 private:
-	_kc_hidden ArchiveStateUpdater(const ArchiverSessionPtr &, std::shared_ptr<ECLogger>, const ArchiveInfoMap &);
-	_kc_hidden HRESULT PopulateUserList(void);
-	_kc_hidden HRESULT PopulateFromContainer(LPABCONT container);
-	_kc_hidden HRESULT UpdateOne(const abentryid_t &user_id, const ArchiveInfo &, unsigned int attach_flags);
-	_kc_hidden HRESULT RemoveImplicit(const entryid_t &store_id, const tstring &usen, const abentryid_t &user_id, const ObjectEntryList &archives);
-	_kc_hidden HRESULT ParseCoupling(const tstring &coupling, tstring *archive, tstring *folder);
-	_kc_hidden HRESULT AddCouplingBased(const tstring &user, const std::list<tstring> &couplings, unsigned int attach_flags);
-	_kc_hidden HRESULT AddServerBased(const tstring &user, const abentryid_t &user_id, const std::list<tstring> &servers, unsigned int attach_flags);
-	_kc_hidden HRESULT VerifyAndUpdate(const abentryid_t &user_id, const ArchiveInfo &, unsigned int attach_flags);
-	_kc_hidden HRESULT FindArchiveEntry(const tstring &archive, const tstring &folder, SObjectEntry *obj_entry);
+	KC_HIDDEN ArchiveStateUpdater(const ArchiverSessionPtr &, std::shared_ptr<ECLogger>, const ArchiveInfoMap &);
+	KC_HIDDEN HRESULT PopulateUserList();
+	KC_HIDDEN HRESULT PopulateFromContainer(IABContainer *);
+	KC_HIDDEN HRESULT UpdateOne(const abentryid_t &user_id, const ArchiveInfo &, unsigned int attach_flags);
+	KC_HIDDEN HRESULT RemoveImplicit(const entryid_t &store_id, const tstring &usen, const abentryid_t &user_id, const ObjectEntryList &archives);
+	KC_HIDDEN HRESULT ParseCoupling(const tstring &coupling, tstring *archive, tstring *folder);
+	KC_HIDDEN HRESULT AddCouplingBased(const tstring &user, const std::list<tstring> &couplings, unsigned int attach_flags);
+	KC_HIDDEN HRESULT AddServerBased(const tstring &user, const abentryid_t &user_id, const std::list<tstring> &servers, unsigned int attach_flags);
+	KC_HIDDEN HRESULT VerifyAndUpdate(const abentryid_t &user_id, const ArchiveInfo &, unsigned int attach_flags);
+	KC_HIDDEN HRESULT FindArchiveEntry(const tstring &archive, const tstring &folder, SObjectEntry *obj_entry);
 
 	ArchiverSessionPtr	m_ptrSession;
 	std::shared_ptr<ECLogger> m_lpLogger;

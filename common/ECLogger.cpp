@@ -72,10 +72,10 @@ class ECLogger_Syslog KC_FINAL : public ECLogger {
 	public:
 	ECLogger_Syslog(unsigned int max_ll, const char *ident, int facility);
 	~ECLogger_Syslog(void);
-	_kc_hidden virtual void Reset() override;
-	_kc_hidden virtual void log(unsigned int level, const char *msg) override;
-	_kc_hidden virtual void logf(unsigned int level, const char *fmt, ...) override KC_LIKE_PRINTF(3, 4);
-	_kc_hidden virtual void logv(unsigned int level, const char *fmt, va_list &) override;
+	KC_HIDDEN virtual void Reset() override;
+	KC_HIDDEN virtual void log(unsigned int level, const char *msg) override;
+	KC_HIDDEN virtual void logf(unsigned int level, const char *fmt, ...) override KC_LIKE_PRINTF(3, 4);
+	KC_HIDDEN virtual void logv(unsigned int level, const char *fmt, va_list &) override;
 };
 
 static void ec_log_bt(unsigned int, const char *, ...);

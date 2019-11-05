@@ -112,10 +112,10 @@ public:
 	ECTableRow(const sObjectTableKey &, std::vector<ECSortCol> &&, bool hidden);
 	ECTableRow(sObjectTableKey &&, std::vector<ECSortCol> &&, bool hidden);
 	ECTableRow(const ECTableRow &other);
-	_kc_hidden size_t GetObjectSize() const;
-	_kc_hidden static bool rowcompare(const ECTableRow *, const ECTableRow *);
-	_kc_hidden static bool rowcompare(const ECSortColView &, const ECSortColView &, bool ignore_order = false);
-	_kc_hidden static bool rowcompareprefix(size_t prefix, const std::vector<ECSortCol> &, const std::vector<ECSortCol> &);
+	KC_HIDDEN size_t GetObjectSize() const;
+	KC_HIDDEN static bool rowcompare(const ECTableRow *, const ECTableRow *);
+	KC_HIDDEN static bool rowcompare(const ECSortColView &, const ECSortColView &, bool ignore_order = false);
+	KC_HIDDEN static bool rowcompareprefix(size_t prefix, const std::vector<ECSortCol> &, const std::vector<ECSortCol> &);
 	bool operator < (const ECTableRow &other) const;
 
 	sObjectTableKey	sKey;
@@ -165,7 +165,7 @@ public:
 	ECRESULT	GetRowCount(unsigned int *ulRowCount, unsigned int *ulCurrentRow);
 	ECRESULT	QueryRows(unsigned int ulRows, ECObjectTableList* lpRowList, bool bDirBackward, unsigned int ulFlags, bool bShowHidden = false);
 	ECRESULT	Clear();
-	_kc_hidden ECRESULT GetBookmark(unsigned int p1, int *p2);
+	KC_HIDDEN ECRESULT GetBookmark(unsigned int p1, int *p2);
 	ECRESULT	CreateBookmark(unsigned int* lpulbkPosition);
 	ECRESULT	FreeBookmark(unsigned int ulbkPosition);
 	ECRESULT	GetRowsBySortPrefix(sObjectTableKey *lpsRowItem, ECObjectTableList *lpRowList);
@@ -179,23 +179,23 @@ public:
 	size_t GetObjectSize();
 
 private:
-	_kc_hidden ECRESULT UpdateCounts(ECTableRow *);
-	_kc_hidden ECRESULT CurrentRow(ECTableRow *, unsigned int *current_row);
-	_kc_hidden ECRESULT InvalidateBookmark(ECTableRow *);
+	KC_HIDDEN ECRESULT UpdateCounts(ECTableRow *);
+	KC_HIDDEN ECRESULT CurrentRow(ECTableRow *, unsigned int *current_row);
+	KC_HIDDEN ECRESULT InvalidateBookmark(ECTableRow *);
 
 	// Functions for implementation AVL balancing
-	_kc_hidden void RotateL(ECTableRow *pivot);
-	_kc_hidden void RotateR(ECTableRow *pivot);
-	_kc_hidden void RotateLR(ECTableRow *pivot);
-	_kc_hidden void RotateRL(ECTableRow *pivot);
-	_kc_hidden unsigned int GetHeight(ECTableRow *root) { return root->ulHeight; }
-	_kc_hidden int GetBalance(ECTableRow *root);
-	_kc_hidden void Restructure(ECTableRow *pivot);
-	_kc_hidden void RestructureRecursive(ECTableRow *);
+	KC_HIDDEN void RotateL(ECTableRow *pivot);
+	KC_HIDDEN void RotateR(ECTableRow *pivot);
+	KC_HIDDEN void RotateLR(ECTableRow *pivot);
+	KC_HIDDEN void RotateRL(ECTableRow *pivot);
+	KC_HIDDEN unsigned int GetHeight(ECTableRow *root) const { return root->ulHeight; }
+	KC_HIDDEN int GetBalance(ECTableRow *root);
+	KC_HIDDEN void Restructure(ECTableRow *pivot);
+	KC_HIDDEN void RestructureRecursive(ECTableRow *);
 
 	// Advance / reverse cursor by one position
-	_kc_hidden void Next(void);
-	_kc_hidden void Prev(void);
+	KC_HIDDEN void Next();
+	KC_HIDDEN void Prev();
 
 	std::recursive_mutex mLock; /* Locks the entire b-tree */
 	ECTableRow				*lpRoot;		// The root node, which is infinitely 'low', ie all nodes are such that *node > *root

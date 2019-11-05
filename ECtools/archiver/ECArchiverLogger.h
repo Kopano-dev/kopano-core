@@ -15,18 +15,18 @@ namespace KC {
 class KC_EXPORT ECArchiverLogger final : public ECLogger {
 public:
 	ECArchiverLogger(std::shared_ptr<ECLogger>);
-	_kc_hidden tstring SetUser(tstring = tstring());
+	KC_HIDDEN tstring SetUser(tstring = {});
 	tstring SetFolder(tstring strFolder = tstring());
-	_kc_hidden const tstring &GetUser(void) const { return m_strUser; }
-	_kc_hidden const tstring &GetFolder(void) const { return m_strFolder; }
-	_kc_hidden void Reset(void);
+	KC_HIDDEN const tstring &GetUser() const { return m_strUser; }
+	KC_HIDDEN const tstring &GetFolder() const { return m_strFolder; }
+	KC_HIDDEN void Reset();
 	void log(unsigned int level, const char *msg);
 	void logf(unsigned int level, const char *fmt, ...) KC_LIKE_PRINTF(3, 4);
 	void logv(unsigned int level, const char *fmt, va_list &);
 
 private:
-	_kc_hidden std::string CreateFormat(const char *fmt);
-	_kc_hidden std::string EscapeFormatString(const std::string &fmt);
+	KC_HIDDEN std::string CreateFormat(const char *fmt);
+	KC_HIDDEN std::string EscapeFormatString(const std::string &fmt);
 	ECArchiverLogger(const ECArchiverLogger &) = delete;
 	ECArchiverLogger &operator=(const ECArchiverLogger &) = delete;
 

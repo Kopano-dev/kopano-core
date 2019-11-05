@@ -100,10 +100,10 @@ class KC_EXPORT ECPropMapEntry KC_FINAL {
 public:
     ECPropMapEntry(GUID guid, ULONG ulId);
     ECPropMapEntry(GUID guid, const char *strName);
-	_kc_hidden ECPropMapEntry(const ECPropMapEntry &);
-	_kc_hidden ECPropMapEntry(ECPropMapEntry &&);
+	KC_HIDDEN ECPropMapEntry(const ECPropMapEntry &);
+	KC_HIDDEN ECPropMapEntry(ECPropMapEntry &&);
     ~ECPropMapEntry();
-	_kc_hidden MAPINAMEID *GetMAPINameId(void);
+	KC_HIDDEN MAPINAMEID *GetMAPINameId();
 private:
     MAPINAMEID m_sMAPINameId;
     GUID m_sGuid;

@@ -40,8 +40,8 @@ public:
 	HRESULT AddSchedule(eSchedulerType eType, unsigned int ulBeginCycle, void* (*lpFunction)(void*), void* lpData = NULL);
 
 private:
-	_kc_hidden static bool hasExpired(time_t ttime, ECSCHEDULE *);
-	_kc_hidden static void *ScheduleThread(void *tmp_scheduler);
+	KC_HIDDEN static bool hasExpired(time_t, ECSCHEDULE *);
+	KC_HIDDEN static void *ScheduleThread(void *tmp_scheduler);
 
 	ECScheduleList		m_listScheduler;
 	bool m_thread_active = false, m_bExit = false;

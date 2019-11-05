@@ -89,42 +89,42 @@ protected:
 class KC_EXPORT ECMemTableView KC_FINAL_OPG :
     public ECUnknown, public IMAPITable {
 protected:
-	_kc_hidden ECMemTableView(ECMemTable *, const ECLocale &, ULONG flags);
-	_kc_hidden virtual ~ECMemTableView(void);
+	KC_HIDDEN ECMemTableView(ECMemTable *, const ECLocale &, unsigned int flags);
+	KC_HIDDEN virtual ~ECMemTableView();
 public:
-	_kc_hidden static HRESULT Create(ECMemTable *, const ECLocale &, ULONG flags, ECMemTableView **ret);
+	KC_HIDDEN static HRESULT Create(ECMemTable *, const ECLocale &, unsigned int flags, ECMemTableView **ret);
 	virtual HRESULT QueryInterface(const IID &, void **) override;
-	_kc_hidden virtual HRESULT UpdateRow(ULONG update_type, ULONG id);
-	_kc_hidden virtual HRESULT Clear(void);
-	_kc_hidden virtual HRESULT GetLastError(HRESULT, unsigned int flags, MAPIERROR **ret) override;
-	_kc_hidden virtual HRESULT Advise(unsigned int event_mask, IMAPIAdviseSink *, unsigned int *conn) override;
-	_kc_hidden virtual HRESULT Unadvise(unsigned int conn) override;
-	_kc_hidden virtual HRESULT GetStatus(unsigned int *table_status, unsigned int *table_type) override;
+	KC_HIDDEN virtual HRESULT UpdateRow(unsigned int update_type, unsigned int id);
+	KC_HIDDEN virtual HRESULT Clear();
+	KC_HIDDEN virtual HRESULT GetLastError(HRESULT, unsigned int flags, MAPIERROR **ret) override;
+	KC_HIDDEN virtual HRESULT Advise(unsigned int event_mask, IMAPIAdviseSink *, unsigned int *conn) override;
+	KC_HIDDEN virtual HRESULT Unadvise(unsigned int conn) override;
+	KC_HIDDEN virtual HRESULT GetStatus(unsigned int *table_status, unsigned int *table_type) override;
 	virtual HRESULT SetColumns(const SPropTagArray *, unsigned int flags) override;
 	virtual HRESULT QueryColumns(unsigned int flags, SPropTagArray **) override;
-	_kc_hidden virtual HRESULT GetRowCount(unsigned int flags, unsigned int *count) override;
-	_kc_hidden virtual HRESULT SeekRow(BOOKMARK origin, int row_count, int *rows_sought) override;
-	_kc_hidden virtual HRESULT SeekRowApprox(unsigned int numerator, unsigned int denominator) override;
-	_kc_hidden virtual HRESULT QueryPosition(unsigned int *row, unsigned int *numerator, unsigned int *denominator) override;
-	_kc_hidden virtual HRESULT FindRow(const SRestriction *, BOOKMARK origin, unsigned int flags) override;
-	_kc_hidden virtual HRESULT Restrict(const SRestriction *, unsigned int flags) override;
-	_kc_hidden virtual HRESULT CreateBookmark(BOOKMARK *pos) override;
-	_kc_hidden virtual HRESULT FreeBookmark(BOOKMARK pos) override;
-	_kc_hidden virtual HRESULT SortTable(const SSortOrderSet *sort_crit, unsigned int flags) override;
-	_kc_hidden virtual HRESULT QuerySortOrder(SSortOrderSet **sort_crit) override;
+	KC_HIDDEN virtual HRESULT GetRowCount(unsigned int flags, unsigned int *count) override;
+	KC_HIDDEN virtual HRESULT SeekRow(BOOKMARK origin, int row_count, int *rows_sought) override;
+	KC_HIDDEN virtual HRESULT SeekRowApprox(unsigned int numerator, unsigned int denominator) override;
+	KC_HIDDEN virtual HRESULT QueryPosition(unsigned int *row, unsigned int *numerator, unsigned int *denominator) override;
+	KC_HIDDEN virtual HRESULT FindRow(const SRestriction *, BOOKMARK origin, unsigned int flags) override;
+	KC_HIDDEN virtual HRESULT Restrict(const SRestriction *, unsigned int flags) override;
+	KC_HIDDEN virtual HRESULT CreateBookmark(BOOKMARK *pos) override;
+	KC_HIDDEN virtual HRESULT FreeBookmark(BOOKMARK pos) override;
+	KC_HIDDEN virtual HRESULT SortTable(const SSortOrderSet *sort_crit, unsigned int flags) override;
+	KC_HIDDEN virtual HRESULT QuerySortOrder(SSortOrderSet **sort_crit) override;
 	virtual HRESULT QueryRows(int row_count, unsigned int flags, SRowSet **) override;
-	_kc_hidden virtual HRESULT Abort() override;
-	_kc_hidden virtual HRESULT ExpandRow(unsigned int ikey_size, BYTE *ikey, unsigned int row_count, unsigned int flags, SRowSet **rows, unsigned int *more_rows) override;
-	_kc_hidden virtual HRESULT CollapseRow(unsigned int ikey_size, BYTE *ikey, unsigned int flags, unsigned int *row_count) override;
-	_kc_hidden virtual HRESULT WaitForCompletion(unsigned int flags, unsigned int timeout, unsigned int *table_status) override;
-	_kc_hidden virtual HRESULT GetCollapseState(unsigned int flags, unsigned int ikey_size, BYTE *ikey, unsigned int *collapse_size, BYTE **collapse_state) override;
-	_kc_hidden virtual HRESULT SetCollapseState(unsigned int flags, unsigned int collapse_size, BYTE *collapse_state, BOOKMARK *location) override;
+	KC_HIDDEN virtual HRESULT Abort() override;
+	KC_HIDDEN virtual HRESULT ExpandRow(unsigned int ikey_size, BYTE *ikey, unsigned int row_count, unsigned int flags, SRowSet **rows, unsigned int *more_rows) override;
+	KC_HIDDEN virtual HRESULT CollapseRow(unsigned int ikey_size, BYTE *ikey, unsigned int flags, unsigned int *row_count) override;
+	KC_HIDDEN virtual HRESULT WaitForCompletion(unsigned int flags, unsigned int timeout, unsigned int *table_status) override;
+	KC_HIDDEN virtual HRESULT GetCollapseState(unsigned int flags, unsigned int ikey_size, BYTE *ikey, unsigned int *collapse_size, BYTE **collapse_state) override;
+	KC_HIDDEN virtual HRESULT SetCollapseState(unsigned int flags, unsigned int collapse_size, BYTE *collapse_state, BOOKMARK *location) override;
 
 private:
-	_kc_hidden HRESULT GetBinarySortKey(const SPropValue *pv, ECSortCol &);
-	_kc_hidden HRESULT ModifyRowKey(sObjectTableKey *row_item, sObjectTableKey *prev_row, ULONG *action);
-	_kc_hidden HRESULT QueryRowData(const ECObjectTableList *row_list, SRowSet **rows);
-	_kc_hidden HRESULT Notify(ULONG table_event, sObjectTableKey *row_item, sObjectTableKey *prev_row);
+	KC_HIDDEN HRESULT GetBinarySortKey(const SPropValue *pv, ECSortCol &);
+	KC_HIDDEN HRESULT ModifyRowKey(sObjectTableKey *row_item, sObjectTableKey *prev_row, unsigned int *action);
+	KC_HIDDEN HRESULT QueryRowData(const ECObjectTableList *row_list, SRowSet **rows);
+	KC_HIDDEN HRESULT Notify(unsigned int table_event, sObjectTableKey *row_item, sObjectTableKey *prev_row);
 
 	ECKeyTable lpKeyTable;
 	ECMemTable *			lpMemTable;
@@ -136,7 +136,7 @@ private:
 	ULONG m_ulConnection = 1; // Next advise id
 	ULONG					m_ulFlags;
 
-	_kc_hidden virtual HRESULT UpdateSortOrRestrict(void);
+	KC_HIDDEN virtual HRESULT UpdateSortOrRestrict();
 	ALLOC_WRAP_FRIEND;
 };
 
