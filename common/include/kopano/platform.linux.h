@@ -369,8 +369,15 @@ typedef OLECHAR** SNB;
 typedef DWORD LCID;
 
 /* functions */
-extern KC_EXPORT bool operator!=(const GUID &, const GUID &) noexcept;
-extern KC_EXPORT bool operator==(const IID &, const GUID &) noexcept;
+inline bool operator!=(const GUID &a, const GUID &b) noexcept
+{
+	return memcmp(&a, &b, sizeof(GUID)) != 0;
+}
+
+inline bool operator==(const GUID &a, const GUID &b) noexcept
+{
+	return memcmp(&a, &b, sizeof(GUID)) == 0;
+}
 
 extern "C" {
 

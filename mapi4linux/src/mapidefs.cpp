@@ -618,7 +618,7 @@ HRESULT M4LProviderAdmin::CreateProvider(const TCHAR *lpszProvider,
 HRESULT M4LProviderAdmin::DeleteProvider(const MAPIUID *lpUID)
 {
 	for (auto i = msa->providers.begin(); i != msa->providers.end(); ++i) {
-		if(memcmp(&(*i)->uid, lpUID, sizeof(MAPIUID)) == 0) {
+		if ((*i)->uid == *lpUID) {
 			msa->providers.erase(i);
 			return hrSuccess;
 		}
@@ -632,7 +632,7 @@ HRESULT M4LProviderAdmin::OpenProfileSection(const MAPIUID *lpUID,
 	scoped_rlock l_srv(msa->m_mutexserviceadmin);
 
 	// Special ID: the global guid opens the profile's global profile section instead of a local profile
-	if (memcmp(lpUID, &pbGlobalProfileSectionGuid, sizeof(*lpUID)) == 0)
+	if (*lpUID == pbGlobalProfileSectionGuid)
 		return msa->OpenProfileSection(lpUID, lpInterface, ulFlags, lppProfSect);
 	auto provider = msa->findProvider(lpUID);
 	if (provider == nullptr)

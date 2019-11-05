@@ -60,6 +60,5 @@ enum enumPublicEntryID { ePE_None, ePE_IPMSubtree, ePE_Favorites, ePE_PublicFold
 
 extern HRESULT GetPublicEntryId(enumPublicEntryID, const GUID &store_guid, void *base, ULONG *eid_size, ENTRYID **eid);
 extern BOOL CompareMDBProvider(const BYTE *guid, const GUID *kopano_guid);
-extern BOOL CompareMDBProvider(const MAPIUID *guid, const GUID *kopano_guid);
 
 #endif

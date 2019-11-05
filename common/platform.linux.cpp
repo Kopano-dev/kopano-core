@@ -41,16 +41,6 @@
 
 static bool rand_init_done = false;
 
-bool operator!=(const GUID &a, const GUID &b) noexcept
-{
-	return memcmp(&a, &b, sizeof(GUID)) != 0;
-}
-
-bool operator==(REFIID a, const GUID &b) noexcept
-{
-	return memcmp(&a, &b, sizeof(GUID)) == 0;
-}
-
 HRESULT CoCreateGuid(LPGUID pNewGUID) {
 	if (!pNewGUID)
 		return MAPI_E_INVALID_PARAMETER;

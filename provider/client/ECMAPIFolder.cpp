@@ -497,7 +497,8 @@ HRESULT ECMAPIFolder::CopyMessages2(unsigned int ftype, ENTRYLIST *lpMsgList,
 	for (unsigned int i = 0; i < lpMsgList->cValues; ++i) {
 		hr = HrGetStoreGuidFromEntryId(lpMsgList->lpbin[i].cb, lpMsgList->lpbin[i].lpb, &guidMsg);
 		// check if the message in the store of the folder (serverside copy possible)
-		if (hr == hrSuccess && IsKopanoEntryId(lpMsgList->lpbin[i].cb, lpMsgList->lpbin[i].lpb) && memcmp(&guidMsg, &guidFolder, sizeof(MAPIUID)) == 0)
+		if (hr == hrSuccess && IsKopanoEntryId(lpMsgList->lpbin[i].cb, lpMsgList->lpbin[i].lpb) &&
+		    guidMsg == guidFolder)
 			lpMsgListEC->lpbin[lpMsgListEC->cValues++] = lpMsgList->lpbin[i]; // cheap copy
 		else
 			lpMsgListSupport->lpbin[lpMsgListSupport->cValues++] = lpMsgList->lpbin[i]; // cheap copy
@@ -673,8 +674,7 @@ HRESULT ECMAPIFolder::CopyFolder2(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	    !IsKopanoEntryId(lpPropArray[0].Value.bin.cb, lpPropArray[0].Value.bin.lpb) ||
 	    HrGetStoreGuidFromEntryId(cbEntryID, lpEntryID, &guidFrom) != hrSuccess ||
 	    HrGetStoreGuidFromEntryId(lpPropArray[0].Value.bin.cb, lpPropArray[0].Value.bin.lpb, &guidDest) != hrSuccess ||
-	    memcmp(&guidFrom, &guidDest, sizeof(GUID)) != 0 ||
-	    lpFolderOps == nullptr)
+	    guidFrom != guidDest || lpFolderOps == nullptr)
 		/* Support object handled de copy/move */
 		return GetMsgStore()->lpSupport->CopyFolder(&IID_IMAPIFolder,
 		       static_cast<IMAPIFolder *>(this), cbEntryID, lpEntryID,

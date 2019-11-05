@@ -730,11 +730,6 @@ HRESULT GetPublicEntryId(enumPublicEntryID ePublicEntryID,
 
 BOOL CompareMDBProvider(const BYTE *lpguid, const GUID *lpguidKopano)
 {
-	return CompareMDBProvider(reinterpret_cast<const MAPIUID *>(lpguid), lpguidKopano);
-}
-
-BOOL CompareMDBProvider(const MAPIUID *lpguid, const GUID *lpguidKopano)
-{
 	return memcmp(lpguid, lpguidKopano, sizeof(GUID)) == 0;
 }
 

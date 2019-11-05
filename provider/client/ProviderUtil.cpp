@@ -136,9 +136,9 @@ HRESULT CreateMsgStoreObject(const char *lpszProfname, IMAPISupport *lpMAPISup,
 	object_ptr<IECPropStorage> lpStorage;
 	BOOL fModify = ulMsgFlags & MDB_WRITE || ulMsgFlags & MAPI_BEST_ACCESS; // FIXME check access at server
 
-	if (CompareMDBProvider(lpguidMDBProvider, &KOPANO_STORE_PUBLIC_GUID) == TRUE)
+	if (*lpguidMDBProvider == KOPANO_STORE_PUBLIC_GUID)
 		hr = ECMsgStorePublic::Create(lpszProfname, lpMAPISup, lpTransport, fModify, ulProfileFlags, bSpooler, bOfflineStore, &~lpMsgStore);
-	else if (CompareMDBProvider(lpguidMDBProvider, &KOPANO_STORE_ARCHIVE_GUID) == TRUE)
+	else if (*lpguidMDBProvider == KOPANO_STORE_ARCHIVE_GUID)
 		hr = ECMsgStore::Create(lpszProfname, lpMAPISup, lpTransport, fModify, ulProfileFlags, bSpooler, FALSE, bOfflineStore, &~lpMsgStore);
 	else
 		hr = ECArchiveAwareMsgStore::Create(lpszProfname, lpMAPISup, lpTransport, fModify, ulProfileFlags, bSpooler, fIsDefaultStore, bOfflineStore, &~lpMsgStore);

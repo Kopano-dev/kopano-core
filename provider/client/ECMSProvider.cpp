@@ -452,9 +452,8 @@ HRESULT ECMSProviderSwitch::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 		lpDisplayName = lpProp->Value.lpszA;
 	}
 
-	if (CompareMDBProvider(&lpecMDB->m_guidMDB_Provider, &KOPANO_SERVICE_GUID) ||
-		CompareMDBProvider(&lpecMDB->m_guidMDB_Provider, &KOPANO_STORE_DELEGATE_GUID))
-	{
+	if (lpecMDB->m_guidMDB_Provider == KOPANO_SERVICE_GUID ||
+	    lpecMDB->m_guidMDB_Provider == KOPANO_STORE_DELEGATE_GUID) {
 		hr = ClientUtil::HrInitializeStatusRow(lpDisplayName, MAPI_STORE_PROVIDER, lpMAPISup, lpIdentityProps, 0);
 		if (hr != hrSuccess)
 			return hr;
