@@ -67,8 +67,9 @@ Read e-mail input from file. When not given, input is read from standard in.
 .RS 4
 Connect to the storage server through
 \fIpath\fR, e.g.
-file:///path/to/socket. Default:
-file:///var/run/kopano/server.sock.
+\fIfile:///path/to/socket\fP or \fIhttps://a.example:237/\fP.
+.PP
+Default: \fIfile:///var/run/kopano/server.sock\fP
 .RE
 .PP
 \fB\-\-listen\fR, \fB\-l\fR
@@ -221,14 +222,14 @@ Use this file as key to logon to the server. This is only used when server_socke
 \fBkopano-server\fR(8)
 manual page on how to setup SSL keys.
 .sp
-Default: value not set.
+Default: (empty)
 .RE
 .PP
 \fBsslkey_pass\fR
 .RS 4
 The password of the SSL key file that is set in sslkey_file.
 .sp
-Default: value not set.
+Default: (empty)
 .RE
 .SH "EXITCODES"
 .PP

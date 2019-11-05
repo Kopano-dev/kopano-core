@@ -45,154 +45,114 @@ Include and process
 Example: !include common.cfg
 .RE
 .SH "EXPLANATION OF THE SERVICE SETTINGS PARAMETERS"
+.SS run_as_user
 .PP
-\fBrun_as_user\fR
-.RS 4
 During startup, the process will switch to run using this user identity. Note
 that the log file and directory need to be writeable by this user (this is
 normally the case when using packages).
-.sp
-Default: \fIkopano\fP
-.RE
 .PP
-\fBrun_as_group\fR
-.RS 4
+Default: \fIkopano\fP
+.SS run_as_group
+.PP
 During startup, the process will switch to run using this user identity.
-.sp
-Default: \fIkopano\fP
-.RE
 .PP
-\fBpid_file\fR
-.RS 4
+Default: \fIkopano\fP
+.SS pid_file
+.PP
 Write the process ID number to this file. This can be used by sysvinit scripts.
-.sp
+.PP
 Default:
 \fI/var/run/kopano/spamd.pid\fR
-.RE
 .SH "EXPLANATION OF THE SERVER SETTINGS PARAMETERS"
+.SS server_socket
 .PP
-\fBserver_socket\fR
-.RS 4
 Socket to find the connection to the Kopano server.
-.sp
+.PP
 Default:
 \fIfile:///var/run/kopano/server.sock\fR
-.RE
+.SS sslkey_file
 .PP
-\fBsslkey_file\fR
-.RS 4
 The file containing the private key and certificate. Please read the SSL section in the
 \fBkopano-server\fR(8)
 manual on how to create this file.
-.sp
+.PP
 Default:
 \fI/etc/kopano/ssl/spamd.pem\fR
-.RE
+.SS sslkey_pass
 .PP
-\fBsslkey_pass\fR
-.RS 4
 Enter your password here when your key file contains a password to be readable.
-.sp
+.PP
 No default set.
-.RE
 .SH "EXPLANATION OF THE LOG SETTINGS PARAMETERS"
+.SS log_method
 .PP
-\fBlog_method\fR
-.RS 4
 The method which should be used for logging. Valid values are:
+.TP
+\fBsyslog\fP
+Use the Linux system log. All messages will be written to the mail facility. See also \fBsyslog.conf\fR(5).
+.TP
+\fBfile\fP
+Log to a file. The filename will be specified in \fBlog_file\fR.
 .PP
-\fIsyslog\fR
-.RS 4
-Use the Linux system log. All messages will be written to the mail facility. See also
-\fBsyslog.conf\fR(5).
-.RE
-.PP
-\fIfile\fR
-.RS 4
-Log to a file. The filename will be specified in
-\fBlog_file\fR.
-.RE
-.sp
 Default:
 \fIfile\fR
-.RE
+.SS log_level
 .PP
-\fBlog_level\fR
-.RS 4
 The level of output for logging in the range from 0 to 5. 0 means no logging, 5 means full logging.
-.sp
+.PP
 Default:
 \fI3\fR
-.RE
+.SS log_file
 .PP
-\fBlog_file\fR
-.RS 4
 When logging to a file, specify the filename in this parameter. Use
 \fB\-\fP
 (minus sign) for stderr output.
-.sp
+.PP
 Default:
 \fI/var/log/kopano/spamd.log\fR
-.RE
+.SS log_timestamp
 .PP
-\fBlog_timestamp\fR
-.RS 4
 Specify whether to prefix each log line with a timestamp in "file" logging mode.
-.sp
+.PP
 Default:
 \fI1\fR
-.RE
+.SS log_buffer_size
 .PP
-\fBlog_buffer_size\fR
-.RS 4
 Buffer logging in what sized blocks. The special value 0 selects line buffering.
-.sp
+.PP
 Default:
 \fI0\fR
-.RE
 .SH "EXPLANATION OF THE ADVANCED SETTINGS PARAMETERS"
+.SS spam_dir
 .PP
-\fBspam_dir\fR
-.RS 4
 The dir where spam mails are written to which are later picked up by the sa-learn program.
-.sp
+.PP
 Default: \fI/var/lib/kopano/spamd/spam\fR
-.RE
+.SS spam_db
 .PP
-\fBspam_db\fR
-.RS 4
 Location for the database containing metadata on learned spam.
-.sp
+.PP
 Default: \fI/var/lib/kopano/spamd/spam.db\fR
-.RE
+.SS header_tag
 .PP
-\fBheader_tag\fR
-.RS 4
 Header tag for spam message. X-Spam-Flag, X-Spam-Status, X-Spam
-.sp
+.PP
 Default: \fIX-Spam-Flag\fR
-.RE
+.SS learn_ham
 .PP
-\fBlearn_ham\fR
-.RS 4
 Learn ham, when the user moves emails from junk to inbox, enabled by default.
-.sp
+.PP
 Default: \fIyes\fR
-.RE
+.SS ham_dir
 .PP
-\fBham_dir\fR
-.RS 4
 The dir where ham mails are written to which are later picked up by the sa-learn program
-.sp
-Default: \fI/var/lib/kopano/spamd/ham\fR
-.RE
 .PP
-\fBsa_group\fR
-.RS 4
+Default: \fI/var/lib/kopano/spamd/ham\fR
+.SS sa_group
+.PP
 Spamassassin group
-.sp
+.PP
 Default: \fIamavis\fR
-.RE
 .SH "SEE ALSO"
 .PP
 \fBkopano-spamd\fR(8)

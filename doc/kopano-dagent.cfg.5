@@ -89,12 +89,12 @@ Use this file as key to logon to the server. This is only used when server_socke
 \fBkopano-server\fR(8)
 manual page on how to setup SSL keys.
 .PP
-Default: value not set.
+Default: (empty)
 .SS sslkey_pass
 .PP
 The password of the SSL key file that is set in sslkey_file.
 .PP
-Default: value not set.
+Default: (empty)
 .SS lmtp_listen
 .PP
 A space-separated list of address:port specifiers for where the server should
@@ -306,7 +306,7 @@ Default:
 This directive overrides forward_whitelist_domains and sources domains from the
 specified file instead.
 .PP
-Default: \fI(empty)\fP
+Default: (empty)
 .SS forward_whitelist_domain_subject
 .PP
 A custom-defined reply subject to the user with a rule forwarding to a
@@ -327,7 +327,7 @@ Default:
 This directive overrides forward_whitelist_domain_message and sources the
 message from the specified file instead.
 .PP
-Default: \fI(empty)\fP
+Default: (empty)
 .SS unknown_charset_substitution
 .PP
 A space-separated list of pairs of space-separated charset name and replacement

@@ -42,27 +42,24 @@ implied defaults.
 .RS 4
 Connect to the storage server through
 \fIpath\fR, e.g.
-file:///path/to/socket. Default:
-file:///var/run/kopano/server.sock.
+\fIfile:///path/to/socket\fP or \fIhttps://a.example:237/\fP.
+.PP
+Default: \fIfile:///var/run/kopano/server.sock\fP
 .RE
 .SH "SIGNALS"
 .PP
 The following signals can be sent to the kopano\-monitor process:
+.SS HUP
 .PP
-\fBHUP\fR
-.RS 4
 When the HUP signal is received, some options from the configuration file are reloaded. The reloadable options are listed in the
 \fBkopano-monitor.cfg\fR(5)
 manual page.
-.sp
+.PP
 Also, when using
 \fIlog_method = file\fR, the logfile will be closed and a new logfile will be opened. You can use this signal in your logrotate system.
-.RE
+.SS TERM
 .PP
-\fBTERM\fR
-.RS 4
 To gracefully let the service exit, the normal TERM signal is used.
-.RE
 .SH "SEE ALSO"
 .PP
 \fBkopano-monitor.cfg\fR(5),
