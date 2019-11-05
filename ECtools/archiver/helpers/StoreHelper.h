@@ -50,8 +50,7 @@ private:
 
 	typedef HRESULT(StoreHelper::*fn_setup_t)(LPMAPIFOLDER, const ECRestriction *, const ECRestriction *);
 	struct search_folder_info_t {
-		LPCTSTR		lpszName;
-		LPCTSTR		lpszDescription;
+		const TCHAR *lpszName, *lpszDescription;
 		fn_setup_t	fnSetup;
 	};
 

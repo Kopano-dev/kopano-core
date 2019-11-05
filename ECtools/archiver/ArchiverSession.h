@@ -53,8 +53,7 @@ private:
 	MAPISessionPtr	m_ptrSession;
 	MsgStorePtr		m_ptrAdminStore;
 	std::shared_ptr<ECLogger> m_lpLogger;
-	std::string		m_strSslPath;
-	std::string		m_strSslPass;
+	std::string m_strSslPath, m_strSslPass;
 };
 
 } /* namespace */

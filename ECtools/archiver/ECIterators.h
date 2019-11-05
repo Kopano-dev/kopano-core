@@ -37,11 +37,9 @@ public:
 
 private:
 	MAPIContainerPtr	m_ptrContainer;
-	ULONG				m_ulFlags;
-	ULONG				m_ulDepth;
+	unsigned int m_ulFlags, m_ulDepth, m_ulRowIndex;
 	MAPITablePtr		m_ptrTable;
 	SRowSetPtr			m_ptrRows;
-	ULONG				m_ulRowIndex;
 	MAPIContainerPtr	m_ptrCurrent;
 };
 

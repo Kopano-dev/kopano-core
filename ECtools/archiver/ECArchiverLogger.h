@@ -31,8 +31,7 @@ private:
 	ECArchiverLogger &operator=(const ECArchiverLogger &) = delete;
 
 	std::shared_ptr<ECLogger> m_lpLogger;
-	tstring		m_strUser;
-	tstring		m_strFolder;
+	tstring m_strUser, m_strFolder;
 };
 
 class KC_EXPORT ScopedUserLogging final {
