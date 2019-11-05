@@ -182,9 +182,6 @@ ECMsgStore::ECMsgStore(const char *lpszProfname, IMAPISupport *sup,
 }
 
 ECMsgStore::~ECMsgStore() {
-	enable_transaction(false);
-	if(lpTransport)
-		lpTransport->HrLogOff();
 	// remove all advices
 	if(m_lpNotifyClient)
 		m_lpNotifyClient->ReleaseAll();
@@ -1843,7 +1840,6 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId,
     const ENTRYID *lpUserId, ULONG *lpcbStoreId, ENTRYID **lppStoreId,
     ULONG *lpcbRootId, ENTRYID **lppRootId)
 {
-	object_ptr<WSTransport> lpTempTransport;
 	object_ptr<ECMsgStore> lpecMsgStore;
 	object_ptr<ECMAPIFolder> lpMapiFolderRoot;
 	/* Root container, IPM_SUBTREE and NON_IPM_SUBTREE */
@@ -1858,17 +1854,8 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId,
 	auto hr = CreateEmptyStore(ulStoreType, cbUserId, lpUserId, 0, &cbStoreId, &lpStoreId, &cbRootId, &lpRootId);
 	if (hr != hrSuccess)
 		return hr;
-	/*
-	 * Create a temporary transport, because the new ECMsgStore object will
-	 * logoff the transport, even if the refcount is not 0 yet. That would
-	 * cause the current instance to lose its transport.
-	 */
-	hr = lpTransport->CloneAndRelogon(&~lpTempTransport);
-	if (hr != hrSuccess)
-		return hr;
-
 	// Open the created messagestore
-	hr = ECMsgStore::Create("", lpSupport, lpTempTransport, true, MAPI_BEST_ACCESS, false, false, false, &~lpecMsgStore);
+	hr = ECMsgStore::Create("", lpSupport, lpTransport, true, MAPI_BEST_ACCESS, false, false, false, &~lpecMsgStore);
 	if (hr != hrSuccess)
 		//FIXME: what todo with created store?
 		return hr;
