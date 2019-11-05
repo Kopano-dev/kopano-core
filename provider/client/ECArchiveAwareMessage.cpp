@@ -520,7 +520,8 @@ HRESULT ECArchiveAwareMsgStore::OpenItemFromArchive(LPSPropValue lpPropStoreEIDs
 	return hr;
 }
 
-HRESULT ECArchiveAwareMsgStore::CreateCacheBasedReorderedList(SBinaryArray sbaStoreEIDs, SBinaryArray sbaItemEIDs, BinaryList *lplstStoreEIDs, BinaryList *lplstItemEIDs)
+HRESULT ECArchiveAwareMsgStore::CreateCacheBasedReorderedList(const SBinaryArray &sbaStoreEIDs,
+    const SBinaryArray &sbaItemEIDs, BinaryList *lplstStoreEIDs, BinaryList *lplstItemEIDs)
 {
 	BinaryList lstStoreEIDs, lstItemEIDs;
 	BinaryList lstUncachedStoreEIDs, lstUncachedItemEIDs;

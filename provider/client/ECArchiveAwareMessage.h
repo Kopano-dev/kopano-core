@@ -33,7 +33,7 @@ class KC_EXPORT_DYCAST ECArchiveAwareMsgStore KC_FINAL_OPG :
 	typedef std::vector<BYTE> EntryID;
 	typedef std::map<EntryID, ECMsgStorePtr> MsgStoreMap;
 
-	KC_HIDDEN HRESULT CreateCacheBasedReorderedList(SBinaryArray b_store_eids, SBinaryArray b_item_eids, BinaryList *store_eids, BinaryList *item_eids);
+	KC_HIDDEN HRESULT CreateCacheBasedReorderedList(const SBinaryArray &b_store_eids, const SBinaryArray &b_item_eids, BinaryList *store_eids, BinaryList *item_eids);
 	KC_HIDDEN HRESULT GetArchiveStore(SBinary *store_eid, ECMsgStore **ret);
 
 	MsgStoreMap m_mapStores;

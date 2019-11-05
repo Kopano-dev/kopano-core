@@ -217,7 +217,7 @@ protected:
 	KC_HIDDEN BTSession *GetSession(ECSESSIONID, bool lock_ses = false);
 	KC_HIDDEN ECRESULT ValidateBTSession(struct soap *, ECSESSIONID, BTSession **);
 	KC_HIDDEN BOOL IsSessionPersistent(ECSESSIONID);
-	KC_HIDDEN ECRESULT UpdateSubscribedTables(ECKeyTable::UpdateType, TABLESUBSCRIPTION, std::list<unsigned int> &child_id);
+	KC_HIDDEN ECRESULT UpdateSubscribedTables(ECKeyTable::UpdateType, const TABLESUBSCRIPTION &, std::list<unsigned int> &child_id);
 	KC_HIDDEN ECRESULT SaveSourceKeyAutoIncrement(unsigned long long new_src_key_autoincr);
 
 	EC_SESSIONGROUPMAP m_mapSessionGroups; ///< map of all the session groups
