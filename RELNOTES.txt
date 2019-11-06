@@ -1,12 +1,17 @@
-8.7.7
-=====
+8.7.7 (2019-11-06)
+==================
 Enhancements:
 * icalmapi: export more MAPI field to VCF and import vice-versa [KC-1608]
+* doc: update misspelling and behavior of --verbose [KC-1554]
+* doc: quota recipients only work with companies [KC-735]
 Fixes:
 * libserver: avoid null deref when GIG on RFC2307 is attempted [KC-1606]
 * storeadm: allow combining -P and -k [KF-2741]
 * fsck: fix broken recipient lists deduplication [KC-1562]
 * oof: -x option should prompt for plain password [KC-1617]
+* oof: avoid printing set=null [KC-1629]
+* freebusy: avoid out of bounds access in HrAddFBBlock [KC-235]
+* admin: cannot change group fullname [KC-734]
 
 
 8.7.6 (2019-10-01)
