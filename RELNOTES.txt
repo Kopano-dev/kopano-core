@@ -1,7 +1,10 @@
-8.8.x
-=====
+8.7.85 (2019-11-06)
+===================
+All changes from the 8.7.x branch up to 8.7.7 are included.
 Enhancements:
 * daemons: support "%xxx"-style interface identifiers in bindspecs
+  (the "server_listen" or similarly-named directives in .cfg files)
+* client: send fewer logoff calls [KC-1590]
 Fixes:
 * daemons: AF_LOCAL sockets were erroneously owned by root rather than
   run_as_user [KC-1616]
