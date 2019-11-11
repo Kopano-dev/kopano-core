@@ -4,6 +4,8 @@
  */
 #include <kopano/platform.h>
 #include <memory>
+#include <cerrno>
+#include <cstring>
 #include "SOAPSock.h"
 #include <sys/un.h>
 #include "SOAPUtils.h"
@@ -57,23 +59,33 @@ static int gsoap_connect_pipe(struct soap *soap, const char *endpoint,
 	struct sockaddr_un saddr;
 	memset(&saddr, 0, sizeof(struct sockaddr_un));
 	soap->socket = SOAP_INVALID_SOCKET;
+	soap->errmode = 0;
 
-	if (strncmp(endpoint, "file://", 7) != 0)
-		return SOAP_EOF;
+	if (strncmp(endpoint, "file:", 5) != 0) {
+		soap_set_sender_error(soap, strerror(EINVAL), "file: scheme is required for gsoap_connect_pipe", SOAP_TCP_ERROR);
+		return SOAP_INVALID_SOCKET;
+	}
 	const char *socket_name = strchr(endpoint + 7, '/');
 	// >= because there also needs to be room for the 0x00
 	if (socket_name == NULL ||
-	    strlen(socket_name) >= sizeof(saddr.sun_path))
-		return SOAP_EOF;
+	    strlen(socket_name) >= sizeof(saddr.sun_path)) {
+		soap_set_sender_error(soap, strerror(EINVAL), "Socket path is too long", SOAP_TCP_ERROR);
+		return SOAP_INVALID_SOCKET;
+	}
 	auto fd = socket(PF_UNIX, SOCK_STREAM, 0);
-	if (fd < 0)
-		return SOAP_EOF;
+	if (fd < 0) {
+		soap->errnum = soap_socket_errno(fd);
+		soap_set_sender_error(soap, strerror(errno), "connect_pipe: socket failed", SOAP_TCP_ERROR);
+		return SOAP_INVALID_SOCKET;
+	}
 
 	saddr.sun_family = AF_UNIX;
 	kc_strlcpy(saddr.sun_path, socket_name, sizeof(saddr.sun_path));
 	if (connect(fd, (struct sockaddr *)&saddr, sizeof(struct sockaddr_un)) < 0) {
+		soap->errnum = soap_socket_errno(fd);
+		soap_set_receiver_error(soap, strerror(errno), "connect_pipe: connect failed", SOAP_TCP_ERROR);
 		close(fd);
-		return SOAP_EOF;
+		return SOAP_INVALID_SOCKET;
 	}
 
  	soap->sendfd = soap->recvfd = SOAP_INVALID_SOCKET;
