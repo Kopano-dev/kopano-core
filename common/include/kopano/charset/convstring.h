@@ -17,10 +17,10 @@ namespace KC {
 class KC_EXPORT convstring KC_FINAL {
 public:
 	static convstring from_SPropValue(const SPropValue *lpsPropVal);
-	_kc_hidden static convstring from_SPropValue(const SPropValue &);
-	_kc_hidden convstring(void) = default;
-	_kc_hidden convstring(const convstring &);
-	_kc_hidden convstring(const char *);
+	KC_HIDDEN static convstring from_SPropValue(const SPropValue &);
+	KC_HIDDEN convstring() = default;
+	KC_HIDDEN convstring(const convstring &);
+	KC_HIDDEN convstring(const char *);
 	convstring(const wchar_t *lpsz);
 	convstring(const TCHAR *lpsz, ULONG ulFlags);
 
@@ -33,8 +33,8 @@ public:
 	const char *u8_str() const;
 
 private:
-	template<typename T> _kc_hidden T convert_to(void) const;
-	template<typename T> _kc_hidden T convert_to(const char *tocode) const;
+	template<typename T> KC_HIDDEN T convert_to() const;
+	template<typename T> KC_HIDDEN T convert_to(const char *tocode) const;
 
 	const TCHAR *m_lpsz = nullptr;
 	ULONG m_ulFlags = 0;

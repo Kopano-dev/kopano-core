@@ -18,44 +18,44 @@ public:
 	std::wstring& GetText();
 
 protected:
-	_kc_hidden void Init(void);
-	_kc_hidden bool ll_parse(const wchar_t *);
-	_kc_hidden void parseTag(const wchar_t *&);
-	_kc_hidden bool parseEntity(const wchar_t *&);
-	_kc_hidden void parseAttributes(const wchar_t *&);
-	_kc_hidden void addChar(wchar_t);
-	_kc_hidden void addNewLine(bool force_line);
-	_kc_hidden bool addURLAttribute(const wchar_t *attr, bool spaces = false);
-	_kc_hidden void addSpace(bool force);
+	KC_HIDDEN void Init();
+	KC_HIDDEN bool ll_parse(const wchar_t *);
+	KC_HIDDEN void parseTag(const wchar_t *&);
+	KC_HIDDEN bool parseEntity(const wchar_t *&);
+	KC_HIDDEN void parseAttributes(const wchar_t *&);
+	KC_HIDDEN void addChar(wchar_t);
+	KC_HIDDEN void addNewLine(bool force_line);
+	KC_HIDDEN bool addURLAttribute(const wchar_t *attr, bool spaces = false);
+	KC_HIDDEN void addSpace(bool force);
 
 	//Parse tags
-	_kc_hidden void parseTagP(void);
-	_kc_hidden void parseTagBP(void);
-	_kc_hidden void parseTagBR(void);
-	_kc_hidden void parseTagTR(void);
-	_kc_hidden void parseTagBTR(void);
-	_kc_hidden void parseTagTDTH(void);
-	_kc_hidden void parseTagIMG(void);
-	_kc_hidden void parseTagA(void);
-	_kc_hidden void parseTagBA(void);
-	_kc_hidden void parseTagSCRIPT(void);
-	_kc_hidden void parseTagBSCRIPT(void);
-	_kc_hidden void parseTagSTYLE(void);
-	_kc_hidden void parseTagBSTYLE(void);
-	_kc_hidden void parseTagHEAD(void);
-	_kc_hidden void parseTagBHEAD(void);
-	_kc_hidden void parseTagNewLine(void);
-	_kc_hidden void parseTagHR(void);
-	_kc_hidden void parseTagHeading(void);
-	_kc_hidden void parseTagPRE(void);
-	_kc_hidden void parseTagBPRE(void);
-	_kc_hidden void parseTagOL(void);
-	_kc_hidden void parseTagUL(void);
-	_kc_hidden void parseTagLI(void);
-	_kc_hidden void parseTagPopList(void);
-	_kc_hidden void parseTagDL(void);
-	_kc_hidden void parseTagDT(void);
-	_kc_hidden void parseTagDD(void);
+	KC_HIDDEN void parseTagP();
+	KC_HIDDEN void parseTagBP();
+	KC_HIDDEN void parseTagBR();
+	KC_HIDDEN void parseTagTR();
+	KC_HIDDEN void parseTagBTR();
+	KC_HIDDEN void parseTagTDTH();
+	KC_HIDDEN void parseTagIMG();
+	KC_HIDDEN void parseTagA();
+	KC_HIDDEN void parseTagBA();
+	KC_HIDDEN void parseTagSCRIPT();
+	KC_HIDDEN void parseTagBSCRIPT();
+	KC_HIDDEN void parseTagSTYLE();
+	KC_HIDDEN void parseTagBSTYLE();
+	KC_HIDDEN void parseTagHEAD();
+	KC_HIDDEN void parseTagBHEAD();
+	KC_HIDDEN void parseTagNewLine();
+	KC_HIDDEN void parseTagHR();
+	KC_HIDDEN void parseTagHeading();
+	KC_HIDDEN void parseTagPRE();
+	KC_HIDDEN void parseTagBPRE();
+	KC_HIDDEN void parseTagOL();
+	KC_HIDDEN void parseTagUL();
+	KC_HIDDEN void parseTagLI();
+	KC_HIDDEN void parseTagPopList();
+	KC_HIDDEN void parseTagDL();
+	KC_HIDDEN void parseTagDT();
+	KC_HIDDEN void parseTagDD();
 
 	std::wstring strText;
 	bool fScriptMode = false;
@@ -69,7 +69,7 @@ protected:
 
 	typedef void ( CHtmlToTextParser::*ParseMethodType )( void );
 
-	struct _kc_hidden tagParser {
+	struct KC_HIDDEN tagParser {
 		tagParser(void) = default;
 		tagParser(bool pa, ParseMethodType mt) :
 			bParseAttrs(pa), parserMethod(mt)

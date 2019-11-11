@@ -59,35 +59,35 @@ struct BUSYSTATE {
 */
 class KC_EXPORT BTSession {
 public:
-	_kc_hidden BTSession(const char *addr, ECSESSIONID, ECDatabaseFactory *, ECSessionManager *, unsigned int caps);
-	_kc_hidden virtual ~BTSession(void) = default;
-	_kc_hidden virtual ECRESULT Shutdown(unsigned int timeout);
-	_kc_hidden virtual ECRESULT ValidateOriginator(struct soap *);
-	_kc_hidden virtual ECSESSIONID GetSessionId() const final { return m_sessionID; }
-	_kc_hidden virtual time_t GetSessionTime() const final { return m_sessionTime + m_ulSessionTimeout; }
-	_kc_hidden virtual void UpdateSessionTime(void);
-	_kc_hidden virtual unsigned int GetCapabilities() const final { return m_ulClientCapabilities; }
-	_kc_hidden virtual ECSessionManager *GetSessionManager() const final { return m_lpSessionManager; }
-	_kc_hidden virtual ECUserManagement *GetUserManagement(void) const = 0;
+	KC_HIDDEN BTSession(const char *addr, ECSESSIONID, ECDatabaseFactory *, ECSessionManager *, unsigned int caps);
+	KC_HIDDEN virtual ~BTSession() = default;
+	KC_HIDDEN virtual ECRESULT Shutdown(unsigned int timeout);
+	KC_HIDDEN virtual ECRESULT ValidateOriginator(struct soap *);
+	KC_HIDDEN virtual ECSESSIONID GetSessionId() const final { return m_sessionID; }
+	KC_HIDDEN virtual time_t GetSessionTime() const final { return m_sessionTime + m_ulSessionTimeout; }
+	KC_HIDDEN virtual void UpdateSessionTime();
+	KC_HIDDEN virtual unsigned int GetCapabilities() const final { return m_ulClientCapabilities; }
+	KC_HIDDEN virtual ECSessionManager *GetSessionManager() const final { return m_lpSessionManager; }
+	KC_HIDDEN virtual ECUserManagement *GetUserManagement() const = 0;
 	virtual ECRESULT GetDatabase(ECDatabase **);
-	_kc_hidden virtual ECRESULT GetAdditionalDatabase(ECDatabase **);
-	_kc_hidden ECRESULT GetServerGUID(GUID *);
-	_kc_hidden ECRESULT GetNewSourceKey(SOURCEKEY *);
-	_kc_hidden virtual void SetClientMeta(const char *cl_vers, const char *cl_misc);
-	_kc_hidden virtual void GetClientApplicationVersion(std::string *);
-	_kc_hidden virtual void GetClientApplicationMisc(std::string *);
+	KC_HIDDEN virtual ECRESULT GetAdditionalDatabase(ECDatabase **);
+	KC_HIDDEN ECRESULT GetServerGUID(GUID *);
+	KC_HIDDEN ECRESULT GetNewSourceKey(SOURCEKEY *);
+	KC_HIDDEN virtual void SetClientMeta(const char *cl_vers, const char *cl_misc);
+	KC_HIDDEN virtual void GetClientApplicationVersion(std::string *);
+	KC_HIDDEN virtual void GetClientApplicationMisc(std::string *);
 	virtual void lock();
 	virtual void unlock();
-	_kc_hidden virtual bool IsLocked() const final { return m_ulRefCount > 0; }
-	_kc_hidden virtual void RecordRequest(struct soap *);
-	_kc_hidden virtual unsigned int GetRequests(void);
-	_kc_hidden virtual unsigned int GetClientPort();
-	_kc_hidden virtual std::string GetRequestURL();
-	_kc_hidden virtual std::string GetProxyHost();
-	_kc_hidden size_t GetInternalObjectSize(void);
-	_kc_hidden virtual size_t GetObjectSize(void) = 0;
-	_kc_hidden time_t GetIdleTime() const;
-	_kc_hidden const std::string &GetSourceAddr(void) const { return m_strSourceAddr; }
+	KC_HIDDEN virtual bool IsLocked() const final { return m_ulRefCount > 0; }
+	KC_HIDDEN virtual void RecordRequest(struct soap *);
+	KC_HIDDEN virtual unsigned int GetRequests();
+	KC_HIDDEN virtual unsigned int GetClientPort();
+	KC_HIDDEN virtual std::string GetRequestURL();
+	KC_HIDDEN virtual std::string GetProxyHost();
+	KC_HIDDEN size_t GetInternalObjectSize();
+	KC_HIDDEN virtual size_t GetObjectSize() = 0;
+	KC_HIDDEN time_t GetIdleTime() const;
+	KC_HIDDEN const std::string &GetSourceAddr() const { return m_strSourceAddr; }
 
 	enum AUTHMETHOD {
 	    METHOD_NONE, METHOD_USERPASSWORD, METHOD_SOCKET, METHOD_SSO, METHOD_SSL_CERT
@@ -118,37 +118,37 @@ protected:
 */
 class KC_EXPORT_DYCAST ECSession final : public BTSession {
 public:
-	_kc_hidden ECSession(const char *addr, ECSESSIONID, ECSESSIONGROUPID, ECDatabaseFactory *, ECSessionManager *, unsigned int caps, AUTHMETHOD, int pid, const std::string &cl_vers, const std::string &cl_app, const std::string &cl_app_ver, const std::string &cl_app_misc);
-	_kc_hidden virtual ECSESSIONGROUPID GetSessionGroupId() const final { return m_ecSessionGroupId; }
-	_kc_hidden virtual int GetConnectingPid() const final { return m_ulConnectingPid; }
-	_kc_hidden virtual ~ECSession(void);
-	_kc_hidden virtual ECRESULT Shutdown(unsigned int timeout) override;
-	_kc_hidden virtual ECUserManagement *GetUserManagement(void) const override final { return m_lpUserManagement.get(); }
+	KC_HIDDEN ECSession(const char *addr, ECSESSIONID, ECSESSIONGROUPID, ECDatabaseFactory *, ECSessionManager *, unsigned int caps, AUTHMETHOD, int pid, const std::string &cl_vers, const std::string &cl_app, const std::string &cl_app_ver, const std::string &cl_app_misc);
+	KC_HIDDEN virtual ECSESSIONGROUPID GetSessionGroupId() const final { return m_ecSessionGroupId; }
+	KC_HIDDEN virtual int GetConnectingPid() const final { return m_ulConnectingPid; }
+	KC_HIDDEN virtual ~ECSession();
+	KC_HIDDEN virtual ECRESULT Shutdown(unsigned int timeout) override;
+	KC_HIDDEN virtual ECUserManagement *GetUserManagement() const override final { return m_lpUserManagement.get(); }
 
 	/* Notification functions all wrap directly to SessionGroup */
-	_kc_hidden ECRESULT AddAdvise(unsigned int conn, unsigned int key, unsigned int event_mask);
-	_kc_hidden ECRESULT AddChangeAdvise(unsigned int conn, notifySyncState *);
-	_kc_hidden ECRESULT DelAdvise(unsigned int conn);
-	_kc_hidden ECRESULT AddNotificationTable(unsigned int type, unsigned int obj_type, unsigned int table, sObjectTableKey *child_row, sObjectTableKey *prev_row, struct propValArray *row);
-	_kc_hidden ECRESULT GetNotifyItems(struct soap *, struct notifyResponse *notifications);
-	_kc_hidden ECTableManager *GetTableManager(void) const { return m_lpTableManager.get(); }
-	_kc_hidden ECSecurity *GetSecurity(void) const { return m_lpEcSecurity.get(); }
-	_kc_hidden ECRESULT GetObjectFromEntryId(const entryId *, unsigned int *obj_id, unsigned int *eid_flags = nullptr);
-	_kc_hidden ECRESULT LockObject(unsigned int obj_id);
-	_kc_hidden ECRESULT UnlockObject(unsigned int obj_id);
+	KC_HIDDEN ECRESULT AddAdvise(unsigned int conn, unsigned int key, unsigned int event_mask);
+	KC_HIDDEN ECRESULT AddChangeAdvise(unsigned int conn, notifySyncState *);
+	KC_HIDDEN ECRESULT DelAdvise(unsigned int conn);
+	KC_HIDDEN ECRESULT AddNotificationTable(unsigned int type, unsigned int obj_type, unsigned int table, sObjectTableKey *child_row, sObjectTableKey *prev_row, struct propValArray *row);
+	KC_HIDDEN ECRESULT GetNotifyItems(struct soap *, struct notifyResponse *notifications);
+	KC_HIDDEN ECTableManager *GetTableManager() const { return m_lpTableManager.get(); }
+	KC_HIDDEN ECSecurity *GetSecurity() const { return m_lpEcSecurity.get(); }
+	KC_HIDDEN ECRESULT GetObjectFromEntryId(const entryId *, unsigned int *obj_id, unsigned int *eid_flags = nullptr);
+	KC_HIDDEN ECRESULT LockObject(unsigned int obj_id);
+	KC_HIDDEN ECRESULT UnlockObject(unsigned int obj_id);
 
 	/* for ECStatsSessionTable */
-	_kc_hidden void AddBusyState(pthread_t, const char *state, const struct timespec &threadstart, const KC::time_point &start);
-	_kc_hidden void UpdateBusyState(pthread_t, int state);
-	_kc_hidden void RemoveBusyState(pthread_t);
-	_kc_hidden void GetBusyStates(std::list<BUSYSTATE> *);
-	_kc_hidden void AddClocks(double user, double system, double real);
-	_kc_hidden void GetClocks(double *user, double *system, double *real);
-	_kc_hidden void GetClientVersion(std::string *version);
-	_kc_hidden void GetClientApp(std::string *client_app);
-	_kc_hidden size_t GetObjectSize() override;
-	_kc_hidden unsigned int ClientVersion(void) const { return m_ulClientVersion; }
-	_kc_hidden AUTHMETHOD GetAuthMethod(void) const { return m_ulAuthMethod; }
+	KC_HIDDEN void AddBusyState(pthread_t, const char *state, const struct timespec &threadstart, const KC::time_point &start);
+	KC_HIDDEN void UpdateBusyState(pthread_t, int state);
+	KC_HIDDEN void RemoveBusyState(pthread_t);
+	KC_HIDDEN void GetBusyStates(std::list<BUSYSTATE> *);
+	KC_HIDDEN void AddClocks(double user, double system, double real);
+	KC_HIDDEN void GetClocks(double *user, double *system, double *real);
+	KC_HIDDEN void GetClientVersion(std::string *version);
+	KC_HIDDEN void GetClientApp(std::string *client_app);
+	KC_HIDDEN size_t GetObjectSize() override;
+	KC_HIDDEN unsigned int ClientVersion() const { return m_ulClientVersion; }
+	KC_HIDDEN AUTHMETHOD GetAuthMethod() const { return m_ulAuthMethod; }
 
 private:
 	ECSessionGroup		*m_lpSessionGroup;
@@ -175,15 +175,15 @@ private:
 */
 class KC_EXPORT_DYCAST ECAuthSession final : public BTSession {
 public:
-	_kc_hidden ECAuthSession(const char *addr, ECSESSIONID, ECDatabaseFactory *, ECSessionManager *, unsigned int caps);
-	_kc_hidden virtual ~ECAuthSession(void);
-	_kc_hidden ECRESULT ValidateUserLogon(const char *name, const char *pass, const char *imp_user);
-	_kc_hidden ECRESULT ValidateUserSocket(int socket, const char *name, const char *imp_user);
-	_kc_hidden ECRESULT ValidateUserCertificate(struct soap *, const char *name, const char *imp_user);
-	_kc_hidden ECRESULT ValidateSSOData(struct soap *, const char *name, const char *imp_user, const char *cl_ver, const char *cl_app, const char *cl_app_ver, const char *cl_app_misc, const struct xsd__base64Binary *input, struct xsd__base64Binary **output);
-	_kc_hidden virtual ECRESULT CreateECSession(ECSESSIONGROUPID, const std::string &cl_ver, const std::string &cl_app, const std::string &cl_app_ver, const std::string &cl_app_misc, ECSESSIONID *retid, ECSession **ret);
-	_kc_hidden size_t GetObjectSize() override;
-	_kc_hidden virtual ECUserManagement *GetUserManagement(void) const override final { return m_lpUserManagement.get(); }
+	KC_HIDDEN ECAuthSession(const char *addr, ECSESSIONID, ECDatabaseFactory *, ECSessionManager *, unsigned int caps);
+	KC_HIDDEN virtual ~ECAuthSession();
+	KC_HIDDEN ECRESULT ValidateUserLogon(const char *name, const char *pass, const char *imp_user);
+	KC_HIDDEN ECRESULT ValidateUserSocket(int socket, const char *name, const char *imp_user);
+	KC_HIDDEN ECRESULT ValidateUserCertificate(struct soap *, const char *name, const char *imp_user);
+	KC_HIDDEN ECRESULT ValidateSSOData(struct soap *, const char *name, const char *imp_user, const char *cl_ver, const char *cl_app, const char *cl_app_ver, const char *cl_app_misc, const struct xsd__base64Binary *input, struct xsd__base64Binary **output);
+	KC_HIDDEN virtual ECRESULT CreateECSession(ECSESSIONGROUPID, const std::string &cl_ver, const std::string &cl_app, const std::string &cl_app_ver, const std::string &cl_app_misc, ECSESSIONID *retid, ECSession **ret);
+	KC_HIDDEN size_t GetObjectSize() override;
+	KC_HIDDEN virtual ECUserManagement *GetUserManagement() const override final { return m_lpUserManagement.get(); }
 
 protected:
 	unsigned int m_ulUserID = 0;
@@ -194,13 +194,13 @@ protected:
 
 private:
 	/* SSO */
-	_kc_hidden ECRESULT ValidateSSOData_NTLM(struct soap *, const char *name, const char *cl_ver, const char *cl_app, const char *cl_app_ver, const char *cl_app_misc, const struct xsd__base64Binary *input, struct xsd__base64Binary **out);
-	_kc_hidden ECRESULT ValidateSSOData_KRB5(struct soap *, const char *name, const char *cl_ver, const char *cl_app, const char *cl_app_ver, const char *cl_app_misc, const struct xsd__base64Binary *input, struct xsd__base64Binary **out);
-	_kc_hidden ECRESULT ValidateSSOData_KCOIDC(struct soap *, const char *name, const char *cl_ver, const char *cl_app, const char *cl_app_ver, const char *cl_app_misc, const struct xsd__base64Binary *input, struct xsd__base64Binary **output);
+	KC_HIDDEN ECRESULT ValidateSSOData_NTLM(struct soap *, const char *name, const char *cl_ver, const char *cl_app, const char *cl_app_ver, const char *cl_app_misc, const struct xsd__base64Binary *input, struct xsd__base64Binary **out);
+	KC_HIDDEN ECRESULT ValidateSSOData_KRB5(struct soap *, const char *name, const char *cl_ver, const char *cl_app, const char *cl_app_ver, const char *cl_app_misc, const struct xsd__base64Binary *input, struct xsd__base64Binary **out);
+	KC_HIDDEN ECRESULT ValidateSSOData_KCOIDC(struct soap *, const char *name, const char *cl_ver, const char *cl_app, const char *cl_app_ver, const char *cl_app_misc, const struct xsd__base64Binary *input, struct xsd__base64Binary **output);
 #ifdef HAVE_GSSAPI
-	_kc_hidden ECRESULT LogKRB5Error(const char *msg, OM_uint32 major, OM_uint32 minor);
+	KC_HIDDEN ECRESULT LogKRB5Error(const char *msg, OM_uint32 major, OM_uint32 minor);
 #endif
-	_kc_hidden ECRESULT ProcessImpersonation(const char *imp_user);
+	KC_HIDDEN ECRESULT ProcessImpersonation(const char *imp_user);
 
 	/* NTLM */
 	pid_t m_NTLM_pid = -1;

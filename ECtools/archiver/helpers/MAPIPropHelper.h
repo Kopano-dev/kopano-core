@@ -28,23 +28,23 @@ class MessageState;
 class KC_EXPORT MAPIPropHelper {
 public:
 	static HRESULT Create(MAPIPropPtr ptrMapiProp, MAPIPropHelperPtr *lpptrMAPIPropHelper);
-	_kc_hidden virtual ~MAPIPropHelper(void) = default;
+	KC_HIDDEN virtual ~MAPIPropHelper() = default;
 	HRESULT GetMessageState(ArchiverSessionPtr ptrSession, MessageState *lpState);
 	HRESULT GetArchiveList(ObjectEntryList *lplstArchives, bool bIgnoreSourceKey = false);
 	HRESULT SetArchiveList(const ObjectEntryList &lstArchives, bool bExplicitCommit = false);
 	HRESULT SetReference(const SObjectEntry &sEntry, bool bExplicitCommit = false);
-	_kc_hidden HRESULT GetReference(SObjectEntry *entry);
+	KC_HIDDEN HRESULT GetReference(SObjectEntry *);
 	HRESULT ClearReference(bool bExplicitCommit = false);
 	HRESULT ReferencePrevious(const SObjectEntry &sEntry);
 	HRESULT OpenPrevious(ArchiverSessionPtr ptrSession, LPMESSAGE *lppMessage);
-	_kc_hidden HRESULT RemoveStub(void);
+	KC_HIDDEN HRESULT RemoveStub();
 	HRESULT SetClean();
 	HRESULT DetachFromArchives();
 	virtual HRESULT GetParentFolder(ArchiverSessionPtr ptrSession, LPMAPIFOLDER *lppFolder);
 
 protected:
-	_kc_hidden MAPIPropHelper(MAPIPropPtr);
-	_kc_hidden HRESULT Init(void);
+	KC_HIDDEN MAPIPropHelper(MAPIPropPtr);
+	KC_HIDDEN HRESULT Init();
 
 private:
 	MAPIPropPtr m_ptrMapiProp;

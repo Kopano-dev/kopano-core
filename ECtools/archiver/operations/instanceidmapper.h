@@ -22,12 +22,12 @@ namespace operations {
 class KC_EXPORT InstanceIdMapper final {
 	public:
 	static HRESULT Create(std::shared_ptr<ECLogger>, ECConfig *, InstanceIdMapperPtr *);
-	_kc_hidden HRESULT GetMappedInstanceId(const SBinary &src_server_uid, ULONG src_instance_id_size, LPENTRYID src_instance_id, const SBinary &dst_server_uid, ULONG *dst_instance_id_size, LPENTRYID *dst_instance_id);
-	_kc_hidden HRESULT SetMappedInstances(ULONG prop_id, const SBinary &src_server_uid, ULONG src_instance_id_size, LPENTRYID src_instance_id, const SBinary &dst_server_uid, ULONG dst_instance_id_size, LPENTRYID dst_instance_id);
+	KC_HIDDEN HRESULT GetMappedInstanceId(const SBinary &src_server_uid, unsigned int src_instance_id_size, ENTRYID *src_instance_id, const SBinary &dst_server_uid, unsigned int *dst_instance_id_size, ENTRYID **dst_instance_id);
+	KC_HIDDEN HRESULT SetMappedInstances(unsigned int prop_id, const SBinary &src_server_uid, unsigned int src_instance_id_size, ENTRYID *src_instance_id, const SBinary &dst_server_uid, unsigned int dst_instance_id_size, ENTRYID *dst_instance_id);
 
 	private:
-	_kc_hidden InstanceIdMapper(std::shared_ptr<ECLogger>);
-	_kc_hidden HRESULT Init(ECConfig *);
+	KC_HIDDEN InstanceIdMapper(std::shared_ptr<ECLogger>);
+	KC_HIDDEN HRESULT Init(ECConfig *);
 
 	std::shared_ptr<KCMDatabaseMySQL> m_ptrDatabase;
 };

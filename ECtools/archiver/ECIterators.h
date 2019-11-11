@@ -15,14 +15,14 @@ typedef object_ptr<IMAPIContainer> MAPIContainerPtr;
 
 class KC_EXPORT ECHierarchyIteratorBase {
 public:
-	_kc_hidden ECHierarchyIteratorBase(void) :
+	KC_HIDDEN ECHierarchyIteratorBase() :
 	    m_ulFlags(0), m_ulDepth(0), m_ulRowIndex(0)
 	{
 		// creates the "end" iterator
 	}
 	ECHierarchyIteratorBase(LPMAPICONTAINER lpContainer, ULONG ulFlags = 0, ULONG ulDepth = 0);
 
-	_kc_hidden MAPIContainerPtr &dereference(void) const
+	KC_HIDDEN MAPIContainerPtr &dereference() const
 	{
 		assert(m_ptrCurrent != NULL && "attempt to dereference end iterator");
 		return const_cast<MAPIContainerPtr&>(m_ptrCurrent);
@@ -30,18 +30,16 @@ public:
 
 	void increment();
 
-	_kc_hidden bool equal(const ECHierarchyIteratorBase &rhs) const
+	KC_HIDDEN bool equal(const ECHierarchyIteratorBase &rhs) const
 	{
 		return m_ptrCurrent == rhs.m_ptrCurrent;
 	}
 
 private:
 	MAPIContainerPtr	m_ptrContainer;
-	ULONG				m_ulFlags;
-	ULONG				m_ulDepth;
+	unsigned int m_ulFlags, m_ulDepth, m_ulRowIndex;
 	MAPITablePtr		m_ptrTable;
 	SRowSetPtr			m_ptrRows;
-	ULONG				m_ulRowIndex;
 	MAPIContainerPtr	m_ptrCurrent;
 };
 

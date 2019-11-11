@@ -34,23 +34,23 @@ class ECConfig;
 
 class KC_EXPORT ECChannel KC_FINAL {
 public:
-	_kc_hidden ECChannel(int sockfd);
+	KC_HIDDEN ECChannel(int sockfd);
 	~ECChannel();
 	HRESULT HrEnableTLS(void);
-	_kc_hidden HRESULT HrGets(char *buf, size_t bufsize, size_t *have_read);
+	KC_HIDDEN HRESULT HrGets(char *buf, size_t bufsize, size_t *have_read);
 	HRESULT HrReadLine(std::string &buf, size_t maxbuf = 65536);
 	HRESULT HrWriteString(const std::string & strBuffer);
 	HRESULT HrWriteLine(const char *buf, size_t len = 0);
 	HRESULT HrWriteLine(const std::string & strBuffer);
-	_kc_hidden HRESULT HrReadBytes(char *buf, size_t len);
+	KC_HIDDEN HRESULT HrReadBytes(char *buf, size_t len);
 	HRESULT HrReadBytes(std::string *buf, size_t len);
 	HRESULT HrReadAndDiscardBytes(size_t);
 	HRESULT HrSelect(int seconds);
-	_kc_hidden void SetIPAddress(const struct sockaddr *, size_t);
-	_kc_hidden const char *peer_addr(void) const { return peer_atxt; }
+	KC_HIDDEN void SetIPAddress(const struct sockaddr *, size_t);
+	KC_HIDDEN const char *peer_addr() const { return peer_atxt; }
 	int peer_is_local(void) const;
-	_kc_hidden bool UsingSsl(void) const { return lpSSL != NULL; }
-	_kc_hidden bool sslctx(void) const { return lpCTX != NULL; }
+	KC_HIDDEN bool UsingSsl() const { return lpSSL != nullptr; }
+	KC_HIDDEN bool sslctx() const { return lpCTX != nullptr; }
 	static HRESULT HrSetCtx(ECConfig *);
 	static HRESULT HrFreeCtx();
 
@@ -62,8 +62,8 @@ private:
 	struct sockaddr_storage peer_sockaddr;
 	socklen_t peer_salen = 0;
 
-	_kc_hidden char *fd_gets(char *buf, int *len);
-	_kc_hidden char *SSL_gets(char *buf, int *len);
+	KC_HIDDEN char *fd_gets(char *buf, int *len);
+	KC_HIDDEN char *SSL_gets(char *buf, int *len);
 };
 
 /**

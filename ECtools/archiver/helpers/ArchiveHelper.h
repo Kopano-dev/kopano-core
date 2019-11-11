@@ -40,15 +40,15 @@ enum AttachType {
  */
 class KC_EXPORT ArchiveHelper final {
 public:
-	_kc_hidden static HRESULT Create(LPMDB arc_store, const tstring &folder, const char *server_path, ArchiveHelperPtr *);
-	_kc_hidden static HRESULT Create(LPMDB arc_store, LPMAPIFOLDER arc_folder, const char *server_path, ArchiveHelperPtr *);
+	KC_HIDDEN static HRESULT Create(IMsgStore *arc_store, const tstring &folder, const char *server_path, ArchiveHelperPtr *);
+	KC_HIDDEN static HRESULT Create(IMsgStore *arc_store, IMAPIFolder *arc_folder, const char *server_path, ArchiveHelperPtr *);
 	static HRESULT Create(ArchiverSessionPtr ptrSession, const SObjectEntry &archiveEntry, std::shared_ptr<ECLogger>, ArchiveHelperPtr *lpptrArchiveHelper);
-	_kc_hidden HRESULT GetAttachedUser(abentryid_t *user_eid);
-	_kc_hidden HRESULT SetAttachedUser(const abentryid_t &user_eid);
-	_kc_hidden HRESULT GetArchiveEntry(bool create, SObjectEntry *obj_entry);
-	_kc_hidden HRESULT GetArchiveType(ArchiveType *arc_type, AttachType *att_type);
-	_kc_hidden HRESULT SetArchiveType(ArchiveType arc_type, AttachType att_type);
-	_kc_hidden HRESULT SetPermissions(const abentryid_t &user_eid, bool writable);
+	KC_HIDDEN HRESULT GetAttachedUser(abentryid_t *user_eid);
+	KC_HIDDEN HRESULT SetAttachedUser(const abentryid_t &user_eid);
+	KC_HIDDEN HRESULT GetArchiveEntry(bool create, SObjectEntry *obj_entry);
+	KC_HIDDEN HRESULT GetArchiveType(ArchiveType *arc_type, AttachType *att_type);
+	KC_HIDDEN HRESULT SetArchiveType(ArchiveType arc_type, AttachType att_type);
+	KC_HIDDEN HRESULT SetPermissions(const abentryid_t &user_eid, bool writable);
 	HRESULT GetArchiveFolderFor(MAPIFolderPtr &ptrSourceFolder, ArchiverSessionPtr ptrSession, LPMAPIFOLDER *lppDestinationFolder);
 	HRESULT GetHistoryFolder(LPMAPIFOLDER *lppHistoryFolder);
 	HRESULT GetOutgoingFolder(LPMAPIFOLDER *lppOutgoingFolder);
@@ -56,14 +56,14 @@ public:
 	HRESULT GetSpecialsRootFolder(LPMAPIFOLDER *lppSpecialsRootFolder);
 
 	HRESULT GetArchiveFolder(bool bCreate, LPMAPIFOLDER *lppArchiveFolder);
-	_kc_hidden HRESULT IsArchiveFolder(LPMAPIFOLDER, bool *res);
-	_kc_hidden MsgStorePtr GetMsgStore(void) const { return m_ptrArchiveStore; }
-	_kc_hidden HRESULT PrepareForFirstUse(ECLogger * = nullptr);
+	KC_HIDDEN HRESULT IsArchiveFolder(IMAPIFolder *, bool *res);
+	KC_HIDDEN MsgStorePtr GetMsgStore() const { return m_ptrArchiveStore; }
+	KC_HIDDEN HRESULT PrepareForFirstUse(ECLogger * = nullptr);
 
 private:
-	_kc_hidden ArchiveHelper(LPMDB arc_store, const tstring &folder, const std::string &server_path);
-	_kc_hidden ArchiveHelper(LPMDB arc_store, LPMAPIFOLDER arc_folder, const std::string &server_path);
-	_kc_hidden HRESULT Init(void);
+	KC_HIDDEN ArchiveHelper(IMsgStore *arc_store, const tstring &folder, const std::string &server_path);
+	KC_HIDDEN ArchiveHelper(IMsgStore *arc_store, IMAPIFolder *arc_folder, const std::string &server_path);
+	KC_HIDDEN HRESULT Init();
 
 	enum eSpecFolder {
 		sfBase = 0,			//< The root of the special folders, which is a child of the archive root
@@ -71,11 +71,11 @@ private:
 		sfOutgoing = 2,		//< The outgoing folder, which is a child of the special root
 		sfDeleted = 3		//< The deleted items folder, which is a child of the special root
 	};
-	_kc_hidden HRESULT GetSpecialFolderEntryID(eSpecFolder sf_which, ULONG *eid_size, LPENTRYID *eid);
-	_kc_hidden HRESULT SetSpecialFolderEntryID(eSpecFolder sf_which, ULONG eid_size, LPENTRYID eid);
-	_kc_hidden HRESULT GetSpecialFolder(eSpecFolder sf_which, bool create, LPMAPIFOLDER *spc_folder);
-	_kc_hidden HRESULT CreateSpecialFolder(eSpecFolder sf_which, LPMAPIFOLDER *spc_folder);
-	_kc_hidden HRESULT IsSpecialFolder(eSpecFolder sf_which, LPMAPIFOLDER, bool *res);
+	KC_HIDDEN HRESULT GetSpecialFolderEntryID(eSpecFolder sf_which, unsigned int *eid_size, ENTRYID **eid);
+	KC_HIDDEN HRESULT SetSpecialFolderEntryID(eSpecFolder sf_which, unsigned int eid_size, ENTRYID *eid);
+	KC_HIDDEN HRESULT GetSpecialFolder(eSpecFolder sf_which, bool create, IMAPIFolder **spc_folder);
+	KC_HIDDEN HRESULT CreateSpecialFolder(eSpecFolder sf_which, IMAPIFolder **spc_folder);
+	KC_HIDDEN HRESULT IsSpecialFolder(eSpecFolder sf_which, IMAPIFolder *, bool *res);
 
 	MsgStorePtr	m_ptrArchiveStore;
 	MAPIFolderPtr m_ptrArchiveFolder;

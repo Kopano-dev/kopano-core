@@ -714,7 +714,8 @@ ECRESULT ECSessionManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned 
 	return UpdateSubscribedTables(ulType, sSubscription, lstChildId);
 }
 
-ECRESULT ECSessionManager::UpdateSubscribedTables(ECKeyTable::UpdateType ulType, TABLESUBSCRIPTION sSubscription, std::list<unsigned int> &lstChildId)
+ECRESULT ECSessionManager::UpdateSubscribedTables(ECKeyTable::UpdateType ulType,
+    const TABLESUBSCRIPTION &sSubscription, std::list<unsigned int> &lstChildId)
 {
 	std::set<ECSESSIONID> setSessions;
 

@@ -34,18 +34,18 @@ public:
 	};
 
 	static const char *GetConfigPath(void);
-	_kc_hidden static const configsetting_t *GetConfigDefaults(void);
+	KC_HIDDEN static const configsetting_t *GetConfigDefaults();
 	static eResult Create(std::unique_ptr<Archiver> *);
-	_kc_hidden virtual ~Archiver(void) = default;
-	_kc_hidden virtual eResult Init(const char *app_name, const char *config, const configsetting_t *extra_opts = nullptr, unsigned int flags = 0) = 0;
-	_kc_hidden virtual eResult GetControl(ArchiveControlPtr *, bool force_cleanup = false) = 0;
-	_kc_hidden virtual eResult GetManage(const TCHAR *user, ArchiveManagePtr *) = 0;
-	_kc_hidden virtual eResult AutoAttach(unsigned int flags) = 0;
-	_kc_hidden virtual ECConfig *GetConfig(void) const = 0;
-	_kc_hidden virtual ECLogger *GetLogger(eLogType which = DefaultLog) const = 0;
+	KC_HIDDEN virtual ~Archiver() = default;
+	KC_HIDDEN virtual eResult Init(const char *app_name, const char *config, const configsetting_t *extra_opts = nullptr, unsigned int flags = 0) = 0;
+	KC_HIDDEN virtual eResult GetControl(ArchiveControlPtr *, bool force_cleanup = false) = 0;
+	KC_HIDDEN virtual eResult GetManage(const TCHAR *user, ArchiveManagePtr *) = 0;
+	KC_HIDDEN virtual eResult AutoAttach(unsigned int flags) = 0;
+	KC_HIDDEN virtual ECConfig *GetConfig() const = 0;
+	KC_HIDDEN virtual ECLogger *GetLogger(eLogType which = DefaultLog) const = 0;
 
 protected:
-	_kc_hidden Archiver(void) {};
+	KC_HIDDEN Archiver() {}
 };
 
 } /* namespace */

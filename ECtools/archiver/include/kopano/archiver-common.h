@@ -56,7 +56,7 @@ public:
 	/**
 	 * Constructs an empty entryid.
 	 */
-	_kc_hidden entryid_t(void) = default;
+	KC_HIDDEN entryid_t() = default;
 
 	/**
 	 * Construct an entryid based on a length and pointer argument.
@@ -66,7 +66,7 @@ public:
 	 * @param[in]	lpEntryId
 	 *					Pointer to the entryid.
 	 */
-	_kc_hidden entryid_t(size_t z, const ENTRYID *eid) :
+	KC_HIDDEN entryid_t(size_t z, const ENTRYID *eid) :
 		m_eid(reinterpret_cast<const char *>(eid), z)
 	{ }
 
@@ -76,12 +76,12 @@ public:
 	 * @param[in]	sBin
 	 *					The SBinary structure from which the data will be extracted.
 	 */
-	_kc_hidden entryid_t(const SBinary &sBin) :
+	KC_HIDDEN entryid_t(const SBinary &sBin) :
 		m_eid(reinterpret_cast<const char *>(sBin.lpb), sBin.cb)
 	{ }
 
-	_kc_hidden entryid_t(const entryid_t &) = default;
-	_kc_hidden entryid_t(entryid_t &&) = default;
+	KC_HIDDEN entryid_t(const entryid_t &) = default;
+	KC_HIDDEN entryid_t(entryid_t &&) = default;
 
 	/**
 	 * Assign a new entryid based on a length and pointer argument.
@@ -91,7 +91,7 @@ public:
 	 * @param[in]	lpEntryId
 	 *					Pointer to the entryid.
 	 */
-	_kc_hidden void assign(size_t z, const ENTRYID *eid)
+	KC_HIDDEN void assign(size_t z, const ENTRYID *eid)
 	{
 		m_eid.assign(reinterpret_cast<const char *>(eid), z);
 	}
@@ -102,7 +102,7 @@ public:
 	 * @param[in]	sBin
 	 *					The SBinary structure from which the data will be extracted.
 	 */
-	_kc_hidden entryid_t &operator=(const SBinary &sBin)
+	KC_HIDDEN entryid_t &operator=(const SBinary &sBin)
 	{
 		m_eid.assign(reinterpret_cast<const char *>(sBin.lpb), sBin.cb);
 		return *this;
@@ -112,19 +112,19 @@ public:
 	 * Returns the size in bytes of the entryid.
 	 * @return The size in bytes of the entryid.
 	 */
-	_kc_hidden ULONG size(void) const { return m_eid.size(); }
+	KC_HIDDEN unsigned int size() const { return m_eid.size(); }
 
 	/**
 	 * Returns true if the entryid is empty.
 	 * @return true or false
 	 */
-	_kc_hidden bool empty(void) const { return m_eid.empty(); }
+	KC_HIDDEN bool empty() const { return m_eid.empty(); }
 
 	/**
 	 * Return a pointer to the data as a BYTE pointer.
 	 * @return The entryid data.
 	 */
-	_kc_hidden operator LPBYTE(void) const
+	KC_HIDDEN operator LPBYTE() const
 	{
 		return reinterpret_cast<BYTE *>(const_cast<char *>(m_eid.data()));
 	}
@@ -133,7 +133,7 @@ public:
 	 * Return a pointer to the data as an ENTRYID pointer.
 	 * @return The entryid data.
 	 */
-	_kc_hidden operator LPENTRYID(void) const
+	KC_HIDDEN operator LPENTRYID() const
 	{
 		return reinterpret_cast<ENTRYID *>(const_cast<char *>(m_eid.data()));
 	}
@@ -142,7 +142,7 @@ public:
 	 * Return a pointer to the data as a VOID pointer.
 	 * @return The entryid data.
 	 */
-	_kc_hidden operator LPVOID(void) const
+	KC_HIDDEN operator LPVOID() const
 	{
 		return const_cast<char *>(m_eid.data());
 	}
@@ -164,7 +164,7 @@ public:
 	 *					The other entryid to compare content with.
 	 * @return true if the entryids are not equal.
 	 */
-	_kc_hidden bool operator!=(const entryid_t &other) const
+	KC_HIDDEN bool operator!=(const entryid_t &other) const
 	{
 		return !(*this == other);
 	}
@@ -189,13 +189,13 @@ public:
 	 * Convert the entryid to a human readable hexadecimal format.
 	 * @return The entryid in hexadecimal format.
 	 */
-	_kc_hidden std::string tostring() const { return bin2hex(m_eid); }
+	KC_HIDDEN std::string tostring() const { return bin2hex(m_eid); }
 
 	/**
 	 * Get entryid as a std::string
 	 * @return The binary data as std::string
 	 */
-	_kc_hidden std::string data(void) const
+	KC_HIDDEN std::string data() const
 	{
 		return m_eid;
 	}
@@ -210,7 +210,7 @@ public:
 	 *
 	 * @return true on success
 	 */
-	_kc_hidden bool wrap(const std::string &path);
+	KC_HIDDEN bool wrap(const std::string &path);
 
 	/**
 	 * Unwrap the path from the entryid.
@@ -222,7 +222,7 @@ public:
 	 * @retval	true	The path was successfully extracted.
 	 * @retval	false	THe entryid wasn't wrapped.
 	 */
-	_kc_hidden bool unwrap(std::string *path);
+	KC_HIDDEN bool unwrap(std::string *path);
 
 	/**
 	 * Check if an entryid is wrapped with a server path.

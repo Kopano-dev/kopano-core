@@ -129,96 +129,96 @@ class usercount_t final {
 
 class KC_EXPORT server_stats final : public ECStatsCollector {
 	public:
-	_kc_hidden server_stats(std::shared_ptr<ECConfig>);
+	KC_HIDDEN server_stats(std::shared_ptr<ECConfig>);
 	void fill_odm() override;
 
 	private:
-	_kc_hidden void update_tcmalloc_stats();
+	KC_HIDDEN void update_tcmalloc_stats();
 };
 
 class SOURCEKEY;
 
 class KC_EXPORT ECSessionManager final {
 public:
-	_kc_hidden ECSessionManager(std::shared_ptr<ECConfig>, std::shared_ptr<ECLogger> audit, std::shared_ptr<server_stats>, bool hosted, bool distributed);
-	_kc_hidden virtual ~ECSessionManager(void);
-	_kc_hidden virtual ECRESULT CreateAuthSession(struct soap *, unsigned int caps, ECSESSIONID *, ECAuthSession **, bool register_ses, bool lock_ses);
+	KC_HIDDEN ECSessionManager(std::shared_ptr<ECConfig>, std::shared_ptr<ECLogger> audit, std::shared_ptr<server_stats>, bool hosted, bool distributed);
+	KC_HIDDEN virtual ~ECSessionManager();
+	KC_HIDDEN virtual ECRESULT CreateAuthSession(struct soap *, unsigned int caps, ECSESSIONID *, ECAuthSession **, bool register_ses, bool lock_ses);
 	// Creates a session based on passed credentials
-	_kc_hidden virtual ECRESULT CreateSession(struct soap *, const char *name, const char *pass, const char *imp_user, const char *cl_vers, const char *cl_app, const char *cl_app_ver, const char *cl_app_misc, unsigned int caps, ECSESSIONGROUPID, ECSESSIONID *, ECSession **, bool lock_ses, bool allow_uid_auth, bool register_session);
+	KC_HIDDEN virtual ECRESULT CreateSession(struct soap *, const char *name, const char *pass, const char *imp_user, const char *cl_vers, const char *cl_app, const char *cl_app_ver, const char *cl_app_misc, unsigned int caps, ECSESSIONGROUPID, ECSESSIONID *, ECSession **, bool lock_ses, bool allow_uid_auth, bool register_session);
 	// Creates a session without credential checking (caller must check credentials)
-	_kc_hidden virtual ECRESULT RegisterSession(ECAuthSession *, ECSESSIONGROUPID, const char *cl_ver, const char *cl_app, const char *cl_app_ver, const char *cl_app_misc, ECSESSIONID *, ECSession **, bool lock_ses);
+	KC_HIDDEN virtual ECRESULT RegisterSession(ECAuthSession *, ECSESSIONGROUPID, const char *cl_ver, const char *cl_app, const char *cl_app_ver, const char *cl_app_misc, ECSESSIONID *, ECSession **, bool lock_ses);
 	virtual ECRESULT CreateSessionInternal(ECSession **, unsigned int user_id = KOPANO_UID_SYSTEM);
-	_kc_hidden virtual ECRESULT RemoveSession(ECSESSIONID);
+	KC_HIDDEN virtual ECRESULT RemoveSession(ECSESSIONID);
 	virtual void RemoveSessionInternal(ECSession *);
 
-	_kc_hidden virtual ECRESULT GetSessionGroup(ECSESSIONGROUPID, ECSession *, ECSessionGroup **);
-	_kc_hidden virtual ECRESULT DeleteIfOrphaned(ECSessionGroup *);
+	KC_HIDDEN virtual ECRESULT GetSessionGroup(ECSESSIONGROUPID, ECSession *, ECSessionGroup **);
+	KC_HIDDEN virtual ECRESULT DeleteIfOrphaned(ECSessionGroup *);
 	ECRESULT RemoveAllSessions();
-	_kc_hidden ECRESULT CancelAllSessions(ECSESSIONID except = 0);
-	_kc_hidden ECRESULT ForEachSession(void (*cb)(ECSession *, void *), void *obj);
-	_kc_hidden ECRESULT LoadSettings(void);
-	_kc_hidden ECRESULT UpdateTables(ECKeyTable::UpdateType, unsigned int flags, unsigned int obj_id, unsigned int child_id, unsigned int obj_type);
-	_kc_hidden ECRESULT UpdateTables(ECKeyTable::UpdateType, unsigned int flags, unsigned int obj_id, std::list<unsigned int> &objects, unsigned int obj_type);
-	_kc_hidden ECRESULT UpdateOutgoingTables(ECKeyTable::UpdateType, unsigned int store_id, unsigned int obj_id, unsigned int flags, unsigned int obj_type);
-	_kc_hidden ECRESULT NotificationModified(unsigned int obj_type, unsigned int obj_id, unsigned int parent_id = 0, bool isCounter=false);
-	_kc_hidden ECRESULT NotificationCreated(unsigned int obj_type, unsigned int obj_id, unsigned int parent_id);
-	_kc_hidden ECRESULT NotificationMoved(unsigned int obj_type, unsigned int obj_id, unsigned int parent_id, unsigned int old_parent_id, entryId *old_eid = nullptr);
-	_kc_hidden ECRESULT NotificationCopied(unsigned int obj_type, unsigned int obj_id, unsigned int parent_id, unsigned int old_obj_id, unsigned int old_parent_id);
-	_kc_hidden ECRESULT NotificationDeleted(unsigned int obj_type, unsigned int obj_id, unsigned int store_id, entryId *eid, unsigned int folder_id, unsigned int flags);
-	_kc_hidden ECRESULT NotificationSearchComplete(unsigned int obj_id, unsigned int store_id);
-	_kc_hidden ECRESULT NotificationChange(const std::set<unsigned int> &sync_ids, unsigned int change_id, unsigned int change_type);
-	_kc_hidden ECRESULT ValidateSession(struct soap *, ECSESSIONID, ECAuthSession **);
-	_kc_hidden ECRESULT ValidateSession(struct soap *, ECSESSIONID, ECSession **);
-	_kc_hidden ECRESULT AddSessionClocks(ECSESSIONID, double user, double system, double real);
+	KC_HIDDEN ECRESULT CancelAllSessions(ECSESSIONID except = 0);
+	KC_HIDDEN ECRESULT ForEachSession(void (*cb)(ECSession *, void *), void *obj);
+	KC_HIDDEN ECRESULT LoadSettings();
+	KC_HIDDEN ECRESULT UpdateTables(ECKeyTable::UpdateType, unsigned int flags, unsigned int obj_id, unsigned int child_id, unsigned int obj_type);
+	KC_HIDDEN ECRESULT UpdateTables(ECKeyTable::UpdateType, unsigned int flags, unsigned int obj_id, std::list<unsigned int> &objects, unsigned int obj_type);
+	KC_HIDDEN ECRESULT UpdateOutgoingTables(ECKeyTable::UpdateType, unsigned int store_id, unsigned int obj_id, unsigned int flags, unsigned int obj_type);
+	KC_HIDDEN ECRESULT NotificationModified(unsigned int obj_type, unsigned int obj_id, unsigned int parent_id = 0, bool isCounter=false);
+	KC_HIDDEN ECRESULT NotificationCreated(unsigned int obj_type, unsigned int obj_id, unsigned int parent_id);
+	KC_HIDDEN ECRESULT NotificationMoved(unsigned int obj_type, unsigned int obj_id, unsigned int parent_id, unsigned int old_parent_id, entryId *old_eid = nullptr);
+	KC_HIDDEN ECRESULT NotificationCopied(unsigned int obj_type, unsigned int obj_id, unsigned int parent_id, unsigned int old_obj_id, unsigned int old_parent_id);
+	KC_HIDDEN ECRESULT NotificationDeleted(unsigned int obj_type, unsigned int obj_id, unsigned int store_id, entryId *eid, unsigned int folder_id, unsigned int flags);
+	KC_HIDDEN ECRESULT NotificationSearchComplete(unsigned int obj_id, unsigned int store_id);
+	KC_HIDDEN ECRESULT NotificationChange(const std::set<unsigned int> &sync_ids, unsigned int change_id, unsigned int change_type);
+	KC_HIDDEN ECRESULT ValidateSession(struct soap *, ECSESSIONID, ECAuthSession **);
+	KC_HIDDEN ECRESULT ValidateSession(struct soap *, ECSESSIONID, ECSession **);
+	KC_HIDDEN ECRESULT AddSessionClocks(ECSESSIONID, double user, double system, double real);
 	ECRESULT RemoveBusyState(ECSESSIONID ecSessionID, pthread_t thread);
-	_kc_hidden static void *SessionCleaner(void *tmp_ses_mgr);
-	_kc_hidden ECRESULT AddNotification(notification *item, unsigned int key, unsigned int store_id = 0, unsigned int folder_id = 0, unsigned int flags = 0, bool isCounter = false);
-	_kc_hidden ECRESULT DeferNotificationProcessing(ECSESSIONID, struct soap *);
-	_kc_hidden ECRESULT NotifyNotificationReady(ECSESSIONID);
-	_kc_hidden void update_extra_stats();
-	_kc_hidden sSessionManagerStats get_stats();
-	_kc_hidden bool IsHostedSupported() const { return m_bHostedKopano; }
-	_kc_hidden bool IsDistributedSupported() const { return m_bDistributedKopano; }
-	_kc_hidden ECRESULT GetServerGUID(GUID *);
-	_kc_hidden ECRESULT GetNewSourceKey(SOURCEKEY *);
+	KC_HIDDEN static void *SessionCleaner(void *tmp_ses_mgr);
+	KC_HIDDEN ECRESULT AddNotification(notification *item, unsigned int key, unsigned int store_id = 0, unsigned int folder_id = 0, unsigned int flags = 0, bool isCounter = false);
+	KC_HIDDEN ECRESULT DeferNotificationProcessing(ECSESSIONID, struct soap *);
+	KC_HIDDEN ECRESULT NotifyNotificationReady(ECSESSIONID);
+	KC_HIDDEN void update_extra_stats();
+	KC_HIDDEN sSessionManagerStats get_stats();
+	KC_HIDDEN bool IsHostedSupported() const { return m_bHostedKopano; }
+	KC_HIDDEN bool IsDistributedSupported() const { return m_bDistributedKopano; }
+	KC_HIDDEN ECRESULT GetServerGUID(GUID *);
+	KC_HIDDEN ECRESULT GetNewSourceKey(SOURCEKEY *);
 
     // Requests that table change events of a specific table are sent to a
     // session. Events are published to the 'UpdateTables()' function or
     // 'UpdateOutgoingTables()' function of the session.
-	_kc_hidden ECRESULT SubscribeTableEvents(TABLE_ENTRY::TABLE_TYPE, unsigned int tbl_root_obj_id, unsigned int obj_type, unsigned int obj_flags, ECSESSIONID);
-	_kc_hidden ECRESULT UnsubscribeTableEvents(TABLE_ENTRY::TABLE_TYPE, unsigned int tbl_root_obj_id, unsigned int obj_type, unsigned int obj_flags, ECSESSIONID);
+	KC_HIDDEN ECRESULT SubscribeTableEvents(TABLE_ENTRY::TABLE_TYPE, unsigned int tbl_root_obj_id, unsigned int obj_type, unsigned int obj_flags, ECSESSIONID);
+	KC_HIDDEN ECRESULT UnsubscribeTableEvents(TABLE_ENTRY::TABLE_TYPE, unsigned int tbl_root_obj_id, unsigned int obj_type, unsigned int obj_flags, ECSESSIONID);
 
 	// Requests that object notifications for a certain store are dispatched to a sessiongroup. Events
 	// are published to the 'AddNotification()' function for the session's sessiongroup.
-	_kc_hidden ECRESULT SubscribeObjectEvents(unsigned int store_id, ECSESSIONGROUPID);
-	_kc_hidden ECRESULT UnsubscribeObjectEvents(unsigned int store_id, ECSESSIONGROUPID);
+	KC_HIDDEN ECRESULT SubscribeObjectEvents(unsigned int store_id, ECSESSIONGROUPID);
+	KC_HIDDEN ECRESULT UnsubscribeObjectEvents(unsigned int store_id, ECSESSIONGROUPID);
 
 	enum SEQUENCE { SEQ_IMAP };
-	_kc_hidden ECRESULT GetNewSequence(SEQUENCE, unsigned long long *seq_id);
-	_kc_hidden ECRESULT CreateDatabaseConnection(void);
-	_kc_hidden ECRESULT GetStoreSortLCID(ULONG store_id, ULONG *id);
-	_kc_hidden LPCSTR GetDefaultSortLocaleID(void);
-	_kc_hidden ULONG GetSortLCID(ULONG store_id);
-	_kc_hidden ECLocale GetSortLocale(ULONG store_id);
-	_kc_hidden ECCacheManager *GetCacheManager() const { return m_lpECCacheManager.get(); }
-	_kc_hidden ECSearchFolders *GetSearchFolders() const { return m_lpSearchFolders.get(); }
-	_kc_hidden std::shared_ptr<ECConfig> GetConfig() const { return m_lpConfig; }
-	_kc_hidden std::shared_ptr<ECLogger> GetAudit() const { return m_lpAudit; }
-	_kc_hidden ECPluginFactory *GetPluginFactory() const { return m_lpPluginFactory.get(); }
-	_kc_hidden ECLockManager *GetLockManager() const { return m_ptrLockManager.get(); }
-	_kc_hidden ECDatabaseFactory *get_db_factory() const { return m_lpDatabaseFactory.get(); }
-	_kc_hidden ECAttachmentConfig *get_atxconfig() const { return m_atxconfig.get(); }
-	_kc_hidden ECRESULT get_user_count(usercount_t *);
-	_kc_hidden ECRESULT get_user_count_cached(usercount_t *);
+	KC_HIDDEN ECRESULT GetNewSequence(SEQUENCE, unsigned long long *seq_id);
+	KC_HIDDEN ECRESULT CreateDatabaseConnection();
+	KC_HIDDEN ECRESULT GetStoreSortLCID(unsigned int store_id, unsigned int *id);
+	KC_HIDDEN const char *GetDefaultSortLocaleID();
+	KC_HIDDEN unsigned int GetSortLCID(unsigned int store_id);
+	KC_HIDDEN ECLocale GetSortLocale(unsigned int store_id);
+	KC_HIDDEN ECCacheManager *GetCacheManager() const { return m_lpECCacheManager.get(); }
+	KC_HIDDEN ECSearchFolders *GetSearchFolders() const { return m_lpSearchFolders.get(); }
+	KC_HIDDEN std::shared_ptr<ECConfig> GetConfig() const { return m_lpConfig; }
+	KC_HIDDEN std::shared_ptr<ECLogger> GetAudit() const { return m_lpAudit; }
+	KC_HIDDEN ECPluginFactory *GetPluginFactory() const { return m_lpPluginFactory.get(); }
+	KC_HIDDEN ECLockManager *GetLockManager() const { return m_ptrLockManager.get(); }
+	KC_HIDDEN ECDatabaseFactory *get_db_factory() const { return m_lpDatabaseFactory.get(); }
+	KC_HIDDEN ECAttachmentConfig *get_atxconfig() const { return m_atxconfig.get(); }
+	KC_HIDDEN ECRESULT get_user_count(usercount_t *);
+	KC_HIDDEN ECRESULT get_user_count_cached(usercount_t *);
 
 	std::shared_ptr<server_stats> m_stats;
 
 protected:
-	_kc_hidden BTSession *GetSession(ECSESSIONID, bool lock_ses = false);
-	_kc_hidden ECRESULT ValidateBTSession(struct soap *, ECSESSIONID, BTSession **);
-	_kc_hidden BOOL IsSessionPersistent(ECSESSIONID );
-	_kc_hidden ECRESULT UpdateSubscribedTables(ECKeyTable::UpdateType, TABLESUBSCRIPTION, std::list<unsigned int> &child_id);
-	_kc_hidden ECRESULT SaveSourceKeyAutoIncrement(unsigned long long new_src_key_autoincr);
+	KC_HIDDEN BTSession *GetSession(ECSESSIONID, bool lock_ses = false);
+	KC_HIDDEN ECRESULT ValidateBTSession(struct soap *, ECSESSIONID, BTSession **);
+	KC_HIDDEN BOOL IsSessionPersistent(ECSESSIONID);
+	KC_HIDDEN ECRESULT UpdateSubscribedTables(ECKeyTable::UpdateType, const TABLESUBSCRIPTION &, std::list<unsigned int> &child_id);
+	KC_HIDDEN ECRESULT SaveSourceKeyAutoIncrement(unsigned long long new_src_key_autoincr);
 
 	EC_SESSIONGROUPMAP m_mapSessionGroups; ///< map of all the session groups
 	SESSIONMAP			m_mapSessions;			///< map of all the sessions

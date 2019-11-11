@@ -86,7 +86,7 @@ class KC_EXPORT iconv_context_base {
 	 * @param[in] lpBuf		Pointer to the data to be appended.
 	 * @param[in] cbBuf		Size of the data to be appended in bytes.
 	 */
-	_kc_hidden virtual void append(const char *buf, size_t bufsize) = 0;
+	KC_HIDDEN virtual void append(const char *buf, size_t bufsize) = 0;
 
 	iconv_t	m_cd = reinterpret_cast<iconv_t>(-1);
 	bool m_bForce = true; /* Ignore illegal sequences by default. */
@@ -156,7 +156,7 @@ class KC_EXPORT_DYCAST iconv_context KC_FINAL :
 	}
 
 	private:
-	_kc_hidden void append(const char *lpBuf, size_t cbBuf) KC_OVERRIDE
+	KC_HIDDEN void append(const char *lpBuf, size_t cbBuf) KC_OVERRIDE
 	{
 		m_to.append(reinterpret_cast<typename To_Type::const_pointer>(lpBuf),
 			cbBuf / sizeof(typename To_Type::value_type));
@@ -234,7 +234,7 @@ public:
 	 * @return					The converted string.
 	 */
 	template<typename To_Type, typename From_Type>
-	_kc_hidden To_Type convert_to(const From_Type &from)
+	KC_HIDDEN To_Type convert_to(const From_Type &from)
 	{
 		return helper<To_Type>(*this).convert(from);
 	}
@@ -251,7 +251,7 @@ public:
 	 * @return					The converted string.
 	 */
 	template<typename To_Type, typename From_Type>
-	_kc_hidden To_Type convert_to(const From_Type &from, size_t cbBytes,
+	KC_HIDDEN To_Type convert_to(const From_Type &from, size_t cbBytes,
 	    const char *fromcode)
 	{
 		return helper<To_Type>(*this).convert(from, cbBytes, fromcode);
@@ -269,7 +269,7 @@ public:
 	 * @return					The converted string.
 	 */
 	template<typename To_Type, typename From_Type>
-	_kc_hidden To_Type convert_to(const char *tocode,
+	KC_HIDDEN To_Type convert_to(const char *tocode,
 	    const From_Type &from, size_t cbBytes, const char *fromcode)
 	{
 		return helper<To_Type>(*this).convert(tocode, from, cbBytes, fromcode);
@@ -282,7 +282,7 @@ private:
 	 * The convert_context::helper class detects when the to and from charsets are
 	 * identical. In that case the string is merely copied.
 	 */
-	template<typename Type> class _kc_hidden helper KC_FINAL {
+	template<typename Type> class KC_HIDDEN helper KC_FINAL {
 	public:
 		helper(convert_context &context)
 			: m_context(context)
@@ -351,7 +351,7 @@ private:
 	 * result needs to be stores to guarantee storage of the data. Without this
 	 * the caller will end up with a pointer to non-existing data.
 	 */
-	template<typename Type> class _kc_hidden helper<Type *> KC_FINAL {
+	template<typename Type> class KC_HIDDEN helper<Type *> KC_FINAL {
 	public:
 		typedef std::basic_string<Type> string_type;
 
@@ -456,7 +456,7 @@ private:
 	 * @return	The new context_key
 	 */
 	template<typename To_Type, typename From_Type>
-	_kc_hidden context_key create_key(const char *tocode,
+	KC_HIDDEN context_key create_key(const char *tocode,
 	    const char *fromcode)
 	{
 		context_key key = {
@@ -489,7 +489,7 @@ private:
 	 * @return				A pointer to a iconv_context.
 	 */
 	template<typename To_Type, typename From_Type>
-	_kc_hidden iconv_context<To_Type, From_Type> *get_context(void)
+	KC_HIDDEN iconv_context<To_Type, From_Type> *get_context(void)
 	{
 		context_key key(create_key<To_Type, From_Type>(NULL, NULL));
 		context_map::const_iterator iContext = m_contexts.find(key);
@@ -511,7 +511,7 @@ private:
 	 * @return					A pointer to a iconv_context.
 	 */
 	template<typename To_Type, typename From_Type>
-	_kc_hidden iconv_context<To_Type, From_Type> *
+	KC_HIDDEN iconv_context<To_Type, From_Type> *
 	get_context(const char *fromcode)
 	{
 		context_key key(create_key<To_Type, From_Type>(NULL, fromcode));
@@ -538,7 +538,7 @@ private:
 	 * @return					A pointer to a iconv_context.
 	 */
 	template<typename To_Type, typename From_Type>
-	_kc_hidden iconv_context<To_Type, From_Type> *
+	KC_HIDDEN iconv_context<To_Type, From_Type> *
 	get_context(const char *tocode, const char *fromcode)
 	{
 		context_key key(create_key<To_Type, From_Type>(tocode, fromcode));

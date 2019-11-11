@@ -28,30 +28,29 @@ typedef std::unique_ptr<StoreHelper> StoreHelperPtr;
 class KC_EXPORT StoreHelper final : public MAPIPropHelper {
 public:
 	static HRESULT Create(MsgStorePtr &ptrMsgStore, StoreHelperPtr *lpptrStoreHelper);
-	_kc_hidden HRESULT GetFolder(const tstring &name, bool create, LPMAPIFOLDER *ret);
-	_kc_hidden HRESULT UpdateSearchFolders(void);
-	_kc_hidden HRESULT GetIpmSubtree(LPMAPIFOLDER *);
+	KC_HIDDEN HRESULT GetFolder(const tstring &name, bool create, IMAPIFolder **ret);
+	KC_HIDDEN HRESULT UpdateSearchFolders();
+	KC_HIDDEN HRESULT GetIpmSubtree(IMAPIFolder **);
 	HRESULT GetSearchFolders(LPMAPIFOLDER *lppSearchArchiveFolder, LPMAPIFOLDER *lppSearchDeleteFolder, LPMAPIFOLDER *lppSearchStubFolder);
 
 private:
-	_kc_hidden StoreHelper(MsgStorePtr &);
-	_kc_hidden HRESULT Init(void);
-	_kc_hidden HRESULT GetSubFolder(MAPIFolderPtr &, const tstring &name, bool create, LPMAPIFOLDER *ret);
+	KC_HIDDEN StoreHelper(MsgStorePtr &);
+	KC_HIDDEN HRESULT Init();
+	KC_HIDDEN HRESULT GetSubFolder(MAPIFolderPtr &, const tstring &name, bool create, IMAPIFolder **ret);
 	enum eSearchFolder {esfArchive = 0, esfDelete, esfStub, esfMax};
-	_kc_hidden HRESULT CheckAndUpdateSearchFolder(LPMAPIFOLDER folder, eSearchFolder which);
-	_kc_hidden HRESULT CreateSearchFolder(eSearchFolder which, LPMAPIFOLDER *ret);
-	_kc_hidden HRESULT CreateSearchFolders(LPMAPIFOLDER *archive_folder, LPMAPIFOLDER *delete_folder, LPMAPIFOLDER *stub_folder);
-	_kc_hidden HRESULT DoCreateSearchFolder(LPMAPIFOLDER parent, eSearchFolder which, LPMAPIFOLDER *retsf);
-	_kc_hidden HRESULT SetupSearchArchiveFolder(LPMAPIFOLDER folder, const ECRestriction *class_chk, const ECRestriction *arc_chk);
-	_kc_hidden HRESULT SetupSearchDeleteFolder(LPMAPIFOLDER folder, const ECRestriction *class_chk, const ECRestriction *arc_chk);
-	_kc_hidden HRESULT SetupSearchStubFolder(LPMAPIFOLDER folder, const ECRestriction *class_chk, const ECRestriction *arc_chk);
-	_kc_hidden HRESULT GetClassCheckRestriction(ECOrRestriction *class_chk);
-	_kc_hidden HRESULT GetArchiveCheckRestriction(ECAndRestriction *arc_chk);
+	KC_HIDDEN HRESULT CheckAndUpdateSearchFolder(IMAPIFolder *, eSearchFolder which);
+	KC_HIDDEN HRESULT CreateSearchFolder(eSearchFolder which, IMAPIFolder **);
+	KC_HIDDEN HRESULT CreateSearchFolders(IMAPIFolder **archive_folder, IMAPIFolder **delete_folder, IMAPIFolder **stub_folder);
+	KC_HIDDEN HRESULT DoCreateSearchFolder(IMAPIFolder *parent, eSearchFolder which, IMAPIFolder **retsf);
+	KC_HIDDEN HRESULT SetupSearchArchiveFolder(IMAPIFolder *folder, const ECRestriction *class_chk, const ECRestriction *arc_chk);
+	KC_HIDDEN HRESULT SetupSearchDeleteFolder(IMAPIFolder *folder, const ECRestriction *class_chk, const ECRestriction *arc_chk);
+	KC_HIDDEN HRESULT SetupSearchStubFolder(IMAPIFolder *folder, const ECRestriction *class_chk, const ECRestriction *arc_chk);
+	KC_HIDDEN HRESULT GetClassCheckRestriction(ECOrRestriction *class_chk);
+	KC_HIDDEN HRESULT GetArchiveCheckRestriction(ECAndRestriction *arc_chk);
 
 	typedef HRESULT(StoreHelper::*fn_setup_t)(LPMAPIFOLDER, const ECRestriction *, const ECRestriction *);
 	struct search_folder_info_t {
-		LPCTSTR		lpszName;
-		LPCTSTR		lpszDescription;
+		const TCHAR *lpszName, *lpszDescription;
 		fn_setup_t	fnSetup;
 	};
 

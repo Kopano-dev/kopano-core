@@ -21,9 +21,9 @@ class ECStatsCollector;
 
 class KC_EXPORT ECPluginFactory final {
 public:
-	_kc_hidden ECPluginFactory(std::shared_ptr<ECConfig>, std::shared_ptr<ECStatsCollector>, bool hosted, bool distributed);
-	_kc_hidden ~ECPluginFactory(void);
-	_kc_hidden ECRESULT CreateUserPlugin(UserPlugin **ret);
+	KC_HIDDEN ECPluginFactory(std::shared_ptr<ECConfig>, std::shared_ptr<ECStatsCollector>, bool hosted, bool distributed);
+	KC_HIDDEN ~ECPluginFactory();
+	KC_HIDDEN ECRESULT CreateUserPlugin(UserPlugin **ret);
 	void		SignalPlugins(int signal);
 
 private:

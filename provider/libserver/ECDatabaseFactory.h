@@ -46,8 +46,8 @@ private:
 		size_t operator()(const dfpair &a) const { return reinterpret_cast<size_t>(a.db.get()); }
 	};
 
-	_kc_hidden void destroy_database(ECDatabase *);
-	_kc_hidden ECRESULT GetDatabaseFactory(ECDatabase **);
+	KC_HIDDEN void destroy_database(ECDatabase *);
+	KC_HIDDEN ECRESULT GetDatabaseFactory(ECDatabase **);
 
 	std::shared_ptr<ECConfig> m_lpConfig;
 	pthread_key_t m_thread_key;

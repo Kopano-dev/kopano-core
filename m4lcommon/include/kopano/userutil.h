@@ -18,9 +18,9 @@ extern KC_EXPORT HRESULT GetArchivedUserList(IMAPISession *, const char *sslkey,
 
 class KC_EXPORT DataCollector {
 public:
-	_kc_hidden virtual HRESULT GetRequiredPropTags(LPMAPIPROP, LPSPropTagArray *) const;
+	KC_HIDDEN virtual HRESULT GetRequiredPropTags(IMAPIProp *, SPropTagArray **) const;
 	virtual HRESULT GetRestriction(LPMAPIPROP lpProp, LPSRestriction *lppRestriction);
-	_kc_hidden virtual HRESULT CollectData(LPMAPITABLE store_table) = 0;
+	KC_HIDDEN virtual HRESULT CollectData(IMAPITable *store_table) = 0;
 };
 
 extern KC_EXPORT HRESULT GetMailboxData(IMAPISession *, const char *sslkey, const char *sslpass, bool local_only, DataCollector *);

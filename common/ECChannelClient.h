@@ -23,8 +23,8 @@ public:
 
 protected:
 	ECRESULT Connect();
-	_kc_hidden ECRESULT ConnectSocket(void);
-	_kc_hidden ECRESULT ConnectHttp(void);
+	KC_HIDDEN ECRESULT ConnectSocket();
+	KC_HIDDEN ECRESULT ConnectHttp();
 
 	unsigned int m_ulTimeout = 5; ///< Response timeout in second
 

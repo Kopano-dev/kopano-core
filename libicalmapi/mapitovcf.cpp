@@ -230,17 +230,17 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 		return MAPI_E_INVALID_PARAMETER;
 
 	MAPINAMEID nameids[] = {
-		{PM, MNID_ID, dispidGlobalObjectID},
-		{PA, MNID_ID, dispidWorkAddressStreet},
-		{PA, MNID_ID, dispidWorkAddressCity},
-		{PA, MNID_ID, dispidWorkAddressState},
-		{PA, MNID_ID, dispidWorkAddressPostalCode},
-		{PA, MNID_ID, dispidWorkAddressCountry},
-		{PA, MNID_ID, dispidEmail1Address},
-		{PA, MNID_ID, dispidEmail2Address},
-		{PA, MNID_ID, dispidEmail3Address},
-		{PA, MNID_ID, dispidWebPage},
-		{PA, MNID_ID, dispidInstMsg},
+		{PM, MNID_ID, {dispidGlobalObjectID}},
+		{PA, MNID_ID, {dispidWorkAddressStreet}},
+		{PA, MNID_ID, {dispidWorkAddressCity}},
+		{PA, MNID_ID, {dispidWorkAddressState}},
+		{PA, MNID_ID, {dispidWorkAddressPostalCode}},
+		{PA, MNID_ID, {dispidWorkAddressCountry}},
+		{PA, MNID_ID, {dispidEmail1Address}},
+		{PA, MNID_ID, {dispidEmail2Address}},
+		{PA, MNID_ID, {dispidEmail3Address}},
+		{PA, MNID_ID, {dispidWebPage}},
+		{PA, MNID_ID, {dispidInstMsg}},
 	}, *nameids_ptrs[ARRAY_SIZE(nameids)];
 	for (size_t i = 0; i < ARRAY_SIZE(nameids); ++i)
 		nameids_ptrs[i] = &nameids[i];

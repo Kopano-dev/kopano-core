@@ -25,10 +25,10 @@ public:
 	ECRESULT Write(const void *lpBuf, size_type cbBuf, unsigned int ulTimeoutMs, size_type *lpcbWritten);
 	ECRESULT Read(void *lpBuf, size_type cbBuf, unsigned int ulTimeoutMs, size_type *lpcbRead);
 	ECRESULT Close(close_flags flags);
-	_kc_hidden ECRESULT Flush(void);
-	_kc_hidden bool IsClosed(ULONG flags) const;
-	_kc_hidden bool IsEmpty() const { return m_storage.empty(); }
-	_kc_hidden bool IsFull() const { return m_storage.size() == m_ulMaxSize; }
+	KC_HIDDEN ECRESULT Flush();
+	KC_HIDDEN bool IsClosed(unsigned int flags) const;
+	KC_HIDDEN bool IsEmpty() const { return m_storage.empty(); }
+	KC_HIDDEN bool IsFull() const { return m_storage.size() == m_ulMaxSize; }
 
 private:
 	// prohibit copy

@@ -63,11 +63,11 @@ public:
 
 	protected:
 	virtual std::unique_ptr<ECThreadWorker> make_worker();
-	_kc_hidden size_t threadCount() const; /* unlocked variant */
-	_kc_hidden bool getNextTask(STaskInfo *, std::unique_lock<std::mutex> &);
-	_kc_hidden void joinTerminated(std::unique_lock<std::mutex> &);
-	_kc_hidden HRESULT create_thread_unlocked();
-	_kc_hidden static void *threadFunc(void *);
+	KC_HIDDEN size_t threadCount() const; /* unlocked variant */
+	KC_HIDDEN bool getNextTask(STaskInfo *, std::unique_lock<std::mutex> &);
+	KC_HIDDEN void joinTerminated(std::unique_lock<std::mutex> &);
+	KC_HIDDEN HRESULT create_thread_unlocked();
+	KC_HIDDEN static void *threadFunc(void *);
 
 	ThreadSet m_setThreads, m_setTerminated;
 	TaskList	m_listTasks;

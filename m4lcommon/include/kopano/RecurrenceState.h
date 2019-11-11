@@ -75,7 +75,7 @@ class KC_EXPORT RecurrenceState KC_FINAL {
 	HRESULT ParseBlob2(const char *data, size_t len, unsigned int flags, bool &readvalid, bool &ext);
 
 	public:
-	class _kc_hidden Exception KC_FINAL {
+	class KC_HIDDEN Exception KC_FINAL {
 		public:
 		std::string strSubject, strLocation;
 		unsigned int ulStartDateTime, ulEndDateTime;
@@ -85,7 +85,7 @@ class KC_EXPORT RecurrenceState KC_FINAL {
 		unsigned int ulAppointmentColor;
 	};
 
-	class _kc_hidden ExtendedException KC_FINAL {
+	class KC_HIDDEN ExtendedException KC_FINAL {
 		public:
 		unsigned int ulChangeHighlightValue, ulStartDateTime;
 		unsigned int ulEndDateTime, ulOriginalStartDate;
