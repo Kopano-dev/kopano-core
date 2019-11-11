@@ -50,6 +50,7 @@ stamp-h2
 /kopano-stats
 /kopano-statsd
 /kopano-storeadm
+/kopano-vcfimport
 /kscriptrun
 /mapitime
 /rosie-test
