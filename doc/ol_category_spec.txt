@@ -1,0 +1,89 @@
+== Outlook color mapping ==
+
+Experimentally observed on OL 2019 (16.0.10351.20054) and also in OWA 2019 (no
+border in OWA). Public screenshots strongly suggest OL2016 uses this palette as
+well.
+
+	Value     Border       Fill    Appearance
+	------------------------------------------
+	    0    #ed616f    #f07d88    Pale red
+	    1    #fb6f25    #ff8c00    Orange
+	    2    #e1b46d    #fecb6f    Peach
+	    3    #fcd146    #fff100    Yellow
+	    4    #56a659    #5fbe7d    Green
+	    5    #3fa296    #33bab1    Teal
+	    6    #82a034    #a3b367    Olive
+	    7    #3096d0    #55abe5    Skyblue
+	    8    #8c82d0    #a895e2    Purple
+	    9    #d475a7    #e48bb5    Maroon
+	   10    #9ba9bc    #b9c0cb    Steel
+	   11    #343e4f    #4c596e    Dark steel
+	   12    #969696    #ababab    Gray
+	   13    #4f4f4f    #666666    Dark gray
+	   14    #212121    #474747    Black
+	   15    #62030d    #910a19    Dark red
+	   16    #bc2e1b    #ce4b28    Dark orange
+	   17    #9d5727    #a47332    Brown/Dark peach
+	   18    #9b9137    #b0a923    Ochre/Dark yellow
+	   19    #0e440e    #026802    Dark green
+	   20    #143f43    #1c6367    Dark teal
+	   21    #384f11    #5c6a22    Dark olive
+	   22    #111738    #254069    Dark blue
+	   23    #1e0d3b    #562685    Dark purple
+	   24    #5b0743    #80275d    Dark maroon
+
+
+== Color mapping per MS-OXOCFG spec ==
+
+	Value       Fill   Name
+	-----------------------------
+	   -1     ------   (No color)
+	    0    #d6252e   Red
+	    1    #f06c15   Orange
+	    2    #ffca4c   Peach
+	    3    #fffe3d   Yellow
+	    4    #4ab63f   Green
+	    5    #40bd95   Teal
+	    6    #859a52   Olive
+	    7    #3267ab   Blue
+	    8    #433db4   Purple
+	    9    #a34e78   Maroon
+	   10    #c4ccdd   Steel
+	   11    #8c9cbd   Dark steel
+	   12    #c4c4c4   Gray
+	   13    #a5a5a5   Dark gray
+	   14    #1c1c1c   Black
+	   15    #af1e25   Dark red
+	   16    #b14f0d   Dark orange
+	   17    #ab7b05   Dark peach
+	   18    #999400   Dark yellow
+	   19    #35792b   Dark green
+	   20    #2e7d64   Dark teal
+	   21    #5f6c3a   Dark olive
+	   22    #2a5191   Dark blue
+	   23    #50328f   Dark purple
+	   24    #82375f   Dark maroon
+
+
+== Mapping between category names and values ==
+
+The Calendar special folder's (follow PR_IPM_APPOINTMENT_ENTRYID) Associated
+Contents (FAI) folder can contain a message with a PR_MESSAGE_CLASS of
+"IPM.Configuration.CategoryList", and this message is to have a property
+PR_ROAMING_XMLSTREAM (PROP_TAG(0x7C08, PT_BINARY)) which is an XML document
+containing the settings:
+
+<?xml version="1.0"?>
+<categories default="" lastSavedSession="2"
+lastSavedTime="2019-11-09T15:55:49.228" xmlns="CategoryList.xsd">
+	<category name="K1" color="0" keyboardShortcut="0" usageCount="5"
+		lastTimeUsedNotes="2014-09-29T11:12:47.525"
+		lastTimeUsedJournal="2014-09-29T11:12:47.525"
+		lastTimeUsedContacts="2014-09-29T11:12:47.525"
+		lastTimeUsedTasks="2014-09-29T11:12:47.525"
+		lastTimeUsedCalendar="2014-09-29T11:12:47.525"
+		lastTimeUsedMail="2014-09-29T11:12:47.525"
+		lastTimeUsed="2019-11-09T12:58:16.835" lastSessionUsed="0"
+		guid="{C1C89394-049F-4242-A71C-06B4E8A653C4}"/>
+	<!-- ... -->
+</categories>

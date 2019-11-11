@@ -1,0 +1,1158 @@
+Outlook Rule Specification
+
+
+== Table of Contents ==
+
+XR Header
+Element Separator
+Condition 0x64: Unknown
+Condition 0xc8: Name in To
+Condition 0xc9: Only to me
+Condition 0xca: Name not in To
+Condition 0xcb: From
+Condition 0xcc: Sent to
+Condition 0xcd: Subject words
+Condition 0xce: Body words
+Condition 0xcf: Subject or body words
+Condition 0xd0: Flagged for action
+Condition 0xd2: Importance
+Condition 0xd3: Sensitivity
+Condition 0xd7: Category
+Condition 0xdc: Automatic reply
+Condition 0xde: Attachment
+Condition 0xdf: Form property
+Condition 0xe0: Size
+Condition 0xe1: Date
+Condition 0xe2: Name in Cc
+Condition 0xe3: Name in To or Cc
+Condition 0xe5: Recipient words
+Condition 0xe6: Sender words
+Condition 0xe8: Header words
+Condition 0xee: Account
+Condition 0xef: Machine
+Condition 0xf6: Any category
+Action 0x12c: Move
+Action 0x12d: Softdelete
+Action 0x12e: Forward
+Action 0x12f: Reply with template
+Action 0x130: Show OL notification
+Action 0x132: Clear follow-up flag
+Action 0x133: Set categories
+Action 0x136: Play sound
+Action 0x137: Set importance
+Action 0x139: Copy
+Action 0x142: Stop rule processing
+Action 0x147: Forward as attachment
+Action 0x148: Print
+Action 0x14a: Hard delete
+Action 0x14c: Mark as read
+Action 0x14f: Desktop notification
+Action 0x151: Set follow-up flag
+Action 0x152: Clear categories
+Action 0x190: Unknown
+
+
+== Notation ==
+
+A notation similar to C++ struct declarations with initializers is used in this
+document.
+
+Unless otherwise noted, there is no NUL termination for strings.
+
+
+== Length fields ==
+
+If an 8-bit length field has value 0xFF, there is generally a 16-bit length
+field following, which overrides it. It is not known if the 3B encoding for
+values below 255 is to be rejected in similar spirit how UTF-8 mandates exactly
+one encoding only.
+
+	Logical value    1B encoding    3B encoding
+	-------------------------------------------
+	            0    00             ff 00 00
+	           ..    ..             ..
+	          253    fd             ff fd 00
+	          254    fe             ff fe 00
+	          255    --             ff ff 00
+	          256    --             ff 00 01
+	          257    --             ff 01 01
+	           ..    ..             ..
+	        65534    --             ff fe ff
+		65535    --             ff ff ff
+
+In the XR element sections further below, this is always spelled out, in three
+ways:
+
+	1. The absence of 3B encoding has been verified:
+
+		uint8_t len;
+
+	2. The Outlook UI prevents the user from entering a long enough value,
+	or the user cannot otherwise influence its length to observe 255-char
+	behavior:
+
+		uint8_t len;
+		if (len == 0xff) /* conjecture */
+			uint16_t len;
+
+	3. The presence of 3B encoding has been verified:
+
+		uint8_t len;
+		if (len == 0xff)
+			uint16_t len;
+
+
+== FAI message ==
+
+In the Inbox's Associated Contents folder, there is a special message
+containing:
+
+	PR_SUBJECT: "Outlook Rules Organizer"
+	PR_MESSAGE_CLASS: "IPM.RuleOrganizer"
+	PR_RW_RULES_STREAM: (see below)
+
+
+== Rules Stream ==
+
+Layout:
+
+	uint32_t magic[] =
+		{0x00140000, 0x06140000, 0, 0,
+		0, 0, 0, 0, 1, 1, 0};
+	uint16_t numrules;
+	repeat numrules {
+		XR_Rule;
+	};
+	uint32_t magic[] = {2, 0x003a0050, 0, 0, 0x40e560b7, 0};
+
+
+== XR_Rule ==
+
+	XR_Header
+	repeat zero-or-more {
+		XR_Separator
+		<any XR_Condition or XR_Action>;
+	};
+
+The size of a XR element can be variadic and generally there are no length
+indiciators. The byte stream is therefore best parsed field-by-field rather
+than struct-at-a-time.
+
+The Action 0x190 and Condition 0x64 elements are practically present at all
+times as first and second elements, respectively, even though they serve no
+observable purpose and are not displayed in the UI. The actual elements that
+are visible in the UI start at 3rd position.
+
+
+== XR_Header ==
+
+	uint32_t magic;
+	uint8_t rname_len;
+	if (rname_len == 0xff)
+		uint16_t rname_len;
+	char16_t rule_name[rname_len];
+	alternative {
+		uint32_t magic_pr_actions[]  = {1, 0, 1, 0, 1};
+		uint32_t STRM_RECV_rule_activated[]   = {1, 0, 1, 0, 1};
+		uint32_t STRM_RECV_rule_deactivated[] = {0, 0, 0, 0, 0};
+		uint32_t STRM_SEND_rule_activated[]   = {1, 0, 0, 0, 0};
+		uint32_t STRM_RECV_rule_deactivated[] = {0, 0, 0, 0, 0};
+	};
+	uint32_t bytecount;
+	uint16_t rule_elements;
+	uint32_t magic = 0xffff;
+	uint16_t rcls_len;
+	char rule_class[rcls_len];
+
+@magic1: The bit pattern suggests this is very likely a flags field.
+For now, this is just magic values to us.
+
+	0x000f4240    when stored inside PR_ACTIONS
+	0x060f4240    when stored inside PR_RW_RULES_STREAM
+	0x00124f80    when stored inside PR_ACTIONS
+
+@bytecount: The bytecount of literally everything following the bytecount
+member; this includes not only the remaining fields of the XR Header, but also
+all the other XR separators and elements.
+
+@rule_elements: The number of subsequent XR elements. XR separators do not
+count into this.
+
+@rule_class: Observed only the fixed string "CRuleElement".
+
+The OL2019 UI arbitrarily restricts rule names to 256 characters by ignoring
+excess keypresses.
+
+
+== XR_Separator: Element Separator ==
+
+	uint16_t magic = 0x8001;
+
+
+== XR_PropValArray: Property value array ==
+
+This common structure appears for reference in other XR elements.
+
+	uint32_t magic = 0;
+	uint32_t numprops;
+	uint32_t bytes_in_propblock;
+
+	/* propblock begins here */
+	repeat numprops {
+		uint32_t proptag;
+		switch (PROP_TYPE(proptag)) {
+		case PT_UNICODE:
+			/* Conjecture: probably also applies for PT_STRING8 */
+			uint32_t magic = 0;
+			uint32_t proplen;
+			uint32_t offset_from_propblock;
+			break;
+		case PT_BINARY:
+			uint32_t magic = 0;
+			uint32_t offset_from_propblock;
+			uint32_t magic = 0;
+			break;
+		case PT_LONG:
+			uint32_t magic = 0;
+			uint32_t propvalue;
+			uint32_t magic = 0;
+			break;
+		}
+	} propindex;
+
+	char data[bytes_in_propblock - sizeof(propindex)];
+	/* propblock ends here */
+
+@data: This is a concatenation of the values for properties of type PT_BINARY
+and PT_UNICODE, in the same order as the index. Here, PT_UNICODE strings *are*
+NUL-terminated, and this NUL is also included in @proplen.
+
+
+== Condition 0x64: Unknown ==
+
+	uint32_t act_kind = 0x64;
+	uint32_t magic[] = {1, 0, 1};
+
+
+== Condition 0xca: Name not in To ==
+
+UI label:
+
+	EN:"where my name is not in the To box"
+	DE:"die meinen Namen im Feld "An" nicht enthält"
+
+Layout:
+
+	uint32_t act_kind = 0xca;
+	uint32_t magic = 0;
+
+
+== Condition 0xcb: From ==
+
+UI label:
+
+	EN:"from <people or public group>"
+	DE:"die von <einer Person/öffentlichen Gruppe> kommt"
+
+Layout:
+
+	uint32_t act_kind = 0xcb;
+	uint32_t magic[] = {1, 0};
+	uint32_t numsenders;
+	repeat numsenders {
+		XR_PropValArray;
+	};
+	uint32_t magic[] = {1, 0};
+
+The propvalarray for an EX sender typically includes 11 props:
+
+	0x0c150003 (PR_RECIPIENT_TYPE),  0, 1 (MAPI_TO), 0,
+	0x3001001f (PR_DISPLAY_NAME),    0, 0xb0, 0,
+	0x0fff0102 (PR_ENTRYID),         0, 0x7d, 0xd0,
+	0x3002001f (PR_ADDRTYPE),        0, 0x14d, 0,
+	0x300b0102 (PR_SEARCH_KEY),      0, 0x64, 0x153,
+	0x39fe001f (PR_SMTP_ADDRESS),    0, 0x1b7, 0,
+	0x0ffe0003 (PR_OBJECT_TYPE),     0, 0x6 (MAPI_MAILUSER), 0,
+	0x39000003 (PR_DISPLAY_TYPE),    0, 0 (DT_MAILUSER), 0,
+	0x39050003 (PR_DISPLAY_TYPE_EX), 0, 0x40000000 (DTE_FLAG_ACL_CAPABLE), 0,
+	0x3003001f (PR_EMAIL_ADDRESS),   0, 0x1d9, 0,
+	0x3d010102 (PR_AB_PROVIDERS),    0, 0x10, 0x2b9,
+
+	PR_RECIPIENT_TYPE: MAPI_TO apparently serves double purpose here
+	PR_ENTRYID: 00000000dca740c8c042101ab4b908002b2fe18201000000000000002f6f3d636f6d70616e792f636e3d2e2e2e00
+	PR_ADDRTYPE: L"EX"
+	PR_SEARCH_KEY: "EX:/O=COMPANY/..."
+	PR_SMTP_ADDRESS: L"abcdefgh@ijkl.de"
+	PR_EMAIL_ADDRESS: L"/o=company/..."
+	PR_AB_PROVIDERS: {02c29c57-985c-417b-e084-c5f0b5f7be02}
+
+Note that both senders and recipients share the same representation
+(here, as MAPI Recipients); this is just like how addr-spec is used
+in RFC5322-style e-mail is done.
+
+The propvalarray for an SMTP sender typically includes 12 props:
+
+	0x0c150003 (PR_RECIPIENT_TYPE),         0, 1 (MAPI_TO), 0,
+	0x3001001f (PR_DISPLAY_NAME),           0, 0xc0, 0,
+	0x0fff0102 (PR_ENTRYID),                0, 0x62, 0xe0,
+	0x3002001f (PR_ADDRTYPE),               0, 0x142, 0,
+	0x300b0102 (PR_SEARCH_KEY),             0, 0x15, 0x14c,
+	0x39fe000a (PR_SMTP_ADDRESS:PT_ERROR),  0, 0x8004010f (MAPI_E_NOT_FOUND), 0,
+	0x3a710003 (PR_SEND_INTERNET_ENCODING), 0, 0, 0,
+	0x3a40000b (PR_SEND_RICH_INFO),         0, 0, 0,
+	0x39000003 (PR_DISPLAY_TYPE),           0, 0 (DT_MAILUSER), 0,
+	0x0ff90102 (PR_RECORD_KEY),             0, 0x62, 0x161,
+	0x0ffe0003 (PR_OBJECT_TYPE),            0, 0x6, 0,
+	0x3003001f (PR_EMAIL_ADDRESS),          0, 0x1c3, 0,
+
+	PR_RECIPIENT_TYPE: MAPI_TO (apparently serves double purpose here)
+	PR_ENTRYID: happens to be the same as PR_RECORD_KEY
+	PR_ADDRTYPE: L"SMTP"
+	PR_SEARCH_KEY: "SMTP:ABCDEFG@IJKL.DE"
+	PR_RECORD_KEY: 00000000812b1fa4bea310199d6e00dd010f5402000001906100620063006400650066006700400069006a006b006c002e0064006500000053004d005400500000006100620063006400650066006700400069006a006b006c002e00640065000000
+	PR_EMAIL_ADDRESS: L"abcdefg@ijkl.de"
+
+
+== Condition 0xcc: Sent to ==
+
+UI label:
+
+	EN:"sent to <people or public group>"
+	DE:"die an <einer Person/öffentlichen Gruppe> gesendet wurde"
+
+Layout:
+
+	uint32_t act_kind = 0xcc;
+	uint32_t magic[] = {1, 0};
+	uint32_t numrecipients;
+	repeat numrecipients {
+		XR_PropValArray;
+	};
+	uint32_t magic[] = {1, 0};
+
+The propvalarray for recipients has the same characteristics
+as for senders (see Condition 0xcb).
+
+
+== Condition 0xcd: Subject words ==
+
+UI label:
+
+	EN:"with <specific words> in the subject"
+	DE:"mit <bestimmten Wörtern> im Betreff"
+
+Layout:
+
+	uint32_t act_kind = 0xcd;
+	uint32_t matches;
+	repeat matches {
+		uint32_t possibly_flags = 0;
+		uint8_t mlen;
+		if (mlen == 0xff)
+			uint16_t mlen;
+		char16_t substring[mlen];
+	} m;
+
+The UI offers no way to set any flags, and based upon the UI text and
+observed runtime behavior, FL_IGNORECASE|FL_SUBSTRING is always the
+effect.
+
+The OL2019 UI arbitrarily restricts substrings to 255 characters by ignoring
+excess keypresses.
+
+
+== Condition 0xce: Body words ==
+
+UI label:
+
+	EN:"with <specific words> in the body"
+	DE:"mit <bestimmten Wörtern> im Text"
+
+The layout is the same as Subject (0xcd), but with act_kind=0xce.
+
+
+== Condition 0xcf: Subject or body words ==
+
+UI label:
+
+	EN:"with <specific words> in the subject or body"
+	DE:"mit <bestimmten Wörtern> im Betreff oder Text"
+
+The layout is the same as Subject (0xcd), but with act_kind=0xcf.
+
+
+== Condition 0xc8: Name in To ==
+
+UI label:
+
+	EN:"where my name is in the To box"
+	DE:"""die meinen Namen im Feld "An" enthält"""
+
+Layout:
+
+	uint32_t act_kind = 0xc8;
+	uint32_t magic = 0;
+
+
+== Condition 0xc9: Only to me ==
+
+UI label:
+
+	EN:"sent only to me"
+	DE:"die nur an mich gesendet wurde"
+
+Layout:
+
+	uint32_t act_kind = 0xc9;
+	uint32_t magic = 0;
+
+
+== Condition 0xd2: Importance ==
+
+UI label:
+
+	EN:"marked as <importance>"
+	DE:"die mit <Priorität> markiert ist"
+
+Layout:
+
+	uint32_t act_kind = 0xd2;
+	uint32_t magic[] = {1, 0};
+	enum : uint32_t {
+		IMPORTANCE_LOW = 0
+		IMPORTANCE_MEDIUM = 1,
+		IMPORTANCE_HIGH = 2,
+	};
+
+
+== Condition 0xd3: Sensitivity ==
+
+UI label:
+
+	EN:"marked as <sensitivity>"
+	DE:"die mit <Vertraulichkeit> markiert ist"
+
+Layout:
+
+	uint32_t act_kind = 0xd3;
+	uint32_t magic[] = {1, 0};
+	enum : uint32_t {
+		SENSITIVITY_NORMAL = 0
+		SENSITIVITY_PERSONAL = 1,
+		SENSITIVITY_PRIVATE = 2,
+		SENSITIVITY_COMPANY_CONFIDENTIAL = 3,
+	};
+
+
+== Condition 0xd7: Category ==
+
+UI label:
+
+	EN:"assigned to <category> category"
+	DE:"die Kategorie <Kategorie zugeordnet ist>"
+
+Layout:
+
+	uint32_t act_kind = 0xd7;
+	uint32_t magic[] = {1, 0};
+	uint8_t cname_len;
+	if (cname_len == 0xff)
+		uint16_t cname_len;
+	char16_t categories[cname_len];
+
+All specified @catgories must be present on the message for the match to occur.
+(Labeling: DE:"Nach Erhalt einer Nachricht ... die Kategorie C1 _und_ C2
+zugeordnet ist...")
+
+
+== Condition 0xdc: Automatic reply ==
+
+UI label:
+
+	EN:"which is an automatic reply"
+	DE:"die eine automatische Antwort ist"
+
+Layout:
+
+	uint32_t act_kind = 0xdc;
+	uint32_t magic = 0;
+
+
+== Condition 0xde: Attachment ==
+
+UI label:
+
+	EN:"which has an attachment"
+	DE:"mit einer Anlage"
+
+Layout:
+
+	uint32_t act_kind = 0xde;
+	uint32_t magic = 0;
+
+
+== Condition 0xdf: Form property ==
+
+UI label:
+
+	EN:"with <selected properties> of documents or forms"
+	DE:"mit Dokument-/Formula-<Eigenschaften>"
+
+Layout:
+
+	uint32_t act_kind = 0xdf;
+	uint32_t magic[] = {1, 0};
+	uint8_t magic = 0;
+	uint16_t numprops;
+	repeat numprops {
+		uint8_t plen;
+		if (plen == 0xff) /* conjecture */
+			uint16_t plen;
+		char16_t propname[plen];
+		uint16_t proptag;
+			/* 0x8397001f: Author */
+			/* 0x83980003: Bytes */
+		switch (PROP_TYPE(kind)) {
+		case PT_UNICODE: { /* 
+			enum : uint32_t {
+				CONTAINS = 0,
+				IS_EQUAL = 1,
+				NOT_CONTAINS = 2,
+			} matchtype;
+			uint8_t vlen; /* 3B? */
+			char16_t value[vlen];
+			uint32_t magic[] = {0, 0, 0, 0, 1, 0, 0, GARBAGE {0xc71c71c7}, GARBAGE {0x40e560ba}, 0};
+		}
+		case PT_LONG: { /* 45 bytes */
+			char what[5];
+			enum : uint32_t {
+				EQ = 0,
+				NE = 1,
+				LE = 2, /* called "at most" */
+				GE = 3, /* called "at least" */
+				GT = 4,
+				LT = 5,
+			} matchmode;
+			uint32_t magic = 0;
+			uint32_t value;
+			uint32_t magic[] = {0, 1, 0, 0, GARBAGE {0xc71c71c7|0xcccccccd}, 0x40e560ba, 0};
+		}
+	};
+	uint32_t magic = 0;
+
+
+== Condition 0xe0: Size ==
+
+UI label:
+
+	EN:"with a size <in a specific range>"
+	DE:"mit <einer bestimmten Größe> (KB)"
+
+Layout:
+
+	uint32_t act_kind = 0xe0;
+	uint32_t magic[] = {1, 0};
+	uint32_t min_size_kb;
+	uint32_t max_size_kb;
+
+
+== Condition 0xe1: Date ==
+
+UI label:
+
+	EN:"received <in a specific date span>"
+	DE:"die <in einem bestimmten Zeitraum> erhalten wurde"
+
+Layout:
+
+	uint32_t act_kind = 0xe1;
+	uint32_t magic[] = {1, 0};
+	uint32_t test_after;
+	uint32_t magic = 0;
+	uint32_t garbage, after_day;
+	uint32_t test_before;
+	uint32_t magic = 0;
+	uint32_t before_day;
+
+@test_after: boolean whether or not to run a comparison "NOW > @ts_after".
+
+@test_before: boolean whether or not to run a comparison "NOW < @ts_before".
+
+@garbage: the bit pattern suggests that it is a canary value for
+uninitialized memory that OL2019 erroneously writes out.
+
+@ts_after: timestamp for the "is-after" check. See below table.
+
+@ts_before: timestamp for the "is-before" check. See below table.
+
+
+Garbage    Date       ts_after   Date-B     ts_before 
+0xf49f49f5 1979-12-31 0x40dc817f 1980-01-01 0x40dcdd00
+0xf49f49f5 1980-12-31 0x40dcdcff 1981-01-01 0x40dd3840
+0xf49f49f5 1983-12-31 0x40ddf67f 1984-01-01 0x40ddf680
+0xf49f49f5 1984-12-31 0x40de51ff 1985-01-01 0x40de5200
+0xf49f49f5 1985-12-31 0x40dead3f 1986-01-01 0x40dead40
+0xf49f49f5 1986-12-31 0x40df087f 1987-01-01 0x40df0880
+0xf49f49f5 1987-12-31 0x40df63bf 1988-01-01 0x40df63c0
+0xf49f49f5 1988-12-31 0x40dfbf3f 1989-01-01 0x40dfbf40
+0xfa4fa4fa 1989-12-31 0x40e00d3f 1990-01-01 0x40e00d40
+0xfa4fa4fa 1999-12-31 0x40e1d5bf 2000-01-01 0x40e1d5c0
+0xfa4fa4fa 2000-12-31 0x40e2037f 2001-01-01 0x40e20380
+0xfa4fa4fa 2001-12-31 0x40e2311f 2002-01-01 0x40e23120
+0xfa4fa4fa 2002-12-31 0x40e25ebf 2003-01-01 0x40e25ec0
+
+The timestamp value increases by 32 (0x20) for every calendar day.
+timestamp value increase by 1 equals 45 minutes, and for 0x40e25ebf to actually
+mean 2003-01-01 00:00 rather than 2002-12-31 23:45, an incoming mail's date
+will have to be rounded down to the nearest 45 minutes before performing a
+comparison.
+
+	after_ok = !test_after ||
+	           now / 45 minutes > date(mail) / 45 minutes
+	before_ok = !test_before ||
+	            now / 45 minutes < date(mail) / 45 minutes
+	match_ok = after_ok && before_ok;
+
+	'/' denotes unsigned integer division
+
+There are also as-of-yet unexplained jumps for ts_after/ts_before at certain
+end-of-years, e.g. 1989/1990. The Outlook UI allows choosing dates from
+1601-04-01 onwards. The Windows epoch starts at 1601-01-01, and it is unclear
+why Outlook erroneously rejects dates from the first quarter of 1601.
+
+
+== Condition 0xe2: Name in Cc ==
+
+UI label:
+
+	EN:"where my name is in the Cc box"
+	DE:"""die meinen Namen im Feld "Cc" enthält"""
+
+Layout:
+
+	uint32_t act_kind = 0xe2;
+	uint32_t magic = 0;
+
+
+== Condition 0xe3: Name in To or Cc ==
+
+UI label:
+
+	EN:"where my name is in the To or Cc box"
+	DE:"""die meinen Namen im Feld "An" oder "Cc" enthält"""
+
+Layout:
+
+	uint32_t act_kind = 0xe3;
+	uint32_t magic = 0;
+
+
+== Condition 0xe4: Form ==
+
+UI label:
+
+	EN:"uses the <form name> form"
+	DE:"die das Formular <Formularname> verwendet>"
+
+Layout:
+
+	uint32_t act_kind = 0xe4;
+	uint32_t numforms;
+	uint32_t magic = 0;
+	repeat numforms {
+		uint8_t nlen;
+		if (nlen == 0xff) /* conjecture */
+			uint16_t nlen;
+		char16_t name[nlen];
+		uint8_t clen;
+		if (clen == 0xff) /* conjecture */
+			uint16_t clen;
+		char fmclass[clen];
+	};
+
+If the message has at least one form (same as message class?), then this condition
+will match. Observed classes:
+
+	IPM
+		DE:"Generisches Standardformular"
+	IPM.Activity
+		EN:"Journal entry"
+		DE:"Journaleintrag"
+	IPM.Appointment
+		EN:"Appointment"
+		DE:"Termin"
+	IPM.Conflict
+		EN:"Conflict Message"
+		DE:"Konfliktnachricht"
+	IPM.Conflict.Resolution.Message
+		EN:"Conflict resolution form"
+		DE:"Formular zur Konfliktbeseitigung"
+	IPM.Contact
+		EN:"Contact"
+		DE:"Kontakt"
+	IPM.DistList
+		DE:"Verteilerliste"
+	IPM.Document
+		DE:"Dokument"
+	IPM.InfoPathForm
+		DE:"InfoPath-Formular"
+	IPM.Note
+		EN:"Message"
+		DE:"Nachricht"
+	IPM.Note.Mobile.MMS
+		EN:"Multimedia Message"
+		DE:"Multimedianachricht (MMS)"
+	IPM.Note.Mobile.SMS
+		DE:"Textnachricht (SMS)"
+	IPM.Note.RECEIPT.SMIME
+		DE:"SMIME-Bestätigung"
+	IPM.Note.Rules.OofTemplate.Microsoft
+		EN:"Automatic Replies template"
+		DE:"Vorlage für automatische Antworten"
+	IPM.Note.Rules.ReplyTemplate.Microsoft
+		EN:"Rule reply template"
+		DE:"Regelantwortvorlage"
+	IPM.Note.SMIME
+		DE:"SMIME-Verschlüsselungsformular"
+	IPM.Note.SMIME.MultipartSigned
+		DE:"Formular SMIME digital signiert"
+	IPM.Note.Secure
+		DE:"Verschlüsselte Nachricht"
+	IPM.Note.Secure.Sign
+		EN:"Digitally signed message"
+		DE:"Nachricht mit digitaler Signatur"
+	IPM.OLE.CLASS.{00061055-0000-0000-C000-000000000046}
+		DE:"Ausnahme"
+	IPM.Outlook.Recall
+		EN:"Recall Message Form"
+		DE:"Formular zum Nachrichtenrückruf"
+	IPM.POST
+		DE:"Bereitstellen"
+	IPM.POST.RSS
+		EN:"RSS Article"
+		DE:"RSS-Artikel"
+	IPM.Recall
+		EN:"Message Recall Report"
+		DE:"Nachrichtenrückrufbericht"
+	IPM.Remote
+		EN:"Remote"
+		DE:"Remote"
+	IPM.Resend
+		EN:"Resend"
+		DE:"Noch mal senden"
+	IPM.Schedule.Meeting.Canceled
+		EN:"Meeting Cancellation"
+		DE:"Besprechungsabsage"
+	IPM.Schedule.Meeting.Request
+		EN:"Meeting Request"
+		DE:"Besprechungsanfrage"
+	IPM.Schedule.Meeting.Request.Neg
+		EN:"Decline Meeting Response"
+		DE:"Besprechung ablehnen"
+	IPM.Schedule.Meeting.Resp.Pos
+		EN:"Accept Meeting Response"
+		DE:"Besprechungseinladung annehmen"
+	IPM.Schedule.Meeting.Resp.Tent
+		DE:"Besprechungszusage mit Vorbehalt"
+	IPM.Sharing
+		EN:"Sharing Request"
+		DE:"Freigabeanfrage"
+	IPM.StickyNote
+		EN:"Note"
+		DE:"Notiz"
+	IPM.Task
+		DE:"Aufgabe"
+	IPM.TaskRequest
+		DE:"Aufgabenanfrage"
+	IPM.TaskRequest.Accept
+		DE:"Aufgabe annehmen"
+	IPM.TaskRequest.Decline
+		DE:"Aufgabe ablehnen"
+	IPM.TaskRequest.Update
+		DE:"Aufgabe aktualisieren"
+	REPORT
+		DE:"Bericht"
+
+
+== Condition 0xe5: Recipient words ==
+
+UI label:
+
+	EN:"with <specific words> in the recipient's address"
+	DE:"mit <bestimmten Wörtern> in der Empfängeradresse"
+
+The layout is the same as Subject words (0xcd), but with act_kind=0xe5.
+
+
+== Condition 0xe6: Sender words ==
+
+UI label:
+
+	EN:"with <specific words> in the sender's address"
+	DE:"mit <bestimmten Wörtern> in der Absenderadresse"
+
+The layout is the same as Subject words (0xcd), but with act_kind=0xe6.
+
+
+== Condition 0xe8: Header words ==
+
+UI label:
+
+	EN:"with <specific words> in the message header"
+	DE:"mit <bestimmten Wörtern> im Nachrichtenkopf"
+
+The layout is the same as Subject (0xcd), but with act_kind=0xe8.
+
+
+== Condition 0xee: Account ==
+
+UI label:
+
+	EN:"though the <specified> account>"
+	DE:"über Konto <Kontoname>"
+
+Layout:
+
+	uint32_t act_kind = 0xee;
+	uint32_t magic[] = {1, 0};
+	uint8_t pname_len;
+	if (pname_len == 0xff) /* conjecture */
+		uint16_t pname_len;
+	char16_t profile_name[pname_len];
+	uint8_t abc_len;
+	if (abc_len == 0xff) /* conjecture */
+		uint16_t abc_len;
+	char abc[abc_len];
+
+@abc: Content unclear. It was observed to be a 10-digit number represented as
+an ASCII string.
+
+
+== Condition 0xef: Machine ==
+
+UI label:
+
+	EN:"on this computer only"
+	DE:"nur auf diesem Computer"
+
+Layout:
+
+	uint32_t act_kind = 0xef;
+	uint32_t magic[] = {1, 0};
+	unsigned char some_guid[16];
+
+
+== Condition 0xf6: Any category ==
+
+UI label:
+
+	EN:"assigned to any category"
+	DE:"einer beliebigen Kategorie zugewiesen"
+
+Layout:
+
+	uint32_t act_kind = 0xf6;
+	uint32_t magic = 0;
+
+Matches if the message has any category set. (This only works for messages
+received directly through MAPI or as TNEF.)
+
+
+== Action 0x12c: Move message ==
+
+UI label:
+
+	EN:"move it to the <specified> folder"
+	DE:"diese in den Ordner <Zielordner> verschieben"
+
+Layout:
+
+	uint32_t act_kind = 0x12c;
+	uint32_t magic[] = {1, 0};
+	uint32_t feid_len;
+	char folder_eid[feid_len];
+	uint32_t seid_len;
+	char store_eid[seid_len];
+	uint8_t fname_len;
+	if (fname_len == 0xff) /* conjecture */
+		uint16_t fname_len;
+	char16_t folder_name[fname_len];
+	uint32_t magic = 0;
+
+
+== Action 0x12d: Softdelete (Move to wastebasket) ==
+
+UI label:
+
+	EN:"delete it"
+	DE:"diese löschen"
+
+Layout:
+
+	uint32_t act_kind = 0x12d;
+	uint32_t magic = 0;
+
+
+== Action 0x12e: Forward message ==
+
+	uint32_t act_kind = 0x12e or 0x147;
+	uint32_t magic[] = {1, 0};
+	uint32_t numrecipients;
+	repeat numrecipients {
+		XR_PropValArray;
+	};
+	uint32_t magic[] = {0, 0};
+
+The propvalarray for a recipient is the same as for a sender (cf. Condition:
+From).
+
+
+== Action 0x12f: Reply with template ==
+
+UI label:
+
+	EN:"reply using <a specific template>"
+	DE:"diese mit <einer bestimmten Vorlage> beantworten"
+
+Layout:
+
+	uint32_t act_kind = 0x12f;
+	uint32_t magic[] = {1, 0};
+	uint8_t plen;
+	if (plen == 0xff)
+		uint16_t plen;
+	char16_t pathname[plen];
+
+The OL2019 file dialog's text field restricts entering pathnames to 260
+characters by ignoring excess keypresses. Furthermore, the UI rejects pathnames
+longer than 255 characters with an modal error dialog. The pathname from the
+dialog is used as-is, so there is no automatic conversion between drive letters
+and \\unc\paths.
+
+
+== Action 0x130: Show Outlook notification ==
+
+UI label:
+
+	EN:"display <a specific message> in the New Item Alert window"
+	DE:"Im Benachrichtigungsfenster für neue Elemente <diesen Text> anzeigen"
+
+Layout:
+
+	uint32_t act_kind = 0x130;
+	uint32_t magic[] = {1, 0};
+	uint8_t tlen;
+	if (tlen == 0xff)
+		uint16_t tlen;
+	char16_t text[tlen];
+
+The OL2019 UI restricts entering messages to 65536 characters by ignoring
+excess keypresses. When trying to save such a large text, OL will claim
+Exchange Server has a problem with it. The rule stays deactivated. Deactivated
+client-side rules are not present in the MAPI Rules Table (PR_ACTIONS), but
+only in the Rule FAI Message's PR_RW_RULES_STREAM property. Bringing up the
+rules dialog in OL again shows the message text has been silently truncated to
+65535 characters, which suggests that there is no 7B extension to the 3B
+encoding of length fields.
+
+There are additional limitations with PR_ACTIONS; only some 14539 bytes of the
+action::actDeferAction::pbData stream are returned by MSMAPI.
+
+
+== Action 0x132: Clear followup flag ==
+
+UI label:
+
+	EN:"clear the Message Flag"
+	DE:"die Nachrichtenkennzeichnung löschen"
+
+Layout:
+
+	uint32_t act_kind = 0x132;
+	uint32_t magic = 0;
+
+
+== Action 0x133: Set categories ==
+
+UI label:
+
+	EN:"assign it to the <category> category"
+	DE:"diese der Kategorie <Kategorie> zuordnen"
+
+Layout:
+
+	uint32_t act_kind = 0x133;
+	uint32_t magic[] = {1, 0};
+	uint8_t clen;
+	if (clen == 0xff)
+		uint16_t clen;
+	char16_t categories[clen];
+
+@categories: This is a semicolon-separated string of categories that shall be
+set on the message. (Property is PS_PUBLIC_STRINGS:Keywords:PT_MV_UNICODE)
+For this reason, category names themselves cannot have a semicolon in them.
+According to MS-OXOCFG, the following characters are also forbidden:
+U+061B (ARABIC SEMICOLON), U+FE54 (SMALL SEMICOLON) and U+FF1B (FULLWIDTH
+SEMICOLON).
+
+The OL2019 UI restricts entering category names by ignoring semicolon
+keypresses.
+
+Category name-to-color mappings are stored in a FAI message
+[ol_category_spec.txt].
+
+
+== Action 0x136: Play sound ==
+
+UI label:
+
+	EN:"play <a sound>"
+	DE:"<einen Sound> wiedergeben"
+
+The layout is the same as Reply with Template (0x12f), but with act_kind=0x136.
+
+A "Condition: Machine" element is added into the element stream before the
+"Action: Play Sound" element.
+
+
+== Action 0x137: Set importance ==
+
+UI label:
+
+	EN:"mark it as <importance>"
+	DE:"diese als <Priorität> markieren"
+
+Layout:
+
+	uint32_t act_kind = 0x137;
+	uint32_t magic[] = {1, 0};
+	enum : uint32_t {
+		IMPORTANCE_LOW = 0,
+		IMPORTANCE_MEDIUM = 1,
+		IMPORTANCE_HIGH = 2,
+	} importance;
+
+
+== Action 0x139: Copy ==
+
+UI label:
+
+	EN:"move a copy to the <specified> folder"
+	DE:"eine Kopie davon in den Ordner <Zielordner> verschieben"
+
+The layout is the same as Move (0x12c), but with act_kind=0x139.
+
+
+== Action 0x142: Stop rule processing ==
+
+UI label:
+
+	EN:"stop processing more rules"
+	DE:"keine weiteren Regeln anwenden"
+
+Layout:
+
+	uint32_t act_kind = 0x142;
+	uint32_t magic = 0;
+
+
+== Action 0x147: Forward as attachment ==
+
+The layout is the same as Forward (0x12e), but with act_kind=0x147.
+
+
+== Action 0x148: Print ==
+
+UI label:
+
+	EN:"print it"
+	DE:"diese drucken"
+
+Layout:
+
+	uint32_t act_kind = 0x148;
+	uint32_t magic = 0;
+
+
+== Action 0x14a: Hard delete ==
+
+UI label:
+
+	EN:"permanently delete it"
+	DE:"diese endgültig löschen"
+
+Layout:
+
+	uint32_t act_kind = 0x14a;
+	uint32_t magic = 0;
+
+Outlook forces addition of a Stop action after this element (which makes
+sense — the message is gone).
+
+
+== Action 0x14c: Mark as read ==
+
+UI label:
+
+	EN:"mark it as read"
+	DE:"als gelesen markieren"
+
+Layout:
+
+	uint32_t act_kind = 0x14c;
+	uint32_t magic = 0;
+
+
+== Action 0x14f: Desktop notfication ==
+
+UI label:
+
+	EN:"display a Desktop Alert"
+	DE:"Desktopbenachrichtigung anzeigen"
+
+Layout:
+
+	uint32_t act_kind = 0x14f;
+	uint32_t magic = 0;
+
+
+== Action 0x151: Set follow-up flag ==
+
+UI label:
+
+	EN:"flag message for <follow up at this time>"
+	DE:"Nachricht kennzeichnen für <zu diesem Zeitpunkt nachverfolgen>"
+
+Layout:
+
+	uint32_t act_kind = 0x151;
+	uint32_t magic[] = {1, 0};
+	enum : uint32_t {
+		FOLLOWUP_TODAY = 0x1,
+		FOLLOWUP_TOMORROW = 0x2,
+		FOLLOWUP_THISWEEK = 0x3,
+		FOLLOWUP_NEXTWEEK = 0x4,
+		FOLLOWUP_NODATE = 0x7,
+		FOLLOWUP_DONE = 0xa,
+	};
+	uint8_t fu_name_len;
+	char16_t fu_name[fu_name_len];
+
+
+== Action 0x152: Clear categories ==
+
+UI label:
+
+	EN:"clear message's categories"
+	DE:"Kategorien der Nachricht löschen"
+
+Layout:
+
+	uint32_t act_kind = 0x152;
+	uint32_t magic = 0;
+
+
+== Action 0x190: Unknown ==
+
+	uint32_t act_kind = 0x190;
+	uint32_t magic[] = {1, 0, 1};
