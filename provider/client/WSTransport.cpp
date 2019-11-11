@@ -166,8 +166,8 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 		er = KCOIDCLogon(lpCmd, GetServerNameFromPath(sProfileProps.strServerPath.c_str()).c_str(), strUserName, strImpersonateUser, strPassword, ulCapabilities, m_ecSessionGroupId, GetAppName().c_str(), &ecSessionId, &ulServerCapabilities, &m_llFlags, &m_sServerGuid, sProfileProps.strClientAppVersion, sProfileProps.strClientAppMisc);
 		if (er == erSuccess)
 			goto auth;
-		else
-			goto failed;
+		hr = kcerr_to_mapierr(er, MAPI_E_LOGON_FAILED);
+		goto exit;
 	}
 
 	// try single signon logon
@@ -192,7 +192,6 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 		er = sResponse.er;
 	}
 
-failed: // Logon failed
 	hr = kcerr_to_mapierr(er, MAPI_E_LOGON_FAILED);
 	if (hr != hrSuccess)
 		goto exit;
@@ -223,7 +222,7 @@ failed: // Logon failed
 auth: // User have a logon
 	// See if the server supports impersonation. If it doesn't but imporsonation was attempted,
 	// we should fail now because the client won't expect his own store to be returned.
-	if (!strImpersonateUser.empty() && (sResponse.ulCapabilities & KOPANO_CAP_IMPERSONATION) == 0) {
+	if (!strImpersonateUser.empty() && !(ulServerCapabilities & KOPANO_CAP_IMPERSONATION)) {
 		hr = MAPI_E_NO_SUPPORT;	// or just MAPI_E_LOGON_FAILED?
 		goto exit;
 	}
