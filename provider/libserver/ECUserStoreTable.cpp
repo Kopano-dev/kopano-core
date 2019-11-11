@@ -48,7 +48,7 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis,
 		return erSuccess;
 	}
 
-	// We return a square array with all the values
+	// We return a rectangular array with all the values
 	lpsRowSet->__size = lpRowList->size();
 	lpsRowSet->__ptr  = soap_new_propValArray(soap, lpsRowSet->__size);
 
@@ -144,6 +144,11 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis,
 				m.__union = SOAP_UNION_propValData_li;
 				m.Value.li = pThis->m_mapUserStoreData[row.ulObjId].ullStoreSize;
 				break;
+			case PROP_ID(PR_OBJECT_TYPE):
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.__union   = SOAP_UNION_propValData_ul;
+				m.Value.li  = pThis->m_mapUserStoreData[row.ulObjId].sExternId.objclass;
+				break;
 			default:
 				m.ulPropTag = PROP_TAG(PT_ERROR, lpsPropTagArray->__ptr[k]);
 				m.__union = SOAP_UNION_propValData_ul;
@@ -179,7 +184,7 @@ ECRESULT ECUserStoreTable::Load() {
 	 * The next query will first get the list of all users with their primary store details or NULL if
 	 * no primary store was found. Secondly it will get the list of all stores with their owner or NULL
 	 * if they're detached.
-	 * The most important difference id that the first query will return no store for users without a
+	 * The most important difference is that the first query will return no store for users without a
 	 * primary store, even if they do have an archive store attached, while the second query will
 	 * return all stores types.
 	 */

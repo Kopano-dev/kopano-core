@@ -620,7 +620,7 @@ HRESULT HrCreateEntryId(const GUID &guidStore, unsigned int ulObjType,
  *						pseudo URL.
  * @retval	MAPI_E_INVALID_PARAMETER	lpEntryId or lpbIsPseudoUrl is NULL
  * @retval	MAPI_E_NOT_FOUND		The extracted server path does not start
- *						with http://, https://, file:// or pseudo://
+ *						with a recognized scheme
  */
 HRESULT HrGetServerURLFromStoreEntryId(ULONG cbEntryId,
     const ENTRYID *lpEntryId, std::string &rServerPath, bool *lpbIsPseudoUrl)
@@ -641,11 +641,11 @@ HRESULT HrGetServerURLFromStoreEntryId(ULONG cbEntryId,
 	auto pos = path.find_first_of('\0');
 	if (pos != std::string::npos)
 		path.erase(pos);
-	if (kc_starts_with(path, "pseudo://"))
+	if (kc_starts_with(path, "pseudo:"))
 		bIsPseudoUrl = true;
-	else if (!kc_starts_with(path, "http://") &&
-	    !kc_starts_with(path, "https://") &&
-	    !kc_starts_with(path, "file://") &&
+	else if (!kc_starts_with(path, "http:") &&
+	    !kc_starts_with(path, "https:") &&
+	    !kc_starts_with(path, "file:") &&
 	    !kc_starts_with(path, "default:"))
 		return MAPI_E_NOT_FOUND;
 	rServerPath = std::move(path);

@@ -119,6 +119,7 @@ da_exec::da_exec(std::shared_ptr<ECConfig> c, size_t z) :
 		ec_perror("Could not connect to db", ret);
 		return;
 	}
+	m_db.DoUpdate("SET SESSION sql_mode = 'STRICT_ALL_TABLES,NO_UNSIGNED_SUBTRACTION'");
 }
 
 void da_exec::notify(ECRESULT ret)

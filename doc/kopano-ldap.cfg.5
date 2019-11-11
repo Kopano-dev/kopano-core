@@ -772,7 +772,7 @@ Recommended for ADS installations:
 \fI(anr=%s)\fR
 .PP
 Optional for OpenLDAP installations:
-\fI(|(mail=%s*)(uid=%s*)(cn=*%s*)\:(fullname=*%s*)(givenname=*%s*)(lastname=*%s*)(sn=*%s*))\fR
+\fI(|(mail=%s*)(uid=%s*)(cn=*%s*)(displayName=*%s*)(givenName=*%s*)(sn=*%s*))\fP
 .SS ldap_filter_cutoff_elements
 .PP
 When the ldap plugin retrieves information from the LDAP Server, large queries can be created to retrieve data for multiple objects at once. These large queries can perform badly on some LDAP server implementations. This option limits the number of elements that can be retrieved in one search filter and therefore limits the size of the filter. Instead, a broader search filter is created which retrieves all objects from the LDAP server. This results in slightly higher processing overhead and network activity, but with the bonus that the query can be served by the LDAP server much faster (a factor of 40 in 5000\-object queries has been observed).

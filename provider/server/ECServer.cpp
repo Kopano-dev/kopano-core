@@ -532,7 +532,8 @@ static ECRESULT check_server_configuration(void)
 			ec_log_warn("WARNING: 'server_pipe_enabled' is set, but LDAP returns nothing");
 			bHaveErrors = true;
 		}
-		if (sServerDetails.GetFilePath().compare("file://"s + g_lpConfig->GetSetting("server_pipe_name")) != 0) {
+		if (sServerDetails.GetFilePath().compare("file://"s + g_lpConfig->GetSetting("server_pipe_name")) != 0 &&
+		    sServerDetails.GetFilePath().compare("file:"s + g_lpConfig->GetSetting("server_pipe_name")) != 0) {
 			ec_log_warn("WARNING: 'server_pipe_name' is set to '%s', but LDAP returns '%s'", g_lpConfig->GetSetting("server_pipe_name"), sServerDetails.GetFilePath().c_str());
 			bHaveErrors = true;
 		}
