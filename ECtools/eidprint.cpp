@@ -108,10 +108,25 @@ static void try_guid(const string_view &s, unsigned int i)
 
 static void try_af1(const string_view &s, unsigned int i)
 {
-	if (s.size() >= 4)
-		printf("%-*sFulfills AF1 form (at least 4 bytes)\n", mkind(i), "");
-	else
+	if (s.size() < 4) {
 		printf("%-*sNot AF1 form: shorter than 4 bytes\n", mkind(i), "");
+		return;
+	}
+	printf("%-*sFulfills AF1 form (at least 4 bytes)\n", mkind(i), "");
+	printf("%-*sFlags:", mkind(i + 1), "");
+	if (s[0] & MAPI_SHORTTERM)
+		printf(" MAPI_SHORTTERM");
+	if (s[0] & MAPI_NOTRECIP)
+		printf(" MAPI_NOTRECIP");
+	if (s[0] & MAPI_THISSESSION)
+		printf(" MAPI_THISSESSION");
+	if (s[0] & MAPI_NOW)
+		printf(" MAPI_NOW");
+	if (s[0] & MAPI_NOTRESERVED)
+		printf(" MAPI_NOTRESERVED");
+	if (s[1] & MAPI_COMPOUND)
+		printf(" MAPI_COMPOUND");
+	printf("\n");
 }
 
 static void try_af2(const string_view &s, unsigned int i)
