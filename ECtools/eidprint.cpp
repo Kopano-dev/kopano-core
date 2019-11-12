@@ -6,10 +6,13 @@
 #include <cstdio>
 #include <cstdlib>
 #include <mapidefs.h>
+#include <kopano/CommonUtil.h>
 #include <kopano/ECGuid.h>
+#include <kopano/MAPIErrors.h>
 #include <kopano/mapiguidext.h>
 #include <kopano/platform.h>
 #include <kopano/stringutil.h>
+#include <kopano/charset/convert.h>
 #include "kcore.hpp"
 
 #if __cplusplus >= 201700L
@@ -45,6 +48,7 @@ static void try_kcwrap(const string_view &s, unsigned int i);
 
 KC_DEFINE_GUID(MUIDEMSAB,
 0xc840a7dc, 0x42c0, 0x1a10, 0xb4, 0xb9, 0x08, 0x00, 0x2b, 0x2f, 0xe1, 0x82);
+#define OOP_DONT_LOOKUP 0x10000000
 
 static constexpr unsigned int mkind(unsigned int level)
 {
@@ -259,6 +263,67 @@ static void try_emsab(const string_view &s, unsigned int i)
 	printf("%-*sX500DN: %.*s\n", mkind(i), "", static_cast<int>(s.size() - sizeof(emsabid)), eid->dn);
 }
 
+static void try_oneoff(const string_view &s, unsigned int i)
+{
+	struct oopid {
+		char abflags[4];
+		GUID guid;
+		uint16_t version;
+		/*
+		 * MS-OXCDATA §2.2.5.1 specifies flags as 2 8-bit fields.
+		 * That only helps in the sense that MS-OXCDATA need not
+		 * bother with documenting endianess.
+		 */
+		uint16_t flags;
+		/* char address_type[], emailaddress[]; */
+	};
+	if (s.size() < sizeof(oopid)) {
+		printf("%-*sNot a One Off EntryID: have %zu bytes, expected at least %zu\n",
+		       mkind(i), "", s.size(), sizeof(oopid));
+		return;
+	}
+	auto eid = reinterpret_cast<const oopid *>(s.data());
+	if (memcmp(&eid->guid, &MUIDOOP, sizeof(MUIDOOP)) != 0) {
+		printf("%-*sNot a One-Off EntryID: unrecognized provider ", mkind(i), "");
+		dump_guid_withvar(eid->guid);
+		printf("\n");
+		return;
+	}
+	printf("%-*sOne-Off EntryID:\n", mkind(i), "");
+	++i;
+	printf("%-*sVersion: %u\n", mkind(i), "", get_unaligned_le16(&eid->version));
+	printf("%-*sFlags:", mkind(i), "");
+	auto flags = get_unaligned_le16(&eid->flags);
+	if (flags & MAPI_ONE_OFF_UNICODE)
+		printf(" MAPI_ONE_OFF_UNICODE");
+	if (flags & MAPI_ONE_OFF_NOLOOKUP)
+		printf(" OOP_DONT_LOOKUP");
+	switch (flags & MAPI_ONE_OFF_MAEMASK) {
+	case MAPI_ONE_OFF_BINHEX: printf(" BinHex"); break;
+	case MAPI_ONE_OFF_UUENCODE: printf(" UUENCODE"); break;
+	case MAPI_ONE_OFF_APPLESINGLE: printf(" AppleSingle"); break;
+	case MAPI_ONE_OFF_APPLEDOUBLE: printf(" AppleDouble"); break;
+	}
+	switch (flags & MAPI_ONE_OFF_FMTMASK) {
+	case MAPI_ONE_OFF_TEXTONLY: printf(" TextOnly"); break;
+	case MAPI_ONE_OFF_HTMLONLY: printf(" HTMLOnly"); break;
+	case MAPI_ONE_OFF_TEXTANDHTML: printf(" TextAndHTML"); break;
+	}
+	if (flags & MAPI_ONE_OFF_NO_RICH_INFO)
+		printf(" MAPI_SEND_NO_RICH_INFO");
+	printf(" (use %s)\n", (flags & MAPI_ONE_OFF_NO_RICH_INFO) ? "MIME" : "TNEF");
+	std::wstring name, type, email;
+	auto ret = ECParseOneOff(reinterpret_cast<const ENTRYID *>(s.data()),
+	           s.size(), name, type, email);
+	if (ret != hrSuccess) {
+		printf("%-*sECParseOneOff failed: %s (%x)\n", mkind(i), "", GetMAPIErrorMessage(ret), ret);
+		return;
+	}
+	printf("%-*sName: \"%s\"\n", mkind(i), "", convert_to<std::string>(name).c_str());
+	printf("%-*sType: \"%s\"\n", mkind(i), "", convert_to<std::string>(type).c_str());
+	printf("%-*sAddress: \"%s\"\n", mkind(i), "", convert_to<std::string>(email).c_str());
+}
+
 static void try_entryid(const string_view &s, unsigned int i)
 {
 	try_af1(s, i);
@@ -267,6 +332,7 @@ static void try_entryid(const string_view &s, unsigned int i)
 	try_eidv0(s, i);
 	try_abeid(s, i);
 	try_emsab(s, i);
+	try_oneoff(s, i);
 	try_kcwrap(s, i);
 }
 
