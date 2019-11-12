@@ -1024,7 +1024,6 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	SizedSPropTagArray(3, sptaProviders) = { 3, {PR_ENTRYID, PR_RECORD_KEY, PR_RESOURCE_TYPE} };
 	GUID guidProvider;
 	bool bStoreEntryID = false;
-	MAPIUID muidOneOff = {MAPI_ONE_OFF_UID};
 
     if (lpEntryID == NULL) {
 	ec_log_err("M4LMAPISession::OpenEntry() invalid parameters");
@@ -1075,7 +1074,7 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	}
 
 	// If this is an addressbook EntryID or a one-off entryid, use the addressbook to open the item
-	if (memcmp(&guidProvider, &muidOneOff, sizeof(GUID)) == 0) {
+	if (memcmp(&guidProvider, &MUIDOOP, sizeof(MUIDOOP)) == 0) {
 		hr = OpenAddressBook(0, NULL, AB_NO_DIALOG, &~lpAddrBook);
 		if (hr != hrSuccess)
 			return kc_perrorf("OpenAddressBook failed", hr);
