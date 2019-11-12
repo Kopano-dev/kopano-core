@@ -43,6 +43,9 @@ struct kc_muidwrap {
 
 static void try_kcwrap(const string_view &s, unsigned int i);
 
+KC_DEFINE_GUID(MUIDEMSAB,
+0xc840a7dc, 0x42c0, 0x1a10, 0xb4, 0xb9, 0x08, 0x00, 0x2b, 0x2f, 0xe1, 0x82);
+
 static constexpr unsigned int mkind(unsigned int level)
 {
 	return 4 * level;
@@ -79,6 +82,7 @@ static void dump_guid_withvar(const GUID &g)
 	dump_guid(g);
 #define F(p, v) if (memcmp(&g, (p v), sizeof(g)) == 0) printf(" <" #v ">");
 	F(&, muidStoreWrap);
+	F(&, MUIDEMSAB);
 	F(&, MUIDECSAB);
 	F(&, MUIDZCSAB);
 	F(, MUIDECSI_SERVER);
@@ -228,6 +232,33 @@ static void try_abeid(const string_view &s, unsigned int i)
 		printf("%-*sExtern id: b:%s\n", mkind(i), "", bin2hex(xtsize, eid->szExId).c_str());
 }
 
+static void try_emsab(const string_view &s, unsigned int i)
+{
+	struct emsabid {
+		char flags[4];
+		GUID guid;
+		uint32_t edkver, type;
+		char dn[];
+	};
+	if (s.size() < sizeof(emsabid)) {
+		printf("%-*sNot a EMSAB: have %zu bytes, expected at least %zu\n",
+		       mkind(i), "", s.size(), sizeof(emsabid));
+		return;
+	}
+	auto eid = reinterpret_cast<const emsabid *>(s.data());
+	if (memcmp(&eid->guid, &MUIDEMSAB, sizeof(MUIDEMSAB)) != 0) {
+		printf("%-*sNot a EMSABID: unrecognized provider ", mkind(i), "");
+		dump_guid_withvar(eid->guid);
+		printf("\n");
+		return;
+	}
+	printf("%-*sExchange Address Entry ID:\n", mkind(i), "");
+	++i;
+	printf("%-*sVersion: %u\n", mkind(i), "", get_unaligned_le32(&eid->edkver));
+	printf("%-*sType: %u\n", mkind(i), "", get_unaligned_le32(&eid->type));
+	printf("%-*sX500DN: %.*s\n", mkind(i), "", static_cast<int>(s.size() - sizeof(emsabid)), eid->dn);
+}
+
 static void try_entryid(const string_view &s, unsigned int i)
 {
 	try_af1(s, i);
@@ -235,6 +266,7 @@ static void try_entryid(const string_view &s, unsigned int i)
 	try_eidv1(s, i);
 	try_eidv0(s, i);
 	try_abeid(s, i);
+	try_emsab(s, i);
 	try_kcwrap(s, i);
 }
 
