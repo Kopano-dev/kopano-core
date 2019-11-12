@@ -11,9 +11,5 @@
 
 #define INITGUID
 #undef DEFINE_GUID
-#define DEFINE_GUID(n,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) \
-	GUID_EXT KC_EXPORT constexpr const GUID n = \
-		{cpu_to_le32(l), cpu_to_le16(w1), cpu_to_le16(w2), \
-		{b1, b2, b3, b4, b5, b6, b7, b8}}
-
+#define DEFINE_GUID KC_DEFINE_GUID
 #endif
