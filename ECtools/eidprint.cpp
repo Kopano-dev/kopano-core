@@ -71,7 +71,7 @@ static constexpr const char *mapitype_str(unsigned int x)
 
 static void dump_guid(const GUID &g)
 {
-	printf("{%08x-%04x-%04x-%02x%02x%02x%02x%02x%02x%02x%02x}",
+	printf("{%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x}",
 		le32_to_cpu(g.Data1), le32_to_cpu(g.Data2),
 		le32_to_cpu(g.Data3), g.Data4[0], g.Data4[1], g.Data4[2],
 		g.Data4[3], g.Data4[4], g.Data4[5], g.Data4[6], g.Data4[7]);
