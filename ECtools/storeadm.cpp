@@ -230,21 +230,17 @@ static HRESULT adm_list_mbt(KServerContext &srvctx)
 
 		for (unsigned int i = 0; i < rowset->cRows; ++i) {
 			Json::Value outrow;
-			auto p = rowset[i].cfind(PR_MAILBOX_OWNER_ENTRYID);
-			if (p != nullptr)
-				outrow["owner"] = bin2hex(p->Value.bin);
-			p = rowset[i].cfind(PR_EC_STORETYPE);
-			if (p != nullptr)
-				outrow["type"] = store_type_string(p->Value.ul);
-			p = rowset[i].cfind(PR_DISPLAY_NAME_A);
-			if (p != nullptr)
-				outrow["display_name"] = p->Value.lpszA;
-			p = rowset[i].cfind(PR_DISPLAY_NAME_W);
-			if (p != nullptr)
-				outrow["display_name_w"] = p->Value.lpszW;
-			p = rowset[i].cfind(PR_LAST_MODIFICATION_TIME);
-			if (p != nullptr)
-				outrow["mtime"] = static_cast<Json::Value::Int64>(FileTimeToUnixTime(p->Value.ft));
+			auto &p = rowset[i].lpProps;
+			if (p[0].ulPropTag == PR_MAILBOX_OWNER_ENTRYID)
+				outrow["owner"] = bin2hex(p[0].Value.bin);
+			if (p[1].ulPropTag == PR_EC_STORETYPE)
+				outrow["type"] = store_type_string(p[1].Value.ul);
+			if (p[2].ulPropTag == PR_DISPLAY_NAME_A)
+				outrow["display_name"] = p[2].Value.lpszA;
+			if (p[3].ulPropTag == PR_DISPLAY_NAME_W)
+				outrow["display_name_w"] = p[3].Value.lpszW;
+			if (p[4].ulPropTag == PR_LAST_MODIFICATION_TIME)
+				outrow["mtime"] = static_cast<Json::Value::Int64>(FileTimeToUnixTime(p[4].Value.ft));
 			puts(Json::writeString(Json::StreamWriterBuilder(), outrow).c_str());
 		}
 	}
