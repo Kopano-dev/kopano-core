@@ -217,9 +217,10 @@ static HRESULT adm_list_mbt(KServerContext &srvctx)
 	ret = ms->GetMailboxTable(nullptr, &~table, MAPI_DEFERRED_ERRORS);
 	if (ret != hrSuccess)
 		return ret;
-	static constexpr const SizedSPropTagArray(5, sp) =
-		{5, {PR_MAILBOX_OWNER_ENTRYID, PR_EC_STORETYPE,
-		PR_DISPLAY_NAME_A, PR_DISPLAY_NAME_W, PR_LAST_MODIFICATION_TIME}};
+	static constexpr const SizedSPropTagArray(6, sp) =
+		{6, {PR_MAILBOX_OWNER_ENTRYID, PR_EC_STORETYPE,
+		PR_DISPLAY_NAME_A, PR_DISPLAY_NAME_W, PR_LAST_MODIFICATION_TIME,
+		PR_MESSAGE_SIZE_EXTENDED}};
 	ret = table->SetColumns(sp, TBL_BATCH);
 	if (ret != hrSuccess)
 		return ret;
@@ -245,6 +246,8 @@ static HRESULT adm_list_mbt(KServerContext &srvctx)
 				outrow["display_name_w"] = p[3].Value.lpszW;
 			if (p[4].ulPropTag == PR_LAST_MODIFICATION_TIME)
 				outrow["mtime"] = static_cast<Json::Value::Int64>(FileTimeToUnixTime(p[4].Value.ft));
+			if (p[5].ulPropTag == PR_MESSAGE_SIZE_EXTENDED)
+				outrow["size"] = static_cast<Json::Value::Int64>(p[5].Value.li.QuadPart);
 			puts(Json::writeString(Json::StreamWriterBuilder(), outrow).c_str());
 		}
 	}
