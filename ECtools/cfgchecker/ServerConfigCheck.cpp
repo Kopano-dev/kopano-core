@@ -32,7 +32,6 @@ void ServerConfigCheck::loadChecks()
 
 	addCheck("user_plugin", 0, &testPlugin);
 	addCheck("user_plugin", "user_plugin_config", 0, &testPluginConfig);
-	addCheck("user_plugin", "plugin_path", 0, &testPluginPath);
 
 	addCheck("createuser_script", 0, &testFile);
 	addCheck("deleteuser_script", 0, &testFile);
@@ -48,8 +47,6 @@ void ServerConfigCheck::loadChecks()
 	addCheck("enable_distributed_kopano", 0, &testBoolean);
 	addCheck("server_name", CONFIG_MULTI_USED);
 	addCheck("enable_gab", 0, &testBoolean);
-	addCheck("enable_sso_ntlmauth", 0, &testBoolean);
-	addCheck("client_update_enabled", 0, &testBoolean);
 	addCheck("hide_everyone", 0, &testBoolean);
 	addCheck("enable_enhanced_ics", 0, &testBoolean);
 
@@ -114,17 +111,6 @@ int ServerConfigCheck::testPluginConfig(const config_check_t *check)
 	check2.option1 = check->option2;
 	check2.value1 = check->value2;
 	return testFile(&check2);
-}
-
-int ServerConfigCheck::testPluginPath(const config_check_t *check)
-{
-	if (check->value1 != "ldap" && check->value1 != "unix")
-		return CHECK_OK;
-	config_check_t check2;
-	check2.hosted = check->hosted;
-	check2.option1 = check->option2;
-	check2.value1 = check->value2;
-	return testDirectory(&check2);
 }
 
 int ServerConfigCheck::testStorename(const config_check_t *check)

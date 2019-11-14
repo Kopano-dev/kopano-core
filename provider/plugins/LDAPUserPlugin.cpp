@@ -338,10 +338,7 @@ LDAPUserPlugin::LDAPUserPlugin(std::mutex &pluginlock,
 		{ "ldap_user_sendas_relation_attribute", "ldap_sendas_relation_attribute", CONFIGSETTING_ALIAS },
 		{ "ldap_user_sendas_attribute_type", "ldap_sendas_attribute_type", CONFIGSETTING_ALIAS },
 		{ "ldap_user_sendas_attribute", "ldap_sendas_attribute", CONFIGSETTING_ALIAS },
-		{"ldap_host", "localhost", CONFIGSETTING_OBSOLETE},
-		{"ldap_port", "389", CONFIGSETTING_OBSOLETE},
-		{ "ldap_uri","" },
-		{"ldap_protocol", "ldap", CONFIGSETTING_OBSOLETE},
+		{"ldap_uri", "ldap://localhost:389/"},
 		{ "ldap_server_charset", "UTF-8" },
 		{"ldap_starttls", "no", CONFIGSETTING_RELOADABLE},
 		{ "ldap_bind_user","" },
@@ -355,18 +352,15 @@ LDAPUserPlugin::LDAPUserPlugin(std::mutex &pluginlock,
 		{ "ldap_addresslist_type_attribute_value", "", CONFIGSETTING_RELOADABLE },
 		{ "ldap_dynamicgroup_type_attribute_value", "", CONFIGSETTING_RELOADABLE },
 		{ "ldap_server_type_attribute_value", "", static_cast<unsigned short>((m_bDistributed ? CONFIGSETTING_NONEMPTY : 0) | CONFIGSETTING_RELOADABLE)},
-		{ "ldap_user_search_base","", CONFIGSETTING_UNUSED },
 		{ "ldap_user_search_filter","", CONFIGSETTING_RELOADABLE },
 		{ "ldap_user_unique_attribute","cn", CONFIGSETTING_RELOADABLE },
 		{ "ldap_user_unique_attribute_type","text", CONFIGSETTING_RELOADABLE },
 		{ "ldap_user_unique_attribute_name","objectClass", CONFIGSETTING_RELOADABLE },
-		{ "ldap_group_search_base","", CONFIGSETTING_UNUSED },
 		{ "ldap_group_search_filter","", CONFIGSETTING_RELOADABLE },
 		{ "ldap_group_unique_attribute","cn", CONFIGSETTING_RELOADABLE },
 		{ "ldap_group_unique_attribute_type","text", CONFIGSETTING_RELOADABLE },
 		{ "ldap_group_security_attribute","kopanoSecurityGroup", CONFIGSETTING_RELOADABLE },
 		{ "ldap_group_security_attribute_type","boolean", CONFIGSETTING_RELOADABLE },
-		{ "ldap_company_search_base","", CONFIGSETTING_UNUSED },
 		{ "ldap_company_search_filter","", CONFIGSETTING_RELOADABLE },
 		{ "ldap_company_unique_attribute","ou", CONFIGSETTING_RELOADABLE },
 		{ "ldap_company_unique_attribute_type","text", CONFIGSETTING_RELOADABLE },
@@ -417,9 +411,6 @@ LDAPUserPlugin::LDAPUserPlugin(std::mutex &pluginlock,
 		{ "ldap_quota_companywarning_recipients_attribute_type","text", CONFIGSETTING_RELOADABLE },
 		{ "ldap_quota_companywarning_recipients_relation_attribute","", CONFIGSETTING_RELOADABLE },
 		{ "ldap_quota_multiplier","1", CONFIGSETTING_RELOADABLE },
-		{ "ldap_user_scope","", CONFIGSETTING_UNUSED },
-		{ "ldap_group_scope","", CONFIGSETTING_UNUSED },
-		{ "ldap_company_scope","", CONFIGSETTING_UNUSED },
 		{ "ldap_groupmembers_relation_attribute", "", CONFIGSETTING_RELOADABLE },
 		{ "ldap_last_modification_attribute", "modifyTimestamp", CONFIGSETTING_RELOADABLE },
 		{ "ldap_user_server_attribute", "kopanoUserServer", CONFIGSETTING_RELOADABLE },
@@ -430,12 +421,8 @@ LDAPUserPlugin::LDAPUserPlugin(std::mutex &pluginlock,
 		{ "ldap_server_file_path_attribute", "kopanoFilePath", CONFIGSETTING_RELOADABLE },
 		{ "ldap_server_proxy_path_attribute", "kopanoProxyURL", CONFIGSETTING_RELOADABLE },
 		{ "ldap_server_contains_public_attribute", "kopanoContainsPublic", CONFIGSETTING_RELOADABLE },
-		{ "ldap_server_scope", "", CONFIGSETTING_UNUSED },
-		{ "ldap_server_search_base", "", CONFIGSETTING_UNUSED },
 		{ "ldap_server_search_filter", "", CONFIGSETTING_RELOADABLE },
 		{ "ldap_server_unique_attribute", "cn", CONFIGSETTING_RELOADABLE },
-		{ "ldap_addresslist_search_base","", CONFIGSETTING_UNUSED },
-		{ "ldap_addresslist_scope","", CONFIGSETTING_UNUSED },
 		{ "ldap_addresslist_search_filter","", CONFIGSETTING_RELOADABLE },
 		{ "ldap_addresslist_unique_attribute","cn", CONFIGSETTING_RELOADABLE },
 		{ "ldap_addresslist_unique_attribute_type","text", CONFIGSETTING_RELOADABLE },
@@ -472,23 +459,7 @@ LDAPUserPlugin::LDAPUserPlugin(std::mutex &pluginlock,
 		throw runtime_error(string("Not a valid configuration file."));
 
 	// get the list of ldap urls and split them
-	const char *const ldap_uri = m_config->GetSetting("ldap_uri");
-
-	if (ldap_uri && strlen(ldap_uri))
-		ldap_servers = tokenize(std::string(ldap_uri), ' ', true);
-	else {
-		const char *const ldap_host = m_config->GetSetting("ldap_host");
-		const char *const ldap_port = m_config->GetSetting("ldap_port");
-		const char *const ldap_proto = m_config->GetSetting("ldap_protocol");
-		std::string url;
-
-		if (ldap_proto != NULL && strcmp(ldap_proto, "ldaps") == 0)
-			url = format("ldaps://%s:%s", ldap_host, ldap_port);
-		else
-			url = format("ldap://%s:%s", ldap_host, ldap_port);
-		ldap_servers.emplace_back(std::move(url));
-	}
-
+	ldap_servers = tokenize(m_config->GetSetting("ldap_uri"), ' ', true);
 	if (ldap_servers.empty())
 		throw ldap_error(string("No LDAP servers configured in ldap.cfg"));
 	m_timeout.tv_sec = atoui(m_config->GetSetting("ldap_network_timeout"));

@@ -205,7 +205,6 @@ int main(int argc, char **argv) {
 		{ "pid_file", "/var/run/kopano/ical.pid" },
 		{"process_model", "thread", CONFIGSETTING_NONEMPTY},
 		{"coredump_enabled", "systemdefault"},
-		{"socketspec", "", CONFIGSETTING_OBSOLETE},
 		{"ical_listen", "*%lo:8080"},
 		{"icals_listen", ""},
 		{ "enable_ical_get", "yes", CONFIGSETTING_RELOADABLE },
