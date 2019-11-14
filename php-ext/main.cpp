@@ -5516,7 +5516,6 @@ ZEND_FUNCTION(mapi_vcfstomapi)
 
 		MAPI_G(hr) = conv->get_item(message.get());
 		if (MAPI_G(hr) == MAPI_E_NOT_FOUND) {
-			RETVAL_TRUE;
 			break; // No more vcards
 		} else if (MAPI_G(hr) != hrSuccess) {
 			break; // some issue
