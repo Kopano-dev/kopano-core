@@ -97,6 +97,19 @@ typedef struct MAPIUID *LPMAPIUID;
 #define MAPI_ONE_OFF_UID { 0x81, 0x2b, 0x1f, 0xa4, 0xbe, 0xa3, 0x10, 0x19, \
                            0x9d, 0x6e, 0x00, 0xdd, 0x01, 0x0f, 0x54, 0x02 } /* MUIDOOP */
 #define MAPI_ONE_OFF_UNICODE        0x8000
+#define MAPI_ONE_OFF_NOLOOKUP       0x1000
+
+#define MAPI_ONE_OFF_MAEMASK        0x0060
+#define MAPI_ONE_OFF_BINHEX         0x0000
+#define MAPI_ONE_OFF_UUENCODE       0x0020
+#define MAPI_ONE_OFF_APPLESINGLE    0x0040
+#define MAPI_ONE_OFF_APPLEDOUBLE    0x0060
+
+#define MAPI_ONE_OFF_FMTMASK        0x001E
+#define MAPI_ONE_OFF_TEXTONLY       0x0006
+#define MAPI_ONE_OFF_HTMLONLY       0x000E
+#define MAPI_ONE_OFF_TEXTANDHTML    0x0016
+
 #define MAPI_ONE_OFF_NO_RICH_INFO   0x0001
 
 /* object types */

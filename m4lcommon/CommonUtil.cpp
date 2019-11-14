@@ -415,14 +415,13 @@ HRESULT ECCreateOneOff(const TCHAR *lpszName, const TCHAR *lpszAdrType,
     ENTRYID **lppEntryID)
 {
 	std::string strOneOff;
-	MAPIUID uid = {MAPI_ONE_OFF_UID};
 	unsigned short usFlags = (((ulFlags & MAPI_UNICODE)?MAPI_ONE_OFF_UNICODE:0) | ((ulFlags & MAPI_SEND_NO_RICH_INFO)?MAPI_ONE_OFF_NO_RICH_INFO:0));
 
 	if (lpszAdrType == NULL || lpszAddress == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
 	strOneOff.append(4, '\0'); // abFlags
-	strOneOff.append(reinterpret_cast<const char *>(&uid), sizeof(MAPIUID));
+	strOneOff.append(reinterpret_cast<const char *>(&MUIDOOP), sizeof(MUIDOOP));
 	strOneOff.append(2, '\0'); // version (0)
 	usFlags = cpu_to_le16(usFlags);
 	strOneOff.append(reinterpret_cast<const char *>(&usFlags), sizeof(usFlags));
@@ -470,7 +469,6 @@ HRESULT ECCreateOneOff(const TCHAR *lpszName, const TCHAR *lpszAdrType,
 HRESULT ECParseOneOff(const ENTRYID *lpEntryID, ULONG cbEntryID,
     std::wstring &strWName, std::wstring &strWType, std::wstring &strWAddress)
 {
-	MAPIUID		muidOneOff = {MAPI_ONE_OFF_UID};
 	auto lpBuffer = reinterpret_cast<const char *>(lpEntryID);
 	unsigned short usFlags;
 	std::wstring name, type, addr;
@@ -485,7 +483,7 @@ HRESULT ECParseOneOff(const ENTRYID *lpEntryID, ULONG cbEntryID,
 		return MAPI_E_INVALID_PARAMETER;
 	lpBuffer += 4;
 
-	if (memcmp(&muidOneOff, lpBuffer, sizeof(MAPIUID)) != 0)
+	if (memcmp(&MUIDOOP, lpBuffer, sizeof(MUIDOOP)) != 0)
 		return MAPI_E_INVALID_PARAMETER;
 	lpBuffer += sizeof(MAPIUID);
 	memcpy(&tmp2, lpBuffer, sizeof(tmp2));

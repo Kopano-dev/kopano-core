@@ -117,15 +117,14 @@ typedef FMTID* LPFMTID;
 
 typedef GUID  UUID;		// needed? existing?
 
-/* See initguid.h for the real defines */
+#define GUID_EXT extern "C"
+#define KC_DECLARE_GUID(n,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) GUID_EXT KC_EXPORT const GUID n
+#define KC_DEFINE_GUID(n,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) \
+	GUID_EXT KC_EXPORT constexpr const GUID n = \
+		{cpu_to_le32(l), cpu_to_le16(w1), cpu_to_le16(w2), \
+		{b1, b2, b3, b4, b5, b6, b7, b8}}
 #ifndef INITGUID
-/* # ifdef __cplusplus */
-/* #   define EXTERN_C extern "C" */
-/* # else */
-/* #   define EXTERN_C extern */
-/* # endif */
-  #define GUID_EXT extern "C"
-  #define DEFINE_GUID(n,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) GUID_EXT KC_EXPORT const GUID n
+#	define DEFINE_GUID KC_DECLARE_GUID
 #endif
 
 #define DEFINE_OLEGUID(n,l,w1,w2) DEFINE_GUID(n,l,w1,w2,0xC0,0,0,0,0,0,0,0x46)

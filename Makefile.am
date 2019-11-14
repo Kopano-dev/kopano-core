@@ -764,7 +764,7 @@ EXTRA_mapi_la_DEPENDENCIES = ${srcdir}/php-ext/mapi.sym
 # auxiliary programs
 #
 eidprint_SOURCES = ECtools/eidprint.cpp
-eidprint_LDADD = libkcutil.la
+eidprint_LDADD = libkcutil.la libmapi.la
 kscriptrun_SOURCES = ECtools/scriptrun.cpp
 mapitime_SOURCES = ECtools/mapitime.cpp
 mapitime_LDADD = ${clock_LIBS} libmapi.la libkcutil.la \
