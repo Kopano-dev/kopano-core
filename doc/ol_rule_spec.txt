@@ -3,6 +3,11 @@ Outlook Rule Specification
 
 == Table of Contents ==
 
+Notation
+Length fields
+Timestamps
+FAI Message
+Rules Stream
 XR Header
 Element Separator
 Condition 0x64: Unknown
@@ -10,7 +15,7 @@ Condition 0xc8: Name in To
 Condition 0xc9: Only to me
 Condition 0xca: Name not in To
 Condition 0xcb: From
-Condition 0xcc: Sent to
+Condition 0xcc: To
 Condition 0xcd: Subject words
 Condition 0xce: Body words
 Condition 0xcf: Subject or body words
@@ -30,17 +35,26 @@ Condition 0xe6: Sender words
 Condition 0xe8: Header words
 Condition 0xee: Account
 Condition 0xef: Machine
+Condition 0xf0: Addressbook
+Condition 0xf1: Meeting request
+Condition 0xf5: RSS feed
 Condition 0xf6: Any category
+Condition 0xf7: Any RSS feed
 Action 0x12c: Move
 Action 0x12d: Softdelete
 Action 0x12e: Forward
 Action 0x12f: Reply with template
 Action 0x130: Show OL notification
+Action 0x131: Flag for action
 Action 0x132: Clear follow-up flag
 Action 0x133: Set categories
 Action 0x136: Play sound
 Action 0x137: Set importance
 Action 0x139: Copy
+Action 0x13a: Notify when read
+Action 0x13b: Notify when delivered
+Action 0x13c: Cc
+Action 0x13e: Defer
 Action 0x142: Stop rule processing
 Action 0x147: Forward as attachment
 Action 0x148: Print
@@ -49,7 +63,37 @@ Action 0x14c: Mark as read
 Action 0x14f: Desktop notification
 Action 0x151: Set follow-up flag
 Action 0x152: Clear categories
-Action 0x190: Unknown
+Condition 0x190: Receive/Send
+Condition 0x1f4: Except name in To
+Condition 0x1f5: Except only to me
+Condition 0x1f6: Except name not in To
+Condition 0x1f7: Except from
+Condition 0x1f8: Except to
+Condition 0x1f9: Except subject words
+Condition 0x1fa: Except body words
+Condition 0x1fb: Except subject or body words
+Condition 0x1fc: Except flagged for action
+Condition 0x1fe: Except importance
+Condition 0x1ff: Except sensitivity
+Condition 0x203: Except category
+Condition 0x208: Except automated reply
+Condition 0x20a: Except attachment
+Condition 0x20b: Except form property
+Condition 0x20c: Except size
+Condition 0x20d: Except date
+Condition 0x20e: Except name in Cc
+Condition 0x20f: Except name in To or Cc
+Condition 0x211: Except recipient words
+Condition 0x212: Except sender words
+Condition 0x213: Except header words
+Condition 0x214: Except account
+Condition 0x215: Except address book
+Condition 0x216: Except meeting request
+Condition 0x219: Except RSS feed
+Condition 0x21a: Except any category
+Condition 0x21b: Except any RSS feeds
+Condition ??: Form class
+Condition ??: Except form class
 
 
 == Notation ==
@@ -102,6 +146,50 @@ ways:
 			uint16_t len;
 
 
+== Timestamps (PT_APPTIME) ==
+
+A 64-bit IEEE floating point number, in which the whole number part represents
+the number of days since December 30, 1899, and the fractional part represents
+the fraction of a day since midnight.
+
+A condition shown in the UI as "before 2018-01-01" is stored as
+less-than(0x40e5394e...). "after 2017-12-31" is stored as
+greater-than(0x40e5394d...), rather than a more straightforward
+greater-or-equals(0x40e5394e...), so one will see different patterns
+for effectively the same point in time.
+
+The OL2019 UI erroneously applies the *current time* when constructing the
+timestamp value from the date picker. Creating the same conditions "before
+2019-01-01" twice, once at 11:58 and once at 12:00, will actually yield two
+different bit patterns (0x40e5395227d2d728 and 0x40e5393222222222) and
+different semantics, but the user is never told.
+
+Detailed derivation:
+
+	Date          Observed value 1    Observed value 2
+	--------------------------------------------------
+	2019-01-01    0xd27d27d2          0x40e53950
+	2018-12-31    0xd27d27d2          0x40e53930
+	1989-09-18    ignored             0x40e00020
+	1989-09-17    ignored             0x40e00000
+	1989-09-16    ignored             0x40dfffd0
+	1989-09-15    ignored             0x40dfff90
+	1989-09-14    ignored             0x40dfff50
+
+OV1 has a prominent bit pattern, suggestive of a canary value for indicating
+freed memory. OV2 steps in units of 32 per day. The pattern suddenly breaks
+between 1989-09-16 and 1989-06-15. The DST switch however is one week away, so
+that cannot be it. The step for earlier dates is 64 units per day. An increase
+of precision for smaller values is strongly suggestive of a floating-point
+value (as the integral part requires fewer bits, more are available for the
+fractional part). By trying around, one finds that OV1 does actually belong to
+the float.
+
+OL applies the hour and minute to the timestamp, but not seconds or subseconds,
+so the fractional part is always a multiple of 1/1440. The curious bit patterns
+in OV1 are a result of 9 being a factor of 1440.
+
+
 == FAI message ==
 
 In the Inbox's Associated Contents folder, there is a special message
@@ -110,6 +198,10 @@ containing:
 	PR_SUBJECT: "Outlook Rules Organizer"
 	PR_MESSAGE_CLASS: "IPM.RuleOrganizer"
 	PR_RW_RULES_STREAM: (see below)
+
+PR_RW_RULES_STREAM contains all rules (receiving and sending), while the the
+MAPI Rules Table's PR_RULE_ACTIONS property's ACTION::actDeferAction::pbData
+member starts right with XR_Rule.
 
 
 == Rules Stream ==
@@ -123,7 +215,9 @@ Layout:
 	repeat numrules {
 		XR_Rule;
 	};
-	uint32_t magic[] = {2, 0x003a0050, 0, 0, 0x40e560b7, 0};
+	uint32_t magic[] = {0, 0};
+	double timestamp;
+	uint32_t magic = 0;
 
 
 == XR_Rule ==
@@ -138,38 +232,54 @@ The size of a XR element can be variadic and generally there are no length
 indiciators. The byte stream is therefore best parsed field-by-field rather
 than struct-at-a-time.
 
-The Action 0x190 and Condition 0x64 elements are practically present at all
-times as first and second elements, respectively, even though they serve no
-observable purpose and are not displayed in the UI. The actual elements that
-are visible in the UI start at 3rd position.
+The Condition 0x64 element is practically present at all times as second
+element (following a Condition 0x190), even though it does not serve any
+observable purpose and is not displayed in the UI.
 
 
 == XR_Header ==
 
-	uint32_t magic;
+	uint8_t magic[3];
+	uint8_t locator;
 	uint8_t rname_len;
 	if (rname_len == 0xff)
 		uint16_t rname_len;
 	char16_t rule_name[rname_len];
+	uint32_t rule_is_active;
 	alternative {
-		uint32_t magic_pr_actions[]  = {1, 0, 1, 0, 1};
-		uint32_t STRM_RECV_rule_activated[]   = {1, 0, 1, 0, 1};
-		uint32_t STRM_RECV_rule_deactivated[] = {0, 0, 0, 0, 0};
-		uint32_t STRM_SEND_rule_activated[]   = {1, 0, 0, 0, 0};
-		uint32_t STRM_RECV_rule_deactivated[] = {0, 0, 0, 0, 0};
-	};
+		uint32_t ptact_recv_rule_activated[]  = {0, 0, 0, 1};
+		uint32_t ptact_recv_rule_activated2[] = {0, 0, 0, 2};
+		uint32_t strm_recv_rule_activated[]   = {0, 1, 0, 1};
+		uint32_t strm_recv_rule_activated2[]  = {0, 1, 0, 2};
+		uint32_t strm_recv_rule_deactivated[] = {0, 0, 0, 0};
+		uint32_t strm_send_rule_activated[]   = {0, 0, 0, 0};
+		uint32_t strm_send_rule_deactivated[] = {0, 0, 0, 0};
+	} magic;
 	uint32_t bytecount;
 	uint16_t rule_elements;
-	uint32_t magic = 0xffff;
-	uint16_t rcls_len;
-	char rule_class[rcls_len];
+	uint16_t separator;
+	if (separator == 0xffff) {
+		uint16_t magic = 0;
+		uint16_t rcls_len;
+		char rule_class[rcls_len];
+	} else if (separator == 0x8001) {
+		/* ok */
+	} else {
+		REJECT-PARSE;
+	}
 
-@magic1: The bit pattern suggests this is very likely a flags field.
-For now, this is just magic values to us.
+@magic: The bit pattern suggests this could be a flags field.
+However, before OL2019 for the first time created e0c810 rules, it warned
+of backwards compatibility (once only), so this is perhaps a version field.
 
-	0x000f4240    when stored inside PR_ACTIONS
-	0x060f4240    when stored inside PR_RW_RULES_STREAM
-	0x00124f80    when stored inside PR_ACTIONS
+	0x40 0x42 0x4f    alternative 1
+	0x80 0x4f 0x12    alternative 2
+	0xe0 0xc8 0x10    alternative 3
+
+@locator: a magic value
+
+	00    via PR_RULE_ACTIONS
+	06    via PR_RW_RULES_STREAM
 
 @bytecount: The bytecount of literally everything following the bytecount
 member; this includes not only the remaining fields of the XR Header, but also
@@ -239,7 +349,11 @@ NUL-terminated, and this NUL is also included in @proplen.
 UI label:
 
 	EN:"where my name is not in the To box"
-	DE:"die meinen Namen im Feld "An" nicht enthält"
+	DE:"""die meinen Namen im Feld "An" nicht enthält"""
+
+UI behavior:
+
+	Only selectable for receive rules.
 
 Layout:
 
@@ -254,6 +368,10 @@ UI label:
 	EN:"from <people or public group>"
 	DE:"die von <einer Person/öffentlichen Gruppe> kommt"
 
+UI behavior:
+
+	Only selectable for receive rules.
+
 Layout:
 
 	uint32_t act_kind = 0xcb;
@@ -264,7 +382,7 @@ Layout:
 	};
 	uint32_t magic[] = {1, 0};
 
-The propvalarray for an EX sender typically includes 11 props:
+The propvalarray for an EX entity typically includes 11 props:
 
 	0x0c150003 (PR_RECIPIENT_TYPE),  0, 1 (MAPI_TO), 0,
 	0x3001001f (PR_DISPLAY_NAME),    0, 0xb0, 0,
@@ -290,7 +408,7 @@ Note that both senders and recipients share the same representation
 (here, as MAPI Recipients); this is just like how addr-spec is used
 in RFC5322-style e-mail is done.
 
-The propvalarray for an SMTP sender typically includes 12 props:
+The propvalarray for an SMTP entity typically includes 12 props:
 
 	0x0c150003 (PR_RECIPIENT_TYPE),         0, 1 (MAPI_TO), 0,
 	0x3001001f (PR_DISPLAY_NAME),           0, 0xc0, 0,
@@ -305,7 +423,7 @@ The propvalarray for an SMTP sender typically includes 12 props:
 	0x0ffe0003 (PR_OBJECT_TYPE),            0, 0x6, 0,
 	0x3003001f (PR_EMAIL_ADDRESS),          0, 0x1c3, 0,
 
-	PR_RECIPIENT_TYPE: MAPI_TO (apparently serves double purpose here)
+	PR_RECIPIENT_TYPE: MAPI_TO
 	PR_ENTRYID: happens to be the same as PR_RECORD_KEY
 	PR_ADDRTYPE: L"SMTP"
 	PR_SEARCH_KEY: "SMTP:ABCDEFG@IJKL.DE"
@@ -313,7 +431,7 @@ The propvalarray for an SMTP sender typically includes 12 props:
 	PR_EMAIL_ADDRESS: L"abcdefg@ijkl.de"
 
 
-== Condition 0xcc: Sent to ==
+== Condition 0xcc: To ==
 
 UI label:
 
@@ -388,6 +506,10 @@ UI label:
 	EN:"where my name is in the To box"
 	DE:"""die meinen Namen im Feld "An" enthält"""
 
+UI behavior:
+
+	Only selectable for receive rules.
+
 Layout:
 
 	uint32_t act_kind = 0xc8;
@@ -401,10 +523,36 @@ UI label:
 	EN:"sent only to me"
 	DE:"die nur an mich gesendet wurde"
 
+UI behavior:
+
+	Only selectable for receive rules.
+
 Layout:
 
 	uint32_t act_kind = 0xc9;
 	uint32_t magic = 0;
+
+
+== Condition 0xd0: Flagged for action ==
+
+UI label:
+
+	EN:"flagged for <action>"
+	DE:"die mit <einer Aktion> gekennzeichnet ist"
+
+UI behavior:
+
+	Only selectable for receive rules.
+
+Layout:
+
+	uint32_t act_kind = 0xd0;
+	uint32_t magic[] = {1, 0, 0};
+	uint8_t nlen;
+	if (nlen == 0xff)
+		uint16_t nlen;
+	char16_t action[nlen];
+	uint32_t magic = 1;
 
 
 == Condition 0xd2: Importance ==
@@ -472,6 +620,10 @@ UI label:
 	EN:"which is an automatic reply"
 	DE:"die eine automatische Antwort ist"
 
+UI behavior:
+
+	Only selectable for receive rules.
+
 Layout:
 
 	uint32_t act_kind = 0xdc;
@@ -496,13 +648,16 @@ Layout:
 UI label:
 
 	EN:"with <selected properties> of documents or forms"
-	DE:"mit Dokument-/Formula-<Eigenschaften>"
+	DE:"mit Dokument-/Formular-<Eigenschaften>"
 
 Layout:
 
 	uint32_t act_kind = 0xdf;
 	uint32_t magic[] = {1, 0};
-	uint8_t magic = 0;
+	uint8_t flen;
+	if (flen == 0xff)
+		uint16_t flen;
+	char16_t forms[flen];
 	uint16_t numprops;
 	repeat numprops {
 		uint8_t plen;
@@ -510,35 +665,70 @@ Layout:
 			uint16_t plen;
 		char16_t propname[plen];
 		uint16_t proptag;
-			/* 0x8397001f: Author */
-			/* 0x83980003: Bytes */
-		switch (PROP_TYPE(kind)) {
-		case PT_UNICODE: { /* 
-			enum : uint32_t {
-				CONTAINS = 0,
-				IS_EQUAL = 1,
-				NOT_CONTAINS = 2,
-			} matchtype;
-			uint8_t vlen; /* 3B? */
-			char16_t value[vlen];
-			uint32_t magic[] = {0, 0, 0, 0, 1, 0, 0, GARBAGE {0xc71c71c7}, GARBAGE {0x40e560ba}, 0};
-		}
-		case PT_LONG: { /* 45 bytes */
-			char what[5];
-			enum : uint32_t {
-				EQ = 0,
-				NE = 1,
-				LE = 2, /* called "at most" */
-				GE = 3, /* called "at least" */
-				GT = 4,
-				LT = 5,
-			} matchmode;
-			uint32_t magic = 0;
-			uint32_t value;
-			uint32_t magic[] = {0, 1, 0, 0, GARBAGE {0xc71c71c7|0xcccccccd}, 0x40e560ba, 0};
-		}
+
+		enum : uint32_t {
+			CONTAINS = 0,
+			IS_EQUAL = 1,
+			NOT_CONTAINS = 2,
+		} string_match_type;
+		uint8_t svlen; /* 3B? */
+		char16_t v_string[svlen];
+		enum : uint32_t {
+			EQ = 0,
+			NE = 1,
+			LE = 2, /* called "at most" */
+			GE = 3, /* called "at least" */
+			GT = 4,
+			LT = 5,
+		} long_match_type;
+		uint32_t magic = 0;
+		uint32_t v_long;
+		uint32_t v_boolean; /* seemingly inverted */
+		uint32_t magic = 1;
+		enum : uint32_t {
+			BEFORE = 0,
+			AFTER = 1,
+		} time_match_type;
+		uint32_t magic = 0;
+		double v_apptime;
+		uint32_t magic = 0;
 	};
-	uint32_t magic = 0;
+	uint32_t classcount;
+	repeat classcount {
+		uint8_t clen;
+		if (clen == 0xff) /* conjecture */
+			uint16_t clen;
+		char msgclass[clen];
+	};
+
+@forms: a semicolon-space-separated list of forms to load
+(e.g. "Aufgabe annehmen; InfoPath-Formular").
+
+@proptag:
+	0x68010003	IPM.Outlook.Recall DE:"Nachrichtenrückruf: Kennzeichnungen"
+	0x6803000b	IPM.Outlook.Recall DE:"Nachrichtenrückruf: Sendebericht"
+	0x8.......	various named properties
+
+Even though some properties have PROP_TYPE()==PT_SYSTIME, the value stored in
+the streams has PT_APPTIME semantics.
+
+@string_match_type: For PT_UNICODE, contains the choice the user made.
+Otherwise, 0.
+
+@svlen: For PT_UNICODE, contains the length of the substring following.
+Otherwise, 0.
+
+@v_string: For PT_UNICODE, contains the choice the user made.
+
+@long_match_type: For PT_LONG, contains the choice the user made. Otherwise, 0.
+
+@v_long: For PT_LONG, contains the choice the user made. Otherwise, 0.
+
+@v_boolean: For PT_BOOLEAN, contains the inversion of the choice the user made
+(Yes=0, No=1). Otherwise, 0.
+
+@v_apptime: For PT_SYSTIME/PT_APPTIME, contains the date/time choice the user
+made. Otherwise, OL fills this with the creation date of the subcondition.
 
 
 == Condition 0xe0: Size ==
@@ -563,62 +753,31 @@ UI label:
 	EN:"received <in a specific date span>"
 	DE:"die <in einem bestimmten Zeitraum> erhalten wurde"
 
+UI behavior:
+
+	Only selectable for receive rules.
+
 Layout:
 
 	uint32_t act_kind = 0xe1;
 	uint32_t magic[] = {1, 0};
 	uint32_t test_after;
 	uint32_t magic = 0;
-	uint32_t garbage, after_day;
+	double ts_after;
 	uint32_t test_before;
 	uint32_t magic = 0;
-	uint32_t before_day;
+	double ts_before;
 
 @test_after: boolean whether or not to run a comparison "NOW > @ts_after".
 
 @test_before: boolean whether or not to run a comparison "NOW < @ts_before".
 
-@garbage: the bit pattern suggests that it is a canary value for
-uninitialized memory that OL2019 erroneously writes out.
+@ts_after: timestamp for the "is-after" check. See the "Timestamp" section
+for details.
 
-@ts_after: timestamp for the "is-after" check. See below table.
-
-@ts_before: timestamp for the "is-before" check. See below table.
-
-
-Garbage    Date       ts_after   Date-B     ts_before 
-0xf49f49f5 1979-12-31 0x40dc817f 1980-01-01 0x40dcdd00
-0xf49f49f5 1980-12-31 0x40dcdcff 1981-01-01 0x40dd3840
-0xf49f49f5 1983-12-31 0x40ddf67f 1984-01-01 0x40ddf680
-0xf49f49f5 1984-12-31 0x40de51ff 1985-01-01 0x40de5200
-0xf49f49f5 1985-12-31 0x40dead3f 1986-01-01 0x40dead40
-0xf49f49f5 1986-12-31 0x40df087f 1987-01-01 0x40df0880
-0xf49f49f5 1987-12-31 0x40df63bf 1988-01-01 0x40df63c0
-0xf49f49f5 1988-12-31 0x40dfbf3f 1989-01-01 0x40dfbf40
-0xfa4fa4fa 1989-12-31 0x40e00d3f 1990-01-01 0x40e00d40
-0xfa4fa4fa 1999-12-31 0x40e1d5bf 2000-01-01 0x40e1d5c0
-0xfa4fa4fa 2000-12-31 0x40e2037f 2001-01-01 0x40e20380
-0xfa4fa4fa 2001-12-31 0x40e2311f 2002-01-01 0x40e23120
-0xfa4fa4fa 2002-12-31 0x40e25ebf 2003-01-01 0x40e25ec0
-
-The timestamp value increases by 32 (0x20) for every calendar day.
-timestamp value increase by 1 equals 45 minutes, and for 0x40e25ebf to actually
-mean 2003-01-01 00:00 rather than 2002-12-31 23:45, an incoming mail's date
-will have to be rounded down to the nearest 45 minutes before performing a
-comparison.
-
-	after_ok = !test_after ||
-	           now / 45 minutes > date(mail) / 45 minutes
-	before_ok = !test_before ||
-	            now / 45 minutes < date(mail) / 45 minutes
-	match_ok = after_ok && before_ok;
-
-	'/' denotes unsigned integer division
-
-There are also as-of-yet unexplained jumps for ts_after/ts_before at certain
-end-of-years, e.g. 1989/1990. The Outlook UI allows choosing dates from
-1601-04-01 onwards. The Windows epoch starts at 1601-01-01, and it is unclear
-why Outlook erroneously rejects dates from the first quarter of 1601.
+@ts_before: timestamp for the "is-before" check. Curiously, this (and the
+Except date condition, 0x20d) is the only timestamp which has its fractional
+part correctly set to zero.
 
 
 == Condition 0xe2: Name in Cc ==
@@ -627,6 +786,10 @@ UI label:
 
 	EN:"where my name is in the Cc box"
 	DE:"""die meinen Namen im Feld "Cc" enthält"""
+
+UI behavior:
+
+	Only selectable for receive rules.
 
 Layout:
 
@@ -641,6 +804,10 @@ UI label:
 	EN:"where my name is in the To or Cc box"
 	DE:"""die meinen Namen im Feld "An" oder "Cc" enthält"""
 
+UI behavior:
+
+	Only selectable for receive rules.
+
 Layout:
 
 	uint32_t act_kind = 0xe3;
@@ -652,7 +819,7 @@ Layout:
 UI label:
 
 	EN:"uses the <form name> form"
-	DE:"die das Formular <Formularname> verwendet>"
+	DE:"die das Formular <Formularname> verwendet"
 
 Layout:
 
@@ -791,6 +958,10 @@ UI label:
 	EN:"with <specific words> in the sender's address"
 	DE:"mit <bestimmten Wörtern> in der Absenderadresse"
 
+UI behavior:
+
+	Only selectable for receive rules.
+
 The layout is the same as Subject words (0xcd), but with act_kind=0xe6.
 
 
@@ -801,6 +972,10 @@ UI label:
 	EN:"with <specific words> in the message header"
 	DE:"mit <bestimmten Wörtern> im Nachrichtenkopf"
 
+UI behavior:
+
+	Only selectable for receive rules.
+
 The layout is the same as Subject (0xcd), but with act_kind=0xe8.
 
 
@@ -810,6 +985,11 @@ UI label:
 
 	EN:"though the <specified> account>"
 	DE:"über Konto <Kontoname>"
+
+UI behavior:
+
+	When this element is selected, Outlook also selects "Condition:
+	Machine", and one cannot deselect Machine.
 
 Layout:
 
@@ -842,6 +1022,69 @@ Layout:
 	unsigned char some_guid[16];
 
 
+== Condition 0xf0: Addressbook ==
+
+UI label:
+
+	EN:"sender is in <specified> Address Book"
+	DE:"deren Versender im Adressbuch <Adressbuchname> vorkommt"
+
+UI behavior:
+
+	Only selectable for receive rules.
+
+Layout:
+
+	uint32_t act_kind = 0xf0;
+	uint32_t magic[] = {1, 0};
+	uint32_t eidlen;
+	char eid[eidlen];
+	uint8_t nlen;
+	if (nlen == 0xff) /* conjecture */
+		uint16_t nlen;
+	char16_t name[nlen];
+
+@eid: for example,
+00000000  00 00 00 00 87 12 f5 ef  5b 95 8f 43 94 a0 89 8c  |........[..C....|
+00000010  07 4d 16 c4 01 00 00 00  00 01 00 00 2f 67 75 69  |.M........../gui|
+00000020  64 3d 33 34 45 46 39 34  38 39 30 34 44 42 34 33  |d=34EF948904DB43|
+00000030  37 37 39 31 32 36 33 41  37 34 42 42 46 39 31 32  |7791263A74BBF912|
+00000040  34 42 00                                          |4B.|
+00000043
+
+@name: for example, "Global Addressbook"
+
+
+== Condition 0xf1: Meeting request ==
+
+UI label:
+
+	EN:"which is a meeting invitation or update"
+	DE:"die eine Besprechungsanfrage oder -aktualisierung ist"
+
+Layout:
+
+	uint32_t act_kind = 0xf1;
+	uint32_t magic = 0;
+
+
+== Condition 0xf5: RSS feed ==
+
+UI label:
+
+	EN:"from RSS Feeds with <specified text> in the tiele"
+	DE:"aus RSS-Feeds mit <angegebener Text> im Titel" [sic]
+
+Layout:
+
+	uint32_t act_kind = 0xf5;
+	uint32_t mgc[] = {1, 0};
+	uint8_t nlen;
+	if (nlen == 0xff)
+		uint16_t nlen;
+	char16_t name[nlen];
+
+
 == Condition 0xf6: Any category ==
 
 UI label:
@@ -856,6 +1099,19 @@ Layout:
 
 Matches if the message has any category set. (This only works for messages
 received directly through MAPI or as TNEF.)
+
+
+== Condition 0xf7: Any RSS feed ==
+
+UI label:
+
+	EN:"from any RSS Feed"
+	DE:"von beliebigen RSS-Feeds"
+
+Layout:
+
+	uint32_t act_kind = 0xf7;
+	uint32_t magic = 0;
 
 
 == Action 0x12c: Move message ==
@@ -903,8 +1159,7 @@ Layout:
 	};
 	uint32_t magic[] = {0, 0};
 
-The propvalarray for a recipient is the same as for a sender (cf. Condition:
-From).
+The propvalarray for a recipient is the same as for a sender (0xcb).
 
 
 == Action 0x12f: Reply with template ==
@@ -959,6 +1214,25 @@ There are additional limitations with PR_ACTIONS; only some 14539 bytes of the
 action::actDeferAction::pbData stream are returned by MSMAPI.
 
 
+== Action 0x131: Flag for action ==
+
+UI label:
+
+	EN:"flag message for <action in a number of days>"
+	DE:"diese mit <einer Aktion in ... Tagen> kennzeichnen
+
+Layout:
+
+	uint32_t act_kind = 0x131;
+	uint32_t magic[] = {1, 0};
+	uint32_t days;
+	uint8_t nlen;
+	if (nlen == 0xff)
+		uint16_t nlen;
+	char16_t action[nlen];
+	uint32_t magic = 0;
+
+
 == Action 0x132: Clear followup flag ==
 
 UI label:
@@ -1009,10 +1283,13 @@ UI label:
 	EN:"play <a sound>"
 	DE:"<einen Sound> wiedergeben"
 
-The layout is the same as Reply with Template (0x12f), but with act_kind=0x136.
+UI behavior:
 
-A "Condition: Machine" element is added into the element stream before the
-"Action: Play Sound" element.
+	When this element is selected, Outlook also selects
+	"Condition: Machine". However, one can deselect Machine by
+	going back, and then forward again.
+
+The layout is the same as Reply with Template (0x12f), but with act_kind=0x136.
 
 
 == Action 0x137: Set importance ==
@@ -1043,6 +1320,75 @@ UI label:
 The layout is the same as Move (0x12c), but with act_kind=0x139.
 
 
+== Action 0x13a: Notify when read ==
+
+UI label:
+
+	EN:"notify me when it is read"
+	DE:"mich benachrichtigen, wenn sie gelesen wurde"
+
+UI behavior:
+
+	Only selectable for send rules.
+
+Layout:
+
+	uint32_t act_kind = 0x13a;
+	uint32_t magic = 0;
+
+
+== Action 0x13b: Notify when delivered ==
+
+UI label:
+
+	EN:"notify me when it is delivered"
+	DE:"mich benachrichtigen, wenn sie erhalten wurde"
+
+UI behavior:
+
+	Only selectable for send rules.
+
+Layout:
+
+	uint32_t act_kind = 0x13b;
+	uint32_t magic = 0;
+
+
+== Action 0x13c: Cc ==
+
+UI label:
+
+	EN:"Cc the message to <people or public group>"
+	DE:"diese an <einer Person/öffentlichen Gruppe> kopieren (Cc)"
+
+UI behavior:
+
+	Only selectable for send rules.
+
+The layout is the same as Forward (0x12e), but with act_kind=0x13c.
+
+PR_RECIPIENT_TYPE in the propvalarray still has value MAPI_TO rather than
+MAPI_CC!
+
+
+== Action 0x13e: Defer ==
+
+UI label:
+
+	EN:"defer delivery by <a number of> minutes"
+	DE:"diese <eine Anzahl von> Minuten verzögert übermitteln"
+
+UI behavior:
+
+	Only selectable for send rules.
+
+Layout:
+
+	uint32_t act_kind = 0x13e;
+	uint32_t magic[] = {1, 0};
+	uint32_t minutes;
+
+
 == Action 0x142: Stop rule processing ==
 
 UI label:
@@ -1068,6 +1414,10 @@ UI label:
 	EN:"print it"
 	DE:"diese drucken"
 
+UI behavior:
+
+	Only selectable for receive rules.
+
 Layout:
 
 	uint32_t act_kind = 0x148;
@@ -1080,6 +1430,10 @@ UI label:
 
 	EN:"permanently delete it"
 	DE:"diese endgültig löschen"
+
+UI behavior:
+
+	Only selectable for receive rules.
 
 Layout:
 
@@ -1097,6 +1451,10 @@ UI label:
 	EN:"mark it as read"
 	DE:"als gelesen markieren"
 
+UI behavior:
+
+	Only selectable for receive rules.
+
 Layout:
 
 	uint32_t act_kind = 0x14c;
@@ -1110,6 +1468,10 @@ UI label:
 	EN:"display a Desktop Alert"
 	DE:"Desktopbenachrichtigung anzeigen"
 
+UI behavior:
+
+	Only selectable for receive rules.
+
 Layout:
 
 	uint32_t act_kind = 0x14f;
@@ -1122,6 +1484,10 @@ UI label:
 
 	EN:"flag message for <follow up at this time>"
 	DE:"Nachricht kennzeichnen für <zu diesem Zeitpunkt nachverfolgen>"
+
+UI behavior:
+
+	Only selectable for receive rules.
 
 Layout:
 
@@ -1152,7 +1518,500 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Action 0x190: Unknown ==
+== Condition 0x190: Receive/Send ==
+
+UI label:
+
+	EN:"Apply this rule after the message arrives"
+	DE:"Nach Erhalt einer Nachricht"
+	EN:"Apply this rule after I send the message"
+	DE:"Nach dem Senden einer Nachricht"
+
+Layout:
 
 	uint32_t act_kind = 0x190;
-	uint32_t magic[] = {1, 0, 1};
+	uint32_t magic[] = {1, 0};
+	uint32_t flagbits;
+
+@flagbits:
+	0x01: message was received
+	0x04: message was sent
+
+
+== Condition 0x1f4: Except name in To ==
+
+UI label:
+
+	EN:"except where my name is in the To box"
+	DE:"""außer wenn mein Namen im Feld "An" steht"""
+
+UI behavior:
+
+	Availability: !OL2007 OL2019
+	Only selectable for receive rules.
+
+Layout:
+
+	uint32_t act_kind = 0x1f4;
+	uint32_t magic = 0;
+
+
+== Condition 0x1f5: Except only to me ==
+
+UI label:
+
+	EN:"except if sent only to me"
+	DE:"außer wenn sie nur an mich gesendet wurde"
+
+UI behavior:
+
+	Availability: !OL2007 OL2019
+	Only selectable for receive rules.
+
+Layout:
+
+	uint32_t act_kind = 0xc9;
+	uint32_t magic = 0;
+
+
+== Condition 0x1f4: Except name not in To ==
+
+UI label:
+
+	EN:"except where my name is in the To box"
+	DE:"""außer wenn mein Namen nicht im Feld "An" steht"""
+
+UI behavior:
+
+	Availability: !OL2007 OL2019
+	Only selectable for receive rules.
+
+Layout:
+
+	uint32_t act_kind = 0x1f4;
+	uint32_t magic = 0;
+
+
+== Condition 0x1f7: Except from ==
+
+UI label:
+
+	EN:"except if from <people or public group>"
+	DE:"außer diese ist von ..."
+
+UI behavior:
+
+	Availability: !OL2007 OL2019
+	Only selectable for receive rules.
+
+The layout is the same as From (0xcb), but with act_kind=0x1f7.
+
+
+== Condition 0x1f8: Except to ==
+
+UI label:
+
+	EN:"except if sent to <people or public group>"
+	DE:"außer bei Versand an <einer Person/öffentlichen Gruppe>"
+
+UI behavior:
+
+	Availability: OL2007 OL2019
+	Only selectable for receive rules.
+
+The layout is the same as To (0xcc), but with act_kind=0x1f8.
+
+
+== Condition 0x1f9: Except subject words ==
+
+UI label:
+
+	EN:"except if the subject contains <specific words>"
+	DE:"außer mit <bestimmten Wörtern> im Betreff"
+
+UI behavior:
+
+	Availability: OL2007 OL2019
+
+The layout is the same as Subject words (0xcd), but with act_kind=0x1f9.
+
+
+== Condition 0x1fa: Except body words ==
+
+UI label:
+
+	EN:"except if the body contains <specific words>"
+	DE:"außer mit <bestimmten Wörtern> im Text"
+
+UI behavior:
+
+	Availability: OL2007 OL2019
+
+The layout is the same as Subject words (0xcd), but with act_kind=0x1fa.
+
+
+== Condition 0x1fb: Except subject or body words ==
+
+UI label:
+
+	EN:"except if the subject or body contains <specific words>"
+	DE:"außer mit <bestimmten Wörtern> im Betreff oder Text"
+
+UI behavior:
+
+	Availability: OL2007 OL2019
+
+The layout is the same as Subject words (0xcd), but with act_kind=0x1fb.
+
+
+== Condition 0x1fc: Except flagged for action ==
+
+UI label:
+
+	EN:"except if it is flagged for <action>"
+	DE:"außer wenn sie mit <einer Aktion> markiert ist"
+
+UI behavior:
+
+	Availability: !OL2007 OL2019
+
+The layout is the same as Flagged for action (0xd0), but with act_kind=0x1fc.
+
+
+== Condition 0x1fe: Except importance ==
+
+UI label:
+
+	EN:"except if it is marked as <importance>"
+	DE:"außer wenn mit <Priorität> markiert"
+
+UI behavior:
+
+	Availability: OL2007 OL2019
+
+The layout is the same as Importance (0xd2), but with act_kind=0x1fe.
+
+
+== Condition 0x1ff: Except sensitivity ==
+
+UI label:
+
+	EN:"except if it is marked as <sensitivity>"
+	DE:"außer wenn mit <Vertraulichkeit> markiert"
+
+UI behavior:
+
+	Availability: OL2007 OL2019
+
+The layout is the same as Sensitivity (0xd3), but with act_kind=0x1ff.
+
+
+== Condition 0x203: Except category ==
+
+UI label:
+
+	EN:"except if assigned to <category> category"
+	DE:"außer wenn sie Kategorie <Kategorie> zugeordnet ist"
+
+UI behavior:
+
+	Availability: OL2007 OL2019
+
+The layout is the same as Category (0xd7), but with act_kind=0x203.
+
+
+== Condition 0x208: Except automated reply ==
+
+UI label:
+
+	DE:"außer es ist eine automatische Antwort"
+
+UI behavior:
+
+	Availability: !OL2007 OL2019
+
+Layout:
+
+	uint32_t act_kind = 0x208;
+	uint32_t magic = 0;
+
+
+== Condition 0x20a: Except attachment ==
+
+UI label:
+
+	EN:"except if it has an attachment"
+	DE:"außer es ist eine Anlage dabei"
+
+UI behavior:
+
+	Availability: OL2007 OL2019
+
+Layout:
+
+	uint32_t act_kind = 0x20a;
+	uint32_t magic = 0;
+
+
+== Condition 0x20b: Except form property ==
+
+UI label:
+
+	EN:"except with <selected properties> of documents or forms"
+	DE:"außer mit Dokument-/Formular-<Eigenschaften>"
+
+UI behavior:
+
+	Availability: OL2007 OL2019
+
+The layout is the same as Form property (0xd4), but with act_kind=0x20b.
+
+
+== Condition 0x20c: Except size ==
+
+UI label:
+
+	EN:"except with a size <in a specific range>"
+	DE:"außer mit <einer bestimmten Größe> (KB)"
+
+UI behavior:
+
+	Availability: OL2007 OL2019
+
+Layout:
+
+	uint32_t act_kind = 0x20c;
+	uint32_t magic[] = {1, 0};
+	uint32_t min_size_kb;
+	uint32_t max_size_kb;
+
+
+== Condition 0x20d: Except date ==
+
+UI label:
+
+	DE:"außer bei Erhalt <in einem bestimmten Zeitraum>"
+
+UI behavior:
+
+	Availability: !OL2007 OL2019
+
+The layout is the same as Date (0xe1), but with act_kind=0x20d.
+
+
+== Condition 0x20e: Except name in Cc ==
+
+UI label:
+
+	EN:"except where my name is in the Cc box"
+	DE:"""außer wenn mein Name im Feld "Cc" steht"""
+
+UI behavior:
+
+	Availability: !OL2007 OL2019
+	Only selectable for receive rules.
+
+Layout:
+
+	uint32_t act_kind = 0x20e;
+	uint32_t magic = 0;
+
+
+== Condition 0x20f: Except name in To or Cc ==
+
+UI label:
+
+	EN:"except if my name is in the To or Cc box"
+	DE:"""außer wenn mein Name im Feld "An" oder "Cc" steht"""
+
+UI behavior:
+
+	Availability: !OL2007 OL2019
+	Only selectable for receive rules.
+
+Layout:
+
+	uint32_t act_kind = 0x20f;
+	uint32_t magic = 0;
+
+
+== Condition 0x210: Except form ==
+
+UI label:
+
+	EN:"except if it uses the <form name> form"
+	DE:"außer diese verwendet das Formular <Formularname>"
+
+UI behavior:
+
+	Availability: OL2007 OL2019
+
+The layout is the same as Form (0xe4), but with act_kind=0x210.
+
+
+== Condition 0x211: Except recipient words ==
+
+UI label:
+
+	EN:"except with <specified words> in the recipient's address"
+	DE:"außer mit <bestimmten Wörtern> in der Empfängeradresse"
+
+UI behavior:
+
+	Availability: OL2007 OL2019
+
+The layout is the same as Subject words (0xcd), but with act_kind=0x211.
+
+
+== Condition 0x212: Except sender words ==
+
+UI label:
+
+	EN:"except with <specified words> in the sender's address"
+	DE:"außer mit <bestimmten Wörtern> in der Absenderadresse"
+
+UI behavior:
+
+	Availability: !OL2007 OL2019
+	Only selectable for receive rules.
+
+The layout is the same as Subject words (0xcd), but with act_kind=0x211.
+
+
+== Condition 0x213: Except header words ==
+
+UI label:
+
+	EN:"except if the message header contains <specific words>"
+	DE:"außer mit <bestimmten Wörtern> im Nachrichtenkopf"
+
+UI behavior:
+
+	Availability: !OL2007 OL2019
+	Only selectable for receive rules.
+
+The layout is the same as Subject words (0xcd), but with act_kind=0x213.
+
+
+== Condition 0x214: Except account ==
+
+UI label:
+
+	EN:"except through the <specified> account"
+	DE:"außer wenn über Konto <Kontoname> erhalten"
+
+UI behavior:
+
+	Availability: OL2007 OL2019
+	When this element is selected, Outlook also selects
+	"Condition: Machine". However, one can deselect Machine by
+	going back, and then forward again.
+
+The layout is the same as Account (0xee), but with act_kind=0x214.
+
+
+== Condition 0x215: Except address book ==
+
+UI label:
+
+	DE:"außer der Versender ist im Adressbuch <Adressbuchname>"
+
+UI behavior:
+
+	Availability: !OL2007 OL2019
+	Only selectable for receive rules.
+
+The layout is the same as Address book (0xf0), but with act_kind=0x215.
+
+
+== Condition 0x216: Except meeting request ==
+
+UI label:
+
+	EN:"except if it is a meeting invitation or update"
+	DE:"außer es handelt sich um eine Besprechungsanfrage oder -aktualisierung"
+
+UI behavior:
+
+	Availability: OL2007 OL2019
+
+Layout:
+
+	uint32_t act_kind = 0x216;
+	uint32_t magic = 0;
+
+
+== Condition 0x219: Except RSS feed ==
+
+UI label:
+
+	EN:"except if it is from RSS Feeds with <specified text> in the title"
+	DE:"außer von RSS-Feeds mit '<angegebener Text>' im Titel"
+
+UI behavior:
+
+	Availability: OL2007 OL2019
+
+The layout is the same as RSS feed (0xf5), but with act_kind=0x219.
+
+
+== Condition 0x21a: Except any category ==
+
+UI label:
+
+	EN:"except if assigned to any category"
+	DE:"außer bei Zuweisung zu einer beliebigen Kategorie"
+
+UI behavior:
+
+	Availability: OL2007 OL2019
+
+Layout:
+
+	uint32_t act_kind = 0x21a;
+	uint32_t magic = 0;
+
+
+== Condition 0x21b: Except any RSS feed ==
+
+UI label:
+
+	EN:"except if from any RSS Feed"
+	DE:"außer von beliebigen RSS-Feeds"
+
+UI behavior:
+
+	Availability: OL2007 OL2019
+
+Layout:
+
+	uint32_t act_kind = 0x21b;
+	uint32_t magic = 0;
+
+
+== Condition ??: Form class ==
+
+UI label:
+
+	EN:?
+	DE:"vom Formulartyp '<bestimmt>'"
+
+UI behavior:
+
+	In OL2019, clicking the "<...>" hyperlink leads to no dialog and no
+	action. The feature is practically not observable.
+
+
+== Condition ??: Except form class ==
+
+UI label:
+
+	EN:?
+	DE:"außer Formulare vom Typ '<bestimmt>'"
+
+UI behavior:
+
+	In OL2019, clicking the "<...>" hyperlink leads to no dialog and no
+	action. The feature is practically not observable.
+
+The layout is presumably the same as Form class.
