@@ -80,7 +80,9 @@ AM_CXXFLAGS = ${ZCXXFLAGS} -Wno-sign-compare
 #
 dist_bin_SCRIPTS =
 if ENABLE_BASE
-bin_PROGRAMS = kopano-fsck kopano-ibrule kopano-oof kopano-passwd kopano-stats
+bin_PROGRAMS = \
+	kopano-fsck kopano-ibrule kopano-oof kopano-passwd kopano-stats \
+	kopano-vcfimport
 dist_bin_SCRIPTS += ECtools/migration-imap/kopano-migration-imap
 sbin_PROGRAMS = \
 	kopano-admin kopano-archiver kopano-dagent kopano-dbadm kopano-gateway \
@@ -326,6 +328,10 @@ kopano_server_LDADD = \
 	${clock_LIBS} ${CRYPTO_LIBS} ${icu_uc_LIBS} ${icu_i18n_LIBS} ${DL_LIBS} \
 	${MYSQL_LIBS} ${SSL_LIBS} ${PAM_LIBS} ${KRB5_LIBS} ${kcoidc_LIBS} -lpthread
 kopano_server_LDFLAGS = ${AM_LDFLAGS}
+
+
+kopano_vcfimport_SOURCES = ECtools/vcfimport.cpp
+kopano_vcfimport_LDADD = libmapi.la libkcutil.la libkcicalmapi.la ${libHX_LIBS}
 
 
 #
@@ -902,7 +908,7 @@ dist_man_MANS += \
 	doc/kopano-spooler.8 doc/kopano-spooler.cfg.5 \
 	doc/kopano-statsd.8 doc/kopano-statsd.cfg.5 \
 	doc/kopano-srvadm.8 doc/kopano-stats.1 doc/kopano-storeadm.8 \
-	doc/kopano-unix.cfg.5 \
+	doc/kopano-unix.cfg.5 doc/kopano-vcfimport.1 \
 	doc/mapi.7
 endif
 if ENABLE_PYTHON

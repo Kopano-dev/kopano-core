@@ -1,0 +1,41 @@
+.TH kopano\-vcfimport 1 2019-10-09 "Kopano 8" "Kopano Core user references"
+.SH Name
+.PP
+kopano\-vcfimport \(em Import contacts from .vcf files
+.SH Synopsis
+.PP
+\fBkopano\-oof\fP [\fB\-Px\fP] [\fB\-h\fP \fIuri\fP] [\fB\-s\fP
+\fIsslkeyfile\fP] [\fB\-u\fP \fIusername\fP] \fIfile\fP...
+.SH Description
+.PP
+This program can be used to import contacts from one or more vCard
+(.vcf) files into a user's contact folder (personal address book).
+.SH Options
+.TP
+\fB\-h\fP \fIuri\fP
+Connect to the given storage server. By default, the local standard Kopano
+instance is contacted.
+.TP
+\fB\-P\fP
+Interactively prompt for the SSL keyfile password. If not specified, the
+SSL_PASSWORD environment variable will be used.
+.TP
+\fB\-s\fP, \fB\-\-sslkey\-file\fP \fIfile\fP
+Read the specified certificate file and use it during connecting to the storage
+server.
+.TP
+\fB\-u\fP, \fB\-\-user\fP \fIusername\fP
+The username for the mailbox to operate on.
+.TP
+\fB\-x\fP
+Interactively prompt for the user account password. If not used, the
+\fBPASSWORD\fP environment variable will be sourced.
+.SH Usage examples
+.PP
+Non-SSL login with password, importing two vCard files.
+.PP
+.RS 4
+.nf
+PASSWORD=foo kopano\-vcfimport -u user1 a.vcf b.vcf
+.fi
+.RE

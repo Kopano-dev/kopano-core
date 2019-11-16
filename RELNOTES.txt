@@ -86,6 +86,20 @@ Packaging changes:
 * gsoap 2.8.73 or higher is now required
 
 
+8.7.x
+=====
+Enhancements:
+* storeadm: print entity types in orphan list [KC-718]
+* client: improve dreaded "gsoap connect: ()" reporting
+* ECtools: add kopano-vcfimport
+Fixes:
+* dbadm: selecting across "names" table needs
+  NO_UNSIGNED_SUBTRACTIONS [KF-2757]
+* doc: adjust LDAP attribute names for OpenLDAP ANR search [KC-494]
+* client: fix always reject when attempting OIDC/SSO impersonation
+  login [KC-1624]
+
+
 8.7.7 (2019-11-06)
 ==================
 Enhancements:
