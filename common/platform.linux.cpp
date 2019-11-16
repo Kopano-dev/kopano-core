@@ -93,7 +93,7 @@ void rand_get(char *p, int n)
 {
 	getrandom(p, n, 0);
 }
-#elif defined(HAVE_ARCRANDOM4_BUF)
+#elif defined(HAVE_ARC4RANDOM_BUF)
 void rand_get(char *p, int n)
 {
 	arc4random_buf(p, n);
