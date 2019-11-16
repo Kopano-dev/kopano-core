@@ -46,7 +46,7 @@ namespace KC {
 
 class ai_deleter {
 	public:
-	void operator()(struct addrinfo *ai) { freeaddrinfo(ai); }
+	void operator()(struct addrinfo *ai) { if (ai != nullptr) freeaddrinfo(ai); }
 };
 
 /*
@@ -917,7 +917,8 @@ static int ec_fdtable_socket_ai(const ec_socket &sk)
 
 ec_socket::~ec_socket()
 {
-	freeaddrinfo(m_ai);
+	if (m_ai != nullptr)
+		freeaddrinfo(m_ai);
 	if (m_fd >= 0)
 		close(m_fd);
 }
