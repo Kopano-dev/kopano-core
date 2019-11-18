@@ -3,6 +3,7 @@ Outlook Rule Specification
 
 == Table of Contents ==
 
+Introduction
 Notation
 Length fields
 Timestamps
@@ -41,7 +42,7 @@ Condition 0xf5: RSS feed
 Condition 0xf6: Any category
 Condition 0xf7: Any RSS feed
 Action 0x12c: Move
-Action 0x12d: Softdelete
+Action 0x12d: Soft delete
 Action 0x12e: Forward
 Action 0x12f: Reply with template
 Action 0x130: Show OL notification
@@ -56,6 +57,8 @@ Action 0x13b: Notify when delivered
 Action 0x13c: Cc
 Action 0x13e: Defer
 Action 0x142: Stop rule processing
+Action 0x144: Redirect
+Action 0x146: Reply
 Action 0x147: Forward as attachment
 Action 0x148: Print
 Action 0x14a: Hard delete
@@ -94,6 +97,27 @@ Condition 0x21a: Except any category
 Condition 0x21b: Except any RSS feeds
 Condition ??: Form class
 Condition ??: Except form class
+
+
+== Introduction ==
+
+Rules are used to do custom processing on messages. Both incoming and outgoing
+messages can be modified or otherwise acted upon. Common tasks are, for
+example: sorting incoming messages into different folders, marking incoming
+messages with certain colors, issuing automatic responses while out of office,
+or automatic forwarding while out of office.
+
+Such rules are first and foremost stored in the PR_RW_RULES_STREAM property
+in a FAI message and constitutes Outlook's state of configuration.
+
+In addition, rules for incoming messages are cloned to the PR_RULES_DATA
+property set on a message store. (PR_RULES_TABLE is an interface-only property
+that, underneath, operates on PR_RULES_DATA.) Rules that are representable
+within the confines of the IID_IExchangeModifyTable interface are so stored, if
+not, they are represented as a deferred action. These deferred actions are
+called client-side rules in Exchange/Outlook circles, but this name is
+misleading since only very few of the conditions and actions one could possibly
+use in rules actually require a running client in the first place.
 
 
 == Notation ==
@@ -215,9 +239,14 @@ Layout:
 	repeat numrules {
 		XR_Rule;
 	};
-	uint32_t magic[] = {0, 0};
+	uint32_t tdlen;
+	char16_t template_dir[tdlen];
+	uint32_t magic = 0;
 	double timestamp;
 	uint32_t magic = 0;
+
+@template_dir: The most recently used location from which a template file was
+used. (For UI display purposes.)
 
 
 == XR_Rule ==
@@ -232,9 +261,14 @@ The size of a XR element can be variadic and generally there are no length
 indiciators. The byte stream is therefore best parsed field-by-field rather
 than struct-at-a-time.
 
-The Condition 0x64 element is practically present at all times as second
-element (following a Condition 0x190), even though it does not serve any
-observable purpose and is not displayed in the UI.
+The Unknown 0x190 element is practically present at all times as the first
+element, even though it does not serve any observable purpose and is not
+displayed as anything in the UI.
+
+The Condition 0x64 is practically present at all times as the second element.
+
+The order of elements is generally: 0x190, then all conditions, then all
+actions, and only then exception conditions.
 
 
 == XR_Header ==
@@ -660,10 +694,10 @@ Layout:
 	char16_t forms[flen];
 	uint16_t numprops;
 	repeat numprops {
-		uint8_t plen;
-		if (plen == 0xff) /* conjecture */
-			uint16_t plen;
-		char16_t propname[plen];
+		uint8_t flen;
+		if (flen == 0xff) /* conjecture */
+			uint16_t flen;
+		char16_t fieldname[flen];
 		uint16_t proptag;
 
 		enum : uint32_t {
@@ -703,6 +737,11 @@ Layout:
 
 @forms: a semicolon-space-separated list of forms to load
 (e.g. "Aufgabe annehmen; InfoPath-Formular").
+
+@flen: (When constructing custom forms, Outlook arbitrarily restricts field names to 32
+characters by ignoring excess keypresses. A clen >= 255 was not observable.)
+
+@fieldname: Descriptive string for the property/field.
 
 @proptag:
 	0x68010003	IPM.Outlook.Recall DE:"Nachrichtenrückruf: Kennzeichnungen"
@@ -828,24 +867,33 @@ Layout:
 	uint32_t magic = 0;
 	repeat numforms {
 		uint8_t nlen;
-		if (nlen == 0xff) /* conjecture */
+		if (nlen == 0xff)
 			uint16_t nlen;
 		char16_t name[nlen];
 		uint8_t clen;
 		if (clen == 0xff) /* conjecture */
 			uint16_t clen;
-		char fmclass[clen];
+		char msgclass[clen];
 	};
 
-If the message has at least one form (same as message class?), then this condition
-will match. Observed classes:
+The OL2019 UI, when saving forms, arbitrarily restricts form names to 128
+characters by ignoring excess keypresses. A nlen >= 255 was therefore not
+observable. Through the Options menu, one can subsequently edit the display
+name (but not the message class) and set longer names.
+
+If the message has at least one of the forms (same as message class?) presented
+in this condition element, then the condition will already match.
+
+@name: The display name of the form.
+
+@msgclass: The form's message class. List of classes observed so far:
 
 	IPM
 		DE:"Generisches Standardformular"
-	IPM.Activity
+	IPM.Activity (C*)
 		EN:"Journal entry"
 		DE:"Journaleintrag"
-	IPM.Appointment
+	IPM.Appointment (C*)
 		EN:"Appointment"
 		DE:"Termin"
 	IPM.Conflict
@@ -854,7 +902,7 @@ will match. Observed classes:
 	IPM.Conflict.Resolution.Message
 		EN:"Conflict resolution form"
 		DE:"Formular zur Konfliktbeseitigung"
-	IPM.Contact
+	IPM.Contact (C*)
 		EN:"Contact"
 		DE:"Kontakt"
 	IPM.DistList
@@ -863,7 +911,7 @@ will match. Observed classes:
 		DE:"Dokument"
 	IPM.InfoPathForm
 		DE:"InfoPath-Formular"
-	IPM.Note
+	IPM.Note (C*)
 		EN:"Message"
 		DE:"Nachricht"
 	IPM.Note.Mobile.MMS
@@ -893,9 +941,9 @@ will match. Observed classes:
 	IPM.Outlook.Recall
 		EN:"Recall Message Form"
 		DE:"Formular zum Nachrichtenrückruf"
-	IPM.POST
+	IPM.POST (C*)
 		DE:"Bereitstellen"
-	IPM.POST.RSS
+	IPM.POST.RSS (C*)
 		EN:"RSS Article"
 		DE:"RSS-Artikel"
 	IPM.Recall
@@ -910,7 +958,7 @@ will match. Observed classes:
 	IPM.Schedule.Meeting.Canceled
 		EN:"Meeting Cancellation"
 		DE:"Besprechungsabsage"
-	IPM.Schedule.Meeting.Request
+	IPM.Schedule.Meeting.Request (C*)
 		EN:"Meeting Request"
 		DE:"Besprechungsanfrage"
 	IPM.Schedule.Meeting.Request.Neg
@@ -927,9 +975,9 @@ will match. Observed classes:
 	IPM.StickyNote
 		EN:"Note"
 		DE:"Notiz"
-	IPM.Task
+	IPM.Task (C*)
 		DE:"Aufgabe"
-	IPM.TaskRequest
+	IPM.TaskRequest (C*)
 		DE:"Aufgabenanfrage"
 	IPM.TaskRequest.Accept
 		DE:"Aufgabe annehmen"
@@ -939,6 +987,11 @@ will match. Observed classes:
 		DE:"Aufgabe aktualisieren"
 	REPORT
 		DE:"Bericht"
+
+Custom forms may be created from the classes/forms designated C*. The resulting
+message class will use that prefix. For example, deriving from the "IPM.Note"
+form and saving it under the name "MyForm" will make it available under the
+class name "IPM.Note.MyForm".
 
 
 == Condition 0xe5: Recipient words ==
@@ -983,7 +1036,7 @@ The layout is the same as Subject (0xcd), but with act_kind=0xe8.
 
 UI label:
 
-	EN:"though the <specified> account>"
+	EN:"though the <specified> account"
 	DE:"über Konto <Kontoname>"
 
 UI behavior:
@@ -995,14 +1048,20 @@ Layout:
 
 	uint32_t act_kind = 0xee;
 	uint32_t magic[] = {1, 0};
-	uint8_t pname_len;
-	if (pname_len == 0xff) /* conjecture */
-		uint16_t pname_len;
-	char16_t profile_name[pname_len];
+	uint8_t alen;
+	if (alen == 0xff) /* conjecture */
+		uint16_t alen;
+	char16_t account_name[alen];
 	uint8_t abc_len;
 	if (abc_len == 0xff) /* conjecture */
 		uint16_t abc_len;
 	char abc[abc_len];
+
+(The MAPI control panel limits profile names to 63 characters, by the way.)
+
+@account_name: An account _within_ the current MAPI profile, specifically
+the account's display name (which is usually an e-mail address and which
+the MAPI/OL config dialogs refuse to make editable).
 
 @abc: Content unclear. It was observed to be a 10-digit number represented as
 an ASCII string.
@@ -1130,13 +1189,19 @@ Layout:
 	uint32_t seid_len;
 	char store_eid[seid_len];
 	uint8_t fname_len;
-	if (fname_len == 0xff) /* conjecture */
+	if (fname_len == 0xff)
 		uint16_t fname_len;
 	char16_t folder_name[fname_len];
 	uint32_t magic = 0;
 
+The OL2019 UI's left pane arbitrarily restricts folder names to 127 characters
+by ignoring excess keypresses. The folder property dialog (via context menu)
+allows longer names, but still arbitrarily restricts folder names to 255
+characters by ignoring excess keypresses. Longer names can be set up using
+MFCMAPI.
 
-== Action 0x12d: Softdelete (Move to wastebasket) ==
+
+== Action 0x12d: Soft delete (Move to wastebasket) ==
 
 UI label:
 
@@ -1169,6 +1234,14 @@ UI label:
 	EN:"reply using <a specific template>"
 	DE:"diese mit <einer bestimmten Vorlage> beantworten"
 
+UI behavior:
+
+	The OL2019 file dialog's text field restricts entering pathnames to 260
+	characters by ignoring excess keypresses. Furthermore, the UI rejects
+	pathnames longer than 255 characters with a modal error dialog. The
+	pathname from the dialog is used as-is, so there is no automatic
+	conversion between drive letters and \\unc\paths.
+
 Layout:
 
 	uint32_t act_kind = 0x12f;
@@ -1177,12 +1250,6 @@ Layout:
 	if (plen == 0xff)
 		uint16_t plen;
 	char16_t pathname[plen];
-
-The OL2019 file dialog's text field restricts entering pathnames to 260
-characters by ignoring excess keypresses. Furthermore, the UI rejects pathnames
-longer than 255 characters with an modal error dialog. The pathname from the
-dialog is used as-is, so there is no automatic conversion between drive letters
-and \\unc\paths.
 
 
 == Action 0x130: Show Outlook notification ==
@@ -1396,10 +1463,68 @@ UI label:
 	EN:"stop processing more rules"
 	DE:"keine weiteren Regeln anwenden"
 
+UI behavior:
+
+	Understandably, Outlook always ensures this action is at the end of the
+	action list.
+
 Layout:
 
 	uint32_t act_kind = 0x142;
 	uint32_t magic = 0;
+
+
+== Action 0x144: Redirect ==
+
+UI label:
+
+	EN:"redirect it to <people or public group>"
+	DE:"diese umleiten an <einer Person/öffentlichen Gruppe>"
+
+UI behavior:
+
+	The OL2019 UI does not permit mixing this action with other actions not
+	representable as server-side rules.
+
+Layout:
+
+	uint32_t act_kind = 0x144;
+	uint32_t magic[] = {1, 0};
+	uint32_t numrecipients;
+	repeat numrecipients {
+		XR_PropValArray;
+	};
+	uint32_t magic[] = {0, 0};
+
+The propvalarray for a recipient is the same as for a sender (0xcb).
+
+
+== Action 0x146: Reply ==
+
+UI label:
+
+	EN:"have server reply using <a specific message>"
+	DE:"diese vom Server mit <einer Nachricht> beantworten"
+
+UI behavior:
+
+	The OL2019 UI does not permit mixing this action with other actions not
+	representable as server-side rules.
+
+Layout:
+
+	uint32_t act_kind = 0x146;
+	uint32_t magic[] = {1, 0};
+	uint32_t eidlen;
+	char eid[eidlen];
+	uint8_t slen;
+	if (slen == 0xff)
+		uint16_t slen;
+	char16_t subject[slen];
+
+The associated message referenced by @eid is stored in the inbox's Associated
+Contents and has a PR_MESSAGE_CLASS of
+"IPM.Note.Rules.ReplyTemplate.Microsoft".
 
 
 == Action 0x147: Forward as attachment ==
@@ -1440,8 +1565,6 @@ Layout:
 	uint32_t act_kind = 0x14a;
 	uint32_t magic = 0;
 
-Outlook forces addition of a Stop action after this element (which makes
-sense — the message is gone).
 
 
 == Action 0x14c: Mark as read ==
