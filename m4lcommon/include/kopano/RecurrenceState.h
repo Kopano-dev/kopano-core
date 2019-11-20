@@ -66,7 +66,7 @@ namespace KC {
 class KC_EXPORT RecurrenceState KC_FINAL {
 	public:
 	HRESULT ParseBlob(const char *lpData, size_t ulLen, ULONG ulFlags);
-	HRESULT GetBlob(char **data, size_t *len);
+	HRESULT GetBlob(std::string &output);
 
 	private:
 	HRESULT ParseBlob2(const char *data, size_t len, unsigned int flags, bool &readvalid, bool &ext);

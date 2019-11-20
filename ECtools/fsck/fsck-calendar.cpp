@@ -251,7 +251,7 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 	memory_ptr<SPropTagArray> lpPropertyTagArray;
 	BOOL bRecurring = FALSE;
 	LONG ulType = 0;
-	memory_ptr<char> lpData;
+	std::string lpData;
 	memory_ptr<MAPINAMEID *> ta;
 	size_t ulLen = 0;
 
@@ -465,13 +465,13 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 	r.ulReaderVersion = 0x3004;
 	r.ulWriterVersion = 0x3004;
 
-	r.GetBlob(&~lpData, &ulLen);
-	Value.bin.lpb = reinterpret_cast<unsigned char *>(lpData.get());
-	Value.bin.cb = ulLen;
+	r.GetBlob(lpData);
+	Value.bin.lpb = reinterpret_cast<BYTE *>(const_cast<char *>(lpData.data()));
+	Value.bin.cb = lpData.size();
 
 	// Update the recurrence if there is a change
 	if (ulLen != lpPropertyArray[E_RECURRENCE_STATE].Value.bin.cb ||
-	    memcmp(lpPropertyArray[E_RECURRENCE_STATE].Value.bin.lpb, lpData, ulLen) != 0)
+	    memcmp(lpPropertyArray[E_RECURRENCE_STATE].Value.bin.lpb, lpData.c_str(), lpData.size()) != 0)
 		hr = ReplaceProperty(lpMessage, "dispidRecurrenceState", CHANGE_PROP_TYPE(lpPropertyArray[E_RECURRENCE_STATE].ulPropTag, PT_BINARY), "Recoverable recurrence state.", Value);
 	return hr;
 }

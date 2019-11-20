@@ -91,16 +91,10 @@ private:
 
 class BinWriter final {
 public:
-	void GetData(char **lppData, size_t *lpulLen)
+	std::string release()
 	{
-        char *lpData;
-		auto hr = MAPIAllocateMore(m_strData.size(), nullptr, reinterpret_cast<void **>(&lpData));
-	if (hr == hrSuccess)
-		memcpy(lpData, m_strData.c_str(), m_strData.size());
-        
-        *lppData = lpData;
-        *lpulLen = m_strData.size();
-    }
+		return std::move(m_strData);
+	}
     
     int WriteByte(unsigned int b) {
 		m_strData.append(1, static_cast<char>(b));
@@ -374,7 +368,7 @@ HRESULT RecurrenceState::ParseBlob(const char *lpData, size_t ulLen,
  * @param[out]	lpulLen	length of lppData
  * @parampin]	base	base pointer for allocation, may be NULL to start new chainn of MAPIAllocateBuffer
  */
-HRESULT RecurrenceState::GetBlob(char **lppData, size_t *lpulLen)
+HRESULT RecurrenceState::GetBlob(std::string &output)
 {
     BinWriter data;
     std::vector<Exception>::const_iterator j = lstExceptions.begin();
@@ -496,7 +490,7 @@ HRESULT RecurrenceState::GetBlob(char **lppData, size_t *lpulLen)
 
     WRITELONG((ULONG)strReservedBlock2.size());
     WRITESTRING(strReservedBlock2.c_str(), (ULONG)strReservedBlock2.size());
-	data.GetData(lppData, lpulLen);
+	output = data.release();
 	return hrSuccess;
 }
 

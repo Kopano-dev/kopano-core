@@ -87,7 +87,7 @@ public:
 class RecurrenceState {
 public:
 	HRESULT ParseBlob(const char *lpData, size_t ulLen, ULONG ulFlags);
-	HRESULT GetBlob(char **lpData, size_t *lpulLen);
+	HRESULT GetBlob(std::string &output);
 
 	/* not inlined for swig */
 

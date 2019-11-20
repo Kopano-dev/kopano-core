@@ -30,7 +30,7 @@ namespace KC {
  * @param[out]	lpulLen	Length of returned data in lppData.
  * @param[in]	base	base pointer to MAPIAllocateMore() for lppData allocation. NULL to use MAPIAllocateBuffer().
  */
-HRESULT recurrence::HrGetRecurrenceState(char **lppData, size_t *lpulLen)
+HRESULT recurrence::HrGetRecurrenceState(std::string &output)
 {
 	struct tm tm;
 
@@ -116,7 +116,7 @@ HRESULT recurrence::HrGetRecurrenceState(char **lppData, size_t *lpulLen)
 
 	// exception info count is same as number of modified items
 	m_sRecState.ulExceptionCount = m_sRecState.lstModifiedInstanceDates.size();
-	return m_sRecState.GetBlob(lppData, lpulLen);
+	return m_sRecState.GetBlob(output);
 }
 
 void recurrence::HrGetHumanReadableString(std::string *lpstrHRS)
