@@ -120,6 +120,7 @@ stamp-h2
 /common/config.h*
 /common/cov-scope
 /common/ecversion.h
+/common/include/kopano/buildconfig.h
 /common/include/kopano/ecversion.h
 /common/kopano.pc
 /common/libkcutil.sym

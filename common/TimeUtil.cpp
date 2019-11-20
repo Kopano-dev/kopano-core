@@ -192,7 +192,7 @@ bool operator<=(const FILETIME &a, const FILETIME &b) noexcept
 	return a < b || a == b;
 }
 
-#ifndef HAVE_TIMEGM
+#ifndef KC_USES_TIMEGM
 time_t timegm(struct tm *t)
 {
 	char *s_tz = nullptr, *tz = getenv("TZ");

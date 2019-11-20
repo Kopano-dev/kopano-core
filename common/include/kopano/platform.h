@@ -5,11 +5,8 @@
 #ifndef PLATFORM_H
 #define PLATFORM_H
 
-  #ifdef HAVE_CONFIG_H
-  #include "config.h"
-  #endif
-  #include <kopano/platform.linux.h>
 #include <kopano/zcdefs.h>
+#include <kopano/platform.linux.h>
 #include <mutex>
 #include <shared_mutex>
 #include <string>
@@ -111,7 +108,7 @@ static inline uint32_t get_unaligned_le32(const uint32_t *p)
 	return le32_to_cpu(v);
 }
 
-#if __cplusplus >= 201700L
+#ifdef KC_USES_CXX17
 using shared_mutex = std::shared_mutex;
 #else
 using shared_mutex = std::shared_timed_mutex;

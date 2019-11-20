@@ -3,7 +3,7 @@ AC_INIT([kopano], [9.0.2], [development@kopano.io])
 dnl Change when there was an ABI change (use abidiff or abi-compare)
 PACKAGE_ABI=9.0
 AC_CONFIG_SRCDIR([provider/server/ECServer.cpp])
-AC_CONFIG_HEADERS([common/config.h])
+AC_CONFIG_HEADERS([common/config.h common/include/kopano/buildconfig.h])
 AC_CONFIG_AUX_DIR([autoconf])
 AC_CONFIG_MACRO_DIR([autoconf])
 AM_INIT_AUTOMAKE([1.10 foreign subdir-objects])
@@ -161,18 +161,40 @@ ZCXXFLAGS="-Wall -Wmissing-declarations -Wredundant-decls"
 LFS_CFLAGS=`getconf LFS_CFLAGS`
 ZCPPFLAGS="$ZCPPFLAGS $LFS_CFLAGS"
 
-AC_MSG_CHECKING([available C++ standard])
-cxxmode=""
-for i in "c++17" "c++14"; do
-	CXXFLAGS="$CXXFLAGS_system -std=$i"
-	AC_COMPILE_IFELSE([AC_LANG_SOURCE([])], [cxxmode="$i"])
-	AS_IF([test -n "$cxxmode"], [break])
-done
-CXXFLAGS="$CXXFLAGS_system"
-AS_IF([test -n "$cxxmode"], [
-	ZCXXFLAGS="$ZCXXFLAGS -std=$cxxmode"
-	AC_MSG_RESULT([$cxxmode])
+m4_define([CXX17TEST], [AC_LANG_SOURCE([
+	#if __cplusplus < 201700L
+	#error
+	#endif
+])])
+m4_define([CXX14TEST], [AC_LANG_SOURCE([
+	#if __cplusplus < 201400L
+	#error
+	#endif
+])])
+AH_TEMPLATE([KC_USES_CXX17], [Whether C++17 features were used to build KC])
+AC_MSG_CHECKING([C++ standard])
+dnl Maybe the default -std= is already enough, then don't potentially downgrade
+AC_COMPILE_IFELSE([CXX17TEST], [
+	AC_DEFINE([KC_USES_CXX17], [1])
+	AC_MSG_RESULT([default is already C++17 or better])
+], [
+	dnl The user may have specified a -std, honor it for COMPILE_IFELSE
+	CXXFLAGS="-std=c++17 $CXXFLAGS_system"
+	AC_COMPILE_IFELSE([CXX17TEST], [
+		ZCXXFLAGS="$ZCXXFLAGS -std=c++17"
+		AC_DEFINE([KC_USES_CXX17], [1])
+		AC_MSG_RESULT([selected C++17])
+	], [
+		CXXFLAGS="-std=c++14 $CXXFLAGS_system"
+		AC_COMPILE_IFELSE([CXX14TEST], [
+			ZCXXFLAGS="$ZCXXFLAGS -std=c++14"
+			AC_MSG_RESULT([selected C++14])
+		], [
+			AC_MSG_ERROR([at least C++14 is needed])
+		])
+	])
 ])
+CXXFLAGS="$CXXFLAGS_system"
 
 # disable variadic-macros: too much warning: anonymous variadic macros were introduced in C99, only on new compilers
 AC_MSG_CHECKING([whether C++ compiler understands -Wno-variadic-macros option])
@@ -254,6 +276,8 @@ AC_CHECK_HEADERS([syslog.h sys/random.h malloc.h])
 AC_CHECK_FUNCS([arc4random_buf mallinfo timegm getpeereid getpwnam_r getrandom vsyslog vsnprintf_l])
 AC_CHECK_MEMBERS([siginfo_t.si_fd siginfo_t.si_utime], [], [], [#include <csignal>])
 AC_CHECK_MEMBERS([sockpeercred.uid], [], [], [#include <sys/socket.h>])
+AH_TEMPLATE([KC_USES_TIMEGM], [the system has timegm])
+AS_IF([test "$ac_cv_func_timegm" = yes], [AC_DEFINE([KC_USES_TIMEGM], [1])])
 
 #
 # find required/optional libraries

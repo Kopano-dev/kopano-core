@@ -211,7 +211,7 @@ public:
 		return erSuccess;
 	}
 
-#if __cplusplus >= 201700L
+#ifdef KC_USES_CXX17
 	ECRESULT AddCacheItem(const key_type &key, mapped_type &&value)
 	{
 		if (MaxSize() == 0)
