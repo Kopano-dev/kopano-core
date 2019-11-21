@@ -476,7 +476,7 @@ HRESULT vcftomapi_impl::parse_vcf(const std::string &ical)
 		tmp_ical.replace(pos, 3, ":");
 	}
 
-	if (!check_libical_bug_353())
+	if (check_libical_bug_353())
 		ec_log_warn("libical bug #353 detected. VCF import can produce garbage. (KC-1247)");
 	std::unique_ptr<VObject, ical_deleter> root(Parse_MIME(tmp_ical.c_str(), tmp_ical.length()));
 	if (root == nullptr)
