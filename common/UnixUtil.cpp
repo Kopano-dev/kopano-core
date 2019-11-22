@@ -42,7 +42,9 @@ static int unix_runpath()
  */
 static int unix_runasgroup(const struct passwd *pw, const char *group)
 {
-	auto gr = getgrnam(group);
+	char *end;
+	auto gid = strtoul(group, &end, 10);
+	auto gr = *end == '\0' ? getgrgid(gid) : getgrnam(group);
 	if (gr == nullptr) {
 		ec_log_err("Looking up group \"%s\" failed: %s", group, strerror(errno));
 		return -1;
@@ -85,7 +87,9 @@ int unix_runas(ECConfig *lpConfig)
 
 	const struct passwd *pw = nullptr;
 	if (user != nullptr && *user != '\0') {
-		pw = getpwnam(user);
+		char *end;
+		auto uid = strtoul(user, &end, 10);
+		pw = *end == '\0' ? getpwuid(uid) : getpwnam(user);
 		if (!pw) {
 			ec_log_err("Looking up user \"%s\" failed: %s", user, strerror(errno));
 			return -1;

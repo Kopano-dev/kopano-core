@@ -45,18 +45,14 @@ Include and process
 Example: !include common.cfg
 .RE
 .SH "EXPLANATION OF THE SERVICE SETTINGS PARAMETERS"
-.SS run_as_user
+.SS run_as_user, run_as_group
 .PP
-During startup, the process will switch to run using this user identity. Note
-that the log file and directory need to be writeable by this user (this is
-normally the case when using packages).
+User/group identity to switch to on startup. Can be user/group name or numeric
+UID/GID. The log file and directory need to be writeable by this user.
 .PP
-Default: \fIkopano\fP
-.SS run_as_group
+Default user: \fIkopano\fP
 .PP
-During startup, the process will switch to run using this user identity.
-.PP
-Default: \fIkopano\fP
+Default group: \fIkopano\fP
 .SS pid_file
 .PP
 Write the process ID number to this file. This can be used by sysvinit scripts.
