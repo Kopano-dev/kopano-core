@@ -293,7 +293,7 @@ HRESULT plugin_manager_init(ECConfig *lpConfig,
 	PY_HANDLE_ERROR(ptrModule);
 	// Import python plugin framework
 	// @todo error unable to find file xxx
-	PyObjectAPtr ptrName(PyString_FromString("mapiplugin"));
+	PyObjectAPtr ptrName(PyUnicode_FromString("mapiplugin"));
 	m_priv.m_ptrModMapiPlugin.reset(PyImport_Import(ptrName));
 	PY_HANDLE_ERROR(m_priv.m_ptrModMapiPlugin);
 
