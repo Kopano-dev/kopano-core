@@ -1,0 +1,34 @@
+<html>
+<body>
+ <a href="index.html>test1</a>
+ <a href="http://localhost/index.html>test1</a>
+ <a href="ftp://localhost/index.html>test1</a>
+ <a href="mailto:bla@hierzo.nl>test1</a>
+
+ <a href="index.html style="">test2</a>
+ <a href="http://localhost/index.html style="">test2</a>
+ <a href="ftp://localhost/index.html style="">test2</a>
+ <a href="mailto:bla@hierzo.nl style="">test2</a>
+
+ <a href=index.html>test3</a>
+ <a href=http://localhost/index.html>test3</a>
+ <a href=ftp://localhost/index.html>test3</a>
+ <a href=mailto:bla@hierzo.nl>test3</a>
+
+ <a href=index.html style="">test4</a>
+ <a href=http://localhost/index.html style="">test4</a>
+ <a href=ftp://localhost/index.html style="">test4</a>
+ <a href=mailto:bla@hierzo.nl style="">test4</a>
+
+ <a href="index.html">test5</a>
+ <a href="http://localhost/index.html">test5</a>
+ <a href="ftp://localhost/index.html">test5</a>
+ <a href="mailto:bla@hierzo.nl">test5</a>
+
+ <a href="index.html" style="">test6</a>
+ <a href="http://localhost/index.html" style="">test6</a>
+ <a href="ftp://localhost/index.html" style="">test6</a>
+ <a href="mailto:bla@hierzo.nl" style="">test6</a>
+
+</body>
+</html>
