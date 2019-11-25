@@ -730,10 +730,15 @@ ECRESULT ECAuthSession::ValidateUserSocket(int socket, const char *lpszName,
 
 	while (p) {
 	    pw = NULL;
+		char *end = nullptr;
+		auto admuid = strtoul(p, &end, 10);
 #ifdef HAVE_GETPWNAM_R
-		getpwnam_r(p, &pwbuf, strbuf, sizeof(strbuf), &pw);
+		if (p != end && end != nullptr && *end != '\0')
+			getpwuid_r(admuid, &pwbuf, strbuf, sizeof(strbuf), &pw);
+		else
+			getpwnam_r(p, &pwbuf, strbuf, sizeof(strbuf), &pw);
 #else
-		pw = getpwnam(p);
+		pw = p != end && end != nullptr && *end != '\0' ? getpwuid(admuid) : getpwnam(p);
 #endif
 		if (pw != nullptr && pw->pw_uid == uid)
 			// A local admin user connected - ok
