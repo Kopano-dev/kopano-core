@@ -1,56 +1,54 @@
 /* SPDX-License-Identifier: LGPL-3.0-or-later */
 /* Copyright 2016, Kopano and its licensors */
+#include <glob.h>
+#include <string.h>
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <string.h>
 #include <clocale>
-#include <cstdlib>
-#include <stdio.h>
-#include <dirent.h>
-#include <unistd.h>
-#include <glob.h>
 
-#include "HtmlToTextParser.h"
+#include <kopano/MAPIErrors.h>
+#include "rtfutil.h"
 
-#define TEST_FILES "tests/testdata/htmltoplain/*.test"
+#define TEST_FILES "tests/testdata/rtftohtml/*.test"
 
 using namespace KC;
 
-int testhtml(std::string file) {
-	CHtmlToTextParser parser;
+int test_rtfhtml(std::string file) {
+	std::string html;
 
-	std::wifstream htmlfile(file);
-	if (!htmlfile.is_open()) {
+	std::ifstream rtftile(file);
+	if (!rtftile.is_open()) {
 		std::cerr << "Unable to open \"" << file << "\"\n";
 		return EXIT_FAILURE;
 	}
 
-	htmlfile.imbue(std::locale(""));
-	std::wstring html{std::istreambuf_iterator<wchar_t>(htmlfile), std::istreambuf_iterator<wchar_t>()};
-	if (!parser.Parse(html.c_str())) {
-		std::cerr << "Unable to parse HTML\n";
+	rtftile.imbue(std::locale(""));
+	const std::string rtf{std::istreambuf_iterator<char>(rtftile), std::istreambuf_iterator<char>()};
+	HRESULT hr = HrExtractHTMLFromRealRTF(rtf, html, CP_UTF8);
+	if (hr != hrSuccess) {
+		std::cerr << "Unable to parse RTF file: " << GetMAPIErrorMessage(hr) << std::endl;
 		return EXIT_FAILURE;
 	}
 
-	file.replace(file.find(".test"), sizeof(".test")-1, ".result");
-	std::wifstream expectedhtmlfile(file);
-	if (!expectedhtmlfile.is_open()) {
+	file.replace(file.find(".test"), sizeof(".test")-1, ".result.65001");
+	std::ifstream expectedrtftile(file);
+	if (!expectedrtftile.is_open()) {
 		std::cerr << "Unable to open \"" << file << "\"\n";
 		return EXIT_FAILURE;
 	}
 
-	expectedhtmlfile.imbue(std::locale(""));
-	std::wstring expectedhtml{std::istreambuf_iterator<wchar_t>(expectedhtmlfile), std::istreambuf_iterator<wchar_t>()};
+	expectedrtftile.imbue(std::locale(""));
 
-	return expectedhtml.compare(parser.GetText());
+	std::string expectedhtml{std::istreambuf_iterator<char>(expectedrtftile), std::istreambuf_iterator<char>()};
+
+	return expectedhtml.compare(html);
 }
 
 int main(int argc, char **argv) {
 	glob_t glob_result;
 
 	setlocale(LC_ALL, "");
-
 	memset(&glob_result, 0, sizeof(glob_result));
 
 	int ret = glob(TEST_FILES, GLOB_TILDE, NULL, &glob_result);
@@ -62,7 +60,7 @@ int main(int argc, char **argv) {
 
 	for (size_t i = 0; i < glob_result.gl_pathc; ++i) {
 		std::string file = std::string(glob_result.gl_pathv[i]);
-		ret = testhtml(file);
+		ret = test_rtfhtml(file);
 		if (ret != EXIT_SUCCESS) {
 			std::cout << "Failed test for: " << file << std::endl;
 			return EXIT_FAILURE;

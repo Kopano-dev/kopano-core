@@ -92,7 +92,8 @@ noinst_PROGRAMS = kopano-cfgchecker
 pkglibexec_PROGRAMS = eidprint kopano-indexd kscriptrun mapitime
 check_PROGRAMS = tests/ablookup tests/htmltext tests/imtomapi \
 	tests/kc-335 tests/mapialloctime \
-	tests/readflag tests/zcpmd5 tests/chtmltotextparsertest
+	tests/readflag tests/zcpmd5 tests/chtmltotextparsertest \
+	tests/rtfhtmltest
 
 if HAVE_TIDY
 check_PROGRAMS += tests/rosie
@@ -100,7 +101,7 @@ endif
 noinst_PROGRAMS += ${check_PROGRAMS}
 endif # ENABLE_BASE
 
-TESTS = tests/chtmltotextparsertest
+TESTS = tests/chtmltotextparsertest tests/rtfhtmltest
 
 if ENABLE_PYTHON
 dist_sbin_SCRIPTS = ECtools/utils/kopano-mailbox-permissions \
@@ -784,6 +785,8 @@ tests_htmltext_SOURCES = tests/htmltext.cpp
 tests_htmltext_LDADD = libkcutil.la
 tests_chtmltotextparsertest_SOURCES = tests/chtmltotextparsertest.cpp
 tests_chtmltotextparsertest_LDADD = libkcutil.la
+tests_rtfhtmltest_SOURCES = tests/rtfhtmltest.cpp
+tests_rtfhtmltest_LDADD = libkcutil.la
 tests_imtomapi_SOURCES = tests/imtomapi.cpp tests/tbi.hpp
 tests_imtomapi_LDADD = libkcinetmapi.la libmapi.la libkcutil.la
 tests_kc_335_SOURCES = tests/kc-335.cpp tests/tbi.hpp
