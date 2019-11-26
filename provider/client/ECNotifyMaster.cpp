@@ -83,8 +83,11 @@ HRESULT ECNotifyMaster::AddSession(ECNotifyClient* lpClient)
 
 	m_listNotifyClients.emplace_back(lpClient);
 	/* Enable Notifications */
-	if (StartNotifyWatch() != hrSuccess)
-		assert(false);
+	auto ret = StartNotifyWatch();
+	if (ret != hrSuccess) {
+		kc_perror("StartNotifyWatch", ret);
+		assert(!"StartNotifyWatch failed");
+	}
 	return hrSuccess;
 }
 
