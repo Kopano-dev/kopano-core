@@ -20,6 +20,7 @@ pipeline {
                 echo 'Linting..'
                 sh 'pylint3 swig/python/kopano/kopano > pylint.log || true'
                 recordIssues tool: pyLint(pattern: 'pylint.log'), qualityGates: [[threshold: 1, type: 'TOTAL', unstable: true]]
+                archiveArtifacts 'pylint.log'
             }
         }
         stage('Check') {
@@ -28,10 +29,15 @@ pipeline {
                 sh 'make check'
             }
         }
+        stage('Test') {
+            steps {
+                echo 'Testing..'
+                sh 'make tests'
+            }
+        }
     }
     post {
         always {
-            archiveArtifacts 'pylint.log'
             cleanWs()
         }
     }
