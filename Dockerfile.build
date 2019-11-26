@@ -26,103 +26,57 @@ RUN apt update -y; apt install -y --no-install-recommends curl gnupg2
 
 # Install more buildtime dependencies from master.zbuild (ie; we build ourselves)
 RUN echo "deb [trusted=yes] http://master.zbuild.net:82/kopano:/dependencies/Debian_10/ ./" > \
-    /etc/apt/sources.list.d/kopano.list && curl http://master.zbuild.net:82/kopano:/dependencies/Debian_10/Release.key | apt-key add -
+    /etc/apt/sources.list.d/kopano.list
 
 # Install runtime/buildttime dependencies from repository
 RUN apt update -y \
     && apt install -y --no-install-recommends \
-            apt-utils \
-            autoconf \
-            automake \
-            bison \
-            build-essential \
-            ca-certificates \
-            debhelper \
-            default-libmysqlclient-dev \
-            flex \
-            git \
-            gsoap \
-            gunicorn3 \
-            libboost-date-time-dev \
-            libboost-dev \
-            libboost-filesystem-dev \
-            libboost-system-dev \
-            libcurl4-openssl-dev \
-            libdb5.3++-dev \
-            libgoogle-perftools-dev \
-            libhx-dev \
-            libical-dev \
-            libicu-dev \
-            libjsoncpp-dev \
-            libjsoncpp1 \
-            libldap2-dev \
-            libncurses5-dev \
-            libncursesw5-dev \
-            libpopt-dev \
-            libpopt0 \
-            libssl-dev \
-            libtcmalloc-minimal4 \
-            libtidy-dev \
-            libtool \
-            libvmime-dev \
-            libxapian-dev \
-            libxml2-dev \
-            locales \
-            locales-all \
-            mariadb-server \
-            pep8 \
-            php-cli \
-            php-dev \
-            pkg-config \
-            pkg-config \
-            poppler-utils \
-            procps \
-            pylint3 \
-            python3 \
-            python3-bsddb3 \
-            python3-coverage \
-            python3-daemon \
-            python3-dateutil \
-            python3-dev \
-            python3-falcon \
-            python3-flask \
-            python3-jsonschema \
-            python3-ldap3 \
-            python3-lockfile \
-            python3-lxml \
-            python3-magic \
-            python3-mysqldb \
-            python3-nose \
-            python3-pil \
-            python3-pycodestyle \
-            python3-pyflakes \
-            python3-pyldap \
-            python3-requests \
-            python3-setproctitle \
-            python3-setuptools \
-            python3-tabulate \
-            python3-tz \
-            python3-tzlocal \
-            python3-vobject \
-            python3-wheel \
-            python3-xapian \
-            spamassassin \
-            swig \
-            uuid-dev \
-            valgrind \
-            xmlto \
-            zlib1g-dev \
-        && apt clean \
-        && rm -rf /var/lib/apt/lists/*
-
-
-ENV PYTHON=/usr/bin/python3
+        autoconf \
+        automake \
+        autotools-dev \
+        binutils \
+        debhelper \
+        devscripts \
+        dh-systemd \
+        fakeroot \
+        g++ \
+        gettext \
+        gsoap \
+        libcurl4-openssl-dev \
+        libdb++-dev \
+        libgoogle-perftools-dev \
+        libhx-dev \
+        libical-dev \
+        libicu-dev \
+        libjsoncpp-dev \
+        libkrb5-dev \
+        libldap2-dev \
+        libmariadbclient-dev \
+        libncurses5-dev \
+        libncursesw5-dev \
+        libpam0g-dev \
+        librrd-dev \
+        libs3-dev \
+        libssl-dev \
+        libtool \
+        libtool-bin \
+        libvmime-dev \
+        libxapian-dev \
+        libxml2-dev \
+        lsb-release \
+        m4 \
+        openssl \
+        php-dev \
+        pkg-config \
+        python3-dev \
+        python3-setuptools \
+        swig \
+        systemd \
+        tidy-html5-dev \
+        uuid-dev \
+        zlib1g-dev \
+    && apt clean \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /build/
 
-RUN git clone https://stash.kopano.io/scm/kc/kopanocore.git
-
-RUN pushd /build/kopanocore \
-    && ./bootstrap.sh \
-    && ./configure \
-    && make -j8
