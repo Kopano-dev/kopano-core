@@ -74,9 +74,8 @@ HRESULT VEventConverter::HrAddBaseProperties(icalproperty_method icMethod, icalc
 	std::wstring strEmail;
 
 	auto icProp = icalcomponent_get_first_property(lpicEvent, ICAL_ORGANIZER_PROPERTY);
-	if (icProp) 
-	{
-		const char *lpszProp = icalproperty_get_organizer(icProp);
+	auto lpszProp = icProp != nullptr ? icalproperty_get_organizer(icProp) : nullptr;
+	if (lpszProp != nullptr) {
 		strEmail = m_converter.convert_to<std::wstring>(lpszProp, rawsize(lpszProp), m_strCharset.c_str());
 		if (wcsncasecmp(strEmail.c_str(), L"mailto:", 7) == 0)
 			strEmail.erase(0, 7);
@@ -279,11 +278,15 @@ HRESULT VEventConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent 
 		// dtstart contains proposal, X-MS-OLK-ORIGINALSTART optionally contains previous DTSTART
 		for (auto lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_X_PROPERTY);
 		     lpicProp != nullptr;
-		     lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_X_PROPERTY))
-			if (strcmp(icalproperty_get_x_name(lpicProp), "X-MS-OLK-ORIGINALSTART") == 0)
+		     lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_X_PROPERTY)) {
+			auto xn = icalproperty_get_x_name(lpicProp);
+			if (xn == nullptr)
+				continue;
+			else if (strcmp(xn, "X-MS-OLK-ORIGINALSTART") == 0)
 				lpicOrigDTStartProp = lpicProp;
-			else if (strcmp(icalproperty_get_x_name(lpicProp), "X-MS-OLK-ORIGINALEND") == 0)
+			else if (strcmp(xn, "X-MS-OLK-ORIGINALEND") == 0)
 				lpicOrigDTEndProp = lpicProp;
+		}
 
 		if (lpicOrigDTStartProp && lpicOrigDTEndProp) {
 			// No support for DTSTART +DURATION and X-MS-OLK properties. Exchange will not send that either.
