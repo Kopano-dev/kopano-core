@@ -410,40 +410,13 @@ PKG_CHECK_MODULES([jsoncpp], [jsoncpp >= 1.4.0], [], [
 # Check for user plugin required libraries
 #
 
-AC_CHECK_HEADERS([ldap.h],
-	[ LIBS="$LIBS -lldap_r"
-	  CXXFLAGS="$CXXFLAGS -pthread"
-	  AC_MSG_CHECKING([for -lldap_r without LDAP_DEPRECATED])
-	  AC_LINK_IFELSE([ AC_LANG_SOURCE([#include <ldap.h>
-int main() {
-    LDAP *l = ldap_init("localhost",389);
-}]) ],
-		[ LDAP_LIBS=-lldap_r
-		  LDAP_FLAGS=
-		  want_ldap=yes
-		  AC_MSG_RESULT([yes]) ],
-		[ AC_MSG_RESULT([no])
-		  CXXFLAGS="$CXXFLAGS -DLDAP_DEPRECATED=1"
-		  AC_MSG_CHECKING([for -lldap_r with LDAP_DEPRECATED])
-		  AC_LINK_IFELSE([
-			AC_LANG_SOURCE([#include <ldap.h>
-int main() {
-    LDAP *l = ldap_init("localhost",389);
-}]) ],
-			[ LDAP_LIBS=-lldap_r
-			  LDAP_FLAGS=-DLDAP_DEPRECATED=1
-			  want_ldap=yes
-			  AC_MSG_RESULT([yes]) ],
-			[ LDAP_LIBS=
-			  LDAP_CXXFLAGS=
-			  want_ldap=no
-			  AC_MSG_RESULT([no]) ]
-			)
-		  CXXFLAGS=$CXXFLAGS_system
-		])
-	], AC_MSG_RESULT([no]) )
-LIBS=$LIBS_system
-
+LDAP_FLAGS=""
+LDAP_LIBS=""
+AC_CHECK_HEADERS([ldap.h], [
+	LDAP_FLAGS="-DLDAP_DEPRECATED=1"
+	LDAP_LIBS="-lldap_r"
+	want_ldap=yes
+])
 AC_SUBST(LDAP_LIBS)
 AC_SUBST(LDAP_FLAGS)
 
