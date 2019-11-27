@@ -393,10 +393,8 @@ AC_COMPILE_IFELSE([AC_LANG_SOURCE([
 	#endif
 ])], [], [AC_MSG_ERROR([Need gsoap >= 2.8.73])])
 PKG_CHECK_MODULES([ICAL], [libical >= 0.42])
-PKG_CHECK_MODULES([curl], [libcurl >= 7], [], [:])
-CPPFLAGS="$CPPFLAGS $curl_CFLAGS"
-AC_CHECK_HEADERS([curl/curl.h])
-CPPFLAGS="$CPPFLAGS_system"
+AH_TEMPLATE([HAVE_CURL_CURL_H], [curl present])
+PKG_CHECK_MODULES([curl], [libcurl >= 7], [AC_DEFINE([HAVE_CURL_CURL_H], [1])], [:])
 PKG_CHECK_MODULES([rrd], [librrd >= 1.3], [], [:])
 PKG_CHECK_MODULES([TCMALLOC], [libtcmalloc_minimal], [], [:])
 CPPFLAGS="$CPPFLAGS $TCMALLOC_CFLAGS"
