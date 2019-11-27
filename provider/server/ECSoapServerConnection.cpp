@@ -12,12 +12,8 @@
 #include <kopano/ECChannel.h>
 #include <kopano/ECLogger.h>
 #include <kopano/memory.hpp>
-#ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
-#endif
-#ifdef HAVE_SYS_UN_H
 #include <sys/un.h>
-#endif
 #include "ECSoapServerConnection.h"
 #include "ECServerEntrypoint.h"
 #include "SSLUtil.h"
