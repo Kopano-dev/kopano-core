@@ -3841,8 +3841,9 @@ HRESULT WSTransport::RemoveSessionReloadCallback(ULONG ulId)
 
 static SOAP_SOCKET RefuseConnect(struct soap* soap, const char* endpoint, const char* host, int port)
 {
+	errno = ECONNREFUSED;
 	soap->error = SOAP_TCP_ERROR;
-	return SOAP_ERR;
+	return SOAP_INVALID_SOCKET;
 }
 
 HRESULT WSTransport::HrCancelIO()

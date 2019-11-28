@@ -38,15 +38,21 @@ HRESULT HrGetFbInfo(icalcomponent *lpFbcomp, time_t *lptStart, time_t *lptEnd, s
 		*lptEnd = icaltime_as_timet (icalproperty_get_dtend (lpicProp));
 	// UID
 	lpicProp = icalcomponent_get_first_property(lpFbcomp, ICAL_UID_PROPERTY);
-	if (lpicProp)
-		*lpstrUID = icalproperty_get_uid(lpicProp);
+	if (lpicProp) {
+		auto u = icalproperty_get_uid(lpicProp);
+		if (u != nullptr)
+			*lpstrUID = u;
+	}
 
 	// ATTENDEE
 	for (lpicProp = icalcomponent_get_first_property(lpFbcomp, ICAL_ATTENDEE_PROPERTY);
 	     lpicProp != nullptr;
 	     lpicProp = icalcomponent_get_next_property(lpFbcomp, ICAL_ATTENDEE_PROPERTY))
 	{
-		strEmail = icalproperty_get_attendee(lpicProp);
+		auto at = icalproperty_get_attendee(lpicProp);
+		if (at == nullptr)
+			continue;
+		strEmail = at;
 		if (strncasecmp(strEmail.c_str(), "mailto:", 7) == 0)
 			strEmail.erase(0, 7);
 		lstUsers->emplace_back(std::move(strEmail));

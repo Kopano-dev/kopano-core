@@ -352,7 +352,9 @@ HRESULT WebDav::HrHandleRptCalQry()
 
 			sReptQuery.sFilter.lstFilters.emplace_back(reinterpret_cast<char *>(lpXmlChildAttr->content));
 			lpXmlChildNode = lpXmlChildNode->children;
-			if (lpXmlChildNode->properties == nullptr || lpXmlChildNode->properties->children == nullptr) {
+			if (lpXmlChildNode == nullptr ||
+			    lpXmlChildNode->properties == nullptr ||
+			    lpXmlChildNode->properties->children == nullptr) {
 				hr = MAPI_E_CORRUPT_DATA;
 				goto exit;
 			}

@@ -682,7 +682,8 @@ HRESULT VConverter::HrAddBusyStatus(icalcomponent *lpicEvent, icalproperty_metho
 		     lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_X_PROPERTY))
 		{
 			// X-MICROSOFT-CDO-INTENDEDBUSYSTATUS:FREE
-			if (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-CDO-INTENDEDSTATUS") != 0)
+			auto xn = icalproperty_get_x_name(lpicProp);
+			if (xn == nullptr || strcmp(xn, "X-MICROSOFT-CDO-INTENDEDSTATUS") != 0)
 				continue;
 			const char *lpVal = icalproperty_get_x(lpicProp);
 			if (lpVal == NULL)
@@ -727,8 +728,14 @@ HRESULT VConverter::HrAddXHeaders(icalcomponent *lpicEvent, icalitem *lpIcalItem
 	     lpicProp != nullptr;
 	     lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_X_PROPERTY))
 	{
-		if (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-CDO-ATTENDEE-CRITICAL-CHANGE") == 0){
-			auto lpicValue = icalvalue_new_from_string(ICAL_DATETIME_VALUE, icalproperty_get_x(lpicProp));
+		auto xn = icalproperty_get_x_name(lpicProp);
+		if (xn == nullptr)
+			continue;
+		auto xv = icalproperty_get_x(lpicProp);
+		if (xv == nullptr)
+			continue;
+		if (strcmp(xn, "X-MICROSOFT-CDO-ATTENDEE-CRITICAL-CHANGE") == 0) {
+			auto lpicValue = icalvalue_new_from_string(ICAL_DATETIME_VALUE, xv);
 			if (lpicValue == nullptr)
 				continue;
 			auto ttCritcalChange = icaltime_as_timet_with_zone(icalvalue_get_datetime(lpicValue), NULL); // no timezone
@@ -736,8 +743,8 @@ HRESULT VConverter::HrAddXHeaders(icalcomponent *lpicEvent, icalitem *lpIcalItem
 			sPropVal.Value.ft  = UnixTimeToFileTime(ttCritcalChange);
 			lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 			icalvalue_free(lpicValue);
-		}else if (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-CDO-OWNER-CRITICAL-CHANGE") == 0){
-			auto lpicValue = icalvalue_new_from_string(ICAL_DATETIME_VALUE, icalproperty_get_x(lpicProp));
+		} else if (strcmp(xn, "X-MICROSOFT-CDO-OWNER-CRITICAL-CHANGE") == 0) {
+			auto lpicValue = icalvalue_new_from_string(ICAL_DATETIME_VALUE, xv);
 			if (lpicValue == nullptr)
 				continue;
 			auto ttCritcalChange = icaltime_as_timet_with_zone(icalvalue_get_datetime(lpicValue), NULL); // no timezone
@@ -745,8 +752,8 @@ HRESULT VConverter::HrAddXHeaders(icalcomponent *lpicEvent, icalitem *lpIcalItem
 			sPropVal.Value.ft  = UnixTimeToFileTime(ttCritcalChange);
 			lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 			icalvalue_free(lpicValue);
-		}else if (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-CDO-OWNERAPPTID") == 0){
-			auto lpicValue = icalvalue_new_from_string(ICAL_INTEGER_VALUE, icalproperty_get_x(lpicProp));
+		} else if (strcmp(xn, "X-MICROSOFT-CDO-OWNERAPPTID") == 0) {
+			auto lpicValue = icalvalue_new_from_string(ICAL_INTEGER_VALUE, xv);
 			if (lpicValue == nullptr)
 				continue;
 			sPropVal.ulPropTag = PR_OWNER_APPT_ID;
@@ -754,29 +761,27 @@ HRESULT VConverter::HrAddXHeaders(icalcomponent *lpicEvent, icalitem *lpIcalItem
 			lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 			bOwnerApptID = true;
 			icalvalue_free(lpicValue);
-		}else if (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-CDO-APPT-SEQUENCE") == 0){
-			auto lpicValue = icalvalue_new_from_string(ICAL_INTEGER_VALUE, icalproperty_get_x(lpicProp));
+		} else if (strcmp(xn, "X-MICROSOFT-CDO-APPT-SEQUENCE") == 0) {
+			auto lpicValue = icalvalue_new_from_string(ICAL_INTEGER_VALUE, xv);
 			if (lpicValue == nullptr)
 				continue;
 			ulMaxCounter = std::max(ulMaxCounter, icalvalue_get_integer(lpicValue));
 			bHaveCounter = true;
 			icalvalue_free(lpicValue);
-		} else if (strcmp(icalproperty_get_x_name(lpicProp), "X-MOZ-GENERATION") == 0) {
-			auto lpicValue = icalvalue_new_from_string(ICAL_INTEGER_VALUE, icalproperty_get_x(lpicProp));
+		} else if (strcmp(xn, "X-MOZ-GENERATION") == 0) {
+			auto lpicValue = icalvalue_new_from_string(ICAL_INTEGER_VALUE, xv);
 			if (lpicValue == nullptr)
 				continue;
 			ulMaxCounter = std::max(ulMaxCounter, icalvalue_get_integer(lpicValue));
 			bHaveCounter = bMozGen = true;
 			icalvalue_free(lpicValue);
-		} else if (strcmp(icalproperty_get_x_name(lpicProp), "X-MOZ-SEND-INVITATIONS") == 0) {
-			auto lpicValue = icalvalue_new_from_string(ICAL_X_VALUE, icalproperty_get_x(lpicProp));
+		} else if (strcmp(xn, "X-MOZ-SEND-INVITATIONS") == 0) {
+			auto lpicValue = icalvalue_new_from_string(ICAL_X_VALUE, xv);
 			if (lpicValue == nullptr)
 				continue;
 			sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MOZSENDINVITE], PT_BOOLEAN);
-			const char *x = icalvalue_get_x(lpicValue);
-			if (x == NULL)
-				x = "";
-			sPropVal.Value.b = strcmp(x, "TRUE") == 0;
+			xv = icalvalue_get_x(lpicValue);
+			sPropVal.Value.b = xv != nullptr && strcmp(xv, "TRUE") == 0;
 			lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 			icalvalue_free(lpicValue);
 		}
@@ -971,8 +976,8 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 	memory_ptr<ENTRYID> lpEntryID;
 
 	auto lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_ORGANIZER_PROPERTY);
-	if (lpicProp) {
-		const char *tmp = icalproperty_get_organizer(lpicProp);
+	auto tmp = lpicProp != nullptr ? icalproperty_get_organizer(lpicProp) : nullptr;
+	if (tmp != nullptr) {
 		strEmail = m_converter.convert_to<wstring>(tmp, rawsize(tmp), m_strCharset.c_str());
 		if (wcsncasecmp(strEmail.c_str(), L"mailto:", 7) == 0)
 			strEmail = strEmail.erase(0, 7);
@@ -1012,8 +1017,7 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 		 lpicProp != NULL;
 		 lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_ATTENDEE_PROPERTY))
 	{
-		const char *tmp = icalproperty_get_attendee(lpicProp);
-
+		tmp = icalproperty_get_attendee(lpicProp);
 		/* Temporary fix for #7740:
 		 * Newer libical already fixed the problem where "invalid" parameters let libical return a NULL pointer here,
 		 * but since libical svn is not binary backward compatible, we can't just upgrade the library, which we really should.
@@ -1030,10 +1034,10 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 			continue;
 		
 		auto lpicParam = icalproperty_get_first_parameter(lpicProp, ICAL_CN_PARAMETER);
-		if (lpicParam) {
-			const char *lpszProp = icalparameter_get_cn(lpicParam);
+		auto lpszProp = lpicParam != nullptr ? icalparameter_get_cn(lpicParam) : nullptr;
+		if (lpszProp != nullptr)
 			icrAttendee.strName = m_converter.convert_to<std::wstring>(lpszProp, rawsize(lpszProp), m_strCharset.c_str());
-		} else
+		else
 			icrAttendee.strName = icrAttendee.strEmail;
 
 		lpicParam = icalproperty_get_first_parameter(lpicProp, ICAL_ROLE_PARAMETER);
@@ -1095,17 +1099,15 @@ HRESULT VConverter::HrAddReplyRecipients(icalcomponent *lpicEvent, icalitem *lpI
 	memory_ptr<ENTRYID> lpEntryID;
 
 	auto lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_ORGANIZER_PROPERTY);
-	if (lpicProp) {
-		const char *lpszProp = icalproperty_get_organizer(lpicProp);
+	auto lpszProp = lpicProp != nullptr ? icalproperty_get_organizer(lpicProp) : nullptr;
+	if (lpszProp != nullptr) {
 		icrAttendee.strEmail = m_converter.convert_to<std::wstring>(lpszProp, rawsize(lpszProp), m_strCharset.c_str());
 		if (wcsncasecmp(icrAttendee.strEmail.c_str(), L"mailto:", 7) == 0)
 			icrAttendee.strEmail.erase(0, 7);
 		auto lpicParam = icalproperty_get_first_parameter(lpicProp, ICAL_CN_PARAMETER);
-		if (lpicParam != NULL) {
-			lpszProp = icalparameter_get_cn(lpicParam);
+		lpszProp = lpicParam != nullptr ? icalparameter_get_cn(lpicParam) : nullptr;
+		if (lpszProp != nullptr)
 			icrAttendee.strName = m_converter.convert_to<std::wstring>(lpszProp, rawsize(lpszProp), m_strCharset.c_str());
-		}
-
 		icrAttendee.ulRecipientType = MAPI_TO;
 		lpIcalItem->lstRecips.emplace_back(icrAttendee);
 	}
@@ -1119,14 +1121,14 @@ HRESULT VConverter::HrAddReplyRecipients(icalcomponent *lpicEvent, icalitem *lpI
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_ATTENDEE_PROPERTY);
 	if (lpicProp) {
 		const char *lpszProp = icalproperty_get_attendee(lpicProp);
-		strEmail = m_converter.convert_to<std::wstring>(lpszProp, rawsize(lpszProp), m_strCharset.c_str());
+		if (lpszProp != nullptr)
+			strEmail = m_converter.convert_to<std::wstring>(lpszProp, rawsize(lpszProp), m_strCharset.c_str());
 		if (wcsncasecmp(strEmail.c_str(), L"mailto:", 7) == 0)
 			strEmail.erase(0, 7);
 		auto lpicParam = icalproperty_get_first_parameter(lpicProp, ICAL_CN_PARAMETER);
-		if (lpicParam) {
-			lpszProp = icalparameter_get_cn(lpicParam);
+		lpszProp = lpicParam != nullptr ? icalparameter_get_cn(lpicParam) : nullptr;
+		if (lpszProp != nullptr)
 			strName = m_converter.convert_to<std::wstring>(lpszProp, rawsize(lpszProp), m_strCharset.c_str());
-		}
 	}
 
 	std::string type;
@@ -1176,17 +1178,22 @@ HRESULT VConverter::HrAddReminder(icalcomponent *lpicEventRoot, icalcomponent *l
 	     lpicProp != nullptr;
 	     lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_X_PROPERTY))
 	{
-		if (strcmp(icalproperty_get_x_name(lpicProp), "X-MOZ-LASTACK") == 0){
-			auto lpicValue = icalvalue_new_from_string(ICAL_DATETIME_VALUE, icalproperty_get_x(lpicProp));
+		auto xn = icalproperty_get_x_name(lpicProp);
+		if (xn == nullptr)
+			continue;
+		auto xv = icalproperty_get_x(lpicProp);
+		if (xv == nullptr)
+			continue;
+		if (strcmp(xn, "X-MOZ-LASTACK") == 0) {
+			auto lpicValue = icalvalue_new_from_string(ICAL_DATETIME_VALUE, xv);
 			auto ttMozLastAck = icaltime_as_timet_with_zone(icalvalue_get_datetime(lpicValue), NULL);
 			if(ttMozLastAck > ttMozLastAckMax)//save max of X-MOZ-LAST-ACK if present twice.
 				ttMozLastAckMax = ttMozLastAck;
 			icalvalue_free(lpicValue);
 			bHasMozAck = true;
-		}
-		else if (strcmp(icalproperty_get_x_name(lpicProp), "X-MOZ-SNOOZE-TIME") == 0) {
+		} else if (strcmp(xn, "X-MOZ-SNOOZE-TIME") == 0) {
 			// x properties always return a char* as value :(
-			auto lpicValue = icalvalue_new_from_string(ICAL_DATETIME_VALUE, icalproperty_get_x(lpicProp));
+			auto lpicValue = icalvalue_new_from_string(ICAL_DATETIME_VALUE, xv);
 			ttReminderNext = icaltime_as_timet_with_zone(icalvalue_get_datetime(lpicValue), NULL); // no timezone			
 			sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERNEXTTIME], PT_SYSTIME);
 			sPropVal.Value.ft  = UnixTimeToFileTime(ttReminderNext);
@@ -1203,9 +1210,10 @@ HRESULT VConverter::HrAddReminder(icalcomponent *lpicEventRoot, icalcomponent *l
 				lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 			}
 			icalvalue_free(lpicValue);
-		} else if (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-RTF") == 0) {
-			auto lpicValue = icalvalue_new_from_string(ICAL_X_VALUE, icalproperty_get_x(lpicProp));
-			string rtf = base64_decode(icalvalue_get_x(lpicValue));
+		} else if (strcmp(xn, "X-MICROSOFT-RTF") == 0) {
+			auto lpicValue = icalvalue_new_from_string(ICAL_X_VALUE, xv);
+			xv = icalvalue_get_x(lpicValue);
+			auto rtf = base64_decode(xv != nullptr ? xv : "");
 			sPropVal.ulPropTag = PR_RTF_COMPRESSED;
 			sPropVal.Value.bin.cb = rtf.size();
 			hr = KAllocCopy(rtf.c_str(), sPropVal.Value.bin.cb, reinterpret_cast<void **>(&sPropVal.Value.bin.lpb), lpIcalItem->base);
@@ -1314,13 +1322,17 @@ HRESULT VConverter::HrAddRecurrence(icalcomponent *lpicEventRoot, icalcomponent 
 
 	for (lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_X_PROPERTY);
 	     lpicProp != nullptr;
-	     lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_X_PROPERTY))
-		if (strcmp(icalproperty_get_x_name(lpicProp), "X-ZARAFA-REC-PATTERN") == 0 ||
-		    strcmp(icalproperty_get_x_name(lpicProp), "X-KOPANO-REC-PATTERN") == 0) {
+	     lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_X_PROPERTY)) {
+		auto xn = icalproperty_get_x_name(lpicProp);
+		if (xn == nullptr)
+			continue;
+		if (strcmp(xn, "X-ZARAFA-REC-PATTERN") == 0 ||
+		    strcmp(xn, "X-KOPANO-REC-PATTERN") == 0) {
 			spSpropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRENCEPATTERN], PT_UNICODE);
 			HrCopyString(m_converter, m_strCharset, lpIcalItem->base, icalproperty_get_x(lpicProp), &spSpropVal.Value.lpszW);
 			lpIcalItem->lstMsgProps.emplace_back(spSpropVal);
 		}
+	}
 	return hrSuccess;
 }
 
@@ -2390,8 +2402,12 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 			if (lpProp)
 				bIsAllDayException = lpProp->Value.b;
 			auto lpicProp = icalcomponent_get_first_property(lpicException.get(), ICAL_X_PROPERTY);
-			while (lpicProp && (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-CDO-ALLDAYEVENT") != 0))
-				lpicProp = icalcomponent_get_next_property(lpicException.get(), ICAL_X_PROPERTY);
+			for (; lpicProp != nullptr;
+			     lpicProp = icalcomponent_get_next_property(lpicException.get(), ICAL_X_PROPERTY)) {
+				auto xn = icalproperty_get_x_name(lpicProp);
+				if (xn != nullptr && strcmp(xn, "X-MICROSOFT-CDO-ALLDAYEVENT") == 0)
+					break;
+			}
 			if (lpicProp) {
 				icalcomponent_remove_property(lpicException.get(), lpicProp);
 				icalproperty_free(lpicProp);
@@ -2497,9 +2513,13 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 				icalproperty_free(lpicProp);
 			}
 
-			lpicProp = icalcomponent_get_first_property(lpicException.get(), ICAL_X_PROPERTY);
-			while (lpicProp && (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-CDO-INTENDEDSTATUS") != 0))
-				lpicProp = icalcomponent_get_next_property(lpicException.get(), ICAL_X_PROPERTY);
+			for (lpicProp = icalcomponent_get_first_property(lpicException.get(), ICAL_X_PROPERTY);
+			     lpicProp != nullptr;
+			     lpicProp = icalcomponent_get_next_property(lpicException.get(), ICAL_X_PROPERTY)) {
+				auto xn = icalproperty_get_x_name(lpicProp);
+				if (xn != nullptr && strcmp(xn, "X-MICROSOFT-CDO-INTENDEDSTATUS") == 0)
+					break;
+			}
 			if (lpicProp) {
 				icalcomponent_remove_property(lpicException.get(), lpicProp);
 				icalproperty_free(lpicProp);
@@ -2637,7 +2657,9 @@ HRESULT VConverter::HrAddTimeZone(icalproperty *lpicProp, icalitem *lpIcalItem)
 
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TIMEZONE], PT_UNICODE);
 	if (lpicTZParam != NULL) {
-		strTZ = urlDecode(icalparameter_get_tzid(lpicTZParam));
+		auto tp = icalparameter_get_tzid(lpicTZParam);
+		if (tp != nullptr)
+			strTZ = urlDecode(tp);
 		lpszTZID = strTZ.c_str();
 	} else if (!m_mapTimeZones->empty()) {
 		lpszTZID = (m_mapTimeZones->begin()->first).c_str();
@@ -2697,11 +2719,13 @@ HRESULT VConverter::HrRetrieveAlldayStatus(icalcomponent *lpicEvent, bool *lpblI
 	}
 	for (auto lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_X_PROPERTY);
 	     lpicProp != nullptr;
-	     lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_X_PROPERTY))
-		if (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-CDO-ALLDAYEVENT") == 0){
+	     lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_X_PROPERTY)) {
+		auto xn = icalproperty_get_x_name(lpicProp);
+		if (xn != nullptr && strcmp(xn, "X-MICROSOFT-CDO-ALLDAYEVENT") == 0) {
 			*lpblIsAllday = strcmp(icalproperty_get_x(lpicProp), "TRUE") == 0;
 			break;
 		}
+	}
 	return hrSuccess;
 }
 
