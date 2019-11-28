@@ -765,7 +765,7 @@ ECRESULT ECUserManagement::AddSubObjectToObjectAndSync(userobject_relation_t rel
 	} catch (const notimplemented &) {
 		return KCERR_NOT_IMPLEMENTED;
 	} catch (const collision_error &) {
-		ec_log_crit("ECUserManagement::AddSubObjectToObjectAndSync(): addSubObjectRelation failed with a collision error");
+		ec_log_err("ECUserManagement::AddSubObjectToObjectAndSync(): addSubObjectRelation failed with a collision error");
 		return KCERR_COLLISION;
 	} catch (const std::exception &e) {
 		ec_log_warn("K-1513: Unable to add %s relation (%u,%u) to external user database: %s",
@@ -885,11 +885,11 @@ ECRESULT ECUserManagement::ResolveObjectAndSync(objectclass_t objclass,
 	objectid_t sCompany(CONTAINER_COMPANY);
 
 	if (!szName) {
-		ec_log_crit("Invalid argument szName in call to ECUserManagement::ResolveObjectAndSync()");
+		ec_log_err("Invalid argument szName in call to ECUserManagement::ResolveObjectAndSync()");
 		return KCERR_INVALID_PARAMETER;
 	}
 	if (!lpulObjectId) {
-		ec_log_crit("Invalid argument lpulObjectId call to ECUserManagement::ResolveObjectAndSync()");
+		ec_log_err("Invalid argument lpulObjectId call to ECUserManagement::ResolveObjectAndSync()");
 		return KCERR_INVALID_PARAMETER;
 	}
 
@@ -1781,7 +1781,7 @@ ECRESULT ECUserManagement::ConvertUserAndCompanyToLogin(objectdetails_t *lpDetai
 	objectid_t sCompany = lpDetails->GetPropObject(OB_PROP_O_COMPANYID);
 	auto er = GetLocalId(sCompany, &ulCompanyId);
 	if (er != erSuccess) {
-		ec_log_crit("K-1529: Unable to find company id for object \"%s\"", lpDetails->GetPropString(OB_PROP_S_FULLNAME).c_str());
+		ec_log_err("K-1529: Unable to find company id for object \"%s\"", lpDetails->GetPropString(OB_PROP_S_FULLNAME).c_str());
 		return er;
 	}
 
@@ -2078,7 +2078,7 @@ ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature,
 	}
 
 	if (parseBool(m_lpConfig->GetSetting("user_safe_mode"))) {
-		ec_log_crit("user_safe_mode: Would create new %s with name \"%s\"", ObjectClassToName(signature.id.objclass), details.GetPropString(OB_PROP_S_FULLNAME).c_str());
+		ec_log_info("user_safe_mode: Would create new %s with name \"%s\"", ObjectClassToName(signature.id.objclass), details.GetPropString(OB_PROP_S_FULLNAME).c_str());
 		return er;
 	}
 	/*
@@ -2285,7 +2285,7 @@ ECRESULT ECUserManagement::UpdateObjectclassOrDelete(const objectid_t &sExternId
 		return KCERR_NOT_FOUND;
 	}
 	if (parseBool(m_lpConfig->GetSetting("user_safe_mode"))) {
-		ec_log_crit("user_safe_mode: Would update %d from %s to %s",
+		ec_log_info("user_safe_mode: Would update %d from %s to %s",
 			ulObjectId, ObjectClassToName(objClass),
 			ObjectClassToName(sExternId.objclass));
 		return er;
@@ -2458,7 +2458,7 @@ ECRESULT ECUserManagement::MoveLocalObject(unsigned int ulObjectId,
 	if (objclass == CONTAINER_COMPANY)
 		return KCERR_NO_ACCESS;
 	if (parseBool(m_lpConfig->GetSetting("user_safe_mode"))) {
-		ec_log_crit("user_safe_mode: Would move %s %d to company %d", ObjectClassToName(objclass), ulObjectId, ulCompanyId);
+		ec_log_info("user_safe_mode: Would move %s %d to company %d", ObjectClassToName(objclass), ulObjectId, ulCompanyId);
 		return erSuccess;
 	}
 
@@ -2522,9 +2522,9 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 	if (IsInternalObject(ulObjectId))
 		return er = KCERR_NO_ACCESS;
 	if (parseBool(m_lpConfig->GetSetting("user_safe_mode"))) {
-		ec_log_crit("user_safe_mode: Would delete %s %d", ObjectClassToName(objclass), ulObjectId);
+		ec_log_info("user_safe_mode: Would delete %s %d", ObjectClassToName(objclass), ulObjectId);
 		if (objclass == CONTAINER_COMPANY)
-			ec_log_crit("user_safe_mode: Would delete all objects from company %d", ulObjectId);
+			ec_log_info("user_safe_mode: Would delete all objects from company %d", ulObjectId);
 		return er = erSuccess;
 	}
 
