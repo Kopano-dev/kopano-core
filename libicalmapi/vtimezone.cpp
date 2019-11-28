@@ -77,14 +77,9 @@ static SYSTEMTIME TMToSystemTime(const struct tm &t)
  */
 time_t ICalTimeTypeToUTC(icalcomponent *lpicRoot, icalproperty *lpicProp)
 {
-	const char *lpszTZID = NULL;
-	icaltimezone *lpicTimeZone = NULL;
-
 	auto lpicTZParam = icalproperty_get_first_parameter(lpicProp, ICAL_TZID_PARAMETER);
-	if (lpicTZParam) {
-		lpszTZID = icalparameter_get_tzid(lpicTZParam);
-		lpicTimeZone = icalcomponent_get_timezone(lpicRoot, lpszTZID);
-	}
+	auto lpszTZID = lpicTZParam != nullptr ? icalparameter_get_tzid(lpicTZParam) : nullptr;
+	auto lpicTimeZone = lpszTZID != nullptr ? icalcomponent_get_timezone(lpicRoot, lpszTZID) : nullptr;
 	return icaltime_as_timet_with_zone(icalvalue_get_datetime(icalproperty_get_value(lpicProp)), lpicTimeZone);
 }
 
@@ -229,9 +224,11 @@ HRESULT HrParseVTimeZone(icalcomponent* lpVTZ, std::string* lpstrTZID, TIMEZONE_
 	auto icProp = icalcomponent_get_first_property(lpVTZ, ICAL_TZID_PROPERTY);
 	if (icProp == NULL)
 		return MAPI_E_CALL_FAILED;
-
-	std::string strTZID = icalproperty_get_tzid(icProp);
-	if (strTZID.at(0) == '\"') {
+	auto tp = icalproperty_get_tzid(icProp);
+	std::string strTZID;
+	if (tp != nullptr)
+		strTZID = tp;
+	if (strTZID.size() > 0 && strTZID[0] == '\"') {
 		// strip "" around timezone name
 		strTZID.erase(0, 1);
 		strTZID.erase(strTZID.size()-1);

@@ -436,6 +436,8 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
 		switch (icalproperty_isa(lpicProp)) {
 		case ICAL_SUMMARY_PROPERTY: {
 			auto lpszProp = icalproperty_get_summary(lpicProp);
+			if (lpszProp == nullptr)
+				continue;
 			auto strIcalProp = converter.convert_to<std::wstring>(lpszProp, rawsize(lpszProp), strCharset.c_str());
 			auto hr = lpIcalItem->lpRecurrence->setModifiedSubject(ulId, strIcalProp.c_str());
 			if (hr != hrSuccess)
@@ -448,6 +450,8 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
 		}
 		case ICAL_LOCATION_PROPERTY: {
 			auto lpszProp = icalproperty_get_location(lpicProp);
+			if (lpszProp == nullptr)
+				continue;
 			auto strIcalProp = converter.convert_to<std::wstring>(lpszProp, rawsize(lpszProp), strCharset.c_str());
 			auto hr = lpIcalItem->lpRecurrence->setModifiedLocation(ulId, strIcalProp.c_str());
 			if (hr != hrSuccess)
@@ -482,11 +486,14 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
 			break;
 		}
 		case ICAL_X_PROPERTY: {
-			if (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-CDO-BUSYSTATUS") != 0)
+			auto xn = icalproperty_get_x_name(lpicProp);
+			if (xn == nullptr || strcmp(xn, "X-MICROSOFT-CDO-BUSYSTATUS") != 0)
 				break;
 			ULONG ulBusyStatus = 2;	// default busy
 			const char *lpszIcalProp = icalproperty_get_x(lpicProp);
-			if (strcmp(lpszIcalProp, "FREE") == 0)
+			if (lpszIcalProp == nullptr)
+				;
+			else if (strcmp(lpszIcalProp, "FREE") == 0)
 				ulBusyStatus = 0;
 			else if (strcmp(lpszIcalProp, "TENTATIVE") == 0)
 				ulBusyStatus = 1;
@@ -504,6 +511,8 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
 		}
 		case ICAL_DESCRIPTION_PROPERTY: {
 			auto lpszProp = icalproperty_get_description(lpicProp);
+			if (lpszProp == nullptr)
+				continue;
 			auto strIcalProp = converter.convert_to<std::wstring>(lpszProp, rawsize(lpszProp), strCharset.c_str());
 			auto hr = lpIcalItem->lpRecurrence->setModifiedBody(ulId);
 			if (hr != hrSuccess)
