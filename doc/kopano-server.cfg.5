@@ -787,7 +787,10 @@ Default:
 \fI/usr/lib/kopano/userscripts/deletecompany\fR
 .SS user_safe_mode
 .PP
-If enabled, the storage server will only log when create, delete and move actions are done on an user object. This might be useful when you are testing changes to your plugin configuration.
+The storage server can inhibit create, delete and move actions done on
+user/group/company objects. This might be useful when you are testing changes
+to your plugin configuration. Possible values: \fBterse\fP, \fBverbose\fP,
+\fBno\fP.
 .PP
 Default:
 \fIno\fR

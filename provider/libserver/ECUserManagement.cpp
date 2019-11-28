@@ -343,7 +343,8 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass,
     std::list<localobjectdetails_t> &objs, unsigned int ulFlags)
 {
 	bool bSync = ulFlags & USERMANAGEMENT_FORCE_SYNC || parseBool(m_lpConfig->GetSetting("sync_gab_realtime"));
-	bool bIsSafeMode = parseBool(m_lpConfig->GetSetting("user_safe_mode"));
+	auto safe_mode = m_lpConfig->GetSetting("user_safe_mode");
+	bool bIsSafeMode = parseBool(safe_mode);
 	// Extern ids
 	signatures_t lpExternSignatures;
 	// Extern -> Local
@@ -458,6 +459,30 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass,
 			// Add to conversion map so we can obtain the details
 			mapExternIdToLocal.emplace(ext_sig.id, ulObjectId);
 		}
+	} else if (bSync && strcmp(safe_mode, "verbose") == 0) {
+		try {
+			lpExternSignatures = lpPlugin->getAllObjects(extcompany, objclass, rst);
+		} catch (const notsupported &) {
+			return KCERR_NO_SUPPORT;
+		} catch (const objectnotfound &) {
+			return KCERR_NOT_FOUND;
+		} catch (const std::exception &e) {
+			ec_log_warn("K-1544: Unable to retrieve list from external user source: %s", e.what());
+			return KCERR_PLUGIN_ERROR;
+		}
+
+		for (const auto &ext_sig : lpExternSignatures) {
+			auto it = mapSignatureIdToLocal.find(ext_sig.id);
+			if (it != mapSignatureIdToLocal.cend())
+				continue;
+			/* function will evaluate safe_mode too */
+			if (MoveOrCreateLocalObject(ext_sig, &ulObjectId, &bMoved) != hrSuccess)
+				/* ignore */;
+		}
+		for (const auto &sil : mapSignatureIdToLocal) {
+			lpExternSignatures.emplace_back(sil.first, sil.second.second);
+			mapExternIdToLocal.emplace(sil.first, sil.second.first);
+		}
 	} else {
 		if (bIsSafeMode)
 			ec_log_info("user_safe_mode: skipping retrieve/sync users from LDAP");
@@ -479,17 +504,10 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass,
 	 * the result is only a subset of the entire UDB, and so meaningless
 	 * for deletions.
 	 */
-	if (rst == nullptr && bSync) {
-		if (!bIsSafeMode) {
-			for (const auto &sil : mapSignatureIdToLocal)
-				/* second == map value, first == id */
-				MoveOrDeleteLocalObject(sil.second.first, sil.first.objclass);
-		} else {
-			auto d = mapExternIdToLocal.size() - lpExternSignatures.size();
-			if (d > 0)
-				ec_log_err("user_safe_mode: would normally now delete %zu local users (you may see this message more often as the delete is now omitted)", d);
-		}
-	}
+	if (rst == nullptr && bSync)
+		for (const auto &sil : mapSignatureIdToLocal)
+			/* second == map value, first == id */
+			MoveOrDeleteLocalObject(sil.second.first, sil.first.objclass);
 
 	// Convert details for client usage
 	if (!(ulFlags & USERMANAGEMENT_IDS_ONLY)) {
@@ -2523,8 +2541,6 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 	auto cleanup = make_scope_success([&]() {
 		if (er != 0)
 			ec_log_info("Auto-deleting %s %d done: %s (%x)", ObjectClassToName(objclass), ulObjectId, GetMAPIErrorMessage(kcerr_to_mapierr(er)), er);
-		else
-			ec_log_info("Auto-deleting %s %d done.", ObjectClassToName(objclass), ulObjectId);
 	});
 	if (IsInternalObject(ulObjectId))
 		return er = KCERR_NO_ACCESS;
