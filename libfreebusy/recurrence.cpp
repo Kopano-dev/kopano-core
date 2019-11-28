@@ -7,6 +7,7 @@
 #include <utility>
 #include "recurrence.h"
 #include <cmath>
+#include <kopano/ECGetText.h>
 #include <kopano/ECLogger.h>
 #include <mapicode.h>
 #include <kopano/stringutil.h>
@@ -119,8 +120,99 @@ HRESULT recurrence::HrGetRecurrenceState(char **lppData, size_t *lpulLen, void *
 
 void recurrence::HrGetHumanReadableString(std::string *lpstrHRS)
 {
-	// @todo: make strings like outlook does, and probably make it std::wstring
-	*lpstrHRS = "This item is recurring";
+	struct tm tm;
+	char bufstart[32], bufend[32], startocc[8], endocc[8];
+	auto everyn = m_sRecState.ulPeriod;
+	gmtime_safe(getStartDate(), &tm);
+	strftime(bufstart, sizeof(bufstart), "%F", &tm);
+	gmtime_safe(getEndDate(), &tm);
+	strftime(bufend, sizeof(bufend), "%F", &tm);
+	snprintf(startocc, sizeof(startocc), "%02u:%02u", getStartTimeOffset() / 3600, getStartTimeOffset() / 60 % 60);
+	snprintf(endocc, sizeof(endocc), "%02u:%02u", getEndTimeOffset() / 3600, getEndTimeOffset() / 60 % 60);
+	bool single_rank = true;
+	auto time_range = getStartTimeOffset() != 0 && getEndTimeOffset() != 0;
+	const char *type = nullptr;
+	std::string pattern;
+
+	switch (m_sRecState.ulRecurFrequency) {
+	case RF_DAILY:
+		if (everyn == 1) {
+			type = KC_A("workday");
+		} if (everyn == 24 * 60) {
+			type = KC_A("day");
+		} else {
+			everyn /= 24 * 60;
+			type = KC_A("days");
+			single_rank = false;
+		}
+		break;
+	case RF_WEEKLY:
+		if (everyn == 1) {
+			type = KC_A("week");
+		} else {
+			type = KC_A("weeks");
+			single_rank = false;
+		}
+		break;
+	case RF_MONTHLY:
+		if (everyn == 1) {
+			type = KC_A("month");
+		} else {
+			type = KC_A("months");
+			single_rank = false;
+		}
+		break;
+	case RF_YEARLY:
+		if (everyn <= 12) {
+			everyn = 1;
+			type = KC_A("year");
+		} else {
+			everyn /= 12;
+			type = KC_A("years");
+			single_rank = false;
+		}
+		break;
+	}
+
+	if (m_sRecState.ulEndType == ET_NEVER) {
+		if (time_range)
+			pattern = single_rank ?
+			          format(KC_A("Occurs every %s from %s to %s, effective %s."),
+			                 type, startocc, endocc, bufstart) :
+			          format(KC_A("Occurs every %u %s from %s to %s, effective %s."),
+			                 everyn, type, startocc, endocc, bufstart);
+		else
+			pattern = single_rank ?
+			          format(KC_A("Occurs every %s, effective %s."), type, bufstart) :
+			          format(KC_A("Occurs every %u %s, effective %s."), everyn, type, bufstart);
+	} else if (m_sRecState.ulEndType == ET_NUMBER) {
+		if (time_range)
+			pattern = single_rank ?
+				  format(KC_A("Occurs every %s for %u occurence(s) from %s to %s, effective %s."),
+				         type, getCount(), startocc, endocc, bufstart) :
+				  format(KC_A("Occurs every %u %s for %u occurence(s) from %s to %s, effective %s."),
+				         everyn, type, getCount(), startocc, endocc, bufstart);
+		else
+			pattern = single_rank ?
+			          format(KC_A("Occurs every %s for %u occurence(s), effective %s."),
+			                 type, getCount(), bufstart) :
+			          format(KC_A("Occurs every %u %s for %u occurence(s), effective %s."),
+			                 everyn, type, getCount(), bufstart);
+	} else if (m_sRecState.ulEndType == ET_DATE) {
+		if (time_range)
+			pattern = single_rank ?
+			          format(KC_A("Occurs every %s from %s to %s, effective %s until %s."),
+			                 type, startocc, endocc, bufstart, bufend) :
+			          format(KC_A("Occurs every %u %s from %s to %s, effective %s until %s."),
+			                 everyn, type, startocc, endocc, bufstart, bufend);
+		else
+			pattern = single_rank ?
+			          format(KC_A("Occurs every %s, effective %s until %s."), type, bufstart, bufend) :
+			          format(KC_A("Occurs every %u %s, effective %s until %s."), everyn, type, bufstart, bufend);
+	} else {
+		pattern = KC_A("Occurs sometimes.");
+	}
+	*lpstrHRS = std::move(pattern);
 }
 
 recurrence::freq_type recurrence::getFrequency() const

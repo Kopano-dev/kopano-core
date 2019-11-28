@@ -9,9 +9,9 @@
 #include <kopano/zcdefs.h>
 #include <libintl.h>
 /* Input is always char * [C locale]. Output is either char * [C locale] or wchar_t * [Unicode] */
-#define KC_A(string) dcgettext("kopano", string, LC_MESSAGES)
+#define KC_A(string) dcgettext("kopano", (string), LC_MESSAGES)
 /* Often, this will be assigned to SPropValue::lpszW, so a non-const type is preferable */
-#define KC_W(string) const_cast<wchar_t *>(kopano_dcgettext_wide("kopano", string))
+#define KC_W(string) const_cast<wchar_t *>(kopano_dcgettext_wide("kopano", (string)))
 
 namespace KC {
 extern KC_EXPORT const wchar_t *kopano_dcgettext_wide(const char *domain, const char *msg);
