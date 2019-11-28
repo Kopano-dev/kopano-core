@@ -13,6 +13,7 @@ Fixes:
 * client: resolve rogue file descriptor closing [KC-1397, KC-1462, KC-1518,
   KC-1584, KS-42330, KS-43193, KS-43409, KS-43618, KS-43677, KS-43693,
   KS-43907, KS-43925, KS-43936]
+* dagent: resolve crash when appointment has empty organizer [KC-1637]
 
 
 8.7.7 (2019-11-06)
