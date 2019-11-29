@@ -256,7 +256,7 @@ AC_DEFUN([LIBNCURSES_WITH_CONFIG],[
 ])
 LIBNCURSES_WITH_CONFIG
 
-AC_CHECK_HEADERS([syslog.h sys/random.h sys/stat.h sys/un.h malloc.h])
+AC_CHECK_HEADERS([syslog.h sys/random.h malloc.h])
 AC_CHECK_FUNCS([arc4random_buf mallinfo timegm getpeereid getpwnam_r getrandom vsyslog vsnprintf_l])
 AC_CHECK_MEMBERS([siginfo_t.si_fd siginfo_t.si_utime], [], [], [#include <csignal>])
 AC_CHECK_MEMBERS([sockpeercred.uid], [], [], [#include <sys/socket.h>])
@@ -393,10 +393,8 @@ AC_COMPILE_IFELSE([AC_LANG_SOURCE([
 	#endif
 ])], [], [AC_MSG_ERROR([Need gsoap >= 2.8.73])])
 PKG_CHECK_MODULES([ICAL], [libical >= 0.42])
-PKG_CHECK_MODULES([curl], [libcurl >= 7], [], [:])
-CPPFLAGS="$CPPFLAGS $curl_CFLAGS"
-AC_CHECK_HEADERS([curl/curl.h])
-CPPFLAGS="$CPPFLAGS_system"
+AH_TEMPLATE([HAVE_CURL_CURL_H], [curl present])
+PKG_CHECK_MODULES([curl], [libcurl >= 7], [AC_DEFINE([HAVE_CURL_CURL_H], [1])], [:])
 PKG_CHECK_MODULES([rrd], [librrd >= 1.3], [], [:])
 PKG_CHECK_MODULES([TCMALLOC], [libtcmalloc_minimal], [], [:])
 CPPFLAGS="$CPPFLAGS $TCMALLOC_CFLAGS"
@@ -412,40 +410,13 @@ PKG_CHECK_MODULES([jsoncpp], [jsoncpp >= 1.4.0], [], [
 # Check for user plugin required libraries
 #
 
-AC_CHECK_HEADERS([ldap.h],
-	[ LIBS="$LIBS -lldap_r"
-	  CXXFLAGS="$CXXFLAGS -pthread"
-	  AC_MSG_CHECKING([for -lldap_r without LDAP_DEPRECATED])
-	  AC_LINK_IFELSE([ AC_LANG_SOURCE([#include <ldap.h>
-int main() {
-    LDAP *l = ldap_init("localhost",389);
-}]) ],
-		[ LDAP_LIBS=-lldap_r
-		  LDAP_FLAGS=
-		  want_ldap=yes
-		  AC_MSG_RESULT([yes]) ],
-		[ AC_MSG_RESULT([no])
-		  CXXFLAGS="$CXXFLAGS -DLDAP_DEPRECATED=1"
-		  AC_MSG_CHECKING([for -lldap_r with LDAP_DEPRECATED])
-		  AC_LINK_IFELSE([
-			AC_LANG_SOURCE([#include <ldap.h>
-int main() {
-    LDAP *l = ldap_init("localhost",389);
-}]) ],
-			[ LDAP_LIBS=-lldap_r
-			  LDAP_FLAGS=-DLDAP_DEPRECATED=1
-			  want_ldap=yes
-			  AC_MSG_RESULT([yes]) ],
-			[ LDAP_LIBS=
-			  LDAP_CXXFLAGS=
-			  want_ldap=no
-			  AC_MSG_RESULT([no]) ]
-			)
-		  CXXFLAGS=$CXXFLAGS_system
-		])
-	], AC_MSG_RESULT([no]) )
-LIBS=$LIBS_system
-
+LDAP_FLAGS=""
+LDAP_LIBS=""
+AC_CHECK_HEADERS([ldap.h], [
+	LDAP_FLAGS="-DLDAP_DEPRECATED=1"
+	LDAP_LIBS="-lldap_r"
+	want_ldap=yes
+])
 AC_SUBST(LDAP_LIBS)
 AC_SUBST(LDAP_FLAGS)
 
