@@ -96,8 +96,8 @@ Packaging changes:
 * gsoap 2.8.73 or higher is now required
 
 
-8.7.x
-=====
+8.7.8 (2019-11-29)
+==================
 Enhancements:
 * storeadm: print entity types in orphan list [KC-718]
 * client: improve dreaded "gsoap connect: ()" reporting
@@ -112,6 +112,7 @@ Fixes:
   KC-1584, KS-42330, KS-43193, KS-43409, KS-43618, KS-43677, KS-43693,
   KS-43907, KS-43925, KS-43936]
 * dagent: resolve crash when appointment has empty organizer [KC-1637]
+* spooler: regard redirected messages as having recipients [KC-1638]
 
 
 8.7.7 (2019-11-06)

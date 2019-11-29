@@ -216,6 +216,9 @@ HRESULT MAPIToVMIME::processRecipients(IMessage *lpMessage, vmime::messageBuilde
 				lpVMMessageBuilder->getBlindCopyRecipients().appendAddress(vmMailbox);
 				hasRecips = true;
 				break;
+			case MAPI_P1:
+				hasRecips = true;
+				break;
 			}
 		}
 
