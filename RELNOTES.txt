@@ -1,5 +1,6 @@
-master
-======
+9.0.1 (2019-11-29)
+==================
+All changes from the 8.7.x branch up to 8.7.8 are included.
 Enhancements:
 * freebusy: generate human-readable string for recurrences [KC-1289]
 * storeadm: have `storeadm -M` show mailbox size [KC-1632, KS-43943]

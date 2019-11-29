@@ -1,13 +1,7 @@
 AC_PREREQ(2.60)
-AC_INIT([kopano], [8.7.85], [development@kopano.io])
-
-dnl ABI tags are used to prevent inadvertent mixing of wildly different
-dnl versions of KC components without knowing it.
-dnl Development cycle: ABI changes frequently, don't bother with the tag
-dnl  -> versions 8.5.80 through 8.5.99 use ABI tag "8.5.80"
-dnl Maintenance cycle: ABI ought to not change, hence no tag change
-dnl  -> versions 8.6 through 8.6.79 use ABI tag "8.6"
-PACKAGE_ABI=8.7.80
+AC_INIT([kopano], [9.0.1], [development@kopano.io])
+dnl Change when there was an ABI change (use abidiff or abi-compare)
+PACKAGE_ABI=9.0
 AC_CONFIG_SRCDIR([provider/server/ECServer.cpp])
 AC_CONFIG_HEADERS([common/config.h])
 AC_CONFIG_AUX_DIR([autoconf])
