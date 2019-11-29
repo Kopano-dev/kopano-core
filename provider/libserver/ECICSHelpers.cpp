@@ -845,8 +845,6 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 		std::copy(setChangeIds.begin(), iter, std::inserter(setDeleteIds, setDeleteIds.begin()));
 
 		if (!setDeleteIds.empty()) {
-			if (!(setChangeIds.size() - setDeleteIds.size() <= 9))
-				ec_log_warn("K-1255: soft assert (setChangeIds.size() - setDeleteIds.size() <= 9) failed");
 			strQuery = "DELETE FROM syncedmessages WHERE sync_id=" + stringify(m_ulSyncId) + " AND change_id IN (";
 			for (auto del_id : setDeleteIds) {
 				strQuery.append(stringify(del_id));
