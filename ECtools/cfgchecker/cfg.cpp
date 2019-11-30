@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
 	std::string strHosted, strMulti;
 
 	while (true) {
-		char c = getopt_long(argc, argv, "l:u:s:g:i:m:p:a:c:d:h", long_options, NULL);
+		int c = getopt_long(argc, argv, "l:u:s:g:i:m:p:a:c:d:h", long_options, NULL);
 		if (c == -1)
 			break;
 
