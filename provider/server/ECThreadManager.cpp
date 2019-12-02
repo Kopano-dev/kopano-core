@@ -125,13 +125,16 @@ void WORKITEM::run()
 	if (soap->ctx && soap->ssl == nullptr) {
 		err = soap_ssl_accept(soap);
 		if (err) {
-#if GSOAP_VERSION >= 20873
-			auto se = soap->ssl != nullptr ? soap_ssl_error(soap, 0, SSL_ERROR_NONE) : 0;
+#if GSOAP_VERSION >= 20871
+			auto d1 = soap_fault_string(soap);
+			auto d = soap_fault_detail(soap);
 #else
-			auto se = soap->ssl != nullptr ? soap_ssl_error(soap, 0) : 0;
+			auto d1 = soap_check_faultstring(soap);
+			auto d = soap_check_faultdetail(soap);
 #endif
-			ec_log_warn("K-2171: soap_ssl_accept: %s: %s", *soap_faultdetail(soap), se);
-			ec_log_debug("%s: %s", GetSoapError(err).c_str(), *soap_faultstring(soap));
+			ec_log_warn("K-2171: soap_ssl_accept: %s (%s)",
+				d1 != nullptr ? d1 : "(no error set)",
+				d != nullptr ? d : "");
 		}
 	} else {
 		err = 0;
