@@ -343,7 +343,8 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass,
     std::list<localobjectdetails_t> &objs, unsigned int ulFlags)
 {
 	bool bSync = ulFlags & USERMANAGEMENT_FORCE_SYNC || parseBool(m_lpConfig->GetSetting("sync_gab_realtime"));
-	bool bIsSafeMode = parseBool(m_lpConfig->GetSetting("user_safe_mode"));
+	auto safe_mode = m_lpConfig->GetSetting("user_safe_mode");
+	bool bIsSafeMode = parseBool(safe_mode);
 	// Extern ids
 	signatures_t lpExternSignatures;
 	// Extern -> Local
@@ -458,6 +459,30 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass,
 			// Add to conversion map so we can obtain the details
 			mapExternIdToLocal.emplace(ext_sig.id, ulObjectId);
 		}
+	} else if (bSync && strcmp(safe_mode, "verbose") == 0) {
+		try {
+			lpExternSignatures = lpPlugin->getAllObjects(extcompany, objclass, rst);
+		} catch (const notsupported &) {
+			return KCERR_NO_SUPPORT;
+		} catch (const objectnotfound &) {
+			return KCERR_NOT_FOUND;
+		} catch (const std::exception &e) {
+			ec_log_warn("K-1544: Unable to retrieve list from external user source: %s", e.what());
+			return KCERR_PLUGIN_ERROR;
+		}
+
+		for (const auto &ext_sig : lpExternSignatures) {
+			auto it = mapSignatureIdToLocal.find(ext_sig.id);
+			if (it != mapSignatureIdToLocal.cend())
+				continue;
+			/* function will evaluate safe_mode too */
+			if (MoveOrCreateLocalObject(ext_sig, &ulObjectId, &bMoved) != hrSuccess)
+				/* ignore */;
+		}
+		for (const auto &sil : mapSignatureIdToLocal) {
+			lpExternSignatures.emplace_back(sil.first, sil.second.second);
+			mapExternIdToLocal.emplace(sil.first, sil.second.first);
+		}
 	} else {
 		if (bIsSafeMode)
 			ec_log_info("user_safe_mode: skipping retrieve/sync users from LDAP");
@@ -479,17 +504,10 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass,
 	 * the result is only a subset of the entire UDB, and so meaningless
 	 * for deletions.
 	 */
-	if (rst == nullptr && bSync) {
-		if (!bIsSafeMode) {
-			for (const auto &sil : mapSignatureIdToLocal)
-				/* second == map value, first == id */
-				MoveOrDeleteLocalObject(sil.second.first, sil.first.objclass);
-		} else {
-			auto d = mapExternIdToLocal.size() - lpExternSignatures.size();
-			if (d > 0)
-				ec_log_err("user_safe_mode: would normally now delete %zu local users (you may see this message more often as the delete is now omitted)", d);
-		}
-	}
+	if (rst == nullptr && bSync)
+		for (const auto &sil : mapSignatureIdToLocal)
+			/* second == map value, first == id */
+			MoveOrDeleteLocalObject(sil.second.first, sil.first.objclass);
 
 	// Convert details for client usage
 	if (!(ulFlags & USERMANAGEMENT_IDS_ONLY)) {
@@ -765,7 +783,7 @@ ECRESULT ECUserManagement::AddSubObjectToObjectAndSync(userobject_relation_t rel
 	} catch (const notimplemented &) {
 		return KCERR_NOT_IMPLEMENTED;
 	} catch (const collision_error &) {
-		ec_log_crit("ECUserManagement::AddSubObjectToObjectAndSync(): addSubObjectRelation failed with a collision error");
+		ec_log_err("ECUserManagement::AddSubObjectToObjectAndSync(): addSubObjectRelation failed with a collision error");
 		return KCERR_COLLISION;
 	} catch (const std::exception &e) {
 		ec_log_warn("K-1513: Unable to add %s relation (%u,%u) to external user database: %s",
@@ -885,11 +903,11 @@ ECRESULT ECUserManagement::ResolveObjectAndSync(objectclass_t objclass,
 	objectid_t sCompany(CONTAINER_COMPANY);
 
 	if (!szName) {
-		ec_log_crit("Invalid argument szName in call to ECUserManagement::ResolveObjectAndSync()");
+		ec_log_err("Invalid argument szName in call to ECUserManagement::ResolveObjectAndSync()");
 		return KCERR_INVALID_PARAMETER;
 	}
 	if (!lpulObjectId) {
-		ec_log_crit("Invalid argument lpulObjectId call to ECUserManagement::ResolveObjectAndSync()");
+		ec_log_err("Invalid argument lpulObjectId call to ECUserManagement::ResolveObjectAndSync()");
 		return KCERR_INVALID_PARAMETER;
 	}
 
@@ -1781,7 +1799,7 @@ ECRESULT ECUserManagement::ConvertUserAndCompanyToLogin(objectdetails_t *lpDetai
 	objectid_t sCompany = lpDetails->GetPropObject(OB_PROP_O_COMPANYID);
 	auto er = GetLocalId(sCompany, &ulCompanyId);
 	if (er != erSuccess) {
-		ec_log_crit("K-1529: Unable to find company id for object \"%s\"", lpDetails->GetPropString(OB_PROP_S_FULLNAME).c_str());
+		ec_log_err("K-1529: Unable to find company id for object \"%s\"", lpDetails->GetPropString(OB_PROP_S_FULLNAME).c_str());
 		return er;
 	}
 
@@ -2042,7 +2060,7 @@ ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature,
 	unsigned int ulId;
 	SOURCEKEY sSourceKey;
 	UserPlugin *lpPlugin = NULL;
-	std::string strUserServer, strThisServer = m_lpConfig->GetSetting("server_name");
+	std::string strUserServer, strThisServer = m_lpConfig->GetSetting("server_name"), login;
 	bool bDistributed = m_lpSession->GetSessionManager()->IsDistributedSupported();
 
 	auto er = m_lpSession->GetDatabase(&lpDatabase);
@@ -2051,7 +2069,6 @@ ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature,
 	er = GetThreadLocalPlugin(m_lpPluginFactory, &lpPlugin);
 	if(er != erSuccess)
 		return er;
-	ec_log_info("Auto-creating %s from external source", ObjectClassToName(signature.id.objclass));
 
 	try {
 		details = lpPlugin->getObjectDetails(signature.id);
@@ -2060,8 +2077,10 @@ ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature,
 		 * somebody (aka: system administrator) has messed up its LDAP tree or messed around
 		 * with the Database.
 		 */
-		if (signature.id.objclass != NONACTIVE_CONTACT && details.GetPropString(OB_PROP_S_LOGIN).empty()) {
-			ec_log_warn("K-1534: Unable to create object in local database: %s has no name", ObjectClassToName(signature.id.objclass));
+		login = details.GetPropString(OB_PROP_S_LOGIN);
+		if (signature.id.objclass != NONACTIVE_CONTACT && login.empty()) {
+			ec_log_warn("K-1534: CreateLocalObject: external %s \"%s\" has no login name",
+				ObjectClassToName(signature.id.objclass), bin2txt(signature.id.id).c_str());
 			return KCERR_UNKNOWN_OBJECT;
 		}
 		// details is from externid, no need to check for SYSTEM or EVERYONE
@@ -2073,14 +2092,18 @@ ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature,
 	} catch (const notsupported &) {
 		return KCERR_NO_SUPPORT;
 	} catch (const std::exception &e) {
-		ec_log_warn("K-1535: Unable to get object data while adding new %s: %s", ObjectClassToName(signature.id.objclass), e.what());
+		ec_log_warn("K-1535: CreateLocalObject: object data for external %s \"%s\" not available: %s",
+			ObjectClassToName(signature.id.objclass), bin2txt(signature.id.id).c_str(), e.what());
 		return KCERR_PLUGIN_ERROR;
 	}
 
 	if (parseBool(m_lpConfig->GetSetting("user_safe_mode"))) {
-		ec_log_crit("user_safe_mode: Would create new %s with name \"%s\"", ObjectClassToName(signature.id.objclass), details.GetPropString(OB_PROP_S_FULLNAME).c_str());
-		return er;
+		ec_log_info("user_safe_mode: would create new %s (ext: login=\"%s\" sig=\"%s\")",
+			ObjectClassToName(signature.id.objclass), login.c_str(), bin2txt(signature.id.id).c_str());
+		return erSuccess;
 	}
+	ec_log_info("Auto-creating %s (ext: login=\"%s\" sig=\"%s\")",
+		ObjectClassToName(signature.id.objclass), login.c_str(), bin2txt(signature.id.id).c_str());
 	/*
 	 * 1) we create the object in the database, for users/groups we set the company to 0
 	 * 2) Resolve companyid for users/groups to a companyid
@@ -2285,7 +2308,7 @@ ECRESULT ECUserManagement::UpdateObjectclassOrDelete(const objectid_t &sExternId
 		return KCERR_NOT_FOUND;
 	}
 	if (parseBool(m_lpConfig->GetSetting("user_safe_mode"))) {
-		ec_log_crit("user_safe_mode: Would update %d from %s to %s",
+		ec_log_info("user_safe_mode: would update entity %d from %s to %s",
 			ulObjectId, ObjectClassToName(objClass),
 			ObjectClassToName(sExternId.objclass));
 		return er;
@@ -2458,11 +2481,13 @@ ECRESULT ECUserManagement::MoveLocalObject(unsigned int ulObjectId,
 	if (objclass == CONTAINER_COMPANY)
 		return KCERR_NO_ACCESS;
 	if (parseBool(m_lpConfig->GetSetting("user_safe_mode"))) {
-		ec_log_crit("user_safe_mode: Would move %s %d to company %d", ObjectClassToName(objclass), ulObjectId, ulCompanyId);
+		ec_log_info("user_safe_mode: would move %s %u (login=\"%s\") to company %u",
+			ObjectClassToName(objclass), strNewUserName.c_str(), ulObjectId, ulCompanyId);
 		return erSuccess;
 	}
 
-	ec_log_info("Auto-moving %s to different company from external source", ObjectClassToName(objclass));
+	ec_log_info("Auto-moving %s %u (login=\"%s\") to new company %u",
+		ObjectClassToName(objclass), strNewUserName.c_str(), ulCompanyId);
 	er = m_lpSession->GetDatabase(&lpDatabase);
 	if(er != erSuccess)
 		return er;
@@ -2516,22 +2541,20 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 	auto cleanup = make_scope_success([&]() {
 		if (er != 0)
 			ec_log_info("Auto-deleting %s %d done: %s (%x)", ObjectClassToName(objclass), ulObjectId, GetMAPIErrorMessage(kcerr_to_mapierr(er)), er);
-		else
-			ec_log_info("Auto-deleting %s %d done.", ObjectClassToName(objclass), ulObjectId);
 	});
 	if (IsInternalObject(ulObjectId))
 		return er = KCERR_NO_ACCESS;
 	if (parseBool(m_lpConfig->GetSetting("user_safe_mode"))) {
-		ec_log_crit("user_safe_mode: Would delete %s %d", ObjectClassToName(objclass), ulObjectId);
+		ec_log_info("user_safe_mode: would delete %s %d (ext: entry gone)", ObjectClassToName(objclass), ulObjectId);
 		if (objclass == CONTAINER_COMPANY)
-			ec_log_crit("user_safe_mode: Would delete all objects from company %d", ulObjectId);
+			ec_log_info("user_safe_mode: Would delete all objects from company %d", ulObjectId);
 		return er = erSuccess;
 	}
 
 	er = m_lpSession->GetDatabase(&lpDatabase);
 	if(er != erSuccess)
 		return er;
-	ec_log_info("Auto-deleting %s %d from external source", ObjectClassToName(objclass), ulObjectId);
+	ec_log_info("Auto-deleting %s %d (ext: entry gone)", ObjectClassToName(objclass), ulObjectId);
 
 	if (objclass == CONTAINER_COMPANY) {
 		/* We are removing a company, delete all company members as well since
