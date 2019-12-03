@@ -835,8 +835,8 @@ ECRESULT ECDatabase::UpdateDatabase(bool bForceUpdate, std::string &strReport)
 	if(er != erSuccess)
 		return er;
 	if (stored_ver.v_schema > 0 && stored_ver.v_schema < 63) {
-		strReport = format("DB schema is %u and older than v63 (ZCP 7.2). "
-		            "KC 8.4 was the last version able to upgrade such.",
+		strReport = format("I can only upgrade from v63 (introduced with SVNr35403/ZCP 7.1.0) or newer. "
+		            "Your DB schema %u is too old. KC 8.4 was the last version able to upgrade such.",
 		            stored_ver.v_schema);
 		return KCERR_INVALID_VERSION;
 	}
