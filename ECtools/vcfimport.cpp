@@ -76,7 +76,9 @@ static HRESULT vtm_perform(IMAPIFolder *fld, std::string &&vcf)
 			kc_perrorf("get_item", ret);
 			continue;
 		}
-		msg->SaveChanges(0);
+		ret = msg->SaveChanges(0);
+		if (ret != hrSuccess)
+			kc_perror("SaveChanges(contact)", ret);
 		++items;
 	}
 	printf("Processed %zu contacts, imported %zu.\n", conv->get_item_count(), items);
@@ -127,7 +129,9 @@ static HRESULT vtm_login(int argc, const char **argv)
 		ret = vtm_perform(root, std::move(vcf));
 		if (ret != hrSuccess)
 			return kc_perror("vtm_perform", ret);
-		root->SaveChanges(0);
+		ret = root->SaveChanges(0);
+		if (ret != hrSuccess)
+			return kc_perror("SaveChanges(folder)", ret);
 		return hrSuccess;
 	}
 
@@ -136,7 +140,9 @@ static HRESULT vtm_login(int argc, const char **argv)
 		ret = vtm_perform(root, std::move(vcf));
 		if (ret != hrSuccess)
 			return kc_perror("vtm_perform", ret);
-		root->SaveChanges(0);
+		ret = root->SaveChanges(0);
+		if (ret != hrSuccess)
+			return kc_perror("SaveChanges(folder)", ret);
 	}
 	return hrSuccess;
 }
