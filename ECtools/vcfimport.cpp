@@ -53,9 +53,10 @@ static std::string vtm_slurp(const char *file)
 	return content;
 }
 
-static HRESULT vtm_perform(IMAPIFolder *fld, IMessage *msg, std::string &&vcf)
+static HRESULT vtm_perform(IMAPIFolder *fld, std::string &&vcf)
 {
 	std::unique_ptr<vcftomapi> conv;
+	size_t items = 0;
 
 	auto ret = create_vcftomapi(fld, &unique_tie(conv));
 	if (ret != hrSuccess)
@@ -65,9 +66,20 @@ static HRESULT vtm_perform(IMAPIFolder *fld, IMessage *msg, std::string &&vcf)
 	ret = conv->parse_vcf(std::move(vcf));
 	if (ret != hrSuccess)
 		return kc_perrorf("parse_vcf", ret);
-	ret = conv->get_item(msg);
-	if (ret != hrSuccess)
-		return kc_perrorf("get_item", ret);
+	for (size_t i = 0; i < conv->get_item_count(); ++i) {
+		object_ptr<IMessage> msg;
+		ret = fld->CreateMessage(nullptr, MAPI_DEFERRED_ERRORS, &~msg);
+		if (ret != hrSuccess)
+			return kc_perror("create contact", ret);
+		ret = conv->get_item(msg, i);
+		if (ret != hrSuccess) {
+			kc_perrorf("get_item", ret);
+			continue;
+		}
+		msg->SaveChanges(0);
+		++items;
+	}
+	printf("Processed %zu contacts, imported %zu.\n", conv->get_item_count(), items);
 	return hrSuccess;
 }
 
@@ -109,31 +121,21 @@ static HRESULT vtm_login(int argc, const char **argv)
 
 	if (argc == 0) {
 		/* Read one from stdin */
-		object_ptr<IMessage> msg;
-		ret = root->CreateMessage(nullptr, MAPI_DEFERRED_ERRORS, &~msg);
-		if (ret != hrSuccess)
-			return kc_perror("create contact", ret);
 		auto vcf = vtm_slurp(nullptr);
 		if (vcf.empty())
 			return hrSuccess;
-		ret = vtm_perform(root, msg, std::move(vcf));
+		ret = vtm_perform(root, std::move(vcf));
 		if (ret != hrSuccess)
 			return kc_perror("vtm_perform", ret);
-		msg->SaveChanges(0);
 		root->SaveChanges(0);
 		return hrSuccess;
 	}
 
 	while (argc-- > 0) {
-		object_ptr<IMessage> msg;
-		ret = root->CreateMessage(nullptr, MAPI_DEFERRED_ERRORS, &~msg);
-		if (ret != hrSuccess)
-			return kc_perror("create contact", ret);
 		auto vcf = vtm_slurp(*argv++);
-		ret = vtm_perform(root, msg, std::move(vcf));
+		ret = vtm_perform(root, std::move(vcf));
 		if (ret != hrSuccess)
 			return kc_perror("vtm_perform", ret);
-		msg->SaveChanges(0);
 		root->SaveChanges(0);
 	}
 	return hrSuccess;
