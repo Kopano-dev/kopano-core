@@ -773,10 +773,9 @@ ZEND_FUNCTION(mapi_parseoneoff)
 	strDisplayName = convert_to<utf8string>(wstrDisplayName);
 	strType = convert_to<utf8string>(wstrType);
 	strAddress = convert_to<utf8string>(wstrAddress);
-
-	add_assoc_string(return_value, "name", (char*)strDisplayName.c_str());
-	add_assoc_string(return_value, "type", (char*)strType.c_str());
-	add_assoc_string(return_value, "address", (char*)strAddress.c_str());
+	add_assoc_string(return_value, "name", strDisplayName.c_str());
+	add_assoc_string(return_value, "type", strType.c_str());
+	add_assoc_string(return_value, "address", strAddress.c_str());
 }
 
 /*
@@ -3300,8 +3299,7 @@ ZEND_FUNCTION(mapi_decompressrtf)
 		    break;
 		strUncompressed.append(htmlbuf.get(), cbRead);
 	}
-
-	RETVAL_STRINGL((char *)strUncompressed.c_str(), strUncompressed.size());
+	RETVAL_STRINGL(strUncompressed.c_str(), strUncompressed.size());
 }
 
 /**

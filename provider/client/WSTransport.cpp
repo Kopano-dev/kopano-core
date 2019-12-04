@@ -3921,7 +3921,7 @@ std::string WSTransport::GetAppName()
 	if (!getline(in, s))
 		m_strAppName = "<unknown>";
 	else
-		m_strAppName = basename((char *)s.c_str());
+		m_strAppName = basename(&s[0]);
     return m_strAppName;
 }
 

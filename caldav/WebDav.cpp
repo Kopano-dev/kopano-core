@@ -54,7 +54,7 @@ HRESULT WebDav::HrParseXml()
 	if (m_lpXmlDoc != NULL)
 		return hrSuccess;
 	m_lpRequest.HrGetBody(&strBody);
-	m_lpXmlDoc = xmlReadMemory((char *)strBody.c_str(),(int)strBody.length(), "PROVIDE_BASE.xml", NULL,  XML_PARSE_NOBLANKS);
+	m_lpXmlDoc = xmlReadMemory(strBody.c_str(), strBody.length(), "PROVIDE_BASE.xml", nullptr, XML_PARSE_NOBLANKS);
 	return m_lpXmlDoc == nullptr ? MAPI_E_INVALID_PARAMETER : hrSuccess;
 }
 

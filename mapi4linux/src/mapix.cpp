@@ -477,9 +477,9 @@ HRESULT M4LMsgServiceAdmin::CreateMsgServiceEx(const char *lpszService,
 		ec_log_crit("M4LMsgServiceAdmin::CreateMsgService(): ENOMEM(2)");
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	}
-	entry->servicename = (char*)lpszService;
+	entry->servicename = lpszService;
 	const SPropValue *lpProp = service->GetProp(PR_DISPLAY_NAME_A);
-	entry->displayname = lpProp ? lpProp->Value.lpszA : (char*)lpszService;
+	entry->displayname = lpProp ? lpProp->Value.lpszA : lpszService;
 	CoCreateGuid(reinterpret_cast<GUID *>(&entry->muid));
 	if (uid != nullptr)
 		*uid = entry->muid;

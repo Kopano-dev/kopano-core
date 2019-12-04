@@ -533,7 +533,7 @@ HRESULT ECParseOneOff(const ENTRYID *lpEntryID, ULONG cbEntryID,
 			return hr;
 		lpBuffer += str.length() + 1;
 
-		str = (char*)lpBuffer;
+		str = lpBuffer;
 		if (str.length() == 0)
 			return MAPI_E_INVALID_PARAMETER;
 		hr = TryConvert(str, type);
@@ -541,7 +541,7 @@ HRESULT ECParseOneOff(const ENTRYID *lpEntryID, ULONG cbEntryID,
 			return hr;
 		lpBuffer += str.length() + 1;
 
-		str = (char*)lpBuffer;
+		str = lpBuffer;
 		if (str.length() == 0)
 			return MAPI_E_INVALID_PARAMETER;
 		hr = TryConvert(str, addr);

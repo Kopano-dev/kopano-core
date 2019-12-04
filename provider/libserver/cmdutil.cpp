@@ -1892,10 +1892,10 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase,
 
                 if (lpDBRow[FIELD_NR_NAMEID] != NULL) {
                     resInsert.first->second.ulKind = MNID_ID;
-                    resInsert.first->second.ulId = atoui((char*)lpDBRow[FIELD_NR_NAMEID]);
+					resInsert.first->second.ulId = atoui(lpDBRow[FIELD_NR_NAMEID]);
                 } else if (lpDBRow[FIELD_NR_NAMESTR] != NULL) {
                     resInsert.first->second.ulKind = MNID_STRING;
-                    resInsert.first->second.strName.assign((char*)lpDBRow[FIELD_NR_NAMESTR], lpDBLen[FIELD_NR_NAMESTR]);
+					resInsert.first->second.strName.assign(lpDBRow[FIELD_NR_NAMESTR], lpDBLen[FIELD_NR_NAMESTR]);
                 } else {
 					return KCERR_INVALID_TYPE;
                 }
@@ -1983,10 +1983,10 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase,
 
                     if (lpDBRow[FIELD_NR_NAMEID] != NULL) {
                         resInsert.first->second.ulKind = MNID_ID;
-                        resInsert.first->second.ulId = atoui((char*)lpDBRow[FIELD_NR_NAMEID]);
+						resInsert.first->second.ulId = atoui(lpDBRow[FIELD_NR_NAMEID]);
                     } else if (lpDBRow[FIELD_NR_NAMESTR] != NULL) {
                         resInsert.first->second.ulKind = MNID_STRING;
-                        resInsert.first->second.strName.assign((char*)lpDBRow[FIELD_NR_NAMESTR], lpDBLen[FIELD_NR_NAMESTR]);
+						resInsert.first->second.strName.assign(lpDBRow[FIELD_NR_NAMESTR], lpDBLen[FIELD_NR_NAMESTR]);
                     } else {
 						return KCERR_INVALID_TYPE;
                     }

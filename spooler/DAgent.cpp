@@ -3459,7 +3459,7 @@ int main(int argc, char **argv) try {
 	/* When path wasn't provided through commandline, resolve it from config file */
 	if (sDeliveryArgs.strPath.empty())
 		sDeliveryArgs.strPath = g_lpConfig->GetSetting("server_socket");
-	sDeliveryArgs.strPath = GetServerUnixSocket((char*)sDeliveryArgs.strPath.c_str()); // let environment override if present
+	sDeliveryArgs.strPath = GetServerUnixSocket(sDeliveryArgs.strPath.c_str()); // let environment override if present
 	sDeliveryArgs.sDeliveryOpts.ascii_upgrade = g_lpConfig->GetSetting("default_charset");
 	sDeliveryArgs.sDeliveryOpts.insecure_html_join = parseBool(g_lpConfig->GetSetting("insecure_html_join"));
 	sDeliveryArgs.sDeliveryOpts.conversion_notices = parseBool(g_lpConfig->GetSetting("conversion_detail"));

@@ -306,12 +306,12 @@ bool UnixUserPlugin::matchUserObject(struct passwd *pw, const string &match, uns
 	// username or fullname
 	if (ulFlags & EMS_AB_ADDRESS_LOOKUP)
 		matched =
-			(strcasecmp(pw->pw_name, (char*)match.c_str()) == 0) ||
-			(strcasecmp((char*)m_iconv->convert(pw->pw_gecos).c_str(), (char*)match.c_str()) == 0);
+			(strcasecmp(pw->pw_name, match.c_str()) == 0) ||
+			(strcasecmp(m_iconv->convert(pw->pw_gecos).c_str(), match.c_str()) == 0);
 	else
 		matched =
-			(strncasecmp(pw->pw_name, (char*)match.c_str(), match.size()) == 0) ||
-			(strncasecmp((char*)m_iconv->convert(pw->pw_gecos).c_str(), (char*)match.c_str(), match.size()) == 0);
+			strncasecmp(pw->pw_name, match.c_str(), match.size()) == 0 ||
+			(strncasecmp(m_iconv->convert(pw->pw_gecos).c_str(), match.c_str(), match.size()) == 0);
 
 	if (matched)
 		return matched;

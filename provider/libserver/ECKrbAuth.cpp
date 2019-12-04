@@ -54,7 +54,7 @@ ECRESULT ECKrb5AuthenticateUser(const std::string &strUsername, const std::strin
 
 	krb5_get_init_creds_opt_init(&options);
 	memset(&my_creds, 0, sizeof(my_creds));
-	code = krb5_get_init_creds_password(ctx, &my_creds, me, (char*)strPassword.c_str(), 0, 0, 0, NULL, &options);
+	code = krb5_get_init_creds_password(ctx, &my_creds, me, strPassword.c_str(), 0, 0, 0, nullptr, &options);
 	if (code) {
 		*lpstrError = error_message(code);
 		er = KCERR_LOGON_FAILED;

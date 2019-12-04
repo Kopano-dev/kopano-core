@@ -3725,8 +3725,8 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
 			ulPartnr = strtoul(strPartName.substr(0, ulPos).c_str(), NULL, 0);
 
 		// Find the correct part
-		const char *end = str_ifind((char*)strMessage.c_str(), "\r\n\r\n");
-		const char *ptr = str_ifind((char*)strMessage.c_str(), "boundary=");
+		const char *end = str_ifind(strMessage.c_str(), "\r\n\r\n");
+		const char *ptr = str_ifind(strMessage.c_str(), "boundary=");
 		if (ptr && end && ptr < end) {
 			ulHeaderBegin = std::distance(strMessage.c_str(), ptr) + strlen("boundary=");
 			if (strMessage[ulHeaderBegin] == '"') {

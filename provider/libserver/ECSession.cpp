@@ -1081,7 +1081,7 @@ ECRESULT ECAuthSession::ValidateSSOData_KCOIDC(struct soap* soap, const char* na
 		principal += szHostname;
 		ec_log_debug("Kerberos principal: %s", principal.c_str());
 
-		gssInputBuffer.value = (void*)principal.data();
+		gssInputBuffer.value = principal.data();
 		gssInputBuffer.length = principal.length() + 1;
 		retval = gss_import_name(&status, &gssInputBuffer, GSS_C_NT_HOSTBASED_SERVICE, &gssServername);
 		if (retval != GSS_S_COMPLETE) {
@@ -1362,7 +1362,7 @@ retry:
 			strAnswer.assign(strAnswer, pos, strAnswer.length()-pos);
 		}
 		// Check whether user exists in the user database
-		er = m_lpUserManagement->ResolveObjectAndSync(ACTIVE_USER, (char *)strAnswer.c_str(), &m_ulUserID);
+		er = m_lpUserManagement->ResolveObjectAndSync(ACTIVE_USER, strAnswer.c_str(), &m_ulUserID);
 		// don't check NONACTIVE, since those shouldn't be able to login
 		if(er != erSuccess)
 			return er;

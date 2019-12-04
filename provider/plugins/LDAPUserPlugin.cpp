@@ -565,7 +565,7 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn,
 		// For these two values: if they are both NULL, anonymous bind
 		// will be used (ldap_binddn, ldap_bindpw)
 		LOG_PLUGIN_DEBUG("Issuing LDAP bind");
-		rc = ldap_simple_bind_s(ld, (char *)bind_dn, (char *)bind_pw);
+		rc = ldap_simple_bind_s(ld, bind_dn, bind_pw);
 		if (rc == LDAP_SUCCESS)
 			break;
 		ec_log_warn("LDAP (simple) bind on %s failed: %s", bind_dn, ldap_err2string(rc));
@@ -2632,7 +2632,7 @@ static std::string StringEscapeSequence(const char *lpdata, size_t size)
 		    (lpdata[t] >= 91 && lpdata[t] <= 96) /* [\]^_`*/))
 			strEscaped.append("\\"+toHex(lpdata[t]));
 		else
-			strEscaped.append((char*)&lpdata[t], 1);
+			strEscaped.append(&lpdata[t], 1);
 	return strEscaped;
 }
 
