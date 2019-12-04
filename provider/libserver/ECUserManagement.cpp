@@ -2482,12 +2482,12 @@ ECRESULT ECUserManagement::MoveLocalObject(unsigned int ulObjectId,
 		return KCERR_NO_ACCESS;
 	if (parseBool(m_lpConfig->GetSetting("user_safe_mode"))) {
 		ec_log_info("user_safe_mode: would move %s %u (login=\"%s\") to company %u",
-			ObjectClassToName(objclass), strNewUserName.c_str(), ulObjectId, ulCompanyId);
+			ObjectClassToName(objclass), ulObjectId, strNewUserName.c_str(), ulCompanyId);
 		return erSuccess;
 	}
 
 	ec_log_info("Auto-moving %s %u (login=\"%s\") to new company %u",
-		ObjectClassToName(objclass), strNewUserName.c_str(), ulCompanyId);
+		ObjectClassToName(objclass), ulObjectId, strNewUserName.c_str(), ulCompanyId);
 	er = m_lpSession->GetDatabase(&lpDatabase);
 	if(er != erSuccess)
 		return er;
