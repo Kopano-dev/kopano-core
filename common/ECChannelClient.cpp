@@ -4,6 +4,13 @@
  */
 #include <kopano/platform.h>
 #include <new>
+#include <string>
+#include <vector>
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <unistd.h>
 #include <mapidefs.h>
 #include <mapiutil.h>
 #include <mapix.h>

@@ -2,6 +2,9 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
+#ifdef HAVE_CONFIG_H
+#	include "config.h"
+#endif
 #include <kopano/platform.h>
 #include <algorithm>
 #include <exception>
@@ -15,6 +18,8 @@
 #include <pwd.h>
 #include <sstream>
 #include <cassert>
+#include <cerrno>
+#include <cstring>
 #include <sys/stat.h>
 #include <grp.h>
 #include <crypt.h>
@@ -22,7 +27,6 @@
 #include <iterator>
 #ifdef HAVE_SHADOW_H
 #include <shadow.h>
-#include <cerrno>
 #endif
 #include <kopano/EMSAbTag.h>
 #include <kopano/ECConfig.h>

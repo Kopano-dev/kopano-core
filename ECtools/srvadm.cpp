@@ -8,6 +8,7 @@
 #include <utility>
 #include <string>
 #include <cstdlib>
+#include <unistd.h>
 #include <mapidefs.h>
 #include <libHX/option.h>
 #include <kopano/CommonUtil.h>

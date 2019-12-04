@@ -9,6 +9,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <unistd.h>
 #include <kopano/MAPIErrors.h>
 #include <vmime/vmime.hpp>
 #include <vmime/platforms/posix/posixHandler.hpp>

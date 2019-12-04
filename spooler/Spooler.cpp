@@ -34,6 +34,7 @@
 #include <csignal>
 #include <getopt.h>
 #include <time.h>
+#include <unistd.h>
 #include <sys/stat.h>
 
 #define USES_IID_IMAPIFolder

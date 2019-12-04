@@ -11,6 +11,7 @@
 #include <fstream>
 #include <iostream>
 #include <cstdlib>
+#include <unistd.h>
 #include <vmime/vmime.hpp>
 #include <vmime/textPartFactory.hpp>
 #include "mapiTextPart.h"

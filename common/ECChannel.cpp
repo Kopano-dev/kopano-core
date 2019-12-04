@@ -3,13 +3,19 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
+#include <algorithm>
 #include <list>
 #include <memory>
 #include <new>
+#include <string>
+#include <utility>
 #include <vector>
 #include <climits>
 #include <cstdint>
+#include <cstdio>
 #include <cstdlib>
+#include <cstring>
+#include <unistd.h>
 #include <kopano/ECChannel.h>
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
@@ -17,7 +23,6 @@
 #include <kopano/stringutil.h>
 #include <kopano/UnixUtil.h>
 #include <kopano/tie.hpp>
-#include <csignal>
 #include <fcntl.h>
 #include <netdb.h>
 #include <poll.h>
@@ -33,7 +38,6 @@
 #include <linux/rtnetlink.h>
 #endif
 #include <openssl/err.h>
-#include <cerrno>
 #include <mapicode.h>
 #include "SSLUtil.h"
 #ifndef hrSuccess
