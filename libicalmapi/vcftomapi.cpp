@@ -721,7 +721,7 @@ HRESULT vcftomapi_impl::get_item(IMessage *msg, unsigned int pos)
 
 	name.lpguid = const_cast<GUID *>(&PSETID_Common);
 	name.ulKind = MNID_ID;
-	name.Kind.lID = 0x8514;
+	name.Kind.lID = dispidSmartNoAttach;
 
 	hr = msg->GetIDsFromNames(1, &namep, MAPI_CREATE, &~proptag);
 	if (hr != hrSuccess)

@@ -1725,7 +1725,7 @@ bool MAPIToVMIME::is_voting_request(IMessage *lpMessage) const
 {
 	memory_ptr<SPropTagArray> lpPropTags;
 	memory_ptr<SPropValue> lpPropContentType;
-	MAPINAMEID named_prop = {(LPGUID)&PSETID_Common, MNID_ID, {0x8520}};
+	MAPINAMEID named_prop = {const_cast<GUID *>(&PSETID_Common), MNID_ID, {dispidVerbStream}};
 	MAPINAMEID *named_proplist = &named_prop;
 
 	auto hr = lpMessage->GetIDsFromNames(1, &named_proplist, MAPI_CREATE, &~lpPropTags);
@@ -1743,7 +1743,7 @@ bool MAPIToVMIME::has_reminder(IMessage *msg) const
 {
 	memory_ptr<SPropTagArray> tags;
 	memory_ptr<SPropValue> content_type;
-	MAPINAMEID named_prop = {const_cast<GUID *>(&PSETID_Common), MNID_ID, {0x8503}};
+	MAPINAMEID named_prop = {const_cast<GUID *>(&PSETID_Common), MNID_ID, {dispidReminderSet}};
 	auto named_proplist = &named_prop;
 	bool result = false;
 
