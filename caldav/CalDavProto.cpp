@@ -895,7 +895,7 @@ HRESULT CalDAV::HrPut()
 		goto exit;
 
 	//save Ical data to mapi.
-	hr = CreateICalToMapi(m_lpActiveStore, m_lpAddrBook, false, &unique_tie(lpICalToMapi));
+	hr = CreateICalToMapi(lpMessage, m_lpAddrBook, false, &unique_tie(lpICalToMapi));
 	if (hr != hrSuccess) {
 		kc_perrorf("CreateICalToMapi", hr);
 		goto exit;

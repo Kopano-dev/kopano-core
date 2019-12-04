@@ -6808,7 +6808,7 @@ ZEND_FUNCTION(mapi_icaltomapi)
 
 	// noRecpients, skip recipients from ical.
 	// Used for DAgent, which uses the mail recipients
-	MAPI_G(hr) = CreateICalToMapi(lpMsgStore, lpAddrBook, noRecipients, &unique_tie(lpIcalToMapi));
+	MAPI_G(hr) = CreateICalToMapi(lpMessage, lpAddrBook, noRecipients, &unique_tie(lpIcalToMapi));
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
 	// Set the default timezone to UTC if none is set, replicating the
@@ -6888,8 +6888,7 @@ ZEND_FUNCTION(mapi_vcftomapi)
 	ZEND_FETCH_RESOURCE_C(lpMessage, IMessage *, &resMessage, -1, name_mapi_message, le_mapi_message);
 
 	std::string vcfMsg(szString, cbString);
-
-	MAPI_G(hr) = create_vcftomapi(lpMsgStore, &unique_tie(conv));
+	MAPI_G(hr) = create_vcftomapi(lpMessage, &unique_tie(conv));
 	if (MAPI_G(hr) != hrSuccess)
 		return;
 	MAPI_G(hr) = conv->parse_vcf(vcfMsg);
