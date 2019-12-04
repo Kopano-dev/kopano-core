@@ -853,7 +853,7 @@ HRESULT CalDAV::HrPut()
 	SBinary sbUid;
 	time_t ttLastModTime = 0;
 	object_ptr<IMessage> lpMessage;
-	ICalToMapi *lpICalToMapi = NULL;
+	std::unique_ptr<ICalToMapi> lpICalToMapi;
 	bool blNewEntry = false, bMatch = false;
 	SPropValue sPropApptTsRef;
 
@@ -895,7 +895,7 @@ HRESULT CalDAV::HrPut()
 		goto exit;
 
 	//save Ical data to mapi.
-	hr = CreateICalToMapi(m_lpActiveStore, m_lpAddrBook, false, &lpICalToMapi);
+	hr = CreateICalToMapi(m_lpActiveStore, m_lpAddrBook, false, &unique_tie(lpICalToMapi));
 	if (hr != hrSuccess) {
 		kc_perrorf("CreateICalToMapi", hr);
 		goto exit;
@@ -1004,7 +1004,6 @@ exit:
 		m_lpRequest.HrResponseHeader(403, "Forbidden");
 	else
 		m_lpRequest.HrResponseHeader(400, "Bad Request");
-	delete lpICalToMapi;
 	return hr;
 }
 
