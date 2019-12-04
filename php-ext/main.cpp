@@ -5976,11 +5976,9 @@ ZEND_FUNCTION(mapi_freebusyenumblock_ical)
 		return;
 
 	std::unique_ptr<MapiToICal> mapiical;
-	CreateMapiToICal(addrbook, "utf-8", &unique_tie(mapiical));
-	if (mapiical == nullptr) {
-		MAPI_G(hr) = MAPI_E_NOT_ENOUGH_MEMORY;
+	MAPI_G(hr) = CreateMapiToICal(addrbook, "utf-8", &unique_tie(mapiical));
+	if (MAPI_G(hr) != hrSuccess)
 		return;
-	}
 
 	std::string organizer(organizer_cstr, organizer_len);
 	std::string user(user_cstr, user_len);
@@ -6810,11 +6808,9 @@ ZEND_FUNCTION(mapi_icaltomapi)
 
 	// noRecpients, skip recipients from ical.
 	// Used for DAgent, which uses the mail recipients
-	CreateICalToMapi(lpMsgStore, lpAddrBook, noRecipients, &unique_tie(lpIcalToMapi));
-	if (lpIcalToMapi == nullptr) {
-		MAPI_G(hr) = MAPI_E_NOT_ENOUGH_MEMORY;
+	MAPI_G(hr) = CreateICalToMapi(lpMsgStore, lpAddrBook, noRecipients, &unique_tie(lpIcalToMapi));
+	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
-	}
 	// Set the default timezone to UTC if none is set, replicating the
 	// behaviour of VMIMEToMAPI.
 	MAPI_G(hr) = lpIcalToMapi->ParseICal(icalMsg, "utf-8", "UTC", mailuser, 0);
@@ -6857,11 +6853,9 @@ ZEND_FUNCTION(mapi_mapitoical)
 	ZEND_FETCH_RESOURCE_C(lpMessage, IMessage *, &resMessage, -1, name_mapi_message, le_mapi_message);
 
 	// set HR
-	CreateMapiToICal(lpAddrBook, "utf-8", &unique_tie(lpMtIcal));
-	if (lpMtIcal == nullptr) {
-		MAPI_G(hr) = MAPI_E_NOT_ENOUGH_MEMORY;
+	MAPI_G(hr) = CreateMapiToICal(lpAddrBook, "utf-8", &unique_tie(lpMtIcal));
+	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
-	}
 	MAPI_G(hr) = lpMtIcal->AddMessage(lpMessage, "", 0);
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
@@ -6930,11 +6924,9 @@ ZEND_FUNCTION(mapi_mapitovcf)
 	ZEND_FETCH_RESOURCE_C(lpMAPISession, IMAPISession *, &resSession, -1, name_mapi_session, le_mapi_session);
 	ZEND_FETCH_RESOURCE_C(lpMessage, IMessage *, &resMessage, -1, name_mapi_message, le_mapi_message);
 
-	create_mapitovcf(&unique_tie(conv));
-	if (conv == nullptr) {
-		MAPI_G(hr) = MAPI_E_NOT_ENOUGH_MEMORY;
+	MAPI_G(hr) = create_mapitovcf(&unique_tie(conv));
+	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
-	}
 	MAPI_G(hr) = conv->add_message(lpMessage);
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
