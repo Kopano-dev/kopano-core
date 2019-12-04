@@ -428,6 +428,7 @@ zend_function_entry mapi_functions[] =
 	ZEND_FE(mapi_inetmapi_imtomapi, NULL)
 
 	ZEND_FE(mapi_icaltomapi, nullptr)
+	ZEND_FE(mapi_icaltomapi2, nullptr)
 	ZEND_FE(mapi_mapitoical, nullptr)
 
 	ZEND_FE(mapi_vcftomapi, nullptr)
@@ -6825,6 +6826,51 @@ ZEND_FUNCTION(mapi_icaltomapi)
 	RETVAL_TRUE;
  exit:
 	DEFERRED_EPILOGUE;
+}
+
+ZEND_FUNCTION(mapi_icaltomapi2)
+{
+	PMEASURE_FUNC;
+	LOG_BEGIN();
+	zval *r_abk, *r_fld;
+	php_stringsize_t ics_size = 0;
+	char *ics_data = nullptr;
+
+	RETVAL_FALSE;
+	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rrs",
+	    &r_abk, &r_fld, &ics_data, &ics_size) == FAILURE)
+		return;
+
+	DEFERRED_EPILOGUE;
+	IAddrBook *abk = nullptr;
+	IMAPIFolder *fld = nullptr;
+	ZEND_FETCH_RESOURCE_C(fld, IMAPIFolder *, &r_fld, -1, name_mapi_folder, le_mapi_folder);
+	ZEND_FETCH_RESOURCE_C(abk, IAddrBook *, &r_abk, -1, name_mapi_addrbook, le_mapi_addrbook);
+
+	std::unique_ptr<ICalToMapi> conv;
+	MAPI_G(hr) = CreateICalToMapi(fld, abk, false, &unique_tie(conv));
+	if (MAPI_G(hr) != hrSuccess)
+		return;
+	/* Set the default timezone to UTC if none is set, replicating the behaviour of VMIMEToMAPI. */
+	MAPI_G(hr) = conv->ParseICal(ics_data, "utf-8", "UTC", nullptr, 0);
+	if (MAPI_G(hr) != hrSuccess)
+		return;
+
+	array_init(return_value);
+	for (unsigned int i = 0; i < conv->GetItemCount(); ++i) {
+		object_ptr<IMessage> msg;
+		MAPI_G(hr) = fld->CreateMessage(nullptr, 0, &~msg);
+		if (FAILED(MAPI_G(hr)))
+			return;
+		MAPI_G(hr) = conv->GetItem(i, 0, msg);
+		if (MAPI_G(hr) != hrSuccess)
+			continue;
+		zval *mres = nullptr;
+		MAKE_STD_ZVAL(mres);
+		ZEND_REGISTER_RESOURCE(mres, msg.release(), le_mapi_message);
+		add_index_zval(return_value, i, mres);
+	}
 }
 
 ZEND_FUNCTION(mapi_mapitoical)
