@@ -6832,11 +6832,9 @@ ZEND_FUNCTION(mapi_mapitoical)
 {
 	PMEASURE_FUNC;
 	LOG_BEGIN();
-	zval *resSession;
-	zval *resAddrBook;
+	zval *zvignore, *resAddrBook;
 	zval *resMessage;
 	zval *resOptions;
-	IMAPISession *lpMAPISession = nullptr;
 	IAddrBook *lpAddrBook = nullptr;
 	IMessage *lpMessage = nullptr;
 	std::unique_ptr<MapiToICal> lpMtIcal;
@@ -6845,10 +6843,9 @@ ZEND_FUNCTION(mapi_mapitoical)
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rrra",
-	    &resSession, &resAddrBook, &resMessage, &resOptions) == FAILURE)
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "zrra",
+	    &zvignore, &resAddrBook, &resMessage, &resOptions) == FAILURE)
 		return;
-	ZEND_FETCH_RESOURCE_C(lpMAPISession, IMAPISession *, &resSession, -1, name_mapi_session, le_mapi_session);
 	ZEND_FETCH_RESOURCE_C(lpAddrBook, IAddrBook *, &resAddrBook, -1, name_mapi_addrbook, le_mapi_addrbook);
 	ZEND_FETCH_RESOURCE_C(lpMessage, IMessage *, &resMessage, -1, name_mapi_message, le_mapi_message);
 
@@ -6867,24 +6864,18 @@ ZEND_FUNCTION(mapi_mapitoical)
 
 ZEND_FUNCTION(mapi_vcftomapi)
 {
-	zval *resSession;
-	zval *resStore;
-	zval *resMessage;
+	zval *zvignore, *resMessage;
 	ULONG cbString = 0;
 	char *szString = nullptr;
-	IMAPISession *lpMAPISession = nullptr;
 	IMessage *lpMessage = nullptr;
-	IMsgStore *lpMsgStore = nullptr;
 	std::unique_ptr<vcftomapi> conv;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rrrs",
-	    &resSession, &resStore, &resMessage, &szString,
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "zzrs",
+	    &zvignore, &zvignore, &resMessage, &szString,
 	    &cbString) == FAILURE)
 		return;
-	ZEND_FETCH_RESOURCE_C(lpMAPISession, IMAPISession *, &resSession, -1, name_mapi_session, le_mapi_session);
-	ZEND_FETCH_RESOURCE_C(lpMsgStore, IMsgStore *, &resStore, -1, name_mapi_msgstore, le_mapi_msgstore);
 	ZEND_FETCH_RESOURCE_C(lpMessage, IMessage *, &resMessage, -1, name_mapi_message, le_mapi_message);
 
 	std::string vcfMsg(szString, cbString);
@@ -6906,21 +6897,18 @@ ZEND_FUNCTION(mapi_mapitovcf)
 {
 	PMEASURE_FUNC;
 	LOG_BEGIN();
-	zval *resSession;
-	zval *resAddrBook;
+	zval *zvignore, *resAddrBook;
 	zval *resMessage;
 	zval *resOptions;
-	IMAPISession *lpMAPISession = nullptr;
 	IMessage *lpMessage = nullptr;
 	std::unique_ptr<mapitovcf> conv;
 	std::string vcf;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rrra",
-	    &resSession, &resAddrBook, &resMessage, &resOptions) == FAILURE)
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "zrra",
+	    &zvignore, &resAddrBook, &resMessage, &resOptions) == FAILURE)
 		return;
-	ZEND_FETCH_RESOURCE_C(lpMAPISession, IMAPISession *, &resSession, -1, name_mapi_session, le_mapi_session);
 	ZEND_FETCH_RESOURCE_C(lpMessage, IMessage *, &resMessage, -1, name_mapi_message, le_mapi_message);
 
 	MAPI_G(hr) = create_mapitovcf(&unique_tie(conv));
