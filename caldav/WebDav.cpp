@@ -20,6 +20,11 @@ static inline const char *x2s(const xmlChar *s)
 	return reinterpret_cast<const char *>(s);
 }
 
+static inline const xmlChar *s2x(const char *s)
+{
+	return reinterpret_cast<const xmlChar *>(s);
+}
+
 /**
  * @param[in]	lpRequest	Pointer to http Request object
  * @param[in]	lpSession	Pointer to mapi session of the user
@@ -209,9 +214,7 @@ HRESULT WebDav::RespStructToXml(WEBDAVMULTISTATUS *sDavMStatus, std::string *str
 			continue;
 		RegisterNs(strNs, &strNsPrefix);
 		strprefix = "xmlns:" + strNsPrefix;
-		ulRet = xmlTextWriterWriteAttribute(xmlWriter,
-				reinterpret_cast<const xmlChar *>(strprefix.c_str()),
-				reinterpret_cast<const xmlChar *>(strNs.c_str()));
+		ulRet = xmlTextWriterWriteAttribute(xmlWriter, s2x(strprefix.c_str()), s2x(strNs.c_str()));
 		if (ulRet < 0)
 			goto xmlfail;
 	}
@@ -357,7 +360,7 @@ HRESULT WebDav::HrHandleRptCalQry()
 				goto exit;
 			}
 
-			sReptQuery.sFilter.lstFilters.emplace_back(reinterpret_cast<char *>(lpXmlChildAttr->content));
+			sReptQuery.sFilter.lstFilters.emplace_back(x2s(lpXmlChildAttr->content));
 			lpXmlChildNode = lpXmlChildNode->children;
 			if (lpXmlChildNode == nullptr ||
 			    lpXmlChildNode->properties == nullptr ||
@@ -376,7 +379,7 @@ HRESULT WebDav::HrHandleRptCalQry()
 				hr = MAPI_E_CORRUPT_DATA;
 				goto exit;
 			}
-			sReptQuery.sFilter.lstFilters.emplace_back(reinterpret_cast<char *>(lpXmlChildAttr->content));
+			sReptQuery.sFilter.lstFilters.emplace_back(x2s(lpXmlChildAttr->content));
 			// filter not done here.., time-range in lpXmlChildNode->children.
 			if (lpXmlChildNode->children) {
 				for (lpXmlChildNode = lpXmlChildNode->children; lpXmlChildNode != NULL; lpXmlChildNode = lpXmlChildNode->next) {
@@ -1211,7 +1214,7 @@ HRESULT WebDav::HrPropPatch()
 	}
 
 	if(lpXmlNode->ns && lpXmlNode->ns->href)
-		HrSetDavPropName(&(sDavProp.sPropName),"prop",(char *)lpXmlNode->ns->href);
+		HrSetDavPropName(&sDavProp.sPropName, "prop", x2s(lpXmlNode->ns->href));
 	else
 		HrSetDavPropName(&(sDavProp.sPropName),"prop", WEBDAVNS);
 
@@ -1220,13 +1223,13 @@ HRESULT WebDav::HrPropPatch()
 		WEBDAVPROPERTY sProperty;
 
 		if(lpXmlNode->ns && lpXmlNode->ns->href)
-			HrSetDavPropName(&(sProperty.sPropName),(char *)lpXmlNode->name,(char*)lpXmlNode->ns->href);
+			HrSetDavPropName(&sProperty.sPropName, x2s(lpXmlNode->name), x2s(lpXmlNode->ns->href));
 		else
-			HrSetDavPropName(&(sProperty.sPropName),(char *)lpXmlNode->name, WEBDAVNS);
+			HrSetDavPropName(&sProperty.sPropName, x2s(lpXmlNode->name), WEBDAVNS);
 
 		if (lpXmlNode->children != nullptr &&
 		    lpXmlNode->children->content != nullptr)
-			sProperty.strValue = (char *)lpXmlNode->children->content;
+			sProperty.strValue = x2s(lpXmlNode->children->content);
 
 		sDavProp.lstProps.emplace_back(std::move(sProperty));
 	}
@@ -1309,21 +1312,21 @@ HRESULT WebDav::HrMkCalendar()
 	}
 
 	if(lpXmlNode->ns && lpXmlNode->ns->href)
-		HrSetDavPropName(&(sDavProp.sPropName),(char*)lpXmlNode->name,(char*)lpXmlNode->ns->href);
+		HrSetDavPropName(&sDavProp.sPropName, x2s(lpXmlNode->name), x2s(lpXmlNode->ns->href));
 	else
-		HrSetDavPropName(&(sDavProp.sPropName),(char*)lpXmlNode->name,WEBDAVNS);
+		HrSetDavPropName(&sDavProp.sPropName, x2s(lpXmlNode->name), WEBDAVNS);
 
 	for (lpXmlNode = lpXmlNode->children; lpXmlNode != nullptr;
 	     lpXmlNode = lpXmlNode->next) {
 		WEBDAVPROPERTY sProperty;
 
 		if (lpXmlNode->ns && lpXmlNode->ns->href)
-			HrSetDavPropName(&(sProperty.sPropName),(char*)lpXmlNode->name,(char*)lpXmlNode->ns->href);
+			HrSetDavPropName(&sProperty.sPropName, x2s(lpXmlNode->name), x2s(lpXmlNode->ns->href));
 		else
-			HrSetDavPropName(&(sProperty.sPropName),(char*)lpXmlNode->name,WEBDAVNS);
+			HrSetDavPropName(&sProperty.sPropName, x2s(lpXmlNode->name), WEBDAVNS);
 
 		if (lpXmlNode->children && lpXmlNode->children->content)
-			sProperty.strValue = (char*)lpXmlNode->children->content;
+			sProperty.strValue = x2s(lpXmlNode->children->content);
 
 		// @todo we should have a generic xml to structs converter, this is *way* too hackish
 		if (sProperty.sPropName.strPropname == "supported-calendar-component-set")
@@ -1334,7 +1337,7 @@ HRESULT WebDav::HrMkCalendar()
 				    lpXmlChild->properties != nullptr &&
 				    lpXmlChild->properties->children != nullptr &&
 				    lpXmlChild->properties->children->content != nullptr)
-					sProperty.strValue = reinterpret_cast<char *>(lpXmlChild->properties->children->content);
+					sProperty.strValue = x2s(lpXmlChild->properties->children->content);
 		sDavProp.lstProps.emplace_back(std::move(sProperty));
 	}
 
