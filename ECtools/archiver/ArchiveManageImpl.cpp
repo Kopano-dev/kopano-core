@@ -155,7 +155,7 @@ HRESULT ArchiveManageImpl::AttachTo(const char *lpszArchiveServer, const TCHAR *
 	if (ulFlags & UseIpmSubtree)
 		strFoldername.clear();	// Empty folder name indicates the IPM subtree.
 	else if (lpszFolder)
-		strFoldername.assign(lpszFolder);
+		strFoldername = lpszFolder;
 
 	if (lpszArchiveServer) {
 		hr = m_ptrSession->CreateRemote(lpszArchiveServer, m_lpLogger, &ptrRemoteSession);

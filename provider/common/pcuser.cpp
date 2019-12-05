@@ -65,18 +65,18 @@ objectid_t objectdetails_t::GetPropObject(property_key_t propname) const
 
 void objectdetails_t::SetPropInt(property_key_t propname, unsigned int value)
 {
-    m_mapProps[propname].assign(stringify(value));
+	m_mapProps[propname] = stringify(value);
 }
 
 void objectdetails_t::SetPropBool(property_key_t propname, bool value)
 {
-    m_mapProps[propname].assign(value ? "1" : "0");
+	m_mapProps[propname] = value ? "1" : "0";
 }
 
 void objectdetails_t::SetPropString(property_key_t propname,
     const std::string &value)
 {
-    m_mapProps[propname].assign(value);
+	m_mapProps[propname] = value;
 }
 
 void objectdetails_t::SetPropListString(property_key_t propname,
@@ -88,7 +88,7 @@ void objectdetails_t::SetPropListString(property_key_t propname,
 void objectdetails_t::SetPropObject(property_key_t propname,
     objectid_t &&value)
 {
-	m_mapProps[propname].assign(value.tostring());
+	m_mapProps[propname] = value.tostring();
 }
 
 void objectdetails_t::AddPropInt(property_key_t propname, unsigned int value)
@@ -195,7 +195,7 @@ objectclass_t objectdetails_t::GetClass() const {
 void objectdetails_t::MergeFrom(const objectdetails_t &from) {
 	assert(m_objclass == from.m_objclass);
 	for (const auto &p : from.m_mapProps)
-		m_mapProps[p.first].assign(p.second);
+		m_mapProps[p.first] = p.second;
 	for (const auto &p : from.m_mapMVProps)
 		m_mapMVProps[p.first].assign(p.second.cbegin(), p.second.cend());
 }

@@ -313,7 +313,7 @@ HRESULT ECChannel::HrWriteLine(const char *szBuffer, size_t len)
 	std::string strLine;
 
 	if (len == 0)
-		strLine.assign(szBuffer);
+		strLine = szBuffer;
 	else
 		strLine.assign(szBuffer, len);
 

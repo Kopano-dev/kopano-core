@@ -330,7 +330,7 @@ HRESULT WebDav::HrHandleRptCalQry()
 	}
 
 	// REPORT calendar-query
-	sReptQuery.sPropName.strPropname.assign((const char*) lpXmlNode->name);
+	sReptQuery.sPropName.strPropname = x2s(lpXmlNode->name);
 	sReptQuery.sFilter.tStart = 0;
 
 	//HrSetDavPropName(&(sReptQuery.sPropName),lpXmlNode);
@@ -399,9 +399,9 @@ HRESULT WebDav::HrHandleRptCalQry()
 			}
 		} else if (strcmp(x2s(lpXmlNode->name), "prop") == 0) {
 			if (lpXmlNode->ns && lpXmlNode->ns->href)
-				sReptQuery.sPropName.strNS.assign((const char*) lpXmlNode->ns->href);
+				sReptQuery.sPropName.strNS = x2s(lpXmlNode->ns->href);
 			else
-				sReptQuery.sPropName.strNS.assign(WEBDAVNS);
+				sReptQuery.sPropName.strNS = WEBDAVNS;
 
 			HrSetDavPropName(&(sReptQuery.sProp.sPropName),lpXmlNode);
 			for (auto lpXmlChildNode = lpXmlNode->children;
@@ -504,7 +504,7 @@ HRESULT WebDav::HrHandleRptMulGet()
 		auto lpXmlContentNode = lpXmlChildNode->children;
 
 		HrSetDavPropName(&(sWebVal.sPropName),lpXmlChildNode);
-		strGuid.assign((const char *) lpXmlContentNode->content);
+		strGuid = x2s(lpXmlContentNode->content);
 		found = strGuid.rfind("/");
 		if (found == std::string::npos || found + 1 == strGuid.length())
 			continue;
@@ -597,7 +597,7 @@ HRESULT WebDav::HrPropertySearch()
 
 		lpXmlChildNode = lpXmlChildNode->next;
 		if(lpXmlChildNode->children->content)
-			sWebVal.strValue.assign((char*)lpXmlChildNode->children->content);
+			sWebVal.strValue = x2s(lpXmlChildNode->children->content);
 		sRptMGet.lstWebVal.emplace_back(sWebVal);
 		if(lpXmlNode->next)
 			lpXmlNode = lpXmlNode->next;
@@ -1116,9 +1116,9 @@ HRESULT WebDav::HrWriteItems(xmlTextWriter *xmlWriter,
  */
 void WebDav::HrSetDavPropName(WEBDAVPROPNAME *lpsDavPropName, xmlNode *lpXmlNode)
 {
-	lpsDavPropName->strPropname.assign((const char*)lpXmlNode->name);
+	lpsDavPropName->strPropname = x2s(lpXmlNode->name);
 	if (lpXmlNode->ns != NULL && lpXmlNode->ns->href != NULL)
-		lpsDavPropName->strNS.assign(reinterpret_cast<const char *>(lpXmlNode->ns->href));
+		lpsDavPropName->strNS = x2s(lpXmlNode->ns->href);
 	else
 		lpsDavPropName->strNS.clear();
 	if(!lpsDavPropName->strNS.empty())
@@ -1141,8 +1141,8 @@ void WebDav::HrSetDavPropName(WEBDAVPROPNAME *lpsDavPropName, xmlNode *lpXmlNode
 void WebDav::HrSetDavPropName(WEBDAVPROPNAME *lpsDavPropName,
     const std::string &strPropName, const std::string &strNs)
 {
-	lpsDavPropName->strPropname.assign(strPropName);
-	lpsDavPropName->strNS.assign(strNs);
+	lpsDavPropName->strPropname = strPropName;
+	lpsDavPropName->strNS = strNs;
 	if (!lpsDavPropName->strNS.empty())
 		m_mapNs[lpsDavPropName->strNS].clear();
 	lpsDavPropName->strPropAttribName.clear();
@@ -1166,8 +1166,8 @@ void WebDav::HrSetDavPropName(WEBDAVPROPNAME *lpsDavPropName,
     const std::string &strPropName, const std::string &strPropAttribName,
     const std::string &strPropAttribValue, const std::string &strNs)
 {
-	lpsDavPropName->strPropname.assign(strPropName);
-	lpsDavPropName->strNS.assign(strNs);
+	lpsDavPropName->strPropname = strPropName;
+	lpsDavPropName->strNS = strNs;
 	lpsDavPropName->strPropAttribName = strPropAttribName;
 	lpsDavPropName->strPropAttribValue = strPropAttribValue;
 	if (!lpsDavPropName->strNS.empty())

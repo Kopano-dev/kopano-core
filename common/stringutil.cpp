@@ -73,7 +73,7 @@ class gtconv final {
 		scoped_lock l_cache(m_hCacheLock);
 		auto insResult = m_cache.emplace(lpsz, L"");
 		if (insResult.second) /* successful insert, so not found in cache */
-			insResult.first->second.assign(m_converter.convert_to<std::wstring>(lpsz, strlen(lpsz), "UTF-8"));
+			insResult.first->second = m_converter.convert_to<std::wstring>(lpsz, strlen(lpsz), "UTF-8");
 		return insResult.first->second.c_str();
 	}
 

@@ -431,9 +431,9 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 		ex.ulEndDateTime = iEx->ulEndDateTime;
 		ex.ulOriginalStartDate = iEx->ulOriginalStartDate;
 		TryConvert(convertContext, iEx->strSubject, rawsize(iEx->strSubject), "windows-1252", wstr);
-		ex.strWideCharSubject.assign(wstr.c_str(), wstr.size());
+		ex.strWideCharSubject = wstr;
 		TryConvert(convertContext, iEx->strLocation, rawsize(iEx->strLocation), "windows-1252", wstr);
-		ex.strWideCharLocation.assign(wstr.c_str(), wstr.size());
+		ex.strWideCharLocation = wstr;
 		r.lstExtendedExceptions.emplace_back(std::move(ex));
 		++iEx;
 	}
@@ -451,9 +451,9 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 		eex.ulChangeHighlightValue = 0;
 		eex.ulOriginalStartDate = (iEx->ulOriginalStartDate / 1440) * 1440;
 		TryConvert(convertContext, iEx->strSubject, rawsize(iEx->strSubject), "windows-1252", wstr);
-		eex.strWideCharSubject.assign(wstr.c_str(), wstr.size());
+		eex.strWideCharSubject = wstr;
 		TryConvert(convertContext, iEx->strLocation, rawsize(iEx->strLocation), "windows-1252", wstr);
-		eex.strWideCharLocation.assign(wstr.c_str(), wstr.size());
+		eex.strWideCharLocation = wstr;
 		++iEx;
 	}
 

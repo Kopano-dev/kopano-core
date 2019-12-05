@@ -499,7 +499,7 @@ HRESULT ECParseOneOff(const ENTRYID *lpEntryID, ULONG cbEntryID,
 	if(usFlags & MAPI_ONE_OFF_UNICODE) {
 		std::u16string str;
 
-		str.assign(reinterpret_cast<std::u16string::const_pointer>(lpBuffer));
+		str = reinterpret_cast<std::u16string::const_pointer>(lpBuffer);
 		// can be 0 length
 		auto hr = TryConvert(str, name);
 		if (hr != hrSuccess)

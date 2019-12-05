@@ -40,7 +40,7 @@ HRESULT WSMessageStreamExporter::Create(ULONG ulOffset, ULONG ulCount, const mes
 		auto lpsi = make_unique_nt<StreamInfo>();
 		if (lpsi == nullptr)
 			return MAPI_E_NOT_ENOUGH_MEMORY;
-		lpsi->id.assign(streams.__ptr[i].sStreamData.xop__Include.id);
+		lpsi->id = streams.__ptr[i].sStreamData.xop__Include.id;
 		auto hr = MAPIAllocateBuffer(streams.__ptr[i].sPropVals.__size * sizeof(SPropValue), &~lpsi->ptrPropVals);
 		if (hr != hrSuccess)
 			return hr;

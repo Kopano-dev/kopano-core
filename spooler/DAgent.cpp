@@ -651,28 +651,28 @@ static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
 		auto lpAddrTypeProp  = lpAdrList->aEntries[ulRCPT].cfind(PR_ADDRTYPE_A);
 		auto lpEmailProp     = lpAdrList->aEntries[ulRCPT].cfind(PR_EMAIL_ADDRESS_W);
 		auto lpSearchKeyProp = lpAdrList->aEntries[ulRCPT].cfind(PR_SEARCH_KEY);
-		recip->wstrUsername.assign(lpAccountProp->Value.lpszW);
-		recip->wstrFullname.assign(lpFullNameProp->Value.lpszW);
-		recip->strSMTP.assign(lpSMTPProp->Value.lpszA);
+		recip->wstrUsername  = lpAccountProp->Value.lpszW;
+		recip->wstrFullname  = lpFullNameProp->Value.lpszW;
+		recip->strSMTP       = lpSMTPProp->Value.lpszA;
 		if (Util::HrCopyBinary(lpEntryIdProp->Value.bin.cb, lpEntryIdProp->Value.bin.lpb, &recip->sEntryId.cb, &recip->sEntryId.lpb) != hrSuccess)
 			continue;
 
 		/* Only when multi-company has been enabled will we have the companyname. */
 		if (lpCompanyProp)
-			recip->wstrCompany.assign(lpCompanyProp->Value.lpszW);
+			recip->wstrCompany = lpCompanyProp->Value.lpszW;
 		/* Only when distributed has been enabled will we have the servername. */
 		if (lpServerProp)
-			recip->wstrServerDisplayName.assign(lpServerProp->Value.lpszW);
+			recip->wstrServerDisplayName = lpServerProp->Value.lpszW;
 		if (lpDisplayProp)
 			recip->ulDisplayType = lpDisplayProp->Value.ul;
 		if (lpAdminProp)
 			recip->ulAdminLevel = lpAdminProp->Value.ul;
 		if (lpAddrTypeProp)
-			recip->strAddrType.assign(lpAddrTypeProp->Value.lpszA);
+			recip->strAddrType = lpAddrTypeProp->Value.lpszA;
 		else
-			recip->strAddrType.assign("SMTP");
+			recip->strAddrType = "SMTP";
 		if (lpEmailProp)
-			recip->wstrEmail.assign(lpEmailProp->Value.lpszW);
+			recip->wstrEmail = lpEmailProp->Value.lpszW;
 
 		if (lpSearchKeyProp) {
 			if (Util::HrCopyBinary(lpSearchKeyProp->Value.bin.cb, lpSearchKeyProp->Value.bin.lpb, &recip->sSearchKey.cb, &recip->sSearchKey.lpb) != hrSuccess)
