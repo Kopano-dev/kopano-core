@@ -85,7 +85,7 @@ protected:
 	HRESULT resolve_organizer(std::wstring &email, std::wstring &name, std::string &type, unsigned int &cb, ENTRYID **entryid, bool force_mailuser = false);
 };
 
-HRESULT HrCopyString(convert_context& converter, std::string& strCharset, void *base, const char* lpszSrc, WCHAR** lppszDst);
+extern HRESULT HrCopyString(convert_context &, const std::string &charset, void *base, const char *src, wchar_t **dst);
 HRESULT HrCopyString(void *base, const WCHAR* lpwszSrc, WCHAR** lppwszDst);
 
 } /* namespace */

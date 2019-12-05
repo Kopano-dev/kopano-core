@@ -901,7 +901,7 @@ HRESULT CalDAV::HrPut()
 		goto exit;
 	}
 	m_lpRequest.HrGetBody(&strIcal);
-	hr = lpICalToMapi->ParseICal(strIcal, m_strCharset, m_strSrvTz, m_lpLoginUser, 0);
+	hr = lpICalToMapi->ParseICal2(strIcal.c_str(), m_strCharset, m_strSrvTz, m_lpLoginUser, 0);
 	if(hr!=hrSuccess)
 	{
 		kc_perror("Error parsing iCal data in PUT request", hr);
@@ -1373,7 +1373,7 @@ HRESULT CalDAV::HrHandlePost()
 	hr = CreateICalToMapi(m_lpDefStore, m_lpAddrBook, false, &unique_tie(lpIcalToMapi));
 	if (hr != hrSuccess)
 		return kc_perrorf("CreateICalToMapi", hr);
-	hr = lpIcalToMapi->ParseICal(strIcal, m_strCharset, m_strSrvTz, m_lpLoginUser, 0);
+	hr = lpIcalToMapi->ParseICal2(strIcal.c_str(), m_strCharset, m_strSrvTz, m_lpLoginUser, 0);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to parse received iCal message", hr);
 	if (lpIcalToMapi->GetFreeBusyInfo(NULL, NULL, NULL, NULL) == hrSuccess)

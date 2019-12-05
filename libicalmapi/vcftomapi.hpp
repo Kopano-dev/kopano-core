@@ -19,6 +19,9 @@ class vcftomapi {
 	 * internal buffer. Returns %MAPI_E_CORRUPT_DATA if no vCards were found.
 	 */
 	virtual HRESULT parse_vcf(const std::string &ical) = 0;
+#ifndef SWIG
+	virtual HRESULT parse_vcf(std::string &&ical) = 0;
+#endif
 
 	virtual size_t get_item_count() = 0;
 

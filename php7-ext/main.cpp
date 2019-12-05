@@ -6651,7 +6651,6 @@ ZEND_FUNCTION(mapi_icaltomapi)
 	ZEND_FETCH_RESOURCE_C(lpAddrBook, IAddrBook *, &resAddrBook, -1, name_mapi_addrbook, le_mapi_addrbook);
 	ZEND_FETCH_RESOURCE_C(lpMessage, IMessage *, &resMessage, -1, name_mapi_message, le_mapi_message);
 
-	std::string icalMsg(szString, cbString);
 	memory_ptr<SPropValue> prop;
 	object_ptr<IMailUser> mailuser;
 	ULONG objtype;
@@ -6671,7 +6670,7 @@ ZEND_FUNCTION(mapi_icaltomapi)
 		return;
 	// Set the default timezone to UTC if none is set, replicating the
 	// behaviour of VMIMEToMAPI.
-	MAPI_G(hr) = lpIcalToMapi->ParseICal(icalMsg, "utf-8", "UTC", mailuser, 0);
+	MAPI_G(hr) = lpIcalToMapi->ParseICal2(szString, "utf-8", "UTC", mailuser, 0);
 	if (MAPI_G(hr) != hrSuccess)
 		return;
 	if (lpIcalToMapi->GetItemCount() == 0) {
@@ -6756,11 +6755,10 @@ ZEND_FUNCTION(mapi_vcftomapi)
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpMessage, IMessage *, &resMessage, -1, name_mapi_message, le_mapi_message);
 
-	std::string vcfMsg(szString, cbString);
 	MAPI_G(hr) = create_vcftomapi(lpMessage, &unique_tie(conv));
 	if (MAPI_G(hr) != hrSuccess)
 		return;
-	MAPI_G(hr) = conv->parse_vcf(vcfMsg);
+	MAPI_G(hr) = conv->parse_vcf(std::string(szString, cbString));
 	if (MAPI_G(hr) != hrSuccess)
 		return;
 

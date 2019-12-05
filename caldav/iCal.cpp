@@ -132,7 +132,7 @@ HRESULT iCal::HrHandleIcalPost()
 	m_lpRequest.HrGetBody(&strIcal);
 	if(!strIcal.empty())
 	{
-		hr = lpICalToMapi->ParseICal(strIcal, m_strCharset, m_strSrvTz, m_lpLoginUser, 0);
+		hr = lpICalToMapi->ParseICal2(strIcal.c_str(), m_strCharset, m_strSrvTz, m_lpLoginUser, 0);
 		if (hr!=hrSuccess)
 			goto exit;
 	}
