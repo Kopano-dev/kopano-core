@@ -15,6 +15,11 @@
 
 using namespace KC;
 
+static inline const char *x2s(const xmlChar *s)
+{
+	return reinterpret_cast<const char *>(s);
+}
+
 /**
  * @param[in]	lpRequest	Pointer to http Request object
  * @param[in]	lpSession	Pointer to mapi session of the user
@@ -82,14 +87,14 @@ HRESULT WebDav::HrPropfind()
 		goto exit;
 
 	lpXmlNode = xmlDocGetRootElement(m_lpXmlDoc);
-	if (!lpXmlNode || !lpXmlNode->name || xmlStrcmp(lpXmlNode->name, (const xmlChar *)"propfind"))
-	{
+	if (lpXmlNode == nullptr || lpXmlNode->name == nullptr ||
+	    strcmp(x2s(lpXmlNode->name), "propfind") != 0) {
 		hr = MAPI_E_CORRUPT_DATA;
 		goto exit;
 	}
 	lpXmlNode = lpXmlNode->children;
-	if (!lpXmlNode || !lpXmlNode->name || xmlStrcmp(lpXmlNode->name, (const xmlChar *)"prop"))
-	{
+	if (lpXmlNode == nullptr || lpXmlNode->name == nullptr ||
+	    strcmp(x2s(lpXmlNode->name), "prop") != 0) {
 		hr = MAPI_E_CORRUPT_DATA;
 		goto exit;
 	}
@@ -259,22 +264,25 @@ HRESULT WebDav::HrReport()
 	auto lpXmlNode = xmlDocGetRootElement(m_lpXmlDoc);
 	if (!lpXmlNode)
 		return MAPI_E_CORRUPT_DATA;
-
-	if (lpXmlNode->name && !xmlStrcmp(lpXmlNode->name, (const xmlChar *)"calendar-query") )
+	if (lpXmlNode->name == nullptr) {
+		m_lpRequest.HrResponseHeader(500, "Internal Server Error");
+		return hrSuccess;
+	}
+	if (strcmp(x2s(lpXmlNode->name), "calendar-query") == 0)
 		//CALENDAR-QUERY
 		//Retrieves the list of GUIDs
 		return HrHandleRptCalQry();
-	else if (lpXmlNode->name && !xmlStrcmp(lpXmlNode->name, (const xmlChar *)"calendar-multiget") )
+	else if (strcmp(x2s(lpXmlNode->name), "calendar-multiget") == 0)
 		//MULTIGET
 		//Retrieves Ical data for each GUID that client requests
 		return HrHandleRptMulGet();
-	else if (lpXmlNode->name && !xmlStrcmp(lpXmlNode->name, (const xmlChar *)"principal-property-search"))
+	else if (strcmp(x2s(lpXmlNode->name), "principal-property-search") == 0)
 		// suggestion list while adding attendees on mac iCal.
 		return HrPropertySearch();
-	else if (lpXmlNode->name && !xmlStrcmp(lpXmlNode->name, (const xmlChar *)"principal-search-property-set"))
+	else if (strcmp(x2s(lpXmlNode->name), "principal-search-property-set") == 0)
 		// which all properties to be searched while searching for attendees.
 		return HrPropertySearchSet();
-	else if (lpXmlNode->name && !xmlStrcmp(lpXmlNode->name, (const xmlChar *)"expand-property"))
+	else if (strcmp(x2s(lpXmlNode->name), "expand-property") == 0)
 		// ignore expand-property
 		m_lpRequest.HrResponseHeader(200, "OK");
 	else
@@ -325,8 +333,7 @@ HRESULT WebDav::HrHandleRptCalQry()
 	//HrSetDavPropName(&(sReptQuery.sPropName),lpXmlNode);
 	for (lpXmlNode = lpXmlNode->children; lpXmlNode != nullptr;
 	     lpXmlNode = lpXmlNode->next) {
-		if (xmlStrcmp(lpXmlNode->name, (const xmlChar *)"filter") == 0)
-		{
+		if (strcmp(x2s(lpXmlNode->name), "filter") == 0) {
 			// @todo convert xml filter to mapi restriction
 			// "old" code
 			if (!lpXmlNode->children) {
@@ -344,8 +351,8 @@ HRESULT WebDav::HrHandleRptCalQry()
 				goto exit;
 			}
 
-			if (!lpXmlChildAttr || !lpXmlChildAttr->content || xmlStrcmp(lpXmlChildAttr->content, (const xmlChar *)"VCALENDAR"))
-			{
+			if (lpXmlChildAttr == nullptr || lpXmlChildAttr->content == nullptr ||
+			    strcmp(x2s(lpXmlChildAttr->content), "VCALENDAR") != 0) {
 				hr = E_FAIL;
 				goto exit;
 			}
@@ -364,8 +371,8 @@ HRESULT WebDav::HrHandleRptCalQry()
 				hr = MAPI_E_CORRUPT_DATA;
 				goto exit;
 			}
-			if (xmlStrcmp(lpXmlChildAttr->content, (const xmlChar *)"VTODO") != 0 &&
-			    xmlStrcmp(lpXmlChildAttr->content, (const xmlChar *)"VEVENT") != 0) {
+			if (strcmp(x2s(lpXmlChildAttr->content), "VTODO") != 0 &&
+			    strcmp(x2s(lpXmlChildAttr->content), "VEVENT") != 0) {
 				hr = MAPI_E_CORRUPT_DATA;
 				goto exit;
 			}
@@ -373,12 +380,12 @@ HRESULT WebDav::HrHandleRptCalQry()
 			// filter not done here.., time-range in lpXmlChildNode->children.
 			if (lpXmlChildNode->children) {
 				for (lpXmlChildNode = lpXmlChildNode->children; lpXmlChildNode != NULL; lpXmlChildNode = lpXmlChildNode->next) {
-					if (xmlStrcmp(lpXmlChildNode->name, (const xmlChar *)"time-range") != 0)
+					if (strcmp(x2s(lpXmlChildNode->name), "time-range") != 0)
 						continue;
 					if (lpXmlChildNode->properties == NULL || lpXmlChildNode->properties->children == NULL)
 						continue;
 					lpXmlChildAttr = lpXmlChildNode->properties->children;
-					if (xmlStrcmp(lpXmlChildAttr->name, (const xmlChar *)"start") != 0)
+					if (strcmp(x2s(lpXmlChildAttr->name), "start") != 0)
 						// other lpXmlChildAttr->name .. like "end" maybe?
 						continue;
 					// timestamp from ical
@@ -387,9 +394,7 @@ HRESULT WebDav::HrHandleRptCalQry()
 					// @note this is still being ignored in CalDavProto::HrListCalEntries
 				}
 			}
-		}
-		else if (xmlStrcmp(lpXmlNode->name, (const xmlChar *)"prop") == 0)
-		{
+		} else if (strcmp(x2s(lpXmlNode->name), "prop") == 0) {
 			if (lpXmlNode->ns && lpXmlNode->ns->href)
 				sReptQuery.sPropName.strNS.assign((const char*) lpXmlNode->ns->href);
 			else
@@ -466,8 +471,8 @@ HRESULT WebDav::HrHandleRptMulGet()
 	// xml data to structures
 	HrSetDavPropName(&(sRptMGet.sPropName),lpXmlNode);
 	lpXmlNode = lpXmlNode->children;
-	if (!lpXmlNode || !lpXmlNode->name || xmlStrcmp(lpXmlNode->name, (const xmlChar *)"prop"))
-	{
+	if (lpXmlNode == nullptr || lpXmlNode->name == nullptr ||
+	    strcmp(x2s(lpXmlNode->name), "prop") != 0) {
 		hr = MAPI_E_CORRUPT_DATA;
 		goto exit;
 	}
@@ -562,16 +567,16 @@ HRESULT WebDav::HrPropertySearch()
 	// xml data to structures
 	while (lpXmlNode) {
 		// <property-search>
-		if (!lpXmlNode || !lpXmlNode->name || xmlStrcmp(lpXmlNode->name, (const xmlChar *)"property-search"))
-		{
+		if (lpXmlNode == nullptr || lpXmlNode->name == nullptr ||
+		    strcmp(x2s(lpXmlNode->name), "property-search") != 0) {
 			hr = hrSuccess;
 			break;
 		}
 
 		// <prop>
 		auto lpXmlChildNode = lpXmlNode->children;
-		if (!lpXmlChildNode || !lpXmlChildNode->name || xmlStrcmp(lpXmlChildNode->name, (const xmlChar *)"prop"))
-		{
+		if (lpXmlChildNode == nullptr || lpXmlChildNode->name == nullptr ||
+		    strcmp(x2s(lpXmlChildNode->name), "prop") != 0) {
 			hr = MAPI_E_CORRUPT_DATA;
 			goto exit;;
 		}
@@ -595,8 +600,8 @@ HRESULT WebDav::HrPropertySearch()
 			lpXmlNode = lpXmlNode->next;
 	}
 
-	if (!lpXmlNode || !lpXmlNode->name || xmlStrcmp(lpXmlNode->name, (const xmlChar *)"prop"))
-	{
+	if (lpXmlNode == nullptr || lpXmlNode->name == nullptr ||
+	    strcmp(x2s(lpXmlNode->name), "prop") != 0) {
 		hr = MAPI_E_CORRUPT_DATA;
 		goto exit;
 	}
@@ -1187,20 +1192,20 @@ HRESULT WebDav::HrPropPatch()
 		goto exit;
 
 	lpXmlNode = xmlDocGetRootElement(m_lpXmlDoc);
-	if (!lpXmlNode || !lpXmlNode->name || xmlStrcmp(lpXmlNode->name, (const xmlChar *)"propertyupdate"))
-	{
+	if (lpXmlNode == nullptr || lpXmlNode->name == nullptr ||
+	    strcmp(x2s(lpXmlNode->name), "propertyupdate") != 0) {
 		hr = MAPI_E_CORRUPT_DATA;
 		goto exit;
 	}
 	lpXmlNode = lpXmlNode->children;
-	if (!lpXmlNode || !lpXmlNode->name || xmlStrcmp(lpXmlNode->name, (const xmlChar *)"set"))
-	{
+	if (lpXmlNode == nullptr || lpXmlNode->name == nullptr ||
+	    strcmp(x2s(lpXmlNode->name), "set") != 0) {
 		hr = MAPI_E_CORRUPT_DATA;
 		goto exit;
 	}
 	lpXmlNode = lpXmlNode->children;
-	if (!lpXmlNode || !lpXmlNode->name || xmlStrcmp(lpXmlNode->name, (const xmlChar *)"prop"))
-	{
+	if (lpXmlNode == nullptr || lpXmlNode->name == nullptr ||
+	    strcmp(x2s(lpXmlNode->name), "prop") != 0) {
 		hr = MAPI_E_CORRUPT_DATA;
 		goto exit;
 	}
@@ -1285,20 +1290,20 @@ HRESULT WebDav::HrMkCalendar()
 	}
 
 	lpXmlNode = xmlDocGetRootElement(m_lpXmlDoc);
-	if (!lpXmlNode || !lpXmlNode->name || xmlStrcmp(lpXmlNode->name, (const xmlChar *)"mkcalendar"))
-	{
+	if (lpXmlNode == nullptr || lpXmlNode->name == nullptr ||
+	    strcmp(x2s(lpXmlNode->name), "mkcalendar") != 0) {
 		hr = MAPI_E_CORRUPT_DATA;
 		goto exit;
 	}
 	lpXmlNode = lpXmlNode->children;
-	if (!lpXmlNode || !lpXmlNode->name || xmlStrcmp(lpXmlNode->name, (const xmlChar *)"set"))
-	{
+	if (lpXmlNode == nullptr || lpXmlNode->name == nullptr ||
+	    strcmp(x2s(lpXmlNode->name), "set") != 0) {
 		hr = MAPI_E_CORRUPT_DATA;
 		goto exit;
 	}
 	lpXmlNode = lpXmlNode->children;
-	if (!lpXmlNode || !lpXmlNode->name || xmlStrcmp(lpXmlNode->name, (const xmlChar *)"prop"))
-	{
+	if (lpXmlNode == nullptr || lpXmlNode->name == nullptr ||
+	    strcmp(x2s(lpXmlNode->name), "prop") != 0) {
 		hr = MAPI_E_CORRUPT_DATA;
 		goto exit;
 	}
@@ -1325,7 +1330,7 @@ HRESULT WebDav::HrMkCalendar()
 			for (auto lpXmlChild = lpXmlNode->children;
 			     lpXmlChild != nullptr; lpXmlChild = lpXmlChild->next)
 				if (lpXmlChild->type == XML_ELEMENT_NODE &&
-				    xmlStrcmp(lpXmlChild->name, reinterpret_cast<const xmlChar *>("comp")) == 0 &&
+				    strcmp(x2s(lpXmlChild->name), "comp") == 0 &&
 				    lpXmlChild->properties != nullptr &&
 				    lpXmlChild->properties->children != nullptr &&
 				    lpXmlChild->properties->children->content != nullptr)
