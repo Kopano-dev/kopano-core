@@ -680,7 +680,7 @@ private:
 	 *
 	 * @todo return value lppres
 	 */
-	void my_ldap_search_s(char *base, int scope, char *filter, char *attrs[], int attrsonly, LDAPMessage **lppres, LDAPControl **serverControls = NULL);
+	void my_ldap_search_s(const char *base, int scope, const char *filter, const char *const *attrs, int attrsonly, LDAPMessage **lppres, LDAPControl **serverControls = nullptr);
 	std::string rst_to_filter(const restrictTable *);
 
 	long unsigned int ldapServerIndex; // index of the last ldap server to which we could connect
