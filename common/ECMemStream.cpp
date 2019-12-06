@@ -21,14 +21,14 @@ ECMemBlock::ECMemBlock(const char *buffer, ULONG ulDataLen, ULONG fl) :
 		return;
 	cbTotal = ulDataLen;
 	cbCurrent = ulDataLen;
-	lpCurrent = (char *)malloc(ulDataLen);
+	lpCurrent = static_cast<char *>(malloc(ulDataLen));
 	if (lpCurrent == nullptr)
 		throw std::bad_alloc();
 	memcpy(lpCurrent, buffer, ulDataLen);
 	if (!(ulFlags & STGM_TRANSACTED))
 		return;
 	cbOriginal = ulDataLen;
-	lpOriginal = (char *)malloc(ulDataLen);
+	lpOriginal = static_cast<char *>(malloc(ulDataLen));
 	if (lpOriginal == nullptr)
 		throw std::bad_alloc();
 	memcpy(lpOriginal, buffer, ulDataLen);
@@ -95,7 +95,7 @@ HRESULT ECMemBlock::Commit()
 	if (!(ulFlags & STGM_TRANSACTED))
 		return hrSuccess;
 	free(lpOriginal);
-	lpOriginal = (char *)malloc(cbCurrent);
+	lpOriginal = static_cast<char *>(malloc(cbCurrent));
 	if (lpOriginal == NULL)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	cbOriginal = cbCurrent;
@@ -108,7 +108,7 @@ HRESULT ECMemBlock::Revert()
 	if (!(ulFlags & STGM_TRANSACTED))
 		return hrSuccess;
 	free(lpCurrent);
-	lpCurrent = (char *)malloc(cbOriginal);
+	lpCurrent = static_cast<char *>(malloc(cbOriginal));
 	if (lpCurrent == NULL)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	cbCurrent = cbTotal = cbOriginal;

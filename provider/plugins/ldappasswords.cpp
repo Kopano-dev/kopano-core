@@ -63,8 +63,7 @@ static int password_check_ssha(const char *data, unsigned int len, const char *c
 
 	memset(SHA_out, 0, sizeof(SHA_out));
 	SHA1((const unsigned char*)pwd.c_str(), pwd.length(), SHA_out);
-
-	digest.assign((char*)SHA_out, SHA_DIGEST_LENGTH);
+	digest.assign(reinterpret_cast<char *>(SHA_out), SHA_DIGEST_LENGTH);
 	if (bSalted)
 		digest += salt;
 	return strcmp(base64_encode(digest.c_str(), digest.length()).c_str(), crypted);

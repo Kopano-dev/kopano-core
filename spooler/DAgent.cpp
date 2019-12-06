@@ -835,7 +835,7 @@ static HRESULT ResolveServerToPath(IMAPISession *lpSession,
 	for (ULONG i = 0; i < lpSrvList->cServers; ++i) {
 		auto iter = lpServerNameRecips->find((LPWSTR)lpSrvList->lpsaServer[i].lpszName);
 		if (iter == lpServerNameRecips->cend()) {
-			ec_log_err("Server '%s' not found", (char*)lpSrvList->lpsaServer[i].lpszName);
+			ec_log_err("Server \"%s\" not found", reinterpret_cast<const char *>(lpSrvList->lpsaServer[i].lpszName));
 			return MAPI_E_NOT_FOUND;
 		}
 		ec_log_debug("%zu recipient(s) on server \"%ls\" (URL %ls)",

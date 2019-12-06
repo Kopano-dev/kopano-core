@@ -419,13 +419,14 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 			     lpStreamData.get(), &~lpStream);
 			break;
 		case PT_UNICODE:
-			hr = ECMemStream::Create((char *)lpsPropValue->Value.lpszW,
+			hr = ECMemStream::Create(reinterpret_cast<const char *>(lpsPropValue->Value.lpszW),
 			     wcslen(lpsPropValue->Value.lpszW) * sizeof(wchar_t), ulInterfaceOptions,
 			     ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup,
 			     lpStreamData.get(), &~lpStream);
 			break;
 		case PT_BINARY:
-			hr = ECMemStream::Create((char *)lpsPropValue->Value.bin.lpb, lpsPropValue->Value.bin.cb, ulInterfaceOptions,
+			hr = ECMemStream::Create(reinterpret_cast<const char *>(lpsPropValue->Value.bin.lpb),
+			     lpsPropValue->Value.bin.cb, ulInterfaceOptions,
 			     ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup,
 			     lpStreamData.get(), &~lpStream);
 			break;
@@ -532,7 +533,7 @@ HRESULT ECMAPIProp::SetSerializedACLData(const SPropValue *lpsPropValue)
 	});
 
 	{
-		std::istringstream is(std::string((char*)lpsPropValue->Value.bin.lpb, lpsPropValue->Value.bin.cb));
+		std::istringstream is(std::string(reinterpret_cast<const char *>(lpsPropValue->Value.bin.lpb), lpsPropValue->Value.bin.cb));
 
 		soap.is = &is;
 		soap_set_imode(&soap, SOAP_C_UTFSTRING);

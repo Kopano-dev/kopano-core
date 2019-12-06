@@ -773,9 +773,10 @@ ZEND_FUNCTION(mapi_parseoneoff)
 	strDisplayName = convert_to<utf8string>(wstrDisplayName);
 	strType = convert_to<utf8string>(wstrType);
 	strAddress = convert_to<utf8string>(wstrAddress);
-	add_assoc_string(return_value, "name", strDisplayName.c_str());
-	add_assoc_string(return_value, "type", strType.c_str());
-	add_assoc_string(return_value, "address", strAddress.c_str());
+	/* takes const char only from php7.2 on */
+	add_assoc_string(return_value, "name", const_cast<char *>(strDisplayName.c_str()));
+	add_assoc_string(return_value, "type", const_cast<char *>(strType.c_str()));
+	add_assoc_string(return_value, "address", const_cast<char *>(strAddress.c_str()));
 }
 
 /*
@@ -1653,8 +1654,7 @@ ZEND_FUNCTION(mapi_msgstore_getarchiveentryid)
 	MAPI_G(hr) = ptrSA->GetArchiveStoreEntryID((LPTSTR)sUser, (LPTSTR)sServer, 0, &cbEntryID, &~ptrEntryID);
 	if (MAPI_G(hr) != hrSuccess)
 		return;
-
-	RETVAL_STRINGL((char *)ptrEntryID.get(), cbEntryID);
+	RETVAL_STRINGL(reinterpret_cast<const char *>(ptrEntryID.get()), cbEntryID);
 }
 
 /**
@@ -2991,12 +2991,11 @@ ZEND_FUNCTION(mapi_openproperty)
 	zval		*res		= NULL;
 	LPMAPIPROP	lpMapiProp	= NULL;
 	long		proptag		= 0, flags = 0, interfaceflags = 0; // open default readable
-	char		*guidStr	= NULL; // guid is given as a char array
+	const char *guidStr = nullptr; /* guid is given as a char array */
 	php_stringsize_t guidLen = 0;
 	// return value
 	IUnknown*	lpUnk		= NULL;
 	// local
-	LPGUID		lpGUID		= NULL;			// pointer to string param or static guid
 	int			type 		= -1;
 	bool		bBackwardCompatible = false;
 	object_ptr<IStream> lpStream;
@@ -3009,8 +3008,7 @@ ZEND_FUNCTION(mapi_openproperty)
 		if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &res, &proptag) == FAILURE)
 			return;
 		bBackwardCompatible = true;
-
-		guidStr = (char *)&IID_IStream;
+		guidStr = reinterpret_cast<const char *>(&IID_IStream);
 		guidLen = sizeof(GUID);
 		interfaceflags = 0;
 		flags = 0;
@@ -3041,8 +3039,7 @@ ZEND_FUNCTION(mapi_openproperty)
 		return;
 	}
 
-	lpGUID = (LPGUID) guidStr;
-
+	auto lpGUID = reinterpret_cast<const GUID *>(guidStr);
 	MAPI_G(hr) = lpMapiProp->OpenProperty(proptag, lpGUID, interfaceflags, flags, (LPUNKNOWN *) &lpUnk);
 
 	if (MAPI_G(hr) != hrSuccess)
@@ -3219,8 +3216,7 @@ ZEND_FUNCTION(mapi_getnamesfromids)
 		snprintf(buffer, 20, "%i", lpPropTags->aulPropTag[count]);
 
 		array_init(&prop);
-
-		add_assoc_stringl(&prop, "guid", (char*)pPropNames[count]->lpguid, sizeof(GUID));
+		add_assoc_stringl(&prop, "guid", reinterpret_cast<char *>(pPropNames[count]->lpguid), sizeof(GUID));
 
 		if (pPropNames[count]->ulKind == MNID_ID) {
 			add_assoc_long(&prop, "id", pPropNames[count]->Kind.lID);
@@ -3565,15 +3561,13 @@ ZEND_FUNCTION(mapi_zarafa_getuserlist)
 	array_init(return_value);
 	for (unsigned int i = 0; i < nUsers; ++i) {
 		array_init(&zval_data_value);
-
-		add_assoc_stringl(&zval_data_value, "userid", (char*)lpUsers[i].sUserId.lpb, lpUsers[i].sUserId.cb);
-		add_assoc_string(&zval_data_value, "username", (char*)lpUsers[i].lpszUsername);
-		add_assoc_string(&zval_data_value, "fullname", (char*)lpUsers[i].lpszFullName);
-		add_assoc_string(&zval_data_value, "emailaddress", (char*)lpUsers[i].lpszMailAddress);
+		add_assoc_stringl(&zval_data_value, "userid", reinterpret_cast<char *>(lpUsers[i].sUserId.lpb), lpUsers[i].sUserId.cb);
+		add_assoc_string(&zval_data_value, "username", reinterpret_cast<char *>(lpUsers[i].lpszUsername));
+		add_assoc_string(&zval_data_value, "fullname", reinterpret_cast<char *>(lpUsers[i].lpszFullName));
+		add_assoc_string(&zval_data_value, "emailaddress", reinterpret_cast<char *>(lpUsers[i].lpszMailAddress));
 		add_assoc_long(&zval_data_value, "admin", lpUsers[i].ulIsAdmin);
 		add_assoc_long(&zval_data_value, "nonactive", (lpUsers[i].ulObjClass == ACTIVE_USER ? 0 : 1));
-
-		add_assoc_zval(return_value, (char*)lpUsers[i].lpszUsername, &zval_data_value);
+		add_assoc_zval(return_value, reinterpret_cast<char *>(lpUsers[i].lpszUsername), &zval_data_value);
 	}
 }
 
@@ -3734,11 +3728,10 @@ ZEND_FUNCTION(mapi_zarafa_getuser_by_name)
 	}
 
 	array_init(return_value);
-
-	add_assoc_stringl(return_value, "userid", (char*)lpUsers->sUserId.lpb, lpUsers->sUserId.cb);
-	add_assoc_string(return_value, "username", (char*)lpUsers->lpszUsername);
-	add_assoc_string(return_value, "fullname", (char*)lpUsers->lpszFullName);
-	add_assoc_string(return_value, "emailaddress", (char*)lpUsers->lpszMailAddress);
+	add_assoc_stringl(return_value, "userid", reinterpret_cast<char *>(lpUsers->sUserId.lpb), lpUsers->sUserId.cb);
+	add_assoc_string(return_value, "username", reinterpret_cast<char *>(lpUsers->lpszUsername));
+	add_assoc_string(return_value, "fullname", reinterpret_cast<char *>(lpUsers->lpszFullName));
+	add_assoc_string(return_value, "emailaddress", reinterpret_cast<char *>(lpUsers->lpszMailAddress));
 	add_assoc_long(return_value, "admin", lpUsers->ulIsAdmin);
 }
 
@@ -3782,11 +3775,10 @@ ZEND_FUNCTION(mapi_zarafa_getuser_by_id)
 	}
 
 	array_init(return_value);
-
-	add_assoc_stringl(return_value, "userid", (char*)lpUsers->sUserId.lpb, lpUsers->sUserId.cb);
-	add_assoc_string(return_value, "username", (char*)lpUsers->lpszUsername);
-	add_assoc_string(return_value, "fullname", (char*)lpUsers->lpszFullName);
-	add_assoc_string(return_value, "emailaddress", (char*)lpUsers->lpszMailAddress);
+	add_assoc_stringl(return_value, "userid", reinterpret_cast<char *>(lpUsers->sUserId.lpb), lpUsers->sUserId.cb);
+	add_assoc_string(return_value, "username", reinterpret_cast<char *>(lpUsers->lpszUsername));
+	add_assoc_string(return_value, "fullname", reinterpret_cast<char *>(lpUsers->lpszFullName));
+	add_assoc_string(return_value, "emailaddress", reinterpret_cast<char *>(lpUsers->lpszMailAddress));
 	add_assoc_long(return_value, "admin", lpUsers->ulIsAdmin);
 }
 
@@ -3825,11 +3817,9 @@ ZEND_FUNCTION(mapi_zarafa_getgrouplist)
 	array_init(return_value);
 	for (unsigned int i = 0; i < ulGroups; ++i) {
 		array_init(&zval_data_value);
-
-		add_assoc_stringl(&zval_data_value, "groupid", (char*)lpsGroups[i].sGroupId.lpb, lpsGroups[i].sGroupId.cb);
-		add_assoc_string(&zval_data_value, "groupname", (char*)lpsGroups[i].lpszGroupname);
-
-		add_assoc_zval(return_value, (char*)lpsGroups[i].lpszGroupname, &zval_data_value);
+		add_assoc_stringl(&zval_data_value, "groupid", reinterpret_cast<char *>(lpsGroups[i].sGroupId.lpb), lpsGroups[i].sGroupId.cb);
+		add_assoc_string(&zval_data_value, "groupname", reinterpret_cast<char *>(lpsGroups[i].lpszGroupname));
+		add_assoc_zval(return_value, reinterpret_cast<char *>(lpsGroups[i].lpszGroupname), &zval_data_value);
 	}
 }
 
@@ -3868,11 +3858,9 @@ ZEND_FUNCTION(mapi_zarafa_getgrouplistofuser)
 	array_init(return_value);
 	for (unsigned int i = 0; i < ulGroups; ++i) {
 		array_init(&zval_data_value);
-
-		add_assoc_stringl(&zval_data_value, "groupid", (char*)lpsGroups[i].sGroupId.lpb, lpsGroups[i].sGroupId.cb);
-		add_assoc_string(&zval_data_value, "groupname", (char*)lpsGroups[i].lpszGroupname);
-
-		add_assoc_zval(return_value, (char*)lpsGroups[i].lpszGroupname, &zval_data_value);
+		add_assoc_stringl(&zval_data_value, "groupid", reinterpret_cast<char *>(lpsGroups[i].sGroupId.lpb), lpsGroups[i].sGroupId.cb);
+		add_assoc_string(&zval_data_value, "groupname", reinterpret_cast<char *>(lpsGroups[i].lpszGroupname));
+		add_assoc_zval(return_value, reinterpret_cast<char *>(lpsGroups[i].lpszGroupname), &zval_data_value);
 	}
 }
 
@@ -3911,14 +3899,12 @@ ZEND_FUNCTION(mapi_zarafa_getuserlistofgroup)
 	array_init(return_value);
 	for (unsigned int i = 0; i < ulUsers; ++i) {
 		array_init(&zval_data_value);
-
-		add_assoc_stringl(&zval_data_value, "userid", (char*)lpsUsers[i].sUserId.lpb, lpsUsers[i].sUserId.cb);
-		add_assoc_string(&zval_data_value, "username", (char*)lpsUsers[i].lpszUsername);
-		add_assoc_string(&zval_data_value, "fullname", (char*)lpsUsers[i].lpszFullName);
-		add_assoc_string(&zval_data_value, "emailaddress", (char*)lpsUsers[i].lpszMailAddress);
+		add_assoc_stringl(&zval_data_value, "userid", reinterpret_cast<char *>(lpsUsers[i].sUserId.lpb), lpsUsers[i].sUserId.cb);
+		add_assoc_string(&zval_data_value, "username", reinterpret_cast<char *>(lpsUsers[i].lpszUsername));
+		add_assoc_string(&zval_data_value, "fullname", reinterpret_cast<char *>(lpsUsers[i].lpszFullName));
+		add_assoc_string(&zval_data_value, "emailaddress", reinterpret_cast<char *>(lpsUsers[i].lpszMailAddress));
 		add_assoc_long(&zval_data_value, "admin", lpsUsers[i].ulIsAdmin);
-
-		add_assoc_zval(return_value, (char*)lpsUsers[i].lpszUsername, &zval_data_value);
+		add_assoc_zval(return_value, reinterpret_cast<char *>(lpsUsers[i].lpszUsername), &zval_data_value);
 	}
 }
 
@@ -3954,10 +3940,9 @@ ZEND_FUNCTION(mapi_zarafa_getcompanylist)
 	array_init(return_value);
 	for (unsigned int i = 0; i < nCompanies; ++i) {
 		array_init(&zval_data_value);
-
-		add_assoc_stringl(&zval_data_value, "companyid", (char*)lpCompanies[i].sCompanyId.lpb, lpCompanies[i].sCompanyId.cb);
-		add_assoc_string(&zval_data_value, "companyname", (char*)lpCompanies[i].lpszCompanyname);
-		add_assoc_zval(return_value, (char*)lpCompanies[i].lpszCompanyname, &zval_data_value);
+		add_assoc_stringl(&zval_data_value, "companyid", reinterpret_cast<char *>(lpCompanies[i].sCompanyId.lpb), lpCompanies[i].sCompanyId.cb);
+		add_assoc_string(&zval_data_value, "companyname", reinterpret_cast<char *>(lpCompanies[i].lpszCompanyname));
+		add_assoc_zval(return_value, reinterpret_cast<char *>(lpCompanies[i].lpszCompanyname), &zval_data_value);
 	}
 }
 
@@ -4013,12 +3998,10 @@ ZEND_FUNCTION(mapi_zarafa_getpermissionrules)
 	array_init(return_value);
 	for (unsigned int i = 0; i < cPerms; ++i) {
 		array_init(&zval_data_value);
-
-		add_assoc_stringl(&zval_data_value, "userid", (char*)lpECPerms[i].sUserId.lpb, lpECPerms[i].sUserId.cb);
+		add_assoc_stringl(&zval_data_value, "userid", reinterpret_cast<char *>(lpECPerms[i].sUserId.lpb), lpECPerms[i].sUserId.cb);
 		add_assoc_long(&zval_data_value, "type", lpECPerms[i].ulType);
 		add_assoc_long(&zval_data_value, "rights", lpECPerms[i].ulRights);
 		add_assoc_long(&zval_data_value, "state", lpECPerms[i].ulState);
-
 		add_index_zval(return_value, i, &zval_data_value);
 	}
 }

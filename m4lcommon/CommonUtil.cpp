@@ -157,31 +157,31 @@ static HRESULT CreateProfileTemp(const wchar_t *username,
 	++i;
 
 	sProps[i].ulPropTag = PR_PROFILE_NAME_A;
-	sProps[i].Value.lpszA = (char*)szProfName;
+	sProps[i].Value.lpszA = const_cast<char *>(szProfName);
 	++i;
 
 	if (sslkey_file) {
 		// always add SSL keys info as we might be redirected to an SSL connection
 		sProps[i].ulPropTag = PR_EC_SSLKEY_FILE;
-		sProps[i].Value.lpszA = (char*)sslkey_file;
+		sProps[i].Value.lpszA = const_cast<char *>(sslkey_file);
 		++i;
 
 		if (sslkey_password) {
 			sProps[i].ulPropTag = PR_EC_SSLKEY_PASS;
-			sProps[i].Value.lpszA = (char*)sslkey_password;
+			sProps[i].Value.lpszA = const_cast<char *>(sslkey_password);
 			++i;
 		}
 	}
 
 	if (app_version) {
 		sProps[i].ulPropTag = PR_EC_STATS_SESSION_CLIENT_APPLICATION_VERSION;
-		sProps[i].Value.lpszA = (char*)app_version;
+		sProps[i].Value.lpszA = const_cast<char *>(app_version);
 		++i;
 	}
 
 	if (app_misc) {
 		sProps[i].ulPropTag = PR_EC_STATS_SESSION_CLIENT_APPLICATION_MISC;
-		sProps[i].Value.lpszA = (char*)app_misc;
+		sProps[i].Value.lpszA = const_cast<char *>(app_misc);
 		++i;
 	}
 	return lpServiceAdmin->ConfigureMsgService(&service_uid, 0, 0, i, sProps);
@@ -1255,8 +1255,8 @@ HRESULT TestRestriction(const SRestriction *lpCondition, IMAPIProp *lpMessage,
 			ulSearchDataSize = lpwSearchData?wcslen(lpwSearchData):0;
 		} else {
 			// PT_BINARY
-			lpSearchString = (char*)lpCondition->res.resContent.lpProp->Value.bin.lpb;
-			lpSearchData = (char*)lpProp->Value.bin.lpb;
+			lpSearchString = reinterpret_cast<char *>(lpCondition->res.resContent.lpProp->Value.bin.lpb);
+			lpSearchData = reinterpret_cast<char *>(lpProp->Value.bin.lpb);
 			ulSearchStringSize = lpCondition->res.resContent.lpProp->Value.bin.cb;
 			ulSearchDataSize = lpProp->Value.bin.cb;
 		}
@@ -1775,7 +1775,7 @@ HRESULT spv_postload_large_props(IMAPIProp *lpProp,
 		lpProps[i].ulPropTag = tag;
 		switch (PROP_TYPE(tag)) {
 		case PT_STRING8:
-			lpProps[i].Value.lpszA = (char *)lpData;
+			lpProps[i].Value.lpszA = static_cast<char *>(lpData);
 			lpProps[i].Value.lpszA[strData.size()] = 0;
 			break;
 		case PT_UNICODE:

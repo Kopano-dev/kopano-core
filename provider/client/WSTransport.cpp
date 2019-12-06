@@ -1566,13 +1566,13 @@ HRESULT WSTransport::HrCreateUser(ECUSER *lpECUser, ULONG ulFlags,
 	convert_context converter;
 	soap_lock_guard spg(*this);
 
-	sUser.lpszUsername		= TO_UTF8_DEF((char *)lpECUser->lpszUsername);
-	sUser.lpszPassword		= TO_UTF8_DEF((char *)lpECUser->lpszPassword);
-	sUser.lpszMailAddress	= TO_UTF8_DEF((char *)lpECUser->lpszMailAddress);
+	sUser.lpszUsername    = TO_UTF8_DEF(reinterpret_cast<const char *>(lpECUser->lpszUsername));
+	sUser.lpszPassword    = TO_UTF8_DEF(reinterpret_cast<const char *>(lpECUser->lpszPassword));
+	sUser.lpszMailAddress = TO_UTF8_DEF(reinterpret_cast<const char *>(lpECUser->lpszMailAddress));
 	sUser.ulUserId			= 0;
 	sUser.ulObjClass		= lpECUser->ulObjClass;
 	sUser.ulIsAdmin			= lpECUser->ulIsAdmin;
-	sUser.lpszFullName		= TO_UTF8_DEF((char *)lpECUser->lpszFullName);
+	sUser.lpszFullName    = TO_UTF8_DEF(reinterpret_cast<const char *>(lpECUser->lpszFullName));
 	sUser.ulIsABHidden		= lpECUser->ulIsABHidden;
 	sUser.ulCapacity		= lpECUser->ulCapacity;
 	sUser.lpsPropmap		= NULL;

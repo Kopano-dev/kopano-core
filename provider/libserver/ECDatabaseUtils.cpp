@@ -519,7 +519,7 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 		ulLastPos = 0;
 		for (gsoap_size_t i = 0; i < lpPropVal->Value.mvi.__size; ++i) {
 			ParseMVProp(lpRow[FIELD_NR_ULONG], lpLen[FIELD_NR_ULONG], &ulLastPos, &strData);
-			lpPropVal->Value.mvi.__ptr[i] = (short)atoui((char *)strData.c_str());
+			lpPropVal->Value.mvi.__ptr[i] = static_cast<short>(atoui(strData.c_str()));
 		}
 		break;
 	case PT_MV_LONG:

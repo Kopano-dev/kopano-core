@@ -328,7 +328,7 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
 
 	if (lpecCompany->sCompanyId.cb != 0 && lpecCompany->sCompanyId.lpb != NULL) {
 		sRestrictProp.ulPropTag = PR_EC_COMPANY_NAME_A;
-		sRestrictProp.Value.lpszA = (char*)lpecCompany->lpszCompanyname;
+		sRestrictProp.Value.lpszA = reinterpret_cast<char *>(const_cast<wchar_t *>(lpecCompany->lpszCompanyname));
 
 		memory_ptr<SRestriction> lpsRestriction;
 		hr = ECOrRestriction(
@@ -377,10 +377,10 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
 
 			ec_log_err("Mailbox of user \"%s\" has exceeded its %s limit", lpUsername->Value.lpszA, sQuotaStatus.quotaStatus == QUOTA_WARN ? "warning" : sQuotaStatus.quotaStatus == QUOTA_SOFTLIMIT ? "soft" : "hard");
 			// find the user in the full users list
-			for (u = 0; u < cUsers; ++u) {
-				if (strcmp((char*)lpsUserList[u].lpszUsername, lpUsername->Value.lpszA) == 0)
+			for (u = 0; u < cUsers; ++u)
+				if (strcmp(reinterpret_cast<const char *>(lpsUserList[u].lpszUsername),
+				    lpUsername->Value.lpszA) == 0)
 					break;
-			}
 			if (u == cUsers) {
 				ec_log_err("Unable to find user \"%s\" in userlist", lpUsername->Value.lpszA);
 				++m_ulFailed;
@@ -547,32 +547,33 @@ HRESULT ECQuotaMonitor::CreateMessageProperties(ECUSER *lpecToUser,
 	auto hr = MAPIAllocateBuffer(sizeof(SPropValue) * ulPropArrayMax, &~lpPropArray);
 	if (hr != hrSuccess)
 		return hr;
-	if (TryConvert(converter, (char*)lpecToUser->lpszFullName, name) != hrSuccess) {
+	if (TryConvert(converter, reinterpret_cast<const char *>(lpecToUser->lpszFullName), name) != hrSuccess) {
 		ec_log_err("Unable to convert To name \"%s\" to widechar, using empty name in entryid", reinterpret_cast<const char *>(lpecToUser->lpszFullName));
 		name.clear();
 	}
-	if (TryConvert(converter, (char*)lpecToUser->lpszMailAddress, email) != hrSuccess) {
+	if (TryConvert(converter, reinterpret_cast<const char *>(lpecToUser->lpszMailAddress), email) != hrSuccess) {
 		ec_log_err("Unable to convert To email \"%s\" to widechar, using empty name in entryid", reinterpret_cast<const char *>(lpecToUser->lpszMailAddress));
 		email.clear();
 	}
 	hr = ECCreateOneOff((LPTSTR)name.c_str(), (LPTSTR)L"SMTP", (LPTSTR)email.c_str(), MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbToEntryid, &~lpToEntryid);
 	if (hr != hrSuccess)
 		return kc_perror("Failed creating one-off address", hr);
-	hr = HrCreateEmailSearchKey("SMTP", (char*)lpecToUser->lpszMailAddress, &cbToSearchKey, &~lpToSearchKey);
+	hr = HrCreateEmailSearchKey("SMTP", reinterpret_cast<const char *>(lpecToUser->lpszMailAddress),
+	     &cbToSearchKey, &~lpToSearchKey);
 	if (hr != hrSuccess)
 		return kc_perror("Failed creating email searchkey", hr);
-	if (TryConvert(converter, (char*)lpecFromUser->lpszFullName, name) != hrSuccess) {
+	if (TryConvert(converter, reinterpret_cast<const char *>(lpecFromUser->lpszFullName), name) != hrSuccess) {
 		ec_log_err("Unable to convert From name \"%s\" to widechar, using empty name in entryid", reinterpret_cast<const char *>(lpecFromUser->lpszFullName));
 		name.clear();
 	}
-	if (TryConvert(converter, (char*)lpecFromUser->lpszMailAddress, email) != hrSuccess) {
+	if (TryConvert(converter, reinterpret_cast<const char *>(lpecFromUser->lpszMailAddress), email) != hrSuccess) {
 		ec_log_err("Unable to convert From email \"%s\" to widechar, using empty name in entryid", reinterpret_cast<const char *>(lpecFromUser->lpszMailAddress));
 		email.clear();
 	}
 	hr = ECCreateOneOff((LPTSTR)name.c_str(), (LPTSTR)L"SMTP", (LPTSTR)email.c_str(), MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbFromEntryid, &~lpFromEntryid);
 	if (hr != hrSuccess)
 		return kc_perror("Failed creating one-off address", hr);
-	hr = HrCreateEmailSearchKey("SMTP", (char*)lpecFromUser->lpszMailAddress, &cbFromSearchKey, &~lpFromSearchKey);
+	hr = HrCreateEmailSearchKey("SMTP", reinterpret_cast<const char *>(lpecFromUser->lpszMailAddress), &cbFromSearchKey, &~lpFromSearchKey);
 	if (hr != hrSuccess)
 		return kc_perror("Failed creating email searchkey", hr);
 
@@ -912,7 +913,7 @@ static HRESULT GetConfigMessage(IMsgStore *lpStore, const char *szMessageName,
 		return hr;
 
 	propSubject.ulPropTag = PR_SUBJECT_A;
-	propSubject.Value.lpszA = (char*)szMessageName;
+	propSubject.Value.lpszA = const_cast<char *>(szMessageName);
 	hr = ECPropertyRestriction(RELOP_EQ, PR_SUBJECT_A, &propSubject, ECRestriction::Cheap)
 	     .FindRowIn(ptrTable, BOOKMARK_BEGINNING, 0);
 	if (hr == hrSuccess) {

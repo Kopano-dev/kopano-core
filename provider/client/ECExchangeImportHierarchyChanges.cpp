@@ -80,12 +80,12 @@ HRESULT ECExchangeImportHierarchyChanges::GetLastError(HRESULT hResult, ULONG ul
 		     reinterpret_cast<void **>(&lpMapiError->lpszError));
 		if (hr != hrSuccess)
 			return hr;
-		strcpy((char*)lpMapiError->lpszError, strErrorMsg.c_str());
+		strcpy(reinterpret_cast<char *>(lpMapiError->lpszError), strErrorMsg.c_str());
 		hr = MAPIAllocateMore(strCompName.size() + 1, lpMapiError,
 		     reinterpret_cast<void **>(&lpMapiError->lpszComponent));
 		if (hr != hrSuccess)
 			return hr;
-		strcpy((char*)lpMapiError->lpszComponent, strCompName.c_str());
+		strcpy(reinterpret_cast<char *>(lpMapiError->lpszComponent), strCompName.c_str());
 	}
 
 	lpMapiError->ulContext		= 0;
@@ -127,7 +127,7 @@ HRESULT ECExchangeImportHierarchyChanges::Config(LPSTREAM lpStream, ULONG ulFlag
 
 	// The user specified the special sync key '0000000000000000', get a sync key from the server.
 	if (m_ulSyncId == 0) {
-		hr = m_lpFolder->GetMsgStore()->lpTransport->HrSetSyncStatus(std::string((char *)lpPropSourceKey->Value.bin.lpb, lpPropSourceKey->Value.bin.cb), m_ulSyncId, m_ulChangeId, ICS_SYNC_HIERARCHY, 0, &m_ulSyncId);
+		hr = m_lpFolder->GetMsgStore()->lpTransport->HrSetSyncStatus(std::string(reinterpret_cast<const char *>(lpPropSourceKey->Value.bin.lpb), lpPropSourceKey->Value.bin.cb), m_ulSyncId, m_ulChangeId, ICS_SYNC_HIERARCHY, 0, &m_ulSyncId);
 		if (hr != hrSuccess)
 			return hr;
 	}
@@ -284,7 +284,7 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPr
 
 	//ignore change if remote changekey is in local changelist
 	if (lpPropChangeKey && HrGetOneProp(lpFolder, PR_PREDECESSOR_CHANGE_LIST, &~lpPropVal) == hrSuccess) {
-		strChangeList.assign((char *)lpPropVal->Value.bin.lpb, lpPropVal->Value.bin.cb);
+		strChangeList.assign(reinterpret_cast<const char *>(lpPropVal->Value.bin.lpb), lpPropVal->Value.bin.cb);
 		ulPos = 0;
 
 		while(ulPos < strChangeList.size()){
@@ -300,7 +300,7 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPr
 
 	//ignore change if local changekey in remote changelist
 	if (lpPropChangeList && HrGetOneProp(lpFolder, PR_CHANGE_KEY, &~lpPropVal) == hrSuccess) {
-		strChangeList.assign((char *)lpPropChangeList->Value.bin.lpb, lpPropChangeList->Value.bin.cb);
+		strChangeList.assign(reinterpret_cast<const char *>(lpPropChangeList->Value.bin.lpb), lpPropChangeList->Value.bin.cb);
 		ulPos = 0;
 
 		while(ulPos < strChangeList.size()){

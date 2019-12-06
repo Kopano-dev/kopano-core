@@ -2942,7 +2942,7 @@ ECRESULT ECUserManagement::cvt_user_to_props(struct soap *soap,
 		lpPropVal->Value.bin->__ptr  = soap_new_unsignedByte(soap, strSearchKey.size() + 1);
 		lpPropVal->Value.bin->__size = strSearchKey.size()+1;
 		lpPropVal->__union = SOAP_UNION_propValData_bin;
-		strcpy((char *)lpPropVal->Value.bin->__ptr, strSearchKey.c_str());
+		strcpy(reinterpret_cast<char *>(lpPropVal->Value.bin->__ptr), strSearchKey.c_str());
 		break;
 	}
 	case PR_ADDRTYPE:
@@ -3120,8 +3120,7 @@ ECRESULT ECUserManagement::cvt_distlist_to_props(struct soap *soap,
 		lpPropVal->Value.bin->__ptr  = soap_new_unsignedByte(soap, strSearchKey.size() + 1);
 		lpPropVal->Value.bin->__size = strSearchKey.size()+1;
 		lpPropVal->__union = SOAP_UNION_propValData_bin;
-
-		strcpy((char *)lpPropVal->Value.bin->__ptr, strSearchKey.c_str());
+		strcpy(reinterpret_cast<char *>(lpPropVal->Value.bin->__ptr), strSearchKey.c_str());
 		break;
 	}
 	case PR_ADDRTYPE:

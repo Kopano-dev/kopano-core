@@ -1599,7 +1599,7 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager *lpCacheManager,
 			lpSearchString = lpsRestrict->lpContent->lpProp->Value.lpszA;
 			ulSearchStringSize = (lpSearchString) ? strlen(lpSearchString) : 0;
 		} else {
-			lpSearchString = (char *)lpsRestrict->lpContent->lpProp->Value.bin->__ptr;
+			lpSearchString = reinterpret_cast<const char *>(lpsRestrict->lpContent->lpProp->Value.bin->__ptr);
 			ulSearchStringSize = lpsRestrict->lpContent->lpProp->Value.bin->__size;
 		}
 
@@ -1612,14 +1612,14 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager *lpCacheManager,
 					lpSearchData = lpProp->Value.mvszA.__ptr[ulPos];
 					ulSearchDataSize = (lpSearchData) ? strlen(lpSearchData) : 0;
 				} else {
-					lpSearchData = (char *)lpProp->Value.mvbin.__ptr[ulPos].__ptr;
+					lpSearchData = reinterpret_cast<const char *>(lpProp->Value.mvbin.__ptr[ulPos].__ptr);
 					ulSearchDataSize = lpProp->Value.mvbin.__ptr[ulPos].__size;
 				}
 			} else if (PROP_TYPE(ulPropTagRestrict) == PT_TSTRING) {
 				lpSearchData = lpProp->Value.lpszA;
 				ulSearchDataSize = (lpSearchData) ? strlen(lpSearchData) : 0;
 			} else {
-				lpSearchData = (char *)lpProp->Value.bin->__ptr;
+				lpSearchData = reinterpret_cast<const char *>(lpProp->Value.bin->__ptr);
 				ulSearchDataSize = lpProp->Value.bin->__size;
 			}
 

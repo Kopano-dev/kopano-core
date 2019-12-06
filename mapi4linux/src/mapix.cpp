@@ -197,7 +197,7 @@ HRESULT M4LProfAdmin::CreateProfile(const TCHAR *lpszProfileName,
 
 	// Set the default profilename
 	sPropValue.ulPropTag = PR_PROFILE_NAME_A;
-	sPropValue.Value.lpszA = (char*)lpszProfileName;
+	sPropValue.Value.lpszA = reinterpret_cast<char *>(const_cast<wchar_t *>(lpszProfileName));
 	auto hr = profilesection->SetProps(1, &sPropValue, nullptr);
 	if (hr != hrSuccess)
 		return kc_perrorf("SetProps failed", hr);
@@ -208,9 +208,9 @@ HRESULT M4LProfAdmin::CreateProfile(const TCHAR *lpszProfileName,
     }
 
     // enter data
-    entry->profname = (char*)lpszProfileName;
+	entry->profname = reinterpret_cast<const char *>(lpszProfileName);
     if (lpszPassword)
-		entry->password = (char*)lpszPassword;
+		entry->password = reinterpret_cast<const char *>(lpszPassword);
 	profiles.emplace_back(std::move(entry));
 	return hrSuccess;
 }
@@ -862,7 +862,7 @@ HRESULT M4LMAPISession::OpenMsgStore(ULONG_PTR ulUIParam, ULONG cbEntryID,
 		return kc_perrorf("UnWrapStoreEntryID failed", hr);
 
 	// padding in entryid solves string ending
-	hr = m4l_lpMAPISVC->GetService((char*)lpEntryID+4+sizeof(GUID)+2, &service);
+	hr = m4l_lpMAPISVC->GetService(reinterpret_cast<const char *>(lpEntryID) + 4 + sizeof(GUID) + 2, &service);
 	if (hr != hrSuccess)
 		return kc_perrorf("GetService failed", hr);
 	auto minit = service->MSProviderInit();
@@ -2207,7 +2207,7 @@ HRESULT MAPILogonEx(ULONG_PTR ulUIParam, const TCHAR *lpszProfileName,
 			return MAPI_E_CALL_FAILED;
 		}
 	} else {
-		strProfname = (char*)lpszProfileName;
+		strProfname = reinterpret_cast<const char *>(lpszProfileName);
 	}
 
 	auto hr = localProfileAdmin->AdminServices((LPTSTR)strProfname.c_str(), lpszPassword, ulUIParam, ulFlags & ~MAPI_UNICODE, &~sa);

@@ -1383,9 +1383,13 @@ static HRESULT TStringToUtf8(const TCHAR *lpszTstring, ULONG ulFlags,
 	std::string strDest;
 
 	if (ulFlags & MAPI_UNICODE)
-		strDest = CONVERT_TO(lpConverter, std::string, "UTF-8", (wchar_t*)lpszTstring, rawsize((wchar_t*)lpszTstring), CHARSET_WCHAR);
+		strDest = CONVERT_TO(lpConverter, std::string, "UTF-8",
+		          reinterpret_cast<const wchar_t *>(lpszTstring),
+		          rawsize(reinterpret_cast<const wchar_t *>(lpszTstring)), CHARSET_WCHAR);
 	else
-		strDest = CONVERT_TO(lpConverter, std::string, "UTF-8", (char*)lpszTstring, rawsize((char*)lpszTstring), CHARSET_CHAR);
+		strDest = CONVERT_TO(lpConverter, std::string, "UTF-8",
+		          reinterpret_cast<const char *>(lpszTstring),
+		          rawsize(reinterpret_cast<const char *>(lpszTstring)), CHARSET_CHAR);
 
 	size_t cbDest = strDest.length() + 1;
 	auto hr = ECAllocateMore(cbDest, lpBase, reinterpret_cast<void **>(lppszUtf8));
@@ -1906,8 +1910,7 @@ HRESULT WrapServerClientStoreEntry(const char *lpszServerName,
 	memcpy(lpStoreID, lpsStoreId->__ptr, lpsStoreId->__size);
 
 	// Add the server name
-	strcpy((char*)lpStoreID+(lpsStoreId->__size-4), lpszServerName);
-
+	strcpy(reinterpret_cast<char *>(lpStoreID) + lpsStoreId->__size - 4, lpszServerName);
 	*lpcbStoreID = ulSize;
 	*lppStoreID = lpStoreID;
 	return hrSuccess;

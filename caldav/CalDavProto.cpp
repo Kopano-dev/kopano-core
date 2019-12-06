@@ -898,7 +898,7 @@ HRESULT CalDAV::HrPut()
 		// GET /caldav/user/folder/item.ics
 		// and item.ics has UID:unrelated, the above urls should work, so we save the item part in a custom tag.
 		sPropApptTsRef.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTTSREF], PT_STRING8);
-		sPropApptTsRef.Value.lpszA = (char*)strGuid.c_str();
+		sPropApptTsRef.Value.lpszA = const_cast<char *>(strGuid.c_str());
 	}
 
 	bMatch = !m_lpRequest.CheckIfMatch(lpMessage);
@@ -1785,7 +1785,7 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 		} else if (strProperty == "record-type"){
 			sWebProperty.strValue = "users";
 		} else if (lpFoundProp && lpFoundProp->ulPropTag != PR_NULL) {
-			sWebProperty.strValue.assign((char*)lpFoundProp->Value.bin.lpb, lpFoundProp->Value.bin.cb);
+			sWebProperty.strValue.assign(reinterpret_cast<const char *>(lpFoundProp->Value.bin.lpb), lpFoundProp->Value.bin.cb);
 		} else {
 			sWebPropNotFound.lstProps.emplace_back(sWebProperty);
 			continue;

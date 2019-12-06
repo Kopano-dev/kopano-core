@@ -135,7 +135,7 @@ void rand_init() {
 	if (rand_init_done)
 		return;
 	unsigned int seed = 0;
-	rand_get((char *)&seed, sizeof(seed));
+	rand_get(reinterpret_cast<char *>(&seed), sizeof(seed));
 	srand(seed);
 
 	rand_init_done = true;
@@ -143,7 +143,7 @@ void rand_init() {
 
 int rand_mt() {
 	int dummy = 0;
-	rand_get((char *)&dummy, sizeof dummy);
+	rand_get(reinterpret_cast<char *>(&dummy), sizeof dummy);
 	if (dummy == INT_MIN)
 		dummy = INT_MAX;
 	else

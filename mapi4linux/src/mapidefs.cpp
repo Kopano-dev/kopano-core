@@ -74,7 +74,7 @@ HRESULT M4LMAPIProp::GetProps(const SPropTagArray *lpPropTagArray,
 			} else if ((ulFlags & MAPI_UNICODE) == 0 && PROP_TYPE((*i)->ulPropTag) == PT_UNICODE) {
 				sConvert.ulPropTag = CHANGE_PROP_TYPE((*i)->ulPropTag, PT_STRING8);
 				ansi = converter.convert_to<std::string>((*i)->Value.lpszW);
-				sConvert.Value.lpszA = (char*)ansi.c_str();
+				sConvert.Value.lpszA = const_cast<char *>(ansi.c_str());
 
 				lpCopy = &sConvert;
 			} else {
@@ -115,7 +115,7 @@ HRESULT M4LMAPIProp::GetProps(const SPropTagArray *lpPropTagArray,
 				// unicode to string8
 				sConvert.ulPropTag = CHANGE_PROP_TYPE((*i)->ulPropTag, PT_STRING8);
 				ansi = converter.convert_to<std::string>((*i)->Value.lpszW);
-				sConvert.Value.lpszA = (char *)ansi.c_str();
+				sConvert.Value.lpszA = const_cast<char *>(ansi.c_str());
 				lpCopy = &sConvert;
 			}
 			else if (PROP_TYPE((*i)->ulPropTag) == PT_MV_STRING8 &&

@@ -237,7 +237,7 @@ HRESULT WebDav::RespStructToXml(WEBDAVMULTISTATUS *sDavMStatus, std::string *str
 	ulRet = xmlTextWriterFlush(xmlWriter);
 	if (ulRet < 0)
 		goto xmlfail;
-	strXml->assign((char *)xmlBuff->content, xmlBuff->use);
+	strXml->assign(reinterpret_cast<char *>(xmlBuff->content), xmlBuff->use);
 
 exit:
 	if (xmlWriter)

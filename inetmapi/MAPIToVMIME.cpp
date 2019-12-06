@@ -325,7 +325,7 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 		    strBoundary = sopt.alternate_boundary;
 		    strBoundary += "_sub_";
 		    strBoundary += stringify(ulAttachmentNum);
-		    sopt.alternate_boundary = (char *)strBoundary.c_str();
+		    sopt.alternate_boundary = const_cast<char *>(strBoundary.c_str());
 		}
 
 		// recursive processing of embedded message as a new e-mail

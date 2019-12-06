@@ -171,12 +171,12 @@ HRESULT ECExchangeExportChanges::GetLastError(HRESULT hResult, ULONG ulFlags, LP
 		     reinterpret_cast<void **>(&lpMapiError->lpszError));
 		if (hr != hrSuccess)
 			return hr;
-		strcpy((char*)lpMapiError->lpszError, strErrorMsg.c_str());
+		strcpy(reinterpret_cast<char *>(lpMapiError->lpszError), strErrorMsg.c_str());
 		hr = MAPIAllocateMore(strCompName.size() + 1, lpMapiError,
 		     reinterpret_cast<void **>(&lpMapiError->lpszComponent));
 		if (hr != hrSuccess)
 			return hr;
-		strcpy((char*)lpMapiError->lpszComponent, strCompName.c_str());
+		strcpy(reinterpret_cast<char *>(lpMapiError->lpszComponent), strCompName.c_str());
 	}
 
 	lpMapiError->ulContext		= 0;

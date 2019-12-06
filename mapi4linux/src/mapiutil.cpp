@@ -74,7 +74,7 @@ HRESULT WrapStoreEntryID(ULONG ulFlags, const TCHAR *lpszDLLName,
 	memset(*lppWrappedEntry, 0, *lpcbWrappedEntry);
 	memcpy((*lppWrappedEntry)->ab, &muidStoreWrap, sizeof(GUID));
 
-	strcpy(((char*)*lppWrappedEntry)+4+sizeof(GUID)+2, strDLLName.c_str());
+	strcpy(reinterpret_cast<char *>(*lppWrappedEntry) + 4 + sizeof(GUID) + 2, strDLLName.c_str());
 	memcpy(((BYTE*)*lppWrappedEntry)+4+sizeof(GUID)+2+cbDLLName+cbPad, lpOrigEntry, cbOrigEntry);
 	return hrSuccess;
 }
