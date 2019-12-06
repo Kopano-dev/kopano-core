@@ -184,8 +184,9 @@ ULONG ECMemStream::Release()
 	return ECUnknown::Release();
 }
 
-HRESULT	ECMemStream::Create(char *buffer, ULONG ulDataLen, ULONG ulFlags, CommitFunc lpCommitFunc, DeleteFunc lpDeleteFunc,
-							void *lpParam, ECMemStream **lppStream)
+HRESULT ECMemStream::Create(const char *buffer, unsigned int ulDataLen,
+    unsigned int ulFlags, CommitFunc lpCommitFunc, DeleteFunc lpDeleteFunc,
+    void *lpParam, ECMemStream **lppStream)
 {
 	return alloc_wrap<ECMemStream>(buffer, ulDataLen, ulFlags,
 	       lpCommitFunc, lpDeleteFunc, lpParam).put(lppStream);
