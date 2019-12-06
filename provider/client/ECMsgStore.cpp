@@ -1474,11 +1474,11 @@ static HRESULT AddRenAdditionalFolder(IMAPIFolder *lpFolder,
 
 	uint16_t tmp2 = cpu_to_le16(ulType);
 	strBuffer.append(reinterpret_cast<const char *>(&tmp2), sizeof(tmp2)); /* RSS Feeds type */
-	strBuffer.append(1, ((lpEntryID->cb+4)&0xFF));
+	strBuffer.append(1, (lpEntryID->cb + 4) & 0xFF);
 	strBuffer.append(1, ((lpEntryID->cb+4)>>8)&0xFF);
 	tmp2 = cpu_to_le16(ulBlockType);
 	strBuffer.append(reinterpret_cast<const char *>(&tmp2), sizeof(tmp2));
-	strBuffer.append(1, (lpEntryID->cb&0xFF));
+	strBuffer.append(1, lpEntryID->cb & 0xFF);
 	strBuffer.append(1, (lpEntryID->cb>>8)&0xFF);
 	strBuffer.append((char*)lpEntryID->lpb, lpEntryID->cb);
 	strBuffer.append("\x00\x00\x00\x00", 4);

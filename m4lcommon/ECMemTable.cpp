@@ -34,7 +34,7 @@ public:
 		if ((PROP_TYPE(ulPropTag) & 0x0ffe) != 0x1e)
 			return ulPropTag;
 		/* Any string type */
-		return CHANGE_PROP_TYPE(ulPropTag, (((m_ulFlags & MAPI_UNICODE) ? PT_UNICODE : PT_STRING8) | (PROP_TYPE(ulPropTag) & MVI_FLAG)));
+		return CHANGE_PROP_TYPE(ulPropTag, ((m_ulFlags & MAPI_UNICODE) ? PT_UNICODE : PT_STRING8) | (PROP_TYPE(ulPropTag) & MVI_FLAG));
 	}
 private:
 	ULONG m_ulFlags;

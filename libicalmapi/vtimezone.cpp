@@ -325,7 +325,7 @@ HRESULT HrCreateVTimeZone(const std::string &strTZID,
 	icTime = icaltime_from_timet_with_zone(SystemTimeToUnixTime(tsTimeZone.stDstDate), 0, nullptr);
 	icalcomponent_add_property(icComp, icalproperty_new_dtstart(icTime));
 	icalcomponent_add_property(icComp, icalproperty_new_tzoffsetfrom(-tsTimeZone.lBias * 60));
-	icalcomponent_add_property(icComp, icalproperty_new_tzoffsetto(((-tsTimeZone.lBias) + (-tsTimeZone.lDstBias)) * 60));
+	icalcomponent_add_property(icComp, icalproperty_new_tzoffsetto((-tsTimeZone.lBias - tsTimeZone.lDstBias) * 60));
 	// create rrule for DST zone
 	icalrecurrencetype_clear(&icRec);
 	icRec.freq = ICAL_YEARLY_RECURRENCE;

@@ -77,7 +77,7 @@ HRESULT recurrence::HrGetRecurrenceState(char **lppData, size_t *lpulLen, void *
 		// dayskip is the number of days to skip from the startdate until the first occurrence
 		// daycount is the number of days per week that an occurrence occurs
 		int weekskip = 0;
-		if ((tm.tm_wday < (int)m_sRecState.ulFirstDOW && dayskip > 0) || (tm.tm_wday+dayskip) > 6)
+		if ((tm.tm_wday < static_cast<int>(m_sRecState.ulFirstDOW) && dayskip > 0) || tm.tm_wday + dayskip > 6)
 			weekskip = 1;
 		// weekskip is the amount of weeks to skip from the startdate before the first occurrence
 
@@ -85,7 +85,7 @@ HRESULT recurrence::HrGetRecurrenceState(char **lppData, size_t *lpulLen, void *
 		tStart += dayskip * 24 * 60 * 60 + weekskip * (m_sRecState.ulPeriod - 1) * 7 * 24 * 60 * 60;
 		gmtime_safe(tStart, &tm);
 		m_sRecState.ulFirstDateTime = UnixTimeToRTime(tStart) % (m_sRecState.ulPeriod * 7 * 24 * 60);
-		m_sRecState.ulFirstDateTime -= ((tm.tm_wday-1) * 24 * 60); // php says -1, but it's already 0..6 ... err?
+		m_sRecState.ulFirstDateTime -= (tm.tm_wday - 1) * 24 * 60; // php says -1, but it's already 0..6 ... err?
 		break;
 	}
 	case RF_MONTHLY:

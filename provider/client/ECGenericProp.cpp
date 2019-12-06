@@ -175,9 +175,9 @@ HRESULT ECGenericProp::HrGetRealProp(ULONG ulPropTag, ULONG ulFlags, void *lpBas
 	}
 	if (PROP_TYPE(ulPropTag) == PT_UNSPECIFIED) {
 		if (PROP_TYPE(iterProps->second.GetPropTag()) == PT_UNICODE)
-			ulPropTag = CHANGE_PROP_TYPE(ulPropTag, ((ulFlags & MAPI_UNICODE) ? PT_UNICODE : PT_STRING8));
+			ulPropTag = CHANGE_PROP_TYPE(ulPropTag, (ulFlags & MAPI_UNICODE) ? PT_UNICODE : PT_STRING8);
 		else if (PROP_TYPE(iterProps->second.GetPropTag()) == PT_MV_UNICODE)
-			ulPropTag = CHANGE_PROP_TYPE(ulPropTag, ((ulFlags & MAPI_UNICODE) ? PT_MV_UNICODE : PT_MV_STRING8));
+			ulPropTag = CHANGE_PROP_TYPE(ulPropTag, (ulFlags & MAPI_UNICODE) ? PT_MV_UNICODE : PT_MV_STRING8);
 		else
 			ulPropTag = iterProps->second.GetPropTag();
 	}
@@ -750,7 +750,7 @@ HRESULT ECGenericProp::GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArr
 
 		ULONG ulPropTag = iterCallBack->second.ulPropTag;
 		if (PROP_TYPE(ulPropTag) == PT_UNICODE || PROP_TYPE(ulPropTag) == PT_STRING8)
-			ulPropTag = CHANGE_PROP_TYPE(ulPropTag, ((ulFlags & MAPI_UNICODE) ? PT_UNICODE : PT_STRING8));
+			ulPropTag = CHANGE_PROP_TYPE(ulPropTag, (ulFlags & MAPI_UNICODE) ? PT_UNICODE : PT_STRING8);
 		lpPropTagArray->aulPropTag[n++] = ulPropTag;
 	}
 

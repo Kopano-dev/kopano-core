@@ -177,8 +177,7 @@ typedef struct MAPIUID *LPMAPIUID;
 #define PROP_ID_NULL            0
 #define PROP_ID_INVALID         0xFFFF
 #define PR_NULL                 PROP_TAG( PT_NULL, PROP_ID_NULL)
-#define CHANGE_PROP_TYPE(ulPropTag, ulPropType) \
-                        (((ULONG)0xFFFF0000 & ulPropTag) | ulPropType)
+#define CHANGE_PROP_TYPE(ulPropTag, ulPropType) ((0xFFFF0000U & (ulPropTag)) | (ulPropType))
 
 /* Multi-valued Property Types */
 #define PT_MV_SHORT     (MV_FLAG|PT_SHORT)

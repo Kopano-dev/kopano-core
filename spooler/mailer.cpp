@@ -169,7 +169,7 @@ static HRESULT ExpandRecipientsRecursive(LPADRBOOK lpAddrBook,
 
 		/* Don't expand group Everyone or companies since both already contain all users
 		 * which should be put in the recipient list. */
-		bExpandSub = !(((lpDisplayType) ? lpDisplayType->Value.ul == DT_ORGANIZATION : false) ||
+		bExpandSub = !((lpDisplayType ? lpDisplayType->Value.ul == DT_ORGANIZATION : false) ||
 					   wcscasecmp(lpDisplayName->Value.lpszW, L"Everyone") == 0);
 		// @todo find everyone using it's static entryid?
 

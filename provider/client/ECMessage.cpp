@@ -2293,7 +2293,7 @@ HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 	auto iterSObj = m_sMapiObject->lstChildren.find(lpsMapiObject);
 	if (iterSObj != m_sMapiObject->lstChildren.cend()) {
 		// Preserve server IDs
-		auto hr = HrCopyObjIDs(lpsMapiObject, (*iterSObj));
+		auto hr = HrCopyObjIDs(lpsMapiObject, *iterSObj);
 		if(hr != hrSuccess)
 			return hr;
 		// Remove item

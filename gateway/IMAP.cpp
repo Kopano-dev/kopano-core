@@ -3823,7 +3823,7 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
 		auto ulPos = strMessage.find("\r\n\r\n");
 		if (ulPos != string::npos) {
 		    // Swap for less memory usage. Original: strMessagePart = strMessage.substr(0, ulPos+4);
-		    strMessage.erase(ulPos+4, strMessage.size() - (ulPos+4));
+			strMessage.erase(ulPos + 4, strMessage.size() - ulPos - 4);
 		    swap(strMessagePart, strMessage);
 		} else {
 		    // Only headers in the message
