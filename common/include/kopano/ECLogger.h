@@ -46,6 +46,7 @@ static const unsigned int EC_LOGLEVEL_USERCACHE    = 0x00080000;
 static const unsigned int EC_LOGLEVEL_SOAP         = 0x00100000;
 static const unsigned int EC_LOGLEVEL_ICS          = 0x00200000;
 static const unsigned int EC_LOGLEVEL_SEARCH       = 0x00400000;
+static const unsigned int EC_LOGLEVEL_SYNC         = 0x00800000;
 
 static const unsigned int EC_LOGLEVEL_EXTENDED_MASK = 0xFFFF0000;
 
