@@ -114,7 +114,7 @@ static HRESULT DetectFolderEntryDetails(LPMESSAGE lpMessage, string *lpName,
 	 * The name is allowed to be empty, the class however not.
 	 */
 	if (lpClass->empty())
-		cout << "Unable to detect message class.";
+		cout << "Message class is empty.";
 	else
 		hr = hrSuccess;
 	return hr;
