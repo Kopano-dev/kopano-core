@@ -769,7 +769,7 @@ HRESULT ArchiveControlImpl::CleanupArchive(const SObjectEntry &archiveEntry, IMs
 	// Get the archive store GUID (PR_STORE_RECORD_KEY)
 	hr = HrGetOneProp(ptrArchiveHelper->GetMsgStore(), PR_STORE_RECORD_KEY, &~ptrPropVal);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get store GUID of archive store.");
+		m_lpLogger->perr("Unable to get store GUID of archive store", hr);
 		return hr;
 	}
 	if (ptrPropVal->Value.bin.cb != sizeof(GUID)) {
