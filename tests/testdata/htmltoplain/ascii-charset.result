@@ -1,0 +1,95 @@
+ -space
+!-exclamation mark
+"-quotation mark
+#-number sign
+$-dollar sign
+%-percent sign
+&-ampersand
+'-apostrophe
+(-left parenthesis
+)-right parenthesis
+*-asterisk
++-plus sign
+,-comma
+--hyphen
+.-period
+/-slash
+0-digit 0
+1-digit 1
+2-digit 2
+3-digit 3
+4-digit 4
+5-digit 5
+6-digit 6
+7-digit 7
+8-digit 8
+9-digit 9
+:-colon
+;-semicolon
+<-less-than
+=-equals-to
+>-greater-than
+?-question mark
+@-at sign
+A-uppercase A
+B-uppercase B
+C-uppercase C
+D-uppercase D
+E-uppercase E
+F-uppercase F
+G-uppercase G
+H-uppercase H
+I-uppercase I
+J-uppercase J
+K-uppercase K
+L-uppercase L
+M-uppercase M
+N-uppercase N
+O-uppercase O
+P-uppercase P
+Q-uppercase Q
+R-uppercase R
+S-uppercase S
+T-uppercase T
+U-uppercase U
+V-uppercase V
+W-uppercase W
+X-uppercase X
+Y-uppercase Y
+Z-uppercase Z
+[-left square bracket
+\-backslash
+]-right square bracket
+^-caret
+_-underscore
+`-grave accent
+a-lowercase a
+b-lowercase b
+c-lowercase c
+d-lowercase d
+e-lowercase e
+f-lowercase f
+g-lowercase g
+h-lowercase h
+i-lowercase i
+j-lowercase j
+k-lowercase k
+l-lowercase l
+m-lowercase m
+n-lowercase n
+o-lowercase o
+p-lowercase p
+q-lowercase q
+r-lowercase r
+s-lowercase s
+t-lowercase t
+u-lowercase u
+v-lowercase v
+w-lowercase w
+x-lowercase x
+y-lowercase y
+z-lowercase z
+{-left curly brace
+|-vertical bar
+}-right curly brace
+~-tilde

@@ -1,0 +1,40 @@
+<html>
+<body>
+
+&#160;-&nbsp;-&#x00A0;-non-breaking space<br>
+&#161;-&iexcl;-&#x00A1;-inverted exclamation mark<br>
+&#162;-&cent;-&#x00A2;-cent<br>
+&#163;-&pound;-&#x00A3;-pound<br>
+&#164;-&curren;-&#x00A4;-currency<br>
+&#165;-&yen;-&#x00A5;-yen<br>
+&#166;-&brvbar;-&#x00A6;-broken vertical bar<br>
+&#167;-&sect;-&#x00A7;-section<br>
+&#168;-&uml;-&#x00A8;-spacing diaeresis<br>
+&#169;-&copy;-&#x00A9;-copyright<br>
+&#170;-&ordf;-&#x00AA;-feminine ordinal indicator<br>
+&#171;-&laquo;-&#x00AB;-angle quotation mark (left)<br>
+&#172;-&not;-&#x00AC;-negation<br>
+&#173;-&shy;-&#x00AD;-soft hyphen<br>
+&#174;-&reg;-&#x00AE;-registered trademark<br>
+&#175;-&macr;-&#x00AF;-spacing macron<br>
+&#176;-&deg;-&#x00B0;-degree<br>
+&#177;-&plusmn;-&#x00B1;-plus-or-minus<br>
+&#178;-&sup2;-&#x00B2;-superscript 2<br>
+&#179;-&sup3;-&#x00B3;-superscript 3<br>
+&#180;-&acute;-&#x00B4;-spacing acute<br>
+&#181;-&micro;-&#x00B5;-micro<br>
+&#182;-&para;-&#x00B6;-paragraph<br>
+&#183;-&middot;-&#x00B7;-middle dot<br>
+&#184;-&cedil;-&#x00B8;-spacing cedilla<br>
+&#185;-&sup1;-&#x00B9;-superscript 1<br>
+&#186;-&ordm;-&#x00BA;-masculine ordinal indicator<br>
+&#187;-&raquo;-&#x00BB;-angle quotation mark (right)<br>
+&#188;-&frac14;-&#x00BC;-fraction 1/4<br>
+&#189;-&frac12;-&#x00BD;-fraction 1/2<br>
+&#190;-&frac34;-&#x00BE;-fraction 3/4<br>
+&#191;-&iquest;-&#x00BF;-inverted question mark<br>
+&#215;-&times;-&#x00D7;-multiplication<br>
+&#247;-&divide;-&#x00F7;-division<br>
+
+</body>
+</html>
