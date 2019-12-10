@@ -19,6 +19,10 @@ ARG DEPENDENCY_HASH=b7d4cb9
 # Noninteractive for package manager
 ENV DEBIAN_FRONTEND noninteractive
 
+# Lang for tests
+ENV LANG C.UTF-8
+ENV LC_ALL C.UTF-8
+
 # Install curl before adding dependency-repository
 RUN apt update -y && \
     apt install -y --no-install-recommends \
