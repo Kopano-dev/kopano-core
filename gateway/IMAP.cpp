@@ -969,7 +969,8 @@ HRESULT IMAP::HrCmdDelete(const std::string &strTag,
 	// remove from subscribed list
 	hr = ChangeSubscribeList(false, cb, entry_id);
 	if (hr != hrSuccess) {
-		ec_log_err("Unable to update subscribed list for deleted folder \"%ls\"", strFolder.c_str());
+		ec_log_err("Unable to update subscribed list for deleted folder \"%ls\": %s (%x)",
+			strFolder.c_str(), GetMAPIErrorMessage(hr), hr);
 		hr = hrSuccess;
 	}
 	// close folder if it was selected
@@ -1251,7 +1252,8 @@ HRESULT IMAP::HrCmdList(const std::string &strTag,
 			continue;
 		hr = MAPI2IMAPCharset(strFolderPath, strResponse);
 		if (hr != hrSuccess) {
-			ec_log_err("Unable to represent foldername \"%ls\" in UTF-7", strFolderPath.c_str());
+			ec_log_err("Unable to represent foldername \"%ls\" in UTF-7: %s (%x)",
+				strFolderPath.c_str(), GetMAPIErrorMessage(hr), hr);
 			continue;
 		}
 		strResponse = (string)"\"" + IMAP_HIERARCHY_DELIMITER + "\" \"" + strResponse + "\""; // prepend folder delimiter
@@ -2500,7 +2502,8 @@ HRESULT IMAP::HrExpungeDeleted(const std::string &strTag,
 		     reinterpret_cast<const ENTRYID *>(lpRows[ulMailnr].lpProps[EID].Value.bin.lpb),
 		     0, ~MSGSTATUS_DELMARKED, NULL);
 		if (hr != hrSuccess)
-			ec_log_warn("Unable to update message status flag during " + strCommand);
+			ec_log_warn("Unable to update message status flag during %s: %s (%x)",
+				strCommand.c_str(), GetMAPIErrorMessage(hr), hr);
 		entry_list->lpbin[entry_list->cValues++] = lpRows[ulMailnr].lpProps[EID].Value.bin;
 	}
 
