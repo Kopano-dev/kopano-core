@@ -1,0 +1,91 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
+# Copyright 2019, Kopano and its licensors
+
+# Kopano Groupware Core Dockerfile
+#
+# Build command:
+# `docker build . -f Dockerfile.build -t kopanocore-builder:$(git rev-parse --short HEAD)`
+#
+# Run command:
+# `docker run -it --rm -v $(pwd):/build -u $(id -u) kopanocore-builder:$(git rev-parse --short HEAD)`
+
+FROM debian:buster
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+# Dependency-hash argument
+ARG DEPENDENCY_HASH=b7d4cb9
+
+# Noninteractive for package manager
+ENV DEBIAN_FRONTEND noninteractive
+
+# Install curl before adding dependency-repository
+RUN apt update -y && \
+    apt install -y --no-install-recommends \
+    apt-utils \
+    ca-certificates=20190110 \
+    curl \
+    gnupg2
+
+# Get kopano-dependencies and create local repository
+RUN curl -sSL https://download.kopano.io/community/dependencies:/kopano-dependencies-${DEPENDENCY_HASH}-Debian_10-amd64.tar.gz | \
+    tar -C /var/local/ -vxzf - && \
+    cd /var/local/kopano-dependencies/ && \
+    apt-ftparchive packages . | gzip -c9 > Packages.gz && \
+    echo "deb [trusted=yes] file:/var/local/kopano-dependencies ./" > /etc/apt/sources.list.d/local.list
+
+# Install buildttime dependencies
+RUN apt update -y \
+    && apt install -y --no-install-recommends \
+        autoconf \
+        automake \
+        autotools-dev \
+        binutils \
+        debhelper \
+        devscripts \
+        dh-systemd \
+        g++ \
+        gettext \
+        gsoap \
+        libcurl4-openssl-dev \
+        libdb++-dev \
+        libgoogle-perftools-dev \
+        libhx-dev \
+        libical-dev \
+        libicu-dev \
+        libjsoncpp-dev \
+        libkrb5-dev \
+        libldap2-dev \
+        libmariadbclient-dev \
+        libncurses-dev \
+        libpam0g-dev \
+        librrd-dev \
+        libs3-dev \
+        libssl-dev \
+        libtool \
+        libtool-bin \
+        libvmime-dev \
+        libxapian-dev \
+        libxml2-dev \
+        lsb-release \
+        m4 \
+        php-dev \
+        pkg-config \
+        python3-dev \
+        python3-setuptools \
+        swig \
+        tidy-html5-dev \
+        uuid-dev \
+        zlib1g-dev \
+    && apt clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /build/
+
+# Create build user
+RUN groupadd -r -g 1000 builder && useradd -l -r -u 1000 -g builder builder
+USER builder
+
+# Default command (requires mounting kopanocore directory to /build/)
+CMD ./bootstrap.sh && PYTHON=/usr/bin/python3 ./configure && make -j $(nproc)

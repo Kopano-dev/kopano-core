@@ -1,29 +1,44 @@
 #!/usr/bin/env groovy
 
 pipeline {
-	agent {
-		docker {
-			image 'debian:10-slim'
-			args '-u 0'
-		}
-	}
-	environment {
-		CI = 'true'
-		DEBIAN_FRONTEND = 'noninteractive'
-	}
-	stages {
-		stage('Bootstrap') {
-			steps {
-				echo 'Bootstrapping'
-				sh 'apt-get update && apt-get install -y pylint3'
-			}
-		}
-		stage('Lint') {
-			steps {
-				echo 'Linting..'
-				sh 'pylint3 swig/python/kopano/kopano > pylint.log || exit 0'
-				recordIssues tool: pyLint(pattern: 'pylint.log'), qualityGates: [[threshold: 1, type: 'TOTAL', unstable: true]]
-			}
-		}
-	}
+    agent {
+        dockerfile {
+            filename 'Dockerfile.build'
+        }
+    }
+    stages {
+        stage('Build') {
+            steps {
+                echo 'Building..'
+                sh './bootstrap.sh'
+                sh 'PYTHON=/usr/bin/python3 ./configure'
+                sh 'make -j $(nproc)'
+            }
+        }
+        stage('Lint') {
+            steps {
+                echo 'Linting..'
+                sh 'pylint3 swig/python/kopano/kopano > pylint.log || true'
+                recordIssues tool: pyLint(pattern: 'pylint.log'), qualityGates: [[threshold: 1, type: 'TOTAL', unstable: true]]
+                archiveArtifacts 'pylint.log'
+            }
+        }
+        stage('Check') {
+            steps {
+                echo 'Checking..'
+                sh 'make check'
+            }
+        }
+        stage('Test') {
+            steps {
+                echo 'Testing..'
+                sh 'make tests'
+            }
+        }
+    }
+    post {
+        always {
+            cleanWs()
+        }
+    }
 }
