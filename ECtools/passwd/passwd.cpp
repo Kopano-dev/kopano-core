@@ -81,10 +81,8 @@ static HRESULT UpdatePassword(const char *lpPath, const char *lpUsername,
 		return hr;
 	}
 	hr = HrOpenDefaultStore(lpSession, &~lpMsgStore);
-	if(hr != hrSuccess) {
-		cerr << "Unable to open store." << endl;
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perror("Unable to open store", hr);
 	hr = HrGetOneProp(lpMsgStore, PR_EC_OBJECT, &~lpPropValue);
 	if(hr != hrSuccess || !lpPropValue)
 		return hr;
@@ -95,11 +93,8 @@ static HRESULT UpdatePassword(const char *lpPath, const char *lpUsername,
 	if(hr != hrSuccess)
 		return hr;
 	hr = lpServiceAdmin->ResolveUserName((LPTSTR)lpUsername, 0, &cbUserId, &~lpUserId);
-	if (hr != hrSuccess) {
-		cerr << "Unable to update password, user not found." << endl;
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		kc_perror("ResolveUserName", hr);
 	// get old features. we need these, because not setting them would mean: remove them
 	hr = lpServiceAdmin->GetUser(cbUserId, lpUserId, 0, &~lpECUser);
 	if (hr != hrSuccess) {
@@ -109,7 +104,7 @@ static HRESULT UpdatePassword(const char *lpPath, const char *lpUsername,
 	lpECUser->lpszPassword = (LPTSTR)lpNewPassword;
 	hr = lpServiceAdmin->SetUser(lpECUser, 0);
 	if (hr != hrSuccess)
-		cerr << "Unable to update user password." << endl;
+		kc_perror("Unable to update user password", hr);
 	return hr;
 }
 
@@ -183,7 +178,7 @@ static int main2(int argc, char **argv)
 	AutoMAPI mapiinit;
 	auto hr = mapiinit.Initialize();
 	if (hr != hrSuccess) {
-		cerr << "Unable to initialize" << endl;
+		kc_perror("Unable to initialize", hr);
 		return 1;
 	}
 	if (passprompt)
