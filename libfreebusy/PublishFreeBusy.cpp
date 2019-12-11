@@ -85,12 +85,12 @@ HRESULT HrPublishDefaultCalendar(IMAPISession *lpSession, IMsgStore *lpDefStore,
 		return hr;
 	hr = lpFreeBusy->HrGetResctItems(&~lpTable);
 	if (hr != hrSuccess) {
-		ec_log_info("Error while finding messages for free/busy publish, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
+		ec_log_info("Error while finding messages for free/busy publish: %s (%x)", GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 	hr = lpFreeBusy->HrProcessTable(lpTable, &~lpFBblocks, &cValues);
 	if(hr != hrSuccess) {
-		ec_log_info("Error while finding free/busy blocks, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
+		ec_log_info("Error while finding free/busy blocks: %s (%x)", GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
@@ -100,13 +100,13 @@ HRESULT HrPublishDefaultCalendar(IMAPISession *lpSession, IMsgStore *lpDefStore,
 	}
 	hr = lpFreeBusy->HrMergeBlocks(&+lpFBblocks, &cValues);
 	if(hr != hrSuccess) {
-		ec_log_info("Error while merging free/busy blocks, entries: %d, error code: 0x%x %s", cValues, hr, GetMAPIErrorMessage(hr));
+		ec_log_info("Error while merging free/busy blocks, %d entries: %s (%x)", cValues, GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 	ec_log_debug("Publishing %d free/busy blocks", cValues);
 	hr = lpFreeBusy->HrPublishFBblocks(lpFBblocks, cValues);
 	if (hr != hrSuccess)
-		ec_log_info("Error while publishing free/busy blocks, entries: %d, error code: 0x%x %s", cValues, hr, GetMAPIErrorMessage(hr));
+		ec_log_info("Error while publishing free/busy blocks, %d entries: %s (%x)", cValues, GetMAPIErrorMessage(hr), hr);
 	return hr;
 }
 
@@ -271,7 +271,7 @@ HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBl
 					sOccrBlock.fbBlock.m_fbstatus = (FBStatus)lpRowSet[i].lpProps[2].Value.ul;
 				hr = HrAddFBBlock(sOccrBlock, &+lpOccrInfo, lpcValues);
 				if (hr != hrSuccess) {
-					ec_log_debug("Error adding occurrence block to list, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
+					ec_log_debug("Error adding occurrence block to list: %s (%x)", GetMAPIErrorMessage(hr), hr);
 					return hr;
 				}
 				continue;
