@@ -5,6 +5,7 @@
 #include "phpconfig.h"
 #include <kopano/platform.h>
 #include <kopano/ecversion.h>
+#include <kopano/MAPIErrors.h>
 #include <cstdio>
 #include <ctime>
 #include <cmath>
@@ -131,7 +132,8 @@ HRESULT ECImportContentsChangesProxy::ImportMessageChange(ULONG cValues, LPSProp
     IMessage *lpMessage = NULL;
     HRESULT hr = PropValueArraytoPHPArray(cValues, lpPropArray, &pvalArgs[0] TSRMLS_CC);
     if(hr != hrSuccess) {
-        php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to convert MAPI propvalue array to PHP");
+		php_error_docref(nullptr TSRMLS_CC, E_WARNING, "Unable to convert MAPI propvalue array to PHP: %s (%x)",
+			KC::GetMAPIErrorMessage(hr), hr);
         return hr;
     }
         
