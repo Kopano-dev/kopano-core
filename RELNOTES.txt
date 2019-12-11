@@ -97,6 +97,15 @@ Packaging changes:
 * gsoap 2.8.73 or higher is now required
 
 
+8.7.9 (2019-12-10)
+==================
+Enhancements:
+* cfgchecker: cure compiler warnings
+* common: replace kc_perror call by ec_perror [KC-1639]
+* libserver: adjust version notice for old ZCP database schemas
+* libserver: drop K-1255 message
+* server: fix dreaded "SSL_accept: (null)" reporting
+
 8.7.8 (2019-11-29)
 ==================
 Enhancements:

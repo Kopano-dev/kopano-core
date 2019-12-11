@@ -126,19 +126,19 @@ ECRESULT KDatabase::Connect(ECConfig *cfg, bool reconnect,
 	// Check if the database is available, but empty
 	er = DoSelect("SHOW tables", &result);
 	if (er != erSuccess) {
-		kc_perrorf("\"SHOW tables\" failed", er);
+		ec_perror("\"SHOW tables\" failed", er);
 		goto exit;
 	}
 	if (result.get_num_rows() == 0) {
 		er = KCERR_DATABASE_NOT_FOUND;
-		kc_perrorf("Tables missing inside database", er);
+		ec_perror("Tables missing inside database", er);
 		goto exit;
 	}
 
 	query = "SHOW variables LIKE 'max_allowed_packet'";
 	er = DoSelect(query, &result);
 	if (er != erSuccess) {
-		kc_perrorf("max_allowed_packet retrieval failed", er);
+		ec_perror("max_allowed_packet retrieval failed", er);
 		goto exit;
 	}
 
@@ -368,7 +368,7 @@ ECRESULT KDatabase::DoSequence(const std::string &seq, unsigned int count,
 	auto er = DoUpdate("UPDATE settings SET value=LAST_INSERT_ID(value+1)+" +
 	          stringify(count - 1) + " WHERE name = '" + seq + "'", &aff);
 	if (er != erSuccess) {
-		kc_perrorf("UPDATE failed", er);
+		ec_perror("UPDATE failed", er);
 		return er;
 	}
 	/*
@@ -380,7 +380,7 @@ ECRESULT KDatabase::DoSequence(const std::string &seq, unsigned int count,
 		er = Query("INSERT INTO settings (name, value) VALUES('" +
 		     seq + "',LAST_INSERT_ID(1)+" + stringify(count - 1) + ")");
 		if (er != erSuccess) {
-			kc_perrorf("INSERT INTO failed", er);
+			ec_perror("INSERT INTO failed", er);
 			return er;
 		}
 	}
