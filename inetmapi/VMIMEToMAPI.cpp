@@ -333,10 +333,8 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 			sPropSMIMEClass.Value.lpszW = const_cast<wchar_t *>(L"IPM.Note.SMIME.MultipartSigned");
 
 			hr = lpMessage->SetProps(1, &sPropSMIMEClass, NULL);
-			if (hr != hrSuccess) {
-				ec_log_err("Unable to set message class");
-				return hr;
-			}
+			if (hr != hrSuccess)
+				return kc_perror("Unable to set message class", hr);
 		}
 
 		if ((m_mailState.attachLevel == ATTACH_INLINE && m_mailState.bodyLevel == BODY_HTML) || (m_mailState.bAttachSignature && m_mailState.attachLevel <= ATTACH_INLINE)) {
@@ -408,11 +406,8 @@ HRESULT VMIMEToMAPI::fillMAPIMail(vmime::shared_ptr<vmime::message> vmMessage,
 	sPropDefaults[2].ulPropTag = PR_INTERNET_CPID;
 	sPropDefaults[2].Value.ul = 65001;
 	auto hr = lpMessage->SetProps(3, sPropDefaults.get(), nullptr);
-	if (hr != hrSuccess) {
-		ec_log_err("Unable to set default mail properties");
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return kc_perror("Unable to set default mail properties", hr);
 	try {
 		// turn buffer into a message
 
@@ -423,17 +418,12 @@ HRESULT VMIMEToMAPI::fillMAPIMail(vmime::shared_ptr<vmime::message> vmMessage,
 
 		// pass recipients somewhere else 
 		hr = handleRecipients(vmHeader, lpMessage);
-		if (hr != hrSuccess) {
-			ec_log_err("Unable to parse mail recipients");
-			return hr;
-		}
-
+		if (hr != hrSuccess)
+			return kc_perror("Unable to parse mail recipients", hr);
 		// Headers
 		hr = handleHeaders(vmHeader, lpMessage);
-		if (hr != hrSuccess) {
-			ec_log_err("Unable to parse mail headers");
-			return hr;
-		}
+		if (hr != hrSuccess)
+			return kc_perror("Unable to parse mail headers", hr);
 
 		if (vmime::mdn::MDNHelper::isMDN(vmMessage)) {
 			auto receivedMDN = vmime::mdn::MDNHelper::getReceivedMDN(vmMessage);
@@ -463,10 +453,8 @@ HRESULT VMIMEToMAPI::fillMAPIMail(vmime::shared_ptr<vmime::message> vmMessage,
 				    (dval->getType() == vmime::mediaTypes::MULTIPART &&
 				     dval->getSubType() == vmime::mediaTypes::MULTIPART_ALTERNATIVE)) {
 					hr = dissect_body(bPart->getHeader(), bPart->getBody(), lpMessage);
-					if (hr != hrSuccess) {
-						ec_log_err("Unable to parse MDN mail body");
-						return hr;
-					}
+					if (hr != hrSuccess)
+						return kc_perror("Unable to parse MDN mail body", hr);
 					// we have a body, lets skip the other parts
 					break;
 				}
@@ -479,17 +467,13 @@ HRESULT VMIMEToMAPI::fillMAPIMail(vmime::shared_ptr<vmime::message> vmMessage,
 				sPropDefaults[0].Value.lpszW = const_cast<wchar_t *>(L"REPORT.IPM.Note.IPNRN");
 			sPropDefaults.set(1, 0x1046001E /* ptagOriginalInetMessageID */, "<" + receivedMDN.getOriginalMessageId().getId() + ">");
 			hr = lpMessage->SetProps(2, sPropDefaults.get(), nullptr);
-			if (hr != hrSuccess) {
-				ec_log_err("Unable to set MDN mail properties");
-				return hr;
-			}
+			if (hr != hrSuccess)
+				return kc_perror("Unable to set MDN mail properties", hr);
 		} else {
 			// multiparts are handled in disectBody, if any
 			hr = dissect_body(vmHeader, vmBody, lpMessage);
-			if (hr != hrSuccess) {
-				ec_log_err("Unable to parse mail body");
-				return hr;
-			}
+			if (hr != hrSuccess)
+				return kc_perror("Unable to parse mail body", hr);
 			if (m_dopt.conversion_notices &&
 			    m_mailState.bodyLevel == BODY_NONE &&
 			    !m_mailState.cvt_notes.empty()) {
@@ -1509,7 +1493,7 @@ HRESULT VMIMEToMAPI::dissect_multipart(vmime::shared_ptr<vmime::header> vmHeader
 		// a lonely attachment in a multipart, may not be empty when it's a signed part.
 		hr = handleAttachment(vmHeader, vmBody, lpMessage);
 		if (hr != hrSuccess)
-			ec_log_err("dissect_multipart: Unable to save attachment");
+			kc_perror("dissect_multipart: Unable to save attachment", hr);
 		return hr;
 	}
 
@@ -1559,7 +1543,8 @@ HRESULT VMIMEToMAPI::dissect_multipart(vmime::shared_ptr<vmime::header> vmHeader
 		hr = dissect_body(vmBodyPart->getHeader(), vmBodyPart->getBody(), lpMessage, flags);
 		if (hr == hrSuccess)
 			return hrSuccess;
-		ec_log_err("Unable to parse MIME part %s: %s. Trying more alternatives.", GetMAPIErrorMessage(hr), m_mailState.part_text().c_str());
+		ec_log_err("Unable to parse MIME part %s: %s. Trying more alternatives.",
+			m_mailState.part_text().c_str(), GetMAPIErrorMessage(hr));
 	}
 	/* If lBodies was empty, we could get here, with hr being hrSuccess. */
 	if (hr != hrSuccess)
@@ -1816,10 +1801,8 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 				// handle real html part, or append a plain text bodypart to the html main body
 				// subtype guaranteed html or plain.
 				hr = handleHTMLTextpart(vmHeader, vmBody, lpMessage, m_dopt.insecure_html_join ? (flags & DIS_APPEND_BODY) : false);
-				if (hr != hrSuccess) {
-					ec_log_err("Unable to parse mail HTML text");
-					return hr;
-				}
+				if (hr != hrSuccess)
+					return kc_perror("Unable to parse mail HTML text", hr);
 			} else {
 				hr = handleTextpart(vmHeader, vmBody, lpMessage, flags & DIS_APPEND_BODY);
 				if (hr != hrSuccess)
@@ -2066,10 +2049,8 @@ HRESULT VMIMEToMAPI::handleTextpart(vmime::shared_ptr<vmime::header> vmHeader,
 	if (!append) {
 		// we already had a plaintext or html body, so attach this text part
 		auto hr = handleAttachment(vmHeader, vmBody, lpMessage, L"secondary_object");
-		if (hr != hrSuccess) {
-			ec_log_err("Unable to parse attached text mail");
-			return hr;
-		}
+		if (hr != hrSuccess)
+			return kc_perror("Unable to parse attached text mail", hr);
 		return hrSuccess;
 	}
 
@@ -2276,10 +2257,8 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::shared_ptr<vmime::header> vmHeade
 	if (!new_text) {
 		/* Already had a final body, so this is an attachment. */
 		auto hr = handleAttachment(vmHeader, vmBody, lpMessage, L"secondary_html_body");
-		if (hr != hrSuccess) {
-			ec_log_err("Unable to parse attached text mail");
-			return hr;
-		}
+		if (hr != hrSuccess)
+			return kc_perror("Unable to parse attached text mail", hr);
 		return hrSuccess;
 	}
 
