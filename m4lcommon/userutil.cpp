@@ -227,7 +227,7 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 		
 		for (unsigned int i = 0; i < ptrRows.size(); ++i) {
 			if (ptrRows[i].lpProps[0].ulPropTag != PR_ENTRYID) {
-				ec_log_crit("Unable to get entryid to open tenancy Address Book");
+				kc_perror("Unable to get entryid to open tenancy Address Book", hr);
 				return MAPI_E_INVALID_PARAMETER;
 			}
 			hr = ptrAdrBook->OpenEntry(ptrRows[i].lpProps[0].Value.bin.cb,
@@ -236,17 +236,13 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 			if (hr != hrSuccess)
 				return kc_perror("Unable to open tenancy address book", hr);
 			hr = UpdateServerList(ptrCompanyDir, listServers);
-			if(hr != hrSuccess) {
-				ec_log_crit("Unable to create tenancy server list");
-				return hr;
-			}
+			if (hr != hrSuccess)
+				return kc_perror("Unable to create tenancy server list", hr);
 		}
 	} else {
 		hr = UpdateServerList(ptrDefaultDir, listServers);
-		if(hr != hrSuccess) {
-			ec_log_crit("Unable to create server list");
-			return hr;
-		}
+		if (hr != hrSuccess)
+			return kc_perror("Unable to create server list", hr);
 	}
 
 	hr = HrOpenDefaultStore(lpMapiSession, &~ptrStore);

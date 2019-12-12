@@ -24,34 +24,23 @@ class ECStatsCollector;
 
 class KC_EXPORT ECDatabaseFactory final {
 public:
-	struct dfpair {
-		ECDatabaseFactory *factory;
-		std::shared_ptr<ECDatabase> db;
-		bool operator==(const dfpair &o) const { return db == o.db; }
-	};
-
 	ECDatabaseFactory(std::shared_ptr<ECConfig>, std::shared_ptr<ECStatsCollector>);
 	~ECDatabaseFactory();
-	static void S_thread_end(void *);
 	ECRESULT		CreateDatabaseObject(ECDatabase **lppDatabase, std::string &ConnectError);
 	ECRESULT		CreateDatabase();
 	ECRESULT		UpdateDatabase(bool bForceUpdate, std::string &strError);
 	ECRESULT get_tls_db(ECDatabase **);
+	void thread_end();
 	void filter_bmp(bool);
 
 	std::shared_ptr<ECStatsCollector> m_stats;
 
 private:
-	struct dfhash {
-		size_t operator()(const dfpair &a) const { return reinterpret_cast<size_t>(a.db.get()); }
-	};
-
-	KC_HIDDEN void destroy_database(ECDatabase *);
 	KC_HIDDEN ECRESULT GetDatabaseFactory(ECDatabase **);
 
 	std::shared_ptr<ECConfig> m_lpConfig;
 	pthread_key_t m_thread_key;
-	std::unordered_set<dfpair, dfhash> m_children;
+	std::unordered_set<ECDatabase *> m_children;
 	std::mutex m_child_mtx;
 	bool m_filter_bmp = false;
 };

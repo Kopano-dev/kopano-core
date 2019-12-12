@@ -20,6 +20,7 @@
 #include <mapidefs.h>
 #include <mapiguid.h>
 #include <kopano/ECScheduler.h>
+#include <kopano/MAPIErrors.h>
 #include <kopano/automapi.hpp>
 #include <kopano/memory.hpp>
 #include <kopano/stringutil.h>
@@ -46,7 +47,7 @@ static HRESULT running_service(void)
 	AutoMAPI mapiinit;
 	auto hr = mapiinit.Initialize(nullptr);
 	if (hr != hrSuccess) {
-		ec_log_crit("Unable to initialize MAPI");
+		ec_log_crit("Unable to initialize MAPI: %s (%x)", GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 	auto lpECScheduler = make_unique_nt<ECScheduler>();
@@ -58,10 +59,8 @@ static HRESULT running_service(void)
 
 	// Add Quota monitor
 	hr = lpECScheduler->AddSchedule(SCHEDULE_MINUTES, ulInterval, ECQuotaMonitor::Create, m_lpThreadMonitor.get());
-	if (hr != hrSuccess) {
-		ec_log_crit("Unable to add quota monitor schedule");
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perror("Unable to add quota monitor schedule", hr);
 	ulock_normal l_exit(m_hExitMutex);
 	m_hExitSignal.wait(l_exit);
 	return hrSuccess;

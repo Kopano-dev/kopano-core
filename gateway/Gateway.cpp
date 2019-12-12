@@ -11,8 +11,10 @@
 #include <new>
 #include <set>
 #include <utility>
+#include <cerrno>
 #include <climits>
 #include <csignal>
+#include <cstring>
 #include <netdb.h>
 #include <poll.h>
 #include <sys/resource.h>
@@ -34,7 +36,6 @@
 #include <vector>
 #include <algorithm>
 #include <cstdlib>
-#include <cerrno>
 #include <getopt.h>
 #include <kopano/ECLogger.h>
 #include <kopano/ECConfig.h>
@@ -162,9 +163,12 @@ static void *Handler(void *lpArg)
 	bool bQuit = false;
 	int timeouts = 0;
 
-	if (bUseSSL && lpChannel->HrEnableTLS() != hrSuccess) {
-		ec_log_err("Unable to negotiate SSL connection");
-		goto exit;
+	if (bUseSSL) {
+		auto ret = lpChannel->HrEnableTLS();
+		if (ret != hrSuccess) {
+			ec_log_err("Unable to negotiate SSL connection");
+			goto exit;
+		}
 	}
 
 	try {
@@ -233,11 +237,12 @@ static void *Handler(void *lpArg)
 			hr = e.code();
 		}
 		if (hr == MAPI_E_NETWORK_ERROR) {
-			ec_log_err("Connection error.");
+			ec_log_err("HrProcessCommand threw KMAPIError: %s. (errno=%s)",
+				GetMAPIErrorMessage(hr), strerror(errno));
 			bQuit = true;
 		}
 		if (hr == MAPI_E_END_OF_SESSION) {
-			ec_log_notice("Disconnecting client.");
+			ec_log_notice("gateway lost connection with storage server: remote side closed the connection.");
 			bQuit = true;
 		}
 	}
@@ -538,7 +543,7 @@ static HRESULT handler_client(size_t i)
 		method = lpHandlerArgs->bUseSSL ? "IMAPs" : "IMAP";
 	auto hr = HrAccept(g_socks.pollfd[i].fd, &unique_tie(lpHandlerArgs->lpChannel));
 	if (hr != hrSuccess) {
-		ec_log_err("Unable to accept %s socket connection.", method);
+		ec_log_err("Unable to accept %s socket connection: %s (%x)", method, GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 

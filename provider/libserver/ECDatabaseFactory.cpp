@@ -21,38 +21,14 @@ ECDatabaseFactory::ECDatabaseFactory(std::shared_ptr<ECConfig> c,
     std::shared_ptr<ECStatsCollector> s) :
 	m_stats(std::move(s)), m_lpConfig(std::move(c))
 {
-	pthread_key_create(&m_thread_key, S_thread_end);
+	pthread_key_create(&m_thread_key, nullptr);
 }
 
 ECDatabaseFactory::~ECDatabaseFactory()
 {
-	/*
-	 * The API user has to ensure that ~ECDatabaseFactory and S_thread_end
-	 * do not run concurrently. (The dfpairs belong to the class, too.) For
-	 * kopano-server, the factory outlives ECSessionManager, so there is no
-	 * issue.
-	 */
 	pthread_key_delete(m_thread_key);
-}
-
-void ECDatabaseFactory::S_thread_end(void *q)
-{
-	auto p = static_cast<dfpair *>(q);
-	auto fac = p->factory;
-	std::lock_guard<std::mutex> lk(fac->m_child_mtx);
-	auto i = fac->m_children.find({fac, p->db});
-	if (i == fac->m_children.end()) {
-		ec_log_err("K-1249: abandoned dfpair/ECDatabase instance");
-		return;
-	}
-	/* .erase will drop the refcount on db, so pick it up first */
-	decltype(p->db) db(std::move(p->db));
-	fac->m_children.erase(i);
-	db->ThreadEnd();
-}
-
-void ECDatabaseFactory::destroy_database(ECDatabase *db)
-{
+	for (auto &db : m_children)
+		delete db;
 }
 
 ECRESULT ECDatabaseFactory::GetDatabaseFactory(ECDatabase **lppDatabase)
@@ -112,9 +88,9 @@ ECRESULT ECDatabaseFactory::get_tls_db(ECDatabase **lppDatabase)
 	// We check to see whether the calling thread already
 	// has an open database connection. If so, we return that, or otherwise
 	// we create a new one.
-	auto bp = static_cast<dfpair *>(pthread_getspecific(m_thread_key));
-	if (bp != nullptr) {
-		*lppDatabase = bp->db.get();
+	auto db = static_cast<ECDatabase *>(pthread_getspecific(m_thread_key));
+	if (db != nullptr) {
+		*lppDatabase = db;
 		return erSuccess;
 	}
 
@@ -125,18 +101,30 @@ ECRESULT ECDatabaseFactory::get_tls_db(ECDatabase **lppDatabase)
 		return er;
 	}
 	std::unique_lock<std::mutex> lk(m_child_mtx);
-	auto pair = m_children.emplace(dfpair{this, std::move(updb)});
-	pthread_setspecific(m_thread_key, &*pair.first);
-	*lppDatabase = pair.first->db.get();
+	m_children.emplace(updb.get());
+	pthread_setspecific(m_thread_key, updb.get());
+	*lppDatabase = updb.release();
 	return erSuccess;
+}
+
+void ECDatabaseFactory::thread_end()
+{
+	auto db = static_cast<ECDatabase *>(pthread_getspecific(m_thread_key));
+	if (db == nullptr)
+		return;
+	db->ThreadEnd();
+	std::unique_lock<std::mutex> lk(m_child_mtx);
+	auto i = m_children.find(db);
+	if (i != m_children.cend())
+		m_children.erase(i);
 }
 
 void ECDatabaseFactory::filter_bmp(bool y)
 {
 	m_filter_bmp = y;
 	std::unique_lock<std::mutex> lk(m_child_mtx);
-	for (const auto &dfp : m_children)
-		dfp.db->m_filter_bmp = y;
+	for (auto &db : m_children)
+		db->m_filter_bmp = y;
 }
 
 } /* namespace */

@@ -76,6 +76,51 @@ kopano\-search
 .RS 4
 The kopano\-search daemon is used to index all messages for all users in the kopano\-server. Indexing messages greatly enhances the search performance of the kopano\-server.
 .RE
+.SH Environment variables
+.SS KOPANO_CLIENT_LOGLEVEL
+.PP
+The initial loglevel and bitmask for all KC programs.
+.PP
+Possible severity levels:
+.IP \(bu 4
+\fB0\fP (nothing)
+.IP \(bu 4
+\fB1\fP (fatal conditions)
+.IP \(bu 4
+\fB2\fP (error or worse)
+.IP \(bu 4
+\fB3\fP (warning or worse)
+.IP \(bu 4
+\fB4\fP (notice or worse)
+.IP \(bu 4
+\fB5\fP (info or worse)
+.IP \(bu 4
+\fB6\fP (debug or worse)
+.PP
+Possible additional subsystem bits that can be ORed with the level:
+.IP \(bu 4
+\fB0x10000\fP (SQL)
+.IP \(bu 4
+\fB0x20000\fP (userplugin)
+.IP \(bu 4
+\fB0x40000\fP (cache)
+.IP \(bu 4
+\fB0x80000\fP (usercache)
+.IP \(bu 4
+\fB0x100000\fP (soap)
+.IP \(bu 4
+\fB0x200000\fP (ics)
+.IP \(bu 4
+\fB0x400000\fP (search)
+.IP \(bu 4
+\fB0x800000\fP (sync)
+.PP
+Default: \fB4\fP
+.PP
+Example: \fB0x800006\fP
+.SH "AUTHOR"
+.PP
+Written by Kopano.
 .SH "SEE ALSO"
 .PP
 \fBkopano-server\fR(8),

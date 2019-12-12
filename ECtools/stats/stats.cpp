@@ -593,7 +593,7 @@ static void dumptable(eTableType eTable, LPMDB lpStore, bool humanreadable)
 
 	auto hr = lpStore->OpenProperty(ulTableProps[eTable], &IID_IMAPITable, 0, MAPI_DEFERRED_ERRORS, &~lpTable);
 	if (hr != hrSuccess) {
-		cout << "Unable to open requested statistics table" << endl;
+		kc_perror("Unable to open requested statistics table", hr);
 		return;
 	}
 
@@ -601,7 +601,7 @@ static void dumptable(eTableType eTable, LPMDB lpStore, bool humanreadable)
 		hr = lpTable->SortTable(sortorders[eTable], 0);
 
 	if (hr != hrSuccess) {
-		cout << "Unable to sort statistics table" << endl;
+		kc_perror("Unable to sort statistics table", hr);
 		return;
 	}
 	MAPITablePrint(lpTable, humanreadable);
@@ -677,7 +677,7 @@ int main(int argc, char **argv) try
 
 	auto hr = mapiinit.Initialize();
 	if (hr != hrSuccess) {
-		cerr << "Cannot init mapi" << endl;
+		kc_perror("Cannot init mapi", hr);
 		return EXIT_FAILURE;
 	}
 
@@ -698,7 +698,7 @@ int main(int argc, char **argv) try
 	}
 	hr = HrOpenDefaultStore(lpSession, &~lpStore);
 	if (hr != hrSuccess) {
-		cout << "Unable to open default store" << endl;
+		kc_perror("Unable to open default store", hr);
 		return EXIT_FAILURE;
 	}
 	if (eTable == SESSION_TOP)
