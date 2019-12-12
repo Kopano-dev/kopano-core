@@ -3,10 +3,10 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <string.h>
 #include <clocale>
+#include <cstdio>
 #include <cstdlib>
-#include <stdio.h>
+#include <cstring>
 #include <dirent.h>
 #include <unistd.h>
 #include <glob.h>
