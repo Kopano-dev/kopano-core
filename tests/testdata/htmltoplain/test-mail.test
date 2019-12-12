@@ -1,0 +1,60 @@
+<html>
+<head>
+
+</head>
+<style>
+    a:link, a:visited 	{ color: #0000FF; text-decoration:underline;}
+    a:active, a:hover 	{ color: #009900;  cursor:hand; text-decoration:underline;}
+    p{font-family: arial; font-size: 11pt; color: #000033;}
+ </style>
+<body bgcolor=White>
+<p id="Header">Windows Small Business Server 2003 is in het computernetwerk van het bedrijf geinstalleerd. Hulpprogramma's van Windows Small Business Server helpen u bij het verhogen van de productiviteit en verbeteren de communicatie met collega's en klanten. Sommige of al deze opties zijn beschikbaar. Klik op een koppeling voor meer informatie:</p>
+
+<table width="100%" CELLPADDING="5" CELLSPACING="0">
+<tr>
+<td align="center"><a href="http://SBSTEST1/clienthelp/defaultI.htm" target="_new"><img src="cid:000101cb3d4a$5c0c7db8$_CDOSYS2.0" width="41" height="41" border="0"></a></td>
+
+<td><p id="InternalWeb"><a href="http://SBSTEST1/clienthelp/defaultI.htm" target="_new">Interne website</a>	Met behulp van de nieuwe interne website van het bedrijf kunt u gegevens zoals documenten, foto's en speciale gebeurtenissen met uw collega's delen. <a href="http://companyweb/default.aspx" target="new">Ga naar</a> de interne website.</p></td>
+
+</tr>
+<tr>
+<td align="center"><a href="http://SBSTEST1/clienthelp/defaultD.htm" target="_new"><img src="cid:000201cb3d4a$5c0c7db8$_CDOSYS2.0" width="40" height="40" border="0"></a></td>
+
+<td><p id="SharedDoc"><a href="http://SBSTEST1/clienthelp/defaultD.htm" target="_new">Gedeelde documenten</a>	Met behulp van de documentenbibliotheken op de interne website van het bedrijf kunt u veel verschillende informatie en documenten, zoals faxberichten, presentaties en projectvoorstellen, delen. <a href="http://companyweb/_layouts/1043/viewlsts.aspx" target="_new">Ga naar</a> de documentenbibliotheken van het bedrijf.</p></td>
+
+</tr>
+<tr>
+<td align="center"><a href="http://SBSTEST1/clienthelp/defaultE.htm" target="_new"><img src="cid:000301cb3d4a$5c0c7db8$_CDOSYS2.0" width="40" height="40" border="0"></a></td>
+
+<td><p id="Email"><a href="http://SBSTEST1/clienthelp/defaultE.htm" target="_new">E-mail</a>	Communiceer met collega's en klanten met behulp van Microsoft Outlook of een <a href="http://SBSTEST1/exchange">op het web gebaseerde versie van Outlook</a>.</p></td>
+
+</tr>
+<tr>
+<td align="center"><a href="http://SBSTEST1/clienthelp/defaultM.htm" target="_new"><img src="cid:000401cb3d4a$5c0c7db8$_CDOSYS2.0" width="40" height="40" border="0"></a></td>
+
+<td><p id="MobileDevices"><a href="http://SBSTEST1/clienthelp/defaultM.htm" target="_new">Mobiele apparaten</a>  U kunt uw mobiele apparaat in het netwerk van Small Business Server gebruiken.</p></td>
+
+</tr>
+<tr>
+<td align="center"><a href="http://SBSTEST1/clienthelp/defaultC.htm" target="_new"><img src="cid:000501cb3d4a$5c0c7db8$_CDOSYS2.0" width="40" height="40" border="0"></a></td>
+
+<td><p id="Calendar"><a href="http://SBSTEST1/clienthelp/defaultC.htm" target="_new">Kalender</a>  Gebruik de Kalender van Microsoft Outlook 2003 voor het noteren van vergaderingen, gebeurtenissen en afspraken. U kunt ook de<a href="http://companyweb/lists/vacation calendar/calendar.aspx" target="_new">Vakantieplanner</a> op de interne website van het bedrijf gebruiken.</p></td>
+
+</tr>
+<tr>
+<td align="center"><a href="http://SBSTEST1/clienthelp/defaultR.htm" target="_new"><img src="cid:000601cb3d4a$5c0c7db8$_CDOSYS2.0" width="40" height="40" border="0"></a></td>
+
+<td><p id="RemoteAccess"><a href="http://SBSTEST1/clienthelp/defaultR.htm" target="_new">Externe toegang</a>  Lees uw e-mailberichten of gebruik uw documenten via het Internet of via een directe inbelverbinding met het bedrijfsnetwerk.</p></td>
+
+</tr>
+<tr>
+<td align="center"><a href="http://SBSTEST1/clienthelp/defaultF.htm" target="_new"><img src="cid:000701cb3d4a$5c0c7db8$_CDOSYS2.0" width="40" height="40" border="0"></a></td>
+
+<td><p id="Fax"><a href="http://SBSTEST1/clienthelp/defaultF.htm" target="_new">Fax</a>	Faxberichten via uw computer verzenden en ontvangen.</p></td>
+
+</tr>
+</table>
+<p id="Footer1">-Small Business Server-team</p>
+<p id="Footer2">Reageer niet op dit e-mailbericht. Als u vragen hebt, dient u contact op te nemen met de persoon die verantwoordelijk is voor het netwerk.</font></p>
+</body>
+</html>
