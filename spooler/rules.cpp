@@ -1314,8 +1314,11 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 		// test if action should be done...
 		// @todo: Create the correct locale for the current store.
 		hr = TestRestriction(lpCondition, *lppMessage, createLocaleFromName(""));
-		if (hr != hrSuccess) {
-			ec_log_info("Rule \"%s\" does not match: %s (%x)", strRule.c_str(),
+		if (hr == MAPI_E_NOT_FOUND) {
+			ec_log_info("Rule \"%s\" does not match", strRule.c_str());
+			continue;
+		} else if (hr != hrSuccess) {
+			ec_log_info("Rule \"%s\": %s (%x)", strRule.c_str(),
 				GetMAPIErrorMessage(hr), hr);
 			continue;
 		}
