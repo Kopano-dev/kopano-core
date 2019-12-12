@@ -14,6 +14,8 @@
 #ifndef ZCOMMON_DEFS_H
 #define ZCOMMON_DEFS_H 1
 
+#include <kopano/buildconfig.h>
+
 #ifdef SWIG
 	/* why does this not surprise me */
 #	define KC_HIDDEN
@@ -31,13 +33,11 @@
 /* Exported because something was using throw C; */
 #define KC_EXPORT_THROW KC_EXPORT
 
-/* Minimum requirement for KC is g++ 4.7, g++0x mode. */
 /* Swig is not bright enough to grok all C++11. */
 #if defined(SWIG)
 #	define KC_FINAL
 #	define KC_OVERRIDE
 #else
-	/* From g++ 4.7 onwards */
 #	define KC_FINAL final
 #	define KC_OVERRIDE override
 #endif

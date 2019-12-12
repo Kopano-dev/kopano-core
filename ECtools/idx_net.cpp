@@ -2,6 +2,9 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  * Copyright 2018 Kopano and its licensors
  */
+#ifdef HAVE_CONFIG_H
+#	include "config.h"
+#endif
 #include <iostream>
 #include <memory>
 #include <stdexcept>
@@ -11,6 +14,7 @@
 #include <cstring>
 #include <poll.h>
 #include <pthread.h>
+#include <unistd.h>
 #include <sys/stat.h>
 #include <libHX/option.h>
 #include <mapicode.h>

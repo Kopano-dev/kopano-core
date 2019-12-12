@@ -1,0 +1,6 @@
+/*
+ * This file should not be included directly, consider using
+ * <kopano/zcdefs.h> instead.
+ */
+#undef KC_USES_CXX17
+#undef KC_USES_TIMEGM

@@ -13,6 +13,7 @@
 #include <iostream>
 #include <csignal>
 #include <getopt.h>
+#include <unistd.h>
 #include <mapi.h>
 #include <mapix.h>
 #include <mapiutil.h>

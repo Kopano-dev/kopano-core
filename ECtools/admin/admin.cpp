@@ -16,6 +16,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <getopt.h>
+#include <unistd.h>
 #include <kopano/memory.hpp>
 #include <mapidefs.h>
 #include <mapispi.h>
