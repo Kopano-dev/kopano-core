@@ -176,6 +176,10 @@ HRESULT ECThreadPool::create_thread_unlocked()
 {
 	pthread_t hThread;
 	auto wk = make_worker();
+	if (wk == nullptr) {
+		ec_log_err("make_worker: %s", strerror(errno));
+		return MAPI_E_NOT_ENOUGH_MEMORY;
+	}
 	auto ret = pthread_create(&hThread, nullptr, &threadFunc, wk.get());
 	if (ret != 0) {
 		ec_log_err("Could not create ECThreadPool worker thread: %s", strerror(ret));

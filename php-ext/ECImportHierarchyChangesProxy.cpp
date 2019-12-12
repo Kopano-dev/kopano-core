@@ -4,6 +4,7 @@
  */
 #include "phpconfig.h"
 #include <kopano/platform.h>
+#include <kopano/MAPIErrors.h>
 #include <cstdio>
 #include <ctime>
 #include <cmath>
@@ -132,8 +133,9 @@ HRESULT ECImportHierarchyChangesProxy::ImportFolderChange(ULONG cValues, LPSProp
 	zval pvalReturn;
 	HRESULT hr = PropValueArraytoPHPArray(cValues, lpPropArray, &pvalArgs TSRMLS_CC);
     if(hr != hrSuccess) {
-        php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to convert MAPI propvalue array to PHP");
-        return hr;
+		php_error_docref(nullptr TSRMLS_CC, E_WARNING, "Unable to convert MAPI propvalue array to PHP: %s (%x)",
+			KC::GetMAPIErrorMessage(hr), hr);
+		return hr;
     }
     
     ZVAL_STRING(&pvalFuncName, "ImportFolderChange");

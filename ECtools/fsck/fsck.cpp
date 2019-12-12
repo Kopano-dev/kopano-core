@@ -157,7 +157,7 @@ HRESULT ReadProperties(LPMESSAGE lpMessage, ULONG ulCount, const ULONG *lpTag,
 		lpPropertyTagArray->aulPropTag[i] = lpTag[i];
 	hr = lpMessage->GetProps(lpPropertyTagArray, 0, &ulPropertyCount, lppPropertyArray);
 	if (FAILED(hr))
-		cout << "Failed to obtain all properties." << endl;
+		kc_perror("Failed to obtain all properties", hr);
 	return hr;
 }
 
@@ -167,7 +167,7 @@ HRESULT ReadNamedProperties(LPMESSAGE lpMessage, ULONG ulCount, LPMAPINAMEID *lp
 	ULONG ulReadCount = 0;
 	auto hr = lpMessage->GetIDsFromNames(ulCount, lppTag, 0, lppPropertyTagArray);
 	if(hr != hrSuccess) {
-		cout << "Failed to obtain IDs from names." << endl;
+		kc_perror("Failed to obtain IDs from names", hr);
 		/*
 		 * Override status to make sure FAILED() will catch this,
 		 * this is required to make sure the called won't attempt
@@ -177,7 +177,7 @@ HRESULT ReadNamedProperties(LPMESSAGE lpMessage, ULONG ulCount, LPMAPINAMEID *lp
 	}
 	hr = lpMessage->GetProps(*lppPropertyTagArray, 0, &ulReadCount, lppPropertyArray);
 	if (FAILED(hr))
-		cout << "Failed to obtain all properties." << endl;
+		kc_perror("Failed to obtain all properties", hr);
 	return hr;
 }
 
@@ -191,11 +191,8 @@ static HRESULT DetectFolderDetails(LPMAPIFOLDER lpFolder, string *lpName,
 
 	auto hr = lpFolder->GetProps(PropertyTagArray, 0, &ulPropertyCount,
 	          &~lpPropertyArray);
-	if (FAILED(hr)) {
-		cout << "Failed to obtain all properties." << endl;
-		return hr;
-	}
-
+	if (FAILED(hr))
+		return kc_perror("Failed to obtain all properties", hr);
 	*lpFolderType = 0;
 
 	for (ULONG i = 0; i < ulPropertyCount; ++i) {
@@ -232,11 +229,8 @@ RunFolderValidation(const std::set<std::string> &setFolderIgnore,
 	auto hr = lpRootFolder->OpenEntry(lpItemProperty->Value.bin.cb,
 	          reinterpret_cast<ENTRYID *>(lpItemProperty->Value.bin.lpb),
 	          &IID_IMAPIFolder, 0, &ulObjectType, &~lpFolder);
-	if (hr != hrSuccess) {
-		cout << "Failed to open EntryID." << endl;
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return kc_perror("Failed to open EntryID", hr);
 	/*
 	 * Detect folder name and class.
 	 */
@@ -246,7 +240,7 @@ RunFolderValidation(const std::set<std::string> &setFolderIgnore,
 			cout << "Unknown class, skipping entry";
 			cout << " \"" << strName << "\"" << endl;
 		} else
-			cout << "Failed to detect folder details." << endl;
+			kc_perror("Failed to detect folder details", hr);
 		return hr;
 	}
 
@@ -291,11 +285,8 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 	unsigned int cbUserStoreEntryID = 0, cbEntryIDSrc = 0;
 
 	auto hr = mapiinit.Initialize();
-	if (hr != hrSuccess) {
-		cout << "Unable to initialize session" << endl;
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return kc_perror("Unable to initialize session", hr);
 	// input from commandline is current locale
 	hr = HrOpenECSession(&~lpSession, PROJECT_VERSION, "fsck",
 	     strUser, strPass, strHost, 0, nullptr, nullptr);
@@ -306,24 +297,19 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 
 	if (bPublic) {
 		hr = HrOpenECPublicStore(lpSession, &~lpStore);
-		if (hr != hrSuccess) {
-			cout << "Failed to open public store." << endl;
-			return hr;
-		}
+		if (hr != hrSuccess)
+			return kc_perror("Failed to open public store", hr);
 	} else {
 		hr = HrOpenDefaultStore(lpSession, &~lpStore);
-		if (hr != hrSuccess) {
-			cout << "Failed to open default store." << endl;
-			return hr;
-		}
+		if (hr != hrSuccess)
+			return kc_perror("Failed to open default store", hr);
 	}
 
 	if (strAltUser != nullptr && *strAltUser != '\0') {
 		hr = lpStore->QueryInterface(IID_IExchangeManageStore, &~lpIEMS);
-        if (hr != hrSuccess) {
-            cout << "Cannot open ExchangeManageStore object" << endl;
-		return hr;
-        }
+		if (hr != hrSuccess)
+			return kc_perror("Cannot open ExchangeManageStore object", hr);
+
 		hr = lpIEMS->CreateStoreEntryID(reinterpret_cast<const TCHAR *>(L""),
 		     reinterpret_cast<const TCHAR *>(convert_to<std::wstring>(strAltUser).c_str()),
 		     MAPI_UNICODE | OPENSTORE_HOME_LOGON, &cbUserStoreEntryID,
@@ -343,26 +329,20 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
     }
 
 	hr = lpReadStore->OpenEntry(0, nullptr, &IID_IMAPIFolder, 0, &ulObjectType, &~lpRootFolder);
-	if(hr != hrSuccess) {
-		cout << "Failed to open root folder." << endl;
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perror("Failed to open root folder", hr);
 	if (HrGetOneProp(lpRootFolder, PR_IPM_OL2007_ENTRYIDS /*PR_ADDITIONAL_REN_ENTRYIDS_EX*/, &~lpAddRenProp) == hrSuccess &&
 	    Util::ExtractSuggestedContactsEntryID(lpAddRenProp, &cbEntryIDSrc, &~lpEntryIDSrc) == hrSuccess)
 		setFolderIgnore.emplace(reinterpret_cast<const char *>(lpEntryIDSrc.get()), cbEntryIDSrc);
 	hr = lpRootFolder->GetHierarchyTable(CONVENIENT_DEPTH, &~lpHierarchyTable);
-	if (hr != hrSuccess) {
-		cout << "Failed to open hierarchy." << endl;
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return kc_perror("Failed to open hierarchy", hr);
 	/*
 	 * Check if we have found at least *something*.
 	 */
 	hr = lpHierarchyTable->GetRowCount(0, &ulCount);
-	if(hr != hrSuccess) {
-		cout << "Failed to count number of rows." << endl;
-		return hr;
+	if (hr != hrSuccess) {
+		return kc_perror("Failed to count number of rows", hr);
 	} else if (!ulCount) {
 		cout << "No entries inside Calendar." << endl;
 		return hr;

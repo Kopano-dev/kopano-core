@@ -45,6 +45,7 @@
 #include <sys/utsname.h>
 #include <kopano/ECConfig.h>
 #include <kopano/MAPIErrors.h>
+#define EC_LOGLEVEL_ENV 0x00008000 /* not to overlap with any other EC_LOGLEVEL_ bit */
 
 namespace KC {
 
@@ -94,7 +95,7 @@ static const char *const ll_names[] = {
 	"debug  "
 };
 
-static ECLogger_File ec_log_fallback_target(EC_LOGLEVEL_WARNING, false, "-", false);
+static ECLogger_File ec_log_fallback_target(EC_LOGLEVEL_ENV, false, "-", false);
 static ECLogger *ec_log_target = &ec_log_fallback_target;
 static std::string ec_sysinfo = "(indet-OS)", ec_program_name = "(noname-program)", ec_program_ver;
 static std::atomic<bool> ec_sysinfo_checked{false};
@@ -102,6 +103,10 @@ static std::atomic<bool> ec_sysinfo_checked{false};
 ECLogger::ECLogger(int max_ll) :
 	max_loglevel(max_ll), prefix(LP_NONE)
 {
+	if (max_loglevel == EC_LOGLEVEL_ENV) {
+		auto s = getenv("KOPANO_CLIENT_LOGLEVEL");
+		max_loglevel = s == nullptr ? EC_LOGLEVEL_WARNING : atoui(s);
+	}
 	// get system locale for time, NULL is returned if locale was not found.
 	timelocale = newlocale(LC_TIME_MASK, "C", nullptr);
 	datalocale = createUTF8Locale();

@@ -101,7 +101,7 @@ ECRESULT ECTPropsPurge::PurgeThread()
         PurgeOverflowDeferred(lpDatabase); // Ignore error, just retry
     }
 
-    // Don't touch anything in *this from this point, we may have been delete()d by this time
+	m_lpDatabaseFactory->thread_end();
     return er;
 }
 

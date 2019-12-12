@@ -62,7 +62,6 @@
 #include <kopano/mapiext.h>
 #include "../server/ECSoapServerConnection.h"
 #include "cmdutil.hpp"
-#include <kopano/ECThreadPool.h>
 #include "soapKCmdService.h"
 #include "cmd.hpp"
 #if defined(HAVE_GPERFTOOLS_MALLOC_EXTENSION_H)
@@ -95,6 +94,12 @@ class ECFifoSerializer final : public ECSerializer {
 	ECFifoBuffer *m_lpBuffer;
 	eMode m_mode;
 	ULONG m_ulRead = 0, m_ulWritten = 0;
+};
+
+class ksrv_worker final : public ECThreadWorker {
+	public:
+	using ECThreadWorker::ECThreadWorker;
+	virtual void exit();
 };
 
 // Hold the status of the softdelete purge system
@@ -282,6 +287,16 @@ static ECRESULT PeerIsServer(struct soap *soap,
 	*lpbResult = SOAP_CONNECTION_TYPE_NAMED_PIPE(soap) &&
 	             strcasecmp(strServerName.c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) == 0;
 	return erSuccess;
+}
+
+void ksrv_worker::exit()
+{
+	g_lpSessionManager->get_db_factory()->thread_end();
+}
+
+std::unique_ptr<ECThreadWorker> ksrv_tpool::make_worker()
+{
+	return make_unique_nt<ksrv_worker>(this);
 }
 
 ECFifoSerializer::ECFifoSerializer(ECFifoBuffer *lpBuffer, eMode mode) :
@@ -919,10 +934,8 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 			ec_log_info(" purge store (%d)", *iterObjectId);
 
 			er = DeleteObjects(lpecSession, lpDatabase, *iterObjectId, ulDeleteFlags|EC_DELETE_STORE, 0, false, false);
-			if(er != erSuccess) {
-				ec_log_err("Error while removing softdelete store objects, error code: 0x%x.", er);
-				return er;
-			}
+			if (er != erSuccess)
+				return ec_perror("Error while removing softdelete store objects", er);
 		}
 		ec_log_info("Store purge done");
 	}
@@ -951,10 +964,8 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 			return KCERR_USER_CANCEL;
 		ec_log_info("Starting to purge %zu folders", lObjectIds.size());
 		er = DeleteObjects(lpecSession, lpDatabase, &lObjectIds, ulDeleteFlags, 0, false, false);
-		if(er != erSuccess) {
-			ec_log_err("Error while removing softdelete folder objects, error code: 0x%x.", er);
-			return er;
-		}
+		if (er != erSuccess)
+			return ec_perror("Error while removing softdelete folder objects", er);
 		ec_log_info("Folder purge done");
 	}
 	if (*lpbExit)
@@ -982,10 +993,8 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 			return KCERR_USER_CANCEL;
 		ec_log_info("Starting to purge %zu messages", lObjectIds.size());
 		er = DeleteObjects(lpecSession, lpDatabase, &lObjectIds, ulDeleteFlags, 0, false, false);
-		if(er != erSuccess) {
-			ec_log_err("Error while removing softdelete message objects, error code: 0x%x.", er);
-			return er;
-		}
+		if (er != erSuccess)
+			return ec_perror("Error while removing softdelete message objects", er);
 		ec_log_info("Message purge done");
 	}
 
@@ -8558,7 +8567,7 @@ struct MTOMSessionInfo {
 	ECDatabase *lpDatabase = nullptr;
 	std::shared_ptr<ECAttachmentStorage> lpAttachmentStorage;
 	ECRESULT er = 0;
-	std::unique_ptr<ECThreadPool> lpThreadPool;
+	std::unique_ptr<ksrv_tpool> lpThreadPool;
 	std::lock_guard<ECSession> holder;
 	/* These are only tracked for cleanup at session exit */
 	MTOMStreamInfo *lpCurrentWriteStream = nullptr, *lpCurrentReadStream = nullptr;
@@ -8757,7 +8766,7 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er,
 	lpMTOMSessionInfo->lpAttachmentStorage = lpAttachmentStorage;
 	lpMTOMSessionInfo->lpSharedDatabase = std::move(lpBatchDB);
 	lpMTOMSessionInfo->er = erSuccess;
-	lpMTOMSessionInfo->lpThreadPool.reset(new ECThreadPool("mtomexport", 1));
+	lpMTOMSessionInfo->lpThreadPool.reset(new ksrv_tpool("mtomexport", 1));
 	soap_info(soap)->fdone = MTOMSessionDone;
 	soap_info(soap)->fdoneparam = lpMTOMSessionInfo;
 	lpsResponse->sMsgStreams.__ptr = soap_new_messageStream(soap, sSourceKeyPairs.__size);
@@ -8953,7 +8962,7 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags,
 	lpMTOMSessionInfo->lpDatabase = lpDatabase;
 	lpMTOMSessionInfo->lpSharedDatabase = NULL;
 	lpMTOMSessionInfo->er = erSuccess;
-	lpMTOMSessionInfo->lpThreadPool.reset(new ECThreadPool("mtomimport", 1));
+	lpMTOMSessionInfo->lpThreadPool.reset(new ksrv_tpool("mtomimport", 1));
 	soap_info(soap)->fdone = MTOMSessionDone;
 	soap_info(soap)->fdoneparam = lpMTOMSessionInfo;
 

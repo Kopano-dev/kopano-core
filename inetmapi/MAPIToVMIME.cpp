@@ -563,7 +563,7 @@ HRESULT MAPIToVMIME::BuildNoteMessage(IMessage *lpMessage,
 		// add reply to email, ignore errors
 		hr = handleReplyTo(lpMessage, vmHeader);
 		if (hr != hrSuccess) {
-			ec_log_warn("Unable to set reply-to address");
+			kc_pwarn("Unable to set reply-to address", hr);
 			hr = hrSuccess;
 		}
 
@@ -737,10 +737,8 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage,
 		if (hr == hrSuccess) {
 			std::wstring strBuffer;
 			hr = Util::HrStreamToString(lpBodyStream, strBuffer);
-			if (hr != hrSuccess) {
-				ec_log_err("Unable to read MDN message body.");
-				return hr;
-			}
+			if (hr != hrSuccess)
+				return kc_perror("Unable to read MDN message body", hr);
 			strMDNText = m_converter.convert_to<string>(m_strCharset.c_str(), strBuffer, rawsize(strBuffer), CHARSET_WCHAR);
 		}
 
@@ -1864,12 +1862,12 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
 				}
 				hr = mapiical->AddMessage(lpMessage, std::string(), 0);
 				if (hr != hrSuccess) {
-					ec_log_warn("Unable to create ical object, sending as TNEF");
+					kc_pwarn("Unable to create ical object, sending as TNEF", hr);
 					goto tnef_anyway;
 				}
 				hr = mapiical->Finalize(0, &method, &ical);
 				if (hr != hrSuccess) {
-					ec_log_warn("Unable to create ical object, sending as TNEF");
+					kc_pwarn("Unable to create ical object, sending as TNEF", hr);
 					goto tnef_anyway;
 				}
 
@@ -1895,11 +1893,8 @@ tnef_anyway:
 				ECTNEF tnef(TNEF_ENCODE, lpMessage, lpStream);
 				// Encode the properties now, add all message properties except for the exclude list
 				hr = tnef.AddProps(TNEF_PROP_EXCLUDE, sptaExclude);
-				if(hr != hrSuccess) {
-					ec_log_err("Unable to exclude properties from TNEF object");
-					return hr;
-				}
-
+				if (hr != hrSuccess)
+					return kc_perror("Unable to exclude properties from TNEF object", hr);
 				// plaintext is never added to TNEF, only HTML or "real" RTF
 				if (bestBody != plaintext) {
 					SizedSPropTagArray(1, sptaBestBodyInclude) = {1, {PR_RTF_COMPRESSED}};
@@ -1909,7 +1904,8 @@ tnef_anyway:
 
 					hr = tnef.AddProps(TNEF_PROP_INCLUDE, sptaBestBodyInclude);
 					if(hr != hrSuccess) {
-						ec_log_err("Unable to include body property 0x%08x to TNEF object", sptaBestBodyInclude.aulPropTag[0]);
+						ec_log_err("Unable to include body property 0x%08x in TNEF object: %s (%x)",
+							sptaBestBodyInclude.aulPropTag[0], GetMAPIErrorMessage(hr), hr);
 						return hr;
 					}
 				}

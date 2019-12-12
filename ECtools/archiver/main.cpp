@@ -411,7 +411,7 @@ int main(int argc, char **argv) try
 	if (ulFlags & Archiver::DumpConfig)
 		return r;
     if (r == FileNotFound) {
-        cerr << "Unable to open configuration file " << lpszConfig << endl;
+		ec_log_err("Unable to open configuration file \"%s\": not found", lpszConfig);
         return 1;
     } else if (r != Success) {
         cerr << "Failed to initialize" << endl;

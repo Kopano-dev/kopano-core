@@ -47,20 +47,20 @@ HRESULT HrFileLFtoCRLF(FILE *fin, FILE** fout)
 
 	std::unique_ptr<FILE, file_deleter> fTmp(tmpfile());
 	if(fTmp == NULL) {
-		perror("Unable to create tmp file");
+		ec_log_err("Unable to create tmp file: %s", strerror(errno));
 		return MAPI_E_CALL_FAILED;
 	}
 
 	while (!feof(fin)) {
 		size_t readsize = fread(bufferin, 1, BLOCKSIZE / 2, fin);
 		if (ferror(fin)) {
-			perror("Read error");//FIXME: What an error?, what now?
+			ec_log_err("%s/fread: %s", __func__, strerror(errno));
 			return MAPI_E_CORRUPT_DATA;
 		}
 
 		BufferLFtoCRLF(readsize, bufferin, bufferout, &sizebufferout);
 		if (fwrite(bufferout, 1, sizebufferout, fTmp.get()) != sizebufferout) {
-			perror("Write error");//FIXME: What an error?, what now?
+			ec_log_err("%s/fwrite: %s", __func__, strerror(errno));
 			return MAPI_E_CORRUPT_DATA;
 		}
 	}
@@ -84,13 +84,13 @@ HRESULT HrMapFileToString(FILE *f, std::string *lpstrBuffer)
 	while (!feof(f)) {
 		auto rd = fread(buf, 1, sizeof(buf), f);
 		if (ferror(f)) {
-			perror("MapFileToString/fread");
+			ec_log_err("MapFileToString/fread: %s", strerror(errno));
 			return MAPI_E_CORRUPT_DATA;
 		}
 		try {
 			lpstrBuffer->append(buf, rd);
 		} catch (const std::bad_alloc &) {
-			perror("malloc");
+			ec_log_err("MapFileToString/malloc: %s", strerror(errno));
 			return MAPI_E_NOT_ENOUGH_MEMORY;
 		}
 	}

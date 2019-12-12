@@ -629,7 +629,7 @@ void* ECSessionManager::SessionCleaner(void *lpTmpSessionManager)
 		return 0;
 
 	ECDatabase *db = NULL;
-	if (lpSessionManager->m_lpDatabaseFactory.get()->get_tls_db(&db) != erSuccess)
+	if (lpSessionManager->m_lpDatabaseFactory->get_tls_db(&db) != erSuccess)
 		ec_log_err("GTLD failed in SessionCleaner");
 
 	while(true){
@@ -679,6 +679,7 @@ void* ECSessionManager::SessionCleaner(void *lpTmpSessionManager)
 		if (lpSessionManager->m_hExitSignal.wait_for(l_exit, 5s) != std::cv_status::timeout)
 			break;
 	}
+	lpSessionManager->m_lpDatabaseFactory->thread_end();
 	return NULL;
 }
 

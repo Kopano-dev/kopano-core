@@ -13,13 +13,13 @@
 #include <pthread.h>
 #include "ECDatabaseFactory.h"
 #include <kopano/ECKeyTable.h>
-#include <kopano/ECThreadPool.h>
 #include "ECStoreObjectTable.h"
 #include "soapH.h"
 #include "SOAPUtils.h"
 #include <map>
 #include <set>
 #include <list>
+#include "cmd.hpp"
 
 namespace KC {
 
@@ -381,7 +381,7 @@ private:
 
     ECDatabaseFactory *m_lpDatabaseFactory;
     ECSessionManager *m_lpSessionManager;
-	ECThreadPool m_pool;
+	KC::ksrv_tpool m_pool;
 
     // List of change events
     std::list<EVENT> m_lstEvents;

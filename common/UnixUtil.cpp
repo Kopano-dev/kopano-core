@@ -219,7 +219,7 @@ int unix_create_pidfile(const char *argv0, ECConfig *lpConfig, bool bForce)
 
 	pidfile = fopen(pidfilename.c_str(), "w");
 	if (!pidfile) {
-		ec_log_crit("Unable to open pidfile '%s'", pidfilename.c_str());
+		ec_log_err("Unable to open pidfile \"%s\": %s", pidfilename.c_str(), strerror(errno));
 		return 1;
 	}
 

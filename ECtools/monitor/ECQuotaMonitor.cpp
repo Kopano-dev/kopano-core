@@ -80,7 +80,7 @@ void* ECQuotaMonitor::Create(void* lpVoid)
 	// Open admin store
 	hr = HrOpenDefaultStore(lpMAPIAdminSession, &~lpMDBAdmin);
 	if (hr != hrSuccess) {
-		ec_log_err("Unable to open default store for system account");
+		kc_perror("Unable to open default store for system account", hr);
 		return NULL;
 	}
 

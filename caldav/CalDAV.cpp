@@ -573,7 +573,7 @@ static HRESULT HrHandleRequest(ECChannel *lpChannel)
 		lpRequest.HrGetMethod(&strMethod);
 		hr = HrAuthenticate(strUserAgent, strUserAgentVersion, wstrUser, wstrPass, g_lpConfig->GetSetting("server_socket"), &~lpSession);
 		if (hr != hrSuccess)
-			ec_log_warn("Login failed (0x%08X %s), resending authentication request", hr, GetMAPIErrorMessage(hr));
+			ec_log_warn("Login failed: %s (%x). Resending authentication request.", GetMAPIErrorMessage(hr), hr);
 	}
 	if (hr != hrSuccess) {
 		if(ulFlag & SERVICE_ICAL)
@@ -609,7 +609,7 @@ static HRESULT HrHandleRequest(ECChannel *lpChannel)
 	hr = lpBase->HrHandleCommand(strMethod);
 exit:
 	if(hr != hrSuccess && !strMethod.empty() && hr != MAPI_E_NOT_ME)
-		ec_log_err("Error processing %s request, error code 0x%08x %s", strMethod.c_str(), hr, GetMAPIErrorMessage(hr));
+		ec_log_err("Error processing %s request: %s (%x)", strMethod.c_str(), GetMAPIErrorMessage(hr), hr);
 	if (hr != MAPI_E_USER_CANCEL) // do not send response to client if connection closed by client.
 		hr = lpRequest.HrFinalize();
 	ec_log_debug("End Of Request");

@@ -28,7 +28,7 @@
 #include "StatsClient.h"
 #include "ECTPropsPurge.h"
 #include "cmdutil.hpp"
-
+#define ec_pinfo(s, r) ec_log_ercode((r), EC_LOGLEVEL_INFO, s ": %s (%x)", nullptr)
 #define FIELD_NR_NAMEID		(FIELD_NR_MAX + 1)
 #define FIELD_NR_NAMESTR	(FIELD_NR_MAX + 2)
 #define FIELD_NR_NAMEGUID	(FIELD_NR_MAX + 3)
@@ -923,10 +923,8 @@ ECRESULT DeleteObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt *
 
 	// Collect recursive parent objects, validate item and check the permissions
 	er = ExpandDeletedItems(lpSession, lpDatabase, lpsObjectList, ulFlags, bCheckPermission, &lstDeleteItems);
-	if (er != erSuccess) {
-		ec_log_info("Error while expanding delete item list, error code %u", er);
-		return er;
-	}
+	if (er != erSuccess)
+		return ec_pinfo("Error while expanding delete item list", er);
 
 	// Remove search results for deleted folders
 	if (ulFlags & EC_DELETE_STORE)
@@ -946,26 +944,19 @@ ECRESULT DeleteObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt *
 		er = DeleteObjectHard(lpSession, lpDatabase, NULL, ulFlags, lstDeleteItems, bNoTransaction, lstDeleted);
 	else
 		er = DeleteObjectSoft(lpSession, lpDatabase, ulFlags, lstDeleteItems, lstDeleted);
-	if (er != erSuccess) {
-		ec_log_info("Error while deleting expanded item list, error code %u", er);
-		return er;
-	}
+	if (er != erSuccess)
+		return ec_pinfo("Error while deleting expanded item list", er);
 
 	if (!(ulFlags&EC_DELETE_STORE)) {
 		//Those functions are not called with a store delete
 		// Update store size
 		er = DeleteObjectStoreSize(lpSession, lpDatabase, ulFlags, lstDeleted);
-		if(er!= erSuccess) {
-			ec_log_info("Error while updating store sizes after delete, error code %u", er);
-			return er;
-		}
-
+		if (er!= erSuccess)
+			return ec_pinfo("Error while updating store sizes after delete", er);
 		// Update ICS
 		er = DeleteObjectUpdateICS(lpSession, ulFlags, lstDeleted, ulSyncId);
-		if (er != erSuccess) {
-			ec_log_info("Error while updating ICS after delete, error code %u", er);
-			return er;
-		}
+		if (er != erSuccess)
+			return ec_pinfo("Error while updating ICS after delete", er);
 
 		// Update local commit time on top level folders
 		for (const auto &di : lstDeleteItems) {
@@ -974,10 +965,8 @@ ECRESULT DeleteObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt *
 			if (!k)
 				continue;
 			er = WriteLocalCommitTimeMax(NULL, lpDatabase, di.ulParent, NULL);
-			if (er != erSuccess) {
-				ec_log_info("Error while updating folder access time after delete, error code %u", er);
-				return er;
-			}
+			if (er != erSuccess)
+				return ec_pinfo("Error while updating folder access time after delete", er);
 			// the folder will receive a changed notification anyway, since items are being deleted from it
 		}
 	}
