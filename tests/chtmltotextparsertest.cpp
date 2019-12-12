@@ -17,7 +17,8 @@
 
 using namespace KC;
 
-int testhtml(std::string file) {
+static int testhtml(std::string file)
+{
 	CHtmlToTextParser parser;
 
 	std::wifstream htmlfile(file);

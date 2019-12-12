@@ -14,7 +14,8 @@
 
 using namespace KC;
 
-int test_rtfhtml(std::string file) {
+static int test_rtfhtml(std::string file)
+{
 	std::string html;
 
 	std::ifstream rtftile(file);
