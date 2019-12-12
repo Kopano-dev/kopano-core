@@ -2,6 +2,9 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
+#ifdef HAVE_CONFIG_H
+#	include "config.h"
+#endif
 #include <kopano/platform.h>
 #include <chrono>
 #include <exception>
@@ -86,7 +89,7 @@ typedef memory_ptr<struct berval *, ldap_deleter> auto_free_ldap_berval;
 #define FETCH_ATTR_VALS 0
 #define DONT_FETCH_ATTR_VALS 1
 
-#if HAVE_LDAP_CREATE_PAGE_CONTROL
+#ifdef HAVE_LDAP_CREATE_PAGE_CONTROL
 #define FOREACH_PAGING_SEARCH(basedn, scope, filter, attrs, flags, res) \
 { \
 	bool morePages = false; \
