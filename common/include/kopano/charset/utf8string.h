@@ -28,7 +28,7 @@ public:
 
 	static utf8string from_string(const std::string &str) {
 		utf8string s;
-		s.m_str.assign(str);
+		s.m_str = str;
 		return s;
 	}
 

@@ -193,7 +193,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 			lpDBRow = lpDBResult.fetch_row();
 			if (lpDBRow == NULL)
 				break;
-			unsigned int ulTmp = atoui((char*)lpDBRow[0]);
+			unsigned int ulTmp = atoui(lpDBRow[0]);
 			if (ulTmp != ulSyncId)
 				syncids.emplace(ulTmp);
 		}

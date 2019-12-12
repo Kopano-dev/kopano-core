@@ -539,9 +539,9 @@ static ECRESULT SerializeDatabasePropVal(const StreamCaps *lpStreamCaps,
 		er = lpSink->Write(&ulCount, sizeof(ulCount), 1);
 		for (unsigned int x = 0; er == erSuccess && x < ulCount; ++x) {
 			ParseMVProp(lpRow[FIELD_NR_LO], lpLen[FIELD_NR_LO], &ulLastPos, &strData);
-			hilo.lo = atoui((char*)strData.c_str());
+			hilo.lo = atoui(strData.c_str());
 			ParseMVProp(lpRow[FIELD_NR_HI], lpLen[FIELD_NR_HI], &ulLastPos2, &strData);
-			hilo.hi = atoi((char*)strData.c_str());
+			hilo.hi = atoi(strData.c_str());
 			er = lpSink->Write(&hilo.hi, sizeof(hilo.hi), 1);
 			if (er == erSuccess)
 				er = lpSink->Write(&hilo.lo, sizeof(hilo.lo), 1);

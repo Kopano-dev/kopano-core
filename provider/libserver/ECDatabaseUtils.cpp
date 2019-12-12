@@ -130,7 +130,7 @@ ECRESULT CopySOAPPropValToDatabasePropVal(const struct propVal *lpPropVal,
 	case PT_I8:
 		if (lpPropVal->__union != SOAP_UNION_propValData_li)
 			return KCERR_INVALID_PARAMETER;
-		strColData = stringify_int64(int64_t(lpPropVal->Value.li));
+		strColData = stringify_int64(lpPropVal->Value.li);
 		*lpulColNr = VALUE_NR_LONGINT;
 		break;
 	case PT_UNICODE:
@@ -519,7 +519,7 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 		ulLastPos = 0;
 		for (gsoap_size_t i = 0; i < lpPropVal->Value.mvi.__size; ++i) {
 			ParseMVProp(lpRow[FIELD_NR_ULONG], lpLen[FIELD_NR_ULONG], &ulLastPos, &strData);
-			lpPropVal->Value.mvi.__ptr[i] = (short)atoui((char *)strData.c_str());
+			lpPropVal->Value.mvi.__ptr[i] = static_cast<short>(atoui(strData.c_str()));
 		}
 		break;
 	case PT_MV_LONG:
@@ -534,7 +534,7 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 		ulLastPos = 0;
 		for (gsoap_size_t i = 0; i < lpPropVal->Value.mvl.__size; ++i) {
 			ParseMVProp(lpRow[FIELD_NR_ULONG], lpLen[FIELD_NR_ULONG], &ulLastPos, &strData);
-			lpPropVal->Value.mvl.__ptr[i] = atoui((char*)strData.c_str());
+			lpPropVal->Value.mvl.__ptr[i] = atoui(strData.c_str());
 		}
 		break;
 	case PT_MV_R4:
@@ -581,13 +581,13 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 		ulLastPos = 0;
 		for (gsoap_size_t i = 0; i < lpPropVal->Value.mvhilo.__size; ++i) {
 			ParseMVProp(lpRow[FIELD_NR_LO], lpLen[FIELD_NR_LO], &ulLastPos, &strData);
-			lpPropVal->Value.mvhilo.__ptr[i].lo = atoui((char*)strData.c_str());
+			lpPropVal->Value.mvhilo.__ptr[i].lo = atoui(strData.c_str());
 		}
 		//Scan high
 		ulLastPos = 0;
 		for (gsoap_size_t i = 0; i < lpPropVal->Value.mvhilo.__size; ++i) {
 			ParseMVProp(lpRow[FIELD_NR_HI], lpLen[FIELD_NR_HI], &ulLastPos, &strData);
-			lpPropVal->Value.mvhilo.__ptr[i].hi = atoi((char*)strData.c_str());
+			lpPropVal->Value.mvhilo.__ptr[i].hi = atoi(strData.c_str());
 		}
 		break;
 	case PT_MV_BINARY:

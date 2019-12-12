@@ -316,12 +316,12 @@ HRESULT ECTNEF::ExtractProps(ULONG flags, SPropTagArray *lpPropList)
 
 				// We map the Schedule+ message class to the more modern MAPI message
 				// class. The mapping should be correct as far as we can find ..
-				char *szMAPIClass = (char *)FindMAPIClassByScheduleClass(szSClass.get());
+				auto szMAPIClass = FindMAPIClassByScheduleClass(szSClass.get());
 				if(szMAPIClass == NULL)
 					szMAPIClass = szSClass.get(); // mapping not found, use string from TNEF file
 
 				sProp.ulPropTag = PR_MESSAGE_CLASS_A;
-				sProp.Value.lpszA = szMAPIClass;
+				sProp.Value.lpszA = const_cast<char *>(szMAPIClass);
 
 				// We do a 'SetProps' now because we want to override the PR_MESSAGE_CLASS
 				// setting, while Finish() never overrides already-present properties for

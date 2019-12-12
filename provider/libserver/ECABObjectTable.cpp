@@ -170,9 +170,9 @@ struct filter_objects {
 			((m_ulFlags & AB_FILTER_SYSTEM) &&
 			 (details.GetClass() == ACTIVE_USER && details.ulId == KOPANO_UID_SYSTEM)) ||
 			((m_ulFlags & AB_FILTER_ADDRESSLIST) &&
-			 (details.GetClass() == CONTAINER_ADDRESSLIST)) ||
+			 details.GetClass() == CONTAINER_ADDRESSLIST) ||
 			((m_ulFlags & AB_FILTER_CONTACTS) &&
-			 (details.GetClass() == NONACTIVE_CONTACT));
+			 details.GetClass() == NONACTIVE_CONTACT);
 	}
 };
 

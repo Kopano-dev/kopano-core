@@ -565,7 +565,7 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn,
 		// For these two values: if they are both NULL, anonymous bind
 		// will be used (ldap_binddn, ldap_bindpw)
 		LOG_PLUGIN_DEBUG("Issuing LDAP bind");
-		rc = ldap_simple_bind_s(ld, (char *)bind_dn, (char *)bind_pw);
+		rc = ldap_simple_bind_s(ld, bind_dn, bind_pw);
 		if (rc == LDAP_SUCCESS)
 			break;
 		ec_log_warn("LDAP (simple) bind on %s failed: %s", bind_dn, ldap_err2string(rc));
@@ -600,7 +600,9 @@ LDAPUserPlugin::~LDAPUserPlugin() {
 		ec_log_err("LDAP unbind failed");
 }
 
-void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char *attrs[], int attrsonly, LDAPMessage **lppres, LDAPControl **serverControls)
+void LDAPUserPlugin::my_ldap_search_s(const char *base, int scope,
+    const char *filter, const char *const *attrs, int attrsonly,
+    LDAPMessage **lppres, LDAPControl **serverControls)
 {
 	int result=LDAP_SUCCESS;
 	string req;
@@ -625,7 +627,7 @@ void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char 
 	 * one standard connect plus query.
 	 */
 	if (m_ldap != NULL)
-		result = ldap_search_ext_s(m_ldap, base, scope, filter, attrs,
+		result = ldap_search_ext_s(m_ldap, base, scope, filter, const_cast<char **>(attrs),
 		         attrsonly, serverControls, nullptr, &m_timeout, 0, &~res);
 
 	if (m_ldap == NULL || LDAP_API_ERROR(result)) {
@@ -642,7 +644,7 @@ void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char 
 		/// @todo encode the user and password, now it's depended in which charset the config is saved
 		m_ldap = ConnectLDAP(ldap_binddn, ldap_bindpw, starttls);
 		m_lpStatsCollector->inc(SCN_LDAP_RECONNECTS);
-		result = ldap_search_ext_s(m_ldap, base, scope, filter, attrs,
+		result = ldap_search_ext_s(m_ldap, base, scope, filter, const_cast<char **>(attrs),
 		          attrsonly, serverControls, nullptr, nullptr, 0, &~res);
 	}
 
@@ -883,10 +885,8 @@ signatures_t LDAPUserPlugin::getAllObjectsByFilter(const std::string &basedn,
 	/* Needed for cache */
 	CONFIG_TO_ATTR(request_attrs, modify_attr, "ldap_last_modification_attribute");
 
-	FOREACH_PAGING_SEARCH((char *)basedn.c_str(), scope,
-						  (char *)search_filter.c_str(), (char **)request_attrs->get(),
-						  FETCH_ATTR_VALS, res)
-	{
+	FOREACH_PAGING_SEARCH(basedn.c_str(), scope, search_filter.c_str(),
+	    request_attrs->get(), FETCH_ATTR_VALS, res) {
 		FOREACH_ENTRY(res) {
 			auto dn = GetLDAPEntryDN(entry);
 
@@ -1162,11 +1162,8 @@ string LDAPUserPlugin::objectUniqueIDtoAttributeData(const objectid_t &uniqueid,
 
 	if (lpAttr == NULL)
 		throw runtime_error("Cannot convert uniqueid to unknown attribute");
-
-	my_ldap_search_s(
-			(char *)ldap_basedn.c_str(), LDAP_SCOPE_SUBTREE,
-			(char *)ldap_filter.c_str(),
-			request_attrs, FETCH_ATTR_VALS, &~res);
+	my_ldap_search_s(ldap_basedn.c_str(), LDAP_SCOPE_SUBTREE,
+		ldap_filter.c_str(), request_attrs, FETCH_ATTR_VALS, &~res);
 
 	switch(ldap_count_entries(m_ldap, res)) {
 	case 0:
@@ -1221,11 +1218,8 @@ string LDAPUserPlugin::objectUniqueIDtoObjectDN(const objectid_t &uniqueid, bool
 	string			ldap_filter = getObjectSearchFilter(uniqueid);
 	auto request_attrs = std::make_unique<attrArray>(1);
 	request_attrs->add("dn");
-
-	my_ldap_search_s(
-			 (char *)ldap_basedn.c_str(), LDAP_SCOPE_SUBTREE,
-			 (char *)ldap_filter.c_str(), (char **)request_attrs->get(),
-			 DONT_FETCH_ATTR_VALS, &~res);
+	my_ldap_search_s(ldap_basedn.c_str(), LDAP_SCOPE_SUBTREE,
+		ldap_filter.c_str(), request_attrs->get(), DONT_FETCH_ATTR_VALS, &~res);
 
 	switch(ldap_count_entries(m_ldap, res)) {
 	case 0:
@@ -1491,11 +1485,8 @@ objectsignature_t LDAPUserPlugin::authenticateUserPassword(const string &usernam
 	/* LDAP filter does not exist, user does not exist, user cannot login */
 	if (ldap_filter.empty())
 		throw objectnotfound("LDAP filter is empty");
-
-	my_ldap_search_s(
-			(char *)ldap_basedn.c_str(), LDAP_SCOPE_SUBTREE,
-			(char *)ldap_filter.c_str(), (char **)request_attrs->get(),
-			FETCH_ATTR_VALS, &~res);
+	my_ldap_search_s(ldap_basedn.c_str(), LDAP_SCOPE_SUBTREE,
+		ldap_filter.c_str(), request_attrs->get(), FETCH_ATTR_VALS, &~res);
 
 	switch(ldap_count_entries(m_ldap, res)) {
 	case 0:
@@ -1766,10 +1757,8 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 		ldap_filter += ")";
 	}
 
-	FOREACH_PAGING_SEARCH((char *)ldap_basedn.c_str(), LDAP_SCOPE_SUBTREE,
-						  (char *)ldap_filter.c_str(), (char **)request_attrs->get(),
-						  FETCH_ATTR_VALS, res)
-	{
+	FOREACH_PAGING_SEARCH(ldap_basedn.c_str(), LDAP_SCOPE_SUBTREE,
+		ldap_filter.c_str(), request_attrs->get(), FETCH_ATTR_VALS, res) {
 	FOREACH_ENTRY(res) {
 		strDN = GetLDAPEntryDN(entry);
 		objectid_t objectid = GetObjectIdForEntry(entry);
@@ -2355,11 +2344,8 @@ LDAPUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 	/* LDAP filter empty, parent does not exist */
 	if (ldap_filter.empty())
 		throw objectnotfound("ldap filter is empty");
-
-	my_ldap_search_s(
-			(char *)ldap_basedn.c_str(), LDAP_SCOPE_SUBTREE,
-			(char *)ldap_filter.c_str(), (char **)request_attrs,
-			FETCH_ATTR_VALS, &~res);
+	my_ldap_search_s(ldap_basedn.c_str(), LDAP_SCOPE_SUBTREE,
+		ldap_filter.c_str(), request_attrs, FETCH_ATTR_VALS, &~res);
 
 	if(ulType == MEMBERS) {
 		// Get the DN for each of the returned entries
@@ -2484,10 +2470,8 @@ objectdetails_t LDAPUserPlugin::getPublicStoreDetails()
 	// Do a search request to get all attributes for this user. The
 	// attributes requested should be passed as the fifth argument, if
 	// necessary
-	my_ldap_search_s(
-			 (char *)ldap_basedn.c_str(), LDAP_SCOPE_SUBTREE,
-			 (char *)search_filter.c_str(), (char **)request_attrs->get(),
-			 FETCH_ATTR_VALS, &~res);
+	my_ldap_search_s(ldap_basedn.c_str(), LDAP_SCOPE_SUBTREE,
+		search_filter.c_str(), request_attrs->get(), FETCH_ATTR_VALS, &~res);
 
 	switch (ldap_count_entries(m_ldap, res)) {
 	case 0:
@@ -2523,11 +2507,8 @@ serverlist_t LDAPUserPlugin::getServers()
 	auto search_filter = "(&" + getServerSearchFilter() + ")";
 	auto request_attrs = std::make_unique<attrArray>(1);
 	CONFIG_TO_ATTR(request_attrs, name_attr, "ldap_server_unique_attribute");
-
-	my_ldap_search_s(
-			 (char *)ldap_basedn.c_str(), LDAP_SCOPE_SUBTREE,
-			 (char *)search_filter.c_str(), (char **)request_attrs->get(),
-			 FETCH_ATTR_VALS, &~res);
+	my_ldap_search_s(ldap_basedn.c_str(), LDAP_SCOPE_SUBTREE,
+		search_filter.c_str(), request_attrs->get(), FETCH_ATTR_VALS, &~res);
 
     FOREACH_ENTRY(res)
     {
@@ -2571,10 +2552,8 @@ serverdetails_t LDAPUserPlugin::getServerDetails(const std::string &server)
 	// Do a search request to get all attributes for this server. The
 	// attributes requested should be passed as the fifth argument, if
 	// necessary
-	my_ldap_search_s(
-			 (char *)ldap_basedn.c_str(), LDAP_SCOPE_SUBTREE,
-			 (char *)search_filter.c_str(), (char **)request_attrs->get(),
-			 FETCH_ATTR_VALS, &~res);
+	my_ldap_search_s(ldap_basedn.c_str(), LDAP_SCOPE_SUBTREE,
+		search_filter.c_str(), request_attrs->get(), FETCH_ATTR_VALS, &~res);
 
 	switch (ldap_count_entries(m_ldap, res)) {
 	case 0:
@@ -2653,7 +2632,7 @@ static std::string StringEscapeSequence(const char *lpdata, size_t size)
 		    (lpdata[t] >= 91 && lpdata[t] <= 96) /* [\]^_`*/))
 			strEscaped.append("\\"+toHex(lpdata[t]));
 		else
-			strEscaped.append((char*)&lpdata[t], 1);
+			strEscaped.append(&lpdata[t], 1);
 	return strEscaped;
 }
 
@@ -2697,10 +2676,8 @@ quotadetails_t LDAPUserPlugin::getQuota(const objectid_t &id,
 	// Do a search request to get all attributes for this user. The
 	// attributes requested should be passed as the fifth argument, if
 	// necessary
-	my_ldap_search_s(
-			 (char *)ldap_basedn.c_str(), LDAP_SCOPE_SUBTREE,
-			 (char *)ldap_filter.c_str(), (char **)request_attrs->get(),
-			 FETCH_ATTR_VALS, &~res);
+	my_ldap_search_s(ldap_basedn.c_str(), LDAP_SCOPE_SUBTREE,
+		ldap_filter.c_str(), request_attrs->get(), FETCH_ATTR_VALS, &~res);
 	quotaDetails.bIsUserDefaultQuota = bGetUserDefault;
 
 	// Get the DN for each of the returned entries

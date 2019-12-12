@@ -175,9 +175,9 @@ HRESULT ECGenericProp::HrGetRealProp(ULONG ulPropTag, ULONG ulFlags, void *lpBas
 	}
 	if (PROP_TYPE(ulPropTag) == PT_UNSPECIFIED) {
 		if (PROP_TYPE(iterProps->second.GetPropTag()) == PT_UNICODE)
-			ulPropTag = CHANGE_PROP_TYPE(ulPropTag, ((ulFlags & MAPI_UNICODE) ? PT_UNICODE : PT_STRING8));
+			ulPropTag = CHANGE_PROP_TYPE(ulPropTag, (ulFlags & MAPI_UNICODE) ? PT_UNICODE : PT_STRING8);
 		else if (PROP_TYPE(iterProps->second.GetPropTag()) == PT_MV_UNICODE)
-			ulPropTag = CHANGE_PROP_TYPE(ulPropTag, ((ulFlags & MAPI_UNICODE) ? PT_MV_UNICODE : PT_MV_STRING8));
+			ulPropTag = CHANGE_PROP_TYPE(ulPropTag, (ulFlags & MAPI_UNICODE) ? PT_MV_UNICODE : PT_MV_STRING8);
 		else
 			ulPropTag = iterProps->second.GetPropTag();
 	}
@@ -367,13 +367,13 @@ HRESULT ECGenericProp::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR 
 		     reinterpret_cast<void **>(&lpMapiError->lpszError));
 		if (hr != hrSuccess)
 			return hr;
-		strcpy((char*)lpMapiError->lpszError, strErrorMsg.c_str());
+		strcpy(reinterpret_cast<char *>(lpMapiError->lpszError), strErrorMsg.c_str());
 
 		hr = MAPIAllocateMore(strCompName.size() + 1, lpMapiError,
 		     reinterpret_cast<void **>(&lpMapiError->lpszComponent));
 		if (hr != hrSuccess)
 			return hr;
-		strcpy((char*)lpMapiError->lpszComponent, strCompName.c_str());
+		strcpy(reinterpret_cast<char *>(lpMapiError->lpszComponent), strCompName.c_str());
 	}
 
 	lpMapiError->ulContext		= 0;
@@ -750,7 +750,7 @@ HRESULT ECGenericProp::GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArr
 
 		ULONG ulPropTag = iterCallBack->second.ulPropTag;
 		if (PROP_TYPE(ulPropTag) == PT_UNICODE || PROP_TYPE(ulPropTag) == PT_STRING8)
-			ulPropTag = CHANGE_PROP_TYPE(ulPropTag, ((ulFlags & MAPI_UNICODE) ? PT_UNICODE : PT_STRING8));
+			ulPropTag = CHANGE_PROP_TYPE(ulPropTag, (ulFlags & MAPI_UNICODE) ? PT_UNICODE : PT_STRING8);
 		lpPropTagArray->aulPropTag[n++] = ulPropTag;
 	}
 

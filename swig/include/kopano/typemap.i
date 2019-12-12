@@ -244,7 +244,7 @@
 	if (ulFlags & MAPI_UNICODE) {
 		%append_output(SWIG_FromWCharPtr(*$1));
 	} else {
-		%append_output(SWIG_FromCharPtr((char*)*$1));
+		%append_output(SWIG_FromCharPtr(reinterpret_cast<const char *>(*$1)));
 	}
 }
 %typemap(freearg) LPTSTR *OUTPUT {
@@ -256,7 +256,7 @@
   $1 = &lpStr;
 }
 %typemap(argout,fragment="SWIG_FromCharPtr") char** OUTMAPICHAR {
-    %append_output(SWIG_FromCharPtr((char*)*$1));
+	%append_output(SWIG_FromCharPtr(reinterpret_cast<const char *>(*$1)));
 }
 %typemap(freearg) char** OUTMAPICHAR {
     MAPIFreeBuffer(*$1);

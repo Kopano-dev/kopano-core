@@ -54,6 +54,7 @@
 #include "HtmlToTextParser.h"
 #include "inputStreamMAPIAdapter.h"
 #include "ICalToMAPI.h"
+#define x2s(s) reinterpret_cast<const char *>(s)
 
 using std::list;
 using std::string;
@@ -2637,7 +2638,7 @@ static htmlNodePtr find_node(htmlNodePtr lpNode, const char *name)
 		if (node->type != XML_ELEMENT_NODE)
 			continue;
 		htmlNodePtr child = NULL;
-		if (xmlStrcasecmp(node->name, reinterpret_cast<const xmlChar *>(name)) == 0)
+		if (strcasecmp(x2s(node->name), name) == 0)
 			break;
 		child = find_node(node->children, name);
 		if (child)
@@ -2709,12 +2710,11 @@ static int getCharsetFromHTML(const string &strHTML, vmime::charset *htmlCharset
 	for (lpNode = lpNode->children; lpNode != NULL; lpNode = lpNode->next) {
 		if (lpNode->type != XML_ELEMENT_NODE)
 			continue;
-		if (xmlStrcasecmp(lpNode->name,
-		    reinterpret_cast<const xmlChar *>("meta")) != 0)
+		if (strcasecmp(x2s(lpNode->name), "meta") != 0)
 			continue;
 		// HTML 4, <meta http-equiv="Content-Type" content="text/html; charset=...">
 		lpValue = xmlGetProp(lpNode, (const xmlChar*)"http-equiv");
-		if (lpValue && xmlStrcasecmp(lpValue, (const xmlChar*)"Content-Type") == 0) {
+		if (lpValue && strcasecmp(x2s(lpValue), "Content-Type") == 0) {
 			xmlFree(lpValue);
 			lpValue = xmlGetProp(lpNode, (const xmlChar*)"content");
 			if (lpValue) {

@@ -2873,12 +2873,12 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 	// Set priority - use PR_IMPORTANCE or PR_PRIORITY
 	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, PR_IMPORTANCE);
 	if (!m_bCensorPrivate && lpPropVal) {
-		lpProp = icalproperty_new_priority(5 - ((lpPropVal->Value.l - 1) * 4));
+		lpProp = icalproperty_new_priority(5 - 4 * (lpPropVal->Value.l - 1));
 		icalcomponent_add_property(lpEvent, lpProp);
 	} else {
 		lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, PR_PRIORITY);
 		if (!m_bCensorPrivate && lpPropVal && lpPropVal->Value.l != 0) {
-			lpProp = icalproperty_new_priority(5 - (lpPropVal->Value.l * 4));
+			lpProp = icalproperty_new_priority(5 - 4 * lpPropVal->Value.l);
 			icalcomponent_add_property(lpEvent, lpProp);
 		}
 	}

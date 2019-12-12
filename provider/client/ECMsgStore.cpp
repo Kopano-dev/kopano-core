@@ -726,7 +726,7 @@ HRESULT ECMsgStore::GetReceiveFolder(const TCHAR *lpszMessageClass,
 	hr = MAPIAllocateBuffer(dst.length() + 1, reinterpret_cast<void **>(lppszExplicitClass));
 	if (hr != hrSuccess)
 		return hr;
-	strcpy((char *)*lppszExplicitClass, dst.c_str());
+	strcpy(reinterpret_cast<char *>(*lppszExplicitClass), dst.c_str());
 	return hrSuccess;
 }
 
@@ -1467,20 +1467,20 @@ static HRESULT AddRenAdditionalFolder(IMAPIFolder *lpFolder,
 	ULONG ulBlockType = RSF_ELID_ENTRYID;
 
 	if (HrGetOneProp(lpFolder, PR_IPM_OL2007_ENTRYIDS, &~lpRenEntryIDs) == hrSuccess)
-		strBuffer.assign((char *)lpRenEntryIDs->Value.bin.lpb, lpRenEntryIDs->Value.bin.cb);
+		strBuffer.assign(reinterpret_cast<const char *>(lpRenEntryIDs->Value.bin.lpb), lpRenEntryIDs->Value.bin.cb);
 	// Remove trailing \0\0\0\0 if it's there
 	if (strBuffer.size() >= 4 && strBuffer.compare(strBuffer.size() - 4, 4, "\0\0\0\0", 4) == 0)
 		strBuffer.resize(strBuffer.size()-4);
 
 	uint16_t tmp2 = cpu_to_le16(ulType);
 	strBuffer.append(reinterpret_cast<const char *>(&tmp2), sizeof(tmp2)); /* RSS Feeds type */
-	strBuffer.append(1, ((lpEntryID->cb+4)&0xFF));
+	strBuffer.append(1, (lpEntryID->cb + 4) & 0xFF);
 	strBuffer.append(1, ((lpEntryID->cb+4)>>8)&0xFF);
 	tmp2 = cpu_to_le16(ulBlockType);
 	strBuffer.append(reinterpret_cast<const char *>(&tmp2), sizeof(tmp2));
-	strBuffer.append(1, (lpEntryID->cb&0xFF));
+	strBuffer.append(1, lpEntryID->cb & 0xFF);
 	strBuffer.append(1, (lpEntryID->cb>>8)&0xFF);
-	strBuffer.append((char*)lpEntryID->lpb, lpEntryID->cb);
+	strBuffer.append(reinterpret_cast<const char *>(lpEntryID->lpb), lpEntryID->cb);
 	strBuffer.append("\x00\x00\x00\x00", 4);
 
 	sPropValue.ulPropTag = PR_IPM_OL2007_ENTRYIDS;

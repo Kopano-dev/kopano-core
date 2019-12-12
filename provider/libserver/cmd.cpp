@@ -1884,7 +1884,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 			sObjectTableKey key(ulObjId,0);
 			struct propVal	sPropVal;
 			sPropVal.ulPropTag = PR_LAST_MODIFIER_NAME_A;
-			sPropVal.Value.lpszA = (char*)strUsername.c_str();
+			sPropVal.Value.lpszA = const_cast<char *>(strUsername.c_str());
 			sPropVal.__union = SOAP_UNION_propValData_lpszA;
             g_lpSessionManager->GetCacheManager()->SetCell(&key, PR_LAST_MODIFIER_NAME_A, &sPropVal);
 			sPropVal.ulPropTag = PR_LAST_MODIFIER_ENTRYID;
@@ -8300,7 +8300,7 @@ SOAP_ENTRY_START(getChanges, lpsChangesResponse->er,
     struct icsChangeResponse *lpsChangesResponse)
 {
 	icsChangesArray *lpChanges = NULL;
-	SOURCEKEY		sSourceKey(sSourceKeyFolder.__size, (char *)sSourceKeyFolder.__ptr);
+	SOURCEKEY sSourceKey(sSourceKeyFolder.__size, reinterpret_cast<const char *>(sSourceKeyFolder.__ptr));
 
 	er = GetChanges(soap, lpecSession, sSourceKey, ulSyncId, ulChangeId, ulChangeType, ulFlags, lpsRestrict, &lpsChangesResponse->ulMaxChangeId, &lpChanges);
 	if(er != erSuccess)
@@ -8315,7 +8315,7 @@ SOAP_ENTRY_START(setSyncStatus, lpsResponse->er,
     unsigned int ulChangeId, unsigned int ulChangeType, unsigned int ulFlags,
     struct setSyncStatusResponse *lpsResponse)
 {
-	SOURCEKEY		sSourceKey(sSourceKeyFolder.__size, (char *)sSourceKeyFolder.__ptr);
+	SOURCEKEY sSourceKey(sSourceKeyFolder.__size, reinterpret_cast<const char *>(sSourceKeyFolder.__ptr));
 	unsigned int	ulFolderId = 0, dummy = 0;
 	USE_DATABASE();
 	auto dtx = lpDatabase->Begin(er);

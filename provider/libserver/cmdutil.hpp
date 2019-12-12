@@ -37,13 +37,13 @@ public:
 	}
     EntryId(const entryId *entryid) {
         if(entryid)
-            m_data = std::string((char *)entryid->__ptr, entryid->__size);
+			m_data = std::string(reinterpret_cast<const char *>(entryid->__ptr), entryid->__size);
         else
             m_data.clear();
         updateStruct();
     }
     EntryId(const entryId& entryid) {
-        m_data = std::string((char *)entryid.__ptr, entryid.__size);
+		m_data = std::string(reinterpret_cast<const char *>(entryid.__ptr), entryid.__size);
         updateStruct();
     }
     EntryId(const std::string& data) {

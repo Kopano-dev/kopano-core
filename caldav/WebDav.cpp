@@ -15,6 +15,16 @@
 
 using namespace KC;
 
+static inline const char *x2s(const xmlChar *s)
+{
+	return reinterpret_cast<const char *>(s);
+}
+
+static inline const xmlChar *s2x(const char *s)
+{
+	return reinterpret_cast<const xmlChar *>(s);
+}
+
 /**
  * @param[in]	lpRequest	Pointer to http Request object
  * @param[in]	lpSession	Pointer to mapi session of the user
@@ -44,7 +54,7 @@ HRESULT WebDav::HrParseXml()
 	if (m_lpXmlDoc != NULL)
 		return hrSuccess;
 	m_lpRequest.HrGetBody(&strBody);
-	m_lpXmlDoc = xmlReadMemory((char *)strBody.c_str(),(int)strBody.length(), "PROVIDE_BASE.xml", NULL,  XML_PARSE_NOBLANKS);
+	m_lpXmlDoc = xmlReadMemory(strBody.c_str(), strBody.length(), "PROVIDE_BASE.xml", nullptr, XML_PARSE_NOBLANKS);
 	return m_lpXmlDoc == nullptr ? MAPI_E_INVALID_PARAMETER : hrSuccess;
 }
 
@@ -82,14 +92,14 @@ HRESULT WebDav::HrPropfind()
 		goto exit;
 
 	lpXmlNode = xmlDocGetRootElement(m_lpXmlDoc);
-	if (!lpXmlNode || !lpXmlNode->name || xmlStrcmp(lpXmlNode->name, (const xmlChar *)"propfind"))
-	{
+	if (lpXmlNode == nullptr || lpXmlNode->name == nullptr ||
+	    strcmp(x2s(lpXmlNode->name), "propfind") != 0) {
 		hr = MAPI_E_CORRUPT_DATA;
 		goto exit;
 	}
 	lpXmlNode = lpXmlNode->children;
-	if (!lpXmlNode || !lpXmlNode->name || xmlStrcmp(lpXmlNode->name, (const xmlChar *)"prop"))
-	{
+	if (lpXmlNode == nullptr || lpXmlNode->name == nullptr ||
+	    strcmp(x2s(lpXmlNode->name), "prop") != 0) {
 		hr = MAPI_E_CORRUPT_DATA;
 		goto exit;
 	}
@@ -204,9 +214,7 @@ HRESULT WebDav::RespStructToXml(WEBDAVMULTISTATUS *sDavMStatus, std::string *str
 			continue;
 		RegisterNs(strNs, &strNsPrefix);
 		strprefix = "xmlns:" + strNsPrefix;
-		ulRet = xmlTextWriterWriteAttribute(xmlWriter,
-				reinterpret_cast<const xmlChar *>(strprefix.c_str()),
-				reinterpret_cast<const xmlChar *>(strNs.c_str()));
+		ulRet = xmlTextWriterWriteAttribute(xmlWriter, s2x(strprefix.c_str()), s2x(strNs.c_str()));
 		if (ulRet < 0)
 			goto xmlfail;
 	}
@@ -229,7 +237,7 @@ HRESULT WebDav::RespStructToXml(WEBDAVMULTISTATUS *sDavMStatus, std::string *str
 	ulRet = xmlTextWriterFlush(xmlWriter);
 	if (ulRet < 0)
 		goto xmlfail;
-	strXml->assign((char *)xmlBuff->content, xmlBuff->use);
+	strXml->assign(reinterpret_cast<char *>(xmlBuff->content), xmlBuff->use);
 
 exit:
 	if (xmlWriter)
@@ -259,22 +267,25 @@ HRESULT WebDav::HrReport()
 	auto lpXmlNode = xmlDocGetRootElement(m_lpXmlDoc);
 	if (!lpXmlNode)
 		return MAPI_E_CORRUPT_DATA;
-
-	if (lpXmlNode->name && !xmlStrcmp(lpXmlNode->name, (const xmlChar *)"calendar-query") )
+	if (lpXmlNode->name == nullptr) {
+		m_lpRequest.HrResponseHeader(500, "Internal Server Error");
+		return hrSuccess;
+	}
+	if (strcmp(x2s(lpXmlNode->name), "calendar-query") == 0)
 		//CALENDAR-QUERY
 		//Retrieves the list of GUIDs
 		return HrHandleRptCalQry();
-	else if (lpXmlNode->name && !xmlStrcmp(lpXmlNode->name, (const xmlChar *)"calendar-multiget") )
+	else if (strcmp(x2s(lpXmlNode->name), "calendar-multiget") == 0)
 		//MULTIGET
 		//Retrieves Ical data for each GUID that client requests
 		return HrHandleRptMulGet();
-	else if (lpXmlNode->name && !xmlStrcmp(lpXmlNode->name, (const xmlChar *)"principal-property-search"))
+	else if (strcmp(x2s(lpXmlNode->name), "principal-property-search") == 0)
 		// suggestion list while adding attendees on mac iCal.
 		return HrPropertySearch();
-	else if (lpXmlNode->name && !xmlStrcmp(lpXmlNode->name, (const xmlChar *)"principal-search-property-set"))
+	else if (strcmp(x2s(lpXmlNode->name), "principal-search-property-set") == 0)
 		// which all properties to be searched while searching for attendees.
 		return HrPropertySearchSet();
-	else if (lpXmlNode->name && !xmlStrcmp(lpXmlNode->name, (const xmlChar *)"expand-property"))
+	else if (strcmp(x2s(lpXmlNode->name), "expand-property") == 0)
 		// ignore expand-property
 		m_lpRequest.HrResponseHeader(200, "OK");
 	else
@@ -319,14 +330,13 @@ HRESULT WebDav::HrHandleRptCalQry()
 	}
 
 	// REPORT calendar-query
-	sReptQuery.sPropName.strPropname.assign((const char*) lpXmlNode->name);
+	sReptQuery.sPropName.strPropname = x2s(lpXmlNode->name);
 	sReptQuery.sFilter.tStart = 0;
 
 	//HrSetDavPropName(&(sReptQuery.sPropName),lpXmlNode);
 	for (lpXmlNode = lpXmlNode->children; lpXmlNode != nullptr;
 	     lpXmlNode = lpXmlNode->next) {
-		if (xmlStrcmp(lpXmlNode->name, (const xmlChar *)"filter") == 0)
-		{
+		if (strcmp(x2s(lpXmlNode->name), "filter") == 0) {
 			// @todo convert xml filter to mapi restriction
 			// "old" code
 			if (!lpXmlNode->children) {
@@ -344,13 +354,13 @@ HRESULT WebDav::HrHandleRptCalQry()
 				goto exit;
 			}
 
-			if (!lpXmlChildAttr || !lpXmlChildAttr->content || xmlStrcmp(lpXmlChildAttr->content, (const xmlChar *)"VCALENDAR"))
-			{
+			if (lpXmlChildAttr == nullptr || lpXmlChildAttr->content == nullptr ||
+			    strcmp(x2s(lpXmlChildAttr->content), "VCALENDAR") != 0) {
 				hr = E_FAIL;
 				goto exit;
 			}
 
-			sReptQuery.sFilter.lstFilters.emplace_back(reinterpret_cast<char *>(lpXmlChildAttr->content));
+			sReptQuery.sFilter.lstFilters.emplace_back(x2s(lpXmlChildAttr->content));
 			lpXmlChildNode = lpXmlChildNode->children;
 			if (lpXmlChildNode == nullptr ||
 			    lpXmlChildNode->properties == nullptr ||
@@ -364,21 +374,21 @@ HRESULT WebDav::HrHandleRptCalQry()
 				hr = MAPI_E_CORRUPT_DATA;
 				goto exit;
 			}
-			if (xmlStrcmp(lpXmlChildAttr->content, (const xmlChar *)"VTODO") != 0 &&
-			    xmlStrcmp(lpXmlChildAttr->content, (const xmlChar *)"VEVENT") != 0) {
+			if (strcmp(x2s(lpXmlChildAttr->content), "VTODO") != 0 &&
+			    strcmp(x2s(lpXmlChildAttr->content), "VEVENT") != 0) {
 				hr = MAPI_E_CORRUPT_DATA;
 				goto exit;
 			}
-			sReptQuery.sFilter.lstFilters.emplace_back(reinterpret_cast<char *>(lpXmlChildAttr->content));
+			sReptQuery.sFilter.lstFilters.emplace_back(x2s(lpXmlChildAttr->content));
 			// filter not done here.., time-range in lpXmlChildNode->children.
 			if (lpXmlChildNode->children) {
 				for (lpXmlChildNode = lpXmlChildNode->children; lpXmlChildNode != NULL; lpXmlChildNode = lpXmlChildNode->next) {
-					if (xmlStrcmp(lpXmlChildNode->name, (const xmlChar *)"time-range") != 0)
+					if (strcmp(x2s(lpXmlChildNode->name), "time-range") != 0)
 						continue;
 					if (lpXmlChildNode->properties == NULL || lpXmlChildNode->properties->children == NULL)
 						continue;
 					lpXmlChildAttr = lpXmlChildNode->properties->children;
-					if (xmlStrcmp(lpXmlChildAttr->name, (const xmlChar *)"start") != 0)
+					if (strcmp(x2s(lpXmlChildAttr->name), "start") != 0)
 						// other lpXmlChildAttr->name .. like "end" maybe?
 						continue;
 					// timestamp from ical
@@ -387,13 +397,11 @@ HRESULT WebDav::HrHandleRptCalQry()
 					// @note this is still being ignored in CalDavProto::HrListCalEntries
 				}
 			}
-		}
-		else if (xmlStrcmp(lpXmlNode->name, (const xmlChar *)"prop") == 0)
-		{
+		} else if (strcmp(x2s(lpXmlNode->name), "prop") == 0) {
 			if (lpXmlNode->ns && lpXmlNode->ns->href)
-				sReptQuery.sPropName.strNS.assign((const char*) lpXmlNode->ns->href);
+				sReptQuery.sPropName.strNS = x2s(lpXmlNode->ns->href);
 			else
-				sReptQuery.sPropName.strNS.assign(WEBDAVNS);
+				sReptQuery.sPropName.strNS = WEBDAVNS;
 
 			HrSetDavPropName(&(sReptQuery.sProp.sPropName),lpXmlNode);
 			for (auto lpXmlChildNode = lpXmlNode->children;
@@ -466,8 +474,8 @@ HRESULT WebDav::HrHandleRptMulGet()
 	// xml data to structures
 	HrSetDavPropName(&(sRptMGet.sPropName),lpXmlNode);
 	lpXmlNode = lpXmlNode->children;
-	if (!lpXmlNode || !lpXmlNode->name || xmlStrcmp(lpXmlNode->name, (const xmlChar *)"prop"))
-	{
+	if (lpXmlNode == nullptr || lpXmlNode->name == nullptr ||
+	    strcmp(x2s(lpXmlNode->name), "prop") != 0) {
 		hr = MAPI_E_CORRUPT_DATA;
 		goto exit;
 	}
@@ -496,7 +504,7 @@ HRESULT WebDav::HrHandleRptMulGet()
 		auto lpXmlContentNode = lpXmlChildNode->children;
 
 		HrSetDavPropName(&(sWebVal.sPropName),lpXmlChildNode);
-		strGuid.assign((const char *) lpXmlContentNode->content);
+		strGuid = x2s(lpXmlContentNode->content);
 		found = strGuid.rfind("/");
 		if (found == std::string::npos || found + 1 == strGuid.length())
 			continue;
@@ -562,16 +570,16 @@ HRESULT WebDav::HrPropertySearch()
 	// xml data to structures
 	while (lpXmlNode) {
 		// <property-search>
-		if (!lpXmlNode || !lpXmlNode->name || xmlStrcmp(lpXmlNode->name, (const xmlChar *)"property-search"))
-		{
+		if (lpXmlNode == nullptr || lpXmlNode->name == nullptr ||
+		    strcmp(x2s(lpXmlNode->name), "property-search") != 0) {
 			hr = hrSuccess;
 			break;
 		}
 
 		// <prop>
 		auto lpXmlChildNode = lpXmlNode->children;
-		if (!lpXmlChildNode || !lpXmlChildNode->name || xmlStrcmp(lpXmlChildNode->name, (const xmlChar *)"prop"))
-		{
+		if (lpXmlChildNode == nullptr || lpXmlChildNode->name == nullptr ||
+		    strcmp(x2s(lpXmlChildNode->name), "prop") != 0) {
 			hr = MAPI_E_CORRUPT_DATA;
 			goto exit;;
 		}
@@ -589,14 +597,14 @@ HRESULT WebDav::HrPropertySearch()
 
 		lpXmlChildNode = lpXmlChildNode->next;
 		if(lpXmlChildNode->children->content)
-			sWebVal.strValue.assign((char*)lpXmlChildNode->children->content);
+			sWebVal.strValue = x2s(lpXmlChildNode->children->content);
 		sRptMGet.lstWebVal.emplace_back(sWebVal);
 		if(lpXmlNode->next)
 			lpXmlNode = lpXmlNode->next;
 	}
 
-	if (!lpXmlNode || !lpXmlNode->name || xmlStrcmp(lpXmlNode->name, (const xmlChar *)"prop"))
-	{
+	if (lpXmlNode == nullptr || lpXmlNode->name == nullptr ||
+	    strcmp(x2s(lpXmlNode->name), "prop") != 0) {
 		hr = MAPI_E_CORRUPT_DATA;
 		goto exit;
 	}
@@ -1108,9 +1116,9 @@ HRESULT WebDav::HrWriteItems(xmlTextWriter *xmlWriter,
  */
 void WebDav::HrSetDavPropName(WEBDAVPROPNAME *lpsDavPropName, xmlNode *lpXmlNode)
 {
-	lpsDavPropName->strPropname.assign((const char*)lpXmlNode->name);
+	lpsDavPropName->strPropname = x2s(lpXmlNode->name);
 	if (lpXmlNode->ns != NULL && lpXmlNode->ns->href != NULL)
-		lpsDavPropName->strNS.assign(reinterpret_cast<const char *>(lpXmlNode->ns->href));
+		lpsDavPropName->strNS = x2s(lpXmlNode->ns->href);
 	else
 		lpsDavPropName->strNS.clear();
 	if(!lpsDavPropName->strNS.empty())
@@ -1133,8 +1141,8 @@ void WebDav::HrSetDavPropName(WEBDAVPROPNAME *lpsDavPropName, xmlNode *lpXmlNode
 void WebDav::HrSetDavPropName(WEBDAVPROPNAME *lpsDavPropName,
     const std::string &strPropName, const std::string &strNs)
 {
-	lpsDavPropName->strPropname.assign(strPropName);
-	lpsDavPropName->strNS.assign(strNs);
+	lpsDavPropName->strPropname = strPropName;
+	lpsDavPropName->strNS = strNs;
 	if (!lpsDavPropName->strNS.empty())
 		m_mapNs[lpsDavPropName->strNS].clear();
 	lpsDavPropName->strPropAttribName.clear();
@@ -1158,8 +1166,8 @@ void WebDav::HrSetDavPropName(WEBDAVPROPNAME *lpsDavPropName,
     const std::string &strPropName, const std::string &strPropAttribName,
     const std::string &strPropAttribValue, const std::string &strNs)
 {
-	lpsDavPropName->strPropname.assign(strPropName);
-	lpsDavPropName->strNS.assign(strNs);
+	lpsDavPropName->strPropname = strPropName;
+	lpsDavPropName->strNS = strNs;
 	lpsDavPropName->strPropAttribName = strPropAttribName;
 	lpsDavPropName->strPropAttribValue = strPropAttribValue;
 	if (!lpsDavPropName->strNS.empty())
@@ -1187,26 +1195,26 @@ HRESULT WebDav::HrPropPatch()
 		goto exit;
 
 	lpXmlNode = xmlDocGetRootElement(m_lpXmlDoc);
-	if (!lpXmlNode || !lpXmlNode->name || xmlStrcmp(lpXmlNode->name, (const xmlChar *)"propertyupdate"))
-	{
+	if (lpXmlNode == nullptr || lpXmlNode->name == nullptr ||
+	    strcmp(x2s(lpXmlNode->name), "propertyupdate") != 0) {
 		hr = MAPI_E_CORRUPT_DATA;
 		goto exit;
 	}
 	lpXmlNode = lpXmlNode->children;
-	if (!lpXmlNode || !lpXmlNode->name || xmlStrcmp(lpXmlNode->name, (const xmlChar *)"set"))
-	{
+	if (lpXmlNode == nullptr || lpXmlNode->name == nullptr ||
+	    strcmp(x2s(lpXmlNode->name), "set") != 0) {
 		hr = MAPI_E_CORRUPT_DATA;
 		goto exit;
 	}
 	lpXmlNode = lpXmlNode->children;
-	if (!lpXmlNode || !lpXmlNode->name || xmlStrcmp(lpXmlNode->name, (const xmlChar *)"prop"))
-	{
+	if (lpXmlNode == nullptr || lpXmlNode->name == nullptr ||
+	    strcmp(x2s(lpXmlNode->name), "prop") != 0) {
 		hr = MAPI_E_CORRUPT_DATA;
 		goto exit;
 	}
 
 	if(lpXmlNode->ns && lpXmlNode->ns->href)
-		HrSetDavPropName(&(sDavProp.sPropName),"prop",(char *)lpXmlNode->ns->href);
+		HrSetDavPropName(&sDavProp.sPropName, "prop", x2s(lpXmlNode->ns->href));
 	else
 		HrSetDavPropName(&(sDavProp.sPropName),"prop", WEBDAVNS);
 
@@ -1215,13 +1223,13 @@ HRESULT WebDav::HrPropPatch()
 		WEBDAVPROPERTY sProperty;
 
 		if(lpXmlNode->ns && lpXmlNode->ns->href)
-			HrSetDavPropName(&(sProperty.sPropName),(char *)lpXmlNode->name,(char*)lpXmlNode->ns->href);
+			HrSetDavPropName(&sProperty.sPropName, x2s(lpXmlNode->name), x2s(lpXmlNode->ns->href));
 		else
-			HrSetDavPropName(&(sProperty.sPropName),(char *)lpXmlNode->name, WEBDAVNS);
+			HrSetDavPropName(&sProperty.sPropName, x2s(lpXmlNode->name), WEBDAVNS);
 
 		if (lpXmlNode->children != nullptr &&
 		    lpXmlNode->children->content != nullptr)
-			sProperty.strValue = (char *)lpXmlNode->children->content;
+			sProperty.strValue = x2s(lpXmlNode->children->content);
 
 		sDavProp.lstProps.emplace_back(std::move(sProperty));
 	}
@@ -1285,51 +1293,51 @@ HRESULT WebDav::HrMkCalendar()
 	}
 
 	lpXmlNode = xmlDocGetRootElement(m_lpXmlDoc);
-	if (!lpXmlNode || !lpXmlNode->name || xmlStrcmp(lpXmlNode->name, (const xmlChar *)"mkcalendar"))
-	{
+	if (lpXmlNode == nullptr || lpXmlNode->name == nullptr ||
+	    strcmp(x2s(lpXmlNode->name), "mkcalendar") != 0) {
 		hr = MAPI_E_CORRUPT_DATA;
 		goto exit;
 	}
 	lpXmlNode = lpXmlNode->children;
-	if (!lpXmlNode || !lpXmlNode->name || xmlStrcmp(lpXmlNode->name, (const xmlChar *)"set"))
-	{
+	if (lpXmlNode == nullptr || lpXmlNode->name == nullptr ||
+	    strcmp(x2s(lpXmlNode->name), "set") != 0) {
 		hr = MAPI_E_CORRUPT_DATA;
 		goto exit;
 	}
 	lpXmlNode = lpXmlNode->children;
-	if (!lpXmlNode || !lpXmlNode->name || xmlStrcmp(lpXmlNode->name, (const xmlChar *)"prop"))
-	{
+	if (lpXmlNode == nullptr || lpXmlNode->name == nullptr ||
+	    strcmp(x2s(lpXmlNode->name), "prop") != 0) {
 		hr = MAPI_E_CORRUPT_DATA;
 		goto exit;
 	}
 
 	if(lpXmlNode->ns && lpXmlNode->ns->href)
-		HrSetDavPropName(&(sDavProp.sPropName),(char*)lpXmlNode->name,(char*)lpXmlNode->ns->href);
+		HrSetDavPropName(&sDavProp.sPropName, x2s(lpXmlNode->name), x2s(lpXmlNode->ns->href));
 	else
-		HrSetDavPropName(&(sDavProp.sPropName),(char*)lpXmlNode->name,WEBDAVNS);
+		HrSetDavPropName(&sDavProp.sPropName, x2s(lpXmlNode->name), WEBDAVNS);
 
 	for (lpXmlNode = lpXmlNode->children; lpXmlNode != nullptr;
 	     lpXmlNode = lpXmlNode->next) {
 		WEBDAVPROPERTY sProperty;
 
 		if (lpXmlNode->ns && lpXmlNode->ns->href)
-			HrSetDavPropName(&(sProperty.sPropName),(char*)lpXmlNode->name,(char*)lpXmlNode->ns->href);
+			HrSetDavPropName(&sProperty.sPropName, x2s(lpXmlNode->name), x2s(lpXmlNode->ns->href));
 		else
-			HrSetDavPropName(&(sProperty.sPropName),(char*)lpXmlNode->name,WEBDAVNS);
+			HrSetDavPropName(&sProperty.sPropName, x2s(lpXmlNode->name), WEBDAVNS);
 
 		if (lpXmlNode->children && lpXmlNode->children->content)
-			sProperty.strValue = (char*)lpXmlNode->children->content;
+			sProperty.strValue = x2s(lpXmlNode->children->content);
 
 		// @todo we should have a generic xml to structs converter, this is *way* too hackish
 		if (sProperty.sPropName.strPropname == "supported-calendar-component-set")
 			for (auto lpXmlChild = lpXmlNode->children;
 			     lpXmlChild != nullptr; lpXmlChild = lpXmlChild->next)
 				if (lpXmlChild->type == XML_ELEMENT_NODE &&
-				    xmlStrcmp(lpXmlChild->name, reinterpret_cast<const xmlChar *>("comp")) == 0 &&
+				    strcmp(x2s(lpXmlChild->name), "comp") == 0 &&
 				    lpXmlChild->properties != nullptr &&
 				    lpXmlChild->properties->children != nullptr &&
 				    lpXmlChild->properties->children->content != nullptr)
-					sProperty.strValue = reinterpret_cast<char *>(lpXmlChild->properties->children->content);
+					sProperty.strValue = x2s(lpXmlChild->properties->children->content);
 		sDavProp.lstProps.emplace_back(std::move(sProperty));
 	}
 

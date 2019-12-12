@@ -587,7 +587,7 @@ HRESULT HrMakeRestriction(const std::string &strGuid, LPSPropTagArray lpNamedPro
 
 	// PUT url [guid].ics part, (e.g. Evolution UIDs)
 	sSpropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_APPTTSREF], PT_STRING8);
-	sSpropVal.Value.lpszA = (char*)strGuid.c_str();
+	sSpropVal.Value.lpszA = const_cast<char *>(strGuid.c_str());
 	rst += ECPropertyRestriction(RELOP_EQ, sSpropVal.ulPropTag, &sSpropVal, ECRestriction::Shallow);
 	auto hr = rst.CreateMAPIRestriction(&lpsRoot, ECRestriction::Full);
 	if (lpsRoot && lpsRectrict)

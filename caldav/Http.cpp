@@ -560,7 +560,7 @@ HRESULT Http::HrFinalize()
 			// send hex length of data and data part
 			snprintf(lpstrLen, sizeof(lpstrLen), "%X", szPart);
 			m_lpChannel->HrWriteLine(lpstrLen);
-			m_lpChannel->HrWriteLine((char*)lpstrBody, szPart);
+			m_lpChannel->HrWriteLine(lpstrBody, szPart);
 			szBodyWritten += szPart;
 			lpstrBody += szPart;
 		}

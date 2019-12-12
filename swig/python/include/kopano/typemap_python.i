@@ -355,13 +355,13 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
 %typemap(directorin)	(ULONG, BYTE*)
 {
   if ($1_name > 0 && $2_name != NULL)
-    $input = SWIG_FromCharPtrAndSize((char*)$2_name, $1_name);
+		$input = SWIG_FromCharPtrAndSize(reinterpret_cast<const char *>($2_name), $1_name);
 }
 
 %typemap(directorin,noblock=1)	LPCIID, LPGUID, GUID *
 {
 	LPCIID __iid = $1_name;
-	$input = SWIG_FromCharPtrAndSize((char*)$1_name, sizeof(GUID));
+	$input = SWIG_FromCharPtrAndSize(reinterpret_cast<const char *>($1_name), sizeof(GUID));
 }
 
 %apply (ULONG, BYTE*) {(ULONG cbSourceKeySrcFolder, BYTE *pbSourceKeySrcFolder)}
@@ -437,7 +437,7 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
 %typemap(directorin) (ULONG cbEntryID, LPENTRYID lpEntryID)
 {
   if ($1_name > 0 && $2_name != NULL)
-    $input = PyBytes_FromStringAndSize((char*)$2_name, $1_name);
+		$input = PyBytes_FromStringAndSize(reinterpret_cast<const char *>($2_name), $1_name);
 }
 
 %apply (ULONG, MAPIARRAY) {(ULONG cElements, LPREADSTATE lpReadState), (ULONG cNotif, LPNOTIFICATION lpNotifications)};

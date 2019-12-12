@@ -98,12 +98,12 @@ HRESULT ECExchangeImportContentsChanges::GetLastError(HRESULT hResult, ULONG ulF
 		     reinterpret_cast<void **>(&lpMapiError->lpszError));
 		if (hr != hrSuccess)
 			return hr;
-		strcpy((char*)lpMapiError->lpszError, strErrorMsg.c_str());
+		strcpy(reinterpret_cast<char *>(lpMapiError->lpszError), strErrorMsg.c_str());
 		hr = MAPIAllocateMore(strCompName.size() + 1, lpMapiError,
 		     reinterpret_cast<void **>(&lpMapiError->lpszComponent));
 		if (hr != hrSuccess)
 			return hr;
-		strcpy((char*)lpMapiError->lpszComponent, strCompName.c_str());
+		strcpy(reinterpret_cast<char *>(lpMapiError->lpszComponent), strCompName.c_str());
 	}
 
 	lpMapiError->ulContext		= 0;
@@ -141,7 +141,7 @@ HRESULT ECExchangeImportContentsChanges::Config(LPSTREAM lpStream, ULONG ulFlags
 
 	// The user specified the special sync key '0000000000000000', get a sync key from the server.
 	if (m_ulSyncId == 0) {
-		hr = m_lpFolder->GetMsgStore()->lpTransport->HrSetSyncStatus(std::string((char *)m_lpSourceKey->Value.bin.lpb, m_lpSourceKey->Value.bin.cb), m_ulSyncId, m_ulChangeId, ICS_SYNC_CONTENTS, 0, &m_ulSyncId);
+		hr = m_lpFolder->GetMsgStore()->lpTransport->HrSetSyncStatus(std::string(reinterpret_cast<const char *>(m_lpSourceKey->Value.bin.lpb), m_lpSourceKey->Value.bin.cb), m_ulSyncId, m_ulChangeId, ICS_SYNC_CONTENTS, 0, &m_ulSyncId);
 		if(hr != hrSuccess)
 			return hr;
 	}
@@ -331,7 +331,7 @@ bool ECExchangeImportContentsChanges::IsProcessed(const SPropValue *lpRemoteCK,
 	assert(lpRemoteCK->ulPropTag == PR_CHANGE_KEY);
 	assert(lpLocalPCL->ulPropTag == PR_PREDECESSOR_CHANGE_LIST);
 
-	const std::string strChangeList((char*)lpLocalPCL->Value.bin.lpb, lpLocalPCL->Value.bin.cb);
+	const std::string strChangeList(reinterpret_cast<const char *>(lpLocalPCL->Value.bin.lpb), lpLocalPCL->Value.bin.cb);
 	size_t ulPos = 0;
 	while (ulPos < strChangeList.size()) {
 		size_t ulSize = strChangeList.at(ulPos++);
@@ -382,7 +382,7 @@ bool ECExchangeImportContentsChanges::IsConflict(const SPropValue *lpLocalCK,
 	assert(lpLocalCK->ulPropTag == PR_CHANGE_KEY);
 	assert(lpRemotePCL->ulPropTag == PR_PREDECESSOR_CHANGE_LIST);
 	bool bConflict = false, bGuidFound = false;
-	const std::string strChangeList((char*)lpRemotePCL->Value.bin.lpb, lpRemotePCL->Value.bin.cb);
+	const std::string strChangeList(reinterpret_cast<const char *>(lpRemotePCL->Value.bin.lpb), lpRemotePCL->Value.bin.cb);
 	size_t ulPos = 0;
 
 	while (!bConflict && ulPos < strChangeList.size()) {

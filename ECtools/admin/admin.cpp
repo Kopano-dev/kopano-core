@@ -1114,7 +1114,7 @@ static HRESULT print_details(LPMAPISESSION lpSession,
 				cerr << "Unable to show object quota information: " << getMapiCodeString(hr) << endl;
 				hr = hrSuccess; /* Don't make error fatal */
 			} else
-				print_quota(lpsQuota, lpsQuotaStatus, (ulClass == CONTAINER_COMPANY));
+				print_quota(lpsQuota, lpsQuotaStatus, ulClass == CONTAINER_COMPANY);
 		}
 	}
 

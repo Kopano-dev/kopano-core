@@ -326,7 +326,7 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 		    strBoundary = sopt.alternate_boundary;
 		    strBoundary += "_sub_";
 		    strBoundary += stringify(ulAttachmentNum);
-		    sopt.alternate_boundary = (char *)strBoundary.c_str();
+		    sopt.alternate_boundary = const_cast<char *>(strBoundary.c_str());
 		}
 
 		// recursive processing of embedded message as a new e-mail
@@ -856,17 +856,14 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage,
 
 	// Add iconv tag to convert non-exising chars without a fuss
 	m_strCharset = m_vmCharset.getName() + "//TRANSLIT";
-	if ((strcasecmp(lpMsgClass->Value.lpszA, "REPORT.IPM.Note.IPNNRN") == 0 ||
-		strcasecmp(lpMsgClass->Value.lpszA, "REPORT.IPM.Note.IPNRN") == 0)
-		)
-	{
+	if (strcasecmp(lpMsgClass->Value.lpszA, "REPORT.IPM.Note.IPNNRN") == 0 ||
+	    strcasecmp(lpMsgClass->Value.lpszA, "REPORT.IPM.Note.IPNRN") == 0) {
 		// Create a read receipt message
 		auto hr = BuildMDNMessage(lpMessage, &vmMessage);
 		if(hr != hrSuccess)
 			return hr;
-	} else if ((strcasecmp(lpMsgClass->Value.lpszA, "IPM.Note.SMIME.MultiPartSigned") == 0) ||
-			   (strcasecmp(lpMsgClass->Value.lpszA, "IPM.Note.SMIME") == 0))
-	{
+	} else if (strcasecmp(lpMsgClass->Value.lpszA, "IPM.Note.SMIME.MultiPartSigned") == 0 ||
+	    strcasecmp(lpMsgClass->Value.lpszA, "IPM.Note.SMIME") == 0) {
 		rowset_ptr lpRows;
 		// - find attachment, and convert to char, and place in lpszRawSMTP
 		// - normal convert the message, but only from/to headers and such .. nothing else

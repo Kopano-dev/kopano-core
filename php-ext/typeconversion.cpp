@@ -127,8 +127,7 @@ HRESULT SBinaryArraytoPHPArray(const SBinaryArray *lpBinaryArray,
 	
 	array_init(pvalRet);
 	for (unsigned int i = 0; i < lpBinaryArray->cValues; ++i)
-		add_next_index_stringl(pvalRet, (char *)lpBinaryArray->lpbin[i].lpb, lpBinaryArray->lpbin[i].cb);
-	
+		add_next_index_stringl(pvalRet, reinterpret_cast<const char *>(lpBinaryArray->lpbin[i].lpb), lpBinaryArray->lpbin[i].cb);
 	return MAPI_G(hr);
 }
 
@@ -627,7 +626,7 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 				php_error_docref(NULL TSRMLS_CC, E_WARNING, "PHPArray to SRestriction failed");
 				return MAPI_G(hr);
 			}
-			lpPropValue[cvalues++].Value.lpszA = (char *)lpRestriction;
+			lpPropValue[cvalues++].Value.lpszA = reinterpret_cast<char *>(lpRestriction);
 			break;
 		case PT_ERROR:
 			lpPropValue[cvalues].Value.err = zval_get_long(entry);
@@ -1464,7 +1463,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 			break;
 
 		case PT_BINARY:
-			add_assoc_stringl(zval_prop_value, pulproptag, (char *)pPropValue->Value.bin.lpb,pPropValue->Value.bin.cb);
+			add_assoc_stringl(zval_prop_value, pulproptag, reinterpret_cast<char *>(pPropValue->Value.bin.lpb), pPropValue->Value.bin.cb);
 			break;
 
 		case PT_CURRENCY:
@@ -1484,7 +1483,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 			add_assoc_long(zval_prop_value, pulproptag, FileTimeToUnixTime(pPropValue->Value.ft));
 			break;
 		case PT_CLSID:
-			add_assoc_stringl(zval_prop_value, pulproptag, (char *)pPropValue->Value.lpguid, sizeof(GUID));
+			add_assoc_stringl(zval_prop_value, pulproptag, reinterpret_cast<char *>(pPropValue->Value.lpguid), sizeof(GUID));
 			break;
 
 		case PT_MV_I2:
@@ -1546,7 +1545,8 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 			for (unsigned int j = 0; j < pPropValue->Value.MVbin.cValues; ++j) {
 				sprintf(ulKey, "%i", j);
 				add_assoc_stringl(&zval_mvprop_value, ulKey,
-								  (char*)pPropValue->Value.MVbin.lpbin[j].lpb, pPropValue->Value.MVbin.lpbin[j].cb);
+					reinterpret_cast<char *>(pPropValue->Value.MVbin.lpbin[j].lpb),
+					pPropValue->Value.MVbin.lpbin[j].cb);
 			}
 
 			add_assoc_zval(zval_prop_value, pulproptag, &zval_mvprop_value);
@@ -1573,7 +1573,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 			array_init(&zval_mvprop_value);
 			for (unsigned int j = 0; j < pPropValue->Value.MVguid.cValues; ++j) {
 				sprintf(ulKey, "%i", j);
-				add_assoc_stringl(&zval_mvprop_value, pulproptag, (char *)&pPropValue->Value.MVguid.lpguid[j], sizeof(GUID));
+				add_assoc_stringl(&zval_mvprop_value, pulproptag, reinterpret_cast<char *>(&pPropValue->Value.MVguid.lpguid[j]), sizeof(GUID));
 			}
 
 			add_assoc_zval(zval_prop_value, pulproptag, &zval_mvprop_value);
@@ -1596,24 +1596,25 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 				case OP_MOVE:
 				case OP_COPY:
 					add_assoc_stringl(&zval_action_value, "storeentryid",
-									  (char*)lpActions->lpAction[j].actMoveCopy.lpStoreEntryId,
-									  lpActions->lpAction[j].actMoveCopy.cbStoreEntryId);
+						reinterpret_cast<char *>(lpActions->lpAction[j].actMoveCopy.lpStoreEntryId),
+						lpActions->lpAction[j].actMoveCopy.cbStoreEntryId);
 					add_assoc_stringl(&zval_action_value, "folderentryid",
-									  (char*)lpActions->lpAction[j].actMoveCopy.lpFldEntryId,
-									  lpActions->lpAction[j].actMoveCopy.cbFldEntryId);
+						reinterpret_cast<char *>(lpActions->lpAction[j].actMoveCopy.lpFldEntryId),
+						lpActions->lpAction[j].actMoveCopy.cbFldEntryId);
 					break;
 				case OP_REPLY:
 				case OP_OOF_REPLY:
 					add_assoc_stringl(&zval_action_value, "replyentryid",
-									  (char*)lpActions->lpAction[j].actReply.lpEntryId,
-									  lpActions->lpAction[j].actReply.cbEntryId);
-
-					add_assoc_stringl(&zval_action_value, "replyguid", (char*)&lpActions->lpAction[j].actReply.guidReplyTemplate, sizeof(GUID));
+						reinterpret_cast<char *>(lpActions->lpAction[j].actReply.lpEntryId),
+						lpActions->lpAction[j].actReply.cbEntryId);
+					add_assoc_stringl(&zval_action_value, "replyguid",
+						reinterpret_cast<char *>(&lpActions->lpAction[j].actReply.guidReplyTemplate),
+						sizeof(GUID));
 					break;
 				case OP_DEFER_ACTION:
 					add_assoc_stringl(&zval_action_value, "dam",
-									  (char*)lpActions->lpAction[j].actDeferAction.pbData,
-									  lpActions->lpAction[j].actDeferAction.cbData);
+						reinterpret_cast<char *>(lpActions->lpAction[j].actDeferAction.pbData),
+						lpActions->lpAction[j].actDeferAction.cbData);
 					break;
 				case OP_BOUNCE:
 					add_assoc_long(&zval_action_value, "code", lpActions->lpAction[j].scBounceCode);
@@ -1686,8 +1687,7 @@ HRESULT ReadStateArraytoPHPArray(ULONG cValues, const READSTATE *lpReadStates,
 	for (unsigned int i = 0; i < cValues; ++i) {
 		zval pvalEntry;
 		array_init(&pvalEntry);
-		
-		add_assoc_stringl(&pvalEntry, "sourcekey", (char *)lpReadStates[i].pbSourceKey, lpReadStates[i].cbSourceKey);
+		add_assoc_stringl(&pvalEntry, "sourcekey", reinterpret_cast<char *>(lpReadStates[i].pbSourceKey), lpReadStates[i].cbSourceKey);
 		add_assoc_long(&pvalEntry, "flags", lpReadStates[i].ulFlags);
 		
 		add_next_index_zval(pvalRet, &pvalEntry);
@@ -1810,10 +1810,10 @@ HRESULT NotificationstoPHPArray(ULONG cNotifs, const NOTIFICATION *lpNotifs,
 		add_assoc_long(&zvalNotif, "eventtype", lpNotifs[i].ulEventType);
 		switch(lpNotifs[i].ulEventType) {
 		case fnevNewMail:
-			add_assoc_stringl(&zvalNotif, "entryid", (char *)lpNotifs[i].info.newmail.lpEntryID, lpNotifs[i].info.newmail.cbEntryID);
-			add_assoc_stringl(&zvalNotif, "parentid", (char *)lpNotifs[i].info.newmail.lpParentID, lpNotifs[i].info.newmail.cbParentID);
+			add_assoc_stringl(&zvalNotif, "entryid", reinterpret_cast<char *>(lpNotifs[i].info.newmail.lpEntryID), lpNotifs[i].info.newmail.cbEntryID);
+			add_assoc_stringl(&zvalNotif, "parentid", reinterpret_cast<char *>(lpNotifs[i].info.newmail.lpParentID), lpNotifs[i].info.newmail.cbParentID);
 			add_assoc_long(&zvalNotif, "flags", lpNotifs[i].info.newmail.ulFlags);
-			add_assoc_string(&zvalNotif, "messageclass", (char *)lpNotifs[i].info.newmail.lpszMessageClass);
+			add_assoc_string(&zvalNotif, "messageclass", reinterpret_cast<char *>(lpNotifs[i].info.newmail.lpszMessageClass));
 			add_assoc_long(&zvalNotif, "messageflags", lpNotifs[i].info.newmail.ulMessageFlags);
 			break;
 		case fnevObjectCreated:
@@ -1823,14 +1823,14 @@ HRESULT NotificationstoPHPArray(ULONG cNotifs, const NOTIFICATION *lpNotifs,
 		case fnevObjectCopied:
 		case fnevSearchComplete:
 			if (lpNotifs[i].info.obj.lpEntryID)
-				add_assoc_stringl(&zvalNotif, "entryid", (char *)lpNotifs[i].info.obj.lpEntryID, lpNotifs[i].info.obj.cbEntryID);
+				add_assoc_stringl(&zvalNotif, "entryid", reinterpret_cast<char *>(lpNotifs[i].info.obj.lpEntryID), lpNotifs[i].info.obj.cbEntryID);
 			add_assoc_long(&zvalNotif, "objtype", lpNotifs[i].info.obj.ulObjType);
 			if (lpNotifs[i].info.obj.lpParentID)
-				add_assoc_stringl(&zvalNotif, "parentid", (char *)lpNotifs[i].info.obj.lpParentID, lpNotifs[i].info.obj.cbParentID);
+				add_assoc_stringl(&zvalNotif, "parentid", reinterpret_cast<char *>(lpNotifs[i].info.obj.lpParentID), lpNotifs[i].info.obj.cbParentID);
 			if (lpNotifs[i].info.obj.lpOldID)
-				add_assoc_stringl(&zvalNotif, "oldid", (char *)lpNotifs[i].info.obj.lpOldID, lpNotifs[i].info.obj.cbOldID);
+				add_assoc_stringl(&zvalNotif, "oldid", reinterpret_cast<char *>(lpNotifs[i].info.obj.lpOldID), lpNotifs[i].info.obj.cbOldID);
 			if (lpNotifs[i].info.obj.lpOldParentID)
-				add_assoc_stringl(&zvalNotif, "oldparentid", (char *)lpNotifs[i].info.obj.lpOldParentID, lpNotifs[i].info.obj.cbOldParentID);
+				add_assoc_stringl(&zvalNotif, "oldparentid", reinterpret_cast<char *>(lpNotifs[i].info.obj.lpOldParentID), lpNotifs[i].info.obj.cbOldParentID);
 			if (lpNotifs[i].info.obj.lpPropTagArray) {
 				MAPI_G(hr) = PropTagArraytoPHPArray(lpNotifs[i].info.obj.lpPropTagArray->cValues, lpNotifs[i].info.obj.lpPropTagArray, &zvalProps TSRMLS_CC);
 				if (MAPI_G(hr) != hrSuccess)

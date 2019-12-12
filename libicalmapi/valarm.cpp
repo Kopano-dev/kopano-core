@@ -45,7 +45,7 @@ HRESULT HrParseReminder(LONG lRemindBefore, time_t ttReminderTime, bool bTask, i
 		sittTrigger.time = icaltime_from_timet_with_zone(ttReminderTime, false, nullptr);			// given in UTC
 		kc_ical_utc(sittTrigger.time, true);
 	} else
-		sittTrigger.duration = icaldurationtype_from_int(-1 * lRemindBefore * 60);	// set seconds
+		sittTrigger.duration = icaldurationtype_from_int(-lRemindBefore * 60);	// set seconds
 
 	auto lpVAlarm = icalcomponent_new_valarm();
 	icalcomponent_add_property(lpVAlarm, icalproperty_new_trigger(sittTrigger));
@@ -75,7 +75,7 @@ HRESULT HrParseVAlarm(icalcomponent *lpicAlarm, LONG *lplRemindBefore, time_t *l
 	if (lpTrigger != NULL) {
 		auto sittTrigger = icalproperty_get_trigger(lpTrigger);
 		ttReminderTime = icaltime_as_timet(sittTrigger.time); // is in utc
-		lRemindBefore = -1 * (icaldurationtype_as_int(sittTrigger.duration) / 60);
+		lRemindBefore = -icaldurationtype_as_int(sittTrigger.duration) / 60;
 
 		// In iCal, a reminder before can be both negative (meaning alarm BEFORE startdate) or positive (meaning
 		// alarm AFTER startdate). In MAPI, a remind before can only be positive (meaning alarm BEFORE startdate).

@@ -58,7 +58,7 @@ private:
 	KC_HIDDEN ~ECMemStream();
 
 public:
-	static  HRESULT	Create(char *buffer, ULONG ulDataLen, ULONG ulFlags, CommitFunc lpCommitFunc, DeleteFunc lpDeleteFunc, void *lpParam, ECMemStream **lppStream);
+	static HRESULT Create(const char *buffer, unsigned int len, unsigned int flags, CommitFunc, DeleteFunc, void *param, ECMemStream **);
 	KC_HIDDEN static HRESULT Create(ECMemBlock *, unsigned int flags, CommitFunc, DeleteFunc, void *param, ECMemStream **ret);
 	virtual unsigned int Release() override;
 	virtual HRESULT QueryInterface(const IID &, void **) override;

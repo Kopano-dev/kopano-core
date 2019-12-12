@@ -1995,7 +1995,7 @@ HRESULT ECMessage::GetPropHandler(unsigned int ulPropTag, void *lpProvider,
 			return hr;
 
 		// The server did not supply a PR_SOURCE_KEY, generate one ourselves.
-		strServerGUID.assign((char*)&lpMessage->GetMsgStore()->GetStoreGuid(), sizeof(GUID));
+		strServerGUID.assign(reinterpret_cast<const char *>(&lpMessage->GetMsgStore()->GetStoreGuid()), sizeof(GUID));
 		if (lpMessage->m_sMapiObject != nullptr) {
 			uint32_t tmp4 = cpu_to_le32(lpMessage->m_sMapiObject->ulObjId);
 			strID.assign(reinterpret_cast<const char *>(&tmp4), sizeof(tmp4));
@@ -2293,7 +2293,7 @@ HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 	auto iterSObj = m_sMapiObject->lstChildren.find(lpsMapiObject);
 	if (iterSObj != m_sMapiObject->lstChildren.cend()) {
 		// Preserve server IDs
-		auto hr = HrCopyObjIDs(lpsMapiObject, (*iterSObj));
+		auto hr = HrCopyObjIDs(lpsMapiObject, *iterSObj);
 		if(hr != hrSuccess)
 			return hr;
 		// Remove item

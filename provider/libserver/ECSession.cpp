@@ -924,7 +924,7 @@ static ECRESULT LogKRB5Error_2(const char *msg, OM_uint32 code, OM_uint32 type)
 		OM_uint32 result = gss_display_status(&status, code, type, GSS_C_NULL_OID, &context, &gssMessage);
 		switch (result) {
 		case GSS_S_COMPLETE:
-			ec_log_warn("%s: %s", msg, (char*)gssMessage.value);
+			ec_log_warn("%s: %s", msg, static_cast<const char *>(gssMessage.value));
 			retval = erSuccess;
 			break;
 		case GSS_S_BAD_MECH:
@@ -1081,7 +1081,7 @@ ECRESULT ECAuthSession::ValidateSSOData_KCOIDC(struct soap* soap, const char* na
 		principal += szHostname;
 		ec_log_debug("Kerberos principal: %s", principal.c_str());
 
-		gssInputBuffer.value = (void*)principal.data();
+		gssInputBuffer.value = principal.data();
 		gssInputBuffer.length = principal.length() + 1;
 		retval = gss_import_name(&status, &gssInputBuffer, GSS_C_NT_HOSTBASED_SERVICE, &gssServername);
 		if (retval != GSS_S_COMPLETE) {
@@ -1125,7 +1125,7 @@ ECRESULT ECAuthSession::ValidateSSOData_KCOIDC(struct soap* soap, const char* na
 
 	ec_log_debug("Kerberos username: %s", static_cast<const char *>(gssUserBuffer.value));
 	// kerberos returns: username@REALM, username is case-insensitive
-	strUsername.assign((char*)gssUserBuffer.value, gssUserBuffer.length);
+	strUsername.assign(static_cast<const char *>(gssUserBuffer.value), gssUserBuffer.length);
 	pos = strUsername.find_first_of('@');
 	if (pos != std::string::npos)
 		strUsername.erase(pos);
@@ -1142,9 +1142,10 @@ ECRESULT ECAuthSession::ValidateSSOData_KCOIDC(struct soap* soap, const char* na
 		ZLOG_AUDIT(m_lpSessionManager->GetAudit(), "authenticate ok user='%s' from='%s' method='kerberos sso' program='%s'",
 			lpszName, soap->host, cl_app);
 	} else {
-		ec_log_err("Kerberos username \"%s\" authenticated, but user \"%s\" requested.", (char*)gssUserBuffer.value, lpszName);
+		ec_log_err("Kerberos username \"%s\" authenticated, but user \"%s\" requested.",
+			static_cast<const char *>(gssUserBuffer.value), lpszName);
 		ZLOG_AUDIT(m_lpSessionManager->GetAudit(), "authenticate spoofed user='%s' requested='%s' from='%s' method='kerberos sso' program='%s'",
-			static_cast<char *>(gssUserBuffer.value), lpszName, soap->host, cl_app);
+			static_cast<const char *>(gssUserBuffer.value), lpszName, soap->host, cl_app);
 	}
 exit:
 	if (gssUserBuffer.length)
@@ -1362,7 +1363,7 @@ retry:
 			strAnswer.assign(strAnswer, pos, strAnswer.length()-pos);
 		}
 		// Check whether user exists in the user database
-		er = m_lpUserManagement->ResolveObjectAndSync(ACTIVE_USER, (char *)strAnswer.c_str(), &m_ulUserID);
+		er = m_lpUserManagement->ResolveObjectAndSync(ACTIVE_USER, strAnswer.c_str(), &m_ulUserID);
 		// don't check NONACTIVE, since those shouldn't be able to login
 		if(er != erSuccess)
 			return er;

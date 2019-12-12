@@ -325,7 +325,7 @@ HRESULT HrCreateVTimeZone(const std::string &strTZID,
 	icTime = icaltime_from_timet_with_zone(SystemTimeToUnixTime(tsTimeZone.stDstDate), 0, nullptr);
 	icalcomponent_add_property(icComp, icalproperty_new_dtstart(icTime));
 	icalcomponent_add_property(icComp, icalproperty_new_tzoffsetfrom(-tsTimeZone.lBias * 60));
-	icalcomponent_add_property(icComp, icalproperty_new_tzoffsetto(((-tsTimeZone.lBias) + (-tsTimeZone.lDstBias)) * 60));
+	icalcomponent_add_property(icComp, icalproperty_new_tzoffsetto((-tsTimeZone.lBias - tsTimeZone.lDstBias) * 60));
 	// create rrule for DST zone
 	icalrecurrencetype_clear(&icRec);
 	icRec.freq = ICAL_YEARLY_RECURRENCE;
@@ -333,7 +333,7 @@ HRESULT HrCreateVTimeZone(const std::string &strTZID,
 	icRec.by_month[0] = tsTimeZone.stDstDate.wMonth;
 	icRec.by_month[1] = ICAL_RECURRENCE_ARRAY_MAX;
 	icRec.week_start = ICAL_SUNDAY_WEEKDAY;
-	icRec.by_day[0] = tsTimeZone.stDstDate.wDay == 5 ? -1 * (8 + tsTimeZone.stDstDate.wDayOfWeek + 1) : (tsTimeZone.stDstDate.wDay) * 8 + tsTimeZone.stDstDate.wDayOfWeek + 1;
+	icRec.by_day[0] = tsTimeZone.stDstDate.wDay == 5 ? -(8 + tsTimeZone.stDstDate.wDayOfWeek + 1) : (tsTimeZone.stDstDate.wDay) * 8 + tsTimeZone.stDstDate.wDayOfWeek + 1;
 	icRec.by_day[1] = ICAL_RECURRENCE_ARRAY_MAX;
 	icalcomponent_add_property(icComp, icalproperty_new_rrule(icRec));
 	icalcomponent_add_component(icTZComp, icComp);

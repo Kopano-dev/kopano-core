@@ -292,7 +292,7 @@ void Archive::SetErrorMessage(HRESULT hr, LPCTSTR lpszMessage)
 	    << KC_T(" (") << tstringify_hex(hr) << KC_T(")") << endl;
 	if (Util::HrMAPIErrorToText(hr, &lpszDesc) == hrSuccess)
 		oss << KC_TX("Error description:") << KC_T(" ") << lpszDesc << endl;
-	m_strErrorMessage.assign(oss.str());
+	m_strErrorMessage = oss.str();
 }
 
 PyMapiPluginFactory::~PyMapiPluginFactory()

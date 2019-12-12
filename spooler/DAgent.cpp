@@ -651,28 +651,28 @@ static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
 		auto lpAddrTypeProp  = lpAdrList->aEntries[ulRCPT].cfind(PR_ADDRTYPE_A);
 		auto lpEmailProp     = lpAdrList->aEntries[ulRCPT].cfind(PR_EMAIL_ADDRESS_W);
 		auto lpSearchKeyProp = lpAdrList->aEntries[ulRCPT].cfind(PR_SEARCH_KEY);
-		recip->wstrUsername.assign(lpAccountProp->Value.lpszW);
-		recip->wstrFullname.assign(lpFullNameProp->Value.lpszW);
-		recip->strSMTP.assign(lpSMTPProp->Value.lpszA);
+		recip->wstrUsername  = lpAccountProp->Value.lpszW;
+		recip->wstrFullname  = lpFullNameProp->Value.lpszW;
+		recip->strSMTP       = lpSMTPProp->Value.lpszA;
 		if (Util::HrCopyBinary(lpEntryIdProp->Value.bin.cb, lpEntryIdProp->Value.bin.lpb, &recip->sEntryId.cb, &recip->sEntryId.lpb) != hrSuccess)
 			continue;
 
 		/* Only when multi-company has been enabled will we have the companyname. */
 		if (lpCompanyProp)
-			recip->wstrCompany.assign(lpCompanyProp->Value.lpszW);
+			recip->wstrCompany = lpCompanyProp->Value.lpszW;
 		/* Only when distributed has been enabled will we have the servername. */
 		if (lpServerProp)
-			recip->wstrServerDisplayName.assign(lpServerProp->Value.lpszW);
+			recip->wstrServerDisplayName = lpServerProp->Value.lpszW;
 		if (lpDisplayProp)
 			recip->ulDisplayType = lpDisplayProp->Value.ul;
 		if (lpAdminProp)
 			recip->ulAdminLevel = lpAdminProp->Value.ul;
 		if (lpAddrTypeProp)
-			recip->strAddrType.assign(lpAddrTypeProp->Value.lpszA);
+			recip->strAddrType = lpAddrTypeProp->Value.lpszA;
 		else
-			recip->strAddrType.assign("SMTP");
+			recip->strAddrType = "SMTP";
 		if (lpEmailProp)
-			recip->wstrEmail.assign(lpEmailProp->Value.lpszW);
+			recip->wstrEmail = lpEmailProp->Value.lpszW;
 
 		if (lpSearchKeyProp) {
 			if (Util::HrCopyBinary(lpSearchKeyProp->Value.bin.cb, lpSearchKeyProp->Value.bin.lpb, &recip->sSearchKey.cb, &recip->sSearchKey.lpb) != hrSuccess)
@@ -835,7 +835,7 @@ static HRESULT ResolveServerToPath(IMAPISession *lpSession,
 	for (ULONG i = 0; i < lpSrvList->cServers; ++i) {
 		auto iter = lpServerNameRecips->find((LPWSTR)lpSrvList->lpsaServer[i].lpszName);
 		if (iter == lpServerNameRecips->cend()) {
-			ec_log_err("Server '%s' not found", (char*)lpSrvList->lpsaServer[i].lpszName);
+			ec_log_err("Server \"%s\" not found", reinterpret_cast<const char *>(lpSrvList->lpsaServer[i].lpszName));
 			return MAPI_E_NOT_FOUND;
 		}
 		ec_log_debug("%zu recipient(s) on server \"%ls\" (URL %ls)",
@@ -3459,7 +3459,7 @@ int main(int argc, char **argv) try {
 	/* When path wasn't provided through commandline, resolve it from config file */
 	if (sDeliveryArgs.strPath.empty())
 		sDeliveryArgs.strPath = g_lpConfig->GetSetting("server_socket");
-	sDeliveryArgs.strPath = GetServerUnixSocket((char*)sDeliveryArgs.strPath.c_str()); // let environment override if present
+	sDeliveryArgs.strPath = GetServerUnixSocket(sDeliveryArgs.strPath.c_str()); // let environment override if present
 	sDeliveryArgs.sDeliveryOpts.ascii_upgrade = g_lpConfig->GetSetting("default_charset");
 	sDeliveryArgs.sDeliveryOpts.insecure_html_join = parseBool(g_lpConfig->GetSetting("insecure_html_join"));
 	sDeliveryArgs.sDeliveryOpts.conversion_notices = parseBool(g_lpConfig->GetSetting("conversion_detail"));

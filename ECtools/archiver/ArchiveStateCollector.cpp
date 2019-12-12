@@ -263,7 +263,7 @@ HRESULT ArchiveStateCollector::PopulateFromContainer(LPABCONT lpContainer)
 			}
 			m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "Inserting row for user \"" TSTRING_PRINTF "\"", prop[IDX_ACCOUNT].Value.LPSZ);
 			auto iterator = m_mapArchiveInfo.emplace(abentryid_t(prop[IDX_ENTRYID].Value.bin), ArchiveInfo()).first;
-			iterator->second.userName.assign(prop[IDX_ACCOUNT].Value.LPSZ);
+			iterator->second.userName = prop[IDX_ACCOUNT].Value.LPSZ;
 			if (prop[IDX_EC_ARCHIVE_SERVERS].ulPropTag == PR_EC_ARCHIVE_SERVERS) {
 				m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "Adding %u archive server(s)", prop[IDX_EC_ARCHIVE_SERVERS].Value.MVSZ.cValues);
 				for (ULONG j = 0; j < prop[IDX_EC_ARCHIVE_SERVERS].Value.MVSZ.cValues; ++j)

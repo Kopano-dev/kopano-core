@@ -250,7 +250,8 @@ RunFolderValidation(const std::set<std::string> &setFolderIgnore,
 		return hr;
 	}
 
-	if (setFolderIgnore.find(string((const char*)lpItemProperty->Value.bin.lpb, lpItemProperty->Value.bin.cb)) != setFolderIgnore.end()) {
+	if (setFolderIgnore.find(std::string(reinterpret_cast<const char *>(lpItemProperty->Value.bin.lpb),
+	    lpItemProperty->Value.bin.cb)) != setFolderIgnore.end()) {
 		cout << "Ignoring folder: ";
 		cout << "\"" << strName << "\" (" << strClass << ")" << endl;
 		return hrSuccess;

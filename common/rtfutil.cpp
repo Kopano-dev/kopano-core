@@ -297,12 +297,12 @@ HRESULT HrExtractHTMLFromRTF(const std::string &lpStrRTFIn,
 					++szInput;
 
 					if(*szInput) {
-						ulChar = (unsigned int) (strchr(szHex, toupper(*szInput)) == NULL ? 0 : (strchr(szHex, toupper(*szInput)) - szHex));
+						ulChar = strchr(szHex, toupper(*szInput)) == nullptr ? 0 : strchr(szHex, toupper(*szInput)) - szHex;
 						ulChar = ulChar << 4;
 						++szInput;
 					}
 					if(*szInput) {
-						ulChar += (unsigned int) (strchr(szHex, toupper(*szInput)) == NULL ? 0 : (strchr(szHex, toupper(*szInput)) - szHex));
+						ulChar += strchr(szHex, toupper(*szInput)) == nullptr ? 0 : strchr(szHex, toupper(*szInput)) - szHex;
 						++szInput;
 					}
 
@@ -548,12 +548,12 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 					++szInput;
 
 					if(*szInput) {
-						ulChar = (unsigned int) (strchr(szHex, toupper(*szInput)) == NULL ? 0 : (strchr(szHex, toupper(*szInput)) - szHex));
+						ulChar = strchr(szHex, toupper(*szInput)) == nullptr ? 0 : strchr(szHex, toupper(*szInput)) - szHex;
 						ulChar = ulChar << 4;
 						++szInput;
 					}
 					if(*szInput) {
-						ulChar += (unsigned int) (strchr(szHex, toupper(*szInput)) == NULL ? 0 : (strchr(szHex, toupper(*szInput)) - szHex));
+						ulChar += strchr(szHex, toupper(*szInput)) == nullptr ? 0 : strchr(szHex, toupper(*szInput)) - szHex;
 						++szInput;
 					}
 
@@ -895,12 +895,12 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 					++szInput;
 
 					if(*szInput) {
-						ulChar = (unsigned int) (strchr(szHex, toupper(*szInput)) == NULL ? 0 : (strchr(szHex, toupper(*szInput)) - szHex));
+						ulChar = strchr(szHex, toupper(*szInput)) == nullptr ? 0 : strchr(szHex, toupper(*szInput)) - szHex;
 						ulChar = ulChar << 4;
 						++szInput;
 					}
 					if(*szInput) {
-						ulChar += (unsigned int) (strchr(szHex, toupper(*szInput)) == NULL ? 0 : (strchr(szHex, toupper(*szInput)) - szHex));
+						ulChar += strchr(szHex, toupper(*szInput)) == nullptr ? 0 : strchr(szHex, toupper(*szInput)) - szHex;
 						++szInput;
 					}
 

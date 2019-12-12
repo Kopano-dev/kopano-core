@@ -474,7 +474,7 @@ bool ECScheduler::hasExpired(time_t ttime, ECSCHEDULE *lpSchedule)
 		return ((tmLastRunTime.tm_min != tmtime.tm_min ||
 		       (tmLastRunTime.tm_min == tmtime.tm_min &&
 		       tmLastRunTime.tm_sec != tmtime.tm_sec)) &&
-		       ((tmtime.tm_sec == static_cast<int>(lpSchedule->ulBeginCycle)) ||
+		       (tmtime.tm_sec == static_cast<int>(lpSchedule->ulBeginCycle) ||
 		       (lpSchedule->ulBeginCycle > 0 &&
 		       tmtime.tm_sec % static_cast<int>(lpSchedule->ulBeginCycle) < SCHEDULER_POLL_FREQUENCY)));
 	case SCHEDULE_MINUTES:
