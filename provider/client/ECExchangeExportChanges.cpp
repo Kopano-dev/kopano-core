@@ -1226,7 +1226,7 @@ void ECExchangeExportChanges::LogMessageProps(int loglevel, ULONG cValues, LPSPr
 HRESULT ECExchangeExportChanges::zlog(const char *msg, HRESULT code)
 {
 	if (code == hrSuccess)
-		ec_log_ics(msg);
+		ec_log_ics("%s", msg);
 	else
 		ec_log_ics("%s: %s (%x)", msg, GetMAPIErrorMessage(code), code);
 	return code;

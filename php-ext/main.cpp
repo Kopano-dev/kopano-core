@@ -600,7 +600,7 @@ PHP_MINIT_FUNCTION(mapi) {
 		LOG_END(); \
 		if (FAILED(MAPI_G(hr))) { \
 			if (lpLogger) \
-				lpLogger->logf(EC_LOGLEVEL_ERROR, "MAPI error: %s (%x) (method: %s, line: %d)", GetMAPIErrorMessage(hr), hr, func, __LINE__); \
+				lpLogger->logf(EC_LOGLEVEL_ERROR, "MAPI error: %s (%x) (method: %s, line: %d)", GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr), func, __LINE__); \
 			\
 			if (MAPI_G(exceptions_enabled)) \
 				zend_throw_exception(MAPI_G(exception_ce), "MAPI error ", MAPI_G(hr)  TSRMLS_CC); \
@@ -1463,7 +1463,7 @@ ZEND_FUNCTION(mapi_folder_copymessages)
 
 	MAPI_G(hr) = PHPArraytoSBinaryArray(msgArray, NULL, &~lpEntryList TSRMLS_CC);
 	if(MAPI_G(hr) != hrSuccess) {
-		kphpref("Bad message list", MAPI_G(hr));
+		kphperr("Bad message list", MAPI_G(hr));
 		goto exit;
 	}
 
