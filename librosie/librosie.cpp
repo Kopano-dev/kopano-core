@@ -19,7 +19,7 @@
 
 namespace KC {
 
-static std::set<std::string> rosie_good_tags = {
+static std::set<std::string, std::less<>> rosie_good_tags = {
 	"a", "abbr", "address", "area", "article", "aside", "b", "blockquote",
 	"body", "br", "caption", "center", "cite", "code", "col", "datalist",
 	"details", "div", "em", "figcaption", "figure", "font", "footer",
@@ -32,7 +32,7 @@ static std::set<std::string> rosie_good_tags = {
 	"th", "thead", "time", "title", "tr", "u", "ul", "var", "wbr",
 };
 
-static std::map<std::string, std::set<std::string> > rosie_good_attrs = {
+static std::map<std::string, std::set<std::string, std::less<>>, std::less<>> rosie_good_attrs = {
 	{"a", {"class", "href", "name", "title"}},
 	{"div", {"class", "id"}},
 	{"font", {"size"}},
