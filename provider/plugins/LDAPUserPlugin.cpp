@@ -1796,9 +1796,8 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 				/* Handle property actions */
 				switch (PROP_ID(ulPropTag)) {
 					// this property is only supported on ADS and OpenLDAP 2.4+ with slapo-memberof enabled
-				case 0x8008:	/* PR_EMS_AB_IS_MEMBER_OF_DL */
-				case 0x800E:	/* PR_EMS_AB_REPORTS */
-				{
+				case PROP_ID(PR_EMS_AB_IS_MEMBER_OF_DL):
+				case PROP_ID(PR_EMS_AB_REPORTS): {
 					/*
 					 * These properties should contain the DN of the object,
 					 * resolve them to the objectid and them as the PT_MV_BINARY
@@ -1817,13 +1816,11 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 					lPostActions.emplace_back(std::move(p));
 					break;
                 }
-				case 0x3A4E:	/* PR_MANAGER_NAME */
-					/* Rename to PR_EMS_AB_MANAGER */
-					ulPropTag = 0x8005001E;
+				case PROP_ID(PR_MANAGER_NAME):
+					ulPropTag = PR_EMS_AB_MANAGER_W;
 					/* fallthru */
-				case 0x8005:	/* PR_EMS_AB_MANAGER */
-				case 0x800C:	/* PR_EMS_AB_OWNER */
-				{
+				case PROP_ID(PR_EMS_AB_MANAGER):
+				case PROP_ID(PR_EMS_AB_OWNER): {
 					/*
 					 * These properties should contain the DN of the object,
 					 * resolve it to the objectid and store it as the PT_BINARY
@@ -1842,14 +1839,13 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 					lPostActions.emplace_back(std::move(p));
 					break;
                 }
-				case 0x3A30:	/* PR_ASSISTANT */
-				{
+				case PROP_ID(PR_ASSISTANT): {
 					/*
 					 * These properties should contain the full name of the object,
 					 * the client won't need to resolve them to a Address Book entry
 					 * so a fullname will be sufficient.
 					 */
-					ulPropTag = 0x3A30001E;
+					ulPropTag = PR_ASSISTANT_W;
 					postaction p;
 
 					p.objectid = objectid;
@@ -1869,7 +1865,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 						for (auto &i : ldap_attrs)
 							i = m_iconv->convert(i);
 
-					if (ulPropTag & 0x1000) /* MV_FLAG */
+					if (ulPropTag & MV_FLAG)
 						sObjDetails.SetPropListString(static_cast<property_key_t>(ulPropTag), std::move(ldap_attrs));
 					else
 						sObjDetails.SetPropString(static_cast<property_key_t>(ulPropTag), ldap_attrs.front());
