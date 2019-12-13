@@ -31,8 +31,9 @@ pipeline {
         }
         stage('Test') {
             steps {
-                echo 'Testing..'
-                sh 'make tests'
+                echo 'Testing php-ext..'
+                sh 'make test TEST_PHP_JUNIT=test.log || true'
+		junit allowEmptyResults: true, testResults: 'php-ext/test.log'
             }
         }
     }
