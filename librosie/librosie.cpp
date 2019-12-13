@@ -111,7 +111,7 @@ static bool rosie_strip_nodes(TidyDoc tdoc, TidyNode tnod)
 		if (name != NULL && rosie_reject_tag(name)) {
 			child = tidyDiscardElement(tdoc, child);
 		} else {
-			rosie_strip_attrs(tdoc, tnod);
+			rosie_strip_attrs(tdoc, child);
 			rosie_strip_nodes(tdoc, child);
 			child = tidyGetNext(child);
 		}
