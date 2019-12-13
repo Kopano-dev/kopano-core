@@ -29,7 +29,7 @@ public:
 	HRESULT AddBlocks(FBBlock_1 *, int nblk, time_t start, time_t end, const std::string &organizer, const std::string &user, const std::string &uid) override;
 	HRESULT Finalize(unsigned int flags, std::string *method, std::string *ical) override;
 	HRESULT ResetObject() override;
-	
+
 private:
 	LPADRBOOK m_lpAdrBook;
 	std::string m_strCharset;
@@ -43,9 +43,9 @@ private:
 	HRESULT HrInitializeVCal();
 };
 
-/** 
+/**
  * Create a class implementing the MapiToICal "interface".
- * 
+ *
  * @param[in]  lpAdrBook MAPI addressbook
  * @param[in]  strCharset charset of the ical returned by this class
  * @param[out] lppMapiToICal The conversion class
@@ -60,9 +60,9 @@ HRESULT CreateMapiToICal(LPADRBOOK lpAdrBook, const std::string &strCharset, Map
 	return hrSuccess;
 }
 
-/** 
+/**
  * Init MapiToICal class
- * 
+ *
  * @param[in] lpAdrBook MAPI addressbook
  * @param[in] strCharset charset of the ical returned by this class
  */
@@ -85,14 +85,14 @@ HRESULT MapiToICalImpl::HrInitializeVCal()
 	icalcomponent_add_property(m_lpicCalender.get(), icalproperty_new_calscale("GREGORIAN"));
 	return hrSuccess;
 }
-/** 
+/**
  * Add a MAPI message to the ical VCALENDAR object.
- * 
+ *
  * @param[in] lpMessage Convert this MAPI message to ICal
  * @param[in] strSrvTZ Use this timezone, used for Tasks only (or so it seems)
  * @param[in] ulFlags Conversion flags:
  * @arg @c M2IC_CENSOR_PRIVATE Privacy sensitive data will not be present in the ICal
- * 
+ *
  * @return MAPI error code
  */
 HRESULT MapiToICalImpl::AddMessage(LPMESSAGE lpMessage, const std::string &strSrvTZ, ULONG ulFlags)
@@ -143,9 +143,9 @@ HRESULT MapiToICalImpl::AddMessage(LPMESSAGE lpMessage, const std::string &strSr
 	return hrSuccess;
 }
 
-/** 
+/**
  * Add MAPI freebusy blocks in a VFREEBUSY part.
- * 
+ *
  * @param[in] lpsFbblk MAPI freebusy blocks
  * @param[in] ulBlocks Number of blocks present in lpsFbblk
  * @param[in] tStart Start time of the freebusy data
@@ -153,7 +153,7 @@ HRESULT MapiToICalImpl::AddMessage(LPMESSAGE lpMessage, const std::string &strSr
  * @param[in] strOrganiser Email address of the organiser
  * @param[in] strUser Email address of an attendee
  * @param[in] strUID UID for the VFREEBUSY part
- * 
+ *
  * @return MAPI error code
  */
 HRESULT MapiToICalImpl::AddBlocks(FBBlock_1 *lpsFbblk, LONG ulBlocks, time_t tStart, time_t tEnd, const std::string &strOrganiser, const std::string &strUser, const std::string &strUID)
@@ -165,7 +165,7 @@ HRESULT MapiToICalImpl::AddBlocks(FBBlock_1 *lpsFbblk, LONG ulBlocks, time_t tSt
 		icalcomponent_add_property(m_lpicCalender.get(), icalproperty_new_version("2.0"));
 		icalcomponent_add_property(m_lpicCalender.get(), icalproperty_new_prodid("-//Kopano//" PROJECT_VERSION "//EN"));
 	}
-	
+
 	HRESULT hr = HrFbBlock2ICal(lpsFbblk, ulBlocks, tStart, tEnd,
 	             strOrganiser, strUser, strUID, &icFbComponent);
 	if (hr != hrSuccess)
@@ -175,14 +175,14 @@ HRESULT MapiToICalImpl::AddBlocks(FBBlock_1 *lpsFbblk, LONG ulBlocks, time_t tSt
 	return hrSuccess;
 }
 
-/** 
+/**
  * Create the actual ICal data.
- * 
+ *
  * @param[in]  ulFlags Conversion flags
  * @arg @c M2IC_NO_VTIMEZONE Skip the VTIMEZONE parts in the output
  * @param[out] strMethod ICal method (e.g. PUBLISH)
  * @param[out] strIcal The ICal data in 8-bit string, charset given in constructor
- * 
+ *
  * @return MAPI error code
  */
 HRESULT MapiToICalImpl::Finalize(ULONG ulFlags, std::string *strMethod, std::string *strIcal)
@@ -195,7 +195,7 @@ HRESULT MapiToICalImpl::Finalize(ULONG ulFlags, std::string *strMethod, std::str
 	// TODO: make flags force a publish method
 	if (m_icMethod != ICAL_METHOD_NONE)
 		icalcomponent_add_property(m_lpicCalender.get(), icalproperty_new_method(m_icMethod));
-	
+
 	// no timezone block in VFREEBUSY data.
 	if ((ulFlags & M2IC_NO_VTIMEZONE) == 0)
 	{
@@ -216,9 +216,9 @@ HRESULT MapiToICalImpl::Finalize(ULONG ulFlags, std::string *strMethod, std::str
 	return hrSuccess;
 }
 
-/** 
+/**
  * Reset this class to be used for starting a new series of conversions.
- * 
+ *
  * @return always hrSuccess
  */
 HRESULT MapiToICalImpl::ResetObject()
@@ -228,7 +228,7 @@ HRESULT MapiToICalImpl::ResetObject()
 	m_icMethod = ICAL_METHOD_NONE;
 	m_tzMap.clear();
 	m_ulEvents = 0;
-	// reset the ical data with emtpy calendar
+	// reset the ical data with empty calendar
 	HrInitializeVCal();
 	return hrSuccess;
 }

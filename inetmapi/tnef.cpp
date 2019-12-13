@@ -349,7 +349,7 @@ HRESULT ECTNEF::ExtractProps(ULONG flags, SPropTagArray *lpPropList)
 			}
 			break;
 
-// --- TNEF attachemnts ---
+// --- TNEF attachments ---
 		case ATT_ATTACH_REND_DATA:
 			// Start marker of attachment
 		    if(ulSize == sizeof(struct AttachRendData) && lpBuffer) {
@@ -1766,7 +1766,7 @@ HRESULT ECTNEF::HrWriteBlock(IStream *lpDestStream, IStream *lpSourceStream, ULO
  *
  * @param[in,out] lpDestStream Stream to write data block in
  * @param[in] lpData Data block to write to stream
- * @param[in] ulLen Lenght of lpData
+ * @param[in] ulLen Length of lpData
  * @param[in] ulBlockID TNEF Block ID number
  * @param[in] ulLevel TNEF Level number
  *

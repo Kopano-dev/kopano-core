@@ -384,7 +384,7 @@ HRESULT ECMsgStore::OpenStatsTable(unsigned int ulTableType, LPMAPITABLE *lppTab
  *
  * @param[in] cbEntryID Size of data in lpEntryID
  * @param[in] lpEntryID EntryID of item to subscribe to events to
- * @param[in] ulEventMask Bitmask of events to susbcribe to
+ * @param[in] ulEventMask Bitmask of events to subscribe to
  * @param[in] lpAdviseSink Sink to send notification events to
  * @param[out] lpulConnection Connection ID of the registered subscription
  * @return result

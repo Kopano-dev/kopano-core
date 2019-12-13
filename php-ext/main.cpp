@@ -785,7 +785,7 @@ ZEND_FUNCTION(mapi_parseoneoff)
  * - mapi_logon_zarafa() creates a session and returns this
  * - mapi_getmsgstorestable() to get the entryid of the default and public store
  * - mapi_openmsgstore() to open the default user store + public store
- * - mapi_msgstore_createentryid() retuns a store entryid of requested user
+ * - mapi_msgstore_createentryid() returns a store entryid of requested user
  * - store entryid can be used with mapi_openmsgstore() to open
  *
  * Removed, how it did work in the far past:
@@ -1150,12 +1150,12 @@ ZEND_FUNCTION(mapi_openmsgstore)
 	ZEND_REGISTER_RESOURCE(return_value, pMDB, le_mapi_msgstore);
 }
 
-/** 
+/**
  * Open the profile section of given guid, and returns the php-usable IMAPIProp object
- * 
+ *
  * @param[in] Resource mapi session
  * @param[in] String mapi uid of profile section
- * 
+ *
  * @return IMAPIProp interface of IProfSect object
  */
 ZEND_FUNCTION(mapi_openprofilesection)
@@ -1804,7 +1804,7 @@ ZEND_FUNCTION(mapi_sink_create)
 	LOG_BEGIN();
 	MAPINotifSink *lpSink = NULL;
 	RETVAL_FALSE;
-    
+
 	MAPI_G(hr) = MAPINotifSink::Create(&lpSink);
 	ZEND_REGISTER_RESOURCE(return_value, lpSink, le_mapi_advisesink);
 	LOG_END();
@@ -1819,7 +1819,7 @@ ZEND_FUNCTION(mapi_sink_timedwait)
 	MAPINotifSink *lpSink = NULL;
 	ULONG cNotifs = 0;
 	memory_ptr<NOTIFICATION> lpNotifs;
-    
+
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &resSink, &ulTime) == FAILURE)
@@ -1827,11 +1827,11 @@ ZEND_FUNCTION(mapi_sink_timedwait)
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpSink, MAPINotifSink *, &resSink, -1, name_mapi_advisesink, le_mapi_advisesink);
-	
+
 	MAPI_G(hr) = lpSink->GetNotifications(&cNotifs, &~lpNotifs, false, ulTime);
 	if(MAPI_G(hr) != hrSuccess)
 		return;
-	    
+
 	MAPI_G(hr) = NotificationstoPHPArray(cNotifs, lpNotifs, &notifications TSRMLS_CC);
 	if(MAPI_G(hr) != hrSuccess) {
 		kphperr("The notifications could not be converted to a PHP array", MAPI_G(hr));
@@ -3461,7 +3461,7 @@ ZEND_FUNCTION(mapi_rules_gettable) {
 	MAPI_G(hr) = lpRulesView->SortTable(sosRules, 0);
 	if (MAPI_G(hr) != hrSuccess)
 		return;
-	
+
 	MAPI_G(hr) = ECRulesTableProxy::Create(lpRulesView, &lpRulesTableProxy);
 	if (MAPI_G(hr) != hrSuccess)
 		return;
@@ -4051,7 +4051,7 @@ ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
 	if (MAPI_G(hr) != hrSuccess)
 		return;
 	memset(lpECPerms, 0, sizeof(ECPERMISSION)*cPerms);
-	
+
 	j = 0;
 	ZEND_HASH_FOREACH_VAL(target_hash, entry) {
 		// null pointer returned if perms was not array(array()).
@@ -5221,14 +5221,14 @@ ZEND_FUNCTION(mapi_inetmapi_imtoinet)
 	object_ptr<ECMemStream> lpMemStream = NULL;
     IStream *lpStream = NULL;
 	std::unique_ptr<char[]> lpBuffer;
-    
+
     imopt_default_sending_options(&sopt);
     sopt.no_recipients_workaround = true;
-    
+
     IMAPISession *lpMAPISession = NULL;
     IAddrBook *lpAddrBook = NULL;
     IMessage *lpMessage = NULL;
-    
+
     RETVAL_FALSE;
     MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rrra",
@@ -5243,7 +5243,7 @@ ZEND_FUNCTION(mapi_inetmapi_imtoinet)
     MAPI_G(hr) = PHPArraytoSendingOptions(resOptions, &sopt);
     if(MAPI_G(hr) != hrSuccess)
 		return;
-    
+
     MAPI_G(hr) = IMToINet(lpMAPISession, lpAddrBook, lpMessage, &unique_tie(lpBuffer), sopt);
     if(MAPI_G(hr) != hrSuccess)
 		return;
@@ -5253,7 +5253,7 @@ ZEND_FUNCTION(mapi_inetmapi_imtoinet)
 	MAPI_G(hr) = lpMemStream->QueryInterface(IID_IStream, reinterpret_cast<void **>(&lpStream));
     if(MAPI_G(hr) != hrSuccess)
 		return;
-        
+
     ZEND_REGISTER_RESOURCE(return_value, lpStream, le_istream);
 }
 
@@ -5265,14 +5265,14 @@ ZEND_FUNCTION(mapi_inetmapi_imtomapi)
     delivery_options dopt;
 	php_stringsize_t cbString = 0;
     char *szString = NULL;
-    
+
     imopt_default_delivery_options(&dopt);
-    
+
     IMAPISession *lpMAPISession = NULL;
     IAddrBook *lpAddrBook = NULL;
     IMessage *lpMessage = NULL;
     IMsgStore *lpMsgStore = NULL;
-    
+
     RETVAL_FALSE;
     MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rrrrsa",
@@ -5291,14 +5291,14 @@ ZEND_FUNCTION(mapi_inetmapi_imtomapi)
 	MAPI_G(hr) = PHPArraytoDeliveryOptions(resOptions, &dopt);
     if(MAPI_G(hr) != hrSuccess)
 		return;
-   
+
     MAPI_G(hr) = IMToMAPI(lpMAPISession, lpMsgStore, lpAddrBook, lpMessage, strInput, dopt);
 
     if(MAPI_G(hr) != hrSuccess)
 		return;
-        
+
     RETVAL_TRUE;
-}    
+}
 
 ZEND_FUNCTION(mapi_icaltomapi)
 {
@@ -5546,7 +5546,7 @@ ZEND_FUNCTION(mapi_enable_exceptions)
         MAPI_G(exception_ce) = ce;
         RETVAL_TRUE;
     }
-    
+
 	LOG_END();
 }
 
@@ -5559,7 +5559,7 @@ ZEND_FUNCTION(mapi_feature)
 		{"LOGONFLAGS", "NOTIFICATIONS", "INETMAPI_IMTOMAPI", "ST_ONLY_WHEN_OOF"};
 	const char *szFeature = NULL;
 	php_stringsize_t cbFeature = 0;
-    
+
     RETVAL_FALSE;
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",
 	    &szFeature, &cbFeature) == FAILURE)

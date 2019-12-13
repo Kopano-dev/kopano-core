@@ -807,7 +807,7 @@ class Item(Properties, Contact, Appointment):
             b'67': 261,  # reply all
             b'68': 262,  # forward
         }
-        # TOOD(jelle): check if property exists?
+        # TODO(jelle): check if property exists?
         try:
             source_message = item.prop('common:0x85CE').value
             msgtype = source_message[24:26]

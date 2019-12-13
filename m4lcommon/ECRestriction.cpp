@@ -16,7 +16,7 @@ namespace KC {
  * Allocate and populate a MAPI SRestriction structure based on the current
  * ECRestriction object.
  * @param[out]	lppRestriction	The resulting SRestriction structure.
- * @retval	MAPI_E_INVALID_PARAMTER	lppRestriction is NULL.
+ * @retval	MAPI_E_INVALID_PARAMETER	lppRestriction is NULL.
  */
 HRESULT ECRestriction::CreateMAPIRestriction(LPSRestriction *lppRestriction, ULONG ulFlags) const {
 	SRestrictionPtr ptrRestriction;
@@ -62,7 +62,7 @@ HRESULT ECRestriction::FindRowIn(LPMAPITABLE lpTable, BOOKMARK BkOrigin, ULONG u
  * Copy a property into a newly allocated SPropValue.
  * @param[in]	lpPropSrc	The source property.
  * @param[in]	lpBase		An optional base pointer for MAPIAllocateMore.
- * @param[out]	lppPropDst	Pointer to an SPropValue pointer that will be set to 
+ * @param[out]	lppPropDst	Pointer to an SPropValue pointer that will be set to
  *							the address of the newly allocated SPropValue.
  * @retval	MAPI_E_INVALID_PARAMETER	lpPropSrc or lppPropDst is NULL.
  */
@@ -398,7 +398,7 @@ ECRawRestriction::ECRawRestriction(const SRestriction *lpRestriction,
 }
 
 ECRawRestriction::ECRawRestriction(RawResPtr ptrRestriction)
-: m_ptrRestriction(ptrRestriction) 
+: m_ptrRestriction(ptrRestriction)
 { }
 
 HRESULT ECRawRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const {

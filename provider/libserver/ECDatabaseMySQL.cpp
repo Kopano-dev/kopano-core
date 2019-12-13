@@ -719,7 +719,7 @@ ECRESULT ECDatabase::CreateDatabase(void)
 	if(er != erSuccess)
 		return er;
 
-	// Loop throught the update list
+	// Loop through the update list
 	for (size_t i = 0; i < ARRAY_SIZE(sUpdateList); ++i) {
 		if (sUpdateList[i].ulVersion <= Z_UPDATE_RELEASE_ID)
 			continue;
@@ -862,7 +862,7 @@ ECRESULT ECDatabase::UpdateDatabase(bool bForceUpdate, std::string &strReport)
 	if (bForceUpdate)
 		ec_log_warn("Manually forced the database upgrade because the option \"--force-database-upgrade\" was given.");
 
-	// Loop throught the update list
+	// Loop through the update list
 	for (size_t i = 0; i < ARRAY_SIZE(sUpdateList); ++i) {
 		if (stored_ver.v_schema >= sUpdateList[i].ulVersion)
 			// Update already done, next

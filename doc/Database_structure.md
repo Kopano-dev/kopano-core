@@ -1,11 +1,10 @@
 # A quick overview of the Kopano Core database structure
 
-
 ## Overview
 
+The Database has the following tables:
 
-The Datbase has the following tables:
-```
+```sql
 +--------------------+
 | Tables_in_kopano   |
 +--------------------+
@@ -68,6 +67,7 @@ tproperties yet (for performance reasons)
 Is the parent-child relationship table for the mailbox (IPM_SUBTREE_ROOT -> ...)
 
 Columns
+
 * id:
 * parent:
 * type: 1=mailbox, 3=folder, 5=message, 6=recipient, 7=attachment
@@ -95,6 +95,7 @@ Two things: 1. queue that outlook polls for messages that it wants to send, 2.
 queue of spooler, of messages that it wants to send
 
 Columns:
+
 * flags: if even then outlook queue, if odd spooler queue
 * properties - the list of properties for each hierarchy.id - each value is put
   into its corresponding column type (binary, double, etc.)
@@ -145,10 +146,9 @@ Users table with the relation column (externid)
 
 List of all Kopano versions ever installed on the system
 
-
 ## Tables specific for DB plugin
 
-- object - everything normally in ldap
-- objectmvproperty - everything normally in ldap
-- objectproperty - everything normally in ldap
-- objectrelation - everything normally in ldap
+* object - everything normally in ldap
+* objectmvproperty - everything normally in ldap
+* objectproperty - everything normally in ldap
+* objectrelation - everything normally in ldap

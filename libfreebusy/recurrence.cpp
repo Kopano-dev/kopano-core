@@ -188,15 +188,15 @@ void recurrence::HrGetHumanReadableString(std::string *lpstrHRS)
 	} else if (m_sRecState.ulEndType == ET_NUMBER) {
 		if (time_range)
 			pattern = single_rank ?
-				  format(KC_A("Occurs every %s for %u occurence(s) from %s to %s, effective %s."),
+				  format(KC_A("Occurs every %s for %u occurrence(s) from %s to %s, effective %s."),
 				         type, getCount(), startocc, endocc, bufstart) :
-				  format(KC_A("Occurs every %u %s for %u occurence(s) from %s to %s, effective %s."),
+				  format(KC_A("Occurs every %u %s for %u occurrence(s) from %s to %s, effective %s."),
 				         everyn, type, getCount(), startocc, endocc, bufstart);
 		else
 			pattern = single_rank ?
-			          format(KC_A("Occurs every %s for %u occurence(s), effective %s."),
+			          format(KC_A("Occurs every %s for %u occurrence(s), effective %s."),
 			                 type, getCount(), bufstart) :
-			          format(KC_A("Occurs every %u %s for %u occurence(s), effective %s."),
+			          format(KC_A("Occurs every %u %s for %u occurrence(s), effective %s."),
 			                 everyn, type, getCount(), bufstart);
 	} else if (m_sRecState.ulEndType == ET_DATE) {
 		if (time_range)

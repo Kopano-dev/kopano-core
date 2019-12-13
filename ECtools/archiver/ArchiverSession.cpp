@@ -304,7 +304,7 @@ HRESULT ArchiverSession::OpenReadOnlyStore(const entryid_t &sEntryId, LPMDB *lpp
  *					The user to resolve.
  * @param[out]	lpsEntryId
  *					Pointer to a entryid_t that will be populated with the entryid
- *					of the resovled user. This argument can be set to NULL if the entryid
+ *					of the resolved user. This argument can be set to NULL if the entryid
  *					is not required.
  * @param[out]	lpstrFullname
  *					Pointer to a std::string that will be populated with the full name

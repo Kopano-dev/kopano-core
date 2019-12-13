@@ -24,7 +24,7 @@ namespace KC {
  * Mapi -> Ical conversion
  *
  * @param[in]	lRemindBefore				reminder before minutes.
- * @param[in]	ttReminderTime				Reminder time in UTC format. 
+ * @param[in]	ttReminderTime				Reminder time in UTC format.
  * @param[in]	bTask						If true, the output value is for a task item
  * @param[out]	lppAlarm					ical VALARM component.
  * @return		MAPI error code
@@ -86,7 +86,7 @@ HRESULT HrParseVAlarm(icalcomponent *lpicAlarm, LONG *lplRemindBefore, time_t *l
 	}
 	if (lpAction != NULL) {
 		auto eipaAction = icalproperty_get_action(lpAction);
-		// iMac Calendar 6.0 sends ACTION:NONE, which libical doesn't parse correcty to the ICAL_ACTION_NONE enum value
+		// iMac Calendar 6.0 sends ACTION:NONE, which libical doesn't parse correctly to the ICAL_ACTION_NONE enum value
 		if (eipaAction > ICAL_ACTION_X && eipaAction < ICAL_ACTION_NONE)
 			bReminderSet = true;
 	}

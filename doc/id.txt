@@ -155,7 +155,7 @@ throughout many EID forms.
 
 The IExchangeManageStore::CreateEntryStoreID routine can be used to obtain the
 store entryid for given a user/mailbox name. This causes a resolveUserStore
-RPC, whose respones contains:
+RPC, whose responses contains:
 
 	* userid: owner of the store (see section "Security objects")
 	* sUserId: ABEID of owner

@@ -57,7 +57,7 @@ a host, a username, and a password, two times.
 =head1 CONFIGURATION
 
 There is no specific configuration file for kopano-migration-imap,
-everything is specified by the command line parameteres
+everything is specified by the command line parameters
 and the default behavior.
 
 =head1 USAGE
@@ -192,7 +192,7 @@ This description of options are reproduced here:
  --sep1         str  : Host1 separator in case NAMESPACE is not supported.
  --sep2         str  : Host2 separator in case NAMESPACE is not supported.
 
- --skipmess     reg  : Skips messages maching the regex.
+ --skipmess     reg  : Skips messages matching the regex.
                        Example: 'm/[\x80-ff]/' # to avoid 8bits messages.
                        --skipmess is applied before --regexmess
  --skipmess     reg  : or this one, etc.
@@ -306,7 +306,7 @@ This description of options are reproduced here:
 
  --debug             : Debug mode.
  --debugfolders      : Debug mode for the folders part only.
- --debugcontent      : Debug content of the messages transfered. Huge ouput.
+ --debugcontent      : Debug content of the messages transferred. Huge output.
  --debugflags        : Debug mode for flags.
  --debugimap1        : IMAP debug mode for host1. Very verbose.
  --debugimap2        : IMAP debug mode for host2. Very verbose.
@@ -442,7 +442,7 @@ When working on Sun/iPlanet/Netscape IMAP servers you must use
 --proxyauth1 to enable administrative user to masquerade as another user.
 Can also be used on destination server with --proxyauth2
 
-You can authenticate with OAUTH when transfering from Google Apps.
+You can authenticate with OAUTH when transferring from Google Apps.
 The consumer key will be the domain part of the --user, and the
 --password will be used as the consumer secret. It does not work
 with Google Apps free edition.
@@ -951,7 +951,7 @@ $syncinternaldates = defined $syncinternaldates ? $syncinternaldates : 1;
 # Turn on expunge if there is not explicit option --noexpunge and option
 # --delete is given.
 # Done because --delete --noexpunge is very dangerous on the second run:
-# the Deleted flag is then synced to all previously transfered messages.
+# the Deleted flag is then synced to all previously transferred messages.
 # So --delete implies --expunge is a better usability default behaviour.
 if ( $delete ) {
 	if ( ! defined  $expunge  ) {
@@ -2887,7 +2887,7 @@ sub connect_imap {
 		set_tls( $imap, $h ) ;
 		$imap->starttls(  )
                 or die_clean("$Side: Can not go to tls encryption on [$host]:", $imap->LastError, "\n" ) ;
-                myprint( "$Side: Socket successfuly converted to SSL\n"  ) ;
+                myprint( "$Side: Socket successfully converted to SSL\n"  ) ;
         }
         return( $imap ) ;
 }
@@ -2927,7 +2927,7 @@ sub login_imap {
 		set_tls( $imap, $h ) ;
 		$imap->starttls(  )
                 or die_clean("$Side failure: Can not go to tls encryption on $side [$host]:", $imap->LastError, "\n" ) ;
-                myprint( "$Side: Socket successfuly converted to SSL\n"  ) ;
+                myprint( "$Side: Socket successfully converted to SSL\n"  ) ;
         }
 
         authenticate_imap( $imap, @allargs ) ;
@@ -4004,7 +4004,7 @@ sub help_to_guess_prefix {
 	my( $imap, $prefix_opt ) = @_ ;
 
 	my $help_to_guess_prefix = "You can set the prefix namespace with the $prefix_opt option,\n"
-	. "the folowing listing of folders may help you to find it:\n"
+	. "the following listing of folders may help you to find it:\n"
 	. folders_list_to_help( $imap ) ;
 
 	return( $help_to_guess_prefix ) ;
@@ -5916,7 +5916,7 @@ sub tmpdir_fix_colon_bug {
                         myprint( "Old cache directory $cachedir_old still exists\n"  ) ;
                         $err++ ;
                 }else{
-                        myprint( "Old cache directory $cachedir_old successfuly moved\n"  ) ;
+                        myprint( "Old cache directory $cachedir_old successfully moved\n"  ) ;
                 }
         }
         return( not $err ) ;
@@ -7104,7 +7104,7 @@ sub tests_header_line_normalize {
 	ok( ': ' eq header_line_normalize( q{}, q{} ), 'header_line_normalize: empty args' ) ;
 	ok( 'HHH: VVV' eq header_line_normalize( 'hhh', 'vvv' ), 'header_line_normalize: hhh vvv ' ) ;
 	ok( 'HHH: VVV' eq header_line_normalize( 'hhh', '  vvv' ), 'header_line_normalize: remove first blancs' ) ;
-	ok( 'HHH: AA BB CCC D' eq header_line_normalize( 'hhh', 'aa  bb   ccc d' ), 'header_line_normalize: remove succesive blanks' ) ;
+	ok( 'HHH: AA BB CCC D' eq header_line_normalize( 'hhh', 'aa  bb   ccc d' ), 'header_line_normalize: remove successive blanks' ) ;
 	ok( 'HHH: AA BB CCC' eq header_line_normalize( 'hhh', 'aa  bb   ccc   ' ), 'header_line_normalize: remove last blanks' ) ;
 	ok( 'HHH: VVV XX YY' eq header_line_normalize( 'hhh', "vvv\t\txx\tyy" ), 'header_line_normalize: tabs' ) ;
 	ok( 'HHH: XABX' eq header_line_normalize( 'hhh', "\x80AB\xff" ), 'header_line_normalize: 8bit' ) ;
@@ -8497,7 +8497,7 @@ sub usage {
  --sep1         str  : Host1 separator in case NAMESPACE is not supported.
  --sep2         str  : Host2 separator in case NAMESPACE is not supported.
 
- --skipmess     reg  : Skips messages maching the regex.
+ --skipmess     reg  : Skips messages matching the regex.
                        Example: 'm/[\\x80-ff]/' # to avoid 8bits messages.
                        --skipmess is applied before --regexmess
  --skipmess     reg  : or this one, etc.
@@ -8611,7 +8611,7 @@ sub usage {
 
  --debug             : Debug mode.
  --debugfolders      : Debug mode for the folders part only.
- --debugcontent      : Debug content of the messages transfered. Huge ouput.
+ --debugcontent      : Debug content of the messages transferred. Huge output.
  --debugflags        : Debug mode for flags.
  --debugimap1        : IMAP debug mode for host1. Very verbose.
  --debugimap2        : IMAP debug mode for host2. Very verbose.

@@ -852,7 +852,7 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage,
 			m_vmCharset = "windows-1252";
 	}
 
-	// Add iconv tag to convert non-exising chars without a fuss
+	// Add iconv tag to convert non-existing chars without a fuss
 	m_strCharset = m_vmCharset.getName() + "//TRANSLIT";
 	if (strcasecmp(lpMsgClass->Value.lpszA, "REPORT.IPM.Note.IPNNRN") == 0 ||
 	    strcasecmp(lpMsgClass->Value.lpszA, "REPORT.IPM.Note.IPNRN") == 0) {
@@ -1049,7 +1049,7 @@ HRESULT MAPIToVMIME::fillVMIMEMail(IMessage *lpMessage, bool bSkipContent, vmime
  * @param[out]	lpvmMailbox	vmime::mailbox object containing the recipient.
  *
  * @return MAPI error code
- * @retval MAPI_E_INVALID_PARAMTER email address in row is not usable for the SMTP protocol
+ * @retval MAPI_E_INVALID_PARAMETER email address in row is not usable for the SMTP protocol
  */
 HRESULT MAPIToVMIME::getMailBox(LPSRow lpRow,
     vmime::shared_ptr<vmime::address> &vmMailboxNew)
@@ -1559,7 +1559,7 @@ HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage,
 	}
 
 	// Set representing as from address, when possible
-	// Ignore PR_SENT_REPRESENTING if the email adress is the same as the PR_SENDER email address
+	// Ignore PR_SENT_REPRESENTING if the email address is the same as the PR_SENDER email address
 	if (!strResEmail.empty() && strResEmail != strEmail) {
 		if (strResName.empty() || strResName == strResEmail)
 			vmHeader->From()->setValue(vmime::mailbox(m_converter.convert_to<string>(strResEmail)));

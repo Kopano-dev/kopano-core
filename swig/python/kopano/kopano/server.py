@@ -296,7 +296,7 @@ class Server(object):
             if not notifications:
                 flags |= EC_PROFILE_FLAGS_NO_NOTIFICATIONS
 
-            # Username and password was supplied, so let us do verfication
+            # Username and password was supplied, so let us do verification
             # (OpenECSession will not check password unless this parameter
             # is provided)
             if self.auth_user and self.auth_pass:

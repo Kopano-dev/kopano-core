@@ -145,7 +145,7 @@ def folders():
             'links': {'items': '/folder/'+folder.entryid+'/items'}
         })
     return jsonify({'folders': folderlist})
-    # TODO: hierachy
+    # TODO: hierarchy
     # return jsonify({folder.name: folder.entryid for folder in user.store.folders()})
 
 @app.route('/folder/<string:foldername>/items', methods=['GET', 'OPTIONS'])

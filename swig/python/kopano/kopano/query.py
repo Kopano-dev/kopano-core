@@ -15,7 +15,7 @@ import dateutil.parser
 queries into MAPI restrictions, as used when for example searching
 for specific mails or users.
 
-To achive this, it uses a hand-written parser, using the building
+To achieve this, it uses a hand-written parser, using the building
 blocks in parse.py.
 """
 

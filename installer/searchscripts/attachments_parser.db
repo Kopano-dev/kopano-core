@@ -13,7 +13,7 @@
 # `zmktemp` can be used. That script will write all attachment data in a
 # temporary file and print the location of the file to /dev/stdout again.
 #
-# To supress logmessages from the indexer regarding file types which should
+# To suppress log messages from the indexer regarding file types which should
 # not be indexed (like images) the command `echo -n` can be used.
 #
 # The command will be detected and executed by the attachments_parser script,

@@ -565,7 +565,7 @@ HRESULT vcftomapi_impl::parse_vcard(VObject *vcard)
 			s.ulPropTag = PR_BIRTHDAY;
 			s.Value.ft = filetime;
 			ct.props.emplace_back(std::move(s));
-		} else if (strcmp(name, "X-ANNIVERSAY") == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
+		} else if (strcmp(name, "X-ANNIVERSARY") == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
 			FILETIME filetime;
 			auto res = date_string_to_filetime(convert_to<std::string>(vObjectUStringZValue(v)), filetime);
 			if (!res)

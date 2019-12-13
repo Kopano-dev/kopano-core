@@ -150,7 +150,7 @@ typedef struct SIEID *LPSIEID;
 #define SIZEOF_SIEID_FIXED (sizeof(SIEID) + 4)
 
 /* Bit definitions for abFlags[3] of ENTRYID */
-#define	KOPANO_FAVORITE		0x01		// Entryid from the favorits folder
+#define	KOPANO_FAVORITE		0x01		// Entryid from the favorites folder
 
 // Indexes of the identity property array
 enum

@@ -1698,7 +1698,7 @@ ECRESULT ECUserManagement::GetUserAndCompanyFromLoginName(const std::string &str
 	size_t pos_b = (pos_u < pos_c) ? pos_c : pos_u;
 	/*
 	 * Read strLoginName to determine the fields, this check should
-	 * keep in mind that there can be characters before, inbetween and
+	 * keep in mind that there can be characters before, between and
 	 * after the different fields.
 	 */
 	auto start = format.substr(0, pos_a);

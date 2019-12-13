@@ -775,7 +775,7 @@ Fixes:
 * spooler: do not run mr-process before mr-accept [KC-498]
 * spooler: do not send deleted send-later mails [KC-848]
 * Coverity reports on absent return value checks [KC-595]
-* freebusy: avoid potential divison by zero when trying to determine the end
+* freebusy: avoid potential division by zero when trying to determine the end
   date of a non-recurring recurrence. [KC-595]
 * libserver: ensure same endianess for SOURCEKEYs [KC-628]
 * server plugins: more escaping in SQL commands [KC-620]

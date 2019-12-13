@@ -54,7 +54,7 @@ ECRESULT ECGenProps::GetPropSubquery(unsigned int ulPropTagRequested, std::strin
 /**
  * Get a property substitution
  *
- * This is used in tables; A substitition works as follows:
+ * This is used in tables; A substitution works as follows:
  *
  * - In the table engine, any column with the requested property tag is replaced with the required property
  * - The requested property is retrieved from cache or database as if the column had been retrieved as such in the first place

@@ -806,7 +806,7 @@ ECRESULT ECAttachmentStorage::DeleteAttachment(ULONG ulObjId, ULONG ulPropId) {
  *
  * @param[in] ulObjId HierarchyID of object to delete single instance property from
  * @param[in] ulPropId Property of object to remove
- * @param[in] bReplace Flag used for transations in ECFileStorage
+ * @param[in] bReplace Flag used for transitions in ECFileStorage
  *
  * @return Kopano error code
  */
@@ -1657,7 +1657,7 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(ext_siid &instance,
 	return ret;
 }
 
-/** 
+/**
  * Save a property in a new instance from a serializer
  *
  * @param[in] ulInstanceId InstanceID to save data under

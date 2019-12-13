@@ -383,7 +383,7 @@ static void vtm_hide_attachment(IMessage *lpMessage)
  *
  * After converting recipients and headers using their functions, it
  * will handle special message disposition notification bodies (read
- * reciept messages), or loop on all body parts
+ * receipt messages), or loop on all body parts
  * (text/html/attachments) using dissect_body() function, which in turn
  * may call this function to iterate on message-in-message mails.
  *
@@ -1719,7 +1719,7 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
  *	application			octet-stream, postscript
  *
  * composite:
- *	multipart			mixed, alternative, digest (contains message), paralell,
+ *	multipart			mixed, alternative, digest (contains message), parallel,
  *	message				rfc 2822, partial ( please no fragmentation and reassembly ), external-body
  *
  * @param[in]	vmHeader		vmime header part which describes the contents of the body in vmBody.
@@ -3426,7 +3426,7 @@ HRESULT VMIMEToMAPI::bodyPartToStructure(const string &input,
 nil:
 	if (lpSimple)
 		*lpSimple = "(" + kc_join(lBody, " ") + ")";
-	/* just push some NILs or also inbetween? */
+	/* just push some NILs or also between? */
 	lBodyStructure.emplace_back("NIL"); // MD5 of body (use Content-MD5 header?)
 	lBodyStructure.emplace_back(getStructureExtendedFields(vmHeaderPart));
 	if (lpExtended)

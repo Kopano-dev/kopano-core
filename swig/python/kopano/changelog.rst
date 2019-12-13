@@ -58,7 +58,7 @@ Python-kopano Change Log
   false, case insensitive)
 
 * Optimized Folder/Recurrence occurrences
-* Optimized Property attributs
+* Optimized Property attributes
 
 * Fullname default to name for Server.create_user()
 * Company.stores() also yields public store now

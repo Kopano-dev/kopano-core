@@ -71,7 +71,7 @@ this particular property however, similar to how the non-synchronicity of
 
 == Reference counting with a filesystem ==
 
-Now, as file writes are seldomly atomic, a text file cannot be used to hold the
+Now, as file writes are seldom atomic, a text file cannot be used to hold the
 reference count — at least not without a lock. File-based locks are a
 well-established practice, but locks introduce wait states which could
 indefinitely delay the operation, which is something we would like to avoid, if
@@ -385,6 +385,6 @@ topic of atomicity and synchronization (consistency/coherency) at [1].
 S3 does not offer an atomic rename operation and therefore cannot support UAS.
 In S3, rename is copy+delete, but the copy is not a directory-recursive atomic
 operation as mandated. Another kopano-server instance accessing the same S3
-bucket could observe states inbetween "S-complete" and "H-complete". Therefore,
+bucket could observe states between "S-complete" and "H-complete". Therefore,
 there is no autonomous deduplicating S3 backend offerable by kopano-server at
 this time.
