@@ -1007,7 +1007,7 @@ HRESULT Util::CompareProp(const SPropValue *lpProp1, const SPropValue *lpProp2,
 		nCompareResult = CompareSBinary(lpProp1->Value.bin, lpProp2->Value.bin);
 		break;
 	case PT_CLSID:
-		nCompareResult = memcmp(lpProp1->Value.lpguid, lpProp2->Value.lpguid, sizeof(GUID));
+		nCompareResult = *lpProp1->Value.lpguid == *lpProp2->Value.lpguid;
 		break;
 		
 	case PT_MV_I2:

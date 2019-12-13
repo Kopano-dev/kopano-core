@@ -1630,7 +1630,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 		if (er != erSuccess)
 			return er;
 		/* Server GUID must always match */
-		if (memcmp(&sGuidTmp, &sGuidServer, sizeof(sGuidTmp)) != 0)
+		if (sGuidTmp != sGuidServer)
 			return KCERR_UNKNOWN_INSTANCE_ID;
 		/*
 		 * Check if we have access to the instance which is being referenced,

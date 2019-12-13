@@ -475,7 +475,7 @@ HRESULT ECArchiveAwareMsgStore::OpenEntry(ULONG cbEntryID,
 	// pass an ECMessageFactory instance to our parents OpenEntry.
 	// Otherwise we'll pass an ECArchiveAwareMessageFactory instance, which will check the license
 	// create the appropriate message type. If the object turns out to be a message that is.
-	if (lpInterface != nullptr && memcmp(lpInterface, &IID_IECMessageRaw, sizeof(IID)) == 0)
+	if (lpInterface != nullptr && *lpInterface == IID_IECMessageRaw)
 		return ECMsgStore::OpenEntry(cbEntryID, lpEntryID, &IID_IMessage, ulFlags, ECMessageFactory(), lpulObjType, lppUnk);
 	return ECMsgStore::OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, ECArchiveAwareMessageFactory(), lpulObjType, lppUnk);
 }

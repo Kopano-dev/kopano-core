@@ -141,11 +141,11 @@ HRESULT ECMAPIProp::DefaultMAPIGetProp(unsigned int ulPropTag,
 
 	case PROP_ID(PR_STORE_SUPPORT_MASK):
 	case PROP_ID(PR_STORE_UNICODE_MASK):
-		if (CompareMDBProvider(&lpMsgStore->m_guidMDB_Provider, &KOPANO_STORE_PUBLIC_GUID))
+		if (lpMsgStore->m_guidMDB_Provider == KOPANO_STORE_PUBLIC_GUID)
 			lpsPropValue->Value.l = EC_SUPPORTMASK_PUBLIC;
-		else if (CompareMDBProvider(&lpMsgStore->m_guidMDB_Provider, &KOPANO_STORE_DELEGATE_GUID))
+		else if (lpMsgStore->m_guidMDB_Provider == KOPANO_STORE_DELEGATE_GUID)
 			lpsPropValue->Value.l = EC_SUPPORTMASK_DELEGATE;
-		else if (CompareMDBProvider(&lpMsgStore->m_guidMDB_Provider, &KOPANO_STORE_ARCHIVE_GUID))
+		else if (lpMsgStore->m_guidMDB_Provider == KOPANO_STORE_ARCHIVE_GUID)
 			lpsPropValue->Value.l = EC_SUPPORTMASK_ARCHIVE;
 		else
 			lpsPropValue->Value.l = EC_SUPPORTMASK_PRIVATE;
@@ -283,11 +283,11 @@ HRESULT ECMAPIProp::TableRowGetProp(void *lpProvider,
 		break;
 	case CHANGE_PROP_TYPE(PR_STORE_SUPPORT_MASK, PT_ERROR):
 	case CHANGE_PROP_TYPE(PR_STORE_UNICODE_MASK, PT_ERROR):
-		if (CompareMDBProvider(&lpMsgStore->m_guidMDB_Provider, &KOPANO_STORE_PUBLIC_GUID))
+		if (lpMsgStore->m_guidMDB_Provider == KOPANO_STORE_PUBLIC_GUID)
 			lpsPropValDst->Value.l = EC_SUPPORTMASK_PUBLIC;
-		else if (CompareMDBProvider(&lpMsgStore->m_guidMDB_Provider, &KOPANO_STORE_DELEGATE_GUID))
+		else if (lpMsgStore->m_guidMDB_Provider == KOPANO_STORE_DELEGATE_GUID)
 			lpsPropValDst->Value.l = EC_SUPPORTMASK_DELEGATE;
-		else if (CompareMDBProvider(&lpMsgStore->m_guidMDB_Provider, &KOPANO_STORE_ARCHIVE_GUID))
+		else if (lpMsgStore->m_guidMDB_Provider == KOPANO_STORE_ARCHIVE_GUID)
 			lpsPropValDst->Value.l = EC_SUPPORTMASK_ARCHIVE;
 		else
 			lpsPropValDst->Value.l = EC_SUPPORTMASK_PRIVATE;

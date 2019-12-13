@@ -438,8 +438,7 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 			return MAPI_E_UNKNOWN_ENTRYID;
 
 		// Check entryid GUID, must be either MUIDECSAB or m_ABPGuid
-		if (memcmp(&lpABeid.guid, &MUIDECSAB, sizeof(MAPIUID)) != 0 &&
-		    memcmp(&lpABeid.guid, &m_ABPGuid, sizeof(MAPIUID)) != 0)
+		if (lpABeid.guid != MUIDECSAB && lpABeid.guid != m_ABPGuid)
 			return MAPI_E_UNKNOWN_ENTRYID;
 		memcpy(&lpABeid.guid, &MUIDECSAB, sizeof(MAPIUID));
 	}
@@ -580,7 +579,7 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
 		/* Is it one of ours? */
 		if ( cbABeid  < CbNewABEID("") || lpABeid == NULL)
 			continue;	// no
-		if (memcmp(&lpABeid->guid, &m_guid, sizeof(MAPIUID)) != 0)
+		if (lpABeid->guid != m_guid)
 			continue;	// no
 
 		object_ptr<IMailUser> lpIMailUser;

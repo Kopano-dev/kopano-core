@@ -80,8 +80,12 @@ struct ENTRYID_ ## name { \
 } name
 
 /* Byte-order-independent version of GUID (world-unique identifier) */
-struct MAPIUID {
+struct KC_EXPORT MAPIUID {
     BYTE ab[16];
+	inline bool operator==(const MAPIUID &b) const noexcept { return memcmp(ab, b.ab, sizeof(ab)) == 0; }
+	inline bool operator!=(const MAPIUID &b) const noexcept { return memcmp(ab, b.ab, sizeof(ab)) != 0; }
+	inline bool operator==(const GUID &b) const noexcept { static_assert(sizeof(GUID) == sizeof(MAPIUID), ""); return memcmp(ab, &b, sizeof(ab)) == 0; }
+	inline bool operator!=(const GUID &b) const noexcept { return memcmp(ab, &b, sizeof(ab)) != 0; }
 };
 typedef struct MAPIUID *LPMAPIUID;
 

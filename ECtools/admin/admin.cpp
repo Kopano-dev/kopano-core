@@ -655,14 +655,14 @@ static void print_extra_settings(const SPROPMAP *lpPropmap,
 static void show_eid_data(const SBinary &v)
 {
 	auto ab = reinterpret_cast<const ABEID *>(v.lpb);
-	if (v.cb >= sizeof(ABEID) && memcmp(&ab->guid, &MUIDECSAB, sizeof(GUID)) == 0) {
+	if (v.cb >= sizeof(ABEID) && ab->guid == MUIDECSAB) {
 		printf("%-23s %u\n", "Object id:", get_unaligned_le32(&ab->ulId));
 		if (get_unaligned_le32(&ab->ulVersion) == 1)
 			printf("%-23s %s\n", "Extern id:", bin2txt(base64_decode(ab->szExId)).c_str());
 		return;
 	}
 	printf("%-23s %s\n", "EID:", bin2hex(v).c_str());
-	if (memcmp(&ab->guid, &muidStoreWrap, sizeof(GUID)) != 0)
+	if (ab->guid != muidStoreWrap)
 		return;
 	unsigned int uw_size;
 	memory_ptr<ENTRYID> uw_eid;

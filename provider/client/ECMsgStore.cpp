@@ -441,7 +441,7 @@ HRESULT ECMsgStore::Advise(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		lpEntryID = lpUnWrapStoreID;
 	} else {
 		// check that the given lpEntryID belongs to the store in m_lpEntryId
-		if (memcmp(&GetStoreGuid(), &reinterpret_cast<const EID *>(lpEntryID)->guid, sizeof(GUID)) != 0)
+		if (GetStoreGuid() != reinterpret_cast<const EID *>(lpEntryID)->guid)
 			return MAPI_E_NO_SUPPORT;
 	}
 
@@ -532,8 +532,7 @@ HRESULT ECMsgStore::CompareEntryIDs(ULONG cbEntryID1, const ENTRYID *lpEntryID1,
 	if (cbEntryID1 < offsetof(EID, usFlags) + sizeof(peid1->usFlags) ||
 	    cbEntryID2 < offsetof(EID, usFlags) + sizeof(peid2->usFlags))
 		return hrSuccess;
-	if (memcmp(&lpStoreId->guid, &peid1->guid, sizeof(GUID)) != 0 ||
-	    memcmp(&lpStoreId->guid, &peid2->guid, sizeof(GUID)) != 0)
+	if (lpStoreId->guid != peid1->guid || lpStoreId->guid != peid2->guid)
 		return hrSuccess;
 	if(memcmp(peid1->abFlags, peid2->abFlags, 4) != 0)
 		return hrSuccess;
@@ -675,13 +674,13 @@ HRESULT ECMsgStore::SetReceiveFolder(const TCHAR *lpszMessageClass,
 // If the open store a publicstore
 BOOL ECMsgStore::IsPublicStore() const
 {
-	return CompareMDBProvider(&m_guidMDB_Provider, &KOPANO_STORE_PUBLIC_GUID);
+	return m_guidMDB_Provider == KOPANO_STORE_PUBLIC_GUID;
 }
 
 // As the store is a delegate store
 BOOL ECMsgStore::IsDelegateStore() const
 {
-	return CompareMDBProvider(&m_guidMDB_Provider, &KOPANO_STORE_DELEGATE_GUID);
+	return m_guidMDB_Provider == KOPANO_STORE_DELEGATE_GUID;
 }
 
 HRESULT ECMsgStore::GetReceiveFolder(const TCHAR *lpszMessageClass,

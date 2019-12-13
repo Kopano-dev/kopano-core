@@ -131,7 +131,7 @@ ECRESULT ABEntryIDToID(unsigned int cb, const void *lpEntryId,
 	if (lpEntryId == nullptr || lpulID == nullptr || cb < CbNewABEID(""))
 		return KCERR_INVALID_PARAMETER;
 	auto lpABEID = reinterpret_cast<const ABEID *>(lpEntryId);
-	if (memcmp(&lpABEID->guid, &MUIDECSAB, sizeof(GUID)) != 0)
+	if (lpABEID->guid != MUIDECSAB)
 		return KCERR_INVALID_ENTRYID;
 
 	unsigned int ulID = lpABEID->ulId;

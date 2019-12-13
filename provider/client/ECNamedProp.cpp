@@ -261,7 +261,9 @@ HRESULT ECNamedProp::ResolveLocal(MAPINAMEID *lpName, ULONG *ulPropTag)
 
 	// Loop through our local names to see if the named property is in there
 	for (size_t i = 0; i < ARRAY_SIZE(sLocalNames); ++i) {
-		if(memcmp(&sLocalNames[i].guid,lpName->lpguid,sizeof(GUID))==0 && sLocalNames[i].ulMin <= lpName->Kind.lID && sLocalNames[i].ulMax >= lpName->Kind.lID) {
+		if (sLocalNames[i].guid == *lpName->lpguid &&
+		    sLocalNames[i].ulMin <= lpName->Kind.lID &&
+		    sLocalNames[i].ulMax >= lpName->Kind.lID) {
 			// Found it, calculate the ID and return it.
 			*ulPropTag = PROP_TAG(PT_UNSPECIFIED, sLocalNames[i].ulMappedId + lpName->Kind.lID - sLocalNames[i].ulMin);
 			return hrSuccess;
@@ -283,7 +285,7 @@ HRESULT ECNamedProp::ResolveReverseCache(ULONG ulId, const GUID *lpGuid,
 			continue;
 		if (p.second == ulId) { // FIXME match GUID
 			if (lpGuid != nullptr)
-				assert(memcmp(lpGuid, p.first->lpguid, sizeof(GUID)) == 0); // TEST michel
+				assert(*lpGuid == *p.first->lpguid); // TEST michel
 			// found it
 			return HrCopyNameId(p.first, lppName, lpBase);
 		}
@@ -301,7 +303,7 @@ HRESULT ECNamedProp::ResolveReverseLocal(ULONG ulId, const GUID *lpGuid,
 	MAPINAMEID *lpName = nullptr;
 	// Loop through the local names to see if we can reverse-map the id
 	for (size_t i = 0; i < ARRAY_SIZE(sLocalNames); ++i) {
-		bool y = (lpGuid == nullptr || memcmp(&sLocalNames[i].guid, lpGuid, sizeof(GUID)) == 0) &&
+		bool y = (lpGuid == nullptr || sLocalNames[i].guid == *lpGuid) &&
 		         ulId >= sLocalNames[i].ulMappedId &&
 		         ulId < sLocalNames[i].ulMappedId + (sLocalNames[i].ulMax - sLocalNames[i].ulMin + 1);
 		if (!y)
