@@ -1227,9 +1227,8 @@ static HRESULT ForEachCompany(IECServiceAdmin *lpServiceAdmin,
     HRESULT (*lpWork)(IECServiceAdmin *, ECCOMPANY *))
 {
 	HRESULT hr = hrSuccess;
-	ULONG cbCompanyId = 0;
+	unsigned int cbCompanyId = 0, cCompanies = 0;
 	memory_ptr<ENTRYID> lpCompanyId;
-	ULONG cCompanies = 0;
 	ECCOMPANY *lpECCompanies = NULL;
 	memory_ptr<ECCOMPANY> lpECCompaniesAlloc;
 	ECCOMPANY sRootCompany = {{g_cbSystemEid, g_lpSystemEid}, (LPTSTR)"Default", NULL, {0, NULL}};
@@ -1273,12 +1272,11 @@ static HRESULT ForceResyncFor(LPMAPISESSION lpSession, LPMDB lpAdminStore,
     const char *lpszAccount, const char *lpszHomeMDB)
 {
 	ExchangeManageStorePtr ptrEMS;
-	ULONG cbEntryID = 0;
+	unsigned int cbEntryID = 0, ulType = 0;
 	EntryIdPtr ptrEntryID;
 	MsgStorePtr ptrUserStore;
 	MAPIFolderPtr ptrRoot;
 	SPropValuePtr ptrPropResyncID;
-	ULONG ulType = 0;
 
 	auto hr = lpAdminStore->QueryInterface(iid_of(ptrEMS), &~ptrEMS);
 	if (hr != hrSuccess)
@@ -1314,11 +1312,9 @@ static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 	ULONG			ulType = 0;
 	bool			bFail = false;
 	static constexpr const SizedSPropTagArray(1, sGALProps) = {1, {PR_ENTRYID}};
-	SPropValue			  sGALPropVal;
+	SPropValue sGALPropVal, sObjTypePropVal, sDispTypePropVal;
 	static constexpr const SizedSPropTagArray(2, sContentsProps) =
 		{2, {PR_ACCOUNT, PR_EMS_AB_HOME_MDB}};
-	SPropValue			  sObjTypePropVal;
-	SPropValue			  sDispTypePropVal;
 
 	auto hr = lpSession->OpenAddressBook(0, &iid_of(ptrAdrBook), AB_NO_DIALOG, &~ptrAdrBook);
 	if (hr != hrSuccess)
@@ -1428,7 +1424,7 @@ static HRESULT DisplayUserCount(LPMDB lpAdminStore)
 	MAPITablePtr ptrSystemTable;
 	SPropValue sPropDisplayName;
 	SRowSetPtr ptrRows;
-	ULONG ulLicensedUsers = 0;
+	unsigned int ulLicensedUsers = 0, ulExtraRow = 0, ulExtraRows = 0;
 	ULONG ulActiveUsers = (ULONG)-1;	//!< used active users
 	ULONG ulNonActiveTotal = (ULONG)-1;	//!< used non-active users
 	ULONG ulNonActiveUsers = (ULONG)-1;	//!< used shared stores, subset of used non-active users
@@ -1438,8 +1434,6 @@ static HRESULT DisplayUserCount(LPMDB lpAdminStore)
 	ULONG ulNonActiveLow = 0; //!< at least non-active users allowed
 	ULONG ulActiveAsNonActive = 0;		//!< non-active users taken from active count
 	ConsoleTable ct(3, 4);
-	ULONG ulExtraRow = 0;
-	ULONG ulExtraRows = 0;
 	static constexpr const SizedSPropTagArray(2, sptaStatsProps) =
 		{2, {PR_DISPLAY_NAME_A, PR_EC_STATS_SYSTEM_VALUE}};
 	enum {IDX_DISPLAY_NAME_A, IDX_EC_STATS_SYSTEM_VALUE};
@@ -1559,16 +1553,13 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
     const char *lpszAccount)
 {
 	ExchangeManageStorePtr ptrEMS;
-	ULONG cbEntryID;
+	unsigned int cbEntryID, ulType = 0, ulUpdates = 0, ulTotalUpdates = 0;
 	EntryIdPtr ptrEntryID;
-	ULONG ulType = 0;
 	MsgStorePtr ptrUserStore;
 	MAPIFolderPtr ptrRoot;
 	ECServiceAdminPtr ptrServiceAdmin;
 	SPropValuePtr ptrPropEntryID;
-	ULONG ulUpdates = 0;
-	ULONG bFailures = false;
-	ULONG ulTotalUpdates = 0;
+	bool bFailures = false;
 	MAPITablePtr ptrTable;
 	SRowSetPtr ptrRows;
 	static constexpr const SizedSPropTagArray(2, sptaTableProps) =
