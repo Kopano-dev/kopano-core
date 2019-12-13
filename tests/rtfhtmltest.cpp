@@ -1,12 +1,11 @@
 /* SPDX-License-Identifier: LGPL-3.0-or-later */
 /* Copyright 2016, Kopano and its licensors */
 #include <glob.h>
-#include <string.h>
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <clocale>
-
+#include <cstring>
 #include <kopano/MAPIErrors.h>
 #include "rtfutil.h"
 
@@ -14,7 +13,8 @@
 
 using namespace KC;
 
-int test_rtfhtml(std::string file) {
+static int test_rtfhtml(std::string file)
+{
 	std::string html;
 
 	std::ifstream rtftile(file);
@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
 	setlocale(LC_ALL, "");
 	memset(&glob_result, 0, sizeof(glob_result));
 
-	int ret = glob(TEST_FILES, GLOB_TILDE, NULL, &glob_result);
+	auto ret = glob(TEST_FILES, GLOB_TILDE, nullptr, &glob_result);
 	if (ret != 0) {
 		globfree(&glob_result);
 		std::cerr << "glob failed to find test files: " << ret << std::endl;
@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
 	}
 
 	for (size_t i = 0; i < glob_result.gl_pathc; ++i) {
-		std::string file = std::string(glob_result.gl_pathv[i]);
+		std::string file = glob_result.gl_pathv[i];
 		ret = test_rtfhtml(file);
 		if (ret != EXIT_SUCCESS) {
 			std::cout << "Failed test for: " << file << std::endl;

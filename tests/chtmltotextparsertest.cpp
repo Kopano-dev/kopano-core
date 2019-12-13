@@ -3,10 +3,10 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <string.h>
 #include <clocale>
+#include <cstdio>
 #include <cstdlib>
-#include <stdio.h>
+#include <cstring>
 #include <dirent.h>
 #include <unistd.h>
 #include <glob.h>
@@ -17,7 +17,8 @@
 
 using namespace KC;
 
-int testhtml(std::string file) {
+static int testhtml(std::string file)
+{
 	CHtmlToTextParser parser;
 
 	std::wifstream htmlfile(file);
@@ -53,7 +54,7 @@ int main(int argc, char **argv) {
 
 	memset(&glob_result, 0, sizeof(glob_result));
 
-	int ret = glob(TEST_FILES, GLOB_TILDE, NULL, &glob_result);
+	auto ret = glob(TEST_FILES, GLOB_TILDE, nullptr, &glob_result);
 	if (ret != 0) {
 		globfree(&glob_result);
 		std::cerr << "glob failed to find test files: " << ret << std::endl;
@@ -61,7 +62,7 @@ int main(int argc, char **argv) {
 	}
 
 	for (size_t i = 0; i < glob_result.gl_pathc; ++i) {
-		std::string file = std::string(glob_result.gl_pathv[i]);
+		std::string file = glob_result.gl_pathv[i];
 		ret = testhtml(file);
 		if (ret != EXIT_SUCCESS) {
 			std::cout << "Failed test for: " << file << std::endl;
