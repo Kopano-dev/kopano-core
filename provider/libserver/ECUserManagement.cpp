@@ -300,6 +300,8 @@ ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const signatures_t &
 		lpExternDetails = lpPlugin->getObjectDetails(lstExternIds);
 	} catch (const notsupported &) {
 		return KCERR_NO_SUPPORT;
+	} catch (const notimplemented &) {
+		return KCERR_NOT_IMPLEMENTED;
 	} catch (const objectnotfound &) {
 		return KCERR_NOT_FOUND;
 	} catch (const std::exception &e) {
@@ -417,6 +419,8 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass,
 			// TODO: check requested 'objclass'
 		} catch (const notsupported &) {
 			return KCERR_NO_SUPPORT;
+		} catch (const notimplemented &) {
+			return KCERR_NOT_IMPLEMENTED;
 		} catch (const objectnotfound &) {
 			return KCERR_NOT_FOUND;
 		} catch (const std::exception &e) {
@@ -464,6 +468,8 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass,
 			lpExternSignatures = lpPlugin->getAllObjects(extcompany, objclass, rst);
 		} catch (const notsupported &) {
 			return KCERR_NO_SUPPORT;
+		} catch (const notimplemented &) {
+			return KCERR_NOT_IMPLEMENTED;
 		} catch (const objectnotfound &) {
 			return KCERR_NOT_FOUND;
 		} catch (const std::exception &e) {
@@ -581,6 +587,8 @@ ECRESULT ECUserManagement::GetSubObjectsOfObjectAndSync(userobject_relation_t re
 			return KCERR_NOT_FOUND;
 		} catch (const notsupported &) {
 			return KCERR_NO_SUPPORT;
+		} catch (const notimplemented &) {
+			return KCERR_NOT_IMPLEMENTED;
 		} catch (const std::exception &e) {
 			ec_log_warn("K-1503: Unable to retrieve members for %s relation %d: %s.",
 				RelationTypeToName(relation), ulParentId, e.what());
@@ -659,6 +667,8 @@ ECRESULT ECUserManagement::GetParentObjectsOfObjectAndSync(userobject_relation_t
 			return KCERR_NOT_FOUND;
 		} catch (const notsupported &) {
 			return KCERR_NO_SUPPORT;
+		} catch (const notimplemented &) {
+			return KCERR_NOT_IMPLEMENTED;
 		} catch (const data_error &) {
 			/* most likely a RFC2307 system that does not support GIG */
 			return erSuccess;
@@ -741,6 +751,8 @@ ECRESULT ECUserManagement::SetObjectDetailsAndSync(unsigned int ulObjectId,
 	} catch (const objectnotfound &) {
 		MoveOrDeleteLocalObject(ulObjectId, objectid.objclass);
 		return KCERR_NOT_FOUND;
+	} catch (const notsupported &e) {
+		return KCERR_NO_SUPPORT;
 	} catch (const notimplemented &e) {
 		ec_log_warn("K-1505: Unable to set details for external %s %u: %s",
 			ObjectClassToName(objectid.objclass), ulObjectId, e.what());
@@ -972,6 +984,8 @@ ECRESULT ECUserManagement::ResolveObjectAndSync(objectclass_t objclass,
 		objectsignature = lpPlugin->resolveName(objclass, username, sCompany);
 	} catch (const notsupported &) {
 		return KCERR_NO_SUPPORT;
+	} catch (const notimplemented &) {
+		return KCERR_NOT_IMPLEMENTED;
 	} catch (const objectnotfound &e) {
 		if (!try_resolve)
 			ec_log_warn("K-1515: Object not found %s \"%s\": %s",
@@ -1090,6 +1104,8 @@ ECRESULT ECUserManagement::GetExternalObjectDetails(unsigned int ulId, objectdet
 		return KCERR_NOT_FOUND;
 	} catch (const notsupported &) {
 		return KCERR_NO_SUPPORT;
+	} catch (const notimplemented &) {
+		return KCERR_NOT_IMPLEMENTED;
 	} catch (const std::exception &e) {
 		ec_log_warn("K-1517: Unable to get %s details for object id %d: %s",
 			ObjectClassToName(externid.objclass), ulId, e.what());
@@ -1564,6 +1580,9 @@ ECRESULT ECUserManagement::QueryContentsRowData(struct soap *soap,
 		goto exit;
 	} catch (const notsupported &) {
 		er = KCERR_NO_SUPPORT;
+		goto exit;
+	} catch (const notimplemented &) {
+		er = KCERR_NOT_IMPLEMENTED;
 		goto exit;
 	} catch (const std::exception &e) {
 		ec_log_warn("K-1528: Unable to retrieve details map from external user source: %s", e.what());
@@ -2093,6 +2112,8 @@ ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature,
 		return KCERR_NOT_FOUND;
 	} catch (const notsupported &) {
 		return KCERR_NO_SUPPORT;
+	} catch (const notimplemented &) {
+		return KCERR_NOT_IMPLEMENTED;
 	} catch (const std::exception &e) {
 		ec_log_warn("K-1535: CreateLocalObject: object data for external %s \"%s\" not available: %s",
 			ObjectClassToName(signature.id.objclass), bin2txt(signature.id.id).c_str(), e.what());
@@ -2221,6 +2242,9 @@ ECRESULT ECUserManagement::CreateLocalObjectSimple(const objectsignature_t &sign
 		goto exit;
 	} catch (const notsupported &) {
 		er = KCERR_NO_SUPPORT;
+		goto exit;
+	} catch (const notimplemented &) {
+		er = KCERR_NOT_IMPLEMENTED;
 		goto exit;
 	} catch (const std::exception &e) {
 		ec_log_warn("K-1536: Unable to get details while adding new %s: %s", ObjectClassToName(signature.id.objclass), e.what());
@@ -3765,6 +3789,8 @@ ECRESULT ECUserManagement::GetPublicStoreDetails(objectdetails_t *lpDetails) con
 		return KCERR_NOT_FOUND;
 	} catch (const notsupported &) {
 		return KCERR_NO_SUPPORT;
+	} catch (const notimplemented &) {
+		return KCERR_NOT_IMPLEMENTED;
 	} catch (const std::exception &e) {
 		ec_log_warn("K-1538: Unable to get %s details for object id %d: %s", ObjectClassToName(CONTAINER_COMPANY), KOPANO_UID_EVERYONE, e.what());
 		return KCERR_NOT_FOUND;
@@ -3799,6 +3825,8 @@ ECRESULT ECUserManagement::GetServerDetails(const std::string &strServer, server
 		return KCERR_NOT_FOUND;
 	} catch (const notsupported &) {
 		return KCERR_NO_SUPPORT;
+	} catch (const notimplemented &) {
+		return KCERR_NOT_IMPLEMENTED;
 	} catch (const std::exception &e) {
 		ec_log_warn("K-1539: Unable to get server details for \"%s\": %s", strServer.c_str(), e.what());
 		return KCERR_NOT_FOUND;

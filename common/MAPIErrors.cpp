@@ -197,6 +197,7 @@ HRESULT kcerr_to_mapierr(ECRESULT ecResult, HRESULT hrDefault)
 	case KCERR_USER_CANCEL:		return MAPI_E_USER_CANCEL;
 	case KCERR_UNKNOWN_FLAGS:	return MAPI_E_UNKNOWN_FLAGS;
 	case KCERR_SUBMITTED:		return MAPI_E_SUBMITTED;
+	case KCERR_PLUGIN_ERROR:	return MAPI_E_UNABLE_TO_COMPLETE;
 	default:			return hrDefault;
 	}
 }
