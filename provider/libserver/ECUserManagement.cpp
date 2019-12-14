@@ -737,7 +737,7 @@ ECRESULT ECUserManagement::SetObjectDetailsAndSync(unsigned int ulObjectId,
 		return er;
 
 	try {
-		lpPlugin->changeObject(objectid, sDetails, nullptr);
+		lpPlugin->changeObject(objectid, sDetails);
 	} catch (const objectnotfound &) {
 		MoveOrDeleteLocalObject(ulObjectId, objectid.objclass);
 		return KCERR_NOT_FOUND;

@@ -2096,7 +2096,8 @@ objectdetails_t LDAPUserPlugin::getObjectDetails(const objectid_t &id)
 	return iterDetails->second;
 }
 
-void LDAPUserPlugin::changeObject(const objectid_t &id, const objectdetails_t &details, const std::list<std::string> *lpDelProps) {
+void LDAPUserPlugin::changeObject(const objectid_t &id, const objectdetails_t &details)
+{
 	throw notimplemented("Changing objects not implemented by the ldap userplugin");
 }
 
