@@ -721,7 +721,9 @@ ECRESULT ECUserManagement::GetParentObjectsOfObjectAndSync(userobject_relation_t
  * Set data for a single object, with on-the-fly deletion of the specified
  * object id.
  */
-ECRESULT ECUserManagement::SetObjectDetailsAndSync(unsigned int ulObjectId, const objectdetails_t &sDetails, std::list<std::string> *lpRemoveProps) {
+ECRESULT ECUserManagement::SetObjectDetailsAndSync(unsigned int ulObjectId,
+    const objectdetails_t &sDetails)
+{
 	objectid_t objectid;
 	UserPlugin *lpPlugin = NULL;
 
@@ -735,7 +737,7 @@ ECRESULT ECUserManagement::SetObjectDetailsAndSync(unsigned int ulObjectId, cons
 		return er;
 
 	try {
-		lpPlugin->changeObject(objectid, sDetails, lpRemoveProps);
+		lpPlugin->changeObject(objectid, sDetails, nullptr);
 	} catch (const objectnotfound &) {
 		MoveOrDeleteLocalObject(ulObjectId, objectid.objclass);
 		return KCERR_NOT_FOUND;
