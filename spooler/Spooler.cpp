@@ -91,6 +91,12 @@ enum {
 	SPC_ABNORMAL,
 };
 
+enum {
+	GP_FORK,
+	GP_THREAD,
+	GP_SINGLE,
+};
+
 class spooler_stats final : public StatsClient {
 	public:
 	spooler_stats(std::shared_ptr<ECConfig>);
@@ -102,7 +108,8 @@ static std::unique_ptr<StatsClient> sc;
 #define EXIT_WAIT 2
 #define EXIT_REMOVE 3
 
-static bool bQuit = false, sp_exp_config, g_dump_config, g_use_threads;
+static unsigned int g_process_model = GP_FORK;
+static bool bQuit = false, sp_exp_config, g_dump_config;
 static int nReload = 0, disconnects = 0;
 static const char *szCommand = NULL;
 static const char *szConfig = ECConfig::GetDefaultPath("spooler.cfg");
@@ -213,6 +220,11 @@ static HRESULT StartSpoolerThread(SendData &&sd, const char *smtp_host,
 	th_arg->path = path;
 	th_arg->do_sentmail = flags & EC_SUBMIT_DOSENTMAIL;
 
+	if (g_process_model == GP_SINGLE) {
+		HandlerSP_Thread(th_arg.release());
+		return hrSuccess;
+	}
+
 	pthread_attr_t attr;
 	pthread_t tid;
 	pthread_attr_init(&attr);
@@ -270,7 +282,7 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
 	sSendData.ulFlags = ulFlags;
 	sSendData.strUsername = szUsername;
 
-	if (g_use_threads)
+	if (g_process_model != GP_FORK)
 		return StartSpoolerThread(std::move(sSendData), szSMTP, ulSMTPPort, szPath, ulFlags);
 
 	std::string strPort = stringify(ulSMTPPort);
@@ -410,7 +422,7 @@ static void CleanFinishedMessagesThreaded(IMAPISession *ses, IECSpooler *spooler
 static void CleanFinishedMessages(IMAPISession *lpAdminSession,
     IECSpooler *lpSpooler)
 {
-	if (g_use_threads) {
+	if (g_process_model != GP_FORK) {
 		CleanFinishedMessagesThreaded(lpAdminSession, lpSpooler);
 		return;
 	}
@@ -796,7 +808,7 @@ static void process_signal(int sig)
 		break;
 	}
 	case SIGHUP:
-		if (g_use_threads && !pthread_equal(pthread_self(), g_main_thread))
+		if (g_process_model == GP_THREAD && !pthread_equal(pthread_self(), g_main_thread))
 			break;
 		if (g_lpConfig != nullptr && !g_lpConfig->ReloadSettings() &&
 		    g_lpLogger != nullptr)
@@ -1051,15 +1063,21 @@ static int main2(int argc, char **argv)
 	if (!TmpPath::instance.OverridePath(g_lpConfig.get()))
 		ec_log_err("Ignoring invalid path setting!");
 	g_main_thread = pthread_self();
-	if (strcmp(g_lpConfig->GetSetting("process_model"), "thread") == 0) {
-		if (parseBool(g_lpConfig->GetSetting("plugin_enabled")))
-			/*
-			 * Though you can create multiple interpreters, they
-			 * cannot run simultaneously, defeating the purpose.
-			 */
-			ec_log_err("Use of Python (plugin_enabled=yes) forces process_model=fork");
-		else
-			g_use_threads = true;
+	auto model = g_lpConfig->GetSetting("process_model");
+	if (strcmp(model, "thread") == 0)
+		g_process_model = GP_THREAD;
+	else if (strcmp(model, "fork") == 0)
+		g_process_model = GP_FORK;
+	else if (strcmp(model, "single") == 0)
+		g_process_model = GP_SINGLE;
+	if (g_process_model == GP_THREAD &&
+	    parseBool(g_lpConfig->GetSetting("plugin_enabled"))) {
+		/*
+		 * Though you can create multiple interpreters, they
+		 * cannot run simultaneously, defeating the purpose.
+		 */
+		ec_log_err("Use of Python (plugin_enabled=yes) forces process_model=fork");
+		g_process_model = GP_FORK;
 	}
 	if (parseBool(g_lpConfig->GetSetting("plugin_enabled"))) {
 		std::string path = g_lpConfig->GetSetting("plugin_manager_path");
@@ -1069,7 +1087,7 @@ static int main2(int argc, char **argv)
 		setenv("PYTHONPATH", path.c_str(), 1);
 		ec_log_debug("PYTHONPATH = %s", path.c_str());
 	}
-	if (g_use_threads)
+	if (g_process_model == GP_THREAD)
 		g_lpLogger->SetLogprefix(LP_TID);
 	// set socket filename
 	if (!szPath)
@@ -1126,7 +1144,7 @@ static int main2(int argc, char **argv)
 		ec_log_crit("main(): Failed creating PID file");
 		return MAPI_E_CALL_FAILED;
 	}
-	if (!g_use_threads)
+	if (g_process_model == GP_FORK)
 		g_lpLogger = StartLoggerProcess(g_lpConfig.get(), std::move(g_lpLogger));
 	ec_log_set(g_lpLogger);
 	g_lpLogger->SetLogprefix(LP_PID);
