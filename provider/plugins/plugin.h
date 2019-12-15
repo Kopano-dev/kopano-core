@@ -542,7 +542,7 @@ public:
 						The ldap error code why the exception was thrown
 	 */
 	ldap_error(const std::string &arg, int ldaperror = 0) :
-		runtime_error(arg)
+		runtime_error(arg + " (" + stringify_hex(ldaperror) + ")")
 	{
 		m_ldaperror = ldaperror;
 #ifdef EXCEPTION_DEBUG
