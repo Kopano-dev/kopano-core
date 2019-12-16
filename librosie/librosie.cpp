@@ -122,7 +122,7 @@ static bool rosie_strip_nodes(TidyDoc tdoc, TidyNode tnod)
 
 static bool rosie_strip_nodes(TidyDoc tdoc)
 {
-	return rosie_strip_nodes(tdoc, tidyGetRoot(tdoc));
+	return rosie_strip_nodes(tdoc, tidyGetHtml(tdoc));
 }
 
 /*
