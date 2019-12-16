@@ -1081,7 +1081,11 @@ ECRESULT ECAuthSession::ValidateSSOData_KCOIDC(struct soap* soap, const char* na
 		principal += szHostname;
 		ec_log_debug("Kerberos principal: %s", principal.c_str());
 
+#if __cplusplus >= 201700L
 		gssInputBuffer.value = principal.data();
+#else
+		gssInputBuffer.value = const_cast<char *>(principal.data());
+#endif
 		gssInputBuffer.length = principal.length() + 1;
 		retval = gss_import_name(&status, &gssInputBuffer, GSS_C_NT_HOSTBASED_SERVICE, &gssServername);
 		if (retval != GSS_S_COMPLETE) {
