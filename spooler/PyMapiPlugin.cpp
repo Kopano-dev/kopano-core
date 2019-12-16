@@ -275,10 +275,9 @@ struct pym_factory_priv m_priv;
 
 void plugin_manager_exit()
 {
-	if (m_priv.m_ptrModMapiPlugin != nullptr) {
+	if (m_priv.m_ptrModMapiPlugin != nullptr)
 		m_priv.m_ptrModMapiPlugin = nullptr;
-		Py_Finalize();
-	}
+	Py_Finalize();
 }
 
 HRESULT plugin_manager_init(ECConfig *lpConfig,

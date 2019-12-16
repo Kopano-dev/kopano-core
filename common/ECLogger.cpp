@@ -33,7 +33,7 @@
 #include <kopano/tie.hpp>
 #include "charset/localeutil.h"
 #include <poll.h>
-#if HAVE_SYSLOG_H
+#ifdef HAVE_SYSLOG_H
 #include <syslog.h>
 #endif
 #include <grp.h>
@@ -478,7 +478,7 @@ void ECLogger_Syslog::logf(unsigned int loglevel, const char *format, ...)
 
 void ECLogger_Syslog::logv(unsigned int loglevel, const char *format, va_list &va)
 {
-#if HAVE_VSYSLOG
+#ifdef HAVE_VSYSLOG
 	vsyslog(levelmap[loglevel & EC_LOGLEVEL_MASK], format, va);
 #else
 	char msgbuffer[EC_LOG_BUFSIZE];

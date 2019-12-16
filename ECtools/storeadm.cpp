@@ -183,6 +183,7 @@ static HRESULT adm_list_orphans(IECServiceAdmin *svcadm)
 				if (listing_orphans) {
 					listing_orphans = false;
 					ct.PrintTable();
+					ct.Clear();
 					ct.Resize(50, 2);
 					ct.SetHeader(0, "Type");
 					ct.SetHeader(1, "Name");

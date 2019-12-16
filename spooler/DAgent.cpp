@@ -128,6 +128,12 @@ typedef enum {
 	DM_PUBLIC
 } delivery_mode;
 
+enum {
+	GP_FORK,
+	GP_THREAD,
+	GP_SINGLE,
+};
+
 class DeliveryArgs final {
 public:
 	DeliveryArgs(void)
@@ -222,7 +228,8 @@ class dagent_stats final : public StatsClient {
 };
 
 //Global variables
-static bool g_bQuit = false, g_use_threads, g_dump_config;
+static unsigned int g_process_model = GP_FORK;
+static bool g_bQuit = false, g_dump_config;
 static bool g_bTempfail = true; // Most errors are tempfails
 static pthread_t g_main_thread;
 static std::atomic<unsigned int> g_nLMTPThreads{0};
@@ -251,7 +258,7 @@ static void sigterm(int)
 
 static void sighup(int sig)
 {
-	if (g_use_threads && !pthread_equal(pthread_self(), g_main_thread))
+	if (g_process_model == GP_THREAD && !pthread_equal(pthread_self(), g_main_thread))
 		return;
 	if (g_lpConfig != nullptr && !g_lpConfig->ReloadSettings() &&
 	    g_lpLogger != nullptr)
@@ -2817,7 +2824,7 @@ static void *HandlerLMTP(void *lpArg)
 		}
 	}
 
-	if (g_use_threads)
+	if (g_process_model == GP_THREAD)
 		--g_nLMTPThreads;
 	return NULL;
 }
@@ -2894,7 +2901,7 @@ static HRESULT running_service(char **argv, DeliveryArgs *lpArgs)
 	sigaction(SIGCHLD, &act, nullptr);
 
 	unix_create_pidfile(argv[0], g_lpConfig.get());
-	if (!g_use_threads)
+	if (g_process_model == GP_FORK)
 		g_lpLogger = StartLoggerProcess(g_lpConfig.get(), std::move(g_lpLogger)); // maybe replace logger
 	ec_log_set(g_lpLogger);
 
@@ -2956,12 +2963,15 @@ static HRESULT running_service(char **argv, DeliveryArgs *lpArgs)
 			}
 			sc->inc(SCN_DAGENT_INCOMING_SESSION);
 			da->sc = sc;
-			if (!g_use_threads) {
+			if (g_process_model == GP_FORK) {
 				++g_nLMTPThreads;
 				if (unix_fork_function(HandlerLMTP, da.get(), closefd.size(), &closefd[0]) < 0) {
 					ec_log_err("Can't create LMTP process.");
 					--g_nLMTPThreads;
 				}
+				continue;
+			} else if (g_process_model == GP_SINGLE) {
+				HandlerLMTP(da.release());
 				continue;
 			}
 			pthread_t tid;
@@ -2978,7 +2988,7 @@ static HRESULT running_service(char **argv, DeliveryArgs *lpArgs)
 	}
 
 	ec_log_always("LMTP service will now exit");
-	if (!g_use_threads) {
+	if (g_process_model == GP_FORK) {
 		signal(SIGTERM, SIG_IGN);
 		kill(0, SIGTERM);
 	}
@@ -3440,17 +3450,23 @@ int main(int argc, char **argv) try {
 		return g_lpConfig->dump_config(stdout) == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 
 	g_main_thread = pthread_self();
-	if (strcmp(g_lpConfig->GetSetting("process_model"), "thread") == 0) {
-		if (parseBool(g_lpConfig->GetSetting("plugin_enabled")))
-			/*
-			 * Though you can create multiple interpreters, they
-			 * cannot run simultaneously, defeating the purpose.
-			 */
-			ec_log_err("Use of Python (plugin_enabled=yes) forces process_model=fork");
-		else
-			g_use_threads = true;
+	auto model = g_lpConfig->GetSetting("process_model");
+	if (strcmp(model, "thread") == 0)
+		g_process_model = GP_THREAD;
+	else if (strcmp(model, "fork") == 0)
+		g_process_model = GP_FORK;
+	else if (strcmp(model, "single") == 0)
+		g_process_model = GP_SINGLE;
+	if (g_process_model == GP_THREAD &&
+	    parseBool(g_lpConfig->GetSetting("plugin_enabled"))) {
+		/*
+		 * Though you can create multiple interpreters, they
+		 * cannot run simultaneously, defeating the purpose.
+		 */
+		ec_log_err("Use of Python (plugin_enabled=yes) forces process_model=fork");
+		g_process_model = GP_FORK;
 	}
-	if (g_use_threads)
+	if (g_process_model == GP_THREAD)
 		g_lpLogger->SetLogprefix(LP_TID);
 	else if (!bListenLMTP)
 		// log process id prefix to distinguinsh events, file logger only affected

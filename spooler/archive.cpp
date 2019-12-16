@@ -299,8 +299,6 @@ PyMapiPluginFactory::~PyMapiPluginFactory()
 {
 	if (m_exit != nullptr)
 		m_exit();
-	if (m_handle != nullptr)
-		dlclose(m_handle);
 }
 
 HRESULT PyMapiPluginFactory::create_plugin(ECConfig *cfg, const char *ctxname, pym_plugin_intf **ret)
@@ -313,18 +311,20 @@ HRESULT PyMapiPluginFactory::create_plugin(ECConfig *cfg, const char *ctxname, p
 	}
 	if (strcmp(lib, "yes") == 0)
 		lib = "libkcpyplug.so.0";
-	if (m_handle != nullptr)
-		dlclose(m_handle);
-	m_handle = dlopen(lib, RTLD_LAZY | RTLD_GLOBAL);
-	if (m_handle == nullptr) {
+	/*
+	 * Handle for some reason has to stay open lest python will crash
+	 * during gc run. Hope your libdl does reference counting.
+	 */
+	auto pym_handle = dlopen(lib, RTLD_LAZY | RTLD_GLOBAL);
+	if (pym_handle == nullptr) {
 		ec_log_err("Cannot load plugin manager \"%s\": %s", lib, dlerror());
 		return MAPI_E_CALL_FAILED;
 	}
-	auto init = reinterpret_cast<HRESULT (*)(ECConfig *, const char *, pym_plugin_intf **)>(dlsym(m_handle, "plugin_manager_init"));
+	auto init = reinterpret_cast<HRESULT (*)(ECConfig *, const char *, pym_plugin_intf **)>(dlsym(pym_handle, "plugin_manager_init"));
 	if (init == nullptr) {
 		ec_log_err("Plugin library is missing the \"plugin_manager_init\" function.");
 		return MAPI_E_CALL_FAILED;
 	}
-	m_exit = reinterpret_cast<void (*)()>(dlsym(m_handle, "plugin_manager_exit"));
+	m_exit = reinterpret_cast<void (*)()>(dlsym(pym_handle, "plugin_manager_exit"));
 	return init(cfg, ctxname, ret);
 }
