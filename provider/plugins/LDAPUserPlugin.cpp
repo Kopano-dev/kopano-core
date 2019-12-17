@@ -1566,15 +1566,17 @@ signatures_t LDAPUserPlugin::getAllObjects(const objectid_t &company,
 	       "(&" + getSearchFilter(objclass) + rst_to_filter(rst) + ")", companyDN, true);
 }
 
-string LDAPUserPlugin::getLDAPAttributeValue(char *attribute, LDAPMessage *entry) {
+std::string LDAPUserPlugin::getLDAPAttributeValue(const char *attribute, LDAPMessage *entry)
+{
 	list<string> l = getLDAPAttributeValues(attribute, entry);
 	return !l.empty() ? l.front() : std::string();
 }
 
-list<string> LDAPUserPlugin::getLDAPAttributeValues(char *attribute, LDAPMessage *entry) {
+std::list<std::string> LDAPUserPlugin::getLDAPAttributeValues(const char *attribute, LDAPMessage *entry)
+{
 	list<string> r;
 	string s;
-	auto_free_ldap_berval berval(ldap_get_values_len(m_ldap, entry, attribute));
+	auto_free_ldap_berval berval(ldap_get_values_len(m_ldap, entry, const_cast<char *>(attribute)));
 
 	if (berval == NULL)
 		return r;
