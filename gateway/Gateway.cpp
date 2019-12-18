@@ -67,7 +67,7 @@ struct socks {
 };
 
 static int daemonize = 1;
-int quit = 0;
+static bool quit = 0, g_sighup_flag;
 static bool bThreads, g_dump_config;
 static const char *szPath;
 static std::shared_ptr<ECLogger> g_lpLogger;
@@ -77,15 +77,21 @@ static std::atomic<int> nChildren{0};
 static std::string g_strHostString;
 static struct socks g_socks;
 
-static void sigterm(int s)
+static void gw_sigterm_async(int)
 {
 	quit = 1;
 }
 
-static void sighup(int sig)
+static void gw_sighup_async(int)
 {
 	if (bThreads && pthread_equal(pthread_self(), mainthread)==0)
 		return;
+	g_sighup_flag = true;
+}
+
+static void gw_sighup_sync()
+{
+	g_sighup_flag = false;
 	if (g_lpConfig != nullptr && !g_lpConfig->ReloadSettings() &&
 	    g_lpLogger != nullptr)
 		ec_log_err("Unable to reload configuration file, continuing with current settings.");
@@ -107,7 +113,7 @@ static void sighup(int sig)
 	ec_log_info("Log connection was reset");
 }
 
-static void sigchld(int)
+static void gw_sigchld_async(int)
 {
 	int stat;
 	while (waitpid(-1, &stat, WNOHANG) > 0)
@@ -178,6 +184,8 @@ static void *Handler(void *lpArg)
 
 	// Main command loop
 	while (!bQuit && !quit) {
+		if (g_sighup_flag)
+			gw_sighup_sync();
 		// check for data
 		hr = lpChannel->HrSelect(60);
 		if (hr == MAPI_E_CANCEL)
@@ -648,13 +656,13 @@ static HRESULT running_service(char **argv)
 	signal(SIGPIPE, SIG_IGN);
 	sigemptyset(&act.sa_mask);
 	act.sa_flags   = SA_ONSTACK | SA_RESETHAND;
-	act.sa_handler = sigterm;
+	act.sa_handler = gw_sigterm_async;
 	sigaction(SIGTERM, &act, nullptr);
 	sigaction(SIGINT, &act, nullptr);
 	act.sa_flags   = SA_ONSTACK;
-	act.sa_handler = sighup;
+	act.sa_handler = gw_sighup_async;
 	sigaction(SIGHUP, &act, nullptr);
-	act.sa_handler = sigchld;
+	act.sa_handler = gw_sigchld_async;
 	sigaction(SIGCHLD, &act, nullptr);
 	ec_setup_segv_handler("kopano-dagent", PROJECT_VERSION);
 

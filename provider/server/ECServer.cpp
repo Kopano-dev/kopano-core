@@ -76,6 +76,7 @@ using std::string;
 
 static const char upgrade_lock_file[] = "/tmp/kopano-upgrade-lock";
 static int g_Quit = 0;
+bool sv_sighup_flag;
 static int daemonize = 1;
 static int restart_searches = 0;
 static bool m_bIgnoreDatabaseVersionConflict = false;
@@ -193,62 +194,45 @@ static void kcsrv_get_server_stats(unsigned int *lpulQueueLength,
     g_lpSoapServerConn->GetStats(lpulQueueLength, lpdblAge, lpulThreadCount, lpulIdleThreads);
 }
 
-static void process_signal(int sig)
+static void sv_sigterm_async(int)
 {
-	ec_log_debug("Received signal %d by TID %lu", sig, kc_threadid());
-	ZLOG_AUDIT(g_lpAudit, "server signalled sig=%d", sig);
+	g_Quit = true;
+	if (g_lpSoapServerConn != nullptr)
+		/* sets quit flag in dispatcher */
+		g_lpSoapServerConn->ShutDown();
+}
 
-	if (m_bDatabaseUpdateIgnoreSignals) {
-		ec_log_notice("WARNING: Database upgrade is taking place.");
-		ec_log_notice("  Please be patient, and do not try to kill the server process.");
-		ec_log_notice("  It may leave your database in an inconsistent state.");
+static void sv_sighup_async(int)
+{
+	if (g_Quit || g_lpSessionManager == nullptr)
 		return;
+	sv_sighup_flag = true;
+}
+
+void sv_sighup_sync()
+{
+	sv_sighup_flag = false;
+	// g_lpSessionManager only present when kopano_init is called (last init function), signals are initialized much earlier
+	if (!g_lpConfig->ReloadSettings())
+		ec_log_warn("Unable to reload configuration file, continuing with current settings.");
+	if (g_lpConfig->HasErrors())
+		ec_log_err("Failed to reload configuration file");
+
+	g_lpSessionManager->GetPluginFactory()->SignalPlugins(SIGHUP);
+	auto ll = g_lpConfig->GetSetting("log_level");
+	auto new_ll = ll ? strtol(ll, NULL, 0) : EC_LOGLEVEL_WARNING;
+	g_lpLogger->SetLoglevel(new_ll);
+	g_lpLogger->Reset();
+	ec_log_warn("Log connection was reset");
+
+	if (g_lpAudit) {
+		ll = g_lpConfig->GetSetting("audit_log_level");
+		new_ll = ll ? strtol(ll, NULL, 0) : 1;
+		g_lpAudit->SetLoglevel(new_ll);
+		g_lpAudit->Reset();
 	}
-
-	const char *ll;
-	int new_ll;
-
-	if(g_Quit == 1)
-		return; // already in exit state!
-
-	switch (sig) {
-	case SIGINT:
-	case SIGTERM:
-		ec_log_warn("Shutting down");
-		if (g_lpSoapServerConn)
-			g_lpSoapServerConn->ShutDown();
-		g_Quit = 1;
-
-		break;
-	case SIGHUP:
-		// g_lpSessionManager only present when kopano_init is called (last init function), signals are initialized much earlier
-		if (g_lpSessionManager == NULL)
-			return;
-		if (!g_lpConfig->ReloadSettings())
-			ec_log_warn("Unable to reload configuration file, continuing with current settings.");
-		if (g_lpConfig->HasErrors())
-			ec_log_err("Failed to reload configuration file");
-
-		g_lpSessionManager->GetPluginFactory()->SignalPlugins(sig);
-		ll = g_lpConfig->GetSetting("log_level");
-		new_ll = ll ? strtol(ll, NULL, 0) : EC_LOGLEVEL_WARNING;
-		g_lpLogger->SetLoglevel(new_ll);
-		g_lpLogger->Reset();
-		ec_log_warn("Log connection was reset");
-
-		if (g_lpAudit) {
-			ll = g_lpConfig->GetSetting("audit_log_level");
-			new_ll = ll ? strtol(ll, NULL, 0) : 1;
-			g_lpAudit->SetLoglevel(new_ll);
-			g_lpAudit->Reset();
-		}
-		g_lpSessionManager->m_stats->SetTime(SCN_SERVER_LAST_CONFIGRELOAD, time(nullptr));
-		g_lpSoapServerConn->DoHUP();
-		break;
-	default:
-		ec_log_debug("Unknown signal %d received", sig);
-		break;
-	}
+	g_lpSessionManager->m_stats->SetTime(SCN_SERVER_LAST_CONFIGRELOAD, time(nullptr));
+	g_lpSoapServerConn->DoHUP();
 }
 
 static ECRESULT check_database_engine(ECDatabase *lpDatabase)
@@ -1246,10 +1230,11 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	signal(SIGUSR1, SIG_IGN);
 	signal(SIGUSR2, SIG_IGN);
 	signal(SIGPIPE, SIG_IGN);
-	act.sa_handler = process_signal;
+	act.sa_handler = sv_sighup_async;
 	act.sa_flags = SA_ONSTACK;
 	sigemptyset(&act.sa_mask);
 	sigaction(SIGHUP, &act, nullptr);
+	act.sa_handler = sv_sigterm_async;
 	act.sa_flags = SA_ONSTACK | SA_RESETHAND;
 	sigaction(SIGINT, &act, nullptr);
 	sigaction(SIGTERM, &act, nullptr);
@@ -1350,6 +1335,8 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	stats->start();
 	retval = 0;
 	while(!g_Quit) {
+		if (sv_sighup_flag)
+			sv_sighup_sync();
 		// Select on the sockets
 		er = g_lpSoapServerConn->MainLoop();
 		if(er == KCERR_NETWORK_ERROR) {

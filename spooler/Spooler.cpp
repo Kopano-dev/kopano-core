@@ -109,7 +109,7 @@ static std::unique_ptr<StatsClient> sc;
 #define EXIT_REMOVE 3
 
 static unsigned int g_process_model = GP_FORK;
-static bool bQuit = false, sp_exp_config, g_dump_config;
+static bool bQuit = false, sp_exp_config, g_dump_config, g_sighup_flag, g_sigusr2_flag;
 static int nReload = 0, disconnects = 0;
 static const char *szCommand = NULL;
 static const char *szConfig = ECConfig::GetDefaultPath("spooler.cfg");
@@ -162,6 +162,64 @@ static void print_help(const char *name)
 	cout << "  -c filename\tUse alternate config file (e.g. /etc/kopano-spooler.cfg)\n\t\tDefault: /etc/kopano/spooler.cfg" << endl;
 	cout << "  smtp server: The name or IP-address of the SMTP server, overriding the configuration" << endl;
 	cout << endl;
+}
+
+static void sp_sigterm_async(int)
+{
+	bQuit = true;
+	hCondMessagesWaiting.notify_one();
+}
+
+static void sp_sigchld_async(int)
+{
+	int stat;
+	pid_t pid;
+
+	std::unique_lock<std::mutex> finlock(hMutexFinished);
+	while ((pid = waitpid(-1, &stat, WNOHANG)) > 0)
+		mapFinished[pid] = stat;
+	finlock.unlock();
+}
+
+static void sp_sighup_async(int)
+{
+	if (g_process_model == GP_THREAD && !pthread_equal(pthread_self(), g_main_thread))
+		return;
+	g_sighup_flag = true;
+	hCondMessagesWaiting.notify_one();
+}
+
+static void sp_sighup_sync()
+{
+	g_sighup_flag = false;
+	if (g_lpConfig != nullptr && !g_lpConfig->ReloadSettings() &&
+	    g_lpLogger != nullptr)
+		ec_log_warn("Unable to reload configuration file, continuing with current settings.");
+	if (g_lpLogger == nullptr)
+		return;
+	if (g_lpConfig) {
+		const char *ll = g_lpConfig->GetSetting("log_level");
+		int new_ll = ll ? atoi(ll) : EC_LOGLEVEL_WARNING;
+		g_lpLogger->SetLoglevel(new_ll);
+	}
+	g_lpLogger->Reset();
+	ec_log_warn("Log connection was reset");
+}
+
+static void sp_sigusr2_async(int)
+{
+	g_sigusr2_flag = true;
+	hCondMessagesWaiting.notify_one();
+}
+
+static void sp_sigusr2_sync()
+{
+	g_sigusr2_flag = false;
+	ec_log_debug("Spooler stats:");
+	ec_log_debug("Running threads: %zu", mapSendData.size());
+	std::lock_guard<std::mutex> l(hMutexFinished);
+	ec_log_debug("Finished threads: %zu", mapFinished.size());
+	ec_log_debug("Disconnects: %d", disconnects);
 }
 
 /**
@@ -652,6 +710,7 @@ static HRESULT GetAdminSpooler(IMAPISession *lpAdminSession,
 	return hr;
 }
 
+
 /**
  * Opens an admin session and the outgoing queue. If either one
  * produces an error this function will return. If the queue is empty,
@@ -718,7 +777,15 @@ static HRESULT ProcessQueue2(IMAPISession *lpAdminSession,
 			auto target = std::chrono::steady_clock::now() + 60s;
 			while (!bMessagesWaiting) {
 				auto s = hCondMessagesWaiting.wait_until(lk, target);
-				if (s == std::cv_status::timeout || bMessagesWaiting || bQuit || nReload)
+				if (g_sigusr2_flag)
+					sp_sigusr2_sync();
+				if (g_sighup_flag)
+					sp_sighup_sync();
+				if (bQuit) {
+					ec_log_info("User requested graceful shutdown. To force quit, reissue the request.");
+					break;
+				}
+				if (s == std::cv_status::timeout || bMessagesWaiting || nReload)
 					break;
 				// not timed out, no messages waiting, not quit requested, no table reload required:
 				// we were triggered for a cleanup call.
@@ -776,66 +843,6 @@ static HRESULT ProcessQueue(const char *smtp, int port, const char *path)
 		ec_log_warn("Table reload requested, breaking server connection");
 	}
 	return hr;
-}
-
-/**
- * actual signal handler, direct entry point if only linuxthreads is available.
- *
- * @param[in] sig signal received
- */
-static void process_signal(int sig)
-{
-	ec_log_debug("Received signal %d", sig);
-	int stat;
-	pid_t pid;
-
-	switch (sig) {
-	case SIGTERM:
-	case SIGINT: {
-		bQuit = true;
-		// Trigger condition so we force wakeup the queue thread
-		hCondMessagesWaiting.notify_one();
-		ec_log_info("User requested graceful shutdown. To force quit, reissue the request.");
-		break;
-	}
-	case SIGCHLD: {
-		std::unique_lock<std::mutex> finlock(hMutexFinished);
-		while ((pid = waitpid (-1, &stat, WNOHANG)) > 0)
-			mapFinished[pid] = stat;
-		finlock.unlock();
-		// Trigger condition so the messages get cleaned from the queue
-		hCondMessagesWaiting.notify_one();
-		break;
-	}
-	case SIGHUP:
-		if (g_process_model == GP_THREAD && !pthread_equal(pthread_self(), g_main_thread))
-			break;
-		if (g_lpConfig != nullptr && !g_lpConfig->ReloadSettings() &&
-		    g_lpLogger != nullptr)
-			ec_log_warn("Unable to reload configuration file, continuing with current settings.");
-		if (g_lpLogger) {
-			if (g_lpConfig) {
-				const char *ll = g_lpConfig->GetSetting("log_level");
-				int new_ll = ll ? atoi(ll) : EC_LOGLEVEL_WARNING;
-				g_lpLogger->SetLoglevel(new_ll);
-			}
-
-			g_lpLogger->Reset();
-			ec_log_warn("Log connection was reset");
-		}
-		break;
-	case SIGUSR2: {
-		ec_log_debug("Spooler stats:");
-		ec_log_debug("Running threads: %zu", mapSendData.size());
-		std::lock_guard<std::mutex> l(hMutexFinished);
-		ec_log_debug("Finished threads: %zu", mapFinished.size());
-		ec_log_debug("Disconnects: %d", disconnects);
-		break;
-	}
-	default:
-		ec_log_debug("Unknown signal %d received", sig);
-		break;
-	}
 }
 
 /**
@@ -1103,12 +1110,15 @@ static int main2(int argc, char **argv)
 	}
 	else {
 		// notification condition
-		act.sa_handler = process_signal;
-		act.sa_flags = SA_ONSTACK;
 		sigemptyset(&act.sa_mask);
-		sigaction(SIGHUP, &act, nullptr);
+		act.sa_handler = sp_sigchld_async;
+		act.sa_flags = SA_ONSTACK;
 		sigaction(SIGCHLD, &act, nullptr);
+		act.sa_handler = sp_sighup_async;
+		sigaction(SIGHUP, &act, nullptr);
+		act.sa_handler = sp_sigusr2_async;
 		sigaction(SIGUSR2, &act, nullptr);
+		act.sa_handler = sp_sigterm_async;
 		act.sa_flags = SA_ONSTACK | SA_RESETHAND;
 		sigaction(SIGINT, &act, nullptr);
 		sigaction(SIGTERM, &act, nullptr);
