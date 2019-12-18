@@ -366,6 +366,8 @@ ECRESULT ECDispatcherSelect::MainLoop()
 
     // Main loop
     while(!m_bExit) {
+		if (sv_sighup_flag)
+			sv_sighup_sync();
 		int nfds = 0, pfd_begin_sock, pfd_begin_listen;
         time(&now);
 
@@ -569,6 +571,8 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 	m_prio.set_thread_count(1);
 
 	while (!m_bExit) {
+		if (sv_sighup_flag)
+			sv_sighup_sync();
 		time(&now);
 
 		// find timedout sockets once per second

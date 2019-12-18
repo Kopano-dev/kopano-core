@@ -230,7 +230,7 @@ class dagent_stats final : public StatsClient {
 
 //Global variables
 static unsigned int g_process_model = GP_FORK;
-static bool g_bQuit = false, g_dump_config;
+static bool g_bQuit = false, g_dump_config, g_sighup_flag;
 static bool g_bTempfail = true; // Most errors are tempfails
 static pthread_t g_main_thread;
 static std::atomic<unsigned int> g_nLMTPThreads{0};
@@ -252,15 +252,21 @@ typedef std::map<std::wstring, recipients_t, wcscasecmp_comparison> serverrecipi
 // then we group by company to minimize re-opening the addressbook
 typedef std::map<std::wstring, serverrecipients_t, wcscasecmp_comparison> companyrecipients_t;
 
-static void sigterm(int)
+static void da_sigterm_async(int)
 {
 	g_bQuit = true;
 }
 
-static void sighup(int sig)
+static void da_sighup_async(int)
 {
 	if (g_process_model == GP_THREAD && !pthread_equal(pthread_self(), g_main_thread))
 		return;
+	g_sighup_flag = true;
+}
+
+static void da_sighup_sync()
+{
+	g_sighup_flag = false;
 	if (g_lpConfig != nullptr && !g_lpConfig->ReloadSettings() &&
 	    g_lpLogger != nullptr)
 		ec_log_warn("Unable to reload configuration file, continuing with current settings.");
@@ -275,7 +281,7 @@ static void sighup(int sig)
 	ec_log_warn("Log connection was reset");
 }
 
-static void sigchld(int)
+static void da_sigchld_async(int)
 {
 	int stat;
 	while (waitpid (-1, &stat, WNOHANG) > 0)
@@ -2907,11 +2913,11 @@ static HRESULT running_service(char **argv, bool bDaemonize,
 	struct sigaction act{};
 	sigemptyset(&act.sa_mask);
 	act.sa_flags   = SA_ONSTACK | SA_RESETHAND;
-	act.sa_handler = sigterm;
+	act.sa_handler = da_sigterm_async;
 	sigaction(SIGTERM, &act, nullptr);
 	sigaction(SIGINT, &act, nullptr);
 	act.sa_flags   = SA_ONSTACK;
-	act.sa_handler = sigchld;
+	act.sa_handler = da_sigchld_async;
 	sigaction(SIGCHLD, &act, nullptr);
 
 	if (bDaemonize && unix_daemonize(g_lpConfig.get()))
@@ -2944,6 +2950,8 @@ static HRESULT running_service(char **argv, bool bDaemonize,
 
 	// Mainloop
 	while (!g_bQuit) {
+		if (g_sighup_flag)
+			da_sighup_sync();
 		for (size_t i = 0; i < lmtp_poll.size(); ++i)
 			lmtp_poll[i].revents = 0;
 		err = poll(&lmtp_poll[0], lmtp_poll.size(), 10 * 1000);
@@ -3536,7 +3544,7 @@ int main(int argc, char **argv) try {
 	signal(SIGPIPE, SIG_IGN);
 	sigemptyset(&act.sa_mask);
 	act.sa_flags = SA_ONSTACK;
-	act.sa_handler = sighup;
+	act.sa_handler = da_sighup_async;
 	sigaction(SIGHUP, &act, nullptr);
 	ec_setup_segv_handler("kopano-dagent", PROJECT_VERSION);
 	file_limit.rlim_cur = KC_DESIRED_FILEDES;
