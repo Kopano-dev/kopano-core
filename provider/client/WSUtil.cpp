@@ -221,7 +221,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 	case PT_SRESTRICTION:
 		dp->__union = SOAP_UNION_propValData_res;
 		// NOTE: we placed the object pointer in lpszA to make sure it is on the same offset as Value.x on 32-bit and 64-bit machines
-		hr = CopyMAPIRestrictionToSOAPRestriction(&dp->Value.res, (LPSRestriction)sp->Value.lpszA, lpConverter);
+		hr = CopyMAPIRestrictionToSOAPRestriction(&dp->Value.res, reinterpret_cast<const SRestriction *>(sp->Value.lpszA), lpConverter);
 		break;
 	case PT_ACTIONS: {
 		// NOTE: we placed the object pointer in lpszA to make sure it is on the same offset as Value.x on 32-bit and 64-bit machines
@@ -633,7 +633,8 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 		hr = ECAllocateMore(sizeof(SRestriction), lpBase, reinterpret_cast<void **>(&dp->Value.lpszA));
 		if (hr != hrSuccess)
 			return hr;
-		hr = CopySOAPRestrictionToMAPIRestriction((LPSRestriction)dp->Value.lpszA, sp->Value.res, lpBase, lpConverter);
+		hr = CopySOAPRestrictionToMAPIRestriction(reinterpret_cast<SRestriction *>(dp->Value.lpszA),
+		     sp->Value.res, lpBase, lpConverter);
 		break;
 	case PT_ACTIONS: {
 		if (sp->__union != SOAP_UNION_propValData_actions || sp->Value.actions == nullptr) {
@@ -2299,7 +2300,8 @@ HRESULT ConvertString8ToUnicode(LPSRow lpRow, void *base, convert_context &conve
 
 	for (ULONG c = 0; c < lpRow->cValues; ++c) {
 		if (PROP_TYPE(lpRow->lpProps[c].ulPropTag) == PT_SRESTRICTION) {
-			hr = ConvertString8ToUnicode((LPSRestriction)lpRow->lpProps[c].Value.lpszA, base ? base : lpRow->lpProps, converter);
+			hr = ConvertString8ToUnicode(reinterpret_cast<SRestriction *>(lpRow->lpProps[c].Value.lpszA),
+			     base != nullptr ? base : lpRow->lpProps, converter);
 		} else if (PROP_TYPE(lpRow->lpProps[c].ulPropTag) == PT_ACTIONS) {
 			hr = ConvertString8ToUnicode((ACTIONS*)lpRow->lpProps[c].Value.lpszA, base ? base : lpRow->lpProps, converter);
 		} else if (base && PROP_TYPE(lpRow->lpProps[c].ulPropTag) == PT_STRING8) {

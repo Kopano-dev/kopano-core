@@ -527,7 +527,7 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 	case PT_SRESTRICTION:
 		if (MAPIAllocateMore(sizeof(SRestriction), lpBase, reinterpret_cast<void **>(&lpProp->Value.lpszA)) != hrSuccess)
 			return;
-		Object_to_LPSRestriction(Value, (LPSRestriction)lpProp->Value.lpszA, lpBase);
+		Object_to_LPSRestriction(Value, reinterpret_cast<SRestriction *>(lpProp->Value.lpszA), lpBase);
 		break;
 	case PT_ACTIONS:
 		if (MAPIAllocateMore(sizeof(ACTIONS), lpBase, reinterpret_cast<void **>(&lpProp->Value.lpszA)) != hrSuccess)
