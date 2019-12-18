@@ -56,7 +56,7 @@ MAPINAMEID mnNamedProps[SIZE_NAMEDPROPS] = {
 	{PS, MNID_ID, {dispidIntendedBusyStatus}},
 	{PS, MNID_ID, {dispidRecurringBase}},
 	{PS, MNID_ID, {dispidRequestSent}},		// aka PidLidFInvited
-	{PS, MNID_ID, {0x8230}},
+	{PS, MNID_ID, {dispidApptReplyName}},
 	{PS, MNID_ID, {dispidRecurrenceType}},
 	{PS, MNID_ID, {dispidRecurrencePattern}},
 	{PS, MNID_ID, {dispidTimeZoneData}},

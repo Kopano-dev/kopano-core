@@ -189,6 +189,7 @@
 #define dispidCommonAssign					0x8518	//PT_LONG
 
 #define dispidFormPropStream				0x851B
+#define dispidVerbStream					0x8520
 #define dispidRequest						0x8530
 #define dispidCompanies						0x8539
 #define dispidPropDefStream					0x8540

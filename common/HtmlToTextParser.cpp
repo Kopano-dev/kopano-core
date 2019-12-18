@@ -30,7 +30,7 @@
 namespace KC {
 
 #ifdef HAVE_TIDYBUFFIO_H
-static std::set<std::string> rosie_good_tags = {
+static std::set<std::string, std::less<>> rosie_good_tags = {
 	"a", "abbr", "address", "area", "article", "aside", "b", "blockquote",
 	"body", "br", "caption", "center", "cite", "code", "col", "datalist",
 	"details", "div", "em", "figcaption", "figure", "font", "footer",
@@ -43,7 +43,7 @@ static std::set<std::string> rosie_good_tags = {
 	"th", "thead", "time", "title", "tr", "u", "ul", "var", "wbr",
 };
 
-static std::map<std::string, std::set<std::string> > rosie_good_attrs = {
+static std::map<std::string, std::set<std::string, std::less<>>, std::less<>> rosie_good_attrs = {
 	{"a", {"class", "href", "name", "title"}},
 	{"div", {"class", "id"}},
 	{"font", {"size"}},
@@ -623,26 +623,44 @@ static void rosie_strip_attrs(TidyDoc tdoc, TidyNode tnod)
 	}
 }
 
-static bool rosie_strip_nodes(TidyDoc tdoc, TidyNode tnod)
-{
-	for (TidyNode child = tidyGetChild(tnod); child != NULL; ) {
-		ctmbstr name = tidyNodeGetName(child);
-
-		if (name != NULL && rosie_reject_tag(name)) {
-			child = tidyDiscardElement(tdoc, child);
-		} else {
-			rosie_strip_attrs(tdoc, tnod);
-			rosie_strip_nodes(tdoc, child);
-			child = tidyGetNext(child);
-		}
-	}
-
-	return true;
-}
-
 static bool rosie_strip_nodes(TidyDoc tdoc)
 {
-	return rosie_strip_nodes(tdoc, tidyGetRoot(tdoc));
+	TidyNode next_node = nullptr, curr_node = tidyGetHtml(tdoc);
+	size_t nesting = 0;
+
+	while (curr_node != nullptr) {
+		ctmbstr name = tidyNodeGetName(curr_node);
+		auto parent = tidyGetParent(curr_node);
+
+		if (name != NULL && rosie_reject_tag(name)) {
+			next_node = tidyDiscardElement(tdoc, curr_node);
+			curr_node = nullptr;
+		} else {
+			rosie_strip_attrs(tdoc, curr_node);
+			next_node = tidyGetChild(curr_node);
+			if (next_node != nullptr)
+				++nesting;
+			else
+				next_node = tidyGetNext(curr_node);
+		}
+		if (next_node != nullptr) {
+			curr_node = next_node;
+			continue;
+		}
+
+		while (next_node == nullptr) {
+			next_node = parent;
+			if (next_node == nullptr)
+				break;
+			--nesting;
+			curr_node = next_node;
+			next_node = tidyGetNext(curr_node);
+			parent    = tidyGetParent(curr_node);
+		}
+		curr_node = next_node;
+	}
+	assert(nesting == 0);
+	return true;
 }
 
 /*

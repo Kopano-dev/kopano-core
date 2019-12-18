@@ -125,7 +125,11 @@ HRESULT iCal::HrHandleIcalPost()
 
 	//retrieve entries from ical data.
 	std::unique_ptr<ICalToMapi> lpICalToMapi;
-	CreateICalToMapi(m_lpActiveStore, m_lpAddrBook, false, &unique_tie(lpICalToMapi));
+	hr = CreateICalToMapi(m_lpUsrFld, m_lpAddrBook, false, &unique_tie(lpICalToMapi));
+	if (hr != hrSuccess) {
+		kc_perrorf("CreateICalToMapi", hr);
+		goto exit;
+	}
 	m_lpRequest.HrGetBody(&strIcal);
 	if(!strIcal.empty())
 	{

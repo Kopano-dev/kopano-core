@@ -102,14 +102,25 @@ Packaging changes:
 * gsoap 2.8.73 or higher is now required
 
 
+8.7.x
+=====
+Fixes:
+* dagent, spooler: workaround crash during Python GC [KC-1427]
+* spooler: do not emit "not found" when rule does not match [KS-44090]
+* gateway: avoid one crash case for deeply-nested HTML mail [KC-1653]
+* admin: admin: fix error message when --{udqw,udqs,udqh} is missing
+
+
 8.7.9 (2019-12-10)
 ==================
 Enhancements:
 * cfgchecker: cure compiler warnings
 * common: replace kc_perror call by ec_perror [KC-1639]
-* libserver: adjust version notice for old ZCP database schemas
-* libserver: drop K-1255 message
+Fixes:
+* libserver: adjust version notice for old ZCP database schemas [KF-2841]
+* libserver: drop K-1255 message [KF-2833]
 * server: fix dreaded "SSL_accept: (null)" reporting
+
 
 8.7.8 (2019-11-29)
 ==================

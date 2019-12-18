@@ -1687,12 +1687,6 @@ static HRESULT fillMVPropmap(ECUSER &sECUser, ULONG ulPropTag, int index,
 
 static void missing_quota(int hard, int warn, int soft)
 {
-	if (hard == -1)
-		cerr << " hard quota (--qh)";
-	if (warn == -1)
-		cerr << " warn quota (--qw)";
-	if (soft == -1)
-		cerr << " soft quota (--qs)";
 }
 
 static int fexec(const std::string &admin, std::vector<std::string> &&cmd)
@@ -2306,14 +2300,21 @@ int main(int argc, char **argv) try
 		cerr << "Missing name of company to create." << endl;
 		return 1;
 	}
-	if (mode == MODE_UPDATE_COMPANY &&
-			((quota == 1 && quotawarn == -1) ||
-			 (ud_quota == 1 && (ud_quotahard == -1 || ud_quotasoft == -1 || ud_quotawarn == -1)))) {
+	if (mode == MODE_UPDATE_COMPANY && quota == 1 && quotawarn == -1) {
 		cerr << "Missing information to update company:";
-		if (quota == 1 && quotawarn == -1)
-			cerr << " warn quota (--qw)";
-		if (ud_quota == 1)
-			missing_quota(ud_quotahard, ud_quotawarn, ud_quotasoft);
+		cerr << " warn quota (--qw)";
+		cerr << endl;
+		return 1;
+	}
+	if (mode == MODE_UPDATE_COMPANY && (ud_quota == 1 &&
+	    (ud_quotahard == -1 || ud_quotasoft == -1 || ud_quotawarn == -1))) {
+		cerr << "Missing information to update company:";
+		if (ud_quotahard == -1)
+			cerr << " hard quota (--udqh)";
+		if (ud_quotawarn == -1)
+			cerr << " warn quota (--udqw)";
+		if (ud_quotasoft == -1)
+			cerr << " soft quota (--udqs)";
 		cerr << endl;
 		return 1;
 	}

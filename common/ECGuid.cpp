@@ -123,6 +123,8 @@
 #define USES_IID_IFreeBusyData
 #define USES_IID_IFreeBusySupport
 #define USES_IID_IFreeBusyUpdate
+#define USES_PSETID_Messaging
+#define USES_PSETID_XmlExtractedEntities
 
 #include <mapiguid.h>
 #include <edkguid.h>

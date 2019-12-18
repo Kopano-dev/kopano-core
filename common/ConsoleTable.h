@@ -15,7 +15,7 @@ namespace KC {
 class KC_EXPORT ConsoleTable KC_FINAL {
 public:
 	ConsoleTable(size_t rows, size_t columns);
-	KC_HIDDEN void Clear();
+	void Clear();
 	void Resize(size_t rows, size_t columns);
 	bool SetHeader(size_t col, const std::string& entry);
 	void set_lead(const char *lead) { m_lead = lead; }
