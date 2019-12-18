@@ -824,7 +824,7 @@ static HRESULT ResolveServerToPath(IMAPISession *lpSession,
 		     lpSrvNameList, reinterpret_cast<LPVOID *>(&lpSrvNameList->lpszaServer[lpSrvNameList->cServers]));
 		if (hr != hrSuccess)
 			return kc_perrorf("MAPIAllocateMore failed(2)", hr);
-		wcscpy(reinterpret_cast<LPWSTR>(lpSrvNameList->lpszaServer[lpSrvNameList->cServers]), iter.first.c_str());
+		wcscpy(reinterpret_cast<wchar_t *>(lpSrvNameList->lpszaServer[lpSrvNameList->cServers]), iter.first.c_str());
 		++lpSrvNameList->cServers;
 	}
 
@@ -833,7 +833,7 @@ static HRESULT ResolveServerToPath(IMAPISession *lpSession,
 		return kc_perrorf("GetServerDetails failed", hr);
 
 	for (ULONG i = 0; i < lpSrvList->cServers; ++i) {
-		auto iter = lpServerNameRecips->find((LPWSTR)lpSrvList->lpsaServer[i].lpszName);
+		auto iter = lpServerNameRecips->find(reinterpret_cast<const wchar_t *>(lpSrvList->lpsaServer[i].lpszName));
 		if (iter == lpServerNameRecips->cend()) {
 			ec_log_err("Server \"%s\" not found", reinterpret_cast<const char *>(lpSrvList->lpsaServer[i].lpszName));
 			return MAPI_E_NOT_FOUND;

@@ -64,7 +64,7 @@ HRESULT HrAddProperty(IMAPIProp *lpMapiProp, ULONG ulPropTag, bool bFldId, std::
 
 	assert(PROP_TYPE(ulPropTag) == PT_UNICODE);
 	sPropVal.ulPropTag = ulPropTag;
-	sPropVal.Value.lpszW = (LPWSTR)wstrProperty->c_str();
+	sPropVal.Value.lpszW = const_cast<wchar_t *>(wstrProperty->c_str());
 	auto hr = HrGetOneProp(lpMapiProp, sPropVal.ulPropTag, &~lpMsgProp);
 	if (hr == MAPI_E_NOT_FOUND) {
 		hr = HrSetOneProp(lpMapiProp, &sPropVal);
@@ -191,7 +191,7 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 	{
 		// note: this is a custom kopano named property, defined in libicalmapi/names.*
 		ulPropTagFldId = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_FLDID], PT_UNICODE);
-		sPropFolderID.Value.lpszW = (LPWSTR)wstrFldId.c_str();
+		sPropFolderID.Value.lpszW = const_cast<wchar_t *>(wstrFldId.c_str());
 	}
 	sPropFolderID.ulPropTag = ulPropTagFldId;
 	sPropFolderName.ulPropTag = PR_DISPLAY_NAME_W;
