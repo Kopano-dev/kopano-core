@@ -143,7 +143,8 @@ HRESULT ECRulesTableProxy::QueryRows(LONG lRowCount, ULONG ulFlags, LPSRowSet *l
 			return hr;
 		lpRuleProp = ptrRows[i].cfind(PR_RULE_ACTIONS);
 		if (lpRuleProp)
-			hr = ConvertUnicodeToString8((ACTIONS*)lpRuleProp->Value.lpszA, ptrRows[i].lpProps, converter);
+			hr = ConvertUnicodeToString8(reinterpret_cast<ACTIONS *>(lpRuleProp->Value.lpszA),
+			     ptrRows[i].lpProps, converter);
 		if (hr != hrSuccess)
 			return hr;
 	}

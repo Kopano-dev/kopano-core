@@ -2304,7 +2304,8 @@ HRESULT ConvertString8ToUnicode(LPSRow lpRow, void *base, convert_context &conve
 			hr = ConvertString8ToUnicode(reinterpret_cast<SRestriction *>(lpRow->lpProps[c].Value.lpszA),
 			     base != nullptr ? base : lpRow->lpProps, converter);
 		} else if (PROP_TYPE(lpRow->lpProps[c].ulPropTag) == PT_ACTIONS) {
-			hr = ConvertString8ToUnicode((ACTIONS*)lpRow->lpProps[c].Value.lpszA, base ? base : lpRow->lpProps, converter);
+			hr = ConvertString8ToUnicode(reinterpret_cast<ACTIONS *>(lpRow->lpProps[c].Value.lpszA),
+			     base != nullptr ? base : lpRow->lpProps, converter);
 		} else if (base && PROP_TYPE(lpRow->lpProps[c].ulPropTag) == PT_STRING8) {
 			// only for "base" items: e.g. the lpadrlist data, not the PR_RULE_NAME from the top-level
 			hr = ConvertString8ToUnicode(lpRow->lpProps[c].Value.lpszA, &lpRow->lpProps[c].Value.lpszW, base, converter);

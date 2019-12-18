@@ -532,7 +532,7 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 	case PT_ACTIONS:
 		if (MAPIAllocateMore(sizeof(ACTIONS), lpBase, reinterpret_cast<void **>(&lpProp->Value.lpszA)) != hrSuccess)
 			return;
-		Object_to_LPACTIONS(Value, (ACTIONS*)lpProp->Value.lpszA, lpBase);
+		Object_to_LPACTIONS(Value, reinterpret_cast<ACTIONS *>(lpProp->Value.lpszA), lpBase);
 		break;
 
 #undef PT_MV_CASE

@@ -1197,7 +1197,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 		{1, 0, 0, {{PR_RULE_SEQUENCE, TABLE_SORT_ASCEND}}};
 	std::string strRule;
 	const SRestriction *lpCondition = nullptr;
-	ACTIONS* lpActions = NULL;
+	const ACTIONS *lpActions = nullptr;
 	memory_ptr<SPropValue> OOFProps;
 	unsigned int cValues, ulResult = 0;
 	SPropValue sForwardProps[4];
@@ -1305,7 +1305,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 		lpProp = lpRowSet[0].cfind(PR_RULE_ACTIONS);
 		if (lpProp)
 			// NOTE: object is placed in Value.lpszA, not Value.x
-			lpActions = (ACTIONS*)lpProp->Value.lpszA;
+			lpActions = reinterpret_cast<const ACTIONS *>(lpProp->Value.lpszA);
 		if (!lpActions) {
 			ec_log_debug("Rule '%s' has no action, skipping...", strRule.c_str());
 			continue;
