@@ -3067,8 +3067,7 @@ HRESULT WSTransport::HrResolveNames(const SPropTagArray *lpPropTagArray,
 
 	aFlags.__ptr = (unsigned int *)&lpFlagList->ulFlag;
 	aFlags.__size = lpFlagList->cFlags;
-
-	hr = CopyMAPIRowSetToSOAPRowSet((LPSRowSet)lpAdrList, &lpsRowSet, &converter);
+	hr = CopyMAPIRowSetToSOAPRowSet(reinterpret_cast<const SRowSet *>(lpAdrList), &lpsRowSet, &converter);
 	if(hr != hrSuccess)
 		goto exitm;
 

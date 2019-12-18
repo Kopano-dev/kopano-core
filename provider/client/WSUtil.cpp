@@ -274,7 +274,8 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 			case OP_FORWARD:
 			case OP_DELEGATE:
 				da->__union = SOAP_UNION__act_adrlist;
-				hr = CopyMAPIRowSetToSOAPRowSet((LPSRowSet)sa->lpadrlist, &da->act.adrlist, lpConverter);
+				hr = CopyMAPIRowSetToSOAPRowSet(reinterpret_cast<const SRowSet *>(sa->lpadrlist),
+				     &da->act.adrlist, lpConverter);
 				if(hr != hrSuccess)
 					return hr;
 				break;

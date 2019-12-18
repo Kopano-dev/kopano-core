@@ -1433,13 +1433,13 @@ ADRLIST *List_to_LPADRLIST(PyObject *av, ULONG ulFlags, void *lpBase)
 PyObject *List_from_ADRLIST(const ADRLIST *lpAdrList)
 {
 	// Binary compatible
-	return List_from_LPSRowSet((LPSRowSet)lpAdrList);
+	return List_from_LPSRowSet(reinterpret_cast<const SRowSet *>(lpAdrList));
 }
 
 PyObject *List_from_LPADRLIST(const ADRLIST *lpAdrList)
 {
 	// Binary compatible
-	return List_from_LPSRowSet((LPSRowSet)lpAdrList);
+	return List_from_LPSRowSet(reinterpret_cast<const SRowSet *>(lpAdrList));
 }
 
 PyObject *		Object_from_LPSPropProblem(LPSPropProblem lpProblem)

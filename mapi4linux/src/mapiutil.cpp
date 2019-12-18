@@ -91,7 +91,7 @@ void FreeProws(LPSRowSet lpRows)
 void FreePadrlist(LPADRLIST lpAdrlist)
 {
 	// it's the same in mapi4linux
-	FreeProws((LPSRowSet) lpAdrlist);
+	FreeProws(reinterpret_cast<SRowSet *>(lpAdrlist));
 }
 
 // M4LMAPIAdviseSink is in mapidefs.cpp
