@@ -12,6 +12,7 @@
 #include <mapitags.h>
 #include <kopano/mapiext.h>
 #include <kopano/memory.hpp>
+#include <kopano/namedprops.h>
 #include <kopano/tie.hpp>
 #include <mapiutil.h>
 #include <mapidefs.h>
@@ -963,20 +964,17 @@ static HRESULT ContactToKopano(IMsgStore *lpUserStore,
 	if (hr != hrSuccess)
 		return kc_perror("No memory for named IDs from contact", hr);
 
-	// Email1EntryID
 	lpNames[0].lpguid = (GUID*)&PSETID_Address;
 	lpNames[0].ulKind = MNID_ID;
-	lpNames[0].Kind.lID = 0x8085;
+	lpNames[0].Kind.lID = dispidEmail1OriginalEntryID;
 	lppNames[0] = &lpNames[0];
-	// Email2EntryID
 	lpNames[1].lpguid = (GUID*)&PSETID_Address;
 	lpNames[1].ulKind = MNID_ID;
-	lpNames[1].Kind.lID = 0x8095;
+	lpNames[1].Kind.lID = dispidEmail2OriginalEntryID;
 	lppNames[1] = &lpNames[1];
-	// Email3EntryID
 	lpNames[2].lpguid = (GUID*)&PSETID_Address;
 	lpNames[2].ulKind = MNID_ID;
-	lpNames[2].Kind.lID = 0x80A5;
+	lpNames[2].Kind.lID = dispidEmail3OriginalEntryID;
 	lppNames[2] = &lpNames[2];
 
 	hr = lpContact->GetIDsFromNames(3, lppNames, 0, &~lpPropTags);

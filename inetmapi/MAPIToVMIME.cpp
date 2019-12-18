@@ -16,6 +16,7 @@
 #include <vmime/parsedMessageAttachment.hpp>
 #include <vmime/emptyContentHandler.hpp>
 #include <kopano/memory.hpp>
+#include <kopano/namedprops.h>
 #include <kopano/tie.hpp>
 #include <mapi.h>
 #include <mapiutil.h>
@@ -1455,11 +1456,13 @@ HRESULT MAPIToVMIME::handleContactEntryID(ULONG cValues, LPSPropValue lpProps, w
 	ULONG ulNames = 5;
 	MAPINAMEID mnNamedProps[5] = {
 		// offset 0, every offset < 3 is + 0x10
-		{(LPGUID)&PSETID_Address, MNID_ID, {0x8080}}, // display name
-		{(LPGUID)&PSETID_Address, MNID_ID, {0x8082}}, // address type
-		{(LPGUID)&PSETID_Address, MNID_ID, {0x8083}}, // email address
-		{(LPGUID)&PSETID_Address, MNID_ID, {0x8084}}, // original display name (unused)
-		{(LPGUID)&PSETID_Address, MNID_ID, {0x8085}}, // real entryid
+#define PS const_cast<GUID *>(&PSETID_Address)
+		{PS, MNID_ID, {dispidEmail1DisplayName}},
+		{PS, MNID_ID, {dispidEmail1AddressType}},
+		{PS, MNID_ID, {dispidEmail1Address}},
+		{PS, MNID_ID, {dispidEmail1OriginalDisplayName}},
+		{PS, MNID_ID, {dispidEmail1OriginalEntryID}},
+#undef PS
 	};
 
 	if (PROP_TYPE(lpProps[0].ulPropTag) != PT_BINARY)
@@ -1626,9 +1629,11 @@ HRESULT MAPIToVMIME::handleReplyTo(IMessage *lpMessage,
 	wstring			strName, strType, strEmail;
 
 	// "Email1DisplayName","Email1AddressType","Email1Address","Email1EntryID"
-	static const ULONG lpulNamesIDs[] = {0x8080, 0x8082, 0x8083, 0x8085,
-				0x8090, 0x8092, 0x8093, 0x8095,
-				0x80A0, 0x80A2, 0x80A3, 0x80A5};
+	static const unsigned int lpulNamesIDs[] = {
+		dispidEmail1DisplayName, dispidEmail1AddressType, dispidEmail1Address, dispidEmail1OriginalEntryID,
+		dispidEmail2DisplayName, dispidEmail2AddressType, dispidEmail2Address, dispidEmail2OriginalEntryID,
+		dispidEmail3DisplayName, dispidEmail3AddressType, dispidEmail3Address, dispidEmail3OriginalEntryID,
+	};
 	memory_ptr<MAPINAMEID> lpNames;
 	memory_ptr<MAPINAMEID *> lppNames;
 	memory_ptr<SPropTagArray> lpNameTagArray;
@@ -1720,7 +1725,7 @@ bool MAPIToVMIME::is_voting_request(IMessage *lpMessage) const
 {
 	memory_ptr<SPropTagArray> lpPropTags;
 	memory_ptr<SPropValue> lpPropContentType;
-	MAPINAMEID named_prop = {(LPGUID)&PSETID_Common, MNID_ID, {0x8520}};
+	MAPINAMEID named_prop = {const_cast<GUID *>(&PSETID_Common), MNID_ID, {dispidVerbStream}};
 	MAPINAMEID *named_proplist = &named_prop;
 
 	auto hr = lpMessage->GetIDsFromNames(1, &named_proplist, MAPI_CREATE, &~lpPropTags);
@@ -1738,7 +1743,7 @@ bool MAPIToVMIME::has_reminder(IMessage *msg) const
 {
 	memory_ptr<SPropTagArray> tags;
 	memory_ptr<SPropValue> content_type;
-	MAPINAMEID named_prop = {const_cast<GUID *>(&PSETID_Common), MNID_ID, {0x8503}};
+	MAPINAMEID named_prop = {const_cast<GUID *>(&PSETID_Common), MNID_ID, {dispidReminderSet}};
 	auto named_proplist = &named_prop;
 	bool result = false;
 

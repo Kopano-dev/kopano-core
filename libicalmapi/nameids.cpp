@@ -51,7 +51,7 @@ MAPINAMEID mnNamedProps[SIZE_NAMEDPROPS] = {
 	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidIntendedBusyStatus}},
 	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidRecurringBase}},
 	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidRequestSent}},		// aka PidLidFInvited
-	{(LPGUID)&PSETID_Appointment, MNID_ID, {0x8230}},
+	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidApptReplyName}},
 	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidRecurrenceType}},
 	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidRecurrencePattern}},
 	{(LPGUID)&PSETID_Appointment, MNID_ID, {dispidTimeZoneData}},

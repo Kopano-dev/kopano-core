@@ -192,7 +192,7 @@ HRESULT VEventConverter::HrAddBaseProperties(icalproperty_method icMethod, icalc
 		memory_ptr<SPropValue> tmp;
 		auto hr = HrGetOneProp(m_lpMailUser, PR_DISPLAY_NAME_W, &~tmp);
 		if (hr == hrSuccess) {
-			sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_8230], PT_UNICODE);
+			sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTREPLYNAME], PT_UNICODE);
 			HrCopyString(base, tmp->Value.lpszW, &sPropVal.Value.lpszW);
 			lstMsgProps->emplace_back(sPropVal);
 		}

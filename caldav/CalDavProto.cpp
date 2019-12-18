@@ -853,7 +853,7 @@ HRESULT CalDAV::HrPut()
 	SBinary sbUid;
 	time_t ttLastModTime = 0;
 	object_ptr<IMessage> lpMessage;
-	ICalToMapi *lpICalToMapi = NULL;
+	std::unique_ptr<ICalToMapi> lpICalToMapi;
 	bool blNewEntry = false, bMatch = false;
 	SPropValue sPropApptTsRef;
 
@@ -895,7 +895,11 @@ HRESULT CalDAV::HrPut()
 		goto exit;
 
 	//save Ical data to mapi.
-	CreateICalToMapi(m_lpActiveStore, m_lpAddrBook, false, &lpICalToMapi);
+	hr = CreateICalToMapi(lpMessage, m_lpAddrBook, false, &unique_tie(lpICalToMapi));
+	if (hr != hrSuccess) {
+		kc_perrorf("CreateICalToMapi", hr);
+		goto exit;
+	}
 	m_lpRequest.HrGetBody(&strIcal);
 	hr = lpICalToMapi->ParseICal(strIcal, m_strCharset, m_strSrvTz, m_lpLoginUser, 0);
 	if(hr!=hrSuccess)
@@ -1000,7 +1004,6 @@ exit:
 		m_lpRequest.HrResponseHeader(403, "Forbidden");
 	else
 		m_lpRequest.HrResponseHeader(400, "Bad Request");
-	delete lpICalToMapi;
 	return hr;
 }
 
@@ -1367,12 +1370,9 @@ HRESULT CalDAV::HrHandlePost()
 	auto hr = m_lpRequest.HrGetBody(&strIcal);
 	if (hr != hrSuccess)
 		return kc_pdebug("CalDAV::HrHandlePost HrGetBody failed", hr);
-	CreateICalToMapi(m_lpDefStore, m_lpAddrBook, false, &unique_tie(lpIcalToMapi));
-	if (!lpIcalToMapi)
-	{
-		kc_pdebug("CalDAV::HrHandlePost CreateICalToMapi failed", hr);
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	}
+	hr = CreateICalToMapi(m_lpDefStore, m_lpAddrBook, false, &unique_tie(lpIcalToMapi));
+	if (hr != hrSuccess)
+		return kc_perrorf("CreateICalToMapi", hr);
 	hr = lpIcalToMapi->ParseICal(strIcal, m_strCharset, m_strSrvTz, m_lpLoginUser, 0);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to parse received iCal message", hr);
