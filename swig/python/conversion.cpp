@@ -1421,13 +1421,13 @@ SRowSet *List_to_LPSRowSet(PyObject *obj, ULONG flags, void *lpBase)
 ADRLIST *List_to_p_ADRLIST(PyObject *av, ULONG ulFlags, void *lpBase)
 {
 	// Binary compatible
-	return (LPADRLIST) List_to_LPSRowSet(av, ulFlags, lpBase);
+	return reinterpret_cast<ADRLIST *>(List_to_LPSRowSet(av, ulFlags, lpBase));
 }
 
 ADRLIST *List_to_LPADRLIST(PyObject *av, ULONG ulFlags, void *lpBase)
 {
 	// Binary compatible
-	return (LPADRLIST) List_to_LPSRowSet(av, ulFlags, lpBase);
+	return reinterpret_cast<ADRLIST *>(List_to_LPSRowSet(av, ulFlags, lpBase));
 }
 
 PyObject *List_from_ADRLIST(const ADRLIST *lpAdrList)
