@@ -2260,7 +2260,7 @@ static HRESULT ConvertString8ToUnicode(LPSRestriction lpRestriction,
 	return hrSuccess;
 }
 
-static HRESULT ConvertString8ToUnicode(const ADRLIST *lpAdrList, void *base,
+static HRESULT ConvertString8ToUnicode(ADRLIST *lpAdrList, void *base,
     convert_context &converter)
 {
 	if (lpAdrList == NULL)
@@ -2268,7 +2268,7 @@ static HRESULT ConvertString8ToUnicode(const ADRLIST *lpAdrList, void *base,
 
 	for (ULONG c = 0; c < lpAdrList->cEntries; ++c) {
 		// treat as row
-		auto hr = ConvertString8ToUnicode((LPSRow)&lpAdrList->aEntries[c], base, converter);
+		auto hr = ConvertString8ToUnicode(reinterpret_cast<SRow *>(&lpAdrList->aEntries[c]), base, converter);
 		if (hr != hrSuccess)
 			return hr;
 	}
