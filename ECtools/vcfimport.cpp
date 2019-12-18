@@ -53,11 +53,11 @@ static std::string vtm_slurp(const char *file)
 	return content;
 }
 
-static HRESULT vtm_perform(IMsgStore *store, IMessage *msg, std::string &&vcf)
+static HRESULT vtm_perform(IMAPIFolder *fld, IMessage *msg, std::string &&vcf)
 {
 	std::unique_ptr<vcftomapi> conv;
 
-	auto ret = create_vcftomapi(store, &unique_tie(conv));
+	auto ret = create_vcftomapi(fld, &unique_tie(conv));
 	if (ret != hrSuccess)
 		return kc_perrorf("create_vcftomapi", ret);
 	if (conv == nullptr)
@@ -116,7 +116,7 @@ static HRESULT vtm_login(int argc, const char **argv)
 		auto vcf = vtm_slurp(nullptr);
 		if (vcf.empty())
 			return hrSuccess;
-		ret = vtm_perform(store, msg, std::move(vcf));
+		ret = vtm_perform(root, msg, std::move(vcf));
 		if (ret != hrSuccess)
 			return kc_perror("vtm_perform", ret);
 		msg->SaveChanges(0);
@@ -130,7 +130,7 @@ static HRESULT vtm_login(int argc, const char **argv)
 		if (ret != hrSuccess)
 			return kc_perror("create contact", ret);
 		auto vcf = vtm_slurp(*argv++);
-		ret = vtm_perform(store, msg, std::move(vcf));
+		ret = vtm_perform(root, msg, std::move(vcf));
 		if (ret != hrSuccess)
 			return kc_perror("vtm_perform", ret);
 		msg->SaveChanges(0);

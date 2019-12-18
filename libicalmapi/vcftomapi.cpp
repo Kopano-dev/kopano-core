@@ -37,7 +37,8 @@ class vcftomapi_impl final : public vcftomapi {
 	 */
 	vcftomapi_impl(IMAPIProp *o) : vcftomapi(o) {}
 	HRESULT parse_vcf(const std::string &) override;
-	HRESULT get_item(IMessage *) override;
+	size_t get_item_count() override;
+	HRESULT get_item(IMessage *, unsigned int pos) override;
 
 	private:
 	enum photo_type_enum { PHOTO_NONE, PHOTO_JPEG, PHOTO_PNG, PHOTO_GIF } ;
@@ -62,7 +63,7 @@ class vcftomapi_impl final : public vcftomapi {
 	HRESULT vobject_to_named_prop(VObject *, SPropValue &, ULONG named_proptype);
 	HRESULT unicode_to_named_prop(const wchar_t *, SPropValue &, ULONG named_proptype);
 
-	std::list<contact> m_contacts;
+	std::vector<contact> m_contacts;
 	/* Fake buffer for attaching MAPIAllocateMore buffers */
 	memory_ptr<char> m_propblk;
 };
@@ -367,8 +368,16 @@ HRESULT vcftomapi_impl::handle_UID(VObject *v, contact &ct)
 
 	auto uid_wstring = vObjectUStringZValue(v);
 	auto uid_string = convert_to<std::string>(uid_wstring);
-	SPropValue s;
-	auto hr = HrMakeBinaryUID(uid_string, nullptr, &s);
+	memory_ptr<SPropValue> prop;
+	/*
+	 * uid needs to be attached to an autodestructed buffer,
+	 * in case GetIDsFromNames fails.
+	 */
+	auto hr = MAPIAllocateBuffer(sizeof(SPropValue), &~prop);
+	if (hr != hrSuccess)
+		return hr;
+
+	hr = HrMakeBinaryUID(uid_string, prop, prop);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -382,7 +391,12 @@ HRESULT vcftomapi_impl::handle_UID(VObject *v, contact &ct)
 	if (FAILED(hr))
 		return hr;
 
+	SPropValue s;
 	s.ulPropTag = CHANGE_PROP_TYPE(proptag->aulPropTag[0], PT_BINARY);
+	s.Value.bin.cb = prop->Value.bin.cb;
+	hr = KAllocCopy(prop->Value.bin.lpb, prop->Value.bin.cb, reinterpret_cast<void **>(&s.Value.bin.lpb), m_propblk);
+	if (hr != hrSuccess)
+		return hr;
 	ct.props.emplace_back(std::move(s));
 	return hrSuccess;
 }
@@ -604,7 +618,8 @@ HRESULT vcftomapi_impl::parse_vcard(VObject *vcard)
 				return hr;
 		}
 	}
-	m_contacts.emplace_back(std::move(ct));
+	if (ct.props.size() > 0)
+		m_contacts.emplace_back(std::move(ct));
 	return hrSuccess;
 }
 
@@ -671,14 +686,19 @@ HRESULT vcftomapi_impl::unicode_to_named_prop(const wchar_t *v, SPropValue &s,
 	return hrSuccess;
 }
 
+size_t vcftomapi_impl::get_item_count()
+{
+	return m_contacts.size();
+}
+
 /**
  * Sets mapi properties in Imessage object from the icalitem.
  */
-HRESULT vcftomapi_impl::get_item(IMessage *msg)
+HRESULT vcftomapi_impl::get_item(IMessage *msg, unsigned int pos)
 {
 	if (msg == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	if (m_contacts.size() == 0)
+	if (pos >= m_contacts.size())
 		return MAPI_E_NOT_FOUND;
 
 	SPropValue s;
@@ -693,23 +713,22 @@ HRESULT vcftomapi_impl::get_item(IMessage *msg)
 
 	name.lpguid = const_cast<GUID *>(&PSETID_Common);
 	name.ulKind = MNID_ID;
-	name.Kind.lID = 0x8514;
+	name.Kind.lID = dispidSmartNoAttach;
 
 	hr = msg->GetIDsFromNames(1, &namep, MAPI_CREATE, &~proptag);
 	if (hr != hrSuccess)
 		return hr;
 	s.ulPropTag = CHANGE_PROP_TYPE(proptag->aulPropTag[0], PT_BOOLEAN);
 	s.Value.b = true;
-	auto &ct = *m_contacts.begin();
-	ct.props.emplace_back(std::move(s));
-
+	hr = msg->SetProps(1, &s, nullptr);
+	if (hr != hrSuccess)
+		return hr;
+	const auto &ct = m_contacts[pos];
 	hr = msg->SetProps(ct.props.size(), &ct.props[0], nullptr);
 	if (hr != hrSuccess)
 		return hr;
 	if (ct.phototype != PHOTO_NONE)
 		hr = save_photo(ct, msg);
-	if (hr == hrSuccess)
-		m_contacts.pop_front();
 	return hr;
 }
 

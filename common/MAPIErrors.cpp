@@ -143,8 +143,6 @@ std::string getMapiCodeString(HRESULT hr, const char* object /* = "object" */)
 		return "\"" + objectstring + "\" already exists";
 	case MAPI_E_NO_ACCESS:
 		return retval + " \"" + objectstring + "\"";
-	case MAPI_E_UNABLE_TO_COMPLETE:
-		return "please check your license";
 	case MAPI_E_INVALID_TYPE:
 		return "invalid type combination";
 	default:

@@ -107,6 +107,8 @@ Packaging changes:
 Fixes:
 * dagent, spooler: workaround crash during Python GC [KC-1427]
 * spooler: do not emit "not found" when rule does not match [KS-44090]
+* gateway: avoid one crash case for deeply-nested HTML mail [KC-1653]
+* admin: admin: fix error message when --{udqw,udqs,udqh} is missing
 
 
 8.7.9 (2019-12-10)

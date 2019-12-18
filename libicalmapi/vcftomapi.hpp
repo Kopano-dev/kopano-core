@@ -15,17 +15,18 @@ class vcftomapi {
 	virtual ~vcftomapi(void) = default;
 
 	/**
-	 * Parses the contents of a .vcf file and adds recognized VCARDs to the
-	 * internal buffer. Returns %MAPI_E_CORRUPT_DATA if no VCARDs were found.
+	 * Parses the contents of a .vcf file and adds recognized vCards to the
+	 * internal buffer. Returns %MAPI_E_CORRUPT_DATA if no vCards were found.
 	 */
 	virtual HRESULT parse_vcf(const std::string &ical) = 0;
 
+	virtual size_t get_item_count() = 0;
+
 	/**
-	 * Pops the next VCARD (contact) available in the internal buffer and
-	 * sets the given MAPI message's properties with the data.
-	 * Returns %MAPI_E_NOT_FOUND once no more VCARDs are available.
+	 * Retrieve the selected vCard (contact) available in the internal
+	 * buffers and sets the given MAPI message's properties with the data.
 	 */
-	virtual HRESULT get_item(IMessage *) = 0;
+	virtual HRESULT get_item(IMessage *, unsigned int section = 0) = 0;
 
 	protected:
 	IMAPIProp *m_propobj;
