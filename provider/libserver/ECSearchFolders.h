@@ -386,7 +386,7 @@ private:
     // List of change events
     std::list<EVENT> m_lstEvents;
 	std::recursive_mutex m_mutexEvents;
-	std::condition_variable_any m_condEvents;
+	std::condition_variable_any m_condEvents, m_cond_flush;
 
     // Change processing thread
     pthread_t m_threadProcess;

@@ -104,11 +104,15 @@ Packaging changes:
 
 8.7.x
 =====
+Enhancements:
+* icalmapi: support reading multi-iCal and multi-vCard files [KC-1291]
 Fixes:
 * dagent, spooler: workaround crash during Python GC [KC-1427]
 * spooler: do not emit "not found" when rule does not match [KS-44090]
 * gateway: avoid one crash case for deeply-nested HTML mail [KC-1653]
 * admin: admin: fix error message when --{udqw,udqs,udqh} is missing
+* server: cure a mysql wait phase during shutdown [KC-1645]
+* daemons: avoid deadlock during signal handling [KC-1654]
 
 
 8.7.9 (2019-12-10)
