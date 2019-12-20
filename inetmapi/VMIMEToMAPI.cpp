@@ -1848,11 +1848,18 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 				// mac-binhex40 is appledouble v1, applefile is v2
 				// see: http://www.iana.org/assignments/media-types/multipart/appledouble			
 		} else if (mt->getType() == vmime::mediaTypes::APPLICATION && (mt->getSubType() == "pkcs7-signature" || mt->getSubType() == "x-pkcs7-signature")) {
-			// smime signature (smime.p7s)
-			// must be handled a level above to get all headers and bodies beloning to the signed message
+			/*
+			 * RFC 8551 §3.5.3: S/MIME Cleartext Signing with
+			 * Detached Signature (smime.p7s). This must be handled
+			 * a level above to get all headers and bodies beloning
+			 * to the signed message
+			 */
 			m_mailState.bAttachSignature = true;
 		} else if (mt->getType() == vmime::mediaTypes::APPLICATION && (mt->getSubType() == "pkcs7-mime" || mt->getSubType() == "x-pkcs7-mime")) {
-			// smime encrypted message (smime.p7m), attachment may not be empty
+			/*
+			 * RFC 8551 §3.2: everything else that S/MIME has to give.
+			 * MS-OXOSMIME §2.1.3.2 "Opaque-Signed and Encrypted S/MIME Message".
+			 */
 			hr = handleAttachment(vmHeader, vmBody, lpMessage, L"smime.p7m", false);
 			if (hr == MAPI_E_NOT_FOUND)
 				// skip empty attachment
