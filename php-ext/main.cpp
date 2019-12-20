@@ -6853,7 +6853,7 @@ ZEND_FUNCTION(mapi_icaltomapi2)
 	if (MAPI_G(hr) != hrSuccess)
 		return;
 	/* Set the default timezone to UTC if none is set, replicating the behaviour of VMIMEToMAPI. */
-	MAPI_G(hr) = conv->ParseICal(ics_data, "utf-8", "UTC", nullptr, 0);
+	MAPI_G(hr) = conv->ParseICal2(ics_data, "utf-8", "UTC", nullptr, 0);
 	if (MAPI_G(hr) != hrSuccess)
 		return;
 

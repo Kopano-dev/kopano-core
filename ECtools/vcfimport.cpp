@@ -92,7 +92,7 @@ static HRESULT vtm_import_calendar(IAddrBook *abk, IMAPIFolder *fld,
 		return kc_perrorf("CreateIcalToMapi", ret);
 	if (conv == nullptr)
 		return kc_perrorf("CreateIcalToMapi", MAPI_E_NOT_ENOUGH_MEMORY);
-	ret = conv->ParseICal(ics.c_str(), "UTF-8", "UTC", nullptr, 0);
+	ret = conv->ParseICal2(ics.c_str(), "UTF-8", "UTC", nullptr, 0);
 	if (ret != hrSuccess)
 		return kc_perrorf("ParseIcal", ret);
 
