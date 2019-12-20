@@ -41,7 +41,8 @@ using std::wstring;
  * @return		MAPI error code
  */
 // expect input to be UTF-8 from libical ?
-HRESULT HrCopyString(convert_context& converter, std::string& strCharset, void *base, const char* lpszSrc, WCHAR** lppszDst)
+HRESULT HrCopyString(convert_context &converter, const std::string &strCharset,
+    void *base, const char *lpszSrc, wchar_t **lppszDst)
 {
 	std::wstring strWide;
 

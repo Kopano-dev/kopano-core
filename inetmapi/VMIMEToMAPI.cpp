@@ -1667,11 +1667,15 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 	auto hr = CreateICalToMapi(lpMessage, m_lpAdrBook, true, &unique_tie(lpIcalMapi));
 	if (hr != hrSuccess)
 		return kc_perror("K-1820: Unable to create iCal converter", hr);
-	hr = lpIcalMapi->ParseICal(icaldata, strCharset, "UTC" , NULL, 0);
-	if (hr != hrSuccess || lpIcalMapi->GetItemCount() != 1) {
+	hr = lpIcalMapi->ParseICal2(icaldata.c_str(), strCharset, "UTC" , nullptr, 0);
+	if (hr != hrSuccess) {
 		ec_log_err("K-1826: Unable to parse ical information: %s (%x), items: %d, adding as normal attachment",
 			GetMAPIErrorMessage(hr), hr, lpIcalMapi->GetItemCount());
 		return handleAttachment(vmHeader, vmBody, lpMessage, L"unparsable_ical");
+	} else if (lpIcalMapi->GetItemCount() > 1) {
+		return handleAttachment(vmHeader, vmBody, lpMessage, L"multi_event_ical");
+	} else if (lpIcalMapi->GetItemCount() == 0) {
+		return handleAttachment(vmHeader, vmBody, lpMessage, L"zero_event_ical");
 	}
 
 	if (lpIcalMessage != lpMessage) {
