@@ -1,16 +1,26 @@
 .TH kopano\-vcfimport 1 2019-10-09 "Kopano 8" "Kopano Core user references"
 .SH Name
 .PP
-kopano\-vcfimport \(em Import contacts from .vcf files
+kopano\-vcfimport \(em contact/event importer
 .SH Synopsis
 .PP
-\fBkopano\-oof\fP [\fB\-Px\fP] [\fB\-h\fP \fIuri\fP] [\fB\-s\fP
-\fIsslkeyfile\fP] [\fB\-u\fP \fIusername\fP] \fIfile\fP...
+\fBkopano\-vcfimport\fP [\fB\-\-calendar\fP|\fB\-\-contact\fP] [\fB\-Px\fP]
+[\fB\-h\fP \fIuri\fP] [\fB\-s\fP \fIsslkeyfile\fP] [\fB\-u\fP \fIusername\fP]
+[\fIfile\fP...]
 .SH Description
 .PP
 This program can be used to import contacts from one or more vCard
 (.vcf) files into a user's contact folder (personal address book).
+It also supports importing events from one or more iCalendar (.ics)
+files into a user's calendar. If no files are given, input is read from
+standard input.
 .SH Options
+.TP
+\fB\-\-calendar\fP
+Treat all the input as iCalendar data.
+.TP
+\fB\-\-contact\fP
+Treat all the input as vCard data.
 .TP
 \fB\-h\fP \fIuri\fP
 Connect to the given storage server. By default, the local standard Kopano
@@ -36,6 +46,6 @@ Non-SSL login with password, importing two vCard files.
 .PP
 .RS 4
 .nf
-PASSWORD=foo kopano\-vcfimport -u user1 a.vcf b.vcf
+PASSWORD=foo kopano\-vcfimport \-\-contact \-u user1 a.vcf b.vcf
 .fi
 .RE

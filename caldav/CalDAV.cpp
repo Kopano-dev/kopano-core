@@ -57,7 +57,7 @@ struct socks {
 	std::vector<bool> ssl;
 };
 
-static bool g_bQuit, g_bThreads, g_dump_config;
+static bool g_bQuit, g_bThreads, g_dump_config, g_sighup_flag;
 static std::shared_ptr<ECLogger> g_lpLogger;
 static std::shared_ptr<ECConfig> g_lpConfig;
 static pthread_t mainthread;
@@ -71,30 +71,36 @@ static HRESULT HrHandleRequest(ECChannel *lpChannel);
 
 #define KEEP_ALIVE_TIME 300
 
-static void sigterm(int)
+static void cd_sigterm_async(int)
 {
 	g_bQuit = true;
 }
 
-static void sighup(int)
+static void cd_sighup_async(int)
 {
 	if (g_bThreads && pthread_equal(pthread_self(), mainthread)==0)
 		return;
+	g_sighup_flag = true;
+}
+
+static void cd_sighup_sync()
+{
+	g_sighup_flag = false;
 	if (g_lpConfig != nullptr && !g_lpConfig->ReloadSettings() &&
 	    g_lpLogger != nullptr)
 		ec_log_crit("Unable to reload configuration file, continuing with current settings.");
-	if (g_lpLogger) {
-		if (g_lpConfig) {
-			const char *ll = g_lpConfig->GetSetting("log_level");
-			int new_ll = ll ? atoi(ll) : EC_LOGLEVEL_WARNING;
-			g_lpLogger->SetLoglevel(new_ll);
-		}
-		g_lpLogger->Reset();
-		ec_log_warn("Log connection was reset");
+	if (g_lpLogger == nullptr)
+		return;
+	if (g_lpConfig) {
+		const char *ll = g_lpConfig->GetSetting("log_level");
+		int new_ll = ll ? atoi(ll) : EC_LOGLEVEL_WARNING;
+		g_lpLogger->SetLoglevel(new_ll);
 	}
+	g_lpLogger->Reset();
+	ec_log_warn("Log connection was reset");
 }
 
-static void sigchld(int)
+static void cd_sigchld_async(int)
 {
 	int stat;
 	while (waitpid (-1, &stat, WNOHANG) > 0)
@@ -126,13 +132,13 @@ static HRESULT running_service(char **argv)
 	signal(SIGPIPE, SIG_IGN);
 	sigemptyset(&act.sa_mask);
 	act.sa_flags = SA_ONSTACK | SA_RESETHAND;
-	act.sa_handler = sigterm;
+	act.sa_handler = cd_sigterm_async;
 	sigaction(SIGTERM, &act, nullptr);
 	sigaction(SIGINT, &act, nullptr);
 	act.sa_flags = SA_ONSTACK;
-	act.sa_handler = sighup;
+	act.sa_handler = cd_sighup_async;
 	sigaction(SIGHUP, &act, nullptr);
-	act.sa_handler = sigchld;
+	act.sa_handler = cd_sigchld_async;
 	sigaction(SIGCHLD, &act, nullptr);
 	ec_setup_segv_handler("kopano-ical", PROJECT_VERSION);
 	unix_create_pidfile(argv[0], g_lpConfig.get());
@@ -371,6 +377,8 @@ static HRESULT HrProcessConnections()
 
 	// main program loop
 	while (!g_bQuit) {
+		if (g_sighup_flag)
+			cd_sighup_sync();
 		auto nfds = g_socks.pollfd.size();
 		for (size_t i = 0; i < nfds; ++i)
 			g_socks.pollfd[i].revents = 0;

@@ -36,7 +36,7 @@ public:
 	    - Addressbook (Global AddressBook for looking up users)
 	 */
 	ICalToMapiImpl(IMAPIProp *lpPropObj, LPADRBOOK lpAdrBook, bool bNoRecipients);
-	HRESULT ParseICal(const std::string &ical, const std::string &cset, const std::string &server_tz, IMailUser *, unsigned int flags) override;
+	HRESULT ParseICal2(const char *ical, const std::string &cset, const std::string &server_tz, IMailUser *, unsigned int flags) override;
 	unsigned int GetItemCount() override;
 	HRESULT GetItemInfo(unsigned int pos, eIcalType *, time_t *last_mod, SBinary *uid) override;
 	HRESULT GetItem(unsigned int pos, unsigned int flags, IMessage *) override;
@@ -124,7 +124,9 @@ void ICalToMapiImpl::Clean()
  * 
  * @return MAPI error code
  */
-HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string& strCharset, const std::string& strServerTZparam, IMailUser *lpMailUser, ULONG ulFlags)
+HRESULT ICalToMapiImpl::ParseICal2(const char *ical_data,
+    const std::string &strCharset, const std::string &strServerTZparam,
+    IMailUser *lpMailUser, unsigned int ulFlags)
 {
 	TIMEZONE_STRUCT ttTimeZone = {0};
 	timezone_map tzMap;
@@ -139,7 +141,7 @@ HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string&
 	}
 
 	icalerror_clear_errno();
-	icalcomp_ptr lpicCalendar(icalparser_parse_string(strIcal.c_str()));
+	icalcomp_ptr lpicCalendar(icalparser_parse_string(ical_data));
 
 	if (lpicCalendar == NULL || icalerrno != ICAL_NO_ERROR) {
 		switch (icalerrno) {

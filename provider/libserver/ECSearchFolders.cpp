@@ -1385,12 +1385,8 @@ void ECSearchFolders::FlushAndWait()
 {
 	ulock_rec l_ev(m_mutexEvents);
 	m_condEvents.notify_all();
+	m_cond_flush.wait(l_ev);
 	l_ev.unlock();
-	// let ProcessThread get this lock, and mark the thread running
-	l_ev.lock();
-	l_ev.unlock();
-	// wait for an inactive search thread
-	while (m_bRunning) Sleep(10);
 }
 
 /*
@@ -1427,9 +1423,10 @@ void * ECSearchFolders::ProcessThread(void *lpSearchFolders)
 		 */
 		l_ev.unlock();
         lpThis->FlushEvents();
-        Sleep(1000);
 		lpThis->m_bRunning = false;
-        // Check if we need to exit
+		lpThis->m_cond_flush.notify_all();
+		if (lpThis->m_bExitThread)
+			break;
     }
     return NULL;
 }

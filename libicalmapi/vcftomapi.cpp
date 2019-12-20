@@ -37,6 +37,7 @@ class vcftomapi_impl final : public vcftomapi {
 	 */
 	vcftomapi_impl(IMAPIProp *o) : vcftomapi(o) {}
 	HRESULT parse_vcf(const std::string &) override;
+	HRESULT parse_vcf(std::string &&) override;
 	size_t get_item_count() override;
 	HRESULT get_item(IMessage *, unsigned int pos) override;
 
@@ -466,12 +467,17 @@ HRESULT vcftomapi_impl::handle_PHOTO(VObject *v, contact &ct)
 	return hrSuccess;
 }
 
+HRESULT vcftomapi_impl::parse_vcf(const std::string &ical)
+{
+	return parse_vcf(std::string(ical));
+}
+
 /**
  * Parses an ICal string (with a certain charset) and converts the
  * data in memory. The real MAPI object can be retrieved using
  * GetItem().
  */
-HRESULT vcftomapi_impl::parse_vcf(const std::string &ical)
+HRESULT vcftomapi_impl::parse_vcf(std::string &&tmp_ical)
 {
 	/* Handle libicalvcal bug: The library does not allow
 	 *
@@ -481,7 +487,6 @@ HRESULT vcftomapi_impl::parse_vcf(const std::string &ical)
 	 * Therefore we work around it and replace ":\r\n " or ":\n "
 	 * with ":".
 	 */
-	auto tmp_ical = ical;
 	while (true) {
 		auto pos = tmp_ical.find(":\r\n ");
 		if (pos != std::string::npos) {
