@@ -1621,7 +1621,8 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 					break;
 				case OP_FORWARD:
 				case OP_DELEGATE:
-					MAPI_G(hr) = RowSettoPHPArray((LPSRowSet)lpActions->lpAction[j].lpadrlist, &zval_alist_value TSRMLS_CC); // binary compatible
+					MAPI_G(hr) = RowSettoPHPArray(reinterpret_cast<const SRowSet *>(lpActions->lpAction[j].lpadrlist),
+					             &zval_alist_value TSRMLS_CC); // binary compatible
 					if(MAPI_G(hr) != hrSuccess)
 						return MAPI_G(hr);
 					add_assoc_zval(&zval_action_value, "adrlist", &zval_alist_value);

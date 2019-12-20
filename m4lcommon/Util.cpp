@@ -382,7 +382,8 @@ HRESULT Util::HrCopyProperty(LPSPropValue lpDest, const SPropValue *lpSrc,
 		hr = lpfAllocMore(sizeof(SRestriction), lpBase, reinterpret_cast<void **>(&lpDest->Value.lpszA));
 		if (hr != hrSuccess)
 			return hr;
-		hr = Util::HrCopySRestriction((LPSRestriction)lpDest->Value.lpszA, (LPSRestriction)lpSrc->Value.lpszA, lpBase);
+		hr = Util::HrCopySRestriction(reinterpret_cast<SRestriction *>(lpDest->Value.lpszA),
+		     reinterpret_cast<const SRestriction *>(lpSrc->Value.lpszA), lpBase);
 		break;
 	case PT_ACTIONS:
 		if (lpSrc->Value.lpszA == NULL)

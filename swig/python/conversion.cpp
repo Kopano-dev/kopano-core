@@ -527,12 +527,12 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 	case PT_SRESTRICTION:
 		if (MAPIAllocateMore(sizeof(SRestriction), lpBase, reinterpret_cast<void **>(&lpProp->Value.lpszA)) != hrSuccess)
 			return;
-		Object_to_LPSRestriction(Value, (LPSRestriction)lpProp->Value.lpszA, lpBase);
+		Object_to_LPSRestriction(Value, reinterpret_cast<SRestriction *>(lpProp->Value.lpszA), lpBase);
 		break;
 	case PT_ACTIONS:
 		if (MAPIAllocateMore(sizeof(ACTIONS), lpBase, reinterpret_cast<void **>(&lpProp->Value.lpszA)) != hrSuccess)
 			return;
-		Object_to_LPACTIONS(Value, (ACTIONS*)lpProp->Value.lpszA, lpBase);
+		Object_to_LPACTIONS(Value, reinterpret_cast<ACTIONS *>(lpProp->Value.lpszA), lpBase);
 		break;
 
 #undef PT_MV_CASE
@@ -1421,25 +1421,25 @@ SRowSet *List_to_LPSRowSet(PyObject *obj, ULONG flags, void *lpBase)
 ADRLIST *List_to_p_ADRLIST(PyObject *av, ULONG ulFlags, void *lpBase)
 {
 	// Binary compatible
-	return (LPADRLIST) List_to_LPSRowSet(av, ulFlags, lpBase);
+	return reinterpret_cast<ADRLIST *>(List_to_LPSRowSet(av, ulFlags, lpBase));
 }
 
 ADRLIST *List_to_LPADRLIST(PyObject *av, ULONG ulFlags, void *lpBase)
 {
 	// Binary compatible
-	return (LPADRLIST) List_to_LPSRowSet(av, ulFlags, lpBase);
+	return reinterpret_cast<ADRLIST *>(List_to_LPSRowSet(av, ulFlags, lpBase));
 }
 
 PyObject *List_from_ADRLIST(const ADRLIST *lpAdrList)
 {
 	// Binary compatible
-	return List_from_LPSRowSet((LPSRowSet)lpAdrList);
+	return List_from_LPSRowSet(reinterpret_cast<const SRowSet *>(lpAdrList));
 }
 
 PyObject *List_from_LPADRLIST(const ADRLIST *lpAdrList)
 {
 	// Binary compatible
-	return List_from_LPSRowSet((LPSRowSet)lpAdrList);
+	return List_from_LPSRowSet(reinterpret_cast<const SRowSet *>(lpAdrList));
 }
 
 PyObject *		Object_from_LPSPropProblem(LPSPropProblem lpProblem)

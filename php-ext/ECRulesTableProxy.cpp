@@ -14,7 +14,7 @@
 using namespace KC;
 
 /* conversion from unicode to string8 for rules table data */
-static HRESULT ConvertUnicodeToString8(LPSRestriction lpRes, void *base, convert_context &converter);
+static HRESULT ConvertUnicodeToString8(SRestriction *, void *base, convert_context &);
 static HRESULT ConvertUnicodeToString8(const ACTIONS *lpActions, void *base, convert_context &converter);
 
 ECRulesTableProxy::ECRulesTableProxy(LPMAPITABLE lpTable)
@@ -137,12 +137,14 @@ HRESULT ECRulesTableProxy::QueryRows(LONG lRowCount, ULONG ulFlags, LPSRowSet *l
 	for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
 		auto lpRuleProp = ptrRows[i].cfind(PR_RULE_CONDITION);
 		if (lpRuleProp)
-			hr = ConvertUnicodeToString8((LPSRestriction)lpRuleProp->Value.lpszA, ptrRows[i].lpProps, converter);
+			hr = ConvertUnicodeToString8(reinterpret_cast<SRestriction *>(lpRuleProp->Value.lpszA),
+			     ptrRows[i].lpProps, converter);
 		if (hr != hrSuccess)
 			return hr;
 		lpRuleProp = ptrRows[i].cfind(PR_RULE_ACTIONS);
 		if (lpRuleProp)
-			hr = ConvertUnicodeToString8((ACTIONS*)lpRuleProp->Value.lpszA, ptrRows[i].lpProps, converter);
+			hr = ConvertUnicodeToString8(reinterpret_cast<ACTIONS *>(lpRuleProp->Value.lpszA),
+			     ptrRows[i].lpProps, converter);
 		if (hr != hrSuccess)
 			return hr;
 	}
@@ -199,7 +201,7 @@ static HRESULT ConvertUnicodeToString8(const wchar_t *lpszW, char **lppszA,
 	return hrSuccess;
 }
 
-static HRESULT ConvertUnicodeToString8(LPSRestriction lpRestriction,
+static HRESULT ConvertUnicodeToString8(SRestriction *lpRestriction,
     void *base, convert_context &converter)
 {
 	if (lpRestriction == NULL)

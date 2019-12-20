@@ -221,7 +221,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 	case PT_SRESTRICTION:
 		dp->__union = SOAP_UNION_propValData_res;
 		// NOTE: we placed the object pointer in lpszA to make sure it is on the same offset as Value.x on 32-bit and 64-bit machines
-		hr = CopyMAPIRestrictionToSOAPRestriction(&dp->Value.res, (LPSRestriction)sp->Value.lpszA, lpConverter);
+		hr = CopyMAPIRestrictionToSOAPRestriction(&dp->Value.res, reinterpret_cast<const SRestriction *>(sp->Value.lpszA), lpConverter);
 		break;
 	case PT_ACTIONS: {
 		// NOTE: we placed the object pointer in lpszA to make sure it is on the same offset as Value.x on 32-bit and 64-bit machines
@@ -274,7 +274,8 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 			case OP_FORWARD:
 			case OP_DELEGATE:
 				da->__union = SOAP_UNION__act_adrlist;
-				hr = CopyMAPIRowSetToSOAPRowSet((LPSRowSet)sa->lpadrlist, &da->act.adrlist, lpConverter);
+				hr = CopyMAPIRowSetToSOAPRowSet(reinterpret_cast<const SRowSet *>(sa->lpadrlist),
+				     &da->act.adrlist, lpConverter);
 				if(hr != hrSuccess)
 					return hr;
 				break;
@@ -633,7 +634,8 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 		hr = ECAllocateMore(sizeof(SRestriction), lpBase, reinterpret_cast<void **>(&dp->Value.lpszA));
 		if (hr != hrSuccess)
 			return hr;
-		hr = CopySOAPRestrictionToMAPIRestriction((LPSRestriction)dp->Value.lpszA, sp->Value.res, lpBase, lpConverter);
+		hr = CopySOAPRestrictionToMAPIRestriction(reinterpret_cast<SRestriction *>(dp->Value.lpszA),
+		     sp->Value.res, lpBase, lpConverter);
 		break;
 	case PT_ACTIONS: {
 		if (sp->__union != SOAP_UNION_propValData_actions || sp->Value.actions == nullptr) {
@@ -2258,7 +2260,7 @@ static HRESULT ConvertString8ToUnicode(LPSRestriction lpRestriction,
 	return hrSuccess;
 }
 
-static HRESULT ConvertString8ToUnicode(const ADRLIST *lpAdrList, void *base,
+static HRESULT ConvertString8ToUnicode(ADRLIST *lpAdrList, void *base,
     convert_context &converter)
 {
 	if (lpAdrList == NULL)
@@ -2266,7 +2268,7 @@ static HRESULT ConvertString8ToUnicode(const ADRLIST *lpAdrList, void *base,
 
 	for (ULONG c = 0; c < lpAdrList->cEntries; ++c) {
 		// treat as row
-		auto hr = ConvertString8ToUnicode((LPSRow)&lpAdrList->aEntries[c], base, converter);
+		auto hr = ConvertString8ToUnicode(reinterpret_cast<SRow *>(&lpAdrList->aEntries[c]), base, converter);
 		if (hr != hrSuccess)
 			return hr;
 	}
@@ -2299,9 +2301,11 @@ HRESULT ConvertString8ToUnicode(LPSRow lpRow, void *base, convert_context &conve
 
 	for (ULONG c = 0; c < lpRow->cValues; ++c) {
 		if (PROP_TYPE(lpRow->lpProps[c].ulPropTag) == PT_SRESTRICTION) {
-			hr = ConvertString8ToUnicode((LPSRestriction)lpRow->lpProps[c].Value.lpszA, base ? base : lpRow->lpProps, converter);
+			hr = ConvertString8ToUnicode(reinterpret_cast<SRestriction *>(lpRow->lpProps[c].Value.lpszA),
+			     base != nullptr ? base : lpRow->lpProps, converter);
 		} else if (PROP_TYPE(lpRow->lpProps[c].ulPropTag) == PT_ACTIONS) {
-			hr = ConvertString8ToUnicode((ACTIONS*)lpRow->lpProps[c].Value.lpszA, base ? base : lpRow->lpProps, converter);
+			hr = ConvertString8ToUnicode(reinterpret_cast<ACTIONS *>(lpRow->lpProps[c].Value.lpszA),
+			     base != nullptr ? base : lpRow->lpProps, converter);
 		} else if (base && PROP_TYPE(lpRow->lpProps[c].ulPropTag) == PT_STRING8) {
 			// only for "base" items: e.g. the lpadrlist data, not the PR_RULE_NAME from the top-level
 			hr = ConvertString8ToUnicode(lpRow->lpProps[c].Value.lpszA, &lpRow->lpProps[c].Value.lpszW, base, converter);

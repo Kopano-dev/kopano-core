@@ -520,12 +520,11 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 		return MAPIErrorToArchiveError(hr);
 
 	for (const auto &arc : lstArchives) {
-		ULONG cStoreProps = 0;
+		unsigned int cStoreProps = 0, ulCompareResult = false;
 		SPropArrayPtr ptrStoreProps;
 		ArchiveEntry entry;
 		MAPIFolderPtr ptrArchiveFolder;
 		SPropValuePtr ptrPropValue;
-		ULONG ulCompareResult = FALSE;
 		static constexpr const SizedSPropTagArray(4, sptaStoreProps) = {4, {PR_DISPLAY_NAME_A, PR_MAILBOX_OWNER_ENTRYID, PR_IPM_SUBTREE_ENTRYID, PR_STORE_RECORD_KEY}};
 		enum {IDX_DISPLAY_NAME, IDX_MAILBOX_OWNER_ENTRYID, IDX_IPM_SUBTREE_ENTRYID, IDX_STORE_RECORD_KEY};
 

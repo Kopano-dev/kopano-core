@@ -3494,7 +3494,7 @@ ZEND_FUNCTION(mapi_rules_modifytable) {
 	DEFERRED_EPILOGUE;
 	auto laters = make_scope_success([&]() {
 		if (lpRowList)
-			FreeProws((LPSRowSet)lpRowList);
+			FreeProws(reinterpret_cast<SRowSet *>(lpRowList));
 	});
 
 	ZEND_FETCH_RESOURCE_C(lpRulesTable, LPEXCHANGEMODIFYTABLE, &res, -1, name_mapi_modifytable, le_mapi_modifytable);

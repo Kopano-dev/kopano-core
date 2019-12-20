@@ -998,7 +998,7 @@ HRESULT ZCABContainer::ResolveNames(const SPropTagArray *lpPropTagArray,
 				MAPIFreeBuffer(lpAdrList->aEntries[i].rgPropVals);
 				lpAdrList->aEntries[i].rgPropVals = NULL;
 
-				hr = Util::HrCopySRow((LPSRow)&lpAdrList->aEntries[i], &ptrRows[0], NULL);
+				hr = Util::HrCopySRow(reinterpret_cast<SRow *>(&lpAdrList->aEntries[i]), &ptrRows[0], nullptr);
 				if (hr != hrSuccess)
 					return hr;
 			} else if (ptrRows.size() > 1) {

@@ -1196,8 +1196,8 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 	static constexpr const SizedSSortOrderSet(1, sosRules) =
 		{1, 0, 0, {{PR_RULE_SEQUENCE, TABLE_SORT_ASCEND}}};
 	std::string strRule;
-	LPSRestriction lpCondition = NULL;
-	ACTIONS* lpActions = NULL;
+	const SRestriction *lpCondition = nullptr;
+	const ACTIONS *lpActions = nullptr;
 	memory_ptr<SPropValue> OOFProps;
 	unsigned int cValues, ulResult = 0;
 	SPropValue sForwardProps[4];
@@ -1297,7 +1297,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 		auto lpProp = lpRowSet[0].cfind(PR_RULE_CONDITION);
 		if (lpProp)
 			// NOTE: object is placed in Value.lpszA, not Value.x
-			lpCondition = (LPSRestriction)lpProp->Value.lpszA;
+			lpCondition = reinterpret_cast<const SRestriction *>(lpProp->Value.lpszA);
 		if (!lpCondition) {
 			ec_log_debug("Rule \"%s\" has no condition, skipping...", strRule.c_str());
 			continue;
@@ -1305,7 +1305,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 		lpProp = lpRowSet[0].cfind(PR_RULE_ACTIONS);
 		if (lpProp)
 			// NOTE: object is placed in Value.lpszA, not Value.x
-			lpActions = (ACTIONS*)lpProp->Value.lpszA;
+			lpActions = reinterpret_cast<const ACTIONS *>(lpProp->Value.lpszA);
 		if (!lpActions) {
 			ec_log_debug("Rule '%s' has no action, skipping...", strRule.c_str());
 			continue;

@@ -432,7 +432,7 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 
 		if (setFilter.find(std::string(lpDLEntryID->Value.bin.lpb, lpDLEntryID->Value.bin.lpb + lpDLEntryID->Value.bin.cb)) != setFilter.end()) {
 			// already expanded this group so continue without opening
-			hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE, (LPADRLIST)ptrRow.get());
+			hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE, reinterpret_cast<ADRLIST *>(ptrRow.get()));
 			if (hr != hrSuccess)
 				return hr;
 			continue;
@@ -445,7 +445,7 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 			continue;
 
 		// remove MAPIPDL entry when distlist is opened
-		hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE, (LPADRLIST)ptrRow.get());
+		hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE, reinterpret_cast<ADRLIST *>(ptrRow.get()));
 		if (hr != hrSuccess)
 			return hr;
 		hr = ptrDistList->GetContentsTable(fMapiUnicode, &~ptrMemberTable);
@@ -478,7 +478,7 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 			}
 		}
 
-		hr = lpMessage->ModifyRecipients(MODRECIP_ADD, (LPADRLIST)ptrMembers.get());
+		hr = lpMessage->ModifyRecipients(MODRECIP_ADD, reinterpret_cast<ADRLIST *>(ptrMembers.get()));
 		if (hr != hrSuccess)
 			return hr;
 	}
