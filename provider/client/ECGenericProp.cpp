@@ -724,23 +724,6 @@ HRESULT ECGenericProp::GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArr
 		// Don't add 'hidden' properties
 		if(iterCallBack->second.fHidden)
 			continue;
-
-		// Check if the callback actually returns OK
-		// a bit wasteful but fine for now.
-		ecmem_ptr<SPropValue> lpsPropValue;
-		HRESULT hrT = hrSuccess;
-
-		hr = ECAllocateBuffer(sizeof(SPropValue), &~lpsPropValue);
-		if (hr != hrSuccess)
-			return hr;
-		hrT = iterCallBack->second.lpfnGetProp(iterCallBack->second.ulPropTag,
-		      lpProvider, ulFlags, lpsPropValue, this, lpsPropValue);
-		if (HR_FAILED(hrT) && hrT != MAPI_E_NOT_ENOUGH_MEMORY)
-			continue;
-		if (PROP_TYPE(lpsPropValue->ulPropTag) == PT_ERROR &&
-		    lpsPropValue->Value.err != MAPI_E_NOT_ENOUGH_MEMORY)
-			continue;
-
 		ULONG ulPropTag = iterCallBack->second.ulPropTag;
 		if (PROP_TYPE(ulPropTag) == PT_UNICODE || PROP_TYPE(ulPropTag) == PT_STRING8)
 			ulPropTag = CHANGE_PROP_TYPE(ulPropTag, ((ulFlags & MAPI_UNICODE) ? PT_UNICODE : PT_STRING8));
