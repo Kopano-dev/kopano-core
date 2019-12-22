@@ -39,7 +39,7 @@ struct mpt_stat_entry {
 
 class mpt_job {
 	public:
-	virtual int init();
+	virtual HRESULT init();
 	virtual int run() = 0;
 	private:
 	AutoMAPI m_mapi;
@@ -96,14 +96,12 @@ static int mpt_main_init(void)
 	return EXIT_SUCCESS;
 }
 
-int mpt_job::init()
+HRESULT mpt_job::init()
 {
 	auto ret = m_mapi.Initialize();
-	if (ret != hrSuccess) {
-		perror("MAPIInitialize");
-		return EXIT_FAILURE;
-	}
-	return EXIT_SUCCESS;
+	if (ret != hrSuccess)
+		return kc_perror("MAPIInitialize", ret);
+	return hrSuccess;
 }
 
 static int mpt_basic_open(object_ptr<IMAPISession> &ses,
@@ -161,30 +159,26 @@ int mpt_open1::run()
 
 class mpt_open2 : public mpt_job {
 	public:
-	int init() override;
+	HRESULT init() override;
 	int run() override;
 	private:
 	std::string m_data;
 };
 
-int mpt_open2::init()
+HRESULT mpt_open2::init()
 {
 	auto ret = mpt_job::init();
 	if (ret != hrSuccess)
-		return EXIT_FAILURE;
+		return kc_perror("mpt_job::init", ret);
 	object_ptr<IMAPISession> ses;
 	object_ptr<IMsgStore> store;
 	ret = mpt_basic_open(ses, store);
-	if (ret != hrSuccess) {
-		fprintf(stderr, "mpt_open_base: %s\n", GetMAPIErrorMessage(ret));
-		return EXIT_FAILURE;
-	}
+	if (ret != hrSuccess)
+		return kc_perror("mpt_basic_open", ret);
 	ret = kc_session_save(ses, m_data);
-	if (ret != hrSuccess) {
-		fprintf(stderr, "save failed: %s\n", GetMAPIErrorMessage(ret));
-		return EXIT_FAILURE;
-	}
-	return EXIT_SUCCESS;
+	if (ret != hrSuccess)
+		return kc_perror("kc_session_save", ret);
+	return hrSuccess;
 }
 
 int mpt_open2::run()
@@ -206,7 +200,7 @@ int mpt_open2::run()
 
 class mpt_search final : public mpt_job {
 	public:
-	int init() override;
+	HRESULT init() override;
 	int run() override;
 
 	private:
@@ -216,79 +210,61 @@ class mpt_search final : public mpt_job {
 	memory_ptr<SRestriction> m_rst;
 };
 
-int mpt_search::init()
+HRESULT mpt_search::init()
 {
 	auto ret = mpt_job::init();
 	if (ret != hrSuccess)
-		return EXIT_FAILURE;
+		return kc_perror("mpt_job::init", ret);
 	object_ptr<IMAPISession> ses;
 	object_ptr<IMsgStore> store;
 	ret = mpt_basic_open(ses, store);
-	if (ret != hrSuccess) {
-		kc_perrorf("mpt_basic_open", ret);
-		return EXIT_FAILURE;
-	}
+	if (ret != hrSuccess)
+		return kc_perror("mpt_basic_open", ret);
 
 	/* Set up INBOX for scanning */
 	unsigned int inbox_sz = 0;
 	memory_ptr<ENTRYID> inbox;
 	ret = store->GetReceiveFolder(reinterpret_cast<const TCHAR *>("IPM"), 0, &inbox_sz, &~inbox, nullptr);
-	if (ret != hrSuccess) {
-		kc_perrorf("GRF", ret);
-		return EXIT_FAILURE;
-	}
+	if (ret != hrSuccess)
+		return kc_perror("GetReceiveFolder", ret);
 	fprintf(stderr, "inbox    %s\n", bin2hex(inbox_sz, inbox).c_str());
 	object_ptr<IMAPIFolder> fld;
 	unsigned int objtype;
 	ret = store->OpenEntry(inbox_sz, inbox, &IID_IMAPIFolder, MAPI_MODIFY, &objtype, &~fld);
-	if (ret != hrSuccess) {
-		kc_perrorf("OpenEntry inbox", ret);
-		return EXIT_FAILURE;
-	}
+	if (ret != hrSuccess)
+		return kc_perror("OpenEntry", ret);
 	ret = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~m_scanfld);
-	if (ret != hrSuccess) {
-		kc_perrorf("malloc", ret);
-		return EXIT_FAILURE;
-	}
+	if (ret != hrSuccess)
+		return kc_perrorf("malloc", ret);
 	m_scanfld->cValues = 1;
 	ret = MAPIAllocateMore(sizeof(SBinary) * 1, m_scanfld, reinterpret_cast<void **>(&m_scanfld->lpbin));
-	if (ret != hrSuccess) {
-		kc_perrorf("malloc", ret);
-		return EXIT_FAILURE;
-	}
+	if (ret != hrSuccess)
+		return kc_perrorf("malloc", ret);
 	m_scanfld->lpbin[0].cb = 0;
 	m_scanfld->lpbin[0].lpb = nullptr;
 	ret = MAPIAllocateMore(inbox_sz, m_scanfld, reinterpret_cast<void **>(&m_scanfld->lpbin[0].lpb));
-	if (ret != hrSuccess) {
-		kc_perrorf("malloc", ret);
-		return EXIT_FAILURE;
-	}
+	if (ret != hrSuccess)
+		return kc_perrorf("malloc", ret);
 	m_scanfld->lpbin[0].cb = inbox_sz;
 	memcpy(m_scanfld->lpbin[0].lpb, inbox.get(), inbox_sz);
 
 	/* Create search folder */
 	memory_ptr<SPropValue> pv;
 	ret = HrGetOneProp(store, PR_FINDER_ENTRYID, &~pv);
-	if (ret != hrSuccess) {
-		kc_perrorf("FINDER_ENTRYID", ret);
-		return EXIT_FAILURE;
-	}
+	if (ret != hrSuccess)
+		return kc_perrorf("FINDER_ENTRYID", ret);
 	fprintf(stderr, "findroot %s\n", bin2hex(pv->Value.bin.cb, pv->Value.bin.lpb).c_str());
 	ret = ses->OpenEntry(pv->Value.bin.cb, reinterpret_cast<ENTRYID *>(pv->Value.bin.lpb), &IID_IMAPIFolder, MAPI_MODIFY, &objtype, &~m_findroot);
-	if (ret != hrSuccess) {
-		kc_perrorf("OpenEntry", ret);
-		return EXIT_FAILURE;
-	}
+	if (ret != hrSuccess)
+		return kc_perrorf("OpenEntry", ret);
 
 	char name[32];
 	snprintf(name, sizeof(name), "sf0x%x", rand());
 	printf(">> %s\n", name);
 	ret = m_findroot->CreateFolder(FOLDER_SEARCH, reinterpret_cast<const TCHAR *>(name), reinterpret_cast<const TCHAR *>(L""), &IID_IMAPIFolder, 0, &~m_find);
-	if (ret != hrSuccess) {
-		kc_perrorf("CreateFolder", ret);
-		return EXIT_FAILURE;
-	}
-	return EXIT_SUCCESS;
+	if (ret != hrSuccess)
+		return kc_perrorf("CreateFolder", ret);
+	return hrSuccess;
 }
 
 int mpt_search::run()
@@ -377,18 +353,18 @@ static int mpt_runner(mpt_job &&fct)
 {
 	auto ret = fct.init();
 	if (ret != hrSuccess) {
-		perror("MAPIInitialize");
+		kc_perror("mpt_job::init", ret);
 		return EXIT_FAILURE;
 	}
 	while (mpt_repeat-- > 0) {
 		auto start = clk::now();
 		ret = fct.run();
 		if (ret != EXIT_SUCCESS)
-			break;
+			return ret;
 		auto stop = clk::now();
 		mpt_stat_record(stop - start);
 	}
-	return ret;
+	return EXIT_SUCCESS;
 }
 
 static int mpt_main_pagetime(int argc, char **argv)
