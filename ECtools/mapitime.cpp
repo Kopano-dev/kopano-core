@@ -190,6 +190,74 @@ HRESULT mpt_open2::run()
 	return mpt_basic_work(store);
 }
 
+class mpt_proplist : public mpt_job {
+	public:
+	HRESULT init() override;
+	HRESULT run() override;
+
+	private:
+	object_ptr<IMAPIFolder> m_inbox;
+	rowset_ptr m_rows;
+};
+
+HRESULT mpt_proplist::init()
+{
+	auto ret = mpt_job::init();
+	if (ret != hrSuccess)
+		return kc_perror("mpt_job::init", ret);
+
+	object_ptr<IMAPISession> ses;
+	object_ptr<IMsgStore> store;
+	ret = mpt_basic_open(ses, store);
+	if (ret != hrSuccess)
+		return kc_perror("mpt_basic_open", ret);
+
+	memory_ptr<ENTRYID> eid;
+	unsigned int neid = 0;
+	ret = store->GetReceiveFolder(reinterpret_cast<const TCHAR *>("IPM"), 0, &neid, &~eid, nullptr);
+	if (ret != hrSuccess)
+		return kc_perror("GetReceiveFolder", ret);
+	unsigned int type = 0;
+	ret = store->OpenEntry(neid, eid, &iid_of(m_inbox), MAPI_MODIFY, &type, &~m_inbox);
+	if (ret != hrSuccess)
+		return kc_perror("OpenEntry", ret);
+
+	object_ptr<IMAPITable> tbl;
+	ret = m_inbox->GetContentsTable(MAPI_UNICODE, &~tbl);
+	if (ret != hrSuccess)
+		return kc_perror("GetContentTable", ret);
+	ret = tbl->QueryRows(-1, 0, &~m_rows);
+	if (ret != hrSuccess)
+		return kc_perror("QueryRows", ret);
+	if (m_rows == nullptr || m_rows.size() == 0) {
+		printf("You need at least one message in inbox.\n");
+		return MAPI_E_NOT_FOUND;
+	}
+	return hrSuccess;
+}
+
+HRESULT mpt_proplist::run()
+{
+	unsigned int type = 0;
+	object_ptr<IMessage> msg;
+
+	for (unsigned int i = 0; i < m_rows.size(); ++i) {
+		auto prop = m_rows[i].find(PR_ENTRYID);
+		if (prop == nullptr)
+			continue;
+		auto ret = m_inbox->OpenEntry(prop->Value.bin.cb,
+		           reinterpret_cast<const ENTRYID *>(prop->Value.bin.lpb),
+		           &iid_of(msg), MAPI_MODIFY, &type, &~msg);
+		if (ret != hrSuccess)
+			return kc_perror("OpenEntry", ret);
+		memory_ptr<SPropTagArray> spta;
+		ret = msg->GetPropList(MAPI_UNICODE, &~spta);
+		if (ret != hrSuccess)
+			return kc_perror("GetPropList", ret);
+	}
+	return hrSuccess;
+}
+
 class mpt_search final : public mpt_job {
 	public:
 	HRESULT init() override;
@@ -487,6 +555,7 @@ static void mpt_usage(void)
 	fprintf(stderr, "  init        Just the library initialization\n");
 	fprintf(stderr, "  open1       Measure: init, login, open store, open root container\n");
 	fprintf(stderr, "  open2       Like open1, but use Save-Restore\n");
+	fprintf(stderr, "  proplist    Measure IMessage::GetPropList\n");
 	fprintf(stderr, "  pagetime    Measure webpage retrieval time\n");
 	fprintf(stderr, "  exectime    Measure process runtime\n");
 	fprintf(stderr, "  qicast      Measure QueryInterface throughput\n");
@@ -559,6 +628,8 @@ int main(int argc, char **argv)
 		ret = mpt_runner(mpt_open1());
 	else if (strcmp(argv[1], "open2") == 0)
 		ret = mpt_runner(mpt_open2());
+	else if (strcmp(argv[1], "proplist") == 0)
+		ret = mpt_runner(mpt_proplist());
 	else if (strcmp(argv[1], "exectime") == 0)
 		ret = mpt_main_exectime(argc - 1, argv + 1);
 	else if (strcmp(argv[1], "pagetime") == 0)
