@@ -40,7 +40,7 @@ struct mpt_stat_entry {
 class mpt_job {
 	public:
 	virtual HRESULT init();
-	virtual int run() = 0;
+	virtual HRESULT run() = 0;
 	private:
 	AutoMAPI m_mapi;
 };
@@ -123,44 +123,40 @@ static int mpt_basic_open(object_ptr<IMAPISession> &ses,
 	return hrSuccess;
 }
 
-static int mpt_basic_work(IMsgStore *store)
+static HRESULT mpt_basic_work(IMsgStore *store)
 {
 	memory_ptr<ENTRYID> eid;
 	ULONG neid = 0;
 	auto ret = store->GetReceiveFolder(reinterpret_cast<const TCHAR *>("IPM"), 0, &neid, &~eid, nullptr);
-	if (ret != hrSuccess) {
-		fprintf(stderr, "GRF failed: %s\n", GetMAPIErrorMessage(ret));
-		return EXIT_FAILURE;
-	}
+	if (ret != hrSuccess)
+		return kc_perror("GetReceiveFolder", ret);
 	object_ptr<IMAPIFolder> folder;
 	ULONG type = 0;
 	ret = store->OpenEntry(0, nullptr, &iid_of(folder), MAPI_MODIFY, &type, &~folder);
-	if (ret != hrSuccess) {
-		fprintf(stderr, "OE failed: %s\n", GetMAPIErrorMessage(ret));
-		return EXIT_FAILURE;
-	}
-	return EXIT_SUCCESS;
+	if (ret != hrSuccess)
+		return kc_perror("OpenEntry", ret);
+	return hrSuccess;
 }
 
 class mpt_open1 : public mpt_job {
 	public:
-	int run() override;
+	HRESULT run() override;
 };
 
-int mpt_open1::run()
+HRESULT mpt_open1::run()
 {
 	object_ptr<IMAPISession> ses;
 	object_ptr<IMsgStore> store;
 	auto ret = mpt_basic_open(ses, store);
 	if (ret != hrSuccess)
-		return EXIT_FAILURE;
+		return kc_perror("mpt_basic_open", ret);
 	return mpt_basic_work(store);
 }
 
 class mpt_open2 : public mpt_job {
 	public:
 	HRESULT init() override;
-	int run() override;
+	HRESULT run() override;
 	private:
 	std::string m_data;
 };
@@ -181,27 +177,23 @@ HRESULT mpt_open2::init()
 	return hrSuccess;
 }
 
-int mpt_open2::run()
+HRESULT mpt_open2::run()
 {
 	object_ptr<IMAPISession> ses;
 	auto ret = kc_session_restore(m_data, &~ses);
-	if (ret != hrSuccess) {
-		fprintf(stderr, "restore failed: %s\n", GetMAPIErrorMessage(ret));
-		return EXIT_FAILURE;
-	}
+	if (ret != hrSuccess)
+		return kc_perror("kc_session_restore", ret);
 	object_ptr<IMsgStore> store;
 	ret = HrOpenDefaultStore(ses, &~store);
-	if (ret != hrSuccess) {
-		fprintf(stderr, "OpenDefaultStore: %s\n", GetMAPIErrorMessage(ret));
-		return EXIT_FAILURE;
-	}
+	if (ret != hrSuccess)
+		return kc_perror("OpenDefaultStore", ret);
 	return mpt_basic_work(store);
 }
 
 class mpt_search final : public mpt_job {
 	public:
 	HRESULT init() override;
-	int run() override;
+	HRESULT run() override;
 
 	private:
 	unsigned int m_rfsize = 0;
@@ -267,7 +259,7 @@ HRESULT mpt_search::init()
 	return hrSuccess;
 }
 
-int mpt_search::run()
+HRESULT mpt_search::run()
 {
 	/* Do it like WebApp does */
 	SPropValue cls[7], spv[] = {
@@ -339,14 +331,12 @@ int mpt_search::run()
 		ECContentRestriction(FL_IGNORECASE | FL_PREFIX, PR_MESSAGE_CLASS, &cls[6], ECRestriction::Cheap)
 	))
 	.CreateMAPIRestriction(&~m_rst, ECRestriction::Cheap);
-	if (ret != hrSuccess) {
-		kc_perrorf("CreateMAPIRestriction", ret);
-		return EXIT_FAILURE;
-	}
+	if (ret != hrSuccess)
+		return kc_perrorf("CreateMAPIRestriction", ret);
 	ret = m_find->SetSearchCriteria(m_rst, m_scanfld, RECURSIVE_SEARCH | RESTART_SEARCH);
 	if (ret != hrSuccess)
-		kc_perrorf("SetSearchCriteria", ret);
-	return EXIT_SUCCESS;
+		return kc_perrorf("SetSearchCriteria", ret);
+	return hrSuccess;
 }
 
 static int mpt_runner(mpt_job &&fct)
@@ -359,8 +349,10 @@ static int mpt_runner(mpt_job &&fct)
 	while (mpt_repeat-- > 0) {
 		auto start = clk::now();
 		ret = fct.run();
-		if (ret != EXIT_SUCCESS)
-			return ret;
+		if (ret != hrSuccess) {
+			kc_perror("mpt_job::run", ret);
+			return EXIT_FAILURE;
+		}
 		auto stop = clk::now();
 		mpt_stat_record(stop - start);
 	}
