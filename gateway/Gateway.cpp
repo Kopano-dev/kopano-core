@@ -68,12 +68,11 @@ struct socks {
 };
 
 static int daemonize = 1;
-static bool quit = 0, g_sighup_flag;
-static bool bThreads, g_dump_config;
+static bool quit = 0, bThreads, g_dump_config;
+static std::atomic<bool> g_sighup_flag{false};
 static const char *szPath;
 static std::shared_ptr<ECLogger> g_lpLogger;
 static std::shared_ptr<ECConfig> g_lpConfig;
-static pthread_t mainthread;
 static std::atomic<int> nChildren{0};
 static std::string g_strHostString;
 static struct socks g_socks;
@@ -85,14 +84,14 @@ static void gw_sigterm_async(int)
 
 static void gw_sighup_async(int)
 {
-	if (bThreads && pthread_equal(pthread_self(), mainthread)==0)
-		return;
 	g_sighup_flag = true;
 }
 
 static void gw_sighup_sync()
 {
-	g_sighup_flag = false;
+	bool expect_one = true;
+	if (!g_sighup_flag.compare_exchange_strong(expect_one, false))
+		return;
 	if (g_lpConfig != nullptr && !g_lpConfig->ReloadSettings() &&
 	    g_lpLogger != nullptr)
 		ec_log_err("Unable to reload configuration file, continuing with current settings.");
@@ -448,7 +447,6 @@ int main(int argc, char *argv[]) {
 		bThreads = true;
 		g_lpLogger->SetLogprefix(LP_TID);
 	}
-	mainthread = pthread_self();
 	if (!szPath)
 		szPath = g_lpConfig->GetSetting("server_socket");
 	g_strHostString = g_lpConfig->GetSetting("server_hostname", NULL, "");
@@ -691,6 +689,8 @@ static HRESULT running_service(char **argv)
 
 	// Mainloop
 	while (!quit) {
+		if (g_sighup_flag)
+			gw_sighup_sync();
 		auto nfds = g_socks.pollfd.size();
 		for (size_t i = 0; i < nfds; ++i)
 			g_socks.pollfd[i].revents = 0;
