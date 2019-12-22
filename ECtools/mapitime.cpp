@@ -45,6 +45,7 @@ class mpt_job {
 };
 
 static pthread_t mpt_ticker;
+static bool mpt_ticker_quit;
 static std::list<struct mpt_stat_entry> mpt_stat_list;
 static std::mutex mpt_stat_lock;
 static const char *mpt_user, *mpt_pass, *mpt_socket;
@@ -53,7 +54,7 @@ static int mpt_loglevel = EC_LOGLEVEL_NOTICE;
 
 static void *mpt_stat_dump(void *)
 {
-	for (;; sleep(1)) {
+	for (; !mpt_ticker_quit; sleep(1)) {
 		std::unique_lock<std::mutex> locker(mpt_stat_lock);
 		size_t z = mpt_stat_list.size();
 		if (z == 0)
@@ -68,6 +69,7 @@ static void *mpt_stat_dump(void *)
 		printf("\r\x1b\x5b""2K%.1f per second", z / std::chrono::duration_cast<std::chrono::duration<double>>(dt).count());
 		fflush(stdout);
 	}
+	printf("\n");
 	return nullptr;
 }
 
@@ -611,7 +613,7 @@ int main(int argc, char **argv)
 		ret = mpt_runner(mpt_search());
 	else
 		mpt_usage();
-	pthread_cancel(mpt_ticker);
+	mpt_ticker_quit = true;
 	pthread_join(mpt_ticker, nullptr);
 	return ret;
 }
