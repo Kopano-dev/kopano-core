@@ -112,7 +112,7 @@ public:
 };
 #endif
 
-extern bool sv_sighup_flag;
+extern std::atomic<bool> sv_sighup_flag;
 extern void sv_sighup_sync();
 
 #endif
