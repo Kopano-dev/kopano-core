@@ -195,7 +195,7 @@ class mpt_proplist : public mpt_job {
 	HRESULT init() override;
 	HRESULT run() override;
 
-	private:
+	protected:
 	object_ptr<IMAPIFolder> m_inbox;
 	rowset_ptr m_rows;
 };
@@ -255,6 +255,41 @@ HRESULT mpt_proplist::run()
 		if (ret != hrSuccess)
 			return kc_perror("GetPropList", ret);
 	}
+	return hrSuccess;
+}
+
+class mpt_proplist1 : public mpt_proplist {
+	public:
+	HRESULT init() override;
+	HRESULT run() override;
+
+	protected:
+	object_ptr<IMessage> m_msg;
+};
+
+HRESULT mpt_proplist1::init()
+{
+	auto ret = mpt_proplist::init();
+	if (ret != hrSuccess)
+		return kc_perror("mpt_proplist::init", ret);
+	auto prop = m_rows[0].find(PR_ENTRYID);
+	if (prop == nullptr)
+		return kc_perror("PR_ENTRYID", MAPI_E_NOT_FOUND);
+	unsigned int type = 0;
+	ret = m_inbox->OpenEntry(prop->Value.bin.cb,
+	      reinterpret_cast<const ENTRYID *>(prop->Value.bin.lpb),
+	      &iid_of(m_msg), MAPI_MODIFY, &type, &~m_msg);
+	if (ret != hrSuccess)
+		return kc_perror("OpenEntry", ret);
+	return hrSuccess;
+}
+
+HRESULT mpt_proplist1::run()
+{
+	memory_ptr<SPropTagArray> spta;
+	auto ret = m_msg->GetPropList(MAPI_UNICODE, &~spta);
+	if (ret != hrSuccess)
+		return kc_perror("GetPropList", ret);
 	return hrSuccess;
 }
 
@@ -555,7 +590,8 @@ static void mpt_usage(void)
 	fprintf(stderr, "  init        Just the library initialization\n");
 	fprintf(stderr, "  open1       Measure: init, login, open store, open root container\n");
 	fprintf(stderr, "  open2       Like open1, but use Save-Restore\n");
-	fprintf(stderr, "  proplist    Measure IMessage::GetPropList\n");
+	fprintf(stderr, "  proplist    Measure GetPropList over inbox\n");
+	fprintf(stderr, "  proplist1   Measure IMessage::GetPropList over first message\n");
 	fprintf(stderr, "  pagetime    Measure webpage retrieval time\n");
 	fprintf(stderr, "  exectime    Measure process runtime\n");
 	fprintf(stderr, "  qicast      Measure QueryInterface throughput\n");
@@ -630,6 +666,8 @@ int main(int argc, char **argv)
 		ret = mpt_runner(mpt_open2());
 	else if (strcmp(argv[1], "proplist") == 0)
 		ret = mpt_runner(mpt_proplist());
+	else if (strcmp(argv[1], "proplist1") == 0)
+		ret = mpt_runner(mpt_proplist1());
 	else if (strcmp(argv[1], "exectime") == 0)
 		ret = mpt_main_exectime(argc - 1, argv + 1);
 	else if (strcmp(argv[1], "pagetime") == 0)
