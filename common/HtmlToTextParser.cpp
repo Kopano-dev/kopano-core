@@ -658,8 +658,9 @@ static bool rosie_strip_nodes(TidyDoc tdoc)
 			parent    = tidyGetParent(curr_node);
 		}
 		curr_node = next_node;
+		if (nesting == 0)
+			break;
 	}
-	assert(nesting == 0);
 	return true;
 }
 

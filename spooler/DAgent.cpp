@@ -3513,6 +3513,8 @@ int main(int argc, char **argv) try {
 					headers.push_back(elem);
 			}
 		}
+		if (parseBool(g_lpConfig->GetSetting("no_double_forward")))
+			sDeliveryArgs.sDeliveryOpts.indexed_headers.push_back("x-kopano-rule-action");
 	}
 
 	signal(SIGPIPE, SIG_IGN);
