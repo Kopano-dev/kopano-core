@@ -140,7 +140,7 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 
 	if (ssl_include != 0)
 		// Exclude everything, except those that are included (and let excludes still override those)
-		ssl_exclude |= 0x1f & ~ssl_include;
+		ssl_exclude |= ~ssl_include;
 	if ((ssl_exclude & 0x01) != 0)
 		ssl_op |= SSL_OP_NO_SSLv2;
 	if ((ssl_exclude & 0x02) != 0)
