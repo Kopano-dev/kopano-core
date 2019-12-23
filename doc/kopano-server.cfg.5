@@ -465,7 +465,8 @@ A space-separated list of disabled or enabled protocol names. Supported
 protocol names depend on the system's SSL library; depending on version, one or
 more of the following are available: \fBTLSv1.3\fP, \fBTLSv1.2\fP,
 \fBTLSv1.1\fP, \fBSSLv3\fP, \fBSSLv2\fP. To disable a protocol, prefix the name
-with an exclamation mark.
+exclamation mark. The set of ultimately enabled protocols must be contiguous
+(this is a requirement of the TLS protocol).
 .PP
 Default: \fI!SSLv2 !SSLv3 !TLSv1 !TLSv1.1\fP
 .SS server_ssl_ciphers
