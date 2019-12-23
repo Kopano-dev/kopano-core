@@ -4,6 +4,7 @@
  */
 #include <kopano/platform.h>
 #include <condition_variable>
+#include <atomic>
 #include <memory>
 #include <mutex>
 #include <new>
@@ -35,10 +36,11 @@ using std::endl;
 
 static std::shared_ptr<ECLogger> g_lpLogger;
 static std::unique_ptr<ECTHREADMONITOR> m_lpThreadMonitor;
-static std::mutex m_hExitMutex;
-static std::condition_variable m_hExitSignal;
-static pthread_t			mainthread;
+static std::atomic<bool> mo_sighup_flag{false};
+static std::condition_variable mo_wakeup_cond;
 static bool g_dump_config;
+
+static void mo_sighup_deferred();
 
 static HRESULT running_service(void)
 {
@@ -57,31 +59,35 @@ static HRESULT running_service(void)
 
 	// Add Quota monitor
 	hr = lpECScheduler->AddSchedule(SCHEDULE_MINUTES, ulInterval, ECQuotaMonitor::Create, m_lpThreadMonitor.get());
-	if (hr != hrSuccess) {
-		ec_log_crit("Unable to add quota monitor schedule");
-		return hr;
+	if (hr != hrSuccess)
+		return kc_perror("Unable to add quota monitor schedule", hr);
+	std::mutex mtx;
+	while (!m_lpThreadMonitor->bShutdown) {
+		if (mo_sighup_flag)
+			mo_sighup_deferred();
+		ulock_normal lk(mtx);
+		mo_wakeup_cond.wait(lk);
 	}
-	ulock_normal l_exit(m_hExitMutex);
-	m_hExitSignal.wait(l_exit);
 	return hrSuccess;
 }
 
-static void sighandle(int sig)
+static void mo_sigterm_immed(int sig)
 {
-	if (m_lpThreadMonitor) {
-		if (!m_lpThreadMonitor->bShutdown)
-			/* do not log multimple shutdown messages */
-			ec_log_notice("Termination requested, shutting down.");
+	if (m_lpThreadMonitor != nullptr)
 		m_lpThreadMonitor->bShutdown = true;
-	}
-	m_hExitSignal.notify_one();
+	mo_wakeup_cond.notify_one();
 }
 
-static void sighup(int signr)
+static void mo_sighup_immed(int)
 {
-	// In Win32, the signal is sent in a separate, special signal thread. So this test is
-	// not needed or required.
-	if (pthread_equal(pthread_self(), mainthread)==0)
+	mo_sighup_flag = true;
+	mo_wakeup_cond.notify_one();
+}
+
+static void mo_sighup_deferred()
+{
+	bool expect_one = true;
+	if (!mo_sighup_flag.compare_exchange_strong(expect_one, false))
 		return;
 	if (m_lpThreadMonitor == NULL)
 		return;
@@ -219,8 +225,6 @@ static ECRESULT main2(int argc, char **argv)
 	if (g_dump_config)
 		return m_lpThreadMonitor->lpConfig->dump_config(stdout) == 0 ? hrSuccess : E_FAIL;
 
-	mainthread = pthread_self();
-
 	// setup logging
 	g_lpLogger.reset(CreateLogger(m_lpThreadMonitor->lpConfig.get(), argv[0], "Kopano-Monitor"));
 	ec_log_set(g_lpLogger);
@@ -249,10 +253,10 @@ static ECRESULT main2(int argc, char **argv)
 	struct sigaction act{};
 	sigemptyset(&act.sa_mask);
 	act.sa_flags   = SA_ONSTACK;
-	act.sa_handler = sighandle;
+	act.sa_handler = mo_sigterm_immed;
 	sigaction(SIGTERM, &act, nullptr);
 	sigaction(SIGINT, &act, nullptr);
-	act.sa_handler = sighup;
+	act.sa_handler = mo_sighup_immed;
 	sigaction(SIGHUP, &act, nullptr);
 	ec_setup_segv_handler("kopano-monitor", PROJECT_VERSION);
 
