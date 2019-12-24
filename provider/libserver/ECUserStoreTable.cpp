@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <new>
+#include <utility>
 #include <kopano/platform.h>
 #include "ECDatabase.h"
 #include <mapidefs.h>
@@ -171,7 +172,6 @@ ECRESULT ECUserStoreTable::Load() {
     ECDatabase *lpDatabase = NULL;
 	DB_RESULT lpDBResult;
     std::list<unsigned int> lstObjIds;
-	ECUserStore sUserStore;
 	ECUserManagement *lpUserManagement = lpSession->GetUserManagement();
 	ECSecurity *lpSecurity = lpSession->GetSecurity();
 	objectdetails_t sUserDetails, sDetails;
@@ -211,6 +211,8 @@ ECRESULT ECUserStoreTable::Load() {
 		auto lpDBRow = lpDBResult.fetch_row();
 		if(lpDBRow == NULL)
 			break;
+
+		ECUserStore sUserStore;
 		auto lpDBLength = lpDBResult.fetch_row_lengths();
 		if (lpDBRow[OBJCLASS])
 			objclass = (objectclass_t)atoi(lpDBRow[OBJCLASS]);
@@ -258,29 +260,23 @@ ECRESULT ECUserStoreTable::Load() {
 
 		if (lpDBRow[USERNAME])
 			sUserStore.strGuessname = lpDBRow[USERNAME];
-		else
-			sUserStore.strGuessname.clear();
 
 		if (sUserStore.ulCompanyId > 0 && lpUserManagement->GetObjectDetails(sUserStore.ulCompanyId, &sDetails) == erSuccess)
 			sUserStore.strCompanyName = sDetails.GetPropString(OB_PROP_S_LOGIN);
 
 		if(lpDBRow[HIERARCHYID])
 			sUserStore.ulObjId = atoui(lpDBRow[HIERARCHYID]);
-		else
-			sUserStore.ulObjId = 0;
 
 		sUserStore.tModTime = 0;
 		if (lpDBRow[MODTIME_HI] != nullptr && lpDBRow[MODTIME_LO] != nullptr)
 			sUserStore.tModTime = FileTimeToUnixTime({atoui(lpDBRow[MODTIME_LO]), atoui(lpDBRow[MODTIME_HI])});
 		if(lpDBRow[STORESIZE])
 			sUserStore.ullStoreSize = atoll(lpDBRow[STORESIZE]);
-		else
-			sUserStore.ullStoreSize = 0;
 
 		// add to table
 		lstObjIds.emplace_back(iRowId);
 		// remember details
-		m_mapUserStoreData.emplace(iRowId++, sUserStore);
+		m_mapUserStoreData.emplace(iRowId++, std::move(sUserStore));
 	}
 
 	LoadRows(&lstObjIds, 0);
