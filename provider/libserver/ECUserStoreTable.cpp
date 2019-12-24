@@ -39,7 +39,6 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis,
 	auto pThis = dynamic_cast<ECUserStoreTable *>(lpThis);
 	if (pThis == nullptr)
 		return KCERR_INVALID_PARAMETER;
-	static constexpr const GUID sZeroGuid = {0};
 	auto lpsRowSet = s_alloc<rowSet>(soap);
 	lpsRowSet->__size = 0;
 	lpsRowSet->__ptr = NULL;
@@ -93,16 +92,18 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis,
 				m.__union = SOAP_UNION_propValData_lpszA;
 				m.Value.lpszA = s_strcpy(soap, const_cast<char *>(pThis->m_mapUserStoreData[row.ulObjId].strGuessname.c_str()));
 				break;
-			case PROP_ID(PR_EC_STOREGUID):
-				if (pThis->m_mapUserStoreData[row.ulObjId].sGuid == sZeroGuid)
+			case PROP_ID(PR_EC_STOREGUID): {
+				const auto &g = pThis->m_mapUserStoreData[row.ulObjId].sGuid;
+				if (g.empty())
 					break;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
 				m.__union = SOAP_UNION_propValData_bin;
 				m.Value.bin = s_alloc<xsd__base64Binary>(soap);
-				m.Value.bin->__size = sizeof(GUID);
-				m.Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(GUID));
-				memcpy(m.Value.bin->__ptr, &pThis->m_mapUserStoreData[row.ulObjId].sGuid, sizeof(GUID));
+				m.Value.bin->__size = g.size();
+				m.Value.bin->__ptr = s_alloc<unsigned char>(soap, g.size());
+				memcpy(m.Value.bin->__ptr, g.c_str(), g.size());
 				break;
+			}
 			case PROP_ID(PR_EC_STORETYPE):
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
 				m.__union = SOAP_UNION_propValData_ul;
@@ -247,9 +248,8 @@ ECRESULT ECUserStoreTable::Load() {
 			sUserStore.strUsername = sUserDetails.GetPropString(OB_PROP_S_LOGIN);
 		}
 
-		sUserStore.sGuid = GUID{0};
 		if (lpDBRow[STOREGUID])
-			memcpy(&sUserStore.sGuid, lpDBRow[STOREGUID], lpDBLength[STOREGUID]);
+			sUserStore.sGuid.assign(lpDBRow[STOREGUID], lpDBLength[STOREGUID]);
 
 		if (lpDBRow[STORETYPE])
 			sUserStore.ulStoreType = atoi(lpDBRow[STORETYPE]);

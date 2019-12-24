@@ -24,11 +24,11 @@ struct ECUserStore {
 	objectid_t		sExternId;		// externid of user
 	std::string		strUsername;	// actual username from ECUserManagement
 	std::string		strGuessname;	// "guess" from user_name column in stores table
+	std::string sGuid; /* The GUID of the store */
+	std::string strCompanyName; /* Company name of the store. (can be empty) */
 	unsigned int	ulCompanyId;	// company id of store (or user if store is not found)
-	GUID			sGuid;			// The GUID of the store
 	unsigned int	ulStoreType;	// Type of the store (private, public, archive)
 	unsigned int	ulObjId;		// Hierarchyid of the store
-	std::string		strCompanyName;	// Company name of the store. (can be empty)
 	time_t			tModTime;		// Modification time of the store
 	unsigned long long ullStoreSize;// Size of the store
 };
