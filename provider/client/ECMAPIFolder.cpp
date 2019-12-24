@@ -338,11 +338,15 @@ HRESULT ECMAPIFolder::CreateMessageWithEntryID(const IID *lpInterface,
 	auto hr = ECMessage::Create(GetMsgStore(), true, true, ulFlags & MAPI_ASSOCIATED, false, nullptr, &~lpMessage);
 	if(hr != hrSuccess)
 		return hr;
+	GUID guid;
+	hr = GetMsgStore()->get_store_guid(guid);
+	if (hr != hrSuccess)
+		return kc_perror("get_store_guid", hr);
 
 	if (cbEntryID == 0 || lpEntryID == nullptr ||
-	    HrCompareEntryIdWithStoreGuid(cbEntryID, lpEntryID, &(GetMsgStore()->GetStoreGuid())) != hrSuccess) {
+	    HrCompareEntryIdWithStoreGuid(cbEntryID, lpEntryID, &guid) != hrSuccess) {
 		// No entryid passed or bad entryid passed, create one
-		hr = HrCreateEntryId(GetMsgStore()->GetStoreGuid(), MAPI_MESSAGE, &cbNewEntryId, &~lpNewEntryId);
+		hr = HrCreateEntryId(guid, MAPI_MESSAGE, &cbNewEntryId, &~lpNewEntryId);
 		if (hr != hrSuccess)
 			return hr;
 		hr = lpMessage->SetEntryId(cbNewEntryId, lpNewEntryId);

@@ -40,6 +40,10 @@ Synchronizes all PR_MESSAGE_FLAGS values from the "properties" to the
 "tproperties" table. This action can be executed while kopano\-server
 is active. If you do so, execute `kopano\-srvadm
 \-\-clear\-cache=cell` afterwards.
+.SS kf\-2888
+.PP
+Fixes corruption in the stores.guid column by copying back by re-extracting the
+store GUIDs from the PR_ENTRYID of the store object.
 .SS np\-defrag
 .PP
 Compact the ID space in the namedproperties table and lowers the
