@@ -215,7 +215,7 @@ static HRESULT adm_list_mbt(KServerContext &srvctx)
 		return ret;
 	static constexpr const SizedSPropTagArray(6, sp) =
 		{6, {PR_MAILBOX_OWNER_ENTRYID, PR_EC_STORETYPE,
-		PR_NULL, PR_DISPLAY_NAME_W, PR_LAST_MODIFICATION_TIME,
+		PR_STORE_RECORD_KEY, PR_DISPLAY_NAME_W, PR_LAST_MODIFICATION_TIME,
 		PR_MESSAGE_SIZE_EXTENDED}};
 	ret = table->SetColumns(sp, TBL_BATCH);
 	if (ret != hrSuccess)
@@ -236,6 +236,8 @@ static HRESULT adm_list_mbt(KServerContext &srvctx)
 				outrow["owner"] = bin2hex(p[0].Value.bin);
 			if (p[1].ulPropTag == PR_EC_STORETYPE)
 				outrow["type"] = store_type_string(p[1].Value.ul);
+			if (p[2].ulPropTag == PR_STORE_RECORD_KEY)
+				outrow["guid"] = bin2hex(p[2].Value.bin);
 			if (p[3].ulPropTag == PR_DISPLAY_NAME_W)
 				outrow["display_name_w"] = convert_to<std::string>("UTF-8", p[3].Value.lpszW, rawsize(p[3].Value.lpszW), CHARSET_WCHAR);
 			if (p[4].ulPropTag == PR_LAST_MODIFICATION_TIME)
