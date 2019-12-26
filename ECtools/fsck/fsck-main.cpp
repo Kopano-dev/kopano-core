@@ -356,10 +356,10 @@ HRESULT Fsck::ValidateDuplicateRecipients(LPMESSAGE lpMessage, bool &bChanged)
 {
 	object_ptr<IMAPITable> lpTable;
 	ULONG cRows = 0;
-	std::set<std::string> mapRecip;
+	std::set<std::wstring> mapRecip;
 	std::list<unsigned int> mapiReciptDel;
 	static constexpr const SizedSPropTagArray(5, sptaProps) =
-		{5, {PR_ROWID, PR_DISPLAY_NAME_A, PR_EMAIL_ADDRESS_A,
+		{5, {PR_ROWID, PR_DISPLAY_NAME_W, PR_EMAIL_ADDRESS_W,
 		PR_RECIPIENT_TYPE, PR_ENTRYID}};
 
 	HRESULT hr = lpMessage->GetRecipientTable(0, &~lpTable);
@@ -384,8 +384,8 @@ HRESULT Fsck::ValidateDuplicateRecipients(LPMESSAGE lpMessage, bool &bChanged)
 			break;
 
 		for (unsigned int i = 0; i < pRows->cRows; ++i) {
-			if (pRows[i].lpProps[1].ulPropTag != PR_DISPLAY_NAME_A &&
-			    pRows[i].lpProps[2].ulPropTag != PR_EMAIL_ADDRESS_A) {
+			if (pRows[i].lpProps[1].ulPropTag != PR_DISPLAY_NAME_W &&
+			    pRows[i].lpProps[2].ulPropTag != PR_EMAIL_ADDRESS_W) {
 				mapiReciptDel.emplace_back(pRows[i].lpProps[0].Value.ul);
 				continue;
 			}
@@ -396,13 +396,19 @@ HRESULT Fsck::ValidateDuplicateRecipients(LPMESSAGE lpMessage, bool &bChanged)
 				continue;
 			}
 
-			std::string strData;
-			if (pRows[i].lpProps[1].ulPropTag == PR_DISPLAY_NAME_A)
-				strData += pRows[i].lpProps[1].Value.lpszA;
-			if (pRows[i].lpProps[2].ulPropTag == PR_EMAIL_ADDRESS_A)
-				strData += pRows[i].lpProps[2].Value.lpszA;
-			if (pRows[i].lpProps[3].ulPropTag == PR_RECIPIENT_TYPE)
-				strData += stringify(pRows[i].lpProps[3].Value.ul);
+			std::wstring strData;
+			if (pRows[i].lpProps[1].ulPropTag == PR_DISPLAY_NAME_W) {
+				strData += pRows[i].lpProps[1].Value.lpszW;
+				strData.append(1, L'\0');
+			}
+			if (pRows[i].lpProps[2].ulPropTag == PR_EMAIL_ADDRESS_W) {
+				strData += pRows[i].lpProps[2].Value.lpszW;
+				strData.append(1, L'\0');
+			}
+			if (pRows[i].lpProps[3].ulPropTag == PR_RECIPIENT_TYPE) {
+				strData += wstringify(pRows[i].lpProps[3].Value.ul);
+				strData.append(1, L'\0');
+			}
 			auto res = mapRecip.emplace(std::move(strData));
 			if (!res.second)
 				mapiReciptDel.emplace_back(pRows[i].lpProps[0].Value.ul);
