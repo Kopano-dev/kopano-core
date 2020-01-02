@@ -439,9 +439,15 @@ HRESULT ECMsgStore::Advise(ULONG cbEntryID, const ENTRYID *lpEntryID,
 			return hr;
 		cbEntryID = cbUnWrapStoreID;
 		lpEntryID = lpUnWrapStoreID;
+	} else if (cbEntryID < sizeof(EID_V0)) {
+		return MAPI_E_NO_SUPPORT;
 	} else {
 		// check that the given lpEntryID belongs to the store in m_lpEntryId
-		if (GetStoreGuid() != reinterpret_cast<const EID *>(lpEntryID)->guid)
+		GUID g;
+		hr = get_store_guid(g);
+		if (hr != hrSuccess)
+			return MAPI_E_NO_SUPPORT;
+		if (g != reinterpret_cast<const EID *>(lpEntryID)->guid)
 			return MAPI_E_NO_SUPPORT;
 	}
 
@@ -596,7 +602,11 @@ HRESULT ECMsgStore::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		lpEntryID = lpRootEntryID;
 		cbEntryID = cbRootEntryID;
 	}else {
-		auto hr = HrCompareEntryIdWithStoreGuid(cbEntryID, lpEntryID, &GetStoreGuid());
+		GUID g;
+		auto hr = get_store_guid(g);
+		if (hr != hrSuccess)
+			return kc_perror("get_store_guid", hr);
+		hr = HrCompareEntryIdWithStoreGuid(cbEntryID, lpEntryID, &g);
 		if(hr != hrSuccess)
 			return hr;
 		if(!(ulFlags & MAPI_DEFERRED_ERRORS)) {
@@ -901,10 +911,14 @@ HRESULT ECMsgStore::NotifyNewMail(const NOTIFICATION *lpNotification)
 	// Check input/output variables
 	if (lpNotification == NULL || lpNotification->info.newmail.lpParentID == NULL || lpNotification->info.newmail.lpEntryID == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	auto hr = HrCompareEntryIdWithStoreGuid(lpNotification->info.newmail.cbEntryID, lpNotification->info.newmail.lpEntryID, &GetStoreGuid());
+	GUID guid;
+	auto hr = get_store_guid(guid);
+	if (hr != hrSuccess)
+		return kc_perror("get_store_guid", hr);
+	hr = HrCompareEntryIdWithStoreGuid(lpNotification->info.newmail.cbEntryID, lpNotification->info.newmail.lpEntryID, &guid);
 	if(hr != hrSuccess)
 		return hr;
-	hr = HrCompareEntryIdWithStoreGuid(lpNotification->info.newmail.cbParentID, lpNotification->info.newmail.lpParentID, &GetStoreGuid());
+	hr = HrCompareEntryIdWithStoreGuid(lpNotification->info.newmail.cbParentID, lpNotification->info.newmail.lpParentID, &guid);
 	if(hr != hrSuccess)
 		return hr;
 	return lpTransport->HrNotify(lpNotification);
@@ -955,14 +969,19 @@ HRESULT ECMsgStore::GetPropHandler(unsigned int ulPropTag, void *lpProvider,
 		}
 		break;
 	}
-	case PROP_ID(PR_RECORD_KEY):
+	case PROP_ID(PR_RECORD_KEY): {
+		GUID g;
+		hr = lpStore->get_store_guid(g);
+		if (hr != hrSuccess)
+			return kc_perror("get_store_guid", hr);
 		lpsPropValue->ulPropTag = PR_RECORD_KEY;
-		lpsPropValue->Value.bin.cb = sizeof(MAPIUID);
-		hr = ECAllocateMore(sizeof(MAPIUID), lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
+		lpsPropValue->Value.bin.cb = sizeof(g);
+		hr = ECAllocateMore(sizeof(g), lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
 		if (hr != hrSuccess)
 			break;
-		memcpy(lpsPropValue->Value.bin.lpb, &lpStore->GetStoreGuid(), sizeof(MAPIUID));
+		memcpy(lpsPropValue->Value.bin.lpb, &g, sizeof(g));
 		break;
+	}
 	case PROP_ID(PR_RECEIVE_FOLDER_SETTINGS):
 		lpsPropValue->ulPropTag = PR_RECEIVE_FOLDER_SETTINGS;
 		lpsPropValue->Value.x = 1;
@@ -1082,9 +1101,12 @@ HRESULT ECMsgStore::SetEntryId(ULONG cbEntryId, const ENTRYID *lpEntryId)
 	return hr;
 }
 
-const GUID& ECMsgStore::GetStoreGuid()
+HRESULT ECMsgStore::get_store_guid(GUID &g) const
 {
-	return reinterpret_cast<const EID *>(m_lpEntryId.get())->guid;
+	if (m_cbEntryId < sizeof(EID_V0))
+		return MAPI_E_CORRUPT_DATA;
+	g = reinterpret_cast<const EID *>(m_lpEntryId.get())->guid;
+	return hrSuccess;
 }
 
 HRESULT ECMsgStore::GetWrappedStoreEntryID(ULONG* lpcbWrapped, LPENTRYID* lppWrapped)

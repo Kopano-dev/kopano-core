@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <new>
+#include <utility>
 #include <kopano/platform.h>
 #include "ECDatabase.h"
 #include <mapidefs.h>
@@ -39,7 +40,6 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis,
 	auto pThis = dynamic_cast<ECUserStoreTable *>(lpThis);
 	if (pThis == nullptr)
 		return KCERR_INVALID_PARAMETER;
-	static constexpr const GUID sZeroGuid = {0};
 	auto lpsRowSet = soap_new_rowSet(soap);
 	lpsRowSet->__size = 0;
 	lpsRowSet->__ptr = NULL;
@@ -91,16 +91,18 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis,
 				m.__union = SOAP_UNION_propValData_lpszA;
 				m.Value.lpszA = soap_strdup(soap, pThis->m_mapUserStoreData[row.ulObjId].strGuessname.c_str());
 				break;
-			case PROP_ID(PR_EC_STOREGUID):
-				if (pThis->m_mapUserStoreData[row.ulObjId].sGuid == sZeroGuid)
+			case PROP_ID(PR_EC_STOREGUID): {
+				const auto &g = pThis->m_mapUserStoreData[row.ulObjId].sGuid;
+				if (g.empty())
 					break;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
 				m.__union = SOAP_UNION_propValData_bin;
 				m.Value.bin = soap_new_xsd__base64Binary(soap);
-				m.Value.bin->__size = sizeof(GUID);
-				m.Value.bin->__ptr  = soap_new_unsignedByte(soap, sizeof(GUID));
-				memcpy(m.Value.bin->__ptr, &pThis->m_mapUserStoreData[row.ulObjId].sGuid, sizeof(GUID));
+				m.Value.bin->__size = g.size();
+				m.Value.bin->__ptr  = soap_new_unsignedByte(soap, g.size());
+				memcpy(m.Value.bin->__ptr, &pThis->m_mapUserStoreData[row.ulObjId].sGuid, g.size());
 				break;
+			}
 			case PROP_ID(PR_EC_STORETYPE):
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
 				m.__union = SOAP_UNION_propValData_ul;
@@ -168,7 +170,6 @@ ECRESULT ECUserStoreTable::Load() {
     ECDatabase *lpDatabase = NULL;
 	DB_RESULT lpDBResult;
     std::list<unsigned int> lstObjIds;
-	ECUserStore sUserStore;
 	ECUserManagement *lpUserManagement = lpSession->GetUserManagement();
 	ECSecurity *lpSecurity = lpSession->GetSecurity();
 	objectdetails_t sUserDetails, sDetails;
@@ -208,6 +209,8 @@ ECRESULT ECUserStoreTable::Load() {
 		auto lpDBRow = lpDBResult.fetch_row();
 		if(lpDBRow == NULL)
 			break;
+
+		ECUserStore sUserStore;
 		auto lpDBLength = lpDBResult.fetch_row_lengths();
 		if (lpDBRow[OBJCLASS])
 			objclass = static_cast<objectclass_t>(atoi(lpDBRow[OBJCLASS]));
@@ -245,9 +248,8 @@ ECRESULT ECUserStoreTable::Load() {
 			sUserStore.strUsername = sUserDetails.GetPropString(OB_PROP_S_LOGIN);
 		}
 
-		sUserStore.sGuid = GUID{0};
 		if (lpDBRow[STOREGUID])
-			memcpy(&sUserStore.sGuid, lpDBRow[STOREGUID], lpDBLength[STOREGUID]);
+			sUserStore.sGuid.assign(lpDBRow[STOREGUID], lpDBLength[STOREGUID]);
 
 		if (lpDBRow[STORETYPE])
 			sUserStore.ulStoreType = atoi(lpDBRow[STORETYPE]);
@@ -256,29 +258,23 @@ ECRESULT ECUserStoreTable::Load() {
 
 		if (lpDBRow[USERNAME])
 			sUserStore.strGuessname = lpDBRow[USERNAME];
-		else
-			sUserStore.strGuessname.clear();
 
 		if (sUserStore.ulCompanyId > 0 && lpUserManagement->GetObjectDetails(sUserStore.ulCompanyId, &sDetails) == erSuccess)
 			sUserStore.strCompanyName = sDetails.GetPropString(OB_PROP_S_LOGIN);
 
 		if(lpDBRow[HIERARCHYID])
 			sUserStore.ulObjId = atoui(lpDBRow[HIERARCHYID]);
-		else
-			sUserStore.ulObjId = 0;
 
 		sUserStore.tModTime = 0;
 		if (lpDBRow[MODTIME_HI] != nullptr && lpDBRow[MODTIME_LO] != nullptr)
 			sUserStore.tModTime = FileTimeToUnixTime({atoui(lpDBRow[MODTIME_LO]), atoui(lpDBRow[MODTIME_HI])});
 		if(lpDBRow[STORESIZE])
 			sUserStore.ullStoreSize = atoll(lpDBRow[STORESIZE]);
-		else
-			sUserStore.ullStoreSize = 0;
 
 		// add to table
 		lstObjIds.emplace_back(iRowId);
 		// remember details
-		m_mapUserStoreData.emplace(iRowId++, sUserStore);
+		m_mapUserStoreData.emplace(iRowId++, std::move(sUserStore));
 	}
 
 	LoadRows(&lstObjIds, 0);

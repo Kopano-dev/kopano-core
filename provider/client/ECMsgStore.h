@@ -151,7 +151,7 @@ public:
 	BOOL IsDelegateStore() const;
 	BOOL IsOfflineStore() const { return false; }
 	LPCSTR GetProfileName() const { return m_strProfname.c_str(); }
-	const GUID& GetStoreGuid();
+	HRESULT get_store_guid(GUID &) const;
 	HRESULT GetWrappedStoreEntryID(ULONG* lpcbWrapped, LPENTRYID* lppWrapped);
 	//Special wrapper for the spooler vs outgoing queue
 	HRESULT GetWrappedServerStoreEntryID(ULONG cbEntryId, LPBYTE lpEntryId, ULONG* lpcbWrapped, LPENTRYID* lppWrapped);

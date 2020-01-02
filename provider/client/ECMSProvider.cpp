@@ -427,7 +427,11 @@ HRESULT ECMSProviderSwitch::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 	if (hr != hrSuccess)
 		return hr;
 	// Register ourselves with mapisupport
-	hr = lpMAPISup->SetProviderUID((MAPIUID *)&lpecMDB->GetStoreGuid(), 0);
+	GUID guid;
+	hr = lpecMDB->get_store_guid(guid);
+	if (hr != hrSuccess)
+		return kc_perror("get_store_guid", hr);
+	hr = lpMAPISup->SetProviderUID(reinterpret_cast<const MAPIUID *>(&guid), 0);
 	if (hr != hrSuccess)
 		return hr;
 	// Set profile identity
@@ -515,7 +519,11 @@ HRESULT ECMSProviderSwitch::SpoolerLogon(IMAPISupport *lpMAPISup,
 	if (hr != hrSuccess)
 		return hr;
 	// Register ourselves with mapisupport
-	hr = lpMAPISup->SetProviderUID((MAPIUID *)&lpecMDB->GetStoreGuid(), 0);
+	GUID guid;
+	hr = lpecMDB->get_store_guid(guid);
+	if (hr != hrSuccess)
+		return kc_perror("get_store_guid", hr);
+	hr = lpMAPISup->SetProviderUID(reinterpret_cast<const MAPIUID *>(&guid), 0);
 	if (hr != hrSuccess)
 		return hr;
 

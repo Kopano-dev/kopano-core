@@ -1992,10 +1992,14 @@ HRESULT ECMessage::GetPropHandler(unsigned int ulPropTag, void *lpProvider,
 	case PROP_ID(PR_SOURCE_KEY): {
 		std::string strServerGUID, strID, strSourceKey;
 		if(ECMAPIProp::DefaultMAPIGetProp(PR_SOURCE_KEY, lpProvider, ulFlags, lpsPropValue, lpParam, lpBase) == hrSuccess)
-			return hr;
+			return hrSuccess;
 
 		// The server did not supply a PR_SOURCE_KEY, generate one ourselves.
-		strServerGUID.assign(reinterpret_cast<const char *>(&lpMessage->GetMsgStore()->GetStoreGuid()), sizeof(GUID));
+		GUID g;
+		hr = lpMessage->GetMsgStore()->get_store_guid(g);
+		if (hr != hrSuccess)
+			return kc_perror("get_store_guid", hr);
+		strServerGUID.assign(reinterpret_cast<const char *>(&g), sizeof(GUID));
 		if (lpMessage->m_sMapiObject != nullptr) {
 			uint32_t tmp4 = cpu_to_le32(lpMessage->m_sMapiObject->ulObjId);
 			strID.assign(reinterpret_cast<const char *>(&tmp4), sizeof(tmp4));
