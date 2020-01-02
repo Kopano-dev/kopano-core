@@ -57,10 +57,10 @@ struct socks {
 	std::vector<bool> ssl;
 };
 
-static bool g_bQuit, g_bThreads, g_dump_config, g_sighup_flag;
+static bool g_bQuit, g_bThreads, g_dump_config;
 static std::shared_ptr<ECLogger> g_lpLogger;
 static std::shared_ptr<ECConfig> g_lpConfig;
-static pthread_t mainthread;
+static std::atomic<bool> g_sighup_flag{false};
 static std::atomic<int> nChildren{0};
 static struct socks g_socks;
 static HRESULT ical_listen(ECConfig *cfg);
@@ -78,14 +78,14 @@ static void cd_sigterm_async(int)
 
 static void cd_sighup_async(int)
 {
-	if (g_bThreads && pthread_equal(pthread_self(), mainthread)==0)
-		return;
 	g_sighup_flag = true;
 }
 
 static void cd_sighup_sync()
 {
-	g_sighup_flag = false;
+	bool expect_one = true;
+	if (!g_sighup_flag.compare_exchange_strong(expect_one, false))
+		return;
 	if (g_lpConfig != nullptr && !g_lpConfig->ReloadSettings() &&
 	    g_lpLogger != nullptr)
 		ec_log_crit("Unable to reload configuration file, continuing with current settings.");
@@ -155,7 +155,6 @@ static HRESULT running_service(char **argv)
 		kc_perror("Messaging API could not be initialized", hr);
 		return hr;
 	}
-	mainthread = pthread_self();
 	hr = HrProcessConnections();
 	if (hr != hrSuccess)
 		return hr;
@@ -488,6 +487,8 @@ static void *HandlerClient(void *lpArg)
     }
 
 	while (!g_bQuit) {
+		if (g_sighup_flag)
+			cd_sighup_sync();
 		auto hr = lpChannel->HrSelect(KEEP_ALIVE_TIME);
 		if (hr == MAPI_E_CANCEL)
 			/* signalled - reevaluate g_bQuit */
