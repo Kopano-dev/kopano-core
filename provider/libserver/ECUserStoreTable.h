@@ -20,17 +20,17 @@ namespace KC {
 class ECSession;
 
 struct ECUserStore {
-	long long		ulUserId;		// id of user (-1 if there is no user)
+	long long ulUserId = -1; /* id of user (-1 if there is no user) */
 	objectid_t		sExternId;		// externid of user
 	std::string		strUsername;	// actual username from ECUserManagement
 	std::string		strGuessname;	// "guess" from user_name column in stores table
-	unsigned int	ulCompanyId;	// company id of store (or user if store is not found)
-	GUID			sGuid;			// The GUID of the store
-	unsigned int	ulStoreType;	// Type of the store (private, public, archive)
-	unsigned int	ulObjId;		// Hierarchyid of the store
-	std::string		strCompanyName;	// Company name of the store. (can be empty)
-	time_t			tModTime;		// Modification time of the store
-	unsigned long long ullStoreSize;// Size of the store
+	std::string sGuid; /* The GUID of the store */
+	std::string strCompanyName; /* Company name of the store. (can be empty) */
+	unsigned int ulCompanyId = 0; /* Company id of store (or user if store is not found) */
+	unsigned int ulStoreType = 0; /* Type of the store (private, public, archive) */
+	unsigned int ulObjId = 0; /* Hierarchyid of the store */
+	time_t tModTime = 0; /* Modification time of the store */
+	unsigned long long ullStoreSize = 0; /* Size of the store */
 };
 
 class _kc_export_dycast ECUserStoreTable final : public ECGenericObjectTable {

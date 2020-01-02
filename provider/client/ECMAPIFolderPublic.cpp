@@ -115,16 +115,22 @@ HRESULT ECMAPIFolderPublic::GetPropHandler(unsigned int ulPropTag,
 			hr = lpFolder->HrGetRealProp(PR_RIGHTS, ulFlags, lpBase, lpsPropValue);
 		}
 		break;
-	case PROP_ID(PR_ENTRYID):
+	case PROP_ID(PR_ENTRYID): {
+		GUID g;
+		hr = static_cast<ECMsgStorePublic *>(lpFolder->GetMsgStore())->get_store_guid(g);
+		if (hr != hrSuccess)
+			return kc_perror("get_store_guid", hr);
 		if (lpFolder->m_ePublicEntryID == ePE_PublicFolders) {
 			lpsPropValue->ulPropTag = PR_ENTRYID;
-			hr = ::GetPublicEntryId(ePE_PublicFolders, ((ECMsgStorePublic*)lpFolder->GetMsgStore())->GetStoreGuid(), lpBase, &lpsPropValue->Value.bin.cb, (LPENTRYID*)&lpsPropValue->Value.bin.lpb);
+			hr = ::GetPublicEntryId(ePE_PublicFolders, g, lpBase, &lpsPropValue->Value.bin.cb,
+			     reinterpret_cast<ENTRYID **>(&lpsPropValue->Value.bin.lpb));
 		} else {
 			hr = ECGenericProp::DefaultGetProp(PR_ENTRYID, lpProvider, ulFlags, lpsPropValue, lpParam, lpBase);
 			if(hr == hrSuccess && lpFolder->m_ePublicEntryID == ePE_FavoriteSubFolder)
 				((LPENTRYID)lpsPropValue->Value.bin.lpb)->abFlags[3] = KOPANO_FAVORITE;
 		}
 		break;
+	}
 	case PROP_ID(PR_DISPLAY_NAME): {
 		// FIXME: Should be from the global profile and/or gettext (PR_FAVORITES_DEFAULT_NAME)
 		if (lpFolder->m_ePublicEntryID == ePE_PublicFolders)
@@ -171,7 +177,12 @@ HRESULT ECMAPIFolderPublic::GetPropHandler(unsigned int ulPropTag,
 	case PROP_ID(PR_PARENT_ENTRYID):
 		if (lpFolder->m_ePublicEntryID == ePE_IPMSubtree || lpFolder->m_ePublicEntryID == ePE_PublicFolders || lpFolder->m_ePublicEntryID == ePE_Favorites) {
 			lpsPropValue->ulPropTag = PR_PARENT_ENTRYID;
-			hr = ::GetPublicEntryId(ePE_IPMSubtree, ((ECMsgStorePublic*)lpFolder->GetMsgStore())->GetStoreGuid(), lpBase, &lpsPropValue->Value.bin.cb, (LPENTRYID*)&lpsPropValue->Value.bin.lpb);
+			GUID g;
+			hr = static_cast<ECMsgStorePublic *>(lpFolder->GetMsgStore())->get_store_guid(g);
+			if (hr != hrSuccess)
+				return kc_perror("get_store_guid", hr);
+			hr = ::GetPublicEntryId(ePE_IPMSubtree, g, lpBase, &lpsPropValue->Value.bin.cb,
+			     reinterpret_cast<ENTRYID **>(&lpsPropValue->Value.bin.lpb));
 		} else {
 			hr = ECMAPIFolder::DefaultMAPIGetProp(PR_PARENT_ENTRYID, lpProvider, ulFlags, lpsPropValue, lpParam, lpBase);
 		}

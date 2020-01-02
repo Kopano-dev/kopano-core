@@ -534,6 +534,20 @@ static ECRESULT kc_1444(fancydb db)
 	return erSuccess;
 }
 
+static ECRESULT kc_2888(fancydb db)
+{
+	ec_log_notice("kf-2888: updating store table...");
+	unsigned int aff = 0;
+	auto ret = db->DoUpdate("UPDATE stores AS s INNER JOIN indexedproperties AS ip"
+		" ON s.hierarchy_id=ip.hierarchyid AND ip.tag=" + stringify(PROP_ID(PR_ENTRYID)) +
+		" AND s.guid != SUBSTRING(ip.val_binary, 5, 16)"
+		" SET s.guid=SUBSTRING(ip.val_binary, 5, 16)", &aff);
+	if (ret != erSuccess)
+		return ret;
+	ec_log_notice("kf-2888: updated %u rows.", aff);
+	return erSuccess;
+}
+
 static ECRESULT usmp_shrink_columns(fancydb db)
 {
 	unsigned int aff = 0;
@@ -727,6 +741,8 @@ int main(int argc, char **argv)
 			ret = kc1375(db);
 		else if (strcmp(argv[i], "kc-1444") == 0)
 			ret = kc_1444(db);
+		else if (strcmp(argv[i], "kf-2888") == 0)
+			ret = kc_2888(db);
 		else if (strcmp(argv[i], "usmp-shrink-columns") == 0)
 			ret = usmp_shrink_columns(db);
 		else if (strcmp(argv[i], "usmp-charset") == 0)

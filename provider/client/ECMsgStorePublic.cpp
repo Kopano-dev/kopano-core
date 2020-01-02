@@ -54,14 +54,18 @@ HRESULT ECMsgStorePublic::GetPropHandler(unsigned int ulPropTag,
      ECGenericProp *lpParam, void *lpBase)
 {
 	auto lpStore = static_cast<ECMsgStorePublic *>(lpParam);
+	GUID g;
+	auto ret = lpStore->get_store_guid(g);
+	if (ret != hrSuccess)
+		return kc_perror("get_store_guid", ret);
 
 	switch(ulPropTag) {
 	case PR_IPM_SUBTREE_ENTRYID:
-		return ::GetPublicEntryId(ePE_IPMSubtree, lpStore->GetStoreGuid(), lpBase, &lpsPropValue->Value.bin.cb, (LPENTRYID*)&lpsPropValue->Value.bin.lpb);
+		return ::GetPublicEntryId(ePE_IPMSubtree, g, lpBase, &lpsPropValue->Value.bin.cb, reinterpret_cast<ENTRYID **>(&lpsPropValue->Value.bin.lpb));
 	case PR_IPM_PUBLIC_FOLDERS_ENTRYID:
-		return ::GetPublicEntryId(ePE_PublicFolders, lpStore->GetStoreGuid(), lpBase, &lpsPropValue->Value.bin.cb, (LPENTRYID*)&lpsPropValue->Value.bin.lpb);
+		return ::GetPublicEntryId(ePE_PublicFolders, g, lpBase, &lpsPropValue->Value.bin.cb, reinterpret_cast<ENTRYID **>(&lpsPropValue->Value.bin.lpb));
 	case PR_IPM_FAVORITES_ENTRYID:
-		return ::GetPublicEntryId(ePE_Favorites, lpStore->GetStoreGuid(), lpBase, &lpsPropValue->Value.bin.cb, (LPENTRYID*)&lpsPropValue->Value.bin.lpb);
+		return ::GetPublicEntryId(ePE_Favorites, g, lpBase, &lpsPropValue->Value.bin.cb, reinterpret_cast<ENTRYID **>(&lpsPropValue->Value.bin.lpb));
 	case PR_EC_PUBLIC_IPM_SUBTREE_ENTRYID: {
 		auto hr = lpStore->HrGetRealProp(PR_IPM_SUBTREE_ENTRYID, ulFlags, lpBase, lpsPropValue);
 		if (hr == hrSuccess)
@@ -130,7 +134,11 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	// Open always online the root folder
 	if (cbEntryID == 0 || lpEntryID == nullptr)
 		return ECMsgStore::OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
-	auto hr = HrCompareEntryIdWithStoreGuid(cbEntryID, lpEntryID, &GetStoreGuid());
+	GUID guid;
+	auto hr = get_store_guid(guid);
+	if (hr != hrSuccess)
+		return kc_perror("get_store_guid", hr);
+	hr = HrCompareEntryIdWithStoreGuid(cbEntryID, lpEntryID, &guid);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -242,22 +250,25 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 
 HRESULT ECMsgStorePublic::InitEntryIDs()
 {
-	HRESULT hr;
+	GUID g;
+	auto hr = get_store_guid(g);
+	if (hr != hrSuccess)
+		return kc_perror("get_store_guid", hr);
 
 	if (m_lpIPMSubTreeID == NULL) {
-		hr = ::GetPublicEntryId(ePE_IPMSubtree, GetStoreGuid(), nullptr, &m_cIPMSubTreeID, &~m_lpIPMSubTreeID);
+		hr = ::GetPublicEntryId(ePE_IPMSubtree, g, nullptr, &m_cIPMSubTreeID, &~m_lpIPMSubTreeID);
 		if(hr != hrSuccess)
 			return hr;
 	}
 
 	if (m_lpIPMPublicFoldersID == NULL) {
-		hr = ::GetPublicEntryId(ePE_PublicFolders, GetStoreGuid(), nullptr, &m_cIPMPublicFoldersID, &~m_lpIPMPublicFoldersID);
+		hr = ::GetPublicEntryId(ePE_PublicFolders, g, nullptr, &m_cIPMPublicFoldersID, &~m_lpIPMPublicFoldersID);
 		if(hr != hrSuccess)
 			return hr;
 	}
 
 	if (m_lpIPMFavoritesID == NULL) {
-		hr = ::GetPublicEntryId(ePE_Favorites, GetStoreGuid(), nullptr, &m_cIPMFavoritesID, &~m_lpIPMFavoritesID);
+		hr = ::GetPublicEntryId(ePE_Favorites, g, nullptr, &m_cIPMFavoritesID, &~m_lpIPMFavoritesID);
 		if(hr != hrSuccess)
 			return hr;
 	}
