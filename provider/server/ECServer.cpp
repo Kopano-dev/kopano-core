@@ -76,14 +76,13 @@ using std::string;
 static const char upgrade_lock_file[] = "/tmp/kopano-upgrade-lock";
 static const char default_atx_backend[] = "files_v2"; /* for new installs */
 static int g_Quit = 0;
-bool sv_sighup_flag;
+std::atomic<bool> sv_sighup_flag{false};
 static int restart_searches = 0;
 static bool m_bIgnoreDatabaseVersionConflict = false;
 static bool m_bIgnoreAttachmentStorageConflict = false;
 static bool m_bForceDatabaseUpdate = false;
 static bool m_bIgnoreUnknownConfigOptions = false;
 static bool m_bIgnoreDbThreadStackSize = false;
-static pthread_t mainthread;
 std::shared_ptr<ECConfig> g_lpConfig;
 static bool g_listen_http, g_listen_https, g_listen_pipe;
 static std::shared_ptr<ECLogger> g_lpLogger, g_lpAudit;
@@ -210,7 +209,9 @@ static void sv_sighup_async(int)
 
 void sv_sighup_sync()
 {
-	sv_sighup_flag = false;
+	bool expect_one = true;
+	if (!sv_sighup_flag.compare_exchange_strong(expect_one, false))
+		return;
 	// g_lpSessionManager only present when kopano_init is called (last init function), signals are initialized much earlier
 	if (!g_lpConfig->ReloadSettings())
 		ec_log_warn("Unable to reload configuration file, continuing with current settings.");
@@ -1191,7 +1192,6 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	auto hosted = parseBool(g_lpConfig->GetSetting("enable_hosted_kopano"));
 	auto distributed = parseBool(g_lpConfig->GetSetting("enable_distributed_kopano"));
 	unix_create_pidfile(szName, g_lpConfig.get());
-	mainthread = pthread_self();
 
 	struct sigaction act{};
 	sigemptyset(&act.sa_mask);

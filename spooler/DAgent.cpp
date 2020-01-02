@@ -229,9 +229,10 @@ class dagent_stats final : public StatsClient {
 
 //Global variables
 static unsigned int g_process_model = GP_FORK;
-static bool g_bQuit = false, g_dump_config, g_sighup_flag;
+static bool g_bQuit = false, g_dump_config;
 static bool g_bTempfail = true; // Most errors are tempfails
 static pthread_t g_main_thread;
+static std::atomic<bool> g_sighup_flag{false};
 static std::atomic<unsigned int> g_nLMTPThreads{0};
 static std::shared_ptr<ECLogger> g_lpLogger;
 extern std::shared_ptr<ECConfig> g_lpConfig;
@@ -258,14 +259,14 @@ static void da_sigterm_async(int)
 
 static void da_sighup_async(int)
 {
-	if (g_process_model == GP_THREAD && !pthread_equal(pthread_self(), g_main_thread))
-		return;
 	g_sighup_flag = true;
 }
 
 static void da_sighup_sync()
 {
-	g_sighup_flag = false;
+	bool expect_one = true;
+	if (!g_sighup_flag.compare_exchange_strong(expect_one, false))
+		return;
 	if (g_lpConfig != nullptr && !g_lpConfig->ReloadSettings() &&
 	    g_lpLogger != nullptr)
 		ec_log_warn("Unable to reload configuration file, continuing with current settings.");

@@ -16,6 +16,7 @@
  * This advise sink unblocks the main (waiting) thread.
  */
 #include <kopano/platform.h>
+#include <atomic>
 #include <chrono>
 #include <condition_variable>
 #include <exception>
@@ -107,7 +108,8 @@ static std::unique_ptr<spooler_stats> sc;
 #define EXIT_REMOVE 3
 
 static unsigned int g_process_model = GP_FORK;
-static bool bQuit = false, sp_exp_config, g_dump_config, g_sighup_flag, g_sigusr2_flag;
+static bool bQuit = false, sp_exp_config, g_dump_config;
+static std::atomic<bool> g_sighup_flag{false}, g_sigusr2_flag{false};
 static int nReload = 0, disconnects = 0;
 static const char *szCommand = NULL;
 static const char *szConfig = ECConfig::GetDefaultPath("spooler.cfg");
@@ -180,15 +182,15 @@ static void sp_sigchld_async(int)
 
 static void sp_sighup_async(int)
 {
-	if (g_process_model == GP_THREAD && !pthread_equal(pthread_self(), g_main_thread))
-		return;
 	g_sighup_flag = true;
 	hCondMessagesWaiting.notify_one();
 }
 
 static void sp_sighup_sync()
 {
-	g_sighup_flag = false;
+	bool expect_one = true;
+	if (!g_sighup_flag.compare_exchange_strong(expect_one, false))
+		return;
 	if (g_lpConfig != nullptr && !g_lpConfig->ReloadSettings() &&
 	    g_lpLogger != nullptr)
 		ec_log_warn("Unable to reload configuration file, continuing with current settings.");
@@ -211,7 +213,9 @@ static void sp_sigusr2_async(int)
 
 static void sp_sigusr2_sync()
 {
-	g_sigusr2_flag = false;
+	bool expect_one = true;
+	if (!g_sigusr2_flag.compare_exchange_strong(expect_one, false))
+		return;
 	ec_log_debug("Spooler stats:");
 	ec_log_debug("Running threads: %zu", mapSendData.size());
 	std::lock_guard<std::mutex> l(hMutexFinished);
