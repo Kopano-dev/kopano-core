@@ -78,15 +78,15 @@ ECSessionManager::~ECSessionManager()
 	bExit = TRUE;
 	m_hExitSignal.notify_one();
 	l_exit.unlock();
-	m_lpTPropsPurge.reset();
-	m_lpDatabase.reset();
-	m_lpDatabaseFactory.reset();
 
 	if (m_thread_active) {
 		auto err = pthread_join(m_hSessionCleanerThread, nullptr);
 		if (err != 0)
 			ec_log_crit("Unable to join session cleaner thread: %s", strerror(err));
 	}
+	m_lpTPropsPurge.reset();
+	m_lpDatabase.reset();
+	m_lpDatabaseFactory.reset();
 	/* Clean up all sessions */
 	std::lock_guard<KC::shared_mutex> l_cache(m_hCacheRWLock);
 	for (auto s = m_mapSessions.begin(); s != m_mapSessions.end();

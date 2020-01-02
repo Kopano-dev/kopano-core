@@ -130,15 +130,19 @@ HRESULT ECMAPIProp::DefaultMAPIGetProp(unsigned int ulPropTag,
 			hr = MAPI_E_NOT_FOUND;
 		break;
 
-	case PROP_ID(PR_STORE_RECORD_KEY):
+	case PROP_ID(PR_STORE_RECORD_KEY): {
+		GUID g;
 		lpsPropValue->ulPropTag = PR_STORE_RECORD_KEY;
-		lpsPropValue->Value.bin.cb = sizeof(MAPIUID);
-		hr = ECAllocateMore(sizeof(MAPIUID), lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
+		lpsPropValue->Value.bin.cb = sizeof(g);
+		hr = lpProp->GetMsgStore()->get_store_guid(g);
+		if (hr != hrSuccess)
+			return kc_perror("get_store_guid", hr);
+		hr = ECAllocateMore(sizeof(g), lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
 		if (hr != hrSuccess)
 			break;
-		memcpy(lpsPropValue->Value.bin.lpb, &lpProp->GetMsgStore()->GetStoreGuid(), sizeof(MAPIUID));
+		memcpy(lpsPropValue->Value.bin.lpb, &g, sizeof(g));
 		break;
-
+	}
 	case PROP_ID(PR_STORE_SUPPORT_MASK):
 	case PROP_ID(PR_STORE_UNICODE_MASK):
 		if (CompareMDBProvider(&lpMsgStore->m_guidMDB_Provider, &KOPANO_STORE_PUBLIC_GUID))
@@ -300,16 +304,20 @@ HRESULT ECMAPIProp::TableRowGetProp(void *lpProvider,
 		lpsPropValDst->ulPropTag = CHANGE_PROP_TYPE(lpsPropValSrc->ulPropTag, PT_LONG);
 		break;
 
-	case CHANGE_PROP_TYPE(PR_STORE_RECORD_KEY, PT_ERROR):
+	case CHANGE_PROP_TYPE(PR_STORE_RECORD_KEY, PT_ERROR): {
+		GUID g;
+		hr = lpMsgStore->get_store_guid(g);
+		if (hr != hrSuccess)
+			return kc_perror("get_store_guid", hr);
 		// Reset type to binary
 		lpsPropValDst->ulPropTag = CHANGE_PROP_TYPE(lpsPropValSrc->ulPropTag, PT_BINARY);
-		hr = ECAllocateMore(sizeof(MAPIUID), lpBase, reinterpret_cast<void **>(&lpsPropValDst->Value.bin.lpb));
+		hr = ECAllocateMore(sizeof(g), lpBase, reinterpret_cast<void **>(&lpsPropValDst->Value.bin.lpb));
 		if (hr != hrSuccess)
 			break;
-		memcpy(lpsPropValDst->Value.bin.lpb, &lpMsgStore->GetStoreGuid(), sizeof(MAPIUID));
-		lpsPropValDst->Value.bin.cb = sizeof(MAPIUID);
+		memcpy(lpsPropValDst->Value.bin.lpb, &g, sizeof(g));
+		lpsPropValDst->Value.bin.cb = sizeof(g);
 		break;
-
+	}
 	case CHANGE_PROP_TYPE(PR_MDB_PROVIDER, PT_ERROR):
 		lpsPropValDst->ulPropTag = CHANGE_PROP_TYPE(lpsPropValSrc->ulPropTag, PT_BINARY);
 		hr = ECAllocateMore(sizeof(MAPIUID), lpBase, reinterpret_cast<void **>(&lpsPropValDst->Value.bin.lpb));

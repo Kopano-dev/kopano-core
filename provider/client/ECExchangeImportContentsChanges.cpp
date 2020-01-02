@@ -662,17 +662,21 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageCreateAsStream(ULONG cValu
 	if ((lpMessageFlags != NULL && (lpMessageFlags->Value.ul & MSGFLAG_ASSOCIATED)) || (lpMessageAssociated != NULL && lpMessageAssociated->Value.b))
 		ulNewFlags = MAPI_ASSOCIATED;
 
-	if (lpPropEntryId != NULL && HrCompareEntryIdWithStoreGuid(lpPropEntryId->Value.bin.cb, (LPENTRYID)lpPropEntryId->Value.bin.lpb, &m_lpFolder->GetMsgStore()->GetStoreGuid()) == hrSuccess) {
+	GUID guid;
+	auto hr = m_lpFolder->GetMsgStore()->get_store_guid(guid);
+	if (hr != hrSuccess)
+		return kc_perror("get_store_guid", hr);
+	if (lpPropEntryId != nullptr && HrCompareEntryIdWithStoreGuid(lpPropEntryId->Value.bin.cb,
+	    reinterpret_cast<const ENTRYID *>(lpPropEntryId->Value.bin.lpb), &guid) == hrSuccess) {
 		cbEntryId = lpPropEntryId->Value.bin.cb;
 		lpEntryId = (LPENTRYID)lpPropEntryId->Value.bin.lpb;
 	} else {
 		ZLOG_DEBUG(m_lpLogger, "CreateFast: %s", "Creating new entryid");
-		auto hr = HrCreateEntryId(m_lpFolder->GetMsgStore()->GetStoreGuid(), MAPI_MESSAGE, &cbEntryId, &lpEntryId);
+		hr = HrCreateEntryId(guid, MAPI_MESSAGE, &cbEntryId, &lpEntryId);
 		if (hr != hrSuccess)
 			return zlog("CreateFast: Failed to create entryid", hr);
 	}
-
-	auto hr = m_lpFolder->CreateMessageFromStream(ulNewFlags, m_ulSyncId, cbEntryId, lpEntryId, &~ptrMessageImporter);
+	hr = m_lpFolder->CreateMessageFromStream(ulNewFlags, m_ulSyncId, cbEntryId, lpEntryId, &~ptrMessageImporter);
 	if (hr != hrSuccess)
 		return zlog("CreateFast: Failed to create message from stream", hr);
 	*lppMessageImporter = ptrMessageImporter.release();
