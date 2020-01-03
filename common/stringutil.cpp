@@ -201,11 +201,9 @@ int memsubstr(const void* haystack, size_t haystackSize, const void* needle, siz
 }
 
 std::string str_storage(uint64_t ulBytes, bool bUnlimited) {
-	static double MB = 1024.0 * 1024.0;
-
 	if (ulBytes == 0 && bUnlimited)
 		return "unlimited";
-	return stringify_double((double)ulBytes / MB, 2) + " MB";
+	return number_to_humansize(ulBytes);
 }
 
 std::string GetServerNameFromPath(const char *szPath) {

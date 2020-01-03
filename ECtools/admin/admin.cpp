@@ -413,7 +413,7 @@ static void print_quota(const ECQUOTA *lpQuota,
 		cout << "Current store size:\t";
 	else
 		cout << "Public store size:\t";
-	cout << str_storage(lpQuotaStatus->llStoreSize, false) << endl;
+	cout << number_to_humansize(lpQuotaStatus->llStoreSize) << endl;
 }
 
 /**
