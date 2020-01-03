@@ -713,7 +713,7 @@ class Service(kopano.Service):
         existing = {}
         table = folder.mapiobj.GetContentsTable(0)
         table.SetColumns([PR_SOURCE_KEY, PR_EC_BACKUP_SOURCE_KEY, PR_ENTRYID], 0)
-        for row in table.QueryRows(-1, 0):
+        for row in table.QueryRows(2147483647, 0):
             if PROP_TYPE(row[1].ulPropTag) != PT_ERROR:
                 existing[_hex(row[1].Value)] = _hex(row[2].Value)
             else:

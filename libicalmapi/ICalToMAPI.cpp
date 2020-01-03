@@ -4,6 +4,7 @@
  */
 #include <memory>
 #include <new>
+#include <climits>
 #include <kopano/platform.h>
 #include <kopano/ECRestriction.h>
 #include <kopano/hl.hpp>
@@ -380,7 +381,7 @@ HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMes
 	).RestrictTable(lpAttachTable, 0);
 	if (hr != hrSuccess)
 		return hr;
-	hr = lpAttachTable->QueryRows(-1, 0, &~lpRows);
+	hr = lpAttachTable->QueryRows(INT_MAX, 0, &~lpRows);
 	if (hr != hrSuccess)
 		return hr;
 

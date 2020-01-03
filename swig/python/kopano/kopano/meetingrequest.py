@@ -131,7 +131,7 @@ def _organizer_props(cal_item, item):
 
     table = cal_item.mapiobj.OpenProperty(
         PR_MESSAGE_RECIPIENTS, IID_IMAPITable, MAPI_UNICODE, 0)
-    for row in table.QueryRows(-1, 0):
+    for row in table.QueryRows(2147483647, 0):
         recipient_flags = PpropFindProp(row, PR_RECIPIENT_FLAGS)
         if (recipient_flags and \
             recipient_flags.Value == (recipOrganizer | recipSendable)):
@@ -230,7 +230,7 @@ def _create_meetingrequest(cal_item, item, basedate=None):
         PR_MESSAGE_RECIPIENTS, IID_IMAPITable, MAPI_UNICODE, 0)
     table.SetColumns(RECIP_PROPS, 0)
     orgs = []
-    for row in table.QueryRows(-1,0):
+    for row in table.QueryRows(2147483647, 0):
         recipient_flags = PpropFindProp(row, PR_RECIPIENT_FLAGS)
         if recipient_flags and recipient_flags.Value & recipOrganizer:
             orgs.append(row)
@@ -422,7 +422,7 @@ class MeetingRequest(object):
             table = cal_item.mapiobj.OpenProperty(
                 PR_MESSAGE_RECIPIENTS, IID_IMAPITable, MAPI_UNICODE, 0)
             table.SetColumns(RECIP_PROPS, 0)
-            rows = table.QueryRows(-1, 0)
+            rows = table.QueryRows(2147483647, 0)
             # TODO php-compat: php checks 'move' flag, should we
             if tentative:
                 cal_item.mapiobj.ModifyRecipients(MODRECIP_REMOVE,
@@ -526,7 +526,7 @@ class MeetingRequest(object):
                 table = cal_item.mapiobj.OpenProperty(
                     PR_MESSAGE_RECIPIENTS, IID_IMAPITable, MAPI_UNICODE, 0)
                 table.SetColumns(RECIP_PROPS, 0)
-                rows = table.QueryRows(-1, 0)
+                rows = table.QueryRows(2147483647, 0)
                 cal_item.mapiobj.ModifyRecipients(MODRECIP_MODIFY, rows)
                 _utils._save(cal_item.mapiobj)
 
@@ -666,7 +666,7 @@ class MeetingRequest(object):
         # TODO things seem to get lost without this
         table.SetColumns(RECIP_PROPS, 0)
 
-        rows = table.QueryRows(-1, 0)
+        rows = table.QueryRows(2147483647, 0)
         for row in rows:
             if self._compare_ab_entryids(
                 PpropFindProp(row, PR_ENTRYID).Value,

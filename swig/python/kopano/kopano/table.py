@@ -88,14 +88,14 @@ class Table(object):
     # TODO: apply batch_size as shown above
     def dict_(self, key, value):
         d = {}
-        for row in self.mapitable.QueryRows(-1, 0):
+        for row in self.mapitable.QueryRows(2147483647, 0):
             d[PpropFindProp(row, key).Value] = PpropFindProp(row, value).Value
         return d
 
     def index(self, key):
         """Return key->row dictionary keyed on given column (proptag)."""
         d = {}
-        for row in self.mapitable.QueryRows(-1, 0):
+        for row in self.mapitable.QueryRows(2147483647, 0):
             d[PpropFindProp(row, key).Value] = \
                 dict((c.ulPropTag, c.Value) for c in row)
         return d

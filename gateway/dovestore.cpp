@@ -19,6 +19,7 @@
 #include <new>
 #include <string>
 #include <vector>
+#include <climits>
 #include <cstdio>
 #include <cstring>
 #include <mapix.h>
@@ -99,7 +100,7 @@ static rowset_ptr kpxx_hierarchy_table(IMsgStore *store)
 	if (ret != hrSuccess)
 		return nullptr;
 	rowset_ptr rows;
-	ret = table->QueryRows(-1, 0, &~rows);
+	ret = table->QueryRows(INT_MAX, 0, &~rows);
 	if (ret != hrSuccess)
 		return nullptr;
 	return rows;
@@ -180,7 +181,7 @@ int kpxx_folder_get(void *vstor, const char *name, void **fldp)
 		if (ret != hrSuccess)
 			return hresult_to_errno(ret);
 		rowset_ptr rows;
-		ret = table->QueryRows(-1, 0, &~rows);
+		ret = table->QueryRows(INT_MAX, 0, &~rows);
 		if (ret != hrSuccess)
 			return hresult_to_errno(ret);
 

@@ -6,6 +6,7 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <climits>
 #include <clocale>
 #include <cstdio>
 #include <cstdlib>
@@ -160,7 +161,7 @@ static HRESULT adm_list_orphans(IECServiceAdmin *svcadm)
 
 	while (true) {
 		rowset_ptr rowset;
-		ret = table->QueryRows(-1, 0, &~rowset);
+		ret = table->QueryRows(INT_MAX, 0, &~rowset);
 		if (ret != hrSuccess)
 			return kc_perror("QueryRows", ret);
 		if (rowset.size() == 0)
@@ -228,7 +229,7 @@ static HRESULT adm_list_mbt(KServerContext &srvctx)
 
 	while (true) {
 		rowset_ptr rowset;
-		ret = table->QueryRows(-1, 0, &~rowset);
+		ret = table->QueryRows(INT_MAX, 0, &~rowset);
 		if (ret != hrSuccess)
 			return kc_perror("QueryRows", ret);
 		if (rowset.size() == 0)

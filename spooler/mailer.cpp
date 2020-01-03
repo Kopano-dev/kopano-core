@@ -7,6 +7,7 @@
 #include <sstream>
 #include <string>
 #include <utility>
+#include <climits>
 #include "mailer.h"
 #include "archive.h"
 #include <mapitags.h>
@@ -529,7 +530,7 @@ static HRESULT RemoveP1Recipients(IMessage *lpMessage)
 	     &sPropRestrict, ECRestriction::Cheap).RestrictTable(lpTable, 0);
 	if (hr != hrSuccess)
 		return kc_perrorf("Restrict failed", hr);
-	hr = lpTable->QueryRows(-1, 0, &~lpRows);
+	hr = lpTable->QueryRows(INT_MAX, 0, &~lpRows);
 	if (hr != hrSuccess)
 		return kc_perrorf("QueryRows failed" ,hr);
 	hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE, reinterpret_cast<ADRLIST *>(lpRows.get()));
@@ -857,7 +858,7 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 		if (ulRows > 0) {
 			// All recipients failed, therefore all recipient need to be in the MDN recipient table
 			rowset_ptr lpRows;
-			hr = lpTableMods->QueryRows(-1, 0, &~lpRows);
+			hr = lpTableMods->QueryRows(INT_MAX, 0, &~lpRows);
 			if (hr != hrSuccess)
 				return kc_perrorf("QueryRows failed", hr);
 			hr = lpErrorMsg->ModifyRecipients(MODRECIP_ADD, reinterpret_cast<ADRLIST *>(lpRows.get()));

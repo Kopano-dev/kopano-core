@@ -4,6 +4,7 @@
  */
 #include <kopano/platform.h>
 #include <new>
+#include <climits>
 #include <cstring>
 #include "ZCABContainer.h"
 #include "ZCMAPIProp.h"
@@ -720,7 +721,7 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 			hr = ptrContainer->GetHierarchyTable(ulFlags, &~ptrTable);
 			if (hr != hrSuccess)
 				return hr;
-			hr = ptrTable->QueryRows(-1, 0, &~ptrRows);
+			hr = ptrTable->QueryRows(INT_MAX, 0, &~ptrRows);
 			if (hr != hrSuccess)
 				return hr;
 
@@ -987,7 +988,7 @@ HRESULT ZCABContainer::ResolveNames(const SPropTagArray *lpPropTagArray,
 			hr = resFind.RestrictTable(ptrContents, 0);
 			if (hr != hrSuccess)
 				return hr;
-			hr = ptrContents->QueryRows(-1, MAPI_UNICODE, &~ptrRows);
+			hr = ptrContents->QueryRows(INT_MAX, MAPI_UNICODE, &~ptrRows);
 			if (hr != hrSuccess)
 				return hr;
 

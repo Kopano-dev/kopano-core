@@ -334,7 +334,7 @@ class Folder(Properties):
             table = self.mapiobj.GetContentsTable(MAPI_DEFERRED_ERRORS)
             table.SetColumns([PR_ENTRYID, PR_SOURCE_KEY], 0)
             table.Restrict(restriction, 0)
-            rows = list(table.QueryRows(-1, 0))
+            rows = list(table.QueryRows(2147483647, 0))
             if not rows:
                 raise NotFoundError("no item with sourcekey '%s'" % sourcekey)
             eid = rows[0][0].Value

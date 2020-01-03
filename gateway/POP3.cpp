@@ -7,6 +7,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <climits>
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
@@ -735,7 +736,7 @@ HRESULT POP3::HrMakeMailList() {
 		return hr;
 
 	rowset_ptr lpRows;
-	hr = lpTable->QueryRows(-1, 0, &~lpRows);
+	hr = lpTable->QueryRows(INT_MAX, 0, &~lpRows);
 	if (hr != hrSuccess)
 		return hr;
 

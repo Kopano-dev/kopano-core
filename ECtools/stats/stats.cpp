@@ -10,6 +10,7 @@
 #include <exception>
 #include <iostream>
 #include <string>
+#include <climits>
 #include <mapi.h>
 #include <mapiutil.h>
 #include <edkmdb.h>
@@ -229,7 +230,7 @@ static void showtop(LPMDB lpStore)
 			goto exit;
 
 		rowset_ptr lpsRowSet;
-		hr = lpTable->QueryRows(-1, 0, &~lpsRowSet);
+		hr = lpTable->QueryRows(INT_MAX, 0, &~lpsRowSet);
         if(hr != hrSuccess)
             goto exit;
 		auto cr_now = std::chrono::steady_clock::now();
@@ -248,7 +249,7 @@ static void showtop(LPMDB lpStore)
         hr = lpStore->OpenProperty(PR_EC_STATSTABLE_SESSIONS, &IID_IMAPITable, 0, 0, &~lpTable);
         if(hr != hrSuccess)
             goto exit;
-        hr = lpTable->QueryRows(-1, 0, &~lpsRowSet);
+		hr = lpTable->QueryRows(INT_MAX, 0, &~lpsRowSet);
         if(hr != hrSuccess)
             break;
 
@@ -574,7 +575,7 @@ static HRESULT MAPITablePrint(IMAPITable *lpTable, bool humanreadable /* = true 
 	HRESULT hr = lpTable->QueryColumns(0, &~ptrColumns);
 	if (hr != hrSuccess)
 		return hr;
-	hr = lpTable->QueryRows(-1, 0, &~ptrRows);
+	hr = lpTable->QueryRows(INT_MAX, 0, &~ptrRows);
 	if (hr != hrSuccess)
 		return hr;
 	ct.Resize(ptrRows.size(), ptrColumns->cValues);
