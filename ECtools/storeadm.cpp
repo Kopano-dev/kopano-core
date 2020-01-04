@@ -199,7 +199,7 @@ static HRESULT adm_list_orphans(IECServiceAdmin *svcadm)
 			ct.AddColumn(0, strToLower(bin2hex(guid->Value.bin)));
 			ct.AddColumn(1, user);
 			ct.AddColumn(2, mtime != nullptr ? time_to_rel(FileTimeToUnixTime(mtime->Value.ft)) : "<unknown>");
-			ct.AddColumn(3, ssize != nullptr ? str_storage(ssize->Value.li.QuadPart, false) : "<unknown>");
+			ct.AddColumn(3, ssize != nullptr ? number_to_humansize(ssize->Value.li.QuadPart) : "<unknown>");
 			ct.AddColumn(4, stype != nullptr ? store_type_string(stype->Value.ul) : "<unknown>");
 		}
 	}
