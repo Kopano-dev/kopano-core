@@ -602,7 +602,7 @@ HRESULT HrMakeRestriction(const std::string &strGuid, LPSPropTagArray lpNamedPro
  * @param[in]	strGuid			Guid value of the message to be searched
  * @param[in]	lpUsrFld		Mapi folder in which the message has to be searched
  * @param[in]	lpNamedProps	Named property tag array
- * @param[out]	lppMessage		if found the mapi message is returned
+ * @param[out]	lppMessage		if found, the MAPI message is returned
  * @return		HRESULT
  * @retval		MAPI_E_NOT_FOUND	No message found containing the guid value.
  */

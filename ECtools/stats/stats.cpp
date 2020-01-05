@@ -620,7 +620,7 @@ static void print_help(const char *name)
 	cout << "  --top" << "\t\tShows top-like information about sessions" << endl;
 	cout << "Options:" << endl;
 	cout << "  --user, -u <user>" << "\tUse specified username to logon" << endl;
-	cout << "  --host, -h <url>" << "\tUse specified url to logon (eg http://127.0.0.1:236/)" << endl;
+	cout << "  --host, -h <url>" << "\tUse specified url to logon (e.g. http://127.0.0.1:236/)" << endl;
 	cout << "  --dump, -d" << "\t\tPrint output as comma separated fields" << endl;
 }
 

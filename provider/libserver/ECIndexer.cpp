@@ -206,7 +206,7 @@ static ECRESULT NormalizeGetMultiSearch(struct restrictTable *lpRestrict,
  * +
  * multisearch: f1 .. fN : t1 .. tN
  *
- * (eg subject body from: word1 word2)
+ * (e.g. subject body from: word1 word2)
  *
  * If there are multiple OR clauses inside the initial AND clause, and the search fields DIFFER, then the FIRST 'OR'
  * field is used for the multifield search.

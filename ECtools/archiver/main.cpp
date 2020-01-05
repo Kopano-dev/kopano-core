@@ -71,7 +71,7 @@ static void print_help(std::ostream &ostr, const char *lpszName)
     ostr << "  -l|--list                        : List archives for the specified user" << endl;
     ostr << "  -L|--list-archiveusers           : List users that have an archived attached" << endl;
     ostr << "  -A|--archive                     : Perform archive operation" << endl;
-    ostr << "                                     If no user is specified all user stores will" << endl;
+    ostr << "                                     If no user is specified, all user stores will" << endl;
     ostr << "                                     be archived." << endl;
     ostr << "  -C|--cleanup                     : Perform a cleanup of the archive stores attached" << endl;
     ostr << "                                     to the user specified with -u. If no user is" << endl;

@@ -601,7 +601,7 @@ static ECRESULT SerializeDatabasePropVal(const StreamCaps *lpStreamCaps,
 		goto exit;
 	}
 
-	// If property is named property in the dynamic range we need to add some extra info
+	// If property is named property in the dynamic range, we need to add some extra info.
 	if (PROP_ID(ulPropTag) > 0x8500) {
 		// Send out the GUID.
 		er = lpSink->Write(lpRow[FIELD_NR_NAMEGUID], 1, lpLen[FIELD_NR_NAMEGUID]);
@@ -756,7 +756,7 @@ static ECRESULT SerializePropVal(const StreamCaps *lpStreamCaps,
 
 	if (PROP_ID(sPropVal.ulPropTag) <= 0x8500)
 		return er;
-	// If property is named property in the dynamic range we need to add some extra info
+	// If property is named property in the dynamic range, we need to add some extra info.
 	assert(lpNamedPropDefs != NULL && iNamedPropDef != lpNamedPropDefs->cend());
 	// Send out the GUID.
 	er = lpSink->Write(&iNamedPropDef->second.guid, 1, sizeof(iNamedPropDef->second.guid));
@@ -1316,7 +1316,7 @@ static ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 		goto exit;
 
 	if (lppPropValArray) {
-		// If requested we can store up to ulCount properties. Currently we won't store them all though.
+		// If requested, we can store up to ulCount properties. Currently, we will not store them all though.
 		// Note that we test on lppPropValArray but allocate lpPropValArray. We'll assign that to
 		// *lppPropValArray later if all went well.
 		lpPropValArray = soap_new_propValArray(nullptr);

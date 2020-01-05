@@ -243,7 +243,7 @@ public:
 	virtual ~ECCacheManager();
 	ECRESULT PurgeCache(unsigned int ulFlags);
 
-	// These are read-through (ie they access the DB if they can't find the data)
+	// These are read-through (i.e. they access the DB if they can't find the data)
 	ECRESULT GetParent(unsigned int ulObjId, unsigned int *ulParent);
 	ECRESULT GetOwner(unsigned int ulObjId, unsigned int *ulOwner);
 	ECRESULT GetObject(unsigned int ulObjId, unsigned int *ulParent, unsigned int *ulOwner, unsigned int *ulFlags, unsigned int *ulType = NULL);

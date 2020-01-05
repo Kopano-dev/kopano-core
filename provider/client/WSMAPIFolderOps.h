@@ -57,7 +57,7 @@ public:
 	// Completely remove a folder, the messages in it, the folders in it or any combination
 	virtual HRESULT HrDeleteFolder(ULONG eid_size, const ENTRYID *, ULONG flags, ULONG sync_id);
 
-	// Empty folder (ie delete all folders and messages in folder)
+	// Empty folder (i.e. delete all folders and messages in folder)
 	virtual HRESULT HrEmptyFolder(ULONG ulFlags, ULONG ulSyncId);
 
 	// Set read/unread flags on messages

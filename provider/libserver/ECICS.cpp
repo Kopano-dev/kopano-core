@@ -181,7 +181,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 
 	// Always log folder changes
 	if(ulChange & ICS_MESSAGE) {
-		// See if anybody is interested in this change. If nobody has subscribed to this folder (ie nobody has got a state on this folder)
+		// See if anybody is interested in this change. If nobody has subscribed to this folder (i.e. nobody has got a state on this folder),
 		// then we can ignore the change.
 		std::string strQuery = "SELECT id FROM syncs "
 			"WHERE sourcekey=" + lpDatabase->EscapeBinary(sParentSourceKey);

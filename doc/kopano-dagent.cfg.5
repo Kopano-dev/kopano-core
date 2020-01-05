@@ -229,7 +229,11 @@ Default:
 .PP
 Kopano\-dagent can auto\-accept meeting requests if the mr\-accept option is enabled for a user. When this option is enabled and a meeting request or meeting cancellation is received, this script is started with the following parameters: /usr/sbin/kopano\-mr\-accept <username> </path/to/dagent.cfg> [<ENTRYID>].
 .PP
-If the script is successful (exitcode is 0), then no other actions are performed (eg rules or vacation messages) and the message is not delivered in the inbox. If the script exits with a non\-zero exit code, rules and vacation messages are run as usual, and the message is delivered in the inbox (or other folder, depending on rules or options).
+If the script is successful (exitcode is 0), then no other actions are
+performed (e.g. rules or vacation messages) and the message is not delivered in
+the inbox. If the script exits with a non\-zero exit code, rules and vacation
+messages are run as usual, and the message is delivered in the inbox (or other
+folder, depending on rules or options).
 .PP
 Default:
 \fI/usr/sbin/kopano\-mr\-accept\fR

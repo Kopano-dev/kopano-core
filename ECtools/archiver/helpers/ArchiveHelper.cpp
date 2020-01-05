@@ -540,7 +540,7 @@ HRESULT ArchiveHelper::GetArchiveFolderFor(MAPIFolderPtr &ptrSourceFolder, Archi
 }
 
 /**
- * Get the History folder. If the folder doesn't exist it will be created.
+ * Get the History folder. If the folder does not exist, it will be created.
  */
 HRESULT ArchiveHelper::GetHistoryFolder(LPMAPIFOLDER *lppHistoryFolder)
 {
@@ -548,7 +548,7 @@ HRESULT ArchiveHelper::GetHistoryFolder(LPMAPIFOLDER *lppHistoryFolder)
 }
 
 /**
- * Get the Outgoing foler. If the folder doesn't exist it will be created.
+ * Get the Outgoing foler. If the folder does not exist, it will be created.
  */
 HRESULT ArchiveHelper::GetOutgoingFolder(LPMAPIFOLDER *lppOutgoingFolder)
 {
@@ -556,7 +556,7 @@ HRESULT ArchiveHelper::GetOutgoingFolder(LPMAPIFOLDER *lppOutgoingFolder)
 }
 
 /**
- * Get the DeletedItems folder. If the folder doesn't exist it will be created.
+ * Get the DeletedItems folder. If the folder does not exist, it will be created.
  * @note: This is not the trash folder, but a special archive folder that contains
  *        messages that were deleted in the primary store.
  */
@@ -567,7 +567,7 @@ HRESULT ArchiveHelper::GetDeletedItemsFolder(LPMAPIFOLDER *lppOutgoingFolder)
 
 /**
  * Get the root folder of the special folders. This folder contains the history,
- * outgoing and deleted items folders. If the folder doesn't exist it won't be
+ * outgoing and deleted items folders. If the folder does not exist, it will not be
  * created.
  */
 HRESULT ArchiveHelper::GetSpecialsRootFolder(LPMAPIFOLDER *lppSpecialsRootFolder)

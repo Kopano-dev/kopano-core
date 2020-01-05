@@ -212,7 +212,7 @@ private:
      *
      * @param[in] ulStoreId Store id of the search folder
      * @param[in] ulFolderId Folder id of the search folder
-     * @param[in] fStartSearch TRUE if a rebuild must take place, FALSE if not (eg this happens at server startup)
+     * @param[in] fStartSearch TRUE if a rebuild must take place, FALSE if not (e.g. this happens at server startup)
      * @param[in] lpSearchCriteria Search criteria for this search folder
      */
 	KC_HIDDEN virtual ECRESULT AddSearchFolder(unsigned int store_id, unsigned int folder_id, bool start_search, const struct searchCriteria *);
@@ -241,7 +241,7 @@ private:
      * @param[in] ulFolderId Folder id of the search folder
      * @param[in] lpSearchCriteria Search criteria to match
      * @param[in] lpbCancel Pointer to cancel flag. This is polled frequently to be able to cancel the search action
-     * @param[in] bNotify If TRUE, send notifications to table listeners, else do not (eg when doing RestartSearches())
+     * @param[in] bNotify If TRUE, send notifications to table listeners, else do not (e.g. when doing RestartSearches())
      */
 	KC_HIDDEN virtual ECRESULT Search(unsigned int store_id, unsigned int folder_id, const struct searchCriteria *, bool *cancel, bool notify = true);
 	KC_HIDDEN ECRESULT search_r1(ECDatabase *, ECSession *, ECODStore &&, ECCacheManager *, const struct restrictTable *extra_restr, unsigned int store_id, unsigned int folder_id, const std::list<unsigned int> &ix_results, const std::string &sugg, bool notify, bool *cancel);

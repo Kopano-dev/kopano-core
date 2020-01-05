@@ -1195,7 +1195,7 @@ HRESULT ECMsgStore::CreateStoreEntryID(const TCHAR *lpszMsgStoreDN,
 		// MsgStoreDN successfully converted
 		hr = lpTransport->HrResolvePseudoUrl(strPseudoUrl.c_str(), &~ptrServerPath, &bIsPeer);
 		if (hr == MAPI_E_NOT_FOUND && (ulFlags & OPENSTORE_OVERRIDE_HOME_MDB) == 0)
-			// Try again old style since the MsgStoreDN contained an unknown server name or the server doesn't support multi server.
+			// Try again old, style since the MsgStoreDN contained an unknown server name or the server does not support multi-server.
 			return CreateStoreEntryID(nullptr, lpszMailboxDN, ulFlags, lpcbEntryID, lppEntryID);
 		else if (hr != hrSuccess)
 			return hr;
@@ -1242,7 +1242,7 @@ HRESULT ECMsgStore::GetRights(ULONG cbUserEntryID, const ENTRYID *lpUserEntryID,
  *								default in ASCII format. With flags MAPI_UNICODE the server name is in Unicode format.
  * @return	Mapi error codes
  *
- * @remark	If named properties are used in the column set of the lppTable ensure you have the right named property id.
+ * @remark	If named properties are used in the column set of the lppTable, ensure you have the right named property id.
  *			The id can be different on each server.
  */
 HRESULT ECMsgStore::GetMailboxTable(const TCHAR *lpszServerName,
@@ -2557,7 +2557,7 @@ HRESULT ECMsgStore::TestGet(const char *szName, char **szValue)
  * @retval	hrSuccess						Conversion succeeded.
  * @retval	MAPI_E_INVALID_PARAMETER		The provided message store DN does not match the minimum requirements needed
  *											to successfully parse it.
- * @retval	MAPI_E_NO_SUPPORT				If a server is not operating in multi server mode, the default servername is
+ * @retval	MAPI_E_NO_SUPPORT				If a server is not operating in multi-server mode, the default servername is
  *											'Unknown'. This cannot be resolved. In that case MAPI_E_NO_SUPPORT is returned
  *											So a different strategy can be selected by the calling method.
  */

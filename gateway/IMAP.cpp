@@ -503,7 +503,7 @@ HRESULT IMAP::HrCmdCapability(const string &strTag) {
 /**
  * @brief Handles the NOOP command
  *
- * Checks the current selected folder for changes, and possebly sends
+ * Checks the current selected folder for changes, and possibly sends
  * the EXISTS and/or RECENT values to the client.
  *
  * @param[in] strTag the IMAP tag for this command
@@ -579,7 +579,7 @@ HRESULT IMAP::HrCmdStarttls(const string &strTag) {
  *
  * @param[in] strTag The IMAP tag for this command
  * @param[in] strAuthMethod Must be set to PLAIN
- * @param[in] strAuthData (optional) if empty we use a continuation request, otherwise we can authenticate, base64 encoded string
+ * @param[in] strAuthData (optional) if empty, we use a continuation request, otherwise we can authenticate, base64 encoded string
  *
  * @return MAPI error code
  */
@@ -587,7 +587,7 @@ HRESULT IMAP::HrCmdAuthenticate(const string &strTag, string strAuthMethod, cons
 {
 	const char *plain = lpConfig->GetSetting("disable_plaintext_auth");
 
-	// If plaintext authentication was disabled any authentication attempt must be refused very soon
+	// If plaintext authentication was disabled, any authentication attempt must be refused very soon.
 	if (!lpChannel->UsingSsl() && lpChannel->sslctx() && plain && strcmp(plain, "yes") == 0 && lpChannel->peer_is_local() <= 0) {
 		HrResponse(RESP_TAGGED_NO, strTag, "[PRIVACYREQUIRED] Plaintext authentication disallowed on non-secure "
 							 "(SSL/TLS) connections.");
@@ -625,12 +625,12 @@ HRESULT IMAP::HrCmdAuthenticate(const string &strTag, string strAuthMethod, cons
 /**
  * @brief Handles the LOGIN command
  *
- * Opens a MAPI session, addressbook and possebly open the public if
+ * Opens a MAPI session, addressbook and possibly opens the public if
  * the username and password are correctly entered.
  *
  * @param[in] strTag IMAP tag
- * @param[in] strUser Username, currently tried as windows-1252 charsets
- * @param[in] strPass Password, currently tried as windows-1252 charsets
+ * @param[in] strUser Username, currently tried as windows-1252 charset
+ * @param[in] strPass Password, currently tried as windows-1252 charset
  *
  * @return MAPI error code
  */
@@ -655,7 +655,7 @@ HRESULT IMAP::HrCmdLogin(const std::string &strTag,
 		strUsername += strUser[i];
 	}
 
-	// If plaintext authentication was disabled any login attempt must be refused very soon
+	// If plaintext authentication was disabled, any login attempt must be refused very soon.
 	if (!lpChannel->UsingSsl() && lpChannel->sslctx() && plain && strcmp(plain, "yes") == 0 && lpChannel->peer_is_local() <= 0) {
 		HrResponse(RESP_UNTAGGED, "BAD [ALERT] Plaintext authentication not allowed without SSL/TLS, but your client "
 						"did it anyway. If anyone was listening, the password was exposed.");
@@ -1059,7 +1059,7 @@ HRESULT IMAP::HrCmdRename(const std::string &strTag,
 		return hr;
 	}
 
-    // strPath now contains subfolder we want to create (eg sub/new). So now we have to
+	// strPath now contains subfolder we want to create (e.g. sub/new). So now we have to
     // mkdir -p all the folder leading up to the last (if any)
 	do {
 		deliPos = strPath.find(IMAP_HIERARCHY_DELIMITER);
@@ -1471,7 +1471,7 @@ HRESULT IMAP::HrCmdStatus(const std::string &strTag,
 /**
  * @brief Handles the APPEND command
  *
- * Create a new mail message in the given folder, and possebly set
+ * Create a new mail message in the given folder, and possibly set
  * flags and received time on the new message.
  *
  * @param[in] strTag the IMAP tag for this command
@@ -3245,7 +3245,7 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 
 		    // Pass the row data for conversion
 		    if(lpRow) {
-				// possebly add message to mark-as-read
+				/* Possibly add message to mark-as-read */
 				if (bMarkAsRead) {
 					lpProp = lpRow->cfind(PR_MESSAGE_FLAGS);
 					if (lpProp == nullptr || (lpProp->Value.ul & MSGFLAG_READ) == 0)
@@ -5105,13 +5105,13 @@ void IMAP::HrParseHeaders(const std::string &strHeaders,
 
 /**
  * Find a substring in strInput that starts with strBegin, and
- * possebly ends with strEnd. Only the data between the strBegin and
+ * possibly ends with strEnd. Only the data between the strBegin and
  * strEnd is returned.
  *
  * @param[out]	strOutput	The found substring in strInput
  * @param[in]	strInput	Input string
- * @param[in]	strBegin	Substring should start with
- * @param[in]	strEnd	Substring should end with
+ * @param[in]	strBegin	Substring that input should start with
+ * @param[in]	strEnd	Substring that input should end with
  */
 void IMAP::HrGetSubString(std::string &strOutput, const std::string &strInput,
     const std::string &strBegin, const std::string &strEnd)

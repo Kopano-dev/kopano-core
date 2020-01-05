@@ -31,7 +31,7 @@ class ECSession;
  */
 
 // A set containing all the objects that match a subquery. The row id here is for the parent object, not for
-// the actual object that matched the restriction (ie the message id is in here, not the recipient id or
+// the actual object that matched the restriction (i.e. the message id is in here, not the recipient id or
 // attachment id)
 typedef std::set<unsigned int> SUBRESTRICTIONRESULT;
 // A list of sets of subquery matches

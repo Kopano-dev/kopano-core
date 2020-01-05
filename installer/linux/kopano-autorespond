@@ -74,7 +74,7 @@ if [ "$shortfrom" = "mailer-daemon" -o "$shortfrom" = "postmaster" -o "$shortfro
     exit 0;
 fi
 
-# Check if mail was send in last $TIMELIMIT timeframe
+# Check if mail was sent in last $TIMELIMIT timeframe
 TIMESTAMP=`date +%s`
 if [ -f "$SENDDB" ]; then
     while read last to; do

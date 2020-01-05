@@ -863,7 +863,7 @@ signatures_t LDAPUserPlugin::getAllObjectsByFilter(const std::string &basedn,
 	auto_free_ldap_message res;
 
 	/*
-	 * When working in multi-company mode we need to determine if the found object
+	 * When working in multi-company mode, we need to determine if the found object
 	 * is really a member of the requested company and not turned up in the
 	 * result because he is member of a subcompany.
 	 * Create a filter by requesting all subcompanies for he given company,

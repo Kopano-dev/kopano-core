@@ -129,9 +129,9 @@ static ECRESULT CreateEntryId(GUID guidStore, unsigned int ulObjType,
  * Get the local user id based on the entryid or the user id for old clients.
  *
  * When an entryid is provided, the extern id is extracted and the local user id
- * is resolved based on that. If no entryid is provided the provided legacy user id
+ * is resolved based on that. If no entryid is provided, the provided legacy user id
  * is used as local user is and the extern id is resolved based on that. Old clients
- * that are not multi server aware provide the legacy user id in stead of the entryid.
+ * that are not multi-server aware provide the legacy user id in stead of the entryid.
  *
  * @param[in]	sUserId			The entryid of the user for which to obtain the local id
  * @param[in]	ulLegacyUserId	The legacy user id, which will be used as the entryid when.
@@ -4093,7 +4093,7 @@ SOAP_ENTRY_START(setReceiveFolder, *result, const entryId &sStoreId,
 	if(lpszMessageClass == NULL)
 		lpszMessageClass = "";
 
-	// If the lpsEntryId parameter is set to NULL then replace the current receive folder with the message store's default.
+	// If the lpsEntryId parameter is set to NULL, then replace the current receive folder with the message store's default.
 	if(lpsEntryId)
 	{
 		// Check if object really exist and the relation between storeid and ulId

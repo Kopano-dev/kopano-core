@@ -91,7 +91,7 @@ def convert(cmd, data, log):
         shutil.rmtree(tmpdir)
 
 def ext_mime_data(f, filename, mimetype, log):
-    """ first use filename extension to determine type, if that fails the stored mimetype, and finally libmagic """
+    """ First, use filename extension to determine type, if that fails, the stored mimetype, and finally libmagic. """
 
     ext = os.path.splitext(filename)[1]
     data = None

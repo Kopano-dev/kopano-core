@@ -826,7 +826,7 @@ HRESULT ICalRecurrence::HrCreateICalRecurrenceType(const TIMEZONE_STRUCT &sTimeZ
 		   format.
 		*/
 		icRec.count = 0;
-		// if untiltime is saved as UTC it breaks last occurrence.
+		/* If untiltime is saved as UTC, it breaks last occurrence. */
 		icRec.until = icaltime_from_timet_with_zone(lpRecurrence->getEndDate() + lpRecurrence->getStartTimeOffset(), bIsAllday, nullptr);
 		kc_ical_utc(icRec.until, false);
 		break;

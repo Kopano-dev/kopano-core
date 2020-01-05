@@ -151,7 +151,7 @@ public:
 	virtual size_t GetObjectSize(void);
 
 protected:
-	// Add an actual row to the table, and send a notification if required. If you add an existing row, the row is modified and the notification is send as a modification
+	// Add an actual row to the table, and send a notification if required. If you add an existing row, the row is modified and the notification is sent as a modification.
 	ECRESULT AddRow(sObjectTableKey sRowItem, struct propVal *lpProps, unsigned int cProps, unsigned int ulFlags, bool fHidden, ECCategory *lpCategory);
 	// Remove an actual row from the table, and send a notification if required. You may try to delete non-existing rows, in which case nothing happens
 	ECRESULT 	DeleteRow(sObjectTableKey sRow, unsigned int ulFlags);

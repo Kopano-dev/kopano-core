@@ -66,7 +66,7 @@ public:
 	const vmime::shared_ptr<const vmime::contentHandler> getText() const override { return m_text; }
 	void setText(const vmime::shared_ptr<vmime::contentHandler> &) override;
 
-	/** Embedded object (eg: image for &lt;IMG> tag).
+	/** Embedded object (e.g. image for &lt;IMG> tag).
 	  */
 	class embeddedObject final : public vmime::object {
 	public:

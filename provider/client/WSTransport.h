@@ -247,7 +247,7 @@ public:
 
 private:
 	HRESULT HrLogon2(const struct sGlobalProfileProps &);
-	// Returns name of calling application (eg 'program.exe' or 'httpd')
+	// Returns name of calling application (e.g. 'program.exe' or 'httpd')
 	std::string GetAppName();
 
 protected:

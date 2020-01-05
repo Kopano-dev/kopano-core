@@ -258,7 +258,7 @@ void* ECNotifyMaster::NotifyWatch(void *pTmpNotifyMaster)
 			 * need to make a big deal out of it.
 			 * If (2) it is not a disaster (but it is a bad situation), the simple logon should do the trick
 			 * of restoring the notification retrieval for all sessions for this group. Some notifications
-			 * might have arrived later then we might want, but that shouldn't be a total loss (the notificataions
+			 * might have arrived later than we might want, but that should not be a total loss (the notificataions
 			 * themselves will not have disappeared since they have been queued on the server).
 			 * If (3) the problem is that _all_ sessions attached to the server has died and we have lost some
 			 * notifications. The main issue however is that a new login for the notification session will not

@@ -135,7 +135,7 @@ objectid_t LDAPCache::getParentForDN(const dn_cache_t &lpCache,
 
 	// @todo make sure we find the largest DN match
 	for (const auto &i : lpCache)
-		/* Key should be larger then current guess, but has to be smaller then the userobject dn */
+		/* Key should be larger than the current guess, but has to be smaller than the userobject dn. */
 		/* If key matches the end of the userobject dn, we have a positive match */
 		if (i.second.size() > parent_dn.size() && i.second.size() < dn.size() &&
 		    strcasecmp(dn.c_str() + (dn.size() - i.second.size()), i.second.c_str()) == 0) {
@@ -154,7 +154,7 @@ LDAPCache::getChildrenForDN(const dn_cache_t &lpCache, const std::string &dn)
 
 	/* Find al DNs which are hierarchically below the given dn */
 	for (const auto &i : lpCache)
-		/* Key should be larger then root DN */
+		/* Key should be larger than the root DN. */
 		/* If key matches the end of the root dn, we have a positive match */
 		if (i.second.size() > dn.size() &&
 		    strcasecmp(i.second.c_str() + (i.second.size() - dn.size()), dn.c_str()) == 0)

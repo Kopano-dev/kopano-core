@@ -352,7 +352,7 @@ int UnixConfigCheck::testId(const config_check_t *check)
 {
 	if (atoi(check->value1.c_str()) < atoi(check->value2.c_str()))
 		return CHECK_OK;
-	printError(check->option1, "is equal or greater then \"" + check->option2 +
+	printError(check->option1, "is equal or greater than \"" + check->option2 +
 		"\" (" + check->value1 + ">=" + check->value2 + ")");
 	return CHECK_ERROR;
 }

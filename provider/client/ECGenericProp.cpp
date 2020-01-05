@@ -612,7 +612,7 @@ HRESULT ECGenericProp::HrLoadProps()
 	hr = HrSetClean();
 	if(hr != hrSuccess)
 		goto exit;
-	// We just read the properties from the disk, so it is a 'saved' (ie on-disk) message
+	// We just read the properties from the disk, so it is a 'saved' (i.e. on-disk) message
 	fSaved = true;
 exit:
 	m_bReload = FALSE;

@@ -420,7 +420,7 @@ ldap_addressbook_hide_attribute = kopanoHidden
 # OpenLDAP optional: (|(mail=%s*)(uid=%s*)(givenName=*%s*)(sn=*%s*))
 ldap_object_search_filter = S(`(|(mail=*%s*)(givenName=*%s*)(sn=*%s*))',`(anr=%s)')
 
-# If a request want more objects than this value, it will download the
+# If a request wants more objects than this value, it will download the
 # full ldap tree (from the base with the search filter) and discard
 # wat was not required. This is faster for large requests.
 # Default: 1000

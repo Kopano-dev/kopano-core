@@ -882,7 +882,7 @@ HRESULT ZCABContainer::DeleteEntries(const ENTRYLIST *, ULONG flags)
 }
 
 /** 
- * Resolve MAPI_UNRESOLVED items in lpAdrList and possebly add resolved
+ * Resolve MAPI_UNRESOLVED items in lpAdrList and possibly add resolved
  * 
  * @param[in] lpPropTagArray properties to be included in lpAdrList
  * @param[in] ulFlags EMS_AB_ADDRESS_LOOKUP | MAPI_UNICODE

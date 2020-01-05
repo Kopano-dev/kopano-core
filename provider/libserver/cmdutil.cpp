@@ -137,8 +137,8 @@ static ECRESULT ValidateDeleteObject(ECSession *lpSession,
  * deleted. This may or may not include the given list in
  * lpsObjectList, because of EC_DELETE_CONTAINER.
  *
- * If the ulFLags includes EC_DELETE_NOT_ASSOCIATED_MSG only the associated messages for the container folder is
- * not deleted. If ulFlags EC_DELETE_CONTAINER included, the EC_DELETE_NOT_ASSOCIATED_MSG flag will be ignored.
+ * If the ulFLags includes EC_DELETE_NOT_ASSOCIATED_MSG, only the associated messages for the container folder is
+ * not deleted. If ulFlags includes EC_DELETE_CONTAINER, the EC_DELETE_NOT_ASSOCIATED_MSG flag will be ignored.
  *
  * @param[in] lpSession Reference to a session object; cannot be NULL.
  * @param[in] lpDatabase Reference to a database object; cannot be NULL.
@@ -798,7 +798,7 @@ static ECRESULT DeleteObjectNotifications(ECSession *lpSession,
 	lstParent.unique();
 
 	// Now, send each parent folder a notification that it has been altered and send
-	// its parent a notification (ie the grandparent of the deleted object) that its
+	// its parent a notification (i.e. the grandparent of the deleted object) that its
 	// hierarchy table has been changed.
 	for (auto pa_id : lstParent) {
 		if(cDeleteditems >= EC_TABLE_CHANGE_THRESHOLD) {

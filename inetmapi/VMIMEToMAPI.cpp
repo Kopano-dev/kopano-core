@@ -89,7 +89,7 @@ static const char im_charset_unspec[] = "unspecified";
  *
  * @param[in] day Day of month 1-31
  * @param[in] month Month of year 1-12
- * @param[in] year Full year (eg 2008)
+ * @param[in] year Full year (e.g. 2008)
  * @return ULONG Calculated INT date
  */
 static ULONG CreateIntDate(ULONG day, ULONG month, ULONG year)
@@ -2859,7 +2859,7 @@ static HRESULT postWriteFixups(IMessage *lpMessage)
 	if (FAILED(hr))
 		return hr;
 
-	// If hr is hrSuccess then all properties are available, and we don't need to do anything
+	// If hr is hrSuccess, then all properties are available, and we do not need to do anything.
 	if (hr != hrSuccess) {
 		hr = hrSuccess;
 		if (lpProps[0].ulPropTag != PROP_RESPONSESTATUS) {

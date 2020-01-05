@@ -37,7 +37,7 @@ WSTableView::WSTableView(ULONG ty, ULONG fl, ECSESSIONID sid, ULONG cbEntryId,
 WSTableView::~WSTableView()
 {
 	m_lpTransport->RemoveSessionReloadCallback(m_ulSessionReloadCallback);
-	// if the table was still open it will now be closed in the server too
+	/* If the table was still open, it will now be closed in the server too. */
 	HrCloseTable();
 	delete[] m_lpsPropTagArray;
 	delete[] m_lpsSortOrderSet;

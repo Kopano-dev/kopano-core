@@ -196,7 +196,7 @@ private:
 		std::wstring strFolderName;
 		bool bActive;			// Subscribed folder
 		bool bMailFolder;		// E-mail type folder
-		bool bSpecialFolder;	// 'special' folder (eg inbox)
+		bool bSpecialFolder;	// 'special' folder (e.g. inbox)
 		ULONG ulSpecialFolderType;
 		bool bHasSubfolders;	// Has child folders
 		std::list<SFolder>::const_iterator lpParentFolder;

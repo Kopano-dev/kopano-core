@@ -482,7 +482,7 @@ private:
 	 * @brief Obtains an iconv_context object.
 	 *
 	 * The correct iconv_context is based on To_Type and From_Type and is
-	 * obtained from the context_map. If the correct iconv_context is not found a new
+	 * obtained from the context_map. If the correct iconv_context is not found, a new
 	 * one is created and stored in the context_map;
 	 * @tparam	To_Type	The type of the destination string.
 	 * @tparam	From_Type	The type of the source string.
@@ -504,7 +504,7 @@ private:
 	 * @brief Obtains an iconv_context object.
 	 *
 	 * The correct iconv_context is based on To_Type and fromcode and is
-	 * obtained from the context_map. If the correct iconv_context is not found a new
+	 * obtained from the context_map. If the correct iconv_context is not found, a new
 	 * one is created and stored in the context_map;
 	 * @tparam		To_Type	The type of the destination string.
 	 * @param[in]	fromcode	The source charset.
@@ -531,7 +531,7 @@ private:
 	 * @brief Obtains an iconv_context object.
 	 *
 	 * The correct iconv_context is based on tocode and fromcode and is
-	 * obtained from the context_map. If the correct iconv_context is not found a new
+	 * obtained from the context_map. If the correct iconv_context is not found, a new
 	 * one is created and stored in the context_map;
 	 * @param[in]	tocode		The destination charset.
 	 * @param[in]	fromcode	The source charset.

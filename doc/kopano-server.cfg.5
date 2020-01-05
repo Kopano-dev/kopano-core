@@ -610,7 +610,15 @@ Default:
 .SH "EXPLANATION OF THE CACHE SETTINGS PARAMETERS"
 .SS cache_cell_size
 .PP
-Size in bytes of the cell cache. This is the main cache used in Kopano. It caches all data that comes into view in tables (ie the view of your inbox, or any other folder). In an ideal situation, all cells would be cached, so that the database does not need to be queried for data when browsing through folders, but this would require around 1.5K per message item (e-mail, appointment task, etc) in the entire server. If you can afford it, set this value as high as possible, up to 50% of your total RAM capacity. Make sure this does not lead to swapping though. This value may contain a k, m or g multiplier.
+Size in bytes of the cell cache. This is the main cache used in Kopano. It
+caches all data that comes into view in tables (i.e. the view of your inbox, or
+any other folder). In an ideal situation, all cells would be cached, so that
+the database does not need to be queried for data when browsing through
+folders, but this would require around 1.5K per message item (e-mail,
+appointment task, etc) in the entire server. If you can afford it, set this
+value as high as possible, up to 50% of your total RAM capacity. Make sure this
+does not lead to swapping though. This value may contain a k, m or g
+multiplier.
 .PP
 Default:
 \fI256M\fR
@@ -638,7 +646,7 @@ Default:
 \fI1M\fR
 .SS cache_quota_lifetime
 .PP
-This sets the lifetime for quota details inside the cache. If quota details were not queried during this period it is removed from the cache making room for more often requested quota details. Set to 0 to never expire, or \-1 to disable this cache.
+This sets the lifetime for quota details inside the cache. If quota details were not queried during this period, it is removed from the cache, making room for more often requested quota details. Set to 0 to never expire, or \-1 to disable this cache.
 .PP
 Default:
 \fI1\fR
@@ -669,7 +677,7 @@ Default:
 \fI3M\fR
 .SS cache_userdetails_lifetime
 .PP
-This sets the lifetime for user details inside the cache. If user details were not queried during this period it is removed from the cache making room for more often requested user details. Set to 0 to never expire, or \-1 to disable this cache.
+This sets the lifetime for user details inside the cache. If user details were not queried during this period, it is removed from the cache, making room for more often requested user details. Set to 0 to never expire, or \-1 to disable this cache.
 .PP
 Default:
 \fI0\fR
@@ -682,7 +690,7 @@ Default:
 \fI1M\fR
 .SS cache_server_lifetime
 .PP
-This sets the lifetime for server location details inside the cache. If server details were not queried during this period it is removed from the cache making room for more often requested server details. Set to 0 to never expire, or \-1 to disable this cache.
+This sets the lifetime for server location details inside the cache. If server details were not queried during this period, it is removed from the cache, making room for more often requested server details. Set to 0 to never expire, or \-1 to disable this cache.
 .PP
 Default:
 \fI30\fR
@@ -938,7 +946,11 @@ Default:
 \fI1000000\fR
 .SS sync_gab_realtime
 .PP
-When set to \fByes\fP, kopano will synchronize the local user list whenever a list of users is requested (eg during kopano\-admin \-l or when opening the addressbook). When setting this value to \fBno\fP, synchronization will only occur during kopano\-admin \-\-sync. This is useful for setups which have large addressbooks (more than 1000 entries in the addressbook).
+When set to \fByes\fP, kopano will synchronize the local user list whenever a
+list of users is requested (e.g. during kopano\-admin \-l or when opening the
+addressbook). When setting this value to \fBno\fP, synchronization will only
+occur during kopano\-admin \-\-sync. This is useful for setups which have large
+addressbooks (more than 1000 entries in the addressbook).
 .PP
 This option is forced to \fByes\fP when using the \fBdb\fP plugin since synchronization is implicit in that case.
 .PP

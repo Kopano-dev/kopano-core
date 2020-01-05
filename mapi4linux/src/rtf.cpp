@@ -103,7 +103,7 @@ unsigned int rtf_decompress(char *lpDest, const char *lpSrc,
 
 		// Offset is first 12 bits
 		ulOffset = (((unsigned int)c1) << 4) | (c2 >> 4);
-		// Size is last 4 bits, plus 2 (0 and 1 are impossible, because 1 would be a literal (ie ulFlags & 1 == 0)
+		// Size is last 4 bits, plus 2 (0 and 1 are impossible, because 1 would be a literal (i.e. ulFlags & 1 == 0)
 		ulSize = (c2 & 0xf) + 2;
 
 		// We now have offset and size within our current 4k window. If the offset is after the

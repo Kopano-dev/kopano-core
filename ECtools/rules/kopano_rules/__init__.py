@@ -847,7 +847,7 @@ def createrule(server, name, lastid, user, conditions=None, actions=None, except
 
         '''
         Try to get the attribute based on parameter.
-        if they don't exist just print the unknown attribute and continue
+        If they do not exist, just print the unknown attribute and continue.
         '''
         try:
             condition_method = getattr(rules, condition_rule.replace('-', '_'))
@@ -856,7 +856,7 @@ def createrule(server, name, lastid, user, conditions=None, actions=None, except
             print('the Following Attribute is not known "{}"'.format(e))
 
         '''
-            If the condition_rule is higher then 1 add the SOrRestriction attribute before the list
+            If the condition_rule is higher than 1, add the SOrRestriction attribute before the list.
         '''
 
         if condition_rule in SOrRestriction_list:
@@ -879,7 +879,7 @@ def createrule(server, name, lastid, user, conditions=None, actions=None, except
             action_var = splitactions[0]
         '''
         Try to get the attribute based on parameter.
-        if they don't exist just print the unknown attribute and continue
+        If they do not exist, just print the unknown attribute and continue.
         '''
         rules = KopanoRules(server, user, action_var, configFile,importFile, CreateFolder)
         try:
@@ -907,7 +907,7 @@ def createrule(server, name, lastid, user, conditions=None, actions=None, except
         rules = KopanoRules(server, user, exception_var, configFile,importFile, CreateFolder)
         '''
         Try to get the attribute based on parameter.
-        if they don't exist just print the unknown attribute and continue
+        If they do not exist, just print the unknown attribute and continue.
         '''
         try:
             exception_method = getattr(rules, exception_rule.replace('-', '_'))
@@ -919,7 +919,7 @@ def createrule(server, name, lastid, user, conditions=None, actions=None, except
             print('the Following Attribute is not known "{}"'.format(e))
 
         '''
-        If the exceptionslist is higher then 1 add the SOrRestriction attribute before the list
+        If the exceptionslist is higher than 1, add the SOrRestriction attribute before the list.
         '''
         if exception_rule in SOrRestriction_list:
             if len(exceptionslist) > 1 or (exceptionslist[0] and len(exceptionslist[0]) > 1):

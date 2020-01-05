@@ -182,7 +182,7 @@ HRESULT ECMessage::GetProps(const SPropTagArray *lpPropTagArray, ULONG ulFlags,
 			 *   - When the requested property ID is higher than the best-match property, the value is MAPI_E_NOT_FOUND
 			 *   - When the requested property ID is lower than the best-match property, the value is MAPI_E_NOT_ENOUGH_MEMORY
 			 *
-			 * Additionally, the normal rules for returning MAPI_E_NOT_ENOUGH_MEMORY apply (ie for large properties).
+			 * Additionally, the normal rules for returning MAPI_E_NOT_ENOUGH_MEMORY apply (i.e. for large properties).
 			 *
 			 * Example: RTF message, PR_BODY, PR_HTML and PR_RTF_COMPRESSED requested in single GetProps() call:
 			 * returns: PR_BODY -> MAPI_E_NOT_ENOUGH_MEMORY, PR_HTML -> MAPI_E_NOT_FOUND, PR_RTF_COMPRESSED -> actual RTF content
@@ -1723,7 +1723,7 @@ HRESULT ECMessage::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 	auto pvalHtml = PCpropFindProp(lpPropArray, cValues, CHANGE_PROP_TYPE(PR_BODY_HTML, PT_UNSPECIFIED));
 	auto pvalBody = PCpropFindProp(lpPropArray, cValues, CHANGE_PROP_TYPE(PR_BODY, PT_UNSPECIFIED));
 
-	// IF the user sets both the body and the RTF, assume RTF overrides
+	/* If, the user sets both the body and the RTF, assume RTF overrides. */
 	if (pvalRtf) {
 		m_ulBodyType = bodyTypeUnknown; // Make sure GetBodyType doesn't use the cached value
 		std::string rtf;

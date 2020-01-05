@@ -498,7 +498,7 @@ class Folder(Properties):
                 all_day,
                 busystatus,
                 tzinfo,
-                blob, # watch out: can be larger then 255 chars.
+                blob, # watch out: can be larger than 255 chars.
             ]
 
             table = Table(

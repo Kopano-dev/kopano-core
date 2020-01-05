@@ -4,7 +4,7 @@
  */
 // Interface for writing and reading properties to disk (which does the actual transfer and save)
 //
-// Strategy is to load most of the small (ie not much data) properties at load-time. This saves
+// Strategy is to load most of the small (i.e. not much data) properties at load-time. This saves
 // a lot of overhead if the properties were to be acquired one-by-one over the network. However, a
 // complete list of properties is also read through HrReadProps(), so the local system also knows
 // about larger properties. These properties are read through HrLoadProp().

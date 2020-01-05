@@ -54,10 +54,10 @@ from .parse import (
 # TODO such grouping: 'subject:(fresh exciting)'
 # TODO Regex: avoid substr
 # TODO OneOrMore(regex) not needed?
-# TODO operator associativity/precedence (eg 'NOT a AND b'), check MSG
+# TODO operator associativity/precedence (e.g. 'NOT a AND b'), check MSG
 # TODO escaping double quotes
 # TODO asterisk not implicit for phrases
-# TODO relative dates rel. to timezone (eg "received:today")
+# TODO relative dates rel. to timezone (e.g. "received:today")
 # TODO graph does not support 'size>"10 KB" and such? we now roll our own
 # TODO email matching on to/cc/bcc (PR_SEARCH_KEY/PR_EMAIL_ADDRESS?)
 # TODO sender:user2@domain.com OR category:blue doesn't work, even if they

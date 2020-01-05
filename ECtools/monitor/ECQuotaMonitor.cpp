@@ -979,7 +979,7 @@ HRESULT ECQuotaMonitor::CheckQuotaInterval(LPMDB lpStore, LPMESSAGE *lppMessage,
 	if (hr != hrSuccess)
 		return hr;
 
-	/* Determine when the last warning mail was send, and if a new one should be sent. */
+	/* Determine when the last warning mail was sent, and if a new one should be sent. */
 	auto lpResendInterval = m_lpThreadMonitor->lpConfig->GetSetting("mailquota_resend_interval");
 	ULONG ulResendInterval = (lpResendInterval && atoui(lpResendInterval) > 0) ? atoui(lpResendInterval) : 1;
 	GetSystemTimeAsFileTime(&ft);
@@ -991,8 +991,8 @@ HRESULT ECQuotaMonitor::CheckQuotaInterval(LPMDB lpStore, LPMESSAGE *lppMessage,
 
 /**
  * Writes the new timestamp in the store to now() when the last quota
- * mail was send to this store.  The store must have been opened as
- * SYSTEM user, which can always write, eventhough the store is over
+ * mail was sent to this store. The store must have been opened as
+ * SYSTEM user, who can always write, even though the store is over
  * quota.
  *
  * @param[in]	lpMDB	Store to update the last quota send timestamp in

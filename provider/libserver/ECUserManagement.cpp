@@ -657,7 +657,7 @@ ECRESULT ECUserManagement::GetParentObjectsOfObjectAndSync(userobject_relation_t
 			return er;
 	}
 
-	// If we are requesting group membership we should always insert the everyone, since everyone is member of EVERYONE except for SYSTEM
+	// If we are requesting group membership, we should always insert the everyone, since everyone is member of EVERYONE except for SYSTEM.
 	if (relation == OBJECTRELATION_GROUP_MEMBER && ulObjectId != KOPANO_UID_SYSTEM) {
 		if ((!(ulFlags & USERMANAGEMENT_IDS_ONLY)) || (ulFlags & USERMANAGEMENT_ADDRESSBOOK)) {
 			objectdetails_t details;

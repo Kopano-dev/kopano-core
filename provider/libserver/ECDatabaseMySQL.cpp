@@ -817,7 +817,7 @@ ECRESULT ECDatabase::GetFirstUpdate(unsigned int *lpulDatabaseRevision)
 /**
  * Update the database to the current version.
  *
- * @param[in]  bForceUpdate possebly force upgrade
+ * @param[in]  bForceUpdate possibly force upgrade
  * @param[out] strReport error message
  *
  * @return Kopano error code
