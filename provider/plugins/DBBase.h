@@ -156,11 +156,9 @@ public:
 	 *					The object id of the object which should be updated.
 	 * @param[in]	details
 	 *					The objectdetails which should be written to the object.
-	 * @param[in]	lpRemove
-	 *					List of configuration names which should be removed from the object
 	 * @throw runtime_error when SQL problems occur.
 	 */
-	virtual void changeObject(const objectid_t &, const objectdetails_t &, const std::list<std::string> *removals) override;
+	virtual void changeObject(const objectid_t &, const objectdetails_t &) override;
 
 	/**
 	 * Create object in plugin

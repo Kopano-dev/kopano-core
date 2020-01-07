@@ -261,7 +261,7 @@ struct props {
 	const char *column;
 };
 
-void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &details, const std::list<std::string> *lpDeleteProps)
+void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &details)
 {
 	std::string strData;
 	bool bFirstOne = true, bFirstDel = true;
@@ -294,19 +294,6 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 		"SELECT id FROM " + (string)DB_OBJECT_TABLE + " "
 		"WHERE externid=" + m_lpDatabase->EscapeBinary(objectid.id) + " "
 		"AND " + OBJECTCLASS_COMPARE_SQL("objectclass", objectid.objclass);
-
-	if (lpDeleteProps) {
-		// delete properties
-		auto strDeleteQuery =
-			"DELETE FROM " + (string)DB_OBJECTPROPERTY_TABLE + " "
-			"WHERE objectid = (" + strSubQuery + ") " +
-			" AND propname IN (" +
-			kc_join(*lpDeleteProps, ",") + ")";
-		auto er = m_lpDatabase->DoDelete(strDeleteQuery);
-		if(er != erSuccess)
-			throw runtime_error(string("db_query: ") + strerror(er));
-	}
-
 	auto strQuery = "REPLACE INTO " + std::string(DB_OBJECTPROPERTY_TABLE) + "(objectid, propname, value) VALUES ";
 	switch (objectid.objclass) {
 	case ACTIVE_USER:
@@ -455,8 +442,7 @@ objectsignature_t DBPlugin::createObject(const objectdetails_t &details)
 		objectid = CreateObject(details);
 
 	// Insert all properties into the database
-	changeObject(objectid, details, NULL);
-
+	changeObject(objectid, details);
 	// signature is empty on first create. This is OK because it doesn't matter what's in it, as long as it changes when the object is modified
 	return objectsignature_t(objectid, string());
 }

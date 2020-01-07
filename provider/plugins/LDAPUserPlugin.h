@@ -7,6 +7,7 @@
 #ifndef LDAPUSERPLUGIN_H
 #define LDAPUSERPLUGIN_H
 
+#include <list>
 #include <mutex>
 #include <string>
 #include <kopano/zcdefs.h>
@@ -217,11 +218,9 @@ public:
 	 *					The object id of the object which should be updated.
 	 * @param[in]	details
 	 *					The objectdetails which should be written to the object.
-	 * @param[in]	lpRemove
-	 *					List of configuration names which should be removed from the object
 	 * @throw notimplemented Always when the function is called.
 	 */
-	virtual void changeObject(const objectid_t &, const objectdetails_t &, const std::list<std::string> *removals) override;
+	virtual void changeObject(const objectid_t &, const objectdetails_t &) override;
 
 	/**
 	 * Create object in plugin
@@ -349,7 +348,7 @@ private:
 	 * @returns The first value of the attribute, or an empty string
 	 * if the attribute or a value was not found.
 	 */
-	std::string getLDAPAttributeValue(char *attribute, LDAPMessage *entry);
+	std::string getLDAPAttributeValue(const char *attribute, LDAPMessage *entry);
 
 	/**
 	 * Get multiple values of the given attribute from the search results.
@@ -363,7 +362,7 @@ private:
 	 *					The entry result from \c ldap_first_entry &c.
 	 * @return list of strings containing the attribute values
 	 */
-	std::list<std::string> getLDAPAttributeValues(char *attribute, LDAPMessage *entry);
+	std::list<std::string> getLDAPAttributeValues(const char *attribute, LDAPMessage *entry);
 
 	/**
 	 * Get DN for given entry

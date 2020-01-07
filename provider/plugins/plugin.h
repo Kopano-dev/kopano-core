@@ -276,11 +276,9 @@ public:
 	 *					The object id of the object which should be updated.
 	 * @param[in]	details
 	 *					The objectdetails which should be written to the object.
-	 * @param[in]	lpRemove
-	 *					List of configuration names which should be removed from the object
 	 * @throw std::exception
 	 */
-	virtual void changeObject(const objectid_t &id, const objectdetails_t &details, const std::list<std::string> *lpRemove) = 0;
+	virtual void changeObject(const objectid_t &id, const objectdetails_t &details) = 0;
 
 	/**
 	 * Create object in plugin
@@ -544,7 +542,7 @@ public:
 						The ldap error code why the exception was thrown
 	 */
 	ldap_error(const std::string &arg, int ldaperror = 0) :
-		runtime_error(arg)
+		runtime_error(arg + " (" + stringify_hex(ldaperror) + ")")
 	{
 		m_ldaperror = ldaperror;
 #ifdef EXCEPTION_DEBUG

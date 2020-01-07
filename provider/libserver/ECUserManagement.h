@@ -63,7 +63,7 @@ public:
 	/* Get parent for an object, with on-the-fly deletion of the specified child object id. */
 	KC_HIDDEN virtual ECRESULT GetParentObjectsOfObjectAndSync(userobject_relation_t, unsigned int child_id, std::list<localobjectdetails_t> &groups, unsigned int flags = 0);
 	/* Set data for a single user, with on-the-fly deletion of the specified user id. */
-	KC_HIDDEN virtual ECRESULT SetObjectDetailsAndSync(unsigned int obj_id, const objectdetails_t &, std::list<std::string> *remove_props);
+	KC_HIDDEN virtual ECRESULT SetObjectDetailsAndSync(unsigned int obj_id, const objectdetails_t &);
 	/* Add a member to a group, with on-the-fly deletion of the specified group id. */
 	KC_HIDDEN virtual ECRESULT AddSubObjectToObjectAndSync(userobject_relation_t, unsigned int parent_id, unsigned int child_id);
 	KC_HIDDEN virtual ECRESULT DeleteSubObjectFromObjectAndSync(userobject_relation_t, unsigned int parent_id, unsigned int child_id);

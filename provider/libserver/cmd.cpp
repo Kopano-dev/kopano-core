@@ -4527,7 +4527,7 @@ SOAP_ENTRY_START(setUser, *result, struct user *lpsUser, unsigned int *result)
 	er = usrmgt->UpdateUserDetailsFromClient(&details);
 	if (er != erSuccess)
 		return er;
-	return usrmgt->SetObjectDetailsAndSync(ulUserId, details, nullptr);
+	return usrmgt->SetObjectDetailsAndSync(ulUserId, details);
 }
 SOAP_ENTRY_END()
 
@@ -4986,7 +4986,7 @@ SOAP_ENTRY_START(setGroup, *result, struct group *lpsGroup, unsigned int *result
 	er = usrmgt->UpdateUserDetailsFromClient(&details);
 	if (er != erSuccess)
 		return er;
-	return usrmgt->SetObjectDetailsAndSync(ulGroupId, details, nullptr);
+	return usrmgt->SetObjectDetailsAndSync(ulGroupId, details);
 }
 SOAP_ENTRY_END()
 
@@ -5316,7 +5316,7 @@ SOAP_ENTRY_START(setCompany, *result, struct company *lpsCompany, unsigned int *
 	er = usrmgt->UpdateUserDetailsFromClient(&details);
 	if (er != erSuccess)
 		return er;
-	return usrmgt->SetObjectDetailsAndSync(ulCompanyId, details, nullptr);
+	return usrmgt->SetObjectDetailsAndSync(ulCompanyId, details);
 }
 SOAP_ENTRY_END()
 

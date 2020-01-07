@@ -590,7 +590,7 @@ objectdetails_t UnixUserPlugin::getObjectDetails(const objectid_t &externid)
 	return ud;
 }
 
-void UnixUserPlugin::changeObject(const objectid_t &id, const objectdetails_t &details, const std::list<std::string> *lpRemove)
+void UnixUserPlugin::changeObject(const objectid_t &id, const objectdetails_t &details)
 {
 	objectdetails_t tmp(details);
 
@@ -605,8 +605,7 @@ void UnixUserPlugin::changeObject(const objectid_t &id, const objectdetails_t &d
 	// UpdateUserDetailsFromClient call needs to convert the username/company to details.
 	// Remove the username detail to allow updating user information.
 	tmp.SetPropString(OB_PROP_S_LOGIN, string());
-
-	DBPlugin::changeObject(id, tmp, lpRemove);
+	DBPlugin::changeObject(id, tmp);
 }
 
 objectsignature_t UnixUserPlugin::createObject(const objectdetails_t &details) {
