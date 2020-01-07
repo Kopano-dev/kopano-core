@@ -82,7 +82,7 @@ void objectdetails_t::SetPropString(property_key_t propname,
 void objectdetails_t::SetPropListString(property_key_t propname,
     std::list<std::string> &&value)
 {
-	m_mapMVProps[propname].assign(std::make_move_iterator(value.begin()), std::make_move_iterator(value.end()));
+	m_mapMVProps[propname] = std::move(value);
 }
 
 void objectdetails_t::SetPropObject(property_key_t propname,
@@ -197,7 +197,7 @@ void objectdetails_t::MergeFrom(const objectdetails_t &from) {
 	for (const auto &p : from.m_mapProps)
 		m_mapProps[p.first] = p.second;
 	for (const auto &p : from.m_mapMVProps)
-		m_mapMVProps[p.first].assign(p.second.cbegin(), p.second.cend());
+		m_mapMVProps[p.first] = p.second;
 }
 
 /**
