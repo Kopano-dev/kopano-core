@@ -91,6 +91,12 @@ void objectdetails_t::SetPropString(property_key_t propname,
 #endif
 }
 
+void objectdetails_t::SetPropString(property_key_t propname,
+    std::string &&value)
+{
+	m_mapProps[propname].assign(std::move(value));
+}
+
 void objectdetails_t::SetPropListString(property_key_t propname,
     std::list<std::string> &&value)
 {

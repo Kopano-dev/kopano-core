@@ -1870,7 +1870,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 					if (ulPropTag & MV_FLAG)
 						sObjDetails.SetPropListString(static_cast<property_key_t>(ulPropTag), std::move(ldap_attrs));
 					else
-						sObjDetails.SetPropString(static_cast<property_key_t>(ulPropTag), ldap_attrs.front());
+						sObjDetails.SetPropString(static_cast<property_key_t>(ulPropTag), std::move(ldap_attrs.front()));
 					break;
 				}
 				}
@@ -1883,32 +1883,22 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 			case NONACTIVE_ROOM:
 			case NONACTIVE_EQUIPMENT:
 			case NONACTIVE_CONTACT:
-				if (loginname_attr && !strcasecmp(att, loginname_attr)) {
-					auto ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
-					sObjDetails.SetPropString(OB_PROP_S_LOGIN, ldap_attr);
-				}
-				if (user_fullname_attr && !strcasecmp(att, user_fullname_attr)) {
-					auto ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
-					sObjDetails.SetPropString(OB_PROP_S_FULLNAME, ldap_attr);
-				}
-				if (password_attr && !strcasecmp(att, password_attr)) {
-					auto ldap_attr = getLDAPAttributeValue(att, entry);
-					sObjDetails.SetPropString(OB_PROP_S_PASSWORD, ldap_attr);
-				}
-				if (emailaddress_attr && !strcasecmp(att, emailaddress_attr)) {
-					auto ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
-					sObjDetails.SetPropString(OB_PROP_S_EMAIL, ldap_attr);
-				}
+				if (loginname_attr != nullptr && strcasecmp(att, loginname_attr) == 0)
+					sObjDetails.SetPropString(OB_PROP_S_LOGIN, m_iconv->convert(getLDAPAttributeValue(att, entry)));
+				if (user_fullname_attr != nullptr && strcasecmp(att, user_fullname_attr) == 0)
+					sObjDetails.SetPropString(OB_PROP_S_FULLNAME, m_iconv->convert(getLDAPAttributeValue(att, entry)));
+				if (password_attr != nullptr && strcasecmp(att, password_attr) == 0)
+					sObjDetails.SetPropString(OB_PROP_S_PASSWORD, getLDAPAttributeValue(att, entry));
+				if (emailaddress_attr != nullptr && strcasecmp(att, emailaddress_attr) == 0)
+					sObjDetails.SetPropString(OB_PROP_S_EMAIL, m_iconv->convert(getLDAPAttributeValue(att, entry)));
 				if (emailaliases_attr != nullptr && strcasecmp(att, emailaliases_attr) == 0)
 					sObjDetails.SetPropListString(OB_PROP_LS_ALIASES, getLDAPAttributeValues(att, entry));
 				if (isadmin_attr && !strcasecmp(att, isadmin_attr)) {
 					auto ldap_attr = getLDAPAttributeValue(att, entry);
 					sObjDetails.SetPropInt(OB_PROP_I_ADMINLEVEL, std::min(2, atoi(ldap_attr.c_str())));
 				}
-				if (resource_type_attr && !strcasecmp(att, resource_type_attr)) {
-					auto ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
-					sObjDetails.SetPropString(OB_PROP_S_RESOURCE_DESCRIPTION, ldap_attr);
-				}
+				if (resource_type_attr != nullptr && strcasecmp(att, resource_type_attr) == 0)
+					sObjDetails.SetPropString(OB_PROP_S_RESOURCE_DESCRIPTION, m_iconv->convert(getLDAPAttributeValue(att, entry)));
 				if (resource_capacity_attr && !strcasecmp(att, resource_capacity_attr)) {
 					auto ldap_attr = getLDAPAttributeValue(att, entry);
 					sObjDetails.SetPropInt(OB_PROP_I_RESOURCE_CAPACITY, atoi(ldap_attr.c_str()));
@@ -1929,22 +1919,18 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 					p.propname = OB_PROP_LO_SENDAS;
 					lPostActions.emplace_back(std::move(p));
 				}
-				if (user_server_attr && !strcasecmp(att, user_server_attr)) {
-					auto ldap_attr = getLDAPAttributeValue(att, entry);
-					sObjDetails.SetPropString(OB_PROP_S_SERVERNAME, ldap_attr);
-				}
+				if (user_server_attr != nullptr && strcasecmp(att, user_server_attr) == 0)
+					sObjDetails.SetPropString(OB_PROP_S_SERVERNAME, getLDAPAttributeValue(att, entry));
 				break;
 			case DISTLIST_GROUP:
 			case DISTLIST_SECURITY:
 				if (group_fullname_attr && !strcasecmp(att, group_fullname_attr)) {
 					auto ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
 					sObjDetails.SetPropString(OB_PROP_S_LOGIN, ldap_attr);
-					sObjDetails.SetPropString(OB_PROP_S_FULLNAME, ldap_attr);
+					sObjDetails.SetPropString(OB_PROP_S_FULLNAME, std::move(ldap_attr));
 				}
-				if (emailaddress_attr && !strcasecmp(att, emailaddress_attr)) {
-					auto ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
-					sObjDetails.SetPropString(OB_PROP_S_EMAIL, ldap_attr);
-				}
+				if (emailaddress_attr != nullptr && strcasecmp(att, emailaddress_attr) == 0)
+					sObjDetails.SetPropString(OB_PROP_S_EMAIL, m_iconv->convert(getLDAPAttributeValue(att, entry)));
 				if (emailaliases_attr != nullptr && strcasecmp(att, emailaliases_attr) == 0)
 					sObjDetails.SetPropListString(OB_PROP_LS_ALIASES, getLDAPAttributeValues(att, entry));
 
@@ -1966,12 +1952,10 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 				if (dynamicgroup_name_attr && !strcasecmp(att, dynamicgroup_name_attr)) {
 					auto ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
 					sObjDetails.SetPropString(OB_PROP_S_LOGIN, ldap_attr);
-					sObjDetails.SetPropString(OB_PROP_S_FULLNAME, ldap_attr);
+					sObjDetails.SetPropString(OB_PROP_S_FULLNAME, std::move(ldap_attr));
 				}
-				if (emailaddress_attr && !strcasecmp(att, emailaddress_attr)) {
-					auto ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
-					sObjDetails.SetPropString(OB_PROP_S_EMAIL, ldap_attr);
-				}
+				if (emailaddress_attr != nullptr && strcasecmp(att, emailaddress_attr) == 0)
+					sObjDetails.SetPropString(OB_PROP_S_EMAIL, m_iconv->convert(getLDAPAttributeValue(att, entry)));
 				if (emailaliases_attr != nullptr && strcasecmp(att, emailaliases_attr) == 0)
 					sObjDetails.SetPropListString(OB_PROP_LS_ALIASES, getLDAPAttributeValues(att, entry));
 				break;
@@ -1979,12 +1963,10 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 				if (company_fullname_attr && !strcasecmp(att, company_fullname_attr)) {
 					auto ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
 					sObjDetails.SetPropString(OB_PROP_S_LOGIN, ldap_attr);
-					sObjDetails.SetPropString(OB_PROP_S_FULLNAME, ldap_attr);
+					sObjDetails.SetPropString(OB_PROP_S_FULLNAME, std::move(ldap_attr));
 				}
-				if (company_server_attr && !strcasecmp(att, company_server_attr)) {
-					auto ldap_attr = getLDAPAttributeValue(att, entry);
-					sObjDetails.SetPropString(OB_PROP_S_SERVERNAME, ldap_attr);
-				}
+				if (company_server_attr != nullptr && strcasecmp(att, company_server_attr) == 0)
+					sObjDetails.SetPropString(OB_PROP_S_SERVERNAME, getLDAPAttributeValue(att, entry));
 				if (sysadmin_attr && !strcasecmp(att, sysadmin_attr)) {
 					postaction p;
 
@@ -2001,7 +1983,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 				if (addresslist_name_attr && !strcasecmp(att, addresslist_name_attr)) {
 					auto ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
 					sObjDetails.SetPropString(OB_PROP_S_LOGIN, ldap_attr);
-					sObjDetails.SetPropString(OB_PROP_S_FULLNAME, ldap_attr);
+					sObjDetails.SetPropString(OB_PROP_S_FULLNAME, std::move(ldap_attr));
 				}
 				break;
 			case OBJECTCLASS_UNKNOWN:
