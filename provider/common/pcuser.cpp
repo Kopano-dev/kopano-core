@@ -65,30 +65,50 @@ objectid_t objectdetails_t::GetPropObject(property_key_t propname) const
 
 void objectdetails_t::SetPropInt(property_key_t propname, unsigned int value)
 {
+#if __cplusplus >= 201700L
+	m_mapProps.insert_or_assign(propname, stringify(value));
+#else
 	m_mapProps[propname] = stringify(value);
+#endif
 }
 
 void objectdetails_t::SetPropBool(property_key_t propname, bool value)
 {
+#if __cplusplus >= 201700L
+	m_mapProps.insert_or_assign(propname, value ? "1" : "0");
+#else
 	m_mapProps[propname] = value ? "1" : "0";
+#endif
 }
 
 void objectdetails_t::SetPropString(property_key_t propname,
     const std::string &value)
 {
+#if __cplusplus >= 201700L
+	m_mapProps.insert_or_assign(propname, value);
+#else
 	m_mapProps[propname] = value;
+#endif
 }
 
 void objectdetails_t::SetPropListString(property_key_t propname,
     std::list<std::string> &&value)
 {
+#if __cplusplus >= 201700L
+	m_mapMVProps.insert_or_assign(propname, std::move(value));
+#else
 	m_mapMVProps[propname] = std::move(value);
+#endif
 }
 
 void objectdetails_t::SetPropObject(property_key_t propname,
     objectid_t &&value)
 {
+#if __cplusplus >= 201700L
+	m_mapProps.insert_or_assign(propname, value.tostring());
+#else
 	m_mapProps[propname] = value.tostring();
+#endif
 }
 
 void objectdetails_t::AddPropInt(property_key_t propname, unsigned int value)
