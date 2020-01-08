@@ -406,7 +406,9 @@ HRESULT M4LMsgServiceAdmin::GetMsgServiceTable(ULONG ulFlags, LPMAPITABLE* lppTa
 		}
 		sProps[3].ulPropTag = PR_ROWID;
 		sProps[3].Value.ul = n++;
-		lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, nullptr, sProps.get(), 4);
+		hr = lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, nullptr, sProps.get(), 4);
+		if (hr != hrSuccess)
+			return hr;
 	}
 	
 	hr = lpTable->HrGetView(createLocaleFromName(""), ulFlags, &~lpTableView);
