@@ -197,8 +197,6 @@ ECKeyTable::~ECKeyTable()
 // Propagate this node's counts up to the root
 ECRESULT ECKeyTable::UpdateCounts(ECTableRow *lpRow)
 {
-	unsigned int ulHeight = 0;
-
 	while(lpRow != NULL) {
 		if(lpRow == lpRoot) {
 			lpRow->ulHeight = 0;
@@ -217,7 +215,7 @@ ECRESULT ECKeyTable::UpdateCounts(ECTableRow *lpRow)
 			lpRow->ulBranchCount += lpRow->lpRight->ulBranchCount;
 
 		// Get the height of the highest subtree
-		ulHeight = 0;
+		unsigned int ulHeight = 0;
 		if(lpRow->lpLeft)
 			ulHeight = lpRow->lpLeft->ulHeight;
 		if(lpRow->lpRight)
