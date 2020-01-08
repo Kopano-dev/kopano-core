@@ -86,22 +86,6 @@ HRESULT ECUnknown::SetParent(ECUnknown *parent)
 }
 
 /**
- * Returns whether this object is the parent of passed object
- *
- * @param lpObject Possible child object
- *
- * @return this is a parent of lpObject, or not
- */
-BOOL ECUnknown::IsParentOf(const ECUnknown *lpObject) const
-{
-	for (; lpObject != nullptr && lpObject->lpParent != nullptr;
-	     lpObject = lpObject->lpParent)
-		if (lpObject->lpParent == this)
-			return TRUE;
-	return FALSE;
-}
-
-/**
  * Returns whether this object is a child of passed object
  *
  * @param lpObject IUnknown object which may be a child of this
