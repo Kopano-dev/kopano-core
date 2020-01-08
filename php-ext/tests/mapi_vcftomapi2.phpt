@@ -1,5 +1,5 @@
 --TEST--
-mapi_vcfstomapi() server tests
+mapi_vcftomapi2() server tests
 --SKIPIF--
 <?php if (!extension_loaded("mapi") || !getenv("KOPANO_TEST_SERVER")) print "skip"; ?>
 --FILE--
@@ -31,7 +31,7 @@ $session = getMapiSession();
 $store = getDefaultStore($session);
 $root = mapi_msgstore_openentry($store, null);
 
-var_dump(mapi_vcfstomapi($session, $store, $root, $data));
+var_dump(mapi_vcftomapi2($root, $data));
 --EXPECTF--
 array(2) {
   [0]=>

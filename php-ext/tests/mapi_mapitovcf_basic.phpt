@@ -6,5 +6,5 @@ mapi_mapitovcf() tests
 <?php
 var_dump(mapi_mapitovcf(null, null, null, array()));
 --EXPECTF--
-Warning: mapi_mapitovcf() expects parameter 1 to be resource, null given in %s on line %d
+Warning: mapi_mapitovcf() expects parameter 2 to be resource, null given in %s on line %d
 bool(false)
