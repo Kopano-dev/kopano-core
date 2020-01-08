@@ -5,6 +5,7 @@
 #include <atomic>
 #include <memory>
 #include <set>
+#include <stdexcept>
 #include <string>
 #include <cassert>
 #include <csignal>
@@ -696,7 +697,7 @@ static bool adm_setup_signals()
 	return true;
 }
 
-int main(int argc, char **argv)
+int main(int argc, char **argv) try
 {
 	const configsetting_t defaults[] = {
 		{"database_engine", "mysql"},
@@ -792,4 +793,6 @@ int main(int argc, char **argv)
 		}
 	}
 	return EXIT_SUCCESS;
+} catch (...) {
+	std::terminate();
 }

@@ -2,6 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  * Copyright 2019, Kopano and its licensors
  */
+#include <stdexcept>
 #include <string>
 #include <cstdio>
 #include <cstdlib>
@@ -370,9 +371,11 @@ static void try_decompose(const char *s)
 	try_entryid(b, i);
 }
 
-int main(int argc, char **argv)
+int main(int argc, char **argv) try
 {
 	while (--argc > 0)
 		try_decompose(*++argv);
 	return EXIT_SUCCESS;
+} catch (...) {
+	std::terminate();
 }
