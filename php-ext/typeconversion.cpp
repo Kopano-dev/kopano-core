@@ -61,6 +61,12 @@ static LONG PropTagToPHPTag(ULONG ulPropTag) {
 	return ulPropTag;
 }
 
+static inline void my_array_init(zval *zv)
+{
+	/* Collect cov-scan issue in one source place */
+	array_init(zv);
+}
+
 /*
 * Converts a PHP Array into a SBinaryArray. This is the same as an ENTRYLIST which
 * is used with DeleteMessages();
@@ -124,8 +130,7 @@ HRESULT SBinaryArraytoPHPArray(const SBinaryArray *lpBinaryArray,
     zval *pvalRet TSRMLS_DC)
 {
 	MAPI_G(hr) = hrSuccess;
-	
-	array_init(pvalRet);
+	my_array_init(pvalRet);
 	for (unsigned int i = 0; i < lpBinaryArray->cValues; ++i)
 		add_next_index_stringl(pvalRet, reinterpret_cast<const char *>(lpBinaryArray->lpbin[i].lpb), lpBinaryArray->lpbin[i].cb);
 	return MAPI_G(hr);
@@ -1219,11 +1224,11 @@ HRESULT SRestrictiontoPHPArray(const SRestriction *lpRes, int level,
 	// use define depth
 	if (level > 16)
 		return MAPI_G(hr) =  MAPI_E_TOO_COMPLEX;
-	array_init(ret);
+	my_array_init(ret);
 
 	switch (lpRes->rt) {
 	case RES_AND:
-		array_init(&array);
+		my_array_init(&array);
 		for (ULONG c = 0; c < lpRes->res.resAnd.cRes; ++c) {
 			sprintf(key, "%i", c);
 			MAPI_G(hr) = SRestrictiontoPHPArray(&lpRes->res.resAnd.lpRes[c], level+1, &entry TSRMLS_CC);
@@ -1236,7 +1241,7 @@ HRESULT SRestrictiontoPHPArray(const SRestriction *lpRes, int level,
 		break;
 
 	case RES_OR:
-		array_init(&array);
+		my_array_init(&array);
 		for (ULONG c = 0; c < lpRes->res.resOr.cRes; ++c) {
 			sprintf(key, "%i", c);
 			MAPI_G(hr) = SRestrictiontoPHPArray(&lpRes->res.resOr.lpRes[c], level+1, &entry TSRMLS_CC);
@@ -1250,7 +1255,7 @@ HRESULT SRestrictiontoPHPArray(const SRestriction *lpRes, int level,
 
 	case RES_NOT:
 		// although it's only one value, it still is wrapped in an array.
-		array_init(&array);
+		my_array_init(&array);
 
 		MAPI_G(hr) = SRestrictiontoPHPArray(lpRes->res.resNot.lpRes, level+1, &entry TSRMLS_CC);
 		if (MAPI_G(hr) != hrSuccess)
@@ -1265,7 +1270,7 @@ HRESULT SRestrictiontoPHPArray(const SRestriction *lpRes, int level,
 		MAPI_G(hr) = PropValueArraytoPHPArray(1, lpRes->res.resContent.lpProp, &props TSRMLS_CC);
 		if (MAPI_G(hr) != hrSuccess)
 			return MAPI_G(hr);
-		array_init(&array);
+		my_array_init(&array);
 		sprintf(key, "%i", VALUE);
 		add_assoc_zval(&array, key, &props);		
 		sprintf(key, "%i", ULPROPTAG);
@@ -1281,7 +1286,7 @@ HRESULT SRestrictiontoPHPArray(const SRestriction *lpRes, int level,
 		MAPI_G(hr) = PropValueArraytoPHPArray(1, lpRes->res.resProperty.lpProp, &props TSRMLS_CC);
 		if (MAPI_G(hr) != hrSuccess)
 			return MAPI_G(hr);
-		array_init(&array);
+		my_array_init(&array);
 		sprintf(key, "%i", RELOP);
 		add_assoc_long(&array, key, (LONG)lpRes->res.resProperty.relop);
 		sprintf(key, "%i", ULPROPTAG);
@@ -1294,7 +1299,7 @@ HRESULT SRestrictiontoPHPArray(const SRestriction *lpRes, int level,
 		break;
 
 	case RES_COMPAREPROPS:
-		array_init(&array);
+		my_array_init(&array);
 		sprintf(key, "%i", RELOP);
 		add_assoc_long(&array, key, (LONG)lpRes->res.resCompareProps.relop);
 		sprintf(key, "%i", ULPROPTAG1);
@@ -1307,7 +1312,7 @@ HRESULT SRestrictiontoPHPArray(const SRestriction *lpRes, int level,
 		break;
 
 	case RES_BITMASK:
-		array_init(&array);
+		my_array_init(&array);
 		sprintf(key, "%i", ULTYPE);
 		add_assoc_long(&array, key, (LONG)lpRes->res.resBitMask.relBMR);
 		sprintf(key, "%i", ULPROPTAG);
@@ -1320,7 +1325,7 @@ HRESULT SRestrictiontoPHPArray(const SRestriction *lpRes, int level,
 		break;
 
 	case RES_SIZE:
-		array_init(&array);
+		my_array_init(&array);
 		sprintf(key, "%i", RELOP);
 		add_assoc_long(&array, key, (LONG)lpRes->res.resSize.relop);
 		sprintf(key, "%i", ULPROPTAG);
@@ -1333,7 +1338,7 @@ HRESULT SRestrictiontoPHPArray(const SRestriction *lpRes, int level,
 		break;
 
 	case RES_EXIST:
-		array_init(&array);
+		my_array_init(&array);
 		sprintf(key, "%i", ULPROPTAG);
 		add_assoc_long(&array, key, PropTagToPHPTag(lpRes->res.resExist.ulPropTag));
 
@@ -1345,7 +1350,7 @@ HRESULT SRestrictiontoPHPArray(const SRestriction *lpRes, int level,
 		MAPI_G(hr) = SRestrictiontoPHPArray(lpRes->res.resSub.lpRes, level+1, &restriction TSRMLS_CC);
 		if (MAPI_G(hr) != hrSuccess)
 			return MAPI_G(hr);
-		array_init(&array);
+		my_array_init(&array);
 		sprintf(key, "%i", ULPROPTAG);
 		add_assoc_long(&array, key, PropTagToPHPTag(lpRes->res.resSub.ulSubObject));
 		sprintf(key, "%i", RESTRICTION);
@@ -1362,7 +1367,7 @@ HRESULT SRestrictiontoPHPArray(const SRestriction *lpRes, int level,
 		MAPI_G(hr) = SRestrictiontoPHPArray(lpRes->res.resComment.lpRes, level+1, &restriction TSRMLS_CC);
 		if (MAPI_G(hr) != hrSuccess)
 			return MAPI_G(hr);
-		array_init(&array);
+		my_array_init(&array);
 		sprintf(key, "%i", PROPS);
 		add_assoc_zval(&array, key, &props);
 		sprintf(key, "%i", RESTRICTION);
@@ -1383,8 +1388,7 @@ HRESULT PropTagArraytoPHPArray(ULONG cValues,
     const SPropTagArray *lpPropTagArray, zval *zvalRet TSRMLS_DC)
 {
 	MAPI_G(hr) = hrSuccess;
-	
-	array_init(zvalRet);
+	my_array_init(zvalRet);
 	for (unsigned int i = 0; i < cValues; ++i)
 		add_next_index_long(zvalRet, PropTagToPHPTag(lpPropTagArray->aulPropTag[i]));
 	
@@ -1409,8 +1413,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 	convert_context converter;
 
 	MAPI_G(hr) = hrSuccess;
-
-	array_init(zval_prop_value);
+	my_array_init(zval_prop_value);
 
 	for (unsigned int col = 0; col < cValues; ++col) {
 		char pulproptag[16];
@@ -1487,7 +1490,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 			break;
 
 		case PT_MV_I2:
-			array_init(&zval_mvprop_value);
+			my_array_init(&zval_mvprop_value);
 			for (unsigned int j = 0; j < pPropValue->Value.MVi.cValues; ++j) {
 					sprintf(ulKey, "%i", j);
 					add_assoc_long(&zval_mvprop_value, ulKey, pPropValue->Value.MVi.lpi[j]);
@@ -1496,7 +1499,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 			add_assoc_zval(zval_prop_value, pulproptag, &zval_mvprop_value);
 			break;
 		case PT_MV_LONG:
-			array_init(&zval_mvprop_value);
+			my_array_init(&zval_mvprop_value);
 			for (unsigned int j = 0; j < pPropValue->Value.MVl.cValues; ++j) {
 				sprintf(ulKey, "%i", j);
 				add_assoc_long(&zval_mvprop_value, ulKey, pPropValue->Value.MVl.lpl[j]);
@@ -1505,7 +1508,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 			add_assoc_zval(zval_prop_value, pulproptag, &zval_mvprop_value);
 			break;
 		case PT_MV_R4:
-			array_init(&zval_mvprop_value);
+			my_array_init(&zval_mvprop_value);
 			for (unsigned int j = 0; j < pPropValue->Value.MVflt.cValues; ++j) {
 				sprintf(ulKey, "%i", j);
 				add_assoc_double(&zval_mvprop_value, ulKey, pPropValue->Value.MVflt.lpflt[j]);
@@ -1514,7 +1517,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 			add_assoc_zval(zval_prop_value, pulproptag, &zval_mvprop_value);
 			break;
 		case PT_MV_DOUBLE:
-			array_init(&zval_mvprop_value);
+			my_array_init(&zval_mvprop_value);
 			for (unsigned int j = 0; j < pPropValue->Value.MVdbl.cValues; ++j) {
 				sprintf(ulKey, "%i", j);
 				add_assoc_double(&zval_mvprop_value, ulKey, pPropValue->Value.MVdbl.lpdbl[j]);
@@ -1523,7 +1526,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 			add_assoc_zval(zval_prop_value, pulproptag, &zval_mvprop_value);
 			break;
 		case PT_MV_APPTIME:
-			array_init(&zval_mvprop_value);
+			my_array_init(&zval_mvprop_value);
 			for (unsigned int j = 0; j < pPropValue->Value.MVat.cValues; ++j) {
 				sprintf(ulKey, "%i", j);
 				add_assoc_double(&zval_mvprop_value, ulKey, pPropValue->Value.MVat.lpat[j]);
@@ -1532,7 +1535,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 			add_assoc_zval(zval_prop_value, pulproptag, &zval_mvprop_value);
 			break;
 		case PT_MV_SYSTIME:
-			array_init(&zval_mvprop_value);
+			my_array_init(&zval_mvprop_value);
 			for (unsigned int j = 0; j < pPropValue->Value.MVft.cValues; ++j) {
 				sprintf(ulKey, "%i", j);
 				add_assoc_long(&zval_mvprop_value, ulKey, FileTimeToUnixTime(pPropValue->Value.MVft.lpft[j]));
@@ -1541,7 +1544,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 			add_assoc_zval(zval_prop_value, pulproptag, &zval_mvprop_value);
 			break;
 		case PT_MV_BINARY:
-			array_init(&zval_mvprop_value);
+			my_array_init(&zval_mvprop_value);
 			for (unsigned int j = 0; j < pPropValue->Value.MVbin.cValues; ++j) {
 				sprintf(ulKey, "%i", j);
 				add_assoc_stringl(&zval_mvprop_value, ulKey,
@@ -1552,7 +1555,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 			add_assoc_zval(zval_prop_value, pulproptag, &zval_mvprop_value);
 			break;
 		case PT_MV_STRING8:
-			array_init(&zval_mvprop_value);
+			my_array_init(&zval_mvprop_value);
 			for (unsigned int j = 0; j < pPropValue->Value.MVszA.cValues; ++j) {
 				sprintf(ulKey, "%i", j);
 				add_assoc_string(&zval_mvprop_value, ulKey, pPropValue->Value.MVszA.lppszA[j]);
@@ -1561,7 +1564,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 			add_assoc_zval(zval_prop_value, pulproptag, &zval_mvprop_value);
 			break;
 		case PT_MV_UNICODE:
-			array_init(&zval_mvprop_value);
+			my_array_init(&zval_mvprop_value);
 			for (unsigned int j = 0; j < pPropValue->Value.MVszW.cValues; ++j) {
 				sprintf(ulKey, "%i", j);
 				add_assoc_string(&zval_mvprop_value, ulKey, BEFORE_PHP7_2(converter.convert_to<std::string>(pPropValue->Value.MVszW.lppszW[j]).c_str()));
@@ -1570,7 +1573,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 			add_assoc_zval(zval_prop_value, pulproptag, &zval_mvprop_value);
 			break;
 		case PT_MV_CLSID:
-			array_init(&zval_mvprop_value);
+			my_array_init(&zval_mvprop_value);
 			for (unsigned int j = 0; j < pPropValue->Value.MVguid.cValues; ++j) {
 				sprintf(ulKey, "%i", j);
 				add_assoc_stringl(&zval_mvprop_value, pulproptag, reinterpret_cast<char *>(&pPropValue->Value.MVguid.lpguid[j]), sizeof(GUID));
@@ -1584,10 +1587,9 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 			// rules table properties
 		case PT_ACTIONS: {
 			auto lpActions = reinterpret_cast<ACTIONS *>(pPropValue->Value.lpszA);
-			array_init(&zval_action_array);
+			my_array_init(&zval_action_array);
 			for (unsigned int j = 0; j < lpActions->cActions; ++j) {
-				array_init(&zval_action_value);
-
+				my_array_init(&zval_action_value);
 				add_assoc_long(&zval_action_value, "action", lpActions->lpAction[j].acttype);
 				add_assoc_long(&zval_action_value, "flags", lpActions->lpAction[j].ulFlags);
 				add_assoc_long(&zval_action_value, "flavor", lpActions->lpAction[j].ulActionFlavor);
@@ -1663,8 +1665,7 @@ HRESULT RowSettoPHPArray(const SRowSet *lpRowSet, zval *ret TSRMLS_DC)
 	zval	zval_prop_value;
 	
 	MAPI_G(hr) = hrSuccess;
-
-	array_init(ret);
+	my_array_init(ret);
 
 	// make a PHP-array from the rowset resource.
 	for (unsigned int crow = 0; crow < lpRowSet->cRows; ++crow) {
@@ -1682,12 +1683,11 @@ HRESULT ReadStateArraytoPHPArray(ULONG cValues, const READSTATE *lpReadStates,
     zval *pvalRet TSRMLS_DC)
 {
 	MAPI_G(hr) = hrSuccess;
-	
-	array_init(pvalRet);
+	my_array_init(pvalRet);
 	
 	for (unsigned int i = 0; i < cValues; ++i) {
 		zval pvalEntry;
-		array_init(&pvalEntry);
+		my_array_init(&pvalEntry);
 		add_assoc_stringl(&pvalEntry, "sourcekey", reinterpret_cast<char *>(lpReadStates[i].pbSourceKey), lpReadStates[i].cbSourceKey);
 		add_assoc_long(&pvalEntry, "flags", lpReadStates[i].ulFlags);
 		
@@ -1801,12 +1801,11 @@ HRESULT NotificationstoPHPArray(ULONG cNotifs, const NOTIFICATION *lpNotifs,
 	zval zvalProps;
 	
 	MAPI_G(hr) = hrSuccess;
-	
-	array_init(zvalRet);
+	my_array_init(zvalRet);
 	
 	for (unsigned int i = 0; i < cNotifs; ++i) {
 		zval zvalNotif;
-		array_init(&zvalNotif);
+		my_array_init(&zvalNotif);
 		
 		add_assoc_long(&zvalNotif, "eventtype", lpNotifs[i].ulEventType);
 		switch(lpNotifs[i].ulEventType) {
