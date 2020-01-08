@@ -231,10 +231,6 @@ HRESULT ECMSProvider::LogonByEntryID(object_ptr<WSTransport> &lpTransport,
 	return hrSuccess;
 }
 
-#ifdef swprintf
-#	undef swprintf
-#endif
-
 ECMSProviderSwitch::ECMSProviderSwitch(ULONG f) :
 	ECUnknown("ECMSProviderSwitch"), m_ulFlags(f)
 {}
@@ -395,18 +391,8 @@ HRESULT ECMSProviderSwitch::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 		if (hr != hrSuccess)
 			return hr;
 	}
-
-	// Store username and password so SpoolerLogon can log on to the profile
-	if(lppbSpoolSecurity)
-	{
-		ULONG cbSpoolSecurity = sizeof(wchar_t) * (sProfileProps.strUserName.length() + sProfileProps.strPassword.length() + 1 + 1);
-
-		hr = MAPIAllocateBuffer(cbSpoolSecurity, reinterpret_cast<void **>(lppbSpoolSecurity));
-		if(hr != hrSuccess)
-			return hr;
-		swprintf((wchar_t*)*lppbSpoolSecurity, cbSpoolSecurity, L"%s%c%s", sProfileProps.strUserName.c_str(), 0, sProfileProps.strPassword.c_str());
-		*lpcbSpoolSecurity = cbSpoolSecurity;
-	}
+	if (lppbSpoolSecurity != nullptr)
+		*lppbSpoolSecurity = nullptr;
 	return hr;
 }
 
