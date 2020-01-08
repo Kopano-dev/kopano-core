@@ -488,7 +488,7 @@ HRESULT ECExchangeExportChanges::Synchronize(ULONG *lpulSteps, ULONG *lpulProgre
 progress:
 	if(hr == hrSuccess) {
 		// The sync has completed. This means we can move to the next change ID on the server, and clear our
-		// processed change list. If we can't save the new state the the server, we just keep the previous
+		// processed change list. If we cannot save the new state to the server, we just keep the previous
 		// change ID and the (large) change list. This allows us always to have a state, even when we can't
 		// communicate with the server.
 		if(m_lpStore->lpTransport->HrSetSyncStatus(m_sourcekey, m_ulSyncId, m_ulMaxChangeId, m_ulSyncType, 0, &m_ulSyncId) == hrSuccess) {

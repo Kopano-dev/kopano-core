@@ -498,7 +498,7 @@ private:
 
 	/**
 	 * Create LDAP search filter based on the object id and the attribute in which the object id should
-	 * be found. If attr is empty the object class will be used to discover the unique attribute for
+	 * be found. If attr is empty, the object class will be used to discover the unique attribute for
 	 * that object class.
 	 *
 	 * @param[in]	id

@@ -2761,7 +2761,7 @@ static void *HandlerLMTP(void *lpArg)
 				lpArgs->ulDeliveryMode = ulDeliveryMode;
 			}
 
-			// We're not that interested in the error value here; if an error occurs then this will be reflected in the
+			// We are not that interested in the error value here; if an error occurs, then this will be reflected in the
 			// wstrDeliveryStatus of each recipient.
 			hr = hrSuccess;
 

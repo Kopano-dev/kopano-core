@@ -1728,7 +1728,7 @@ bool MAPIToVMIME::is_voting_request(IMessage *lpMessage) const
 }
 
 /**
- * CCheck if the named property exists which denotes if reminder is set
+ * Check if the named property exists which denotes if reminder is set
  */
 bool MAPIToVMIME::has_reminder(IMessage *msg) const
 {

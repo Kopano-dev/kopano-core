@@ -1782,7 +1782,7 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
  * the calendar list in ical.app(Mac). This makes the default kopano calendar default
  * in ical.app too.
  *
- * if the value is left empty ical.app tries to reset the order and sometimes sets
+ * If the value is left empty, ical.app tries to reset the order and sometimes sets
  * a tasks folder as default calendar
  *
  * @param[in]	sbEid				Entryid of the Folder to be checked

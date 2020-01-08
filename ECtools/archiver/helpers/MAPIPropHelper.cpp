@@ -172,8 +172,8 @@ HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageSt
 			hr = ptrStore->OpenEntry(refEntry.sItemEntryId.size(), refEntry.sItemEntryId, &iid_of(ptrArchiveMsg), 0, &ulType, &~ptrMessage);
 			if (hr == hrSuccess) {
 				/*
-				 * One would expect that if the message was opened properly here, the message that's being
-				 * processed was copied because we were able to open the original reference, which should
+				 * One would expect that, if the message was opened properly here, the message that's being
+				 * processed was copied, because we were able to open the original reference, which should
 				 * have been removed either way.
 				 * However, because of a currently (13-07-2011) unknown issue, the moved message can be
 				 * opened with its old entryid. This is probably a cache issue.

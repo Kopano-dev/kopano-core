@@ -278,7 +278,7 @@ bool mapiTextPart::findPlainTextPart(const bodyPart &part,
 					}
 				}
 
-				// If we don't have found the plain text part here, it means that
+				// If we did not find the plain text part here, it means that
 				// it does not exist (the MUA which built this message probably
 				// did not include it...).
 				return found;

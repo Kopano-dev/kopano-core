@@ -649,10 +649,10 @@ HRESULT HrCreateEmailSearchKey(const char *lpszEmailType,
  * @param[in] lpSession MAPI Session to use for the lookup (note: uses adressbook from this session)
  * @param[in] lpProps Properties to use to lookup email address strings
  * @param[in] cValues Number of properties pointed to by lpProps
- * @param[in] ulPropTagEntryID Property tag fo the entryid part of the recipient (eg PR_ENTRYID)
- * @param[in] ulPropTagName Property tag of the display name part of the recipeint (eg PR_DISPLAY_NAME)
- * @param[in] ulPropTagType Property tag of the address type of the recipient (eg PR_ADDRTYPE)
- * @param[in] ulPropTagEmailAddress Property tag of the email address part of the recipient (eg PR_EMAIL_ADDRESS)
+ * @param[in] ulPropTagEntryID Property tag fo the entryid part of the recipient (e.g. PR_ENTRYID)
+ * @param[in] ulPropTagName Property tag of the display name part of the recipeint (e.g. PR_DISPLAY_NAME)
+ * @param[in] ulPropTagType Property tag of the address type of the recipient (e.g. PR_ADDRTYPE)
+ * @param[in] ulPropTagEmailAddress Property tag of the email address part of the recipient (e.g. PR_EMAIL_ADDRESS)
  * @param[out] strName Return string for display name
  * @param[out] strType Return string for address type
  * @param[out] strEmailAddress Return string for email address
@@ -671,10 +671,10 @@ HRESULT HrCreateEmailSearchKey(const char *lpszEmailType,
  *
  * @param[in] lpAdrBook Addressbook object to use for lookup
  * @param[in] lpMessage IMessage object to get address from
- * @param[in] ulPropTagEntryID Property tag fo the entryid part of the recipient (eg PR_ENTRYID)
- * @param[in] ulPropTagName Property tag of the display name part of the recipeint (eg PR_DISPLAY_NAME)
- * @param[in] ulPropTagType Property tag of the address type of the recipient (eg PR_ADDRTYPE)
- * @param[in] ulPropTagEmailAddress Property tag of the email address part of the recipient (eg PR_EMAIL_ADDRESS)
+ * @param[in] ulPropTagEntryID Property tag fo the entryid part of the recipient (e.g. PR_ENTRYID)
+ * @param[in] ulPropTagName Property tag of the display name part of the recipeint (e.g. PR_DISPLAY_NAME)
+ * @param[in] ulPropTagType Property tag of the address type of the recipient (e.g. PR_ADDRTYPE)
+ * @param[in] ulPropTagEmailAddress Property tag of the email address part of the recipient (e.g. PR_EMAIL_ADDRESS)
  * @param[out] strName Return string for display name
  * @param[out] strType Return string for address type
  * @param[out] strEmailAddress Return string for email address
@@ -783,10 +783,10 @@ static HRESULT HrResolveToSMTP(LPADRBOOK lpAdrBook,
  * @param[in] lpAdrBook Addressbook object to use to lookup the address
  * @param[in] lpProps Properties to use to lookup email address strings
  * @param[in] cValues Number of properties pointed to by lpProps
- * @param[in] ulPropTagEntryID Property tag fo the entryid part of the recipient (eg PR_ENTRYID)
- * @param[in] ulPropTagName Property tag of the display name part of the recipeint (eg PR_DISPLAY_NAME)
- * @param[in] ulPropTagType Property tag of the address type of the recipient (eg PR_ADDRTYPE)
- * @param[in] ulPropTagEmailAddress Property tag of the email address part of the recipient (eg PR_EMAIL_ADDRESS)
+ * @param[in] ulPropTagEntryID Property tag fo the entryid part of the recipient (e.g. PR_ENTRYID)
+ * @param[in] ulPropTagName Property tag of the display name part of the recipeint (e.g. PR_DISPLAY_NAME)
+ * @param[in] ulPropTagType Property tag of the address type of the recipient (e.g. PR_ADDRTYPE)
+ * @param[in] ulPropTagEmailAddress Property tag of the email address part of the recipient (e.g. PR_EMAIL_ADDRESS)
  * @param[out] strName Return string for display name
  * @param[out] strType Return string for address type
  * @param[out] strEmailAddress Return string for email address

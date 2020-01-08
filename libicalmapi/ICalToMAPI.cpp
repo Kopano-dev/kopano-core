@@ -312,7 +312,7 @@ HRESULT ICalToMapiImpl::GetFreeBusyInfo(time_t *lptstart, time_t *lptend,
  * @param[in]		ulPosition		specifies the message that is to be retrieved
  * @param[in]		ulFlags			conversion flags
  * @arg @c IC2M_NO_RECIPIENTS skip recipients in conversion from ICal to MAPI
- * @arg @c IC2M_APPEND_ONLY	do not delete properties in lpMessage that are not present in ICal, but possebly are in lpMessage
+ * @arg @c IC2M_APPEND_ONLY	do not delete properties in lpMessage that are not present in ICal, but possibly are in lpMessage
  * @param[in,out]	lpMessage		IMessage in which properties has to be set
  *
  * @return			MAPI error code

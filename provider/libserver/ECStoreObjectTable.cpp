@@ -659,7 +659,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
 					soap_default_propVal(soap, &pv);
 				}
 				if (CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, &pv) != erSuccess) {
-                	// This can happen if a subquery returned a NULL field or if your database contains bad data (eg a NULL field where there shouldn't be)
+					// This can happen if a subquery returned a NULL field or if your database contains bad data (e.g. a NULL field where there shouldn't be)
 			++iterColumns;
 			continue;
                 }
@@ -1054,7 +1054,7 @@ ECRESULT ECStoreObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int *
     // Use normal table update code if:
     //  - not an initial load (but a table update)
     //  - no restriction
-    //  - not a restriction on a folder (eg searchfolder)
+	//  - not a restriction on a folder (e.g. searchfolder)
 	if (!bLoad || lpsRestrict == nullptr || lpODStore->ulFolderId == 0 ||
 	    lpODStore->ulStoreId == 0 || (lpODStore->ulFlags & MAPI_ASSOCIATED))
 		return ECGenericObjectTable::AddRowKey(lpRows, lpulLoaded, ulFlags, bLoad, false, nullptr);

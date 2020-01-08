@@ -330,9 +330,9 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPr
 		return hr;
 
 	/**
-	 * If PR_ADDITIONAL_REN_ENTRYIDS exist this is assumed to be either the Inbox or the root-container. The
+	 * If PR_ADDITIONAL_REN_ENTRYIDS exists, this is assumed to be either the Inbox or the root container. The
 	 * root container is only synced during the initial folder sync, but we'll perform the check here anyway.
-	 * If we have a PR_ADDITIONAL_REN_ENTRYIDS on the inbox, we'll set the same value on the root-container as
+	 * If we have a PR_ADDITIONAL_REN_ENTRYIDS on the inbox, we will set the same value on the root container as
 	 * they're supposed to be in sync.
 	 * NOTE: This is a workaround for Kopano not handling this property (and some others) as special properties.
 	 */

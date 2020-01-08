@@ -164,7 +164,7 @@ using std::string;
 
 /*
  * Locking requirements of ECAttachmentStorage:
- * In the case of ECAttachmentStorage locking to protect against concurrent access is futile.
+ * In the case of ECAttachmentStorage, locking to protect against concurrent access is futile.
  * The theory is as follows:
  * If 2 users have a reference to the same attachment, neither can delete the mail causing
  * the other person to lose the attachment. This means that concurrent copy and delete actions

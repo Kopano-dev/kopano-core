@@ -199,7 +199,7 @@ Default:
 \fIno\fR
 .SS enable_dsn
 .PP
-Enable the Delivery Status Notifications (DSN) for users. If a user requests a DSN the spooler sends the request to the MTA and when the MTA support this the user will receive the report in the mailbox. When the MTA does not support DSN the user will not receive a report. Ensure you have a supported MTA like postfix 2.3 and higher. If DSN is disabled and the user request a DSN then it will be ignored and the delivery report is not sent.
+Enable the Delivery Status Notifications (DSN) for users. If a user requests a DSN, the spooler sends the request to the MTA and, when the MTA support this, the user will receive the report in the mailbox. When the MTA does not support DSN, the user will not receive a report. Ensure you have a supported MTA like postfix 2.3 and higher. If DSN is disabled and the user request a DSN, then it will be ignored and the delivery report is not sent.
 .PP
 Default:
 \fIyes\fR
@@ -254,7 +254,7 @@ Default:
 \fIno\fR
 .SS archive_on_send
 .PP
-Archive outgoing messages. If an archive is attached to the mailbox from which a message is send, the message will immediately be archived to the special Outgoing folder.
+Archive outgoing messages. If an archive is attached to the mailbox from which a message is sent, the message will immediately be archived to the special Outgoing folder.
 .PP
 Messages that are archived this way are not attached to the original message in the primary store. So there is no easy way to find the original sent item based on an archive or find an archive based on the sent item in the primary store. This option is only intended to make sure all outgoing messages are stored without the possibility for the owner to delete them.
 .PP

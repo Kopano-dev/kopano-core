@@ -176,7 +176,7 @@ Encapsulates everything to create a simple Kopano service, such as:
 
         self.log.info('starting %s', self.logname or self.name)
         try:
-            # do not run-as-service (eg backup)
+            # do not run-as-service (e.g. backup)
             if getattr(self.options, 'service', True):
                 _daemonize(self.main, options=self.options, log=self.log,
                     config=self.config, service=self)

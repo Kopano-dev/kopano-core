@@ -35,7 +35,7 @@ using namespace KC;
 
 /*
  * Currently, serverside named properties are cached locally in a map<> object,
- * however, in the future, a bimap<> may be used to speed up reverse lookups (ie
+ * however, in the future, a bimap<> may be used to speed up reverse lookups (i.e.
  * getNamesFromIDs) but this is not used frequently so we can leave it like
  * this for now
  *

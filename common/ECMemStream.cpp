@@ -176,7 +176,7 @@ HRESULT ECMemStream::QueryInterface(REFIID refiid, void **lppInterface)
 ULONG ECMemStream::Release()
 {
 	// Releasing last reference
-	// If you read the docs on STGM_SHARE_EXCLUSIVE it doesn't say you need
+	// If you read the docs on STGM_SHARE_EXCLUSIVE, it does not say you need
 	// to Commit() at the end, so if the client hasn't called Commit() yet,
 	// we need to do it for them before throwing away the data.
 	if (m_cRef == 1 && ulFlags & STGM_SHARE_EXCLUSIVE && fDirty)

@@ -18,7 +18,7 @@ namespace KC {
  *
  * Gets a timestamp for 'Nth [weekday] in month X, year Y at HH:00:00 GMT'
  *
- * @param year Full year (eg 2008, 2010)
+ * @param year Full year (e.g. 2008, 2010)
  * @param month Month 1-12
  * @param week Week 1-5 (1 == first, 2 == second, 5 == last)
  * @param day Day 0-6 (0 == sunday, 1 == monday, ...)

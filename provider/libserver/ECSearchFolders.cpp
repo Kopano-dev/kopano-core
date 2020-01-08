@@ -1113,7 +1113,7 @@ ECRESULT ECSearchFolders::ResetResults(unsigned int ulFolderId)
 	return erSuccess;
 }
 
-// Add a single search result message (eg one match in a search folder)
+// Add a single search result message (e.g. one match in a search folder)
 ECRESULT ECSearchFolders::AddResults(unsigned int ulFolderId, unsigned int ulObjId, unsigned int ulFlags, bool *lpfInserted)
 {
     ECDatabase *lpDatabase = NULL;
@@ -1456,7 +1456,7 @@ ECRESULT ECSearchFolders::FlushEvents()
 	unsigned int ulStoreId = 0, ulFolderId = 0;
 	ECKeyTable::UpdateType ulType = ECKeyTable::TABLE_ROW_MODIFY;
 
-    // Process changes by finding sequences of events of the same type (eg ADD ADD ADD DELETE will result in two sequences: 3xADD + 1xDELETE)
+	// Process changes by finding sequences of events of the same type (e.g. ADD ADD ADD DELETE will result in two sequences: 3xADD + 1xDELETE)
     for (const auto &event : lstEvents) {
         if (event.ulFolderId != ulFolderId || event.ulType != ulType) {
             if(!lstObjectIDs.empty()) {

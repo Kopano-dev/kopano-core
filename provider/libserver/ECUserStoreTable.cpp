@@ -100,7 +100,7 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis,
 				m.Value.bin = soap_new_xsd__base64Binary(soap);
 				m.Value.bin->__size = g.size();
 				m.Value.bin->__ptr  = soap_new_unsignedByte(soap, g.size());
-				memcpy(m.Value.bin->__ptr, &pThis->m_mapUserStoreData[row.ulObjId].sGuid, g.size());
+				memcpy(m.Value.bin->__ptr, g.c_str(), g.size());
 				break;
 			}
 			case PROP_ID(PR_EC_STORETYPE):

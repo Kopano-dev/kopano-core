@@ -2030,7 +2030,7 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
         // The leaf was already in the table, compare new properties of the leaf with those of the category it
         // was in.
         for (i = 0; i < iterLeafs->second.lpCategory->m_cProps && i < cProps; ++i) {
-            // If the type is different (ie PT_ERROR first, PT_STRING8 now, then it has definitely changed ..)
+			// If the type is different (i.e. PT_ERROR first, PT_STRING8 now, then it has definitely changed ..)
             if(PROP_TYPE(lpProps[i].ulPropTag) != PROP_TYPE(iterLeafs->second.lpCategory->m_lpProps[i].ulPropTag))
                 break;
             // Otherwise, compare the properties

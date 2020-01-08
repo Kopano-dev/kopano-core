@@ -993,7 +993,7 @@ ECRESULT ECAuthSession::ValidateSSOData_KCOIDC(struct soap* soap, const char* na
 	auto er = ABEntryIDToID(username_abid.size(), username_abid.c_str(), &id, &extern_id, &mapi_type);
 	if (er != erSuccess)
 		return ec_perror("ABEntryIDToID", er);
-	// Always lookup via exID to ensure correct user in multi server environments.
+	// Always lookup via exID to ensure correct user in multi-server environments.
 	er = m_lpSessionManager->GetCacheManager()->GetUserObject(extern_id, &m_ulUserID, nullptr, nullptr);
 	if (er == KCERR_NOT_FOUND)
 		return KCERR_LOGON_FAILED;

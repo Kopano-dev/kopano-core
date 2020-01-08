@@ -113,7 +113,7 @@ HRESULT	ECExportAddressbookChanges::Config(LPSTREAM lpStream, ULONG ulFlags, IEC
 			if (m_setProcessed.find(m_lpRawChanges[i].ulChangeId) != m_setProcessed.end())
 				continue;
 
-			// Now check if we changed objects. if so we write the last change to the changes list
+			// Now check if we changed objects. If so, we write the last change to the changes list.
 			if (lpLastChange != nullptr && !CompareABEID(lpLastChange->sSourceKey.cb,
 			    reinterpret_cast<const ENTRYID *>(lpLastChange->sSourceKey.lpb),
 			    m_lpRawChanges[i].sSourceKey.cb, (LPENTRYID)m_lpRawChanges[i].sSourceKey.lpb)) {

@@ -157,7 +157,7 @@ HRESULT	Util::HrMergePropertyArrays(const SPropValue *lpSrc, ULONG cValues,
 
 /** 
  * Copies a whole array of properties, but leaves the external data
- * where it is (ie binary, string data is not copied). PT_ERROR
+ * where it is (i.e. binary, string data is not copied). PT_ERROR
  * properties can be filtered.
  * 
  * @param[in] lpSrc Array of properties
@@ -249,7 +249,7 @@ HRESULT Util::HrCopyPropertyArray(const SPropValue *lpSrc, ULONG cValues,
 
 /** 
  * Copy array of properties in already allocated location. but leaves the external data
- * where it is (ie binary, string data is not copied)
+ * where it is (i.e. binary, string data is not copied)
  * 
  * @param[in] lpSrc Array of properties to copy
  * @param[in] cValues Number of properties in lpSrc
@@ -270,7 +270,7 @@ HRESULT Util::HrCopyPropertyArrayByRef(const SPropValue *lpSrc, ULONG cValues,
 }
 
 /** 
- * Copies one property to somewhere else, but doesn't copy external data (ie binary or string data)
+ * Copies one property to somewhere else, but doesn't copy external data (i.e. binary or string data)
  * 
  * @param[out] lpDest Destination to copy property to
  * @param[in] lpSrc Source property to make copy of
@@ -2383,10 +2383,10 @@ static HRESULT CopyInstanceIds(IMAPIProp *lpSrc, IMAPIProp *lpDst)
 		return hrSuccess;
 
 	/*
-	 * Transfer instance Id, if this succeeds we're in luck and we might not
+	 * Transfer instance Id. If this succeeds, we are in luck and we might not
 	 * have to send the attachment to the server. Note that while SetSingleInstanceId()
 	 * might succeed now, the attachment might be deleted on the server between
-	 * SetSingleInstanceId() and SaveChanges(). In that case SaveChanges will fail
+	 * SetSingleInstanceId() and SaveChanges(). In that case, SaveChanges will fail
 	 * and we will have to resend the attachment data.
 	 */
 	if (lpSrcInstance->GetSingleInstanceId(&cbInstanceID, &~lpInstanceID) != hrSuccess)

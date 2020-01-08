@@ -46,14 +46,14 @@ HRESULT VTodoConverter::HrICal2MAPI(icalcomponent *lpEventRoot, icalcomponent *l
  * different todo items and task requests.
  *
  * Finds the status of the message (e.g. complete, cancelled) according
- * to the matching properties, or possebly the completion (in percent)
+ * to the matching properties, or possibly the completion (in percent)
  * of the task. Lastly, the icon index (outlook icon displayed in list
  * view) is set.
  * 
  * @param[in]  icMethod Method of the ical event
  * @param[in]  lpicEvent The ical VEVENT to convert
  * @param[in]  base Used for the 'base' pointer for memory allocations
- * @param[in]  bisException Weather we're handling an exception or not
+ * @param[in]  bisException Whether we are handling an exception or not
  * @param[in,out] lstMsgProps 
  * 
  * @return MAPI error code

@@ -167,7 +167,7 @@ HRESULT ECVMIMESender::HrExpandGroup(LPADRBOOK lpAdrBook,
 	memory_ptr<SPropValue> lpEmailAddress;
 
 	if (lpGroupEntryID == nullptr || lpAdrBook->OpenEntry(lpGroupEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpGroupEntryID->Value.bin.lpb), &iid_of(lpGroup), 0, &ulType, &~lpGroup) != hrSuccess || ulType != MAPI_DISTLIST) {
-		// Entry id for group was not given, or the group could not be opened, or the entryid was not a group (eg one-off entryid)
+		// Entry id for group was not given, or the group could not be opened, or the entryid was not a group (e.g. one-off entryid)
 		// Therefore resolve group name, and open that instead.
 		if (lpGroupName == nullptr)
 			return MAPI_E_NOT_FOUND;

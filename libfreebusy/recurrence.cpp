@@ -741,7 +741,7 @@ time_t recurrence::calcEndDate() const
 	case RF_WEEKLY: {
 		// $forwardcount is the maximum number of week occurrences we can go ahead after the first occurrence that
 		// is still inside the recurrence. We subtract one to make sure that the last week is never forwarded over
-		// (eg when numoccur = 2, and daycount = 1)
+		// (e.g. when numoccur = 2, and daycount = 1)
 		int daycount = calcBits(m_sRecState.ulWeekDays);
 		if (daycount == 0) {
 			/*

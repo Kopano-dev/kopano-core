@@ -172,7 +172,7 @@ struct propVal *FindProp(const struct propValArray *lpPropValArray,
 }
 
 /*
-this function check if the right proptag with the value and is't null
+This function checks for the right proptag with the value and that it is not null.
 */
 static ECRESULT PropCheck(const struct propVal *lpProp)
 {

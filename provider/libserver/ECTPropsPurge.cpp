@@ -295,7 +295,7 @@ ECRESULT ECTPropsPurge::AddDeferredUpdateNoPurge(ECDatabase *lpDatabase, unsigne
 	std::string strQuery;
 
 	if (ulOldFolderId)
-		// Message has moved into a new folder. If the record is already there then just update the existing record so that srcfolderid from a previous move remains untouched
+		// Message has moved into a new folder. If the record is already there, then just update the existing record so that srcfolderid from a previous move remains untouched.
 		strQuery = "INSERT INTO deferredupdate(hierarchyid, srcfolderid, folderid) VALUES(" + stringify(ulObjId) + "," + stringify(ulOldFolderId) + "," + stringify(ulFolderId) + ") ON DUPLICATE KEY UPDATE folderid = " + stringify(ulFolderId);
 	else
 		// Message has modified. If there is already a record for this message, we don't need to do anything

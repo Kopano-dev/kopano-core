@@ -824,10 +824,10 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 		 *    later unless X+1 is the state that was generated from this request. We can therefore
 		 *    remove any state > X at this point, since state X+1 will be inserted later
 		 * 2) Remove any states that are older than the state that was requested minus nine
-		 *    We cannot remove state X since the client may re-request this state (eg if the export
+		 *    We cannot remove state X since the client may re-request this state (e.g. if the export
 		 *    failed due to network error, or if the export is interrupted before ending). We also
 		 *    do not remove state X-9 to X-1 so that we support some sort of rollback of the client.
-		 *    This may happen if the client is restored to an old state. In practice removing X-9 to
+		 *    This may happen if the client is restored to an old state. In practice, removing X-9 to
 		 *    X-1 will probably not cause any real problems though, and the number 9 is pretty
 		 *    arbitrary.
 		 */

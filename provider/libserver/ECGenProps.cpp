@@ -536,7 +536,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 		if (ulObjType == MAPI_MESSAGE && ulParentId)
 			ulObjId = ulParentId;
 
-		// if the requested object is from the owners store, return all permissions
+		/* If the requested object is from the owner's store, return all permissions. */
 		if (sec->IsStoreOwner(ulObjId) == erSuccess ||
 			sec->IsAdminOverOwnerOfObject(ulObjId) == erSuccess) {
 			switch (ulObjType) {

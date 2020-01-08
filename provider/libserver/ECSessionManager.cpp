@@ -305,7 +305,7 @@ ECRESULT ECSessionManager::ForEachSession(void(*callback)(ECSession*, void*), vo
 //   session object.
 //
 // This means that exiting the server must wait until all client requests have exited. For
-// most operations, this is not a problem, but for some long requests (ie large deletes or
+// most operations, this is not a problem, but for some long requests (i.e. large deletes or
 // copies, or GetNextNotifyItem) may take quite a while to exit. This is compensated for, by
 // having the session call a 'cancel' request to long-running calls, which makes the calls
 // exit prematurely.

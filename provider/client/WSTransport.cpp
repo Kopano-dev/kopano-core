@@ -3852,7 +3852,7 @@ HRESULT WSTransport::HrCancelIO()
 	 * after HrCancelIO() returns.
 	 *
 	 * To do this, we first disable sending new requests by override the fsend() function
-	 * in gSOAP. If a request was already started but still 'before' the fsend() call
+	 * in gSOAP. If a request was already started but still 'before' the fsend() call,
 	 * then the call will return directly after the fsend() because it will return an error.
 	 * On the other hand, if fsend() has already been called, then the next blocking part
 	 * will be the frecv() call. We therefore shutdown the socket here as well, so that

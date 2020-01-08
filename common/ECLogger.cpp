@@ -502,7 +502,7 @@ void ECLogger_Tee::Reset(void)
 
 /**
  * Check if anything would be logged with the requested loglevel.
- * Effectively this call is delegated to all attached loggers until
+ * Effectively, this call is delegated to all attached loggers until
  * one logger is found that returns true.
  *
  * @param[in]	loglevel	The loglevel to test.

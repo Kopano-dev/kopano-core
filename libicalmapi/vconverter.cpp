@@ -2690,8 +2690,8 @@ HRESULT VConverter::HrAddTimeZone(icalproperty *lpicProp, icalitem *lpIcalItem)
 /**
  * Returns the Allday Status from the ical data as a boolean.
  *
- * Checks for "DTSTART" weather it contains a date, and sets the all
- * day status as true.  If that property was not found then checks if
+ * Checks for "DTSTART" whether it contains a date, and sets the all
+ * day status as true. If that property was not found, then checks if
  * "X-MICROSOFT-CDO-ALLDAYEVENT" property to set the all day status.
  *
  * @param[in]	lpicEvent		VEVENT ical component

@@ -298,7 +298,7 @@ HRESULT ECChannel::HrWriteString(const std::string & strBuffer) {
  * Writes a line of data to socket
  *
  * Function takes specified length of data from the pointer,
- * if length is not specified all the data of pointed by buffer is used.
+ * if length is not specified all, the data of pointed by buffer is used.
  * It then adds CRLF to the end of the data and writes it to the socket
  *
  * @param[in]	szBuffer	pointer to the data to be written to socket
