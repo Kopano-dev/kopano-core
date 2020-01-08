@@ -161,84 +161,7 @@ HRESULT ECMSProvider::SpoolerLogon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
     const BYTE *lpbSpoolSecurity, MAPIERROR **lppMAPIError,
     IMSLogon **lppMSLogon, IMsgStore **lppMDB)
 {
-	if (lpEntryID == nullptr)
-		return MAPI_E_UNCONFIGURED;
-	if (cbSpoolSecurity == 0 || lpbSpoolSecurity == nullptr)
-		return MAPI_E_NO_ACCESS;
-	if (cbSpoolSecurity % sizeof(wchar_t) != 0)
-		return MAPI_E_INVALID_PARAMETER;
-
-	object_ptr<WSTransport> lpTransport;
-	object_ptr<ECMsgStore> lpMsgStore;
-	object_ptr<ECMSLogon> lpLogon;
-	MAPIUID	guidMDBProvider;
-	object_ptr<IProfSect> lpProfSect;
-	ULONG cValues = 0;
-	LPSPropValue lpsPropArray = NULL;
-	sGlobalProfileProps	sProfileProps;
-
-	// Get Global profile settings
-	auto hr = ClientUtil::GetGlobalProfileProperties(lpMAPISup, &sProfileProps);
-	if(hr != hrSuccess)
-		return hr;
-	// Open profile settings
-	hr = lpMAPISup->OpenProfileSection(nullptr, MAPI_MODIFY, &~lpProfSect);
-	if(hr != hrSuccess)
-		return hr;
-
-	static constexpr const SizedSPropTagArray(2, proptags) =
-		{2, {PR_MDB_PROVIDER, PR_RESOURCE_FLAGS}};
-
-	// Get the MDBProvider from the profile settings
-	hr = lpProfSect->GetProps(proptags, 0, &cValues, &lpsPropArray);
-	if(hr == hrSuccess || hr == MAPI_W_ERRORS_RETURNED)
-	{
-		if (lpsPropArray[0].ulPropTag == PR_MDB_PROVIDER)
-				memcpy(&guidMDBProvider, lpsPropArray[0].Value.bin.lpb, sizeof(MAPIUID));
-		if (lpsPropArray[1].ulPropTag == PR_RESOURCE_FLAGS &&
-		    !(lpsPropArray[1].Value.ul & STATUS_DEFAULT_STORE))
-			/* Deny spooler logon to any store that is not the default store */
-			return MAPI_E_NOT_FOUND;
-	}
-
-	auto strSep = wmemchr(reinterpret_cast<const wchar_t *>(lpbSpoolSecurity), 0, cbSpoolSecurity / sizeof(wchar_t));
-	if (strSep == NULL)
-		return MAPI_E_NO_ACCESS;
-	++strSep;
-	sProfileProps.strUserName = (wchar_t*)lpbSpoolSecurity;
-	sProfileProps.strPassword = strSep;
-
-	// Create a transport for this message store
-	hr = WSTransport::Create(&~lpTransport);
-	if(hr != hrSuccess)
-		return hr;
-	hr = LogonByEntryID(lpTransport, &sProfileProps, cbEntryID, lpEntryID);
-	if (hr != hrSuccess)
-		return MAPI_E_UNCONFIGURED;
-	// Get a message store object
-	hr = CreateMsgStoreObject((LPSTR)sProfileProps.strProfileName.c_str(), lpMAPISup, cbEntryID, lpEntryID, ulFlags, sProfileProps.ulProfileFlags, lpTransport,
-	     &guidMDBProvider, true, true, false, &~lpMsgStore);
-	if(hr != hrSuccess)
-		return hr;
-
-	// Register ourselves with mapisupport
-	//guidStore = lpMsgStore->GetStoreGuid();
-	//hr = lpMAPISup->SetProviderUID((MAPIUID *)&guidStore, 0);
-	//if(hr != hrSuccess)
-	//	goto exit;
-
-	// Return the variables
-	if(lppMDB) {
-		hr = lpMsgStore->QueryInterface(IID_IMsgStore, reinterpret_cast<void **>(lppMDB));
-		if(hr != hrSuccess)
-			return hr;
-	}
-	if (lppMSLogon == nullptr)
-		return hrSuccess;
-	hr = ECMSLogon::Create(lpMsgStore, &~lpLogon);
-	if(hr != hrSuccess)
-		return hr;
-	return lpLogon->QueryInterface(IID_IMSLogon, reinterpret_cast<void **>(lppMSLogon));
+	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT ECMSProvider::CompareStoreIDs(ULONG cbEntryID1,
@@ -493,51 +416,7 @@ HRESULT ECMSProviderSwitch::SpoolerLogon(IMAPISupport *lpMAPISup,
     ULONG cbSpoolSecurity, const BYTE *lpbSpoolSecurity,
     MAPIERROR **lppMAPIError, IMSLogon **lppMSLogon, IMsgStore **lppMDB)
 {
-	if (lpEntryID == nullptr)
-		return MAPI_E_UNCONFIGURED;
-	if (cbSpoolSecurity == 0 || lpbSpoolSecurity == nullptr)
-		return MAPI_E_NO_ACCESS;
-
-	PROVIDER_INFO sProviderInfo;
-	object_ptr<IMsgStore> lpMDB;
-	object_ptr<IMSLogon> lpMSLogon;
-	object_ptr<ECMsgStore> lpecMDB;
-	auto laters = make_scope_success([&]() {
-		if (lppMAPIError != nullptr)
-			*lppMAPIError = nullptr;
-	});
-	auto hr = GetProviders(&g_mapProviders, lpMAPISup, convstring(lpszProfileName, ulFlags).c_str(), ulFlags, &sProviderInfo);
-	if (hr != hrSuccess)
-		return hr;
-	auto lpProvider = sProviderInfo.lpMSProviderOnline.get();
-	hr = lpProvider->SpoolerLogon(lpMAPISup, ulUIParam, lpszProfileName,
-	     cbEntryID, lpEntryID, ulFlags, lpInterface, cbSpoolSecurity,
-	     lpbSpoolSecurity, nullptr, &~lpMSLogon, &~lpMDB);
-	if (hr != hrSuccess)
-		return hr;
-	hr = lpMDB->QueryInterface(IID_ECMsgStore, &~lpecMDB);
-	if (hr != hrSuccess)
-		return hr;
-	// Register ourselves with mapisupport
-	GUID guid;
-	hr = lpecMDB->get_store_guid(guid);
-	if (hr != hrSuccess)
-		return kc_perror("get_store_guid", hr);
-	hr = lpMAPISup->SetProviderUID(reinterpret_cast<const MAPIUID *>(&guid), 0);
-	if (hr != hrSuccess)
-		return hr;
-
-	if (lppMSLogon) {
-		hr = lpMSLogon->QueryInterface(IID_IMSLogon, reinterpret_cast<void **>(lppMSLogon));
-		if (hr != hrSuccess)
-			return hr;
-	}
-	if (lppMDB) {
-		hr = lpMDB->QueryInterface(IID_IMsgStore, reinterpret_cast<void **>(lppMDB));
-		if (hr != hrSuccess)
-			return hr;
-	}
-	return hrSuccess;
+	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT ECMSProviderSwitch::CompareStoreIDs(ULONG cbEntryID1,
