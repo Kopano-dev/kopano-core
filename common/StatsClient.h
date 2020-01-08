@@ -160,8 +160,6 @@ class KC_EXPORT ECStatsCollector {
 	std::string GetValue(const SCMap::const_iterator::value_type &);
 	std::string GetValue(const SCName &name);
 	void ForEachStat(void (*cb)(const std::string &, const std::string &, const std::string &, void *), void *obj);
-	void Reset();
-	void Reset(SCName name);
 
 	protected:
 	/*

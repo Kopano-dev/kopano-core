@@ -478,25 +478,6 @@ void ECStatsCollector::ForEachStat(void(callback)(const std::string &, const std
 		callback(i.first, i.second.desc, GetValue(i.second), obj);
 }
 
-void ECStatsCollector::Reset()
-{
-	for (auto &i : m_StatData) {
-		// reset largest var in union
-		scoped_lock lk(i.second.lock);
-		i.second.data.ll = 0;
-	}
-}
-
-void ECStatsCollector::Reset(SCName name)
-{
-	auto iSD = m_StatData.find(name);
-	if (iSD == m_StatData.cend())
-		return;
-	/* reset largest var in union */
-	scoped_lock lk(iSD->second.lock);
-	iSD->second.data.ll = 0;
-}
-
 void ECStatsCollector::set(const std::string &name, const std::string &desc, int64_t v)
 {
 	scoped_lock lk(m_odm_lock);
