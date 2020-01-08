@@ -110,7 +110,9 @@ HRESULT ECExchangeModifyTable::CreateRulesTable(ECMAPIProp *lpParent,
 	// PR_RULES_DATA can grow quite large. GetProps() only supports until size 8192, larger is not returned
 	if (lpParent != nullptr &&
 	    lpParent->OpenProperty(PR_RULES_DATA, &IID_IStream, 0, 0, &~lpRulesData) == hrSuccess) {
-		lpRulesData->Stat(&statRulesData, 0);
+		hr = lpRulesData->Stat(&statRulesData, 0);
+		if (hr != hrSuccess)
+			return hr;
 		auto szXML = make_unique_nt<char[]>(statRulesData.cbSize.LowPart + 1);
 		if (szXML == nullptr)
 			return MAPI_E_NOT_ENOUGH_MEMORY;
