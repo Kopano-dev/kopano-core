@@ -1,9 +1,16 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-import configparser
-import zinterval
-import io
+from sys import hexversion
+
 import os
+import zinterval
 import zunit
+
+if hexversion >= 0x03000000:
+    import configparser
+    import io
+else:
+    import ConfigParser as configparser
+    import StringIO as io
 
 class ZConfigParser:
 
