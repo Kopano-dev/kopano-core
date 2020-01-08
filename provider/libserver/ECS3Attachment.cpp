@@ -67,7 +67,7 @@ class ECS3Attachment final : public ECAttachmentStorage {
 	void response_complete(S3Status, const S3ErrorDetails *, void *);
 	S3Status get_obj(int, const char *, void *);
 	int put_obj(int, char *, void *);
-	std::string make_att_filename(const ext_siid &, bool);
+	std::string make_att_filename(const ext_siid &);
 	bool should_retry(unsigned int &);
 	struct s3_cd create_cd(void);
 	ECRESULT del_marked_att(const ext_siid &);
@@ -511,7 +511,7 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(struct soap *soap,
 	struct s3_cd cd;
 	cd.alloc_data = true;
 	cd.soap = soap;
-	auto ret = s3_get(cd, make_att_filename(ins_id, false).c_str());
+	auto ret = s3_get(cd, make_att_filename(ins_id).c_str());
 	if (ret != hrSuccess)
 		return ret;
 	*size_p = cd.size;
@@ -547,7 +547,7 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(const ext_siid &ins_id,
 {
 	struct s3_cd cd;
 	cd.sink = sink;
-	auto ret = s3_get(cd, make_att_filename(ins_id, false).c_str());
+	auto ret = s3_get(cd, make_att_filename(ins_id).c_str());
 	if (ret == KCERR_NETWORK_ERROR)
 		/* The entire stream would abort if we return non-success. */
 		ret = erSuccess;
@@ -604,11 +604,10 @@ ECRESULT ECS3Attachment::s3_put(struct s3_cd &cd, const char *fn)
 ECRESULT ECS3Attachment::SaveAttachmentInstance(ext_siid &ins_id,
     ULONG propid, size_t size, unsigned char *data)
 {
-	bool comp = false;
 	struct s3_cd cd;
 	cd.data = data;
 	cd.size = size;
-	auto ret = s3_put(cd, make_att_filename(ins_id, comp && size != 0).c_str());
+	auto ret = s3_put(cd, make_att_filename(ins_id).c_str());
 	/* set in transaction before disk full check to remove empty file */
 	if (m_transact)
 		m_new_att.emplace(ins_id);
@@ -633,11 +632,10 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ext_siid &ins_id,
 ECRESULT ECS3Attachment::SaveAttachmentInstance(ext_siid &ins_id,
     ULONG propid, size_t size, ECSerializer *source)
 {
-	bool comp = false;
 	struct s3_cd cd;
 	cd.sink = source;
 	cd.size = size;
-	auto ret = s3_put(cd, make_att_filename(ins_id, comp && size != 0).c_str());
+	auto ret = s3_put(cd, make_att_filename(ins_id).c_str());
 	/* set in transaction before disk full check to remove empty file */
 	if (m_transact)
 		m_new_att.emplace(ins_id);
@@ -683,7 +681,7 @@ ECRESULT ECS3Attachment::del_marked_att(const ext_siid &ins_id)
 	cwdata.caller = this;
 	cwdata.cbdata = &cd;
 
-	auto filename = make_att_filename(ins_id, false);
+	auto filename = make_att_filename(ins_id);
 	auto fn = filename.c_str();
 	ec_log_debug("S3: delete marked attachment: %s", fn);
 	/*
@@ -721,7 +719,7 @@ ECRESULT ECS3Attachment::del_marked_att(const ext_siid &ins_id)
 ECRESULT ECS3Attachment::DeleteAttachmentInstance(const ext_siid &ins_id,
     bool bReplace)
 {
-	auto filename = make_att_filename(ins_id, m_bFileCompression);
+	auto filename = make_att_filename(ins_id);
 	if (!m_transact)
 		return del_marked_att(ins_id);
 	ec_log_debug("S3: set delete mark for %u", ins_id.siid);
@@ -737,12 +735,9 @@ ECRESULT ECS3Attachment::DeleteAttachmentInstance(const ext_siid &ins_id,
  *
  * @return Kopano error code
  */
-std::string ECS3Attachment::make_att_filename(const ext_siid &esid, bool comp)
+std::string ECS3Attachment::make_att_filename(const ext_siid &esid)
 {
-	auto filename = m_config.m_path + PATH_SEPARATOR + stringify(esid.siid);
-	if (comp)
-		filename += ".gz";
-	return filename;
+	return m_config.m_path + PATH_SEPARATOR + stringify(esid.siid);
 }
 
 /**
@@ -771,8 +766,9 @@ bool ECS3Attachment::should_retry(unsigned int &tries)
 ECRESULT ECS3Attachment::GetSizeInstance(const ext_siid &ins_id,
     size_t *size_p, bool *compr_p)
 {
-	bool comp = false;
-	auto filename = make_att_filename(ins_id, comp);
+	if (compr_p != nullptr)
+		*compr_p = false;
+	auto filename = make_att_filename(ins_id);
 	auto fn = filename.c_str();
 
 	ulock_normal locker(m_config.m_cachelock);
@@ -782,8 +778,6 @@ ECRESULT ECS3Attachment::GetSizeInstance(const ext_siid &ins_id,
 		if (cache_item->second.size == S3_NEGATIVE_ENTRY)
 			return KCERR_NOT_FOUND;
 		*size_p = cache_item->second.size;
-		if (compr_p != nullptr)
-			*compr_p = comp;
 		return erSuccess;
 	}
 	locker.unlock();
@@ -819,8 +813,6 @@ ECRESULT ECS3Attachment::GetSizeInstance(const ext_siid &ins_id,
 	locker.lock();
 	m_config.m_cache[ins_id.siid] = {now_positive(), cd.size};
 	*size_p = cd.size;
-	if (compr_p != NULL)
-		*compr_p = comp;
 	return erSuccess;
 }
 
