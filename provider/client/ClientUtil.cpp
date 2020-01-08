@@ -178,12 +178,12 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 	const TCHAR *lpMsgClass = NULL;
 	LPTSTR lpReportText = nullptr, lpReadText = nullptr;
 	FILETIME	ft;
-	adrlist_ptr lpMods;
 	std::wstring strName, strType, strAddress;
 	time_t			zero = 0;
 	char			szTime[255];
 	object_ptr<IStream> lpBodyStream;
 	tstring			tSubject;
+	adrlist_ptr lpMods;
 
 	// The same properties as under windows
 	enum ePropReadReceipt{	RR_REPORT_TAG, RR_CONVERSATION_TOPIC, RR_CONVERSATION_INDEX,
