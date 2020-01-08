@@ -218,12 +218,13 @@ objectclass_t objectdetails_t::GetClass() const {
     return m_objclass;
 }
 
-void objectdetails_t::MergeFrom(const objectdetails_t &from) {
+void objectdetails_t::MergeFrom(objectdetails_t &&from)
+{
 	assert(m_objclass == from.m_objclass);
-	for (const auto &p : from.m_mapProps)
-		m_mapProps[p.first] = p.second;
-	for (const auto &p : from.m_mapMVProps)
-		m_mapMVProps[p.first] = p.second;
+	for (auto &&p : from.m_mapProps)
+		m_mapProps[p.first] = std::move(p.second);
+	for (auto &&p : from.m_mapMVProps)
+		m_mapMVProps[p.first] = std::move(p.second);
 }
 
 /**

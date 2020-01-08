@@ -108,7 +108,7 @@ public:
 	void			AddPropObject(property_key_t propname, const objectid_t &value);
 	void			ClearPropList(property_key_t propname);
 
-	void			MergeFrom(const objectdetails_t &from);
+	void MergeFrom(objectdetails_t &&from);
 
 	void			SetClass(objectclass_t objclass);
 	objectclass_t	GetClass() const;
