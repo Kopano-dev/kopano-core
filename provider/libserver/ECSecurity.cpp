@@ -466,35 +466,34 @@ exit:
 	if (er == erSuccess && (ulecRights == ecSecurityCreate || ulecRights == ecSecurityEdit || ulecRights == ecSecurityCreateFolder))
 		// writing in a deleted parent is not allowed
 		er = CheckDeletedParent(ulObjId);
+	if (m_lpAudit == nullptr || m_ulUserID == KOPANO_UID_SYSTEM)
+		return er;
 
-	if (m_lpAudit && m_ulUserID != KOPANO_UID_SYSTEM) {
-		unsigned int ulType = 0;
-		objectdetails_t sStoreDetails;
-		std::string strStoreOwner, strUsername;
+	unsigned int ulType = 0;
+	objectdetails_t sStoreDetails;
+	std::string strStoreOwner, strUsername;
 
-		cache->GetObject(ulObjId, nullptr, nullptr, nullptr, &ulType);
-		if (er == KCERR_NO_ACCESS || ulStoreOwnerId != m_ulUserID) {
-			GetUsername(&strUsername);
-			if (ulStoreOwnerId == m_ulUserID)
-				strStoreOwner = strUsername;
-			else if (m_lpSession->GetUserManagement()->GetObjectDetails(ulStoreOwnerId, &sStoreDetails) != erSuccess)
-				// should not really happen on store owners?
-				strStoreOwner = "<non-existing>";
-			else
-				strStoreOwner = sStoreDetails.GetPropString(OB_PROP_S_LOGIN);
-		}
-
-		if (er == KCERR_NO_ACCESS)
-			m_lpAudit->logf(EC_LOGLEVEL_FATAL, "access denied objectid=%d type=%d ownername=\"%s\" username=\"%s\" rights=\"%s\"",
-						   ulObjId, ulType, strStoreOwner.c_str(), strUsername.c_str(), RightsToString(ulecRights));
-		else if (ulStoreOwnerId != m_ulUserID)
-			m_lpAudit->logf(EC_LOGLEVEL_FATAL, "access allowed objectid=%d type=%d ownername=\"%s\" username=\"%s\" rights=\"%s\"",
-						   ulObjId, ulType, strStoreOwner.c_str(), strUsername.c_str(), RightsToString(ulecRights));
+	cache->GetObject(ulObjId, nullptr, nullptr, nullptr, &ulType);
+	if (er == KCERR_NO_ACCESS || ulStoreOwnerId != m_ulUserID) {
+		GetUsername(&strUsername);
+		if (ulStoreOwnerId == m_ulUserID)
+			strStoreOwner = strUsername;
+		else if (m_lpSession->GetUserManagement()->GetObjectDetails(ulStoreOwnerId, &sStoreDetails) != erSuccess)
+			// should not really happen on store owners?
+			strStoreOwner = "<non-existing>";
 		else
-			// you probably do not want to log all what a user does in their own store, do you?
-			m_lpAudit->logf(EC_LOGLEVEL_INFO, "access allowed objectid=%d type=%d userid=%d", ulObjId, ulType, m_ulUserID);
+			strStoreOwner = sStoreDetails.GetPropString(OB_PROP_S_LOGIN);
 	}
 
+	if (er == KCERR_NO_ACCESS)
+		m_lpAudit->logf(EC_LOGLEVEL_FATAL, "access denied objectid=%d type=%d ownername=\"%s\" username=\"%s\" rights=\"%s\"",
+			ulObjId, ulType, strStoreOwner.c_str(), strUsername.c_str(), RightsToString(ulecRights));
+	else if (ulStoreOwnerId != m_ulUserID)
+		m_lpAudit->logf(EC_LOGLEVEL_FATAL, "access allowed objectid=%d type=%d ownername=\"%s\" username=\"%s\" rights=\"%s\"",
+			ulObjId, ulType, strStoreOwner.c_str(), strUsername.c_str(), RightsToString(ulecRights));
+	else
+		// you probably do not want to log all what a user does in their own store, do you?
+		m_lpAudit->logf(EC_LOGLEVEL_INFO, "access allowed objectid=%d type=%d userid=%d", ulObjId, ulType, m_ulUserID);
 	return er;
 }
 
