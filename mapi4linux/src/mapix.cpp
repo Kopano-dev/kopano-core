@@ -841,8 +841,7 @@ HRESULT M4LMAPISession::OpenMsgStore(ULONG_PTR ulUIParam, ULONG cbEntryID,
 	object_ptr<IMSProvider> msp;
 	object_ptr<IMAPISupport> lpISupport;
 	object_ptr<IMsgStore> mdb;
-	unsigned int mdbver, sizeSpoolSec, cbStoreEntryID = 0;
-	memory_ptr<BYTE> pSpoolSec;
+	unsigned int mdbver, cbStoreEntryID = 0;
 	object_ptr<IMAPITable> lpTable;
 	rowset_ptr lpsRows;
 	MAPIUID sProviderUID;
@@ -902,7 +901,9 @@ HRESULT M4LMAPISession::OpenMsgStore(ULONG_PTR ulUIParam, ULONG cbEntryID,
 	hr = minit(0, nullptr, MAPIAllocateBuffer, MAPIAllocateMore, MAPIFreeBuffer, ulFlags, CURRENT_SPI_VERSION, &mdbver, &~msp);
 	if (hr != hrSuccess)
 		return kc_perrorf("MSProviderInit failed", hr);
-	hr = msp->Logon(lpISupport, 0, (LPTSTR)profileName.c_str(), cbStoreEntryID, lpStoreEntryID, ulFlags, nullptr, &sizeSpoolSec, &~pSpoolSec, nullptr, nullptr, &~mdb);
+	hr = msp->Logon(lpISupport, 0, reinterpret_cast<const TCHAR *>(profileName.c_str()),
+	     cbStoreEntryID, lpStoreEntryID, ulFlags, nullptr, nullptr, nullptr,
+	     nullptr, nullptr, &~mdb);
 	if (hr != hrSuccess)
 		return kc_perrorf("msp->Logon failed", hr);
 	hr = mdb->QueryInterface(lpInterface ? *lpInterface : IID_IMsgStore, reinterpret_cast<void **>(lppMDB));
