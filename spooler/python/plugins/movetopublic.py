@@ -1,4 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-only
+from sys import hexversion
+
 import MAPI
 from MAPI.Util import *
 from MAPI.Time import *
@@ -78,7 +80,10 @@ class MoveToPublic(IMapiDAgentPlugin):
         folder = publicfolders
         for foldername in folderlist:
             if len(foldername) > 0:
-                folder = folder.CreateFolder(0, foldername, "Create by Move to Public plugin", None, OPEN_IF_EXISTS | MAPI_UNICODE)
+                if hexversion >= 0x03000000:
+                    folder = folder.CreateFolder(0, foldername, "Create by Move to Public plugin", None, OPEN_IF_EXISTS | MAPI_UNICODE)
+                else:
+                    folder = folder.CreateFolder(0, foldername, "Create by Move to Public plugin", None, OPEN_IF_EXISTS)
 
         msgnew = folder.CreateMessage(None, 0)
         tags = message.GetPropList(MAPI_UNICODE)
