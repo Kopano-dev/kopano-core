@@ -105,7 +105,7 @@ HRESULT ECChangeAdvisor::Config(LPSTREAM lpStream, LPGUID /*lpGUID*/,
 	m_lpChangeAdviseSink.reset(lpAdviseSink);
 	if (lpStream == NULL)
 		return hrSuccess;
-	auto hr = lpStream->Seek(liSeekStart, SEEK_SET, nullptr);
+	auto hr = lpStream->Seek(liSeekStart, STREAM_SEEK_SET, nullptr);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpStream->Read(&ulVal, sizeof(ulVal), &ulRead);

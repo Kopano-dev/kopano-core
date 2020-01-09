@@ -1653,7 +1653,7 @@ HRESULT Util::HrStreamToString(IStream *sInput, std::string &strOutput) {
 		return hrSuccess;
 	}
 	// manual copy
-	auto hr = sInput->Seek(zero, SEEK_SET, nullptr);
+	auto hr = sInput->Seek(zero, STREAM_SEEK_SET, nullptr);
 	if (hr != hrSuccess)
 		return hr;
 	while (1) {
@@ -1688,7 +1688,7 @@ HRESULT Util::HrStreamToString(IStream *sInput, std::wstring &strOutput) {
 		return hrSuccess;
 	}
 	// manual copy
-	auto hr = sInput->Seek(zero, SEEK_SET, nullptr);
+	auto hr = sInput->Seek(zero, STREAM_SEEK_SET, nullptr);
 	if (hr != hrSuccess)
 		return hr;
 	while (1) {

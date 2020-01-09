@@ -3268,7 +3268,7 @@ ZEND_FUNCTION(mapi_decompressrtf)
 
 	pStream->Write(rtfBuffer, rtfBufferLen, &actualWritten);
 	pStream->Commit(0);
-	pStream->Seek(begin, SEEK_SET, NULL);
+	pStream->Seek(begin, STREAM_SEEK_SET, nullptr);
 	MAPI_G(hr) = WrapCompressedRTFStream(pStream, 0, &~deCompressedStream);
 	if (MAPI_G(hr) != hrSuccess) {
 		kphperr("Unable to wrap uncompressed stream", MAPI_G(hr));

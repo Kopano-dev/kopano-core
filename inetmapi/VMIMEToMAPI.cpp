@@ -2105,7 +2105,7 @@ HRESULT VMIMEToMAPI::handleTextpart(vmime::shared_ptr<vmime::header> vmHeader,
 
 		if (bAppendBody) {
 			static const LARGE_INTEGER liZero = {{0, 0}};
-			hr = lpStream->Seek(liZero, SEEK_END, NULL);
+			hr = lpStream->Seek(liZero, STREAM_SEEK_END, nullptr);
 			if (hr != hrSuccess)
 				return hr;
 		}
@@ -2391,7 +2391,7 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::shared_ptr<vmime::header> vmHeade
 		return kc_perror("OpenProperty PR_HTML failed", hr);
 	if (bAppendBody) {
 		static const LARGE_INTEGER liZero = {{0, 0}};
-		hr = lpHTMLStream->Seek(liZero, SEEK_END, NULL);
+		hr = lpHTMLStream->Seek(liZero, STREAM_SEEK_END, nullptr);
 		if (hr != hrSuccess)
 			return hr;
 	}

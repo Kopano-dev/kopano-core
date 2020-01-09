@@ -246,13 +246,13 @@ HRESULT ECMemStream::Seek(LARGE_INTEGER dlibmove, DWORD dwOrigin, ULARGE_INTEGER
 		return hr;
 
 	switch(dwOrigin) {
-	case SEEK_SET:
+	case STREAM_SEEK_SET:
 		liPos.QuadPart = dlibmove.QuadPart;
 		break;
-	case SEEK_CUR:
+	case STREAM_SEEK_CUR:
 		liPos.QuadPart += dlibmove.QuadPart;
 		break;
-	case SEEK_END:
+	case STREAM_SEEK_END:
 		liPos.QuadPart = ulSize + dlibmove.QuadPart;
 		break;
 	}

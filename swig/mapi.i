@@ -134,7 +134,7 @@ public:
 				ULARGE_INTEGER liPosition;
 				STATSTG statbuf;
 
-				hr = ptrStream->Seek(liMove, SEEK_CUR, &liPosition);
+				hr = ptrStream->Seek(liMove, STREAM_SEEK_CUR, &liPosition);
 				if (hr != hrSuccess)
 					return hr;
 				hr = ptrStream->Stat(&statbuf, 0);
