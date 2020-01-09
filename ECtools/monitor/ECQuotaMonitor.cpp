@@ -883,7 +883,7 @@ static HRESULT GetConfigMessage(IMsgStore *lpStore, const char *szMessageName,
 {
 	SPropArrayPtr ptrEntryIDs;
 	MAPIFolderPtr ptrFolder;
-	unsigned int cValues, ulType;
+	unsigned int cValues;
 	MAPITablePtr ptrTable;
 	SPropValue propSubject;
 	SRowSetPtr ptrRows;
@@ -899,11 +899,11 @@ static HRESULT GetConfigMessage(IMsgStore *lpStore, const char *szMessageName,
 	if (ptrEntryIDs[0].ulPropTag == sptaTreeProps.aulPropTag[0])
 		hr = lpStore->OpenEntry(ptrEntryIDs[0].Value.bin.cb,
 		     reinterpret_cast<ENTRYID *>(ptrEntryIDs[0].Value.bin.lpb),
-		     &iid_of(ptrFolder), MAPI_MODIFY, &ulType, &~ptrFolder);
+		     &iid_of(ptrFolder), MAPI_MODIFY, nullptr, &~ptrFolder);
 	else if (ptrEntryIDs[1].ulPropTag == sptaTreeProps.aulPropTag[1])
 		hr = lpStore->OpenEntry(ptrEntryIDs[1].Value.bin.cb,
 		     reinterpret_cast<ENTRYID *>(ptrEntryIDs[1].Value.bin.lpb),
-		     &iid_of(ptrFolder), MAPI_MODIFY, &ulType, &~ptrFolder);
+		     &iid_of(ptrFolder), MAPI_MODIFY, nullptr, &~ptrFolder);
 	else
 		hr = MAPI_E_INVALID_PARAMETER;
 	if (hr != hrSuccess)
@@ -929,7 +929,7 @@ static HRESULT GetConfigMessage(IMsgStore *lpStore, const char *szMessageName,
 			return MAPI_E_INVALID_ENTRYID;
 		hr = ptrFolder->OpenEntry(lpEntryID->Value.bin.cb,
 		     reinterpret_cast<ENTRYID *>(lpEntryID->Value.bin.lpb),
-		     &iid_of(ptrMessage), MAPI_MODIFY, &ulType, &~ptrMessage);
+		     &iid_of(ptrMessage), MAPI_MODIFY, nullptr, &~ptrMessage);
 		if (hr != hrSuccess)
 			return hr;
 	} else {

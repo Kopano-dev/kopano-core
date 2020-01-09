@@ -1482,9 +1482,8 @@ static HRESULT recip_in_distlist(IAddrBook *ab, const SBinary &eid,
     ECRecipient *rcpt, bool &pres)
 {
 	static constexpr const SizedSPropTagArray(2, cols) = {2, {PR_OBJECT_TYPE, PR_ENTRYID}};
-	unsigned int objtype = 0;
 	object_ptr<IDistList> dl;
-	auto ret = ab->OpenEntry(eid.cb, reinterpret_cast<ENTRYID *>(eid.lpb), &iid_of(dl), 0, &objtype, &~dl);
+	auto ret = ab->OpenEntry(eid.cb, reinterpret_cast<ENTRYID *>(eid.lpb), &iid_of(dl), 0, nullptr, &~dl);
 	if (ret != hrSuccess)
 		return ret;
 	object_ptr<IMAPITable> tbl;

@@ -57,7 +57,6 @@ Stubber::Stubber(std::shared_ptr<ECArchiverLogger> lpLogger, ULONG ulptStubbed,
 HRESULT Stubber::ProcessEntry(IMAPIFolder * lpFolder, const SRow &proprow)
 {
 	MessagePtr ptrMessage;
-	ULONG ulType = 0;
 
 	assert(lpFolder != NULL);
 	if (lpFolder == NULL)
@@ -68,7 +67,8 @@ HRESULT Stubber::ProcessEntry(IMAPIFolder * lpFolder, const SRow &proprow)
 		return MAPI_E_NOT_FOUND;
 	}
 	Logger()->logf(EC_LOGLEVEL_DEBUG, "Opening message (%s)", bin2hex(lpEntryId->Value.bin).c_str());
-	auto hr = lpFolder->OpenEntry(lpEntryId->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryId->Value.bin.lpb), &IID_IECMessageRaw, MAPI_BEST_ACCESS, &ulType, &~ptrMessage);
+	auto hr = lpFolder->OpenEntry(lpEntryId->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryId->Value.bin.lpb),
+	          &IID_IECMessageRaw, MAPI_BEST_ACCESS, nullptr, &~ptrMessage);
 	if (hr == MAPI_E_NOT_FOUND) {
 		Logger()->Log(EC_LOGLEVEL_WARNING, "Failed to open message. This can happen if the search folder is lagging.");
 		return hrSuccess;

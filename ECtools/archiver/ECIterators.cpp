@@ -20,8 +20,6 @@ ECHierarchyIteratorBase::ECHierarchyIteratorBase(LPMAPICONTAINER lpContainer, UL
 
 void ECHierarchyIteratorBase::increment()
 {
-	ULONG ulType;
-
 	enum {IDX_ENTRYID};
 
 	if (!m_ptrTable) {
@@ -68,7 +66,7 @@ void ECHierarchyIteratorBase::increment()
 	assert(m_ulRowIndex < m_ptrRows.size());
 	auto hr = m_ptrContainer->OpenEntry(m_ptrRows[m_ulRowIndex].lpProps[IDX_ENTRYID].Value.bin.cb,
 	          reinterpret_cast<ENTRYID *>(m_ptrRows[m_ulRowIndex].lpProps[IDX_ENTRYID].Value.bin.lpb),
-	          &iid_of(m_ptrCurrent), m_ulFlags, &ulType, &~m_ptrCurrent);
+	          &iid_of(m_ptrCurrent), m_ulFlags, nullptr, &~m_ptrCurrent);
 	if (hr != hrSuccess)
 		throw KMAPIError(hr);
 	if (++m_ulRowIndex == m_ptrRows.size())

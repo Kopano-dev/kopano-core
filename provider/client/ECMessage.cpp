@@ -1216,7 +1216,7 @@ HRESULT ECMessage::SetReadFlag2(unsigned int ulFlags)
 	SPropValue		sProp;
 	object_ptr<IMAPIFolder> lpRootFolder;
 	object_ptr<IMessage> lpNewMessage, lpThisMessage;
-	unsigned int objtype = 0, cValues = 0, cbStoreID = 0;
+	unsigned int cValues = 0, cbStoreID = 0;
 	memory_ptr<ENTRYID> lpStoreID;
 	object_ptr<IMsgStore> lpDefMsgStore;
 
@@ -1249,12 +1249,12 @@ HRESULT ECMessage::SetReadFlag2(unsigned int ulFlags)
 			hr = GetMsgStore()->CreateStoreEntryID(nullptr, lpsPropUserName->Value.LPSZ, fMapiUnicode, &cbStoreID, &~lpStoreID);
 			if (hr != hrSuccess)
 				return hr;
-			hr = GetMsgStore()->lpSupport->OpenEntry(cbStoreID, lpStoreID, &iid_of(lpDefMsgStore), MAPI_MODIFY, &objtype, &~lpDefMsgStore);
+			hr = GetMsgStore()->lpSupport->OpenEntry(cbStoreID, lpStoreID, &iid_of(lpDefMsgStore), MAPI_MODIFY, nullptr, &~lpDefMsgStore);
 			if (hr != hrSuccess)
 				return hr;
 
 			// Open the root folder of the default store to create a new message
-			hr = lpDefMsgStore->OpenEntry(0, nullptr, &iid_of(lpRootFolder), MAPI_MODIFY, &objtype, &~lpRootFolder);
+			hr = lpDefMsgStore->OpenEntry(0, nullptr, &iid_of(lpRootFolder), MAPI_MODIFY, nullptr, &~lpRootFolder);
 			if (hr != hrSuccess)
 				return hr;
 			hr = lpRootFolder->CreateMessage(nullptr, 0, &~lpNewMessage);

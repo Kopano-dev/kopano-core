@@ -37,7 +37,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 	std::string strUrl, strMethod, strFldOwner, strFldName;
 	memory_ptr<SPropValue> lpDefaultProp, lpFldProp;
 	SPropValuePtr lpEntryID;
-	ULONG ulRes = 0, ulType = 0;
+	unsigned int ulRes = 0;
 	MAPIFolderPtr lpRoot;
 
 	/* URLs
@@ -127,7 +127,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 		return hr;
 	}
 	// Get active store default calendar to prevent delete action on this folder
-	hr = m_lpActiveStore->OpenEntry(0, nullptr, &iid_of(lpRoot), 0, &ulType, &~lpRoot);
+	hr = m_lpActiveStore->OpenEntry(0, nullptr, &iid_of(lpRoot), 0, nullptr, &~lpRoot);
 	if(hr != hrSuccess)
 	{
 		ec_log_err("Error opening root container using user \"%ls\": %s (%x)",
@@ -191,7 +191,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 	} else {
 		// open default calendar
 		hr = m_lpActiveStore->OpenEntry(lpDefaultProp->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpDefaultProp->Value.bin.lpb),
-		     &iid_of(m_lpUsrFld), MAPI_BEST_ACCESS, &ulType, &~m_lpUsrFld);
+		     &iid_of(m_lpUsrFld), MAPI_BEST_ACCESS, nullptr, &~m_lpUsrFld);
 		if (hr != hrSuccess)
 		{
 			ec_log_err("Unable to open default calendar for user \"%ls\": %s (%x)",

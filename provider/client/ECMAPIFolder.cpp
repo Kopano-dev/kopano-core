@@ -544,7 +544,7 @@ HRESULT ECMAPIFolder::CreateFolder(ULONG ulFolderType,
     const TCHAR *lpszFolderName, const TCHAR *lpszFolderComment,
     const IID *lpInterface, ULONG ulFlags, IMAPIFolder **lppFolder)
 {
-	unsigned int cbEntryId = 0, objtype = 0;
+	unsigned int cbEntryId = 0;
 	ecmem_ptr<ENTRYID> lpEntryId;
 	object_ptr<IMAPIFolder> lpFolder;
 
@@ -568,7 +568,7 @@ HRESULT ECMAPIFolder::CreateFolder(ULONG ulFolderType,
 
 	// Open the folder we just created
 	hr = GetMsgStore()->OpenEntry(cbEntryId, lpEntryId, lpInterface,
-	     MAPI_MODIFY | MAPI_DEFERRED_ERRORS, &objtype, &~lpFolder);
+	     MAPI_MODIFY | MAPI_DEFERRED_ERRORS, nullptr, &~lpFolder);
 	if(hr != hrSuccess)
 		return hr;
 	*lppFolder = lpFolder.release();
@@ -626,11 +626,10 @@ HRESULT ECMAPIFolder::create_folders(std::vector<ECFolder> &folders)
 	}
 
 	for (unsigned int i = 0; i < count; ++i) {
-		unsigned int objtype = 0;
 		/* Open the folder we just created */
 		ret = GetMsgStore()->OpenEntry(entry_ids[i].first,
 		      entry_ids[i].second, folders[i].interface,
-		      MAPI_MODIFY | MAPI_DEFERRED_ERRORS, &objtype,
+		      MAPI_MODIFY | MAPI_DEFERRED_ERRORS, nullptr,
 		      &~folders[i].folder);
 		if (ret != hrSuccess)
 			return ret;
@@ -722,7 +721,6 @@ HRESULT ECMAPIFolder::SetReadFlags(LPENTRYLIST lpMsgList, ULONG ulUIParam, LPMAP
 
 	HRESULT		hr = hrSuccess;
 	BOOL		bError = FALSE;
-	unsigned int objtype = 0;
 	// Progress bar
 	unsigned int ulPGMin = 0, ulPGMax = 0, ulPGDelta = 0, ulPGFlags = 0;
 
@@ -737,7 +735,8 @@ HRESULT ECMAPIFolder::SetReadFlags(LPENTRYLIST lpMsgList, ULONG ulUIParam, LPMAP
 
 		for (ULONG i = 0; i < lpMsgList->cValues; ++i) {
 			object_ptr<IMessage> lpMessage;
-			if (OpenEntry(lpMsgList->lpbin[i].cb, reinterpret_cast<ENTRYID *>(lpMsgList->lpbin[i].lpb), &IID_IMessage, MAPI_MODIFY, &objtype, &~lpMessage) == hrSuccess) {
+			if (OpenEntry(lpMsgList->lpbin[i].cb, reinterpret_cast<ENTRYID *>(lpMsgList->lpbin[i].lpb),
+			    &IID_IMessage, MAPI_MODIFY, nullptr, &~lpMessage) == hrSuccess) {
 				if(lpMessage->SetReadFlag(ulFlags&~MESSAGE_DIALOG) != hrSuccess)
 					bError = TRUE;
 			}else

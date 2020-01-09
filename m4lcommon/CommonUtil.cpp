@@ -2293,12 +2293,13 @@ HRESULT KServerContext::logon(const char *user, const char *pass)
 
 HRESULT KServerContext::inbox(IMAPIFolder **f) const
 {
-	unsigned int eid_size = 0, objtype;
+	unsigned int eid_size = 0;
 	memory_ptr<ENTRYID> eid;
 	auto ret = m_admstore->GetReceiveFolder(reinterpret_cast<const TCHAR *>("IPM"), 0, &eid_size, &~eid, nullptr);
 	if (ret != hrSuccess)
 		return ret;
-	return m_admstore->OpenEntry(eid_size, eid, &iid_of(*f), MAPI_MODIFY, &objtype, reinterpret_cast<IUnknown **>(f));
+	return m_admstore->OpenEntry(eid_size, eid, &iid_of(*f), MAPI_MODIFY,
+	       nullptr, reinterpret_cast<IUnknown **>(f));
 }
 
 } /* namespace */

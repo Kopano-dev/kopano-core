@@ -114,8 +114,7 @@ static HRESULT setup_zc(IMAPISession *ses)
 	if (ret != hrSuccess)
 		return kc_perrorf("PR_STORE_ENTRYID", ret);
 	object_ptr<IMAPIFolder> root;
-	unsigned int objtype = 0;
-	ret = store->OpenEntry(0, nullptr, &iid_of(root), 0, &objtype, &~root);
+	ret = store->OpenEntry(0, nullptr, &iid_of(root), 0, nullptr, &~root);
 	if (ret != hrSuccess)
 		return kc_perrorf("root folder", ret);
 	ret = HrGetOneProp(root, PR_IPM_CONTACT_ENTRYID, &~contact_folder);

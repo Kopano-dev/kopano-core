@@ -600,7 +600,6 @@ HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
 	for (const auto &arc : lstArchives) {
 		MsgStorePtr ptrArchiveStore;
 		MAPIFolderPtr ptrArchiveRoot;
-		ULONG ulType = 0;
 		MAPITablePtr ptrFolderTable;
 		SRowSetPtr ptrFolderRows;
 
@@ -622,7 +621,9 @@ HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
 		}
 
 		// Get all subfolders and purge those as well.
-		hr = ptrArchiveStore->OpenEntry(arc.sItemEntryId.size(), arc.sItemEntryId, &iid_of(ptrArchiveRoot), MAPI_BEST_ACCESS | fMapiDeferredErrors, &ulType, &~ptrArchiveRoot);
+		hr = ptrArchiveStore->OpenEntry(arc.sItemEntryId.size(), arc.sItemEntryId,
+		     &iid_of(ptrArchiveRoot), MAPI_BEST_ACCESS | fMapiDeferredErrors,
+		     nullptr, &~ptrArchiveRoot);
 		if (hr != hrSuccess) {
 			m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Failed to open archive root (entryid=%s): %s (%x)",
 				arc.sItemEntryId.tostring().c_str(), GetMAPIErrorMessage(hr), hr);
@@ -677,7 +678,6 @@ HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
  */
 HRESULT ArchiveControlImpl::PurgeArchiveFolder(MsgStorePtr &ptrArchive, const entryid_t &folderEntryID, const LPSRestriction lpRestriction)
 {
-	ULONG ulType = 0;
 	MAPIFolderPtr ptrFolder;
 	MAPITablePtr ptrContentsTable;
 	std::list<entryid_t> lstEntries;
@@ -686,7 +686,9 @@ HRESULT ArchiveControlImpl::PurgeArchiveFolder(MsgStorePtr &ptrArchive, const en
 	ULONG ulIdx = 0;
 	static constexpr const SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ENTRYID}};
 
-	auto hr = ptrArchive->OpenEntry(folderEntryID.size(), folderEntryID, &iid_of(ptrFolder), MAPI_BEST_ACCESS | fMapiDeferredErrors, &ulType, &~ptrFolder);
+	auto hr = ptrArchive->OpenEntry(folderEntryID.size(), folderEntryID,
+	          &iid_of(ptrFolder), MAPI_BEST_ACCESS | fMapiDeferredErrors,
+	          nullptr, &~ptrFolder);
 	if (hr != hrSuccess) {
 		m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Failed to open archive folder (entryid=%s): %s (%x)",
 			folderEntryID.tostring().c_str(), GetMAPIErrorMessage(hr), hr);
@@ -825,7 +827,6 @@ HRESULT ArchiveControlImpl::GetAllReferences(IMsgStore *lpUserStore,
 {
 	EntryIDSet setRefs;
 	SPropValuePtr ptrPropVal;
-	ULONG ulType = 0;
 	MAPIFolderPtr ptrIpmSubtree;
 	ECFolderIterator iEnd;
 
@@ -833,7 +834,8 @@ HRESULT ArchiveControlImpl::GetAllReferences(IMsgStore *lpUserStore,
 	auto hr = HrGetOneProp(lpUserStore, PR_IPM_SUBTREE_ENTRYID, &~ptrPropVal);
 	if (hr != hrSuccess)
 		return m_lpLogger->perr("Unable to locate ipm subtree of primary store", hr);
-	hr = lpUserStore->OpenEntry(ptrPropVal->Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrPropVal->Value.bin.lpb), &iid_of(ptrIpmSubtree), 0, &ulType, &~ptrIpmSubtree);
+	hr = lpUserStore->OpenEntry(ptrPropVal->Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrPropVal->Value.bin.lpb),
+	     &iid_of(ptrIpmSubtree), 0, nullptr, &~ptrIpmSubtree);
 	if (hr != hrSuccess)
 		return m_lpLogger->perr("Unable to open ipm subtree of primary store", hr);
 	hr = AppendAllReferences(ptrIpmSubtree, lpArchiveGuid, &setRefs);
@@ -1055,7 +1057,6 @@ HRESULT ArchiveControlImpl::CleanupHierarchy(ArchiveHelperPtr ptrArchiveHelper, 
 			break;
 
 		for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
-			ULONG ulType = 0;
 			MAPIFolderPtr ptrPrimaryFolder;
 
 			ScopedFolderLogging sfl(m_lpLogger, ptrRows[i].lpProps[IDX_DISPLAY_NAME].ulPropTag == PR_DISPLAY_NAME ? ptrRows[i].lpProps[IDX_DISPLAY_NAME].Value.LPSZ : KC_T("<Unnamed>"));
@@ -1087,13 +1088,13 @@ HRESULT ArchiveControlImpl::CleanupHierarchy(ArchiveHelperPtr ptrArchiveHelper, 
 			}
 
 			hr = lpUserStore->OpenEntry(ptrRows[i].lpProps[IDX_REF_ITEM_ENTRYID].Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrRows[i].lpProps[IDX_REF_ITEM_ENTRYID].Value.bin.lpb),
-			     &iid_of(ptrPrimaryFolder), 0, &ulType, &~ptrPrimaryFolder);
+			     &iid_of(ptrPrimaryFolder), 0, nullptr, &~ptrPrimaryFolder);
 			if (hr == MAPI_E_NOT_FOUND) {
 				MAPIFolderPtr ptrArchiveFolder;
 				SPropValuePtr ptrProp;
 
 				hr = lpArchiveRoot->OpenEntry(ptrRows[i].lpProps[IDX_ENTRYID].Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrRows[i].lpProps[IDX_ENTRYID].Value.bin.lpb),
-				     &iid_of(ptrArchiveFolder), MAPI_MODIFY, &ulType, &~ptrArchiveFolder);
+				     &iid_of(ptrArchiveFolder), MAPI_MODIFY, nullptr, &~ptrArchiveFolder);
 				if (hr != hrSuccess)
 					return hr;
 				// Check if we still have a back-ref
@@ -1152,11 +1153,10 @@ HRESULT ArchiveControlImpl::MoveAndDetachMessages(ArchiveHelperPtr ptrArchiveHel
 
 	m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "Processing %zu messages", setEIDs.size());
 	for (const auto &e : setEIDs) {
-		ULONG ulType;
 		MAPIPropPtr ptrMessage;
 		MAPIPropHelperPtr ptrHelper;
 
-		hr = lpArchiveFolder->OpenEntry(e.size(), e, &iid_of(ptrMessage), MAPI_MODIFY, &ulType, &~ptrMessage);
+		hr = lpArchiveFolder->OpenEntry(e.size(), e, &iid_of(ptrMessage), MAPI_MODIFY, nullptr, &~ptrMessage);
 		if (hr != hrSuccess)
 			return m_lpLogger->perr("Failed to open message", hr);
 		hr = MAPIPropHelper::Create(ptrMessage, &ptrHelper);
