@@ -1226,11 +1226,8 @@ HRESULT ECExchangeExportChanges::HrDecodeSyncStateStream(IStream *lpStream,
     unsigned int *lpulSyncId, unsigned int *lpulChangeId)
 {
 	STATSTG stat;
-	ULONG		ulSyncId = 0;
-	ULONG		ulChangeId = 0;
-	ULONG		ulChangeCount = 0;
-	ULONG		ulProcessedChangeId = 0;
-	ULONG		ulSourceKeySize = 0;
+	unsigned int ulSyncId = 0, ulChangeId = 0, ulChangeCount = 0;
+	unsigned int ulProcessedChangeId = 0, ulSourceKeySize = 0;
 	LARGE_INTEGER liPos = {{0, 0}};
 	PROCESSEDCHANGESSET setProcessedChanged;
 
