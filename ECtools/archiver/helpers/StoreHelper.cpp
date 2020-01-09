@@ -308,7 +308,7 @@ HRESULT StoreHelper::GetSubFolder(MAPIFolderPtr &ptrFolder, const tstring &strFo
 	MAPIFolderPtr ptrSubFolder;
 	ULONG ulType = 0;
 	static constexpr const SizedSPropTagArray(1, sptaFolderProps) = {1, {PR_ENTRYID}};
-	SPropValue				sResPropValue = {0};
+	SPropValue sResPropValue{};
 
 	sResPropValue.ulPropTag = PR_DISPLAY_NAME;
 	sResPropValue.Value.LPSZ = (LPTSTR)strFolder.c_str();
@@ -669,7 +669,7 @@ HRESULT StoreHelper::GetClassCheckRestriction(ECOrRestriction *lpresClassCheck)
 
 HRESULT StoreHelper::GetArchiveCheckRestriction(ECAndRestriction *lpresArchiveCheck)
 {
-	SPropValue sPropDirty = {0};
+	SPropValue sPropDirty{};
 	ObjectEntryList lstArchives;
 	ECAndRestriction resArchiveCheck;
 

@@ -245,7 +245,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 	}
 
 	if (lpStream == NULL){
-		unsigned int tmp[2] = {0, 0}, ulSize = 0;
+		unsigned int tmp[2]{}, ulSize = 0;
 
 		zlog("Creating new exporter stream");
 		hr = CreateStreamOnHGlobal(GlobalAlloc(GPTR, sizeof(tmp)), true, &~m_lpStream);
@@ -497,10 +497,10 @@ progress:
 
 			if(m_ulChanges) {
 				if (ec_log_get()->Log(EC_LOGLEVEL_DEBUG)) {
-					struct tms	tmsEnd = {0};
+					struct tms tmsEnd{};
 					clock_t		clkEnd = times(&tmsEnd);
 					double		dblDuration = 0;
-					char		szDuration[64] = {0};
+					char szDuration[64]{};
 
 					// Calculate diff
 					dblDuration = (double)(clkEnd - m_clkStart) / TICKS_PER_SEC;

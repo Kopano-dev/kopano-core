@@ -78,17 +78,17 @@ class KC_EXPORT RecurrenceState KC_FINAL {
 	class KC_HIDDEN Exception KC_FINAL {
 		public:
 		std::string strSubject, strLocation;
-		unsigned int ulStartDateTime, ulEndDateTime;
-		unsigned int ulOriginalStartDate, ulOverrideFlags;
-		unsigned int ulApptStateFlags, ulReminderDelta, ulReminderSet;
-		unsigned int ulBusyStatus, ulAttachment, ulSubType;
-		unsigned int ulAppointmentColor;
+		unsigned int ulStartDateTime = 0, ulEndDateTime = 0;
+		unsigned int ulOriginalStartDate = 0, ulOverrideFlags = 0;
+		unsigned int ulApptStateFlags = 0, ulReminderDelta = 0, ulReminderSet = 0;
+		unsigned int ulBusyStatus = 0, ulAttachment = 0, ulSubType = 0;
+		unsigned int ulAppointmentColor = 0;
 	};
 
 	class KC_HIDDEN ExtendedException KC_FINAL {
 		public:
-		unsigned int ulChangeHighlightValue, ulStartDateTime;
-		unsigned int ulEndDateTime, ulOriginalStartDate;
+		unsigned int ulChangeHighlightValue = 0, ulStartDateTime = 0;
+		unsigned int ulEndDateTime = 0, ulOriginalStartDate = 0;
 		std::wstring strWideCharSubject, strWideCharLocation;
 		std::string strReserved, strReservedBlock1, strReservedBlock2;
 	};

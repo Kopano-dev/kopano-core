@@ -84,7 +84,7 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 	if (lpMessage == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	SPropValue sProps[3], sProp = {0};
+	SPropValue sProps[3]{}, sProp{};
 	MAPITablePtr ptrAttTable;
 	SRowSetPtr ptrRowSet;
 	AttachPtr ptrAttach;

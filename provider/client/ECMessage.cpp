@@ -2085,7 +2085,7 @@ HRESULT ECMessage::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
 	object_ptr<IMAPIProp> destiprop;
 	object_ptr<ECMAPIProp> lpECMAPIProp;
 	memory_ptr<SPropValue> lpECObject;
-	GUID sDestServerGuid = {0}, sSourceServerGuid = {0};
+	GUID sDestServerGuid{}, sSourceServerGuid{};
 
 	// Deny copying within the same object. This is not allowed in exchange either and is required to deny
 	// creating large recursive objects.

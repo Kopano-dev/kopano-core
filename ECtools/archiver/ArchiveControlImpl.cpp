@@ -860,7 +860,7 @@ HRESULT ArchiveControlImpl::GetAllReferences(IMsgStore *lpUserStore,
 HRESULT ArchiveControlImpl::AppendAllReferences(IMAPIFolder *lpFolder,
     const GUID *lpArchiveGuid, EntryIDSet *lpReferences)
 {
-	BYTE prefixData[4 + sizeof(GUID)] = {0};
+	BYTE prefixData[4+sizeof(GUID)]{};
 	static constexpr const ULONG ulFlagArray[] = {0, SHOW_SOFT_DELETES};
 	SizedSPropTagArray(1, sptaContentProps) = {1, {PT_NULL}};
 

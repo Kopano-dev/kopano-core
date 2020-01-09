@@ -1083,7 +1083,7 @@ static ECRESULT DeserializePropVal(struct soap *soap,
 	gsoap_size_t ulCount;
 	unsigned int ulLen, ulKind = 0, ulNameId = 0, ulLocalId = 0;
 	unsigned char	b;
-	GUID			guid = {0};
+	GUID guid{};
 	std::string		strNameString;
 	convert_context	converter;
 

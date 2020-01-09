@@ -866,7 +866,7 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 // HRESULT HrDelegateMessage(LPMAPISESSION lpSession, LPEXCHANGEMANAGESTORE lpIEMS, IMAPIProp *lpMessage, LPADRENTRY lpAddress)
 static HRESULT HrDelegateMessage(IMAPIProp *lpMessage)
 {
-	SPropValue sNewProps[6] = {{0}};
+	SPropValue sNewProps[6]{};
 	memory_ptr<SPropValue> lpProps;
 	ULONG cValues = 0;
 	static constexpr const SizedSPropTagArray(5, sptaRecipProps) =

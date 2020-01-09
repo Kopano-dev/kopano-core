@@ -2306,7 +2306,7 @@ static HRESULT FindInterface(LPCIID lpIID, ULONG ulIIDs, LPCIID lpIIDs)
  */
 static HRESULT CopyStream(IStream *lpSrc, IStream *lpDest)
 {
-	ULARGE_INTEGER liRead = {{0}}, liWritten = {{0}};
+	ULARGE_INTEGER liRead{}, liWritten{};
 	STATSTG stStatus;
 	HRESULT hr = lpSrc->Stat(&stStatus, 0);
 	if (FAILED(hr))

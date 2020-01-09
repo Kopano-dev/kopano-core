@@ -422,7 +422,7 @@ bool ECConfigImpl::InitConfigFile(unsigned int ls_flags)
 bool ECConfigImpl::ReadConfigFile(const std::string &file,
     unsigned int ls_flags, unsigned int ulGroup)
 {
-	char cBuffer[MAXLINELEN] = {0};
+	char cBuffer[MAXLINELEN]{};
 	std::string strFilename, strLine, strName, strValue;
 	size_t pos;
 

@@ -1133,8 +1133,8 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 	ULONG cValues;
 
 	const wchar_t *szSubject = L"Out of office";
-	char szHeader[PATH_MAX] = {0}, szTemp[PATH_MAX] = {0};
-	wchar_t szwHeader[PATH_MAX] = {0};
+	char szHeader[PATH_MAX]{}, szTemp[PATH_MAX]{};
+	wchar_t szwHeader[PATH_MAX]{};
 	int fd = -1;
 	wstring	strFromName, strFromType, strFromEmail, strBody;
 	std::vector<std::string> cmdline = {strBaseCommand};
@@ -2536,7 +2536,7 @@ static void add_misc_headers(FILE *tmp, const std::string &helo,
 	if (dummy != nullptr) {
 		server_name = dummy;
 	} else {
-		char buffer[4096] = {0};
+		char buffer[4096]{};
 		if (gethostname(buffer, sizeof buffer) == -1)
 			strcpy(buffer, "???");
 		server_name = buffer;

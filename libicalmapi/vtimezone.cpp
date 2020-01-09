@@ -55,7 +55,7 @@ static time_t SystemTimeToUnixTime(const SYSTEMTIME &stime)
 
 static SYSTEMTIME TMToSystemTime(const struct tm &t)
 {
-	SYSTEMTIME stime = {0};
+	SYSTEMTIME stime{};
 	stime.wYear = t.tm_year;
 	stime.wMonth = t.tm_mon;
 	stime.wDayOfWeek = t.tm_wday;
@@ -103,7 +103,7 @@ time_t ICalTimeTypeToLocal(icalproperty *lpicProp)
  */
 static struct tm UTC_ICalTime2UnixTime(const icaltimetype &tt)
 {
-	struct tm stm = {0};
+	struct tm stm{};
 
 	memset(&stm, 0, sizeof(struct tm));
 	if (icaltime_is_null_time(tt))

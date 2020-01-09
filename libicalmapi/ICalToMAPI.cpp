@@ -128,7 +128,7 @@ HRESULT ICalToMapiImpl::ParseICal2(const char *ical_data,
     const std::string &strCharset, const std::string &strServerTZparam,
     IMailUser *lpMailUser, unsigned int ulFlags)
 {
-	TIMEZONE_STRUCT ttTimeZone = {0};
+	TIMEZONE_STRUCT ttTimeZone{};
 	timezone_map tzMap;
 	std::string strTZID;
 	icalitem *item = nullptr, *previtem = nullptr;
@@ -326,7 +326,7 @@ HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMes
 	memory_ptr<SPropTagArray> lpsPTA;
 	object_ptr<IMAPITable> lpAttachTable;
 	rowset_ptr lpRows;
-	SPropValue sStart = {0}, sMethod = {0};
+	SPropValue sStart{}, sMethod{};
 
 	if (ulPosition >= m_vMessages.size() || lpMessage == nullptr)
 		return MAPI_E_INVALID_PARAMETER;

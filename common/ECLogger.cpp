@@ -338,7 +338,7 @@ char *ECLogger_File::DoPrefix(char *buffer, size_t z)
 	if (prefix == LP_TID) {
 #ifdef HAVE_PTHREAD_GETNAME_NP
 		pthread_t th = pthread_self();
-		char name[32] = { 0 };
+		char name[32]{};
 
 		if (pthread_getname_np(th, name, sizeof name))
 			snprintf(buffer, z, "[T%lu] ", kc_threadid());
@@ -691,7 +691,7 @@ namespace PrivatePipe {
 	    ECConfig *lpConfig)
 	{
 		ssize_t ret;
-		char buffer[EC_LOG_BUFSIZE] = {0};
+		char buffer[EC_LOG_BUFSIZE]{};
 		std::string complete;
 		const char *p = NULL;
 		int s;
@@ -1001,7 +1001,7 @@ static void ec_segv_handler(int signr, siginfo_t *si, void *uctx)
 		ec_log_fatal("OS: %s (%s %s %s)", ec_os_pretty_name().c_str(), buf.sysname, buf.release, buf.machine);
 
 #ifdef HAVE_PTHREAD_GETNAME_NP
-        char name[32] = { 0 };
+        char name[32]{};
         int rc = pthread_getname_np(pthread_self(), name, sizeof name);
 	if (rc)
 		ec_log_fatal("pthread_getname_np failed: %s", strerror(rc));

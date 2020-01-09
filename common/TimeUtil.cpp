@@ -27,7 +27,7 @@ namespace KC {
 static time_t getDateByYearMonthWeekDayHour(WORD year, WORD month, WORD week,
     WORD day, WORD hour)
 {
-	struct tm tm = {0};
+	struct tm tm{};
 
 	// get first day of month
 	tm.tm_year = year;

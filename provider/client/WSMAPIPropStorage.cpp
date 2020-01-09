@@ -119,7 +119,7 @@ HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(const MAPIOBJECT *lpsMapiObj
 
 	HRESULT hr = hrSuccess;
 	ULONG ulPropId = 0;
-	GUID sServerGUID = {0}, sSIGUID = {0};
+	GUID sServerGUID{}, sSIGUID{};
 
 	if (lpsMapiObject->lpInstanceID) {
 		lpSaveObj->lpInstanceIds = soap_new_entryList(nullptr);

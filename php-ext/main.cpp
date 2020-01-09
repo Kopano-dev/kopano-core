@@ -2435,7 +2435,7 @@ ZEND_FUNCTION(mapi_stream_setsize)
 	LPSTREAM	pStream = NULL;
 	long		newSize = 0;
 	// local
-	ULARGE_INTEGER libNewSize = { { 0 } };
+	ULARGE_INTEGER libNewSize{};
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -2518,7 +2518,7 @@ ZEND_FUNCTION(mapi_stream_stat)
 	// return value
 	ULONG		cb = 0;
 	// local
-	STATSTG		stg = { 0 };
+	STATSTG stg{};
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;

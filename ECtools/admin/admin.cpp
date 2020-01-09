@@ -356,7 +356,7 @@ static void print_help(const char *name)
  */
 static char *get_password(void)
 {
-	static char password[80] = {0};
+	static char password[80];
 	auto s = get_password("Type password:");
 	if(s == NULL)
 		return NULL;
