@@ -1064,7 +1064,7 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	if (lpMDB != nullptr) {
 		if (bStoreEntryID) {
 			hr = lpMDB->QueryInterface(IID_IMsgStore, reinterpret_cast<void **>(lppUnk));
-			if (hr == hrSuccess)
+			if (hr == hrSuccess && lpulObjType != nullptr)
 				*lpulObjType = MAPI_STORE;
 		}
 		else {
@@ -1133,7 +1133,7 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		storemap_lock.unlock();
 		if (bStoreEntryID) {
 			hr = lpMDB->QueryInterface(IID_IMsgStore, reinterpret_cast<void **>(lppUnk));
-			if (hr == hrSuccess)
+			if (hr == hrSuccess && lpulObjType != nullptr)
 				*lpulObjType = MAPI_STORE;
 		}
 		else {
@@ -1454,7 +1454,8 @@ HRESULT M4LAddrBook::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 				*lppUnk = reinterpret_cast<IUnknown *>(static_cast<void *>(static_cast<IMAPIProp *>(lpMailUser)));
 			else if (*lpInterface == IID_IUnknown)
 				*lppUnk = static_cast<IUnknown *>(lpMailUser);
-			*lpulObjType = MAPI_MAILUSER;
+			if (lpulObjType != nullptr)
+				*lpulObjType = MAPI_MAILUSER;
 			return hr;
 		}
 	}
@@ -1472,8 +1473,8 @@ HRESULT M4LAddrBook::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		sPropObjectType.ulPropTag = PR_OBJECT_TYPE;
 		sPropObjectType.Value.ul = MAPI_ABCONT;
 		lpCont->SetProps(1, &sPropObjectType, NULL);
-
-		*lpulObjType = MAPI_ABCONT;
+		if (lpulObjType != nullptr)
+			*lpulObjType = MAPI_ABCONT;
 		return hrSuccess;
 	} else if (lpEntryID == nullptr) {
 		return MAPI_E_INTERFACE_NOT_SUPPORTED;

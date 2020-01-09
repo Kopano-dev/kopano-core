@@ -574,7 +574,7 @@ HRESULT ECMsgStore::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
     ULONG *lpulObjType,
     IUnknown **lppUnk)
 {
-	if (lpulObjType == nullptr || lppUnk == nullptr)
+	if (lppUnk == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
 	memory_ptr<ENTRYID> lpRootEntryID;

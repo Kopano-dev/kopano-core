@@ -139,7 +139,7 @@ HRESULT ZCABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		PR_ZC_CONTACT_FOLDER_ENTRYIDS, PR_ZC_CONTACT_FOLDER_NAMES_W}};
 	
 	// Check input/output variables 
-	if (lpulObjType == nullptr || lppUnk == nullptr)
+	if (lppUnk == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
 	if(cbEntryID == 0 && lpEntryID == NULL) {
@@ -189,7 +189,8 @@ HRESULT ZCABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	if (lpContact) {
 		hr = lpContact->QueryInterface(lpInterface != nullptr ? *lpInterface : IID_IDistList, reinterpret_cast<void **>(lppUnk));
 	} else {
-		*lpulObjType = MAPI_ABCONT;
+		if (lpulObjType != nullptr)
+			*lpulObjType = MAPI_ABCONT;
 		hr = lpRootContainer->QueryInterface(lpInterface != nullptr ? *lpInterface : IID_IABContainer, reinterpret_cast<void **>(lppUnk));
 	}
 	if(hr != hrSuccess)
