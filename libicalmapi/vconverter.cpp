@@ -971,7 +971,7 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 	HRESULT hr = hrSuccess;
 	std::wstring strEmail, strName;
 	std::string strType;
-	icalrecip icrAttendee{};
+	icalrecip icrAttendee;
 	unsigned int cbEntryID = 0;
 	memory_ptr<ENTRYID> lpEntryID;
 
