@@ -328,7 +328,6 @@ HRESULT ECArchiveAwareMessage::CreateInfoMessage(const SPropTagArray *lpptaDelet
 {
 	SPropValue sPropVal;
 	StreamPtr ptrHtmlStream;
-	ULARGE_INTEGER liZero = {{0, 0}};
 
 	fModify = true;
 	auto laters = make_scope_success([&]() { fModify = false; });
@@ -344,7 +343,7 @@ HRESULT ECArchiveAwareMessage::CreateInfoMessage(const SPropTagArray *lpptaDelet
 	hr = OpenProperty(PR_HTML, &iid_of(ptrHtmlStream), 0, MAPI_CREATE | MAPI_MODIFY, &~ptrHtmlStream);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrHtmlStream->SetSize(liZero);
+	hr = ptrHtmlStream->SetSize(ularge_int_zero);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrHtmlStream->Write(strBodyHtml.c_str(), strBodyHtml.size(), NULL);
