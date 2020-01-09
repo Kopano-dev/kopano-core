@@ -10,6 +10,7 @@
 #include <kopano/Util.h>
 #include "IECPropStorage.h"
 #include <kopano/kcodes.h>
+#include <kopano/memory.hpp>
 #include "ECABContainer.h"
 #include "WSTableView.h"
 #include "WSTransport.h"
@@ -38,7 +39,7 @@ private:
 private:
 	entryId			m_sEntryId;
 	KC::ECSESSIONID ecSessionId;
-	WSTransport*	m_lpTransport;
+	KC::object_ptr<WSTransport> m_lpTransport;
 	ULONG			m_ulSessionReloadCallback;
 	ALLOC_WRAP_FRIEND;
 };
