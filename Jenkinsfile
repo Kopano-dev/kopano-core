@@ -36,6 +36,14 @@ pipeline {
 		junit allowEmptyResults: true, testResults: 'php-ext/test.log'
             }
         }
+
+        stage('Python Test') {
+            steps {
+                echo 'Testing python-mapi..'
+                sh 'make -C swig/python test PYTEST=pytest-3 || true'
+                junit allowEmptyResults: true, testResults: 'swig/python/test.xml'
+            }
+        }
     }
     post {
         always {

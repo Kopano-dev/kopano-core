@@ -76,6 +76,7 @@ RUN apt update -y \
         php-dev \
         pkg-config \
         python3-dev \
+        python3-pytest \
         python3-setuptools \
         swig \
         tidy-html5-dev \

@@ -178,4 +178,10 @@ uninstall-local:
 	rm -Rf ${DESTDIR}${pythondir}/MAPI \
 		${DESTDIR}${pythondir}/MAPI-*.egg-info
 
+PYTEST = pytest
+
+.PHONY: test
+test:
+	MAPI_CONFIG_PATH=../../provider/client PYTHONPATH=.libs:. ${PYTEST} --junitxml=test.xml .
+
 include ../../global.am
