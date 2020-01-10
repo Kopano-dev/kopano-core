@@ -211,21 +211,26 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 	if (lpConfig->GetSetting("ssl_verify_path")[0])
 		szPath = lpConfig->GetSetting("ssl_verify_path");
 	if ((szFile != nullptr || szPath != nullptr) &&
-	    SSL_CTX_load_verify_locations(newctx, szFile, szPath) != 1)
+	    SSL_CTX_load_verify_locations(newctx, szFile, szPath) != 1) {
 		ec_log_err("SSL CTX error loading verify locations: %s", ERR_error_string(ERR_get_error(), 0));
+		goto exit;
+	}
 
-	lpCTX = std::move(newctx);
+	// Swap in generated SSL context.
+	newctx = lpCTX.exchange(newctx);
+	hr = hrSuccess;
+
 exit:
-	if (hr != hrSuccess)
+	if (newctx != nullptr)
 		SSL_CTX_free(newctx);
 	return hr;
 }
 
 HRESULT ECChannel::HrFreeCtx() {
-	if (lpCTX) {
-		SSL_CTX_free(lpCTX);
-		lpCTX = NULL;
-	}
+	// Swap out current SSL context.
+	auto oldctx = lpCTX.exchange(nullptr);
+	if (oldctx != nullptr)
+		SSL_CTX_free(oldctx);
 	return hrSuccess;
 }
 
