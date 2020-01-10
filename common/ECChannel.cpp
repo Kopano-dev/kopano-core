@@ -48,12 +48,12 @@ std::atomic<SSL_CTX *> ECChannel::lpCTX{nullptr};
 
 HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 {
+	HRESULT hr = MAPI_E_CALL_FAILED;
 	if (lpConfig == NULL) {
 		ec_log_err("ECChannel::HrSetCtx(): invalid parameters");
-		return MAPI_E_CALL_FAILED;
+		return hr;
 	}
 
-	HRESULT hr = MAPI_E_CALL_FAILED;
 	const char *szFile = nullptr, *szPath = nullptr;;
 	auto cert_file = lpConfig->GetSetting("ssl_certificate_file");
 	auto key_file = lpConfig->GetSetting("ssl_private_key_file");
@@ -68,19 +68,19 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 
 	if (cert_file == nullptr || key_file == nullptr) {
 		ec_log_err("ECChannel::HrSetCtx(): no cert or key file");
-		return MAPI_E_CALL_FAILED;
+		return hr;
 	}
 	auto key_fh = fopen(key_file, "r");
 	if (key_fh == nullptr) {
 		ec_log_err("ECChannel::HrSetCtx(): cannot open key file");
-		return MAPI_E_CALL_FAILED;
+		return hr;
 	}
 	fclose(key_fh);
 
 	auto cert_fh = fopen(cert_file, "r");
 	if (cert_fh == nullptr) {
 		ec_log_err("ECChannel::HrSetCtx(): cannot open cert file");
-		return MAPI_E_CALL_FAILED;
+		return hr;
 	}
 	fclose(cert_fh);
 
@@ -180,7 +180,6 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 #if !defined(OPENSSL_NO_ECDH) && defined(SSL_CTX_set1_curves_list)
 	if (ssl_curves && SSL_CTX_set1_curves_list(newctx, ssl_curves) != 1) {
 		ec_log_err("Can not set SSL curve list to \"%s\": %s", ssl_curves, ERR_error_string(ERR_get_error(), 0));
-		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 
