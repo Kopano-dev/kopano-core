@@ -84,13 +84,29 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 	}
 	fclose(cert_fh);
 
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
+	// New style init.
+	if (lpCTX == nullptr)
+		OPENSSL_init_ssl(OPENSSL_INIT_ENGINE_ALL_BUILTIN, NULL);
+
+	// Default TLS context for OpenSSL >= 1.1, enables all methods.
+	auto newctx = SSL_CTX_new(TLS_server_method());
+#else // OPENSSL_VERSION_NUMBER < 0x1010000fL
+	// Old style init, modelled after Apache mod_ssl.
 	if (lpCTX == nullptr) {
-		SSL_library_init();
+		ERR_load_crypto_strings();
 		SSL_load_error_strings();
+		SSL_library_init();
+#	ifndef OPENSSL_NO_ENGINE
+		ENGINE_load_builtin_engines();
+#	endif // !OPENSSL_NO_ENGINE
+		OpenSSL_add_all_algorithms();
+		OPENSSL_load_builtin_modules();
 	}
 
 	// enable *all* server methods, not just ssl2 and ssl3, but also tls1 and tls1.1
 	auto newctx = SSL_CTX_new(SSLv23_server_method());
+#endif // OPENSSL_VERSION_NUMBER
 
 	// Check context.
 	if (newctx == nullptr) {
