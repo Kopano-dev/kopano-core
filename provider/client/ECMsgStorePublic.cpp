@@ -108,7 +108,7 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
     const IID *lpInterface, ULONG ulFlags, ULONG *lpulObjType,
     IUnknown **lppUnk)
 {
-	if (lpulObjType == nullptr || lppUnk == nullptr)
+	if (lppUnk == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
 	unsigned int objtype = 0;

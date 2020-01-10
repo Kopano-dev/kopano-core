@@ -77,7 +77,6 @@ HRESULT ArchiveHelper::Create(ArchiverSessionPtr ptrSession,
     ArchiveHelperPtr *lpptrArchiveHelper)
 {
 	MsgStorePtr ptrArchiveStore;
-	ULONG ulType;
 	MAPIFolderPtr ptrArchiveRootFolder;
 	ArchiveHelperPtr ptrArchiveHelper;
 
@@ -90,7 +89,10 @@ HRESULT ArchiveHelper::Create(ArchiverSessionPtr ptrSession,
 			lpLogger->perr("Failed to open archive store", hr);
 		return hr;
 	}
-	hr = ptrArchiveStore->OpenEntry(archiveEntry.sItemEntryId.size(), archiveEntry.sItemEntryId, &iid_of(ptrArchiveRootFolder), MAPI_BEST_ACCESS | fMapiDeferredErrors, &ulType, &~ptrArchiveRootFolder);
+	hr = ptrArchiveStore->OpenEntry(archiveEntry.sItemEntryId.size(),
+	     archiveEntry.sItemEntryId, &iid_of(ptrArchiveRootFolder),
+	     MAPI_BEST_ACCESS | fMapiDeferredErrors, nullptr,
+	     &~ptrArchiveRootFolder);
 	if (hr != hrSuccess) {
 		if (lpLogger)
 			lpLogger->perr("Failed to open archive root folder", hr);
@@ -411,7 +413,7 @@ HRESULT ArchiveHelper::GetArchiveFolderFor(MAPIFolderPtr &ptrSourceFolder, Archi
 	ObjectEntryList lstFolderArchives;
 	ObjectEntryList::const_iterator iArchiveFolder;
 	MAPIFolderPtr ptrArchiveFolder, ptrParentFolder, ptrArchiveParentFolder;
-	unsigned int ulType = 0, cValues = 0;
+	unsigned int cValues = 0;
 	SPropArrayPtr ptrPropArray;
 	SObjectEntry objectEntry;
 	static constexpr const SizedSPropTagArray(3, sptaFolderPropsForCreate) =
@@ -435,7 +437,10 @@ HRESULT ArchiveHelper::GetArchiveFolderFor(MAPIFolderPtr &ptrSourceFolder, Archi
 
 	iArchiveFolder = find_if(lstFolderArchives.cbegin(), lstFolderArchives.cend(), StoreCompare(ptrStoreEntryId->Value.bin));
 	if (iArchiveFolder != lstFolderArchives.cend()) {
-		hr = m_ptrArchiveStore->OpenEntry(iArchiveFolder->sItemEntryId.size(), iArchiveFolder->sItemEntryId, &iid_of(ptrArchiveFolder), MAPI_BEST_ACCESS | fMapiDeferredErrors, &ulType, &~ptrArchiveFolder);
+		hr = m_ptrArchiveStore->OpenEntry(iArchiveFolder->sItemEntryId.size(),
+		     iArchiveFolder->sItemEntryId, &iid_of(ptrArchiveFolder),
+		     MAPI_BEST_ACCESS | fMapiDeferredErrors, nullptr,
+		     &~ptrArchiveFolder);
 		if (hr != hrSuccess)
 			return hr;
 		return ptrArchiveFolder->QueryInterface(IID_IMAPIFolder,
@@ -720,12 +725,12 @@ HRESULT ArchiveHelper::GetSpecialFolder(eSpecFolder sfWhich, bool bCreate, LPMAP
 	MAPIFolderPtr ptrSpecialFolder;
 
 	auto hr = GetSpecialFolderEntryID(sfWhich, &ulSpecialFolderID, &~ptrSpecialFolderID);
-	if (hr == hrSuccess) {
-		ULONG ulType;
-		hr = m_ptrArchiveStore->OpenEntry(ulSpecialFolderID, ptrSpecialFolderID, &iid_of(ptrSpecialFolder), MAPI_MODIFY, &ulType, &~ptrSpecialFolder);
-	} else if (hr == MAPI_E_NOT_FOUND && bCreate) {
+	if (hr == hrSuccess)
+		hr = m_ptrArchiveStore->OpenEntry(ulSpecialFolderID,
+		     ptrSpecialFolderID, &iid_of(ptrSpecialFolder), MAPI_MODIFY,
+		     nullptr, &~ptrSpecialFolder);
+	else if (hr == MAPI_E_NOT_FOUND && bCreate)
 		hr = CreateSpecialFolder(sfWhich, &~ptrSpecialFolder);
-	}
 	if (hr != hrSuccess)
 		return hr;
 	return ptrSpecialFolder->QueryInterface(IID_IMAPIFolder,

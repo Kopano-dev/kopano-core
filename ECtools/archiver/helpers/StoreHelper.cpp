@@ -154,13 +154,15 @@ HRESULT StoreHelper::GetIpmSubtree(LPMAPIFOLDER *lppFolder)
 {
 	HRESULT	hr;
 	SPropValuePtr ptrPropValue;
-	ULONG ulType = 0;
 
 	if (!m_ptrIpmSubtree) {
 		hr = HrGetOneProp(m_ptrMsgStore, PR_IPM_SUBTREE_ENTRYID, &~ptrPropValue);
 		if (hr != hrSuccess)
 			return hr;
-		hr = m_ptrMsgStore->OpenEntry(ptrPropValue->Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrPropValue->Value.bin.lpb), &iid_of(m_ptrIpmSubtree), MAPI_BEST_ACCESS | fMapiDeferredErrors, &ulType, &~m_ptrIpmSubtree);
+		hr = m_ptrMsgStore->OpenEntry(ptrPropValue->Value.bin.cb,
+		     reinterpret_cast<ENTRYID *>(ptrPropValue->Value.bin.lpb),
+		     &iid_of(m_ptrIpmSubtree), MAPI_BEST_ACCESS | fMapiDeferredErrors,
+		     nullptr, &~m_ptrIpmSubtree);
 		if (hr != hrSuccess)
 			return hr;
 	}
@@ -192,7 +194,6 @@ HRESULT StoreHelper::GetSearchFolders(LPMAPIFOLDER *lppSearchArchiveFolder, LPMA
 	SPropValuePtr ptrPropValue;
 	MAPIFolderPtr ptrSearchArchiveFolder, ptrSearchDeleteFolder;
 	MAPIFolderPtr ptrSearchStubFolder;	// subset of SearchDeleteFolder.
-	ULONG ulType = 0;
 	bool bUpdateRef = false;
 
 	auto hr = HrGetOneProp(m_ptrMsgStore, PROP_SEARCH_FOLDER_ENTRYIDS, &~ptrPropValue);
@@ -203,7 +204,7 @@ HRESULT StoreHelper::GetSearchFolders(LPMAPIFOLDER *lppSearchArchiveFolder, LPMA
 		hr = m_ptrMsgStore->OpenEntry(ptrPropValue->Value.MVbin.lpbin[0].cb,
 		     reinterpret_cast<ENTRYID *>(ptrPropValue->Value.MVbin.lpbin[0].lpb),
 		     &iid_of(ptrSearchArchiveFolder), fMapiDeferredErrors | MAPI_BEST_ACCESS,
-		     &ulType, &~ptrSearchArchiveFolder);
+		     nullptr, &~ptrSearchArchiveFolder);
 		if (hr == hrSuccess)
 			hr = CheckAndUpdateSearchFolder(ptrSearchArchiveFolder, esfArchive);
 		else if (hr == MAPI_E_NOT_FOUND) {
@@ -215,7 +216,7 @@ HRESULT StoreHelper::GetSearchFolders(LPMAPIFOLDER *lppSearchArchiveFolder, LPMA
 		hr = m_ptrMsgStore->OpenEntry(ptrPropValue->Value.MVbin.lpbin[1].cb,
 		     reinterpret_cast<ENTRYID *>(ptrPropValue->Value.MVbin.lpbin[1].lpb),
 		     &iid_of(ptrSearchDeleteFolder), fMapiDeferredErrors | MAPI_BEST_ACCESS,
-		     &ulType, &~ptrSearchDeleteFolder);
+		     nullptr, &~ptrSearchDeleteFolder);
 		if (hr == hrSuccess)
 			hr = CheckAndUpdateSearchFolder(ptrSearchDeleteFolder, esfDelete);
 		else if (hr == MAPI_E_NOT_FOUND) {
@@ -227,7 +228,7 @@ HRESULT StoreHelper::GetSearchFolders(LPMAPIFOLDER *lppSearchArchiveFolder, LPMA
 		hr = m_ptrMsgStore->OpenEntry(ptrPropValue->Value.MVbin.lpbin[2].cb,
 		     reinterpret_cast<ENTRYID *>(ptrPropValue->Value.MVbin.lpbin[2].lpb),
 		     &iid_of(ptrSearchStubFolder), fMapiDeferredErrors | MAPI_BEST_ACCESS,
-		     &ulType, &~ptrSearchStubFolder);
+		     nullptr, &~ptrSearchStubFolder);
 		if (hr == hrSuccess)
 			hr = CheckAndUpdateSearchFolder(ptrSearchStubFolder, esfStub);
 		else if (hr == MAPI_E_NOT_FOUND) {
@@ -306,7 +307,6 @@ HRESULT StoreHelper::GetSubFolder(MAPIFolderPtr &ptrFolder, const tstring &strFo
 	MAPITablePtr ptrTable;
 	SRowSetPtr ptrRowSet;
 	MAPIFolderPtr ptrSubFolder;
-	ULONG ulType = 0;
 	static constexpr const SizedSPropTagArray(1, sptaFolderProps) = {1, {PR_ENTRYID}};
 	SPropValue				sResPropValue = {0};
 
@@ -329,7 +329,7 @@ HRESULT StoreHelper::GetSubFolder(MAPIFolderPtr &ptrFolder, const tstring &strFo
 			return MAPI_E_NOT_FOUND;
 		hr = m_ptrMsgStore->OpenEntry(ptrRowSet[0].lpProps[0].Value.bin.cb,
 		     reinterpret_cast<ENTRYID *>(ptrRowSet[0].lpProps[0].Value.bin.lpb),
-		     &iid_of(ptrSubFolder), MAPI_BEST_ACCESS, &ulType, &~ptrSubFolder);
+		     &iid_of(ptrSubFolder), MAPI_BEST_ACCESS, nullptr, &~ptrSubFolder);
 	} else if (hr == MAPI_E_NOT_FOUND && bCreate) {
 		hr = ptrFolder->CreateFolder(FOLDER_GENERIC, (LPTSTR)strFolder.c_str(), nullptr, &iid_of(ptrSubFolder), fMapiUnicode, &~ptrSubFolder);
 		if (hr != hrSuccess)
@@ -358,13 +358,12 @@ HRESULT StoreHelper::CheckAndUpdateSearchFolder(LPMAPIFOLDER lpSearchFolder, eSe
 
 HRESULT StoreHelper::CreateSearchFolder(eSearchFolder esfWhich, LPMAPIFOLDER *lppSearchFolder)
 {
-	ULONG ulType = 0;
 	MAPIFolderPtr ptrRootContainer, ptrArchiveSearchRoot;
 
 	if (lppSearchFolder == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	auto hr = m_ptrMsgStore->OpenEntry(0, nullptr, &iid_of(ptrRootContainer),
-	     MAPI_BEST_ACCESS | fMapiDeferredErrors, &ulType, &~ptrRootContainer);
+	          MAPI_BEST_ACCESS | fMapiDeferredErrors, nullptr, &~ptrRootContainer);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrRootContainer->CreateFolder(FOLDER_GENERIC, (LPTSTR)"Zarafa-Archive-Search-Root", nullptr, &iid_of(ptrArchiveSearchRoot), fMapiDeferredErrors | OPEN_IF_EXISTS, &~ptrArchiveSearchRoot);
@@ -375,7 +374,6 @@ HRESULT StoreHelper::CreateSearchFolder(eSearchFolder esfWhich, LPMAPIFOLDER *lp
 
 HRESULT StoreHelper::CreateSearchFolders(LPMAPIFOLDER *lppSearchArchiveFolder, LPMAPIFOLDER *lppSearchDeleteFolder, LPMAPIFOLDER *lppSearchStubFolder)
 {
-	ULONG ulType = 0;
 	MAPIFolderPtr ptrRootContainer, ptrArchiveSearchRoot;
 	bool bWithErrors = false;
 
@@ -383,7 +381,7 @@ HRESULT StoreHelper::CreateSearchFolders(LPMAPIFOLDER *lppSearchArchiveFolder, L
 	    lppSearchStubFolder == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	auto hr = m_ptrMsgStore->OpenEntry(0, nullptr, &iid_of(ptrRootContainer),
-	     MAPI_BEST_ACCESS | fMapiDeferredErrors, &ulType, &~ptrRootContainer);
+	          MAPI_BEST_ACCESS | fMapiDeferredErrors, nullptr, &~ptrRootContainer);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrRootContainer->CreateFolder(FOLDER_GENERIC, (LPTSTR)"Zarafa-Archive-Search-Root", nullptr, &iid_of(ptrArchiveSearchRoot), fMapiDeferredErrors | OPEN_IF_EXISTS, &~ptrArchiveSearchRoot);

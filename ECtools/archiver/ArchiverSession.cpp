@@ -341,14 +341,14 @@ HRESULT ArchiverSession::GetUserInfo(const tstring &strUser, abentryid_t *lpsEnt
 	}
 
 	if (lpstrFullname || lpbAclCapable) {
-		unsigned int ulType = 0, cValues = 0;
+		unsigned int cValues = 0;
 		MailUserPtr ptrUser;
 		SPropArrayPtr ptrUserProps;
 		static constexpr const SizedSPropTagArray(2, sptaUserProps) =
 			{2, {PR_DISPLAY_NAME, PR_DISPLAY_TYPE_EX}};
 		enum {IDX_DISPLAY_NAME, IDX_DISPLAY_TYPE_EX};
 
-		hr = m_ptrSession->OpenEntry(cbEntryId, ptrEntryId, &IID_IMailUser, 0, &ulType, &~ptrUser);
+		hr = m_ptrSession->OpenEntry(cbEntryId, ptrEntryId, &IID_IMailUser, 0, nullptr, &~ptrUser);
 		if (hr != hrSuccess) {
 			m_lpLogger->logf(EC_LOGLEVEL_INFO, "Failed to open user object for user \"" TSTRING_PRINTF "\": %s (%x)",
 				strUser.c_str(), GetMAPIErrorMessage(hr), hr);
@@ -388,14 +388,15 @@ HRESULT ArchiverSession::GetUserInfo(const tstring &strUser, abentryid_t *lpsEnt
 
 HRESULT ArchiverSession::GetUserInfo(const abentryid_t &sEntryId, tstring *lpstrUser, tstring *lpstrFullname)
 {
-	unsigned int ulType = 0, cUserProps = 0;
+	unsigned int cUserProps = 0;
 	MAPIPropPtr ptrUser;
 	SPropArrayPtr ptrUserProps;
 	static constexpr const SizedSPropTagArray(2, sptaUserProps) =
 		{2, {PR_ACCOUNT, PR_DISPLAY_NAME}};
 	enum {IDX_ACCOUNT, IDX_DISPLAY_NAME};
 
-	auto hr = m_ptrSession->OpenEntry(sEntryId.size(), sEntryId, &iid_of(ptrUser), MAPI_DEFERRED_ERRORS, &ulType, &~ptrUser);
+	auto hr = m_ptrSession->OpenEntry(sEntryId.size(), sEntryId,
+	          &iid_of(ptrUser), MAPI_DEFERRED_ERRORS, nullptr, &~ptrUser);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrUser->GetProps(sptaUserProps, 0, &cUserProps, &~ptrUserProps);
@@ -431,14 +432,14 @@ HRESULT ArchiverSession::GetGAL(LPABCONT *lppAbContainer)
 	ABContainerPtr ptrABRootContainer, ptrGAL;
 	MAPITablePtr	ptrABRCTable;
 	SRowSetPtr		ptrRows;
-	ULONG			ulType = 0;
 	static constexpr const SizedSPropTagArray(1, sGALProps) = {1, {PR_ENTRYID}};
 	SPropValue			  sGALPropVal = {0};
 
 	auto hr = m_ptrSession->OpenAddressBook(0, &iid_of(ptrAdrBook), AB_NO_DIALOG, &~ptrAdrBook);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrAdrBook->OpenEntry(0, nullptr, &iid_of(ptrABRootContainer), MAPI_BEST_ACCESS, &ulType, &~ptrABRootContainer);
+	hr = ptrAdrBook->OpenEntry(0, nullptr, &iid_of(ptrABRootContainer),
+	     MAPI_BEST_ACCESS, nullptr, &~ptrABRootContainer);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrABRootContainer->GetHierarchyTable(0, &~ptrABRCTable);
@@ -464,7 +465,7 @@ HRESULT ArchiverSession::GetGAL(LPABCONT *lppAbContainer)
 
 	hr = ptrAdrBook->OpenEntry(ptrRows[0].lpProps[0].Value.bin.cb,
 	     reinterpret_cast<ENTRYID *>(ptrRows[0].lpProps[0].Value.bin.lpb), &iid_of(ptrGAL),
-	     MAPI_BEST_ACCESS, &ulType, &~ptrGAL);
+	     MAPI_BEST_ACCESS, nullptr, &~ptrGAL);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -550,11 +551,10 @@ HRESULT ArchiverSession::CreateRemote(const char *lpszServerPath,
 
 HRESULT ArchiverSession::OpenMAPIProp(ULONG cbEntryID, LPENTRYID lpEntryID, LPMAPIPROP *lppProp)
 {
-	ULONG ulType = 0;
 	MAPIPropPtr ptrMapiProp;
 
 	auto hr = m_ptrSession->OpenEntry(cbEntryID, lpEntryID, &iid_of(ptrMapiProp),
-	          MAPI_BEST_ACCESS|fMapiDeferredErrors, &ulType, &~ptrMapiProp);
+	          MAPI_BEST_ACCESS|fMapiDeferredErrors, nullptr, &~ptrMapiProp);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -614,7 +614,7 @@ HRESULT ArchiverSession::CreateArchiveStore(const tstring& strUserName, const ts
 	MsgStorePtr ptrRemoteAdminStore, ptrArchiveStore;
 	ECServiceAdminPtr ptrRemoteServiceAdmin;
 	abentryid_t userId;
-	ULONG cbStoreId = 0, cbRootId = 0, ulType;
+	unsigned int cbStoreId = 0, cbRootId = 0;
 	EntryIdPtr ptrStoreId, ptrRootId;
 	MAPIFolderPtr ptrRoot, ptrIpmSubtree;
 	SPropValuePtr ptrIpmSubtreeId;
@@ -640,7 +640,7 @@ HRESULT ArchiverSession::CreateArchiveStore(const tstring& strUserName, const ts
 	hr = m_ptrSession->OpenMsgStore(0, cbStoreId, ptrStoreId, &iid_of(ptrArchiveStore), MDB_WRITE, &~ptrArchiveStore);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrArchiveStore->OpenEntry(0, nullptr, &iid_of(ptrRoot), MAPI_MODIFY, &ulType, &~ptrRoot);
+	hr = ptrArchiveStore->OpenEntry(0, nullptr, &iid_of(ptrRoot), MAPI_MODIFY, nullptr, &~ptrRoot);
 	if (hr != hrSuccess)
 		return hr;
 

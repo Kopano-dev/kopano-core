@@ -561,8 +561,7 @@ static HRESULT kc_send_fwdabort_notice(IMsgStore *store, const wchar_t *addr,
 	if (ret != hrSuccess)
 		return kc_perror("K-2382", ret);
 	object_ptr<IMAPIFolder> inbox;
-	unsigned int objtype = 0;
-	ret = store->OpenEntry(eid_size, eid, &iid_of(inbox), MAPI_MODIFY, &objtype, &~inbox);
+	ret = store->OpenEntry(eid_size, eid, &iid_of(inbox), MAPI_MODIFY, nullptr, &~inbox);
 	if (ret != hrSuccess)
 		return kc_perror("K-2383", ret);
 	object_ptr<IMessage> msg;
@@ -992,9 +991,8 @@ static struct actresult proc_op_reply(IMAPISession *ses, IMsgStore *store,
 		ec_log_debug("Rule action: OOF replying e-mail");
 
 	IMessage *tmpl = nullptr;
-	unsigned int objtype;
 	auto hr = inbox->OpenEntry(repl.cbEntryId, repl.lpEntryId,
-	          &IID_IMessage, 0, &objtype, reinterpret_cast<IUnknown **>(&tmpl));
+	          &IID_IMessage, 0, nullptr, reinterpret_cast<IUnknown **>(&tmpl));
 	if (hr != hrSuccess) {
 		ec_log_err("Rule \"%s\": Unable to open reply message: %s (%x)",
 			rule.c_str(), GetMAPIErrorMessage(hr), hr);

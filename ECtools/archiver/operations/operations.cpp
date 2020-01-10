@@ -114,7 +114,6 @@ HRESULT ArchiveOperationBaseEx::ProcessEntry(IMAPIFolder *lpFolder,
     const SRow &proprow)
 {
 	bool bReloadFolder = false;
-	ULONG ulType = 0;
 
 	assert(lpFolder != NULL);
 	if (lpFolder == NULL)
@@ -150,7 +149,7 @@ HRESULT ArchiveOperationBaseEx::ProcessEntry(IMAPIFolder *lpFolder,
 	auto hr = lpFolder->OpenEntry(lpFolderEntryId->Value.bin.cb,
 	     reinterpret_cast<ENTRYID *>(lpFolderEntryId->Value.bin.lpb),
 	     &iid_of(m_ptrCurFolder), MAPI_BEST_ACCESS | fMapiDeferredErrors,
-	     &ulType, &~m_ptrCurFolder);
+	     nullptr, &~m_ptrCurFolder);
 	if (hr != hrSuccess)
 		return Logger()->perr("Failed to open folder", hr);
 	hr = MAPIAllocateBuffer(sizeof(SPropValue), &~m_ptrCurFolderEntryId);

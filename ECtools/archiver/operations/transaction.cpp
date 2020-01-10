@@ -61,16 +61,17 @@ HRESULT Transaction::PurgeDeletes(ArchiverSessionPtr ptrSession, TransactionPtr 
 			hrTmp = ptrDeferredTransaction->Delete(obj.objectEntry);
 
 		else {
-			ULONG ulType;
-
-			hrTmp = lpSession->OpenEntry(obj.objectEntry.sItemEntryId.size(), obj.objectEntry.sItemEntryId, &iid_of(ptrMessage), 0, &ulType, &~ptrMessage);
+			hrTmp = lpSession->OpenEntry(obj.objectEntry.sItemEntryId.size(), obj.objectEntry.sItemEntryId,
+			        &iid_of(ptrMessage), 0, nullptr, &~ptrMessage);
 			if (hrTmp == MAPI_E_NOT_FOUND) {
 				MsgStorePtr ptrStore;
 
 				// Try to open the message on the store
 				hrTmp = ptrSession->OpenStore(obj.objectEntry.sStoreEntryId, &~ptrStore);
 				if (hrTmp == hrSuccess)
-					hrTmp = ptrStore->OpenEntry(obj.objectEntry.sItemEntryId.size(), obj.objectEntry.sItemEntryId, &iid_of(ptrMessage), 0, &ulType, &~ptrMessage);
+					hrTmp = ptrStore->OpenEntry(obj.objectEntry.sItemEntryId.size(),
+					        obj.objectEntry.sItemEntryId, &iid_of(ptrMessage), 0,
+					        nullptr, &~ptrMessage);
 			}
 			if (hrTmp == hrSuccess)
 				hrTmp = Util::HrDeleteMessage(lpSession, ptrMessage);
@@ -105,7 +106,7 @@ HRESULT Transaction::Delete(const SObjectEntry &objectEntry, bool bDeferredDelet
 HRESULT Rollback::Delete(ArchiverSessionPtr ptrSession, IMessage *lpMessage)
 {
 	SPropArrayPtr ptrMsgProps;
-	unsigned int cMsgProps, ulType;
+	unsigned int cMsgProps;
 	DelEntry entry;
 	static constexpr const SizedSPropTagArray(2, sptaMsgProps) =
 		{2, {PR_ENTRYID, PR_PARENT_ENTRYID}};
@@ -118,7 +119,7 @@ HRESULT Rollback::Delete(ArchiverSessionPtr ptrSession, IMessage *lpMessage)
 		return hr;
 	hr = ptrSession->GetMAPISession()->OpenEntry(ptrMsgProps[IDX_PARENT_ENTRYID].Value.bin.cb,
 	     reinterpret_cast<ENTRYID *>(ptrMsgProps[IDX_PARENT_ENTRYID].Value.bin.lpb),
-	     &iid_of(entry.ptrFolder), MAPI_MODIFY, &ulType, &~entry.ptrFolder);
+	     &iid_of(entry.ptrFolder), MAPI_MODIFY, nullptr, &~entry.ptrFolder);
 	if (hr != hrSuccess)
 		return hr;
 	entry.eidMessage = ptrMsgProps[IDX_ENTRYID].Value.bin;

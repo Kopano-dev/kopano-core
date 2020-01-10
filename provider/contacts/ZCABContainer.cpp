@@ -848,7 +848,8 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		return MAPI_E_UNKNOWN_ENTRYID;
 	}
 
-	*lpulObjType = lpCABEntryID->ulObjType;
+	if (lpulObjType != nullptr)
+		*lpulObjType = lpCABEntryID->ulObjType;
 	return hr;
 }
 

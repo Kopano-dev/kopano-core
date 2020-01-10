@@ -1272,7 +1272,7 @@ static HRESULT ForceResyncFor(LPMAPISESSION lpSession, LPMDB lpAdminStore,
     const char *lpszAccount, const char *lpszHomeMDB)
 {
 	ExchangeManageStorePtr ptrEMS;
-	unsigned int cbEntryID = 0, ulType = 0;
+	unsigned int cbEntryID = 0;
 	EntryIdPtr ptrEntryID;
 	MsgStorePtr ptrUserStore;
 	MAPIFolderPtr ptrRoot;
@@ -1287,7 +1287,7 @@ static HRESULT ForceResyncFor(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 	hr = lpSession->OpenMsgStore(0, cbEntryID, ptrEntryID, NULL, MDB_WRITE|MAPI_DEFERRED_ERRORS, &~ptrUserStore);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrUserStore->OpenEntry(0, nullptr, &iid_of(ptrRoot), MAPI_MODIFY, &ulType, &~ptrRoot);
+	hr = ptrUserStore->OpenEntry(0, nullptr, &iid_of(ptrRoot), MAPI_MODIFY, nullptr, &~ptrRoot);
 	if (hr != hrSuccess)
 		return hr;
 	hr = HrGetOneProp(ptrRoot, PR_EC_RESYNC_ID, &~ptrPropResyncID);
@@ -1309,7 +1309,6 @@ static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 	ABContainerPtr	ptrABContainer;
 	MAPITablePtr	ptrTable;
 	SRowSetPtr	ptrRows;
-	ULONG			ulType = 0;
 	bool			bFail = false;
 	static constexpr const SizedSPropTagArray(1, sGALProps) = {1, {PR_ENTRYID}};
 	SPropValue sGALPropVal, sObjTypePropVal, sDispTypePropVal;
@@ -1319,7 +1318,7 @@ static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 	auto hr = lpSession->OpenAddressBook(0, &iid_of(ptrAdrBook), AB_NO_DIALOG, &~ptrAdrBook);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrAdrBook->OpenEntry(0, nullptr, &iid_of(ptrABContainer), 0, &ulType, &~ptrABContainer);
+	hr = ptrAdrBook->OpenEntry(0, nullptr, &iid_of(ptrABContainer), 0, nullptr, &~ptrABContainer);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrABContainer->GetHierarchyTable(0, &~ptrTable);
@@ -1343,7 +1342,7 @@ static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 	if (ptrRows.size() != 1 || ptrRows[0].lpProps[0].ulPropTag != PR_ENTRYID)
 		return MAPI_E_NOT_FOUND;
 	hr = ptrAdrBook->OpenEntry(ptrRows[0].lpProps[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrRows[0].lpProps[0].Value.bin.lpb),
-	     &iid_of(ptrABContainer), MAPI_BEST_ACCESS, &ulType, &~ptrABContainer);
+	     &iid_of(ptrABContainer), MAPI_BEST_ACCESS, nullptr, &~ptrABContainer);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrABContainer->GetContentsTable(0, &~ptrTable);
@@ -1553,7 +1552,7 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
     const char *lpszAccount)
 {
 	ExchangeManageStorePtr ptrEMS;
-	unsigned int cbEntryID, ulType = 0, ulUpdates = 0, ulTotalUpdates = 0;
+	unsigned int cbEntryID, ulUpdates = 0, ulTotalUpdates = 0;
 	EntryIdPtr ptrEntryID;
 	MsgStorePtr ptrUserStore;
 	MAPIFolderPtr ptrRoot;
@@ -1585,7 +1584,7 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 	hr = ptrUserStore->QueryInterface(iid_of(ptrServiceAdmin), &~ptrServiceAdmin);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrUserStore->OpenEntry(0, nullptr, &iid_of(ptrRoot), 0, &ulType, &~ptrRoot);
+	hr = ptrUserStore->OpenEntry(0, nullptr, &iid_of(ptrRoot), 0, nullptr, &~ptrRoot);
 	if (hr != hrSuccess)
 		return hr;
 	hr = HrGetOneProp(ptrRoot, PR_ENTRYID, &~ptrPropEntryID);

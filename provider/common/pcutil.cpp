@@ -74,7 +74,7 @@ ECRESULT GetObjTypeFromEntryId(unsigned int cb, const void *eidv,
     unsigned int *lpulObjType)
 {
 	auto lpEntryId = static_cast<const char *>(eidv);
-	if (lpEntryId == NULL || lpulObjType == NULL)
+	if (lpEntryId == nullptr)
 		return KCERR_INVALID_PARAMETER;
 	if (cb == sizeof(EID_FIXED)) {
 		decltype(EID::ulVersion) ver;
@@ -85,7 +85,8 @@ ECRESULT GetObjTypeFromEntryId(unsigned int cb, const void *eidv,
 		type = le16_to_cpu(type);
 		if (ver != 1)
 			return KCERR_INVALID_ENTRYID;
-		*lpulObjType = type;
+		if (lpulObjType != nullptr)
+			*lpulObjType = type;
 		return erSuccess;
 	} else if (cb == SIZEOF_EID_V0_FIXED) {
 		decltype(EID::ulVersion) ver;
@@ -96,7 +97,8 @@ ECRESULT GetObjTypeFromEntryId(unsigned int cb, const void *eidv,
 		type = le16_to_cpu(type);
 		if (ver != 0)
 			return KCERR_INVALID_ENTRYID;
-		*lpulObjType = type;
+		if (lpulObjType != nullptr)
+			*lpulObjType = type;
 		return erSuccess;
 	}
 	return KCERR_INVALID_ENTRYID;

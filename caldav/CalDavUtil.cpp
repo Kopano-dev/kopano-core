@@ -485,14 +485,14 @@ bool HasDelegatePerm(IMsgStore *lpDefStore, IMsgStore *lpSharedStore)
 	object_ptr<IMessage> lpFbMessage;
 	memory_ptr<SPropValue> lpProp, lpMailBoxEid;
 	object_ptr<IMAPIContainer> lpRootCont;
-	unsigned int ulType = 0, ulPos = 0;
+	unsigned int ulPos = 0;
 	SBinary sbEid = {0,0};
 	bool blFound = false;
 
 	HRESULT hr = HrGetOneProp(lpDefStore, PR_MAILBOX_OWNER_ENTRYID, &~lpMailBoxEid);
 	if (hr != hrSuccess)
 		return false;
-	hr = lpSharedStore->OpenEntry(0, nullptr, &iid_of(lpRootCont), 0, &ulType, &~lpRootCont);
+	hr = lpSharedStore->OpenEntry(0, nullptr, &iid_of(lpRootCont), 0, nullptr, &~lpRootCont);
 	if (hr != hrSuccess)
 		return false;
 	hr = HrGetOneProp(lpRootCont, PR_FREEBUSY_ENTRYIDS, &~lpProp);
@@ -504,7 +504,7 @@ bool HasDelegatePerm(IMsgStore *lpDefStore, IMsgStore *lpSharedStore)
 	else
 		return false;
 	hr = lpSharedStore->OpenEntry(sbEid.cb, reinterpret_cast<ENTRYID *>(sbEid.lpb),
-	     &iid_of(lpFbMessage), MAPI_BEST_ACCESS, &ulType, &~lpFbMessage);
+	     &iid_of(lpFbMessage), MAPI_BEST_ACCESS, nullptr, &~lpFbMessage);
 	if (hr != hrSuccess)
 		return false;
 	hr = HrGetOneProp(lpFbMessage, PR_SCHDINFO_DELEGATE_ENTRYIDS, &~lpProp);

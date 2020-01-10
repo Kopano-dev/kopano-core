@@ -1203,7 +1203,8 @@ static HRESULT HrCheckAllowedEntryIDArray(const char *szFunc,
 		}
 
 		if (hr == hrSuccess && ulCmpRes == TRUE) {
-			*lpulObjType = ulObjType;
+			if (lpulObjType != nullptr)
+				*lpulObjType = ulObjType;
 			*lpbAllowed = true;
 			// always return success, since lpbAllowed is always written
 			return hrSuccess;

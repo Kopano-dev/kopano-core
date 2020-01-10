@@ -574,7 +574,7 @@ HRESULT ECMsgStore::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
     ULONG *lpulObjType,
     IUnknown **lppUnk)
 {
-	if (lpulObjType == nullptr || lppUnk == nullptr)
+	if (lppUnk == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
 	memory_ptr<ENTRYID> lpRootEntryID;
@@ -878,7 +878,6 @@ HRESULT ECMsgStore::FinishedMsg(ULONG ulFlags, ULONG cbEntryID, const ENTRYID *l
 	if (lpEntryID == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	unsigned int objtype = 0;
 	object_ptr<IMessage> lpMessage;
 	// Delete the message from the local outgoing queue
 	auto hr = lpTransport->HrFinishedMessage(cbEntryID, lpEntryID, EC_SUBMIT_LOCAL);
@@ -892,7 +891,7 @@ HRESULT ECMsgStore::FinishedMsg(ULONG ulFlags, ULONG cbEntryID, const ENTRYID *l
 	hr = lpTransport->HrSetLockState(cbEntryID, lpEntryID, false);
 	if (hr != hrSuccess)
 		return hr;
-	hr = OpenEntry(cbEntryID, lpEntryID, &IID_IMessage, MAPI_MODIFY, &objtype, &~lpMessage);
+	hr = OpenEntry(cbEntryID, lpEntryID, &IID_IMessage, MAPI_MODIFY, nullptr, &~lpMessage);
 	if(hr != hrSuccess)
 		return hr;
 	// Unlock the message
@@ -1866,7 +1865,7 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId,
 	/* Root container, IPM_SUBTREE and NON_IPM_SUBTREE */
 	object_ptr<IMAPIFolder> lpFolderRoot, lpFolderRootST;
 	object_ptr<IECPropStorage> storage;
-	unsigned int objtype = 0, cbStoreId = 0, cbRootId = 0;
+	unsigned int cbStoreId = 0, cbRootId = 0;
 	ecmem_ptr<ECUSER> lpECUser;
 	ecmem_ptr<ECCOMPANY> lpECCompany;
 	ecmem_ptr<ECGROUP> lpECGroup;
@@ -1912,7 +1911,7 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId,
 	if(hr != hrSuccess)
 		return hr;
 	// Open rootfolder
-	hr = lpecMsgStore->OpenEntry(cbRootId, lpRootId, &IID_ECMAPIFolder, MAPI_MODIFY, &objtype, &~lpMapiFolderRoot);
+	hr = lpecMsgStore->OpenEntry(cbRootId, lpRootId, &IID_ECMAPIFolder, MAPI_MODIFY, nullptr, &~lpMapiFolderRoot);
 	if(hr != hrSuccess)
 		return hr;
 

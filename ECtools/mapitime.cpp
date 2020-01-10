@@ -235,8 +235,7 @@ int mpt_search::init()
 	}
 	fprintf(stderr, "inbox    %s\n", bin2hex(inbox_sz, inbox).c_str());
 	object_ptr<IMAPIFolder> fld;
-	unsigned int objtype;
-	ret = store->OpenEntry(inbox_sz, inbox, &IID_IMAPIFolder, MAPI_MODIFY, &objtype, &~fld);
+	ret = store->OpenEntry(inbox_sz, inbox, &IID_IMAPIFolder, MAPI_MODIFY, nullptr, &~fld);
 	if (ret != hrSuccess) {
 		kc_perrorf("OpenEntry inbox", ret);
 		return EXIT_FAILURE;
@@ -270,7 +269,8 @@ int mpt_search::init()
 		return EXIT_FAILURE;
 	}
 	fprintf(stderr, "findroot %s\n", bin2hex(pv->Value.bin.cb, pv->Value.bin.lpb).c_str());
-	ret = ses->OpenEntry(pv->Value.bin.cb, reinterpret_cast<ENTRYID *>(pv->Value.bin.lpb), &IID_IMAPIFolder, MAPI_MODIFY, &objtype, &~m_findroot);
+	ret = ses->OpenEntry(pv->Value.bin.cb, reinterpret_cast<ENTRYID *>(pv->Value.bin.lpb),
+	      &IID_IMAPIFolder, MAPI_MODIFY, nullptr, &~m_findroot);
 	if (ret != hrSuccess) {
 		kc_perrorf("OpenEntry", ret);
 		return EXIT_FAILURE;
