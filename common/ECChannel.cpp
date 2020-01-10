@@ -270,22 +270,24 @@ HRESULT ECChannel::HrEnableTLS(void)
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
-	SSL_clear(lpSSL);
+
 	if (SSL_set_fd(lpSSL, fd) != 1) {
 		ec_log_err("ECChannel::HrEnableTLS(): SSL_set_fd failed");
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 
-	SSL_set_accept_state(lpSSL);
+	ERR_clear_error();
 	if ((rc = SSL_accept(lpSSL)) != 1) {
-		ec_log_err("ECChannel::HrEnableTLS(): SSL_accept failed: %d", SSL_get_error(lpSSL, rc));
+		int err = SSL_get_error(lpSSL, rc);
+		ec_log_err("ECChannel::HrEnableTLS(): SSL_accept failed: %d", err);
+		if (err != SSL_ERROR_SYSCALL && err != SSL_ERROR_SSL)
+			SSL_shutdown(lpSSL);
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 exit:
 	if (hr != hrSuccess && lpSSL) {
-		SSL_shutdown(lpSSL);
 		SSL_free(lpSSL);
 		lpSSL = NULL;
 	}
