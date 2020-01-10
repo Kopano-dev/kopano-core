@@ -4,7 +4,6 @@
  * Copyright 2018, Kopano and its licensors
  */
 #include <memory>
-#include <stdexcept>
 #include <string>
 #include <clocale>
 #include <cstdio>
@@ -831,13 +830,11 @@ static bool adm_setlocale(const char *lang)
 	return false;
 }
 
-int main(int argc, const char **argv) try
+int main(int argc, const char **argv)
 {
 	setlocale(LC_ALL, "");
 	ec_log_get()->SetLoglevel(EC_LOGLEVEL_INFO);
 	if (!adm_parse_options(argc, argv) || !adm_setlocale(opt_lang))
 		return EXIT_FAILURE;
 	return adm_perform() == hrSuccess ? EXIT_SUCCESS : EXIT_FAILURE;
-} catch (...) {
-	std::terminate();
 }
