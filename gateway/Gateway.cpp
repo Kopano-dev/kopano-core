@@ -281,7 +281,7 @@ static void *Handler_Threaded(void *a)
 static std::string GetServerFQDN()
 {
 	std::string retval = "localhost";
-	char hostname[256] = {0};
+	char hostname[256]{};
 	struct addrinfo *result = nullptr;
 
 	auto rc = gethostname(hostname, sizeof(hostname));

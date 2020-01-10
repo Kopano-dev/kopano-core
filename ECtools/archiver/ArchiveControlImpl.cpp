@@ -436,15 +436,13 @@ HRESULT ArchiveControlImpl::DoCleanup(const tstring &strUser)
 	m_lpLogger->logf(EC_LOGLEVEL_INFO, "Cleanup store for user \"" TSTRING_PRINTF "\", mode=%s", strUser.c_str(), m_lpConfig->GetSetting("cleanup_action"));
 
 	if (m_bCleanupFollowPurgeAfter) {
-		ULARGE_INTEGER li;
 		SPropValue sPropRefTime;
 
-		li.LowPart = m_ftCurrent.dwLowDateTime;
-		li.HighPart = m_ftCurrent.dwHighDateTime;
-		li.QuadPart -= m_ulPurgeAfter * ARC_DAY;
+		auto qp = (static_cast<uint64_t>(m_ftCurrent.dwHighDateTime) << 32) | m_ftCurrent.dwLowDateTime;
+		qp -= m_ulPurgeAfter * ARC_DAY;
 		sPropRefTime.ulPropTag = PROP_TAG(PT_SYSTIME, 0);
-		sPropRefTime.Value.ft.dwLowDateTime = li.LowPart;
-		sPropRefTime.Value.ft.dwHighDateTime = li.HighPart;
+		sPropRefTime.Value.ft.dwLowDateTime  = qp & 0xffffffff;
+		sPropRefTime.Value.ft.dwHighDateTime = qp >> 32;
 		auto hr = ECOrRestriction(
 			ECAndRestriction(
 				ECExistRestriction(PR_MESSAGE_DELIVERY_TIME) +
@@ -579,19 +577,17 @@ HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
 	bool bErrorOccurred = false;
 	memory_ptr<SRestriction> lpRestriction;
 	SPropValue sPropCreationTime;
-	ULARGE_INTEGER li;
 	SRowSetPtr ptrRowSet;
 	static constexpr const SizedSPropTagArray(2, sptaFolderProps) =
 		{2, {PR_ENTRYID, PR_DISPLAY_NAME}};
     enum {IDX_ENTRYID, IDX_DISPLAY_NAME};
 
 	// Create the common restriction that determines which messages are old enough to purge.
-	li.LowPart = m_ftCurrent.dwLowDateTime;
-	li.HighPart = m_ftCurrent.dwHighDateTime;
-	li.QuadPart -= m_ulPurgeAfter * ARC_DAY;
+	auto qp = (static_cast<uint64_t>(m_ftCurrent.dwHighDateTime) << 32) | m_ftCurrent.dwLowDateTime;
+	qp -= m_ulPurgeAfter * ARC_DAY;
 	sPropCreationTime.ulPropTag = PR_MESSAGE_DELIVERY_TIME;
-	sPropCreationTime.Value.ft.dwLowDateTime = li.LowPart;
-	sPropCreationTime.Value.ft.dwHighDateTime = li.HighPart;
+	sPropCreationTime.Value.ft.dwLowDateTime  = qp & 0xffffffff;
+	sPropCreationTime.Value.ft.dwHighDateTime = qp >> 32;
 	auto hr = ECPropertyRestriction(RELOP_LT, PR_MESSAGE_DELIVERY_TIME, &sPropCreationTime, ECRestriction::Cheap)
 	          .CreateMAPIRestriction(&~lpRestriction, ECRestriction::Cheap);
 	if (hr != hrSuccess)
@@ -864,7 +860,7 @@ HRESULT ArchiveControlImpl::GetAllReferences(IMsgStore *lpUserStore,
 HRESULT ArchiveControlImpl::AppendAllReferences(IMAPIFolder *lpFolder,
     const GUID *lpArchiveGuid, EntryIDSet *lpReferences)
 {
-	BYTE prefixData[4 + sizeof(GUID)] = {0};
+	BYTE prefixData[4+sizeof(GUID)]{};
 	static constexpr const ULONG ulFlagArray[] = {0, SHOW_SOFT_DELETES};
 	SizedSPropTagArray(1, sptaContentProps) = {1, {PT_NULL}};
 

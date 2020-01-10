@@ -1009,7 +1009,7 @@ HRESULT WSTransport::HrExportMessageChangesAsStream(ULONG ulFlags,
 	HRESULT hr = hrSuccess;
 	sourceKeyPairArray *ptrsSourceKeyPairs = nullptr;
 	WSMessageStreamExporterPtr ptrStreamExporter;
-	propTagArray sPropTags = {0, 0};
+	propTagArray sPropTags{};
 	exportMessageChangesAsStreamResponse sResponse;
 
 	hr = CopyICSChangeToSOAPSourceKeys(ulChanges, lpChanges + ulStart, &ptrsSourceKeyPairs);
@@ -3642,7 +3642,7 @@ HRESULT WSTransport::HrGetSyncStates(const ECLISTSYNCID &lstSyncId, ECLISTSYNCST
 	ECRESULT						er = erSuccess;
 	mv_long ulaSyncId;
 	getSyncStatesReponse sResponse;
-	SSyncState						sSyncState = {0};
+	SSyncState sSyncState{};
 
 	assert(lplstSyncState != NULL);
 	soap_lock_guard spg(*this);

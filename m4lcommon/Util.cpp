@@ -1645,7 +1645,6 @@ HRESULT Util::HrStreamToString(IStream *sInput, std::string &strOutput) {
 	object_ptr<ECMemStream> lpMemStream;
 	ULONG ulRead = 0;
 	char buffer[BUFSIZE];
-	LARGE_INTEGER zero = {{0,0}};
 
 	if (sInput->QueryInterface(IID_ECMemStream, &~lpMemStream) == hrSuccess) {
 		// getsize, getbuffer, assign
@@ -1653,7 +1652,7 @@ HRESULT Util::HrStreamToString(IStream *sInput, std::string &strOutput) {
 		return hrSuccess;
 	}
 	// manual copy
-	auto hr = sInput->Seek(zero, SEEK_SET, nullptr);
+	auto hr = sInput->Seek(large_int_zero, STREAM_SEEK_SET, nullptr);
 	if (hr != hrSuccess)
 		return hr;
 	while (1) {
@@ -1680,7 +1679,6 @@ HRESULT Util::HrStreamToString(IStream *sInput, std::wstring &strOutput) {
 	object_ptr<ECMemStream> lpMemStream;
 	ULONG ulRead = 0;
 	char buffer[BUFSIZE];
-	LARGE_INTEGER zero = {{0,0}};
 
 	if (sInput->QueryInterface(IID_ECMemStream, &~lpMemStream) == hrSuccess) {
 		// getsize, getbuffer, assign
@@ -1688,7 +1686,7 @@ HRESULT Util::HrStreamToString(IStream *sInput, std::wstring &strOutput) {
 		return hrSuccess;
 	}
 	// manual copy
-	auto hr = sInput->Seek(zero, SEEK_SET, nullptr);
+	auto hr = sInput->Seek(large_int_zero, STREAM_SEEK_SET, nullptr);
 	if (hr != hrSuccess)
 		return hr;
 	while (1) {
@@ -2308,7 +2306,7 @@ static HRESULT FindInterface(LPCIID lpIID, ULONG ulIIDs, LPCIID lpIIDs)
  */
 static HRESULT CopyStream(IStream *lpSrc, IStream *lpDest)
 {
-	ULARGE_INTEGER liRead = {{0}}, liWritten = {{0}};
+	ULARGE_INTEGER liRead{}, liWritten{};
 	STATSTG stStatus;
 	HRESULT hr = lpSrc->Stat(&stStatus, 0);
 	if (FAILED(hr))

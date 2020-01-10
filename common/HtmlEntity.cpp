@@ -524,7 +524,7 @@ static int compareHTMLEntityToName(const void *m1, const void *m2)
 
 wchar_t CHtmlEntity::toChar(const wchar_t *name)
 {
-	HTMLEntity_t key = {0};
+	HTMLEntity_t key{};
 	key.s = name;
 	auto result = static_cast<HTMLEntity_t *>(bsearch(&key, &HTMLEntity, cHTMLEntity, sizeof(HTMLEntity_t), compareHTMLEntityToChar));
 	return result != nullptr ? result->c : 0;
@@ -532,7 +532,7 @@ wchar_t CHtmlEntity::toChar(const wchar_t *name)
 
 const wchar_t *CHtmlEntity::toName(wchar_t c)
 {
-	HTMLEntityToName_t key = {0};
+	HTMLEntityToName_t key{};
 	key.c = c;
 	auto result = static_cast<HTMLEntityToName_t *>(bsearch(&key, &HTMLEntityToName, cHTMLEntityToName, sizeof(HTMLEntityToName_t), compareHTMLEntityToName));
 	return result != nullptr ? result->s : nullptr;

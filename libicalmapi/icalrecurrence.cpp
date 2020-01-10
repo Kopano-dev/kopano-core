@@ -45,8 +45,8 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 	int i = 0;
 	ULONG ulWeekDays = 0;	
 	time_t dtUTCEnd = 0, dtUTCUntil = 0;
-	SPropValue sPropVal = {0};
-	struct tm tm = {0};
+	SPropValue sPropVal{};
+	struct tm tm{};
 
 	auto lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_RRULE_PROPERTY);
 	if (lpicProp == NULL)
@@ -702,7 +702,7 @@ HRESULT ICalRecurrence::HrCreateICalRecurrence(const TIMEZONE_STRUCT &sTimeZone,
 {
 	icalrecurrencetype icRRule;
 	icaltimetype ittExDate;
-	TIMEZONE_STRUCT sTZgmt = {0};
+	TIMEZONE_STRUCT sTZgmt{};
 
 	HRESULT hr = HrCreateICalRecurrenceType(sTimeZone, bIsAllDay, lpRecurrence, &icRRule);
 	if (hr != hrSuccess)

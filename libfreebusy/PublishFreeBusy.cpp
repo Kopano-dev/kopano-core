@@ -249,7 +249,7 @@ HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBl
 			break;
 		
 		for (ULONG i = 0; i < lpRowSet->cRows; ++i) {
-			TIMEZONE_STRUCT ttzInfo = {0};
+			TIMEZONE_STRUCT ttzInfo{};
 			ULONG ulFbStatus = 0;
 
 			if (lpRowSet[i].lpProps[3].ulPropTag != PROP_APPT_ISRECURRING ||
@@ -316,7 +316,7 @@ HRESULT PublishFreeBusy::HrMergeBlocks(FBBlock_1 **lppfbBlocks, ULONG *lpcValues
 {
 	ULONG cValues = *lpcValues, ulLevel = 0;
 	time_t tsLastTime = 0;
-	TSARRAY sTsitem = {0,0,0};
+	TSARRAY sTsitem{};
 	std::map<time_t , TSARRAY> mpTimestamps;
 	std::vector <ULONG> vctStatus;
 	std::vector <FBBlock_1> vcFBblocks;

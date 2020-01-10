@@ -853,7 +853,7 @@ objectid_t DBPlugin::CreateObject(const objectdetails_t &details)
 	DB_RESULT lpResult;
 	DB_ROW lpDBRow = NULL;
 	std::string strPropName, strPropValue;
-	GUID guidExternId = {0};
+	GUID guidExternId{};
 
 	switch (details.GetClass()) {
 	case ACTIVE_USER:

@@ -1026,7 +1026,7 @@ ECRESULT ECDatabaseAttachment::SaveAttachmentInstance(ext_siid &ulInstanceId,
 ECRESULT ECDatabaseAttachment::SaveAttachmentInstance(ext_siid &ulInstanceId,
     ULONG ulPropId, size_t iSize, ECSerializer *lpSource)
 {
-	unsigned char szBuffer[CHUNK_SIZE] = {0};
+	unsigned char szBuffer[CHUNK_SIZE]{};
 
 	// make chunks of 393216 bytes (384*1024)
 	size_t iSizeLeft = iSize, ulChunk = 0;

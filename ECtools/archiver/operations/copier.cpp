@@ -107,7 +107,7 @@ HRESULT Copier::Helper::ArchiveMessage(LPMESSAGE lpSource, const SObjectEntry *l
 
 	MAPIPropHelperPtr ptrMsgHelper;
 	SPropValuePtr ptrEntryId;
-	SPropValue sPropArchFlags = {0};
+	SPropValue sPropArchFlags{};
 	PostSaveActionPtr ptrPSAction;
 
 	PROPMAP_START(1)

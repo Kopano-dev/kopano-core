@@ -95,7 +95,6 @@ HRESULT ECChangeAdvisor::Config(LPSTREAM lpStream, LPGUID /*lpGUID*/,
 
 	ULONG ulVal = 0, ulRead = 0;
 	memory_ptr<ENTRYLIST> lpEntryList;
-	LARGE_INTEGER			liSeekStart = {{0}};
 
 	// Unregister notifications
 	if (!(m_ulFlags & SYNC_CATCHUP))
@@ -105,7 +104,7 @@ HRESULT ECChangeAdvisor::Config(LPSTREAM lpStream, LPGUID /*lpGUID*/,
 	m_lpChangeAdviseSink.reset(lpAdviseSink);
 	if (lpStream == NULL)
 		return hrSuccess;
-	auto hr = lpStream->Seek(liSeekStart, SEEK_SET, nullptr);
+	auto hr = lpStream->Seek(large_int_zero, STREAM_SEEK_SET, nullptr);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpStream->Read(&ulVal, sizeof(ulVal), &ulRead);
@@ -184,8 +183,6 @@ HRESULT ECChangeAdvisor::UpdateState(LPSTREAM lpStream)
 	if (lpStream == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	LARGE_INTEGER			liPos = {{0}};
-	ULARGE_INTEGER			uliSize = {{0}};
 	ULONG					ulVal = 0;
 	scoped_rlock lock(m_hConnectionLock);
 
@@ -199,8 +196,8 @@ HRESULT ECChangeAdvisor::UpdateState(LPSTREAM lpStream)
 	// be equal in size.
 	assert(m_mapConnections.size() == m_mapSyncStates.size());
 	// Create the status stream
-	lpStream->Seek(liPos, STREAM_SEEK_SET, NULL);
-	lpStream->SetSize(uliSize);
+	lpStream->Seek(large_int_zero, STREAM_SEEK_SET, nullptr);
+	lpStream->SetSize(ularge_int_zero);
 	// First the amount of items in the stream
 	ulVal = (ULONG)m_mapConnections.size();
 	lpStream->Write(&ulVal, sizeof(ulVal), NULL);

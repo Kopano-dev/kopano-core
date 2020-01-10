@@ -43,7 +43,6 @@ HRESULT ArchiveOperationBase::GetRestriction(LPMAPIPROP lpMapiProp, LPSRestricti
 	if (m_ulAge < 0)
 		return MAPI_E_NOT_FOUND;
 
-	ULARGE_INTEGER li;
 	SPropValue sPropRefTime;
 	ECAndRestriction resResult;
 
@@ -51,12 +50,11 @@ HRESULT ArchiveOperationBase::GetRestriction(LPMAPIPROP lpMapiProp, LPSRestricti
 	PROPMAP_NAMED_ID(FLAGS, PT_LONG, PSETID_Archive, dispidFlags)
 	PROPMAP_INIT(lpMapiProp)
 
-	li.LowPart = m_ftCurrent.dwLowDateTime;
-	li.HighPart = m_ftCurrent.dwHighDateTime;
-	li.QuadPart -= m_ulAge * ARC_DAY;
+	auto qp = (static_cast<uint64_t>(m_ftCurrent.dwHighDateTime) << 32) | m_ftCurrent.dwLowDateTime;
+	qp -= m_ulAge * ARC_DAY;
 	sPropRefTime.ulPropTag = PROP_TAG(PT_SYSTIME, 0);
-	sPropRefTime.Value.ft.dwLowDateTime = li.LowPart;
-	sPropRefTime.Value.ft.dwHighDateTime = li.HighPart;
+	sPropRefTime.Value.ft.dwLowDateTime  = qp & 0xffffffff;
+	sPropRefTime.Value.ft.dwHighDateTime = qp >> 32;
 
 	resResult += ECOrRestriction(
 		ECAndRestriction(

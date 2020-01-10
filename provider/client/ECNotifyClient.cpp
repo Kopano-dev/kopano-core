@@ -261,7 +261,7 @@ HRESULT ECNotifyClient::Advise(const ECLISTSYNCSTATE &lstSyncStates,
 	ECLISTSYNCADVISE	lstAdvises;
 
 	for (const auto &state : lstSyncStates) {
-		SSyncAdvise sSyncAdvise = {{0}};
+		SSyncAdvise sSyncAdvise{};
 
 		hr = RegisterChangeAdvise(state.ulSyncId, state.ulChangeId, lpChangeAdviseSink, &sSyncAdvise.ulConnection);
 		if (hr != hrSuccess)

@@ -130,11 +130,10 @@ public:
 			StreamPtr ptrStream;
 
 			if (self->QueryInterface(iid_of(ptrStream), &~ptrStream) == hrSuccess) {
-				const LARGE_INTEGER liMove = {0, 0};
 				ULARGE_INTEGER liPosition;
 				STATSTG statbuf;
 
-				hr = ptrStream->Seek(liMove, SEEK_CUR, &liPosition);
+				hr = ptrStream->Seek(large_int_zero, STREAM_SEEK_CUR, &liPosition);
 				if (hr != hrSuccess)
 					return hr;
 				hr = ptrStream->Stat(&statbuf, 0);

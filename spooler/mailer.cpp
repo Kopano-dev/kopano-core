@@ -1236,7 +1236,7 @@ static HRESULT CheckSendAs(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 	ULONG ulObjType;
 	object_ptr<IMAPIProp> lpMailboxOwner, lpRepresenting;
 	memory_ptr<SPropValue> lpOwnerProps, lpRepresentProps;
-	SPropValue sSpoofEID = {0};
+	SPropValue sSpoofEID{};
 	unsigned int ulCmpRes = 0, cValues = 0;
 	static constexpr const SizedSPropTagArray(3, sptaIDProps) =
 		{3, {PR_DISPLAY_NAME_W, PR_EC_SENDAS_USER_ENTRYIDS,
@@ -1349,7 +1349,7 @@ static HRESULT CheckDelegate(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 	object_ptr<IMAPIFolder> lpRepSubtree;
 	memory_ptr<SPropValue> lpRepFBProp, lpDelegates;
 	object_ptr<IMessage> lpRepFBMessage;
-	SPropValue sSpoofEID = {0};
+	SPropValue sSpoofEID{};
 
 	auto hr = SMTPToZarafa(lpAddrBook, repr, &sSpoofEID.Value.bin);
 	if (hr != hrSuccess)

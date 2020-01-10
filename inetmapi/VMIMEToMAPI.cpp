@@ -1793,15 +1793,13 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 		} else if (mt->getType() == vmime::mediaTypes::MESSAGE) {
 			dissect_message(vmBody, lpMessage);
 		} else if(mt->getType() == vmime::mediaTypes::APPLICATION && mt->getSubType() == "ms-tnef") {
-			LARGE_INTEGER zero = {{0,0}};
-
 			hr = CreateStreamOnHGlobal(nullptr, TRUE, &~lpStream);
 			if(hr != hrSuccess)
 				return hr;
 
 			outputStreamMAPIAdapter str(lpStream);
 			vmBody->getContents()->extract(str);
-			hr = lpStream->Seek(zero, STREAM_SEEK_SET, NULL);
+			hr = lpStream->Seek(large_int_zero, STREAM_SEEK_SET, nullptr);
 			if(hr != hrSuccess)
 				return hr;
 
@@ -2104,8 +2102,7 @@ HRESULT VMIMEToMAPI::handleTextpart(vmime::shared_ptr<vmime::header> vmHeader,
 			return hr;
 
 		if (bAppendBody) {
-			static const LARGE_INTEGER liZero = {{0, 0}};
-			hr = lpStream->Seek(liZero, SEEK_END, NULL);
+			hr = lpStream->Seek(large_int_zero, STREAM_SEEK_END, nullptr);
 			if (hr != hrSuccess)
 				return hr;
 		}
@@ -2390,8 +2387,7 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::shared_ptr<vmime::header> vmHeade
 	if (hr != hrSuccess)
 		return kc_perror("OpenProperty PR_HTML failed", hr);
 	if (bAppendBody) {
-		static const LARGE_INTEGER liZero = {{0, 0}};
-		hr = lpHTMLStream->Seek(liZero, SEEK_END, NULL);
+		hr = lpHTMLStream->Seek(large_int_zero, STREAM_SEEK_END, nullptr);
 		if (hr != hrSuccess)
 			return hr;
 	}

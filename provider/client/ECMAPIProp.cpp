@@ -211,7 +211,7 @@ HRESULT ECMAPIProp::DefaultMAPIGetProp(unsigned int ulPropTag,
 	case PROP_ID(PR_EC_SERVER_UID): {
 		lpsPropValue->ulPropTag = PR_EC_SERVER_UID;
 
-		GUID sServerGuid = {0};
+		GUID sServerGuid{};
 		hr = ((ECMAPIProp*)lpParam)->m_lpRoot->GetMsgStore()->lpTransport->GetServerGUID(&sServerGuid);
 		if (hr == hrSuccess)
 			hr = ECAllocateMore(sizeof(GUID), lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));

@@ -355,7 +355,6 @@ HRESULT ECMessage::SyncBody(ULONG ulPropTag)
 HRESULT ECMessage::SyncPlainToRtf()
 {
 	StreamPtr ptrBodyStream, ptrCompressedRtfStream, ptrUncompressedRtfStream;
-	ULARGE_INTEGER emptySize = {{0,0}};
 	assert(!m_bInhibitSync);
 	m_bInhibitSync = TRUE;
 
@@ -367,7 +366,7 @@ HRESULT ECMessage::SyncPlainToRtf()
 	if (hr != hrSuccess)
 		return hr;
 	//Truncate to zero
-	hr = ptrCompressedRtfStream->SetSize(emptySize);
+	hr = ptrCompressedRtfStream->SetSize(ularge_int_zero);
 	if (hr != hrSuccess)
 		return hr;
 	hr = WrapCompressedRTFStream(ptrCompressedRtfStream, MAPI_MODIFY, &~ptrUncompressedRtfStream);
@@ -400,8 +399,6 @@ HRESULT ECMessage::SyncPlainToHtml()
 {
 	unsigned int ulCodePage = 0;
 	StreamPtr ptrBodyStream, ptrHtmlStream;
-
-	ULARGE_INTEGER emptySize = {{0,0}};
 	assert(!m_bInhibitSync);
 	m_bInhibitSync = TRUE;
 
@@ -415,7 +412,7 @@ HRESULT ECMessage::SyncPlainToHtml()
 	hr = GetCodePage(&ulCodePage);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrHtmlStream->SetSize(emptySize);
+	hr = ptrHtmlStream->SetSize(ularge_int_zero);
 	if (hr != hrSuccess)
 		return hr;
 	hr = Util::HrTextToHtml(ptrBodyStream, ptrHtmlStream, ulCodePage);
@@ -443,8 +440,6 @@ HRESULT ECMessage::SyncRtf(const std::string &strRTF)
 	StreamPtr ptrHTMLStream;
 	ULONG ulWritten = 0;
 	eRTFType rtfType = RTFTypeOther;
-	ULARGE_INTEGER emptySize = {{0,0}};
-	LARGE_INTEGER moveBegin = {{0,0}};
 	assert(!m_bInhibitSync);
 	m_bInhibitSync = TRUE;
 
@@ -455,7 +450,7 @@ HRESULT ECMessage::SyncRtf(const std::string &strRTF)
 	hr = ECMAPIProp::OpenProperty(PR_HTML, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~ptrHTMLStream);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrHTMLStream->SetSize(emptySize);
+	hr = ptrHTMLStream->SetSize(ularge_int_zero);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -476,7 +471,7 @@ HRESULT ECMessage::SyncRtf(const std::string &strRTF)
 			hr = ECMAPIProp::OpenProperty(PR_BODY_W, &IID_IStream, 0, 0, &~ptrBodyStream);
 			if (hr != hrSuccess)
 				return hr;
-			hr = ptrHTMLStream->SetSize(emptySize);
+			hr = ptrHTMLStream->SetSize(ularge_int_zero);
 			if (hr != hrSuccess)
 				return hr;
 			hr = Util::HrTextToHtml(ptrBodyStream, ptrHTMLStream, ulCodePage);
@@ -513,13 +508,13 @@ HRESULT ECMessage::SyncRtf(const std::string &strRTF)
 		hr = ptrHTMLStream->Commit(0);
 		if (hr != hrSuccess)
 			return hr;
-		hr = ptrHTMLStream->Seek(moveBegin, STREAM_SEEK_SET, NULL);
+		hr = ptrHTMLStream->Seek(large_int_zero, STREAM_SEEK_SET, nullptr);
 		if (hr != hrSuccess)
 			return hr;
 		hr = ECMAPIProp::OpenProperty(PR_BODY_W, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~ptrBodyStream);
 		if (hr != hrSuccess)
 			return hr;
-		hr = ptrBodyStream->SetSize(emptySize);
+		hr = ptrBodyStream->SetSize(ularge_int_zero);
 		if (hr != hrSuccess)
 			return hr;
 		hr = Util::HrHtmlToText(ptrHTMLStream, ptrBodyStream, ulCodePage);
@@ -558,8 +553,6 @@ HRESULT ECMessage::SyncHtmlToPlain()
 {
 	StreamPtr ptrHtmlStream, ptrBodyStream;
 	unsigned int ulCodePage;
-	ULARGE_INTEGER emptySize = {{0,0}};
-
 	assert(m_bInhibitSync == FALSE);
 	m_bInhibitSync = TRUE;
 
@@ -570,7 +563,7 @@ HRESULT ECMessage::SyncHtmlToPlain()
 	hr = ECMAPIProp::OpenProperty(PR_BODY_W, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~ptrBodyStream);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrBodyStream->SetSize(emptySize);
+	hr = ptrBodyStream->SetSize(ularge_int_zero);
 	if (hr != hrSuccess)
 		return hr;
 	hr = GetCodePage(&ulCodePage);
@@ -589,7 +582,6 @@ HRESULT ECMessage::SyncHtmlToRtf()
 {
 	StreamPtr ptrHtmlStream, ptrRtfCompressedStream, ptrRtfUncompressedStream;
 	unsigned int ulCodePage;
-	ULARGE_INTEGER emptySize = {{0,0}};
 	assert(!m_bInhibitSync);
 	m_bInhibitSync = TRUE;
 
@@ -600,7 +592,7 @@ HRESULT ECMessage::SyncHtmlToRtf()
 	hr = ECMAPIProp::OpenProperty(PR_RTF_COMPRESSED, &IID_IStream, STGM_TRANSACTED, MAPI_CREATE|MAPI_MODIFY, &~ptrRtfCompressedStream);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrRtfCompressedStream->SetSize(emptySize);
+	hr = ptrRtfCompressedStream->SetSize(ularge_int_zero);
 	if (hr != hrSuccess)
 		return hr;
 	hr = WrapCompressedRTFStream(ptrRtfCompressedStream, MAPI_MODIFY, &~ptrRtfUncompressedStream);
@@ -2093,7 +2085,7 @@ HRESULT ECMessage::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
 	object_ptr<IMAPIProp> destiprop;
 	object_ptr<ECMAPIProp> lpECMAPIProp;
 	memory_ptr<SPropValue> lpECObject;
-	GUID sDestServerGuid = {0}, sSourceServerGuid = {0};
+	GUID sDestServerGuid{}, sSourceServerGuid{};
 
 	// Deny copying within the same object. This is not allowed in exchange either and is required to deny
 	// creating large recursive objects.

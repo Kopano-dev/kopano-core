@@ -101,7 +101,7 @@ HRESULT MapiToICalImpl::AddMessage(LPMESSAGE lpMessage, const std::string &strSr
 	std::list<icalcomponent*> lstEvents;
 	icalproperty_method icMethod = ICAL_METHOD_NONE;
 	memory_ptr<SPropValue> lpMessageClass;
-	TIMEZONE_STRUCT ttTZinfo = {0};
+	TIMEZONE_STRUCT ttTZinfo{};
 	auto blCensor = ulFlags & M2IC_CENSOR_PRIVATE;
 
 	if (lpMessage == nullptr)

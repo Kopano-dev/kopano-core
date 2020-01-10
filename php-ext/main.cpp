@@ -2434,7 +2434,7 @@ ZEND_FUNCTION(mapi_stream_setsize)
 	LPSTREAM	pStream = NULL;
 	long		newSize = 0;
 	// local
-	ULARGE_INTEGER libNewSize = { { 0 } };
+	ULARGE_INTEGER libNewSize{};
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -2517,7 +2517,7 @@ ZEND_FUNCTION(mapi_stream_stat)
 	// return value
 	ULONG		cb = 0;
 	// local
-	STATSTG		stg = { 0 };
+	STATSTG stg{};
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -3248,7 +3248,6 @@ ZEND_FUNCTION(mapi_decompressrtf)
 	// local
 	unsigned int actualWritten = 0, cbRead = 0;
 	object_ptr<IStream> pStream, deCompressedStream;
-	LARGE_INTEGER begin = { { 0, 0 } };
 	std::string strUncompressed;
 
 	RETVAL_FALSE;
@@ -3267,7 +3266,7 @@ ZEND_FUNCTION(mapi_decompressrtf)
 
 	pStream->Write(rtfBuffer, rtfBufferLen, &actualWritten);
 	pStream->Commit(0);
-	pStream->Seek(begin, SEEK_SET, NULL);
+	pStream->Seek(large_int_zero, STREAM_SEEK_SET, nullptr);
 	MAPI_G(hr) = WrapCompressedRTFStream(pStream, 0, &~deCompressedStream);
 	if (MAPI_G(hr) != hrSuccess) {
 		kphperr("Unable to wrap uncompressed stream", MAPI_G(hr));

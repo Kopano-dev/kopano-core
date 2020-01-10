@@ -97,7 +97,6 @@ HRESULT ECExchangeImportHierarchyChanges::GetLastError(HRESULT hResult, ULONG ul
 
 HRESULT ECExchangeImportHierarchyChanges::Config(LPSTREAM lpStream, ULONG ulFlags){
 	HRESULT hr = hrSuccess;
-	LARGE_INTEGER zero = {{0,0}};
 	ULONG ulLen = 0;
 	memory_ptr<SPropValue> lpPropSourceKey;
 
@@ -108,7 +107,7 @@ HRESULT ECExchangeImportHierarchyChanges::Config(LPSTREAM lpStream, ULONG ulFlag
 		m_ulFlags = ulFlags;
 		return hrSuccess;
 	}
-	hr = lpStream->Seek(zero, STREAM_SEEK_SET, NULL);
+	hr = lpStream->Seek(large_int_zero, STREAM_SEEK_SET, nullptr);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpStream->Read(&m_ulSyncId, 4, &ulLen);
@@ -140,7 +139,6 @@ HRESULT ECExchangeImportHierarchyChanges::Config(LPSTREAM lpStream, ULONG ulFlag
 
 //write into the stream 4 bytes syncid and 4 bytes changeid
 HRESULT ECExchangeImportHierarchyChanges::UpdateState(LPSTREAM lpStream){
-	LARGE_INTEGER zero = {{0,0}};
 	ULONG ulLen = 0;
 
 	if(lpStream == NULL) {
@@ -151,7 +149,7 @@ HRESULT ECExchangeImportHierarchyChanges::UpdateState(LPSTREAM lpStream){
 
 	if(m_ulSyncId == 0)
 		return hrSuccess; // config() called with NULL stream, so we'll ignore the UpdateState()
-	auto hr = lpStream->Seek(zero, STREAM_SEEK_SET, nullptr);
+	auto hr = lpStream->Seek(large_int_zero, STREAM_SEEK_SET, nullptr);
 	if(hr != hrSuccess)
 		return hr;
 	hr = lpStream->Write(&m_ulSyncId, 4, &ulLen);

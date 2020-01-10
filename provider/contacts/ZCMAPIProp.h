@@ -43,7 +43,7 @@ public:
 
 private:
 	SPropValue *m_base = nullptr;
-	wchar_t empty[1] = {0};
+	wchar_t empty[1]{};
 	std::map<short, SPropValue> m_mapProperties;
 	ULONG m_ulObject;
 };

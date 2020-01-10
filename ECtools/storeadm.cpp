@@ -439,7 +439,7 @@ static HRESULT adm_open_dsfolder(IMsgStore *store,
 		ret = GetECObject(adm_folder, iid_of(sec), &~sec);
 		if (ret != hrSuccess)
 			return kc_perror("GetECObject", ret);
-		ECPERMISSION perm = {0};
+		ECPERMISSION perm{};
 		perm.ulRights = 0; /* No rights, only for admin */
 		perm.sUserId.lpb = g_lpEveryoneEid; /* group: everyone */
 		perm.sUserId.cb = g_cbEveryoneEid;

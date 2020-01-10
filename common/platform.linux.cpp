@@ -88,6 +88,9 @@ void Sleep(unsigned int msec) {
 
 namespace KC {
 
+const ULARGE_INTEGER ularge_int_zero{};
+const LARGE_INTEGER large_int_zero{};
+
 #if defined(HAVE_SYS_RANDOM_H) && defined(HAVE_GETRANDOM)
 void rand_get(char *p, int n)
 {

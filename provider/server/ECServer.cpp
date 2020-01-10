@@ -429,7 +429,7 @@ static ECRESULT check_database_thread_stack(ECDatabase *lpDatabase)
 static ECRESULT check_server_fqdn(void)
 {
 	ECRESULT er = erSuccess;
-	char hostname[256] = {0};
+	char hostname[256]{};
 	struct addrinfo *aiResult = NULL;
 
 	// If admin has set the option, we're not using DNS to check the name
