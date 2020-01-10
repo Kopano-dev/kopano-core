@@ -91,6 +91,13 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 
 	// enable *all* server methods, not just ssl2 and ssl3, but also tls1 and tls1.1
 	auto newctx = SSL_CTX_new(SSLv23_server_method());
+
+	// Check context.
+	if (newctx == nullptr) {
+		ec_log_err("ECChannel::HrSetCtx(): failed to create new SSL context");
+		return hr;
+	}
+
 #ifndef SSL_OP_NO_RENEGOTIATION
 #	define SSL_OP_NO_RENEGOTIATION 0 /* unavailable in openSSL 1.0 */
 #endif
