@@ -1082,7 +1082,7 @@ HRESULT ECQuotaMonitor::Notify(ECUSER *lpecUser, ECCOMPANY *lpecCompany,
 		return hr;
 
 	sVars.ulStatus = lpecQuotaStatus->quotaStatus;
-	sVars.strStoreSize = str_storage(lpecQuotaStatus->llStoreSize);
+	sVars.strStoreSize = number_to_humansize(lpecQuotaStatus->llStoreSize);
 	sVars.strWarnSize = str_storage(lpecQuota->llWarnSize);
 	sVars.strSoftSize = str_storage(lpecQuota->llSoftSize);
 	sVars.strHardSize = str_storage(lpecQuota->llHardSize);

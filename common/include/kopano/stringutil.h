@@ -224,6 +224,8 @@ extern KC_EXPORT std::string SymmetricDecrypt(const char *);
 extern KC_EXPORT std::string content_type_get_charset(const char *in, const char *dflt);
 /* Permit unknown long options, move them to end of argv like arguments */
 extern KC_EXPORT int my_getopt_long_permissive(int, char **, const char *, const struct option *, int *);
+extern KC_EXPORT std::string number_to_humansize(uint64_t);
+extern KC_EXPORT uint64_t humansize_to_number(const char *);
 
 } /* namespace */
 

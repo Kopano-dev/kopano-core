@@ -83,7 +83,6 @@ class ECConfigImpl KC_FINAL : public ECConfig {
 	bool HandleDirective(const std::string &line, unsigned int flags);
 	bool HandleInclude(const char *args, unsigned int flags);
 	bool HandlePropMap(const char *args, unsigned int fags);
-	size_t GetSize(const char *value);
 	void InsertOrReplace(settingmap_t *, const settingkey_t &s, const char *value, bool is_size);
 	const char *GetMapEntry(const settingmap_t *, const char *name);
 	const char *GetAlias(const char *alias);
@@ -264,31 +263,6 @@ ECConfigImpl::~ECConfigImpl()
 }
 
 /**
- * Returns the size in bytes for a size marked config value
- *
- * @param szValue input value from config file
- *
- * @return size in bytes
- */
-size_t ECConfigImpl::GetSize(const char *szValue)
-{
-	if (szValue == nullptr)
-		return 0;
-	char *end = NULL;
-	unsigned long long rv = strtoull(szValue, &end, 10);
-	if (rv == 0 || end <= szValue || *end == '\0')
-		return rv;
-	while (*end != '\0' && (*end == ' ' || *end == '\t'))
-		++end;
-	switch (tolower(*end)) {
-	case 'k': return rv << 10; break;
-	case 'm': return rv << 20; break;
-	case 'g': return rv << 30; break;
-	}
-	return rv;
-}
-
-/**
  * Adds a new setting to the map, or replaces the current data.
  * Only the first 1024 bytes of the value are saved, longer values are truncated.
  * The map must be locked by the m_settingsRWLock.
@@ -320,7 +294,7 @@ void ECConfigImpl::InsertOrReplace(settingmap_t *lpMap, const settingkey_t &s, c
 	}
 
 	if (bIsSize)
-		len = snprintf(data, 1024, "%zu", GetSize(szValue));
+		len = snprintf(data, 1024, "%zu", static_cast<size_t>(humansize_to_number(szValue)));
 	else
 		strncpy(data, szValue, len);
 	data[len] = '\0';

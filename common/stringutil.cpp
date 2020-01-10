@@ -13,8 +13,10 @@
 #include <utility>
 #include <cassert>
 #include <cctype>
+#include <cmath>
 #include <cstring>
 #include <getopt.h>
+#include <libHX/ctype_helper.h>
 #include <kopano/stringutil.h>
 #include <kopano/charset/convert.h>
 #include <kopano/ECGetText.h>
@@ -199,11 +201,9 @@ int memsubstr(const void* haystack, size_t haystackSize, const void* needle, siz
 }
 
 std::string str_storage(uint64_t ulBytes, bool bUnlimited) {
-	static double MB = 1024.0 * 1024.0;
-
 	if (ulBytes == 0 && bUnlimited)
 		return "unlimited";
-	return stringify_double((double)ulBytes / MB, 2) + " MB";
+	return number_to_humansize(ulBytes);
 }
 
 std::string GetServerNameFromPath(const char *szPath) {
@@ -1054,6 +1054,69 @@ HRESULT HrGetCPByCharset(const char *cs, unsigned int *id)
 			return hrSuccess;
 		}
 	return MAPI_E_NOT_FOUND;
+}
+
+static uint64_t humansize_to_number_d(const char *s)
+{
+	char *end = NULL;
+	auto dv = strtod(s, &end);
+	while (*end != '\0' && (*end == ' ' || *end == '\t'))
+		++end;
+	switch (HX_toupper(*end)) {
+	case '\0': break;
+	case 'K': dv *= pow(2, 10); break;
+	case 'M': dv *= pow(2, 20); break;
+	case 'G': dv *= pow(2, 30); break;
+	case 'T': dv *= pow(2, 40); break;
+	case 'P': dv *= pow(2, 50); break;
+	case 'E': dv *= pow(2, 60); break;
+	case 'Z': dv *= pow(2, 70); break;
+	case 'Y': dv *= pow(2, 80); break;
+	default: return 0;
+	}
+	return dv < pow(2, 64) ? dv : UINT64_MAX;
+}
+
+uint64_t humansize_to_number(const char *s)
+{
+	if (s == nullptr)
+		return 0;
+	char *end = NULL;
+	unsigned long long rv = strtoull(s, &end, 10);
+	if (*end == '.')
+		return humansize_to_number_d(s);
+	while (*end != '\0' && (*end == ' ' || *end == '\t'))
+		++end;
+	switch (HX_toupper(*end)) {
+	case '\0': return rv;
+	case 'K': return rv <= 0x3fffffffffffff ? rv << 10 : ~0ULL;
+	case 'M': return rv <= 0xfffffffff ? rv << 20 : ~0ULL;
+	case 'G': return rv <= 0x3ffffff ? rv << 30 : ~0ULL;
+	case 'T': return rv <= 0xffff ? rv << 40 : ~0ULL;
+	case 'P': return rv <= 0x3f ? rv << 50 : ~0ULL;
+	case 'E': return rv <= 0xf ? rv << 60 : ~0ULL;
+	case 'Z': case 'Y': return ~0ULL;
+	}
+	return 0;
+}
+
+std::string number_to_humansize(uint64_t xx)
+{
+	unsigned long long x = xx;
+	static const char unit[] = "BKMGTPE";
+	std::string ret;
+	unsigned int p = 0, y = 0;
+
+	while (x >= 1000 && p < sizeof(unit) - 1) {
+		y = x % 1024;
+		x /= 1024;
+		++p;
+	}
+	ret = p == 0 ? std::to_string(x) :
+	      p <= 1 ? format("%llu%c", x, unit[p]) :
+	      x < 10 ? format("%llu.%02u%c", x, y * 100 / 1024, unit[p]) :
+	      format("%llu.%u%c", x, y * 10 / 1024, unit[p]);
+	return ret;
 }
 
 } /* namespace */

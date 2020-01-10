@@ -565,6 +565,25 @@ static std::string getMapiPropertyString(ULONG ulPropTag)
 	}
 }
 
+static std::string mapitable_ToString1(const SPropValue &name, const SPropValue &val, bool hu)
+{
+	if (!hu)
+		return mapitable_ToString(&val);
+	auto t = PROP_TYPE(name.ulPropTag);
+	if (t != PT_STRING8)
+		return mapitable_ToString(&val);
+	if (!kc_ends_with(name.Value.lpszA, "_size") &&
+	    !kc_ends_with(name.Value.lpszA, "_maxsz"))
+		return mapitable_ToString(&val);
+	if (PROP_TYPE(val.ulPropTag) != PT_STRING8)
+		return mapitable_ToString(&val);
+	char *end;
+	auto rv = strtoull(val.Value.lpszA, &end, 0);
+	if (*end != '\0')
+		return mapitable_ToString(&val);
+	return number_to_humansize(rv);
+}
+
 static HRESULT MAPITablePrint(IMAPITable *lpTable, bool humanreadable /* = true */)
 {
 	SPropTagArrayPtr ptrColumns;
@@ -582,7 +601,7 @@ static HRESULT MAPITablePrint(IMAPITable *lpTable, bool humanreadable /* = true 
 		ct.SetHeader(i, getMapiPropertyString(ptrColumns->aulPropTag[i]));
 	for (unsigned int i = 0; i < ptrRows.size(); ++i)
 		for (unsigned int j = 0; j < ptrRows[i].cValues; ++j)
-			ct.SetColumn(i, j, mapitable_ToString(&ptrRows[i].lpProps[j]));
+			ct.SetColumn(i, j, mapitable_ToString1(ptrRows[i].lpProps[0], ptrRows[i].lpProps[j], humanreadable));
 	humanreadable ? ct.PrintTable() : ct.DumpTable();
 	return hrSuccess;
 }
