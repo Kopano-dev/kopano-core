@@ -2,6 +2,9 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
+#ifdef HAVE_CONFIG_H
+#	include "config.h"
+#endif
 #include <kopano/platform.h>
 #include <algorithm>
 #include <map>
@@ -16,12 +19,16 @@
 #include <cmath>
 #include <cstring>
 #include <getopt.h>
+#ifdef HAVE_IDN2_H
+#	include <idn2.h>
+#endif
 #include <libHX/ctype_helper.h>
 #include <kopano/stringutil.h>
 #include <kopano/charset/convert.h>
 #include <kopano/ECGetText.h>
 #include <kopano/ECLogger.h>
 #include <kopano/codepage.h>
+#include <kopano/tie.hpp>
 #include <openssl/md5.h>
 #include <mapicode.h>
 #include <mapidefs.h>
@@ -1118,5 +1125,32 @@ std::string number_to_humansize(uint64_t xx)
 	      format("%llu.%u%c", x, y * 10 / 1024, unit[p]);
 	return ret;
 }
+
+#ifdef HAVE_IDN2_H
+
+std::string kc_utf8_to_punyaddr(const char *s)
+{
+	auto dom = strchr(s, '@');
+	if (dom == nullptr)
+		return s;
+	std::unique_ptr<char[]> output;
+	auto ret = idn2_to_ascii_8z(dom + 1, &unique_tie(output), 0);
+	if (ret != IDN2_OK)
+		return s;
+	return std::string(s, dom - s) + '@' + output.get();
+}
+
+std::string kc_wstr_to_punyaddr(const wchar_t *s)
+{
+	/* libidn does not take wchar, just UTF-32 or UTF-8. */
+	return kc_utf8_to_punyaddr(convert_to<std::string>("UTF-8", s, rawsize(s), CHARSET_WCHAR).c_str());
+}
+
+#else
+
+std::string kc_utf8_to_punyaddr(const char *s) { return s; }
+std::string kc_wstr_to_punyaddr(const wchar_t *s) { return convert_to<std::string>(s); }
+
+#endif
 
 } /* namespace */

@@ -226,6 +226,8 @@ extern KC_EXPORT std::string content_type_get_charset(const char *in, const char
 extern KC_EXPORT int my_getopt_long_permissive(int, char **, const char *, const struct option *, int *);
 extern KC_EXPORT std::string number_to_humansize(uint64_t);
 extern KC_EXPORT uint64_t humansize_to_number(const char *);
+extern KC_EXPORT std::string kc_wstr_to_punyaddr(const wchar_t *);
+extern KC_EXPORT std::string kc_utf8_to_punyaddr(const char *);
 
 } /* namespace */
 
