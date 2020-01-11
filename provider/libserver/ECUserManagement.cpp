@@ -2746,15 +2746,15 @@ ECRESULT ECUserManagement::ConvertAnonymousObjectDetailToProp(struct soap *soap,
 
 	/* Special properties which cannot be copied blindly */
 	switch (ulPropTag) {
-	case 0x80050102: /* PR_EMS_AB_MANAGER	| PT_BINARY */
-	case 0x800C0102: /* PR_EMS_AB_OWNER		| PT_BINARY */
+	case CHANGE_PROP_TYPE(PR_EMS_AB_MANAGER, PT_BINARY):
+	case CHANGE_PROP_TYPE(PR_EMS_AB_OWNER, PT_BINARY):
 		er = CreateABEntryID(soap, lpDetails->GetPropObject(static_cast<property_key_t>(ulPropTag)), lpPropVal);
 		if (er != erSuccess)
 			return er;
 		lpPropVal->ulPropTag = ulPropTag;
 		return erSuccess;
-	case 0x80081102: /* PR_EMS_AB_IS_MEMBER_OF_DL	| PT_MV_BINARY */
-	case 0x800E1102: { /* PR_EMS_AB_REPORTS | PT_MV_BINARY */
+	case CHANGE_PROP_TYPE(PR_EMS_AB_IS_MEMBER_OF_DL, PT_MV_BINARY):
+	case CHANGE_PROP_TYPE(PR_EMS_AB_REPORTS, PT_MV_BINARY): {
 		lobjValues = lpDetails->GetPropListObject(static_cast<property_key_t>(ulPropTag));
 		lpPropVal->__union = SOAP_UNION_propValData_mvbin;
 		lpPropVal->ulPropTag = ulPropTag;
