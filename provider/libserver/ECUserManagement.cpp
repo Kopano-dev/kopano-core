@@ -1439,11 +1439,22 @@ ECRESULT ECUserManagement::SearchObjectAndSync(const char* szSearchString, unsig
 	} catch (const notimplemented &) {
 		return KCERR_NOT_FOUND;
 	} catch (const objectnotfound &) {
-		return KCERR_NOT_FOUND;
 	} catch (const notsupported &) {
 		return KCERR_NO_SUPPORT;
 	} catch (const std::exception &e) {
 		ec_log_warn("K-1527: Unable to perform string search for \"%s\" on user database: %s",
+			szSearchString, e.what());
+		return KCERR_PLUGIN_ERROR;
+	}
+	if (strchr(szSearchString, '@') != nullptr) try {
+		lpObjectsignatures.merge(lpPlugin->searchObject(kc_utf8_to_punyaddr(szSearchString), ulFlags));
+	} catch (const notimplemented &) {
+		return KCERR_NOT_FOUND;
+	} catch (const objectnotfound &) {
+	} catch (const notsupported &) {
+		return KCERR_NO_SUPPORT;
+	} catch (const std::exception &e) {
+		ec_log_warn("K-1581: Unable to perform string search for punify(\"%s\") on user database: %s",
 			szSearchString, e.what());
 		return KCERR_PLUGIN_ERROR;
 	}
