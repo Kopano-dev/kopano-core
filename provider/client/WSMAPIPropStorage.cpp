@@ -17,7 +17,11 @@
 /*
  * This is a PropStorage object for use with the WebServices storage platform
  */
-#define START_SOAP_CALL retry:
+#define START_SOAP_CALL retry: \
+	if (m_lpTransport->m_lpCmd == nullptr) { \
+		hr = MAPI_E_NETWORK_ERROR; \
+		goto exit; \
+	}
 #define END_SOAP_CALL 	\
 	if (er == KCERR_END_OF_SESSION && m_lpTransport->HrReLogon() == hrSuccess) \
 		goto retry; \
@@ -44,7 +48,8 @@ WSMAPIPropStorage::~WSMAPIPropStorage()
 	if(m_bSubscribed) {
 		ECRESULT er = erSuccess;
 		soap_lock_guard spg(*m_lpTransport);
-		m_lpTransport->m_lpCmd->notifyUnSubscribe(ecSessionId, m_ulConnection, &er);
+		if (m_lpTransport->m_lpCmd != nullptr)
+			m_lpTransport->m_lpCmd->notifyUnSubscribe(ecSessionId, m_ulConnection, &er);
 	}
 
 	FreeEntryId(&m_sEntryId, false);
