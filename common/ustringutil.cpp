@@ -75,7 +75,7 @@ typedef std::unique_ptr<Collator> unique_ptr_Collator;
 namespace KC {
 
 /**
- * US-ASCII version to find a case-insensitive string part in a
+ * ASCII version to find a case-insensitive string part in a
  * haystack.
  *
  * @param haystack search this haystack for a case-insensitive needle
@@ -85,6 +85,7 @@ namespace KC {
  */
 const char* str_ifind(const char *haystack, const char *needle)
 {
+	/* Enforce ASCII, since the current locale may not be it. */
 	auto loc = newlocale(LC_CTYPE_MASK, "C", nullptr);
 	const char *needlepos = needle;
 	const char *needlestart = haystack;
@@ -125,15 +126,15 @@ static inline UnicodeString WCHARToUnicode(const wchar_t *sz)
 }
 
 /**
- * Check if two strings are canonical equivalent.
+ * Check if two strings are canonically equivalent.
  *
  * @param[in]	s1		The string to compare s2 with.
  * @param[in]	s2		The string to compare s1 with.
  * @param[in]	locale	The locale used to perform string collation.
  *
  * @return	boolean
- * @retval	true	The strings are canonical equivalent
- * @retval	false	The strings are not canonical equivalent
+ * @retval	true	The strings are canonically equivalent
+ * @retval	false	The strings are not canonically equivalent
  */
 bool str_equals(const char *s1, const char *s2, const ECLocale &locale)
 {
@@ -145,15 +146,15 @@ bool str_equals(const char *s1, const char *s2, const ECLocale &locale)
 }
 
 /**
- * Check if two strings are canonical equivalent when ignoring the case.
+ * Check if two strings are canonically equivalent when ignoring the case.
  *
  * @param[in]	s1		The string to compare s2 with.
  * @param[in]	s2		The string to compare s1 with.
  * @param[in]	locale	The locale used to convert the case of the strings.
  *
  * @return	boolean
- * @retval	true	The strings are canonical equivalent
- * @retval	false	The strings are not canonical equivalent
+ * @retval	true	The strings are canonically equivalent
+ * @retval	false	The strings are not canonically equivalent
  */
 bool str_iequals(const char *s1, const char *s2, const ECLocale &locale)
 {
@@ -172,8 +173,8 @@ bool str_iequals(const char *s1, const char *s2, const ECLocale &locale)
  * @param[in]	locale	The locale used to perform string collation.
  *
  * @return	boolean
- * @retval	true	The strings are canonical equivalent
- * @retval	false	The strings are not canonical equivalent
+ * @retval	true	The strings are canonically equivalent
+ * @retval	false	The strings are not canonically equivalent
  */
 bool str_startswith(const char *s1, const char *s2, const ECLocale &locale)
 {
@@ -192,8 +193,8 @@ bool str_startswith(const char *s1, const char *s2, const ECLocale &locale)
  * @param[in]	locale	The locale used to convert the case of the strings.
  *
  * @return	boolean
- * @retval	true	The strings are canonical equivalent
- * @retval	false	The strings are not canonical equivalent
+ * @retval	true	The strings are canonically equivalent
+ * @retval	false	The strings are not canonically equivalent
  */
 bool str_istartswith(const char *s1, const char *s2, const ECLocale &locale)
 {
@@ -285,15 +286,15 @@ bool str_icontains(const char *haystack, const char *needle, const ECLocale &loc
 }
 
 /**
- * Check if two strings are canonical equivalent.
+ * Check if two strings are canonically equivalent.
  *
  * @param[in]	s1		The string to compare s2 with.
  * @param[in]	s2		The string to compare s1 with.
  * @param[in]	locale	The locale used to perform string collation.
  *
  * @return	boolean
- * @retval	true	The strings are canonical equivalent
- * @retval	false	The strings are not canonical equivalent
+ * @retval	true	The strings are canonically equivalent
+ * @retval	false	The strings are not canonically equivalent
  */
 bool wcs_equals(const wchar_t *s1, const wchar_t *s2, const ECLocale &locale)
 {
@@ -305,15 +306,15 @@ bool wcs_equals(const wchar_t *s1, const wchar_t *s2, const ECLocale &locale)
 }
 
 /**
- * Check if two strings are canonical equivalent when ignoring the case.
+ * Check if two strings are canonically equivalent when ignoring the case.
  *
  * @param[in]	s1		The string to compare s2 with.
  * @param[in]	s2		The string to compare s1 with.
  * @param[in]	locale	The locale used to convert the case of the strings.
  *
  * @return	boolean
- * @retval	true	The strings are canonical equivalent
- * @retval	false	The strings are not canonical equivalent
+ * @retval	true	The strings are canonically equivalent
+ * @retval	false	The strings are not canonically equivalent
  */
 bool wcs_iequals(const wchar_t *s1, const wchar_t *s2, const ECLocale &locale)
 {
@@ -332,8 +333,8 @@ bool wcs_iequals(const wchar_t *s1, const wchar_t *s2, const ECLocale &locale)
  * @param[in]	locale	The locale used to perform string collation.
  *
  * @return	boolean
- * @retval	true	The strings are canonical equivalent
- * @retval	false	The strings are not canonical equivalent
+ * @retval	true	The strings are canonically equivalent
+ * @retval	false	The strings are not canonically equivalent
  */
 bool wcs_startswith(const wchar_t *s1, const wchar_t *s2, const ECLocale &locale)
 {
@@ -352,8 +353,8 @@ bool wcs_startswith(const wchar_t *s1, const wchar_t *s2, const ECLocale &locale
  * @param[in]	locale	The locale used to convert the case of the strings.
  *
  * @return	boolean
- * @retval	true	The strings are canonical equivalent
- * @retval	false	The strings are not canonical equivalent
+ * @retval	true	The strings are canonically equivalent
+ * @retval	false	The strings are not canonically equivalent
  */
 bool wcs_istartswith(const wchar_t *s1, const wchar_t *s2, const ECLocale &locale)
 {
@@ -451,15 +452,15 @@ bool wcs_icontains(const wchar_t *haystack, const wchar_t *needle, const ECLocal
 }
 
 /**
- * Check if two strings are canonical equivalent.
+ * Check if two strings are canonically equivalent.
  *
  * @param[in]	s1		The string to compare s2 with.
  * @param[in]	s2		The string to compare s1 with.
  * @param[in]	locale	The locale used to perform string collation.
  *
  * @return	boolean
- * @retval	true	The strings are canonical equivalent
- * @retval	false	The strings are not canonical equivalent
+ * @retval	true	The strings are canonically equivalent
+ * @retval	false	The strings are not canonically equivalent
  */
 bool u8_equals(const char *s1, const char *s2, const ECLocale &locale)
 {
@@ -471,15 +472,15 @@ bool u8_equals(const char *s1, const char *s2, const ECLocale &locale)
 }
 
 /**
- * Check if two strings are canonical equivalent when ignoring the case.
+ * Check if two strings are canonically equivalent when ignoring the case.
  *
  * @param[in]	s1		The string to compare s2 with.
  * @param[in]	s2		The string to compare s1 with.
  * @param[in]	locale	The locale to use when converting case.
  *
  * @return	boolean
- * @retval	true	The strings are canonical equivalent
- * @retval	false	The strings are not canonical equivalent
+ * @retval	true	The strings are canonically equivalent
+ * @retval	false	The strings are not canonically equivalent
  */
 bool u8_iequals(const char *s1, const char *s2, const ECLocale &locale)
 {
@@ -498,8 +499,8 @@ bool u8_iequals(const char *s1, const char *s2, const ECLocale &locale)
  * @param[in]	locale	The locale used to perform string collation.
  *
  * @return	boolean
- * @retval	true	The strings are canonical equivalent
- * @retval	false	The strings are not canonical equivalent
+ * @retval	true	The strings are canonically equivalent
+ * @retval	false	The strings are not canonically equivalent
  */
 bool u8_startswith(const char *s1, const char *s2, const ECLocale &locale)
 {
@@ -518,8 +519,8 @@ bool u8_startswith(const char *s1, const char *s2, const ECLocale &locale)
  * @param[in]	locale	The locale to use when converting case.
  *
  * @return	boolean
- * @retval	true	The strings are canonical equivalent
- * @retval	false	The strings are not canonical equivalent
+ * @retval	true	The strings are canonically equivalent
+ * @retval	false	The strings are not canonically equivalent
  */
 bool u8_istartswith(const char *s1, const char *s2, const ECLocale &locale)
 {
