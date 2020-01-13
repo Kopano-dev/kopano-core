@@ -66,9 +66,15 @@ At some point we need to rewqrite these functions to do all the conversion on th
 #include <unicode/ustring.h>
 #include <kopano/charset/convert.h>
 
+/*
+ * Because U_ICU_NAMESPACE can potentially expand to a zero-length token,
+ * using "using namespace U_ICU_NAMESPACE" is not possible.
+ */
 using U_ICU_NAMESPACE::CollationKey;
 using U_ICU_NAMESPACE::Collator;
 using U_ICU_NAMESPACE::Locale;
+using U_ICU_NAMESPACE::Normalizer;
+using U_ICU_NAMESPACE::Normalizer2;
 using U_ICU_NAMESPACE::UnicodeString;
 typedef std::unique_ptr<Collator> unique_ptr_Collator;
 
@@ -140,9 +146,9 @@ bool str_equals(const char *s1, const char *s2, const ECLocale &locale)
 {
 	assert(s1);
 	assert(s2);
-    UnicodeString a = StringToUnicode(s1);
-    UnicodeString b = StringToUnicode(s2);
-    return a.compare(b) == 0;
+	UErrorCode err = U_ZERO_ERROR;
+	return Normalizer::compare(StringToUnicode(s1), StringToUnicode(s2),
+	       0, err) == 0 && U_SUCCESS(err);
 }
 
 /**
@@ -160,9 +166,9 @@ bool str_iequals(const char *s1, const char *s2, const ECLocale &locale)
 {
 	assert(s1);
 	assert(s2);
-    UnicodeString a = StringToUnicode(s1);
-    UnicodeString b = StringToUnicode(s2);
-    return a.caseCompare(b, 0) == 0;
+	UErrorCode err = U_ZERO_ERROR;
+	return Normalizer::compare(StringToUnicode(s1), StringToUnicode(s2),
+	       U_COMPARE_IGNORE_CASE, err) == 0 && U_SUCCESS(err);
 }
 
 /**
@@ -176,13 +182,32 @@ bool str_iequals(const char *s1, const char *s2, const ECLocale &locale)
  * @retval	true	The strings are canonically equivalent
  * @retval	false	The strings are not canonically equivalent
  */
+static bool str_startswith_int(UnicodeString &&s1, UnicodeString &&s2, bool icase = false)
+{
+	UErrorCode err = U_ZERO_ERROR;
+	/* Force normalization; need it for the proper prefix length. */
+	auto nfd = Normalizer2::getNFDInstance(err);
+	if (U_FAILURE(err))
+		return false;
+	UnicodeString r1, r2;
+	nfd->normalize(std::move(s1), r1, err);
+	if (U_FAILURE(err))
+		return false;
+	nfd->normalize(std::move(s2), r2, err);
+	if (U_FAILURE(err))
+		return false;
+	if (r2.length() > r1.length())
+		return false;
+	return unorm_compare(r1.getBuffer(), r2.length(), r2.getBuffer(),
+	       r2.length(), icase ? U_COMPARE_IGNORE_CASE : 0, &err) == 0 &&
+	       U_SUCCESS(err);
+}
+
 bool str_startswith(const char *s1, const char *s2, const ECLocale &locale)
 {
 	assert(s1);
 	assert(s2);
-    UnicodeString a = StringToUnicode(s1);
-    UnicodeString b = StringToUnicode(s2);
-    return a.compare(0, b.length(), b) == 0;
+	return str_startswith_int(StringToUnicode(s1), StringToUnicode(s2));
 }
 
 /**
@@ -200,9 +225,7 @@ bool str_istartswith(const char *s1, const char *s2, const ECLocale &locale)
 {
 	assert(s1);
 	assert(s2);
-    UnicodeString a = StringToUnicode(s1);
-    UnicodeString b = StringToUnicode(s2);
-    return a.caseCompare(0, b.length(), b, 0) == 0;
+	return str_startswith_int(StringToUnicode(s1), StringToUnicode(s2), true);
 }
 
 /**
@@ -253,13 +276,31 @@ int str_icompare(const char *s1, const char *s2, const ECLocale &locale)
  *       pointer would involve additional processing while we don't need
  *       the result anyway.
  */
+static bool str_contains_int(UnicodeString &&text, UnicodeString &&needle, bool icase = false)
+{
+	UErrorCode err = U_ZERO_ERROR;
+	auto nfd = Normalizer2::getNFDInstance(err);
+	if (U_FAILURE(err))
+		return false;
+	UnicodeString rt, rn;
+	nfd->normalize(std::move(text), rt, err);
+	if (U_FAILURE(err))
+		return false;
+	nfd->normalize(std::move(needle), rn, err);
+	if (U_FAILURE(err))
+		return false;
+	if (icase) {
+		rt.foldCase();
+		rn.foldCase();
+	}
+	return u_strstr(rt.getTerminatedBuffer(), rn.getTerminatedBuffer());
+}
+
 bool str_contains(const char *haystack, const char *needle, const ECLocale &locale)
 {
-	assert(haystack);
-	assert(needle);
-    UnicodeString a = StringToUnicode(haystack);
-    UnicodeString b = StringToUnicode(needle);
-    return u_strstr(a.getTerminatedBuffer(), b.getTerminatedBuffer());
+	assert(haystack != nullptr);
+	assert(needle != nullptr);
+	return str_contains_int(StringToUnicode(haystack), StringToUnicode(needle));
 }
 
 /**
@@ -275,14 +316,9 @@ bool str_contains(const char *haystack, const char *needle, const ECLocale &loca
  */
 bool str_icontains(const char *haystack, const char *needle, const ECLocale &locale)
 {
-	assert(haystack);
-	assert(needle);
-    UnicodeString a = StringToUnicode(haystack);
-    UnicodeString b = StringToUnicode(needle);
-
-    a.foldCase();
-    b.foldCase();
-    return u_strstr(a.getTerminatedBuffer(), b.getTerminatedBuffer());
+	assert(haystack != nullptr);
+	assert(needle != nullptr);
+	return str_contains_int(StringToUnicode(haystack), StringToUnicode(needle), true);
 }
 
 /**
@@ -300,9 +336,9 @@ bool wcs_equals(const wchar_t *s1, const wchar_t *s2, const ECLocale &locale)
 {
 	assert(s1);
 	assert(s2);
-    UnicodeString a = WCHARToUnicode(s1);
-    UnicodeString b = WCHARToUnicode(s2);
-    return a.compare(b) == 0;
+	UErrorCode err = U_ZERO_ERROR;
+	return Normalizer::compare(WCHARToUnicode(s1), WCHARToUnicode(s2),
+	       0, err) == 0 && U_SUCCESS(err);
 }
 
 /**
@@ -320,9 +356,9 @@ bool wcs_iequals(const wchar_t *s1, const wchar_t *s2, const ECLocale &locale)
 {
 	assert(s1);
 	assert(s2);
-    UnicodeString a = WCHARToUnicode(s1);
-    UnicodeString b = WCHARToUnicode(s2);
-    return a.caseCompare(b, 0) == 0;
+	UErrorCode err = U_ZERO_ERROR;
+	return Normalizer::compare(WCHARToUnicode(s1), WCHARToUnicode(s2),
+	       U_COMPARE_IGNORE_CASE, err) == 0 && U_SUCCESS(err);
 }
 
 /**
@@ -340,9 +376,7 @@ bool wcs_startswith(const wchar_t *s1, const wchar_t *s2, const ECLocale &locale
 {
 	assert(s1);
 	assert(s2);
-    UnicodeString a = WCHARToUnicode(s1);
-    UnicodeString b = WCHARToUnicode(s2);
-    return a.compare(0, b.length(), b) == 0;
+	return str_startswith_int(WCHARToUnicode(s1), WCHARToUnicode(s2));
 }
 
 /**
@@ -360,9 +394,7 @@ bool wcs_istartswith(const wchar_t *s1, const wchar_t *s2, const ECLocale &local
 {
 	assert(s1);
 	assert(s2);
-    UnicodeString a = WCHARToUnicode(s1);
-    UnicodeString b = WCHARToUnicode(s2);
-    return a.caseCompare(0, b.length(), b, 0) == 0;
+	return str_startswith_int(WCHARToUnicode(s1), WCHARToUnicode(s2), true);
 }
 
 /**
@@ -417,9 +449,7 @@ bool wcs_contains(const wchar_t *haystack, const wchar_t *needle, const ECLocale
 {
 	assert(haystack);
 	assert(needle);
-    UnicodeString a = WCHARToUnicode(haystack);
-    UnicodeString b = WCHARToUnicode(needle);
-    return u_strstr(a.getTerminatedBuffer(), b.getTerminatedBuffer());
+	return str_contains_int(WCHARToUnicode(haystack), WCHARToUnicode(needle));
 }
 
 /**
@@ -443,12 +473,7 @@ bool wcs_icontains(const wchar_t *haystack, const wchar_t *needle, const ECLocal
 {
 	assert(haystack);
 	assert(needle);
-    UnicodeString a = WCHARToUnicode(haystack);
-    UnicodeString b = WCHARToUnicode(needle);
-
-    a.foldCase();
-    b.foldCase();
-    return u_strstr(a.getTerminatedBuffer(), b.getTerminatedBuffer());
+	return str_contains_int(WCHARToUnicode(haystack), WCHARToUnicode(needle), true);
 }
 
 /**
@@ -466,9 +491,9 @@ bool u8_equals(const char *s1, const char *s2, const ECLocale &locale)
 {
 	assert(s1);
 	assert(s2);
-    UnicodeString a = UTF8ToUnicode(s1);
-    UnicodeString b = UTF8ToUnicode(s2);
-    return a.compare(b) == 0;
+	UErrorCode err = U_ZERO_ERROR;
+	return Normalizer::compare(UTF8ToUnicode(s1), UTF8ToUnicode(s2),
+	       0, err) == 0 && U_SUCCESS(err);
 }
 
 /**
@@ -486,9 +511,9 @@ bool u8_iequals(const char *s1, const char *s2, const ECLocale &locale)
 {
 	assert(s1);
 	assert(s2);
-    UnicodeString a = UTF8ToUnicode(s1);
-    UnicodeString b = UTF8ToUnicode(s2);
-    return a.caseCompare(b, 0) == 0;
+	UErrorCode err = U_ZERO_ERROR;
+	return Normalizer::compare(UTF8ToUnicode(s1), UTF8ToUnicode(s2),
+	       U_COMPARE_IGNORE_CASE, err) == 0 && U_SUCCESS(err);
 }
 
 /**
@@ -506,9 +531,7 @@ bool u8_startswith(const char *s1, const char *s2, const ECLocale &locale)
 {
 	assert(s1);
 	assert(s2);
-    UnicodeString a = UTF8ToUnicode(s1);
-    UnicodeString b = UTF8ToUnicode(s2);
-    return a.compare(0, b.length(), b) == 0;
+	return str_startswith_int(UTF8ToUnicode(s1), UTF8ToUnicode(s2));
 }
 
 /**
@@ -526,9 +549,7 @@ bool u8_istartswith(const char *s1, const char *s2, const ECLocale &locale)
 {
 	assert(s1);
 	assert(s2);
-    UnicodeString a = UTF8ToUnicode(s1);
-    UnicodeString b = UTF8ToUnicode(s2);
-    return a.caseCompare(0, b.length(), b, 0) == 0;
+	return str_startswith_int(UTF8ToUnicode(s1), UTF8ToUnicode(s2), true);
 }
 
 /**
@@ -583,9 +604,7 @@ bool u8_contains(const char *haystack, const char *needle, const ECLocale &local
 {
 	assert(haystack);
 	assert(needle);
-    UnicodeString a = UTF8ToUnicode(haystack);
-    UnicodeString b = UTF8ToUnicode(needle);
-    return u_strstr(a.getTerminatedBuffer(), b.getTerminatedBuffer());
+	return str_contains_int(UTF8ToUnicode(haystack), UTF8ToUnicode(needle));
 }
 
 /**
@@ -603,12 +622,7 @@ bool u8_icontains(const char *haystack, const char *needle, const ECLocale &loca
 {
 	assert(haystack);
 	assert(needle);
-    UnicodeString a = UTF8ToUnicode(haystack);
-    UnicodeString b = UTF8ToUnicode(needle);
-
-    a.foldCase();
-    b.foldCase();
-    return u_strstr(a.getTerminatedBuffer(), b.getTerminatedBuffer());
+	return str_contains_int(UTF8ToUnicode(haystack), UTF8ToUnicode(needle), true);
 }
 
 /**
