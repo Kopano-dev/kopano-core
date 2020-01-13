@@ -7,6 +7,7 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <climits>
 #include <cstdio>
 #include <cstdlib>
 #include <sstream>
@@ -2983,7 +2984,7 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFo
 	if (hr != hrSuccess)
 		return kc_perror("K-2390", hr);
 	rowset_ptr rows;
-	hr = table->QueryRows(-1, 0, &~rows);
+	hr = table->QueryRows(INT_MAX, 0, &~rows);
 	if (hr != hrSuccess)
 		return kc_perror("K-2395", hr);
 

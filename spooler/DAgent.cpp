@@ -1514,7 +1514,7 @@ static HRESULT recip_in_distlist(IAddrBook *ab, const SBinary &eid,
 	if (ret != hrSuccess)
 		return kc_perrorf("RestrictTable", ret);
 	rowset_ptr rset;
-	ret = tbl->QueryRows(-1, 0, &~rset);
+	ret = tbl->QueryRows(INT_MAX, 0, &~rset);
 	if (ret != hrSuccess)
 		return kc_perrorf("QueryRows", ret);
 
@@ -1562,7 +1562,7 @@ static HRESULT recip_me_check(IAddrBook *ab, IMAPITable *tbl,
 	if (ret != hrSuccess)
 		return kc_perrorf("RestrictTable", ret);
 	rowset_ptr rset;
-	ret = tbl->QueryRows(-1, 0, &~rset);
+	ret = tbl->QueryRows(INT_MAX, 0, &~rset);
 	if (ret != hrSuccess)
 		return kc_perrorf("QueryRows", ret);
 

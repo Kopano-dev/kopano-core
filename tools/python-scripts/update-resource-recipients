@@ -24,7 +24,7 @@ def AddRecipientToAppointments(calendar, recip):
                           SPropertyRestriction(RELOP_EQ, PR_SEARCH_KEY, PpropFindProp(recip, PR_SEARCH_KEY))
                          ))
     ctable.Restrict(res, TBL_BATCH)
-    rows = ctable.QueryRows(-1, 0)
+    rows = ctable.QueryRows(2147483647, 0)
     print('Updating %d items' % len(rows))
     for row in rows:
         msg = calendar.OpenEntry(row[0].Value, None, MAPI_BEST_ACCESS)

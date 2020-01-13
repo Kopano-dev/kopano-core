@@ -11,6 +11,7 @@
 #include <utility>
 #include <vector>
 #include <cerrno>
+#include <climits>
 #include <cstddef>
 #include <cstring>
 #include <kopano/ECLogger.h>
@@ -1383,7 +1384,7 @@ HRESULT M4LAddrBook::getDefaultSearchPath(ULONG ulFlags, LPSRowSet* lppSearchPat
 	hr = cRes.RestrictTable(lpTable, 0);
 	if (hr != hrSuccess)
 		return kc_perrorf("Restrict failed", hr);
-	hr = lpTable->QueryRows(-1, 0, lppSearchPath);
+	hr = lpTable->QueryRows(INT_MAX, 0, lppSearchPath);
 	if (hr != hrSuccess)
 		kc_perrorf("QueryRows failed", hr);
 	return hr;

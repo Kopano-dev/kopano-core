@@ -135,7 +135,7 @@ class Company(Properties):
                 SPropValue(PR_EC_COMPANY_NAME_W, self.name)
             )
             table.Restrict(restriction, TBL_BATCH)
-            for row in table.QueryRows(-1, 0):
+            for row in table.QueryRows(2147483647, 0):
                 prop = PpropFindProp(row, PR_EC_STOREGUID)
                 if prop:
                     yield _store.Store(_benc(prop.Value), self.server)

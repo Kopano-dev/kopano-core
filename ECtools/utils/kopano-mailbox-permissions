@@ -172,7 +172,7 @@ def getUserListHosted(gab):
     users = []
 
     htable = gab.GetHierarchyTable(0)
-    companies = htable.QueryRows(-1, 0)
+    companies = htable.QueryRows(2147483647, 0)
     for company in companies:
         ceid = PpropFindProp(company, PR_ENTRYID)
         company = gab.OpenEntry(ceid.Value, None, 0)

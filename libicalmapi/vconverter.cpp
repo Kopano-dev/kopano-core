@@ -5,6 +5,7 @@
 #include <kopano/platform.h>
 #include <memory>
 #include <utility>
+#include <climits>
 #include <kopano/ECRestriction.h>
 #include "vconverter.h"
 #include "valarm.h"
@@ -1653,7 +1654,7 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 			return hr;
 
 		rowset_ptr lpRows;
-		hr = lpTable->QueryRows(-1, 0, &~lpRows);
+		hr = lpTable->QueryRows(INT_MAX, 0, &~lpRows);
 		if (hr != hrSuccess)
 			return hr;
 		// The response should only be sent to the organizer (@todo restrict on MAPI_TO ? ...)
@@ -1813,7 +1814,7 @@ HRESULT VConverter::HrSetICalAttendees(LPMESSAGE lpMessage, const std::wstring &
 	hr = lpTable->SetColumns(sptaRecipProps, 0);
 	if (hr != hrSuccess)
 		return hr;
-	hr = lpTable->QueryRows(-1, 0, &~lpRows);
+	hr = lpTable->QueryRows(INT_MAX, 0, &~lpRows);
 	if (hr != hrSuccess)
 		return hr;
 	
@@ -2613,7 +2614,7 @@ HRESULT VConverter::HrGetExceptionMessage(LPMESSAGE lpMessage, time_t tStart, LP
 		return hr;
 
 	// should result in 1 attachment
-	hr = lpAttachTable->QueryRows(-1, 0, &~lpRows);
+	hr = lpAttachTable->QueryRows(INT_MAX, 0, &~lpRows);
 	if (hr != hrSuccess)
 		return hr;
 	if (lpRows->cRows == 0)
