@@ -524,7 +524,7 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 	MAPISessionPtr	ptrSession;
 	object_ptr<WSTransport> lpTransport;
 	memory_ptr<SPropValue> lpsPropValue;
-	bool bShowDialog = false, bInitStores = true;
+	bool bShowDialog = false;
 	memory_ptr<BYTE> lpDelegateStores;
 	ULONG			cDelegateStores = 0;
 	convert_context	converter;
@@ -649,12 +649,9 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 			}
 		}// while(1)
 
-		if(bInitStores) {
-			hr = UpdateProviders(lpAdminProviders, sProfileProps);
-			if(hr != hrSuccess)
-				goto exit2;
-		}
-
+		hr = UpdateProviders(lpAdminProviders, sProfileProps);
+		if(hr != hrSuccess)
+			goto exit2;
  exit2:
 		static constexpr const SizedSPropTagArray(1, tags) = {1, {PR_EC_TRANSPORTOBJECT}};
 		ptrGlobalProfSect->DeleteProps(tags, nullptr);
