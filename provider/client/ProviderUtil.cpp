@@ -67,11 +67,6 @@ exit:
 	return hr;
 }
 
-HRESULT SetProviderMode(IMAPISupport *lpMAPISup, ECMapProvider* lpmapProvider, LPCSTR lpszProfileName, ULONG ulConnectType)
-{
-	return hrSuccess;
-}
-
 HRESULT GetProviders(ECMapProvider* lpmapProvider, IMAPISupport *lpMAPISup, const char *lpszProfileName, ULONG ulFlags, PROVIDER_INFO* lpsProviderInfo)
 {
 	if (lpmapProvider == nullptr || lpMAPISup == nullptr ||

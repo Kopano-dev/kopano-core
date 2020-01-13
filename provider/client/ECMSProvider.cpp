@@ -328,11 +328,6 @@ HRESULT ECMSProviderSwitch::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 		}
 	}
 
-	// Set the provider in the right connection type
-	if (bIsDefaultStore &&
-	    SetProviderMode(lpMAPISup, &g_mapProviders, tstrProfileName.c_str(), ulConnectType) != hrSuccess)
-		return MAPI_E_INVALID_PARAMETER;
-
 	if(hr != hrSuccess) {
 		if (hr == MAPI_E_NETWORK_ERROR)
 			return MAPI_E_FAILONEPROVIDER; //for disable public folders, so you can work offline

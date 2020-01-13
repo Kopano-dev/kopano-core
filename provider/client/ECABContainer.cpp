@@ -809,11 +809,6 @@ HRESULT ECABProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 
 	// Online
 	hr = lpOnline->Logon(lpMAPISup, ulUIParam, lpszProfileName, ulFlags, nullptr, nullptr, nullptr, &~lpABLogon);
-	// Set the provider in the right connection type
-	if (SetProviderMode(lpMAPISup, &g_mapProviders,
-	    convstring(lpszProfileName, ulFlags).c_str(), CT_ONLINE) != hrSuccess)
-		return MAPI_E_INVALID_PARAMETER;
-
 	if(hr != hrSuccess) {
 		if (hr == MAPI_E_NETWORK_ERROR)
 			/* for disable public folders, so you can work offline */
