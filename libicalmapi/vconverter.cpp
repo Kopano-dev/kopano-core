@@ -1545,7 +1545,7 @@ HRESULT VConverter::HrSetTimeProperty(time_t tStamp, bool bDateOnly, icaltimezon
 
 /** 
  * Sets the Organizer (From) and Attendees (To and Cc) in the given
- * ical event. It also determains the ical method for this event,
+ * ical event. It also determines the ical method for this event,
  * since the method and attendees depend on the message class and the
  * meeting status.
  * 

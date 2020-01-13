@@ -68,7 +68,7 @@ my @row;
 	or die $DBI::errstr;
 
 if (scalar(@row) == 0) {
-	print "Unable to determain version of database\n";
+	print "Unable to determine version of database\n";
 	exit(1);
 }
 my $version = $row[0];
