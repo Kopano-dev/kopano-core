@@ -515,7 +515,7 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
     ULONG ulContext, ULONG cvals, const SPropValue *pvals,
     LPPROVIDERADMIN lpAdminProviders, MAPIERROR **lppMapiError)
 {
-	HRESULT			hr = erSuccess;
+	HRESULT hr = hrSuccess;
 	std::string strServerName, strDefStoreServer;
 	std::wstring strUserName, strUserPassword;
 	sGlobalProfileProps	sProfileProps;
@@ -545,23 +545,7 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 	// Logon defaults
 	std::string strType = "http", strServerPort = "236";
 	switch(ulContext) {
-	case MSG_SERVICE_INSTALL:
-		hr = hrSuccess;
-		break;
-	case MSG_SERVICE_UNINSTALL:
-		hr = hrSuccess;
-		break;
-	case MSG_SERVICE_DELETE:
-	case MSG_SERVICE_PROVIDER_CREATE:
-		break;
-	case MSG_SERVICE_PROVIDER_DELETE:
-		hr = hrSuccess;
-		//FIXME: delete Offline database
-		break;
 	case MSG_SERVICE_CONFIGURE:
-		//bShowAllSettingsPages = true;
-		// Do not break here
-	case MSG_SERVICE_CREATE:
 		/* Open global {profile section}, add the store. (for show list, delete etc.). */
 		hr = lpAdminProviders->OpenProfileSection(reinterpret_cast<const MAPIUID *>(&pbGlobalProfileSectionGuid), nullptr, MAPI_MODIFY, &~ptrGlobalProfSect);
 		if(hr != hrSuccess)
