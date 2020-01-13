@@ -868,7 +868,7 @@ HRESULT M4LMAPISession::OpenMsgStore(ULONG_PTR ulUIParam, ULONG cbEntryID,
 		return kc_perrorf("GetService failed", hr);
 	auto minit = service->MSProviderInit();
 	if (minit == nullptr)
-		return kc_perror("Provider \"%s\" has no MSProviderInit function", MAPI_E_NO_SUPPORT);
+		return kc_perror("Provider has no MSProviderInit function", MAPI_E_NO_SUPPORT);
 	
 	// Find the profile section associated with this entryID
 	hr = serviceAdmin->GetProviderTable(0, &~lpTable);
