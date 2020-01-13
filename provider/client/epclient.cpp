@@ -524,7 +524,6 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 	MAPISessionPtr	ptrSession;
 	object_ptr<WSTransport> lpTransport;
 	memory_ptr<SPropValue> lpsPropValue;
-	bool bShowDialog = false;
 	memory_ptr<BYTE> lpDelegateStores;
 	ULONG			cDelegateStores = 0;
 	convert_context	converter;
@@ -574,11 +573,6 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 		}
 
 		hr = ClientUtil::GetGlobalProfileProperties(ptrGlobalProfSect, &sProfileProps);
-		if (sProfileProps.strServerPath.empty() ||
-		    sProfileProps.strUserName.empty() ||
-		    (sProfileProps.strPassword.empty() &&
-		    sProfileProps.strSSLKeyFile.empty()))
-			bShowDialog = true;
 		//FIXME: check here offline path with the flags
 		if(!sProfileProps.strServerPath.empty()) {
 			strServerName = GetServerNameFromPath(sProfileProps.strServerPath.c_str());
@@ -606,10 +600,7 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 		// Check the path, username and password
 		while(1)
 		{
-			if ((bShowDialog && ulFlags & SERVICE_UI_ALLOWED) || ulFlags & SERVICE_UI_ALWAYS)
-				hr = MAPI_E_USER_CANCEL;
-
-			if(!(ulFlags & SERVICE_UI_ALLOWED || ulFlags & SERVICE_UI_ALWAYS) && (strServerName.empty() || sProfileProps.strUserName.empty())){
+			if (strServerName.empty() || sProfileProps.strUserName.empty()) {
 				hr = MAPI_E_UNCONFIGURED;
 				goto exit2;
 			}else if(!strServerName.empty() && !sProfileProps.strUserName.empty()) {
@@ -625,28 +616,18 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 			}
 
 			if(hr == MAPI_E_LOGON_FAILED || hr == MAPI_E_NETWORK_ERROR || hr == MAPI_E_VERSION || hr == MAPI_E_INVALID_PARAMETER) {
-				bShowDialog = true;
 			} else if(hr != erSuccess){ // Big error?
-				bShowDialog = true;
 				assert(false);
 			}else {
 				break; // Everything is oke
 			}
 
-			// On incorrect password, and UI allowed, show incorrect password error
-			if((ulFlags & SERVICE_UI_ALLOWED || ulFlags & SERVICE_UI_ALWAYS)) {
-				// what do we do on linux?
-				std::cout << "Access Denied: Incorrect username and/or password." << std::endl;
-				hr = MAPI_E_UNCONFIGURED;
-				goto exit2;
-			}else if(!(ulFlags & SERVICE_UI_ALLOWED || ulFlags & SERVICE_UI_ALWAYS)){
-				// Do not reset the logon error from HrLogon()
-				// The DAgent uses this value to determine if the delivery is fatal or not
-				//
-				// Although this error is not in the online spec from MS, it should not really matter .... right?
-				// hr = MAPI_E_UNCONFIGURED;
-				goto exit2;
-			}
+			// Do not reset the logon error from HrLogon()
+			// The DAgent uses this value to determain if the delivery is fatal or not
+			//
+			// Although this error is not in the online spec from MS, it should not really matter .... right?
+			// hr = MAPI_E_UNCONFIGURED;
+			goto exit2;
 		}// while(1)
 
 		hr = UpdateProviders(lpAdminProviders, sProfileProps);
