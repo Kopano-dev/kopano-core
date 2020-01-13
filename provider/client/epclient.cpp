@@ -598,37 +598,33 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 		lpTransport.get()->AddRef(); /* for EC_TRANSPORTOBJECT */
 
 		// Check the path, username and password
-		while(1)
-		{
-			if (strServerName.empty() || sProfileProps.strUserName.empty()) {
-				hr = MAPI_E_UNCONFIGURED;
-				goto exit2;
-			}else if(!strServerName.empty() && !sProfileProps.strUserName.empty()) {
-				//Logon the server
-				hr = lpTransport->HrLogon(sProfileProps);
-				if (hr != hrSuccess)
-					ec_log_err("HrLogon server \"%s\" user \"%ls\": %s",
-						sProfileProps.strServerPath.c_str(),
-						sProfileProps.strUserName.c_str(),
-						GetMAPIErrorMessage(hr));
-			}else{
-				hr = MAPI_E_LOGON_FAILED;
-			}
-
-			if(hr == MAPI_E_LOGON_FAILED || hr == MAPI_E_NETWORK_ERROR || hr == MAPI_E_VERSION || hr == MAPI_E_INVALID_PARAMETER) {
-			} else if(hr != erSuccess){ // Big error?
-				assert(false);
-			}else {
-				break; // Everything is oke
-			}
-
-			// Do not reset the logon error from HrLogon()
-			// The DAgent uses this value to determain if the delivery is fatal or not
-			//
-			// Although this error is not in the online spec from MS, it should not really matter .... right?
-			// hr = MAPI_E_UNCONFIGURED;
+		if (strServerName.empty() || sProfileProps.strUserName.empty()) {
+			hr = MAPI_E_UNCONFIGURED;
 			goto exit2;
-		}// while(1)
+		} else if(!strServerName.empty() && !sProfileProps.strUserName.empty()) {
+			// Logon the server
+			hr = lpTransport->HrLogon(sProfileProps);
+			if (hr != hrSuccess)
+				ec_log_err("HrLogon server \"%s\" user \"%ls\": %s",
+					sProfileProps.strServerPath.c_str(),
+					sProfileProps.strUserName.c_str(),
+					GetMAPIErrorMessage(hr));
+		} else {
+			hr = MAPI_E_LOGON_FAILED;
+		}
+
+		// On incorrect password, and UI allowed, show incorrect password error
+		// Do not reset the logon error from HrLogon()
+		// The DAgent uses this value to determine if the delivery is fatal or not
+		//
+		// Although this error is not in the online spec from MS, it should not really matter .... right?
+		// hr = MAPI_E_UNCONFIGURED;
+		if (hr == MAPI_E_LOGON_FAILED || hr == MAPI_E_NETWORK_ERROR || hr == MAPI_E_VERSION || hr == MAPI_E_INVALID_PARAMETER) {
+			goto exit2;
+		} else if (hr != erSuccess) { // Big error?
+			assert(false);
+			goto exit2;
+		}
 
 		hr = UpdateProviders(lpAdminProviders, sProfileProps);
 		if(hr != hrSuccess)
