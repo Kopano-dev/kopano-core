@@ -16,35 +16,9 @@ HRESULT MSGServiceEntry(HINSTANCE hInst, LPMALLOC lpMalloc,
     ULONG cvals, const SPropValue *pvals, IProviderAdmin *lpAdminProviders,
     MAPIERROR **lppMapiError)
 {
-	HRESULT hr = hrSuccess;
-
-	switch(ulContext) {
-	case MSG_SERVICE_INSTALL:
-		hr = hrSuccess;
-		break;
-	case MSG_SERVICE_UNINSTALL:
-		hr = hrSuccess;
-		break;
-	case MSG_SERVICE_DELETE:
-		hr = hrSuccess;
-		break;
-	case MSG_SERVICE_PROVIDER_CREATE:
-		// we never get here in linux (see M4LProviderAdmin::CreateProvider)
-		assert(false);
-		hr = hrSuccess;
-		break;
-	case MSG_SERVICE_PROVIDER_DELETE:
-		hr = hrSuccess;
-		break;
-	case MSG_SERVICE_CONFIGURE:
-	case MSG_SERVICE_CREATE:
-		hr = hrSuccess;
-		break;
-	};
-
 	if (lppMapiError)
 		*lppMapiError = NULL;
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ABProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc,
