@@ -136,9 +136,12 @@ static HRESULT CreateProfileTemp(const wchar_t *username,
 	hr = lpServiceAdmin1->QueryInterface(IID_IMsgServiceAdmin2, &~lpServiceAdmin);
 	if (hr != hrSuccess)
 		return kc_perrorf("QueryInterface failed", hr);
-	hr = lpServiceAdmin->CreateMsgServiceEx("ZARAFA6", "", 0, 0, &service_uid);
+	const char *svc_type = getenv("MAPI_DEFAULT_SERVICE");
+	if (svc_type == nullptr)
+		svc_type = "ZARAFA6";
+	hr = lpServiceAdmin->CreateMsgServiceEx(svc_type, "", 0, 0, &service_uid);
 	if (hr != hrSuccess)
-		return kc_perrorf("CreateMsgService ZARAFA6 failed", hr);
+		return kc_perrorf("CreateMsgService failed", hr);
 	// Get the PR_SERVICE_UID from the row
 	unsigned int i = 0;
 	sProps[i].ulPropTag = PR_EC_PATH;
