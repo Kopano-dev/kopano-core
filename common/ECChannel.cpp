@@ -48,12 +48,12 @@ std::atomic<SSL_CTX *> ECChannel::lpCTX{nullptr};
 
 HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 {
+	HRESULT hr = MAPI_E_CALL_FAILED;
 	if (lpConfig == NULL) {
 		ec_log_err("ECChannel::HrSetCtx(): invalid parameters");
-		return MAPI_E_CALL_FAILED;
+		return hr;
 	}
 
-	HRESULT hr = MAPI_E_CALL_FAILED;
 	const char *szFile = nullptr, *szPath = nullptr;;
 	auto cert_file = lpConfig->GetSetting("ssl_certificate_file");
 	auto key_file = lpConfig->GetSetting("ssl_private_key_file");
@@ -61,40 +61,69 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 	const char *ssl_ciphers = lpConfig->GetSetting("ssl_ciphers");
 	const char *ssl_curves = lpConfig->GetSetting("ssl_curves");
  	char *ssl_name = NULL;
- 	int ssl_op = 0, ssl_include = 0, ssl_exclude = 0;
+	int ssl_include = 0, ssl_exclude = 0;
 #if !defined(OPENSSL_NO_ECDH) && defined(NID_X9_62_prime256v1)
 	EC_KEY *ecdh;
 #endif
 
 	if (cert_file == nullptr || key_file == nullptr) {
 		ec_log_err("ECChannel::HrSetCtx(): no cert or key file");
-		return MAPI_E_CALL_FAILED;
+		return hr;
 	}
 	auto key_fh = fopen(key_file, "r");
 	if (key_fh == nullptr) {
 		ec_log_err("ECChannel::HrSetCtx(): cannot open key file");
-		return MAPI_E_CALL_FAILED;
+		return hr;
 	}
 	fclose(key_fh);
 
 	auto cert_fh = fopen(cert_file, "r");
 	if (cert_fh == nullptr) {
 		ec_log_err("ECChannel::HrSetCtx(): cannot open cert file");
-		return MAPI_E_CALL_FAILED;
+		return hr;
 	}
 	fclose(cert_fh);
 
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
+	// New style init.
+	if (lpCTX == nullptr)
+		OPENSSL_init_ssl(OPENSSL_INIT_ENGINE_ALL_BUILTIN, NULL);
+
+	// Default TLS context for OpenSSL >= 1.1, enables all methods.
+	auto newctx = SSL_CTX_new(TLS_server_method());
+#else // OPENSSL_VERSION_NUMBER < 0x1010000fL
+	// Old style init, modelled after Apache mod_ssl.
 	if (lpCTX == nullptr) {
-		SSL_library_init();
+		ERR_load_crypto_strings();
 		SSL_load_error_strings();
+		SSL_library_init();
+#	ifndef OPENSSL_NO_ENGINE
+		ENGINE_load_builtin_engines();
+#	endif // !OPENSSL_NO_ENGINE
+		OpenSSL_add_all_algorithms();
+		OPENSSL_load_builtin_modules();
 	}
 
 	// enable *all* server methods, not just ssl2 and ssl3, but also tls1 and tls1.1
 	auto newctx = SSL_CTX_new(SSLv23_server_method());
+#endif // OPENSSL_VERSION_NUMBER
+
+	// Check context.
+	if (newctx == nullptr) {
+		ec_log_err("ECChannel::HrSetCtx(): failed to create new SSL context");
+		return hr;
+	}
+
 #ifndef SSL_OP_NO_RENEGOTIATION
-#	define SSL_OP_NO_RENEGOTIATION 0 /* unavailable in openSSL 1.0 */
+#	define SSL_OP_NO_RENEGOTIATION 0 /* unavailable in OpenSSL 1.0 */
 #endif
-	SSL_CTX_set_options(newctx, SSL_OP_ALL | SSL_OP_NO_RENEGOTIATION);
+#ifndef SSL_OP_NO_COMPRESSION
+#	define SSL_OP_NO_COMPRESSION 0
+#endif
+#ifndef SSL_TXT_TLSV1_3
+#	define SSL_TXT_TLSV1_3 "TLSv1.3"
+#endif
+	SSL_CTX_set_options(newctx, SSL_OP_ALL | SSL_OP_NO_RENEGOTIATION | SSL_OP_NO_COMPRESSION);
 	ssl_name = strtok(ssl_protocols.get(), " ");
 	while(ssl_name != NULL) {
 		int ssl_proto = 0;
@@ -105,26 +134,25 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 			ssl_neg = true;
 		}
 
+#ifndef OPENSSL_NO_SSL3
 		if (strcasecmp(ssl_name, SSL_TXT_SSLV3) == 0)
-			ssl_proto = 0x02;
-#ifdef SSL_TXT_SSLV2
-		else if (strcasecmp(ssl_name, SSL_TXT_SSLV2) == 0)
 			ssl_proto = 0x01;
-#endif
-		else if (strcasecmp(ssl_name, SSL_TXT_TLSV1) == 0)
-			ssl_proto = 0x04;
-#ifdef SSL_TXT_TLSV1_1
+		else
+#endif // !OPENSSL_NO_SSL3
+		if (strcasecmp(ssl_name, SSL_TXT_TLSV1) == 0)
+			ssl_proto = 0x02;
+#ifdef SSL_OP_NO_TLSv1_1
 		else if (strcasecmp(ssl_name, SSL_TXT_TLSV1_1) == 0)
-			ssl_proto = 0x08;
-#endif
-#ifdef SSL_TXT_TLSV1_2
+			ssl_proto = 0x04;
+#endif // SSL_OP_NO_TLSv1_1
+#ifdef SSL_OP_NO_TLSv1_2
 		else if (strcasecmp(ssl_name, SSL_TXT_TLSV1_2) == 0)
-			ssl_proto = 0x10;
-#endif
+			ssl_proto = 0x08;
+#endif // SSL_OP_NO_TLSv1_2
 #ifdef SSL_OP_NO_TLSv1_3
-		else if (strcasecmp(ssl_name, "TLSv1.3") == 0)
-			ssl_proto = 0x20;
-#endif
+		else if (strcasecmp(ssl_name, SSL_TXT_TLSV1_3) == 0)
+			ssl_proto = 0x10;
+#endif // SSL_OP_NO_TLSv1_3
 		else if (!ssl_neg) {
 			ec_log_err("Unknown protocol \"%s\" in ssl_protocols setting", ssl_name);
 			goto exit;
@@ -138,29 +166,124 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 		ssl_name = strtok(NULL, " ");
 	}
 
+	// Exclude everything, except those that are included (and let excludes still override those)
 	if (ssl_include != 0)
-		// Exclude everything, except those that are included (and let excludes still override those)
 		ssl_exclude |= ~ssl_include;
+
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
+	int ver;
+
+	// Find version range top for proto version setup.
+#	ifdef SSL_OP_NO_TLSv1_3
+	if (ssl_include == 0 && (ssl_exclude & 0x10) == 0)
+		// No explicit excludes at top of version list; accept higher protocols.
+		ver = 0;
+	else if ((ssl_exclude & 0x10) == 0)
+		ver = TLS1_3_VERSION;
+#	else // !SSL_OP_NO_TLSv1_3
+	if (ssl_include == 0 && (ssl_exclude & 0x08) == 0)
+		// No explicit excludes at top of version list; accept higher protocols.
+		ver = 0;
+#	endif // SSL_OP_NO_TLSv1_3
+	else if ((ssl_exclude & 0x08) == 0)
+		ver = TLS1_2_VERSION;
+	else if ((ssl_exclude & 0x04) == 0)
+		ver = TLS1_1_VERSION;
+	else if ((ssl_exclude & 0x02) == 0)
+		ver = TLS1_VERSION;
+#	ifndef OPENSSL_NO_SSL3
+	else if ((ssl_exclude & 0x01) == 0)
+		ver = SSL3_VERSION;
+#	endif // OPENSSL_NO_SSL3
+	else {
+		ec_log_err("All available TLS protocols excluded, cannot set up SSL context");
+		goto exit;
+	}
+	ec_log_info("Maximum TLS protocol version to use: 0x%x", ver);
+	SSL_CTX_set_max_proto_version(newctx, ver);
+
+	// Find version range bottom for proto version setup. This loops over the
+	// range of available protocols and only allows a consecutive chain, just
+	// like Apache does.
+#	ifdef SSL_OP_NO_TLSv1_3
+	if (ver == 0)
+		// Allways allow highest available protocol.
+		ver = TLS1_3_VERSION;
+	if (ver == TLS1_3_VERSION && (ssl_exclude & 0x08) == 0)
+		ver = TLS1_2_VERSION;
+#	else // !SSL_OP_NO_TLSv1_3
+	if (ver == 0)
+		// Always allow highest available protocol.
+		ver = TLS1_2_VERSION;
+#	endif // SSL_OP_NO_TLSv1_3
+	if (ver == TLS1_2_VERSION && (ssl_exclude & 0x04) == 0)
+		ver = TLS1_1_VERSION;
+	if (ver == TLS1_1_VERSION && (ssl_exclude & 0x02) == 0)
+		ver = TLS1_VERSION;
+#	ifndef OPENSSL_NO_SSL3
+	if (ver == TLS1_VERSION && (ssl_exclude & 0x01) == 0)
+		ver = SSL3_VERSION;
+#	endif // !OPENSSL_NO_SSL3
+	ec_log_info("Minimum TLS protocol version to use: 0x%x", ver);
+	SSL_CTX_set_min_proto_version(newctx, ver);
+#else // OPENSSL_VERSION_NUMBER < 0x1010000fL
+	long ssl_opset = 0, ssl_opclear = 0;
+
+#	ifndef OPENSSL_NO_SSL2
+	// Never offer SSLv2.
+	ssl_opset = SSL_OP_NO_SSLv2;
+#	endif // !OPENSSL_NO_SSL2
+
+	// Find flags to set and clear.
+#	ifndef OPENSSL_NO_SSL3
 	if ((ssl_exclude & 0x01) != 0)
-		ssl_op |= SSL_OP_NO_SSLv2;
+		ssl_opset |= SSL_OP_NO_SSLv3;
+	else
+		ssl_opclear |= SSL_OP_NO_SSLv3;
+#	endif // !OPENSSL_NO_SSL3
 	if ((ssl_exclude & 0x02) != 0)
-		ssl_op |= SSL_OP_NO_SSLv3;
+		ssl_opset |= SSL_OP_NO_TLSv1;
+	else
+		ssl_opclear |= SSL_OP_NO_TLSv1;
+#	ifdef SSL_OP_NO_TLSv1_1
 	if ((ssl_exclude & 0x04) != 0)
-		ssl_op |= SSL_OP_NO_TLSv1;
-#ifdef SSL_OP_NO_TLSv1_1
+		ssl_opset |= SSL_OP_NO_TLSv1_1;
+	else
+		ssl_opclear |= SSL_OP_NO_TLSv1_1;
+#	endif // SSL_OP_NO_TLSv1_1
+#	ifdef SSL_OP_NO_TLSv1_2
 	if ((ssl_exclude & 0x08) != 0)
-		ssl_op |= SSL_OP_NO_TLSv1_1;
-#endif
-#ifdef SSL_OP_NO_TLSv1_2
+		ssl_opset |= SSL_OP_NO_TLSv1_2;
+	else
+		ssl_opclear |= SSL_OP_NO_TLSv1_2;
+#	endif // SSL_OP_NO_TLSv1_2
+#	ifdef SSL_OP_NO_TLSv1_3
 	if ((ssl_exclude & 0x10) != 0)
-		ssl_op |= SSL_OP_NO_TLSv1_2;
-#endif
-#ifdef SSL_OP_NO_TLSv1_3
-	if ((ssl_exclude & 0x20) != 0)
-		ssl_op |= SSL_OP_NO_TLSv1_3;
-#endif
-	if (ssl_protocols)
-		SSL_CTX_set_options(newctx, ssl_op);
+		ssl_opset |= SSL_OP_NO_TLSv1_3;
+	else
+		ssl_opclear |= SSL_OP_NO_TLSv1_3;
+#	endif // SSL_OP_NO_TLSv1_3
+
+	// Check whether any options were found.
+	if (ssl_opclear == 0) {
+		ec_log_err("All available TLS protocols excluded, cannot set up SSL context");
+		goto exit;
+	}
+
+	// Set up options to set up.
+	ssl_opset = ssl_opset & ~SSL_CTX_get_options(newctx);
+	if (ssl_opset != 0) {
+		ec_log_info("Setting options 0x%lx on SSL context", ssl_opset);
+		SSL_CTX_set_options(newctx, ssl_opset);
+	}
+
+	// Clear out options that should be cleared.
+	ssl_opclear = ssl_opclear & SSL_CTX_get_options(newctx);
+	if (ssl_opclear != 0) {
+		ec_log_warn("Resetting already set options 0x%lx on SSL context", ssl_opclear);
+		SSL_CTX_clear_options(newctx, ssl_opclear);
+	}
+#endif // OPENSSL_VERSION_NUMBER
 
 #if !defined(OPENSSL_NO_ECDH) && defined(NID_X9_62_prime256v1)
 	ecdh = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
@@ -180,7 +303,6 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 #if !defined(OPENSSL_NO_ECDH) && defined(SSL_CTX_set1_curves_list)
 	if (ssl_curves && SSL_CTX_set1_curves_list(newctx, ssl_curves) != 1) {
 		ec_log_err("Can not set SSL curve list to \"%s\": %s", ssl_curves, ERR_error_string(ERR_get_error(), 0));
-		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 
@@ -211,21 +333,26 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 	if (lpConfig->GetSetting("ssl_verify_path")[0])
 		szPath = lpConfig->GetSetting("ssl_verify_path");
 	if ((szFile != nullptr || szPath != nullptr) &&
-	    SSL_CTX_load_verify_locations(newctx, szFile, szPath) != 1)
+	    SSL_CTX_load_verify_locations(newctx, szFile, szPath) != 1) {
 		ec_log_err("SSL CTX error loading verify locations: %s", ERR_error_string(ERR_get_error(), 0));
+		goto exit;
+	}
 
-	lpCTX = std::move(newctx);
+	// Swap in generated SSL context.
+	newctx = lpCTX.exchange(newctx);
+	hr = hrSuccess;
+
 exit:
-	if (hr != hrSuccess)
+	if (newctx != nullptr)
 		SSL_CTX_free(newctx);
 	return hr;
 }
 
 HRESULT ECChannel::HrFreeCtx() {
-	if (lpCTX) {
-		SSL_CTX_free(lpCTX);
-		lpCTX = NULL;
-	}
+	// Swap out current SSL context.
+	auto oldctx = lpCTX.exchange(nullptr);
+	if (oldctx != nullptr)
+		SSL_CTX_free(oldctx);
 	return hrSuccess;
 }
 
@@ -259,22 +386,30 @@ HRESULT ECChannel::HrEnableTLS(void)
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
-	SSL_clear(lpSSL);
+
+#if OPENSSL_VERSION_NUMBER >= 0x1010100fL
+	ec_log_info("ECChannel::HrEnableTLS(): min TLS version 0x%lx", SSL_get_min_proto_version(lpSSL));
+	ec_log_info("ECChannel::HrEnableTLS(): max TLS version 0x%lx", SSL_get_max_proto_version(lpSSL));
+#endif
+	ec_log_info("ECChannel::HrEnableTLS(): TLS flags 0x%lx", SSL_get_options(lpSSL));
+
 	if (SSL_set_fd(lpSSL, fd) != 1) {
 		ec_log_err("ECChannel::HrEnableTLS(): SSL_set_fd failed");
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 
-	SSL_set_accept_state(lpSSL);
+	ERR_clear_error();
 	if ((rc = SSL_accept(lpSSL)) != 1) {
-		ec_log_err("ECChannel::HrEnableTLS(): SSL_accept failed: %d", SSL_get_error(lpSSL, rc));
+		int err = SSL_get_error(lpSSL, rc);
+		ec_log_err("ECChannel::HrEnableTLS(): SSL_accept failed: %d", err);
+		if (err != SSL_ERROR_SYSCALL && err != SSL_ERROR_SSL)
+			SSL_shutdown(lpSSL);
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 exit:
 	if (hr != hrSuccess && lpSSL) {
-		SSL_shutdown(lpSSL);
 		SSL_free(lpSSL);
 		lpSSL = NULL;
 	}
