@@ -1582,21 +1582,6 @@ HRESULT ECMessage::SaveChanges(ULONG ulFlags)
 			return hr;
 	}
 
-	// Property change of a new item
-	if (fNew && GetMsgStore()->IsSpooler()) {
-		static constexpr const SizedSPropTagArray(1, proptag) = {1, {PR_MESSAGE_FLAGS}};
-		auto hr = ECMAPIProp::GetProps(proptag, 0, &cValues, &~lpsPropMessageFlags);
-		if(hr != hrSuccess)
-			return hr;
-		lpsPropMessageFlags->ulPropTag = PR_MESSAGE_FLAGS;
-		lpsPropMessageFlags->Value.l &= ~(MSGFLAG_READ|MSGFLAG_UNSENT);
-		lpsPropMessageFlags->Value.l |= MSGFLAG_UNMODIFIED;
-
-		hr = SetProps(1, lpsPropMessageFlags, NULL);
-		if(hr != hrSuccess)
-			return hr;
-	}
-
 	// don't re-sync bodies that are returned from server
 	assert(!m_bInhibitSync);
 	m_bInhibitSync = TRUE;

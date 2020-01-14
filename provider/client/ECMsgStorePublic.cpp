@@ -21,11 +21,11 @@
 
 using namespace KC;
 
-ECMsgStorePublic::ECMsgStorePublic(const char *lpszProfname,
-    IMAPISupport *sup, WSTransport *tp, BOOL modify,
-    ULONG ulProfileFlags, BOOL fIsSpooler, BOOL bOfflineStore) :
-	ECMsgStore(lpszProfname, sup, tp, modify,
-	    ulProfileFlags, fIsSpooler, false, bOfflineStore)
+ECMsgStorePublic::ECMsgStorePublic(const char *lpszProfname, IMAPISupport *sup,
+    WSTransport *tp, BOOL modify, unsigned int ulProfileFlags,
+    BOOL bOfflineStore) :
+	ECMsgStore(lpszProfname, sup, tp, modify, ulProfileFlags, false,
+	    bOfflineStore)
 {
 	HrAddPropHandlers(PR_IPM_SUBTREE_ENTRYID, GetPropHandler, DefaultSetPropComputed, this, false, false);
 	HrAddPropHandlers(PR_IPM_PUBLIC_FOLDERS_ENTRYID, GetPropHandler, DefaultSetPropComputed, this, false, false);
@@ -35,12 +35,11 @@ ECMsgStorePublic::ECMsgStorePublic(const char *lpszProfname,
 
 HRESULT ECMsgStorePublic::Create(const char *lpszProfname,
     IMAPISupport *lpSupport, WSTransport *lpTransport, BOOL fModify,
-    ULONG ulProfileFlags, BOOL fIsSpooler, BOOL bOfflineStore,
+    unsigned int ulProfileFlags, BOOL bOfflineStore,
     ECMsgStore **lppECMsgStore)
 {
 	return alloc_wrap<ECMsgStorePublic>(lpszProfname, lpSupport,
-	       lpTransport, fModify, ulProfileFlags,
-	       fIsSpooler, bOfflineStore)
+	       lpTransport, fModify, ulProfileFlags, bOfflineStore)
 	       .as(IID_ECMsgStore, reinterpret_cast<void **>(lppECMsgStore));
 }
 

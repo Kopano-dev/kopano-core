@@ -447,18 +447,18 @@ HRESULT ECArchiveAwareAttach::SetPropHandler(unsigned int ulPropTag,
 }
 ECArchiveAwareMsgStore::ECArchiveAwareMsgStore(const char *lpszProfname,
     IMAPISupport *sup, WSTransport *tp, BOOL modify, ULONG ulProfileFlags,
-    BOOL fIsSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore) :
-	ECMsgStore(lpszProfname, sup, tp, modify, ulProfileFlags, fIsSpooler,
+    BOOL fIsDefaultStore, BOOL bOfflineStore) :
+	ECMsgStore(lpszProfname, sup, tp, modify, ulProfileFlags,
 	    fIsDefaultStore, bOfflineStore)
 { }
 
 HRESULT ECArchiveAwareMsgStore::Create(const char *lpszProfname,
     IMAPISupport *lpSupport, WSTransport *lpTransport, BOOL fModify,
-    ULONG ulProfileFlags, BOOL fIsSpooler, BOOL fIsDefaultStore,
-    BOOL bOfflineStore, ECMsgStore **lppECMsgStore)
+    unsigned int ulProfileFlags, BOOL fIsDefaultStore, BOOL bOfflineStore,
+    ECMsgStore **lppECMsgStore)
 {
 	return alloc_wrap<ECArchiveAwareMsgStore>(lpszProfname, lpSupport,
-	       lpTransport, fModify, ulProfileFlags, fIsSpooler, fIsDefaultStore,
+	       lpTransport, fModify, ulProfileFlags, fIsDefaultStore,
 	       bOfflineStore).as(IID_ECMsgStore, lppECMsgStore);
 }
 
@@ -593,7 +593,7 @@ HRESULT ECArchiveAwareMsgStore::GetArchiveStore(LPSBinary lpStoreEID, ECMsgStore
 	}
 
 	hr = ECMsgStore::Create(const_cast<char *>(GetProfileName()), lpSupport,
-	     ptrTransport, false, 0, false, false, false, &~ptrArchiveStore);
+	     ptrTransport, false, 0, false, false, &~ptrArchiveStore);
 	if (hr != hrSuccess)
 		return hr;
 	// Get a propstorage for the message store

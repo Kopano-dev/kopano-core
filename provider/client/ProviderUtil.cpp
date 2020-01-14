@@ -123,7 +123,7 @@ HRESULT GetProviders(ECMapProvider* lpmapProvider, IMAPISupport *lpMAPISup, cons
 HRESULT CreateMsgStoreObject(const char *lpszProfname, IMAPISupport *lpMAPISup,
     ULONG cbEntryID, const ENTRYID *lpEntryID, ULONG ulMsgFlags,
     ULONG ulProfileFlags, WSTransport *lpTransport,
-    const MAPIUID *lpguidMDBProvider, BOOL bSpooler, BOOL fIsDefaultStore,
+    const MAPIUID *lpguidMDBProvider, BOOL fIsDefaultStore,
     BOOL bOfflineStore, ECMsgStore **lppECMsgStore)
 {
 	HRESULT	hr = hrSuccess;
@@ -132,11 +132,11 @@ HRESULT CreateMsgStoreObject(const char *lpszProfname, IMAPISupport *lpMAPISup,
 	BOOL fModify = ulMsgFlags & MDB_WRITE || ulMsgFlags & MAPI_BEST_ACCESS; // FIXME check access at server
 
 	if (*lpguidMDBProvider == KOPANO_STORE_PUBLIC_GUID)
-		hr = ECMsgStorePublic::Create(lpszProfname, lpMAPISup, lpTransport, fModify, ulProfileFlags, bSpooler, bOfflineStore, &~lpMsgStore);
+		hr = ECMsgStorePublic::Create(lpszProfname, lpMAPISup, lpTransport, fModify, ulProfileFlags, bOfflineStore, &~lpMsgStore);
 	else if (*lpguidMDBProvider == KOPANO_STORE_ARCHIVE_GUID)
-		hr = ECMsgStore::Create(lpszProfname, lpMAPISup, lpTransport, fModify, ulProfileFlags, bSpooler, FALSE, bOfflineStore, &~lpMsgStore);
+		hr = ECMsgStore::Create(lpszProfname, lpMAPISup, lpTransport, fModify, ulProfileFlags, false, bOfflineStore, &~lpMsgStore);
 	else
-		hr = ECArchiveAwareMsgStore::Create(lpszProfname, lpMAPISup, lpTransport, fModify, ulProfileFlags, bSpooler, fIsDefaultStore, bOfflineStore, &~lpMsgStore);
+		hr = ECArchiveAwareMsgStore::Create(lpszProfname, lpMAPISup, lpTransport, fModify, ulProfileFlags, fIsDefaultStore, bOfflineStore, &~lpMsgStore);
 	if (hr != hrSuccess)
 		return hr;
 

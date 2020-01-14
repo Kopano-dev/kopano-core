@@ -131,7 +131,7 @@ HRESULT ECMSProvider::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 	hr = CreateMsgStoreObject(reinterpret_cast<const char *>(sProfileProps.strProfileName.c_str()),
 	     lpMAPISup, cbEntryID, lpEntryID, ulFlags,
 	     sProfileProps.ulProfileFlags, lpTransport, &guidMDBProvider,
-	     false, fIsDefaultStore, false, &~lpECMsgStore);
+	     fIsDefaultStore, false, &~lpECMsgStore);
 	if(hr != hrSuccess)
 		return hr;
 

@@ -38,7 +38,7 @@ class ECMsgStore :
     public KC::IECServiceAdmin, public IProxyStoreObject,
     public KC::IECSpooler {
 protected:
-	ECMsgStore(const char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags, BOOL fIsSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore);
+	ECMsgStore(const char *profile, IMAPISupport *, WSTransport *, BOOL modify, unsigned int profile_flags, BOOL defl_store, BOOL offline_store);
 	virtual ~ECMsgStore();
 	static HRESULT GetPropHandler(unsigned int tag, void *prov, unsigned int flags, SPropValue *, ECGenericProp *lpParam, void *base);
 	static HRESULT SetPropHandler(unsigned int tag, void *prov, const SPropValue *, ECGenericProp *);
@@ -46,7 +46,7 @@ protected:
 public:
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 	virtual HRESULT QueryInterfaceProxy(REFIID refiid, void **lppInterface);
-	static HRESULT Create(const char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags, BOOL bIsSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore, ECMsgStore **lppECMsgStore);
+	static HRESULT Create(const char *profile, IMAPISupport *, WSTransport *, BOOL modify, unsigned int profile_flags, BOOL defl_store, BOOL offline_store, ECMsgStore **);
 	virtual HRESULT SaveChanges(ULONG flags) override;
 	virtual HRESULT SetProps(ULONG nvals, const SPropValue *, SPropProblemArray **) override;
 	virtual HRESULT DeleteProps(const SPropTagArray *, SPropProblemArray **) override;
@@ -145,7 +145,6 @@ protected:
 	HRESULT OpenEntry(ULONG eid_size, const ENTRYID *eid, const IID *intf, ULONG flags, const IMessageFactory &, ULONG *obj_type, IUnknown **);
 
 public:
-	BOOL IsSpooler() const { return m_fIsSpooler; }
 	BOOL IsDefaultStore() const { return m_fIsDefaultStore; }
 	BOOL IsPublicStore() const;
 	BOOL IsDelegateStore() const;
@@ -205,7 +204,7 @@ public:
 	unsigned int m_ulClientVersion = 0;
 
 private:
-	BOOL m_fIsSpooler, m_fIsDefaultStore;
+	BOOL m_fIsDefaultStore;
 	bool m_transact = false;
 	std::string			m_strProfname;
 	std::set<ULONG>		m_setAdviseConnections;

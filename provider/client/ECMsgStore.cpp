@@ -137,12 +137,11 @@ static size_t batch_append_folder(std::vector<ECMAPIFolder::ECFolder> &list,
  * ECMsgStore
  **/
 ECMsgStore::ECMsgStore(const char *lpszProfname, IMAPISupport *sup,
-    WSTransport *tp, BOOL modify, ULONG ulProfileFlags,
-    BOOL fIsSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore) :
+    WSTransport *tp, BOOL modify, unsigned int ulProfileFlags,
+    BOOL fIsDefaultStore, BOOL bOfflineStore) :
 	ECMAPIProp(nullptr, MAPI_STORE, modify, nullptr, "IMsgStore"),
 	lpSupport(sup), lpTransport(tp), lpNamedProp(tp),
-	m_ulProfileFlags(ulProfileFlags), m_fIsSpooler(fIsSpooler),
-	m_fIsDefaultStore(fIsDefaultStore),
+	m_ulProfileFlags(ulProfileFlags), m_fIsDefaultStore(fIsDefaultStore),
 	m_strProfname((lpszProfname != nullptr) ? lpszProfname : "")
 {
 	// Add our property handlers
@@ -260,11 +259,10 @@ ULONG ECMsgStore::Release()
 
 HRESULT	ECMsgStore::Create(const char *lpszProfname, LPMAPISUP lpSupport,
     WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags,
-    BOOL fIsSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore,
-    ECMsgStore **lppECMsgStore)
+    BOOL fIsDefaultStore, BOOL bOfflineStore, ECMsgStore **lppECMsgStore)
 {
 	return alloc_wrap<ECMsgStore>(lpszProfname, lpSupport, lpTransport,
-	       fModify, ulProfileFlags, fIsSpooler, fIsDefaultStore,
+	       fModify, ulProfileFlags, fIsDefaultStore,
 	       bOfflineStore).put(lppECMsgStore);
 }
 
@@ -1875,7 +1873,7 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId,
 	if (hr != hrSuccess)
 		return hr;
 	// Open the created messagestore
-	hr = ECMsgStore::Create("", lpSupport, lpTransport, true, MAPI_BEST_ACCESS, false, false, false, &~lpecMsgStore);
+	hr = ECMsgStore::Create("", lpSupport, lpTransport, true, MAPI_BEST_ACCESS, false, false, &~lpecMsgStore);
 	if (hr != hrSuccess)
 		//FIXME: what todo with created store?
 		return hr;

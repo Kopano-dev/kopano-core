@@ -17,11 +17,11 @@
 
 class ECMsgStorePublic KC_FINAL_OPG : public ECMsgStore {
 protected:
-	ECMsgStorePublic(const char *profile, IMAPISupport *, WSTransport *, BOOL modify, ULONG profile_flags, BOOL is_spooler, BOOL offline_store);
+	ECMsgStorePublic(const char *profile, IMAPISupport *, WSTransport *, BOOL modify, unsigned int profile_flags, BOOL offline_store);
 public:
 	static HRESULT GetPropHandler(unsigned int tag, void *prov, unsigned int flags, SPropValue *, ECGenericProp *lpParam, void *base);
 	static HRESULT SetPropHandler(unsigned int tag, void *prov, const SPropValue *, ECGenericProp *);
-	static HRESULT Create(const char *profile, IMAPISupport *, WSTransport *, BOOL modify, ULONG profile_flags, BOOL is_spooler, BOOL offline_store, ECMsgStore **);
+	static HRESULT Create(const char *profile, IMAPISupport *, WSTransport *, BOOL modify, unsigned int profile_flags, BOOL offline_store, ECMsgStore **);
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 	virtual HRESULT OpenEntry(unsigned int eid_size, const ENTRYID *eid, const IID *intf, unsigned int flags, unsigned int *obj_type, IUnknown **) override;
 	virtual HRESULT SetEntryId(unsigned int eid_size, const ENTRYID *eid) override;

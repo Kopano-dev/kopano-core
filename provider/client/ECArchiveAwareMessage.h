@@ -21,8 +21,8 @@
 class KC_EXPORT_DYCAST ECArchiveAwareMsgStore KC_FINAL_OPG :
     public ECMsgStore {
 	public:
-	KC_HIDDEN ECArchiveAwareMsgStore(const char *profname, IMAPISupport *, WSTransport *, BOOL modify, unsigned int profflags, BOOL is_spooler, BOOL is_dfl_store, BOOL offline_store);
-	KC_HIDDEN static HRESULT Create(const char *profname, IMAPISupport *, WSTransport *, BOOL modify, unsigned int profflags, BOOL is_spooler, BOOL is_dfl_store, BOOL offline_store, ECMsgStore **ret);
+	KC_HIDDEN ECArchiveAwareMsgStore(const char *profname, IMAPISupport *, WSTransport *, BOOL modify, unsigned int profflags, BOOL is_dfl_store, BOOL offline_store);
+	KC_HIDDEN static HRESULT Create(const char *profname, IMAPISupport *, WSTransport *, BOOL modify, unsigned int profflags, BOOL is_dfl_store, BOOL offline_store, ECMsgStore **ret);
 	KC_HIDDEN virtual HRESULT OpenEntry(unsigned int eid_size, const ENTRYID *eid, const IID *intf, unsigned int flags, unsigned int *obj_type, IUnknown **);
 	KC_HIDDEN virtual HRESULT OpenItemFromArchive(SPropValue *propstore_eids, SPropValue *propitem_eids, ECMessage **ret);
 
