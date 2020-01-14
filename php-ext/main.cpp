@@ -318,8 +318,6 @@ zend_function_entry mapi_functions[] =
 	ZEND_FE(mapi_zarafa_getuser_by_id, NULL)
 	ZEND_FE(mapi_zarafa_getuser_by_name, NULL)
 	ZEND_FE(mapi_zarafa_getuserlist, NULL)
-	ZEND_FE(mapi_zarafa_getquota, NULL)
-	ZEND_FE(mapi_zarafa_setquota, NULL)
 	ZEND_FE(mapi_zarafa_getgrouplist, NULL)
 	ZEND_FE(mapi_zarafa_getgrouplistofuser, NULL)
 	ZEND_FE(mapi_zarafa_getuserlistofgroup, NULL)
@@ -3560,115 +3558,6 @@ ZEND_FUNCTION(mapi_zarafa_getuserlist)
 		add_assoc_long(&zval_data_value, "nonactive", (lpUsers[i].ulObjClass == ACTIVE_USER ? 0 : 1));
 		add_assoc_zval(return_value, reinterpret_cast<char *>(lpUsers[i].lpszUsername), &zval_data_value);
 	}
-}
-
-/**
- * Retrieve quota values of a users
- * @param  logged on msgstore
- * @param  user entryid to get quota information from
- * @return array(usedefault, isuserdefault, warnsize, softsize, hardsize);
- */
-ZEND_FUNCTION(mapi_zarafa_getquota)
-{
-	PMEASURE_FUNC;
-	LOG_BEGIN();
-	// params
-	zval            *res = NULL;
-	LPMDB           lpMsgStore = NULL;
-	LPENTRYID		lpUserId = NULL;
-	php_stringsize_t cbUserId = 0;
-	// local
-	object_ptr<IECServiceAdmin> lpServiceAdmin;
-	memory_ptr<ECQUOTA> lpQuota;
-
-	RETVAL_FALSE;
-	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &res,
-	    &lpUserId, &cbUserId) == FAILURE)
-		return;
-
-	DEFERRED_EPILOGUE;
-	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
-	MAPI_G(hr) = GetECObject(lpMsgStore, iid_of(lpServiceAdmin), &~lpServiceAdmin);
-	if(MAPI_G(hr) != hrSuccess) {
-		kphperr("Specified object is not a Kopano store", MAPI_G(hr));
-		return;
-	}
-	MAPI_G(hr) = lpServiceAdmin->GetQuota(cbUserId, lpUserId, false, &~lpQuota);
-	if (MAPI_G(hr) != hrSuccess)
-		return;
-
-	array_init(return_value);
-	add_assoc_bool(return_value, "usedefault", lpQuota->bUseDefaultQuota);
-	add_assoc_bool(return_value, "isuserdefault", lpQuota->bIsUserDefaultQuota);
-	add_assoc_long(return_value, "warnsize", lpQuota->llWarnSize);
-	add_assoc_long(return_value, "softsize", lpQuota->llSoftSize);
-	add_assoc_long(return_value, "hardsize", lpQuota->llHardSize);
-}
-
-/**
- * Update quota values for a users
- * @param  logged on msgstore
- * @param  userid to get quota information from
- * @param  array(usedefault, isuserdefault, warnsize, softsize, hardsize)
- * @return true/false
- */
-ZEND_FUNCTION(mapi_zarafa_setquota)
-{
-	PMEASURE_FUNC;
-	LOG_BEGIN();
-	// params
-	zval *res = nullptr, *array = nullptr;
-	LPMDB           lpMsgStore = NULL;
-	LPENTRYID		lpUserId = NULL;
-	php_stringsize_t cbUserId = 0;
-	// local
-	object_ptr<IECServiceAdmin> lpServiceAdmin;
-	memory_ptr<ECQUOTA> lpQuota;
-	zstrplus str_usedefault(zend_string_init("usedefault", sizeof("usedefault") - 1, 0));
-	zstrplus str_isuserdefault(zend_string_init("isuserdefault", sizeof("isuserdefault") - 1, 0));
-	zstrplus str_warnsize(zend_string_init("warnsize", sizeof("warnsize") - 1, 0));
-	zstrplus str_softsize(zend_string_init("softsize", sizeof("softsize") - 1, 0));
-	zstrplus str_hardsize(zend_string_init("hardsize", sizeof("hardsize") - 1, 0));
-
-	RETVAL_FALSE;
-	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsa", &res,
-	    &lpUserId, &cbUserId, &array) == FAILURE)
-		return;
-
-	DEFERRED_EPILOGUE;
-	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
-	MAPI_G(hr) = GetECObject(lpMsgStore, iid_of(lpServiceAdmin), &~lpServiceAdmin);
-	if(MAPI_G(hr) != hrSuccess) {
-		kphperr("Specified object is not a Kopano store", MAPI_G(hr));
-		return;
-	}
-	MAPI_G(hr) = lpServiceAdmin->GetQuota(cbUserId, lpUserId, false, &~lpQuota);
-	if (MAPI_G(hr) != hrSuccess)
-		return;
-
-	ZVAL_DEREF(array);
-	auto data = HASH_OF(array);
-	auto value = zend_hash_find(data, str_usedefault.get());
-	if (value != nullptr)
-		lpQuota->bUseDefaultQuota = zval_is_true(value);
-	value = zend_hash_find(data, str_isuserdefault.get());
-	if (value != nullptr)
-		lpQuota->bIsUserDefaultQuota = zval_is_true(value);
-	value = zend_hash_find(data, str_warnsize.get());
-	if (value != nullptr)
-		lpQuota->llWarnSize = zval_get_long(value);
-	value = zend_hash_find(data, str_softsize.get());
-	if (value != nullptr)
-		lpQuota->llSoftSize = zval_get_long(value);
-	value = zend_hash_find(data, str_hardsize.get());
-	if (value != nullptr)
-		lpQuota->llHardSize = zval_get_long(value);
-	MAPI_G(hr) = lpServiceAdmin->SetQuota(cbUserId, lpUserId, lpQuota);
-	if (MAPI_G(hr) != hrSuccess)
-		return;
-	RETVAL_TRUE;
 }
 
 /**
