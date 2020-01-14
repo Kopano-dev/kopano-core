@@ -1107,12 +1107,12 @@ static void ec_log_bt(unsigned int level, const char *fmt, ...)
 }
 
 HRESULT ec_log_hrcode(HRESULT code, unsigned int level,
-    const char *fmt, const char *func)
+    const char *str, const char *func)
 {
 	if (func == nullptr)
-		ec_log(level, fmt, GetMAPIErrorMessage(code), code);
+		ec_log(level, "%s: %s (%x)", str, GetMAPIErrorMessage(code), code);
 	else
-		ec_log(level, fmt, func, GetMAPIErrorMessage(code), code);
+		ec_log(level, "%s: %s: %s (%x)", func, str, GetMAPIErrorMessage(code), code);
 	return code;
 }
 

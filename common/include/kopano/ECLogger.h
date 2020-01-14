@@ -283,9 +283,9 @@ extern KC_EXPORT void ec_log(unsigned int level, const std::string &msg);
 #define ec_log_notice(...)  ec_log(EC_LOGLEVEL_NOTICE, __VA_ARGS__)
 #define ec_log_info(...)    ec_log(EC_LOGLEVEL_INFO, __VA_ARGS__)
 #define ec_log_debug(...)   ec_log(EC_LOGLEVEL_DEBUG, __VA_ARGS__)
-#define kc_perror(s, r)     ec_log_hrcode((r), EC_LOGLEVEL_ERROR, s ": %s (%x)", nullptr)
-#define kc_perrorf(s, r)    ec_log_hrcode((r), EC_LOGLEVEL_ERROR, "%s: " s ": %s (%x)", __PRETTY_FUNCTION__)
-#define kc_pwarn(s, r)      ec_log_hrcode((r), EC_LOGLEVEL_WARNING, s ": %s (%x)", nullptr)
+#define kc_perror(s, r)     ec_log_hrcode((r), EC_LOGLEVEL_ERROR, (s), nullptr)
+#define kc_perrorf(s, r)    ec_log_hrcode((r), EC_LOGLEVEL_ERROR, (s), __PRETTY_FUNCTION__)
+#define kc_pwarn(s, r)      ec_log_hrcode((r), EC_LOGLEVEL_WARNING, (s), nullptr)
 
 extern KC_EXPORT HRESULT ec_log_hrcode(HRESULT, unsigned int level, const char *fmt, const char *func);
 extern KC_EXPORT std::shared_ptr<ECLogger> CreateLogger(ECConfig *, const char *argv0, const char *service, bool audit = false);
