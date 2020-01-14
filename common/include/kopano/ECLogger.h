@@ -271,19 +271,20 @@ class KC_EXPORT ECLogger_Tee KC_FINAL : public ECLogger {
 
 extern KC_EXPORT ECLogger *ec_log_get();
 extern KC_EXPORT void ec_log_set(std::shared_ptr<ECLogger>);
+extern KC_EXPORT void ec_log_u2(unsigned int level, const char *msg, ...) KC_LIKE_PRINTF(2, 3);
 extern KC_EXPORT void ec_log(unsigned int level, const char *msg, ...) KC_LIKE_PRINTF(2, 3);
-extern KC_EXPORT void ec_log(unsigned int level, const std::string &msg);
+extern KC_EXPORT void ec_log_u2(unsigned int level, const std::string &msg);
 
-#define ec_log_always(...)  ec_log(EC_LOGLEVEL_ALWAYS, __VA_ARGS__)
-#define ec_log_crit(...)    ec_log(EC_LOGLEVEL_CRIT, __VA_ARGS__)
-#define ec_log_err(...)     ec_log(EC_LOGLEVEL_ERROR, __VA_ARGS__)
-#define ec_log_warn(...)    ec_log(EC_LOGLEVEL_WARNING, __VA_ARGS__)
-#define ec_log_notice(...)  ec_log(EC_LOGLEVEL_NOTICE, __VA_ARGS__)
-#define ec_log_info(...)    ec_log(EC_LOGLEVEL_INFO, __VA_ARGS__)
-#define ec_log_debug(...)   ec_log(EC_LOGLEVEL_DEBUG, __VA_ARGS__)
-#define kc_perror(s, r)     ec_log_hrcode((r), EC_LOGLEVEL_ERROR, (s), nullptr)
-#define kc_perrorf(s, r)    ec_log_hrcode((r), EC_LOGLEVEL_ERROR, (s), __PRETTY_FUNCTION__)
-#define kc_pwarn(s, r)      ec_log_hrcode((r), EC_LOGLEVEL_WARNING, (s), nullptr)
+#define ec_log_always(...)  ec_log_u2(EC_LOGLEVEL_ALWAYS, __VA_ARGS__)
+#define ec_log_crit(...)    do { if (ec_log_get()->Log(EC_LOGLEVEL_CRIT)) ec_log_u2(EC_LOGLEVEL_CRIT, __VA_ARGS__); } while (false)
+#define ec_log_err(...)     do { if (ec_log_get()->Log(EC_LOGLEVEL_ERROR)) ec_log_u2(EC_LOGLEVEL_ERROR, __VA_ARGS__); } while (false)
+#define ec_log_warn(...)    do { if (ec_log_get()->Log(EC_LOGLEVEL_WARNING)) ec_log_u2(EC_LOGLEVEL_WARNING, __VA_ARGS__); } while (false)
+#define ec_log_notice(...)  do { if (ec_log_get()->Log(EC_LOGLEVEL_NOTICE)) ec_log_u2(EC_LOGLEVEL_NOTICE, __VA_ARGS__); } while (false)
+#define ec_log_info(...)    do { if (ec_log_get()->Log(EC_LOGLEVEL_INFO)) ec_log_u2(EC_LOGLEVEL_INFO, __VA_ARGS__); } while (false)
+#define ec_log_debug(...)   do { if (ec_log_get()->Log(EC_LOGLEVEL_DEBUG)) ec_log_u2(EC_LOGLEVEL_DEBUG, __VA_ARGS__); } while (false)
+#define kc_perror(s, r)     (ec_log_get()->Log(EC_LOGLEVEL_ERROR) ? ec_log_hrcode((r), EC_LOGLEVEL_ERROR, (s), nullptr) : (r))
+#define kc_perrorf(s, r)    (ec_log_get()->Log(EC_LOGLEVEL_ERROR) ? ec_log_hrcode((r), EC_LOGLEVEL_ERROR, (s), __PRETTY_FUNCTION__) : (r))
+#define kc_pwarn(s, r)      (ec_log_get()->Log(EC_LOGLEVEL_WARNING) ? ec_log_hrcode((r), EC_LOGLEVEL_WARNING, (s), nullptr) : (r))
 
 extern KC_EXPORT HRESULT ec_log_hrcode(HRESULT, unsigned int level, const char *fmt, const char *func);
 extern KC_EXPORT std::shared_ptr<ECLogger> CreateLogger(ECConfig *, const char *argv0, const char *service, bool audit = false);

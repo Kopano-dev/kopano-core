@@ -1081,7 +1081,15 @@ void ec_log(unsigned int level, const char *fmt, ...)
 	va_end(argp);
 }
 
-void ec_log(unsigned int level, const std::string &msg)
+void ec_log_u2(unsigned int level, const char *fmt, ...)
+{
+	va_list argp;
+	va_start(argp, fmt);
+	ec_log_target->logv(level, fmt, argp);
+	va_end(argp);
+}
+
+void ec_log_u2(unsigned int level, const std::string &msg)
 {
 	ec_log_target->log(level, msg.c_str());
 }
@@ -1110,9 +1118,9 @@ HRESULT ec_log_hrcode(HRESULT code, unsigned int level,
     const char *str, const char *func)
 {
 	if (func == nullptr)
-		ec_log(level, "%s: %s (%x)", str, GetMAPIErrorMessage(code), code);
+		ec_log_u2(level, "%s: %s (%x)", str, GetMAPIErrorMessage(code), code);
 	else
-		ec_log(level, "%s: %s: %s (%x)", func, str, GetMAPIErrorMessage(code), code);
+		ec_log_u2(level, "%s: %s: %s (%x)", func, str, GetMAPIErrorMessage(code), code);
 	return code;
 }
 
