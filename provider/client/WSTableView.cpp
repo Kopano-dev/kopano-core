@@ -15,7 +15,11 @@
 /*
  * TableView operations for WS transport
  */
-#define START_SOAP_CALL retry:
+#define START_SOAP_CALL retry: \
+	if (m_lpTransport->m_lpCmd == nullptr) { \
+		hr = MAPI_E_NETWORK_ERROR; \
+		goto exit; \
+	}
 #define END_SOAP_CALL 	\
 	if (er == KCERR_END_OF_SESSION && m_lpTransport->HrReLogon() == hrSuccess) \
 		goto retry; \

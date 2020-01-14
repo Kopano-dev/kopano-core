@@ -7,7 +7,6 @@
 #endif
 #include <condition_variable>
 #include <mutex>
-#include <stdexcept>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -242,7 +241,7 @@ static void sd_term(int)
 	sd_cond_exit.notify_all();
 }
 
-int main(int argc, const char **argv) try
+int main(int argc, const char **argv)
 {
 	setlocale(LC_ALL, "");
 	ec_log_get()->SetLoglevel(EC_LOGLEVEL_INFO);
@@ -277,6 +276,4 @@ int main(int argc, const char **argv) try
 	}
 	sd_mainloop(std::move(sk));
 	return EXIT_SUCCESS;
-} catch (...) {
-	std::terminate();
 }

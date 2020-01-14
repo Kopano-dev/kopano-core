@@ -4,7 +4,6 @@
  */
 #include <kopano/platform.h>
 #include <algorithm>
-#include <exception>
 #include <iostream>
 #include <list>
 #include <set>
@@ -1747,7 +1746,7 @@ static int clearcache(const char *arg0, const char *path, const char *s_mode)
 	return fexech(arg0, {"kopano-srvadm", "--clear-cache", kc_join(v, ",").c_str()}, path);
 }
 
-int main(int argc, char **argv) try
+int main(int argc, char **argv)
 {
 	AutoMAPI mapiinit;
 	object_ptr<IMAPISession> lpSession;
@@ -3206,6 +3205,4 @@ exit:
 	cerr << "Using the -v option (possibly multiple times) may "
 	     << "give more hints." << endl;
 	return 1;
-} catch (...) {
-	std::terminate();
 }

@@ -790,7 +790,7 @@ HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 		return MAPI_E_CALL_FAILED;
 
 	object_ptr<ECMemTableView> lpView;
-	auto hr = lpAttachments->HrGetView(createLocaleFromName(""),
+	auto hr = lpAttachments->HrGetView(createLocaleFromName(nullptr),
 	          ulFlags & MAPI_UNICODE, &~lpView);
 	if(hr != hrSuccess)
 		return hr;
@@ -1001,7 +1001,7 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	}
 
 	object_ptr<ECMemTableView> lpView;
-	auto hr = lpRecips->HrGetView(createLocaleFromName(""),
+	auto hr = lpRecips->HrGetView(createLocaleFromName(nullptr),
 	          ulFlags & MAPI_UNICODE, &~lpView);
 	if(hr != hrSuccess)
 		return hr;

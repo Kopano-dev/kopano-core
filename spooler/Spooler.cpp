@@ -19,7 +19,6 @@
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
-#include <exception>
 #include <list>
 #include <map>
 #include <memory>
@@ -1168,7 +1167,8 @@ static int main2(int argc, char **argv)
 	return hr;
 }
 
-int main(int argc, char **argv) try {
+int main(int argc, char **argv)
+{
 	auto hr = main2(argc, argv);
 	switch(hr) {
 	case hrSuccess:
@@ -1181,8 +1181,6 @@ int main(int argc, char **argv) try {
 
 	// forked: failed sending message, but is already removed from the queue
 	return EXIT_FAILURE;
-} catch (...) {
-	std::terminate();
 }
 
 spooler_stats::spooler_stats(std::shared_ptr<ECConfig> cfg) :

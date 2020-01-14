@@ -174,6 +174,8 @@ void WSMessageStreamImporter::run()
 {
 	unsigned int ulResult = 0;
 	struct xsd__Binary sStreamData;
+	if (m_ptrTransport->m_lpCmd == nullptr)
+		return;
 	struct soap *lpSoap = m_ptrTransport->m_lpCmd->soap;
 	propVal *lpsConflictItems = NULL;
 

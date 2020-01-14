@@ -33,7 +33,6 @@
  */
 #include <kopano/platform.h>
 #include <atomic>
-#include <exception>
 #include <memory>
 #include <string>
 #include <utility>
@@ -3197,7 +3196,8 @@ static int get_return_value(HRESULT hr, bool listen_lmtp, bool qmail)
 	return qmail ? 100 : EX_SOFTWARE;
 }
 
-int main(int argc, char **argv) try {
+int main(int argc, char **argv)
+{
 	FILE *fp = stdin;
 	HRESULT hr = hrSuccess;
 	bool bDefaultConfigWarning = false; // Provide warning when default configuration is used
@@ -3556,8 +3556,6 @@ int main(int argc, char **argv) try {
 	}
 
 	return get_return_value(hr, bListenLMTP, qmail);
-} catch (...) {
-	std::terminate();
 }
 
 dagent_stats::dagent_stats(std::shared_ptr<ECConfig> cfg) :

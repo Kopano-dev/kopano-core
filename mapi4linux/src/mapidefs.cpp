@@ -506,7 +506,7 @@ HRESULT M4LProviderAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable)
 		lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, NULL, lpDest, cValuesDest);
 	}
 	
-	hr = lpTable->HrGetView(createLocaleFromName(""), ulFlags, &~lpTableView);
+	hr = lpTable->HrGetView(createLocaleFromName(nullptr), ulFlags, &~lpTableView);
 	if(hr != hrSuccess)
 		return hr;
 	return lpTableView->QueryInterface(IID_IMAPITable, reinterpret_cast<void **>(lppTable));
@@ -820,7 +820,7 @@ HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 		}
 	}
 
-	hr = lpTable->HrGetView(createLocaleFromName(""), ulFlags, &~lpTableView);
+	hr = lpTable->HrGetView(createLocaleFromName(nullptr), ulFlags, &~lpTableView);
 	if(hr != hrSuccess)
 		return hr;
 	return lpTableView->QueryInterface(IID_IMAPITable, reinterpret_cast<void **>(lppTable));

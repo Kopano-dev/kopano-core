@@ -92,7 +92,7 @@ noinst_PROGRAMS = kopano-cfgchecker
 pkglibexec_PROGRAMS = eidprint kopano-indexd kscriptrun mapitime
 check_PROGRAMS = tests/ablookup tests/htmltext tests/imtomapi \
 	tests/kc-335 tests/mapialloctime \
-	tests/readflag tests/zcpmd5
+	tests/readflag tests/ustring tests/zcpmd5
 if HAVE_TIDY
 check_PROGRAMS += tests/rosie
 endif
@@ -789,6 +789,8 @@ tests_readflag_SOURCES = tests/readflag.cpp tests/tbi.hpp
 tests_readflag_LDADD = libmapi.la libkcutil.la
 tests_rosie_SOURCES = tests/rosie.cpp
 tests_rosie_LDADD = libkcutil.la
+tests_ustring_SOURCES = tests/ustring.cpp
+tests_ustring_LDADD = libkcutil.la ${icu_uc_LIBS}
 tests_zcpmd5_SOURCES = tests/zcpmd5.cpp
 tests_zcpmd5_LDADD = ${CRYPTO_LIBS} libkcutil.la
 

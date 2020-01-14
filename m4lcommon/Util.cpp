@@ -3108,7 +3108,7 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, void *lpSrcObj,
 						isProblem = true;
 						goto next_include_check;
 					}
-				} else if(lpAttachMethod->Value.ul == ATTACH_OLE &&
+				} else if (ulAttachMethod == ATTACH_OLE &&
 				    src_at->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IStream, 0, 0, &~lpSrcStream) == hrSuccess) {
 					// OLE 2.0 must be open with PR_ATTACH_DATA_OBJ
 					hr = dst_at->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~lpDestStream);

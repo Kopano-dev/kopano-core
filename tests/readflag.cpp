@@ -1,6 +1,5 @@
 /* SPDX-License-Identifier: LGPL-3.0-or-later */
 /* Copyright 2016, Kopano and its licensors */
-#include <exception>
 #include <memory>
 #include <cstdio>
 #include <cstdlib>
@@ -79,7 +78,7 @@ KProp t_set_read(KStore &store, KFolder &root)
 	return eid;
 }
 
-int main(void) try
+int main()
 {
 	int ex = EXIT_FAILURE;
 	try {
@@ -92,6 +91,4 @@ int main(void) try
 		        err.what(), err.code());
 	}
 	return ex;
-} catch (...) {
-	std::terminate();
 }

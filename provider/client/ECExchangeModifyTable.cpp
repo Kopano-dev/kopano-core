@@ -163,7 +163,7 @@ HRESULT ECExchangeModifyTable::GetLastError(HRESULT hResult, ULONG ulFlags,
 HRESULT ECExchangeModifyTable::GetTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 {
 	object_ptr<ECMemTableView> lpView;
-	HRESULT hr = m_ecTable->HrGetView(createLocaleFromName(""), m_ulFlags, &~lpView);
+	auto hr = m_ecTable->HrGetView(createLocaleFromName(nullptr), m_ulFlags, &~lpView);
 	if(hr != hrSuccess)
 		return hr;
 	return lpView->QueryInterface(IID_IMAPITable,
@@ -400,7 +400,7 @@ HRESULT	ECExchangeModifyTable::HrSerializeTable(ECMemTable *lpTable, char **lppS
 	});
 
 	// Get a view
-	auto hr = lpTable->HrGetView(createLocaleFromName(""), MAPI_UNICODE, &~lpView);
+	auto hr = lpTable->HrGetView(createLocaleFromName(nullptr), MAPI_UNICODE, &~lpView);
 	if(hr != hrSuccess)
 		return hr;
 	// Get all Columns

@@ -7,7 +7,6 @@
 #endif
 #include <kopano/platform.h>
 #include <chrono>
-#include <exception>
 #include <iostream>
 #include <string>
 #include <climits>
@@ -625,7 +624,7 @@ static void print_help(const char *name)
 	cout << "  --dump, -d" << "\t\tPrint output as comma separated fields" << endl;
 }
 
-int main(int argc, char **argv) try
+int main(int argc, char **argv)
 {
 	AutoMAPI mapiinit;
 	object_ptr<IMAPISession> lpSession;
@@ -707,6 +706,4 @@ int main(int argc, char **argv) try
 	else
 		dumptable(eTable, lpStore, humanreadable);
 	return EXIT_SUCCESS;
-} catch (...) {
-	std::terminate();
 }

@@ -1,6 +1,5 @@
 /* SPDX-License-Identifier: LGPL-3.0-or-later */
 /* Copyright 2018, Kopano and its licensors */
-#include <stdexcept>
 #include <string>
 #include <climits>
 #include <cstdio>
@@ -143,7 +142,7 @@ static HRESULT setup_zc(IMAPISession *ses)
 	return hrSuccess;
 }
 
-int main(int argc, char **argv) try
+int main(int argc, char **argv)
 {
 	std::wstring user = L"foo", pass = L"xfoo";
 	if (argc >= 3) {
@@ -168,6 +167,4 @@ int main(int argc, char **argv) try
 	/* walk virtual root; contains default dir at some point */
 	container_do(0, ab, nullptr, 0);
 	return EXIT_SUCCESS;
-} catch (...) {
-	std::terminate();
 }

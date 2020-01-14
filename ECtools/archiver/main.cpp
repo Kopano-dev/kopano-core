@@ -3,7 +3,6 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
-#include <exception>
 #include <iostream>
 #include <memory>
 #include <sstream>
@@ -183,7 +182,7 @@ static inline const char *yesno(bool bValue) { return bValue ? "yes" : "no"; }
 
 using namespace KC;
 
-int main(int argc, char **argv) try
+int main(int argc, char **argv)
 {
     modes mode = MODE_INVALID;
     tstring strUser;
@@ -545,6 +544,4 @@ int main(int argc, char **argv) try
         break;
     }
     return 0;
-} catch (...) {
-	std::terminate();
 }

@@ -1,7 +1,11 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-import io
-
+from sys import hexversion
 from PIL import Image
+
+if hexversion > 0x03000000:
+    import io
+else:
+    import StringIO as io
 
 import MAPI
 from MAPI.Util import *
