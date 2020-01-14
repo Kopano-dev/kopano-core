@@ -152,7 +152,7 @@ HRESULT M4LProfAdmin::GetProfileTable(ULONG ulFlags, LPMAPITABLE* lppTable) {
 			return kc_perrorf("HrModifyRow failed", hr);
 	}
 
-	hr = lpTable->HrGetView(createLocaleFromName(""), ulFlags, &~lpTableView);
+	hr = lpTable->HrGetView(createLocaleFromName(nullptr), ulFlags, &~lpTableView);
 	if (hr != hrSuccess)
 		return kc_perrorf("HrGetView failed", hr);
 	hr = lpTableView->QueryInterface(IID_IMAPITable, (void **)lppTable);
@@ -409,7 +409,7 @@ HRESULT M4LMsgServiceAdmin::GetMsgServiceTable(ULONG ulFlags, LPMAPITABLE* lppTa
 		lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, nullptr, sProps.get(), 4);
 	}
 	
-	hr = lpTable->HrGetView(createLocaleFromName(""), ulFlags, &~lpTableView);
+	hr = lpTable->HrGetView(createLocaleFromName(nullptr), ulFlags, &~lpTableView);
 	if (hr != hrSuccess)
 		return kc_perrorf("failed to create memtable view", hr);
 	hr = lpTableView->QueryInterface(IID_IMAPITable, (void **)lppTable);
@@ -729,7 +729,7 @@ HRESULT M4LMsgServiceAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTabl
 			return kc_perrorf("HrModifyRow failed", hr);
 	}
 	
-	hr = lpTable->HrGetView(createLocaleFromName(""), ulFlags, &~lpTableView);
+	hr = lpTable->HrGetView(createLocaleFromName(nullptr), ulFlags, &~lpTableView);
 	if (hr != hrSuccess)
 		return kc_perrorf("HrGetView failed", hr);
 	hr = lpTableView->QueryInterface(IID_IMAPITable, (void **)lppTable);
@@ -815,7 +815,7 @@ HRESULT M4LMAPISession::GetMsgStoresTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 			return kc_perrorf("HrModifyRow failed", hr);
 	}
 	
-	hr = lpTable->HrGetView(createLocaleFromName(""), ulFlags, &~lpTableView);
+	hr = lpTable->HrGetView(createLocaleFromName(nullptr), ulFlags, &~lpTableView);
 	if (hr != hrSuccess)
 		return kc_perrorf("HrGetView failed", hr);
 	hr = lpTableView->QueryInterface(IID_IMAPITable, (void **)lppTable);

@@ -92,6 +92,7 @@ stamp-h2
 /tests/kc-335
 /tests/mapialloctime
 /tests/readflag
+/tests/ustring
 /tests/zcpmd5
 
 # /autoconf/

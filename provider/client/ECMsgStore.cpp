@@ -755,7 +755,7 @@ HRESULT ECMsgStore::GetReceiveFolderTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 		if(hr != hrSuccess)
 			return hr;
 	}
-	hr = lpMemTable->HrGetView(createLocaleFromName(""), ulFlags & MAPI_UNICODE, &~lpView);
+	hr = lpMemTable->HrGetView(createLocaleFromName(nullptr), ulFlags & MAPI_UNICODE, &~lpView);
 	if(hr != hrSuccess)
 		return hr;
 	return lpView->QueryInterface(IID_IMAPITable, (void **)lppTable);
