@@ -40,7 +40,7 @@ def _permissions_dumps(obj, stats=None):
         acl_table = obj.mapiobj.OpenProperty(PR_ACL_TABLE,
             IID_IExchangeModifyTable, 0, 0)
         table = acl_table.GetTable(0)
-        for row in table.QueryRows(-1,0):
+        for row in table.QueryRows(2147483647, 0):
             entryid = row[1].Value
             try:
                 row[1].Value = (b'user', server.sa.GetUser(entryid,

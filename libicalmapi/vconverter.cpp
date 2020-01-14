@@ -5,6 +5,7 @@
 #include <kopano/platform.h>
 #include <memory>
 #include <utility>
+#include <climits>
 #include <kopano/ECRestriction.h>
 #include "vconverter.h"
 #include "valarm.h"
@@ -971,7 +972,7 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 	HRESULT hr = hrSuccess;
 	std::wstring strEmail, strName;
 	std::string strType;
-	icalrecip icrAttendee = {0};
+	icalrecip icrAttendee;
 	unsigned int cbEntryID = 0;
 	memory_ptr<ENTRYID> lpEntryID;
 
@@ -1282,7 +1283,7 @@ HRESULT VConverter::HrAddReminder(icalcomponent *lpicEventRoot, icalcomponent *l
  */
 HRESULT VConverter::HrAddRecurrence(icalcomponent *lpicEventRoot, icalcomponent *lpicEvent, bool bIsAllday, icalitem *lpIcalItem)
 {
-	SPropValue spSpropVal = {0};
+	SPropValue spSpropVal{};
 	TIMEZONE_STRUCT zone;
 	auto dtstart_prop = icalcomponent_get_first_property(lpicEvent, ICAL_DTSTART_PROPERTY);
 	auto dtstart = icalproperty_get_dtstart(dtstart_prop);
@@ -1388,7 +1389,7 @@ HRESULT VConverter::HrFindTimezone(ULONG ulProps, LPSPropValue lpProps, std::str
 {
 	HRESULT hr = hrSuccess;
 	string strTZid;
-	TIMEZONE_STRUCT ttTZinfo = {0};
+	TIMEZONE_STRUCT ttTZinfo{};
 	icaltimezone *lpicTZinfo = NULL;
 	icalcomponent *lpicComp = NULL;
 	size_t ulPos = 0;
@@ -1544,7 +1545,7 @@ HRESULT VConverter::HrSetTimeProperty(time_t tStamp, bool bDateOnly, icaltimezon
 
 /**
  * Sets the Organizer (From) and Attendees (To and Cc) in the given
- * ical event. It also determains the ical method for this event,
+ * ical event. It also determines the ical method for this event,
  * since the method and attendees depend on the message class and the
  * meeting status.
  *
@@ -1653,7 +1654,7 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 			return hr;
 
 		rowset_ptr lpRows;
-		hr = lpTable->QueryRows(-1, 0, &~lpRows);
+		hr = lpTable->QueryRows(INT_MAX, 0, &~lpRows);
 		if (hr != hrSuccess)
 			return hr;
 		// The response should only be sent to the organizer (@todo restrict on MAPI_TO ? ...)
@@ -1813,7 +1814,7 @@ HRESULT VConverter::HrSetICalAttendees(LPMESSAGE lpMessage, const std::wstring &
 	hr = lpTable->SetColumns(sptaRecipProps, 0);
 	if (hr != hrSuccess)
 		return hr;
-	hr = lpTable->QueryRows(-1, 0, &~lpRows);
+	hr = lpTable->QueryRows(INT_MAX, 0, &~lpRows);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -2201,7 +2202,7 @@ HRESULT VConverter::HrSetItemSpecifics(ULONG ulProps, LPSPropValue lpProps, ical
  */
 HRESULT VConverter::HrSetRecurrenceID(LPSPropValue lpMsgProps, ULONG ulMsgProps, icaltimezone *lpicTZinfo, const std::string &strTZid, icalcomponent *lpEvent)
 {
-	icaltimetype icTime = {0};
+	icaltimetype icTime{};
 	time_t tRecId = 0;
 
 	// We cannot check if PROP_ISEXCEPTION is set to TRUE, since Outlook sends accept messages on excetions with that property set to false.
@@ -2592,7 +2593,7 @@ HRESULT VConverter::HrGetExceptionMessage(LPMESSAGE lpMessage, time_t tStart, LP
 	const SPropValue *lpPropVal = nullptr;
 	object_ptr<IAttach> lpAttach;
 	LPMESSAGE lpAttachedMessage = NULL;
-	SPropValue sStart = {0}, sMethod = {0};
+	SPropValue sStart{}, sMethod = {};
 
 	sStart.ulPropTag = PR_EXCEPTION_STARTTIME;
 	sStart.Value.ft  = UnixTimeToFileTime(tStart);
@@ -2613,7 +2614,7 @@ HRESULT VConverter::HrGetExceptionMessage(LPMESSAGE lpMessage, time_t tStart, LP
 		return hr;
 
 	// should result in 1 attachment
-	hr = lpAttachTable->QueryRows(-1, 0, &~lpRows);
+	hr = lpAttachTable->QueryRows(INT_MAX, 0, &~lpRows);
 	if (hr != hrSuccess)
 		return hr;
 	if (lpRows->cRows == 0)
@@ -2799,7 +2800,7 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 	icalproperty *lpProp = NULL;
 	memory_ptr<SPropValue> lpMsgProps;
 	ULONG ulMsgProps = 0;
-	TIMEZONE_STRUCT ttTZinfo = {0};
+	TIMEZONE_STRUCT ttTZinfo{};
 	icaltimezone *lpicTZinfo = NULL;
 	std::string strTZid, strUid;
 	std::wstring wstrBuf;

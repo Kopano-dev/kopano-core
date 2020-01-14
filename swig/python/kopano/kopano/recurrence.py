@@ -1154,7 +1154,7 @@ class Recurrence(object):
             table = item.mapiobj.OpenProperty(PR_MESSAGE_RECIPIENTS,
                 IID_IMAPITable, MAPI_UNICODE, 0)
             table.SetColumns(_meetingrequest.RECIP_PROPS, 0)
-            recips = list(table.QueryRows(-1, 0))
+            recips = list(table.QueryRows(2147483647, 0))
 
             for recip in recips:
                 flags = PpropFindProp(recip, PR_RECIPIENT_FLAGS)
@@ -1240,7 +1240,7 @@ class Recurrence(object):
                 IID_IMAPITable, MAPI_UNICODE, 0)
             table.SetColumns(_meetingrequest.RECIP_PROPS, 0)
 
-            recips = list(table.QueryRows(-1, 0))
+            recips = list(table.QueryRows(2147483647, 0))
             for recip in recips:
                 flags = PpropFindProp(recip, PR_RECIPIENT_FLAGS)
                 if flags and flags.Value != (recipOrganizer | recipSendable):

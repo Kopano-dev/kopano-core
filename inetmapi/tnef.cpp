@@ -1329,8 +1329,6 @@ HRESULT ECTNEF::Finish()
 {
 	STATSTG sStat;
 	ULONG ulChecksum, ulAttachNum;
-	LARGE_INTEGER zero = {{0,0}};
-	ULARGE_INTEGER uzero = {{0,0}};
 	// attachment vars
 	object_ptr<IMessage> lpAttMessage;
 	SPropValue sProp;
@@ -1402,7 +1400,7 @@ HRESULT ECTNEF::Finish()
 				hr = lpSubStream->Write(p->Value.bin.lpb, p->Value.bin.cb, NULL);
 				if (hr != hrSuccess)
 					return hr;
-				hr = lpSubStream->Seek(zero, STREAM_SEEK_SET, NULL);
+				hr = lpSubStream->Seek(large_int_zero, STREAM_SEEK_SET, nullptr);
 				if (hr != hrSuccess)
 					return hr;
 				hr = lpAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY, &~lpAttMessage);
@@ -1470,13 +1468,13 @@ HRESULT ECTNEF::Finish()
 	hr = HrWriteDWord(m_lpStream, sStat.cbSize.LowPart); // Write size
 	if (hr != hrSuccess)
 		return hr;
-	hr = lpPropStream->Seek(zero, STREAM_SEEK_SET, NULL);
+	hr = lpPropStream->Seek(large_int_zero, STREAM_SEEK_SET, nullptr);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpPropStream->CopyTo(m_lpStream, sStat.cbSize, NULL, NULL); // Write data
 	if (hr != hrSuccess)
 		return hr;
-	hr = lpPropStream->Seek(zero, STREAM_SEEK_SET, NULL);
+	hr = lpPropStream->Seek(large_int_zero, STREAM_SEEK_SET, nullptr);
 	if (hr != hrSuccess)
 		return hr;
 	hr = HrGetChecksum(lpPropStream, &ulChecksum);
@@ -1501,7 +1499,7 @@ HRESULT ECTNEF::Finish()
 		}
 
 		// Write property block
-		hr = lpPropStream->SetSize(uzero);
+		hr = lpPropStream->SetSize(ularge_int_zero);
 		if (hr != hrSuccess)
 			return hr;
 		hr = HrWritePropStream(lpPropStream, att->lstProps);
@@ -1695,7 +1693,6 @@ HRESULT ECTNEF::HrGetChecksum(IStream *lpStream, ULONG *lpulChecksum)
 {
 	ULONG ulChecksum = 0;
 	object_ptr<IStream> lpClone;
-	LARGE_INTEGER zero = {{0,0}};
 	ULONG ulRead = 0;
 	unsigned char buffer[4096];
 	unsigned int i = 0;
@@ -1703,7 +1700,7 @@ HRESULT ECTNEF::HrGetChecksum(IStream *lpStream, ULONG *lpulChecksum)
 	auto hr = lpStream->Clone(&~lpClone);
 	if(hr != hrSuccess)
 		return hr;
-	hr = lpClone->Seek(zero, STREAM_SEEK_SET, NULL);
+	hr = lpClone->Seek(large_int_zero, STREAM_SEEK_SET, nullptr);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -1734,7 +1731,6 @@ HRESULT ECTNEF::HrGetChecksum(IStream *lpStream, ULONG *lpulChecksum)
 HRESULT ECTNEF::HrWriteBlock(IStream *lpDestStream, IStream *lpSourceStream, ULONG ulBlockID, ULONG ulLevel)
 {
     ULONG ulChecksum = 0;
-    LARGE_INTEGER zero = {{0,0}};
     STATSTG         sStat;
 
 	auto hr = HrWriteByte(lpDestStream, ulLevel);
@@ -1743,7 +1739,7 @@ HRESULT ECTNEF::HrWriteBlock(IStream *lpDestStream, IStream *lpSourceStream, ULO
     hr = HrGetChecksum(lpSourceStream, &ulChecksum);
     if(hr != hrSuccess)
 		return hr;
-    hr = lpSourceStream->Seek(zero, STREAM_SEEK_SET, NULL);
+	hr = lpSourceStream->Seek(large_int_zero, STREAM_SEEK_SET, nullptr);
     if(hr != hrSuccess)
 		return hr;
     hr = HrWriteDWord(lpDestStream, ulBlockID);

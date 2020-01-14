@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: LGPL-3.0-or-later
  * Copyright 2019 Kopano B.V.
  */
-#include <exception>
 #include <memory>
 #include <string>
 #include <utility>
@@ -242,13 +241,11 @@ static HRESULT vtm_parse_options(int &argc, const char **&argv)
 	return hrSuccess;
 }
 
-int main(int argc, const char **argv) try
+int main(int argc, const char **argv)
 {
 	setlocale(LC_ALL, "");
 	auto ret = vtm_parse_options(argc, argv);
 	if (ret != hrSuccess)
 		return EXIT_FAILURE;
 	return vtm_login(--argc, ++argv) == hrSuccess ? EXIT_SUCCESS : EXIT_FAILURE;
-} catch (...) {
-	std::terminate();
 }

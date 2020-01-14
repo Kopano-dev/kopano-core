@@ -470,8 +470,8 @@ ULONG recurrence::getModifiedBusyStatus(ULONG id) const
 void recurrence::addModifiedException(time_t tStart, time_t tEnd,
     time_t tOriginalStart, ULONG *lpid)
 {
-	RecurrenceState::Exception sException = {0};
-	RecurrenceState::ExtendedException sExtException = {0};
+	RecurrenceState::Exception sException;
+	RecurrenceState::ExtendedException sExtException;
 
 	// this is not thread safe, but since this code is not (yet)
 	// called in a thread unsafe manner I could not care less at

@@ -172,7 +172,7 @@ HRESULT ArchiveHelper::GetAttachedUser(abentryid_t *lpsUserEntryId)
 HRESULT ArchiveHelper::SetAttachedUser(const abentryid_t &sUserEntryId)
 {
 	MAPIFolderPtr ptrFolder;
-	SPropValue sPropValue = {0};
+	SPropValue sPropValue{};
 
 	auto hr = GetArchiveFolder(true, &~ptrFolder);
 	if (hr != hrSuccess)
@@ -290,7 +290,7 @@ HRESULT ArchiveHelper::GetArchiveType(ArchiveType *lparchType, AttachType *lpatt
 HRESULT ArchiveHelper::SetArchiveType(ArchiveType archType, AttachType attachType)
 {
 	MAPIFolderPtr ptrArchiveFolder;
-	SPropValue sPropVal = {0};
+	SPropValue sPropVal{};
 
 	sPropVal.ulPropTag = PROP_ARCHIVE_TYPE;
 	sPropVal.Value.l = archType;

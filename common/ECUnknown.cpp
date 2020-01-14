@@ -107,19 +107,18 @@ BOOL ECUnknown::IsChildOf(const ECUnknown *lpObject) const
 
 HRESULT ECUnknown::Suicide() {
 	auto parent = lpParent;
-	auto self = this;
-
-	// First, destroy the current object
 	lpParent = nullptr;
-	delete this;
-
-	// WARNING: The child list of our parent now contains a pointer to this
-	// DELETED object. We must make sure that nobody ever follows pointer references
-	// in this list during this interval. The list is, therefore PRIVATE to this object,
-	// and may only be access through functions in ECUnknown.
-	// Now, tell our parent to delete this object
+	/*
+	 * Haphazard lifetime design of EC objects.
+	 * The child's dtor should run before the parent's dtor,
+	 * because ~WSMAPIPropStorage wants to unadvise before
+	 * ~ECMsgStore sends a blunt logoff.
+	 */
+	auto base = dynamic_cast<void *>(this);
+	this->~ECUnknown();
 	if (parent != nullptr)
-		parent->RemoveChild(self);
+		parent->RemoveChild(this);
+	operator delete(base);
 	return hrSuccess;
 }
 

@@ -2,6 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
+#include <climits>
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
 #include "m4l.mapispi.h"
@@ -459,7 +460,7 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 
 		// Get all recipients in distlist, and add to message.
 		// If another distlist is here, it will expand in the next loop.
-		hr = ptrMemberTable->QueryRows(-1, fMapiUnicode, &~ptrMembers);
+		hr = ptrMemberTable->QueryRows(INT_MAX, fMapiUnicode, &~ptrMembers);
 		if (hr != hrSuccess)
 			continue;
 

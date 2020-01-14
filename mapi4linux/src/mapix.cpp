@@ -11,6 +11,7 @@
 #include <utility>
 #include <vector>
 #include <cerrno>
+#include <climits>
 #include <cstddef>
 #include <cstring>
 #include <kopano/ECLogger.h>
@@ -152,7 +153,7 @@ HRESULT M4LProfAdmin::GetProfileTable(ULONG ulFlags, LPMAPITABLE* lppTable) {
 			return kc_perrorf("HrModifyRow failed", hr);
 	}
 
-	hr = lpTable->HrGetView(createLocaleFromName(""), ulFlags, &~lpTableView);
+	hr = lpTable->HrGetView(createLocaleFromName(nullptr), ulFlags, &~lpTableView);
 	if (hr != hrSuccess)
 		return kc_perrorf("HrGetView failed", hr);
 	hr = lpTableView->QueryInterface(IID_IMAPITable, reinterpret_cast<void **>(lppTable));
@@ -411,7 +412,7 @@ HRESULT M4LMsgServiceAdmin::GetMsgServiceTable(ULONG ulFlags, LPMAPITABLE* lppTa
 			return hr;
 	}
 	
-	hr = lpTable->HrGetView(createLocaleFromName(""), ulFlags, &~lpTableView);
+	hr = lpTable->HrGetView(createLocaleFromName(nullptr), ulFlags, &~lpTableView);
 	if (hr != hrSuccess)
 		return kc_perrorf("failed to create memtable view", hr);
 	hr = lpTableView->QueryInterface(IID_IMAPITable, reinterpret_cast<void **>(lppTable));
@@ -730,7 +731,7 @@ HRESULT M4LMsgServiceAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTabl
 			return kc_perrorf("HrModifyRow failed", hr);
 	}
 	
-	hr = lpTable->HrGetView(createLocaleFromName(""), ulFlags, &~lpTableView);
+	hr = lpTable->HrGetView(createLocaleFromName(nullptr), ulFlags, &~lpTableView);
 	if (hr != hrSuccess)
 		return kc_perrorf("HrGetView failed", hr);
 	hr = lpTableView->QueryInterface(IID_IMAPITable, reinterpret_cast<void **>(lppTable));
@@ -816,7 +817,7 @@ HRESULT M4LMAPISession::GetMsgStoresTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 			return kc_perrorf("HrModifyRow failed", hr);
 	}
 	
-	hr = lpTable->HrGetView(createLocaleFromName(""), ulFlags, &~lpTableView);
+	hr = lpTable->HrGetView(createLocaleFromName(nullptr), ulFlags, &~lpTableView);
 	if (hr != hrSuccess)
 		return kc_perrorf("HrGetView failed", hr);
 	hr = lpTableView->QueryInterface(IID_IMAPITable, reinterpret_cast<void **>(lppTable));
@@ -868,7 +869,7 @@ HRESULT M4LMAPISession::OpenMsgStore(ULONG_PTR ulUIParam, ULONG cbEntryID,
 		return kc_perrorf("GetService failed", hr);
 	auto minit = service->MSProviderInit();
 	if (minit == nullptr)
-		return kc_perror("Provider \"%s\" has no MSProviderInit function", MAPI_E_NO_SUPPORT);
+		return kc_perror("Provider has no MSProviderInit function", MAPI_E_NO_SUPPORT);
 	
 	// Find the profile section associated with this entryID
 	hr = serviceAdmin->GetProviderTable(0, &~lpTable);
@@ -1386,7 +1387,7 @@ HRESULT M4LAddrBook::getDefaultSearchPath(ULONG ulFlags, LPSRowSet* lppSearchPat
 	hr = cRes.RestrictTable(lpTable, 0);
 	if (hr != hrSuccess)
 		return kc_perrorf("Restrict failed", hr);
-	hr = lpTable->QueryRows(-1, 0, lppSearchPath);
+	hr = lpTable->QueryRows(INT_MAX, 0, lppSearchPath);
 	if (hr != hrSuccess)
 		kc_perrorf("QueryRows failed", hr);
 	return hr;

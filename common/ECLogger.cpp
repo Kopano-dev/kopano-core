@@ -338,7 +338,7 @@ char *ECLogger_File::DoPrefix(char *buffer, size_t z)
 	if (prefix == LP_TID) {
 #ifdef HAVE_PTHREAD_GETNAME_NP
 		pthread_t th = pthread_self();
-		char name[32] = { 0 };
+		char name[32]{};
 
 		if (pthread_getname_np(th, name, sizeof name))
 			snprintf(buffer, z, "[T%lu] ", kc_threadid());
@@ -691,7 +691,7 @@ namespace PrivatePipe {
 	    ECConfig *lpConfig)
 	{
 		ssize_t ret;
-		char buffer[EC_LOG_BUFSIZE] = {0};
+		char buffer[EC_LOG_BUFSIZE]{};
 		std::string complete;
 		const char *p = NULL;
 		int s;
@@ -991,39 +991,39 @@ void LogConfigErrors(ECConfig *lpConfig)
 
 static void ec_segv_handler(int signr, siginfo_t *si, void *uctx)
 {
-	ec_log_fatal("----------------------------------------------------------------------");
-	ec_log_fatal("Fatal error detected. Please report all following information.");
-	ec_log_fatal("%s %s", ec_program_name.c_str(), ec_program_ver.c_str());
+	ec_log_crit("----------------------------------------------------------------------");
+	ec_log_crit("Fatal error detected. Please report all following information.");
+	ec_log_crit("%s %s", ec_program_name.c_str(), ec_program_ver.c_str());
 	struct utsname buf;
 	if (uname(&buf) == -1)
-		ec_log_fatal("OS: %s", ec_os_pretty_name().c_str());
+		ec_log_crit("OS: %s", ec_os_pretty_name().c_str());
 	else
-		ec_log_fatal("OS: %s (%s %s %s)", ec_os_pretty_name().c_str(), buf.sysname, buf.release, buf.machine);
+		ec_log_crit("OS: %s (%s %s %s)", ec_os_pretty_name().c_str(), buf.sysname, buf.release, buf.machine);
 
 #ifdef HAVE_PTHREAD_GETNAME_NP
-        char name[32] = { 0 };
+        char name[32]{};
         int rc = pthread_getname_np(pthread_self(), name, sizeof name);
 	if (rc)
-		ec_log_fatal("pthread_getname_np failed: %s", strerror(rc));
+		ec_log_crit("pthread_getname_np failed: %s", strerror(rc));
 	else
-		ec_log_fatal("Thread name: %s", name);
+		ec_log_crit("Thread name: %s", name);
 #endif
 
 	struct rusage rusage;
 	if (getrusage(RUSAGE_SELF, &rusage) == -1)
-		ec_log_fatal("getrusage() failed: %s", strerror(errno));
+		ec_log_crit("getrusage() failed: %s", strerror(errno));
 	else
-		ec_log_fatal("Peak RSS: %ld", rusage.ru_maxrss);
+		ec_log_crit("Peak RSS: %ld", rusage.ru_maxrss);
 
 	switch (signr) {
 	case SIGSEGV:
-		ec_log_fatal("Pid %d caught SIGSEGV (%d), traceback:", getpid(), signr);
+		ec_log_crit("Pid %d caught SIGSEGV (%d), traceback:", getpid(), signr);
 		break;
 	case SIGBUS:
-		ec_log_fatal("Pid %d caught SIGBUS (%d), possible invalid mapped memory access, traceback:", getpid(), signr);
+		ec_log_crit("Pid %d caught SIGBUS (%d), possible invalid mapped memory access, traceback:", getpid(), signr);
 		break;
 	case SIGABRT:
-		ec_log_fatal("Pid %d caught SIGABRT (%d), out of memory or unhandled exception, traceback:", getpid(), signr);
+		ec_log_crit("Pid %d caught SIGABRT (%d), out of memory or unhandled exception, traceback:", getpid(), signr);
 		break;
 	}
 
@@ -1038,7 +1038,7 @@ static void ec_segv_handler(int signr, siginfo_t *si, void *uctx)
 #ifdef HAVE_SIGINFO_T_SI_FD
 	ec_log_crit("Affected fd: %d", si->si_fd);
 #endif
-	ec_log_fatal("When reporting this traceback, please include Linux distribution name (and version), system architecture and Kopano version.");
+	ec_log_crit("When reporting this traceback, please include Linux distribution name (and version), system architecture and Kopano version.");
 	/* Reset to DFL to avoid recursion */
 	if (signal(signr, SIG_DFL) == SIG_ERR)
 		ec_log_warn("signal(%d, SIG_DFL): %s", signr, strerror(errno));
@@ -1081,7 +1081,15 @@ void ec_log(unsigned int level, const char *fmt, ...)
 	va_end(argp);
 }
 
-void ec_log(unsigned int level, const std::string &msg)
+void ec_log_u2(unsigned int level, const char *fmt, ...)
+{
+	va_list argp;
+	va_start(argp, fmt);
+	ec_log_target->logv(level, fmt, argp);
+	va_end(argp);
+}
+
+void ec_log_u2(unsigned int level, const std::string &msg)
 {
 	ec_log_target->log(level, msg.c_str());
 }
@@ -1107,12 +1115,12 @@ static void ec_log_bt(unsigned int level, const char *fmt, ...)
 }
 
 HRESULT ec_log_hrcode(HRESULT code, unsigned int level,
-    const char *fmt, const char *func)
+    const char *str, const char *func)
 {
 	if (func == nullptr)
-		ec_log(level, fmt, GetMAPIErrorMessage(code), code);
+		ec_log_u2(level, "%s: %s (%x)", str, GetMAPIErrorMessage(code), code);
 	else
-		ec_log(level, fmt, func, GetMAPIErrorMessage(code), code);
+		ec_log_u2(level, "%s: %s: %s (%x)", func, str, GetMAPIErrorMessage(code), code);
 	return code;
 }
 

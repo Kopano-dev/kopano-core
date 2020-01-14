@@ -433,7 +433,7 @@ HRESULT ArchiverSession::GetGAL(LPABCONT *lppAbContainer)
 	MAPITablePtr	ptrABRCTable;
 	SRowSetPtr		ptrRows;
 	static constexpr const SizedSPropTagArray(1, sGALProps) = {1, {PR_ENTRYID}};
-	SPropValue			  sGALPropVal = {0};
+	SPropValue sGALPropVal{};
 
 	auto hr = m_ptrSession->OpenAddressBook(0, &iid_of(ptrAdrBook), AB_NO_DIALOG, &~ptrAdrBook);
 	if (hr != hrSuccess)

@@ -33,6 +33,9 @@ namespace KC {
 /* This should match what is used in proto.h for __size */
 typedef int gsoap_size_t;
 
+extern KC_EXPORT const ULARGE_INTEGER ularge_int_zero;
+extern KC_EXPORT const LARGE_INTEGER large_int_zero;
+
 /*
  * Platform independent functions
  */

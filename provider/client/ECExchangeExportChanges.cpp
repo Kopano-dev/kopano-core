@@ -245,14 +245,13 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 	}
 
 	if (lpStream == NULL){
-		LARGE_INTEGER lint = {{ 0, 0 }};
-		unsigned int tmp[2] = {0, 0}, ulSize = 0;
+		unsigned int tmp[2]{}, ulSize = 0;
 
 		zlog("Creating new exporter stream");
 		hr = CreateStreamOnHGlobal(GlobalAlloc(GPTR, sizeof(tmp)), true, &~m_lpStream);
 		if (hr != hrSuccess)
 			return zlog("Unable to create new exporter stream", hr);
-		m_lpStream->Seek(lint, STREAM_SEEK_SET, NULL);
+		m_lpStream->Seek(large_int_zero, STREAM_SEEK_SET, nullptr);
 		m_lpStream->Write(tmp, sizeof(tmp), &ulSize);
 	} else {
 		hr = lpStream->QueryInterface(IID_IStream, &~m_lpStream);
@@ -498,10 +497,10 @@ progress:
 
 			if(m_ulChanges) {
 				if (ec_log_get()->Log(EC_LOGLEVEL_DEBUG)) {
-					struct tms	tmsEnd = {0};
+					struct tms tmsEnd{};
 					clock_t		clkEnd = times(&tmsEnd);
 					double		dblDuration = 0;
-					char		szDuration[64] = {0};
+					char szDuration[64]{};
 
 					// Calculate diff
 					dblDuration = (double)(clkEnd - m_clkStart) / TICKS_PER_SEC;
@@ -1098,16 +1097,14 @@ HRESULT ECExchangeExportChanges::ExportFolderDeletes(){
 //write in the stream 4 bytes syncid, 4 bytes changeid, 4 bytes changecount, {4 bytes changeid, 4 bytes sourcekeysize, sourcekey}
 HRESULT ECExchangeExportChanges::UpdateStream(LPSTREAM lpStream){
 	HRESULT hr = hrSuccess;
-	LARGE_INTEGER liPos = {{0, 0}};
-	ULARGE_INTEGER liZero = {{0, 0}};
 	unsigned int ulSize, ulChangeCount = 0, ulChangeId = 0, ulSourceKeySize = 0;
 
 	if(lpStream == NULL)
 		goto exit;
-	hr = lpStream->SetSize(liZero);
+	hr = lpStream->SetSize(ularge_int_zero);
 	if(hr != hrSuccess)
 		goto exit;
-	hr = lpStream->Seek(liPos, STREAM_SEEK_SET, NULL);
+	hr = lpStream->Seek(large_int_zero, STREAM_SEEK_SET, nullptr);
 	if(hr != hrSuccess)
 		goto exit;
 	hr = lpStream->Write(&m_ulSyncId, 4, &ulSize);
@@ -1141,7 +1138,7 @@ HRESULT ECExchangeExportChanges::UpdateStream(LPSTREAM lpStream){
 	}
 
 	// Seek back to the beginning after we've finished
-	lpStream->Seek(liPos, STREAM_SEEK_SET, NULL);
+	lpStream->Seek(large_int_zero, STREAM_SEEK_SET, nullptr);
 exit:
 	if (hr != hrSuccess)
 		return zlog("Stream operation failed", hr);
@@ -1228,7 +1225,6 @@ HRESULT ECExchangeExportChanges::HrDecodeSyncStateStream(IStream *lpStream,
 	STATSTG stat;
 	unsigned int ulSyncId = 0, ulChangeId = 0, ulChangeCount = 0;
 	unsigned int ulProcessedChangeId = 0, ulSourceKeySize = 0;
-	LARGE_INTEGER liPos = {{0, 0}};
 	PROCESSEDCHANGESSET setProcessedChanged;
 
 	auto hr = lpStream->Stat(&stat, STATFLAG_NONAME);
@@ -1241,7 +1237,7 @@ HRESULT ECExchangeExportChanges::HrDecodeSyncStateStream(IStream *lpStream,
 	} else {
 		if (stat.cbSize.HighPart != 0 || stat.cbSize.LowPart < 8)
 			return MAPI_E_INVALID_PARAMETER;
-		hr = lpStream->Seek(liPos, STREAM_SEEK_SET, nullptr);
+		hr = lpStream->Seek(large_int_zero, STREAM_SEEK_SET, nullptr);
 		if (hr != hrSuccess)
 			return hr;
 		hr = lpStream->Read(&ulSyncId, 4, nullptr);

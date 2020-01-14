@@ -82,7 +82,7 @@ HRESULT ics_state(IMAPIProp *p, bool assoc, std::string &out)
 	ret = exp->UpdateState(stream);
 	if (ret != hrSuccess)
 		return kc_perror("UpdateState", ret);
-	ret = stream->Seek(LARGE_INTEGER{}, STREAM_SEEK_SET, nullptr);
+	ret = stream->Seek(large_int_zero, STREAM_SEEK_SET, nullptr);
 	if (ret != hrSuccess)
 		return kc_perror("Seek", ret);
 	STATSTG st{};

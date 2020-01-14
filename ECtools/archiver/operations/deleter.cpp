@@ -35,7 +35,7 @@ HRESULT Deleter::DoProcessEntry(const SRow &proprow)
 {
 	auto lpEntryId = proprow.cfind(PR_ENTRYID);
 	if (lpEntryId == NULL) {
-		Logger()->Log(EC_LOGLEVEL_FATAL, "PR_ENTRYID missing");
+		Logger()->Log(EC_LOGLEVEL_CRIT, "PR_ENTRYID missing");
 		return MAPI_E_NOT_FOUND;
 	}
 	if (m_lstEntryIds.size() >= 50) {
@@ -70,7 +70,7 @@ HRESULT Deleter::PurgeQueuedMessages()
 	}
 	hr = CurrentFolder()->DeleteMessages(ptrEntryList, 0, NULL, 0);
 	if (hr != hrSuccess) {
-		Logger()->logf(EC_LOGLEVEL_FATAL, "Failed to delete %u messages: %s (%x)",
+		Logger()->logf(EC_LOGLEVEL_CRIT, "Failed to delete %u messages: %s (%x)",
 			ptrEntryList->cValues, GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}

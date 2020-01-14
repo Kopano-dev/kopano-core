@@ -111,8 +111,6 @@ static HRESULT RTFCommitFunc(IStream *lpUncompressedStream, void *lpData)
 	STATSTG sStatStg;
 	unsigned int ulRead = 0, ulWritten = 0, ulCompressedSize;
 	std::unique_ptr<char, cstdlib_deleter> lpCompressed;
-	ULARGE_INTEGER zero = {{0,0}};
-	LARGE_INTEGER front = {{0,0}};
 
 	auto hr = lpUncompressedStream->Stat(&sStatStg, STATFLAG_NONAME);
 	if(hr != hrSuccess)
@@ -135,8 +133,8 @@ static HRESULT RTFCommitFunc(IStream *lpUncompressedStream, void *lpData)
 		return MAPI_E_CALL_FAILED;
 	// lpCompressed is the compressed RTF stream, write it to lpCompressedStream
 	lpReadPtr = lpCompressed.get();
-	lpCompressedStream->SetSize(zero);
-	lpCompressedStream->Seek(front,SEEK_SET,NULL);
+	lpCompressedStream->SetSize(ularge_int_zero);
+	lpCompressedStream->Seek(large_int_zero, STREAM_SEEK_SET, nullptr);
 
 	while(ulCompressedSize) {
 		hr = lpCompressedStream->Write(lpReadPtr, std::min(ulCompressedSize, 16384U), &ulWritten);

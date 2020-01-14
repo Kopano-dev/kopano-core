@@ -112,7 +112,7 @@ void ECAndRestriction::operator+=(ECRestrictionList &&o)
 }
 
 HRESULT ECAndRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const {
-	SRestriction restriction = {0};
+	SRestriction restriction{};
 	ULONG i = 0;
 
 	if (lpBase == NULL || lpRestriction == NULL)
@@ -166,7 +166,7 @@ void ECOrRestriction::operator+=(ECRestrictionList &&o)
 }
 
 HRESULT ECOrRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const {
-	SRestriction restriction = {0};
+	SRestriction restriction{};
 	ULONG i = 0;
 
 	if (lpBase == NULL || lpRestriction == NULL)
@@ -204,7 +204,7 @@ ECRestriction *ECOrRestriction::Clone(void) const &
 ECNotRestriction::ECNotRestriction(ResPtr ptrRestriction): m_ptrRestriction(ptrRestriction) {}
 
 HRESULT ECNotRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const {
-	SRestriction restriction = {0};
+	SRestriction restriction{};
 
 	if (lpBase == NULL || lpRestriction == NULL)
 		return MAPI_E_INVALID_PARAMETER;
@@ -246,7 +246,7 @@ ECContentRestriction::ECContentRestriction(ULONG ulFuzzyLevel, ULONG ulPropTag, 
 {}
 
 HRESULT ECContentRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const {
-	SRestriction restriction = {0};
+	SRestriction restriction{};
 
 	if (lpBase == NULL || lpRestriction == NULL)
 		return MAPI_E_INVALID_PARAMETER;
@@ -312,7 +312,7 @@ ECPropertyRestriction::ECPropertyRestriction(ULONG relop, ULONG ulPropTag, PropP
 {}
 
 HRESULT ECPropertyRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const {
-	SRestriction restriction = {0};
+	SRestriction restriction{};
 
 	if (lpBase == NULL || lpRestriction == NULL)
 		return MAPI_E_INVALID_PARAMETER;

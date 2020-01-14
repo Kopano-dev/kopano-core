@@ -1412,7 +1412,7 @@ HRESULT MAPIToVMIME::handleExtraHeaders(IMessage *lpMessage,
 
 	if (!(flags & MTV_SPOOL))
 		return hrSuccess;
-	char buffer[4096] = {0};
+	char buffer[4096]{};
 	if (gethostname(buffer, sizeof buffer) == -1)
 		strcpy(buffer, "???");
 	vmime::relay relay;

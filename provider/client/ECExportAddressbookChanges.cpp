@@ -34,7 +34,6 @@ HRESULT ECExportAddressbookChanges::QueryInterface(REFIID refiid, void **lppInte
 
 HRESULT	ECExportAddressbookChanges::Config(LPSTREAM lpStream, ULONG ulFlags, IECImportAddressbookChanges *lpCollector)
 {
-	LARGE_INTEGER lint = {{ 0, 0 }};
 	STATSTG sStatStg;
 	unsigned int ulCount = 0, ulProcessed = 0, ulRead = 0;
 	ICSCHANGE *lpLastChange = NULL;
@@ -44,7 +43,7 @@ HRESULT	ECExportAddressbookChanges::Config(LPSTREAM lpStream, ULONG ulFlags, IEC
 	auto hr = lpStream->Stat(&sStatStg, 0);
 	if(hr != hrSuccess)
 		return hr;
-	hr = lpStream->Seek(lint, STREAM_SEEK_SET, NULL);
+	hr = lpStream->Seek(large_int_zero, STREAM_SEEK_SET, nullptr);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -242,8 +241,6 @@ HRESULT ECExportAddressbookChanges::Synchronize(ULONG *lpulSteps, ULONG *lpulPro
 
 HRESULT ECExportAddressbookChanges::UpdateState(LPSTREAM lpStream)
 {
-	LARGE_INTEGER zero = {{0,0}};
-	ULARGE_INTEGER uzero = {{0,0}};
 	ULONG ulWritten = 0;
 
 	if(m_ulThisChange == m_ulChanges) {
@@ -254,10 +251,10 @@ HRESULT ECExportAddressbookChanges::UpdateState(LPSTREAM lpStream)
 			m_ulChangeId = m_ulMaxChangeId;
 	}
 
-	auto hr = lpStream->Seek(zero, STREAM_SEEK_SET, nullptr);
+	auto hr = lpStream->Seek(large_int_zero, STREAM_SEEK_SET, nullptr);
 	if(hr != hrSuccess)
 		return hr;
-	hr = lpStream->SetSize(uzero);
+	hr = lpStream->SetSize(ularge_int_zero);
 	if(hr != hrSuccess)
 		return hr;
 	// Write the change ID
@@ -279,7 +276,7 @@ HRESULT ECExportAddressbookChanges::UpdateState(LPSTREAM lpStream)
 			return hr;
 	}
 
-	lpStream->Seek(zero, STREAM_SEEK_SET, NULL);
+	lpStream->Seek(large_int_zero, STREAM_SEEK_SET, nullptr);
 	// All done
 	return hrSuccess;
 }

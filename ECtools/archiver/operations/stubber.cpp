@@ -63,7 +63,7 @@ HRESULT Stubber::ProcessEntry(IMAPIFolder * lpFolder, const SRow &proprow)
 		return MAPI_E_INVALID_PARAMETER;
 	auto lpEntryId = proprow.cfind(PR_ENTRYID);
 	if (lpEntryId == NULL) {
-		Logger()->Log(EC_LOGLEVEL_FATAL, "PR_ENTRYID missing");
+		Logger()->Log(EC_LOGLEVEL_CRIT, "PR_ENTRYID missing");
 		return MAPI_E_NOT_FOUND;
 	}
 	Logger()->logf(EC_LOGLEVEL_DEBUG, "Opening message (%s)", bin2hex(lpEntryId->Value.bin).c_str());
@@ -84,7 +84,7 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 	if (lpMessage == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	SPropValue sProps[3], sProp = {0};
+	SPropValue sProps[3]{}, sProp{};
 	MAPITablePtr ptrAttTable;
 	SRowSetPtr ptrRowSet;
 	AttachPtr ptrAttach;
@@ -143,7 +143,7 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 		for (ULONG i = 0; i < ptrRowSet.size(); ++i) {
 			hr = lpMessage->DeleteAttach(ptrRowSet[i].lpProps[0].Value.ul, 0, NULL, 0);
 			if (hr != hrSuccess) {
-				Logger()->logf(EC_LOGLEVEL_FATAL, "Failed to delete attachment %u: %s (%x)",
+				Logger()->logf(EC_LOGLEVEL_CRIT, "Failed to delete attachment %u: %s (%x)",
 					i, GetMAPIErrorMessage(hr), hr);
 				return hr;
 			}

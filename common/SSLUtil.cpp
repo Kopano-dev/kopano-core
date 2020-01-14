@@ -65,16 +65,25 @@ void ssl_threading_cleanup() {
  */
 void SSL_library_cleanup()
 {
-#ifndef OPENSSL_NO_ENGINE
-	ENGINE_cleanup();
-#endif
-	ERR_free_strings();
-#ifdef OLD_API
-	ERR_remove_state(0);
-#endif
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
+	// No cleanup required, is a current OpenSSL.
+#else // OPENSSL_VERSION_NUMBER < 0x1010000fL
+	// Clean up any possible allocations.
+	OBJ_cleanup();
+	CONF_modules_free();
 	EVP_cleanup();
+#	ifndef OPENSSL_NO_ENGINE
+	ENGINE_cleanup();
+#	endif
+#	if OPENSSL_VERSION_NUMBER >= 0x1000200fL && !defined(OPENSSL_NO_COMP)
+	SSL_COMP_free_compression_methods();
+#	endif
+	ERR_free_strings();
+#	ifdef OLD_API
+	ERR_remove_state(0);
+#	endif
 	CRYPTO_cleanup_all_ex_data();
-	CONF_modules_unload(0);
+#endif // OPENSSL_VERSION_NUMBER
 }
 
 void ssl_random_init()

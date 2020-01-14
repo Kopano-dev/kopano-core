@@ -102,7 +102,7 @@ HRESULT ArchiveControlImpl::Init()
 
 	const char *lpszCleanupAction = m_lpConfig->GetSetting("cleanup_action");
 	if (lpszCleanupAction == NULL || *lpszCleanupAction == '\0') {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Empty cleanup_action specified in config.");
+		m_lpLogger->Log(EC_LOGLEVEL_CRIT, "Empty cleanup_action specified in config.");
 		return MAPI_E_INVALID_PARAMETER;
 	}
 
@@ -113,7 +113,7 @@ HRESULT ArchiveControlImpl::Init()
 	else if (strcasecmp(lpszCleanupAction, "none") == 0)
 		m_cleanupAction = caNone;
 	else {
-		m_lpLogger->logf(EC_LOGLEVEL_FATAL, "Unknown cleanup_action specified in config: \"%s\"", lpszCleanupAction);
+		m_lpLogger->logf(EC_LOGLEVEL_CRIT, "Unknown cleanup_action specified in config: \"%s\"", lpszCleanupAction);
 		return MAPI_E_INVALID_PARAMETER;
 	}
 
@@ -436,15 +436,13 @@ HRESULT ArchiveControlImpl::DoCleanup(const tstring &strUser)
 	m_lpLogger->logf(EC_LOGLEVEL_INFO, "Cleanup store for user \"" TSTRING_PRINTF "\", mode=%s", strUser.c_str(), m_lpConfig->GetSetting("cleanup_action"));
 
 	if (m_bCleanupFollowPurgeAfter) {
-		ULARGE_INTEGER li;
 		SPropValue sPropRefTime;
 
-		li.LowPart = m_ftCurrent.dwLowDateTime;
-		li.HighPart = m_ftCurrent.dwHighDateTime;
-		li.QuadPart -= m_ulPurgeAfter * ARC_DAY;
+		auto qp = (static_cast<uint64_t>(m_ftCurrent.dwHighDateTime) << 32) | m_ftCurrent.dwLowDateTime;
+		qp -= m_ulPurgeAfter * ARC_DAY;
 		sPropRefTime.ulPropTag = PROP_TAG(PT_SYSTIME, 0);
-		sPropRefTime.Value.ft.dwLowDateTime = li.LowPart;
-		sPropRefTime.Value.ft.dwHighDateTime = li.HighPart;
+		sPropRefTime.Value.ft.dwLowDateTime  = qp & 0xffffffff;
+		sPropRefTime.Value.ft.dwHighDateTime = qp >> 32;
 		auto hr = ECOrRestriction(
 			ECAndRestriction(
 				ECExistRestriction(PR_MESSAGE_DELIVERY_TIME) +
@@ -545,7 +543,7 @@ HRESULT ArchiveControlImpl::ProcessFolder2(object_ptr<IMAPIFolder> &ptrFolder,
 			bHaveErrors = true;
 			m_lpLogger->perr("Failed to process entry", hr);
 			if (hr == MAPI_E_STORE_FULL) {
-				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Disk full or over quota.");
+				m_lpLogger->Log(EC_LOGLEVEL_CRIT, "Disk full or over quota.");
 				return hr;
 			}
 		}
@@ -579,19 +577,17 @@ HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
 	bool bErrorOccurred = false;
 	memory_ptr<SRestriction> lpRestriction;
 	SPropValue sPropCreationTime;
-	ULARGE_INTEGER li;
 	SRowSetPtr ptrRowSet;
 	static constexpr const SizedSPropTagArray(2, sptaFolderProps) =
 		{2, {PR_ENTRYID, PR_DISPLAY_NAME}};
     enum {IDX_ENTRYID, IDX_DISPLAY_NAME};
 
 	// Create the common restriction that determines which messages are old enough to purge.
-	li.LowPart = m_ftCurrent.dwLowDateTime;
-	li.HighPart = m_ftCurrent.dwHighDateTime;
-	li.QuadPart -= m_ulPurgeAfter * ARC_DAY;
+	auto qp = (static_cast<uint64_t>(m_ftCurrent.dwHighDateTime) << 32) | m_ftCurrent.dwLowDateTime;
+	qp -= m_ulPurgeAfter * ARC_DAY;
 	sPropCreationTime.ulPropTag = PR_MESSAGE_DELIVERY_TIME;
-	sPropCreationTime.Value.ft.dwLowDateTime = li.LowPart;
-	sPropCreationTime.Value.ft.dwHighDateTime = li.HighPart;
+	sPropCreationTime.Value.ft.dwLowDateTime  = qp & 0xffffffff;
+	sPropCreationTime.Value.ft.dwHighDateTime = qp >> 32;
 	auto hr = ECPropertyRestriction(RELOP_LT, PR_MESSAGE_DELIVERY_TIME, &sPropCreationTime, ECRestriction::Cheap)
 	          .CreateMAPIRestriction(&~lpRestriction, ECRestriction::Cheap);
 	if (hr != hrSuccess)
@@ -866,7 +862,7 @@ HRESULT ArchiveControlImpl::GetAllReferences(IMsgStore *lpUserStore,
 HRESULT ArchiveControlImpl::AppendAllReferences(IMAPIFolder *lpFolder,
     const GUID *lpArchiveGuid, EntryIDSet *lpReferences)
 {
-	BYTE prefixData[4 + sizeof(GUID)] = {0};
+	BYTE prefixData[4+sizeof(GUID)]{};
 	static constexpr const ULONG ulFlagArray[] = {0, SHOW_SOFT_DELETES};
 	SizedSPropTagArray(1, sptaContentProps) = {1, {PT_NULL}};
 
@@ -1330,7 +1326,7 @@ HRESULT ArchiveControlImpl::AppendFolderEntries(LPMAPIFOLDER lpBase, EntryIDSet 
  */
 HRESULT ArchiveControlImpl::CheckSafeCleanupSettings()
 {
-	int loglevel = (m_bForceCleanup ? EC_LOGLEVEL_WARNING : EC_LOGLEVEL_FATAL);
+	int loglevel = m_bForceCleanup ? EC_LOGLEVEL_WARNING : EC_LOGLEVEL_CRIT;
 
 	if (m_bDeleteEnable && !m_bCleanupFollowPurgeAfter) {
 		m_lpLogger->logf(loglevel, "\"delete_enable\" is set to \"%s\" and \"cleanup_follow_purge_after\" is set to \"%s\"",

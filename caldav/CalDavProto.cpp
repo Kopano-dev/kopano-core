@@ -667,7 +667,7 @@ HRESULT CalDAV::HrHandleDelete()
 	int nFldId = 1;
 	std::string strGuid, strUrl;
 	std::wstring wstrFldName, wstrFldTmpName;
-	SBinary sbEid = {0,0};
+	SBinary sbEid{};
 	unsigned int ulObjType = 0, cValues = 0;
 	object_ptr<IMAPIFolder> lpWastBoxFld;
 	memory_ptr<SPropValue> lpProps, lpPropWstBxEID;
@@ -1448,10 +1448,10 @@ HRESULT CalDAV::HrHandleMeeting(ICalToMapi *lpIcalToMapi)
 	memory_ptr<SPropValue> lpsGetPropVal;
 	object_ptr<IMAPIFolder> lpOutbox;
 	object_ptr<IMessage> lpNewMsg;
-	SPropValue lpsSetPropVals[2] = {{0}};
+	SPropValue lpsSetPropVals[2]{};
 	unsigned int cValues = 0, ulObjType = 0;
 	time_t tModTime = 0;
-	SBinary sbEid = {0};
+	SBinary sbEid{};
 	eIcalType etype = VEVENT;
 	static constexpr const SizedSPropTagArray(2, sPropTagArr) =
 		{2, {PR_IPM_OUTBOX_ENTRYID, PR_IPM_SENTMAIL_ENTRYID}};

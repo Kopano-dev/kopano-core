@@ -287,7 +287,7 @@ HRESULT ECMAPIFolderPublic::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTabl
 	auto hr = ECMemTable::Create(sPropsContentColumns, PR_ROWID, &~lpMemTable);
 	if (hr != hrSuccess)
 		return hr;
-	hr = lpMemTable->HrGetView(createLocaleFromName(""), ulFlags & MAPI_UNICODE, &~lpView);
+	hr = lpMemTable->HrGetView(createLocaleFromName(nullptr), ulFlags & MAPI_UNICODE, &~lpView);
 	if (hr != hrSuccess)
 		return hr;
 	return lpView->QueryInterface(IID_IMAPITable, reinterpret_cast<void **>(lppTable));
@@ -302,7 +302,7 @@ HRESULT ECMAPIFolderPublic::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTab
 		// FIXME: if exchange support CONVENIENT_DEPTH than we must implement this
 		if (ulFlags & (SHOW_SOFT_DELETES | CONVENIENT_DEPTH))
 			return MAPI_E_NO_SUPPORT;
-		auto hr = static_cast<ECMsgStorePublic *>(GetMsgStore())->GetIPMSubTree()->HrGetView(createLocaleFromName(""), ulFlags, &~lpView);
+		auto hr = static_cast<ECMsgStorePublic *>(GetMsgStore())->GetIPMSubTree()->HrGetView(createLocaleFromName(nullptr), ulFlags, &~lpView);
 		if(hr != hrSuccess)
 			return hr;
 		return lpView->QueryInterface(IID_IMAPITable, reinterpret_cast<void **>(lppTable));

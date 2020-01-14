@@ -703,7 +703,7 @@ HRESULT GetPublicEntryId(enumPublicEntryID ePublicEntryID,
 		return MAPI_E_INVALID_PARAMETER;
 
 	LPENTRYID lpEntryID = NULL;
-	GUID guidEmpty = {0};
+	GUID guidEmpty{};
 	EID_FIXED eid(MAPI_FOLDER, guidStore, guidEmpty);
 
 	switch (ePublicEntryID) {

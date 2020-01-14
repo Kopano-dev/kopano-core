@@ -268,7 +268,7 @@ wchar_t * CopyPyUnicode(wchar_t **lpWide, PyObject *o, void *lpBase)
 
 FILETIME Object_to_FILETIME(PyObject *object)
 {
-	FILETIME ft = {0, 0};
+	FILETIME ft{};
 	PyObject *filetime = PyObject_GetAttrString(object, "filetime");
 	if (!filetime) {
 		PyErr_Format(PyExc_TypeError, "PT_SYSTIME object does not have 'filetime' attribute");

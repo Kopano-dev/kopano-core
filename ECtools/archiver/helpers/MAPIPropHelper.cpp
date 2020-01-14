@@ -366,7 +366,7 @@ HRESULT MAPIPropHelper::SetArchiveList(const ObjectEntryList &lstArchives, bool 
  */
 HRESULT  MAPIPropHelper::SetReference(const SObjectEntry &sEntry, bool bExplicitCommit)
 {
-	SPropValue sPropArray[2] = {{0}};
+	SPropValue sPropArray[2]{};
 
 	sPropArray[0].ulPropTag = PROP_REF_STORE_ENTRYID;
 	sPropArray[0].Value.bin.cb = sEntry.sStoreEntryId.size();
@@ -419,7 +419,7 @@ HRESULT MAPIPropHelper::GetReference(SObjectEntry *lpEntry)
 
 HRESULT MAPIPropHelper::ReferencePrevious(const SObjectEntry &sEntry)
 {
-	SPropValue sPropValue = {0};
+	SPropValue sPropValue{};
 
 	sPropValue.ulPropTag = PROP_REF_PREV_ENTRYID;
 	sPropValue.Value.bin.cb = sEntry.sItemEntryId.size();

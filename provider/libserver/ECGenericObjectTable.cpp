@@ -736,7 +736,7 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 	unsigned int	ulLoaded = 0;
 	bool bExist, fMatch = true, fHidden = false;
 	ECObjectTableList sQueryRows;
-	struct propTagArray	sPropTagArray = {0, 0};
+	struct propTagArray sPropTagArray{};
 	struct rowSet		*lpRowSet = NULL;
 	struct propTagArray	*lpsRestrictPropTagArray = NULL;
 	struct restrictTable *rt = nullptr;

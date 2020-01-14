@@ -7,6 +7,7 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <climits>
 #include <cstdio>
 #include <cstdlib>
 #include <sstream>
@@ -2606,7 +2607,6 @@ HRESULT IMAP::HrSetSubscribedList() {
 	object_ptr<IMAPIFolder> lpInbox;
 	memory_ptr<ENTRYID> lpEntryID;
 	unsigned int cbEntryID = 0, ulObjType = 0, written;
-	ULARGE_INTEGER liZero = {{0, 0}};
 
 	auto hr = lpStore->GetReceiveFolder(reinterpret_cast<const TCHAR *>("IPM"), 0, &cbEntryID, &~lpEntryID, nullptr);
 	if (hr != hrSuccess)
@@ -2617,7 +2617,7 @@ HRESULT IMAP::HrSetSubscribedList() {
 	hr = lpInbox->OpenProperty(PR_EC_IMAP_SUBSCRIBED, &IID_IStream, STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~lpStream);
 	if (hr != hrSuccess)
 		return hr;
-    lpStream->SetSize(liZero);
+	lpStream->SetSize(ularge_int_zero);
 	unsigned int size = cpu_to_le32(m_vSubscriptions.size());
 	hr = lpStream->Write(&size, sizeof(ULONG), &written);
 	if (hr != hrSuccess)
@@ -2984,7 +2984,7 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFo
 	if (hr != hrSuccess)
 		return kc_perror("K-2390", hr);
 	rowset_ptr rows;
-	hr = table->QueryRows(-1, 0, &~rows);
+	hr = table->QueryRows(INT_MAX, 0, &~rows);
 	if (hr != hrSuccess)
 		return kc_perror("K-2395", hr);
 

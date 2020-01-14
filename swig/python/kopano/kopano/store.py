@@ -1060,7 +1060,7 @@ class Store(Properties):
             SPropValue(PR_MESSAGE_CLASS_W, 'IPM.Microsoft.WunderBar.SFInfo')),
             TBL_BATCH)
 
-        for row in table.QueryRows(-1, 0):
+        for row in table.QueryRows(2147483647, 0):
             try:
                 yield guid_folder[row[1].Value]
             except KeyError:

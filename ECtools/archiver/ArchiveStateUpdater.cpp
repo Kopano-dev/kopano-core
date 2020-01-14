@@ -283,13 +283,13 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstr
 		return hr;
 	}
 	if (!userName.empty())
-		m_lpLogger->logf(EC_LOGLEVEL_FATAL, "Auto detached %u archive(s) from \"" TSTRING_PRINTF "\".", ulDetachCount, userName.c_str());
+		m_lpLogger->logf(EC_LOGLEVEL_CRIT, "Auto detached %u archive(s) from \"" TSTRING_PRINTF "\".", ulDetachCount, userName.c_str());
 	else {
 		tstring strUserName;
 		if (m_ptrSession->GetUserInfo(userId, &strUserName, NULL) == hrSuccess)
-			m_lpLogger->logf(EC_LOGLEVEL_FATAL, "Auto detached %u archive(s) from \"" TSTRING_PRINTF "\".", ulDetachCount, strUserName.c_str());
+			m_lpLogger->logf(EC_LOGLEVEL_CRIT, "Auto detached %u archive(s) from \"" TSTRING_PRINTF "\".", ulDetachCount, strUserName.c_str());
 		else
-			m_lpLogger->logf(EC_LOGLEVEL_FATAL, "Auto detached %u archive(s).", ulDetachCount);
+			m_lpLogger->logf(EC_LOGLEVEL_CRIT, "Auto detached %u archive(s).", ulDetachCount);
 	}
 	return ptrUserStoreHelper->UpdateSearchFolders();
 }
@@ -343,7 +343,7 @@ HRESULT ArchiveStateUpdater::AddCouplingBased(const tstring &userName, const std
 	auto lpManage = dynamic_cast<ArchiveManageImpl *>(ptrManage.get());
 	assert(lpManage != NULL);
 	if (lpManage == NULL) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to dynamic cast to ArchiveManageImpl pointer.");
+		m_lpLogger->Log(EC_LOGLEVEL_CRIT, "Unable to dynamic cast to ArchiveManageImpl pointer.");
 		return MAPI_E_CALL_FAILED;
 	}
 
@@ -391,7 +391,7 @@ HRESULT ArchiveStateUpdater::AddServerBased(const tstring &userName, const abent
 	auto lpManage = dynamic_cast<ArchiveManageImpl *>(ptrManage.get());
 	assert(lpManage != NULL);
 	if (lpManage == NULL) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to dynamic cast to ArchiveManageImpl pointer.");
+		m_lpLogger->Log(EC_LOGLEVEL_CRIT, "Unable to dynamic cast to ArchiveManageImpl pointer.");
 		return MAPI_E_CALL_FAILED;
 	}
 

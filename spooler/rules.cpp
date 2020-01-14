@@ -865,7 +865,7 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 // HRESULT HrDelegateMessage(LPMAPISESSION lpSession, LPEXCHANGEMANAGESTORE lpIEMS, IMAPIProp *lpMessage, LPADRENTRY lpAddress)
 static HRESULT HrDelegateMessage(IMAPIProp *lpMessage)
 {
-	SPropValue sNewProps[6] = {{0}};
+	SPropValue sNewProps[6]{};
 	memory_ptr<SPropValue> lpProps;
 	ULONG cValues = 0;
 	static constexpr const SizedSPropTagArray(5, sptaRecipProps) =
@@ -1310,8 +1310,16 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 		}
 
 		// test if action should be done...
-		// @todo: Create the correct locale for the current store.
-		hr = TestRestriction(lpCondition, *lppMessage, createLocaleFromName(""));
+		memory_ptr<SPropValue> locprop;
+		hr = HrGetOneProp(lpOrigStore, PR_SORT_LOCALE_ID, &~locprop);
+		auto loc = createLocaleFromName("");
+		if (hr == hrSuccess) {
+			const char *localestring = nullptr;
+			hr = LCIDToLocaleId(locprop->Value.ul, &localestring);
+			if (hr == hrSuccess)
+				loc = createLocaleFromName(localestring);
+		}
+		hr = TestRestriction(lpCondition, *lppMessage, loc);
 		if (hr == MAPI_E_NOT_FOUND) {
 			ec_log_info("Rule \"%s\" does not match", strRule.c_str());
 			continue;

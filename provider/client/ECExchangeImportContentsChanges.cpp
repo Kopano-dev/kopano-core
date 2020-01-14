@@ -115,7 +115,6 @@ HRESULT ECExchangeImportContentsChanges::GetLastError(HRESULT hResult, ULONG ulF
 
 HRESULT ECExchangeImportContentsChanges::Config(LPSTREAM lpStream, ULONG ulFlags){
 	HRESULT hr = hrSuccess;
-	LARGE_INTEGER zero = {{0,0}};
 	ULONG ulLen = 0;
 
 	m_lpStream = lpStream;
@@ -125,7 +124,7 @@ HRESULT ECExchangeImportContentsChanges::Config(LPSTREAM lpStream, ULONG ulFlags
 		m_ulFlags = ulFlags;
 		return hrSuccess;
 	}
-	hr = lpStream->Seek(zero, STREAM_SEEK_SET, NULL);
+	hr = lpStream->Seek(large_int_zero, STREAM_SEEK_SET, nullptr);
 	if(hr != hrSuccess)
 		return hr;
 	hr = lpStream->Read(&m_ulSyncId, 4, &ulLen);
@@ -153,7 +152,6 @@ HRESULT ECExchangeImportContentsChanges::Config(LPSTREAM lpStream, ULONG ulFlags
 }
 
 HRESULT ECExchangeImportContentsChanges::UpdateState(LPSTREAM lpStream){
-	LARGE_INTEGER zero = {{0,0}};
 	ULONG ulLen = 0;
 
 	if(lpStream == NULL) {
@@ -164,7 +162,7 @@ HRESULT ECExchangeImportContentsChanges::UpdateState(LPSTREAM lpStream){
 
 	if(m_ulSyncId == 0)
 		return hrSuccess; // config() called with NULL stream, so we'll ignore the UpdateState()
-	auto hr = lpStream->Seek(zero, STREAM_SEEK_SET, nullptr);
+	auto hr = lpStream->Seek(large_int_zero, STREAM_SEEK_SET, nullptr);
 	if(hr != hrSuccess)
 		return hr;
 	hr = lpStream->Write(&m_ulSyncId, 4, &ulLen);

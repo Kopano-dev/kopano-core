@@ -1,6 +1,5 @@
 /* SPDX-License-Identifier: LGPL-3.0-or-later */
 /* Copyright 2016, Kopano and its licensors */
-#include <exception>
 #include <string>
 #include <cassert>
 #include <cstdlib>
@@ -11,7 +10,7 @@
 
 using namespace KC;
 
-int main(int argc, char **argv) try
+int main(int argc, char **argv)
 {
 	std::wstring user = L"foo", pass = L"xfoo";
 	if (argc >= 3) {
@@ -30,6 +29,4 @@ int main(int argc, char **argv) try
 	prop[2].Value.lpszA = const_cast<char *>("IPM.Note");
 	msg->SetProps(3, prop, nullptr);
 	msg->SaveChanges(0);
-} catch (...) {
-	std::terminate();
 }

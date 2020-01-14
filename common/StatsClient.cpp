@@ -425,7 +425,7 @@ std::string ECStatsCollector::GetValue(const SCMap::const_iterator::value_type &
 	case SCT_TIME: {
 		if (iSD.second.data.ts <= 0)
 			break;
-		char timestamp[128] = { 0 };
+		char timestamp[128]{};
 		struct tm *tm = localtime(&iSD.second.data.ts);
 		strftime(timestamp, sizeof timestamp, "%a %b %e %T %Y", tm);
 		return timestamp;
@@ -448,7 +448,7 @@ std::string ECStatsCollector::GetValue(const ECStat2 &i)
 	case SCT_TIME: {
 		if (i.data.ts <= 0)
 			break;
-		char timestamp[128] = { 0 };
+		char timestamp[128]{};
 		struct tm *tm = localtime(&i.data.ts);
 		strftime(timestamp, sizeof(timestamp), "%a %b %e %T %Y", tm);
 		return timestamp;

@@ -555,8 +555,8 @@ int KCmdService::logon(const char *user, const char *pass,
 {
 	ECSession	*lpecSession = NULL;
 	ECSESSIONID	sessionID = 0;
-	GUID		sServerGuid = {0};
-	struct timespec startTimes = {0}, endTimes = {0};
+	GUID sServerGuid{};
+	struct timespec startTimes{}, endTimes{};
 	auto dblStart = steady_clock::now();
 
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTimes);
@@ -656,10 +656,10 @@ int KCmdService::ssoLogon(ULONG64 ulSessionId, const char *szUsername,
 	ECAuthSession	*lpecAuthSession = NULL;
 	ECSession		*lpecSession = NULL;
 	ECSESSIONID		newSessionID = 0;
-	GUID			sServerGuid = {0};
+	GUID sServerGuid{};
 	xsd__base64Binary *lpOutput = NULL;
 	const char *lpszEnabled = NULL;
-	struct timespec startTimes = {0}, endTimes = {0};
+	struct timespec startTimes{}, endTimes{};
 	auto dblStart = steady_clock::now();
 
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTimes);
@@ -793,7 +793,7 @@ nosso:
 int KCmdService::logoff(ULONG64 ulSessionId, unsigned int *result)
 {
 	ECSession 	*lpecSession = NULL;
-	struct timespec startTimes = {0}, endTimes = {0};
+	struct timespec startTimes{}, endTimes{};
 	auto dblStart = steady_clock::now();
 
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTimes);
@@ -822,7 +822,7 @@ exit:
 #define SOAP_ENTRY_START(fname, resultvar, ...) \
 int KCmdService::fname(ULONG64 ulSessionId, ##__VA_ARGS__) \
 { \
-    struct timespec	startTimes = {0}, endTimes = {0};	\
+	struct timespec startTimes{}, endTimes{}; \
 	auto dblStart = steady_clock::now(); \
     ECSession		*lpecSession = NULL; \
 	const char *szFname = #fname; \
@@ -2079,7 +2079,7 @@ static unsigned int SaveObject(struct soap *soap, ECSession *lpecSession,
 	unsigned int ulParentObjType = 0, ulSize = 0, ulObjId = 0;
 	bool fNewItem = false, fHasAttach = false, fGenHasAttach = false;
 	ECListDeleteItems lstDeleteItems, lstDeleted;
-	FILETIME ftCreated = {0}, ftModified = {0};
+	FILETIME ftCreated{}, ftModified{};
 
 	if (ulLevel <= 0)
 		return KCERR_TOO_COMPLEX;
@@ -8944,7 +8944,7 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags,
 	unsigned int ulObjectId = 0, ulParentId = 0, ulParentType = 0;
 	unsigned int ulGrandParentId = 0, ulStoreId = 0, ulAffected = 0;
 	unsigned long long ullIMAP = 0;
-	GUID			sGuid = {0};
+	GUID sGuid{};
 	SOURCEKEY sSourceKey, sParentSourceKey;
 	ECListInt		lObjectList;
 	std::string strColName, strColData;

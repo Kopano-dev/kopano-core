@@ -962,7 +962,7 @@ def kopano_rule(server, user, listrules=False, rule=None, state=None, emptyRules
     table = rule_table.GetTable(0)
     cols = table.QueryColumns(TBL_ALL_COLUMNS)
     table.SetColumns(cols, 0)
-    filters = table.QueryRows(-1, 0)
+    filters = table.QueryRows(2147483647, 0)
 
     if listrules:
         print(user.name)

@@ -107,7 +107,7 @@ HRESULT Copier::Helper::ArchiveMessage(LPMESSAGE lpSource, const SObjectEntry *l
 
 	MAPIPropHelperPtr ptrMsgHelper;
 	SPropValuePtr ptrEntryId;
-	SPropValue sPropArchFlags = {0};
+	SPropValue sPropArchFlags{};
 	PostSaveActionPtr ptrPSAction;
 
 	PROPMAP_START(1)
@@ -385,12 +385,12 @@ HRESULT Copier::DoProcessEntry(const SRow &proprow)
 
 	auto lpEntryId = proprow.cfind(PR_ENTRYID);
 	if (lpEntryId == NULL) {
-		Logger()->Log(EC_LOGLEVEL_FATAL, "PR_ENTRYID missing");
+		Logger()->Log(EC_LOGLEVEL_CRIT, "PR_ENTRYID missing");
 		return MAPI_E_NOT_FOUND;
 	}
 	auto lpStoreEntryId = proprow.cfind(PR_STORE_ENTRYID);
 	if (lpStoreEntryId == NULL) {
-		Logger()->Log(EC_LOGLEVEL_FATAL, "PR_STORE_ENTRYID missing");
+		Logger()->Log(EC_LOGLEVEL_CRIT, "PR_STORE_ENTRYID missing");
 		return MAPI_E_NOT_FOUND;
 	}
 

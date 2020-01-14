@@ -132,7 +132,7 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 	SPropValue sPropFolderID, sPropFolderName;
 	ULONG ulPropTagFldId = 0;
 	rowset_ptr lpRows;
-	SBinary sbEid = {0,0};
+	SBinary sbEid{};
 	IMAPIFolder *lpUsrFld = NULL;
 	unsigned int ulObjType = 0, cbEntryID = 0;
 	convert_context converter;
@@ -486,7 +486,7 @@ bool HasDelegatePerm(IMsgStore *lpDefStore, IMsgStore *lpSharedStore)
 	memory_ptr<SPropValue> lpProp, lpMailBoxEid;
 	object_ptr<IMAPIContainer> lpRootCont;
 	unsigned int ulPos = 0;
-	SBinary sbEid = {0,0};
+	SBinary sbEid{};
 	bool blFound = false;
 
 	HRESULT hr = HrGetOneProp(lpDefStore, PR_MAILBOX_OWNER_ENTRYID, &~lpMailBoxEid);
@@ -555,7 +555,7 @@ HRESULT HrMakeRestriction(const std::string &strGuid, LPSPropTagArray lpNamedPro
 {
 	LPSRestriction lpsRoot = NULL;
 	std::string strBinGuid;
-	SPropValue sSpropVal = {0};
+	SPropValue sSpropVal{};
 	ECOrRestriction rst;
 
 	if (lpsRectrict == nullptr)
@@ -662,7 +662,7 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport *lpFBSupport,
 	memory_ptr<FBUser> lpUsers;
 	memory_ptr<FBBlock_1> lpsFBblks;
 	std::string strMethod, strIcal;
-	FILETIME ftStart = {0, 0}, ftEnd = {0, 0};
+	FILETIME ftStart{}, ftEnd{};
 	LONG lMaxblks = 100, lblkFetched = 0;
 	WEBDAVFBUSERINFO sWebFbUserInfo;
 	std::list<std::string>::const_iterator itUsers;

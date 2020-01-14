@@ -77,7 +77,7 @@ public:
 	virtual char* GetBuffer();
 
 private:
-	ULARGE_INTEGER liPos = {{0}};
+	ULARGE_INTEGER liPos{};
 	ECMemBlock *lpMemBlock = nullptr;
 	CommitFunc		lpCommitFunc;
 	DeleteFunc		lpDeleteFunc;

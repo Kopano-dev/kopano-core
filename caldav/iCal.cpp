@@ -108,7 +108,7 @@ HRESULT iCal::HrHandleIcalPost()
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPITable> lpContTable;
-	SBinary sbEid = {0, 0}, sbUid = {0, 0};
+	SBinary sbEid{}, sbUid{};
 	ULONG ulItemCount = 0;
 	time_t tLastMod = 0;
 	bool blCensorPrivate = false;

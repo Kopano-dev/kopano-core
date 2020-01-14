@@ -19,29 +19,28 @@ enum eIcalType { VEVENT, VTODO, VJOURNAL };
 
 struct icalrecip {
 	/* recipient type (From==organizer, To==attendee, CC==opt attendee ?)) */
-	ULONG ulRecipientType;
+	unsigned int ulRecipientType = 0;
 	/* tentative, canceled */
-	ULONG ulTrackStatus;
+	unsigned int ulTrackStatus = 0;
 	std::wstring strEmail;
 	std::wstring strName;
-	ULONG cbEntryID;
-	LPENTRYID lpEntryID;		/* realloced to icalitem.base !! */
+	unsigned int cbEntryID = 0;
+	ENTRYID *lpEntryID = nullptr; /* realloced to icalitem.base !! */
 };
 
 struct icalitem {
 	memory_ptr<char> base; /* pointer on which we use MAPIAllocateMore, to only need to free this pointer */
-	eIcalType eType;
-	time_t tLastModified;
-	SPropValue sBinGuid;
-	TIMEZONE_STRUCT tTZinfo;
-	ULONG ulFbStatus;
+	eIcalType eType = VEVENT;
+	time_t tLastModified = 0;
+	SPropValue sBinGuid{};
+	TIMEZONE_STRUCT tTZinfo{};
+	unsigned int ulFbStatus = 0;
 	std::unique_ptr<recurrence> lpRecurrence;
 	std::list<SPropValue> lstMsgProps; /* all objects are allocated more on icalitem pointer */
 	std::list<ULONG> lstDelPropTags; /* properties to delete from message */
 	std::list<icalrecip> lstRecips;	/* list of all recipients */	
 	struct exception {
-		time_t tBaseDate;
-		time_t tStartDate;
+		time_t tBaseDate = 0, tStartDate = 0;
 		std::list<SPropValue> lstAttachProps;
 		std::list<SPropValue> lstMsgProps;
 		std::list<icalrecip> lstRecips;

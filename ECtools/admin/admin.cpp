@@ -4,7 +4,6 @@
  */
 #include <kopano/platform.h>
 #include <algorithm>
-#include <exception>
 #include <iostream>
 #include <list>
 #include <set>
@@ -357,7 +356,7 @@ static void print_help(const char *name)
  */
 static char *get_password(void)
 {
-	static char password[80] = {0};
+	static char password[80];
 	auto s = get_password("Type password:");
 	if(s == NULL)
 		return NULL;
@@ -1738,7 +1737,7 @@ static int clearcache(const char *arg0, const char *path, const char *s_mode)
 	return fexech(arg0, {"kopano-srvadm", "--clear-cache", kc_join(v, ",").c_str()}, path);
 }
 
-int main(int argc, char **argv) try
+int main(int argc, char **argv)
 {
 	AutoMAPI mapiinit;
 	object_ptr<IMAPISession> lpSession;
@@ -2389,7 +2388,7 @@ int main(int argc, char **argv) try
 	if ((!bHaveConfig && bExplicitConfig) || (bHaveConfig && !bExplicitConfig && lpsConfig->HasErrors())) {
 		cerr << "Error while reading configuration file " << szConfig << endl;
 		// create fatal logger without a timestamp to stderr
-		lpLogger = std::make_shared<ECLogger_File>(EC_LOGLEVEL_FATAL, 0, "-", false);
+		lpLogger = std::make_shared<ECLogger_File>(EC_LOGLEVEL_CRIT, 0, "-", false);
 		ec_log_set(lpLogger);
 		LogConfigErrors(lpsConfig.get());
 		return 1;
@@ -3197,6 +3196,4 @@ exit:
 	cerr << "Using the -v option (possibly multiple times) may "
 	     << "give more hints." << endl;
 	return 1;
-} catch (...) {
-	std::terminate();
 }

@@ -99,6 +99,7 @@ stamp-h2
 /tests/mapialloctime
 /tests/readflag
 /tests/rosie
+/tests/ustring
 /tests/zcpmd5
 
 # /autoconf/

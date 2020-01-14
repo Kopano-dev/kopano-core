@@ -107,7 +107,7 @@ HRESULT INFLoader::LoadINF(const char *filename)
 		return MAPI_E_NOT_FOUND;
 
 	while (!feof(fp)) {
-		char cBuffer[MAXLINELEN] = {0};
+		char cBuffer[MAXLINELEN]{};
 		if (!fgets(cBuffer, sizeof(cBuffer), fp))
 			continue;
 		auto strLine = trim(cBuffer, " \t");

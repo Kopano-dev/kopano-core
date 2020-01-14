@@ -1646,7 +1646,6 @@ HRESULT Util::HrStreamToString(IStream *sInput, std::string &strOutput) {
 	object_ptr<ECMemStream> lpMemStream;
 	ULONG ulRead = 0;
 	char buffer[BUFSIZE];
-	LARGE_INTEGER zero = {{0,0}};
 
 	if (sInput->QueryInterface(IID_ECMemStream, &~lpMemStream) == hrSuccess) {
 		// getsize, getbuffer, assign
@@ -1654,7 +1653,7 @@ HRESULT Util::HrStreamToString(IStream *sInput, std::string &strOutput) {
 		return hrSuccess;
 	}
 	// manual copy
-	auto hr = sInput->Seek(zero, SEEK_SET, nullptr);
+	auto hr = sInput->Seek(large_int_zero, STREAM_SEEK_SET, nullptr);
 	if (hr != hrSuccess)
 		return hr;
 	while (1) {
@@ -1681,7 +1680,6 @@ HRESULT Util::HrStreamToString(IStream *sInput, std::wstring &strOutput) {
 	object_ptr<ECMemStream> lpMemStream;
 	ULONG ulRead = 0;
 	char buffer[BUFSIZE];
-	LARGE_INTEGER zero = {{0,0}};
 
 	if (sInput->QueryInterface(IID_ECMemStream, &~lpMemStream) == hrSuccess) {
 		// getsize, getbuffer, assign
@@ -1689,7 +1687,7 @@ HRESULT Util::HrStreamToString(IStream *sInput, std::wstring &strOutput) {
 		return hrSuccess;
 	}
 	// manual copy
-	auto hr = sInput->Seek(zero, SEEK_SET, nullptr);
+	auto hr = sInput->Seek(large_int_zero, STREAM_SEEK_SET, nullptr);
 	if (hr != hrSuccess)
 		return hr;
 	while (1) {
@@ -2309,7 +2307,7 @@ static HRESULT FindInterface(LPCIID lpIID, ULONG ulIIDs, LPCIID lpIIDs)
  */
 static HRESULT CopyStream(IStream *lpSrc, IStream *lpDest)
 {
-	ULARGE_INTEGER liRead = {{0}}, liWritten = {{0}};
+	ULARGE_INTEGER liRead{}, liWritten{};
 	STATSTG stStatus;
 	HRESULT hr = lpSrc->Stat(&stStatus, 0);
 	if (FAILED(hr))
@@ -3111,7 +3109,7 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, void *lpSrcObj,
 						isProblem = true;
 						goto next_include_check;
 					}
-				} else if(lpAttachMethod->Value.ul == ATTACH_OLE &&
+				} else if (ulAttachMethod == ATTACH_OLE &&
 				    src_at->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IStream, 0, 0, &~lpSrcStream) == hrSuccess) {
 					// OLE 2.0 must be open with PR_ATTACH_DATA_OBJ
 					hr = dst_at->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~lpDestStream);

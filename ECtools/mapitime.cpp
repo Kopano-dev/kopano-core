@@ -31,21 +31,24 @@
 
 using namespace KC;
 using clk = std::chrono::steady_clock;
+using duration = decltype(time_point()-time_point());
 
 struct mpt_stat_entry {
-	time_point start, stop;
+	duration delta;
 };
 
 class mpt_job {
 	public:
-	virtual int init();
-	virtual int run() = 0;
+	virtual HRESULT init();
+	virtual HRESULT run() = 0;
 	private:
 	AutoMAPI m_mapi;
 };
 
 static pthread_t mpt_ticker;
+static bool mpt_ticker_quit;
 static std::list<struct mpt_stat_entry> mpt_stat_list;
+static duration mpt_stat_time;
 static std::mutex mpt_stat_lock;
 static const char *mpt_user, *mpt_pass, *mpt_socket;
 static size_t mpt_repeat = ~0U;
@@ -53,54 +56,52 @@ static int mpt_loglevel = EC_LOGLEVEL_NOTICE;
 
 static void *mpt_stat_dump(void *)
 {
-	for (;; sleep(1)) {
+	for (; !mpt_ticker_quit; sleep(1)) {
 		std::unique_lock<std::mutex> locker(mpt_stat_lock);
+		auto dt = mpt_stat_time;
 		size_t z = mpt_stat_list.size();
 		if (z == 0)
 			continue;
-		decltype(mpt_stat_list.front().start - mpt_stat_list.front().start) dt;
-		dt = dt.zero();
-		for (const auto &i : mpt_stat_list)
-			dt += i.stop - i.start;
 		locker.unlock();
 		if (dt.count() == 0)
 			continue;
 		printf("\r\x1b\x5b""2K%.1f per second", z / std::chrono::duration_cast<std::chrono::duration<double>>(dt).count());
 		fflush(stdout);
 	}
+	printf("\n");
 	return nullptr;
 }
 
-static void mpt_stat_record(const struct mpt_stat_entry &dp, size_t limit = 300)
+static void mpt_stat_record(const duration &delta, size_t limit = 300)
 {
 	std::lock_guard<std::mutex> locker(mpt_stat_lock);
-	mpt_stat_list.emplace_back(dp);
-	if (mpt_stat_list.size() > limit)
+	mpt_stat_time += delta;
+	mpt_stat_list.emplace_back(mpt_stat_entry{std::move(delta)});
+	if (mpt_stat_list.size() > limit) {
+		mpt_stat_time -= mpt_stat_list.cbegin()->delta;
 		mpt_stat_list.pop_front();
+	}
 }
 
 static int mpt_main_init(void)
 {
-	struct mpt_stat_entry dp;
 	while (mpt_repeat-- > 0) {
-		dp.start = clk::now();
+		auto start = clk::now();
 		HRESULT ret = MAPIInitialize(NULL);
 		if (ret == erSuccess)
 			MAPIUninitialize();
-		dp.stop = clk::now();
-		mpt_stat_record(dp);
+		auto stop = clk::now();
+		mpt_stat_record(stop - start);
 	}
 	return EXIT_SUCCESS;
 }
 
-int mpt_job::init()
+HRESULT mpt_job::init()
 {
 	auto ret = m_mapi.Initialize();
-	if (ret != hrSuccess) {
-		perror("MAPIInitialize");
-		return EXIT_FAILURE;
-	}
-	return EXIT_SUCCESS;
+	if (ret != hrSuccess)
+		return kc_perror("MAPIInitialize", ret);
+	return hrSuccess;
 }
 
 static int mpt_basic_open(object_ptr<IMAPISession> &ses,
@@ -122,89 +123,180 @@ static int mpt_basic_open(object_ptr<IMAPISession> &ses,
 	return hrSuccess;
 }
 
-static int mpt_basic_work(IMsgStore *store)
+static HRESULT mpt_basic_work(IMsgStore *store)
 {
 	memory_ptr<ENTRYID> eid;
 	ULONG neid = 0;
 	auto ret = store->GetReceiveFolder(reinterpret_cast<const TCHAR *>("IPM"), 0, &neid, &~eid, nullptr);
-	if (ret != hrSuccess) {
-		fprintf(stderr, "GRF failed: %s\n", GetMAPIErrorMessage(ret));
-		return EXIT_FAILURE;
-	}
+	if (ret != hrSuccess)
+		return kc_perror("GetReceiveFolder", ret);
 	object_ptr<IMAPIFolder> folder;
 	ULONG type = 0;
 	ret = store->OpenEntry(0, nullptr, &iid_of(folder), MAPI_MODIFY, &type, &~folder);
-	if (ret != hrSuccess) {
-		fprintf(stderr, "OE failed: %s\n", GetMAPIErrorMessage(ret));
-		return EXIT_FAILURE;
-	}
-	return EXIT_SUCCESS;
+	if (ret != hrSuccess)
+		return kc_perror("OpenEntry", ret);
+	return hrSuccess;
 }
 
 class mpt_open1 : public mpt_job {
 	public:
-	int run() override;
+	HRESULT run() override;
 };
 
-int mpt_open1::run()
+HRESULT mpt_open1::run()
 {
 	object_ptr<IMAPISession> ses;
 	object_ptr<IMsgStore> store;
 	auto ret = mpt_basic_open(ses, store);
 	if (ret != hrSuccess)
-		return EXIT_FAILURE;
+		return kc_perror("mpt_basic_open", ret);
 	return mpt_basic_work(store);
 }
 
 class mpt_open2 : public mpt_job {
 	public:
-	int init() override;
-	int run() override;
+	HRESULT init() override;
+	HRESULT run() override;
 	private:
 	std::string m_data;
 };
 
-int mpt_open2::init()
+HRESULT mpt_open2::init()
 {
 	auto ret = mpt_job::init();
 	if (ret != hrSuccess)
-		return EXIT_FAILURE;
+		return kc_perror("mpt_job::init", ret);
 	object_ptr<IMAPISession> ses;
 	object_ptr<IMsgStore> store;
 	ret = mpt_basic_open(ses, store);
-	if (ret != hrSuccess) {
-		fprintf(stderr, "mpt_open_base: %s\n", GetMAPIErrorMessage(ret));
-		return EXIT_FAILURE;
-	}
+	if (ret != hrSuccess)
+		return kc_perror("mpt_basic_open", ret);
 	ret = kc_session_save(ses, m_data);
-	if (ret != hrSuccess) {
-		fprintf(stderr, "save failed: %s\n", GetMAPIErrorMessage(ret));
-		return EXIT_FAILURE;
-	}
-	return EXIT_SUCCESS;
+	if (ret != hrSuccess)
+		return kc_perror("kc_session_save", ret);
+	return hrSuccess;
 }
 
-int mpt_open2::run()
+HRESULT mpt_open2::run()
 {
 	object_ptr<IMAPISession> ses;
 	auto ret = kc_session_restore(m_data, &~ses);
-	if (ret != hrSuccess) {
-		fprintf(stderr, "restore failed: %s\n", GetMAPIErrorMessage(ret));
-		return EXIT_FAILURE;
-	}
+	if (ret != hrSuccess)
+		return kc_perror("kc_session_restore", ret);
 	object_ptr<IMsgStore> store;
 	ret = HrOpenDefaultStore(ses, &~store);
-	if (ret != hrSuccess) {
-		fprintf(stderr, "OpenDefaultStore: %s\n", GetMAPIErrorMessage(ret));
-		return EXIT_FAILURE;
-	}
+	if (ret != hrSuccess)
+		return kc_perror("OpenDefaultStore", ret);
 	return mpt_basic_work(store);
+}
+
+class mpt_proplist : public mpt_job {
+	public:
+	HRESULT init() override;
+	HRESULT run() override;
+
+	protected:
+	object_ptr<IMAPIFolder> m_inbox;
+	rowset_ptr m_rows;
+};
+
+HRESULT mpt_proplist::init()
+{
+	auto ret = mpt_job::init();
+	if (ret != hrSuccess)
+		return kc_perror("mpt_job::init", ret);
+
+	object_ptr<IMAPISession> ses;
+	object_ptr<IMsgStore> store;
+	ret = mpt_basic_open(ses, store);
+	if (ret != hrSuccess)
+		return kc_perror("mpt_basic_open", ret);
+
+	memory_ptr<ENTRYID> eid;
+	unsigned int neid = 0;
+	ret = store->GetReceiveFolder(reinterpret_cast<const TCHAR *>("IPM"), 0, &neid, &~eid, nullptr);
+	if (ret != hrSuccess)
+		return kc_perror("GetReceiveFolder", ret);
+	unsigned int type = 0;
+	ret = store->OpenEntry(neid, eid, &iid_of(m_inbox), MAPI_MODIFY, &type, &~m_inbox);
+	if (ret != hrSuccess)
+		return kc_perror("OpenEntry", ret);
+
+	object_ptr<IMAPITable> tbl;
+	ret = m_inbox->GetContentsTable(MAPI_UNICODE, &~tbl);
+	if (ret != hrSuccess)
+		return kc_perror("GetContentTable", ret);
+	ret = tbl->QueryRows(-1, 0, &~m_rows);
+	if (ret != hrSuccess)
+		return kc_perror("QueryRows", ret);
+	if (m_rows == nullptr || m_rows.size() == 0) {
+		printf("You need at least one message in inbox.\n");
+		return MAPI_E_NOT_FOUND;
+	}
+	return hrSuccess;
+}
+
+HRESULT mpt_proplist::run()
+{
+	unsigned int type = 0;
+	object_ptr<IMessage> msg;
+
+	for (unsigned int i = 0; i < m_rows.size(); ++i) {
+		auto prop = m_rows[i].find(PR_ENTRYID);
+		if (prop == nullptr)
+			continue;
+		auto ret = m_inbox->OpenEntry(prop->Value.bin.cb,
+		           reinterpret_cast<const ENTRYID *>(prop->Value.bin.lpb),
+		           &iid_of(msg), MAPI_MODIFY, &type, &~msg);
+		if (ret != hrSuccess)
+			return kc_perror("OpenEntry", ret);
+		memory_ptr<SPropTagArray> spta;
+		ret = msg->GetPropList(MAPI_UNICODE, &~spta);
+		if (ret != hrSuccess)
+			return kc_perror("GetPropList", ret);
+	}
+	return hrSuccess;
+}
+
+class mpt_proplist1 : public mpt_proplist {
+	public:
+	HRESULT init() override;
+	HRESULT run() override;
+
+	protected:
+	object_ptr<IMessage> m_msg;
+};
+
+HRESULT mpt_proplist1::init()
+{
+	auto ret = mpt_proplist::init();
+	if (ret != hrSuccess)
+		return kc_perror("mpt_proplist::init", ret);
+	auto prop = m_rows[0].find(PR_ENTRYID);
+	if (prop == nullptr)
+		return kc_perror("PR_ENTRYID", MAPI_E_NOT_FOUND);
+	unsigned int type = 0;
+	ret = m_inbox->OpenEntry(prop->Value.bin.cb,
+	      reinterpret_cast<const ENTRYID *>(prop->Value.bin.lpb),
+	      &iid_of(m_msg), MAPI_MODIFY, &type, &~m_msg);
+	if (ret != hrSuccess)
+		return kc_perror("OpenEntry", ret);
+	return hrSuccess;
+}
+
+HRESULT mpt_proplist1::run()
+{
+	memory_ptr<SPropTagArray> spta;
+	auto ret = m_msg->GetPropList(MAPI_UNICODE, &~spta);
+	if (ret != hrSuccess)
+		return kc_perror("GetPropList", ret);
+	return hrSuccess;
 }
 
 class mpt_search final : public mpt_job {
 	public:
-	int init() override;
-	int run() override;
+	HRESULT init() override;
+	HRESULT run() override;
 
 	private:
 	object_ptr<IMAPIFolder> m_findroot, m_find;
@@ -212,82 +304,64 @@ class mpt_search final : public mpt_job {
 	memory_ptr<SRestriction> m_rst;
 };
 
-int mpt_search::init()
+HRESULT mpt_search::init()
 {
 	auto ret = mpt_job::init();
 	if (ret != hrSuccess)
-		return EXIT_FAILURE;
+		return kc_perror("mpt_job::init", ret);
 	object_ptr<IMAPISession> ses;
 	object_ptr<IMsgStore> store;
 	ret = mpt_basic_open(ses, store);
-	if (ret != hrSuccess) {
-		kc_perrorf("mpt_basic_open", ret);
-		return EXIT_FAILURE;
-	}
+	if (ret != hrSuccess)
+		return kc_perror("mpt_basic_open", ret);
 
 	/* Set up INBOX for scanning */
 	unsigned int inbox_sz = 0;
 	memory_ptr<ENTRYID> inbox;
 	ret = store->GetReceiveFolder(reinterpret_cast<const TCHAR *>("IPM"), 0, &inbox_sz, &~inbox, nullptr);
-	if (ret != hrSuccess) {
-		kc_perrorf("GRF", ret);
-		return EXIT_FAILURE;
-	}
+	if (ret != hrSuccess)
+		return kc_perror("GetReceiveFolder", ret);
 	fprintf(stderr, "inbox    %s\n", bin2hex(inbox_sz, inbox).c_str());
 	object_ptr<IMAPIFolder> fld;
 	ret = store->OpenEntry(inbox_sz, inbox, &IID_IMAPIFolder, MAPI_MODIFY, nullptr, &~fld);
-	if (ret != hrSuccess) {
-		kc_perrorf("OpenEntry inbox", ret);
-		return EXIT_FAILURE;
-	}
+	if (ret != hrSuccess)
+		return kc_perror("OpenEntry inbox", ret);
 	ret = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~m_scanfld);
-	if (ret != hrSuccess) {
-		kc_perrorf("malloc", ret);
-		return EXIT_FAILURE;
-	}
+	if (ret != hrSuccess)
+		return kc_perrorf("malloc", ret);
 	m_scanfld->cValues = 1;
 	ret = MAPIAllocateMore(sizeof(SBinary) * 1, m_scanfld, reinterpret_cast<void **>(&m_scanfld->lpbin));
-	if (ret != hrSuccess) {
-		kc_perrorf("malloc", ret);
-		return EXIT_FAILURE;
-	}
+	if (ret != hrSuccess)
+		return kc_perrorf("malloc", ret);
 	m_scanfld->lpbin[0].cb = 0;
 	m_scanfld->lpbin[0].lpb = nullptr;
 	ret = MAPIAllocateMore(inbox_sz, m_scanfld, reinterpret_cast<void **>(&m_scanfld->lpbin[0].lpb));
-	if (ret != hrSuccess) {
-		kc_perrorf("malloc", ret);
-		return EXIT_FAILURE;
-	}
+	if (ret != hrSuccess)
+		return kc_perrorf("malloc", ret);
 	m_scanfld->lpbin[0].cb = inbox_sz;
 	memcpy(m_scanfld->lpbin[0].lpb, inbox.get(), inbox_sz);
 
 	/* Create search folder */
 	memory_ptr<SPropValue> pv;
 	ret = HrGetOneProp(store, PR_FINDER_ENTRYID, &~pv);
-	if (ret != hrSuccess) {
-		kc_perrorf("FINDER_ENTRYID", ret);
-		return EXIT_FAILURE;
-	}
+	if (ret != hrSuccess)
+		return kc_perrorf("FINDER_ENTRYID", ret);
 	fprintf(stderr, "findroot %s\n", bin2hex(pv->Value.bin.cb, pv->Value.bin.lpb).c_str());
 	ret = ses->OpenEntry(pv->Value.bin.cb, reinterpret_cast<ENTRYID *>(pv->Value.bin.lpb),
 	      &IID_IMAPIFolder, MAPI_MODIFY, nullptr, &~m_findroot);
-	if (ret != hrSuccess) {
-		kc_perrorf("OpenEntry", ret);
-		return EXIT_FAILURE;
-	}
+	if (ret != hrSuccess)
+		return kc_perrorf("OpenEntry", ret);
 
 	char name[32];
 	snprintf(name, sizeof(name), "sf0x%x", rand());
 	printf(">> %s\n", name);
 	ret = m_findroot->CreateFolder(FOLDER_SEARCH, reinterpret_cast<const TCHAR *>(name), reinterpret_cast<const TCHAR *>(L""), &IID_IMAPIFolder, 0, &~m_find);
-	if (ret != hrSuccess) {
-		kc_perrorf("CreateFolder", ret);
-		return EXIT_FAILURE;
-	}
-	return EXIT_SUCCESS;
+	if (ret != hrSuccess)
+		return kc_perrorf("CreateFolder", ret);
+	return hrSuccess;
 }
 
-int mpt_search::run()
+HRESULT mpt_search::run()
 {
 	/* Do it like WebApp does */
 	SPropValue cls[7], spv[] = {
@@ -359,33 +433,32 @@ int mpt_search::run()
 		ECContentRestriction(FL_IGNORECASE | FL_PREFIX, PR_MESSAGE_CLASS, &cls[6], ECRestriction::Cheap)
 	))
 	.CreateMAPIRestriction(&~m_rst, ECRestriction::Cheap);
-	if (ret != hrSuccess) {
-		kc_perrorf("CreateMAPIRestriction", ret);
-		return EXIT_FAILURE;
-	}
+	if (ret != hrSuccess)
+		return kc_perrorf("CreateMAPIRestriction", ret);
 	ret = m_find->SetSearchCriteria(m_rst, m_scanfld, RECURSIVE_SEARCH | RESTART_SEARCH);
 	if (ret != hrSuccess)
-		kc_perrorf("SetSearchCriteria", ret);
-	return EXIT_SUCCESS;
+		return kc_perrorf("SetSearchCriteria", ret);
+	return hrSuccess;
 }
 
 static int mpt_runner(mpt_job &&fct)
 {
 	auto ret = fct.init();
 	if (ret != hrSuccess) {
-		perror("MAPIInitialize");
+		kc_perror("mpt_job::init", ret);
 		return EXIT_FAILURE;
 	}
-	struct mpt_stat_entry dp;
 	while (mpt_repeat-- > 0) {
-		dp.start = clk::now();
+		auto start = clk::now();
 		ret = fct.run();
-		if (ret != EXIT_SUCCESS)
-			break;
-		dp.stop = clk::now();
-		mpt_stat_record(dp);
+		if (ret != hrSuccess) {
+			kc_perror("mpt_job::run", ret);
+			return EXIT_FAILURE;
+		}
+		auto stop = clk::now();
+		mpt_stat_record(stop - start);
 	}
-	return ret;
+	return EXIT_SUCCESS;
 }
 
 static int mpt_main_pagetime(int argc, char **argv)
@@ -403,12 +476,11 @@ static int mpt_main_pagetime(int argc, char **argv)
 	curl_easy_setopt(curl, CURLOPT_NOSIGNAL, true);
 	curl_easy_setopt(curl, CURLOPT_URL, argv[1]);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, static_cast<curl_write_callback>([](char *, size_t, size_t n, void *) { return n; }));
-	struct mpt_stat_entry dp;
 	while (mpt_repeat-- > 0) {
-		dp.start = clk::now();
+		auto start = clk::now();
 		curl_easy_perform(curl);
-		dp.stop = clk::now();
-		mpt_stat_record(dp);
+		auto stop = clk::now();
+		mpt_stat_record(stop - start);
 	}
 	return EXIT_SUCCESS;
 #endif
@@ -422,16 +494,15 @@ static int mpt_main_exectime(int argc, char **argv)
 	}
 	--argc;
 	++argv; // skip "exectime"
-	struct mpt_stat_entry dp;
 	while (mpt_repeat-- > 0) {
 		pid_t pid;
 		int st;
 
-		dp.start = clk::now();
+		auto start = clk::now();
 		if (posix_spawn(&pid, argv[0], nullptr, nullptr, const_cast<char **>(argv), nullptr) == 0)
 			wait(&st);
-		dp.stop = clk::now();
-		mpt_stat_record(dp);
+		auto stop = clk::now();
+		mpt_stat_record(stop - start);
 	}
 	return EXIT_SUCCESS;
 }
@@ -455,23 +526,21 @@ static int mpt_main_cast(bool which)
 
 	if (which == 0) { /* qicast */
 		while (mpt_repeat-- > 0) {
-			struct mpt_stat_entry dp;
 			unsigned int rep = 100000;
-			dp.start = clk::now();
+			auto start = clk::now();
 			while (rep-- > 0)
 				unk->QueryInterface(IID_IProfAdmin, &~profadm);
-			dp.stop = clk::now();
-			mpt_stat_record(dp);
+			auto stop = clk::now();
+			mpt_stat_record(stop - start);
 		}
 	} else if (which == 1) { /* dycast */
 		while (mpt_repeat-- > 0) {
-			struct mpt_stat_entry dp;
 			unsigned int rep = 100000;
-			dp.start = clk::now();
+			auto start = clk::now();
 			while (rep-- > 0)
 				profadm.reset(dynamic_cast<IProfAdmin *>(unk.get()));
-			dp.stop = clk::now();
-			mpt_stat_record(dp);
+			auto stop = clk::now();
+			mpt_stat_record(stop - start);
 		}
 	}
 	return EXIT_SUCCESS;
@@ -479,9 +548,8 @@ static int mpt_main_cast(bool which)
 
 static int mpt_main_malloc(void)
 {
-	struct mpt_stat_entry dp;
 	while (mpt_repeat-- > 0) {
-		dp.start = clk::now();
+		auto start = clk::now();
 		memory_ptr<MAPIUID> base;
 		auto ret = MAPIAllocateBuffer(sizeof(MAPIUID), &~base);
 		if (ret != hrSuccess)
@@ -493,23 +561,22 @@ static int mpt_main_malloc(void)
 				return EXIT_FAILURE;
 		}
 		base.reset();
-		dp.stop = clk::now();
-		mpt_stat_record(dp);
+		auto stop = clk::now();
+		mpt_stat_record(stop - start);
 	}
 	return EXIT_SUCCESS;
 }
 
 static int mpt_main_bin2hex()
 {
-	struct mpt_stat_entry dp;
 	static constexpr const size_t bufsize = 1048576;
 	auto temp = std::make_unique<char[]>(bufsize);
 	memset(temp.get(), 0, bufsize);
 	while (mpt_repeat-- > 0) {
-		dp.start = clk::now();
+		auto start = clk::now();
 		bin2hex(bufsize, reinterpret_cast<const unsigned char *>(temp.get()));
-		dp.stop = clk::now();
-		mpt_stat_record(dp);
+		auto stop = clk::now();
+		mpt_stat_record(stop - start);
 	}
 	return EXIT_SUCCESS;
 }
@@ -522,6 +589,8 @@ static void mpt_usage(void)
 	fprintf(stderr, "  init        Just the library initialization\n");
 	fprintf(stderr, "  open1       Measure: init, login, open store, open root container\n");
 	fprintf(stderr, "  open2       Like open1, but use Save-Restore\n");
+	fprintf(stderr, "  proplist    Measure GetPropList over inbox\n");
+	fprintf(stderr, "  proplist1   Measure IMessage::GetPropList over first message\n");
 	fprintf(stderr, "  pagetime    Measure webpage retrieval time\n");
 	fprintf(stderr, "  exectime    Measure process runtime\n");
 	fprintf(stderr, "  qicast      Measure QueryInterface throughput\n");
@@ -594,6 +663,10 @@ int main(int argc, char **argv)
 		ret = mpt_runner(mpt_open1());
 	else if (strcmp(argv[1], "open2") == 0)
 		ret = mpt_runner(mpt_open2());
+	else if (strcmp(argv[1], "proplist") == 0)
+		ret = mpt_runner(mpt_proplist());
+	else if (strcmp(argv[1], "proplist1") == 0)
+		ret = mpt_runner(mpt_proplist1());
 	else if (strcmp(argv[1], "exectime") == 0)
 		ret = mpt_main_exectime(argc - 1, argv + 1);
 	else if (strcmp(argv[1], "pagetime") == 0)
@@ -610,7 +683,7 @@ int main(int argc, char **argv)
 		ret = mpt_runner(mpt_search());
 	else
 		mpt_usage();
-	pthread_cancel(mpt_ticker);
+	mpt_ticker_quit = true;
 	pthread_join(mpt_ticker, nullptr);
 	return ret;
 }

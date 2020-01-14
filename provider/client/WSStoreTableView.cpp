@@ -75,7 +75,8 @@ HRESULT WSTableMisc::HrOpenTable()
 	soap_lock_guard spg(*m_lpTransport);
 
 	// the class is actually only to call this function with the correct ulTableType .... hmm.
-	if (m_lpTransport->m_lpCmd->tableOpen(ecSessionId, m_sEntryId,
+	if (m_lpTransport->m_lpCmd == nullptr ||
+	    m_lpTransport->m_lpCmd->tableOpen(ecSessionId, m_sEntryId,
 	    m_ulTableType, ulType, ulFlags, &sResponse) != SOAP_OK)
 		er = KCERR_NETWORK_ERROR;
 	else

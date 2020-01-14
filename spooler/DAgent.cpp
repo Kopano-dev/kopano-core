@@ -33,7 +33,6 @@
  */
 #include <kopano/platform.h>
 #include <atomic>
-#include <exception>
 #include <memory>
 #include <string>
 #include <utility>
@@ -1133,8 +1132,8 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 	ULONG cValues;
 
 	const wchar_t *szSubject = L"Out of office";
-	char szHeader[PATH_MAX] = {0}, szTemp[PATH_MAX] = {0};
-	wchar_t szwHeader[PATH_MAX] = {0};
+	char szHeader[PATH_MAX]{}, szTemp[PATH_MAX]{};
+	wchar_t szwHeader[PATH_MAX]{};
 	int fd = -1;
 	wstring	strFromName, strFromType, strFromEmail, strBody;
 	std::vector<std::string> cmdline = {strBaseCommand};
@@ -1513,7 +1512,7 @@ static HRESULT recip_in_distlist(IAddrBook *ab, const SBinary &eid,
 	if (ret != hrSuccess)
 		return kc_perrorf("RestrictTable", ret);
 	rowset_ptr rset;
-	ret = tbl->QueryRows(-1, 0, &~rset);
+	ret = tbl->QueryRows(INT_MAX, 0, &~rset);
 	if (ret != hrSuccess)
 		return kc_perrorf("QueryRows", ret);
 
@@ -1561,7 +1560,7 @@ static HRESULT recip_me_check(IAddrBook *ab, IMAPITable *tbl,
 	if (ret != hrSuccess)
 		return kc_perrorf("RestrictTable", ret);
 	rowset_ptr rset;
-	ret = tbl->QueryRows(-1, 0, &~rset);
+	ret = tbl->QueryRows(INT_MAX, 0, &~rset);
 	if (ret != hrSuccess)
 		return kc_perrorf("QueryRows", ret);
 
@@ -2535,7 +2534,7 @@ static void add_misc_headers(FILE *tmp, const std::string &helo,
 	if (dummy != nullptr) {
 		server_name = dummy;
 	} else {
-		char buffer[4096] = {0};
+		char buffer[4096]{};
 		if (gethostname(buffer, sizeof buffer) == -1)
 			strcpy(buffer, "???");
 		server_name = buffer;
@@ -3196,7 +3195,8 @@ static int get_return_value(HRESULT hr, bool listen_lmtp, bool qmail)
 	return qmail ? 100 : EX_SOFTWARE;
 }
 
-int main(int argc, char **argv) try {
+int main(int argc, char **argv)
+{
 	FILE *fp = stdin;
 	HRESULT hr = hrSuccess;
 	bool bDefaultConfigWarning = false; // Provide warning when default configuration is used
@@ -3555,8 +3555,6 @@ int main(int argc, char **argv) try {
 	}
 
 	return get_return_value(hr, bListenLMTP, qmail);
-} catch (...) {
-	std::terminate();
 }
 
 dagent_stats::dagent_stats(std::shared_ptr<ECConfig> cfg) :
