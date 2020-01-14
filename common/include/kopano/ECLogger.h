@@ -25,7 +25,6 @@ namespace KC {
 class ECConfig;
 
 static const unsigned int EC_LOGLEVEL_NONE       = 0;
-static const unsigned int EC_LOGLEVEL_FATAL	 = 1;
 static const unsigned int EC_LOGLEVEL_CRIT	 = 1;
 static const unsigned int EC_LOGLEVEL_ERROR	 = 2;
 static const unsigned int EC_LOGLEVEL_WARNING    = 3;
@@ -57,7 +56,7 @@ static const unsigned int EC_LOGLEVEL_EXTENDED_MASK = 0xFFFF0000;
 #define ZLOG_AUDIT(plog, ...) \
 	do { \
 		if ((plog) != NULL) \
-			(plog)->logf(EC_LOGLEVEL_FATAL, __VA_ARGS__); \
+			(plog)->logf(EC_LOGLEVEL_CRIT, __VA_ARGS__); \
 	} while (false)
 
 #define TSTRING_PRINTF "%ls"
@@ -276,7 +275,6 @@ extern KC_EXPORT void ec_log(unsigned int level, const char *msg, ...) KC_LIKE_P
 extern KC_EXPORT void ec_log(unsigned int level, const std::string &msg);
 
 #define ec_log_always(...)  ec_log(EC_LOGLEVEL_ALWAYS, __VA_ARGS__)
-#define ec_log_fatal(...)   ec_log(EC_LOGLEVEL_CRIT, __VA_ARGS__)
 #define ec_log_crit(...)    ec_log(EC_LOGLEVEL_CRIT, __VA_ARGS__)
 #define ec_log_err(...)     ec_log(EC_LOGLEVEL_ERROR, __VA_ARGS__)
 #define ec_log_warn(...)    ec_log(EC_LOGLEVEL_WARNING, __VA_ARGS__)

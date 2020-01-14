@@ -193,7 +193,7 @@ HRESULT ArchiveStateCollector::PopulateUserList()
 		}
 	} catch (const KMAPIError &e) {
 		hr = e.code();
-		m_lpLogger->logf(EC_LOGLEVEL_FATAL, "Failed to iterate addressbook containers: %s (%x)",
+		m_lpLogger->logf(EC_LOGLEVEL_CRIT, "Failed to iterate addressbook containers: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}

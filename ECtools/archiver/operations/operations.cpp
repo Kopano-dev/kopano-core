@@ -119,7 +119,7 @@ HRESULT ArchiveOperationBaseEx::ProcessEntry(IMAPIFolder *lpFolder,
 		return MAPI_E_INVALID_PARAMETER;
 	auto lpFolderEntryId = proprow.cfind(PR_PARENT_ENTRYID);
 	if (lpFolderEntryId == NULL) {
-		Logger()->Log(EC_LOGLEVEL_FATAL, "PR_PARENT_ENTRYID missing");
+		Logger()->Log(EC_LOGLEVEL_CRIT, "PR_PARENT_ENTRYID missing");
 		return MAPI_E_NOT_FOUND;
 	}
 

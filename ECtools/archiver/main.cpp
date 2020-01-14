@@ -422,12 +422,12 @@ int main(int argc, char **argv) try
 	ptrArchiver->GetLogger(Archiver::LogOnly)->log(EC_LOGLEVEL_INFO, "Version " PROJECT_VERSION);
 	auto lSettings = ptrArchiver->GetConfig()->GetAllSettings();
     ECLogger* filelogger = ptrArchiver->GetLogger(Archiver::LogOnly);
-    ptrArchiver->GetLogger(Archiver::LogOnly)->Log(EC_LOGLEVEL_FATAL, "Config settings:");
+	ptrArchiver->GetLogger(Archiver::LogOnly)->Log(EC_LOGLEVEL_CRIT, "Config settings:");
 	for (const auto &s : lSettings)
 		if (strcmp(s.szName, "sslkey_pass") == 0 || strcmp(s.szName, "mysql_password") == 0)
-			filelogger->logf(EC_LOGLEVEL_FATAL, "*  %s = '********'", s.szName);
+			filelogger->logf(EC_LOGLEVEL_CRIT, "*  %s = '********'", s.szName);
 		else
-			filelogger->logf(EC_LOGLEVEL_FATAL, "*  %s = '%s'", s.szName, s.szValue);
+			filelogger->logf(EC_LOGLEVEL_CRIT, "*  %s = '%s'", s.szName, s.szValue);
 
     if (mode == MODE_ARCHIVE || mode == MODE_CLEANUP)
         if (unix_create_pidfile(argv[0], ptrArchiver->GetConfig(), false) != 0)

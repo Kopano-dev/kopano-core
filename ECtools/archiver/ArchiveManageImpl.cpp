@@ -193,7 +193,7 @@ HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFold
 	if (hr != hrSuccess)
 		return m_lpLogger->perr("Failed to compare user and archive store", hr);
 	if (bEqual) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "User and archive store are the same.");
+		m_lpLogger->Log(EC_LOGLEVEL_CRIT, "User and archive store are the same.");
 		return MAPI_E_INVALID_PARAMETER;
 	}
 	hr = HrGetOneProp(lpArchiveStore, PR_ENTRYID, &~ptrArchiveStoreId);
@@ -212,7 +212,7 @@ HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFold
 		return m_ptrSession->CompareStoreIds(arc.sStoreEntryId, ptrArchiveStoreId->Value.bin, &eq) == hrSuccess && eq;
 	};
 	if (std::any_of(lstArchives.cbegin(), lstArchives.cend(), id_match)) {
-		m_lpLogger->logf(EC_LOGLEVEL_FATAL, "An archive for this \"" TSTRING_PRINTF "\" is already present in this store.", m_strUser.c_str());
+		m_lpLogger->logf(EC_LOGLEVEL_CRIT, "An archive for this \"" TSTRING_PRINTF "\" is already present in this store.", m_strUser.c_str());
 		return MAPI_E_UNABLE_TO_COMPLETE;
 	}
 
@@ -231,10 +231,10 @@ HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFold
 		if (hr != hrSuccess)
 			return m_lpLogger->perr("Failed to prepare archive", hr);
 	} else if (aType == SingleArchive && !strFoldername.empty()) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Attempted to create an archive folder in an archive store that has an archive in its root.");
+		m_lpLogger->Log(EC_LOGLEVEL_CRIT, "Attempted to create an archive folder in an archive store that has an archive in its root.");
 		return MAPI_E_COLLISION;
 	} else if (aType == MultiArchive && strFoldername.empty()) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Attempted to create an archive in the root of an archive store that has archive folders.");
+		m_lpLogger->Log(EC_LOGLEVEL_CRIT, "Attempted to create an archive in the root of an archive store that has archive folders.");
 		return MAPI_E_COLLISION;
 	}
 
@@ -248,9 +248,9 @@ HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFold
 
 		hr = m_ptrSession->GetUserInfo(sAttachedUserEntryId, &strUser, &strFullname);
 		if (hr == hrSuccess)
-			m_lpLogger->logf(EC_LOGLEVEL_FATAL, "Archive is already used by \"" TSTRING_PRINTF "\" (" TSTRING_PRINTF ").", strUser.c_str(), strFullname.c_str());
+			m_lpLogger->logf(EC_LOGLEVEL_CRIT, "Archive is already used by \"" TSTRING_PRINTF "\" (" TSTRING_PRINTF ").", strUser.c_str(), strFullname.c_str());
 		else
-			m_lpLogger->logf(EC_LOGLEVEL_FATAL, "Archive is already used (user entry: %s).", sAttachedUserEntryId.tostring().c_str());
+			m_lpLogger->logf(EC_LOGLEVEL_CRIT, "Archive is already used (user entry: %s).", sAttachedUserEntryId.tostring().c_str());
 		return MAPI_E_COLLISION;
 	} else if (hr != hrSuccess) {
 		return m_lpLogger->perr("Failed to get attached user for the requested archive", hr);
@@ -272,7 +272,7 @@ HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFold
 		return m_lpLogger->perr("Failed to mark archive used", hr);
 	hr = ptrArchiveHelper->SetArchiveType(strFoldername.empty() ? SingleArchive : MultiArchive, attachType);
 	if (hr != hrSuccess) {
-		m_lpLogger->logf(EC_LOGLEVEL_FATAL, "Failed to set archive type to %d: %s (%x)",
+		m_lpLogger->logf(EC_LOGLEVEL_CRIT, "Failed to set archive type to %d: %s (%x)",
 			static_cast<int>(strFoldername.empty() ? SingleArchive : MultiArchive),
 			GetMAPIErrorMessage(hr), hr);
 		return hr;
@@ -291,9 +291,9 @@ HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFold
 		return m_lpLogger->perr("Failed to set search folders", hr);
 	hr = HrGetOneProp(lpArchiveStore, PR_DISPLAY_NAME, &~ptrArchiveName);
 	if (hr != hrSuccess)
-		m_lpLogger->logf(EC_LOGLEVEL_FATAL, "Successfully attached \"" TSTRING_PRINTF "\" in \"Unknown\" for user \"" TSTRING_PRINTF "\".", strFoldername.empty() ? KC_T("Root") : strFoldername.c_str(), m_strUser.c_str());
+		m_lpLogger->logf(EC_LOGLEVEL_CRIT, "Successfully attached \"" TSTRING_PRINTF "\" in \"Unknown\" for user \"" TSTRING_PRINTF "\".", strFoldername.empty() ? KC_T("Root") : strFoldername.c_str(), m_strUser.c_str());
 	else
-		m_lpLogger->logf(EC_LOGLEVEL_FATAL, "Successfully attached \"" TSTRING_PRINTF "\" in \"" TSTRING_PRINTF "\" for user \"" TSTRING_PRINTF "\"'.", strFoldername.empty() ? KC_T("Root") : strFoldername.c_str(), ptrArchiveName->Value.LPSZ, m_strUser.c_str());
+		m_lpLogger->logf(EC_LOGLEVEL_CRIT, "Successfully attached \"" TSTRING_PRINTF "\" in \"" TSTRING_PRINTF "\" for user \"" TSTRING_PRINTF "\"'.", strFoldername.empty() ? KC_T("Root") : strFoldername.c_str(), ptrArchiveName->Value.LPSZ, m_strUser.c_str());
 	return hrSuccess;
 }
 
@@ -361,7 +361,7 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
 	// Find an archives on the passed store.
 	auto iArchive = find_if(lstArchives.begin(), lstArchives.end(), StoreCompare(ptrArchiveStoreEntryId->Value.bin));
 	if (iArchive == lstArchives.end()) {
-		m_lpLogger->logf(EC_LOGLEVEL_FATAL, "\"" TSTRING_PRINTF "\" has no archive on \"" TSTRING_PRINTF "\"", m_strUser.c_str(), lpszArchive);
+		m_lpLogger->logf(EC_LOGLEVEL_CRIT, "\"" TSTRING_PRINTF "\" has no archive on \"" TSTRING_PRINTF "\"", m_strUser.c_str(), lpszArchive);
 		return MAPIErrorToArchiveError(MAPI_E_NOT_FOUND);
 	}
 
@@ -371,7 +371,7 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
 		++iNextArchive;
 
 		if (std::any_of(iNextArchive, lstArchives.end(), StoreCompare(ptrArchiveStoreEntryId->Value.bin))) {
-			m_lpLogger->logf(EC_LOGLEVEL_FATAL, "\"" TSTRING_PRINTF "\" has multiple archives on \"" TSTRING_PRINTF "\"", m_strUser.c_str(), lpszArchive);
+			m_lpLogger->logf(EC_LOGLEVEL_CRIT, "\"" TSTRING_PRINTF "\" has multiple archives on \"" TSTRING_PRINTF "\"", m_strUser.c_str(), lpszArchive);
 			return MAPIErrorToArchiveError(MAPI_E_COLLISION);
 		}
 	}
@@ -395,7 +395,7 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
 		}
 
 		if (iArchive == lstArchives.end()) {
-			m_lpLogger->logf(EC_LOGLEVEL_FATAL, "\"" TSTRING_PRINTF "\" has no archive named \"" TSTRING_PRINTF "\" on \"" TSTRING_PRINTF "\"", m_strUser.c_str(), lpszFolder, lpszArchive);
+			m_lpLogger->logf(EC_LOGLEVEL_CRIT, "\"" TSTRING_PRINTF "\" has no archive named \"" TSTRING_PRINTF "\" on \"" TSTRING_PRINTF "\"", m_strUser.c_str(), lpszFolder, lpszArchive);
 			return MAPIErrorToArchiveError(MAPI_E_NOT_FOUND);
 		}
 	}
@@ -416,9 +416,9 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
 	}
 
 	if (lpszFolder)
-		m_lpLogger->logf(EC_LOGLEVEL_FATAL, "Successfully detached \"" TSTRING_PRINTF "\" in \"" TSTRING_PRINTF "\" from \"" TSTRING_PRINTF "\".", lpszFolder, lpszArchive, m_strUser.c_str());
+		m_lpLogger->logf(EC_LOGLEVEL_CRIT, "Successfully detached \"" TSTRING_PRINTF "\" in \"" TSTRING_PRINTF "\" from \"" TSTRING_PRINTF "\".", lpszFolder, lpszArchive, m_strUser.c_str());
 	else
-		m_lpLogger->logf(EC_LOGLEVEL_FATAL, "Successfully detached \"" TSTRING_PRINTF "\" from \"" TSTRING_PRINTF "\".", lpszArchive, m_strUser.c_str());
+		m_lpLogger->logf(EC_LOGLEVEL_CRIT, "Successfully detached \"" TSTRING_PRINTF "\" from \"" TSTRING_PRINTF "\".", lpszArchive, m_strUser.c_str());
 	return MAPIErrorToArchiveError(hrSuccess);
 }
 
@@ -444,7 +444,7 @@ eResult ArchiveManageImpl::DetachFrom(unsigned int ulArchive)
 		return MAPIErrorToArchiveError(hr);
 	}
 	if (ulArchive >= lstArchives.size()) {
-		m_lpLogger->logf(EC_LOGLEVEL_FATAL, "Archive %u does not exist.", ulArchive);
+		m_lpLogger->logf(EC_LOGLEVEL_CRIT, "Archive %u does not exist.", ulArchive);
 		return MAPIErrorToArchiveError(MAPI_E_NOT_FOUND);
 	}
 	lstArchives.erase(std::next(lstArchives.begin(), ulArchive));
@@ -460,7 +460,7 @@ eResult ArchiveManageImpl::DetachFrom(unsigned int ulArchive)
 		m_lpLogger->perr("Failed to set search folders", hr);
 		return MAPIErrorToArchiveError(hr);
 	}
-	m_lpLogger->logf(EC_LOGLEVEL_FATAL, "Successfully detached archive %u from \"" TSTRING_PRINTF "\".", ulArchive, m_strUser.c_str());
+	m_lpLogger->logf(EC_LOGLEVEL_CRIT, "Successfully detached archive %u from \"" TSTRING_PRINTF "\".", ulArchive, m_strUser.c_str());
 	return MAPIErrorToArchiveError(hrSuccess);
 }
 

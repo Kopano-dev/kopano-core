@@ -38,7 +38,7 @@ eResult ArchiverImpl::Init(const char *lpszAppName, const char *lpszConfig, cons
 			return FileNotFound;
 	} else if (m_lpsConfig->HasErrors()) {
 		if (!(ulFlags & InhibitErrorLogging)) {
-			std::shared_ptr<ECLogger> lpLogger(new ECLogger_File(EC_LOGLEVEL_FATAL, 0, "-", false));
+			std::shared_ptr<ECLogger> lpLogger(new ECLogger_File(EC_LOGLEVEL_CRIT, 0, "-", false));
 			ec_log_set(lpLogger);
 			LogConfigErrors(m_lpsConfig.get());
 		}
