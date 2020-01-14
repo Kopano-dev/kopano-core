@@ -1,6 +1,5 @@
 /* SPDX-License-Identifier: LGPL-3.0-or-later */
 /* Copyright 2016, Kopano and its licensors */
-#include <exception>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -10,7 +9,7 @@
 
 using namespace KC;
 
-int main(int argc, char **argv) try
+int main(int argc, char **argv)
 {
 	CHtmlToTextParser parser;
 	setlocale(LC_ALL, "");
@@ -32,6 +31,4 @@ int main(int argc, char **argv) try
 	}
 	std::wcout << parser.GetText();
 	return EXIT_SUCCESS;
-} catch (...) {
-	std::terminate();
 }
