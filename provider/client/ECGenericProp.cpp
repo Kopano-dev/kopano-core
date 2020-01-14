@@ -4,7 +4,10 @@
  */
 #include <memory>
 #include <kopano/platform.h>
+#include <kopano/mapiext.h>
 #include <kopano/memory.hpp>
+#include <kopano/namedprops.h>
+#include <kopano/stringutil.h>
 #include <kopano/tie.hpp>
 #include <mapidefs.h>
 #include "WSTransport.h"
@@ -19,6 +22,18 @@
 
 using namespace KC;
 
+static HRESULT resolve_to_punycode(unsigned int tag, void *provider,
+    const SPropValue *pv, ECGenericProp *gp)
+{
+	auto newaddr = PROP_TYPE(tag) == PT_UNICODE ?
+		kc_wstr_to_punyaddr(pv->Value.lpszW) :
+		kc_utf8_to_punyaddr(pv->Value.lpszA);
+	SPropValue np;
+	np.ulPropTag   = CHANGE_PROP_TYPE(tag, PT_STRING8);
+	np.Value.lpszA = const_cast<char *>(newaddr.c_str());
+	return gp->HrSetRealProp(&np);
+}
+
 ECGenericProp::ECGenericProp(void *prov, ULONG type, BOOL mod,
     const char *cls_name) :
 	ECUnknown(cls_name), ulObjType(type), fModify(mod), lpProvider(prov)
@@ -27,6 +42,11 @@ ECGenericProp::ECGenericProp(void *prov, ULONG type, BOOL mod,
 	HrAddPropHandlers(PR_NULL, DefaultGetProp, DefaultSetPropIgnore, this, false, true);
 	HrAddPropHandlers(PR_OBJECT_TYPE, DefaultGetProp, DefaultSetPropComputed, this);
 	HrAddPropHandlers(PR_ENTRYID, DefaultGetProp, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_EMAIL_ADDRESS, DefaultGetProp, resolve_to_punycode, this);
+	HrAddPropHandlers(PR_SMTP_ADDRESS, DefaultGetProp, resolve_to_punycode, this);
+	HrAddPropHandlers(PROP_TAG(PT_TSTRING, PS_Address_to_static(dispidEmail1Address)), DefaultGetProp, resolve_to_punycode, this);
+	HrAddPropHandlers(PROP_TAG(PT_TSTRING, PS_Address_to_static(dispidEmail2Address)), DefaultGetProp, resolve_to_punycode, this);
+	HrAddPropHandlers(PROP_TAG(PT_TSTRING, PS_Address_to_static(dispidEmail3Address)), DefaultGetProp, resolve_to_punycode, this);
 }
 
 HRESULT ECGenericProp::QueryInterface(REFIID refiid, void **lppInterface)

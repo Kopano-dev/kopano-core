@@ -67,7 +67,7 @@ AM_CPPFLAGS = ${ZCPPFLAGS} -DLDAP_THREAD_SAFE \
 	-I${top_srcdir}/libicalmapi \
 	-I${top_srcdir}/ECtools/archiver \
 	${CRYPTO_CFLAGS} ${curl_CFLAGS} ${dbcxx_CPPFLAGS} \
-	${GSOAP_CFLAGS} ${ICAL_CFLAGS} ${jsoncpp_CFLAGS} \
+	${GSOAP_CFLAGS} ${ICAL_CFLAGS} ${idn_CFLAGS} ${jsoncpp_CFLAGS} \
 	${KRB5_CFLAGS} ${LDAP_FLAGS} ${libHX_CFLAGS} \
 	${MYSQL_INCLUDES} ${SSL_CFLAGS} \
 	${s3_CFLAGS} ${kcoidc_CFLAGS} ${TCMALLOC_CFLAGS} ${tidy_CPPFLAGS} \
@@ -674,7 +674,7 @@ libkcutil_la_SOURCES = \
 	common/charset/convstring.cpp common/charset/localeutil.cpp
 libkcutil_la_LIBADD = \
 	-lpthread -lz ${CRYPTO_LIBS} ${curl_LIBS} ${GZ_LIBS} ${iconv_LIBS} \
-	${icu_i18n_LIBS} ${icu_uc_LIBS} ${jsoncpp_LIBS} ${libHX_LIBS} \
+	${idn_LIBS} ${icu_i18n_LIBS} ${icu_uc_LIBS} ${jsoncpp_LIBS} ${libHX_LIBS} \
 	${SSL_LIBS} ${UUID_LIBS}
 if HAVE_TIDY
 libkcutil_la_LIBADD += -ltidy

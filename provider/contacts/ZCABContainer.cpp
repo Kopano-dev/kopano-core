@@ -461,7 +461,8 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 		return hr;
 
 	// getprops, open real contacts, make table
-	hr = HrGetOneProp(m_lpDistList, 0x81051102, &~ptrEntries); // Members "entryids" named property, see data layout below
+	// Members "entryids" named property, see data layout below
+	hr = HrGetOneProp(m_lpDistList, PROP_TAG(PT_MV_BINARY, PS_Address_to_static(dispidMembers)), &~ptrEntries);
 	if (hr != hrSuccess)
 		return hr;
 

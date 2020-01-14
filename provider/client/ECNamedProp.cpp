@@ -19,8 +19,8 @@ using namespace KC;
  *
  * Basically, named properties in objects with the same PR_MAPPING_SIGNATURE should have the same
  * mapping of named properties to property IDs and vice-versa. We can use this information, together
- * with the information that Outlook mainly uses a fixed set of named properties to speed up things
- * considerably;
+ * with the information that Outlook mainly uses a fixed set of named properties, to speed up things
+ * considerably.
  *
  * Normally, each GetIDsFromNames calls would have to consult the server for an ID, and then cache
  * and return the value to the client. This is a rather time-consuming thing to do as Outlook requests

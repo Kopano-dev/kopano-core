@@ -185,13 +185,13 @@ HRESULT ZCMAPIProp::ConvertDistList(ULONG cValues, LPSPropValue lpProps)
 	// above are all the props present in the Outlook Contact Provider ..
 	// but I need the props below too
 
-	// one off members in 0x81041102
-	lpProp = PCpropFindProp(lpProps, cValues, 0x81041102);
-	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, 0x81041102);
+	/* one off members in this tag */
+	lpProp = PCpropFindProp(lpProps, cValues, PROP_TAG(PT_MV_BINARY, PS_Address_to_static(dispidOneOffMembers)));
+	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PROP_TAG(PT_MV_BINARY, PS_Address_to_static(dispidOneOffMembers)));
 
-	// real eid members in 0x81051102 (gab, maybe I only need this one)
-	lpProp = PCpropFindProp(lpProps, cValues, 0x81051102);
-	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, 0x81051102);
+	/* real eid members in this tag (gab, maybe I only need this one) */
+	lpProp = PCpropFindProp(lpProps, cValues, PROP_TAG(PT_MV_BINARY, PS_Address_to_static(dispidMembers)));
+	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PROP_TAG(PT_MV_BINARY, PS_Address_to_static(dispidMembers)));
 	lpProp = PCpropFindProp(lpProps, cValues, PR_ENTRYID);
 	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_ZC_ORIGINAL_ENTRYID);
 	lpProp = PCpropFindProp(lpProps, cValues, PR_PARENT_ENTRYID);

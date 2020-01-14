@@ -6,6 +6,9 @@
 #ifndef NAMEDPROPS_H
 #define NAMEDPROPS_H
 
+/* As per ECNamedProp.cpp */
+#define PS_Address_to_static(dispid) ((dispid) - 0x8000 + 0x80b0)
+
 //MNID_ID properties: 
 // In PSETID_Address
 #define dispidFileAs						0x8005	//PT_STRING8

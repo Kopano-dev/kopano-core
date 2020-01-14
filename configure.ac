@@ -296,6 +296,8 @@ AS_IF([test "$with_php" != "no"], [
 	)
 ])
 PKG_CHECK_MODULES([libHX], [libHX >= 1.10])
+AH_TEMPLATE([HAVE_IDN2_H], [libidn present])
+PKG_CHECK_MODULES([idn], [libidn2], [AC_DEFINE([HAVE_IDN2_H], [1])], [:])
 PKG_CHECK_MODULES([xapian], [xapian-core])
 PKG_CHECK_MODULES([XML2], [libxml-2.0])
 
