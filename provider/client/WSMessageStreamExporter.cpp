@@ -87,6 +87,8 @@ HRESULT WSMessageStreamExporter::GetSerializedMessage(ULONG ulIndex, WSSerialize
 		++m_ulExpectedIndex;
 		return SYNC_E_OBJECT_DELETED;
 	}
+	if (m_ptrTransport->m_lpCmd == nullptr)
+		return MAPI_E_NETWORK_ERROR;
 	KC::object_ptr<WSSerializedMessage> ptrMessage(new(std::nothrow) WSSerializedMessage(m_ptrTransport->m_lpCmd->soap, iStreamInfo->second->id, iStreamInfo->second->cbPropVals, iStreamInfo->second->ptrPropVals.get()));
 	if (ptrMessage == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;

@@ -81,7 +81,8 @@ HRESULT WSTableMultiStore::HrOpenTable()
 	soap_lock_guard spg(*m_lpTransport);
 
 	//m_sEntryId is the id of a store
-	if (m_lpTransport->m_lpCmd->tableOpen(ecSessionId, m_sEntryId,
+	if (m_lpTransport->m_lpCmd == nullptr ||
+	    m_lpTransport->m_lpCmd->tableOpen(ecSessionId, m_sEntryId,
 	    m_ulTableType, MAPI_MESSAGE, ulFlags, &sResponse) != SOAP_OK)
 		er = KCERR_NETWORK_ERROR;
 	else
@@ -91,7 +92,8 @@ HRESULT WSTableMultiStore::HrOpenTable()
 	if(hr != hrSuccess)
 		return hr;
 	ulTableId = sResponse.ulTableId;
-	if (m_lpTransport->m_lpCmd->tableSetMultiStoreEntryIDs(ecSessionId,
+	if (m_lpTransport->m_lpCmd == nullptr ||
+	    m_lpTransport->m_lpCmd->tableSetMultiStoreEntryIDs(ecSessionId,
 	    ulTableId, &m_sEntryList, &er) != SOAP_OK)
 		er = KCERR_NETWORK_ERROR;
 	return kcerr_to_mapierr(er);
@@ -138,7 +140,8 @@ HRESULT WSTableMisc::HrOpenTable()
 	soap_lock_guard spg(*m_lpTransport);
 
 	// the class is actually only to call this function with the correct ulTableType .... hmm.
-	if (m_lpTransport->m_lpCmd->tableOpen(ecSessionId, m_sEntryId,
+	if (m_lpTransport->m_lpCmd == nullptr ||
+	    m_lpTransport->m_lpCmd->tableOpen(ecSessionId, m_sEntryId,
 	    m_ulTableType, ulType, ulFlags, &sResponse) != SOAP_OK)
 		er = KCERR_NETWORK_ERROR;
 	else
