@@ -1,3 +1,10 @@
+9.x
+===
+Enhancements:
+* common: avoid computing log messages that will not get shown [KC-1674]
+* freebusy: fix crash in RecurrenceState::Exception instantiation
+
+
 9.0.2 (2019-12-11)
 ==================
 All changes from the 8.7.x branch up to 8.7.9 are included.
