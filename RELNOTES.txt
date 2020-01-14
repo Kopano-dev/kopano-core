@@ -3,6 +3,9 @@
 Enhancements:
 * icalmapi: support reading multi-iCal and multi-vCard files [KC-1291]
 * storeadm: show store guid and sizes for mailbox overview (-M)
+* client: avoid unnecessary property computations [KC-1660]
+Changes:
+* Process RES_CONTENT restrictions with Unicode normalization [KC-1672]
 Fixes:
 * dagent, spooler: workaround crash during Python GC [KC-1427]
 * dagent, gateway: avoid stack exhaustion in librosie [KC-1653]
@@ -15,6 +18,8 @@ Fixes:
 * server: cure a mysql wait phase during shutdown [KC-1645]
 * daemons: avoid deadlock during signal handling [KC-1654]
 * libserver: fix use-after-free and crash on shutdown [KC-1662]
+* better stack traces when dying on uncaught exceptions [KC-1670]
+* gateway, ical: new-style OpenSSL 1.1 API setup [KF-2886]
 
 
 8.7.9 (2019-12-10)
