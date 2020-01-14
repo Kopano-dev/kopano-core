@@ -641,7 +641,7 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 				goto exit2;
 			}else if(!(ulFlags & SERVICE_UI_ALLOWED || ulFlags & SERVICE_UI_ALWAYS)){
 				// Do not reset the logon error from HrLogon()
-				// The DAgent uses this value to determain if the delivery is fatal or not
+				// The DAgent uses this value to determine if the delivery is fatal or not
 				//
 				// Although this error is not in the online spec from MS, it should not really matter .... right?
 				// hr = MAPI_E_UNCONFIGURED;
