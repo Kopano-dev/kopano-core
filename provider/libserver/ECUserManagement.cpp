@@ -1804,10 +1804,10 @@ ECRESULT ECUserManagement::ConvertLoginToUserAndCompany(objectdetails_t *lpDetai
 		lpDetails->SetPropInt(OB_PROP_I_COMPANYID, ulCompanyId);
 	}
 
-	lpDetails->SetPropString(OB_PROP_S_LOGIN, loginname);
 	/* Groups require fullname to be updated as well */
 	if (OBJECTCLASS_TYPE(lpDetails->GetClass()) == OBJECTTYPE_DISTLIST)
 		lpDetails->SetPropString(OB_PROP_S_FULLNAME, loginname);
+	lpDetails->SetPropString(OB_PROP_S_LOGIN, std::move(loginname));
 	return erSuccess;
 }
 
@@ -1862,11 +1862,10 @@ ECRESULT ECUserManagement::ConvertUserAndCompanyToLogin(objectdetails_t *lpDetai
 	if (pos != std::string::npos)
 		format.replace(pos, 2, company);
 
-	lpDetails->SetPropString(OB_PROP_S_LOGIN, format);
 	/* Groups require fullname to be updated as well */
 	if (OBJECTCLASS_TYPE(lpDetails->GetClass()) == OBJECTTYPE_DISTLIST)
 		lpDetails->SetPropString(OB_PROP_S_FULLNAME, format);
-
+	lpDetails->SetPropString(OB_PROP_S_LOGIN, std::move(format));
 	return erSuccess;
 }
 

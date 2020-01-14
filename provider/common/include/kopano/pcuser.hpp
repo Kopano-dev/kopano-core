@@ -98,6 +98,7 @@ public:
 	void			SetPropInt(property_key_t propname, unsigned int value);
 	void			SetPropBool(property_key_t propname, bool value);
 	void			SetPropString(property_key_t propname, const std::string &value);
+	void SetPropString(property_key_t propname, std::string &&value);
 	void SetPropListString(property_key_t propname, std::list<std::string> &&value);
 	void SetPropObject(property_key_t propname, objectid_t &&value);
 
@@ -107,7 +108,7 @@ public:
 	void			AddPropObject(property_key_t propname, const objectid_t &value);
 	void			ClearPropList(property_key_t propname);
 
-	void			MergeFrom(const objectdetails_t &from);
+	void MergeFrom(objectdetails_t &&from);
 
 	void			SetClass(objectclass_t objclass);
 	objectclass_t	GetClass() const;
