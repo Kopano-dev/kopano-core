@@ -5,6 +5,8 @@
 #include <kopano/platform.h>
 #include <memory>
 #include <new>
+#include <shared_mutex>
+#include <mutex>
 #include <climits>
 #include <cstdint>
 #include <cstdlib>
@@ -44,7 +46,8 @@ Creating a self-signed test certificate:
 openssl req -new -x509 -key privkey.pem -out cacert.pem -days 1095
 */
 
-std::atomic<SSL_CTX *> ECChannel::lpCTX{nullptr};
+std::shared_mutex ECChannel::ctx_lock;
+SSL_CTX *ECChannel::lpCTX;
 
 HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig) {
 	if (lpConfig == NULL) {
@@ -71,24 +74,32 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig) {
 		goto exit;
 	}
 
+	// Initialize SSL library under context lock; normally, this should only
+	// happen on the first run of the SSL initializer and generally just once.
 #if OPENSSL_VERSION_NUMBER >= 0x1010000fL
-	// New style init.
-	if (lpCTX == nullptr)
-		OPENSSL_init_ssl(OPENSSL_INIT_ENGINE_ALL_BUILTIN, NULL);
+	{
+		// New style init.
+		std::unique_lock lck(ctx_lock);
+		if (lpCTX == nullptr)
+			OPENSSL_init_ssl(OPENSSL_INIT_ENGINE_ALL_BUILTIN, NULL);
+	}
 
 	// Default TLS context for OpenSSL >= 1.1, enables all methods.
 	ctx = SSL_CTX_new(TLS_server_method());
 #else // OPENSSL_VERSION_NUMBER < 0x1010000fL
-	// Old style init, modelled after Apache mod_ssl.
-	if (lpCTX == nullptr) {
-		ERR_load_crypto_strings();
-		SSL_load_error_strings();
-		SSL_library_init();
+	{
+		// Old style init, modelled after Apache mod_ssl.
+		std::unique_lock lck(ctx_lock);
+		if (lpCTX == nullptr) {
+			ERR_load_crypto_strings();
+			SSL_load_error_strings();
+			SSL_library_init();
 #	ifndef OPENSSL_NO_ENGINE
-		ENGINE_load_builtin_engines();
+			ENGINE_load_builtin_engines();
 #	endif // !OPENSSL_NO_ENGINE
-		OpenSSL_add_all_algorithms();
-		OPENSSL_load_builtin_modules();
+			OpenSSL_add_all_algorithms();
+			OPENSSL_load_builtin_modules();
+		}
 	}
 
 	// enable *all* server methods, not just ssl2 and ssl3, but also tls1 and tls1.1
@@ -325,9 +336,12 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig) {
 		goto exit;
 	}
 
-	// Swap in generated SSL context.
-	ctx = lpCTX.exchange(ctx);
-	hr = hrSuccess;
+	// Swap in newly generated SSL context.
+	{
+		std::unique_lock lck(ctx_lock);
+		std::swap(lpCTX, ctx);
+		hr = hrSuccess;
+	}
 
 exit:
 	// Clean up remaining context; when this is an old and not a failed context, the corresponding
@@ -338,10 +352,16 @@ exit:
 }
 
 HRESULT ECChannel::HrFreeCtx() {
-	// Swap out current SSL context.
-	auto oldctx = lpCTX.exchange(nullptr);
-	if (oldctx != nullptr)
-		SSL_CTX_free(oldctx);
+	// Swap out current SSL context from global context pointer.
+	SSL_CTX *ctx = nullptr;
+	{
+		std::unique_lock lck(ctx_lock);
+		std::swap(lpCTX, ctx);
+	}
+
+	// Clean up retrieved context.
+	if (ctx != nullptr)
+		SSL_CTX_free(ctx);
 	return hrSuccess;
 }
 
