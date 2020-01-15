@@ -5,8 +5,9 @@
 #ifndef WSTABLEVIEW_H
 #define WSTABLEVIEW_H
 
-#include <kopano/ECUnknown.h>
 #include <mutex>
+#include <kopano/ECUnknown.h>
+#include <kopano/memory.hpp>
 #include "soapH.h"
 #include "kcore.hpp"
 #include <kopano/kcodes.h>
@@ -52,7 +53,7 @@ protected:
 	entryId			m_sEntryId;
 	void *			m_lpProvider;
 	unsigned int m_ulTableType, m_ulSessionReloadCallback;
-	WSTransport*	m_lpTransport;
+	KC::object_ptr<WSTransport> m_lpTransport;
 	SPropTagArray *m_lpsPropTagArray = nullptr;
 	SSortOrderSet *m_lpsSortOrderSet = nullptr;
 	SRestriction *m_lpsRestriction = nullptr;

@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  * Copyright 2018, Kopano and its licensors
  */
-#include <stdexcept>
 #include <string>
 #include <climits>
 #include <cstdlib>
@@ -606,13 +605,11 @@ static HRESULT ibr_parse_options(int &argc, const char **&argv)
 	return hrSuccess;
 }
 
-int main(int argc, const char **argv) try
+int main(int argc, const char **argv)
 {
 	setlocale(LC_ALL, "");
 	auto ret = ibr_parse_options(argc, argv);
 	if (ret != hrSuccess)
 		return EXIT_FAILURE;
 	return ibr_perform(argc, argv) == hrSuccess ? EXIT_SUCCESS : EXIT_FAILURE;
-} catch (...) {
-	std::terminate();
 }

@@ -5,7 +5,6 @@
 #include "config.h"
 #include <condition_variable>
 #include <mutex>
-#include <stdexcept>
 #include <sstream>
 #include <string>
 #include <cerrno>
@@ -221,7 +220,7 @@ static void sd_term(int)
 	sd_cond_exit.notify_all();
 }
 
-int main(int argc, const char **argv) try
+int main(int argc, const char **argv)
 {
 	setlocale(LC_ALL, "");
 	ec_log_get()->SetLoglevel(EC_LOGLEVEL_INFO);
@@ -262,6 +261,4 @@ int main(int argc, const char **argv) try
 				"Continuing with restricted coredumps.", strerror(-ret));
 	}
 	return sd_mainloop(sockfd) == hrSuccess ? EXIT_SUCCESS : EXIT_FAILURE;
-} catch (...) {
-	std::terminate();
 }

@@ -5,8 +5,9 @@
 #ifndef WSMAPIFOLDEROPS_H
 #define WSMAPIFOLDEROPS_H
 
-#include <kopano/ECUnknown.h>
 #include <mutex>
+#include <kopano/ECUnknown.h>
+#include <kopano/memory.hpp>
 #include "kcore.hpp"
 #include <kopano/kcodes.h>
 #include <kopano/Util.h>
@@ -67,7 +68,7 @@ private:
 	entryId			m_sEntryId;		// Entryid of the folder
 	KC::ECSESSIONID ecSessionId;
 	ULONG			m_ulSessionReloadCallback;
-	WSTransport *	m_lpTransport;
+	KC::object_ptr<WSTransport> m_lpTransport;
 	ALLOC_WRAP_FRIEND;
 };
 
