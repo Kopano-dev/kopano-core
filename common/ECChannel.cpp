@@ -378,11 +378,13 @@ ECChannel::~ECChannel() {
 }
 
 HRESULT ECChannel::HrEnableTLS(void) {
-	int rc = -1;
-	HRESULT hr = hrSuccess;
+	if (lpSSL) {
+		ec_log_err("ECChannel::HrEnableTLS(): trying to reenable TLS channel");
+		return MAPI_E_CALL_FAILED;
+	}
 
-	if (lpSSL || lpCTX == NULL) {
-		hr = MAPI_E_CALL_FAILED;
+	HRESULT hr = MAPI_E_CALL_FAILED;
+	if (lpCTX == NULL) {
 		ec_log_err("ECChannel::HrEnableTLS(): invalid parameters");
 		goto exit;
 	}
@@ -390,7 +392,6 @@ HRESULT ECChannel::HrEnableTLS(void) {
 	lpSSL = SSL_new(lpCTX);
 	if (!lpSSL) {
 		ec_log_err("ECChannel::HrEnableTLS(): SSL_new failed");
-		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 
@@ -402,19 +403,21 @@ HRESULT ECChannel::HrEnableTLS(void) {
 
 	if (SSL_set_fd(lpSSL, fd) != 1) {
 		ec_log_err("ECChannel::HrEnableTLS(): SSL_set_fd failed");
-		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 
 	ERR_clear_error();
+	int rc;
 	if ((rc = SSL_accept(lpSSL)) != 1) {
 		int err = SSL_get_error(lpSSL, rc);
 		ec_log_err("ECChannel::HrEnableTLS(): SSL_accept failed: %d", err);
 		if (err != SSL_ERROR_SYSCALL && err != SSL_ERROR_SSL)
 			SSL_shutdown(lpSSL);
-		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
+
+	hr = hrSuccess;
+
 exit:
 	if (hr != hrSuccess && lpSSL) {
 		SSL_free(lpSSL);
