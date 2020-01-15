@@ -1524,11 +1524,8 @@ HRESULT OpenSubFolder(LPMDB lpMDB, const wchar_t *folder, wchar_t psep,
 		hr = FindFolder(lpTable, subfld.c_str(), &~lpPropFolder);
 		if (hr == MAPI_E_NOT_FOUND && bCreateFolder) {
 			hr = lpFoundFolder->CreateFolder(FOLDER_GENERIC, (LPTSTR)subfld.c_str(), (LPTSTR)L"Auto-created by Kopano", &IID_IMAPIFolder, MAPI_UNICODE | OPEN_IF_EXISTS, &lpNewFolder);
-			if (hr != hrSuccess) {
-				ec_log_err("Unable to create folder \"%ls\": %s (%x)",
-					subfld.c_str(), GetMAPIErrorMessage(hr), hr);
-				return hr;
-			}
+			if (hr != hrSuccess)
+				return hr_lerr(hr, "Unable to create folder \"%ls\"", subfld.c_str());
 		} else if (hr != hrSuccess)
 			return hr;
 
@@ -1538,11 +1535,8 @@ HRESULT OpenSubFolder(LPMDB lpMDB, const wchar_t *folder, wchar_t psep,
 		} else {
 			hr = lpMDB->OpenEntry(lpPropFolder->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPropFolder->Value.bin.lpb),
 			     &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpFoundFolder);
-			if (hr != hrSuccess) {
-				ec_log_err("Unable to open folder \"%ls\": %s (%x)",
-					subfld.c_str(), GetMAPIErrorMessage(hr), hr);
-				return hr;
-			}
+			if (hr != hrSuccess)
+				return hr_lerr(hr, "Unable to open folder \"%ls\"", subfld.c_str());
 		}
 	} while (ptr);
 

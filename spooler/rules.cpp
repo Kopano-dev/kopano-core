@@ -928,15 +928,13 @@ static struct actresult proc_op_copy(IMAPISession *ses, const ACTION &action,
 		hr = ses->OpenMsgStore(0, cmov.cbStoreEntryId,
 		     cmov.lpStoreEntryId, nullptr, MAPI_BEST_ACCESS, &~dst_store);
 		if (hr != hrSuccess) {
-			ec_log_err("Rule \"%s\": Unable to open destination store: %s (%x)",
-				rule.c_str(), GetMAPIErrorMessage(hr), hr);
+			hr_lerr(hr, "Rule \"%s\": Unable to open destination store", rule.c_str());
 			return {ROP_ERROR, hr};
 		}
 		hr = dst_store->OpenEntry(cmov.cbFldEntryId, cmov.lpFldEntryId,
 		     &IID_IMAPIFolder, MAPI_MODIFY, &obj_type, &~dst_folder);
 		if (hr != hrSuccess || obj_type != MAPI_FOLDER) {
-			ec_log_err("Rule \"%s\": Unable to open destination folder: %s (%x)",
-				rule.c_str(), GetMAPIErrorMessage(hr), hr);
+			hr_lerr(hr, "Rule \"%s\": Unable to open destination folder", rule.c_str());
 			return {ROP_ERROR, hr};
 		}
 	}
@@ -944,15 +942,13 @@ static struct actresult proc_op_copy(IMAPISession *ses, const ACTION &action,
 	object_ptr<IMessage> newmsg;
 	hr = dst_folder->CreateMessage(nullptr, 0, &~newmsg);
 	if (hr != hrSuccess) {
-		ec_log_err("Unable to create e-mail for rule \"%s\": %s (%x)",
-			rule.c_str(), GetMAPIErrorMessage(hr), hr);
+		hr_lerr(hr, "Unable to create e-mail for rule \"%s\"", rule.c_str());
 		return {ROP_FAILURE, hr};
 	}
 	hr = (*msg)->CopyTo(0, nullptr, nullptr, 0, nullptr, &IID_IMessage,
 	     newmsg, 0, nullptr);
 	if (hr != hrSuccess) {
-		ec_log_err("Unable to copy e-mail for rule \"%s\": %s (%x)",
-			rule.c_str(), GetMAPIErrorMessage(hr), hr);
+		hr_lerr(hr, "Unable to copy e-mail for rule \"%s\"", rule.c_str());
 		return {ROP_FAILURE, hr};
 	}
 	hr = Util::HrCopyIMAPData(*msg, newmsg);
@@ -965,8 +961,7 @@ static struct actresult proc_op_copy(IMAPISession *ses, const ACTION &action,
 	/* Save the copy in its new location */
 	hr = newmsg->SaveChanges(0);
 	if (hr != hrSuccess) {
-		ec_log_err("Rule \"%s\": Unable to copy/move message: %s (%x)",
-			rule.c_str(), GetMAPIErrorMessage(hr), hr);
+		hr_lerr(hr, "Rule \"%s\": Unable to copy/move message", rule.c_str());
 		return {ROP_ERROR, hr};
 	}
 	return {ROP_SUCCESS};
@@ -994,21 +989,18 @@ static struct actresult proc_op_reply(IMAPISession *ses, IMsgStore *store,
 	auto hr = inbox->OpenEntry(repl.cbEntryId, repl.lpEntryId,
 	          &IID_IMessage, 0, nullptr, reinterpret_cast<IUnknown **>(&tmpl));
 	if (hr != hrSuccess) {
-		ec_log_err("Rule \"%s\": Unable to open reply message: %s (%x)",
-			rule.c_str(), GetMAPIErrorMessage(hr), hr);
+		hr_lerr(hr, "Rule \"%s\": Unable to open reply message", rule.c_str());
 		return {ROP_ERROR, hr};
 	}
 	object_ptr<IMessage> replymsg;
 	hr = CreateReplyCopy(ses, store, *msg, tmpl, &~replymsg);
 	if (hr != hrSuccess) {
-		ec_log_err("Rule \"%s\": Unable to create reply message: %s (%x)",
-			rule.c_str(), GetMAPIErrorMessage(hr), hr);
+		hr_lerr(hr, "Rule \"%s\": Unable to create reply message", rule.c_str());
 		return {ROP_ERROR, hr};
 	}
 	hr = replymsg->SubmitMessage(0);
 	if (hr != hrSuccess) {
-		ec_log_err("Rule \"%s\": Unable to send reply message: %s (%x)",
-			rule.c_str(), GetMAPIErrorMessage(hr), hr);
+		hr_lerr(hr, "Rule \"%s\": Unable to send reply message", rule.c_str());
 		return {ROP_ERROR, hr};
 	}
 	return {ROP_SUCCESS};
@@ -1057,14 +1049,12 @@ static struct actresult proc_op_fwd(IAddrBook *abook, IMsgStore *orig_store,
 	     act.ulActionFlavor & FWD_DO_NOT_MUNGE_MSG,
 	     act.ulActionFlavor & FWD_AS_ATTACHMENT, &~lpFwdMsg);
 	if (hr != hrSuccess) {
-		auto msg = "Rule " + rule + ": FORWARD Unable to create forward message: %s (%x)";
-		ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
+		hr_lerr(hr, "Rule "s + rule + ": FORWARD Unable to create forward message");
 		return {hr == MAPI_E_NO_ACCESS ? ROP_FAILURE : ROP_ERROR, hr};
 	}
 	hr = lpFwdMsg->SubmitMessage(0);
 	if (hr != hrSuccess) {
-		auto msg = "Rule " + rule + ": FORWARD Unable to send forward message: %s (%x)";
-		ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
+		hr_lerr(hr, "Rule "s + rule + ": FORWARD Unable to send forward message");
 		return {ROP_ERROR, hr};
 	}
 	return {ROP_SUCCESS};
@@ -1084,21 +1074,18 @@ static struct actresult proc_op_delegate(IAddrBook *abk, IMsgStore *store,
 	auto hr = CreateForwardCopy(abk, store, *msg, action.lpadrlist,
 	          true, true, true, false, &~fwdmsg);
 	if (hr != hrSuccess) {
-		ec_log_err("Rule \"%s\": DELEGATE Unable to create delegate message: %s (%x)",
-			rule.c_str(), GetMAPIErrorMessage(hr), hr);
+		hr_lerr(hr, "Rule \"%s\": DELEGATE Unable to create delegate message", rule.c_str());
 		return {ROP_ERROR, hr};
 	}
 	/* set delegate properties */
 	hr = HrDelegateMessage(fwdmsg);
 	if (hr != hrSuccess) {
-		ec_log_err("Rule \"%s\": DELEGATE Unable to modify delegate message: %s (%x)",
-			rule.c_str(), GetMAPIErrorMessage(hr), hr);
+		hr_lerr(hr, "Rule \"%s\": DELEGATE Unable to modify delegate message", rule.c_str());
 		return {ROP_ERROR, hr};
 	}
 	hr = fwdmsg->SubmitMessage(0);
 	if (hr != hrSuccess) {
-		ec_log_err("Rule \"%s\": DELEGATE Unable to send delegate message: %s (%x)",
-			rule.c_str(), GetMAPIErrorMessage(hr), hr);
+		hr_lerr(hr, "Rule \"%s\": DELEGATE Unable to send delegate message", rule.c_str());
 		return {ROP_ERROR, hr};
 	}
 	/* don't set forwarded flag */
@@ -1324,8 +1311,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 			ec_log_info("Rule \"%s\" does not match", strRule.c_str());
 			continue;
 		} else if (hr != hrSuccess) {
-			ec_log_info("Rule \"%s\": %s (%x)", strRule.c_str(),
-				GetMAPIErrorMessage(hr), hr);
+			hr_lerr(hr, "Rule \"%s\"", strRule.c_str());
 			continue;
 		}
 		ec_log_info("Rule "s + strRule + " matches");

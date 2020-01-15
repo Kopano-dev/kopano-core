@@ -558,8 +558,7 @@ static HRESULT handle_child_exit(IMAPISession *lpAdminSession,
 		// TODO: if failed, and we have the lpUserStore, create message?
 	}
 	if (hr != hrSuccess)
-		ec_log_warn("Failed to create error message for user %ls: %s (%x)",
-			sSendData.strUsername.c_str(), GetMAPIErrorMessage(hr), hr);
+		hr_lwarn(hr, "Failed to create error message for user \"%ls\"", sSendData.strUsername.c_str());
 	// remove mail from queue
 	hr = lpSpooler->DeleteFromMasterOutgoingTable(sSendData.msg_eid.size(),
 	     reinterpret_cast<const ENTRYID *>(sSendData.msg_eid.data()), sSendData.ulFlags);
@@ -1148,11 +1147,8 @@ static int main2(int argc, char **argv)
 	g_lpLogger->SetLogprefix(LP_PID);
 
 	hr = mapiinit.Initialize();
-	if (hr != hrSuccess) {
-		ec_log_crit("Unable to initialize MAPI: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return hr_lcrit(hr, "Unable to initialize MAPI");
 
 	sc.reset(new spooler_stats(g_lpConfig));
 	if (bForked)

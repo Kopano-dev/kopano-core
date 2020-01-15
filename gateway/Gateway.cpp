@@ -545,10 +545,8 @@ static HRESULT handler_client(size_t i)
 	else if (lpHandlerArgs->type == ST_IMAP)
 		method = lpHandlerArgs->bUseSSL ? "IMAPs" : "IMAP";
 	auto hr = HrAccept(g_socks.pollfd[i].fd, &unique_tie(lpHandlerArgs->lpChannel));
-	if (hr != hrSuccess) {
-		ec_log_err("Unable to accept %s socket connection: %s (%x)", method, GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return hr_lerr(hr, "Unable to accept %s socket connection", method);
 
 	pthread_t tid;
 	ec_log_notice("Starting worker %s for %s request", model, method);

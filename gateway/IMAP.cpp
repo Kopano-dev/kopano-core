@@ -692,8 +692,8 @@ HRESULT IMAP::HrCmdLogin(const std::string &strTag,
 	     strwUsername.c_str(), strwPassword.c_str(), m_strPath.c_str(),
 	     flags, NULL, NULL);
 	if (hr != hrSuccess) {
-		ec_log_warn("Failed to login from [%s] with invalid username \"%s\" or wrong password: %s (%x)",
-			lpChannel->peer_addr(), strUsername.c_str(), GetMAPIErrorMessage(hr), hr);
+		hr_lwarn(hr, "Failed to login from [%s] with invalid username \"%s\" or wrong password",
+			lpChannel->peer_addr(), strUsername.c_str());
 		if (hr == MAPI_E_LOGON_FAILED)
 			HrResponse(RESP_TAGGED_NO, strTag, "LOGIN wrong username or password");
 		else
@@ -970,8 +970,7 @@ HRESULT IMAP::HrCmdDelete(const std::string &strTag,
 	// remove from subscribed list
 	hr = ChangeSubscribeList(false, cb, entry_id);
 	if (hr != hrSuccess) {
-		ec_log_err("Unable to update subscribed list for deleted folder \"%ls\": %s (%x)",
-			strFolder.c_str(), GetMAPIErrorMessage(hr), hr);
+		hr_lerr(hr, "Unable to update subscribed list for deleted folder \"%ls\"", strFolder.c_str());
 		hr = hrSuccess;
 	}
 	// close folder if it was selected
@@ -1252,8 +1251,7 @@ HRESULT IMAP::HrCmdList(const std::string &strTag,
 			continue;
 		hr = MAPI2IMAPCharset(strFolderPath, strResponse);
 		if (hr != hrSuccess) {
-			ec_log_err("Unable to represent foldername \"%ls\" in UTF-7: %s (%x)",
-				strFolderPath.c_str(), GetMAPIErrorMessage(hr), hr);
+			hr_lerr(hr, "Unable to represent foldername \"%ls\" in UTF-7", strFolderPath.c_str());
 			continue;
 		}
 		strResponse = (string)"\"" + IMAP_HIERARCHY_DELIMITER + "\" \"" + strResponse + "\""; // prepend folder delimiter
@@ -2499,8 +2497,7 @@ HRESULT IMAP::HrExpungeDeleted(const std::string &strTag,
 		     reinterpret_cast<const ENTRYID *>(lpRows[ulMailnr].lpProps[EID].Value.bin.lpb),
 		     0, ~MSGSTATUS_DELMARKED, NULL);
 		if (hr != hrSuccess)
-			ec_log_warn("Unable to update message status flag during %s: %s (%x)",
-				strCommand.c_str(), GetMAPIErrorMessage(hr), hr);
+			hr_lwarn(hr, "Unable to update message status flag during %s", strCommand.c_str());
 		entry_list->lpbin[entry_list->cValues++] = lpRows[ulMailnr].lpProps[EID].Value.bin;
 	}
 
@@ -3520,9 +3517,8 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 						if (hr != hrSuccess) {
 							vProps.emplace_back(item);
 							vProps.emplace_back("NIL");
-							ec_log_warn("K-1580: IMToInet (user \"%ls\" folder \"%ls\" message %d): %s (%x)",
-								m_strwUsername.c_str(), strCurrentFolder.c_str(), ulMailnr + 1,
-								GetMAPIErrorMessage(hr), hr);
+							hr_lwarn(hr, "K-1580: IMToInet (user \"%ls\" folder \"%ls\" message %d)",
+								m_strwUsername.c_str(), strCurrentFolder.c_str(), ulMailnr + 1);
 							continue;
 						}
 					}

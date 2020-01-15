@@ -1563,18 +1563,11 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrEMS->CreateStoreEntryID(nullptr, reinterpret_cast<const TCHAR *>(lpszAccount), 0, &cbEntryID, &~ptrEntryID);
-	if (hr != hrSuccess) {
-		ec_log_err("Unable to resolve store for \"%s\": %s (%x)\n",
-			lpszAccount, GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return hr_lerr(hr, "Unable to resolve store for \"%s\"", lpszAccount);
 	hr = lpSession->OpenMsgStore(0, cbEntryID, ptrEntryID, nullptr, MDB_WRITE, &~ptrUserStore);
-	if (hr != hrSuccess) {
-		ec_log_err("Unable to open store for \"%s\": %s (%x)\n",
-			lpszAccount, GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return hr_lerr(hr, "Unable to open store for \"%s\"", lpszAccount);
 	hr = ptrUserStore->QueryInterface(iid_of(ptrServiceAdmin), &~ptrServiceAdmin);
 	if (hr != hrSuccess)
 		return hr;

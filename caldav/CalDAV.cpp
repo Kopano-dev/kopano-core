@@ -618,7 +618,7 @@ static HRESULT HrHandleRequest(ECChannel *lpChannel)
 	hr = lpBase->HrHandleCommand(strMethod);
 exit:
 	if(hr != hrSuccess && !strMethod.empty() && hr != MAPI_E_NOT_ME)
-		ec_log_err("Error processing %s request: %s (%x)", strMethod.c_str(), GetMAPIErrorMessage(hr), hr);
+		hr_lerr(hr, "Error processing %s request", strMethod.c_str());
 	if (hr != MAPI_E_USER_CANCEL) // do not send response to client if connection closed by client.
 		hr = lpRequest.HrFinalize();
 	ec_log_debug("End Of Request");

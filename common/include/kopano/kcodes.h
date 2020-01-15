@@ -110,6 +110,7 @@ typedef uint64_t ECSESSIONID, ECSESSIONGROUPID;
 #define PR_EC_SUGGESTION	PROP_TAG(PT_UNICODE, 0x6707)
 
 #define ec_perror(s, r)    er_logcode((r), EC_LOGLEVEL_ERROR, nullptr, (s))
+#define er_lcritf(r, ...)  er_logcode((r), EC_LOGLEVEL_CRIT, __PRETTY_FUNCTION__, __VA_ARGS__)
 #define er_lerr(r, ...)    er_logcode((r), EC_LOGLEVEL_ERROR, nullptr, __VA_ARGS__)
 #define er_lerrf(r, ...)   er_logcode((r), EC_LOGLEVEL_ERROR, __PRETTY_FUNCTION__, __VA_ARGS__)
 #define er_ldebugf(r, ...) er_logcode((r), EC_LOGLEVEL_DEBUG, __PRETTY_FUNCTION__, __VA_ARGS__)

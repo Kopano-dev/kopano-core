@@ -16,6 +16,7 @@
 #include <kopano/ECLogger.h>
 #include <kopano/ECThreadPool.h>
 #include <kopano/database.hpp>
+#include <kopano/kcodes.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/scope.hpp>
 #include <kopano/stringutil.h>
@@ -788,7 +789,7 @@ int main(int argc, char **argv) try
 			return EXIT_FAILURE;
 		}
 		if (ret != erSuccess) {
-			ec_log_err("dbadm: action failed: %s (%x)", GetMAPIErrorMessage(kcerr_to_mapierr(ret)), ret);
+			er_lerr(ret, "dbadm: action failed");
 			return EXIT_FAILURE;
 		}
 	}

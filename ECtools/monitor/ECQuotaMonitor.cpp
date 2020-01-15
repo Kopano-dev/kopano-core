@@ -149,9 +149,8 @@ HRESULT ECQuotaMonitor::CheckQuota()
 			++m_ulProcessed;
 			hr = lpServiceAdmin->GetQuota(lpsCompanyList[i].sCompanyId.cb, (LPENTRYID)lpsCompanyList[i].sCompanyId.lpb, false, &~lpsQuota);
 			if (hr != hrSuccess) {
-				ec_log_err("Unable to get quota information for company \"%s\": %s (%x)",
-					reinterpret_cast<const char *>(lpsCompanyList[i].lpszCompanyname),
-					GetMAPIErrorMessage(hr), hr);
+				hr_lerr(hr, "Unable to get quota information for company \"%s\"",
+					reinterpret_cast<const char *>(lpsCompanyList[i].lpszCompanyname));
 				++m_ulFailed;
 				goto check_stores;
 			}
@@ -162,17 +161,15 @@ HRESULT ECQuotaMonitor::CheckQuota()
 			}
 			hr = Util::HrGetQuotaStatus(lpMsgStore, lpsQuota, &~lpsQuotaStatus);
 			if (hr != hrSuccess) {
-				ec_log_err("Unable to get quotastatus for company \"%s\": %s (%x)",
-					reinterpret_cast<const char *>(lpsCompanyList[i].lpszCompanyname),
-					GetMAPIErrorMessage(hr), hr);
+				hr_lerr(hr, "Unable to get quotastatus for company \"%s\"",
+					reinterpret_cast<const char *>(lpsCompanyList[i].lpszCompanyname));
 				++m_ulFailed;
 				goto check_stores;
 			}
 
 			if (lpsQuotaStatus->quotaStatus != QUOTA_OK) {
-				ec_log_err("Storage size of company \"%s\": %s (%x)",
-					reinterpret_cast<const char *>(lpsCompanyList[i].lpszCompanyname),
-					GetMAPIErrorMessage(hr), hr);
+				hr_lerr(hr, "Storage size of company \"%s\"",
+					reinterpret_cast<const char *>(lpsCompanyList[i].lpszCompanyname));
 				Notify(NULL, &lpsCompanyList[i], lpsQuotaStatus, lpMsgStore);
 			}
 		}
@@ -214,13 +211,9 @@ HRESULT ECQuotaMonitor::CheckCompanyQuota(ECCOMPANY *lpecCompany)
 		return kc_perror("Unable to get service admin", hr);
 	/* Get userlist */
 	hr = lpServiceAdmin->GetUserList(lpecCompany->sCompanyId.cb, (LPENTRYID)lpecCompany->sCompanyId.lpb, 0, &cUsers, &~lpsUserList);
-	if (hr != hrSuccess) {
-		ec_log_err("Unable to get userlist for company \"%s\": %s (%x)",
-			reinterpret_cast<const char *>(lpecCompany->lpszCompanyname),
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return hr_lerr(hr, "Unable to get userlist for company \"%s\"",
+		       reinterpret_cast<const char *>(lpecCompany->lpszCompanyname));
 	for (ULONG i = 0; i < cUsers; ++i)
 		if (lpsUserList[i].lpszServername && lpsUserList[i].lpszServername[0] != '\0')
 			setServers.emplace(reinterpret_cast<const char *>(lpsUserList[i].lpszServername));
@@ -246,8 +239,7 @@ HRESULT ECQuotaMonitor::CheckCompanyQuota(ECCOMPANY *lpecCompany)
 			continue;
 		hr = lpServiceAdmin->ResolvePseudoUrl(std::string("pseudo://" + server).c_str(), &~lpszConnection, &bIsPeer);
 		if (hr != hrSuccess) {
-			ec_log_err("Unable to resolve servername \"%s\": %s (%x)",
-				server.c_str(), GetMAPIErrorMessage(hr), hr);
+			hr_lerr(hr, "Unable to resolve servername \"%s\"", server.c_str());
 			++m_ulFailed;
 			continue;
 		}
@@ -273,15 +265,13 @@ HRESULT ECQuotaMonitor::CheckCompanyQuota(ECCOMPANY *lpecCompany)
 			     m_lpThreadMonitor->lpConfig->GetSetting("sslkey_file", "", nullptr),
 			     m_lpThreadMonitor->lpConfig->GetSetting("sslkey_pass", "", nullptr));
 			if (hr != hrSuccess) {
-				ec_log_err("Unable to connect to server \"%s\": %s (%x)",
-					lpszConnection.get(), GetMAPIErrorMessage(hr), hr);
+				hr_lerr(hr, "Unable to connect to server \"%s\"", lpszConnection.get());
 				++m_ulFailed;
 				continue;
 			}
 			hr = HrOpenDefaultStore(lpSession, &~lpAdminStore);
 			if (hr != hrSuccess) {
-				ec_log_err("Unable to open admin store on server \"%s\": %s (%x)",
-					lpszConnection.get(), GetMAPIErrorMessage(hr), hr);
+				hr_lerr(hr, "Unable to open admin store on server \"%s\"", lpszConnection.get());
 				++m_ulFailed;
 				continue;
 			}
@@ -289,8 +279,7 @@ HRESULT ECQuotaMonitor::CheckCompanyQuota(ECCOMPANY *lpecCompany)
 
 		hr = CheckServerQuota(cUsers, lpsUserList, lpecCompany, lpAdminStore);
 		if (hr != hrSuccess) {
-			ec_log_err("Unable to check quota on server \"%s\": %s (%x)",
-				lpszConnection.get(), GetMAPIErrorMessage(hr), hr);
+			hr_lerr(hr, "Unable to check quota on server \"%s\"", lpszConnection.get());
 			++m_ulFailed;
 		}
 	}
@@ -855,16 +844,15 @@ HRESULT ECQuotaMonitor::OpenUserStore(LPTSTR szStoreName, objectclass_t objclass
 		if (hr == MAPI_E_NOT_FOUND)
 			ec_log_info("Store of %s \"%s\" not found", (objclass == CONTAINER_COMPANY) ? "company" : "user", reinterpret_cast<const char *>(szStoreName));
 		else
-			ec_log_err("Unable to get store entry id for \"%s\": %s (%x)",
-				reinterpret_cast<const char *>(szStoreName),
-				GetMAPIErrorMessage(hr), hr);
+			hr_lerr(hr, "Unable to get store entry id for \"%s\"",
+				reinterpret_cast<const char *>(szStoreName));
 		return hr;
 	}
 
 	hr = m_lpMAPIAdminSession->OpenMsgStore(0, cbUserStoreEntryID, ptrUserStoreEntryID, NULL, MDB_WRITE, lppStore);
 	if (hr != hrSuccess)
-		ec_log_err("Unable to open store for \"%s\": %s (%x)",
-			reinterpret_cast<const char *>(szStoreName), GetMAPIErrorMessage(hr), hr);
+		hr_lerr(hr, "Unable to open store for \"%s\"",
+			reinterpret_cast<const char *>(szStoreName));
 	return hr;
 }
 

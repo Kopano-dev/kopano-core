@@ -441,8 +441,7 @@ HRESULT iCal::HrGetIcal(IMAPITable *lpTable, bool blCensorPrivate, std::string *
 			     &iid_of(lpMessage), MAPI_BEST_ACCESS, &ulObjType, &~lpMessage);
 			if (hr != hrSuccess)
 			{
-				ec_log_debug("Error opening message for ical conversion: %s (%x)",
-					GetMAPIErrorMessage(hr), hr);
+				hr_ldebug(hr, "Error opening message for ical conversion");
 				ec_log_debug("%d \n %s", sbEid.cb, bin2hex(sbEid).c_str());
 				// Ignore error, just skip the message
 				continue;
@@ -451,14 +450,13 @@ HRESULT iCal::HrGetIcal(IMAPITable *lpTable, bool blCensorPrivate, std::string *
 			     blCensor && IsPrivate(lpMessage, ulTagPrivate) ? M2IC_CENSOR_PRIVATE : 0);
 			if (hr != hrSuccess)
 				/* Ignore broken message */
-				ec_log_debug("Error converting mapi message to ical: %s (%x)",
-					GetMAPIErrorMessage(hr), hr);
+				hr_ldebug(hr, "Error converting mapi message to ical");
 		}
 	}
 
 	hr = lpMtIcal->Finalize(0, NULL, lpstrIcal);
 	if (hr != hrSuccess)
-		ec_log_debug("Unable to create ical output of calendar: %s (%x)", GetMAPIErrorMessage(hr), hr);
+		hr_ldebug(hr, "Unable to create ical output of calendar");
 	return hr;
 }
 

@@ -125,8 +125,8 @@ static HRESULT ExpandRecipientsRecursive(LPADRBOOK lpAddrBook,
 			p[3].Value.lpszW = lpDisplayName->Value.lpszW;
 			hr = lpMessage->ModifyRecipients(MODRECIP_ADD, sRowSMTProwSet);
 			if (hr != hrSuccess)
-				ec_log_err("Unable to add e-mail address of %ls from group: %s (%x)",
-					lpEmailAddress->Value.lpszW, GetMAPIErrorMessage(hr), hr);
+				hr_lerr(hr, "Unable to add e-mail address of %ls from group",
+					lpEmailAddress->Value.lpszW);
 			continue;
 		}
 
@@ -186,8 +186,8 @@ remove_group:
 		hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE,
 		     reinterpret_cast<ADRLIST *>(lpsRowSet.get()));
 		if (hr != hrSuccess) {
-			ec_log_err("Unable to remove group %ls from recipient list: %s (%x).",
-				lpDisplayName->Value.lpszW, GetMAPIErrorMessage(hr), hr);
+			hr_lerr(hr, "Unable to remove group %ls from recipient list",
+				lpDisplayName->Value.lpszW);
 			continue;
 		}
 	}
@@ -402,8 +402,8 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 		hr = lpMessage->ModifyRecipients(MODRECIP_MODIFY,
 		     reinterpret_cast<ADRLIST *>(lpRowSet.get()));
 		if (hr != hrSuccess) {
-			ec_log_err("Unable to set new FAX mail address for \"%ls\" to \"%s\": %s (%x)",
-				wstrOldFaxMail.c_str(), strFaxMail.c_str(), GetMAPIErrorMessage(hr), hr);
+			hr_lerr(hr, "Unable to set new FAX mail address for \"%ls\" to \"%s\"",
+				wstrOldFaxMail.c_str(), strFaxMail.c_str());
 			continue;
 		}
 		ec_log_info("Using new FAX mail address %s", strFaxMail.c_str());
@@ -759,24 +759,17 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 
 	// open inbox
 	auto hr = lpStore->GetReceiveFolder(reinterpret_cast<const TCHAR *>("IPM"), 0, &cbEntryID, &~lpEntryID, nullptr);
-	if (hr != hrSuccess) {
-		ec_log_warn("Unable to resolve incoming folder: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return hr_lerr(hr, "Unable to resolve incoming folder");
 	hr = lpStore->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpInbox);
 	if (hr != hrSuccess || ulObjType != MAPI_FOLDER) {
-		ec_log_warn("Unable to open inbox folder: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		hr_lerr(hr, "Unable to open inbox folder");
 		return MAPI_E_NOT_FOUND;
 	}
 	// make new message in inbox
 	hr = lpInbox->CreateMessage(nullptr, 0, &~lpErrorMsg);
-	if (hr != hrSuccess) {
-		ec_log_warn("Unable to create undeliverable message: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return hr_lerr(hr, "Unable to create undeliverable message");
 	// Get properties from the original message
 	hr = lpMessage->GetProps(sPropsOriginal, 0, &cValuesOriginal, &~lpPropArrayOriginal);
 	if (FAILED(hr))
@@ -791,8 +784,7 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 	// Add the original message into the errorMessage
 	hr = lpErrorMsg->CreateAttach(nullptr, 0, &ulAttachNum, &~lpAttach);
 	if (hr != hrSuccess) {
-		ec_log_warn("Unable to create attachment: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		hr_lerrf(hr, "Unable to create attachment");
 		return hr;
 	}
 	hr = lpAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY, &~lpOriginalMessage);
@@ -921,8 +913,7 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 		return kc_perror("Unable to commit message", hr);
 	// New mail notification
 	if (HrNewMailNotification(lpStore, lpErrorMsg) != hrSuccess)
-		ec_log_warn("Unable to issue \"New Mail\" notification: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		hr_lwarn(hr, "Unable to issue \"New Mail\" notification");
 	return hrSuccess;
 }
 
@@ -1064,12 +1055,8 @@ static HRESULT HrFindUserInGroup(IAddrBook *lpAdrBook, const SBinary &owner,
 	if (lpulCmp == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 	*lpulCmp = false;
-	if (level > 10) {
-		HRESULT hr = MAPI_E_TOO_COMPLEX;
-		ec_log_err("HrFindUserInGroup(): level too big %d: %s (%x)",
-			level, GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (level > 10)
+		return hr_lerrf(MAPI_E_TOO_COMPLEX, "Level %d too deep", level);
 	auto hr = lpAdrBook->OpenEntry(dl.cb, reinterpret_cast<const ENTRYID *>(dl.lpb),
 	          &iid_of(lpDistList), 0, &ulObjType, &~lpDistList);
 	if (hr != hrSuccess)
@@ -1132,37 +1119,28 @@ static HRESULT HrOpenRepresentStore(IAddrBook *lpAddrBook,
 	auto hr = lpAddrBook->OpenEntry(repr.cb, reinterpret_cast<const ENTRYID *>(repr.lpb),
 	          &iid_of(lpRepresenting), 0, &ulObjType, &~lpRepresenting);
 	if (hr != hrSuccess) {
-		ec_log_info("Unable to open representing user in addressbook: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		hr_lerr(hr, "Unable to open representing user in addressbook");
 		return MAPI_E_NOT_FOUND;
 	}
 	hr = HrGetOneProp(lpRepresenting, PR_ACCOUNT, &~lpRepAccount);
 	if (hr != hrSuccess) {
-		ec_log_info("Unable to find account name for representing user: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		hr_lerr(hr, "Unable to find account name for representing user");
 		return MAPI_E_NOT_FOUND;
 	}
 
 	hr = lpUserStore->QueryInterface(IID_IExchangeManageStore, &~lpExchangeManageStore);
-	if (hr != hrSuccess) {
-		ec_log_info("IExchangeManageStore interface not found: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return hr_lerr(hr, "IExchangeManageStore interface not found");
 	hr = lpExchangeManageStore->CreateStoreEntryID(nullptr, lpRepAccount->Value.LPSZ, fMapiUnicode, &ulRepStoreCB, &~lpRepStoreEID);
-	if (hr != hrSuccess) {
-		ec_log_err("Unable to create store entryid for representing user \"" TSTRING_PRINTF "\": %s (%x)",
-			lpRepAccount->Value.LPSZ, GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return hr_lerr(hr, "Unable to create store entryid for representing user \"" TSTRING_PRINTF "\"",
+			lpRepAccount->Value.LPSZ);
 
 	// Use the admin session to open the store, so we have full rights
 	hr = lpAdminSession->OpenMsgStore(0, ulRepStoreCB, lpRepStoreEID, nullptr, MAPI_BEST_ACCESS, &~lpRepStore);
-	if (hr != hrSuccess) {
-		ec_log_err("Unable to open store of representing user \"" TSTRING_PRINTF "\": %s (%x)",
-			lpRepAccount->Value.LPSZ, GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return hr_lerr(hr, "Unable to open store of representing user \"" TSTRING_PRINTF "\"",
+			lpRepAccount->Value.LPSZ);
 	return lpRepStore->QueryInterface(IID_IMsgStore,
 	       reinterpret_cast<void **>(lppRepStore));
 }
@@ -1200,8 +1178,8 @@ static HRESULT HrCheckAllowedEntryIDArray(const char *szFunc,
 			hr = lpAddrBook->CompareEntryIDs(owner.cb, reinterpret_cast<const ENTRYID *>(owner.lpb),
 			     mv.lpbin[i].cb, reinterpret_cast<const ENTRYID *>(mv.lpbin[i].lpb), 0, &ulCmpRes);
 		} else {
-			ec_log_err("Invalid object %d in %s list of user \"%ls\": %s (%x)",
-				ulObjType, szFunc, lpszMailer, GetMAPIErrorMessage(hr), hr);
+			hr_lerr(hr, "Invalid object %u in %s list of user \"%ls\"",
+				ulObjType, szFunc, lpszMailer);
 			continue;
 		}
 
@@ -1287,9 +1265,7 @@ static HRESULT CheckSendAs(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 	hr = hrSuccess;
 
 	if (lpRepresentProps[2].ulPropTag != PR_DISPLAY_TYPE) {	// Required property for a mailuser object
-		hr = MAPI_E_NOT_FOUND;
-		ec_log_notice("CheckSendAs(): PR_DISPLAY_TYPE missing: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		hr_lerrf(MAPI_E_NOT_FOUND, "PR_DISPLAY_TYPE missing");
 		goto exit;
 	}
 
@@ -1369,25 +1345,21 @@ static HRESULT CheckDelegate(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 	}
 	hr = HrGetOneProp(lpUserStore, PR_MAILBOX_OWNER_NAME, &~lpUserOwnerName);
 	if (hr != hrSuccess)
-		ec_log_notice("CheckDelegate() PR_MAILBOX_OWNER_NAME(user) fetch failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		hr_lnoticef(hr, "PR_MAILBOX_OWNER_NAME(user) fetch failed");
 	hr = HrGetOneProp(lpRepStore, PR_MAILBOX_OWNER_NAME, &~lpRepOwnerName);
 	if (hr != hrSuccess)
-		ec_log_notice("CheckDelegate() PR_MAILBOX_OWNER_NAME(rep) fetch failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		hr_lnoticef(hr, "PR_MAILBOX_OWNER_NAME(rep) fetch failed");
 	// ignore error, just a name for logging
 
 	// open root container
 	hr = lpRepStore->OpenEntry(0, nullptr, &iid_of(lpRepSubtree), 0, &ulObjType, &~lpRepSubtree);
 	if (hr != hrSuccess) {
-		ec_log_notice("CheckDelegate() OpenENtry(rep) failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		hr_lnoticef(hr, "OpenEntry(rep) failed");
 		goto exit;
 	}
 	hr = HrGetOneProp(lpRepSubtree, PR_FREEBUSY_ENTRYIDS, &~lpRepFBProp);
 	if (hr != hrSuccess) {
-		ec_log_notice("CheckDelegate() HrGetOneProp(rep) failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		hr_lnoticef(hr, "HrGetOneProp(rep) failed");
 		goto exit;
 	}
 
@@ -1397,14 +1369,12 @@ static HRESULT CheckDelegate(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 	     reinterpret_cast<ENTRYID *>(lpRepFBProp->Value.MVbin.lpbin[1].lpb),
 	     &iid_of(lpRepFBMessage), 0, &ulObjType, &~lpRepFBMessage);
 	if (hr != hrSuccess) {
-		ec_log_notice("CheckDelegate() OpenEntry(rep) failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		hr_lnoticef(hr, "OpenEntry(rep) failed");
 		goto exit;
 	}
 	hr = HrGetOneProp(lpRepFBMessage, PR_SCHDINFO_DELEGATE_ENTRYIDS, &~lpDelegates);
 	if (hr != hrSuccess) {
-		ec_log_notice("CheckDelegate() HrGetOneProp failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		hr_lnoticef(hr, "HrGetOneProp failed");
 		goto exit;
 	}
 	hr = HrCheckAllowedEntryIDArray("delegate", lpRepOwnerName ? lpRepOwnerName->Value.lpszW : L"<no name>",
@@ -1445,40 +1415,24 @@ static HRESULT CopyDelegateMessageToSentItems(LPMESSAGE lpMessage,
 	SPropValue sProp;
 
 	auto hr = HrGetOneProp(lpRepStore, PR_IPM_SENTMAIL_ENTRYID, &~lpSentItemsEntryID);
-	if (hr != hrSuccess) {
-		ec_log_warn("Unable to find the representee's Sent Items folder: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return hr_lwarn(hr, "Unable to find the representee's Sent Items folder");
 	hr = lpRepStore->OpenEntry(lpSentItemsEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpSentItemsEntryID->Value.bin.lpb),
 	     &IID_IMAPIFolder, MAPI_BEST_ACCESS, &ulObjType, &~lpSentItems);
-	if (hr != hrSuccess) {
-		ec_log_warn("Unable to open the representee's Sent Items folder: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return hr_lwarn(hr, "Unable to open the representee's Sent Items folder");
 	hr = lpSentItems->CreateMessage(nullptr, 0, &~lpDestMsg);
-	if (hr != hrSuccess) {
-		ec_log_warn("Unable to create the representee's message: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return hr_lwarn(hr, "Unable to create the representee's message");
 	hr = lpMessage->CopyTo(0, nullptr, nullptr, 0, nullptr, &IID_IMessage, lpDestMsg, 0, nullptr);
-	if (FAILED(hr)) {
-		ec_log_warn("Unable to copy the representee's message: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (FAILED(hr))
+		return hr_lwarn(hr, "Unable to copy the representee's message");
 
 	sProp.ulPropTag = PR_MESSAGE_FLAGS;
 	sProp.Value.ul = MSGFLAG_READ;
 	hr = lpDestMsg->SetProps(1, &sProp, nullptr);
-	if (hr != hrSuccess) {
-		ec_log_warn("Unable to edit the representee's message: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return hr_lwarn(hr, "Unable to edit the representee's message");
 	*lppRepMessage = lpDestMsg.release();
 	ec_log_info("Copy placed in the representee's Sent Items folder");
 	return hrSuccess;
@@ -1503,8 +1457,7 @@ static HRESULT PostSendProcessing(ULONG cbEntryId, const ENTRYID *lpEntryId,
 		return kc_perror("Unable to get PR_EC_OBJECT in post-send processing", hr);
 	hr = lpSpooler->DeleteFromMasterOutgoingTable(cbEntryId, lpEntryId, EC_SUBMIT_MASTER);
 	if (hr != hrSuccess)
-		ec_log_warn("Could not remove invalid message from queue: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		hr_lwarn(hr, "Could not remove invalid message from queue");
 	return hr;
 }
 
@@ -1603,8 +1556,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	// Init plugin system
 	auto hr = pyMapiPluginFactory.create_plugin(g_lpConfig.get(), "SpoolerPluginManager", &unique_tie(ptrPyMapiPlugin));
 	if (hr != hrSuccess) {
-		ec_log_crit("K-1733: Unable to initialize the spooler plugin system: %s (%x).",
-			GetMAPIErrorMessage(hr), hr);
+		hr_lcrit(hr, "K-1733: Unable to initialize the spooler plugin system");
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
@@ -1626,8 +1578,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	hr = lpUserStore->OpenEntry(cbMsgEntryId, reinterpret_cast<const ENTRYID *>(lpMsgEntryId),
 	     &IID_IMessage, MAPI_BEST_ACCESS, &ulObjType, &~lpMessage);
 	if (hr != hrSuccess) {
-		ec_log_err("Could not open message in store from user %ls: %s (%x)",
-			lpUser->lpszUsername, GetMAPIErrorMessage(hr), hr);
+		hr_lerr(hr, "Could not open message in store from user \"%ls\"", lpUser->lpszUsername);
 		goto exit;
 	}
 	hr = HrGetOneProp(lpUserStore, PR_IPM_WASTEBASKET_ENTRYID, &~trash_eid);
@@ -1765,8 +1716,8 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 					ec_log_warn("E-mail for user %ls may not be sent, notifying user", lpUser->lpszUsername);
 					HRESULT hr2 = SendUndeliverable(lpMailer, lpUserStore, lpMessage);
 					if (hr2 != hrSuccess)
-						ec_log_err("Unable to create undeliverable message for user %ls: %s (%x)",
-							lpUser->lpszUsername, GetMAPIErrorMessage(hr2), hr2);
+						hr_lerr(hr2, "Unable to create undeliverable message for user \"%ls\"",
+							lpUser->lpszUsername);
 					// note: hr == hrSuccess, parent process will not send the undeliverable too
 					goto exit;
 				}
@@ -1863,13 +1814,11 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		// Expand recipients with ADDRTYPE=ZARAFA to multiple ADDRTYPE=SMTP recipients
 		hr = ExpandRecipients(lpAddrBook, lpMessage);
 		if(hr != hrSuccess)
-			ec_log_warn("Unable to expand message recipient groups: %s (%x)",
-				GetMAPIErrorMessage(hr), hr);
+			hr_lwarn(hr, "Unable to expand message recipient groups");
 	}
 	hr = RewriteRecipients(lpUserSession, lpMessage);
 	if (hr != hrSuccess)
-		ec_log_warn("Unable to rewrite recipients: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		hr_lwarn(hr, "Unable to rewrite recipients");
 	if (sopt.always_expand_distr_list) {
 		// Only touch recips if we're expanding groups; the rationale is here that the user
 		// has typed a recipient twice if we have duplicates and expand_groups = no, so that's
@@ -1877,8 +1826,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		// later.
 		hr = UniqueRecipients(lpMessage);
 		if (hr != hrSuccess)
-			ec_log_warn("Unable to remove duplicate recipients: %s (%x)",
-				GetMAPIErrorMessage(hr), hr);
+			hr_lwarn(hr, "Unable to remove duplicate recipients");
 	}
 	RewriteQuotedRecipients(lpMessage);
 
@@ -1925,8 +1873,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 			lpUser->lpszUsername, GetMAPIErrorMessage(hr), hr);
 		hr = SendUndeliverable(lpMailer, lpUserStore, lpMessage);
 		if (hr != hrSuccess)
-			ec_log_err("Unable to create undeliverable message for user %ls: %s (%x)",
-				lpUser->lpszUsername, GetMAPIErrorMessage(hr), hr);
+			hr_lerr(hr, "Unable to create undeliverable message for user \"%ls\"", lpUser->lpszUsername);
 		// we set hr to success, so the parent process does not create the undeliverable thing again
 		hr = hrSuccess;
 		goto exit;
@@ -1979,9 +1926,7 @@ HRESULT ProcessMessageForked(const wchar_t *szUsername, const char *szSMTP,
 
 	lpMailer.reset(CreateSender(szSMTP, ulPort));
 	if (!lpMailer) {
-		hr = MAPI_E_NOT_ENOUGH_MEMORY;
-		ec_log_notice("ProcessMessageForked(): CreateSender failed: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
+		hr_lnoticef(MAPI_E_NOT_ENOUGH_MEMORY, "CreateSender failed");
 		goto exit;
 	}
 

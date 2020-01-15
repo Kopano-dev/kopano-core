@@ -189,10 +189,8 @@ HRESULT CalDAV::HrHandlePropfindRoot(WEBDAVREQSTPROPS *sDavReqstProps, WEBDAVMUL
 	for (const auto &iter : lpsDavProp->lstProps)
 		lpPropTagArr->aulPropTag[i++] = GetPropIDForXMLProp(lpMapiProp, iter.sPropName, m_converter);
 	hr = lpMapiProp->GetProps(lpPropTagArr, 0, &cbsize, &~lpSpropVal);
-	if (FAILED(hr)) {
-		ec_log_err("Error in GetProps for user \"%ls\": %s (%x)", m_wstrUser.c_str(), GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (FAILED(hr))
+		return hr_lerr(hr, "Error in GetProps for user \"%ls\"", m_wstrUser.c_str());
 	HrSetDavPropName(&(sDavResp.sPropName), "response", WEBDAVNS);
 	HrSetDavPropName(&(sDavResp.sHRef.sPropName), "href", WEBDAVNS);
 	// fetches escaped url
@@ -433,7 +431,7 @@ HRESULT CalDAV::HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWeb
 
 		hr = lpTable->FindRow(lpsRoot, BOOKMARK_BEGINNING, 0);
 		if (hr != hrSuccess)
-			ec_log_debug("Entry \"%s\" not found: %s (%x)", sWebDavVal.strValue.c_str(), GetMAPIErrorMessage(hr), hr);
+			hr_ldebug(hr, "Entry \"%s\" not found", sWebDavVal.strValue.c_str());
 
 		// conversion if everything goes ok, otherwise, add empty item with failed status field
 		// we need to return all items requested in the multistatus reply, otherwise sunbird will stop, displaying nothing to the user.
@@ -1422,12 +1420,9 @@ HRESULT CalDAV::HrHandleFreebusy(ICalToMapi *lpIcalToMapi)
 	sWebFbInfo.tEnd = tEnd;
 	sWebFbInfo.strUID = strUID;
 	hr = HrGetFreebusy(lpMapiToIcal.get(), lpFBSupport, m_lpAddrBook, *lstUsers, &sWebFbInfo);
-	if (hr != hrSuccess) {
+	if (hr != hrSuccess)
 		// @todo, print which users?
-		ec_log_err("Unable to get freebusy information for %zu users: %s (%x)",
-			lstUsers->size(), GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+		return hr_lerr(hr, "Unable to get freebusy information for %zu users", lstUsers->size());
 	hr = WebDav::HrPostFreeBusy(&sWebFbInfo);
 	if (hr != hrSuccess)
 		kc_pdebug("CalDAV::HrHandleFreebusy WebDav::HrPostFreeBusy failed", hr);
@@ -1796,10 +1791,8 @@ HRESULT CalDAV::HrGetCalendarOrder(SBinary sbEid, std::string *lpstrCalendarOrde
 
 	lpstrCalendarOrder->assign("2");
 	auto hr = m_lpActiveStore->OpenEntry(0, nullptr, &iid_of(lpRootCont), 0, &ulObjType, &~lpRootCont);
-	if (hr != hrSuccess || ulObjType != MAPI_FOLDER) {
-		ec_log_err("Error opening root container of user \"%ls\": %s (%x)", m_wstrUser.c_str(), GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess || ulObjType != MAPI_FOLDER)
+		return hr_lerr(hr, "Error opening root container of user \"%ls\"", m_wstrUser.c_str());
 	// get default calendar folder entry id from root container
 	hr = HrGetOneProp(lpRootCont, PR_IPM_APPOINTMENT_ENTRYID, &~lpProp);
 	if (hr != hrSuccess)

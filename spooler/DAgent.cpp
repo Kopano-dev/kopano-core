@@ -917,8 +917,7 @@ static HRESULT HrGetDeliveryStoreAndFolder(IMAPISession *lpSession,
 		lpArgs->sc->inc(SCN_DAGENT_DELIVER_JUNK);
 		hr = HrGetOneProp(lpInbox, PR_ADDITIONAL_REN_ENTRYIDS, &~lpJunkProp);
 		if (hr != hrSuccess || lpJunkProp->Value.MVbin.lpbin[4].cb == 0) {
-			ec_log_warn("Unable to resolve junk folder, using normal Inbox: %s (%x)",
-				GetMAPIErrorMessage(hr), hr);
+			hr_lwarn(hr, "Unable to resolve junk folder, using normal Inbox");
 			break;
 		}
 
@@ -927,8 +926,7 @@ static HRESULT HrGetDeliveryStoreAndFolder(IMAPISession *lpSession,
 		hr = lpUserStore->OpenEntry(lpJunkProp->Value.MVbin.lpbin[4].cb, reinterpret_cast<ENTRYID *>(lpJunkProp->Value.MVbin.lpbin[4].lpb),
 		     &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpJunkFolder);
 		if (hr != hrSuccess || ulObjType != MAPI_FOLDER) {
-			ec_log_warn("Unable to open junkmail folder, using normal Inbox: %s (%x)",
-				GetMAPIErrorMessage(hr), hr);
+			hr_lwarn(hr, "Unable to open junkmail folder, using normal Inbox");
 			break;
 		}
 		// set new delivery folder
@@ -1830,8 +1828,8 @@ static HRESULT HrGetSession(const DeliveryArgs *lpArgs,
 	case MAPI_E_LOGON_FAILED: {
 		// running dagent as Unix user != lpRecip->strUsername and ! listed in local_admin_user, which gives this error too
 		if (!bSuppress)
-			ec_log_err("Access denied or connection failed for user \"%ls\", using socket: \"%s\": %s (%x)",
-				szUsername, lpArgs->strPath.c_str(), GetMAPIErrorMessage(hr), hr);
+			hr_lerr(hr, "Access denied or connection failed for user \"%ls\" using socket \"%s\"",
+				szUsername, lpArgs->strPath.c_str());
 		// so also log userid we're running as
 		auto pwd = getpwuid(getuid());
 		std::string strUnixUser = (pwd != nullptr && pwd->pw_name != nullptr) ? pwd->pw_name : stringify(getuid());
@@ -1841,8 +1839,7 @@ static HRESULT HrGetSession(const DeliveryArgs *lpArgs,
 	}
 	default:
 		if (!bSuppress)
-			ec_log_err("Unable to login for user \"%ls\": %s (%x)",
-				szUsername, GetMAPIErrorMessage(hr), hr);
+			hr_lerr(hr, "Unable to login for user \"%ls\"", szUsername);
 		break;
 	}
 	return hr;
@@ -1887,8 +1884,7 @@ static HRESULT HrPostDeliveryProcessing(pym_plugin_intf *lppyMapiPlugin,
 			// run rules and don't send new mail notifications (The message should be deleted now)
 			return MAPI_E_CANCEL;
 		}
-		ec_log_info("Autoaccept processing failed, proceeding with rules processing: %s (%x).",
-			GetMAPIErrorMessage(hr), hr);
+		hr_linfo(hr, "Autoaccept processing failed, proceeding with rules processing");
 		lpArgs->got_error = true;
 		// The MR autoaccepter did not run properly. This could be correct behaviour; for example the
 		// autoaccepter may want to defer accepting to a human controller. This means we have to continue
@@ -1901,8 +1897,7 @@ static HRESULT HrPostDeliveryProcessing(pym_plugin_intf *lppyMapiPlugin,
 		if (hr == hrSuccess) {
 			ec_log_info("Automatic MR processing successful.");
 		} else {
-			ec_log_info("Automatic MR processing failed: %s (%x).",
-				GetMAPIErrorMessage(hr), hr);
+			hr_linfo(hr, "Automatic MR processing failed");
 			lpArgs->got_error = true;
 		}
 	}
@@ -2280,8 +2275,7 @@ static HRESULT ProcessDeliveryToServer(pym_plugin_intf *lppyMapiPlugin,
 			RespondMessageExpired(iter, listRecipients.cend());
 			return MAPI_W_CANCEL_MESSAGE;
 		} else {
-			ec_log_err("Unable to deliver message to \"%ls\": %s (%x)",
-				recip->wstrUsername.c_str(), GetMAPIErrorMessage(hr), hr);
+			hr_lerr(hr, "Unable to deliver message to \"%ls\"", recip->wstrUsername.c_str());
 			/* LMTP requires different notification when Quota for user was exceeded */
 			if (hr == MAPI_E_STORE_FULL)
 				recip->wstrDeliveryStatus = "552 5.2.2 %s Quota exceeded";
@@ -2447,8 +2441,8 @@ FindLowestAdminLevelSession(const serverrecipients_t *lpServerRecips,
 					goto found;
 				}
 				// remove found entry, so higher admin levels can be found too if a lower cannot login
-				ec_log_debug("Login on user \"%ls\" for addressbook resolves failed: %s (%x)",
-					lpRecip->wstrUsername.c_str(), GetMAPIErrorMessage(hr), hr);
+				hr_ldebug(hr, "Login on user \"%ls\" for addressbook resolves failed",
+				          lpRecip->wstrUsername.c_str());
 				lpRecip = NULL;
 			}
 		}
@@ -2734,8 +2728,7 @@ static void *HandlerLMTP(void *lpArg)
 				std::unique_ptr<pym_plugin_intf> ptrPyMapiPlugin;
 				hr = pyMapiPluginFactory.create_plugin(g_lpConfig.get(), "DAgentPluginManager", &unique_tie(ptrPyMapiPlugin));
 				if (hr != hrSuccess) {
-					ec_log_crit("K-1731: Unable to initialize the dagent plugin manager: %s (%x).",
-						GetMAPIErrorMessage(hr), hr);
+					hr_lcrit(hr, "K-1731: Unable to initialize the dagent plugin manager");
 					lmtp.HrResponse("503 5.1.1 Internal error during delivery");
 					lpArgs->sc->inc(SCN_LMTP_INTERNAL_ERROR);
 					fclose(tmp);
@@ -2906,11 +2899,8 @@ static HRESULT running_service(char **argv, DeliveryArgs *lpArgs)
 
 	AutoMAPI mapiinit;
 	hr = mapiinit.Initialize();
-	if (hr != hrSuccess) {
-		ec_log_crit("Unable to initialize MAPI: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return hr_lcrit(hr, "Unable to initialize MAPI");
 
 	auto sc = std::make_shared<dagent_stats>(g_lpConfig);
 	pthread_attr_t thr_attr;
@@ -3096,7 +3086,7 @@ static HRESULT deliver_recipients(pym_plugin_intf *py_plugin,
 	FILE *fpmail = nullptr;
 	auto ret = HrFileLFtoCRLF(file, &fpmail);
 	if (ret != hrSuccess) {
-		ec_log_warn("Unable to convert input to CRLF format: %s (%x)", GetMAPIErrorMessage(ret), ret);
+		hr_lwarn(ret, "Unable to convert input to CRLF format");
 		fpmail = file;
 	}
 	for (unsigned int ridx = 0; ridx < nrecip; ++ridx) {
@@ -3116,19 +3106,13 @@ static HRESULT direct_delivery(int argc, char **argv,
 	std::unique_ptr<pym_plugin_intf> ptrPyMapiPlugin;
 	AutoMAPI mapiinit;
 	auto hr = mapiinit.Initialize();
-	if (hr != hrSuccess) {
-		ec_log_crit("Unable to initialize MAPI: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return hr_lcrit(hr, "Unable to initialize MAPI");
 	auto sc = std::make_shared<dagent_stats>(g_lpConfig);
 	sDeliveryArgs.sc = std::move(sc);
 	hr = pyMapiPluginFactory.create_plugin(g_lpConfig.get(), "DAgentPluginManager", &unique_tie(ptrPyMapiPlugin));
-	if (hr != hrSuccess) {
-		ec_log_crit("K-1732: Unable to initialize the dagent plugin manager: %s (%x).",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return hr_lcrit(hr, "K-1732: Unable to initialize the dagent plugin manager");
 	hr = deliver_recipients(ptrPyMapiPlugin.get(), argc - optind, argv + optind, strip_email, fp, &sDeliveryArgs);
 	if (hr != hrSuccess)
 		kc_perrorf("deliver_recipient failed", hr);

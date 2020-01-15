@@ -67,11 +67,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 	// default store required for various actions (delete, freebusy, ...)
 	hr = HrOpenDefaultStore(m_lpSession, &~m_lpDefStore);
 	if(hr != hrSuccess)
-	{
-		ec_log_err("Error opening default store of user \"%ls\": %s (%x)",
-			m_wstrUser.c_str(), GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+		return hr_lerr(hr, "Error opening default store of user \"%ls\"", m_wstrUser.c_str());
 	hr = HrGetOwner(m_lpSession, m_lpDefStore, &~m_lpLoginUser);
 	if(hr != hrSuccess)
 		return hr;
@@ -83,19 +79,13 @@ HRESULT ProtocolBase::HrInitializeClass()
 	{
 		// open public
 		hr = HrOpenECPublicStore(m_lpSession, &~m_lpActiveStore);
-		if (hr != hrSuccess) {
-			ec_log_err("Unable to open public store with user \"%ls\": %s (%x)",
-				m_wstrUser.c_str(), GetMAPIErrorMessage(hr), hr);
-			return hr;
-		}
+		if (hr != hrSuccess)
+			return hr_lerr(hr, "Unable to open public store with user \"%ls\"", m_wstrUser.c_str());
 	} else if (wcscasecmp(m_wstrUser.c_str(), m_wstrFldOwner.c_str())) {
 		// open shared store
 		hr = HrOpenUserMsgStore(m_lpSession, m_wstrFldOwner.c_str(), &~m_lpActiveStore);
-		if (hr != hrSuccess) {
-			ec_log_err("Unable to open store of user \"%ls\" with user \"%ls\": %s (%x)",
-				m_wstrFldOwner.c_str(), m_wstrUser.c_str(), GetMAPIErrorMessage(hr), hr);
-			return hr;
-		}
+		if (hr != hrSuccess)
+			return hr_lerr(hr, "Unable to open store of user \"%ls\"", m_wstrFldOwner.c_str());
 		m_ulFolderFlag |= SHARED_FOLDER;
 	} else {
 		// @todo, make auto pointers
@@ -121,28 +111,16 @@ HRESULT ProtocolBase::HrInitializeClass()
 	 */
 	hr = OpenSubFolder(m_lpActiveStore, NULL, '/', bIsPublic, false, &~m_lpIPMSubtree);
 	if(hr != hrSuccess)
-	{
-		ec_log_err("Error opening IPM SUBTREE using user \"%ls\": %s (%x)",
-			m_wstrUser.c_str(), GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+		return hr_lerr(hr, "Error opening IPM SUBTREE using user \"%ls\"", m_wstrUser.c_str());
 	// Get active store default calendar to prevent delete action on this folder
 	hr = m_lpActiveStore->OpenEntry(0, nullptr, &iid_of(lpRoot), 0, nullptr, &~lpRoot);
 	if(hr != hrSuccess)
-	{
-		ec_log_err("Error opening root container using user \"%ls\": %s (%x)",
-			m_wstrUser.c_str(), GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+		return hr_lerr(hr, "Error opening root container using user \"%ls\"", m_wstrUser.c_str());
 	if (!bIsPublic) {
 		// get default calendar entryid for non-public stores
 		hr = HrGetOneProp(lpRoot, PR_IPM_APPOINTMENT_ENTRYID, &~lpDefaultProp);
 		if(hr != hrSuccess)
-		{
-			ec_log_err("Error retrieving entryid of default calendar for user \"%ls\": %s (%x)",
-				m_wstrUser.c_str(), GetMAPIErrorMessage(hr), hr);
-			return hr;
-		}
+			return hr_lerr(hr, "Error retrieving entryid of default calendar for user \"%ls\"", m_wstrUser.c_str());
 	}
 
 	/*
@@ -153,22 +131,15 @@ HRESULT ProtocolBase::HrInitializeClass()
 		hr = OpenSubFolder(m_lpActiveStore, NULL, '/', bIsPublic,
 		     false, &~m_lpUsrFld);
 		if(hr != hrSuccess)
-		{
-			ec_log_err("Error opening IPM_SUBTREE folder of user \"%ls\": %s (%x)",
-				m_wstrUser.c_str(), GetMAPIErrorMessage(hr), hr);
-			return hr;
-		}
+			return hr_lerr(hr, "Error opening IPM_SUBTREE folder of user \"%ls\"", m_wstrUser.c_str());
 	}
 	else if(!m_wstrFldName.empty())
 	{
 		// @note, caldav allows creation of calendars for non-existing urls, but since this can also use IDs, I am not sure we want to.
 		hr = HrFindFolder(m_lpActiveStore, m_lpIPMSubtree, m_lpNamedProps, m_wstrFldName, &~m_lpUsrFld);
 		if(hr != hrSuccess)
-		{
-			ec_log_err("Error opening named folder of user \"%ls\", folder \"%ls\": %s (%x)",
-				m_wstrUser.c_str(), m_wstrFldName.c_str(), GetMAPIErrorMessage(hr), hr);
-			return hr;
-		}
+			return hr_lerr(hr, "Error opening named folder of user \"%ls\", folder \"%ls\"",
+			       m_wstrUser.c_str(), m_wstrFldName.c_str());
 		m_ulFolderFlag |= SINGLE_FOLDER;
 
 		// check if this is the default calendar folder to enable freebusy publishing
@@ -193,11 +164,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 		hr = m_lpActiveStore->OpenEntry(lpDefaultProp->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpDefaultProp->Value.bin.lpb),
 		     &iid_of(m_lpUsrFld), MAPI_BEST_ACCESS, nullptr, &~m_lpUsrFld);
 		if (hr != hrSuccess)
-		{
-			ec_log_err("Unable to open default calendar for user \"%ls\": %s (%x)",
-				m_wstrUser.c_str(), GetMAPIErrorMessage(hr), hr);
-			return hr;
-		}
+			return hr_lerr(hr, "Unable to open default calendar for user \"%ls\"", m_wstrUser.c_str());
 		// we already know we don't want to delete this folder
 		m_blFolderAccess = false;
 		m_ulFolderFlag |= DEFAULT_FOLDER;

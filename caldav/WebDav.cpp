@@ -126,7 +126,7 @@ HRESULT WebDav::HrPropfind()
 	hr = RespStructToXml(&sDavMStatus, &strXml);
 	if (hr != hrSuccess)
 	{
-		ec_log_debug("Unable to convert response to XML: %s (%x)", GetMAPIErrorMessage(hr), hr);
+		hr_ldebug(hr, "Unable to convert response to XML");
 		goto exit;
 	}
 
@@ -435,7 +435,7 @@ HRESULT WebDav::HrHandleRptCalQry()
 exit:
 	if (hr != hrSuccess)
 	{
-		ec_log_debug("Unable to process report calendar query: %s (%x)", GetMAPIErrorMessage(hr), hr);
+		hr_ldebug(hr, "Unable to process report calendar query");
 		m_lpRequest.HrResponseHeader(500, "Internal Server Error");
 	}
 	return hr;
@@ -531,7 +531,7 @@ HRESULT WebDav::HrHandleRptMulGet()
 exit:
 	if(hr != hrSuccess)
 	{
-		ec_log_debug("Unable to process report multi-get: %s (%x)", GetMAPIErrorMessage(hr), hr);
+		hr_ldebug(hr, "Unable to process report multi-get");
 		m_lpRequest.HrResponseHeader(500, "Internal Server Error");
 	}
 	return hr;
@@ -626,7 +626,7 @@ HRESULT WebDav::HrPropertySearch()
 exit:
 	if(hr != hrSuccess)
 	{
-		ec_log_debug("Unable to process report multi-get: %s (%x)", GetMAPIErrorMessage(hr), hr);
+		hr_ldebug(hr, "Unable to process report multi-get");
 		m_lpRequest.HrResponseHeader(500, "Internal Server Error");
 	}
 	return hr;
@@ -1239,7 +1239,7 @@ HRESULT WebDav::HrPropPatch()
 	hr = RespStructToXml(&sDavMStatus, &strXml);
 	if (hr != hrSuccess)
 	{
-		ec_log_debug("Unable to convert response to XML: %s (%x)", GetMAPIErrorMessage(hr), hr);
+		hr_ldebug(hr, "Unable to convert response to XML");
 		goto exit;
 	}
 exit:

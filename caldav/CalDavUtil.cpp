@@ -168,8 +168,7 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 	if (folder) {
 		auto hr = lpMsgStore->OpenEntry(folder->Value.bin.cb, reinterpret_cast<ENTRYID *>(folder->Value.bin.lpb), &IID_IMAPIFolder, MAPI_BEST_ACCESS, &ulObjType, (LPUNKNOWN*)lppUsrFld);
 		if (hr != hrSuccess)
-			ec_log_err("Cannot open folder \"%ls\": %s (%x)",
-				wstrFldId.c_str(), GetMAPIErrorMessage(hr), hr);
+			hr_lerr(hr, "Cannot open folder \"%ls\"", wstrFldId.c_str());
 		// we're done either way
 		return hr;
 	}

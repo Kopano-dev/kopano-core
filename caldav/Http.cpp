@@ -145,7 +145,7 @@ HRESULT Http::HrReadHeaders()
 
 	hr = HrParseHeaders();
 	if (hr != hrSuccess)
-		ec_log_debug("parsing headers failed: %s (%x)", GetMAPIErrorMessage(hr), hr);
+		hr_ldebug(hr, "parsing headers failed");
 	return hr;
 }
 
@@ -479,11 +479,8 @@ HRESULT Http::HrValidateReq()
 		}
 	}
 
-	if (!bFound) {
-		static const HRESULT hr = MAPI_E_INVALID_PARAMETER;
-		ec_log_err("HTTP request \"%s\" not implemented: %s (%x)", m_strMethod.c_str(), GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (!bFound)
+		return hr_lerr(MAPI_E_INVALID_PARAMETER, "HTTP request \"%s\" not implemented", m_strMethod.c_str());
 	// validate authentication data
 	if (m_strUser.empty() || m_strPass.empty())
 		// hr still success, since http request is valid
