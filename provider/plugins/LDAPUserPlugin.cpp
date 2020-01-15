@@ -990,13 +990,12 @@ string LDAPUserPlugin::getSearchFilter(objectclass_t objclass)
 
 	switch (objclass) {
 	case OBJECTCLASS_UNKNOWN:
-		/* No objectclass is given, merge all filters together */
-		subfilter = getSearchFilter(OBJECTCLASS_USER);
-		if (contacttype)
-			subfilter += getSearchFilter(NONACTIVE_CONTACT);
+		/* No objectclass is given, merge all filters together. */
+		subfilter = "(|";
+		subfilter += getSearchFilter(OBJECTCLASS_USER);
 		subfilter += getSearchFilter(OBJECTCLASS_DISTLIST);
 		subfilter += getSearchFilter(OBJECTCLASS_CONTAINER);
-		subfilter = "(|" + subfilter + ")";
+		subfilter += ")";
 		break;
 	case OBJECTCLASS_USER:
 	case ACTIVE_USER:
