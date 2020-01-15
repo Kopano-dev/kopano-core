@@ -399,44 +399,52 @@ HRESULT ECChannel::HrEnableTLS(void)
 		return MAPI_E_CALL_FAILED;
 	}
 
+	/*
+	 * Access context under shared lock to avoid races with HrSetCtx
+	 * setting up a new context.
+	 */
+	SSL *ssl = nullptr;
 	HRESULT hr = MAPI_E_CALL_FAILED;
-	if (lpCTX == nullptr) {
-		ec_log_err("ECChannel::HrEnableTLS(): invalid parameters");
-		goto exit;
+	{
+		std::shared_lock<KC::shared_mutex> lck(ctx_lock);
+		if (lpCTX == NULL) {
+			ec_log_err("ECChannel::HrEnableTLS(): trying to enable TLS channel when not set up");
+			goto exit;
+		}
+		ssl = SSL_new(lpCTX);
 	}
 
-	lpSSL = SSL_new(lpCTX);
-	if (!lpSSL) {
+	if (ssl == nullptr) {
 		ec_log_err("ECChannel::HrEnableTLS(): SSL_new failed");
 		goto exit;
 	}
 
 #if OPENSSL_VERSION_NUMBER >= 0x1010100fL
-	ec_log_info("ECChannel::HrEnableTLS(): min TLS version 0x%lx", SSL_get_min_proto_version(lpSSL));
-	ec_log_info("ECChannel::HrEnableTLS(): max TLS version 0x%lx", SSL_get_max_proto_version(lpSSL));
+	ec_log_info("ECChannel::HrEnableTLS(): min TLS version 0x%lx", SSL_get_min_proto_version(ssl));
+	ec_log_info("ECChannel::HrEnableTLS(): max TLS version 0x%lx", SSL_get_max_proto_version(ssl));
 #endif
-	ec_log_info("ECChannel::HrEnableTLS(): TLS flags 0x%lx", SSL_get_options(lpSSL));
+	ec_log_info("ECChannel::HrEnableTLS(): TLS flags 0x%lx", SSL_get_options(ssl));
 
-	if (SSL_set_fd(lpSSL, fd) != 1) {
+	if (SSL_set_fd(ssl, fd) != 1) {
 		ec_log_err("ECChannel::HrEnableTLS(): SSL_set_fd failed");
 		goto exit;
 	}
 
 	ERR_clear_error();
 	int rc;
-	if ((rc = SSL_accept(lpSSL)) != 1) {
-		int err = SSL_get_error(lpSSL, rc);
+	if ((rc = SSL_accept(ssl)) != 1) {
+		int err = SSL_get_error(ssl, rc);
 		ec_log_err("ECChannel::HrEnableTLS(): SSL_accept failed: %d", err);
 		if (err != SSL_ERROR_SYSCALL && err != SSL_ERROR_SSL)
-			SSL_shutdown(lpSSL);
+			SSL_shutdown(ssl);
 		goto exit;
 	}
+
+	std::swap(lpSSL, ssl);
 	hr = hrSuccess;
 exit:
-	if (hr != hrSuccess && lpSSL) {
-		SSL_free(lpSSL);
-		lpSSL = NULL;
-	}
+	if (ssl != nullptr)
+		SSL_free(ssl);
 	return hr;
 }
 
