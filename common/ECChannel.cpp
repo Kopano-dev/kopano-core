@@ -53,6 +53,7 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig) {
 		return hr;
 	}
 
+	SSL_CTX *ctx = nullptr;
 	const char *szFile = nullptr, *szPath = nullptr;;
 	auto cert_file = lpConfig->GetSetting("ssl_certificate_file");
 	auto key_file = lpConfig->GetSetting("ssl_private_key_file");
@@ -89,7 +90,7 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig) {
 		OPENSSL_init_ssl(OPENSSL_INIT_ENGINE_ALL_BUILTIN, NULL);
 
 	// Default TLS context for OpenSSL >= 1.1, enables all methods.
-	auto newctx = SSL_CTX_new(TLS_server_method());
+	ctx = SSL_CTX_new(TLS_server_method());
 #else // OPENSSL_VERSION_NUMBER < 0x1010000fL
 	// Old style init, modelled after Apache mod_ssl.
 	if (lpCTX == nullptr) {
@@ -104,11 +105,11 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig) {
 	}
 
 	// enable *all* server methods, not just ssl2 and ssl3, but also tls1 and tls1.1
-	auto newctx = SSL_CTX_new(SSLv23_server_method());
+	ctx = SSL_CTX_new(SSLv23_server_method());
 #endif // OPENSSL_VERSION_NUMBER
 
 	// Check context.
-	if (newctx == nullptr) {
+	if (ctx == nullptr) {
 		ec_log_err("ECChannel::HrSetCtx(): failed to create new SSL context");
 		return hr;
 	}
@@ -122,7 +123,7 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig) {
 #ifndef SSL_TXT_TLSV1_3
 #	define SSL_TXT_TLSV1_3 "TLSv1.3"
 #endif
-	SSL_CTX_set_options(newctx, SSL_OP_ALL | SSL_OP_NO_RENEGOTIATION | SSL_OP_NO_COMPRESSION);
+	SSL_CTX_set_options(ctx, SSL_OP_ALL | SSL_OP_NO_RENEGOTIATION | SSL_OP_NO_COMPRESSION);
 	ssl_name = strtok(ssl_protocols.get(), " ");
 	while(ssl_name != NULL) {
 		int ssl_proto = 0;
@@ -199,7 +200,7 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig) {
 		goto exit;
 	}
 	ec_log_info("Maximum TLS protocol version to use: 0x%x", ver);
-	SSL_CTX_set_max_proto_version(newctx, ver);
+	SSL_CTX_set_max_proto_version(ctx, ver);
 
 	// Find version range bottom for proto version setup. This loops over the
 	// range of available protocols and only allows a consecutive chain, just
@@ -224,7 +225,7 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig) {
 		ver = SSL3_VERSION;
 #	endif // !OPENSSL_NO_SSL3
 	ec_log_info("Minimum TLS protocol version to use: 0x%x", ver);
-	SSL_CTX_set_min_proto_version(newctx, ver);
+	SSL_CTX_set_min_proto_version(ctx, ver);
 #else // OPENSSL_VERSION_NUMBER < 0x1010000fL
 	long ssl_opset = 0, ssl_opclear = 0;
 
@@ -270,17 +271,17 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig) {
 	}
 
 	// Set up options to set up.
-	ssl_opset = ssl_opset & ~SSL_CTX_get_options(newctx);
+	ssl_opset = ssl_opset & ~SSL_CTX_get_options(ctx);
 	if (ssl_opset != 0) {
 		ec_log_info("Setting options 0x%lx on SSL context", ssl_opset);
-		SSL_CTX_set_options(newctx, ssl_opset);
+		SSL_CTX_set_options(ctx, ssl_opset);
 	}
 
 	// Clear out options that should be cleared.
-	ssl_opclear = ssl_opclear & SSL_CTX_get_options(newctx);
+	ssl_opclear = ssl_opclear & SSL_CTX_get_options(ctx);
 	if (ssl_opclear != 0) {
 		ec_log_warn("Resetting already set options 0x%lx on SSL context", ssl_opclear);
-		SSL_CTX_clear_options(newctx, ssl_opclear);
+		SSL_CTX_clear_options(ctx, ssl_opclear);
 	}
 #endif // OPENSSL_VERSION_NUMBER
 
@@ -288,62 +289,64 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig) {
 	ecdh = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
 	if (ecdh != NULL) {
 		/* SINGLE_ECDH_USE = renegotiate exponent for each handshake */
-		SSL_CTX_set_options(newctx, SSL_OP_SINGLE_ECDH_USE);
-		SSL_CTX_set_tmp_ecdh(newctx, ecdh);
+		SSL_CTX_set_options(ctx, SSL_OP_SINGLE_ECDH_USE);
+		SSL_CTX_set_tmp_ecdh(ctx, ecdh);
 		EC_KEY_free(ecdh);
 	}
 #endif
-	if (ssl_ciphers && SSL_CTX_set_cipher_list(newctx, ssl_ciphers) != 1) {
+	if (ssl_ciphers && SSL_CTX_set_cipher_list(ctx, ssl_ciphers) != 1) {
 		ec_log_err("Can not set SSL cipher list to \"%s\": %s", ssl_ciphers, ERR_error_string(ERR_get_error(), 0));
 		goto exit;
 	}
 	if (parseBool(lpConfig->GetSetting("ssl_prefer_server_ciphers")))
-		SSL_CTX_set_options(newctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
+		SSL_CTX_set_options(ctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
 #if !defined(OPENSSL_NO_ECDH) && defined(SSL_CTX_set1_curves_list)
-	if (ssl_curves && SSL_CTX_set1_curves_list(newctx, ssl_curves) != 1) {
+	if (ssl_curves && SSL_CTX_set1_curves_list(ctx, ssl_curves) != 1) {
 		ec_log_err("Can not set SSL curve list to \"%s\": %s", ssl_curves, ERR_error_string(ERR_get_error(), 0));
 		goto exit;
 	}
 
-	SSL_CTX_set_ecdh_auto(newctx, 1);
+	SSL_CTX_set_ecdh_auto(ctx, 1);
 #endif
 
-	SSL_CTX_set_default_verify_paths(newctx);
-	if (SSL_CTX_use_certificate_chain_file(newctx, cert_file) != 1) {
+	SSL_CTX_set_default_verify_paths(ctx);
+	if (SSL_CTX_use_certificate_chain_file(ctx, cert_file) != 1) {
 		ec_log_err("SSL CTX certificate file error: %s", ERR_error_string(ERR_get_error(), 0));
 		goto exit;
 	}
-	if (SSL_CTX_use_PrivateKey_file(newctx, key_file, SSL_FILETYPE_PEM) != 1) {
+	if (SSL_CTX_use_PrivateKey_file(ctx, key_file, SSL_FILETYPE_PEM) != 1) {
 		ec_log_err("SSL CTX private key file error: %s", ERR_error_string(ERR_get_error(), 0));
 		goto exit;
 	}
-	if (SSL_CTX_check_private_key(newctx) != 1) {
+	if (SSL_CTX_check_private_key(ctx) != 1) {
 		ec_log_err("SSL CTX check private key error: %s", ERR_error_string(ERR_get_error(), 0));
 		goto exit;
 	}
 
 	if (strcmp(lpConfig->GetSetting("ssl_verify_client"), "yes") == 0)
-		SSL_CTX_set_verify(newctx, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, 0);
+		SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, 0);
 	else
-		SSL_CTX_set_verify(newctx, SSL_VERIFY_NONE, 0);
+		SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, 0);
 
 	if (lpConfig->GetSetting("ssl_verify_file")[0])
 		szFile = lpConfig->GetSetting("ssl_verify_file");
 	if (lpConfig->GetSetting("ssl_verify_path")[0])
 		szPath = lpConfig->GetSetting("ssl_verify_path");
 	if ((szFile != nullptr || szPath != nullptr) &&
-	    SSL_CTX_load_verify_locations(newctx, szFile, szPath) != 1) {
+	    SSL_CTX_load_verify_locations(ctx, szFile, szPath) != 1) {
 		ec_log_err("SSL CTX error loading verify locations: %s", ERR_error_string(ERR_get_error(), 0));
 		goto exit;
 	}
 
 	// Swap in generated SSL context.
-	newctx = lpCTX.exchange(newctx);
+	ctx = lpCTX.exchange(ctx);
 	hr = hrSuccess;
 
 exit:
-	if (newctx != nullptr)
-		SSL_CTX_free(newctx);
+	// Clean up remaining context; when this is an old and not a failed context, the corresponding
+	// context is only finalized when the last SSL instance referring to it is released.
+	if (ctx != nullptr)
+		SSL_CTX_free(ctx);
 	return hr;
 }
 
