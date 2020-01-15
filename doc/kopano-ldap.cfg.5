@@ -210,6 +210,17 @@ Default for OpenLDAP:
 .PP
 Default for ADS:
 \fIbinary\fR
+.SS ldap_user_local_attribute
+.PP
+This specifies an attribute to check whether the current user is local for the Kopano installation. When the resolved attribute is set for a user or the configuration option is unset, the user is considered local, when the configuration option is set and attribute is unset (has no value in the directory) for a user, the user is considered non-local.
+.PP
+In case a user is resolved as being non-local, the user is treated as being a contact, regardless of otherwise having a full Kopano object setup which would qualify for a mailbox.
+.PP
+In multi-server installations, the kopanoUserServer attribute which is a single-valued string signals the home server of the corresponding user. (Re-)using this attribute as the qualification for local/non-local (non-local being equivalent to no home-server being set up, local being equivalent to a home-server being set up) is possible for single and multi-server installations.
+.PP
+Default for OpenLDAP is empty.
+.PP
+Default for ADS is empty.
 .SS ldap_fullname_attribute
 .PP
 This value is the fullname of a user. It will be used on outgoing messages, and store names.

@@ -359,6 +359,7 @@ LDAPUserPlugin::LDAPUserPlugin(std::mutex &pluginlock,
 		{ "ldap_user_unique_attribute","cn", CONFIGSETTING_RELOADABLE },
 		{ "ldap_user_unique_attribute_type","text", CONFIGSETTING_RELOADABLE },
 		{ "ldap_user_unique_attribute_name","objectClass", CONFIGSETTING_RELOADABLE },
+		{ "ldap_user_local_attribute","", CONFIGSETTING_RELOADABLE },
 		{ "ldap_group_search_filter","", CONFIGSETTING_RELOADABLE },
 		{ "ldap_group_unique_attribute","cn", CONFIGSETTING_RELOADABLE },
 		{ "ldap_group_unique_attribute_type","text", CONFIGSETTING_RELOADABLE },
@@ -737,6 +738,7 @@ objectid_t LDAPUserPlugin::GetObjectIdForEntry(LDAPMessage *entry)
 	const char *security_attr = m_config->GetSetting("ldap_group_security_attribute");
 	const char *security_attr_type = m_config->GetSetting("ldap_group_security_attribute_type");
 	const char *user_unique_attr = m_config->GetSetting("ldap_user_unique_attribute");
+	const char *user_local_attr = m_config->GetSetting("ldap_user_local_attribute");
 	const char *group_unique_attr = m_config->GetSetting("ldap_group_unique_attribute");
 	const char *company_unique_attr = m_config->GetSetting("ldap_company_unique_attribute");
 	const char *addresslist_unique_attr = m_config->GetSetting("ldap_addresslist_unique_attribute");
@@ -872,13 +874,14 @@ signatures_t LDAPUserPlugin::getAllObjectsByFilter(const std::string &basedn,
 	if (m_bHosted && !strCompanyDN.empty())
 		dnFilter = m_lpCache->getChildrenForDN(m_lpCache->getObjectDNCache(this, CONTAINER_COMPANY), strCompanyDN);
 
-	auto request_attrs = std::make_unique<attrArray>(15);
+	auto request_attrs = std::make_unique<attrArray>(16);
 	/* Needed for GetObjectIdForEntry() */
 	CONFIG_TO_ATTR(request_attrs, class_attr, "ldap_object_type_attribute");
 	CONFIG_TO_ATTR(request_attrs, nonactive_attr, "ldap_nonactive_attribute");
 	CONFIG_TO_ATTR(request_attrs, resource_attr, "ldap_resource_type_attribute");
 	CONFIG_TO_ATTR(request_attrs, security_attr, "ldap_group_security_attribute");
 	CONFIG_TO_ATTR(request_attrs, user_unique_attr, "ldap_user_unique_attribute");
+	CONFIG_TO_ATTR(request_attrs, user_local_attr, "ldap_user_local_attribute");
 	CONFIG_TO_ATTR(request_attrs, group_unique_attr, "ldap_group_unique_attribute");
 	CONFIG_TO_ATTR(request_attrs, company_unique_attr, "ldap_company_unique_attribute");
 	CONFIG_TO_ATTR(request_attrs, addresslist_unique_attr, "ldap_addresslist_unique_attribute");
@@ -979,6 +982,7 @@ string LDAPUserPlugin::getSearchFilter(objectclass_t objclass)
 	const char *companytype = m_config->GetSetting("ldap_company_type_attribute_value", "", NULL);
 	const char *addresslisttype = m_config->GetSetting("ldap_addresslist_type_attribute_value", "", NULL);
 	const char *dynamicgrouptype = m_config->GetSetting("ldap_dynamicgroup_type_attribute_value", "", NULL);
+	const char *userlocalattr = m_config->GetSetting("ldap_user_local_attribute");
 	const char *userfilter = m_config->GetSetting("ldap_user_search_filter");
 	const char *groupfilter = m_config->GetSetting("ldap_group_search_filter");
 	const char *companyfilter = m_config->GetSetting("ldap_company_search_filter");
@@ -1630,11 +1634,12 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 	list<postaction> lPostActions;
 	std::set<objectid_t> setObjectIds;
 	list<configsetting_t>	lExtraAttrs = m_config->GetSettingGroup(CONFIGGROUP_PROPMAP);
-	auto request_attrs = std::make_unique<attrArray>(33 + lExtraAttrs.size());
+	auto request_attrs = std::make_unique<attrArray>(34 + lExtraAttrs.size());
 
 	CONFIG_TO_ATTR(request_attrs, object_attr, "ldap_object_type_attribute");
 	CONFIG_TO_ATTR(request_attrs, user_unique_attr, "ldap_user_unique_attribute");
 	CONFIG_TO_ATTR(request_attrs, user_unique_attr_type, "ldap_user_unique_attribute_type");
+	CONFIG_TO_ATTR(request_attrs, user_local_attr, "ldap_user_local_attribute");
 	CONFIG_TO_ATTR(request_attrs, user_fullname_attr, "ldap_fullname_attribute");
 	CONFIG_TO_ATTR(request_attrs, loginname_attr, "ldap_loginname_attribute");
 	CONFIG_TO_ATTR(request_attrs, password_attr, "ldap_password_attribute");
