@@ -47,12 +47,12 @@ openssl req -new -x509 -key privkey.pem -out cacert.pem -days 1095
 std::atomic<SSL_CTX *> ECChannel::lpCTX{nullptr};
 
 HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig) {
-	HRESULT hr = MAPI_E_CALL_FAILED;
 	if (lpConfig == NULL) {
 		ec_log_err("ECChannel::HrSetCtx(): invalid parameters");
-		return hr;
+		return MAPI_E_CALL_FAILED;
 	}
 
+	HRESULT hr = MAPI_E_CALL_FAILED;
 	SSL_CTX *ctx = nullptr;
 	const char *szFile = nullptr, *szPath = nullptr;;
 	auto cert_file = lpConfig->GetSetting("ssl_certificate_file");
@@ -68,21 +68,8 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig) {
 
 	if (cert_file == nullptr || key_file == nullptr) {
 		ec_log_err("ECChannel::HrSetCtx(): no cert or key file");
-		return hr;
+		goto exit;
 	}
-	auto key_fh = fopen(key_file, "r");
-	if (key_fh == nullptr) {
-		ec_log_err("ECChannel::HrSetCtx(): cannot open key file");
-		return hr;
-	}
-	fclose(key_fh);
-
-	auto cert_fh = fopen(cert_file, "r");
-	if (cert_fh == nullptr) {
-		ec_log_err("ECChannel::HrSetCtx(): cannot open cert file");
-		return hr;
-	}
-	fclose(cert_fh);
 
 #if OPENSSL_VERSION_NUMBER >= 0x1010000fL
 	// New style init.
@@ -111,7 +98,7 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig) {
 	// Check context.
 	if (ctx == nullptr) {
 		ec_log_err("ECChannel::HrSetCtx(): failed to create new SSL context");
-		return hr;
+		goto exit;
 	}
 
 #ifndef SSL_OP_NO_RENEGOTIATION
