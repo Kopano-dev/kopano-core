@@ -46,8 +46,7 @@ openssl req -new -x509 -key privkey.pem -out cacert.pem -days 1095
 
 std::atomic<SSL_CTX *> ECChannel::lpCTX{nullptr};
 
-HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
-{
+HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig) {
 	HRESULT hr = MAPI_E_CALL_FAILED;
 	if (lpConfig == NULL) {
 		ec_log_err("ECChannel::HrSetCtx(): invalid parameters");
@@ -357,8 +356,7 @@ HRESULT ECChannel::HrFreeCtx() {
 }
 
 ECChannel::ECChannel(int inputfd) :
-	fd(inputfd), peer_atxt(), peer_sockaddr()
-{
+	fd(inputfd), peer_atxt(), peer_sockaddr() {
 }
 
 ECChannel::~ECChannel() {
@@ -369,8 +367,7 @@ ECChannel::~ECChannel() {
 	close(fd);
 }
 
-HRESULT ECChannel::HrEnableTLS(void)
-{
+HRESULT ECChannel::HrEnableTLS(void) {
 	int rc = -1;
 	HRESULT hr = hrSuccess;
 
