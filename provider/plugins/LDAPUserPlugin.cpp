@@ -730,7 +730,7 @@ objectid_t LDAPUserPlugin::GetObjectIdForEntry(LDAPMessage *entry)
 {
 	list<string>	objclasses;
 	std::string nonactive_type, resource_type, security_type;
-	std::string user_unique, group_unique, company_unique;
+	std::string user_unique, user_local, group_unique, company_unique;
 	std::string addresslist_unique, dynamicgroup_unique, object_uid;
 	const char *class_attr = m_config->GetSetting("ldap_object_type_attribute");
 	const char *nonactive_attr = m_config->GetSetting("ldap_nonactive_attribute");
@@ -761,6 +761,8 @@ objectid_t LDAPUserPlugin::GetObjectIdForEntry(LDAPMessage *entry)
 			security_type = getLDAPAttributeValue(att, entry);
 		if (user_unique_attr && strcasecmp(att, user_unique_attr) == 0)
 			user_unique = getLDAPAttributeValue(att, entry);
+		if (user_local_attr && strcasecmp(att, user_local_attr) == 0)
+			user_local = getLDAPAttributeValue(att, entry);
 		if (group_unique_attr && strcasecmp(att, group_unique_attr) == 0)
 			group_unique = getLDAPAttributeValue(att, entry);
 		if (company_unique_attr && strcasecmp(att, company_unique_attr) == 0)
@@ -793,9 +795,12 @@ objectid_t LDAPUserPlugin::GetObjectIdForEntry(LDAPMessage *entry)
 	if(MatchClasses(setObjectClasses, lstLDAPObjectClasses))
 		lstMatches.emplace_back(lstLDAPObjectClasses.size(), OBJECTCLASS_USER); // Could still be active or nonactive, will resolve later
 
-	lstLDAPObjectClasses = split_classes(class_contact_type);
-	if(MatchClasses(setObjectClasses, lstLDAPObjectClasses))
-		lstMatches.emplace_back(lstLDAPObjectClasses.size(), NONACTIVE_CONTACT);
+	// Only resolve contact type through LDAP class if actually set up.
+	if (class_contact_type && *class_contact_type) {
+		lstLDAPObjectClasses = split_classes(class_contact_type);
+		if(MatchClasses(setObjectClasses, lstLDAPObjectClasses))
+			lstMatches.emplace_back(lstLDAPObjectClasses.size(), NONACTIVE_CONTACT);
+	}
 
 	lstLDAPObjectClasses = split_classes(class_group_type);
 	if(MatchClasses(setObjectClasses, lstLDAPObjectClasses))
@@ -823,15 +828,19 @@ objectid_t LDAPUserPlugin::GetObjectIdForEntry(LDAPMessage *entry)
 
 	// Subspecify some generic types now
 	if (objclass == OBJECTCLASS_USER) {
-		objclass = atoi(nonactive_type.c_str()) == 0 ? ACTIVE_USER : NONACTIVE_USER;
-		if (objclass == NONACTIVE_USER && !resource_type.empty()) {
-			/* Overwrite objectclass, a resource is allowed to overwrite the nonactive type */
-			if (strcasecmp(resource_type.c_str(), "room") == 0)
-				objclass = NONACTIVE_ROOM;
-			else if (strcasecmp(resource_type.c_str(), "equipment") == 0)
-				objclass = NONACTIVE_EQUIPMENT;
-		}
-		object_uid = user_unique;
+		if (!user_local_attr || !*user_local_attr || !user_local.empty()) {
+			objclass = atoi(nonactive_type.c_str()) == 0 ? ACTIVE_USER : NONACTIVE_USER;
+			if (objclass == NONACTIVE_USER && !resource_type.empty()) {
+				/* Overwrite objectclass, a resource is allowed to overwrite the nonactive type */
+				if (strcasecmp(resource_type.c_str(), "room") == 0)
+					objclass = NONACTIVE_ROOM;
+				else if (strcasecmp(resource_type.c_str(), "equipment") == 0)
+					objclass = NONACTIVE_EQUIPMENT;
+			}
+			object_uid = user_unique;
+		} else
+			// Use contact type when user has empty/unset local server attribute.
+			objclass = NONACTIVE_CONTACT;
 	}
 
 	if (objclass == NONACTIVE_CONTACT)
@@ -1009,18 +1018,32 @@ string LDAPUserPlugin::getSearchFilter(objectclass_t objclass)
 		if (!usertype)
 			throw runtime_error("No user type attribute value defined");
 		filter = userfilter;
-		subfilter += "(|";
+		subfilter = "(|";
+		subfilter += "(&";
 		subfilter += GetObjectClassFilter(objecttype, usertype);
+		if (objclass != OBJECTCLASS_USER && userlocalattr && *userlocalattr)
+			subfilter += "(" + string(userlocalattr) + "=*)";
+		subfilter += ")";
 		/* Generic user type should not exclude Contacts */
-		if (objclass == OBJECTCLASS_USER && contacttype)
+		if (objclass == OBJECTCLASS_USER && contacttype && *contacttype)
 			subfilter += GetObjectClassFilter(objecttype, contacttype);
 		subfilter += ")";
 		break;
 	case NONACTIVE_CONTACT:
-		if (!contacttype)
-			throw runtime_error("No contact type attribute value defined");
 		filter = userfilter;
-		subfilter = GetObjectClassFilter(objecttype, contacttype);
+		subfilter = "(|";
+		if (userlocalattr && *userlocalattr) {
+			if (!usertype)
+				throw runtime_error("No user type attribute value defined");
+			subfilter += "(&";
+			subfilter += GetObjectClassFilter(objecttype, usertype);
+			subfilter += "(!(" + string(userlocalattr) + "=*))";
+			subfilter += ")";
+		} else if (!contacttype || !*contacttype)
+			throw runtime_error("No contact type attribute value defined");
+		if (contacttype && *contacttype)
+			subfilter += GetObjectClassFilter(objecttype, contacttype);
+		subfilter += ")";
 		break;
 	case OBJECTCLASS_DISTLIST:
 	case DISTLIST_GROUP:
