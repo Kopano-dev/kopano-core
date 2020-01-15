@@ -1,3 +1,13 @@
+10.x
+====
+Enhancements:
+* client: IDN support [KC-1659]
+  Saving PR_EMAIL_ADDRESS/PR_SMTP_ADDRESS will transform
+  IDN domains to Punycode.
+* In config files, fractional values can now be used for sizes, e.g.
+  "cache_cell_size=0.5G"
+
+
 9.x
 ===
 Enhancements:
