@@ -667,7 +667,7 @@ HRESULT ICalRecurrence::HrMakeMAPIRecurrence(recurrence *lpRecurrence, LPSPropTa
 
 	memory_ptr<SPropValue> prop;
 	hr = HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_W, &~prop);
-	if (!wcscasecmp(prop->Value.lpszW, L"IPM.Task")) {
+	if (hr == hrSuccess && wcscasecmp(prop->Value.lpszW, L"IPM.Task") == 0) {
 		pv[2].ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_TASK_RECURRSTATE], PT_BINARY);
 		pv[2].Value.bin.lpb = reinterpret_cast<BYTE *>(lpRecBlob.get());
 		pv[2].Value.bin.cb = ulRecBlob;
