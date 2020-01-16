@@ -77,14 +77,14 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 	}
 	auto key_fh = fopen(key_file, "r");
 	if (key_fh == nullptr) {
-		ec_log_err("ECChannel::HrSetCtx(): cannot open key file");
+		ec_log_err("ECChannel::HrSetCtx(): cannot open key file %s: %s", key_file, strerror(errno));
 		return hr;
 	}
 	fclose(key_fh);
 
 	auto cert_fh = fopen(cert_file, "r");
 	if (cert_fh == nullptr) {
-		ec_log_err("ECChannel::HrSetCtx(): cannot open cert file");
+		ec_log_err("ECChannel::HrSetCtx(): cannot open cert file %s: %s", cert_file, strerror(errno));
 		return hr;
 	}
 	fclose(cert_fh);
