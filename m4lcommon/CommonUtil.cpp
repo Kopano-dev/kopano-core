@@ -626,9 +626,9 @@ HRESULT HrCreateEmailSearchKey(const char *lpszEmailType,
 	auto hr = MAPIAllocateBuffer(size, &~lpByte);
 	if(hr != hrSuccess)
 		return hr;
-	memcpy(lpByte, lpszEmailType, sizeEmailType);
+	memcpy(lpByte, lpszEmailType != nullptr ? lpszEmailType : "", sizeEmailType);
 	*(lpByte + sizeEmailType) = ':';
-	memcpy(lpByte + sizeEmailType + 1, lpszEmail, sizeEmail);
+	memcpy(lpByte + sizeEmailType + 1, lpszEmail != nullptr ? lpszEmail : "", sizeEmail);
 	*(lpByte + size - 1) = 0;
 	auto a = lpByte.get();
 	while (*a != '\0') {
