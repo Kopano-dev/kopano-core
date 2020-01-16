@@ -587,15 +587,11 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 
 	gsoap_size_t i = 0;
 	for (const auto &row : *lpRowList) {
-		bool bNoObjectDetails = false, bNoQuotaDetails = false;
+		bool bNoObjectDetails = false;
 
 		if (lpUserManagement->GetObjectDetails(row.ulObjId, &objectDetails) != erSuccess)
 			// user gone missing since first list, all props should be set to ignore
-			bNoObjectDetails = bNoQuotaDetails = true;
-		else if (lpSession->GetSecurity()->GetUserQuota(row.ulObjId, false, &quotaDetails) != erSuccess)
-			// user gone missing since last call, all quota props should be set to ignore
-			bNoQuotaDetails = true;
-
+			bNoObjectDetails = true;
 		if (lpSession->GetSecurity()->GetUserSize(row.ulObjId, &llStoreSize) != erSuccess)
 			llStoreSize = 0;
 

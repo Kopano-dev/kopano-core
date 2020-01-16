@@ -117,7 +117,6 @@ static void print_help(const char *name)
 static ECRESULT main2(int argc, char **argv)
 {
 	const char *szConfig = ECConfig::GetDefaultPath("monitor.cfg");
-	const char *szPath = NULL;
 	bool bIgnoreUnknownConfigOptions = false, exp_config = false;
 	// Default settings
 	static const configsetting_t lpDefaults[] = {
@@ -175,7 +174,6 @@ static ECRESULT main2(int argc, char **argv)
 			break;
 		case OPT_HOST:
 		case 'h':
-			szPath = optarg;
 			break;
 		case 'i': // Install service
 		case 'u': // Uninstall service
@@ -219,10 +217,6 @@ static ECRESULT main2(int argc, char **argv)
 	ec_log_set(g_lpLogger);
 	if ((bIgnoreUnknownConfigOptions && m_lpThreadMonitor->lpConfig->HasErrors()) || m_lpThreadMonitor->lpConfig->HasWarnings())
 		LogConfigErrors(m_lpThreadMonitor->lpConfig.get());
-
-	// set socket filename
-	if (!szPath)
-		szPath = m_lpThreadMonitor->lpConfig->GetSetting("server_socket");
 
 	ec_log_always("Starting kopano-monitor version " PROJECT_VERSION " (pid %d uid %u)", getpid(), getuid());
 	unix_coredump_enable(m_lpThreadMonitor->lpConfig->GetSetting("coredump_enabled"));

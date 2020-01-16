@@ -616,10 +616,9 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 				}
 
 				cache->Update(fnevObjectModified, folder.first);
-				er = m_lpSessionManager->NotificationModified(MAPI_FOLDER, folder.first);
+				m_lpSessionManager->NotificationModified(MAPI_FOLDER, folder.first);
 				if (cache->GetParent(folder.first, &ulParent) == erSuccess)
-					er = m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulParent, folder.first, MAPI_FOLDER);
-				er = erSuccess; // Ignore errors
+					m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulParent, folder.first, MAPI_FOLDER);
 			}
 
 			er = dtx.commit();

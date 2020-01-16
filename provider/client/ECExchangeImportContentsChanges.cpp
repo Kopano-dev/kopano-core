@@ -291,10 +291,8 @@ HRESULT ECExchangeImportContentsChanges::ImportPerUserReadStateChange(ULONG cEle
 	for (ulSKNr = 0; ulSKNr < cElements; ++ulSKNr) {
 		memory_ptr<ENTRYID> lpEntryId;
 		auto hr = m_lpFolder->GetMsgStore()->lpTransport->HrEntryIDFromSourceKey(m_lpFolder->GetMsgStore()->m_cbEntryId, m_lpFolder->GetMsgStore()->m_lpEntryId , m_lpSourceKey->Value.bin.cb, m_lpSourceKey->Value.bin.lpb, lpReadState[ulSKNr].cbSourceKey, lpReadState[ulSKNr].pbSourceKey, &cbEntryId, &~lpEntryId);
-		if(hr == MAPI_E_NOT_FOUND){
-			hr = hrSuccess;
+		if (hr == MAPI_E_NOT_FOUND)
 			continue; // Message is delete or moved
-		}
 		if (hr != hrSuccess)
 			return hr;
 		hr = m_lpFolder->GetMsgStore()->lpTransport->HrSetReadFlag(cbEntryId, lpEntryId, lpReadState[ulSKNr].ulFlags & MSGFLAG_READ ? 0 : CLEAR_READ_FLAG, m_ulSyncId);

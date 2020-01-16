@@ -568,7 +568,6 @@ ECRESULT ECTableManager::CloseTable(unsigned int ulTableId)
 
 ECRESULT ECTableManager::UpdateOutgoingTables(ECKeyTable::UpdateType ulType, unsigned ulStoreId, std::list<unsigned int> &lstObjId, unsigned int ulFlags, unsigned int ulObjType)
 {
-	ECRESULT er = erSuccess;
 	scoped_rlock lock(hListMutex);
 
 	for (const auto &t : mapTable) {
@@ -578,16 +577,14 @@ ECRESULT ECTableManager::UpdateOutgoingTables(ECKeyTable::UpdateType ulType, uns
 		         t.second->sTable.sOutgoingQueue.ulFlags == (ulFlags & EC_SUBMIT_MASTER);
 		if (!k)
 			continue;
-		er = t.second->lpTable->UpdateRows(ulType, &lstObjId, OBJECTTABLE_NOTIFY, false);
 		// ignore errors from the update
-		er = erSuccess;
+		t.second->lpTable->UpdateRows(ulType, &lstObjId, OBJECTTABLE_NOTIFY, false);
 	}
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECTableManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned int ulFlags, unsigned int ulObjId, std::list<unsigned int> &lstChildId, unsigned int ulObjType)
 {
-	ECRESULT er = erSuccess;
 	scoped_rlock lock(hListMutex);
 	bool filter_private = false;
 	std::string strInQuery, strQuery;
@@ -604,7 +601,7 @@ ECRESULT ECTableManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned in
 	if(lpSession->GetSecurity()->IsStoreOwner(ulObjId) == KCERR_NO_ACCESS &&
 	    lpSession->GetSecurity()->GetAdminLevel() == 0 &&
 	    lstChildId.size() != 0) {
-		er = lpSession->GetDatabase(&lpDatabase);
+		auto er = lpSession->GetDatabase(&lpDatabase);
 		if (er != erSuccess)
 			return er;
 		strInQuery = kc_join(lstChildId, ",", stringify);
@@ -631,14 +628,13 @@ ECRESULT ECTableManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned in
 		         t.second->sTable.sGeneric.ulObjectType == ulObjType;
 		if (!k)
 			continue;
-		if(filter_private)
-			er = t.second->lpTable->UpdateRows(ulType, &lstChildId2, OBJECTTABLE_NOTIFY, false);
-		else
-			er = t.second->lpTable->UpdateRows(ulType, &lstChildId, OBJECTTABLE_NOTIFY, false);
 		// ignore errors from the update
-		er = erSuccess;
+		if(filter_private)
+			t.second->lpTable->UpdateRows(ulType, &lstChildId2, OBJECTTABLE_NOTIFY, false);
+		else
+			t.second->lpTable->UpdateRows(ulType, &lstChildId, OBJECTTABLE_NOTIFY, false);
 	}
-	return er;
+	return erSuccess;
 }
 
 /**

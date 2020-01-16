@@ -164,8 +164,8 @@ static HRESULT ExpandRecipientsRecursive(LPADRBOOK lpAddrBook,
 		/* Group has been expanded (because we successfully have the contents table) time
 		 * to add it to our expanded group list. This has to be done or at least before the
 		 * recursive call to ExpandRecipientsRecursive().*/
-		hr = Util::HrCopyEntryId(lpEntryId->Value.bin.cb, (LPENTRYID)lpEntryId->Value.bin.lpb,
-		     &sEntryId.cb, (LPENTRYID *)&sEntryId.lpb);
+		Util::HrCopyEntryId(lpEntryId->Value.bin.cb, reinterpret_cast<const ENTRYID *>(lpEntryId->Value.bin.lpb),
+			&sEntryId.cb, (LPENTRYID *)&sEntryId.lpb);
 		lpExpandedGroups->emplace_back(sEntryId);
 
 		/* Don't expand group Everyone or companies since both already contain all users
@@ -175,8 +175,8 @@ static HRESULT ExpandRecipientsRecursive(LPADRBOOK lpAddrBook,
 		// @todo find everyone using it's static entryid?
 
 		/* Start/Continue recursion */
-		hr = ExpandRecipientsRecursive(lpAddrBook, lpMessage, lpContentsTable,
-		     lpEntryRestriction, ulRecipType, lpExpandedGroups, bExpandSub);
+		ExpandRecipientsRecursive(lpAddrBook, lpMessage, lpContentsTable,
+			lpEntryRestriction, ulRecipType, lpExpandedGroups, bExpandSub);
 		/* Ignore errors */
 remove_group:
 		/* Only delete row when the rowid is present */
@@ -1360,10 +1360,8 @@ static HRESULT CheckDelegate(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 		repr = std::move(sSpoofEID.Value.bin);
 	hr = HrOpenRepresentStore(lpAddrBook, lpUserStore, lpAdminSession, repr, &~lpRepStore);
 	if (hr == MAPI_E_NOT_FOUND) {
-		hr = hrSuccess;	// No store: no delegate allowed!
-		goto exit;
-	}
-	else if (hr != hrSuccess) {
+		goto exit; /* No store => no delegate allowed! */
+	} else if (hr != hrSuccess) {
 		kc_perrorf("HrOpenRepresentStore failed", hr);
 		goto exit;
 	}
@@ -1391,10 +1389,8 @@ static HRESULT CheckDelegate(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 		goto exit;
 	}
 
-	if (lpRepFBProp->Value.MVbin.cValues < 2) {
-		hr = MAPI_E_NOT_FOUND;
+	if (lpRepFBProp->Value.MVbin.cValues < 2)
 		goto exit;
-	}
 	hr = lpRepSubtree->OpenEntry(lpRepFBProp->Value.MVbin.lpbin[1].cb,
 	     reinterpret_cast<ENTRYID *>(lpRepFBProp->Value.MVbin.lpbin[1].lpb),
 	     &iid_of(lpRepFBMessage), 0, &ulObjType, &~lpRepFBMessage);
@@ -1423,11 +1419,10 @@ static HRESULT CheckDelegate(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 exit:
 	*lpbAllowed = bAllowed;
 	// when any step failed, delegate is not setup correctly, so bAllowed == false
-	hr = hrSuccess;
 	if (bAllowed)
 		*lppRepStore = lpRepStore.release();
 	MAPIFreeBuffer(sSpoofEID.Value.bin.lpb);
-	return hr;
+	return hrSuccess;
 }
 
 /**

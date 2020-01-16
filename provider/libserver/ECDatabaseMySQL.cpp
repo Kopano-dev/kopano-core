@@ -872,14 +872,13 @@ ECRESULT ECDatabase::UpdateDatabase(bool bForceUpdate, std::string &strReport)
 			return er;
 		bSkipped = false;
 		er = sUpdateList[i].lpFunction(this);
-		if (er == KCERR_IGNORE_ME) {
+		if (er == KCERR_IGNORE_ME)
 			bSkipped = true;
-			er = erSuccess;
-		} else if (er == KCERR_USER_CANCEL) {
+		else if (er == KCERR_USER_CANCEL)
 			return er; // Reason should be logged in the update itself.
-		} else if (er != hrSuccess) {
+		else if (er != hrSuccess)
 			return er;
-		}
+
 		er = UpdateDatabaseVersion(sUpdateList[i].ulVersion);
 		if(er != erSuccess)
 			return er;

@@ -757,7 +757,7 @@ static HRESULT ProcessQueue2(IMAPISession *lpAdminSession,
 		return kc_perror("Unable to allocate memory for advise sink", hr);
 
 	// notify on new mail in the outgoing table
-	hr = lpTable->Advise(fnevTableModified, lpAdviseSink, &ulConnection);
+	lpTable->Advise(fnevTableModified, lpAdviseSink, &ulConnection);
 
 	while(!bQuit && !nReload) {
 		bMessagesWaiting = false;

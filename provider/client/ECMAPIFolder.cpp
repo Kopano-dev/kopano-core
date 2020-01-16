@@ -198,7 +198,7 @@ HRESULT ECMAPIFolder::HrSetPropStorage(IECPropStorage *storage, BOOL fLoadProps)
 		return hr;
 	hr = GetMsgStore()->InternalAdvise(cbEntryId, lpEntryId, ulEventMask, m_lpFolderAdviseSink, &m_ulConnection);
 	if (hr == MAPI_E_NO_SUPPORT)
-		hr = hrSuccess;			// there is no spoon
+		/* ignore */;
 	else if (hr != hrSuccess)
 		return hr;
 	else
@@ -749,13 +749,10 @@ HRESULT ECMAPIFolder::SetReadFlags(LPENTRYLIST lpMsgList, ULONG ulUIParam, LPMAP
 				else
 					hr = lpProgress->Progress((int)((float)i * ulPGDelta / lpMsgList->cValues + ulPGMin), 0, 0);
 
-				if(hr == MAPI_E_USER_CANCEL) {// MAPI_E_USER_CANCEL is user click on the Cancel button.
-					hr = hrSuccess;
-					bError = TRUE;
+				if (hr == MAPI_E_USER_CANCEL) // MAPI_E_USER_CANCEL is user click on the Cancel button.
 					return MAPI_W_PARTIAL_COMPLETION;
-				}else if(hr != hrSuccess) {
+				else if (hr != hrSuccess)
 					return hr;
-				}
 			}
 		}
 	}else {

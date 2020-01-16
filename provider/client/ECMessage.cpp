@@ -1322,6 +1322,8 @@ HRESULT ECMessage::SyncRecips()
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpTable->SetColumns(sPropDisplay, 0);
+	if (hr != hrSuccess)
+		/* ignore */;
 
 	while (TRUE) {
 		rowset_ptr lpRows;
@@ -2135,9 +2137,6 @@ HRESULT ECMessage::HrLoadProps()
 	hr = ECMAPIProp::GetProps(sPropBodyTags, 0, &cValues, &~lpsBodyProps);
 	if (HR_FAILED(hr))
 		return hr;
-
-	hr = hrSuccess;
-
 	if (lpsBodyProps[0].ulPropTag == PR_BODY_W ||
 	    (lpsBodyProps[0].ulPropTag == CHANGE_PROP_TYPE(PR_BODY, PT_ERROR) &&
 	    lpsBodyProps[0].Value.err == MAPI_E_NOT_ENOUGH_MEMORY))

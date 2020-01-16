@@ -692,8 +692,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 		//FIXME: named property in the recipienttable ?
 		hr = lpDestMessage->ModifyRecipients(0, reinterpret_cast<ADRLIST *>(lpRows.get()));
 		if(hr !=  hrSuccess)
-			hr = hrSuccess;
-			//goto exit;
+			/* ignore */;
 
 		//delete every attachment
 		hr = lpDestMessage->GetAttachmentTable(0, &~lpTable);

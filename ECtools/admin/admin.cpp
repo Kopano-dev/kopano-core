@@ -982,15 +982,12 @@ static HRESULT print_details(LPMAPISESSION lpSession,
 		if (hr != hrSuccess)
 			return kc_perror("Unable to resolve company administrator", hr);
 		hr = lpServiceAdmin->GetRemoteAdminList(cbObjectId, lpObjectId, 0, &cAdmins, &~lpECAdmins);
-		if (hr != hrSuccess) {
+		if (hr != hrSuccess)
 			kc_perror("Unable to display remote-admin list", hr);
-			hr = hrSuccess; /* Don't make error fatal */
-		}
 		hr = lpServiceAdmin->GetRemoteViewList(cbObjectId, lpObjectId, 0, &cViews, &~lpECViews);
-		if (hr != hrSuccess) {
+		if (hr != hrSuccess)
 			kc_perror("Unable to display remote-view list", hr);
-			hr = hrSuccess; /* Don't make error fatal */
-		}
+		hr = hrSuccess; /* Do not make errors fatal */
 		print_company_settings(lpECCompany, lpECUser);
 		show_store_provider(lpStore);
 		show_record_key("Store GUID:", lpStore);
@@ -1047,10 +1044,8 @@ static HRESULT print_details(LPMAPISESSION lpSession,
 			/* Ignore return value */
 		}
 		hr = lpServiceAdmin->GetGroupListOfUser(cbObjectId, lpObjectId, 0, &cGroups, &~lpECGroups);
-		if (hr != hrSuccess) {
+		if (hr != hrSuccess)
 			kc_perror("Unable to request groups for user", hr);
-			hr = hrSuccess; /* Don't make error fatal */
-		}
 		hr = ArchiveManage::Create(lpSession, NULL, converter.convert_to<LPTSTR>(lpszName), &ptrArchiveManage);
 		if (hr != hrSuccess) {
 			if (hr != MAPI_E_NOT_FOUND)
@@ -2753,10 +2748,8 @@ int main(int argc, char **argv)
 				kc_perror("Unable to open user store", hr);
 				goto exit;
 			}
-			hr = GetAutoAcceptSettings(lpUserStore, &bAutoAccept, &bDeclineConflict, &bDeclineRecurring, &auto_proc);
-			if (hr != hrSuccess)
-				// ignore and assume 'false' for all values
-				hr = hrSuccess;
+			/* Ignore and assume false for all values. */
+			GetAutoAcceptSettings(lpUserStore, &bAutoAccept, &bDeclineConflict, &bDeclineRecurring, &auto_proc);
 			if (mr_accept != -1)
 				bAutoAccept = mr_accept;
 			if (mr_decline_conflict != -1)

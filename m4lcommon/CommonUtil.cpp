@@ -523,7 +523,6 @@ HRESULT ECParseOneOff(const ENTRYID *lpEntryID, ULONG cbEntryID,
 		hr = TryConvert(str, addr);
 		if (hr != hrSuccess)
 			return hr;
-		lpBuffer += (str.length() + 1) * sizeof(unsigned short);
 	} else {
 		/*
 		 * Assumption: This should be an old OneOffEntryID in the
@@ -550,7 +549,6 @@ HRESULT ECParseOneOff(const ENTRYID *lpEntryID, ULONG cbEntryID,
 		hr = TryConvert(str, addr);
 		if (hr != hrSuccess)
 			return hr;
-		lpBuffer += str.length() + 1;
 	}
 
 	strWName = name;
@@ -756,11 +754,9 @@ static HRESULT HrResolveToSMTP(LPADRBOOK lpAdrBook,
     if (hr != hrSuccess)
 		return hr;
     hr = HrGetOneProp(lpMailUser, PR_SMTP_ADDRESS_W, &~lpSMTPAddress);
-    if(hr != hrSuccess) {
-        // Not always an error
-        lpSMTPAddress = NULL;
-        hr = hrSuccess;
-    }
+	if (hr != hrSuccess)
+		/* Not always an error */
+		lpSMTPAddress = nullptr;
 
     if (ulType == MAPI_DISTLIST && (lpSMTPAddress == NULL || wcslen(lpSMTPAddress->Value.lpszW) == 0)) {
         // For a group, we define the SMTP Address to be the same as the name of the group, unless

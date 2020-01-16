@@ -240,9 +240,8 @@ HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFold
 
 	// Check if the archive is attached yet.
 	hr = ptrArchiveHelper->GetAttachedUser(&sAttachedUserEntryId);
-	if (hr == MAPI_E_NOT_FOUND)
-		hr = hrSuccess;
-	else if ( hr == hrSuccess && (!sAttachedUserEntryId.empty() && sAttachedUserEntryId != sUserEntryId)) {
+	if (hr == MAPI_E_NOT_FOUND) {
+	} else if (hr == hrSuccess && (!sAttachedUserEntryId.empty() && sAttachedUserEntryId != sUserEntryId)) {
 		tstring strUser;
 		tstring strFullname;
 

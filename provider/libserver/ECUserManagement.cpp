@@ -280,7 +280,6 @@ ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const signatures_t &
 		er = cache->GetUserDetails(ulObjectId, &details);
 		if (er != erSuccess) {
 			lstExternIds.emplace_back(sig.id);
-			er = erSuccess;
 			continue;
 		}
 		if (ulFlags & USERMANAGEMENT_ADDRESSBOOK &&
@@ -434,11 +433,9 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass,
 			if (iterSignatureIdToLocal == mapSignatureIdToLocal.cend()) {
 				// User is in external user database, but not in local, so add
 				er = MoveOrCreateLocalObject(ext_sig, &ulObjectId, &bMoved);
-				if(er != erSuccess) {
+				if (er != erSuccess)
 					// Create failed, so skip this entry
-					er = erSuccess;
 					continue;
-				}
 
 				// Entry was moved rather then created, this means that in our localIdList we have
 				// an entry which matches this object.
@@ -959,9 +956,7 @@ ECRESULT ECUserManagement::ResolveObjectAndSync(objectclass_t objclass,
 			 * something bad since perhaps the username is unique between all companies.
 			 */
 			auto er = GetUserAndCompanyFromLoginName(szName, &username, &companyname);
-			if (er == KCWARN_PARTIAL_COMPLETION)
-				er = erSuccess;
-			else if (er != erSuccess)
+			if (er != erSuccess && er != KCWARN_PARTIAL_COMPLETION)
 				return er;
 	} else {
 		username = szName;
@@ -4059,7 +4054,7 @@ ECRESULT ECUserManagement::SyncAllObjects()
 	// request all companies
 	er = GetCompanyObjectListAndSync(CONTAINER_COMPANY, 0, nullptr, comobj, ulFlags);
 	if (er == KCERR_NO_SUPPORT)
-		er = erSuccess;
+		/* ignore */;
 	else if (er != erSuccess)
 		return ec_perror("Error synchronizing company list", er);
 	else

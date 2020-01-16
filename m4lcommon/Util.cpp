@@ -80,7 +80,6 @@ HRESULT Util::HrAddToPropertyArray(const SPropValue *lpSrc, ULONG cValues,
 
 		if(hr == hrSuccess)
 			++n;
-		hr = hrSuccess;
 	}
 
 	auto lpFind = PpropFindProp(lpDest, n, lpToAdd->ulPropTag);
@@ -1713,10 +1712,8 @@ static HRESULT HrConvertStreamToWString(IStream *sInput, ULONG ulCodepage, std::
 	convert_context converter;
 	std::string data;
 	HRESULT hr = HrGetCharsetByCP(ulCodepage, &lpszCharset);
-	if (hr != hrSuccess) {
+	if (hr != hrSuccess)
 		lpszCharset = "us-ascii";
-		hr = hrSuccess;
-	}
 	hr = Util::HrStreamToString(sInput, data);
 	if (hr != hrSuccess)
 		return hr;

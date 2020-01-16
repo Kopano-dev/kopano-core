@@ -137,7 +137,6 @@ void WORKITEM::run()
 				d != nullptr ? d : "");
 		}
 	} else {
-		err = 0;
 		// Record start of handling of this request
 		auto dblStart = std::chrono::steady_clock::now();
 		// Reset last session ID so we can use it reliably after the call is done

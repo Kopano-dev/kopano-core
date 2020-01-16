@@ -893,7 +893,6 @@ ECRESULT ECAuthSession::ValidateSSOData(struct soap *soap, const char *lpszName,
 		return er;
 	}
 
-	er = KCERR_LOGON_FAILED;
 	// first NTLM package starts with that signature, continues are detected by the filedescriptor
 	if (m_NTLM_pid != -1 || strncmp((const char*)lpInput->__ptr, "NTLM", 4) == 0)
 		er = ValidateSSOData_NTLM(soap, lpszName, cl_ver, cl_app, cl_app_ver, cl_app_misc, lpInput, lppOutput);
