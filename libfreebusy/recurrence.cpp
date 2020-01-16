@@ -138,7 +138,7 @@ void recurrence::HrGetHumanReadableString(std::string *lpstrHRS)
 	case RF_DAILY:
 		if (everyn == 1) {
 			type = KC_A("workday");
-		} if (everyn == 24 * 60) {
+		} else if (everyn == 24 * 60) {
 			type = KC_A("day");
 		} else {
 			everyn /= 24 * 60;
