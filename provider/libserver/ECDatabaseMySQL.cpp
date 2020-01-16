@@ -776,8 +776,7 @@ ECRESULT ECDatabase::GetDatabaseVersion(zcp_versiontuple *dbv)
 				dbv->v_minor  = 0;
 				dbv->v_rev    = 0;
 				dbv->v_schema = 0;
-				er = erSuccess;
-				break;
+				return erSuccess;
 			}
 		}
 		return KCERR_UNKNOWN_DATABASE;
