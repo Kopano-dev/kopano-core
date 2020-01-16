@@ -38,7 +38,8 @@ static HRESULT MAPICopyMem(ULONG cb, const void *lpb, void *lpBase, ULONG *lpCb,
 	auto hr = KAllocCopy(lpb, cb, lpDest, lpBase);
 	if (hr != hrSuccess)
 		return hr;
-    *lpCb = cb;
+	if (lpCb != nullptr)
+		*lpCb = cb;
 	return hrSuccess;
 }
 
