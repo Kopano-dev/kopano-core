@@ -22,6 +22,11 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
+#include <openssl/conf.h>
+#include <openssl/engine.h>
+#include <openssl/err.h>
+#include <openssl/opensslconf.h>
+#include <openssl/ssl.h>
 #ifdef LINUX
 #include <linux/rtnetlink.h>
 #endif
