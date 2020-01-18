@@ -238,7 +238,7 @@ int ec_relocate_fd(int fd)
 		if (warned_once)
 			return fd;
 		warned_once = true;
-		ec_log_warn("F_DUPFD yielded EINVAL");
+		ec_log_info("ec_relocate_fd: RLIMIT_NOFILE not high enough to honor request. No further action needed.");
 		return fd;
 	}
 	static time_t warned_last;
