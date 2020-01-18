@@ -317,18 +317,15 @@ int unix_fork_function(void*(func)(void*), void *param, int nCloseFDs, int *pClo
  * @return new process pid, or -1 on failure.
  */
 static pid_t unix_popen_rw(const char *const *argv, int *lpulIn, int *lpulOut,
-    const char **env)
+    int *lpulErr, const char **env)
 {
 	posix_spawn_file_actions_t fa;
-	int ulIn[2] = {-1, -1};
-	int ulOut[2] = {-1, -1};
+	int ulIn[2] = {-1, -1}, ulOut[2] = {-1, -1}, ulErr[2] = {-1, -1};
 	pid_t pid = -1;
 
 	if (argv == nullptr || argv[0] == nullptr)
 		return -EINVAL;
 	auto cl1 = make_scope_success([&]() {
-		if (pid > 0)
-			return;
 		if (ulIn[0] != -1)
 			close(ulIn[0]);
 		if (ulIn[1] != -1)
@@ -337,6 +334,10 @@ static pid_t unix_popen_rw(const char *const *argv, int *lpulIn, int *lpulOut,
 			close(ulOut[0]);
 		if (ulOut[1] != -1)
 			close(ulOut[1]);
+		if (ulErr[0] != -1)
+			close(ulErr[0]);
+		if (ulErr[1] != -1)
+			close(ulErr[1]);
 	});
 	if (pipe(ulIn) < 0 || pipe(ulOut) < 0)
 		return -errno;
@@ -357,20 +358,38 @@ static pid_t unix_popen_rw(const char *const *argv, int *lpulIn, int *lpulOut,
 	ret = posix_spawn_file_actions_adddup2(&fa, ulOut[STDOUT_FILENO], STDOUT_FILENO);
 	if (ret != 0)
 		return -ret;
-	ret = posix_spawn_file_actions_adddup2(&fa, ulOut[STDOUT_FILENO], STDERR_FILENO);
-	if (ret != 0)
-		return -ret;
+	if (lpulErr == lpulOut) {
+		if ((ret = posix_spawn_file_actions_adddup2(&fa, ulOut[1], STDERR_FILENO)) != 0)
+			return ret;
+		if (ulOut[1] != STDOUT_FILENO && ulOut[1] != STDERR_FILENO &&
+		    (ret = posix_spawn_file_actions_addclose(&fa, ulOut[1])) != 0)
+			return ret;
+	} else {
+		if (pipe(ulErr) < 0)
+			return -errno;
+		ret = posix_spawn_file_actions_addclose(&fa, ulErr[0]);
+		if (ret != 0)
+			return -ret;
+		if ((ret = posix_spawn_file_actions_adddup2(&fa, ulErr[1], STDERR_FILENO)) != 0)
+			return ret;
+		if (ulOut[1] != STDOUT_FILENO && (ret = posix_spawn_file_actions_addclose(&fa, ulOut[1])) != 0)
+			return ret;
+		if (ulErr[1] != STDERR_FILENO && (ret = posix_spawn_file_actions_addclose(&fa, ulErr[1])) != 0)
+			return ret;
+	}
 	if (ulIn[0] != STDIN_FILENO && (ret = posix_spawn_file_actions_addclose(&fa, ulIn[0])) != 0)
-		return ret;
-	if (ulOut[1] != STDOUT_FILENO && ulOut[1] != STDERR_FILENO && (ret = posix_spawn_file_actions_addclose(&fa, ulOut[1])) != 0)
 		return ret;
 	ret = posix_spawn(&pid, argv[0], &fa, nullptr, const_cast<char **>(argv), const_cast<char **>(env));
 	if (ret != 0)
 		return -ret;
 	*lpulIn = ulIn[STDOUT_FILENO];
-	close(ulIn[STDIN_FILENO]);
+	ulIn[1] = -1;
 	*lpulOut = ulOut[STDIN_FILENO];
-	close(ulOut[STDOUT_FILENO]);
+	ulOut[0] = -1;
+	if (lpulErr != lpulOut) {
+		*lpulErr = ulErr[0];
+		ulErr[0] = -1;
+	}
 	return pid;
 }
 
@@ -403,7 +422,7 @@ bool unix_system(const char *lpszLogName, const std::vector<std::string> &cmd,
 
 	auto cmdtxt = "\"" + kc_join(cmd, "\" \"") + "\"";
 	int fdin = 0, fdout = 0;
-	int pid = unix_popen_rw(argv.get(), &fdin, &fdout, env);
+	int pid = unix_popen_rw(argv.get(), &fdin, &fdout, &fdout, env);
 	ec_log_debug("Running command: %s", cmdtxt.c_str());
 	if (pid < 0) {
 		ec_log_debug("popen(%s) failed: %s", cmdtxt.c_str(), strerror(errno));
