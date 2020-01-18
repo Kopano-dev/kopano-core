@@ -1,5 +1,6 @@
-10.x
-====
+10.0.1 (2020-01-28)
+===================
+All changes from the 9.x branch up to 9.0.3 are included.
 Enhancements:
 * client: IDN support [KC-1659]
   Saving PR_EMAIL_ADDRESS/PR_SMTP_ADDRESS will transform
