@@ -345,6 +345,12 @@ static pid_t unix_popen_rw(const char *const *argv, int *lpulIn, int *lpulOut,
 	if (ret != 0)
 		return -ret;
 	auto cl2 = make_scope_success([&]() { posix_spawn_file_actions_destroy(&fa); });
+	ret = posix_spawn_file_actions_addclose(&fa, ulIn[1]);
+	if (ret != 0)
+		return -ret;
+	ret = posix_spawn_file_actions_addclose(&fa, ulOut[0]);
+	if (ret != 0)
+		return -ret;
 	ret = posix_spawn_file_actions_adddup2(&fa, ulIn[STDIN_FILENO], STDIN_FILENO);
 	if (ret != 0)
 		return -ret;
@@ -354,6 +360,10 @@ static pid_t unix_popen_rw(const char *const *argv, int *lpulIn, int *lpulOut,
 	ret = posix_spawn_file_actions_adddup2(&fa, ulOut[STDOUT_FILENO], STDERR_FILENO);
 	if (ret != 0)
 		return -ret;
+	if (ulIn[0] != STDIN_FILENO && (ret = posix_spawn_file_actions_addclose(&fa, ulIn[0])) != 0)
+		return ret;
+	if (ulOut[1] != STDOUT_FILENO && ulOut[1] != STDERR_FILENO && (ret = posix_spawn_file_actions_addclose(&fa, ulOut[1])) != 0)
+		return ret;
 	ret = posix_spawn(&pid, argv[0], &fa, nullptr, const_cast<char **>(argv), const_cast<char **>(env));
 	if (ret != 0)
 		return -ret;
