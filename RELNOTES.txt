@@ -8,8 +8,9 @@ Enhancements:
   "cache_cell_size=0.5G"
 
 
-9.x
-===
+9.0.3 (2020-01-28)
+==================
+Changes from the 8.7.x branch up to 2020-01-14 are included.
 Enhancements:
 * common: avoid computing log messages that will not get shown [KC-1674]
 * freebusy: fix crash in RecurrenceState::Exception instantiation
@@ -119,8 +120,8 @@ Packaging changes:
 * gsoap 2.8.73 or higher is now required
 
 
-8.7.x
-=====
+8.7.x (2020-01-14)
+==================
 Enhancements:
 * icalmapi: support reading multi-iCal and multi-vCard files [KC-1291]
 * storeadm: show store guid and sizes for mailbox overview (-M)
