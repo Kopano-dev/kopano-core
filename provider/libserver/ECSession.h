@@ -204,8 +204,7 @@ private:
 
 	/* NTLM */
 	pid_t m_NTLM_pid = -1;
-	int m_NTLM_stdin[2], m_NTLM_stdout[2], m_NTLM_stderr[2];
-	int m_stdin = -1, m_stdout = -1, m_stderr = -1; /* shortcuts to the above */
+	int m_stdin = -1, m_stdout = -1, m_stderr = -1;
 
 #ifdef HAVE_GSSAPI
 	/* KRB5 */
