@@ -316,7 +316,7 @@ int unix_fork_function(void*(func)(void*), void *param, int nCloseFDs, int *pClo
  *
  * @return new process pid, or -1 on failure.
  */
-static pid_t unix_popen_rw(const char *const *argv, int *lpulIn, int *lpulOut,
+pid_t unix_popen_rw(const char *const *argv, int *lpulIn, int *lpulOut,
     int *lpulErr, const char **env)
 {
 	posix_spawn_file_actions_t fa;
