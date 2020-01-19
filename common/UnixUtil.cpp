@@ -320,7 +320,8 @@ static pid_t unix_popen_rw(const char *const *argv, int *lpulIn, int *lpulOut,
     int *lpulErr, const char **env)
 {
 	posix_spawn_file_actions_t fa;
-	int ulIn[2] = {-1, -1}, ulOut[2] = {-1, -1}, ulErr[2] = {-1, -1};
+	int ulIn[2] = {-1, -1}, ulOut[2] = {-1, -1};
+	int ulErr[2] = {-1, -1}, nullfd = -1;
 	pid_t pid = -1;
 
 	if (argv == nullptr || argv[0] == nullptr)
@@ -338,55 +339,99 @@ static pid_t unix_popen_rw(const char *const *argv, int *lpulIn, int *lpulOut,
 			close(ulErr[0]);
 		if (ulErr[1] != -1)
 			close(ulErr[1]);
+		if (nullfd != -1)
+			close(nullfd);
 	});
-	if (pipe(ulIn) < 0 || pipe(ulOut) < 0)
-		return -errno;
+	if (lpulIn == nullptr || lpulOut == nullptr || lpulErr == nullptr) {
+		nullfd = open("/dev/null", O_RDWR);
+		if (nullfd < 0)
+			return -errno;
+	}
 	memset(&fa, 0, sizeof(fa));
 	auto ret = posix_spawn_file_actions_init(&fa);
 	if (ret != 0)
 		return -ret;
 	auto cl2 = make_scope_success([&]() { posix_spawn_file_actions_destroy(&fa); });
-	ret = posix_spawn_file_actions_addclose(&fa, ulIn[1]);
-	if (ret != 0)
-		return -ret;
-	ret = posix_spawn_file_actions_addclose(&fa, ulOut[0]);
-	if (ret != 0)
-		return -ret;
-	ret = posix_spawn_file_actions_adddup2(&fa, ulIn[STDIN_FILENO], STDIN_FILENO);
-	if (ret != 0)
-		return -ret;
-	ret = posix_spawn_file_actions_adddup2(&fa, ulOut[STDOUT_FILENO], STDOUT_FILENO);
-	if (ret != 0)
-		return -ret;
-	if (lpulErr == lpulOut) {
+
+	/* Close child-unused ends of the pipes; move child-used ends to fd 0-2. */
+	if (lpulIn != nullptr) {
+		if (pipe(ulIn) < 0)
+			return -errno;
+		ret = posix_spawn_file_actions_addclose(&fa, ulIn[1]);
+		if (ret != 0)
+			return -ret;
+		ret = posix_spawn_file_actions_adddup2(&fa, ulIn[0], STDIN_FILENO);
+		if (ret != 0)
+			return -ret;
+	} else {
+		ret = posix_spawn_file_actions_adddup2(&fa, nullfd, STDIN_FILENO);
+		if (ret != 0)
+			return -ret;
+	}
+
+	if (lpulOut != nullptr) {
+		if (pipe(ulOut) < 0)
+			return -errno;
+		ret = posix_spawn_file_actions_addclose(&fa, ulOut[0]);
+		if (ret != 0)
+			return -ret;
+		ret = posix_spawn_file_actions_adddup2(&fa, ulOut[1], STDOUT_FILENO);
+		if (ret != 0)
+			return -ret;
+	} else {
+		ret = posix_spawn_file_actions_adddup2(&fa, nullfd, STDOUT_FILENO);
+		if (ret != 0)
+			return -ret;
+	}
+
+	if (lpulErr == nullptr) {
+		ret = posix_spawn_file_actions_adddup2(&fa, nullfd, STDERR_FILENO);
+		if (ret != 0)
+			return -ret;
+	} else if (lpulErr == lpulOut) {
 		if ((ret = posix_spawn_file_actions_adddup2(&fa, ulOut[1], STDERR_FILENO)) != 0)
 			return ret;
-		if (ulOut[1] != STDOUT_FILENO && ulOut[1] != STDERR_FILENO &&
-		    (ret = posix_spawn_file_actions_addclose(&fa, ulOut[1])) != 0)
-			return ret;
 	} else {
-		if (pipe(ulErr) < 0)
+		if (lpulErr != nullptr && lpulErr != lpulOut && pipe(ulErr) < 0)
 			return -errno;
 		ret = posix_spawn_file_actions_addclose(&fa, ulErr[0]);
 		if (ret != 0)
 			return -ret;
 		if ((ret = posix_spawn_file_actions_adddup2(&fa, ulErr[1], STDERR_FILENO)) != 0)
 			return ret;
-		if (ulOut[1] != STDOUT_FILENO && (ret = posix_spawn_file_actions_addclose(&fa, ulOut[1])) != 0)
+	}
+
+	/* Close all pipe ends that were not already fd 0-2. */
+	if (ulIn[0] != -1 && ulIn[0] != STDIN_FILENO && (ret = posix_spawn_file_actions_addclose(&fa, ulIn[0])) != 0)
+		return ret;
+	if (lpulErr != lpulOut) {
+		if (ulOut[1] != -1 && ulOut[1] != STDOUT_FILENO &&
+		    (ret = posix_spawn_file_actions_addclose(&fa, ulOut[1])) != 0)
 			return ret;
-		if (ulErr[1] != STDERR_FILENO && (ret = posix_spawn_file_actions_addclose(&fa, ulErr[1])) != 0)
+		if (ulErr[1] != -1 && ulErr[1] != STDERR_FILENO &&
+		    (ret = posix_spawn_file_actions_addclose(&fa, ulErr[1])) != 0)
+			return ret;
+	} else {
+		if (ulOut[1] != -1 && ulOut[1] != STDOUT_FILENO && ulOut[1] != STDERR_FILENO &&
+		    (ret = posix_spawn_file_actions_addclose(&fa, ulOut[1])) != 0)
 			return ret;
 	}
-	if (ulIn[0] != STDIN_FILENO && (ret = posix_spawn_file_actions_addclose(&fa, ulIn[0])) != 0)
+	if (nullfd != -1 && nullfd != STDIN_FILENO && nullfd != STDOUT_FILENO && nullfd != STDERR_FILENO &&
+	    (ret = posix_spawn_file_actions_addclose(&fa, nullfd)) != 0)
 		return ret;
+
 	ret = posix_spawn(&pid, argv[0], &fa, nullptr, const_cast<char **>(argv), const_cast<char **>(env));
 	if (ret != 0)
 		return -ret;
-	*lpulIn = ulIn[STDOUT_FILENO];
-	ulIn[1] = -1;
-	*lpulOut = ulOut[STDIN_FILENO];
-	ulOut[0] = -1;
-	if (lpulErr != lpulOut) {
+	if (lpulIn != nullptr) {
+		*lpulIn = ulIn[1];
+		ulIn[1] = -1;
+	}
+	if (lpulOut != nullptr) {
+		*lpulOut = ulOut[0];
+		ulOut[0] = -1;
+	}
+	if (lpulErr != nullptr && lpulErr != lpulOut) {
 		*lpulErr = ulErr[0];
 		ulErr[0] = -1;
 	}
@@ -422,7 +467,7 @@ bool unix_system(const char *lpszLogName, const std::vector<std::string> &cmd,
 
 	auto cmdtxt = "\"" + kc_join(cmd, "\" \"") + "\"";
 	int fdin = 0, fdout = 0;
-	int pid = unix_popen_rw(argv.get(), &fdin, &fdout, &fdout, env);
+	int pid = unix_popen_rw(argv.get(), &fdin, &fdout, nullptr, env);
 	ec_log_debug("Running command: %s", cmdtxt.c_str());
 	if (pid < 0) {
 		ec_log_debug("popen(%s) failed: %s", cmdtxt.c_str(), strerror(errno));
