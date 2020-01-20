@@ -14,7 +14,7 @@ FROM debian:buster
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # Dependency-hash argument
-ARG DEPENDENCY_HASH=b7d4cb9
+ARG DEPENDENCY_HASH=4a23ce6
 
 # Noninteractive for package manager
 ENV DEBIAN_FRONTEND noninteractive
