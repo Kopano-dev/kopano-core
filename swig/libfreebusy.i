@@ -157,6 +157,8 @@ public:
                     if(hr != hrSuccess)
 				return NULL;
                     hr = lpFreeBusySup->QueryInterface(IID_IFreeBusySupport, (void**)&lpFreeBusySupport);
+			if (hr != hrSuccess)
+				return nullptr;
                     return lpFreeBusySupport;
                 }
 
