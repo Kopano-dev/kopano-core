@@ -1061,6 +1061,7 @@ static HRESULT HrFindUserInGroup(IAddrBook *lpAdrBook, const SBinary &owner,
 
 	if (lpulCmp == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
+	*lpulCmp = false;
 	if (level > 10) {
 		HRESULT hr = MAPI_E_TOO_COMPLEX;
 		ec_log_err("HrFindUserInGroup(): level too big %d: %s (%x)",
@@ -1096,10 +1097,11 @@ static HRESULT HrFindUserInGroup(IAddrBook *lpAdrBook, const SBinary &owner,
 		else if (lpRowSet[0].lpProps[1].Value.ul == MAPI_DISTLIST)
 			hr = HrFindUserInGroup(lpAdrBook, owner,
 			     lpRowSet[0].lpProps[0].Value.bin, &ulCmp, level + 1);
-		if (hr == hrSuccess && ulCmp == TRUE)
+		if (hr == hrSuccess && ulCmp == TRUE) {
+			*lpulCmp = true;
 			break;
+		}
 	}
-	*lpulCmp = ulCmp;
 	return hrSuccess;
 }
 
