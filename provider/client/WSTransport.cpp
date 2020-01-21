@@ -2988,22 +2988,24 @@ HRESULT WSTransport::HrGetPermissionRules(int ulType, ULONG cbEntryID,
 	}
 	END_SOAP_CALL
 
-	hr = ECAllocateBuffer(sizeof(ECPERMISSION) * sRightResponse.pRightsArray->__size,
-	     &~lpECPermissions);
-	if (hr != erSuccess)
-		goto exitm;
-	for (gsoap_size_t i = 0; i < sRightResponse.pRightsArray->__size; ++i) {
-		lpECPermissions[i].ulRights	= sRightResponse.pRightsArray->__ptr[i].ulRights;
-		lpECPermissions[i].ulState	= sRightResponse.pRightsArray->__ptr[i].ulState;
-		lpECPermissions[i].ulType	= sRightResponse.pRightsArray->__ptr[i].ulType;
-
-		hr = CopySOAPEntryIdToMAPIEntryId(&sRightResponse.pRightsArray->__ptr[i].sUserId, sRightResponse.pRightsArray->__ptr[i].ulUserid, MAPI_MAILUSER, (ULONG*)&lpECPermissions[i].sUserId.cb, (LPENTRYID*)&lpECPermissions[i].sUserId.lpb, lpECPermissions);
-		if (hr != hrSuccess)
+	*lpcPermissions = 0;
+	if (sRightResponse.pRightsArray != nullptr) {
+		hr = ECAllocateBuffer(sizeof(ECPERMISSION) * sRightResponse.pRightsArray->__size,
+		     &~lpECPermissions);
+		if (hr != erSuccess)
 			goto exitm;
+		for (gsoap_size_t i = 0; i < sRightResponse.pRightsArray->__size; ++i) {
+			lpECPermissions[i].ulRights	= sRightResponse.pRightsArray->__ptr[i].ulRights;
+			lpECPermissions[i].ulState	= sRightResponse.pRightsArray->__ptr[i].ulState;
+			lpECPermissions[i].ulType	= sRightResponse.pRightsArray->__ptr[i].ulType;
+			hr = CopySOAPEntryIdToMAPIEntryId(&sRightResponse.pRightsArray->__ptr[i].sUserId, sRightResponse.pRightsArray->__ptr[i].ulUserid, MAPI_MAILUSER, (ULONG*)&lpECPermissions[i].sUserId.cb, (LPENTRYID*)&lpECPermissions[i].sUserId.lpb, lpECPermissions);
+			if (hr != hrSuccess)
+				goto exitm;
+		}
+		*lpcPermissions = sRightResponse.pRightsArray->__size;
 	}
 
 	*lppECPermissions = lpECPermissions.release();
-	*lpcPermissions = sRightResponse.pRightsArray->__size;
 	lpECPermissions = NULL;
  exitm:
 	return hr;
