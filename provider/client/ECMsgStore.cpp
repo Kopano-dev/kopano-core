@@ -2152,7 +2152,7 @@ static HRESULT CreateSpecialFolder(IMAPIFolder *folder_parent_in,
 	if (hr != hrSuccess)
 		return hr;
 	if (lppMAPIFolder != nullptr)
-		hr = lpMAPIFolder->QueryInterface(IID_IMAPIFolder, reinterpret_cast<void **>(lppMAPIFolder));
+		return lpMAPIFolder->QueryInterface(IID_IMAPIFolder, reinterpret_cast<void **>(lppMAPIFolder));
 	return hrSuccess;
 }
 
