@@ -1285,7 +1285,7 @@ ECRESULT CopyEntryList(struct soap *soap, struct entryList *lpSrc, struct entryL
 	else
 		lpDst->__ptr = NULL;
 
-	for (unsigned int i = 0; i < lpSrc->__size; ++i) {
+	for (int i = 0; i < lpSrc->__size; ++i) {
 		lpDst->__ptr[i].__size = lpSrc->__ptr[i].__size;
 		lpDst->__ptr[i].__ptr = s_alloc<unsigned char>(soap, lpSrc->__ptr[i].__size);
 		memcpy(lpDst->__ptr[i].__ptr, lpSrc->__ptr[i].__ptr, lpSrc->__ptr[i].__size);
