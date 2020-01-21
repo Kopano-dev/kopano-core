@@ -16,8 +16,7 @@
 #include <cstdint>
 #include <string>
 #include <sys/socket.h>
-#include <openssl/opensslconf.h>
-#include <openssl/ssl.h>
+#include <openssl/ossl_typ.h>
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 

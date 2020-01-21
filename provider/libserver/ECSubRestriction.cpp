@@ -51,6 +51,8 @@ static ECRESULT GetSubRestrictionRecursive(const struct restrictTable *lpRestric
             break;
         case RES_NOT:
             er = GetSubRestrictionRecursive(lpRestrict->lpNot->lpNot, lpulCount, ulSubRestriction, lppSubRestrict, maxdepth-1);
+			if (er != erSuccess)
+				return er;
             break;
         case RES_CONTENT:
         case RES_PROPERTY:

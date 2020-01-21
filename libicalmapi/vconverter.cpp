@@ -89,7 +89,7 @@ VConverter::VConverter(IAddrBook *ab, timezone_map *tzmap, SPropTagArray *np,
  */
 HRESULT VConverter::HrICal2MAPI(icalcomponent *lpEventRoot, icalcomponent *lpEvent, icalitem *lpPrevItem, icalitem **lppRet)
 {
-	bool bIsAllday;
+	bool bIsAllday = false;
 
 	// Retrieve the Allday status of the event
 	auto hr = HrRetrieveAlldayStatus(lpEvent, &bIsAllday);
@@ -910,6 +910,8 @@ HRESULT VConverter::HrAddOrganizer(icalitem *lpIcalItem, std::list<SPropValue> *
 	lplstMsgProps->emplace_back(sPropVal);
 
 	// re-allocate memory to list with lpIcalItem
+	if (lpEntryID == nullptr)
+		return hrSuccess;
 	hr = Util::HrCopyBinary(cbEntryID, (LPBYTE)lpEntryID, &sPropVal.Value.bin.cb, &sPropVal.Value.bin.lpb, lpIcalItem->base);
 	if (hr != hrSuccess)
 		return hr;
@@ -923,6 +925,9 @@ HRESULT VConverter::HrAddOrganizer(icalitem *lpIcalItem, std::list<SPropValue> *
 }
 
 HRESULT VConverter::resolve_organizer(std::wstring &email, std::wstring &name, std::string &type, unsigned int &cb, ENTRYID **entryid, bool force_mailuser) {
+	cb = 0;
+	*entryid = nullptr;
+
 	if (bIsUserLoggedIn(email) || force_mailuser) {
 		static constexpr const SizedSPropTagArray(4, sPropTags) =
 			{4, {PR_SMTP_ADDRESS_W, PR_DISPLAY_NAME_W, PR_ADDRTYPE_A, PR_ENTRYID}};
@@ -1096,7 +1101,7 @@ HRESULT VConverter::HrAddReplyRecipients(icalcomponent *lpicEvent, icalitem *lpI
 {
 	wstring strEmail, strName;
 	icalrecip icrAttendee;
-	ULONG cbEntryID;
+	unsigned int cbEntryID = 0;
 	memory_ptr<ENTRYID> lpEntryID;
 
 	auto lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_ORGANIZER_PROPERTY);

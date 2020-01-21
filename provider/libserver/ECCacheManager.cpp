@@ -1563,7 +1563,7 @@ ECRESULT ECCacheManager::GetPropFromObject(unsigned int ulTag, unsigned int ulOb
 	sObject = &sNewObject;
 	*lppData  = soap_new_unsignedByte(soap, sObject->cbData);
 	*lpcbData = sObject->cbData;
-	memcpy(*lppData, sObject->lpData, sObject->cbData);
+	memcpy(*lppData, sObject->lpData != nullptr ? sObject->lpData : reinterpret_cast<const unsigned char *>(""), sObject->cbData);
 exit:
 	if (er != erSuccess || sObject == NULL)
 		LOG_CACHE_DEBUG("Get Prop From Object tag=0x%04X, objectid %d, error 0x%08x", ulTag, ulObjId, er);

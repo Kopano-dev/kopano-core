@@ -1209,54 +1209,21 @@ ECRESULT ECAuthSession::ValidateSSOData_NTLM(struct soap *soap,
 	errno = 0;
 
 	if (m_NTLM_pid == -1) {
-		// start new ntlmauth pipe
-		// TODO: configurable path?
-		if (pipe(m_NTLM_stdin) == -1 || pipe(m_NTLM_stdout) == -1 || pipe(m_NTLM_stderr) == -1) {
-			ec_log_crit(std::string("Unable to create communication pipes for ntlm_auth: ") + strerror(errno));
-			return er;
-		}
-		/*
-		 * Why are we using vfork() ?
-		 *
-		 * You might as well use fork() here but vfork() is much faster in our case; this is because vfork() doesn't actually duplicate
-		 * any pages, expecting you to call execl(). Watch out though, since data changes done in the client process before execl() WILL
-		 * affect the mother process. (however, the file descriptor table is correctly cloned)
-		 *
-		 * The reason fork() is slow is that even though it is doing a Copy-On-Write copy, it still needs to do some page-copying to set up your
-		 * process. This copying time increases with memory usage of the mother process; in fact, running 200 forks() on a process occupying
-		 * 512MB of memory takes 15 seconds, while the same vfork()/exec() loop takes under .5 of a second.
-		 *
-		 * If vfork() is not available, or is broken on another platform, it is safe to simply replace it with fork(), but it will be quite slow!
-		 */
-		m_NTLM_pid = vfork();
-		if (m_NTLM_pid == -1) {
-			// broken
-			ec_log_crit(std::string("Unable to start new process for ntlm_auth: ") + strerror(errno));
-			return er;
-		} else if (m_NTLM_pid == 0) {
-			// client
-			close(m_NTLM_stdin[1]);
-			close(m_NTLM_stdout[0]);
-			close(m_NTLM_stderr[0]);
-			dup2(m_NTLM_stdin[0], 0);
-			dup2(m_NTLM_stdout[1], 1);
-			dup2(m_NTLM_stderr[1], 2);
+		const char *const argv[] = {"ntlm_auth", "-d0", "--helper-protocol=squid-2.5-ntlmssp", nullptr};
+		m_NTLM_pid = unix_popen_rw(argv, &m_stdin, &m_stdout, &m_stderr, nullptr);
+		if (m_NTLM_pid < 0) {
+			ec_log_crit("Cannot start ntlm_auth: %s", strerror(errno));
+		} else {
+#if 0
 			// close all other open file descriptors, so ntlm doesn't keep the kopano-server sockets open
 			auto j = getdtablesize();
 			for (int k = 3; k < j; ++k)
 				close(k);
-			execlp("ntlm_auth", "-d0", "--helper-protocol=squid-2.5-ntlmssp", nullptr);
-			ec_log_crit(std::string("Cannot start ntlm_auth: ") + strerror(errno));
-			_exit(2);
-		} else {
-			// parent
+#endif
 			ec_log_info("New ntlm_auth started on pid %d", m_NTLM_pid);
-			close(m_NTLM_stdin[0]);
-			close(m_NTLM_stdout[1]);
-			close(m_NTLM_stderr[1]);
-			m_stdin = ec_relocate_fd(m_NTLM_stdin[1]);
-			m_stdout = ec_relocate_fd(m_NTLM_stdout[0]);
-			m_stderr = ec_relocate_fd(m_NTLM_stderr[0]);
+			m_stdin = ec_relocate_fd(m_stdin);
+			m_stdout = ec_relocate_fd(m_stdout);
+			m_stderr = ec_relocate_fd(m_stderr);
 
 			// Yo! Refresh!
 			write(m_stdin, "YR ", 3);
