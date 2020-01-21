@@ -461,13 +461,13 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
       else {
 	PyErr_SetString(PyExc_TypeError,"list must contain strings");
 	free($2);
-	return NULL;
+				SWIG_fail;
       }
     }
     $2[i] = 0;
   } else {
     PyErr_SetString(PyExc_TypeError,"not a list");
-    return NULL;
+		SWIG_fail;
   }
 }
 
