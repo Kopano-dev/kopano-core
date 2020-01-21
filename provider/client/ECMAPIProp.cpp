@@ -630,9 +630,9 @@ HRESULT	ECMAPIProp::UpdateACLs(ULONG cNewPerms, ECPERMISSION *lpNewPerms)
 		}
 	}
 
-	if (cPerms + cNewPerms > 0)
-		hr = ptrSecurity->SetPermissionRules(cPerms + cNewPerms, lpPermissions);
-	return hrSuccess;
+	if (cPerms + cNewPerms == 0)
+		return hrSuccess;
+	return ptrSecurity->SetPermissionRules(cPerms + cNewPerms, lpPermissions);
 }
 
 HRESULT ECMAPIProp::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
