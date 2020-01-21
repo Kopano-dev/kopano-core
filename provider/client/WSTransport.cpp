@@ -1350,7 +1350,6 @@ HRESULT WSTransport::HrSetReceiveFolder(ULONG cbStoreID,
     ULONG cbEntryID, const ENTRYID *lpEntryID)
 {
 	ECRESULT er = erSuccess;
-	unsigned int result;
 	entryId sStoreId, sEntryId; // Do not free
 	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG		cbUnWrapStoreID = 0;
@@ -1366,6 +1365,7 @@ HRESULT WSTransport::HrSetReceiveFolder(ULONG cbStoreID,
 		goto exitm;
 	START_SOAP_CALL
 	{
+		ECRESULT result = KCERR_NETWORK_ERROR;
 		if (m_lpCmd->setReceiveFolder(m_ecSessionId, sStoreId,
 		    lpEntryID != nullptr ? &sEntryId : nullptr,
 		    strMessageClass.c_str(), &result) != SOAP_OK)
@@ -3186,7 +3186,6 @@ HRESULT WSTransport::HrSyncUsers(ULONG cbCompanyId, const ENTRYID *lpCompanyId)
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
-	unsigned int sResponse;
 	entryId sCompanyId;
 	ULONG ulCompanyId = 0;
 	soap_lock_guard spg(*this);
@@ -3201,6 +3200,7 @@ HRESULT WSTransport::HrSyncUsers(ULONG cbCompanyId, const ENTRYID *lpCompanyId)
 
 	START_SOAP_CALL
 	{
+		ECRESULT sResponse = KCERR_NETWORK_ERROR;
 		if (m_lpCmd->syncUsers(m_ecSessionId, ulCompanyId, sCompanyId, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
@@ -3259,7 +3259,6 @@ HRESULT WSTransport::SetQuota(ULONG cbUserId, const ENTRYID *lpUserId,
 
 	ECRESULT				er = erSuccess;
 	HRESULT					hr = hrSuccess;
-	unsigned int			sResponse;
 	struct quota			sQuota;
 	entryId sUserId;
 	soap_lock_guard spg(*this);
@@ -3276,6 +3275,7 @@ HRESULT WSTransport::SetQuota(ULONG cbUserId, const ENTRYID *lpUserId,
 
 	START_SOAP_CALL
 	{
+		ECRESULT sResponse = KCERR_NETWORK_ERROR;
 		if (m_lpCmd->SetQuota(m_ecSessionId, ABEID_ID(lpUserId), sUserId, &sQuota, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
