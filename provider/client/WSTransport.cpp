@@ -3526,7 +3526,7 @@ HRESULT WSTransport::HrResolvePseudoUrl(const char *lpszPseudoUrl, char **lppszS
 	if (hr != hrSuccess)
 		goto exitm;
 
-	memcpy(lpszServerPath, sResponse.lpszServerPath, ulLen);
+	memcpy(lpszServerPath, sResponse.lpszServerPath != nullptr ? sResponse.lpszServerPath : "", ulLen);
 	*lppszServerPath = lpszServerPath;
 	*lpbIsPeer = sResponse.bIsPeer;
  exitm:
@@ -3881,12 +3881,12 @@ HRESULT WSTransport::HrTestGet(const char *szName, char **lpszValue)
     }
     END_SOAP_CALL
 
-    hr = MAPIAllocateBuffer(strlen(sResponse.szValue)+1, (void **)&szValue);
-    if(hr != hrSuccess)
-		goto exitm;
-
-    strcpy(szValue, sResponse.szValue);
-
+	if (sResponse.szValue != nullptr) {
+		hr = MAPIAllocateBuffer(strlen(sResponse.szValue) + 1, reinterpret_cast<void **>(&szValue));
+		if (hr != hrSuccess)
+			goto exitm;
+		strcpy(szValue, sResponse.szValue);
+	}
     *lpszValue = szValue;
  exitm:
 	return hr;
