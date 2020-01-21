@@ -179,7 +179,7 @@ HRESULT ECAttach::GetPropHandler(unsigned int ulPropTag, void *lpProvider,
 		sPropArray.cValues = 1;
 		sPropArray.aulPropTag[0] = PR_ATTACH_METHOD;
 		hr = lpAttach->GetProps(sPropArray, 0, &cValues, &~lpProps);
-		if (lpProps[0].Value.ul == ATTACH_OLE)
+		if (hr == hrSuccess && lpProps[0].Value.ul == ATTACH_OLE)
 			hr = MAPI_E_NOT_FOUND;
 		else
 			// 8k limit

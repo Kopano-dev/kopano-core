@@ -1622,6 +1622,8 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager *lpCacheManager,
 				lpSearchData = (char *)lpProp->Value.bin->__ptr;
 				ulSearchDataSize = lpProp->Value.bin->__size;
 			}
+			if (lpSearchData == nullptr)
+				lpSearchData = "";
 
 			auto ulFuzzyLevel = lpsRestrict->lpContent->ulFuzzyLevel;
 			switch (ulFuzzyLevel & 0xFFFF) {

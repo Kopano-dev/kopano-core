@@ -16,9 +16,9 @@ namespace KC {
 
 ECPluginFactory::ECPluginFactory(std::shared_ptr<ECConfig> cfg,
     std::shared_ptr<ECStatsCollector> sc, bool bHosted, bool bDistributed) :
-	m_config(std::move(cfg)), m_stats(std::move(sc))
+	m_config(std::move(cfg)), m_stats(sc)
 {
-	ECPluginSharedData::GetSingleton(&m_shareddata, m_config, sc, bHosted, bDistributed);
+	ECPluginSharedData::GetSingleton(&m_shareddata, m_config, std::move(sc), bHosted, bDistributed);
 }
 
 ECPluginFactory::~ECPluginFactory() {
