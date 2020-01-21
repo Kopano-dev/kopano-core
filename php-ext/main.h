@@ -37,8 +37,8 @@ extern int le_mapi_exportchanges, le_mapi_importhierarchychanges;
 extern int le_mapi_importcontentschanges, le_mapi_advisesink;
 
 /**
-* When adding or changing a entry here, don't forget to 
-* add or change the same entry in class.mapi.php 
+* When adding or changing a entry here, don't forget to
+* add or change the same entry in class.mapi.php
 */
 static const char name_mapi_session[]       = "MAPI Session";
 static const char name_mapi_table[]         = "MAPI Table";
@@ -173,9 +173,6 @@ ZEND_FUNCTION(mapi_savechanges);
 ZEND_FUNCTION(mapi_zarafa_getuser_by_id);
 ZEND_FUNCTION(mapi_zarafa_getuser_by_name);
 ZEND_FUNCTION(mapi_zarafa_getuserlist);
-
-ZEND_FUNCTION(mapi_zarafa_getquota);
-ZEND_FUNCTION(mapi_zarafa_setquota);
 
 ZEND_FUNCTION(mapi_zarafa_getgrouplist);
 ZEND_FUNCTION(mapi_zarafa_getgrouplistofuser);
