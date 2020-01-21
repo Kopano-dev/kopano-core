@@ -15,9 +15,7 @@
 #include <cstdio>
 #include <iostream>
 #include <sys/socket.h>
-#include <openssl/opensslconf.h>
-#include <openssl/ssl.h>
-#include <openssl/err.h>
+#include <openssl/ossl_typ.h>
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
 
