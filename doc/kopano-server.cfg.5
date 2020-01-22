@@ -798,7 +798,9 @@ Default:
 .SS createcompany_script
 .PP
 \fIKOPANO_COMPANY\fR
-contains the new companyname. No action is currently needed by the script.
+contains the new companyname. The script should invoke
+\fBkopano\-storeadm \-Pk\fP \fI"$KOPANO_COMPANY"\fR
+to create the public store for the new company.
 .PP
 Default:
 \fI/usr/lib/kopano/userscripts/createcompany\fR
