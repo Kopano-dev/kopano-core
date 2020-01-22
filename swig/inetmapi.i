@@ -17,7 +17,7 @@
 }
 %typemap(argout) (std::string *) {
 	/* @todo fix this not to go through a cstring */
-	%append_output(SWIG_FromCharPtrAndSize($1->c_str(), $1->length()));
+	%append_output3(SWIG_FromCharPtrAndSize($1->c_str(), $1->length()));
 }
 
 %typemap(in) (const std::string &input) (std::string temp, char *buf=NULL, Py_ssize_t size)
@@ -38,7 +38,7 @@
 %typemap(argout) (char** lppchardelete)
 {
   if (*$1) {
-    %append_output(PyBytes_FromString(*$1));
+		%append_output3(PyBytes_FromString(*$1));
     delete[](*$1);
   }
 }
