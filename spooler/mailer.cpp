@@ -369,14 +369,14 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 			     reinterpret_cast<ENTRYID *>(lpContabEntryID->abeid),
 			     &iid_of(lpFaxMailuser), 0, &ulObjType, &~lpFaxMailuser);
 			if (hr != hrSuccess) {
-				ec_log_err("Unable to convert FAX recipient, using %ls: %s (%x)",
-					lpEmailAddress->Value.lpszW, GetMAPIErrorMessage(hr), hr);
+				ec_log_err("Unable to convert FAX recipient: %s (%x). Using %ls.",
+					GetMAPIErrorMessage(hr), hr, lpEmailAddress->Value.lpszW);
 				continue;
 			}
 			hr = lpFaxMailuser->GetProps(sptaFaxNumbers, 0, &cValues, &~lpFaxNumbers);
 			if (FAILED(hr)) {
-				ec_log_err("Unable to convert FAX recipient, using %ls: %s (%x)",
-					lpEmailAddress->Value.lpszW, GetMAPIErrorMessage(hr), hr);
+				ec_log_err("Unable to convert FAX recipient: %s (%x). Using %ls.",
+					GetMAPIErrorMessage(hr), hr, lpEmailAddress->Value.lpszW);
 				continue;
 			}
 			if (lpFaxNumbers[lpContabEntryID->email_offset].ulPropTag != sptaFaxNumbers.aulPropTag[lpContabEntryID->email_offset]) {
@@ -1891,8 +1891,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		hr = MAPI_E_WAIT;
 		goto exit;
 	} else if (ulResult == MP_FAILED) {
-		ec_log_crit("Plugin error, hook gives a failed error: %s (%x).",
-			GetMAPIErrorMessage(ulResult), ulResult);
+		ec_log_crit("Plugin error, hook gives a failed error: %x.", ulResult);
 		hr = MAPI_E_CANCEL;
 		goto exit;
 	}
@@ -1924,7 +1923,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		ec_log_warn("Unable to connect to SMTP server, retrying mail for user %ls later", lpUser->lpszUsername);
 		goto exit;
 	} else if (hr != hrSuccess) {
-		ec_log_warn("E-mail for user %ls could not be sent, notifying user: %s (%x)",
+		ec_log_warn("E-mail for user \"%ls\" could not be sent: %s (%x). Notifying user.",
 			lpUser->lpszUsername, GetMAPIErrorMessage(hr), hr);
 		hr = SendUndeliverable(lpMailer, lpUserStore, lpMessage);
 		if (hr != hrSuccess)

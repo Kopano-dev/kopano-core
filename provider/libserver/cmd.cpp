@@ -6688,12 +6688,12 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 	auto cleanup = make_scope_success([&]() { FreeEntryId(lpsNewEntryId, true); });
 	if (!lpAttachmentStorage) {
 		if (!bIsRoot) {
-			ec_log_err("CopyObject: \"!attachmentstore && !isroot\" clause failed: %s (%x)", GetMAPIErrorMessage(er), er);
+			ec_log_err("CopyObject: \"!attachmentstore && !isroot\" clause failed");
 			return er = KCERR_INVALID_PARAMETER;
 		}
 		lpInternalAttachmentStorage.reset(g_lpSessionManager->get_atxconfig()->new_handle(lpDatabase));
 		if (lpInternalAttachmentStorage == nullptr) {
-			ec_log_err("CopyObject: CreateAttachmentStorage failed: %s (%x)", GetMAPIErrorMessage(er), er);
+			kc_perror("CopyObject: CreateAttachmentStorage failed", MAPI_E_NOT_ENOUGH_MEMORY);
 			return er = KCERR_NOT_ENOUGH_MEMORY;
 		}
 		lpAttachmentStorage = lpInternalAttachmentStorage.get();
