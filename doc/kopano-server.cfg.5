@@ -139,7 +139,13 @@ of the same name without a password through the Unix socket.
 Default: \fIyes\fP
 .SS local_admin_users
 .PP
-Named Unix users which connect through the unix socket (server_pipe_name) which are added here, those users will become the internal SYSTEM user in Kopano, and have administrative rights. Normally, this is only \*(Aqroot\*(Aq, so the unix root user can use the kopano\-admin tool. You can add a generic user to be used by the kopano\-dagent here. This user is most likely called \*(Aqvmail\*(Aq. Note that the field is SPACE separated.
+Named Unix users which connect through the unix socket (server_pipe_name) which
+are added here, those users will become the internal SYSTEM user in Kopano, and
+have administrative rights. Normally, this is only \fBroot\fP, so the Unix root
+user can use the administrative utilities like kopano\-admin(8) and
+kopano\-storeadm(8). You can add a generic user to be used by the
+kopano\-dagent here. This user is most likely called \fBvmail\fP. Note that the
+field is SPACE separated.
 .PP
 Default:
 \fIroot\fR
@@ -763,9 +769,7 @@ tenant is affected. The following parameters are used for the scripts:
 .PP
 \fIKOPANO_USER\fR
 contains the new user's name. The script should invoke
-\fBkopano\-admin\fR
-\fI\-\-create\-store\fR
-\fI"${KOPANO_USER}"\fR
+\fBkopano\-storeadm \-Cn\fP \fI"$KOPANO_USER"\fP
 to create the store for the new user.
 .PP
 Default:
