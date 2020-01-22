@@ -1,7 +1,0 @@
-#!@PYTHON@
-# SPDX-License-Identifier: AGPL-3.0-only
-import sys
-import kopano_presence
-
-if __name__ == '__main__':
-    sys.exit(kopano_presence.main())

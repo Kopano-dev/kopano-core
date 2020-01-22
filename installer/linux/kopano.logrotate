@@ -86,23 +86,6 @@
         notifempty
 }
 
-/var/log/kopano/presence.log {
-        weekly
-        missingok
-	create 640 kopano kopano
-        rotate 52
-        compress
-        delaycompress
-        notifempty
-        postrotate
-		if [ -d /run/systemd/system ] && systemctl --quiet is-active kopano-presence; then
-			systemctl reload kopano-presence || :
-		else
-			killall -HUP kopano-presence 2> /dev/null || true
-		fi
-        endscript
-}
-
 /var/log/kopano/monitor.log {
         weekly
         missingok
