@@ -755,15 +755,18 @@ Default:
 \fIdb\fR
 .SS createuser_script, deleteuser_script, creategroup_script, deletegroup_script, createcompany_script, deletecompany_script
 .PP
-These scripts are called by the server when the external user source, like LDAP, is different from the users, groups and companies which are known to Kopano. The script uses a environment variable to see which user, group or tenant is affected. The following parameter is used for the script:
+These scripts are called by the server when the external user source, like
+LDAP, is different from the users, groups and companies which are known to
+Kopano. The script uses environment variables to tell which user, group or
+tenant is affected. The following parameters are used for the scripts:
 .SS createuser_script
 .PP
 \fIKOPANO_USER\fR
-contains the new username. The script should at least call
+contains the new user's name. The script should invoke
 \fBkopano\-admin\fR
 \fI\-\-create\-store\fR
 \fI"${KOPANO_USER}"\fR
-to correctly create the store for the new user.
+to create the store for the new user.
 .PP
 Default:
 \fI/usr/lib/kopano/userscripts/createuser\fR
@@ -777,7 +780,7 @@ Default:
 .SS creategroup_script
 .PP
 \fIKOPANO_GROUP\fR
-contains the new groupname. No action is currently needed by the script.
+contains the new group's name. No action is currently needed by the script.
 .PP
 Default:
 \fI/usr/lib/kopano/userscripts/creategroup\fR
