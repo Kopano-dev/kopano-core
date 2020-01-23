@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: AGPL-3.0-only */
-/* File : archiver.i */
+%include <kopano/output3.i>
 %module archiver
 
 %{

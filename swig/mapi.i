@@ -112,7 +112,7 @@ enum STATFLAG {
 
 %typemap(argout) (char **lpOutput, ULONG *ulRead) {
   if (*$1) {
-    %append_output(PyBytes_FromStringAndSize(*$1, *$2));
+		%append_output3(PyBytes_FromStringAndSize(*$1, *$2));
     MAPIFreeBuffer(*$1);
   }
 }

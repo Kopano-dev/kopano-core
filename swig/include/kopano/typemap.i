@@ -1,4 +1,5 @@
 /* SPDX-License-Identifier: AGPL-3.0-only */
+%include <kopano/output3.i>
 // Generic typemaps
 %apply unsigned int {ULONG};
 %apply unsigned long {ULONG_PTR};
@@ -50,7 +51,7 @@
 
 %typemap(argout,fragment=SWIG_From_frag(unsigned long long)) ULARGE_INTEGER *
 {
-  %append_output(SWIG_From(unsigned long long)($1->QuadPart));
+	%append_output3(SWIG_From(unsigned long long)($1->QuadPart));
 }
 
 %typemap(in,fragment=SWIG_AsVal_frag(long long)) LARGE_INTEGER
@@ -68,7 +69,7 @@
 
 %typemap(argout,fragment=SWIG_From_frag(unsigned long long)) ULARGE_INTEGER *
 {
- %append_output(SWIG_From(unsigned long long)($1->QuadPart));
+	%append_output3(SWIG_From(unsigned long long)($1->QuadPart));
 }
 
 // FILETIME
@@ -85,7 +86,7 @@
 
 %typemap(argout,fragment=SWIG_From_frag(unsigned long long)) FILETIME *
 {
-  %append_output(Object_from_FILETIME(*$1));
+	%append_output3(Object_from_FILETIME(*$1));
 }
 
 // ULONG+LP
@@ -120,7 +121,7 @@
 %typemap(argout,fragment="SWIG_FromCharPtrAndSize") (ULONG *OUTPUT, LPENTRYID *OUTPUT)
 {
   if (*$2) {
-    %append_output(PyBytes_FromStringAndSize((const char *)*$2,*$1));
+		%append_output3(PyBytes_FromStringAndSize((const char *)*$2, *$1));
   }
 }
 %apply (ULONG *OUTPUT, LPENTRYID *OUTPUT) {(ULONG* lpcbStoreId, LPENTRYID* lppStoreId), (ULONG* lpcbRootId, LPENTRYID *lppRootId), (ULONG *lpulOutput, LPBYTE *lpOutput)};
@@ -146,7 +147,7 @@
 %typemap(argout,fragment="SWIG_FromCharPtrAndSize") (ULONG *OPTINOUT, LPENTRYID *OPTINOUT)
 {
   if (*$2) {
-    %append_output(PyBytes_FromStringAndSize((const char *)*$2,*$1));
+	%append_output3(PyBytes_FromStringAndSize((const char *)*$2, *$1));
   }
 }
 %apply (ULONG *OPTINOUT, LPENTRYID *OPTINOUT) {(ULONG* lpcbStoreId_oio, LPENTRYID* lppStoreId_oio), (ULONG* lpcbRootId_oio, LPENTRYID *lppRootId_oio)};
@@ -159,7 +160,7 @@
 }
 %typemap(argout) LPUNKNOWN *OUTPUT_USE_IID
 {
- %append_output(SWIG_NewPointerObj((void*)*($1), TypeFromIID(*__lpiid), SWIG_SHADOW | SWIG_OWNER));
+	%append_output3(SWIG_NewPointerObj((void *)*($1), TypeFromIID(*__lpiid), SWIG_SHADOW | SWIG_OWNER));
 }
 // Also apply to void ** in QueryInterface()
 %apply LPUNKNOWN *OUTPUT_USE_IID {void **OUTPUT_USE_IID};
@@ -214,7 +215,7 @@
 
 %typemap(argout) LPMAPIUID OUTPUT
 {
-	%append_output(PyBytes_FromStringAndSize((const char *)$1,sizeof(MAPIUID)));
+	%append_output3(PyBytes_FromStringAndSize((const char *)$1,sizeof(MAPIUID)));
 }
 
 // ULONG ulFlags
@@ -241,9 +242,9 @@
 }
 %typemap(argout,fragment="SWIG_FromCharPtr,SWIG_FromWCharPtr") LPTSTR *OUTPUT {
 	if (ulFlags & MAPI_UNICODE) {
-		%append_output(SWIG_FromWCharPtr(*$1));
+		%append_output3(SWIG_FromWCharPtr(*$1));
 	} else {
-		%append_output(SWIG_FromCharPtr((char*)*$1));
+		%append_output3(SWIG_FromCharPtr(reinterpret_cast<const char *>(*$1)));
 	}
 }
 %typemap(freearg) LPTSTR *OUTPUT {
@@ -255,7 +256,7 @@
   $1 = &lpStr;
 }
 %typemap(argout,fragment="SWIG_FromCharPtr") char** OUTMAPICHAR {
-    %append_output(SWIG_FromCharPtr((char*)*$1));
+	%append_output3(SWIG_FromCharPtr(reinterpret_cast<const char *>(*$1)));
 }
 %typemap(freearg) char** OUTMAPICHAR {
     MAPIFreeBuffer(*$1);
@@ -277,15 +278,15 @@
 {
   switch(*($1)) {
     case MAPI_FOLDER:
-		%append_output(SWIG_NewPointerObj((void*)*($2), SWIGTYPE_p_IMAPIFolder, SWIG_SHADOW | SWIG_OWNER)); break;
+		%append_output3(SWIG_NewPointerObj((void *)*($2), SWIGTYPE_p_IMAPIFolder, SWIG_SHADOW | SWIG_OWNER)); break;
 	case MAPI_MESSAGE:
-		%append_output(SWIG_NewPointerObj((void*)*($2), SWIGTYPE_p_IMessage, SWIG_SHADOW | SWIG_OWNER)); break;
+		%append_output3(SWIG_NewPointerObj((void *)*($2), SWIGTYPE_p_IMessage, SWIG_SHADOW | SWIG_OWNER)); break;
 	case MAPI_MAILUSER:
-		%append_output(SWIG_NewPointerObj((void*)*($2), SWIGTYPE_p_IMailUser, SWIG_SHADOW | SWIG_OWNER)); break;
+		%append_output3(SWIG_NewPointerObj((void *)*($2), SWIGTYPE_p_IMailUser, SWIG_SHADOW | SWIG_OWNER)); break;
 	case MAPI_DISTLIST:
-		%append_output(SWIG_NewPointerObj((void*)*($2), SWIGTYPE_p_IDistList, SWIG_SHADOW | SWIG_OWNER)); break;
+		%append_output3(SWIG_NewPointerObj((void *)*($2), SWIGTYPE_p_IDistList, SWIG_SHADOW | SWIG_OWNER)); break;
 	case MAPI_ABCONT:
-		%append_output(SWIG_NewPointerObj((void*)*($2), SWIGTYPE_p_IABContainer, SWIG_SHADOW | SWIG_OWNER)); break;
+		%append_output3(SWIG_NewPointerObj((void *)*($2), SWIGTYPE_p_IABContainer, SWIG_SHADOW | SWIG_OWNER)); break;
     default:
 		break;
   }
@@ -317,7 +318,7 @@
 
 %typemap(argout) STATSTG *
 {
-	%append_output(Object_from_STATSTG($1));
+	%append_output3(Object_from_STATSTG($1));
 }
 
 // MAPISTRUCT (MAPI data struct)
@@ -351,7 +352,7 @@
 	"temp = NULL; $1 = &temp;";
 %typemap(argout)	MAPICLASS *
 {
-  %append_output(SWIG_NewPointerObj((void*)*($1), $*1_descriptor, SWIG_SHADOW | SWIG_OWNER));
+	%append_output3(SWIG_NewPointerObj((void *)*($1), $*1_descriptor, SWIG_SHADOW | SWIG_OWNER));
 }
 
 // MAPIARRAY (List of objects)

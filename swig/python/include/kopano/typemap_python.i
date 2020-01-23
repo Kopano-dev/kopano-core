@@ -132,37 +132,37 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
 // Output
 %typemap(argout)	MAPILIST *
 {
-    %append_output(List_from_$basetype(*($1)));
+	%append_output3(List_from_$basetype(*($1)));
 	if(PyErr_Occurred()) goto fail;
 }
 
 %typemap(argout)	MAPILIST INOUT
 {
-	%append_output(List_from_$basetype($1));
+	%append_output3(List_from_$basetype($1));
 	if(PyErr_Occurred()) goto fail;
 }
 
 %typemap(argout)	MAPISTRUCT *
 {
-    %append_output(Object_from_$basetype(*($1)));
+	%append_output3(Object_from_$basetype(*($1)));
 	if(PyErr_Occurred()) goto fail;
 }
 
 %typemap(argout)	SYSTEMTIME *
 {
-	%append_output(Object_from_$basetype(*($1)));
+	%append_output3(Object_from_$basetype(*($1)));
 	if(PyErr_Occurred()) goto fail;
 }
 
 %typemap(argout)	(ULONG *, MAPIARRAY *)
 {
-    %append_output(List_from_$2_basetype(*($2),*($1)));
+	%append_output3(List_from_$2_basetype(*($2),*($1)));
 	if(PyErr_Occurred()) goto fail;
 }
 
 %typemap(argout)	(MAPIARRAY, LONG)
 {
-    %append_output(List_from_$1_basetype($1,$2));
+	%append_output3(List_from_$1_basetype($1,$2));
 	if(PyErr_Occurred()) goto fail;
 }
 
