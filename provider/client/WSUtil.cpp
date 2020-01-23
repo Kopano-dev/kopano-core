@@ -874,12 +874,6 @@ HRESULT CopySOAPEntryIdToMAPIEntryId(const entryId *lpSrc, ULONG ulObjId,
 	return hrSuccess;
 }
 
-HRESULT CopySOAPEntryIdToMAPIEntryId(const entryId *lpSrc, ULONG ulObjId,
-    ULONG *lpcbDest, LPENTRYID *lppEntryIdDest, void *lpBase)
-{
-	return CopySOAPEntryIdToMAPIEntryId(lpSrc, ulObjId, MAPI_MAILUSER, lpcbDest, lppEntryIdDest, lpBase);
-}
-
 HRESULT CopyMAPIEntryListToSOAPEntryList(const ENTRYLIST *lpMsgList,
     struct entryList *lpsEntryList)
 {
@@ -1576,8 +1570,9 @@ static HRESULT SoapUserToUser(const struct user *lpUser, ECUSER *lpsUser,
 							 &lpsUser->sPropmap, &lpsUser->sMVPropmap, lpBase, ulFlags);
 	if (hr != hrSuccess)
 		return hr;
-
-	hr = CopySOAPEntryIdToMAPIEntryId(&lpUser->sUserId, lpUser->ulUserId, (ULONG*)&lpsUser->sUserId.cb, (LPENTRYID*)&lpsUser->sUserId.lpb, lpBase);
+	hr = CopySOAPEntryIdToMAPIEntryId(&lpUser->sUserId, lpUser->ulUserId,
+	     MAPI_MAILUSER, reinterpret_cast<unsigned int *>(&lpsUser->sUserId.cb),
+	     reinterpret_cast<ENTRYID **>(&lpsUser->sUserId.lpb), lpBase);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -1660,7 +1655,7 @@ static HRESULT SoapGroupToGroup(const struct group *lpGroup,
 		return hr;
 
 	hr = CopySOAPEntryIdToMAPIEntryId(&lpGroup->sGroupId, lpGroup->ulGroupId,
-	     reinterpret_cast<ULONG *>(&lpsGroup->sGroupId.cb),
+	     MAPI_MAILUSER, reinterpret_cast<ULONG *>(&lpsGroup->sGroupId.cb),
 	     reinterpret_cast<ENTRYID **>(&lpsGroup->sGroupId.lpb), lpBase);
 	if (hr != hrSuccess)
 		return hr;
@@ -1735,12 +1730,16 @@ static HRESULT SoapCompanyToCompany(const struct company *lpCompany,
 							 &lpsCompany->sPropmap, &lpsCompany->sMVPropmap, lpBase, ulFlags);
 	if (hr != hrSuccess)
 		return hr;
-
-	hr = CopySOAPEntryIdToMAPIEntryId(&lpCompany->sAdministrator, lpCompany->ulAdministrator, (ULONG*)&lpsCompany->sAdministrator.cb, (LPENTRYID*)&lpsCompany->sAdministrator.lpb, lpBase);
+	hr = CopySOAPEntryIdToMAPIEntryId(&lpCompany->sAdministrator,
+	     lpCompany->ulAdministrator, MAPI_MAILUSER,
+	     reinterpret_cast<unsigned int *>(&lpsCompany->sAdministrator.cb),
+	     reinterpret_cast<ENTRYID **>(&lpsCompany->sAdministrator.lpb), lpBase);
 	if (hr != hrSuccess)
 		return hr;
-
-	hr = CopySOAPEntryIdToMAPIEntryId(&lpCompany->sCompanyId, lpCompany->ulCompanyId, (ULONG*)&lpsCompany->sCompanyId.cb, (LPENTRYID*)&lpsCompany->sCompanyId.lpb, lpBase);
+	hr = CopySOAPEntryIdToMAPIEntryId(&lpCompany->sCompanyId,
+	     lpCompany->ulCompanyId, MAPI_MAILUSER,
+	     reinterpret_cast<unsigned int *>(&lpsCompany->sCompanyId.cb),
+	     reinterpret_cast<ENTRYID **>(&lpsCompany->sCompanyId.lpb), lpBase);
 	if (hr != hrSuccess)
 		return hr;
 

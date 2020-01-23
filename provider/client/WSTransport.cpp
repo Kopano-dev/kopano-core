@@ -1593,8 +1593,7 @@ HRESULT WSTransport::HrCreateUser(ECUSER *lpECUser, ULONG ulFlags,
 			er = sResponse.er;
 	}
 	END_SOAP_CALL
-
-	hr = CopySOAPEntryIdToMAPIEntryId(&sResponse.sUserId, sResponse.ulUserId, lpcbUserId, lppUserId);
+	hr = CopySOAPEntryIdToMAPIEntryId(&sResponse.sUserId, sResponse.ulUserId, MAPI_MAILUSER, lpcbUserId, lppUserId);
  exitm:
 	spg.unlock();
 	FreeABProps(sUser.lpsPropmap, sUser.lpsMVPropmap);
@@ -1948,8 +1947,7 @@ HRESULT WSTransport::HrCreateGroup(ECGROUP *lpECGroup, ULONG ulFlags,
 			er = sResponse.er;
 	}
 	END_SOAP_CALL
-
-	hr = CopySOAPEntryIdToMAPIEntryId(&sResponse.sGroupId, sResponse.ulGroupId, lpcbGroupId, lppGroupId);
+	hr = CopySOAPEntryIdToMAPIEntryId(&sResponse.sGroupId, sResponse.ulGroupId, MAPI_MAILUSER, lpcbGroupId, lppGroupId);
  exitm:
 	spg.unlock();
 	FreeABProps(sGroup.lpsPropmap, sGroup.lpsMVPropmap);
@@ -2204,8 +2202,7 @@ HRESULT WSTransport::HrResolveUserName(LPCTSTR lpszUserName, ULONG ulFlags, ULON
 			er = sResponse.er;
 	}
 	END_SOAP_CALL
-
-	hr = CopySOAPEntryIdToMAPIEntryId(&sResponse.sUserId, sResponse.ulUserId, lpcbUserId, lppUserId);
+	hr = CopySOAPEntryIdToMAPIEntryId(&sResponse.sUserId, sResponse.ulUserId, MAPI_MAILUSER, lpcbUserId, lppUserId);
  exitm:
 	return hr;
 }
@@ -2240,8 +2237,7 @@ HRESULT WSTransport::HrResolveGroupName(LPCTSTR lpszGroupName, ULONG ulFlags, UL
 			er = sResponse.er;
 	}
 	END_SOAP_CALL
-
-	hr = CopySOAPEntryIdToMAPIEntryId(&sResponse.sGroupId, sResponse.ulGroupId, lpcbGroupId, lppGroupId);
+	hr = CopySOAPEntryIdToMAPIEntryId(&sResponse.sGroupId, sResponse.ulGroupId, MAPI_MAILUSER, lpcbGroupId, lppGroupId);
  exitm:
 	return hr;
 }
@@ -3035,8 +3031,7 @@ HRESULT WSTransport::HrGetOwner(ULONG cbEntryID, const ENTRYID *lpEntryID,
 			er = sResponse.er;
 	}
 	END_SOAP_CALL
-
-	hr = CopySOAPEntryIdToMAPIEntryId(&sResponse.sOwner, sResponse.ulOwner, lpcbOwnerId, lppOwnerId);
+	hr = CopySOAPEntryIdToMAPIEntryId(&sResponse.sOwner, sResponse.ulOwner, MAPI_MAILUSER, lpcbOwnerId, lppOwnerId);
  exitm:
 	return hr;
 }
