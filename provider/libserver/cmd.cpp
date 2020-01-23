@@ -134,7 +134,7 @@ static ECRESULT CreateEntryId(GUID guidStore, unsigned int ulObjType,
  * When an entryid is provided, the extern id is extracted and the local user id
  * is resolved based on that. If no entryid is provided the provided legacy user id
  * is used as local user is and the extern id is resolved based on that. Old clients
- * that are not multi server aware provide the legacy user id in stead of the entryid.
+ * that are not multi-server aware provide the legacy user id instead of the entryid.
  *
  * @param[in]	sUserId			The entryid of the user for which to obtain the local id
  * @param[in]	ulLegacyUserId	The legacy user id, which will be used as the entryid when.
