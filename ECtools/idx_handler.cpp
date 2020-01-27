@@ -312,7 +312,7 @@ HRESULT ECIndexService::service_start()
 	auto ncpus = atoui(m_config->GetSetting("index_processes"));
 	if (ncpus == 0)
 		ncpus = 1;
-	m_pool.set_thread_count(atoui(m_config->GetSetting("index_processes")), 0, false);
+	m_pool.set_thread_count(ncpus, 0, false);
 
 	m_srvctx.m_app_misc = "kindexd";
 	m_srvctx.m_host = m_config->GetSetting("server_socket");

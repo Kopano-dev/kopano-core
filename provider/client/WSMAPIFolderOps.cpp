@@ -136,7 +136,7 @@ HRESULT WSMAPIFolderOps::create_folders(std::vector<WSFolder> &batch)
 			er = rsp.er;
 	}
 	END_SOAP_CALL
-	if (rsp.entryids->__size != batch.size()) {
+	if (rsp.entryids == nullptr || rsp.entryids->__size != batch.size()) {
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
