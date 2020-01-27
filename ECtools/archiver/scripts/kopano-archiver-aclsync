@@ -36,11 +36,13 @@ def main():
                 # for the user store, copy rights (masked to ROLE_REVIEWER)
                 for p in user.store.permissions():
                     rights = [r for r in p.rights if r in ROLE_REVIEWER]
+                    log.debug('setting rights: %s on the store for user: %s', rights, p.member.name)
                     archive_folder.permission(p.member, create=True).rights = rights
                 archive_folder.permission(kopano.Group('Everyone'), create=True).rights = []
 
                 # if archiving to subfolder, copy store rights to subtree, adding 'folder_visible'
                 if archive_folder is not archive_store.subtree:
+                    log.debug('setting rights to subtree from store rights')
                     for p in user.store.permissions():
                         pa = archive_store.subtree.permission(p.member, create=True)
                         pa.rights = [r for r in pa.rights if r != 'folder_visible'] + ['folder_visible']
@@ -51,6 +53,7 @@ def main():
                     if archive_folder:
                         for p in folder.permissions():
                             rights = [r for r in p.rights if r in ROLE_REVIEWER]
+                            log.debug('setting rights: %s to folder: %s for user: %s', rights, folder.name, p.member.name)
                             archive_folder.permission(p.member, create=True).rights = rights
 
             else:
