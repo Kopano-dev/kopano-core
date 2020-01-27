@@ -434,13 +434,13 @@ static ECRESULT getchanges_nab(ECSession *lpSession, ECDatabase *lpDatabase,
 		lpDBLen = lpDBResult.fetch_row_lengths();
 		if (lpDBRow == nullptr) {
 			std::string username;
-			er = lpSession->GetSecurity()->GetUsername(&username);
+			lpSession->GetSecurity()->GetUsername(&username);
 			ec_log_warn("K-1204: The sync ID %u does not exist. Session user name: %s.",
 				ulSyncId, username.c_str());
 			return KCERR_DATABASE_ERROR;
 		} else if (lpDBRow[0] == nullptr || lpDBRow[1] == nullptr) {
 			std::string username;
-			er = lpSession->GetSecurity()->GetUsername(&username);
+			lpSession->GetSecurity()->GetUsername(&username);
 			ec_log_warn("K-1205: Received NULL values from SQL for sync id %u. Session username: %s.",
 				ulSyncId, username.c_str());
 			return KCERR_DATABASE_ERROR;
@@ -767,10 +767,8 @@ static ECRESULT getchanges_ab1(struct soap *soap, ECSession *lpSession,
 		if (iter.change_type != ICS_AB_DELETE && sUserIds.find(ulUserId) == sUserIds.end())
 			continue;
 		er = ConvertABEntryIDToSoapSourceKey(soap, lpSession, bAcceptABEID, iter.strItem.size(), const_cast<char *>(iter.strItem.data()), &lpChanges->__ptr[i].sSourceKey);
-		if (er != erSuccess) {
-			er = erSuccess;
+		if (er != erSuccess)
 			continue;
-		}
 		lpChanges->__ptr[i].ulChangeId = iter.id;
 		lpChanges->__ptr[i].sParentSourceKey.__ptr = soap_new_unsignedByte(soap, iter.strParent.size());
 		memcpy(lpChanges->__ptr[i].sParentSourceKey.__ptr, iter.strParent.data(), iter.strParent.size());

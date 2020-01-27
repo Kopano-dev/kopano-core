@@ -431,7 +431,6 @@ HRESULT ArchiveHelper::GetArchiveFolderFor(MAPIFolderPtr &ptrSourceFolder, Archi
 	if (hr == MAPI_E_CORRUPT_DATA) {
 		// If the list is corrupt, the folder will become unusable. We'll just create a new folder, which will most
 		// likely become the same folder (if the name hasn't changed).
-		hr = hrSuccess;
 	} else if (hr != hrSuccess)
 		return hr;
 

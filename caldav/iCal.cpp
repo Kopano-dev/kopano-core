@@ -445,18 +445,14 @@ HRESULT iCal::HrGetIcal(IMAPITable *lpTable, bool blCensorPrivate, std::string *
 					GetMAPIErrorMessage(hr), hr);
 				ec_log_debug("%d \n %s", sbEid.cb, bin2hex(sbEid).c_str());
 				// Ignore error, just skip the message
-				hr = hrSuccess;
 				continue;
 			}
 			hr = lpMtIcal->AddMessage(lpMessage, m_strSrvTz,
 			     blCensor && IsPrivate(lpMessage, ulTagPrivate) ? M2IC_CENSOR_PRIVATE : 0);
 			if (hr != hrSuccess)
-			{
+				/* Ignore broken message */
 				ec_log_debug("Error converting mapi message to ical: %s (%x)",
 					GetMAPIErrorMessage(hr), hr);
-				// Ignore broken message
-				hr = hrSuccess;
-			}
 		}
 	}
 

@@ -119,10 +119,8 @@ HRESULT Copier::Helper::ArchiveMessage(LPMESSAGE lpSource, const SObjectEntry *l
 	if (FAILED(hr))
 		return m_lpLogger->perr("Failed to copy message", hr);
 	hr = UpdateIIDs(lpSource, lpDest, &ptrPSAction);
-	if (hr != hrSuccess) {
+	if (hr != hrSuccess)
 		m_lpLogger->perr("Failed to update single instance IDs, continuing with copies.", hr);
-		hr = hrSuccess;
-	}
 
 	sPropArchFlags.ulPropTag = PROP_FLAGS;
 	sPropArchFlags.Value.ul = ARCH_NEVER_DELETE | ARCH_NEVER_STUB;
@@ -523,7 +521,6 @@ HRESULT Copier::DoProcessEntry(const SRow &proprow)
 			}
 			return hr;
 		}
-		hr = hrSuccess;
 		lstRollbacks.emplace_back(ptrRollback);
 		lstNewMsgArchives.emplace_back(ta->GetObjectEntry());
 	}

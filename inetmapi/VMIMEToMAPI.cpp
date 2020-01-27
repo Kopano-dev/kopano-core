@@ -964,10 +964,8 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 				return hr;
 			mbstowcs(lpNameID->Kind.lpwstrName, name.c_str(), vlen);
 			hr = lpMessage->GetIDsFromNames(1, &+lpNameID, MAPI_CREATE, &~lpPropTags);
-			if (hr != hrSuccess) {
-				hr = hrSuccess;
+			if (hr != hrSuccess)
 				continue;
-			}
 
 			KPropbuffer<1> prop;
 			prop.set(0, lpPropTags->aulPropTag[0], generate_wrap(fld->getValue()));
@@ -2857,7 +2855,6 @@ static HRESULT postWriteFixups(IMessage *lpMessage)
 
 	// If hr is hrSuccess, then all properties are available, and we do not need to do anything.
 	if (hr != hrSuccess) {
-		hr = hrSuccess;
 		if (lpProps[0].ulPropTag != PROP_RESPONSESTATUS) {
 			lpProps[0].ulPropTag = PROP_RESPONSESTATUS;
 			lpProps[0].Value.ul = 0;
@@ -2914,7 +2911,6 @@ static HRESULT postWriteFixups(IMessage *lpMessage)
 		return hr;
 
 	// Ignore warnings
-	hr = hrSuccess;
 	sMeetingProps[0].ulPropTag = PROP_MEETING_STARTRECDATE;
 	sMeetingProps[0].Value.ul = FileTimeToIntDate(lpRecProps[1].Value.ft);
 	sMeetingProps[1].ulPropTag = PROP_MEETING_STARTRECTIME;

@@ -347,7 +347,7 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPr
 	hrTmp = ptrRoot->SaveChanges(KEEP_OPEN_READWRITE);
 	if (hrTmp != hrSuccess)
 		return hr;
-	hrTmp = ECExchangeImportContentsChanges::HrUpdateSearchReminders(ptrRoot, lpPropAdditionalREN);
+	ECExchangeImportContentsChanges::HrUpdateSearchReminders(ptrRoot, lpPropAdditionalREN);
 	return hrSuccess;
 }
 

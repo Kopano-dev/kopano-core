@@ -2288,7 +2288,6 @@ HRESULT VConverter::HrSetRecurrenceID(LPSPropValue lpMsgProps, ULONG ulMsgProps,
  */
 HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEvent, icaltimezone *lpicTZinfo, const std::string &strTZid, std::list<icalcomponent*> *lpEventList)
 {
-	ULONG ulRecurrenceStateTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRENCESTATE], PT_BINARY);
 	memory_ptr<SPropValue> lpSpropArray;
 	LPSPropValue lpSPropRecVal = NULL;
 	recurrence cRecurrence;
@@ -2296,7 +2295,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 	STATSTG sStreamStat;
 	ICalRecurrence cICalRecurrence;
 	icalcomponent *lpicComp = NULL;
-	ULONG cbsize = 0, ulFlag = 0;
+	unsigned int cbsize = 0, ulFlag = 0, ulRecurrenceStateTag;
 	std::list<icalcomponent*> lstExceptions;
 	TIMEZONE_STRUCT zone;
 	SizedSPropTagArray(6, proptags) =
@@ -2873,7 +2872,6 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 		}
 		if (hr == hrSuccess)
 			icalcomponent_add_property(lpEvent, lpProp);
-		hr = hrSuccess;
 	}
 
 	// Set priority - use PR_IMPORTANCE or PR_PRIORITY
@@ -2955,9 +2953,8 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 		hr = HrGenerateUid(&strUid);
 		if (hr != hrSuccess)
 			return hr;
-
-		hr = HrMakeBinaryUID(strUid, lpMsgProps, &propUid); // base is lpMsgProps, which will be freed later
-
+		/* base is lpMsgProps, which will be freed later. */
+		HrMakeBinaryUID(strUid, lpMsgProps, &propUid);
 		// Set global object id and cleanglobal id.
 		// ignore write errors, not really required that these properties are saved
 		propUid.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY);
@@ -2974,7 +2971,6 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 			if (lpPropVal)
 				strUid = bin2hex(lpPropVal->Value.bin);
 		}
-		hr = hrSuccess;
 	} else {
 		HrGetICalUidFromBinUid(lpPropVal->Value.bin, &strUid);
 	}

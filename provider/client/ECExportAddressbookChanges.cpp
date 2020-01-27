@@ -214,15 +214,12 @@ HRESULT ECExportAddressbookChanges::Synchronize(ULONG *lpulSteps, ULONG *lpulPro
         return MAPI_E_INVALID_PARAMETER;
     }
 
-	if (hr == SYNC_E_IGNORE)
-		hr = hrSuccess;
-	else if (hr == MAPI_E_INVALID_TYPE) {
+	if (hr == SYNC_E_IGNORE) {
+	} else if (hr == MAPI_E_INVALID_TYPE) {
 		m_lpLogger->logf(EC_LOGLEVEL_WARNING, "Ignoring invalid entry, type=%04x, sourcekey=%s",
 			m_lpChanges[m_ulThisChange].ulChangeType,
 			bin2hex(m_lpChanges[m_ulThisChange].sSourceKey).c_str());
-		hr = hrSuccess;
-	}
-	else if (hr != hrSuccess) {
+	} else if (hr != hrSuccess) {
 		ZLOG_DEBUG(m_lpLogger, "failed type=%04x, %s, hr=%x, sourcekey=%s",
 			m_lpChanges[m_ulThisChange].ulChangeType, GetMAPIErrorMessage(hr), hr,
 			bin2hex(m_lpChanges[m_ulThisChange].sSourceKey).c_str());

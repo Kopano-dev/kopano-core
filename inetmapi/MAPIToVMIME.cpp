@@ -563,11 +563,8 @@ HRESULT MAPIToVMIME::BuildNoteMessage(IMessage *lpMessage,
 
 		// add reply to email, ignore errors
 		hr = handleReplyTo(lpMessage, vmHeader);
-		if (hr != hrSuccess) {
+		if (hr != hrSuccess)
 			kc_pwarn("Unable to set reply-to address", hr);
-			hr = hrSuccess;
-		}
-
 		// Set consistent boundary (optional)
 		if (sopt.alternate_boundary != nullptr)
 			setBoundaries(vmMessage->getHeader(), vmMessage->getBody(), sopt.alternate_boundary);
@@ -1545,11 +1542,9 @@ HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage,
 	hr = handleContactEntryID(cValues, lpProps, strResName, strResType, strResEmail);
 	if (hr != hrSuccess) {
 		hr = HrGetAddress(m_lpAdrBook, lpProps, cValues, PR_SENT_REPRESENTING_ENTRYID, PR_SENT_REPRESENTING_NAME_W, PR_SENT_REPRESENTING_ADDRTYPE_W, PR_SENT_REPRESENTING_EMAIL_ADDRESS_W, strResName, strResType, strResEmail);
-		if (hr != hrSuccess) {
+		if (hr != hrSuccess)
 			kc_pwarn("Unable to get representing information", hr);
 			// ignore error, since we still have enough information to send, maybe not just under the correct name
-			hr = hrSuccess;
-		}
 		if (!sopt.no_recipients_workaround && strResEmail.empty() &&
 		    PROP_TYPE(lpProps[0].ulPropTag) != PT_ERROR) {
 			m_strError = L"Representing email address is empty";

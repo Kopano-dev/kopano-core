@@ -571,10 +571,8 @@ HRESULT WebDav::HrPropertySearch()
 	while (lpXmlNode) {
 		// <property-search>
 		if (lpXmlNode == nullptr || lpXmlNode->name == nullptr ||
-		    strcmp(x2s(lpXmlNode->name), "property-search") != 0) {
-			hr = hrSuccess;
+		    strcmp(x2s(lpXmlNode->name), "property-search") != 0)
 			break;
-		}
 
 		// <prop>
 		auto lpXmlChildNode = lpXmlNode->children;
@@ -1024,7 +1022,7 @@ HRESULT WebDav::HrWriteSPropStat(xmlTextWriter *xmlWriter,
 	if (ulRet < 0)
 		return MAPI_E_CALL_FAILED;
 	//<status xmlns="xxxxxxx">HTTP/1.1 200 OK</status>
-	hr = WriteData(xmlWriter,sWebPropStat.sStatus,lpstrNsPrefix);
+	WriteData(xmlWriter, sWebPropStat.sStatus, lpstrNsPrefix);
 	// ending the function here on !hrSuccess breaks several tests.
 	//</propstat>
 	ulRet = xmlTextWriterEndElement(xmlWriter);

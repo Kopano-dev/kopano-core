@@ -929,8 +929,7 @@ HRESULT ArchiveControlImpl::GetAllEntries(ArchiveHelperPtr ptrArchiveHelper, LPM
 	// that have not references to the primary store.
 	hr = ptrArchiveHelper->GetSpecialsRootFolder(&~ptrFolder);
 	if (hr == hrSuccess)
-		hr = AppendFolderEntries(ptrFolder, &setFolderExcludes);
-
+		AppendFolderEntries(ptrFolder, &setFolderExcludes);
 	ptrFolder.reset();
 
 	try {

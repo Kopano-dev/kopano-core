@@ -196,7 +196,7 @@ static ECRESULT ltm_sync_time(ECCacheManager *cache, ECDatabase *db,
 	pv.__union = SOAP_UNION_propValData_hilo;
 	pv.ulPropTag = dir ? PR_LAST_LOGON_TIME : PR_LAST_LOGOFF_TIME;
 	pv.Value.hilo = &hl;
-	ret = WriteProp(db, store_id, 0, &pv);
+	WriteProp(db, store_id, 0, &pv);
 	if (cache == nullptr)
 		return erSuccess;
 	sObjectTableKey key(store_id, 0);

@@ -129,7 +129,6 @@ void iconv_context_base::doconvert(const char *lpFrom, size_t cbFrom)
 	char *lpDst = NULL;
 	size_t cbSrc = 0;
 	size_t cbDst = 0;
-	size_t err;
 
 	lpSrc = lpFrom;
 	cbSrc = cbFrom;
@@ -137,7 +136,7 @@ void iconv_context_base::doconvert(const char *lpFrom, size_t cbFrom)
 	while (cbSrc) {
 		lpDst = buf;
 		cbDst = sizeof(buf);
-		err = iconv(m_cd, ICONV_HACK(&lpSrc), &cbSrc, &lpDst, &cbDst);
+		auto err = iconv(m_cd, ICONV_HACK(&lpSrc), &cbSrc, &lpDst, &cbDst);
 		if (err != static_cast<size_t>(-1) || cbDst != sizeof(buf)) {
 			// buf now contains converted chars, append them to output
 			append(buf, sizeof(buf) - cbDst);
@@ -184,7 +183,7 @@ void iconv_context_base::doconvert(const char *lpFrom, size_t cbFrom)
 	// Finalize (needed for stateful conversion)
 	lpDst = buf;
 	cbDst = sizeof(buf);
-	err = iconv(m_cd, NULL, NULL, &lpDst, &cbDst);
+	iconv(m_cd, nullptr, nullptr, &lpDst, &cbDst);
 	append(buf, sizeof(buf) - cbDst);
 }
 

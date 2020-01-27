@@ -337,9 +337,7 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 					// @todo shouldn't we use PR_ENTRYID in the first place? Saving items in a read-only command is a serious no-no.
 					// use PR_ENTRYID since we couldn't create a new guid for the item
 					strConvVal = bin2hex(lpRowSet[ulRowCntr].lpProps[2].Value.bin);
-					hr = hrSuccess;
-				}
-				else if (hr != hrSuccess) {
+				} else if (hr != hrSuccess) {
 					kc_pdebug("CreateAndGetGuid failed", hr);
 					continue;
 				}
@@ -354,7 +352,7 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 			else
 				ulCensorFlag = 0;
 
-			hr = HrMapValtoStruct(m_lpUsrFld, lpRowSet[ulRowCntr].lpProps, lpRowSet[ulRowCntr].cValues, lpMtIcal.get(), ulCensorFlag, true, &(lpsWebRCalQry->sProp.lstProps), &sWebResponse);
+			HrMapValtoStruct(m_lpUsrFld, lpRowSet[ulRowCntr].lpProps, lpRowSet[ulRowCntr].cValues, lpMtIcal.get(), ulCensorFlag, true, &(lpsWebRCalQry->sProp.lstProps), &sWebResponse);
 			++ulItemCount;
 			lpsWebMStatus->lstResp.emplace_back(sWebResponse);
 			sWebResponse.lstsPropStat.clear();

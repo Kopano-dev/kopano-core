@@ -1146,7 +1146,6 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 	auto hr = lpMDB->GetProps(sptaStoreProps, 0, &cValues, &~lpStoreProps);
 	if (FAILED(hr))
 		return kc_perrorf("GetProps failed(1)", hr);
-	hr = hrSuccess;
 
 	// Check for autoresponder
 	if (!dagent_oof_active(lpStoreProps)) {
@@ -1178,7 +1177,6 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 	hr = spv_postload_large_props(lpMessage, sptaMessageProps, cValues, lpMessageProps);
 	if (FAILED(hr))
 		kc_pwarn("SendOutOfOffice: spv_postload", hr);
-	hr = hrSuccess;
 
 	// See if we're looping
 	if (lpMessageProps[0].ulPropTag == PR_TRANSPORT_MESSAGE_HEADERS_A) {
@@ -1674,8 +1672,6 @@ static HRESULT HrOverrideFallbackProps(IMessage *lpMessage, ECRecipient *r)
 		p[n].ulPropTag       = PR_SENT_REPRESENTING_ENTRYID;
 		p[n].Value.bin.cb    = cbEntryIdSender;
 		p[n++].Value.bin.lpb = reinterpret_cast<BYTE *>(lpEntryIdSender.get());
-	} else {
-		hr = hrSuccess;
 	}
 
 	hr = lpMessage->SetProps(n, p, nullptr);
@@ -2618,11 +2614,9 @@ static void *HandlerLMTP(void *lpArg)
 			}
 			lmtp.HrResponse("221 5.0.0 Connection closed due to timeout");
 			ec_log_err("Connection closed due to timeout");
-			bLMTPQuit = true;
 			break;
 		} else if (hr == MAPI_E_NETWORK_ERROR) {
 			ec_log_err("Socket error: %s", strerror(errno));
-			bLMTPQuit = true;
 			break;
 		}
 
@@ -2635,14 +2629,11 @@ static void *HandlerLMTP(void *lpArg)
 				ec_log_err("Failed to read line: %s", strerror(errno));
 			else
 				ec_log_err("Client disconnected");
-			bLMTPQuit = true;
 			break;
 		}
 
 		if (g_bQuit) {
 			lmtp.HrResponse("221 2.0.0 Server is shutting down");
-			bLMTPQuit = true;
-			hr = MAPI_E_CALL_FAILED;
 			break;
 		}
 
@@ -2748,7 +2739,6 @@ static void *HandlerLMTP(void *lpArg)
 					lmtp.HrResponse("503 5.1.1 Internal error during delivery");
 					lpArgs->sc->inc(SCN_LMTP_INTERNAL_ERROR);
 					fclose(tmp);
-					hr = hrSuccess;
 					break;
 				}
 
@@ -2761,7 +2751,6 @@ static void *HandlerLMTP(void *lpArg)
 
 			// We are not that interested in the error value here; if an error occurs, then this will be reflected in the
 			// wstrDeliveryStatus of each recipient.
-			hr = hrSuccess;
 
 			/* Responses need to be sent in the same sequence that we received the recipients in.
 			 * Build all responses and find the sequence through the ordered list

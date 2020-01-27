@@ -556,7 +556,7 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 				return hr;
 		}
 
-		hr = ClientUtil::GetGlobalProfileProperties(ptrGlobalProfSect, &sProfileProps);
+		ClientUtil::GetGlobalProfileProperties(ptrGlobalProfSect, &sProfileProps);
 		//FIXME: check here offline path with the flags
 		if(!sProfileProps.strServerPath.empty()) {
 			strServerName = GetServerNameFromPath(sProfileProps.strServerPath.c_str());

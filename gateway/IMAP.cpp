@@ -1406,8 +1406,6 @@ HRESULT IMAP::HrCmdStatus(const std::string &strTag,
 		HrResponse(RESP_TAGGED_NO, strTag, "STATUS error fetching folder content counters");
 		return hr;
 	}
-	hr = hrSuccess;
-
 	if (lpPropCounters[0].ulPropTag == PR_CONTENT_COUNT)
 		ulMessages = lpPropCounters[0].Value.ul;
 	if (lpPropCounters[1].ulPropTag == PR_CONTENT_UNREAD)
@@ -4884,7 +4882,7 @@ bool IMAP::StringToFileTime(string strTime, FILETIME &sFileTime, bool bDateOnly)
 		s = strptime(s, "%H:%M:%S", &sTm);
 		if (s != nullptr && *s == ' ') {
 			s++;
-			s = strptime(s, "%z", &sTm);
+			strptime(s, "%z", &sTm);
 		}
 	}
 
@@ -5285,10 +5283,8 @@ HRESULT IMAP::HrFindFolderPartial(const wstring& strFolder, IMAPIFolder **lppFol
     // Loop through all the path parts until we find a part that we can't find
     for (i = 0; i < vFolders.size(); ++i) {
         hr = HrFindSubFolder(lpFolder, vFolders[i], &cbEntryID, &~lpEntryID);
-        if(hr != hrSuccess) {
-            hr = hrSuccess; // Not an error
-            break;
-        }
+		if (hr != hrSuccess)
+			break;
 		hr = lpSession->OpenEntry(cbEntryID, lpEntryID, &iid_of(lpFolder), MAPI_MODIFY | MAPI_DEFERRED_ERRORS, &ulObjType, &~lpFolder);
         if(hr != hrSuccess)
 			return hr;

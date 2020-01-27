@@ -164,7 +164,6 @@ static HRESULT idx_startup_net(const char **argv)
 			auto ret = HrAccept(idx_poll[i].fd, &unique_tie(ch));
 			if (ret != hrSuccess) {
 				kc_perrorf("HrAccept failed", ret);
-				ret = hrSuccess;
 				continue;
 			}
 			pthread_t tid;

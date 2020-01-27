@@ -1724,12 +1724,13 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 		{
 		    // Remove any old (deleted) indexed property if it's there
 		    er = RemoveStaleIndexedProp(lpDatabase, PR_SOURCE_KEY, lpPropValArray->__ptr[i].Value.bin->__ptr, lpPropValArray->__ptr[i].Value.bin->__size);
-		    if(er != erSuccess) {
-		        // Unable to remove the (old) sourcekey in use. This means that it is in use by some other object. We just skip
-		        // the property so that it is generated later as a new random sourcekey
-		        er = erSuccess;
+			if (er != erSuccess)
+				/*
+				 * Unable to remove the (old) sourcekey in use. This means that
+				 * it is in use by some other object. We just skip the property
+				 * so that it is generated later as a new random sourcekey.
+				 */
 				continue;
-            }
 			// Insert sourcekey, use REPLACE because createfolder already created a sourcekey.
 			// Because there is a non-primary unique key on the
 			// val_binary part of the table, it will fail if the source key is duplicate.
@@ -6664,8 +6665,6 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 		if (er != erSuccess && er != KCERR_NOT_FOUND) {
 			ec_log_err("CopyObject: CopyObject(%s) failed: %s (%x)", lpDBRow[0], GetMAPIErrorMessage(er), er);
 			return er;
-		} else {
-			er = erSuccess;
 		}
 	}
 
@@ -6700,7 +6699,6 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 		ec_log_err("CopyObject: CopyAttachment(%u -> %u) failed: %s (%x)", ulObjId, ulNewObjectId, GetMAPIErrorMessage(er), er);
 		return er;
 	}
-	er = erSuccess;
 
 	if (bIsRoot) {
 		// Create indexedproperties, Add new PR_SOURCE_KEY
@@ -6908,7 +6906,6 @@ static ECRESULT CopyFolderObjects(struct soap *soap, ECSession *lpecSession,
 		ec_log_err("CopyFolderObjects: copy attachment step failed: %s (%x)", GetMAPIErrorMessage(er), er);
 		return er;
 	}
-	er = erSuccess;
 
 	// update ICS system with a change
 	GetSourceKey(ulDestFolderId, &sParentSourceKey);

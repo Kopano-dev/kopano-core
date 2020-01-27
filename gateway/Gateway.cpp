@@ -201,11 +201,9 @@ static void *Handler(void *lpArg)
 			// close idle first, so we don't have a race condition with the channel
 			client->HrCloseConnection("BYE Connection closed because of timeout");
 			ec_log_err("Connection closed because of timeout");
-			bQuit = true;
 			break;
 		} else if (hr == MAPI_E_NETWORK_ERROR) {
 			ec_log_err("Socket error: %s", strerror(errno));
-			bQuit = true;
 			break;
 		}
 
@@ -217,13 +215,11 @@ static void *Handler(void *lpArg)
 				ec_log_err("Failed to read line: %s", strerror(errno));
 			else
 				ec_log_err("Client disconnected");
-			bQuit = true;
 			break;
 		}
 		if (quit) {
 			client->HrCloseConnection("BYE server shutting down");
 			hr = MAPI_E_CALL_FAILED;
-			bQuit = true;
 			break;
 		}
 		if (client->isContinue()) {
@@ -660,7 +656,6 @@ static HRESULT running_service(char **argv)
 			if (errno != EINTR) {
 				ec_log_err("Socket error: %s", strerror(errno));
 				quit = 1;
-				hr = MAPI_E_NETWORK_ERROR;
 			}
 			continue;
 		} else if (err == 0) {
