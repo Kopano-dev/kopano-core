@@ -4,17 +4,18 @@
 # Kopano Groupware Core Dockerfile
 #
 # Build command:
-# `docker build . -f Dockerfile.build -t kopanocore-builder:$(git rev-parse --short HEAD)`
+# `docker build . -f Dockerfile.build -t kopanocore-builder`
 #
 # Run command:
-# `docker run -it --rm -v $(pwd):/build -u $(id -u) kopanocore-builder:$(git rev-parse --short HEAD)`
+# `docker run -it --rm -v $(pwd):/build -u $(id -u) kopanocore-builder`
 
 FROM debian:buster
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# Dependency-hash argument
+# Build args
 ARG DEPENDENCY_HASH=4a23ce6
+ARG CA_CERTIFICATES_VERSION=20190110
 
 # Noninteractive for package manager
 ENV DEBIAN_FRONTEND noninteractive
@@ -24,10 +25,10 @@ ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
 
 # Install curl before adding dependency-repository
-RUN apt update -y && \
-    apt install -y --no-install-recommends \
+RUN apt-get update -y && \
+    apt-get install -y --no-install-recommends \
+    ca-certificates=$CA_CERTIFICATES_VERSION \
     apt-utils \
-    ca-certificates=20190110 \
     curl \
     gnupg2
 
@@ -39,8 +40,8 @@ RUN curl -sSL https://download.kopano.io/community/dependencies:/kopano-dependen
     echo "deb [trusted=yes] file:/var/local/kopano-dependencies ./" > /etc/apt/sources.list.d/local.list
 
 # Install buildttime dependencies
-RUN apt update -y \
-    && apt install -y --no-install-recommends \
+RUN apt-get update -y \
+    && apt-get install -y --no-install-recommends \
         autoconf \
         automake \
         autotools-dev \
@@ -54,6 +55,7 @@ RUN apt update -y \
         libcurl4-openssl-dev \
         libdb++-dev \
         libgoogle-perftools-dev \
+        libgsoap-dev \
         libhx-dev \
         libical-dev \
         libicu-dev \
@@ -82,7 +84,7 @@ RUN apt update -y \
         tidy-html5-dev \
         uuid-dev \
         zlib1g-dev \
-    && apt clean \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
