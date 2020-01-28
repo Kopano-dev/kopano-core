@@ -22,6 +22,8 @@ Fixes:
 * gateway, ical: new-style OpenSSL 1.1 API setup [KF-2886]
 * fsck: consistent unique entity check [KC-1665]
 * Various null deref warnings from clang --analyze were fixed
+* pymapi, pyko: emit tuples rather than arrays for functions with
+  multiple return values (e.g.  [KC-1680]
 
 
 8.7.9 (2019-12-10)
