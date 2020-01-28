@@ -923,7 +923,7 @@ static struct actresult proc_op_copy(IMAPISession *ses, const ACTION &action,
 	auto hr = ses->OpenEntry(cmov.cbFldEntryId, cmov.lpFldEntryId,
 	          &IID_IMAPIFolder, MAPI_MODIFY, &obj_type, &~dst_folder);
 	if (hr != hrSuccess) {
-		ec_log_info("Rule \"%s\": Unable to open folder through session, trying through store: %s (%x)",
+		ec_log_info("Rule \"%s\": Unable to open folder through session: %s (%x). Trying through store.",
 			rule.c_str(), GetMAPIErrorMessage(hr), hr);
 		object_ptr<IMsgStore> dst_store;
 		hr = ses->OpenMsgStore(0, cmov.cbStoreEntryId,
@@ -959,7 +959,7 @@ static struct actresult proc_op_copy(IMAPISession *ses, const ACTION &action,
 	hr = Util::HrCopyIMAPData(*msg, newmsg);
 	// the function only returns errors on get/setprops, not when the data is just missing
 	if (hr != hrSuccess) {
-		ec_log_err("Unable to copy IMAP data e-mail for rule \"%s\", continuing: %s (%x)",
+		ec_log_err("Unable to copy IMAP data e-mail for rule \"%s\": %s (%x). Continuing.",
 			rule.c_str(), GetMAPIErrorMessage(hr), hr);
 		return {ROP_FAILURE, hr};
 	}

@@ -574,6 +574,8 @@ HRESULT	ECMAPIProp::UpdateACLs(ULONG cNewPerms, ECPERMISSION *lpNewPerms)
 	hr = ptrSecurity->GetPermissionRules(ACCESS_TYPE_GRANT, &cPerms, &~ptrPerms);
 	if (hr != hrSuccess)
 		return hr;
+	if (cPerms + cNewPerms < cPerms || cPerms + cNewPerms < cNewPerms)
+		return MAPI_E_UNABLE_TO_COMPLETE; /* overflow */
 
 	// Since we want to replace the current ACL with a new one, we need to mark
 	// each existing item as deleted, and add all new ones as new.
@@ -631,9 +633,9 @@ HRESULT	ECMAPIProp::UpdateACLs(ULONG cNewPerms, ECPERMISSION *lpNewPerms)
 		}
 	}
 
-	if (cPerms + cNewPerms > 0)
-		hr = ptrSecurity->SetPermissionRules(cPerms + cNewPerms, lpPermissions);
-	return hrSuccess;
+	if (cPerms + cNewPerms == 0)
+		return hrSuccess;
+	return ptrSecurity->SetPermissionRules(cPerms + cNewPerms, lpPermissions);
 }
 
 HRESULT ECMAPIProp::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,

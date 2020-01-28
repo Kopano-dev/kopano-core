@@ -18,7 +18,7 @@
 	$1 = &temp;
 }
 %typemap(argout) (ICALMAPICLASS **) {
-  %append_output(SWIG_NewPointerObj((void*)*($1), $*1_descriptor, SWIG_SHADOW | SWIG_OWNER));
+	%append_output3(SWIG_NewPointerObj((void *)*($1), $*1_descriptor, SWIG_SHADOW | SWIG_OWNER));
 }
 %apply ICALMAPICLASS **{ KC::ICalToMapi **, KC::MapiToICal **};
 %apply ICALMAPICLASS **{ KC::vcftomapi **, KC::mapitovcf **};
@@ -28,21 +28,21 @@
 	$1 = &temp;
 }
 %typemap(argout) eIcalType* value {
-	%append_output(PyInt_FromLong(*$1));
+	%append_output3(PyInt_FromLong(*$1));
 }
 
 %typemap(in,numinputs=0) (time_t *) (time_t temp) {
 	$1 = &temp;
 }
 %typemap(argout) time_t* value {
-	%append_output(PyInt_FromLong(*$1));
+	%append_output3(PyInt_FromLong(*$1));
 }
 
 %typemap(in,numinputs=0) (SBinary *) (SBinary temp) {
 	$1 = &temp;
 }
 %typemap(argout,fragment="SWIG_FromCharPtrAndSize") (SBinary* ) {
-	%append_output(PyBytes_FromStringAndSize((const char *)$1->lpb, $1->cb));
+	%append_output3(PyBytes_FromStringAndSize((const char *)$1->lpb, $1->cb));
 }
 
 /* Finalize output parameters */
@@ -50,7 +50,7 @@
 	$1 = &temp;
 }
 %typemap(argout) (std::string *) {
-	%append_output(PyBytes_FromStringAndSize($1->c_str(), $1->length()));
+	%append_output3(PyBytes_FromStringAndSize($1->c_str(), $1->length()));
 }
 
 %typemap(in) (const std::string &strIcal) (std::string temp, char *buf=NULL, Py_ssize_t size)

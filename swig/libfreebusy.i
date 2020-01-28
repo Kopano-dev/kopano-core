@@ -24,7 +24,7 @@
     "temp = NULL; $1 = &temp;";
 %typemap(argout)    ICLASS *
 {
-  %append_output(SWIG_NewPointerObj((void*)*($1), $*1_descriptor, SWIG_SHADOW | SWIG_OWNER));
+	%append_output3(SWIG_NewPointerObj((void *)*($1), $*1_descriptor, SWIG_SHADOW | SWIG_OWNER));
 }
 
 // Classes
@@ -64,12 +64,12 @@ enum FBStatus {
 
 %typemap(argout) LONG *
 {
-        %append_output(PyLong_FromLong(*$1));
+        %append_output3(PyLong_FromLong(*$1));
 }
 
 %typemap(argout) ULONG *
 {
-        %append_output(PyLong_FromUnsignedLong(*$1));
+        %append_output3(PyLong_FromUnsignedLong(*$1));
 }
 
 %init %{
@@ -146,6 +146,8 @@ public:
                     if(hr != hrSuccess)
 				return NULL;
                     hr = lpFreeBusySup->QueryInterface(IID_IFreeBusySupport, reinterpret_cast<void **>(&lpFreeBusySupport));
+			if (hr != hrSuccess)
+				return nullptr;
                     return lpFreeBusySupport;
                 }
 

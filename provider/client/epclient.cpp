@@ -411,7 +411,7 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 	unsigned int ulResourceType = ptrPropValueResourceType->Value.l;
 	hr = HrGetOneProp(d.profsect, PR_DISPLAY_NAME_A, &~dspname);
 	ec_log_debug("Initializing provider \"%s\"",
-		dspname != nullptr ? dspname->Value.lpszA : "(unnamed)");
+		hr == hrSuccess && dspname != nullptr ? dspname->Value.lpszA : "(unnamed)");
 
 	object_ptr<IProfSect> globprof;
 	hr = lpAdminProvider->OpenProfileSection(reinterpret_cast<const MAPIUID *>(&pbGlobalProfileSectionGuid), nullptr, MAPI_MODIFY, &~globprof);
