@@ -2676,7 +2676,7 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 			return erSuccess;
 		} else if (lpRow[0] == NULL) {
 			ec_log_err("ECUserManagement::DeleteLocalObject(): column null");
-			return KCERR_DATABASE_ERROR; /* setting er, has effect for ~kd_trans */
+			return KCERR_DATABASE_ERROR;
 		}
 		execute_script(script, "KOPANO_STOREGUID", lpRow[0], nullptr);
 		break;

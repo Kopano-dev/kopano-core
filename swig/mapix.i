@@ -222,7 +222,7 @@ public:
 }
 
 %typemap(argout,numinputs=0) (std::string &serout) {
-        %append_output(PyBytes_FromStringAndSize($1->c_str(), $1->length()));
+        %append_output3(PyBytes_FromStringAndSize($1->c_str(), $1->length()));
 }
 
 %typemap(in) (const std::string &a) (std::string temp, char *buf=NULL, Py_ssize_t size)

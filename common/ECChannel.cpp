@@ -69,7 +69,8 @@ Creating a self-signed test certificate:
 openssl req -new -x509 -key privkey.pem -out cacert.pem -days 1095
 */
 
-std::atomic<SSL_CTX *> ECChannel::lpCTX{nullptr};
+shared_mutex ECChannel::ctx_lock;
+SSL_CTX *ECChannel::lpCTX;
 
 HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 {
@@ -106,24 +107,32 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 	}
 	fclose(cert_fh);
 
+	// Initialize SSL library under context lock; normally, this should only
+	// happen on the first run of the SSL initializer and generally just once.
 #if OPENSSL_VERSION_NUMBER >= 0x1010000fL
-	// New style init.
-	if (lpCTX == nullptr)
-		OPENSSL_init_ssl(OPENSSL_INIT_ENGINE_ALL_BUILTIN, NULL);
+	{
+		// New style init.
+		std::unique_lock<shared_mutex> lck(ctx_lock);
+		if (lpCTX == nullptr)
+			OPENSSL_init_ssl(OPENSSL_INIT_ENGINE_ALL_BUILTIN, NULL);
+	}
 
 	// Default TLS context for OpenSSL >= 1.1, enables all methods.
 	auto newctx = SSL_CTX_new(TLS_server_method());
 #else // OPENSSL_VERSION_NUMBER < 0x1010000fL
-	// Old style init, modelled after Apache mod_ssl.
-	if (lpCTX == nullptr) {
-		ERR_load_crypto_strings();
-		SSL_load_error_strings();
-		SSL_library_init();
+	{
+		// Old style init, modelled after Apache mod_ssl.
+		std::unique_lock<shared_mutex> lck(ctx_lock);
+		if (lpCTX == nullptr) {
+			ERR_load_crypto_strings();
+			SSL_load_error_strings();
+			SSL_library_init();
 #	ifndef OPENSSL_NO_ENGINE
-		ENGINE_load_builtin_engines();
+			ENGINE_load_builtin_engines();
 #	endif // !OPENSSL_NO_ENGINE
-		OpenSSL_add_all_algorithms();
-		OPENSSL_load_builtin_modules();
+			OpenSSL_add_all_algorithms();
+			OPENSSL_load_builtin_modules();
+		}
 	}
 
 	// enable *all* server methods, not just ssl2 and ssl3, but also tls1 and tls1.1
@@ -203,9 +212,11 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 	}
 
 	// Swap in generated SSL context.
-	newctx = lpCTX.exchange(newctx);
-	hr = hrSuccess;
-
+	{
+		std::unique_lock<shared_mutex> lck(ctx_lock);
+		std::swap(lpCTX, newctx);
+		hr = hrSuccess;
+	}
 exit:
 	if (newctx != nullptr)
 		SSL_CTX_free(newctx);
@@ -213,10 +224,16 @@ exit:
 }
 
 HRESULT ECChannel::HrFreeCtx() {
-	// Swap out current SSL context.
-	auto oldctx = lpCTX.exchange(nullptr);
-	if (oldctx != nullptr)
-		SSL_CTX_free(oldctx);
+	// Swap out current SSL context from global context pointer.
+	SSL_CTX *ctx = nullptr;
+	{
+		std::unique_lock<shared_mutex> lck(ctx_lock);
+		std::swap(lpCTX, ctx);
+	}
+
+	// Clean up retrieved context.
+	if (ctx != nullptr)
+		SSL_CTX_free(ctx);
 	return hrSuccess;
 }
 
@@ -236,30 +253,39 @@ ECChannel::~ECChannel() {
 HRESULT ECChannel::HrEnableTLS(void)
 {
 	int rc = -1;
-	HRESULT hr = hrSuccess;
-
-	if (lpSSL || lpCTX == NULL) {
-		hr = MAPI_E_CALL_FAILED;
-		ec_log_err("ECChannel::HrEnableTLS(): invalid parameters");
-		goto exit;
+	if (lpSSL != nullptr) {
+		ec_log_err("ECChannel::HrEnableTLS(): trying to reenable TLS channel");
+		return MAPI_E_CALL_FAILED;
 	}
 
-	lpSSL = SSL_new(lpCTX);
-	if (!lpSSL) {
+	/*
+	 * Access context under shared lock to avoid races with HrSetCtx
+	 * setting up a new context.
+	 */
+	SSL *ssl = nullptr;
+	HRESULT hr = MAPI_E_CALL_FAILED;
+	{
+		std::shared_lock<KC::shared_mutex> lck(ctx_lock);
+		if (lpCTX == NULL) {
+			ec_log_err("ECChannel::HrEnableTLS(): trying to enable TLS channel when not set up");
+			goto exit;
+		}
+		ssl = SSL_new(lpCTX);
+	}
+
+	if (ssl == nullptr) {
 		ec_log_err("ECChannel::HrEnableTLS(): SSL_new failed");
-		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 
 #if OPENSSL_VERSION_NUMBER >= 0x1010100fL
-	ec_log_info("ECChannel::HrEnableTLS(): min TLS version 0x%lx", SSL_get_min_proto_version(lpSSL));
-	ec_log_info("ECChannel::HrEnableTLS(): max TLS version 0x%lx", SSL_get_max_proto_version(lpSSL));
+	ec_log_info("ECChannel::HrEnableTLS(): min TLS version 0x%lx", SSL_get_min_proto_version(ssl));
+	ec_log_info("ECChannel::HrEnableTLS(): max TLS version 0x%lx", SSL_get_max_proto_version(ssl));
 #endif
-	ec_log_info("ECChannel::HrEnableTLS(): TLS flags 0x%lx", SSL_get_options(lpSSL));
+	ec_log_info("ECChannel::HrEnableTLS(): TLS flags 0x%lx", SSL_get_options(ssl));
 
-	if (SSL_set_fd(lpSSL, fd) != 1) {
+	if (SSL_set_fd(ssl, fd) != 1) {
 		ec_log_err("ECChannel::HrEnableTLS(): SSL_set_fd failed");
-		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 
@@ -269,15 +295,15 @@ HRESULT ECChannel::HrEnableTLS(void)
 		int err = SSL_get_error(lpSSL, rc);
 		ec_log_err("ECChannel::HrEnableTLS(): SSL_accept failed: %d", err);
 		if (err != SSL_ERROR_SYSCALL && err != SSL_ERROR_SSL)
-			SSL_shutdown(lpSSL);
-		hr = MAPI_E_CALL_FAILED;
+			SSL_shutdown(ssl);
 		goto exit;
 	}
+
+	std::swap(lpSSL, ssl);
+	hr = hrSuccess;
 exit:
-	if (hr != hrSuccess && lpSSL) {
-		SSL_free(lpSSL);
-		lpSSL = NULL;
-	}
+	if (ssl != nullptr)
+		SSL_free(ssl);
 	return hr;
 }
 

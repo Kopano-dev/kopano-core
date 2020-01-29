@@ -131,7 +131,7 @@ static ECRESULT CreateEntryId(GUID guidStore, unsigned int ulObjType,
  * When an entryid is provided, the extern id is extracted and the local user id
  * is resolved based on that. If no entryid is provided, the provided legacy user id
  * is used as local user is and the extern id is resolved based on that. Old clients
- * that are not multi-server aware provide the legacy user id in stead of the entryid.
+ * that are not multi-server aware provide the legacy user id instead of the entryid.
  *
  * @param[in]	sUserId			The entryid of the user for which to obtain the local id
  * @param[in]	ulLegacyUserId	The legacy user id, which will be used as the entryid when.
@@ -6508,12 +6508,12 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 	auto cleanup = make_scope_success([&]() { soap_del_PointerToentryId(&lpsNewEntryId); });
 	if (!lpAttachmentStorage) {
 		if (!bIsRoot) {
-			ec_log_err("CopyObject: \"!attachmentstore && !isroot\" clause failed: %s (%x)", GetMAPIErrorMessage(er), er);
+			ec_log_err("CopyObject: \"!attachmentstore && !isroot\" clause failed");
 			return er = KCERR_INVALID_PARAMETER;
 		}
 		lpInternalAttachmentStorage.reset(g_lpSessionManager->get_atxconfig()->new_handle(lpDatabase));
 		if (lpInternalAttachmentStorage == nullptr) {
-			ec_log_err("CopyObject: CreateAttachmentStorage failed: %s (%x)", GetMAPIErrorMessage(er), er);
+			kc_perror("CopyObject: CreateAttachmentStorage failed", MAPI_E_NOT_ENOUGH_MEMORY);
 			return er = KCERR_NOT_ENOUGH_MEMORY;
 		}
 		lpAttachmentStorage = lpInternalAttachmentStorage.get();

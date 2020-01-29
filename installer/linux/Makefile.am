@@ -11,7 +11,7 @@ dist_systemunit_DATA += kopano-dagent.service kopano-gateway.service \
 	kopano-spooler.service kopano-statsd.service
 endif # ENABLE_BASE
 if ENABLE_PYTHON
-dist_systemunit_DATA += kopano-presence.service kopano-search.service \
+dist_systemunit_DATA += kopano-search.service \
 	kopano-spamd.service
 endif # WITH_PYTHON3
 
@@ -44,7 +44,7 @@ dist_sysconf_bc_DATA = kopano-bash-completion.sh
 endif # ENABLE_BASE
 
 if ENABLE_PYTHON
-config_files += autorespond.cfg backup.cfg migration-pst.cfg presence.cfg search.cfg spamd.cfg
+config_files += autorespond.cfg backup.cfg migration-pst.cfg search.cfg spamd.cfg
 dist_sysconf_apparmor_DATA += usr.sbin.kopano-search
 dist_doc_DATA += ${top_srcdir}/tools/python-scripts/update-resource-recipients
 kgwdocdir = ${docdir}/../kopano-gateway

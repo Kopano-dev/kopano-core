@@ -1602,6 +1602,8 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager *lpCacheManager,
 			lpSearchString = reinterpret_cast<const char *>(lpsRestrict->lpContent->lpProp->Value.bin->__ptr);
 			ulSearchStringSize = lpsRestrict->lpContent->lpProp->Value.bin->__size;
 		}
+		if (lpSearchString == nullptr)
+			lpSearchString = "";
 
 		// Default match is false
 		fMatch = false;

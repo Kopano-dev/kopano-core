@@ -66,8 +66,11 @@ AS_IF([test -n "$PYTHON"], [
 	shift
 	PYTHON=$(echo "$PYTHON $@")
 	PYTHON_MAJOR_VERSION=$($PYTHON -c "from __future__ import print_function;import sys;print(sys.version_info[[0]])" 2>/dev/null)
+    PYTHON_MINOR_VERSION=$($PYTHON -c "from __future__ import print_function;import sys;print(sys.version_info[[1]])" 2>/dev/null)
 ])
-AS_IF([test "$PYTHON_MAJOR_VERSION" = "3"], [PYTHON_PC="python3"], [PYTHON_PC="python"])
+AS_IF([test "$PYTHON_MAJOR_VERSION" = "3"],
+	[AS_IF([test "$PYTHON_MINOR_VERSION" -ge 8], [PYTHON_PC="python-$PYTHON_MAJOR_VERSION.$PYTHON_MINOR_VERSION-embed"], [PYTHON_PC="python-$PYTHON_MAJOR_VERSION.$PYTHON_MINOR_VERSION"])],
+[PYTHON_PC="python"])
 AM_CONDITIONAL([WITH_PYTHON3], [test "x$PYTHON_MAJOR_VERSION" = "x3"])
 
 dnl Top-level component selection
@@ -704,7 +707,6 @@ AC_CONFIG_FILES([Makefile
 		ECtools/backup/Makefile
 		ECtools/cli/Makefile
 		ECtools/migration-pst/Makefile
-		ECtools/presence/Makefile
 		ECtools/search/Makefile
 		ECtools/spamd/Makefile
 		ECtools/utils/Makefile
@@ -732,7 +734,6 @@ AC_CONFIG_FILES([ECtools/search/kopano-search], [chmod +x ECtools/search/kopano-
 AC_CONFIG_FILES([ECtools/backup/kopano-backup], [chmod +x ECtools/backup/kopano-backup])
 AC_CONFIG_FILES([ECtools/cli/kopano-cli], [chmod +x ECtools/cli/kopano-cli])
 AC_CONFIG_FILES([ECtools/rules/kopano-rules], [chmod +x ECtools/rules/kopano-rules])
-AC_CONFIG_FILES([ECtools/presence/kopano-presence], [chmod +x ECtools/presence/kopano-presence])
 AC_CONFIG_FILES([ECtools/migration-pst/kopano-migration-pst], [chmod +x ECtools/migration-pst/kopano-migration-pst])
 AC_CONFIG_FILES([ECtools/spamd/kopano-spamd], [chmod +x ECtools/spamd/kopano-spamd])
 AC_CONFIG_FILES([ECtools/utils/kopano-mr-accept], [chmod +x ECtools/utils/kopano-mr-accept])
@@ -742,7 +743,6 @@ AC_CONFIG_FILES([ECtools/search/kopano_search/version.py], [])
 AC_CONFIG_FILES([ECtools/backup/kopano_backup/version.py], [])
 AC_CONFIG_FILES([ECtools/cli/kopano_cli/version.py], [])
 AC_CONFIG_FILES([ECtools/rules/kopano_rules/version.py], [])
-AC_CONFIG_FILES([ECtools/presence/kopano_presence/version.py], [])
 AC_CONFIG_FILES([ECtools/migration-pst/kopano_migration_pst/version.py], [])
 AC_CONFIG_FILES([ECtools/spamd/kopano_spamd/version.py], [])
 AC_CONFIG_FILES([ECtools/utils/kopano_utils/version.py], [])

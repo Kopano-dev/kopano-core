@@ -5,7 +5,7 @@
 
 %typemap(out) ARCHLIST
 {
-	%append_output(List_from_$basetype($1));
+	%append_output3(List_from_$basetype($1));
 }
 
 %apply ARCHLIST {ArchiveList, UserList};

@@ -495,13 +495,13 @@ HRESULT WSMAPIPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 	soap_lock_guard spg(*m_lpTransport);
 	if (!lppsMapiObject) {
 		assert(false);
-		er = KCERR_INVALID_PARAMETER;
+		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
 	if (*lppsMapiObject) {
 		// memleak detected
 		assert(false);
-		er = KCERR_INVALID_PARAMETER;
+		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
 
