@@ -910,7 +910,11 @@ def dump_rules(folder, user, server, stats, log):
         except (MAPIErrorNotFound, kopano.NotFoundError):
             pass
         else:
-            etxml = ElementTree.fromstring(ruledata)
+            try:
+                etxml = ElementTree.fromstring(ruledata)
+            except ElementTree.ParseError as e:
+                log.warning("Unable to backup rules for folder %s : %s", folder.name, str(e))
+                return None
             for actions in etxml.findall('./item/item/actions'):
                 for movecopy in actions.findall('.//moveCopy'):
                     try:
@@ -927,10 +931,10 @@ def dump_rules(folder, user, server, stats, log):
                         f.text = path
                     except Exception as e:
                         log.warning("could not resolve rule target: %s", str(e))
-            try:            
+            try:
                 ruledata = ElementTree.tostring(etxml)
             except ElementTree.ParseError as e:
-                log.warning("Unable to backup rules for folder {} : {}".format(folder.name,  str(e)))
+                log.warning("Unable to backup rules for folder %s : %s", folder.name, str(e))
                 return None
     return pickle_dumps(ruledata)
 
