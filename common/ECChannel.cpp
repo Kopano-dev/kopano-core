@@ -286,9 +286,9 @@ HRESULT ECChannel::HrEnableTLS(void)
 	}
 
 	ERR_clear_error();
-	rc = SSL_accept(lpSSL);
+	rc = SSL_accept(ssl);
 	if (rc != 1) {
-		int err = SSL_get_error(lpSSL, rc);
+		int err = SSL_get_error(ssl, rc);
 		ec_log_err("ECChannel::HrEnableTLS(): SSL_accept failed: %d", err);
 		if (err != SSL_ERROR_SYSCALL && err != SSL_ERROR_SSL)
 			SSL_shutdown(ssl);
