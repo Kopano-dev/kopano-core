@@ -96,7 +96,10 @@ class FreeBusy(object):
             ftend = FileTime(0xFFFFFFFFFFFFFFFF)
 
         fb = libfreebusy.IFreeBusySupport()
-        fb.Open(self.store.server.mapisession, self.store.mapiobj, False)
+        try:
+            fb.Open(self.store.server.mapisession, self.store.mapiobj, False)
+        except MAPI.Struct.MAPIErrorNotFound:
+            raise NotFoundError("public store not found")
         fbdata = fb.LoadFreeBusyData([eid], None)
         if fbdata in (0, 1): # TODO what?
             return
