@@ -14,6 +14,7 @@
 #include <dirent.h>
 #include <poll.h>
 #include <pwd.h>
+#include <unistd.h>
 #include <sys/stat.h>
 #include <mapidefs.h>
 #include <mapitags.h>
