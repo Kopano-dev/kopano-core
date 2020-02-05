@@ -123,34 +123,29 @@ of the same name without a password through the Unix socket.
 Default: \fIyes\fP
 .SS local_admin_users
 .PP
-Named Unix users which connect through the unix socket (server_pipe_name) which
-are added here, those users will become the internal SYSTEM user in Kopano, and
-have administrative rights. Normally, this is only \fBroot\fP, so the Unix root
-user can use the administrative utilities like kopano\-admin(8) and
-kopano\-storeadm(8). You can add a generic user to be used by the
-kopano\-dagent here. This user is most likely called \fBvmail\fP. Note that the
-field is SPACE separated.
+User names or numeric UIDs which, when connecting, through local sockets
+("server_listen" with unix: specs, or "server_pipe_name" directive) will assume
+the internal SYSTEM user role and have administrative rights. Normally, this is
+only \fBroot\fP, so that the unix root user can use the kopano\-admin tool, and
+\fBkopano\fP, so that the implementation can connect with its own services. You
+can add a generic user to be used by kopano\-dagent here. This user is most
+likely called \fBvmail\fP. Note that the field is SPACE separated.
 .PP
-Default:
-\fIroot\fR
+Default: \fIroot kopano\fP
 .SS system_email_address
 .PP
 This is the e-mail address of the SYSTEM user. When people receive mail from the quota monitor, or receive fallback deliveries from the kopano\-dagent, the From email address is this field. You might want to change this field so people can reply to this address.
 .PP
 Default:
 \fIpostmaster@localhost\fR
-.SS run_as_user
+.SS run_as_user, run_as_group
 .PP
-During startup, the process will switch to run using this user identity. Note
-that the log file and directory need to be writeable by this user (this is
-normally the case when using packages).
+User/group identity to switch to on startup. Can be user/group name or numeric
+UID/GID. The log file and directory need to be writeable by this user.
 .PP
-Default: \fIkopano\fP
-.SS run_as_group
+Default user: \fIkopano\fP
 .PP
-During startup, the process will switch to run using this user identity.
-.PP
-Default: \fIkopano\fP
+Default group: \fIkopano\fP
 .SS pid_file
 .PP
 Write the process ID number to this file. This can be used by sysvinit scripts.

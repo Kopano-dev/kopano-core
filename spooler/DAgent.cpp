@@ -3411,7 +3411,7 @@ int main(int argc, char **argv)
 		optind += argidx;
 	}
 	if (!bListenLMTP && optind == argc) {
-		cerr << "Not enough options given, need at least the username" << endl;
+		cerr << "dagent is operating in direct delivery mode (lack of -l option), and there are not enough options given: at least a target user is needed." << endl;
 		return EX_USAGE;
 	}
 	if (strip_email && sDeliveryArgs.bResolveAddress) {

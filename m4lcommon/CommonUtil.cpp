@@ -248,6 +248,8 @@ HRESULT HrOpenECSession(IMAPISession **lppSession,
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	IMAPISession *lpMAPISession = NULL;
 
+	if (szPath == nullptr || *szPath == '\0' || strcmp(szPath, "default:") == 0)
+		szPath = GetServerUnixSocket(szPath);
 	if (profname == nullptr)
 		snprintf(szProfName.get(), strlen(PROFILEPREFIX)+10+1, "%s%010u", PROFILEPREFIX, rand_mt());
 	else

@@ -1096,20 +1096,6 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 			er = KCERR_DATABASE_ERROR;
 			return retval;
 		}
-		auto runasUser = getpwnam(g_lpConfig->GetSetting("run_as_user","","root"));
-		if (runasUser == NULL) {
-			ec_log_err("Fatal: run_as_user '%s' is unknown", g_lpConfig->GetSetting("run_as_user","","root"));
-			er = MAPI_E_UNCONFIGURED;
-			return retval;
-		}
-		if (runasUser->pw_uid != dir.st_uid) {
-			auto ret = unix_chown(g_lpConfig->GetSetting("attachment_path"), g_lpConfig->GetSetting("run_as_user"), g_lpConfig->GetSetting("run_as_group"));
-			if (ret != 0) {
-				ec_log_err("Unable to change ownership for attachment directory \"%s\": %s", g_lpConfig->GetSetting("attachment_path"), strerror(-ret));
-				er = KCERR_DATABASE_ERROR;
-				return retval;
-			}
-		}
 #ifdef HAVE_LIBS3_H
 	} else if (strcmp(aback, "s3") == 0) {
 		// @todo check S3 settings and connectivity
