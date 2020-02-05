@@ -466,10 +466,12 @@ void ec_reexec_finalize()
 		return; /* nothing to do */
 	unsetenv("KC_REEXEC_DONE");
 	s = getenv("KC_ORIGINAL_PRELOAD");
-	if (s == nullptr)
+	if (s == nullptr) {
 		unsetenv("LD_PRELOAD");
-	else
+	} else {
 		setenv("LD_PRELOAD", s, true);
+		unsetenv("KC_ORIGINAL_PRELOAD");
+	}
 }
 
 /**
