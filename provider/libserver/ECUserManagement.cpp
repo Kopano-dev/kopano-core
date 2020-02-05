@@ -59,6 +59,8 @@ static bool execute_script(const char *scriptname, ...)
 
 	va_start(v, scriptname);
 	/* Set environment */
+	for (auto el = environ; *el != NULL; ++el)
+		lstEnv.emplace_back(*el);
 	for (;;) {
 		auto envname = va_arg(v, char *);
 		if (!envname)
