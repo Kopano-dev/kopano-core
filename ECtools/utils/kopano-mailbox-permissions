@@ -983,7 +983,10 @@ def main(argv = None):
     if (action == 'add' and len(users) > 0 and len(permissions) > 0):
         permissions = validatePermissionsAndConvert(permissions)
 
-        memberids = UserAccountsToEntryIDs(session, users)
+        try:
+            memberids = UserAccountsToEntryIDs(session, users)
+        except MAPIError:
+            return 1
         setMailboxPermissions(session, permissions, memberids, args, seeprivate, sendcopy, onlysendtodelegators)
     elif action == 'remove':
         print("Not supported yet")
