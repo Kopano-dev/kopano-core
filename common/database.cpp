@@ -107,7 +107,7 @@ ECRESULT KDatabase::Connect(ECConfig *cfg, bool reconnect,
 		socket = nullptr;
 	auto er = InitEngine(reconnect);
 	if (er != erSuccess) {
-		ec_log_hrcode(er, EC_LOGLEVEL_CRIT, "%s: InitEngine failed: %s (%x)", __PRETTY_FUNCTION__);
+		hr_lcrit(er, "InitEngine failed");
 		goto exit;
 	}
 	if (mysql_real_connect(&m_lpMySQL, cfg->GetSetting("mysql_host"),

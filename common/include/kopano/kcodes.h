@@ -109,7 +109,10 @@ typedef uint64_t ECSESSIONID, ECSESSIONGROUPID;
 #define PR_EC_SEARCHCRIT	PROP_TAG(PT_STRING8, 0x6706)
 #define PR_EC_SUGGESTION	PROP_TAG(PT_UNICODE, 0x6707)
 
-#define ec_perror(s, r)     ec_log_ercode((r), EC_LOGLEVEL_ERROR, s ": %s (%x)", nullptr)
+#define ec_perror(s, r)    er_logcode((r), EC_LOGLEVEL_ERROR, nullptr, (s))
+#define er_lerr(r, ...)    er_logcode((r), EC_LOGLEVEL_ERROR, nullptr, __VA_ARGS__)
+#define er_lerrf(r, ...)   er_logcode((r), EC_LOGLEVEL_ERROR, __PRETTY_FUNCTION__, __VA_ARGS__)
+#define er_ldebugf(r, ...) er_logcode((r), EC_LOGLEVEL_DEBUG, __PRETTY_FUNCTION__, __VA_ARGS__)
 
 enum CONNECTION_TYPE {
 	CONNECTION_TYPE_TCP,
@@ -120,7 +123,8 @@ enum CONNECTION_TYPE {
 
 //Functions
 extern KC_EXPORT HRESULT kcerr_to_mapierr(ECRESULT, HRESULT hrDefault = 0x80070005 /* MAPI_E_NO_ACCESS */);
-extern KC_EXPORT ECRESULT ec_log_ercode(ECRESULT, unsigned int level, const char *fmt, const char *func);
+extern KC_EXPORT ECRESULT er_logcode(ECRESULT code, unsigned int level, const char *func, const char *fmt, ...) KC_LIKE_PRINTF(4, 5);
+extern KC_EXPORT ECRESULT er_logcode(ECRESULT code, unsigned int level, const char *func, const std::string &fmt, ...);
 
 } /* namespace */
 

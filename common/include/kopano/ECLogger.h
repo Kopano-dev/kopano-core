@@ -13,7 +13,9 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <utility>
 #include <sys/types.h>
+#include <kopano/MAPIErrors.h>
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #ifndef KC_LIKE_PRINTF
@@ -271,22 +273,32 @@ class KC_EXPORT ECLogger_Tee KC_FINAL : public ECLogger {
 
 extern KC_EXPORT ECLogger *ec_log_get();
 extern KC_EXPORT void ec_log_set(std::shared_ptr<ECLogger>);
-extern KC_EXPORT void ec_log_u2(unsigned int level, const char *msg, ...) KC_LIKE_PRINTF(2, 3);
+extern KC_EXPORT void ec_log_immed(unsigned int level, const char *msg, ...) KC_LIKE_PRINTF(2, 3);
 extern KC_EXPORT void ec_log(unsigned int level, const char *msg, ...) KC_LIKE_PRINTF(2, 3);
-extern KC_EXPORT void ec_log_u2(unsigned int level, const std::string &msg);
+extern KC_EXPORT void ec_log_immed(unsigned int level, const std::string &msg);
+extern void hr_logcode2(HRESULT code, unsigned int level, const char *func, std::unique_ptr<char[]> &&);
+extern KC_EXPORT HRESULT hr_logcode(HRESULT code, unsigned int level, const char *func, const char *fmt, ...) KC_LIKE_PRINTF(4, 5);
+extern KC_EXPORT HRESULT hr_logcode(HRESULT code, unsigned int level, const char *func, const std::string &fmt, ...);
 
-#define ec_log_always(...)  ec_log_u2(EC_LOGLEVEL_ALWAYS, __VA_ARGS__)
-#define ec_log_crit(...)    do { if (ec_log_get()->Log(EC_LOGLEVEL_CRIT)) ec_log_u2(EC_LOGLEVEL_CRIT, __VA_ARGS__); } while (false)
-#define ec_log_err(...)     do { if (ec_log_get()->Log(EC_LOGLEVEL_ERROR)) ec_log_u2(EC_LOGLEVEL_ERROR, __VA_ARGS__); } while (false)
-#define ec_log_warn(...)    do { if (ec_log_get()->Log(EC_LOGLEVEL_WARNING)) ec_log_u2(EC_LOGLEVEL_WARNING, __VA_ARGS__); } while (false)
-#define ec_log_notice(...)  do { if (ec_log_get()->Log(EC_LOGLEVEL_NOTICE)) ec_log_u2(EC_LOGLEVEL_NOTICE, __VA_ARGS__); } while (false)
-#define ec_log_info(...)    do { if (ec_log_get()->Log(EC_LOGLEVEL_INFO)) ec_log_u2(EC_LOGLEVEL_INFO, __VA_ARGS__); } while (false)
-#define ec_log_debug(...)   do { if (ec_log_get()->Log(EC_LOGLEVEL_DEBUG)) ec_log_u2(EC_LOGLEVEL_DEBUG, __VA_ARGS__); } while (false)
-#define kc_perror(s, r)     (ec_log_get()->Log(EC_LOGLEVEL_ERROR) ? ec_log_hrcode((r), EC_LOGLEVEL_ERROR, (s), nullptr) : (r))
-#define kc_perrorf(s, r)    (ec_log_get()->Log(EC_LOGLEVEL_ERROR) ? ec_log_hrcode((r), EC_LOGLEVEL_ERROR, (s), __PRETTY_FUNCTION__) : (r))
-#define kc_pwarn(s, r)      (ec_log_get()->Log(EC_LOGLEVEL_WARNING) ? ec_log_hrcode((r), EC_LOGLEVEL_WARNING, (s), nullptr) : (r))
+#define ec_log_always(...)  ec_log_immed(EC_LOGLEVEL_ALWAYS, __VA_ARGS__)
+#define ec_log_crit(...)    do { if (ec_log_get()->Log(EC_LOGLEVEL_CRIT)) ec_log_immed(EC_LOGLEVEL_CRIT, __VA_ARGS__); } while (false)
+#define ec_log_err(...)     do { if (ec_log_get()->Log(EC_LOGLEVEL_ERROR)) ec_log_immed(EC_LOGLEVEL_ERROR, __VA_ARGS__); } while (false)
+#define ec_log_warn(...)    do { if (ec_log_get()->Log(EC_LOGLEVEL_WARNING)) ec_log_immed(EC_LOGLEVEL_WARNING, __VA_ARGS__); } while (false)
+#define ec_log_notice(...)  do { if (ec_log_get()->Log(EC_LOGLEVEL_NOTICE)) ec_log_immed(EC_LOGLEVEL_NOTICE, __VA_ARGS__); } while (false)
+#define ec_log_info(...)    do { if (ec_log_get()->Log(EC_LOGLEVEL_INFO)) ec_log_immed(EC_LOGLEVEL_INFO, __VA_ARGS__); } while (false)
+#define ec_log_debug(...)   do { if (ec_log_get()->Log(EC_LOGLEVEL_DEBUG)) ec_log_immed(EC_LOGLEVEL_DEBUG, __VA_ARGS__); } while (false)
+#define kc_perror(s, r)     hr_logcode((r), EC_LOGLEVEL_ERROR, nullptr, (s))
+#define kc_perrorf(s, r)    hr_logcode((r), EC_LOGLEVEL_ERROR, __PRETTY_FUNCTION__, (s))
+#define kc_pwarn(s, r)      hr_logcode((r), EC_LOGLEVEL_WARNING, nullptr, (s))
+#define hr_lcrit(r, ...)    hr_logcode((r), EC_LOGLEVEL_CRIT, nullptr, __VA_ARGS__)
+#define hr_lerr(r, ...)     hr_logcode((r), EC_LOGLEVEL_ERROR, nullptr, __VA_ARGS__)
+#define hr_lerrf(r, ...)    hr_logcode((r), EC_LOGLEVEL_ERROR, __PRETTY_FUNCTION__, __VA_ARGS__)
+#define hr_lwarn(r, ...)    hr_logcode((r), EC_LOGLEVEL_WARNING, nullptr, __VA_ARGS__)
+#define hr_lwarnf(r, ...)   hr_logcode((r), EC_LOGLEVEL_WARNING, __PRETTY_FUNCTION__, __VA_ARGS__)
+#define hr_linfo(r, ...)    hr_logcode((r), EC_LOGLEVEL_INFO, nullptr, __VA_ARGS__)
+#define hr_lnoticef(r, ...) hr_logcode((r), EC_LOGLEVEL_NOTICE, __PRETTY_FUNCTION__, __VA_ARGS__)
+#define hr_ldebug(r, ...)   hr_logcode((r), EC_LOGLEVEL_DEBUG, nullptr, __VA_ARGS__)
 
-extern KC_EXPORT HRESULT ec_log_hrcode(HRESULT, unsigned int level, const char *fmt, const char *func);
 extern KC_EXPORT std::shared_ptr<ECLogger> CreateLogger(ECConfig *, const char *argv0, const char *service, bool audit = false);
 extern KC_EXPORT void LogConfigErrors(ECConfig *);
 extern KC_EXPORT void ec_setup_segv_handler(const char *app, const char *vers);
