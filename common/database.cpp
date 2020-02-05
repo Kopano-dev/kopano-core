@@ -522,6 +522,8 @@ ECRESULT KDatabase::IsEngineSupported(const char *engine)
 ECRESULT KDatabase::Query(const std::string &q)
 {
 	LOG_SQL_DEBUG("SQL [%08lu]: \"%s;\"", m_lpMySQL.thread_id, q.c_str());
+	if (!m_bMysqlInitialize)
+		return KCERR_DATABASE_ERROR;
 	/* Be binary safe (http://dev.mysql.com/doc/mysql/en/mysql-real-query.html) */
 	auto err = mysql_real_query(&m_lpMySQL, q.c_str(), q.length());
 	if (err == 0)
