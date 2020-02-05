@@ -848,6 +848,9 @@ class Store(Properties):
             except MAPIErrorNotFound:
                 raise NotFoundError("no user found with userid '%s'" % \
                     _benc(entryid))
+            except MAPIErrorInvalidEntryid:
+                self.server.log.warning("invalid delegation entryid: '%s'", _benc(entryid))
+                continue
             yield Delegation(self, self.server.user(username))
 
     def delegation(self, user, create=False, see_private=False):
