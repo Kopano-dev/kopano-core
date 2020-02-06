@@ -27,7 +27,7 @@ class Table(object):
     """
 
     def __init__(self, server, mapiobj, mapitable, proptag=None,
-            restriction=None, order=None, columns=None):
+                 restriction=None, order=None, columns=None):
         self.server = server
         self.mapiobj = mapiobj
         self.mapitable = mapitable
