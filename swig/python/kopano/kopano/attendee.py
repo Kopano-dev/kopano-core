@@ -10,6 +10,7 @@ from MAPI.Tags import (
     PR_SEARCH_KEY, PR_RECIPIENT_TRACKSTATUS, PR_RECIPIENT_TRACKSTATUS_TIME,
     PR_RECIPIENT_TYPE,
 )
+from MAPI import MAPI_TO, MAPI_CC, MAPI_BCC
 
 from .address import Address
 
@@ -64,9 +65,9 @@ class Attendee(object):
         prop = self._row.get(PR_RECIPIENT_TYPE)
         if prop:
             return {
-                1: 'required',
-                2: 'optional',
-                3: 'resource',
+                MAPI_TO: 'required',
+                MAPI_CC: 'optional',
+                MAPI_BCC: 'resource',
             }.get(prop.value)
 
     def __unicode__(self):
