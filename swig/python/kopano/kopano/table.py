@@ -8,10 +8,7 @@ Copyright 2016 - 2019 Kopano and its licensors (see LICENSE file)
 
 import csv
 
-try:
-    from StringIO import StringIO
-except ImportError: # pragma: no cover
-    from io import StringIO
+from io import StringIO
 
 from MAPI import (
     TBL_ALL_COLUMNS, TABLE_SORT_ASCEND, TABLE_SORT_DESCEND, TBL_BATCH
