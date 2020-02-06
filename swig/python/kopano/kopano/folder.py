@@ -1110,7 +1110,7 @@ class Folder(Properties):
         :param ics: the iCal data
         """
         icm = icalmapi.CreateICalToMapi(self.mapiobj, self.server.ab, False)
-        icm.ParseICal(ics, 'utf-8', '', None, 0)
+        icm.ParseICal(ics, 'utf-8', 'UTC', self.store.user.mapiobj, 0)
         for i in range(0, icm.GetItemCount()):
             mapiobj = self.mapiobj.CreateMessage(None, 0)
             icm.GetItem(i, 0, mapiobj)
