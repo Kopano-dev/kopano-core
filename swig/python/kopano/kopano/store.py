@@ -600,24 +600,26 @@ class Store(Properties):
             for folder in self.subtree.folders(recurse=recurse, **kwargs):
                 yield folder
 
-    # TODO replace by store.folders(type='contacts') etc
     def mail_folders(self, **kwargs):
-        # TODO restriction
-        for folder in self.folders():
-            if folder.type_ == 'mail':
-                yield folder
+        restriction = Restriction(SPropertyRestriction(
+            RELOP_EQ, PR_CONTAINER_CLASS_W,
+            SPropValue(PR_CONTAINER_CLASS_W, 'IPF.Note')
+        ))
+        return self.folders(restriction=restriction)
 
     def contact_folders(self, **kwargs):
-        # TODO restriction
-        for folder in self.folders():
-            if folder.type_ == 'contacts':
-                yield folder
+        restriction = Restriction(SPropertyRestriction(
+            RELOP_EQ, PR_CONTAINER_CLASS_W,
+            SPropValue(PR_CONTAINER_CLASS_W, 'IPF.Contact')
+        ))
+        return self.folders(restriction=restriction)
 
     def calendars(self, **kwargs):
-        # TODO restriction
-        for folder in self.folders():
-            if folder.type_ == 'calendar':
-                yield folder
+        restriction = Restriction(SPropertyRestriction(
+            RELOP_EQ, PR_CONTAINER_CLASS_W,
+            SPropValue(PR_CONTAINER_CLASS_W, 'IPF.Appointment')
+        ))
+        return self.folders(restriction=restriction)
 
     # TODO store.findroot.create_folder()?
     def create_searchfolder(self, text=None):
