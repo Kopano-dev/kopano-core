@@ -15,7 +15,7 @@ from MAPI import MAPI_TO, MAPI_CC, MAPI_BCC
 from .address import Address
 
 PROPS = (PR_ADDRTYPE_W, PR_DISPLAY_NAME_W, PR_EMAIL_ADDRESS_W,
-    PR_ENTRYID, PR_SEARCH_KEY)
+         PR_ENTRYID, PR_SEARCH_KEY)
 
 class Attendee(object):
     """Attendee class
