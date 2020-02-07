@@ -347,7 +347,10 @@ class Appointment(object):
         response.subject = subject_prefix + ': ' + self.subject
         if comment:
             response.text = comment
-        response.to = self.server.user(email=self.from_.email) # TODO
+        try:
+            response.to = self.server.user(email=self.from_.email)
+        except NotFoundError:
+            response.to = self.from_.email
         response.from_ = self.store.user # TODO slow?
 
         response.send()
