@@ -10,20 +10,22 @@ import sys
 from datetime import datetime
 
 from MAPI import (
-    PT_SYSTIME, MODRECIP_ADD, PT_LONG, PT_UNICODE,
+    PT_SYSTIME, MODRECIP_ADD, PT_LONG, PT_UNICODE, BMR_EQZ
 )
 
 from MAPI.Tags import (
     PR_MESSAGE_RECIPIENTS, PR_RESPONSE_REQUESTED, PR_ENTRYID,
     PR_DISPLAY_NAME_W, PR_ADDRTYPE_W, PR_EMAIL_ADDRESS_W, PR_RECIPIENT_TYPE,
-    respOrganized,
+    PR_RECIPIENT_FLAGS, respOrganized, recipOrganizer
 )
 
-from MAPI.Struct import SPropValue
+from MAPI.Struct import (SPropValue, SOrRestriction, SBitMaskRestriction,
+                         SExistRestriction, SNotRestriction)
 
 from .attendee import Attendee
 from .errors import NotFoundError, ArgumentError
 from .recurrence import Recurrence, Occurrence
+from .restriction import Restriction
 
 from .compat import (
     benc as _benc, bdec as _bdec,
@@ -210,10 +212,13 @@ class Appointment(object):
 
     # TODO rrule setter!
 
-    # TODO merge with item.recipients?
     def attendees(self):
         """Appointment :class:`attendees <Attendee>`."""
-        for row in self.table(PR_MESSAGE_RECIPIENTS):
+
+        # Filter out organizer from all recipients
+        restriction = Restriction(SOrRestriction([SNotRestriction(SExistRestriction(PR_RECIPIENT_FLAGS)),
+                                                  SBitMaskRestriction(BMR_EQZ, PR_RECIPIENT_FLAGS, recipOrganizer)]))
+        for row in self.table(PR_MESSAGE_RECIPIENTS, restriction=restriction):
             yield Attendee(self.server, row)
 
     def create_attendee(self, type_, address):
