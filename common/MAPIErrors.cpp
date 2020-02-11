@@ -202,13 +202,31 @@ HRESULT kcerr_to_mapierr(ECRESULT ecResult, HRESULT hrDefault)
 	}
 }
 
-ECRESULT ec_log_ercode(ECRESULT code, unsigned int level,
-    const char *fmt, const char *func)
+ECRESULT er_logcode(ECRESULT code, unsigned int level, const char *func, const char *fmt, ...)
 {
-	if (func == nullptr)
-		ec_log(level, fmt, GetMAPIErrorMessage(kcerr_to_mapierr(code)), code);
-	else
-		ec_log(level, fmt, func, GetMAPIErrorMessage(kcerr_to_mapierr(code)), code);
+	if (!ec_log_get()->Log(level))
+		return code;
+	char *msg = nullptr;
+	va_list va;
+	va_start(va, fmt);
+	auto ret = vasprintf(&msg, fmt, va);
+	va_end(va);
+	if (ret >= 0)
+		hr_logcode2(kcerr_to_mapierr(code), level, func, std::unique_ptr<char[]>(msg));
+	return code;
+}
+
+ECRESULT er_logcode(ECRESULT code, unsigned int level, const char *func, const std::string &fmt, ...)
+{
+	if (!ec_log_get()->Log(level))
+		return code;
+	char *msg = nullptr;
+	va_list va;
+	va_start(va, fmt);
+	auto ret = vasprintf(&msg, fmt.c_str(), va);
+	va_end(va);
+	if (ret >= 0)
+		hr_logcode2(kcerr_to_mapierr(code), level, func, std::unique_ptr<char[]>(msg));
 	return code;
 }
 

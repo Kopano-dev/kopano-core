@@ -28,7 +28,7 @@
 #include "StatsClient.h"
 #include "ECTPropsPurge.h"
 #include "cmdutil.hpp"
-#define ec_pinfo(s, r) ec_log_ercode((r), EC_LOGLEVEL_INFO, s ": %s (%x)", nullptr)
+#define ec_pinfo(s, r) er_logcode((r), EC_LOGLEVEL_INFO, nullptr, (s))
 #define FIELD_NR_NAMEID		(FIELD_NR_MAX + 1)
 #define FIELD_NR_NAMESTR	(FIELD_NR_MAX + 2)
 #define FIELD_NR_NAMEGUID	(FIELD_NR_MAX + 3)

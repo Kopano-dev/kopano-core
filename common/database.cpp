@@ -73,11 +73,12 @@ KDatabase::KDatabase(void)
  * @limit:	new GC limit
  * @reconnect:	whether autoreconnect is desired for this DB object
  */
-HRESULT KDatabase::setup_gcm(size_t limit, bool reconnect)
+ECRESULT KDatabase::setup_gcm(size_t limit, bool reconnect)
 {
 	DB_RESULT result;
-	if (DoSelect("SHOW SESSION VARIABLES LIKE 'group_concat_max_len'", &result) != 0)
-		return 0;
+	auto ret = DoSelect("SHOW SESSION VARIABLES LIKE 'group_concat_max_len'", &result);
+	if (ret != erSuccess)
+		return ret;
 	auto row = result.fetch_row();
 	if (row == nullptr || row[0] == nullptr || row[1] == nullptr)
 		return 0;
@@ -91,7 +92,7 @@ HRESULT KDatabase::setup_gcm(size_t limit, bool reconnect)
 	}
 	if (reconnect)
 		mysql_options(&m_lpMySQL, MYSQL_INIT_COMMAND, query.c_str());
-	return 0;
+	return erSuccess;
 }
 
 ECRESULT KDatabase::Connect(ECConfig *cfg, bool reconnect,
@@ -107,7 +108,7 @@ ECRESULT KDatabase::Connect(ECConfig *cfg, bool reconnect,
 		socket = nullptr;
 	auto er = InitEngine(reconnect);
 	if (er != erSuccess) {
-		ec_log_hrcode(er, EC_LOGLEVEL_CRIT, "%s: InitEngine failed: %s (%x)", __PRETTY_FUNCTION__);
+		hr_lcrit(er, "InitEngine failed");
 		goto exit;
 	}
 	if (mysql_real_connect(&m_lpMySQL, cfg->GetSetting("mysql_host"),
@@ -521,6 +522,8 @@ ECRESULT KDatabase::IsEngineSupported(const char *engine)
 ECRESULT KDatabase::Query(const std::string &q)
 {
 	LOG_SQL_DEBUG("SQL [%08lu]: \"%s;\"", m_lpMySQL.thread_id, q.c_str());
+	if (!m_bMysqlInitialize)
+		return KCERR_DATABASE_ERROR;
 	/* Be binary safe (http://dev.mysql.com/doc/mysql/en/mysql-real-query.html) */
 	auto err = mysql_real_query(&m_lpMySQL, q.c_str(), q.length());
 	if (err == 0)

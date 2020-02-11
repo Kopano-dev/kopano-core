@@ -1081,7 +1081,7 @@ void ec_log(unsigned int level, const char *fmt, ...)
 	va_end(argp);
 }
 
-void ec_log_u2(unsigned int level, const char *fmt, ...)
+void ec_log_immed(unsigned int level, const char *fmt, ...)
 {
 	va_list argp;
 	va_start(argp, fmt);
@@ -1089,9 +1089,58 @@ void ec_log_u2(unsigned int level, const char *fmt, ...)
 	va_end(argp);
 }
 
-void ec_log_u2(unsigned int level, const std::string &msg)
+void ec_log_immed(unsigned int level, const std::string &msg)
 {
 	ec_log_target->log(level, msg.c_str());
+}
+
+void hr_logcode2(HRESULT code, unsigned int level, const char *func, std::unique_ptr<char[]> &&msg)
+{
+	if (func == nullptr)
+		func = "";
+	auto errstring = GetMAPIErrorMessage(code);
+	char errnum[24];
+	snprintf(errnum, sizeof(errnum), " (%x)", code);
+	std::string v1s;
+	v1s.reserve(strlen(func) + 2 + strlen(msg.get()) + strlen(errstring) + 2 + ARRAY_SIZE(errnum) + 2);
+	if (*func != '\0') {
+		v1s += func;
+		v1s += ": ";
+	}
+	v1s += msg.get();
+	msg.reset();
+	v1s += ": ";
+	v1s += errstring;
+	v1s += errnum;
+	ec_log_target->log(level, v1s.c_str());
+}
+
+HRESULT hr_logcode(HRESULT code, unsigned int level, const char *func, const char *fmt, ...)
+{
+	if (!ec_log_target->Log(level))
+		return code;
+	char *msg = nullptr;
+	va_list va;
+	va_start(va, fmt);
+	auto ret = vasprintf(&msg, fmt, va);
+	va_end(va);
+	if (ret >= 0)
+		hr_logcode2(code, level, func, std::unique_ptr<char[]>(msg));
+	return code;
+}
+
+HRESULT hr_logcode(HRESULT code, unsigned int level, const char *func, const std::string &fmt, ...)
+{
+	if (!ec_log_target->Log(level))
+		return code;
+	char *msg = nullptr;
+	va_list va;
+	va_start(va, fmt);
+	auto ret = vasprintf(&msg, fmt.c_str(), va);
+	va_end(va);
+	if (ret >= 0)
+		hr_logcode2(code, level, func, std::unique_ptr<char[]>(msg));
+	return code;
 }
 
 static void ec_log_bt(unsigned int level, const char *fmt, ...)
@@ -1112,16 +1161,6 @@ static void ec_log_bt(unsigned int level, const char *fmt, ...)
 		ec_log_info("Backtrace not available");
 		notified = true;
 	}
-}
-
-HRESULT ec_log_hrcode(HRESULT code, unsigned int level,
-    const char *str, const char *func)
-{
-	if (func == nullptr)
-		ec_log_u2(level, "%s: %s (%x)", str, GetMAPIErrorMessage(code), code);
-	else
-		ec_log_u2(level, "%s: %s: %s (%x)", func, str, GetMAPIErrorMessage(code), code);
-	return code;
 }
 
 ECAlternateStack::ECAlternateStack()
