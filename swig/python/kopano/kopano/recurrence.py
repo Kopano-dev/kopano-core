@@ -516,6 +516,8 @@ class Recurrence(object):
         self._monthday = None
         self._weekdays = None
         self._month = None
+        self._exceptions = []
+        self._extended_exceptions = []
 
         # AppointmentRecurrencePattern
         value = self.item._get_fast(self.item.store._pidlid_proptag(PidLidAppointmentRecur))
@@ -588,7 +590,6 @@ class Recurrence(object):
         pos += SHORT
 
         # ExceptionInfo
-        self._exceptions = []
         # using modcount, as PHP seems to not update exception_count?
         # equal according to docs
         for i in range(0, self._modified_instance_count):
@@ -666,7 +667,6 @@ class Recurrence(object):
         pos += _utils.unpack_long(value, pos) + LONG
 
         # ExtendedException
-        self._extended_exceptions = []
         for exception in self._exceptions:
             extended_exception = {}
 
