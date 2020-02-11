@@ -30,7 +30,11 @@ def main():
         mr.process_cancellation()
 
     now = datetime.now()
-    user.freebusy.publish(now - timedelta(7), now + timedelta(180))
+
+    try:
+        user.freebusy.publish(now - timedelta(7), now + timedelta(180))
+    except kopano.errors.NotFoundError as e:
+        print("Unable to publish freebusy information: " + str(e), file=sys.stderr)
 
 if __name__ == '__main__':
     main() # pragma: no cover

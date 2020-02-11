@@ -26,6 +26,10 @@ from .compat import (
     bdec as _bdec, repr as _repr
 )
 
+from .errors import (
+        NotFoundError
+)
+
 # XXX to utils.py?
 NANOSECS_BETWEEN_EPOCH = 116444736000000000
 def datetime_to_filetime(d):
@@ -110,7 +114,10 @@ class FreeBusy(object):
         ftstart, ftend = datetime_to_filetime(start), datetime_to_filetime(end) # XXX tz?
 
         fb = libfreebusy.IFreeBusySupport()
-        fb.Open(self.store.server.mapisession, self.store.mapiobj, False)
+        try:
+            fb.Open(self.store.server.mapisession, self.store.mapiobj, False)
+        except MAPI.Struct.MAPIErrorNotFound:
+            raise NotFoundError("public store not found")
         update, status = fb.LoadFreeBusyUpdate([eid], None)
 
         blocks = []
