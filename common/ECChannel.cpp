@@ -138,6 +138,12 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 #ifndef SSL_TXT_TLSV1_3
 #	define SSL_TXT_TLSV1_3 "TLSv1.3"
 #endif
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
+	int ver;
+#else
+	long ssl_opset = 0, ssl_opclear = 0;
+#endif
+
 	SSL_CTX_set_options(newctx, SSL_OP_ALL | SSL_OP_NO_RENEGOTIATION | SSL_OP_NO_COMPRESSION);
 	ssl_name = strtok(ssl_protocols.get(), " ");
 	while(ssl_name != NULL) {
@@ -186,8 +192,6 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 		ssl_exclude |= ~ssl_include;
 
 #if OPENSSL_VERSION_NUMBER >= 0x1010000fL
-	int ver;
-
 	// Find version range top for proto version setup.
 #	ifdef SSL_OP_NO_TLSv1_3
 	if (ssl_include == 0 && (ssl_exclude & 0x10) == 0)
@@ -242,8 +246,6 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 	ec_log_info("Minimum TLS protocol version to use: 0x%x", ver);
 	SSL_CTX_set_min_proto_version(newctx, ver);
 #else // OPENSSL_VERSION_NUMBER < 0x1010000fL
-	long ssl_opset = 0, ssl_opclear = 0;
-
 #	ifndef OPENSSL_NO_SSL2
 	// Never offer SSLv2.
 	ssl_opset = SSL_OP_NO_SSLv2;
