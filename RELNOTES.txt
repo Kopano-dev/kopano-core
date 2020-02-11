@@ -16,6 +16,7 @@ Fixes:
 * gateway: avoid one crash case for deeply-nested HTML mail [KC-1653]
 * admin: admin: fix error message when --{udqw,udqs,udqh} is missing
 * server: cure a mysql wait phase during shutdown [KC-1645]
+* server: cure a crash when the SQL server has shut down [KC-1578]
 * daemons: avoid deadlock during signal handling [KC-1654]
 * libserver: fix use-after-free and crash on shutdown [KC-1662]
 * better stack traces when dying on uncaught exceptions [KC-1670]
