@@ -7,6 +7,8 @@ Copyright 2016 - 2019 Kopano and its licensors (see LICENSE file)
 """
 import sys
 
+from datetime import datetime
+
 from MAPI import (
     PT_SYSTIME, MODRECIP_ADD, PT_LONG, PT_UNICODE,
 )
@@ -28,7 +30,7 @@ from .compat import (
 )
 from .defs import (
     ASF_CANCELED, NR_COLOR, COLOR_NR, FB_STATUS,
-    STATUS_FB, ASF_MEETING, RESPONSE_STATUS,
+    STATUS_FB, ASF_MEETING, RESPONSE_STATUS, STATUS_RESPONSE,
 )
 from .pidlid import (
     PidLidReminderSet, PidLidReminderDelta, PidLidAppointmentSubType,
@@ -259,6 +261,14 @@ class Appointment(object):
         except NotFoundError:
             return 'None'
 
+    @response_status.setter
+    def response_status(self, val):
+        try:
+            # props are identical
+            self.create_prop('appointment:33304', STATUS_RESPONSE[val], PT_LONG)
+        except KeyError:
+            raise ArgumentError('invalid response status: %s' % val)
+
     @property
     def icaluid(self):
         """Appointment iCal UID."""
@@ -291,15 +301,31 @@ class Appointment(object):
         self[PidLidTimeZoneDescription] = str(value)
         self[PidLidTimeZoneStruct] = _timezone._timezone_struct(value)
 
-    def accept(self, comment=None, tentative=False, respond=True):
-        # TODO update appointment itself
+    def accept(self, comment=None, tentative=False, respond=True, subject_prefix=None):
+        if tentative:
+            self.busystatus = 'tentative'
+            self.response_status = 'TentativelyAccepted'
+        else:
+            self.busystatus = 'busy'
+            self.response_status = 'Accepted'
+
+        # TODO(jelle): create getter/setters
+        # reply_time
+        self.create_prop('appointment:33312', proptype=PT_SYSTIME, value=datetime.now())
+        # reply_name
+        self.create_prop('appointment:33328', proptype=PT_UNICODE, value=self.store.user.fullname)
 
         if respond:
             if tentative:
+                if not subject_prefix:
+                    subject_prefix = 'Tentatively acccepted'
                 message_class = 'IPM.Schedule.Meeting.Resp.Tent'
+                self._respond(subject_prefix, message_class, comment)
             else:
+                if not subject_prefix:
+                    subject_prefix = 'Accept'
                 message_class = 'IPM.Schedule.Meeting.Resp.Pos'
-            self._respond('Accepted', message_class, comment)
+                self._respond(subject_prefix, message_class, comment)
 
     def decline(self, comment=None, respond=True):
         # TODO update appointment itself
