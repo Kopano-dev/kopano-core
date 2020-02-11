@@ -186,16 +186,11 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 			sProfileProps.strServerPath.c_str());
 		er = KCERR_SERVER_NOT_RESPONDING;
 	} else if (er != SOAP_OK) {
-#if GSOAP_VERSION >= 20871
-		auto d1 = soap_fault_string(lpCmd->soap);
-		auto d = soap_fault_detail(lpCmd->soap);
-#else
-		auto d1 = soap_check_faultstring(lpCmd->soap);
-		auto d = soap_check_faultdetail(lpCmd->soap);
-#endif
+		auto d1 = soap_faultstring(lpCmd->soap);
+		auto d = soap_faultdetail(lpCmd->soap);
 		ec_log_err("Logon to %s: %s (%s)", sProfileProps.strServerPath.c_str(),
-			d1 != nullptr ? d1 : "(no error set)",
-			d != nullptr ? d : "");
+			d1 != nullptr && *d1 != nullptr ? *d1 : "(no error set)",
+			d != nullptr && *d != nullptr ? *d : "");
 		er = KCERR_SERVER_NOT_RESPONDING;
 	} else {
 		er = sResponse.er;

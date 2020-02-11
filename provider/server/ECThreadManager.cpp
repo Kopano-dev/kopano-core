@@ -125,16 +125,11 @@ void WORKITEM::run()
 	if (soap->ctx && soap->ssl == nullptr) {
 		err = soap_ssl_accept(soap);
 		if (err) {
-#if GSOAP_VERSION >= 20871
-			auto d1 = soap_fault_string(soap);
-			auto d = soap_fault_detail(soap);
-#else
-			auto d1 = soap_check_faultstring(soap);
-			auto d = soap_check_faultdetail(soap);
-#endif
+			auto d1 = soap_faultstring(soap);
+			auto d = soap_faultdetail(soap);
 			ec_log_warn("K-2171: soap_ssl_accept: %s (%s)",
-				d1 != nullptr ? d1 : "(no error set)",
-				d != nullptr ? d : "");
+				d1 != nullptr && *d1 != nullptr ? *d1 : "(no error set)",
+				d != nullptr && *d != nullptr ? *d : "");
 		}
 	} else {
 		err = 0;
@@ -313,7 +308,11 @@ ECRESULT ECDispatcher::DoHUP()
 		    m_lpConfig->GetSetting("server_ssl_ca_file", "", NULL),
 		    m_lpConfig->GetSetting("server_ssl_ca_path", "", NULL),
 		    NULL, NULL, "EC")) {
-			ec_log_crit("K-3904: Unable to setup ssl context: %s", *soap_faultdetail(p.second.get()));
+			auto d1 = soap_faultstring(p.second.get());
+			auto d = soap_faultdetail(p.second.get());
+			ec_log_crit("K-3904: Unable to setup ssl context: %s (%s)",
+				d1 != nullptr && *d1 != nullptr ? *d1 : "(no error set)",
+				d != nullptr && *d != nullptr ? *d : "");
 			return KCERR_CALL_FAILED;
 		}
 
