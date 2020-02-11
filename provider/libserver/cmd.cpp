@@ -7652,17 +7652,19 @@ SOAP_ENTRY_START(unhookStore, *result, unsigned int ulStoreType,
 	// do not use GetLocalId since the user may exist on a different server,
 	// but will be migrated here and we need to remove the previous store with different guid.
 	auto cleanup = make_scope_success([&]() {
-		if (er != erSuccess)
-			ec_log_err("Unhook of store (type %d) with userid %d and GUID %s failed: %s (%x)",  ulStoreType, ulUserId, strGUID.c_str(), GetMAPIErrorMessage(kcerr_to_mapierr(er)), er);
+		if (er == KCERR_INVALID_PARAMETER)
+			ec_log_err("Unhook of store (type %u) with userid %u rejected",  ulStoreType, ulUserId, strGUID.c_str());
+		else if (er != erSuccess)
+			ec_log_err("Unhook of store (type %u) with userid %u and GUID %s failed: %s (%x)",  ulStoreType, ulUserId, strGUID.c_str(), GetMAPIErrorMessage(kcerr_to_mapierr(er)), er);
 		else
-			ec_log_err("Unhook of store (type %d) with userid %d and GUID %s succeeded",  ulStoreType, ulUserId, strGUID.c_str());
+			ec_log_err("Unhook of store (type %u) with userid %u and GUID %s succeeded",  ulStoreType, ulUserId, strGUID.c_str());
 		ROLLBACK_ON_ERROR();
 	});
 	er = ABEntryIDToID(&sUserId, &ulUserId, NULL, NULL);
 	if(er != erSuccess)
 		return er;
 	if (ulUserId == 0 || ulUserId == KOPANO_UID_SYSTEM || !ECSTORE_TYPE_ISVALID(ulStoreType))
-		return KCERR_INVALID_PARAMETER;
+		return er = KCERR_INVALID_PARAMETER;
 	auto dtx = lpDatabase->Begin(er);
 	if (er != erSuccess)
 		return er;
