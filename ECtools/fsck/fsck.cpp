@@ -459,7 +459,8 @@ int main(int argc, char **argv)
 		};
 	}
 
-	disclaimer(acceptDisclaimer);
+	if (!(auto_fix == "no" && auto_del == "no"))
+		disclaimer(acceptDisclaimer);
 
 	/*
 	 * Validate arguments.
