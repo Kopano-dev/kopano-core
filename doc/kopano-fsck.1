@@ -7,20 +7,20 @@
 .\" disable justification (adjust text to left margin only)
 .ad l
 .SH "NAME"
-kopano-fsck \- Start the Kopano fsck calendar check program.
+kopano-fsck \- Start the Kopano fsck store check program.
 .SH "SYNOPSIS"
 .HP \w'\fBkopano\-fsck\fR\ 'u
 \fBkopano\-fsck\fR [\fIOPTION\fR...] [\fIFILTER\fR...]
 .SH "DESCRIPTION"
 .PP
-The program finds all items in the default calendar folder of the given user, and checks if all items are compatible with Microsoft Outlook. It specifically tests for known issues with reminders and recurrcences.
+The program finds all items in the store of the given user, and checks if all items are compatible with Microsoft Outlook. It specifically tests for known issues with reminders and recurrcences.
 .SH "OPTIONS"
 .PP
 Various options are possible. Only the \fB\-\-user\fP options is required.
 .PP
 \fB\-\-user\fR, \fB\-u\fR \fIusername\fR
 .RS 4
-The name of the user to login with, and to check the calendar of.
+The name of the user to login with, and to check the store of.
 .RE
 .PP
 \fB\-\-pass\fR, \fB\-p\fR \fIpassword\fR
@@ -66,7 +66,7 @@ When the item certainly is broken, and cannot be fixed by the program, it may be
 .PP
 \fB\-\-checkonly\fR
 .RS 4
-You will only receive a report of which items are probably broken. The calendar folder will not be written to.
+You will only receive a report of which items are probably broken. The items will not be repaired.
 .RE
 .PP
 \fB\-\-help\fR
