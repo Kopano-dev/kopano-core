@@ -7745,7 +7745,7 @@ SOAP_ENTRY_START(hookStore, *result, unsigned int ulStoreType,
 		return er = KCERR_INVALID_TYPE;
 	}
 
-	ec_log_info("Hooking store \"%s\" to user %d", lpDBRow[1], ulUserId);
+	ec_log_info("Hooking store %u to user %d (%s)", atoui(lpDBRow[1]), ulUserId, sUserDetails.GetPropString(OB_PROP_S_LOGIN).c_str());
 	// lpDBRow[2] is the old user id, which is now orphaned. We'll use this id to make the other store orphaned, so we "trade" user IDs.
 	// update user with new store id
 	auto dtx = lpDatabase->Begin(er);
@@ -7765,7 +7765,9 @@ SOAP_ENTRY_START(hookStore, *result, unsigned int ulStoreType,
 	}
 
 	// set new store
-	strQuery = "UPDATE stores SET user_id = " + stringify(ulUserId) + " WHERE guid = ";
+	strQuery = "UPDATE stores SET user_id = " + stringify(ulUserId) + ", user_name='" +
+	           lpDatabase->Escape(sUserDetails.GetPropString(OB_PROP_S_LOGIN)) +
+	           "' WHERE guid = ";
 	strQuery += lpDatabase->EscapeBinary(sStoreGuid.__ptr, sStoreGuid.__size);
 	er = lpDatabase->DoUpdate(strQuery, &ulAffected);
 	if (er != erSuccess)
