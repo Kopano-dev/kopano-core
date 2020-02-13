@@ -105,7 +105,7 @@ static void print_help(const char *strName)
 	cout << "[--contact]\tCheck all Contact folders" << endl;
 	cout << "[--task]\tCheck all Task folders" << endl;
 	//cout << "[--journal]\tCheck all Journal folders" << endl;
-	cout << "[--all]\tCheck all folders" << endl;
+	cout << "[--all]\t\tCheck all folders (default)" << endl;
 }
 
 static void disclaimer(bool acceptDisclaimer)
@@ -459,7 +459,8 @@ int main(int argc, char **argv)
 		};
 	}
 
-	disclaimer(acceptDisclaimer);
+	if (!(auto_fix == "no" && auto_del == "no"))
+		disclaimer(acceptDisclaimer);
 
 	/*
 	 * Validate arguments.
