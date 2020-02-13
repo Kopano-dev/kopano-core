@@ -102,6 +102,35 @@ class ksrv_worker final : public ECThreadWorker {
 	virtual void exit();
 };
 
+/**
+ * Measures and logs the duration of handling the SOAP request.
+ *
+ * Note that m_info->threadstart/m_info->start instead contain the start times
+ * of the WORKITEM, which is before SOAP. m_wallstart minus m_info->start hence
+ * equals the gsoap library overhead.
+ */
+class pmeasure {
+	public:
+	pmeasure(const struct SOAPINFO *, unsigned int &er);
+	~pmeasure();
+
+	protected:
+	const struct SOAPINFO *m_info = nullptr;
+	unsigned int &m_er;
+	KC::time_point m_wallstart{};
+	struct timespec m_thrstart;
+};
+
+class busystate {
+	public:
+	busystate(ECSession *, const struct SOAPINFO *);
+	~busystate();
+
+	protected:
+	ECSession *m_ses = nullptr;
+	const struct SOAPINFO *m_info = nullptr;
+};
+
 // Hold the status of the softdelete purge system
 static bool g_bPurgeSoftDeleteStatus = false;
 
@@ -819,33 +848,54 @@ exit:
 	return SOAP_OK;
 }
 
+pmeasure::pmeasure(const struct SOAPINFO *si, unsigned int &er) :
+	m_info(si), m_er(er), m_wallstart(steady_clock::now())
+{
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &m_thrstart);
+	LOG_SOAP_DEBUG("%020" PRIu64 ": S %s", m_info->ulLastSessionId, m_info->szFname);
+}
+
+pmeasure::~pmeasure()
+{
+	try {
+	struct timespec thrend;
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &thrend);
+		LOG_SOAP_DEBUG("%020" PRIu64 ": E %s 0x%08x %f %f",
+			m_info->ulLastSessionId, m_info->szFname, m_er,
+			timespec2dbl(thrend) - timespec2dbl(m_thrstart),
+			dur2dbl(decltype(m_wallstart)::clock::now() - m_wallstart));
+	} catch (...) {
+	}
+}
+
+busystate::busystate(ECSession *ses, const struct SOAPINFO *si) :
+	m_ses(ses), m_info(si)
+{
+	m_ses->AddBusyState(pthread_self(), si->szFname, si->threadstart, si->start);
+}
+
+busystate::~busystate()
+{
+	try {
+		m_ses->UpdateBusyState(pthread_self(), SESSION_STATE_SENDING);
+		m_ses->unlock();
+	} catch (...) {
+	}
+}
+
 #define SOAP_ENTRY_START(fname, resultvar, ...) \
 int KCmdService::fname(ULONG64 ulSessionId, ##__VA_ARGS__) \
 { \
-	struct timespec startTimes{}, endTimes{}; \
-	auto dblStart = steady_clock::now(); \
+	soap_info(soap)->ulLastSessionId = ulSessionId; \
+	soap_info(soap)->szFname = __func__; \
+	pmeasure xx_functime(soap_info(soap), resultvar); \
     ECSession		*lpecSession = NULL; \
-	const char *szFname = #fname; \
-    clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTimes); \
-	LOG_SOAP_DEBUG("%020" PRIu64 ": S %s", ulSessionId, szFname); \
 	auto er = g_lpSessionManager->ValidateSession(soap, ulSessionId, &lpecSession); \
-	auto xx_endtimer = make_scope_success([&]() { \
-		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &endTimes); \
-		LOG_SOAP_DEBUG("%020" PRIu64 ": E %s 0x%08x %f %f", ulSessionId, szFname, er, \
-			timespec2dbl(endTimes) - timespec2dbl(startTimes), \
-			dur2dbl(decltype(dblStart)::clock::now() - dblStart)); \
-	}); \
 	if (er != erSuccess) { \
 		resultvar = er; \
 		return SOAP_OK; \
 	} \
-	soap_info(soap)->ulLastSessionId = ulSessionId; \
-	soap_info(soap)->szFname = szFname; \
-	lpecSession->AddBusyState(pthread_self(), szFname, soap_info(soap)->threadstart, soap_info(soap)->start); \
-	auto xx_unbusy = make_scope_success([&]() { \
-		lpecSession->UpdateBusyState(pthread_self(), SESSION_STATE_SENDING); \
-		lpecSession->unlock(); \
-	}); \
+	busystate xx_busy(lpecSession, soap_info(soap)); \
 	resultvar = [&]() -> int {
 
 #define SOAP_ENTRY_END() \
