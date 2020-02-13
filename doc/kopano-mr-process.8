@@ -1,4 +1,4 @@
-.TH "KOPANO\-MR\-PROCESS" "8" "November 2016" "Kopano 8" "Kopano Core user reference"
+.TH "KOPANO\-MR\-PROCESS" "8" "February 2020" "Kopano 8" "Kopano Core user reference"
 .\" http://bugs.debian.org/507673
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
@@ -15,9 +15,27 @@ kopano-mr-process \- Automatic processing of meeting requests.
 .PP
 Script will be called by
 \fBkopano\-dagent\fR
-when the user receives a meeting request or cancellation.
+when the user receives a meeting request or cancellation and when
+autoprocessing is not disabled using \fBkopano\-admin\fR.
+.PP
+There are three scenarios which are handled:
+.PP
+.IP \(bu 4
+A new meeting request (from organiser), if it has not been processed already
+and the user for which it is processed is not the organizer the meeting
+request will be added to the users calendar as tentatively accepted. No
+response is send out to the organiser.
+.IP \(bu 4
+A meeting request response (from attendees), if not already processed the
+corresponding calendar item in the organisers calendar is updated with the
+received tracking status.
+.IP \(bu 4
+A meeting request cancellation (organiser cancels the meeting), if the
+corresponding appointment exists in the calendar. It's updated to show that
+the meeting is cancelled by the organiser.
 .PP
 This script should not be executed from the command line.
 .SH "SEE ALSO"
 .PP
 \fBkopano-dagent\fR(8)
+\fBkopano-admin\fR(8)
