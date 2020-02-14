@@ -13,6 +13,7 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <spawn.h>
+#include <unistd.h>
 #include <kopano/platform.h>
 #include <kopano/UnixUtil.h>
 
@@ -68,7 +69,7 @@ int main(int argc, char **argv)
 		printf("Executing \"%s\"...\n", pair.second.c_str());
 		const char *const args[] = {pair.second.c_str(), pair.first.c_str(), nullptr};
 		pid_t pid = 0;
-		auto ret = posix_spawn(&pid, pair.second.c_str(), nullptr, nullptr, const_cast<char **>(args), nullptr);
+		auto ret = posix_spawn(&pid, pair.second.c_str(), nullptr, nullptr, const_cast<char **>(args), environ);
 		if (ret == 0)
 			waitpid(pid, nullptr, 0);
 	}
