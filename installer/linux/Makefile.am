@@ -24,7 +24,7 @@ sysconf_apparmordir = ${docdir}/example-config/apparmor.d
 dist_sysconf_apparmor_DATA =
 
 if ENABLE_BASE
-config_files += admin.cfg archiver.cfg autorespond dagent.cfg gateway.cfg \
+config_files += admin.cfg archiver.cfg dagent.cfg gateway.cfg \
 	ical.cfg monitor.cfg server.cfg spooler.cfg statsd.cfg unix.cfg
 dist_sysusers_DATA = kopano-sysusers.conf
 dist_tmpfiles_DATA = kopano-tmpfiles.conf
@@ -36,7 +36,6 @@ dist_doc_DATA += audit-parse.pl createuser.dotforward db-calc-storesize \
 dist_sysconf_apparmor_DATA += kopano-coredump.aa kopano-client.aa \
 	usr.sbin.kopano-dagent usr.sbin.kopano-server
 BUILT_SOURCES = ldap.openldap.cfg ldap.active-directory.cfg
-dist_sbin_SCRIPTS += kopano-autorespond
 sysconf_rotatedir = ${sysconfdir}/logrotate.d
 dist_sysconf_rotate_DATA = kopano.logrotate
 sysconf_bcdir = ${datadir}/bash-completion/completions
