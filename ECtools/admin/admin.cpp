@@ -2580,11 +2580,6 @@ int main(int argc, char **argv)
 	}
 
 	switch (mode) {
-	case MODE_UPDATE_COMPANY:
-	case MODE_DELETE_COMPANY:
-	case MODE_ADD_VIEW:
-	case MODE_DEL_VIEW:
-	case MODE_LIST_VIEW:
 	case MODE_ADD_ADMIN:
 	case MODE_DEL_ADMIN:
 	case MODE_LIST_ADMIN:
@@ -2595,6 +2590,19 @@ int main(int argc, char **argv)
 	case MODE_ADD_COMPANYQUOTA_RECIPIENT:
 	case MODE_DEL_COMPANYQUOTA_RECIPIENT:
 	case MODE_LIST_COMPANYQUOTA_RECIPIENT:
+		if (companyname == nullptr) {
+			fprintf(stderr, "A company must be specified (-I)\n");
+			goto exit;
+		}
+#if __cplusplus >= 201700L
+		[[fallthrough]];
+#endif
+
+	case MODE_UPDATE_COMPANY:
+	case MODE_DELETE_COMPANY:
+	case MODE_ADD_VIEW:
+	case MODE_DEL_VIEW:
+	case MODE_LIST_VIEW:
 		hr = lpServiceAdmin->ResolveCompanyName((LPTSTR)companyname, 0, &cbCompanyId, &~lpCompanyId);
 		if (hr != hrSuccess) {
 			fprintf(stderr, "Failed to resolve company: %s\n", getMapiCodeString(hr, companyname).c_str());
