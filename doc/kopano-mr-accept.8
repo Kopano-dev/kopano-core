@@ -15,9 +15,14 @@ kopano-mr-accept \- Automatic accepting of meeting requests.
 .PP
 Script will be called by
 \fBkopano\-dagent\fR
-when the user receives a meeting request or cancellation.
+when the user has enabled auto-accepting meeting requests using
+\fBkopano\-admin\fR. It then automatically accepts all meeting requests and
+removes decline meeting requests it receives. By default it always accepts all
+meeting requests even when the invitee is busy, this can however be configured
+with kopano-admin to decline on conflict or when recurring.
 .PP
 This script should not be executed from the command line.
 .SH "SEE ALSO"
 .PP
 \fBkopano-dagent\fR(8)
+\fBkopano-admin\fR(8)
