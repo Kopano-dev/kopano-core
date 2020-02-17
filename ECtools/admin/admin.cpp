@@ -2161,7 +2161,10 @@ int main(int argc, char **argv)
 
 	// check empty input
 	if (username && username[0] == 0x00) {
-		cerr << "Username (-u) cannot be empty" << endl;
+		if (mode == MODE_DETAILS)
+			cerr << "User/group/companyname (--details) cannot be empty" << endl;
+		else
+			cerr << "Username (-u) cannot be empty" << endl;
 		return 1;
 	}
 	if (mode != MODE_DETAILS && username != nullptr &&
