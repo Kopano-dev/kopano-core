@@ -146,12 +146,15 @@ static unsigned int adm_parse_cache(const char *arglist)
 static bool adm_parse_options(int &argc, const char **&argv)
 {
 	adm_config.reset(ECConfig::Create(adm_config_defaults));
-	opt_config_file = ECConfig::GetDefaultPath("admin.cfg");
+	const char *cfile = ECConfig::GetDefaultPath("admin.cfg");
 	if (HX_getopt(adm_options, &argc, &argv, HXOPT_USAGEONERR) != HXOPT_ERR_SUCCESS)
 		return false;
-	if (opt_config_file != nullptr) {
+	if (opt_config_file != nullptr)
+		cfile = opt_config_file;
+	if (cfile != nullptr) {
 		adm_config->LoadSettings(opt_config_file);
-		if (adm_config->HasErrors()) {
+		if (cfile != nullptr && adm_config->HasErrors()) {
+			/* Only complain when -c was used */
 			fprintf(stderr, "Error reading config file %s\n", opt_config_file);
 			LogConfigErrors(adm_config.get());
 			return false;
