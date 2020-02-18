@@ -265,7 +265,7 @@ HRESULT ECMSProviderSwitch::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 	sGlobalProfileProps	sProfileProps;
 	object_ptr<IProfSect> lpProfSect;
 	memory_ptr<SPropValue> lpsPropArray, lpProp, lpIdentityProps;
-	unsigned int cValues = 0, ulConnectType = CT_UNSPECIFIED, cbStoreID = 0;
+	unsigned int cValues = 0, cbStoreID = 0;
 	char*			lpDisplayName = NULL;
 	bool			bIsDefaultStore = false;
 	object_ptr<IMsgStore> lpMDB;
@@ -323,7 +323,6 @@ HRESULT ECMSProviderSwitch::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 
 		while(!fDone) {
 			hr = lpOnline->Logon(lpMAPISup, ulUIParam, lpszProfileName, cbEntryID, lpEntryID, ulFlags, lpInterface, nullptr, nullptr, nullptr, &~lpMSLogon, &~lpMDB);
-			ulConnectType = CT_ONLINE;
 			fDone = true;
 		}
 	}
