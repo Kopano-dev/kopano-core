@@ -7465,17 +7465,19 @@ SOAP_ENTRY_START(unhookStore, *result, unsigned int ulStoreType,
 	// do not use GetLocalId since the user may exist on a different server,
 	// but will be migrated here and we need to remove the previous store with different guid.
 	auto cleanup = make_scope_success([&]() {
-		if (er != erSuccess)
-			ec_log_err("Unhook of store (type %d) with userid %d and GUID %s failed: %s (%x)",  ulStoreType, ulUserId, strGUID.c_str(), GetMAPIErrorMessage(kcerr_to_mapierr(er)), er);
+		if (er == KCERR_INVALID_PARAMETER)
+			ec_log_err("Unhook of store (type %u) with userid %u rejected",  ulStoreType, ulUserId, strGUID.c_str());
+		else if (er != erSuccess)
+			ec_log_err("Unhook of store (type %u) with userid %u and GUID %s failed: %s (%x)",  ulStoreType, ulUserId, strGUID.c_str(), GetMAPIErrorMessage(kcerr_to_mapierr(er)), er);
 		else
-			ec_log_err("Unhook of store (type %d) with userid %d and GUID %s succeeded",  ulStoreType, ulUserId, strGUID.c_str());
+			ec_log_err("Unhook of store (type %u) with userid %u and GUID %s succeeded",  ulStoreType, ulUserId, strGUID.c_str());
 		ROLLBACK_ON_ERROR();
 	});
 	er = ABEntryIDToID(&sUserId, &ulUserId, NULL, NULL);
 	if(er != erSuccess)
 		return er;
 	if (ulUserId == 0 || ulUserId == KOPANO_UID_SYSTEM || !ECSTORE_TYPE_ISVALID(ulStoreType))
-		return KCERR_INVALID_PARAMETER;
+		return er = KCERR_INVALID_PARAMETER;
 	auto dtx = lpDatabase->Begin(er);
 	if (er != erSuccess)
 		return er;
@@ -7556,7 +7558,7 @@ SOAP_ENTRY_START(hookStore, *result, unsigned int ulStoreType,
 		return er = KCERR_INVALID_TYPE;
 	}
 
-	ec_log_info("Hooking store \"%s\" to user %d", lpDBRow[1], ulUserId);
+	ec_log_info("Hooking store %u to user %d (%s)", atoui(lpDBRow[1]), ulUserId, sUserDetails.GetPropString(OB_PROP_S_LOGIN).c_str());
 	// lpDBRow[2] is the old user id, which is now orphaned. We'll use this id to make the other store orphaned, so we "trade" user IDs.
 	// update user with new store id
 	auto dtx = lpDatabase->Begin(er);
@@ -7576,7 +7578,9 @@ SOAP_ENTRY_START(hookStore, *result, unsigned int ulStoreType,
 	}
 
 	// set new store
-	strQuery = "UPDATE stores SET user_id = " + stringify(ulUserId) + " WHERE guid = ";
+	strQuery = "UPDATE stores SET user_id = " + stringify(ulUserId) + ", user_name='" +
+	           lpDatabase->Escape(sUserDetails.GetPropString(OB_PROP_S_LOGIN)) +
+	           "' WHERE guid = ";
 	strQuery += lpDatabase->EscapeBinary(sStoreGuid.__ptr, sStoreGuid.__size);
 	er = lpDatabase->DoUpdate(strQuery, &ulAffected);
 	if (er != erSuccess)

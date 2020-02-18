@@ -14,6 +14,7 @@
 #include <dirent.h>
 #include <poll.h>
 #include <pwd.h>
+#include <unistd.h>
 #include <sys/stat.h>
 #include <mapidefs.h>
 #include <mapitags.h>
@@ -1205,7 +1206,7 @@ ECRESULT ECAuthSession::ValidateSSOData_NTLM(struct soap *soap,
 
 	if (m_NTLM_pid == -1) {
 		const char *const argv[] = {"ntlm_auth", "-d0", "--helper-protocol=squid-2.5-ntlmssp", nullptr};
-		m_NTLM_pid = unix_popen_rw(argv, &m_stdin, &m_stdout, &m_stderr, nullptr);
+		m_NTLM_pid = unix_popen_rw(argv, &m_stdin, &m_stdout, &m_stderr, const_cast<const char **>(environ));
 		if (m_NTLM_pid < 0) {
 			ec_log_crit("Cannot start ntlm_auth: %s", strerror(errno));
 		} else {
