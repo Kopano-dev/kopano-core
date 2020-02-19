@@ -499,7 +499,7 @@ static int mpt_main_exectime(int argc, char **argv)
 		int st;
 
 		auto start = clk::now();
-		if (posix_spawn(&pid, argv[0], nullptr, nullptr, const_cast<char **>(argv), nullptr) == 0)
+		if (posix_spawn(&pid, argv[0], nullptr, nullptr, const_cast<char **>(argv), environ) == 0)
 			wait(&st);
 		auto stop = clk::now();
 		mpt_stat_record(stop - start);

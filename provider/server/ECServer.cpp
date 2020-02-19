@@ -592,7 +592,7 @@ static int kc_reexec_setup_allocator(const char *lib)
 	dlclose(handle);
 	auto s = getenv("LD_PRELOAD");
 	if (s == nullptr) {
-		setenv("KC_ORIGINAL_PRELOAD", "", true);
+		unsetenv("KC_ORIGINAL_PRELOAD");
 		setenv("LD_PRELOAD", lib, true);
 	} else if (strstr(s, "/valgrind/") != nullptr) {
 		/*

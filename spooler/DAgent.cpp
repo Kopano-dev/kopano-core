@@ -399,18 +399,20 @@ static HRESULT HrAutoAccept(StatsClient *sc, ECRecipient *lpRecip,
 		return kc_perrorf("HrGetOneProp failed", hr);
 	strEntryID = bin2hex(lpEntryID->Value.bin);
 
-	// We cannot rely on the 'current locale' to be able to represent the username in wstrUsername. We therefore
-	// force UTF-8 output on the username. This means that the autoaccept script must also interpret the username
-	// in UTF-8, *not* in the current locale.
-	std::vector<std::string> cmdline = {
-		autoresponder,
-		convert_to<std::string>("UTF-8", lpRecip->wstrUsername, rawsize(lpRecip->wstrUsername), CHARSET_WCHAR),
-		g_lpConfig->GetSettingsPath(), strEntryID
-	};
-	ec_log_debug("Starting autoaccept");
-	if (!unix_system(autoresponder, cmdline, const_cast<const char **>(environ))) {
-		hr = MAPI_E_CALL_FAILED;
-		kc_perrorf("Invoking autoaccept script failed", hr);
+	if (*autoresponder != '\0') {
+		// We cannot rely on the 'current locale' to be able to represent the username in wstrUsername. We therefore
+		// force UTF-8 output on the username. This means that the autoaccept script must also interpret the username
+		// in UTF-8, *not* in the current locale.
+		std::vector<std::string> cmdline = {
+			autoresponder,
+			convert_to<std::string>("UTF-8", lpRecip->wstrUsername, rawsize(lpRecip->wstrUsername), CHARSET_WCHAR),
+			g_lpConfig->GetSettingsPath(), strEntryID
+		};
+		ec_log_debug("Starting autoaccept");
+		if (!unix_system(autoresponder, cmdline, const_cast<const char **>(environ))) {
+			hr = MAPI_E_CALL_FAILED;
+			kc_perrorf("Invoking autoaccept script failed", hr);
+		}
 	}
 
 	// Delete the copy, irrespective of the outcome of the script.
@@ -459,17 +461,19 @@ static HRESULT HrAutoProcess(StatsClient *sc, ECRecipient *lpRecip,
 		return kc_perrorf("HrGetOneProp failed", hr);
 	auto strEntryID = bin2hex(lpEntryID->Value.bin);
 
-	// We cannot rely on the 'current locale' to be able to represent the username in wstrUsername. We therefore
-	// force UTF-8 output on the username. This means that the autoaccept script must also interpret the username
-	// in UTF-8, *not* in the current locale.
-	std::vector<std::string> cmdline = {
-		autoprocessor,
-		convert_to<std::string>("UTF-8", lpRecip->wstrUsername, rawsize(lpRecip->wstrUsername), CHARSET_WCHAR),
-		g_lpConfig->GetSettingsPath(), strEntryID
-	};
-	ec_log_debug("Starting autoprocessing");
-	if (!unix_system(autoprocessor, cmdline, const_cast<const char **>(environ)))
-		hr = MAPI_E_CALL_FAILED;
+	if (*autoprocessor != '\0') {
+		// We cannot rely on the 'current locale' to be able to represent the username in wstrUsername. We therefore
+		// force UTF-8 output on the username. This means that the autoaccept script must also interpret the username
+		// in UTF-8, *not* in the current locale.
+		std::vector<std::string> cmdline = {
+			autoprocessor,
+			convert_to<std::string>("UTF-8", lpRecip->wstrUsername, rawsize(lpRecip->wstrUsername), CHARSET_WCHAR),
+			g_lpConfig->GetSettingsPath(), strEntryID
+		};
+		ec_log_debug("Starting autoprocessing");
+		if (!unix_system(autoprocessor, cmdline, const_cast<const char **>(environ)))
+			hr = MAPI_E_CALL_FAILED;
+	}
 
 	// Delete the copy, irrespective of the outcome of the script.
 	sEntryList.cValues = 1;

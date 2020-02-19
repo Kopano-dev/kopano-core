@@ -942,7 +942,11 @@ class Folder(Properties):
             except (MAPIErrorNotFound, NotFoundError):
                 pass
             else:
-                etxml = ElementTree.fromstring(ruledata)
+                try:
+                    etxml = ElementTree.fromstring(ruledata)
+                except ElementTree.ParseError as e:
+                    log.warning("ElementTree.fromstring(ruledata): folder %s: %s", folder.name, str(e))
+                    return None
                 for actions in etxml.findall('./item/item/actions'):
                     for movecopy in actions.findall('.//moveCopy'):
                         try:

@@ -50,13 +50,15 @@ static const ABEID_FIXED abcont_uab(MAPI_ABCONT, MUIDECSAB, KOPANO_UID_ADDRESS_B
 static bool execute_script(const char *scriptname, ...)
 {
 	va_list v;
-	const char *env[32];
+	std::vector<const char *> env;
 	std::list<std::string> lstEnv;
 	std::string strEnv;
 	int n = 0;
 
 	va_start(v, scriptname);
 	/* Set environment */
+	for (auto el = environ; *el != NULL; ++el)
+		lstEnv.emplace_back(*el);
 	for (;;) {
 		auto envname = va_arg(v, char *);
 		if (!envname)
@@ -73,9 +75,9 @@ static bool execute_script(const char *scriptname, ...)
 
 	ec_log_debug("Running script `%s`", scriptname);
 	for (const auto &s : lstEnv)
-		env[n++] = s.c_str();
-	env[n] = NULL;
-	return unix_system(scriptname, {scriptname}, env);
+		env.push_back(s.c_str());
+	env.push_back(nullptr);
+	return unix_system(scriptname, {scriptname}, &env[0]);
 }
 
 static const char *ObjectClassToName(objectclass_t objclass)

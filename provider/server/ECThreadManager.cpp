@@ -125,16 +125,11 @@ void WORKITEM::run()
 	if (soap->ctx && soap->ssl == nullptr) {
 		err = soap_ssl_accept(soap);
 		if (err) {
-#if GSOAP_VERSION >= 20871
-			auto d1 = soap_fault_string(soap);
-			auto d = soap_fault_detail(soap);
-#else
-			auto d1 = soap_check_faultstring(soap);
-			auto d = soap_check_faultdetail(soap);
-#endif
+			auto d1 = soap_faultstring(soap);
+			auto d = soap_faultdetail(soap);
 			ec_log_warn("K-2171: soap_ssl_accept: %s (%s)",
-				d1 != nullptr ? d1 : "(no error set)",
-				d != nullptr ? d : "");
+				d1 != nullptr && *d1 != nullptr ? *d1 : "(no error set)",
+				d != nullptr && *d != nullptr ? *d : "");
 		}
 	} else {
 		// Record start of handling of this request
@@ -312,7 +307,11 @@ ECRESULT ECDispatcher::DoHUP()
 		    m_lpConfig->GetSetting("server_ssl_ca_file", "", NULL),
 		    m_lpConfig->GetSetting("server_ssl_ca_path", "", NULL),
 		    NULL, NULL, "EC")) {
-			ec_log_crit("K-3904: Unable to setup ssl context: %s", *soap_faultdetail(p.second.get()));
+			auto d1 = soap_faultstring(p.second.get());
+			auto d = soap_faultdetail(p.second.get());
+			ec_log_crit("K-3904: Unable to setup ssl context: %s (%s)",
+				d1 != nullptr && *d1 != nullptr ? *d1 : "(no error set)",
+				d != nullptr && *d != nullptr ? *d : "");
 			return KCERR_CALL_FAILED;
 		}
 		auto er = kc_ssl_options(p.second.get(), m_lpConfig->GetSetting("server_tls_min_proto"),
@@ -635,20 +634,22 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 			} else {
 				// this is a new request from an existing client
 				auto iterSockets = m_setSockets.find(epevents[i].data.fd);
-				// remove from epfd, either close socket, or it will be reactivated later in the epfd
-				epevent.data.fd = iterSockets->second.soap->socket;
-				epoll_ctl(m_epFD, EPOLL_CTL_DEL, iterSockets->second.soap->socket, &epevent);
+				if (iterSockets != m_setSockets.cend()) {
+					// remove from epfd, either close socket, or it will be reactivated later in the epfd
+					epevent.data.fd = iterSockets->second.soap->socket;
+					epoll_ctl(m_epFD, EPOLL_CTL_DEL, iterSockets->second.soap->socket, &epevent);
 
-				if (epevents[i].events & EPOLLHUP) {
-					kopano_end_soap_connection(iterSockets->second.soap);
-					soap_free(iterSockets->second.soap);
-					m_setSockets.erase(iterSockets);
-				} else {
-					QueueItem(iterSockets->second.soap);
-					// Remove socket from listen list for now, since we're already handling data there and don't
-					// want to interfere with the thread that is now handling that socket. It will be passed back
-					// to us when the request is done.
-					m_setSockets.erase(iterSockets);
+					if (epevents[i].events & EPOLLHUP) {
+						kopano_end_soap_connection(iterSockets->second.soap);
+						soap_free(iterSockets->second.soap);
+						m_setSockets.erase(iterSockets);
+					} else {
+						QueueItem(iterSockets->second.soap);
+						// Remove socket from listen list for now, since we're already handling data there and don't
+						// want to interfere with the thread that is now handling that socket. It will be passed back
+						// to us when the request is done.
+						m_setSockets.erase(iterSockets);
+					}
 				}
 			}
 		}
