@@ -8,7 +8,8 @@ Copyright 2018 - 2019 Kopano and its licensors (see LICENSE file)
 from MAPI.Tags import (
     PR_ADDRTYPE_W, PR_DISPLAY_NAME_W, PR_EMAIL_ADDRESS_W, PR_ENTRYID,
     PR_SEARCH_KEY, PR_RECIPIENT_TRACKSTATUS, PR_RECIPIENT_TRACKSTATUS_TIME,
-    PR_RECIPIENT_TYPE,
+    PR_RECIPIENT_TYPE, respNone, respTentative, respAccepted, respDeclined,
+    respOrganized, respNotResponded,
 )
 from MAPI import MAPI_TO, MAPI_CC, MAPI_BCC
 
@@ -42,12 +43,12 @@ class Attendee(object):
         prop = self._row.get(PR_RECIPIENT_TRACKSTATUS)
         if prop:
             return {
-                0: None,
-                1: 'organizer',
-                2: 'tentatively_accepted',
-                3: 'accepted',
-                4: 'declined',
-                5: 'no_response',
+                respNone: 'None',
+                respOrganized: 'Organizer',
+                respTentative: 'TentativelyAccepted',
+                respAccepted: 'Accepted',
+                respDeclined: 'Declined',
+                respNotResponded: 'NotResponded',
             }.get(prop.value)
 
     @property
