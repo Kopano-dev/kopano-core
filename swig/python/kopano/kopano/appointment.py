@@ -331,7 +331,7 @@ class Appointment(object):
             self.busystatus = 'busy'
             self.response_status = 'Accepted'
 
-        self.replytime = datetime.utcnow()
+        self.replytime = datetime.now()
         self.replyname = self.store.user.fullname
 
         if respond:
@@ -347,7 +347,9 @@ class Appointment(object):
                 self._respond(subject_prefix, message_class, comment)
 
     def decline(self, comment=None, respond=True):
-        # TODO update appointment itself
+        self.response_status = 'Declined'
+        self.replytime = datetime.now()
+        self.replyname = self.store.user.fullname
 
         if respond:
             message_class = 'IPM.Schedule.Meeting.Resp.Neg'
