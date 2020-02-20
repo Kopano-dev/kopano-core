@@ -363,11 +363,17 @@ class Appointment(object):
         response.subject = subject_prefix + ': ' + self.subject
         if comment:
             response.text = comment
+
+        if not self.from_.email:
+            self.server.log.debug("Item '%s' has no organiser cannot send meeting request response", self.entryid)
+            return
+
+        response.from_ = self.store.user # TODO slow?
+
         try:
             response.to = self.server.user(email=self.from_.email)
         except NotFoundError:
             response.to = self.from_.email
-        response.from_ = self.store.user # TODO slow?
 
         response.send()
 
