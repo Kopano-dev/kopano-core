@@ -39,7 +39,8 @@ from .pidlid import (
     PidLidBusyStatus, PidLidGlobalObjectId, PidLidRecurring,
     PidLidTimeZoneStruct, PidLidTimeZoneDescription, PidLidLocation,
     PidLidAppointmentStateFlags, PidLidAppointmentColor, PidLidResponseStatus,
-    PidLidAppointmentStartWhole, PidLidAppointmentEndWhole
+    PidLidAppointmentStartWhole, PidLidAppointmentEndWhole, PidLidAppointmentReplyName,
+    PidLidAppointmentReplyTime,
 )
 
 try:
@@ -306,6 +307,22 @@ class Appointment(object):
         self[PidLidTimeZoneDescription] = str(value)
         self[PidLidTimeZoneStruct] = _timezone._timezone_struct(value)
 
+    @property
+    def replytime(self):
+        return self.get(PidLidAppointmentReplyTime)
+
+    @replytime.setter
+    def replytime(self, value):
+        self[PidLidAppointmentReplyTime] = value
+
+    @property
+    def replyname(self):
+        return self.get(PidLidAppointmentReplyName)
+
+    @replyname.setter
+    def replyname(self, value):
+        self[PidLidAppointmentReplyName] = value
+
     def accept(self, comment=None, tentative=False, respond=True, subject_prefix=None):
         if tentative:
             self.busystatus = 'tentative'
@@ -314,11 +331,8 @@ class Appointment(object):
             self.busystatus = 'busy'
             self.response_status = 'Accepted'
 
-        # TODO(jelle): create getter/setters
-        # reply_time
-        self.create_prop('appointment:33312', proptype=PT_SYSTIME, value=datetime.now())
-        # reply_name
-        self.create_prop('appointment:33328', proptype=PT_UNICODE, value=self.store.user.fullname)
+        self.replytime = datetime.utcnow()
+        self.replyname = self.store.user.fullname
 
         if respond:
             if tentative:
