@@ -1559,7 +1559,6 @@ HRESULT ECMessage::UpdateTable(ECMemTable *lpTable, ULONG objtype,
 HRESULT ECMessage::SaveChanges(ULONG ulFlags)
 {
 	ecmem_ptr<SPropValue> lpsPropMessageFlags;
-	ULONG				cValues = 0;
 	scoped_rlock lock(m_hMutexMAPIObject);
 
 	// could not have modified (easy way out of my bug)
