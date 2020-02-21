@@ -2947,6 +2947,7 @@ static HRESULT running_service(char **argv, bool bDaemonize,
 	}
 
 	auto sc = std::make_shared<dagent_stats>(g_lpConfig);
+	sc->start();
 	pthread_attr_t thr_attr;
 	pthread_attr_init(&thr_attr);
 	pthread_attr_setdetachstate(&thr_attr, PTHREAD_CREATE_DETACHED);
