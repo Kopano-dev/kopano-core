@@ -28,6 +28,7 @@
 #include <kopano/ECGetText.h>
 #include <kopano/ECLogger.h>
 #include <kopano/codepage.h>
+#include <kopano/memory.hpp>
 #include <kopano/tie.hpp>
 #include <openssl/md5.h>
 #include <mapicode.h>
@@ -1133,7 +1134,7 @@ std::string kc_utf8_to_punyaddr(const char *s)
 	auto dom = strchr(s, '@');
 	if (dom == nullptr)
 		return s;
-	std::unique_ptr<char[]> output;
+	std::unique_ptr<char[], cstdlib_deleter> output;
 	auto ret = idn2_to_ascii_8z(dom + 1, &unique_tie(output), 0);
 	if (ret != IDN2_OK)
 		return s;
