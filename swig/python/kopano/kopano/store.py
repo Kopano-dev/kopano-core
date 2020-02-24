@@ -601,25 +601,38 @@ class Store(Properties):
                 yield folder
 
     def mail_folders(self, **kwargs):
+        # Mail folders are a fixed set of folders which all can contain mail
+        # items, plus any other customly created folder of container class
+        # IPF.Note.
+        static = {}
+        for n in ('inbox', 'outbox', 'sentmail', 'wastebasket', 'drafts', 'junk'):
+            f = getattr(self, n)
+            if f is not None:
+                static[f.entryid] = True
+                yield f
+        # Find additional folders using a restrictions.
         restriction = Restriction(SPropertyRestriction(
             RELOP_EQ, PR_CONTAINER_CLASS_W,
             SPropValue(PR_CONTAINER_CLASS_W, 'IPF.Note')
         ))
-        return self.folders(restriction=restriction)
+        for folder in self.folders(restriction=restriction, **kwargs):
+            # Yield additional folders, filtering by the fixed ones.
+            if folder.entryid not in static:
+                yield folder
 
     def contact_folders(self, **kwargs):
         restriction = Restriction(SPropertyRestriction(
             RELOP_EQ, PR_CONTAINER_CLASS_W,
             SPropValue(PR_CONTAINER_CLASS_W, 'IPF.Contact')
         ))
-        return self.folders(restriction=restriction)
+        return self.folders(restriction=restriction, **kwargs)
 
     def calendars(self, **kwargs):
         restriction = Restriction(SPropertyRestriction(
             RELOP_EQ, PR_CONTAINER_CLASS_W,
             SPropValue(PR_CONTAINER_CLASS_W, 'IPF.Appointment')
         ))
-        return self.folders(restriction=restriction)
+        return self.folders(restriction=restriction, **kwargs)
 
     # TODO store.findroot.create_folder()?
     def create_searchfolder(self, text=None):
