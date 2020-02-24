@@ -16,6 +16,9 @@ EXTRA_DIST = changelog.rst requirements.txt setup.cfg setup.py \
 	kopano/timezone.py kopano/user.py kopano/utils.py \
 	kopano/version.py
 
+PYTEST ?= pytest
+PYTEST_COVERAGE_OPTIONS=--cov-report=term-missing --cov-report=html:tests/coverage --cov=kopano
+
 install-exec-local:
 	rm -Rf staging
 	${MKDIR_P} staging
@@ -30,3 +33,11 @@ install-exec-local:
 uninstall-local:
 	rm -Rf ${DESTDIR}${pythondir}/kopano \
 		${DESTDIR}${pythondir}/kopano-*.egg-info
+
+.PHONY: test
+test:
+	MAPI_CONFIG_PATH=../../../provider/client PYTHONPATH=../.libs:..:. ${PYTEST} --junitxml=test.xml .
+
+.PHONY: test-coverage
+test-coverage:
+	MAPI_CONFIG_PATH=../../../provider/client PYTHONPATH=../.libs:..:. ${PYTEST} ${PYTEST_COVERAGE_OPTIONS} --junitxml=test.xml .

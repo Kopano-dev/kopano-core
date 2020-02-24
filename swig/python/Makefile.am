@@ -182,6 +182,6 @@ PYTEST = pytest
 
 .PHONY: test
 test:
-	MAPI_CONFIG_PATH=../../provider/client PYTHONPATH=.libs:. ${PYTEST} --junitxml=test.xml .
+	MAPI_CONFIG_PATH=../../provider/client PYTHONPATH=.libs:. ${PYTEST} --junitxml=test.xml tests
 
 include ../../global.am

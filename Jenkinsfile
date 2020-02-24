@@ -44,6 +44,13 @@ pipeline {
                 junit allowEmptyResults: true, testResults: 'swig/python/test.xml'
             }
         }
+        stage('Python Kopano Test') {
+            steps {
+                echo 'Testing python-kopano..'
+                sh 'make -C swig/python/kopano test PYTEST=pytest-3 || true'
+                junit testResults: 'swig/python/kopano/test.xml'
+            }
+        }
     }
     post {
         always {
