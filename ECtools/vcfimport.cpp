@@ -163,7 +163,7 @@ static HRESULT vtm_login(int argc, const char **argv)
 	if (ret != hrSuccess)
 		return kc_perror("MAPIInitialize", ret);
 	object_ptr<IMAPISession> ses;
-	if (vtm_pass != nullptr || (vtm_sslkey != nullptr && vtm_sslpass != nullptr)) {
+	if (vtm_user != nullptr || (vtm_sslkey != nullptr && vtm_sslpass != nullptr)) {
 		ret = HrOpenECSession(&~ses, PROJECT_VERSION, "vtm", vtm_user,
 		      vtm_pass, vtm_host, EC_PROFILE_FLAGS_NO_NOTIFICATIONS,
 		      vtm_sslkey, vtm_sslpass);
