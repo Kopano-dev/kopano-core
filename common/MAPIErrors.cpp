@@ -6,6 +6,7 @@
  * MAPIErrors.cpp
  * Definition of GetMAPIErrorMessage()
  */
+#include <kopano/memory.hpp>
 #include <kopano/platform.h>
 #include <kopano/MAPIErrors.h>
 #include <mapidefs.h>
@@ -211,7 +212,7 @@ ECRESULT er_logcode(ECRESULT code, unsigned int level, const char *func, const c
 	auto ret = vasprintf(&msg, fmt, va);
 	va_end(va);
 	if (ret >= 0)
-		hr_logcode2(kcerr_to_mapierr(code), level, func, std::unique_ptr<char[]>(msg));
+		hr_logcode2(kcerr_to_mapierr(code), level, func, std::unique_ptr<char[], cstdlib_deleter>(msg));
 	return code;
 }
 
@@ -225,7 +226,7 @@ ECRESULT er_logcode(ECRESULT code, unsigned int level, const char *func, const s
 	auto ret = vasprintf(&msg, fmt.c_str(), va);
 	va_end(va);
 	if (ret >= 0)
-		hr_logcode2(kcerr_to_mapierr(code), level, func, std::unique_ptr<char[]>(msg));
+		hr_logcode2(kcerr_to_mapierr(code), level, func, std::unique_ptr<char[], cstdlib_deleter>(msg));
 	return code;
 }
 
