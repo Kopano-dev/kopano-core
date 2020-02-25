@@ -945,7 +945,7 @@ class Folder(Properties):
                 try:
                     etxml = ElementTree.fromstring(ruledata)
                 except ElementTree.ParseError as e:
-                    log.warning("ElementTree.fromstring(ruledata): folder %s: %s", folder.name, str(e))
+                    log.warning("ElementTree.fromstring(ruledata): folder %s: %s", self.name, str(e))
                     return None
                 for actions in etxml.findall('./item/item/actions'):
                     for movecopy in actions.findall('.//moveCopy'):
