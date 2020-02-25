@@ -147,7 +147,6 @@ class Appointment(object):
         except KeyError:
             raise ArgumentError('invalid busy status: %s' % val)
 
-
     @property
     def recurrence(self):
         """Appointment :class:`recurrence <Recurrence>`."""
@@ -156,7 +155,8 @@ class Appointment(object):
         except NotFoundError:
             pass
 
-    def occurrences(self, start=None, end=None):
+    def occurrences(self, start=None, end=None, page_start=None,
+                    page_limit=None, order=None):
         """Appointment :class:`occurrences <Occurrence>` (expanding
         recurring appointments).
 
@@ -164,10 +164,17 @@ class Appointment(object):
         :param end: end at given date (optional)
         """
 
+        pos = 0
+        count = 0
         recurrence = self.recurrence
         if self.recurring and recurrence:
-            for occ in self.recurrence.occurrences(start=start, end=end):
-                yield occ
+            for occurrence in self.recurrence.occurrences(start=start, end=end):
+                if page_start is None or pos >= page_start:
+                    yield occurrence
+                    count += 1
+                if page_limit is not None and count >= page_limit:
+                    break
+                pos += 1
         else:
             if (not start or self.end > start) and \
                (not end or self.start < end):
@@ -179,7 +186,6 @@ class Appointment(object):
             self.server.log.warn("Item '%s' has no recurrence ", self.entryid)
         if recurrence and not self.recurring:
             self.server.log.warn("Item '%s' has a recurrence but is not recurring", self.entryid)
-
 
     def occurrence(self, id_=None):
         if self.recurring:

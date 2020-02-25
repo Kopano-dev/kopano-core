@@ -365,13 +365,16 @@ class Recurrence(object):
         self.item[PidLidClipEnd] = self.end
 
     # TODO fit-to-period
-    def occurrences(self, start=None, end=None):
+    def occurrences(self, start=None, end=None, page_start=None,
+                    page_limit=None, order=None):
         """Return all recurrence :class:`occurrences <Occurrence>`,
         optionally overlapping with a given time window.
 
         :param start: start of time window (optional)
         :param end: end of time window (optional)
         """
+        count = 0
+        pos = 0
         try:
             recurrences = self.recurrences
         except Exception:
@@ -415,12 +418,17 @@ class Recurrence(object):
                 d = _timezone._tz2(d, self.item.tzinfo, _timezone.LOCAL)
             e = d + datetime.timedelta(minutes=minutes)
 
-            occ = Occurrence(self.item, d, e, subject, location,
+            occurrence = Occurrence(self.item, d, e, subject, location,
                 busystatus=busystatus, basedate_val=basedate_val,
                 exception=exception)
 
-            if (not start or occ.end > start) and (not end or occ.start < end):
-                yield occ
+            if (not start or start < occurrence.end) and (not end or end > occurrence.start):
+                if page_start is None or pos >= page_start:
+                    yield occurrence
+                    count += 1
+                if page_limit is not None and count >= page_limit:
+                    break
+                pos += 1
 
     def occurrence(self, entryid):
         entryid = _bdec(entryid)
