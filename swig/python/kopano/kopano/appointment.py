@@ -10,20 +10,22 @@ import sys
 from datetime import datetime
 
 from MAPI import (
-    PT_SYSTIME, MODRECIP_ADD, PT_LONG, PT_UNICODE,
+    PT_SYSTIME, MODRECIP_ADD, PT_LONG, PT_UNICODE, BMR_EQZ
 )
 
 from MAPI.Tags import (
     PR_MESSAGE_RECIPIENTS, PR_RESPONSE_REQUESTED, PR_ENTRYID,
     PR_DISPLAY_NAME_W, PR_ADDRTYPE_W, PR_EMAIL_ADDRESS_W, PR_RECIPIENT_TYPE,
-    respOrganized,
+    PR_RECIPIENT_FLAGS, respOrganized, recipOrganizer
 )
 
-from MAPI.Struct import SPropValue
+from MAPI.Struct import (SPropValue, SOrRestriction, SBitMaskRestriction,
+                         SExistRestriction, SNotRestriction)
 
 from .attendee import Attendee
 from .errors import NotFoundError, ArgumentError
 from .recurrence import Recurrence, Occurrence
+from .restriction import Restriction
 
 from .compat import (
     benc as _benc, bdec as _bdec,
@@ -37,7 +39,8 @@ from .pidlid import (
     PidLidBusyStatus, PidLidGlobalObjectId, PidLidRecurring,
     PidLidTimeZoneStruct, PidLidTimeZoneDescription, PidLidLocation,
     PidLidAppointmentStateFlags, PidLidAppointmentColor, PidLidResponseStatus,
-    PidLidAppointmentStartWhole, PidLidAppointmentEndWhole
+    PidLidAppointmentStartWhole, PidLidAppointmentEndWhole, PidLidAppointmentReplyName,
+    PidLidAppointmentReplyTime,
 )
 
 try:
@@ -210,10 +213,13 @@ class Appointment(object):
 
     # TODO rrule setter!
 
-    # TODO merge with item.recipients?
     def attendees(self):
         """Appointment :class:`attendees <Attendee>`."""
-        for row in self.table(PR_MESSAGE_RECIPIENTS):
+
+        # Filter out organizer from all recipients
+        restriction = Restriction(SOrRestriction([SNotRestriction(SExistRestriction(PR_RECIPIENT_FLAGS)),
+                                                  SBitMaskRestriction(BMR_EQZ, PR_RECIPIENT_FLAGS, recipOrganizer)]))
+        for row in self.table(PR_MESSAGE_RECIPIENTS, restriction=restriction):
             yield Attendee(self.server, row)
 
     def create_attendee(self, type_, address):
@@ -301,6 +307,22 @@ class Appointment(object):
         self[PidLidTimeZoneDescription] = str(value)
         self[PidLidTimeZoneStruct] = _timezone._timezone_struct(value)
 
+    @property
+    def replytime(self):
+        return self.get(PidLidAppointmentReplyTime)
+
+    @replytime.setter
+    def replytime(self, value):
+        self[PidLidAppointmentReplyTime] = value
+
+    @property
+    def replyname(self):
+        return self.get(PidLidAppointmentReplyName)
+
+    @replyname.setter
+    def replyname(self, value):
+        self[PidLidAppointmentReplyName] = value
+
     def accept(self, comment=None, tentative=False, respond=True, subject_prefix=None):
         if tentative:
             self.busystatus = 'tentative'
@@ -309,11 +331,8 @@ class Appointment(object):
             self.busystatus = 'busy'
             self.response_status = 'Accepted'
 
-        # TODO(jelle): create getter/setters
-        # reply_time
-        self.create_prop('appointment:33312', proptype=PT_SYSTIME, value=datetime.now())
-        # reply_name
-        self.create_prop('appointment:33328', proptype=PT_UNICODE, value=self.store.user.fullname)
+        self.replytime = datetime.now()
+        self.replyname = self.store.user.fullname
 
         if respond:
             if tentative:
@@ -328,7 +347,9 @@ class Appointment(object):
                 self._respond(subject_prefix, message_class, comment)
 
     def decline(self, comment=None, respond=True):
-        # TODO update appointment itself
+        self.response_status = 'Declined'
+        self.replytime = datetime.now()
+        self.replyname = self.store.user.fullname
 
         if respond:
             message_class = 'IPM.Schedule.Meeting.Resp.Neg'
@@ -342,8 +363,17 @@ class Appointment(object):
         response.subject = subject_prefix + ': ' + self.subject
         if comment:
             response.text = comment
-        response.to = self.server.user(email=self.from_.email) # TODO
+
+        if not self.from_.email:
+            self.server.log.debug("Item '%s' has no organiser cannot send meeting request response", self.entryid)
+            return
+
         response.from_ = self.store.user # TODO slow?
+
+        try:
+            response.to = self.server.user(email=self.from_.email)
+        except NotFoundError:
+            response.to = self.from_.email
 
         response.send()
 
