@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from MAPI import (MAPIAdminProfiles, KEEP_OPEN_READWRITE, DELETE_HARD_DELETE, MAPI_MODIFY)
+from MAPI import (MAPIAdminProfiles, KEEP_OPEN_READWRITE, DELETE_HARD_DELETE, MAPI_MODIFY, IStream)
 from MAPI.Util import OpenECSession, GetDefaultStore, SPropValue
 from MAPI.Tags import IID_IECTestProtocol, PR_SUBJECT, PR_ENTRYID
 
@@ -72,3 +72,8 @@ def message(store):
 
     eid = message.GetProps([PR_ENTRYID], 0)[0]
     root.DeleteMessages([eid.Value], 0, None, DELETE_HARD_DELETE)
+
+
+@pytest.fixture
+def stream():
+    return IStream()
