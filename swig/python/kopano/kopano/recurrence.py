@@ -1535,6 +1535,24 @@ class Occurrence(object):
     def onlinemeetingurl(self, value):
         setattr(self.item, 'onlinemeetingurl', value)
 
+    @property
+    def reminder(self):
+        """Is appointment reminder set."""
+        return self.item.reminder
+
+    @reminder.setter
+    def reminder(self, value):
+        self.item.reminder = value
+
+    @property
+    def reminder_minutes(self):
+        """Reminder minutes before appointment."""
+        return self.item.reminder_minutes
+
+    @reminder_minutes.setter
+    def reminder_minutes(self, value):
+        self.item.reminder_minutes = value
+
     # TODO get from exception message by default? eg subject, attendees..
     def __getattr__(self, x):
         return getattr(self.item, x)
