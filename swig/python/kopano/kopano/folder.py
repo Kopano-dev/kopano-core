@@ -945,29 +945,25 @@ class Folder(Properties):
                 try:
                     etxml = ElementTree.fromstring(ruledata)
                 except ElementTree.ParseError as e:
-                    log.warning("ElementTree.fromstring(ruledata): folder %s: %s", folder.name, str(e))
+                    log.warning("ElementTree.fromstring(ruledata): folder %s: %s", self.name, str(e))
                     return None
                 for actions in etxml.findall('./item/item/actions'):
                     for movecopy in actions.findall('.//moveCopy'):
                         try:
                             s = movecopy.findall('store')[0]
-                            store = server.mapisession.OpenMsgStore(0,
-                                _unbase64(s.text), None, 0)
-                            entryid = \
-                                HrGetOneProp(store, PR_STORE_ENTRYID).Value
+                            store = server.mapisession.OpenMsgStore(0, _unbase64(s.text), None, 0)
+                            entryid = HrGetOneProp(store, PR_STORE_ENTRYID).Value
                             store = server.store(entryid=_benc(entryid))
                             if store.public:
                                 s.text = 'public'
                             else:
-                                s.text = store.user.name \
-                                    if store != self.store else ''
+                                s.text = store.user.name if store != self.store else ''
                             f = movecopy.findall('folder')[0]
                             path = store.folder(
                                 entryid=_benc(_unbase64(f.text))).path
                             f.text = path
                         except Exception as e:
-                            log.warning(
-                                "could not resolve rule target: %s", str(e))
+                            log.warning("could not resolve rule target: %s", str(e))
                 try:
                     ruledata = ElementTree.tostring(etxml)
                 except ElementTree.ParseError as e:
