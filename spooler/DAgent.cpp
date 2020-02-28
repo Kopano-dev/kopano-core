@@ -376,6 +376,7 @@ static HRESULT HrAutoAccept(StatsClient *sc, ECRecipient *lpRecip,
 	memory_ptr<SPropValue> lpEntryID;
 	ULONG ulType = 0;
 	ENTRYLIST sEntryList;
+	auto dblStart = std::chrono::steady_clock::now();
 
 	sc->inc(SCN_DAGENT_AUTOACCEPT);
 	// Our autoaccepter is an external script. This means that the message it is working on must be
@@ -419,6 +420,8 @@ static HRESULT HrAutoAccept(StatsClient *sc, ECRecipient *lpRecip,
 	sEntryList.cValues = 1;
 	sEntryList.lpbin = &lpEntryID->Value.bin;
 	lpRootFolder->DeleteMessages(&sEntryList, 0, NULL, 0);
+	auto dblEnd = decltype(dblStart)::clock::now();
+	sc->inc(SCN_DAGENT_AUTOACCEPT_TIME, std::chrono::duration_cast<std::chrono::milliseconds>(dblEnd - dblStart).count());
 	// ignore error during delete; the autoaccept script may have already (re)moved the message
 	return hr;
 }
@@ -441,6 +444,7 @@ static HRESULT HrAutoProcess(StatsClient *sc, ECRecipient *lpRecip,
 	memory_ptr<SPropValue> lpEntryID;
 	ULONG ulType = 0;
 	ENTRYLIST sEntryList;
+	auto dblStart = std::chrono::steady_clock::now();
 
 	sc->inc(SCN_DAGENT_AUTOPROCESS);
 	// Pass a copy to the external script
@@ -480,6 +484,8 @@ static HRESULT HrAutoProcess(StatsClient *sc, ECRecipient *lpRecip,
 	sEntryList.lpbin = &lpEntryID->Value.bin;
 	lpRootFolder->DeleteMessages(&sEntryList, 0, NULL, 0);
 	// ignore error during delete; the autoaccept script may have already (re)moved the message
+	auto dblEnd = decltype(dblStart)::clock::now();
+	sc->inc(SCN_DAGENT_AUTOACCEPT_TIME, std::chrono::duration_cast<std::chrono::milliseconds>(dblEnd - dblStart).count());
 	return hr;
 }
 
@@ -2009,6 +2015,7 @@ static HRESULT ProcessDeliveryToRecipient(pym_plugin_intf *lppyMapiPlugin,
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	memory_ptr<ECQUOTASTATUS> lpsQuotaStatus;
 	bool over_quota = false;
+	auto dblStart = std::chrono::steady_clock::now();
 
 	// single user deliver did not lookup the user
 	if (lpRecip->strSMTP.empty()) {
@@ -2172,6 +2179,9 @@ static HRESULT ProcessDeliveryToRecipient(pym_plugin_intf *lppyMapiPlugin,
 		lpDeliveryMessage->QueryInterface(IID_IMessage, reinterpret_cast<void **>(lppMessage));
 	if (lpbFallbackDelivery)
 		*lpbFallbackDelivery = bFallbackDelivery;
+
+	auto dblEnd = decltype(dblStart)::clock::now();
+	lpArgs->sc->inc(SCN_DAGENT_DELIVERY_PROCESSING_TIME, std::chrono::duration_cast<std::chrono::milliseconds>(dblEnd - dblStart).count());
 	return hr;
 }
 
@@ -3540,7 +3550,9 @@ dagent_stats::dagent_stats(std::shared_ptr<ECConfig> cfg) :
 	set(SCN_PROGRAM_NAME, "kopano-dagent");
 	AddStat(SCN_DAGENT_ATTACHMENT_COUNT, SCT_INTEGER, "dagent_attachment_count", "Number of attachments processed");
 	AddStat(SCN_DAGENT_AUTOACCEPT, SCT_INTEGER, "dagent_autoaccept", "Number of meeting requests that underwent autoacceptance");
+	AddStat(SCN_DAGENT_AUTOACCEPT_TIME, SCT_INTEGER, "dagent_autoaccept_time", "Time taken to do autoacceptance of meeting requests in milliseconds");
 	AddStat(SCN_DAGENT_AUTOPROCESS, SCT_INTEGER, "dagent_autoprocess", "Number of meeting requests that underwent autoprocessing");
+	AddStat(SCN_DAGENT_AUTOPROCESS_TIME, SCT_INTEGER, "dagent_autoprocess_time", "Time taken to do autprocessing of meeting requests in milliseconds");
 	AddStat(SCN_DAGENT_DELIVER_INBOX, SCT_INTEGER, "dagent_deliver_inbox", "Number of messages delivered to inboxes");
 	AddStat(SCN_DAGENT_DELIVER_JUNK, SCT_INTEGER, "dagent_deliver_junk", "Number of messages delivered to junk folders");
 	AddStat(SCN_DAGENT_DELIVER_PUBLIC, SCT_INTEGER, "dagent_deliver_public", "Number of messages delivered to public folders");
@@ -3560,6 +3572,7 @@ dagent_stats::dagent_stats(std::shared_ptr<ECConfig> cfg) :
 	AddStat(SCN_DAGENT_TO_LIST, SCT_INTEGER, "dagent_to_list", "Number of mails delivered to a distlist");
 	AddStat(SCN_DAGENT_TO_SERVER, SCT_INTEGER, "dagent_to_server", "Number of mails delivered to the server");
 	AddStat(SCN_DAGENT_TO_SINGLE_RECIP, SCT_INTEGER, "dagent_to_single_recip", "Number of mails delivered to a single recipient");
+	AddStat(SCN_DAGENT_DELIVERY_PROCESSING_TIME, SCT_INTEGER, "dagent_delivery_time", "Time taken to delivery an email in milliseconds");
 	AddStat(SCN_LMTP_BAD_RECIP_ADDR, SCT_INTEGER, "lmtp_bad_recip_addr", "Bad RCPT commands");
 	AddStat(SCN_LMTP_BAD_SENDER_ADDRESS, SCT_INTEGER, "lmtp_bad_sender_addr", "Bad FROM commands");
 	AddStat(SCN_LMTP_INTERNAL_ERROR, SCT_INTEGER, "lmtp_internal_error", "Internal error during delivery");
@@ -3569,6 +3582,7 @@ dagent_stats::dagent_stats(std::shared_ptr<ECConfig> cfg) :
 	AddStat(SCN_LMTP_SESSIONS, SCT_INTEGER, "lmtp_session", "Number of incoming LMTP sessions");
 	AddStat(SCN_LMTP_TMPFILEFAIL, SCT_INTEGER, "lmtp_tmpfilefail", "Unable to create temp file for email delivery");
 	AddStat(SCN_LMTP_UNKNOWN_COMMAND, SCT_INTEGER, "lmtp_unknown_command", "Unknown commands issued");
+	AddStat(SCN_RULES_TIME, SCT_INTEGER, "rules_time", "Time taken to execute rules in milliseconds");
 	AddStat(SCN_RULES_BOUNCE, SCT_INTEGER, "rules_bounce", "OP_BOUNCE actions processed");
 	AddStat(SCN_RULES_COPYMOVE, SCT_INTEGER, "rules_copymove", "OP_COPY/OP_MOVE actions processed");
 	AddStat(SCN_RULES_DEFER, SCT_INTEGER, "rules_defer", "OP_DEFERs processed");

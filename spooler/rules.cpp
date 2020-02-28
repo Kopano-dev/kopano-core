@@ -1187,6 +1187,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 	unsigned int cValues, ulResult = 0;
 	SPropValue sForwardProps[4];
 	object_ptr<IECExchangeModifyTable> lpECModifyTable;
+	auto dblStart = std::chrono::steady_clock::now();
 
 	sc->inc(SCN_RULES_INVOKES);
 	auto hr = lpOrigInbox->OpenProperty(PR_RULES_TABLE, &IID_IExchangeModifyTable, 0, 0, &~lpTable);
@@ -1355,5 +1356,8 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 		hr = MAPI_E_CANCEL;
 	if (hr != hrSuccess)
 		sc->inc(SCN_RULES_INVOKES_FAIL);
+
+	auto dblEnd = decltype(dblStart)::clock::now();
+	sc->inc(SCN_RULES_TIME, std::chrono::duration_cast<std::chrono::milliseconds>(dblEnd - dblStart).count());
 	return hr;
 }
