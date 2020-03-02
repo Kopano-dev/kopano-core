@@ -111,6 +111,8 @@ class TrackingContentsImporter(ECImportContentsChanges):
     def ImportMessageChange(self, props, flags):
         if self.skip:
             raise MAPIError(SYNC_E_IGNORE)
+        if not hasattr(self.importer, 'update'):
+            return
         try:
             entryid = PpropFindProp(props, PR_ENTRYID)
             if self.importer.store:
@@ -131,8 +133,7 @@ class TrackingContentsImporter(ECImportContentsChanges):
                     PR_EC_PARENT_HIERARCHYID, PR_STORE_RECORD_KEY], 0)
                 item.docid = props[0].Value
                 item.storeid = _benc(props[2].Value)
-                if hasattr(self.importer, 'update'):
-                    self.importer.update(item, flags)
+                self.importer.update(item, flags)
             # TODO mail already deleted, can we do this in a cleaner way?
             except (MAPIErrorNotFound, MAPIErrorNoAccess):
                 self.log.debug('received change for entryid %s, but it could \
@@ -146,15 +147,14 @@ not be opened', _benc(entryid.Value))
         raise MAPIError(SYNC_E_IGNORE)
 
     def ImportMessageDeletion(self, flags, entries):
-        if self.skip:
+        if self.skip or not hasattr(self.importer, 'delete'):
             return
         try:
             for entry in entries:
                 item = _item.Item()
                 item.server = self.server
                 item._sourcekey = _benc(entry)
-                if hasattr(self.importer, 'delete'):
-                    self.importer.delete(item, flags)
+                self.importer.delete(item, flags)
         except Exception:
             self.log.error('could not process delete for entries: %s',
                 [_benc(entry) for entry in entries])
@@ -163,7 +163,7 @@ not be opened', _benc(entryid.Value))
                 self.stats['errors'] += 1
 
     def ImportPerUserReadStateChange(self, states):
-        if self.skip:
+        if self.skip or not hasattr(self.importer, 'read'):
             return
         try:
             for state in states:
@@ -172,9 +172,7 @@ not be opened', _benc(entryid.Value))
                 if self.importer.store: # TODO system-wide?
                     item.store = self.importer.store
                 item._sourcekey = _benc(state.SourceKey)
-                if hasattr(self.importer, 'read'):
-                    self.importer.read(
-                        item, bool(state.ulFlags & MSGFLAG_READ))
+                self.importer.read(item, bool(state.ulFlags & MSGFLAG_READ))
 
         except Exception:
             self.log.error('could not process readstate change')
