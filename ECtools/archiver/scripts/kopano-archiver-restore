@@ -38,7 +38,7 @@ def main():
     options, args = opt_args()
     log = logger(options)
     stats = {'items': 0, 'users': 0, 'errors': 0}
-    server = kopano.Server(options=options)
+    server = kopano.server(options=options)
 
     for user in server.users():
         with kopano.log_exc(log, stats):
