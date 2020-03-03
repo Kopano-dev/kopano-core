@@ -178,6 +178,13 @@ server_stats::server_stats(std::shared_ptr<ECConfig> cfg) :
 	set(SCN_SERVER_ATTACH_BACKEND, cfg->GetSetting("attachment_storage"));
 }
 
+void server_stats::stop()
+{
+	if (m_thread_running)
+		g_lpSessionManager->get_db_factory()->thread_end();
+	ECStatsCollector::stop();
+}
+
 // This is the callback function for libserver/* so that it can notify that a delayed soap
 // request has been handled.
 static void kcsrv_notify_done(struct soap *soap)

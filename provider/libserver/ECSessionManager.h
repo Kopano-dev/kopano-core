@@ -130,7 +130,8 @@ class usercount_t final {
 class _kc_export server_stats final : public ECStatsCollector {
 	public:
 	_kc_hidden server_stats(std::shared_ptr<ECConfig>);
-	void fill_odm() override;
+	virtual void stop() override;
+	virtual void fill_odm() override;
 
 	private:
 	_kc_hidden void update_tcmalloc_stats();

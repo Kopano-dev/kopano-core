@@ -138,8 +138,8 @@ class _kc_export ECStatsCollector {
 	ECStatsCollector(std::shared_ptr<ECConfig>);
 	~ECStatsCollector();
 	virtual void fill_odm() {}
-	void start();
-	void stop();
+	virtual void start();
+	virtual void stop();
 	void mainloop();
 	void submit(std::string &&url, std::string &&data, bool sslverify = true);
 	void inc(enum SCName, double inc);
@@ -172,13 +172,14 @@ class _kc_export ECStatsCollector {
 	void AddStat(enum SCName index, SCType type, const char *name, const char *desc = "");
 	std::string GetValue(const ECStat2 &);
 
+	bool m_thread_running = false;
+
 	private:
 	std::string stats_as_text();
 	std::string survey_as_text();
 
 	SCMap m_StatData;
 	std::unordered_map<std::string, ECStat2> m_ondemand;
-	bool thread_running = false;
 	std::atomic<bool> terminate{false};
 	pthread_t countsSubmitThread{};
 	std::shared_ptr<ECConfig> m_config;

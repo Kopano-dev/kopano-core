@@ -40,13 +40,13 @@ static void *submitThread(void *p)
 
 void ECStatsCollector::stop()
 {
-	if (!thread_running)
+	if (!m_thread_running)
 		return;
 	terminate = true;
 	m_exitsig.notify_one();
 	void *dummy = nullptr;
 	pthread_join(countsSubmitThread, &dummy);
-	thread_running = false;
+	m_thread_running = false;
 	terminate = false;
 }
 
@@ -290,12 +290,12 @@ ECStatsCollector::ECStatsCollector(std::shared_ptr<ECConfig> config) :
 
 void ECStatsCollector::start()
 {
-	if (thread_running)
+	if (m_thread_running)
 		return;
 	auto ret = pthread_create(&countsSubmitThread, nullptr, submitThread, this);
 	if (ret != 0)
 		return;
-	thread_running = true;
+	m_thread_running = true;
 	set_thread_name(countsSubmitThread, "statscl");
 }
 
