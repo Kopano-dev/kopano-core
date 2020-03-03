@@ -356,9 +356,9 @@ private:
 	// this can't be in the same map, since the id is the same for "company" and "company user default"
 	ECCache<ECMapQuota>			m_QuotaCache;
 	ECCache<ECMapQuota>			m_QuotaUserDefaultCache;
-	// Object cache, (hierarchy table)
+	// "hierarchy" table
 	ECCache<std::unordered_map<unsigned int, ECsObjects>> m_ObjectsCache;
-	// Store cache
+	// Store cache (objid -> storeid/guid)
 	ECCache<std::unordered_map<unsigned int, ECsStores>> m_StoresCache;
 	// User cache
 	ECCache<std::unordered_map<unsigned int, ECsUserObject>> m_UserObjectCache; /* userid to user object */
@@ -366,12 +366,13 @@ private:
 	ECCache<std::unordered_map<unsigned int, ECsUserObjectDetails>>	m_UserObjectDetailsCache; /* userid to user obejct data */
 	// ACL cache
 	ECCache<std::unordered_map<unsigned int, ECsACLs>> m_AclCache;
-	// Cell cache, include the column data of a loaded table
+	// properties and tproperties
 	ECCache<std::unordered_map<unsigned int, ECsCells>> m_CellCache;
 	// Server cache
 	ECCache<std::map<std::string, ECsServerDetails>> m_ServerDetailsCache;
-	//Index properties
+	// "indexedproperties" index2: {tag, data(entryid or sourcekey)} -> {objid,tag}
 	ECCache<std::unordered_map<ECsIndexProp, ECsIndexObject>> m_PropToObjectCache;
+	// "indexedproperties" index1: {objid,tag} -> {tag, data}
 	ECCache<ECMapObjectToProp> m_ObjectToPropCache;
 	// Properties from kopano-search
 	std::set<unsigned int> 		m_setExcludedIndexProperties;

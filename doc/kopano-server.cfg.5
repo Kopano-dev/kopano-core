@@ -638,17 +638,22 @@ Default:
 \fI256M\fR
 .SS cache_object_size
 .PP
-This caches objects and their respective hierarchy of folders. You can calculate the size with a simple equation:
-.PP
-concurrent users * max items in a folder * 24
+The "object" cache, unlike its name, actually keeps the contents of the
+"hierarchy" SQL table. Each cache entry weighs in at 28 bytes.
 .PP
 This value may contain a k, m or g multiplier.
 .PP
 Default:
-\fI5M\fR
+\fI5M\fR (187245 entries)
 .SS cache_indexedobject_size
 .PP
-This cache contains unique IDs of objects. This cache is used twice, also by the index2 cache, which is the inverse of the index1 cache. This value may contain a k, m or g multiplier.
+.\" Based on the size of EID v1.
+The "index1" cache keeps a forwarding mapping from object IDs to
+entryids/sourcekeys, and "index2" keeps the reverse mapping, essentially
+mirroring the "indexedproperties" SQL table. Each of the two caches will be of
+the specified size. Each cache entry weighs in at usually 60 bytes.
+.PP
+This value may contain a k, m or g multiplier.
 .PP
 Default:
 \fI16M\fR
@@ -673,7 +678,11 @@ Default:
 \fI1M\fR
 .SS cache_store_size
 .PP
-This cache contains store id values. This value may contain a k, m or g multiplier.
+The "store" cache keeps a mapping from object IDs to store ID (SQL numeric ID)
+and GUID, allowing to instantly know which store a message/folder/etc. is in
+without walking through the hierarchy first. Each entry weighs in at 28 bytes.
+.PP
+The size value may contain a k, m or g multiplier.
 .PP
 Default:
 \fI1M\fR
@@ -685,7 +694,10 @@ Default:
 \fI1M\fR
 .SS cache_userdetails_size
 .PP
-This cache contains the details of users. This value may contain a k, m or g multiplier.
+This cache contains the details of users, such as names, phone numbers, etc.
+Cache entries have been observed to be as big as 4000 bytes.
+.PP
+This value may contain a k, m or g multiplier.
 .PP
 Default:
 \fI3M\fR
