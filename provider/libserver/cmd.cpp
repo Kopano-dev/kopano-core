@@ -7466,7 +7466,7 @@ SOAP_ENTRY_START(unhookStore, *result, unsigned int ulStoreType,
 	// but will be migrated here and we need to remove the previous store with different guid.
 	auto cleanup = make_scope_success([&]() {
 		if (er == KCERR_INVALID_PARAMETER)
-			ec_log_err("Unhook of store (type %u) with userid %u rejected",  ulStoreType, ulUserId, strGUID.c_str());
+			ec_log_err("Unhook of store (type %u) with userid %u rejected",  ulStoreType, ulUserId);
 		else if (er != erSuccess)
 			ec_log_err("Unhook of store (type %u) with userid %u and GUID %s failed: %s (%x)",  ulStoreType, ulUserId, strGUID.c_str(), GetMAPIErrorMessage(kcerr_to_mapierr(er)), er);
 		else

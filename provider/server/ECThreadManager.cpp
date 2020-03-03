@@ -617,11 +617,11 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 					soap_free(newsoap);
 				} else {
 					if (ulType == CONNECTION_TYPE_NAMED_PIPE)
-						ec_log_debug("Accepted incoming connection from file://%s", m_lpConfig->GetSetting("server_pipe_name"));
+						ec_log_debug("Accepted incoming connection on file://%s", m_lpConfig->GetSetting("server_pipe_name"));
 					else if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
-						ec_log_debug("Accepted incoming connection from file://%s", m_lpConfig->GetSetting("server_pipe_priority"));
+						ec_log_debug("Accepted incoming connection on file://%s", m_lpConfig->GetSetting("server_pipe_priority"));
 					else
-						ec_log_debug("Accepted incoming%sconnection from %s",
+						ec_log_debug("Accepted incoming%sconnection on %s",
 							ulType == CONNECTION_TYPE_SSL ? " SSL ":" ",
 							newsoap->host);
 					newsoap->socket = ec_relocate_fd(newsoap->socket);
