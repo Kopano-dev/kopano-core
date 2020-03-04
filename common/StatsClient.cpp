@@ -221,7 +221,11 @@ void ECStatsCollector::submit(std::string &&url, std::string &&text, bool sslver
 	curl_easy_setopt(ch, CURLOPT_POSTFIELDSIZE_LARGE, static_cast<curl_off_t>(text.size()));
 	curl_easy_setopt(ch, CURLOPT_POSTFIELDS, text.c_str());
 	curl_easy_setopt(ch, CURLOPT_WRITEFUNCTION, curl_dummy_write);
-	curl_easy_perform(ch);
+	CURLcode res = curl_easy_perform(ch);
+	if (res != CURLE_OK) {
+		ec_log_warn("Statsclient curl_easy_perform() failed: %s", curl_easy_strerror(res));
+	}
+
 #endif
 }
 
@@ -245,6 +249,7 @@ void ECStatsCollector::mainloop()
 		if (do_sc || do_sv)
 			fill_odm();
 		if (do_sc) {
+			ec_log_debug("Submtting statistics data to %s", zsc_url);
 			submit(zsc_url, stats_as_text(), parseBool(m_config->GetSetting("statsclient_ssl_verify")));
 			next_sc = now + std::chrono::seconds(sc_int);
 			next_wk = std::min(next_wk, next_sc);
@@ -290,6 +295,7 @@ ECStatsCollector::ECStatsCollector(std::shared_ptr<ECConfig> config) :
 
 void ECStatsCollector::start()
 {
+	ec_log_info("Starting statscollector");
 	if (thread_running)
 		return;
 	auto ret = pthread_create(&countsSubmitThread, nullptr, submitThread, this);
