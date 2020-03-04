@@ -25,6 +25,8 @@ Fixes:
 * Various null deref warnings from clang --analyze were fixed
 * pymapi, pyko: emit tuples rather than arrays for functions with
   multiple return values (e.g.  [KC-1680]
+* ical: treat HTTP headers as case-insensitive
+* libserver: resolve memory leak of MYSQL objects [KC-1645]
 
 
 8.7.9 (2019-12-10)
