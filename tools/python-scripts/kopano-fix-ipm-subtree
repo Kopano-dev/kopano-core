@@ -7,7 +7,7 @@ import sys
 import kopano
 from MAPI.Tags import PR_IPM_SUBTREE_ENTRYID
 
-server = kopano.Server(auth_user='SYSTEM', auth_pass='')
+server = kopano.server(auth_user='SYSTEM', auth_pass='')
 
 if not len(server.options.users):
     sys.exit('Usage: %s -u username' % sys.argv[0])

@@ -14,7 +14,7 @@ as compared to the more low-level "kopano-stats --system"
 """
 
 options, _ = kopano.parser('ksp').parse_args()
-server = kopano.Server(options=options, auth_user='SYSTEM', auth_pass='')
+server = kopano.server(options=options, auth_user='SYSTEM', auth_pass='')
 
 cstat = defaultdict(dict)
 for name, value in server.stats().items():
