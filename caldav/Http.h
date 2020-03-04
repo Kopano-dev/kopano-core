@@ -17,6 +17,7 @@
 #include <libxml/uri.h>
 #include <libxml/globals.h>
 #include <kopano/charset/convert.h>
+#include <kopano/stringutil.h>
 
 #define HTTP_CHUNK_SIZE 10000
 #define SERVICE_UNKNOWN	0x00
@@ -66,7 +67,7 @@ private:
 	std::string m_strURL;		//!< original action url
 	std::string m_strPath;		//!< decoded url
 	std::string m_strHttpVer;
-	std::map<std::string, std::string> mapHeaders;
+	std::map<std::string, std::string, KC::strcasecmp_comparison> mapHeaders;
 	std::string m_strUser, m_strPass, m_strReqBody, m_strCharSet;
 	std::string m_strUserAgent, m_strUserAgentVersion;
 
