@@ -1,3 +1,9 @@
+9.0.4 (2020-03-04)
+==================
+Changes from the 8.7.x branch up to 2020-03-04 are included.
+* common: cure free/delete[] mismatch in hr_logcode2
+
+
 9.0.3 (2020-01-28)
 ==================
 Changes from the 8.7.x branch up to 2020-01-14 are included.
