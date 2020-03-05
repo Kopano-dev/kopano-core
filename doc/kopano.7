@@ -118,12 +118,16 @@ Possible additional subsystem bits that can be ORed with the level:
 Default: \fB4\fP
 .PP
 Example: \fB0x800006\fP
-.SS KOPANO_SOCKET
-.PP
-The kopano-server Unix socket to use for kopano-admin and other utilities.
 .SS KOPANO_CONFIG_PATH
 .PP
-The path to the Kopano configuration files used by Kopano utilities.
+The default location configuration files will be looked up in unless overriden
+by other program logic, such as command-line options (e.g. `kopano-server \-c`
+has higher precedence over KOPANO_CONFIG_PATH).
+.SS KOPANO_SOCKET
+.PP
+The default socket URI that is used for all MAPI connections unless overridden
+by other program logic, such as command-line options (e.g. `kopano-admin \-h`
+has higher precedence over KOPANO_SOCKET).
 .PP
 Default: \fB/etc/kopano\fP
 .SH "AUTHOR"
