@@ -27,6 +27,8 @@ namespace KC {
 
 /*
  * Comparison handler for case-insensitive keys in maps
+ * This is binary data compatible, at the cost of an unintuitive order ("f" <
+ * "bar"), so you should not present strings using these functors to the user.
  */
 struct strcasecmp_comparison {
 	bool operator()(const std::string &left, const std::string &right) const

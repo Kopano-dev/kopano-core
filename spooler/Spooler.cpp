@@ -1151,12 +1151,14 @@ static int main2(int argc, char **argv)
 		return hr_lcrit(hr, "Unable to initialize MAPI");
 
 	sc.reset(new spooler_stats(g_lpConfig));
-	if (bForked)
+	if (bForked) {
 		hr = ProcessMessageForked(strUsername.c_str(), szSMTP, ulPort,
 		     szPath, strMsgEntryId.length(), reinterpret_cast<const ENTRYID *>(strMsgEntryId.data()),
 		     g_lpLogger, bDoSentMail);
-	else
-			hr = running_server(szSMTP, ulPort, szPath);
+	} else {
+		sc->start();
+		hr = running_server(szSMTP, ulPort, szPath);
+	}
 	if (!bForked)
 		ec_log_info("Spooler shutdown complete");
 	/* ~ECLogger_Pipe could call hCondMessagesWaiting.notify_one and thus needs to be gone before the cv */

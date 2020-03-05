@@ -112,11 +112,14 @@ void ECDatabaseFactory::thread_end()
 	auto db = static_cast<ECDatabase *>(pthread_getspecific(m_thread_key));
 	if (db == nullptr)
 		return;
-	db->ThreadEnd();
 	std::unique_lock<std::mutex> lk(m_child_mtx);
+	pthread_setspecific(m_thread_key, nullptr);
 	auto i = m_children.find(db);
 	if (i != m_children.cend())
 		m_children.erase(i);
+	db->ThreadEnd();
+	lk.unlock();
+	delete db;
 }
 
 void ECDatabaseFactory::filter_bmp(bool y)

@@ -16,6 +16,7 @@
 #include <utility>
 #include <sys/types.h>
 #include <kopano/MAPIErrors.h>
+#include <kopano/memory.hpp>
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #ifndef KC_LIKE_PRINTF
@@ -276,7 +277,7 @@ extern KC_EXPORT void ec_log_set(std::shared_ptr<ECLogger>);
 extern KC_EXPORT void ec_log_immed(unsigned int level, const char *msg, ...) KC_LIKE_PRINTF(2, 3);
 extern KC_EXPORT void ec_log(unsigned int level, const char *msg, ...) KC_LIKE_PRINTF(2, 3);
 extern KC_EXPORT void ec_log_immed(unsigned int level, const std::string &msg);
-extern void hr_logcode2(HRESULT code, unsigned int level, const char *func, std::unique_ptr<char[]> &&);
+extern void hr_logcode2(HRESULT code, unsigned int level, const char *func, std::unique_ptr<char[], cstdlib_deleter> &&);
 extern KC_EXPORT HRESULT hr_logcode(HRESULT code, unsigned int level, const char *func, const char *fmt, ...) KC_LIKE_PRINTF(4, 5);
 extern KC_EXPORT HRESULT hr_logcode(HRESULT code, unsigned int level, const char *func, const std::string &fmt, ...);
 

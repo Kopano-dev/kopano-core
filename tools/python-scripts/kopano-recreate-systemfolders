@@ -37,7 +37,7 @@ def main():
         print('Usage:\n %s --user <username>  ' % (sys.argv[0]))
         sys.exit(1)
 
-    user = kopano.Server(options).user(options.user)
+    user = kopano.server(options).user(options.user)
     print(user)
     whitelist = ['calendar', 'contacts', 'drafts', 'journal', 'notes', 'outbox', 'sentmail', 'tasks',
                  'wastebasket']

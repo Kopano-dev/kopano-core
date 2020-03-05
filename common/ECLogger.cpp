@@ -1094,7 +1094,7 @@ void ec_log_immed(unsigned int level, const std::string &msg)
 	ec_log_target->log(level, msg.c_str());
 }
 
-void hr_logcode2(HRESULT code, unsigned int level, const char *func, std::unique_ptr<char[]> &&msg)
+void hr_logcode2(HRESULT code, unsigned int level, const char *func, std::unique_ptr<char[], cstdlib_deleter> &&msg)
 {
 	if (func == nullptr)
 		func = "";
@@ -1125,7 +1125,7 @@ HRESULT hr_logcode(HRESULT code, unsigned int level, const char *func, const cha
 	auto ret = vasprintf(&msg, fmt, va);
 	va_end(va);
 	if (ret >= 0)
-		hr_logcode2(code, level, func, std::unique_ptr<char[]>(msg));
+		hr_logcode2(code, level, func, std::unique_ptr<char[], cstdlib_deleter>(msg));
 	return code;
 }
 
@@ -1139,7 +1139,7 @@ HRESULT hr_logcode(HRESULT code, unsigned int level, const char *func, const std
 	auto ret = vasprintf(&msg, fmt.c_str(), va);
 	va_end(va);
 	if (ret >= 0)
-		hr_logcode2(code, level, func, std::unique_ptr<char[]>(msg));
+		hr_logcode2(code, level, func, std::unique_ptr<char[], cstdlib_deleter>(msg));
 	return code;
 }
 
