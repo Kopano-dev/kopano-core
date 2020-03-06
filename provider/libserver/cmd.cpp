@@ -4,14 +4,17 @@
  */
 #include <kopano/platform.h>
 #include <algorithm>
+#include <chrono>
 #include <list>
 #include <memory>
 #include <string>
 #include <utility>
 #include <cstdint>
+#include <libHX/misc.h>
 #include <kopano/ECChannel.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/memory.hpp>
+#include <kopano/timeutil.hpp>
 #include <kopano/tie.hpp>
 #include <kopano/scope.hpp>
 #include "ECDatabaseUtils.h"
@@ -553,17 +556,19 @@ int KCmdService::logon(const char *user, const char *pass,
     const char *cl_app_ver, const char *cl_app_misc,
     struct logonResponse *lpsResponse)
 {
+	soap_info(soap)->st.rh1_wall_start = time_point::clock::now();
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &soap_info(soap)->st.rh1_cpu[0]);
+	soap_info(soap)->st.func = __func__;
 	ECSession	*lpecSession = NULL;
 	ECSESSIONID	sessionID = 0;
 	GUID sServerGuid{};
-	struct timespec startTimes{}, endTimes{};
-	auto dblStart = steady_clock::now();
+	ECRESULT er;
 
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTimes);
 	LOG_SOAP_DEBUG("%020llu: S logon", static_cast<unsigned long long>(sessionID));
-
-	if (!(clientCaps & KOPANO_CAP_UNICODE))
-		return MAPI_E_BAD_CHARWIDTH;
+	if (!(clientCaps & KOPANO_CAP_UNICODE)) {
+		er = MAPI_E_BAD_CHARWIDTH;
+		goto exit;
+	}
 
 	lpsResponse->lpszVersion = const_cast<char *>("0," PROJECT_VERSION_COMMIFIED);
 	lpsResponse->ulCapabilities = KOPANO_LATEST_CAPABILITIES;
@@ -588,7 +593,7 @@ int KCmdService::logon(const char *user, const char *pass,
 	}
 
 	// check username and password
-	auto er = g_lpSessionManager->CreateSession(soap, user, pass, impuser,
+	er = g_lpSessionManager->CreateSession(soap, user, pass, impuser,
 	          cl_ver, cl_app, cl_app_ver, cl_app_misc, clientCaps,
 	          ullSessionGroup, &sessionID, &lpecSession, true,
 	          !(logonFlags & KOPANO_LOGON_NO_UID_AUTH),
@@ -634,11 +639,12 @@ exit:
 	if (lpecSession)
 		lpecSession->unlock();
 	lpsResponse->er = er;
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &endTimes);
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &soap_info(soap)->st.rh1_cpu[1]);
+	soap_info(soap)->st.rh1_wall_end = time_point::clock::now();
 	LOG_SOAP_DEBUG("%020llu: E logon 0x%08x %f %f",
 		static_cast<unsigned long long>(sessionID), er,
-		timespec2dbl(endTimes) - timespec2dbl(startTimes),
-		dur2dbl(decltype(dblStart)::clock::now() - dblStart));
+		timespec2dbl(soap_info(soap)->st.rh1_cpu[1]) - timespec2dbl(soap_info(soap)->st.rh1_cpu[0]),
+		dur2dbl(soap_info(soap)->st.rh1_wall_end - soap_info(soap)->st.rh1_wall_start));
 	return SOAP_OK;
 }
 
@@ -652,6 +658,9 @@ int KCmdService::ssoLogon(ULONG64 ulSessionId, const char *szUsername,
     const char *cl_app, const char *cl_app_ver, const char *cl_app_misc,
     struct ssoLogonResponse *lpsResponse)
 {
+	soap_info(soap)->st.rh1_wall_start = time_point::clock::now();
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &soap_info(soap)->st.rh1_cpu[0]);
+	soap_info(soap)->st.func = __func__;
 	ECRESULT		er = KCERR_LOGON_FAILED;
 	ECAuthSession	*lpecAuthSession = NULL;
 	ECSession		*lpecSession = NULL;
@@ -659,10 +668,6 @@ int KCmdService::ssoLogon(ULONG64 ulSessionId, const char *szUsername,
 	GUID sServerGuid{};
 	xsd__base64Binary *lpOutput = NULL;
 	const char *lpszEnabled = NULL;
-	struct timespec startTimes{}, endTimes{};
-	auto dblStart = steady_clock::now();
-
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTimes);
 	LOG_SOAP_DEBUG("%020" PRIu64 ": S ssoLogon", ulSessionId);
 
 	if (lpInput == nullptr || lpInput->__size == 0 ||
@@ -780,10 +785,12 @@ exit:
 		g_lpSessionManager->m_stats->inc(SCN_LOGIN_DENIED);
 nosso:
 	lpsResponse->er = er;
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &endTimes);
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &soap_info(soap)->st.rh1_cpu[1]);
+	soap_info(soap)->st.rh1_wall_end = time_point::clock::now();
 	LOG_SOAP_DEBUG("%020" PRIu64 ": E ssoLogon 0x%08x %f %f",
-		ulSessionId, er, timespec2dbl(endTimes) - timespec2dbl(startTimes),
-		dur2dbl(decltype(dblStart)::clock::now() - dblStart));
+		ulSessionId, er,
+		timespec2dbl(soap_info(soap)->st.rh1_cpu[1]) - timespec2dbl(soap_info(soap)->st.rh1_cpu[0]),
+		dur2dbl(soap_info(soap)->st.rh1_wall_end - soap_info(soap)->st.rh1_wall_start));
 	return SOAP_OK;
 }
 
@@ -793,10 +800,10 @@ nosso:
 int KCmdService::logoff(ULONG64 ulSessionId, unsigned int *result)
 {
 	ECSession 	*lpecSession = NULL;
-	struct timespec startTimes{}, endTimes{};
-	auto dblStart = steady_clock::now();
 
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTimes);
+	soap_info(soap)->st.rh1_wall_start = time_point::clock::now();
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &soap_info(soap)->st.rh1_cpu[0]);
+	soap_info(soap)->st.func = __func__;
 	LOG_SOAP_DEBUG("%020" PRIu64 ": S logoff", ulSessionId);
 	auto er = g_lpSessionManager->ValidateSession(soap, ulSessionId, &lpecSession);
 	if(er != erSuccess)
@@ -812,45 +819,52 @@ int KCmdService::logoff(ULONG64 ulSessionId, unsigned int *result)
 	er = g_lpSessionManager->RemoveSession(ulSessionId);
 exit:
     *result = er;
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &endTimes);
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &soap_info(soap)->st.rh1_cpu[1]);
+	soap_info(soap)->st.rh1_wall_end = time_point::clock::now();
 	LOG_SOAP_DEBUG("%020" PRIu64 ": E logoff 0x%08x %f %f",
-		ulSessionId, 0, timespec2dbl(endTimes) - timespec2dbl(startTimes),
-		dur2dbl(decltype(dblStart)::clock::now() - dblStart));
+		ulSessionId, 0,
+		timespec2dbl(soap_info(soap)->st.rh1_cpu[1]) - timespec2dbl(soap_info(soap)->st.rh1_cpu[0]),
+		dur2dbl(soap_info(soap)->st.rh1_wall_end - soap_info(soap)->st.rh1_wall_start));
 	return SOAP_OK;
 }
 
 #define SOAP_ENTRY_START(fname, resultvar, ...) \
 int KCmdService::fname(ULONG64 ulSessionId, ##__VA_ARGS__) \
 { \
-	struct timespec startTimes{}, endTimes{}; \
-	auto dblStart = steady_clock::now(); \
-    ECSession		*lpecSession = NULL; \
-	const char *szFname = #fname; \
-    clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTimes); \
-	LOG_SOAP_DEBUG("%020" PRIu64 ": S %s", ulSessionId, szFname); \
-	auto er = g_lpSessionManager->ValidateSession(soap, ulSessionId, &lpecSession); \
-	auto xx_endtimer = make_scope_success([&]() { \
-		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &endTimes); \
-		LOG_SOAP_DEBUG("%020" PRIu64 ": E %s 0x%08x %f %f", ulSessionId, szFname, er, \
-			timespec2dbl(endTimes) - timespec2dbl(startTimes), \
-			dur2dbl(decltype(dblStart)::clock::now() - dblStart)); \
+	soap_info(soap)->st.rh1_wall_start = time_point::clock::now(); \
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &soap_info(soap)->st.rh1_cpu[0]); \
+	auto xx_endtimer1 = make_scope_success([&]() { \
+		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &soap_info(soap)->st.rh1_cpu[1]); \
+		soap_info(soap)->st.rh1_wall_end = time_point::clock::now(); \
+		HX_timespec_sub(&soap_info(soap)->st.rh1_cpu[2], &soap_info(soap)->st.rh1_cpu[1], &soap_info(soap)->st.rh1_cpu[0]); \
+		soap_info(soap)->st.rh1_wall_dur = soap_info(soap)->st.rh1_wall_end - soap_info(soap)->st.rh1_wall_start; \
 	}); \
+	const char *szFname = #fname; \
+	soap_info(soap)->st.func = szFname; \
+	LOG_SOAP_DEBUG("%020" PRIu64 ": S %s", ulSessionId, szFname); \
+	ECSession *lpecSession = nullptr; \
+	auto er = g_lpSessionManager->ValidateSession(soap, ulSessionId, &lpecSession); \
 	if (er != erSuccess) { \
 		resultvar = er; \
 		return SOAP_OK; \
 	} \
 	soap_info(soap)->ulLastSessionId = ulSessionId; \
-	soap_info(soap)->szFname = szFname; \
-	lpecSession->AddBusyState(pthread_self(), szFname, soap_info(soap)->threadstart, soap_info(soap)->start); \
+	lpecSession->AddBusyState(pthread_self(), szFname, soap_info(soap)->st); \
 	auto xx_unbusy = make_scope_success([&]() { \
 		lpecSession->UpdateBusyState(pthread_self(), SESSION_STATE_SENDING); \
 		lpecSession->unlock(); \
 	}); \
+	soap_info(soap)->st.rh2_wall_start = time_point::clock::now(); \
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &soap_info(soap)->st.rh2_cpu[0]); \
 	resultvar = [&]() -> int {
 
 #define SOAP_ENTRY_END() \
         return er; \
     }(); \
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &soap_info(soap)->st.rh2_cpu[1]); \
+	soap_info(soap)->st.rh2_wall_end = time_point::clock::now(); \
+	HX_timespec_sub(&soap_info(soap)->st.rh2_cpu[2], &soap_info(soap)->st.rh2_cpu[1], &soap_info(soap)->st.rh2_cpu[0]); \
+	soap_info(soap)->st.rh2_wall_dur = soap_info(soap)->st.rh2_wall_end - soap_info(soap)->st.rh2_wall_start; \
     return SOAP_OK; \
 }
 

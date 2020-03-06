@@ -17,14 +17,17 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <ctime>
 #include <pthread.h>
 #include <sys/types.h>
 #include "soapH.h"
 #include <kopano/kcodes.h>
+#include <kopano/timeutil.hpp>
 #include "ECNotification.h"
 #include "ECTableManager.h"
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
+#include <kopano/rqstat.hpp>
 #include <kopano/timeutil.hpp>
 #include "ECDatabaseFactory.h"
 #include "ECPluginFactory.h"
@@ -49,8 +52,9 @@ enum { SESSION_STATE_PROCESSING, SESSION_STATE_SENDING };
 
 struct BUSYSTATE {
     const char *fname;
-    struct timespec threadstart;
-	KC::time_point start;
+	const struct request_stat *rqstat;
+	struct timespec wi_cpu_start;
+	time_point wi_wall_start;
     pthread_t threadid;
     int state;
 };
@@ -136,7 +140,7 @@ public:
 	KC_HIDDEN ECRESULT UnlockObject(unsigned int obj_id);
 
 	/* for ECStatsSessionTable */
-	KC_HIDDEN void AddBusyState(pthread_t, const char *state, const struct timespec &threadstart, const KC::time_point &start);
+	KC_HIDDEN void AddBusyState(pthread_t, const char *state, const request_stat &);
 	KC_HIDDEN void UpdateBusyState(pthread_t, int state);
 	KC_HIDDEN void RemoveBusyState(pthread_t);
 	KC_HIDDEN void GetBusyStates(std::list<BUSYSTATE> *);

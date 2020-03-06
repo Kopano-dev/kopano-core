@@ -22,6 +22,7 @@
 #include <kopano/UnixUtil.h>
 #include <kopano/memory.hpp>
 #include <kopano/scope.hpp>
+#include <kopano/timeutil.hpp>
 #include "ECSession.h"
 #include "ECSessionManager.h"
 #include "ECUserManagement.h"
@@ -358,18 +359,21 @@ ECRESULT ECSession::GetNotifyItems(struct soap *soap, struct notifyResponse *not
 }
 
 void ECSession::AddBusyState(pthread_t threadId, const char *lpszState,
-    const struct timespec &threadstart, const KC::time_point &start)
+    const request_stat &st)
 {
 	if (!lpszState) {
 		ec_log_err("Invalid argument \"lpszState\" in call to ECSession::AddBusyState()");
 		return;
 	}
 	scoped_lock lock(m_hStateLock);
-	m_mapBusyStates[threadId].fname = lpszState;
-	m_mapBusyStates[threadId].threadstart = threadstart;
-	m_mapBusyStates[threadId].start = start;
 	m_mapBusyStates[threadId].threadid = threadId;
 	m_mapBusyStates[threadId].state = SESSION_STATE_PROCESSING;
+	/* These are for asynchronous evaluation by ECStatsTables */
+	auto &m = m_mapBusyStates[threadId];
+	m.wi_cpu_start  = st.wi_cpu[0];
+	m.wi_wall_start = st.wi_wall_start;
+	/* This is for the current thread only (RemoveBusyState) */
+	m.rqstat = &st;
 }
 
 void ECSession::UpdateBusyState(pthread_t threadId, int state)
@@ -391,16 +395,8 @@ void ECSession::RemoveBusyState(pthread_t threadId)
 		assert(false);
 		return;
 	}
-	clockid_t clock;
-	struct timespec end;
-
-	// Since the specified thread is done now, record how much work it has done for us
-	if(pthread_getcpuclockid(threadId, &clock) == 0) {
-		clock_gettime(clock, &end);
-		AddClocks(timespec2dbl(end) - timespec2dbl(i->second.threadstart), 0, dur2dbl(decltype(i->second.start)::clock::now() - i->second.start));
-	} else {
-		assert(false);
-	}
+	AddClocks(timespec2dbl(i->second.rqstat->wi_cpu[2]),
+		0, dur2dbl(i->second.rqstat->wi_wall_dur));
 	m_mapBusyStates.erase(threadId);
 }
 

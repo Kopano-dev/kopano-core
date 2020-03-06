@@ -11,6 +11,7 @@
 #include <kopano/zcdefs.h>
 #include <kopano/kcodes.h>
 #include <kopano/pcuser.hpp>
+#include <kopano/rqstat.hpp>
 #include <kopano/timeutil.hpp>
 #include <kopano/ustringutil.h>
 #include <string>
@@ -119,9 +120,7 @@ struct SOAPINFO {
 	void (*fdone)(struct soap *soap, void *param);
 	void *fdoneparam;
 	ECSESSIONID ulLastSessionId; // Session ID of the last processed request
-	struct timespec threadstart; 	// Start count of when the thread started processing the request
-	KC::time_point start; /* Start timestamp of when we started processing the request */
-	const char *szFname;
+	struct request_stat st;
 };
 
 class ec_soap_deleter {

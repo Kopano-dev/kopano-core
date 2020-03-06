@@ -13,9 +13,11 @@
 #include <algorithm>
 #include <poll.h>
 #include <unistd.h>
+#include <libHX/misc.h>
 #include <libHX/string.h>
 #include <kopano/ECChannel.h>
 #include <kopano/stringutil.h>
+#include <kopano/timeutil.hpp>
 #ifdef HAVE_EPOLL_CREATE
 #include <sys/epoll.h>
 #endif
@@ -43,7 +45,6 @@ class WORKITEM final : public ECTask {
 	virtual ~WORKITEM();
 	virtual void run();
 	struct soap *xsoap = nullptr; /* socket and state associated with the connection */
-	time_point dblReceiveStamp; /* time at which activity was detected on the socket */
 	ECDispatcher *dispatcher = nullptr;
 };
 
@@ -113,13 +114,22 @@ WORKITEM::~WORKITEM()
 	soap_free(xsoap);
 }
 
+static inline LONGLONG timespec2ms(const struct timespec &t)
+{
+	return t.tv_sec * 1000 + t.tv_nsec / 1000000;
+}
+
 void WORKITEM::run()
 {
-	kcsrv_blocksigs();
 	auto lpWorkItem = this;
+	struct soap *soap = lpWorkItem->xsoap;
+	auto info = soap_info(soap);
+	info->st.wi_wall_start = time_point::clock::now();
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &info->st.wi_cpu[0]);
+
+	kcsrv_blocksigs();
 	int err = 0;
 	pthread_t thrself = pthread_self();
-	struct soap *soap = lpWorkItem->xsoap;
 	lpWorkItem->xsoap = nullptr; /* Snatch soap away from ~WORKITEM */
 	set_thread_name(thrself, (m_worker->m_pool->m_poolname + "/" + soap->host).c_str());
 
@@ -135,16 +145,10 @@ void WORKITEM::run()
 		}
 	} else {
 		err = 0;
-		// Record start of handling of this request
-		auto dblStart = std::chrono::steady_clock::now();
 		// Reset last session ID so we can use it reliably after the call is done
-		auto info = soap_info(soap);
 		info->ulLastSessionId = 0;
 		// Pass information on start time of the request into soap->user, so that it can be applied to the correct
 		// session after XML parsing
-		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &info->threadstart);
-		info->start = decltype(dblStart)::clock::now();
-		info->szFname = nullptr;
 		info->fdone = NULL;
 
 		// Do processing of work item
@@ -190,14 +194,23 @@ done:
 		if (info->fdone != nullptr)
 			info->fdone(soap, info->fdoneparam);
 
-		auto dblEnd = decltype(dblStart)::clock::now();
-		// Tell the session we're done processing the request for this session. This will also tell the session that this
-		// thread is done processing the item, so any time spent in this thread until now can be accounted in that session.
+		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &info->st.wi_cpu[1]);
+		info->st.wi_wall_end = time_point::clock::now(); /* end time for multiple counters */
+		HX_timespec_sub(&info->st.wi_cpu[2], &info->st.wi_cpu[1], &info->st.wi_cpu[0]);
+		info->st.wi_wall_dur  = info->st.wi_wall_end - info->st.wi_wall_start;
+		info->st.sk_wall_dur  = info->st.wi_wall_end - info->st.sk_wall_start;
+		info->st.enq_wall_dur = info->st.wi_wall_end - info->st.enq_wall_start;
+		/*
+		 * Tell the session we are done processing the request for this
+		 * session. Any time spent in this thread until now will be
+		 * accounted towards that session.
+		 */
 		g_lpSessionManager->RemoveBusyState(info->ulLastSessionId, thrself);
 		// Track cpu usage server-wide
 		g_lpSessionManager->m_stats->inc(SCN_SOAP_REQUESTS);
-		g_lpSessionManager->m_stats->inc(SCN_PROCESSING_TIME, std::chrono::duration_cast<std::chrono::milliseconds>(dblEnd - dblStart).count());
-		g_lpSessionManager->m_stats->inc(SCN_RESPONSE_TIME, std::chrono::duration_cast<std::chrono::milliseconds>(dblEnd - lpWorkItem->dblReceiveStamp).count());
+		using namespace std::chrono;
+		g_lpSessionManager->m_stats->inc(SCN_PROCESSING_TIME, duration_cast<microseconds>(info->st.wi_wall_dur).count());
+		g_lpSessionManager->m_stats->inc(SCN_RESPONSE_TIME, duration_cast<microseconds>(info->st.sk_wall_dur).count());
 	}
 
 	// Clear memory used by soap calls. Note that this does not actually
@@ -250,19 +263,19 @@ void ECDispatcher::AddListenSocket(std::unique_ptr<struct soap, ec_soap_deleter>
 	m_setListenSockets.emplace(soap->socket, std::move(soap));
 }
 
-void ECDispatcher::QueueItem(struct soap *soap)
+void ECDispatcher::QueueItem(struct soap *soap, time_point sktime)
 {
 	auto item = new WORKITEM;
 	CONNECTION_TYPE ulType;
 
 	item->xsoap = soap;
-	item->dblReceiveStamp = std::chrono::steady_clock::now();
 	item->dispatcher = this;
+	soap_info(soap)->st.sk_wall_start = sktime;
 	ulType = SOAP_CONNECTION_TYPE(soap);
 	if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
-		m_prio.enqueue(item, true);
+		m_prio.enqueue(item, true, &soap_info(soap)->st.enq_wall_start);
 	else
-		m_pool.enqueue(item, true);
+		m_pool.enqueue(item, true, &soap_info(soap)->st.enq_wall_start);
 }
 
 // Called by a worker thread when it's done with an item
@@ -410,6 +423,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
 		auto n = poll(pollfd.get(), nfds, 1 * 1000);
 		if (n < 0)
             continue; // signal caught, restart
+		auto sockev_time = time_point::clock::now();
 		if (pollfd[0].revents & POLLIN) {
             char s[128];
             // A socket rescan has been triggered, we don't need to do anything, just read the data, discard it
@@ -447,7 +461,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
 				continue;
 			}
 			// Actual data waiting, push it on the processing queue
-			QueueItem(iterSockets->second.soap);
+			QueueItem(iterSockets->second.soap, sockev_time);
 			// Remove socket from listen list for now, since we're already handling data there and don't
 			// want to interfere with the thread that is now handling that socket. It will be passed back
 			// to us when the request is done.
@@ -605,6 +619,7 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 		l_sock.unlock();
 
 		n = epoll_wait(m_epFD, epevents.get(), m_fdMax, 1000); // timeout -1 is wait indefinitely
+		auto sockev_time = time_point::clock::now();
 		l_sock.lock();
 		for (int i = 0; i < n; ++i) {
 			auto iterListenSockets = m_setListenSockets.find(epevents[i].data.fd);
@@ -624,7 +639,7 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 					m_setSockets.erase(iterSockets);
 					continue;
 				}
-				QueueItem(iterSockets->second.soap);
+				QueueItem(iterSockets->second.soap, sockev_time);
 				// Remove socket from listen list for now, since we're already handling data there and don't
 				// want to interfere with the thread that is now handling that socket. It will be passed back
 				// to us when the request is done.

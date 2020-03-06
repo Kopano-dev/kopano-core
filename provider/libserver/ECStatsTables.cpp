@@ -3,10 +3,12 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
-#include <chrono>
 #include <memory>
 #include <new>
+#include <ctime>
+#include <libHX/misc.h>
 #include <kopano/tie.hpp>
+#include <kopano/timeutil.hpp>
 #include "ECStatsTables.h"
 #include "SOAPUtils.h"
 #include "ECSession.h"
@@ -291,13 +293,14 @@ void ECSessionStatsTable::GetSessionData(ECSession *lpSession, void *obj)
 	// for their CPU usage, and add that to the already-logged time on the session
 	for (const auto &bs : sd.busystates) {
 		clockid_t clock;
-		struct timespec now;
 		if (pthread_getcpuclockid(bs.threadid, &clock) != 0)
 			continue;
-
-		clock_gettime(clock, &now);
-		sd.dblUser += timespec2dbl(now) - timespec2dbl(bs.threadstart);
-		sd.dblReal += dur2dbl(decltype(bs.start)::clock::now() - bs.start);
+		struct timespec wi_cpu_end, diff;
+		clock_gettime(clock, &wi_cpu_end);
+		auto wi_wall_end = time_point::clock::now();
+		HX_timespec_sub(&diff, &wi_cpu_end, &bs.wi_cpu_start);
+		sd.dblUser += timespec2dbl(diff);
+		sd.dblReal += dur2dbl(wi_wall_end - bs.wi_wall_start);
 	}
 	lpThis->m_mapSessionData[lpThis->id] = sd;
 	++lpThis->id;
