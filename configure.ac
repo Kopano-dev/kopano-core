@@ -1,5 +1,5 @@
 AC_PREREQ(2.60)
-AC_INIT([kopano], [10.0.1], [development@kopano.io])
+AC_INIT([kopano], [10.0.2], [development@kopano.io])
 dnl Change when there was an ABI change (use abidiff or abi-compare)
 PACKAGE_ABI=10.0
 AC_CONFIG_SRCDIR([provider/server/ECServer.cpp])
