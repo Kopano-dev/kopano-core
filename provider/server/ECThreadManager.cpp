@@ -593,66 +593,67 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 			if (iterListenSockets == m_setListenSockets.end()) {
 				// this is a new request from an existing client
 				auto iterSockets = m_setSockets.find(epevents[i].data.fd);
-				if (iterSockets != m_setSockets.cend()) {
-					// remove from epfd, either close socket, or it will be reactivated later in the epfd
-					epevent.data.fd = iterSockets->second.soap->socket;
-					epoll_ctl(m_epFD, EPOLL_CTL_DEL, iterSockets->second.soap->socket, &epevent);
+				if (iterSockets == m_setSockets.cend())
+					continue;
+				// remove from epfd, either close socket, or it will be reactivated later in the epfd
+				epevent.data.fd = iterSockets->second.soap->socket;
+				epoll_ctl(m_epFD, EPOLL_CTL_DEL, iterSockets->second.soap->socket, &epevent);
 
-					if (epevents[i].events & EPOLLHUP) {
-						kopano_end_soap_connection(iterSockets->second.soap);
-						soap_free(iterSockets->second.soap);
-						m_setSockets.erase(iterSockets);
-					} else {
-						QueueItem(iterSockets->second.soap);
-						// Remove socket from listen list for now, since we're already handling data there and don't
-						// want to interfere with the thread that is now handling that socket. It will be passed back
-						// to us when the request is done.
-						m_setSockets.erase(iterSockets);
-					}
+				if (epevents[i].events & EPOLLHUP) {
+					kopano_end_soap_connection(iterSockets->second.soap);
+					soap_free(iterSockets->second.soap);
+					m_setSockets.erase(iterSockets);
+					continue;
 				}
-			} else {
-				// this was a listen socket .. accept and continue
-				ACTIVESOCKET sActive;
-				auto newsoap = soap_copy(iterListenSockets->second.get());
-                kopano_new_soap_connection(SOAP_CONNECTION_TYPE(iterListenSockets->second), newsoap);
-				// Record last activity (now)
-				time(&sActive.ulLastActivity);
-				ulType = SOAP_CONNECTION_TYPE(iterListenSockets->second);
-				if (ulType == CONNECTION_TYPE_NAMED_PIPE || ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY) {
-					newsoap->socket = accept(newsoap->master, NULL, 0);
-					/* Do like gsoap's soap_accept would */
-					newsoap->keep_alive = -(((newsoap->imode | newsoap->omode) & SOAP_IO_KEEPALIVE) != 0);
-				} else {
-					soap_accept(newsoap);
-				}
-
-				if(newsoap->socket == SOAP_INVALID_SOCKET) {
-					if (ulType == CONNECTION_TYPE_NAMED_PIPE)
-						ec_log_debug("epaccept(%d) on file://%s: %s", newsoap->master, m_lpConfig->GetSetting("server_pipe_name"), *soap_faultstring(newsoap));
-					else if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
-						ec_log_debug("epaccept(%d) on file://%s: %s", newsoap->master, m_lpConfig->GetSetting("server_pipe_priority"), *soap_faultstring(newsoap));
-					else
-						ec_log_debug("epaccept(%d): %s", newsoap->master, *soap_faultstring(newsoap));
-					kopano_end_soap_connection(newsoap);
-					soap_free(newsoap);
-				} else {
-					if (ulType == CONNECTION_TYPE_NAMED_PIPE)
-						ec_log_debug("Accepted incoming connection on file://%s", m_lpConfig->GetSetting("server_pipe_name"));
-					else if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
-						ec_log_debug("Accepted incoming connection on file://%s", m_lpConfig->GetSetting("server_pipe_priority"));
-					else
-						ec_log_debug("Accepted incoming%sconnection on %s",
-							ulType == CONNECTION_TYPE_SSL ? " SSL ":" ",
-							newsoap->host);
-					newsoap->socket = ec_relocate_fd(newsoap->socket);
-					g_lpSessionManager->m_stats->Max(SCN_MAX_SOCKET_NUMBER, static_cast<LONGLONG>(newsoap->socket));
-					g_lpSessionManager->m_stats->inc(SCN_SERVER_CONNECTIONS);
-					// directly make worker thread active
-                    sActive.soap = newsoap;
-					m_setSockets.emplace(sActive.soap->socket, sActive);
-					NotifyRestart(newsoap->socket);
-				}
+				QueueItem(iterSockets->second.soap);
+				// Remove socket from listen list for now, since we're already handling data there and don't
+				// want to interfere with the thread that is now handling that socket. It will be passed back
+				// to us when the request is done.
+				m_setSockets.erase(iterSockets);
+				continue;
 			}
+
+			// this was a listen socket .. accept and continue
+			ACTIVESOCKET sActive;
+			auto newsoap = soap_copy(iterListenSockets->second.get());
+			kopano_new_soap_connection(SOAP_CONNECTION_TYPE(iterListenSockets->second), newsoap);
+			// Record last activity (now)
+			time(&sActive.ulLastActivity);
+			ulType = SOAP_CONNECTION_TYPE(iterListenSockets->second);
+			if (ulType == CONNECTION_TYPE_NAMED_PIPE || ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY) {
+				newsoap->socket = accept(newsoap->master, NULL, 0);
+				/* Do like gsoap's soap_accept would */
+				newsoap->keep_alive = -(((newsoap->imode | newsoap->omode) & SOAP_IO_KEEPALIVE) != 0);
+			} else {
+				soap_accept(newsoap);
+			}
+
+			if (newsoap->socket == SOAP_INVALID_SOCKET) {
+				if (ulType == CONNECTION_TYPE_NAMED_PIPE)
+					ec_log_debug("epaccept(%d) on file://%s: %s", newsoap->master, m_lpConfig->GetSetting("server_pipe_name"), *soap_faultstring(newsoap));
+				else if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
+					ec_log_debug("epaccept(%d) on file://%s: %s", newsoap->master, m_lpConfig->GetSetting("server_pipe_priority"), *soap_faultstring(newsoap));
+				else
+					ec_log_debug("epaccept(%d): %s", newsoap->master, *soap_faultstring(newsoap));
+				kopano_end_soap_connection(newsoap);
+				soap_free(newsoap);
+				continue;
+			}
+			if (ulType == CONNECTION_TYPE_NAMED_PIPE)
+				ec_log_debug("Accepted incoming connection on file://%s", m_lpConfig->GetSetting("server_pipe_name"));
+			else if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
+				ec_log_debug("Accepted incoming connection on file://%s", m_lpConfig->GetSetting("server_pipe_priority"));
+			else
+				ec_log_debug("Accepted incoming%sconnection on %s",
+					ulType == CONNECTION_TYPE_SSL ? " SSL ":" ",
+					newsoap->host);
+			newsoap->socket = ec_relocate_fd(newsoap->socket);
+			g_lpSessionManager->m_stats->Max(SCN_MAX_SOCKET_NUMBER, static_cast<LONGLONG>(newsoap->socket));
+			g_lpSessionManager->m_stats->inc(SCN_SERVER_CONNECTIONS);
+			// directly make worker thread active
+			sActive.soap = newsoap;
+			m_setSockets.emplace(sActive.soap->socket, sActive);
+			NotifyRestart(newsoap->socket);
 		}
 		l_sock.unlock();
 	}
