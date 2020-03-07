@@ -590,7 +590,27 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 		for (int i = 0; i < n; ++i) {
 			auto iterListenSockets = m_setListenSockets.find(epevents[i].data.fd);
 
-			if (iterListenSockets != m_setListenSockets.end()) {
+			if (iterListenSockets == m_setListenSockets.end()) {
+				// this is a new request from an existing client
+				auto iterSockets = m_setSockets.find(epevents[i].data.fd);
+				if (iterSockets != m_setSockets.cend()) {
+					// remove from epfd, either close socket, or it will be reactivated later in the epfd
+					epevent.data.fd = iterSockets->second.soap->socket;
+					epoll_ctl(m_epFD, EPOLL_CTL_DEL, iterSockets->second.soap->socket, &epevent);
+
+					if (epevents[i].events & EPOLLHUP) {
+						kopano_end_soap_connection(iterSockets->second.soap);
+						soap_free(iterSockets->second.soap);
+						m_setSockets.erase(iterSockets);
+					} else {
+						QueueItem(iterSockets->second.soap);
+						// Remove socket from listen list for now, since we're already handling data there and don't
+						// want to interfere with the thread that is now handling that socket. It will be passed back
+						// to us when the request is done.
+						m_setSockets.erase(iterSockets);
+					}
+				}
+			} else {
 				// this was a listen socket .. accept and continue
 				ACTIVESOCKET sActive;
 				auto newsoap = soap_copy(iterListenSockets->second.get());
@@ -631,26 +651,6 @@ ECRESULT ECDispatcherEPoll::MainLoop()
                     sActive.soap = newsoap;
 					m_setSockets.emplace(sActive.soap->socket, sActive);
 					NotifyRestart(newsoap->socket);
-				}
-			} else {
-				// this is a new request from an existing client
-				auto iterSockets = m_setSockets.find(epevents[i].data.fd);
-				if (iterSockets != m_setSockets.cend()) {
-					// remove from epfd, either close socket, or it will be reactivated later in the epfd
-					epevent.data.fd = iterSockets->second.soap->socket;
-					epoll_ctl(m_epFD, EPOLL_CTL_DEL, iterSockets->second.soap->socket, &epevent);
-
-					if (epevents[i].events & EPOLLHUP) {
-						kopano_end_soap_connection(iterSockets->second.soap);
-						soap_free(iterSockets->second.soap);
-						m_setSockets.erase(iterSockets);
-					} else {
-						QueueItem(iterSockets->second.soap);
-						// Remove socket from listen list for now, since we're already handling data there and don't
-						// want to interfere with the thread that is now handling that socket. It will be passed back
-						// to us when the request is done.
-						m_setSockets.erase(iterSockets);
-					}
 				}
 			}
 		}
