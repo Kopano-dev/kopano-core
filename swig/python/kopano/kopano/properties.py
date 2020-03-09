@@ -9,7 +9,7 @@ Copyright 2017 - 2019 Kopano and its licensors (see LICENSE file)
 import sys
 
 from MAPI import (
-    PT_UNICODE, PT_ERROR, MAPI_E_NOT_FOUND
+    PT_BINARY, PT_UNICODE, PT_ERROR, MAPI_E_NOT_FOUND
 )
 
 from MAPI.Defs import PROP_TYPE
@@ -110,7 +110,7 @@ class Properties(object):
 
             # mapi table cells are limited to 255 characters/bytes
             # TODO check other types
-            if capped or not (proptype == PT_UNICODE and len(value) >= 255):
+            if capped or not (proptype in (PT_UNICODE, PT_BINARY) and len(value) >= 255):
                 return value
 
         # fallback to (slow) lookup
