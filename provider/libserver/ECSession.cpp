@@ -191,12 +191,6 @@ std::string BTSession::GetProxyHost()
 	return m_strProxyHost;
 }
 
-unsigned int BTSession::GetClientPort()
-{
-	scoped_lock lock(m_hRequestStats);
-	return m_ulLastRequestPort;
-}
-
 size_t BTSession::GetInternalObjectSize()
 {
 	scoped_lock lock(m_hRequestStats);

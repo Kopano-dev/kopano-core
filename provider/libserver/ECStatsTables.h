@@ -40,7 +40,7 @@ private:
 struct sessiondata {
 	ECSESSIONID sessionid;
 	ECSESSIONGROUPID sessiongroupid;
-	unsigned int port, idletime, capability, requests;
+	unsigned int idletime, capability, requests;
 	bool locked;
 	int peerpid;
 	std::list<BUSYSTATE> busystates;

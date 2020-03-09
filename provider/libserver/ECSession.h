@@ -81,7 +81,6 @@ public:
 	KC_HIDDEN virtual bool IsLocked() const final { return m_ulRefCount > 0; }
 	KC_HIDDEN virtual void RecordRequest(struct soap *);
 	KC_HIDDEN virtual unsigned int GetRequests();
-	KC_HIDDEN virtual unsigned int GetClientPort();
 	KC_HIDDEN virtual std::string GetProxyHost();
 	KC_HIDDEN size_t GetInternalObjectSize();
 	KC_HIDDEN virtual size_t GetObjectSize() = 0;
