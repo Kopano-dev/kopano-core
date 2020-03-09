@@ -431,7 +431,7 @@ bool unix_system(const char *lpszLogName, const std::vector<std::string> &cmd,
 
 	auto cmdtxt = "\"" + kc_join(cmd, "\" \"") + "\"";
 	int fdin = 0, fdout = 0;
-	int pid = unix_popen_rw(argv.get(), &fdin, &fdout, nullptr, env);
+	auto pid = unix_popen_rw(argv.get(), &fdin, &fdout, nullptr, env);
 	ec_log_debug("Running command: %s", cmdtxt.c_str());
 	if (pid < 0) {
 		ec_log_debug("popen(%s) failed: %s", cmdtxt.c_str(), strerror(errno));

@@ -18,6 +18,7 @@
 #include <memory>
 #include <mutex>
 #include <pthread.h>
+#include <sys/types.h>
 #include "soapH.h"
 #include <kopano/kcodes.h>
 #include "ECNotification.h"
@@ -116,9 +117,9 @@ protected:
 */
 class KC_EXPORT_DYCAST ECSession final : public BTSession {
 public:
-	KC_HIDDEN ECSession(const char *addr, ECSESSIONID, ECSESSIONGROUPID, ECDatabaseFactory *, ECSessionManager *, unsigned int caps, AUTHMETHOD, int pid, const std::string &cl_vers, const std::string &cl_app, const std::string &cl_app_ver, const std::string &cl_app_misc);
+	KC_HIDDEN ECSession(const char *addr, ECSESSIONID, ECSESSIONGROUPID, ECDatabaseFactory *, ECSessionManager *, unsigned int caps, AUTHMETHOD, pid_t, const std::string &cl_vers, const std::string &cl_app, const std::string &cl_app_ver, const std::string &cl_app_misc);
 	KC_HIDDEN virtual ECSESSIONGROUPID GetSessionGroupId() const final { return m_ecSessionGroupId; }
-	KC_HIDDEN virtual int GetConnectingPid() const final { return m_ulConnectingPid; }
+	KC_HIDDEN virtual pid_t GetConnectingPid() const final { return m_ulConnectingPid; }
 	KC_HIDDEN virtual ~ECSession();
 	KC_HIDDEN virtual ECRESULT Shutdown(unsigned int timeout) override;
 	KC_HIDDEN virtual ECUserManagement *GetUserManagement() const override final { return m_lpUserManagement.get(); }
@@ -155,7 +156,7 @@ private:
 	BusyStateMap		m_mapBusyStates; /* which thread does what function */
 	double m_dblUser = 0, m_dblSystem = 0, m_dblReal = 0;
 	AUTHMETHOD		m_ulAuthMethod;
-	int			m_ulConnectingPid;
+	pid_t m_ulConnectingPid = 0;
 	ECSESSIONGROUPID m_ecSessionGroupId;
 	std::string m_strClientVersion, m_strClientApp, m_strUsername;
 	unsigned int		m_ulClientVersion;
@@ -188,7 +189,7 @@ protected:
 	unsigned int m_ulImpersonatorID = 0; // The ID of the user whose credentials were used to login when using impersonation
 	bool m_bValidated = false;
 	AUTHMETHOD m_ulValidationMethod = METHOD_NONE;
-	int m_ulConnectingPid = 0;
+	pid_t m_ulConnectingPid = 0;
 
 private:
 	/* SSO */

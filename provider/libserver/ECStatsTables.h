@@ -6,6 +6,7 @@
 #ifndef EC_STATS_TABLES_H
 #define EC_STATS_TABLES_H
 
+#include <sys/types.h>
 #include <kopano/zcdefs.h>
 #include <kopano/Util.h>
 #include "ECGenericObjectTable.h"
@@ -42,7 +43,7 @@ struct sessiondata {
 	ECSESSIONGROUPID sessiongroupid;
 	unsigned int idletime, capability, requests;
 	bool locked;
-	int peerpid;
+	pid_t peerpid = 0;
 	std::list<BUSYSTATE> busystates;
 	double dblUser, dblSystem, dblReal;
 	std::string srcaddress, username, version, clientapp, proxyhost;

@@ -201,7 +201,7 @@ size_t BTSession::GetInternalObjectSize()
 ECSession::ECSession(const char *src_addr, ECSESSIONID sessionID,
     ECSESSIONGROUPID ecSessionGroupId, ECDatabaseFactory *lpDatabaseFactory,
     ECSessionManager *lpSessionManager, unsigned int ulCapabilities,
-    AUTHMETHOD ulAuthMethod, int pid,
+    AUTHMETHOD ulAuthMethod, pid_t pid,
     const std::string &cl_ver, const std::string &cl_app,
     const std::string &cl_app_ver, const std::string &cl_app_misc) :
 	BTSession(src_addr, sessionID, lpDatabaseFactory, lpSessionManager,
