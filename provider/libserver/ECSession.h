@@ -183,6 +183,7 @@ public:
 	KC_HIDDEN virtual ECRESULT CreateECSession(ECSESSIONGROUPID, const std::string &cl_ver, const std::string &cl_app, const std::string &cl_app_ver, const std::string &cl_app_misc, ECSESSIONID *retid, ECSession **ret);
 	KC_HIDDEN size_t GetObjectSize() override;
 	KC_HIDDEN virtual ECUserManagement *GetUserManagement() const override final { return m_lpUserManagement.get(); }
+	KC_HIDDEN pid_t get_connecting_pid() const { return m_ulConnectingPid; }
 
 protected:
 	unsigned int m_ulUserID = 0;

@@ -13,6 +13,8 @@
 #include <algorithm>
 #include <poll.h>
 #include <unistd.h>
+#include <libHX/string.h>
+#include <kopano/ECChannel.h>
 #include <kopano/stringutil.h>
 #ifdef HAVE_EPOLL_CREATE
 #include <sys/epoll.h>
@@ -330,6 +332,22 @@ void ECDispatcher::ShutDown()
     m_bExit = true;
 }
 
+static void update_host(unsigned int type, struct soap *soap)
+{
+	if (type != CONNECTION_TYPE_NAMED_PIPE &&
+	    type != CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
+		return;
+	static_assert(sizeof(soap->host) > 16, "soap->host ought to be an array");
+	if (*soap->host == '\0') {
+		soap->host[0] = '*';
+		soap->host[1] = '\0';
+	}
+	pid_t pid;
+	uid_t uid;
+	if (kc_peer_cred(soap->socket, &uid, &pid) == 0 && pid > 0)
+		HX_strlcat(soap->host, (":pid-" + std::to_string(pid)).c_str(), sizeof(soap->host));
+}
+
 ECDispatcherSelect::ECDispatcherSelect(std::shared_ptr<ECConfig> lpConfig) :
 	ECDispatcher(std::move(lpConfig))
 {
@@ -486,6 +504,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
 				continue;
 			}
 			newsoap->socket = ec_relocate_fd(newsoap->socket);
+			update_host(ulType, newsoap);
 			g_lpSessionManager->m_stats->Max(SCN_MAX_SOCKET_NUMBER, static_cast<LONGLONG>(newsoap->socket));
 			g_lpSessionManager->m_stats->inc(SCN_SERVER_CONNECTIONS);
 			sActive.soap = newsoap;
@@ -639,6 +658,7 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 				soap_free(newsoap);
 				continue;
 			}
+			update_host(ulType, newsoap);
 			if (ulType == CONNECTION_TYPE_NAMED_PIPE)
 				ec_log_debug("Accepted incoming connection on file://%s", m_lpConfig->GetSetting("server_pipe_name"));
 			else if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)

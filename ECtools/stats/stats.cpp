@@ -389,10 +389,7 @@ static void showtop(LPMDB lpStore)
 			}
 			if (bColumns[4]) {
 				wmove(win, 5 + line, ofs);
-				if (ses.ulPeerPid > 0)
-					wprintw(win, "%.20s", ses.strPeer.c_str());
-				else
-					wprintw(win, "%s", ses.strIP.c_str());
+				wprintw(win, "%s", ses.strIP.c_str());
 				ofs += cols[5];
 			}
 			if (bColumns[5]) {
