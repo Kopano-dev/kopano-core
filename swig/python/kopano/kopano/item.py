@@ -308,7 +308,7 @@ class Item(Properties, Contact, Appointment):
     @property
     def changekey(self):
         """Item changekey."""
-        return _benc(self._get_fast(PR_CHANGE_KEY))
+        return _benc(self._get_fast(PR_CHANGE_KEY, must_exist=True))
 
     @property
     def subject(self):
