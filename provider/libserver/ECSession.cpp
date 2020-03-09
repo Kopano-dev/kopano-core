@@ -173,7 +173,6 @@ time_t BTSession::GetIdleTime() const
 void BTSession::RecordRequest(struct soap* soap)
 {
 	scoped_lock lock(m_hRequestStats);
-	m_strLastRequestURL = soap->endpoint;
 	m_ulLastRequestPort = soap->port;
 	if (soap->proxy_from != nullptr && soap_info(soap)->bProxy)
 		m_strProxyHost = soap->host;
@@ -184,12 +183,6 @@ unsigned int BTSession::GetRequests()
 {
 	scoped_lock lock(m_hRequestStats);
     return m_ulRequests;
-}
-
-std::string BTSession::GetRequestURL()
-{
-	scoped_lock lock(m_hRequestStats);
-	return m_strLastRequestURL;
 }
 
 std::string BTSession::GetProxyHost()
@@ -208,7 +201,6 @@ size_t BTSession::GetInternalObjectSize()
 {
 	scoped_lock lock(m_hRequestStats);
 	return MEMORY_USAGE_STRING(m_strSourceAddr) +
-			MEMORY_USAGE_STRING(m_strLastRequestURL) +
 			MEMORY_USAGE_STRING(m_strProxyHost);
 }
 

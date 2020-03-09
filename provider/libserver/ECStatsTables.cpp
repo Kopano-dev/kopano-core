@@ -284,7 +284,6 @@ void ECSessionStatsTable::GetSessionData(ECSession *lpSession, void *obj)
 	lpSession->GetClientVersion(&sd.version);
 	lpSession->GetClientApp(&sd.clientapp);
 	sd.port = lpSession->GetClientPort();
-	sd.url = lpSession->GetRequestURL();
 	sd.proxyhost = lpSession->GetProxyHost();
 	lpSession->GetClientApplicationVersion(&sd.client_application_version);
 	lpSession->GetClientApplicationMisc(&sd.client_application_misc);
@@ -393,11 +392,6 @@ ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis,
 				m.__union = SOAP_UNION_propValData_ul;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
 				m.Value.ul = iterSD->second.port;
-				break;
-			case PROP_ID(PR_EC_STATS_SESSION_URL):
-				m.__union = SOAP_UNION_propValData_lpszA;
-				m.ulPropTag = lpsPropTagArray->__ptr[k];
-				m.Value.lpszA = soap_strdup(soap, iterSD->second.url.c_str());
 				break;
 			case PROP_ID(PR_EC_STATS_SESSION_PROXY):
 				m.__union = SOAP_UNION_propValData_lpszA;

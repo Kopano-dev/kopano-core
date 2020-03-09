@@ -82,7 +82,6 @@ public:
 	KC_HIDDEN virtual void RecordRequest(struct soap *);
 	KC_HIDDEN virtual unsigned int GetRequests();
 	KC_HIDDEN virtual unsigned int GetClientPort();
-	KC_HIDDEN virtual std::string GetRequestURL();
 	KC_HIDDEN virtual std::string GetProxyHost();
 	KC_HIDDEN size_t GetInternalObjectSize();
 	KC_HIDDEN virtual size_t GetObjectSize() = 0;
@@ -109,7 +108,7 @@ protected:
 	 */
 	std::condition_variable m_hThreadReleased;
 	std::mutex m_hThreadReleasedMutex, m_hRequestStats;
-	std::string m_strLastRequestURL, m_strProxyHost;
+	std::string m_strProxyHost;
 	std::string		m_strClientApplicationVersion, m_strClientApplicationMisc;
 };
 

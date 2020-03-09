@@ -45,7 +45,7 @@ struct sessiondata {
 	int peerpid;
 	std::list<BUSYSTATE> busystates;
 	double dblUser, dblSystem, dblReal;
-	std::string srcaddress, username, version, clientapp, url, proxyhost;
+	std::string srcaddress, username, version, clientapp, proxyhost;
 	std::string client_application_version, client_application_misc;
 };
 
