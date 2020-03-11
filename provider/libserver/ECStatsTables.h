@@ -43,7 +43,6 @@ struct sessiondata {
 	ECSESSIONGROUPID sessiongroupid;
 	unsigned int idletime, capability, requests;
 	bool locked;
-	pid_t peerpid = 0;
 	std::list<BUSYSTATE> busystates;
 	double dblUser, dblSystem, dblReal;
 	std::string srcaddress, username, version, clientapp, proxyhost;

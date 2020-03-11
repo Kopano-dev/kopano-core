@@ -202,12 +202,12 @@ size_t BTSession::GetInternalObjectSize()
 ECSession::ECSession(const char *src_addr, ECSESSIONID sessionID,
     ECSESSIONGROUPID ecSessionGroupId, ECDatabaseFactory *lpDatabaseFactory,
     ECSessionManager *lpSessionManager, unsigned int ulCapabilities,
-    AUTHMETHOD ulAuthMethod, pid_t pid,
+    AUTHMETHOD ulAuthMethod,
     const std::string &cl_ver, const std::string &cl_app,
     const std::string &cl_app_ver, const std::string &cl_app_misc) :
 	BTSession(src_addr, sessionID, lpDatabaseFactory, lpSessionManager,
 	    ulCapabilities),
-	m_ulAuthMethod(ulAuthMethod), m_ulConnectingPid(pid),
+	m_ulAuthMethod(ulAuthMethod),
 	m_ecSessionGroupId(ecSessionGroupId), m_strClientVersion(cl_ver),
 	m_strClientApp(cl_app), m_ulClientVersion(KOPANO_VERSION_UNKNOWN),
 	m_lpTableManager(new ECTableManager(this))
@@ -594,7 +594,7 @@ ECRESULT ECAuthSession::CreateECSession(ECSESSIONGROUPID ecSessionGroupId,
 	lpSession.reset(new(std::nothrow) ECSession(m_strSourceAddr.c_str(),
 	            newSID, ecSessionGroupId, m_lpDatabaseFactory,
 	            m_lpSessionManager, m_ulClientCapabilities,
-	            m_ulValidationMethod, m_ulConnectingPid,
+	            m_ulValidationMethod,
 	            cl_ver, cl_app, cl_app_ver, cl_app_misc));
 	if (lpSession == nullptr)
 		return KCERR_NOT_ENOUGH_MEMORY;
@@ -717,7 +717,6 @@ userok:
 		return er;
 	m_bValidated = true;
 	m_ulValidationMethod = METHOD_SOCKET;
-	m_ulConnectingPid = pid;
 	return erSuccess;
 }
 

@@ -273,7 +273,6 @@ void ECSessionStatsTable::GetSessionData(ECSession *lpSession, void *obj)
 
 	sd.sessionid = lpSession->GetSessionId();
 	sd.sessiongroupid = lpSession->GetSessionGroupId();
-	sd.peerpid = lpSession->GetConnectingPid();
 	sd.srcaddress = lpSession->GetSourceAddr();
 	sd.idletime = lpSession->GetIdleTime();
 	sd.capability = lpSession->GetCapabilities();
@@ -366,11 +365,6 @@ ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis,
 				m.__union = SOAP_UNION_propValData_li;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
 				m.Value.li = iterSD->second.sessiongroupid;
-				break;
-			case PROP_ID(PR_EC_STATS_SESSION_PEER_PID):
-				m.__union = SOAP_UNION_propValData_ul;
-				m.ulPropTag = lpsPropTagArray->__ptr[k];
-				m.Value.ul = iterSD->second.peerpid;
 				break;
 			case PROP_ID(PR_EC_STATS_SESSION_CLIENT_VERSION):
 				m.__union = SOAP_UNION_propValData_lpszA;

@@ -83,7 +83,7 @@ def top(scr, server):
                 2**64 - row[PR_EC_STATS_SESSION_ID] if row[PR_EC_STATS_SESSION_ID] < 0 else row[PR_EC_STATS_SESSION_ID], #XXX
                 row[PR_EC_STATS_SESSION_CLIENT_VERSION],
                 row[PR_EC_USERNAME_A],
-                row[PR_EC_STATS_SESSION_PEER_PID] or row[PR_EC_STATS_SESSION_IPADDRESS],
+                row[PR_EC_STATS_SESSION_IPADDRESS],
                 row[PR_EC_STATS_SESSION_CLIENT_APPLICATION],
                 ('%d:%02d' % divmod(int(row[PR_EC_STATS_SESSION_CPU_REAL]), 60)),
                 ('%d:%02d' % divmod(int(row[PR_EC_STATS_SESSION_CPU_USER] + row[PR_EC_STATS_SESSION_CPU_SYSTEM]), 60)),
