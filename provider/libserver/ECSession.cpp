@@ -18,6 +18,7 @@
 #include <sys/stat.h>
 #include <mapidefs.h>
 #include <mapitags.h>
+#include <kopano/ECChannel.h>
 #include <kopano/UnixUtil.h>
 #include <kopano/memory.hpp>
 #include <kopano/scope.hpp>
@@ -633,29 +634,6 @@ ECRESULT ECAuthSession::ValidateUserLogon(const char *lpszName,
 
 	m_bValidated = true;
 	m_ulValidationMethod = METHOD_USERPASSWORD;
-	return erSuccess;
-}
-
-static ECRESULT kc_peer_cred(int fd, uid_t *uid, pid_t *pid)
-{
-#if defined(SO_PEERCRED)
-#ifdef HAVE_SOCKPEERCRED_UID
-	struct sockpeercred cr;
-#else
-	struct ucred cr;
-#endif
-	unsigned int cr_len = sizeof(cr);
-	if (getsockopt(fd, SOL_SOCKET, SO_PEERCRED, &cr, &cr_len) != 0 || cr_len != sizeof(cr))
-		return KCERR_LOGON_FAILED;
-	*uid = cr.uid; /* uid is the uid of the user that is connecting */
-	*pid = cr.pid;
-#elif defined(HAVE_GETPEEREID)
-	gid_t gid;
-	if (getpeereid(fd, uid, &gid) != 0)
-		return KCERR_LOGON_FAILED;
-#else
-#	error I have no way to find out the remote user and I want to cry
-#endif
 	return erSuccess;
 }
 
