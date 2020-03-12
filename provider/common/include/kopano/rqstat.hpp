@@ -27,6 +27,7 @@ struct request_stat {
 
 	std::string user, imp, agent;
 	const char *func = nullptr;
+	int er = 0;
 };
 
 } /* namespace */

@@ -74,8 +74,6 @@
 #	include <google/malloc_extension_c.h>
 #	define HAVE_TCMALLOC 1
 #endif
-#define LOG_SOAP_DEBUG(msg, ...) \
-	ec_log(EC_LOGLEVEL_DEBUG | EC_LOGLEVEL_SOAP, "soap: " msg, ##__VA_ARGS__)
 
 using namespace std::string_literals;
 using namespace KC;
@@ -577,7 +575,6 @@ int KCmdService::logon(const char *user, const char *pass,
 	GUID sServerGuid{};
 	ECRESULT er;
 
-	LOG_SOAP_DEBUG("%020llu: S logon", static_cast<unsigned long long>(sessionID));
 	if (!(clientCaps & KOPANO_CAP_UNICODE)) {
 		er = MAPI_E_BAD_CHARWIDTH;
 		goto exit;
@@ -655,10 +652,7 @@ exit:
 	lpsResponse->er = er;
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &soap_info(soap)->st.rh1_cpu[1]);
 	soap_info(soap)->st.rh1_wall_end = time_point::clock::now();
-	LOG_SOAP_DEBUG("%020llu: E logon 0x%08x %f %f",
-		static_cast<unsigned long long>(sessionID), er,
-		timespec2dbl(soap_info(soap)->st.rh1_cpu[1]) - timespec2dbl(soap_info(soap)->st.rh1_cpu[0]),
-		dur2dbl(soap_info(soap)->st.rh1_wall_end - soap_info(soap)->st.rh1_wall_start));
+	soap_info(soap)->st.er = er;
 	return SOAP_OK;
 }
 
@@ -682,7 +676,6 @@ int KCmdService::ssoLogon(ULONG64 ulSessionId, const char *szUsername,
 	GUID sServerGuid{};
 	xsd__base64Binary *lpOutput = NULL;
 	const char *lpszEnabled = NULL;
-	LOG_SOAP_DEBUG("%020" PRIu64 ": S ssoLogon", ulSessionId);
 
 	if (lpInput == nullptr || lpInput->__size == 0 ||
 	    lpInput->__ptr == nullptr || szUsername == nullptr ||
@@ -802,10 +795,6 @@ nosso:
 	lpsResponse->er = er;
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &soap_info(soap)->st.rh1_cpu[1]);
 	soap_info(soap)->st.rh1_wall_end = time_point::clock::now();
-	LOG_SOAP_DEBUG("%020" PRIu64 ": E ssoLogon 0x%08x %f %f",
-		ulSessionId, er,
-		timespec2dbl(soap_info(soap)->st.rh1_cpu[1]) - timespec2dbl(soap_info(soap)->st.rh1_cpu[0]),
-		dur2dbl(soap_info(soap)->st.rh1_wall_end - soap_info(soap)->st.rh1_wall_start));
 	return SOAP_OK;
 }
 
@@ -819,7 +808,6 @@ int KCmdService::logoff(ULONG64 ulSessionId, unsigned int *result)
 	soap_info(soap)->st.rh1_wall_start = time_point::clock::now();
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &soap_info(soap)->st.rh1_cpu[0]);
 	soap_info(soap)->st.func = __func__;
-	LOG_SOAP_DEBUG("%020" PRIu64 ": S logoff", ulSessionId);
 	auto er = g_lpSessionManager->ValidateSession(soap, ulSessionId, &lpecSession);
 	if(er != erSuccess)
 		goto exit;
@@ -836,10 +824,6 @@ exit:
     *result = er;
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &soap_info(soap)->st.rh1_cpu[1]);
 	soap_info(soap)->st.rh1_wall_end = time_point::clock::now();
-	LOG_SOAP_DEBUG("%020" PRIu64 ": E logoff 0x%08x %f %f",
-		ulSessionId, 0,
-		timespec2dbl(soap_info(soap)->st.rh1_cpu[1]) - timespec2dbl(soap_info(soap)->st.rh1_cpu[0]),
-		dur2dbl(soap_info(soap)->st.rh1_wall_end - soap_info(soap)->st.rh1_wall_start));
 	return SOAP_OK;
 }
 
@@ -856,7 +840,6 @@ int KCmdService::fname(ULONG64 ulSessionId, ##__VA_ARGS__) \
 	}); \
 	const char *szFname = #fname; \
 	soap_info(soap)->st.func = szFname; \
-	LOG_SOAP_DEBUG("%020" PRIu64 ": S %s", ulSessionId, szFname); \
 	ECSession *lpecSession = nullptr; \
 	auto er = g_lpSessionManager->ValidateSession(soap, ulSessionId, &lpecSession); \
 	if (er != erSuccess) { \

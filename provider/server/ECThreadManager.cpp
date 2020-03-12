@@ -48,6 +48,8 @@ class WORKITEM final : public ECTask {
 	ECDispatcher *dispatcher = nullptr;
 };
 
+std::shared_ptr<ECLogger> g_request_logger;
+
 static string GetSoapError(int err)
 {
 	switch (err) {
@@ -112,6 +114,41 @@ WORKITEM::~WORKITEM()
 	 */
 	kopano_end_soap_connection(xsoap);
 	soap_free(xsoap);
+}
+
+static void log_request(struct soap *soap, int soaperr)
+{
+	const auto &st = soap_info(soap)->st;
+	char ers[HXSIZEOF_Z32+6];
+	switch (soaperr) {
+	case SOAP_OK:
+		snprintf(ers, sizeof(ers), "rc=0x%x", st.er);
+		break;
+	case SOAP_ERR:
+		strcpy(ers, "rc=soaperr");
+		break;
+	case SOAP_EOF:
+		strcpy(ers, "rc=soapeof");
+		break;
+	default:
+		strcpy(ers, "rc=?");
+		break;
+	}
+	g_request_logger->Log(0, format("%s %s %s %s %s"
+		" Tsk=%.6f Tenq=%.6f"
+		" Twi=%.6f Twi_CPU=" HX_TIMESPEC_FMT
+		" Trh1=%.6f Trh1_CPU=" HX_TIMESPEC_FMT
+		" Trh2=%.6f Trh2_CPU=" HX_TIMESPEC_FMT
+		" agent=\"%s\"",
+		soap->host,
+		!st.user.empty() ? bin2txt(st.user).c_str() : "-",
+		!st.imp.empty() ? bin2txt(st.imp).c_str() : "-",
+		st.func ?: "-", ers,
+		dur2dbl(st.sk_wall_dur), dur2dbl(st.enq_wall_dur),
+		dur2dbl(st.wi_wall_dur), HX_TIMESPEC_EXP(&st.wi_cpu[2]),
+		dur2dbl(st.rh1_wall_dur), HX_TIMESPEC_EXP(&st.rh1_cpu[2]),
+		dur2dbl(st.rh2_wall_dur), HX_TIMESPEC_EXP(&st.rh2_cpu[2]),
+		st.agent.c_str()));
 }
 
 static inline LONGLONG timespec2ms(const struct timespec &t)
@@ -212,6 +249,8 @@ done:
 		using namespace std::chrono;
 		g_lpSessionManager->m_stats->inc(SCN_PROCESSING_TIME, duration_cast<microseconds>(info->st.wi_wall_dur).count());
 		g_lpSessionManager->m_stats->inc(SCN_RESPONSE_TIME, duration_cast<microseconds>(info->st.sk_wall_dur).count());
+		if (g_request_logger != nullptr)
+			log_request(soap, err);
 	}
 
 	// Clear memory used by soap calls. Note that this does not actually

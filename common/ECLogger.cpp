@@ -902,12 +902,18 @@ std::shared_ptr<ECLogger> CreateLogger(ECConfig *lpConfig, const char *argv0,
 #else
 		return NULL;    // No auditing in Windows, apparently.
 #endif
+	} else if (ltyp == LOGTYPE_REQUEST) {
+		prepend    = "request_";
+		log_method = lpConfig->GetSetting("request_log_method") ?: "off";
+		log_file   = lpConfig->GetSetting("request_log_file") ?: "-";
 	} else {
 		return nullptr;
 	}
 
 	loglevel = strtol(lpConfig->GetSetting((prepend+"log_level").c_str()) ?: "3", nullptr, 0);
-	if (strcasecmp(log_method, "syslog") == 0) {
+	if (strcasecmp(log_method, "off") == 0) {
+		return nullptr;
+	} else if (strcasecmp(log_method, "syslog") == 0) {
 		char *argzero = strdup(argv0);
 		auto logger = std::make_shared<ECLogger_Syslog>(loglevel, basename(argzero), syslog_facility);
 		free(argzero);

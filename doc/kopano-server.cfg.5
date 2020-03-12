@@ -241,7 +241,6 @@ SQL	0x00010000
 USERPLUGIN	0x00020000
 CACHE	0x00040000
 USERCACHE	0x00080000
-SOAP	0x00100000
 ICS	0x00200000
 .TE
 .SS log_timestamp
@@ -256,6 +255,48 @@ Buffer logging in what sized blocks. The special value 0 selects line buffering.
 .PP
 Default:
 \fI0\fR
+.SS request_log_file
+.PP
+When request_log_method is \fBfile\fP, this specifies the location of a file to
+which the SOAP requests should be logged.
+.PP
+.PP
+Default: \fI-\fP (stderr)
+.SS request_log_method
+.PP
+Possible values: \fBoff\fP, \fBfile\fP, \fBsyslog\fP
+.PP
+Default: \fIoff\fP
+.PP
+The request log contains a line for every SOAP request that was handled,
+similar in spirit to Apache httpd log files. Fields are space separated,
+with quotation marks used to embed literal spaces. Shown fields are:
+.IP \(bu 4
+Client address
+.IP \(bu 4
+Username
+.IP \(bu 4
+Impersonated user
+.IP \(bu 4
+Command
+.IP \(bu 4
+MAPI result code (success/error)
+.IP \(bu 4
+Tsk: Time between the server receiving the socket event and having sent the
+response.
+.IP \(bu 4
+Tenq: Time between the request being enqueued and being completed.
+.IP \(bu 4
+Twi: Time between the request being dequeued and being completed, i.e. time
+spent for receiving, parsing/decoding the SOAP request, Trh1, encoding and
+sending the SOAP response.
+.IP \(bu 4
+Trh1: Time it took to run the request handler, i.e. login and/or session
+validation and the request-specific processing (Trh2).
+.IP \(bu 4
+Trh2: Time it took to run the request-specific code minus any login/session
+validation. This may legitimately be 0 for some requests \(em such as the RPCs
+related to login themselves.
 .SH "EXPLANATION OF THE SECURITY LOGGING SETTINGS PARAMETERS"
 .SS audit_log_enabled
 .PP

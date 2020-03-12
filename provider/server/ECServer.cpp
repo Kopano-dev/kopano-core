@@ -899,6 +899,8 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{"log_level", "3", CONFIGSETTING_NONEMPTY | CONFIGSETTING_RELOADABLE},
 		{ "log_timestamp",				"1" },
 		{ "log_buffer_size", "0" },
+		{"request_log_method", "off"},
+		{"request_log_file", "-"},
 		// security log options
 		{"audit_log_enabled", "no", CONFIGSETTING_NONEMPTY},
 		{"audit_log_method", "syslog", CONFIGSETTING_NONEMPTY},
@@ -1083,6 +1085,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 				strerror(-ret));
 	}
 
+	g_request_logger = CreateLogger(g_lpConfig.get(), szName, LOGTYPE_REQUEST);
 	auto aback = g_lpConfig->GetSetting("attachment_storage");
 	if (strcmp(aback, "files_v2") == 0 || is_filesv1(aback) ||
 	    strcmp(aback, "auto") == 0) {
