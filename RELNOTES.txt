@@ -1,3 +1,19 @@
+8.7.10 (2020-03-12)
+===================
+This release is built from a special branch to ease testing and not indented to be merged back into the kc-8.7.x branch.
+Enhancements:
+* official support for Debian Buster
+* doc: add dagent options domains_*_file
+* spooler: do not emit "not found" when rule does not match
+Fixes:
+* dagent, spooler: workaround a crash during Python GC run
+* gateway: avoid non-atomic replacement of SSL context If the SSL context
+* dagent: force indexing of X-Kopano-Rule-Action
+* client: avoid eager property retrieval when asking for proplist
+* dagent, gateway: crash postprocessing libtidy results
+* spooler: double lock taken (email stuck in outbox)
+* dagent/spooler: python plugins don't work with python2
+
 8.7.9 (2019-12-10)
 ==================
 Enhancements:
