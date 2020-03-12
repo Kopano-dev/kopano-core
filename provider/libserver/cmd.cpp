@@ -546,6 +546,19 @@ static ECRESULT DoNotifySubscribe(ECSession *lpecSession, unsigned long long ulS
 
 using steady_clock = std::chrono::steady_clock;
 
+static void set_agent(struct soap *soap, const char *misc, const char *ver)
+{
+	auto &agent = soap_info(soap)->st.agent;
+	agent.clear();
+	if (misc == nullptr)
+		return;
+	agent += misc;
+	if (ver == nullptr)
+		return;
+	agent += "/";
+	agent += ver;
+}
+
 /**
  * logon: log on and create a session with provided credentials
  */
@@ -613,6 +626,7 @@ int KCmdService::logon(const char *user, const char *pass,
 	}
 
 	lpsResponse->ulSessionId = sessionID;
+	set_agent(soap, cl_app_misc, cl_app_ver);
 	if (clientCaps & KOPANO_CAP_MULTI_SERVER)
 		lpsResponse->ulCapabilities |= KOPANO_CAP_MULTI_SERVER;
 	if (clientCaps & KOPANO_CAP_ENHANCED_ICS && parseBool(g_lpSessionManager->GetConfig()->GetSetting("enable_enhanced_ics"))) {
@@ -749,6 +763,7 @@ int KCmdService::ssoLogon(ULONG64 ulSessionId, const char *szUsername,
 	}
 
 	lpsResponse->ulSessionId = newSessionID;
+	set_agent(soap, cl_app_misc, cl_app_ver);
 	if (clientCaps & KOPANO_CAP_MULTI_SERVER)
 		lpsResponse->ulCapabilities |= KOPANO_CAP_MULTI_SERVER;
 	if (clientCaps & KOPANO_CAP_ENHANCED_ICS && parseBool(g_lpSessionManager->GetConfig()->GetSetting("enable_enhanced_ics"))) {

@@ -149,6 +149,7 @@ void WORKITEM::run()
 		info->ulLastSessionId = 0;
 		// Pass information on start time of the request into soap->user, so that it can be applied to the correct
 		// session after XML parsing
+		info->st.func = nullptr;
 		info->fdone = NULL;
 
 		// Do processing of work item

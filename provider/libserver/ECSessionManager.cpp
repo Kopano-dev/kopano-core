@@ -329,7 +329,15 @@ ECRESULT ECSessionManager::ValidateSession(struct soap *soap,
 	auto er = ValidateBTSession(soap, sessionID, &lpSession);
 	if (er != erSuccess)
 		return er;
-	*lppSession = dynamic_cast<ECSession*>(lpSession);
+	auto ses = dynamic_cast<ECSession *>(lpSession);
+	if (ses != nullptr) {
+		auto sec = ses->GetSecurity();
+		auto si = soap_info(soap);
+		assert(sec != nullptr && si != nullptr);
+		sec->GetUsername(&si->st.user);
+		sec->GetImpersonator(&si->st.imp);
+	}
+	*lppSession = ses;
 	return erSuccess;
 }
 
