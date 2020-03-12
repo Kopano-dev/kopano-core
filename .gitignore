@@ -1,6 +1,7 @@
 .deps/
 .libs/
 Makefile
+!/test/Makefile
 Makefile.in
 .*.dep
 *.la
