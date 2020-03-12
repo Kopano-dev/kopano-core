@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 from MAPI.Struct import SPropValue, MAPIError
@@ -82,10 +84,10 @@ def test_configuremsgservice(adminservice):
     rows = table.QueryRows(1, 0)
     prop = PpropFindProp(rows[0], PR_SERVICE_UID)
     uid = prop.Value
-    path = b'file:///var/run/kopano/server.sock'
 
-    props = [SPropValue(PR_EC_PATH, path),
-             SPropValue(PR_EC_USERNAME, b"user1"),
-             SPropValue(PR_EC_USERPASSWORD, b"pass")]
+    props = [SPropValue(PR_EC_PATH, os.getenv('KOPANO_TEST_SERVER').encode()),
+             SPropValue(PR_EC_USERNAME, os.getenv('KOPANO_TEST_USER').encode()),
+             SPropValue(PR_EC_USERPASSWORD, os.getenv('KOPANO_TEST_PASSWORD').encode())]
 
-    assert adminservice.ConfigureMsgService(uid, 0, 0, props)
+    # TODO: Test if no exception is raised
+    adminservice.ConfigureMsgService(uid, 0, 0, props)
