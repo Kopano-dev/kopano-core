@@ -854,8 +854,8 @@ static bool eclog_have_ttys()
 
 static void resolve_auto_logger(ECConfig *cfg)
 {
-	auto meth = cfg->GetSetting("log_method");
-	auto file = cfg->GetSetting("log_file");
+	auto meth = cfg->GetSetting("log_method") ?: "auto";
+	auto file = cfg->GetSetting("log_file") ?: "-";
 	if (meth == nullptr || strcasecmp(meth, "auto") != 0 || file == nullptr)
 		return;
 	if (*file != '\0') {
@@ -896,15 +896,15 @@ std::shared_ptr<ECLogger> CreateLogger(ECConfig *lpConfig, const char *argv0,
 		if (!parseBool(lpConfig->GetSetting("audit_log_enabled")))
 			return NULL;
 		prepend = "audit_";
-		log_method = lpConfig->GetSetting("audit_log_method");
-		log_file   = lpConfig->GetSetting("audit_log_file");
+		log_method = lpConfig->GetSetting("audit_log_method") ?: "null";
+		log_file   = lpConfig->GetSetting("audit_log_file") ?: "-";
 		syslog_facility = LOG_AUTHPRIV;
 #else
 		return NULL;    // No auditing in Windows, apparently.
 #endif
 	}
 
-	loglevel = strtol(lpConfig->GetSetting((prepend+"log_level").c_str()), NULL, 0);
+	loglevel = strtol(lpConfig->GetSetting((prepend+"log_level").c_str()) ?: "3", nullptr, 0);
 	if (strcasecmp(log_method, "syslog") == 0) {
 		char *argzero = strdup(argv0);
 		auto logger = std::make_shared<ECLogger_Syslog>(loglevel, basename(argzero), syslog_facility);
@@ -912,7 +912,7 @@ std::shared_ptr<ECLogger> CreateLogger(ECConfig *lpConfig, const char *argv0,
 		return logger;
 	} else if (strcasecmp(log_method, "file") != 0) {
 		fprintf(stderr, "Incorrect logging method selected. Reverting to stderr.\n");
-		auto logtimestamp = parseBool(lpConfig->GetSetting((prepend + "log_timestamp").c_str()));
+		auto logtimestamp = parseBool(lpConfig->GetSetting((prepend + "log_timestamp").c_str()) ?: "yes");
 		return std::make_shared<ECLogger_File>(loglevel, logtimestamp, "-", false);
 	}
 
