@@ -32,6 +32,7 @@ pipeline {
                         sh 'make check'
                     }
                 }
+		/*
                 stage('PHP MAPI Test') {
                     steps {
                         echo 'Testing php-ext..'
@@ -52,7 +53,7 @@ pipeline {
                         sh 'make -C swig/python/kopano test PYTEST=pytest-3 || true'
                         junit allowEmptyResults: true, healthScaleFactor: 0.0, testResults: 'swig/python/kopano/test.xml'
                     }
-                }
+                }*/
             }
             post {
                 success {
