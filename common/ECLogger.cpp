@@ -880,18 +880,18 @@ static void resolve_auto_logger(ECConfig *cfg)
  * @return Log object, or NULL on error
  */
 std::shared_ptr<ECLogger> CreateLogger(ECConfig *lpConfig, const char *argv0,
-    bool bAudit)
+    enum loggertype ltyp)
 {
 	std::string prepend;
 	int loglevel = 0;
 	int syslog_facility = LOG_MAIL;
 	const char *log_method, *log_file;
 
-	if (!bAudit) {
+	if (ltyp == LOGTYPE_NORMAL) {
 		resolve_auto_logger(lpConfig);
 		log_method = lpConfig->GetSetting("log_method");
 		log_file   = lpConfig->GetSetting("log_file");
-	} else {
+	} else if (ltyp == LOGTYPE_AUDIT) {
 #if 1 /* change to ifdef HAVE_LOG_AUTHPRIV */
 		if (!parseBool(lpConfig->GetSetting("audit_log_enabled")))
 			return NULL;
@@ -902,6 +902,8 @@ std::shared_ptr<ECLogger> CreateLogger(ECConfig *lpConfig, const char *argv0,
 #else
 		return NULL;    // No auditing in Windows, apparently.
 #endif
+	} else {
+		return nullptr;
 	}
 
 	loglevel = strtol(lpConfig->GetSetting((prepend+"log_level").c_str()) ?: "3", nullptr, 0);

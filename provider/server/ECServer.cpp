@@ -1039,7 +1039,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		LogConfigErrors(g_lpConfig.get());
 	if (!TmpPath::instance.OverridePath(g_lpConfig.get()))
 		ec_log_err("Ignoring invalid path-setting!");
-	g_lpAudit = CreateLogger(g_lpConfig.get(), szName, true);
+	g_lpAudit = CreateLogger(g_lpConfig.get(), szName, LOGTYPE_AUDIT);
 	if (g_lpAudit)
 		g_lpAudit->logf(EC_LOGLEVEL_NOTICE, "server startup uid=%d", getuid());
 	else
