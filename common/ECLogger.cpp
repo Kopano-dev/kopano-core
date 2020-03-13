@@ -880,7 +880,7 @@ static void resolve_auto_logger(ECConfig *cfg)
  * @return Log object, or NULL on error
  */
 std::shared_ptr<ECLogger> CreateLogger(ECConfig *lpConfig, const char *argv0,
-    const char *lpszServiceName, bool bAudit)
+    bool bAudit)
 {
 	std::string prepend;
 	int loglevel = 0;

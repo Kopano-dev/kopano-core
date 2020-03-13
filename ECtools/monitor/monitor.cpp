@@ -214,7 +214,7 @@ static ECRESULT main2(int argc, char **argv)
 		return m_lpThreadMonitor->lpConfig->dump_config(stdout) == 0 ? hrSuccess : E_FAIL;
 
 	// setup logging
-	g_lpLogger = CreateLogger(m_lpThreadMonitor->lpConfig.get(), argv[0], "Kopano-Monitor");
+	g_lpLogger = CreateLogger(m_lpThreadMonitor->lpConfig.get(), argv[0]);
 	ec_log_set(g_lpLogger);
 	if ((bIgnoreUnknownConfigOptions && m_lpThreadMonitor->lpConfig->HasErrors()) || m_lpThreadMonitor->lpConfig->HasWarnings())
 		LogConfigErrors(m_lpThreadMonitor->lpConfig.get());

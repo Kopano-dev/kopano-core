@@ -300,7 +300,7 @@ extern KC_EXPORT HRESULT hr_logcode(HRESULT code, unsigned int level, const char
 #define hr_lnoticef(r, ...) hr_logcode((r), EC_LOGLEVEL_NOTICE, __PRETTY_FUNCTION__, __VA_ARGS__)
 #define hr_ldebug(r, ...)   hr_logcode((r), EC_LOGLEVEL_DEBUG, nullptr, __VA_ARGS__)
 
-extern KC_EXPORT std::shared_ptr<ECLogger> CreateLogger(ECConfig *, const char *argv0, const char *service, bool audit = false);
+extern KC_EXPORT std::shared_ptr<ECLogger> CreateLogger(ECConfig *, const char *argv0, bool audit = false);
 extern KC_EXPORT void LogConfigErrors(ECConfig *);
 extern KC_EXPORT void ec_setup_segv_handler(const char *app, const char *vers);
 extern KC_EXPORT const std::string &ec_os_pretty_name();
