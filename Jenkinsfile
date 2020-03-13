@@ -43,14 +43,14 @@ pipeline {
                     steps {
                         echo 'Testing python-mapi..'
                         sh 'make -C swig/python test PYTEST=pytest-3 || true'
-                        junit allowEmptyResults: true, testResults: 'swig/python/test.xml'
+                        junit allowEmptyResults: true, healthScaleFactor: 0.0, testResults: 'swig/python/test.xml'
                     }
                 }
                 stage('Python Kopano Test') {
                     steps {
                         echo 'Testing python-kopano..'
                         sh 'make -C swig/python/kopano test PYTEST=pytest-3 || true'
-                        junit testResults: 'swig/python/kopano/test.xml'
+                        junit allowEmptyResults: true, healthScaleFactor: 0.0, testResults: 'swig/python/kopano/test.xml'
                     }
                 }
             }
