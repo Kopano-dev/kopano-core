@@ -77,6 +77,8 @@ pipeline {
                     steps {
                         echo 'Testing..'
                         sh 'make -C test test-backend-kopano-ci-run EXTRA_LOCAL_ADMIN_USER=$(id -u) DOCKERCOMPOSE_UP_ARGS=--build DOCKERCOMPOSE_EXEC_ARGS="-T -u $(id -u) -e HOME=/workspace" || true'
+                        junit testResults: 'swig/python/test.xml'
+                        junit testResults: 'swig/python/kopano/test.xml'
                     }
                 }
             }

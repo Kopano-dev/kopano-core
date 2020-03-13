@@ -3,7 +3,7 @@ import os
 import pytest
 
 from MAPI import (MAPIAdminProfiles, KEEP_OPEN_READWRITE, DELETE_HARD_DELETE, MAPI_MODIFY, IStream)
-from MAPI.Util import OpenECSession, GetDefaultStore, SPropValue
+from MAPI.Util import OpenECSession, GetPublicStore, GetDefaultStore, SPropValue
 from MAPI.Tags import IID_IECTestProtocol, PR_SUBJECT, PR_ENTRYID
 
 
@@ -47,7 +47,7 @@ def store(session):
 
 @pytest.fixture
 def root(store):
-    return store.OpenEntry(None, None, 0)
+    return store.OpenEntry(None, None, MAPI_MODIFY)
 
 
 @pytest.fixture
@@ -62,8 +62,7 @@ def gab(addressbook):
 
 
 @pytest.fixture
-def message(store):
-    root = store.OpenEntry(None, None, MAPI_MODIFY)
+def message(root):
     message = root.CreateMessage(None, 0)
     message.SetProps([SPropValue(PR_SUBJECT, b'Test')])
     message.SaveChanges(KEEP_OPEN_READWRITE)
@@ -77,3 +76,8 @@ def message(store):
 @pytest.fixture
 def stream():
     return IStream()
+
+
+@pytest.fixture
+def publicstore(session):
+    return GetPublicStore(session)

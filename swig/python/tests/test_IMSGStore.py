@@ -80,7 +80,8 @@ def test_timprops(store):
     assert props[1].Value.unixtime > 0
 
 
-def test_openentry_noaccess(root):
+def test_openentry_noaccess(store):
+    root = store.OpenEntry(None, IID_IMAPIFolder, 0)
     with pytest.raises(MAPIError) as excinfo:
         root.SetProps([SPropValue(PR_TEST_PROP, b'Test')])
     assert 'MAPI_E_NO_ACCESS' in str(excinfo.value)
@@ -92,10 +93,7 @@ def test_openentry_not_supported(store):
     assert 'MAPI_E_INTERFACE_NOT_SUPPORTED' in str(excinfo.value)
 
 
-def test_openentry(store):
-    root = store.OpenEntry(None, IID_IMAPIFolder, MAPI_MODIFY)
-    assert root
-
+def test_openentry(root):
     root.SetProps([SPropValue(PR_TEST_PROP, b'Test')])
     root.SaveChanges(0)
     # no mapi errors
