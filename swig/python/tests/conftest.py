@@ -8,7 +8,7 @@ from MAPI.Tags import IID_IECTestProtocol, PR_SUBJECT, PR_ENTRYID
 
 
 kopanoserver = pytest.mark.skipif(
-        not os.getenv('KOPANO_TEST_SERVER'),
+        not os.getenv('KOPANO_SOCKET'),
         reason='No kopano-server running'
 )
 
@@ -32,7 +32,7 @@ def adminservice(adminprof):
 def session():
     user = os.getenv('KOPANO_TEST_USER')
     password = os.getenv('KOPANO_TEST_PASSWORD')
-    socket = os.getenv('KOPANO_TEST_SERVER')
+    socket = os.getenv('KOPANO_SOCKET')
 
     if not user or not password or not socket:
         raise ValueError('Tests expect user/password/server to be configured')

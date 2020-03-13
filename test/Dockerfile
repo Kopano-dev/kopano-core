@@ -12,7 +12,14 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 	build-essential \
 	flake8 \
 	pkg-config \
-	python3-pytest
+	python3-dateutil \
+	python3-dev \
+	python3-pillow \
+	python3-pytest \
+	python3-setuptools \
+	python3-tz \
+	python3-tzlocal \
+	php
 
 RUN rm -f /etc/apt/sources.list.d/kopano.list \
 	&& dpkg -r --force-depends \
@@ -25,8 +32,8 @@ RUN rm -f /etc/apt/sources.list.d/kopano.list \
 		libkcinetmapi0 \
 	&& apt-get install -f -y
 
-ENV LD_LIBRARY_PATH=${WORKSPACE}/.libs
-ENV PYTHONPATH=${WORKSPACE}/kopanocore/swig/python:${WORKSPACE}/kopanocore/swig/python/.libs:${WORKSPACE}/swig/python/kopano/
+ENV LD_LIBRARY_PATH=${WORKSPACE}/.libs:${WORKSPACE}/swig/python/.libs
+ENV PYTHONPATH=${WORKSPACE}/swig/python:${WORKSPACE}/swig/python/.libs:${WORKSPACE}/swig/python/kopano/
 env MAPI_CONFIG_PATH=${WORKSPACE}/provider/client
 
 # NOTE(longsleep): Always link kopano-admin to make it available for the test

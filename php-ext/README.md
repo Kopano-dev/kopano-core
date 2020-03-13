@@ -25,7 +25,7 @@ make test
 Running tests against a Kopano Server requires one environment variable to be set:
 
 ```
-KOPANO_TEST_SERVER = http://localhost:236/kopano
+KOPANO_SOCKET = http://localhost:236/kopano
 ```
 
 The test username and password defaults to user1 and can be set with an environment variable:

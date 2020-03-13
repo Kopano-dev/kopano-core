@@ -2,7 +2,7 @@
 require(__DIR__."/mapidef.php");
 
 function getMapiSession($notifications=1) {
-	return mapi_logon_zarafa(getenv("KOPANO_TEST_USER"), getenv("KOPANO_TEST_PASSWORD"), getenv("KOPANO_TEST_SERVER"), null, null, $notifications);
+	return mapi_logon_zarafa(getenv("KOPANO_TEST_USER"), getenv("KOPANO_TEST_PASSWORD"), getenv("KOPANO_SOCKET"), null, null, $notifications);
 }
 
 function getDefaultStore($session)

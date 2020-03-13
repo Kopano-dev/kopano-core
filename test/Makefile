@@ -10,7 +10,17 @@ export COMPOSE_PROJECT_NAME=kopanocore-test-$(BUILD_TAG)
 export EXTRA_LOCAL_ADMIN_USER
 
 # TODO(longsleep): Add tests here.
-test:
+test: test-python-mapi test-python-kopano test-php
+
+
+test-python-mapi:
+	make -C ../swig/python test
+
+test-python-kopano:
+	make -C ../swig/python/kopano/ test
+
+test-php:
+	make -C ../php-ext test
 
 # CI
 

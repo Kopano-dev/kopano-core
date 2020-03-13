@@ -176,3 +176,11 @@ stamp-h2
 *.pyc
 *.pyo
 *.egg-info
+
+# Ignore php-ext test files
+/php-ext/tests/*.diff
+/php-ext/tests/*.exp
+/php-ext/tests/*.log
+/php-ext/tests/*.out
+/php-ext/tests/*.php
+/php-ext/tests/*.sh
