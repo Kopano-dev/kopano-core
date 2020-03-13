@@ -885,11 +885,13 @@ std::shared_ptr<ECLogger> CreateLogger(ECConfig *lpConfig, const char *argv0,
 	std::string prepend;
 	int loglevel = 0;
 	int syslog_facility = LOG_MAIL;
-	resolve_auto_logger(lpConfig);
-	auto log_method = lpConfig->GetSetting("log_method");
-	auto log_file   = lpConfig->GetSetting("log_file");
+	const char *log_method, *log_file;
 
-	if (bAudit) {
+	if (!bAudit) {
+		resolve_auto_logger(lpConfig);
+		log_method = lpConfig->GetSetting("log_method");
+		log_file   = lpConfig->GetSetting("log_file");
+	} else {
 #if 1 /* change to ifdef HAVE_LOG_AUTHPRIV */
 		if (!parseBool(lpConfig->GetSetting("audit_log_enabled")))
 			return NULL;
