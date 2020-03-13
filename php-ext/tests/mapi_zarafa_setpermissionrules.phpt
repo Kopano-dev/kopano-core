@@ -22,4 +22,5 @@ $data[0]["rights"] = ecRightsFullControl;
 $data[0]["state"] = RIGHT_NEW | RIGHT_AUTOUPDATE_DENIED;
 var_dump(mapi_zarafa_setpermissionrules($store, $data));
 --EXPECTF--
+bool(false)
 bool(true)

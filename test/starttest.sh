@@ -9,9 +9,9 @@ export PYTHONDONTWRITEBYTECODE=yes
 
 PYTHON=${PYTHON:-python3}
 PYTEST=${PYTEST:-py.test-3}
-KOPANO_SOCKET=${KOPANO_SOCKET:-file:///run/kopano/server.sock}
-KOPANO_TEST_USER=${KOPANO_TEST_USER:-user1}
-KOPANO_TEST_PASSWORD=${KOPANO_TEST_PASSWORD:-user1}
+export KOPANO_SOCKET=${KOPANO_SOCKET:-file:///run/kopano/server.sock}
+export KOPANO_TEST_USER=${KOPANO_TEST_USER:-user1}
+export KOPANO_TEST_PASSWORD=${KOPANO_TEST_PASSWORD:-user1}
 
 if [ "$CI" -eq "1" ]; then
 	if [ -x "$(command -v dockerize)" ]; then
@@ -32,6 +32,9 @@ while true; do
 	count=$((count +1))
 	sleep 1
 done
+
+# TODO(jelle): handle public store creation failure
+kopano-admin -s || true
 
 kopano-admin -l
 

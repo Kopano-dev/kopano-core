@@ -85,7 +85,7 @@ def test_configuremsgservice(adminservice):
     prop = PpropFindProp(rows[0], PR_SERVICE_UID)
     uid = prop.Value
 
-    props = [SPropValue(PR_EC_PATH, os.getenv('KOPANO_TEST_SERVER').encode()),
+    props = [SPropValue(PR_EC_PATH, os.getenv('KOPANO_SOCKET').encode()),
              SPropValue(PR_EC_USERNAME, os.getenv('KOPANO_TEST_USER').encode()),
              SPropValue(PR_EC_USERPASSWORD, os.getenv('KOPANO_TEST_PASSWORD').encode())]
 

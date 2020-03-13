@@ -41,5 +41,6 @@ env MAPI_CONFIG_PATH=${WORKSPACE}/provider/client
 # avoids a su-exec step in the test container and is fine until there are a
 # lof of extra tools required to be in /usr/sbin.
 RUN ln -svnf $WORKSPACE/.libs/kopano-admin /usr/sbin/
+RUN ln -svnf $WORKSPACE/.libs/kopano-storeadm /usr/sbin/
 
 CMD [ "/bin/true" ]

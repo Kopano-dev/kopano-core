@@ -6,7 +6,7 @@ from MAPI import kc_session_save, kc_session_restore
 from MAPI.Util import GetDefaultStore
 
 
-if not os.getenv('KOPANO_TEST_SERVER'):
+if not os.getenv('KOPANO_SOCKET'):
     pytest.skip('No kopano-server running', allow_module_level=True)
 
 

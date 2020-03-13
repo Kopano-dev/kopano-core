@@ -17,7 +17,7 @@ from MAPI.Util import PROP_TAG
 PR_TEST_PROP = PROP_TAG(PT_STRING8, 0x6601)
 
 
-if not os.getenv('KOPANO_TEST_SERVER'):
+if not os.getenv('KOPANO_SOCKET'):
     pytest.skip('No kopano-server running', allow_module_level=True)
 
 
