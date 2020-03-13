@@ -3,8 +3,7 @@ DOCKERCOMPOSE_UP_ARGS ?= --build
 DOCKERCOMPOSE_EXEC_ARGS ?= -T -u $(shell id -u) -e HOME=/workspace
 EXTRA_LOCAL_ADMIN_USER ?= $(shell id -u)
 
-#BUILD_TAG ?= $(shell date +%s)
-BUILD_TAG ?= $(shell whoami)
+BUILD_TAG ?= $(shell whoami || date +%s)
 
 export COMPOSE_PROJECT_NAME=kopanocore-test-$(BUILD_TAG)
 export EXTRA_LOCAL_ADMIN_USER
