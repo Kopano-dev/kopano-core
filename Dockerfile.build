@@ -94,11 +94,16 @@ RUN apt-get update -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
-WORKDIR /build/
+ENV WORKSPACE=/build
+WORKDIR ${WORKSPACE}
 
 # Create build user
 RUN groupadd -r -g 1000 builder && useradd -l -r -u 1000 -g builder builder
 USER builder
+
+ENV LD_LIBRARY_PATH=${WORKSPACE}/.libs:${WORKSPACE}/swig/python/.libs
+ENV PYTHONPATH=${WORKSPACE}/swig/python:${WORKSPACE}/swig/python/.libs:${WORKSPACE}/swig/python/kopano/
+ENV MAPI_CONFIG_PATH=${WORKSPACE}/provider/client
 
 # Default command (requires mounting kopanocore directory to /build/)
 CMD ./bootstrap.sh && PYTHON=/usr/bin/python3 ./configure && make -j $(nproc)
