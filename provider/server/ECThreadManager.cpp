@@ -161,8 +161,11 @@ void WORKITEM::run()
 	auto lpWorkItem = this;
 	struct soap *soap = lpWorkItem->xsoap;
 	auto info = soap_info(soap);
-	info->st.wi_wall_start = time_point::clock::now();
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &info->st.wi_cpu[0]);
+	bool dolog = g_request_logger != nullptr;
+	if (dolog) {
+		info->st.wi_wall_start = time_point::clock::now();
+		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &info->st.wi_cpu[0]);
+	}
 
 	kcsrv_blocksigs();
 	int err = 0;
@@ -235,12 +238,14 @@ done:
 			info->fdone(soap, info->fdoneparam);
 	}
 
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &info->st.wi_cpu[1]);
-	info->st.wi_wall_end = time_point::clock::now(); /* end time for multiple counters */
-	HX_timespec_sub(&info->st.wi_cpu[2], &info->st.wi_cpu[1], &info->st.wi_cpu[0]);
-	info->st.wi_wall_dur  = info->st.wi_wall_end - info->st.wi_wall_start;
-	info->st.sk_wall_dur  = info->st.wi_wall_end - info->st.sk_wall_start;
-	info->st.enq_wall_dur = info->st.wi_wall_end - info->st.enq_wall_start;
+	if (dolog) {
+		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &info->st.wi_cpu[1]);
+		info->st.wi_wall_end = time_point::clock::now(); /* end time for multiple counters */
+		HX_timespec_sub(&info->st.wi_cpu[2], &info->st.wi_cpu[1], &info->st.wi_cpu[0]);
+		info->st.wi_wall_dur  = info->st.wi_wall_end - info->st.wi_wall_start;
+		info->st.sk_wall_dur  = info->st.wi_wall_end - info->st.sk_wall_start;
+		info->st.enq_wall_dur = info->st.wi_wall_end - info->st.enq_wall_start;
+	}
 
 	if (!do_tls_setup) {
 		/*
@@ -256,7 +261,7 @@ done:
 		g_lpSessionManager->m_stats->inc(SCN_RESPONSE_TIME, duration_cast<microseconds>(info->st.sk_wall_dur).count());
 	}
 
-	if (g_request_logger != nullptr)
+	if (dolog)
 		log_request(soap, err);
 	// Clear memory used by soap calls. Note that this does not actually
 	// undo our soap_new2() call so the soap object is still valid after these calls
