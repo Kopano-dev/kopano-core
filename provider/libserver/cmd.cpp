@@ -653,6 +653,8 @@ exit:
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &soap_info(soap)->st.rh1_cpu[1]);
 	soap_info(soap)->st.rh1_wall_end = time_point::clock::now();
 	soap_info(soap)->st.er = er;
+	HX_timespec_sub(&soap_info(soap)->st.rh1_cpu[2], &soap_info(soap)->st.rh1_cpu[1], &soap_info(soap)->st.rh1_cpu[0]);
+	soap_info(soap)->st.rh1_wall_dur = soap_info(soap)->st.rh1_wall_end - soap_info(soap)->st.rh1_wall_start;
 	return SOAP_OK;
 }
 
@@ -795,6 +797,9 @@ nosso:
 	lpsResponse->er = er;
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &soap_info(soap)->st.rh1_cpu[1]);
 	soap_info(soap)->st.rh1_wall_end = time_point::clock::now();
+	soap_info(soap)->st.er = er;
+	HX_timespec_sub(&soap_info(soap)->st.rh1_cpu[2], &soap_info(soap)->st.rh1_cpu[1], &soap_info(soap)->st.rh1_cpu[0]);
+	soap_info(soap)->st.rh1_wall_dur = soap_info(soap)->st.rh1_wall_end - soap_info(soap)->st.rh1_wall_start;
 	return SOAP_OK;
 }
 
@@ -824,6 +829,9 @@ exit:
     *result = er;
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &soap_info(soap)->st.rh1_cpu[1]);
 	soap_info(soap)->st.rh1_wall_end = time_point::clock::now();
+	soap_info(soap)->st.er = er;
+	HX_timespec_sub(&soap_info(soap)->st.rh1_cpu[2], &soap_info(soap)->st.rh1_cpu[1], &soap_info(soap)->st.rh1_cpu[0]);
+	soap_info(soap)->st.rh1_wall_dur = soap_info(soap)->st.rh1_wall_end - soap_info(soap)->st.rh1_wall_start;
 	return SOAP_OK;
 }
 
