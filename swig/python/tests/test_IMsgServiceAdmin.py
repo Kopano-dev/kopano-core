@@ -27,10 +27,12 @@ def test_createmsgservice_null2(adminservice):
     assert 'MAPI_E_INVALID_PARAMETER' in str(excinfo.value)
 
 
+@kopanoserver
 def test_createmsgservice(adminservice):
     assert adminservice.CreateMsgService(b'ZARAFA6', b'Zarafa', 0, 0) is None
 
 
+@kopanoserver
 def test_createmsgservice_delete(adminservice):
     adminservice.CreateMsgService(b'ZARAFA6', b'Zarafa', 0, 0) is None
     table = adminservice.GetMsgServiceTable(0)
