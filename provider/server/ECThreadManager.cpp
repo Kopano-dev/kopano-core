@@ -171,7 +171,8 @@ void WORKITEM::run()
 	set_thread_name(thrself, (m_worker->m_pool->m_poolname + "/" + soap->host).c_str());
 
 	// For SSL connections, we first must do the handshake and pass it back to the queue
-	if (soap->ctx && soap->ssl == nullptr) {
+	auto do_tls_setup = soap->ctx != nullptr && soap->ssl == nullptr;
+	if (do_tls_setup) {
 		err = soap_ssl_accept(soap);
 		if (err) {
 			auto d1 = soap_faultstring(soap);
@@ -180,6 +181,7 @@ void WORKITEM::run()
 				d1 != nullptr && *d1 != nullptr ? *d1 : "(no error set)",
 				d != nullptr && *d != nullptr ? *d : "");
 		}
+		info->st.func = "tls_setup";
 	} else {
 		err = 0;
 		// Reset last session ID so we can use it reliably after the call is done
@@ -231,13 +233,16 @@ void WORKITEM::run()
 done:
 		if (info->fdone != nullptr)
 			info->fdone(soap, info->fdoneparam);
+	}
 
-		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &info->st.wi_cpu[1]);
-		info->st.wi_wall_end = time_point::clock::now(); /* end time for multiple counters */
-		HX_timespec_sub(&info->st.wi_cpu[2], &info->st.wi_cpu[1], &info->st.wi_cpu[0]);
-		info->st.wi_wall_dur  = info->st.wi_wall_end - info->st.wi_wall_start;
-		info->st.sk_wall_dur  = info->st.wi_wall_end - info->st.sk_wall_start;
-		info->st.enq_wall_dur = info->st.wi_wall_end - info->st.enq_wall_start;
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &info->st.wi_cpu[1]);
+	info->st.wi_wall_end = time_point::clock::now(); /* end time for multiple counters */
+	HX_timespec_sub(&info->st.wi_cpu[2], &info->st.wi_cpu[1], &info->st.wi_cpu[0]);
+	info->st.wi_wall_dur  = info->st.wi_wall_end - info->st.wi_wall_start;
+	info->st.sk_wall_dur  = info->st.wi_wall_end - info->st.sk_wall_start;
+	info->st.enq_wall_dur = info->st.wi_wall_end - info->st.enq_wall_start;
+
+	if (!do_tls_setup) {
 		/*
 		 * Tell the session we are done processing the request for this
 		 * session. Any time spent in this thread until now will be
@@ -249,10 +254,10 @@ done:
 		using namespace std::chrono;
 		g_lpSessionManager->m_stats->inc(SCN_PROCESSING_TIME, duration_cast<microseconds>(info->st.wi_wall_dur).count());
 		g_lpSessionManager->m_stats->inc(SCN_RESPONSE_TIME, duration_cast<microseconds>(info->st.sk_wall_dur).count());
-		if (g_request_logger != nullptr)
-			log_request(soap, err);
 	}
 
+	if (g_request_logger != nullptr)
+		log_request(soap, err);
 	// Clear memory used by soap calls. Note that this does not actually
 	// undo our soap_new2() call so the soap object is still valid after these calls
 	soap_destroy(soap);

@@ -278,7 +278,9 @@ Username
 .IP \(bu 4
 Impersonated user
 .IP \(bu 4
-Command
+Command that was issued. An entry with special value "tls_setup" denotes the
+TLS context establishment and certificate validation phase that may happen
+prior to any HTTP/SOAP request, if the connection was secured in this manner.
 .IP \(bu 4
 rc: MAPI result code, or one of the special values "soaperr", "soapeof".
 .IP \(bu 4
