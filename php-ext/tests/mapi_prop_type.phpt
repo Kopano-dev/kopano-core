@@ -1,7 +1,7 @@
 --TEST--
 mapi_prop_type() tests
 --SKIPIF--
-<?php if (!extension_loaded("mapi")) print "skip"; ?>
+<?php if (!extension_loaded("mapi") || getenv('KOPANO_SOCKET')) print "skip"; ?>
 --FILE--
 <?php
 define('PT_STRING8', 30);

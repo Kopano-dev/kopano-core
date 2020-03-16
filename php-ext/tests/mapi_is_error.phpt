@@ -1,7 +1,7 @@
 --TEST--
 mapi_is_error() tests
 --SKIPIF--
-<?php if (!extension_loaded("mapi")) print "skip"; ?>
+<?php if (!extension_loaded("mapi") || getenv('KOPANO_SOCKET')) print "skip"; ?>
 --FILE--
 <?php
 define('MAPI_E_NOT_ENOUGH_MEMORY', (int)-2147024882);

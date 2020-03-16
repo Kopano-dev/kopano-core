@@ -32,14 +32,14 @@ pipeline {
                         sh 'make check'
                     }
                 }
-		/*
                 stage('PHP MAPI Test') {
                     steps {
                         echo 'Testing php-ext..'
                         sh 'make -C php-ext test TEST_PHP_JUNIT=test.log || true'
-                        junit allowEmptyResults: true, testResults: 'php-ext/test.log'
+                        junit testResults: 'php-ext/test.log'
                     }
                 }
+		/*
                 stage('Python MAPI Test') {
                     steps {
                         echo 'Testing python-mapi..'
