@@ -18,7 +18,6 @@ extern int kc_ssl_options(struct soap *, char *protos, const char *ciphers, cons
 class ECSoapServerConnection final {
 public:
 	ECSoapServerConnection(std::shared_ptr<KC::ECConfig>);
-	~ECSoapServerConnection();
 	ECRESULT ListenTCP(const char *host, int port);
 	ECRESULT ListenSSL(const char *host, int port, const char *keyfile, const char *keypass, const char *cafile, const char *capath);
 	ECRESULT ListenPipe(const char* lpPipeName, bool bPriority = false);
@@ -31,7 +30,7 @@ public:
 
 private:
     // Main thread handler
-    ECDispatcher *m_lpDispatcher;
+	std::unique_ptr<ECDispatcher> m_lpDispatcher;
 	std::shared_ptr<KC::ECConfig> m_lpConfig;
 };
 
