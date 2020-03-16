@@ -77,7 +77,7 @@ CONFIG = {
 
 def db_get(db_path, key):
     """ get value from db file """
-    if not isinstance(key, bytes): # python3
+    if not isinstance(key, bytes):  # python3
         key = key.encode('ascii')
     with closing(bsddb.hashopen(db_path, 'c')) as db:
         value = db.get(key)
@@ -86,7 +86,7 @@ def db_get(db_path, key):
 
 def db_put(db_path, key, value):
     """ store key, value in db file """
-    if not isinstance(key, bytes): # python3
+    if not isinstance(key, bytes):  # python3
         key = key.encode('ascii')
     with open(db_path+'.lock', 'w') as lockfile:
         fcntl.flock(lockfile.fileno(), fcntl.LOCK_EX)
@@ -113,7 +113,7 @@ class SearchWorker(kopano.Worker):
                     if cmd == 'PROPS':
                         response(conn, 'OK:'+' '.join(map(str, config['index_exclude_properties'])))
                         break
-                    if cmd == 'SYNCRUN': # wait for syncing to be up-to-date (only used in tests)
+                    if cmd == 'SYNCRUN':  # wait for syncing to be up-to-date (only used in tests)
                         self.syncrun.value = time.time()
                         while self.syncrun.value:
                             time.sleep(1)
@@ -150,7 +150,7 @@ class SearchWorker(kopano.Worker):
                                 restrictions.append('('+' OR '.join('('+' AND '.join('mapi%d:%s*' % (f, term) for term in terms)+')' for f in fields)+')')
                             else:
                                 restrictions.append('('+' AND '.join('%s*' % term for term in terms)+')')
-                        query = ' AND '.join(restrictions) # plugin doesn't have to use this relatively standard query format
+                        query = ' AND '.join(restrictions)  # plugin doesn't have to use this relatively standard query format
                         docids = plugin.search(server_guid, store_guid, folder_ids, fields_terms, query, config['limit_results'], self.log)
                         response(conn, 'OK: '+' '.join(map(str, docids)))
                         self.log.info('found %d results in %.2f seconds', len(docids), time.time()-t0)
@@ -205,7 +205,7 @@ class FolderImporter:
         self.serverid, self.config, self.plugin, self.suggestions, self.log = args
         self.changes = self.deletes = self.attachments = 0
         self.mapping_db = os.path.join(self.config['index_path'], self.serverid+'_mapping')
-        self.excludes = set(self.config['index_exclude_properties']+[0x1000, 0x1009, 0x1013, 0x678C]) # PR_BODY, PR_RTF_COMPRESSED, PR_HTML, PR_EC_IMAP_EMAIL
+        self.excludes = set(self.config['index_exclude_properties']+[0x1000, 0x1009, 0x1013, 0x678C])  # PR_BODY, PR_RTF_COMPRESSED, PR_HTML, PR_EC_IMAP_EMAIL
         self.term_cache_size = 0
 
     def update(self, item, flags):
@@ -232,21 +232,21 @@ class FolderImporter:
                 for attachment in subitem.attachments():
                     if self.config['index_attachments'] and \
                        0 < len(attachment) < self.config['index_attachment_max_size'] and \
-                       attachment.filename != 'inline.txt': # XXX inline attachment check
+                       attachment.filename != 'inline.txt':  # XXX inline attachment check
                         self.log.debug('indexing attachment (filename=%s, size=%d, mimetag=%s)',
                             attachment.filename, len(attachment), attachment.mimetype)
                         self.attachments += 1
                         attach_text.append(plaintext.get(attachment, mimetype=attachment.mimetype, log=self.log))
                     attach_text.append(attachment.filename or u'')
 
-                doc['mapi4096'] += u' ' + subitem.text + u' ' + u' '.join(attach_text) # PR_BODY
-                doc['mapi3098'] += u' ' + u' '.join([subitem.sender.name, subitem.sender.email, subitem.from_.name, subitem.from_.email]) # PR_SENDER_NAME
-                doc['mapi3588'] += u' ' + u' '.join([a.name + u' ' + a.email for a in subitem.to]) # PR_DISPLAY_TO
-                doc['mapi3587'] += u' ' + u' '.join([a.name + u' ' + a.email for a in subitem.cc]) # PR_DISPLAY_CC
-                doc['mapi3586'] += u' ' + u' '.join([a.name + u' ' + a.email for a in subitem.bcc]) # PR_DISPLAY_BCC
+                doc['mapi4096'] += u' ' + subitem.text + u' ' + u' '.join(attach_text)  # PR_BODY
+                doc['mapi3098'] += u' ' + u' '.join([subitem.sender.name, subitem.sender.email, subitem.from_.name, subitem.from_.email])  # PR_SENDER_NAME
+                doc['mapi3588'] += u' ' + u' '.join([a.name + u' ' + a.email for a in subitem.to])  # PR_DISPLAY_TO
+                doc['mapi3587'] += u' ' + u' '.join([a.name + u' ' + a.email for a in subitem.cc])  # PR_DISPLAY_CC
+                doc['mapi3586'] += u' ' + u' '.join([a.name + u' ' + a.email for a in subitem.bcc])  # PR_DISPLAY_BCC
 
             doc['data'] = 'subject: %s\n' % item.subject
-            db_put(self.mapping_db, item.sourcekey, '%s %s' % (storeid, item.folder.entryid)) # ICS doesn't remember which store a change belongs to..
+            db_put(self.mapping_db, item.sourcekey, '%s %s' % (storeid, item.folder.entryid))  # ICS doesn't remember which store a change belongs to..
             self.plugin.update(doc)
             self.term_cache_size += sum(len(v) for k, v in doc.items() if k.startswith('mapi'))
             if (8*self.term_cache_size) > self.config['term_cache_size']:
@@ -259,14 +259,14 @@ class FolderImporter:
         with log_exc(self.log):
             self.deletes += 1
             ids = db_get(self.mapping_db, item.sourcekey)
-            if ids: # when a 'new' item is deleted right away (spooler?), the 'update' function may not have been called
+            if ids:  # when a 'new' item is deleted right away (spooler?), the 'update' function may not have been called
                 storeid, folderid = ids.split()
                 doc = {'serverid': self.serverid, 'storeid': storeid, 'sourcekey': item.sourcekey}
                 self.log.debug('store %s: deleted document with sourcekey %s', doc['storeid'], item.sourcekey)
                 self.plugin.delete(doc)
 
 class ServerImporter:
-    """ tracks changes for a server node; queues encountered folders for updating """ # XXX improve ICS to track changed folders?
+    """ tracks changes for a server node; queues encountered folders for updating """  # XXX improve ICS to track changed folders?
 
     def __init__(self, serverid, config, iqueue, log):
         self.mapping_db = os.path.join(config['index_path'], serverid+'_mapping')
@@ -318,7 +318,7 @@ class Service(kopano.Service):
             self.log.info('found previous server sync state: %s', self.state)
         else:
             self.log.info('starting initial sync')
-            new_state = self.server.state # syncing will reach at least the current state
+            new_state = self.server.state  # syncing will reach at least the current state
             self.initial_sync(self.server.stores())
             self.state = new_state
             db_put(self.state_db, 'SERVER', self.state)
@@ -337,7 +337,7 @@ class Service(kopano.Service):
         itemcount = sum(f[0] for f in folders)
         self.log.info('queued %d folders (~%d changes) for parallel indexing (%s processes)', len(folders), itemcount, self.index_processes)
         t0 = time.time()
-        changes = sum([self.oqueue.get() for i in range(len(folders))]) # blocking
+        changes = sum([self.oqueue.get() for i in range(len(folders))])  # blocking
         self.log.info('queue processed in %.2f seconds (%d changes, ~%.2f/sec)', time.time()-t0, changes, changes/(time.time()-t0))
 
     def incremental_sync(self):
@@ -357,10 +357,10 @@ class Service(kopano.Service):
                 t0 = time.time()
                 new_state = self.server.sync(importer, self.state, log=self.log)
                 if new_state != self.state:
-                    changes = sum([self.oqueue.get() for i in range(len(importer.queued))]) # blocking
+                    changes = sum([self.oqueue.get() for i in range(len(importer.queued))])  # blocking
                     for f in importer.queued:
-                        self.iqueue.put(f+(False,)) # make sure folders are at least synced to new_state
-                    changes += sum([self.oqueue.get() for i in range(len(importer.queued))]) # blocking
+                        self.iqueue.put(f+(False,))  # make sure folders are at least synced to new_state
+                    changes += sum([self.oqueue.get() for i in range(len(importer.queued))])  # blocking
                     self.log.info('queue processed in %.2f seconds (%d changes, ~%.2f/sec)', time.time()-t0, changes, changes/(time.time()-t0))
                     self.state = new_state
                     db_put(self.state_db, 'SERVER', self.state)
@@ -404,7 +404,7 @@ class Service(kopano.Service):
             sys.exit(1)
 
 def main():
-    parser = kopano.parser('CKQSFlVus') # select common cmd-line options
+    parser = kopano.parser('CKQSFlVus')  # select common cmd-line options
     parser.add_option('-r', '--reindex', dest='reindex', action='store_true',help='Reindex user/store')
     options, args = parser.parse_args()
     service = Service('search', config=CONFIG, options=options)
@@ -414,4 +414,4 @@ def main():
         service.start()
 
 if __name__ == '__main__':
-    main() # pragma: no cover
+    main()  # pragma: no cover
