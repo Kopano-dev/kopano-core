@@ -103,7 +103,8 @@ void server_stats::fill_odm()
 	unsigned int qlen = 0, nthr = 0, ithr = 0;
 	KC::time_duration qage;
 
-	kopano_get_server_stats(&qlen, &qage, &nthr, &ithr);
+	if (kopano_get_server_stats != nullptr)
+		kopano_get_server_stats(&qlen, &qage, &nthr, &ithr);
 	setg("queuelen", "Current queue length", qlen);
 	setg_dbl("queueage", "Age of the front queue item", dur2dbl(qage));
 	setg("threads", "Number of threads running to process items", nthr);
