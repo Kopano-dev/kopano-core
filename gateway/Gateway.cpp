@@ -547,7 +547,7 @@ static HRESULT gw_listen(ECConfig *cfg)
 		auto ret = ec_fdtable_socket(spec.c_str(), nullptr, nullptr);
 		if (ret >= 0) {
 			pfd.fd = ret;
-			ec_log_info("Re-using fd %d to listen on %s for imap", ret, spec.c_str());
+			ec_log_info("Re-using fd %d to listen on %s for imaps", ret, spec.c_str());
 		} else {
 			ret = ec_listen_generic(spec.c_str(), &pfd.fd);
 			if (ret < 0) {
