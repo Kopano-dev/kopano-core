@@ -199,7 +199,9 @@ void WORKITEM::run()
 		if (soap_begin_recv(soap)) {
 			if (soap->error < SOAP_STOP) {
 				// Client Updater returns 404 to the client to say it doesn't need to update, so skip this HTTP error
-				if (soap->error != SOAP_EOF && soap->error != 404)
+				auto carp = soap->error != SOAP_EOF && soap->error != 404;
+				dolog &= carp;
+				if (carp)
 					ec_log_debug("gSOAP error on receiving request: %s", GetSoapError(soap->error).c_str());
 				soap_send_fault(soap);
 				goto done;
