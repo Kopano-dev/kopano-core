@@ -45,7 +45,6 @@ implicit '*' at the end. not every search engine may perform well for this, but 
 """
 
 CONFIG = {
-    'coredump_enabled': Config.ignore(),
     'index_attachments': Config.boolean(default=False),
     'index_attachment_extension_filter': Config.ignore(),
     'index_attachment_mime_filter': Config.ignore(),
@@ -64,9 +63,6 @@ CONFIG = {
     'index_path': Config.string(default='/var/lib/kopano/search/'),
     'index_processes': Config.integer(default=1),
     'limit_results': Config.integer(default=1000),
-    'optimize_age': Config.ignore(),
-    'optimize_start': Config.ignore(),
-    'optimize_stop': Config.ignore(),
     'run_as_user': Config.string(default="kopano"),
     'run_as_group': Config.string(default="kopano"),
     'search_engine': Config.string(default='xapian'),
