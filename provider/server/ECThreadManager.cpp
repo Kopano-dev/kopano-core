@@ -136,18 +136,18 @@ static void log_request(struct soap *soap, int soaperr)
 	}
 	g_request_logger->Log(0, format("%s %s %s %s %s"
 		" Tsk=%.6f Tenq=%.6f"
-		" Twi=%.6f Twi_CPU=" HX_TIMESPEC_FMT
-		" Trh1=%.6f Trh1_CPU=" HX_TIMESPEC_FMT
-		" Trh2=%.6f Trh2_CPU=" HX_TIMESPEC_FMT
+		" Twi=%.6f Twi_CPU=%ld.%06ld"
+		" Trh1=%.6f Trh1_CPU=%ld.%06ld"
+		" Trh2=%.6f Trh2_CPU=%ld.%06ld"
 		" agent=\"%s\"",
 		soap->host,
 		!st.user.empty() ? bin2txt(st.user).c_str() : "-",
 		!st.imp.empty() ? bin2txt(st.imp).c_str() : "-",
 		st.func ?: "-", ers,
 		dur2dbl(st.sk_wall_dur), dur2dbl(st.enq_wall_dur),
-		dur2dbl(st.wi_wall_dur), HX_TIMESPEC_EXP(&st.wi_cpu[2]),
-		dur2dbl(st.rh1_wall_dur), HX_TIMESPEC_EXP(&st.rh1_cpu[2]),
-		dur2dbl(st.rh2_wall_dur), HX_TIMESPEC_EXP(&st.rh2_cpu[2]),
+		dur2dbl(st.wi_wall_dur), static_cast<long>(st.wi_cpu[2].tv_sec), st.wi_cpu[2].tv_nsec / 1000,
+		dur2dbl(st.rh1_wall_dur), static_cast<long>(st.rh1_cpu[2].tv_sec), st.rh1_cpu[2].tv_nsec / 1000,
+		dur2dbl(st.rh2_wall_dur), static_cast<long>(st.rh2_cpu[2].tv_sec), st.rh2_cpu[2].tv_nsec / 1000,
 		st.agent.c_str()));
 }
 
