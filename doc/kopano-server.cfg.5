@@ -280,16 +280,19 @@ Impersonated user
 .IP \(bu 4
 Command
 .IP \(bu 4
-MAPI result code (success/error)
+rc: MAPI result code, or one of the special values "soaperr", "soapeof".
 .IP \(bu 4
 Tsk: Time between the server receiving the socket event and having sent the
-response.
+response. This is the metric that eventually makes it into the "RTT" field
+as displayed by kopano-stats.
 .IP \(bu 4
-Tenq: Time between the request being enqueued and being completed.
+Tenq: Time between the request being enqueued and the response sent.
+This is naturally a subset of Tsk.
 .IP \(bu 4
-Twi: Time between the request being dequeued and being completed, i.e. time
-spent for receiving, parsing/decoding the SOAP request, Trh1, encoding and
-sending the SOAP response.
+Twi: Time between the request being dequeued and the response sent, i.e. time
+spent for handling the request as a whole, which is parsing/decoding the SOAP
+request, Trh1, encoding and producing the SOAP response. This is naturally a
+subset of Tenq.
 .IP \(bu 4
 Trh1: Time it took to run the request handler, i.e. login and/or session
 validation and the request-specific processing (Trh2).
