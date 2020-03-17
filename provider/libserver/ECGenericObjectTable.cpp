@@ -35,9 +35,7 @@
 #include <mapitags.h>
 #include <kopano/mapiext.h>
 #include <sys/types.h>
-#if 1 /* change to HAVE_REGEX_H */
 #include <regex.h>
-#endif
 #include <iostream>
 #include "kcore.hpp"
 #include "pcutil.hpp"
@@ -1676,7 +1674,6 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager *lpCacheManager,
 		if((PROP_TYPE(ulPropTagRestrict) & ~MV_FLAG) != PROP_TYPE(ulPropTagValue))
 			// cannot compare two different types, except mvprop -> prop
 			return KCERR_INVALID_TYPE;
-#if 1 /* HAVE_REGEX_H */
 		if(lpsRestrict->lpProp->ulType == RELOP_RE) {
 		    regex_t reg;
 
@@ -1700,7 +1697,6 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager *lpCacheManager,
             // Finished for this restriction
             break;
         }
-#endif
 
 		if(PROP_ID(ulPropTagRestrict) == PROP_ID(PR_ANR))
 		{
