@@ -16,13 +16,7 @@
 
 namespace KC {
 
-#if 1
 #define fMapiDeferredErrors	MAPI_DEFERRED_ERRORS
-#else
-#define fMapiDeferredErrors	0
-#endif
-
-
 #define dispidAttachedUser			"attached-user-entryid"
 #define dispidStoreEntryIds			"store-entryids"
 #define dispidItemEntryIds			"item-entryids"
