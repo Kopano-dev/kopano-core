@@ -630,7 +630,8 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 	epevent.events = EPOLLIN | EPOLLPRI; // wait for input and priority (?) events
 	for (const auto &pair : m_setListenSockets) {
 		epevent.data.fd = pair.second->socket;
-		epoll_ctl(m_epFD, EPOLL_CTL_ADD, pair.second->socket, &epevent);
+		if (epoll_ctl(m_epFD, EPOLL_CTL_ADD, pair.second->socket, &epevent) != 0)
+			ec_log_err("epoll_ctl ADD %d: %s", epevent.data.fd, strerror(errno));
 	}
 
 	// This will start the threads
@@ -671,7 +672,6 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 					continue;
 				// remove from epfd, either close socket, or it will be reactivated later in the epfd
 				epevent.data.fd = iterSockets->second.soap->socket;
-				epoll_ctl(m_epFD, EPOLL_CTL_DEL, iterSockets->second.soap->socket, &epevent);
 
 				if (epevents[i].events & EPOLLHUP) {
 					kopano_end_soap_connection(iterSockets->second.soap);
@@ -728,7 +728,11 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 			// directly make worker thread active
 			sActive.soap = newsoap;
 			m_setSockets.emplace(sActive.soap->socket, sActive);
-			NotifyRestart(newsoap->socket);
+			epoll_event eev{};
+			eev.events = EPOLLIN | EPOLLPRI | EPOLLONESHOT;
+			eev.data.fd = newsoap->socket;
+			if (epoll_ctl(m_epFD, EPOLL_CTL_ADD, newsoap->socket, &eev) != 0)
+				ec_log_err("epoll_ctl ADD %d: %s", newsoap->socket, strerror(errno));
 		}
 		l_sock.unlock();
 	}
@@ -752,8 +756,9 @@ void ECDispatcherEPoll::NotifyRestart(SOAP_SOCKET s)
 	// add soap socket in epoll fd
 	epoll_event epevent;
 	memset(&epevent, 0, sizeof(epoll_event));
-	epevent.events = EPOLLIN | EPOLLPRI; // wait for input and priority (?) events
+	epevent.events = EPOLLIN | EPOLLPRI | EPOLLONESHOT;
 	epevent.data.fd = s;
-	epoll_ctl(m_epFD, EPOLL_CTL_ADD, epevent.data.fd, &epevent);
+	if (epoll_ctl(m_epFD, EPOLL_CTL_MOD, s, &epevent) != 0)
+		ec_log_err("epoll_ctl MOD %d: %s", s, strerror(errno));
 }
 #endif
