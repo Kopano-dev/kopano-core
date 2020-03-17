@@ -171,6 +171,8 @@ stamp-h2
 /swig/python/kopano/build/
 /swig/python/kopano/dist/
 /swig/python/python.sym
+/swig/python/test.xml
+/swig/python/kopano/test.xml
 
 # Ignore Python compiled files
 *.pyc
@@ -184,3 +186,4 @@ stamp-h2
 /php-ext/tests/*.out
 /php-ext/tests/*.php
 /php-ext/tests/*.sh
+/php-ext/test.log
