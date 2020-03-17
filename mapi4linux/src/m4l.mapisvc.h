@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef MAPI_SVC_H
-#define MAPI_SVC_H
-
+#pragma once
 #include <map>
 #include <set>
 #include <vector>
@@ -84,5 +82,3 @@ public:
 private:
 	std::map<std::string, SVCService*> m_sServices;
 };
-
-#endif

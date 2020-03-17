@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECGetText_INCLUDED
-#define ECGetText_INCLUDED
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <libintl.h>
 /* Input is always char * [C locale]. Output is either char * [C locale] or wchar_t * [Unicode] */
@@ -22,5 +19,3 @@ extern KC_EXPORT const wchar_t *kopano_dcgettext_wide(const char *domain, const 
 #else
 #	define KC_TX(s) KC_A(s)
 #endif
-
-#endif // ndef ECGetText_INCLUDED

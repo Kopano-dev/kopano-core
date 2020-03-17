@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef M4L_MAPIDEFS_IMPL_H
-#define M4L_MAPIDEFS_IMPL_H
-
+#pragma once
 #include "m4l.common.h"
 #include <mapidefs.h>
 #include <mapispi.h>
@@ -133,5 +131,3 @@ public:
 	virtual HRESULT OpenEntry(unsigned int eid_size, const ENTRYID *eid, const IID *intf, unsigned int flags, unsigned int *obj_type, IUnknown **) override;
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 };
-
-#endif

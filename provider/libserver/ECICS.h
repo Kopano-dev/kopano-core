@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECICS_H
-#define ECICS_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include "ECSession.h"
 #include <set>
@@ -127,5 +124,3 @@ ECRESULT CheckWithinLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int u
 ECRESULT RemoveFromLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int ulSyncId, const SOURCEKEY &sSourceKey, const SOURCEKEY &sParentSourceKey);
 
 } /* namespace */
-
-#endif

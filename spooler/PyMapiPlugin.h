@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef SPOOLER_PYMAPIPLUGIN_H
-#define SPOOLER_PYMAPIPLUGIN_H 1
-
+#pragma once
 #include <memory>
 #include <kopano/zcdefs.h>
 #include <kopano/ECLogger.h>
@@ -53,5 +51,3 @@ extern KC_EXPORT HRESULT plugin_manager_init(KC::ECConfig *, const char *, pym_p
 extern KC_EXPORT void plugin_manager_exit();
 
 }
-
-#endif

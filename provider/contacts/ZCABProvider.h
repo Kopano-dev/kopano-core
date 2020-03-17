@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECABPROVIDER
-#define ECABPROVIDER
-
+#pragma once
 #include <kopano/ECUnknown.h>
 #include <kopano/Util.h>
 #include <kopano/zcdefs.h>
@@ -24,5 +21,3 @@ public:
 private:
 	ALLOC_WRAP_FRIEND;
 };
-
-#endif

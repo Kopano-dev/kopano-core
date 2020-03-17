@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef CALDAV_ICAL_H
-#define CALDAV_ICAL_H
-
+#pragma once
 #include "Http.h"
 #include <mapi.h>
 #include <kopano/CommonUtil.h>
@@ -27,5 +25,3 @@ private:
 	HRESULT HrAddMessage(KC::ICalToMapi *, ULONG pos);
 	HRESULT HrDelMessage(SBinary sbEid, bool blCensor);
 };
-
-#endif

@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef SSLUTIL_H
-#define SSLUTIL_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <openssl/obj_mac.h>
 #include <openssl/ossl_typ.h>
@@ -28,5 +25,3 @@ extern KC_EXPORT bool ec_tls_minproto(SSL_CTX *, const char *min_proto);
 #endif
 
 } /* namespace */
-
-#endif

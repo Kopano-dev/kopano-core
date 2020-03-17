@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ZCABDATA_H
-#define ZCABDATA_H
+#pragma once
 
 struct cabEntryID {
 	ULONG ulVersion;			/* always 0 */
@@ -14,5 +12,3 @@ struct cabEntryID {
 	BYTE origEntryID[1];		/* entryid of wrapped object */
 };
 #define CbNewCABENTRYID(cb) (offsetof(cabEntryID, origEntryID) + (cb))
-
-#endif

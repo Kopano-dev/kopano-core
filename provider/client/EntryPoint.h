@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef ENTRYPOINT_H
-#define ENTRYPOINT_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <mapispi.h>
 #include "ProviderUtil.h"
@@ -21,5 +19,3 @@ extern HRESULT InitializeProvider(IProviderAdmin *, IProfSect *, const sGlobalPr
 // Global values
 extern ECMapProvider g_mapProviders;
 extern KC::tstring g_strProductName;
-
-#endif // ENTRYPOINT_H

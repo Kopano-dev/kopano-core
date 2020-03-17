@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECRULESTABLEPROXY_INCLUDED
-#define ECRULESTABLEPROXY_INCLUDED
-
+#pragma once
 #include <kopano/ECUnknown.h>
 #include <kopano/Util.h>
 #include <mapidefs.h>
@@ -46,5 +43,3 @@ private:
 	LPMAPITABLE m_lpTable;
 	ALLOC_WRAP_FRIEND;
 };
-
-#endif // ndef ECRULESTABLEPROXY_INCLUDED

@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef UTIL_H
-#define UTIL_H
-
+#pragma once
 #include <memory>
 #include <kopano/zcdefs.h>
 #include <mapix.h>
@@ -122,5 +119,3 @@ template<typename T> class alloc_wrap {
 extern KC_EXPORT HRESULT qi_void_to_imapiprop(void *, const IID &, IMAPIProp **);
 
 } /* namespace */
-
-#endif // UTIL_H

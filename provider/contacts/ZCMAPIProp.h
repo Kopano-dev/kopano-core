@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ZCMAPIPROP_H
-#define ZCMAPIPROP_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
 #include <mapidefs.h>
@@ -47,5 +44,3 @@ private:
 	std::map<short, SPropValue> m_mapProperties;
 	ULONG m_ulObject;
 };
-
-#endif

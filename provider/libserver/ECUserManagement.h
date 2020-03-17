@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECUSERMANAGEMENT_H
-#define ECUSERMANAGEMENT_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <list>
 #include <map>
@@ -203,5 +200,3 @@ protected:
 #define KOPANO_FULLNAME_GLOBAL_ADDRESS_LISTS	"All Address Lists"
 
 } /* namespace */
-
-#endif

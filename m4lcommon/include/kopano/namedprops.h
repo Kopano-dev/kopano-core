@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef NAMEDPROPS_H
-#define NAMEDPROPS_H
+#pragma once
 
 /* As per ECNamedProp.cpp */
 #define PS_Address_to_static(dispid) ((dispid) - 0x8000 + 0x80b0)
@@ -266,8 +264,5 @@
 // object, Meeting Update object, and Meeting Cancellation object.
 #define respNotResponded 0x00000005
 
-
 /* PS_EC_IMAP named PropTags */
 #define dispidIMAPEnvelope		0x0001
-
-#endif

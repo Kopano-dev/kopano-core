@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef ECMessageStreamImporterIStreamAdapter_INCLUDED
-#define ECMessageStreamImporterIStreamAdapter_INCLUDED
-
+#pragma once
 #include <kopano/memory.hpp>
 #include <kopano/ECUnknown.h>
 #include <kopano/Util.h>
@@ -51,5 +49,3 @@ private:
 	KC::object_ptr<WSMessageStreamSink> m_ptrSink;
 	ALLOC_WRAP_FRIEND;
 };
-
-#endif // ndef ECMessageStreamImporterIStreamAdapter_INCLUDED

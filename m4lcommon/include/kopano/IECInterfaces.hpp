@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef IECINTERFACES_HPP
-#define IECINTERFACES_HPP 1
-
+#pragma once
 #include <edkmdb.h>
 #include <kopano/ECDefs.h>
 #include <kopano/ECGuid.h>
@@ -224,5 +222,3 @@ IID_OF2(KC::IECSecurity, IECSecurity)
 IID_OF2(KC::IECServiceAdmin, IECServiceAdmin)
 IID_OF2(KC::IECSingleInstance, IECSingleInstance)
 IID_OF2(KC::IECSpooler, IECSpooler)
-
-#endif /* IECINTERFACES_HPP */

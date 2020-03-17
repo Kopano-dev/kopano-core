@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECSTORE_OBJECTTABLE_H
-#define ECSTORE_OBJECTTABLE_H
-
+#pragma once
 #include <kopano/Util.h>
 #include "soapH.h"
 #include "ECDatabase.h"
@@ -73,5 +70,3 @@ extern ECRESULT GetDeferredTableUpdates(ECDatabase *, const ECObjectTableList *,
 extern bool propVal_is_truncated(const struct propVal *);
 
 } /* namespace */
-
-#endif // OBJECTTABLE_H

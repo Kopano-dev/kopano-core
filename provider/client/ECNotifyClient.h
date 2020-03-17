@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef ECNOTIFYCLIENT_H
-#define ECNOTIFYCLIENT_H
-
+#pragma once
 #include <memory>
 #include <mutex>
 #include <kopano/ECUnknown.h>
@@ -65,5 +63,3 @@ private:
 	KC::ECSESSIONGROUPID m_ecSessionGroupId;
 	ALLOC_WRAP_FRIEND;
 };
-
-#endif // #ifndef ECNOTIFYCLIENT_H

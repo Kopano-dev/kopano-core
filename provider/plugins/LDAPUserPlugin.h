@@ -2,11 +2,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 // -*- Mode: c++ -*-
-#ifndef LDAPUSERPLUGIN_H
-#define LDAPUSERPLUGIN_H
-
+#pragma once
 #include <list>
 #include <mutex>
 #include <string>
@@ -693,5 +690,3 @@ extern "C" {
 	extern KC_EXPORT const char kcsrv_plugin_version[];
 }
 /** @} */
-
-#endif

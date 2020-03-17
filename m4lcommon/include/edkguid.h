@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef EDKGUID_H
-#define EDKGUID_H
+#pragma once
 
 DEFINE_GUID(MSEMS_SERVICE_GUID, 0xc0a19454, 0x7f29, 0x1b10, 0xa5, 0x87, 0x08, 0x00, 0x2b, 0x2a, 0x25, 0x17);
 DEFINE_GUID(MSEMS_PUBLIC_STORE_GUID, 0x70fab278, 0xf7af, 0xcd11, 0x9b, 0xc8, 0x00, 0xaa, 0x00, 0x2f, 0xc4, 0x5a);
@@ -105,5 +103,3 @@ DEFINE_GUID(IID_IFolderSupport,0x00375ac3,0xecaf,0x4ef8,0xa5,0x27,0x34,0xf4,0x52
 DEFINE_OLEGUID(IID_IMSCapabilities,0x00020393,0,0);
 
 /* Original IID_ISelectUnicode value: {05EB1EB9-E334-4EB7-AC4D-0BCEC7C6E0C1} */
-
-#endif 

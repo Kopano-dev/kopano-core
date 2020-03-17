@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef PROTOCOLBASE_H
-#define PROTOCOLBASE_H
-
+#pragma once
 #include <kopano/memory.hpp>
 #include <mapi.h>
 #include "Http.h"
@@ -42,5 +40,3 @@ protected:
 	std::string SPropValToString(const SPropValue *lpSprop);
 	std::string strAgent;
 };
-
-#endif

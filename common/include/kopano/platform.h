@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef PLATFORM_H
-#define PLATFORM_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <kopano/platform.linux.h>
 #include <mutex>
@@ -127,5 +125,3 @@ typedef std::unique_lock<std::recursive_mutex> ulock_rec;
 
 #define IID_OF(T) namespace KC { template<> inline constexpr const IID &iid_of<T>() { return IID_ ## T; } }
 #define IID_OF2(T, U) namespace KC { template<> inline constexpr const IID &iid_of<T>() { return IID_ ## U; } }
-
-#endif // PLATFORM_H

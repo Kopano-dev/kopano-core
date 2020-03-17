@@ -4,10 +4,7 @@
  */
 
 /* mapi.h – Defines structures and constants */
-#ifndef M4L_MAPI_H
-#define M4L_MAPI_H
-#define MAPI_H
-
+#pragma once
 #include <kopano/platform.h>
 
 struct MapiFileDesc {
@@ -132,5 +129,3 @@ extern ULONG MAPIResolveName(LHANDLE lhSession, ULONG_PTR ulUIParam, const char 
 #define MAPI_E_NOT_SUPPORTED            26
 
 } // EXTERN "C"
-
-#endif /* __M4L_MAPI_H_ */

@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef ECMAPIFOLDER_H
-#define ECMAPIFOLDER_H
-
+#pragma once
 #include <kopano/memory.hpp>
 #include <mapidefs.h>
 #include <kopano/Util.h>
@@ -92,5 +90,3 @@ protected:
 	friend class		ECExchangeImportHierarchyChanges;	// Allowed access to lpFolderOps
 	ALLOC_WRAP_FRIEND;
 };
-
-#endif // ECMAPIFOLDER_H

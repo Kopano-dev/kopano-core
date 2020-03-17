@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef TIMEZONE_TYPE_H
-#define TIMEZONE_TYPE_H
-
+#pragma once
 #include "recurrence.h"
 #include <mapidefs.h>
 #include <string>
@@ -34,5 +31,3 @@ extern HRESULT HrCreateVTimeZone(const std::string &tzid, const TIMEZONE_STRUCT 
 HRESULT HrGetTzStruct(const std::string &strTimezone, TIMEZONE_STRUCT *tStruct);
 
 } /* namespace */
-
-#endif

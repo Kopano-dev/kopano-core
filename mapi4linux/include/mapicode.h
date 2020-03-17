@@ -3,10 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 /* mapicode.h – Defines status codes for error values */
-#ifndef M4L_MAPICODE_H
-#define M4L_MAPICODE_H
-#define MAPICODE_H
-
+#pragma once
 #include <kopano/platform.h>
 
 #define MAKE_MAPI_SCODE(sev,fac,code) \
@@ -130,5 +127,3 @@
 #define HR_SUCCEEDED(hr) SUCCEEDED(static_cast<SCODE>(hr))
 #define HR_FAILED(hr) FAILED(static_cast<SCODE>(hr))
 #endif
-
-#endif  /* MAPICODE_H */

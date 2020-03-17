@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef ECMAPITABLE_H
-#define ECMAPITABLE_H
-
+#pragma once
 #include <mutex>
 #include <kopano/ECUnknown.h>
 #include <kopano/Util.h>
@@ -72,5 +70,3 @@ private:
 	std::string			m_strName;
 	ALLOC_WRAP_FRIEND;
 };
-
-#endif // ECMAPITABLE_H

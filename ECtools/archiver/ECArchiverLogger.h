@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef LOGGER_H
-#define LOGGER_H
-
+#pragma once
 #include <memory>
 #include <kopano/zcdefs.h>
 #include <kopano/ECLogger.h>
@@ -61,5 +58,3 @@ private:
 };
 
 } /* namespace */
-
-#endif // ndef LOGGER_H

@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef KC_ICS_H
-#define KC_ICS_H 1
+#pragma once
 
 // Flags for ns__getChanges and ns__setSyncStatus
 #define ICS_SYNC_CONTENTS	1
@@ -47,5 +45,3 @@
 #define ICS_AB_DELETE			(ICS_AB | ICS_HARD_DELETE)
 
 #define ICS_ACTION(x)			((x) & ICS_ACTION_MASK)
-
-#endif /* KC_ICS_H */

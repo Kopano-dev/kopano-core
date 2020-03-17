@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef KC_PCUSER_H
-#define KC_PCUSER_H 1
-
+#pragma once
 #include <map>
 #include <list>
 #include <string>
@@ -170,5 +167,3 @@ private:
 typedef std::list<std::string> serverlist_t;
 
 } /* namespace */
-
-#endif /* KC_PCUSER_H */

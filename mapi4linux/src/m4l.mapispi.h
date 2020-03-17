@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef M4L_MAPISPI_IMPL_H
-#define M4L_MAPISPI_IMPL_H
-
+#pragma once
 #include <kopano/memory.hpp>
 #include <map>
 #include <memory>
@@ -94,5 +92,3 @@ public:
 	virtual HRESULT GetSvcConfigSupportObj(unsigned int flags, IMAPISupport **) override;
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 };
-
-#endif

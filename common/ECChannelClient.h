@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECCHANNELCLIENT_H
-#define ECCHANNELCLIENT_H
-
+#pragma once
 #include <memory>
 #include <string>
 #include <vector>
@@ -36,5 +33,3 @@ private:
 };
 
 } /* namespace */
-
-#endif /* ECCHANNELCLIENT_H */

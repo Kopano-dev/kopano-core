@@ -10,9 +10,7 @@
  * @addtogroup libfreebusy
  * @{
  */
-#ifndef ECFREEBUSYSUPPORT_H
-#define ECFREEBUSYSUPPORT_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include "freebusy.h"
 #include "freebusyguid.h"
@@ -74,7 +72,5 @@ private:
 };
 
 } /* namespace */
-
-#endif // ECFREEBUSYSUPPORT_H
 
 /** @} */

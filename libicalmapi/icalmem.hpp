@@ -1,6 +1,4 @@
-#ifndef ICALMEM_HPP
-#define ICALMEM_HPP 1
-
+#pragma once
 #include <memory>
 #include <libical/ical.h>
 
@@ -17,5 +15,3 @@ typedef std::unique_ptr<icalcomponent, icalmapi_delete> icalcomp_ptr;
 typedef std::unique_ptr<char[], icalmapi_delete> icalmem_ptr;
 using icalparam_ptr = std::unique_ptr<icalparameter, icalmapi_delete>;
 using icalprop_ptr = std::unique_ptr<icalproperty, icalmapi_delete>;
-
-#endif /* ICALMEM_HPP */

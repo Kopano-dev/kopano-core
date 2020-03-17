@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECNOTIFICATIONMANAGER_H
-#define ECNOTIFICATIONMANAGER_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <condition_variable>
 #include <mutex>
@@ -67,5 +64,3 @@ private:
 extern KC_EXPORT void (*kopano_notify_done)(struct soap *);
 
 } /* namespace */
-
-#endif

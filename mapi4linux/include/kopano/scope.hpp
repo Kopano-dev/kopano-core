@@ -1,6 +1,4 @@
-#ifndef EC_SCOPE_HPP
-#define EC_SCOPE_HPP 1
-
+#pragma once
 #include <stdexcept>
 #include <utility>
 
@@ -34,5 +32,3 @@ template<typename F> scope_success<F> make_scope_success(F &&f)
 }
 
 } /* namespace */
-
-#endif

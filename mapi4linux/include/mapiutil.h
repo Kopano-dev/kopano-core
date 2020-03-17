@@ -3,10 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 /* mapiutil.h – Defines utility interfaces and functions */
-#ifndef M4L_MAPIUTIL_H
-#define M4L_MAPIUTIL_H
-#define MAPIUTIL_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <mapix.h>
@@ -75,5 +72,3 @@ inline const SPropValue *SRow::cfind(ULONG tag) const
 {
 	return PCpropFindProp(lpProps, cValues, tag);
 }
-
-#endif /* _MAPIUTIL_H_ */

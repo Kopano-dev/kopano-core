@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef operations_fwd_INCLUDED
-#define operations_fwd_INCLUDED
-
+#pragma once
 #include <memory>
 
 namespace KC { namespace operations {
@@ -20,5 +17,3 @@ class Stubber;
 typedef std::shared_ptr<Stubber> StubberPtr;
 
 }} /* namespace */
-
-#endif // ndef operations_fwd_INCLUDED

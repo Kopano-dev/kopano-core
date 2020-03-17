@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef M4L_COMMON_IMPL_H
-#define M4L_COMMON_IMPL_H
-
+#pragma once
 #include <atomic>
 #include <mapidefs.h>
 
@@ -18,5 +16,3 @@ public:
 	virtual ULONG Release() override;
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 };
-
-#endif

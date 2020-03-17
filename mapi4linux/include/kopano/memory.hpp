@@ -3,9 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  * Copyright 2016 Kopano and its licensors
  */
-#ifndef EC_MEMORY_HPP
-#define EC_MEMORY_HPP 1
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <type_traits> /* std::is_base_of */
 #include <utility> /* std::swap */
@@ -403,5 +401,3 @@ template<typename T, typename... Args> inline typename mkuniq_helper<T>::invalid
 make_unique_nt(Args &&...) = delete;
 
 } /* namespace */
-
-#endif

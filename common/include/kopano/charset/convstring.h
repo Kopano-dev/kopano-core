@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef convstring_INCLUDED
-#define convstring_INCLUDED
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <kopano/charset/convert.h>
 #include <string>
@@ -44,5 +41,3 @@ private:
 };
 
 } /* namespace */
-
-#endif // ndef convstring_INCLUDED

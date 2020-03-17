@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef ARCHIVECONTROL_H_INCLUDED
-#define ARCHIVECONTROL_H_INCLUDED
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <memory>
 
@@ -36,5 +34,3 @@ protected:
 typedef std::unique_ptr<ArchiveControl> ArchiveControlPtr;
 
 } /* namespace */
-
-#endif // !defined ARCHIVECONTROL_H_INCLUDED

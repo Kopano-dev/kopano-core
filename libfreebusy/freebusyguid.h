@@ -10,8 +10,7 @@
  * @addtogroup libfreebusy
  * @{
  */
-#ifndef FREEBUSYGUID_INCLUDED
-#define FREEBUSYGUID_INCLUDED
+#pragma once
 
 // Interface identifiers for the Free/Busy API
 
@@ -35,7 +34,5 @@ DEFINE_GUID(IID_IFreeBusySupport, 0x00067067, 0x0, 0x0, 0xc0, 0x0, 0x0, 0x0, 0x0
 // Unknown Freebusy guids
 // DEFINE_GUID(IID_I??, 0x00067068, 0x0, 0x0, 0xc0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x46);//{00067068-0000-0000-C000-000000000046}
 // DEFINE_GUID(IID_I??, 0x00067069, 0x0, 0x0, 0xc0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x46);//{00067069-0000-0000-C000-000000000046}
-
-#endif // FREEBUSYGUID_INCLUDED
 
 /** @} */

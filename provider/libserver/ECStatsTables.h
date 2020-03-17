@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef EC_STATS_TABLES_H
-#define EC_STATS_TABLES_H
-
+#pragma once
 #include <sys/types.h>
 #include <kopano/zcdefs.h>
 #include <kopano/Util.h>
@@ -106,5 +103,3 @@ private:
 };
 
 } /* namespace */
-
-#endif

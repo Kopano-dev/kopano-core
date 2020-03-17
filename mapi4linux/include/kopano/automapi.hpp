@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef AUTOMAPI_H_INCLUDED
-#define AUTOMAPI_H_INCLUDED
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <mapix.h>
 
@@ -39,5 +37,3 @@ private:
 };
 
 } /* namespace */
-
-#endif // !defined AUTOMAPI_H_INCLUDED

@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef mapi_ptr_INCLUDED
-#define mapi_ptr_INCLUDED
-
+#pragma once
 #include <kopano/memory.hpp>
 #include <mapix.h>
 #include <mapispi.h>
@@ -41,5 +38,3 @@ typedef memory_ptr<SPropValue> SPropArrayPtr;
 typedef rowset_ptr SRowSetPtr;
 
 } /* namespace */
-
-#endif // ndef mapi_ptr_INCLUDED

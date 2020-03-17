@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECSOAPSERVERCONNECTION_H
-#define ECSOAPSERVERCONNECTION_H
-
+#pragma once
 #include <memory>
 #include <kopano/kcodes.h>
 #include "ECThreadManager.h"
@@ -36,5 +33,3 @@ private:
 	std::unique_ptr<ECDispatcher> m_lpDispatcher;
 	std::shared_ptr<KC::ECConfig> m_lpConfig;
 };
-
-#endif // #ifndef ECSOAPSERVERCONNECTION_H

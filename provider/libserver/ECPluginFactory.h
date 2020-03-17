@@ -2,11 +2,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 // -*- Mode: c++ -*-
-#ifndef ECPLUGINFACTORY_H
-#define ECPLUGINFACTORY_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <memory>
 #include <mutex>
@@ -39,5 +36,3 @@ private:
 extern ECRESULT GetThreadLocalPlugin(ECPluginFactory *lpPluginFactory, UserPlugin **lppPlugin);
 
 } /* namespace */
-
-#endif

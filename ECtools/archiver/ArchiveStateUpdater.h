@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ARCHIVESTATEUPDATER_H_INCLUDED
-#define ARCHIVESTATEUPDATER_H_INCLUDED
-
+#pragma once
 #include <kopano/memory.hpp>
 #include <kopano/zcdefs.h>
 #include "ArchiveStateCollector.h"
@@ -42,5 +39,3 @@ private:
 };
 
 } /* namespace */
-
-#endif // !defined ARCHIVESTATEUPDATER_H_INCLUDED

@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECTAGS_H
-#define ECTAGS_H
+#pragma once
 
 /*
  * Inside MAPI, p.38: private range for service providers (6600-67ff)
@@ -289,5 +287,3 @@
 // Extra table flag, do not let the server cap contents on 255 characters
 // 1 bit under the MAPI_UNICODE bit, hopefully we won't clash with Exchange bits later on
 #define EC_TABLE_NOCAP			0x40000000
-
-#endif

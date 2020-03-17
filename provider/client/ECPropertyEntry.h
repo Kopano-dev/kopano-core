@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef ECPROPERTYENTRY_H
-#define ECPROPERTYENTRY_H
-
+#pragma once
 #include <memory>
 #include <kopano/zcdefs.h>
 #include <mapidefs.h>
@@ -81,5 +79,3 @@ private:
 	std::unique_ptr<ECProperty> lpProperty;
 	BOOL fDirty = true;
 };
-
-#endif

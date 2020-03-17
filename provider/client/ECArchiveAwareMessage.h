@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef ECARCHIVEAWAREMESSAGE_H
-#define ECARCHIVEAWAREMESSAGE_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <kopano/memory.hpp>
 #include "ECAttach.h"
@@ -130,5 +128,3 @@ class ECArchiveAwareAttachFactory final : public IAttachFactory {
 	public:
 	HRESULT Create(ECMsgStore *, ULONG obj_type, BOOL modify, ULONG attach_num, const ECMAPIProp *root, ECAttach **) const;
 };
-
-#endif // ndef ECARCHIVEAWAREMESSAGE_H

@@ -8,10 +8,7 @@
  * Declarations of GetMAPIErrorMessage() and supporting data structures and
  * constants
  */
-
-#ifndef MAPIERRORS_H_INCLUDED
-#define MAPIERRORS_H_INCLUDED
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>	// for declaration of HRESULT
 #include <string>
@@ -22,6 +19,3 @@ extern KC_EXPORT const char *GetMAPIErrorMessage(HRESULT);
 extern KC_EXPORT std::string getMapiCodeString(HRESULT, const char *object = "object");
 
 } /* namespace */
-
-#endif // !defined MAPIERRORS_H_INCLUDED
-

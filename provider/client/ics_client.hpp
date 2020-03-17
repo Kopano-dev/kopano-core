@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef KC_ICS_CLIENT_HPP
-#define KC_ICS_CLIENT_HPP 1
-
+#pragma once
 #include <string>
 #include <list>
 #include <mapidefs.h>	// SBinary
@@ -49,5 +46,3 @@ struct SSyncAdvise {
 typedef std::list<syncid_t> ECLISTSYNCID;
 typedef std::list<SSyncState> ECLISTSYNCSTATE;
 typedef std::list<SSyncAdvise> ECLISTSYNCADVISE;
-
-#endif /* KC_ICS_CLIENT_HPP */

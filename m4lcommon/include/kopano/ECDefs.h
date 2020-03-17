@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECDEFS_H
-#define ECDEFS_H
-
+#pragma once
 #include <string>
 #include <kopano/platform.h>
 #include <mapidefs.h>
@@ -225,5 +222,3 @@ struct ECSERVERLIST {
 #define EC_OVERRIDE_HOMESERVER			0x00000001
 
 } /* namespace */
-
-#endif

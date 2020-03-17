@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef instanceidmapper_INCLUDED
-#define instanceidmapper_INCLUDED
-
+#pragma once
 #include <memory>
 #include <kopano/zcdefs.h>
 #include "instanceidmapper_fwd.h"
@@ -33,5 +30,3 @@ class KC_EXPORT InstanceIdMapper final {
 };
 
 }} /* namespace */
-
-#endif // ndef instanceidmapper_INCLUDED

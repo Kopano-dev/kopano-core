@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef MAPIPROPHELPER_INCLUDED
-#define MAPIPROPHELPER_INCLUDED
-
+#pragma once
 #include <memory>
 #include <kopano/zcdefs.h>
 #include <mapix.h>
@@ -80,5 +77,3 @@ friend class MAPIPropHelper;
 };
 
 }} /* namespace */
-
-#endif // !defined MAPIPROPHELPER_INCLUDED

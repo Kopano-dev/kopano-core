@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ARCHIVERSESSION_H_INCLUDED
-#define ARCHIVERSESSION_H_INCLUDED
-
+#pragma once
 #include <memory>
 #include <kopano/zcdefs.h>
 #include "ArchiverSessionPtr.h"
@@ -57,5 +54,3 @@ private:
 };
 
 } /* namespace */
-
-#endif // !defined ARCHIVERSESSION_H_INCLUDED

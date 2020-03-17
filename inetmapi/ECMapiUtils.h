@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECMAPIUTILS
-#define ECMAPIUTILS
-
+#pragma once
 #include <string>
 #include <vmime/dateTime.hpp>
 
@@ -17,5 +14,3 @@ const char *ext_to_mime_type(const char *ext, const char *def = "application/oct
 const char *mime_type_to_ext(const char *mime_type, const char *def = "txt");
 
 } /* namespace */
-
-#endif

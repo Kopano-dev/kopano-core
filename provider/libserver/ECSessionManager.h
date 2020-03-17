@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef ECSESSIONMANAGER
-#define ECSESSIONMANAGER
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include "ECSession.h"
 #include <condition_variable>
@@ -265,5 +263,3 @@ extern KC_EXPORT void (*kopano_get_server_stats)(unsigned int *qlen, KC::time_du
 extern KC_EXPORT std::unique_ptr<ECSessionManager> g_lpSessionManager;
 
 } /* namespace */
-
-#endif // #ifndef ECSESSIONMANAGER

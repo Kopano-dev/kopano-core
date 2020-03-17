@@ -2,8 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef ECPARENTSTORAGE_H
-#define ECPARENTSTORAGE_H
+#pragma once
 
 /* This PropStorate class writes the data to the parent object, so this is only used in attachments and msg-in-msg objects
    It reads from the saved data in the parent
@@ -51,5 +50,3 @@ private:
 	KC::object_ptr<IECPropStorage> m_lpServerStorage;
 	ALLOC_WRAP_FRIEND;
 };
-
-#endif

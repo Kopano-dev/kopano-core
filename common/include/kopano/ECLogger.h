@@ -3,9 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 // -*- Mode: c++ -*-
-#ifndef ECLOGGER_H
-#define ECLOGGER_H
-
+#pragma once
 #include <atomic>
 #include <clocale>
 #include <cstdarg>
@@ -311,5 +309,3 @@ extern KC_EXPORT void ec_setup_segv_handler(const char *app, const char *vers);
 extern KC_EXPORT const std::string &ec_os_pretty_name();
 
 } /* namespace */
-
-#endif /* ECLOGGER_H */

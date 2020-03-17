@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECCONFIG_H
-#define ECCONFIG_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <list>
 #include <string>
@@ -52,5 +49,3 @@ public:
 };
 
 } /* namespace */
-
-#endif // ECCONFIG_H

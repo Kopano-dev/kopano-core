@@ -10,9 +10,7 @@
  * @addtogroup libfreebusy
  * @{
  */
-#ifndef ECENUMFBBLOCK_H
-#define ECENUMFBBLOCK_H
-
+#pragma once
 #include "freebusy.h"
 #include <kopano/ECUnknown.h>
 #include <kopano/ECGuid.h>
@@ -44,5 +42,4 @@ public:
 
 } /* namespace */
 
-#endif // ECENUMFBBLOCK_H
 /** @} */

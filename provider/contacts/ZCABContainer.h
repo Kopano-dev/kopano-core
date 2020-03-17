@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ZCABCONTAINER_H
-#define ZCABCONTAINER_H
-
+#pragma once
 #include <kopano/memory.hpp>
 #include <kopano/Util.h>
 #include <kopano/zcdefs.h>
@@ -71,5 +68,3 @@ private:
 	KC::object_ptr<IMAPIProp> m_lpDistList;
 	ALLOC_WRAP_FRIEND;
 };
-
-#endif

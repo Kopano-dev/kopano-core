@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef WSSerializedMessage_INCLUDED
-#define WSSerializedMessage_INCLUDED
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
 #include <kopano/mapi_ptr.h>
@@ -39,5 +37,3 @@ private:
 	KC::object_ptr<IStream> m_ptrDestStream;
 	HRESULT m_hr = hrSuccess;
 };
-
-#endif // ndef WSSerializedMessage_INCLUDED

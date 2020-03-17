@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef SOAPUTILS_H
-#define SOAPUTILS_H
-
+#pragma once
 #include "soapH.h"
 #include "SOAPAlloc.h"
 #include <kopano/zcdefs.h>
@@ -139,5 +136,3 @@ static inline struct SOAPINFO *soap_info(const std::unique_ptr<struct soap, ec_s
 }
 
 } /* namespace */
-
-#endif

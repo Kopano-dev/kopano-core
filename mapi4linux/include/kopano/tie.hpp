@@ -1,6 +1,4 @@
-#ifndef EC_TIE_HPP
-#define EC_TIE_HPP 1
-
+#pragma once
 #include <memory>
 
 namespace KC {
@@ -29,5 +27,3 @@ unique_tie(std::unique_ptr<T, D> &u)
 }
 
 } /* namespace */
-
-#endif

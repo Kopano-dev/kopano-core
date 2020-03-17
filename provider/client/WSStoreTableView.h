@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef WSSTORETABLEVIEW_H
-#define WSSTORETABLEVIEW_H
-
+#pragma once
 #include <mutex>
 #include <kopano/Util.h>
 #include <kopano/zcdefs.h>
@@ -55,4 +53,3 @@ public:
 	static HRESULT Create(ULONG ulFlags, KC::ECSESSIONID, ECMsgStore *, WSTransport *, WSTableMailBox **);
 	ALLOC_WRAP_FRIEND;
 };
-#endif

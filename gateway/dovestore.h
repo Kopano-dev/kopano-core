@@ -1,5 +1,4 @@
-#ifndef KC_DOVESTORE_H
-#define KC_DOVESTORE_H 1
+#pragma once
 
 /* Dovecot's bad header file quality requires an extra separation layer. >:-( */
 
@@ -18,5 +17,3 @@ extern void kpxx_folder_put(void *fld);
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
-
-#endif /* KC_DOVEAUTH_H */

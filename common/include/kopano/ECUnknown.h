@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef ECUNKNOWN_H
-#define ECUNKNOWN_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <atomic>
 #include <list>
@@ -74,5 +72,3 @@ protected:
 };
 
 } /* namespace */
-
-#endif // ECUNKNOWN_H

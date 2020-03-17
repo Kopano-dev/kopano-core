@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef MSPROVIDER_H
-#define MSPROVIDER_H
-
+#pragma once
 #include <kopano/ECUnknown.h>
 #include <kopano/Util.h>
 #include <kopano/memory.hpp>
@@ -47,5 +45,3 @@ protected:
 	ULONG			m_ulFlags;
 	ALLOC_WRAP_FRIEND;
 };
-
-#endif // MSPROVIDER_H

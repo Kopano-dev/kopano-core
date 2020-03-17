@@ -10,9 +10,7 @@
  * @addtogroup libfreebusy
  * @{
  */
-#ifndef ECFBBLOCKLIST_H
-#define ECFBBLOCKLIST_H
-
+#pragma once
 #include "freebusy.h"
 #include <map>
 #include <kopano/zcdefs.h>
@@ -44,5 +42,4 @@ private:
 
 } /* namespace */
 
-#endif // ECFBBLOCKLIST_H
 /** @} */

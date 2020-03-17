@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef ustringutil_INCLUDED
-#define ustringutil_INCLUDED
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <kopano/kcodes.h>
 #include <string>
@@ -56,5 +54,3 @@ extern KC_EXPORT std::string createSortKeyData(const char *s, int ncap, const EC
 extern KC_EXPORT std::string createSortKeyData(const wchar_t *s, int ncap, const ECLocale &);
 
 } /* namespace */
-
-#endif // ndef ustringutil_INCLUDED

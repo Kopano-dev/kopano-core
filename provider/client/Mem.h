@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef MEM_H
-#define MEM_H
-
+#pragma once
 #include <kopano/memory.hpp>
 #include "IECPropStorage.h"
 
@@ -19,5 +17,3 @@ class client_delete {
 };
 
 template<typename T> using ecmem_ptr = KC::memory_ptr<T, client_delete>;
-
-#endif // MEM_H

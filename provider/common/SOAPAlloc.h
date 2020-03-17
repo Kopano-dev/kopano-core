@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef SOAPALLOC_H
-#define SOAPALLOC_H
-
+#pragma once
 #include <new>
 #include <cstdlib>
 #include "soapH.h"
@@ -21,5 +18,3 @@ inline void soap_del_PointerTosearchCriteria(struct searchCriteria **a)
 }
 
 } /* namespace */
-
-#endif

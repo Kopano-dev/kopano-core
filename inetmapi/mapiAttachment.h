@@ -3,9 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 // -*- Mode: C++; -*-
-#ifndef MAPIATTACHMENT_H
-#define MAPIATTACHMENT_H
-
+#pragma once
 #include <vmime/defaultAttachment.hpp>
 #include <string>
 
@@ -32,5 +30,3 @@ private:
 };
 
 } /* namespace */
-
-#endif

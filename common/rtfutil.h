@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef EC_RTFUTIL_H
-#define EC_RTFUTIL_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <kopano/CommonUtil.h>
 #include <string>
@@ -18,5 +16,3 @@ extern KC_EXPORT HRESULT HrExtractHTMLFromTextRTF(const std::string &rtf, std::s
 extern KC_EXPORT HRESULT HrExtractHTMLFromRealRTF(const std::string &rtf, std::string &html, unsigned int codepage);
 
 } /* namespace */
-
-#endif

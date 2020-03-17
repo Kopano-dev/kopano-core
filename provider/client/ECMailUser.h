@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef ECMAILUSER
-#define ECMAILUSER
-
+#pragma once
 #include <kopano/Util.h>
 #include <kopano/zcdefs.h>
 #include <mapidefs.h>
@@ -45,5 +43,3 @@ public:
 	virtual HRESULT CopyProps(const SPropTagArray *inclprop, ULONG ui_param, IMAPIProgress *, const IID *intf, void *dest, ULONG flags, SPropProblemArray **) override;
 	ALLOC_WRAP_FRIEND;
 };
-
-#endif // #ifndef ECMAILUSER

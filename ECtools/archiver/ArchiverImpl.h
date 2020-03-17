@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef ARCHIVERIMPL_H_INCLUDED
-#define ARCHIVERIMPL_H_INCLUDED
-
+#pragma once
 #include <memory>
 #include <kopano/automapi.hpp>
 #include <kopano/ECLogger.h>
@@ -35,5 +33,3 @@ private:
 };
 
 } /* namespace */
-
-#endif // !defined ARCHIVERIMPL_H_INCLUDED

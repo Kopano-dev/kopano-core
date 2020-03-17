@@ -82,9 +82,7 @@ information and delegate access to accounts.
 		- IFreeBusyData
 		- IFreeBusySupport
 */
-#ifndef FREEBUSY_INCLUDED
-#define FREEBUSY_INCLUDED
-
+#pragma once
 #include <mapix.h>
 #include <mapidefs.h>
 
@@ -594,7 +592,5 @@ struct OccrInfo {
 };
 
 } /* namespace */
-
-#endif // FREEBUSY_INCLUDED
 
 /** @} */

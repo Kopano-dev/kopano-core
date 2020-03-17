@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef EC_ICAL_RECURRENCE_H
-#define EC_ICAL_RECURRENCE_H
-
+#pragma once
 #include "recurrence.h"
 #include "vtimezone.h"
 #include "icalitem.h"
@@ -34,5 +32,3 @@ private:
 };
 
 } /* namespace */
-
-#endif

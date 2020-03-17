@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef RECURRENCESTATE_H
-#define RECURRENCESTATE_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <vector>
 #include <string>
@@ -122,5 +119,3 @@ class KC_EXPORT RecurrenceState KC_FINAL {
 };
 
 } /* namespace */
-
-#endif

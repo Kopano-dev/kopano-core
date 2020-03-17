@@ -6,8 +6,7 @@
  * edkmdb.h – Defines additional properties and interfaces offered by the
  * server-side information store.
  */
-#ifndef M4L_EDKMDB_H
-#define M4L_EDKMDB_H
+#pragma once
 
 /*
  * No, this is not the edkmdb.h file,
@@ -951,5 +950,3 @@ public:
 };
 
 typedef IMAPIGetSession* LPMAPIGETSESSION;
-
-#endif

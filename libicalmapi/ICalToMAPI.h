@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ICALTOMAPI_H
-#define ICALTOMAPI_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <mapidefs.h>
 #include <string>
@@ -46,5 +43,3 @@ protected:
 extern KC_EXPORT HRESULT CreateICalToMapi(IMAPIProp *propobj, IAddrBook *, bool no_recipients, ICalToMapi **ret);
 
 } /* namespace */
-
-#endif

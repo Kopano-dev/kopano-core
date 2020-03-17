@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef ARCHIVEMANAGE_H_INCLUDED
-#define ARCHIVEMANAGE_H_INCLUDED
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <list>
@@ -56,5 +54,3 @@ protected:
 typedef std::unique_ptr<ArchiveManage> ArchiveManagePtr;
 
 } /* namespace */
-
-#endif // !defined ARCHIVEMANAGE_H_INCLUDED

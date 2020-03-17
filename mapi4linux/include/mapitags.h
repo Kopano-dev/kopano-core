@@ -3,10 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 /* mapitags.h – Defines property tags */
-#ifndef M4L_MAPITAGS_H
-#define M4L_MAPITAGS_H
-#define MAPITAGS_H
-
+#pragma once
 #include <kopano/platform.h>
 #include <mapidefs.h>		/* we include this here too for the PROP_ID definitions */
 
@@ -957,5 +954,3 @@
  */
 #define PROP_ID_SECURE_MIN                          0x67F0
 #define PROP_ID_SECURE_MAX                          0x67FF
-
-#endif  /* MAPITAGS_H */

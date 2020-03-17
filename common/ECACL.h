@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECACL_INCLUDED
-#define ECACL_INCLUDED
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <string>
 
@@ -37,5 +34,3 @@ enum ACLRIGHTS {
 extern KC_EXPORT std::string AclRightsToString(unsigned int rights);
 
 } /* namespace */
-
-#endif // ndef ECACL_INCLUDED

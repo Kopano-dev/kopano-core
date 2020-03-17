@@ -2,11 +2,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 // -*- Mode: c++ -*-
-
-#ifndef LDAPPASSWORDS_H
-#define LDAPPASSWORDS_H
+#pragma once
 
 namespace KC {
 
@@ -42,5 +39,3 @@ extern int checkPassword(int type, const char *password, const char *crypted);
 /** @} */
 
 } /* namespace */
-
-#endif

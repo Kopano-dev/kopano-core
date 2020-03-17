@@ -3,10 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 /* mapix.h – Defines flags and interfaces that MAPI implements for clients */
-#ifndef M4L_MAPIX_H
-#define M4L_MAPIX_H
-#define MAPIX_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <string>
@@ -238,5 +235,3 @@ extern KC_EXPORT HRESULT kc_session_restore(const std::string &, IMAPISession **
 extern KC_EXPORT SCODE KAllocCopy(const void *src, size_t z, void **dst, void *base = nullptr);
 
 }
-
-#endif /* MAPIX_H */

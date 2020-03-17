@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECVMIMEUTILS
-#define ECVMIMEUTILS
-
+#pragma once
 #include <memory>
 #include <string>
 #include <set>
@@ -30,5 +27,3 @@ extern vmime::parsingContext imopt_default_parsectx();
 extern vmime::generationContext imopt_default_genctx();
 
 } /* namespace */
-
-#endif

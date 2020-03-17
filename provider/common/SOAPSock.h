@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef SOAPSOCK_H
-#define SOAPSOCK_H
-
+#pragma once
 #include <string>
 #include <openssl/ssl.h>
 #include "soapKCmdProxy.h"
@@ -34,5 +31,3 @@ int ssl_verify_callback_kopano_control(int ok, X509_STORE_CTX *store, BOOL bShow
 
 HRESULT LoadCertificatesFromRegistry();
 extern HRESULT CreateSoapTransport(const sGlobalProfileProps &, KCmdProxy2 **);
-
-#endif

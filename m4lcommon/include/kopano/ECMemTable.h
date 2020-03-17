@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECMEMTABLE_H
-#define ECMEMTABLE_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <vector>
 #include <map>
@@ -141,5 +138,3 @@ private:
 };
 
 } /* namespace */
-
-#endif // ECMemTable_H

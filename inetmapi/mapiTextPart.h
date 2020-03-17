@@ -28,9 +28,7 @@
 // a combined work based on this library.  Thus, the terms and conditions of
 // the GNU General Public License cover the whole combination.
 //
-#ifndef VMIME_MAPITEXTPART_HPP_INCLUDED
-#define VMIME_MAPITEXTPART_HPP_INCLUDED
-
+#pragma once
 #include <memory>
 #include <string>
 #include <vmime/textPart.hpp>
@@ -221,5 +219,3 @@ private:
 };
 
 } /* namespace */
-
-#endif // VMIME_HTMLTEXTPART_HPP_INCLUDED

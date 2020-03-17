@@ -2,8 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef FREEBUSYTAG_INCLUDED
-#define FREEBUSYTAG_INCLUDED
+#pragma once
 
 #define PR_FREEBUSY_ALL_EVENTS			PROP_TAG(PT_MV_BINARY, 0x6850)
 #define PR_FREEBUSY_ALL_MONTHS			PROP_TAG(PT_MV_LONG, 0x684F)
@@ -29,5 +28,3 @@
  * PR_DECLINE_RECURRING_MEETING_REQUESTS are already defined by
  * our <mapiext.h>
  */
-
-#endif // FREEBUSYTAG_INCLUDED

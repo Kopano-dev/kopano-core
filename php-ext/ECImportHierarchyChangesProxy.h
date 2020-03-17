@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECIMPORTHIERARCHYCHANGESPROXY_H
-#define ECIMPORTHIERARCHYCHANGESPROXY_H
-
+#pragma once
 #include <edkmdb.h>
 
 class ECImportHierarchyChangesProxy final :
@@ -26,5 +23,3 @@ public:
 	virtual HRESULT ImportFolderChange(unsigned int nvals, SPropValue *) override;
 	virtual HRESULT ImportFolderDeletion(unsigned int flags, ENTRYLIST *source_entry) override;
 };
-
-#endif

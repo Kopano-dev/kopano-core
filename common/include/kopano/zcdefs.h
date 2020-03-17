@@ -11,9 +11,7 @@
  *	programs. However, we also need some definitions that are truly
  *	visible everywhere, and that is zcdefs.h.
  */
-#ifndef ZCOMMON_DEFS_H
-#define ZCOMMON_DEFS_H 1
-
+#pragma once
 #include <kopano/buildconfig.h>
 
 #ifdef SWIG
@@ -53,5 +51,3 @@
 #endif
 
 namespace KC {}
-
-#endif /* ZCOMMON_DEFS_H */

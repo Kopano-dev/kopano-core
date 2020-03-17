@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef EC_CONSOLE_TABLE_H
-#define EC_CONSOLE_TABLE_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <string>
 #include <vector>
@@ -38,5 +36,3 @@ private:
 };
 
 } /* namespace */
-
-#endif

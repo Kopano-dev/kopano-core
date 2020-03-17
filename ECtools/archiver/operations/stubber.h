@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef stubber_INCLUDED
-#define stubber_INCLUDED
-
+#pragma once
 #include <memory>
 #include "operations.h"
 
@@ -25,5 +22,3 @@ private:
 };
 
 }} /* namespace */
-
-#endif // ndef stubber_INCLUDED

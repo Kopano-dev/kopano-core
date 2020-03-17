@@ -2,10 +2,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 // -*- Mode: C++ -*-
-#ifndef EC_PHPEXT_MAIN_H
-#define EC_PHPEXT_MAIN_H
+#pragma once
 
 /***************************************************************
 * Thread safe global variable
@@ -16,7 +14,6 @@
 #ifdef ZTS
 #include "TSRM.h"
 #endif
-
 
 /***************************************************************
 * Variables
@@ -244,5 +241,3 @@ ZEND_FUNCTION(mapi_feature);
 
 ZEND_FUNCTION(kc_session_save);
 ZEND_FUNCTION(kc_session_restore);
-
-#endif

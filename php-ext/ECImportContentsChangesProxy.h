@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECIMPORTCONTENTSCHANGESPROXY_H
-#define ECIMPORTCONTENTSCHANGESPROXY_H
-
+#pragma once
 #include <edkmdb.h>
 
 class ECImportContentsChangesProxy final :
@@ -29,5 +26,3 @@ public:
 	virtual HRESULT ImportPerUserReadStateChange(unsigned int nelem, READSTATE *) override;
 	virtual HRESULT ImportMessageMove(unsigned int srcfld_size, BYTE *sk_srcfld, unsigned int msg_size, BYTE *sk_msg, unsigned int pclmsg_size, BYTE *pclmsg, unsigned int dstmsg_size, BYTE *sk_dstmsg, unsigned int cbChangeNumDestMessage, BYTE *pbChangeNumDestMessage) override;
 };
-
-#endif

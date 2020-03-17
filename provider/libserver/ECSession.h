@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef ECSESSION
-#define ECSESSION
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <atomic>
 #include <condition_variable>
@@ -210,5 +208,3 @@ private:
 };
 
 } /* namespace */
-
-#endif // #ifndef ECSESSION

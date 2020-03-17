@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef convert_INCLUDED
-#define convert_INCLUDED
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <map>
 #include <set>
@@ -729,5 +726,3 @@ HRESULT TryConvert(convert_context &context, const From_Type &from,
 #endif // MAPIDEFS_H
 
 } /* namespace */
-
-#endif // ndef convert_INCLUDED

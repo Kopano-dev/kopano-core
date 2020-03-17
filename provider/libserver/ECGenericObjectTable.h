@@ -2,12 +2,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECGENERIC_OBJECTTABLE_H
-#define ECGENERIC_OBJECTTABLE_H
-
+#pragma once
 #define MAX_SORTKEY_LEN 4096
-
 #include <kopano/zcdefs.h>
 #include <mutex>
 #include "soapH.h"
@@ -203,5 +199,3 @@ protected:
 };
 
 } /* namespace */
-
-#endif // ECGENERIC_OBJECTTABLE_H

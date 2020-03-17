@@ -6,9 +6,8 @@
  * mapidefs.h – Defines frequently used event types, property types, flags,
  * structures and interfaces.
  */
-#ifndef M4L_MAPIDEFS_H
-#define M4L_MAPIDEFS_H
-#define MAPIDEFS_H
+#pragma once
+#define MAPIDEFS_H /* used in convert.h */
 
 #include <kopano/platform.h>
 #include <initializer_list>
@@ -1748,5 +1747,3 @@ struct DTBLMVDDLBX {
 	ULONG ulFlags, ulMVPropTag;
 };
 typedef struct DTBLMVDDLBX *LPDTBLMVDDLBX;
-
-#endif /* MAPIDEFS_H */

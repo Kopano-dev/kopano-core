@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ZCABLOGON_H
-#define ZCABLOGON_H
-
+#pragma once
 #include <vector>
 #include <mapispi.h>
 #include <kopano/ECUnknown.h>
@@ -50,5 +47,3 @@ private:
 	std::vector<zcabFolderEntry> m_lFolders;
 	ALLOC_WRAP_FRIEND;
 };
-
-#endif

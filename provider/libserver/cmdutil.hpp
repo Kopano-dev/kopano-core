@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef KC_CMDUTIL_HPP
-#define KC_CMDUTIL_HPP 1
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <stdexcept>
 #include <utility>
@@ -208,5 +205,3 @@ extern ECRESULT PrepareReadProps(struct soap *, ECDatabase *, bool do_query, uns
 extern ECRESULT FixPropEncoding(struct propVal *);
 
 } /* namespace */
-
-#endif /* KC_CMDUTIL_HPP */

@@ -1,6 +1,4 @@
-#ifndef EC_S3_ATTACHMENT
-#define EC_S3_ATTACHMENT
-
+#pragma once
 #ifdef HAVE_CONFIG_H
 #	include "config.h"
 #endif
@@ -64,4 +62,3 @@ class ECS3Config final : public ECAttachmentConfig {
 } /* namespace */
 
 #endif /* LIBS3_H */
-#endif

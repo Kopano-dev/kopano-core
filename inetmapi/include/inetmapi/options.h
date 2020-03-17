@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef EC_INETMAPI_OPTIONS_H
-#define EC_INETMAPI_OPTIONS_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <map>
 #include <string>
@@ -50,5 +48,3 @@ extern KC_EXPORT void imopt_default_delivery_options(delivery_options *);
 extern KC_EXPORT void imopt_default_sending_options(sending_options *);
 
 } /* namespace */
-
-#endif

@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef TNEF_H
-#define TNEF_H
-
+#pragma once
 #include <list>
 #include <mapidefs.h>
 
@@ -100,5 +98,3 @@ private:
 #define TNEF_SIGNATURE		0x223e9f78
 
 } /* namespace */
-
-#endif

@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef EC_ATTACHMENT_STORAGE
-#define EC_ATTACHMENT_STORAGE
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include "ECDatabase.h"
 #include <list>
@@ -113,5 +110,3 @@ protected:
 };
 
 } /* namespace */
-
-#endif

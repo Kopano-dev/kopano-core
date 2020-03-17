@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ARCHIVER_COMMON_H_INCLUDED
-#define ARCHIVER_COMMON_H_INCLUDED
-
+#pragma once
 #include <list>
 #include <vector>
 #include <memory>
@@ -482,5 +479,3 @@ extern KC_EXPORT eResult MAPIErrorToArchiveError(HRESULT);
 extern KC_EXPORT const char *ArchiveResultString(eResult);
 
 } /* namespace */
-
-#endif // !defined ARCHIVER_COMMON_H_INCLUDED

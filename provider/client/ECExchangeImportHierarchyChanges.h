@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef ECEXCHANGEIMPORTCHIERARCHYCHANGES_H
-#define ECEXCHANGEIMPORTCHIERARCHYCHANGES_H
-
+#pragma once
 #include <mapidefs.h>
 #include "ECMAPIFolder.h"
 #include <kopano/ECUnknown.h>
@@ -31,5 +29,3 @@ private:
 	unsigned int m_ulFlags = 0, m_ulSyncId = 0, m_ulChangeId = 0;
 	ALLOC_WRAP_FRIEND;
 };
-
-#endif // ECEXCHANGEIMPORTCHIERARCHYCHANGES_H

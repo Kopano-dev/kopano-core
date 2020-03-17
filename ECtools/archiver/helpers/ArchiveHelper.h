@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ARCHIVEHELPER_H_INCLUDED
-#define ARCHIVEHELPER_H_INCLUDED
-
+#pragma once
 #include <memory>
 #include <kopano/zcdefs.h>
 #include <kopano/archiver-common.h>
@@ -90,5 +87,3 @@ private:
 };
 
 }} /* namespace */
-
-#endif // !defined ARCHIVEHELPER_INCLUDED

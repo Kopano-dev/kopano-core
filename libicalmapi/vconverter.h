@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ICALMAPI_VCONVERTER_H
-#define ICALMAPI_VCONVERTER_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include "vtimezone.h"
 #include "icalitem.h"
@@ -89,5 +86,3 @@ extern HRESULT HrCopyString(convert_context &, const std::string &charset, void 
 extern HRESULT HrCopyString(void *base, const wchar_t *src, wchar_t **dst);
 
 } /* namespace */
-
-#endif

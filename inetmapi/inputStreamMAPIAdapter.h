@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef INPUT_STREAM_MAPI_ADAPTER_H
-#define INPUT_STREAM_MAPI_ADAPTER_H
-
+#pragma once
 #include <mapidefs.h>
 #include <sys/types.h>
 #include <kopano/memory.hpp>
@@ -37,5 +35,3 @@ class outputStreamMAPIAdapter final : public vmime::utility::outputStream {
 };
 
 } /* namespace */
-
-#endif

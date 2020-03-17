@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef ECSESSIONGROUPMANAGER_H
-#define ECSESSIONGROUPMANAGER_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <algorithm>
 #include <list>
@@ -37,5 +35,3 @@ public:
 
 /* Global SessionManager for entire client */
 extern ECSessionGroupManager g_ecSessionManager;
-
-#endif /* ECSESSIONGROUPMANAGER_H */

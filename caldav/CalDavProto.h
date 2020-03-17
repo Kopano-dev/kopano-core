@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef CALDAV_PROTO_H
-#define CALDAV_PROTO_H
-
+#pragma once
 #include "WebDav.h"
 #include "CalDavUtil.h"
 #include <libxml/uri.h>
@@ -49,5 +47,3 @@ private:
 	HRESULT HrMapValtoStruct(IMAPIProp *obj, SPropValue *props, ULONG nprops, KC::MapiToICal *, ULONG flags, bool props_first, std::list<WEBDAVPROPERTY> *davprops, WEBDAVRESPONSE *);
 	HRESULT	HrGetCalendarOrder(SBinary sbEid, std::string *lpstrCalendarOrder);
 };
-
-#endif

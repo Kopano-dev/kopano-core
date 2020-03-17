@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECICSHELPERS_H
-#define ECICSHELPERS_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include "ECICS.h"
 #include "ECDatabase.h"
@@ -71,5 +68,3 @@ private:
 };
 
 } /* namespace */
-
-#endif // ndef ECICSHELPERS_H

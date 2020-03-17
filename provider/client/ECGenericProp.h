@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef ECGENERICPROP_H
-#define ECGENERICPROP_H
-
+#pragma once
 #include <memory>
 #include <mutex>
 #include <kopano/ECUnknown.h>
@@ -139,5 +137,3 @@ public:
 inline bool ECGenericProp::IsReadOnly() const {
 	return !fModify;
 }
-
-#endif

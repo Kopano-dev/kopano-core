@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef PLATFORM_LINUX_H
-#define PLATFORM_LINUX_H
-
+#pragma once
 #ifndef UNICODE
 #        error But KC libmapi only knows to deal with UNICODE
 #endif
@@ -428,5 +426,3 @@ extern KC_EXPORT time_t GetProcessTime();
 std::vector<std::string> get_backtrace();
 
 } /* namespace */
-
-#endif // PLATFORM_LINUX_H
