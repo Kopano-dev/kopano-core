@@ -23,6 +23,7 @@
 #include <kopano/ECScheduler.h>
 #include <kopano/ECThreadPool.h>
 #include <kopano/stringutil.h>
+#include <kopano/timeutil.hpp>
 #include <algorithm>
 #define SCHEDULER_POLL_FREQUENCY	5
 
@@ -137,10 +138,16 @@ void ECThreadPool::enable_watchdog(bool e, std::shared_ptr<ECConfig> cfg)
  *                              is responsible for deleting the object when done.
  * @returns true if the task was successfully queued, false otherwise.
  */
-bool ECThreadPool::enqueue(ECTask *lpTask, bool bTakeOwnership)
+bool ECThreadPool::enqueue(ECTask *lpTask, bool bTakeOwnership,
+    time_point *enqtime)
 {
-	STaskInfo sTaskInfo = {lpTask, decltype(STaskInfo::enq_stamp)::clock::now(), bTakeOwnership};
+	STaskInfo sTaskInfo;
+	sTaskInfo.lpTask = lpTask;
+	sTaskInfo.bDelete = bTakeOwnership;
 	ulock_normal locker(m_hMutex);
+	sTaskInfo.enq_stamp = time_point::clock::now();
+	if (enqtime != nullptr)
+		*enqtime = sTaskInfo.enq_stamp;
 	m_listTasks.emplace_back(std::move(sTaskInfo));
 	m_hCondition.notify_one();
 	joinTerminated(locker);

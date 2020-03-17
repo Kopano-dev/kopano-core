@@ -18,9 +18,11 @@
 #include <sys/stat.h>
 #include <mapidefs.h>
 #include <mapitags.h>
+#include <kopano/ECChannel.h>
 #include <kopano/UnixUtil.h>
 #include <kopano/memory.hpp>
 #include <kopano/scope.hpp>
+#include <kopano/timeutil.hpp>
 #include "ECSession.h"
 #include "ECSessionManager.h"
 #include "ECUserManagement.h"
@@ -173,7 +175,6 @@ time_t BTSession::GetIdleTime() const
 void BTSession::RecordRequest(struct soap* soap)
 {
 	scoped_lock lock(m_hRequestStats);
-	m_strLastRequestURL = soap->endpoint;
 	m_ulLastRequestPort = soap->port;
 	if (soap->proxy_from != nullptr && soap_info(soap)->bProxy)
 		m_strProxyHost = soap->host;
@@ -186,41 +187,28 @@ unsigned int BTSession::GetRequests()
     return m_ulRequests;
 }
 
-std::string BTSession::GetRequestURL()
-{
-	scoped_lock lock(m_hRequestStats);
-	return m_strLastRequestURL;
-}
-
 std::string BTSession::GetProxyHost()
 {
 	scoped_lock lock(m_hRequestStats);
 	return m_strProxyHost;
 }
 
-unsigned int BTSession::GetClientPort()
-{
-	scoped_lock lock(m_hRequestStats);
-	return m_ulLastRequestPort;
-}
-
 size_t BTSession::GetInternalObjectSize()
 {
 	scoped_lock lock(m_hRequestStats);
 	return MEMORY_USAGE_STRING(m_strSourceAddr) +
-			MEMORY_USAGE_STRING(m_strLastRequestURL) +
 			MEMORY_USAGE_STRING(m_strProxyHost);
 }
 
 ECSession::ECSession(const char *src_addr, ECSESSIONID sessionID,
     ECSESSIONGROUPID ecSessionGroupId, ECDatabaseFactory *lpDatabaseFactory,
     ECSessionManager *lpSessionManager, unsigned int ulCapabilities,
-    AUTHMETHOD ulAuthMethod, int pid,
+    AUTHMETHOD ulAuthMethod,
     const std::string &cl_ver, const std::string &cl_app,
     const std::string &cl_app_ver, const std::string &cl_app_misc) :
 	BTSession(src_addr, sessionID, lpDatabaseFactory, lpSessionManager,
 	    ulCapabilities),
-	m_ulAuthMethod(ulAuthMethod), m_ulConnectingPid(pid),
+	m_ulAuthMethod(ulAuthMethod),
 	m_ecSessionGroupId(ecSessionGroupId), m_strClientVersion(cl_ver),
 	m_strClientApp(cl_app), m_ulClientVersion(KOPANO_VERSION_UNKNOWN),
 	m_lpTableManager(new ECTableManager(this))
@@ -371,18 +359,21 @@ ECRESULT ECSession::GetNotifyItems(struct soap *soap, struct notifyResponse *not
 }
 
 void ECSession::AddBusyState(pthread_t threadId, const char *lpszState,
-    const struct timespec &threadstart, const KC::time_point &start)
+    const request_stat &st)
 {
 	if (!lpszState) {
 		ec_log_err("Invalid argument \"lpszState\" in call to ECSession::AddBusyState()");
 		return;
 	}
 	scoped_lock lock(m_hStateLock);
-	m_mapBusyStates[threadId].fname = lpszState;
-	m_mapBusyStates[threadId].threadstart = threadstart;
-	m_mapBusyStates[threadId].start = start;
 	m_mapBusyStates[threadId].threadid = threadId;
 	m_mapBusyStates[threadId].state = SESSION_STATE_PROCESSING;
+	/* These are for asynchronous evaluation by ECStatsTables */
+	auto &m = m_mapBusyStates[threadId];
+	m.wi_cpu_start  = st.wi_cpu[0];
+	m.wi_wall_start = st.wi_wall_start;
+	/* This is for the current thread only (RemoveBusyState) */
+	m.rqstat = &st;
 }
 
 void ECSession::UpdateBusyState(pthread_t threadId, int state)
@@ -404,16 +395,8 @@ void ECSession::RemoveBusyState(pthread_t threadId)
 		assert(false);
 		return;
 	}
-	clockid_t clock;
-	struct timespec end;
-
-	// Since the specified thread is done now, record how much work it has done for us
-	if(pthread_getcpuclockid(threadId, &clock) == 0) {
-		clock_gettime(clock, &end);
-		AddClocks(timespec2dbl(end) - timespec2dbl(i->second.threadstart), 0, dur2dbl(decltype(i->second.start)::clock::now() - i->second.start));
-	} else {
-		assert(false);
-	}
+	AddClocks(timespec2dbl(i->second.rqstat->wi_cpu[2]),
+		0, dur2dbl(i->second.rqstat->wi_wall_dur));
 	m_mapBusyStates.erase(threadId);
 }
 
@@ -607,7 +590,7 @@ ECRESULT ECAuthSession::CreateECSession(ECSESSIONGROUPID ecSessionGroupId,
 	lpSession.reset(new(std::nothrow) ECSession(m_strSourceAddr.c_str(),
 	            newSID, ecSessionGroupId, m_lpDatabaseFactory,
 	            m_lpSessionManager, m_ulClientCapabilities,
-	            m_ulValidationMethod, m_ulConnectingPid,
+	            m_ulValidationMethod,
 	            cl_ver, cl_app, cl_app_ver, cl_app_misc));
 	if (lpSession == nullptr)
 		return KCERR_NOT_ENOUGH_MEMORY;
@@ -647,29 +630,6 @@ ECRESULT ECAuthSession::ValidateUserLogon(const char *lpszName,
 
 	m_bValidated = true;
 	m_ulValidationMethod = METHOD_USERPASSWORD;
-	return erSuccess;
-}
-
-static ECRESULT kc_peer_cred(int fd, uid_t *uid, pid_t *pid)
-{
-#if defined(SO_PEERCRED)
-#ifdef HAVE_SOCKPEERCRED_UID
-	struct sockpeercred cr;
-#else
-	struct ucred cr;
-#endif
-	unsigned int cr_len = sizeof(cr);
-	if (getsockopt(fd, SOL_SOCKET, SO_PEERCRED, &cr, &cr_len) != 0 || cr_len != sizeof(cr))
-		return KCERR_LOGON_FAILED;
-	*uid = cr.uid; /* uid is the uid of the user that is connecting */
-	*pid = cr.pid;
-#elif defined(HAVE_GETPEEREID)
-	gid_t gid;
-	if (getpeereid(fd, uid, &gid) != 0)
-		return KCERR_LOGON_FAILED;
-#else
-#	error I have no way to find out the remote user and I want to cry
-#endif
 	return erSuccess;
 }
 
@@ -758,7 +718,6 @@ userok:
 		return er;
 	m_bValidated = true;
 	m_ulValidationMethod = METHOD_SOCKET;
-	m_ulConnectingPid = pid;
 	return erSuccess;
 }
 

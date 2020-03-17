@@ -106,7 +106,7 @@ static int soapresponse(struct notifyResponse notifications, struct soap *soap)
     return soap_closesock(soap);
 }
 
-void (*kopano_notify_done)(struct soap *) = [](struct soap *) {};
+void (*kopano_notify_done)(struct soap *);
 
 ECNotificationManager::ECNotificationManager(void)
 {
@@ -165,7 +165,8 @@ HRESULT ECNotificationManager::AddRequest(ECSESSIONID ecSessionId, struct soap *
 		soap_end(iterRequest->second.soap);
         lpItem = iterRequest->second.soap;
         // Pass the socket back to the socket manager (which will probably close it since the client should not be holding two notification sockets)
-        kopano_notify_done(lpItem);
+		if (kopano_notify_done != nullptr)
+			kopano_notify_done(lpItem);
     }
 
     NOTIFREQUEST req;
@@ -267,8 +268,8 @@ void *ECNotificationManager::Work() {
                 // Nobody was listening to this session, just ignore it
             }
 			l_req.unlock();
-            if(lpItem)
-                kopano_notify_done(lpItem);
+			if (lpItem != nullptr && kopano_notify_done != nullptr)
+				kopano_notify_done(lpItem);
         }
 
         /* Find all notification requests which have not received any data for m_ulTimeout seconds. This makes sure

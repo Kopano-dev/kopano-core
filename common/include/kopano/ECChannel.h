@@ -15,6 +15,7 @@
 #include <cstdint>
 #include <string>
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <openssl/ossl_typ.h>
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
@@ -90,6 +91,7 @@ struct KC_EXPORT ec_socket {
 
 /* accept data on connection */
 extern KC_EXPORT HRESULT HrAccept(int fd, ECChannel **ch);
+extern KC_EXPORT int kc_peer_cred(int fd, uid_t *, pid_t *);
 extern KC_EXPORT int zcp_peerfd_is_local(int);
 extern KC_EXPORT ec_socket ec_parse_bindaddr(const char *);
 extern KC_EXPORT void ec_reexec_prepare_sockets();

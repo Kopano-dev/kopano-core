@@ -49,7 +49,7 @@ def top(scr, server):
             dt,
         )
         scr.addstr(0, 0, line)
-        line = 'Sess: %s  Sess grp: %s  Users: %s  Hosts: %s  CPU: %s%% Len: %s QAge: %s RTT: %1.0f ms ' % (
+        line = 'Sess: %s  Sess grp: %s  Users: %s  Hosts: %s  CPU: %s%% Len: %s QAge: %s RT: %1.0f ms ' % (
             system_stats['sessions'],
             system_stats['sessiongroups'],
             users,
@@ -83,7 +83,7 @@ def top(scr, server):
                 2**64 - row[PR_EC_STATS_SESSION_ID] if row[PR_EC_STATS_SESSION_ID] < 0 else row[PR_EC_STATS_SESSION_ID], #XXX
                 row[PR_EC_STATS_SESSION_CLIENT_VERSION],
                 row[PR_EC_USERNAME_A],
-                row[PR_EC_STATS_SESSION_PEER_PID] or row[PR_EC_STATS_SESSION_IPADDRESS],
+                row[PR_EC_STATS_SESSION_IPADDRESS],
                 row[PR_EC_STATS_SESSION_CLIENT_APPLICATION],
                 ('%d:%02d' % divmod(int(row[PR_EC_STATS_SESSION_CPU_REAL]), 60)),
                 ('%d:%02d' % divmod(int(row[PR_EC_STATS_SESSION_CPU_USER] + row[PR_EC_STATS_SESSION_CPU_SYSTEM]), 60)),

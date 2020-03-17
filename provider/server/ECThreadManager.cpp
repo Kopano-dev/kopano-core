@@ -13,7 +13,11 @@
 #include <algorithm>
 #include <poll.h>
 #include <unistd.h>
+#include <libHX/misc.h>
+#include <libHX/string.h>
+#include <kopano/ECChannel.h>
 #include <kopano/stringutil.h>
+#include <kopano/timeutil.hpp>
 #ifdef HAVE_EPOLL_CREATE
 #include <sys/epoll.h>
 #endif
@@ -41,9 +45,10 @@ class WORKITEM final : public ECTask {
 	virtual ~WORKITEM();
 	virtual void run();
 	struct soap *xsoap = nullptr; /* socket and state associated with the connection */
-	time_point dblReceiveStamp; /* time at which activity was detected on the socket */
 	ECDispatcher *dispatcher = nullptr;
 };
+
+std::shared_ptr<ECLogger> g_request_logger;
 
 static string GetSoapError(int err)
 {
@@ -111,18 +116,66 @@ WORKITEM::~WORKITEM()
 	soap_free(xsoap);
 }
 
+static void log_request(struct soap *soap, int soaperr)
+{
+	const auto &st = soap_info(soap)->st;
+	char ers[HXSIZEOF_Z32+6];
+	switch (soaperr) {
+	case SOAP_OK:
+		snprintf(ers, sizeof(ers), "rc=0x%x", st.er);
+		break;
+	case SOAP_ERR:
+		strcpy(ers, "rc=soaperr");
+		break;
+	case SOAP_EOF:
+		strcpy(ers, "rc=soapeof");
+		break;
+	default:
+		strcpy(ers, "rc=?");
+		break;
+	}
+	g_request_logger->Log(0, format("%s %s %s %s %s"
+		" Tsk=%.6f Tenq=%.6f"
+		" Twi=%.6f Twi_CPU=%ld.%06ld"
+		" Trh1=%.6f Trh1_CPU=%ld.%06ld"
+		" Trh2=%.6f Trh2_CPU=%ld.%06ld"
+		" agent=\"%s\"",
+		soap->host,
+		!st.user.empty() ? bin2txt(st.user).c_str() : "-",
+		!st.imp.empty() ? bin2txt(st.imp).c_str() : "-",
+		st.func ?: "-", ers,
+		dur2dbl(st.sk_wall_dur), dur2dbl(st.enq_wall_dur),
+		dur2dbl(st.wi_wall_dur), static_cast<long>(st.wi_cpu[2].tv_sec), st.wi_cpu[2].tv_nsec / 1000,
+		dur2dbl(st.rh1_wall_dur), static_cast<long>(st.rh1_cpu[2].tv_sec), st.rh1_cpu[2].tv_nsec / 1000,
+		dur2dbl(st.rh2_wall_dur), static_cast<long>(st.rh2_cpu[2].tv_sec), st.rh2_cpu[2].tv_nsec / 1000,
+		st.agent.c_str()));
+}
+
+static inline LONGLONG timespec2ms(const struct timespec &t)
+{
+	return t.tv_sec * 1000 + t.tv_nsec / 1000000;
+}
+
 void WORKITEM::run()
 {
-	kcsrv_blocksigs();
 	auto lpWorkItem = this;
+	struct soap *soap = lpWorkItem->xsoap;
+	auto info = soap_info(soap);
+	bool dolog = g_request_logger != nullptr;
+	if (dolog) {
+		info->st.wi_wall_start = time_point::clock::now();
+		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &info->st.wi_cpu[0]);
+	}
+
+	kcsrv_blocksigs();
 	int err = 0;
 	pthread_t thrself = pthread_self();
-	struct soap *soap = lpWorkItem->xsoap;
 	lpWorkItem->xsoap = nullptr; /* Snatch soap away from ~WORKITEM */
 	set_thread_name(thrself, (m_worker->m_pool->m_poolname + "/" + soap->host).c_str());
 
 	// For SSL connections, we first must do the handshake and pass it back to the queue
-	if (soap->ctx && soap->ssl == nullptr) {
+	auto do_tls_setup = soap->ctx != nullptr && soap->ssl == nullptr;
+	if (do_tls_setup) {
 		err = soap_ssl_accept(soap);
 		if (err) {
 			auto d1 = soap_faultstring(soap);
@@ -131,17 +184,14 @@ void WORKITEM::run()
 				d1 != nullptr && *d1 != nullptr ? *d1 : "(no error set)",
 				d != nullptr && *d != nullptr ? *d : "");
 		}
+		info->st.func = "tls_setup";
 	} else {
-		// Record start of handling of this request
-		auto dblStart = std::chrono::steady_clock::now();
+		err = 0;
 		// Reset last session ID so we can use it reliably after the call is done
-		auto info = soap_info(soap);
 		info->ulLastSessionId = 0;
 		// Pass information on start time of the request into soap->user, so that it can be applied to the correct
 		// session after XML parsing
-		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &info->threadstart);
-		info->start = decltype(dblStart)::clock::now();
-		info->szFname = nullptr;
+		info->st.func = nullptr;
 		info->fdone = NULL;
 
 		// Do processing of work item
@@ -149,7 +199,9 @@ void WORKITEM::run()
 		if (soap_begin_recv(soap)) {
 			if (soap->error < SOAP_STOP) {
 				// Client Updater returns 404 to the client to say it doesn't need to update, so skip this HTTP error
-				if (soap->error != SOAP_EOF && soap->error != 404)
+				auto carp = soap->error != SOAP_EOF && soap->error != 404;
+				dolog &= carp;
+				if (carp)
 					ec_log_debug("gSOAP error on receiving request: %s", GetSoapError(soap->error).c_str());
 				soap_send_fault(soap);
 				goto done;
@@ -186,17 +238,33 @@ void WORKITEM::run()
 done:
 		if (info->fdone != nullptr)
 			info->fdone(soap, info->fdoneparam);
+	}
 
-		auto dblEnd = decltype(dblStart)::clock::now();
-		// Tell the session we're done processing the request for this session. This will also tell the session that this
-		// thread is done processing the item, so any time spent in this thread until now can be accounted in that session.
+	if (dolog) {
+		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &info->st.wi_cpu[1]);
+		info->st.wi_wall_end = time_point::clock::now(); /* end time for multiple counters */
+		HX_timespec_sub(&info->st.wi_cpu[2], &info->st.wi_cpu[1], &info->st.wi_cpu[0]);
+		info->st.wi_wall_dur  = info->st.wi_wall_end - info->st.wi_wall_start;
+		info->st.sk_wall_dur  = info->st.wi_wall_end - info->st.sk_wall_start;
+		info->st.enq_wall_dur = info->st.wi_wall_end - info->st.enq_wall_start;
+	}
+
+	if (!do_tls_setup) {
+		/*
+		 * Tell the session we are done processing the request for this
+		 * session. Any time spent in this thread until now will be
+		 * accounted towards that session.
+		 */
 		g_lpSessionManager->RemoveBusyState(info->ulLastSessionId, thrself);
 		// Track cpu usage server-wide
 		g_lpSessionManager->m_stats->inc(SCN_SOAP_REQUESTS);
-		g_lpSessionManager->m_stats->inc(SCN_PROCESSING_TIME, std::chrono::duration_cast<std::chrono::milliseconds>(dblEnd - dblStart).count());
-		g_lpSessionManager->m_stats->inc(SCN_RESPONSE_TIME, std::chrono::duration_cast<std::chrono::milliseconds>(dblEnd - lpWorkItem->dblReceiveStamp).count());
+		using namespace std::chrono;
+		g_lpSessionManager->m_stats->inc(SCN_PROCESSING_TIME, duration_cast<milliseconds>(info->st.wi_wall_dur).count());
+		g_lpSessionManager->m_stats->inc(SCN_RESPONSE_TIME, duration_cast<milliseconds>(info->st.sk_wall_dur).count());
 	}
 
+	if (dolog)
+		log_request(soap, err);
 	// Clear memory used by soap calls. Note that this does not actually
 	// undo our soap_new2() call so the soap object is still valid after these calls
 	soap_destroy(soap);
@@ -247,19 +315,19 @@ void ECDispatcher::AddListenSocket(std::unique_ptr<struct soap, ec_soap_deleter>
 	m_setListenSockets.emplace(soap->socket, std::move(soap));
 }
 
-void ECDispatcher::QueueItem(struct soap *soap)
+void ECDispatcher::QueueItem(struct soap *soap, time_point sktime)
 {
 	auto item = new WORKITEM;
 	CONNECTION_TYPE ulType;
 
 	item->xsoap = soap;
-	item->dblReceiveStamp = std::chrono::steady_clock::now();
 	item->dispatcher = this;
+	soap_info(soap)->st.sk_wall_start = sktime;
 	ulType = SOAP_CONNECTION_TYPE(soap);
 	if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
-		m_prio.enqueue(item, true);
+		m_prio.enqueue(item, true, &soap_info(soap)->st.enq_wall_start);
 	else
-		m_pool.enqueue(item, true);
+		m_pool.enqueue(item, true, &soap_info(soap)->st.enq_wall_start);
 }
 
 // Called by a worker thread when it's done with an item
@@ -329,6 +397,22 @@ void ECDispatcher::ShutDown()
     m_bExit = true;
 }
 
+static void update_host(unsigned int type, struct soap *soap)
+{
+	if (type != CONNECTION_TYPE_NAMED_PIPE &&
+	    type != CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
+		return;
+	static_assert(sizeof(soap->host) > 16, "soap->host ought to be an array");
+	if (*soap->host == '\0') {
+		soap->host[0] = '*';
+		soap->host[1] = '\0';
+	}
+	pid_t pid;
+	uid_t uid;
+	if (kc_peer_cred(soap->socket, &uid, &pid) == 0 && pid > 0)
+		HX_strlcat(soap->host, (":pid-" + std::to_string(pid)).c_str(), sizeof(soap->host));
+}
+
 ECDispatcherSelect::ECDispatcherSelect(std::shared_ptr<ECConfig> lpConfig) :
 	ECDispatcher(std::move(lpConfig))
 {
@@ -391,6 +475,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
 		auto n = poll(pollfd.get(), nfds, 1 * 1000);
 		if (n < 0)
             continue; // signal caught, restart
+		auto sockev_time = time_point::clock::now();
 		if (pollfd[0].revents & POLLIN) {
             char s[128];
             // A socket rescan has been triggered, we don't need to do anything, just read the data, discard it
@@ -428,7 +513,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
 				continue;
 			}
 			// Actual data waiting, push it on the processing queue
-			QueueItem(iterSockets->second.soap);
+			QueueItem(iterSockets->second.soap, sockev_time);
 			// Remove socket from listen list for now, since we're already handling data there and don't
 			// want to interfere with the thread that is now handling that socket. It will be passed back
 			// to us when the request is done.
@@ -485,6 +570,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
 				continue;
 			}
 			newsoap->socket = ec_relocate_fd(newsoap->socket);
+			update_host(ulType, newsoap);
 			g_lpSessionManager->m_stats->Max(SCN_MAX_SOCKET_NUMBER, static_cast<LONGLONG>(newsoap->socket));
 			g_lpSessionManager->m_stats->inc(SCN_SERVER_CONNECTIONS);
 			sActive.soap = newsoap;
@@ -556,7 +642,8 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 	epevent.events = EPOLLIN | EPOLLPRI; // wait for input and priority (?) events
 	for (const auto &pair : m_setListenSockets) {
 		epevent.data.fd = pair.second->socket;
-		epoll_ctl(m_epFD, EPOLL_CTL_ADD, pair.second->socket, &epevent);
+		if (epoll_ctl(m_epFD, EPOLL_CTL_ADD, pair.second->socket, &epevent) != 0)
+			ec_log_err("epoll_ctl ADD %d: %s", epevent.data.fd, strerror(errno));
 	}
 
 	// This will start the threads
@@ -585,73 +672,79 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 		l_sock.unlock();
 
 		n = epoll_wait(m_epFD, epevents.get(), m_fdMax, 1000); // timeout -1 is wait indefinitely
+		auto sockev_time = time_point::clock::now();
 		l_sock.lock();
 		for (int i = 0; i < n; ++i) {
 			auto iterListenSockets = m_setListenSockets.find(epevents[i].data.fd);
 
-			if (iterListenSockets != m_setListenSockets.end()) {
-				// this was a listen socket .. accept and continue
-				ACTIVESOCKET sActive;
-				auto newsoap = soap_copy(iterListenSockets->second.get());
-                kopano_new_soap_connection(SOAP_CONNECTION_TYPE(iterListenSockets->second), newsoap);
-				// Record last activity (now)
-				time(&sActive.ulLastActivity);
-				ulType = SOAP_CONNECTION_TYPE(iterListenSockets->second);
-				if (ulType == CONNECTION_TYPE_NAMED_PIPE || ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY) {
-					newsoap->socket = accept(newsoap->master, NULL, 0);
-					/* Do like gsoap's soap_accept would */
-					newsoap->keep_alive = -(((newsoap->imode | newsoap->omode) & SOAP_IO_KEEPALIVE) != 0);
-				} else {
-					soap_accept(newsoap);
-				}
-
-				if(newsoap->socket == SOAP_INVALID_SOCKET) {
-					if (ulType == CONNECTION_TYPE_NAMED_PIPE)
-						ec_log_debug("epaccept(%d) on file://%s: %s", newsoap->master, m_lpConfig->GetSetting("server_pipe_name"), *soap_faultstring(newsoap));
-					else if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
-						ec_log_debug("epaccept(%d) on file://%s: %s", newsoap->master, m_lpConfig->GetSetting("server_pipe_priority"), *soap_faultstring(newsoap));
-					else
-						ec_log_debug("epaccept(%d): %s", newsoap->master, *soap_faultstring(newsoap));
-					kopano_end_soap_connection(newsoap);
-					soap_free(newsoap);
-				} else {
-					if (ulType == CONNECTION_TYPE_NAMED_PIPE)
-						ec_log_debug("Accepted incoming connection on file://%s", m_lpConfig->GetSetting("server_pipe_name"));
-					else if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
-						ec_log_debug("Accepted incoming connection on file://%s", m_lpConfig->GetSetting("server_pipe_priority"));
-					else
-						ec_log_debug("Accepted incoming%sconnection on %s",
-							ulType == CONNECTION_TYPE_SSL ? " SSL ":" ",
-							newsoap->host);
-					newsoap->socket = ec_relocate_fd(newsoap->socket);
-					g_lpSessionManager->m_stats->Max(SCN_MAX_SOCKET_NUMBER, static_cast<LONGLONG>(newsoap->socket));
-					g_lpSessionManager->m_stats->inc(SCN_SERVER_CONNECTIONS);
-					// directly make worker thread active
-                    sActive.soap = newsoap;
-					m_setSockets.emplace(sActive.soap->socket, sActive);
-					NotifyRestart(newsoap->socket);
-				}
-			} else {
+			if (iterListenSockets == m_setListenSockets.end()) {
 				// this is a new request from an existing client
 				auto iterSockets = m_setSockets.find(epevents[i].data.fd);
-				if (iterSockets != m_setSockets.cend()) {
-					// remove from epfd, either close socket, or it will be reactivated later in the epfd
-					epevent.data.fd = iterSockets->second.soap->socket;
-					epoll_ctl(m_epFD, EPOLL_CTL_DEL, iterSockets->second.soap->socket, &epevent);
+				if (iterSockets == m_setSockets.cend())
+					continue;
+				// remove from epfd, either close socket, or it will be reactivated later in the epfd
+				epevent.data.fd = iterSockets->second.soap->socket;
 
-					if (epevents[i].events & EPOLLHUP) {
-						kopano_end_soap_connection(iterSockets->second.soap);
-						soap_free(iterSockets->second.soap);
-						m_setSockets.erase(iterSockets);
-					} else {
-						QueueItem(iterSockets->second.soap);
-						// Remove socket from listen list for now, since we're already handling data there and don't
-						// want to interfere with the thread that is now handling that socket. It will be passed back
-						// to us when the request is done.
-						m_setSockets.erase(iterSockets);
-					}
+				if (epevents[i].events & EPOLLHUP) {
+					kopano_end_soap_connection(iterSockets->second.soap);
+					soap_free(iterSockets->second.soap);
+					m_setSockets.erase(iterSockets);
+					continue;
 				}
+				QueueItem(iterSockets->second.soap, sockev_time);
+				// Remove socket from listen list for now, since we're already handling data there and don't
+				// want to interfere with the thread that is now handling that socket. It will be passed back
+				// to us when the request is done.
+				m_setSockets.erase(iterSockets);
+				continue;
 			}
+
+			// this was a listen socket .. accept and continue
+			ACTIVESOCKET sActive;
+			auto newsoap = soap_copy(iterListenSockets->second.get());
+			kopano_new_soap_connection(SOAP_CONNECTION_TYPE(iterListenSockets->second), newsoap);
+			// Record last activity (now)
+			time(&sActive.ulLastActivity);
+			ulType = SOAP_CONNECTION_TYPE(iterListenSockets->second);
+			if (ulType == CONNECTION_TYPE_NAMED_PIPE || ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY) {
+				newsoap->socket = accept(newsoap->master, NULL, 0);
+				/* Do like gsoap's soap_accept would */
+				newsoap->keep_alive = -(((newsoap->imode | newsoap->omode) & SOAP_IO_KEEPALIVE) != 0);
+			} else {
+				soap_accept(newsoap);
+			}
+
+			if (newsoap->socket == SOAP_INVALID_SOCKET) {
+				if (ulType == CONNECTION_TYPE_NAMED_PIPE)
+					ec_log_debug("epaccept(%d) on file://%s: %s", newsoap->master, m_lpConfig->GetSetting("server_pipe_name"), *soap_faultstring(newsoap));
+				else if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
+					ec_log_debug("epaccept(%d) on file://%s: %s", newsoap->master, m_lpConfig->GetSetting("server_pipe_priority"), *soap_faultstring(newsoap));
+				else
+					ec_log_debug("epaccept(%d): %s", newsoap->master, *soap_faultstring(newsoap));
+				kopano_end_soap_connection(newsoap);
+				soap_free(newsoap);
+				continue;
+			}
+			update_host(ulType, newsoap);
+			if (ulType == CONNECTION_TYPE_NAMED_PIPE)
+				ec_log_debug("Accepted incoming connection on file://%s", m_lpConfig->GetSetting("server_pipe_name"));
+			else if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
+				ec_log_debug("Accepted incoming connection on file://%s", m_lpConfig->GetSetting("server_pipe_priority"));
+			else
+				ec_log_debug("Accepted incoming%sconnection on %s",
+					ulType == CONNECTION_TYPE_SSL ? " SSL ":" ",
+					newsoap->host);
+			newsoap->socket = ec_relocate_fd(newsoap->socket);
+			g_lpSessionManager->m_stats->Max(SCN_MAX_SOCKET_NUMBER, static_cast<LONGLONG>(newsoap->socket));
+			g_lpSessionManager->m_stats->inc(SCN_SERVER_CONNECTIONS);
+			// directly make worker thread active
+			sActive.soap = newsoap;
+			m_setSockets.emplace(sActive.soap->socket, sActive);
+			epoll_event eev{};
+			eev.events = EPOLLIN | EPOLLPRI | EPOLLONESHOT;
+			eev.data.fd = newsoap->socket;
+			if (epoll_ctl(m_epFD, EPOLL_CTL_ADD, newsoap->socket, &eev) != 0)
+				ec_log_err("epoll_ctl ADD %d: %s", newsoap->socket, strerror(errno));
 		}
 		l_sock.unlock();
 	}
@@ -675,8 +768,9 @@ void ECDispatcherEPoll::NotifyRestart(SOAP_SOCKET s)
 	// add soap socket in epoll fd
 	epoll_event epevent;
 	memset(&epevent, 0, sizeof(epoll_event));
-	epevent.events = EPOLLIN | EPOLLPRI; // wait for input and priority (?) events
+	epevent.events = EPOLLIN | EPOLLPRI | EPOLLONESHOT;
 	epevent.data.fd = s;
-	epoll_ctl(m_epFD, EPOLL_CTL_ADD, epevent.data.fd, &epevent);
+	if (epoll_ctl(m_epFD, EPOLL_CTL_MOD, s, &epevent) != 0)
+		ec_log_err("epoll_ctl MOD %d: %s", s, strerror(errno));
 }
 #endif

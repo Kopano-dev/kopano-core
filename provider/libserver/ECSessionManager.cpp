@@ -12,6 +12,7 @@
 #include <shared_mutex>
 #include <utility>
 #include <pthread.h>
+#include <libHX/string.h>
 #include <mapidefs.h>
 #include <mapitags.h>
 #include <kopano/MAPIErrors.h>
@@ -37,7 +38,7 @@ using namespace std::string_literals;
 
 namespace KC {
 
-void (*kopano_get_server_stats)(unsigned int *qlen, KC::time_duration *qage, unsigned int *nthr, unsigned int *idlthr) = [](unsigned int *, KC::time_duration *, unsigned int *, unsigned int *) {};
+void (*kopano_get_server_stats)(unsigned int *, time_duration *, unsigned int *, unsigned int *);
 
 static inline const char *znul(const char *s)
 {
@@ -328,7 +329,15 @@ ECRESULT ECSessionManager::ValidateSession(struct soap *soap,
 	auto er = ValidateBTSession(soap, sessionID, &lpSession);
 	if (er != erSuccess)
 		return er;
-	*lppSession = dynamic_cast<ECSession*>(lpSession);
+	auto ses = dynamic_cast<ECSession *>(lpSession);
+	if (ses != nullptr) {
+		auto sec = ses->GetSecurity();
+		auto si = soap_info(soap);
+		assert(sec != nullptr && si != nullptr);
+		sec->GetUsername(&si->st.user);
+		sec->GetImpersonator(&si->st.imp);
+	}
+	*lppSession = ses;
 	return erSuccess;
 }
 
@@ -401,17 +410,6 @@ ECRESULT ECSessionManager::CreateSession(struct soap *soap, const char *szName,
 {
 	std::unique_ptr<ECAuthSession> lpAuthSession;
 	const char		*method = "error";
-	std::string		from;
-	CONNECTION_TYPE ulType = SOAP_CONNECTION_TYPE(soap);
-
-	if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
-		from = std::string("file://") + m_lpConfig->GetSetting("server_pipe_priority");
-	else if (ulType == CONNECTION_TYPE_NAMED_PIPE)
-		// connected through Unix socket
-		from = std::string("file://") + m_lpConfig->GetSetting("server_pipe_name");
-	else
-		// connected over network
-		from = soap->host;
 
 	auto er = CreateAuthSession(soap, ulCapabilities, lpSessionID, &unique_tie(lpAuthSession), false, false);
 	if (er != erSuccess)
@@ -440,7 +438,7 @@ ECRESULT ECSessionManager::CreateSession(struct soap *soap, const char *szName,
 
 	// whoops, out of auth options.
 	ZLOG_AUDIT(m_lpAudit, "authenticate failed user='%s' from='%s' program='%s'",
-		szName, from.c_str(), cl_app);
+		szName, soap->host, cl_app);
 	g_lpSessionManager->m_stats->inc(SCN_LOGIN_DENIED);
 	return KCERR_LOGON_FAILED;
 
@@ -453,20 +451,20 @@ authenticated:
 		if (er == KCERR_NO_ACCESS && szImpersonateUser != NULL && *szImpersonateUser != '\0') {
 			ec_log_err("Failed attempt to impersonate user \"%s\" by user \"%s\": %s (0x%x)", szImpersonateUser, szName, GetMAPIErrorMessage(er), er);
 			ZLOG_AUDIT(m_lpAudit, "authenticate ok, impersonate failed: from=\"%s\" user=\"%s\" impersonator=\"%s\" method=\"%s\" program=\"%s\"",
-				from.c_str(), szImpersonateUser, szName, method, cl_app);
+				soap->host, szImpersonateUser, szName, method, cl_app);
 		} else {
 			ec_log_err("User \"%s\" authenticated, but failed to create session: %s (0x%x)", szName, GetMAPIErrorMessage(er), er);
 			ZLOG_AUDIT(m_lpAudit, "authenticate ok, session failed: from=\"%s\" user=\"%s\" impersonator=\"%s\" method=\"%s\" program=\"%s\"",
-				from.c_str(), szImpersonateUser, szName, method, cl_app);
+				soap->host, szImpersonateUser, szName, method, cl_app);
 		}
 		return er;
 	}
 	if (!szImpersonateUser || *szImpersonateUser == '\0')
 		ZLOG_AUDIT(m_lpAudit, "authenticate ok: from=\"%s\" user=\"%s\" method=\"%s\" program=\"%s\" sid=0x%llx",
-			from.c_str(), szName, method, cl_app, static_cast<unsigned long long>(*lpSessionID));
+			soap->host, szName, method, cl_app, static_cast<unsigned long long>(*lpSessionID));
 	else
 		ZLOG_AUDIT(m_lpAudit, "authenticate ok, impersonate ok: from=\"%s\" user=\"%s\" impersonator=\"%s\" method=\"%s\" program=\"%s\" sid=0x%llx",
-			from.c_str(), szImpersonateUser, szName, method, cl_app, static_cast<unsigned long long>(*lpSessionID));
+			soap->host, szImpersonateUser, szName, method, cl_app, static_cast<unsigned long long>(*lpSessionID));
 	return erSuccess;
 }
 
@@ -502,7 +500,7 @@ ECRESULT ECSessionManager::CreateSessionInternal(ECSession **lppSession, unsigne
 
 	auto lpSession = make_unique_nt<ECSession>("<internal>",
 		newSID, 0, m_lpDatabaseFactory.get(), this, 0,
-		ECSession::METHOD_NONE, 0, "internal", "kopano-server", "", "");
+		ECSession::METHOD_NONE, "internal", "kopano-server", "", "");
 	if (lpSession == NULL)
 		return KCERR_LOGON_FAILED;
 	auto er = lpSession->GetSecurity()->SetUserContext(ulUserId, EC_NO_IMPERSONATOR);

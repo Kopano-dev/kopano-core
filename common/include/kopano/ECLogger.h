@@ -42,7 +42,6 @@ static const unsigned int EC_LOGLEVEL_SQL	   = 0x00010000;
 static const unsigned int EC_LOGLEVEL_PLUGIN	   = 0x00020000;
 static const unsigned int EC_LOGLEVEL_CACHE	   = 0x00040000;
 static const unsigned int EC_LOGLEVEL_USERCACHE    = 0x00080000;
-static const unsigned int EC_LOGLEVEL_SOAP         = 0x00100000;
 static const unsigned int EC_LOGLEVEL_ICS          = 0x00200000;
 static const unsigned int EC_LOGLEVEL_SEARCH       = 0x00400000;
 static const unsigned int EC_LOGLEVEL_SYNC         = 0x00800000;
@@ -300,7 +299,13 @@ extern KC_EXPORT HRESULT hr_logcode(HRESULT code, unsigned int level, const char
 #define hr_lnoticef(r, ...) hr_logcode((r), EC_LOGLEVEL_NOTICE, __PRETTY_FUNCTION__, __VA_ARGS__)
 #define hr_ldebug(r, ...)   hr_logcode((r), EC_LOGLEVEL_DEBUG, nullptr, __VA_ARGS__)
 
-extern KC_EXPORT std::shared_ptr<ECLogger> CreateLogger(ECConfig *, const char *argv0, const char *service, bool audit = false);
+enum loggertype {
+	LOGTYPE_NORMAL,
+	LOGTYPE_AUDIT,
+	LOGTYPE_REQUEST,
+};
+
+extern KC_EXPORT std::shared_ptr<ECLogger> CreateLogger(ECConfig *, const char *argv0, enum loggertype = LOGTYPE_NORMAL);
 extern KC_EXPORT void LogConfigErrors(ECConfig *);
 extern KC_EXPORT void ec_setup_segv_handler(const char *app, const char *vers);
 extern KC_EXPORT const std::string &ec_os_pretty_name();

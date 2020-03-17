@@ -17,13 +17,17 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <ctime>
 #include <pthread.h>
+#include <sys/types.h>
 #include "soapH.h"
 #include <kopano/kcodes.h>
+#include <kopano/timeutil.hpp>
 #include "ECNotification.h"
 #include "ECTableManager.h"
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
+#include <kopano/rqstat.hpp>
 #include <kopano/timeutil.hpp>
 #include "ECDatabaseFactory.h"
 #include "ECPluginFactory.h"
@@ -48,8 +52,9 @@ enum { SESSION_STATE_PROCESSING, SESSION_STATE_SENDING };
 
 struct BUSYSTATE {
     const char *fname;
-    struct timespec threadstart;
-	KC::time_point start;
+	const struct request_stat *rqstat;
+	struct timespec wi_cpu_start;
+	time_point wi_wall_start;
     pthread_t threadid;
     int state;
 };
@@ -81,8 +86,6 @@ public:
 	KC_HIDDEN virtual bool IsLocked() const final { return m_ulRefCount > 0; }
 	KC_HIDDEN virtual void RecordRequest(struct soap *);
 	KC_HIDDEN virtual unsigned int GetRequests();
-	KC_HIDDEN virtual unsigned int GetClientPort();
-	KC_HIDDEN virtual std::string GetRequestURL();
 	KC_HIDDEN virtual std::string GetProxyHost();
 	KC_HIDDEN size_t GetInternalObjectSize();
 	KC_HIDDEN virtual size_t GetObjectSize() = 0;
@@ -109,7 +112,7 @@ protected:
 	 */
 	std::condition_variable m_hThreadReleased;
 	std::mutex m_hThreadReleasedMutex, m_hRequestStats;
-	std::string m_strLastRequestURL, m_strProxyHost;
+	std::string m_strProxyHost;
 	std::string		m_strClientApplicationVersion, m_strClientApplicationMisc;
 };
 
@@ -118,9 +121,8 @@ protected:
 */
 class KC_EXPORT_DYCAST ECSession final : public BTSession {
 public:
-	KC_HIDDEN ECSession(const char *addr, ECSESSIONID, ECSESSIONGROUPID, ECDatabaseFactory *, ECSessionManager *, unsigned int caps, AUTHMETHOD, int pid, const std::string &cl_vers, const std::string &cl_app, const std::string &cl_app_ver, const std::string &cl_app_misc);
+	KC_HIDDEN ECSession(const char *addr, ECSESSIONID, ECSESSIONGROUPID, ECDatabaseFactory *, ECSessionManager *, unsigned int caps, AUTHMETHOD, const std::string &cl_vers, const std::string &cl_app, const std::string &cl_app_ver, const std::string &cl_app_misc);
 	KC_HIDDEN virtual ECSESSIONGROUPID GetSessionGroupId() const final { return m_ecSessionGroupId; }
-	KC_HIDDEN virtual int GetConnectingPid() const final { return m_ulConnectingPid; }
 	KC_HIDDEN virtual ~ECSession();
 	KC_HIDDEN virtual ECRESULT Shutdown(unsigned int timeout) override;
 	KC_HIDDEN virtual ECUserManagement *GetUserManagement() const override final { return m_lpUserManagement.get(); }
@@ -138,7 +140,7 @@ public:
 	KC_HIDDEN ECRESULT UnlockObject(unsigned int obj_id);
 
 	/* for ECStatsSessionTable */
-	KC_HIDDEN void AddBusyState(pthread_t, const char *state, const struct timespec &threadstart, const KC::time_point &start);
+	KC_HIDDEN void AddBusyState(pthread_t, const char *state, const request_stat &);
 	KC_HIDDEN void UpdateBusyState(pthread_t, int state);
 	KC_HIDDEN void RemoveBusyState(pthread_t);
 	KC_HIDDEN void GetBusyStates(std::list<BUSYSTATE> *);
@@ -157,7 +159,6 @@ private:
 	BusyStateMap		m_mapBusyStates; /* which thread does what function */
 	double m_dblUser = 0, m_dblSystem = 0, m_dblReal = 0;
 	AUTHMETHOD		m_ulAuthMethod;
-	int			m_ulConnectingPid;
 	ECSESSIONGROUPID m_ecSessionGroupId;
 	std::string m_strClientVersion, m_strClientApp, m_strUsername;
 	unsigned int		m_ulClientVersion;
@@ -190,7 +191,6 @@ protected:
 	unsigned int m_ulImpersonatorID = 0; // The ID of the user whose credentials were used to login when using impersonation
 	bool m_bValidated = false;
 	AUTHMETHOD m_ulValidationMethod = METHOD_NONE;
-	int m_ulConnectingPid = 0;
 
 private:
 	/* SSO */

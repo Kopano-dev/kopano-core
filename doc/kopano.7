@@ -107,8 +107,6 @@ Possible additional subsystem bits that can be ORed with the level:
 .IP \(bu 4
 \fB0x80000\fP (usercache)
 .IP \(bu 4
-\fB0x100000\fP (soap)
-.IP \(bu 4
 \fB0x200000\fP (ics)
 .IP \(bu 4
 \fB0x400000\fP (search)
@@ -118,6 +116,22 @@ Possible additional subsystem bits that can be ORed with the level:
 Default: \fB4\fP
 .PP
 Example: \fB0x800006\fP
+.SS KOPANO_CONFIG_PATH
+.PP
+The default location configuration files will be looked up in unless overriden
+by other program logic, such as command-line options (e.g. `kopano-server \-c`
+has higher precedence over KOPANO_CONFIG_PATH).
+.SS KOPANO_SOCKET
+.PP
+The default socket URI that is used for all MAPI connections unless overridden
+by other program logic, such as command-line options (e.g. `kopano-admin \-h`
+has higher precedence over KOPANO_SOCKET).
+.SS MAPI_CONFIG_PATH
+.PP
+A colon-separated list of directories for mapi4linux to look for MAPI provider
+plugin descriptions (.inf files).
+.PP
+Default: \fB/etc/kopano\fP
 .SH "AUTHOR"
 .PP
 Written by Kopano.

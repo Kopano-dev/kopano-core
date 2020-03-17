@@ -15,9 +15,14 @@
 #include <pthread.h>
 #include <kopano/ECConfig.h>
 #include <kopano/kcodes.h>
+#include <kopano/timeutil.hpp>
 #include "SOAPUtils.h"
 #include "soapH.h"
 #include "cmd.hpp"
+
+namespace KC {
+class ECLogger;
+}
 
 using KC::ECRESULT;
 
@@ -60,7 +65,7 @@ public:
 	KC::time_duration front_item_age();
 	size_t queue_length();
 	void AddListenSocket(std::unique_ptr<struct soap, KC::ec_soap_deleter> &&);
-	void QueueItem(struct soap *);
+	void QueueItem(struct soap *, KC::time_point);
 
     // Reload variables from config
     ECRESULT DoHUP();
@@ -113,6 +118,8 @@ public:
 #endif
 
 extern std::atomic<bool> sv_sighup_flag;
+extern std::shared_ptr<KC::ECLogger> g_request_logger;
+
 extern void sv_sighup_sync();
 
 #endif

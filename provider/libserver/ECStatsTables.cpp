@@ -3,10 +3,12 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
-#include <chrono>
 #include <memory>
 #include <new>
+#include <ctime>
+#include <libHX/misc.h>
 #include <kopano/tie.hpp>
+#include <kopano/timeutil.hpp>
 #include "ECStatsTables.h"
 #include "SOAPUtils.h"
 #include "ECSession.h"
@@ -103,7 +105,8 @@ void server_stats::fill_odm()
 	unsigned int qlen = 0, nthr = 0, ithr = 0;
 	KC::time_duration qage;
 
-	kopano_get_server_stats(&qlen, &qage, &nthr, &ithr);
+	if (kopano_get_server_stats != nullptr)
+		kopano_get_server_stats(&qlen, &qage, &nthr, &ithr);
 	setg("queuelen", "Current queue length", qlen);
 	setg_dbl("queueage", "Age of the front queue item", dur2dbl(qage));
 	setg("threads", "Number of threads running to process items", nthr);
@@ -273,7 +276,6 @@ void ECSessionStatsTable::GetSessionData(ECSession *lpSession, void *obj)
 
 	sd.sessionid = lpSession->GetSessionId();
 	sd.sessiongroupid = lpSession->GetSessionGroupId();
-	sd.peerpid = lpSession->GetConnectingPid();
 	sd.srcaddress = lpSession->GetSourceAddr();
 	sd.idletime = lpSession->GetIdleTime();
 	sd.capability = lpSession->GetCapabilities();
@@ -283,8 +285,6 @@ void ECSessionStatsTable::GetSessionData(ECSession *lpSession, void *obj)
 	lpSession->GetBusyStates(&sd.busystates);
 	lpSession->GetClientVersion(&sd.version);
 	lpSession->GetClientApp(&sd.clientapp);
-	sd.port = lpSession->GetClientPort();
-	sd.url = lpSession->GetRequestURL();
 	sd.proxyhost = lpSession->GetProxyHost();
 	lpSession->GetClientApplicationVersion(&sd.client_application_version);
 	lpSession->GetClientApplicationMisc(&sd.client_application_misc);
@@ -294,13 +294,14 @@ void ECSessionStatsTable::GetSessionData(ECSession *lpSession, void *obj)
 	// for their CPU usage, and add that to the already-logged time on the session
 	for (const auto &bs : sd.busystates) {
 		clockid_t clock;
-		struct timespec now;
 		if (pthread_getcpuclockid(bs.threadid, &clock) != 0)
 			continue;
-
-		clock_gettime(clock, &now);
-		sd.dblUser += timespec2dbl(now) - timespec2dbl(bs.threadstart);
-		sd.dblReal += dur2dbl(decltype(bs.start)::clock::now() - bs.start);
+		struct timespec wi_cpu_end, diff;
+		clock_gettime(clock, &wi_cpu_end);
+		auto wi_wall_end = time_point::clock::now();
+		HX_timespec_sub(&diff, &wi_cpu_end, &bs.wi_cpu_start);
+		sd.dblUser += timespec2dbl(diff);
+		sd.dblReal += dur2dbl(wi_wall_end - bs.wi_wall_start);
 	}
 	lpThis->m_mapSessionData[lpThis->id] = sd;
 	++lpThis->id;
@@ -369,11 +370,6 @@ ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis,
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
 				m.Value.li = iterSD->second.sessiongroupid;
 				break;
-			case PROP_ID(PR_EC_STATS_SESSION_PEER_PID):
-				m.__union = SOAP_UNION_propValData_ul;
-				m.ulPropTag = lpsPropTagArray->__ptr[k];
-				m.Value.ul = iterSD->second.peerpid;
-				break;
 			case PROP_ID(PR_EC_STATS_SESSION_CLIENT_VERSION):
 				m.__union = SOAP_UNION_propValData_lpszA;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
@@ -388,16 +384,6 @@ ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis,
 				m.__union = SOAP_UNION_propValData_lpszA;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
 				m.Value.lpszA = soap_strdup(soap, iterSD->second.srcaddress.c_str());
-				break;
-			case PROP_ID(PR_EC_STATS_SESSION_PORT):
-				m.__union = SOAP_UNION_propValData_ul;
-				m.ulPropTag = lpsPropTagArray->__ptr[k];
-				m.Value.ul = iterSD->second.port;
-				break;
-			case PROP_ID(PR_EC_STATS_SESSION_URL):
-				m.__union = SOAP_UNION_propValData_lpszA;
-				m.ulPropTag = lpsPropTagArray->__ptr[k];
-				m.Value.lpszA = soap_strdup(soap, iterSD->second.url.c_str());
 				break;
 			case PROP_ID(PR_EC_STATS_SESSION_PROXY):
 				m.__union = SOAP_UNION_propValData_lpszA;

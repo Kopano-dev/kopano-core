@@ -3421,7 +3421,7 @@ int main(int argc, char **argv)
 	if (!loglevel)
 		g_lpLogger.reset(new(std::nothrow) ECLogger_Null);
 	else
-		g_lpLogger = CreateLogger(g_lpConfig.get(), argv[0], "KopanoDAgent");
+		g_lpLogger = CreateLogger(g_lpConfig.get(), argv[0]);
 	ec_log_set(g_lpLogger);
 	if (!g_lpLogger->Log(loglevel))
 		/* raise loglevel if there are more -v on the command line than in dagent.cfg */

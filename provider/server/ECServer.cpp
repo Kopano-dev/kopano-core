@@ -188,7 +188,8 @@ void server_stats::stop()
 // request has been handled.
 static void kcsrv_notify_done(struct soap *soap)
 {
-    g_lpSoapServerConn->NotifyDone(soap);
+	if (g_lpSoapServerConn != nullptr)
+		g_lpSoapServerConn->NotifyDone(soap);
 }
 
 // Called from ECStatsTables to get server stats
@@ -196,7 +197,8 @@ static void kcsrv_get_server_stats(unsigned int *lpulQueueLength,
     time_duration *lpdblAge, unsigned int *lpulThreadCount,
     unsigned int *lpulIdleThreads)
 {
-    g_lpSoapServerConn->GetStats(lpulQueueLength, lpdblAge, lpulThreadCount, lpulIdleThreads);
+	if (g_lpSoapServerConn != nullptr)
+		g_lpSoapServerConn->GetStats(lpulQueueLength, lpdblAge, lpulThreadCount, lpulIdleThreads);
 }
 
 static void sv_sigterm_async(int)
@@ -811,6 +813,8 @@ static void cleanup(ECRESULT er)
 		g_lpAudit->Log(EC_LOGLEVEL_ALWAYS, "server shutdown in progress");
 
 	/* Ensure threads are stopped before ripping away the underlying session state */
+	kopano_notify_done = nullptr;
+	kopano_get_server_stats = nullptr;
 	g_lpSoapServerConn.reset();
 	if (g_lpSessionManager != nullptr)
 		g_lpSessionManager->RemoveAllSessions();
@@ -899,6 +903,8 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{"log_level", "3", CONFIGSETTING_NONEMPTY | CONFIGSETTING_RELOADABLE},
 		{ "log_timestamp",				"1" },
 		{ "log_buffer_size", "0" },
+		{"request_log_method", "off"},
+		{"request_log_file", "-"},
 		// security log options
 		{"audit_log_enabled", "no", CONFIGSETTING_NONEMPTY},
 		{"audit_log_method", "syslog", CONFIGSETTING_NONEMPTY},
@@ -1028,7 +1034,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		return g_lpConfig->dump_config(stdout) == 0 ? hrSuccess : MAPI_E_CALL_FAILED;
 
 	// setup logging
-	g_lpLogger = CreateLogger(g_lpConfig.get(), szName, "KopanoServer");
+	g_lpLogger = CreateLogger(g_lpConfig.get(), szName);
 	if (!g_lpLogger) {
 		fprintf(stderr, "Error in log configuration, unable to resume.\n");
 		er = MAPI_E_UNCONFIGURED;
@@ -1039,7 +1045,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		LogConfigErrors(g_lpConfig.get());
 	if (!TmpPath::instance.OverridePath(g_lpConfig.get()))
 		ec_log_err("Ignoring invalid path-setting!");
-	g_lpAudit = CreateLogger(g_lpConfig.get(), szName, "KopanoServer", true);
+	g_lpAudit = CreateLogger(g_lpConfig.get(), szName, LOGTYPE_AUDIT);
 	if (g_lpAudit)
 		g_lpAudit->logf(EC_LOGLEVEL_NOTICE, "server startup uid=%d", getuid());
 	else
@@ -1083,6 +1089,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 				strerror(-ret));
 	}
 
+	g_request_logger = CreateLogger(g_lpConfig.get(), szName, LOGTYPE_REQUEST);
 	auto aback = g_lpConfig->GetSetting("attachment_storage");
 	if (strcmp(aback, "files_v2") == 0 || is_filesv1(aback) ||
 	    strcmp(aback, "auto") == 0) {

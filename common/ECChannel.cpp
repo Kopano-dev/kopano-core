@@ -691,6 +691,29 @@ static int zcp_peeraddr_is_local(const struct sockaddr *peer_sockaddr,
 	return -EPROTONOSUPPORT;
 }
 
+int kc_peer_cred(int fd, uid_t *uid, pid_t *pid)
+{
+#if defined(SO_PEERCRED)
+#ifdef HAVE_SOCKPEERCRED_UID
+	struct sockpeercred cr;
+#else
+	struct ucred cr;
+#endif
+	unsigned int cr_len = sizeof(cr);
+	if (getsockopt(fd, SOL_SOCKET, SO_PEERCRED, &cr, &cr_len) != 0 || cr_len != sizeof(cr))
+		return -1;
+	*uid = cr.uid; /* uid is the uid of the user that is connecting */
+	*pid = cr.pid;
+#elif defined(HAVE_GETPEEREID)
+	gid_t gid;
+	if (getpeereid(fd, uid, &gid) != 0)
+		return -1;
+#else
+#	error I have no way to find out the remote user and I want to cry
+#endif
+	return 0;
+}
+
 int zcp_peerfd_is_local(int fd)
 {
 	struct sockaddr_storage peer_sockaddr;

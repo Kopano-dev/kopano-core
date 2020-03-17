@@ -854,8 +854,8 @@ static bool eclog_have_ttys()
 
 static void resolve_auto_logger(ECConfig *cfg)
 {
-	auto meth = cfg->GetSetting("log_method");
-	auto file = cfg->GetSetting("log_file");
+	auto meth = cfg->GetSetting("log_method") ?: "auto";
+	auto file = cfg->GetSetting("log_file") ?: "-";
 	if (meth == nullptr || strcasecmp(meth, "auto") != 0 || file == nullptr)
 		return;
 	if (*file != '\0') {
@@ -880,37 +880,47 @@ static void resolve_auto_logger(ECConfig *cfg)
  * @return Log object, or NULL on error
  */
 std::shared_ptr<ECLogger> CreateLogger(ECConfig *lpConfig, const char *argv0,
-    const char *lpszServiceName, bool bAudit)
+    enum loggertype ltyp)
 {
 	std::string prepend;
 	int loglevel = 0;
 	int syslog_facility = LOG_MAIL;
-	resolve_auto_logger(lpConfig);
-	auto log_method = lpConfig->GetSetting("log_method");
-	auto log_file   = lpConfig->GetSetting("log_file");
+	const char *log_method, *log_file;
 
-	if (bAudit) {
+	if (ltyp == LOGTYPE_NORMAL) {
+		resolve_auto_logger(lpConfig);
+		log_method = lpConfig->GetSetting("log_method");
+		log_file   = lpConfig->GetSetting("log_file");
+	} else if (ltyp == LOGTYPE_AUDIT) {
 #if 1 /* change to ifdef HAVE_LOG_AUTHPRIV */
 		if (!parseBool(lpConfig->GetSetting("audit_log_enabled")))
 			return NULL;
 		prepend = "audit_";
-		log_method = lpConfig->GetSetting("audit_log_method");
-		log_file   = lpConfig->GetSetting("audit_log_file");
+		log_method = lpConfig->GetSetting("audit_log_method") ?: "null";
+		log_file   = lpConfig->GetSetting("audit_log_file") ?: "-";
 		syslog_facility = LOG_AUTHPRIV;
 #else
 		return NULL;    // No auditing in Windows, apparently.
 #endif
+	} else if (ltyp == LOGTYPE_REQUEST) {
+		prepend    = "request_";
+		log_method = lpConfig->GetSetting("request_log_method") ?: "off";
+		log_file   = lpConfig->GetSetting("request_log_file") ?: "-";
+	} else {
+		return nullptr;
 	}
 
-	loglevel = strtol(lpConfig->GetSetting((prepend+"log_level").c_str()), NULL, 0);
-	if (strcasecmp(log_method, "syslog") == 0) {
+	loglevel = strtol(lpConfig->GetSetting((prepend+"log_level").c_str()) ?: "3", nullptr, 0);
+	if (strcasecmp(log_method, "off") == 0) {
+		return nullptr;
+	} else if (strcasecmp(log_method, "syslog") == 0) {
 		char *argzero = strdup(argv0);
 		auto logger = std::make_shared<ECLogger_Syslog>(loglevel, basename(argzero), syslog_facility);
 		free(argzero);
 		return logger;
 	} else if (strcasecmp(log_method, "file") != 0) {
 		fprintf(stderr, "Incorrect logging method selected. Reverting to stderr.\n");
-		auto logtimestamp = parseBool(lpConfig->GetSetting((prepend + "log_timestamp").c_str()));
+		auto logtimestamp = parseBool(lpConfig->GetSetting((prepend + "log_timestamp").c_str()) ?: "yes");
 		return std::make_shared<ECLogger_File>(loglevel, logtimestamp, "-", false);
 	}
 

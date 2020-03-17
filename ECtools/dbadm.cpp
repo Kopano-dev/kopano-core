@@ -742,7 +742,7 @@ int main(int argc, char **argv) try
 
 	cfg->AddSetting("log_method", "file");
 	cfg->AddSetting("log_file", "-");
-	auto g_logger = CreateLogger(cfg.get(), argv[0], "kopano-dbadm", false);
+	auto g_logger = CreateLogger(cfg.get(), argv[0]);
 	ec_log_set(g_logger);
 	if (!ec_log_get()->Log(EC_LOGLEVEL_INFO))
 		ec_log_get()->SetLoglevel(EC_LOGLEVEL_INFO);

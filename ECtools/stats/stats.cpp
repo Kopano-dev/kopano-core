@@ -109,7 +109,6 @@ struct SESSION {
 	TIMES times, dtimes;
 
 	unsigned int ulIdle = 0;
-	int ulPeerPid = 0;
 	bool bLocked = false;
 	std::string strUser, strIP, strBusy, strState, strPeer;
 	std::string strClientVersion, strClientApp, strClientAppVersion;
@@ -269,13 +268,9 @@ static void showtop(LPMDB lpStore)
             session.strClientApp = GetString(lpsRowSet[i], PR_EC_STATS_SESSION_CLIENT_APPLICATION);
             session.strClientAppVersion = GetString(lpsRowSet[i], PR_EC_STATS_SESSION_CLIENT_APPLICATION_VERSION);
             session.strClientAppMisc = GetString(lpsRowSet[i], PR_EC_STATS_SESSION_CLIENT_APPLICATION_MISC);
-            session.ulPeerPid = GetLongLong(lpsRowSet[i], PR_EC_STATS_SESSION_PEER_PID);
             session.times.ulRequests = GetLongLong(lpsRowSet[i], PR_EC_STATS_SESSION_REQUESTS);
             session.ullSessionId = GetLongLong(lpsRowSet[i], PR_EC_STATS_SESSION_ID);
             session.ullSessionGroupId = GetLongLong(lpsRowSet[i], PR_EC_STATS_SESSION_GROUP_ID);
-			if (session.ulPeerPid != 0)
-				session.strPeer = stringify(session.ulPeerPid);
-
             session.times.dblUser = GetDouble(lpsRowSet[i], PR_EC_STATS_SESSION_CPU_USER);
             session.times.dblSystem = GetDouble(lpsRowSet[i], PR_EC_STATS_SESSION_CPU_SYSTEM);
             session.times.dblReal = GetDouble(lpsRowSet[i], PR_EC_STATS_SESSION_CPU_REAL);
@@ -333,7 +328,7 @@ static void showtop(LPMDB lpStore)
         wprintw(win, "QAge: %.5s", mapStats["queueage"].c_str());
         wmove(win, 1, 85);
         if(mapDiffStats["soap_request"] > 0)
-            wprintw(win, "RTT: %d ms", (int)(mapDiffStats["response_time"] / mapDiffStats["soap_request"]));
+            wprintw(win, "RT: %d ms", (int)(mapDiffStats["response_time"] / mapDiffStats["soap_request"]));
 
         wmove(win, 2, 0);
         wprintw(win, "SQL/s SEL:%5d UPD:%4d INS:%4d DEL:%4d", (int)(mapDiffStats["sql_select"]/dblTime), (int)(mapDiffStats["sql_update"]/dblTime), (int)(mapDiffStats["sql_insert"]/dblTime), (int)(mapDiffStats["sql_delete"]/dblTime));
@@ -349,7 +344,7 @@ static void showtop(LPMDB lpStore)
         if (bColumns[1]) { wmove(win, 4, ofs); wprintw(win, "SESSIONID");	ofs += cols[2]; }
         if (bColumns[2]) { wmove(win, 4, ofs); wprintw(win, "VERSION");		ofs += cols[3]; }
         if (bColumns[3]) { wmove(win, 4, ofs); wprintw(win, "USERID");		ofs += cols[4]; }
-        if (bColumns[4]) { wmove(win, 4, ofs); wprintw(win, "IP/PID");		ofs += cols[5]; }
+        if (bColumns[4]) { wmove(win, 4, ofs); wprintw(win, "PEER");		ofs += cols[5]; }
         if (bColumns[5]) { wmove(win, 4, ofs); wprintw(win, "APP");			ofs += cols[6]; }
         if (bColumns[6]) { wmove(win, 4, ofs); wprintw(win, "TIME");		ofs += cols[7]; }
         if (bColumns[7]) { wmove(win, 4, ofs); wprintw(win, "CPUTIME");		ofs += cols[8]; }
@@ -389,10 +384,7 @@ static void showtop(LPMDB lpStore)
 			}
 			if (bColumns[4]) {
 				wmove(win, 5 + line, ofs);
-				if (ses.ulPeerPid > 0)
-					wprintw(win, "%.20s", ses.strPeer.c_str());
-				else
-					wprintw(win, "%s", ses.strIP.c_str());
+				wprintw(win, "%s", ses.strIP.c_str());
 				ofs += cols[5];
 			}
 			if (bColumns[5]) {
@@ -537,13 +529,10 @@ static std::string getMapiPropertyString(ULONG ulPropTag)
 	PROP_TO_STRING(PR_EC_STATS_SESSION_CPU_USER);
 	PROP_TO_STRING(PR_EC_STATS_SESSION_CPU_SYSTEM);
 	PROP_TO_STRING(PR_EC_STATS_SESSION_CPU_REAL);
-	PROP_TO_STRING(PR_EC_STATS_SESSION_PEER_PID);
 	PROP_TO_STRING(PR_EC_STATS_SESSION_CLIENT_VERSION);
 	PROP_TO_STRING(PR_EC_STATS_SESSION_CLIENT_APPLICATION);
 	PROP_TO_STRING(PR_EC_STATS_SESSION_REQUESTS);
-	PROP_TO_STRING(PR_EC_STATS_SESSION_PORT);
 	PROP_TO_STRING(PR_EC_STATS_SESSION_PROXY);
-	PROP_TO_STRING(PR_EC_STATS_SESSION_URL);
 	PROP_TO_STRING(PR_EC_STATS_SESSION_CLIENT_APPLICATION_VERSION);
 	PROP_TO_STRING(PR_EC_STATS_SESSION_CLIENT_APPLICATION_MISC);
 

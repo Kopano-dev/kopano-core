@@ -1049,7 +1049,7 @@ static int main2(int argc, char **argv)
 	if (bForked && logfd != -1)
 		g_lpLogger.reset(new(std::nothrow) ECLogger_Pipe(logfd, 0, atoi(g_lpConfig->GetSetting("log_level"))));
 	else
-		g_lpLogger = CreateLogger(g_lpConfig.get(), argv[0], "KopanoSpooler");
+		g_lpLogger = CreateLogger(g_lpConfig.get(), argv[0]);
 	ec_log_set(g_lpLogger);
 	if ((bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors()) || g_lpConfig->HasWarnings())
 		LogConfigErrors(g_lpConfig.get());

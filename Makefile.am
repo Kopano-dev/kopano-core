@@ -328,7 +328,8 @@ kopano_server_SOURCES = \
 	provider/server/ECThreadManager.cpp provider/server/ECThreadManager.h
 kopano_server_LDADD = \
 	libkcutil.la libkcserver.la libkcsoap.la ${GSOAP_LIBS} \
-	${clock_LIBS} ${CRYPTO_LIBS} ${icu_uc_LIBS} ${icu_i18n_LIBS} ${DL_LIBS} \
+	${clock_LIBS} ${CRYPTO_LIBS} ${DL_LIBS} ${libHX_LIBS} ${icu_uc_LIBS} \
+	${icu_i18n_LIBS} \
 	${MYSQL_LIBS} ${SSL_LIBS} ${PAM_LIBS} ${KRB5_LIBS} ${kcoidc_LIBS} -lpthread
 kopano_server_LDFLAGS = ${AM_LDFLAGS}
 
@@ -621,7 +622,7 @@ libkcserver_la_LIBADD = \
 	libkcindex.la \
 	libkcutil.la libkcsoap.la -lpthread ${icu_i18n_LIBS} ${icu_uc_LIBS} \
 	${GSOAP_LIBS} ${GZ_LIBS} ${kcoidc_LIBS} \
-	${KRB5_LIBS} ${MYSQL_LIBS} ${PAM_LIBS} ${SSL_LIBS}
+	${KRB5_LIBS} ${libHX_LIBS} ${MYSQL_LIBS} ${PAM_LIBS} ${SSL_LIBS}
 libkcserver_la_SYFLAGS = -Wl,--version-script=provider/libkcserver.sym
 libkcserver_la_LDFLAGS = ${AM_LDFLAGS} \
 	${libkcserver_la_SYFLAGS${NO_VSYM}}
