@@ -53,7 +53,6 @@ static bool execute_script(const char *scriptname, ...)
 	std::vector<const char *> env;
 	std::list<std::string> lstEnv;
 	std::string strEnv;
-	int n = 0;
 
 	va_start(v, scriptname);
 	/* Set environment */

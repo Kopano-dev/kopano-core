@@ -188,7 +188,8 @@ void server_stats::stop()
 // request has been handled.
 static void kcsrv_notify_done(struct soap *soap)
 {
-    g_lpSoapServerConn->NotifyDone(soap);
+	if (g_lpSoapServerConn != nullptr)
+		g_lpSoapServerConn->NotifyDone(soap);
 }
 
 // Called from ECStatsTables to get server stats
@@ -196,7 +197,8 @@ static void kcsrv_get_server_stats(unsigned int *lpulQueueLength,
     time_duration *lpdblAge, unsigned int *lpulThreadCount,
     unsigned int *lpulIdleThreads)
 {
-    g_lpSoapServerConn->GetStats(lpulQueueLength, lpdblAge, lpulThreadCount, lpulIdleThreads);
+	if (g_lpSoapServerConn != nullptr)
+		g_lpSoapServerConn->GetStats(lpulQueueLength, lpdblAge, lpulThreadCount, lpulIdleThreads);
 }
 
 static void sv_sigterm_async(int)
@@ -811,6 +813,8 @@ static void cleanup(ECRESULT er)
 		g_lpAudit->Log(EC_LOGLEVEL_ALWAYS, "server shutdown in progress");
 
 	/* Ensure threads are stopped before ripping away the underlying session state */
+	kopano_notify_done = nullptr;
+	kopano_get_server_stats = nullptr;
 	g_lpSoapServerConn.reset();
 	if (g_lpSessionManager != nullptr)
 		g_lpSessionManager->RemoveAllSessions();

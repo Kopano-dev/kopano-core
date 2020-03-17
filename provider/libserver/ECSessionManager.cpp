@@ -38,7 +38,7 @@ using namespace std::string_literals;
 
 namespace KC {
 
-void (*kopano_get_server_stats)(unsigned int *qlen, KC::time_duration *qage, unsigned int *nthr, unsigned int *idlthr) = [](unsigned int *, KC::time_duration *, unsigned int *, unsigned int *) {};
+void (*kopano_get_server_stats)(unsigned int *, time_duration *, unsigned int *, unsigned int *);
 
 static inline const char *znul(const char *s)
 {
