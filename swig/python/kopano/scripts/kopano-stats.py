@@ -49,7 +49,7 @@ def top(scr, server):
             dt,
         )
         scr.addstr(0, 0, line)
-        line = 'Sess: %s  Sess grp: %s  Users: %s  Hosts: %s  CPU: %s%% Len: %s QAge: %s RTT: %1.0f ms ' % (
+        line = 'Sess: %s  Sess grp: %s  Users: %s  Hosts: %s  CPU: %s%% Len: %s QAge: %s RT: %1.0f ms ' % (
             system_stats['sessions'],
             system_stats['sessiongroups'],
             users,

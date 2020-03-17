@@ -328,7 +328,7 @@ static void showtop(LPMDB lpStore)
         wprintw(win, "QAge: %.5s", mapStats["queueage"].c_str());
         wmove(win, 1, 85);
         if(mapDiffStats["soap_request"] > 0)
-            wprintw(win, "RTT: %d ms", (int)(mapDiffStats["response_time"] / mapDiffStats["soap_request"]));
+            wprintw(win, "RT: %d ms", (int)(mapDiffStats["response_time"] / mapDiffStats["soap_request"]));
 
         wmove(win, 2, 0);
         wprintw(win, "SQL/s SEL:%5d UPD:%4d INS:%4d DEL:%4d", (int)(mapDiffStats["sql_select"]/dblTime), (int)(mapDiffStats["sql_update"]/dblTime), (int)(mapDiffStats["sql_insert"]/dblTime), (int)(mapDiffStats["sql_delete"]/dblTime));
