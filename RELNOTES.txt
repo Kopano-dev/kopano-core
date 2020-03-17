@@ -1,6 +1,17 @@
+9.0.5 (2020-03-17)
+==================
+Changes from the 8.7.x branch up to 2020-03-16 are included.
+Enhancements:
+* server: new config directive request_log_method and request_log_file
+Changes:
+* server: The log_level=0x100000 bit (SOAP) no longer has a meaning;
+  use the request_log_file mechanism instead.
+
+
 9.0.4 (2020-03-04)
 ==================
 Changes from the 8.7.x branch up to 2020-03-04 are included.
+Fixes:
 * common: cure free/delete[] mismatch in hr_logcode2
 
 
