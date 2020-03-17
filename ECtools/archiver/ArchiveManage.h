@@ -2,10 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-/* ArchiveManage.h
- * Declaration of class ArchiveManage
- */
 #ifndef ARCHIVEMANAGE_H_INCLUDED
 #define ARCHIVEMANAGE_H_INCLUDED
 

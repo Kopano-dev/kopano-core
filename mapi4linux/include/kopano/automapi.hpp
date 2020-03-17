@@ -2,10 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-/* AutoMAPI.h
- * Declaration of class AutoMAPI
- */
 #ifndef AUTOMAPI_H_INCLUDED
 #define AUTOMAPI_H_INCLUDED
 

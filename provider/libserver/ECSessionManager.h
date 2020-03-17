@@ -2,11 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-// ECSessionManager.h: interface for the ECSessionManager class.
-//
-//////////////////////////////////////////////////////////////////////
-
 #ifndef ECSESSIONMANAGER
 #define ECSESSIONMANAGER
 
