@@ -5,7 +5,7 @@ import pytest
 from MAPI.Tags import PR_ENTRYID, PR_EMS_AB_PROXY_ADDRESSES
 
 
-if not os.getenv('KOPANO_TEST_SERVER'):
+if not os.getenv('KOPANO_SOCKET'):
     pytest.skip('No kopano-server running', allow_module_level=True)
 
 

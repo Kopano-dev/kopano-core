@@ -1,7 +1,7 @@
 --TEST--
 mapi_message_deleteattach() server tests
 --SKIPIF--
-<?php if (!extension_loaded("mapi") || !getenv("KOPANO_TEST_SERVER")) print "skip"; ?>
+<?php if (!extension_loaded("mapi") || !getenv("KOPANO_SOCKET")) print "skip"; ?>
 --FILE--
 <?php
 require_once(__DIR__.'/helpers.php');

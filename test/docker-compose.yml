@@ -1,0 +1,149 @@
+version: "3.5"
+
+services:
+  ldap:
+    image: ${docker_repo:-zokradonh}/kopano_ldap_demo:${LDAP_VERSION:-latest}
+    environment:
+      - LDAP_ORGANISATION=${LDAP_ORGANISATION}
+      - LDAP_DOMAIN=${LDAP_DOMAIN}
+      - LDAP_BASE_DN=${LDAP_BASE_DN}
+      - LDAP_ADMIN_PASSWORD=${LDAP_ADMIN_PASSWORD}
+      - LDAP_READONLY_USER=true
+      - LDAP_READONLY_USER_PASSWORD=${LDAP_READONLY_USER_PASSWORD}
+    command: "--loglevel info --copy-service"
+    volumes:
+      - ldap:/var/lib/ldap
+      - slapd:/etc/ldap/slapd.d
+    networks:
+      - ldap-net
+    tmpfs:
+      - /tmp
+
+  db:
+    image: mariadb:10.3.10-bionic
+    restart: always
+    volumes:
+      - mysql:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+    healthcheck:
+      test: ["CMD-SHELL", 'mysql --database=$$MYSQL_DATABASE --password=$$MYSQL_ROOT_PASSWORD --execute="SELECT count(table_name) > 0 FROM information_schema.tables;" --skip-column-names -B']
+      interval: 30s
+      timeout: 10s
+      retries: 4
+    networks:
+      - kopano-net
+    tmpfs:
+      - /tmp
+
+  kopano_ssl:
+    image: ${docker_repo:-zokradonh}/kopano_ssl:${SSL_VERSION:-latest}
+    read_only: true
+    environment:
+      - FQDN=${FQDN}
+      - PKI_COUNTRY=NL
+    volumes:
+      - kopanossl:/kopano/ssl
+    tmpfs:
+      - /tmp
+      - /kopano/easypki/
+
+  kopano_server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - docker_repo=${docker_repo:-kopano}
+        - kopano_core_version=${CORE_VERSION:-latest}
+    read_only: false
+    hostname: kopano_server
+    depends_on:
+      - db
+      - ldap
+      - kopano_ssl
+    environment:
+      - SERVICE_TO_START=server
+      - TZ=${TZ}
+      - KCCONF_SERVER_COREDUMP_ENABLED=no
+      - KCCONF_SERVER_LOG_LEVEL=6
+      - KCCONF_SERVER_MYSQL_HOST=${MYSQL_HOST}
+      - KCCONF_SERVER_MYSQL_PORT=3306
+      - KCCONF_SERVER_MYSQL_DATABASE=${MYSQL_DATABASE}
+      - KCCONF_SERVER_MYSQL_USER=${MYSQL_USER}
+      - KCCONF_SERVER_MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - KCCONF_SERVER_SERVER_SSL_KEY_FILE=/kopano/ssl/kopano_server.pem
+      - KCCONF_SERVER_SERVER_SSL_CA_FILE=/kopano/ssl/ca.pem
+      - KCCONF_SERVER_SERVER_NAME=Kopano
+      - KCCONF_SERVER_SSLKEYS_PATH=/kopano/ssl/clients
+      - KCCONF_SERVER_PROXY_HEADER=* # delete line if webapp is not behind reverse proxy
+      - KCCONF_SERVER_SYSTEM_EMAIL_ADDRESS=${POSTMASTER_ADDRESS}
+      - KCCONF_SERVER_SYNC_GAB_REALTIME=no
+      - KCCONF_SERVER_LOCAL_ADMIN_USERS=root kopano testrunner
+      - KCCONF_LDAP_LDAP_URI=${LDAP_SERVER}
+      - KCCONF_LDAP_LDAP_BIND_USER=${LDAP_BIND_DN}
+      - KCCONF_LDAP_LDAP_BIND_PASSWD=${LDAP_BIND_PW}
+      - KCCONF_LDAP_LDAP_SEARCH_BASE=${LDAP_SEARCH_BASE}
+      - KCUNCOMMENT_LDAP_1=${KCUNCOMMENT_LDAP_1}
+      - KCCOMMENT_LDAP_1=${KCCOMMENT_LDAP_1}
+      - ADDITIONAL_KOPANO_PACKAGES=${ADDITIONAL_KOPANO_PACKAGES}
+      - EXTRA_LOCAL_ADMIN_USER=${EXTRA_LOCAL_ADMIN_USER}
+      - CI=1
+    networks:
+      - kopano-net
+      - ldap-net
+    volumes:
+      - /etc/machine-id:/etc/machine-id:ro
+      - /var/lib/dbus/machine-id:/var/lib/dbus/machine-id:ro
+      - kopanodata:/kopano/data
+      - kopanossl:/kopano/ssl:ro
+      - kopanosocket:/run/kopano
+      - ../:/workspace/
+      - ./prepare-and-start-service.sh:/prepare-and-start-service.sh:ro
+    entrypoint: /prepare-and-start-service.sh
+    tmpfs:
+      - /tmp
+
+  kopano_server_test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - docker_repo=${docker_repo:-kopano}
+        - kopano_core_version=${CORE_VERSION:-latest}
+    hostname: kopano_test
+    depends_on:
+      - kopano_ssl
+      - kopano_server
+    environment:
+      - ${KOPANOPORT:-236}:236
+      - ${KOPANOSPORT:-237}:237
+    networks:
+      - kopano-net
+    volumes:
+      - /etc/machine-id:/etc/machine-id:ro
+      - /var/lib/dbus/machine-id:/var/lib/dbus/machine-id:ro
+      - kopanossl:/kopano/ssl:ro
+      - kopanosocket:/run/kopano
+      - ../:/workspace/
+    environment:
+      - CI=1
+    command: /kopano/start-service.sh tail -f /dev/null
+    tmpfs:
+      - /tmp
+
+volumes:
+  ldap:
+  slapd:
+  mysql:
+  kopanosocket:
+  kopanodata:
+  kopanossl:
+
+networks:
+  kopano-net:
+    driver: bridge
+  ldap-net:
+    driver: bridge

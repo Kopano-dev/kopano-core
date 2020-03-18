@@ -1,7 +1,7 @@
 --TEST--
 mapi_zarafa_setpermissionrules() server tests
 --SKIPIF--
-<?php if (!extension_loaded("mapi") || !getenv("KOPANO_TEST_SERVER")) print "skip"; ?>
+<?php if (!extension_loaded("mapi") || !getenv("KOPANO_SOCKET")) print "skip"; ?>
 --FILE--
 <?php
 require_once(__DIR__.'/helpers.php');
@@ -22,4 +22,5 @@ $data[0]["rights"] = ecRightsFullControl;
 $data[0]["state"] = RIGHT_NEW | RIGHT_AUTOUPDATE_DENIED;
 var_dump(mapi_zarafa_setpermissionrules($store, $data));
 --EXPECTF--
+bool(false)
 bool(true)

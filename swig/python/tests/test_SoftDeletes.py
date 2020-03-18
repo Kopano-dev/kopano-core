@@ -7,7 +7,7 @@ from MAPI.Struct import SPropertyRestriction, PpropFindProp
 from MAPI.Tags import PR_ENTRYID, PR_SUBJECT, PR_DELETED_ON, SHOW_SOFT_DELETES
 
 
-if not os.getenv('KOPANO_TEST_SERVER'):
+if not os.getenv('KOPANO_SOCKET'):
     pytest.skip('No kopano-server running', allow_module_level=True)
 
 
