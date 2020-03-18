@@ -1,3 +1,10 @@
+8.7.11 (2020-03-18)
+===================
+This release is built from a special branch to ease testing and not indented to be merged back into the kc-8.7.x branch.
+Fixes:
+* server: attempt to resolve crash on shutdown [KC-1720]
+
+
 8.7.10 (2020-03-12)
 ===================
 This release is built from a special branch to ease testing and not indented to be merged back into the kc-8.7.x branch.
