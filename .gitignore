@@ -98,6 +98,8 @@ stamp-h2
 /tests/rosie
 /tests/ustring
 /tests/zcpmd5
+/tests/chtmltotextparsertest
+/tests/rtfhtmltest
 
 # /autoconf/
 /autoconf/ltsugar.m4
@@ -113,6 +115,7 @@ stamp-h2
 /autoconf/install-sh
 /autoconf/ylwrap
 /autoconf/compile
+/autoconf/test-driver
 
 # /common/
 /common/config.h*
