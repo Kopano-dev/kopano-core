@@ -113,6 +113,7 @@ services:
       args:
         - docker_repo=${docker_repo:-kopano}
         - kopano_core_version=${CORE_VERSION:-latest}
+        - WORKSPACE=${WORKSPACE:-/workspace}
     hostname: kopano_test
     depends_on:
       - kopano_ssl
@@ -127,7 +128,9 @@ services:
       - /var/lib/dbus/machine-id:/var/lib/dbus/machine-id:ro
       - kopanossl:/kopano/ssl:ro
       - kopanosocket:/run/kopano
-      - ../:/workspace/
+      - ../:${WORKSPACE}
+      - ./docker-entrypoint.sh:/docker-entrypoint.sh:ro
+    entrypoint: /docker-entrypoint.sh
     environment:
       - CI=1
     command: /kopano/start-service.sh tail -f /dev/null

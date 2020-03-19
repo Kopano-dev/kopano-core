@@ -38,8 +38,12 @@ uninstall-local:
 
 .PHONY: test
 test:
-	MAPI_CONFIG_PATH=${MAPI_CONFIG_PATH} PYTHONPATH=${PYTHONPATH} ${PYTEST} --junitxml=test.xml .
+	MAPI_CONFIG_PATH=${MAPI_CONFIG_PATH} PYTHONPATH=${PYTHONPATH} ${PYTEST} tests/server --junitxml=test.xml
+
+.PHONY: test-short
+test-short:
+	PYTHONPATH=${PYTHONPATH} ${PYTEST} tests/unit --junitxml=test-short.xml
 
 .PHONY: test-coverage
 test-coverage:
-	MAPI_CONFIG_PATH=${MAPI_CONFIG_PATH} PYTHONPATH=${PYTHONPATH}  ${PYTEST} ${PYTEST_COVERAGE_OPTIONS} --junitxml=test.xml .
+	MAPI_CONFIG_PATH=${MAPI_CONFIG_PATH} PYTHONPATH=${PYTHONPATH}  ${PYTEST} tests ${PYTEST_COVERAGE_OPTIONS} --junitxml=test.xml .

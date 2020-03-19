@@ -173,6 +173,7 @@ stamp-h2
 /swig/python/python.sym
 /swig/python/test.xml
 /swig/python/kopano/test.xml
+/swig/python/kopano/test-short.xml
 
 # Ignore Python compiled files
 *.pyc

@@ -2,8 +2,8 @@ ARG docker_repo=kopano
 ARG kopano_core_version=latest
 FROM ${docker_repo}/kopano_core:${kopano_core_version}
 
-ENV WORKSPACE=/workspace
-
+ARG WORKSPACE=/workspace
+ENV WORKSPACE=${WORKSPACE}
 WORKDIR ${WORKSPACE}
 
 RUN apt-get update && apt-get install --no-install-recommends -y \

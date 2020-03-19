@@ -39,6 +39,13 @@ pipeline {
                         junit testResults: 'php-ext/test.log'
                     }
                 }
+                stage('Python Kopano Test') {
+                    steps {
+                        echo 'Testing python-kopano..'
+                        sh 'make -C swig/python/kopano test-short PYTEST=pytest-3 || true'
+                        junit testResults: 'swig/python/kopano/test-short.xml'
+                    }
+                }
 		/*
                 stage('Python MAPI Test') {
                     steps {
@@ -46,14 +53,7 @@ pipeline {
                         sh 'make -C swig/python test PYTEST=pytest-3 || true'
                         junit allowEmptyResults: true, healthScaleFactor: 0.0, testResults: 'swig/python/test.xml'
                     }
-                }
-                stage('Python Kopano Test') {
-                    steps {
-                        echo 'Testing python-kopano..'
-                        sh 'make -C swig/python/kopano test PYTEST=pytest-3 || true'
-                        junit allowEmptyResults: true, healthScaleFactor: 0.0, testResults: 'swig/python/kopano/test.xml'
-                    }
-                }*/
+		}*/
             }
             post {
                 success {
@@ -70,7 +70,6 @@ pipeline {
                     steps {
                         echo 'Checking build...'
                         unstash 'workspace'
-                        sh 'ls -lah .libs'
                     }
                 }
                 stage('Run Test Suite') {
