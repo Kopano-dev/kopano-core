@@ -198,7 +198,7 @@ class IndexWorker(kopano.Worker):
                         plugin.commit(suggestions)
                         db_put(state_db, folder.entryid, new_state)
                         self.log.info('saved folder sync state: %s', new_state)
-                        changes = importer.changes + importer.deletes 
+                        changes = importer.changes + importer.deletes
                         self.log.info('syncing folder "%s" took %.2f seconds (%d changes, %d attachments)', path, time.time()-t0, changes, importer.attachments)
             self.oqueue.put(changes)
 
@@ -209,7 +209,7 @@ class FolderImporter:
         self.serverid, self.config, self.plugin, self.suggestions, self.log = args
         self.changes = self.deletes = self.attachments = 0
         self.mapping_db = os.path.join(self.config['index_path'], self.serverid+'_mapping')
-        self.excludes = set(self.config['index_exclude_properties']+[0x1000, 0x1009, 0x1013, 0x678C]) # PR_BODY, PR_RTF_COMPRESSED, PR_HTML, PR_EC_IMAP_EMAIL
+        self.excludes = set(self.config['index_exclude_properties']+[0x1000, 0x1009, 0x1013, 0x678C, 0x6791])  # PR_BODY, PR_RTF_COMPRESSED, PR_HTML, PR_EC_IMAP_EMAIL, PR_EC_BODY_FILTERED
         self.term_cache_size = 0
 
     def update(self, item, flags):
