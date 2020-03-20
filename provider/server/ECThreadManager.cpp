@@ -252,10 +252,11 @@ done:
 		g_lpSessionManager->RemoveBusyState(info->ulLastSessionId, thrself);
 		// Track cpu usage server-wide
 		g_lpSessionManager->m_stats->inc(SCN_SOAP_REQUESTS);
-		using namespace std::chrono;
-		g_lpSessionManager->m_stats->inc(SCN_PROCESSING_TIME, duration_cast<milliseconds>(info->st.wi_wall_dur).count());
-		g_lpSessionManager->m_stats->inc(SCN_RESPONSE_TIME, duration_cast<milliseconds>(info->st.sk_wall_dur).count());
 	}
+
+	using namespace std::chrono;
+	g_lpSessionManager->m_stats->inc(SCN_PROCESSING_TIME, duration_cast<milliseconds>(info->st.wi_wall_dur).count());
+	g_lpSessionManager->m_stats->inc(SCN_RESPONSE_TIME, duration_cast<milliseconds>(info->st.sk_wall_dur).count());
 
 	if (g_request_logger != nullptr)
 		log_request(soap, err);
