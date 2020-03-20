@@ -472,9 +472,9 @@ static std::string mapitable_ToString(const SPropValue *lpProp)
 	case PT_LONG:
 		return stringify(lpProp->Value.ul);
 	case PT_DOUBLE:
-		return stringify(lpProp->Value.dbl);
+		return stringify_double(lpProp->Value.dbl);
 	case PT_FLOAT:
-		return stringify(lpProp->Value.flt);
+		return stringify_double(lpProp->Value.flt);
 	case PT_I8: {
 		char buf[HXSIZEOF_Z64+2];
 		snprintf(buf, sizeof(buf), "0x%lx", lpProp->Value.li.QuadPart);
