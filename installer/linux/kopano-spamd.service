@@ -7,6 +7,15 @@ Type=simple
 Environment=LC_ALL=C LANG=C
 ExecStart=/usr/sbin/kopano-spamd
 ExecReload=/bin/kill -HUP $MAINPID
+ProtectSystem=full
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+PrivateTmp=yes
+MemoryDenyWriteExecute=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
 
 [Install]
 WantedBy=multi-user.target
