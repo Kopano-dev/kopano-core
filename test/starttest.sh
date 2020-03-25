@@ -12,6 +12,10 @@ PYTEST=${PYTEST:-py.test-3}
 export KOPANO_SOCKET=${KOPANO_SOCKET:-file:///run/kopano/server.sock}
 export KOPANO_TEST_USER=${KOPANO_TEST_USER:-user1}
 export KOPANO_TEST_PASSWORD=${KOPANO_TEST_PASSWORD:-user1}
+export KOPANO_TEST_USER2=${KOPANO_TEST_USER:-user2}
+export KOPANO_TEST_PASSWORD2=${KOPANO_TEST_PASSWORD:-user2}
+export KOPANO_TEST_USER3=${KOPANO_TEST_USER:-user3}
+export KOPANO_TEST_PASSWORD3=${KOPANO_TEST_PASSWORD:-user3}
 
 if [ "$CI" -eq "1" ]; then
 	if [ -x "$(command -v dockerize)" ]; then

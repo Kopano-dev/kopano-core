@@ -1,6 +1,7 @@
+WORKSPACE ?= /workspace
 DOCKERCOMPOSE ?= docker-compose
 DOCKERCOMPOSE_UP_ARGS ?= --build
-DOCKERCOMPOSE_EXEC_ARGS ?= -T -u $(shell id -u) -e HOME=/workspace
+DOCKERCOMPOSE_EXEC_ARGS ?= -T -u $(shell id -u) -e HOME=$(WORKSPACE) -e WORKSPACE=$(WORKSPACE)
 EXTRA_LOCAL_ADMIN_USER ?= $(shell id -u)
 
 BUILD_TAG ?= $(shell whoami || date +%s)
@@ -26,7 +27,7 @@ test-php:
 .PHONY: test-backend-kopano-ci-run
 test-backend-kopano-ci-run:
 	$(DOCKERCOMPOSE) up -d $(DOCKERCOMPOSE_UP_ARGS)
-	$(DOCKERCOMPOSE) exec $(DOCKERCOMPOSE_EXEC_ARGS) kopano_server_test /workspace/test/starttest.sh
+	$(DOCKERCOMPOSE) exec $(DOCKERCOMPOSE_EXEC_ARGS) kopano_server_test $(WORKSPACE)/test/starttest.sh
 
 .PHONY: test-backend-kopano-ci-clean
 test-backend-kopano-ci-clean:

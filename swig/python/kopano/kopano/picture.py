@@ -18,7 +18,6 @@ except ImportError: # pragma: no cover
     pass
 
 
-
 if WITH_PIL:
     # Get rid of "STREAM" debug messages which might show up for PNG pictures,
     # when the global logger is at DEBUG level.
