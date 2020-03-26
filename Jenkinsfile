@@ -32,28 +32,15 @@ pipeline {
                         sh 'make check'
                     }
                 }
-                stage('PHP MAPI Test') {
+                stage('Test (short)') {
                     steps {
-                        echo 'Testing php-ext..'
-                        sh 'make -C php-ext test TEST_PHP_JUNIT=test.log || true'
-                        junit testResults: 'php-ext/test.log'
-                    }
-                }
-                stage('Python Kopano Test') {
-                    steps {
-                        echo 'Testing python-kopano..'
-                        sh 'make -C swig/python/kopano test-short PYTEST=pytest-3 || true'
+                        echo 'Testing ..'
+                        sh 'make test-short PYTEST=pytest-3 || true'
+                        junit testResults: 'php-ext/test-short.log'
                         junit testResults: 'swig/python/kopano/test-short.xml'
+                        junit testResults: 'swig/python/test-short.xml'
                     }
-                }
-		/*
-                stage('Python MAPI Test') {
-                    steps {
-                        echo 'Testing python-mapi..'
-                        sh 'make -C swig/python test PYTEST=pytest-3 || true'
-                        junit allowEmptyResults: true, healthScaleFactor: 0.0, testResults: 'swig/python/test.xml'
-                    }
-		}*/
+		}
             }
             post {
                 success {
