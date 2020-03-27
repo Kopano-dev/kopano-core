@@ -1126,6 +1126,24 @@ const std::string &ec_os_pretty_name()
 	if (ec_sysinfo_checked.exchange(true))
 		return ec_sysinfo;
 
+	struct stat st;
+	if (stat("/etc/univention", &st) == 0) {
+		/* Prefer lsb-release (contains Univention) over os-release (contains Debian) on this system. */
+		std::unique_ptr<HXmap, hxdt> os_rel(HX_shconfig_map("/etc/lsb-release"));
+		if (os_rel != nullptr) {
+			auto pn = HXmap_get<char *>(os_rel.get(), "DISTRIB_DESCRIPTION");
+			if (pn != nullptr)
+				return ec_sysinfo = pn;
+			pn = HXmap_get<char *>(os_rel.get(), "DISTRIB_ID");
+			if (pn != nullptr) {
+				auto pv = HXmap_get<char *>(os_rel.get(), "DISTRIB_RELEASE");
+				if (pv != nullptr)
+					return ec_sysinfo = pn + " "s + pv;
+				return ec_sysinfo = pn;
+			}
+		}
+	}
+
 	std::unique_ptr<HXmap, hxdt> os_rel(HX_shconfig_map("/etc/os-release"));
 	if (os_rel != nullptr) {
 		auto pn = HXmap_get<char *>(os_rel.get(), "PRETTY_NAME");
@@ -1157,6 +1175,7 @@ const std::string &ec_os_pretty_name()
 			return ec_sysinfo;
 		}
 	}
+
 	return ec_sysinfo;
 }
 
