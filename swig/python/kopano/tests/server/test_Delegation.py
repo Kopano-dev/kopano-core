@@ -32,4 +32,4 @@ def test_flags(delegate):
 
 
 def test_str(delegate):
-    assert str(delegate) == 'Delegation(\'user1\')'
+    assert str(delegate) == "Delegation('{}')".format(delegate.user.name)
