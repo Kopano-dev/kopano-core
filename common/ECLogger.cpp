@@ -60,6 +60,8 @@ struct hxdt {
 	void operator()(hxmc_t *z) { HXmc_free(z); }
 };
 
+using namespace std::string_literals;
+
 static void ec_log_bt(unsigned int, const char *, ...);
 
 static constexpr const size_t _LOG_TSSIZE = 64;
@@ -1129,6 +1131,13 @@ const std::string &ec_os_pretty_name()
 		auto pn = HXmap_get<char *>(os_rel.get(), "PRETTY_NAME");
 		if (pn != nullptr)
 			return ec_sysinfo = pn;
+		pn = HXmap_get<char *>(os_rel.get(), "NAME");
+		if (pn != nullptr) {
+			auto pv = HXmap_get<char *>(os_rel.get(), "VERSION");
+			if (pv != nullptr)
+				return ec_sysinfo = pn + " "s + pv;
+			return ec_sysinfo;
+		}
 	}
 
 	std::unique_ptr<FILE, file_deleter> fp(fopen("/etc/redhat-release", "r"));
