@@ -1146,6 +1146,17 @@ const std::string &ec_os_pretty_name()
 		if (HX_getl(&unique_tie(ln), fp.get()) != nullptr)
 			return ec_sysinfo = ln.get();
 	}
+
+	os_rel.reset(HX_shconfig_map("/etc/product.info"));
+	if (os_rel != nullptr) {
+		auto pn = HXmap_get<char *>(os_rel.get(), "name");
+		if (pn != nullptr) {
+			auto pv = HXmap_get<char *>(os_rel.get(), "version");
+			if (pv != nullptr)
+				return ec_sysinfo = pn + " "s + pv;
+			return ec_sysinfo;
+		}
+	}
 	return ec_sysinfo;
 }
 
