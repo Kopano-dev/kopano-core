@@ -161,11 +161,8 @@ void WORKITEM::run()
 	auto lpWorkItem = this;
 	struct soap *soap = lpWorkItem->xsoap;
 	auto info = soap_info(soap);
-	bool dolog = g_request_logger != nullptr;
-	if (dolog) {
-		info->st.wi_wall_start = time_point::clock::now();
-		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &info->st.wi_cpu[0]);
-	}
+	info->st.wi_wall_start = time_point::clock::now();
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &info->st.wi_cpu[0]);
 
 	kcsrv_blocksigs();
 	int err = 0;
@@ -200,7 +197,6 @@ void WORKITEM::run()
 			if (soap->error < SOAP_STOP) {
 				// Client Updater returns 404 to the client to say it doesn't need to update, so skip this HTTP error
 				auto carp = soap->error != SOAP_EOF && soap->error != 404;
-				dolog &= carp;
 				if (carp)
 					ec_log_debug("gSOAP error on receiving request: %s", GetSoapError(soap->error).c_str());
 				soap_send_fault(soap);
@@ -240,14 +236,12 @@ done:
 			info->fdone(soap, info->fdoneparam);
 	}
 
-	if (dolog) {
-		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &info->st.wi_cpu[1]);
-		info->st.wi_wall_end = time_point::clock::now(); /* end time for multiple counters */
-		HX_timespec_sub(&info->st.wi_cpu[2], &info->st.wi_cpu[1], &info->st.wi_cpu[0]);
-		info->st.wi_wall_dur  = info->st.wi_wall_end - info->st.wi_wall_start;
-		info->st.sk_wall_dur  = info->st.wi_wall_end - info->st.sk_wall_start;
-		info->st.enq_wall_dur = info->st.wi_wall_end - info->st.enq_wall_start;
-	}
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &info->st.wi_cpu[1]);
+	info->st.wi_wall_end = time_point::clock::now(); /* end time for multiple counters */
+	HX_timespec_sub(&info->st.wi_cpu[2], &info->st.wi_cpu[1], &info->st.wi_cpu[0]);
+	info->st.wi_wall_dur  = info->st.wi_wall_end - info->st.wi_wall_start;
+	info->st.sk_wall_dur  = info->st.wi_wall_end - info->st.sk_wall_start;
+	info->st.enq_wall_dur = info->st.wi_wall_end - info->st.enq_wall_start;
 
 	if (!do_tls_setup) {
 		/*
@@ -258,12 +252,13 @@ done:
 		g_lpSessionManager->RemoveBusyState(info->ulLastSessionId, thrself);
 		// Track cpu usage server-wide
 		g_lpSessionManager->m_stats->inc(SCN_SOAP_REQUESTS);
-		using namespace std::chrono;
-		g_lpSessionManager->m_stats->inc(SCN_PROCESSING_TIME, duration_cast<milliseconds>(info->st.wi_wall_dur).count());
-		g_lpSessionManager->m_stats->inc(SCN_RESPONSE_TIME, duration_cast<milliseconds>(info->st.sk_wall_dur).count());
 	}
 
-	if (dolog)
+	using namespace std::chrono;
+	g_lpSessionManager->m_stats->inc(SCN_PROCESSING_TIME, duration_cast<duration<double>>(info->st.wi_wall_dur).count());
+	g_lpSessionManager->m_stats->inc(SCN_RESPONSE_TIME, duration_cast<duration<double>>(info->st.sk_wall_dur).count());
+
+	if (g_request_logger != nullptr)
 		log_request(soap, err);
 	// Clear memory used by soap calls. Note that this does not actually
 	// undo our soap_new2() call so the soap object is still valid after these calls

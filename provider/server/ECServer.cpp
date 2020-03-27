@@ -108,8 +108,8 @@ server_stats::server_stats(std::shared_ptr<ECConfig> cfg) :
 	AddStat(SCN_SEARCHFOLDER_UPDATE_RETRY, SCT_INTEGER, "searchupd_retry", "The number of times a search folder update was restarted");
 	AddStat(SCN_SEARCHFOLDER_UPDATE_FAIL, SCT_INTEGER, "searchupd_fail", "The number of failed search folder updates after retrying");
 	AddStat(SCN_SOAP_REQUESTS, SCT_INTEGER, "soap_request", "Number of soap requests handled by server");
-	AddStat(SCN_RESPONSE_TIME, SCT_INTEGER, "response_time", "Response time of soap requests handled in milliseconds (includes time in queue)");
-	AddStat(SCN_PROCESSING_TIME, SCT_INTEGER, "processing_time", "Time taken to process soap requests in milliseconds (wallclock time)");
+	AddStat(SCN_RESPONSE_TIME, SCT_REAL, "response_time", "Cumulated response time (includes queue time) of SOAP requests, in seconds.");
+	AddStat(SCN_PROCESSING_TIME, SCT_REAL, "processing_time", "Cumulated wallclock time taken to process SOAP requests, in seconds.");
 
 	AddStat(SCN_DATABASE_CONNECTS, SCT_INTEGER, "sql_connect", "Number of connections made to SQL server");
 	AddStat(SCN_DATABASE_SELECTS, SCT_INTEGER, "sql_select", "Number of SQL Select commands executed");

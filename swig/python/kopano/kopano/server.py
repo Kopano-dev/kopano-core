@@ -17,6 +17,8 @@ import socket
 import sys
 import warnings
 
+from urllib.parse import urlparse
+
 from MAPI import (
     MAPI_UNICODE, MDB_WRITE, RELOP_EQ, MAPI_MAILUSER, TBL_BATCH,
     ECSTORE_TYPE_PRIVATE, DT_REMOTE_MAILUSER, RELOP_NE, FL_FULLSTRING,
@@ -892,6 +894,20 @@ password incorrect')
                 continue
             yield store
 
+    def _get_server_port(self):
+        '''Parse server_socket and return None or the server port used'''
+
+        if self.server_socket == 'default:':
+            return
+
+        if self.server_socket.startswith('file://'):
+            return
+
+        parsed = urlparse(self.server_socket)
+        if not parsed:
+            return
+        return parsed.port
+
     def create_store(self, user, _msr=False):
         """Create store for :class:`User`.
 
@@ -908,11 +924,17 @@ password incorrect')
             except MAPIErrorCollision:
                 raise DuplicateError("user '%s' already has an associated \
 store (unhook first?)" % user.name)
+            # Parse the server, fallback to 237 for now
+            server_port = self._get_server_port()
+            if not server_port:
+                # TODO: raise exception?
+                server_port = 237
+
             store_entryid = \
                 WrapStoreEntryID(0, b'zarafa6client.dll',storeid[:-4]) + \
                 b'https://' + \
                 codecs.encode(self.name, 'utf-8') + \
-                b':237\x00'
+                b':' + str(server_port).encode('utf-8') + b'\x00'
             # multi-server flag
             store_entryid = \
                 store_entryid[:66] + \

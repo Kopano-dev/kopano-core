@@ -199,17 +199,17 @@ HRESULT VMIMEToMAPI::createIMAPProperties(const std::string &input, std::string 
 static size_t extract_headers_raw(IMessage *msg, const std::string &input)
 {
 	auto end = input.find("\r\n\r\n");
-	bool unix = false;
+	bool lfonly = false;
 	if (end == std::string::npos) {
 		/* Input was not RFC compliant, try Unix enters */
 		end = input.find("\n\n");
-		unix = true;
+		lfonly = true;
 	}
 	if (end == std::string::npos)
 		return end;
 	auto headers = input.substr(0, end);
 	KPropbuffer<1> prop;
-	if (unix)
+	if (lfonly)
 		StringLFtoCRLF(headers);
 	prop.set(0, PR_TRANSPORT_MESSAGE_HEADERS, std::move(headers));
 	HrSetOneProp(msg, prop.get());
