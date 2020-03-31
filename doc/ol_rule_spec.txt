@@ -31,6 +31,7 @@ Condition 0xe0: Size
 Condition 0xe1: Date
 Condition 0xe2: Name in Cc
 Condition 0xe3: Name in To or Cc
+Condition 0xe4: Form
 Condition 0xe5: Recipient words
 Condition 0xe6: Sender words
 Condition 0xe8: Header words
@@ -86,6 +87,7 @@ Condition 0x20c: Except size
 Condition 0x20d: Except date
 Condition 0x20e: Except name in Cc
 Condition 0x20f: Except name in To or Cc
+Condition 0x210: Except form
 Condition 0x211: Except recipient words
 Condition 0x212: Except sender words
 Condition 0x213: Except header words
@@ -95,8 +97,6 @@ Condition 0x216: Except meeting request
 Condition 0x219: Except RSS feed
 Condition 0x21a: Except any category
 Condition 0x21b: Except any RSS feeds
-Condition ??: Form class
-Condition ??: Except form class
 
 
 == Introduction ==
@@ -378,6 +378,40 @@ NUL-terminated, and this NUL is also included in @proplen.
 	uint32_t magic[] = {1, 0, 1};
 
 
+== Condition 0xc8: Name in To ==
+
+UI label:
+
+	EN:"where my name is in the To box"
+	DE:"""die meinen Namen im Feld "An" enthält"""
+
+UI behavior:
+
+	Only selectable for receive rules.
+
+Layout:
+
+	uint32_t act_kind = 0xc8;
+	uint32_t magic = 0;
+
+
+== Condition 0xc9: Only to me ==
+
+UI label:
+
+	EN:"sent only to me"
+	DE:"die nur an mich gesendet wurde"
+
+UI behavior:
+
+	Only selectable for receive rules.
+
+Layout:
+
+	uint32_t act_kind = 0xc9;
+	uint32_t magic = 0;
+
+
 == Condition 0xca: Name not in To ==
 
 UI label:
@@ -531,40 +565,6 @@ UI label:
 	DE:"mit <bestimmten Wörtern> im Betreff oder Text"
 
 The layout is the same as Subject (0xcd), but with act_kind=0xcf.
-
-
-== Condition 0xc8: Name in To ==
-
-UI label:
-
-	EN:"where my name is in the To box"
-	DE:"""die meinen Namen im Feld "An" enthält"""
-
-UI behavior:
-
-	Only selectable for receive rules.
-
-Layout:
-
-	uint32_t act_kind = 0xc8;
-	uint32_t magic = 0;
-
-
-== Condition 0xc9: Only to me ==
-
-UI label:
-
-	EN:"sent only to me"
-	DE:"die nur an mich gesendet wurde"
-
-UI behavior:
-
-	Only selectable for receive rules.
-
-Layout:
-
-	uint32_t act_kind = 0xc9;
-	uint32_t magic = 0;
 
 
 == Condition 0xd0: Flagged for action ==
@@ -1666,7 +1666,7 @@ Layout:
 UI label:
 
 	EN:"except where my name is in the To box"
-	DE:"""außer wenn mein Namen im Feld "An" steht"""
+	DE:"""außer wenn mein Namen nicht im Feld "An" steht"""
 
 UI behavior:
 
@@ -1694,24 +1694,6 @@ UI behavior:
 Layout:
 
 	uint32_t act_kind = 0xc9;
-	uint32_t magic = 0;
-
-
-== Condition 0x1f4: Except name not in To ==
-
-UI label:
-
-	EN:"except where my name is in the To box"
-	DE:"""außer wenn mein Namen nicht im Feld "An" steht"""
-
-UI behavior:
-
-	Availability: !OL2007 OL2019
-	Only selectable for receive rules.
-
-Layout:
-
-	uint32_t act_kind = 0x1f4;
 	uint32_t magic = 0;
 
 
