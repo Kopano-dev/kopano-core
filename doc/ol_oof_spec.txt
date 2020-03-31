@@ -37,7 +37,8 @@ There is no way to, for example, enable OOF for just externals.
 
 == Rule 1 ==
 
-When the OOF level is >= OOF_INTERNAL, this rule will be created:
+When the OOF level is >= OOF_INTERNAL, this rule will be created
+(in PR_RULES_TABLE, but not PR_RW_RULES_STREAM):
 
 	PR_RULE_NAME="Microsoft.Exchange.OOF.InternalSenders.Global"
 	PR_RULE_PROVIDER="Microsoft Exchange OOF Assistant"

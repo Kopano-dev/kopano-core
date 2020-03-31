@@ -31,7 +31,7 @@ Condition 0xe0: Size
 Condition 0xe1: Date
 Condition 0xe2: Name in Cc
 Condition 0xe3: Name in To or Cc
-Condition 0xe4: Form
+Condition 0xe4: Form / Message class
 Condition 0xe5: Recipient words
 Condition 0xe6: Sender words
 Condition 0xe8: Header words
@@ -87,7 +87,7 @@ Condition 0x20c: Except size
 Condition 0x20d: Except date
 Condition 0x20e: Except name in Cc
 Condition 0x20f: Except name in To or Cc
-Condition 0x210: Except form
+Condition 0x210: Except form / message class
 Condition 0x211: Except recipient words
 Condition 0x212: Except sender words
 Condition 0x213: Except header words
@@ -97,6 +97,8 @@ Condition 0x216: Except meeting request
 Condition 0x219: Except RSS feed
 Condition 0x21a: Except any category
 Condition 0x21b: Except any RSS feeds
+Condition ??: Form class
+Condition ??: Except form class
 
 
 == Introduction ==
@@ -172,9 +174,16 @@ ways:
 
 == Timestamps (PT_APPTIME) ==
 
-A 64-bit IEEE floating point number, in which the whole number part represents
-the number of days since December 30, 1899, and the fractional part represents
-the fraction of a day since midnight.
+A 64-bit IEEE floating point number, in which the integral part represents the
+number of days since December 30, 1899, and the fractional part represents the
+fraction of a day since midnight. There is no timezone information attached.
+
+This unusual base date stems from three defining characteristics:
+
+	* the first usable day is 1900-01-01
+	* the starting index is 1
+	* index 60 maps to the (non-existing) 1900-02-29,
+	  and 1900-03-01 is then index 61.
 
 A condition shown in the UI as "before 2018-01-01" is stored as
 less-than(0x40e5394e...). "after 2017-12-31" is stored as
@@ -253,19 +262,20 @@ used. (For UI display purposes.)
 
 	XR_Header
 	repeat zero-or-more {
-		XR_Separator
 		<any XR_Condition or XR_Action>;
+		if (there are more conds/actions)
+			XR_Separator
 	};
 
 The size of a XR element can be variadic and generally there are no length
 indiciators. The byte stream is therefore best parsed field-by-field rather
 than struct-at-a-time.
 
-The Unknown 0x190 element is practically present at all times as the first
-element, even though it does not serve any observable purpose and is not
-displayed as anything in the UI.
+The Unknown 0x190 is practically present at all times as the first element
 
-The Condition 0x64 is practically present at all times as the second element.
+The Condition 0x64 is practically present at all times as the second element,
+even though it does not serve any observable purpose and is not displayed as
+anything in the UI.
 
 The order of elements is generally: 0x190, then all conditions, then all
 actions, and only then exception conditions.
@@ -285,6 +295,7 @@ actions, and only then exception conditions.
 		uint32_t ptact_recv_rule_activated2[] = {0, 0, 0, 2};
 		uint32_t strm_recv_rule_activated[]   = {0, 1, 0, 1};
 		uint32_t strm_recv_rule_activated2[]  = {0, 1, 0, 2};
+		uint32_t strm_recv_rule_activated3[]  = {0, 1, 0, 3};
 		uint32_t strm_recv_rule_deactivated[] = {0, 0, 0, 0};
 		uint32_t strm_send_rule_activated[]   = {0, 0, 0, 0};
 		uint32_t strm_send_rule_deactivated[] = {0, 0, 0, 0};
@@ -306,7 +317,7 @@ actions, and only then exception conditions.
 However, before OL2019 for the first time created e0c810 rules, it warned
 of backwards compatibility (once only), so this is perhaps a version field.
 
-	0x40 0x42 0x4f    alternative 1
+	0x40 0x42 0x0f    alternative 1
 	0x80 0x4f 0x12    alternative 2
 	0xe0 0xc8 0x10    alternative 3
 
@@ -369,7 +380,9 @@ This common structure appears for reference in other XR elements.
 
 @data: This is a concatenation of the values for properties of type PT_BINARY
 and PT_UNICODE, in the same order as the index. Here, PT_UNICODE strings *are*
-NUL-terminated, and this NUL is also included in @proplen.
+followed by NUL, and this NUL is also counted in @proplen. Since U+0000 can
+never be part of a PT_UNICODE string by definition, and solely serves as a
+terminator, it needs to be appropriately subtracted during processing.
 
 
 == Condition 0x64: Unknown ==
@@ -444,8 +457,8 @@ Layout:
 
 	uint32_t act_kind = 0xcb;
 	uint32_t magic[] = {1, 0};
-	uint32_t numsenders;
-	repeat numsenders {
+	uint32_t numrcpt; /* numsenders */
+	repeat numrcpt {
 		XR_PropValArray;
 	};
 	uint32_t magic[] = {1, 0};
@@ -504,20 +517,9 @@ The propvalarray for an SMTP entity typically includes 12 props:
 UI label:
 
 	EN:"sent to <people or public group>"
-	DE:"die an <einer Person/öffentlichen Gruppe> gesendet wurde"
+	DE:"die an <einer Person/öffentlichen Gruppe> gesendet wurde" [sic]
 
-Layout:
-
-	uint32_t act_kind = 0xcc;
-	uint32_t magic[] = {1, 0};
-	uint32_t numrecipients;
-	repeat numrecipients {
-		XR_PropValArray;
-	};
-	uint32_t magic[] = {1, 0};
-
-The propvalarray for recipients has the same characteristics
-as for senders (see Condition 0xcb).
+The layout is the same as From (0xcb), but with act_kind=0xcc.
 
 
 == Condition 0xcd: Subject words ==
@@ -539,9 +541,8 @@ Layout:
 		char16_t substring[mlen];
 	} m;
 
-The UI offers no way to set any flags, and based upon the UI text and
-observed runtime behavior, FL_IGNORECASE|FL_SUBSTRING is always the
-effect.
+The UI offers no way to set any flags, and based upon the UI text and observed
+runtime behavior, FL_IGNORECASE|FL_SUBSTRING is always in effect with flags==0.
 
 The OL2019 UI arbitrarily restricts substrings to 255 characters by ignoring
 excess keypresses.
@@ -642,6 +643,10 @@ Layout:
 		uint16_t cname_len;
 	char16_t categories[cname_len];
 
+@categories is a semicolon-separated string of categories. As a consequence,
+category names are not allowed to contain semicolons, and the OL2019 UI
+inhibits the keypress.
+
 All specified @catgories must be present on the message for the match to occur.
 (Labeling: DE:"Nach Erhalt einer Nachricht ... die Kategorie C1 _und_ C2
 zugeordnet ist...")
@@ -688,7 +693,7 @@ Layout:
 
 	uint32_t act_kind = 0xdf;
 	uint32_t magic[] = {1, 0};
-	uint8_t flen;
+ 	uint8_t flen;
 	if (flen == 0xff)
 		uint16_t flen;
 	char16_t forms[flen];
@@ -698,14 +703,16 @@ Layout:
 		if (flen == 0xff) /* conjecture */
 			uint16_t flen;
 		char16_t fieldname[flen];
-		uint16_t proptag;
+		uint32_t proptag;
 
 		enum : uint32_t {
 			CONTAINS = 0,
 			IS_EQUAL = 1,
 			NOT_CONTAINS = 2,
 		} string_match_type;
-		uint8_t svlen; /* 3B? */
+		uint8_t svlen;
+		if (svlen == 0xff) /* conjecture */
+			uint16_t svlen;
 		char16_t v_string[svlen];
 		enum : uint32_t {
 			EQ = 0,
@@ -749,7 +756,7 @@ characters by ignoring excess keypresses. A clen >= 255 was not observable.)
 	0x8.......	various named properties
 
 Even though some properties have PROP_TYPE()==PT_SYSTIME, the value stored in
-the streams has PT_APPTIME semantics.
+the stream has PT_APPTIME semantics.
 
 @string_match_type: For PT_UNICODE, contains the choice the user made.
 Otherwise, 0.
@@ -814,9 +821,10 @@ Layout:
 @ts_after: timestamp for the "is-after" check. See the "Timestamp" section
 for details.
 
-@ts_before: timestamp for the "is-before" check. Curiously, this (and the
-Except date condition, 0x20d) is the only timestamp which has its fractional
-part correctly set to zero.
+@ts_before: timestamp for the "is-before" check. Curiously, this field,
+together with the ts_before field from the Except date condition (Element
+0x20d), are the only two timestamps which have its fractional part correctly
+set to zero by the OL2019 Date Picker.
 
 
 == Condition 0xe2: Name in Cc ==
@@ -853,7 +861,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Condition 0xe4: Form ==
+== Condition 0xe4: Form / message class ==
 
 UI label:
 
@@ -1216,10 +1224,16 @@ Layout:
 
 == Action 0x12e: Forward message ==
 
-	uint32_t act_kind = 0x12e or 0x147;
+UI label:
+
+	DE:"diese an <einer Person/öffentlichen Gruppe> weiterleiten" [sic]
+
+Layout:
+
+	uint32_t act_kind = 0x12e;
 	uint32_t magic[] = {1, 0};
-	uint32_t numrecipients;
-	repeat numrecipients {
+	uint32_t numrcpt;
+	repeat numrcpt {
 		XR_PropValArray;
 	};
 	uint32_t magic[] = {0, 0};
@@ -1426,7 +1440,7 @@ Layout:
 UI label:
 
 	EN:"Cc the message to <people or public group>"
-	DE:"diese an <einer Person/öffentlichen Gruppe> kopieren (Cc)"
+	DE:"diese an <einer Person/öffentlichen Gruppe> kopieren (Cc)" [sic]
 
 UI behavior:
 
@@ -1479,7 +1493,7 @@ Layout:
 UI label:
 
 	EN:"redirect it to <people or public group>"
-	DE:"diese umleiten an <einer Person/öffentlichen Gruppe>"
+	DE:"diese umleiten an <einer Person/öffentlichen Gruppe>" [sic]
 
 UI behavior:
 
@@ -1488,15 +1502,7 @@ UI behavior:
 
 Layout:
 
-	uint32_t act_kind = 0x144;
-	uint32_t magic[] = {1, 0};
-	uint32_t numrecipients;
-	repeat numrecipients {
-		XR_PropValArray;
-	};
-	uint32_t magic[] = {0, 0};
-
-The propvalarray for a recipient is the same as for a sender (0xcb).
+The layout is the same as Forward (0x12e), but with act_kind=0x144.
 
 
 == Action 0x146: Reply ==
@@ -1528,6 +1534,11 @@ Contents and has a PR_MESSAGE_CLASS of
 
 
 == Action 0x147: Forward as attachment ==
+
+UI label:
+
+	DE:"diese als Anlage an <einer Person/öffentlichen Gruppe>
+	weiterleiten" [sic]
 
 The layout is the same as Forward (0x12e), but with act_kind=0x147.
 
@@ -1666,7 +1677,7 @@ Layout:
 UI label:
 
 	EN:"except where my name is in the To box"
-	DE:"""außer wenn mein Namen nicht im Feld "An" steht"""
+	DE:"""außer wenn mein Name im Feld "An" steht"""
 
 UI behavior:
 
@@ -1697,6 +1708,24 @@ Layout:
 	uint32_t magic = 0;
 
 
+== Condition 0x1f6: Except name not in To ==
+
+UI label:
+
+	EN:"except where my name is in the To box"
+	DE:"""außer wenn mein Name nicht im Feld "An" steht"""
+
+UI behavior:
+
+	Availability: !OL2007 OL2019
+	Only selectable for receive rules.
+
+Layout:
+
+	uint32_t act_kind = 0x1f4;
+	uint32_t magic = 0;
+
+
 == Condition 0x1f7: Except from ==
 
 UI label:
@@ -1717,7 +1746,7 @@ The layout is the same as From (0xcb), but with act_kind=0x1f7.
 UI label:
 
 	EN:"except if sent to <people or public group>"
-	DE:"außer bei Versand an <einer Person/öffentlichen Gruppe>"
+	DE:"außer bei Versand an <einer Person/öffentlichen Gruppe>" [sic]
 
 UI behavior:
 
@@ -1940,7 +1969,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Condition 0x210: Except form ==
+== Condition 0x210: Except form / message class ==
 
 UI label:
 
