@@ -60,6 +60,8 @@ struct hxdt {
 	void operator()(hxmc_t *z) { HXmc_free(z); }
 };
 
+using namespace std::string_literals;
+
 static void ec_log_bt(unsigned int, const char *, ...);
 
 static constexpr const size_t _LOG_TSSIZE = 64;
@@ -1124,11 +1126,36 @@ const std::string &ec_os_pretty_name()
 	if (ec_sysinfo_checked.exchange(true))
 		return ec_sysinfo;
 
+	struct stat st;
+	if (stat("/etc/univention", &st) == 0) {
+		/* Prefer lsb-release (contains Univention) over os-release (contains Debian) on this system. */
+		std::unique_ptr<HXmap, hxdt> os_rel(HX_shconfig_map("/etc/lsb-release"));
+		if (os_rel != nullptr) {
+			auto pn = HXmap_get<char *>(os_rel.get(), "DISTRIB_DESCRIPTION");
+			if (pn != nullptr)
+				return ec_sysinfo = pn;
+			pn = HXmap_get<char *>(os_rel.get(), "DISTRIB_ID");
+			if (pn != nullptr) {
+				auto pv = HXmap_get<char *>(os_rel.get(), "DISTRIB_RELEASE");
+				if (pv != nullptr)
+					return ec_sysinfo = pn + " "s + pv;
+				return ec_sysinfo = pn;
+			}
+		}
+	}
+
 	std::unique_ptr<HXmap, hxdt> os_rel(HX_shconfig_map("/etc/os-release"));
 	if (os_rel != nullptr) {
 		auto pn = HXmap_get<char *>(os_rel.get(), "PRETTY_NAME");
 		if (pn != nullptr)
 			return ec_sysinfo = pn;
+		pn = HXmap_get<char *>(os_rel.get(), "NAME");
+		if (pn != nullptr) {
+			auto pv = HXmap_get<char *>(os_rel.get(), "VERSION");
+			if (pv != nullptr)
+				return ec_sysinfo = pn + " "s + pv;
+			return ec_sysinfo;
+		}
 	}
 
 	std::unique_ptr<FILE, file_deleter> fp(fopen("/etc/redhat-release", "r"));
@@ -1137,6 +1164,18 @@ const std::string &ec_os_pretty_name()
 		if (HX_getl(&unique_tie(ln), fp.get()) != nullptr)
 			return ec_sysinfo = ln.get();
 	}
+
+	os_rel.reset(HX_shconfig_map("/etc/product.info"));
+	if (os_rel != nullptr) {
+		auto pn = HXmap_get<char *>(os_rel.get(), "name");
+		if (pn != nullptr) {
+			auto pv = HXmap_get<char *>(os_rel.get(), "version");
+			if (pv != nullptr)
+				return ec_sysinfo = pn + " "s + pv;
+			return ec_sysinfo;
+		}
+	}
+
 	return ec_sysinfo;
 }
 
