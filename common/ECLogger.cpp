@@ -1127,6 +1127,8 @@ const std::string &ec_os_pretty_name()
 		return ec_sysinfo;
 
 	std::unique_ptr<HXmap, hxdt> os_rel(HX_shconfig_map("/etc/os-release")), lsb_rel;
+	if (os_rel == nullptr)
+		os_rel.reset(HX_shconfig_map("/usr/lib/os-release"));
 	if (os_rel != nullptr) {
 		struct stat st;
 		auto pi = HXmap_get<char *>(os_rel.get(), "ID");
