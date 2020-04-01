@@ -133,6 +133,7 @@ services:
     entrypoint: /docker-entrypoint.sh
     environment:
       - CI=1
+      - FQDN=${FQDN}
     command: /kopano/start-service.sh tail -f /dev/null
     tmpfs:
       - /tmp

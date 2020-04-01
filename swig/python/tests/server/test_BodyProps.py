@@ -1,17 +1,9 @@
-import os
-
-import pytest
-
 from MAPI import (MAPI_E_NOT_FOUND, MAPI_E_NOT_ENOUGH_MEMORY,
                   MAPI_CREATE, MAPI_MODIFY, MAPI_MOVE)
 from MAPI.Struct import PROP_TAG, PROP_ID, SPropValue
 from MAPI.Tags import (PT_ERROR, PR_BODY, PR_RTF_COMPRESSED, PR_HTML,
                        PR_ENTRYID, IID_IStream, IID_IMessage)
 from MAPI.Util import WrapCompressedRTFStream, STREAM_SEEK_SET
-
-
-if not os.getenv('KOPANO_SOCKET'):
-    pytest.skip('No kopano-server running', allow_module_level=True)
 
 
 def test_plain(store, message):

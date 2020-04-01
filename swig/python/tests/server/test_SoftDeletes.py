@@ -1,14 +1,6 @@
-import os
-
-import pytest
-
 from MAPI import RELOP_EQ
 from MAPI.Struct import SPropertyRestriction, PpropFindProp
 from MAPI.Tags import PR_ENTRYID, PR_SUBJECT, PR_DELETED_ON, SHOW_SOFT_DELETES
-
-
-if not os.getenv('KOPANO_SOCKET'):
-    pytest.skip('No kopano-server running', allow_module_level=True)
 
 
 def test_deletedontimestamp(root, message):
@@ -21,3 +13,6 @@ def test_deletedontimestamp(root, message):
     rows = table.QueryRows(1, 0)
 
     assert PpropFindProp(rows[0], PR_DELETED_ON)
+
+    # Clean up message
+    root.DeleteMessages([rows[0][1].Value], 0, None, 0)

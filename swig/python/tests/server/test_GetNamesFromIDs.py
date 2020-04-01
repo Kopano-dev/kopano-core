@@ -1,14 +1,6 @@
-import os
-
-import pytest
-
 from MAPI import MNID_ID, MNID_STRING, MAPI_CREATE
 from MAPI.Struct import MAPINAMEID, PROP_TAG, PROP_TYPE, PROP_ID
 from MAPI.Tags import PT_ERROR, PT_UNSPECIFIED
-
-
-if not os.getenv('KOPANO_SOCKET'):
-    pytest.skip('No kopano-server running', allow_module_level=True)
 
 
 def test_createget(message):

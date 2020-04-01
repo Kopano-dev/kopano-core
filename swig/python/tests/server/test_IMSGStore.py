@@ -1,24 +1,21 @@
-import os
-
 import pytest
 
 from MAPI import PT_STRING8, MAPI_MODIFY, MAPI_UNICODE, MAPI_E_COMPUTED
 from MAPI.Struct import (MAPIError, MAPIErrorInvalidParameter, SPropValue,
-                         SPropertyRestriction, PROP_TYPE)
+                         SPropertyRestriction, PROP_TYPE,
+                         NEWMAIL_NOTIFICATION)
 from MAPI.Tags import (PR_ENTRYID, PR_EMS_AB_PROXY_ADDRESSES, PR_ACCOUNT,
                        PR_TEST_LINE_SPEED, PR_EC_STATSTABLE_USERS, PR_EC_STATSTABLE_SESSIONS,
                        PR_EC_STATSTABLE_SYSTEM, PR_EC_STATSTABLE_COMPANY,
                        PR_MESSAGE_SIZE_EXTENDED, PR_LAST_MODIFICATION_TIME, PR_CREATION_TIME,
                        PR_SUBJECT, PR_STORE_RECORD_KEY, PR_MESSAGE_CLASS, PR_NULL,
-                       PR_OBJECT_TYPE,
-                       IID_IMessage, IID_IMAPIFolder)
+                       PR_OBJECT_TYPE, PR_RECEIVE_FOLDER_SETTINGS, PR_EC_CHANGE_ADVISOR,
+                       PR_EC_STATSTABLE_USERS, PR_EC_STATSTABLE_SYSTEM, PR_EC_STATSTABLE_SESSIONS,
+                       PR_ACL_TABLE, IID_IExchangeModifyTable, IID_IMAPITable, IID_IECChangeAdvisor,
+                       IID_IMAPITable, IID_IMessage, IID_IMAPIFolder)
 from MAPI.Util import PROP_TAG
 
 PR_TEST_PROP = PROP_TAG(PT_STRING8, 0x6601)
-
-
-if not os.getenv('KOPANO_SOCKET'):
-    pytest.skip('No kopano-server running', allow_module_level=True)
 
 
 def test_deleteprops_paramater(store):
@@ -62,6 +59,10 @@ def test_notifynewmail(store):
         store.NotifyNewMail(None)
     assert 'MAPI_E_INVALID_PARAMETER' in str(excinfo.value)
 
+    with pytest.raises(MAPIErrorInvalidParameter) as excinfo:
+        store.NotifyNewMail(NEWMAIL_NOTIFICATION(None, None, 0, None, 0))
+    assert 'MAPI_E_INVALID_PARAMETER' in str(excinfo.value)
+
 
 def test_prophandler(store):
     proptags = [PR_TEST_LINE_SPEED, PR_EC_STATSTABLE_USERS, PR_EC_STATSTABLE_SESSIONS,
@@ -72,7 +73,7 @@ def test_prophandler(store):
         assert props[i].ulPropTag == proptags[i]
 
 
-def test_timprops(store):
+def test_timeprops(store):
     props = store.GetProps([PR_LAST_MODIFICATION_TIME, PR_CREATION_TIME], 0)
     assert props[0].ulPropTag == PR_LAST_MODIFICATION_TIME
     assert props[0].Value.unixtime > 0
@@ -99,9 +100,18 @@ def test_openentry(root):
     # no mapi errors
 
 
-def test_openproperty():
-    # TODO: requires admin user
-    pass
+def test_admin_openproperty(adminstore):
+    objectprops = [{'tag': PR_RECEIVE_FOLDER_SETTINGS, 'iid': IID_IMAPITable},
+                   # TODO: figure out admin session issue not working
+                   #{'tag': PR_EC_CHANGE_ADVISOR, 'iid': IID_IECChangeAdvisor},
+                   #{'tag': PR_EC_STATSTABLE_SYSTEM, 'iid': IID_IMAPITable},
+                   #{'tag': PR_EC_STATSTABLE_SESSIONS, 'iid': IID_IMAPITable},
+                   #{'tag': PR_EC_STATSTABLE_USERS, 'iid': IID_IMAPITable},
+                   #{'tag': PR_EC_STATSTABLE_COMPANY, 'iid': IID_IMAPITable},
+                   #{'tag': PR_ACL_TABLE, 'iid': IID_IExchangeModifyTable},
+                   ]
+    for prop in objectprops:
+        assert adminstore.OpenProperty(prop['tag'], prop['iid'], 0, 0)
 
 
 def test_compareentryids(store, root):
