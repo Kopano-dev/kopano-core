@@ -11,92 +11,92 @@ FAI Message
 Rules Stream
 XR Header
 Element Separator
-Condition 0x64: Unknown
-Condition 0xc8: Name in To
-Condition 0xc9: Only to me
-Condition 0xca: Name not in To
-Condition 0xcb: From
-Condition 0xcc: To
-Condition 0xcd: Subject words
-Condition 0xce: Body words
-Condition 0xcf: Subject or body words
-Condition 0xd0: Flagged for action
-Condition 0xd2: Importance
-Condition 0xd3: Sensitivity
-Condition 0xd7: Category
-Condition 0xdc: Automatic reply
-Condition 0xde: Attachment
-Condition 0xdf: Form property
-Condition 0xe0: Size
-Condition 0xe1: Date
-Condition 0xe2: Name in Cc
-Condition 0xe3: Name in To or Cc
-Condition 0xe4: Form / Message class
-Condition 0xe5: Recipient words
-Condition 0xe6: Sender words
-Condition 0xe8: Header words
-Condition 0xee: Account
-Condition 0xef: Machine
-Condition 0xf0: Addressbook
-Condition 0xf1: Meeting request
-Condition 0xf5: RSS feed
-Condition 0xf6: Any category
-Condition 0xf7: Any RSS feed
-Action 0x12c: Move
-Action 0x12d: Soft delete
-Action 0x12e: Forward
-Action 0x12f: Reply with template
-Action 0x130: Show OL notification
-Action 0x131: Flag for action
-Action 0x132: Clear follow-up flag
-Action 0x133: Set categories
-Action 0x136: Play sound
-Action 0x137: Set importance
-Action 0x139: Copy
-Action 0x13a: Notify when read
-Action 0x13b: Notify when delivered
-Action 0x13c: Cc
-Action 0x13e: Defer
-Action 0x142: Stop rule processing
-Action 0x144: Redirect
-Action 0x146: Reply
-Action 0x147: Forward as attachment
-Action 0x148: Print
-Action 0x14a: Hard delete
-Action 0x14c: Mark as read
-Action 0x14f: Desktop notification
-Action 0x151: Set follow-up flag
-Action 0x152: Clear categories
-Condition 0x190: Receive/Send
-Condition 0x1f4: Except name in To
-Condition 0x1f5: Except only to me
-Condition 0x1f6: Except name not in To
-Condition 0x1f7: Except from
-Condition 0x1f8: Except to
-Condition 0x1f9: Except subject words
-Condition 0x1fa: Except body words
-Condition 0x1fb: Except subject or body words
-Condition 0x1fc: Except flagged for action
-Condition 0x1fe: Except importance
-Condition 0x1ff: Except sensitivity
-Condition 0x203: Except category
-Condition 0x208: Except automated reply
-Condition 0x20a: Except attachment
-Condition 0x20b: Except form property
-Condition 0x20c: Except size
-Condition 0x20d: Except date
-Condition 0x20e: Except name in Cc
-Condition 0x20f: Except name in To or Cc
-Condition 0x210: Except form / message class
-Condition 0x211: Except recipient words
-Condition 0x212: Except sender words
-Condition 0x213: Except header words
-Condition 0x214: Except account
-Condition 0x215: Except address book
-Condition 0x216: Except meeting request
-Condition 0x219: Except RSS feed
-Condition 0x21a: Except any category
-Condition 0x21b: Except any RSS feeds
+Condition 100 (0x64): Unknown
+Condition 200 (0xc8): Name in To
+Condition 201 (0xc9): Only to me
+Condition 202 (0xca): Name not in To
+Condition 203 (0xcb): From
+Condition 204 (0xcc): To
+Condition 205 (0xcd): Subject words
+Condition 206 (0xce): Body words
+Condition 207 (0xcf): Subject or body words
+Condition 208 (0xd0): Flagged for action
+Condition 210 (0xd2): Importance
+Condition 211 (0xd3): Sensitivity
+Condition 215 (0xd7): Category
+Condition 220 (0xdc): Automatic reply
+Condition 222 (0xde): Attachment
+Condition 223 (0xdf): Form property
+Condition 224 (0xe0): Size
+Condition 225 (0xe1): Date
+Condition 226 (0xe2): Name in Cc
+Condition 227 (0xe3): Name in To or Cc
+Condition 228 (0xe4): Form / Message class
+Condition 229 (0xe5): Recipient words
+Condition 230 (0xe6): Sender words
+Condition 232 (0xe8): Header words
+Condition 238 (0xee): Account
+Condition 239 (0xef): Machine
+Condition 240 (0xf0): Addressbook
+Condition 241 (0xf1): Meeting request
+Condition 245 (0xf5): RSS feed
+Condition 246 (0xf6): Any category
+Condition 247 (0xf7): Any RSS feed
+Action 300 (0x12c): Move
+Action 301 (0x12d): Soft delete
+Action 302 (0x12e): Forward
+Action 303 (0x12f): Reply with template
+Action 304 (0x130): Show OL notification
+Action 305 (0x131): Flag for action
+Action 306 (0x132): Clear follow-up flag
+Action 307 (0x133): Set categories
+Action 310 (0x136): Play sound
+Action 311 (0x137): Set importance
+Action 313 (0x139): Copy
+Action 314 (0x13a): Notify when read
+Action 315 (0x13b): Notify when delivered
+Action 316 (0x13c): Cc
+Action 318 (0x13e): Defer
+Action 322 (0x142): Stop rule processing
+Action 324 (0x144): Redirect
+Action 326 (0x146): Reply
+Action 327 (0x147): Forward as attachment
+Action 328 (0x148): Print
+Action 330 (0x14a): Hard delete
+Action 332 (0x14c): Mark as read
+Action 335 (0x14f): Desktop notification
+Action 337 (0x151): Set follow-up flag
+Action 338 (0x152): Clear categories
+Condition 400 (0x190): Receive/Send
+Condition 500 (0x1f4): Except name in To
+Condition 501 (0x1f5): Except only to me
+Condition 502 (0x1f6): Except name not in To
+Condition 503 (0x1f7): Except from
+Condition 504 (0x1f8): Except to
+Condition 505 (0x1f9): Except subject words
+Condition 506 (0x1fa): Except body words
+Condition 507 (0x1fb): Except subject or body words
+Condition 508 (0x1fc): Except flagged for action
+Condition 510 (0x1fe): Except importance
+Condition 511 (0x1ff): Except sensitivity
+Condition 515 (0x203): Except category
+Condition 520 (0x208): Except automated reply
+Condition 522 (0x20a): Except attachment
+Condition 523 (0x20b): Except form property
+Condition 524 (0x20c): Except size
+Condition 525 (0x20d): Except date
+Condition 526 (0x20e): Except name in Cc
+Condition 527 (0x20f): Except name in To or Cc
+Condition 528 (0x210): Except form / message class
+Condition 529 (0x211): Except recipient words
+Condition 530 (0x212): Except sender words
+Condition 531 (0x213): Except header words
+Condition 532 (0x214): Except account
+Condition 533 (0x215): Except address book
+Condition 534 (0x216): Except meeting request
+Condition 537 (0x219): Except RSS feed
+Condition 538 (0x21a): Except any category
+Condition 539 (0x21b): Except any RSS feeds
 Condition ??: Form class
 Condition ??: Except form class
 
@@ -385,13 +385,13 @@ never be part of a PT_UNICODE string by definition, and solely serves as a
 terminator, it needs to be appropriately subtracted during processing.
 
 
-== Condition 0x64: Unknown ==
+== Condition 100 (0x64): Unknown ==
 
 	uint32_t act_kind = 0x64;
 	uint32_t magic[] = {1, 0, 1};
 
 
-== Condition 0xc8: Name in To ==
+== Condition 200 (0xc8): Name in To ==
 
 UI label:
 
@@ -408,7 +408,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Condition 0xc9: Only to me ==
+== Condition 201 (0xc9): Only to me ==
 
 UI label:
 
@@ -425,7 +425,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Condition 0xca: Name not in To ==
+== Condition 202 (0xca): Name not in To ==
 
 UI label:
 
@@ -442,7 +442,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Condition 0xcb: From ==
+== Condition 203 (0xcb): From ==
 
 UI label:
 
@@ -512,7 +512,7 @@ The propvalarray for an SMTP entity typically includes 12 props:
 	PR_EMAIL_ADDRESS: L"abcdefg@ijkl.de"
 
 
-== Condition 0xcc: To ==
+== Condition 204 (0xcc): To ==
 
 UI label:
 
@@ -522,7 +522,7 @@ UI label:
 The layout is the same as From (0xcb), but with act_kind=0xcc.
 
 
-== Condition 0xcd: Subject words ==
+== Condition 205 (0xcd): Subject words ==
 
 UI label:
 
@@ -548,7 +548,7 @@ The OL2019 UI arbitrarily restricts substrings to 255 characters by ignoring
 excess keypresses.
 
 
-== Condition 0xce: Body words ==
+== Condition 206 (0xce): Body words ==
 
 UI label:
 
@@ -558,7 +558,7 @@ UI label:
 The layout is the same as Subject (0xcd), but with act_kind=0xce.
 
 
-== Condition 0xcf: Subject or body words ==
+== Condition 207 (0xcf): Subject or body words ==
 
 UI label:
 
@@ -568,7 +568,7 @@ UI label:
 The layout is the same as Subject (0xcd), but with act_kind=0xcf.
 
 
-== Condition 0xd0: Flagged for action ==
+== Condition 208 (0xd0): Flagged for action ==
 
 UI label:
 
@@ -590,7 +590,7 @@ Layout:
 	uint32_t magic = 1;
 
 
-== Condition 0xd2: Importance ==
+== Condition 210 (0xd2): Importance ==
 
 UI label:
 
@@ -608,7 +608,7 @@ Layout:
 	};
 
 
-== Condition 0xd3: Sensitivity ==
+== Condition 211 (0xd3): Sensitivity ==
 
 UI label:
 
@@ -627,7 +627,7 @@ Layout:
 	};
 
 
-== Condition 0xd7: Category ==
+== Condition 215 (0xd7): Category ==
 
 UI label:
 
@@ -652,7 +652,7 @@ All specified @catgories must be present on the message for the match to occur.
 zugeordnet ist...")
 
 
-== Condition 0xdc: Automatic reply ==
+== Condition 220 (0xdc): Automatic reply ==
 
 UI label:
 
@@ -669,7 +669,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Condition 0xde: Attachment ==
+== Condition 222 (0xde): Attachment ==
 
 UI label:
 
@@ -682,7 +682,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Condition 0xdf: Form property ==
+== Condition 223 (0xdf): Form property ==
 
 UI label:
 
@@ -777,7 +777,7 @@ Otherwise, 0.
 made. Otherwise, OL fills this with the creation date of the subcondition.
 
 
-== Condition 0xe0: Size ==
+== Condition 224 (0xe0): Size ==
 
 UI label:
 
@@ -792,7 +792,7 @@ Layout:
 	uint32_t max_size_kb;
 
 
-== Condition 0xe1: Date ==
+== Condition 225 (0xe1): Date ==
 
 UI label:
 
@@ -827,7 +827,7 @@ together with the ts_before field from the Except date condition (Element
 set to zero by the OL2019 Date Picker.
 
 
-== Condition 0xe2: Name in Cc ==
+== Condition 226 (0xe2): Name in Cc ==
 
 UI label:
 
@@ -844,7 +844,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Condition 0xe3: Name in To or Cc ==
+== Condition 227 (0xe3): Name in To or Cc ==
 
 UI label:
 
@@ -861,7 +861,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Condition 0xe4: Form / message class ==
+== Condition 228 (0xe4): Form / message class ==
 
 UI label:
 
@@ -1002,7 +1002,7 @@ form and saving it under the name "MyForm" will make it available under the
 class name "IPM.Note.MyForm".
 
 
-== Condition 0xe5: Recipient words ==
+== Condition 229 (0xe5): Recipient words ==
 
 UI label:
 
@@ -1012,7 +1012,7 @@ UI label:
 The layout is the same as Subject words (0xcd), but with act_kind=0xe5.
 
 
-== Condition 0xe6: Sender words ==
+== Condition 230 (0xe6): Sender words ==
 
 UI label:
 
@@ -1026,7 +1026,7 @@ UI behavior:
 The layout is the same as Subject words (0xcd), but with act_kind=0xe6.
 
 
-== Condition 0xe8: Header words ==
+== Condition 232 (0xe8): Header words ==
 
 UI label:
 
@@ -1040,7 +1040,7 @@ UI behavior:
 The layout is the same as Subject (0xcd), but with act_kind=0xe8.
 
 
-== Condition 0xee: Account ==
+== Condition 238 (0xee): Account ==
 
 UI label:
 
@@ -1075,7 +1075,7 @@ the MAPI/OL config dialogs refuse to make editable).
 an ASCII string.
 
 
-== Condition 0xef: Machine ==
+== Condition 239 (0xef): Machine ==
 
 UI label:
 
@@ -1089,7 +1089,7 @@ Layout:
 	unsigned char some_guid[16];
 
 
-== Condition 0xf0: Addressbook ==
+== Condition 240 (0xf0): Addressbook ==
 
 UI label:
 
@@ -1122,7 +1122,7 @@ Layout:
 @name: for example, "Global Addressbook"
 
 
-== Condition 0xf1: Meeting request ==
+== Condition 241 (0xf1): Meeting request ==
 
 UI label:
 
@@ -1135,7 +1135,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Condition 0xf5: RSS feed ==
+== Condition 245 (0xf5): RSS feed ==
 
 UI label:
 
@@ -1152,7 +1152,7 @@ Layout:
 	char16_t name[nlen];
 
 
-== Condition 0xf6: Any category ==
+== Condition 246 (0xf6): Any category ==
 
 UI label:
 
@@ -1168,7 +1168,7 @@ Matches if the message has any category set. (This only works for messages
 received directly through MAPI or as TNEF.)
 
 
-== Condition 0xf7: Any RSS feed ==
+== Condition 247 (0xf7): Any RSS feed ==
 
 UI label:
 
@@ -1181,7 +1181,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Action 0x12c: Move message ==
+== Action 300 (0x12c): Move message ==
 
 UI label:
 
@@ -1209,7 +1209,7 @@ characters by ignoring excess keypresses. Longer names can be set up using
 MFCMAPI.
 
 
-== Action 0x12d: Soft delete (Move to wastebasket) ==
+== Action 301 (0x12d): Soft delete (Move to wastebasket) ==
 
 UI label:
 
@@ -1222,7 +1222,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Action 0x12e: Forward message ==
+== Action 302 (0x12e): Forward message ==
 
 UI label:
 
@@ -1241,7 +1241,7 @@ Layout:
 The propvalarray for a recipient is the same as for a sender (0xcb).
 
 
-== Action 0x12f: Reply with template ==
+== Action 303 (0x12f): Reply with template ==
 
 UI label:
 
@@ -1266,7 +1266,7 @@ Layout:
 	char16_t pathname[plen];
 
 
-== Action 0x130: Show Outlook notification ==
+== Action 304 (0x130): Show Outlook notification ==
 
 UI label:
 
@@ -1295,7 +1295,7 @@ There are additional limitations with PR_ACTIONS; only some 14539 bytes of the
 action::actDeferAction::pbData stream are returned by MSMAPI.
 
 
-== Action 0x131: Flag for action ==
+== Action 305 (0x131): Flag for action ==
 
 UI label:
 
@@ -1314,7 +1314,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Action 0x132: Clear followup flag ==
+== Action 306 (0x132): Clear followup flag ==
 
 UI label:
 
@@ -1327,7 +1327,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Action 0x133: Set categories ==
+== Action 307 (0x133): Set categories ==
 
 UI label:
 
@@ -1357,7 +1357,7 @@ Category name-to-color mappings are stored in a FAI message
 [ol_category_spec.txt].
 
 
-== Action 0x136: Play sound ==
+== Action 310 (0x136): Play sound ==
 
 UI label:
 
@@ -1373,7 +1373,7 @@ UI behavior:
 The layout is the same as Reply with Template (0x12f), but with act_kind=0x136.
 
 
-== Action 0x137: Set importance ==
+== Action 311 (0x137): Set importance ==
 
 UI label:
 
@@ -1391,7 +1391,7 @@ Layout:
 	} importance;
 
 
-== Action 0x139: Copy ==
+== Action 313 (0x139): Copy ==
 
 UI label:
 
@@ -1401,7 +1401,7 @@ UI label:
 The layout is the same as Move (0x12c), but with act_kind=0x139.
 
 
-== Action 0x13a: Notify when read ==
+== Action 314 (0x13a): Notify when read ==
 
 UI label:
 
@@ -1418,7 +1418,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Action 0x13b: Notify when delivered ==
+== Action 315 (0x13b): Notify when delivered ==
 
 UI label:
 
@@ -1435,7 +1435,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Action 0x13c: Cc ==
+== Action 316 (0x13c): Cc ==
 
 UI label:
 
@@ -1452,7 +1452,7 @@ PR_RECIPIENT_TYPE in the propvalarray still has value MAPI_TO rather than
 MAPI_CC!
 
 
-== Action 0x13e: Defer ==
+== Action 318 (0x13e): Defer ==
 
 UI label:
 
@@ -1470,7 +1470,7 @@ Layout:
 	uint32_t minutes;
 
 
-== Action 0x142: Stop rule processing ==
+== Action 322 (0x142): Stop rule processing ==
 
 UI label:
 
@@ -1488,7 +1488,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Action 0x144: Redirect ==
+== Action 324 (0x144): Redirect ==
 
 UI label:
 
@@ -1505,7 +1505,7 @@ Layout:
 The layout is the same as Forward (0x12e), but with act_kind=0x144.
 
 
-== Action 0x146: Reply ==
+== Action 326 (0x146): Reply ==
 
 UI label:
 
@@ -1533,7 +1533,7 @@ Contents and has a PR_MESSAGE_CLASS of
 "IPM.Note.Rules.ReplyTemplate.Microsoft".
 
 
-== Action 0x147: Forward as attachment ==
+== Action 327 (0x147): Forward as attachment ==
 
 UI label:
 
@@ -1543,7 +1543,7 @@ UI label:
 The layout is the same as Forward (0x12e), but with act_kind=0x147.
 
 
-== Action 0x148: Print ==
+== Action 328 (0x148): Print ==
 
 UI label:
 
@@ -1560,7 +1560,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Action 0x14a: Hard delete ==
+== Action 330 (0x14a): Hard delete ==
 
 UI label:
 
@@ -1578,7 +1578,7 @@ Layout:
 
 
 
-== Action 0x14c: Mark as read ==
+== Action 332 (0x14c): Mark as read ==
 
 UI label:
 
@@ -1595,7 +1595,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Action 0x14f: Desktop notfication ==
+== Action 335 (0x14f): Desktop notfication ==
 
 UI label:
 
@@ -1612,7 +1612,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Action 0x151: Set follow-up flag ==
+== Action 337 (0x151): Set follow-up flag ==
 
 UI label:
 
@@ -1639,7 +1639,7 @@ Layout:
 	char16_t fu_name[fu_name_len];
 
 
-== Action 0x152: Clear categories ==
+== Action 338 (0x152): Clear categories ==
 
 UI label:
 
@@ -1652,7 +1652,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Condition 0x190: Receive/Send ==
+== Condition 400 (0x190): Receive/Send ==
 
 UI label:
 
@@ -1672,7 +1672,7 @@ Layout:
 	0x04: message was sent
 
 
-== Condition 0x1f4: Except name in To ==
+== Condition 500 (0x1f4): Except name in To ==
 
 UI label:
 
@@ -1690,7 +1690,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Condition 0x1f5: Except only to me ==
+== Condition 501 (0x1f5): Except only to me ==
 
 UI label:
 
@@ -1708,7 +1708,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Condition 0x1f6: Except name not in To ==
+== Condition 502 (0x1f6): Except name not in To ==
 
 UI label:
 
@@ -1726,7 +1726,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Condition 0x1f7: Except from ==
+== Condition 503 (0x1f7): Except from ==
 
 UI label:
 
@@ -1741,7 +1741,7 @@ UI behavior:
 The layout is the same as From (0xcb), but with act_kind=0x1f7.
 
 
-== Condition 0x1f8: Except to ==
+== Condition 504 (0x1f8): Except to ==
 
 UI label:
 
@@ -1756,7 +1756,7 @@ UI behavior:
 The layout is the same as To (0xcc), but with act_kind=0x1f8.
 
 
-== Condition 0x1f9: Except subject words ==
+== Condition 505 (0x1f9): Except subject words ==
 
 UI label:
 
@@ -1770,7 +1770,7 @@ UI behavior:
 The layout is the same as Subject words (0xcd), but with act_kind=0x1f9.
 
 
-== Condition 0x1fa: Except body words ==
+== Condition 506 (0x1fa): Except body words ==
 
 UI label:
 
@@ -1784,7 +1784,7 @@ UI behavior:
 The layout is the same as Subject words (0xcd), but with act_kind=0x1fa.
 
 
-== Condition 0x1fb: Except subject or body words ==
+== Condition 507 (0x1fb): Except subject or body words ==
 
 UI label:
 
@@ -1798,7 +1798,7 @@ UI behavior:
 The layout is the same as Subject words (0xcd), but with act_kind=0x1fb.
 
 
-== Condition 0x1fc: Except flagged for action ==
+== Condition 508 (0x1fc): Except flagged for action ==
 
 UI label:
 
@@ -1812,7 +1812,7 @@ UI behavior:
 The layout is the same as Flagged for action (0xd0), but with act_kind=0x1fc.
 
 
-== Condition 0x1fe: Except importance ==
+== Condition 510 (0x1fe): Except importance ==
 
 UI label:
 
@@ -1826,7 +1826,7 @@ UI behavior:
 The layout is the same as Importance (0xd2), but with act_kind=0x1fe.
 
 
-== Condition 0x1ff: Except sensitivity ==
+== Condition 511 (0x1ff): Except sensitivity ==
 
 UI label:
 
@@ -1840,7 +1840,7 @@ UI behavior:
 The layout is the same as Sensitivity (0xd3), but with act_kind=0x1ff.
 
 
-== Condition 0x203: Except category ==
+== Condition 515 (0x203): Except category ==
 
 UI label:
 
@@ -1854,7 +1854,7 @@ UI behavior:
 The layout is the same as Category (0xd7), but with act_kind=0x203.
 
 
-== Condition 0x208: Except automated reply ==
+== Condition 520 (0x208): Except automated reply ==
 
 UI label:
 
@@ -1870,7 +1870,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Condition 0x20a: Except attachment ==
+== Condition 522 (0x20a): Except attachment ==
 
 UI label:
 
@@ -1887,7 +1887,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Condition 0x20b: Except form property ==
+== Condition 523 (0x20b): Except form property ==
 
 UI label:
 
@@ -1901,7 +1901,7 @@ UI behavior:
 The layout is the same as Form property (0xd4), but with act_kind=0x20b.
 
 
-== Condition 0x20c: Except size ==
+== Condition 524 (0x20c): Except size ==
 
 UI label:
 
@@ -1920,7 +1920,7 @@ Layout:
 	uint32_t max_size_kb;
 
 
-== Condition 0x20d: Except date ==
+== Condition 525 (0x20d): Except date ==
 
 UI label:
 
@@ -1933,7 +1933,7 @@ UI behavior:
 The layout is the same as Date (0xe1), but with act_kind=0x20d.
 
 
-== Condition 0x20e: Except name in Cc ==
+== Condition 526 (0x20e): Except name in Cc ==
 
 UI label:
 
@@ -1951,7 +1951,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Condition 0x20f: Except name in To or Cc ==
+== Condition 527 (0x20f): Except name in To or Cc ==
 
 UI label:
 
@@ -1969,7 +1969,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Condition 0x210: Except form / message class ==
+== Condition 528 (0x210): Except form / message class ==
 
 UI label:
 
@@ -1983,7 +1983,7 @@ UI behavior:
 The layout is the same as Form (0xe4), but with act_kind=0x210.
 
 
-== Condition 0x211: Except recipient words ==
+== Condition 529 (0x211): Except recipient words ==
 
 UI label:
 
@@ -1997,7 +1997,7 @@ UI behavior:
 The layout is the same as Subject words (0xcd), but with act_kind=0x211.
 
 
-== Condition 0x212: Except sender words ==
+== Condition 530 (0x212): Except sender words ==
 
 UI label:
 
@@ -2012,7 +2012,7 @@ UI behavior:
 The layout is the same as Subject words (0xcd), but with act_kind=0x211.
 
 
-== Condition 0x213: Except header words ==
+== Condition 531 (0x213): Except header words ==
 
 UI label:
 
@@ -2027,7 +2027,7 @@ UI behavior:
 The layout is the same as Subject words (0xcd), but with act_kind=0x213.
 
 
-== Condition 0x214: Except account ==
+== Condition 532 (0x214): Except account ==
 
 UI label:
 
@@ -2044,7 +2044,7 @@ UI behavior:
 The layout is the same as Account (0xee), but with act_kind=0x214.
 
 
-== Condition 0x215: Except address book ==
+== Condition 533 (0x215): Except address book ==
 
 UI label:
 
@@ -2058,7 +2058,7 @@ UI behavior:
 The layout is the same as Address book (0xf0), but with act_kind=0x215.
 
 
-== Condition 0x216: Except meeting request ==
+== Condition 534 (0x216): Except meeting request ==
 
 UI label:
 
@@ -2075,7 +2075,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Condition 0x219: Except RSS feed ==
+== Condition 537 (0x219): Except RSS feed ==
 
 UI label:
 
@@ -2089,7 +2089,7 @@ UI behavior:
 The layout is the same as RSS feed (0xf5), but with act_kind=0x219.
 
 
-== Condition 0x21a: Except any category ==
+== Condition 538 (0x21a): Except any category ==
 
 UI label:
 
@@ -2106,7 +2106,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Condition 0x21b: Except any RSS feed ==
+== Condition 539 (0x21b): Except any RSS feed ==
 
 UI label:
 
