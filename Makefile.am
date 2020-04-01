@@ -972,3 +972,7 @@ common/include/kopano/ecversion.h: .version versionheader.sh
 .PHONY: test
 test:
 	$(MAKE) -C test test
+
+.PHONY: test-short
+test-short:
+	$(MAKE) -C test test-short

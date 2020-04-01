@@ -18,7 +18,7 @@ var_dump(mapi_freebusydata_getpublishrange($data[0]));
 --EXPECTF--
 array(2) {
   ["start"]=>
-  int(-%d)
+  int(%s%d)
   ["end"]=>
-  int(-%d)
+  int(%s%d)
 }

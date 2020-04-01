@@ -185,6 +185,10 @@ PYTHONPATH ?= .libs:.
 
 .PHONY: test
 test:
-	MAPI_CONFIG_PATH=${MAPI_CONFIG_PATH} PYTHONPATH=${PYTHONPATH} ${PYTEST} ${PYTEST_OPTIONS} --junitxml=test.xml tests
+	MAPI_CONFIG_PATH=${MAPI_CONFIG_PATH} PYTHONPATH=${PYTHONPATH} ${PYTEST} ${PYTEST_OPTIONS} --junitxml=test.xml tests/server
+
+.PHONY: test-short
+test-short:
+	MAPI_CONFIG_PATH=${MAPI_CONFIG_PATH} PYTHONPATH=${PYTHONPATH} ${PYTEST} ${PYTEST_OPTIONS} --junitxml=test-short.xml tests/unit
 
 include ../../global.am

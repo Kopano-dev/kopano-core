@@ -175,6 +175,7 @@ stamp-h2
 /swig/python/kopano/dist/
 /swig/python/python.sym
 /swig/python/test.xml
+/swig/python/test-short.xml
 /swig/python/kopano/test.xml
 /swig/python/kopano/test-short.xml
 
@@ -191,3 +192,4 @@ stamp-h2
 /php-ext/tests/*.php
 /php-ext/tests/*.sh
 /php-ext/test.log
+/php-ext/test-short.log
