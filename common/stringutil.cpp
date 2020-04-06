@@ -618,11 +618,6 @@ bool kc_starts_with(const std::string &full, const std::string &prefix)
 	return full.compare(0, prefix.size(), prefix) == 0;
 }
 
-bool kc_istarts_with(const std::string &full, const std::string &needle)
-{
-	return kc_starts_with(strToLower(full), strToLower(needle));
-}
-
 bool kc_ends_with(const std::string &full, const std::string &prefix)
 {
 	size_t fz = full.size(), pz = prefix.size();

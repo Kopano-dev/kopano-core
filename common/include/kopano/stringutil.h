@@ -44,21 +44,33 @@ struct wcscasecmp_comparison {
 	}
 };
 
-static inline std::string strToUpper(std::string f) {
+static inline std::string strToUpper(std::string &&g)
+{
+	auto f = std::move(g);
 	std::transform(f.begin(), f.end(), f.begin(), ::toupper);
 	return f;
 }
 
-static inline std::string strToLower(std::string f) {
+static inline std::string strToLower(std::string &&g)
+{
+	auto f = std::move(g);
 	std::transform(f.begin(), f.end(), f.begin(), ::tolower);
 	return f;
 }
 
-static inline std::wstring strToUpper(std::wstring f)
+static inline std::wstring strToUpper(std::wstring &&g)
 {
+	auto f = std::move(g);
 	std::transform(f.begin(), f.end(), f.begin(), ::towupper);
 	return f;
 }
+
+static inline std::string strToUpper(const char *f) { return strToUpper(std::string(f)); }
+static inline std::string strToUpper(const std::string &f) { return strToUpper(std::string(f)); }
+static inline std::string strToLower(const char *f) { return strToLower(std::string(f)); }
+static inline std::string strToLower(const std::string &f) { return strToLower(std::string(f)); }
+static inline std::wstring strToUpper(const wchar_t *f) { return strToUpper(std::wstring(f)); }
+static inline std::wstring strToUpper(const std::wstring &f) { return strToUpper(std::wstring(f)); }
 
 static inline std::string stringify(unsigned int x)
 {
@@ -175,8 +187,13 @@ Tp join(InputIterator first, InputIterator last, Tp sep)
 extern KC_EXPORT std::string format(const char *fmt, ...) KC_LIKE_PRINTF(1, 2);
 extern KC_EXPORT char *kc_strlcpy(char *dst, const char *src, size_t n);
 extern KC_EXPORT bool kc_starts_with(const std::string &, const std::string &);
-extern KC_EXPORT bool kc_istarts_with(const std::string &, const std::string &);
 extern KC_EXPORT bool kc_ends_with(const std::string &, const std::string &);
+
+template<typename T, typename U> bool kc_istarts_with(T &&a, U &&prefix)
+{
+	return kc_starts_with(strToLower(std::forward<T>(a)),
+	       strToLower(std::forward<U>(prefix)));
+}
 
 template<typename Iter> std::string kc_join(Iter cur, Iter end, const char *sep)
 {

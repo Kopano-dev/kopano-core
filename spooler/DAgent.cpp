@@ -695,9 +695,7 @@ static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
 			if (Util::HrCopyBinary(lpSearchKeyProp->Value.bin.cb, lpSearchKeyProp->Value.bin.lpb, &recip->sSearchKey.cb, &recip->sSearchKey.lpb) != hrSuccess)
 				continue;
 		} else {
-			std::string key = "SMTP:" + recip->strSMTP;
-			key = strToUpper(key);
-
+			auto key = strToUpper("SMTP:" + recip->strSMTP);
 			recip->sSearchKey.cb = key.size() + 1; // + terminating 0
 			if (KAllocCopy(key.c_str(), recip->sSearchKey.cb,
 			    reinterpret_cast<void **>(&recip->sSearchKey.lpb)) != hrSuccess)
