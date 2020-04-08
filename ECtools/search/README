@@ -33,3 +33,91 @@ SEARCHING
 -multiple terms are combined as an AND. so each word has to occur somewhere in the mapi fields of an item.
 -using a fielded search, one can be more specific as to in which fields one wants to search (so for example, this has to occur in the subject and this in the body..)
 -all of this is just passed to the search-engine, which knows what to do with wildcards and fielded boolean queries.
+
+SEARCH Protocol
+
+When a search_socket is available to the Kopano Server a special protocol is
+used to communicate to talk to the search socket.
+
+* PROPS
+
+Returns the excluded indexed properties ids configured in search.
+
+Usage:
+
+PROPS
+
+Returns:
+
+OK: 125 100
+
+This excludes PR_TRANSPORT_MESSAGE_HEADERS and PR_SENT_REPRESENTING_ADDRTYPE for example.
+
+* SCOPE
+
+Specifies the scope of the search, the server guid, store guid and folderids.
+If folderids is empty all folders will be searched. Folderids are the database
+hierarchy ids.
+
+Usage:
+
+Hex encoded GUID/EntryIDs
+
+SCOPE serverguid storeguid folderids
+
+Returns:
+
+OK:
+
+* FIND
+
+Specifies which term to look for in which fields, when multiple FIND commands
+are issues, items must match all of the terms.
+
+Usage:
+
+FIND 55 3588 4096 12289:searchstring
+
+Where before the colon are the search fields ids and after is  the search term.
+
+Returns:
+
+OK:
+
+* QUERY
+
+Runs the search query
+
+Usage:
+
+QUERY
+
+Result:
+
+OK: 145
+
+Returns the found document ids (PR_EC_HIERARCHY_ID)
+
+* SUGGEST
+
+Suggests the search word you are actually looking for.
+
+Usage:
+
+SUGGEST
+
+Returns:
+
+OK: word
+
+* SYNCRUN
+
+Wait for syncing to be up to date, used in tests.
+
+Usage:
+
+SYNCRUN
+
+Returns:
+
+OK:
