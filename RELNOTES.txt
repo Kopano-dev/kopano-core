@@ -1,5 +1,5 @@
-8.7.x
-=====
+8.7.12 (2020-040-9)
+===================
 Enhancements:
 * icalmapi: support reading multi-iCal and multi-vCard files [KC-1291]
 * storeadm: show store guid and sizes for mailbox overview (-M)
