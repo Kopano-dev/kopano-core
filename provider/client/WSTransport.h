@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef WSTRANSPORT_H
-#define WSTRANSPORT_H
-
+#pragma once
 #include <mapi.h>
 #include <mapispi.h>
 #include <map>
@@ -270,5 +268,3 @@ friend class WSMessageStreamExporter;
 friend class WSMessageStreamImporter;
 	ALLOC_WRAP_FRIEND;
 };
-
-#endif // WSTRANSPORT_H

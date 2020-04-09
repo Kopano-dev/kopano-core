@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef ECABCONTAINER_H
-#define ECABCONTAINER_H
-
+#pragma once
 #include <kopano/Util.h>
 #include <kopano/ECUnknown.h>
 #include <kopano/IECInterfaces.hpp>
@@ -116,5 +114,3 @@ class ECABProviderSwitch KC_FINAL_OPG :
 	virtual HRESULT Logon(IMAPISupport *, ULONG_PTR ui_param, const TCHAR *profile, ULONG flags, ULONG *sec_size, BYTE **sec, MAPIERROR **, IABLogon **) override;
 	ALLOC_WRAP_FRIEND;
 };
-
-#endif

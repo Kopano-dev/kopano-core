@@ -2,14 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-// ECSecurity.h: interface for the ECSecurity class.
-//
-//////////////////////////////////////////////////////////////////////
-
-#ifndef ECSECURITY
-#define ECSECURITY
-
+#pragma once
 #include <memory>
 #include <kopano/memory.hpp>
 #include "ECUserManagement.h"
@@ -94,5 +87,3 @@ protected:
 };
 
 } /* namespace */
-
-#endif // #ifndef ECSECURITY

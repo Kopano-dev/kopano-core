@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef KC_VERSIONS_H
-#define KC_VERSIONS_H 1
-
+#pragma once
 #include <kopano/ecversion.h>
 
 #define MAKE_KOPANO_VERSION(major, minor, update) \
@@ -38,5 +35,3 @@
 
 #define KOPANO_COMPARE_VERSION_TO_GENERAL(version, general) \
 	((version) < (general) ? -1 : (KOPANO_GET_GENERAL(version) > (general) ? 1 : 0))
-
-#endif /* KC_VERSIONS_H */

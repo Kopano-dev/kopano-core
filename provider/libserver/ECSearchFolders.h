@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECSEARCHFOLDERS_H
-#define ECSEARCHFOLDERS_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <condition_variable>
 #include <memory>
@@ -398,5 +395,3 @@ private:
 };
 
 } /* namespace */
-
-#endif

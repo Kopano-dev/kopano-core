@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECDBDEF_H
-#define ECDBDEF_H
+#pragma once
 
 /**
  * @page kopano_db Database
@@ -332,5 +330,3 @@
 
 // This is the last update ID always update this to the last ID
 #define Z_UPDATE_LAST 118
-
-#endif

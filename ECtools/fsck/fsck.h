@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef KOPANO_FSCK
-#define KOPANO_FSCK
-
+#pragma once
 #include <kopano/platform.h>
 #include <string>
 #include <list>
@@ -68,5 +65,3 @@ HRESULT ReadNamedProperties(LPMESSAGE lpMessage, ULONG ulCount,
 			    LPMAPINAMEID *lppTag,
 			    LPSPropTagArray *lppPropertyTagArray,
 			    LPSPropValue *lppPropertyArray);
-
-#endif /* KOPANO_FSCK */

@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECLockManager_INCLUDED
-#define ECLockManager_INCLUDED
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <kopano/kcodes.h>
 #include <map>
@@ -52,5 +49,3 @@ private:
 };
 
 } /* namespace */
-
-#endif // ndef ECLockManager_INCLUDED

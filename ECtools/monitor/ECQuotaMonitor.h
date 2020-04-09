@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef ECQUOTAMONITOR
-#define ECQUOTAMONITOR
-
+#pragma once
 #include <kopano/ECDefs.h>
 
 #define TEMPLATE_LINE_LENGTH		1024
@@ -42,5 +40,3 @@ private:
 	KC::object_ptr<IMsgStore> m_lpMDBAdmin;
 	ULONG m_ulProcessed = 0, m_ulFailed = 0;
 };
-
-#endif

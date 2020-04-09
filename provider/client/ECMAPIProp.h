@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef ECMAPIPROP_H
-#define ECMAPIPROP_H
-
+#pragma once
 #include <kopano/memory.hpp>
 #include "kcore.hpp"
 #include <kopano/IECInterfaces.hpp>
@@ -78,5 +76,3 @@ public:
 	const ECMAPIProp *m_lpRoot; // Points to the 'root' object that was opened by OpenEntry; normally points to 'this' except for Attachments and Submessages
 };
 IID_OF(ECMAPIProp)
-
-#endif // ECMAPIPROP_H

@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ICALMAPI_VTODO_H
-#define ICALMAPI_VTODO_H
-
+#pragma once
 #include "vconverter.h"
 
 namespace KC {
@@ -29,5 +26,3 @@ private:
 };
 
 } /* namespace */
-
-#endif

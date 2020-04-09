@@ -1,6 +1,4 @@
-#ifndef VCFTOMAPI_H
-#define VCFTOMAPI_H
-
+#pragma once
 #include <string>
 #include <mapidefs.h>
 
@@ -38,5 +36,3 @@ class vcftomapi {
 extern KC_EXPORT HRESULT create_vcftomapi(IMAPIProp *, vcftomapi **);
 
 } /* namespace */
-
-#endif

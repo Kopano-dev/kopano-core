@@ -2,14 +2,10 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef utf8string_INCLUDED
-#define utf8string_INCLUDED
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <string>
 #include <stdexcept>
-
 #include <kopano/charset/traits.h>
 
 namespace KC {
@@ -107,5 +103,3 @@ public:
 };
 
 } /* namespace */
-
-#endif //ndef utf8string_INCLUDED

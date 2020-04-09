@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECDATABASEUTILS_H
-#define ECDATABASEUTILS_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include "ECMAPI.h"
 #include "kcore.hpp"
@@ -108,5 +105,3 @@ private:
 	for (SuppressLockErrorLogging suppressor(db), *ptr = nullptr; ptr == nullptr; ptr = &suppressor)
 
 } /* namespace */
-
-#endif // ECDATABASEUTILS_H

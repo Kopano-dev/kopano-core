@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef copier_INCLUDED
-#define copier_INCLUDED
-
+#pragma once
 #include <memory>
 #include <kopano/zcdefs.h>
 #include "operations.h"
@@ -202,5 +199,3 @@ private:
 };
 
 }} /* namespace */
-
-#endif // ndef copier_INCLUDED

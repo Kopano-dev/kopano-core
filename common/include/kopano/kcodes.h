@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef KC_KCODES_HPP
-#define KC_KCODES_HPP 1
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 
@@ -128,5 +126,3 @@ extern KC_EXPORT ECRESULT er_logcode(ECRESULT code, unsigned int level, const ch
 extern KC_EXPORT ECRESULT er_logcode(ECRESULT code, unsigned int level, const char *func, const std::string &fmt, ...);
 
 } /* namespace */
-
-#endif /* KC_KCODES_HPP */

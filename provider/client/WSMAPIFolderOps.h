@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef WSMAPIFOLDEROPS_H
-#define WSMAPIFOLDEROPS_H
-
+#pragma once
 #include <mutex>
 #include <kopano/ECUnknown.h>
 #include <kopano/memory.hpp>
@@ -91,5 +89,3 @@ private:
 	KC::object_ptr<WSTransport> m_lpTransport;
 	ALLOC_WRAP_FRIEND;
 };
-
-#endif

@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef traits_INCLUDED
-#define traits_INCLUDED
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <string>
@@ -197,5 +194,3 @@ template<typename Type> size_t rawsize(const Type &x)
 }
 
 } /* namespace */
-
-#endif // ndef traits_INCLUDED

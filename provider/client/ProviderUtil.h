@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef PROVIDERUTIL_H
-#define PROVIDERUTIL_H
-
+#pragma once
 #include <kopano/memory.hpp>
 #include "WSTransport.h"
 
@@ -25,5 +23,3 @@ HRESULT CompareStoreIDs(ULONG eid1_size, const ENTRYID *eid1, ULONG eid2_size, c
 extern HRESULT CreateMsgStoreObject(const char *profile, IMAPISupport *, unsigned int eid_size, const ENTRYID *eid, unsigned int msg_flags, unsigned int profile_flags, WSTransport *, const MAPIUID *mdb_prov, BOOL deflt_store, BOOL offline_store, ECMsgStore **);
 HRESULT GetProviders(ECMapProvider *lpmapProvider, IMAPISupport *lpMAPISup, LPCSTR lpszProfileName, ULONG ulFlags, PROVIDER_INFO *lpsProviderInfo);
 HRESULT GetTransportToNamedServer(WSTransport *lpTransport, LPCTSTR lpszServerName, ULONG ulFlags, WSTransport **lppTransport);
-
-#endif // #ifndef PROVIDERUTIL_H

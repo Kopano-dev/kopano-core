@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef WSMessageStreamExporter_INCLUDED
-#define WSMessageStreamExporter_INCLUDED
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <kopano/memory.hpp>
 #include <kopano/ECUnknown.h>
@@ -47,5 +45,3 @@ private:
 };
 
 typedef KC::object_ptr<WSMessageStreamExporter> WSMessageStreamExporterPtr;
-
-#endif // ndef ECMessageStreamExporter_INCLUDED

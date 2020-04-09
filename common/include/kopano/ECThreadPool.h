@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef ECThreadPool_INCLUDED
-#define ECThreadPool_INCLUDED
-
+#pragma once
 #include <atomic>
 #include <condition_variable>
 #include <map>
@@ -187,5 +185,3 @@ private:
 };
 
 } /* namespace */
-
-#endif // ndef ECThreadPool_INCLUDED

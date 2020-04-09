@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef M4L_MAPIX_IMPL_H
-#define M4L_MAPIX_IMPL_H
-
+#pragma once
 #include <memory>
 #include <mutex>
 #include "m4l.common.h"
@@ -186,5 +184,3 @@ public:
 };
 
 extern KC::ECConfig *m4l_lpConfig;
-
-#endif

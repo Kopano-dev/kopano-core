@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef SWIG_IUNKNOWN_H
-#define SWIG_IUNKNOWN_H
-
+#pragma once
 #include <set>
 #include <stdexcept>
 #include <cstdio>
@@ -80,5 +77,3 @@ private:
 
 	std::set<IID, bool(*)(REFIID,REFIID)> m_interfaces;
 };
-
-#endif // ndef SWIG_IUNKNOWN_H

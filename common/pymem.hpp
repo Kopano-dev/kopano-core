@@ -1,6 +1,4 @@
-#ifndef KC_PYMEM_HPP
-#define KC_PYMEM_HPP 1
-
+#pragma once
 #include <kopano/memory.hpp>
 
 namespace KC {
@@ -13,5 +11,3 @@ class kcpy_delete {
 typedef KC::memory_ptr<PyObject, kcpy_delete> pyobj_ptr;
 
 } /* namespace */
-
-#endif /* KC_PYMEM_HPP */

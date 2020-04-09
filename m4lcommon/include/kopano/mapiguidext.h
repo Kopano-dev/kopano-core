@@ -2,13 +2,9 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef MAPIGUIDEXT_H
-#define MAPIGUIDEXT_H
+#pragma once
 
 //Place undefined mapi guids here
-
-
 // MAPI Wrapped Message Store Provider identifier
 #if !defined(INITGUID) || defined(USES_muidStoreWrap)
 DEFINE_GUID(muidStoreWrap, 0x10BBA138, 0xE505,0x1A10,0xA1,0xBB,0x08,0x00,0x2B,0x2A,0x56,0xC2);
@@ -187,6 +183,4 @@ DEFINE_GUID(PSETID_Messaging, 0x41f28f13, 0x83f4, 0x4114, 0xa5, 0x84, 0xee, 0xdb
 
 #if !defined(INITGUID) || defined(USES_PSETID_XmlExtractedEntities)
 DEFINE_GUID(PSETID_XmlExtractedEntities, 0x23239608, 0x685d, 0x4732, 0x9c, 0x55, 0x4c, 0x95, 0xcb, 0x4e, 0x8e, 0x33);
-#endif
-
 #endif

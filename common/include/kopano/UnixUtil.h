@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef EC_UNIXUTIL_H
-#define EC_UNIXUTIL_H
-
+#pragma once
 #include <string>
 #include <vector>
 #include <dirent.h>
@@ -34,5 +32,3 @@ extern KC_EXPORT int ec_reexec(const char *const *);
 extern KC_EXPORT void ec_reexec_finalize();
 
 } /* namespace */
-
-#endif

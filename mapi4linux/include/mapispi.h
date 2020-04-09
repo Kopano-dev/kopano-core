@@ -6,10 +6,7 @@
  * mapispi.h – Defines flags and interfaces that MAPI implements for service
  * providers and message services.
  */
-#ifndef M4L_MAPISPI_H
-#define M4L_MAPISPI_H
-#define MAPISPI_H
-
+#pragma once
 #include <kopano/platform.h>
 #include <initializer_list>
 #include <mapidefs.h>
@@ -472,5 +469,3 @@ typedef HRESULT (MSGSERVICEENTRY)(
 
 typedef MSGSERVICEENTRY *LPMSGSERVICEENTRY;
 }
-
-#endif /* MAPISPI_H */

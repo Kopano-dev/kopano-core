@@ -28,9 +28,7 @@
 // a combined work based on this library.  Thus, the terms and conditions of
 // the GNU General Public License cover the whole combination.
 //
-#ifndef MAPI_NET_SMTP_SMTPTRANSPORT_HPP_INCLUDED
-#define MAPI_NET_SMTP_SMTPTRANSPORT_HPP_INCLUDED
-
+#pragma once
 #include <vmime/config.hpp>
 #include <vmime/net/transport.hpp>
 #include <vmime/net/socket.hpp>
@@ -95,5 +93,3 @@ private:
 };
 
 } /* namespace */
-
-#endif // MAPI_NET_SMTP_SMTPTRANSPORT_HPP_INCLUDED

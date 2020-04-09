@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef ECEXPORTADDRESSBOOKCHANGES_H
-#define ECEXPORTADDRESSBOOKCHANGES_H
-
+#pragma once
 #include <memory>
 #include <set>
 #include <kopano/memory.hpp>
@@ -40,5 +38,3 @@ private:
 	KC::memory_ptr<ICSCHANGE> m_lpChanges; /* Same data as @m_lpRawChanges, but sorted (users, then groups) */
 	KC::memory_ptr<ICSCHANGE> m_lpRawChanges; /* Raw data from server */
 };
-
-#endif

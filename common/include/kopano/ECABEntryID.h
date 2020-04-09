@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECENTRYID_H
-#define ECENTRYID_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <mapidefs.h>
 
@@ -19,5 +16,3 @@ extern KC_EXPORT HRESULT EntryIdIsEveryone(unsigned int eid_size, const ENTRYID 
 extern KC_EXPORT HRESULT GetNonPortableObjectType(unsigned int eid_size, const ENTRYID *eid, unsigned int *obj_type);
 
 } /* namespace */
-
-#endif

@@ -10,9 +10,7 @@
  * @addtogroup libfreebusy
  * @{
  */
-#ifndef ECFREEBUSYUTIL_H
-#define ECFREEBUSYUTIL_H
-
+#pragma once
 #include <string>
 #include "freebusy.h"
 #include "ECFBBlockList.h"
@@ -26,7 +24,5 @@ unsigned int DiffYearMonthToMonth( struct tm *tm1, struct tm *tm2);
 extern HRESULT HrAddFBBlock(const OccrInfo &sOccrInfo, OccrInfo **lppsOccrInfo, ULONG *lpcValues);
 
 } /* namespace */
-
-#endif // ECFREEBUSYUTIL_H
 
 /** @} */

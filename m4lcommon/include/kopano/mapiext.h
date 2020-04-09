@@ -5,9 +5,7 @@
 
 //////////////////////////////////////////////
 // Extended mapi definitions
-
-#ifndef ECMAPIEXT_H
-#define ECMAPIEXT_H
+#pragma once
 
 #ifndef MAPI_E_STORE_FULL
 #define MAPI_E_STORE_FULL (SCODE)0x8004060c
@@ -792,5 +790,3 @@ PR_ADDITIONAL_REN_ENTRYIDS:
 
 #define PR_PROFILE_MDB_DN			PROP_TAG(PT_STRING8, 0x7CFF)
 #define PR_FORCE_USE_ENTRYID_SERVER PROP_TAG(PT_BOOLEAN, 0x7CFE)
-
-#endif

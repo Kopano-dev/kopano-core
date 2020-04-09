@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef ECMSGSTORE_H
-#define ECMSGSTORE_H
-
+#pragma once
 #include <memory>
 #include <kopano/memory.hpp>
 #include <mapidefs.h>
@@ -228,5 +226,3 @@ public:
 	HRESULT OpenStatusEntry(const IID *intf, ULONG flags, ULONG *obj_type, void **entry) override;
 	ALLOC_WRAP_FRIEND;
 };
-
-#endif // ECMSGSTORE_H

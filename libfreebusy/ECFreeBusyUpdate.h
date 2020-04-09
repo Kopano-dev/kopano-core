@@ -10,9 +10,7 @@
  * @addtogroup libfreebusy
  * @{
  */
-#ifndef ECFREEBUSYUPDATE_H
-#define ECFREEBUSYUPDATE_H
-
+#pragma once
 #include "freebusy.h"
 #include "freebusyguid.h"
 #include <kopano/ECUnknown.h>
@@ -47,7 +45,5 @@ private:
 };
 
 } /* namespace */
-
-#endif // ECFREEBUSYUPDATE_H
 
 /** @} */

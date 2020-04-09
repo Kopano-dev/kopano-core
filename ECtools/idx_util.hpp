@@ -1,6 +1,4 @@
-#ifndef IDX_UTIL_HPP
-#define IDX_UTIL_HPP 1
-
+#pragma once
 #include <string>
 #include <mapidefs.h>
 
@@ -36,6 +34,4 @@ class mapitable_range {
 extern HRESULT server_guid(IMsgStore *, GUID &);
 extern HRESULT ics_state(IMAPIProp *, bool assoc, std::string &);
 
-}
-
-#endif /* IDX_UTIL_HPP */
+} /* namespace */

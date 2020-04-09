@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECSEARCHCLIENT_H
-#define ECSEARCHCLIENT_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <map>
 #include <set>
@@ -62,5 +59,3 @@ class ECSearchClientNET final :
 };
 
 } /* namespace */
-
-#endif /* ECSEARCHCLIENT_H */

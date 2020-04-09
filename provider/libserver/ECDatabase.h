@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECDATABASE_H
-#define ECDATABASE_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <kopano/database.hpp>
 #include <memory>
@@ -62,5 +59,3 @@ public:
 extern KC_EXPORT bool searchfolder_restart_required;
 
 } /* namespace */
-
-#endif // ECDATABASE_H

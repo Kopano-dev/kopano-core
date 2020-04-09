@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef ECMESSAGE_H
-#define ECMESSAGE_H
-
+#pragma once
 #include <kopano/ECMemTable.h>
 #include <kopano/Util.h>
 #include <kopano/memory.hpp>
@@ -167,5 +165,3 @@ namespace KC {
 static inline constexpr const IID &iid_of(const ECMessage *) { return IID_ECMessage; }
 
 }
-
-#endif // ECMESSAGE_H

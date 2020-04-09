@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef CONVERSION_H
-#define CONVERSION_H
-
+#pragma once
 #include <edkmdb.h>		// LPREADSTATE
 #include <kopano/ECDefs.h>	// ECUSER
 using namespace KC;
@@ -119,5 +116,3 @@ int				GetExceptionError(PyObject *, HRESULT *);
 
 void			Object_to_STATSTG(PyObject *, STATSTG *);
 PyObject *		Object_from_STATSTG(STATSTG *);
-
-#endif // ndef CONVERSION_H

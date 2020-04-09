@@ -1,6 +1,4 @@
-#ifndef MAPITOVCF_H
-#define MAPITOVCF_H
-
+#pragma once
 #include <string>
 #include <mapidefs.h>
 
@@ -16,5 +14,3 @@ class mapitovcf {
 extern KC_EXPORT HRESULT create_mapitovcf(mapitovcf **);
 
 } /* namespace */
-
-#endif

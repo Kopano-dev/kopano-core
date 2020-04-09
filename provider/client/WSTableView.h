@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef WSTABLEVIEW_H
-#define WSTABLEVIEW_H
-
+#pragma once
 #include <mutex>
 #include <kopano/ECUnknown.h>
 #include <kopano/memory.hpp>
@@ -61,5 +59,3 @@ protected:
 	void *m_lpParam = nullptr;
 	RELOADCALLBACK m_lpCallback = nullptr;
 };
-
-#endif

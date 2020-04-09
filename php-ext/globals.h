@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef GLOBALS_H
-#define GLOBALS_H
+#pragma once
 
 ZEND_BEGIN_MODULE_GLOBALS(mapi)
 // this is the global hresult value, used in *every* php mapi function
@@ -19,6 +17,4 @@ ZEND_END_MODULE_GLOBALS(mapi)
 #define MAPI_G(v) TSRMG(mapi_globals_id, zend_mapi_globals *, v)
 #else
 #define MAPI_G(v) (mapi_globals.v)
-#endif
-
 #endif

@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef EC_FILEUTIL_HPP
-#define EC_FILEUTIL_HPP 1
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <string>
@@ -39,5 +37,3 @@ extern KC_EXPORT ssize_t write_retry(int, const void *, size_t);
 extern KC_EXPORT bool force_buffers_to_disk(int fd);
 
 } /* namespace */
-
-#endif

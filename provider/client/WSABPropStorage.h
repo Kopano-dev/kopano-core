@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef WSABPROPSTORAGE_H
-#define WSABPROPSTORAGE_H
-
+#pragma once
 #include <mutex>
 #include <kopano/ECUnknown.h>
 #include <kopano/Util.h>
@@ -55,5 +53,3 @@ class WSABTableView KC_FINAL_OPG : public WSTableView {
 	WSABTableView(ULONG type, ULONG flags, KC::ECSESSIONID, ULONG eid_size, const ENTRYID *, ECABLogon *, WSTransport *);
 	ALLOC_WRAP_FRIEND;
 };
-
-#endif

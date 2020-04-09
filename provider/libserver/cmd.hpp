@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef KC_CMD_HPP
-#define KC_CMD_HPP 1
-
+#pragma once
 #include <memory>
 #include <kopano/zcdefs.h>
 #include <kopano/ECThreadPool.h>
@@ -21,5 +18,3 @@ class KC_EXPORT ksrv_tpool : public ECThreadPool {
 };
 
 } /* namespace */
-
-#endif /* KC_CMD_HPP */

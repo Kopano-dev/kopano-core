@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECIterators_INCLUDED
-#define ECIterators_INCLUDED
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <kopano/mapi_ptr.h>
 
@@ -78,5 +75,3 @@ typedef ECHierarchyIterator<MAPIFolderPtr> ECFolderIterator;
 typedef ECHierarchyIterator<ABContainerPtr> ECABContainerIterator;
 
 } /* namespace */
-
-#endif // ndef ECIterators_INCLUDED

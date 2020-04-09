@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef GATEWAY_COMMON_H
-#define GATEWAY_COMMON_H
-
+#pragma once
 #include <memory>
 #include <string>
 #include <utility>
@@ -35,5 +33,3 @@ protected:
 	std::shared_ptr<KC::ECConfig> lpConfig;
 	ULONG		m_ulFailedLogins;
 };
-
-#endif

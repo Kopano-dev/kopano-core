@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef ECCONFIGCHECK_H
-#define ECCONFIGCHECK_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <list>
 #include <map>
@@ -131,5 +129,3 @@ class UnixConfigCheck final : public ECConfigCheck {
 	private:
 	static int testId(const config_check_t *);
 };
-
-#endif

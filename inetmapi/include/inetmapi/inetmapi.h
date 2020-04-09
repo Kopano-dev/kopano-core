@@ -2,12 +2,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef INETMAPI_H
-#define INETMAPI_H
-
-/* WARNING */
-/* mapidefs.h may not be included _before_ any vmime include! */
-
+#pragma once
+/* WARNING: mapidefs.h may not be included _before_ any vmime include! */
 #include <kopano/zcdefs.h>
 #include <mapix.h>
 #include <mapidefs.h>
@@ -67,5 +63,3 @@ extern KC_EXPORT HRESULT createIMAPProperties(const std::string &input, std::str
 extern KC_EXPORT HRESULT createIMAPBody(const std::string &input, IMessage *lpMessage, bool envelope = false);
 
 } /* namespace */
-
-#endif // INETMAPI_H

@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef operations_INCLUDED
-#define operations_INCLUDED
-
+#pragma once
 #include <memory>
 #include "operations_fwd.h"
 #include <mapix.h>
@@ -133,5 +130,3 @@ private:
 };
 
 }} /* namespace */
-
-#endif // ndef operations_INCLUDED

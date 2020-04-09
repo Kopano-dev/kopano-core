@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef ECCHANGEADVISOR_H
-#define ECCHANGEADVISOR_H
-
+#pragma once
 #include <memory>
 #include <mutex>
 #include <mapidefs.h>
@@ -117,5 +115,3 @@ private:
 	std::shared_ptr<KC::ECLogger> m_lpLogger;
 	KC::object_ptr<KC::IECChangeAdviseSink> m_lpChangeAdviseSink;
 };
-
-#endif // ndef ECCHANGEADVISOR_H

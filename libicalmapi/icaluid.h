@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef EC_ICAL_UID_H
-#define EC_ICAL_UID_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <mapidefs.h>
 #include <string>
@@ -19,5 +17,3 @@ extern KC_EXPORT HRESULT HrMakeBinUidFromICalUid(const std::string &uid, std::st
 extern KC_EXPORT HRESULT HrMakeBinaryUID(const std::string &strUid, void *base, SPropValue *lpPropValue);
 
 } /* namespace */
-
-#endif

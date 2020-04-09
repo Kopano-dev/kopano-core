@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef MAPITOICAL_H
-#define MAPITOICAL_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <string>
 #include <mapidefs.h>
@@ -31,5 +28,3 @@ public:
 extern KC_EXPORT HRESULT CreateMapiToICal(IAddrBook *, const std::string &charset, MapiToICal **ret);
 
 } /* namespace */
-
-#endif

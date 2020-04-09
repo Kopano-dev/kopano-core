@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef EC_STATSCLIENT_H
-#define EC_STATSCLIENT_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <atomic>
 #include <condition_variable>
@@ -191,5 +189,3 @@ class KC_EXPORT ECStatsCollector {
 typedef ECStatsCollector StatsClient;
 
 } /* namespace */
-
-#endif

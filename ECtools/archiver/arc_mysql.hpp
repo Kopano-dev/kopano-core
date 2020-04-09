@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef ARC_MYSQL_HPP
-#define ARC_MYSQL_HPP 1
-
+#pragma once
 #include <kopano/database.hpp>
 #include <string>
 
@@ -19,5 +17,3 @@ public:
 };
 
 } /* namespace */
-
-#endif

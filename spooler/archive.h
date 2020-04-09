@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef DAGENT_ARCHIVE_H
-#define DAGENT_ARCHIVE_H
-
+#pragma once
 #include <mapidefs.h>
 #include <mapix.h>
 #include <kopano/mapi_ptr.h>
@@ -46,6 +44,3 @@ private:
 	KC::MAPISessionPtr m_ptrSession;
 	KC::tstring m_strErrorMessage;
 };
-
-
-#endif // ndef __DAGENT_ARCHIVE_H

@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef STORAGEUTIL_H
-#define STORAGEUTIL_H
-
+#pragma once
 #include <kopano/kcodes.h>
 #include <mapidefs.h>
 
@@ -39,5 +36,3 @@ static inline unsigned int RealObjType(unsigned int ulObjType, unsigned int ulPa
 }
 
 } /* namespace */
-
-#endif // ndef STORAGEUTIL_H

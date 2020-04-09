@@ -3,10 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  * Copyright 2016 Kopano and its licensors
  */
-
-#ifndef ECRestrictionBuilder_INCLUDED
-#define ECRestrictionBuilder_INCLUDED
-
+#pragma once
 #include <memory>
 #include <utility>
 #include <kopano/zcdefs.h>
@@ -334,5 +331,3 @@ private:
 };
 
 } /* namespace */
-
-#endif // ndef ECRestrictionBuilder_INCLUDED

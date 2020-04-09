@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECGUID_H
-#define ECGUID_H
+#pragma once
 
 ////////////////////////////////////////////////////////////////////////////
 // Kopano Internal used guids
@@ -420,5 +418,3 @@ DEFINE_GUID(IID_IMeetingResponse,
 
 DEFINE_GUID(pbGlobalProfileSectionGuid,
 0xc8b0db13, 0x5aa, 0x1a10, 0x9b, 0xb0, 0x00, 0xaa, 0x00, 0x2f, 0xc4, 0x5a);
-
-#endif

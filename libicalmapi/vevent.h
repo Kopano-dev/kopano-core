@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ICALMAPI_VEVENT_H
-#define ICALMAPI_VEVENT_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include "vconverter.h"
 
@@ -28,5 +25,3 @@ private:
 };
 
 } /* namespace */
-
-#endif

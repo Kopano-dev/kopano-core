@@ -892,16 +892,12 @@ std::shared_ptr<ECLogger> CreateLogger(ECConfig *lpConfig, const char *argv0,
 		log_method = lpConfig->GetSetting("log_method");
 		log_file   = lpConfig->GetSetting("log_file");
 	} else if (ltyp == LOGTYPE_AUDIT) {
-#if 1 /* change to ifdef HAVE_LOG_AUTHPRIV */
 		if (!parseBool(lpConfig->GetSetting("audit_log_enabled")))
 			return NULL;
 		prepend = "audit_";
 		log_method = lpConfig->GetSetting("audit_log_method") ?: "null";
 		log_file   = lpConfig->GetSetting("audit_log_file") ?: "-";
 		syslog_facility = LOG_AUTHPRIV;
-#else
-		return NULL;    // No auditing in Windows, apparently.
-#endif
 	} else if (ltyp == LOGTYPE_REQUEST) {
 		prepend    = "request_";
 		log_method = lpConfig->GetSetting("request_log_method") ?: "off";

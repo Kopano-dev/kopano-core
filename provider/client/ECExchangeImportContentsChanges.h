@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef ECEXCHANGEIMPORTCONTENTSCHANGES_H
-#define ECEXCHANGEIMPORTCONTENTSCHANGES_H
-
+#pragma once
 #include <memory>
 #include <kopano/memory.hpp>
 #include <mapidefs.h>
@@ -60,5 +58,3 @@ private:
 	std::shared_ptr<KC::ECLogger> m_lpLogger;
 	KC::object_ptr<ECMAPIFolder> m_lpFolder;
 };
-
-#endif // ECEXCHANGEIMPORTCONTENTSCHANGES_H

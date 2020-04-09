@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef EC_EXCHANGE_MODIFY_TABLE_H
-#define EC_EXCHANGE_MODIFY_TABLE_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
 #include <kopano/ECMemTable.h>
@@ -38,5 +36,3 @@ private:
 	KC::object_ptr<KC::ECMemTable> m_ecTable;
 	bool m_bPushToServer = true;
 };
-
-#endif

@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef TIMEZONE_UTIL_H
-#define TIMEZONE_UTIL_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <chrono>
 #include <ctime>
@@ -66,5 +63,3 @@ template<typename T> static constexpr inline double dur2dbl(const T &t)
 }
 
 } /* namespace */
-
-#endif

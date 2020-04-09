@@ -1,6 +1,4 @@
-#ifndef KCIDX_MAIN_HPP
-#define KCIDX_MAIN_HPP 1
-
+#pragma once
 #include <memory>
 #include <string>
 #include <vector>
@@ -35,5 +33,3 @@ class KC_EXPORT IIndexer {
 };
 
 } /* namespace */
-
-#endif /* KCIDX_MAIN_HPP */

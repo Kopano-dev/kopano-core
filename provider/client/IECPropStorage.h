@@ -17,9 +17,7 @@
 // accesses will be kept down to about 1 to 5 network accesses, and have low bandwidth requirements as
 // large data is only loaded on demand.
 //
-#ifndef IECPROPSTORAGE_H
-#define IECPROPSTORAGE_H
-
+#pragma once
 #include <mapi.h>
 #include <mapispi.h>
 #include <list>
@@ -94,5 +92,3 @@ public:
 	// Returns the correct storage which can connect to the server
 	virtual IECPropStorage* GetServerStorage() = 0;
 };
-
-#endif

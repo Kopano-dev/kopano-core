@@ -2,11 +2,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 // -*- Mode: c++ -*-
-#ifndef UNIXUSERPLUGIN_H
-#define UNIXUSERPLUGIN_H
-
+#pragma once
 #include <memory>
 #include <mutex>
 #include <string>
@@ -465,4 +462,3 @@ extern "C" {
 }
 
 /** @} */
-#endif

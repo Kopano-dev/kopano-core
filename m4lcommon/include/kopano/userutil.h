@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef USERUTIL_INCLUDED
-#define USERUTIL_INCLUDED
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <list>
 #include <string>
@@ -26,5 +24,3 @@ public:
 extern KC_EXPORT HRESULT GetMailboxData(IMAPISession *, const char *sslkey, const char *sslpass, bool local_only, DataCollector *);
 
 } /* namespace */
-
-#endif

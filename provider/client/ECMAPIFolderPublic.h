@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef ECMAPIFOLDERPUBLIC_H
-#define ECMAPIFOLDERPUBLIC_H
-
+#pragma once
 #include "ECMAPIFolder.h"
 #include <kopano/ECMemTable.h>
 #include <kopano/Util.h>
@@ -40,5 +38,3 @@ protected:
 	virtual HRESULT SaveChanges(unsigned int flags) override;
 	ALLOC_WRAP_FRIEND;
 };
-
-#endif //#ifndef ECMAPIFOLDERPUBLIC_H

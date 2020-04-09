@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECCONVENIENTDEPTHOBJECTTABLE_H
-#define ECCONVENIENTDEPTHOBJECTTABLE_H
-
+#pragma once
 #include <map>
 #include <string>
 #include <kopano/zcdefs.h>
@@ -45,5 +42,3 @@ class ECConvenientDepthABObjectTable final : public ECABObjectTable {
 };
 
 } /* namespace */
-
-#endif

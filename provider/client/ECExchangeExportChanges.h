@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef ECEXCHANGEEXPORTCHANGES_H
-#define ECEXCHANGEEXPORTCHANGES_H
-
+#pragma once
 #include <memory>
 #include <mapidefs.h>
 #include <vector>
@@ -78,5 +76,3 @@ private:
 	HRESULT AddProcessedChanges(ChangeList &lstChanges);
 	ALLOC_WRAP_FRIEND;
 };
-
-#endif // ECEXCHANGEEXPORTCHANGES_H

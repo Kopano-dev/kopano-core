@@ -2,14 +2,11 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef TYPECONVERSION_H
-#define TYPECONVERSION_H
+#pragma once
 
 /*
  * These functions convert from MAPI types (structs) to PHP arrays and types and vice versa
  */
-
 #include "globals.h"
 ZEND_EXTERN_MODULE_GLOBALS(mapi)
 
@@ -71,5 +68,3 @@ extern HRESULT SRestrictiontoPHPArray(const SRestriction *, int level, zval *ret
 extern HRESULT RowSettoPHPArray(const SRowSet *, zval *ret TSRMLS_DC);
 extern HRESULT ReadStateArraytoPHPArray(ULONG nvals, const READSTATE *, zval *ret TSRMLS_DC);
 extern HRESULT NotificationstoPHPArray(ULONG nvals, const NOTIFICATION *, zval *ret TSRMLS_DC);
-
-#endif

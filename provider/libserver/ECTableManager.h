@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef TABLEMANAGER_H
-#define TABLEMANAGER_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <map>
 #include <memory>
@@ -81,5 +78,3 @@ private:
 };
 
 } /* namespace */
-
-#endif // TABLEMANAGER_H

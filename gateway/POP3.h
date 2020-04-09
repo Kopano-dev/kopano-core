@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef POP3_H
-#define POP3_H
-
+#pragma once
 #include <memory>
 #include <vector>
 #include "ClientProto.h"
@@ -76,4 +74,3 @@ private:
 };
 
 /** @} */
-#endif

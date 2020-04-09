@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECCACHE_INCLUDED
-#define ECCACHE_INCLUDED
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <list>
 #include <string>
@@ -289,5 +286,3 @@ private:
 };
 
 } /* namespace */
-
-#endif // ndef ECCACHE_INCLUDED

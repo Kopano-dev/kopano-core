@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECTHREADMANAGER_H
-#define ECTHREADMANAGER_H
-
+#pragma once
 #include <atomic>
 #include <condition_variable>
 #include <memory>
@@ -121,5 +118,3 @@ extern std::atomic<bool> sv_sighup_flag;
 extern std::shared_ptr<KC::ECLogger> g_request_logger;
 
 extern void sv_sighup_sync();
-
-#endif

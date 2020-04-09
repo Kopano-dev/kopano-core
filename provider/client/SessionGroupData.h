@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef ECSESSIONGROUPDATA_H
-#define ECSESSIONGROUPDATA_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <atomic>
 #include <mutex>
@@ -66,5 +64,3 @@ public:
 	KC::ECSESSIONGROUPID GetSessionGroupId();
 	ALLOC_WRAP_FRIEND;
 };
-
-#endif /* ECSESSIONGROUPDATA_H */

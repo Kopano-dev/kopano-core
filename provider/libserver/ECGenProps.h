@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECGENPROPS_H
-#define ECGENPROPS_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <kopano/kcodes.h>
 #include <string>
@@ -51,6 +48,3 @@ public:
 };
 
 } /* namespace */
-
-#endif // ECGENPROPS_H
-

@@ -1,5 +1,4 @@
-#ifndef KC_DOVEAUTH_H
-#define KC_DOVEAUTH_H 1
+#pragma once
 
 /* Dovecot's bad header file quality requires an extra separation layer. >:-( */
 
@@ -15,5 +14,3 @@ extern void authdb_mapi_deinitxx(void);
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
-
-#endif /* KC_DOVEAUTH_H */

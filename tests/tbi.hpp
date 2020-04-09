@@ -6,9 +6,7 @@
  *	Quite unpopular in KC. For tests, we do not care so much if
  *	anything throws out of the blue, though.
  */
-#ifndef TBI_HPP
-#define TBI_HPP 1
-
+#pragma once
 #include <initializer_list>
 #include <memory>
 #include <utility>
@@ -215,5 +213,3 @@ rowset_ptr KTable::rows(unsigned int size, unsigned int offset)
 }
 
 } /* namespace */
-
-#endif /* TBI_HPP */

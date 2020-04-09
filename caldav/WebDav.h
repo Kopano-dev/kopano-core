@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef CALDAV_WEBDAV_H
-#define CALDAV_WEBDAV_H
-
+#pragma once
 #include <libxml/tree.h>
 #include <libxml/xmlwriter.h>
 #include <libxml/parser.h>
@@ -138,5 +136,3 @@ protected:
 	void HrSetDavPropName(WEBDAVPROPNAME *lpsDavPropName, const std::string &strPropName, const std::string &strNs);
 	void HrSetDavPropName(WEBDAVPROPNAME *lpsDavPropName, const std::string &strPropName, const std::string &strPropAttribName, const std::string &strPropAttribValue, const std::string &strNs);
 };
-
-#endif

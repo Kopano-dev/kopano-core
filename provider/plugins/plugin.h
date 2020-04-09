@@ -2,10 +2,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 // -*- Mode: c++ -*-
-#ifndef PLUGIN_H
-#define PLUGIN_H
+#pragma once
 
 // define to see which exception is thrown from a plugin
 //#define EXCEPTION_DEBUG
@@ -587,5 +585,3 @@ template<class Tin> static inline std::string tostring(const Tin i)
 /** @} */
 
 } /* namespace */
-
-#endif

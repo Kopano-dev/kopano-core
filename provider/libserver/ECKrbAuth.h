@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef EC_KRBAUTH_H
-#define EC_KRBAUTH_H
-
+#pragma once
 #include <string>
 #include <kopano/platform.h>
 #include <kopano/kcodes.h>
@@ -31,5 +29,3 @@ ECRESULT ECKrb5AuthenticateUser(const std::string &strUsername, const std::strin
 extern ECRESULT ECPAMAuthenticateUser(const char *service, const std::string &user, const std::string &pass, std::string *error);
 
 } /* namespace */
-
-#endif

@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef ECWSUTIL_H
-#define ECWSUTIL_H
-
+#pragma once
 #include <vector>
 #include <mapidefs.h>
 #include <mapicode.h>
@@ -57,5 +55,3 @@ HRESULT ConvertString8ToUnicode(LPSRowSet lpRowSet);
 extern HRESULT ConvertString8ToUnicode(SRow *row, void *base, KC::convert_context &);
 extern HRESULT convert_wsfolder_to_soapfolder(const std::vector<WSMAPIFolderOps::WSFolder> &src, std::vector<new_folder> &dst);
 extern HRESULT convert_soapfolders_to_wsfolder(const struct create_folders_response &src, std::vector<WSMAPIFolderOps::WSFolder> &dst);
-
-#endif

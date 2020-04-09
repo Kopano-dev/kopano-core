@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef NAMEIDS_H
-#define NAMEIDS_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <mapidefs.h>
 #include <kopano/namedprops.h>
@@ -41,5 +38,3 @@ enum eIDNamedProps {
 extern KC_EXPORT HRESULT HrLookupNames(IMAPIProp *propobj, SPropTagArray **namedprops);
 
 } /* namespace */
-
-#endif

@@ -5,10 +5,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef LDAPCACHE_H
-#define LDAPCACHE_H
-
+#pragma once
 #include <memory>
 #include <list>
 #include <map>
@@ -145,5 +142,3 @@ public:
 };
 
 /** @} */
-
-#endif /* LDAPCACHE_H */

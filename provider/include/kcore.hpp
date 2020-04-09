@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef KC_KCORE_HPP
-#define KC_KCORE_HPP 1
-
+#pragma once
 #include <cstdint>
 #include <mapi.h>
 #include <mapidefs.h>
@@ -336,5 +333,3 @@ typedef EID * PEID;
 
 // MTOM IDs
 #define MTOM_ID_EXPORTMESSAGES			"idExportMessages"
-
-#endif /* KC_KCORE_H */

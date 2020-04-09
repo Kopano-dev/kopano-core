@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECFIFOBUFFER_H
-#define ECFIFOBUFFER_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <condition_variable>
 #include <deque>
@@ -43,5 +40,3 @@ private:
 };
 
 } /* namespace */
-
-#endif // ndef ECFIFOBUFFER_H

@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef ECNOTIFYMASTER_H
-#define ECNOTIFYMASTER_H
-
+#pragma once
 #include <atomic>
 #include <list>
 #include <map>
@@ -81,5 +79,3 @@ private:
 	BOOL m_bThreadRunning = false, m_bThreadExit = false;
 	ALLOC_WRAP_FRIEND;
 };
-
-#endif /* ECNOTIFYMASTER_H */

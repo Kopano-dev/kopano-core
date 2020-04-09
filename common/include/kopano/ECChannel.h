@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECCHANNEL_H
-#define ECCHANNEL_H
-
+#pragma once
 #include <list>
 #include <set>
 #include <string>
@@ -98,5 +95,3 @@ extern KC_EXPORT void ec_reexec_prepare_sockets();
 extern KC_EXPORT std::pair<int, std::list<ec_socket>> ec_bindspec_to_sockets(std::vector<std::string> &&, unsigned int mode, const char *user, const char *group);
 
 } /* namespace KC */
-
-#endif

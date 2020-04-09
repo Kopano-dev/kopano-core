@@ -1,6 +1,4 @@
-#ifndef KC_ICALCOMPAT_HPP
-#define KC_ICALCOMPAT_HPP 1
-
+#pragma once
 #include <libical/ical.h>
 
 namespace KC {
@@ -15,5 +13,3 @@ template<typename T> static inline void kc_ical_utc(T &r, bool utc)
 }
 
 } /* namespace */
-
-#endif /* KC_ICALCOMPAT_HPP */

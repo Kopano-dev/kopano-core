@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ARCHIVER_COMMON_H_INCLUDED
-#define ARCHIVER_COMMON_H_INCLUDED
-
+#pragma once
 #include <list>
 #include <vector>
 #include <memory>
@@ -16,13 +13,7 @@
 
 namespace KC {
 
-#if 1
 #define fMapiDeferredErrors	MAPI_DEFERRED_ERRORS
-#else
-#define fMapiDeferredErrors	0
-#endif
-
-
 #define dispidAttachedUser			"attached-user-entryid"
 #define dispidStoreEntryIds			"store-entryids"
 #define dispidItemEntryIds			"item-entryids"
@@ -488,5 +479,3 @@ extern KC_EXPORT eResult MAPIErrorToArchiveError(HRESULT);
 extern KC_EXPORT const char *ArchiveResultString(eResult);
 
 } /* namespace */
-
-#endif // !defined ARCHIVER_COMMON_H_INCLUDED

@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef SMIMEMESSAGE_H
-#define SMIMEMESSAGE_H
-
+#pragma once
 #include <string>
 #include <vmime/message.hpp>
 #include <vmime/utility/stream.hpp>
@@ -41,5 +39,3 @@ private:
 };
 
 } /* namespace */
-
-#endif

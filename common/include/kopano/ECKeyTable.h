@@ -2,8 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef TABLE_H
-#define TABLE_H
+#pragma once
 
 /*
  * How this works
@@ -208,5 +207,3 @@ private:
 #define EC_TABLE_NOADVANCE 1
 
 } /* namespace */
-
-#endif // TABLE_H

@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef CALDAV_HTTP_H
-#define CALDAV_HTTP_H
-
+#pragma once
 #include <mapidefs.h>
 #include <mapicode.h>
 #include <kopano/stringutil.h>
@@ -83,5 +81,3 @@ private:
 	HRESULT HrFlushHeaders();
 	HRESULT X2W(const std::string &strIn, std::wstring *lpstrOut);
 };
-
-#endif

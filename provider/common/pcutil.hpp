@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef KC_PCUTIL_HPP
-#define KC_PCUTIL_HPP 1
-
+#pragma once
 // All functions which used in storage server and client
 #include "kcore.hpp"
 #include <kopano/kcodes.h>
@@ -44,5 +41,3 @@ ECRESULT MAPITypeToType(ULONG ulMAPIType, objectclass_t *lpsUserObjClass);
 ECRESULT TypeToMAPIType(objectclass_t sUserObjClass, ULONG *lpulMAPIType);
 
 } /* namespace */
-
-#endif /* KC_PCUTIL_HPP */

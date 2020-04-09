@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef CLIENTUTIL_H
-#define CLIENTUTIL_H
-
+#pragma once
 #include <mutex>
 #include <mapispi.h>
 #include <string>
@@ -60,5 +58,3 @@ enum enumPublicEntryID { ePE_None, ePE_IPMSubtree, ePE_Favorites, ePE_PublicFold
 
 extern HRESULT GetPublicEntryId(enumPublicEntryID, const GUID &store_guid, void *base, ULONG *eid_size, ENTRYID **eid);
 extern BOOL CompareMDBProvider(const BYTE *guid, const GUID *kopano_guid);
-
-#endif

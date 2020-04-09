@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef EMSABTAG_H
-#define EMSABTAG_H
+#pragma once
 
 #define AB_SHOW_PHANTOMS      2
 #define AB_SHOW_OTHERS        4
@@ -831,5 +829,3 @@
 #define PR_EMS_AB_XMIT_TIMEOUT_NON_URGENT    PROP_TAG( PT_LONG,  0x8163)
 #define PR_EMS_AB_XMIT_TIMEOUT_NORMAL        PROP_TAG( PT_LONG,  0x8164)
 #define PR_EMS_AB_XMIT_TIMEOUT_URGENT        PROP_TAG( PT_LONG,  0x8165)
-
-#endif

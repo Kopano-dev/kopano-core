@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECSUBRESTRICTION_H
-#define ECSUBRESTRICTION_H
-
+#pragma once
 #include <set>
 #include <vector>
 #include <kopano/ECKeyTable.h>
@@ -46,5 +43,3 @@ extern ECRESULT RunSubRestrictions(ECSession *, const void *ecod_store, const st
 #define SUBRESTRICTION_MAXDEPTH	64
 
 } /* namespace */
-
-#endif

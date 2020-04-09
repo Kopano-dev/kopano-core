@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef deleter_INCLUDED
-#define deleter_INCLUDED
-
+#pragma once
 #include <memory>
 #include "operations.h"
 #include <kopano/archiver-common.h>
@@ -31,5 +28,3 @@ private:
 };
 
 }} /* namespace */
-
-#endif // ndef deleter_INCLUDED

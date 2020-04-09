@@ -1,6 +1,4 @@
-#ifndef KOPANO_DATABASE_HPP
-#define KOPANO_DATABASE_HPP 1
-
+#pragma once
 #include <mutex>
 #include <string>
 #include <utility>
@@ -168,5 +166,3 @@ class KC_EXPORT KDatabase : public kt_completion {
 };
 
 } /* namespace */
-
-#endif /* KOPANO_DATABASE_HPP */

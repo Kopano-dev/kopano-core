@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECMEMSTREAM_H
-#define ECMEMSTREAM_H
-
+#pragma once
 #include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
 #include <kopano/Util.h>
@@ -88,5 +85,3 @@ private:
 };
 
 } /* namespace */
-
-#endif // ECMEMSTREAM_H

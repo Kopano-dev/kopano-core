@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef ECMSGSTOREPUBLIC_H
-#define ECMSGSTOREPUBLIC_H
-
+#pragma once
 #include <mapidefs.h>
 #include <mapispi.h>
 #include <edkmdb.h>
@@ -43,5 +41,3 @@ protected:
 	// entryid : level
 	ALLOC_WRAP_FRIEND;
 };
-
-#endif // #ifndef ECMSGSTOREPUBLIC_H

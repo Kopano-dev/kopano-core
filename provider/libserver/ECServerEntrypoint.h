@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
-#ifndef ECECSERVERENTRYPOINT_H
-#define ECECSERVERENTRYPOINT_H
-
+#pragma once
 #include <memory>
 #include <kopano/zcdefs.h>
 #include <kopano/ECLogger.h>
@@ -50,5 +47,3 @@ extern KC_EXPORT void kopano_new_soap_listener(CONNECTION_TYPE, struct soap *);
 extern KC_EXPORT void kopano_end_soap_listener(struct soap *);
 
 } /* namespace */
-
-#endif //ECECSERVERENTRYPOINT_H

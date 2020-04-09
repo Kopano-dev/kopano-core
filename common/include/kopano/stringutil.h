@@ -2,9 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#ifndef EC_STRINGUTIL_H
-#define EC_STRINGUTIL_H 1
-
+#pragma once
 #include <algorithm>
 #include <cctype>
 #include <cstdint>
@@ -232,5 +230,3 @@ extern KC_EXPORT std::string kc_wstr_to_punyaddr(const wchar_t *);
 extern KC_EXPORT std::string kc_utf8_to_punyaddr(const char *);
 
 } /* namespace */
-
-#endif

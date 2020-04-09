@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-// ECMAPIContainer.h: interface for the ECMAPIContainer class.
-#ifndef ECMAPICONTAINER
-#define ECMAPICONTAINER
-
+#pragma once
 #include <mapidefs.h>
 #include "WSTransport.h"
 #include "ECMsgStore.h"
@@ -30,5 +27,3 @@ public:
 	virtual HRESULT CopyTo(unsigned int nexcl, const IID *iid_excl, const SPropTagArray *exclprop, unsigned int ui_param, IMAPIProgress *, const IID *intf, void *dst_obj, unsigned int flags, SPropProblemArray **) override;
 	virtual HRESULT CopyProps(const SPropTagArray *inclprop, unsigned int ui_param, IMAPIProgress *, const IID *intf, void *dst_obj, unsigned int flags, SPropProblemArray **) override;
 };
-
-#endif // #ifndef ECMAPICONTAINER
