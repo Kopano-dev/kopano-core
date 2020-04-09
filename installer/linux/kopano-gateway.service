@@ -7,6 +7,15 @@ After=network.target
 Type=simple
 ExecStart=/usr/sbin/kopano-gateway
 ExecReload=/bin/kill -HUP $MAINPID
+ProtectSystem=full
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+PrivateTmp=yes
+MemoryDenyWriteExecute=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
 
 [Install]
 WantedBy=multi-user.target

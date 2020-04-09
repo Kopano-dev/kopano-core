@@ -6,6 +6,15 @@ Documentation=man:kopano-search(8) man:kopano-search.cfg(5)
 Type=simple
 ExecStart=/usr/sbin/kopano-search
 ExecReload=/bin/kill -HUP $MAINPID
+ProtectSystem=full
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+PrivateTmp=yes
+MemoryDenyWriteExecute=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
 
 [Install]
 WantedBy=multi-user.target
