@@ -4,16 +4,13 @@ import pytest
 
 from MAPI import (MAPIAdminProfiles, KEEP_OPEN_READWRITE, DELETE_HARD_DELETE,
                   MAPI_MODIFY, FOLDER_GENERIC, DEL_FOLDERS, DEL_MESSAGES, IStream,
-                  DELETE_HARD_DELETE, DEL_ASSOCIATED, MAPI_UNICODE)
-from MAPI.Util import OpenECSession, GetPublicStore, GetDefaultStore, SPropValue, MAPI_BEST_ACCESS
+                  DELETE_HARD_DELETE, DEL_ASSOCIATED, MAPI_UNICODE,
+                  FOLDER_SEARCH, MAPI_ASSOCIATED)
+from MAPI.Util import (OpenECSession, GetPublicStore, GetDefaultStore, SPropValue,
+                       MAPI_BEST_ACCESS, MAPINotifSink)
 from MAPI.Tags import (IID_IECTestProtocol, PR_SUBJECT, PR_ENTRYID, PR_IPM_PUBLIC_FOLDERS_ENTRYID,
-                       OPEN_IF_EXISTS, IID_IECServiceAdmin, IID_IExchangeManageStore, PR_EMS_AB_CONTAINERID)
-
-
-kopanoserver = pytest.mark.skipif(
-        not os.getenv('KOPANO_SOCKET'),
-        reason='No kopano-server running'
-)
+                       OPEN_IF_EXISTS, IID_IECServiceAdmin, IID_IExchangeManageStore, PR_EMS_AB_CONTAINERID,
+                       PR_IPM_SUBTREE_ENTRYID)
 
 
 @pytest.fixture
@@ -37,10 +34,46 @@ def session():
     password = os.getenv('KOPANO_TEST_PASSWORD')
     socket = os.getenv('KOPANO_SOCKET')
 
-    if not user or not password or not socket:
-        raise ValueError('Tests expect user/password/server to be configured')
-
     return OpenECSession(user, password, socket)
+
+
+@pytest.fixture
+def notifysession():
+    user = os.getenv('KOPANO_TEST_USER')
+    password = os.getenv('KOPANO_TEST_PASSWORD')
+    socket = os.getenv('KOPANO_SOCKET')
+
+    return OpenECSession(user, password, socket, flags=0)
+
+
+@pytest.fixture
+def notifystore(notifysession):
+    return GetDefaultStore(notifysession)
+
+
+@pytest.fixture
+def notifyinboxid(notifystore):
+    return notifystore.GetReceiveFolder(b'IPM', 0)[0]
+
+
+@pytest.fixture
+def notifyinbox(notifystore, notifyinboxid):
+    return notifystore.OpenEntry(notifyinboxid, None, MAPI_MODIFY)
+
+
+@pytest.fixture
+def notifymessage(notifyinbox):
+    message = notifyinbox.CreateMessage(None, 0)
+
+    yield message
+
+    eid = message.GetProps([PR_ENTRYID], 0)[0]
+    notifyinbox.DeleteMessages([eid.Value], 0, None, DELETE_HARD_DELETE)
+
+
+@pytest.fixture
+def sink():
+    yield MAPINotifSink()
 
 
 @pytest.fixture
@@ -48,9 +81,6 @@ def session2():
     user = os.getenv('KOPANO_TEST_USER2')
     password = os.getenv('KOPANO_TEST_PASSWORD2')
     socket = os.getenv('KOPANO_SOCKET')
-
-    if not user or not password or not socket:
-        raise ValueError('Tests expect user/password/server to be configured')
 
     return OpenECSession(user, password, socket)
 
@@ -103,19 +133,35 @@ def gab(addressbook):
     return addressbook.OpenEntry(defaultdir, None, 0)
 
 
-
-
-
 @pytest.fixture
 def gabtable(gab):
     return gab.GetContentsTable(0)
 
 
+# Required for copying 'message' into a new message
+@pytest.fixture
+def copy(root):
+    message = root.CreateMessage(None, 0)
+
+    yield message
+
+    eid = message.GetProps([PR_ENTRYID], 0)[0]
+    root.DeleteMessages([eid.Value], 0, None, DELETE_HARD_DELETE)
+
+
 @pytest.fixture
 def message(root):
     message = root.CreateMessage(None, 0)
-    message.SetProps([SPropValue(PR_SUBJECT, b'Test')])
-    message.SaveChanges(KEEP_OPEN_READWRITE)
+
+    yield message
+
+    eid = message.GetProps([PR_ENTRYID], 0)[0]
+    root.DeleteMessages([eid.Value], 0, None, DELETE_HARD_DELETE)
+
+
+@pytest.fixture
+def assocmessage(root):
+    message = root.CreateMessage(None, MAPI_ASSOCIATED)
 
     yield message
 
@@ -144,13 +190,23 @@ def publicstore(session):
 
 
 @pytest.fixture
-def publicfolder(publicstore):
+def publicsubtree(publicstore):
+    rootid = publicstore.GetProps([PR_IPM_SUBTREE_ENTRYID], 0)[0]
+    yield publicstore.OpenEntry(rootid.Value, None, MAPI_BEST_ACCESS)
+
+
+@pytest.fixture
+def publicroot(publicstore):
     rootid = publicstore.GetProps([PR_IPM_PUBLIC_FOLDERS_ENTRYID], 0)[0]
-    root = publicstore.OpenEntry(rootid.Value, None, MAPI_BEST_ACCESS)
-    folder = root.CreateFolder(FOLDER_GENERIC, b'test', b'', None,  OPEN_IF_EXISTS)
+    yield publicstore.OpenEntry(rootid.Value, None, MAPI_BEST_ACCESS)
+
+
+@pytest.fixture
+def publicfolder(publicroot):
+    folder = publicroot.CreateFolder(FOLDER_GENERIC, b'test', b'', None,  OPEN_IF_EXISTS)
     folderid = folder.GetProps([PR_ENTRYID], 0)[0].Value
     yield folder
-    root.DeleteFolder(folderid, 0, None, DEL_FOLDERS | DEL_MESSAGES)
+    publicroot.DeleteFolder(folderid, 0, None, DEL_FOLDERS | DEL_MESSAGES)
 
 
 @pytest.fixture
@@ -158,6 +214,14 @@ def folder(inbox):
     folder = inbox.CreateFolder(FOLDER_GENERIC, b'subfolder', b'', None, OPEN_IF_EXISTS)
     yield folder
     inbox.EmptyFolder(DELETE_HARD_DELETE | DEL_ASSOCIATED, None, 0)
+
+
+@pytest.fixture
+def searchfolder(root):
+    folder = root.CreateFolder(FOLDER_SEARCH, b'search', b'', None, 0)
+    folderid = folder.GetProps([PR_ENTRYID], 0)[0].Value
+    yield folder
+    root.DeleteFolder(folderid, 0, None, DEL_FOLDERS | DEL_MESSAGES)
 
 
 @pytest.fixture

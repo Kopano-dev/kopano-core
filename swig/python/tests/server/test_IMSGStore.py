@@ -11,8 +11,9 @@ from MAPI.Tags import (PR_ENTRYID, PR_EMS_AB_PROXY_ADDRESSES, PR_ACCOUNT,
                        PR_SUBJECT, PR_STORE_RECORD_KEY, PR_MESSAGE_CLASS, PR_NULL,
                        PR_OBJECT_TYPE, PR_RECEIVE_FOLDER_SETTINGS, PR_EC_CHANGE_ADVISOR,
                        PR_EC_STATSTABLE_USERS, PR_EC_STATSTABLE_SYSTEM, PR_EC_STATSTABLE_SESSIONS,
-                       PR_ACL_TABLE, IID_IExchangeModifyTable, IID_IMAPITable, IID_IECChangeAdvisor,
-                       IID_IMAPITable, IID_IMessage, IID_IMAPIFolder)
+                       PR_ACL_TABLE, PR_STORE_ENTRYID, PR_STORE_SUPPORT_MASK,
+                       IID_IExchangeModifyTable, IID_IMAPITable,
+                       IID_IECChangeAdvisor, IID_IMAPITable, IID_IMessage, IID_IMAPIFolder)
 from MAPI.Util import PROP_TAG
 
 PR_TEST_PROP = PROP_TAG(PT_STRING8, 0x6601)
@@ -200,3 +201,32 @@ def test_deleteprops_problem(store):
 def test_getoutgoingqueue(store):
     table = store.GetOutgoingQueue(0)
     assert table.GetRowCount(0) == 0
+
+
+def test_storeid(session, store):
+    props = store.GetProps([PR_ENTRYID, PR_STORE_ENTRYID], 0)
+    assert props[0].Value == props[1].Value
+
+    assert session.OpenMsgStore(0, props[0].Value, None, 0)
+
+
+def test_storeid_badhttp(session, store):
+    props = store.GetProps([PR_ENTRYID, PR_STORE_ENTRYID], 0)
+    entryid = props[0].Value
+
+    # should work better parsing the entryid, because of "libkcclient.so"
+    entryid = entryid[0:84] + b'http://localhost:1/zarafa\x00'
+    # You normally expect this to fail. However, due to backward-compatibility, the URL could
+    # be wrong and we therefore have to accept this - in a single-server environment we should
+    # fall back to the default server in your global profile section
+    store = session.OpenMsgStore(0, entryid, None, 0)
+    props = store.GetProps([PR_ENTRYID], 0)
+    assert props[0].Value == entryid
+
+
+def test_flagunicode(store):
+    STORE_UNICODE_OK = 0x00040000
+    props = store.GetProps([PR_STORE_SUPPORT_MASK], 0)
+    assert props[0].ulPropTag == PR_STORE_SUPPORT_MASK
+    assert props[0].Value & STORE_UNICODE_OK == STORE_UNICODE_OK
+
