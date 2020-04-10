@@ -1,3 +1,10 @@
+9.0.6 (2020-04-15)
+==================
+Changes from the 8.7.x branch up to 8.7.12 are included.
+Enhancements:
+* daemons: now run with systemd protections [KC-430]
+
+
 9.0.5 (2020-03-17)
 ==================
 Changes from the 8.7.x branch up to 2020-03-16 are included.
