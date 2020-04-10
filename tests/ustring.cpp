@@ -3,6 +3,12 @@
 
 using namespace KC;
 
+static void as(const char *label, int actual, int exp)
+{
+	if (actual != exp)
+		printf("%s: %d, but expected %d\n", label, actual, exp);
+}
+
 int main()
 {
 	/* make StringToUnicode do the right thing with our source strings */
@@ -17,31 +23,31 @@ int main()
 	static const char aai_nfd[] = "aa\xcc\x88i", AAI_nfd[] = "AA\xcc\x88I";
 	static const char aei_nfc[] = "a\xc3\xabi", AEI_nfc[] = "A\xc3\x8bI";
 	static const char aei_nfd[] = "ae\xcc\x88i", AEI_nfd[] = "AE\xcc\x88I";
-	printf("eq: %d, exp 1\n", str_equals(aei_nfc, aei_nfd, l_en));
+	as("eq", str_equals(aei_nfc, aei_nfd, l_en), 1);
 
 	for (const auto &y : {aei_nfc, aei_nfd}) {
 		for (const auto &x : {ae_nfc, ae_nfd, aei_nfc, aei_nfd}) {
-			printf("prefix: %d, exp 1\n", str_startswith(y, x, l_en));
-			printf("contains: %d, exp 1\n", str_contains(y, x, l_en));
+			as("prefix", str_startswith(y, x, l_en), 1);
+			as("contains", str_contains(y, x, l_en), 1);
 		}
 		for (const auto &x : {ae_nfc, ae_nfd, aei_nfc, aei_nfd,
 		    AE_nfc, AE_nfd, AEI_nfc, AEI_nfd})
-			printf("icontains: %d, exp 1\n", str_icontains(y, x, l_en));
+			as("icontains", str_icontains(y, x, l_en), 1);
 		for (const auto &x : {ae_nfc, ae_nfd, AE_nfc, AE_nfd})
-			printf("iprefix: %d, exp 1\n", str_istartswith(y, x, l_en));
+			as("iprefix", str_istartswith(y, x, l_en), 1);
 		for (const auto &x : {aei_nfc, aei_nfd, AEI_nfc, AEI_nfd}) {
-			printf("iequals: %d, exp 1\n", str_iequals(y, x, l_en));
-			printf("icomp-eq: %d, exp 0\n", str_icompare(y, x, l_en));
+			as("iequals", str_iequals(y, x, l_en), 1);
+			as("icomp-eq", str_icompare(y, x, l_en), 0);
 		}
 		for (const auto &x : {aai_nfc, aai_nfd, AAI_nfc, AAI_nfd})
-			printf("icomp-gt: %d, exp 1\n", str_icompare(y, x, l_en));
+			as("icomp-gt", str_icompare(y, x, l_en), 1);
 	}
 
 	for (const auto &y : {aai_nfc, aai_nfd}) {
 		for (const auto &x : {aei_nfc, aei_nfd, AEI_nfc, AEI_nfd})
-			printf("icomp de ä<e: %d, expected -1\n", str_icompare(y, x, l_de));
+			as("icomp de ä<e", str_icompare(y, x, l_de), -1);
 		for (const auto &x : {aei_nfc, aei_nfd, AEI_nfc, AEI_nfd})
-			printf("icomp sv ä>e: %d, expected 1\n", str_icompare(aai_nfc, x, l_sv));
+			as("icomp sv ä>e", str_icompare(aai_nfc, x, l_sv), 1);
 	}
 	return 0;
 }
