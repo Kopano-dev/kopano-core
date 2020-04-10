@@ -8,6 +8,15 @@ Type=simple
 ExecStart=/usr/sbin/kopano-server
 ExecReload=/bin/kill -HUP $MAINPID
 TimeoutStopSec=60
+ProtectSystem=full
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+PrivateTmp=yes
+MemoryDenyWriteExecute=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
 
 [Install]
 WantedBy=multi-user.target

@@ -73,7 +73,10 @@ using U_ICU_NAMESPACE::CollationKey;
 using U_ICU_NAMESPACE::Collator;
 using U_ICU_NAMESPACE::Locale;
 using U_ICU_NAMESPACE::Normalizer;
+#if U_ICU_VERSION_MAJOR >= 49
+#	define HAVE_NORMALIZER2
 using U_ICU_NAMESPACE::Normalizer2;
+#endif
 using U_ICU_NAMESPACE::UnicodeString;
 typedef std::unique_ptr<Collator> unique_ptr_Collator;
 
@@ -185,14 +188,21 @@ static bool str_startswith_int(UnicodeString &&s1, UnicodeString &&s2, bool icas
 {
 	UErrorCode err = U_ZERO_ERROR;
 	/* Force normalization; need it for the proper prefix length. */
+	UnicodeString r1, r2;
+#ifdef HAVE_NORMALIZER2
 	auto nfd = Normalizer2::getNFDInstance(err);
 	if (U_FAILURE(err))
 		return false;
-	UnicodeString r1, r2;
 	nfd->normalize(std::move(s1), r1, err);
 	if (U_FAILURE(err))
 		return false;
 	nfd->normalize(std::move(s2), r2, err);
+#else
+	Normalizer::normalize(std::move(s1), UNORM_NFD, 0, r1, err);
+	if (U_FAILURE(err))
+		return false;
+	Normalizer::normalize(std::move(s2), UNORM_NFD, 0, r2, err);
+#endif
 	if (U_FAILURE(err))
 		return false;
 	if (r2.length() > r1.length())
@@ -278,14 +288,21 @@ int str_icompare(const char *s1, const char *s2, const ECLocale &locale)
 static bool str_contains_int(UnicodeString &&text, UnicodeString &&needle, bool icase = false)
 {
 	UErrorCode err = U_ZERO_ERROR;
+	UnicodeString rt, rn;
+#ifdef HAVE_NORMALIZER2
 	auto nfd = Normalizer2::getNFDInstance(err);
 	if (U_FAILURE(err))
 		return false;
-	UnicodeString rt, rn;
 	nfd->normalize(std::move(text), rt, err);
 	if (U_FAILURE(err))
 		return false;
 	nfd->normalize(std::move(needle), rn, err);
+#else
+	Normalizer::normalize(std::move(text), UNORM_NFD, 0, rt, err);
+	if (U_FAILURE(err))
+		return false;
+	Normalizer::normalize(std::move(needle), UNORM_NFD, 0, rn, err);
+#endif
 	if (U_FAILURE(err))
 		return false;
 	if (icase) {
