@@ -1,3 +1,8 @@
+10.0.4 (2020-04-10)
+===================
+All changes from the 9.x branch up to 9.0.6 are included.
+
+
 10.0.3 (2020-03-17)
 ===================
 All changes from the 9.x branch up to 9.0.5 are included.
