@@ -4,6 +4,8 @@ Outlook Rule Specification
 == Table of Contents ==
 
 Introduction
+FAI Message: RuleOrganizer
+FAI Message: RuleVersion2
 Notation
 Length fields
 Timestamps
@@ -99,6 +101,9 @@ Condition 538 (0x21a): Except any category
 Condition 539 (0x21b): Except any RSS feeds
 Condition ??: Form class
 Condition ??: Except form class
+Server-side Rules Table
+SSRT: Organizer2
+SSRT: OOF rules
 
 
 == Introduction ==
@@ -109,17 +114,79 @@ example: sorting incoming messages into different folders, marking incoming
 messages with certain colors, issuing automatic responses while out of office,
 or automatic forwarding while out of office.
 
-Such rules are first and foremost stored in the PR_RW_RULES_STREAM property
-in a FAI message and constitutes Outlook's state of configuration.
+Such rules are stored by Outlook all over the place.
 
-In addition, rules for incoming messages are cloned to the PR_RULES_DATA
-property set on a message store. (PR_RULES_TABLE is an interface-only property
-that, underneath, operates on PR_RULES_DATA.) Rules that are representable
-within the confines of the IID_IExchangeModifyTable interface are so stored, if
-not, they are represented as a deferred action. These deferred actions are
-called client-side rules in Exchange/Outlook circles, but this name is
-misleading since only very few of the conditions and actions one could possibly
-use in rules actually require a running client in the first place.
+  * Rules configured in "Files ▶ Manage Rules & Alerts" are stored in
+    a FAI message. See section "FAI message: RuleOrganizer".
+
+      * Of these, rules which are enabled and which apply to incoming messages only
+        are cloned to PR_RULES_TABLE rows. See section "Server-side Rules
+        Table" and "SSRT: Organizer2".
+
+      * Of these, each rule is cloned to another FAI message,
+        see section "FAI message: RuleV2".
+
+  * Rules configured in "Files ▶ Automatic replies" (Out of Office) are stored
+    in PR_RULES_TABLE. See section "Server-side Rules Table" and
+    "SSRT: OOF".
+
+      * Each rule is cloned to a FAI message, see section "FAI message:
+        RuleV2".
+
+Deferred actions are called client-side rules in Exchange/Outlook circles, but
+this name is misleading since only very few of the conditions and actions one
+could possibly use in rules actually require a running client in the first
+place.
+
+
+== FAI message: RuleOrganizer ==
+
+In the Inbox's Associated Contents folder, there is a message containing:
+
+	PR_SUBJECT: "Outlook Rules Organizer"
+	PR_MESSAGE_CLASS: "IPM.RuleOrganizer"
+	PR_RW_RULES_STREAM: (see section "Rules Stream")
+
+PR_RW_RULES_STREAM contains most of the ruleset (receiving and sending, but not
+OOF). See section "Rules stream".
+
+
+== FAI message: RuleV2 ==
+
+In the Inbox's Associated Contents folder, there are a number of messages that
+represent each rule from PR_RW_RULES_STREAM (again), with these properties:
+
+@PR_MESSAGE_CLASS: "IPM.Rule.Version2.Message"
+
+@PR_RULE_MSG_LEVEL: Equivalent to PR_RULE_LEVEL.
+
+@PR_RULE_MSG_NAME: Equivalent to PR_RULE_NAME.
+
+@PR_RULE_MSG_PROVIDER: "Organizer2".
+
+@PR_RULE_MSG_PROVIDER_DATA: Equivalent to PR_RULE_PROVIDER_DATA.
+
+	For TDX OOF, the property is unset.
+
+	For Organizer2, a 16-byte packed value:
+
+	struct {
+		uint32_t magic[2] = {1, 1};
+		double timestamp; /* PT_APPTIME */
+	};
+
+@PR_RULE_MSG_SEQUENCE: Equivalent to PR_RULE_SEQUENCE. OL starts with seq 10.
+
+@PR_RULE_MSG_STATE: Equivalent to PR_RULE_STATE.
+
+@PR_RULE_MSG_USER_FLAGS: Equivalent to PR_RULE_USER_FLAGS.
+
+@PR_EXTENDED_RULE_MSG_CONDITION: Binary data, pretty much equivalent to the
+data presented through PR_RULE_CONDITION without significant differences. Some
+16-bit fields are now 32-bit, and, according to MSDN, there is some additional
+room for expressing named properties; Unicode strings are forced.
+
+@PR_EXTENDED_RULE_MSG_ACTION: .
 
 
 == Notation ==
@@ -223,20 +290,6 @@ so the fractional part is always a multiple of 1/1440. The curious bit patterns
 in OV1 are a result of 9 being a factor of 1440.
 
 
-== FAI message ==
-
-In the Inbox's Associated Contents folder, there is a special message
-containing:
-
-	PR_SUBJECT: "Outlook Rules Organizer"
-	PR_MESSAGE_CLASS: "IPM.RuleOrganizer"
-	PR_RW_RULES_STREAM: (see below)
-
-PR_RW_RULES_STREAM contains all rules (receiving and sending), while the the
-MAPI Rules Table's PR_RULE_ACTIONS property's ACTION::actDeferAction::pbData
-member starts right with XR_Rule.
-
-
 == Rules Stream ==
 
 Layout:
@@ -246,7 +299,7 @@ Layout:
 		0, 0, 0, 0, 1, 1, 0};
 	uint16_t numrules;
 	repeat numrules {
-		XR_Rule;
+		XR_Begin;
 	};
 	uint32_t tdlen;
 	char16_t template_dir[tdlen];
@@ -256,6 +309,22 @@ Layout:
 
 @template_dir: The most recently used location from which a template file was
 used. (For UI display purposes.)
+
+Rule order is defined by their logical position to one another in XR_Begin.
+
+
+== XR_Begin ==
+
+	uint8_t magic[3];
+
+@magic: The bit pattern suggests this could be a flags field.
+However, before OL2019 for the first time created e0c810 rules, it warned
+of backwards compatibility (once only), so this is perhaps a version field.
+
+	0x40 0x42 0x0f    XR_Rule (alternative 1)
+	0x80 0x4f 0x12    XR_Rule (alternative 2)
+	0xe0 0xc8 0x10    XR_Rule (alternative 3)
+	0x6e 0x54 0x3d    AR_DeferAction
 
 
 == XR_Rule ==
@@ -283,7 +352,6 @@ actions, and only then exception conditions.
 
 == XR_Header ==
 
-	uint8_t magic[3];
 	uint8_t locator;
 	uint8_t rname_len;
 	if (rname_len == 0xff)
@@ -313,13 +381,6 @@ actions, and only then exception conditions.
 		REJECT-PARSE;
 	}
 
-@magic: The bit pattern suggests this could be a flags field.
-However, before OL2019 for the first time created e0c810 rules, it warned
-of backwards compatibility (once only), so this is perhaps a version field.
-
-	0x40 0x42 0x0f    alternative 1
-	0x80 0x4f 0x12    alternative 2
-	0xe0 0xc8 0x10    alternative 3
 
 @locator: a magic value
 
@@ -387,6 +448,12 @@ terminator, it needs to be appropriately subtracted during processing.
 
 == Condition 100 (0x64): Unknown ==
 
+UI label:
+
+	Not visible in the UI at all.
+
+Layout:
+
 	uint32_t act_kind = 0x64;
 	uint32_t magic[] = {1, 0, 1};
 
@@ -407,6 +474,10 @@ Layout:
 	uint32_t act_kind = 0xc8;
 	uint32_t magic = 0;
 
+SRestriction:
+
+	{RES_PROPERTY, RELOP_EQ, PR_MESSAGE_TO_ME, true}
+
 
 == Condition 201 (0xc9): Only to me ==
 
@@ -424,6 +495,14 @@ Layout:
 	uint32_t act_kind = 0xc9;
 	uint32_t magic = 0;
 
+SRestriction:
+
+	{RES_AND, {
+		{RES_PROPERTY, RELOP_EQ, PR_MESSAGE_TO_ME, true},
+		{RES_NOT, {RES_CONTENT, FL_SUBSTRING, PR_DISPLAY_TO, ";"}},
+		{RES_PROPERTY, RELOP_EQ, PR_DISPLAY_CC, ""},
+	}}
+
 
 == Condition 202 (0xca): Name not in To ==
 
@@ -440,6 +519,10 @@ Layout:
 
 	uint32_t act_kind = 0xca;
 	uint32_t magic = 0;
+
+SRestriction:
+
+	{RES_PROPERTY, RELOP_EQ, PR_MESSAGE_TO_ME, false}
 
 
 == Condition 203 (0xcb): From ==
@@ -462,6 +545,21 @@ Layout:
 		XR_PropValArray;
 	};
 	uint32_t magic[] = {1, 0};
+
+SRestriction:
+
+	{RES_COMMENT,
+	lpProp={
+		{PROP_TAG(PT_LONG, 0x6000), 1},
+		{PROP_TAG(PT_BINARY, 0x0001), <PR_ENTRYID from an ABK or OneOff>},
+		{PROP_TAG(PT_TSTRING, 0x0001), <Display name of recipient>},
+		{PR_DISPLAY_TYPE, DT_MAILUSER}},
+	lpRes={
+		{RES_PROPERTY, RELOP_EQ, PR_SENDER_SEARCH_KEY,
+			"EX:/O=TOPORGUM/..."}},
+	}
+
+	Specifying multiple senders will add a level of RES_OR.
 
 The propvalarray for an EX entity typically includes 11 props:
 
@@ -521,6 +619,21 @@ UI label:
 
 The layout is the same as From (0xcb), but with act_kind=0xcc.
 
+SRestriction:
+
+	{RES_COMMENT,
+	lpProp={
+		{PROP_TAG(PT_LONG, 0x6000), 1},
+		{PROP_TAG(PT_BINARY, 0x0001), <PR_ENTRYID from an ABK or OneOff>},
+		{PROP_TAG(PT_TSTRING, 0x0001), <Display name of recipient>},
+		{PR_DISPLAY_TYPE, DT_MAILUSER}},
+	lpRes={
+		{RES_PROPERTY, RELOP_EQ, PR_SEARCH_KEY,
+			"EX:/O=TOPORGUM/..."}},
+	}
+
+	Specifying multiple recipients will add a level of RES_OR.
+
 
 == Condition 205 (0xcd): Subject words ==
 
@@ -541,6 +654,12 @@ Layout:
 		char16_t substring[mlen];
 	} m;
 
+SRestriction:
+
+	{RES_CONTENT, FL_IGNORECASE | FL_SUBSTRING, PR_SUBJECT, "text"}
+
+	Specifying multiple strings will add a level of RES_OR.
+
 The UI offers no way to set any flags, and based upon the UI text and observed
 runtime behavior, FL_IGNORECASE|FL_SUBSTRING is always in effect with flags==0.
 
@@ -557,6 +676,12 @@ UI label:
 
 The layout is the same as Subject (0xcd), but with act_kind=0xce.
 
+SRestriction:
+
+	{RES_CONTENT, FL_IGNORECASE | FL_SUBSTRING, PR_BODY, "text"}
+
+	Specifying multiple strings will add a level of RES_OR.
+
 
 == Condition 207 (0xcf): Subject or body words ==
 
@@ -566,6 +691,16 @@ UI label:
 	DE:"mit <bestimmten Wörtern> im Betreff oder Text"
 
 The layout is the same as Subject (0xcd), but with act_kind=0xcf.
+
+SRestriction:
+
+	{RES_OR, {
+		{RES_CONTENT, FL_IGNORECASE | FL_SUBSTRING, PR_SUBJECT, "t"},
+		{RES_CONTENT, FL_IGNORECASE | FL_SUBSTRING, PR_BODY, "t"},
+	}}
+
+	Specifying multiple strings will not add a level of RES_OR; the
+	existing RES_OR will be filled.
 
 
 == Condition 208 (0xd0): Flagged for action ==
@@ -589,6 +724,14 @@ Layout:
 	char16_t action[nlen];
 	uint32_t magic = 1;
 
+SRestriction:
+
+	{RES_AND, {
+		{RES_PROPERTY, RELOP_EQ, PR_FLAG_STATUS, 2},
+		{RES_PROPERTY, RELOP_EQ,
+			PROP_TAG(PT_TSTRING, 0x802A), "action"},
+	}}
+
 
 == Condition 210 (0xd2): Importance ==
 
@@ -605,7 +748,11 @@ Layout:
 		IMPORTANCE_LOW = 0
 		IMPORTANCE_MEDIUM = 1,
 		IMPORTANCE_HIGH = 2,
-	};
+	} level;
+
+SRestriction:
+
+	{RES_PROPERTY, RELOP_EQ, PR_IMPORTANCE, level}
 
 
 == Condition 211 (0xd3): Sensitivity ==
@@ -624,7 +771,11 @@ Layout:
 		SENSITIVITY_PERSONAL = 1,
 		SENSITIVITY_PRIVATE = 2,
 		SENSITIVITY_COMPANY_CONFIDENTIAL = 3,
-	};
+	} level;
+
+SRestriction:
+
+	{RES_PROPERTY, RELOP_EQ, PR_SENSITIVITY, level}
 
 
 == Condition 215 (0xd7): Category ==
@@ -642,6 +793,10 @@ Layout:
 	if (cname_len == 0xff)
 		uint16_t cname_len;
 	char16_t categories[cname_len];
+
+SRestriction:
+
+	(Not mapped)
 
 @categories is a semicolon-separated string of categories. As a consequence,
 category names are not allowed to contain semicolons, and the OL2019 UI
@@ -668,6 +823,11 @@ Layout:
 	uint32_t act_kind = 0xdc;
 	uint32_t magic = 0;
 
+SRestriction:
+
+	{RES_PROPERTY, RELOP_EQ, PR_MESSAGE_CLASS,
+		"IPM.Note.Rules.OofTemplate.Microsoft"}
+
 
 == Condition 222 (0xde): Attachment ==
 
@@ -680,6 +840,10 @@ Layout:
 
 	uint32_t act_kind = 0xde;
 	uint32_t magic = 0;
+
+SRestriction:
+
+	{RES_BITMASK, BMR_NEZ, PR_MESSAGE_FLAGS, MSGFLAG_HASATTACH}
 
 
 == Condition 223 (0xdf): Form property ==
@@ -742,6 +906,10 @@ Layout:
 		char msgclass[clen];
 	};
 
+SRestriction:
+
+	(Not mapped)
+
 @forms: a semicolon-space-separated list of forms to load
 (e.g. "Aufgabe annehmen; InfoPath-Formular").
 
@@ -791,6 +959,13 @@ Layout:
 	uint32_t min_size_kb;
 	uint32_t max_size_kb;
 
+SRestriction:
+
+	{RES_AND, {
+		{RES_PROPERTY, RELOP_GT, PR_MESSAGE_SIZE, xx},
+		{RES_PROPERTY, RELOP_LE, PR_MESSAGE_SIZE, yy},
+	}}
+
 
 == Condition 225 (0xe1): Date ==
 
@@ -813,6 +988,12 @@ Layout:
 	uint32_t test_before;
 	uint32_t magic = 0;
 	double ts_before;
+
+SRestriction:
+
+	{RES_PROPERTY, RELOP_GT, PR_MESSAGE_DELIVERY_TIME, xx} or
+	{RES_PROPERTY, RELOP_LE, PR_MESSAGE_DELIVERY_TIME, yy} or
+	both combined via RES_AND.
 
 @test_after: boolean whether or not to run a comparison "NOW > @ts_after".
 
@@ -843,6 +1024,14 @@ Layout:
 	uint32_t act_kind = 0xe2;
 	uint32_t magic = 0;
 
+SRestriction:
+
+	{RES_AND, {
+		{RES_PROPERTY, RELOP_EQ, PR_MESSAGE_CC_ME, true},
+		{RES_PROPERTY, RELOP_EQ, PR_MESSAGE_RECIP_ME, true},
+		{RES_PROPERTY, RELOP_EQ, PR_MESSAGE_TO_ME, false},
+	}}
+
 
 == Condition 227 (0xe3): Name in To or Cc ==
 
@@ -859,6 +1048,10 @@ Layout:
 
 	uint32_t act_kind = 0xe3;
 	uint32_t magic = 0;
+
+SRestriction:
+
+	{RES_PROPERTY, RELOP_EQ, PR_MESSAGE_RECIP_ME, true}
 
 
 == Condition 228 (0xe4): Form / message class ==
@@ -883,6 +1076,14 @@ Layout:
 			uint16_t clen;
 		char msgclass[clen];
 	};
+
+SRestriction:
+
+	{RES_OR, {
+		{RES_PROPERTY, RELOP_EQ, PR_MESSAGE_CLASS, "IPM.Note.MyName"},
+	}}
+
+	The RES_OR is always present, even with just one class.
 
 The OL2019 UI, when saving forms, arbitrarily restricts form names to 128
 characters by ignoring excess keypresses. A nlen >= 255 was therefore not
@@ -1011,6 +1212,10 @@ UI label:
 
 The layout is the same as Subject words (0xcd), but with act_kind=0xe5.
 
+SRestriction:
+
+	{RES_CONTENT, FL_SUBSTRING, PR_SEARCH_KEY, "SMTP:FOO@BAR.DE"}
+
 
 == Condition 230 (0xe6): Sender words ==
 
@@ -1025,6 +1230,10 @@ UI behavior:
 
 The layout is the same as Subject words (0xcd), but with act_kind=0xe6.
 
+SRestriction:
+
+	{RES_CONTENT, FL_SUBSTRING, PR_SENDER_SEARCH_KEY, "SMTP:FOO@BAR.DE"}
+
 
 == Condition 232 (0xe8): Header words ==
 
@@ -1038,6 +1247,11 @@ UI behavior:
 	Only selectable for receive rules.
 
 The layout is the same as Subject (0xcd), but with act_kind=0xe8.
+
+SRestriction:
+
+	{RES_CONTENT, FL_IGNORECASE | FL_SUBSTRING,
+	PR_TRANSPORT_MESSAGE_HEADERS, "text"}
 
 
 == Condition 238 (0xee): Account ==
@@ -1065,6 +1279,10 @@ Layout:
 		uint16_t abc_len;
 	char abc[abc_len];
 
+SRestriction:
+
+	(Not mapped)
+
 (The MAPI control panel limits profile names to 63 characters, by the way.)
 
 @account_name: An account _within_ the current MAPI profile, specifically
@@ -1088,6 +1306,10 @@ Layout:
 	uint32_t magic[] = {1, 0};
 	unsigned char some_guid[16];
 
+SRestriction:
+
+	(Not mapped)
+
 
 == Condition 240 (0xf0): Addressbook ==
 
@@ -1110,6 +1332,10 @@ Layout:
 	if (nlen == 0xff) /* conjecture */
 		uint16_t nlen;
 	char16_t name[nlen];
+
+SRestriction:
+
+	(Not mapped)
 
 @eid: for example,
 00000000  00 00 00 00 87 12 f5 ef  5b 95 8f 43 94 a0 89 8c  |........[..C....|
@@ -1151,6 +1377,15 @@ Layout:
 		uint16_t nlen;
 	char16_t name[nlen];
 
+SRestriction:
+
+	{RES_OR, {
+		{RES_CONTENT, RELOP_EQ, PR_MESSAGE_CLASS,
+			"IPM.Schedule.Meeting.Request"},
+		{RES_CONTENT, RELOP_EQ, PR_MESSAGE_CLASS,
+			"IPM.Schedule.Meeting.Canceled"},
+	}}
+
 
 == Condition 246 (0xf6): Any category ==
 
@@ -1163,6 +1398,12 @@ Layout:
 
 	uint32_t act_kind = 0xf6;
 	uint32_t magic = 0;
+
+SRestriction:
+
+	{RES_EXIST, PROP_TAG(PT_MV_STRING8, 0x8002)}
+
+	Namedprop: PT_MV_STRING8:PS_PUBLIC_STRINGS:Keywords
 
 Matches if the message has any category set. (This only works for messages
 received directly through MAPI or as TNEF.)
@@ -1179,6 +1420,10 @@ Layout:
 
 	uint32_t act_kind = 0xf7;
 	uint32_t magic = 0;
+
+SRestriction:
+
+	{RES_PROPERTY, RELOP_EQ, PR_MESSAGE_CLASS, ""}
 
 
 == Action 300 (0x12c): Move message ==
@@ -1202,6 +1447,15 @@ Layout:
 	char16_t folder_name[fname_len];
 	uint32_t magic = 0;
 
+SSRT:
+
+	lpAction->acttype = OP_MOVE
+	lpAction->ulActionFlavor = 0
+	lpAction->actMoveCopy.cbStoreEntryId = @seid_len
+	lpAction->actMoveCopy.lpStoreEntryId = @store_eid
+	lpAction->actMoveCopy.cbFldEntryId = @feid_len
+	lpAction->actMoveCopy.lpFldEntryId = @folder_eid
+
 The OL2019 UI's left pane arbitrarily restricts folder names to 127 characters
 by ignoring excess keypresses. The folder property dialog (via context menu)
 allows longer names, but still arbitrarily restricts folder names to 255
@@ -1221,12 +1475,22 @@ Layout:
 	uint32_t act_kind = 0x12d;
 	uint32_t magic = 0;
 
+SSRT:
+
+	lpAction->acttype = OP_MOVE
+	lpAction->ulActionFlavor = 0
+	lpAction->actMoveCopy = (set to the wastebasket)
+
 
 == Action 302 (0x12e): Forward message ==
 
 UI label:
 
 	DE:"diese an <einer Person/öffentlichen Gruppe> weiterleiten" [sic]
+
+UI behavior:
+
+	OL2019 offers no way to set the flavor bits FWD_PRESERVE_SENDER...?, etc. (see edkmdb.h).
 
 Layout:
 
@@ -1239,6 +1503,40 @@ Layout:
 	uint32_t magic[] = {0, 0};
 
 The propvalarray for a recipient is the same as for a sender (0xcb).
+
+SSRT:
+
+	lpAction->acttype = OP_FORWARD
+	lpAction->ulActionFlavor = 0
+	lpAction->lpadrlist = ...
+	Typically 12 props for an SMTP target:
+		PR_ENTRYID
+		PR_DISPLAY_NAME
+		PR_OBJECT_TYPE = 6
+		PR_DISPLAY_TYPE = 0
+		PR_TRANSMITTABLE_DISPLAY_NAME
+		PR_EMAIL_ADDRESS = "foo@bar.de"
+		PR_ADDRTYPE = "SMTP"
+		PR_SEND_RICH_INFO = false
+		PR_SEND_INTERNET_ENCODING = 0
+		PR_RECIPIENT_TYPE = 1 (MAPI_TO)
+		PR_SEARCH_KEY = "SMTP:FOO@BAR.DE"
+		PR_RECORD_KEY
+	Typically 14 props for an EX target:
+		PR_ENTRYID
+		PR_DISPLAY_NAME
+		PR_OBJECT_TYPE = 6
+		PR_DISPLAY_TYPE = 0
+		PR_TRANSMITTABLE_DISPLAY_NAME
+		PR_EMAIL_ADDRESS
+		PR_ADDRTYPE = "EX"
+		PR_7BIT_DISPLAY_NAME = "foo#bar.de"
+		PR_SMTP_ADDRESS = "foo@bar.de"
+		PR_SEND_INTERNET_ENCODING = 0
+		PR_RECIPIENT_TYPE = 1 (MAPI_TO)
+		PR_SEARCH_KEY
+		PR_DISPLAY_TYPE_EX
+		PR_AB_PROVIDERS
 
 
 == Action 303 (0x12f): Reply with template ==
@@ -1265,6 +1563,12 @@ Layout:
 		uint16_t plen;
 	char16_t pathname[plen];
 
+SSRT:
+
+	lpAction->acttype = OP_DEFER_ACTION
+	lpAction->ulActionFlavor = 0
+	lpAction->actDeferAction.pbData = (see XR_Begin)
+
 
 == Action 304 (0x130): Show Outlook notification ==
 
@@ -1281,6 +1585,10 @@ Layout:
 	if (tlen == 0xff)
 		uint16_t tlen;
 	char16_t text[tlen];
+
+SSRT:
+
+	(Mapped to OP_DEFER_ACTION/XR_Begin)
 
 The OL2019 UI restricts entering messages to 65536 characters by ignoring
 excess keypresses. When trying to save such a large text, OL will claim
@@ -1302,6 +1610,10 @@ UI label:
 	EN:"flag message for <action in a number of days>"
 	DE:"diese mit <einer Aktion in ... Tagen> kennzeichnen
 
+UI behavior:
+
+	Only selectable for send rules.
+
 Layout:
 
 	uint32_t act_kind = 0x131;
@@ -1312,6 +1624,10 @@ Layout:
 		uint16_t nlen;
 	char16_t action[nlen];
 	uint32_t magic = 0;
+
+SSRT:
+
+	(Not mapped)
 
 
 == Action 306 (0x132): Clear followup flag ==
@@ -1325,6 +1641,10 @@ Layout:
 
 	uint32_t act_kind = 0x132;
 	uint32_t magic = 0;
+
+SSRT:
+
+	(Mapped to OP_DEFER_ACTION/XR_Begin)
 
 
 == Action 307 (0x133): Set categories ==
@@ -1343,12 +1663,17 @@ Layout:
 		uint16_t clen;
 	char16_t categories[clen];
 
+SSRT:
+
+	(Mapped to OP_DEFER_ACTION/XR_Begin, because OP_TAG resets the
+	property, i.e. would unset all previous categories.)
+
 @categories: This is a semicolon-separated string of categories that shall be
-set on the message. (Property is PS_PUBLIC_STRINGS:Keywords:PT_MV_UNICODE)
-For this reason, category names themselves cannot have a semicolon in them.
-According to MS-OXOCFG, the following characters are also forbidden:
-U+061B (ARABIC SEMICOLON), U+FE54 (SMALL SEMICOLON) and U+FF1B (FULLWIDTH
-SEMICOLON).
+set on the message. No categories are hereby unset. (Property is
+PS_PUBLIC_STRINGS:Keywords:PT_MV_UNICODE) For this reason, category names
+themselves cannot have a semicolon in them. According to MS-OXOCFG, the
+following characters are also forbidden: U+061B (ARABIC SEMICOLON), U+FE54
+(SMALL SEMICOLON) and U+FF1B (FULLWIDTH SEMICOLON).
 
 The OL2019 UI restricts entering category names by ignoring semicolon
 keypresses.
@@ -1370,6 +1695,10 @@ UI behavior:
 	"Condition: Machine". However, one can deselect Machine by
 	going back, and then forward again.
 
+SSRT:
+
+	(Mapped to OP_DEFER_ACTION/XR_Begin)
+
 The layout is the same as Reply with Template (0x12f), but with act_kind=0x136.
 
 
@@ -1390,6 +1719,10 @@ Layout:
 		IMPORTANCE_HIGH = 2,
 	} importance;
 
+SSRT:
+
+	(Mapped to OP_DEFER_ACTION/XR_Begin, even though OP_TAG could do it.)
+
 
 == Action 313 (0x139): Copy ==
 
@@ -1399,6 +1732,12 @@ UI label:
 	DE:"eine Kopie davon in den Ordner <Zielordner> verschieben"
 
 The layout is the same as Move (0x12c), but with act_kind=0x139.
+
+SSRT:
+
+	The layout is the same as Move (300), but with
+	lpAction->acttype = OP_COPY
+	lpAction->ulActionFlavor = 0
 
 
 == Action 314 (0x13a): Notify when read ==
@@ -1417,6 +1756,10 @@ Layout:
 	uint32_t act_kind = 0x13a;
 	uint32_t magic = 0;
 
+SSRT:
+
+	(Not mapped)
+
 
 == Action 315 (0x13b): Notify when delivered ==
 
@@ -1434,6 +1777,10 @@ Layout:
 	uint32_t act_kind = 0x13b;
 	uint32_t magic = 0;
 
+SSRT:
+
+	(Not mapped)
+
 
 == Action 316 (0x13c): Cc ==
 
@@ -1450,6 +1797,10 @@ The layout is the same as Forward (0x12e), but with act_kind=0x13c.
 
 PR_RECIPIENT_TYPE in the propvalarray still has value MAPI_TO rather than
 MAPI_CC!
+
+SSRT:
+
+	(Not mapped)
 
 
 == Action 318 (0x13e): Defer ==
@@ -1469,6 +1820,10 @@ Layout:
 	uint32_t magic[] = {1, 0};
 	uint32_t minutes;
 
+SSRT:
+
+	(Not mapped)
+
 
 == Action 322 (0x142): Stop rule processing ==
 
@@ -1487,6 +1842,10 @@ Layout:
 	uint32_t act_kind = 0x142;
 	uint32_t magic = 0;
 
+SSRT:
+
+	PR_RULE_STATE |= ST_EXIT_LEVEL
+
 
 == Action 324 (0x144): Redirect ==
 
@@ -1500,9 +1859,13 @@ UI behavior:
 	The OL2019 UI does not permit mixing this action with other actions not
 	representable as server-side rules.
 
-Layout:
-
 The layout is the same as Forward (0x12e), but with act_kind=0x144.
+
+SSRT:
+
+	The layout is the same as Forward (302), but with
+	lpAction->acttype = OP_FORWARD
+	lpAction->ulActionFlavor = FWD_PRESERVE_SENDER | FWD_DO_NOT_MUNGE_MSG
 
 
 == Action 326 (0x146): Reply ==
@@ -1528,6 +1891,13 @@ Layout:
 		uint16_t slen;
 	char16_t subject[slen];
 
+SSRT:
+
+	lpAction->acttype = OP_REPLY
+	lpAction->ulActionFlavor = 0
+	lpAction->actReply.cbEntryId = @eidlen
+	lpAction->actReply.lpEntryId = @eid
+
 The associated message referenced by @eid is stored in the inbox's Associated
 Contents and has a PR_MESSAGE_CLASS of
 "IPM.Note.Rules.ReplyTemplate.Microsoft".
@@ -1541,6 +1911,12 @@ UI label:
 	weiterleiten" [sic]
 
 The layout is the same as Forward (0x12e), but with act_kind=0x147.
+
+SSRT:
+
+	The layout is the same as Forward (302), but with
+	lpAction->acttype = OP_FORWARD
+	lpAction->ulActionFlavor = FWD_AS_ATTACHMENT
 
 
 == Action 328 (0x148): Print ==
@@ -1559,6 +1935,10 @@ Layout:
 	uint32_t act_kind = 0x148;
 	uint32_t magic = 0;
 
+SSRT:
+
+	(Mapped to OP_DEFER_ACTION/XR_Begin)
+
 
 == Action 330 (0x14a): Hard delete ==
 
@@ -1576,6 +1956,10 @@ Layout:
 	uint32_t act_kind = 0x14a;
 	uint32_t magic = 0;
 
+SSRT:
+
+	(Mapped to OP_DEFER_ACTION/XR_Begin, even though it could use
+	OP_DELETE.)
 
 
 == Action 332 (0x14c): Mark as read ==
@@ -1594,6 +1978,10 @@ Layout:
 	uint32_t act_kind = 0x14c;
 	uint32_t magic = 0;
 
+SSRT:
+
+	(Mapped to OP_DEFER_ACTION/XR_Begin.)
+
 
 == Action 335 (0x14f): Desktop notfication ==
 
@@ -1610,6 +1998,10 @@ Layout:
 
 	uint32_t act_kind = 0x14f;
 	uint32_t magic = 0;
+
+SSRT:
+
+	(Mapped to OP_DEFER_ACTION/XR_Begin.)
 
 
 == Action 337 (0x151): Set follow-up flag ==
@@ -1638,6 +2030,10 @@ Layout:
 	uint8_t fu_name_len;
 	char16_t fu_name[fu_name_len];
 
+SSRT:
+
+	(Mapped to OP_DEFER_ACTION/XR_Begin.)
+
 
 == Action 338 (0x152): Clear categories ==
 
@@ -1650,6 +2046,12 @@ Layout:
 
 	uint32_t act_kind = 0x152;
 	uint32_t magic = 0;
+
+SSRT:
+
+	lpAction->acttype = OP_TAG
+	lpAction->ulActionFlavor = 0
+	lpAction->propTag.ulPropTag = PROP_TAG(PT_MV_UNICODE, 0x8002)
 
 
 == Condition 400 (0x190): Receive/Send ==
@@ -1666,6 +2068,11 @@ Layout:
 	uint32_t act_kind = 0x190;
 	uint32_t magic[] = {1, 0};
 	uint32_t flagbits;
+
+SSRT:
+
+	All rules in the SSRT are receive rules by definition.
+	The SSRT does not keep send rules.
 
 @flagbits:
 	0x01: message was received
@@ -2149,3 +2556,107 @@ UI behavior:
 	action. The feature is practically not observable.
 
 The layout is presumably the same as Form class.
+
+
+== Server-side Rules Table ==
+
+Perhaps the earliest way inbox rules were defined. The "Inside MAPI" book from
+1996 does not mention it (nor does it any other method).
+
+The rules table is a special property (i.e. cannot be obtained with GetProps)
+on the inbox, which is to be accessed using:
+
+	object_ptr<IExchangeModifyTable> emt;
+	object_ptr<IMAPITable> tbl;
+	inbox->OpenProperty(PR_RULES_TABLE, &IID_IExchangeModifyTable, 0, 0, &~emt);
+	emt->GetTable(&~tbl);
+
+From there on, it is a regular IMAPITable with a number of properties. This
+table is documented on MSDN, therefore abridged here and limited to notes.
+
+@PR_RULE_NAME: rule display name.
+
+@PR_RULE_ID: uint64_t which commonly seems to be 0x01000002 | (rand() << 32).
+This field is arguably created by the server and a client adding a new rule
+must not present this property.
+
+@PR_RULE_PROVIDER: Observed values:
+
+	"MSFT:TDX OOF Rules"...
+	"Organizer2"
+
+@PR_RULE_PROVIDER_DATA: left undocumented by MSDN, piecewise unraveled in this
+document.
+
+@PR_RULE_SEQUENCE: Integer specifying the order of the rule with respect to
+others. Apparently, no one could be bothered to insert rules at the right spot
+and just use PR_ROWID.
+
+
+== SSRT: Organizer2 ==
+
+Rules are cloned by Outlook to the SSRT if they are enabled and for incoming
+messages. Conditions and actions supported by the Rule Stream get mapped onto
+the SSRT fields in various ways.
+
+Properties:
+
+@PR_RULE_PROVIDER_DATA: This seems to be a GUID (due to 16 bytes), and this
+GUID can also be found on FAI message Rule.Version2 as
+PR_MSG_RULE_PROVIDER_DATA.
+
+Conditions:
+
+See the individual sections on conditions how they get mapped to SSRT
+SRestrictions. If a rule has been defined without any conditions, or when none
+of these conditions were mapped to the SSRT, a dummy SRestriction {RES_EXIST,
+PR_MESSAGE_CLASS} may be attached.
+
+Exceptions:
+
+Exceptions are treated like conditions; they just get wrapped in another
+RES_NOT container.
+
+Actions:
+
+See the individual sections on actions how they get maped to SSRT actions. If a
+rule has been defined with any actions, or when the only action is "stop
+processing more rules", OP_DEFER_ACTION/XR_Begin is also used.
+
+
+== SSRT: OOF rules ==
+
+OOF: originally "Out of Facility", nowadays "Out of Office".
+
+In PR_RULES_TABLE, there will be rows with:
+
+	PR_RULE_PROVIDER: "MSFT:TDX OOF Rules" +
+		32 hex chars [0-9a-f] forming some GUID
+
+	PR_RULE_SEQEUENCE: OL2019 makes them start with 100, effectively
+	putting them after inbox rules, and possibly mixing them for the worse
+	should the normal receive rules exceed 89.
+
+The OOF dialog does not permit many actions at all; basically just the
+features that map to the edkmdb.h:OP_* values. There are only two
+extra actions implemented using OP_DEFER_ACTION. The dialog has plenty
+of bugs and loses information.
+
+
+== AR_DeferAction ==
+
+	uint8_t magic[5] = {0x20, 0x20, 0x20, 0x20, 0x20};
+	uint8_t actionbytes[2];
+
+
+== AR Action 0x30 0x3b: Notify with string ==
+
+	char8_t message[]; /* \0-terminated */
+
+
+== AR Action 0x32 0x37: Notify with sound ==
+
+	char8_t path_and_msg[]; /* \0-terminated */
+
+@path_and_msg: e.g. "C:\foo.wav;Message here" or just "C:\foo.wav;" for no
+message.
