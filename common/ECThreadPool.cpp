@@ -348,6 +348,7 @@ void* ECThreadPool::threadFunc(void *lpVoid)
 		if (sTaskInfo.bDelete)
 			delete sTaskInfo.lpTask;
 		--lpPool->m_active;
+		set_thread_name(pthread_self(), (lpPool->m_poolname + "/idle").c_str());
 		lpPool->m_hCondTaskDone.notify_one();
 	}
 
