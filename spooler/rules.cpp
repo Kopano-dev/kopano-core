@@ -1192,23 +1192,23 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 	sc->inc(SCN_RULES_INVOKES);
 	auto hr = lpOrigInbox->OpenProperty(PR_RULES_TABLE, &IID_IExchangeModifyTable, 0, 0, &~lpTable);
 	if (hr != hrSuccess) {
-		kc_perrorf("OpenProperty failed", hr);
-		goto exit;
+		sc->inc(SCN_RULES_INVOKES_FAIL);
+		return hr_lerrf(hr, "OpenProperty failed");
 	}
 	hr = lpTable->QueryInterface(IID_IECExchangeModifyTable, &~lpECModifyTable);
 	if(hr != hrSuccess) {
-		kc_perrorf("QueryInterface failed", hr);
-		goto exit;
+		sc->inc(SCN_RULES_INVOKES_FAIL);
+		return hr_lerrf(hr, "QueryInterface failed");
 	}
 	hr = lpECModifyTable->DisablePushToServer();
 	if(hr != hrSuccess) {
-		kc_perrorf("DisablePushToServer failed", hr);
-		goto exit;
+		sc->inc(SCN_RULES_INVOKES_FAIL);
+		return hr_lerrf(hr, "DisablePushToServer failed");
 	}
 	hr = pyMapiPlugin->RulesProcessing("PreRuleProcess", lpSession, lpAdrBook, lpOrigStore, lpTable, &ulResult);
 	if(hr != hrSuccess) {
-		kc_perrorf("RulesProcessing failed", hr);
-		goto exit;
+		sc->inc(SCN_RULES_INVOKES_FAIL);
+		return hr_lerrf(hr, "RulesProcessing failed");
 	}
 
 	// get OOF-state for recipient-store
@@ -1232,26 +1232,26 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 	//TODO do something with ulResults
 	hr = lpTable->GetTable(0, &~lpView);
 	if(hr != hrSuccess) {
-		kc_perrorf("GetTable failed", hr);
-		goto exit;
+		sc->inc(SCN_RULES_INVOKES_FAIL);
+		return hr_lerrf(hr, "GetTable failed");
 	}
 	hr = lpView->SetColumns(sptaRules, 0);
 	if (hr != hrSuccess) {
-		kc_perrorf("SetColumns failed", hr);
-		goto exit;
+		sc->inc(SCN_RULES_INVOKES_FAIL);
+		return hr_lerrf(hr, "SetColumns failed");
 	}
 	hr = lpView->SortTable(sosRules, 0);
 	if (hr != hrSuccess) {
-		kc_perrorf("SortTable failed", hr);
-		goto exit;
+		sc->inc(SCN_RULES_INVOKES_FAIL);
+		return hr_lerrf(hr, "SortTable failed");
 	}
 
 	while (1) {
 		rowset_ptr lpRowSet;
 	        hr = lpView->QueryRows(1, 0, &~lpRowSet);
 		if (hr != hrSuccess) {
-			kc_perrorf("QueryRows failed", hr);
-				goto exit;
+			sc->inc(SCN_RULES_INVOKES_FAIL);
+			return hr_lerrf(hr, "QueryRows failed");
 		}
 	        if (lpRowSet->cRows == 0)
 			break;
