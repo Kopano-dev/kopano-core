@@ -1869,7 +1869,7 @@ static HRESULT HrGetSession(const DeliveryArgs *lpArgs,
  */
 static HRESULT HrPostDeliveryProcessing(pym_plugin_intf *lppyMapiPlugin,
     LPADRBOOK lpAdrBook, LPMDB lpStore, IMAPIFolder *lpInbox,
-    IMAPIFolder *lpFolder, IMessage **lppMessage, ECRecipient *lpRecip,
+    IMAPIFolder *lpFolder, IMessage *lppMessage, ECRecipient *lpRecip,
     DeliveryArgs *lpArgs)
 {
 	object_ptr<IMAPISession> lpUserSession;
@@ -1883,9 +1883,9 @@ static HRESULT HrPostDeliveryProcessing(pym_plugin_intf *lppyMapiPlugin,
 	if (hr != hrSuccess)
 		return hr;
 
-	if(FNeedsAutoAccept(lpStore, *lppMessage)) {
+	if(FNeedsAutoAccept(lpStore, lppMessage)) {
 		ec_log_info("Starting MR autoaccepter");
-		hr = HrAutoAccept(lpArgs->sc.get(), lpRecip, lpStore, *lppMessage);
+		hr = HrAutoAccept(lpArgs->sc.get(), lpRecip, lpStore, lppMessage);
 		if(hr == hrSuccess) {
 			ec_log_info("Autoaccept processing completed successfully. Skipping further processing.");
 			// The MR autoaccepter has processed the message. Skip any further work on this message: don't
@@ -1899,9 +1899,9 @@ static HRESULT HrPostDeliveryProcessing(pym_plugin_intf *lppyMapiPlugin,
 		// processing as if the autoaccepter was not used
 		hr = hrSuccess;
 	}
-	else if (FNeedsAutoProcessing(lpStore, *lppMessage)) {
+	else if (FNeedsAutoProcessing(lpStore, lppMessage)) {
 		ec_log_info("Starting MR auto processing");
-		hr = HrAutoProcess(lpArgs->sc.get(), lpRecip, lpStore, *lppMessage);
+		hr = HrAutoProcess(lpArgs->sc.get(), lpRecip, lpStore, lppMessage);
 		if (hr == hrSuccess) {
 			ec_log_info("Automatic MR processing successful.");
 		} else {
@@ -1912,7 +1912,9 @@ static HRESULT HrPostDeliveryProcessing(pym_plugin_intf *lppyMapiPlugin,
 
 	if (lpFolder == lpInbox) {
 		// process rules for the inbox
-		hr = HrProcessRules(convert_to<std::string>(lpRecip->wstrUsername), lppyMapiPlugin, lpUserSession, lpAdrBook, lpStore, lpInbox, lppMessage, lpArgs->sc.get());
+		hr = HrProcessRules(convert_to<std::string>(lpRecip->wstrUsername),
+		     lppyMapiPlugin, lpUserSession, lpAdrBook, lpStore, lpInbox,
+		     lppMessage, lpArgs->sc.get());
 		if (hr == MAPI_E_CANCEL)
 			ec_log_notice("Message canceled by rule");
 		else if (hr != hrSuccess)
@@ -1923,10 +1925,10 @@ static HRESULT HrPostDeliveryProcessing(pym_plugin_intf *lppyMapiPlugin,
 	// do not send vacation message for junk messages
 	if (lpArgs->ulDeliveryMode != DM_JUNK &&
 	// do not send vacation message on delegated messages
-	    (HrGetOneProp(*lppMessage, PR_DELEGATED_BY_RULE, &~ptrProp) != hrSuccess || !ptrProp->Value.b)) {
+	    (HrGetOneProp(lppMessage, PR_DELEGATED_BY_RULE, &~ptrProp) != hrSuccess || !ptrProp->Value.b)) {
 		auto autoresponder = lpArgs->strAutorespond.size() > 0 ? lpArgs->strAutorespond : g_lpConfig->GetSetting("autoresponder");
 		SendOutOfOffice(lpArgs->sc.get(), lpAdrBook, lpStore,
-			*lppMessage, lpRecip, autoresponder);
+			lppMessage, lpRecip, autoresponder);
 	}
 	return hr;
 }
@@ -2090,7 +2092,7 @@ static HRESULT ProcessDeliveryToRecipient(pym_plugin_intf *lppyMapiPlugin,
 	}
 
 	// Do rules & out-of-office
-	hr = HrPostDeliveryProcessing(lppyMapiPlugin, lpAdrBook, lpTargetStore, lpInbox, lpTargetFolder, &+lpDeliveryMessage, lpRecip, lpArgs);
+	hr = HrPostDeliveryProcessing(lppyMapiPlugin, lpAdrBook, lpTargetStore, lpInbox, lpTargetFolder, lpDeliveryMessage, lpRecip, lpArgs);
 	if (hr != MAPI_E_CANCEL) {
 		if(bIsAdmin) {
 			hr = lpStore->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);

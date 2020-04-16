@@ -908,7 +908,7 @@ struct rulexec {
 	IMsgStore *store = nullptr;
 	IMAPIFolder *inbox = nullptr;
 	IAddrBook *abook = nullptr;
-	IMessage **msgp = nullptr;
+	IMessage *msg = nullptr;
 	const char *recip = nullptr, *name = nullptr;
 	bool was_forwarded = false, was_moved = false;
 };
@@ -951,13 +951,13 @@ static struct actresult proc_op_copy(rulexec &rei, const ACTION &action)
 		hr_lerr(hr, "Unable to create e-mail for rule \"%s\"", rei.name);
 		return {ROP_FAILURE, hr};
 	}
-	hr = (*rei.msgp)->CopyTo(0, nullptr, nullptr, 0, nullptr, &IID_IMessage,
+	hr = rei.msg->CopyTo(0, nullptr, nullptr, 0, nullptr, &IID_IMessage,
 	     newmsg, 0, nullptr);
 	if (hr != hrSuccess) {
 		hr_lerr(hr, "Unable to copy e-mail for rule \"%s\"", rei.name);
 		return {ROP_FAILURE, hr};
 	}
-	hr = Util::HrCopyIMAPData(*rei.msgp, newmsg);
+	hr = Util::HrCopyIMAPData(rei.msg, newmsg);
 	// the function only returns errors on get/setprops, not when the data is just missing
 	if (hr != hrSuccess) {
 		ec_log_err("Unable to copy IMAP data e-mail for rule \"%s\": %s (%x). Continuing.",
@@ -981,7 +981,7 @@ static struct actresult proc_op_reply(rulexec &rei, const ACTION &action)
 	rei.sc->inc(SCN_RULES_REPLY_AND_OOF);
 
 	memory_ptr<SPropValue> pv;
-	if (HrGetFullProp(*rei.msgp, PR_TRANSPORT_MESSAGE_HEADERS_A, &~pv) == hrSuccess &&
+	if (HrGetFullProp(rei.msg, PR_TRANSPORT_MESSAGE_HEADERS_A, &~pv) == hrSuccess &&
 	    dagent_avoid_autoreply(tokenize(pv->Value.lpszA, "\n"))) {
 		ec_log_warn("Rule \"%s\": Not replying to an autoreply", rei.name);
 		return {ROP_SUCCESS};
@@ -999,7 +999,7 @@ static struct actresult proc_op_reply(rulexec &rei, const ACTION &action)
 		return {ROP_ERROR, hr};
 	}
 	object_ptr<IMessage> replymsg;
-	hr = CreateReplyCopy(rei.session, rei.store, *rei.msgp, tmpl, &~replymsg);
+	hr = CreateReplyCopy(rei.session, rei.store, rei.msg, tmpl, &~replymsg);
 	if (hr != hrSuccess) {
 		hr_lerr(hr, "Rule \"%s\": Unable to create reply message", rei.name);
 		return {ROP_ERROR, hr};
@@ -1027,7 +1027,7 @@ static struct actresult proc_op_fwd(rulexec &rei, const ACTION &act)
 		return {ROP_SUCCESS};
 	}
 	memory_ptr<SPropValue> pv;
-	if (HrGetFullProp(*rei.msgp, PR_TRANSPORT_MESSAGE_HEADERS_A, &~pv) == hrSuccess &&
+	if (HrGetFullProp(rei.msg, PR_TRANSPORT_MESSAGE_HEADERS_A, &~pv) == hrSuccess &&
 	    dagent_avoid_autofwd(tokenize(pv->Value.lpszA, "\n"))) {
 		ec_log_warn("Rule \"%s\": Not forwarding autoreplies", rei.name);
 		return {ROP_SUCCESS};
@@ -1039,16 +1039,16 @@ static struct actresult proc_op_fwd(rulexec &rei, const ACTION &act)
 		 */
 		PROPMAP_START(1)
 		PROPMAP_NAMED_ID(KopanoRuleAction, PT_UNICODE, PS_INTERNET_HEADERS, "x-kopano-rule-action")
-		auto hr = m_propmap.Resolve(*rei.msgp);
+		auto hr = m_propmap.Resolve(rei.msg);
 		if (hr != hrSuccess)
 			return {ROP_FAILURE, hr};
-		if (HrGetOneProp(*rei.msgp, PROP_KopanoRuleAction, &~pv) == hrSuccess) {
+		if (HrGetOneProp(rei.msg, PROP_KopanoRuleAction, &~pv) == hrSuccess) {
 			ec_log_warn("Rule \"%s\": FORWARD loop protection. Message will not be forwarded or redirected because it includes header \"x-kopano-rule-action\"", rei.name);
 			return {ROP_SUCCESS};
 		}
 	}
 	ec_log_debug("Rule action: %s e-mail", (act.ulActionFlavor & FWD_PRESERVE_SENDER) ? "redirecting" : "forwarding");
-	auto hr = CreateForwardCopy(rei.abook, rei.store, *rei.msgp,
+	auto hr = CreateForwardCopy(rei.abook, rei.store, rei.msg,
 	     act.lpadrlist, false, act.ulActionFlavor & FWD_PRESERVE_SENDER,
 	     act.ulActionFlavor & FWD_DO_NOT_MUNGE_MSG,
 	     act.ulActionFlavor & FWD_AS_ATTACHMENT, &~lpFwdMsg);
@@ -1074,7 +1074,7 @@ static struct actresult proc_op_delegate(rulexec &rei, const ACTION &action)
 	}
 	ec_log_debug("Rule action: delegating e-mail");
 	object_ptr<IMessage> fwdmsg;
-	auto hr = CreateForwardCopy(rei.abook, rei.store, *rei.msgp, action.lpadrlist,
+	auto hr = CreateForwardCopy(rei.abook, rei.store, rei.msg, action.lpadrlist,
 	          true, true, true, false, &~fwdmsg);
 	if (hr != hrSuccess) {
 		hr_lerr(hr, "Rule \"%s\": DELEGATE Unable to create delegate message", rei.name);
@@ -1098,7 +1098,7 @@ static struct actresult proc_op_delegate(rulexec &rei, const ACTION &action)
 static struct actresult proc_op_markread(rulexec &rei)
 {
 	rei.sc->inc(SCN_RULES_MARKREAD);
-	auto ret = (*rei.msgp)->SetReadFlag(SUPPRESS_RECEIPT);
+	auto ret = rei.msg->SetReadFlag(SUPPRESS_RECEIPT);
 	if (ret == hrSuccess)
 		return {ROP_SUCCESS};
 	return {ROP_ERROR, ret};
@@ -1158,7 +1158,7 @@ static struct actresult proc_op_act(rulexec &rei, const ACTION &action)
 // lpMessage: gets EntryID, maybe pass this and close message in DAgent.cpp
 HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
     IMAPISession *lpSession, IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
-    IMAPIFolder *lpOrigInbox, IMessage **lppMessage, StatsClient *const sc)
+    IMAPIFolder *lpOrigInbox, IMessage *lppMessage, StatsClient *const sc)
 {
 	object_ptr<IExchangeModifyTable> lpTable;
 	object_ptr<IMAPITable> lpView;
@@ -1299,7 +1299,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 			if (hr == hrSuccess)
 				loc = createLocaleFromName(localestring);
 		}
-		hr = TestRestriction(lpCondition, *lppMessage, loc);
+		hr = TestRestriction(lpCondition, lppMessage, loc);
 		if (hr == MAPI_E_NOT_FOUND) {
 			ec_log_info("Rule \"%s\" does not match", rei.name);
 			continue;
@@ -1331,7 +1331,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 		sForwardProps[2].ulPropTag = PR_LAST_VERB_EXECUTION_TIME;
 		GetSystemTimeAsFileTime(&sForwardProps[2].Value.ft);
 		// set forward in msg flag
-		hr = (*rei.msgp)->SetProps(3, sForwardProps, nullptr);
+		hr = rei.msg->SetProps(3, sForwardProps, nullptr);
 	}
  exit:
 	if (hr != hrSuccess && hr != MAPI_E_CANCEL)
