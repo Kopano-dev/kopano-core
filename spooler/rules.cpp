@@ -41,8 +41,6 @@ enum actstatus {
 	ROP_ERROR,
 	ROP_SUCCESS,
 	ROP_CANCEL,
-	ROP_MOVED,
-	ROP_FORWARDED,
 };
 
 struct actresult {
@@ -914,6 +912,7 @@ struct rulexec {
 	IAddrBook *abook = nullptr;
 	IMessage **msgp = nullptr;
 	const char *recip = nullptr, *name = nullptr;
+	bool was_forwarded = false, was_moved = false;
 };
 
 static struct actresult proc_op_copy(rulexec &rei, const ACTION &action)
@@ -973,6 +972,8 @@ static struct actresult proc_op_copy(rulexec &rei, const ACTION &action)
 		hr_lerr(hr, "Rule \"%s\": Unable to copy/move message", rei.name);
 		return {ROP_ERROR, hr};
 	}
+	if (action.acttype == OP_MOVE)
+		rei.was_moved = true;
 	return {ROP_SUCCESS};
 }
 
@@ -1062,6 +1063,7 @@ static struct actresult proc_op_fwd(rulexec &rei, const ACTION &act)
 		hr_lerr(hr, "Rule \"%s\": FORWARD Unable to send forward message", rei.name);
 		return {ROP_ERROR, hr};
 	}
+	rei.was_forwarded = true;
 	return {ROP_SUCCESS};
 }
 
@@ -1108,22 +1110,13 @@ static struct actresult proc_op_act(rulexec &rei, const ACTION &action)
 {
 	switch (action.acttype) {
 	case OP_MOVE:
-	case OP_COPY: {
-		auto ret = proc_op_copy(rei, action);
-		if (ret.status == ROP_SUCCESS && action.acttype == OP_MOVE)
-			return {ROP_MOVED};
-		return ret;
-	}
+	case OP_COPY:
+		return proc_op_copy(rei, action);
 	case OP_REPLY:
 	case OP_OOF_REPLY:
 		return proc_op_reply(rei, action);
-	case OP_FORWARD: {
-		auto ret = proc_op_fwd(rei, action);
-		if (ret.status == ROP_SUCCESS)
-			/* Update original message, set as forwarded */
-			return {ROP_FORWARDED};
-		return ret;
-	}
+	case OP_FORWARD:
+		return proc_op_fwd(rei, action);
 	case OP_BOUNCE:
 		rei.sc->inc(SCN_RULES_BOUNCE);
 		/*
@@ -1171,7 +1164,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 {
 	object_ptr<IExchangeModifyTable> lpTable;
 	object_ptr<IMAPITable> lpView;
-	bool bAddFwdFlag = false, bMoved = false, bOOFactive = false;
+	bool bOOFactive = false;
 	static constexpr const SizedSPropTagArray(11, sptaRules) =
 		{11, {PR_RULE_ID, PR_RULE_IDS, PR_RULE_SEQUENCE, PR_RULE_STATE,
 		PR_RULE_USER_FLAGS, PR_RULE_CONDITION, PR_RULE_ACTIONS,
@@ -1329,17 +1322,13 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 				hr = MAPI_E_CANCEL;
 				goto exit;
 			}
-			if (ret.status == ROP_MOVED)
-				bMoved = true;
-			if (ret.status == ROP_FORWARDED)
-				bAddFwdFlag = true;
 		} // end action loop
 
 		if (lpRuleState && (lpRuleState->Value.i & ST_EXIT_LEVEL))
 			break;
 	}
 
-	if (bAddFwdFlag) {
+	if (rei.was_forwarded) {
 		sForwardProps[0].ulPropTag = PR_ICON_INDEX;
 		sForwardProps[0].Value.ul = ICON_MAIL_FORWARDED;
 		sForwardProps[1].ulPropTag = PR_LAST_VERB_EXECUTED;
@@ -1353,7 +1342,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 	if (hr != hrSuccess && hr != MAPI_E_CANCEL)
 		kc_perror("Error while processing rules", hr);
 	// The message was moved to another folder(s), do not save it in the inbox anymore, so cancel it.
-	if (hr == hrSuccess && bMoved)
+	if (hr == hrSuccess && rei.was_moved)
 		hr = MAPI_E_CANCEL;
 	if (hr != hrSuccess)
 		rei.sc->inc(SCN_RULES_INVOKES_FAIL);
