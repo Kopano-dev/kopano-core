@@ -39,7 +39,6 @@ enum actstatus {
 	ROP_FAILURE,
 	ROP_ERROR,
 	ROP_SUCCESS,
-	ROP_CANCEL,
 };
 
 struct actresult {
@@ -1148,7 +1147,7 @@ static struct actresult proc_op_act(rulexec &rei, const ACTION &action)
 		 * processing function.
 		 */
 		ec_log_debug("Rule action: deleting e-mail");
-		return {ROP_CANCEL};
+		return {ROP_FAILURE, MAPI_E_CANCEL};
 	case OP_MARK_AS_READ:
 		ec_log_debug("Rule action: mark as read");
 		return proc_op_markread(rei);
@@ -1316,9 +1315,6 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 			auto ret = proc_op_act(rei, action);
 			if (ret.status == ROP_FAILURE) {
 				hr = ret.code;
-				goto exit;
-			} else if (ret.status == ROP_CANCEL) {
-				hr = MAPI_E_CANCEL;
 				goto exit;
 			}
 		} // end action loop
