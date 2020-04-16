@@ -37,7 +37,6 @@ extern std::shared_ptr<ECConfig> g_lpConfig;
 
 enum actstatus {
 	ROP_FAILURE,
-	ROP_NOOP,
 	ROP_ERROR,
 	ROP_SUCCESS,
 	ROP_CANCEL,
@@ -986,7 +985,7 @@ static struct actresult proc_op_reply(rulexec &rei, const ACTION &action)
 	if (HrGetFullProp(*rei.msgp, PR_TRANSPORT_MESSAGE_HEADERS_A, &~pv) == hrSuccess &&
 	    dagent_avoid_autoreply(tokenize(pv->Value.lpszA, "\n"))) {
 		ec_log_warn("Rule \"%s\": Not replying to an autoreply", rei.name);
-		return {ROP_NOOP};
+		return {ROP_SUCCESS};
 	}
 	if (action.acttype == OP_REPLY)
 		ec_log_debug("Rule action: replying e-mail");
@@ -1026,13 +1025,13 @@ static struct actresult proc_op_fwd(rulexec &rei, const ACTION &act)
 	// redirect == 3
 	if (act.lpadrlist->cEntries == 0) {
 		ec_log_debug("Forwarding rule doesn't have recipients");
-		return {ROP_NOOP};
+		return {ROP_SUCCESS};
 	}
 	memory_ptr<SPropValue> pv;
 	if (HrGetFullProp(*rei.msgp, PR_TRANSPORT_MESSAGE_HEADERS_A, &~pv) == hrSuccess &&
 	    dagent_avoid_autofwd(tokenize(pv->Value.lpszA, "\n"))) {
 		ec_log_warn("Rule \"%s\": Not forwarding autoreplies", rei.name);
-		return {ROP_NOOP};
+		return {ROP_SUCCESS};
 	}
 	if (parseBool(g_lpConfig->GetSetting("no_double_forward"))) {
 		/*
@@ -1046,7 +1045,7 @@ static struct actresult proc_op_fwd(rulexec &rei, const ACTION &act)
 			return {ROP_FAILURE, hr};
 		if (HrGetOneProp(*rei.msgp, PROP_KopanoRuleAction, &~pv) == hrSuccess) {
 			ec_log_warn("Rule \"%s\": FORWARD loop protection. Message will not be forwarded or redirected because it includes header \"x-kopano-rule-action\"", rei.name);
-			return {ROP_NOOP};
+			return {ROP_SUCCESS};
 		}
 	}
 	ec_log_debug("Rule action: %s e-mail", (act.ulActionFlavor & FWD_PRESERVE_SENDER) ? "redirecting" : "forwarding");
@@ -1072,7 +1071,7 @@ static struct actresult proc_op_delegate(rulexec &rei, const ACTION &action)
 	rei.sc->inc(SCN_RULES_DELEGATE);
 	if (action.lpadrlist->cEntries == 0) {
 		ec_log_debug("Delegating rule doesn't have recipients");
-		return {ROP_NOOP};
+		return {ROP_SUCCESS};
 	}
 	ec_log_debug("Rule action: delegating e-mail");
 	object_ptr<IMessage> fwdmsg;
