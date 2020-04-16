@@ -913,7 +913,7 @@ struct rulexec {
 	bool was_forwarded = false, was_moved = false;
 };
 
-static struct actresult proc_op_copy(rulexec &rei, const ACTION &action)
+static void proc_op_copy(rulexec &rei, const ACTION &action)
 {
 	const auto &cmov = action.actMoveCopy;
 	rei.sc->inc(SCN_RULES_COPYMOVE);
@@ -935,13 +935,13 @@ static struct actresult proc_op_copy(rulexec &rei, const ACTION &action)
 		     cmov.lpStoreEntryId, nullptr, MAPI_BEST_ACCESS, &~dst_store);
 		if (hr != hrSuccess) {
 			hr_lerr(hr, "Rule \"%s\": Unable to open destination store", rei.name);
-			return {ROP_ERROR, hr};
+			return;
 		}
 		hr = dst_store->OpenEntry(cmov.cbFldEntryId, cmov.lpFldEntryId,
 		     &IID_IMAPIFolder, MAPI_MODIFY, &obj_type, &~dst_folder);
 		if (hr != hrSuccess || obj_type != MAPI_FOLDER) {
 			hr_lerr(hr, "Rule \"%s\": Unable to open destination folder", rei.name);
-			return {ROP_ERROR, hr};
+			return;
 		}
 	}
 
@@ -949,33 +949,32 @@ static struct actresult proc_op_copy(rulexec &rei, const ACTION &action)
 	hr = dst_folder->CreateMessage(nullptr, 0, &~newmsg);
 	if (hr != hrSuccess) {
 		hr_lerr(hr, "Unable to create e-mail for rule \"%s\"", rei.name);
-		return {ROP_FAILURE, hr};
+		return;
 	}
 	hr = rei.msg->CopyTo(0, nullptr, nullptr, 0, nullptr, &IID_IMessage,
 	     newmsg, 0, nullptr);
 	if (hr != hrSuccess) {
 		hr_lerr(hr, "Unable to copy e-mail for rule \"%s\"", rei.name);
-		return {ROP_FAILURE, hr};
+		return;
 	}
 	hr = Util::HrCopyIMAPData(rei.msg, newmsg);
 	// the function only returns errors on get/setprops, not when the data is just missing
 	if (hr != hrSuccess) {
 		ec_log_err("Unable to copy IMAP data e-mail for rule \"%s\": %s (%x). Continuing.",
 			rei.name, GetMAPIErrorMessage(hr), hr);
-		return {ROP_FAILURE, hr};
+		return;
 	}
 	/* Save the copy in its new location */
 	hr = newmsg->SaveChanges(0);
 	if (hr != hrSuccess) {
 		hr_lerr(hr, "Rule \"%s\": Unable to copy/move message", rei.name);
-		return {ROP_ERROR, hr};
+		return;
 	}
 	if (action.acttype == OP_MOVE)
 		rei.was_moved = true;
-	return {ROP_SUCCESS};
 }
 
-static struct actresult proc_op_reply(rulexec &rei, const ACTION &action)
+static void proc_op_reply(rulexec &rei, const ACTION &action)
 {
 	const auto &repl = action.actReply;
 	rei.sc->inc(SCN_RULES_REPLY_AND_OOF);
@@ -984,7 +983,7 @@ static struct actresult proc_op_reply(rulexec &rei, const ACTION &action)
 	if (HrGetFullProp(rei.msg, PR_TRANSPORT_MESSAGE_HEADERS_A, &~pv) == hrSuccess &&
 	    dagent_avoid_autoreply(tokenize(pv->Value.lpszA, "\n"))) {
 		ec_log_warn("Rule \"%s\": Not replying to an autoreply", rei.name);
-		return {ROP_SUCCESS};
+		return;
 	}
 	if (action.acttype == OP_REPLY)
 		ec_log_debug("Rule action: replying e-mail");
@@ -996,23 +995,22 @@ static struct actresult proc_op_reply(rulexec &rei, const ACTION &action)
 	          &IID_IMessage, 0, nullptr, reinterpret_cast<IUnknown **>(&tmpl));
 	if (hr != hrSuccess) {
 		hr_lerr(hr, "Rule \"%s\": Unable to open reply message", rei.name);
-		return {ROP_ERROR, hr};
+		return;
 	}
 	object_ptr<IMessage> replymsg;
 	hr = CreateReplyCopy(rei.session, rei.store, rei.msg, tmpl, &~replymsg);
 	if (hr != hrSuccess) {
 		hr_lerr(hr, "Rule \"%s\": Unable to create reply message", rei.name);
-		return {ROP_ERROR, hr};
+		return;
 	}
 	hr = replymsg->SubmitMessage(0);
 	if (hr != hrSuccess) {
 		hr_lerr(hr, "Rule \"%s\": Unable to send reply message", rei.name);
-		return {ROP_ERROR, hr};
+		return;
 	}
-	return {ROP_SUCCESS};
 }
 
-static struct actresult proc_op_fwd(rulexec &rei, const ACTION &act)
+static void proc_op_fwd(rulexec &rei, const ACTION &act)
 {
 	object_ptr<IMessage> lpFwdMsg;
 
@@ -1024,13 +1022,13 @@ static struct actresult proc_op_fwd(rulexec &rei, const ACTION &act)
 	// redirect == 3
 	if (act.lpadrlist->cEntries == 0) {
 		ec_log_debug("Forwarding rule doesn't have recipients");
-		return {ROP_SUCCESS};
+		return;
 	}
 	memory_ptr<SPropValue> pv;
 	if (HrGetFullProp(rei.msg, PR_TRANSPORT_MESSAGE_HEADERS_A, &~pv) == hrSuccess &&
 	    dagent_avoid_autofwd(tokenize(pv->Value.lpszA, "\n"))) {
 		ec_log_warn("Rule \"%s\": Not forwarding autoreplies", rei.name);
-		return {ROP_SUCCESS};
+		return;
 	}
 	if (parseBool(g_lpConfig->GetSetting("no_double_forward"))) {
 		/*
@@ -1040,11 +1038,13 @@ static struct actresult proc_op_fwd(rulexec &rei, const ACTION &act)
 		PROPMAP_START(1)
 		PROPMAP_NAMED_ID(KopanoRuleAction, PT_UNICODE, PS_INTERNET_HEADERS, "x-kopano-rule-action")
 		auto hr = m_propmap.Resolve(rei.msg);
-		if (hr != hrSuccess)
-			return {ROP_FAILURE, hr};
+		if (hr != hrSuccess) {
+			hr_lerrf(hr, "Resolve");
+			return;
+		}
 		if (HrGetOneProp(rei.msg, PROP_KopanoRuleAction, &~pv) == hrSuccess) {
 			ec_log_warn("Rule \"%s\": FORWARD loop protection. Message will not be forwarded or redirected because it includes header \"x-kopano-rule-action\"", rei.name);
-			return {ROP_SUCCESS};
+			return;
 		}
 	}
 	ec_log_debug("Rule action: %s e-mail", (act.ulActionFlavor & FWD_PRESERVE_SENDER) ? "redirecting" : "forwarding");
@@ -1054,23 +1054,22 @@ static struct actresult proc_op_fwd(rulexec &rei, const ACTION &act)
 	     act.ulActionFlavor & FWD_AS_ATTACHMENT, &~lpFwdMsg);
 	if (hr != hrSuccess) {
 		hr_lerr(hr, "Rule \"%s\": FORWARD Unable to create forward message", rei.name);
-		return {hr == MAPI_E_NO_ACCESS ? ROP_FAILURE : ROP_ERROR, hr};
+		return;
 	}
 	hr = lpFwdMsg->SubmitMessage(0);
 	if (hr != hrSuccess) {
 		hr_lerr(hr, "Rule \"%s\": FORWARD Unable to send forward message", rei.name);
-		return {ROP_ERROR, hr};
+		return;
 	}
 	rei.was_forwarded = true;
-	return {ROP_SUCCESS};
 }
 
-static struct actresult proc_op_delegate(rulexec &rei, const ACTION &action)
+static void proc_op_delegate(rulexec &rei, const ACTION &action)
 {
 	rei.sc->inc(SCN_RULES_DELEGATE);
 	if (action.lpadrlist->cEntries == 0) {
 		ec_log_debug("Delegating rule doesn't have recipients");
-		return {ROP_SUCCESS};
+		return;
 	}
 	ec_log_debug("Rule action: delegating e-mail");
 	object_ptr<IMessage> fwdmsg;
@@ -1078,43 +1077,42 @@ static struct actresult proc_op_delegate(rulexec &rei, const ACTION &action)
 	          true, true, true, false, &~fwdmsg);
 	if (hr != hrSuccess) {
 		hr_lerr(hr, "Rule \"%s\": DELEGATE Unable to create delegate message", rei.name);
-		return {ROP_ERROR, hr};
+		return;
 	}
 	/* set delegate properties */
 	hr = HrDelegateMessage(fwdmsg);
 	if (hr != hrSuccess) {
 		hr_lerr(hr, "Rule \"%s\": DELEGATE Unable to modify delegate message", rei.name);
-		return {ROP_ERROR, hr};
+		return;
 	}
 	hr = fwdmsg->SubmitMessage(0);
 	if (hr != hrSuccess) {
 		hr_lerr(hr, "Rule \"%s\": DELEGATE Unable to send delegate message", rei.name);
-		return {ROP_ERROR, hr};
+		return;
 	}
 	/* don't set forwarded flag */
-	return {ROP_SUCCESS};
 }
 
-static struct actresult proc_op_markread(rulexec &rei)
+static void proc_op_markread(rulexec &rei)
 {
 	rei.sc->inc(SCN_RULES_MARKREAD);
-	auto ret = rei.msg->SetReadFlag(SUPPRESS_RECEIPT);
-	if (ret == hrSuccess)
-		return {ROP_SUCCESS};
-	return {ROP_ERROR, ret};
+	rei.msg->SetReadFlag(SUPPRESS_RECEIPT);
 }
 
-static struct actresult proc_op_act(rulexec &rei, const ACTION &action)
+static HRESULT proc_op_act(rulexec &rei, const ACTION &action)
 {
 	switch (action.acttype) {
 	case OP_MOVE:
 	case OP_COPY:
-		return proc_op_copy(rei, action);
+		proc_op_copy(rei, action);
+		break;
 	case OP_REPLY:
 	case OP_OOF_REPLY:
-		return proc_op_reply(rei, action);
+		proc_op_reply(rei, action);
+		break;
 	case OP_FORWARD:
-		return proc_op_fwd(rei, action);
+		proc_op_fwd(rei, action);
+		break;
 	case OP_BOUNCE:
 		rei.sc->inc(SCN_RULES_BOUNCE);
 		/*
@@ -1127,7 +1125,8 @@ static struct actresult proc_op_act(rulexec &rei, const ACTION &action)
 		ec_log_warn("Rule \"%s\": BOUNCE actions are currently unsupported", rei.name);
 		break;
 	case OP_DELEGATE:
-		return proc_op_delegate(rei, action);
+		proc_op_delegate(rei, action);
+		break;
 	case OP_DEFER_ACTION:
 		rei.sc->inc(SCN_RULES_DEFER);
 		ec_log_warn("Rule \"%s\": DEFER client actions are currently unsupported", rei.name);
@@ -1147,12 +1146,13 @@ static struct actresult proc_op_act(rulexec &rei, const ACTION &action)
 		 * processing function.
 		 */
 		ec_log_debug("Rule action: deleting e-mail");
-		return {ROP_FAILURE, MAPI_E_CANCEL};
+		return MAPI_E_CANCEL;
 	case OP_MARK_AS_READ:
 		ec_log_debug("Rule action: mark as read");
-		return proc_op_markread(rei);
+		proc_op_markread(rei);
+		break;
 	}
-	return {ROP_SUCCESS};
+	return hrSuccess;
 }
 
 // lpMessage: gets EntryID, maybe pass this and close message in DAgent.cpp
@@ -1312,11 +1312,9 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 
 		for (ULONG n = 0; n < lpActions->cActions; ++n) {
 			const auto &action = lpActions->lpAction[n];
-			auto ret = proc_op_act(rei, action);
-			if (ret.status == ROP_FAILURE) {
-				hr = ret.code;
+			hr = proc_op_act(rei, action);
+			if (FAILED(hr))
 				goto exit;
-			}
 		} // end action loop
 
 		if (lpRuleState && (lpRuleState->Value.i & ST_EXIT_LEVEL))
