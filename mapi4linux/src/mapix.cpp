@@ -2157,7 +2157,7 @@ HRESULT MAPIAdminProfiles(ULONG ulFlags, IProfAdmin **lppProfAdmin)
 {
 	if (!localProfileAdmin) {
 		ec_log_err("MAPIAdminProfiles(): localProfileAdmin not set");
-		return MAPI_E_CALL_FAILED;
+		return MAPI_E_NOT_INITIALIZED;
 	}
 
 	if (!lppProfAdmin) {
@@ -2195,7 +2195,7 @@ HRESULT MAPILogonEx(ULONG_PTR ulUIParam, const TCHAR *lpszProfileName,
 
 	if (!localProfileAdmin) {
 		ec_log_err("MAPILogonEx(): localProfileAdmin not set");
-		return MAPI_E_CALL_FAILED;
+		return MAPI_E_NOT_INITIALIZED;
 	}
 
 	if (ulFlags & MAPI_UNICODE) {
