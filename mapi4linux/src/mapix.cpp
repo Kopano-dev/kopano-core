@@ -31,6 +31,7 @@
 #include <kopano/CommonUtil.h>
 #include <kopano/stringutil.h>
 #include <kopano/mapiguidext.h>
+#include <kopano/memory.hpp>
 #include <kopano/ECRestriction.h>
 #include <kopano/MAPIErrors.h>
 #include <string>
@@ -906,9 +907,14 @@ HRESULT M4LMAPISession::OpenMsgStore(ULONG_PTR ulUIParam, ULONG cbEntryID,
 	hr = msp->Logon(lpISupport, 0, (LPTSTR)profileName.c_str(), cbStoreEntryID, lpStoreEntryID, ulFlags, nullptr, &sizeSpoolSec, &~pSpoolSec, nullptr, nullptr, &~mdb);
 	if (hr != hrSuccess)
 		return kc_perrorf("msp->Logon failed", hr);
+	object_ptr<ECUnknown> ecunk;
+	hr = mdb->QueryInterface(IID_ECUnknown, &~ecunk);
+	if (hr != hrSuccess)
+		return hr_lerrf(hr, "Sorry, M4L only supports message stores that use ECUnknown-based refcounting.");
 	hr = mdb->QueryInterface(lpInterface ? *lpInterface : IID_IMsgStore, reinterpret_cast<void **>(lppMDB));
 	if (hr != hrSuccess)
 		kc_perrorf("QueryInterface failed", hr);
+	AddChild(ecunk);
 	return hr;
 }
 

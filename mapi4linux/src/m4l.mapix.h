@@ -16,6 +16,7 @@
 #include <list>
 #include <map>
 #include <kopano/ECConfig.h>
+#include <kopano/ECUnknown.h>
 #include <kopano/memory.hpp>
 #include <kopano/zcdefs.h>
 
@@ -109,7 +110,7 @@ inline bool operator<(const GUID &a, const GUID &b) noexcept
     return memcmp(&a, &b, sizeof(GUID)) < 0;
 }
 
-class M4LMAPISession KC_FINAL_OPG : public M4LUnknown, public IMAPISession {
+class M4LMAPISession KC_FINAL_OPG : public KC::ECUnknown, public IMAPISession {
 private:
 	// variables
 	std::string profileName;
