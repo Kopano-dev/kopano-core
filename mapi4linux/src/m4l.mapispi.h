@@ -41,13 +41,13 @@ class M4LMAPISupport : public M4LUnknown, public IMAPISupport {
 private:
 	LPMAPISESSION		session;
 	std::unique_ptr<MAPIUID> lpsProviderUID;
-	SVCService*			service;
+	std::shared_ptr<SVCService> service;
 	std::mutex m_advises_mutex;
 	std::map<unsigned int, M4LSUPPORTADVISE> m_advises;
 	ULONG m_connections = 0;
 
 public:
-	M4LMAPISupport(LPMAPISESSION new_session, LPMAPIUID sProviderUID, SVCService* lpService);
+	M4LMAPISupport(IMAPISession *, MAPIUID *prov_uid, std::shared_ptr<SVCService> &&);
 	virtual ~M4LMAPISupport();
 	virtual HRESULT GetLastError(HRESULT, unsigned int flags, MAPIERROR **) override;
 	virtual HRESULT GetMemAllocRoutines(ALLOCATEBUFFER **, ALLOCATEMORE **, FREEBUFFER **) override;

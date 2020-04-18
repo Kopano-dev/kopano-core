@@ -414,12 +414,6 @@ SVC_ABProviderInit SVCService::ABProviderInit()
 	return m_fnABProviderInit;
 }
 
-MAPISVC::~MAPISVC()
-{
-	for (const auto &i : m_sServices)
-		delete i.second;
-}
-
 HRESULT MAPISVC::Init()
 {
 	INFLoader inf;
@@ -437,7 +431,6 @@ HRESULT MAPISVC::Init()
 		hr = i.first->second->Init(inf, infService);
 		if (hr != hrSuccess) {
 			// remove this service provider since it doesn't work
-			delete i.first->second;
 			m_sServices.erase(i.first);
 			hr = hrSuccess;
 		}
@@ -454,14 +447,13 @@ HRESULT MAPISVC::Init()
  * 
  * @return 
  */
-HRESULT MAPISVC::GetService(const TCHAR *lpszService, ULONG ulFlags, SVCService **lppService)
+HRESULT MAPISVC::GetService(const TCHAR *lpszService, unsigned int flags,
+    std::shared_ptr<SVCService> &lppService)
 {
 	auto i = m_sServices.find(reinterpret_cast<const char *>(lpszService));
 	if (i == m_sServices.cend())
 		return MAPI_E_NOT_FOUND;
-
-	*lppService = i->second;
-
+	lppService = i->second;
 	return hrSuccess;
 }
 
@@ -474,14 +466,14 @@ HRESULT MAPISVC::GetService(const TCHAR *lpszService, ULONG ulFlags, SVCService 
  * @return MAPI Error code
  * @retval MAPI_E_NOT_FOUND no service object for the given dll name
  */
-HRESULT MAPISVC::GetService(const char *lpszDLLName, SVCService **lppService)
+HRESULT MAPISVC::GetService(const char *lpszDLLName, std::shared_ptr<SVCService> &lppService)
 {
 	for (const auto &i : m_sServices) {
 		const SPropValue *lpDLLName = i.second->GetProp(PR_SERVICE_DLL_NAME_A);
 		if (!lpDLLName || !lpDLLName->Value.lpszA)
 			continue;
 		if (strcmp(lpDLLName->Value.lpszA, lpszDLLName) == 0) {
-			*lppService = i.second;
+			lppService = i.second;
 			return hrSuccess;
 		}
 	}

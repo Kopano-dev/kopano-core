@@ -36,7 +36,7 @@ struct serviceEntry {
 	std::string servicename, displayname;
 	KC::object_ptr<M4LProviderAdmin> provideradmin;
 	bool bInitialize;
-	SVCService* service;
+	std::shared_ptr<SVCService> service;
 };
 
 struct profEntry {

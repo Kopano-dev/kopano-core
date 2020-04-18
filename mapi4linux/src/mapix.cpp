@@ -444,15 +444,14 @@ HRESULT M4LMsgServiceAdmin::CreateMsgServiceEx(const char *lpszService,
     const char *lpszDisplayName, ULONG_PTR ulUIParam, ULONG ulFlags,
     MAPIUID *uid)
 {
-	SVCService* service = NULL;
-	
 	if(lpszService == NULL || lpszDisplayName == NULL) {
 		ec_log_err("M4LMsgServiceAdmin::CreateMsgService(): invalid parameters");
 		return MAPI_E_INVALID_PARAMETER;
 	}
 
 	scoped_rlock l_srv(m_mutexserviceadmin);
-	auto hr = m4l_lpMAPISVC->GetService(reinterpret_cast<const TCHAR *>(lpszService), ulFlags, &service);
+	std::shared_ptr<SVCService> service;
+	auto hr = m4l_lpMAPISVC->GetService(reinterpret_cast<const TCHAR *>(lpszService), ulFlags, service);
 	if (hr == MAPI_E_NOT_FOUND) {
 		ec_log_err("M4LMsgServiceAdmin::CreateMsgService(): get service \"%s\" failed: %s (%x). "
 			"Does a config file exist for the service? (/usr/lib/mapi.d, /etc/mapi.d)",
@@ -849,7 +848,6 @@ HRESULT M4LMAPISession::OpenMsgStore(ULONG_PTR ulUIParam, ULONG cbEntryID,
 	rowset_ptr lpsRows;
 	MAPIUID sProviderUID;
 	memory_ptr<ENTRYID> lpStoreEntryID;
-	SVCService *service = NULL;
 
 	SizedSPropTagArray(2, sptaProviders) = { 2, {PR_RECORD_KEY, PR_PROVIDER_UID} };
 
@@ -864,7 +862,8 @@ HRESULT M4LMAPISession::OpenMsgStore(ULONG_PTR ulUIParam, ULONG cbEntryID,
 		return kc_perrorf("UnWrapStoreEntryID failed", hr);
 
 	// padding in entryid solves string ending
-	hr = m4l_lpMAPISVC->GetService((char*)lpEntryID+4+sizeof(GUID)+2, &service);
+	std::shared_ptr<SVCService> service;
+	hr = m4l_lpMAPISVC->GetService(reinterpret_cast<const char *>(lpEntryID) + 4 + sizeof(GUID) + 2, service);
 	if (hr != hrSuccess)
 		return kc_perrorf("GetService failed", hr);
 	auto minit = service->MSProviderInit();
@@ -896,9 +895,11 @@ HRESULT M4LMAPISession::OpenMsgStore(ULONG_PTR ulUIParam, ULONG cbEntryID,
 	
 	if (lpsRows->cRows != 1)
 		// No provider for the store, use a temporary profile section
-		lpISupport.reset(new M4LMAPISupport(this, NULL, service));
+		lpISupport.reset(new(std::nothrow) M4LMAPISupport(this, nullptr, std::move(service)));
 	else
-		lpISupport.reset(new M4LMAPISupport(this, &sProviderUID, service));
+		lpISupport.reset(new(std::nothrow) M4LMAPISupport(this, &sProviderUID, std::move(service)));
+	if (lpISupport == nullptr)
+		return hr_lerrf(MAPI_E_NOT_ENOUGH_MEMORY, "new M4LMAPISupport");
 
 	// call kopano client for the Message Store Provider (provider/client/EntryPoint.cpp)
 	hr = minit(0, nullptr, MAPIAllocateBuffer, MAPIAllocateMore, MAPIFreeBuffer, ulFlags, CURRENT_SPI_VERSION, &mdbver, &~msp);
@@ -2550,7 +2551,7 @@ HRESULT SessionRestorer::restore_services(IProfAdmin *profadm)
 		if (entry == nullptr)
 			return MAPI_E_NOT_ENOUGH_MEMORY;
 		auto svcname = svcname_prop->Value.lpszA;
-		ret = m4l_lpMAPISVC->GetService(reinterpret_cast<const TCHAR *>(svcname), 0, &entry->service);
+		ret = m4l_lpMAPISVC->GetService(reinterpret_cast<const TCHAR *>(svcname), 0, entry->service);
 		if (ret != hrSuccess)
 			return MAPI_E_CALL_FAILED;
 		entry->provideradmin.reset(new(std::nothrow) M4LProviderAdmin(m_svcadm, m_profname.c_str()));
