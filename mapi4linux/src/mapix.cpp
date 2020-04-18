@@ -90,7 +90,7 @@ struct alignas(::max_align_t) mapibuf_head {
 };
 
 /* Some required globals */
-MAPISVC *m4l_lpMAPISVC = NULL;
+std::unique_ptr<MAPISVC> m4l_lpMAPISVC;
 
 // ---
 // M4LProfAdmin
@@ -2148,8 +2148,7 @@ ULONG MAPIFreeBuffer(LPVOID lpBuffer)
 // ---
 // Entry
 // ---
-
-IProfAdmin *localProfileAdmin = NULL;
+object_ptr<M4LProfAdmin> localProfileAdmin;
 
 /**
  * Returns a pointer to the IProfAdmin interface. MAPIInitialize must been called previously.
@@ -2273,20 +2272,20 @@ HRESULT MAPIInitialize(LPVOID lpMapiInit)
 
 	if (MAPIInitializeCount++ > 0) {
 		assert(localProfileAdmin);
-		localProfileAdmin->AddRef();
 		return hrSuccess;
 	}
 
 	// Loads the mapisvc.inf, and finds all providers and entry point functions
-	m4l_lpMAPISVC = new MAPISVC();
+	m4l_lpMAPISVC.reset(new(std::nothrow) MAPISVC);
+	if (m4l_lpMAPISVC == nullptr)
+		return hr_lerrf(MAPI_E_NOT_ENOUGH_MEMORY, "new MAPISVC");
 	auto hr = m4l_lpMAPISVC->Init();
 	if (hr != hrSuccess)
 		return kc_perrorf("MAPISVC::Init fail", hr);
 	if (!localProfileAdmin) {
-		localProfileAdmin = new M4LProfAdmin;
+		localProfileAdmin.reset(new(std::nothrow) M4LProfAdmin);
 		if (localProfileAdmin == nullptr)
 			return MAPI_E_NOT_ENOUGH_MEMORY;
-		localProfileAdmin->AddRef();
 	}
 	return hrSuccess;
 }
@@ -2304,16 +2303,10 @@ void MAPIUninitialize(void)
 
 	if (MAPIInitializeCount == 0)
 		abort();
-
-	/* MAPIInitialize always AddRefs localProfileAdmin */
-	if (localProfileAdmin)
-		localProfileAdmin->Release();
-
 	/* Only clean everything up when this is the last MAPIUnitialize call. */
 	if (--MAPIInitializeCount == 0) {
-		delete m4l_lpMAPISVC;
-
-		localProfileAdmin = NULL;
+		m4l_lpMAPISVC.reset();
+		localProfileAdmin.reset();
 	}
 }
 
