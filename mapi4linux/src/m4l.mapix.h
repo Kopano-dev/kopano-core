@@ -83,7 +83,7 @@ private:
 	providerEntry *findProvider(const MAPIUID *id);
 
 public:
-    M4LMsgServiceAdmin(M4LProfSect *profilesection);
+	M4LMsgServiceAdmin(KC::object_ptr<M4LProfSect> &&);
 	~M4LMsgServiceAdmin();
 	virtual HRESULT GetLastError(HRESULT, unsigned int flags, MAPIERROR **) override;
 	virtual HRESULT GetMsgServiceTable(unsigned int flags, IMAPITable **) override;

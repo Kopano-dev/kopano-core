@@ -203,7 +203,7 @@ HRESULT M4LProfAdmin::CreateProfile(const TCHAR *lpszProfileName,
 	auto hr = profilesection->SetProps(1, &sPropValue, nullptr);
 	if (hr != hrSuccess)
 		return kc_perrorf("SetProps failed", hr);
-	entry->serviceadmin.reset(new(std::nothrow) M4LMsgServiceAdmin(profilesection));
+	entry->serviceadmin.reset(new(std::nothrow) M4LMsgServiceAdmin(std::move(profilesection)));
     if (!entry->serviceadmin) {
 		ec_log_err("M4LProfAdmin::CreateProfile(): M4LMsgServiceAdmin failed");
 		return MAPI_E_NOT_ENOUGH_MEMORY;
@@ -315,8 +315,8 @@ HRESULT M4LProfAdmin::QueryInterface(REFIID refiid, void **lpvoid) {
 // ---
 // IMsgServceAdmin
 // ---
-M4LMsgServiceAdmin::M4LMsgServiceAdmin(M4LProfSect *ps) :
-	profilesection(ps)
+M4LMsgServiceAdmin::M4LMsgServiceAdmin(object_ptr<M4LProfSect> &&ps) :
+	profilesection(std::move(ps))
 {
 }
 
