@@ -68,12 +68,6 @@ IMAP::IMAP(const char *szServerPath, std::shared_ptr<ECChannel> ch,
 {
 	imopt_default_delivery_options(&dopt);
 	dopt.add_imap_data = true;
-#ifdef HAVE_TIDYBUFFIO_H
-	dopt.html_safety_filter = strcasecmp(lpConfig->GetSetting("html_safety_filter"), "yes") == 0;
-#else
-	if (strcasecmp(lpConfig->GetSetting("html_safety_filter"), "yes") == 0)
-		ec_log_warn("HTML safety filter is enabled in configuration, but KC is not compiled with libtidy");
-#endif
 	bOnlyMailFolders = parseBool(lpConfig->GetSetting("imap_only_mailfolders"));
 	bShowPublicFolder = parseBool(lpConfig->GetSetting("imap_public_folders"));
 }

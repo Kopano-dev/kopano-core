@@ -70,7 +70,7 @@ AM_CPPFLAGS = ${ZCPPFLAGS} -DLDAP_THREAD_SAFE \
 	${GSOAP_CFLAGS} ${ICAL_CFLAGS} ${idn_CFLAGS} ${jsoncpp_CFLAGS} \
 	${KRB5_CFLAGS} ${LDAP_FLAGS} ${libHX_CFLAGS} \
 	${MYSQL_INCLUDES} ${SSL_CFLAGS} \
-	${s3_CFLAGS} ${kcoidc_CFLAGS} ${TCMALLOC_CFLAGS} ${tidy_CPPFLAGS} \
+	${s3_CFLAGS} ${kcoidc_CFLAGS} ${TCMALLOC_CFLAGS} \
 	${VMIME_CFLAGS} ${xapian_CFLAGS} ${XML2_CFLAGS}
 AM_CXXFLAGS = ${ZCXXFLAGS} -Wno-sign-compare
 
@@ -94,9 +94,6 @@ check_PROGRAMS = tests/ablookup tests/htmltext tests/imtomapi \
 	tests/kc-335 tests/kc-1759 tests/mapialloctime \
 	tests/readflag tests/ustring tests/zcpmd5 tests/chtmltotextparsertest \
 	tests/rtfhtmltest
-if HAVE_TIDY
-check_PROGRAMS += tests/rosie
-endif
 noinst_PROGRAMS += ${check_PROGRAMS}
 endif # ENABLE_BASE
 
@@ -677,9 +674,6 @@ libkcutil_la_LIBADD = \
 	-lpthread -lz ${CRYPTO_LIBS} ${curl_LIBS} ${GZ_LIBS} ${iconv_LIBS} \
 	${idn_LIBS} ${icu_i18n_LIBS} ${icu_uc_LIBS} ${jsoncpp_LIBS} ${libHX_LIBS} \
 	${SSL_LIBS} ${UUID_LIBS}
-if HAVE_TIDY
-libkcutil_la_LIBADD += -ltidy
-endif
 libkcutil_la_SYFLAGS = -Wl,--version-script=common/libkcutil.sym
 libkcutil_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	${libkcutil_la_SYFLAGS${NO_VSYM}}
@@ -798,8 +792,6 @@ tests_mapialloctime_SOURCES = tests/mapialloctime.cpp
 tests_mapialloctime_LDADD = libmapi.la ${clock_LIBS}
 tests_readflag_SOURCES = tests/readflag.cpp tests/tbi.hpp
 tests_readflag_LDADD = libmapi.la libkcutil.la
-tests_rosie_SOURCES = tests/rosie.cpp
-tests_rosie_LDADD = libkcutil.la
 tests_ustring_SOURCES = tests/ustring.cpp
 tests_ustring_LDADD = libkcutil.la ${icu_uc_LIBS}
 tests_zcpmd5_SOURCES = tests/zcpmd5.cpp

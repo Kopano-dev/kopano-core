@@ -96,6 +96,4 @@ protected:
 	std::stack<ListInfo> listInfoStack;
 };
 
-extern KC_EXPORT bool rosie_clean_html(const std::string &in, std::string *out, std::vector<std::string> *err);
-
 } /* namespace */

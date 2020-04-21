@@ -607,12 +607,6 @@ AS_IF([test "$BUILDOS" = linux && test "$want_epoll" = "yes"], [
 	AC_CHECK_FUNCS([epoll_create], [ZCPPFLAGS="$ZCPPFLAGS -DUSE_EPOLL"])
 ])
 
-tidy_CPPFLAGS="-I/usr/include/tidy"
-CPPFLAGS="$CPPFLAGS $tidy_CPPFLAGS"
-AC_CHECK_HEADERS([tidybuffio.h])
-AC_SUBST([tidy_CPPFLAGS])
-CPPFLAGS="$CPPFLAGS_system"
-
 dnl The "Locale" class is in icu-uc.
 dnl The "CollationKey" class is in icu-i18n.
 req_icu_uc="icu-uc"
@@ -683,7 +677,6 @@ AM_CONDITIONAL([ENABLE_BASE], [test "$enable_base" != no])
 AM_CONDITIONAL([ENABLE_PYBIND], [test "$want_pybind" != no -a -n "$PYTHON_LIBS"])
 AM_CONDITIONAL([HAVE_MHTTPD], [test -n "$mhttpd_CFLAGS" -o -n "$mhttpd_LIBS"])
 AM_CONDITIONAL([HAVE_RRD], [test -n "$rrd_CFLAGS" -o -n "$rrd_LIBS"])
-AM_CONDITIONAL([HAVE_TIDY], [test "x$ac_cv_header_tidybuffio_h" = "xyes"])
 AM_CONDITIONAL([WITH_EPOLL], [test "$want_epoll" = "yes"])
 AM_CONDITIONAL([WITH_KRB5], [test -n "$KRB5_LIBS"])
 AM_CONDITIONAL([WITH_LDAP], [test "$want_ldap" = yes])
