@@ -65,17 +65,6 @@ static const string strMonth[] = {
 	"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 };
 
-/**
- * Returns TRUE if the given string starts with strPrefix
- *
- * @param[in]	strInput	string to find prefix in
- * @param[in]	strPrefix	test if input starts with this string
- */
-static bool Prefix(const std::string &strInput, const std::string &strPrefix)
-{
-    return (strInput.compare(0, strPrefix.size(), strPrefix) == 0);
-}
-
 IMAP::IMAP(const char *szServerPath, std::shared_ptr<ECChannel> ch,
     std::shared_ptr<ECConfig> cfg) :
 	ClientProto(szServerPath, std::move(ch), cfg)
@@ -289,7 +278,7 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 	if (strvResult.size() == 1) {
 		// must be idle, and command must be done
 		// DONE is not really a command, but the end of the IDLE command by the client marker
-		strvResult[0] = strToUpper(strvResult[0]);
+		strvResult[0] = strToUpper(std::move(strvResult[0]));
 		if (strvResult[0] == "DONE")
 			return HrDone(true);
 		HrResponse(RESP_UNTAGGED, "BAD Command not recognized");
@@ -357,7 +346,7 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 	strvResult.erase(strvResult.begin());
 	auto strCommand = strvResult.front();
 	strvResult.erase(strvResult.begin());
-	strCommand = strToUpper(strCommand);
+	strCommand = strToUpper(std::move(strCommand));
 	if (isIdle()) {
 		if (!parseBool(lpConfig->GetSetting("imap_ignore_command_idle"))) {
 			HrResponse(RESP_UNTAGGED, "BAD still in idle state");
@@ -375,7 +364,7 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 		uid_command = true;
 		strCommand = strvResult.front();
 		strvResult.erase(strvResult.begin());
-		strCommand = strToUpper(strCommand);
+		strCommand = strToUpper(std::move(strCommand));
 	}
 
 	// process {} and end of line
@@ -597,7 +586,7 @@ HRESULT IMAP::HrCmdAuthenticate(const string &strTag, string strAuthMethod, cons
 		return hrSuccess;
 	}
 
-	strAuthMethod = strToUpper(strAuthMethod);
+	strAuthMethod = strToUpper(std::move(strAuthMethod));
 	if (strAuthMethod != "PLAIN") {
 		HrResponse(RESP_TAGGED_NO, strTag, "AUTHENTICATE " + strAuthMethod + " method not supported");
 		return MAPI_E_NO_SUPPORT;
@@ -937,7 +926,7 @@ HRESULT IMAP::HrCmdDelete(const std::string &strTag,
 		HrResponse(RESP_TAGGED_NO, strTag, "DELETE invalid folder name");
 		return hr;
 	}
-	strFolder = strToUpper(strFolder);
+	strFolder = strToUpper(std::move(strFolder));
 
 	if (strFolder == L"INBOX") {
 		HrResponse(RESP_TAGGED_NO, strTag, "DELETE error deleting INBOX is not allowed");
@@ -1026,7 +1015,7 @@ HRESULT IMAP::HrCmdRename(const std::string &strTag,
 		return hr;
 	}
 
-	strExistingFolder = strToUpper(strExistingFolder);
+	strExistingFolder = strToUpper(std::move(strExistingFolder));
 	if (strExistingFolder == L"INBOX")
 		/* FIXME: But RFC 3501 §6.3.5 page 4 says renaming INBOX is permitted.. */
 		return MAPI_E_CALL_FAILED;
@@ -1224,7 +1213,7 @@ HRESULT IMAP::HrCmdList(const std::string &strTag,
 		HrResponse(RESP_TAGGED_NO, strTag, strAction + " invalid folder name");
 		return hr;
 	}
-	strPattern = strToUpper(strPattern);
+	strPattern = strToUpper(std::move(strPattern));
 
 	std::list<SFolder> folders;
 	hr = HrGetFolderList(folders);
@@ -1387,8 +1376,8 @@ HRESULT IMAP::HrCmdStatus(const std::string &strTag,
 	if (hr != hrSuccess)
 		return hr;
 
-	strStatusData = strToUpper(strStatusData);
-	strIMAPFolder = strToUpper(strIMAPFolder);
+	strStatusData = strToUpper(std::move(strStatusData));
+	strIMAPFolder = strToUpper(std::move(strIMAPFolder));
 	object_ptr<IMAPIFolder> tmp_folder;
 	hr = HrFindFolder(strIMAPFolder, false, &~lpStatusFolder);
 	if(hr != hrSuccess) {
@@ -1535,7 +1524,7 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 		strFlags.erase(strFlags.size()-1, 1);
 	}
 
-	strFlags = strToUpper(strFlags);
+	strFlags = strToUpper(std::move(strFlags));
 	HrSplitInput(strFlags, lstFlags);
 
 	for (unsigned int ulCounter = 0; ulCounter < lstFlags.size(); ++ulCounter) {
@@ -3045,7 +3034,7 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFo
  */
 HRESULT IMAP::HrGetDataItems(string strMsgDataItemNames, vector<string> &lstDataItems) {
 	/* translate macros */
-	strMsgDataItemNames = strToUpper(strMsgDataItemNames);
+	strMsgDataItemNames = strToUpper(std::move(strMsgDataItemNames));
 	if (strMsgDataItemNames == "ALL")
 		strMsgDataItemNames = "FLAGS INTERNALDATE RFC822.SIZE ENVELOPE";
 	else if (strMsgDataItemNames == "FAST")
@@ -3125,9 +3114,9 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 			setProps.emplace(PR_EC_IMAP_EMAIL_SIZE);
 			// this is where RFC822.HEADER seems to differ from BODY[HEADER] requests
 			// (according to dovecot and courier)
-			if (Prefix(strDataItem, "BODY["))
+			if (kc_starts_with(strDataItem, "BODY["))
 				bMarkAsRead = true;
-		} else if (Prefix(strDataItem, "BODY") || Prefix(strDataItem, "RFC822")) {
+		} else if (kc_starts_with(strDataItem, "BODY") || kc_starts_with(strDataItem, "RFC822")) {
 			// we don't want PR_EC_IMAP_EMAIL in the table (size problem),
 			// and it must be in sync with PR_EC_IMAP_EMAIL_SIZE anyway, so detect presence from size
 			setProps.emplace(PR_EC_IMAP_EMAIL_SIZE);
@@ -3351,7 +3340,7 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 			bSkipOpen = (headers != nullptr && strlen(headers->Value.lpszA) > 0 && size != nullptr);
 		}
 		// full/partial body fetches, or size
-		else if (Prefix(*iFetch, "BODY") || Prefix(*iFetch, "RFC822"))
+		else if (kc_starts_with(*iFetch, "BODY") || kc_starts_with(*iFetch, "RFC822"))
 			bSkipOpen = false;
 	}
 	if (!bSkipOpen && m_ulCacheUID != lstFolderMailEIDs[ulMailnr].ulUid) {
@@ -3427,7 +3416,7 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 			auto lpProp = PCpropFindProp(lpProps, cValues, PR_EC_IMAP_BODYSTRUCTURE);
 			vProps.emplace_back(item);
 			vProps.emplace_back(lpProp != nullptr ? string_strip_crlf(lpProp->Value.lpszA) : std::string("NIL"));
-		} else if (Prefix(item, "BODY") || Prefix(item, "RFC822")) {
+		} else if (kc_starts_with(item, "BODY") || kc_starts_with(item, "RFC822")) {
 			// the only exceptions when we don't need to generate anything yet.
 			if (item == "RFC822.SIZE") {
 				auto lpProp = PCpropFindProp(lpProps, cValues, PR_EC_IMAP_EMAIL_SIZE);
@@ -3586,7 +3575,7 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 				ulPos = strParts.find("]");
 				if (ulPos != string::npos)
 					strParts.erase(ulPos);
-				if (Prefix(item, "BODY"))
+				if (kc_starts_with(item, "BODY"))
 					vProps.emplace_back("BODY[" + strParts + "]");
 				else
 					vProps.emplace_back("RFC822." + strParts);
@@ -3826,7 +3815,7 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
 		    // Only headers in the message
 			strMessagePart = strMessage + "\r\n\r\n";
 		}
-	} else if (Prefix(strPartName, "HEADER.FIELDS")) {
+	} else if (kc_starts_with(strPartName, "HEADER.FIELDS")) {
 	    /* RFC 3501, section 6.4.5
 	     *
 	     * HEADER.FIELDS and HEADER.FIELDS.NOT are followed by a list of
@@ -3836,7 +3825,7 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
          * e.g. HEADER.FIELDS (SUBJECT TO)
          * e.g. HEADER.FIELDS.NOT (SUBJECT)
          */
-        bool bNot = Prefix(strPartName, "HEADER.FIELDS.NOT");
+		bool bNot = kc_starts_with(strPartName, "HEADER.FIELDS.NOT");
 		std::list<std::pair<std::string, std::string>> lstFields;
         string strFields;
 
@@ -4078,8 +4067,8 @@ HRESULT IMAP::HrStore(const list<ULONG> &lstMails, string strMsgDataItemName, st
 	if (strCurrentFolder.empty() || lpSession == nullptr)
 		return MAPI_E_CALL_FAILED;
 
-	strMsgDataItemName = strToUpper(strMsgDataItemName);
-	strMsgDataItemValue = strToUpper(strMsgDataItemValue);
+	strMsgDataItemName = strToUpper(std::move(strMsgDataItemName));
+	strMsgDataItemValue = strToUpper(std::move(strMsgDataItemValue));
 	if (strMsgDataItemValue.size() > 1 && strMsgDataItemValue[0] == '(') {
 		strMsgDataItemValue.erase(0, 1);
 		strMsgDataItemValue.erase(strMsgDataItemValue.size() - 1, 1);
@@ -4373,7 +4362,7 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 
 	// don't search if only search for uid, sequence set, all, recent, new or old
 	strSearchCriterium = lstSearchCriteria[ulStartCriteria];
-	strSearchCriterium = strToUpper(strSearchCriterium);
+	strSearchCriterium = strToUpper(std::move(strSearchCriterium));
 	if (lstSearchCriteria.size() - ulStartCriteria == 2 &&
 	    strSearchCriterium == "UID")
 		return HrParseSeqUidSet(lstSearchCriteria[ulStartCriteria + 1], lstMailnr);
@@ -4455,7 +4444,7 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 		}
 
 		strSearchCriterium = lstSearchCriteria[ulStartCriteria];
-		strSearchCriterium = strToUpper(strSearchCriterium);
+		strSearchCriterium = strToUpper(std::move(strSearchCriterium));
 		assert(lstRestrictions.size() >= 1);
 		IRestrictionPush &top_rst = *lstRestrictions[lstRestrictions.size()-1];
 		if (lstRestrictions.size() > 1)

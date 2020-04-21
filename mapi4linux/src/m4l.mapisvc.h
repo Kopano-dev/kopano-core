@@ -4,6 +4,7 @@
  */
 #pragma once
 #include <map>
+#include <memory>
 #include <set>
 #include <vector>
 #include <string>
@@ -74,11 +75,10 @@ private:
 
 class MAPISVC final {
 public:
-	~MAPISVC();
 	HRESULT Init();
-	HRESULT GetService(const TCHAR *service, ULONG flags, SVCService **);
-	HRESULT GetService(const char *dll_name, SVCService **);
+	HRESULT GetService(const TCHAR *service, unsigned int flags, std::shared_ptr<SVCService> &);
+	HRESULT GetService(const char *dll_name, std::shared_ptr<SVCService> &);
 
 private:
-	std::map<std::string, SVCService*> m_sServices;
+	std::map<std::string, std::shared_ptr<SVCService>> m_sServices;
 };

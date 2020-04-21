@@ -31,6 +31,7 @@
 #include <kopano/CommonUtil.h>
 #include <kopano/stringutil.h>
 #include <kopano/mapiguidext.h>
+#include <kopano/memory.hpp>
 #include <kopano/ECRestriction.h>
 #include <kopano/MAPIErrors.h>
 #include <string>
@@ -89,7 +90,7 @@ struct alignas(::max_align_t) mapibuf_head {
 };
 
 /* Some required globals */
-MAPISVC *m4l_lpMAPISVC = NULL;
+std::unique_ptr<MAPISVC> m4l_lpMAPISVC;
 
 // ---
 // M4LProfAdmin
@@ -202,7 +203,7 @@ HRESULT M4LProfAdmin::CreateProfile(const TCHAR *lpszProfileName,
 	auto hr = profilesection->SetProps(1, &sPropValue, nullptr);
 	if (hr != hrSuccess)
 		return kc_perrorf("SetProps failed", hr);
-	entry->serviceadmin.reset(new(std::nothrow) M4LMsgServiceAdmin(profilesection));
+	entry->serviceadmin.reset(new(std::nothrow) M4LMsgServiceAdmin(std::move(profilesection)));
     if (!entry->serviceadmin) {
 		ec_log_err("M4LProfAdmin::CreateProfile(): M4LMsgServiceAdmin failed");
 		return MAPI_E_NOT_ENOUGH_MEMORY;
@@ -314,8 +315,8 @@ HRESULT M4LProfAdmin::QueryInterface(REFIID refiid, void **lpvoid) {
 // ---
 // IMsgServceAdmin
 // ---
-M4LMsgServiceAdmin::M4LMsgServiceAdmin(M4LProfSect *ps) :
-	profilesection(ps)
+M4LMsgServiceAdmin::M4LMsgServiceAdmin(object_ptr<M4LProfSect> &&ps) :
+	profilesection(std::move(ps))
 {
 }
 
@@ -445,15 +446,14 @@ HRESULT M4LMsgServiceAdmin::CreateMsgServiceEx(const char *lpszService,
     const char *lpszDisplayName, ULONG_PTR ulUIParam, ULONG ulFlags,
     MAPIUID *uid)
 {
-	SVCService* service = NULL;
-	
 	if(lpszService == NULL || lpszDisplayName == NULL) {
 		ec_log_err("M4LMsgServiceAdmin::CreateMsgService(): invalid parameters");
 		return MAPI_E_INVALID_PARAMETER;
 	}
 
 	scoped_rlock l_srv(m_mutexserviceadmin);
-	auto hr = m4l_lpMAPISVC->GetService(reinterpret_cast<const TCHAR *>(lpszService), ulFlags, &service);
+	std::shared_ptr<SVCService> service;
+	auto hr = m4l_lpMAPISVC->GetService(reinterpret_cast<const TCHAR *>(lpszService), ulFlags, service);
 	if (hr == MAPI_E_NOT_FOUND) {
 		ec_log_err("M4LMsgServiceAdmin::CreateMsgService(): get service \"%s\" failed: %s (%x). "
 			"Does a config file exist for the service? (/usr/lib/mapi.d, /etc/mapi.d)",
@@ -849,7 +849,6 @@ HRESULT M4LMAPISession::OpenMsgStore(ULONG_PTR ulUIParam, ULONG cbEntryID,
 	rowset_ptr lpsRows;
 	MAPIUID sProviderUID;
 	memory_ptr<ENTRYID> lpStoreEntryID;
-	SVCService *service = NULL;
 
 	SizedSPropTagArray(2, sptaProviders) = { 2, {PR_RECORD_KEY, PR_PROVIDER_UID} };
 
@@ -864,7 +863,8 @@ HRESULT M4LMAPISession::OpenMsgStore(ULONG_PTR ulUIParam, ULONG cbEntryID,
 		return kc_perrorf("UnWrapStoreEntryID failed", hr);
 
 	// padding in entryid solves string ending
-	hr = m4l_lpMAPISVC->GetService(reinterpret_cast<const char *>(lpEntryID) + 4 + sizeof(GUID) + 2, &service);
+	std::shared_ptr<SVCService> service;
+	hr = m4l_lpMAPISVC->GetService(reinterpret_cast<const char *>(lpEntryID) + 4 + sizeof(GUID) + 2, service);
 	if (hr != hrSuccess)
 		return kc_perrorf("GetService failed", hr);
 	auto minit = service->MSProviderInit();
@@ -896,9 +896,11 @@ HRESULT M4LMAPISession::OpenMsgStore(ULONG_PTR ulUIParam, ULONG cbEntryID,
 	
 	if (lpsRows->cRows != 1)
 		// No provider for the store, use a temporary profile section
-		lpISupport.reset(new M4LMAPISupport(this, NULL, service));
+		lpISupport.reset(new(std::nothrow) M4LMAPISupport(this, nullptr, std::move(service)));
 	else
-		lpISupport.reset(new M4LMAPISupport(this, &sProviderUID, service));
+		lpISupport.reset(new(std::nothrow) M4LMAPISupport(this, &sProviderUID, std::move(service)));
+	if (lpISupport == nullptr)
+		return hr_lerrf(MAPI_E_NOT_ENOUGH_MEMORY, "new M4LMAPISupport");
 
 	// call kopano client for the Message Store Provider (provider/client/EntryPoint.cpp)
 	hr = minit(0, nullptr, MAPIAllocateBuffer, MAPIAllocateMore, MAPIFreeBuffer, ulFlags, CURRENT_SPI_VERSION, &mdbver, &~msp);
@@ -909,9 +911,14 @@ HRESULT M4LMAPISession::OpenMsgStore(ULONG_PTR ulUIParam, ULONG cbEntryID,
 	     nullptr, nullptr, &~mdb);
 	if (hr != hrSuccess)
 		return kc_perrorf("msp->Logon failed", hr);
+	object_ptr<ECUnknown> ecunk;
+	hr = mdb->QueryInterface(IID_ECUnknown, &~ecunk);
+	if (hr != hrSuccess)
+		return hr_lerrf(hr, "Sorry, M4L only supports message stores that use ECUnknown-based refcounting.");
 	hr = mdb->QueryInterface(lpInterface ? *lpInterface : IID_IMsgStore, reinterpret_cast<void **>(lppMDB));
 	if (hr != hrSuccess)
 		kc_perrorf("QueryInterface failed", hr);
+	AddChild(ecunk);
 	return hr;
 }
 
@@ -2145,8 +2152,7 @@ ULONG MAPIFreeBuffer(LPVOID lpBuffer)
 // ---
 // Entry
 // ---
-
-IProfAdmin *localProfileAdmin = NULL;
+object_ptr<M4LProfAdmin> localProfileAdmin;
 
 /**
  * Returns a pointer to the IProfAdmin interface. MAPIInitialize must been called previously.
@@ -2161,7 +2167,7 @@ HRESULT MAPIAdminProfiles(ULONG ulFlags, IProfAdmin **lppProfAdmin)
 {
 	if (!localProfileAdmin) {
 		ec_log_err("MAPIAdminProfiles(): localProfileAdmin not set");
-		return MAPI_E_CALL_FAILED;
+		return MAPI_E_NOT_INITIALIZED;
 	}
 
 	if (!lppProfAdmin) {
@@ -2199,7 +2205,7 @@ HRESULT MAPILogonEx(ULONG_PTR ulUIParam, const TCHAR *lpszProfileName,
 
 	if (!localProfileAdmin) {
 		ec_log_err("MAPILogonEx(): localProfileAdmin not set");
-		return MAPI_E_CALL_FAILED;
+		return MAPI_E_NOT_INITIALIZED;
 	}
 
 	if (ulFlags & MAPI_UNICODE) {
@@ -2270,20 +2276,20 @@ HRESULT MAPIInitialize(LPVOID lpMapiInit)
 
 	if (MAPIInitializeCount++ > 0) {
 		assert(localProfileAdmin);
-		localProfileAdmin->AddRef();
 		return hrSuccess;
 	}
 
 	// Loads the mapisvc.inf, and finds all providers and entry point functions
-	m4l_lpMAPISVC = new MAPISVC();
+	m4l_lpMAPISVC.reset(new(std::nothrow) MAPISVC);
+	if (m4l_lpMAPISVC == nullptr)
+		return hr_lerrf(MAPI_E_NOT_ENOUGH_MEMORY, "new MAPISVC");
 	auto hr = m4l_lpMAPISVC->Init();
 	if (hr != hrSuccess)
 		return kc_perrorf("MAPISVC::Init fail", hr);
 	if (!localProfileAdmin) {
-		localProfileAdmin = new M4LProfAdmin;
+		localProfileAdmin.reset(new(std::nothrow) M4LProfAdmin);
 		if (localProfileAdmin == nullptr)
 			return MAPI_E_NOT_ENOUGH_MEMORY;
-		localProfileAdmin->AddRef();
 	}
 	return hrSuccess;
 }
@@ -2301,16 +2307,10 @@ void MAPIUninitialize(void)
 
 	if (MAPIInitializeCount == 0)
 		abort();
-
-	/* MAPIInitialize always AddRefs localProfileAdmin */
-	if (localProfileAdmin)
-		localProfileAdmin->Release();
-
 	/* Only clean everything up when this is the last MAPIUnitialize call. */
 	if (--MAPIInitializeCount == 0) {
-		delete m4l_lpMAPISVC;
-
-		localProfileAdmin = NULL;
+		m4l_lpMAPISVC.reset();
+		localProfileAdmin.reset();
 	}
 }
 
@@ -2548,7 +2548,7 @@ HRESULT SessionRestorer::restore_services(IProfAdmin *profadm)
 		if (entry == nullptr)
 			return MAPI_E_NOT_ENOUGH_MEMORY;
 		auto svcname = svcname_prop->Value.lpszA;
-		ret = m4l_lpMAPISVC->GetService(reinterpret_cast<const TCHAR *>(svcname), 0, &entry->service);
+		ret = m4l_lpMAPISVC->GetService(reinterpret_cast<const TCHAR *>(svcname), 0, entry->service);
 		if (ret != hrSuccess)
 			return MAPI_E_CALL_FAILED;
 		entry->provideradmin.reset(new(std::nothrow) M4LProviderAdmin(m_svcadm, m_profname.c_str()));

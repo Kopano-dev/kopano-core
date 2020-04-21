@@ -40,9 +40,9 @@ HRESULT M4LMAPIGetSession::QueryInterface(REFIID refiid, void **lpvoid) {
 	return hrSuccess;
 }
 
-M4LMAPISupport::M4LMAPISupport(LPMAPISESSION new_session, LPMAPIUID lpUid,
-    SVCService *lpService) :
-	session(new_session), service(lpService)
+M4LMAPISupport::M4LMAPISupport(IMAPISession *new_session, MAPIUID *lpUid,
+    std::shared_ptr<SVCService> &&lpService) :
+	session(new_session), service(std::move(lpService))
 {
 	if(lpUid) {
 		lpsProviderUID.reset(new MAPIUID);
