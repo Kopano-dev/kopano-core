@@ -914,10 +914,10 @@ static const acl_role_name acl_roles[] = {
 	{ROLE_OWNER, "owner"}
 };
 
-static inline bool is_right(unsigned int ror)
+static inline bool is_right(unsigned int x)
 {
 	/* A right has exactly 1 bit set. Otherwise, it is a role. */
-	return (ror ^ (ror - 1)) == 0;
+	return x && !(x & (x - 1));
 }
 
 static const struct acl_right_name *find_acl_right(unsigned int rightnum)
@@ -940,8 +940,16 @@ static const struct acl_role_name *find_acl_role(unsigned int rolenum)
 
 std::string AclRightsToString(unsigned int ror)
 {
-	if (ror == static_cast<unsigned int>(-1))
-		return "missing or invalid";
+	switch (ror) {
+	case -1:
+		return "Error reading ACL";
+	case -2:
+		return "Access control not applicable";
+	case -3:
+		return "ACL not yet read";
+	case -4:
+		return "ACL Entry is missing";
+	}
 	if (is_right(ror)) {
 		auto r = find_acl_right(ror);
 		if (r == nullptr)
