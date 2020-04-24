@@ -363,9 +363,9 @@ private:
      * @param[in] bNotify TRUE on a live system, FALSE if only the database must be updated.
      * @return result
      */
-	KC_HIDDEN virtual ECRESULT ProcessCandidateRows(ECDatabase *, ECSession *, const struct restrictTable *r, bool *cancel, unsigned int store_id, unsigned int folder_id, ECODStore *, ECObjectTableList rows, struct propTagArray *tags, const ECLocale &, std::list<unsigned int> &);
-	KC_HIDDEN virtual ECRESULT ProcessCandidateRows(ECDatabase *, ECSession *, const struct restrictTable *r, bool *cancel, unsigned int store_id, unsigned int folder_id, ECODStore *, ECObjectTableList rows, struct propTagArray *tags, const ECLocale &);
-	KC_HIDDEN virtual ECRESULT ProcessCandidateRowsNotify(ECDatabase *, ECSession *, const struct restrictTable *r, bool *cancel, unsigned int store_id, unsigned int folder_id, ECODStore *, ECObjectTableList rows, struct propTagArray *tags, const ECLocale &);
+	KC_HIDDEN virtual ECRESULT ProcessCandidateRows(ECDatabase *, ECSession *, const struct restrictTable *r, bool *cancel, unsigned int store_id, unsigned int folder_id, ECODStore &, ECObjectTableList rows, struct propTagArray *tags, const ECLocale &, std::list<unsigned int> &);
+	KC_HIDDEN virtual ECRESULT ProcessCandidateRows(ECDatabase *, ECSession *, const struct restrictTable *r, bool *cancel, unsigned int store_id, unsigned int folder_id, ECODStore &, ECObjectTableList rows, struct propTagArray *tags, const ECLocale &);
+	KC_HIDDEN virtual ECRESULT ProcessCandidateRowsNotify(ECDatabase *, ECSession *, const struct restrictTable *r, bool *cancel, unsigned int store_id, unsigned int folder_id, ECODStore &, ECObjectTableList rows, struct propTagArray *tags, const ECLocale &);
 
     // Map StoreID -> SearchFolderId -> SearchCriteria
     // Because searchfolders only work within a store, this allows us to skip 99% of all

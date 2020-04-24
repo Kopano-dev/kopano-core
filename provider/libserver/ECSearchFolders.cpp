@@ -662,7 +662,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 
 ECRESULT ECSearchFolders::ProcessCandidateRowsNotify(ECDatabase *lpDatabase,
     ECSession *lpSession, const struct restrictTable *lpRestrict, bool *lpbCancel,
-    unsigned int ulStoreId, unsigned int ulFolderId, ECODStore *lpODStore,
+    unsigned int ulStoreId, unsigned int ulFolderId, ECODStore &lpODStore,
     ECObjectTableList ecRows, struct propTagArray *lpPropTags,
     const ECLocale &locale)
 {
@@ -701,7 +701,7 @@ ECRESULT ECSearchFolders::ProcessCandidateRowsNotify(ECDatabase *lpDatabase,
 
 ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase,
     ECSession *lpSession, const struct restrictTable *lpRestrict, bool *lpbCancel,
-    unsigned int ulStoreId, unsigned int ulFolderId, ECODStore *lpODStore,
+    unsigned int ulStoreId, unsigned int ulFolderId, ECODStore &lpODStore,
     ECObjectTableList ecRows, struct propTagArray *lpPropTags,
     const ECLocale &locale)
 {
@@ -732,7 +732,7 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase,
  */
 ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase,
     ECSession *lpSession, const struct restrictTable *lpRestrict, bool *lpbCancel,
-    unsigned int ulStoreId, unsigned int ulFolderId, ECODStore *lpODStore,
+    unsigned int ulStoreId, unsigned int ulFolderId, ECODStore &lpODStore,
     ECObjectTableList ecRows, struct propTagArray *lpPropTags,
     const ECLocale &locale, std::list<unsigned int> &lstMatches)
 {
@@ -747,13 +747,14 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase,
 
     // Get the row data for the search
 	auto cleanup = make_scope_success([&]() { soap_del_PointerTorowSet(&lpRowSet); });
-	auto er = ECStoreObjectTable::QueryRowData(nullptr, nullptr, lpSession, &ecRows, lpPropTags, lpODStore, &lpRowSet, false, false);
+	auto er = ECStoreObjectTable::QueryRowData(nullptr, nullptr, lpSession,
+	          &ecRows, lpPropTags, &lpODStore, &lpRowSet, false, false);
 	if(er != erSuccess) {
 		ec_log_err("ECSearchFolders::ProcessCandidateRows() ECStoreObjectTable::QueryRowData failed %d", er);
 		return er;
 	}
     // Get the subrestriction results for the search
-    er = RunSubRestrictions(lpSession, lpODStore, lpRestrict, &ecRows, locale, sub_results);
+	er = RunSubRestrictions(lpSession, &lpODStore, lpRestrict, &ecRows, locale, sub_results);
 	if(er != erSuccess) {
 		ec_log_err("ECSearchFolders::ProcessCandidateRows() RunSubRestrictions failed %d", er);
 		return er;
@@ -932,7 +933,9 @@ ECRESULT ECSearchFolders::search_r1(ECDatabase *lpDatabase, ECSession *lpSession
 		if (ecRows.empty())
 			break; // no more rows
 		// Note that we do not want ProcessCandidateRows to send notifications since we will send a bulk TABLE_CHANGE later, so bNotify == false here
-		er = ProcessCandidateRows(lpDatabase, lpSession, lpAdditionalRestrict, lpbCancel, ulStoreId, ulFolderId, &ecODStore, ecRows, lpPropTags, m_lpSessionManager->GetSortLocale(ulStoreId));
+		er = ProcessCandidateRows(lpDatabase, lpSession, lpAdditionalRestrict,
+		     lpbCancel, ulStoreId, ulFolderId, ecODStore, ecRows, lpPropTags,
+		     m_lpSessionManager->GetSortLocale(ulStoreId));
 		if (er != erSuccess)
 			return ec_perror("ECSearchFolders::Search() ProcessCandidateRows failed", er);
 	}
@@ -1009,9 +1012,15 @@ ECRESULT ECSearchFolders::search_r2(ECDatabase *lpDatabase, ECSession *lpSession
 			if (ecRows.empty())
 				break; // no more rows
 			if (bNotify)
-				er = ProcessCandidateRowsNotify(lpDatabase, lpSession, lpSearchCrit->lpRestrict, lpbCancel, ulStoreId, ulFolderId, &ecODStore, ecRows, lpPropTags, m_lpSessionManager->GetSortLocale(ulStoreId));
+				er = ProcessCandidateRowsNotify(lpDatabase, lpSession,
+				     lpSearchCrit->lpRestrict, lpbCancel, ulStoreId,
+				     ulFolderId, ecODStore, ecRows, lpPropTags,
+				     m_lpSessionManager->GetSortLocale(ulStoreId));
 			else
-				er = ProcessCandidateRows(lpDatabase, lpSession, lpSearchCrit->lpRestrict, lpbCancel, ulStoreId, ulFolderId, &ecODStore, ecRows, lpPropTags, m_lpSessionManager->GetSortLocale(ulStoreId));
+				er = ProcessCandidateRows(lpDatabase, lpSession,
+				     lpSearchCrit->lpRestrict, lpbCancel, ulStoreId,
+				     ulFolderId, ecODStore, ecRows, lpPropTags,
+				     m_lpSessionManager->GetSortLocale(ulStoreId));
 			if (er != erSuccess)
 				return ec_perror("ECSearchFolders::Search() ProcessCandidateRows failed", er);
 		}
