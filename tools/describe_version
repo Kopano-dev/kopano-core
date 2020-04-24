@@ -1,6 +1,9 @@
 #!/bin/sh
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# Emit distance-based commit identifier.
+# Emit distance-based commit identifier, based upon the next parent along the
+# leftmost edges. (Avoids tags that came in through a merge.)
+# This is only applicable for one direction; if you want output in the style of
+# --contains, use the regular `git describe`.
 #
 if ! which git >/dev/null 2>/dev/null || ! which perl >/dev/null 2>/dev/null; then
 	exit 1
