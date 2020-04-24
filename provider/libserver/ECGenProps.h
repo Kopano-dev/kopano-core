@@ -44,7 +44,6 @@ extern ECRESULT GetPropComputed(struct soap *soap, unsigned int objtype, unsigne
 // returns the computed value for a property which doesn't has database actions
 extern ECRESULT GetPropComputedUncached(struct soap *, const ECODStore *, ECSession *, unsigned int proptag, unsigned int obj_id, unsigned int order_id, unsigned int store_id, unsigned int parent_id, unsigned int obj_type, struct propVal *);
 extern ECRESULT GetStoreName(struct soap *soap, ECSession *, unsigned int store_id, unsigned int store_type, char **store_name);
-extern ECRESULT IsOrphanStore(ECSession *, unsigned int obj_id, bool *is_orphan);
 
 } /* namespace */
 } /* namespace */

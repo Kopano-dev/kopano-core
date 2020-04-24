@@ -29,6 +29,8 @@ using namespace std::string_literals;
 namespace KC {
 namespace ECGenProps {
 
+static ECRESULT IsOrphanStore(ECSession *, unsigned int objid, bool *is_orphan);
+
 ECRESULT GetPropSubquery(unsigned int ulPropTagRequested, std::string &subquery)
 {
 	switch(ulPropTagRequested) {
@@ -672,7 +674,7 @@ exit:
  * @param[in] ulObjId	Hierarchy id of a store
  * @param[out] lpbIsOrphan	True is the store is a orphan store, false if not.
  */
-ECRESULT IsOrphanStore(ECSession* lpSession, unsigned int ulObjId, bool *lpbIsOrphan)
+static ECRESULT IsOrphanStore(ECSession* lpSession, unsigned int ulObjId, bool *lpbIsOrphan)
 {
 	ECDatabase *lpDatabase = NULL;
 	DB_RESULT lpDBResult;
