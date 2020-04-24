@@ -12,6 +12,10 @@ struct soap;
 
 namespace KC {
 
+struct ECODStore;
+
+namespace ECGenProps {
+
 /*
  * This class is a general serverside class for generated properties. A Generated
  * property is any property that cannot be directly stored or read from the database.
@@ -24,27 +28,23 @@ namespace KC {
  * never sorted on in tables. (due to the server actually doing the sorting)
  */
 
-struct ECODStore;
+// Returns whether a different property should be retrieved instead of the
+// requested property.
+extern ECRESULT GetPropSubstitute(unsigned int objtype, unsigned int proptag_requested, unsigned int *proptag_required);
+// Return erSuccess if a property can be generated in GetPropComputed()
+extern ECRESULT IsPropComputed(unsigned int proptag, unsigned int objtype);
+// Return erSuccess if a property can be generated in GetPropComputedUncached()
+extern ECRESULT IsPropComputedUncached(unsigned int proptag, unsigned int objtype);
+// Return erSuccess if a property needn't be saved in the properties table
+extern ECRESULT IsPropRedundant(unsigned int proptag, unsigned int objtype);
+// Returns a subquery to run for the specified column
+extern ECRESULT GetPropSubquery(unsigned int proptag_requested, std::string &subquery);
+// Does post-processing after retrieving data from either cache or DB
+extern ECRESULT GetPropComputed(struct soap *soap, unsigned int objtype, unsigned int proptag_requested, unsigned int objid, struct propVal *);
+// returns the computed value for a property which doesn't has database actions
+extern ECRESULT GetPropComputedUncached(struct soap *, const ECODStore *, ECSession *, unsigned int proptag, unsigned int obj_id, unsigned int order_id, unsigned int store_id, unsigned int parent_id, unsigned int obj_type, struct propVal *);
+extern ECRESULT GetStoreName(struct soap *soap, ECSession *, unsigned int store_id, unsigned int store_type, char **store_name);
+extern ECRESULT IsOrphanStore(ECSession *, unsigned int obj_id, bool *is_orphan);
 
-class ECGenProps final {
-public:
-	// Returns whether a different property should be retrieved instead of the
-	// requested property.
-	static ECRESULT	GetPropSubstitute(unsigned int ulObjType, unsigned int ulPropTagRequested, unsigned int *lpulPropTagRequired);
-	// Return erSuccess if a property can be generated in GetPropComputed()
-	static ECRESULT IsPropComputed(unsigned int ulPropTag, unsigned int ulObjType);
-	// Return erSuccess if a property can be generated in GetPropComputedUncached()
-	static ECRESULT IsPropComputedUncached(unsigned int ulPropTag, unsigned int ulObjType);
-	// Return erSuccess if a property needn't be saved in the properties table
-	static ECRESULT IsPropRedundant(unsigned int ulPropTag, unsigned int ulObjType);
-	// Returns a subquery to run for the specified column
-	static ECRESULT GetPropSubquery(unsigned int ulPropTagRequested, std::string &subquery);
-	// Does post-processing after retrieving data from either cache or DB
-	static ECRESULT	GetPropComputed(struct soap *soap, unsigned int ulObjType, unsigned int ulPropTagRequested, unsigned int ulObjId, struct propVal *lpsPropVal);
-	// returns the computed value for a property which doesn't has database actions
-	static ECRESULT GetPropComputedUncached(struct soap *, const ECODStore *, ECSession *, unsigned int proptag, unsigned int obj_id, unsigned int order_id, unsigned int store_id, unsigned int parent_id, unsigned int obj_type, struct propVal *);
-	static ECRESULT GetStoreName(struct soap *soap, ECSession* lpSession, unsigned int ulStoreId, unsigned int ulStoreType, char** lppStoreName);
-	static ECRESULT IsOrphanStore(ECSession* lpSession, unsigned int ulObjId, bool *lpbIsOrphan);
-};
-
+} /* namespace */
 } /* namespace */

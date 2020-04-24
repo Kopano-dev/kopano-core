@@ -27,8 +27,9 @@
 using namespace std::string_literals;
 
 namespace KC {
+namespace ECGenProps {
 
-ECRESULT ECGenProps::GetPropSubquery(unsigned int ulPropTagRequested, std::string &subquery)
+ECRESULT GetPropSubquery(unsigned int ulPropTagRequested, std::string &subquery)
 {
 	switch(ulPropTagRequested) {
 	case PR_PARENT_DISPLAY_W:
@@ -65,7 +66,8 @@ ECRESULT ECGenProps::GetPropSubquery(unsigned int ulPropTagRequested, std::strin
  * @param ulPropTagRequired[out] Output property to be retrieved from the database
  * @return Result
  */
-ECRESULT ECGenProps::GetPropSubstitute(unsigned int ulObjType, unsigned int ulPropTagRequested, unsigned int *lpulPropTagRequired)
+ECRESULT GetPropSubstitute(unsigned int ulObjType, unsigned int ulPropTagRequested,
+    unsigned int *lpulPropTagRequired)
 {
 	unsigned int ulPropTagRequired = 0;
 
@@ -88,7 +90,7 @@ ECRESULT ECGenProps::GetPropSubstitute(unsigned int ulObjType, unsigned int ulPr
 }
 
 // This should be synchronized with GetPropComputed
-ECRESULT ECGenProps::IsPropComputed(unsigned int ulPropTag, unsigned int ulObjType)
+ECRESULT IsPropComputed(unsigned int ulPropTag, unsigned int ulObjType)
 {
 	switch(ulPropTag) {
 	case PR_MSG_STATUS:
@@ -107,7 +109,7 @@ ECRESULT ECGenProps::IsPropComputed(unsigned int ulPropTag, unsigned int ulObjTy
 }
 
 // This should be synchronized with GetPropComputedUncached
-ECRESULT ECGenProps::IsPropComputedUncached(unsigned int ulPropTag, unsigned int ulObjType)
+ECRESULT IsPropComputedUncached(unsigned int ulPropTag, unsigned int ulObjType)
 {
     switch(PROP_ID(ulPropTag)) {
         case PROP_ID(PR_LONGTERM_ENTRYID_FROM_TABLE):
@@ -147,7 +149,7 @@ ECRESULT ECGenProps::IsPropComputedUncached(unsigned int ulPropTag, unsigned int
 // These are properties that are never written to the 'properties' table; ie they are never directly queried. This
 // is not the same as the generated properties, as they may access data in the database to *create* a generated
 // property.
-ECRESULT ECGenProps::IsPropRedundant(unsigned int ulPropTag, unsigned int ulObjType)
+ECRESULT IsPropRedundant(unsigned int ulPropTag, unsigned int ulObjType)
 {
     switch(PROP_ID(ulPropTag)) {
 	case PROP_ID(PR_ACCESS):					// generated from ACLs
@@ -181,7 +183,9 @@ ECRESULT ECGenProps::IsPropRedundant(unsigned int ulPropTag, unsigned int ulObjT
     }
 }
 
-ECRESULT ECGenProps::GetPropComputed(struct soap *soap, unsigned int ulObjType, unsigned int ulPropTagRequested, unsigned int ulObjId, struct propVal *lpPropVal)
+ECRESULT GetPropComputed(struct soap *soap, unsigned int ulObjType,
+    unsigned int ulPropTagRequested, unsigned int ulObjId,
+    struct propVal *lpPropVal)
 {
 	switch(PROP_ID(ulPropTagRequested)) {
 	case PROP_ID(PR_MSG_STATUS):
@@ -261,10 +265,10 @@ ECRESULT ECGenProps::GetPropComputed(struct soap *soap, unsigned int ulObjType, 
 }
 
 // All in memory properties
-ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
-    const ECODStore *lpODStore, ECSession *lpSession, unsigned int ulPropTag,
-    unsigned int ulObjId, unsigned int ulOrderId, unsigned int ulStoreId,
-    unsigned int ulParentId, unsigned int ulObjType, struct propVal *lpPropVal)
+ECRESULT GetPropComputedUncached(struct soap *soap, const ECODStore *lpODStore,
+    ECSession *lpSession, unsigned int ulPropTag, unsigned int ulObjId,
+    unsigned int ulOrderId, unsigned int ulStoreId, unsigned int ulParentId,
+    unsigned int ulObjType, struct propVal *lpPropVal)
 {
 	ECRESULT		er = erSuccess;
 	bool bOwner = false, bAdmin = false;
@@ -668,7 +672,7 @@ exit:
  * @param[in] ulObjId	Hierarchy id of a store
  * @param[out] lpbIsOrphan	True is the store is a orphan store, false if not.
  */
-ECRESULT ECGenProps::IsOrphanStore(ECSession* lpSession, unsigned int ulObjId, bool *lpbIsOrphan)
+ECRESULT IsOrphanStore(ECSession* lpSession, unsigned int ulObjId, bool *lpbIsOrphan)
 {
 	ECDatabase *lpDatabase = NULL;
 	DB_RESULT lpDBResult;
@@ -696,7 +700,8 @@ ECRESULT ECGenProps::IsOrphanStore(ECSession* lpSession, unsigned int ulObjId, b
  * @param lppStoreName Output pointer
  * @return result
  */
-ECRESULT ECGenProps::GetStoreName(struct soap *soap, ECSession* lpSession, unsigned int ulStoreId, unsigned int ulStoreType, char** lppStoreName)
+ECRESULT GetStoreName(struct soap *soap, ECSession *lpSession,
+    unsigned int ulStoreId, unsigned int ulStoreType, char **lppStoreName)
 {
 	unsigned int ulUserId = 0, ulCompanyId = 0;
 	struct propValArray sPropValArray;
@@ -767,4 +772,5 @@ exit:
 	return er;
 }
 
+} /* namespace */
 } /* namespace */
