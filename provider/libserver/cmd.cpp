@@ -890,10 +890,6 @@ int KCmdService::fname(ULONG64 ulSessionId, ##__VA_ARGS__) \
 
 #define USE_DATABASE() USE_DATABASE_NORESULT(); ALLOC_DBRESULT();
 
-#define ROLLBACK_ON_ERROR() \
-	if (lpDatabase && FAILED(er)) \
-		lpDatabase->Rollback(); \
-
 static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
     unsigned int ulLifetime, unsigned int *lpulMessages,
     unsigned int *lpulFolders, unsigned int *lpulStores, bool *lpbExit)
@@ -2366,8 +2362,6 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er,
 	if (er != erSuccess)
 		return er;
 
-	auto laters = make_scope_success([&]() { ROLLBACK_ON_ERROR(); });
-
 	if (!sParentEntryId.__ptr) {
 		// saveObject is called on the store itself (doesn't have a parent)
 		ulParentObjType = MAPI_STORE;
@@ -3086,8 +3080,6 @@ SOAP_ENTRY_START(createFolder, lpsResponse->er, const entryId &sParentId,
 	auto dtx = lpDatabase->Begin(er);
 	if (er != erSuccess)
 		return er;
-
-	auto laters = make_scope_success([&]() { ROLLBACK_ON_ERROR(); });
 	er = lpecSession->GetObjectFromEntryId(&sParentId, &ulParentId);
 	if (er != erSuccess)
 		return er;
@@ -3117,8 +3109,6 @@ SOAP_ENTRY_START(create_folders, rsp->er, const entryId &parent_eid,
 	auto dtx = lpDatabase->Begin(er);
 	if (er != erSuccess)
 		return er;
-
-	auto laters = make_scope_success([&]() { ROLLBACK_ON_ERROR(); });
 	unsigned int parent_id = 0;
 	er = lpecSession->GetObjectFromEntryId(&parent_eid, &parent_id);
 	if (er != erSuccess)
@@ -3988,7 +3978,6 @@ SOAP_ENTRY_START(getIDsFromNames, lpsResponse->er,  struct namedPropArray *lpsNa
 	auto dtx = lpDatabase->Begin(er);
 	if (er != erSuccess)
 		return er;
-	auto laters = make_scope_success([&]() { ROLLBACK_ON_ERROR(); });
 
 	for (gsoap_size_t i = 0; i < lpsNamedProps->__size; ++i) {
 		if (lpsResponse->lpsPropTags.__ptr[i] != 0)
@@ -4792,7 +4781,6 @@ SOAP_ENTRY_START(createStore, *result, unsigned int ulStoreType,
 		else if (er != erSuccess)
 			er_lerr(er, "Failed to create store (id=%d)", ulUserId);
 		soap_del_rightsArray(&srightsArray);
-		ROLLBACK_ON_ERROR();
 	});
 	if (static_cast<size_t>(sStoreId.__size) < SIZEOF_EID_V0_FIXED)
 		return er = KCERR_INVALID_PARAMETER;
@@ -7306,7 +7294,6 @@ SOAP_ENTRY_START(unhookStore, *result, unsigned int ulStoreType,
 			er_lerr(er, "Unhook of store (type %u) with userid %u and GUID %s failed", ulStoreType, ulUserId, strGUID.c_str());
 		else
 			ec_log_err("Unhook of store (type %u) with userid %u and GUID %s succeeded", ulStoreType, ulUserId, strGUID.c_str());
-		ROLLBACK_ON_ERROR();
 	});
 	er = ABEntryIDToID(&sUserId, &ulUserId, NULL, NULL);
 	if(er != erSuccess)
@@ -7352,7 +7339,6 @@ SOAP_ENTRY_START(hookStore, *result, unsigned int ulStoreType,
 	auto cleanup = make_scope_success([&]() {
 		if (er != erSuccess)
 			ec_perror("Hook of store failed", er);
-		ROLLBACK_ON_ERROR();
 	});
 
 	// do not use GetLocalId since the user may exist on a different server,
@@ -8809,7 +8795,6 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags,
 		if (lpsStreamInfo != nullptr)
 			soap_del_PointerTopropValArray(&lpsStreamInfo->lpPropValArray);
 		FreeDeletedItems(&lstDeleteItems);
-		ROLLBACK_ON_ERROR();
 		if (er == erSuccess)
 			return;
 		/* Remove from cache, else we can get sync issue, with missing messages offline. */

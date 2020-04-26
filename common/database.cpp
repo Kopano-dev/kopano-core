@@ -587,10 +587,8 @@ kd_trans::~kd_trans()
 	if (m_done || std::uncaught_exception())
 		return;
 #endif
-	if (*m_result != 0)
+	if (!m_done)
 		m_db->Rollback();
-	else
-		*m_result = m_db->Commit();
 }
 
 kd_trans &kd_trans::operator=(kd_trans &&o)
