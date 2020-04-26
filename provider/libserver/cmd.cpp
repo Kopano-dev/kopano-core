@@ -895,7 +895,7 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 	});
 	if (g_bPurgeSoftDeleteStatus) {
 		ec_log_err("Softdelete already running");
-		return KCERR_BUSY;
+		return er = KCERR_BUSY;
 	}
 	g_bPurgeSoftDeleteStatus = TRUE;
 	if (!lpbExit)
@@ -927,7 +927,7 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 		// free before we call DeleteObjects()
 		lpDBResult = DB_RESULT();
 		if (*lpbExit)
-			return KCERR_USER_CANCEL;
+			return er = KCERR_USER_CANCEL;
 
 		ec_log_info("Starting to purge %zu stores", lObjectIds.size());
 		for (auto iterObjectId = lObjectIds.cbegin();
@@ -943,7 +943,7 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 		ec_log_info("Store purge done");
 	}
 	if (*lpbExit)
-		return KCERR_USER_CANCEL;
+		return er = KCERR_USER_CANCEL;
 
 	// Select softdeleted folders
 	strQuery = "SELECT h.id FROM hierarchy AS h JOIN properties AS p ON p.hierarchyid=h.id AND p.tag="+stringify(PROP_ID(PR_DELETED_ON))+" AND p.type="+stringify(PROP_TYPE(PR_DELETED_ON))+" WHERE (h.flags&"+stringify(MSGFLAG_DELETED)+")="+stringify(MSGFLAG_DELETED)+" AND p.val_hi<="+stringify(ft.dwHighDateTime)+" AND h.type="+stringify(MAPI_FOLDER);
@@ -964,7 +964,7 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 		// free before we call DeleteObjects()
 		lpDBResult = DB_RESULT();
 		if (*lpbExit)
-			return KCERR_USER_CANCEL;
+			return er = KCERR_USER_CANCEL;
 		ec_log_info("Starting to purge %zu folders", lObjectIds.size());
 		er = DeleteObjects(lpecSession, lpDatabase, &lObjectIds, ulDeleteFlags, 0, false, false);
 		if (er != erSuccess)
@@ -972,7 +972,7 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 		ec_log_info("Folder purge done");
 	}
 	if (*lpbExit)
-		return KCERR_USER_CANCEL;
+		return er = KCERR_USER_CANCEL;
 
 	// Select softdeleted messages
 	strQuery = "SELECT h.id FROM hierarchy AS h JOIN properties AS p ON p.hierarchyid=h.id AND p.tag="+stringify(PROP_ID(PR_DELETED_ON))+" AND p.type="+stringify(PROP_TYPE(PR_DELETED_ON))+" WHERE (h.flags&"+stringify(MSGFLAG_DELETED)+")="+stringify(MSGFLAG_DELETED)+" AND h.type="+stringify(MAPI_MESSAGE)+" AND p.val_hi<="+stringify(ft.dwHighDateTime);
@@ -993,7 +993,7 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 		// free before we call DeleteObjects()
 		lpDBResult = DB_RESULT();
 		if (*lpbExit)
-			return KCERR_USER_CANCEL;
+			return er = KCERR_USER_CANCEL;
 		ec_log_info("Starting to purge %zu messages", lObjectIds.size());
 		er = DeleteObjects(lpecSession, lpDatabase, &lObjectIds, ulDeleteFlags, 0, false, false);
 		if (er != erSuccess)
