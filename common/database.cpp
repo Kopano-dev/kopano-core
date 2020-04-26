@@ -593,7 +593,9 @@ kd_trans::~kd_trans()
 
 kd_trans &kd_trans::operator=(kd_trans &&o)
 {
-	kd_trans x(std::move(*this));
+	if (!m_done)
+		m_db->Rollback();
+
 	m_result = o.m_result;
 	m_db     = o.m_db;
 	m_done   = o.m_done;
