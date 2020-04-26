@@ -2653,7 +2653,7 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 	SOURCEKEY sSourceKey;
 	auto cache = m_lpSession->GetSessionManager()->GetCacheManager();
 	auto cleanup = make_scope_success([&]() {
-		if (er != 0)
+		if (er != erSuccess)
 			ec_log_info("Auto-deleting %s %d done: %s (%x)", ObjectClassToName(objclass), ulObjectId, GetMAPIErrorMessage(kcerr_to_mapierr(er)), er);
 		else
 			ec_log_info("Auto-deleting %s %d done.", ObjectClassToName(objclass), ulObjectId);
@@ -2726,7 +2726,7 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 		er = dtx.commit();
 		if (er != erSuccess)
 			return er;
-		return cache->UpdateUser(ulObjectId);
+		return er = cache->UpdateUser(ulObjectId);
 		// Done, no ICS change, no userscript action required
 	}
 
@@ -2761,7 +2761,7 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 			return erSuccess;
 		} else if (lpRow[0] == NULL) {
 			ec_log_err("ECUserManagement::DeleteLocalObject(): column null");
-			return KCERR_DATABASE_ERROR;
+			return er = KCERR_DATABASE_ERROR;
 		}
 		execute_script(script, "KOPANO_STOREGUID", lpRow[0], nullptr);
 		break;
