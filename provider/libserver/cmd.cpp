@@ -4,6 +4,7 @@
  */
 #include <kopano/platform.h>
 #include <algorithm>
+#include <atomic>
 #include <list>
 #include <memory>
 #include <string>
@@ -104,9 +105,6 @@ class ksrv_worker final : public ECThreadWorker {
 	using ECThreadWorker::ECThreadWorker;
 	virtual void exit();
 };
-
-// Hold the status of the softdelete purge system
-static bool g_bPurgeSoftDeleteStatus = FALSE;
 
 static ECRESULT CreateEntryId(GUID guidStore, unsigned int ulObjType,
     entryId **lppEntryId)
@@ -877,6 +875,9 @@ int KCmdService::fname(ULONG64 ulSessionId, ##__VA_ARGS__) \
 	if (lpDatabase && FAILED(er)) \
 		lpDatabase->Rollback(); \
 
+/* Hold the status of the softdelete purge system */
+static std::atomic<bool> g_bPurgeSoftDeleteStatus{false};
+
 static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
     unsigned int ulLifetime, unsigned int *lpulMessages,
     unsigned int *lpulFolders, unsigned int *lpulStores, bool *lpbExit)
@@ -893,11 +894,10 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 		if (er != KCERR_BUSY)
 			g_bPurgeSoftDeleteStatus = FALSE;
 	});
-	if (g_bPurgeSoftDeleteStatus) {
+	if (!g_bPurgeSoftDeleteStatus.compare_exchange_strong(bExitDummy, true)) {
 		ec_log_err("Softdelete already running");
 		return er = KCERR_BUSY;
 	}
-	g_bPurgeSoftDeleteStatus = TRUE;
 	if (!lpbExit)
 		lpbExit = &bExitDummy;
 	er = lpecSession->GetDatabase(&lpDatabase);
@@ -6288,7 +6288,7 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 		FreeEntryId(lpsOldEntryId, true);
 	});
 	if(lplObjectIds->empty())
-		return erSuccess; /* Nothing to do */
+		return er = erSuccess; /* Nothing to do */
 	GetSystemTimeAsFileTime(&ft);
 
 	// Check permission, Destination folder
@@ -6640,7 +6640,7 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 	gcache->GetParent(ulDestFolderId, &ulGrandParent);
 	g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulGrandParent, ulDestFolderId, MAPI_FOLDER);
 	if (bPartialCompletion)
-		return KCWARN_PARTIAL_COMPLETION;
+		return er = KCWARN_PARTIAL_COMPLETION;
 	return erSuccess;
 }
 
