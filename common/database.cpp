@@ -579,16 +579,21 @@ kd_trans::kd_trans(kd_trans &&o) :
 
 kd_trans::~kd_trans()
 {
+	if (m_done)
+		return;
 #if __cplusplus >= 201700L
-	if (m_done || std::uncaught_exceptions() > 0)
-		/* was not handled earlier either */
-		return;
+	auto exh = std::uncaught_exceptions() > 0;
 #else
-	if (m_done || std::uncaught_exception())
-		return;
+	auto exh = std::uncaught_exception();
 #endif
-	if (!m_done)
+	if (!exh) {
 		m_db->Rollback();
+		return;
+	}
+	try {
+		m_db->Rollback();
+	} catch (...) {
+	}
 }
 
 kd_trans &kd_trans::operator=(kd_trans &&o)
