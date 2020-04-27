@@ -36,13 +36,10 @@ ConsoleTable::ConsoleTable(size_t rows, size_t columns) :
 void ConsoleTable::Clear()
 {
 	// remove all data by using resize to 0 and back to original size
-	m_vTable.resize(0);
-	m_vTable.resize(m_iRows);
-	for (size_t i = 0; i < m_iRows; ++i)
-		m_vTable[i].resize(m_iColumns);
+	m_vTable.clear();
 	m_vMaxLengths.clear();
 	m_vHeader.clear();
-	m_nRow = 0;
+	Resize(m_iRows, m_iColumns);
 	bHaveHeader = false;
 }
 
