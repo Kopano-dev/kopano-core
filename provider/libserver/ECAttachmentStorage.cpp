@@ -2228,8 +2228,10 @@ ECRESULT ECFileAttachment2::SaveAttachmentInstance(ext_siid &instance,
 			break;
 	} while (true);
 
-	if (uploaded && retries <= 0)
+	if (uploaded && retries <= 0) {
 		instance.filename = std::move(sl.ident);
+		uploaded = false;
+	}
 	return erSuccess;
 }
 
@@ -2340,8 +2342,10 @@ ECRESULT ECFileAttachment2::SaveAttachmentInstance(ext_siid &instance,
 		}
 	} while (true);
 
-	if (uploaded && retries <= 0)
+	if (uploaded && retries <= 0) {
 		instance.filename = std::move(sl.ident);
+		uploaded = false;
+	}
 	return erSuccess;
 }
 
