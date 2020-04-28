@@ -1663,6 +1663,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 		 * For security we won't announce the difference between not finding the instance
 		 * or not having access to it.
 		 */
+		ext_siid dummy_esid;
 		if (lpecSession->GetSecurity()->GetAdminLevel() != ADMIN_LEVEL_SYSADMIN) {
 			std::list<ext_siid> lstObjIds;
 			/* Existence check implied */
@@ -1677,7 +1678,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 				}
 			if (er != erSuccess)
 				return er;
-		} else if (!lpAttachmentStorage->ExistAttachmentInstance(ulInstanceId)) {
+		} else if (!lpAttachmentStorage->ExistAttachmentInstance(ulInstanceId, dummy_esid)) {
 			/* The attachment should at least exist */
 			return KCERR_UNKNOWN_INSTANCE_ID;
 		}
