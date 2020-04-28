@@ -2185,7 +2185,8 @@ static unsigned int SaveObject(struct soap *soap, ECSession *lpecSession,
 		if (er != erSuccess)
 			return er;
 	}
-	if (lpsSaveObj->modProps.__size > 0) {
+	if (lpsSaveObj->modProps.__size > 0 ||
+	    (lpsSaveObj->lpInstanceIds != nullptr && lpsSaveObj->lpInstanceIds->__size > 0)) {
 		er = WriteProps(soap, lpecSession, lpDatabase, lpAttachmentStorage, lpsSaveObj, lpsReturnObj->ulServerId, fNewItem, ulSyncId, lpsReturnObj, lpfHaveChangeKey, &ftCreated, &ftModified);
 		if (er != erSuccess)
 			return er;
