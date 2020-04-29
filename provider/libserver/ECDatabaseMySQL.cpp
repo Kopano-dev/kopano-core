@@ -443,6 +443,11 @@ exit:
 
 static inline bool should_reconnect(int e)
 {
+#ifdef ER_CONNECTION_KILLED
+	/* Server closed the connection (SIGTERM) */
+	if (e == ER_CONNECTION_KILLED)
+		return true;
+#endif
 	return e == CR_SERVER_LOST || e == CR_SERVER_GONE_ERROR ||
 	       e == CR_CONNECTION_ERROR;
 }
@@ -466,7 +471,7 @@ ECRESULT ECDatabase::Query(const std::string &strQuery)
 	auto sqlerr = mysql_errno(&m_lpMySQL);
 
 	if (err != 0 && should_reconnect(sqlerr)) {
-		ec_log_warn("SQL [%08lu] info: Try to reconnect", m_lpMySQL.thread_id);
+		ec_log_warn("SQL [%08lu] info: %s. Reconnecting.", m_lpMySQL.thread_id, mysql_error(&m_lpMySQL));
 		er = Close();
 		if(er != erSuccess)
 			return er;
