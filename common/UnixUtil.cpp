@@ -80,7 +80,7 @@ int unix_runas(ECConfig *lpConfig)
 	const char *user  = lpConfig->GetSetting("run_as_user");
 	auto ret = unix_runpath(lpConfig);
 	if (ret != 0)
-		return ret;
+		return -1;
 
 	const struct passwd *pw = nullptr;
 	if (user != nullptr && *user != '\0') {
