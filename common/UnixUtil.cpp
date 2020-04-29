@@ -390,7 +390,7 @@ pid_t unix_popen_rw(const char *const *argv, int *lpulIn, int *lpulOut,
 			return -ret;
 	} else if (lpulErr == lpulOut) {
 		if ((ret = posix_spawn_file_actions_adddup2(&fa, ulOut[1], STDERR_FILENO)) != 0)
-			return ret;
+			return -ret;
 	} else {
 		if (lpulErr != nullptr && lpulErr != lpulOut && pipe(ulErr) < 0)
 			return -errno;
@@ -398,27 +398,27 @@ pid_t unix_popen_rw(const char *const *argv, int *lpulIn, int *lpulOut,
 		if (ret != 0)
 			return -ret;
 		if ((ret = posix_spawn_file_actions_adddup2(&fa, ulErr[1], STDERR_FILENO)) != 0)
-			return ret;
+			return -ret;
 	}
 
 	/* Close all pipe ends that were not already fd 0-2. */
 	if (ulIn[0] != -1 && ulIn[0] != STDIN_FILENO && (ret = posix_spawn_file_actions_addclose(&fa, ulIn[0])) != 0)
-		return ret;
+		return -ret;
 	if (lpulErr != lpulOut) {
 		if (ulOut[1] != -1 && ulOut[1] != STDOUT_FILENO &&
 		    (ret = posix_spawn_file_actions_addclose(&fa, ulOut[1])) != 0)
-			return ret;
+			return -ret;
 		if (ulErr[1] != -1 && ulErr[1] != STDERR_FILENO &&
 		    (ret = posix_spawn_file_actions_addclose(&fa, ulErr[1])) != 0)
-			return ret;
+			return -ret;
 	} else {
 		if (ulOut[1] != -1 && ulOut[1] != STDOUT_FILENO && ulOut[1] != STDERR_FILENO &&
 		    (ret = posix_spawn_file_actions_addclose(&fa, ulOut[1])) != 0)
-			return ret;
+			return -ret;
 	}
 	if (nullfd != -1 && nullfd != STDIN_FILENO && nullfd != STDOUT_FILENO && nullfd != STDERR_FILENO &&
 	    (ret = posix_spawn_file_actions_addclose(&fa, nullfd)) != 0)
-		return ret;
+		return -ret;
 
 	ret = posix_spawn(&pid, argv[0], &fa, nullptr, const_cast<char **>(argv), const_cast<char **>(env));
 	if (ret != 0)
