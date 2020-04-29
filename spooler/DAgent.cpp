@@ -2750,7 +2750,7 @@ static void *HandlerLMTP(void *lpArg)
 				if (hr != hrSuccess) {
 					ec_log_crit("K-1731: Unable to initialize the dagent plugin manager: %s (%x).",
 						GetMAPIErrorMessage(hr), hr);
-					lmtp.HrResponse("503 5.1.1 Internal error during delivery");
+					lmtp.HrResponse("451 5.1.1 Internal error during delivery");
 					lpArgs->sc->inc(SCN_LMTP_INTERNAL_ERROR);
 					fclose(tmp);
 					hr = hrSuccess;
