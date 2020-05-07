@@ -224,7 +224,7 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 	auto hr = HrGetAllProps(lpMessage, MAPI_UNICODE, &pnum, &~proplist);
 	if (FAILED(hr))
 		return hr;
-	std::sort(&proplist[0], &proplist[pnum],
+	std::sort(proplist.get(), proplist.get() + pnum,
 		[](const SPropValue &a, const SPropValue &b) { return a.ulPropTag < b.ulPropTag; });
 
 	auto sp = FIND(PR_MESSAGE_CLASS);
