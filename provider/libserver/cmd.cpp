@@ -2652,7 +2652,7 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
 		if (er != erSuccess)
 			return er;
 
-		CHILDPROPS sChild(soap, 20);
+		CHILDPROPS sChild(soap, proptags.size());
 		for (auto proptag : proptags) {
 			sObjectTableKey key(ulObjId, 0);
 			struct propVal prop;
