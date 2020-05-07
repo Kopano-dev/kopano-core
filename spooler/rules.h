@@ -12,5 +12,5 @@
 
 class PyMapiPlugin;
 
-extern HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *, IMAPISession *, IAddrBook *, IMsgStore *orig_store, IMAPIFolder *orig_inbox, IMessage **out, KC::StatsClient *);
+extern HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *, IMAPISession *, IAddrBook *, IMsgStore *, IMAPIFolder *inbox, IMessage *, KC::StatsClient *);
 extern bool dagent_avoid_autoreply(const std::vector<std::string> &headers);

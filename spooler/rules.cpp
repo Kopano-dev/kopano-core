@@ -37,12 +37,8 @@ extern std::shared_ptr<ECConfig> g_lpConfig;
 
 enum actstatus {
 	ROP_FAILURE,
-	ROP_NOOP,
 	ROP_ERROR,
 	ROP_SUCCESS,
-	ROP_CANCEL,
-	ROP_MOVED,
-	ROP_FORWARDED,
 };
 
 struct actresult {
@@ -906,11 +902,21 @@ static HRESULT HrDelegateMessage(IMAPIProp *lpMessage)
 	return lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
 }
 
-static struct actresult proc_op_copy(IMAPISession *ses, const ACTION &action,
-    const std::string &rule, StatsClient *sc, IMessage **msg)
+struct rulexec {
+	StatsClient *sc = nullptr;
+	IMAPISession *session = nullptr;
+	IMsgStore *store = nullptr;
+	IMAPIFolder *inbox = nullptr;
+	IAddrBook *abook = nullptr;
+	IMessage *msg = nullptr;
+	const char *recip = nullptr, *name = nullptr;
+	bool was_forwarded = false, was_moved = false;
+};
+
+static void proc_op_copy(rulexec &rei, const ACTION &action)
 {
 	const auto &cmov = action.actMoveCopy;
-	sc->inc(SCN_RULES_COPYMOVE);
+	rei.sc->inc(SCN_RULES_COPYMOVE);
 	if (action.acttype == OP_COPY)
 		ec_log_debug("Rule action: copying e-mail");
 	else
@@ -919,66 +925,65 @@ static struct actresult proc_op_copy(IMAPISession *ses, const ACTION &action,
 	// First try to open the folder on the session as that will just work if we have the store open
 	object_ptr<IMAPIFolder> dst_folder;
 	unsigned int obj_type;
-	auto hr = ses->OpenEntry(cmov.cbFldEntryId, cmov.lpFldEntryId,
+	auto hr = rei.session->OpenEntry(cmov.cbFldEntryId, cmov.lpFldEntryId,
 	          &IID_IMAPIFolder, MAPI_MODIFY, &obj_type, &~dst_folder);
 	if (hr != hrSuccess) {
 		ec_log_info("Rule \"%s\": Unable to open folder through session: %s (%x). Trying through store.",
-			rule.c_str(), GetMAPIErrorMessage(hr), hr);
+			rei.name, GetMAPIErrorMessage(hr), hr);
 		object_ptr<IMsgStore> dst_store;
-		hr = ses->OpenMsgStore(0, cmov.cbStoreEntryId,
+		hr = rei.session->OpenMsgStore(0, cmov.cbStoreEntryId,
 		     cmov.lpStoreEntryId, nullptr, MAPI_BEST_ACCESS, &~dst_store);
 		if (hr != hrSuccess) {
-			hr_lerr(hr, "Rule \"%s\": Unable to open destination store", rule.c_str());
-			return {ROP_ERROR, hr};
+			hr_lerr(hr, "Rule \"%s\": Unable to open destination store", rei.name);
+			return;
 		}
 		hr = dst_store->OpenEntry(cmov.cbFldEntryId, cmov.lpFldEntryId,
 		     &IID_IMAPIFolder, MAPI_MODIFY, &obj_type, &~dst_folder);
 		if (hr != hrSuccess || obj_type != MAPI_FOLDER) {
-			hr_lerr(hr, "Rule \"%s\": Unable to open destination folder", rule.c_str());
-			return {ROP_ERROR, hr};
+			hr_lerr(hr, "Rule \"%s\": Unable to open destination folder", rei.name);
+			return;
 		}
 	}
 
 	object_ptr<IMessage> newmsg;
 	hr = dst_folder->CreateMessage(nullptr, 0, &~newmsg);
 	if (hr != hrSuccess) {
-		hr_lerr(hr, "Unable to create e-mail for rule \"%s\"", rule.c_str());
-		return {ROP_FAILURE, hr};
+		hr_lerr(hr, "Unable to create e-mail for rule \"%s\"", rei.name);
+		return;
 	}
-	hr = (*msg)->CopyTo(0, nullptr, nullptr, 0, nullptr, &IID_IMessage,
+	hr = rei.msg->CopyTo(0, nullptr, nullptr, 0, nullptr, &IID_IMessage,
 	     newmsg, 0, nullptr);
 	if (hr != hrSuccess) {
-		hr_lerr(hr, "Unable to copy e-mail for rule \"%s\"", rule.c_str());
-		return {ROP_FAILURE, hr};
+		hr_lerr(hr, "Unable to copy e-mail for rule \"%s\"", rei.name);
+		return;
 	}
-	hr = Util::HrCopyIMAPData(*msg, newmsg);
+	hr = Util::HrCopyIMAPData(rei.msg, newmsg);
 	// the function only returns errors on get/setprops, not when the data is just missing
 	if (hr != hrSuccess) {
 		ec_log_err("Unable to copy IMAP data e-mail for rule \"%s\": %s (%x). Continuing.",
-			rule.c_str(), GetMAPIErrorMessage(hr), hr);
-		return {ROP_FAILURE, hr};
+			rei.name, GetMAPIErrorMessage(hr), hr);
+		return;
 	}
 	/* Save the copy in its new location */
 	hr = newmsg->SaveChanges(0);
 	if (hr != hrSuccess) {
-		hr_lerr(hr, "Rule \"%s\": Unable to copy/move message", rule.c_str());
-		return {ROP_ERROR, hr};
+		hr_lerr(hr, "Rule \"%s\": Unable to copy/move message", rei.name);
+		return;
 	}
-	return {ROP_SUCCESS};
+	if (action.acttype == OP_MOVE)
+		rei.was_moved = true;
 }
 
-static struct actresult proc_op_reply(IMAPISession *ses, IMsgStore *store,
-    IMAPIFolder *inbox, const ACTION &action, const std::string &rule,
-    StatsClient *sc, IMessage **msg)
+static void proc_op_reply(rulexec &rei, const ACTION &action)
 {
 	const auto &repl = action.actReply;
-	sc->inc(SCN_RULES_REPLY_AND_OOF);
+	rei.sc->inc(SCN_RULES_REPLY_AND_OOF);
 
 	memory_ptr<SPropValue> pv;
-	if (HrGetFullProp(*msg, PR_TRANSPORT_MESSAGE_HEADERS_A, &~pv) == hrSuccess &&
+	if (HrGetFullProp(rei.msg, PR_TRANSPORT_MESSAGE_HEADERS_A, &~pv) == hrSuccess &&
 	    dagent_avoid_autoreply(tokenize(pv->Value.lpszA, "\n"))) {
-		ec_log_warn("Rule \""s + rule + "\": Not replying to an autoreply");
-		return {ROP_NOOP};
+		ec_log_warn("Rule \"%s\": Not replying to an autoreply", rei.name);
+		return;
 	}
 	if (action.acttype == OP_REPLY)
 		ec_log_debug("Rule action: replying e-mail");
@@ -986,33 +991,30 @@ static struct actresult proc_op_reply(IMAPISession *ses, IMsgStore *store,
 		ec_log_debug("Rule action: OOF replying e-mail");
 
 	IMessage *tmpl = nullptr;
-	auto hr = inbox->OpenEntry(repl.cbEntryId, repl.lpEntryId,
+	auto hr = rei.inbox->OpenEntry(repl.cbEntryId, repl.lpEntryId,
 	          &IID_IMessage, 0, nullptr, reinterpret_cast<IUnknown **>(&tmpl));
 	if (hr != hrSuccess) {
-		hr_lerr(hr, "Rule \"%s\": Unable to open reply message", rule.c_str());
-		return {ROP_ERROR, hr};
+		hr_lerr(hr, "Rule \"%s\": Unable to open reply message", rei.name);
+		return;
 	}
 	object_ptr<IMessage> replymsg;
-	hr = CreateReplyCopy(ses, store, *msg, tmpl, &~replymsg);
+	hr = CreateReplyCopy(rei.session, rei.store, rei.msg, tmpl, &~replymsg);
 	if (hr != hrSuccess) {
-		hr_lerr(hr, "Rule \"%s\": Unable to create reply message", rule.c_str());
-		return {ROP_ERROR, hr};
+		hr_lerr(hr, "Rule \"%s\": Unable to create reply message", rei.name);
+		return;
 	}
 	hr = replymsg->SubmitMessage(0);
 	if (hr != hrSuccess) {
-		hr_lerr(hr, "Rule \"%s\": Unable to send reply message", rule.c_str());
-		return {ROP_ERROR, hr};
+		hr_lerr(hr, "Rule \"%s\": Unable to send reply message", rei.name);
+		return;
 	}
-	return {ROP_SUCCESS};
 }
 
-static struct actresult proc_op_fwd(IAddrBook *abook, IMsgStore *orig_store,
-    const ACTION &act, const std::string &rule, StatsClient *sc,
-    IMessage **lppMessage)
+static void proc_op_fwd(rulexec &rei, const ACTION &act)
 {
 	object_ptr<IMessage> lpFwdMsg;
 
-	sc->inc(SCN_RULES_FORWARD);
+	rei.sc->inc(SCN_RULES_FORWARD);
 	// TODO: test act.lpAction[n].ulActionFlavor
 	// FWD_PRESERVE_SENDER			1
 	// FWD_DO_NOT_MUNGE_MSG			2
@@ -1020,13 +1022,13 @@ static struct actresult proc_op_fwd(IAddrBook *abook, IMsgStore *orig_store,
 	// redirect == 3
 	if (act.lpadrlist->cEntries == 0) {
 		ec_log_debug("Forwarding rule doesn't have recipients");
-		return {ROP_NOOP};
+		return;
 	}
 	memory_ptr<SPropValue> pv;
-	if (HrGetFullProp(*lppMessage, PR_TRANSPORT_MESSAGE_HEADERS_A, &~pv) == hrSuccess &&
+	if (HrGetFullProp(rei.msg, PR_TRANSPORT_MESSAGE_HEADERS_A, &~pv) == hrSuccess &&
 	    dagent_avoid_autofwd(tokenize(pv->Value.lpszA, "\n"))) {
-		ec_log_warn("Rule \""s + rule + "\": Not forwarding autoreplies");
-		return {ROP_NOOP};
+		ec_log_warn("Rule \"%s\": Not forwarding autoreplies", rei.name);
+		return;
 	}
 	if (parseBool(g_lpConfig->GetSetting("no_double_forward"))) {
 		/*
@@ -1035,97 +1037,84 @@ static struct actresult proc_op_fwd(IAddrBook *abook, IMsgStore *orig_store,
 		 */
 		PROPMAP_START(1)
 		PROPMAP_NAMED_ID(KopanoRuleAction, PT_UNICODE, PS_INTERNET_HEADERS, "x-kopano-rule-action")
-		auto hr = m_propmap.Resolve(*lppMessage);
-		if (hr != hrSuccess)
-			return {ROP_FAILURE, hr};
-		if (HrGetOneProp(*lppMessage, PROP_KopanoRuleAction, &~pv) == hrSuccess) {
-			ec_log_warn("Rule "s + rule + ": FORWARD loop protection. Message will not be forwarded or redirected because it includes header \"x-kopano-rule-action\"");
-			return {ROP_NOOP};
+		auto hr = m_propmap.Resolve(rei.msg);
+		if (hr != hrSuccess) {
+			hr_lerrf(hr, "Resolve");
+			return;
+		}
+		if (HrGetOneProp(rei.msg, PROP_KopanoRuleAction, &~pv) == hrSuccess) {
+			ec_log_warn("Rule \"%s\": FORWARD loop protection. Message will not be forwarded or redirected because it includes header \"x-kopano-rule-action\"", rei.name);
+			return;
 		}
 	}
 	ec_log_debug("Rule action: %s e-mail", (act.ulActionFlavor & FWD_PRESERVE_SENDER) ? "redirecting" : "forwarding");
-	auto hr = CreateForwardCopy(abook, orig_store, *lppMessage,
+	auto hr = CreateForwardCopy(rei.abook, rei.store, rei.msg,
 	     act.lpadrlist, false, act.ulActionFlavor & FWD_PRESERVE_SENDER,
 	     act.ulActionFlavor & FWD_DO_NOT_MUNGE_MSG,
 	     act.ulActionFlavor & FWD_AS_ATTACHMENT, &~lpFwdMsg);
 	if (hr != hrSuccess) {
-		hr_lerr(hr, "Rule "s + rule + ": FORWARD Unable to create forward message");
-		return {hr == MAPI_E_NO_ACCESS ? ROP_FAILURE : ROP_ERROR, hr};
+		hr_lerr(hr, "Rule \"%s\": FORWARD Unable to create forward message", rei.name);
+		return;
 	}
 	hr = lpFwdMsg->SubmitMessage(0);
 	if (hr != hrSuccess) {
-		hr_lerr(hr, "Rule "s + rule + ": FORWARD Unable to send forward message");
-		return {ROP_ERROR, hr};
+		hr_lerr(hr, "Rule \"%s\": FORWARD Unable to send forward message", rei.name);
+		return;
 	}
-	return {ROP_SUCCESS};
+	rei.was_forwarded = true;
 }
 
-static struct actresult proc_op_delegate(IAddrBook *abk, IMsgStore *store,
-    const ACTION &action, const std::string &rule, StatsClient *sc,
-    IMessage **msg)
+static void proc_op_delegate(rulexec &rei, const ACTION &action)
 {
-	sc->inc(SCN_RULES_DELEGATE);
+	rei.sc->inc(SCN_RULES_DELEGATE);
 	if (action.lpadrlist->cEntries == 0) {
 		ec_log_debug("Delegating rule doesn't have recipients");
-		return {ROP_NOOP};
+		return;
 	}
 	ec_log_debug("Rule action: delegating e-mail");
 	object_ptr<IMessage> fwdmsg;
-	auto hr = CreateForwardCopy(abk, store, *msg, action.lpadrlist,
+	auto hr = CreateForwardCopy(rei.abook, rei.store, rei.msg, action.lpadrlist,
 	          true, true, true, false, &~fwdmsg);
 	if (hr != hrSuccess) {
-		hr_lerr(hr, "Rule \"%s\": DELEGATE Unable to create delegate message", rule.c_str());
-		return {ROP_ERROR, hr};
+		hr_lerr(hr, "Rule \"%s\": DELEGATE Unable to create delegate message", rei.name);
+		return;
 	}
 	/* set delegate properties */
 	hr = HrDelegateMessage(fwdmsg);
 	if (hr != hrSuccess) {
-		hr_lerr(hr, "Rule \"%s\": DELEGATE Unable to modify delegate message", rule.c_str());
-		return {ROP_ERROR, hr};
+		hr_lerr(hr, "Rule \"%s\": DELEGATE Unable to modify delegate message", rei.name);
+		return;
 	}
 	hr = fwdmsg->SubmitMessage(0);
 	if (hr != hrSuccess) {
-		hr_lerr(hr, "Rule \"%s\": DELEGATE Unable to send delegate message", rule.c_str());
-		return {ROP_ERROR, hr};
+		hr_lerr(hr, "Rule \"%s\": DELEGATE Unable to send delegate message", rei.name);
+		return;
 	}
 	/* don't set forwarded flag */
-	return {ROP_SUCCESS};
 }
 
-static struct actresult proc_op_markread(IMessage *msg,
-    StatsClient *sc)
+static void proc_op_markread(rulexec &rei)
 {
-	sc->inc(SCN_RULES_MARKREAD);
-	auto ret = msg->SetReadFlag(SUPPRESS_RECEIPT);
-	if (ret == hrSuccess)
-		return {ROP_SUCCESS};
-	return {ROP_ERROR, ret};
+	rei.sc->inc(SCN_RULES_MARKREAD);
+	rei.msg->SetReadFlag(SUPPRESS_RECEIPT);
 }
 
-static struct actresult proc_op_act(IMAPISession *ses, IMsgStore *store,
-    IMAPIFolder *inbox, IAddrBook *abk, const ACTION &action,
-    const std::string &rule, StatsClient *sc, IMessage **msg)
+static HRESULT proc_op_act(rulexec &rei, const ACTION &action)
 {
 	switch (action.acttype) {
 	case OP_MOVE:
-	case OP_COPY: {
-		auto ret = proc_op_copy(ses, action, rule, sc, msg);
-		if (ret.status == ROP_SUCCESS && action.acttype == OP_MOVE)
-			return {ROP_MOVED};
-		return ret;
-	}
+	case OP_COPY:
+		proc_op_copy(rei, action);
+		break;
 	case OP_REPLY:
 	case OP_OOF_REPLY:
-		return proc_op_reply(ses, store, inbox, action, rule, sc, msg);
-	case OP_FORWARD: {
-		auto ret = proc_op_fwd(abk, store, action, rule, sc, msg);
-		if (ret.status == ROP_SUCCESS)
-			/* Update original message, set as forwarded */
-			return {ROP_FORWARDED};
-		return ret;
-	}
+		proc_op_reply(rei, action);
+		break;
+	case OP_FORWARD:
+		proc_op_fwd(rei, action);
+		break;
 	case OP_BOUNCE:
-		sc->inc(SCN_RULES_BOUNCE);
+		rei.sc->inc(SCN_RULES_BOUNCE);
 		/*
 		 * scBounceCode?
 		 * TODO:
@@ -1133,21 +1122,21 @@ static struct actresult proc_op_act(IMAPISession *ses, IMsgStore *store,
 		 * 2. copy From: to To:
 		 * 3. SubmitMessage()
 		 */
-		ec_log_warn("Rule \"%s\": BOUNCE actions are currently unsupported", rule.c_str());
+		ec_log_warn("Rule \"%s\": BOUNCE actions are currently unsupported", rei.name);
 		break;
 	case OP_DELEGATE:
-		return proc_op_delegate(abk, store, action, rule, sc, msg);
-
+		proc_op_delegate(rei, action);
+		break;
 	case OP_DEFER_ACTION:
-		sc->inc(SCN_RULES_DEFER);
-		ec_log_warn("Rule \"%s\": DEFER client actions are currently unsupported", rule.c_str());
+		rei.sc->inc(SCN_RULES_DEFER);
+		ec_log_warn("Rule \"%s\": DEFER client actions are currently unsupported", rei.name);
 		break;
 	case OP_TAG:
-		sc->inc(SCN_RULES_TAG);
-		ec_log_warn("Rule \"%s\": TAG actions are currently unsupported", rule.c_str());
+		rei.sc->inc(SCN_RULES_TAG);
+		ec_log_warn("Rule \"%s\": TAG actions are currently unsupported", rei.name);
 		break;
 	case OP_DELETE:
-		sc->inc(SCN_RULES_DELETE);
+		rei.sc->inc(SCN_RULES_DELETE);
 		/*
 		 * Since *msg wasn't yet saved in the server, we can just
 		 * return a special MAPI Error code here, this will trigger the
@@ -1157,22 +1146,23 @@ static struct actresult proc_op_act(IMAPISession *ses, IMsgStore *store,
 		 * processing function.
 		 */
 		ec_log_debug("Rule action: deleting e-mail");
-		return {ROP_CANCEL};
+		return MAPI_E_CANCEL;
 	case OP_MARK_AS_READ:
 		ec_log_debug("Rule action: mark as read");
-		return proc_op_markread(*msg, sc);
+		proc_op_markread(rei);
+		break;
 	}
-	return {ROP_SUCCESS};
+	return hrSuccess;
 }
 
 // lpMessage: gets EntryID, maybe pass this and close message in DAgent.cpp
 HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
     IMAPISession *lpSession, IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
-    IMAPIFolder *lpOrigInbox, IMessage **lppMessage, StatsClient *const sc)
+    IMAPIFolder *lpOrigInbox, IMessage *lppMessage, StatsClient *const sc)
 {
 	object_ptr<IExchangeModifyTable> lpTable;
 	object_ptr<IMAPITable> lpView;
-	bool bAddFwdFlag = false, bMoved = false, bOOFactive = false;
+	bool bOOFactive = false;
 	static constexpr const SizedSPropTagArray(11, sptaRules) =
 		{11, {PR_RULE_ID, PR_RULE_IDS, PR_RULE_SEQUENCE, PR_RULE_STATE,
 		PR_RULE_USER_FLAGS, PR_RULE_CONDITION, PR_RULE_ACTIONS,
@@ -1192,26 +1182,27 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 	sc->inc(SCN_RULES_INVOKES);
 	auto hr = lpOrigInbox->OpenProperty(PR_RULES_TABLE, &IID_IExchangeModifyTable, 0, 0, &~lpTable);
 	if (hr != hrSuccess) {
-		kc_perrorf("OpenProperty failed", hr);
-		goto exit;
+		sc->inc(SCN_RULES_INVOKES_FAIL);
+		return hr_lerrf(hr, "OpenProperty failed");
 	}
 	hr = lpTable->QueryInterface(IID_IECExchangeModifyTable, &~lpECModifyTable);
 	if(hr != hrSuccess) {
-		kc_perrorf("QueryInterface failed", hr);
-		goto exit;
+		sc->inc(SCN_RULES_INVOKES_FAIL);
+		return hr_lerrf(hr, "QueryInterface failed");
 	}
 	hr = lpECModifyTable->DisablePushToServer();
 	if(hr != hrSuccess) {
-		kc_perrorf("DisablePushToServer failed", hr);
-		goto exit;
+		sc->inc(SCN_RULES_INVOKES_FAIL);
+		return hr_lerrf(hr, "DisablePushToServer failed");
 	}
 	hr = pyMapiPlugin->RulesProcessing("PreRuleProcess", lpSession, lpAdrBook, lpOrigStore, lpTable, &ulResult);
 	if(hr != hrSuccess) {
-		kc_perrorf("RulesProcessing failed", hr);
-		goto exit;
+		sc->inc(SCN_RULES_INVOKES_FAIL);
+		return hr_lerrf(hr, "RulesProcessing failed");
 	}
 
 	// get OOF-state for recipient-store
+        struct rulexec rei = {sc, lpSession, lpOrigStore, lpOrigInbox, lpAdrBook, lppMessage, recip.c_str()};
 	static constexpr const SizedSPropTagArray(5, sptaStoreProps) = {3, {PR_EC_OUTOFOFFICE, PR_EC_OUTOFOFFICE_FROM, PR_EC_OUTOFOFFICE_UNTIL,}};
 	hr = lpOrigStore->GetProps(sptaStoreProps, 0, &cValues, &~OOFProps);
 	if (FAILED(hr)) {
@@ -1232,26 +1223,26 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 	//TODO do something with ulResults
 	hr = lpTable->GetTable(0, &~lpView);
 	if(hr != hrSuccess) {
-		kc_perrorf("GetTable failed", hr);
-		goto exit;
+		sc->inc(SCN_RULES_INVOKES_FAIL);
+		return hr_lerrf(hr, "GetTable failed");
 	}
 	hr = lpView->SetColumns(sptaRules, 0);
 	if (hr != hrSuccess) {
-		kc_perrorf("SetColumns failed", hr);
-		goto exit;
+		sc->inc(SCN_RULES_INVOKES_FAIL);
+		return hr_lerrf(hr, "SetColumns failed");
 	}
 	hr = lpView->SortTable(sosRules, 0);
 	if (hr != hrSuccess) {
-		kc_perrorf("SortTable failed", hr);
-		goto exit;
+		sc->inc(SCN_RULES_INVOKES_FAIL);
+		return hr_lerrf(hr, "SortTable failed");
 	}
 
 	while (1) {
 		rowset_ptr lpRowSet;
 	        hr = lpView->QueryRows(1, 0, &~lpRowSet);
 		if (hr != hrSuccess) {
-			kc_perrorf("QueryRows failed", hr);
-				goto exit;
+			sc->inc(SCN_RULES_INVOKES_FAIL);
+			return hr_lerrf(hr, "QueryRows failed");
 		}
 	        if (lpRowSet->cRows == 0)
 			break;
@@ -1263,18 +1254,19 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 		else
 			strRule = "(no name)";
 
-		ec_log_debug("Processing rule \"%s\" for \"%s\"", strRule.c_str(), recip.c_str());
+		rei.name = strRule.c_str();
+		ec_log_debug("Processing rule \"%s\" for \"%s\"", rei.name, rei.recip);
 		auto lpRuleState = lpRowSet[0].cfind(PR_RULE_STATE);
 		if (lpRuleState == nullptr) {
-			ec_log_warn("Rule '%s' for '%s' skipped, having no PR_RULE_STATE property.", strRule.c_str(), recip.c_str());
+			ec_log_warn("Rule \"%s\" for \"%s\" skipped, having no PR_RULE_STATE property.", rei.name, rei.recip);
 			continue;
 		}
 		if (!(lpRuleState->Value.i & ST_ENABLED)) {
-			ec_log_debug("Rule '%s' is disabled, skipping...", strRule.c_str());
+			ec_log_debug("Rule \"%s\" is disabled, skipping.", rei.name);
 			continue;
 		}
 		if ((lpRuleState->Value.i & ST_ONLY_WHEN_OOF) && !bOOFactive) {
-			ec_log_debug("Rule '%s' active, but doesn't apply (OOF-state == false), skipping...", strRule.c_str());
+			ec_log_debug("Rule \"%s\" marked for OOF, but OOF not active, skipping.", rei.name);
 			continue;
 		}
 
@@ -1285,7 +1277,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 			// NOTE: object is placed in Value.lpszA, not Value.x
 			lpCondition = reinterpret_cast<const SRestriction *>(lpProp->Value.lpszA);
 		if (!lpCondition) {
-			ec_log_debug("Rule \"%s\" has no condition, skipping...", strRule.c_str());
+			ec_log_debug("Rule \"%s\" has no condition, skipping.", rei.name);
 			continue;
 		}
 		lpProp = lpRowSet[0].cfind(PR_RULE_ACTIONS);
@@ -1293,7 +1285,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 			// NOTE: object is placed in Value.lpszA, not Value.x
 			lpActions = reinterpret_cast<const ACTIONS *>(lpProp->Value.lpszA);
 		if (!lpActions) {
-			ec_log_debug("Rule '%s' has no action, skipping...", strRule.c_str());
+			ec_log_debug("Rule \"%s\" has no action, skipping.", rei.name);
 			continue;
 		}
 
@@ -1307,38 +1299,29 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 			if (hr == hrSuccess)
 				loc = createLocaleFromName(localestring);
 		}
-		hr = TestRestriction(lpCondition, *lppMessage, loc);
+		hr = TestRestriction(lpCondition, lppMessage, loc);
 		if (hr == MAPI_E_NOT_FOUND) {
-			ec_log_info("Rule \"%s\" does not match", strRule.c_str());
+			ec_log_info("Rule \"%s\" does not match", rei.name);
 			continue;
 		} else if (hr != hrSuccess) {
-			hr_lerr(hr, "Rule \"%s\"", strRule.c_str());
+			hr_lerr(hr, "Rule \"%s\"", rei.name);
 			continue;
 		}
-		ec_log_info("Rule "s + strRule + " matches");
-		sc->inc(SCN_RULES_NACTIONS, static_cast<int64_t>(lpActions->cActions));
+		ec_log_info("Rule \"%s\" matches", rei.name);
+		rei.sc->inc(SCN_RULES_NACTIONS, static_cast<int64_t>(lpActions->cActions));
 
 		for (ULONG n = 0; n < lpActions->cActions; ++n) {
 			const auto &action = lpActions->lpAction[n];
-			auto ret = proc_op_act(lpSession, lpOrigStore, lpOrigInbox, lpAdrBook, action, strRule, sc, lppMessage);
-			if (ret.status == ROP_FAILURE) {
-				hr = ret.code;
+			hr = proc_op_act(rei, action);
+			if (FAILED(hr))
 				goto exit;
-			} else if (ret.status == ROP_CANCEL) {
-				hr = MAPI_E_CANCEL;
-				goto exit;
-			}
-			if (ret.status == ROP_MOVED)
-				bMoved = true;
-			if (ret.status == ROP_FORWARDED)
-				bAddFwdFlag = true;
 		} // end action loop
 
 		if (lpRuleState && (lpRuleState->Value.i & ST_EXIT_LEVEL))
 			break;
 	}
 
-	if (bAddFwdFlag) {
+	if (rei.was_forwarded) {
 		sForwardProps[0].ulPropTag = PR_ICON_INDEX;
 		sForwardProps[0].Value.ul = ICON_MAIL_FORWARDED;
 		sForwardProps[1].ulPropTag = PR_LAST_VERB_EXECUTED;
@@ -1346,18 +1329,18 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 		sForwardProps[2].ulPropTag = PR_LAST_VERB_EXECUTION_TIME;
 		GetSystemTimeAsFileTime(&sForwardProps[2].Value.ft);
 		// set forward in msg flag
-		hr = (*lppMessage)->SetProps(3, sForwardProps, NULL);
+		hr = rei.msg->SetProps(3, sForwardProps, nullptr);
 	}
  exit:
 	if (hr != hrSuccess && hr != MAPI_E_CANCEL)
 		kc_perror("Error while processing rules", hr);
 	// The message was moved to another folder(s), do not save it in the inbox anymore, so cancel it.
-	if (hr == hrSuccess && bMoved)
+	if (hr == hrSuccess && rei.was_moved)
 		hr = MAPI_E_CANCEL;
 	if (hr != hrSuccess)
-		sc->inc(SCN_RULES_INVOKES_FAIL);
+		rei.sc->inc(SCN_RULES_INVOKES_FAIL);
 
 	auto dblEnd = decltype(dblStart)::clock::now();
-	sc->inc(SCN_RULES_TIME, std::chrono::duration_cast<std::chrono::milliseconds>(dblEnd - dblStart).count());
+	rei.sc->inc(SCN_RULES_TIME, std::chrono::duration_cast<std::chrono::milliseconds>(dblEnd - dblStart).count());
 	return hr;
 }
