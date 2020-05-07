@@ -122,7 +122,7 @@ class ECFileAttachment2 final : public ECFileAttachment {
 
 struct at2_layout {
 	std::string ident, base_dir, content_file;
-	std::string intent_dir, intent_ref, holder_dir, holder_ref;
+	std::string holder_dir, holder_ref;
 };
 
 static const char fa_hex[] = "0123456789abcdef";
@@ -185,8 +185,6 @@ static struct at2_layout uas_server_layout(const std::string &root,
 	e.ident[4]     = fa_hex[m&0x0F];
 	e.base_dir     = root + "/" + e.ident;
 	e.content_file = e.base_dir + "/content";
-	e.intent_dir   = e.base_dir + "/intent";
-	e.intent_ref   = e.intent_dir + "/s" + sguid + "i" + stringify(i.siid);
 	e.holder_dir   = e.base_dir + "/holder";
 	e.holder_ref   = e.holder_dir + "/s" + sguid + "i" + stringify(i.siid);
 	return e;
@@ -199,8 +197,6 @@ static struct at2_layout uas_hash_layout(const std::string &root,
 	e.ident        = i.filename;
 	e.base_dir     = root + "/" + e.ident;
 	e.content_file = e.base_dir + "/content";
-	e.intent_dir   = e.base_dir + "/intent";
-	e.intent_ref   = e.intent_dir + "/s" + sguid + "i" + stringify(i.siid);
 	e.holder_dir   = e.base_dir + "/holder";
 	e.holder_ref   = e.holder_dir + "/s" + sguid + "i" + stringify(i.siid);
 	return e;
@@ -258,19 +254,19 @@ ECRESULT ECAttachmentConfig::create(const GUID &sguid,
 		a.reset(new(std::nothrow) ECS3Config);
 #else
 		ec_log_err("K-1541: Cannot process attachment_storage=s3. Server not built with S3.");
-		return MAPI_E_CALL_FAILED;
+		return KCERR_CALL_FAILED;
 #endif
 	} else {
 		ec_log_err("K-1542: Unrecognized attachment_storage=\"%s\"", type);
-		return MAPI_E_CALL_FAILED;
+		return KCERR_CALL_FAILED;
 	}
 	if (a == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
+		return KCERR_NOT_ENOUGH_MEMORY;
 	auto ret = a->init(config);
-	if (ret != hrSuccess)
+	if (ret != erSuccess)
 		return ret;
 	*atcp = a.release();
-	return hrSuccess;
+	return erSuccess;
 }
 
 ECAttachmentStorage *ECDatabaseAttachmentConfig::new_handle(ECDatabase *db)
@@ -283,14 +279,14 @@ ECRESULT ECFileAttachmentConfig::init(std::shared_ptr<ECConfig> config)
 	auto dir = config->GetSetting("attachment_path");
 	if (dir == nullptr) {
 		ec_log_err("No attachment_path set despite attachment_storage=files.");
-		return MAPI_E_CALL_FAILED;
+		return KCERR_CALL_FAILED;
 	}
 	auto sync_files_par = config->GetSetting("attachment_files_fsync");
 	auto comp = config->GetSetting("attachment_compression");
 	m_dir = dir;
 	m_complvl = (comp == nullptr) ? 0 : strtoul(comp, nullptr, 0);
 	m_sync_files = sync_files_par == nullptr || strcasecmp(sync_files_par, "yes") == 0;
-	return hrSuccess;
+	return erSuccess;
 }
 
 ECAttachmentStorage *ECFileAttachmentConfig::new_handle(ECDatabase *db)
@@ -491,14 +487,19 @@ bool ECAttachmentStorage::ExistAttachment(ULONG ulObjId, ULONG ulPropId)
 	return GetSingleInstanceId(ulObjId, ulPropId, &ulInstanceId) == erSuccess;
 }
 
-bool ECAttachmentStorage::ExistAttachmentInstance(ULONG ins_id)
+bool ECAttachmentStorage::ExistAttachmentInstance(unsigned int ins_id, ext_siid &esid)
 {
 	DB_RESULT result;
-	auto query = "SELECT `hierarchyid` FROM `singleinstances` WHERE `instanceid` = " + stringify(ins_id) + " LIMIT 1";
+	auto query = "SELECT `hierarchyid`, `filename` FROM `singleinstances` WHERE `instanceid` = " + stringify(ins_id) + " LIMIT 1";
 	auto er = m_lpDatabase->DoSelect(query, &result);
 	if (er != erSuccess)
 		return er;
-	return result.get_num_rows() > 0;
+	auto row = result.fetch_row();
+	if (row == nullptr)
+		return false;
+	esid.siid = ins_id;
+	esid.filename = row[1] != nullptr ? row[1] : "";
+	return true;
 }
 
 /**
@@ -653,12 +654,13 @@ ECRESULT ECAttachmentStorage::SaveAttachment(ULONG ulObjId, ULONG ulPropId, bool
  */
 ECRESULT ECAttachmentStorage::SaveAttachment(ULONG ulObjId, ULONG ulPropId, bool bDeleteOld, ULONG ulInstanceId, ULONG *lpulInstanceId)
 {
+	ext_siid ulOldAttachId;
+
 	if (bDeleteOld) {
 		/*
 		 * Call DeleteAttachment to decrease the refcount
 		 * and optionally delete the original attachment.
 		 */
-		ext_siid ulOldAttachId;
 		if (GetSingleInstanceId(ulObjId, ulPropId, &ulOldAttachId) == erSuccess &&
 		    ulOldAttachId.siid == ulInstanceId)
 			// Nothing to do, we already have that instance ID
@@ -669,12 +671,14 @@ ECRESULT ECAttachmentStorage::SaveAttachment(ULONG ulObjId, ULONG ulPropId, bool
 	}
 
 	/* Check if attachment reference exists, if not return error */
-	if (!ExistAttachmentInstance(ulInstanceId))
+	if (!ExistAttachmentInstance(ulInstanceId, ulOldAttachId))
 		return KCERR_UNABLE_TO_COMPLETE;
 	/* Create Attachment reference, use provided attachment id */
 	auto strQuery =
-		"REPLACE INTO `singleinstances` (`instanceid`, `hierarchyid`, `tag`) VALUES"
-		"(" + stringify(ulInstanceId) + ", " + stringify(ulObjId) + ", " +  stringify(ulPropId) + ")";
+		"REPLACE INTO `singleinstances` (`instanceid`, `hierarchyid`, "
+		"`tag`, `filename`) VALUES (" + stringify(ulInstanceId) + ", " +
+		stringify(ulObjId) + ", " +  stringify(ulPropId) +
+		", '" + m_lpDatabase->Escape(ulOldAttachId.filename) + "')";
 	unsigned int ignore;
 	auto er = m_lpDatabase->DoInsert(strQuery, &ignore);
 	if (er != erSuccess)
@@ -2151,34 +2155,31 @@ ECRESULT ECFileAttachment2::SaveAttachmentInstance(ext_siid &instance,
 	});
 
 	do {
-		int x = open(hl.intent_ref.c_str(), O_WRONLY | O_CREAT | O_EXCL, S_IRWUG);
+		int x = open(hl.holder_ref.c_str(), O_WRONLY | O_CREAT | O_EXCL, S_IRWUG);
 		if (x >= 0) {
 			close(x);
-			x = rename(hl.intent_ref.c_str(), hl.holder_ref.c_str());
-			if (x == 0)
-				break;
-			if (x < 0 && errno == ENOENT) {
-				/* not using CreatePath, don't want it recursive */
-				x = mkdir(hl.holder_dir.c_str(), S_IRWXU | S_IRWXG);
-				if (x == 0 || errno == EEXIST) {
-					x = rename(hl.intent_ref.c_str(), hl.holder_ref.c_str());
-					if (x == 0)
-						break;
-				}
-			}
+			break;
+		} else if (errno == EEXIST) {
+			/*
+			 * Possibly old /var/lib/kopano/attachments with a
+			 * blank DB having accidentally the same server_guid.
+			 */
+			ec_log_warn("K-1281: create %s: %s", hl.holder_ref.c_str(), strerror(errno));
+			break;
+		} else if (errno != ENOENT) {
+			/*
+			 * Deeper FS problem (EACCES/EROFS/ENOSPC). Report and
+			 * try the upload (and fail there if necessary).
+			 */
+			ec_log_warn("K-1282: create %s: %s", hl.holder_ref.c_str(), strerror(errno));
 		}
 
 		if (!uploaded) {
-			auto ret = CreatePath(sl.intent_dir.c_str(), S_IRWXUG);
-			if (ret != 0 && errno != EEXIST) {
-				ec_log_err("K-1299: mkdir -p \"%s\": %s", sl.intent_dir.c_str(), GetMAPIErrorMessage(ret));
-				return ret;
-			}
 			uploaded = true;
-			ret = CreatePath(sl.holder_dir.c_str(), S_IRWXUG);
+			auto ret = CreatePath(sl.holder_dir.c_str(), S_IRWXUG);
 			if (ret != 0 && errno != EEXIST) {
 				ec_log_err("K-1298: mkdir -p \"%s\": %s", sl.holder_dir.c_str(), GetMAPIErrorMessage(ret));
-				return ret;
+				return KCERR_DATABASE_ERROR;
 			}
 			int fd = open(sl.content_file.c_str(), O_WRONLY | O_CREAT, S_IRWUG);
 			if (fd < 0) {
@@ -2203,7 +2204,7 @@ ECRESULT ECFileAttachment2::SaveAttachmentInstance(ext_siid &instance,
 		auto ret = CreatePath(enclosing_dir.get());
 		if (ret != hrSuccess) {
 			ec_log_err("K-1294: mkdir -p \"%s\": %s", enclosing_dir.get(), GetMAPIErrorMessage(ret));
-			return ret;
+			return KCERR_DATABASE_ERROR;
 		}
 		x = rename(sl.base_dir.c_str(), hl.base_dir.c_str());
 		if (x == 0) {
@@ -2220,7 +2221,10 @@ ECRESULT ECFileAttachment2::SaveAttachmentInstance(ext_siid &instance,
 			break;
 	} while (true);
 
-	instance.filename = (uploaded && retries <= 0) ? std::move(sl.ident) : std::move(hl.ident);
+	if (uploaded && retries <= 0) {
+		instance.filename = std::move(sl.ident);
+		uploaded = false;
+	}
 	return erSuccess;
 }
 
@@ -2232,7 +2236,6 @@ ECRESULT ECFileAttachment2::SaveAttachmentInstance(ext_siid &instance,
 ECRESULT ECFileAttachment2::SaveAttachmentInstance(ext_siid &instance,
     ULONG propid, size_t dsize, ECSerializer *src)
 {
-	bool uploaded = false;
 	auto sl = uas_server_layout(m_basepath, m_config.m_server_guid, instance);
 	decltype(sl) hl;
 
@@ -2243,25 +2246,20 @@ ECRESULT ECFileAttachment2::SaveAttachmentInstance(ext_siid &instance,
 	SHA256_CTX shactx;
 	SHA256_Init(&shactx);
 
-	auto ret = CreatePath(sl.intent_dir.c_str(), S_IRWXUG);
-	if (ret != 0 && errno != EEXIST) {
-		ec_log_err("K-1292: mkdir \"%s\": %s", sl.intent_dir.c_str(), strerror(errno));
-		return ret;
-	}
-	uploaded = true;
+	bool uploaded = true;
 	auto cleanup = make_scope_success([&]() {
 		if (uploaded)
 			HX_rrmdir(sl.base_dir.c_str());
 	});
-	ret = CreatePath(sl.holder_dir.c_str(), S_IRWXUG);
+	auto ret = CreatePath(sl.holder_dir.c_str(), S_IRWXUG);
 	if (ret != 0 && errno != EEXIST) {
 		ec_log_err("K-1291: mkdir \"%s\": %s", sl.holder_dir.c_str(), strerror(errno));
-		return ret;
+		return KCERR_DATABASE_ERROR;
 	}
 	int fd = open(sl.content_file.c_str(), O_WRONLY | O_CREAT, S_IRWUG);
 	if (fd < 0) {
 		ec_log_err("K-1290: open \"%s\": %s", sl.content_file.c_str(), strerror(errno));
-		return MAPI_E_DISK_ERROR;
+		return KCERR_DATABASE_ERROR;
 	}
 
 	give_filesize_hint(fd, dsize);
@@ -2292,7 +2290,7 @@ ECRESULT ECFileAttachment2::SaveAttachmentInstance(ext_siid &instance,
 	fd = open(sl.holder_ref.c_str(), O_WRONLY | O_CREAT, S_IRWUG);
 	if (fd < 0) {
 		ec_log_err("K-1288: open \"%s\": %s", sl.holder_ref.c_str(), strerror(errno));
-		return MAPI_E_DISK_ERROR;
+		return KCERR_DATABASE_ERROR;
 	}
 	close(fd);
 
@@ -2300,7 +2298,7 @@ ECRESULT ECFileAttachment2::SaveAttachmentInstance(ext_siid &instance,
 	ret = CreatePath(enclosing_dir.get());
 	if (ret != hrSuccess) {
 		ec_log_err("K-1287: mkdir -p \"%s\": %s", enclosing_dir.get(), GetMAPIErrorMessage(ret));
-		return ret;
+		return KCERR_DATABASE_ERROR;
 	}
 
 	int retries = 3;
@@ -2319,19 +2317,21 @@ ECRESULT ECFileAttachment2::SaveAttachmentInstance(ext_siid &instance,
 		if (--retries == 0)
 			break;
 
-		int fd = open(hl.intent_ref.c_str(), O_WRONLY | O_CREAT | O_EXCL, S_IRWUG);
+		fd = open(hl.holder_ref.c_str(), O_WRONLY | O_CREAT | O_EXCL, S_IRWUG);
 		if (fd >= 0) {
 			close(fd);
-			fd = open(hl.holder_ref.c_str(), O_WRONLY | O_CREAT | O_EXCL, S_IRWUG);
-			if (fd >= 0) {
-				close(fd);
-				unlink(hl.intent_ref.c_str());
-				break;
-			}
+			break;
+		} else if (errno == EEXIST) {
+			ec_log_warn("K-1280: create %s: %s", hl.holder_ref.c_str(), strerror(errno));
+		} else if (errno != ENOENT) {
+			ec_log_warn("K-1279: create %s: %s", hl.holder_ref.c_str(), strerror(errno));
 		}
 	} while (true);
 
-	instance.filename = (uploaded && retries <= 0) ? std::move(sl.ident) : std::move(hl.ident);
+	if (uploaded && retries <= 0) {
+		instance.filename = std::move(sl.ident);
+		uploaded = false;
+	}
 	return erSuccess;
 }
 
@@ -2342,7 +2342,7 @@ ECRESULT ECFileAttachment2::GetSizeInstance(const ext_siid &inst,
 	struct stat sb;
 	auto ret = stat(content_file.c_str(), &sb);
 	if (ret != 0)
-		return MAPI_E_DISK_ERROR;
+		return KCERR_DATABASE_ERROR;
 	if (size != nullptr)
 		*size = sb.st_size;
 	if (comp != nullptr)
@@ -2359,7 +2359,7 @@ ECRESULT ECFileAttachment2::DeleteAttachmentInstance(const ext_siid &i, bool rep
 			ec_log_err("K-1290: Huh, \"%s\" already gone", hl.holder_ref.c_str());
 		} else {
 			ec_log_err("K-1289: unlink \"%s\": %s", hl.holder_ref.c_str(), strerror(errno));
-			return MAPI_E_DISK_ERROR;
+			return KCERR_DATABASE_ERROR;
 		}
 	}
 	ret = rmdir(hl.holder_dir.c_str());
@@ -2368,14 +2368,6 @@ ECRESULT ECFileAttachment2::DeleteAttachmentInstance(const ext_siid &i, bool rep
 			/* normal condition: other holder exists */;
 		else
 			ec_log_err("K-1288: rmdir \"%s\": %s", hl.holder_dir.c_str(), strerror(errno));
-		return erSuccess;
-	}
-	ret = rmdir(hl.intent_dir.c_str());
-	if (ret != 0) {
-		if (errno == ENOTEMPTY)
-			/* normal condition: other writer signalled new intent to link */;
-		else
-			ec_log_err("K-1287: rmdir \"%s\": %s", hl.intent_dir.c_str(), strerror(errno));
 		return erSuccess;
 	}
 	HX_rrmdir(hl.base_dir.c_str());
