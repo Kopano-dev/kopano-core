@@ -70,6 +70,13 @@ static bool IsTruncatableType(unsigned int ulTag)
     return false;
 }
 
+static bool tpropval_is_excluded(unsigned int tag)
+{
+	/* cf. ECTPropsPurge::PurgeDeferredTableUpdates (excluded there) */
+	return PROP_ID(tag) == PROP_ID(PR_RTF_COMPRESSED) ||
+	       PROP_ID(tag) == PROP_ID(PR_HTML);
+}
+
 bool propVal_is_truncated(const struct propVal *lpsPropVal)
 {
 	if(!IsTruncatableType(lpsPropVal->ulPropTag))
@@ -698,7 +705,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
 		auto &pv = lpsRowSet->__ptr[ulRowNum].__ptr[col.second];
 		assert(pv.ulPropTag == 0);
 		CopyEmptyCellToSOAPPropVal(soap, col.first, &pv);
-		if (propVal_is_truncated(&pv))
+		if (tpropval_is_excluded(pv.ulPropTag) || propVal_is_truncated(&pv))
 			continue;
 		cache->SetCell(&sKey, col.first, &pv);
 	}
