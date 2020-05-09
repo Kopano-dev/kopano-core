@@ -2635,8 +2635,13 @@ static HRESULT loadobject_cache(ECCacheManager *cache,
 			cache->SetCell(&key, pta.__ptr[i], &pv);
 			continue;
 		}
-		if (!propVal_is_truncated(&arr.__ptr[j]))
+		if (propVal_is_truncated(&arr.__ptr[j])) {
+			/* Do not cache truncated answers, but do record that the tag is present. */
+			pv.ulPropTag = CHANGE_PROP_TYPE(pta.__ptr[i], PT_NULL);
+			cache->SetCell(&key, pta.__ptr[i], &pv);
+		} else {
 			cache->SetCell(&key, arr.__ptr[j].ulPropTag, &arr.__ptr[j]);
+		}
 		++j;
 	}
 	cache->SetComplete(objid);
