@@ -369,6 +369,13 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
 				bRowComplete = false;
 				continue;
 			}
+			if (tpropval_is_excluded(ulPropTag)) {
+				lpsRowSet->__ptr[i].__ptr[k].__union   = SOAP_UNION_propValData_ul;
+				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = CHANGE_PROP_TYPE(ulPropTag, PT_ERROR);
+				lpsRowSet->__ptr[i].__ptr[k].Value.ul  = KCERR_NOT_FOUND;
+				setCellDone.emplace(i, k);
+				continue;
+			}
     	    // FIXME bComputed always false
     	    // FIXME optimisation possible to GetCell: much more efficient to get all cells in one row at once
 			if (cache->GetCell(&row, ulPropTag, &lpsRowSet->__ptr[i].__ptr[k], soap) == erSuccess &&

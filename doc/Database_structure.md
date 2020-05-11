@@ -155,8 +155,7 @@ truncation is allowed to happen.
 
 The PR_RTF_COMPRESSED and PR_HTML properties are not represented in
 "tproperties" at all. Requesting them via tabular access always yields
-PROP_TAG(x, PT_ERROR)+MAPI_E_NOT_FOUND in Exchange, and *can* yield
-PT_ERROR in Kopano.
+PROP_TAG(x, PT_ERROR)+MAPI_E_NOT_FOUND in Exchange and Kopano.
 
 ## users
 
