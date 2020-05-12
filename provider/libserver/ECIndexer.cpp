@@ -317,18 +317,18 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig,
 
 	if (!lpDatabase) {
 		ec_log_err("GetIndexerResults(): no database");
-		return KCERR_DATABASE_ERROR;
+		return er = KCERR_DATABASE_ERROR;
 	}
 	lstMatches.clear();
 	auto stype = lpConfig->GetSetting("search_enabled");
 	if (stype != nullptr && strcmp(stype, "internal") == 0)
 		lpSearchClient.reset(new(std::nothrow) ECSearchClientMM);
 	else if (!parseBool(stype) || szSocket[0] == '\0')
-		return KCERR_NOT_FOUND;
+		return er = KCERR_NOT_FOUND;
 	else
 		lpSearchClient.reset(new(std::nothrow) ECSearchClientNET(szSocket, atoui(lpConfig->GetSetting("search_timeout"))));
 	if (!lpSearchClient)
-		return KCERR_NOT_ENOUGH_MEMORY;
+		return er = KCERR_NOT_ENOUGH_MEMORY;
 
 	if (lpCacheManager->GetExcludedIndexProperties(setExcludePropTags) != erSuccess) {
 		er = lpSearchClient->GetProperties(setExcludePropTags);
@@ -353,7 +353,7 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig,
 	if (lstMultiSearches.empty())
 		// Although the restriction was strictly speaking indexer-compatible, no index queries could
 		// be found, so bail out
-		return KCERR_NOT_FOUND;
+		return er = KCERR_NOT_FOUND;
 
 	ec_log_debug("Using index, %zu index queries", lstMultiSearches.size());
 	tstart = decltype(tstart)::clock::now();

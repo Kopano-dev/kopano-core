@@ -2748,7 +2748,7 @@ static void *HandlerLMTP(void *lpArg)
 				if (hr != hrSuccess) {
 					ec_log_crit("K-1731: Unable to initialize the dagent plugin manager: %s (%x).",
 						GetMAPIErrorMessage(hr), hr);
-					lmtp.HrResponse("503 5.1.1 Internal error during delivery");
+					lmtp.HrResponse("451 5.1.1 Internal error during delivery");
 					lpArgs->sc->inc(SCN_LMTP_INTERNAL_ERROR);
 					fclose(tmp);
 					hr = hrSuccess;
@@ -2879,6 +2879,7 @@ static HRESULT running_service(char **argv, DeliveryArgs *lpArgs)
 	auto laters = make_scope_success([&]() { ECChannel::HrFreeCtx(); });
 
 	// Setup sockets
+	struct pollfd dummypoll;
 	std::vector<struct pollfd> lmtp_poll;
 	std::vector<int> closefd;
 	auto err = dagent_listen(g_lpConfig.get(), lmtp_poll, closefd);
@@ -2939,7 +2940,7 @@ static HRESULT running_service(char **argv, DeliveryArgs *lpArgs)
 			da_sighup_sync();
 		for (size_t i = 0; i < lmtp_poll.size(); ++i)
 			lmtp_poll[i].revents = 0;
-		err = poll(&lmtp_poll[0], lmtp_poll.size(), 10 * 1000);
+		err = poll(lmtp_poll.size() > 0 ? &lmtp_poll[0] : &dummypoll, lmtp_poll.size(), 10 * 1000);
 		if (err < 0) {
 			if (errno != EINTR) {
 				ec_log_err("Socket error: %s", strerror(errno));
@@ -2976,7 +2977,7 @@ static HRESULT running_service(char **argv, DeliveryArgs *lpArgs)
 			da->sc = sc;
 			if (g_process_model == GP_FORK) {
 				++g_nLMTPThreads;
-				if (unix_fork_function(HandlerLMTP, da.get(), closefd.size(), &closefd[0]) < 0) {
+				if (unix_fork_function(HandlerLMTP, da.get(), closefd.size(), closefd.size() > 0 ? &closefd[0] : &hr) < 0) {
 					ec_log_err("Can't create LMTP process.");
 					--g_nLMTPThreads;
 				}

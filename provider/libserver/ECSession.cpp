@@ -1164,7 +1164,10 @@ ECRESULT ECAuthSession::ValidateSSOData_NTLM(struct soap *soap,
 	errno = 0;
 
 	if (m_NTLM_pid == -1) {
-		const char *const argv[] = {"ntlm_auth", "-d0", "--helper-protocol=squid-2.5-ntlmssp", nullptr};
+		auto ntlm_prog = m_lpSessionManager->GetConfig()->GetSetting("ntlm_auth");
+		if (ntlm_prog == nullptr || *ntlm_prog == '\0')
+			ntlm_prog = "/usr/bin/ntlm_auth";
+		const char *const argv[] = {ntlm_prog, "-d0", "--helper-protocol=squid-2.5-ntlmssp", nullptr};
 		m_NTLM_pid = unix_popen_rw(argv, &m_stdin, &m_stdout, &m_stderr, const_cast<const char **>(environ));
 		if (m_NTLM_pid < 0) {
 			ec_log_crit("Cannot start ntlm_auth: %s", strerror(errno));
