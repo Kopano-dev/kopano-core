@@ -1,3 +1,20 @@
+8.7.x
+=====
+Enhancements:
+* server: support files_v2 attachment directory that has had files
+  saved with KC 9.x [KC-1760]
+Fixes:
+* admin: fix stack exhaustion calling AclRightsToString [KS-44473]
+* admin: fix out-of-bounds access in ConsoleTable [KC-1758]
+* admin: show more specific error text for attached archive ACLs [KS-44473]
+* dagent: change SMTP error code for plugin failure from permanent to
+  transient category [KS-45558]
+* server: call ntlm_auth with absolute path [KS-45579]
+* server: recognize more MariaDB-specific status codes and initiate
+  reconnect if needed [KS-45596, KS-45601]
+* stats: fix misprinting of CPUTIME column in `kopano-stats --top`
+
+
 8.7.12 (2020-04-09)
 ===================
 Enhancements:
