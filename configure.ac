@@ -727,6 +727,7 @@ AC_CONFIG_FILES([Makefile
 		provider/libkcserver.sym provider/libkcsoap.sym
 		spooler/libkcpyplug.sym
 		php-ext/Makefile
+		gateway/Makefile
 ])
 
 # Python tools

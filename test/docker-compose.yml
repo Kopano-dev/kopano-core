@@ -106,6 +106,41 @@ services:
     tmpfs:
       - /tmp
 
+  kopano_gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - docker_repo=${docker_repo:-kopano}
+        - kopano_core_version=${CORE_VERSION:-latest}
+    read_only: false
+    hostname: kopano_gateway
+    depends_on:
+      - kopano_server
+    environment:
+      - SERVICE_TO_START=gateway
+      - TZ=${TZ}
+      - KCCONF_GATEWAY_SERVER_SOCKET=file:///run/kopano/server.sock
+      - KCCONF_GATEWAY_IMAP_LISTEN=0.0.0.0:143
+      - KCCONF_GATEWAY_LOG_LEVEL=6
+      - KCCONF_GATEWAY_TMP_PATH=/tmp/gateway/
+      - ADDITIONAL_KOPANO_PACKAGES=${ADDITIONAL_KOPANO_PACKAGES}
+      - EXTRA_LOCAL_ADMIN_USER=${EXTRA_LOCAL_ADMIN_USER}
+      - CI=1
+    networks:
+      - kopano-net
+    volumes:
+      - /etc/machine-id:/etc/machine-id:ro
+      - /var/lib/dbus/machine-id:/var/lib/dbus/machine-id:ro
+      - kopanodata:/kopano/data
+      - kopanossl:/kopano/ssl:ro
+      - kopanosocket:/run/kopano
+      - ../:/workspace/
+      - ./prepare-and-start-service.sh:/prepare-and-start-service.sh:ro
+    entrypoint: /prepare-and-start-service.sh
+    tmpfs:
+      - /tmp
+
   kopano_server_test:
     build:
       context: .

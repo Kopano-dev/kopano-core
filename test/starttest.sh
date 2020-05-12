@@ -19,6 +19,7 @@ export KOPANO_TEST_PASSWORD3=${KOPANO_TEST_PASSWORD3:-user3}
 export KOPANO_TEST_FULLNAME3=${KOPANO_TEST_FULLNAME3:-"Marijn Peters"}
 export KOPANO_TEST_ADMIN=${KOPANO_TEST_ADMIN:-user23}
 export KOPANO_TEST_ADMIN_PASSWORD=${KOPANO_TEST_ADMIN_PASSWORD:-user23}
+export KOPANO_TEST_IMAP_HOST=${KOPANO_TEST_IMAP_HOST:-kopano_gateway}
 
 if [ "$CI" -eq "1" ]; then
 	if [ -x "$(command -v dockerize)" ]; then
