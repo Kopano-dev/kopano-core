@@ -424,7 +424,7 @@ HRESULT MAPISVC::Init()
 	for (const auto &sp : *infServices) {
 		// ZARAFA6, ZCONTACTS
 		auto infService = inf.GetSection(sp.first);
-		auto i = m_sServices.emplace(sp.first, new SVCService);
+		auto i = m_sServices.emplace(sp.first, std::make_shared<SVCService>());
 		if (!i.second)
 			continue;			// already exists
 
