@@ -524,14 +524,19 @@ bool ECAttachmentStorage::ExistAttachment(ULONG ulObjId, ULONG ulPropId)
 	return GetSingleInstanceId(ulObjId, ulPropId, &ulInstanceId) == erSuccess;
 }
 
-bool ECAttachmentStorage::ExistAttachmentInstance(ULONG ins_id)
+bool ECAttachmentStorage::ExistAttachmentInstance(unsigned int ins_id, ext_siid &esid)
 {
 	DB_RESULT result;
-	auto query = "SELECT `hierarchyid` FROM `singleinstances` WHERE `instanceid` = " + stringify(ins_id) + " LIMIT 1";
+	auto query = "SELECT `hierarchyid`, `filename` FROM `singleinstances` WHERE `instanceid` = " + stringify(ins_id) + " LIMIT 1";
 	auto er = m_lpDatabase->DoSelect(query, &result);
 	if (er != erSuccess)
 		return er;
-	return result.get_num_rows() > 0;
+	auto row = result.fetch_row();
+	if (row == nullptr)
+		return false;
+	esid.siid = ins_id;
+	esid.filename = row[1] != nullptr ? row[1] : "";
+	return true;
 }
 
 /**
@@ -686,12 +691,13 @@ ECRESULT ECAttachmentStorage::SaveAttachment(ULONG ulObjId, ULONG ulPropId, bool
  */
 ECRESULT ECAttachmentStorage::SaveAttachment(ULONG ulObjId, ULONG ulPropId, bool bDeleteOld, ULONG ulInstanceId, ULONG *lpulInstanceId)
 {
+	ext_siid ulOldAttachId;
+
 	if (bDeleteOld) {
 		/*
 		 * Call DeleteAttachment to decrease the refcount
 		 * and optionally delete the original attachment.
 		 */
-		ext_siid ulOldAttachId;
 		if (GetSingleInstanceId(ulObjId, ulPropId, &ulOldAttachId) == erSuccess &&
 		    ulOldAttachId.siid == ulInstanceId)
 			// Nothing to do, we already have that instance ID
@@ -702,12 +708,14 @@ ECRESULT ECAttachmentStorage::SaveAttachment(ULONG ulObjId, ULONG ulPropId, bool
 	}
 
 	/* Check if attachment reference exists, if not return error */
-	if (!ExistAttachmentInstance(ulInstanceId))
+	if (!ExistAttachmentInstance(ulInstanceId, ulOldAttachId))
 		return KCERR_UNABLE_TO_COMPLETE;
 	/* Create Attachment reference, use provided attachment id */
 	auto strQuery =
-		"REPLACE INTO `singleinstances` (`instanceid`, `hierarchyid`, `tag`) VALUES"
-		"(" + stringify(ulInstanceId) + ", " + stringify(ulObjId) + ", " +  stringify(ulPropId) + ")";
+		"REPLACE INTO `singleinstances` (`instanceid`, `hierarchyid`, "
+		"`tag`, `filename`) VALUES (" + stringify(ulInstanceId) + ", " +
+		stringify(ulObjId) + ", " +  stringify(ulPropId) +
+		", '" + m_lpDatabase->Escape(ulOldAttachId.filename) + "')";
 	unsigned int ignore;
 	auto er = m_lpDatabase->DoInsert(strQuery, &ignore);
 	if (er != erSuccess)
@@ -2215,7 +2223,10 @@ ECRESULT ECFileAttachment2::SaveAttachmentInstance(ext_siid &instance,
 			break;
 	} while (true);
 
-	instance.filename = (uploaded && retries <= 0) ? std::move(sl.ident) : std::move(hl.ident);
+	if (uploaded && retries <= 0) {
+		instance.filename = std::move(sl.ident);
+		uploaded = false;
+	}
 	return erSuccess;
 }
 
@@ -2319,7 +2330,10 @@ ECRESULT ECFileAttachment2::SaveAttachmentInstance(ext_siid &instance,
 		}
 	} while (true);
 
-	instance.filename = (uploaded && retries <= 0) ? std::move(sl.ident) : std::move(hl.ident);
+	if (uploaded && retries <= 0) {
+		instance.filename = std::move(sl.ident);
+		uploaded = false;
+	}
 	return erSuccess;
 }
 

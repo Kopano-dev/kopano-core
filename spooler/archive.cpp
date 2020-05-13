@@ -86,7 +86,7 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
 	});
 	if (lpMessage == NULL) {
 		ec_log_warn("Archive::HrArchiveMessageForDelivery(): invalid parameter");
-		return MAPI_E_INVALID_PARAMETER;
+		return hr = MAPI_E_INVALID_PARAMETER;
 	}
 	hr = lpMessage->GetProps(sptaMessageProps, 0, &cMsgProps, &~ptrMsgProps);
 	if (hr != hrSuccess)
@@ -127,7 +127,7 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
 	ptrHelper.reset(new(std::nothrow) Copier::Helper(ptrSession, logger,
 		ptrMapper, nullptr, ptrFolder));
 	if (ptrHelper == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
+		return hr = MAPI_E_NOT_ENOUGH_MEMORY;
 	for (const auto &arc : lstArchives) {
 		MessagePtr ptrArchivedMsg;
 		PostSaveActionPtr ptrPSAction;
@@ -168,7 +168,7 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
 	hr = MAPIPropHelper::Create(object_ptr<IMAPIProp>(lpMessage), &ptrMsgHelper);
 	if (hr != hrSuccess)
 		return kc_pwarn("Archive::HrArchiveMessageForDelivery(): failed creating reference to original message", hr);
-	return ptrMsgHelper->SetArchiveList(lstReferences, true);
+	return hr = ptrMsgHelper->SetArchiveList(lstReferences, true);
 }
 
 HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
@@ -194,7 +194,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 			result.Undo(m_ptrSession);
 	});
 	if (lpMessage == nullptr)
-		return MAPI_E_INVALID_PARAMETER;
+		return hr = MAPI_E_INVALID_PARAMETER;
 	hr = lpMessage->GetProps(sptaMessageProps, 0, &cMsgProps, &~ptrMsgProps);
 	if (hr != hrSuccess)
 		return kc_pwarn("Archive::HrArchiveMessageForSending(): GetProps failed", hr);
@@ -230,7 +230,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 	ptrHelper.reset(new(std::nothrow) Copier::Helper(ptrSession, logger,
 		ptrMapper, nullptr, MAPIFolderPtr()));
 	if (ptrHelper == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
+		return hr = MAPI_E_NOT_ENOUGH_MEMORY;
 	for (const auto &arc : lstArchives) {
 		ArchiveHelperPtr ptrArchiveHelper;
 		MAPIFolderPtr ptrArchiveFolder;

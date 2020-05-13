@@ -4,6 +4,7 @@
  */
 #include <kopano/platform.h>
 #include <algorithm>
+#include <atomic>
 #include <chrono>
 #include <list>
 #include <memory>
@@ -102,9 +103,6 @@ class ksrv_worker final : public ECThreadWorker {
 	using ECThreadWorker::ECThreadWorker;
 	virtual void exit();
 };
-
-// Hold the status of the softdelete purge system
-static bool g_bPurgeSoftDeleteStatus = false;
 
 static ECRESULT CreateEntryId(GUID guidStore, unsigned int ulObjType,
     entryId **lppEntryId)
@@ -894,6 +892,9 @@ int KCmdService::fname(ULONG64 ulSessionId, ##__VA_ARGS__) \
 	if (lpDatabase && FAILED(er)) \
 		lpDatabase->Rollback(); \
 
+/* Hold the status of the softdelete purge system */
+static std::atomic<bool> g_bPurgeSoftDeleteStatus{false};
+
 static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
     unsigned int ulLifetime, unsigned int *lpulMessages,
     unsigned int *lpulFolders, unsigned int *lpulStores, bool *lpbExit)
@@ -910,11 +911,10 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 		if (er != KCERR_BUSY)
 			g_bPurgeSoftDeleteStatus = false;
 	});
-	if (g_bPurgeSoftDeleteStatus) {
+	if (!g_bPurgeSoftDeleteStatus.compare_exchange_strong(bExitDummy, true)) {
 		ec_log_err("Softdelete already running");
-		return KCERR_BUSY;
+		return er = KCERR_BUSY;
 	}
-	g_bPurgeSoftDeleteStatus = true;
 	if (!lpbExit)
 		lpbExit = &bExitDummy;
 	er = lpecSession->GetDatabase(&lpDatabase);
@@ -944,7 +944,7 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 		// free before we call DeleteObjects()
 		lpDBResult = DB_RESULT();
 		if (*lpbExit)
-			return KCERR_USER_CANCEL;
+			return er = KCERR_USER_CANCEL;
 
 		ec_log_info("Starting to purge %zu stores", lObjectIds.size());
 		for (auto iterObjectId = lObjectIds.cbegin();
@@ -960,7 +960,7 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 		ec_log_info("Store purge done");
 	}
 	if (*lpbExit)
-		return KCERR_USER_CANCEL;
+		return er = KCERR_USER_CANCEL;
 
 	// Select softdeleted folders
 	strQuery = "SELECT h.id FROM hierarchy AS h JOIN properties AS p ON p.hierarchyid=h.id AND p.tag="+stringify(PROP_ID(PR_DELETED_ON))+" AND p.type="+stringify(PROP_TYPE(PR_DELETED_ON))+" WHERE (h.flags&"+stringify(MSGFLAG_DELETED)+")="+stringify(MSGFLAG_DELETED)+" AND p.val_hi<="+stringify(ft.dwHighDateTime)+" AND h.type="+stringify(MAPI_FOLDER);
@@ -981,7 +981,7 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 		// free before we call DeleteObjects()
 		lpDBResult = DB_RESULT();
 		if (*lpbExit)
-			return KCERR_USER_CANCEL;
+			return er = KCERR_USER_CANCEL;
 		ec_log_info("Starting to purge %zu folders", lObjectIds.size());
 		er = DeleteObjects(lpecSession, lpDatabase, &lObjectIds, ulDeleteFlags, 0, false, false);
 		if (er != erSuccess)
@@ -989,7 +989,7 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 		ec_log_info("Folder purge done");
 	}
 	if (*lpbExit)
-		return KCERR_USER_CANCEL;
+		return er = KCERR_USER_CANCEL;
 
 	// Select softdeleted messages
 	strQuery = "SELECT h.id FROM hierarchy AS h JOIN properties AS p ON p.hierarchyid=h.id AND p.tag="+stringify(PROP_ID(PR_DELETED_ON))+" AND p.type="+stringify(PROP_TYPE(PR_DELETED_ON))+" WHERE (h.flags&"+stringify(MSGFLAG_DELETED)+")="+stringify(MSGFLAG_DELETED)+" AND h.type="+stringify(MAPI_MESSAGE)+" AND p.val_hi<="+stringify(ft.dwHighDateTime);
@@ -1010,7 +1010,7 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 		// free before we call DeleteObjects()
 		lpDBResult = DB_RESULT();
 		if (*lpbExit)
-			return KCERR_USER_CANCEL;
+			return er = KCERR_USER_CANCEL;
 		ec_log_info("Starting to purge %zu messages", lObjectIds.size());
 		er = DeleteObjects(lpecSession, lpDatabase, &lObjectIds, ulDeleteFlags, 0, false, false);
 		if (er != erSuccess)
@@ -1659,6 +1659,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 		 * For security we won't announce the difference between not finding the instance
 		 * or not having access to it.
 		 */
+		ext_siid dummy_esid;
 		if (lpecSession->GetSecurity()->GetAdminLevel() != ADMIN_LEVEL_SYSADMIN) {
 			std::list<ext_siid> lstObjIds;
 			/* Existence check implied */
@@ -1673,7 +1674,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 				}
 			if (er != erSuccess)
 				return er;
-		} else if (!lpAttachmentStorage->ExistAttachmentInstance(ulInstanceId)) {
+		} else if (!lpAttachmentStorage->ExistAttachmentInstance(ulInstanceId, dummy_esid)) {
 			/* The attachment should at least exist */
 			return KCERR_UNKNOWN_INSTANCE_ID;
 		}
@@ -2161,7 +2162,8 @@ static unsigned int SaveObject(struct soap *soap, ECSession *lpecSession,
 		if (er != erSuccess)
 			return er;
 	}
-	if (lpsSaveObj->modProps.__size > 0) {
+	if (lpsSaveObj->modProps.__size > 0 ||
+	    (lpsSaveObj->lpInstanceIds != nullptr && lpsSaveObj->lpInstanceIds->__size > 0)) {
 		er = WriteProps(soap, lpecSession, lpDatabase, lpAttachmentStorage, lpsSaveObj, lpsReturnObj->ulServerId, fNewItem, ulSyncId, lpsReturnObj, lpfHaveChangeKey, &ftCreated, &ftModified);
 		if (er != erSuccess)
 			return er;
@@ -6127,7 +6129,7 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 		soap_del_PointerToentryId(&lpsOldEntryId);
 	});
 	if(lplObjectIds->empty())
-		return erSuccess; /* Nothing to do */
+		return er = erSuccess; /* Nothing to do */
 	GetSystemTimeAsFileTime(&ft);
 
 	// Check permission, Destination folder
@@ -6479,7 +6481,7 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 	gcache->GetParent(ulDestFolderId, &ulGrandParent);
 	g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulGrandParent, ulDestFolderId, MAPI_FOLDER);
 	if (bPartialCompletion)
-		return KCWARN_PARTIAL_COMPLETION;
+		return er = KCWARN_PARTIAL_COMPLETION;
 	return erSuccess;
 }
 

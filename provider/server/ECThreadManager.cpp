@@ -266,7 +266,6 @@ done:
 	soap_end(soap);
 	// We're done processing the item, the workitem's socket is returned to the queue
 	dispatcher->NotifyDone(soap);
-	set_thread_name(thrself, (m_worker->m_pool->m_poolname + "/idle").c_str());
 }
 
 ECDispatcher::ECDispatcher(std::shared_ptr<ECConfig> lpConfig) :
