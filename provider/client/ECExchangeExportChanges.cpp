@@ -188,7 +188,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 		ec_log_ics("Getting new sync id for folder \"%ls\"...", m_strDisplay.c_str());
 
 		// Ignore any trailing garbage in the stream
-		if (m_sourcekey.size() < 24 && (m_sourcekey[m_sourcekey.size()-1] & 0x80)) {
+		if (m_sourcekey.size() > 0 && m_sourcekey.size() < 24 && (m_sourcekey[m_sourcekey.size()-1] & 0x80)) {
 			// If we're getting a truncated sourcekey, untruncate it now so we can pass it to GetChanges()
 			sourcekey = m_sourcekey;
 			sourcekey[m_sourcekey.size()-1] &= ~0x80;
