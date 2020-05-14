@@ -406,7 +406,7 @@ static void showtop(LPMDB lpStore)
 			if (bColumns[7]) {
 				wmove(win, 5 + line, ofs);
 				wprintw(win, "%d:%02d", static_cast<int>(ses.times.dblUser + ses.times.dblSystem) / 60,
-					static_cast<int>(ses.times.dblUser + ses.times.dblUser) % 60);
+					static_cast<int>(ses.times.dblUser + ses.times.dblSystem) % 60);
 				ofs += cols[8];
 			}
 			if (bColumns[8]) {

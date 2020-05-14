@@ -542,7 +542,7 @@ thread, the thread pool may increase the number of threads up to the specified
 limit.
 .PP
 Default:
-\fI8\fP
+\fI40\fP
 .SS watchdog_frequency
 .PP
 Watchdog frequency. The number of watchdog checks per second.
@@ -587,6 +587,12 @@ When you configured your system for single sign\-on, you can enable this by sett
 .PP
 Default:
 \fIno\fR
+.SS ntlm_auth
+.PP
+Path to NTLM authentication helper program. It needs to support the arguments
+\fB\-d0 --helper-protocol=squid-2.5-ntlmssp\fP.
+.PP
+Default: \fI/usr/bin/ntlm_auth\fP
 .SS enable_gab
 .PP
 Enables viewing of the Global Address Book (GAB) by users. Disabling the GAB will show an empty list in the GAB, which may be required for some installations. Resolving addresses is not affected by this option.

@@ -62,6 +62,13 @@ static bool IsTruncatableType(unsigned int ulTag)
 	return x == PT_STRING8 || x == PT_UNICODE || x == PT_BINARY;
 }
 
+static bool tpropval_is_excluded(unsigned int tag)
+{
+	/* cf. ECTPropsPurge::PurgeDeferredTableUpdates (excluded there) */
+	return PROP_ID(tag) == PROP_ID(PR_RTF_COMPRESSED) ||
+	       PROP_ID(tag) == PROP_ID(PR_HTML);
+}
+
 bool propVal_is_truncated(const struct propVal *lpsPropVal)
 {
 	switch(PROP_TYPE(lpsPropVal->ulPropTag)) {
@@ -344,6 +351,13 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
 
 			if ((ulPropTag & MVI_FLAG) == MVI_FLAG) {
 				bRowComplete = false;
+				continue;
+			}
+			if (tpropval_is_excluded(ulPropTag)) {
+				lpsRowSet->__ptr[i].__ptr[k].__union   = SOAP_UNION_propValData_ul;
+				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = CHANGE_PROP_TYPE(ulPropTag, PT_ERROR);
+				lpsRowSet->__ptr[i].__ptr[k].Value.ul  = KCERR_NOT_FOUND;
+				setCellDone.emplace(i, k);
 				continue;
 			}
     	    // FIXME bComputed always false
@@ -682,7 +696,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
 		auto &pv = lpsRowSet->__ptr[ulRowNum].__ptr[col.second];
 		assert(pv.ulPropTag == 0);
 		CopyEmptyCellToSOAPPropVal(soap, col.first, &pv);
-		if (propVal_is_truncated(&pv))
+		if (tpropval_is_excluded(pv.ulPropTag) || propVal_is_truncated(&pv))
 			continue;
 		cache->SetCell(&sKey, col.first, &pv);
 	}

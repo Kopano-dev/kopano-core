@@ -14,6 +14,7 @@ import functools
 import os
 import sys
 import traceback
+import warnings
 
 import pickle
 
@@ -90,7 +91,7 @@ from .defs import (
     PSETID_Archive, URGENCY, REV_URGENCY, ASF_MEETING,
 )
 from .errors import (
-    Error, NotFoundError
+    Error, NotFoundError, _DeprecationWarning
 )
 
 from .attachment import Attachment
@@ -654,6 +655,8 @@ class Item(Properties, Contact, Appointment):
     @property
     def filtered_html(self):
         """Item filtered HTML representation."""
+        warnings.warn('item.filtered_html is deprecated',
+                      _DeprecationWarning)
         try:
             return self.prop(PR_EC_BODY_FILTERED).value
         except NotFoundError:

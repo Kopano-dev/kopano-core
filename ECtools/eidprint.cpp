@@ -4,6 +4,9 @@
  */
 #include <stdexcept>
 #include <string>
+#if __cplusplus >= 201700L
+#	include <string_view>
+#endif
 #include <cstdio>
 #include <cstdlib>
 #include <mapidefs.h>

@@ -1261,11 +1261,11 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 			ec_log_warn("Rule \"%s\" for \"%s\" skipped, having no PR_RULE_STATE property.", rei.name, rei.recip);
 			continue;
 		}
-		if (!(lpRuleState->Value.i & ST_ENABLED)) {
+		if (!(lpRuleState->Value.ul & ST_ENABLED)) {
 			ec_log_debug("Rule \"%s\" is disabled, skipping.", rei.name);
 			continue;
 		}
-		if ((lpRuleState->Value.i & ST_ONLY_WHEN_OOF) && !bOOFactive) {
+		if ((lpRuleState->Value.ul & ST_ONLY_WHEN_OOF) && !bOOFactive) {
 			ec_log_debug("Rule \"%s\" marked for OOF, but OOF not active, skipping.", rei.name);
 			continue;
 		}
@@ -1317,7 +1317,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 				goto exit;
 		} // end action loop
 
-		if (lpRuleState && (lpRuleState->Value.i & ST_EXIT_LEVEL))
+		if (lpRuleState && (lpRuleState->Value.ul & ST_EXIT_LEVEL))
 			break;
 	}
 

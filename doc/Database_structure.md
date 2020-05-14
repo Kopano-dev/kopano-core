@@ -59,8 +59,16 @@ modified - exposed via ICA.
 
 ## deferredupdate
 
-Is a per-folder list of changes to tproperties that have not been written to
-tproperties yet (for performance reasons)
+Because the collection of data for the purpose of populating the "tproperties"
+table can potentially be load-intensive, this work is done lazily. So, when
+properties do get changed in the "properties" table and tproperties is not to
+be updated immediately (which depends on the "max_deferred_records" config
+option), an entry is record in the "deferredupdate" table. Effectively, such
+entries also indicates that (part of) the "tproperties" table is out of date
+and should not be used for retrieving propvals.
+
+The "deferredupdate" table has both a "folderid" and "srcfolderid" column;
+these two differ only when a copy operation was used (cf. copyFolder RPC).
 
 ## hierarchy
 
@@ -133,10 +141,22 @@ we only write to it (investigation, maybe?)
 
 ## tproperties
 
-The list of properties for each hierarchy.id - each value is put into its
-corresponding column type (binary, double, etc.) *BUT* It only contains the
-properties that can be seen in tables therefore excludes attachments and
-recipients everything is truncated to 255 bytes or characters.
+The "properties" table is primary-indexed by hierarchyid (for InnoDB, the PI
+defines the order on disk within an InnoDB block). Because mails in a folder
+may be created over a long time and thus have vastly spread out hierarchyids,
+reading a set of properties from all such mails is a potentially seek-intensive
+disk operation.
+
+To that end, the "tproperties" table ("tabled properties") replicates the
+property data, but is primary-indexed by folderid instead. This is primarily
+meant for use by tabular access, i.e. GetHierarchyTable and GetContentsTable in
+MAPI. Values are also truncated to 255 bytes or characters, as this is
+sufficient for the purposes of tabular access, and MAPI specifies that
+truncation is allowed to happen.
+
+The PR_RTF_COMPRESSED and PR_HTML properties are not represented in
+"tproperties" at all. Requesting them via tabular access always yields
+PROP_TAG(x, PT_ERROR)+MAPI_E_NOT_FOUND in Exchange and Kopano.
 
 ## users
 

@@ -527,7 +527,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 		static constexpr const SizedSPropTagArray(4, sptaStoreProps) = {4, {PR_DISPLAY_NAME_A, PR_MAILBOX_OWNER_ENTRYID, PR_IPM_SUBTREE_ENTRYID, PR_STORE_RECORD_KEY}};
 		enum {IDX_DISPLAY_NAME, IDX_MAILBOX_OWNER_ENTRYID, IDX_IPM_SUBTREE_ENTRYID, IDX_STORE_RECORD_KEY};
 
-		entry.Rights = ARCHIVE_RIGHTS_ERROR;
+		entry.Rights = ARCHIVE_RIGHTS_UNKNOWN;
 
 		auto hrTmp = m_ptrSession->OpenStore(arc.sStoreEntryId, &~ptrArchiveStore);
 		if (hrTmp != hrSuccess) {
@@ -599,8 +599,10 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 
 		if (bAclCapable && !arc.sStoreEntryId.isWrapped()) {
 			hrTmp = GetRights(ptrArchiveFolder, &entry.Rights);
-			if (hrTmp != hrSuccess)
+			if (hrTmp != hrSuccess) {
+				entry.Rights = ARCHIVE_RIGHTS_ERROR;
 				m_lpLogger->perr("Failed to get archive rights", hrTmp);
+			}
 		} else
 			entry.Rights = ARCHIVE_RIGHTS_ABSENT;
 
@@ -735,18 +737,16 @@ HRESULT ArchiveManageImpl::GetRights(LPMAPIFOLDER lpFolder, unsigned *lpulRights
 
 	hr = ECPropertyRestriction(RELOP_EQ, PR_MEMBER_NAME, &sPropUser, ECRestriction::Cheap)
 	     .FindRowIn(ptrACLTable, BOOKMARK_BEGINNING, 0);
+	if (hr == MAPI_E_NOT_FOUND) {
+		*lpulRights = ARCHIVE_RIGHTS_MISSING;
+		return hrSuccess;
+	}
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrACLTable->QueryRows(1, 0, &~ptrRows);
 	if (hr != hrSuccess)
 		return hr;
-
-	if (ptrRows.empty()) {
-		assert(false);
-		return MAPI_E_NOT_FOUND;
-	}
-
-	*lpulRights = ptrRows[0].lpProps[0].Value.ul;
+	*lpulRights = ptrRows.size() != 0 ? ptrRows[0].lpProps[0].Value.ul : ARCHIVE_RIGHTS_MISSING;
 	return hrSuccess;
 }
 

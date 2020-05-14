@@ -729,7 +729,8 @@ HRESULT vcftomapi_impl::get_item(IMessage *msg, unsigned int pos)
 	if (hr != hrSuccess)
 		return hr;
 	const auto &ct = m_contacts[pos];
-	hr = msg->SetProps(ct.props.size(), &ct.props[0], nullptr);
+	SPropValue dummyprop;
+	hr = msg->SetProps(ct.props.size(), ct.props.size() > 0 ? &ct.props[0] : &dummyprop, nullptr);
 	if (hr != hrSuccess)
 		return hr;
 	if (ct.phototype != PHOTO_NONE)

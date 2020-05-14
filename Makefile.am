@@ -91,7 +91,7 @@ sbin_PROGRAMS = \
 noinst_PROGRAMS = kopano-cfgchecker
 pkglibexec_PROGRAMS = eidprint kopano-indexd kscriptrun mapitime
 check_PROGRAMS = tests/ablookup tests/htmltext tests/imtomapi \
-	tests/kc-335 tests/mapialloctime \
+	tests/kc-335 tests/kc-1759 tests/mapialloctime \
 	tests/readflag tests/ustring tests/zcpmd5 tests/chtmltotextparsertest \
 	tests/rtfhtmltest
 if HAVE_TIDY
@@ -791,6 +791,8 @@ tests_imtomapi_SOURCES = tests/imtomapi.cpp tests/tbi.hpp
 tests_imtomapi_LDADD = libkcinetmapi.la libmapi.la libkcutil.la
 tests_kc_335_SOURCES = tests/kc-335.cpp tests/tbi.hpp
 tests_kc_335_LDADD = libmapi.la libkcutil.la
+tests_kc_1759_SOURCES = tests/kc-1759.cpp
+tests_kc_1759_LDADD = libmapi.la libkcutil.la
 tests_mapialloctime_SOURCES = tests/mapialloctime.cpp
 tests_mapialloctime_LDADD = libmapi.la ${clock_LIBS}
 tests_readflag_SOURCES = tests/readflag.cpp tests/tbi.hpp
