@@ -121,6 +121,10 @@ void IMAP::ReleaseContentsCache()
  * @retval		hrSuccess
  */
 HRESULT IMAP::HrSplitPath(const wstring &strInputParam, vector<wstring> &vPaths) {
+	if (strInputParam.size() == 0) {
+		vPaths.clear();
+		return hrSuccess;
+	}
 	std::wstring strInput = strInputParam;
 
     // Strip leading and trailing /
