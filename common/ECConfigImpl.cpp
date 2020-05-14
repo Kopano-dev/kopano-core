@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <cassert>
 #include <sys/stat.h>
+#include <libHX/string.h>
 #include <kopano/ECConfig.h>
 #include <kopano/memory.hpp>
 #include <kopano/scope.hpp>
@@ -521,7 +522,7 @@ bool ECConfigImpl::CopyConfigSetting(const configsetting_t &lpsSetting,
 	if (lpsSetting.szName == nullptr || lpsSetting.szValue == nullptr)
 		return false;
 	memset(lpsKey, 0, sizeof(*lpsKey));
-	kc_strlcpy(lpsKey->s, lpsSetting.szName, sizeof(lpsKey->s));
+	HX_strlcpy(lpsKey->s, lpsSetting.szName, sizeof(lpsKey->s));
 	lpsKey->cs_flags = lpsSetting.cs_flags;
 	lpsKey->ulGroup = lpsSetting.ulGroup;
 	return true;
@@ -551,7 +552,7 @@ bool ECConfigImpl::AddSetting(const configsetting_t &lpsConfig,
 	if (szAlias) {
 		if (!(ls_flags & LOADSETTING_INITIALIZING))
 			warnings.emplace_back("Option \"" + std::string(lpsConfig.szName) + "\" is deprecated! New name for option is \"" + szAlias + "\".");
-		kc_strlcpy(s.s, szAlias, sizeof(s.s));
+		HX_strlcpy(s.s, szAlias, sizeof(s.s));
 	}
 
 	std::lock_guard<KC::shared_mutex> lset(m_settingsRWLock);

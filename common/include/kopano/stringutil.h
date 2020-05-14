@@ -183,7 +183,6 @@ Tp join(InputIterator first, InputIterator last, Tp sep)
 }
 
 extern KC_EXPORT std::string format(const char *fmt, ...) KC_LIKE_PRINTF(1, 2);
-extern KC_EXPORT char *kc_strlcpy(char *dst, const char *src, size_t n);
 extern KC_EXPORT bool kc_starts_with(const std::string &, const std::string &);
 extern KC_EXPORT bool kc_ends_with(const std::string &, const std::string &);
 

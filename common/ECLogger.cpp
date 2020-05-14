@@ -379,7 +379,7 @@ bool ECLogger_File::DupFilter(unsigned int loglevel, const char *message)
 
 	std::lock_guard<KC::shared_mutex> lw_dup(dupfilter_lock);
 	prevloglevel = loglevel;
-	kc_strlcpy(prevmsg, message, sizeof(prevmsg));
+	HX_strlcpy(prevmsg, message, sizeof(prevmsg));
 	prevcount = 0;
 	return false;
 }
@@ -831,7 +831,7 @@ static bool eclog_sockable(const char *path)
 	auto fdx = make_scope_success([&]() { if (fd >= 0) close(fd); });
 	struct sockaddr_un sk;
 	sk.sun_family = AF_LOCAL;
-	kc_strlcpy(sk.sun_path, path, sizeof(sk.sun_path));
+	HX_strlcpy(sk.sun_path, path, sizeof(sk.sun_path));
 	return connect(fd, reinterpret_cast<const sockaddr *>(&sk), sizeof(sk)) == 0;
 #else
 	return true;

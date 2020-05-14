@@ -3,17 +3,18 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
+#include <map>
 #include <memory>
+#include <string>
 #include <cerrno>
 #include <cstring>
-#include "SOAPSock.h"
 #include <sys/un.h>
+#include <libHX/string.h>
+#include "SOAPSock.h"
 #include "SOAPUtils.h"
 #include <kopano/ECLogger.h>
 #include <kopano/stringutil.h>
 #include <kopano/CommonUtil.h>
-#include <string>
-#include <map>
 #include <kopano/charset/convert.h>
 
 using namespace KC;
@@ -91,7 +92,7 @@ static int gsoap_connect_pipe(struct soap *soap, const char *endpoint,
 	}
 
 	saddr.sun_family = AF_UNIX;
-	kc_strlcpy(saddr.sun_path, socket_name, sizeof(saddr.sun_path));
+	HX_strlcpy(saddr.sun_path, socket_name, sizeof(saddr.sun_path));
 	if (connect(fd, (struct sockaddr *)&saddr, sizeof(struct sockaddr_un)) < 0) {
 		soap->errnum = soap_socket_errno(fd);
 		soap_set_receiver_error(soap, strerror(errno), "connect_pipe: connect failed", SOAP_TCP_ERROR);

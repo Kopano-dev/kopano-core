@@ -16,6 +16,7 @@
 #include <mapix.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <libHX/string.h>
 #include <netinet/in.h>
 #include <sys/un.h>
 #include <sys/socket.h>
@@ -83,7 +84,7 @@ ECRESULT ECChannelClient::ConnectSocket()
 			m_strPath.c_str());
 		return KCERR_INVALID_PARAMETER;
 	}
-	kc_strlcpy(saddr.sun_path, m_strPath.c_str(), sizeof(saddr.sun_path));
+	HX_strlcpy(saddr.sun_path, m_strPath.c_str(), sizeof(saddr.sun_path));
 
 	auto fd = socket(PF_UNIX, SOCK_STREAM, 0);
 	if (fd < 0)
