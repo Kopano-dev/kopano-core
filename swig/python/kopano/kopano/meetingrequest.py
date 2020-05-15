@@ -434,7 +434,7 @@ class MeetingRequest(object):
                     [organizer_props])
             _utils._save(cal_item.mapiobj)
 
-    def accept(self, tentative=False, response=True, add_bcc=False):
+    def accept(self, tentative=False, response=True, add_bcc=False, subject_prefix='Accepted'):
         """Accept meeting request.
 
         :param tentative: accept tentatively (default False)
@@ -561,9 +561,9 @@ class MeetingRequest(object):
                 message_class = 'IPM.Schedule.Meeting.Resp.Tent'
             else:
                 message_class = 'IPM.Schedule.Meeting.Resp.Pos'
-            self._respond('Accepted', message_class)
+            self._respond(subject_prefix, message_class)
 
-    def decline(self, message=None, response=True):
+    def decline(self, message=None, response=True, subject_prefix='Declined'):
         """Decline meeting request.
 
         :param response: send response message (default True)
@@ -571,7 +571,7 @@ class MeetingRequest(object):
         message_class = 'IPM.Schedule.Meeting.Resp.Neg'
 
         if response:
-            self._respond('Declined', message_class, message)
+            self._respond(subject_prefix, message_class, message)
 
     def process_cancellation(self, delete=False):
         """Process meeting request cancellation.
