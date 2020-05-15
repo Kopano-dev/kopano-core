@@ -771,10 +771,10 @@ HRESULT POP3::HrMakeMailList() {
  */
 string POP3::DotFilter(const char *input) {
 	string output;
-	ULONG i = 0;
+	size_t i = 0;
 
 	while (input[i] != '\0') {
-		if (input[i] == '.' && input[i-1] == '\n')
+		if (input[i] == '.' && (i == 0 || input[i-1] == '\n'))
 			output += '.';
 		output += input[i++];
 	}
