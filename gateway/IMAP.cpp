@@ -7,6 +7,7 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <climits>
 #include <cstdio>
 #include <cstdlib>
 #include <sstream>
