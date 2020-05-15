@@ -1,6 +1,7 @@
 8.7.x
 =====
 Enhancements:
+* gateway: gateway: support entering MAPI folders with slash in it [KS-45600]
 * server: support files_v2 attachment directory that has had files
   saved with KC 9.x [KC-1760]
 Fixes:
