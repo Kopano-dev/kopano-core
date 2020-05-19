@@ -6197,7 +6197,7 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, const char *szUserName,
 					if (er != erSuccess)
 						return er;
 					lpsResponse->lpszServerPath = STROUT_FIX_CPY(strServerPath.c_str());
-					ec_log_info("Redirecting request to \"%s\'", lpsResponse->lpszServerPath);
+					ec_log_info("Redirecting request to \"%s\"", lpsResponse->lpszServerPath);
 					g_lpSessionManager->m_stats->inc(SCN_REDIRECT_COUNT);
 					return KCERR_UNABLE_TO_COMPLETE;
                 }
