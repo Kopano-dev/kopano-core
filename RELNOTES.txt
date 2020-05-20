@@ -1,3 +1,11 @@
+10.0.5 (2020-05-20)
+===================
+All changes from the 9.x branch up to 9.0.7 are included.
+Changes:
+* common: process kd_trans rollback even during exceptions
+* dagent: failure to run actions will not stop rule processing
+
+
 10.0.4 (2020-04-10)
 ===================
 All changes from the 9.x branch up to 9.0.6 are included.
