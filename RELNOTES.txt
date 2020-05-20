@@ -1,3 +1,10 @@
+9.0.7 (2020-05-20)
+==================
+Changes from the 8.7.x branch up to 8.7.12 are included.
+Fixes:
+* mapi4linux: avoid M4LMAPISession going away while ECMsgStore still alive
+
+
 9.0.6 (2020-04-15)
 ==================
 Changes from the 8.7.x branch up to 8.7.12 are included.
