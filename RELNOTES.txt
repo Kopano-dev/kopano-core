@@ -134,9 +134,10 @@ Packaging changes:
 * gsoap 2.8.73 or higher is now required
 
 
-8.7.x
-=====
+8.7.13 (2020-05-20)
+===================
 Enhancements:
+* gateway: gateway: support entering MAPI folders with slash in it [KS-45600]
 * server: support files_v2 attachment directory that has had files
   saved with KC 9.x [KC-1760]
 Fixes:

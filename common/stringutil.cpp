@@ -608,6 +608,8 @@ std::string format(const char *const fmt, ...) {
 
 char *kc_strlcpy(char *dest, const char *src, size_t n)
 {
+	if (n == 0)
+		return dest;
 	strncpy(dest, src, n);
 	dest[n-1] = '\0';
 	return dest;
@@ -928,7 +930,7 @@ static const struct acl_role_name *find_acl_role(unsigned int rolenum)
 
 std::string AclRightsToString(unsigned int ror)
 {
-	switch (ror) {
+	switch (static_cast<int>(ror)) {
 	case -1:
 		return "Error reading ACL";
 	case -2:
