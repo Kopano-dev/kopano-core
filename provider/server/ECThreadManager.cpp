@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <poll.h>
 #include <unistd.h>
+#include <libHX/defs.h>
 #include <libHX/misc.h>
 #include <libHX/string.h>
 #include <kopano/ECChannel.h>

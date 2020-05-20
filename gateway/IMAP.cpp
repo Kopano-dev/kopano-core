@@ -111,6 +111,10 @@ void IMAP::ReleaseContentsCache()
  * @retval		hrSuccess
  */
 HRESULT IMAP::HrSplitPath(const wstring &strInputParam, vector<wstring> &vPaths) {
+	if (strInputParam.size() == 0) {
+		vPaths.clear();
+		return hrSuccess;
+	}
 	std::wstring strInput = strInputParam;
 
     // Strip leading and trailing /
@@ -2895,6 +2899,18 @@ HRESULT IMAP::HrGetFolderPath(list<SFolder>::const_iterator lpFolder, const list
 	return hrSuccess;
 }
 
+static inline void imap_foldername_inplace(std::wstring &n)
+{
+	std::replace(n.begin(), n.end(), IMAP_HIERARCHY_DELIMITER, ',');
+}
+
+static inline std::wstring imap_foldername(std::wstring &&z)
+{
+	std::wstring rv = std::move(z);
+	imap_foldername_inplace(rv);
+	return rv;
+}
+
 /**
  * Appends the given folder list with the given folder from the
  * EntryID with name. If bSubfolders is true, the given folder should
@@ -2990,8 +3006,7 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFo
 		if (PROP_TYPE(rows[i].lpProps[CONTAINERCLASS].ulPropTag) == PT_STRING8)
 			container_class = strToUpper(rows[i].lpProps[CONTAINERCLASS].Value.lpszA);
 
-		while (foldername.find(IMAP_HIERARCHY_DELIMITER) != string::npos)
-			foldername.erase(foldername.find(IMAP_HIERARCHY_DELIMITER), 1);
+		imap_foldername_inplace(foldername);
 
 		if (!container_class.empty() &&
 			container_class.compare(0, 3, "IPM") != 0 &&
@@ -5164,10 +5179,9 @@ HRESULT IMAP::HrFindFolder(const wstring& strFolder, bool bReadOnly, IMAPIFolder
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrFindSubFolder(IMAPIFolder *lpFolder, const wstring& strFolder, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
+HRESULT IMAP::HrFindSubFolder(IMAPIFolder *lpFolder, std::wstring strFolder, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
 {
 	object_ptr<IMAPITable> lpTable;
-    SPropValue sProp;
 	static constexpr const SizedSPropTagArray(2, sptaCols) =
 		{2, {PR_ENTRYID, PR_DISPLAY_NAME_W}};
     LPENTRYID lpEntryID = NULL;
@@ -5175,14 +5189,12 @@ HRESULT IMAP::HrFindSubFolder(IMAPIFolder *lpFolder, const wstring& strFolder, U
 	object_ptr<IMAPIFolder> lpSubTree;
     ULONG ulObjType = 0;
 
-    sProp.ulPropTag = PR_DISPLAY_NAME_W;
-	sProp.Value.lpszW = const_cast<wchar_t *>(strFolder.c_str());
-
     // lpFolder is NULL when we're referring to the IMAP root. The IMAP root contains
     // INBOX, the public folder container, and all folders under the users IPM_SUBTREE.
 
+	strFolder = strToUpper(std::move(strFolder));
     if(lpFolder == NULL) {
-        if(wcscasecmp(strFolder.c_str(), L"INBOX") == 0) {
+		if (strFolder == L"INBOX") {
             // Inbox request, we know where that is.
 			return lpStore->GetReceiveFolder(reinterpret_cast<const TCHAR *>("IPM"), 0, lpcbEntryID, lppEntryID, nullptr);
         } else if(wcscasecmp(strFolder.c_str(), PUBLIC_FOLDERS_NAME) == 0) {
@@ -5220,22 +5232,33 @@ HRESULT IMAP::HrFindSubFolder(IMAPIFolder *lpFolder, const wstring& strFolder, U
     hr = lpTable->SetColumns(sptaCols, 0);
     if(hr != hrSuccess)
 		return hr;
-	hr = ECPropertyRestriction(RELOP_EQ, PR_DISPLAY_NAME_W, &sProp, ECRestriction::Cheap)
-	     .RestrictTable(lpTable, TBL_BATCH);
-	if (hr != hrSuccess)
-		return hr;
 
+	/*
+	 * MAPI folder names cannot always be represented in IMAP. Encoding the
+	 * MAPI name in a reversible fashion would lead to an IMAP name that
+	 * quickly becomes illegible to the end-user. A one-way transform
+	 * requires that the original names be fed into the translation and the
+	 * result be checked, much like a hash func. This is possibly not much
+	 * worse than running an ECRestriction.
+	 */
 	rowset_ptr lpRowSet;
-	hr = lpTable->QueryRows(1, 0, &~lpRowSet);
+	hr = lpTable->QueryRows(INT_MAX, 0, &~lpRowSet);
 	if (hr != hrSuccess)
 		return hr;
-	if (lpRowSet->cRows == 0)
+	unsigned int i;
+	for (i = 0; i < lpRowSet->cRows; ++i) {
+		const auto &row = lpRowSet[i];
+		if (row.lpProps[0].ulPropTag != PR_ENTRYID ||
+		    row.lpProps[1].ulPropTag != PR_DISPLAY_NAME_W)
+			continue;
+		if (strToUpper(imap_foldername(row.lpProps[1].Value.lpszW)) == strFolder)
+			break;
+	}
+	if (i == lpRowSet->cRows)
 		return MAPI_E_NOT_FOUND;
-	if (lpRowSet->aRow[0].lpProps[0].ulPropTag != PR_ENTRYID)
-		return MAPI_E_INVALID_PARAMETER;
 
-	unsigned int cbEntryID = lpRowSet->aRow[0].lpProps[0].Value.bin.cb;
-	hr = KAllocCopy(lpRowSet->aRow[0].lpProps[0].Value.bin.lpb, cbEntryID, reinterpret_cast<void **>(&lpEntryID));
+	unsigned int cbEntryID = lpRowSet[i].lpProps[0].Value.bin.cb;
+	hr = KAllocCopy(lpRowSet[i].lpProps[0].Value.bin.lpb, cbEntryID, reinterpret_cast<void **>(&lpEntryID));
     if(hr != hrSuccess)
 		return hr;
     *lppEntryID = lpEntryID;

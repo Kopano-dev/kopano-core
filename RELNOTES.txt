@@ -29,6 +29,13 @@ Enhancements:
   "cache_cell_size=0.5G"
 
 
+9.0.7 (2020-05-20)
+==================
+Changes from the 8.7.x branch up to 8.7.12 are included.
+Fixes:
+* mapi4linux: avoid M4LMAPISession going away while ECMsgStore still alive
+
+
 9.0.6 (2020-04-15)
 ==================
 Changes from the 8.7.x branch up to 8.7.12 are included.
@@ -165,9 +172,10 @@ Packaging changes:
 * gsoap 2.8.73 or higher is now required
 
 
-8.7.x
-=====
+8.7.13 (2020-05-20)
+===================
 Enhancements:
+* gateway: gateway: support entering MAPI folders with slash in it [KS-45600]
 * server: support files_v2 attachment directory that has had files
   saved with KC 9.x [KC-1760]
 Fixes:
