@@ -942,7 +942,7 @@ static const struct acl_role_name *find_acl_role(unsigned int rolenum)
 
 std::string AclRightsToString(unsigned int ror)
 {
-	switch (ror) {
+	switch (static_cast<int>(ror)) {
 	case -1:
 		return "Error reading ACL";
 	case -2:
