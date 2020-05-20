@@ -1,5 +1,5 @@
-8.7.x
-=====
+8.7.13 (2020-05-20)
+===================
 Enhancements:
 * gateway: gateway: support entering MAPI folders with slash in it [KS-45600]
 * server: support files_v2 attachment directory that has had files
