@@ -348,18 +348,18 @@ class Appointment(object):
                 self._respond(subject_prefix, message_class, comment)
             else:
                 if not subject_prefix:
-                    subject_prefix = 'Accept'
+                    subject_prefix = 'Accepted'
                 message_class = 'IPM.Schedule.Meeting.Resp.Pos'
                 self._respond(subject_prefix, message_class, comment)
 
-    def decline(self, comment=None, respond=True):
+    def decline(self, comment=None, respond=True, subject_prefix='Declined'):
         self.response_status = 'Declined'
         self.replytime = datetime.now()
         self.replyname = self.store.user.fullname
 
         if respond:
             message_class = 'IPM.Schedule.Meeting.Resp.Neg'
-            self._respond('Declined', message_class, comment)
+            self._respond(subject_prefix, message_class, comment)
 
     # TODO merge with meetingrequest version
     def _respond(self, subject_prefix, message_class, comment=None):
