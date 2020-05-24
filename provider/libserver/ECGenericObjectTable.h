@@ -5,6 +5,7 @@
 #pragma once
 #define MAX_SORTKEY_LEN 4096
 #include <kopano/zcdefs.h>
+#include <memory>
 #include <mutex>
 #include "soapH.h"
 #include <list>

@@ -11,6 +11,7 @@
 #include <kopano/rqstat.hpp>
 #include <kopano/timeutil.hpp>
 #include <kopano/ustringutil.h>
+#include <memory>
 #include <string>
 #include <vector>
 

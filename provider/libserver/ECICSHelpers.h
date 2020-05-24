@@ -4,6 +4,7 @@
  */
 #pragma once
 #include <map>
+#include <memory>
 #include <set>
 #include <vector>
 #include <kopano/zcdefs.h>

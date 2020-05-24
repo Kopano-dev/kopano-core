@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <iostream>
 #include <list>
+#include <memory>
 #include <set>
 #include <string>
 #include <utility>

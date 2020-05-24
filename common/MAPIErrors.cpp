@@ -6,6 +6,7 @@
  * MAPIErrors.cpp
  * Definition of GetMAPIErrorMessage()
  */
+#include <memory>
 #include <kopano/memory.hpp>
 #include <kopano/platform.h>
 #include <kopano/MAPIErrors.h>

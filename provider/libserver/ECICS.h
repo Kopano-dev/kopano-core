@@ -5,6 +5,7 @@
 #pragma once
 #include <kopano/zcdefs.h>
 #include "ECSession.h"
+#include <memory>
 #include <utility>
 
 struct soap;

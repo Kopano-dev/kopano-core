@@ -4,6 +4,7 @@
  */
 #include <kopano/platform.h>
 #include <iostream>
+#include <memory>
 #include <new>
 #include <utility>
 #include "archive.h"

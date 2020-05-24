@@ -7,6 +7,7 @@
 #endif
 #include <algorithm>
 #include <chrono>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <utility>
