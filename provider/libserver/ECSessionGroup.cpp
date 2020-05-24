@@ -232,8 +232,10 @@ ECRESULT ECSessionGroup::AddNotification(notification *notifyItem, unsigned int 
 	return erSuccess;
 }
 
-ECRESULT ECSessionGroup::AddNotificationTable(ECSESSIONID ulSessionId, unsigned int ulType, unsigned int ulObjType, unsigned int ulTableId,
-											  sObjectTableKey* lpsChildRow, sObjectTableKey* lpsPrevRow, struct propValArray *lpRow)
+ECRESULT ECSessionGroup::AddNotificationTable(ECSESSIONID ulSessionId,
+    unsigned int ulType, unsigned int ulObjType, unsigned int ulTableId,
+    sObjectTableKey *lpsChildRow, sObjectTableKey *lpsPrevRow,
+    struct propValArray *lpRow)
 {
 	std::lock_guard<ECSessionGroup> holder(*this);
 	auto lpNotify = soap_new_notification(nullptr);

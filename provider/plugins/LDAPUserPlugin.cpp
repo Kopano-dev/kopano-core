@@ -127,7 +127,7 @@ typedef std::unique_ptr<struct berval *[], ldap_deleter> auto_free_ldap_berval;
 			sCookie.bv_val = NULL; \
 			sCookie.bv_len = 0; \
 		} \
-		if (returnedControls != nullptr) {										\
+		if (returnedControls != nullptr) { \
 			rc = ldap_parse_pageresponse_control(m_ldap, returnedControls[0], NULL, &sCookie); \
 			if (rc != LDAP_SUCCESS) \
 				throw ldap_error("ldap_parse_pageresponse_control: "s + ldap_err2string(rc), rc); \

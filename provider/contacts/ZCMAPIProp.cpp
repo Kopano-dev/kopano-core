@@ -31,13 +31,13 @@ ZCMAPIProp::~ZCMAPIProp()
 }
 
 #define ADD_PROP_OR_EXIT(dest, src, base, propid) {						\
-	if (src) {															\
+	if (src) { \
 		hr = Util::HrCopyProperty(&dest, src, base);					\
-		if (hr != hrSuccess)											\
+		if (hr != hrSuccess) \
 			goto exitm; \
-		dest.ulPropTag = propid;										\
+		dest.ulPropTag = propid; \
 		m_mapProperties.emplace(PROP_ID(propid), dest); \
-		src = NULL;														\
+		src = NULL; \
 	} \
 }
 

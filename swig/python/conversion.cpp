@@ -550,9 +550,9 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 				pyobj_ptr elem(PyIter_Next(iter)); \
 				if (elem == nullptr) break; \
 				Sub(lpProp->Value.MV##MVname.lp##MVelem[n]) = As(elem); \
-				++n;												\
+				++n; \
 			} while (true); \
-		}															\
+		} \
 		lpProp->Value.MV##MVname.cValues = n; \
 		break; \
 	}

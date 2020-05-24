@@ -337,8 +337,7 @@ public:
 	 *					The child object.
 	 * @throw std::exception
 	 */
-	virtual void deleteSubObjectRelation(userobject_relation_t relation,
-										 const objectid_t &parentobject, const objectid_t &childobject) = 0;
+	virtual void deleteSubObjectRelation(userobject_relation_t relation, const objectid_t &parentobject, const objectid_t &childobject) = 0;
 	
 	/**
 	 * Get quota information from object.

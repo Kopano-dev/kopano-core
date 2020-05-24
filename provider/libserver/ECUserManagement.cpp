@@ -448,9 +448,9 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass,
 						}
 			} else {
 				ulObjectId = iterSignatureIdToLocal->second.first;
-				er = CheckObjectModified(ulObjectId,							// Object id
-										 iterSignatureIdToLocal->second.second,	// local signature
-										 ext_sig.signature);		// remote signature
+				er = CheckObjectModified(ulObjectId, // Object id
+				     iterSignatureIdToLocal->second.second, // local signature
+				     ext_sig.signature); // remote signature
 				if (er != erSuccess)
 					return er;
 				// Remove the external user from the list of internal IDs,

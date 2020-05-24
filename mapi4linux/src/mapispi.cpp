@@ -55,8 +55,9 @@ M4LMAPISupport::~M4LMAPISupport() {
 		MAPIFreeBuffer(i.second.lpKey);
 }
 
-HRESULT M4LMAPISupport::GetMemAllocRoutines(LPALLOCATEBUFFER * lpAllocateBuffer, LPALLOCATEMORE * lpAllocateMore,
-											LPFREEBUFFER * lpFreeBuffer) {
+HRESULT M4LMAPISupport::GetMemAllocRoutines(ALLOCATEBUFFER **lpAllocateBuffer,
+    ALLOCATEMORE **lpAllocateMore, FREEBUFFER **lpFreeBuffer)
+{
 	*lpAllocateBuffer = MAPIAllocateBuffer;
 	*lpAllocateMore   = MAPIAllocateMore;
 	*lpFreeBuffer     = MAPIFreeBuffer;

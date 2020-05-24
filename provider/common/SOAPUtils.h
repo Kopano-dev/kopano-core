@@ -58,16 +58,12 @@ ECRESULT			CopyNotificationArrayStruct(notificationArray *lpNotifyArrayFrom, not
 ECRESULT			CopyRightsArrayToSoap(struct soap *soap, struct rightsArray *lpRightsArraySrc, struct rightsArray **lppRightsArrayDst);
 
 // userobjects
-ECRESULT			CopyUserDetailsToSoap(unsigned int ulId, entryId *lpUserEid, const objectdetails_t &details, bool bCopyBinary,
-										  struct soap *soap, struct user *lpUser);
+extern ECRESULT CopyUserDetailsToSoap(unsigned int id, entryId *user, const objectdetails_t &details, bool copy_bin, struct soap *soap, struct user *uout);
 ECRESULT			CopyUserDetailsFromSoap(struct user *lpUser, std::string *lpstrExternId, objectdetails_t *details, struct soap *soap);
-ECRESULT			CopyGroupDetailsToSoap(unsigned int ulId, entryId *lpGroupEid, const objectdetails_t &details, bool bCopyBinary,
-										   struct soap *soap, struct group *lpGroup);
+extern ECRESULT CopyGroupDetailsToSoap(unsigned int id, entryId *group, const objectdetails_t &details, bool copy_bin, struct soap *soap, struct group *gout);
 ECRESULT			CopyGroupDetailsFromSoap(struct group *lpGroup, std::string *lpstrExternId, objectdetails_t *details, struct soap *soap);
-ECRESULT			CopyCompanyDetailsToSoap(unsigned int ulId, entryId *lpCompanyEid, unsigned int ulAdmin, entryId *lpAdminEid, 
-											 const objectdetails_t &details, bool bCopyBinary, struct soap *soap, struct company *lpCompany);
-ECRESULT			CopyCompanyDetailsFromSoap(struct company *lpCompany, std::string *lpstrExternId, unsigned int ulAdmin,
-											   objectdetails_t *details, struct soap *soap);
+extern ECRESULT CopyCompanyDetailsToSoap(unsigned int id, entryId *company, unsigned int admin, entryId *admin_eid, const objectdetails_t &details, bool copy_bin, struct soap *soap, struct company *cout);
+extern ECRESULT CopyCompanyDetailsFromSoap(struct company *, std::string *externid, unsigned int admin, objectdetails_t *details, struct soap *soap);
 ULONG 				NormalizePropTag(ULONG ulPropTag);
 
 const char *GetSourceAddr(struct soap *soap);

@@ -107,9 +107,12 @@ std::string IncrementalQueryCreator::CreateBaseQuery() const
 		strQuery +=	"LEFT JOIN indexedproperties ON indexedproperties.val_binary = changes.sourcekey AND indexedproperties.tag = " + stringify(PROP_ID(PR_SOURCE_KEY)) + " " +
 					"LEFT JOIN hierarchy ON hierarchy.id = indexedproperties.hierarchyid ";
 
-	strQuery +=	"WHERE changes.id > " + stringify(m_ulChangeId) + 																	/* Get changes from change ID N onwards */
-				"  AND changes.change_type & " + stringify(ICS_MESSAGE) +															/* And change type is message */
-				"  AND changes.sourcesync != " + stringify(m_ulSyncId);																/* And we didn't generate this change ourselves */
+	/* Get changes from change ID N onwards */
+	strQuery += "WHERE changes.id > " + stringify(m_ulChangeId) +
+	/* And change type is message */
+	            " AND changes.change_type & " + stringify(ICS_MESSAGE) +
+	/* And we didn't generate this change ourselves */
+	            " AND changes.sourcesync != " + stringify(m_ulSyncId);
 
 	if(!m_sFolderSourceKey.empty())
 		strQuery += "  AND changes.parentsourcekey = " + m_lpDatabase->EscapeBinary(m_sFolderSourceKey); /* Where change took place in Folder X */

@@ -3202,8 +3202,8 @@ ZEND_FUNCTION(mapi_getnamesfromids)
 		} else {
 			int slen;
 			slen = wcstombs(NULL, pPropNames[count]->Kind.lpwstrName, 0);	// find string size
-			++slen;															// add terminator
-			char *b2 = new char[slen];										// alloc
+			++slen; // add terminator
+			char *b2 = new char[slen]; // alloc
 			wcstombs(b2, pPropNames[count]->Kind.lpwstrName, slen); /* convert & terminate */
 			add_assoc_string(&prop, "name", b2);
 			delete[] b2;
@@ -4901,11 +4901,11 @@ ZEND_FUNCTION(mapi_importcontentschanges_importmessagemove)
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsssss", 	&resImportContentsChanges,
-																	&pbSourceKeySrcFolder, &cbSourceKeySrcFolder,
-																	&pbSourceKeySrcMessage, &cbSourceKeySrcMessage,
-																	&pbPCLMessage, &cbPCLMessage,
-																	&pbSourceKeyDestMessage, &cbSourceKeyDestMessage,
-																	&pbChangeNumDestMessage, &cbChangeNumDestMessage) == FAILURE)
+	    &pbSourceKeySrcFolder, &cbSourceKeySrcFolder,
+	    &pbSourceKeySrcMessage, &cbSourceKeySrcMessage,
+	    &pbPCLMessage, &cbPCLMessage,
+	    &pbSourceKeyDestMessage, &cbSourceKeyDestMessage,
+	    &pbChangeNumDestMessage, &cbChangeNumDestMessage) == FAILURE)
 		return;
 
 	DEFERRED_EPILOGUE;
