@@ -1226,25 +1226,25 @@ HRESULT Util::HrTextToHtml(IStream *text, IStream *html, ULONG ulCodepage)
 	ULONG cRead;
 	std::wstring strHtml;
 	wchar_t lpBuffer[BUFSIZE];
-	static const char header1[] = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2//EN\">\n" \
-					"<HTML>\n" \
-					"<HEAD>\n" \
-					"<META HTTP-EQUIV=\"Content-Type\" CONTENT=\"text/html; charset=";
+	static const char header1[] = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2//EN\">\n"
+	                              "<HTML>\n"
+	                              "<HEAD>\n"
+	                              "<META HTTP-EQUIV=\"Content-Type\" CONTENT=\"text/html; charset=";
 	// inserts charset in header here
-	static const char header2[] = "\">\n"												\
-					"<META NAME=\"Generator\" CONTENT=\"Kopano HTML builder 1.0\">\n" \
-					"<TITLE></TITLE>\n" \
-					"</HEAD>\n" \
-					"<BODY>\n" \
-					"<!-- Converted from text/plain format -->\n" \
-					"\n" \
-					"<P><FONT STYLE=\"font-family: courier\" SIZE=2>\n";
+	static const char header2[] = "\">\n"
+	                              "<META NAME=\"Generator\" CONTENT=\"Kopano HTML builder 1.0\">\n"
+	                              "<TITLE></TITLE>\n"
+	                              "</HEAD>\n"
+	                              "<BODY>\n"
+	                              "<!-- Converted from text/plain format -->\n"
+	                              "\n"
+	                              "<P><FONT STYLE=\"font-family: courier\" SIZE=2>\n";
 					
-	static const char footer[] = "</FONT>\n" \
-					"</P>\n" \
-					"\n" \
-					"</BODY>" \
-					"</HTML>";
+	static const char footer[] = "</FONT>\n"
+	                             "</P>\n"
+	                             "\n"
+	                             "</BODY>"
+	                             "</HTML>";
 	const char	*readBuffer = NULL;
 	std::unique_ptr<char[]> writeBuffer;
 	const char *lpszCharset;
@@ -1400,13 +1400,13 @@ HRESULT Util::HrTextToRtf(IStream *text, IStream *rtf)
 {
 	ULONG cRead;
 	wchar_t c[BUFSIZE];
-	static const char header[] = "{\\rtf1\\ansi\\ansicpg1252\\fromtext \\deff0{\\fonttbl\n" \
-					"{\\f0\\fswiss Arial;}\n" \
-					"{\\f1\\fmodern Courier New;}\n" \
-					"{\\f2\\fnil\\fcharset2 Symbol;}\n" \
-					"{\\f3\\fmodern\\fcharset0 Courier New;}}\n" \
-					"{\\colortbl\\red0\\green0\\blue0;\\red0\\green0\\blue255;}\n" \
-					"\\uc1\\pard\\plain\\deftab360 \\f0\\fs20 ";
+	static const char header[] = "{\\rtf1\\ansi\\ansicpg1252\\fromtext \\deff0{\\fonttbl\n"
+	                             "{\\f0\\fswiss Arial;}\n"
+	                             "{\\f1\\fmodern Courier New;}\n"
+	                             "{\\f2\\fnil\\fcharset2 Symbol;}\n"
+	                             "{\\f3\\fmodern\\fcharset0 Courier New;}}\n"
+	                             "{\\colortbl\\red0\\green0\\blue0;\\red0\\green0\\blue255;}\n"
+	                             "\\uc1\\pard\\plain\\deftab360 \\f0\\fs20 ";
 	static const char footer[] = "}";
 
 	rtf->Write(header, strlen(header), NULL);

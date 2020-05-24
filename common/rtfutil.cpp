@@ -391,18 +391,18 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 		hr = hrSuccess;
 	}
 	auto strConvertCharset = szHTMLCharset + "//HTMLENTITIES"s;
-	auto tmp = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2//EN\">\r\n" \
-		 "<HTML>\r\n" \
-		 "<HEAD>\r\n" \
+	auto tmp = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2//EN\">\r\n"
+		 "<HTML>\r\n"
+		 "<HEAD>\r\n"
 		 "<META HTTP-EQUIV=\"Content-Type\" CONTENT=\"text/html; charset="s;
 	tmp += szHTMLCharset;
-	tmp += 	"\">\r\n"												\
-		 "<META NAME=\"Generator\" CONTENT=\"Kopano HrExtractHTMLFromTextRTF\">\r\n" \
-		 "<TITLE></TITLE>\r\n" \
-		 "</HEAD>\r\n" \
-		 "<BODY>\r\n" \
-		 "<!-- Converted from text/plain format -->\r\n" \
-		 "\r\n"; //FIXME create title on the fly ?
+	tmp += "\">\r\n"
+	       "<META NAME=\"Generator\" CONTENT=\"Kopano HrExtractHTMLFromTextRTF\">\r\n"
+	       "<TITLE></TITLE>\r\n"
+	       "</HEAD>\r\n"
+	       "<BODY>\r\n"
+	       "<!-- Converted from text/plain format -->\r\n"
+	       "\r\n"; //FIXME create title on the fly ?
 
 	TryConvert(convertContext, tmp, rawsize(tmp), "us-ascii", wstrUnicodeTmp);
 	strOutput.append(wstrUnicodeTmp);
@@ -621,9 +621,9 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 	strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
 	if (bPar)
 		strOutput += L"</p>\r\n";
-	strOutput += L"\r\n" \
-		     L"</BODY>\r\n" \
-		     L"</HTML>\r\n";
+	strOutput += L"\r\n"
+	             L"</BODY>\r\n"
+	             L"</HTML>\r\n";
 	try {
 		lpStrHTMLOut = convertContext.convert_to<std::string>(strConvertCharset.c_str(), strOutput, rawsize(strOutput), CHARSET_WCHAR);
 	} catch (const convert_exception &ce) {
@@ -668,18 +668,18 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 		hr = hrSuccess;
 	}
 	auto strConvertCharset = szHTMLCharset + "//HTMLENTITIES"s;
-	auto tmp = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2//EN\">\r\n" \
-		 "<HTML>\r\n" \
-		 "<HEAD>\r\n" \
+	auto tmp = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2//EN\">\r\n"
+		 "<HTML>\r\n"
+		 "<HEAD>\r\n"
 		 "<META HTTP-EQUIV=\"Content-Type\" CONTENT=\"text/html; charset="s;
 	tmp += szHTMLCharset;
-	tmp +=	"\">\r\n"															\
-		 "<META NAME=\"Generator\" CONTENT=\"Kopano HrExtractHTMLFromRealRTF\">\r\n" \
-		 "<TITLE></TITLE>\r\n" \
-		 "</HEAD>\r\n" \
-		 "<BODY>\r\n" \
-		 "<!-- Converted from text/rtf format -->\r\n" \
-		 "\r\n"; //FIXME create title on the fly ?
+	tmp += "\">\r\n"
+	       "<META NAME=\"Generator\" CONTENT=\"Kopano HrExtractHTMLFromRealRTF\">\r\n"
+	       "<TITLE></TITLE>\r\n"
+	       "</HEAD>\r\n"
+	       "<BODY>\r\n"
+	       "<!-- Converted from text/rtf format -->\r\n"
+	       "\r\n"; //FIXME create title on the fly ?
 
 	TryConvert(convertContext, tmp, rawsize(tmp), "us-ascii", wstrUnicodeTmp);
 	strOutput.append(wstrUnicodeTmp);
@@ -952,9 +952,9 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 	strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
 	if (bPar)
 		strOutput += L"</p>\r\n";
-	strOutput += L"\r\n" \
-		     L"</BODY>\r\n" \
-		     L"</HTML>\r\n";
+	strOutput += L"\r\n"
+	             L"</BODY>\r\n"
+	             L"</HTML>\r\n";
 	try {
 		lpStrHTMLOut = convertContext.convert_to<std::string>(strConvertCharset.c_str(), strOutput, rawsize(strOutput), CHARSET_WCHAR);
 	} catch (const convert_exception &ce) {
