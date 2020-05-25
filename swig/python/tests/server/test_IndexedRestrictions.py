@@ -3,10 +3,6 @@ from MAPI.Struct import (SPropValue, SContentRestriction, SAndRestriction,
                          SOrRestriction, SExistRestriction, SNotRestriction)
 from MAPI.Tags import PR_SUBJECT
 
-import pytest
-
-pytest.skip("requires kopano-search??", allow_module_level=True)
-
 
 def assert_no_results(root, restriction):
     table = root.GetContentsTable(0)

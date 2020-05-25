@@ -10,4 +10,4 @@ $store = getDefaultStore(getMapiSession());
 
 var_dump(mapi_msgstore_createentryid($store, getenv("KOPANO_TEST_USER")));
 --EXPECTF--
-string(%d) "%s"
+string(%d) "%a"
