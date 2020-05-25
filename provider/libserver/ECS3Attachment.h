@@ -5,6 +5,7 @@
 #ifdef HAVE_LIBS3_H
 #include <kopano/platform.h>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <libs3.h>

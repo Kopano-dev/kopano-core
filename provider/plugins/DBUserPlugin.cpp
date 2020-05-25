@@ -4,6 +4,7 @@
  */
 #include <kopano/platform.h>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <stdexcept>
 #include <cerrno>
