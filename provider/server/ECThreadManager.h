@@ -9,7 +9,6 @@
 #include <memory>
 #include <mutex>
 #include <queue>
-#include <set>
 #include <pthread.h>
 #include <kopano/ECConfig.h>
 #include <kopano/kcodes.h>

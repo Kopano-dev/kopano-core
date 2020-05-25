@@ -10,7 +10,6 @@
 #include <utility>
 #include <vector>
 #include <list>
-#include <set>
 #include <cstring>
 #include <kopano/ECChannel.h>
 #include <kopano/memory.hpp>

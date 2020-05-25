@@ -5,6 +5,7 @@
 #include <kopano/platform.h>
 #include <list>
 #include <memory>
+#include <set>
 #include <utility>
 #include "ECDatabaseUtils.h"
 #include "ECDatabase.h"

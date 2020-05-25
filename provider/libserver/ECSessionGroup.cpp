@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <map>
 #include <mutex>
+#include <set>
 #include <utility>
 #include "ECSession.h"
 #include "ECSessionGroup.h"

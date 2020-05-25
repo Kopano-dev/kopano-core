@@ -34,6 +34,7 @@
 #include <kopano/platform.h>
 #include <atomic>
 #include <memory>
+#include <set>
 #include <string>
 #include <utility>
 #include <climits>

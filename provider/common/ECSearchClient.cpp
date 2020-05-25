@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <list>
+#include <set>
 #include <utility>
 #include <kopano/platform.h>
 #include <kopano/ECChannel.h>

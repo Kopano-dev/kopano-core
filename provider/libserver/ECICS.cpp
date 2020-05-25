@@ -5,6 +5,7 @@
 #include <kopano/platform.h>
 #include <list>
 #include <memory>
+#include <set>
 #include <utility>
 #include <kopano/MAPIErrors.h>
 #include <kopano/tie.hpp>

@@ -4,6 +4,7 @@
  */
 #pragma once
 #include <map>
+#include <set>
 #include <kopano/zcdefs.h>
 #include "ECICS.h"
 #include "ECDatabase.h"

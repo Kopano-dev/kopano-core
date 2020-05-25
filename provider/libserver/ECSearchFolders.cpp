@@ -4,6 +4,7 @@
  */
 #include <kopano/platform.h>
 #include <memory>
+#include <set>
 #include <utility>
 #include <kopano/memory.hpp>
 #include <kopano/scope.hpp>

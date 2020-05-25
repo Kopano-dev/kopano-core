@@ -12,6 +12,7 @@
 #include <kopano/Util.h>
 #include <kopano/ECGuid.h>
 #include <algorithm>
+#include <set>
 #include <utility>
 #include <kopano/mapi_ptr.h>
 

@@ -7,6 +7,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <set>
 #include <tuple>
 #include "ECDatabaseFactory.h"
 #include "ECDatabaseUtils.h"

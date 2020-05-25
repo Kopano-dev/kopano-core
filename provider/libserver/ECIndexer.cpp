@@ -17,6 +17,7 @@
 #include <iterator>
 #include <memory>
 #include <new>
+#include <set>
 #include <string>
 #include <utility>
 #include <list>

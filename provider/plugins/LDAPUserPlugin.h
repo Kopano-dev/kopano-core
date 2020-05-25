@@ -10,7 +10,6 @@
 #include <string>
 #include <kopano/zcdefs.h>
 #include <kopano/charset/convert.h>
-#include <set>
 #include <ldap.h>
 #include "plugin.h"
 
