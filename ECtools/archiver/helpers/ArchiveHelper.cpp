@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <memory>
 #include <new>
+#include <string>
 #include <utility>
 #include "ArchiveHelper.h"
 #include "ArchiverSession.h"

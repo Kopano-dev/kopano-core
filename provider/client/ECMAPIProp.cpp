@@ -24,6 +24,7 @@
 #include "pcutil.hpp"
 #include <algorithm>
 #include <sstream>
+#include <string>
 #include <utility>
 
 using namespace KC;

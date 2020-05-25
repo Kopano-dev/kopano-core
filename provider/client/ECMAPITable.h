@@ -4,6 +4,7 @@
  */
 #pragma once
 #include <mutex>
+#include <string>
 #include <kopano/ECUnknown.h>
 #include <kopano/Util.h>
 #include "WSTransport.h"

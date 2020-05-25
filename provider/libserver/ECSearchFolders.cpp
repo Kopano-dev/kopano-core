@@ -9,6 +9,7 @@
 #include <new>
 #include <set>
 #include <sstream>
+#include <string>
 #include <utility>
 #include <kopano/memory.hpp>
 #include <kopano/scope.hpp>

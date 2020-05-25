@@ -5,6 +5,7 @@
 #pragma once
 #include <memory>
 #include <mutex>
+#include <string>
 #include <unordered_set>
 #include <pthread.h>
 #include <kopano/zcdefs.h>

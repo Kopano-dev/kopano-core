@@ -8,6 +8,7 @@
 #include <list>
 #include <memory>
 #include <ostream>
+#include <string>
 #include <mapix.h>
 #include <kopano/ArchiveControl.h>
 

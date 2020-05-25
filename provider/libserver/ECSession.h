@@ -10,6 +10,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <string>
 #include <ctime>
 #include <pthread.h>
 #include <sys/types.h>

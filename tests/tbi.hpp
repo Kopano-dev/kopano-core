@@ -9,6 +9,7 @@
 #pragma once
 #include <initializer_list>
 #include <memory>
+#include <string>
 #include <utility>
 #include <cstdlib>
 #include <mapidefs.h>

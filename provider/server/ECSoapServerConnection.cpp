@@ -5,6 +5,7 @@
 #include <kopano/platform.h>
 #include <algorithm>
 #include <memory>
+#include <string>
 #include <utility>
 #include <cerrno>
 #include <cstdlib>

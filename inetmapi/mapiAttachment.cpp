@@ -2,7 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#include <memory>
+#include <string>
 #include "mapiAttachment.h"
 #include <vmime/contentDispositionField.hpp>
 #include <vmime/contentTypeField.hpp>

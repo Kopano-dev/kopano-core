@@ -6,6 +6,7 @@
 #include <kopano/zcdefs.h>
 #include <condition_variable>
 #include <memory>
+#include <string>
 #include <mutex>
 #include <pthread.h>
 #include "ECDatabaseFactory.h"

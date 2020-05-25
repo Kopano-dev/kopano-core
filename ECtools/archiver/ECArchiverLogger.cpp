@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <memory>
+#include <string>
 #include <utility>
 #include <kopano/platform.h>
 #include "ECArchiverLogger.h"

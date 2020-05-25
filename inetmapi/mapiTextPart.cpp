@@ -30,6 +30,7 @@
 //
 #include <memory>
 #include <sstream>
+#include <string>
 #include <vector>
 #include "mapiTextPart.h"
 #include <vmime/exception.hpp>

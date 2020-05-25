@@ -4,6 +4,7 @@
  */
 #include <kopano/platform.h>
 #include <list>
+#include <string>
 #include <utility>
 #include "vfreebusy.h"
 #include <mapiutil.h>

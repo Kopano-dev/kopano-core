@@ -7,6 +7,7 @@
 #include <list>
 #include <memory>
 #include <new>
+#include <string>
 #include <utility>
 #include <kopano/MAPIErrors.h>
 #include <kopano/archiver-common.h>

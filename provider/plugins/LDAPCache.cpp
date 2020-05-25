@@ -4,6 +4,7 @@
  */
 #include <mutex>
 #include <utility>
+#include <string>
 #include <kopano/platform.h>
 #include <kopano/ECConfig.h>
 #include "LDAPCache.h"

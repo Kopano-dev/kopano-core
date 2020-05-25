@@ -4,6 +4,7 @@
  */
 #include <kopano/platform.h>
 #include <iostream>
+#include <string>
 #include <kopano/CommonUtil.h>
 #include <kopano/mapiext.h>
 #include <kopano/mapiguidext.h>

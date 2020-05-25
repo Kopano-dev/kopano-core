@@ -5,6 +5,7 @@
 #include <kopano/platform.h>
 #include <list>
 #include <memory>
+#include <string>
 #include <ctime>
 #include <libHX/misc.h>
 #include <kopano/tie.hpp>

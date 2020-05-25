@@ -5,6 +5,7 @@
 #include <kopano/platform.h>
 #include <map>
 #include <memory>
+#include <string>
 #include <utility>
 #include <cassert>
 #include "ECSubRestriction.h"

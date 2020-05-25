@@ -4,6 +4,7 @@
  */
 #pragma once
 #include <list>
+#include <string>
 #include "WebDav.h"
 #include "CalDavUtil.h"
 #include <libxml/uri.h>

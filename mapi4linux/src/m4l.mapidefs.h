@@ -7,6 +7,8 @@
 #include <mapidefs.h>
 #include <mapispi.h>
 #include <list>
+#include <map>
+#include <string>
 #include <kopano/memory.hpp>
 #include <kopano/zcdefs.h>
 

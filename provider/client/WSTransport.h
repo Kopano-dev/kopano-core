@@ -7,6 +7,7 @@
 #include <mapispi.h>
 #include <map>
 #include <mutex>
+#include <string>
 #include <utility>
 #include "kcore.hpp"
 #include "ECMAPIProp.h"

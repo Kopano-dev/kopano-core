@@ -10,6 +10,7 @@
 #include <new>
 #include <set>
 #include <shared_mutex>
+#include <string>
 #include <utility>
 #include <pthread.h>
 #include <libHX/string.h>

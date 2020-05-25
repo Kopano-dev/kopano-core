@@ -4,6 +4,7 @@
  */
 #pragma once
 #include <memory>
+#include <string>
 #include <kopano/zcdefs.h>
 #include <kopano/ECLogger.h>
 

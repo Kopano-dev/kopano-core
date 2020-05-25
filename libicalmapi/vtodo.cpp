@@ -5,6 +5,7 @@
 #include <kopano/platform.h>
 #include <list>
 #include <memory>
+#include <string>
 #include "vtodo.h"
 #include <mapiutil.h>
 #include <kopano/mapiext.h>

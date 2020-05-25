@@ -31,6 +31,7 @@
 #include <kopano/platform.h>
 #include <memory>
 #include <sstream>
+#include <string>
 #include <utility>
 #include <kopano/tie.hpp>
 #include <kopano/stringutil.h>

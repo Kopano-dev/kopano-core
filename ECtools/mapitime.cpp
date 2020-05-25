@@ -6,6 +6,7 @@
 #include <list>
 #include <memory>
 #include <mutex>
+#include <string>
 #include <utility>
 #include <cerrno>
 #include <cstdio>

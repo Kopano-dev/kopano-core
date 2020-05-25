@@ -6,6 +6,7 @@
 #include <list>
 #include <memory>
 #include <set>
+#include <string>
 #include <utility>
 #include "ECDatabaseUtils.h"
 #include "ECDatabase.h"
