@@ -3,7 +3,6 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #pragma once
-#include <memory>
 #include <string>
 #include <set>
 #include <kopano/zcdefs.h>

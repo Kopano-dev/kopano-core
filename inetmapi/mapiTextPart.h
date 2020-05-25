@@ -29,7 +29,6 @@
 // the GNU General Public License cover the whole combination.
 //
 #pragma once
-#include <memory>
 #include <string>
 #include <vector>
 #include <vmime/textPart.hpp>

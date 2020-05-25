@@ -11,7 +11,6 @@
 #include <cstring>
 #include <fstream>
 #include <iterator>
-#include <memory>
 #include <string>
 #include <inetmapi/inetmapi.h>
 #include <mapiutil.h>

@@ -3,7 +3,6 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <list>
-#include <memory>
 #include <string>
 #include <utility>
 #include <vector>

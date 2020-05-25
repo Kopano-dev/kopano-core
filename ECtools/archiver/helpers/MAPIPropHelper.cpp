@@ -3,7 +3,6 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
-#include <memory>
 #include <new>
 #include <utility>
 #include "MAPIPropHelper.h"

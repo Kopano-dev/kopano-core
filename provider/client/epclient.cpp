@@ -9,7 +9,6 @@
 #include <mapiutil.h>
 #include <kopano/ECGetText.h>
 #include <kopano/memory.hpp>
-#include <memory>
 #include <string>
 #include <utility>
 #include <cassert>
