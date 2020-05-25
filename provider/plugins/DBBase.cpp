@@ -37,7 +37,7 @@ DBPlugin::DBPlugin(std::mutex &pluginlock, ECPluginSharedData *shareddata) :
 void DBPlugin::InitPlugin(std::shared_ptr<ECStatsCollector> sc)
 {
 	if (GetDatabaseObject(std::move(sc), &m_lpDatabase) != erSuccess)
-	    throw runtime_error(string("db_init: cannot get handle to database"));
+		throw std::runtime_error("db_init: cannot get handle to database");
 }
 
 signatures_t DBPlugin::getAllObjects(const objectid_t &company,
@@ -328,7 +328,7 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 			/* Password value has special treatment */
 		    CreateMD5Hash(propvalue, &propvalue) != erSuccess)
 			/* WARNING input and output point to the same data */
-			throw runtime_error(string("db_changeUser: create md5"));
+			throw std::runtime_error("db_changeUser: create md5");
 		if (sValidProps[i].id == OB_PROP_O_COMPANYID)
 			// save id as hex in objectproperty.value
 			propvalue = bin2hex(details.GetPropObject(OB_PROP_O_COMPANYID).id);
@@ -474,8 +474,7 @@ void DBPlugin::deleteObject(const objectid_t &objectid)
 		string children;
 		while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 			if(lpDBRow[0] == NULL)
-				throw runtime_error(string("db_row_failed: object null"));
-
+				throw std::runtime_error("db_row_failed: object null");
 			if (!children.empty())
 				children += ",";
 			children += lpDBRow[0];
@@ -750,7 +749,7 @@ signatures_t DBPlugin::CreateSignatureList(const std::string &query)
 		auto lpDBLen = lpResult.fetch_row_lengths();
 		assert(lpDBLen != NULL);
 		if (lpDBLen[0] == 0)
-			throw runtime_error(string("db_row_failed: object empty"));
+			throw std::runtime_error("db_row_failed: object empty");
 		objectlist.emplace_back(objectid_t({lpDBRow[0], lpDBLen[0]}, objclass), signature);
 	}
 
@@ -886,7 +885,7 @@ objectid_t DBPlugin::CreateObject(const objectdetails_t &details)
 		throw runtime_error(string("db_query: ") + strerror(er));
 	while ((lpDBRow = lpResult.fetch_row()) != nullptr)
 		if (lpDBRow[1] != NULL && strcasecmp(lpDBRow[1], strPropValue.c_str()) == 0)
-			throw collision_error(string("Object exist: ") + strPropValue);
+			throw collision_error("Object exist: " + strPropValue);
 
 	if (CoCreateGuid(&guidExternId) != S_OK)
 		throw runtime_error("failed to generate extern id");

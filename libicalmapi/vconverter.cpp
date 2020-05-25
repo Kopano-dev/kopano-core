@@ -1618,8 +1618,7 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 
 	auto strMessageClass = m_converter.convert_to<std::string>(lpPropVal->Value.lpszW);
 	// Set attendee info
-	if (strMessageClass.compare(0, string("IPM.Schedule.Meeting.Resp.").length(), string("IPM.Schedule.Meeting.Resp.")) == 0)
-	{
+	if (strMessageClass.compare(0, 26, "IPM.Schedule.Meeting.Resp.") == 0) {
 		// responding to a meeting request:
 		// the to should only be the organizer of this meeting
 		if(bCounterProposal)
@@ -1689,8 +1688,7 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 	// strMessageClass == "IPM.Schedule.Meeting.Request", "IPM.Schedule.Meeting.Canceled" or ....?
 	// strMessageClass == "IPM.Appointment": normal calendar item
 	// If we're dealing with a meeting, preset status to 1. PROP_MEETINGSTATUS may not be set
-	ULONG ulMeetingStatus = strMessageClass.compare(0, string("IPM.Schedule.Meeting").length(),
-	                        string("IPM.Schedule.Meeting")) == 0 ? 1 : 0;
+	unsigned int ulMeetingStatus = strMessageClass.compare(0, 20, "IPM.Schedule.Meeting") == 0;
 
 	// a normal calendar item has meeting status == 0, all other types != 0
 	lpPropVal = PCpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MEETINGSTATUS], PT_LONG));

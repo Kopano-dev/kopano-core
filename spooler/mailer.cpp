@@ -454,7 +454,7 @@ static HRESULT UniqueRecipients(IMessage *lpMessage)
 
 		/* Filter To, Cc, Bcc individually */
 		if (strEmail != lpEmailAddress->Value.lpszA || ulRecipType != lpRecipType->Value.ul) {
-			strEmail = string(lpEmailAddress->Value.lpszA);
+			strEmail = lpEmailAddress->Value.lpszA;
 			ulRecipType = lpRecipType->Value.ul;
 			continue;
 		}

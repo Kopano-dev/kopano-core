@@ -92,8 +92,7 @@ UnixUserPlugin::UnixUserPlugin(std::mutex &pluginlock,
 
 	m_config = shareddata->CreateConfig(lpDefaults);
 	if (!m_config)
-		throw runtime_error(string("Not a valid configuration file."));
-
+		throw std::runtime_error("Not a valid configuration file.");
 	if (m_bHosted)
 		throw notsupported(NO_HOSTED);
 	if (m_bDistributed)
@@ -108,7 +107,7 @@ void UnixUserPlugin::InitPlugin(std::shared_ptr<ECStatsCollector> sc)
 	try {
 		m_iconv.reset(new decltype(m_iconv)::element_type("utf-8", m_config->GetSetting("fullname_charset")));
 	} catch (const convert_exception &) {
-		throw runtime_error(string("Cannot setup charset converter, check \"fullname_charset\" in cfg"));
+		throw std::runtime_error("Cannot setup charset converter, check \"fullname_charset\" in cfg");
 	}
 }
 
@@ -787,7 +786,7 @@ UnixUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 	objectlist.sort();
 	objectlist.unique();
 	if (objectlist.empty())
-		throw objectnotfound(string("unix_plugin: no match: ") + match);
+		throw objectnotfound("unix_plugin: no match: " + match);
 
 	return objectlist;
 }
@@ -924,6 +923,6 @@ void UnixUserPlugin::errnoCheck(const std::string &user, int e) const
 		break;
 	default:
 		// broken system .. do not delete user from database
-		throw runtime_error(string("unable to query for user ") + user + string(". Error: ") + retbuf);
+		throw std::runtime_error("unable to query for user " + user + ". Error: " + retbuf);
 	};
 }

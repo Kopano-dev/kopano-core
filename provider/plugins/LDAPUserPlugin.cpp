@@ -458,12 +458,12 @@ LDAPUserPlugin::LDAPUserPlugin(std::mutex &pluginlock,
 
 	m_config = shareddata->CreateConfig(lpDefaults, lpszAllowedDirectives);
 	if (!m_config)
-		throw runtime_error(string("Not a valid configuration file."));
+		throw std::runtime_error("Not a valid configuration file.");
 
 	// get the list of ldap urls and split them
 	ldap_servers = tokenize(m_config->GetSetting("ldap_uri"), ' ', true);
 	if (ldap_servers.empty())
-		throw ldap_error(string("No LDAP servers configured in ldap.cfg"));
+		throw ldap_error("No LDAP servers configured in ldap.cfg");
 	m_timeout.tv_sec = atoui(m_config->GetSetting("ldap_network_timeout"));
 	m_timeout.tv_usec = 0;
 }
@@ -1173,7 +1173,7 @@ string LDAPUserPlugin::objectUniqueIDtoAttributeData(const objectid_t &uniqueid,
 	case 1:
 		break;
 	default:
-		throw toomanyobjects(string("More than one object returned in search ") + ldap_filter);
+		throw toomanyobjects("More than one object returned in search " + ldap_filter);
 	}
 
 	auto entry = ldap_first_entry(m_ldap, res);
@@ -1188,7 +1188,7 @@ string LDAPUserPlugin::objectUniqueIDtoAttributeData(const objectid_t &uniqueid,
 	}
 	END_FOREACH_ATTR
 	if (!bDataAttrFound)
-		throw data_error(string(lpAttr)+" attribute not found");
+		throw data_error(lpAttr + " attribute not found"s);
 	return strData;
 }
 
@@ -1229,7 +1229,7 @@ string LDAPUserPlugin::objectUniqueIDtoObjectDN(const objectid_t &uniqueid, bool
 	case 1:
 		break;
 	default:
-		throw toomanyobjects(string("More than one object returned in search ") + ldap_filter);
+		throw toomanyobjects("More than one object returned in search " + ldap_filter);
 	}
 
 	entry = ldap_first_entry(m_ldap, res);
@@ -1402,11 +1402,11 @@ objectsignature_t LDAPUserPlugin::resolveName(objectclass_t objclass, const stri
 			attrs->add(addresslistname_attr);
 		break;
 	default:
-		throw runtime_error(string("resolveName: request for unknown object type"));
+		throw std::runtime_error("resolveName: request for unknown object type");
 	}
 
 	if (attrs->empty())
-		throw runtime_error(string("Unable to resolve name with no attributes"));
+		throw std::runtime_error("Unable to resolve name with no attributes");
 	auto signatures = resolveObjectsFromAttributes(objclass,
 		std::list<std::string>{m_iconvrev->convert(name)},
 		attrs->get(), company);
@@ -1460,7 +1460,7 @@ objectsignature_t LDAPUserPlugin::authenticateUserBind(const string &username, c
 		ld = ConnectLDAP(dn.c_str(), m_iconvrev->convert(password).c_str(),
 			parseBool(m_config->GetSetting("ldap_starttls")));
 	} catch (const std::exception &e) {
-		throw login_error("Trying to authenticate failed: "s + e.what() + (string)"; username = " + username);
+		throw login_error("Trying to authenticate failed: "s + e.what() + "; username = " + username);
 	}
 	if (ld == nullptr)
 		throw runtime_error("Trying to authenticate failed: connection failed");
@@ -1574,15 +1574,12 @@ std::string LDAPUserPlugin::getLDAPAttributeValue(const char *attribute, LDAPMes
 std::list<std::string> LDAPUserPlugin::getLDAPAttributeValues(const char *attribute, LDAPMessage *entry)
 {
 	std::list<std::string> r;
-	string s;
 	auto_free_ldap_berval berval(ldap_get_values_len(m_ldap, entry, const_cast<char *>(attribute)));
 
 	if (berval == NULL)
 		return r;
-	for (int i = 0; berval[i] != NULL; ++i) {
-		s.assign(berval[i]->bv_val, berval[i]->bv_len);
-		r.emplace_back(std::move(s));
-	}
+	for (int i = 0; berval[i] != nullptr; ++i)
+		r.emplace_back(std::string(berval[i]->bv_val, berval[i]->bv_len));
 	return r;
 }
 
@@ -2411,14 +2408,14 @@ LDAPUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 		// @todo optimize filter, a lot of attributes can be the same.
 		search_filter =
 			"(|"
-				"(" + string(m_config->GetSetting("ldap_loginname_attribute")) + "=" + escMatch + ")"
-				"(" + string(m_config->GetSetting("ldap_fullname_attribute")) + "=" + escMatch + ")"
-				"(" + string(m_config->GetSetting("ldap_emailaddress_attribute")) + "=" + escMatch + ")"
-				"(" + string(m_config->GetSetting("ldap_emailaliases_attribute")) + "=" + escMatch + ")"
-				"(" + string(m_config->GetSetting("ldap_groupname_attribute")) + "=" + escMatch + ")"
-				"(" + string(m_config->GetSetting("ldap_companyname_attribute")) + "=" + escMatch + ")"
-				"(" + string(m_config->GetSetting("ldap_addresslist_name_attribute")) + "=" + escMatch + ")"
-				"(" + string(m_config->GetSetting("ldap_dynamicgroup_name_attribute")) + "=" + escMatch + ")"
+				"("s + m_config->GetSetting("ldap_loginname_attribute") + "=" + escMatch + ")"
+				"(" + m_config->GetSetting("ldap_fullname_attribute") + "=" + escMatch + ")"
+				"(" + m_config->GetSetting("ldap_emailaddress_attribute") + "=" + escMatch + ")"
+				"(" + m_config->GetSetting("ldap_emailaliases_attribute") + "=" + escMatch + ")"
+				"(" + m_config->GetSetting("ldap_groupname_attribute") + "=" + escMatch + ")"
+				"(" + m_config->GetSetting("ldap_companyname_attribute") + "=" + escMatch + ")"
+				"(" + m_config->GetSetting("ldap_addresslist_name_attribute") + "=" + escMatch + ")"
+				"(" + m_config->GetSetting("ldap_dynamicgroup_name_attribute") + "=" + escMatch + ")"
 			")";
 	}
 	ldap_filter = "(&" + ldap_filter + search_filter + ")";

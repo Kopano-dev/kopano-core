@@ -137,14 +137,12 @@ objectsignature_t DBUserPlugin::resolveName(objectclass_t objclass, const string
 
 	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[3] == NULL)
-			throw runtime_error(string("db_row_failed: object null"));
-
+			throw std::runtime_error("db_row_failed: object null");
 		if (strcasecmp(lpDBRow[3], name.c_str()) != 0)
 			continue;
 		auto lpDBLen = lpResult.fetch_row_lengths();
 		if (lpDBLen == NULL || lpDBLen[0] == 0)
-			throw runtime_error(string("db_row_failed: object empty"));
-
+			throw std::runtime_error("db_row_failed: object empty");
 		if(lpDBRow[2] != NULL)
 			signature = lpDBRow[2];
 		return objectsignature_t(objectid_t(std::string(lpDBRow[0], lpDBLen[0]), static_cast<objectclass_t>(atoi(lpDBRow[1]))), signature);
@@ -258,8 +256,7 @@ void DBUserPlugin::setQuota(const objectid_t &objectid, const quotadetails_t &qu
 		throw objectnotfound(objectid.id);
 	auto lpDBRow = lpResult.fetch_row();
 	if(lpDBRow == NULL || lpDBRow[0] == NULL)
-		throw runtime_error(string("db_row_failed: object null"));
-
+		throw std::runtime_error("db_row_failed: object null");
 	DBPlugin::setQuota(objectid, quotadetails);
 }
 

@@ -695,7 +695,7 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage,
 				return MAPI_E_NOT_FOUND;
 			}
 			// no recipient, but need to continue ... is this correct??
-			vmRecipientbox = vmime::make_shared<vmime::mailbox>(string("undisclosed-recipients"));
+			vmRecipientbox = vmime::make_shared<vmime::mailbox>("undisclosed-recipients");
 		} else {
 			hr = getMailBox(&pRows->aRow[0], vmRecipientbox);
 			if (hr != hrSuccess)

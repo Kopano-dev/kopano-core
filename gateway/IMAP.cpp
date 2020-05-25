@@ -1658,7 +1658,7 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 	if (hr == hrSuccess)
 		ulMsgUid = lpPropVal->Value.ul;
 	if (ulMsgUid && ulFolderUid)
-		strAppendUid = string("[APPENDUID ") + stringify(ulFolderUid) + " " + stringify(ulMsgUid) + "] ";
+		strAppendUid = "[APPENDUID " + stringify(ulFolderUid) + " " + stringify(ulMsgUid) + "] ";
 	if (strCurrentFolder == strFolder)
 	    // Fixme, add the appended message instead of HrRefreshFolderMails; the message is now seen as Recent
 		HrRefreshFolderMails(false, !bCurrentFolderReadOnly, NULL);
