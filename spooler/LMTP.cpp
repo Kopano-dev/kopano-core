@@ -7,7 +7,6 @@
 #include <cstdlib>
 #include <iostream>
 #include <cctype>
-#include <algorithm>
 #include <string>
 #include <utility>
 #include <mapi.h>

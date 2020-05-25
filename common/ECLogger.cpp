@@ -7,7 +7,6 @@
 #endif
 #include <kopano/platform.h>
 #include <kopano/ECLogger.h>
-#include <algorithm>
 #include <mutex>
 #include <shared_mutex>
 #include <string>

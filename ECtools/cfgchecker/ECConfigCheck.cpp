@@ -3,7 +3,6 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <iostream>
-#include <algorithm>
 #include <string>
 #include <utility>
 #include <sys/stat.h>

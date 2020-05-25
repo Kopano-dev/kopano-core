@@ -33,7 +33,6 @@
 #include <cstdio>
 #include <string>
 #include <vector>
-#include <algorithm>
 #include <cstdlib>
 #include <getopt.h>
 #include <kopano/ECLogger.h>

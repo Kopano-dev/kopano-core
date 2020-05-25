@@ -19,7 +19,6 @@
 #include <kopano/scope.hpp>
 #include <map>
 #include <memory>
-#include <algorithm>
 #include "kcore.hpp"
 #include <kopano/stringutil.h>
 #include "ECUserManagement.h"

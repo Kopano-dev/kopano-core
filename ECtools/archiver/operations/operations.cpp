@@ -18,7 +18,6 @@
 #include <kopano/stringutil.h>
 #include <kopano/mapi_ptr.h>
 #include <kopano/mapiguidext.h>
-#include <algorithm>
 
 using namespace KC::helpers;
 

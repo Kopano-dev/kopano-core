@@ -9,7 +9,6 @@
 #	define _GNU_SOURCE
 #endif
 #include <kopano/platform.h>
-#include <algorithm>
 #include <map>
 #include <set>
 #include <string>

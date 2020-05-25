@@ -11,7 +11,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
-#include <algorithm>
 #include <kopano/MAPIErrors.h>
 #include <kopano/memory.hpp>
 #include <kopano/tie.hpp>

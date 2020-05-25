@@ -11,7 +11,6 @@
 #include "ECThreadManager.h"
 #include <cmath>
 #include <cstdlib>
-#include <algorithm>
 #include <poll.h>
 #include <unistd.h>
 #include <libHX/defs.h>

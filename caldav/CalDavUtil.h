@@ -7,7 +7,6 @@
 #include <kopano/mapiext.h>
 #include <kopano/mapiguidext.h>
 #include <cstring>
-#include <algorithm>
 #include <kopano/namedprops.h>
 #include "nameids.h"
 #include "icaluid.h"
