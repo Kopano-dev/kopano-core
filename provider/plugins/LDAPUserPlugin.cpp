@@ -1159,7 +1159,7 @@ string LDAPUserPlugin::objectUniqueIDtoAttributeData(const objectid_t &uniqueid,
 	auto_free_ldap_message res;
 	bool			bDataAttrFound = false;
 	std::string strData, ldap_basedn = getSearchBase();
-	string ldap_filter = getObjectSearchFilter(uniqueid);
+	auto ldap_filter = getObjectSearchFilter(uniqueid);
 	char *request_attrs[] = {const_cast<char *>(lpAttr), nullptr};
 
 	if (lpAttr == NULL)
@@ -1216,8 +1216,8 @@ string LDAPUserPlugin::objectUniqueIDtoObjectDN(const objectid_t &uniqueid, bool
 	 * Except if we skipped the cache as per ZCP-11720, where we always
 	 * want to issue an LDAP query.
 	 */
-	string			ldap_basedn = getSearchBase();
-	string			ldap_filter = getObjectSearchFilter(uniqueid);
+	auto ldap_basedn = getSearchBase();
+	auto ldap_filter = getObjectSearchFilter(uniqueid);
 	auto request_attrs = std::make_unique<attrArray>(1);
 	request_attrs->add("dn");
 	my_ldap_search_s(ldap_basedn.c_str(), LDAP_SCOPE_SUBTREE,
@@ -2643,8 +2643,8 @@ quotadetails_t LDAPUserPlugin::getQuota(const objectid_t &id,
 			"ldap_userdefault_hardquota_attribute" :
 			"ldap_hardquota_attribute");
 
-	string ldap_basedn = getSearchBase();
-	string ldap_filter = getObjectSearchFilter(id);
+	auto ldap_basedn = getSearchBase();
+	auto ldap_filter = getObjectSearchFilter(id);
 
 	/* LDAP filter empty, object does not exist */
 	if (ldap_filter.empty())

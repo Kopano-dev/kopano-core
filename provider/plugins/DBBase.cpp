@@ -321,7 +321,7 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 
 	unsigned int i = 0;
 	while (sValidProps[i].column != NULL) {
-		string propvalue = details.GetPropString(sValidProps[i].id);
+		auto propvalue = details.GetPropString(sValidProps[i].id);
 
 		if (strcasecmp(sValidProps[i].column, OP_PASSWORD) == 0 &&
 		    !propvalue.empty() &&
@@ -624,7 +624,7 @@ signatures_t DBPlugin::searchObjects(const std::string &match,
 			"AND modtime.propname = '" OP_MODTIME "' "
 		"WHERE (";
 
-	string strMatch = m_lpDatabase->Escape(match);
+	auto strMatch = m_lpDatabase->Escape(match);
 	string strMatchPrefix;
 	
 	if (!(ulFlags & EMS_AB_ADDRESS_LOOKUP)) {

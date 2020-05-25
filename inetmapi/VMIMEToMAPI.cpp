@@ -2497,7 +2497,7 @@ HRESULT VMIMEToMAPI::handleAttachment(vmime::shared_ptr<vmime::header> vmHeader,
 			(mt->getType() == vmime::mediaTypes::IMAGE || mt->getType() == vmime::mediaTypes::TEXT) &&
 			(!strId.empty() || !strLocation.empty()) &&
 			m_mailState.bodyLevel == BODY_HTML &&
-			((!strId.empty() && strcasestr(m_mailState.strHTMLBody.c_str(), string("cid:"+strId).c_str())) ||
+			((!strId.empty() && strcasestr(m_mailState.strHTMLBody.c_str(), ("cid:" + strId).c_str())) ||
 			 (!strLocation.empty() && strcasestr(m_mailState.strHTMLBody.c_str(), strLocation.c_str())) ))
 		{
 			attProps[nProps].ulPropTag = PR_ATTACHMENT_HIDDEN;

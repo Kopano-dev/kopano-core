@@ -1825,13 +1825,13 @@ ECRESULT ECFileAttachment::MarkAttachmentForDeletion(const ext_siid &ulInstanceI
 {
 	auto filename = CreateAttachmentFilename(ulInstanceId, m_bFileCompression);
 
-	if(rename(filename.c_str(), string(filename+".deleted").c_str()) == 0)
+	if (rename(filename.c_str(), (filename + ".deleted").c_str()) == 0)
 		return erSuccess;
 
 	if (errno == ENOENT) {
 		// retry with another filename
 		filename = CreateAttachmentFilename(ulInstanceId, !m_bFileCompression);
-		if(rename(filename.c_str(), string(filename+".deleted").c_str()) == 0)
+		if (rename(filename.c_str(), (filename + ".deleted").c_str()) == 0)
 			return erSuccess;
 	}
 
@@ -1854,12 +1854,12 @@ ECRESULT ECFileAttachment::MarkAttachmentForDeletion(const ext_siid &ulInstanceI
 ECRESULT ECFileAttachment::RestoreMarkedAttachment(const ext_siid &ulInstanceId)
 {
 	auto filename = CreateAttachmentFilename(ulInstanceId, m_bFileCompression);
-	if(rename(string(filename+".deleted").c_str(), filename.c_str()) == 0)
+	if (rename((filename + ".deleted").c_str(), filename.c_str()) == 0)
 		return erSuccess;
 	if (errno == ENOENT) {
 		// retry with another filename
 		filename = CreateAttachmentFilename(ulInstanceId, !m_bFileCompression);
-		if(rename(string(filename+".deleted").c_str(), filename.c_str()) == 0)
+		if (rename((filename + ".deleted").c_str(), filename.c_str()) == 0)
 			return erSuccess;
 	}
     if (errno == EACCES || errno == EPERM)

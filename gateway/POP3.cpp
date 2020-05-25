@@ -106,7 +106,7 @@ HRESULT POP3::HrProcessCommand(const std::string &strInput)
 		if (vWords.size() < 2)
 			return HrResponse(POP3_RESP_ERR,
 			       "Pass command must have 1 argument");
-		string strPass = strInput;
+		auto strPass = strInput;
 		strPass.erase(0, strCommand.length()+1);
 		return HrCmdPass(strPass);
 	} else if (strCommand == "QUIT") {

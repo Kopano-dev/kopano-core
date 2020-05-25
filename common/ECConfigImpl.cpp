@@ -438,7 +438,7 @@ bool ECConfigImpl::ReadConfigFile(const std::string &file,
 		if (!fgets(cBuffer, sizeof(cBuffer), fp.get()))
 			continue;
 
-		strLine = string(cBuffer);
+		strLine = cBuffer;
 		/* Skip empty lines any lines which start with # */
 		if (strLine.empty() || strLine[0] == '#')
  			continue;
@@ -478,7 +478,7 @@ bool ECConfigImpl::ReadConfigFile(const std::string &file,
 bool ECConfigImpl::HandleDirective(const string &strLine, unsigned int ls_flags)
 {
 	size_t pos = strLine.find_first_of(" \t", 1);
-	string strName = strLine.substr(1, pos - 1);
+	auto strName = strLine.substr(1, pos - 1);
 
 	/* Check if this directive is known */
 	for (int i = 0; s_sDirectives[i].lpszDirective != NULL; ++i) {

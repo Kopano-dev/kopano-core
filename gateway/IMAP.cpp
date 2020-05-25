@@ -3577,8 +3577,7 @@ HRESULT IMAP::HrPropertyFetchRow(SPropValue *lpProps, unsigned int cValues,
 			 */
 			if (strstr(strItem.c_str(), "[]") != NULL) {
 				// Nasty: even though the client requests .PEEK, it may not be present in the reply.
-				string strReply = item;
-
+				auto strReply = item;
 				auto ulPos = strReply.find(".PEEK");
 				if (ulPos != strReply.npos)
 					strReply.erase(ulPos, strlen(".PEEK"));
