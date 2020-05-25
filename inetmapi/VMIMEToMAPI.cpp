@@ -58,7 +58,6 @@
 
 using std::list;
 using std::string;
-using std::vector;
 using std::wstring;
 using namespace std::string_literals;
 
@@ -3037,7 +3036,7 @@ static std::string StringEscape(const char *input, const char *tokens,
  */
 static std::string mailboxToEnvelope(vmime::shared_ptr<vmime::mailbox> &&mbox)
 {
-	vector<string> lMBox;
+	std::vector<std::string> lMBox;
 	string buffer;
 	vmime::utility::outputStreamStringAdapter os(buffer);
 
@@ -3137,7 +3136,7 @@ HRESULT VMIMEToMAPI::createIMAPEnvelope(vmime::shared_ptr<vmime::message> vmMess
  */
 std::string VMIMEToMAPI::createIMAPEnvelope(vmime::shared_ptr<vmime::message> vmMessage)
 {
-	vector<string> lItems;
+	std::vector<std::string> lItems;
 	auto vmHeader = vmMessage->getHeader();
 	std::string buffer;
 	vmime::utility::outputStreamStringAdapter os(buffer);

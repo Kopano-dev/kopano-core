@@ -53,7 +53,6 @@
 using namespace KC;
 using std::list;
 using std::string;
-using std::vector;
 using std::wstring;
 
 /**
@@ -109,7 +108,9 @@ void IMAP::ReleaseContentsCache()
  * @param[out]	vPaths		Vector to all folders found in strInput
  * @retval		hrSuccess
  */
-HRESULT IMAP::HrSplitPath(const wstring &strInputParam, vector<wstring> &vPaths) {
+HRESULT IMAP::HrSplitPath(const std::wstring &strInputParam,
+    std::vector<std::wstring> &vPaths)
+{
 	if (strInputParam.size() == 0) {
 		vPaths.clear();
 		return hrSuccess;
@@ -133,7 +134,8 @@ HRESULT IMAP::HrSplitPath(const wstring &strInputParam, vector<wstring> &vPaths)
  * @param[out]	strOutput	Folder string with the IMAP_HIERARCHY_DELIMITER for a hierarchy
  * @retval		hrSuccess
  */
-HRESULT IMAP::HrUnsplitPath(const vector<wstring> &vPaths, wstring &strOutput) {
+HRESULT IMAP::HrUnsplitPath(const std::vector<std::wstring> &vPaths, std::wstring &strOutput)
+{
     strOutput.clear();
     for (size_t i = 0; i < vPaths.size(); ++i) {
         strOutput += vPaths[i];
@@ -150,7 +152,8 @@ HRESULT IMAP::HrUnsplitPath(const vector<wstring> &vPaths, wstring &strOutput) {
  * @param[out]	vWords		vector of words found in the strInput
  * @retval hrSuccess
  */
-HRESULT IMAP::HrSplitInput(const string &strInput, vector<string> &vWords) {
+HRESULT IMAP::HrSplitInput(const std::string &strInput, std::vector<std::string> &vWords)
+{
 	unsigned int uSpecialCount = 0;
 	size_t beginPos = 0, currentPos = 0, specialPos = std::string::npos;
 	string::size_type findPos = strInput.find_first_of("\"()[] ", currentPos);
@@ -225,7 +228,7 @@ HRESULT IMAP::HrCloseConnection(const std::string &strQuitMsg)
 HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 {
 	HRESULT hr = hrSuccess;
-	vector<string> strvResult;
+	std::vector<std::string> strvResult;
 	std::string strTag;
 	ULONG ulMaxMessageSize = atoui(lpConfig->GetSetting("imap_max_messagesize"));
 
@@ -1356,7 +1359,7 @@ HRESULT IMAP::HrCmdStatus(const std::string &strTag,
     const std::vector<std::string> &args)
 {
 	object_ptr<IMAPIFolder> lpStatusFolder;
-	vector<string> lstStatusData;
+	std::vector<std::string> lstStatusData;
 	char szBuffer[11];
 	unsigned int ulMessages = 0, ulUnseen = 0, ulUIDValidity = 0;
 	unsigned int ulUIDNext = 0, ulRecent = 0, cValues;
@@ -1474,7 +1477,7 @@ HRESULT IMAP::HrCmdStatus(const std::string &strTag,
 HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, const string &strData, string strFlags, const string &strTime) {
 	object_ptr<IMAPIFolder> lpAppendFolder;
 	object_ptr<IMessage> lpMessage;
-	vector<string> lstFlags;
+	std::vector<std::string> lstFlags;
 	memory_ptr<SPropValue> lpPropVal;
 	wstring strFolder;
 	string strAppendUid;
@@ -1755,7 +1758,9 @@ HRESULT IMAP::HrCmdExpunge(const string &strTag, const std::vector<std::string> 
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrCmdSearch(const string &strTag, vector<string> &lstSearchCriteria, bool bUidMode) {
+HRESULT IMAP::HrCmdSearch(const std::string &strTag,
+    std::vector<std::string> &lstSearchCriteria, bool bUidMode)
+{
 	list<ULONG> lstMailnr;
 	ULONG ulCriterianr = 0;
 	char szBuffer[33];
@@ -1798,7 +1803,7 @@ HRESULT IMAP::HrCmdSearch(const string &strTag, vector<string> &lstSearchCriteri
  * @return MAPI Error code
  */
 HRESULT IMAP::HrCmdFetch(const string &strTag, const std::vector<std::string> &args, bool bUidMode) {
-	vector<string> lstDataItems;
+	std::vector<std::string> lstDataItems;
 	list<ULONG> lstMails;
 	bool bFound = false;
 	const std::string &strSeqSet = args[0];
@@ -1849,7 +1854,7 @@ HRESULT IMAP::HrCmdFetch(const string &strTag, const std::vector<std::string> &a
  */
 HRESULT IMAP::HrCmdStore(const string &strTag, const std::vector<std::string> &args, bool bUidMode) {
 	list<ULONG> lstMails;
-	vector<string> lstDataItems;
+	std::vector<std::string> lstDataItems;
 	bool bDelete = false;
 	const std::string &strSeqSet = args[0];
 	const std::string &strMsgDataItemName = args[1];
@@ -2072,7 +2077,7 @@ int IMAP::IdleAdviseCallback2(void *lpContext, unsigned int cNotif,
 	string strFlags;
 	unsigned int ulMailNr = 0, ulRecent = 0;
 	bool bReload = false;
-	vector<IMAP::SMail> oldMails;
+	std::vector<IMAP::SMail> oldMails;
 	enum { EID, IKEY, IMAPID, MESSAGE_FLAGS, FLAG_STATUS, MSG_STATUS, LAST_VERB, NUM_COLS };
 	IMAP::SMail sMail;
 
@@ -3046,7 +3051,8 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFo
  *
  * @return hrSuccess
  */
-HRESULT IMAP::HrGetDataItems(string strMsgDataItemNames, vector<string> &lstDataItems) {
+HRESULT IMAP::HrGetDataItems(std::string strMsgDataItemNames, std::vector<std::string> &lstDataItems)
+{
 	/* translate macros */
 	strMsgDataItemNames = strToUpper(std::move(strMsgDataItemNames));
 	if (strMsgDataItemNames == "ALL")
@@ -3073,7 +3079,8 @@ HRESULT IMAP::HrGetDataItems(string strMsgDataItemNames, vector<string> &lstData
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItems) {
+HRESULT IMAP::HrPropertyFetch(std::list<ULONG> &lstMails, std::vector<std::string> &lstDataItems)
+{
 	object_ptr<IMAPIFolder> lpFolder;
 	rowset_ptr lpRows;
 	LPSRow lpRow = NULL;
@@ -3306,7 +3313,9 @@ HRESULT IMAP::save_generated_properties(const std::string &text, IMessage *messa
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &strResponse, ULONG ulMailnr, bool bForceFlags, const vector<string> &lstDataItems)
+HRESULT IMAP::HrPropertyFetchRow(SPropValue *lpProps, unsigned int cValues,
+    std::string &strResponse, unsigned int ulMailnr, bool bForceFlags,
+    const std::vector<std::string> &lstDataItems)
 {
 	HRESULT hr = hrSuccess;
 	std::string strItem, strParts, strMessage, strMessagePart, strFlags;
@@ -3323,7 +3332,7 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 	unsigned int ulCount = 0;
 	std::ostringstream oss;
 	bool bSkipOpen = true;
-	vector<string> vProps;
+	std::vector<std::string> vProps;
 
 	// Response always starts with "<id> FETCH ("
 	snprintf(szBuffer, IMAP_RESP_MAX, "%u FETCH (", ulMailnr + 1);
@@ -4067,7 +4076,7 @@ HRESULT IMAP::HrParseSeqSet(const string &strSeqSet, list<ULONG> &lstMails) {
 HRESULT IMAP::HrStore(const list<ULONG> &lstMails, string strMsgDataItemName, string strMsgDataItemValue, bool *lpbDoDelete)
 {
 	HRESULT hr = hrSuccess;
-	vector<string> lstFlags;
+	std::vector<std::string> lstFlags;
 	unsigned int ulCurrent, cValues, ulObjType;
 	memory_ptr<SPropValue> lpPropVal;
 	string strNewFlags;
@@ -5135,7 +5144,7 @@ void IMAP::HrGetSubString(std::string &strOutput, const std::string &strInput,
  */
 HRESULT IMAP::HrFindFolder(const wstring& strFolder, bool bReadOnly, IMAPIFolder **lppFolder, ULONG *cb, ENTRYID **lpb)
 {
-	vector<wstring> folder_parts;
+	std::vector<std::wstring> folder_parts;
 	object_ptr<IMAPIFolder> folder;
 
 	auto hr = HrSplitPath(strFolder, folder_parts);
@@ -5274,9 +5283,10 @@ HRESULT IMAP::HrFindSubFolder(IMAPIFolder *lpFolder, std::wstring strFolder, ULO
  * @param[out]	lppFolder	Last IMAPIFolder found in strFolder
  * @param[out]	strNotFound	Folders not found in strFolder
  */
-HRESULT IMAP::HrFindFolderPartial(const wstring& strFolder, IMAPIFolder **lppFolder, wstring *strNotFound)
+HRESULT IMAP::HrFindFolderPartial(const std::wstring &strFolder,
+    IMAPIFolder **lppFolder, std::wstring *strNotFound)
 {
-    vector<wstring> vFolders;
+	std::vector<std::wstring> vFolders;
 	unsigned int cbEntryID = 0, ulObjType = 0;
 	memory_ptr<ENTRYID> lpEntryID;
 	object_ptr<IMAPIFolder> lpFolder;
