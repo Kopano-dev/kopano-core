@@ -5,7 +5,6 @@
 #include <kopano/platform.h>
 #include <string>
 #include <utility>
-#include <vector>
 #include "WebDav.h"
 #include <kopano/stringutil.h>
 #include <kopano/CommonUtil.h>

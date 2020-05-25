@@ -6,6 +6,7 @@
 #include <new>
 #include <string>
 #include <utility>
+#include <vector>
 #include <kopano/platform.h>
 #include <mapidefs.h>
 #include <mapicode.h>

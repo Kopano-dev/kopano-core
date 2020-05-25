@@ -17,6 +17,7 @@
 #include <mutex>
 #include <set>
 #include <utility>
+#include <vector>
 #include <list>
 #include <cerrno>
 #include <cassert>

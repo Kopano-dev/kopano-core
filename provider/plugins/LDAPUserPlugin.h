@@ -8,6 +8,7 @@
 #include <map>
 #include <mutex>
 #include <string>
+#include <vector>
 #include <kopano/zcdefs.h>
 #include <kopano/charset/convert.h>
 #include <ldap.h>

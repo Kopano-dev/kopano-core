@@ -5,6 +5,7 @@
 #include <kopano/platform.h>
 #include <string>
 #include <utility>
+#include <vector>
 #include "recurrence.h"
 #include <cmath>
 #include <kopano/ECGetText.h>

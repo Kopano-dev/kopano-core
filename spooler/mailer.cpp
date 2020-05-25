@@ -7,6 +7,7 @@
 #include <sstream>
 #include <string>
 #include <utility>
+#include <vector>
 #include <climits>
 #include "mailer.h"
 #include "archive.h"

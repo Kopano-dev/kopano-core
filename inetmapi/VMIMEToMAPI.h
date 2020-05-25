@@ -4,6 +4,7 @@
  */
 #pragma once
 #include <list>
+#include <vector>
 #include <vmime/vmime.hpp>
 #include <mapix.h>
 #include <mapidefs.h>

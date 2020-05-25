@@ -37,6 +37,7 @@
 #include <set>
 #include <string>
 #include <utility>
+#include <vector>
 #include <climits>
 #include <clocale>
 #include <cstdio>

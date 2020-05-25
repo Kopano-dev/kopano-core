@@ -4,7 +4,6 @@
  */
 #pragma once
 #include <list>
-#include <vector>
 #include <memory>
 #include <mapidefs.h>
 #include <kopano/zcdefs.h>

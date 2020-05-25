@@ -9,6 +9,7 @@
 #include <mutex>
 #include <set>
 #include <tuple>
+#include <vector>
 #include "ECDatabaseFactory.h"
 #include "ECDatabaseUtils.h"
 #include "ECGenericObjectTable.h"	// ECListInt

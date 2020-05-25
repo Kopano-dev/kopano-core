@@ -6,6 +6,7 @@
 #include <chrono>
 #include <new>
 #include <utility>
+#include <vector>
 #include <cctype>
 #include <libHX/io.h>
 #include <kopano/ECLogger.h>

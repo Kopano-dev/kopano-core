@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <memory>
 #include <new>
+#include <vector>
 #include <cstdio>
 #include <cstdlib>
 #include <syslog.h>

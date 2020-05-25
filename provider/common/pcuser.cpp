@@ -8,6 +8,7 @@
 #include <kopano/pcuser.hpp>
 #include <sstream>
 #include <utility>
+#include <vector>
 
 namespace KC {
 

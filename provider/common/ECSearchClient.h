@@ -6,6 +6,7 @@
 #include <kopano/zcdefs.h>
 #include <set>
 #include <string>
+#include <vector>
 #include <soapH.h>
 #include <kopano/kcodes.h>
 #include "ECtools/indexer.hpp"

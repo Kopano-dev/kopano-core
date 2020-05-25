@@ -6,6 +6,7 @@
 #include <kopano/zcdefs.h>
 #include <map>
 #include <string>
+#include <vector>
 
 namespace KC {
 

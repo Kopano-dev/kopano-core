@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 #include <kopano/ECRestriction.h>
 #include "CalDavUtil.h"
 #include <kopano/ECLogger.h>

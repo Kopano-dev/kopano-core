@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <new>
 #include <set>
+#include <vector>
 #include <climits>
 #include <cstring>
 #include "ZCABContainer.h"

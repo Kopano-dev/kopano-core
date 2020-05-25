@@ -11,6 +11,7 @@
 #include <shared_mutex>
 #include <string>
 #include <utility>
+#include <vector>
 #include <cassert>
 #include <climits>
 #include <clocale>

@@ -1,3 +1,4 @@
+#include <vector>
 #include <stdio.h>
 #include "HtmlToTextParser.h"
 

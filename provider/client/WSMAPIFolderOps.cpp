@@ -4,6 +4,7 @@
  */
 #include <new>
 #include <stdexcept>
+#include <vector>
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
 #include "WSMAPIFolderOps.h"

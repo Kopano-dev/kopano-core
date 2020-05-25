@@ -31,6 +31,7 @@
 #pragma once
 #include <memory>
 #include <string>
+#include <vector>
 #include <vmime/textPart.hpp>
 #include <vmime/messageId.hpp>
 #include <vmime/encoding.hpp>

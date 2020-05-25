@@ -9,6 +9,7 @@
 #include <new>
 #include <string>
 #include <utility>
+#include <vector>
 #include <cstdint>
 #include <kopano/platform.h>
 #include <kopano/mapi_ptr.h>

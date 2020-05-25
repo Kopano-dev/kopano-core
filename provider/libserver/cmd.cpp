@@ -11,6 +11,7 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 #include <cstdint>
 #include <libHX/misc.h>
 #include <kopano/ECChannel.h>

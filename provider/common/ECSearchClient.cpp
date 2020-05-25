@@ -5,6 +5,7 @@
 #include <list>
 #include <set>
 #include <utility>
+#include <vector>
 #include <kopano/platform.h>
 #include <kopano/ECChannel.h>
 #include <kopano/ECConfig.h>

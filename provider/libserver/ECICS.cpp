@@ -7,6 +7,7 @@
 #include <memory>
 #include <set>
 #include <utility>
+#include <vector>
 #include <kopano/MAPIErrors.h>
 #include <kopano/tie.hpp>
 #include "kcore.hpp"

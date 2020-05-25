@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <memory>
 #include <utility>
+#include <vector>
 #include <climits>
 #include <kopano/ECRestriction.h>
 #include "vconverter.h"

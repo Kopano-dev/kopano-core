@@ -4,6 +4,7 @@
  */
 #include <new>
 #include <utility>
+#include <vector>
 #include <kopano/platform.h>
 #include <kopano/ECGuid.h>
 #include <edkguid.h>

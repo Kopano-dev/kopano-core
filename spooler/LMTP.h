@@ -4,7 +4,6 @@
  */
 #pragma once
 #include <string>
-#include <vector>
 #include <kopano/ECChannel.h>
 #include <kopano/ECConfig.h>
 

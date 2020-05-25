@@ -30,6 +30,7 @@
 //
 #pragma once
 #include <map>
+#include <vector>
 #include <vmime/config.hpp>
 #include <vmime/net/transport.hpp>
 #include <vmime/net/socket.hpp>
