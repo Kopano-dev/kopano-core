@@ -104,7 +104,7 @@ HRESULT M4LMAPISupport::Notify(const NOTIFKEY *lpKey, ULONG cNotification,
 	object_ptr<IMAPIAdviseSink> lpAdviseSink;
 	ulock_normal l_adv(m_advises_mutex);
 
-	auto iter = find_if(m_advises.cbegin(), m_advises.cend(),
+	auto iter = std::find_if(m_advises.cbegin(), m_advises.cend(),
 		[=](const auto &entry) {
 			return entry.second.lpKey->cb == lpKey->cb &&
 			       memcmp(entry.second.lpKey->ab, lpKey->ab, lpKey->cb) == 0;

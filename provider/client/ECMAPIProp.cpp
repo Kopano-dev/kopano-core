@@ -22,6 +22,7 @@
 #include <kopano/CommonUtil.h>
 #include <kopano/mapi_ptr.h>
 #include "pcutil.hpp"
+#include <algorithm>
 #include <sstream>
 #include <utility>
 
