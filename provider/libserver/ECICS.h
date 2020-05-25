@@ -6,6 +6,7 @@
 #include <kopano/zcdefs.h>
 #include "ECSession.h"
 #include <set>
+#include <utility>
 
 struct soap;
 

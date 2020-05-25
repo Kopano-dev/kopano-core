@@ -28,6 +28,7 @@
  */
 #include <kopano/platform.h>
 #include <memory>
+#include <utility>
 #include <cstdint>
 #include <mapidefs.h>
 #include <mapiutil.h>

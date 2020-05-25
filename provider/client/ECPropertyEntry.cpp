@@ -4,6 +4,7 @@
  */
 #include <kopano/platform.h>
 #include <new>
+#include <utility>
 #include "ECPropertyEntry.h"
 #include "Mem.h"
 #include <kopano/charset/convert.h>

@@ -4,6 +4,7 @@
  */
 #include <kopano/platform.h>
 #include <memory>
+#include <utility>
 #include "icalrecurrence.h"
 #include "vconverter.h"
 #include "nameids.h"

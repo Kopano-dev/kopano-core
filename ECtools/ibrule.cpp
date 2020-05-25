@@ -3,6 +3,7 @@
  * Copyright 2018, Kopano and its licensors
  */
 #include <string>
+#include <utility>
 #include <climits>
 #include <cstdlib>
 #include <libHX/option.h>

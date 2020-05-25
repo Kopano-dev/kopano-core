@@ -6,6 +6,7 @@
 #include <memory>
 #include <new>
 #include <string>
+#include <utility>
 #include "Archiver.h"
 #include <kopano/ECConfig.h>
 #include "ArchiverImpl.h"

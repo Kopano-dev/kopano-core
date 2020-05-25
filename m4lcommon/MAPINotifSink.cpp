@@ -4,6 +4,7 @@
  */
 #include <chrono>
 #include <new>
+#include <utility>
 #include <kopano/platform.h>
 #include "MAPINotifSink.h"
 #include <kopano/Util.h>

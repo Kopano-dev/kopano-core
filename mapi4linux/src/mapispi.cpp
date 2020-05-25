@@ -12,6 +12,7 @@
 #include <kopano/Util.h>
 #include <kopano/ECGuid.h>
 #include <algorithm>
+#include <utility>
 #include <kopano/mapi_ptr.h>
 
 using namespace KC;

@@ -5,6 +5,7 @@
 #include <kopano/platform.h>
 #include <algorithm>
 #include <memory>
+#include <utility>
 #include <cctype>
 #include "ClientUtil.h"
 #include <kopano/ECGetText.h>
