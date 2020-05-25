@@ -5,6 +5,7 @@
 #pragma once
 #include <memory>
 #include <mutex>
+#include <utility>
 #include <kopano/ECUnknown.h>
 #include <kopano/IECInterfaces.hpp>
 #include <kopano/Util.h>

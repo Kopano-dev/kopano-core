@@ -5,6 +5,7 @@
 #pragma once
 #include <memory>
 #include <set>
+#include <utility>
 #include <kopano/memory.hpp>
 #include "operations/operations_fwd.h"
 #include "helpers/ArchiveHelper.h"
