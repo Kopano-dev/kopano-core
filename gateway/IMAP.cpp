@@ -157,15 +157,15 @@ HRESULT IMAP::HrSplitInput(const std::string &strInput, std::vector<std::string>
 	size_t beginPos = 0, currentPos = 0, specialPos = std::string::npos;
 	string::size_type findPos = strInput.find_first_of("\"()[] ", currentPos);
 
-	while (findPos != string::npos) {
+	while (findPos != strInput.npos) {
 		if (uSpecialCount == 0 && strInput[findPos] == '"') {
 			// find corresponding " and add the string
 			specialPos = findPos;
 			do {
 				specialPos = strInput.find_first_of("\"", specialPos + 1);
-			} while (specialPos != string::npos && strInput[specialPos-1] == '\\');
+			} while (specialPos != strInput.npos && strInput[specialPos-1] == '\\');
 
-			if (specialPos != string::npos) {
+			if (specialPos != strInput.npos) {
 				vWords.emplace_back(strInput.substr(findPos + 1, specialPos - findPos - 1));
 				findPos = specialPos;
 				beginPos = findPos + 1;
@@ -1057,7 +1057,7 @@ HRESULT IMAP::HrCmdRename(const std::string &strTag,
     // mkdir -p all the folder leading up to the last (if any)
 	do {
 		deliPos = strPath.find(IMAP_HIERARCHY_DELIMITER);
-		if (deliPos == string::npos) {
+		if (deliPos == strPath.npos) {
 			strFolder = strPath;
 			continue;
 		}
@@ -1075,7 +1075,7 @@ HRESULT IMAP::HrCmdRename(const std::string &strTag,
 		if (hr != hrSuccess)
 			return hr;
 		lpMakeFolder = std::move(lpSubFolder);
-	} while (deliPos != string::npos);
+	} while (deliPos != strPath.npos);
 
 	if (HrGetOneProp(lpParentFolder, PR_ENTRYID, &~lppvFromEntryID) != hrSuccess ||
 	    HrGetOneProp(lpMakeFolder, PR_ENTRYID, &~lppvDestEntryID) != hrSuccess) {
@@ -3463,7 +3463,7 @@ HRESULT IMAP::HrPropertyFetchRow(SPropValue *lpProps, unsigned int cValues,
 				strItem = "BODY[HEADER]";
 
 			// structure only, take shortcut if we have it
-			if (strItem.find('[') == string::npos) {
+			if (strItem.find('[') == strItem.npos) {
 				/* RFC 3501 6.4.5:
 				 * BODY
 				 *        Non-extensible form of BODYSTRUCTURE.
@@ -3582,13 +3582,13 @@ HRESULT IMAP::HrPropertyFetchRow(SPropValue *lpProps, unsigned int cValues,
 				string strReply = item;
 
 				ulPos = strReply.find(".PEEK");
-				if (ulPos != string::npos)
+				if (ulPos != strReply.npos)
 					strReply.erase(ulPos, strlen(".PEEK"));
 
 				// Nasty: even though the client requests <12345.12345>, it may not be present in the reply.
 				ulPos = strReply.rfind('<');
-				if (ulPos != string::npos)
-					strReply.erase(ulPos, string::npos);
+				if (ulPos != strReply.npos)
+					strReply.erase(ulPos);
 				vProps.emplace_back(strReply);
 				// Handle BODY[] and RFC822 (entire message)
 				strMessagePart = strMessage;
@@ -3596,10 +3596,10 @@ HRESULT IMAP::HrPropertyFetchRow(SPropValue *lpProps, unsigned int cValues,
 				// Handle BODY[subparts]
 				// BODY[subpart], strParts = <subpart> (so "1.2.3" or "3.HEADER" or "TEXT" etc)
 				ulPos = strItem.find("[");
-				if (ulPos != string::npos)
+				if (ulPos != strItem.npos)
 					strParts = strItem.substr(ulPos + 1);
 				ulPos = strParts.find("]");
-				if (ulPos != string::npos)
+				if (ulPos != strParts.npos)
 					strParts.erase(ulPos);
 				if (kc_starts_with(item, "BODY"))
 					vProps.emplace_back("BODY[" + strParts + "]");
@@ -3611,11 +3611,11 @@ HRESULT IMAP::HrPropertyFetchRow(SPropValue *lpProps, unsigned int cValues,
 
 			// Process byte-part request ( <12345.12345> ) for BODY
 			ulPos = strItem.rfind('<');
-			if (ulPos != string::npos) {
+			if (ulPos != strItem.npos) {
 				strParts = strItem.substr(ulPos + 1, strItem.size() - ulPos - 2);
 
 				ulPos = strParts.find('.');
-				if (ulPos != string::npos) {
+				if (ulPos != strParts.npos) {
 					ulCount = strtoul(strParts.substr(0, ulPos).c_str(), NULL, 0);
 					ulPos = strtoul(strParts.substr(ulPos + 1).c_str(), NULL, 0);
 				} else {
@@ -3731,7 +3731,7 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
 
 	    // Find subsection
 		auto ulPos = strPartName.find(".");
-		if (ulPos == string::npos) // first section
+		if (ulPos == strPartName.npos) // first section
 			ulPartnr = strtoul(strPartName.c_str(), NULL, 0);
 		else // sub section
 			ulPartnr = strtoul(strPartName.substr(0, ulPos).c_str(), NULL, 0);
@@ -3749,7 +3749,7 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
 				ulHeaderEnd = strMessage.find_first_of(" ;\t\r\n", ulHeaderBegin);
 			}
 
-			if (ulHeaderEnd != string::npos) {
+			if (ulHeaderEnd != strMessage.npos) {
 			    // strBoundary is the boundary we are looking for
 				auto strBoundary = strMessage.substr(ulHeaderBegin, ulHeaderEnd - ulHeaderBegin);
 				// strHeaders is what we are looking for
@@ -3757,20 +3757,20 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
 				ulHeaderBegin = strMessage.find(strHeaders, ulHeaderBegin);
 
 				// Find the section/part by looking for the Nth boundary string
-				for (size_t ulCounter = 0; ulCounter < ulPartnr && ulHeaderBegin != string::npos; ++ulCounter) {
+				for (size_t ulCounter = 0; ulCounter < ulPartnr && ulHeaderBegin != strMessage.npos; ++ulCounter) {
 					ulHeaderBegin += strHeaders.size();
 					ulHeaderEnd = ulHeaderBegin;
 					ulHeaderBegin = strMessage.find(strHeaders, ulHeaderBegin);
 				}
 
-				if (ulHeaderBegin != string::npos) {
+				if (ulHeaderBegin != strMessage.npos) {
 				    // Found it, discard data after and before the part we want
 				    strMessage.erase(ulHeaderBegin);
 				    strMessage.erase(0, ulHeaderEnd);
 				} else {
 				    // Didn't find it, see if we can find the trailing boundary
                     ulHeaderBegin = strMessage.find((string) "\r\n--" + strBoundary + "--\r\n", ulHeaderEnd);
-                    if(ulHeaderBegin != string::npos) {
+					if (ulHeaderBegin != strMessage.npos) {
                         // If found, output everything up to the trailing boundary
                         strMessage.erase(ulHeaderBegin);
                         strMessage.erase(0, ulHeaderEnd);
@@ -3783,13 +3783,13 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
 		}
 
 		// We now have the entire MIME part in strMessage, decide what to do with it
-		if (ulPos != string::npos) {
+		if (ulPos != strPartName.npos) {
 			// There are sub sections, see what we want to do
 			strNextPart = strPartName.substr(ulPos+1);
 			if (strNextPart == "MIME") {
 			    // Handle MIME request
                 ulPos = strMessage.find("\r\n\r\n");
-                if (ulPos != string::npos)
+				if (ulPos != strMessage.npos)
                     strMessagePart = strMessage.substr(0, ulPos+4); // include trailing \r\n\r\n (+4)
                 else
                     // Only headers in the message
@@ -3808,7 +3808,7 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
         // Handle any other request (HEADER, TEXT or 'empty'). This means we first skip the MIME-IMB headers
         // and process the rest from there.
         ulPos = strMessage.find("\r\n\r\n");
-        if (ulPos != string::npos)
+		if (ulPos != strMessage.npos)
             strMessage.erase(0, ulPos + 4);
         else
             // The message only has headers ?
@@ -3822,7 +3822,7 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
 	} else if (strPartName == "TEXT") {
 	    // Everything except for the headers
 		auto ulPos = strMessage.find("\r\n\r\n");
-		if (ulPos != string::npos) {
+		if (ulPos != strMessage.npos) {
 		    // Swap for less memory usage. Original: strMessagePart = strMessage.substr(ulPos+4)
 		    strMessage.erase(0,ulPos+4);
 			std::swap(strMessage, strMessagePart);
@@ -3833,7 +3833,7 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
 	} else if (strPartName == "HEADER") {
 	    // Only the headers
 		auto ulPos = strMessage.find("\r\n\r\n");
-		if (ulPos != string::npos) {
+		if (ulPos != strMessage.npos) {
 		    // Swap for less memory usage. Original: strMessagePart = strMessage.substr(0, ulPos+4);
 			strMessage.erase(ulPos + 4, strMessage.size() - ulPos - 4);
 			std::swap(strMessagePart, strMessage);
@@ -3951,7 +3951,7 @@ HRESULT IMAP::HrSeqUidSetToRestriction(const string &strSeqSet,
 
 	for (ULONG i = 0; i < vSequences.size(); ++i) {
 		auto ulPos = vSequences[i].find(':');
-		if (ulPos == string::npos) {
+		if (ulPos == vSequences[i].npos) {
 			// single number
 			sProp.Value.ul = LastOrNumber(vSequences[i].c_str(), true);
 			*rst += ECPropertyRestriction(RELOP_EQ, PR_EC_IMAP_ID, &sProp, ECRestriction::Full);
@@ -3991,7 +3991,7 @@ HRESULT IMAP::HrParseSeqUidSet(const std::string &strSeqSet, std::list<ULONG> &l
 
 	for (ULONG i = 0; i < vSequences.size(); ++i) {
 		auto ulPos = vSequences[i].find(':');
-		if (ulPos == string::npos) {
+		if (ulPos == vSequences[i].npos) {
 			// single number
 			ulMailnr = LastOrNumber(vSequences[i].c_str(), true);
 			auto j = std::find(lstFolderMailEIDs.cbegin(), lstFolderMailEIDs.cend(), ulMailnr);
@@ -4042,7 +4042,7 @@ HRESULT IMAP::HrParseSeqSet(const std::string &strSeqSet, std::list<ULONG> &lstM
 
 	for (ULONG i = 0; i < vSequences.size(); ++i) {
 		auto ulPos = vSequences[i].find(':');
-		if (ulPos == string::npos) {
+		if (ulPos == vSequences[i].npos) {
 			// single number
 			ulMailnr = LastOrNumber(vSequences[i].c_str(), false) - 1;
 			if (ulMailnr >= lstFolderMailEIDs.size())
@@ -4114,7 +4114,7 @@ HRESULT IMAP::HrStore(const std::list<ULONG> &lstMails, std::string strMsgDataIt
 
 		// FLAGS, FLAGS.SILENT, +FLAGS, +FLAGS.SILENT, -FLAGS, -FLAGS.SILENT
 		if (strMsgDataItemName.compare(0, 5, "FLAGS") == 0) {
-			if (strMsgDataItemValue.find("\\SEEN") == string::npos)
+			if (strMsgDataItemValue.find("\\SEEN") == strMsgDataItemValue.npos)
 				hr = lpMessage->SetReadFlag(CLEAR_READ_FLAG);
 			else
 				hr = lpMessage->SetReadFlag(SUPPRESS_RECEIPT);
@@ -4126,7 +4126,7 @@ HRESULT IMAP::HrStore(const std::list<ULONG> &lstMails, std::string strMsgDataIt
 			cValues = 5;
 
 			lpPropVal[1].ulPropTag = PR_FLAG_STATUS;
-			if (strMsgDataItemValue.find("\\FLAGGED") == string::npos) {
+			if (strMsgDataItemValue.find("\\FLAGGED") == strMsgDataItemValue.npos) {
 				lpPropVal[1].Value.ul = 0; // PR_FLAG_STATUS
 				lpPropVal[5].Value.ul = 0; // PR_FOLLOWUP_ICON
 			} else {
@@ -4142,7 +4142,7 @@ HRESULT IMAP::HrStore(const std::list<ULONG> &lstMails, std::string strMsgDataIt
 				lpPropVal[0].Value.ul = 0;
 			}
 
-			if (strMsgDataItemValue.find("\\ANSWERED") == string::npos) {
+			if (strMsgDataItemValue.find("\\ANSWERED") == strMsgDataItemValue.npos) {
 				lpPropVal[0].Value.ul &= ~MSGSTATUS_ANSWERED;
 				cValues -= 2;	// leave PR_LAST_VERB_EXECUTED properties
 			} else {
@@ -4154,7 +4154,7 @@ HRESULT IMAP::HrStore(const std::list<ULONG> &lstMails, std::string strMsgDataIt
 				GetSystemTimeAsFileTime(&lpPropVal[4].Value.ft);
 			}
 
-			if (strMsgDataItemValue.find("$FORWARDED") == string::npos) {
+			if (strMsgDataItemValue.find("$FORWARDED") == strMsgDataItemValue.npos) {
 				if (cValues == 5)
 					cValues -= 2;	// leave PR_LAST_VERB_EXECUTED properties if still present
 			} else {
@@ -4165,7 +4165,7 @@ HRESULT IMAP::HrStore(const std::list<ULONG> &lstMails, std::string strMsgDataIt
 				GetSystemTimeAsFileTime(&lpPropVal[4].Value.ft);
 			}
 
-			if (strMsgDataItemValue.find("\\DELETED") == string::npos) {
+			if (strMsgDataItemValue.find("\\DELETED") == strMsgDataItemValue.npos) {
 				lpPropVal[0].Value.ul &= ~MSGSTATUS_DELMARKED;
 			} else {
 				lpPropVal[0].Value.ul |= MSGSTATUS_DELMARKED;
@@ -5096,7 +5096,7 @@ void IMAP::HrParseHeaders(const std::string &strHeaders,
         } else {
             size_t colon = strLine.find(":");
 
-            if(colon != string::npos) {
+			if (colon != strLine.npos) {
                 // Get field name
 				auto strField = strLine.substr(0, colon);
 				auto strData = strLine.substr(colon+1);
@@ -5109,7 +5109,7 @@ void IMAP::HrParseHeaders(const std::string &strHeaders,
             // else: Broken header ? (no :)
         }
 
-        if(end == string::npos)
+		if (end == strHeaders.npos)
             break;
         pos = end + 2; // Go to next line (+2 = \r\n)
     }
@@ -5130,10 +5130,10 @@ void IMAP::HrGetSubString(std::string &strOutput, const std::string &strInput,
 {
     strOutput.clear();
 	auto begin = strInput.find(strBegin);
-	if (begin == string::npos)
+	if (begin == strInput.npos)
 		return;
 	auto end = strInput.find(strEnd, begin+1);
-    if(end == string::npos)
+	if (end == strInput.npos)
         strOutput = strInput.substr(begin+1);
     else
         strOutput = strInput.substr(begin+1, end-begin-1);

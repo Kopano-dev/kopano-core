@@ -1062,7 +1062,7 @@ HRESULT MAPIToVMIME::getMailBox(LPSRow lpRow,
 		// email address only
 		vmMailboxNew = vmime::make_shared<vmime::mailbox>(m_converter.convert_to<string>(strEmail));
 		return hrSuccess;
-	} else if (strEmail.find('@') != string::npos) {
+	} else if (strEmail.find('@') != strEmail.npos) {
 		// email with fullname
 		vmMailboxNew = vmime::make_shared<vmime::mailbox>(getVmimeTextFromWide(strName), m_converter.convert_to<string>(strEmail));
 		return hrSuccess;

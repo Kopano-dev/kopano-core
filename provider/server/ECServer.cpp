@@ -366,17 +366,17 @@ static ECRESULT check_database_tproperties_key(ECDatabase *lpDatabase)
 	}
 	std::string strTable = lpRow[1];
 	auto start = strTable.find("PRIMARY KEY");
-	if (start == string::npos) {
+	if (start == strTable.npos) {
 		ec_log_crit("No primary key found in tproperties table");
 		return er;
 	}
 	auto end = strTable.find(")", start);
-	if (end == string::npos) {
+	if (end == strTable.npos) {
 		ec_log_crit("No end of primary key found in tproperties table");
 		return er;
 	}
 
-	strTable.erase(end, string::npos);
+	strTable.erase(end, strTable.npos);
 	strTable.erase(0, start);
 	// correct:
 	// PRIMARY KEY (`folderid`,`tag`,`hierarchyid`,`type`),
@@ -384,9 +384,9 @@ static ECRESULT check_database_tproperties_key(ECDatabase *lpDatabase)
 	// PRIMARY KEY `ht` (`folderid`,`tag`,`type`,`hierarchyid`)
 	// `ht` part seems to be optional
 	start = strTable.find_first_of(',');
-	if (start != string::npos)
+	if (start != strTable.npos)
 		start = strTable.find_first_of(',', start+1);
-	if (start == string::npos) {
+	if (start == strTable.npos) {
 		ec_log_warn("Primary key of tproperties table incorrect, trying: %s", strTable.c_str());
 		return er;
 	}

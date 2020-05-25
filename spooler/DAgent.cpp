@@ -1959,7 +1959,7 @@ static HRESULT FindSpamMarker(const std::string &strMail,
 		return hr;
 	// find end of headers
 	auto end = strMail.find("\r\n\r\n");
-	if (end == string::npos)
+	if (end == strMail.npos)
 		return hr;
 	end += 2;
 
@@ -1970,7 +1970,7 @@ static HRESULT FindSpamMarker(const std::string &strMail,
 
 	// find header
 	auto pos = strHeaders.find(match.c_str());
-	if (pos == string::npos)
+	if (pos == strHeaders.npos)
 		return hr;
 
 	// skip header and find end of line
@@ -1979,7 +1979,7 @@ static HRESULT FindSpamMarker(const std::string &strMail,
 	match = strToUpper(szValue);
 	// find value in header line (no header continuations supported here)
 	pos = strHeaders.find(match.c_str(), pos);
-	if (pos == string::npos || pos > end)
+	if (pos == strHeaders.npos || pos > end)
 		return hr;
 	// found, override delivery to junkmail folder
 	lpArgs->ulDeliveryMode = DM_JUNK;

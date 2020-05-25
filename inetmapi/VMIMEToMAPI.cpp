@@ -324,7 +324,7 @@ HRESULT VMIMEToMAPI::save_raw_smime(const std::string &input, size_t posHeaderEn
 	vmHeader->ContentType()->generate(m_genctx, os);
 	// find the original received body
 	// vmime re-generates different headers and spacings, so we can't use this.
-	if (posHeaderEnd != string::npos)
+	if (posHeaderEnd != input.npos)
 		os.write(input.c_str() + posHeaderEnd, input.size() - posHeaderEnd);
 	hr = lpStream->Commit(0);
 	if (hr != hrSuccess)
@@ -3049,10 +3049,10 @@ static std::string mailboxToEnvelope(vmime::shared_ptr<vmime::mailbox> &&mbox)
 	lMBox.emplace_back("NIL");	// at-domain-list (source route) ... whatever that means
 	buffer = "\"" + mbox->getEmail().toString() + "\"";
 	auto pos = buffer.find("@");
-	if (pos != string::npos)
+	if (pos != buffer.npos)
 		buffer.replace(pos, 1, "\" \"");
 	lMBox.emplace_back(std::move(buffer));
-	if (pos == string::npos)
+	if (pos == buffer.npos)
 		lMBox.emplace_back("NIL");	// domain was missing
 	return "(" + kc_join(lMBox, " ") + ")";
 }
@@ -3516,7 +3516,7 @@ static size_t countBodyLines(const std::string &input, size_t start, size_t leng
 
 	while (true) {
 		pos = input.find_first_of('\n', pos);
-		if (pos == string::npos || pos > start+length)
+		if (pos == input.npos || pos > start + length)
 			break;
 		++pos;
 		++lines;

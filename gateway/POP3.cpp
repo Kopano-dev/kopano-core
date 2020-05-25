@@ -618,9 +618,9 @@ HRESULT POP3::HrCmdTop(unsigned int ulMailNr, unsigned int ulLines) {
 
 	auto ulPos = strMessage.find("\r\n\r\n", 0);
 	++ulLines;
-	while (ulPos != string::npos && ulLines--)
+	while (ulPos != strMessage.npos && ulLines-- > 0)
 		ulPos = strMessage.find("\r\n", ulPos + 1);
-	if (ulPos != string::npos)
+	if (ulPos != strMessage.npos)
 		strMessage = strMessage.substr(0, ulPos);
 	strMessage = DotFilter(strMessage.c_str());
 	if (HrResponse(POP3_RESP_OK, string()) != hrSuccess ||

@@ -2398,7 +2398,7 @@ LDAPUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 			search_filter = m_config->GetSetting("ldap_object_search_filter");
 			// search/replace %s -> escMatch
 			size_t pos;
-			while ((pos = search_filter.find("%s")) != string::npos)
+			while ((pos = search_filter.find("%s")) != search_filter.npos)
 				search_filter.replace(pos, 2, escMatch);
 		} catch (...) {};
 		// custom filter was empty, add * for a full search

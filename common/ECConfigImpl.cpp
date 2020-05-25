@@ -451,7 +451,7 @@ bool ECConfigImpl::ReadConfigFile(const std::string &file,
 
 		/* Get setting name */
 		pos = strLine.find('=');
-		if (pos != string::npos) {
+		if (pos != strLine.npos) {
 			strName = strLine.substr(0, pos);
 			strValue = strLine.substr(pos + 1);
 		} else
@@ -504,7 +504,7 @@ bool ECConfigImpl::HandleInclude(const char *lpszArgs, unsigned int ls_flags)
 	if (file[0] != PATH_SEPARATOR) {
 		// Rebuild the path. m_currentFile is always a normalized path.
 		auto pos = m_currentFile.find_last_of(PATH_SEPARATOR);
-		file = (pos != std::string::npos) ? m_currentFile.substr(0, pos) : ".";
+		file = pos != m_currentFile.npos ? m_currentFile.substr(0, pos) : ".";
 		file += PATH_SEPARATOR;
 		file += strValue;
 	}

@@ -1450,7 +1450,7 @@ HRESULT VConverter::HrFindTimezone(ULONG ulProps, LPSPropValue lpProps, std::str
 			(*m_mapTimeZones)[strTZid] = ttTZinfo;
 			// keep timezone pointer for recurrence
 			m_iCurrentTimeZone = m_mapTimeZones->find(strTZid);
-		} else if(ulPos != string::npos){
+		} else if (ulPos != strTZid.npos) {
 			strTZid = "(GMT+0000)"; // identify GMT+XXX timezones
 			goto done;
 		}
@@ -1632,11 +1632,11 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 			icalcomponent_add_property(lpicEvent, icalproperty_new_status(ICAL_STATUS_CONFIRMED));
 		}
 
-		if (strMessageClass.rfind("Pos") != string::npos)
+		if (strMessageClass.rfind("Pos") != strMessageClass.npos)
 			lpicParam = icalparameter_new_partstat(ICAL_PARTSTAT_ACCEPTED);
-		else if (strMessageClass.rfind("Neg") != string::npos)
+		else if (strMessageClass.rfind("Neg") != strMessageClass.npos)
 			lpicParam = icalparameter_new_partstat(ICAL_PARTSTAT_DECLINED);
-		else if (strMessageClass.rfind("Tent") != string::npos)
+		else if (strMessageClass.rfind("Tent") != strMessageClass.npos)
 			lpicParam = icalparameter_new_partstat(ICAL_PARTSTAT_TENTATIVE);
 		else
 			// shouldn't happen, but better than having no lpicParam pointer

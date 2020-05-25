@@ -480,12 +480,12 @@ HRESULT ECQuotaMonitor::CreateMailFromTemplate(TemplateVariables *lpVars, string
 
 	for (unsigned int i = 0; i < KOPANO_QUOTA_LAST_ITEM; ++i) {
 		pos = 0;
-		while ((pos = strSubject.find(strVariables[i][0], pos)) != string::npos) {
+		while ((pos = strSubject.find(strVariables[i][0], pos)) != strSubject.npos) {
 			strSubject.replace(pos, strVariables[i][0].size(), strVariables[i][1]);
 			pos += strVariables[i][1].size();
 		}
 		pos = 0;
-		while ((pos = strBody.find(strVariables[i][0], pos)) != string::npos) {
+		while ((pos = strBody.find(strVariables[i][0], pos)) != strBody.npos) {
 			strBody.replace(pos, strVariables[i][0].size(), strVariables[i][1]);
 			pos += strVariables[i][1].size();
 		}
@@ -493,10 +493,10 @@ HRESULT ECQuotaMonitor::CreateMailFromTemplate(TemplateVariables *lpVars, string
 
 	/* Clear end-of-line characters from subject */
 	pos = strSubject.find('\n');
-	if (pos != string::npos)
+	if (pos != strSubject.npos)
 		strSubject.erase(pos);
 	pos = strSubject.find('\r');
-	if (pos != string::npos)
+	if (pos != strSubject.npos)
 		strSubject.erase(pos);
 	/* Clear starting blank lines from body */
 	while (strBody[0] == '\r' || strBody[0] == '\n')

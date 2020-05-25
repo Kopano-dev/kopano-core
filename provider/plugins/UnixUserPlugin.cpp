@@ -842,7 +842,7 @@ objectdetails_t UnixUserPlugin::objectdetailsFromPwent(const struct passwd *pw)
 
 	// gecos may contain room/phone number etc. too
 	auto comma = gecos.find(",");
-	if (comma != string::npos)
+	if (comma != gecos.npos)
 		ud.SetPropString(OB_PROP_S_FULLNAME, gecos.substr(0, comma));
 	else
 		ud.SetPropString(OB_PROP_S_FULLNAME, gecos);
