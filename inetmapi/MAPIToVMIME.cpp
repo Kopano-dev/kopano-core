@@ -44,7 +44,6 @@
 #include "SMIMEMessage.h"
 #include "MAPIToICal.h"
 
-using std::min;
 using std::string;
 using std::wstring;
 
@@ -1354,9 +1353,9 @@ HRESULT MAPIToVMIME::handleExtraHeaders(IMessage *lpMessage,
 	// priority settings
 	static const char *const priomap[3] = { "5 (Lowest)", "3 (Normal)", "1 (Highest)" }; // 2 and 4 cannot be set from outlook
 	if (HrGetOneProp(lpMessage, PR_IMPORTANCE, &~lpImportance) == hrSuccess)
-		vmHeader->appendField(hff->create("X-Priority", priomap[min(2, (int)(lpImportance->Value.ul)&3)])); // IMPORTANCE_* = 0..2
+		vmHeader->appendField(hff->create("X-Priority", priomap[std::min(2U, lpImportance->Value.ul & 3)])); // IMPORTANCE_* = 0..2
 	else if (HrGetOneProp(lpMessage, PR_PRIORITY, &~lpPriority) == hrSuccess)
-		vmHeader->appendField(hff->create("X-Priority", priomap[min(2, (int)(lpPriority->Value.ul+1)&3)])); // PRIO_* = -1..1
+		vmHeader->appendField(hff->create("X-Priority", priomap[std::min(2U, (lpPriority->Value.ul + 1) & 3)])); // PRIO_* = -1..1
 
 	// When adding a X-Priority, spamassassin may add a severe punishment because no User-Agent header
 	// or X-Mailer header is present. So we set the X-Mailer header :)

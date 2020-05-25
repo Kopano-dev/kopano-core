@@ -118,7 +118,6 @@ using namespace std::string_literals;
 using std::cerr;
 using std::cout;
 using std::endl;
-using std::min;
 using std::string;
 using std::wstring;
 
@@ -1081,7 +1080,7 @@ static HRESULT WriteOrLogError(int fd, const char *buffer, size_t len,
 		wrap = len;
 
 	while (len > 0) {
-		ssize_t n = min(len, wrap);
+		ssize_t n = std::min(len, wrap);
 
 		if (write_retry(fd, buffer, n) != n) {
 			ec_log_err("Write error to temp file for out of office mail: %s", strerror(errno));
