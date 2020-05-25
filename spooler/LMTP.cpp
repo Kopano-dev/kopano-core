@@ -26,7 +26,6 @@
 #include <kopano/fileutil.hpp>
 
 using namespace KC;
-using std::string;
 
 LMTP::LMTP(ECChannel *lpChan, const char *szServerPath, ECConfig *lpConf) :
 	m_lpChannel(lpChan), m_strPath(szServerPath)
@@ -49,7 +48,7 @@ LMTP::LMTP(ECChannel *lpChan, const char *szServerPath, ECConfig *lpConf) :
  * @return MAPI error code
  * @retval MAPI_E_CALL_FAILED unknown or unsupported command received
  */
-HRESULT LMTP::HrGetCommand(const string &strCommand, LMTP_Command &eCommand)
+HRESULT LMTP::HrGetCommand(const std::string &strCommand, LMTP_Command &eCommand)
 {
 	if (strncasecmp(strCommand.c_str(), "LHLO", strlen("LHLO")) == 0)
 		eCommand = LMTP_Command_LHLO;
@@ -75,7 +74,7 @@ HRESULT LMTP::HrGetCommand(const string &strCommand, LMTP_Command &eCommand)
  *
  * @return Possible error during write to the client
  */
-HRESULT LMTP::HrResponse(const string &strResponse)
+HRESULT LMTP::HrResponse(const std::string &strResponse)
 {
 	ec_log_debug("< %s", strResponse.c_str());
 	auto hr = m_lpChannel->HrWriteLine(strResponse);
@@ -91,7 +90,7 @@ HRESULT LMTP::HrResponse(const string &strResponse)
  *
  * @return always hrSuccess
  */
-HRESULT LMTP::HrCommandLHLO(const string &strInput, string & nameOut)
+HRESULT LMTP::HrCommandLHLO(const std::string &strInput, std::string &nameOut)
 {
 	size_t pos = strInput.find(' ');
 	nameOut.assign(strInput.c_str() + pos + 1);
@@ -116,7 +115,7 @@ HRESULT LMTP::HrCommandLHLO(const string &strInput, string & nameOut)
  * @return MAPI error code
  * @retval MAPI_E_NOT_FOUND < or > character was not found: this is fatal.
  */
-HRESULT LMTP::HrCommandMAILFROM(const string &strFrom, std::string &strAddress)
+HRESULT LMTP::HrCommandMAILFROM(const std::string &strFrom, std::string &strAddress)
 {
 	// strFrom is only checked for syntax
 	return HrParseAddress(strFrom, strAddress);

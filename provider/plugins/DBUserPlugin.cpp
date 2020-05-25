@@ -47,7 +47,6 @@ const char kcsrv_plugin_version[] = PROJECT_VERSION;
 } /* extern "C" */
 
 using std::runtime_error;
-using std::string;
 
 DBUserPlugin::DBUserPlugin(std::mutex &pluginlock,
     ECPluginSharedData *shareddata) :
@@ -62,11 +61,12 @@ void DBUserPlugin::InitPlugin(std::shared_ptr<ECStatsCollector> sc)
 	DBPlugin::InitPlugin(std::move(sc));
 }
 
-objectsignature_t DBUserPlugin::resolveName(objectclass_t objclass, const string &name, const objectid_t &company)
+objectsignature_t DBUserPlugin::resolveName(objectclass_t objclass,
+    const std::string &name, const objectid_t &company)
 {
 	DB_RESULT lpResult;
 	DB_ROW		lpDBRow = NULL;
-	string signature;
+	std::string signature;
 	const char *lpszSearchProperty;
 
 	if (company.id.empty())
@@ -151,7 +151,8 @@ objectsignature_t DBUserPlugin::resolveName(objectclass_t objclass, const string
 	throw objectnotfound(name);
 }
 
-objectsignature_t DBUserPlugin::authenticateUser(const string &username, const string &password, const objectid_t &company)
+objectsignature_t DBUserPlugin::authenticateUser(const std::string &username,
+    const std::string &password, const objectid_t &company)
 {
 	objectid_t	objectid;
 	std::string signature;
@@ -213,7 +214,7 @@ objectsignature_t DBUserPlugin::authenticateUser(const string &username, const s
 		MD5_Update(&crypt, password.c_str(), password.size());
 		auto strMD5 = salt + zcp_md5_final_hex(&crypt);
 		if (strMD5.compare(lpDBRow[1]) == 0)
-			objectid = objectid_t(string(lpDBRow[2], lpDBLen[2]), ACTIVE_USER);	// Password is oke
+			objectid = objectid_t(std::string(lpDBRow[2], lpDBLen[2]), ACTIVE_USER); // Password is oke
 		else
 			throw login_error("Trying to authenticate failed: wrong username or password");
 		if(lpDBRow[3] != NULL)

@@ -47,7 +47,6 @@
 #include "MAPIToICal.h"
 
 using namespace std::string_literals;
-using std::string;
 
 namespace KC {
 
@@ -395,14 +394,14 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 				// had szFilename .. but how, on inline?
 				// @todo find out how Content-Disposition receives highchar filename... always UTF-8?
 				if (inputDataStream != nullptr)
-					textPart.addObject(vmime::make_shared<vmime::streamContentHandler>(inputDataStream, 0), vmime::encoding("base64"), vmMIMEType, strContentId, string(), strContentLocation);
+					textPart.addObject(vmime::make_shared<vmime::streamContentHandler>(inputDataStream, 0), vmime::encoding("base64"), vmMIMEType, strContentId, std::string(), strContentLocation);
 				else
 					textPart.addObject(vmime::make_shared<vmime::stringContentHandler>(absent_note), vmime::encoding("base64"), note_type, strContentId, std::string(), strContentLocation);
 			} else if (inputDataStream != nullptr) {
 				vmMapiAttach = vmime::make_shared<mapiAttachment>(vmime::make_shared<vmime::streamContentHandler>(inputDataStream, 0),
 				               bSendBinary ? vmime::encoding("base64") : vmime::encoding("quoted-printable"),
 				               vmMIMEType, strContentId,
-				               vmime::word(m_converter.convert_to<string>(m_strCharset.c_str(), szFilename, rawsize(szFilename), CHARSET_WCHAR), m_vmCharset));
+				               vmime::word(m_converter.convert_to<std::string>(m_strCharset.c_str(), szFilename, rawsize(szFilename), CHARSET_WCHAR), m_vmCharset));
 
 				// add to message (copies pointer, not data)
 				lpVMMessageBuilder->appendAttachment(vmMapiAttach);
@@ -658,9 +657,9 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage,
 	memory_ptr<SPropValue> lpiNetMsgId, lpMsgClass, lpSubject;
 	object_ptr<IMAPITable> lpRecipientTable;
 	vmime::mailbox		expeditor; // From
-	string strMDNText, reportingUA, strActionMode;
+	std::string strMDNText, reportingUA, strActionMode;
 	vmime::disposition	dispo;
-	std::vector<string>	reportingUAProducts; //empty
+	std::vector<std::string> reportingUAProducts; //empty
 	vmime::shared_ptr<vmime::address> vmRecipientbox;
 	std::wstring		strOut;
 
@@ -738,7 +737,7 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage,
 			hr = Util::HrStreamToString(lpBodyStream, strBuffer);
 			if (hr != hrSuccess)
 				return kc_perror("Unable to read MDN message body", hr);
-			strMDNText = m_converter.convert_to<string>(m_strCharset.c_str(), strBuffer, rawsize(strBuffer), CHARSET_WCHAR);
+			strMDNText = m_converter.convert_to<std::string>(m_strCharset.c_str(), strBuffer, rawsize(strBuffer), CHARSET_WCHAR);
 		}
 
 		// Store owner, actual sender
@@ -748,7 +747,7 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage,
 		// Ignore errors here and let strRep* untouched
 		HrGetAddress(m_lpAdrBook, lpMessage, PR_SENT_REPRESENTING_ENTRYID, PR_SENT_REPRESENTING_NAME_W, PR_SENT_REPRESENTING_ADDRTYPE_W, PR_SENT_REPRESENTING_EMAIL_ADDRESS_W, strRepName, strRepType, strRepEmailAdd);
 
-		expeditor.setEmail(m_converter.convert_to<string>(strEmailAdd));
+		expeditor.setEmail(m_converter.convert_to<std::string>(strEmailAdd));
 		if(!strName.empty())
 			expeditor.setName(getVmimeTextFromWide(strName));
 		else
@@ -767,9 +766,9 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage,
 		if (!strRepEmailAdd.empty()) {
 			vmMessage->getHeader()->Sender()->setValue(expeditor);
 			if (strRepName.empty() || strRepName == strRepEmailAdd)
-				vmMessage->getHeader()->From()->setValue(vmime::mailbox(m_converter.convert_to<string>(strRepEmailAdd)));
+				vmMessage->getHeader()->From()->setValue(vmime::mailbox(m_converter.convert_to<std::string>(strRepEmailAdd)));
 			else
-				vmMessage->getHeader()->From()->setValue(vmime::mailbox(getVmimeTextFromWide(strRepName), m_converter.convert_to<string>(strRepEmailAdd)));
+				vmMessage->getHeader()->From()->setValue(vmime::mailbox(getVmimeTextFromWide(strRepName), m_converter.convert_to<std::string>(strRepEmailAdd)));
 		}
 	} catch (const vmime::exception &e) {
 		ec_log_err("VMIME exception: %s", e.what());
@@ -1020,9 +1019,9 @@ HRESULT MAPIToVMIME::fillVMIMEMail(IMessage *lpMessage, bool bSkipContent, vmime
 		if (hr != hrSuccess)
 			return kc_perror("Unable to get sender information", hr);
 		if (!strName.empty())
-			lpVMMessageBuilder->setExpeditor(vmime::mailbox(getVmimeTextFromWide(strName), m_converter.convert_to<string>(strEmAdd)));
+			lpVMMessageBuilder->setExpeditor(vmime::mailbox(getVmimeTextFromWide(strName), m_converter.convert_to<std::string>(strEmAdd)));
 		else
-			lpVMMessageBuilder->setExpeditor(vmime::mailbox(m_converter.convert_to<string>(strEmAdd)));
+			lpVMMessageBuilder->setExpeditor(vmime::mailbox(m_converter.convert_to<std::string>(strEmAdd)));
 		// sender and reply-to is set elsewhere because it can only be done on a message object...
 	} catch (const vmime::exception &e) {
 		ec_log_err("VMIME exception: %s", e.what());
@@ -1060,11 +1059,11 @@ HRESULT MAPIToVMIME::getMailBox(LPSRow lpRow,
 	auto pPropObjectType = lpRow->cfind(PR_OBJECT_TYPE);
 	if (strName.empty() && !strEmail.empty()) {
 		// email address only
-		vmMailboxNew = vmime::make_shared<vmime::mailbox>(m_converter.convert_to<string>(strEmail));
+		vmMailboxNew = vmime::make_shared<vmime::mailbox>(m_converter.convert_to<std::string>(strEmail));
 		return hrSuccess;
 	} else if (strEmail.find('@') != strEmail.npos) {
 		// email with fullname
-		vmMailboxNew = vmime::make_shared<vmime::mailbox>(getVmimeTextFromWide(strName), m_converter.convert_to<string>(strEmail));
+		vmMailboxNew = vmime::make_shared<vmime::mailbox>(getVmimeTextFromWide(strName), m_converter.convert_to<std::string>(strEmail));
 		return hrSuccess;
 	} else if (pPropObjectType && pPropObjectType->Value.ul == MAPI_DISTLIST) {
 		// if mailing to a group without email address
@@ -1072,7 +1071,7 @@ HRESULT MAPIToVMIME::getMailBox(LPSRow lpRow,
 		return hrSuccess;
 	} else if (sopt.no_recipients_workaround) {
 		// gateway must always return a mailbox object
-		vmMailboxNew = vmime::make_shared<vmime::mailbox>(getVmimeTextFromWide(strName), m_converter.convert_to<string>(strEmail));
+		vmMailboxNew = vmime::make_shared<vmime::mailbox>(getVmimeTextFromWide(strName), m_converter.convert_to<std::string>(strEmail));
 		return hrSuccess;
 	}
 	if (strEmail.empty()) {
@@ -1168,7 +1167,7 @@ HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder 
 		}
 
 		// Convert body to correct charset
-		strBodyConverted = m_converter.convert_to<string>(m_strCharset.c_str(), strBody, rawsize(strBody), CHARSET_WCHAR);
+		strBodyConverted = m_converter.convert_to<std::string>(m_strCharset.c_str(), strBody, rawsize(strBody), CHARSET_WCHAR);
 
 		// always use our textpart class
 		lpVMMessageBuilder->constructTextPart(vmime::mediaType(vmime::mediaTypes::TEXT, "mapi"));
@@ -1177,7 +1176,7 @@ HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder 
 		if (!strHTMLOut.empty()) {
 			if (m_vmCharset.getName() != m_strHTMLCharset)
 				// convert from HTML charset to vmime output charset
-				strHTMLOut = m_converter.convert_to<string>(m_vmCharset.getName().c_str(), strHTMLOut, rawsize(strHTMLOut), m_strHTMLCharset.c_str());
+				strHTMLOut = m_converter.convert_to<std::string>(m_vmCharset.getName().c_str(), strHTMLOut, rawsize(strHTMLOut), m_strHTMLCharset.c_str());
 			auto textPart = vmime::dynamicCast<mapiTextPart>(lpVMMessageBuilder->getTextPart());
 			textPart->setText(vmime::make_shared<vmime::stringContentHandler>(strHTMLOut));
 			textPart->setCharset(m_vmCharset);
@@ -1559,23 +1558,23 @@ HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage,
 	// Ignore PR_SENT_REPRESENTING if the email address is the same as the PR_SENDER email address
 	if (!strResEmail.empty() && strResEmail != strEmail) {
 		if (strResName.empty() || strResName == strResEmail)
-			vmHeader->From()->setValue(vmime::mailbox(m_converter.convert_to<string>(strResEmail)));
+			vmHeader->From()->setValue(vmime::mailbox(m_converter.convert_to<std::string>(strResEmail)));
 		else
-			vmHeader->From()->setValue(vmime::mailbox(getVmimeTextFromWide(strResName), m_converter.convert_to<string>(strResEmail)));
+			vmHeader->From()->setValue(vmime::mailbox(getVmimeTextFromWide(strResName), m_converter.convert_to<std::string>(strResEmail)));
 
 		// spooler checked if this is allowed
 		if (strResEmail != strEmail) {
 			// Set store owner as sender
 			if (strName.empty() || strName == strEmail)
-				vmHeader->Sender()->setValue(vmime::mailbox(m_converter.convert_to<string>(strEmail)));
+				vmHeader->Sender()->setValue(vmime::mailbox(m_converter.convert_to<std::string>(strEmail)));
 			else
-				vmHeader->Sender()->setValue(vmime::mailbox(getVmimeTextFromWide(strName), m_converter.convert_to<string>(strEmail)));
+				vmHeader->Sender()->setValue(vmime::mailbox(getVmimeTextFromWide(strName), m_converter.convert_to<std::string>(strEmail)));
 		}
 	} else if (strName.empty() || strName == strEmail) {
 		// Set store owner as from, sender does not need to be set
-		vmHeader->From()->setValue(vmime::mailbox(m_converter.convert_to<string>(strEmail)));
+		vmHeader->From()->setValue(vmime::mailbox(m_converter.convert_to<std::string>(strEmail)));
 	} else {
-		vmHeader->From()->setValue(vmime::mailbox(getVmimeTextFromWide(strName), m_converter.convert_to<string>(strEmail)));
+		vmHeader->From()->setValue(vmime::mailbox(getVmimeTextFromWide(strName), m_converter.convert_to<std::string>(strEmail)));
 	}
 
 	if (HrGetOneProp(lpMessage, PR_READ_RECEIPT_REQUESTED, &~lpReadReceipt) != hrSuccess || !lpReadReceipt->Value.b)
@@ -1585,13 +1584,13 @@ HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage,
 	if (!strResEmail.empty() && strResEmail != strEmail) {
 		// use user added from address
 		if (strResName.empty() || strName == strResEmail)
-			mbl.appendMailbox(vmime::make_shared<vmime::mailbox>(m_converter.convert_to<string>(strResEmail)));
+			mbl.appendMailbox(vmime::make_shared<vmime::mailbox>(m_converter.convert_to<std::string>(strResEmail)));
 		else
-			mbl.appendMailbox(vmime::make_shared<vmime::mailbox>(getVmimeTextFromWide(strResName), m_converter.convert_to<string>(strResEmail)));
+			mbl.appendMailbox(vmime::make_shared<vmime::mailbox>(getVmimeTextFromWide(strResName), m_converter.convert_to<std::string>(strResEmail)));
 	} else if (strName.empty() || strName == strEmail) {
-		mbl.appendMailbox(vmime::make_shared<vmime::mailbox>(m_converter.convert_to<string>(strEmail)));
+		mbl.appendMailbox(vmime::make_shared<vmime::mailbox>(m_converter.convert_to<std::string>(strEmail)));
 	} else {
-		mbl.appendMailbox(vmime::make_shared<vmime::mailbox>(getVmimeTextFromWide(strName), m_converter.convert_to<string>(strEmail)));
+		mbl.appendMailbox(vmime::make_shared<vmime::mailbox>(getVmimeTextFromWide(strName), m_converter.convert_to<std::string>(strEmail)));
 	}
 	vmHeader->DispositionNotificationTo()->setValue(mbl);
 	return hrSuccess;
@@ -1691,8 +1690,8 @@ HRESULT MAPIToVMIME::handleReplyTo(IMessage *lpMessage,
 	}
 
 	auto mb = !strName.empty() && strName != strEmail ?
-	          vmime::make_shared<vmime::mailbox>(getVmimeTextFromWide(strName), m_converter.convert_to<string>(strEmail)) :
-	          vmime::make_shared<vmime::mailbox>(m_converter.convert_to<string>(strEmail));
+	          vmime::make_shared<vmime::mailbox>(getVmimeTextFromWide(strName), m_converter.convert_to<std::string>(strEmail)) :
+	          vmime::make_shared<vmime::mailbox>(m_converter.convert_to<std::string>(strEmail));
 	mblist->appendMailbox(mb);
 	lpEntry = reinterpret_cast<const FLATENTRY *>((reinterpret_cast<uintptr_t>(lpEntry) + CbFLATENTRY(lpEntry) + 3) / 4 * 4);
 	}
@@ -1846,7 +1845,7 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
 
 			if (lstOLEAttach.size() == 0 && iUseTnef <= 0 && lpMessageClass && (strncasecmp("IPM.Note", lpMessageClass->Value.lpszA, 8) != 0)) {
 				// iCAL
-				string ical, method;
+				std::string ical, method;
 				vmime::shared_ptr<mapiAttachment> vmAttach = NULL;
 
 				ec_log_info("Adding ICS attachment for extra information");
@@ -1915,7 +1914,7 @@ tnef_anyway:
 				// Now, add the stream as an attachment to the message, filename winmail.dat
 				// and MIME type 'application/ms-tnef', no content-id
 				auto vmTNEFAtt = vmime::make_shared<mapiAttachment>(vmime::make_shared<vmime::streamContentHandler>(inputDataStream, 0),
-				                 vmime::encoding("base64"), vmime::mediaType("application/ms-tnef"), string(),
+				                 vmime::encoding("base64"), vmime::mediaType("application/ms-tnef"), std::string(),
 				                 vmime::word("winmail.dat"));
 
 				// add to message (copies pointer, not data)

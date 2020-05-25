@@ -33,7 +33,6 @@
 
 using namespace KC;
 using namespace std::string_literals;
-using std::string;
 extern std::shared_ptr<ECConfig> g_lpConfig;
 
 enum actstatus {

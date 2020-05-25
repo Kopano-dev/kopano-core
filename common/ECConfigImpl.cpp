@@ -107,8 +107,6 @@ class ECConfigImpl KC_FINAL : public ECConfig {
 	static const directive_t s_sDirectives[];
 };
 
-using std::string;
-
 const directive_t ECConfigImpl::s_sDirectives[] = {
 	{ "include",	&ECConfigImpl::HandleInclude },
 	{ "propmap",	&ECConfigImpl::HandlePropMap },
@@ -475,7 +473,7 @@ bool ECConfigImpl::ReadConfigFile(const std::string &file,
 	return true;
 }
 
-bool ECConfigImpl::HandleDirective(const string &strLine, unsigned int ls_flags)
+bool ECConfigImpl::HandleDirective(const std::string &strLine, unsigned int ls_flags)
 {
 	size_t pos = strLine.find_first_of(" \t", 1);
 	auto strName = strLine.substr(1, pos - 1);

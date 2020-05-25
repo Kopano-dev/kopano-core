@@ -155,8 +155,6 @@ struct at2_layout {
 
 static const char fa_hex[] = "0123456789abcdef";
 
-using std::string;
-
 // chunk size for attachment blobs, must be equal or larger than MAX, MAX may never shrink below 384*1024.
 #define CHUNK_SIZE (384 * 1024)
 

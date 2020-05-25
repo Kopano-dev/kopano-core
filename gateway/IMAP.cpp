@@ -51,13 +51,12 @@
 #include "IMAP.h"
 
 using namespace KC;
-using std::string;
 
 /**
  * @ingroup gateway_imap
  * @{
  */
-static const string strMonth[] = {
+static const std::string strMonth[] = {
 	"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 };
 
@@ -234,7 +233,7 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 		const char *command;
 		int params;
 		bool uid;
-		HRESULT (IMAP::*func)(const string &, const std::vector<std::string> &);
+		HRESULT (IMAP::*func)(const std::string &, const std::vector<std::string> &);
 	} cmds[] = {
 		{"SELECT", 1, false, &IMAP::HrCmdSelect<false>},
 		{"EXAMINE", 1, false, &IMAP::HrCmdSelect<true>},
@@ -292,7 +291,7 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 	while (hr == hrSuccess && !strvResult.empty() && strvResult.back().size() > 2 && strvResult.back()[0] == '{')
 	{
 		char *lpcres = NULL;
-		string inBuffer;
+		std::string inBuffer;
 		auto strByteTag = strvResult.back().substr(1, strvResult.back().length() -1);
 		unsigned int ulByteCount = strtoul(strByteTag.c_str(), &lpcres, 10);
 
@@ -393,7 +392,7 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 
 	if (strCommand == "AUTHENTICATE") {
 		if (strvResult.size() == 1)
-			return HrCmdAuthenticate(strTag, strvResult[0], string());
+			return HrCmdAuthenticate(strTag, strvResult[0], std::string());
 		else if (strvResult.size() == 2)
 			return HrCmdAuthenticate(strTag, strvResult[0], strvResult[1]);
 		HrResponse(RESP_TAGGED_BAD, strTag, "AUTHENTICATE must have 1 or 2 arguments");
@@ -403,7 +402,7 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 		} else if (strvResult.size() == 3) {
 			if (strvResult[1][0] == '(')
 				return HrCmdAppend(strTag, strvResult[0], strvResult[2], strvResult[1]);
-			return HrCmdAppend(strTag, strvResult[0], strvResult[2], string(), strvResult[1]);
+			return HrCmdAppend(strTag, strvResult[0], strvResult[2], std::string(), strvResult[1]);
 		} else if (strvResult.size() == 4) {
 			// if both flags and time are given, it must be in that order
 			return HrCmdAppend(strTag, strvResult[0], strvResult[3], strvResult[1], strvResult[2]);
@@ -437,7 +436,7 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrProcessContinue(const string &strInput)
+HRESULT IMAP::HrProcessContinue(const std::string &strInput)
 {
 	return HrCmdAuthenticate(m_strContinueTag, "PLAIN", strInput);
 }
@@ -488,7 +487,8 @@ std::string IMAP::GetCapabilityString(bool bAllFlags)
  *
  * @return hrSuccess
  */
-HRESULT IMAP::HrCmdCapability(const string &strTag) {
+HRESULT IMAP::HrCmdCapability(const std::string &strTag)
+{
 	HrResponse(RESP_UNTAGGED, GetCapabilityString(true));
 	HrResponse(RESP_TAGGED_OK, strTag, "CAPABILITY Completed");
 	return hrSuccess;
@@ -528,7 +528,8 @@ HRESULT IMAP::HrCmdNoop(const std::string &strTag, bool check)
  *
  * @return hrSuccess
  */
-HRESULT IMAP::HrCmdLogout(const string &strTag) {
+HRESULT IMAP::HrCmdLogout(const std::string &strTag)
+{
 	HrResponse(RESP_UNTAGGED, "BYE server logging out");
 	HrResponse(RESP_TAGGED_OK, strTag, "LOGOUT completed");
 	/* Let the gateway quit from the socket read loop. */
@@ -544,7 +545,8 @@ HRESULT IMAP::HrCmdLogout(const string &strTag) {
  *
  * @return hrSuccess
  */
-HRESULT IMAP::HrCmdStarttls(const string &strTag) {
+HRESULT IMAP::HrCmdStarttls(const std::string &strTag)
+{
 	if (!lpChannel->sslctx())
 		HrResponse(RESP_TAGGED_NO, strTag, "STARTTLS error in ssl context");
 	if (lpChannel->UsingSsl())
@@ -577,7 +579,8 @@ HRESULT IMAP::HrCmdStarttls(const string &strTag) {
  *
  * @return MAPI error code
  */
-HRESULT IMAP::HrCmdAuthenticate(const string &strTag, string strAuthMethod, const string &strAuthData)
+HRESULT IMAP::HrCmdAuthenticate(const std::string &strTag,
+    std::string strAuthMethod, const std::string &strAuthData)
 {
 	const char *plain = lpConfig->GetSetting("disable_plaintext_auth");
 
@@ -597,7 +600,7 @@ HRESULT IMAP::HrCmdAuthenticate(const string &strTag, string strAuthMethod, cons
 	}
 	if (strAuthData.empty() && !m_bContinue) {
 		// request the rest of the authentication data by sending one space in a continuation line
-		HrResponse(RESP_CONTINUE, string());
+		HrResponse(RESP_CONTINUE, std::string());
 		m_strContinueTag = strTag;
 		m_bContinue = true;
 		return MAPI_W_PARTIAL_COMPLETION;
@@ -632,7 +635,7 @@ HRESULT IMAP::HrCmdLogin(const std::string &strTag,
     const std::vector<std::string> &args)
 {
 	HRESULT hr = hrSuccess;
-	string strUsername;
+	std::string strUsername;
 	std::wstring strwUsername, strwPassword;
 	const char *plain = lpConfig->GetSetting("disable_plaintext_auth");
 	const std::string &strUser = args[0], &strPass = args[1];
@@ -1472,13 +1475,16 @@ HRESULT IMAP::HrCmdStatus(const std::string &strTag,
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, const string &strData, string strFlags, const string &strTime) {
+HRESULT IMAP::HrCmdAppend(const std::string &strTag,
+    const std::string &strFolderParam, const std::string &strData,
+    std::string strFlags, const std::string &strTime)
+{
 	object_ptr<IMAPIFolder> lpAppendFolder;
 	object_ptr<IMessage> lpMessage;
 	std::vector<std::string> lstFlags;
 	memory_ptr<SPropValue> lpPropVal;
 	std::wstring strFolder;
-	string strAppendUid;
+	std::string strAppendUid;
 	unsigned int ulFolderUid = 0, ulMsgUid = 0;
 	static constexpr const SizedSPropTagArray(10, delFrom) = {10, {
 			PR_SENT_REPRESENTING_ADDRTYPE_W, PR_SENT_REPRESENTING_NAME_W,
@@ -1676,7 +1682,8 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrCmdClose(const string &strTag) {
+HRESULT IMAP::HrCmdClose(const std::string &strTag)
+{
 	HRESULT hr = hrSuccess;
 
 	if (strCurrentFolder.empty() || !lpSession) {
@@ -1716,7 +1723,8 @@ exit:
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrCmdExpunge(const string &strTag, const std::vector<std::string> &args) {
+HRESULT IMAP::HrCmdExpunge(const std::string &strTag, const std::vector<std::string> &args)
+{
 	std::unique_ptr<ECRestriction> rst;
 	static_assert(std::is_polymorphic<ECRestriction>::value, "ECRestriction needs to be polymorphic for unique_ptr to work");
 	std::string strSeqSet = args.size() > 0 ? args[0] : "";
@@ -1800,7 +1808,8 @@ HRESULT IMAP::HrCmdSearch(const std::string &strTag,
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrCmdFetch(const string &strTag, const std::vector<std::string> &args, bool bUidMode) {
+HRESULT IMAP::HrCmdFetch(const std::string &strTag, const std::vector<std::string> &args, bool bUidMode)
+{
 	std::vector<std::string> lstDataItems;
 	std::list<ULONG> lstMails;
 	bool bFound = false;
@@ -1850,7 +1859,8 @@ HRESULT IMAP::HrCmdFetch(const string &strTag, const std::vector<std::string> &a
  *
  * @return MAPI error code
  */
-HRESULT IMAP::HrCmdStore(const string &strTag, const std::vector<std::string> &args, bool bUidMode) {
+HRESULT IMAP::HrCmdStore(const std::string &strTag, const std::vector<std::string> &args, bool bUidMode)
+{
 	std::list<ULONG> lstMails;
 	std::vector<std::string> lstDataItems;
 	bool bDelete = false;
@@ -1917,7 +1927,8 @@ HRESULT IMAP::HrCmdStore(const string &strTag, const std::vector<std::string> &a
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrCmdCopy(const string &strTag, const std::vector<std::string> &args, bool bUidMode) {
+HRESULT IMAP::HrCmdCopy(const std::string &strTag, const std::vector<std::string> &args, bool bUidMode)
+{
 	std::list<ULONG> lstMails;
 	const std::string &strSeqSet = args[0], &strFolderParam = args[1];
 	std::string strMode = bUidMode ? "UID " : "";
@@ -1968,7 +1979,8 @@ HRESULT IMAP::HrCmdCopy(const string &strTag, const std::vector<std::string> &ar
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrCmdUidXaolMove(const string &strTag, const std::vector<std::string> &args) {
+HRESULT IMAP::HrCmdUidXaolMove(const std::string &strTag, const std::vector<std::string> &args)
+{
 	std::list<ULONG> lstMails;
 	const std::string &strSeqSet = args[0], &strFolderParam = args[1];
 
@@ -2018,7 +2030,7 @@ HRESULT IMAP::HrCmdUidXaolMove(const string &strTag, const std::vector<std::stri
  * @return string with IMAP Flags
  */
 std::string IMAP::PropsToFlags(LPSPropValue lpProps, unsigned int cValues, bool bRecent, bool bRead) {
-	string strFlags;
+	std::string strFlags;
 	auto lpMessageFlags = PCpropFindProp(lpProps, cValues, PR_MESSAGE_FLAGS);
 	auto lpFlagStatus = PCpropFindProp(lpProps, cValues, PR_FLAG_STATUS);
 	auto lpMsgStatus = PCpropFindProp(lpProps, cValues, PR_MSG_STATUS);
@@ -2072,7 +2084,7 @@ int IMAP::IdleAdviseCallback2(void *lpContext, unsigned int cNotif,
     LPNOTIFICATION lpNotif)
 {
 	auto lpIMAP = static_cast<IMAP *>(lpContext);
-	string strFlags;
+	std::string strFlags;
 	unsigned int ulMailNr = 0, ulRecent = 0;
 	bool bReload = false;
 	std::vector<IMAP::SMail> oldMails;
@@ -2183,7 +2195,8 @@ int IMAP::IdleAdviseCallback(void *ctx, unsigned int z, NOTIFICATION *nt)
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrCmdIdle(const string &strTag) {
+HRESULT IMAP::HrCmdIdle(const std::string &strTag)
+{
 	object_ptr<IMAPIFolder> lpFolder;
 	enum { EID, IKEY, IMAPID, MESSAGE_FLAGS, FLAG_STATUS, MSG_STATUS, LAST_VERB, NUM_COLS };
 	static constexpr const SizedSPropTagArray(NUM_COLS, spt) =
@@ -2283,7 +2296,8 @@ HRESULT IMAP::HrDone(bool bSendResponse) {
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrCmdNamespace(const string &strTag) {
+HRESULT IMAP::HrCmdNamespace(const std::string &strTag)
+{
 	HrResponse(RESP_UNTAGGED, "NAMESPACE ((\"\" \""
 	             IMAP_HIERARCHY_DEL_S "\")) NIL NIL");
 	HrResponse(RESP_TAGGED_OK, strTag, "NAMESPACE Completed");
@@ -2299,7 +2313,7 @@ HRESULT IMAP::HrCmdNamespace(const string &strTag) {
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrPrintQuotaRoot(const string& strTag)
+HRESULT IMAP::HrPrintQuotaRoot(const std::string &strTag)
 {
 	static constexpr const SizedSPropTagArray(2, sStoreProps) =
 		{2, {PR_MESSAGE_SIZE_EXTENDED, PR_QUOTA_RECEIVE_THRESHOLD}};
@@ -2390,7 +2404,7 @@ HRESULT IMAP::HrCmdSetQuota(const std::string &strTag,
  *
  * @return MAPI Error code
  */
-void IMAP::HrResponse(const string &strUntag, const string &strResponse)
+void IMAP::HrResponse(const std::string &strUntag, const std::string &strResponse)
 {
     // Early cutoff of debug messages. This means the current process's config
     // determines if we log debug info (so HUP will only affect new processes if
@@ -2413,7 +2427,8 @@ void IMAP::HrResponse(const string &strUntag, const string &strResponse)
  *
  * @return MAPI Error code
  */
-void IMAP::HrResponse(const string &strResult, const string &strTag, const string &strResponse)
+void IMAP::HrResponse(const std::string &strResult, const std::string &strTag,
+    const std::string &strResponse)
 {
 	unsigned int max_err = strtoul(lpConfig->GetSetting("imap_max_fail_commands"), NULL, 0);
 	// Some clients keep looping, so if we keep sending errors, just disconnect the client.
@@ -3088,7 +3103,7 @@ HRESULT IMAP::HrPropertyFetch(std::list<ULONG> &lstMails, std::vector<std::strin
 	LPSRow lpRow = NULL;
 	LONG nRow = -1;
 	SPropValue sPropVal;
-	string strResponse;
+	std::string strResponse;
 	memory_ptr<SPropTagArray> lpPropTags;
 	std::set<ULONG> setProps;
     LPSPropValue lpProps;
@@ -3560,7 +3575,7 @@ HRESULT IMAP::HrPropertyFetchRow(SPropValue *lpProps, unsigned int cValues,
 			}
 
 			if (item == "BODY" || item == "BODYSTRUCTURE") {
-				string strData;
+				std::string strData;
 
 				HrGetBodyStructure(item.length() > 4, strData, strMessage);
 				vProps.emplace_back(item);
@@ -3670,7 +3685,8 @@ HRESULT IMAP::HrPropertyFetchRow(SPropValue *lpProps, unsigned int cValues,
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrGetMessageFlags(string &strResponse, LPMESSAGE lpMessage, bool bRecent) {
+HRESULT IMAP::HrGetMessageFlags(std::string &strResponse, IMessage *lpMessage, bool bRecent)
+{
 	memory_ptr<SPropValue> lpProps;
 	ULONG cValues;
 	static constexpr const SizedSPropTagArray(4, sptaFlagProps) =
@@ -3717,7 +3733,9 @@ HRESULT IMAP::HrGetMessageFlags(string &strResponse, LPMESSAGE lpMessage, bool b
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, string strPartName) {
+HRESULT IMAP::HrGetMessagePart(std::string &strMessagePart,
+    std::string &strMessage, std::string strPartName)
+{
 	unsigned long int ulPartnr;
 	size_t ulHeaderBegin, ulHeaderEnd;
 
@@ -3850,7 +3868,7 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
          */
 		bool bNot = kc_starts_with(strPartName, "HEADER.FIELDS.NOT");
 		std::list<std::pair<std::string, std::string>> lstFields;
-        string strFields;
+		std::string strFields;
 
         // Parse headers in message
         HrParseHeaders(strMessage, lstFields);
@@ -3930,7 +3948,7 @@ ULONG IMAP::LastOrNumber(const char *szNr, bool bUID)
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrSeqUidSetToRestriction(const string &strSeqSet,
+HRESULT IMAP::HrSeqUidSetToRestriction(const std::string &strSeqSet,
     std::unique_ptr<ECRestriction> &ret)
 {
 	SPropValue sProp, sPropEnd;
@@ -4082,7 +4100,7 @@ HRESULT IMAP::HrStore(const std::list<ULONG> &lstMails, std::string strMsgDataIt
 	std::vector<std::string> lstFlags;
 	unsigned int ulCurrent, cValues, ulObjType;
 	memory_ptr<SPropValue> lpPropVal;
-	string strNewFlags;
+	std::string strNewFlags;
 	bool bDelete = false;
 	static constexpr const SizedSPropTagArray(4, proptags4) =
 		{4, {PR_MSG_STATUS, PR_ICON_INDEX, PR_LAST_VERB_EXECUTED, PR_LAST_VERB_EXECUTION_TIME}};
@@ -4371,7 +4389,7 @@ HRESULT IMAP::HrCopy(const std::list<ULONG> &lstMails,
 HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
     ULONG ulStartCriteria, std::list<ULONG> &lstMailnr)
 {
-	string strSearchCriterium;
+	std::string strSearchCriterium;
 	std::list<ULONG> lstMails;
 	object_ptr<IMAPIFolder> lpFolder;
 	object_ptr<IMAPITable> lpTable;
@@ -4821,7 +4839,9 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrGetBodyStructure(bool bExtended, string &strBodyStructure, const string& strMessage) {
+HRESULT IMAP::HrGetBodyStructure(bool bExtended, std::string &strBodyStructure,
+    const std::string &strMessage)
+{
 	if (bExtended)
 		return createIMAPProperties(strMessage, nullptr, nullptr, &strBodyStructure);
 	return createIMAPProperties(strMessage, nullptr, &strBodyStructure, nullptr);
@@ -4861,7 +4881,7 @@ std::string IMAP::FileTimeToString(const FILETIME &sFileTime)
  *
  * @return MAPI FILETIME structure
  */
-bool IMAP::StringToFileTime(string strTime, FILETIME &sFileTime, bool bDateOnly)
+bool IMAP::StringToFileTime(std::string strTime, FILETIME &sFileTime, bool bDateOnly)
 {
 	struct tm sTm;
 	time_t sTime;
@@ -4941,13 +4961,13 @@ HRESULT IMAP::MAPI2IMAPCharset(const std::wstring &input, std::string &output)
 			output += "&-";		// & is encoded as &-
 		} else {
 			std::wstring conv;
-			string utf7;
+			std::string utf7;
 			conv = input[i];
 			while (i+1 < input.length() && (input[i+1] < 0x20 || input[i+1] >= 0x7f))
 				conv += input[++i];
 
 			try {
-				utf7 = converter.convert_to<string>("UTF-7", conv, rawsize(conv), CHARSET_WCHAR);
+				utf7 = converter.convert_to<std::string>("UTF-7", conv, rawsize(conv), CHARSET_WCHAR);
 			} catch(...) {
 				return MAPI_E_BAD_CHARWIDTH;
 			}
@@ -4995,7 +5015,7 @@ HRESULT IMAP::IMAP2MAPICharset(const std::string &input, std::wstring &output)
 			++i; // skip '-'
 			continue;
 		}
-		string conv = "+";
+		std::string conv = "+";
 		++i; // skip imap '&', is a '+' in utf-7
 		while (i < input.length() && input[i] != '-') {
 			if (input[i] == ',')

@@ -64,7 +64,6 @@ const char kcsrv_plugin_version[] = PROJECT_VERSION;
 } /* extern "C" */
 
 using std::runtime_error;
-using std::string;
 
 class ldap_deleter {
 	public:
@@ -607,7 +606,7 @@ void LDAPUserPlugin::my_ldap_search_s(const char *base, int scope,
     LDAPMessage **lppres, LDAPControl **serverControls)
 {
 	int result=LDAP_SUCCESS;
-	string req;
+	std::string req;
 	LONGLONG llelapsedtime;
 	auto_free_ldap_message res;
 	auto tstart = std::chrono::steady_clock::now();
@@ -858,7 +857,7 @@ signatures_t LDAPUserPlugin::getAllObjectsByFilter(const std::string &basedn,
 {
 	signatures_t signatures;
 	objectid_t				objectid;
-	string					signature;
+	std::string signature;
 	std::map<objectclass_t, dn_cache_t> mapDNCache;
 	dn_list_t dnFilter;
 	auto_free_ldap_message res;
@@ -931,7 +930,7 @@ signatures_t LDAPUserPlugin::getAllObjectsByFilter(const std::string &basedn,
 	return signatures;
 }
 
-string LDAPUserPlugin::getSearchBase(const objectid_t &company)
+std::string LDAPUserPlugin::getSearchBase(const objectid_t &company)
 {
 	const char *lpszSearchBase = m_config->GetSetting("ldap_search_base");
 
@@ -950,7 +949,7 @@ string LDAPUserPlugin::getSearchBase(const objectid_t &company)
 	return lpszSearchBase;
 }
 
-string LDAPUserPlugin::getServerSearchFilter()
+std::string LDAPUserPlugin::getServerSearchFilter()
 {
 	const char *objecttype = m_config->GetSetting("ldap_object_type_attribute", "", NULL);
 	const char *servertype = m_config->GetSetting("ldap_server_type_attribute_value", "", NULL);
@@ -968,9 +967,9 @@ string LDAPUserPlugin::getServerSearchFilter()
 	return subfilter;
 }
 
-string LDAPUserPlugin::getSearchFilter(objectclass_t objclass)
+std::string LDAPUserPlugin::getSearchFilter(objectclass_t objclass)
 {
-	string filter, subfilter;
+	std::string filter, subfilter;
 	const char *objecttype = m_config->GetSetting("ldap_object_type_attribute", "", NULL);
 	const char *usertype = m_config->GetSetting("ldap_user_type_attribute_value", "", NULL);
 	const char *contacttype = m_config->GetSetting("ldap_contact_type_attribute_value", "", NULL);
@@ -1078,9 +1077,10 @@ string LDAPUserPlugin::getSearchFilter(objectclass_t objclass)
 	return subfilter;
 }
 
-string LDAPUserPlugin::getSearchFilter(const string &data, const char *attr, const char *attr_type)
+std::string LDAPUserPlugin::getSearchFilter(const std::string &data,
+    const char *attr, const char *attr_type)
 {
-	string search_data;
+	std::string search_data;
 
 	// Set binary uniqueid to escaped string
 	if(attr_type && strcasecmp(attr_type, LDAP_DATA_TYPE_BINARY) == 0)
@@ -1092,7 +1092,8 @@ string LDAPUserPlugin::getSearchFilter(const string &data, const char *attr, con
 	return "";
 }
 
-string LDAPUserPlugin::getObjectSearchFilter(const objectid_t &id, const char *attr, const char *attr_type)
+std::string LDAPUserPlugin::getObjectSearchFilter(const objectid_t &id,
+    const char *attr, const char *attr_type)
 {
 	if (attr)
 		return "(&" + getSearchFilter(id.objclass) + getSearchFilter(id.id, attr, attr_type) + ")";
@@ -1154,7 +1155,7 @@ string LDAPUserPlugin::getObjectSearchFilter(const objectid_t &id, const char *a
 	}
 }
 
-string LDAPUserPlugin::objectUniqueIDtoAttributeData(const objectid_t &uniqueid, const char* lpAttr)
+std::string LDAPUserPlugin::objectUniqueIDtoAttributeData(const objectid_t &uniqueid, const char *lpAttr)
 {
 	auto_free_ldap_message res;
 	bool			bDataAttrFound = false;
@@ -1192,11 +1193,11 @@ string LDAPUserPlugin::objectUniqueIDtoAttributeData(const objectid_t &uniqueid,
 	return strData;
 }
 
-string LDAPUserPlugin::objectUniqueIDtoObjectDN(const objectid_t &uniqueid, bool cache)
+std::string LDAPUserPlugin::objectUniqueIDtoObjectDN(const objectid_t &uniqueid, bool cache)
 {
 	auto lpCache = m_lpCache->getObjectDNCache(this, uniqueid.objclass);
 	auto_free_ldap_message res;
-	string			dn;
+	std::string dn;
 	LDAPMessage*	entry = NULL;
 
 	/*
@@ -1238,10 +1239,10 @@ string LDAPUserPlugin::objectUniqueIDtoObjectDN(const objectid_t &uniqueid, bool
 	return GetLDAPEntryDN(entry);
 }
 
-objectsignature_t LDAPUserPlugin::objectDNtoObjectSignature(objectclass_t objclass, const string &dn)
+objectsignature_t LDAPUserPlugin::objectDNtoObjectSignature(objectclass_t objclass, const std::string &dn)
 {
 	auto ldap_filter = getSearchFilter(objclass);
-	auto signatures = getAllObjectsByFilter(dn, LDAP_SCOPE_BASE, ldap_filter, string(), false);
+	auto signatures = getAllObjectsByFilter(dn, LDAP_SCOPE_BASE, ldap_filter, std::string(), false);
 	if (signatures.empty())
 		throw objectnotfound(dn);
 	else if (signatures.size() != 1)
@@ -1278,7 +1279,7 @@ LDAPUserPlugin::resolveObjectsFromAttributes(objectclass_t objclass,
     const std::list<std::string> &objects, const char **lppAttr,
     const objectid_t &company)
 {
-	string companyDN;
+	std::string companyDN;
 
 	if (lppAttr == NULL || lppAttr[0] == NULL)
 		throw runtime_error("Unable to search for unknown attribute");
@@ -1296,7 +1297,9 @@ LDAPUserPlugin::resolveObjectsFromAttributes(objectclass_t objclass,
 	return getAllObjectsByFilter(ldap_basedn, LDAP_SCOPE_SUBTREE, ldap_filter, companyDN, false);
 }
 
-objectsignature_t LDAPUserPlugin::resolveObjectFromAttributeType(objectclass_t objclass, const string &object, const char* lpAttr, const char* lpAttrType, const objectid_t &company)
+objectsignature_t LDAPUserPlugin::resolveObjectFromAttributeType(objectclass_t objclass,
+    const std::string &object, const char *lpAttr, const char *lpAttrType,
+    const objectid_t &company)
 {
 	auto signatures = resolveObjectsFromAttributeType(objclass,
 		std::list<std::string>{object}, lpAttr, lpAttrType, company);
@@ -1332,7 +1335,8 @@ LDAPUserPlugin::resolveObjectsFromAttributesType(objectclass_t objclass,
 	return resolveObjectsFromAttributes(objclass, objects, lppAttr, company);
 }
 
-objectsignature_t LDAPUserPlugin::resolveName(objectclass_t objclass, const string &name, const objectid_t &company)
+objectsignature_t LDAPUserPlugin::resolveName(objectclass_t objclass,
+    const std::string &name, const objectid_t &company)
 {
 	auto attrs = std::make_unique<attrArray>(6);
 	const char *loginname_attr = m_config->GetSetting("ldap_loginname_attribute", "", NULL);
@@ -1421,7 +1425,8 @@ objectsignature_t LDAPUserPlugin::resolveName(objectclass_t objclass, const stri
 	return signatures.front();
 }
 
-objectsignature_t LDAPUserPlugin::authenticateUser(const string &username, const string &password, const objectid_t &company)
+objectsignature_t LDAPUserPlugin::authenticateUser(const std::string &username,
+    const std::string &password, const objectid_t &company)
 {
 	const char *authmethod = m_config->GetSetting("ldap_authentication_method");
 	objectsignature_t id;
@@ -1445,7 +1450,8 @@ objectsignature_t LDAPUserPlugin::authenticateUser(const string &username, const
 	return id;
 }
 
-objectsignature_t LDAPUserPlugin::authenticateUserBind(const string &username, const string &password, const objectid_t &company)
+objectsignature_t LDAPUserPlugin::authenticateUserBind(const std::string &username,
+    const std::string &password, const objectid_t &company)
 {
 	LDAP*		ld = NULL;
 	objectsignature_t	signature;
@@ -1470,7 +1476,8 @@ objectsignature_t LDAPUserPlugin::authenticateUserBind(const string &username, c
 	return signature;
 }
 
-objectsignature_t LDAPUserPlugin::authenticateUserPassword(const string &username, const string &password, const objectid_t &company)
+objectsignature_t LDAPUserPlugin::authenticateUserPassword(const std::string &username,
+    const std::string &password, const objectid_t &company)
 {
 	auto_free_ldap_message res;
 	objectdetails_t	d;
@@ -1554,7 +1561,7 @@ objectsignature_t LDAPUserPlugin::authenticateUserPassword(const string &usernam
 signatures_t LDAPUserPlugin::getAllObjects(const objectid_t &company,
     objectclass_t objclass, const restrictTable *rst)
 {
-	string companyDN;
+	std::string companyDN;
 	if (!company.id.empty()) {
 		LOG_PLUGIN_DEBUG("%s Company xid:\"%s\", Class %x", __FUNCTION__, bin2txt(company.id).c_str(), objclass);
 		companyDN = getSearchBase(company);
@@ -1594,7 +1601,7 @@ std::string LDAPUserPlugin::GetLDAPEntryDN(LDAPMessage *entry)
 struct postaction {
 	objectid_t objectid;		//!< object to act on in the resolved map
 	objectclass_t objclass;		//!< resolveObject(s)FromAttributeType 1st parameter
-	string ldap_attr;			//!< resolveObjectFromAttributeType 2nd parameter
+	std::string ldap_attr;			//!< resolveObjectFromAttributeType 2nd parameter
 	std::list<std::string> ldap_attrs;	//!< resolveObjectsFromAttributeType 2nd parameter
 	const char *relAttr;		//!< resolveObject(s)FromAttributeType 3rd parameter
 	const char *relAttrType;	//!< resolveObject(s)FromAttributeType 4th parameter
@@ -1615,8 +1622,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 
 	bool			bCutOff = false;
 	dn_cache_t lpCompanyCache;
-	std::string ldap_filter;
-	string						strDN;
+	std::string ldap_filter, strDN;
 	std::list<postaction> lPostActions;
 	std::set<objectid_t> setObjectIds;
 	auto lExtraAttrs = m_config->GetSettingGroup(CONFIGGROUP_PROPMAP);
@@ -2092,7 +2098,7 @@ signatures_t
 LDAPUserPlugin::getParentObjectsForObject(userobject_relation_t relation,
     const objectid_t &childobject)
 {
-	string				member_data;
+	std::string member_data;
 	objectclass_t		parentobjclass = OBJECTCLASS_UNKNOWN;
 	const char *unique_attr = nullptr, *member_attr = nullptr;
 	const char *member_attr_type = nullptr, *member_attr_rel = nullptr;
@@ -2193,7 +2199,7 @@ LDAPUserPlugin::getParentObjectsForObject(userobject_relation_t relation,
 
 	ldap_filter = "(&" + ldap_filter + "(" + member_attr + "=" + StringEscapeSequence(member_data) + "))";
 	cache_result.second = getAllObjectsByFilter(ldap_basedn, LDAP_SCOPE_SUBTREE,
-	       ldap_filter, string(), false);
+	       ldap_filter, std::string(), false);
 	m_lpCache->set_parents(relation, childobject, cache_result.second, m_config);
 	return cache_result.second;
 }
@@ -2383,7 +2389,7 @@ void LDAPUserPlugin::deleteSubObjectRelation(userobject_relation_t relation, con
 signatures_t
 LDAPUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 {
-	string search_filter;
+	std::string search_filter;
 	LOG_PLUGIN_DEBUG("%s %s flags:%x", __FUNCTION__, match.c_str(), ulFlags);
 	auto ldap_basedn = getSearchBase();
 	auto ldap_filter = getSearchFilter();
@@ -2420,7 +2426,7 @@ LDAPUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 	}
 	ldap_filter = "(&" + ldap_filter + search_filter + ")";
 	auto signatures = getAllObjectsByFilter(ldap_basedn, LDAP_SCOPE_SUBTREE,
-	                  ldap_filter, string(), false);
+	                  ldap_filter, std::string(), false);
 	if (signatures.empty())
 		throw objectnotfound(ldap_filter);
 	return signatures;

@@ -72,7 +72,6 @@ using namespace KC;
 using namespace std::string_literals;
 using std::cout;
 using std::endl;
-using std::string;
 
 static const char upgrade_lock_file[] = "/tmp/kopano-upgrade-lock";
 static const char default_atx_backend[] = "files_v2"; /* for new installs */
@@ -320,7 +319,7 @@ static ECRESULT check_database_attachments(ECDatabase *lpDatabase)
 	// Create attachment directories
 	for (unsigned int i = 0; i < l1; ++i)
 		for (unsigned int j = 0; j < l2; ++j) {
-			string path = (string)g_lpConfig->GetSetting("attachment_path") + PATH_SEPARATOR + stringify(i) + PATH_SEPARATOR + stringify(j);
+			auto path = std::string(g_lpConfig->GetSetting("attachment_path")) + PATH_SEPARATOR + stringify(i) + PATH_SEPARATOR + stringify(j);
 			auto ret = CreatePath(path.c_str());
 			if (ret != 0) {
 				ec_log_err("Cannot create %s: %s", path.c_str(), strerror(errno));

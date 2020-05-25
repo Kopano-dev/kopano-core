@@ -71,7 +71,6 @@ const char kcsrv_plugin_version[] = PROJECT_VERSION;
 } /* extern "C" */
 
 using std::runtime_error;
-using std::string;
 
 UnixUserPlugin::UnixUserPlugin(std::mutex &pluginlock,
     ECPluginSharedData *shareddata) :
@@ -111,7 +110,7 @@ void UnixUserPlugin::InitPlugin(std::shared_ptr<ECStatsCollector> sc)
 	}
 }
 
-void UnixUserPlugin::findUserID(const string &id, struct passwd *pwd, char *buffer)
+void UnixUserPlugin::findUserID(const std::string &id, struct passwd *pwd, char *buffer)
 {
 	struct passwd *pw = NULL;
 	uid_t minuid = fromstring<const char *, uid_t>(m_config->GetSetting("min_user_uid"));
@@ -131,7 +130,7 @@ void UnixUserPlugin::findUserID(const string &id, struct passwd *pwd, char *buff
 			throw objectnotfound(id);
 }
 
-void UnixUserPlugin::findUser(const string &name, struct passwd *pwd, char *buffer)
+void UnixUserPlugin::findUser(const std::string &name, struct passwd *pwd, char *buffer)
 {
 	struct passwd *pw = NULL;
 	uid_t minuid = fromstring<const char *, uid_t>(m_config->GetSetting("min_user_uid"));
@@ -151,7 +150,7 @@ void UnixUserPlugin::findUser(const string &name, struct passwd *pwd, char *buff
 			throw objectnotfound(name);
 }
 
-void UnixUserPlugin::findGroupID(const string &id, struct group *grp, char *buffer)
+void UnixUserPlugin::findGroupID(const std::string &id, struct group *grp, char *buffer)
 {
 	struct group *gr = NULL;
 	gid_t mingid = fromstring<const char *, gid_t>(m_config->GetSetting("min_group_gid"));
@@ -171,7 +170,7 @@ void UnixUserPlugin::findGroupID(const string &id, struct group *grp, char *buff
 			throw objectnotfound(id);
 }
 
-void UnixUserPlugin::findGroup(const string &name, struct group *grp, char *buffer)
+void UnixUserPlugin::findGroup(const std::string &name, struct group *grp, char *buffer)
 {
 	struct group *gr = NULL;
 	gid_t mingid = fromstring<const char *, gid_t>(m_config->GetSetting("min_group_gid"));
@@ -202,7 +201,7 @@ static objectclass_t shell_to_class(ECConfig *cfg, const char *shell)
 	return shell_to_class(tokenize(cfg->GetSetting("non_login_shell"), ' ', true), shell);
 }
 
-objectsignature_t UnixUserPlugin::resolveUserName(const string &name)
+objectsignature_t UnixUserPlugin::resolveUserName(const std::string &name)
 {
 	char buffer[PWBUFSIZE];
 	struct passwd pws;
@@ -211,7 +210,7 @@ objectsignature_t UnixUserPlugin::resolveUserName(const string &name)
 	return objectsignature_t(objectid, getDBSignature(objectid) + pws.pw_gecos + pws.pw_name);
 }
 
-objectsignature_t UnixUserPlugin::resolveGroupName(const string &name)
+objectsignature_t UnixUserPlugin::resolveGroupName(const std::string &name)
 {
 	char buffer[PWBUFSIZE];
 	struct group grp;
@@ -220,7 +219,8 @@ objectsignature_t UnixUserPlugin::resolveGroupName(const string &name)
 	return objectsignature_t(objectid_t(tostring(grp.gr_gid), DISTLIST_SECURITY), grp.gr_name);
 }
 
-objectsignature_t UnixUserPlugin::resolveName(objectclass_t objclass, const string &name, const objectid_t &company)
+objectsignature_t UnixUserPlugin::resolveName(objectclass_t objclass,
+    const std::string &name, const objectid_t &company)
 {
 	objectsignature_t user;
 	objectsignature_t group;
@@ -268,7 +268,9 @@ objectsignature_t UnixUserPlugin::resolveName(objectclass_t objclass, const stri
 	}
 }
 
-objectsignature_t UnixUserPlugin::authenticateUser(const string &username, const string &password, const objectid_t &companyname) {
+objectsignature_t UnixUserPlugin::authenticateUser(const std::string &username,
+    const std::string &password, const objectid_t &companyname)
+{
 	struct passwd pws, *pw = NULL;
 	char buffer[PWBUFSIZE];
 	uid_t minuid = fromstring<const char *, uid_t>(m_config->GetSetting("min_user_uid"));
@@ -303,7 +305,8 @@ objectsignature_t UnixUserPlugin::authenticateUser(const string &username, const
 	return objectsignature_t(objectid, getDBSignature(objectid) + pw->pw_gecos + pw->pw_name);
 }
 
-bool UnixUserPlugin::matchUserObject(struct passwd *pw, const string &match, unsigned int ulFlags)
+bool UnixUserPlugin::matchUserObject(struct passwd *pw,
+    const std::string &match, unsigned int ulFlags)
 {
 	bool matched = false;
 
@@ -325,7 +328,8 @@ bool UnixUserPlugin::matchUserObject(struct passwd *pw, const string &match, uns
 	return strncasecmp(email.c_str(), match.c_str(), match.size()) == 0;
 }
 
-bool UnixUserPlugin::matchGroupObject(struct group *gr, const string &match, unsigned int ulFlags)
+bool UnixUserPlugin::matchGroupObject(struct group *gr,
+    const std::string &match, unsigned int ulFlags)
 {
 	if(ulFlags & EMS_AB_ADDRESS_LOOKUP)
 		return strcasecmp(gr->gr_name, match.c_str()) == 0;
@@ -602,7 +606,7 @@ void UnixUserPlugin::changeObject(const objectid_t &id, const objectdetails_t &d
 	// This is because kopano-admin -u <username> sends it, and that requirement is because the
 	// UpdateUserDetailsFromClient call needs to convert the username/company to details.
 	// Remove the username detail to allow updating user information.
-	tmp.SetPropString(OB_PROP_S_LOGIN, string());
+	tmp.SetPropString(OB_PROP_S_LOGIN, std::string());
 	DBPlugin::changeObject(id, tmp);
 }
 
@@ -863,7 +867,7 @@ objectdetails_t UnixUserPlugin::objectdetailsFromPwent(const struct passwd *pw)
 			ud.SetPropString(OB_PROP_S_PASSWORD, spw->sp_pwdp);
 		}
 	} else if (!strcmp(pw->pw_passwd, "*") || !strcmp(pw->pw_passwd, "!")){
-		throw objectnotfound(string());
+		throw objectnotfound(std::string());
 	} else {
 		ud.SetPropString(OB_PROP_S_PASSWORD, pw->pw_passwd);
 	}
@@ -893,11 +897,10 @@ std::string UnixUserPlugin::getDBSignature(const objectid_t &id)
 
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
-		return string();
+		return {};
 	auto lpDBRow = lpResult.fetch_row();
 	if (lpDBRow == NULL || lpDBRow[0] == NULL)
-		return string();
-
+		return {};
 	return lpDBRow[0];
 }
 

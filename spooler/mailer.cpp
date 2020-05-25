@@ -45,7 +45,6 @@
 
 using namespace KC;
 using namespace std::string_literals;
-using std::string;
 extern std::shared_ptr<ECConfig> g_lpConfig;
 
 /**
@@ -298,7 +297,7 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 	memory_ptr<SPropTagArray> lpRecipColumns;
 	const char	*const lpszFaxDomain = g_lpConfig->GetSetting("fax_domain");
 	const char	*const lpszFaxInternational = g_lpConfig->GetSetting("fax_international");
-	string		strFaxMail;
+	std::string strFaxMail;
 	unsigned int ulObjType, cValues;
 	// contab email_offset: 0: business, 1: home, 2: primary (outlook uses string 'other')
 	static constexpr const SizedSPropTagArray(3, sptaFaxNumbers) =
@@ -343,7 +342,7 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 
 		if (ECParseOneOff((LPENTRYID)lpEntryID->Value.bin.lpb, lpEntryID->Value.bin.cb, wstrName, wstrType, wstrEmailAddress) == hrSuccess) {
 			// user entered manual fax address
-			strFaxMail = convert_to<string>(wstrEmailAddress);
+			strFaxMail = convert_to<std::string>(wstrEmailAddress);
 		} else {
 			// check if entry is in contacts folder
 			LPCONTAB_ENTRYID lpContabEntryID = (LPCONTAB_ENTRYID)lpEntryID->Value.bin.lpb;
@@ -420,7 +419,7 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 static HRESULT UniqueRecipients(IMessage *lpMessage)
 {
 	object_ptr<IMAPITable> lpTable;
-	string			strEmail;
+	std::string strEmail;
 	ULONG			ulRecipType = 0;
 	static constexpr const SizedSPropTagArray(3, sptaColumns) =
 		{3, {PR_ROWID, PR_SMTP_ADDRESS_A, PR_RECIPIENT_TYPE}};

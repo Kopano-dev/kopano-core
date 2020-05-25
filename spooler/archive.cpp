@@ -28,7 +28,6 @@ using namespace KC;
 using namespace KC::helpers;
 using namespace KC::operations;
 using std::endl;
-using std::string;
 
 void ArchiveResult::AddMessage(MessagePtr ptrMessage) {
 	m_lstMessages.emplace_back(ptrMessage);

@@ -23,7 +23,6 @@
 using namespace KC;
 using namespace std::string_literals;
 using std::runtime_error;
-using std::string;
 
 DBPlugin::DBPlugin(std::mutex &pluginlock, ECPluginSharedData *shareddata) :
 	UserPlugin(pluginlock, shareddata)
@@ -43,7 +42,7 @@ void DBPlugin::InitPlugin(std::shared_ptr<ECStatsCollector> sc)
 signatures_t DBPlugin::getAllObjects(const objectid_t &company,
     objectclass_t objclass, const restrictTable *rst)
 {
-	string strQuery =
+	std::string strQuery =
 		"SELECT om.externid, om.objectclass, op.value "
 		"FROM " DB_OBJECT_TABLE " AS om "
 		"LEFT JOIN " DB_OBJECTPROPERTY_TABLE " AS op "
@@ -115,7 +114,7 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 		if (lpDBLen == NULL || lpDBLen[0] == 0)
 			continue;
 
-		auto curid = objectid_t(string(lpDBRow[0], lpDBLen[0]), static_cast<objectclass_t>(atoi(lpDBRow[1])));
+		auto curid = objectid_t(std::string(lpDBRow[0], lpDBLen[0]), static_cast<objectclass_t>(atoi(lpDBRow[1])));
 		if (lastid != curid && !lastid.id.empty()) {
 			details.SetClass(lastid.objclass);
 			addSendAsToDetails(lastid, &details);
@@ -194,7 +193,7 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 		if (lpDBLen == NULL || lpDBLen[2] == 0)
 			continue;
 
-		auto curid = objectid_t(string(lpDBRow[2], lpDBLen[2]), static_cast<objectclass_t>(atoi(lpDBRow[3])));
+		auto curid = objectid_t(std::string(lpDBRow[2], lpDBLen[2]), static_cast<objectclass_t>(atoi(lpDBRow[3])));
 		if (lastid != curid) {
 			iterDetails = mapdetails.find(curid);
 			if (iterDetails == mapdetails.cend())
@@ -219,7 +218,7 @@ signatures_t
 DBPlugin::getSubObjectsForObject(userobject_relation_t relation,
     const objectid_t &parentobject)
 {
-	string strQuery =
+	std::string strQuery =
 		"SELECT o.externid, o.objectclass, modtime.value "
 		"FROM " DB_OBJECT_TABLE " AS o "
 		"JOIN " DB_OBJECT_RELATION_TABLE " AS ort "
@@ -241,7 +240,7 @@ signatures_t
 DBPlugin::getParentObjectsForObject(userobject_relation_t relation,
     const objectid_t &childobject)
 {
-	string strQuery =
+	std::string strQuery =
 		"SELECT o.externid, o.objectclass, modtime.value "
 		"FROM " DB_OBJECT_TABLE " AS o "
 		"JOIN " DB_OBJECT_RELATION_TABLE " AS ort "
@@ -447,7 +446,7 @@ objectsignature_t DBPlugin::createObject(const objectdetails_t &details)
 	// Insert all properties into the database
 	changeObject(objectid, details);
 	// signature is empty on first create. This is OK because it doesn't matter what's in it, as long as it changes when the object is modified
-	return objectsignature_t(objectid, string());
+	return objectsignature_t(objectid, std::string());
 }
 
 void DBPlugin::deleteObject(const objectid_t &objectid)
@@ -471,7 +470,7 @@ void DBPlugin::deleteObject(const objectid_t &objectid)
 		if (er != erSuccess)
 			throw std::runtime_error("db_query: "s + strerror(er));
 
-		string children;
+		std::string children;
 		while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 			if(lpDBRow[0] == NULL)
 				throw std::runtime_error("db_row_failed: object null");
@@ -625,7 +624,7 @@ signatures_t DBPlugin::searchObjects(const std::string &match,
 		"WHERE (";
 
 	auto strMatch = m_lpDatabase->Escape(match);
-	string strMatchPrefix;
+	std::string strMatchPrefix;
 	
 	if (!(ulFlags & EMS_AB_ADDRESS_LOOKUP)) {
 		strMatch = "%" + strMatch + "%";
@@ -732,7 +731,7 @@ signatures_t DBPlugin::CreateSignatureList(const std::string &query)
 	signatures_t objectlist;
 	DB_RESULT lpResult;
 	DB_ROW lpDBRow = NULL;
-	string signature;
+	std::string signature;
 
 	auto er = m_lpDatabase->DoSelect(query, &lpResult);
 	if (er != erSuccess)

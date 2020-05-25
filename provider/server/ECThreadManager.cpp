@@ -35,7 +35,6 @@
 		return #x;
 
 using namespace KC;
-using std::string;
 
 /*
  * A single work item - it doesn't contain much since we defer all processing, including XML
@@ -51,7 +50,7 @@ class WORKITEM final : public ECTask {
 
 std::shared_ptr<ECLogger> g_request_logger;
 
-static string GetSoapError(int err)
+static std::string GetSoapError(int err)
 {
 	switch (err) {
 		RETURN_CASE(SOAP_EOF)

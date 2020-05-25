@@ -54,7 +54,6 @@
 #include "ICalToMAPI.h"
 #define x2s(s) reinterpret_cast<const char *>(s)
 
-using std::string;
 using namespace std::string_literals;
 
 namespace KC {
@@ -72,7 +71,7 @@ enum {
 };
 
 static vmime::charset vtm_upgrade_charset(vmime::charset cset, const char *ascii_upgrade = nullptr);
-static int getCharsetFromHTML(const string &, vmime::charset *);
+static int getCharsetFromHTML(const std::string &, vmime::charset *);
 static HRESULT postWriteFixups(IMessage *);
 static size_t countBodyLines(const std::string &, size_t, size_t);
 static std::string parameterizedFieldToStructure(vmime::shared_ptr<vmime::parameterizedHeaderField>);
@@ -225,8 +224,8 @@ static size_t extract_headers_raw(IMessage *msg, const std::string &input)
  * @return		MAPI error code.
  * @retval		MAPI_E_CALL_FAILED	Caught an exception, which breaks the conversion.
  */
-HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage) {
-
+HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const std::string &input, IMessage *lpMessage)
+{
 	try {
 		if (m_mailState.ulMsgInMsg == 0)
 			m_mailState = sMailState();
@@ -1599,7 +1598,7 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
     bool bIsAttachment)
 {
 	// ical file
-	string icaldata;
+	std::string icaldata;
 	vmime::utility::outputStreamStringAdapter os(icaldata);
 	MessagePtr ptrNewMessage;
 	LPMESSAGE lpIcalMessage = lpMessage;
@@ -2657,7 +2656,7 @@ void ignoreError(void *ctx, const char *msg, ...)
  * returns 0 if it looked like HTML/XML, but no character set was specified,
  * and returns 1 if a character set was declared.
  */
-static int getCharsetFromHTML(const string &strHTML, vmime::charset *htmlCharset)
+static int getCharsetFromHTML(const std::string &strHTML, vmime::charset *htmlCharset)
 {
 	int ret = 0;
 	htmlNodePtr lpNode = nullptr;
@@ -3039,7 +3038,7 @@ static std::string StringEscape(const char *input, const char *tokens,
 static std::string mailboxToEnvelope(vmime::shared_ptr<vmime::mailbox> &&mbox)
 {
 	std::vector<std::string> lMBox;
-	string buffer;
+	std::string buffer;
 	vmime::utility::outputStreamStringAdapter os(buffer);
 
 	if (!mbox || mbox->isEmpty())
@@ -3071,7 +3070,7 @@ static std::string mailboxToEnvelope(vmime::shared_ptr<vmime::mailbox> &&mbox)
  */
 static std::string addressListToEnvelope(vmime::shared_ptr<vmime::addressList> &&aList)
 {
-	string buffer;
+	std::string buffer;
 	if (!aList)
 		throw vmime::exceptions::no_such_field();
 
@@ -3233,7 +3232,7 @@ std::string VMIMEToMAPI::createIMAPEnvelope(vmime::shared_ptr<vmime::message> vm
  *
  * @return MAPI error code
  */
-HRESULT VMIMEToMAPI::createIMAPBody(const string &input,
+HRESULT VMIMEToMAPI::createIMAPBody(const std::string &input,
     vmime::shared_ptr<vmime::message> vmMessage, IMessage *lpMessage)
 {
 	KPropbuffer<4> sProps;
@@ -3261,7 +3260,7 @@ HRESULT VMIMEToMAPI::createIMAPBody(const string &input,
  *
  * @return always success
  */
-HRESULT VMIMEToMAPI::messagePartToStructure(const string &input,
+HRESULT VMIMEToMAPI::messagePartToStructure(const std::string &input,
     vmime::shared_ptr<vmime::bodyPart> vmBodyPart, std::string *lpSimple,
     std::string *lpExtended)
 {
@@ -3339,7 +3338,7 @@ HRESULT VMIMEToMAPI::messagePartToStructure(const string &input,
  *
  * @return always success
  */
-HRESULT VMIMEToMAPI::bodyPartToStructure(const string &input,
+HRESULT VMIMEToMAPI::bodyPartToStructure(const std::string &input,
     vmime::shared_ptr<vmime::bodyPart> vmBodyPart, std::string *lpSimple,
     std::string *lpExtended)
 {
@@ -3450,7 +3449,7 @@ nil:
 std::string VMIMEToMAPI::getStructureExtendedFields(vmime::shared_ptr<vmime::header> vmHeaderPart)
 {
 	std::list<std::string> lItems;
-	string buffer;
+	std::string buffer;
 	vmime::utility::outputStreamStringAdapter os(buffer);
 
 	// content-disposition header
@@ -3487,7 +3486,7 @@ std::string VMIMEToMAPI::getStructureExtendedFields(vmime::shared_ptr<vmime::hea
 static std::string parameterizedFieldToStructure(vmime::shared_ptr<vmime::parameterizedHeaderField> vmParamField)
 {
 	std::list<std::string> lParams;
-	string buffer;
+	std::string buffer;
 	vmime::utility::outputStreamStringAdapter os(buffer);
 
 	try {

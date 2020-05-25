@@ -122,7 +122,6 @@ using namespace std::string_literals;
 using std::cerr;
 using std::cout;
 using std::endl;
-using std::string;
 
 typedef enum {
 	DM_STORE=0,
@@ -1391,7 +1390,7 @@ static HRESULT HrCreateMessage(IMAPIFolder *lpFolder,
  *
  * @return MAPI Error code
  */
-static HRESULT HrStringToMAPIMessage(const string &strMail,
+static HRESULT HrStringToMAPIMessage(const std::string &strMail,
     IMAPISession *lpSession, IMsgStore *lpMsgStore, LPADRBOOK lpAdrBook,
     IMAPIFolder *lpDeliveryFolder, IMessage *lpMessage, ECRecipient *lpRecip,
     DeliveryArgs *lpArgs, IMessage **lppMessage, bool *lpbFallbackDelivery)
