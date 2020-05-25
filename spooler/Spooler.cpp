@@ -80,7 +80,6 @@ using namespace KC;
 using namespace std::chrono_literals;
 using std::cout;
 using std::endl;
-using std::map;
 using std::string;
 using std::wstring;
 
@@ -140,7 +139,7 @@ struct sp_handlerargs {
 
 static std::map<pid_t, SendData> mapSendData; /* data for subprocesses */
 static std::list<SendData> g_senddata_thr; /* data for subthreads */
-static map<pid_t, int> mapFinished;	// exit status of finished processes
+static std::map<pid_t, int> mapFinished; /* exit status of finished processes */
 static std::mutex g_senddata_mtx; /* protect g_senddata_thr */
 static std::mutex hMutexFinished; /* mutex for mapFinished */
 
