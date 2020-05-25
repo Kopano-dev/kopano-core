@@ -11,7 +11,6 @@
 #include <memory>
 #include <mutex>
 #include <string>
-#include <utility>
 #include <sys/types.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/memory.hpp>

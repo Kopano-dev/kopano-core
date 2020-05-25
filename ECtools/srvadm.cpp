@@ -5,7 +5,6 @@
  */
 #include <map>
 #include <memory>
-#include <utility>
 #include <string>
 #include <cstdlib>
 #include <unistd.h>
