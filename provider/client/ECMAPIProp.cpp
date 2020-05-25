@@ -23,6 +23,7 @@
 #include <kopano/mapi_ptr.h>
 #include "pcutil.hpp"
 #include <sstream>
+#include <utility>
 
 using namespace KC;
 
