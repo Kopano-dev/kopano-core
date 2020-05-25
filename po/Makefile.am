@@ -17,9 +17,12 @@ uninstall-local:
 		rm -f "${DESTDIR}${datadir}/$${po%.po}/LC_MESSAGES/kopano.mo"; \
 	done
 
+extract:
+	s="${srcdir}"; t="${top_srcdir}"; $${s:-.}/mkpot messages.pot $${t:-..}
+
 stats: ${EXTRA_DIST}
 	for po in $^; do \
 		msgfmt -v --statistics $$po; \
 	done
 
-.PHONY: stats
+.PHONY: extract stats

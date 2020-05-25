@@ -148,6 +148,7 @@ stamp-h2
 /installer/userscripts/createcompany
 /installer/userscripts/deletecompany
 
+/po/messages.pot
 /provider/libkcsoap.sym
 /provider/libkcserver.sym
 

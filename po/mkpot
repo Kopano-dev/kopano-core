@@ -1,0 +1,10 @@
+#!/bin/sh
+out="$1"
+dir="$2"
+(cd "$2" && xgettext -L C++ --add-comments \
+	--force-po --foreign-user --from-code=UTF-8 \
+	--copyright-holder="Kopano and its licensors" \
+	--keyword --keyword=KC_TX --keyword=KC_A --keyword=KC_W \
+	--no-wrap --package-name=kopanocore --package-version= \
+	--sort-output --output - \
+	$(find * -name "*.cpp" | LC_COLLATE=C sort)) >"$out"
