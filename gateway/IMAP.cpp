@@ -3767,7 +3767,7 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
 				    strMessage.erase(0, ulHeaderEnd);
 				} else {
 				    // Didn't find it, see if we can find the trailing boundary
-                    ulHeaderBegin = strMessage.find((string) "\r\n--" + strBoundary + "--\r\n", ulHeaderEnd);
+					ulHeaderBegin = strMessage.find("\r\n--" + strBoundary + "--\r\n", ulHeaderEnd);
 					if (ulHeaderBegin != strMessage.npos) {
                         // If found, output everything up to the trailing boundary
                         strMessage.erase(ulHeaderBegin);
@@ -4723,7 +4723,7 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 				return MAPI_E_CALL_FAILED;
 
 			// Search for "^HEADER:.*DATA" in PR_TRANSPORT_HEADERS
-			std::string strSearch = (string)"^" + strSearchCriterium + ":.*" + lstSearchCriteria[ulStartCriteria+1];
+			auto strSearch = "^" + strSearchCriterium + ":.*" + lstSearchCriteria[ulStartCriteria+1];
 			pv.ulPropTag   = PR_TRANSPORT_MESSAGE_HEADERS_A;
 			pv.Value.lpszA = const_cast<char *>(strSearch.c_str());
 			top_rst += ECPropertyRestriction(RELOP_RE, pv.ulPropTag, &pv, ECRestriction::Full);

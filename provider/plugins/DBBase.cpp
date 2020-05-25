@@ -21,6 +21,7 @@
 #include "ECServerEntrypoint.h"
 
 using namespace KC;
+using namespace std::string_literals;
 using std::runtime_error;
 using std::string;
 
@@ -636,7 +637,7 @@ signatures_t DBPlugin::searchObjects(const std::string &match,
 	}
 
 	for (unsigned int i = 0; search_props[i] != NULL; ++i) {
-		strQuery += "(op.propname='" + (string)search_props[i] + "' AND op.value " + strMatchPrefix + " '" + strMatch + "')";
+		strQuery += "(op.propname='"s + search_props[i] + "' AND op.value " + strMatchPrefix + " '" + strMatch + "')";
 		if (search_props[i + 1] != NULL)
 			strQuery += " OR ";
 	}

@@ -115,7 +115,7 @@ objectsignature_t DBUserPlugin::resolveName(objectclass_t objclass, const string
 			"ON user.objectid = o.id "
 			"AND upper(user.value) = upper('" + m_lpDatabase->Escape(name) + "') ";
 	if (lpszSearchProperty)
-		strQuery += "AND user.propname = '" + (string)lpszSearchProperty + "' ";
+		strQuery += "AND user.propname = '"s + lpszSearchProperty + "' ";
 
 	if (m_bHosted && !company.id.empty())
 		// join company, company itself inclusive
@@ -133,7 +133,7 @@ objectsignature_t DBUserPlugin::resolveName(objectclass_t objclass, const string
 		strQuery += "WHERE " + OBJECTCLASS_COMPARE_SQL("o.objectclass", objclass);
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
-		throw runtime_error(string("db_query: ") + strerror(er));
+		throw std::runtime_error("db_query: "s + strerror(er));
 
 	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[3] == NULL)
@@ -191,7 +191,7 @@ objectsignature_t DBUserPlugin::authenticateUser(const string &username, const s
 		"AND pass.propname = '" OP_PASSWORD "'";
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
-		throw runtime_error(string("db_query: ") + strerror(er));
+		throw std::runtime_error("db_query: "s + strerror(er));
 
 	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL || lpDBRow[4] == NULL)
@@ -253,7 +253,7 @@ void DBUserPlugin::setQuota(const objectid_t &objectid, const quotadetails_t &qu
 		"AND " + OBJECTCLASS_COMPARE_SQL("o.objectclass", objectid.objclass) + " LIMIT 2";
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if(er != erSuccess)
-		throw runtime_error(string("db_query: ") + strerror(er));
+		throw std::runtime_error("db_query: "s + strerror(er));
 	if (lpResult.get_num_rows() != 1)
 		throw objectnotfound(objectid.id);
 	auto lpDBRow = lpResult.fetch_row();
@@ -289,7 +289,7 @@ void DBUserPlugin::addSubObjectRelation(userobject_relation_t relation, const ob
 			"AND " + OBJECTCLASS_COMPARE_SQL("o.objectclass", parentobject.objclass);
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
-		throw runtime_error(string("db_query: ") + strerror(er));
+		throw std::runtime_error("db_query: "s + strerror(er));
 	if (lpResult.get_num_rows() != 1)
 		throw objectnotfound("db_user: Relation does not exist, xid:\"" + bin2txt(parentobject.id) + "\"");
 	DBPlugin::addSubObjectRelation(relation, parentobject, childobject);

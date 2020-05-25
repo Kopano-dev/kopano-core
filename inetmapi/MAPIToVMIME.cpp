@@ -46,6 +46,7 @@
 #include "SMIMEMessage.h"
 #include "MAPIToICal.h"
 
+using namespace std::string_literals;
 using std::string;
 
 namespace KC {
@@ -1413,7 +1414,7 @@ HRESULT MAPIToVMIME::handleExtraHeaders(IMessage *lpMessage,
 	if (gethostname(buffer, sizeof buffer) == -1)
 		strcpy(buffer, "???");
 	vmime::relay relay;
-	relay.setBy(std::string(buffer) + " (kopano-spooler)");
+	relay.setBy(buffer + " (kopano-spooler)"s);
 	relay.getWithList().emplace_back("MAPI");
 	auto now = vmime::datetime::now();
 	relay.setDate(now);

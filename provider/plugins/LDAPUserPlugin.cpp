@@ -1460,7 +1460,7 @@ objectsignature_t LDAPUserPlugin::authenticateUserBind(const string &username, c
 		ld = ConnectLDAP(dn.c_str(), m_iconvrev->convert(password).c_str(),
 			parseBool(m_config->GetSetting("ldap_starttls")));
 	} catch (const std::exception &e) {
-		throw login_error((string)"Trying to authenticate failed: " + e.what() + (string)"; username = " + username);
+		throw login_error("Trying to authenticate failed: "s + e.what() + (string)"; username = " + username);
 	}
 	if (ld == nullptr)
 		throw runtime_error("Trying to authenticate failed: connection failed");
