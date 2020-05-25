@@ -29,6 +29,7 @@
 // the GNU General Public License cover the whole combination.
 //
 #pragma once
+#include <map>
 #include <vmime/config.hpp>
 #include <vmime/net/transport.hpp>
 #include <vmime/net/socket.hpp>

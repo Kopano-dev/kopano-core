@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <utility>
+#include <map>
 #include <memory>
 #include <new>
 #include <kopano/platform.h>

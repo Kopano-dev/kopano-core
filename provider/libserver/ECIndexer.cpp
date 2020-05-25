@@ -15,7 +15,6 @@
 #include "StatsClient.h"
 #include "ECIndexer.h"
 #include <iterator>
-#include <map>
 #include <memory>
 #include <new>
 #include <string>

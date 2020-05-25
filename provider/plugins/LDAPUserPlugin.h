@@ -5,6 +5,7 @@
 // -*- Mode: c++ -*-
 #pragma once
 #include <list>
+#include <map>
 #include <mutex>
 #include <string>
 #include <kopano/zcdefs.h>

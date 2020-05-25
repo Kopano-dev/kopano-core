@@ -4,7 +4,6 @@
  */
 #pragma once
 #include <kopano/zcdefs.h>
-#include <map>
 #include <set>
 #include <string>
 #include <soapH.h>

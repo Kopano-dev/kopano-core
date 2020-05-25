@@ -5,7 +5,6 @@
 #include <kopano/platform.h>
 #include <string>
 #include <memory>
-#include <map>
 #include <utility>
 #include <kopano/memory.hpp>
 #include <kopano/ustringutil.h>

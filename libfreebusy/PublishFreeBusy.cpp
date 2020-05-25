@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
+#include <map>
 #include <utility>
 #include <kopano/ECRestriction.h>
 #include "PublishFreeBusy.h"

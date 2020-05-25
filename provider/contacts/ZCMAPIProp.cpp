@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
+#include <map>
 #include <new>
 #include "ZCMAPIProp.h"
 #include "ZCABData.h"

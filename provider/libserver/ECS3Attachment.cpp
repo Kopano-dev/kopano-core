@@ -9,7 +9,6 @@
 #include <kopano/platform.h>
 #include <algorithm>
 #include <chrono>
-#include <map>
 #include <memory>
 #include <mutex>
 #include <stdexcept>

@@ -113,7 +113,7 @@ protected:
 
 private:
 	xmlDoc *m_lpXmlDoc = nullptr;
-	std::map <std::string,std::string> m_mapNs;
+	std::map<std::string,std::string> m_mapNs;
 
 	HRESULT HrParseXml();
 	/* more processing xml, but not as direct entrypoint */

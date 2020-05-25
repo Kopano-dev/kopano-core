@@ -6,6 +6,7 @@
 #include <mapidefs.h>
 #include <mapitags.h>
 #include <algorithm>
+#include <map>
 #include <mutex>
 #include "ECSession.h"
 #include "ECSessionGroup.h"
