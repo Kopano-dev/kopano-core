@@ -29,6 +29,7 @@ class ECRestriction;
 static const size_t ROWS_PER_REQUEST_SMALL = 200, ROWS_PER_REQUEST_BIG = 4000;
 static const size_t IMAP_RESP_MAX = 65536;
 #define IMAP_HIERARCHY_DELIMITER '/'
+#define IMAP_HIERARCHY_DEL_S "/"
 #define PUBLIC_FOLDERS_NAME L"Public folders"
 #define RESP_UNTAGGED "* "
 #define RESP_CONTINUE "+ "

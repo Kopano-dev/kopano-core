@@ -485,7 +485,7 @@ signatures_t UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 	}
 
 	// remove obsolete objects
-	strQuery = "DELETE FROM " + (string)DB_OBJECT_TABLE + " WHERE ";
+	strQuery = "DELETE FROM " DB_OBJECT_TABLE " WHERE ";
 	for (auto iterStrings = objectstrings.cbegin();
 	     iterStrings != objectstrings.cend(); ++iterStrings) {
 		if (iterStrings != objectstrings.cbegin())
@@ -502,10 +502,8 @@ signatures_t UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 	}
 
 	// Create subquery to select all ids which will be deleted
-	auto strSubQuery =
-		"SELECT o.id "
-		"FROM " + (string)DB_OBJECT_TABLE + " AS o "
-		"WHERE ";
+	std::string strSubQuery =
+		"SELECT o.id FROM " DB_OBJECT_TABLE " AS o WHERE ";
 	for (auto iterStrings = objectstrings.cbegin();
 	     iterStrings != objectstrings.cend(); ++iterStrings) {
 		if (iterStrings != objectstrings.cbegin())
@@ -515,7 +513,7 @@ signatures_t UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 
 	/* remove obsolete object properties */
 	strQuery =
-		"DELETE FROM " + (string)DB_OBJECTPROPERTY_TABLE + " "
+		"DELETE FROM " DB_OBJECTPROPERTY_TABLE " "
 		"WHERE objectid IN (" + strSubQuery + ")";
 	er = m_lpDatabase->DoDelete(strQuery, &ulRows);
 	if (er != erSuccess) {
@@ -526,7 +524,7 @@ signatures_t UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 	}
 
 	strQuery =
-		"DELETE FROM " + (string)DB_OBJECT_RELATION_TABLE + " "
+		"DELETE FROM " DB_OBJECT_RELATION_TABLE " "
 		"WHERE objectid IN (" + strSubQuery + ") "
 		"OR parentobjectid IN (" + strSubQuery + ")";
 	er = m_lpDatabase->DoDelete(strQuery, &ulRows);
@@ -888,13 +886,11 @@ std::string UnixUserPlugin::getDBSignature(const objectid_t &id)
 {
 	DB_RESULT lpResult;
 	auto strQuery =
-		"SELECT op.value "
-		"FROM " + (string)DB_OBJECTPROPERTY_TABLE + " AS op "
-		"JOIN " + (string)DB_OBJECT_TABLE + " AS o "
-			"ON op.objectid = o.id "
+		"SELECT op.value FROM " DB_OBJECTPROPERTY_TABLE " AS op "
+		"JOIN " DB_OBJECT_TABLE " AS o ON op.objectid = o.id "
 		"WHERE o.externid=" + m_lpDatabase->EscapeBinary(id.id) + " "
 			"AND o.objectclass = " + stringify(id.objclass) + " "
-			"AND op.propname = '" + OP_MODTIME + "' LIMIT 1";
+			"AND op.propname = '" OP_MODTIME "' LIMIT 1";
 
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)

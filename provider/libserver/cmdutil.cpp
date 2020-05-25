@@ -34,6 +34,8 @@
 #define FIELD_NR_NAMESTR	(FIELD_NR_MAX + 2)
 #define FIELD_NR_NAMEGUID	(FIELD_NR_MAX + 3)
 
+using namespace std::string_literals;
+
 namespace KC {
 
 static void FreeDeleteItem(DELETEITEM *);
@@ -1304,9 +1306,9 @@ ECRESULT WriteSingleProp(ECDatabase *lpDatabase, unsigned int ulObjId,
 	if (!strInsertQuery.empty())
 		strQueryAppend = ",";
 	else if (bColumnProp)
-		strQueryAppend = std::string(replace ? "REPLACE" : "INSERT") + " INTO tproperties (hierarchyid,tag,type,folderid," + (std::string)PROPCOLVALUEORDER(tproperties) + ") VALUES";
+		strQueryAppend = (replace ? "REPLACE" : "INSERT") + " INTO tproperties (hierarchyid,tag,type,folderid," PROPCOLVALUEORDER(tproperties) ") VALUES"s;
 	else
-		strQueryAppend = std::string(replace ? "REPLACE" : "INSERT") + " INTO properties (hierarchyid,tag,type," + (std::string)PROPCOLVALUEORDER(properties) + ") VALUES";
+		strQueryAppend = (replace ? "REPLACE" : "INSERT") + " INTO properties (hierarchyid,tag,type," PROPCOLVALUEORDER(properties) ") VALUES"s;
 
 	strQueryAppend += "(" + stringify(ulObjId) + "," +
 							stringify(PROP_ID(lpPropVal->ulPropTag)) + "," +

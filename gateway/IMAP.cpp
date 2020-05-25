@@ -1247,7 +1247,7 @@ HRESULT IMAP::HrCmdList(const std::string &strTag,
 			hr_lerr(hr, "Unable to represent foldername \"%ls\" in UTF-7", strFolderPath.c_str());
 			continue;
 		}
-		strResponse = (string)"\"" + IMAP_HIERARCHY_DELIMITER + "\" \"" + strResponse + "\""; // prepend folder delimiter
+		strResponse = "\"" IMAP_HIERARCHY_DEL_S "\" \"" + strResponse + "\""; // prepend folder delimiter
 		auto strListProps = strAction + " (";
 		if (!iFld->bMailFolder)
 			strListProps += "\\Noselect ";
@@ -2284,8 +2284,8 @@ HRESULT IMAP::HrDone(bool bSendResponse) {
  * @return MAPI Error code
  */
 HRESULT IMAP::HrCmdNamespace(const string &strTag) {
-	HrResponse(RESP_UNTAGGED, string("NAMESPACE ((\"\" \"") +
-	             IMAP_HIERARCHY_DELIMITER + "\")) NIL NIL");
+	HrResponse(RESP_UNTAGGED, "NAMESPACE ((\"\" \""
+	             IMAP_HIERARCHY_DEL_S "\")) NIL NIL");
 	HrResponse(RESP_TAGGED_OK, strTag, "NAMESPACE Completed");
 	return hrSuccess;
 }

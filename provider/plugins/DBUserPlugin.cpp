@@ -23,6 +23,7 @@
 #define NO_DISTRIB "Multi-server not implemented by db userplugin"
 
 using namespace KC;
+using namespace std::string_literals;
 
 extern "C" {
 
@@ -109,8 +110,8 @@ objectsignature_t DBUserPlugin::resolveName(objectclass_t objclass, const string
 	 */
 	auto strQuery =
 		"SELECT DISTINCT o.externid, o.objectclass, modtime.value, user.value "
-		"FROM " + (string)DB_OBJECT_TABLE + " AS o "
-		"JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS user "
+		"FROM " DB_OBJECT_TABLE " AS o "
+		"JOIN " DB_OBJECTPROPERTY_TABLE " AS user "
 			"ON user.objectid = o.id "
 			"AND upper(user.value) = upper('" + m_lpDatabase->Escape(name) + "') ";
 	if (lpszSearchProperty)
@@ -119,14 +120,14 @@ objectsignature_t DBUserPlugin::resolveName(objectclass_t objclass, const string
 	if (m_bHosted && !company.id.empty())
 		// join company, company itself inclusive
 		strQuery +=
-			"JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS usercompany "
+			"JOIN " DB_OBJECTPROPERTY_TABLE " AS usercompany "
 				"ON usercompany.objectid = o.id "
-			"AND (usercompany.propname='" + OP_COMPANYID + "' AND usercompany.value=HEX(" + m_lpDatabase->EscapeBinary(company.id) + ") OR "
-			"usercompany.propname='" + OP_COMPANYNAME + "' AND usercompany.objectid=" + m_lpDatabase->EscapeBinary(company.id) + ")";
+			"AND (usercompany.propname='" OP_COMPANYID "' AND usercompany.value=HEX(" + m_lpDatabase->EscapeBinary(company.id) + ") OR "
+			"usercompany.propname='" OP_COMPANYNAME "' AND usercompany.objectid=" + m_lpDatabase->EscapeBinary(company.id) + ")";
 
 	strQuery +=
-		"LEFT JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS modtime "
-			"ON modtime.propname = '" + OP_MODTIME + "' "
+		"LEFT JOIN " DB_OBJECTPROPERTY_TABLE " AS modtime "
+			"ON modtime.propname = '" OP_MODTIME "' "
 			"AND modtime.objectid = o.id ";
 	if (objclass != OBJECTCLASS_UNKNOWN)
 		strQuery += "WHERE " + OBJECTCLASS_COMPARE_SQL("o.objectclass", objclass);
@@ -165,29 +166,29 @@ objectsignature_t DBUserPlugin::authenticateUser(const string &username, const s
 	 * company into a single line. Once those are all linked we can
 	 * set the WHERE restrictions to get the correct line.
 	 */
-	auto strQuery =
+	std::string strQuery =
 		"SELECT pass.propname, pass.value, o.externid, modtime.value, op.value "
-		"FROM " + (string)DB_OBJECT_TABLE + " AS o "
-		"JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS op "
+		"FROM " DB_OBJECT_TABLE " AS o "
+		"JOIN " DB_OBJECTPROPERTY_TABLE " AS op "
 		"ON o.id = op.objectid "
-		"JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS pass "
+		"JOIN " DB_OBJECTPROPERTY_TABLE " AS pass "
 		"ON pass.objectid = o.id ";
 	if (m_bHosted && !company.id.empty())
 		// join company, company itself inclusive
 		strQuery +=
-			"JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS usercompany "
+			"JOIN " DB_OBJECTPROPERTY_TABLE " AS usercompany "
 				"ON usercompany.objectid = o.id "
-			"AND (usercompany.propname='" + OP_COMPANYID + "' AND usercompany.value=HEX(" + m_lpDatabase->EscapeBinary(company.id) + ") OR "
-			"usercompany.propname='" + OP_COMPANYNAME + "' AND usercompany.objectid=" + m_lpDatabase->EscapeBinary(company.id) + ")";
+			"AND (usercompany.propname='" OP_COMPANYID "' AND usercompany.value=HEX(" + m_lpDatabase->EscapeBinary(company.id) + ") OR "
+			"usercompany.propname='" OP_COMPANYNAME "' AND usercompany.objectid=" + m_lpDatabase->EscapeBinary(company.id) + ")";
 
 	strQuery +=
-		"LEFT JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS modtime "
+		"LEFT JOIN " DB_OBJECTPROPERTY_TABLE " AS modtime "
 		"ON modtime.objectid = o.id "
-		"AND modtime.propname = '" + OP_MODTIME + "' "
+		"AND modtime.propname = '" OP_MODTIME "' "
 		"WHERE " + OBJECTCLASS_COMPARE_SQL("o.objectclass", ACTIVE_USER) + " "
-		"AND op.propname = '" + (string)OP_LOGINNAME + "' "
+		"AND op.propname = '" OP_LOGINNAME "' "
 		"AND op.value = '" + m_lpDatabase->Escape(username) + "' "
-		"AND pass.propname = '" + (string)OP_PASSWORD "'";
+		"AND pass.propname = '" OP_PASSWORD "'";
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
 		throw runtime_error(string("db_query: ") + strerror(er));
@@ -247,8 +248,7 @@ void DBUserPlugin::setQuota(const objectid_t &objectid, const quotadetails_t &qu
 
 	// check if user exist
 	auto strQuery =
-		"SELECT o.externid "
-		"FROM " + (string)DB_OBJECT_TABLE + " AS o "
+		"SELECT o.externid FROM " DB_OBJECT_TABLE " AS o "
 		"WHERE o.externid=" + m_lpDatabase->EscapeBinary(objectid.id) + " "
 		"AND " + OBJECTCLASS_COMPARE_SQL("o.objectclass", objectid.objclass) + " LIMIT 2";
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
@@ -284,8 +284,7 @@ void DBUserPlugin::addSubObjectRelation(userobject_relation_t relation, const ob
 
 	// Check if parent exist
 	auto strQuery =
-		"SELECT o.externid "
-		"FROM " + (string)DB_OBJECT_TABLE + " AS o "
+		"SELECT o.externid FROM " DB_OBJECT_TABLE " AS o "
 		"WHERE o.externid=" + m_lpDatabase->EscapeBinary(parentobject.id) + " "
 			"AND " + OBJECTCLASS_COMPARE_SQL("o.objectclass", parentobject.objclass);
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);

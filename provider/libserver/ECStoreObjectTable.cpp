@@ -602,7 +602,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
         if(!strQuery.empty())
             strQuery += " UNION ";
 
-        strQuery += "SELECT " + (std::string)MVPROPCOLORDER + " FROM mvproperties WHERE hierarchyid="+stringify(sKey.ulObjId) + " AND mvproperties.tag IN (";
+		strQuery += "SELECT " MVPROPCOLORDER " FROM mvproperties WHERE hierarchyid=" + stringify(sKey.ulObjId) + " AND mvproperties.tag IN (";
 
 		for (const auto &col : mapColumns) {
 			if (setSubQueries.find(col.first) != setSubQueries.cend())
