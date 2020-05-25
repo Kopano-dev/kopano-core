@@ -105,7 +105,7 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 		"ORDER BY o.externid, o.objectclass";
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if(er != erSuccess)
-		throw runtime_error(string("db_query: ") + strerror(er));
+		throw std::runtime_error("db_query: "s + strerror(er));
 
 	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 		// No way to determine externid
@@ -184,7 +184,7 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 
 	er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if(er != erSuccess)
-		throw runtime_error(string("db_query: ") + strerror(er));
+		throw std::runtime_error("db_query: "s + strerror(er));
 
 	std::map<objectid_t, objectdetails_t>::iterator iterDetails;
 	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
@@ -361,7 +361,7 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 	if (!bFirstOne) {
 		auto er = m_lpDatabase->DoInsert(strQuery);
 		if (er != erSuccess)
-			throw runtime_error(string("db_query: ") + strerror(er));
+			throw std::runtime_error("db_query: "s + strerror(er));
 	}
 
 	/* Normal properties have been inserted, check for additional MV properties */
@@ -409,19 +409,19 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 		/* Make sure all MV properties which are being overridden are being deleted first */
 		auto er = m_lpDatabase->DoDelete(strDeleteQuery);
 		if (er != erSuccess)
-			throw runtime_error(string("db_query: ") + strerror(er));
+			throw std::runtime_error("db_query: "s + strerror(er));
 	}
 	if (!bFirstOne) {
 		auto er = m_lpDatabase->DoInsert(strQuery);
 		if (er != erSuccess)
-			throw runtime_error(string("db_query: ") + strerror(er));
+			throw std::runtime_error("db_query: "s + strerror(er));
 	}
 
 	// Remember modtime for this object
 	strQuery = "REPLACE INTO " DB_OBJECTPROPERTY_TABLE "(objectid, propname, value) VALUES ((" + strSubQuery + "),'" OP_MODTIME "', FROM_UNIXTIME(" + stringify(time(nullptr)) + "))";
 	auto er = m_lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess)
-		throw runtime_error(string("db_query: ") + strerror(er));
+		throw std::runtime_error("db_query: "s + strerror(er));
 
 	// Maybe change user type from active to something nonactive
 	if (objectid.objclass != details.GetClass() && OBJECTCLASS_TYPE(objectid.objclass) == OBJECTCLASS_TYPE(details.GetClass())) {
@@ -429,7 +429,7 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 			" WHERE externid=" + m_lpDatabase->EscapeBinary(objectid.id) + " AND objectclass=" + stringify(objectid.objclass);
 		er = m_lpDatabase->DoUpdate(strQuery);
 		if (er != erSuccess)
-			throw runtime_error(string("db_query: ") + strerror(er));
+			throw std::runtime_error("db_query: "s + strerror(er));
 	}
 }
 
@@ -469,7 +469,7 @@ void DBPlugin::deleteObject(const objectid_t &objectid)
 			" WHERE propname='" OP_COMPANYID "' AND value=HEX(" + m_lpDatabase->EscapeBinary(objectid.id) + ")";
 		auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 		if (er != erSuccess)
-			throw runtime_error(string("db_query: ") + strerror(er));
+			throw std::runtime_error("db_query: "s + strerror(er));
 
 		string children;
 		while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
@@ -559,9 +559,9 @@ void DBPlugin::addSubObjectRelation(userobject_relation_t relation, const object
 		"AND relationtype = " + stringify(relation);
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
-		throw runtime_error(string("db_query: ") + strerror(er));
+		throw std::runtime_error("db_query: "s + strerror(er));
 	if (lpResult.get_num_rows() != 0)
-		throw collision_error(string("Relation exist: ") + stringify(relation));
+		throw collision_error("Relation exists: "s + stringify(relation));
 
 	/* Insert new relation */ 
 	strQuery =
@@ -570,7 +570,7 @@ void DBPlugin::addSubObjectRelation(userobject_relation_t relation, const object
 
 	er = m_lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess)
-		throw runtime_error(string("db_query: ") + strerror(er));
+		throw std::runtime_error("db_query: "s + strerror(er));
 }
 
 void DBPlugin::deleteSubObjectRelation(userobject_relation_t relation, const objectid_t &parentobject, const objectid_t &childobject)
@@ -594,8 +594,7 @@ void DBPlugin::deleteSubObjectRelation(userobject_relation_t relation, const obj
 			"AND relationtype = " + stringify(relation);
 	auto er = m_lpDatabase->DoDelete(strQuery, &ulAffRows);
 	if (er != erSuccess)
-		throw runtime_error("db_query: " + string(strerror(er)));
-
+		throw std::runtime_error("db_query: "s + strerror(er));
 	if (ulAffRows != 1)
 		throw objectnotfound("db_user: relation xid:\"" + bin2txt(parentobject.id) + "\"");
 }
@@ -671,7 +670,7 @@ quotadetails_t DBPlugin::getQuota(const objectid_t &objectid,
 	   		"AND " + OBJECTCLASS_COMPARE_SQL("o.objectclass", objectid.objclass);
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
-		throw runtime_error(string("db_query: ") + strerror(er));
+		throw std::runtime_error("db_query: "s + strerror(er));
 	quotadetails_t lpDetails;
 	lpDetails.bIsUserDefaultQuota = bGetUserDefault;
 
@@ -725,7 +724,7 @@ void DBPlugin::setQuota(const objectid_t &objectid, const quotadetails_t &quotad
 			"((" + strSubQuery + "), '" + op_warn + "','" + stringify_int64(quotadetails.llWarnSize) + "')";
 	auto er = m_lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess) // Maybe on this point the user is broken.
-		throw runtime_error(string("db_query: ") + strerror(er));
+		throw std::runtime_error("db_query: "s + strerror(er));
 }
 
 signatures_t DBPlugin::CreateSignatureList(const std::string &query)
@@ -737,7 +736,7 @@ signatures_t DBPlugin::CreateSignatureList(const std::string &query)
 
 	auto er = m_lpDatabase->DoSelect(query, &lpResult);
 	if (er != erSuccess)
-		throw runtime_error(string("db_query: ") + strerror(er));
+		throw std::runtime_error("db_query: "s + strerror(er));
 
 	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 		if(lpDBRow[0] == NULL || lpDBRow[1] == NULL)
@@ -800,7 +799,7 @@ abprops_t DBPlugin::getExtraAddressbookProperties()
 			"GROUP BY op.propname";
 		auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 		if (er != erSuccess)
-			throw runtime_error(string("db_query: ") + strerror(er));
+			throw std::runtime_error("db_query: "s + strerror(er));
 		while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 			if(lpDBRow[0] == NULL)
 				continue;
@@ -823,7 +822,7 @@ void DBPlugin::CreateObjectWithExternId(const objectid_t &objectid, const object
 
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
-		throw runtime_error(string("db_query: ") + strerror(er));
+		throw std::runtime_error("db_query: "s + strerror(er));
 	if (lpResult.fetch_row() != nullptr)
 		throw collision_error("Object exists: \"" + bin2txt(objectid.id) + "\"");
 
@@ -832,7 +831,7 @@ void DBPlugin::CreateObjectWithExternId(const objectid_t &objectid, const object
 		"VALUES(" + m_lpDatabase->EscapeBinary(objectid.id) + "," + stringify(objectid.objclass) + ")";
 	er = m_lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess)
-		throw runtime_error(string("db_query: ") + strerror(er));
+		throw std::runtime_error("db_query: "s + strerror(er));
 }
 
 objectid_t DBPlugin::CreateObject(const objectdetails_t &details)
@@ -882,7 +881,7 @@ objectid_t DBPlugin::CreateObject(const objectdetails_t &details)
 
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
-		throw runtime_error(string("db_query: ") + strerror(er));
+		throw std::runtime_error("db_query: "s + strerror(er));
 	while ((lpDBRow = lpResult.fetch_row()) != nullptr)
 		if (lpDBRow[1] != NULL && strcasecmp(lpDBRow[1], strPropValue.c_str()) == 0)
 			throw collision_error("Object exist: " + strPropValue);
@@ -897,7 +896,7 @@ objectid_t DBPlugin::CreateObject(const objectdetails_t &details)
 
 	er = m_lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess)
-		throw runtime_error(string("db_query: ") + strerror(er));
+		throw std::runtime_error("db_query: "s + strerror(er));
 
 	return objectid_t(strExternId, details.GetClass());
 }

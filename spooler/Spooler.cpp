@@ -79,6 +79,7 @@
 
 using namespace KC;
 using namespace std::chrono_literals;
+using namespace std::string_literals;
 using std::cout;
 using std::endl;
 using std::string;
@@ -376,7 +377,7 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
 
 	auto pid = vfork();
 	if (pid < 0) {
-		ec_log_crit(string("Unable to start new spooler process: ") + strerror(errno));
+		ec_log_crit("Unable to start new spooler process: "s + strerror(errno));
 		return MAPI_E_CALL_FAILED;
 	}
 	/*

@@ -109,7 +109,7 @@ typedef std::unique_ptr<struct berval *[], ldap_deleter> auto_free_ldap_berval;
 		rc = ldap_create_page_control(m_ldap, ldap_page_size, &sCookie, 0, &~pageControl); \
 		if (rc != LDAP_SUCCESS) \
 			/* 'F' ? */ \
-			throw ldap_error(string("ldap_create_page_control: ") + ldap_err2string(rc), rc); \
+			throw ldap_error("ldap_create_page_control: "s + ldap_err2string(rc), rc); \
 		serverControls[0] = pageControl; \
 		\
 		/* search like normal, throws on error */ \
@@ -121,7 +121,7 @@ typedef std::unique_ptr<struct berval *[], ldap_deleter> auto_free_ldap_berval;
 			/* @todo, whoops do we really need to unbind? */ \
 			/* ldap_unbind(m_ldap); */ \
 			/* m_ldap = NULL; */ \
-			throw ldap_error(string("ldap_parse_result: ") + ldap_err2string(rc), rc); \
+			throw ldap_error("ldap_parse_result: "s + ldap_err2string(rc), rc); \
 		} \
 		\
 		if (sCookie.bv_val != NULL) { \
@@ -132,7 +132,7 @@ typedef std::unique_ptr<struct berval *[], ldap_deleter> auto_free_ldap_berval;
 		if (!!returnedControls) {										\
 			rc = ldap_parse_pageresponse_control(m_ldap, returnedControls[0], NULL, &sCookie); \
 			if (rc != LDAP_SUCCESS) \
-				throw ldap_error(string("ldap_parse_pageresponse_control: ") + ldap_err2string(rc), rc); \
+				throw ldap_error("ldap_parse_pageresponse_control: "s + ldap_err2string(rc), rc); \
 			morePages = sCookie.bv_len > 0; \
 		} else { \
 			morePages = false; \
@@ -502,7 +502,7 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn,
 		// Username specified, but no password. Apparently, OpenLDAP will attempt
 		// an anonymous bind when this is attempted. We therefore disallow this
 		// to make sure you can authenticate a user's password with this function
-		throw ldap_error(string("Disallowing NULL password for user ") + bind_dn);
+		throw ldap_error("Disallowing NULL password for user "s + bind_dn);
 
 	// Initialize LDAP struct
 	for (unsigned long int loop = 0; loop < ldap_servers.size(); ++loop) {
@@ -614,7 +614,7 @@ void LDAPUserPlugin::my_ldap_search_s(const char *base, int scope,
 
 	if (attrs != NULL)
 		for (unsigned int i = 0; attrs[i] != NULL; ++i)
-			req += string(attrs[i]) + " ";
+			req += attrs[i] + " "s;
 
 	// filter must be NULL to request everything (becomes (objectClass=*) in ldap library)
 	if (filter[0] == '\0') {
@@ -677,7 +677,7 @@ exit:
 	if (result != LDAP_SUCCESS) {
 		m_lpStatsCollector->inc(SCN_LDAP_SEARCH_FAILED);
 		// throw ldap error
-		throw ldap_error(string("ldap_search_ext_s: ") + ldap_err2string(result), result);
+		throw ldap_error("ldap_search_ext_s: "s + ldap_err2string(result), result);
 	}
 	// In rare situations ldap_search_s can return LDAP_SUCCESS, but leave res at NULL. This
 	// seems to happen when the connection to the server is lost at a very specific time.
@@ -962,7 +962,7 @@ string LDAPUserPlugin::getServerSearchFilter()
 		throw runtime_error("No server type attribute value defined");
 
 	std::string filter = serverfilter;
-	auto subfilter = "(" + string(objecttype) + "=" + servertype + ")";
+	auto subfilter = "("s + objecttype + "=" + servertype + ")";
 	if (!filter.empty())
 		return "(&(|" + filter + ")" + subfilter + ")";
 	return subfilter;
@@ -1026,14 +1026,14 @@ string LDAPUserPlugin::getSearchFilter(objectclass_t objclass)
 			subfilter = "(|";
 
 		if (grouptype && groupfilter && groupfilter[0] != '\0')
-			subfilter += string("(&") + GetObjectClassFilter(objecttype, grouptype) + groupfilter + ")";
+			subfilter += "(&"s + GetObjectClassFilter(objecttype, grouptype) + groupfilter + ")";
 		else if (grouptype)
 			subfilter += GetObjectClassFilter(objecttype, grouptype);
 		else if (groupfilter && groupfilter[0] != '\0')
 			subfilter += groupfilter;
 
 		if (dynamicgrouptype && dynamicgroupfilter && dynamicgroupfilter[0] != '\0')
-			subfilter += string("(&") + GetObjectClassFilter(objecttype, dynamicgrouptype) + dynamicgroupfilter + ")";
+			subfilter += "(&"s + GetObjectClassFilter(objecttype, dynamicgrouptype) + dynamicgroupfilter + ")";
 		else if (dynamicgrouptype)
 			subfilter += GetObjectClassFilter(objecttype, dynamicgrouptype);
 		else if (dynamicgroupfilter && dynamicgroupfilter[0] != '\0')
@@ -1047,10 +1047,10 @@ string LDAPUserPlugin::getSearchFilter(objectclass_t objclass)
 		if (m_bHosted) {
 			if (!companytype)
 				throw runtime_error("No company type attribute value defined");
-			subfilter += string("(&") + companyfilter + GetObjectClassFilter(objecttype, companytype) + ")";
+			subfilter += "(&"s + companyfilter + GetObjectClassFilter(objecttype, companytype) + ")";
 		}
 		if (addresslisttype)
-			subfilter += string("(&") + addresslistfilter + GetObjectClassFilter(objecttype, addresslisttype) + ")";
+			subfilter += "(&"s + addresslistfilter + GetObjectClassFilter(objecttype, addresslisttype) + ")";
 		else
 			subfilter += addresslistfilter;
 		subfilter += ")";
@@ -1088,7 +1088,7 @@ string LDAPUserPlugin::getSearchFilter(const string &data, const char *attr, con
 	else
 		search_data = StringEscapeSequence(data);
 	if (attr)
-		return "(" + string(attr) + "=" + search_data + ")";
+		return "("s + attr + "=" + std::move(search_data) + ")";
 	return "";
 }
 
@@ -1291,7 +1291,7 @@ LDAPUserPlugin::resolveObjectsFromAttributes(objectclass_t objclass,
 	ldap_filter = "(&" + ldap_filter + "(|";
 	for (const auto &i : objects)
 		for (unsigned int j = 0; lppAttr[j] != NULL; ++j)
-			ldap_filter += "(" + string(lppAttr[j]) + "=" + StringEscapeSequence(i) + ")";
+			ldap_filter += "("s + lppAttr[j] + "=" + StringEscapeSequence(i) + ")";
 	ldap_filter += "))";
 	return getAllObjectsByFilter(ldap_basedn, LDAP_SCOPE_SUBTREE, ldap_filter, companyDN, false);
 }

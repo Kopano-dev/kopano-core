@@ -44,6 +44,7 @@
 #include <kopano/fileutil.hpp>
 
 using namespace KC;
+using namespace std::string_literals;
 using std::string;
 extern std::shared_ptr<ECConfig> g_lpConfig;
 
@@ -384,7 +385,7 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 			}
 			strFaxMail = lpFaxNumbers[lpContabEntryID->email_offset].Value.lpszA;
 		}
-		strFaxMail += string("@") + lpszFaxDomain;
+		strFaxMail += "@"s + lpszFaxDomain;
 		if (strFaxMail[0] == '+' && lpszFaxInternational != nullptr)
 			strFaxMail = lpszFaxInternational + strFaxMail.substr(1, strFaxMail.length());
 
