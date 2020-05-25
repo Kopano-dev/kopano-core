@@ -2,6 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2018, Kopano and its licensors
  */
+#include <algorithm>
 #include <chrono>
 #include <new>
 #include <utility>
