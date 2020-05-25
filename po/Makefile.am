@@ -16,3 +16,10 @@ uninstall-local:
 	for po in ${EXTRA_DIST}; do \
 		rm -f "${DESTDIR}${datadir}/$${po%.po}/LC_MESSAGES/kopano.mo"; \
 	done
+
+stats: ${EXTRA_DIST}
+	for po in $^; do \
+		msgfmt -v --statistics $$po; \
+	done
+
+.PHONY: stats
