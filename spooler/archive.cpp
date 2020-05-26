@@ -30,8 +30,6 @@ using namespace KC::operations;
 using std::endl;
 using std::string;
 
-typedef std::wostringstream tostringstream;
-
 void ArchiveResult::AddMessage(MessagePtr ptrMessage) {
 	m_lstMessages.emplace_back(ptrMessage);
 }
@@ -283,7 +281,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 
 void Archive::SetErrorMessage(HRESULT hr, LPCTSTR lpszMessage)
 {
-	tostringstream	oss;
+	std::wostringstream oss;
 	LPTSTR lpszDesc;
 
 	oss << lpszMessage << endl;
