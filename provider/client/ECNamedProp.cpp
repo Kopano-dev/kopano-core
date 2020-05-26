@@ -6,7 +6,6 @@
 #include <mapitags.h>
 #include <mapidefs.h>
 #include <mapicode.h>
-#include <list>
 #include <kopano/ECLogger.h>
 #include "Mem.h"
 #include "ECNamedProp.h"

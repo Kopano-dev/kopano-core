@@ -4,6 +4,7 @@
  */
 #include <kopano/platform.h>
 #include <exception>
+#include <list>
 #include <memory>
 #include <mutex>
 #include <new>

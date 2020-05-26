@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <algorithm>
+#include <list>
 #include <kopano/platform.h>
 #include <kopano/stringutil.h>
 #include <kopano/pcuser.hpp>

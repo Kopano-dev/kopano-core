@@ -4,7 +4,6 @@
  */
 #pragma once
 #include <kopano/zcdefs.h>
-#include <list>
 #include <map>
 #include <mutex>
 #include <string>

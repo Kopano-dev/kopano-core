@@ -3,7 +3,6 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #pragma once
-#include <list>
 #include <vector>
 #include <vmime/vmime.hpp>
 #include <mapix.h>

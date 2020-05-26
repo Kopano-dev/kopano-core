@@ -8,6 +8,7 @@
 #include <kopano/platform.h>
 #include <chrono>
 #include <iostream>
+#include <list>
 #include <string>
 #include <utility>
 #include <climits>

@@ -4,6 +4,7 @@
  */
 #include <kopano/platform.h>
 #include <algorithm>
+#include <list>
 #include <new>
 #include <utility>
 #include <kopano/MAPIErrors.h>
