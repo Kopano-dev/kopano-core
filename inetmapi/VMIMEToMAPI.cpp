@@ -22,7 +22,6 @@
 #include <algorithm>
 #include <memory>
 #include <string>
-#include <fstream>
 #include <iostream>
 #include <cassert>
 #include <cctype>

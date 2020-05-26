@@ -9,7 +9,6 @@
 #include <kopano/stringutil.h>
 #include <sstream>
 #include <string>
-#include <fstream>
 #include <iostream>
 #include <cstdlib>
 #include <unistd.h>
