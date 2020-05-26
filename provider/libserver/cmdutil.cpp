@@ -4,7 +4,6 @@
  */
 #include <kopano/platform.h>
 #include <algorithm>
-#include <exception>
 #include <set>
 #include <stdexcept>
 #include <string>
