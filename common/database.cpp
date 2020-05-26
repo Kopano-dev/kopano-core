@@ -6,6 +6,7 @@
 #	include "config.h"
 #endif
 #include <algorithm>
+#include <exception>
 #include <memory>
 #include <stdexcept>
 #include <string>
