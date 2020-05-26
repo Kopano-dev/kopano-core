@@ -13,7 +13,6 @@
 #include <memory>
 #include <mutex>
 #include <set>
-#include <stdexcept>
 #include <cerrno>
 #include <unistd.h>
 #include <zlib.h>

@@ -10,7 +10,6 @@
 #include <iostream>
 #include <memory>
 #include <new>
-#include <stdexcept>
 #include <string>
 #include <utility>
 #include <cerrno>

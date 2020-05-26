@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  * Copyright 2019, Kopano and its licensors
  */
-#include <stdexcept>
 #include <string>
 #if __cplusplus >= 201700L
 #	include <string_view>
