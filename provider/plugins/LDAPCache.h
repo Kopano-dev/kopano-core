@@ -10,7 +10,6 @@
 #include <map>
 #include <mutex>
 #include <string>
-#include <unordered_map>
 #include <utility>
 #include <kopano/ECDefs.h>
 #include <kopano/pcuser.hpp>

@@ -28,7 +28,6 @@
 #include <kopano/ECGuid.h>
 #include "soapH.h"
 #include <mutex>
-#include <unordered_map>
 #include <mapidefs.h>
 #include <mapitags.h>
 #include <sys/times.h>
