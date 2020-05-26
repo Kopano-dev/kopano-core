@@ -4,6 +4,7 @@
  */
 #include <kopano/platform.h>
 #include <algorithm>
+#include <ios>
 #include <list>
 #include <map>
 #include <memory>
