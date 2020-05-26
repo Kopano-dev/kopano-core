@@ -56,7 +56,6 @@
 #include "ICalToMAPI.h"
 #define x2s(s) reinterpret_cast<const char *>(s)
 
-using std::list;
 using std::string;
 using std::wstring;
 using namespace std::string_literals;
@@ -1520,7 +1519,7 @@ HRESULT VMIMEToMAPI::dissect_multipart(vmime::shared_ptr<vmime::header> vmHeader
 		return hrSuccess;
 	}
 
-	list<unsigned int> lBodies = vtm_order_alternatives(vmBody);
+	auto lBodies = vtm_order_alternatives(vmBody);
 
 	// recursively process multipart alternatives in reverse to select best body first
 	for (auto body_idx : lBodies) {
@@ -3447,7 +3446,7 @@ nil:
  */
 std::string VMIMEToMAPI::getStructureExtendedFields(vmime::shared_ptr<vmime::header> vmHeaderPart)
 {
-	list<string> lItems;
+	std::list<std::string> lItems;
 	string buffer;
 	vmime::utility::outputStreamStringAdapter os(buffer);
 
@@ -3484,7 +3483,7 @@ std::string VMIMEToMAPI::getStructureExtendedFields(vmime::shared_ptr<vmime::hea
  */
 static std::string parameterizedFieldToStructure(vmime::shared_ptr<vmime::parameterizedHeaderField> vmParamField)
 {
-	list<string> lParams;
+	std::list<std::string> lParams;
 	string buffer;
 	vmime::utility::outputStreamStringAdapter os(buffer);
 

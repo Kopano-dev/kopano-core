@@ -64,7 +64,6 @@ const char kcsrv_plugin_version[] = PROJECT_VERSION;
 
 } /* extern "C" */
 
-using std::list;
 using std::runtime_error;
 using std::string;
 
@@ -730,7 +729,7 @@ static std::string GetObjectClassFilter(const char *lpszObjectClassAttr, const c
 
 objectid_t LDAPUserPlugin::GetObjectIdForEntry(LDAPMessage *entry)
 {
-	list<string>	objclasses;
+	std::list<std::string> objclasses;
 	std::string nonactive_type, resource_type, security_type;
 	std::string user_unique, group_unique, company_unique;
 	std::string addresslist_unique, dynamicgroup_unique, object_uid;
@@ -1569,13 +1568,13 @@ signatures_t LDAPUserPlugin::getAllObjects(const objectid_t &company,
 
 std::string LDAPUserPlugin::getLDAPAttributeValue(const char *attribute, LDAPMessage *entry)
 {
-	list<string> l = getLDAPAttributeValues(attribute, entry);
+	auto l = getLDAPAttributeValues(attribute, entry);
 	return !l.empty() ? l.front() : std::string();
 }
 
 std::list<std::string> LDAPUserPlugin::getLDAPAttributeValues(const char *attribute, LDAPMessage *entry)
 {
-	list<string> r;
+	std::list<std::string> r;
 	string s;
 	auto_free_ldap_berval berval(ldap_get_values_len(m_ldap, entry, const_cast<char *>(attribute)));
 
@@ -1600,7 +1599,7 @@ struct postaction {
 	objectid_t objectid;		//!< object to act on in the resolved map
 	objectclass_t objclass;		//!< resolveObject(s)FromAttributeType 1st parameter
 	string ldap_attr;			//!< resolveObjectFromAttributeType 2nd parameter
-	list<string> ldap_attrs;	//!< resolveObjectsFromAttributeType 2nd parameter
+	std::list<std::string> ldap_attrs;	//!< resolveObjectsFromAttributeType 2nd parameter
 	const char *relAttr;		//!< resolveObject(s)FromAttributeType 3rd parameter
 	const char *relAttrType;	//!< resolveObject(s)FromAttributeType 4th parameter
 	property_key_t propname;	//!< object prop to add/set from the result
@@ -1622,9 +1621,9 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 	dn_cache_t lpCompanyCache;
 	std::string ldap_filter;
 	string						strDN;
-	list<postaction> lPostActions;
+	std::list<postaction> lPostActions;
 	std::set<objectid_t> setObjectIds;
-	list<configsetting_t>	lExtraAttrs = m_config->GetSettingGroup(CONFIGGROUP_PROPMAP);
+	auto lExtraAttrs = m_config->GetSettingGroup(CONFIGGROUP_PROPMAP);
 	auto request_attrs = std::make_unique<attrArray>(33 + lExtraAttrs.size());
 
 	CONFIG_TO_ATTR(request_attrs, object_attr, "ldap_object_type_attribute");
@@ -2209,7 +2208,7 @@ LDAPUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 {
 	enum LISTTYPE { MEMBERS, FILTER } ulType = MEMBERS;
 	signatures_t members;
-	list<string>			memberlist;
+	std::list<std::string> memberlist;
 	auto_free_ldap_message res;
 	std::string dn, ldap_member_filter, companyDN;
 	objectid_t		companyid;

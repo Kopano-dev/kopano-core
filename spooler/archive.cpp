@@ -27,7 +27,6 @@ using namespace KC;
 using namespace KC::helpers;
 using namespace KC::operations;
 using std::endl;
-using std::list;
 using std::string;
 
 typedef std::wostringstream tostringstream;

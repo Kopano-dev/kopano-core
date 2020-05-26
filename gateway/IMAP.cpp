@@ -51,7 +51,6 @@
 #include "IMAP.h"
 
 using namespace KC;
-using std::list;
 using std::string;
 using std::wstring;
 
@@ -1761,7 +1760,7 @@ HRESULT IMAP::HrCmdExpunge(const string &strTag, const std::vector<std::string> 
 HRESULT IMAP::HrCmdSearch(const std::string &strTag,
     std::vector<std::string> &lstSearchCriteria, bool bUidMode)
 {
-	list<ULONG> lstMailnr;
+	std::list<ULONG> lstMailnr;
 	ULONG ulCriterianr = 0;
 	char szBuffer[33];
 	std::string strMode = bUidMode ? "UID " : "";
@@ -1804,7 +1803,7 @@ HRESULT IMAP::HrCmdSearch(const std::string &strTag,
  */
 HRESULT IMAP::HrCmdFetch(const string &strTag, const std::vector<std::string> &args, bool bUidMode) {
 	std::vector<std::string> lstDataItems;
-	list<ULONG> lstMails;
+	std::list<ULONG> lstMails;
 	bool bFound = false;
 	const std::string &strSeqSet = args[0];
 	const std::string &strMsgDataItemNames = args[1];
@@ -1853,7 +1852,7 @@ HRESULT IMAP::HrCmdFetch(const string &strTag, const std::vector<std::string> &a
  * @return MAPI error code
  */
 HRESULT IMAP::HrCmdStore(const string &strTag, const std::vector<std::string> &args, bool bUidMode) {
-	list<ULONG> lstMails;
+	std::list<ULONG> lstMails;
 	std::vector<std::string> lstDataItems;
 	bool bDelete = false;
 	const std::string &strSeqSet = args[0];
@@ -1920,7 +1919,7 @@ HRESULT IMAP::HrCmdStore(const string &strTag, const std::vector<std::string> &a
  * @return MAPI Error code
  */
 HRESULT IMAP::HrCmdCopy(const string &strTag, const std::vector<std::string> &args, bool bUidMode) {
-	list<ULONG> lstMails;
+	std::list<ULONG> lstMails;
 	const std::string &strSeqSet = args[0], &strFolderParam = args[1];
 	std::string strMode = bUidMode ? "UID " : "";
 
@@ -1971,7 +1970,7 @@ HRESULT IMAP::HrCmdCopy(const string &strTag, const std::vector<std::string> &ar
  * @return MAPI Error code
  */
 HRESULT IMAP::HrCmdUidXaolMove(const string &strTag, const std::vector<std::string> &args) {
-	list<ULONG> lstMails;
+	std::list<ULONG> lstMails;
 	const std::string &strSeqSet = args[0], &strFolderParam = args[1];
 
 	if (strCurrentFolder.empty() || !lpSession) {
@@ -2512,7 +2511,8 @@ HRESULT IMAP::HrExpungeDeleted(const std::string &strTag,
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrGetFolderList(list<SFolder> &lstFolders) {
+HRESULT IMAP::HrGetFolderList(std::list<SFolder> &lstFolders)
+{
 	memory_ptr<SPropValue> lpPropVal;
 	ULONG cbEntryID;
 	memory_ptr<ENTRYID> lpEntryID;
@@ -2889,7 +2889,9 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigne
  * @return MAPI Error code
  * @retval MAPI_E_NOT_FOUND lpFolder is not a valid iterator in lstFolders
  */
-HRESULT IMAP::HrGetFolderPath(list<SFolder>::const_iterator lpFolder, const list<SFolder> &lstFolders, wstring &strPath) {
+HRESULT IMAP::HrGetFolderPath(std::list<SFolder>::const_iterator lpFolder,
+    const std::list<SFolder> &lstFolders, std::wstring &strPath)
+{
 	if (lpFolder == lstFolders.cend())
 		return MAPI_E_NOT_FOUND;
 	if (lpFolder->lpParentFolder == lstFolders.cend())
@@ -2927,7 +2929,8 @@ static inline std::wstring imap_foldername(std::wstring &&z)
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFolder>::const_iterator parent_folder)
+HRESULT IMAP::HrGetSubTree(std::list<SFolder> &folders, bool public_folders,
+    std::list<SFolder>::const_iterator parent_folder)
 {
 	object_ptr<IMAPIFolder> folder;
 	memory_ptr<SPropValue> sprop;
@@ -3022,7 +3025,7 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFo
 
 		BinaryArray entry_id(rows[i].lpProps[EID].Value.bin);
 		const auto &parent_entry_id = rows[i].lpProps[PEID].Value.bin;
-		list<SFolder>::const_iterator tmp_parent_folder = parent_folder;
+		std::list<SFolder>::const_iterator tmp_parent_folder = parent_folder;
 		for (auto iter = folders.cbegin(); iter != folders.cend(); iter++) {
 			if (iter->sEntryID == parent_entry_id) {
 				tmp_parent_folder = iter;
@@ -3978,7 +3981,8 @@ HRESULT IMAP::HrSeqUidSetToRestriction(const string &strSeqSet,
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrParseSeqUidSet(const string &strSeqSet, list<ULONG> &lstMails) {
+HRESULT IMAP::HrParseSeqUidSet(const std::string &strSeqSet, std::list<ULONG> &lstMails)
+{
 	HRESULT hr = hrSuccess;
 	ULONG ulMailnr;
 	ULONG ulBeginMailnr;
@@ -4027,7 +4031,8 @@ HRESULT IMAP::HrParseSeqUidSet(const string &strSeqSet, list<ULONG> &lstMails) {
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrParseSeqSet(const string &strSeqSet, list<ULONG> &lstMails) {
+HRESULT IMAP::HrParseSeqSet(const std::string &strSeqSet, std::list<ULONG> &lstMails)
+{
 	if (lstFolderMailEIDs.empty())
 		return MAPI_E_NOT_FOUND;
 
@@ -4073,7 +4078,8 @@ HRESULT IMAP::HrParseSeqSet(const string &strSeqSet, list<ULONG> &lstMails) {
  */
 // @todo c store 2 (+FLAGS) (\Deleted) shouldn't but does work
 // @todo c store 2 +FLAGS (\Deleted) should and does work
-HRESULT IMAP::HrStore(const list<ULONG> &lstMails, string strMsgDataItemName, string strMsgDataItemValue, bool *lpbDoDelete)
+HRESULT IMAP::HrStore(const std::list<ULONG> &lstMails, std::string strMsgDataItemName,
+    std::string strMsgDataItemValue, bool *lpbDoDelete)
 {
 	HRESULT hr = hrSuccess;
 	std::vector<std::string> lstFlags;
@@ -4326,7 +4332,7 @@ HRESULT IMAP::HrStore(const list<ULONG> &lstMails, string strMsgDataItemName, st
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrCopy(const list<ULONG> &lstMails,
+HRESULT IMAP::HrCopy(const std::list<ULONG> &lstMails,
     const std::wstring &strFolder, bool bMove)
 {
 	object_ptr<IMAPIFolder> lpFromFolder, lpDestFolder;
@@ -4369,7 +4375,7 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
     ULONG ulStartCriteria, std::list<ULONG> &lstMailnr)
 {
 	string strSearchCriterium;
-	list<ULONG> lstMails;
+	std::list<ULONG> lstMails;
 	object_ptr<IMAPIFolder> lpFolder;
 	object_ptr<IMAPITable> lpTable;
 	enum { EID, NUM_COLS };
