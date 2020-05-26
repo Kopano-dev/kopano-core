@@ -7,6 +7,7 @@
 #include <memory>
 #include <iostream>
 #include <set>
+#include <sstream>
 #include <string>
 #include <climits>
 #include "ECVMIMEUtils.h"

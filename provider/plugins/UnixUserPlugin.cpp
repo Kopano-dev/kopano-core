@@ -19,7 +19,6 @@
 #include <vector>
 #include <sys/types.h>
 #include <pwd.h>
-#include <sstream>
 #include <cassert>
 #include <cerrno>
 #include <cstring>

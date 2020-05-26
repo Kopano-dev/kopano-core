@@ -5,7 +5,6 @@
 #include <kopano/platform.h>
 #include <iostream>
 #include <memory>
-#include <sstream>
 #include <climits>
 #include <getopt.h>
 #include <kopano/stringutil.h>

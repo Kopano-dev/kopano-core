@@ -17,7 +17,6 @@
 #include "HtmlEntity.h"
 #include "rtfutil.h"
 #include <string>
-#include <sstream>
 
 namespace KC {
 

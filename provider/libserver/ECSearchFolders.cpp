@@ -8,6 +8,7 @@
 #include <mutex>
 #include <new>
 #include <set>
+#include <sstream>
 #include <utility>
 #include <kopano/memory.hpp>
 #include <kopano/scope.hpp>
