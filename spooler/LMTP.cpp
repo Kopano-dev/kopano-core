@@ -5,7 +5,6 @@
 #include <kopano/platform.h>
 #include <cstdio>
 #include <cstdlib>
-#include <iostream>
 #include <cctype>
 #include <string>
 #include <utility>

@@ -4,7 +4,6 @@
  */
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
-#include <iostream>
 #include <memory>
 #include <string>
 #include <utility>

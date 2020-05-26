@@ -25,7 +25,6 @@
 #include <kopano/ECGetText.h>
 #include <kopano/EMSAbTag.h>
 #include <kopano/ECRestriction.h>
-#include <iostream>
 #include <kopano/Util.h>
 #include <kopano/stringutil.h>
 

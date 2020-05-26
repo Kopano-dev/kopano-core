@@ -6,7 +6,6 @@
 // From http://www.wischik.com/lu/programmer/mapi_utils.html
 // Parts rewritten by Zarafa
 #include <kopano/platform.h>
-#include <iostream>
 #include <map>
 #include <set>
 #include <kopano/codepage.h>

@@ -8,7 +8,6 @@
 #include <openssl/md5.h>
 #include <openssl/sha.h>
 #include <cstring>
-#include <iostream>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>

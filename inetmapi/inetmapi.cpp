@@ -10,7 +10,6 @@
 #include <ostream>
 #include <sstream>
 #include <string>
-#include <iostream>
 #include <cstdlib>
 #include <unistd.h>
 #include <vmime/vmime.hpp>

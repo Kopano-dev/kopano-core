@@ -9,7 +9,6 @@
 #include <mapiutil.h>
 #include <kopano/mapiext.h>
 #include "nameids.h"
-#include <iostream>
 #include "icalmem.hpp"
 
 namespace KC {

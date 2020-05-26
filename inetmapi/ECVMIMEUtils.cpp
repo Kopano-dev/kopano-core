@@ -5,7 +5,6 @@
 #include <kopano/platform.h>
 #include <exception>
 #include <memory>
-#include <iostream>
 #include <set>
 #include <sstream>
 #include <string>
