@@ -155,7 +155,7 @@ HRESULT IMAP::HrSplitInput(const std::string &strInput, std::vector<std::string>
 {
 	unsigned int uSpecialCount = 0;
 	size_t beginPos = 0, currentPos = 0, specialPos = std::string::npos;
-	string::size_type findPos = strInput.find_first_of("\"()[] ", currentPos);
+	auto findPos = strInput.find_first_of("\"()[] ", currentPos);
 
 	while (findPos != strInput.npos) {
 		if (uSpecialCount == 0 && strInput[findPos] == '"') {
@@ -999,7 +999,7 @@ HRESULT IMAP::HrCmdRename(const std::string &strTag,
 	memory_ptr<SPropValue> lppvFromEntryID, lppvDestEntryID;
 	object_ptr<IMAPIFolder> lpParentFolder, lpMakeFolder, lpSubFolder, lpMovFolder;
 	unsigned ulObjType = 0, cb;
-	string::size_type deliPos;
+	size_t deliPos;
 	std::wstring strExistingFolder, strNewFolder, strPath, strFolder;
 	SPropValue sFolderClass;
 	const std::string &strExistingFolderParam = args[0];
@@ -3322,7 +3322,6 @@ HRESULT IMAP::HrPropertyFetchRow(SPropValue *lpProps, unsigned int cValues,
 {
 	HRESULT hr = hrSuccess;
 	std::string strItem, strParts, strMessage, strMessagePart, strFlags;
-	string::size_type ulPos;
 	char szBuffer[IMAP_RESP_MAX + 1];
 	object_ptr<IMessage> lpMessage;
 	ULONG ulObjType = 0;
@@ -3581,7 +3580,7 @@ HRESULT IMAP::HrPropertyFetchRow(SPropValue *lpProps, unsigned int cValues,
 				// Nasty: even though the client requests .PEEK, it may not be present in the reply.
 				string strReply = item;
 
-				ulPos = strReply.find(".PEEK");
+				auto ulPos = strReply.find(".PEEK");
 				if (ulPos != strReply.npos)
 					strReply.erase(ulPos, strlen(".PEEK"));
 
@@ -3595,7 +3594,7 @@ HRESULT IMAP::HrPropertyFetchRow(SPropValue *lpProps, unsigned int cValues,
 			} else {
 				// Handle BODY[subparts]
 				// BODY[subpart], strParts = <subpart> (so "1.2.3" or "3.HEADER" or "TEXT" etc)
-				ulPos = strItem.find("[");
+				auto ulPos = strItem.find("[");
 				if (ulPos != strItem.npos)
 					strParts = strItem.substr(ulPos + 1);
 				ulPos = strParts.find("]");
@@ -3610,7 +3609,7 @@ HRESULT IMAP::HrPropertyFetchRow(SPropValue *lpProps, unsigned int cValues,
 			}
 
 			// Process byte-part request ( <12345.12345> ) for BODY
-			ulPos = strItem.rfind('<');
+			auto ulPos = strItem.rfind('<');
 			if (ulPos != strItem.npos) {
 				strParts = strItem.substr(ulPos + 1, strItem.size() - ulPos - 2);
 

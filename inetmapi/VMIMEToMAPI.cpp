@@ -3512,7 +3512,7 @@ static std::string parameterizedFieldToStructure(vmime::shared_ptr<vmime::parame
  */
 static size_t countBodyLines(const std::string &input, size_t start, size_t length)
 {
-	string::size_type lines = 0, pos = start;
+	size_t lines = 0, pos = start;
 
 	while (true) {
 		pos = input.find_first_of('\n', pos);
