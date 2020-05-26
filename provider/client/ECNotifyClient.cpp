@@ -5,6 +5,7 @@
 #include <kopano/platform.h>
 #include <algorithm>
 #include <list>
+#include <mutex>
 #include <stdexcept>
 #include <utility>
 #include <kopano/memory.hpp>
