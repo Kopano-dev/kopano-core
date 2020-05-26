@@ -7,7 +7,6 @@
 #include <iterator>
 #include <list>
 #include <memory>
-#include <mutex>
 #include <set>
 #include <stdexcept>
 #include <string>

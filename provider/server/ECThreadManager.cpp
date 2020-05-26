@@ -5,7 +5,6 @@
 #include <kopano/platform.h>
 #include <chrono>
 #include <memory>
-#include <mutex>
 #include <stdexcept>
 #include <string>
 #include <utility>
