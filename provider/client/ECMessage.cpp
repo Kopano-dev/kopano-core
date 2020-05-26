@@ -6,7 +6,6 @@
 #	include "config.h"
 #endif
 #include <algorithm>
-#include <new>
 #include <string>
 #include <utility>
 #include <vector>

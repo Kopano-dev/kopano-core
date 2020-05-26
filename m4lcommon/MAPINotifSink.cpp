@@ -3,7 +3,6 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <chrono>
-#include <new>
 #include <utility>
 #include <kopano/platform.h>
 #include "MAPINotifSink.h"

@@ -12,6 +12,7 @@
 #include <list>
 #include <memory>
 #include <mutex>
+#include <new>
 #include <set>
 #include <cerrno>
 #include <unistd.h>

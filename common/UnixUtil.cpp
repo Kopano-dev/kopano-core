@@ -3,7 +3,6 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <memory>
-#include <new>
 #include <vector>
 #include <kopano/platform.h>
 #include <kopano/ECConfig.h>

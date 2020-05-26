@@ -4,7 +4,6 @@
  */
 #include <kopano/platform.h>
 #include <list>
-#include <new>
 #include <utility>
 #include "ECDatabase.h"
 #include <mapidefs.h>

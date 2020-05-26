@@ -5,7 +5,6 @@
 #include <kopano/platform.h>
 #include <algorithm>
 #include <memory>
-#include <new>
 #include <utility>
 #include <kopano/ECConfig.h>
 #include <kopano/ECRestriction.h>

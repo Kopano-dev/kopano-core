@@ -6,6 +6,7 @@
 #pragma once
 #include <kopano/zcdefs.h>
 #include <type_traits> /* std::is_base_of */
+#include <new>
 #include <utility> /* std::swap */
 #include <cstdlib>
 #include <mapiutil.h> /* MAPIFreeBuffer */

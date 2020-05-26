@@ -8,7 +8,6 @@
 #include <kopano/scope.hpp>
 #include <mapiutil.h>
 #include <edkguid.h>
-#include <new>
 #include <string>
 #include <vector>
 #include <cstdint>

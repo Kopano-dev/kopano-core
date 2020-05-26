@@ -4,6 +4,7 @@
  */
 #pragma once
 #include <memory>
+#include <new>
 #include <kopano/zcdefs.h>
 #include <mapix.h>
 #include <edkmdb.h>
