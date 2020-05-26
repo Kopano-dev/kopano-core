@@ -398,7 +398,7 @@ std::list<time_t> recurrence::getDeletedExceptions() const
 
 	for (const auto &exc : m_sRecState.lstExceptions) {
 		// if startofday(exception.basedata) == present in lstDeletes, that's a move, so remove from deletes list
-		auto d = find(lstDeletedInstanceDates.begin(),
+		auto d = std::find(lstDeletedInstanceDates.begin(),
 		         lstDeletedInstanceDates.end(),
 		         exc.ulOriginalStartDate - (exc.ulOriginalStartDate % 1440));
 		if (d != lstDeletedInstanceDates.end())

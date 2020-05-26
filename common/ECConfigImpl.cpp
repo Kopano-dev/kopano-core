@@ -484,7 +484,7 @@ bool ECConfigImpl::HandleDirective(const string &strLine, unsigned int ls_flags)
 		if (strName.compare(s_sDirectives[i].lpszDirective) != 0)
 			continue;
 		/* Check if this directive is supported */
-		auto f = find(m_lDirectives.cbegin(), m_lDirectives.cend(), strName);
+		auto f = std::find(m_lDirectives.cbegin(), m_lDirectives.cend(), strName);
 		if (f != m_lDirectives.cend())
 			return (this->*s_sDirectives[i].fExecute)(strLine.substr(pos).c_str(), ls_flags);
 		warnings.emplace_back("Unsupported directive '" + strName + "' found!");

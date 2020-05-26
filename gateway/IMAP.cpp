@@ -2134,7 +2134,7 @@ int IMAP::IdleAdviseCallback2(void *lpContext, unsigned int cNotif,
 			strFlags.clear();
 			if (lpNotif[i].info.tab.row.lpProps[IMAPID].ulPropTag != PR_EC_IMAP_ID)
 				break;
-			auto iterMail = find(lpIMAP->lstFolderMailEIDs.cbegin(), lpIMAP->lstFolderMailEIDs.cend(), lpNotif[i].info.tab.row.lpProps[IMAPID].Value.ul);
+			auto iterMail = std::find(lpIMAP->lstFolderMailEIDs.cbegin(), lpIMAP->lstFolderMailEIDs.cend(), lpNotif[i].info.tab.row.lpProps[IMAPID].Value.ul);
 			// not found probably means the client needs to sync
 			if (iterMail == lpIMAP->lstFolderMailEIDs.cend())
 				break;
@@ -2637,7 +2637,7 @@ HRESULT IMAP::ChangeSubscribeList(bool bSubscribe, ULONG cbEntryID, const ENTRYI
 {
 	bool bChanged = false;
 	BinaryArray eid(lpEntryID, cbEntryID);
-	auto iFolder = find(m_vSubscriptions.begin(), m_vSubscriptions.end(), eid);
+	auto iFolder = std::find(m_vSubscriptions.begin(), m_vSubscriptions.end(), eid);
 	if (iFolder == m_vSubscriptions.cend()) {
 		if (bSubscribe) {
 			m_vSubscriptions.emplace_back(std::move(eid));
@@ -3025,7 +3025,7 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFo
 				break;
 			}
 		}
-		auto subscribed_iter = find(m_vSubscriptions.cbegin(), m_vSubscriptions.cend(), entry_id);
+		auto subscribed_iter = std::find(m_vSubscriptions.cbegin(), m_vSubscriptions.cend(), entry_id);
 		sfolder.bActive = subscribed_iter != m_vSubscriptions.cend();
 		sfolder.bSpecialFolder = IsSpecialFolder(entry_id.cb, reinterpret_cast<ENTRYID *>(entry_id.lpb), &sfolder.ulSpecialFolderType);
 		sfolder.bMailFolder = mailfolder;
@@ -3982,7 +3982,7 @@ HRESULT IMAP::HrParseSeqUidSet(const string &strSeqSet, list<ULONG> &lstMails) {
 		if (ulPos == string::npos) {
 			// single number
 			ulMailnr = LastOrNumber(vSequences[i].c_str(), true);
-			auto j = find(lstFolderMailEIDs.cbegin(), lstFolderMailEIDs.cend(), ulMailnr);
+			auto j = std::find(lstFolderMailEIDs.cbegin(), lstFolderMailEIDs.cend(), ulMailnr);
 			if (j != lstFolderMailEIDs.cend())
 				lstMails.emplace_back(std::distance(lstFolderMailEIDs.cbegin(), j));
 			continue;
