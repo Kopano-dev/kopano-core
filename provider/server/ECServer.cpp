@@ -9,6 +9,7 @@
 #include <exception>
 #include <iostream>
 #include <memory>
+#include <mutex>
 #include <new>
 #include <string>
 #include <utility>
