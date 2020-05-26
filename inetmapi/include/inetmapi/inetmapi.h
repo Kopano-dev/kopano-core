@@ -7,6 +7,7 @@
 #include <kopano/zcdefs.h>
 #include <mapix.h>
 #include <mapidefs.h>
+#include <ostream>
 #include <vector>
 #include <inetmapi/options.h>
 

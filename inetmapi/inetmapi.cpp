@@ -7,6 +7,7 @@
 #include <utility>
 #include <kopano/platform.h>
 #include <kopano/stringutil.h>
+#include <ostream>
 #include <sstream>
 #include <string>
 #include <iostream>

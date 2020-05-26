@@ -7,6 +7,7 @@
 #include <kopano/platform.h>
 #include <list>
 #include <memory>
+#include <ostream>
 #include <mapix.h>
 #include <kopano/ArchiveControl.h>
 
