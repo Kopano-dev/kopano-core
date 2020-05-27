@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-02-12 00:03+0100\n"
-"PO-Revision-Date: 2018-07-02 13:41+0000\n"
+"PO-Revision-Date: 2018-10-17 16:20+0000\n"
 "Last-Translator: Nuno Jerónimo <nuno.jeronimo@valsousa.pt>\n"
 "Language-Team: Portuguese <http://translate.kopano.io/projects/kopano/kopano-"
 "core/pt/>\n"
@@ -198,7 +198,7 @@ msgstr "Caixa de entrada"
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:137
 #: provider/client/ECMsgStore.cpp:2468
 msgid "Contacts"
-msgstr "Contatos"
+msgstr "Contactos"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:138
 #: provider/client/ECMsgStore.cpp:2514
@@ -354,11 +354,11 @@ msgstr "Definições rápidas"
 
 #: provider/client/ECMsgStore.cpp:2572
 msgid "Suggested Contacts"
-msgstr "Contatos sugeridos"
+msgstr "Contactos sugeridos"
 
 #: provider/contacts/ZCABContainer.cpp:761
 msgid "Kopano Contacts Folders"
-msgstr "Pasta de contatos Kopano"
+msgstr "Pasta de contactos Kopano"
 
 #: provider/libserver/ECGenProps.cpp:949
 msgid "Archive"

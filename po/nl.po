@@ -3,8 +3,8 @@ msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-02-12 00:03+0100\n"
-"PO-Revision-Date: 2018-01-19 20:01+0000\n"
-"Last-Translator: martijn <m.alberts@zarafa.com>\n"
+"PO-Revision-Date: 2018-10-23 14:15+0000\n"
+"Last-Translator: Bob <b.huisman@kopano.com>\n"
 "Language-Team: Dutch <http://translate.kopano.io/projects/kopano/kopano-"
 "core/nl/>\n"
 "Language: nl\n"
@@ -45,11 +45,11 @@ msgstr "Deze folder bevat archieven van alle uitgaande berichten."
 
 #: ECtools/kopano-archiver/helpers/archivehelper.cpp:938
 msgid "Deleted"
-msgstr "Verwijderd "
+msgstr "Verwijderd"
 
 #: ECtools/kopano-archiver/helpers/archivehelper.cpp:939
 msgid "This folder contains archives of messages that have been deleted."
-msgstr "Deze map bevat archieven van berichten die zijn verwijderd. "
+msgstr "Deze map bevat archieven van berichten die zijn verwijderd."
 
 #: common/Util.cpp:1783
 msgid "End of Session"
@@ -113,7 +113,7 @@ msgid ""
 "copied, deleted or moved"
 msgstr ""
 "De actie is voltooid, maar niet alle items konden worden verwerkt, "
-"gekopieerd, verwijderd of verplaatst."
+"gekopieerd, verwijderd of verplaatst"
 
 #: common/Util.cpp:1810
 msgid ""
@@ -137,12 +137,11 @@ msgstr "Een database- of I/O-fout heeft zich voorgedaan."
 
 #: common/Util.cpp:1819
 msgid "The subfolder being deleted contains subfolders."
-msgstr ""
-"De onderliggende map welke verwijdert wordt bevat zelf onderliggende mappen"
+msgstr "De onderliggende map welke verwijderd wordt bevat onderliggende mappen."
 
 #: common/Util.cpp:1822
 msgid "The subfolder being deleted contains messages."
-msgstr "De onderliggende map die verwijdert wordt bevat berichten"
+msgstr "De onderliggende map die verwijderd wordt bevat berichten."
 
 #: common/Util.cpp:1825
 msgid "No description available."
@@ -206,7 +205,6 @@ msgstr "Notities"
 msgid "Journal"
 msgstr "Logboek"
 
-
 #: provider/ECProps/OutOfOfficeDlg.cpp:84 provider/client/ClientUtil.cpp:341
 msgid "Subject:"
 msgstr "Onderwerp:"
@@ -234,11 +232,11 @@ msgstr "Problemen"
 
 #: provider/client/ECExchangeImportContentsChanges.cpp:854
 msgid "Local Failures"
-msgstr "Local Failures"
+msgstr "Lokale Fouten"
 
 #: provider/client/ECExchangeImportContentsChanges.cpp:860
 msgid "Server Failures"
-msgstr "Server Failures"
+msgstr "Server Fouten"
 
 #: provider/client/ClientUtil.cpp:81
 msgid "Available"
@@ -279,8 +277,8 @@ msgstr "Verzonden op:"
 #: provider/client/ECArchiveAwareMessage.cpp:473
 msgid "An error has occurred while fetching the message from the archive."
 msgstr ""
-"Een fout is naar voren gekomen tijdens het ophalen van het bericht uit de "
-"archive"
+"Er is een fout opgetreden tijdens het ophalen van het bericht uit het "
+"archief."
 
 #: provider/client/ECArchiveAwareMessage.cpp:475
 msgid "Please contact your system administrator."
@@ -300,7 +298,7 @@ msgstr "Het archief kon niet gevonden worden."
 
 #: provider/client/ECArchiveAwareMessage.cpp:495
 msgid "You don't have sufficient access to the archive."
-msgstr "U heeft niet de correcte rechten om het archief te openen"
+msgstr "U heeft niet voldoende rechten om het archief te openen."
 
 #: provider/client/ECArchiveAwareMessage.cpp:502 spooler/archive.cpp:339
 msgid "Error description:"
@@ -372,7 +370,7 @@ msgid ""
 "to send your email."
 msgstr ""
 "Een fatale fout is opgetreden bij het verwerken van uw bericht, en Kopano is "
-"niet in staat deze te verzenden"
+"niet in staat deze te verzenden."
 
 #: spooler/archive.cpp:241
 msgid "Unable to obtain list of attached archives."
@@ -407,7 +405,7 @@ msgstr "Het is U niet toegestaan te verzenden als gebruiker of groep "
 msgid "The user or group you try to send as could not be found."
 msgstr ""
 "De gebruiker of groep namens wie u probeert te verzenden kan niet worden "
-"gevonden"
+"gevonden."
 
 #: spooler/mailer.cpp:2554
 msgid "Error found while trying to send your message. Error code: "
@@ -415,7 +413,7 @@ msgstr "Fout gedetecteerd bij het verzenden van uw bericht. Fout code: "
 
 #: installer/linux/kopano-mr-accept:403
 msgid "Recurring meetings are not allowed"
-msgstr "Terugkerende afspraken zijn niet toegestaan."
+msgstr "Terugkerende afspraken zijn niet toegestaan"
 
 #: installer/linux/kopano-mr-accept:453
 msgid "The requested time slot is unavailable"
@@ -514,8 +512,8 @@ msgstr[1] "Vind elke %s %s plaats vanaf %s voor %s herhalingen van %s tot %s."
 #, php-format
 msgid "Occurs every %s effective %s for %s occurence."
 msgid_plural "Occurs every %s effective %s for %s occurences."
-msgstr[0] "Vind elke %s %s plaats vanaf %s voor %s herhaling."
-msgstr[1] "Vind elke %s %s plaats vanaf %s voor %s herhalingen."
+msgstr[0] "Vind elke %s plaats vanaf %s voor %s herhaling."
+msgstr[1] "Vind elke %s plaats vanaf %s voor %s herhalingen."
 
 #: php-ext/include/mapi/class.recurrence.php:619
 #, php-format
