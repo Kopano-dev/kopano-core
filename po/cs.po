@@ -6,11 +6,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-02-12 00:03+0100\n"
+"POT-Creation-Date: 2020-05-27 11:38+0200\n"
 "PO-Revision-Date: 2019-01-08 14:34+0000\n"
 "Last-Translator: Luba <luba.neuwirth@maincube.net>\n"
-"Language-Team: Czech <http://translate.kopano.io/projects/kopano/kopano-"
-"core/cs/>\n"
+"Language-Team: Czech <http://translate.kopano.io/projects/kopano/kopano-core/cs/>\n"
 "Language: cs\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -22,639 +21,460 @@ msgstr ""
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: ECtools/kopano-archiver/helpers/archivehelper.cpp:922
-msgid "Kopano Archive"
-msgstr "Archivní systém Kopano"
-
-#: ECtools/kopano-archiver/helpers/archivehelper.cpp:923
-msgid "This folder contains the special archive folders."
-msgstr "Tato složka obsahuje speciální archivní složky."
-
-#: ECtools/kopano-archiver/helpers/archivehelper.cpp:928
-msgid "History"
-msgstr "Historie"
-
-#: ECtools/kopano-archiver/helpers/archivehelper.cpp:929
-msgid ""
-"This folder contains archives that have been replaced by a newer version."
-msgstr "Tato složka obsahuje archivy, které byly nahrazeny novějšími verzemi."
-
-#: ECtools/kopano-archiver/helpers/archivehelper.cpp:933
-msgid "Outgoing"
-msgstr "K odeslání"
-
-#: ECtools/kopano-archiver/helpers/archivehelper.cpp:934
-msgid "This folder contains archives of all outgoing messages."
-msgstr "Tato složka obsahuje archiv všech zpráv k odeslání."
-
-#: ECtools/kopano-archiver/helpers/archivehelper.cpp:938
-msgid "Deleted"
-msgstr "Smazané"
-
-#: ECtools/kopano-archiver/helpers/archivehelper.cpp:939
-msgid "This folder contains archives of messages that have been deleted."
-msgstr "Tato složka obshuje archiv všech smazaných zpráv."
-
-#: common/Util.cpp:1783
-msgid "End of Session"
-msgstr "Konec relace"
-
-#: common/Util.cpp:1786
-msgid "Connection lost"
-msgstr "Spojení přerušeno"
-
-#: common/Util.cpp:1789
-msgid "Access denied"
-msgstr "Přístup odepřen"
-
-#: common/Util.cpp:1792
-msgid ""
-"Unable to move or copy folders. Can't copy folder. A top-level can't be "
-"copied to one of its subfolders. Or, you may not have appropriate "
-"permissions for the folder. To check your permissions for the folder, right-"
-"click the folder, and then click Properties on the shortcut menu."
-msgstr ""
-"Složky nelze přesunout nebo kopírovat. Složky nejvyšší úrovně nelze "
-"kopírovat do jedné z jejích podsložek. Možná nemáte příslušná oprávnění pro "
-"tuto složku. Chcete-li zkontrolovat oprávnění pro složku, klepněte pravým "
-"tlačítkem na složku a potom klepněte na příkaz Vlastnosti v místní nabídce."
-
-#: common/Util.cpp:1795
-msgid ""
-"The message store has reached its maximum size. To reduce the amount of data "
-"in this message store, select some items that you no longer need, and "
-"permanently (SHIFT + DEL) delete them."
-msgstr ""
-"Úložiště zpráv dosáhlo své maximální velikosti. Chcete-li snížit množství "
-"dat, vyberte některé položky, které již nepotřebujete, a trvale je smažte "
-"(SHIFT + DEL)."
-
-#: common/Util.cpp:1798
-msgid ""
-"The user canceled the operation, typically by clicking the Cancel button in "
-"a dialog box."
-msgstr ""
-"Uživatel zrušil operaci, obvykle kliknutím na tlačítko Zrušit v dialogovém "
-"okně."
-
-#: common/Util.cpp:1801
-msgid "A logon session could not be established."
-msgstr "Nelze vytvořit relaci přihlášení."
-
-#: common/Util.cpp:1804
-msgid ""
-"The name of the folder being moved or copied is the same as that of a "
-"subfolder in the destination folder. The message store provider requires "
-"that folder names be unique. The operation stops without completing."
-msgstr ""
-"Název složky, která je přesouvána nebo zkopírována, je stejný jako název "
-"podsložky v cílovém místě. složce. Úložiště zpráv vyžaduje, aby názvy složek "
-"být jedinečný. Operace nebyla dokončena."
-
-#: common/Util.cpp:1807
-msgid ""
-"The operation succeeded, but not all entries were successfully processed, "
-"copied, deleted or moved"
-msgstr ""
-"Operace proběhla úspěšně, ale ne všechny položky byly správně zpracovány, "
-"kopírovány, přesunuty nebo smazány"
-
-#: common/Util.cpp:1810
-msgid ""
-"The provider does not have enough information to complete the logon. Or, the "
-"service provider has not been configured."
-msgstr ""
-"Poskytovatel nemá dostatek informací k dokončení přihlášení, nebo "
-"poskytovatel služeb není nakonfigurován."
-
-#: common/Util.cpp:1813
-msgid ""
-"One of the providers cannot log on, but this error should not disable the "
-"other services."
-msgstr ""
-"Nelze se přihlásit k jednomu z poskytovatelů, ale nemělo by to ovlivnit "
-"ostatní služby."
-
-#: common/Util.cpp:1816
+#: m4lcommon/Util.cpp:1551
 msgid "A database error or I/O error has occurred."
 msgstr "Chyba databaáze nebo I/O."
 
-#: common/Util.cpp:1819
-msgid "The subfolder being deleted contains subfolders."
-msgstr "Složka, kterou chcete smazat obsahuje podsložky."
+#: spooler/Spooler.cpp:556
+msgid "A fatal error occurred while processing your message, and Kopano is unable to send your email."
+msgstr "Došlo k závažné chybě při zpracování zprávy, a proto Kopano nemůže odeslat váš email."
 
-#: common/Util.cpp:1822
-msgid "The subfolder being deleted contains messages."
-msgstr "Složka, kterou chcete smazat obsahuje zprávy."
+#: m4lcommon/Util.cpp:1536
+msgid "A logon session could not be established."
+msgstr "Nelze vytvořit relaci přihlášení."
 
-#: common/Util.cpp:1825
-msgid "No description available."
-msgstr "Popis není k dispozici."
+#: m4lcommon/Util.cpp:1524
+msgid "Access denied"
+msgstr "Přístup odepřen"
 
-#: common/Util.cpp:1827
-msgid "MAPI error code:"
-msgstr "Chyba MAPI:"
-
-#: provider/ECProps/Addin.cpp:957 provider/client/ECMsgStorePublic.cpp:547
-#: provider/client/ECMAPIFolderPublic.cpp:164
-msgid "Favorites"
-msgstr "Oblíbené"
-
-#: provider/ECProps/Addin.cpp:1269 provider/ECProps/ECFavoritePropPage.cpp:110
-#: provider/client/ECMsgStore.cpp:2403
-msgid "Shortcut"
-msgstr "Zkratka"
-
-#: provider/ECProps/PropPage.cpp:34
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:165
-#: php-ext/include/mapi/class.taskrequest.php:906
-msgid "Owner"
-msgstr "Vlastník"
-
-#: provider/ECProps/PropPage.cpp:724 provider/ECProps/MapOtherUserDlg.cpp:186
-#: provider/ECProps/ECDelegatePropPage.cpp:264
-#: provider/ECProps/ECDelegateDlg.cpp:118
-#: provider/client/ECABContainer.cpp:244 provider/client/ECABContainer.cpp:299
-#: provider/client/SettingsPropPageAdvance.cpp:245
-msgid "Global Address Book"
-msgstr "Globální adresář"
-
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:134
-#: provider/client/ECMsgStore.cpp:2480
-msgid "Calendar"
-msgstr "Kalendář"
-
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:135
-#: provider/client/ECMsgStore.cpp:2526
-msgid "Tasks"
-msgstr "Úkoly"
-
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:136
-#: provider/client/ECMsgStore.cpp:2420 provider/libserver/ECGenProps.cpp:947
-msgid "Inbox"
-msgstr "Doručená pošta"
-
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:137
-#: provider/client/ECMsgStore.cpp:2468
-msgid "Contacts"
-msgstr "Kontakty"
-
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:138
-#: provider/client/ECMsgStore.cpp:2514
-msgid "Notes"
-msgstr "Poznámky"
-
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:139
-#: provider/client/ECMsgStore.cpp:2502
-msgid "Journal"
-msgstr "Žurnál"
-
-#: provider/ECProps/OutOfOfficeDlg.cpp:84 provider/client/ClientUtil.cpp:341
-msgid "Subject:"
-msgstr "Předmět:"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:270
-#: php-ext/include/mapi/class.taskrequest.php:880
-msgid "Subject"
-msgstr "Předmět"
-
-#: provider/client/ECABContainer.cpp:246 provider/client/ECABContainer.cpp:301
-msgid "Global Address Lists"
-msgstr "Globální seznam adres"
-
-#: provider/client/ECABContainer.cpp:248 provider/client/ECABContainer.cpp:303
+#: provider/client/ECABContainer.cpp:165 provider/client/ECABContainer.cpp:210
+#: provider/client/ECABContainer.cpp:227
 msgid "All Address Lists"
 msgstr "Seznam všech adres"
 
-#: provider/client/ECExchangeImportContentsChanges.cpp:842
-msgid "Sync Issues"
-msgstr "Problémy se synchronizací"
-
-#: provider/client/ECExchangeImportContentsChanges.cpp:848
-msgid "Conflicts"
-msgstr "Konflikty"
-
-#: provider/client/ECExchangeImportContentsChanges.cpp:854
-msgid "Local Failures"
-msgstr "Místní chyby"
-
-#: provider/client/ECExchangeImportContentsChanges.cpp:860
-msgid "Server Failures"
-msgstr "Chyby serveru"
-
-#: provider/client/ClientUtil.cpp:81
-msgid "Available"
-msgstr "Dostupné"
-
-#: provider/client/ClientUtil.cpp:301
-msgid "Not read:"
-msgstr "Nepřečtené:"
-
-#: provider/client/ClientUtil.cpp:302
-msgid "was not read because it expired before reading at time"
-msgstr "nebylo přečteno protože doba platnosti vypršela"
-
-#: provider/client/ClientUtil.cpp:305
-msgid "Read:"
-msgstr "Přečteno:"
-
-#: provider/client/ClientUtil.cpp:306
-msgid "was read on"
-msgstr "bylo přečteno"
-
-#: provider/client/ClientUtil.cpp:321
-msgid "Your message"
-msgstr "Vaše zpráva"
-
-#: provider/client/ClientUtil.cpp:326
-msgid "To:"
-msgstr "Komu:"
-
-#: provider/client/ClientUtil.cpp:333
-msgid "Cc:"
-msgstr "Kopie:"
-
-#: provider/client/ClientUtil.cpp:349
-msgid "Sent on:"
-msgstr "Odesláno:"
-
-#: provider/client/ECArchiveAwareMessage.cpp:473
+#: provider/client/ECArchiveAwareMessage.cpp:369
 msgid "An error has occurred while fetching the message from the archive."
 msgstr "Nastala chyba při přesunu zprávy z archivu."
 
-#: provider/client/ECArchiveAwareMessage.cpp:475
-msgid "Please contact your system administrator."
-msgstr "Obraťte se na správce systému."
-
-#: provider/client/ECArchiveAwareMessage.cpp:478 spooler/archive.cpp:335
-msgid "Error code:"
-msgstr "Kód chyby:"
-
-#: provider/client/ECArchiveAwareMessage.cpp:487
-msgid "It seems no valid archiver license is installed."
-msgstr "Zdá se, že archivační systém nemá platnou licenci."
-
-#: provider/client/ECArchiveAwareMessage.cpp:491
-msgid "The archive could not be found."
-msgstr "Archiv nebyl nalezen."
-
-#: provider/client/ECArchiveAwareMessage.cpp:495
-msgid "You don't have sufficient access to the archive."
-msgstr "Nemáte dostatečný přístup k archivu."
-
-#: provider/client/ECArchiveAwareMessage.cpp:502 spooler/archive.cpp:339
-msgid "Error description:"
-msgstr "Popis chyby:"
-
-# what the hell is destubbed?
-#: provider/client/ECArchiveAwareMessage.cpp:531
-msgid "Archives can not be destubbed when working offline."
-msgstr "Přílohy zpráv v archívech mohou být nedostupné při práci offline."
-
-#: provider/client/ECMsgStorePublic.cpp:653
-#: provider/client/ECMAPIFolderPublic.cpp:162
-#: provider/libserver/ECGenProps.cpp:905
-msgid "Public Folders"
-msgstr "Veřejné složky"
-
-#: provider/client/ECMsgStore.cpp:2450
-msgid "Outbox"
-msgstr "K odeslání"
-
-#: provider/client/ECMsgStore.cpp:2456
-msgid "Deleted Items"
-msgstr "Koš"
-
-#: provider/client/ECMsgStore.cpp:2462
-msgid "Sent Items"
-msgstr "Odeslané"
-
-#: provider/client/ECMsgStore.cpp:2490
-msgid "Drafts"
-msgstr "Šablony"
-
-#: provider/client/ECMsgStore.cpp:2538
-msgid "Junk E-mail"
-msgstr "Nevyžádaná"
-
-#: provider/client/ECMsgStore.cpp:2560
-msgid "RSS Feeds"
-msgstr "RSS napojení"
-
-#: provider/client/ECMsgStore.cpp:2560
-msgid "RSS Feed comment"
-msgstr "Poznámka k RSS napojení"
-
-#: provider/client/ECMsgStore.cpp:2564
-msgid "Conversation Action Settings"
-msgstr "Nastavení konverzace"
-
-#: provider/client/ECMsgStore.cpp:2568
-msgid "Quick Step Settings"
-msgstr "Rychlé nastavení"
-
-#: provider/client/ECMsgStore.cpp:2572
-msgid "Suggested Contacts"
-msgstr "Navrhované kontakty"
-
-#: provider/contacts/ZCABContainer.cpp:761
-msgid "Kopano Contacts Folders"
-msgstr "Složka kontaktů Kopano"
-
-#: provider/libserver/ECGenProps.cpp:949
+#: provider/libserver/ECGenProps.cpp:766
 msgid "Archive"
 msgstr "Archiv"
 
-#: spooler/Spooler.cpp:485
-msgid ""
-"A fatal error occurred while processing your message, and Kopano is unable "
-"to send your email."
+#: provider/client/ClientUtil.cpp:73
+msgid "Available"
+msgstr "Dostupné"
+
+#: provider/client/ECMsgStore.cpp:1676
+msgid "Calendar"
+msgstr "Kalendář"
+
+#: provider/client/ClientUtil.cpp:253
+msgid "Cc:"
+msgstr "Kopie:"
+
+#: provider/client/ECExchangeImportContentsChanges.cpp:543
+msgid "Conflicts"
+msgstr "Konflikty"
+
+#: m4lcommon/Util.cpp:1521
+msgid "Connection lost"
+msgstr "Spojení přerušeno"
+
+#: provider/client/ECMsgStore.cpp:1675
+msgid "Contacts"
+msgstr "Kontakty"
+
+#: provider/client/ECMsgStore.cpp:1683
+msgid "Conversation Action Settings"
+msgstr "Nastavení konverzace"
+
+#: ECtools/archiver/helpers/ArchiveHelper.cpp:771
+msgid "Deleted"
+msgstr "Smazané"
+
+#: provider/client/ECMsgStore.cpp:1673
+msgid "Deleted Items"
+msgstr "Koš"
+
+#: provider/client/ECMsgStore.cpp:1677
+msgid "Drafts"
+msgstr "Šablony"
+
+#: m4lcommon/Util.cpp:1518
+msgid "End of Session"
+msgstr "Konec relace"
+
+#: provider/client/ECArchiveAwareMessage.cpp:374 spooler/archive.cpp:291
+msgid "Error code:"
+msgstr "Kód chyby:"
+
+#: provider/client/ECArchiveAwareMessage.cpp:399 spooler/archive.cpp:294
+msgid "Error description:"
+msgstr "Popis chyby:"
+
+#: spooler/mailer.cpp:1986
+#, fuzzy, c-format
+msgid "Error found while trying to send your message: %s (%x)"
+msgstr "Došlo k chybě při odesílání zprávy. Kód chyby: "
+
+#: provider/client/ECMAPIFolderPublic.cpp:139
+#: provider/client/ECMsgStorePublic.cpp:389
+msgid "Favorites"
+msgstr "Oblíbené"
+
+#: provider/client/ECABContainer.cpp:161 provider/client/ECABContainer.cpp:206
+#: provider/client/ECABContainer.cpp:223
+msgid "Global Address Book"
+msgstr "Globální adresář"
+
+#: provider/client/ECABContainer.cpp:163 provider/client/ECABContainer.cpp:208
+#: provider/client/ECABContainer.cpp:225
+msgid "Global Address Lists"
+msgstr "Globální seznam adres"
+
+#: ECtools/archiver/helpers/ArchiveHelper.cpp:763
+msgid "History"
+msgstr "Historie"
+
+#: provider/client/ECMsgStore.cpp:1671 provider/libserver/ECGenProps.cpp:764
+msgid "Inbox"
+msgstr "Doručená pošta"
+
+#: provider/client/ECArchiveAwareMessage.cpp:384
+msgid "It seems no valid archiver license is installed."
+msgstr "Zdá se, že archivační systém nemá platnou licenci."
+
+#: provider/client/ECMsgStore.cpp:1678
+msgid "Journal"
+msgstr "Žurnál"
+
+#: provider/client/ECMsgStore.cpp:1681
+msgid "Junk E-mail"
+msgstr "Nevyžádaná"
+
+#: ECtools/archiver/helpers/ArchiveHelper.cpp:758
+msgid "Kopano Archive"
+msgstr "Archivní systém Kopano"
+
+#: provider/contacts/ZCABContainer.cpp:680
+#: provider/contacts/ZCABContainer.cpp:682
+msgid "Kopano Contacts Folders"
+msgstr "Složka kontaktů Kopano"
+
+#: provider/client/ECExchangeImportContentsChanges.cpp:546
+msgid "Local Failures"
+msgstr "Místní chyby"
+
+#: m4lcommon/Util.cpp:1562
+msgid "MAPI error code:"
+msgstr "Chyba MAPI:"
+
+#: inetmapi/VMIMEToMAPI.cpp:1769
+#, c-format
+msgid "MIME part %s unsuitable for display: Unknown Content-Transfer-Encoding. It is made available as an attachment instead."
 msgstr ""
-"Došlo k závažné chybě při zpracování zprávy, a proto Kopano nemůže odeslat "
-"váš email."
 
-#: spooler/archive.cpp:241
-msgid "Unable to obtain list of attached archives."
-msgstr "Nelze získat seznam připojených archívů."
+#: inetmapi/VMIMEToMAPI.cpp:1877
+#, c-format
+msgid "MIME part %s unsuitable for display: Unknown Content-Type. It is made available as an attachment instead."
+msgstr ""
 
-#: spooler/archive.cpp:272
-msgid "Unable to open archive."
-msgstr "Nelze otevřít archív."
+#: inetmapi/VMIMEToMAPI.cpp:1875
+#, c-format
+msgid "MIME part %s, the highest-ranking alternative in a set and hence chosen, is insuitable for display: Unknown Content-Type. It is made available as an attachment instead."
+msgstr ""
 
-#: spooler/archive.cpp:279
-msgid "Unable to get outgoing archive folder."
-msgstr "Nelze načíst složku archívů k odeslání."
+#: inetmapi/VMIMEToMAPI.cpp:1767
+#, c-format
+msgid "MIME part %s, the highest-ranking alternative in a set and hence chosen, is unsuitable for display: Unknown Content-Transfer-Encoding. It is made available as an attachment instead."
+msgstr ""
 
-#: spooler/archive.cpp:286
-msgid "Unable to create archive message in outgoing archive folder."
-msgstr "Nelze vytvořit archivní zprávu ve složce k odeslání."
+#: m4lcommon/Util.cpp:1560
+msgid "No description available."
+msgstr "Popis není k dispozici."
 
-#: spooler/archive.cpp:292
-msgid "Unable to copy message data."
-msgstr "Nelze kopírovat obsah zprávy."
+#: provider/client/ClientUtil.cpp:224
+msgid "Not read:"
+msgstr "Nepřečtené:"
 
-#: spooler/archive.cpp:305
-msgid "Unable to save archived message."
-msgstr "Nelze uložit archivní zprávu."
+#: provider/client/ECMsgStore.cpp:1679
+msgid "Notes"
+msgstr "Poznámky"
 
-#: spooler/mailer.cpp:1717
-msgid "You are not allowed to send as user or group "
-msgstr "Nemáte oprávnění odesílat jako uživatel nebo skupina "
+#: libfreebusy/recurrence.cpp:191
+#, fuzzy, c-format
+msgid "Occurs every %s for %u occurrence(s) from %s to %s, effective %s."
+msgstr "Opakuje se vždy v %s počínaje %s, %s-krát, od %s do %s."
 
-#: spooler/mailer.cpp:1719
+#: libfreebusy/recurrence.cpp:197
+#, fuzzy, c-format
+msgid "Occurs every %s for %u occurrence(s), effective %s."
+msgstr "Opakuje se vždy v %s %s počínaje %s."
+
+#: libfreebusy/recurrence.cpp:204
+#, fuzzy, c-format
+msgid "Occurs every %s from %s to %s, effective %s until %s."
+msgstr "Opakuje se vždy v %s %s počínaje %s, do %s."
+
+#: libfreebusy/recurrence.cpp:180
+#, fuzzy, c-format
+msgid "Occurs every %s from %s to %s, effective %s."
+msgstr "Opakuje se vždy v %s %s počínaje %s."
+
+#: libfreebusy/recurrence.cpp:210
+#, fuzzy, c-format
+msgid "Occurs every %s, effective %s until %s."
+msgstr "Opakuje se vždy v %s počínaje %s, do %s."
+
+#: libfreebusy/recurrence.cpp:186
+#, fuzzy, c-format
+msgid "Occurs every %s, effective %s."
+msgstr "Opakuje se vždy v %s počínaje %s."
+
+#: libfreebusy/recurrence.cpp:193
+#, fuzzy, c-format
+msgid "Occurs every %u %s for %u occurrence(s) from %s to %s, effective %s."
+msgstr "Opakuje se vždy v %s počínaje %s, %s-krát, od %s do %s."
+
+#: libfreebusy/recurrence.cpp:199
+#, fuzzy, c-format
+msgid "Occurs every %u %s for %u occurrence(s), effective %s."
+msgstr "Opakuje se vždy v %s %s počínaje %s."
+
+#: libfreebusy/recurrence.cpp:206
+#, fuzzy, c-format
+msgid "Occurs every %u %s from %s to %s, effective %s until %s."
+msgstr "Opakuje se vždy v %s %s počínaje %s, do %s."
+
+#: libfreebusy/recurrence.cpp:182
+#, fuzzy, c-format
+msgid "Occurs every %u %s from %s to %s, effective %s."
+msgstr "Opakuje se vždy v %s %s počínaje %s."
+
+#: libfreebusy/recurrence.cpp:211
+#, fuzzy, c-format
+msgid "Occurs every %u %s, effective %s until %s."
+msgstr "Opakuje se vždy v %s %s počínaje %s, do %s."
+
+#: libfreebusy/recurrence.cpp:187
+#, fuzzy, c-format
+msgid "Occurs every %u %s, effective %s."
+msgstr "Opakuje se vždy v %s %s počínaje %s."
+
+#: libfreebusy/recurrence.cpp:213
+#, fuzzy
+msgid "Occurs sometimes."
+msgstr "Opakuje se vždy v %s počínaje %s."
+
+#: m4lcommon/Util.cpp:1548
+msgid "One of the providers cannot log on, but this error should not disable the other services."
+msgstr "Nelze se přihlásit k jednomu z poskytovatelů, ale nemělo by to ovlivnit ostatní služby."
+
+#: provider/client/ECMsgStore.cpp:1672
+msgid "Outbox"
+msgstr "K odeslání"
+
+#: ECtools/archiver/helpers/ArchiveHelper.cpp:767
+msgid "Outgoing"
+msgstr "K odeslání"
+
+#: provider/client/ECArchiveAwareMessage.cpp:371
+msgid "Please contact your system administrator."
+msgstr "Obraťte se na správce systému."
+
+#: provider/client/ECMAPIFolderPublic.cpp:137
+#: provider/client/ECMsgStorePublic.cpp:481
+#: provider/libserver/ECGenProps.cpp:724
+msgid "Public Folders"
+msgstr "Veřejné složky"
+
+#: provider/client/ECMsgStore.cpp:1684
+msgid "Quick Step Settings"
+msgstr "Rychlé nastavení"
+
+#: provider/client/ECMsgStore.cpp:1682
+msgid "RSS Feed comment"
+msgstr "Poznámka k RSS napojení"
+
+#: provider/client/ECMsgStore.cpp:1682
+msgid "RSS Feeds"
+msgstr "RSS napojení"
+
+#: provider/client/ClientUtil.cpp:228
+msgid "Read:"
+msgstr "Přečteno:"
+
+#: provider/client/ECMsgStore.cpp:1663
+msgid "Schedule"
+msgstr ""
+
+#: provider/client/ECMsgStore.cpp:1674
+msgid "Sent Items"
+msgstr "Odeslané"
+
+#: provider/client/ClientUtil.cpp:267
+msgid "Sent on:"
+msgstr "Odesláno:"
+
+#: provider/client/ECExchangeImportContentsChanges.cpp:549
+msgid "Server Failures"
+msgstr "Chyby serveru"
+
+#: provider/client/ECMsgStore.cpp:1662
+msgid "Shortcut"
+msgstr "Zkratka"
+
+#: provider/client/ClientUtil.cpp:260
+msgid "Subject:"
+msgstr "Předmět:"
+
+#: provider/client/ECMsgStore.cpp:1685
+msgid "Suggested Contacts"
+msgstr "Navrhované kontakty"
+
+#: provider/client/ECExchangeImportContentsChanges.cpp:540
+msgid "Sync Issues"
+msgstr "Problémy se synchronizací"
+
+#: provider/client/ECMsgStore.cpp:1680
+msgid "Tasks"
+msgstr "Úkoly"
+
+#: provider/client/ECArchiveAwareMessage.cpp:388
+msgid "The archive could not be found."
+msgstr "Archiv nebyl nalezen."
+
+#: m4lcommon/Util.cpp:1530
+msgid "The message store has reached its maximum size. To reduce the amount of data in this message store, select some items that you no longer need, and permanently (SHIFT + DEL) delete them."
+msgstr "Úložiště zpráv dosáhlo své maximální velikosti. Chcete-li snížit množství dat, vyberte některé položky, které již nepotřebujete, a trvale je smažte (SHIFT + DEL)."
+
+#: m4lcommon/Util.cpp:1539
+msgid "The name of the folder being moved or copied is the same as that of a subfolder in the destination folder. The message store provider requires that folder names be unique. The operation stops without completing."
+msgstr "Název složky, která je přesouvána nebo zkopírována, je stejný jako název podsložky v cílovém místě. složce. Úložiště zpráv vyžaduje, aby názvy složek být jedinečný. Operace nebyla dokončena."
+
+#: m4lcommon/Util.cpp:1542
+msgid "The operation succeeded, but not all entries were successfully processed, copied, deleted or moved"
+msgstr "Operace proběhla úspěšně, ale ne všechny položky byly správně zpracovány, kopírovány, přesunuty nebo smazány"
+
+#: m4lcommon/Util.cpp:1545
+msgid "The provider does not have enough information to complete the logon. Or, the service provider has not been configured."
+msgstr "Poskytovatel nemá dostatek informací k dokončení přihlášení, nebo poskytovatel služeb není nakonfigurován."
+
+#: m4lcommon/Util.cpp:1557
+msgid "The subfolder being deleted contains messages."
+msgstr "Složka, kterou chcete smazat obsahuje zprávy."
+
+#: m4lcommon/Util.cpp:1554
+msgid "The subfolder being deleted contains subfolders."
+msgstr "Složka, kterou chcete smazat obsahuje podsložky."
+
+#: m4lcommon/Util.cpp:1533
+msgid "The user canceled the operation, typically by clicking the Cancel button in a dialog box."
+msgstr "Uživatel zrušil operaci, obvykle kliknutím na tlačítko Zrušit v dialogovém okně."
+
+#: spooler/mailer.cpp:1290
 msgid "The user or group you try to send as could not be found."
 msgstr "Uživatel nebo skupina jako který chcete odesílat nebyl nalezen."
 
-#: spooler/mailer.cpp:2554
-msgid "Error found while trying to send your message. Error code: "
-msgstr "Došlo k chybě při odesílání zprávy. Kód chyby: "
+#: ECtools/archiver/helpers/ArchiveHelper.cpp:768
+msgid "This folder contains archives of all outgoing messages."
+msgstr "Tato složka obsahuje archiv všech zpráv k odeslání."
 
-#: installer/linux/kopano-mr-accept:403
-msgid "Recurring meetings are not allowed"
-msgstr "Opakované schůzky nejsou povoleny"
+#: ECtools/archiver/helpers/ArchiveHelper.cpp:772
+msgid "This folder contains archives of messages that have been deleted."
+msgstr "Tato složka obshuje archiv všech smazaných zpráv."
 
-#: installer/linux/kopano-mr-accept:453
-msgid "The requested time slot is unavailable"
-msgstr "Požadovaná doba není k dispozici"
+#: ECtools/archiver/helpers/ArchiveHelper.cpp:764
+msgid "This folder contains archives that have been replaced by a newer version."
+msgstr "Tato složka obsahuje archivy, které byly nahrazeny novějšími verzemi."
 
-#: installer/linux/kopano-mr-accept:455
-msgid "The requested time slots are unavailble on the following dates:"
-msgstr "Požadovaná doba není k dispozici v následujících dnech:"
+#: ECtools/archiver/helpers/ArchiveHelper.cpp:759
+msgid "This folder contains the special archive folders."
+msgstr "Tato složka obsahuje speciální archivní složky."
 
-#: installer/linux/kopano-mr-accept:458
-#, php-format
-msgid "%x %X"
-msgstr "%x %X"
+#: provider/client/ClientUtil.cpp:246
+msgid "To:"
+msgstr "Komu:"
 
-#: php-ext/include/mapi/class.recurrence.php:528
-msgid "workday"
-msgstr "pracovní den"
+#: spooler/archive.cpp:257
+msgid "Unable to copy message data."
+msgstr "Nelze kopírovat obsah zprávy."
 
-#: php-ext/include/mapi/class.recurrence.php:531
+#: spooler/archive.cpp:252
+msgid "Unable to create archive message in outgoing archive folder."
+msgstr "Nelze vytvořit archivní zprávu ve složce k odeslání."
+
+#: spooler/archive.cpp:247
+msgid "Unable to get outgoing archive folder."
+msgstr "Nelze načíst složku archívů k odeslání."
+
+#: m4lcommon/Util.cpp:1527
+msgid "Unable to move or copy folders. Can't copy folder. A top-level can't be copied to one of its subfolders. Or, you may not have appropriate permissions for the folder. To check your permissions for the folder, right-click the folder, and then click Properties on the shortcut menu."
+msgstr "Složky nelze přesunout nebo kopírovat. Složky nejvyšší úrovně nelze kopírovat do jedné z jejích podsložek. Možná nemáte příslušná oprávnění pro tuto složku. Chcete-li zkontrolovat oprávnění pro složku, klepněte pravým tlačítkem na složku a potom klepněte na příkaz Vlastnosti v místní nabídce."
+
+#: spooler/archive.cpp:211
+msgid "Unable to obtain list of attached archives."
+msgstr "Nelze získat seznam připojených archívů."
+
+#: spooler/archive.cpp:242
+msgid "Unable to open archive."
+msgstr "Nelze otevřít archív."
+
+#: spooler/archive.cpp:269
+msgid "Unable to save archived message."
+msgstr "Nelze uložit archivní zprávu."
+
+#: provider/client/ECMSProvider.cpp:366
+msgid "Unknown"
+msgstr ""
+
+#: spooler/mailer.cpp:1288
+#, fuzzy, c-format
+msgid "You are not allowed to send as user or group \"%s\""
+msgstr "Nemáte oprávnění odesílat jako uživatel nebo skupina "
+
+#: provider/client/ECArchiveAwareMessage.cpp:392
+msgid "You don't have sufficient access to the archive."
+msgstr "Nemáte dostatečný přístup k archivu."
+
+#: provider/client/ClientUtil.cpp:241
+msgid "Your message"
+msgstr "Vaše zpráva"
+
+#: provider/client/ECMsgStore.cpp:1603
+msgid "Zarafa 1"
+msgstr ""
+
+#: libfreebusy/recurrence.cpp:142
 msgid "day"
 msgstr "den"
 
-#: php-ext/include/mapi/class.recurrence.php:535
+#: libfreebusy/recurrence.cpp:145
 msgid "days"
 msgstr "dny"
 
-#: php-ext/include/mapi/class.recurrence.php:542
-msgid "week"
-msgstr "týden"
-
-#: php-ext/include/mapi/class.recurrence.php:545
-msgid "weeks"
-msgstr "týdny"
-
-#: php-ext/include/mapi/class.recurrence.php:552
+#: libfreebusy/recurrence.cpp:159
 msgid "month"
 msgstr "měsíc"
 
-#: php-ext/include/mapi/class.recurrence.php:555
+#: libfreebusy/recurrence.cpp:161
 msgid "months"
 msgstr "měsíce"
 
-#: php-ext/include/mapi/class.recurrence.php:563
+#: provider/client/ClientUtil.cpp:225
+msgid "was not read because it expired before reading at time"
+msgstr "nebylo přečteno protože doba platnosti vypršela"
+
+#: provider/client/ClientUtil.cpp:229
+msgid "was read on"
+msgstr "bylo přečteno"
+
+#: libfreebusy/recurrence.cpp:151
+msgid "week"
+msgstr "týden"
+
+#: libfreebusy/recurrence.cpp:153
+msgid "weeks"
+msgstr "týdny"
+
+#: libfreebusy/recurrence.cpp:140
+msgid "workday"
+msgstr "pracovní den"
+
+#: libfreebusy/recurrence.cpp:168
 msgid "year"
 msgstr "rok"
 
-#: php-ext/include/mapi/class.recurrence.php:567
+#: libfreebusy/recurrence.cpp:171
 msgid "years"
 msgstr "roky"
-
-#: php-ext/include/mapi/class.recurrence.php:577
-#: php-ext/include/mapi/class.recurrence.php:578
-msgid "d-m-Y"
-msgstr "d-m-R"
-
-#: php-ext/include/mapi/class.recurrence.php:579
-#: php-ext/include/mapi/class.recurrence.php:580
-msgid "G:i"
-msgstr "G:i"
-
-#: php-ext/include/mapi/class.recurrence.php:593
-#, php-format
-msgid "Occurs every %s effective %s from %s to %s."
-msgstr "Opakuje se vždy v %s počínaje %s od %s do %s."
-
-#: php-ext/include/mapi/class.recurrence.php:595
-#, php-format
-msgid "Occurs every %s %s effective %s from %s to %s."
-msgstr "Opakuje se vždy v %s %s počínaje %s od %s do %s."
-
-#: php-ext/include/mapi/class.recurrence.php:599
-#, php-format
-msgid "Occurs every %s effective %s."
-msgstr "Opakuje se vždy v %s počínaje %s."
-
-#: php-ext/include/mapi/class.recurrence.php:601
-#, php-format
-msgid "Occurs every %s %s effective %s."
-msgstr "Opakuje se vždy v %s %s počínaje %s."
-
-#: php-ext/include/mapi/class.recurrence.php:608
-#, php-format
-msgid "Occurs every %s effective %s for %s occurence from %s to %s."
-msgid_plural "Occurs every %s effective %s for %s occurences from %s to %s."
-msgstr[0] "Opakuje se vždy v %s počínaje %s, %s-krát, od %s do %s."
-msgstr[1] "Opakuje se vždy v %s počínaje %s, %s-krát, od %s do %s."
-msgstr[2] "Opakuje se vždy v %s počínaje %s, %s-krát, od %s do %s."
-
-#: php-ext/include/mapi/class.recurrence.php:611
-#, php-format
-msgid "Occurs every %s %s effective %s for %s occurence from %s to %s."
-msgid_plural "Occurs every %s %s effective %s for %s occurences %s to %s."
-msgstr[0] "Opakuje se vždy v %s %s počínaje %s, %s-krát, od %s do %s."
-msgstr[1] "Opakuje se vždy v %s %s počínaje %s, %s-krát, od %s do %s."
-msgstr[2] "Opakuje se vždy v %s %s počínaje %s, %s-krát, od %s do %s."
-
-#: php-ext/include/mapi/class.recurrence.php:616
-#, php-format
-msgid "Occurs every %s effective %s for %s occurence."
-msgid_plural "Occurs every %s effective %s for %s occurences."
-msgstr[0] "Opakuje se vždy v %s počínaje %s, %s-krát."
-msgstr[1] "Opakuje se vždy v %s počínaje %s, %s-krát."
-msgstr[2] "Opakuje se vždy v %s počínaje %s, %s-krát."
-
-#: php-ext/include/mapi/class.recurrence.php:619
-#, php-format
-msgid "Occurs every %s %s effective %s for %s occurence."
-msgid_plural "Occurs every %s %s effective %s for %s occurences."
-msgstr[0] "Opakuje se vždy v %s %s počínaje %s, %s-krát."
-msgstr[1] "Opakuje se vždy v %s %s počínaje %s, %s-krát."
-msgstr[2] "Opakuje se vždy v %s %s počínaje %s, %s-krát."
-
-#: php-ext/include/mapi/class.recurrence.php:627
-#, php-format
-msgid "Occurs every %s effective %s until %s from %s to %s."
-msgstr "Opakuje se vždy v %s počínaje %s, do %s, od %s do %s."
-
-#: php-ext/include/mapi/class.recurrence.php:629
-#, php-format
-msgid "Occurs every %s %s effective %s until %s from %s to %s."
-msgstr "Opakuje se vždy v %s %s počínaje %s, do %s, od %s do %s."
-
-#: php-ext/include/mapi/class.recurrence.php:633
-#, php-format
-msgid "Occurs every %s effective %s until %s."
-msgstr "Opakuje se vždy v %s počínaje %s, do %s."
-
-#: php-ext/include/mapi/class.recurrence.php:635
-#, php-format
-msgid "Occurs every %s %s effective %s until %s."
-msgstr "Opakuje se vždy v %s %s počínaje %s, do %s."
-
-#: php-ext/include/mapi/class.meetingrequest.php:1659
-msgid "Accepted"
-msgstr "Přijmout"
-
-#: php-ext/include/mapi/class.meetingrequest.php:1663
-msgid "Declined"
-msgstr "Odmítnout"
-
-#: php-ext/include/mapi/class.meetingrequest.php:1667
-msgid "Tentatively accepted"
-msgstr "Předběžně přijmout"
-
-#: php-ext/include/mapi/class.meetingrequest.php:1673
-msgid "New Time Proposed"
-msgstr "Jiný čas navržen"
-
-#: php-ext/include/mapi/class.meetingrequest.php:2692
-msgid "Canceled"
-msgstr "Zrušeno"
-
-#: php-ext/include/mapi/class.mapiexception.php:24
-msgid "You have insufficient privileges to open this object."
-msgstr "Nemáte dostatečná oprávnění k otevření tohoto objektu."
-
-#: php-ext/include/mapi/class.mapiexception.php:27
-msgid "Logon Failed. Please check your name/password."
-msgstr "Přihlášení selhalo. Zkontrolujte vaše jméno a heslo."
-
-#: php-ext/include/mapi/class.mapiexception.php:29
-msgid "Can not connect to Kopano server."
-msgstr "Nelze se připojit k serveru Kopano."
-
-#: php-ext/include/mapi/class.mapiexception.php:31
-msgid "Can not open object with provided id."
-msgstr "Zadaná identifikace nedovoluje otevření objektu."
-
-#: php-ext/include/mapi/class.mapiexception.php:33
-msgid "There are no recipients in the message."
-msgstr "Tato zpráva nemá žádné adresáty."
-
-#: php-ext/include/mapi/class.mapiexception.php:35
-msgid "Can not find object."
-msgstr "Objekt nelze nalézt."
-
-#: php-ext/include/mapi/class.mapiexception.php:47
-#, php-format
-msgid "Unknown MAPI Error: %s"
-msgstr "Neznámá chyba MAPI: %s"
-
-#: php-ext/include/mapi/class.taskrequest.php:881
-msgid "Start Date"
-msgstr "Začíná"
-
-#: php-ext/include/mapi/class.taskrequest.php:881
-#: php-ext/include/mapi/class.taskrequest.php:882
-msgid "%A, %B %d, %Y"
-msgstr "%A, %B %d, %Y"
-
-#: php-ext/include/mapi/class.taskrequest.php:882
-msgid "Due Date"
-msgstr "Dokončit do"
-
-#: php-ext/include/mapi/class.taskrequest.php:886
-msgid "Status"
-msgstr "Stav"
-
-#: php-ext/include/mapi/class.taskrequest.php:887
-msgid "Not Started"
-msgstr "Ještě nezačalo"
-
-#: php-ext/include/mapi/class.taskrequest.php:888
-msgid "In Progress"
-msgstr "V průběhu"
-
-#: php-ext/include/mapi/class.taskrequest.php:889
-msgid "Complete"
-msgstr "Dokončit"
-
-#: php-ext/include/mapi/class.taskrequest.php:890
-msgid "Wait for other person"
-msgstr "Počkat na ostatní"
-
-#: php-ext/include/mapi/class.taskrequest.php:891
-msgid "Deferred"
-msgstr "Odloženo"
-
-#: php-ext/include/mapi/class.taskrequest.php:895
-msgid "Percent Complete"
-msgstr "Procento dokončení"
-
-#: php-ext/include/mapi/class.taskrequest.php:898
-msgid "Date Completed"
-msgstr "Datum dokončení"
-
-#: php-ext/include/mapi/class.taskrequest.php:902
-msgid "Total Work"
-msgstr "Celková práce"
-
-#: php-ext/include/mapi/class.taskrequest.php:902
-#: php-ext/include/mapi/class.taskrequest.php:903
-msgid "hours"
-msgstr "hodin"
-
-#: php-ext/include/mapi/class.taskrequest.php:903
-msgid "Actual Work"
-msgstr "Vlasní práce"
-
-#: php-ext/include/mapi/class.taskrequest.php:911
-msgid "Billing Information"
-msgstr "Účetní informace"
-
-#: php-ext/include/mapi/class.taskrequest.php:912
-msgid "Mileage"
-msgstr "Ujetá vzdálenost"

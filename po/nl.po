@@ -2,11 +2,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-02-12 00:03+0100\n"
+"POT-Creation-Date: 2020-05-27 11:38+0200\n"
 "PO-Revision-Date: 2018-10-23 14:15+0000\n"
 "Last-Translator: Bob <b.huisman@kopano.com>\n"
-"Language-Team: Dutch <http://translate.kopano.io/projects/kopano/kopano-"
-"core/nl/>\n"
+"Language-Team: Dutch <http://translate.kopano.io/projects/kopano/kopano-core/nl/>\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -18,641 +17,460 @@ msgstr ""
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: ECtools/kopano-archiver/helpers/archivehelper.cpp:922
-msgid "Kopano Archive"
-msgstr "Kopano Archief"
-
-#: ECtools/kopano-archiver/helpers/archivehelper.cpp:923
-msgid "This folder contains the special archive folders."
-msgstr "Deze map bevat de speciale archiefmappen."
-
-#: ECtools/kopano-archiver/helpers/archivehelper.cpp:928
-msgid "History"
-msgstr "Geschiedenis"
-
-#: ECtools/kopano-archiver/helpers/archivehelper.cpp:929
-msgid ""
-"This folder contains archives that have been replaced by a newer version."
-msgstr "Deze map bevat archieven die vervangen zijn door een nieuwere versie."
-
-#: ECtools/kopano-archiver/helpers/archivehelper.cpp:933
-msgid "Outgoing"
-msgstr "Uitgaand"
-
-#: ECtools/kopano-archiver/helpers/archivehelper.cpp:934
-msgid "This folder contains archives of all outgoing messages."
-msgstr "Deze folder bevat archieven van alle uitgaande berichten."
-
-#: ECtools/kopano-archiver/helpers/archivehelper.cpp:938
-msgid "Deleted"
-msgstr "Verwijderd"
-
-#: ECtools/kopano-archiver/helpers/archivehelper.cpp:939
-msgid "This folder contains archives of messages that have been deleted."
-msgstr "Deze map bevat archieven van berichten die zijn verwijderd."
-
-#: common/Util.cpp:1783
-msgid "End of Session"
-msgstr "Einde van de Sessie"
-
-#: common/Util.cpp:1786
-msgid "Connection lost"
-msgstr "Verbinding verbroken"
-
-#: common/Util.cpp:1789
-msgid "Access denied"
-msgstr "Toegang geweigerd"
-
-#: common/Util.cpp:1792
-msgid ""
-"Unable to move or copy folders. Can't copy folder. A top-level can't be "
-"copied to one of its subfolders. Or, you may not have appropriate "
-"permissions for the folder. To check your permissions for the folder, right-"
-"click the folder, and then click Properties on the shortcut menu."
-msgstr ""
-"Kon de mappen niet verplaatsen of kopiëren. Kan map niet kopiëren. Een top-"
-"level object kan niet worden gekopieerd naar een van zijn submappen. Of u "
-"heeft niet genoeg permissies op de map. Om uw rechten te controleren, klik "
-"op de map met uw rechter muisknop, en selecteer 'Eigenschappen' in het "
-"contextmenu."
-
-#: common/Util.cpp:1795
-msgid ""
-"The message store has reached its maximum size. To reduce the amount of data "
-"in this message store, select some items that you no longer need, and "
-"permanently (SHIFT + DEL) delete them."
-msgstr ""
-"Uw store heeft zijn maximumgrootte bereikt. Om de hoeveelheid data in de "
-"store te verminderen dient u items te selecteren die u niet langer nodig "
-"heeft, en ze permanent (SHIFT + DEL) te verwijderen."
-
-#: common/Util.cpp:1798
-msgid ""
-"The user canceled the operation, typically by clicking the Cancel button in "
-"a dialog box."
-msgstr ""
-"De gebruiker heeft de operatie geannuleerd, gebruikelijk door op annuleren "
-"te klikken in een dialoog venster."
-
-#: common/Util.cpp:1801
-msgid "A logon session could not be established."
-msgstr "Er kon geen login sessie tot stand komen."
-
-#: common/Util.cpp:1804
-msgid ""
-"The name of the folder being moved or copied is the same as that of a "
-"subfolder in the destination folder. The message store provider requires "
-"that folder names be unique. The operation stops without completing."
-msgstr ""
-"De naam van de map die u verplaatst of kopieert bestaat reeds in de doelmap. "
-"Mapnamen moeten uniek zijn. De actie wordt afgebroken."
-
-#: common/Util.cpp:1807
-msgid ""
-"The operation succeeded, but not all entries were successfully processed, "
-"copied, deleted or moved"
-msgstr ""
-"De actie is voltooid, maar niet alle items konden worden verwerkt, "
-"gekopieerd, verwijderd of verplaatst"
-
-#: common/Util.cpp:1810
-msgid ""
-"The provider does not have enough information to complete the logon. Or, the "
-"service provider has not been configured."
-msgstr ""
-"De MAPI provider heeft niet genoeg informatie om uw login af te ronden. Of, "
-"de MAPI service provider is niet geconfigureerd."
-
-#: common/Util.cpp:1813
-msgid ""
-"One of the providers cannot log on, but this error should not disable the "
-"other services."
-msgstr ""
-"Een van de MAPI provider kan niet inloggen, maar deze fout zou andere "
-"services niet moeten uitschakelen."
-
-#: common/Util.cpp:1816
+#: m4lcommon/Util.cpp:1551
 msgid "A database error or I/O error has occurred."
 msgstr "Een database- of I/O-fout heeft zich voorgedaan."
 
-#: common/Util.cpp:1819
-msgid "The subfolder being deleted contains subfolders."
-msgstr "De onderliggende map welke verwijderd wordt bevat onderliggende mappen."
+#: spooler/Spooler.cpp:556
+msgid "A fatal error occurred while processing your message, and Kopano is unable to send your email."
+msgstr "Een fatale fout is opgetreden bij het verwerken van uw bericht, en Kopano is niet in staat deze te verzenden."
 
-#: common/Util.cpp:1822
-msgid "The subfolder being deleted contains messages."
-msgstr "De onderliggende map die verwijderd wordt bevat berichten."
+#: m4lcommon/Util.cpp:1536
+msgid "A logon session could not be established."
+msgstr "Er kon geen login sessie tot stand komen."
 
-#: common/Util.cpp:1825
-msgid "No description available."
-msgstr "Geen beschrijving beschikbaar."
+#: m4lcommon/Util.cpp:1524
+msgid "Access denied"
+msgstr "Toegang geweigerd"
 
-#: common/Util.cpp:1827
-msgid "MAPI error code:"
-msgstr "MAPI fout code:"
-
-#: provider/ECProps/Addin.cpp:957 provider/client/ECMsgStorePublic.cpp:547
-#: provider/client/ECMAPIFolderPublic.cpp:164
-msgid "Favorites"
-msgstr "Favorieten"
-
-#: provider/ECProps/Addin.cpp:1269 provider/ECProps/ECFavoritePropPage.cpp:110
-#: provider/client/ECMsgStore.cpp:2403
-msgid "Shortcut"
-msgstr "Snelkoppeling"
-
-#: provider/ECProps/PropPage.cpp:34
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:165
-#: php-ext/include/mapi/class.taskrequest.php:906
-msgid "Owner"
-msgstr "Eigenaar"
-
-#: provider/ECProps/PropPage.cpp:724 provider/ECProps/MapOtherUserDlg.cpp:186
-#: provider/ECProps/ECDelegatePropPage.cpp:264
-#: provider/ECProps/ECDelegateDlg.cpp:118
-#: provider/client/ECABContainer.cpp:244 provider/client/ECABContainer.cpp:299
-#: provider/client/SettingsPropPageAdvance.cpp:245
-msgid "Global Address Book"
-msgstr "Algemene adreslijst"
-
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:134
-#: provider/client/ECMsgStore.cpp:2480
-msgid "Calendar"
-msgstr "Agenda"
-
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:135
-#: provider/client/ECMsgStore.cpp:2526
-msgid "Tasks"
-msgstr "Taken"
-
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:136
-#: provider/client/ECMsgStore.cpp:2420 provider/libserver/ECGenProps.cpp:947
-msgid "Inbox"
-msgstr "Postvak IN"
-
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:137
-#: provider/client/ECMsgStore.cpp:2468
-msgid "Contacts"
-msgstr "Contactpersonen"
-
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:138
-#: provider/client/ECMsgStore.cpp:2514
-msgid "Notes"
-msgstr "Notities"
-
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:139
-#: provider/client/ECMsgStore.cpp:2502
-msgid "Journal"
-msgstr "Logboek"
-
-#: provider/ECProps/OutOfOfficeDlg.cpp:84 provider/client/ClientUtil.cpp:341
-msgid "Subject:"
-msgstr "Onderwerp:"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:270
-#: php-ext/include/mapi/class.taskrequest.php:880
-msgid "Subject"
-msgstr "Onderwerp"
-
-#: provider/client/ECABContainer.cpp:246 provider/client/ECABContainer.cpp:301
-msgid "Global Address Lists"
-msgstr "Algemene adreslijst"
-
-#: provider/client/ECABContainer.cpp:248 provider/client/ECABContainer.cpp:303
+#: provider/client/ECABContainer.cpp:165 provider/client/ECABContainer.cpp:210
+#: provider/client/ECABContainer.cpp:227
 msgid "All Address Lists"
 msgstr "Alle adreslijsten"
 
-#: provider/client/ECExchangeImportContentsChanges.cpp:842
-msgid "Sync Issues"
-msgstr "Sync problemen"
-
-#: provider/client/ECExchangeImportContentsChanges.cpp:848
-msgid "Conflicts"
-msgstr "Problemen"
-
-#: provider/client/ECExchangeImportContentsChanges.cpp:854
-msgid "Local Failures"
-msgstr "Lokale Fouten"
-
-#: provider/client/ECExchangeImportContentsChanges.cpp:860
-msgid "Server Failures"
-msgstr "Server Fouten"
-
-#: provider/client/ClientUtil.cpp:81
-msgid "Available"
-msgstr "Beschikbaar"
-
-#: provider/client/ClientUtil.cpp:301
-msgid "Not read:"
-msgstr "Ongelezen:"
-
-#: provider/client/ClientUtil.cpp:302
-msgid "was not read because it expired before reading at time"
-msgstr "was niet gelezen omdat het is verlopen voordat het gelezen werd"
-
-#: provider/client/ClientUtil.cpp:305
-msgid "Read:"
-msgstr "Gelezen:"
-
-#: provider/client/ClientUtil.cpp:306
-msgid "was read on"
-msgstr "was gelezen op"
-
-#: provider/client/ClientUtil.cpp:321
-msgid "Your message"
-msgstr "Uw bericht"
-
-#: provider/client/ClientUtil.cpp:326
-msgid "To:"
-msgstr "Aan:"
-
-#: provider/client/ClientUtil.cpp:333
-msgid "Cc:"
-msgstr "Cc:"
-
-#: provider/client/ClientUtil.cpp:349
-msgid "Sent on:"
-msgstr "Verzonden op:"
-
-#: provider/client/ECArchiveAwareMessage.cpp:473
+#: provider/client/ECArchiveAwareMessage.cpp:369
 msgid "An error has occurred while fetching the message from the archive."
-msgstr ""
-"Er is een fout opgetreden tijdens het ophalen van het bericht uit het "
-"archief."
+msgstr "Er is een fout opgetreden tijdens het ophalen van het bericht uit het archief."
 
-#: provider/client/ECArchiveAwareMessage.cpp:475
-msgid "Please contact your system administrator."
-msgstr "Neem contact op met de systeembeheerder."
-
-#: provider/client/ECArchiveAwareMessage.cpp:478 spooler/archive.cpp:335
-msgid "Error code:"
-msgstr "Fout code:"
-
-#: provider/client/ECArchiveAwareMessage.cpp:487
-msgid "It seems no valid archiver license is installed."
-msgstr "Er is mogelijk geen geldige licentie voor archiver geïnstalleerd."
-
-#: provider/client/ECArchiveAwareMessage.cpp:491
-msgid "The archive could not be found."
-msgstr "Het archief kon niet gevonden worden."
-
-#: provider/client/ECArchiveAwareMessage.cpp:495
-msgid "You don't have sufficient access to the archive."
-msgstr "U heeft niet voldoende rechten om het archief te openen."
-
-#: provider/client/ECArchiveAwareMessage.cpp:502 spooler/archive.cpp:339
-msgid "Error description:"
-msgstr "Fout beschrijving:"
-
-#: provider/client/ECArchiveAwareMessage.cpp:531
-msgid "Archives can not be destubbed when working offline."
-msgstr ""
-"Het gearchiveerde bericht kan niet worden opgehaald tijdens het offline "
-"werken."
-
-#: provider/client/ECMsgStorePublic.cpp:653
-#: provider/client/ECMAPIFolderPublic.cpp:162
-#: provider/libserver/ECGenProps.cpp:905
-msgid "Public Folders"
-msgstr "Publieke Mappen"
-
-#: provider/client/ECMsgStore.cpp:2450
-msgid "Outbox"
-msgstr "Postvak UIT"
-
-#: provider/client/ECMsgStore.cpp:2456
-msgid "Deleted Items"
-msgstr "Verwijderde items"
-
-#: provider/client/ECMsgStore.cpp:2462
-msgid "Sent Items"
-msgstr "Verzonden items"
-
-#: provider/client/ECMsgStore.cpp:2490
-msgid "Drafts"
-msgstr "Concepten"
-
-#: provider/client/ECMsgStore.cpp:2538
-msgid "Junk E-mail"
-msgstr "Ongewenste e-mail"
-
-#: provider/client/ECMsgStore.cpp:2560
-msgid "RSS Feeds"
-msgstr "RSS-kanalen"
-
-#: provider/client/ECMsgStore.cpp:2560
-msgid "RSS Feed comment"
-msgstr "Commentaar bij RSS-kanaal"
-
-#: provider/client/ECMsgStore.cpp:2564
-msgid "Conversation Action Settings"
-msgstr "Conversatie actie instellingen"
-
-#: provider/client/ECMsgStore.cpp:2568
-msgid "Quick Step Settings"
-msgstr "Snelle Handeling Instellingen"
-
-#: provider/client/ECMsgStore.cpp:2572
-msgid "Suggested Contacts"
-msgstr "Voorgestelde Contactpersonen"
-
-#: provider/contacts/ZCABContainer.cpp:761
-msgid "Kopano Contacts Folders"
-msgstr "Kopano Contacten Mappen"
-
-#: provider/libserver/ECGenProps.cpp:949
+#: provider/libserver/ECGenProps.cpp:766
 msgid "Archive"
 msgstr "Archief"
 
-#: spooler/Spooler.cpp:485
-msgid ""
-"A fatal error occurred while processing your message, and Kopano is unable "
-"to send your email."
+#: provider/client/ClientUtil.cpp:73
+msgid "Available"
+msgstr "Beschikbaar"
+
+#: provider/client/ECMsgStore.cpp:1676
+msgid "Calendar"
+msgstr "Agenda"
+
+#: provider/client/ClientUtil.cpp:253
+msgid "Cc:"
+msgstr "Cc:"
+
+#: provider/client/ECExchangeImportContentsChanges.cpp:543
+msgid "Conflicts"
+msgstr "Problemen"
+
+#: m4lcommon/Util.cpp:1521
+msgid "Connection lost"
+msgstr "Verbinding verbroken"
+
+#: provider/client/ECMsgStore.cpp:1675
+msgid "Contacts"
+msgstr "Contactpersonen"
+
+#: provider/client/ECMsgStore.cpp:1683
+msgid "Conversation Action Settings"
+msgstr "Conversatie actie instellingen"
+
+#: ECtools/archiver/helpers/ArchiveHelper.cpp:771
+msgid "Deleted"
+msgstr "Verwijderd"
+
+#: provider/client/ECMsgStore.cpp:1673
+msgid "Deleted Items"
+msgstr "Verwijderde items"
+
+#: provider/client/ECMsgStore.cpp:1677
+msgid "Drafts"
+msgstr "Concepten"
+
+#: m4lcommon/Util.cpp:1518
+msgid "End of Session"
+msgstr "Einde van de Sessie"
+
+#: provider/client/ECArchiveAwareMessage.cpp:374 spooler/archive.cpp:291
+msgid "Error code:"
+msgstr "Fout code:"
+
+#: provider/client/ECArchiveAwareMessage.cpp:399 spooler/archive.cpp:294
+msgid "Error description:"
+msgstr "Fout beschrijving:"
+
+#: spooler/mailer.cpp:1986
+#, fuzzy, c-format
+msgid "Error found while trying to send your message: %s (%x)"
+msgstr "Fout gedetecteerd bij het verzenden van uw bericht. Fout code: "
+
+#: provider/client/ECMAPIFolderPublic.cpp:139
+#: provider/client/ECMsgStorePublic.cpp:389
+msgid "Favorites"
+msgstr "Favorieten"
+
+#: provider/client/ECABContainer.cpp:161 provider/client/ECABContainer.cpp:206
+#: provider/client/ECABContainer.cpp:223
+msgid "Global Address Book"
+msgstr "Algemene adreslijst"
+
+#: provider/client/ECABContainer.cpp:163 provider/client/ECABContainer.cpp:208
+#: provider/client/ECABContainer.cpp:225
+msgid "Global Address Lists"
+msgstr "Algemene adreslijst"
+
+#: ECtools/archiver/helpers/ArchiveHelper.cpp:763
+msgid "History"
+msgstr "Geschiedenis"
+
+#: provider/client/ECMsgStore.cpp:1671 provider/libserver/ECGenProps.cpp:764
+msgid "Inbox"
+msgstr "Postvak IN"
+
+#: provider/client/ECArchiveAwareMessage.cpp:384
+msgid "It seems no valid archiver license is installed."
+msgstr "Er is mogelijk geen geldige licentie voor archiver geïnstalleerd."
+
+#: provider/client/ECMsgStore.cpp:1678
+msgid "Journal"
+msgstr "Logboek"
+
+#: provider/client/ECMsgStore.cpp:1681
+msgid "Junk E-mail"
+msgstr "Ongewenste e-mail"
+
+#: ECtools/archiver/helpers/ArchiveHelper.cpp:758
+msgid "Kopano Archive"
+msgstr "Kopano Archief"
+
+#: provider/contacts/ZCABContainer.cpp:680
+#: provider/contacts/ZCABContainer.cpp:682
+msgid "Kopano Contacts Folders"
+msgstr "Kopano Contacten Mappen"
+
+#: provider/client/ECExchangeImportContentsChanges.cpp:546
+msgid "Local Failures"
+msgstr "Lokale Fouten"
+
+#: m4lcommon/Util.cpp:1562
+msgid "MAPI error code:"
+msgstr "MAPI fout code:"
+
+#: inetmapi/VMIMEToMAPI.cpp:1769
+#, c-format
+msgid "MIME part %s unsuitable for display: Unknown Content-Transfer-Encoding. It is made available as an attachment instead."
 msgstr ""
-"Een fatale fout is opgetreden bij het verwerken van uw bericht, en Kopano is "
-"niet in staat deze te verzenden."
 
-#: spooler/archive.cpp:241
-msgid "Unable to obtain list of attached archives."
-msgstr "De lijst van aangesloten archieven kon niet worden opgehaald."
-
-#: spooler/archive.cpp:272
-msgid "Unable to open archive."
-msgstr "Niet in staat het archief te openen."
-
-#: spooler/archive.cpp:279
-msgid "Unable to get outgoing archive folder."
-msgstr "Niet in staat de uitgaande archief map op te halen."
-
-#: spooler/archive.cpp:286
-msgid "Unable to create archive message in outgoing archive folder."
+#: inetmapi/VMIMEToMAPI.cpp:1877
+#, c-format
+msgid "MIME part %s unsuitable for display: Unknown Content-Type. It is made available as an attachment instead."
 msgstr ""
-"Niet in staat een archief bericht in de uitgaande archief map aan te maken."
 
-#: spooler/archive.cpp:292
+#: inetmapi/VMIMEToMAPI.cpp:1875
+#, c-format
+msgid "MIME part %s, the highest-ranking alternative in a set and hence chosen, is insuitable for display: Unknown Content-Type. It is made available as an attachment instead."
+msgstr ""
+
+#: inetmapi/VMIMEToMAPI.cpp:1767
+#, c-format
+msgid "MIME part %s, the highest-ranking alternative in a set and hence chosen, is unsuitable for display: Unknown Content-Transfer-Encoding. It is made available as an attachment instead."
+msgstr ""
+
+#: m4lcommon/Util.cpp:1560
+msgid "No description available."
+msgstr "Geen beschrijving beschikbaar."
+
+#: provider/client/ClientUtil.cpp:224
+msgid "Not read:"
+msgstr "Ongelezen:"
+
+#: provider/client/ECMsgStore.cpp:1679
+msgid "Notes"
+msgstr "Notities"
+
+#: libfreebusy/recurrence.cpp:191
+#, fuzzy, c-format
+msgid "Occurs every %s for %u occurrence(s) from %s to %s, effective %s."
+msgstr "Vind elke %s plaats vanaf %s voor %s herhaling van %s tot %s."
+
+#: libfreebusy/recurrence.cpp:197
+#, fuzzy, c-format
+msgid "Occurs every %s for %u occurrence(s), effective %s."
+msgstr "Vind plaats elke %s %s vanaf %s."
+
+#: libfreebusy/recurrence.cpp:204
+#, fuzzy, c-format
+msgid "Occurs every %s from %s to %s, effective %s until %s."
+msgstr "Elke %s %s met ingang van %s tot %s."
+
+#: libfreebusy/recurrence.cpp:180
+#, fuzzy, c-format
+msgid "Occurs every %s from %s to %s, effective %s."
+msgstr "Vind plaats elke %s %s vanaf %s."
+
+#: libfreebusy/recurrence.cpp:210
+#, fuzzy, c-format
+msgid "Occurs every %s, effective %s until %s."
+msgstr "Vind elke %s plaats vanaf %s tot %s."
+
+#: libfreebusy/recurrence.cpp:186
+#, fuzzy, c-format
+msgid "Occurs every %s, effective %s."
+msgstr "Vind plaats elke %s vanaf %s."
+
+#: libfreebusy/recurrence.cpp:193
+#, fuzzy, c-format
+msgid "Occurs every %u %s for %u occurrence(s) from %s to %s, effective %s."
+msgstr "Vind elke %s plaats vanaf %s voor %s herhaling van %s tot %s."
+
+#: libfreebusy/recurrence.cpp:199
+#, fuzzy, c-format
+msgid "Occurs every %u %s for %u occurrence(s), effective %s."
+msgstr "Vind plaats elke %s %s vanaf %s."
+
+#: libfreebusy/recurrence.cpp:206
+#, fuzzy, c-format
+msgid "Occurs every %u %s from %s to %s, effective %s until %s."
+msgstr "Elke %s %s met ingang van %s tot %s."
+
+#: libfreebusy/recurrence.cpp:182
+#, fuzzy, c-format
+msgid "Occurs every %u %s from %s to %s, effective %s."
+msgstr "Vind plaats elke %s %s vanaf %s."
+
+#: libfreebusy/recurrence.cpp:211
+#, fuzzy, c-format
+msgid "Occurs every %u %s, effective %s until %s."
+msgstr "Elke %s %s met ingang van %s tot %s."
+
+#: libfreebusy/recurrence.cpp:187
+#, fuzzy, c-format
+msgid "Occurs every %u %s, effective %s."
+msgstr "Vind plaats elke %s %s vanaf %s."
+
+#: libfreebusy/recurrence.cpp:213
+#, fuzzy
+msgid "Occurs sometimes."
+msgstr "Vind plaats elke %s vanaf %s."
+
+#: m4lcommon/Util.cpp:1548
+msgid "One of the providers cannot log on, but this error should not disable the other services."
+msgstr "Een van de MAPI provider kan niet inloggen, maar deze fout zou andere services niet moeten uitschakelen."
+
+#: provider/client/ECMsgStore.cpp:1672
+msgid "Outbox"
+msgstr "Postvak UIT"
+
+#: ECtools/archiver/helpers/ArchiveHelper.cpp:767
+msgid "Outgoing"
+msgstr "Uitgaand"
+
+#: provider/client/ECArchiveAwareMessage.cpp:371
+msgid "Please contact your system administrator."
+msgstr "Neem contact op met de systeembeheerder."
+
+#: provider/client/ECMAPIFolderPublic.cpp:137
+#: provider/client/ECMsgStorePublic.cpp:481
+#: provider/libserver/ECGenProps.cpp:724
+msgid "Public Folders"
+msgstr "Publieke Mappen"
+
+#: provider/client/ECMsgStore.cpp:1684
+msgid "Quick Step Settings"
+msgstr "Snelle Handeling Instellingen"
+
+#: provider/client/ECMsgStore.cpp:1682
+msgid "RSS Feed comment"
+msgstr "Commentaar bij RSS-kanaal"
+
+#: provider/client/ECMsgStore.cpp:1682
+msgid "RSS Feeds"
+msgstr "RSS-kanalen"
+
+#: provider/client/ClientUtil.cpp:228
+msgid "Read:"
+msgstr "Gelezen:"
+
+#: provider/client/ECMsgStore.cpp:1663
+msgid "Schedule"
+msgstr ""
+
+#: provider/client/ECMsgStore.cpp:1674
+msgid "Sent Items"
+msgstr "Verzonden items"
+
+#: provider/client/ClientUtil.cpp:267
+msgid "Sent on:"
+msgstr "Verzonden op:"
+
+#: provider/client/ECExchangeImportContentsChanges.cpp:549
+msgid "Server Failures"
+msgstr "Server Fouten"
+
+#: provider/client/ECMsgStore.cpp:1662
+msgid "Shortcut"
+msgstr "Snelkoppeling"
+
+#: provider/client/ClientUtil.cpp:260
+msgid "Subject:"
+msgstr "Onderwerp:"
+
+#: provider/client/ECMsgStore.cpp:1685
+msgid "Suggested Contacts"
+msgstr "Voorgestelde Contactpersonen"
+
+#: provider/client/ECExchangeImportContentsChanges.cpp:540
+msgid "Sync Issues"
+msgstr "Sync problemen"
+
+#: provider/client/ECMsgStore.cpp:1680
+msgid "Tasks"
+msgstr "Taken"
+
+#: provider/client/ECArchiveAwareMessage.cpp:388
+msgid "The archive could not be found."
+msgstr "Het archief kon niet gevonden worden."
+
+#: m4lcommon/Util.cpp:1530
+msgid "The message store has reached its maximum size. To reduce the amount of data in this message store, select some items that you no longer need, and permanently (SHIFT + DEL) delete them."
+msgstr "Uw store heeft zijn maximumgrootte bereikt. Om de hoeveelheid data in de store te verminderen dient u items te selecteren die u niet langer nodig heeft, en ze permanent (SHIFT + DEL) te verwijderen."
+
+#: m4lcommon/Util.cpp:1539
+msgid "The name of the folder being moved or copied is the same as that of a subfolder in the destination folder. The message store provider requires that folder names be unique. The operation stops without completing."
+msgstr "De naam van de map die u verplaatst of kopieert bestaat reeds in de doelmap. Mapnamen moeten uniek zijn. De actie wordt afgebroken."
+
+#: m4lcommon/Util.cpp:1542
+msgid "The operation succeeded, but not all entries were successfully processed, copied, deleted or moved"
+msgstr "De actie is voltooid, maar niet alle items konden worden verwerkt, gekopieerd, verwijderd of verplaatst"
+
+#: m4lcommon/Util.cpp:1545
+msgid "The provider does not have enough information to complete the logon. Or, the service provider has not been configured."
+msgstr "De MAPI provider heeft niet genoeg informatie om uw login af te ronden. Of, de MAPI service provider is niet geconfigureerd."
+
+#: m4lcommon/Util.cpp:1557
+msgid "The subfolder being deleted contains messages."
+msgstr "De onderliggende map die verwijderd wordt bevat berichten."
+
+#: m4lcommon/Util.cpp:1554
+msgid "The subfolder being deleted contains subfolders."
+msgstr "De onderliggende map welke verwijderd wordt bevat onderliggende mappen."
+
+#: m4lcommon/Util.cpp:1533
+msgid "The user canceled the operation, typically by clicking the Cancel button in a dialog box."
+msgstr "De gebruiker heeft de operatie geannuleerd, gebruikelijk door op annuleren te klikken in een dialoog venster."
+
+#: spooler/mailer.cpp:1290
+msgid "The user or group you try to send as could not be found."
+msgstr "De gebruiker of groep namens wie u probeert te verzenden kan niet worden gevonden."
+
+#: ECtools/archiver/helpers/ArchiveHelper.cpp:768
+msgid "This folder contains archives of all outgoing messages."
+msgstr "Deze folder bevat archieven van alle uitgaande berichten."
+
+#: ECtools/archiver/helpers/ArchiveHelper.cpp:772
+msgid "This folder contains archives of messages that have been deleted."
+msgstr "Deze map bevat archieven van berichten die zijn verwijderd."
+
+#: ECtools/archiver/helpers/ArchiveHelper.cpp:764
+msgid "This folder contains archives that have been replaced by a newer version."
+msgstr "Deze map bevat archieven die vervangen zijn door een nieuwere versie."
+
+#: ECtools/archiver/helpers/ArchiveHelper.cpp:759
+msgid "This folder contains the special archive folders."
+msgstr "Deze map bevat de speciale archiefmappen."
+
+#: provider/client/ClientUtil.cpp:246
+msgid "To:"
+msgstr "Aan:"
+
+#: spooler/archive.cpp:257
 msgid "Unable to copy message data."
 msgstr "Niet in staat bericht data te kopiëren."
 
-#: spooler/archive.cpp:305
+#: spooler/archive.cpp:252
+msgid "Unable to create archive message in outgoing archive folder."
+msgstr "Niet in staat een archief bericht in de uitgaande archief map aan te maken."
+
+#: spooler/archive.cpp:247
+msgid "Unable to get outgoing archive folder."
+msgstr "Niet in staat de uitgaande archief map op te halen."
+
+#: m4lcommon/Util.cpp:1527
+msgid "Unable to move or copy folders. Can't copy folder. A top-level can't be copied to one of its subfolders. Or, you may not have appropriate permissions for the folder. To check your permissions for the folder, right-click the folder, and then click Properties on the shortcut menu."
+msgstr "Kon de mappen niet verplaatsen of kopiëren. Kan map niet kopiëren. Een top-level object kan niet worden gekopieerd naar een van zijn submappen. Of u heeft niet genoeg permissies op de map. Om uw rechten te controleren, klik op de map met uw rechter muisknop, en selecteer 'Eigenschappen' in het contextmenu."
+
+#: spooler/archive.cpp:211
+msgid "Unable to obtain list of attached archives."
+msgstr "De lijst van aangesloten archieven kon niet worden opgehaald."
+
+#: spooler/archive.cpp:242
+msgid "Unable to open archive."
+msgstr "Niet in staat het archief te openen."
+
+#: spooler/archive.cpp:269
 msgid "Unable to save archived message."
 msgstr "Niet in staat het gearchiveerde bericht op te slaan."
 
-#: spooler/mailer.cpp:1717
-msgid "You are not allowed to send as user or group "
+#: provider/client/ECMSProvider.cpp:366
+msgid "Unknown"
+msgstr ""
+
+#: spooler/mailer.cpp:1288
+#, fuzzy, c-format
+msgid "You are not allowed to send as user or group \"%s\""
 msgstr "Het is U niet toegestaan te verzenden als gebruiker of groep "
 
-#: spooler/mailer.cpp:1719
-msgid "The user or group you try to send as could not be found."
+#: provider/client/ECArchiveAwareMessage.cpp:392
+msgid "You don't have sufficient access to the archive."
+msgstr "U heeft niet voldoende rechten om het archief te openen."
+
+#: provider/client/ClientUtil.cpp:241
+msgid "Your message"
+msgstr "Uw bericht"
+
+#: provider/client/ECMsgStore.cpp:1603
+msgid "Zarafa 1"
 msgstr ""
-"De gebruiker of groep namens wie u probeert te verzenden kan niet worden "
-"gevonden."
 
-#: spooler/mailer.cpp:2554
-msgid "Error found while trying to send your message. Error code: "
-msgstr "Fout gedetecteerd bij het verzenden van uw bericht. Fout code: "
-
-#: installer/linux/kopano-mr-accept:403
-msgid "Recurring meetings are not allowed"
-msgstr "Terugkerende afspraken zijn niet toegestaan"
-
-#: installer/linux/kopano-mr-accept:453
-msgid "The requested time slot is unavailable"
-msgstr "De aangevraagde tijdspanne is niet beschikbaar"
-
-#: installer/linux/kopano-mr-accept:455
-msgid "The requested time slots are unavailble on the following dates:"
-msgstr "De aangevraagde tijden zijn niet beschikbaar op de volgende datums:"
-
-#: installer/linux/kopano-mr-accept:458
-#, php-format
-msgid "%x %X"
-msgstr "%x %X"
-
-#: php-ext/include/mapi/class.recurrence.php:528
-msgid "workday"
-msgstr "werkdag"
-
-#: php-ext/include/mapi/class.recurrence.php:531
+#: libfreebusy/recurrence.cpp:142
 msgid "day"
 msgstr "dag"
 
-#: php-ext/include/mapi/class.recurrence.php:535
+#: libfreebusy/recurrence.cpp:145
 msgid "days"
 msgstr "dagen"
 
-#: php-ext/include/mapi/class.recurrence.php:542
-msgid "week"
-msgstr "week"
-
-#: php-ext/include/mapi/class.recurrence.php:545
-msgid "weeks"
-msgstr "weken"
-
-#: php-ext/include/mapi/class.recurrence.php:552
+#: libfreebusy/recurrence.cpp:159
 msgid "month"
 msgstr "maand"
 
-#: php-ext/include/mapi/class.recurrence.php:555
+#: libfreebusy/recurrence.cpp:161
 msgid "months"
 msgstr "maanden"
 
-#: php-ext/include/mapi/class.recurrence.php:563
+#: provider/client/ClientUtil.cpp:225
+msgid "was not read because it expired before reading at time"
+msgstr "was niet gelezen omdat het is verlopen voordat het gelezen werd"
+
+#: provider/client/ClientUtil.cpp:229
+msgid "was read on"
+msgstr "was gelezen op"
+
+#: libfreebusy/recurrence.cpp:151
+msgid "week"
+msgstr "week"
+
+#: libfreebusy/recurrence.cpp:153
+msgid "weeks"
+msgstr "weken"
+
+#: libfreebusy/recurrence.cpp:140
+msgid "workday"
+msgstr "werkdag"
+
+#: libfreebusy/recurrence.cpp:168
 msgid "year"
 msgstr "jaar"
 
-#: php-ext/include/mapi/class.recurrence.php:567
+#: libfreebusy/recurrence.cpp:171
 msgid "years"
 msgstr "jaren"
-
-#: php-ext/include/mapi/class.recurrence.php:577
-#: php-ext/include/mapi/class.recurrence.php:578
-msgid "d-m-Y"
-msgstr "d-m-Y"
-
-#: php-ext/include/mapi/class.recurrence.php:579
-#: php-ext/include/mapi/class.recurrence.php:580
-msgid "G:i"
-msgstr "G:i"
-
-#: php-ext/include/mapi/class.recurrence.php:593
-#, php-format
-msgid "Occurs every %s effective %s from %s to %s."
-msgstr "Vind plaats elke %s vanaf %s van %s tot %s."
-
-#: php-ext/include/mapi/class.recurrence.php:595
-#, php-format
-msgid "Occurs every %s %s effective %s from %s to %s."
-msgstr "Vind plaats elke %s %s vanaf %s van %s tot %s."
-
-#: php-ext/include/mapi/class.recurrence.php:599
-#, php-format
-msgid "Occurs every %s effective %s."
-msgstr "Vind plaats elke %s vanaf %s."
-
-#: php-ext/include/mapi/class.recurrence.php:601
-#, php-format
-msgid "Occurs every %s %s effective %s."
-msgstr "Vind plaats elke %s %s vanaf %s."
-
-#: php-ext/include/mapi/class.recurrence.php:608
-#, php-format
-msgid "Occurs every %s effective %s for %s occurence from %s to %s."
-msgid_plural "Occurs every %s effective %s for %s occurences from %s to %s."
-msgstr[0] "Vind elke %s plaats vanaf %s voor %s herhaling van %s tot %s."
-msgstr[1] "Vind elke %s plaats vanaf %s voor %s herhalingen van %s tot %s."
-
-#: php-ext/include/mapi/class.recurrence.php:611
-#, php-format
-msgid "Occurs every %s %s effective %s for %s occurence from %s to %s."
-msgid_plural "Occurs every %s %s effective %s for %s occurences %s to %s."
-msgstr[0] "Vind elke %s %s plaats vanaf %s voor %s herhaling van %s tot %s."
-msgstr[1] "Vind elke %s %s plaats vanaf %s voor %s herhalingen van %s tot %s."
-
-#: php-ext/include/mapi/class.recurrence.php:616
-#, php-format
-msgid "Occurs every %s effective %s for %s occurence."
-msgid_plural "Occurs every %s effective %s for %s occurences."
-msgstr[0] "Vind elke %s plaats vanaf %s voor %s herhaling."
-msgstr[1] "Vind elke %s plaats vanaf %s voor %s herhalingen."
-
-#: php-ext/include/mapi/class.recurrence.php:619
-#, php-format
-msgid "Occurs every %s %s effective %s for %s occurence."
-msgid_plural "Occurs every %s %s effective %s for %s occurences."
-msgstr[0] "Vind elke %s %s plaats vanaf %s voor %s herhaling."
-msgstr[1] "Vind elke %s %s plaats vanaf %s voor %s herhalingen."
-
-#: php-ext/include/mapi/class.recurrence.php:627
-#, php-format
-msgid "Occurs every %s effective %s until %s from %s to %s."
-msgstr "Vind elke %s plaats vanaf %s tot %s van %s tot %s."
-
-#: php-ext/include/mapi/class.recurrence.php:629
-#, php-format
-msgid "Occurs every %s %s effective %s until %s from %s to %s."
-msgstr "Vind elke %s %s plaats vanaf %s tot %s van %s tot %s."
-
-#: php-ext/include/mapi/class.recurrence.php:633
-#, php-format
-msgid "Occurs every %s effective %s until %s."
-msgstr "Vind elke %s plaats vanaf %s tot %s."
-
-#: php-ext/include/mapi/class.recurrence.php:635
-#, php-format
-msgid "Occurs every %s %s effective %s until %s."
-msgstr "Elke %s %s met ingang van %s tot %s."
-
-#: php-ext/include/mapi/class.meetingrequest.php:1659
-msgid "Accepted"
-msgstr "Geaccepteerd"
-
-#: php-ext/include/mapi/class.meetingrequest.php:1663
-msgid "Declined"
-msgstr "Afgewezen"
-
-#: php-ext/include/mapi/class.meetingrequest.php:1667
-msgid "Tentatively accepted"
-msgstr "Voorlopig geaccepteerd"
-
-#: php-ext/include/mapi/class.meetingrequest.php:1673
-msgid "New Time Proposed"
-msgstr "Nieuw tijd voor gesteld"
-
-#: php-ext/include/mapi/class.meetingrequest.php:2692
-msgid "Canceled"
-msgstr "Geannuleerd"
-
-#: php-ext/include/mapi/class.mapiexception.php:24
-msgid "You have insufficient privileges to open this object."
-msgstr "U heeft onvoldoende rechten om dit object te openen."
-
-#: php-ext/include/mapi/class.mapiexception.php:27
-msgid "Logon Failed. Please check your name/password."
-msgstr "Inloggen mislukt. Controleer naam/wachtwoord."
-
-#: php-ext/include/mapi/class.mapiexception.php:29
-msgid "Can not connect to Kopano server."
-msgstr "Kan geen verbinding maken met de Kopano server."
-
-#: php-ext/include/mapi/class.mapiexception.php:31
-msgid "Can not open object with provided id."
-msgstr "Kan object met opgegeven id niet openen."
-
-#: php-ext/include/mapi/class.mapiexception.php:33
-msgid "There are no recipients in the message."
-msgstr "Er zijn geen geadresseerden in het bericht."
-
-#: php-ext/include/mapi/class.mapiexception.php:35
-msgid "Can not find object."
-msgstr "Kan object niet vinden."
-
-#: php-ext/include/mapi/class.mapiexception.php:47
-#, php-format
-msgid "Unknown MAPI Error: %s"
-msgstr "Onbekende MAPI-Fout: %s"
-
-#: php-ext/include/mapi/class.taskrequest.php:881
-msgid "Start Date"
-msgstr "Begindatum"
-
-#: php-ext/include/mapi/class.taskrequest.php:881
-#: php-ext/include/mapi/class.taskrequest.php:882
-msgid "%A, %B %d, %Y"
-msgstr "%A, %B %d, %Y"
-
-#: php-ext/include/mapi/class.taskrequest.php:882
-msgid "Due Date"
-msgstr "Einddatum"
-
-#: php-ext/include/mapi/class.taskrequest.php:886
-msgid "Status"
-msgstr "Status"
-
-#: php-ext/include/mapi/class.taskrequest.php:887
-msgid "Not Started"
-msgstr "Niet Gestart"
-
-#: php-ext/include/mapi/class.taskrequest.php:888
-msgid "In Progress"
-msgstr "Word uitgevoerd"
-
-#: php-ext/include/mapi/class.taskrequest.php:889
-msgid "Complete"
-msgstr "Voltooid"
-
-#: php-ext/include/mapi/class.taskrequest.php:890
-msgid "Wait for other person"
-msgstr "Wacht op iemand anders"
-
-#: php-ext/include/mapi/class.taskrequest.php:891
-msgid "Deferred"
-msgstr "Uitgesteld"
-
-#: php-ext/include/mapi/class.taskrequest.php:895
-msgid "Percent Complete"
-msgstr "Percentage Afgerond"
-
-#: php-ext/include/mapi/class.taskrequest.php:898
-msgid "Date Completed"
-msgstr "Datum voltooid"
-
-#: php-ext/include/mapi/class.taskrequest.php:902
-msgid "Total Work"
-msgstr "Totale hoeveelheid werk"
-
-#: php-ext/include/mapi/class.taskrequest.php:902
-#: php-ext/include/mapi/class.taskrequest.php:903
-msgid "hours"
-msgstr "Uren"
-
-#: php-ext/include/mapi/class.taskrequest.php:903
-msgid "Actual Work"
-msgstr "Werkelijk Verricht"
-
-#: php-ext/include/mapi/class.taskrequest.php:911
-msgid "Billing Information"
-msgstr "Factuurinformatie"
-
-#: php-ext/include/mapi/class.taskrequest.php:912
-msgid "Mileage"
-msgstr "Reisafstand"
