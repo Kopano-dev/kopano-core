@@ -3,6 +3,7 @@
  * Copyright 2018 Kopano and its licensors
  */
 #include <algorithm>
+#include <atomic>
 #include <memory>
 #include <mutex>
 #include <new>
