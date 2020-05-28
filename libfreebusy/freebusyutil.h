@@ -11,7 +11,6 @@
  * @{
  */
 #pragma once
-#include <string>
 #include "freebusy.h"
 #include "ECFBBlockList.h"
 

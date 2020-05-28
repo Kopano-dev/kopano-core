@@ -21,7 +21,6 @@
 #include "ArchiverSession.h"
 #include <kopano/Util.h>
 #include <kopano/mapiguidext.h>
-#include <string>
 
 using namespace KC::helpers;
 

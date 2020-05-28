@@ -4,7 +4,6 @@
  */
 #include <kopano/platform.h>
 #include <memory>
-#include <string>
 #include <cerrno>
 #include <cstring>
 #include <sys/un.h>
