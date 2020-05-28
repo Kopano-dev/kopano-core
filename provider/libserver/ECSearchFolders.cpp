@@ -403,14 +403,14 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 	auto cache = m_lpSessionManager->GetCacheManager();
 	for (const auto &folder : iterStore->second) {
 		ULONG ulAttempts = 4;	// Random number
+		const auto &scrit = *folder.second->lpSearchCriteria;
 
 		do {
 			bool bIsInTargetFolder = false;
 			int lCount = 0; /* Number of messages added, positive means more added, negative means more discarded */
 			int lUnreadCount = 0; /* Same, but for unread count */
 
-			if (folder.second->lpSearchCriteria->lpFolders == NULL ||
-			    folder.second->lpSearchCriteria->lpRestrict == NULL)
+			if (scrit.lpFolders == nullptr || scrit.lpRestrict == nullptr)
 				continue;
 			auto dtx = lpDatabase->Begin(er);
 			if (er != erSuccess)
@@ -440,15 +440,15 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 
 			if(ulType != ECKeyTable::TABLE_ROW_DELETE) {
 				// Loop through all targets for each searchfolder, if one matches, then match the restriction with the objects
-				for (unsigned int i = 0; i < folder.second->lpSearchCriteria->lpFolders->__size; ++i)
-					if (cache->GetObjectFromEntryId(&folder.second->lpSearchCriteria->lpFolders->__ptr[i], &ulSCFolderId) == erSuccess &&
+				for (unsigned int i = 0; i < scrit.lpFolders->__size; ++i)
+					if (cache->GetObjectFromEntryId(&scrit.lpFolders->__ptr[i], &ulSCFolderId) == erSuccess &&
 						ulSCFolderId == ulFolderId)
 					{
 						bIsInTargetFolder = true;
 						break;
 					}
 
-				if (!bIsInTargetFolder && folder.second->lpSearchCriteria->ulFlags & RECURSIVE_SEARCH) {
+				if (!bIsInTargetFolder && scrit.ulFlags & RECURSIVE_SEARCH) {
 					// The item is not in one of the base folders, but it may be in one of children of the folders.
 					// We do it in this order because the GetParent() calls below may cause database accesses, so
 					// we only actually do those database accesses if we have to.
@@ -466,8 +466,8 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 
 					// setParents now contains all the parent of this object, now we can check if any of the ancestors
 					// are in the search target
-					for (unsigned int i = 0; i < folder.second->lpSearchCriteria->lpFolders->__size; ++i) {
-						if (cache->GetObjectFromEntryId(&folder.second->lpSearchCriteria->lpFolders->__ptr[i], &ulSCFolderId) != erSuccess)
+					for (unsigned int i = 0; i < scrit.lpFolders->__size; ++i) {
+						if (cache->GetObjectFromEntryId(&scrit.lpFolders->__ptr[i], &ulSCFolderId) != erSuccess)
 							continue;
 						auto iterParents = setParents.find(ulSCFolderId);
 						if (iterParents != setParents.cend()) {
@@ -501,7 +501,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 
 				if(ulType == ECKeyTable::TABLE_ROW_ADD || ulType == ECKeyTable::TABLE_ROW_MODIFY) {
 					// Get the restriction ready for this search folder
-					er = ECGenericObjectTable::GetRestrictPropTags(folder.second->lpSearchCriteria->lpRestrict, &lstPrefix, &lpPropTags);
+					er = ECGenericObjectTable::GetRestrictPropTags(scrit.lpRestrict, &lstPrefix, &lpPropTags);
 					if(er != erSuccess) {
 						ec_log_crit("ECSearchFolders::ProcessMessageChange(): ECGenericObjectTable::GetRestrictPropTags failed %d", er);
 						goto exit;
@@ -513,7 +513,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 						goto exit;
 					}
 					SUBRESTRICTIONRESULTS sub_results;
-					er = RunSubRestrictions(lpSession, &ecOBStore, folder.second->lpSearchCriteria->lpRestrict, lstObjectIDs, locale, sub_results);
+					er = RunSubRestrictions(lpSession, &ecOBStore, scrit.lpRestrict, lstObjectIDs, locale, sub_results);
 					if(er != erSuccess) {
 						ec_log_crit("ECSearchFolders::ProcessMessageChange(): RunSubRestrictions failed %d", er);
 						goto exit;
@@ -525,7 +525,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 						bool fMatch;
 
 						// Match the restriction
-						er = ECGenericObjectTable::MatchRowRestrict(cache, &lpRowSet->__ptr[i], folder.second->lpSearchCriteria->lpRestrict, &sub_results, locale, &fMatch);
+						er = ECGenericObjectTable::MatchRowRestrict(cache, &lpRowSet->__ptr[i], scrit.lpRestrict, &sub_results, locale, &fMatch);
 						if (er != erSuccess)
 							continue;
 						if (fMatch) {
