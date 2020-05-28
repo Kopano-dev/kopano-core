@@ -5,6 +5,7 @@
 #pragma once
 #include <list>
 #include <map>
+#include <string>
 #include <mapidefs.h>
 #include <mapicode.h>
 #include <kopano/stringutil.h>

@@ -4,6 +4,7 @@
  */
 #include <algorithm>
 #include <new>
+#include <string>
 #include <cstdlib>
 #include <libical/vcc.h>
 #include <libical/vobject.h>

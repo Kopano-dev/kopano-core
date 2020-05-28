@@ -4,6 +4,7 @@
  */
 #pragma once
 #include <list>
+#include <string>
 #include "WebDav.h"
 #include <kopano/mapiext.h>
 #include <kopano/mapiguidext.h>

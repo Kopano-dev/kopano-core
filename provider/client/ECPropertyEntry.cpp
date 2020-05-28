@@ -5,6 +5,7 @@
 #include <kopano/platform.h>
 #include <memory>
 #include <new>
+#include <string>
 #include <utility>
 #include "ECPropertyEntry.h"
 #include "Mem.h"

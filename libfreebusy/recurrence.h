@@ -9,6 +9,7 @@
 #include <mapix.h>
 #include <kopano/Util.h>
 #include <list>
+#include <string>
 #include <vector>
 #include <kopano/timeutil.hpp>
 #include "freebusy.h"
