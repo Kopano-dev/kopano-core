@@ -9,6 +9,7 @@
 #include <memory>
 #include <new>
 #include <vector>
+#include <cerrno>
 #include <cstdio>
 #include <cstdlib>
 #include <syslog.h>

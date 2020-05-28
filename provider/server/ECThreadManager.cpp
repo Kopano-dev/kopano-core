@@ -9,6 +9,7 @@
 #include <string>
 #include <utility>
 #include "ECThreadManager.h"
+#include <cerrno>
 #include <cmath>
 #include <cstdlib>
 #include <poll.h>

@@ -8,6 +8,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <cerrno>
 #include <climits>
 #include "mailer.h"
 #include "archive.h"

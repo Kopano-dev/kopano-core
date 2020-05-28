@@ -22,7 +22,6 @@
 #include <cstddef>
 #include <libgen.h>
 #include <byteswap.h>
-#include <cerrno>
 #include <clocale>
 
 #define __STDC_FORMAT_MACROS

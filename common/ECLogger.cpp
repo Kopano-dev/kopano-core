@@ -16,6 +16,7 @@
 #include <utility>
 #include <vector>
 #include <cassert>
+#include <cerrno>
 #include <climits>
 #include <clocale>
 #include <pthread.h>

@@ -12,6 +12,7 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
+#include <cerrno>
 #include <climits>
 #include <cstdlib>
 #include <poll.h>

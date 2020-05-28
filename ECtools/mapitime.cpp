@@ -8,7 +8,6 @@
 #include <mutex>
 #include <string>
 #include <utility>
-#include <cerrno>
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>

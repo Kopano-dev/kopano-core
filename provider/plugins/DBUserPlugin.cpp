@@ -6,7 +6,6 @@
 #include <memory>
 #include <string>
 #include <stdexcept>
-#include <cerrno>
 #include <cassert>
 #include <mutex>
 #include <utility>

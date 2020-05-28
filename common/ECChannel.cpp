@@ -11,6 +11,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <cerrno>
 #include <climits>
 #include <cstdint>
 #include <cstdio>
