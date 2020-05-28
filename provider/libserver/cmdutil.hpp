@@ -6,6 +6,7 @@
 #include <kopano/zcdefs.h>
 #include <memory>
 #include <stdexcept>
+#include <tuple>
 #include <utility>
 #include "ECICS.h"
 #include "SOAPUtils.h"
