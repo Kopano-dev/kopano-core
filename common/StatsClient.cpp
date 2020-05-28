@@ -15,7 +15,6 @@
 #include <unistd.h>
 #include <sys/utsname.h>
 #ifdef HAVE_CURL_CURL_H
-#	include <thread>
 #	include <curl/curl.h>
 #	include <json/writer.h>
 #endif
