@@ -58,7 +58,6 @@ using std::cin;
 using std::cout;
 using std::endl;
 using std::string;
-using std::wstring;
 
 static int forcedExitCode = 0;
 
@@ -1637,7 +1636,7 @@ class InputValidator {
 		 * @return validated input or NULL
 		 */
 		char* operator()(char *szInput) {
-			wstring strInput;
+			std::wstring strInput;
 			failed = szInput == nullptr || TryConvert(szInput, strInput) != hrSuccess ||
 			       !std::all_of(strInput.cbegin(), strInput.cend(), iswprint);
 			return failed ? nullptr : szInput;

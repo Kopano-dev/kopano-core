@@ -123,7 +123,6 @@ using std::cerr;
 using std::cout;
 using std::endl;
 using std::string;
-using std::wstring;
 
 typedef enum {
 	DM_STORE=0,
@@ -1145,7 +1144,7 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 	char szHeader[PATH_MAX]{}, szTemp[PATH_MAX]{};
 	wchar_t szwHeader[PATH_MAX]{};
 	int fd = -1;
-	wstring	strFromName, strFromType, strFromEmail, strBody;
+	std::wstring strFromName, strFromType, strFromEmail, strBody;
 	std::vector<std::string> cmdline = {strBaseCommand};
 	// Environment
 	size_t s = 0;
@@ -2275,7 +2274,7 @@ static HRESULT ProcessDeliveryToServer(pym_plugin_intf *lppyMapiPlugin,
 		if (hr == hrSuccess || hr == MAPI_E_CANCEL) {
 			if (hr == hrSuccess) {
 				memory_ptr<SPropValue> lpMessageId, lpSubject;
-				wstring wMessageId;
+				std::wstring wMessageId;
 
 				if (HrGetOneProp(lpMessageTmp, PR_INTERNET_MESSAGE_ID_W, &~lpMessageId) == hrSuccess)
 					wMessageId = lpMessageId->Value.lpszW;
@@ -3350,12 +3349,12 @@ int main(int argc, char **argv)
 			break;
 		case OPT_FOLDER:
 		case 'F':
-			sDeliveryArgs.strDeliveryFolder = convert_to<wstring>(optarg);
+			sDeliveryArgs.strDeliveryFolder = convert_to<std::wstring>(optarg);
 			break;
 		case OPT_PUBLIC:
 		case 'P':
 			sDeliveryArgs.ulDeliveryMode = DM_PUBLIC;
-			sDeliveryArgs.strDeliveryFolder = convert_to<wstring>(optarg);
+			sDeliveryArgs.strDeliveryFolder = convert_to<std::wstring>(optarg);
 			break;
 		case 'p':
 			sDeliveryArgs.szPathSeparator = optarg[0];

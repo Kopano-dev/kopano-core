@@ -47,7 +47,6 @@
 #include "MAPIToICal.h"
 
 using std::string;
-using std::wstring;
 
 namespace KC {
 
@@ -1437,7 +1436,8 @@ HRESULT MAPIToVMIME::handleExtraHeaders(IMessage *lpMessage,
  *
  * @todo fix first two parameters
  */
-HRESULT MAPIToVMIME::handleContactEntryID(ULONG cValues, LPSPropValue lpProps, wstring &strName, wstring &strType, wstring &strEmail)
+HRESULT MAPIToVMIME::handleContactEntryID(unsigned int cValues, SPropValue *lpProps,
+    std::wstring &strName, std::wstring &strType, std::wstring &strEmail)
 {
 	ULONG ulObjType;
 	memory_ptr<SPropTagArray> lpNameTags;
@@ -1613,7 +1613,7 @@ HRESULT MAPIToVMIME::handleReplyTo(IMessage *lpMessage,
 {
 	ULONG			ulObjType;
 	object_ptr<IMailUser> lpContact;
-	wstring			strName, strType, strEmail;
+	std::wstring strName, strType, strEmail;
 
 	// "Email1DisplayName","Email1AddressType","Email1Address","Email1EntryID"
 	static const unsigned int lpulNamesIDs[] = {

@@ -45,7 +45,6 @@
 
 using namespace KC;
 using std::string;
-using std::wstring;
 extern std::shared_ptr<ECConfig> g_lpConfig;
 
 /**
@@ -336,7 +335,7 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 			continue;
 
 		// rewrite FAX address to <number>@<faxdomain>
-		wstring wstrName, wstrType, wstrEmailAddress;
+		std::wstring wstrName, wstrType, wstrEmailAddress;
 		memory_ptr<ENTRYID> lpNewEntryID;
 		memory_ptr<SPropValue> lpFaxNumbers;
 		ULONG cbNewEntryID;
@@ -726,7 +725,7 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 	object_ptr<IMessage> lpErrorMsg, lpOriginalMessage;
 	memory_ptr<ENTRYID> lpEntryID;
 	unsigned int cbEntryID, ulObjType, cValuesOriginal = 0, ulRows = 0;
-	wstring			newbody;
+	std::wstring newbody;
 	memory_ptr<SPropValue> lpPropValue, lpPropValueAttach, lpPropArrayOriginal;
 	unsigned int	ulPropPos = 0;
 	FILETIME		ft;
@@ -998,7 +997,7 @@ static HRESULT ContactToKopano(IMsgStore *lpUserStore,
 static HRESULT SMTPToZarafa(IAddrBook *lpAddrBook, const SBinary &smtp,
     SBinary *zeid)
 {
-	wstring wstrName, wstrType, wstrEmailAddress;
+	std::wstring wstrName, wstrType, wstrEmailAddress;
 	adrlist_ptr lpAList;
 
 	// representing entryid can also be a one off id, so search the user, and then get the entryid again ..

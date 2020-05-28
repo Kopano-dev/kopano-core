@@ -55,7 +55,6 @@
 #define x2s(s) reinterpret_cast<const char *>(s)
 
 using std::string;
-using std::wstring;
 using namespace std::string_literals;
 
 namespace KC {
@@ -520,7 +519,7 @@ HRESULT VMIMEToMAPI::hreplyto(vmime::shared_ptr<vmime::mailboxList> &&mblist,
 
 	for (size_t i = 0; i < mblist->getMailboxCount(); ++i) {
 		auto to = getWideFromVmimeText(mblist->getMailboxAt(i)->getName());
-		auto email = m_converter.convert_to<wstring>(mblist->getMailboxAt(i)->getEmail().toString());
+		auto email = m_converter.convert_to<std::wstring>(mblist->getMailboxAt(i)->getEmail().toString());
 		if (to.empty())
 			to = email;
 		if (i > 0)
@@ -703,7 +702,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 					return hr;
 			} else {
 				if (wstrFromName.empty())
-					wstrFromName = m_converter.convert_to<wstring>(strFromEmail);
+					wstrFromName = m_converter.convert_to<std::wstring>(strFromEmail);
 				msgProps.set(nProps++, PR_SENT_REPRESENTING_NAME_W, wstrFromName);
 				msgProps.set(nProps++, PR_SENT_REPRESENTING_EMAIL_ADDRESS, strFromEmail);
 				strFromSearchKey = strToUpper("SMTP:" + strFromEmail);
@@ -713,7 +712,9 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 
 				msgProps[nProps].ulPropTag = PR_SENT_REPRESENTING_ADDRTYPE_W;
 				msgProps[nProps++].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
-				hr = ECCreateOneOff((LPTSTR)wstrFromName.c_str(), (LPTSTR)L"SMTP", (LPTSTR)m_converter.convert_to<wstring>(strFromEmail).c_str(),
+				hr = ECCreateOneOff(reinterpret_cast<const TCHAR *>(wstrFromName.c_str()),
+				     reinterpret_cast<const TCHAR *>(L"SMTP"),
+				     reinterpret_cast<const TCHAR *>(m_converter.convert_to<std::wstring>(strFromEmail).c_str()),
 				     MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbFromEntryID, &~lpFromEntryID);
 				if(hr != hrSuccess)
 					return hr;
@@ -737,7 +738,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			} else if (!vmime::dynamicCast<vmime::mailbox>(vmHeader->Sender()->getValue())->getName().isEmpty()) {
 				wstrSenderName = getWideFromVmimeText(vmime::dynamicCast<vmime::mailbox>(vmHeader->Sender()->getValue())->getName());
 			} else {
-				wstrSenderName = m_converter.convert_to<wstring>(strSenderEmail);
+				wstrSenderName = m_converter.convert_to<std::wstring>(strSenderEmail);
 			}
 
 			auto hr = modifyFromAddressBook(&~lpRecipProps, &ulRecipProps,
@@ -757,7 +758,9 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 
 				msgProps[nProps].ulPropTag = PR_SENDER_ADDRTYPE_W;
 				msgProps[nProps++].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
-				hr = ECCreateOneOff((LPTSTR)wstrSenderName.c_str(), (LPTSTR)L"SMTP", (LPTSTR)m_converter.convert_to<wstring>(strSenderEmail).c_str(),
+				hr = ECCreateOneOff(reinterpret_cast<const TCHAR *>(wstrSenderName.c_str()),
+				     reinterpret_cast<const TCHAR *>(L"SMTP"),
+				     reinterpret_cast<const TCHAR *>(m_converter.convert_to<std::wstring>(strSenderEmail).c_str()),
 				     MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbSenderEntryID, &~lpSenderEntryID);
 				if(hr != hrSuccess)
 					return hr;
@@ -909,7 +912,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			if (mbReadReceipt && !mbReadReceipt->isEmpty())
 			{
 				auto wstrRRName = getWideFromVmimeText(mbReadReceipt->getName());
-				auto wstrRREmail = m_converter.convert_to<wstring>(mbReadReceipt->getEmail().toString());
+				auto wstrRREmail = m_converter.convert_to<std::wstring>(mbReadReceipt->getEmail().toString());
 				if (wstrRRName.empty())
 					wstrRRName = wstrRREmail;
 
@@ -1186,7 +1189,7 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients,
 		// Fallback if the entry was not found (or errored) in the addressbook
 		const int iNumTags = 8;
 		if (wstrName.empty())
-			wstrName = m_converter.convert_to<wstring>(strEmail);
+			wstrName = m_converter.convert_to<std::wstring>(strEmail);
 
 		// will be cleaned up by caller.
 		hr = MAPIAllocateBuffer(sizeof(SPropValue) * iNumTags, reinterpret_cast<void **>(&recip.rgPropVals));
@@ -1213,7 +1216,9 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients,
 		strcpy(prop[2].Value.lpszA, strEmail.c_str());
 
 		prop[3].ulPropTag = PR_ENTRYID;
-		hr = ECCreateOneOff((LPTSTR)wstrName.c_str(), (LPTSTR)L"SMTP", (LPTSTR)m_converter.convert_to<wstring>(strEmail).c_str(),
+		hr = ECCreateOneOff(reinterpret_cast<const TCHAR *>(wstrName.c_str()),
+		     reinterpret_cast<const TCHAR *>(L"SMTP"),
+		     reinterpret_cast<const TCHAR *>(m_converter.convert_to<std::wstring>(strEmail).c_str()),
 		     MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbEntryID, &~lpEntryID);
 		if (hr != hrSuccess)
 			return hr;
@@ -2102,7 +2107,7 @@ HRESULT VMIMEToMAPI::handleTextpart(vmime::shared_ptr<vmime::header> vmHeader,
 				return hr;
 		}
 
-		hr = lpStream->Write(strUnicodeText.c_str(), strUnicodeText.length() * sizeof(wstring::value_type), NULL);
+		hr = lpStream->Write(strUnicodeText.c_str(), strUnicodeText.length() * sizeof(wchar_t), nullptr);
 		if (hr != hrSuccess)
 			return hr;
 		// commit triggers plain -> html/rtf conversion, PR_INTERNET_CPID must be set.

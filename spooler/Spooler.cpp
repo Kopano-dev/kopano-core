@@ -82,7 +82,6 @@ using namespace std::chrono_literals;
 using std::cout;
 using std::endl;
 using std::string;
-using std::wstring;
 
 enum {
 	SPC_EXITED,

@@ -33,7 +33,6 @@
 #include "../provider/include/kcore.hpp"
 
 using std::string;
-using std::wstring;
 
 namespace KC {
 
@@ -42,7 +41,7 @@ ECSender::ECSender(const std::string &strSMTPHost, int port) :
 {}
 
 void ECSender::setError(const std::string &newError) {
-	error = convert_to<wstring>(newError);
+	error = convert_to<std::wstring>(newError);
 }
 
 static std::mutex vmInitLock;

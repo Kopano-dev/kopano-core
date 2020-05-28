@@ -52,7 +52,6 @@
 
 using namespace KC;
 using std::string;
-using std::wstring;
 
 /**
  * @ingroup gateway_imap
@@ -919,7 +918,7 @@ HRESULT IMAP::HrCmdDelete(const std::string &strTag,
 	object_ptr<IMAPIFolder> lpParentFolder, folder;
 	ULONG cb;
 	memory_ptr<ENTRYID> entry_id;
-	wstring strFolder;
+	std::wstring strFolder;
 	const std::string &strFolderParam = args[0];
 
 	if (!lpSession) {
@@ -1132,7 +1131,7 @@ HRESULT IMAP::HrCmdSubscribe(const std::string &strTag,
 	object_ptr<IMAPIFolder> folder;
 	ULONG cb;
 	memory_ptr<ENTRYID> entry_id;
-	wstring strFolder;
+	std::wstring strFolder;
 	const std::string &strFolderParam = args[0];
 	std::string strAction = bSubscribe ? "SUBSCRIBE" : "UNSUBSCRIBE";
 
@@ -1365,7 +1364,7 @@ HRESULT IMAP::HrCmdStatus(const std::string &strTag,
 	static constexpr const SizedSPropTagArray(3, sPropsFolderCounters) =
 		{3, {PR_CONTENT_COUNT, PR_CONTENT_UNREAD, PR_EC_HIERARCHYID}};
 	memory_ptr<SPropValue> lpPropCounters, lpPropMaxID;
-	wstring strIMAPFolder;
+	std::wstring strIMAPFolder;
 
 	if (!lpSession) {
 		HrResponse(RESP_TAGGED_NO, strTag, "STATUS error no session");
@@ -1478,7 +1477,7 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 	object_ptr<IMessage> lpMessage;
 	std::vector<std::string> lstFlags;
 	memory_ptr<SPropValue> lpPropVal;
-	wstring strFolder;
+	std::wstring strFolder;
 	string strAppendUid;
 	unsigned int ulFolderUid = 0, ulMsgUid = 0;
 	static constexpr const SizedSPropTagArray(10, delFrom) = {10, {
@@ -2935,7 +2934,7 @@ HRESULT IMAP::HrGetSubTree(std::list<SFolder> &folders, bool public_folders,
 	object_ptr<IMAPIFolder> folder;
 	memory_ptr<SPropValue> sprop;
 	ULONG obj_type;
-	wstring in_folder_name;
+	std::wstring in_folder_name;
 
 	if (public_folders) {
 		if (lpPublicStore == nullptr)
@@ -4928,7 +4927,8 @@ FILETIME IMAP::AddDay(const FILETIME &sFileTime)
  * @param[out]	output	valid IMAP folder name to send to the client
  * @return MAPI Error code
  */
-HRESULT IMAP::MAPI2IMAPCharset(const wstring &input, string &output) {
+HRESULT IMAP::MAPI2IMAPCharset(const std::wstring &input, std::string &output)
+{
 	convert_context converter;
 
 	output.clear();
@@ -4971,7 +4971,8 @@ HRESULT IMAP::MAPI2IMAPCharset(const wstring &input, string &output) {
  * @param[out]	output	 widestring version of input
  * @return MAPI Error code
  */
-HRESULT IMAP::IMAP2MAPICharset(const string& input, wstring& output) {
+HRESULT IMAP::IMAP2MAPICharset(const std::string &input, std::wstring &output)
+{
 	convert_context converter;
 
 	output.clear();
@@ -5005,7 +5006,7 @@ HRESULT IMAP::IMAP2MAPICharset(const string& input, wstring& output) {
 			++i;
 		}
 		try {
-			output += converter.convert_to<wstring>(CHARSET_WCHAR, conv, rawsize(conv), "UTF-7");
+			output += converter.convert_to<std::wstring>(CHARSET_WCHAR, conv, rawsize(conv), "UTF-7");
 		} catch(...) {
 			return MAPI_E_BAD_CHARWIDTH;
 		}
@@ -5147,7 +5148,8 @@ void IMAP::HrGetSubString(std::string &strOutput, const std::string &strInput,
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrFindFolder(const wstring& strFolder, bool bReadOnly, IMAPIFolder **lppFolder, ULONG *cb, ENTRYID **lpb)
+HRESULT IMAP::HrFindFolder(const std::wstring &strFolder, bool bReadOnly,
+    IMAPIFolder **lppFolder, unsigned int *cb, ENTRYID **lpb)
 {
 	std::vector<std::wstring> folder_parts;
 	object_ptr<IMAPIFolder> folder;
