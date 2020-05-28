@@ -5,6 +5,7 @@
 #include <kopano/platform.h>
 #include <cerrno>
 #include <chrono>
+#include <cstring>
 #include <memory>
 #include <string>
 #include <unordered_set>

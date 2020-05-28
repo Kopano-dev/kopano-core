@@ -15,6 +15,7 @@
 #include <cerrno>
 #include <climits>
 #include <cstdlib>
+#include <cstring>
 #include <poll.h>
 #include "mapidefs.h"
 #include <mapix.h>

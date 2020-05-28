@@ -45,6 +45,7 @@
 #include <clocale>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
 #include <algorithm>
 #include <map>

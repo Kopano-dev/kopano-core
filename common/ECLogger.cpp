@@ -22,6 +22,7 @@
 #include <pthread.h>
 #include <cstdarg>
 #include <cstdlib>
+#include <cstring>
 #include <csignal>
 #include <fcntl.h>
 #include <zlib.h>

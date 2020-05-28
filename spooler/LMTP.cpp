@@ -6,6 +6,7 @@
 #include <cerrno>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <cctype>
 #include <string>
 #include <utility>

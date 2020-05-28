@@ -4,6 +4,7 @@
  */
 #include <kopano/platform.h>
 #include <chrono>
+#include <cstring>
 #include <list>
 #include <memory>
 #include <mutex>

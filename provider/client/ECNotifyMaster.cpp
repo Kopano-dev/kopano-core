@@ -4,6 +4,7 @@
  */
 #include <kopano/platform.h>
 #include <algorithm>
+#include <cstring>
 #include <mutex>
 #include <kopano/memory.hpp>
 #include <kopano/ECLogger.h>

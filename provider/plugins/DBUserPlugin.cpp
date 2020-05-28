@@ -7,6 +7,7 @@
 #include <string>
 #include <stdexcept>
 #include <cassert>
+#include <cstring>
 #include <mutex>
 #include <utility>
 #include <kopano/EMSAbTag.h>

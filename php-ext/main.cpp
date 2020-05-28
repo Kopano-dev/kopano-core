@@ -12,6 +12,7 @@
 #include <cerrno>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <syslog.h>
 #include <ctime>
 #include <kopano/ECConfig.h>

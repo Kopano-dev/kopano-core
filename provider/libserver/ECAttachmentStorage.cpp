@@ -10,6 +10,7 @@
 #include <string>
 #include <utility>
 #include <climits>
+#include <cstring>
 #include <mapidefs.h>
 #include <cerrno>
 #include <algorithm>
