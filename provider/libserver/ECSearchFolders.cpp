@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
+#include <algorithm>
 #include <cstring>
 #include <list>
 #include <memory>
@@ -365,12 +366,11 @@ ECRESULT ECSearchFolders::UpdateSearchFolders(unsigned int ulStoreId, unsigned i
 // Process a list of message changes in a single folder of a certain type
 ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned int ulFolderId, ECObjectTableList *lstObjectIDs, ECKeyTable::UpdateType ulType)
 {
-    std::set<unsigned int> setParents;
     ECSession *lpSession = NULL;
 	ECODStore ecOBStore;
     struct rowSet *lpRowSet = NULL;
     struct propTagArray *lpPropTags = NULL;
-	unsigned int ulOwner = 0, ulParent = 0, ulFlags = 0, ulSCFolderId = 0;
+	unsigned int ulOwner = 0, ulParent = 0, ulFlags = 0;
 	ECDatabase *lpDatabase = NULL;
 	std::list<ULONG> lstPrefix;
 	bool fInserted = false;
@@ -440,13 +440,11 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 
 			if(ulType != ECKeyTable::TABLE_ROW_DELETE) {
 				// Loop through all targets for each searchfolder, if one matches, then match the restriction with the objects
-				for (unsigned int i = 0; i < scrit.lpFolders->__size; ++i)
-					if (cache->GetObjectFromEntryId(&scrit.lpFolders->__ptr[i], &ulSCFolderId) == erSuccess &&
-						ulSCFolderId == ulFolderId)
-					{
-						bIsInTargetFolder = true;
-						break;
-					}
+				const auto begin = scrit.lpFolders->__ptr, end = begin + scrit.lpFolders->__size;
+				bIsInTargetFolder = std::any_of(begin, end, [&](const entryId &feid) {
+					unsigned int nid;
+					return cache->GetObjectFromEntryId(&feid, &nid) == erSuccess && nid == ulFolderId;
+				});
 
 				if (!bIsInTargetFolder && scrit.ulFlags & RECURSIVE_SEARCH) {
 					// The item is not in one of the base folders, but it may be in one of children of the folders.
@@ -455,26 +453,17 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 					unsigned int ulAncestor = ulFolderId;
 
 					// Get all the parents of this object (usually around 5 or 6)
-					setParents.emplace(ulFolderId);
-
-					while(1) {
-						er = cache->GetParent(ulAncestor, &ulAncestor);
-						if(er != erSuccess)
-							break;
+					std::set<unsigned int> setParents{ulFolderId};
+					while (cache->GetParent(ulAncestor, &ulAncestor) == erSuccess)
 						setParents.emplace(ulAncestor);
-					}
 
 					// setParents now contains all the parent of this object, now we can check if any of the ancestors
 					// are in the search target
-					for (unsigned int i = 0; i < scrit.lpFolders->__size; ++i) {
-						if (cache->GetObjectFromEntryId(&scrit.lpFolders->__ptr[i], &ulSCFolderId) != erSuccess)
-							continue;
-						auto iterParents = setParents.find(ulSCFolderId);
-						if (iterParents != setParents.cend()) {
-							bIsInTargetFolder = true;
-							break;
-						}
-					}
+					bIsInTargetFolder = std::any_of(begin, end, [&](const entryId &feid) {
+						unsigned int nid;
+						return cache->GetObjectFromEntryId(&feid, &nid) == erSuccess &&
+						       setParents.find(nid) != setParents.cend();
+					});
 				}
 			} else {
 				// Table type DELETE, so the item is definitely not in the search path. Just delete it
