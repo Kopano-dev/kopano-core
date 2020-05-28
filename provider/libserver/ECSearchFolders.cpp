@@ -363,6 +363,50 @@ ECRESULT ECSearchFolders::UpdateSearchFolders(unsigned int ulStoreId, unsigned i
 	return erSuccess;
 }
 
+static bool is_in_target_folder(unsigned int type, unsigned int folder_id,
+    const searchCriteria &sc, ECCacheManager *cache)
+{
+	/*
+	 * Table type DELETE, so the item is definitely not in the search path.
+	 * Just delete it.
+	 */
+	if (type == ECKeyTable::TABLE_ROW_DELETE)
+		return false;
+	/*
+	 * Loop through all targets for each searchfolder, if one matches, then
+	 * match the restriction with the objects.
+	 */
+	const auto begin = sc.lpFolders->__ptr, end = begin + sc.lpFolders->__size;
+	auto yes = std::any_of(begin, end, [&](const entryId &target) {
+		unsigned int nid;
+		return cache->GetObjectFromEntryId(&target, &nid) == erSuccess && nid == folder_id;
+	});
+	if (yes)
+		return true;
+	if (!(sc.ulFlags & RECURSIVE_SEARCH))
+		return false;
+	/*
+	 * The item is not in one of the base folders, but it may be in one of
+	 * children of the folders. We do it in this order because the
+	 * GetParent() calls below may cause database accesses, so we only
+	 * actually do those database accesses if we have to. Get all the
+	 * parents of this object (usually around 5 or 6)
+	 */
+	unsigned int ancestor = folder_id;
+	std::set<unsigned int> parents{folder_id};
+	while (cache->GetParent(ancestor, &ancestor) == erSuccess)
+		parents.emplace(ancestor);
+	/*
+	 * @parents now contains all the parent of this object, now we can
+	 * check if any of the ancestors are in the search target.
+	 */
+	return std::any_of(begin, end, [&](const entryId &target) {
+		unsigned int nid;
+		return cache->GetObjectFromEntryId(&target, &nid) == erSuccess &&
+		       parents.find(nid) != parents.cend();
+	});
+}
+
 // Process a list of message changes in a single folder of a certain type
 ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned int ulFolderId, ECObjectTableList *lstObjectIDs, ECKeyTable::UpdateType ulType)
 {
@@ -406,7 +450,6 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 		const auto &scrit = *folder.second->lpSearchCriteria;
 
 		do {
-			bool bIsInTargetFolder = false;
 			int lCount = 0; /* Number of messages added, positive means more added, negative means more discarded */
 			int lUnreadCount = 0; /* Same, but for unread count */
 
@@ -438,40 +481,8 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 				goto exit;
 			}
 
-			if(ulType != ECKeyTable::TABLE_ROW_DELETE) {
-				// Loop through all targets for each searchfolder, if one matches, then match the restriction with the objects
-				const auto begin = scrit.lpFolders->__ptr, end = begin + scrit.lpFolders->__size;
-				bIsInTargetFolder = std::any_of(begin, end, [&](const entryId &feid) {
-					unsigned int nid;
-					return cache->GetObjectFromEntryId(&feid, &nid) == erSuccess && nid == ulFolderId;
-				});
-
-				if (!bIsInTargetFolder && scrit.ulFlags & RECURSIVE_SEARCH) {
-					// The item is not in one of the base folders, but it may be in one of children of the folders.
-					// We do it in this order because the GetParent() calls below may cause database accesses, so
-					// we only actually do those database accesses if we have to.
-					unsigned int ulAncestor = ulFolderId;
-
-					// Get all the parents of this object (usually around 5 or 6)
-					std::set<unsigned int> setParents{ulFolderId};
-					while (cache->GetParent(ulAncestor, &ulAncestor) == erSuccess)
-						setParents.emplace(ulAncestor);
-
-					// setParents now contains all the parent of this object, now we can check if any of the ancestors
-					// are in the search target
-					bIsInTargetFolder = std::any_of(begin, end, [&](const entryId &feid) {
-						unsigned int nid;
-						return cache->GetObjectFromEntryId(&feid, &nid) == erSuccess &&
-						       setParents.find(nid) != setParents.cend();
-					});
-				}
-			} else {
-				// Table type DELETE, so the item is definitely not in the search path. Just delete it
-				bIsInTargetFolder = false;
-			}
-
 			// The folder in which the modify message is, is in our search path for this searchfolder
-			if(bIsInTargetFolder) {
+			if (is_in_target_folder(ulType, ulFolderId, scrit, cache)) {
 				// Create a session for the target user
 				if(lpSession == NULL) {
 					er = m_lpSessionManager->CreateSessionInternal(&lpSession, ulOwner);
