@@ -728,6 +728,7 @@ AC_CONFIG_FILES([Makefile
 		spooler/libkcpyplug.sym
 		php-ext/Makefile
 		gateway/Makefile
+		libicalmapi/Makefile
 ])
 
 # Python tools
