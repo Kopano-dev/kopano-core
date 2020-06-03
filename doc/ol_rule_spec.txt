@@ -4,6 +4,8 @@ Outlook Rule Specification
 == Table of Contents ==
 
 Introduction
+FAI Message: RuleOrganizer
+FAI Message: RuleVersion2
 Notation
 Length fields
 Timestamps
@@ -11,92 +13,97 @@ FAI Message
 Rules Stream
 XR Header
 Element Separator
-Condition 0x64: Unknown
-Condition 0xc8: Name in To
-Condition 0xc9: Only to me
-Condition 0xca: Name not in To
-Condition 0xcb: From
-Condition 0xcc: To
-Condition 0xcd: Subject words
-Condition 0xce: Body words
-Condition 0xcf: Subject or body words
-Condition 0xd0: Flagged for action
-Condition 0xd2: Importance
-Condition 0xd3: Sensitivity
-Condition 0xd7: Category
-Condition 0xdc: Automatic reply
-Condition 0xde: Attachment
-Condition 0xdf: Form property
-Condition 0xe0: Size
-Condition 0xe1: Date
-Condition 0xe2: Name in Cc
-Condition 0xe3: Name in To or Cc
-Condition 0xe5: Recipient words
-Condition 0xe6: Sender words
-Condition 0xe8: Header words
-Condition 0xee: Account
-Condition 0xef: Machine
-Condition 0xf0: Addressbook
-Condition 0xf1: Meeting request
-Condition 0xf5: RSS feed
-Condition 0xf6: Any category
-Condition 0xf7: Any RSS feed
-Action 0x12c: Move
-Action 0x12d: Soft delete
-Action 0x12e: Forward
-Action 0x12f: Reply with template
-Action 0x130: Show OL notification
-Action 0x131: Flag for action
-Action 0x132: Clear follow-up flag
-Action 0x133: Set categories
-Action 0x136: Play sound
-Action 0x137: Set importance
-Action 0x139: Copy
-Action 0x13a: Notify when read
-Action 0x13b: Notify when delivered
-Action 0x13c: Cc
-Action 0x13e: Defer
-Action 0x142: Stop rule processing
-Action 0x144: Redirect
-Action 0x146: Reply
-Action 0x147: Forward as attachment
-Action 0x148: Print
-Action 0x14a: Hard delete
-Action 0x14c: Mark as read
-Action 0x14f: Desktop notification
-Action 0x151: Set follow-up flag
-Action 0x152: Clear categories
-Condition 0x190: Receive/Send
-Condition 0x1f4: Except name in To
-Condition 0x1f5: Except only to me
-Condition 0x1f6: Except name not in To
-Condition 0x1f7: Except from
-Condition 0x1f8: Except to
-Condition 0x1f9: Except subject words
-Condition 0x1fa: Except body words
-Condition 0x1fb: Except subject or body words
-Condition 0x1fc: Except flagged for action
-Condition 0x1fe: Except importance
-Condition 0x1ff: Except sensitivity
-Condition 0x203: Except category
-Condition 0x208: Except automated reply
-Condition 0x20a: Except attachment
-Condition 0x20b: Except form property
-Condition 0x20c: Except size
-Condition 0x20d: Except date
-Condition 0x20e: Except name in Cc
-Condition 0x20f: Except name in To or Cc
-Condition 0x211: Except recipient words
-Condition 0x212: Except sender words
-Condition 0x213: Except header words
-Condition 0x214: Except account
-Condition 0x215: Except address book
-Condition 0x216: Except meeting request
-Condition 0x219: Except RSS feed
-Condition 0x21a: Except any category
-Condition 0x21b: Except any RSS feeds
+Condition 100 (0x64): Unknown
+Condition 200 (0xc8): Name in To
+Condition 201 (0xc9): Only to me
+Condition 202 (0xca): Name not in To
+Condition 203 (0xcb): From
+Condition 204 (0xcc): To
+Condition 205 (0xcd): Subject words
+Condition 206 (0xce): Body words
+Condition 207 (0xcf): Subject or body words
+Condition 208 (0xd0): Flagged for action
+Condition 210 (0xd2): Importance
+Condition 211 (0xd3): Sensitivity
+Condition 215 (0xd7): Category
+Condition 220 (0xdc): Automatic reply
+Condition 222 (0xde): Attachment
+Condition 223 (0xdf): Form property
+Condition 224 (0xe0): Size
+Condition 225 (0xe1): Date
+Condition 226 (0xe2): Name in Cc
+Condition 227 (0xe3): Name in To or Cc
+Condition 228 (0xe4): Form / Message class
+Condition 229 (0xe5): Recipient words
+Condition 230 (0xe6): Sender words
+Condition 232 (0xe8): Header words
+Condition 238 (0xee): Account
+Condition 239 (0xef): Machine
+Condition 240 (0xf0): Addressbook
+Condition 241 (0xf1): Meeting request
+Condition 245 (0xf5): RSS feed
+Condition 246 (0xf6): Any category
+Condition 247 (0xf7): Any RSS feed
+Action 300 (0x12c): Move
+Action 301 (0x12d): Soft delete
+Action 302 (0x12e): Forward
+Action 303 (0x12f): Reply with template
+Action 304 (0x130): Show OL notification
+Action 305 (0x131): Flag for action
+Action 306 (0x132): Clear follow-up flag
+Action 307 (0x133): Set categories
+Action 310 (0x136): Play sound
+Action 311 (0x137): Set importance
+Action 313 (0x139): Copy
+Action 314 (0x13a): Notify when read
+Action 315 (0x13b): Notify when delivered
+Action 316 (0x13c): Cc
+Action 318 (0x13e): Defer
+Action 322 (0x142): Stop rule processing
+Action 324 (0x144): Redirect
+Action 326 (0x146): Reply
+Action 327 (0x147): Forward as attachment
+Action 328 (0x148): Print
+Action 330 (0x14a): Hard delete
+Action 332 (0x14c): Mark as read
+Action 335 (0x14f): Desktop notification
+Action 337 (0x151): Set follow-up flag
+Action 338 (0x152): Clear categories
+Condition 400 (0x190): Receive/Send
+Condition 500 (0x1f4): Except name in To
+Condition 501 (0x1f5): Except only to me
+Condition 502 (0x1f6): Except name not in To
+Condition 503 (0x1f7): Except from
+Condition 504 (0x1f8): Except to
+Condition 505 (0x1f9): Except subject words
+Condition 506 (0x1fa): Except body words
+Condition 507 (0x1fb): Except subject or body words
+Condition 508 (0x1fc): Except flagged for action
+Condition 510 (0x1fe): Except importance
+Condition 511 (0x1ff): Except sensitivity
+Condition 515 (0x203): Except category
+Condition 520 (0x208): Except automated reply
+Condition 522 (0x20a): Except attachment
+Condition 523 (0x20b): Except form property
+Condition 524 (0x20c): Except size
+Condition 525 (0x20d): Except date
+Condition 526 (0x20e): Except name in Cc
+Condition 527 (0x20f): Except name in To or Cc
+Condition 528 (0x210): Except form / message class
+Condition 529 (0x211): Except recipient words
+Condition 530 (0x212): Except sender words
+Condition 531 (0x213): Except header words
+Condition 532 (0x214): Except account
+Condition 533 (0x215): Except address book
+Condition 534 (0x216): Except meeting request
+Condition 537 (0x219): Except RSS feed
+Condition 538 (0x21a): Except any category
+Condition 539 (0x21b): Except any RSS feeds
 Condition ??: Form class
 Condition ??: Except form class
+Server-side Rules Table
+SSRT: Organizer2
+SSRT: OOF rules
 
 
 == Introduction ==
@@ -107,17 +114,79 @@ example: sorting incoming messages into different folders, marking incoming
 messages with certain colors, issuing automatic responses while out of office,
 or automatic forwarding while out of office.
 
-Such rules are first and foremost stored in the PR_RW_RULES_STREAM property
-in a FAI message and constitutes Outlook's state of configuration.
+Such rules are stored by Outlook all over the place.
 
-In addition, rules for incoming messages are cloned to the PR_RULES_DATA
-property set on a message store. (PR_RULES_TABLE is an interface-only property
-that, underneath, operates on PR_RULES_DATA.) Rules that are representable
-within the confines of the IID_IExchangeModifyTable interface are so stored, if
-not, they are represented as a deferred action. These deferred actions are
-called client-side rules in Exchange/Outlook circles, but this name is
-misleading since only very few of the conditions and actions one could possibly
-use in rules actually require a running client in the first place.
+  * Rules configured in "Files ▶ Manage Rules & Alerts" are stored in
+    a FAI message. See section "FAI message: RuleOrganizer".
+
+      * Of these, rules which are enabled and which apply to incoming messages only
+        are cloned to PR_RULES_TABLE rows. See section "Server-side Rules
+        Table" and "SSRT: Organizer2".
+
+      * Of these, each rule is cloned to another FAI message,
+        see section "FAI message: RuleV2".
+
+  * Rules configured in "Files ▶ Automatic replies" (Out of Office) are stored
+    in PR_RULES_TABLE. See section "Server-side Rules Table" and
+    "SSRT: OOF".
+
+      * Each rule is cloned to a FAI message, see section "FAI message:
+        RuleV2".
+
+Deferred actions are called client-side rules in Exchange/Outlook circles, but
+this name is misleading since only very few of the conditions and actions one
+could possibly use in rules actually require a running client in the first
+place.
+
+
+== FAI message: RuleOrganizer ==
+
+In the Inbox's Associated Contents folder, there is a message containing:
+
+	PR_SUBJECT: "Outlook Rules Organizer"
+	PR_MESSAGE_CLASS: "IPM.RuleOrganizer"
+	PR_RW_RULES_STREAM: (see section "Rules Stream")
+
+PR_RW_RULES_STREAM contains most of the ruleset (receiving and sending, but not
+OOF). See section "Rules stream".
+
+
+== FAI message: RuleV2 ==
+
+In the Inbox's Associated Contents folder, there are a number of messages that
+represent each rule from PR_RW_RULES_STREAM (again), with these properties:
+
+@PR_MESSAGE_CLASS: "IPM.Rule.Version2.Message"
+
+@PR_RULE_MSG_LEVEL: Equivalent to PR_RULE_LEVEL.
+
+@PR_RULE_MSG_NAME: Equivalent to PR_RULE_NAME.
+
+@PR_RULE_MSG_PROVIDER: "Organizer2".
+
+@PR_RULE_MSG_PROVIDER_DATA: Equivalent to PR_RULE_PROVIDER_DATA.
+
+	For TDX OOF, the property is unset.
+
+	For Organizer2, a 16-byte packed value:
+
+	struct {
+		uint32_t magic[2] = {1, 1};
+		double timestamp; /* PT_APPTIME */
+	};
+
+@PR_RULE_MSG_SEQUENCE: Equivalent to PR_RULE_SEQUENCE. OL starts with seq 10.
+
+@PR_RULE_MSG_STATE: Equivalent to PR_RULE_STATE.
+
+@PR_RULE_MSG_USER_FLAGS: Equivalent to PR_RULE_USER_FLAGS.
+
+@PR_EXTENDED_RULE_MSG_CONDITION: Binary data, pretty much equivalent to the
+data presented through PR_RULE_CONDITION without significant differences. Some
+16-bit fields are now 32-bit, and, according to MSDN, there is some additional
+room for expressing named properties; Unicode strings are forced.
+
+@PR_EXTENDED_RULE_MSG_ACTION: .
 
 
 == Notation ==
@@ -172,9 +241,16 @@ ways:
 
 == Timestamps (PT_APPTIME) ==
 
-A 64-bit IEEE floating point number, in which the whole number part represents
-the number of days since December 30, 1899, and the fractional part represents
-the fraction of a day since midnight.
+A 64-bit IEEE floating point number, in which the integral part represents the
+number of days since December 30, 1899, and the fractional part represents the
+fraction of a day since midnight. There is no timezone information attached.
+
+This unusual base date stems from three defining characteristics:
+
+	* the first usable day is 1900-01-01
+	* the starting index is 1
+	* index 60 maps to the (non-existing) 1900-02-29,
+	  and 1900-03-01 is then index 61.
 
 A condition shown in the UI as "before 2018-01-01" is stored as
 less-than(0x40e5394e...). "after 2017-12-31" is stored as
@@ -214,20 +290,6 @@ so the fractional part is always a multiple of 1/1440. The curious bit patterns
 in OV1 are a result of 9 being a factor of 1440.
 
 
-== FAI message ==
-
-In the Inbox's Associated Contents folder, there is a special message
-containing:
-
-	PR_SUBJECT: "Outlook Rules Organizer"
-	PR_MESSAGE_CLASS: "IPM.RuleOrganizer"
-	PR_RW_RULES_STREAM: (see below)
-
-PR_RW_RULES_STREAM contains all rules (receiving and sending), while the the
-MAPI Rules Table's PR_RULE_ACTIONS property's ACTION::actDeferAction::pbData
-member starts right with XR_Rule.
-
-
 == Rules Stream ==
 
 Layout:
@@ -237,7 +299,7 @@ Layout:
 		0, 0, 0, 0, 1, 1, 0};
 	uint16_t numrules;
 	repeat numrules {
-		XR_Rule;
+		XR_Begin;
 	};
 	uint32_t tdlen;
 	char16_t template_dir[tdlen];
@@ -248,24 +310,41 @@ Layout:
 @template_dir: The most recently used location from which a template file was
 used. (For UI display purposes.)
 
+Rule order is defined by their logical position to one another in XR_Begin.
+
+
+== XR_Begin ==
+
+	uint8_t magic[3];
+
+@magic: The bit pattern suggests this could be a flags field.
+However, before OL2019 for the first time created e0c810 rules, it warned
+of backwards compatibility (once only), so this is perhaps a version field.
+
+	0x40 0x42 0x0f    XR_Rule (alternative 1)
+	0x80 0x4f 0x12    XR_Rule (alternative 2)
+	0xe0 0xc8 0x10    XR_Rule (alternative 3)
+	0x6e 0x54 0x3d    AR_DeferAction
+
 
 == XR_Rule ==
 
 	XR_Header
 	repeat zero-or-more {
-		XR_Separator
 		<any XR_Condition or XR_Action>;
+		if (there are more conds/actions)
+			XR_Separator
 	};
 
 The size of a XR element can be variadic and generally there are no length
 indiciators. The byte stream is therefore best parsed field-by-field rather
 than struct-at-a-time.
 
-The Unknown 0x190 element is practically present at all times as the first
-element, even though it does not serve any observable purpose and is not
-displayed as anything in the UI.
+The Unknown 0x190 is practically present at all times as the first element
 
-The Condition 0x64 is practically present at all times as the second element.
+The Condition 0x64 is practically present at all times as the second element,
+even though it does not serve any observable purpose and is not displayed as
+anything in the UI.
 
 The order of elements is generally: 0x190, then all conditions, then all
 actions, and only then exception conditions.
@@ -273,7 +352,6 @@ actions, and only then exception conditions.
 
 == XR_Header ==
 
-	uint8_t magic[3];
 	uint8_t locator;
 	uint8_t rname_len;
 	if (rname_len == 0xff)
@@ -285,6 +363,7 @@ actions, and only then exception conditions.
 		uint32_t ptact_recv_rule_activated2[] = {0, 0, 0, 2};
 		uint32_t strm_recv_rule_activated[]   = {0, 1, 0, 1};
 		uint32_t strm_recv_rule_activated2[]  = {0, 1, 0, 2};
+		uint32_t strm_recv_rule_activated3[]  = {0, 1, 0, 3};
 		uint32_t strm_recv_rule_deactivated[] = {0, 0, 0, 0};
 		uint32_t strm_send_rule_activated[]   = {0, 0, 0, 0};
 		uint32_t strm_send_rule_deactivated[] = {0, 0, 0, 0};
@@ -302,13 +381,6 @@ actions, and only then exception conditions.
 		REJECT-PARSE;
 	}
 
-@magic: The bit pattern suggests this could be a flags field.
-However, before OL2019 for the first time created e0c810 rules, it warned
-of backwards compatibility (once only), so this is perhaps a version field.
-
-	0x40 0x42 0x4f    alternative 1
-	0x80 0x4f 0x12    alternative 2
-	0xe0 0xc8 0x10    alternative 3
 
 @locator: a magic value
 
@@ -369,16 +441,70 @@ This common structure appears for reference in other XR elements.
 
 @data: This is a concatenation of the values for properties of type PT_BINARY
 and PT_UNICODE, in the same order as the index. Here, PT_UNICODE strings *are*
-NUL-terminated, and this NUL is also included in @proplen.
+followed by NUL, and this NUL is also counted in @proplen. Since U+0000 can
+never be part of a PT_UNICODE string by definition, and solely serves as a
+terminator, it needs to be appropriately subtracted during processing.
 
 
-== Condition 0x64: Unknown ==
+== Condition 100 (0x64): Unknown ==
+
+UI label:
+
+	Not visible in the UI at all.
+
+Layout:
 
 	uint32_t act_kind = 0x64;
 	uint32_t magic[] = {1, 0, 1};
 
 
-== Condition 0xca: Name not in To ==
+== Condition 200 (0xc8): Name in To ==
+
+UI label:
+
+	EN:"where my name is in the To box"
+	DE:"""die meinen Namen im Feld "An" enthält"""
+
+UI behavior:
+
+	Only selectable for receive rules.
+
+Layout:
+
+	uint32_t act_kind = 0xc8;
+	uint32_t magic = 0;
+
+SRestriction:
+
+	{RES_PROPERTY, RELOP_EQ, PR_MESSAGE_TO_ME, true}
+
+
+== Condition 201 (0xc9): Only to me ==
+
+UI label:
+
+	EN:"sent only to me"
+	DE:"die nur an mich gesendet wurde"
+
+UI behavior:
+
+	Only selectable for receive rules.
+
+Layout:
+
+	uint32_t act_kind = 0xc9;
+	uint32_t magic = 0;
+
+SRestriction:
+
+	{RES_AND, {
+		{RES_PROPERTY, RELOP_EQ, PR_MESSAGE_TO_ME, true},
+		{RES_NOT, {RES_CONTENT, FL_SUBSTRING, PR_DISPLAY_TO, ";"}},
+		{RES_PROPERTY, RELOP_EQ, PR_DISPLAY_CC, ""},
+	}}
+
+
+== Condition 202 (0xca): Name not in To ==
 
 UI label:
 
@@ -394,8 +520,12 @@ Layout:
 	uint32_t act_kind = 0xca;
 	uint32_t magic = 0;
 
+SRestriction:
 
-== Condition 0xcb: From ==
+	{RES_PROPERTY, RELOP_EQ, PR_MESSAGE_TO_ME, false}
+
+
+== Condition 203 (0xcb): From ==
 
 UI label:
 
@@ -410,11 +540,26 @@ Layout:
 
 	uint32_t act_kind = 0xcb;
 	uint32_t magic[] = {1, 0};
-	uint32_t numsenders;
-	repeat numsenders {
+	uint32_t numrcpt; /* numsenders */
+	repeat numrcpt {
 		XR_PropValArray;
 	};
 	uint32_t magic[] = {1, 0};
+
+SRestriction:
+
+	{RES_COMMENT,
+	lpProp={
+		{PROP_TAG(PT_LONG, 0x6000), 1},
+		{PROP_TAG(PT_BINARY, 0x0001), <PR_ENTRYID from an ABK or OneOff>},
+		{PROP_TAG(PT_TSTRING, 0x0001), <Display name of recipient>},
+		{PR_DISPLAY_TYPE, DT_MAILUSER}},
+	lpRes={
+		{RES_PROPERTY, RELOP_EQ, PR_SENDER_SEARCH_KEY,
+			"EX:/O=TOPORGUM/..."}},
+	}
+
+	Specifying multiple senders will add a level of RES_OR.
 
 The propvalarray for an EX entity typically includes 11 props:
 
@@ -465,28 +610,32 @@ The propvalarray for an SMTP entity typically includes 12 props:
 	PR_EMAIL_ADDRESS: L"abcdefg@ijkl.de"
 
 
-== Condition 0xcc: To ==
+== Condition 204 (0xcc): To ==
 
 UI label:
 
 	EN:"sent to <people or public group>"
-	DE:"die an <einer Person/öffentlichen Gruppe> gesendet wurde"
+	DE:"die an <einer Person/öffentlichen Gruppe> gesendet wurde" [sic]
 
-Layout:
+The layout is the same as From (0xcb), but with act_kind=0xcc.
 
-	uint32_t act_kind = 0xcc;
-	uint32_t magic[] = {1, 0};
-	uint32_t numrecipients;
-	repeat numrecipients {
-		XR_PropValArray;
-	};
-	uint32_t magic[] = {1, 0};
+SRestriction:
 
-The propvalarray for recipients has the same characteristics
-as for senders (see Condition 0xcb).
+	{RES_COMMENT,
+	lpProp={
+		{PROP_TAG(PT_LONG, 0x6000), 1},
+		{PROP_TAG(PT_BINARY, 0x0001), <PR_ENTRYID from an ABK or OneOff>},
+		{PROP_TAG(PT_TSTRING, 0x0001), <Display name of recipient>},
+		{PR_DISPLAY_TYPE, DT_MAILUSER}},
+	lpRes={
+		{RES_PROPERTY, RELOP_EQ, PR_SEARCH_KEY,
+			"EX:/O=TOPORGUM/..."}},
+	}
+
+	Specifying multiple recipients will add a level of RES_OR.
 
 
-== Condition 0xcd: Subject words ==
+== Condition 205 (0xcd): Subject words ==
 
 UI label:
 
@@ -505,15 +654,20 @@ Layout:
 		char16_t substring[mlen];
 	} m;
 
-The UI offers no way to set any flags, and based upon the UI text and
-observed runtime behavior, FL_IGNORECASE|FL_SUBSTRING is always the
-effect.
+SRestriction:
+
+	{RES_CONTENT, FL_IGNORECASE | FL_SUBSTRING, PR_SUBJECT, "text"}
+
+	Specifying multiple strings will add a level of RES_OR.
+
+The UI offers no way to set any flags, and based upon the UI text and observed
+runtime behavior, FL_IGNORECASE|FL_SUBSTRING is always in effect with flags==0.
 
 The OL2019 UI arbitrarily restricts substrings to 255 characters by ignoring
 excess keypresses.
 
 
-== Condition 0xce: Body words ==
+== Condition 206 (0xce): Body words ==
 
 UI label:
 
@@ -522,8 +676,14 @@ UI label:
 
 The layout is the same as Subject (0xcd), but with act_kind=0xce.
 
+SRestriction:
 
-== Condition 0xcf: Subject or body words ==
+	{RES_CONTENT, FL_IGNORECASE | FL_SUBSTRING, PR_BODY, "text"}
+
+	Specifying multiple strings will add a level of RES_OR.
+
+
+== Condition 207 (0xcf): Subject or body words ==
 
 UI label:
 
@@ -532,42 +692,18 @@ UI label:
 
 The layout is the same as Subject (0xcd), but with act_kind=0xcf.
 
+SRestriction:
 
-== Condition 0xc8: Name in To ==
+	{RES_OR, {
+		{RES_CONTENT, FL_IGNORECASE | FL_SUBSTRING, PR_SUBJECT, "t"},
+		{RES_CONTENT, FL_IGNORECASE | FL_SUBSTRING, PR_BODY, "t"},
+	}}
 
-UI label:
-
-	EN:"where my name is in the To box"
-	DE:"""die meinen Namen im Feld "An" enthält"""
-
-UI behavior:
-
-	Only selectable for receive rules.
-
-Layout:
-
-	uint32_t act_kind = 0xc8;
-	uint32_t magic = 0;
+	Specifying multiple strings will not add a level of RES_OR; the
+	existing RES_OR will be filled.
 
 
-== Condition 0xc9: Only to me ==
-
-UI label:
-
-	EN:"sent only to me"
-	DE:"die nur an mich gesendet wurde"
-
-UI behavior:
-
-	Only selectable for receive rules.
-
-Layout:
-
-	uint32_t act_kind = 0xc9;
-	uint32_t magic = 0;
-
-
-== Condition 0xd0: Flagged for action ==
+== Condition 208 (0xd0): Flagged for action ==
 
 UI label:
 
@@ -588,8 +724,16 @@ Layout:
 	char16_t action[nlen];
 	uint32_t magic = 1;
 
+SRestriction:
 
-== Condition 0xd2: Importance ==
+	{RES_AND, {
+		{RES_PROPERTY, RELOP_EQ, PR_FLAG_STATUS, 2},
+		{RES_PROPERTY, RELOP_EQ,
+			PROP_TAG(PT_TSTRING, 0x802A), "action"},
+	}}
+
+
+== Condition 210 (0xd2): Importance ==
 
 UI label:
 
@@ -604,10 +748,14 @@ Layout:
 		IMPORTANCE_LOW = 0
 		IMPORTANCE_MEDIUM = 1,
 		IMPORTANCE_HIGH = 2,
-	};
+	} level;
+
+SRestriction:
+
+	{RES_PROPERTY, RELOP_EQ, PR_IMPORTANCE, level}
 
 
-== Condition 0xd3: Sensitivity ==
+== Condition 211 (0xd3): Sensitivity ==
 
 UI label:
 
@@ -623,10 +771,14 @@ Layout:
 		SENSITIVITY_PERSONAL = 1,
 		SENSITIVITY_PRIVATE = 2,
 		SENSITIVITY_COMPANY_CONFIDENTIAL = 3,
-	};
+	} level;
+
+SRestriction:
+
+	{RES_PROPERTY, RELOP_EQ, PR_SENSITIVITY, level}
 
 
-== Condition 0xd7: Category ==
+== Condition 215 (0xd7): Category ==
 
 UI label:
 
@@ -642,12 +794,20 @@ Layout:
 		uint16_t cname_len;
 	char16_t categories[cname_len];
 
+SRestriction:
+
+	(Not mapped)
+
+@categories is a semicolon-separated string of categories. As a consequence,
+category names are not allowed to contain semicolons, and the OL2019 UI
+inhibits the keypress.
+
 All specified @catgories must be present on the message for the match to occur.
 (Labeling: DE:"Nach Erhalt einer Nachricht ... die Kategorie C1 _und_ C2
 zugeordnet ist...")
 
 
-== Condition 0xdc: Automatic reply ==
+== Condition 220 (0xdc): Automatic reply ==
 
 UI label:
 
@@ -663,8 +823,13 @@ Layout:
 	uint32_t act_kind = 0xdc;
 	uint32_t magic = 0;
 
+SRestriction:
 
-== Condition 0xde: Attachment ==
+	{RES_PROPERTY, RELOP_EQ, PR_MESSAGE_CLASS,
+		"IPM.Note.Rules.OofTemplate.Microsoft"}
+
+
+== Condition 222 (0xde): Attachment ==
 
 UI label:
 
@@ -676,8 +841,12 @@ Layout:
 	uint32_t act_kind = 0xde;
 	uint32_t magic = 0;
 
+SRestriction:
 
-== Condition 0xdf: Form property ==
+	{RES_BITMASK, BMR_NEZ, PR_MESSAGE_FLAGS, MSGFLAG_HASATTACH}
+
+
+== Condition 223 (0xdf): Form property ==
 
 UI label:
 
@@ -688,7 +857,7 @@ Layout:
 
 	uint32_t act_kind = 0xdf;
 	uint32_t magic[] = {1, 0};
-	uint8_t flen;
+ 	uint8_t flen;
 	if (flen == 0xff)
 		uint16_t flen;
 	char16_t forms[flen];
@@ -698,14 +867,16 @@ Layout:
 		if (flen == 0xff) /* conjecture */
 			uint16_t flen;
 		char16_t fieldname[flen];
-		uint16_t proptag;
+		uint32_t proptag;
 
 		enum : uint32_t {
 			CONTAINS = 0,
 			IS_EQUAL = 1,
 			NOT_CONTAINS = 2,
 		} string_match_type;
-		uint8_t svlen; /* 3B? */
+		uint8_t svlen;
+		if (svlen == 0xff) /* conjecture */
+			uint16_t svlen;
 		char16_t v_string[svlen];
 		enum : uint32_t {
 			EQ = 0,
@@ -735,6 +906,10 @@ Layout:
 		char msgclass[clen];
 	};
 
+SRestriction:
+
+	(Not mapped)
+
 @forms: a semicolon-space-separated list of forms to load
 (e.g. "Aufgabe annehmen; InfoPath-Formular").
 
@@ -749,7 +924,7 @@ characters by ignoring excess keypresses. A clen >= 255 was not observable.)
 	0x8.......	various named properties
 
 Even though some properties have PROP_TYPE()==PT_SYSTIME, the value stored in
-the streams has PT_APPTIME semantics.
+the stream has PT_APPTIME semantics.
 
 @string_match_type: For PT_UNICODE, contains the choice the user made.
 Otherwise, 0.
@@ -770,7 +945,7 @@ Otherwise, 0.
 made. Otherwise, OL fills this with the creation date of the subcondition.
 
 
-== Condition 0xe0: Size ==
+== Condition 224 (0xe0): Size ==
 
 UI label:
 
@@ -784,8 +959,15 @@ Layout:
 	uint32_t min_size_kb;
 	uint32_t max_size_kb;
 
+SRestriction:
 
-== Condition 0xe1: Date ==
+	{RES_AND, {
+		{RES_PROPERTY, RELOP_GT, PR_MESSAGE_SIZE, xx},
+		{RES_PROPERTY, RELOP_LE, PR_MESSAGE_SIZE, yy},
+	}}
+
+
+== Condition 225 (0xe1): Date ==
 
 UI label:
 
@@ -807,6 +989,12 @@ Layout:
 	uint32_t magic = 0;
 	double ts_before;
 
+SRestriction:
+
+	{RES_PROPERTY, RELOP_GT, PR_MESSAGE_DELIVERY_TIME, xx} or
+	{RES_PROPERTY, RELOP_LE, PR_MESSAGE_DELIVERY_TIME, yy} or
+	both combined via RES_AND.
+
 @test_after: boolean whether or not to run a comparison "NOW > @ts_after".
 
 @test_before: boolean whether or not to run a comparison "NOW < @ts_before".
@@ -814,12 +1002,13 @@ Layout:
 @ts_after: timestamp for the "is-after" check. See the "Timestamp" section
 for details.
 
-@ts_before: timestamp for the "is-before" check. Curiously, this (and the
-Except date condition, 0x20d) is the only timestamp which has its fractional
-part correctly set to zero.
+@ts_before: timestamp for the "is-before" check. Curiously, this field,
+together with the ts_before field from the Except date condition (Element
+0x20d), are the only two timestamps which have its fractional part correctly
+set to zero by the OL2019 Date Picker.
 
 
-== Condition 0xe2: Name in Cc ==
+== Condition 226 (0xe2): Name in Cc ==
 
 UI label:
 
@@ -835,8 +1024,16 @@ Layout:
 	uint32_t act_kind = 0xe2;
 	uint32_t magic = 0;
 
+SRestriction:
 
-== Condition 0xe3: Name in To or Cc ==
+	{RES_AND, {
+		{RES_PROPERTY, RELOP_EQ, PR_MESSAGE_CC_ME, true},
+		{RES_PROPERTY, RELOP_EQ, PR_MESSAGE_RECIP_ME, true},
+		{RES_PROPERTY, RELOP_EQ, PR_MESSAGE_TO_ME, false},
+	}}
+
+
+== Condition 227 (0xe3): Name in To or Cc ==
 
 UI label:
 
@@ -852,8 +1049,12 @@ Layout:
 	uint32_t act_kind = 0xe3;
 	uint32_t magic = 0;
 
+SRestriction:
 
-== Condition 0xe4: Form ==
+	{RES_PROPERTY, RELOP_EQ, PR_MESSAGE_RECIP_ME, true}
+
+
+== Condition 228 (0xe4): Form / message class ==
 
 UI label:
 
@@ -875,6 +1076,14 @@ Layout:
 			uint16_t clen;
 		char msgclass[clen];
 	};
+
+SRestriction:
+
+	{RES_OR, {
+		{RES_PROPERTY, RELOP_EQ, PR_MESSAGE_CLASS, "IPM.Note.MyName"},
+	}}
+
+	The RES_OR is always present, even with just one class.
 
 The OL2019 UI, when saving forms, arbitrarily restricts form names to 128
 characters by ignoring excess keypresses. A nlen >= 255 was therefore not
@@ -994,7 +1203,7 @@ form and saving it under the name "MyForm" will make it available under the
 class name "IPM.Note.MyForm".
 
 
-== Condition 0xe5: Recipient words ==
+== Condition 229 (0xe5): Recipient words ==
 
 UI label:
 
@@ -1003,8 +1212,12 @@ UI label:
 
 The layout is the same as Subject words (0xcd), but with act_kind=0xe5.
 
+SRestriction:
 
-== Condition 0xe6: Sender words ==
+	{RES_CONTENT, FL_SUBSTRING, PR_SEARCH_KEY, "SMTP:FOO@BAR.DE"}
+
+
+== Condition 230 (0xe6): Sender words ==
 
 UI label:
 
@@ -1017,8 +1230,12 @@ UI behavior:
 
 The layout is the same as Subject words (0xcd), but with act_kind=0xe6.
 
+SRestriction:
 
-== Condition 0xe8: Header words ==
+	{RES_CONTENT, FL_SUBSTRING, PR_SENDER_SEARCH_KEY, "SMTP:FOO@BAR.DE"}
+
+
+== Condition 232 (0xe8): Header words ==
 
 UI label:
 
@@ -1031,8 +1248,13 @@ UI behavior:
 
 The layout is the same as Subject (0xcd), but with act_kind=0xe8.
 
+SRestriction:
 
-== Condition 0xee: Account ==
+	{RES_CONTENT, FL_IGNORECASE | FL_SUBSTRING,
+	PR_TRANSPORT_MESSAGE_HEADERS, "text"}
+
+
+== Condition 238 (0xee): Account ==
 
 UI label:
 
@@ -1057,6 +1279,10 @@ Layout:
 		uint16_t abc_len;
 	char abc[abc_len];
 
+SRestriction:
+
+	(Not mapped)
+
 (The MAPI control panel limits profile names to 63 characters, by the way.)
 
 @account_name: An account _within_ the current MAPI profile, specifically
@@ -1067,7 +1293,7 @@ the MAPI/OL config dialogs refuse to make editable).
 an ASCII string.
 
 
-== Condition 0xef: Machine ==
+== Condition 239 (0xef): Machine ==
 
 UI label:
 
@@ -1080,8 +1306,12 @@ Layout:
 	uint32_t magic[] = {1, 0};
 	unsigned char some_guid[16];
 
+SRestriction:
 
-== Condition 0xf0: Addressbook ==
+	(Not mapped)
+
+
+== Condition 240 (0xf0): Addressbook ==
 
 UI label:
 
@@ -1103,6 +1333,10 @@ Layout:
 		uint16_t nlen;
 	char16_t name[nlen];
 
+SRestriction:
+
+	(Not mapped)
+
 @eid: for example,
 00000000  00 00 00 00 87 12 f5 ef  5b 95 8f 43 94 a0 89 8c  |........[..C....|
 00000010  07 4d 16 c4 01 00 00 00  00 01 00 00 2f 67 75 69  |.M........../gui|
@@ -1114,7 +1348,7 @@ Layout:
 @name: for example, "Global Addressbook"
 
 
-== Condition 0xf1: Meeting request ==
+== Condition 241 (0xf1): Meeting request ==
 
 UI label:
 
@@ -1127,7 +1361,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Condition 0xf5: RSS feed ==
+== Condition 245 (0xf5): RSS feed ==
 
 UI label:
 
@@ -1143,8 +1377,17 @@ Layout:
 		uint16_t nlen;
 	char16_t name[nlen];
 
+SRestriction:
 
-== Condition 0xf6: Any category ==
+	{RES_OR, {
+		{RES_CONTENT, RELOP_EQ, PR_MESSAGE_CLASS,
+			"IPM.Schedule.Meeting.Request"},
+		{RES_CONTENT, RELOP_EQ, PR_MESSAGE_CLASS,
+			"IPM.Schedule.Meeting.Canceled"},
+	}}
+
+
+== Condition 246 (0xf6): Any category ==
 
 UI label:
 
@@ -1156,11 +1399,17 @@ Layout:
 	uint32_t act_kind = 0xf6;
 	uint32_t magic = 0;
 
+SRestriction:
+
+	{RES_EXIST, PROP_TAG(PT_MV_STRING8, 0x8002)}
+
+	Namedprop: PT_MV_STRING8:PS_PUBLIC_STRINGS:Keywords
+
 Matches if the message has any category set. (This only works for messages
 received directly through MAPI or as TNEF.)
 
 
-== Condition 0xf7: Any RSS feed ==
+== Condition 247 (0xf7): Any RSS feed ==
 
 UI label:
 
@@ -1172,8 +1421,12 @@ Layout:
 	uint32_t act_kind = 0xf7;
 	uint32_t magic = 0;
 
+SRestriction:
 
-== Action 0x12c: Move message ==
+	{RES_PROPERTY, RELOP_EQ, PR_MESSAGE_CLASS, ""}
+
+
+== Action 300 (0x12c): Move message ==
 
 UI label:
 
@@ -1194,6 +1447,15 @@ Layout:
 	char16_t folder_name[fname_len];
 	uint32_t magic = 0;
 
+SSRT:
+
+	lpAction->acttype = OP_MOVE
+	lpAction->ulActionFlavor = 0
+	lpAction->actMoveCopy.cbStoreEntryId = @seid_len
+	lpAction->actMoveCopy.lpStoreEntryId = @store_eid
+	lpAction->actMoveCopy.cbFldEntryId = @feid_len
+	lpAction->actMoveCopy.lpFldEntryId = @folder_eid
+
 The OL2019 UI's left pane arbitrarily restricts folder names to 127 characters
 by ignoring excess keypresses. The folder property dialog (via context menu)
 allows longer names, but still arbitrarily restricts folder names to 255
@@ -1201,7 +1463,7 @@ characters by ignoring excess keypresses. Longer names can be set up using
 MFCMAPI.
 
 
-== Action 0x12d: Soft delete (Move to wastebasket) ==
+== Action 301 (0x12d): Soft delete (Move to wastebasket) ==
 
 UI label:
 
@@ -1213,21 +1475,71 @@ Layout:
 	uint32_t act_kind = 0x12d;
 	uint32_t magic = 0;
 
+SSRT:
 
-== Action 0x12e: Forward message ==
+	lpAction->acttype = OP_MOVE
+	lpAction->ulActionFlavor = 0
+	lpAction->actMoveCopy = (set to the wastebasket)
 
-	uint32_t act_kind = 0x12e or 0x147;
+
+== Action 302 (0x12e): Forward message ==
+
+UI label:
+
+	DE:"diese an <einer Person/öffentlichen Gruppe> weiterleiten" [sic]
+
+UI behavior:
+
+	OL2019 offers no way to set the flavor bits FWD_PRESERVE_SENDER...?, etc. (see edkmdb.h).
+
+Layout:
+
+	uint32_t act_kind = 0x12e;
 	uint32_t magic[] = {1, 0};
-	uint32_t numrecipients;
-	repeat numrecipients {
+	uint32_t numrcpt;
+	repeat numrcpt {
 		XR_PropValArray;
 	};
 	uint32_t magic[] = {0, 0};
 
 The propvalarray for a recipient is the same as for a sender (0xcb).
 
+SSRT:
 
-== Action 0x12f: Reply with template ==
+	lpAction->acttype = OP_FORWARD
+	lpAction->ulActionFlavor = 0
+	lpAction->lpadrlist = ...
+	Typically 12 props for an SMTP target:
+		PR_ENTRYID
+		PR_DISPLAY_NAME
+		PR_OBJECT_TYPE = 6
+		PR_DISPLAY_TYPE = 0
+		PR_TRANSMITTABLE_DISPLAY_NAME
+		PR_EMAIL_ADDRESS = "foo@bar.de"
+		PR_ADDRTYPE = "SMTP"
+		PR_SEND_RICH_INFO = false
+		PR_SEND_INTERNET_ENCODING = 0
+		PR_RECIPIENT_TYPE = 1 (MAPI_TO)
+		PR_SEARCH_KEY = "SMTP:FOO@BAR.DE"
+		PR_RECORD_KEY
+	Typically 14 props for an EX target:
+		PR_ENTRYID
+		PR_DISPLAY_NAME
+		PR_OBJECT_TYPE = 6
+		PR_DISPLAY_TYPE = 0
+		PR_TRANSMITTABLE_DISPLAY_NAME
+		PR_EMAIL_ADDRESS
+		PR_ADDRTYPE = "EX"
+		PR_7BIT_DISPLAY_NAME = "foo#bar.de"
+		PR_SMTP_ADDRESS = "foo@bar.de"
+		PR_SEND_INTERNET_ENCODING = 0
+		PR_RECIPIENT_TYPE = 1 (MAPI_TO)
+		PR_SEARCH_KEY
+		PR_DISPLAY_TYPE_EX
+		PR_AB_PROVIDERS
+
+
+== Action 303 (0x12f): Reply with template ==
 
 UI label:
 
@@ -1251,8 +1563,14 @@ Layout:
 		uint16_t plen;
 	char16_t pathname[plen];
 
+SSRT:
 
-== Action 0x130: Show Outlook notification ==
+	lpAction->acttype = OP_DEFER_ACTION
+	lpAction->ulActionFlavor = 0
+	lpAction->actDeferAction.pbData = (see XR_Begin)
+
+
+== Action 304 (0x130): Show Outlook notification ==
 
 UI label:
 
@@ -1268,6 +1586,10 @@ Layout:
 		uint16_t tlen;
 	char16_t text[tlen];
 
+SSRT:
+
+	(Mapped to OP_DEFER_ACTION/XR_Begin)
+
 The OL2019 UI restricts entering messages to 65536 characters by ignoring
 excess keypresses. When trying to save such a large text, OL will claim
 Exchange Server has a problem with it. The rule stays deactivated. Deactivated
@@ -1281,12 +1603,16 @@ There are additional limitations with PR_ACTIONS; only some 14539 bytes of the
 action::actDeferAction::pbData stream are returned by MSMAPI.
 
 
-== Action 0x131: Flag for action ==
+== Action 305 (0x131): Flag for action ==
 
 UI label:
 
 	EN:"flag message for <action in a number of days>"
 	DE:"diese mit <einer Aktion in ... Tagen> kennzeichnen
+
+UI behavior:
+
+	Only selectable for send rules.
 
 Layout:
 
@@ -1299,8 +1625,12 @@ Layout:
 	char16_t action[nlen];
 	uint32_t magic = 0;
 
+SSRT:
 
-== Action 0x132: Clear followup flag ==
+	(Not mapped)
+
+
+== Action 306 (0x132): Clear followup flag ==
 
 UI label:
 
@@ -1312,8 +1642,12 @@ Layout:
 	uint32_t act_kind = 0x132;
 	uint32_t magic = 0;
 
+SSRT:
 
-== Action 0x133: Set categories ==
+	(Mapped to OP_DEFER_ACTION/XR_Begin)
+
+
+== Action 307 (0x133): Set categories ==
 
 UI label:
 
@@ -1329,12 +1663,17 @@ Layout:
 		uint16_t clen;
 	char16_t categories[clen];
 
+SSRT:
+
+	(Mapped to OP_DEFER_ACTION/XR_Begin, because OP_TAG resets the
+	property, i.e. would unset all previous categories.)
+
 @categories: This is a semicolon-separated string of categories that shall be
-set on the message. (Property is PS_PUBLIC_STRINGS:Keywords:PT_MV_UNICODE)
-For this reason, category names themselves cannot have a semicolon in them.
-According to MS-OXOCFG, the following characters are also forbidden:
-U+061B (ARABIC SEMICOLON), U+FE54 (SMALL SEMICOLON) and U+FF1B (FULLWIDTH
-SEMICOLON).
+set on the message. No categories are hereby unset. (Property is
+PS_PUBLIC_STRINGS:Keywords:PT_MV_UNICODE) For this reason, category names
+themselves cannot have a semicolon in them. According to MS-OXOCFG, the
+following characters are also forbidden: U+061B (ARABIC SEMICOLON), U+FE54
+(SMALL SEMICOLON) and U+FF1B (FULLWIDTH SEMICOLON).
 
 The OL2019 UI restricts entering category names by ignoring semicolon
 keypresses.
@@ -1343,7 +1682,7 @@ Category name-to-color mappings are stored in a FAI message
 [ol_category_spec.txt].
 
 
-== Action 0x136: Play sound ==
+== Action 310 (0x136): Play sound ==
 
 UI label:
 
@@ -1356,10 +1695,14 @@ UI behavior:
 	"Condition: Machine". However, one can deselect Machine by
 	going back, and then forward again.
 
+SSRT:
+
+	(Mapped to OP_DEFER_ACTION/XR_Begin)
+
 The layout is the same as Reply with Template (0x12f), but with act_kind=0x136.
 
 
-== Action 0x137: Set importance ==
+== Action 311 (0x137): Set importance ==
 
 UI label:
 
@@ -1376,8 +1719,12 @@ Layout:
 		IMPORTANCE_HIGH = 2,
 	} importance;
 
+SSRT:
 
-== Action 0x139: Copy ==
+	(Mapped to OP_DEFER_ACTION/XR_Begin, even though OP_TAG could do it.)
+
+
+== Action 313 (0x139): Copy ==
 
 UI label:
 
@@ -1386,8 +1733,14 @@ UI label:
 
 The layout is the same as Move (0x12c), but with act_kind=0x139.
 
+SSRT:
 
-== Action 0x13a: Notify when read ==
+	The layout is the same as Move (300), but with
+	lpAction->acttype = OP_COPY
+	lpAction->ulActionFlavor = 0
+
+
+== Action 314 (0x13a): Notify when read ==
 
 UI label:
 
@@ -1403,8 +1756,12 @@ Layout:
 	uint32_t act_kind = 0x13a;
 	uint32_t magic = 0;
 
+SSRT:
 
-== Action 0x13b: Notify when delivered ==
+	(Not mapped)
+
+
+== Action 315 (0x13b): Notify when delivered ==
 
 UI label:
 
@@ -1420,13 +1777,17 @@ Layout:
 	uint32_t act_kind = 0x13b;
 	uint32_t magic = 0;
 
+SSRT:
 
-== Action 0x13c: Cc ==
+	(Not mapped)
+
+
+== Action 316 (0x13c): Cc ==
 
 UI label:
 
 	EN:"Cc the message to <people or public group>"
-	DE:"diese an <einer Person/öffentlichen Gruppe> kopieren (Cc)"
+	DE:"diese an <einer Person/öffentlichen Gruppe> kopieren (Cc)" [sic]
 
 UI behavior:
 
@@ -1437,8 +1798,12 @@ The layout is the same as Forward (0x12e), but with act_kind=0x13c.
 PR_RECIPIENT_TYPE in the propvalarray still has value MAPI_TO rather than
 MAPI_CC!
 
+SSRT:
 
-== Action 0x13e: Defer ==
+	(Not mapped)
+
+
+== Action 318 (0x13e): Defer ==
 
 UI label:
 
@@ -1455,8 +1820,12 @@ Layout:
 	uint32_t magic[] = {1, 0};
 	uint32_t minutes;
 
+SSRT:
 
-== Action 0x142: Stop rule processing ==
+	(Not mapped)
+
+
+== Action 322 (0x142): Stop rule processing ==
 
 UI label:
 
@@ -1473,33 +1842,33 @@ Layout:
 	uint32_t act_kind = 0x142;
 	uint32_t magic = 0;
 
+SSRT:
 
-== Action 0x144: Redirect ==
+	PR_RULE_STATE |= ST_EXIT_LEVEL
+
+
+== Action 324 (0x144): Redirect ==
 
 UI label:
 
 	EN:"redirect it to <people or public group>"
-	DE:"diese umleiten an <einer Person/öffentlichen Gruppe>"
+	DE:"diese umleiten an <einer Person/öffentlichen Gruppe>" [sic]
 
 UI behavior:
 
 	The OL2019 UI does not permit mixing this action with other actions not
 	representable as server-side rules.
 
-Layout:
+The layout is the same as Forward (0x12e), but with act_kind=0x144.
 
-	uint32_t act_kind = 0x144;
-	uint32_t magic[] = {1, 0};
-	uint32_t numrecipients;
-	repeat numrecipients {
-		XR_PropValArray;
-	};
-	uint32_t magic[] = {0, 0};
+SSRT:
 
-The propvalarray for a recipient is the same as for a sender (0xcb).
+	The layout is the same as Forward (302), but with
+	lpAction->acttype = OP_FORWARD
+	lpAction->ulActionFlavor = FWD_PRESERVE_SENDER | FWD_DO_NOT_MUNGE_MSG
 
 
-== Action 0x146: Reply ==
+== Action 326 (0x146): Reply ==
 
 UI label:
 
@@ -1522,17 +1891,35 @@ Layout:
 		uint16_t slen;
 	char16_t subject[slen];
 
+SSRT:
+
+	lpAction->acttype = OP_REPLY
+	lpAction->ulActionFlavor = 0
+	lpAction->actReply.cbEntryId = @eidlen
+	lpAction->actReply.lpEntryId = @eid
+
 The associated message referenced by @eid is stored in the inbox's Associated
 Contents and has a PR_MESSAGE_CLASS of
 "IPM.Note.Rules.ReplyTemplate.Microsoft".
 
 
-== Action 0x147: Forward as attachment ==
+== Action 327 (0x147): Forward as attachment ==
+
+UI label:
+
+	DE:"diese als Anlage an <einer Person/öffentlichen Gruppe>
+	weiterleiten" [sic]
 
 The layout is the same as Forward (0x12e), but with act_kind=0x147.
 
+SSRT:
 
-== Action 0x148: Print ==
+	The layout is the same as Forward (302), but with
+	lpAction->acttype = OP_FORWARD
+	lpAction->ulActionFlavor = FWD_AS_ATTACHMENT
+
+
+== Action 328 (0x148): Print ==
 
 UI label:
 
@@ -1548,8 +1935,12 @@ Layout:
 	uint32_t act_kind = 0x148;
 	uint32_t magic = 0;
 
+SSRT:
 
-== Action 0x14a: Hard delete ==
+	(Mapped to OP_DEFER_ACTION/XR_Begin)
+
+
+== Action 330 (0x14a): Hard delete ==
 
 UI label:
 
@@ -1565,9 +1956,13 @@ Layout:
 	uint32_t act_kind = 0x14a;
 	uint32_t magic = 0;
 
+SSRT:
+
+	(Mapped to OP_DEFER_ACTION/XR_Begin, even though it could use
+	OP_DELETE.)
 
 
-== Action 0x14c: Mark as read ==
+== Action 332 (0x14c): Mark as read ==
 
 UI label:
 
@@ -1583,8 +1978,12 @@ Layout:
 	uint32_t act_kind = 0x14c;
 	uint32_t magic = 0;
 
+SSRT:
 
-== Action 0x14f: Desktop notfication ==
+	(Mapped to OP_DEFER_ACTION/XR_Begin.)
+
+
+== Action 335 (0x14f): Desktop notfication ==
 
 UI label:
 
@@ -1600,8 +1999,12 @@ Layout:
 	uint32_t act_kind = 0x14f;
 	uint32_t magic = 0;
 
+SSRT:
 
-== Action 0x151: Set follow-up flag ==
+	(Mapped to OP_DEFER_ACTION/XR_Begin.)
+
+
+== Action 337 (0x151): Set follow-up flag ==
 
 UI label:
 
@@ -1627,8 +2030,12 @@ Layout:
 	uint8_t fu_name_len;
 	char16_t fu_name[fu_name_len];
 
+SSRT:
 
-== Action 0x152: Clear categories ==
+	(Mapped to OP_DEFER_ACTION/XR_Begin.)
+
+
+== Action 338 (0x152): Clear categories ==
 
 UI label:
 
@@ -1640,8 +2047,14 @@ Layout:
 	uint32_t act_kind = 0x152;
 	uint32_t magic = 0;
 
+SSRT:
 
-== Condition 0x190: Receive/Send ==
+	lpAction->acttype = OP_TAG
+	lpAction->ulActionFlavor = 0
+	lpAction->propTag.ulPropTag = PROP_TAG(PT_MV_UNICODE, 0x8002)
+
+
+== Condition 400 (0x190): Receive/Send ==
 
 UI label:
 
@@ -1656,17 +2069,22 @@ Layout:
 	uint32_t magic[] = {1, 0};
 	uint32_t flagbits;
 
+SSRT:
+
+	All rules in the SSRT are receive rules by definition.
+	The SSRT does not keep send rules.
+
 @flagbits:
 	0x01: message was received
 	0x04: message was sent
 
 
-== Condition 0x1f4: Except name in To ==
+== Condition 500 (0x1f4): Except name in To ==
 
 UI label:
 
 	EN:"except where my name is in the To box"
-	DE:"""außer wenn mein Namen im Feld "An" steht"""
+	DE:"""außer wenn mein Name im Feld "An" steht"""
 
 UI behavior:
 
@@ -1679,7 +2097,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Condition 0x1f5: Except only to me ==
+== Condition 501 (0x1f5): Except only to me ==
 
 UI label:
 
@@ -1697,12 +2115,12 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Condition 0x1f4: Except name not in To ==
+== Condition 502 (0x1f6): Except name not in To ==
 
 UI label:
 
 	EN:"except where my name is in the To box"
-	DE:"""außer wenn mein Namen nicht im Feld "An" steht"""
+	DE:"""außer wenn mein Name nicht im Feld "An" steht"""
 
 UI behavior:
 
@@ -1715,7 +2133,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Condition 0x1f7: Except from ==
+== Condition 503 (0x1f7): Except from ==
 
 UI label:
 
@@ -1730,12 +2148,12 @@ UI behavior:
 The layout is the same as From (0xcb), but with act_kind=0x1f7.
 
 
-== Condition 0x1f8: Except to ==
+== Condition 504 (0x1f8): Except to ==
 
 UI label:
 
 	EN:"except if sent to <people or public group>"
-	DE:"außer bei Versand an <einer Person/öffentlichen Gruppe>"
+	DE:"außer bei Versand an <einer Person/öffentlichen Gruppe>" [sic]
 
 UI behavior:
 
@@ -1745,7 +2163,7 @@ UI behavior:
 The layout is the same as To (0xcc), but with act_kind=0x1f8.
 
 
-== Condition 0x1f9: Except subject words ==
+== Condition 505 (0x1f9): Except subject words ==
 
 UI label:
 
@@ -1759,7 +2177,7 @@ UI behavior:
 The layout is the same as Subject words (0xcd), but with act_kind=0x1f9.
 
 
-== Condition 0x1fa: Except body words ==
+== Condition 506 (0x1fa): Except body words ==
 
 UI label:
 
@@ -1773,7 +2191,7 @@ UI behavior:
 The layout is the same as Subject words (0xcd), but with act_kind=0x1fa.
 
 
-== Condition 0x1fb: Except subject or body words ==
+== Condition 507 (0x1fb): Except subject or body words ==
 
 UI label:
 
@@ -1787,7 +2205,7 @@ UI behavior:
 The layout is the same as Subject words (0xcd), but with act_kind=0x1fb.
 
 
-== Condition 0x1fc: Except flagged for action ==
+== Condition 508 (0x1fc): Except flagged for action ==
 
 UI label:
 
@@ -1801,7 +2219,7 @@ UI behavior:
 The layout is the same as Flagged for action (0xd0), but with act_kind=0x1fc.
 
 
-== Condition 0x1fe: Except importance ==
+== Condition 510 (0x1fe): Except importance ==
 
 UI label:
 
@@ -1815,7 +2233,7 @@ UI behavior:
 The layout is the same as Importance (0xd2), but with act_kind=0x1fe.
 
 
-== Condition 0x1ff: Except sensitivity ==
+== Condition 511 (0x1ff): Except sensitivity ==
 
 UI label:
 
@@ -1829,7 +2247,7 @@ UI behavior:
 The layout is the same as Sensitivity (0xd3), but with act_kind=0x1ff.
 
 
-== Condition 0x203: Except category ==
+== Condition 515 (0x203): Except category ==
 
 UI label:
 
@@ -1843,7 +2261,7 @@ UI behavior:
 The layout is the same as Category (0xd7), but with act_kind=0x203.
 
 
-== Condition 0x208: Except automated reply ==
+== Condition 520 (0x208): Except automated reply ==
 
 UI label:
 
@@ -1859,7 +2277,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Condition 0x20a: Except attachment ==
+== Condition 522 (0x20a): Except attachment ==
 
 UI label:
 
@@ -1876,7 +2294,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Condition 0x20b: Except form property ==
+== Condition 523 (0x20b): Except form property ==
 
 UI label:
 
@@ -1890,7 +2308,7 @@ UI behavior:
 The layout is the same as Form property (0xd4), but with act_kind=0x20b.
 
 
-== Condition 0x20c: Except size ==
+== Condition 524 (0x20c): Except size ==
 
 UI label:
 
@@ -1909,7 +2327,7 @@ Layout:
 	uint32_t max_size_kb;
 
 
-== Condition 0x20d: Except date ==
+== Condition 525 (0x20d): Except date ==
 
 UI label:
 
@@ -1922,7 +2340,7 @@ UI behavior:
 The layout is the same as Date (0xe1), but with act_kind=0x20d.
 
 
-== Condition 0x20e: Except name in Cc ==
+== Condition 526 (0x20e): Except name in Cc ==
 
 UI label:
 
@@ -1940,7 +2358,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Condition 0x20f: Except name in To or Cc ==
+== Condition 527 (0x20f): Except name in To or Cc ==
 
 UI label:
 
@@ -1958,7 +2376,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Condition 0x210: Except form ==
+== Condition 528 (0x210): Except form / message class ==
 
 UI label:
 
@@ -1972,7 +2390,7 @@ UI behavior:
 The layout is the same as Form (0xe4), but with act_kind=0x210.
 
 
-== Condition 0x211: Except recipient words ==
+== Condition 529 (0x211): Except recipient words ==
 
 UI label:
 
@@ -1986,7 +2404,7 @@ UI behavior:
 The layout is the same as Subject words (0xcd), but with act_kind=0x211.
 
 
-== Condition 0x212: Except sender words ==
+== Condition 530 (0x212): Except sender words ==
 
 UI label:
 
@@ -2001,7 +2419,7 @@ UI behavior:
 The layout is the same as Subject words (0xcd), but with act_kind=0x211.
 
 
-== Condition 0x213: Except header words ==
+== Condition 531 (0x213): Except header words ==
 
 UI label:
 
@@ -2016,7 +2434,7 @@ UI behavior:
 The layout is the same as Subject words (0xcd), but with act_kind=0x213.
 
 
-== Condition 0x214: Except account ==
+== Condition 532 (0x214): Except account ==
 
 UI label:
 
@@ -2033,7 +2451,7 @@ UI behavior:
 The layout is the same as Account (0xee), but with act_kind=0x214.
 
 
-== Condition 0x215: Except address book ==
+== Condition 533 (0x215): Except address book ==
 
 UI label:
 
@@ -2047,7 +2465,7 @@ UI behavior:
 The layout is the same as Address book (0xf0), but with act_kind=0x215.
 
 
-== Condition 0x216: Except meeting request ==
+== Condition 534 (0x216): Except meeting request ==
 
 UI label:
 
@@ -2064,7 +2482,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Condition 0x219: Except RSS feed ==
+== Condition 537 (0x219): Except RSS feed ==
 
 UI label:
 
@@ -2078,7 +2496,7 @@ UI behavior:
 The layout is the same as RSS feed (0xf5), but with act_kind=0x219.
 
 
-== Condition 0x21a: Except any category ==
+== Condition 538 (0x21a): Except any category ==
 
 UI label:
 
@@ -2095,7 +2513,7 @@ Layout:
 	uint32_t magic = 0;
 
 
-== Condition 0x21b: Except any RSS feed ==
+== Condition 539 (0x21b): Except any RSS feed ==
 
 UI label:
 
@@ -2138,3 +2556,107 @@ UI behavior:
 	action. The feature is practically not observable.
 
 The layout is presumably the same as Form class.
+
+
+== Server-side Rules Table ==
+
+Perhaps the earliest way inbox rules were defined. The "Inside MAPI" book from
+1996 does not mention it (nor does it any other method).
+
+The rules table is a special property (i.e. cannot be obtained with GetProps)
+on the inbox, which is to be accessed using:
+
+	object_ptr<IExchangeModifyTable> emt;
+	object_ptr<IMAPITable> tbl;
+	inbox->OpenProperty(PR_RULES_TABLE, &IID_IExchangeModifyTable, 0, 0, &~emt);
+	emt->GetTable(&~tbl);
+
+From there on, it is a regular IMAPITable with a number of properties. This
+table is documented on MSDN, therefore abridged here and limited to notes.
+
+@PR_RULE_NAME: rule display name.
+
+@PR_RULE_ID: uint64_t which commonly seems to be 0x01000002 | (rand() << 32).
+This field is arguably created by the server and a client adding a new rule
+must not present this property.
+
+@PR_RULE_PROVIDER: Observed values:
+
+	"MSFT:TDX OOF Rules"...
+	"Organizer2"
+
+@PR_RULE_PROVIDER_DATA: left undocumented by MSDN, piecewise unraveled in this
+document.
+
+@PR_RULE_SEQUENCE: Integer specifying the order of the rule with respect to
+others. Apparently, no one could be bothered to insert rules at the right spot
+and just use PR_ROWID.
+
+
+== SSRT: Organizer2 ==
+
+Rules are cloned by Outlook to the SSRT if they are enabled and for incoming
+messages. Conditions and actions supported by the Rule Stream get mapped onto
+the SSRT fields in various ways.
+
+Properties:
+
+@PR_RULE_PROVIDER_DATA: This seems to be a GUID (due to 16 bytes), and this
+GUID can also be found on FAI message Rule.Version2 as
+PR_MSG_RULE_PROVIDER_DATA.
+
+Conditions:
+
+See the individual sections on conditions how they get mapped to SSRT
+SRestrictions. If a rule has been defined without any conditions, or when none
+of these conditions were mapped to the SSRT, a dummy SRestriction {RES_EXIST,
+PR_MESSAGE_CLASS} may be attached.
+
+Exceptions:
+
+Exceptions are treated like conditions; they just get wrapped in another
+RES_NOT container.
+
+Actions:
+
+See the individual sections on actions how they get maped to SSRT actions. If a
+rule has been defined with any actions, or when the only action is "stop
+processing more rules", OP_DEFER_ACTION/XR_Begin is also used.
+
+
+== SSRT: OOF rules ==
+
+OOF: originally "Out of Facility", nowadays "Out of Office".
+
+In PR_RULES_TABLE, there will be rows with:
+
+	PR_RULE_PROVIDER: "MSFT:TDX OOF Rules" +
+		32 hex chars [0-9a-f] forming some GUID
+
+	PR_RULE_SEQEUENCE: OL2019 makes them start with 100, effectively
+	putting them after inbox rules, and possibly mixing them for the worse
+	should the normal receive rules exceed 89.
+
+The OOF dialog does not permit many actions at all; basically just the
+features that map to the edkmdb.h:OP_* values. There are only two
+extra actions implemented using OP_DEFER_ACTION. The dialog has plenty
+of bugs and loses information.
+
+
+== AR_DeferAction ==
+
+	uint8_t magic[5] = {0x20, 0x20, 0x20, 0x20, 0x20};
+	uint8_t actionbytes[2];
+
+
+== AR Action 0x30 0x3b: Notify with string ==
+
+	char8_t message[]; /* \0-terminated */
+
+
+== AR Action 0x32 0x37: Notify with sound ==
+
+	char8_t path_and_msg[]; /* \0-terminated */
+
+@path_and_msg: e.g. "C:\foo.wav;Message here" or just "C:\foo.wav;" for no
+message.
