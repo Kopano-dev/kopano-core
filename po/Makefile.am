@@ -16,3 +16,20 @@ uninstall-local:
 	for po in ${EXTRA_DIST}; do \
 		rm -f "${DESTDIR}${datadir}/$${po%.po}/LC_MESSAGES/kopano.mo"; \
 	done
+
+messages.pot:
+	s="${srcdir}"; t="${top_srcdir}"; $${s:-.}/mkpot messages.pot $${t:-..}
+
+extract: messages.pot
+
+merge: messages.pot
+	p="${srcdir}"; for po in ${EXTRA_DIST}; do \
+		msgmerge -U --backup=none --no-wrap $${p:-.}/$$po $<; \
+	done
+
+stats: ${EXTRA_DIST}
+	for po in $^; do \
+		msgfmt -v --statistics $$po; \
+	done
+
+.PHONY: extract messages.pot stats
