@@ -7,7 +7,6 @@
 #include "ECDatabase.h"
 #include <list>
 #include <memory>
-#include <set>
 #include <string>
 
 struct soap;

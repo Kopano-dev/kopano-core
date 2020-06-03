@@ -13,6 +13,7 @@
 #include <set>
 #include <string>
 #include <type_traits>
+#include <utility>
 #include <vector>
 #include <kopano/platform.h>
 #include <kopano/zcdefs.h>

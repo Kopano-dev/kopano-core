@@ -28,7 +28,6 @@ using namespace KC::helpers;
 using namespace KC::operations;
 using std::endl;
 using std::list;
-using std::pair;
 using std::string;
 
 typedef std::wostringstream tostringstream;
@@ -72,7 +71,7 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
 	ArchiverSessionPtr ptrSession;
 	InstanceIdMapperPtr ptrMapper;
 	std::unique_ptr<Copier::Helper> ptrHelper;
-	list<pair<MessagePtr,PostSaveActionPtr> > lstArchivedMessages;
+	std::list<std::pair<MessagePtr, PostSaveActionPtr>> lstArchivedMessages;
 	ArchiveResult result;
 	MAPIPropHelperPtr ptrMsgHelper;
 	static constexpr const SizedSPropTagArray(3, sptaMessageProps) =
@@ -183,7 +182,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 	ArchiverSessionPtr ptrSession;
 	InstanceIdMapperPtr ptrMapper;
 	std::unique_ptr<Copier::Helper> ptrHelper;
-	list<pair<MessagePtr,PostSaveActionPtr> > lstArchivedMessages;
+	std::list<std::pair<MessagePtr, PostSaveActionPtr>> lstArchivedMessages;
 	ArchiveResult result;
 	static constexpr const SizedSPropTagArray(2, sptaMessageProps) = {1, {PR_STORE_ENTRYID}};
 	enum {IDX_STORE_ENTRYID};

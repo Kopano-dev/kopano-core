@@ -4,6 +4,7 @@
  */
 #include <new>
 #include <string>
+#include <utility>
 #include <kopano/platform.h>
 #include <mapi.h>
 #include <mapiutil.h>

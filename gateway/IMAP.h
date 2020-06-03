@@ -3,12 +3,13 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #pragma once
+#include <map>
 #include <memory>
 #include <mutex>
 #include <string>
+#include <utility>
 #include <vector>
 #include <list>
-#include <set>
 #include <cstring>
 #include <kopano/ECChannel.h>
 #include <kopano/memory.hpp>

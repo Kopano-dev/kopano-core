@@ -8,7 +8,7 @@
 #include <kopano/platform.h>
 #include <iostream>
 #include <map>
-#include <utility>
+#include <set>
 #include <kopano/codepage.h>
 #include <kopano/CommonUtil.h>
 #include <kopano/Util.h>

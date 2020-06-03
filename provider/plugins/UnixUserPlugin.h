@@ -4,6 +4,7 @@
  */
 // -*- Mode: c++ -*-
 #pragma once
+#include <map>
 #include <memory>
 #include <mutex>
 #include <string>

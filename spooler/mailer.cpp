@@ -139,7 +139,7 @@ static HRESULT ExpandRecipientsRecursive(LPADRBOOK lpAddrBook,
 			goto remove_group;
 
 		/* Only continue when this group has not yet been expanded previously */
-		if (find(lpExpandedGroups->begin(), lpExpandedGroups->end(), lpEntryId->Value.bin) != lpExpandedGroups->end())
+		if (std::find(lpExpandedGroups->begin(), lpExpandedGroups->end(), lpEntryId->Value.bin) != lpExpandedGroups->end())
 			goto remove_group;
 		hr = lpAddrBook->OpenEntry(lpEntryId->Value.bin.cb,
 		     reinterpret_cast<ENTRYID *>(lpEntryId->Value.bin.lpb),

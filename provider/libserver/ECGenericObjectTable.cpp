@@ -4,8 +4,10 @@
  */
 #include <kopano/platform.h>
 #include <list>
+#include <map>
 #include <memory>
 #include <string>
+#include <utility>
 #include <kopano/scope.hpp>
 
 /* Returns the rows for a contents- or hierarchytable

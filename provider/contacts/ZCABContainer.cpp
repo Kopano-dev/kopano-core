@@ -4,6 +4,7 @@
  */
 #include <kopano/platform.h>
 #include <new>
+#include <set>
 #include <climits>
 #include <cstring>
 #include "ZCABContainer.h"

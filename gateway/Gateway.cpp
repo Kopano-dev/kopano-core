@@ -9,7 +9,6 @@
 #include <kopano/platform.h>
 #include <memory>
 #include <new>
-#include <set>
 #include <utility>
 #include <cerrno>
 #include <climits>

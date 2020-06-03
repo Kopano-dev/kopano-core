@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2017 - Kopano and its licensors
  */
-#include <map>
 #include <memory>
 #include <new>
 #include <cstdlib>

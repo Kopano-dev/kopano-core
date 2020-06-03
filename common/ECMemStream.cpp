@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
+#include <algorithm>
 #include <chrono>
 #include <new>
 #include <mapix.h>

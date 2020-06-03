@@ -4,6 +4,7 @@
  */
 #include <kopano/platform.h>
 #include <memory>
+#include <utility>
 #include "icalrecurrence.h"
 #include "vconverter.h"
 #include "nameids.h"
@@ -513,7 +514,7 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
 	for (ULONG i = 0; i < sptaCopy.cValues; ++i) {
 		if (!abOldPresent[i] || abNewPresent[i])
 			continue;
-		auto iProp = find(lpEx->lstMsgProps.begin(), lpEx->lstMsgProps.end(), sptaCopy.aulPropTag[i]);
+		auto iProp = std::find(lpEx->lstMsgProps.begin(), lpEx->lstMsgProps.end(), sptaCopy.aulPropTag[i]);
 		if (iProp == lpEx->lstMsgProps.cend())
 			continue;
 		lpEx->lstMsgProps.erase(iProp);

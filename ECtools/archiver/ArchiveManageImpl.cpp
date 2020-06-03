@@ -358,7 +358,7 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
 	}
 
 	// Find an archives on the passed store.
-	auto iArchive = find_if(lstArchives.begin(), lstArchives.end(), StoreCompare(ptrArchiveStoreEntryId->Value.bin));
+	auto iArchive = std::find_if(lstArchives.begin(), lstArchives.end(), StoreCompare(ptrArchiveStoreEntryId->Value.bin));
 	if (iArchive == lstArchives.end()) {
 		m_lpLogger->logf(EC_LOGLEVEL_CRIT, "\"" TSTRING_PRINTF "\" has no archive on \"" TSTRING_PRINTF "\"", m_strUser.c_str(), lpszArchive);
 		return MAPIErrorToArchiveError(MAPI_E_NOT_FOUND);
@@ -390,7 +390,7 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
 			}
 			if (_tcscmp(ptrDisplayName->Value.LPSZ, lpszFolder) == 0)
 				break;
-			iArchive = find_if(++iArchive, lstArchives.end(), StoreCompare(ptrArchiveStoreEntryId->Value.bin));
+			iArchive = std::find_if(++iArchive, lstArchives.end(), StoreCompare(ptrArchiveStoreEntryId->Value.bin));
 		}
 
 		if (iArchive == lstArchives.end()) {

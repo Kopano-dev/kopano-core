@@ -4,6 +4,7 @@
  */
 #include <list>
 #include <new>
+#include <set>
 #include <string>
 #include <utility>
 #include <kopano/database.hpp>

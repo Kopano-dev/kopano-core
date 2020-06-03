@@ -1,7 +1,6 @@
 #pragma once
 #include <mutex>
 #include <string>
-#include <utility>
 #include <mapidefs.h>
 #include <mysql.h>
 #include <kopano/zcdefs.h>

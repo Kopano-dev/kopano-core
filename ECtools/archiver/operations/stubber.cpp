@@ -2,6 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
+#include <algorithm>
 #include <memory>
 #include <utility>
 #include <kopano/platform.h>
@@ -117,7 +118,7 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 		return hr;
 	}
 
-	if (find_if(lstMsgArchives.begin(), lstMsgArchives.end(), IsNotWrapped()) == lstMsgArchives.end()) {
+	if (std::find_if(lstMsgArchives.begin(), lstMsgArchives.end(), IsNotWrapped()) == lstMsgArchives.end()) {
 		Logger()->Log(EC_LOGLEVEL_WARNING, "Message has no archives that are directly accessible, message will not be stubbed.");
 		return hr;
 	}

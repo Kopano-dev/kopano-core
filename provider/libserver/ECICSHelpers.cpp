@@ -3,8 +3,10 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <utility>
+#include <map>
 #include <memory>
 #include <new>
+#include <set>
 #include <kopano/platform.h>
 #include <memory>
 #include <kopano/stringutil.h>

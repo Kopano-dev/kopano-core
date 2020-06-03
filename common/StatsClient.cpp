@@ -5,8 +5,10 @@
 #ifdef HAVE_CONFIG_H
 #	include "config.h"
 #endif
+#include <algorithm>
 #include <mutex>
 #include <string>
+#include <utility>
 #include <pthread.h>
 #include <unistd.h>
 #include <sys/utsname.h>

@@ -4,7 +4,9 @@
  */
 #include <algorithm>
 #include <new>
+#include <set>
 #include <string>
+#include <utility>
 #include <kopano/platform.h>
 #include <kopano/scope.hpp>
 

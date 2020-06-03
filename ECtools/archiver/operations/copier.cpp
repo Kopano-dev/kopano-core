@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
+#include <algorithm>
 #include <memory>
 #include <new>
 #include <utility>
@@ -451,7 +452,7 @@ HRESULT Copier::DoProcessEntry(const SRow &proprow)
 
 	for (const auto &arc : m_lstArchives) {
 		TransactionPtr ptrTransaction;
-		auto iArchivedMsg = find_if(lstMsgArchives.cbegin(), lstMsgArchives.cend(), StoreCompare(arc));
+		auto iArchivedMsg = std::find_if(lstMsgArchives.cbegin(), lstMsgArchives.cend(), StoreCompare(arc));
 		// Check if this message is archived to the current archive.
 		if (iArchivedMsg == lstMsgArchives.cend()) {
 			// It's possible to have a dirty message that has not been archived to the current archive if at the time of the

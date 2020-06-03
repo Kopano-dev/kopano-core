@@ -4,6 +4,7 @@
  */
 #include <memory>
 #include <new>
+#include <utility>
 #include <climits>
 #include <kopano/platform.h>
 #include <kopano/ECRestriction.h>

@@ -35,7 +35,6 @@
 #include <kopano/ECRestriction.h>
 #include <kopano/MAPIErrors.h>
 #include <string>
-#include <map>
 #include <kopano/charset/convert.h>
 #define MAPI_MEM_DEBUG 0
 #define MAPI_MEM_MORE_DEBUG 0

@@ -6,6 +6,7 @@
 #include <memory>
 #include <mutex>
 #include <unordered_map>
+#include <utility>
 #include <cstdio>
 #include <kopano/platform.h>
 #include <kopano/kcodes.h>

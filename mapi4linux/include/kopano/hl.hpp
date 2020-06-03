@@ -4,6 +4,7 @@
 #include <kopano/MAPIErrors.h>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
 namespace KC {
 

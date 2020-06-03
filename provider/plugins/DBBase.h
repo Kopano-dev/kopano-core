@@ -6,6 +6,7 @@
 #pragma once
 #include <kopano/zcdefs.h>
 #include "plugin.h"
+#include <map>
 #include <memory>
 #include <mutex>
 #include <string>

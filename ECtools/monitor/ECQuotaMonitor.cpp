@@ -36,7 +36,6 @@
 #include <string>
 
 using namespace KC;
-using std::set;
 using std::string;
 
 #define QUOTA_CONFIG_MSG "Kopano.Quota"
@@ -196,7 +195,7 @@ HRESULT ECQuotaMonitor::CheckCompanyQuota(ECCOMPANY *lpecCompany)
 	/* Userlist */
 	memory_ptr<ECUSER> lpsUserList;
 	ULONG				cUsers = 0;
-	set<string> setServers;
+	std::set<std::string> setServers;
 	std::set<string, strcasecmp_comparison> setServersConfig;
 	memory_ptr<char> lpszConnection;
 	bool bIsPeer = false;

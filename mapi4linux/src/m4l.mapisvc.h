@@ -5,7 +5,6 @@
 #pragma once
 #include <map>
 #include <memory>
-#include <set>
 #include <vector>
 #include <string>
 #include <mapidefs.h>

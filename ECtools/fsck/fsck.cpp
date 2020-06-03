@@ -6,8 +6,8 @@
 #include <iostream>
 #include <map>
 #include <memory>
+#include <set>
 #include <string>
-#include <utility>
 #include <climits>
 #include <getopt.h>
 #include <kopano/automapi.hpp>

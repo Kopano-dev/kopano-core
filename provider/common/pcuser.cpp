@@ -6,6 +6,7 @@
 #include <kopano/stringutil.h>
 #include <kopano/pcuser.hpp>
 #include <sstream>
+#include <utility>
 
 namespace KC {
 

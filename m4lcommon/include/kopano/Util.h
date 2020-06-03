@@ -8,6 +8,7 @@
 #include <mapix.h>
 #include <edkmdb.h>
 #include <string>
+#include <utility>
 #include <kopano/ECDefs.h>
 #include <kopano/memory.hpp>
 #include <kopano/ustringutil.h>

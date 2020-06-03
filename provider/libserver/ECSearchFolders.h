@@ -14,7 +14,6 @@
 #include "soapH.h"
 #include "SOAPUtils.h"
 #include <map>
-#include <set>
 #include <list>
 #include "cmd.hpp"
 

@@ -53,7 +53,6 @@
 using namespace KC;
 using std::list;
 using std::string;
-using std::swap;
 using std::vector;
 using std::wstring;
 
@@ -2134,7 +2133,7 @@ int IMAP::IdleAdviseCallback2(void *lpContext, unsigned int cNotif,
 			strFlags.clear();
 			if (lpNotif[i].info.tab.row.lpProps[IMAPID].ulPropTag != PR_EC_IMAP_ID)
 				break;
-			auto iterMail = find(lpIMAP->lstFolderMailEIDs.cbegin(), lpIMAP->lstFolderMailEIDs.cend(), lpNotif[i].info.tab.row.lpProps[IMAPID].Value.ul);
+			auto iterMail = std::find(lpIMAP->lstFolderMailEIDs.cbegin(), lpIMAP->lstFolderMailEIDs.cend(), lpNotif[i].info.tab.row.lpProps[IMAPID].Value.ul);
 			// not found probably means the client needs to sync
 			if (iterMail == lpIMAP->lstFolderMailEIDs.cend())
 				break;
@@ -2637,7 +2636,7 @@ HRESULT IMAP::ChangeSubscribeList(bool bSubscribe, ULONG cbEntryID, const ENTRYI
 {
 	bool bChanged = false;
 	BinaryArray eid(lpEntryID, cbEntryID);
-	auto iFolder = find(m_vSubscriptions.begin(), m_vSubscriptions.end(), eid);
+	auto iFolder = std::find(m_vSubscriptions.begin(), m_vSubscriptions.end(), eid);
 	if (iFolder == m_vSubscriptions.cend()) {
 		if (bSubscribe) {
 			m_vSubscriptions.emplace_back(std::move(eid));
@@ -3025,7 +3024,7 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFo
 				break;
 			}
 		}
-		auto subscribed_iter = find(m_vSubscriptions.cbegin(), m_vSubscriptions.cend(), entry_id);
+		auto subscribed_iter = std::find(m_vSubscriptions.cbegin(), m_vSubscriptions.cend(), entry_id);
 		sfolder.bActive = subscribed_iter != m_vSubscriptions.cend();
 		sfolder.bSpecialFolder = IsSpecialFolder(entry_id.cb, reinterpret_cast<ENTRYID *>(entry_id.lpb), &sfolder.ulSpecialFolderType);
 		sfolder.bMailFolder = mailfolder;
@@ -3807,14 +3806,14 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
             HrGetMessagePart(strMessagePart, strMessage, strNextPart);
         else
             // Swap to conserve memory: Original: strMessagePart = strMessage
-            swap(strMessagePart, strMessage);
+			std::swap(strMessagePart, strMessage);
 	} else if (strPartName == "TEXT") {
 	    // Everything except for the headers
 		auto ulPos = strMessage.find("\r\n\r\n");
 		if (ulPos != string::npos) {
 		    // Swap for less memory usage. Original: strMessagePart = strMessage.substr(ulPos+4)
 		    strMessage.erase(0,ulPos+4);
-		    swap(strMessage, strMessagePart);
+			std::swap(strMessage, strMessagePart);
 		} else {
 		    // The message only has headers ?
 			strMessagePart.clear();
@@ -3825,7 +3824,7 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
 		if (ulPos != string::npos) {
 		    // Swap for less memory usage. Original: strMessagePart = strMessage.substr(0, ulPos+4);
 			strMessage.erase(ulPos + 4, strMessage.size() - ulPos - 4);
-		    swap(strMessagePart, strMessage);
+			std::swap(strMessagePart, strMessage);
 		} else {
 		    // Only headers in the message
 			strMessagePart = strMessage + "\r\n\r\n";
@@ -3949,7 +3948,7 @@ HRESULT IMAP::HrSeqUidSetToRestriction(const string &strSeqSet,
 			sPropEnd.Value.ul = LastOrNumber(vSequences[i].c_str() + ulPos + 1, true);
 
 			if (sProp.Value.ul > sPropEnd.Value.ul)
-				swap(sProp.Value.ul, sPropEnd.Value.ul);
+				std::swap(sProp.Value.ul, sPropEnd.Value.ul);
 			*rst += ECAndRestriction(
 				ECPropertyRestriction(RELOP_GE, PR_EC_IMAP_ID, &sProp, ECRestriction::Full) +
 				ECPropertyRestriction(RELOP_LE, PR_EC_IMAP_ID, &sPropEnd, ECRestriction::Full));
@@ -3982,7 +3981,7 @@ HRESULT IMAP::HrParseSeqUidSet(const string &strSeqSet, list<ULONG> &lstMails) {
 		if (ulPos == string::npos) {
 			// single number
 			ulMailnr = LastOrNumber(vSequences[i].c_str(), true);
-			auto j = find(lstFolderMailEIDs.cbegin(), lstFolderMailEIDs.cend(), ulMailnr);
+			auto j = std::find(lstFolderMailEIDs.cbegin(), lstFolderMailEIDs.cend(), ulMailnr);
 			if (j != lstFolderMailEIDs.cend())
 				lstMails.emplace_back(std::distance(lstFolderMailEIDs.cbegin(), j));
 			continue;
@@ -3996,7 +3995,7 @@ HRESULT IMAP::HrParseSeqUidSet(const string &strSeqSet, list<ULONG> &lstMails) {
 			 * essentially describes a set rather than a
 			 * strictly ordered range.
 			 */
-			swap(ulBeginMailnr, ulMailnr);
+			std::swap(ulBeginMailnr, ulMailnr);
 
 		auto b = std::lower_bound(lstFolderMailEIDs.cbegin(), lstFolderMailEIDs.cend(), ulBeginMailnr);
 		auto e = std::upper_bound(b, lstFolderMailEIDs.cend(), ulMailnr);
@@ -4041,7 +4040,7 @@ HRESULT IMAP::HrParseSeqSet(const string &strSeqSet, list<ULONG> &lstMails) {
 		ulBeginMailnr = LastOrNumber(vSequences[i].c_str(), false) - 1;
 		ulMailnr = LastOrNumber(vSequences[i].c_str() + ulPos + 1, false) - 1;
 		if (ulBeginMailnr > ulMailnr)
-			swap(ulBeginMailnr, ulMailnr);
+			std::swap(ulBeginMailnr, ulMailnr);
 		if (ulBeginMailnr >= lstFolderMailEIDs.size() ||
 		    ulMailnr >= lstFolderMailEIDs.size())
 			return MAPI_E_CALL_FAILED;

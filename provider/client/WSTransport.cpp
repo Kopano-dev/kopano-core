@@ -12,6 +12,7 @@
 #include <fstream>
 #include <new>
 #include <string>
+#include <utility>
 #include <kopano/ECLogger.h>
 #include <kopano/scope.hpp>
 #include "WSTransport.h"

@@ -11,6 +11,7 @@
 #include <new>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <cerrno>
 #include <cstring>
 #include <getopt.h>
@@ -48,7 +49,6 @@
 #include "SSLUtil.h"
 #include "ECSoapServerConnection.h"
 #include <libintl.h>
-#include <map>
 #include <unicode/uclean.h>
 #include <kopano/fileutil.hpp>
 #include "ECICS.h"

@@ -6,7 +6,6 @@
 #include <kopano/platform.h>
 #include <string>
 #include <list>
-#include <set>
 #include <mapidefs.h>
 
 /*
