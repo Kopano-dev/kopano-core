@@ -7,6 +7,7 @@
 #include <sstream>
 #include <string>
 #include <utility>
+#include <vector>
 #include <climits>
 #include "mailer.h"
 #include "archive.h"
@@ -43,7 +44,6 @@
 #include <kopano/fileutil.hpp>
 
 using namespace KC;
-using std::list;
 using std::string;
 using std::wstring;
 extern std::shared_ptr<ECConfig> g_lpConfig;
@@ -64,7 +64,7 @@ extern std::shared_ptr<ECConfig> g_lpConfig;
 static HRESULT ExpandRecipientsRecursive(LPADRBOOK lpAddrBook,
     IMessage *lpMessage, IMAPITable *lpTable,
     LPSRestriction lpEntryRestriction, ULONG ulRecipType,
-    list<SBinary> *lpExpandedGroups, bool recurrence = true)
+    std::list<SBinary> *lpExpandedGroups, bool recurrence = true)
 {
 	ULONG			ulObj = 0;
 	bool			bExpandSub = recurrence;

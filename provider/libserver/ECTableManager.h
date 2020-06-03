@@ -4,6 +4,7 @@
  */
 #pragma once
 #include <kopano/zcdefs.h>
+#include <list>
 #include <map>
 #include <memory>
 #include "ECDatabase.h"

@@ -6,12 +6,12 @@
 #include <chrono>
 #include <memory>
 #include <mutex>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include "ECThreadManager.h"
 #include <cmath>
 #include <cstdlib>
-#include <algorithm>
 #include <poll.h>
 #include <unistd.h>
 #include <libHX/defs.h>

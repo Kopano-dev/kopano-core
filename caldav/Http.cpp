@@ -6,7 +6,6 @@
 #include <map>
 #include <string>
 #include <utility>
-#include <vector>
 #include "Http.h"
 #include <kopano/mapi_ptr.h>
 #include <kopano/stringutil.h>

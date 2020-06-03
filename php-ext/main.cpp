@@ -5,8 +5,10 @@
 #include <kopano/platform.h>
 #include <kopano/ecversion.h>
 #include <algorithm>
+#include <chrono>
 #include <memory>
 #include <new>
+#include <vector>
 #include <cstdio>
 #include <cstdlib>
 #include <syslog.h>

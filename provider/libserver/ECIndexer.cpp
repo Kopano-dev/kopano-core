@@ -14,6 +14,7 @@
 #include <kopano/Util.h>
 #include "StatsClient.h"
 #include "ECIndexer.h"
+#include <chrono>
 #include <iterator>
 #include <memory>
 #include <new>

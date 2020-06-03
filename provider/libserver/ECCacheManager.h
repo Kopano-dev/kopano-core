@@ -4,11 +4,13 @@
  */
 #pragma once
 #include <kopano/zcdefs.h>
+#include <list>
 #include <map>
 #include <memory>
 #include <mutex>
 #include <set>
 #include <tuple>
+#include <vector>
 #include "ECDatabaseFactory.h"
 #include "ECDatabaseUtils.h"
 #include "ECGenericObjectTable.h"	// ECListInt

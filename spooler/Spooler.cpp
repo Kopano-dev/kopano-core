@@ -26,6 +26,7 @@
 #include <new>
 #include <string>
 #include <utility>
+#include <vector>
 #include "mailer.h"
 #include <climits>
 #include <cstdio>

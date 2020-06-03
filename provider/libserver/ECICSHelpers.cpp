@@ -7,6 +7,7 @@
 #include <memory>
 #include <new>
 #include <set>
+#include <vector>
 #include <kopano/platform.h>
 #include <memory>
 #include <kopano/stringutil.h>

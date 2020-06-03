@@ -8,6 +8,7 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 #include <kopano/scope.hpp>
 
 /* Returns the rows for a contents- or hierarchytable

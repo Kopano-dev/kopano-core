@@ -3,11 +3,11 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #pragma once
+#include <list>
 #include "WebDav.h"
 #include <kopano/mapiext.h>
 #include <kopano/mapiguidext.h>
 #include <cstring>
-#include <algorithm>
 #include <kopano/namedprops.h>
 #include "nameids.h"
 #include "icaluid.h"

@@ -14,6 +14,7 @@
 #include <stdexcept>
 #include <string>
 #include <utility>
+#include <vector>
 #include <cassert>
 #include <cctype>
 #include <cmath>

@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <memory>
 #include <utility>
+#include <vector>
 #include <cassert>
 #include <kopano/ECKeyTable.h>
 #include <kopano/ustringutil.h>

@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #pragma once
+#include <list>
 #include <libxml/tree.h>
 #include <libxml/xmlwriter.h>
 #include <libxml/parser.h>

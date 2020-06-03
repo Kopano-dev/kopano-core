@@ -4,6 +4,7 @@
  */
 #include <string>
 #include <utility>
+#include <vector>
 #include <climits>
 #include <cstdlib>
 #include <libHX/option.h>

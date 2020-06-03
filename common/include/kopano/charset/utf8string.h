@@ -5,7 +5,6 @@
 #pragma once
 #include <kopano/zcdefs.h>
 #include <string>
-#include <stdexcept>
 #include <kopano/charset/traits.h>
 
 namespace KC {

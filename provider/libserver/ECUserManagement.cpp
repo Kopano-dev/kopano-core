@@ -5,6 +5,7 @@
 #include <kopano/platform.h>
 #include <exception>
 #include <iterator>
+#include <list>
 #include <memory>
 #include <mutex>
 #include <set>
@@ -19,7 +20,6 @@
 #include <kopano/scope.hpp>
 #include <map>
 #include <memory>
-#include <algorithm>
 #include "kcore.hpp"
 #include <kopano/stringutil.h>
 #include "ECUserManagement.h"

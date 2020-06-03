@@ -2,7 +2,7 @@
  * SPDX-License-Identifier: LGPL-3.0-or-later
  * Copyright 2018 Kopano and its licensors
  */
-#include <chrono>
+#include <algorithm>
 #include <memory>
 #include <mutex>
 #include <string>

@@ -4,6 +4,7 @@
  */
 #include <algorithm>
 #include <iterator>
+#include <list>
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
 #include <kopano/ECGuid.h>

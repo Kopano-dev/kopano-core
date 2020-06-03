@@ -3,9 +3,11 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
+#include <chrono>
 #include <memory>
 #include <string>
 #include <unordered_set>
+#include <vector>
 #include "rules.h"
 #include <mapi.h>
 #include <mapidefs.h>

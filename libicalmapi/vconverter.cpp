@@ -3,8 +3,11 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
+#include <algorithm>
+#include <list>
 #include <memory>
 #include <utility>
+#include <vector>
 #include <climits>
 #include <kopano/ECRestriction.h>
 #include "vconverter.h"

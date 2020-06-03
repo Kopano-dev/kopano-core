@@ -33,10 +33,13 @@
  */
 #include <kopano/platform.h>
 #include <atomic>
+#include <chrono>
+#include <list>
 #include <memory>
 #include <set>
 #include <string>
 #include <utility>
+#include <vector>
 #include <climits>
 #include <clocale>
 #include <cstdio>

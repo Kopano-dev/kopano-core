@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #pragma once
+#include <vector>
 #include <kopano/memory.hpp>
 #include <mapidefs.h>
 #include <kopano/Util.h>

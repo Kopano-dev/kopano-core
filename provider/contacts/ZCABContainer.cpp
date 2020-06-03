@@ -3,8 +3,10 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
+#include <algorithm>
 #include <new>
 #include <set>
+#include <vector>
 #include <climits>
 #include <cstring>
 #include "ZCABContainer.h"

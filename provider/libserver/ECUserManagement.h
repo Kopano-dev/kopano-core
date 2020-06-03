@@ -8,7 +8,6 @@
 #include <map>
 #include <memory>
 #include <mutex>
-#include <vector>
 #include <kopano/kcodes.h>
 #include <kopano/pcuser.hpp>
 #include <kopano/ECConfig.h>

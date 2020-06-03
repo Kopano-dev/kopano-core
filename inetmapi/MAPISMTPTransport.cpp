@@ -218,7 +218,7 @@ void MAPISMTPTransport::helo()
 		string ext;
 		iss >> ext;
 
-		std::vector <string> params;
+		std::vector<std::string> params;
 		string param;
 
 		// Special case: some servers send "AUTH=MECH [MECH MECH...]"
@@ -280,9 +280,9 @@ void MAPISMTPTransport::authenticateSASL()
 		throw exceptions::authentication_error("No SASL authenticator available.");
 
 	// Obtain SASL mechanisms supported by server from ESMTP extensions
-	const std::vector <string> saslMechs =
+	const std::vector<std::string> saslMechs =
 		(m_extensions.find("AUTH") != m_extensions.end())
-			? m_extensions["AUTH"] : std::vector <string>();
+			? m_extensions["AUTH"] : std::vector<std::string>();
 
 	if (saslMechs.empty())
 		throw exceptions::authentication_error("No SASL mechanism available.");

@@ -6,6 +6,7 @@
 #include <map>
 #include <list>
 #include <string>
+#include <vector>
 #include <kopano/zcdefs.h>
 #include <kopano/stringutil.h>
 #include <kopano/ECDefs.h>

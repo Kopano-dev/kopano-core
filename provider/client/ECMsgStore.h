@@ -4,6 +4,7 @@
  */
 #pragma once
 #include <memory>
+#include <vector>
 #include <kopano/memory.hpp>
 #include <mapidefs.h>
 #include <mapispi.h>

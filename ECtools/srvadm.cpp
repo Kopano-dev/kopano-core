@@ -3,6 +3,7 @@
  * Copyright 2005-2016 Zarafa and its licensors
  * Copyright 2018, Kopano and its licensors
  */
+#include <chrono>
 #include <map>
 #include <memory>
 #include <string>

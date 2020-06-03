@@ -3,9 +3,11 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
+#include <list>
 #include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 #include <kopano/ECRestriction.h>
 #include "CalDavUtil.h"
 #include <kopano/ECLogger.h>

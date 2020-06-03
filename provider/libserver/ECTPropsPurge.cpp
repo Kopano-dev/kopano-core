@@ -2,6 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
+#include <chrono>
 #include <memory>
 #include <utility>
 #include <kopano/platform.h>

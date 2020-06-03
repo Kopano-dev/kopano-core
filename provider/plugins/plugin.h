@@ -16,6 +16,7 @@
 #include <memory>
 #include <string>
 #include <stdexcept>
+#include <vector>
 #include <iostream>
 #include <sstream>
 #include <kopano/ECLogger.h>

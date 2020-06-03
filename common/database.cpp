@@ -5,8 +5,9 @@
 #ifdef HAVE_CONFIG_H
 #	include "config.h"
 #endif
+#include <algorithm>
+#include <exception>
 #include <memory>
-#include <stdexcept>
 #include <string>
 #include <utility>
 #include <cassert>

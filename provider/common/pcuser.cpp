@@ -2,11 +2,14 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
+#include <algorithm>
+#include <list>
 #include <kopano/platform.h>
 #include <kopano/stringutil.h>
 #include <kopano/pcuser.hpp>
 #include <sstream>
 #include <utility>
+#include <vector>
 
 namespace KC {
 

@@ -6,6 +6,7 @@
 #	include "config.h"
 #endif
 #include <algorithm>
+#include <chrono>
 #include <mutex>
 #include <string>
 #include <utility>

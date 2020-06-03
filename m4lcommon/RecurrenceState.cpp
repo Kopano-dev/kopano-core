@@ -5,6 +5,7 @@
 #include <kopano/platform.h>
 #include <algorithm>
 #include <utility>
+#include <vector>
 #include <cstdio>
 #include <mapi.h>
 #include <mapix.h>

@@ -6,12 +6,10 @@
 #include <memory>
 #include <string>
 #include <utility>
-#include <vector>
 #include <climits>
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
-#include <algorithm>
 #include <kopano/MAPIErrors.h>
 #include <kopano/memory.hpp>
 #include <kopano/tie.hpp>

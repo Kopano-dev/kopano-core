@@ -5,9 +5,11 @@
 #ifdef HAVE_CONFIG_H
 #	include "config.h"
 #endif
+#include <algorithm>
 #include <new>
 #include <string>
 #include <utility>
+#include <vector>
 #include <cstdint>
 #include <kopano/platform.h>
 #include <kopano/mapi_ptr.h>

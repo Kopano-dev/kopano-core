@@ -12,9 +12,7 @@
 #include <fstream>
 #include <iterator>
 #include <memory>
-#include <stdexcept>
 #include <string>
-#include <vector>
 #include <inetmapi/inetmapi.h>
 #include <mapiutil.h>
 #include <kopano/mapiext.h>

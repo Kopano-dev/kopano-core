@@ -10,7 +10,6 @@
 #include "ECPropertyEntry.h"
 #include <kopano/IECInterfaces.hpp>
 #include <kopano/memory.hpp>
-#include <list>
 #include <map>
 #include <set>
 

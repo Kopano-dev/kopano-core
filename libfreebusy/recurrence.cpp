@@ -3,8 +3,10 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
+#include <list>
 #include <string>
 #include <utility>
+#include <vector>
 #include "recurrence.h"
 #include <cmath>
 #include <kopano/ECGetText.h>

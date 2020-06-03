@@ -3,6 +3,8 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
+#include <algorithm>
+#include <list>
 #include <new>
 #include <stdexcept>
 #include <utility>

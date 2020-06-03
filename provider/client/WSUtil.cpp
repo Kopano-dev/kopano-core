@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <string>
+#include <vector>
 #include <kopano/platform.h>
 #include <sys/un.h>
 #include "WSUtil.h"

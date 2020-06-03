@@ -6,7 +6,6 @@
 #include <iostream>
 #include <string>
 #include <stdexcept>
-#include <algorithm>
 #include <cerrno>
 #include <cassert>
 #include <mutex>

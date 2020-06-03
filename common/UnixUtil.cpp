@@ -4,6 +4,7 @@
  */
 #include <memory>
 #include <new>
+#include <vector>
 #include <kopano/platform.h>
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>

@@ -3,7 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
-#include <exception>
+#include <algorithm>
 #include <set>
 #include <stdexcept>
 #include <string>

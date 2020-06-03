@@ -3,6 +3,7 @@
  * Copyright 2016+, Kopano and its licensors
  */
 #include <chrono>
+#include <list>
 #include <memory>
 #include <mutex>
 #include <utility>
