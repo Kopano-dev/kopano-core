@@ -6,8 +6,8 @@
 #include <memory>
 #include <string>
 #include <stdexcept>
-#include <cerrno>
 #include <cassert>
+#include <cstring>
 #include <mutex>
 #include <utility>
 #include <kopano/EMSAbTag.h>

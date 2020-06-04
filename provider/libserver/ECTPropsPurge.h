@@ -4,6 +4,7 @@
  */
 #pragma once
 #include <kopano/zcdefs.h>
+#include <condition_variable>
 #include <memory>
 #include <mutex>
 #include <pthread.h>

@@ -8,9 +8,11 @@
 #include <mutex>
 #include <string>
 #include <utility>
+#include <cerrno>
 #include <climits>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <sstream>
 #include <algorithm>
 #include <kopano/MAPIErrors.h>

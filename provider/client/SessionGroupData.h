@@ -7,6 +7,7 @@
 #include <atomic>
 #include <mutex>
 #include <string>
+#include <tuple>
 #include <mapispi.h>
 #include <kopano/kcodes.h>
 #include <kopano/Util.h>

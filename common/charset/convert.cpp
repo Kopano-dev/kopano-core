@@ -11,6 +11,7 @@
 #include <string>
 #include <kopano/stringutil.h>
 #include <cerrno>
+#include <cstring>
 #define BUFSIZE 4096
 
 namespace KC {

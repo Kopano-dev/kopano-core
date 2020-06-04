@@ -28,9 +28,11 @@
 #include <utility>
 #include <vector>
 #include "mailer.h"
+#include <cerrno>
 #include <climits>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
 #include <csignal>
 #include <getopt.h>

@@ -6,6 +6,7 @@
 #include <list>
 #include <memory>
 #include <string>
+#include <tuple>
 #include <mapidefs.h>
 #include <kopano/zcdefs.h>
 #include <kopano/ArchiveControl.h>

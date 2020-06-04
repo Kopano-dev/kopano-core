@@ -7,7 +7,6 @@
 #include <memory>
 #include <string>
 #include <utility>
-#include <cerrno>
 #include <cstdlib>
 #include <ctime>
 #include <sys/socket.h>

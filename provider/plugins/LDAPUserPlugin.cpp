@@ -18,7 +18,6 @@
 #include <utility>
 #include <vector>
 #include <list>
-#include <cerrno>
 #include <cassert>
 #include <kopano/EMSAbTag.h>
 #include <kopano/ECConfig.h>

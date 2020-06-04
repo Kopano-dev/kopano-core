@@ -7,6 +7,7 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <cerrno>
 #include <errmsg.h>
 #include "mysqld_error.h"
 #include <kopano/stringutil.h>

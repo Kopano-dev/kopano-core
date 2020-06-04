@@ -7,6 +7,7 @@
 #endif
 #include <kopano/platform.h>
 #include <kopano/ECLogger.h>
+#include <atomic>
 #include <memory>
 #include <mutex>
 #include <new>
@@ -15,11 +16,13 @@
 #include <utility>
 #include <vector>
 #include <cassert>
+#include <cerrno>
 #include <climits>
 #include <clocale>
 #include <pthread.h>
 #include <cstdarg>
 #include <cstdlib>
+#include <cstring>
 #include <csignal>
 #include <fcntl.h>
 #include <zlib.h>

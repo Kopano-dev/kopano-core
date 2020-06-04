@@ -13,6 +13,7 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <cerrno>
 #include <kopano/ECLogger.h>
 #include <kopano/scope.hpp>
 #include "WSTransport.h"

@@ -14,7 +14,6 @@
 #include <new>
 #include <set>
 #include <string>
-#include <cerrno>
 #include <unistd.h>
 #include <zlib.h>
 #include <mapidefs.h>

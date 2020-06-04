@@ -9,6 +9,7 @@
 #include <utility>
 #include <vector>
 #include <cctype>
+#include <cstring>
 #include <libHX/io.h>
 #include <kopano/ECLogger.h>
 #include <kopano/stringutil.h>

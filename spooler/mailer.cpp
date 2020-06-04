@@ -8,7 +8,9 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <cerrno>
 #include <climits>
+#include <cstring>
 #include "mailer.h"
 #include "archive.h"
 #include <mapitags.h>

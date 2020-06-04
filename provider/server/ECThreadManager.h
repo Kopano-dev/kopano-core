@@ -4,11 +4,9 @@
  */
 #pragma once
 #include <atomic>
-#include <condition_variable>
 #include <map>
 #include <memory>
 #include <mutex>
-#include <queue>
 #include <pthread.h>
 #include <kopano/ECConfig.h>
 #include <kopano/kcodes.h>

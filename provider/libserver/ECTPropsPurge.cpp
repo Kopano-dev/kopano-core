@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <chrono>
+#include <cstring>
 #include <memory>
 #include <string>
 #include <utility>

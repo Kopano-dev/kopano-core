@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <cerrno>
 #include <cstdio>
 #include <cstring>
 #include <libHX/option.h>

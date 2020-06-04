@@ -44,6 +44,7 @@
 #include <map>
 #include <mutex>
 #include <string>
+#include <tuple>
 #include <vector>
 #define BOOKMARK_LIMIT		100
 

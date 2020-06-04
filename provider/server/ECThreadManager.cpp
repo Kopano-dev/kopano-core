@@ -9,8 +9,10 @@
 #include <string>
 #include <utility>
 #include "ECThreadManager.h"
+#include <cerrno>
 #include <cmath>
 #include <cstdlib>
+#include <cstring>
 #include <poll.h>
 #include <unistd.h>
 #include <libHX/defs.h>

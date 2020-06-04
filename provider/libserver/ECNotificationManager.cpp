@@ -4,6 +4,7 @@
  */
 #include <kopano/platform.h>
 #include <chrono>
+#include <cstring>
 #include <set>
 #include <pthread.h>
 #include "ECMAPI.h"

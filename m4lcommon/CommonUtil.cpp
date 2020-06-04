@@ -15,6 +15,7 @@
 #include <mapitags.h>
 #include <mapicode.h>
 #include <cerrno>
+#include <cstring>
 #include <iconv.h>
 #include <kopano/ECLogger.h>
 #include <kopano/CommonUtil.h>
