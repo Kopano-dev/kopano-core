@@ -1,3 +1,10 @@
+8.7.x
+=====
+* build: support gsoap 2.8.103
+* libserver: add thread_end calls for ECSchedule threads
+* server: add debug messages for SQL connection object states
+
+
 8.7.13 (2020-05-20)
 ===================
 Enhancements:
