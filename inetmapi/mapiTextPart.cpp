@@ -29,6 +29,7 @@
 // the GNU General Public License cover the whole combination.
 //
 #include <memory>
+#include <sstream>
 #include <vector>
 #include "mapiTextPart.h"
 #include <vmime/exception.hpp>

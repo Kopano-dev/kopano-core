@@ -5,13 +5,13 @@
 #include <kopano/platform.h>
 #include <iterator>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <utility>
 #include <climits>
 #include <cstdio>
 #include <cstdlib>
 #include <sstream>
-#include <iostream>
 #include <algorithm>
 #include <kopano/MAPIErrors.h>
 #include <kopano/memory.hpp>

@@ -6,6 +6,7 @@
 #include <list>
 #include <map>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -39,7 +40,6 @@
 #include <kopano/mapiext.h>
 #include <sys/types.h>
 #include <regex.h>
-#include <iostream>
 #include "kcore.hpp"
 #include "pcutil.hpp"
 #include "ECSecurity.h"

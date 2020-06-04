@@ -4,7 +4,6 @@
  */
 #include <algorithm>
 #include <list>
-#include <new>
 #include <utility>
 #include <clocale>
 #include <cstdint>

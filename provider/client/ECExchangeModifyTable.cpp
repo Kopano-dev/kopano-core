@@ -4,7 +4,6 @@
  */
 #include <kopano/platform.h>
 #include <memory>
-#include <new>
 #include <utility>
 #include <kopano/ECLogger.h>
 #include <kopano/memory.hpp>

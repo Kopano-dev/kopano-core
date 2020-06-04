@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <list>
 #include <map>
-#include <new>
+#include <memory>
 #include <kopano/platform.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/memory.hpp>

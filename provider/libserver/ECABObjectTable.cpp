@@ -5,7 +5,6 @@
 #include <kopano/platform.h>
 #include <list>
 #include <map>
-#include <new>
 #include "kcore.hpp"
 #include <kopano/kcodes.h>
 #include <mapidefs.h>

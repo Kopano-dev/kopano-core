@@ -5,7 +5,6 @@
 #include <kopano/platform.h>
 #include <algorithm>
 #include <chrono>
-#include <new>
 #include <mapix.h>
 #include <kopano/ECGuid.h>
 #include <kopano/memory.hpp>

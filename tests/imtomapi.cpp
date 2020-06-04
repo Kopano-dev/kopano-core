@@ -10,8 +10,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
+#include <ios>
 #include <iterator>
-#include <memory>
 #include <string>
 #include <inetmapi/inetmapi.h>
 #include <mapiutil.h>

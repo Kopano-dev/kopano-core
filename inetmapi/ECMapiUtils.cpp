@@ -6,7 +6,6 @@
 #include <pthread.h>
 #include <mapix.h>
 #include <ctime>
-#include <iostream>
 #include <kopano/timeutil.hpp>
 #include "ECMapiUtils.h"
 

@@ -9,7 +9,6 @@
 #include <mapiutil.h>
 #include <kopano/ECGetText.h>
 #include <kopano/memory.hpp>
-#include <memory>
 #include <string>
 #include <utility>
 #include <cassert>
@@ -17,7 +16,6 @@
 #include "Mem.h"
 #include "ECMSProvider.h"
 #include "ECABContainer.h"
-#include <iostream>
 #include <kopano/stringutil.h>
 #include <kopano/ECLogger.h>
 #include <kopano/ECGuid.h>

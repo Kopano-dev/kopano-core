@@ -4,7 +4,7 @@
  */
 #include <kopano/platform.h>
 #include <algorithm>
-#include <new>
+#include <mutex>
 #include <kopano/memory.hpp>
 #include <kopano/ECLogger.h>
 #include <mapidefs.h>

@@ -5,6 +5,7 @@
 #pragma once
 #include <kopano/zcdefs.h>
 #include <list>
+#include <memory>
 #include <set>
 #include <string>
 #include <vector>

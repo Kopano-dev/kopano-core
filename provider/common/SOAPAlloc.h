@@ -3,7 +3,6 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #pragma once
-#include <new>
 #include <cstdlib>
 #include "soapH.h"
 

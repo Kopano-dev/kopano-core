@@ -8,9 +8,9 @@
 #include <kopano/platform.h>
 #include <algorithm>
 #include <exception>
-#include <iostream>
 #include <list>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <stdexcept>
@@ -18,7 +18,6 @@
 #include <vector>
 #include <sys/types.h>
 #include <pwd.h>
-#include <sstream>
 #include <cassert>
 #include <cerrno>
 #include <cstring>

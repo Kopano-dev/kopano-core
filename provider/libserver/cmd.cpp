@@ -9,6 +9,7 @@
 #include <list>
 #include <map>
 #include <memory>
+#include <new>
 #include <string>
 #include <utility>
 #include <vector>
@@ -27,13 +28,11 @@
 #include <kopano/ECGuid.h>
 #include "soapH.h"
 #include <mutex>
-#include <unordered_map>
 #include <mapidefs.h>
 #include <mapitags.h>
 #include <sys/times.h>
 #include <ctime>
 #include <algorithm>
-#include <sstream>
 #include <set>
 #include <deque>
 #include <algorithm>

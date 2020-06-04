@@ -4,6 +4,7 @@
  */
 #pragma once
 #include <kopano/zcdefs.h>
+#include <memory>
 #include <stdexcept>
 #include <utility>
 #include "ECICS.h"

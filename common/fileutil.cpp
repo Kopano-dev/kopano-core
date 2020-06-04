@@ -6,6 +6,7 @@
 #include <kopano/stringutil.h>
 #include <kopano/charset/convert.h>
 #include <memory>
+#include <new>
 #include <string>
 #include <cerrno>
 #include <cstdio>

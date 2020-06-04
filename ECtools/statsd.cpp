@@ -6,7 +6,7 @@
 #	include "config.h"
 #endif
 #include <condition_variable>
-#include <mutex>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <utility>

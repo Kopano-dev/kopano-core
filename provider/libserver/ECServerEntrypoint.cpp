@@ -5,7 +5,6 @@
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <memory>
-#include <mutex>
 #include <utility>
 #include <pthread.h>
 #include <kopano/ECLogger.h>

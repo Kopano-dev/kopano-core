@@ -7,9 +7,9 @@
 #include <utility>
 #include <kopano/platform.h>
 #include <kopano/stringutil.h>
+#include <ostream>
+#include <sstream>
 #include <string>
-#include <fstream>
-#include <iostream>
 #include <cstdlib>
 #include <unistd.h>
 #include <vmime/vmime.hpp>

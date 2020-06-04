@@ -5,6 +5,7 @@
 #include <kopano/platform.h>
 #include <exception>
 #include <memory>
+#include <mutex>
 #include <utility>
 #include <cstring>
 #include <climits>

@@ -5,6 +5,7 @@
 #pragma once
 #include <kopano/zcdefs.h>
 #include <list>
+#include <new>
 #include <string>
 
 namespace KC {

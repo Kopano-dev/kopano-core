@@ -7,7 +7,6 @@
 #include <list>
 #include <map>
 #include <memory>
-#include <mutex>
 #include <kopano/kcodes.h>
 #include <kopano/pcuser.hpp>
 #include <kopano/ECConfig.h>

@@ -1,6 +1,5 @@
 /* SPDX-License-Identifier: LGPL-3.0-or-later */
 /* Copyright 2016, Kopano and its licensors */
-#include <memory>
 #include <stdexcept>
 #include <cstdio>
 #include <cstdlib>

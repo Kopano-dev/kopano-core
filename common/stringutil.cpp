@@ -7,6 +7,7 @@
 #endif
 #include <kopano/platform.h>
 #include <algorithm>
+#include <ios>
 #include <map>
 #include <memory>
 #include <mutex>

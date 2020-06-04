@@ -7,7 +7,6 @@
 #include <list>
 #include <map>
 #include <memory>
-#include <mutex>
 #include <set>
 #include <stdexcept>
 #include <string>

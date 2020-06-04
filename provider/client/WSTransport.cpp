@@ -10,7 +10,7 @@
 #include <mapitags.h>
 #include <mapiutil.h>
 #include <fstream>
-#include <new>
+#include <memory>
 #include <string>
 #include <utility>
 #include <kopano/ECLogger.h>

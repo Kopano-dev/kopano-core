@@ -4,10 +4,12 @@
  */
 #include <kopano/platform.h>
 #include <algorithm>
+#include <ios>
 #include <list>
 #include <map>
 #include <memory>
 #include <mutex>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <utility>

@@ -30,6 +30,7 @@
 #include <algorithm>
 #include <list>
 #include <memory>
+#include <new>
 #include <utility>
 #include <cstdint>
 #include <mapidefs.h>

@@ -3,7 +3,6 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #pragma once
-#include <mutex>
 #include <kopano/ECUnknown.h>
 #include <kopano/Util.h>
 #include "IECPropStorage.h"

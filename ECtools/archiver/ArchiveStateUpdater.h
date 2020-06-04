@@ -4,6 +4,7 @@
  */
 #pragma once
 #include <list>
+#include <memory>
 #include <kopano/memory.hpp>
 #include <kopano/zcdefs.h>
 #include "ArchiveStateCollector.h"

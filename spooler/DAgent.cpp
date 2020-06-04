@@ -36,6 +36,7 @@
 #include <chrono>
 #include <list>
 #include <memory>
+#include <new>
 #include <set>
 #include <string>
 #include <utility>

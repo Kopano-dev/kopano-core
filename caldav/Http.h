@@ -10,6 +10,7 @@
 #include <kopano/stringutil.h>
 #include <kopano/CommonUtil.h>
 #include <kopano/ECChannel.h>
+#include <memory>
 #include <cstdio>
 #include <cstdarg>
 #include <cctype>

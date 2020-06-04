@@ -19,7 +19,6 @@
 #include <mapiutil.h>
 #include <kopano/mapiguidext.h>
 #include <kopano/namedprops.h>
-#include <iostream>
 #include <algorithm>
 
 namespace KC {

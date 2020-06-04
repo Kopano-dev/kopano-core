@@ -11,6 +11,7 @@
 #include <memory>
 #include <mutex>
 #include <set>
+#include <unordered_map>
 #include <pthread.h>
 #include <kopano/platform.h>
 #include <kopano/timeutil.hpp>

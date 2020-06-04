@@ -6,12 +6,10 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #pragma once
-#include <memory>
 #include <list>
 #include <map>
 #include <mutex>
 #include <string>
-#include <unordered_map>
 #include <utility>
 #include <kopano/ECDefs.h>
 #include <kopano/pcuser.hpp>

@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <list>
 #include <memory>
+#include <mutex>
 #include <new>
 #include <string>
 #include <utility>

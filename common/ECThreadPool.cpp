@@ -5,6 +5,7 @@
 #define _GNU_SOURCE 1 /* pthread_setname_np */
 #include <chrono>
 #include <condition_variable>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <utility>

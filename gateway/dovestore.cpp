@@ -16,7 +16,6 @@
  */
 #include <algorithm>
 #include <map>
-#include <new>
 #include <string>
 #include <vector>
 #include <climits>

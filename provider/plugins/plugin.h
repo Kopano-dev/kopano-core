@@ -14,10 +14,10 @@
 #include <list>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <stdexcept>
 #include <vector>
-#include <iostream>
 #include <sstream>
 #include <kopano/ECLogger.h>
 #include <kopano/ECPluginSharedData.h>

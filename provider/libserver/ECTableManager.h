@@ -7,6 +7,7 @@
 #include <list>
 #include <map>
 #include <memory>
+#include <mutex>
 #include "ECDatabase.h"
 #include "ECGenericObjectTable.h"
 #include <kopano/kcodes.h>

@@ -5,6 +5,7 @@
 #include <kopano/platform.h>
 #include <list>
 #include <memory>
+#include <mutex>
 #include <set>
 #include <utility>
 #include <vector>

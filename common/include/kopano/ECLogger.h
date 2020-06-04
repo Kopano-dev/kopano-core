@@ -9,7 +9,6 @@
 #include <cstdarg>
 #include <list>
 #include <memory>
-#include <mutex>
 #include <string>
 #include <sys/types.h>
 #include <kopano/MAPIErrors.h>

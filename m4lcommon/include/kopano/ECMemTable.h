@@ -6,7 +6,6 @@
 #include <kopano/zcdefs.h>
 #include <vector>
 #include <map>
-#include <memory>
 #include <mutex>
 #include <mapitags.h>
 #include <mapidefs.h>
