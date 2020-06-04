@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <list>
+#include <string>
 #include <kopano/platform.h>
 #include "vevent.h"
 #include <mapiutil.h>

@@ -5,6 +5,7 @@
 #include <Python.h>
 #include <kopano/platform.h>
 #include <memory>
+#include <string>
 #include <mapi.h>
 #include <mapix.h>
 #include <mapiutil.h>

@@ -51,14 +51,12 @@
 #include "IMAP.h"
 
 using namespace KC;
-using std::string;
-using std::wstring;
 
 /**
  * @ingroup gateway_imap
  * @{
  */
-static const string strMonth[] = {
+static const std::string strMonth[] = {
 	"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 };
 
@@ -155,17 +153,17 @@ HRESULT IMAP::HrSplitInput(const std::string &strInput, std::vector<std::string>
 {
 	unsigned int uSpecialCount = 0;
 	size_t beginPos = 0, currentPos = 0, specialPos = std::string::npos;
-	string::size_type findPos = strInput.find_first_of("\"()[] ", currentPos);
+	auto findPos = strInput.find_first_of("\"()[] ", currentPos);
 
-	while (findPos != string::npos) {
+	while (findPos != strInput.npos) {
 		if (uSpecialCount == 0 && strInput[findPos] == '"') {
 			// find corresponding " and add the string
 			specialPos = findPos;
 			do {
 				specialPos = strInput.find_first_of("\"", specialPos + 1);
-			} while (specialPos != string::npos && strInput[specialPos-1] == '\\');
+			} while (specialPos != strInput.npos && strInput[specialPos-1] == '\\');
 
-			if (specialPos != string::npos) {
+			if (specialPos != strInput.npos) {
 				vWords.emplace_back(strInput.substr(findPos + 1, specialPos - findPos - 1));
 				findPos = specialPos;
 				beginPos = findPos + 1;
@@ -235,7 +233,7 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 		const char *command;
 		int params;
 		bool uid;
-		HRESULT (IMAP::*func)(const string &, const std::vector<std::string> &);
+		HRESULT (IMAP::*func)(const std::string &, const std::vector<std::string> &);
 	} cmds[] = {
 		{"SELECT", 1, false, &IMAP::HrCmdSelect<false>},
 		{"EXAMINE", 1, false, &IMAP::HrCmdSelect<true>},
@@ -293,7 +291,7 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 	while (hr == hrSuccess && !strvResult.empty() && strvResult.back().size() > 2 && strvResult.back()[0] == '{')
 	{
 		char *lpcres = NULL;
-		string inBuffer;
+		std::string inBuffer;
 		auto strByteTag = strvResult.back().substr(1, strvResult.back().length() -1);
 		unsigned int ulByteCount = strtoul(strByteTag.c_str(), &lpcres, 10);
 
@@ -394,7 +392,7 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 
 	if (strCommand == "AUTHENTICATE") {
 		if (strvResult.size() == 1)
-			return HrCmdAuthenticate(strTag, strvResult[0], string());
+			return HrCmdAuthenticate(strTag, strvResult[0], std::string());
 		else if (strvResult.size() == 2)
 			return HrCmdAuthenticate(strTag, strvResult[0], strvResult[1]);
 		HrResponse(RESP_TAGGED_BAD, strTag, "AUTHENTICATE must have 1 or 2 arguments");
@@ -404,7 +402,7 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 		} else if (strvResult.size() == 3) {
 			if (strvResult[1][0] == '(')
 				return HrCmdAppend(strTag, strvResult[0], strvResult[2], strvResult[1]);
-			return HrCmdAppend(strTag, strvResult[0], strvResult[2], string(), strvResult[1]);
+			return HrCmdAppend(strTag, strvResult[0], strvResult[2], std::string(), strvResult[1]);
 		} else if (strvResult.size() == 4) {
 			// if both flags and time are given, it must be in that order
 			return HrCmdAppend(strTag, strvResult[0], strvResult[3], strvResult[1], strvResult[2]);
@@ -438,7 +436,7 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrProcessContinue(const string &strInput)
+HRESULT IMAP::HrProcessContinue(const std::string &strInput)
 {
 	return HrCmdAuthenticate(m_strContinueTag, "PLAIN", strInput);
 }
@@ -489,7 +487,8 @@ std::string IMAP::GetCapabilityString(bool bAllFlags)
  *
  * @return hrSuccess
  */
-HRESULT IMAP::HrCmdCapability(const string &strTag) {
+HRESULT IMAP::HrCmdCapability(const std::string &strTag)
+{
 	HrResponse(RESP_UNTAGGED, GetCapabilityString(true));
 	HrResponse(RESP_TAGGED_OK, strTag, "CAPABILITY Completed");
 	return hrSuccess;
@@ -529,7 +528,8 @@ HRESULT IMAP::HrCmdNoop(const std::string &strTag, bool check)
  *
  * @return hrSuccess
  */
-HRESULT IMAP::HrCmdLogout(const string &strTag) {
+HRESULT IMAP::HrCmdLogout(const std::string &strTag)
+{
 	HrResponse(RESP_UNTAGGED, "BYE server logging out");
 	HrResponse(RESP_TAGGED_OK, strTag, "LOGOUT completed");
 	/* Let the gateway quit from the socket read loop. */
@@ -545,7 +545,8 @@ HRESULT IMAP::HrCmdLogout(const string &strTag) {
  *
  * @return hrSuccess
  */
-HRESULT IMAP::HrCmdStarttls(const string &strTag) {
+HRESULT IMAP::HrCmdStarttls(const std::string &strTag)
+{
 	if (!lpChannel->sslctx())
 		HrResponse(RESP_TAGGED_NO, strTag, "STARTTLS error in ssl context");
 	if (lpChannel->UsingSsl())
@@ -578,7 +579,8 @@ HRESULT IMAP::HrCmdStarttls(const string &strTag) {
  *
  * @return MAPI error code
  */
-HRESULT IMAP::HrCmdAuthenticate(const string &strTag, string strAuthMethod, const string &strAuthData)
+HRESULT IMAP::HrCmdAuthenticate(const std::string &strTag,
+    std::string strAuthMethod, const std::string &strAuthData)
 {
 	const char *plain = lpConfig->GetSetting("disable_plaintext_auth");
 
@@ -598,7 +600,7 @@ HRESULT IMAP::HrCmdAuthenticate(const string &strTag, string strAuthMethod, cons
 	}
 	if (strAuthData.empty() && !m_bContinue) {
 		// request the rest of the authentication data by sending one space in a continuation line
-		HrResponse(RESP_CONTINUE, string());
+		HrResponse(RESP_CONTINUE, std::string());
 		m_strContinueTag = strTag;
 		m_bContinue = true;
 		return MAPI_W_PARTIAL_COMPLETION;
@@ -633,7 +635,7 @@ HRESULT IMAP::HrCmdLogin(const std::string &strTag,
     const std::vector<std::string> &args)
 {
 	HRESULT hr = hrSuccess;
-	string strUsername;
+	std::string strUsername;
 	std::wstring strwUsername, strwPassword;
 	const char *plain = lpConfig->GetSetting("disable_plaintext_auth");
 	const std::string &strUser = args[0], &strPass = args[1];
@@ -919,7 +921,7 @@ HRESULT IMAP::HrCmdDelete(const std::string &strTag,
 	object_ptr<IMAPIFolder> lpParentFolder, folder;
 	ULONG cb;
 	memory_ptr<ENTRYID> entry_id;
-	wstring strFolder;
+	std::wstring strFolder;
 	const std::string &strFolderParam = args[0];
 
 	if (!lpSession) {
@@ -999,7 +1001,7 @@ HRESULT IMAP::HrCmdRename(const std::string &strTag,
 	memory_ptr<SPropValue> lppvFromEntryID, lppvDestEntryID;
 	object_ptr<IMAPIFolder> lpParentFolder, lpMakeFolder, lpSubFolder, lpMovFolder;
 	unsigned ulObjType = 0, cb;
-	string::size_type deliPos;
+	size_t deliPos;
 	std::wstring strExistingFolder, strNewFolder, strPath, strFolder;
 	SPropValue sFolderClass;
 	const std::string &strExistingFolderParam = args[0];
@@ -1057,7 +1059,7 @@ HRESULT IMAP::HrCmdRename(const std::string &strTag,
     // mkdir -p all the folder leading up to the last (if any)
 	do {
 		deliPos = strPath.find(IMAP_HIERARCHY_DELIMITER);
-		if (deliPos == string::npos) {
+		if (deliPos == strPath.npos) {
 			strFolder = strPath;
 			continue;
 		}
@@ -1075,7 +1077,7 @@ HRESULT IMAP::HrCmdRename(const std::string &strTag,
 		if (hr != hrSuccess)
 			return hr;
 		lpMakeFolder = std::move(lpSubFolder);
-	} while (deliPos != string::npos);
+	} while (deliPos != strPath.npos);
 
 	if (HrGetOneProp(lpParentFolder, PR_ENTRYID, &~lppvFromEntryID) != hrSuccess ||
 	    HrGetOneProp(lpMakeFolder, PR_ENTRYID, &~lppvDestEntryID) != hrSuccess) {
@@ -1132,7 +1134,7 @@ HRESULT IMAP::HrCmdSubscribe(const std::string &strTag,
 	object_ptr<IMAPIFolder> folder;
 	ULONG cb;
 	memory_ptr<ENTRYID> entry_id;
-	wstring strFolder;
+	std::wstring strFolder;
 	const std::string &strFolderParam = args[0];
 	std::string strAction = bSubscribe ? "SUBSCRIBE" : "UNSUBSCRIBE";
 
@@ -1248,7 +1250,7 @@ HRESULT IMAP::HrCmdList(const std::string &strTag,
 			hr_lerr(hr, "Unable to represent foldername \"%ls\" in UTF-7", strFolderPath.c_str());
 			continue;
 		}
-		strResponse = (string)"\"" + IMAP_HIERARCHY_DELIMITER + "\" \"" + strResponse + "\""; // prepend folder delimiter
+		strResponse = "\"" IMAP_HIERARCHY_DEL_S "\" \"" + strResponse + "\""; // prepend folder delimiter
 		auto strListProps = strAction + " (";
 		if (!iFld->bMailFolder)
 			strListProps += "\\Noselect ";
@@ -1365,7 +1367,7 @@ HRESULT IMAP::HrCmdStatus(const std::string &strTag,
 	static constexpr const SizedSPropTagArray(3, sPropsFolderCounters) =
 		{3, {PR_CONTENT_COUNT, PR_CONTENT_UNREAD, PR_EC_HIERARCHYID}};
 	memory_ptr<SPropValue> lpPropCounters, lpPropMaxID;
-	wstring strIMAPFolder;
+	std::wstring strIMAPFolder;
 
 	if (!lpSession) {
 		HrResponse(RESP_TAGGED_NO, strTag, "STATUS error no session");
@@ -1473,13 +1475,16 @@ HRESULT IMAP::HrCmdStatus(const std::string &strTag,
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, const string &strData, string strFlags, const string &strTime) {
+HRESULT IMAP::HrCmdAppend(const std::string &strTag,
+    const std::string &strFolderParam, const std::string &strData,
+    std::string strFlags, const std::string &strTime)
+{
 	object_ptr<IMAPIFolder> lpAppendFolder;
 	object_ptr<IMessage> lpMessage;
 	std::vector<std::string> lstFlags;
 	memory_ptr<SPropValue> lpPropVal;
-	wstring strFolder;
-	string strAppendUid;
+	std::wstring strFolder;
+	std::string strAppendUid;
 	unsigned int ulFolderUid = 0, ulMsgUid = 0;
 	static constexpr const SizedSPropTagArray(10, delFrom) = {10, {
 			PR_SENT_REPRESENTING_ADDRTYPE_W, PR_SENT_REPRESENTING_NAME_W,
@@ -1659,7 +1664,7 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 	if (hr == hrSuccess)
 		ulMsgUid = lpPropVal->Value.ul;
 	if (ulMsgUid && ulFolderUid)
-		strAppendUid = string("[APPENDUID ") + stringify(ulFolderUid) + " " + stringify(ulMsgUid) + "] ";
+		strAppendUid = "[APPENDUID " + stringify(ulFolderUid) + " " + stringify(ulMsgUid) + "] ";
 	if (strCurrentFolder == strFolder)
 	    // Fixme, add the appended message instead of HrRefreshFolderMails; the message is now seen as Recent
 		HrRefreshFolderMails(false, !bCurrentFolderReadOnly, NULL);
@@ -1677,7 +1682,8 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrCmdClose(const string &strTag) {
+HRESULT IMAP::HrCmdClose(const std::string &strTag)
+{
 	HRESULT hr = hrSuccess;
 
 	if (strCurrentFolder.empty() || !lpSession) {
@@ -1717,7 +1723,8 @@ exit:
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrCmdExpunge(const string &strTag, const std::vector<std::string> &args) {
+HRESULT IMAP::HrCmdExpunge(const std::string &strTag, const std::vector<std::string> &args)
+{
 	std::unique_ptr<ECRestriction> rst;
 	static_assert(std::is_polymorphic<ECRestriction>::value, "ECRestriction needs to be polymorphic for unique_ptr to work");
 	std::string strSeqSet = args.size() > 0 ? args[0] : "";
@@ -1801,7 +1808,8 @@ HRESULT IMAP::HrCmdSearch(const std::string &strTag,
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrCmdFetch(const string &strTag, const std::vector<std::string> &args, bool bUidMode) {
+HRESULT IMAP::HrCmdFetch(const std::string &strTag, const std::vector<std::string> &args, bool bUidMode)
+{
 	std::vector<std::string> lstDataItems;
 	std::list<ULONG> lstMails;
 	bool bFound = false;
@@ -1851,7 +1859,8 @@ HRESULT IMAP::HrCmdFetch(const string &strTag, const std::vector<std::string> &a
  *
  * @return MAPI error code
  */
-HRESULT IMAP::HrCmdStore(const string &strTag, const std::vector<std::string> &args, bool bUidMode) {
+HRESULT IMAP::HrCmdStore(const std::string &strTag, const std::vector<std::string> &args, bool bUidMode)
+{
 	std::list<ULONG> lstMails;
 	std::vector<std::string> lstDataItems;
 	bool bDelete = false;
@@ -1918,7 +1927,8 @@ HRESULT IMAP::HrCmdStore(const string &strTag, const std::vector<std::string> &a
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrCmdCopy(const string &strTag, const std::vector<std::string> &args, bool bUidMode) {
+HRESULT IMAP::HrCmdCopy(const std::string &strTag, const std::vector<std::string> &args, bool bUidMode)
+{
 	std::list<ULONG> lstMails;
 	const std::string &strSeqSet = args[0], &strFolderParam = args[1];
 	std::string strMode = bUidMode ? "UID " : "";
@@ -1969,7 +1979,8 @@ HRESULT IMAP::HrCmdCopy(const string &strTag, const std::vector<std::string> &ar
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrCmdUidXaolMove(const string &strTag, const std::vector<std::string> &args) {
+HRESULT IMAP::HrCmdUidXaolMove(const std::string &strTag, const std::vector<std::string> &args)
+{
 	std::list<ULONG> lstMails;
 	const std::string &strSeqSet = args[0], &strFolderParam = args[1];
 
@@ -2019,7 +2030,7 @@ HRESULT IMAP::HrCmdUidXaolMove(const string &strTag, const std::vector<std::stri
  * @return string with IMAP Flags
  */
 std::string IMAP::PropsToFlags(LPSPropValue lpProps, unsigned int cValues, bool bRecent, bool bRead) {
-	string strFlags;
+	std::string strFlags;
 	auto lpMessageFlags = PCpropFindProp(lpProps, cValues, PR_MESSAGE_FLAGS);
 	auto lpFlagStatus = PCpropFindProp(lpProps, cValues, PR_FLAG_STATUS);
 	auto lpMsgStatus = PCpropFindProp(lpProps, cValues, PR_MSG_STATUS);
@@ -2073,7 +2084,7 @@ int IMAP::IdleAdviseCallback2(void *lpContext, unsigned int cNotif,
     LPNOTIFICATION lpNotif)
 {
 	auto lpIMAP = static_cast<IMAP *>(lpContext);
-	string strFlags;
+	std::string strFlags;
 	unsigned int ulMailNr = 0, ulRecent = 0;
 	bool bReload = false;
 	std::vector<IMAP::SMail> oldMails;
@@ -2184,7 +2195,8 @@ int IMAP::IdleAdviseCallback(void *ctx, unsigned int z, NOTIFICATION *nt)
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrCmdIdle(const string &strTag) {
+HRESULT IMAP::HrCmdIdle(const std::string &strTag)
+{
 	object_ptr<IMAPIFolder> lpFolder;
 	enum { EID, IKEY, IMAPID, MESSAGE_FLAGS, FLAG_STATUS, MSG_STATUS, LAST_VERB, NUM_COLS };
 	static constexpr const SizedSPropTagArray(NUM_COLS, spt) =
@@ -2284,9 +2296,10 @@ HRESULT IMAP::HrDone(bool bSendResponse) {
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrCmdNamespace(const string &strTag) {
-	HrResponse(RESP_UNTAGGED, string("NAMESPACE ((\"\" \"") +
-	             IMAP_HIERARCHY_DELIMITER + "\")) NIL NIL");
+HRESULT IMAP::HrCmdNamespace(const std::string &strTag)
+{
+	HrResponse(RESP_UNTAGGED, "NAMESPACE ((\"\" \""
+	             IMAP_HIERARCHY_DEL_S "\")) NIL NIL");
 	HrResponse(RESP_TAGGED_OK, strTag, "NAMESPACE Completed");
 	return hrSuccess;
 }
@@ -2300,7 +2313,7 @@ HRESULT IMAP::HrCmdNamespace(const string &strTag) {
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrPrintQuotaRoot(const string& strTag)
+HRESULT IMAP::HrPrintQuotaRoot(const std::string &strTag)
 {
 	static constexpr const SizedSPropTagArray(2, sStoreProps) =
 		{2, {PR_MESSAGE_SIZE_EXTENDED, PR_QUOTA_RECEIVE_THRESHOLD}};
@@ -2391,7 +2404,7 @@ HRESULT IMAP::HrCmdSetQuota(const std::string &strTag,
  *
  * @return MAPI Error code
  */
-void IMAP::HrResponse(const string &strUntag, const string &strResponse)
+void IMAP::HrResponse(const std::string &strUntag, const std::string &strResponse)
 {
     // Early cutoff of debug messages. This means the current process's config
     // determines if we log debug info (so HUP will only affect new processes if
@@ -2414,7 +2427,8 @@ void IMAP::HrResponse(const string &strUntag, const string &strResponse)
  *
  * @return MAPI Error code
  */
-void IMAP::HrResponse(const string &strResult, const string &strTag, const string &strResponse)
+void IMAP::HrResponse(const std::string &strResult, const std::string &strTag,
+    const std::string &strResponse)
 {
 	unsigned int max_err = strtoul(lpConfig->GetSetting("imap_max_fail_commands"), NULL, 0);
 	// Some clients keep looping, so if we keep sending errors, just disconnect the client.
@@ -2935,7 +2949,7 @@ HRESULT IMAP::HrGetSubTree(std::list<SFolder> &folders, bool public_folders,
 	object_ptr<IMAPIFolder> folder;
 	memory_ptr<SPropValue> sprop;
 	ULONG obj_type;
-	wstring in_folder_name;
+	std::wstring in_folder_name;
 
 	if (public_folders) {
 		if (lpPublicStore == nullptr)
@@ -3089,7 +3103,7 @@ HRESULT IMAP::HrPropertyFetch(std::list<ULONG> &lstMails, std::vector<std::strin
 	LPSRow lpRow = NULL;
 	LONG nRow = -1;
 	SPropValue sPropVal;
-	string strResponse;
+	std::string strResponse;
 	memory_ptr<SPropTagArray> lpPropTags;
 	std::set<ULONG> setProps;
     LPSPropValue lpProps;
@@ -3322,7 +3336,6 @@ HRESULT IMAP::HrPropertyFetchRow(SPropValue *lpProps, unsigned int cValues,
 {
 	HRESULT hr = hrSuccess;
 	std::string strItem, strParts, strMessage, strMessagePart, strFlags;
-	string::size_type ulPos;
 	char szBuffer[IMAP_RESP_MAX + 1];
 	object_ptr<IMessage> lpMessage;
 	ULONG ulObjType = 0;
@@ -3463,7 +3476,7 @@ HRESULT IMAP::HrPropertyFetchRow(SPropValue *lpProps, unsigned int cValues,
 				strItem = "BODY[HEADER]";
 
 			// structure only, take shortcut if we have it
-			if (strItem.find('[') == string::npos) {
+			if (strItem.find('[') == strItem.npos) {
 				/* RFC 3501 6.4.5:
 				 * BODY
 				 *        Non-extensible form of BODYSTRUCTURE.
@@ -3562,7 +3575,7 @@ HRESULT IMAP::HrPropertyFetchRow(SPropValue *lpProps, unsigned int cValues,
 			}
 
 			if (item == "BODY" || item == "BODYSTRUCTURE") {
-				string strData;
+				std::string strData;
 
 				HrGetBodyStructure(item.length() > 4, strData, strMessage);
 				vProps.emplace_back(item);
@@ -3579,27 +3592,26 @@ HRESULT IMAP::HrPropertyFetchRow(SPropValue *lpProps, unsigned int cValues,
 			 */
 			if (strstr(strItem.c_str(), "[]") != NULL) {
 				// Nasty: even though the client requests .PEEK, it may not be present in the reply.
-				string strReply = item;
-
-				ulPos = strReply.find(".PEEK");
-				if (ulPos != string::npos)
+				auto strReply = item;
+				auto ulPos = strReply.find(".PEEK");
+				if (ulPos != strReply.npos)
 					strReply.erase(ulPos, strlen(".PEEK"));
 
 				// Nasty: even though the client requests <12345.12345>, it may not be present in the reply.
 				ulPos = strReply.rfind('<');
-				if (ulPos != string::npos)
-					strReply.erase(ulPos, string::npos);
+				if (ulPos != strReply.npos)
+					strReply.erase(ulPos);
 				vProps.emplace_back(strReply);
 				// Handle BODY[] and RFC822 (entire message)
 				strMessagePart = strMessage;
 			} else {
 				// Handle BODY[subparts]
 				// BODY[subpart], strParts = <subpart> (so "1.2.3" or "3.HEADER" or "TEXT" etc)
-				ulPos = strItem.find("[");
-				if (ulPos != string::npos)
+				auto ulPos = strItem.find("[");
+				if (ulPos != strItem.npos)
 					strParts = strItem.substr(ulPos + 1);
 				ulPos = strParts.find("]");
-				if (ulPos != string::npos)
+				if (ulPos != strParts.npos)
 					strParts.erase(ulPos);
 				if (kc_starts_with(item, "BODY"))
 					vProps.emplace_back("BODY[" + strParts + "]");
@@ -3610,12 +3622,12 @@ HRESULT IMAP::HrPropertyFetchRow(SPropValue *lpProps, unsigned int cValues,
 			}
 
 			// Process byte-part request ( <12345.12345> ) for BODY
-			ulPos = strItem.rfind('<');
-			if (ulPos != string::npos) {
+			auto ulPos = strItem.rfind('<');
+			if (ulPos != strItem.npos) {
 				strParts = strItem.substr(ulPos + 1, strItem.size() - ulPos - 2);
 
 				ulPos = strParts.find('.');
-				if (ulPos != string::npos) {
+				if (ulPos != strParts.npos) {
 					ulCount = strtoul(strParts.substr(0, ulPos).c_str(), NULL, 0);
 					ulPos = strtoul(strParts.substr(ulPos + 1).c_str(), NULL, 0);
 				} else {
@@ -3673,7 +3685,8 @@ HRESULT IMAP::HrPropertyFetchRow(SPropValue *lpProps, unsigned int cValues,
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrGetMessageFlags(string &strResponse, LPMESSAGE lpMessage, bool bRecent) {
+HRESULT IMAP::HrGetMessageFlags(std::string &strResponse, IMessage *lpMessage, bool bRecent)
+{
 	memory_ptr<SPropValue> lpProps;
 	ULONG cValues;
 	static constexpr const SizedSPropTagArray(4, sptaFlagProps) =
@@ -3720,7 +3733,9 @@ HRESULT IMAP::HrGetMessageFlags(string &strResponse, LPMESSAGE lpMessage, bool b
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, string strPartName) {
+HRESULT IMAP::HrGetMessagePart(std::string &strMessagePart,
+    std::string &strMessage, std::string strPartName)
+{
 	unsigned long int ulPartnr;
 	size_t ulHeaderBegin, ulHeaderEnd;
 
@@ -3731,7 +3746,7 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
 
 	    // Find subsection
 		auto ulPos = strPartName.find(".");
-		if (ulPos == string::npos) // first section
+		if (ulPos == strPartName.npos) // first section
 			ulPartnr = strtoul(strPartName.c_str(), NULL, 0);
 		else // sub section
 			ulPartnr = strtoul(strPartName.substr(0, ulPos).c_str(), NULL, 0);
@@ -3749,7 +3764,7 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
 				ulHeaderEnd = strMessage.find_first_of(" ;\t\r\n", ulHeaderBegin);
 			}
 
-			if (ulHeaderEnd != string::npos) {
+			if (ulHeaderEnd != strMessage.npos) {
 			    // strBoundary is the boundary we are looking for
 				auto strBoundary = strMessage.substr(ulHeaderBegin, ulHeaderEnd - ulHeaderBegin);
 				// strHeaders is what we are looking for
@@ -3757,20 +3772,20 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
 				ulHeaderBegin = strMessage.find(strHeaders, ulHeaderBegin);
 
 				// Find the section/part by looking for the Nth boundary string
-				for (size_t ulCounter = 0; ulCounter < ulPartnr && ulHeaderBegin != string::npos; ++ulCounter) {
+				for (size_t ulCounter = 0; ulCounter < ulPartnr && ulHeaderBegin != strMessage.npos; ++ulCounter) {
 					ulHeaderBegin += strHeaders.size();
 					ulHeaderEnd = ulHeaderBegin;
 					ulHeaderBegin = strMessage.find(strHeaders, ulHeaderBegin);
 				}
 
-				if (ulHeaderBegin != string::npos) {
+				if (ulHeaderBegin != strMessage.npos) {
 				    // Found it, discard data after and before the part we want
 				    strMessage.erase(ulHeaderBegin);
 				    strMessage.erase(0, ulHeaderEnd);
 				} else {
 				    // Didn't find it, see if we can find the trailing boundary
-                    ulHeaderBegin = strMessage.find((string) "\r\n--" + strBoundary + "--\r\n", ulHeaderEnd);
-                    if(ulHeaderBegin != string::npos) {
+					ulHeaderBegin = strMessage.find("\r\n--" + strBoundary + "--\r\n", ulHeaderEnd);
+					if (ulHeaderBegin != strMessage.npos) {
                         // If found, output everything up to the trailing boundary
                         strMessage.erase(ulHeaderBegin);
                         strMessage.erase(0, ulHeaderEnd);
@@ -3783,13 +3798,13 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
 		}
 
 		// We now have the entire MIME part in strMessage, decide what to do with it
-		if (ulPos != string::npos) {
+		if (ulPos != strPartName.npos) {
 			// There are sub sections, see what we want to do
 			strNextPart = strPartName.substr(ulPos+1);
 			if (strNextPart == "MIME") {
 			    // Handle MIME request
                 ulPos = strMessage.find("\r\n\r\n");
-                if (ulPos != string::npos)
+				if (ulPos != strMessage.npos)
                     strMessagePart = strMessage.substr(0, ulPos+4); // include trailing \r\n\r\n (+4)
                 else
                     // Only headers in the message
@@ -3808,7 +3823,7 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
         // Handle any other request (HEADER, TEXT or 'empty'). This means we first skip the MIME-IMB headers
         // and process the rest from there.
         ulPos = strMessage.find("\r\n\r\n");
-        if (ulPos != string::npos)
+		if (ulPos != strMessage.npos)
             strMessage.erase(0, ulPos + 4);
         else
             // The message only has headers ?
@@ -3822,7 +3837,7 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
 	} else if (strPartName == "TEXT") {
 	    // Everything except for the headers
 		auto ulPos = strMessage.find("\r\n\r\n");
-		if (ulPos != string::npos) {
+		if (ulPos != strMessage.npos) {
 		    // Swap for less memory usage. Original: strMessagePart = strMessage.substr(ulPos+4)
 		    strMessage.erase(0,ulPos+4);
 			std::swap(strMessage, strMessagePart);
@@ -3833,7 +3848,7 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
 	} else if (strPartName == "HEADER") {
 	    // Only the headers
 		auto ulPos = strMessage.find("\r\n\r\n");
-		if (ulPos != string::npos) {
+		if (ulPos != strMessage.npos) {
 		    // Swap for less memory usage. Original: strMessagePart = strMessage.substr(0, ulPos+4);
 			strMessage.erase(ulPos + 4, strMessage.size() - ulPos - 4);
 			std::swap(strMessagePart, strMessage);
@@ -3853,7 +3868,7 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
          */
 		bool bNot = kc_starts_with(strPartName, "HEADER.FIELDS.NOT");
 		std::list<std::pair<std::string, std::string>> lstFields;
-        string strFields;
+		std::string strFields;
 
         // Parse headers in message
         HrParseHeaders(strMessage, lstFields);
@@ -3933,7 +3948,7 @@ ULONG IMAP::LastOrNumber(const char *szNr, bool bUID)
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrSeqUidSetToRestriction(const string &strSeqSet,
+HRESULT IMAP::HrSeqUidSetToRestriction(const std::string &strSeqSet,
     std::unique_ptr<ECRestriction> &ret)
 {
 	SPropValue sProp, sPropEnd;
@@ -3951,7 +3966,7 @@ HRESULT IMAP::HrSeqUidSetToRestriction(const string &strSeqSet,
 
 	for (ULONG i = 0; i < vSequences.size(); ++i) {
 		auto ulPos = vSequences[i].find(':');
-		if (ulPos == string::npos) {
+		if (ulPos == vSequences[i].npos) {
 			// single number
 			sProp.Value.ul = LastOrNumber(vSequences[i].c_str(), true);
 			*rst += ECPropertyRestriction(RELOP_EQ, PR_EC_IMAP_ID, &sProp, ECRestriction::Full);
@@ -3991,7 +4006,7 @@ HRESULT IMAP::HrParseSeqUidSet(const std::string &strSeqSet, std::list<ULONG> &l
 
 	for (ULONG i = 0; i < vSequences.size(); ++i) {
 		auto ulPos = vSequences[i].find(':');
-		if (ulPos == string::npos) {
+		if (ulPos == vSequences[i].npos) {
 			// single number
 			ulMailnr = LastOrNumber(vSequences[i].c_str(), true);
 			auto j = std::find(lstFolderMailEIDs.cbegin(), lstFolderMailEIDs.cend(), ulMailnr);
@@ -4042,7 +4057,7 @@ HRESULT IMAP::HrParseSeqSet(const std::string &strSeqSet, std::list<ULONG> &lstM
 
 	for (ULONG i = 0; i < vSequences.size(); ++i) {
 		auto ulPos = vSequences[i].find(':');
-		if (ulPos == string::npos) {
+		if (ulPos == vSequences[i].npos) {
 			// single number
 			ulMailnr = LastOrNumber(vSequences[i].c_str(), false) - 1;
 			if (ulMailnr >= lstFolderMailEIDs.size())
@@ -4085,7 +4100,7 @@ HRESULT IMAP::HrStore(const std::list<ULONG> &lstMails, std::string strMsgDataIt
 	std::vector<std::string> lstFlags;
 	unsigned int ulCurrent, cValues, ulObjType;
 	memory_ptr<SPropValue> lpPropVal;
-	string strNewFlags;
+	std::string strNewFlags;
 	bool bDelete = false;
 	static constexpr const SizedSPropTagArray(4, proptags4) =
 		{4, {PR_MSG_STATUS, PR_ICON_INDEX, PR_LAST_VERB_EXECUTED, PR_LAST_VERB_EXECUTION_TIME}};
@@ -4114,7 +4129,7 @@ HRESULT IMAP::HrStore(const std::list<ULONG> &lstMails, std::string strMsgDataIt
 
 		// FLAGS, FLAGS.SILENT, +FLAGS, +FLAGS.SILENT, -FLAGS, -FLAGS.SILENT
 		if (strMsgDataItemName.compare(0, 5, "FLAGS") == 0) {
-			if (strMsgDataItemValue.find("\\SEEN") == string::npos)
+			if (strMsgDataItemValue.find("\\SEEN") == strMsgDataItemValue.npos)
 				hr = lpMessage->SetReadFlag(CLEAR_READ_FLAG);
 			else
 				hr = lpMessage->SetReadFlag(SUPPRESS_RECEIPT);
@@ -4126,7 +4141,7 @@ HRESULT IMAP::HrStore(const std::list<ULONG> &lstMails, std::string strMsgDataIt
 			cValues = 5;
 
 			lpPropVal[1].ulPropTag = PR_FLAG_STATUS;
-			if (strMsgDataItemValue.find("\\FLAGGED") == string::npos) {
+			if (strMsgDataItemValue.find("\\FLAGGED") == strMsgDataItemValue.npos) {
 				lpPropVal[1].Value.ul = 0; // PR_FLAG_STATUS
 				lpPropVal[5].Value.ul = 0; // PR_FOLLOWUP_ICON
 			} else {
@@ -4142,7 +4157,7 @@ HRESULT IMAP::HrStore(const std::list<ULONG> &lstMails, std::string strMsgDataIt
 				lpPropVal[0].Value.ul = 0;
 			}
 
-			if (strMsgDataItemValue.find("\\ANSWERED") == string::npos) {
+			if (strMsgDataItemValue.find("\\ANSWERED") == strMsgDataItemValue.npos) {
 				lpPropVal[0].Value.ul &= ~MSGSTATUS_ANSWERED;
 				cValues -= 2;	// leave PR_LAST_VERB_EXECUTED properties
 			} else {
@@ -4154,7 +4169,7 @@ HRESULT IMAP::HrStore(const std::list<ULONG> &lstMails, std::string strMsgDataIt
 				GetSystemTimeAsFileTime(&lpPropVal[4].Value.ft);
 			}
 
-			if (strMsgDataItemValue.find("$FORWARDED") == string::npos) {
+			if (strMsgDataItemValue.find("$FORWARDED") == strMsgDataItemValue.npos) {
 				if (cValues == 5)
 					cValues -= 2;	// leave PR_LAST_VERB_EXECUTED properties if still present
 			} else {
@@ -4165,7 +4180,7 @@ HRESULT IMAP::HrStore(const std::list<ULONG> &lstMails, std::string strMsgDataIt
 				GetSystemTimeAsFileTime(&lpPropVal[4].Value.ft);
 			}
 
-			if (strMsgDataItemValue.find("\\DELETED") == string::npos) {
+			if (strMsgDataItemValue.find("\\DELETED") == strMsgDataItemValue.npos) {
 				lpPropVal[0].Value.ul &= ~MSGSTATUS_DELMARKED;
 			} else {
 				lpPropVal[0].Value.ul |= MSGSTATUS_DELMARKED;
@@ -4374,7 +4389,7 @@ HRESULT IMAP::HrCopy(const std::list<ULONG> &lstMails,
 HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
     ULONG ulStartCriteria, std::list<ULONG> &lstMailnr)
 {
-	string strSearchCriterium;
+	std::string strSearchCriterium;
 	std::list<ULONG> lstMails;
 	object_ptr<IMAPIFolder> lpFolder;
 	object_ptr<IMAPITable> lpTable;
@@ -4725,7 +4740,7 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 				return MAPI_E_CALL_FAILED;
 
 			// Search for "^HEADER:.*DATA" in PR_TRANSPORT_HEADERS
-			std::string strSearch = (string)"^" + strSearchCriterium + ":.*" + lstSearchCriteria[ulStartCriteria+1];
+			auto strSearch = "^" + strSearchCriterium + ":.*" + lstSearchCriteria[ulStartCriteria+1];
 			pv.ulPropTag   = PR_TRANSPORT_MESSAGE_HEADERS_A;
 			pv.Value.lpszA = const_cast<char *>(strSearch.c_str());
 			top_rst += ECPropertyRestriction(RELOP_RE, pv.ulPropTag, &pv, ECRestriction::Full);
@@ -4824,7 +4839,9 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrGetBodyStructure(bool bExtended, string &strBodyStructure, const string& strMessage) {
+HRESULT IMAP::HrGetBodyStructure(bool bExtended, std::string &strBodyStructure,
+    const std::string &strMessage)
+{
 	if (bExtended)
 		return createIMAPProperties(strMessage, nullptr, nullptr, &strBodyStructure);
 	return createIMAPProperties(strMessage, nullptr, &strBodyStructure, nullptr);
@@ -4864,7 +4881,7 @@ std::string IMAP::FileTimeToString(const FILETIME &sFileTime)
  *
  * @return MAPI FILETIME structure
  */
-bool IMAP::StringToFileTime(string strTime, FILETIME &sFileTime, bool bDateOnly)
+bool IMAP::StringToFileTime(std::string strTime, FILETIME &sFileTime, bool bDateOnly)
 {
 	struct tm sTm;
 	time_t sTime;
@@ -4929,7 +4946,8 @@ FILETIME IMAP::AddDay(const FILETIME &sFileTime)
  * @param[out]	output	valid IMAP folder name to send to the client
  * @return MAPI Error code
  */
-HRESULT IMAP::MAPI2IMAPCharset(const wstring &input, string &output) {
+HRESULT IMAP::MAPI2IMAPCharset(const std::wstring &input, std::string &output)
+{
 	convert_context converter;
 
 	output.clear();
@@ -4943,13 +4961,13 @@ HRESULT IMAP::MAPI2IMAPCharset(const wstring &input, string &output) {
 			output += "&-";		// & is encoded as &-
 		} else {
 			std::wstring conv;
-			string utf7;
+			std::string utf7;
 			conv = input[i];
 			while (i+1 < input.length() && (input[i+1] < 0x20 || input[i+1] >= 0x7f))
 				conv += input[++i];
 
 			try {
-				utf7 = converter.convert_to<string>("UTF-7", conv, rawsize(conv), CHARSET_WCHAR);
+				utf7 = converter.convert_to<std::string>("UTF-7", conv, rawsize(conv), CHARSET_WCHAR);
 			} catch(...) {
 				return MAPI_E_BAD_CHARWIDTH;
 			}
@@ -4972,7 +4990,8 @@ HRESULT IMAP::MAPI2IMAPCharset(const wstring &input, string &output) {
  * @param[out]	output	 widestring version of input
  * @return MAPI Error code
  */
-HRESULT IMAP::IMAP2MAPICharset(const string& input, wstring& output) {
+HRESULT IMAP::IMAP2MAPICharset(const std::string &input, std::wstring &output)
+{
 	convert_context converter;
 
 	output.clear();
@@ -4996,7 +5015,7 @@ HRESULT IMAP::IMAP2MAPICharset(const string& input, wstring& output) {
 			++i; // skip '-'
 			continue;
 		}
-		string conv = "+";
+		std::string conv = "+";
 		++i; // skip imap '&', is a '+' in utf-7
 		while (i < input.length() && input[i] != '-') {
 			if (input[i] == ',')
@@ -5006,7 +5025,7 @@ HRESULT IMAP::IMAP2MAPICharset(const string& input, wstring& output) {
 			++i;
 		}
 		try {
-			output += converter.convert_to<wstring>(CHARSET_WCHAR, conv, rawsize(conv), "UTF-7");
+			output += converter.convert_to<std::wstring>(CHARSET_WCHAR, conv, rawsize(conv), "UTF-7");
 		} catch(...) {
 			return MAPI_E_BAD_CHARWIDTH;
 		}
@@ -5096,7 +5115,7 @@ void IMAP::HrParseHeaders(const std::string &strHeaders,
         } else {
             size_t colon = strLine.find(":");
 
-            if(colon != string::npos) {
+			if (colon != strLine.npos) {
                 // Get field name
 				auto strField = strLine.substr(0, colon);
 				auto strData = strLine.substr(colon+1);
@@ -5109,7 +5128,7 @@ void IMAP::HrParseHeaders(const std::string &strHeaders,
             // else: Broken header ? (no :)
         }
 
-        if(end == string::npos)
+		if (end == strHeaders.npos)
             break;
         pos = end + 2; // Go to next line (+2 = \r\n)
     }
@@ -5130,10 +5149,10 @@ void IMAP::HrGetSubString(std::string &strOutput, const std::string &strInput,
 {
     strOutput.clear();
 	auto begin = strInput.find(strBegin);
-	if (begin == string::npos)
+	if (begin == strInput.npos)
 		return;
 	auto end = strInput.find(strEnd, begin+1);
-    if(end == string::npos)
+	if (end == strInput.npos)
         strOutput = strInput.substr(begin+1);
     else
         strOutput = strInput.substr(begin+1, end-begin-1);
@@ -5148,7 +5167,8 @@ void IMAP::HrGetSubString(std::string &strOutput, const std::string &strInput,
  *
  * @return MAPI Error code
  */
-HRESULT IMAP::HrFindFolder(const wstring& strFolder, bool bReadOnly, IMAPIFolder **lppFolder, ULONG *cb, ENTRYID **lpb)
+HRESULT IMAP::HrFindFolder(const std::wstring &strFolder, bool bReadOnly,
+    IMAPIFolder **lppFolder, unsigned int *cb, ENTRYID **lpb)
 {
 	std::vector<std::wstring> folder_parts;
 	object_ptr<IMAPIFolder> folder;

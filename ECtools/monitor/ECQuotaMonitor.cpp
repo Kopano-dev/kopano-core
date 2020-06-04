@@ -36,7 +36,6 @@
 #include <string>
 
 using namespace KC;
-using std::string;
 
 #define QUOTA_CONFIG_MSG "Kopano.Quota"
 
@@ -196,7 +195,7 @@ HRESULT ECQuotaMonitor::CheckCompanyQuota(ECCOMPANY *lpecCompany)
 	memory_ptr<ECUSER> lpsUserList;
 	ULONG				cUsers = 0;
 	std::set<std::string> setServers;
-	std::set<string, strcasecmp_comparison> setServersConfig;
+	std::set<std::string, strcasecmp_comparison> setServersConfig;
 	memory_ptr<char> lpszConnection;
 	bool bIsPeer = false;
 	ec_log_info("Checking quota for company \"%s\"", reinterpret_cast<const char *>(lpecCompany->lpszCompanyname));
@@ -393,13 +392,14 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
  * @param[out]	lpstrBody		the filled in mail body
  * @retval	MAPI_E_NOT_FOUND	the template file set in the config was not found
  */
-HRESULT ECQuotaMonitor::CreateMailFromTemplate(TemplateVariables *lpVars, string *lpstrSubject, string *lpstrBody)
+HRESULT ECQuotaMonitor::CreateMailFromTemplate(TemplateVariables *lpVars,
+    std::string *lpstrSubject, std::string *lpstrBody)
 {
-	string strTemplateConfig;
+	std::string strTemplateConfig;
 	char cBuffer[TEMPLATE_LINE_LENGTH];
 	std::string strSubject, strBody;
 	size_t pos;
-	string strVariables[7][2] = {
+	std::string strVariables[7][2] = {
 		{ "${KOPANO_QUOTA_NAME}", "unknown" },
 		{ "${KOPANO_QUOTA_FULLNAME}" , "unknown" },
 		{ "${KOPANO_QUOTA_COMPANY}", "unknown" },
@@ -480,12 +480,12 @@ HRESULT ECQuotaMonitor::CreateMailFromTemplate(TemplateVariables *lpVars, string
 
 	for (unsigned int i = 0; i < KOPANO_QUOTA_LAST_ITEM; ++i) {
 		pos = 0;
-		while ((pos = strSubject.find(strVariables[i][0], pos)) != string::npos) {
+		while ((pos = strSubject.find(strVariables[i][0], pos)) != strSubject.npos) {
 			strSubject.replace(pos, strVariables[i][0].size(), strVariables[i][1]);
 			pos += strVariables[i][1].size();
 		}
 		pos = 0;
-		while ((pos = strBody.find(strVariables[i][0], pos)) != string::npos) {
+		while ((pos = strBody.find(strVariables[i][0], pos)) != strBody.npos) {
 			strBody.replace(pos, strVariables[i][0].size(), strVariables[i][1]);
 			pos += strVariables[i][1].size();
 		}
@@ -493,10 +493,10 @@ HRESULT ECQuotaMonitor::CreateMailFromTemplate(TemplateVariables *lpVars, string
 
 	/* Clear end-of-line characters from subject */
 	pos = strSubject.find('\n');
-	if (pos != string::npos)
+	if (pos != strSubject.npos)
 		strSubject.erase(pos);
 	pos = strSubject.find('\r');
-	if (pos != string::npos)
+	if (pos != strSubject.npos)
 		strSubject.erase(pos);
 	/* Clear starting blank lines from body */
 	while (strBody[0] == '\r' || strBody[0] == '\n')

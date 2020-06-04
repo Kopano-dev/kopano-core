@@ -5,6 +5,7 @@
 #include <kopano/platform.h>
 #include <memory>
 #include <mutex>
+#include <string>
 #include <utility>
 #include <pthread.h>
 #include <kopano/tie.hpp>

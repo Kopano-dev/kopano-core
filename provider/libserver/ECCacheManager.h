@@ -9,6 +9,7 @@
 #include <memory>
 #include <mutex>
 #include <set>
+#include <string>
 #include <tuple>
 #include <vector>
 #include "ECDatabaseFactory.h"

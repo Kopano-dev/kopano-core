@@ -4,6 +4,7 @@
  */
 #pragma once
 #include <list>
+#include <string>
 #include <libxml/tree.h>
 #include <libxml/xmlwriter.h>
 #include <libxml/parser.h>

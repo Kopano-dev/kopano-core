@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <chrono>
 #include <new>
+#include <string>
 #include <utility>
 #include <vector>
 #include <cctype>

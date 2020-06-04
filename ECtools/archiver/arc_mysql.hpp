@@ -4,7 +4,6 @@
  */
 #pragma once
 #include <kopano/database.hpp>
-#include <string>
 
 namespace KC {
 

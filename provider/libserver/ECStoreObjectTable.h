@@ -5,6 +5,7 @@
 #pragma once
 #include <list>
 #include <map>
+#include <string>
 #include <kopano/Util.h>
 #include "soapH.h"
 #include "ECDatabase.h"

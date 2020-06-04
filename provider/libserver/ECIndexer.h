@@ -4,6 +4,7 @@
  */
 #pragma once
 #include <list>
+#include <string>
 
 namespace KC {
 class ECConfig;

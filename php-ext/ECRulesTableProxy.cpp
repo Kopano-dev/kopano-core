@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
+#include <string>
 #include <kopano/memory.hpp>
 #include "ECRulesTableProxy.h"
 #include <kopano/ECGuid.h>

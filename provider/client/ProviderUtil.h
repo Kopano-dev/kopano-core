@@ -4,6 +4,7 @@
  */
 #pragma once
 #include <map>
+#include <string>
 #include <kopano/memory.hpp>
 #include "WSTransport.h"
 

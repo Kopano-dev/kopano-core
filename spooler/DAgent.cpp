@@ -122,8 +122,6 @@ using namespace std::string_literals;
 using std::cerr;
 using std::cout;
 using std::endl;
-using std::string;
-using std::wstring;
 
 typedef enum {
 	DM_STORE=0,
@@ -1145,7 +1143,7 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 	char szHeader[PATH_MAX]{}, szTemp[PATH_MAX]{};
 	wchar_t szwHeader[PATH_MAX]{};
 	int fd = -1;
-	wstring	strFromName, strFromType, strFromEmail, strBody;
+	std::wstring strFromName, strFromType, strFromEmail, strBody;
 	std::vector<std::string> cmdline = {strBaseCommand};
 	// Environment
 	size_t s = 0;
@@ -1392,7 +1390,7 @@ static HRESULT HrCreateMessage(IMAPIFolder *lpFolder,
  *
  * @return MAPI Error code
  */
-static HRESULT HrStringToMAPIMessage(const string &strMail,
+static HRESULT HrStringToMAPIMessage(const std::string &strMail,
     IMAPISession *lpSession, IMsgStore *lpMsgStore, LPADRBOOK lpAdrBook,
     IMAPIFolder *lpDeliveryFolder, IMessage *lpMessage, ECRecipient *lpRecip,
     DeliveryArgs *lpArgs, IMessage **lppMessage, bool *lpbFallbackDelivery)
@@ -1959,7 +1957,7 @@ static HRESULT FindSpamMarker(const std::string &strMail,
 		return hr;
 	// find end of headers
 	auto end = strMail.find("\r\n\r\n");
-	if (end == string::npos)
+	if (end == strMail.npos)
 		return hr;
 	end += 2;
 
@@ -1970,7 +1968,7 @@ static HRESULT FindSpamMarker(const std::string &strMail,
 
 	// find header
 	auto pos = strHeaders.find(match.c_str());
-	if (pos == string::npos)
+	if (pos == strHeaders.npos)
 		return hr;
 
 	// skip header and find end of line
@@ -1979,7 +1977,7 @@ static HRESULT FindSpamMarker(const std::string &strMail,
 	match = strToUpper(szValue);
 	// find value in header line (no header continuations supported here)
 	pos = strHeaders.find(match.c_str(), pos);
-	if (pos == string::npos || pos > end)
+	if (pos == strHeaders.npos || pos > end)
 		return hr;
 	// found, override delivery to junkmail folder
 	lpArgs->ulDeliveryMode = DM_JUNK;
@@ -2275,7 +2273,7 @@ static HRESULT ProcessDeliveryToServer(pym_plugin_intf *lppyMapiPlugin,
 		if (hr == hrSuccess || hr == MAPI_E_CANCEL) {
 			if (hr == hrSuccess) {
 				memory_ptr<SPropValue> lpMessageId, lpSubject;
-				wstring wMessageId;
+				std::wstring wMessageId;
 
 				if (HrGetOneProp(lpMessageTmp, PR_INTERNET_MESSAGE_ID_W, &~lpMessageId) == hrSuccess)
 					wMessageId = lpMessageId->Value.lpszW;
@@ -3350,12 +3348,12 @@ int main(int argc, char **argv)
 			break;
 		case OPT_FOLDER:
 		case 'F':
-			sDeliveryArgs.strDeliveryFolder = convert_to<wstring>(optarg);
+			sDeliveryArgs.strDeliveryFolder = convert_to<std::wstring>(optarg);
 			break;
 		case OPT_PUBLIC:
 		case 'P':
 			sDeliveryArgs.ulDeliveryMode = DM_PUBLIC;
-			sDeliveryArgs.strDeliveryFolder = convert_to<wstring>(optarg);
+			sDeliveryArgs.strDeliveryFolder = convert_to<std::wstring>(optarg);
 			break;
 		case 'p':
 			sDeliveryArgs.szPathSeparator = optarg[0];

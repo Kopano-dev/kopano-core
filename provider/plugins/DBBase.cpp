@@ -21,8 +21,8 @@
 #include "ECServerEntrypoint.h"
 
 using namespace KC;
+using namespace std::string_literals;
 using std::runtime_error;
-using std::string;
 
 DBPlugin::DBPlugin(std::mutex &pluginlock, ECPluginSharedData *shareddata) :
 	UserPlugin(pluginlock, shareddata)
@@ -36,25 +36,25 @@ DBPlugin::DBPlugin(std::mutex &pluginlock, ECPluginSharedData *shareddata) :
 void DBPlugin::InitPlugin(std::shared_ptr<ECStatsCollector> sc)
 {
 	if (GetDatabaseObject(std::move(sc), &m_lpDatabase) != erSuccess)
-	    throw runtime_error(string("db_init: cannot get handle to database"));
+		throw std::runtime_error("db_init: cannot get handle to database");
 }
 
 signatures_t DBPlugin::getAllObjects(const objectid_t &company,
     objectclass_t objclass, const restrictTable *rst)
 {
-	string strQuery =
+	std::string strQuery =
 		"SELECT om.externid, om.objectclass, op.value "
-		"FROM " + (string)DB_OBJECT_TABLE + " AS om "
-		"LEFT JOIN " + (string)DB_OBJECTPROPERTY_TABLE " AS op "
+		"FROM " DB_OBJECT_TABLE " AS om "
+		"LEFT JOIN " DB_OBJECTPROPERTY_TABLE " AS op "
 			"ON op.objectid = om.id "
-			"AND op.propname = '" + OP_MODTIME + "' ";
+			"AND op.propname = '" OP_MODTIME "' ";
 	if (m_bHosted && !company.id.empty()) {
 		// join company, company itself inclusive
 		strQuery +=
-			"JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS usercompany "
+			"JOIN " DB_OBJECTPROPERTY_TABLE " AS usercompany "
 				"ON usercompany.objectid = om.id "
-			"AND ((usercompany.propname='" + OP_COMPANYID + "' AND usercompany.value=HEX(" + m_lpDatabase->EscapeBinary(company.id) + ")) OR"
-			" (usercompany.propname='" + OP_COMPANYNAME + "' AND om.externid=" + m_lpDatabase->EscapeBinary(company.id) + "))";
+			"AND ((usercompany.propname='" OP_COMPANYID "' AND usercompany.value=HEX(" + m_lpDatabase->EscapeBinary(company.id) + ")) OR"
+			" (usercompany.propname='" OP_COMPANYNAME "' AND om.externid=" + m_lpDatabase->EscapeBinary(company.id) + "))";
 		if (objclass != OBJECTCLASS_UNKNOWN)
 			strQuery += " AND " + OBJECTCLASS_COMPARE_SQL("om.objectclass", objclass);
 	} else if (objclass != OBJECTCLASS_UNKNOWN)
@@ -97,14 +97,14 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 			"AND " + OBJECTCLASS_COMPARE_SQL("objectclass", p.first) + ")"; });
 	auto strQuery =
 		"SELECT o.externid, o.objectclass, op.propname, op.value "
-		"FROM " + (string)DB_OBJECT_TABLE + " AS o "
-		"LEFT JOIN "+(string)DB_OBJECTPROPERTY_TABLE+" AS op "
+		"FROM " DB_OBJECT_TABLE " AS o "
+		"LEFT JOIN " DB_OBJECTPROPERTY_TABLE " AS op "
 		"ON op.objectid=o.id "
 		"WHERE (" + strSubQuery + ") "
 		"ORDER BY o.externid, o.objectclass";
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if(er != erSuccess)
-		throw runtime_error(string("db_query: ") + strerror(er));
+		throw std::runtime_error("db_query: "s + strerror(er));
 
 	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 		// No way to determine externid
@@ -114,7 +114,7 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 		if (lpDBLen == NULL || lpDBLen[0] == 0)
 			continue;
 
-		auto curid = objectid_t(string(lpDBRow[0], lpDBLen[0]), static_cast<objectclass_t>(atoi(lpDBRow[1])));
+		auto curid = objectid_t(std::string(lpDBRow[0], lpDBLen[0]), static_cast<objectclass_t>(atoi(lpDBRow[1])));
 		if (lastid != curid && !lastid.id.empty()) {
 			details.SetClass(lastid.objclass);
 			addSendAsToDetails(lastid, &details);
@@ -175,15 +175,15 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 	/* We not have all regular properties, but we might need some MV properties as well */
 	strQuery =
 		"SELECT op.propname, op.value, o.externid, o.objectclass "
-		"FROM " + (string)DB_OBJECT_TABLE + " AS o "
-		"JOIN " + (string)DB_OBJECTMVPROPERTY_TABLE + " AS op "
+		"FROM " DB_OBJECT_TABLE " AS o "
+		"JOIN " DB_OBJECTMVPROPERTY_TABLE " AS op "
 		"ON op.objectid=o.id "
 		"WHERE (" + strSubQuery + ") "
 		"ORDER BY o.externid, op.orderid";
 
 	er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if(er != erSuccess)
-		throw runtime_error(string("db_query: ") + strerror(er));
+		throw std::runtime_error("db_query: "s + strerror(er));
 
 	std::map<objectid_t, objectdetails_t>::iterator iterDetails;
 	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
@@ -193,7 +193,7 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 		if (lpDBLen == NULL || lpDBLen[2] == 0)
 			continue;
 
-		auto curid = objectid_t(string(lpDBRow[2], lpDBLen[2]), static_cast<objectclass_t>(atoi(lpDBRow[3])));
+		auto curid = objectid_t(std::string(lpDBRow[2], lpDBLen[2]), static_cast<objectclass_t>(atoi(lpDBRow[3])));
 		if (lastid != curid) {
 			iterDetails = mapdetails.find(curid);
 			if (iterDetails == mapdetails.cend())
@@ -218,16 +218,16 @@ signatures_t
 DBPlugin::getSubObjectsForObject(userobject_relation_t relation,
     const objectid_t &parentobject)
 {
-	string strQuery =
+	std::string strQuery =
 		"SELECT o.externid, o.objectclass, modtime.value "
-		"FROM " + (string)DB_OBJECT_TABLE + " AS o "
-		"JOIN " + (string)DB_OBJECT_RELATION_TABLE + " AS ort "
+		"FROM " DB_OBJECT_TABLE " AS o "
+		"JOIN " DB_OBJECT_RELATION_TABLE " AS ort "
 			"ON o.id = ort.objectid "
-		"JOIN " + (string)DB_OBJECT_TABLE + " AS p "
+		"JOIN " DB_OBJECT_TABLE " AS p "
 			"ON p.id = ort.parentobjectid "
-		"LEFT JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS modtime "
+		"LEFT JOIN " DB_OBJECTPROPERTY_TABLE " AS modtime "
 			"ON modtime.objectid=o.id "
-			"AND modtime.propname = '" + OP_MODTIME + "' "
+			"AND modtime.propname = '" OP_MODTIME "' "
 		"WHERE p.externid=" + m_lpDatabase->EscapeBinary(parentobject.id) + " "
 			"AND ort.relationtype = " + stringify(relation) + " "
 		"AND " + OBJECTCLASS_COMPARE_SQL("p.objectclass", parentobject.objclass);
@@ -240,16 +240,16 @@ signatures_t
 DBPlugin::getParentObjectsForObject(userobject_relation_t relation,
     const objectid_t &childobject)
 {
-	string strQuery =
+	std::string strQuery =
 		"SELECT o.externid, o.objectclass, modtime.value "
-		"FROM " + (string)DB_OBJECT_TABLE + " AS o "
-		"JOIN " + (string)DB_OBJECT_RELATION_TABLE + " AS ort "
+		"FROM " DB_OBJECT_TABLE " AS o "
+		"JOIN " DB_OBJECT_RELATION_TABLE " AS ort "
 			"ON o.id = ort.parentobjectid "
-		"JOIN " + (string)DB_OBJECT_TABLE + " AS c "
+		"JOIN " DB_OBJECT_TABLE " AS c "
 			"ON ort.objectid = c.id "
-		"LEFT JOIN " +(string)DB_OBJECTPROPERTY_TABLE + " AS modtime "
+		"LEFT JOIN " DB_OBJECTPROPERTY_TABLE " AS modtime "
 			"ON modtime.objectid = o.id "
-			"AND modtime.propname = '" + OP_MODTIME + "' "
+			"AND modtime.propname = '" OP_MODTIME "' "
 		"WHERE c.externid=" + m_lpDatabase->EscapeBinary(childobject.id) + " "
 			"AND ort.relationtype = " + stringify(relation) + " "
 			"AND " + OBJECTCLASS_COMPARE_SQL("c.objectclass", childobject.objclass);
@@ -293,7 +293,7 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 
 	LOG_PLUGIN_DEBUG("%s", __FUNCTION__);
 	auto strSubQuery =
-		"SELECT id FROM " + (string)DB_OBJECT_TABLE + " "
+		"SELECT id FROM " DB_OBJECT_TABLE " "
 		"WHERE externid=" + m_lpDatabase->EscapeBinary(objectid.id) + " "
 		"AND " + OBJECTCLASS_COMPARE_SQL("objectclass", objectid.objclass);
 	auto strQuery = "REPLACE INTO " + std::string(DB_OBJECTPROPERTY_TABLE) + "(objectid, propname, value) VALUES ";
@@ -320,14 +320,14 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 
 	unsigned int i = 0;
 	while (sValidProps[i].column != NULL) {
-		string propvalue = details.GetPropString(sValidProps[i].id);
+		auto propvalue = details.GetPropString(sValidProps[i].id);
 
 		if (strcasecmp(sValidProps[i].column, OP_PASSWORD) == 0 &&
 		    !propvalue.empty() &&
 			/* Password value has special treatment */
 		    CreateMD5Hash(propvalue, &propvalue) != erSuccess)
 			/* WARNING input and output point to the same data */
-			throw runtime_error(string("db_changeUser: create md5"));
+			throw std::runtime_error("db_changeUser: create md5");
 		if (sValidProps[i].id == OB_PROP_O_COMPANYID)
 			// save id as hex in objectproperty.value
 			propvalue = bin2hex(details.GetPropObject(OB_PROP_O_COMPANYID).id);
@@ -360,15 +360,15 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 	if (!bFirstOne) {
 		auto er = m_lpDatabase->DoInsert(strQuery);
 		if (er != erSuccess)
-			throw runtime_error(string("db_query: ") + strerror(er));
+			throw std::runtime_error("db_query: "s + strerror(er));
 	}
 
 	/* Normal properties have been inserted, check for additional MV properties */
 	bFirstOne = true;
-	strQuery = "REPLACE INTO " + (string)DB_OBJECTMVPROPERTY_TABLE + "(objectid, propname, orderid, value) VALUES ";
+	strQuery = "REPLACE INTO " DB_OBJECTMVPROPERTY_TABLE "(objectid, propname, orderid, value) VALUES ";
 	auto strDeleteQuery =
-		"DELETE FROM " + (string)DB_OBJECTMVPROPERTY_TABLE + " "
-		"WHERE objectid = (" + strSubQuery + ") " +
+		"DELETE FROM " DB_OBJECTMVPROPERTY_TABLE " "
+		"WHERE objectid = (" + strSubQuery + ") "
 		" AND propname IN (";
 
 	auto anonymousMVProps = details.GetPropMapListAnonymous();
@@ -408,19 +408,19 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 		/* Make sure all MV properties which are being overridden are being deleted first */
 		auto er = m_lpDatabase->DoDelete(strDeleteQuery);
 		if (er != erSuccess)
-			throw runtime_error(string("db_query: ") + strerror(er));
+			throw std::runtime_error("db_query: "s + strerror(er));
 	}
 	if (!bFirstOne) {
 		auto er = m_lpDatabase->DoInsert(strQuery);
 		if (er != erSuccess)
-			throw runtime_error(string("db_query: ") + strerror(er));
+			throw std::runtime_error("db_query: "s + strerror(er));
 	}
 
 	// Remember modtime for this object
-	strQuery = "REPLACE INTO " +  (string)DB_OBJECTPROPERTY_TABLE + "(objectid, propname, value) VALUES ((" + strSubQuery + "),'" + OP_MODTIME + "', FROM_UNIXTIME("+stringify(time(NULL))+"))";
+	strQuery = "REPLACE INTO " DB_OBJECTPROPERTY_TABLE "(objectid, propname, value) VALUES ((" + strSubQuery + "),'" OP_MODTIME "', FROM_UNIXTIME(" + stringify(time(nullptr)) + "))";
 	auto er = m_lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess)
-		throw runtime_error(string("db_query: ") + strerror(er));
+		throw std::runtime_error("db_query: "s + strerror(er));
 
 	// Maybe change user type from active to something nonactive
 	if (objectid.objclass != details.GetClass() && OBJECTCLASS_TYPE(objectid.objclass) == OBJECTCLASS_TYPE(details.GetClass())) {
@@ -428,7 +428,7 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 			" WHERE externid=" + m_lpDatabase->EscapeBinary(objectid.id) + " AND objectclass=" + stringify(objectid.objclass);
 		er = m_lpDatabase->DoUpdate(strQuery);
 		if (er != erSuccess)
-			throw runtime_error(string("db_query: ") + strerror(er));
+			throw std::runtime_error("db_query: "s + strerror(er));
 	}
 }
 
@@ -446,7 +446,7 @@ objectsignature_t DBPlugin::createObject(const objectdetails_t &details)
 	// Insert all properties into the database
 	changeObject(objectid, details);
 	// signature is empty on first create. This is OK because it doesn't matter what's in it, as long as it changes when the object is modified
-	return objectsignature_t(objectid, string());
+	return objectsignature_t(objectid, std::string());
 }
 
 void DBPlugin::deleteObject(const objectid_t &objectid)
@@ -458,23 +458,22 @@ void DBPlugin::deleteObject(const objectid_t &objectid)
 	LOG_PLUGIN_DEBUG("%s", __FUNCTION__);
 
 	std::string strSubQuery =
-		"SELECT id FROM " + (string)DB_OBJECT_TABLE + " "
+		"SELECT id FROM " DB_OBJECT_TABLE " "
 		"WHERE externid=" + m_lpDatabase->EscapeBinary(objectid.id) + " "
 			"AND " + OBJECTCLASS_COMPARE_SQL("objectclass", objectid.objclass);
 
 	/* First delete company children */
 	if (objectid.objclass == CONTAINER_COMPANY) {
 		auto strQuery = "SELECT objectid FROM " + std::string(DB_OBJECTPROPERTY_TABLE) +
-			" WHERE propname='" + OP_COMPANYID + "' AND value=HEX(" + m_lpDatabase->EscapeBinary(objectid.id) + ")";
+			" WHERE propname='" OP_COMPANYID "' AND value=HEX(" + m_lpDatabase->EscapeBinary(objectid.id) + ")";
 		auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 		if (er != erSuccess)
-			throw runtime_error(string("db_query: ") + strerror(er));
+			throw std::runtime_error("db_query: "s + strerror(er));
 
-		string children;
+		std::string children;
 		while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 			if(lpDBRow[0] == NULL)
-				throw runtime_error(string("db_row_failed: object null"));
-
+				throw std::runtime_error("db_row_failed: object null");
 			if (!children.empty())
 				children += ",";
 			children += lpDBRow[0];
@@ -483,14 +482,14 @@ void DBPlugin::deleteObject(const objectid_t &objectid)
 		if (!children.empty()) {
 			// remove relations for deleted objects
 			strQuery =
-				"DELETE FROM " + (string)DB_OBJECT_RELATION_TABLE + " "
+				"DELETE FROM " DB_OBJECT_RELATION_TABLE " "
 				"WHERE objectid IN (" + children + ")";
 			er = m_lpDatabase->DoDelete(strQuery);
 			if (er != erSuccess)
 				;//ignore error
 
 			strQuery =
-				"DELETE FROM " + (string)DB_OBJECT_RELATION_TABLE + " "
+				"DELETE FROM " DB_OBJECT_RELATION_TABLE " "
 				"WHERE parentobjectid IN (" + children + ")";
 			er = m_lpDatabase->DoDelete(strQuery);
 			if (er != erSuccess)
@@ -498,7 +497,7 @@ void DBPlugin::deleteObject(const objectid_t &objectid)
 
 			// delete object properties
 			strQuery =
-				"DELETE FROM " + (string)DB_OBJECTPROPERTY_TABLE + " "
+				"DELETE FROM " DB_OBJECTPROPERTY_TABLE " "
 				"WHERE objectid IN (" + children + ")";
 			er = m_lpDatabase->DoDelete(strQuery);
 			if (er != erSuccess)
@@ -506,7 +505,7 @@ void DBPlugin::deleteObject(const objectid_t &objectid)
 
 			// delete objects themselves
 			strQuery =
-				"DELETE FROM " + (string)DB_OBJECT_TABLE + " "
+				"DELETE FROM " DB_OBJECT_TABLE " "
 				"WHERE id IN (" + children + ")";
 			er = m_lpDatabase->DoDelete(strQuery);
 			if (er != erSuccess)
@@ -522,7 +521,7 @@ void DBPlugin::deleteObject(const objectid_t &objectid)
 
 	// delete user from object table .. we now have no reference to the user anymore.
 	strQuery =
-		"DELETE FROM " + (string)DB_OBJECT_TABLE + " "
+		"DELETE FROM " DB_OBJECT_TABLE " "
 		"WHERE externid=" + m_lpDatabase->EscapeBinary(objectid.id) + " "
 			"AND " + OBJECTCLASS_COMPARE_SQL("objectclass", objectid.objclass);
 
@@ -543,34 +542,34 @@ void DBPlugin::addSubObjectRelation(userobject_relation_t relation, const object
 	LOG_PLUGIN_DEBUG("%s Relation %x", __FUNCTION__, relation);
 
 	auto strParentSubQuery =
-		"SELECT id FROM " + (string)DB_OBJECT_TABLE + " "
+		"SELECT id FROM " DB_OBJECT_TABLE " "
 		"WHERE externid=" + m_lpDatabase->EscapeBinary(parentobject.id) + " "
 	   		"AND " + OBJECTCLASS_COMPARE_SQL("objectclass", parentobject.objclass);
 	auto strChildSubQuery =
-		"SELECT id FROM " + (string)DB_OBJECT_TABLE + " "
+		"SELECT id FROM " DB_OBJECT_TABLE " "
 		"WHERE externid=" + m_lpDatabase->EscapeBinary(childobject.id) + " "
 	   		"AND " + OBJECTCLASS_COMPARE_SQL("objectclass", childobject.objclass);
 
 	/* Check if relation already exists */
 	auto strQuery =
-		"SELECT objectid FROM " + (string)DB_OBJECT_RELATION_TABLE + " "
+		"SELECT objectid FROM " DB_OBJECT_RELATION_TABLE " "
 		"WHERE objectid = (" + strChildSubQuery + ") "
 		"AND parentobjectid = (" + strParentSubQuery + ") "
 		"AND relationtype = " + stringify(relation);
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
-		throw runtime_error(string("db_query: ") + strerror(er));
+		throw std::runtime_error("db_query: "s + strerror(er));
 	if (lpResult.get_num_rows() != 0)
-		throw collision_error(string("Relation exist: ") + stringify(relation));
+		throw collision_error("Relation exists: "s + stringify(relation));
 
 	/* Insert new relation */ 
 	strQuery =
-		"INSERT INTO " + (string)DB_OBJECT_RELATION_TABLE + " (objectid, parentobjectid, relationtype) "
+		"INSERT INTO " DB_OBJECT_RELATION_TABLE " (objectid, parentobjectid, relationtype) "
 		"VALUES ((" + strChildSubQuery + "),(" + strParentSubQuery + ")," + stringify(relation) + ")";
 
 	er = m_lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess)
-		throw runtime_error(string("db_query: ") + strerror(er));
+		throw std::runtime_error("db_query: "s + strerror(er));
 }
 
 void DBPlugin::deleteSubObjectRelation(userobject_relation_t relation, const objectid_t &parentobject, const objectid_t &childobject)
@@ -580,22 +579,21 @@ void DBPlugin::deleteSubObjectRelation(userobject_relation_t relation, const obj
 	LOG_PLUGIN_DEBUG("%s Relation %x", __FUNCTION__, relation);
 
 	auto strParentSubQuery =
-		"SELECT id FROM " + (string)DB_OBJECT_TABLE + " "
+		"SELECT id FROM " DB_OBJECT_TABLE " "
 		"WHERE externid=" + m_lpDatabase->EscapeBinary(parentobject.id) + " "
 	   		"AND " + OBJECTCLASS_COMPARE_SQL("objectclass", parentobject.objclass);
 	auto strChildSubQuery =
-		"SELECT id FROM " + (string)DB_OBJECT_TABLE + " "
+		"SELECT id FROM " DB_OBJECT_TABLE " "
 		"WHERE externid=" + m_lpDatabase->EscapeBinary(childobject.id) + " "
 	   		"AND " + OBJECTCLASS_COMPARE_SQL("objectclass", childobject.objclass);
 	auto strQuery =
-		"DELETE FROM " + (string)DB_OBJECT_RELATION_TABLE + " "
+		"DELETE FROM " DB_OBJECT_RELATION_TABLE " "
 		"WHERE objectid = (" + strChildSubQuery + ") "
 			"AND parentobjectid = (" + strParentSubQuery + ") "
 			"AND relationtype = " + stringify(relation);
 	auto er = m_lpDatabase->DoDelete(strQuery, &ulAffRows);
 	if (er != erSuccess)
-		throw runtime_error("db_query: " + string(strerror(er)));
-
+		throw std::runtime_error("db_query: "s + strerror(er));
 	if (ulAffRows != 1)
 		throw objectnotfound("db_user: relation xid:\"" + bin2txt(parentobject.id) + "\"");
 }
@@ -610,23 +608,23 @@ signatures_t DBPlugin::searchObjects(const std::string &match,
 	else
 		strQuery += "o.externid, o.objectclass, modtime.value ";
 	strQuery +=
-		"FROM " + (string)DB_OBJECT_TABLE + " AS o "
-		"JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS op "
+		"FROM " DB_OBJECT_TABLE " AS o "
+		"JOIN " DB_OBJECTPROPERTY_TABLE " AS op "
 			"ON op.objectid=o.id ";
     
 	if (return_prop != nullptr)
 		strQuery +=
-			"JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS opret "
+			"JOIN " DB_OBJECTPROPERTY_TABLE " AS opret "
 				"ON opret.objectid=o.id ";
 
 	strQuery +=
-		"LEFT JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS modtime "
+		"LEFT JOIN " DB_OBJECTPROPERTY_TABLE " AS modtime "
 			"ON modtime.objectid=o.id "
-			"AND modtime.propname = '" + OP_MODTIME + "' "
+			"AND modtime.propname = '" OP_MODTIME "' "
 		"WHERE (";
 
-	string strMatch = m_lpDatabase->Escape(match);
-	string strMatchPrefix;
+	auto strMatch = m_lpDatabase->Escape(match);
+	std::string strMatchPrefix;
 	
 	if (!(ulFlags & EMS_AB_ADDRESS_LOOKUP)) {
 		strMatch = "%" + strMatch + "%";
@@ -636,7 +634,7 @@ signatures_t DBPlugin::searchObjects(const std::string &match,
 	}
 
 	for (unsigned int i = 0; search_props[i] != NULL; ++i) {
-		strQuery += "(op.propname='" + (string)search_props[i] + "' AND op.value " + strMatchPrefix + " '" + strMatch + "')";
+		strQuery += "(op.propname='"s + search_props[i] + "' AND op.value " + strMatchPrefix + " '" + strMatch + "')";
 		if (search_props[i + 1] != NULL)
 			strQuery += " OR ";
 	}
@@ -664,14 +662,14 @@ quotadetails_t DBPlugin::getQuota(const objectid_t &objectid,
 	LOG_PLUGIN_DEBUG("%s", __FUNCTION__);
 	auto strQuery =
 		"SELECT op.propname, op.value "
-		"FROM " + (string)DB_OBJECT_TABLE + " AS o "
-		"JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS op "
+		"FROM " DB_OBJECT_TABLE " AS o "
+		"JOIN " DB_OBJECTPROPERTY_TABLE " AS op "
 			"ON op.objectid = o.id "
 		"WHERE o.externid=" + m_lpDatabase->EscapeBinary(objectid.id) + " "
 	   		"AND " + OBJECTCLASS_COMPARE_SQL("o.objectclass", objectid.objclass);
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
-		throw runtime_error(string("db_query: ") + strerror(er));
+		throw std::runtime_error("db_query: "s + strerror(er));
 	quotadetails_t lpDetails;
 	lpDetails.bIsUserDefaultQuota = bGetUserDefault;
 
@@ -712,20 +710,20 @@ void DBPlugin::setQuota(const objectid_t &objectid, const quotadetails_t &quotad
 	std::string op_soft    = b ? OP_UD_SOFTQUOTA : OP_SOFTQUOTA;
 	std::string op_warn    = b ? OP_UD_WARNQUOTA : OP_WARNQUOTA;
 	auto strSubQuery =
-		"SELECT id FROM " + (string)DB_OBJECT_TABLE + " "
+		"SELECT id FROM " DB_OBJECT_TABLE " "
 		"WHERE externid=" + m_lpDatabase->EscapeBinary(objectid.id) + " "
 	   		"AND " + OBJECTCLASS_COMPARE_SQL("objectclass", objectid.objclass);
 
 	// Update new quota settings
 	auto strQuery =
-		"REPLACE INTO " + (string)DB_OBJECTPROPERTY_TABLE + "(objectid, propname, value) VALUES"
+		"REPLACE INTO " DB_OBJECTPROPERTY_TABLE "(objectid, propname, value) VALUES"
 			"((" + strSubQuery + "), '" + op_default + "','" + stringify(quotadetails.bUseDefaultQuota) + "'),"
 			"((" + strSubQuery + "), '" + op_hard + "','" + stringify_int64(quotadetails.llHardSize) + "'),"
 			"((" + strSubQuery + "), '" + op_soft + "','" + stringify_int64(quotadetails.llSoftSize) + "'),"
 			"((" + strSubQuery + "), '" + op_warn + "','" + stringify_int64(quotadetails.llWarnSize) + "')";
 	auto er = m_lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess) // Maybe on this point the user is broken.
-		throw runtime_error(string("db_query: ") + strerror(er));
+		throw std::runtime_error("db_query: "s + strerror(er));
 }
 
 signatures_t DBPlugin::CreateSignatureList(const std::string &query)
@@ -733,11 +731,11 @@ signatures_t DBPlugin::CreateSignatureList(const std::string &query)
 	signatures_t objectlist;
 	DB_RESULT lpResult;
 	DB_ROW lpDBRow = NULL;
-	string signature;
+	std::string signature;
 
 	auto er = m_lpDatabase->DoSelect(query, &lpResult);
 	if (er != erSuccess)
-		throw runtime_error(string("db_query: ") + strerror(er));
+		throw std::runtime_error("db_query: "s + strerror(er));
 
 	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 		if(lpDBRow[0] == NULL || lpDBRow[1] == NULL)
@@ -749,7 +747,7 @@ signatures_t DBPlugin::CreateSignatureList(const std::string &query)
 		auto lpDBLen = lpResult.fetch_row_lengths();
 		assert(lpDBLen != NULL);
 		if (lpDBLen[0] == 0)
-			throw runtime_error(string("db_row_failed: object empty"));
+			throw std::runtime_error("db_row_failed: object empty");
 		objectlist.emplace_back(objectid_t({lpDBRow[0], lpDBLen[0]}, objclass), signature);
 	}
 
@@ -800,7 +798,7 @@ abprops_t DBPlugin::getExtraAddressbookProperties()
 			"GROUP BY op.propname";
 		auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 		if (er != erSuccess)
-			throw runtime_error(string("db_query: ") + strerror(er));
+			throw std::runtime_error("db_query: "s + strerror(er));
 		while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 			if(lpDBRow[0] == NULL)
 				continue;
@@ -817,23 +815,22 @@ void DBPlugin::CreateObjectWithExternId(const objectid_t &objectid, const object
 
 	// check if object already exists
 	auto strQuery =
-		"SELECT id "
-		"FROM " + (string)DB_OBJECT_TABLE + " "
+		"SELECT id FROM " DB_OBJECT_TABLE " "
 		"WHERE externid = " + m_lpDatabase->EscapeBinary(objectid.id) + " "
 		"AND " + OBJECTCLASS_COMPARE_SQL("objectclass", OBJECTCLASS_CLASSTYPE(details.GetClass()));
 
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
-		throw runtime_error(string("db_query: ") + strerror(er));
+		throw std::runtime_error("db_query: "s + strerror(er));
 	if (lpResult.fetch_row() != nullptr)
 		throw collision_error("Object exists: \"" + bin2txt(objectid.id) + "\"");
 
 	strQuery =
-		"INSERT INTO " + (string)DB_OBJECT_TABLE + "(externid, objectclass) "
+		"INSERT INTO " DB_OBJECT_TABLE "(externid, objectclass) "
 		"VALUES(" + m_lpDatabase->EscapeBinary(objectid.id) + "," + stringify(objectid.objclass) + ")";
 	er = m_lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess)
-		throw runtime_error(string("db_query: ") + strerror(er));
+		throw std::runtime_error("db_query: "s + strerror(er));
 }
 
 objectid_t DBPlugin::CreateObject(const objectdetails_t &details)
@@ -870,11 +867,11 @@ objectid_t DBPlugin::CreateObject(const objectdetails_t &details)
 	// check if object already exists
 	auto strQuery =
 		"SELECT o.id, op.value "
-		"FROM " + (string)DB_OBJECT_TABLE + " AS o "
-		"JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS op "
+		"FROM " DB_OBJECT_TABLE " AS o "
+		"JOIN " DB_OBJECTPROPERTY_TABLE " AS op "
 			"ON op.objectid = o.id AND op.propname = '" + strPropName + "' "
-		"LEFT JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS oc "
-			"ON oc.objectid = o.id AND oc.propname = '" + (string)OP_COMPANYID + "' "
+		"LEFT JOIN " DB_OBJECTPROPERTY_TABLE " AS oc "
+			"ON oc.objectid = o.id AND oc.propname = '" OP_COMPANYID "' "
 		"WHERE op.value = '" + m_lpDatabase->Escape(strPropValue) + "' "
 			"AND " + OBJECTCLASS_COMPARE_SQL("o.objectclass", OBJECTCLASS_CLASSTYPE(details.GetClass()));
 
@@ -883,22 +880,22 @@ objectid_t DBPlugin::CreateObject(const objectdetails_t &details)
 
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
-		throw runtime_error(string("db_query: ") + strerror(er));
+		throw std::runtime_error("db_query: "s + strerror(er));
 	while ((lpDBRow = lpResult.fetch_row()) != nullptr)
 		if (lpDBRow[1] != NULL && strcasecmp(lpDBRow[1], strPropValue.c_str()) == 0)
-			throw collision_error(string("Object exist: ") + strPropValue);
+			throw collision_error("Object exist: " + strPropValue);
 
 	if (CoCreateGuid(&guidExternId) != S_OK)
 		throw runtime_error("failed to generate extern id");
 	std::string strExternId(reinterpret_cast<char *>(&guidExternId), sizeof(guidExternId));
 	strQuery =
-		"INSERT INTO " + (string)DB_OBJECT_TABLE + "(objectclass, externid) "
+		"INSERT INTO " DB_OBJECT_TABLE "(objectclass, externid) "
 		"VALUES (" + stringify(details.GetClass()) + "," +
 		m_lpDatabase->EscapeBinary(strExternId) + ")";
 
 	er = m_lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess)
-		throw runtime_error(string("db_query: ") + strerror(er));
+		throw std::runtime_error("db_query: "s + strerror(er));
 
 	return objectid_t(strExternId, details.GetClass());
 }

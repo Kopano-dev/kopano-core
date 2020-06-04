@@ -3,6 +3,7 @@
  * Copyright 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
+#include <string>
 #include <cstdio>
 #include <cstdlib>
 #include <kopano/stringutil.h>

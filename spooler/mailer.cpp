@@ -44,8 +44,7 @@
 #include <kopano/fileutil.hpp>
 
 using namespace KC;
-using std::string;
-using std::wstring;
+using namespace std::string_literals;
 extern std::shared_ptr<ECConfig> g_lpConfig;
 
 /**
@@ -298,7 +297,7 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 	memory_ptr<SPropTagArray> lpRecipColumns;
 	const char	*const lpszFaxDomain = g_lpConfig->GetSetting("fax_domain");
 	const char	*const lpszFaxInternational = g_lpConfig->GetSetting("fax_international");
-	string		strFaxMail;
+	std::string strFaxMail;
 	unsigned int ulObjType, cValues;
 	// contab email_offset: 0: business, 1: home, 2: primary (outlook uses string 'other')
 	static constexpr const SizedSPropTagArray(3, sptaFaxNumbers) =
@@ -336,14 +335,14 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 			continue;
 
 		// rewrite FAX address to <number>@<faxdomain>
-		wstring wstrName, wstrType, wstrEmailAddress;
+		std::wstring wstrName, wstrType, wstrEmailAddress;
 		memory_ptr<ENTRYID> lpNewEntryID;
 		memory_ptr<SPropValue> lpFaxNumbers;
 		ULONG cbNewEntryID;
 
 		if (ECParseOneOff((LPENTRYID)lpEntryID->Value.bin.lpb, lpEntryID->Value.bin.cb, wstrName, wstrType, wstrEmailAddress) == hrSuccess) {
 			// user entered manual fax address
-			strFaxMail = convert_to<string>(wstrEmailAddress);
+			strFaxMail = convert_to<std::string>(wstrEmailAddress);
 		} else {
 			// check if entry is in contacts folder
 			LPCONTAB_ENTRYID lpContabEntryID = (LPCONTAB_ENTRYID)lpEntryID->Value.bin.lpb;
@@ -385,7 +384,7 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 			}
 			strFaxMail = lpFaxNumbers[lpContabEntryID->email_offset].Value.lpszA;
 		}
-		strFaxMail += string("@") + lpszFaxDomain;
+		strFaxMail += "@"s + lpszFaxDomain;
 		if (strFaxMail[0] == '+' && lpszFaxInternational != nullptr)
 			strFaxMail = lpszFaxInternational + strFaxMail.substr(1, strFaxMail.length());
 
@@ -420,7 +419,7 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 static HRESULT UniqueRecipients(IMessage *lpMessage)
 {
 	object_ptr<IMAPITable> lpTable;
-	string			strEmail;
+	std::string strEmail;
 	ULONG			ulRecipType = 0;
 	static constexpr const SizedSPropTagArray(3, sptaColumns) =
 		{3, {PR_ROWID, PR_SMTP_ADDRESS_A, PR_RECIPIENT_TYPE}};
@@ -455,7 +454,7 @@ static HRESULT UniqueRecipients(IMessage *lpMessage)
 
 		/* Filter To, Cc, Bcc individually */
 		if (strEmail != lpEmailAddress->Value.lpszA || ulRecipType != lpRecipType->Value.ul) {
-			strEmail = string(lpEmailAddress->Value.lpszA);
+			strEmail = lpEmailAddress->Value.lpszA;
 			ulRecipType = lpRecipType->Value.ul;
 			continue;
 		}
@@ -726,7 +725,7 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 	object_ptr<IMessage> lpErrorMsg, lpOriginalMessage;
 	memory_ptr<ENTRYID> lpEntryID;
 	unsigned int cbEntryID, ulObjType, cValuesOriginal = 0, ulRows = 0;
-	wstring			newbody;
+	std::wstring newbody;
 	memory_ptr<SPropValue> lpPropValue, lpPropValueAttach, lpPropArrayOriginal;
 	unsigned int	ulPropPos = 0;
 	FILETIME		ft;
@@ -998,7 +997,7 @@ static HRESULT ContactToKopano(IMsgStore *lpUserStore,
 static HRESULT SMTPToZarafa(IAddrBook *lpAddrBook, const SBinary &smtp,
     SBinary *zeid)
 {
-	wstring wstrName, wstrType, wstrEmailAddress;
+	std::wstring wstrName, wstrType, wstrEmailAddress;
 	adrlist_ptr lpAList;
 
 	// representing entryid can also be a one off id, so search the user, and then get the entryid again ..

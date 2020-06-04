@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <memory>
 #include <new>
+#include <string>
 #include <climits>
 #include <cstdlib>
 #include <cmath> // for pow() 

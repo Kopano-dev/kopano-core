@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #pragma once
+#include <string>
 #include "Http.h"
 #include <mapi.h>
 #include <kopano/CommonUtil.h>

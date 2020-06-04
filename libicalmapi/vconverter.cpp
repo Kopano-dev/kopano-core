@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <list>
 #include <memory>
+#include <string>
 #include <utility>
 #include <vector>
 #include <climits>
@@ -31,9 +32,6 @@
 
 namespace KC {
 
-using std::string;
-using std::wstring;
-
 /**
  * Copies string from source to destination
  *
@@ -50,7 +48,7 @@ HRESULT HrCopyString(convert_context &converter, const std::string &strCharset,
 {
 	std::wstring strWide;
 	if (lpszSrc)
-		strWide = converter.convert_to<wstring>(lpszSrc, rawsize(lpszSrc), strCharset.c_str());
+		strWide = converter.convert_to<std::wstring>(lpszSrc, rawsize(lpszSrc), strCharset.c_str());
 	return HrCopyString(base, strWide.c_str(), lppszDst);
 }
 
@@ -987,13 +985,13 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 	auto lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_ORGANIZER_PROPERTY);
 	auto tmp = lpicProp != nullptr ? icalproperty_get_organizer(lpicProp) : nullptr;
 	if (tmp != nullptr) {
-		strEmail = m_converter.convert_to<wstring>(tmp, rawsize(tmp), m_strCharset.c_str());
+		strEmail = m_converter.convert_to<std::wstring>(tmp, rawsize(tmp), m_strCharset.c_str());
 		if (wcsncasecmp(strEmail.c_str(), L"mailto:", 7) == 0)
 			strEmail = strEmail.erase(0, 7);
 		auto lpicParam = icalproperty_get_first_parameter(lpicProp, ICAL_CN_PARAMETER);
 		tmp = icalparameter_get_cn(lpicParam);
 		if (lpicParam != NULL)
-			strName = m_converter.convert_to<wstring>(tmp, rawsize(tmp), m_strCharset.c_str());
+			strName = m_converter.convert_to<std::wstring>(tmp, rawsize(tmp), m_strCharset.c_str());
 		else
 			strName = strEmail; // set email as name OL does not display organiser name if not set.
 		hr = resolve_organizer(strEmail, strName, strType, cbEntryID, &~lpEntryID);
@@ -1035,7 +1033,7 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 			// unable to log error of missing attendee
 			continue;
 
-		icrAttendee.strEmail = m_converter.convert_to<wstring>(tmp, rawsize(tmp), m_strCharset.c_str());
+		icrAttendee.strEmail = m_converter.convert_to<std::wstring>(tmp, rawsize(tmp), m_strCharset.c_str());
 		if (wcsncasecmp(icrAttendee.strEmail.c_str(), L"mailto:", 7) == 0)
 			icrAttendee.strEmail.erase(0, 7);
 		// @todo: Add organiser details if required.
@@ -1102,7 +1100,7 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
  */
 HRESULT VConverter::HrAddReplyRecipients(icalcomponent *lpicEvent, icalitem *lpIcalItem)
 {
-	wstring strEmail, strName;
+	std::wstring strEmail, strName;
 	icalrecip icrAttendee;
 	unsigned int cbEntryID = 0;
 	memory_ptr<ENTRYID> lpEntryID;
@@ -1396,7 +1394,7 @@ HRESULT VConverter::HrAddException(icalcomponent *lpEventRoot, icalcomponent *lp
 HRESULT VConverter::HrFindTimezone(ULONG ulProps, LPSPropValue lpProps, std::string *lpstrTZid, TIMEZONE_STRUCT *lpTZinfo, icaltimezone **lppicTZinfo)
 {
 	HRESULT hr = hrSuccess;
-	string strTZid;
+	std::string strTZid;
 	TIMEZONE_STRUCT ttTZinfo{};
 	icaltimezone *lpicTZinfo = NULL;
 	icalcomponent *lpicComp = NULL;
@@ -1450,7 +1448,7 @@ HRESULT VConverter::HrFindTimezone(ULONG ulProps, LPSPropValue lpProps, std::str
 			(*m_mapTimeZones)[strTZid] = ttTZinfo;
 			// keep timezone pointer for recurrence
 			m_iCurrentTimeZone = m_mapTimeZones->find(strTZid);
-		} else if(ulPos != string::npos){
+		} else if (ulPos != strTZid.npos) {
 			strTZid = "(GMT+0000)"; // identify GMT+XXX timezones
 			goto done;
 		}
@@ -1574,9 +1572,9 @@ HRESULT VConverter::HrSetTimeProperty(time_t tStamp, bool bDateOnly, icaltimezon
 HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE lpMessage, ULONG ulProps, LPSPropValue lpProps, icalproperty_method *lpicMethod, icalcomponent *lpicEvent)
 {
 	icalproperty_method icMethod = ICAL_METHOD_NONE;
-	wstring strSenderName, strSenderType, strSenderEmailAddr;
-	wstring strReceiverName, strReceiverType, strReceiverEmailAddr;
-	wstring strRepsSenderName, strRepsSenderType, strRepsSenderEmailAddr;
+	std::wstring strSenderName, strSenderType, strSenderEmailAddr;
+	std::wstring strReceiverName, strReceiverType, strReceiverEmailAddr;
+	std::wstring strRepsSenderName, strRepsSenderType, strRepsSenderEmailAddr;
 	object_ptr<IMAPITable> lpTable;
 	memory_ptr<SPropValue> lpSpropVal;
 	icalparameter *lpicParam = NULL;
@@ -1619,8 +1617,7 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 
 	auto strMessageClass = m_converter.convert_to<std::string>(lpPropVal->Value.lpszW);
 	// Set attendee info
-	if (strMessageClass.compare(0, string("IPM.Schedule.Meeting.Resp.").length(), string("IPM.Schedule.Meeting.Resp.")) == 0)
-	{
+	if (strMessageClass.compare(0, 26, "IPM.Schedule.Meeting.Resp.") == 0) {
 		// responding to a meeting request:
 		// the to should only be the organizer of this meeting
 		if(bCounterProposal)
@@ -1632,11 +1629,11 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 			icalcomponent_add_property(lpicEvent, icalproperty_new_status(ICAL_STATUS_CONFIRMED));
 		}
 
-		if (strMessageClass.rfind("Pos") != string::npos)
+		if (strMessageClass.rfind("Pos") != strMessageClass.npos)
 			lpicParam = icalparameter_new_partstat(ICAL_PARTSTAT_ACCEPTED);
-		else if (strMessageClass.rfind("Neg") != string::npos)
+		else if (strMessageClass.rfind("Neg") != strMessageClass.npos)
 			lpicParam = icalparameter_new_partstat(ICAL_PARTSTAT_DECLINED);
-		else if (strMessageClass.rfind("Tent") != string::npos)
+		else if (strMessageClass.rfind("Tent") != strMessageClass.npos)
 			lpicParam = icalparameter_new_partstat(ICAL_PARTSTAT_TENTATIVE);
 		else
 			// shouldn't happen, but better than having no lpicParam pointer
@@ -1644,16 +1641,16 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 
 		// I am the only attendee that is replying
 		auto wstrBuf = L"mailto:" + (strRepsSenderEmailAddr.empty() ? strSenderEmailAddr : strRepsSenderEmailAddr);
-		lpicProp = icalproperty_new_attendee(m_converter.convert_to<string>(wstrBuf).c_str());
+		lpicProp = icalproperty_new_attendee(m_converter.convert_to<std::string>(wstrBuf).c_str());
 		icalproperty_add_parameter(lpicProp, lpicParam);
 
 		wstrBuf = strRepsSenderName.empty() ? strSenderName: strRepsSenderName;
 		if (!wstrBuf.empty())
-			icalproperty_add_parameter(lpicProp, icalparameter_new_cn(m_converter.convert_to<string>(m_strCharset.c_str(), wstrBuf, rawsize(wstrBuf), CHARSET_WCHAR).c_str()));
+			icalproperty_add_parameter(lpicProp, icalparameter_new_cn(m_converter.convert_to<std::string>(m_strCharset.c_str(), wstrBuf, rawsize(wstrBuf), CHARSET_WCHAR).c_str()));
 
 		wstrBuf = L"mailto:" + strSenderEmailAddr;
 		if (!strSenderEmailAddr.empty() && strSenderEmailAddr != strRepsSenderEmailAddr)
-			icalproperty_add_parameter(lpicProp, icalparameter_new_sentby(m_converter.convert_to<string>(wstrBuf).c_str()));
+			icalproperty_add_parameter(lpicProp, icalparameter_new_sentby(m_converter.convert_to<std::string>(wstrBuf).c_str()));
 
 		icalcomponent_add_property(lpicEvent, lpicProp);
 		// Organizer should be the only MAPI_TO entry
@@ -1676,9 +1673,9 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 			return hr;
 
 		wstrBuf = L"mailto:" + strReceiverEmailAddr;
-		lpicProp = icalproperty_new_organizer(m_converter.convert_to<string>(m_strCharset.c_str(), wstrBuf, rawsize(wstrBuf), CHARSET_WCHAR).c_str());
+		lpicProp = icalproperty_new_organizer(m_converter.convert_to<std::string>(m_strCharset.c_str(), wstrBuf, rawsize(wstrBuf), CHARSET_WCHAR).c_str());
 		if (!strReceiverName.empty()) {
-			lpicParam = icalparameter_new_cn(m_converter.convert_to<string>(m_strCharset.c_str(), strReceiverName, rawsize(strReceiverName), CHARSET_WCHAR).c_str());
+			lpicParam = icalparameter_new_cn(m_converter.convert_to<std::string>(m_strCharset.c_str(), strReceiverName, rawsize(strReceiverName), CHARSET_WCHAR).c_str());
 			icalproperty_add_parameter(lpicProp, lpicParam);
 		}
 
@@ -1690,8 +1687,7 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 	// strMessageClass == "IPM.Schedule.Meeting.Request", "IPM.Schedule.Meeting.Canceled" or ....?
 	// strMessageClass == "IPM.Appointment": normal calendar item
 	// If we're dealing with a meeting, preset status to 1. PROP_MEETINGSTATUS may not be set
-	ULONG ulMeetingStatus = strMessageClass.compare(0, string("IPM.Schedule.Meeting").length(),
-	                        string("IPM.Schedule.Meeting")) == 0 ? 1 : 0;
+	unsigned int ulMeetingStatus = strMessageClass.compare(0, 20, "IPM.Schedule.Meeting") == 0;
 
 	// a normal calendar item has meeting status == 0, all other types != 0
 	lpPropVal = PCpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MEETINGSTATUS], PT_LONG));
@@ -1724,13 +1720,13 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 
 		// I am the Organizer
 		auto wstrBuf = L"mailto:" + (strRepsSenderEmailAddr.empty()? strSenderEmailAddr : strRepsSenderEmailAddr);
-		lpicProp = icalproperty_new_organizer(m_converter.convert_to<string>(m_strCharset.c_str(), wstrBuf, rawsize(wstrBuf), CHARSET_WCHAR).c_str());
+		lpicProp = icalproperty_new_organizer(m_converter.convert_to<std::string>(m_strCharset.c_str(), wstrBuf, rawsize(wstrBuf), CHARSET_WCHAR).c_str());
 		wstrBuf = strRepsSenderName.empty()? strSenderName : strRepsSenderName;
 		if (!wstrBuf.empty())
-			icalproperty_add_parameter(lpicProp, icalparameter_new_cn(m_converter.convert_to<string>(m_strCharset.c_str(), wstrBuf, rawsize(wstrBuf), CHARSET_WCHAR).c_str()) );
+			icalproperty_add_parameter(lpicProp, icalparameter_new_cn(m_converter.convert_to<std::string>(m_strCharset.c_str(), wstrBuf, rawsize(wstrBuf), CHARSET_WCHAR).c_str()) );
 		wstrBuf = L"mailto:" + strSenderEmailAddr;
 		if (!strSenderEmailAddr.empty() && strSenderEmailAddr != strRepsSenderEmailAddr)
-			icalproperty_add_parameter(lpicProp, icalparameter_new_sentby(m_converter.convert_to<string>(m_strCharset.c_str(), wstrBuf, rawsize(wstrBuf), CHARSET_WCHAR).c_str()) );
+			icalproperty_add_parameter(lpicProp, icalparameter_new_sentby(m_converter.convert_to<std::string>(m_strCharset.c_str(), wstrBuf, rawsize(wstrBuf), CHARSET_WCHAR).c_str()) );
 		icalcomponent_add_property(lpicEvent, lpicProp);
 	} else {
 		// normal calendar item
@@ -1806,7 +1802,7 @@ HRESULT VConverter::HrSetICalAttendees(LPMESSAGE lpMessage, const std::wstring &
 	icalparameter *lpParam = NULL;
 	object_ptr<IMAPITable> lpTable;
 	rowset_ptr lpRows;
-	wstring strName, strType, strEmailAddress;
+	std::wstring strName, strType, strEmailAddress;
 	static constexpr const SizedSPropTagArray(7, sptaRecipProps) =
 		{7, {PR_ENTRYID, PR_DISPLAY_NAME_W, PR_ADDRTYPE_A,
 		PR_EMAIL_ADDRESS_A, PR_RECIPIENT_FLAGS, PR_RECIPIENT_TYPE,
@@ -1861,7 +1857,7 @@ HRESULT VConverter::HrSetICalAttendees(LPMESSAGE lpMessage, const std::wstring &
 
 		auto tmp_email = strEmailAddress;
 		tmp_email.insert(0, L"mailto:");
-		auto lpProp = icalproperty_new_attendee(m_converter.convert_to<string>(m_strCharset.c_str(), tmp_email, rawsize(tmp_email), CHARSET_WCHAR).c_str());
+		auto lpProp = icalproperty_new_attendee(m_converter.convert_to<std::string>(m_strCharset.c_str(), tmp_email, rawsize(tmp_email), CHARSET_WCHAR).c_str());
 		icalproperty_add_parameter(lpProp, lpParam);
 
 		memory_ptr<SPropValue> prop;
@@ -1895,7 +1891,7 @@ HRESULT VConverter::HrSetICalAttendees(LPMESSAGE lpMessage, const std::wstring &
 		}
 
 		if (!strName.empty())
-			icalproperty_add_parameter(lpProp, icalparameter_new_cn(m_converter.convert_to<string>(m_strCharset.c_str(), strName, rawsize(strName), CHARSET_WCHAR).c_str()));
+			icalproperty_add_parameter(lpProp, icalparameter_new_cn(m_converter.convert_to<std::string>(m_strCharset.c_str(), strName, rawsize(strName), CHARSET_WCHAR).c_str()));
 		icalcomponent_add_property(lpicEvent, lpProp);
 	}
 	return hr;
@@ -2041,7 +2037,7 @@ HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, LPM
 	if (lpPropVal == nullptr || Util::GetBestBody(lpMsgProps, ulMsgProps, fMapiUnicode) != PR_RTF_COMPRESSED)
 		return hrSuccess;
 
-	string rtf;
+	std::string rtf;
 	object_ptr<IStream> lpStream;
 
 	if (lpMessage->OpenProperty(PR_RTF_COMPRESSED, &IID_IStream, 0, MAPI_DEFERRED_ERRORS, &~lpStream) != hrSuccess)
@@ -2180,7 +2176,7 @@ HRESULT VConverter::HrSetBody(LPMESSAGE lpMessage, icalproperty **lppicProp)
 	// RFC specifies that new lines should be CRLF
 	StringTabtoSpaces(lpBody.get(), &strBody);
 	StringCRLFtoLF(strBody, &strBody);
-	*lppicProp = icalproperty_new_description(m_converter.convert_to<string>(m_strCharset.c_str(), strBody, rawsize(strBody), CHARSET_WCHAR).c_str());
+	*lppicProp = icalproperty_new_description(m_converter.convert_to<std::string>(m_strCharset.c_str(), strBody, rawsize(strBody), CHARSET_WCHAR).c_str());
 	return hrSuccess;
 }
 
@@ -2326,7 +2322,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 
 	if (PROP_TYPE(lpSpropArray[1].ulPropTag) != PT_ERROR)
 	{
-		auto lpicProp = icalproperty_new_x(m_converter.convert_to<string>(m_strCharset.c_str(), lpSpropArray[1].Value.lpszW, rawsize(lpSpropArray[1].Value.lpszW), CHARSET_WCHAR).c_str());
+		auto lpicProp = icalproperty_new_x(m_converter.convert_to<std::string>(m_strCharset.c_str(), lpSpropArray[1].Value.lpszW, rawsize(lpSpropArray[1].Value.lpszW), CHARSET_WCHAR).c_str());
 		icalproperty_set_x_name(lpicProp, "X-KOPANO-REC-PATTERN");
 		icalcomponent_add_property(lpicEvent, lpicProp);
 	}
@@ -2462,8 +2458,8 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 				icalproperty_free(lpicProp);
 			}
 
-			const wstring wstrTmp = cRecurrence.getModifiedSubject(i);
-			icalcomponent_add_property(lpicException.get(), icalproperty_new_summary(m_converter.convert_to<string>(m_strCharset.c_str(), wstrTmp, rawsize(wstrTmp), CHARSET_WCHAR).c_str()));
+			const auto wstrTmp = cRecurrence.getModifiedSubject(i);
+			icalcomponent_add_property(lpicException.get(), icalproperty_new_summary(m_converter.convert_to<std::string>(m_strCharset.c_str(), wstrTmp, rawsize(wstrTmp), CHARSET_WCHAR).c_str()));
 		}
 
 		if (ulModifications & ARO_MEETINGTYPE)
@@ -2509,7 +2505,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 				icalproperty_free(lpicProp);
 			}
 
-			const wstring wstrTmp = cRecurrence.getModifiedLocation(i);
+			const auto wstrTmp = cRecurrence.getModifiedLocation(i);
 			icalcomponent_add_property(lpicException.get(), icalproperty_new_location(m_converter.convert_to<std::string>(m_strCharset.c_str(), wstrTmp, rawsize(wstrTmp), CHARSET_WCHAR).c_str()));
 		}
 
@@ -2847,7 +2843,7 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 	else {
 		lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, PR_SUBJECT_W);
 		if (lpPropVal && lpPropVal->Value.lpszW[0] != '\0') {
-			lpProp = icalproperty_new_summary(m_converter.convert_to<string>(m_strCharset.c_str(), lpPropVal->Value.lpszW, rawsize(lpPropVal->Value.lpszW), CHARSET_WCHAR).c_str());
+			lpProp = icalproperty_new_summary(m_converter.convert_to<std::string>(m_strCharset.c_str(), lpPropVal->Value.lpszW, rawsize(lpPropVal->Value.lpszW), CHARSET_WCHAR).c_str());
 			icalcomponent_add_property(lpEvent, lpProp);
 		}
 	}
@@ -2855,7 +2851,7 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 	// Set location / LOCATION
 	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_LOCATION], PT_UNICODE));
 	if (!m_bCensorPrivate && lpPropVal && lpPropVal->Value.lpszW[0] != '\0') {
-		lpProp = icalproperty_new_location(m_converter.convert_to<string>(m_strCharset.c_str(), lpPropVal->Value.lpszW, rawsize(lpPropVal->Value.lpszW), CHARSET_WCHAR).c_str());
+		lpProp = icalproperty_new_location(m_converter.convert_to<std::string>(m_strCharset.c_str(), lpPropVal->Value.lpszW, rawsize(lpPropVal->Value.lpszW), CHARSET_WCHAR).c_str());
 		icalcomponent_add_property(lpEvent, lpProp);
 	}
 
@@ -2869,7 +2865,7 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 			// Newer versions also have some issues parsing there chars
 			StringTabtoSpaces(lpPropVal->Value.lpszW, &strBody);
 			StringCRLFtoLF(strBody, &strBody);
-			lpProp = icalproperty_new_description(m_converter.convert_to<string>(m_strCharset.c_str(), lpPropVal->Value.lpszW, rawsize(lpPropVal->Value.lpszW), CHARSET_WCHAR).c_str());
+			lpProp = icalproperty_new_description(m_converter.convert_to<std::string>(m_strCharset.c_str(), lpPropVal->Value.lpszW, rawsize(lpPropVal->Value.lpszW), CHARSET_WCHAR).c_str());
 		} else {
 			hr = HrSetBody(lpMessage, &lpProp);
 		}
@@ -2901,7 +2897,7 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 			wstrBuf += lpPropVal->Value.MVszW.lppszW[ulCount];
 		}
 		if (!wstrBuf.empty()) {
-			lpProp = icalproperty_new_categories(m_converter.convert_to<string>(m_strCharset.c_str(), wstrBuf, rawsize(wstrBuf), CHARSET_WCHAR).c_str());
+			lpProp = icalproperty_new_categories(m_converter.convert_to<std::string>(m_strCharset.c_str(), wstrBuf, rawsize(wstrBuf), CHARSET_WCHAR).c_str());
 			icalcomponent_add_property(lpEvent, lpProp);
 		}
 	}
@@ -2909,7 +2905,7 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 	// Set url
 	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_NETSHOWURL], PT_UNICODE));
 	if (lpPropVal && lpPropVal->Value.lpszW[0] != '\0') {
-		lpProp = icalproperty_new_url(m_converter.convert_to<string>(m_strCharset.c_str(), lpPropVal->Value.lpszW, rawsize(lpPropVal->Value.lpszW), CHARSET_WCHAR).c_str());
+		lpProp = icalproperty_new_url(m_converter.convert_to<std::string>(m_strCharset.c_str(), lpPropVal->Value.lpszW, rawsize(lpPropVal->Value.lpszW), CHARSET_WCHAR).c_str());
 		icalcomponent_add_property(lpEvent, lpProp);
 	}
 
@@ -2917,7 +2913,7 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_CONTACTS], PT_MV_UNICODE));
 	if (lpPropVal) {
 		for (unsigned int ulCount = 0; ulCount < lpPropVal->Value.MVszW.cValues; ++ulCount) {
-			lpProp = icalproperty_new_contact(m_converter.convert_to<string>(m_strCharset.c_str(), lpPropVal->Value.MVszW.lppszW[ulCount], rawsize(lpPropVal->Value.MVszW.lppszW[ulCount]), CHARSET_WCHAR).c_str());
+			lpProp = icalproperty_new_contact(m_converter.convert_to<std::string>(m_strCharset.c_str(), lpPropVal->Value.MVszW.lppszW[ulCount], rawsize(lpPropVal->Value.MVszW.lppszW[ulCount]), CHARSET_WCHAR).c_str());
 			icalcomponent_add_property(lpEvent, lpProp);
 		}
 	}

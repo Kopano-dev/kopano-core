@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <new>
+#include <string>
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>

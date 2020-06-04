@@ -21,12 +21,11 @@ using namespace KC;
 using std::endl;
 using std::cin;
 using std::cout;
-using std::string;
 
 static bool ReadYesNoMessage(const std::string &strMessage,
     const std::string &strAuto)
 {
-	string strReply;
+	std::string strReply;
 
 	cout << strMessage << " [yes/no]: ";
 	if (strAuto.empty())
@@ -84,8 +83,8 @@ static HRESULT FixProperty(LPMESSAGE lpMessage, const std::string &strName,
 	return hr;
 }
 
-static HRESULT DetectFolderEntryDetails(LPMESSAGE lpMessage, string *lpName,
-    string *lpClass)
+static HRESULT DetectFolderEntryDetails(IMessage *lpMessage,
+    std::string *lpName, std::string *lpClass)
 {
 	memory_ptr<SPropValue> lpPropertyArray;
 	ULONG ulPropertyCount;

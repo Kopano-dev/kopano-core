@@ -8,6 +8,7 @@
 #include <mapix.h>
 #include <mapidefs.h>
 #include <ostream>
+#include <string>
 #include <vector>
 #include <inetmapi/options.h>
 

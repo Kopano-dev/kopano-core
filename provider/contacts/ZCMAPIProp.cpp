@@ -5,6 +5,7 @@
 #include <kopano/platform.h>
 #include <map>
 #include <new>
+#include <string>
 #include "ZCMAPIProp.h"
 #include "ZCABData.h"
 #include <mapidefs.h>

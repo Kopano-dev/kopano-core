@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #pragma once
+#include <string>
 #include "recurrence.h"
 #include "vtimezone.h"
 #include "icalitem.h"

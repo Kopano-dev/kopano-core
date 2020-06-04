@@ -43,6 +43,7 @@
 #include <list>
 #include <map>
 #include <mutex>
+#include <string>
 #include <vector>
 #define BOOKMARK_LIMIT		100
 

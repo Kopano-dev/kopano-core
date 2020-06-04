@@ -29,7 +29,6 @@
 #include "POP3.h"
 
 using namespace KC;
-using std::string;
 
 /**
  * @ingroup gateway_pop3
@@ -106,7 +105,7 @@ HRESULT POP3::HrProcessCommand(const std::string &strInput)
 		if (vWords.size() < 2)
 			return HrResponse(POP3_RESP_ERR,
 			       "Pass command must have 1 argument");
-		string strPass = strInput;
+		auto strPass = strInput;
 		strPass.erase(0, strCommand.length()+1);
 		return HrCmdPass(strPass);
 	} else if (strCommand == "QUIT") {
@@ -186,7 +185,8 @@ HRESULT POP3::HrDone(bool bSendResponse)
  *
  * @return MAPI Error code
  */
-HRESULT POP3::HrResponse(const string &strResult, const string &strResponse) {
+HRESULT POP3::HrResponse(const std::string &strResult, const std::string &strResponse)
+{
 	ec_log_debug("%s%s", strResult.c_str(), strResponse.c_str());
 	return lpChannel->HrWriteLine(strResult + strResponse);
 }
@@ -265,7 +265,8 @@ HRESULT POP3::HrCmdStarttls() {
  *
  * @return MAPI Error code
  */
-HRESULT POP3::HrCmdUser(const string &strUser) {
+HRESULT POP3::HrCmdUser(const std::string &strUser)
+{
 	const char *plain = lpConfig->GetSetting("disable_plaintext_auth");
 
 	if (!lpChannel->UsingSsl() && lpChannel->sslctx() && plain && strcmp(plain, "yes") == 0 && lpChannel->peer_is_local() <= 0) {
@@ -292,7 +293,8 @@ HRESULT POP3::HrCmdUser(const string &strUser) {
  *
  * @return MAPI Error code
  */
-HRESULT POP3::HrCmdPass(const string &strPass) {
+HRESULT POP3::HrCmdPass(const std::string &strPass)
+{
 	const char *plain = lpConfig->GetSetting("disable_plaintext_auth");
 
 	if (!lpChannel->UsingSsl() && lpChannel->sslctx() && plain && strcmp(plain, "yes") == 0 && lpChannel->peer_is_local() <= 0) {
@@ -405,7 +407,7 @@ HRESULT POP3::HrCmdRetr(unsigned int ulMailNr) {
 	object_ptr<IMessage> lpMessage;
 	object_ptr<IStream> lpStream;
 	ULONG ulObjType;
-	string strMessage;
+	std::string strMessage;
 	char szResponse[POP3_MAX_RESPONSE_LENGTH];
 
 	if (ulMailNr < 1 || ulMailNr > lstMails.size()) {
@@ -471,7 +473,7 @@ HRESULT POP3::HrCmdDele(unsigned int ulMailNr) {
  * @return MAPI Error code
  */
 HRESULT POP3::HrCmdNoop() {
-	return HrResponse(POP3_RESP_OK, string());
+	return HrResponse(POP3_RESP_OK, std::string());
 }
 
 /**
@@ -587,7 +589,7 @@ HRESULT POP3::HrCmdTop(unsigned int ulMailNr, unsigned int ulLines) {
 	object_ptr<IMessage> lpMessage;
 	object_ptr<IStream> lpStream;
 	ULONG ulObjType;
-	string strMessage;
+	std::string strMessage;
 
 	if (ulMailNr < 1 || ulMailNr > lstMails.size()) {
 		auto hr = HrResponse(POP3_RESP_ERR, "mail nr not found");
@@ -618,12 +620,12 @@ HRESULT POP3::HrCmdTop(unsigned int ulMailNr, unsigned int ulLines) {
 
 	auto ulPos = strMessage.find("\r\n\r\n", 0);
 	++ulLines;
-	while (ulPos != string::npos && ulLines--)
+	while (ulPos != strMessage.npos && ulLines-- > 0)
 		ulPos = strMessage.find("\r\n", ulPos + 1);
-	if (ulPos != string::npos)
+	if (ulPos != strMessage.npos)
 		strMessage = strMessage.substr(0, ulPos);
 	strMessage = DotFilter(strMessage.c_str());
-	if (HrResponse(POP3_RESP_OK, string()) != hrSuccess ||
+	if (HrResponse(POP3_RESP_OK, std::string()) != hrSuccess ||
 		lpChannel->HrWriteLine(strMessage) != hrSuccess ||
 		lpChannel->HrWriteLine(".") != hrSuccess)
 		return MAPI_E_CALL_FAILED;
@@ -766,8 +768,9 @@ HRESULT POP3::HrMakeMailList() {
  *
  * @return POP3 escaped email
  */
-string POP3::DotFilter(const char *input) {
-	string output;
+std::string POP3::DotFilter(const char *input)
+{
+	std::string output;
 	size_t i = 0;
 
 	while (input[i] != '\0') {

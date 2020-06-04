@@ -23,6 +23,7 @@
 #define NO_DISTRIB "Multi-server not implemented by db userplugin"
 
 using namespace KC;
+using namespace std::string_literals;
 
 extern "C" {
 
@@ -46,7 +47,6 @@ const char kcsrv_plugin_version[] = PROJECT_VERSION;
 } /* extern "C" */
 
 using std::runtime_error;
-using std::string;
 
 DBUserPlugin::DBUserPlugin(std::mutex &pluginlock,
     ECPluginSharedData *shareddata) :
@@ -61,11 +61,12 @@ void DBUserPlugin::InitPlugin(std::shared_ptr<ECStatsCollector> sc)
 	DBPlugin::InitPlugin(std::move(sc));
 }
 
-objectsignature_t DBUserPlugin::resolveName(objectclass_t objclass, const string &name, const objectid_t &company)
+objectsignature_t DBUserPlugin::resolveName(objectclass_t objclass,
+    const std::string &name, const objectid_t &company)
 {
 	DB_RESULT lpResult;
 	DB_ROW		lpDBRow = NULL;
-	string signature;
+	std::string signature;
 	const char *lpszSearchProperty;
 
 	if (company.id.empty())
@@ -109,41 +110,39 @@ objectsignature_t DBUserPlugin::resolveName(objectclass_t objclass, const string
 	 */
 	auto strQuery =
 		"SELECT DISTINCT o.externid, o.objectclass, modtime.value, user.value "
-		"FROM " + (string)DB_OBJECT_TABLE + " AS o "
-		"JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS user "
+		"FROM " DB_OBJECT_TABLE " AS o "
+		"JOIN " DB_OBJECTPROPERTY_TABLE " AS user "
 			"ON user.objectid = o.id "
 			"AND upper(user.value) = upper('" + m_lpDatabase->Escape(name) + "') ";
 	if (lpszSearchProperty)
-		strQuery += "AND user.propname = '" + (string)lpszSearchProperty + "' ";
+		strQuery += "AND user.propname = '"s + lpszSearchProperty + "' ";
 
 	if (m_bHosted && !company.id.empty())
 		// join company, company itself inclusive
 		strQuery +=
-			"JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS usercompany "
+			"JOIN " DB_OBJECTPROPERTY_TABLE " AS usercompany "
 				"ON usercompany.objectid = o.id "
-			"AND (usercompany.propname='" + OP_COMPANYID + "' AND usercompany.value=HEX(" + m_lpDatabase->EscapeBinary(company.id) + ") OR "
-			"usercompany.propname='" + OP_COMPANYNAME + "' AND usercompany.objectid=" + m_lpDatabase->EscapeBinary(company.id) + ")";
+			"AND (usercompany.propname='" OP_COMPANYID "' AND usercompany.value=HEX(" + m_lpDatabase->EscapeBinary(company.id) + ") OR "
+			"usercompany.propname='" OP_COMPANYNAME "' AND usercompany.objectid=" + m_lpDatabase->EscapeBinary(company.id) + ")";
 
 	strQuery +=
-		"LEFT JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS modtime "
-			"ON modtime.propname = '" + OP_MODTIME + "' "
+		"LEFT JOIN " DB_OBJECTPROPERTY_TABLE " AS modtime "
+			"ON modtime.propname = '" OP_MODTIME "' "
 			"AND modtime.objectid = o.id ";
 	if (objclass != OBJECTCLASS_UNKNOWN)
 		strQuery += "WHERE " + OBJECTCLASS_COMPARE_SQL("o.objectclass", objclass);
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
-		throw runtime_error(string("db_query: ") + strerror(er));
+		throw std::runtime_error("db_query: "s + strerror(er));
 
 	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[3] == NULL)
-			throw runtime_error(string("db_row_failed: object null"));
-
+			throw std::runtime_error("db_row_failed: object null");
 		if (strcasecmp(lpDBRow[3], name.c_str()) != 0)
 			continue;
 		auto lpDBLen = lpResult.fetch_row_lengths();
 		if (lpDBLen == NULL || lpDBLen[0] == 0)
-			throw runtime_error(string("db_row_failed: object empty"));
-
+			throw std::runtime_error("db_row_failed: object empty");
 		if(lpDBRow[2] != NULL)
 			signature = lpDBRow[2];
 		return objectsignature_t(objectid_t(std::string(lpDBRow[0], lpDBLen[0]), static_cast<objectclass_t>(atoi(lpDBRow[1]))), signature);
@@ -152,7 +151,8 @@ objectsignature_t DBUserPlugin::resolveName(objectclass_t objclass, const string
 	throw objectnotfound(name);
 }
 
-objectsignature_t DBUserPlugin::authenticateUser(const string &username, const string &password, const objectid_t &company)
+objectsignature_t DBUserPlugin::authenticateUser(const std::string &username,
+    const std::string &password, const objectid_t &company)
 {
 	objectid_t	objectid;
 	std::string signature;
@@ -165,32 +165,32 @@ objectsignature_t DBUserPlugin::authenticateUser(const string &username, const s
 	 * company into a single line. Once those are all linked we can
 	 * set the WHERE restrictions to get the correct line.
 	 */
-	auto strQuery =
+	std::string strQuery =
 		"SELECT pass.propname, pass.value, o.externid, modtime.value, op.value "
-		"FROM " + (string)DB_OBJECT_TABLE + " AS o "
-		"JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS op "
+		"FROM " DB_OBJECT_TABLE " AS o "
+		"JOIN " DB_OBJECTPROPERTY_TABLE " AS op "
 		"ON o.id = op.objectid "
-		"JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS pass "
+		"JOIN " DB_OBJECTPROPERTY_TABLE " AS pass "
 		"ON pass.objectid = o.id ";
 	if (m_bHosted && !company.id.empty())
 		// join company, company itself inclusive
 		strQuery +=
-			"JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS usercompany "
+			"JOIN " DB_OBJECTPROPERTY_TABLE " AS usercompany "
 				"ON usercompany.objectid = o.id "
-			"AND (usercompany.propname='" + OP_COMPANYID + "' AND usercompany.value=HEX(" + m_lpDatabase->EscapeBinary(company.id) + ") OR "
-			"usercompany.propname='" + OP_COMPANYNAME + "' AND usercompany.objectid=" + m_lpDatabase->EscapeBinary(company.id) + ")";
+			"AND (usercompany.propname='" OP_COMPANYID "' AND usercompany.value=HEX(" + m_lpDatabase->EscapeBinary(company.id) + ") OR "
+			"usercompany.propname='" OP_COMPANYNAME "' AND usercompany.objectid=" + m_lpDatabase->EscapeBinary(company.id) + ")";
 
 	strQuery +=
-		"LEFT JOIN " + (string)DB_OBJECTPROPERTY_TABLE + " AS modtime "
+		"LEFT JOIN " DB_OBJECTPROPERTY_TABLE " AS modtime "
 		"ON modtime.objectid = o.id "
-		"AND modtime.propname = '" + OP_MODTIME + "' "
+		"AND modtime.propname = '" OP_MODTIME "' "
 		"WHERE " + OBJECTCLASS_COMPARE_SQL("o.objectclass", ACTIVE_USER) + " "
-		"AND op.propname = '" + (string)OP_LOGINNAME + "' "
+		"AND op.propname = '" OP_LOGINNAME "' "
 		"AND op.value = '" + m_lpDatabase->Escape(username) + "' "
-		"AND pass.propname = '" + (string)OP_PASSWORD "'";
+		"AND pass.propname = '" OP_PASSWORD "'";
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
-		throw runtime_error(string("db_query: ") + strerror(er));
+		throw std::runtime_error("db_query: "s + strerror(er));
 
 	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL || lpDBRow[4] == NULL)
@@ -214,7 +214,7 @@ objectsignature_t DBUserPlugin::authenticateUser(const string &username, const s
 		MD5_Update(&crypt, password.c_str(), password.size());
 		auto strMD5 = salt + zcp_md5_final_hex(&crypt);
 		if (strMD5.compare(lpDBRow[1]) == 0)
-			objectid = objectid_t(string(lpDBRow[2], lpDBLen[2]), ACTIVE_USER);	// Password is oke
+			objectid = objectid_t(std::string(lpDBRow[2], lpDBLen[2]), ACTIVE_USER); // Password is oke
 		else
 			throw login_error("Trying to authenticate failed: wrong username or password");
 		if(lpDBRow[3] != NULL)
@@ -247,19 +247,17 @@ void DBUserPlugin::setQuota(const objectid_t &objectid, const quotadetails_t &qu
 
 	// check if user exist
 	auto strQuery =
-		"SELECT o.externid "
-		"FROM " + (string)DB_OBJECT_TABLE + " AS o "
+		"SELECT o.externid FROM " DB_OBJECT_TABLE " AS o "
 		"WHERE o.externid=" + m_lpDatabase->EscapeBinary(objectid.id) + " "
 		"AND " + OBJECTCLASS_COMPARE_SQL("o.objectclass", objectid.objclass) + " LIMIT 2";
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if(er != erSuccess)
-		throw runtime_error(string("db_query: ") + strerror(er));
+		throw std::runtime_error("db_query: "s + strerror(er));
 	if (lpResult.get_num_rows() != 1)
 		throw objectnotfound(objectid.id);
 	auto lpDBRow = lpResult.fetch_row();
 	if(lpDBRow == NULL || lpDBRow[0] == NULL)
-		throw runtime_error(string("db_row_failed: object null"));
-
+		throw std::runtime_error("db_row_failed: object null");
 	DBPlugin::setQuota(objectid, quotadetails);
 }
 
@@ -284,13 +282,12 @@ void DBUserPlugin::addSubObjectRelation(userobject_relation_t relation, const ob
 
 	// Check if parent exist
 	auto strQuery =
-		"SELECT o.externid "
-		"FROM " + (string)DB_OBJECT_TABLE + " AS o "
+		"SELECT o.externid FROM " DB_OBJECT_TABLE " AS o "
 		"WHERE o.externid=" + m_lpDatabase->EscapeBinary(parentobject.id) + " "
 			"AND " + OBJECTCLASS_COMPARE_SQL("o.objectclass", parentobject.objclass);
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
-		throw runtime_error(string("db_query: ") + strerror(er));
+		throw std::runtime_error("db_query: "s + strerror(er));
 	if (lpResult.get_num_rows() != 1)
 		throw objectnotfound("db_user: Relation does not exist, xid:\"" + bin2txt(parentobject.id) + "\"");
 	DBPlugin::addSubObjectRelation(relation, parentobject, childobject);

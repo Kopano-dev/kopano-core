@@ -4,6 +4,7 @@
  */
 #include <chrono>
 #include <memory>
+#include <string>
 #include <utility>
 #include <kopano/platform.h>
 #include <kopano/stringutil.h>

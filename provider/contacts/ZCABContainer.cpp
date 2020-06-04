@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <new>
 #include <set>
+#include <string>
 #include <vector>
 #include <climits>
 #include <cstring>

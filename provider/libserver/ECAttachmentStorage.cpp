@@ -155,8 +155,6 @@ struct at2_layout {
 
 static const char fa_hex[] = "0123456789abcdef";
 
-using std::string;
-
 // chunk size for attachment blobs, must be equal or larger than MAX, MAX may never shrink below 384*1024.
 #define CHUNK_SIZE (384 * 1024)
 
@@ -1825,13 +1823,13 @@ ECRESULT ECFileAttachment::MarkAttachmentForDeletion(const ext_siid &ulInstanceI
 {
 	auto filename = CreateAttachmentFilename(ulInstanceId, m_bFileCompression);
 
-	if(rename(filename.c_str(), string(filename+".deleted").c_str()) == 0)
+	if (rename(filename.c_str(), (filename + ".deleted").c_str()) == 0)
 		return erSuccess;
 
 	if (errno == ENOENT) {
 		// retry with another filename
 		filename = CreateAttachmentFilename(ulInstanceId, !m_bFileCompression);
-		if(rename(filename.c_str(), string(filename+".deleted").c_str()) == 0)
+		if (rename(filename.c_str(), (filename + ".deleted").c_str()) == 0)
 			return erSuccess;
 	}
 
@@ -1854,12 +1852,12 @@ ECRESULT ECFileAttachment::MarkAttachmentForDeletion(const ext_siid &ulInstanceI
 ECRESULT ECFileAttachment::RestoreMarkedAttachment(const ext_siid &ulInstanceId)
 {
 	auto filename = CreateAttachmentFilename(ulInstanceId, m_bFileCompression);
-	if(rename(string(filename+".deleted").c_str(), filename.c_str()) == 0)
+	if (rename((filename + ".deleted").c_str(), filename.c_str()) == 0)
 		return erSuccess;
 	if (errno == ENOENT) {
 		// retry with another filename
 		filename = CreateAttachmentFilename(ulInstanceId, !m_bFileCompression);
-		if(rename(string(filename+".deleted").c_str(), filename.c_str()) == 0)
+		if (rename((filename + ".deleted").c_str(), filename.c_str()) == 0)
 			return erSuccess;
 	}
     if (errno == EACCES || errno == EPERM)

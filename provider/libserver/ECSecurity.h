@@ -5,6 +5,7 @@
 #pragma once
 #include <list>
 #include <memory>
+#include <string>
 #include <kopano/memory.hpp>
 #include "ECUserManagement.h"
 #include "plugin.h"

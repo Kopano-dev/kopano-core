@@ -57,8 +57,6 @@ using std::cerr;
 using std::cin;
 using std::cout;
 using std::endl;
-using std::string;
-using std::wstring;
 
 static int forcedExitCode = 0;
 
@@ -478,7 +476,7 @@ static HRESULT setQuota(IECServiceAdmin *lpServiceAdmin, ULONG cbEid,
  * @param[in]	ulPropTag	A MAPI proptag
  * @return		string		The PR_ string of a property, or the number.
  */
-static string getMapiPropertyString(ULONG ulPropTag)
+static std::string getMapiPropertyString(unsigned int ulPropTag)
 {
 #define PROP_TO_STRING(tag) \
 	case PROP_ID(tag): return #tag
@@ -595,7 +593,7 @@ static void print_users(unsigned int cUsers, const ECUSER *lpECUsers,
 		else
 			// make sure we fill in all table parts. not using "<unknown>" tag,
 			// since bShowHomeServer can be set to true even on non-multiserver environments
-			ct.SetColumn(i, 2, string());
+			ct.SetColumn(i, 2, std::string());
 	}
 	ct.PrintTable();
 }
@@ -625,7 +623,7 @@ static void print_extra_settings(const SPROPMAP *lpPropmap,
 		++c;
 	}
 	for (unsigned int i = 0; i < lpMVPropmap->cEntries; ++i) {
-		string strMVValues;
+		std::string strMVValues;
 
 		if (is_group && (lpMVPropmap->lpEntries[i].ulPropId == PR_EC_ENABLED_FEATURES_A ||
 		    lpMVPropmap->lpEntries[i].ulPropId == PR_EC_DISABLED_FEATURES_A))
@@ -745,7 +743,7 @@ static void print_group_settings(const ECGROUP *lpECGroup)
  * @param[in]	eClass	Returns a user readable string for this objectclass
  * @return		string
  */
-static string ClassToString(objectclass_t eClass)
+static std::string ClassToString(objectclass_t eClass)
 {
 	switch (eClass) {
 	case ACTIVE_USER: return "User";
@@ -1540,7 +1538,7 @@ static HRESULT DisplayUserCount(LPMDB lpAdminStore)
 	ct.SetColumn(2 + ulExtraRows, 0, "Total");
 	ct.SetColumn(2 + ulExtraRows, COL_USED, stringify(ulActiveUsers + ulNonActiveTotal));
 	// available & allowed columns are too confusing in totals field.
-	ct.SetColumn(2 + ulExtraRows, COL_AVAILABLE, string()); // add empty last column to make sure we print this row
+	ct.SetColumn(2 + ulExtraRows, COL_AVAILABLE, std::string()); // add empty last column to make sure we print this row
 	ct.PrintTable();
 	return hrSuccess;
 }
@@ -1637,7 +1635,7 @@ class InputValidator {
 		 * @return validated input or NULL
 		 */
 		char* operator()(char *szInput) {
-			wstring strInput;
+			std::wstring strInput;
 			failed = szInput == nullptr || TryConvert(szInput, strInput) != hrSuccess ||
 			       !std::all_of(strInput.cbegin(), strInput.cend(), iswprint);
 			return failed ? nullptr : szInput;
@@ -2358,7 +2356,7 @@ int main(int argc, char **argv)
 
 	// confirmations
 	if (mode == MODE_FORCE_RESYNC && lstUsernames.empty()) {
-		string response;
+		std::string response;
 
 		cout << "You requested a forced resync without arguments, are you sure you want" << endl;
 		cout << "force a resync of all offline profiles for all users? [y/N]: ";

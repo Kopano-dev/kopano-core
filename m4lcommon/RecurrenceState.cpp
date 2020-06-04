@@ -4,6 +4,7 @@
  */
 #include <kopano/platform.h>
 #include <algorithm>
+#include <string>
 #include <utility>
 #include <vector>
 #include <cstdio>

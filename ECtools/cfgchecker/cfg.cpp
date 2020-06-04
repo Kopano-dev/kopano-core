@@ -6,6 +6,7 @@
 #include <iostream>
 #include <list>
 #include <memory>
+#include <string>
 #include <getopt.h>
 #include <kopano/stringutil.h>
 #include "ECConfigCheck.h"

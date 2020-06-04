@@ -120,8 +120,8 @@ HRESULT Http::HrReadHeaders()
 		if (n == 0) {
 			m_strAction = strBuffer;
 		} else {
-			std::string::size_type pos = strBuffer.find(':');
-			std::string::size_type start = 0;
+			auto pos = strBuffer.find(':');
+			size_t start = 0;
 
 			if (strBuffer[0] == ' ' || strBuffer[0] == '\t') {
 				if (iHeader == mapHeaders.end())
@@ -539,8 +539,8 @@ HRESULT Http::HrFinalize()
 	{
 		const char *lpstrBody = m_strRespBody.data();
 		char lpstrLen[10];
-		std::string::size_type szBodyLen = m_strRespBody.size();	// length of data to be sent to the client
-		std::string::size_type szBodyWritten = 0;					// length of data sent to client
+		auto szBodyLen = m_strRespBody.size(); // length of data to be sent to the client
+		size_t szBodyWritten = 0; // length of data sent to client
 		unsigned int szPart = HTTP_CHUNK_SIZE;						// default length of chunk data to be written
 
 		HrResponseHeader("Transfer-Encoding", "chunked");

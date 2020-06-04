@@ -5,6 +5,7 @@
 #pragma once
 #include <memory>
 #include <ostream>
+#include <string>
 #include <kopano/zcdefs.h>
 #include "ArchiverSessionPtr.h"     // For ArchiverSessionPtr
 #include "helpers/ArchiveHelper.h"

@@ -1474,7 +1474,7 @@ SOAP_ENTRY_START(loadProp, lpsResponse->er, const entryId &sEntryId,
 		return er;
 	}
 	if (ulPropTag & MV_FLAG)
-		strQuery = "SELECT " + (std::string)MVPROPCOLORDER + " FROM mvproperties WHERE hierarchyid=" + stringify(ulObjId) + " AND tag = " + stringify(PROP_ID(ulPropTag)) + " GROUP BY hierarchyid, tag";
+		strQuery = "SELECT " MVPROPCOLORDER " FROM mvproperties WHERE hierarchyid=" + stringify(ulObjId) + " AND tag = " + stringify(PROP_ID(ulPropTag)) + " GROUP BY hierarchyid, tag";
 	else
 		strQuery = "SELECT " PROPCOLORDER " FROM properties WHERE hierarchyid = " + stringify(ulObjId) + " AND tag = " + stringify(PROP_ID(ulPropTag));
 	strQuery += " LIMIT 2";

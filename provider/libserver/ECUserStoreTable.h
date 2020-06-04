@@ -9,6 +9,7 @@
 #include "ECGenericObjectTable.h"
 #include <kopano/pcuser.hpp>
 #include <map>
+#include <string>
 
 struct soap;
 

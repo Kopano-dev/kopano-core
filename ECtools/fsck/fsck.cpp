@@ -32,10 +32,8 @@ using namespace KC;
 using std::cin;
 using std::cout;
 using std::endl;
-using std::string;
 
-string auto_fix;
-string auto_del;
+std::string auto_fix, auto_del;
 typedef std::map<std::string, std::unique_ptr<Fsck>> CHECKMAP;
 
 enum {
@@ -180,8 +178,8 @@ HRESULT ReadNamedProperties(LPMESSAGE lpMessage, ULONG ulCount, LPMAPINAMEID *lp
 	return hr;
 }
 
-static HRESULT DetectFolderDetails(LPMAPIFOLDER lpFolder, string *lpName,
-    string *lpClass, ULONG *lpFolderType)
+static HRESULT DetectFolderDetails(IMAPIFolder *lpFolder, std::string *lpName,
+    std::string *lpClass, unsigned int *lpFolderType)
 {
 	memory_ptr<SPropValue> lpPropertyArray;
 	ULONG ulPropertyCount = 0;

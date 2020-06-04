@@ -72,7 +72,6 @@ using namespace KC;
 using namespace std::string_literals;
 using std::cout;
 using std::endl;
-using std::string;
 
 static const char upgrade_lock_file[] = "/tmp/kopano-upgrade-lock";
 static const char default_atx_backend[] = "files_v2"; /* for new installs */
@@ -320,7 +319,7 @@ static ECRESULT check_database_attachments(ECDatabase *lpDatabase)
 	// Create attachment directories
 	for (unsigned int i = 0; i < l1; ++i)
 		for (unsigned int j = 0; j < l2; ++j) {
-			string path = (string)g_lpConfig->GetSetting("attachment_path") + PATH_SEPARATOR + stringify(i) + PATH_SEPARATOR + stringify(j);
+			auto path = std::string(g_lpConfig->GetSetting("attachment_path")) + PATH_SEPARATOR + stringify(i) + PATH_SEPARATOR + stringify(j);
 			auto ret = CreatePath(path.c_str());
 			if (ret != 0) {
 				ec_log_err("Cannot create %s: %s", path.c_str(), strerror(errno));
@@ -366,17 +365,17 @@ static ECRESULT check_database_tproperties_key(ECDatabase *lpDatabase)
 	}
 	std::string strTable = lpRow[1];
 	auto start = strTable.find("PRIMARY KEY");
-	if (start == string::npos) {
+	if (start == strTable.npos) {
 		ec_log_crit("No primary key found in tproperties table");
 		return er;
 	}
 	auto end = strTable.find(")", start);
-	if (end == string::npos) {
+	if (end == strTable.npos) {
 		ec_log_crit("No end of primary key found in tproperties table");
 		return er;
 	}
 
-	strTable.erase(end, string::npos);
+	strTable.erase(end, strTable.npos);
 	strTable.erase(0, start);
 	// correct:
 	// PRIMARY KEY (`folderid`,`tag`,`hierarchyid`,`type`),
@@ -384,9 +383,9 @@ static ECRESULT check_database_tproperties_key(ECDatabase *lpDatabase)
 	// PRIMARY KEY `ht` (`folderid`,`tag`,`type`,`hierarchyid`)
 	// `ht` part seems to be optional
 	start = strTable.find_first_of(',');
-	if (start != string::npos)
+	if (start != strTable.npos)
 		start = strTable.find_first_of(',', start+1);
-	if (start == string::npos) {
+	if (start == strTable.npos) {
 		ec_log_warn("Primary key of tproperties table incorrect, trying: %s", strTable.c_str());
 		return er;
 	}

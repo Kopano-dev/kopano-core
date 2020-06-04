@@ -8,6 +8,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <string>
 #include <pthread.h>
 #include <list>
 #include <kopano/zcdefs.h>

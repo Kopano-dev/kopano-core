@@ -4,6 +4,7 @@
  */
 #include <memory>
 #include <mutex>
+#include <string>
 #include <climits>
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>

@@ -6,7 +6,6 @@
 #include <kopano/zcdefs.h>
 #include <map>
 #include <mutex>
-#include <string>
 #include "SessionGroupData.h"
 #include "ClientUtil.h"
 

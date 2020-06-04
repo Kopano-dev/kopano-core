@@ -30,6 +30,7 @@
 //
 #include <memory>
 #include <sstream>
+#include <string>
 #include <vector>
 #include "mapiTextPart.h"
 #include <vmime/exception.hpp>
@@ -218,8 +219,8 @@ void mapiTextPart::parse(const vmime::shared_ptr<const vmime::bodyPart> &message
 		auto midField = part->getHeader()->findField(fields::CONTENT_ID);
 		auto mid = *vmime::dynamicCast<const vmime::messageId>(midField->getValue());
 
-		if (data.find("CID:" + mid.getId()) != string::npos ||
-		    data.find("cid:" + mid.getId()) != string::npos)
+		if (data.find("CID:" + mid.getId()) != data.npos ||
+		    data.find("cid:" + mid.getId()) != data.npos)
 			// This part is referenced in the HTML text.
 			// Add it to the embedded object list.
 			addEmbeddedObject(*part, mid.getId());
@@ -230,7 +231,7 @@ void mapiTextPart::parse(const vmime::shared_ptr<const vmime::bodyPart> &message
 		auto loc = *vmime::dynamicCast<const vmime::text>(locField->getValue());
 		const string locStr = loc.getWholeBuffer();
 
-		if (data.find(locStr) != string::npos)
+		if (data.find(locStr) != data.npos)
 			// This part is referenced in the HTML text.
 			// Add it to the embedded object list.
 			addEmbeddedObject(*part, locStr);

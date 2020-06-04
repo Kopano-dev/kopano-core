@@ -107,8 +107,6 @@ class ECConfigImpl KC_FINAL : public ECConfig {
 	static const directive_t s_sDirectives[];
 };
 
-using std::string;
-
 const directive_t ECConfigImpl::s_sDirectives[] = {
 	{ "include",	&ECConfigImpl::HandleInclude },
 	{ "propmap",	&ECConfigImpl::HandlePropMap },
@@ -438,7 +436,7 @@ bool ECConfigImpl::ReadConfigFile(const std::string &file,
 		if (!fgets(cBuffer, sizeof(cBuffer), fp.get()))
 			continue;
 
-		strLine = string(cBuffer);
+		strLine = cBuffer;
 		/* Skip empty lines any lines which start with # */
 		if (strLine.empty() || strLine[0] == '#')
  			continue;
@@ -451,7 +449,7 @@ bool ECConfigImpl::ReadConfigFile(const std::string &file,
 
 		/* Get setting name */
 		pos = strLine.find('=');
-		if (pos != string::npos) {
+		if (pos != strLine.npos) {
 			strName = strLine.substr(0, pos);
 			strValue = strLine.substr(pos + 1);
 		} else
@@ -475,10 +473,10 @@ bool ECConfigImpl::ReadConfigFile(const std::string &file,
 	return true;
 }
 
-bool ECConfigImpl::HandleDirective(const string &strLine, unsigned int ls_flags)
+bool ECConfigImpl::HandleDirective(const std::string &strLine, unsigned int ls_flags)
 {
 	size_t pos = strLine.find_first_of(" \t", 1);
-	string strName = strLine.substr(1, pos - 1);
+	auto strName = strLine.substr(1, pos - 1);
 
 	/* Check if this directive is known */
 	for (int i = 0; s_sDirectives[i].lpszDirective != NULL; ++i) {
@@ -504,7 +502,7 @@ bool ECConfigImpl::HandleInclude(const char *lpszArgs, unsigned int ls_flags)
 	if (file[0] != PATH_SEPARATOR) {
 		// Rebuild the path. m_currentFile is always a normalized path.
 		auto pos = m_currentFile.find_last_of(PATH_SEPARATOR);
-		file = (pos != std::string::npos) ? m_currentFile.substr(0, pos) : ".";
+		file = pos != m_currentFile.npos ? m_currentFile.substr(0, pos) : ".";
 		file += PATH_SEPARATOR;
 		file += strValue;
 	}

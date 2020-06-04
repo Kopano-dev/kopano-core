@@ -33,8 +33,6 @@
 
 using namespace KC;
 using namespace std::string_literals;
-using std::string;
-using std::wstring;
 extern std::shared_ptr<ECConfig> g_lpConfig;
 
 enum actstatus {
@@ -384,7 +382,7 @@ static HRESULT CreateReplyCopy(LPMAPISESSION lpSession, LPMDB lpOrigStore,
 		// Exchange: uses "BT: orig subject" if empty, or only subject from template.
 		hr = HrGetFullProp(lpOrigMessage, PR_SUBJECT_W, &~lpProp);
 		if (hr == hrSuccess) {
-			strwSubject = wstring(L"BT: ") + lpProp->Value.lpszW;
+			strwSubject = L"BT: "s + lpProp->Value.lpszW;
 			lpProp->Value.lpszW = const_cast<wchar_t *>(strwSubject.c_str());
 			hr = HrSetOneProp(lpReplyMessage, lpProp);
 			if (hr != hrSuccess)
@@ -734,7 +732,7 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 	static constexpr const SizedSPropTagArray(1, sExcludeFromAttachedForward) =
 		{1, {PR_TRANSPORT_MESSAGE_HEADERS}};
 	SPropValue sForwardProps[5];
-	wstring strSubject;
+	std::wstring strSubject;
 
 	if (lpRecipients == NULL || lpRecipients->cEntries == 0) {
 		ec_log_crit("No rule recipient");

@@ -4,6 +4,7 @@
  */
 #pragma once
 #include <list>
+#include <string>
 #include <kopano/zcdefs.h>
 #include "vtimezone.h"
 #include "icalitem.h"
