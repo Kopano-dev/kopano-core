@@ -387,7 +387,12 @@ class Service(kopano.Service):
                         if self.options.clean_folders:
                             folder2.empty()
                         if folder.ContainerClass:
-                            folder2.container_class = folder.ContainerClass
+                            # Imported IMAP folders have IPF.Imap in Outlook
+                            if folder.ContainerClass == 'IPF.Imap':
+                                self.log.info("Changing container class IPF.Imap to IPF.Note for '%s'", path)
+                                folder2.container_class = 'IPF.Note'
+                            else:
+                                folder2.container_class = folder.ContainerClass
                         break
                     except MAPIErrorNetworkError as e:
                         self.log.warning("%s: Connection to server lost, retrying in 5 sec", e)
