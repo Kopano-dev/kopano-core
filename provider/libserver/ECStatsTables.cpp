@@ -116,6 +116,7 @@ void server_stats::fill_odm()
 		return;
 	assert(g_lpSessionManager->m_stats.get() == this);
 
+	setg("db_connections", "Number of DB connections", g_lpSessionManager->get_db_factory()->get_active_nr());
 	usercount_t uc;
 	g_lpSessionManager->get_user_count_cached(&uc);
 	setg("usercnt_active", "Number of active users", uc[usercount_t::ucActiveUser]);

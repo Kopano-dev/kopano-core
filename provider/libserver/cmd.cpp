@@ -7718,7 +7718,7 @@ SOAP_ENTRY_END()
 
 namespace KC {
 
-void *SoftDeleteRemover(void *lpTmpMain)
+static void *SoftDeleteRemover2(void *lpTmpMain)
 {
 	kcsrv_blocksigs();
 	ECRESULT		er = erSuccess;
@@ -7753,6 +7753,13 @@ void *SoftDeleteRemover(void *lpTmpMain)
 
 	// Exit with the error result
 	return new ECRESULT(er);
+}
+
+void *SoftDeleteRemover(void *arg)
+{
+	auto ret = SoftDeleteRemover2(arg);
+	g_lpSessionManager->get_db_factory()->thread_end();
+	return ret;
 }
 
 } /* namespace */

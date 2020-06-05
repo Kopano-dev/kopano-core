@@ -32,6 +32,7 @@ public:
 	ECRESULT get_tls_db(ECDatabase **);
 	void thread_end();
 	void filter_bmp(bool);
+	size_t get_active_nr();
 
 	std::shared_ptr<ECStatsCollector> m_stats;
 

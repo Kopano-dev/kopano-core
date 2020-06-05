@@ -310,7 +310,8 @@ exit:
 	return er;
 }
 
-void* CleanupSyncsTable(void* lpTmpMain){
+static void *CleanupSyncsTable2(void *lpTmpMain)
+{
 	kcsrv_blocksigs();
 	ECDatabase*		lpDatabase = NULL;
 	ECSession*		lpSession = NULL;
@@ -347,7 +348,14 @@ void* CleanupSyncsTable(void* lpTmpMain){
 	return NULL;
 }
 
-void *CleanupSyncedMessagesTable(void *lpTmpMain)
+void *CleanupSyncsTable(void *arg)
+{
+	auto ret = CleanupSyncsTable2(arg);
+	g_lpSessionManager->get_db_factory()->thread_end();
+	return ret;
+}
+
+static void *CleanupSyncedMessagesTable2(void *lpTmpMain)
 {
 	kcsrv_blocksigs();
 	ECDatabase*		lpDatabase = NULL;
@@ -379,6 +387,13 @@ void *CleanupSyncedMessagesTable(void *lpTmpMain)
 	g_lpSessionManager->RemoveSessionInternal(lpSession);
 	// ECScheduler does nothing with the returned value
 	return NULL;
+}
+
+void *CleanupSyncedMessagesTable(void *arg)
+{
+	auto ret = CleanupSyncedMessagesTable2(arg);
+	g_lpSessionManager->get_db_factory()->thread_end();
+	return ret;
 }
 
 static ECRESULT getchanges_nab(ECSession *lpSession, ECDatabase *lpDatabase,
