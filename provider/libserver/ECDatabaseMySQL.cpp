@@ -635,8 +635,7 @@ ECRESULT ECDatabase::DoSequence(const std::string &strSeqName,
 
 bool ECDatabase::SuppressLockErrorLogging(bool bSuppress)
 {
-	std::swap(bSuppress, m_bSuppressLockErrorLogging);
-	return bSuppress;
+	return std::exchange(m_bSuppressLockErrorLogging, bSuppress);
 }
 
 kd_trans ECDatabase::Begin(ECRESULT &res)

@@ -274,7 +274,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 	}
 
 	if (lpResult)
-		std::swap(result, *lpResult);
+		*lpResult = std::move(result);
 	return hrSuccess;
 }
 

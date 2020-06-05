@@ -15,18 +15,6 @@ ECArchiverLogger::ECArchiverLogger(std::shared_ptr<ECLogger> lpLogger) :
 {
 }
 
-tstring ECArchiverLogger::SetUser(tstring strUser)
-{
-	std::swap(strUser, m_strUser);
-	return strUser;
-}
-
-tstring ECArchiverLogger::SetFolder(tstring strFolder)
-{
-	std::swap(strFolder, m_strFolder);
-	return strFolder;
-}
-
 void ECArchiverLogger::Reset()
 {
 	if (m_lpLogger)
