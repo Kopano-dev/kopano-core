@@ -5,7 +5,6 @@
 #pragma once
 #include <memory>
 #include <mutex>
-#include "m4l.common.h"
 #include "m4l.mapidefs.h"
 #include "m4l.mapisvc.h"
 #include <mapix.h>
@@ -42,7 +41,7 @@ struct profEntry {
 	KC::object_ptr<M4LMsgServiceAdmin> serviceadmin;
 };
 
-class M4LProfAdmin final : public M4LUnknown, public IProfAdmin {
+class M4LProfAdmin final : public KC::ECUnknown, public IProfAdmin {
 private:
     // variables
 	std::list<std::unique_ptr<profEntry> > profiles;
@@ -67,7 +66,7 @@ public:
 };
 
 class M4LMsgServiceAdmin KC_FINAL_OPG :
-    public M4LUnknown, public IMsgServiceAdmin2 {
+    public KC::ECUnknown, public IMsgServiceAdmin2 {
 private:
 	std::list<std::unique_ptr<providerEntry> > providers;
 	std::list<std::unique_ptr<serviceEntry> > services;

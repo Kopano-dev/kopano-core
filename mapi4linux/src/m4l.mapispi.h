@@ -7,7 +7,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
-#include "m4l.common.h"
+#include <kopano/ECUnknown.h>
 #include "m4l.mapisvc.h"
 #include <mapispi.h>
 #include <mapix.h>
@@ -23,7 +23,7 @@ struct M4LSUPPORTADVISE {
 	LPMAPIADVISESINK lpAdviseSink;
 };
 
-class M4LMAPIGetSession : public M4LUnknown, public IMAPIGetSession {
+class M4LMAPIGetSession : public KC::ECUnknown, public IMAPIGetSession {
 private:
 	KC::object_ptr<IMAPISession> session;
 
@@ -35,7 +35,7 @@ public:
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 };
 
-class M4LMAPISupport : public M4LUnknown, public IMAPISupport {
+class M4LMAPISupport : public KC::ECUnknown, public IMAPISupport {
 private:
 	LPMAPISESSION		session;
 	std::unique_ptr<MAPIUID> lpsProviderUID;

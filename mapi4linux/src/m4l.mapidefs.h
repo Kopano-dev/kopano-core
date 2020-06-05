@@ -3,18 +3,18 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #pragma once
-#include "m4l.common.h"
 #include <mapidefs.h>
 #include <mapispi.h>
 #include <list>
 #include <map>
 #include <string>
+#include <kopano/ECUnknown.h>
 #include <kopano/memory.hpp>
 #include <kopano/zcdefs.h>
 
 class M4LMsgServiceAdmin;
 
-class M4LMAPIProp : public M4LUnknown, public virtual IMailUser {
+class M4LMAPIProp : public KC::ECUnknown, public virtual IMailUser {
 private:
     // variables
 	std::list<LPSPropValue> properties;
@@ -44,7 +44,7 @@ public:
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 };
 
-class M4LMAPITable final : public M4LUnknown, public IMAPITable {
+class M4LMAPITable final : public KC::ECUnknown, public IMAPITable {
 public:
 	virtual HRESULT GetLastError(HRESULT result, unsigned int flags, MAPIERROR **) override;
 	virtual HRESULT Advise(unsigned int evt_mask, IMAPIAdviseSink *, unsigned int *conn) override;
@@ -72,7 +72,7 @@ public:
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 };
 
-class M4LProviderAdmin KC_FINAL_OPG : public M4LUnknown, public IProviderAdmin {
+class M4LProviderAdmin KC_FINAL_OPG : public KC::ECUnknown, public IProviderAdmin {
 private:
 	M4LMsgServiceAdmin* msa;
 	char *szService;
@@ -89,7 +89,7 @@ public:
 };
 
 class M4LMAPIAdviseSink KC_FINAL_OPG :
-    public M4LUnknown, public IMAPIAdviseSink {
+    public KC::ECUnknown, public IMAPIAdviseSink {
 private:
     void *lpContext;
     LPNOTIFCALLBACK lpFn;
