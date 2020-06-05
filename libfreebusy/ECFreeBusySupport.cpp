@@ -41,14 +41,6 @@ HRESULT ECFreeBusySupport::Open(IMAPISession* lpMAPISession, IMsgStore* lpMsgSto
 
 	if(lpMAPISession == NULL)
 		return MAPI_E_INVALID_OBJECT;
-#ifdef KNOB144
-	if (lpMsgStore) {
-		memory_ptr<SPropValue> lpPropArray;
-		HrGetOneProp(lpMsgStore, PR_DISPLAY_NAME_A, &~lpPropArray);
-		ec_log_debug("ECFreeBusySupport::Open Storename=%s", (lpPropArray && lpPropArray->ulPropTag == PR_DISPLAY_NAME_A) ? lpPropArray->Value.lpszA : "Error");
-	}
-#endif
-
 	// Hold the mapisession, the session will be released by function 'close' or 
 	// on delete the class
 	auto hr = lpMAPISession->QueryInterface(IID_IMAPISession, &~m_lpSession);

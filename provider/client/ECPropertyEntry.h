@@ -16,14 +16,8 @@ template<typename Type> class ECInvariantChecker final {
 	const Type *m_p;
 };
 
-#ifdef KNOB144
-#	define DEBUG_CHECK_INVARIANT do { CheckInvariant(); } while (false)
-#	define DEBUG_GUARD guard debug_guard(this);
-#else
-#	define DEBUG_CHECK_INVARIANT do { } while (false)
-#	define DEBUG_GUARD
-#endif
-
+#define DEBUG_CHECK_INVARIANT do { } while (false)
+#define DEBUG_GUARD
 #define DECL_INVARIANT_GUARD(cls) typedef ECInvariantChecker<cls> guard;
 #define DECL_INVARIANT_CHECK void CheckInvariant() const;
 #define DEF_INVARIANT_CHECK(cls) void cls::CheckInvariant() const

@@ -19,8 +19,6 @@ public:
 	ECDatabase(std::shared_ptr<ECConfig>, std::shared_ptr<ECStatsCollector>);
 	static ECRESULT	InitLibrary(const char *dir, const char *config_file);
 	static void UnloadLibrary(void);
-	virtual kd_trans Begin(ECRESULT &) override;
-	virtual ECRESULT Commit() override;
 	ECRESULT Connect(void);
 	ECRESULT CreateDatabase(void);
 	virtual ECRESULT DoSelect(const std::string &query, DB_RESULT *result, bool stream_result = false) override;
@@ -32,7 +30,6 @@ public:
 	ECRESULT FinalizeMulti(void);
 	ECRESULT GetNextResult(DB_RESULT *);
 	ECRESULT InitializeDBState(void);
-	virtual ECRESULT Rollback() override;
 	bool SuppressLockErrorLogging(bool suppress);
 	void ThreadEnd(void);
 	void ThreadInit(void);
@@ -51,9 +48,6 @@ public:
 	bool m_bForceUpdate = false, m_bFirstResult = false;
 	std::shared_ptr<ECConfig> m_lpConfig;
 	std::shared_ptr<ECStatsCollector> m_stats;
-#ifdef KNOB144
-	unsigned int m_ulTransactionState = 0;
-#endif
 };
 
 extern KC_EXPORT bool searchfolder_restart_required;
