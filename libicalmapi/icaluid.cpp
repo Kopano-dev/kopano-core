@@ -36,17 +36,18 @@ bool IsOutlookUid(const std::string &strUid)
 HRESULT HrGenerateUid(std::string *lpStrData)
 {
 	GUID sGuid;
-	ULONG ulSize = 1;
+	uint32_t ulSize = cpu_to_le32(1);
 
 	HRESULT hr = CoCreateGuid(&sGuid);
 	if (hr != hrSuccess)
 		return hr;
 	auto ftNow = UnixTimeToFileTime(time(nullptr));
+	cpu_to_le(ftNow);
 	auto strBinUid = outlook_guid;
 	strBinUid += "00000000";	// InstanceDate
-	strBinUid += bin2hex(sizeof(FILETIME), &ftNow);
+	strBinUid += bin2hex(sizeof(ftNow), &ftNow);
 	strBinUid += "0000000000000000"; // Padding
-	strBinUid += bin2hex(sizeof(ULONG), &ulSize); // always 1
+	strBinUid += bin2hex(sizeof(ulSize), &ulSize); // always 1
 	strBinUid += bin2hex(sizeof(GUID), &sGuid); // new guid
 	*lpStrData = std::move(strBinUid);
 	return hrSuccess;
