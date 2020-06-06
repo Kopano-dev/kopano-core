@@ -395,7 +395,7 @@ ECRESULT ECSessionGroup::GetNotifyItems(struct soap *soap, ECSESSIONID ulSession
 		notifications->pNotificationArray->__size = ulSize;
 
 		size_t nPos = 0;
-		for (const auto i : m_listNotification)
+		for (auto &i : m_listNotification)
 			i.GetCopy(soap, notifications->pNotificationArray->__ptr[nPos++]);
 		m_listNotification.clear();
 	} else {
