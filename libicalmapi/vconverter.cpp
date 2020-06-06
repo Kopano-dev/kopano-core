@@ -2955,9 +2955,10 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 		hr = HrGenerateUid(&strUid);
 		if (hr != hrSuccess)
 			return hr;
-
-		hr = HrMakeBinaryUID(strUid, lpMsgProps, &propUid); // base is lpMsgProps, which will be freed later
-		
+		/* base is lpMsgProps, which will be freed later. */
+		hr = HrMakeBinaryUID(strUid, lpMsgProps, &propUid);
+		if (hr != hrSuccess)
+			return hr;
 		// Set global object id and cleanglobal id.
 		// ignore write errors, not really required that these properties are saved
 		propUid.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY);
