@@ -184,8 +184,8 @@ void iconv_context_base::doconvert(const char *lpFrom, size_t cbFrom)
 	// Finalize (needed for stateful conversion)
 	lpDst = buf;
 	cbDst = sizeof(buf);
-	iconv(m_cd, nullptr, nullptr, &lpDst, &cbDst);
-	append(buf, sizeof(buf) - cbDst);
+	if (iconv(m_cd, nullptr, nullptr, &lpDst, &cbDst) != static_cast<size_t>(-1))
+		append(buf, sizeof(buf) - cbDst);
 }
 
 convert_context::~convert_context()
