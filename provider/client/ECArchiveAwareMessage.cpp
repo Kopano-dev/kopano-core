@@ -552,7 +552,6 @@ HRESULT ECArchiveAwareMsgStore::GetArchiveStore(LPSBinary lpStoreEID, ECMsgStore
 		return iterStore->second->QueryInterface(IID_ECMsgStore, reinterpret_cast<void **>(lppArchiveStore));
 
 	// @todo: Consolidate this with ECMSProvider::LogonByEntryID
-	object_ptr<IMsgStore> ptrUnknown;
 	ECMsgStorePtr ptrOnlineStore;
 	ULONG cbEntryID = 0;
 	EntryIdPtr ptrEntryID;
@@ -562,10 +561,7 @@ HRESULT ECArchiveAwareMsgStore::GetArchiveStore(LPSBinary lpStoreEID, ECMsgStore
 	ECMsgStorePtr ptrArchiveStore;
 	object_ptr<IECPropStorage> ptrPropStorage;
 
-	auto hr = QueryInterface(IID_ECMsgStoreOnline, &~ptrUnknown);
-	if (hr != hrSuccess)
-		return hr;
-	hr = ptrUnknown->QueryInterface(IID_ECMsgStore, &~ptrOnlineStore);
+	auto hr = QueryInterface(IID_ECMsgStore, &~ptrOnlineStore);
 	if (hr != hrSuccess)
 		return hr;
 	hr = UnWrapStoreEntryID(lpStoreEID->cb, reinterpret_cast<ENTRYID *>(lpStoreEID->lpb), &cbEntryID, &~ptrEntryID);

@@ -387,7 +387,7 @@ HRESULT HrOpenECPublicStoreOnline(IMAPISession *lpMAPISession, IMsgStore **lppMs
 	hr = GetProxyStoreObject(lpMsgStore, &~lpProxedMsgStore);
 	if (hr != hrSuccess)
 		return hr;
-	return lpProxedMsgStore->QueryInterface(IID_ECMsgStoreOnline, reinterpret_cast<void **>(lppMsgStore));
+	return lpProxedMsgStore->QueryInterface(IID_IMsgStore, reinterpret_cast<void **>(lppMsgStore));
 }
 
 static HRESULT HrOpenECPublicStore(IMAPISession *lpMAPISession, ULONG ulFlags,

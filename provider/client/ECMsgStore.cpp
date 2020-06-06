@@ -227,13 +227,6 @@ HRESULT ECMsgStore::QueryInterface(REFIID refiid, void **lppInterface)
 	REGISTER_INTERFACE2(IECSpooler, this);
 	REGISTER_INTERFACE2(IECSecurity, this);
 	REGISTER_INTERFACE2(IProxyStoreObject, this);
-
-	if (refiid == IID_ECMsgStoreOnline)
-	{
-		*lppInterface = static_cast<IMsgStore *>(this);
-		AddRef();
-		return hrSuccess;
-	}
 	// is admin store?
 	REGISTER_INTERFACE2(IECTestProtocol, &m_xMsgStoreProxy);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
