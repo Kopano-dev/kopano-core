@@ -1024,7 +1024,9 @@ HRESULT WebDav::HrWriteSPropStat(xmlTextWriter *xmlWriter,
 	if (ulRet < 0)
 		return MAPI_E_CALL_FAILED;
 	//<status xmlns="xxxxxxx">HTTP/1.1 200 OK</status>
-	WriteData(xmlWriter, sWebPropStat.sStatus, lpstrNsPrefix);
+	hr = WriteData(xmlWriter, sWebPropStat.sStatus, lpstrNsPrefix);
+	if (hr != hrSuccess)
+		return hr;
 	// ending the function here on !hrSuccess breaks several tests.
 	//</propstat>
 	ulRet = xmlTextWriterEndElement(xmlWriter);
