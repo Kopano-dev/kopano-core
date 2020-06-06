@@ -156,10 +156,10 @@ static ECRESULT RunSubRestriction(ECSession *lpSession, const void *lpECODStore,
             goto exit;
     }
 
-    // Get property tags we'll be needing to evaluate the restriction
-    er = ECGenericObjectTable::GetRestrictPropTags(lpRestrict->lpSubObject, NULL, &lpPropTags);
-    if(er != erSuccess)
-        goto exit;
+	// Get property tags we'll be needing to evaluate the restriction
+	er = ECGenericObjectTable::GetRestrictPropTags(lpRestrict->lpSubObject, NULL, &lpPropTags);
+	if (er != erSuccess)
+		goto exit;
 
     // Get the subobject IDs we are querying from the database
 	strQuery = "SELECT hierarchy.parent, hierarchy.id FROM hierarchy WHERE hierarchy.type = " +

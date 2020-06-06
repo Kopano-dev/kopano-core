@@ -1173,11 +1173,11 @@ SOAP_ENTRY_START(getStore, lpsResponse->er, entryId* lpsEntryId, struct getStore
 		}
 	}
 
-    // If strServerName is empty, we're not running in distributed mode or we're dealing
-    // with a local account. Just use the name from the configuration.
-    if (strServerName.empty())
-        strServerName = g_lpSessionManager->GetConfig()->GetSetting("server_name" ,"", "Unknown");
-    // Always return a pseudo URL
+	// If strServerName is empty, we're not running in distributed mode or we're dealing
+	// with a local account. Just use the name from the configuration.
+	if (strServerName.empty())
+		strServerName = g_lpSessionManager->GetConfig()->GetSetting("server_name" ,"", "Unknown");
+	// Always return a pseudo URL
 	lpsResponse->lpszServerPath = soap_strdup(soap, ("pseudo://"s + strServerName).c_str());
 
 	strQuery = "SELECT hierarchy.id, stores.guid, stores.hierarchy_id, stores.type "

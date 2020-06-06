@@ -173,20 +173,18 @@ HRESULT WrapCompressedRTFStream(LPSTREAM lpCompressedRTFStream, ULONG ulFlags,
 		if (lpCompressed == nullptr)
 			return MAPI_E_NOT_ENOUGH_MEMORY;
 
-        	// Read in the whole compressed data buffer
-			auto lpReadPtr = lpCompressed.get();
-        	while(1) {
-        		hr = lpCompressedRTFStream->Read(lpReadPtr, 1024, &ulRead);
-
-        		if(hr != hrSuccess)
+		// Read in the whole compressed data buffer
+		auto lpReadPtr = lpCompressed.get();
+		while (1) {
+			hr = lpCompressedRTFStream->Read(lpReadPtr, 1024, &ulRead);
+			if (hr != hrSuccess)
 				return hr;
-        		if(ulRead == 0)
-        			break;	
-        	
-        		lpReadPtr += ulRead;		
-        	}
-        	ulUncompressedLen = rtf_get_uncompressed_length(lpCompressed.get(), sStatStg.cbSize.LowPart);
-        	lpUncompressed.reset(new(std::nothrow) char[ulUncompressedLen]);
+			if (ulRead == 0)
+				break;
+			lpReadPtr += ulRead;
+		}
+		ulUncompressedLen = rtf_get_uncompressed_length(lpCompressed.get(), sStatStg.cbSize.LowPart);
+		lpUncompressed.reset(new(std::nothrow) char[ulUncompressedLen]);
 		if (lpUncompressed == nullptr)
 			return MAPI_E_NOT_ENOUGH_MEMORY;
 		memset(lpUncompressed.get(), 0, ulUncompressedLen);
