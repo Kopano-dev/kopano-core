@@ -254,7 +254,6 @@ swig_type_info *TypeFromIID(REFIID iid)
   TYPECASE(IMailUser)
   TYPECASE(IDistList)
   TYPECASE(IMsgStore)
-  if (iid == IID_ECMsgStoreOnline || iid == IID_ECMsgStoreOffline) return SWIGTYPE_p_IMsgStore;
   TYPECASE(IExchangeExportChanges)
   TYPECASE(IECExportChanges)
   TYPECASE(IECExportAddressbookChanges)
