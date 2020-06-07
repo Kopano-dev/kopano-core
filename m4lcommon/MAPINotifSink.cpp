@@ -228,6 +228,7 @@ HRESULT MAPINotifSink::GetNotifications(ULONG *lpcNotif, LPNOTIFICATION *lppNoti
 HRESULT MAPINotifSink::QueryInterface(const IID &refiid, void **lppInterface)
 {
 	REGISTER_INTERFACE2(IMAPIAdviseSink, this);
+	REGISTER_INTERFACE2(IUnknown, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
