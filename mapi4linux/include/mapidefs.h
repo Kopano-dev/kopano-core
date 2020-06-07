@@ -12,6 +12,7 @@
 #include <kopano/platform.h>
 #include <initializer_list>
 #include <cstring>		/* memcmp() */
+#include <mapicode.h>
 #include <mapiguid.h>
 
 #define MAPI_DIM
@@ -1344,7 +1345,7 @@ struct SRestriction {
 
 struct IMAPITable : public virtual IUnknown {
 public:
-    virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
+	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) { return MAPI_E_NO_SUPPORT; }
     virtual HRESULT Advise(ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG * lpulConnection) = 0;
     virtual HRESULT Unadvise(ULONG ulConnection) = 0;
     virtual HRESULT GetStatus(ULONG *lpulTableStatus, ULONG *lpulTableType) = 0;
@@ -1361,14 +1362,12 @@ public:
     virtual HRESULT SortTable(const SSortOrderSet *, ULONG flags) = 0;
     virtual HRESULT QuerySortOrder(LPSSortOrderSet *lppSortCriteria) = 0;
     virtual HRESULT QueryRows(LONG lRowCount, ULONG ulFlags, LPSRowSet *lppRows) = 0;
-    virtual HRESULT Abort() = 0;
-    virtual HRESULT ExpandRow(ULONG cbInstanceKey, LPBYTE pbInstanceKey, ULONG ulRowCount,
-			      ULONG ulFlags, LPSRowSet * lppRows, ULONG *lpulMoreRows) = 0;
-    virtual HRESULT CollapseRow(ULONG cbInstanceKey, LPBYTE pbInstanceKey, ULONG ulFlags, ULONG *lpulRowCount) = 0;
-    virtual HRESULT WaitForCompletion(ULONG ulFlags, ULONG ulTimeout, ULONG *lpulTableStatus) = 0;
-    virtual HRESULT GetCollapseState(ULONG ulFlags, ULONG cbInstanceKey, LPBYTE lpbInstanceKey, ULONG *lpcbCollapseState,
-				     LPBYTE *lppbCollapseState) = 0;
-    virtual HRESULT SetCollapseState(ULONG ulFlags, ULONG cbCollapseState, LPBYTE pbCollapseState, BOOKMARK *lpbkLocation) = 0;
+	virtual HRESULT Abort() { return MAPI_E_NO_SUPPORT; }
+	virtual HRESULT ExpandRow(ULONG cbInstanceKey, LPBYTE pbInstanceKey, ULONG ulRowCount, ULONG ulFlags, LPSRowSet *lppRows, ULONG *lpulMoreRows) { return MAPI_E_NO_SUPPORT; }
+	virtual HRESULT CollapseRow(ULONG cbInstanceKey, LPBYTE pbInstanceKey, ULONG ulFlags, ULONG *lpulRowCount) { return MAPI_E_NO_SUPPORT; }
+	virtual HRESULT WaitForCompletion(ULONG ulFlags, ULONG ulTimeout, ULONG *lpulTableStatus) { return MAPI_E_NO_SUPPORT; }
+	virtual HRESULT GetCollapseState(ULONG ulFlags, ULONG cbInstanceKey, LPBYTE lpbInstanceKey, ULONG *lpcbCollapseState, LPBYTE *lppbCollapseState) { return MAPI_E_NO_SUPPORT; }
+	virtual HRESULT SetCollapseState(ULONG ulFlags, ULONG cbCollapseState, LPBYTE pbCollapseState, BOOKMARK *lpbkLocation) { return MAPI_E_NO_SUPPORT; }
 };
 IID_OF(IMAPITable)
 

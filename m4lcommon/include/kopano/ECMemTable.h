@@ -92,7 +92,6 @@ public:
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 	KC_HIDDEN virtual HRESULT UpdateRow(unsigned int update_type, unsigned int id);
 	KC_HIDDEN virtual HRESULT Clear();
-	KC_HIDDEN virtual HRESULT GetLastError(HRESULT, unsigned int flags, MAPIERROR **ret) override;
 	KC_HIDDEN virtual HRESULT Advise(unsigned int event_mask, IMAPIAdviseSink *, unsigned int *conn) override;
 	KC_HIDDEN virtual HRESULT Unadvise(unsigned int conn) override;
 	KC_HIDDEN virtual HRESULT GetStatus(unsigned int *table_status, unsigned int *table_type) override;
@@ -109,12 +108,7 @@ public:
 	KC_HIDDEN virtual HRESULT SortTable(const SSortOrderSet *sort_crit, unsigned int flags) override;
 	KC_HIDDEN virtual HRESULT QuerySortOrder(SSortOrderSet **sort_crit) override;
 	virtual HRESULT QueryRows(int row_count, unsigned int flags, SRowSet **) override;
-	KC_HIDDEN virtual HRESULT Abort() override;
-	KC_HIDDEN virtual HRESULT ExpandRow(unsigned int ikey_size, BYTE *ikey, unsigned int row_count, unsigned int flags, SRowSet **rows, unsigned int *more_rows) override;
-	KC_HIDDEN virtual HRESULT CollapseRow(unsigned int ikey_size, BYTE *ikey, unsigned int flags, unsigned int *row_count) override;
 	KC_HIDDEN virtual HRESULT WaitForCompletion(unsigned int flags, unsigned int timeout, unsigned int *table_status) override;
-	KC_HIDDEN virtual HRESULT GetCollapseState(unsigned int flags, unsigned int ikey_size, BYTE *ikey, unsigned int *collapse_size, BYTE **collapse_state) override;
-	KC_HIDDEN virtual HRESULT SetCollapseState(unsigned int flags, unsigned int collapse_size, BYTE *collapse_state, BOOKMARK *location) override;
 
 private:
 	KC_HIDDEN HRESULT GetBinarySortKey(const SPropValue *pv, ECSortCol &);

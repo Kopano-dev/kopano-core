@@ -393,11 +393,6 @@ HRESULT ECMemTableView::QueryInterface(REFIID refiid, void **lppInterface)
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
-HRESULT ECMemTableView::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
 HRESULT ECMemTableView::Advise(ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG * lpulConnection)
 {
 	ULONG ulConnection = m_ulConnection++;
@@ -856,35 +851,10 @@ HRESULT ECMemTableView::QuerySortOrder(LPSSortOrderSet *lppSortCriteria)
 	return hrSuccess;
 }
 
-HRESULT ECMemTableView::Abort()
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT ECMemTableView::ExpandRow(ULONG cbInstanceKey, LPBYTE pbInstanceKey, ULONG ulRowCount, ULONG ulFlags, LPSRowSet * lppRows, ULONG *lpulMoreRows)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT ECMemTableView::CollapseRow(ULONG cbInstanceKey, LPBYTE pbInstanceKey, ULONG ulFlags, ULONG *lpulRowCount)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
 HRESULT ECMemTableView::WaitForCompletion(ULONG ulFlags, ULONG ulTimeout, ULONG *lpulTableStatus)
 {
 	*lpulTableStatus = S_OK;
 	return hrSuccess;
-}
-
-HRESULT ECMemTableView::GetCollapseState(ULONG ulFlags, ULONG cbInstanceKey, LPBYTE lpbInstanceKey, ULONG *lpcbCollapseState, LPBYTE *lppbCollapseState)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT ECMemTableView::SetCollapseState(ULONG ulFlags, ULONG cbCollapseState, LPBYTE pbCollapseState, BOOKMARK *lpbkLocation)
-{
-	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT ECMemTableView::QueryRows(LONG lRowCount, ULONG ulFlags, LPSRowSet *lppRows)

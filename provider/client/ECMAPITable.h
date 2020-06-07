@@ -29,7 +29,6 @@ public:
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 	virtual BOOL IsDeferred();
 	virtual HRESULT FlushDeferred(LPSRowSet *lppRowSet = NULL);
-	virtual HRESULT GetLastError(HRESULT, ULONG flags, MAPIERROR **) override;
 	virtual HRESULT Advise(ULONG evt_mask, IMAPIAdviseSink *, ULONG *conn) override;
 	virtual HRESULT Unadvise(ULONG conn) override;
 	virtual HRESULT GetStatus(ULONG *tbl_status, ULONG *tbl_type) override;

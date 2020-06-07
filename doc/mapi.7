@@ -30,3 +30,8 @@ M4L uses multiple virtual inheritance.
 Many MAPI functions in M4L have additional "const" qualifiers that MSMAPI is
 lacking. This allows programs to be sure memory is not unexpectedly modified
 behind the scenes and allows them to pass pointers to read-only memory as well.
+.IP \(bu 4
+Some member functions of some M4L MAPI interface classes have default
+implementations that return an error code. For example, IMAPIProp::GetLastError
+is provided so that subclasses need not provide the boilerplate themselves
+repeatedly.
