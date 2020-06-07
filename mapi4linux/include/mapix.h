@@ -130,20 +130,20 @@ public:
 	virtual HRESULT OpenMsgStore(ULONG_PTR ui_param, ULONG eid_size, const ENTRYID *, const IID *intf, ULONG flags, IMsgStore **) = 0;
 	virtual HRESULT OpenAddressBook(ULONG_PTR ulUIParam, LPCIID lpInterface, ULONG ulFlags, LPADRBOOK *lppAdrBook) = 0;
 	virtual HRESULT OpenProfileSection(const MAPIUID *uid, const IID *intf, ULONG flags, IProfSect **) = 0;
-    virtual HRESULT GetStatusTable(ULONG ulFlags, LPMAPITABLE* lppTable) = 0;
+	virtual HRESULT GetStatusTable(ULONG ulFlags, LPMAPITABLE *lppTable) { return MAPI_E_NOT_FOUND; }
 	virtual HRESULT OpenEntry(ULONG eid_size, const ENTRYID *eid, const IID *intf, ULONG flags, ULONG *obj_type, IUnknown **) = 0;
 	virtual HRESULT CompareEntryIDs(ULONG asize, const ENTRYID *a, ULONG bsize, const ENTRYID *b, ULONG cmp_flags, ULONG *result) = 0;
 	virtual HRESULT Advise(ULONG eid_size, const ENTRYID *eid, ULONG evt_mask, IMAPIAdviseSink *, ULONG *conn_id) = 0;
     virtual HRESULT Unadvise(ULONG ulConnection) = 0;
-	virtual HRESULT MessageOptions(ULONG_PTR ui_param, ULONG flags, const TCHAR *addrtype, IMessage *) = 0;
-	virtual HRESULT QueryDefaultMessageOpt(const TCHAR *addrtype, ULONG flags, ULONG *nvals, SPropValue **) = 0;
-	virtual HRESULT EnumAdrTypes(ULONG flags, ULONG *ntypes, TCHAR ***) = 0;
+	virtual HRESULT MessageOptions(ULONG_PTR ui_param, ULONG flags, const TCHAR *addrtype, IMessage *) { return MAPI_E_NOT_FOUND; }
+	virtual HRESULT QueryDefaultMessageOpt(const TCHAR *addrtype, ULONG flags, ULONG *nvals, SPropValue **) { return MAPI_E_NOT_FOUND; }
+	virtual HRESULT EnumAdrTypes(ULONG flags, ULONG *ntypes, TCHAR ***) { return MAPI_E_NOT_FOUND; }
     virtual HRESULT QueryIdentity(ULONG* lpcbEntryID, LPENTRYID* lppEntryID) = 0;
 	virtual HRESULT Logoff(ULONG_PTR ulUIParam, ULONG ulFlags, ULONG ulReserved) = 0;
-	virtual HRESULT SetDefaultStore(ULONG flags, ULONG cbEntryID, const ENTRYID *lpEntryID) = 0;
+	virtual HRESULT SetDefaultStore(ULONG flags, ULONG cbEntryID, const ENTRYID *lpEntryID) { return MAPI_E_NOT_FOUND; }
     virtual HRESULT AdminServices(ULONG ulFlags, LPSERVICEADMIN* lppServiceAdmin) = 0;
-	virtual HRESULT ShowForm(ULONG_PTR ui_param, IMsgStore *, IMAPIFolder *parent, const IID *intf, ULONG msg_token, IMessage *sent, ULONG flags, ULONG msg_status, ULONG msg_flags, ULONG access, const char *msg_class) = 0;
-    virtual HRESULT PrepareForm(LPCIID lpInterface, LPMESSAGE lpMessage, ULONG* lpulMessageToken) = 0;
+	virtual HRESULT ShowForm(ULONG_PTR ui_param, IMsgStore *, IMAPIFolder *parent, const IID *intf, ULONG msg_token, IMessage *sent, ULONG flags, ULONG msg_status, ULONG msg_flags, ULONG access, const char *msg_class) { return MAPI_E_NOT_FOUND; }
+	virtual HRESULT PrepareForm(LPCIID lpInterface, LPMESSAGE lpMessage, ULONG *lpulMessageToken) { return MAPI_E_NOT_FOUND; }
 };
 IID_OF(IMAPISession)
 

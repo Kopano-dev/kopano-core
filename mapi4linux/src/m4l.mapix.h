@@ -112,20 +112,13 @@ public:
 	virtual HRESULT OpenMsgStore(ULONG_PTR ui_param, ULONG eid_size, const ENTRYID *, const IID *intf, ULONG flags, IMsgStore **) override;
 	virtual HRESULT OpenAddressBook(ULONG_PTR ui_param, const IID *intf, unsigned int flags, IAddrBook **) override;
 	virtual HRESULT OpenProfileSection(const MAPIUID *uid, const IID *intf, unsigned int flags, IProfSect **) override;
-	virtual HRESULT GetStatusTable(unsigned int flags, IMAPITable **) override;
 	virtual HRESULT OpenEntry(unsigned int eid_size, const ENTRYID *eid, const IID *intf, unsigned int flags, unsigned int *obj_type, IUnknown **) override;
 	virtual HRESULT CompareEntryIDs(unsigned int asize, const ENTRYID *a, unsigned int bsize, const ENTRYID *b, unsigned int cmp_flags, unsigned int *result) override;
 	virtual HRESULT Advise(ULONG eid_size, const ENTRYID *eid, ULONG evt_mask, IMAPIAdviseSink *, ULONG *conn_id) override;
 	virtual HRESULT Unadvise(unsigned int conn) override;
-	virtual HRESULT MessageOptions(ULONG_PTR ui_param, ULONG flags, const TCHAR *addrtype, IMessage *) override;
-	virtual HRESULT QueryDefaultMessageOpt(const TCHAR *addrtype, ULONG flags, ULONG *nvals, SPropValue **opts) override;
-	virtual HRESULT EnumAdrTypes(ULONG flags, ULONG *ntyps, TCHAR ***) override;
 	virtual HRESULT QueryIdentity(unsigned int *eid_size, ENTRYID **) override;
 	virtual HRESULT Logoff(ULONG_PTR ui_param, unsigned int flags, unsigned int unused) override;
-	virtual HRESULT SetDefaultStore(ULONG flags, ULONG eid_size, const ENTRYID *) override;
 	virtual HRESULT AdminServices(unsigned int flags, IMsgServiceAdmin **) override;
-	virtual HRESULT ShowForm(ULONG_PTR ui_param, IMsgStore *, IMAPIFolder *parent, const IID *intf, ULONG msg_token, IMessage *sesnt, ULONG flags, ULONG msg_status, ULONG msg_flags, ULONG access, const char *msg_class) override;
-	virtual HRESULT PrepareForm(const IID *intf, IMessage *, unsigned int *token) override;
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 
 private:

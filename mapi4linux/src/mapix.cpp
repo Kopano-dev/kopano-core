@@ -930,11 +930,6 @@ HRESULT M4LMAPISession::OpenProfileSection(const MAPIUID *lpUID,
 	return serviceAdmin->OpenProfileSection(lpUID, lpInterface, ulFlags, lppProfSect);
 }
 
-HRESULT M4LMAPISession::GetStatusTable(ULONG ulFlags, LPMAPITABLE* lppTable) {
-	ec_log_err("M4LMAPISession::GetStatusTable not implemented");
-	return MAPI_E_NO_SUPPORT;
-}
-
 /**
  * Opens any object identified by lpEntryID from a provider in the profile.
  *
@@ -1162,26 +1157,6 @@ HRESULT M4LMAPISession::Unadvise(ULONG ulConnection) {
 	return hr;
 }
 
-HRESULT M4LMAPISession::MessageOptions(ULONG_PTR ui_param, ULONG flags,
-    const TCHAR *addrtype, IMessage *)
-{
-	ec_log_err("M4LMAPISessionM4LMAPISession::MessageOptions not implemented");
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT M4LMAPISession::QueryDefaultMessageOpt(const TCHAR *addrtype,
-    ULONG flags, ULONG *nvals, SPropValue **opts)
-{
-	ec_log_err("M4LMAPISession::QueryDefaultMessageOpt not implemented");
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT M4LMAPISession::EnumAdrTypes(ULONG flags, ULONG *ntypes, TCHAR ***types)
-{
-	ec_log_err("M4LMAPISession::EnumAdrTypes not implemented");
-	return MAPI_E_NO_SUPPORT;
-}
-
 HRESULT M4LMAPISession::QueryIdentity(ULONG* lpcbEntryID, LPENTRYID* lppEntryID) {
 	LPENTRYID lpEntryID = NULL;
 	scoped_lock l_srv(m_mutexStatusRow);
@@ -1207,29 +1182,9 @@ HRESULT M4LMAPISession::Logoff(ULONG_PTR ulUIParam, ULONG ulFlags,
 	return hrSuccess;
 }
 
-HRESULT M4LMAPISession::SetDefaultStore(ULONG flags, ULONG eid_size, const ENTRYID *)
-{
-	ec_log_err("M4LMAPISession::SetDefaultStore(): not implemented");
-	return MAPI_E_NO_SUPPORT;
-}
-
 HRESULT M4LMAPISession::AdminServices(ULONG ulFlags, LPSERVICEADMIN* lppServiceAdmin) {
 	serviceAdmin->QueryInterface(IID_IMsgServiceAdmin, reinterpret_cast<void **>(lppServiceAdmin));
 	return hrSuccess;
-}
-
-HRESULT M4LMAPISession::ShowForm(ULONG_PTR ui_param, IMsgStore *,
-    IMAPIFolder *parent, const IID *intf, ULONG msg_token, IMessage *sent,
-    ULONG flags, ULONG msg_status, ULONG msg_flags, ULONG access,
-    const char *msg_class)
-{
-	ec_log_err("M4LMAPISession::ShowForm(): not implemented");
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT M4LMAPISession::PrepareForm(LPCIID lpInterface, LPMESSAGE lpMessage, ULONG* lpulMessageToken) {
-	ec_log_err("M4LMAPISession::PrepareForm(): not implemented");
-	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT M4LMAPISession::QueryInterface(const IID &refiid, void **lppInterface)
