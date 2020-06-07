@@ -83,13 +83,9 @@ public:
 	virtual HRESULT CreateMsgService(const TCHAR *service, const TCHAR *display_name, ULONG_PTR ui_param, unsigned int flags) override;
 	virtual HRESULT CreateMsgServiceEx(const char *service, const char *display_name, ULONG_PTR ui_param, unsigned int flags, MAPIUID *out) override;
 	virtual HRESULT DeleteMsgService(const MAPIUID *uid) override;
-	virtual HRESULT CopyMsgService(const MAPIUID *uid, const TCHAR *display_name, const IID *ifsrc, const IID *ifdst, void *obj_dst, ULONG_PTR ui_param, unsigned int flags) override;
-	virtual HRESULT RenameMsgService(const MAPIUID *uid, unsigned int flags, const TCHAR *display_name) override;
 	virtual HRESULT ConfigureMsgService(const MAPIUID *uid, ULONG_PTR ui_param, unsigned int flags, unsigned int nvals, const SPropValue *props) override;
 	virtual HRESULT OpenProfileSection(const MAPIUID *uid, const IID *intf, unsigned int flags, IProfSect **) override;
-	virtual HRESULT MsgServiceTransportOrder(unsigned int nuids, const MAPIUID *uids, unsigned int flags) override;
 	virtual HRESULT AdminProviders(const MAPIUID *uid, unsigned int flags, IProviderAdmin **) override;
-	virtual HRESULT SetPrimaryIdentity(const MAPIUID *uid, unsigned int flags) override;
 	virtual HRESULT GetProviderTable(unsigned int flags, IMAPITable **) override;
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 

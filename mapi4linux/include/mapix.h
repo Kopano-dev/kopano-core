@@ -211,13 +211,13 @@ public:
     virtual HRESULT GetMsgServiceTable(ULONG ulFlags, LPMAPITABLE* lppTable) = 0;
 	virtual HRESULT CreateMsgService(const TCHAR *service, const TCHAR *display_name, ULONG_PTR ui_param, ULONG flags) = 0;
 	virtual HRESULT DeleteMsgService(const MAPIUID *uid) = 0;
-	virtual HRESULT CopyMsgService(const MAPIUID *uid, const TCHAR *display_name, const IID *ifsrc, const IID *ifdst, void *object_dst, ULONG_PTR ui_param, ULONG flags) = 0;
-	virtual HRESULT RenameMsgService(const MAPIUID *uid, ULONG flags, const TCHAR *display_name) = 0;
+	virtual HRESULT CopyMsgService(const MAPIUID *uid, const TCHAR *display_name, const IID *ifsrc, const IID *ifdst, void *object_dst, ULONG_PTR ui_param, ULONG flags) { return MAPI_E_NO_SUPPORT; }
+	virtual HRESULT RenameMsgService(const MAPIUID *uid, ULONG flags, const TCHAR *display_name) { return MAPI_E_NO_SUPPORT; }
 	virtual HRESULT ConfigureMsgService(const MAPIUID *uid, ULONG_PTR ui_param, ULONG flags, ULONG nvals, const SPropValue *props) = 0;
 	virtual HRESULT OpenProfileSection(const MAPIUID *uid, const IID *intf, ULONG flags, IProfSect **) = 0;
-	virtual HRESULT MsgServiceTransportOrder(ULONG nuids, const MAPIUID *uids, ULONG flags) = 0;
+	virtual HRESULT MsgServiceTransportOrder(ULONG nuids, const MAPIUID *uids, ULONG flags) { return MAPI_E_NO_SUPPORT; }
 	virtual HRESULT AdminProviders(const MAPIUID *uid, ULONG flags, IProviderAdmin **) = 0;
-	virtual HRESULT SetPrimaryIdentity(const MAPIUID *uid, ULONG flags) = 0;
+	virtual HRESULT SetPrimaryIdentity(const MAPIUID *uid, ULONG flags) { return MAPI_E_NO_SUPPORT; }
     virtual HRESULT GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable) = 0;
 };
 IID_OF(IMsgServiceAdmin)

@@ -497,22 +497,6 @@ HRESULT M4LMsgServiceAdmin::DeleteMsgService(const MAPIUID *lpUID)
 	return hrSuccess;
 }
 
-HRESULT M4LMsgServiceAdmin::CopyMsgService(const MAPIUID *lpUID,
-    const TCHAR *lpszDisplayName, const IID *lpInterfaceToCopy,
-    const IID *lpInterfaceDst, void *lpObjectDst, ULONG_PTR ulUIParam,
-    ULONG ulFlags)
-{
-	ec_log_err("M4LMsgServiceAdmin::CopyMsgService() not implemented");
-    return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT M4LMsgServiceAdmin::RenameMsgService(const MAPIUID *lpUID,
-    ULONG ulFlags, const TCHAR *lpszDisplayName)
-{
-	ec_log_err("M4LMsgServiceAdmin::RenameMsgService() not implemented");
-    return MAPI_E_NO_SUPPORT;
-}
-
 /**
  * Calls MSGServiceEntry of the given service in lpUID.
  *
@@ -601,13 +585,6 @@ HRESULT M4LMsgServiceAdmin::OpenProfileSection(const MAPIUID *lpUID,
 	return hrSuccess;
 }
 
-HRESULT M4LMsgServiceAdmin::MsgServiceTransportOrder(ULONG cUID,
-    const MAPIUID *lpUIDList, ULONG ulFlags)
-{
-	ec_log_err("M4LMsgServiceAdmin::MsgServiceTransportOrder not implemented");
-	return MAPI_E_NO_SUPPORT;
-}
-
 /**
  * Get the IProviderAdmin object for a service in the profile.
  *
@@ -632,13 +609,6 @@ HRESULT M4LMsgServiceAdmin::AdminProviders(const MAPIUID *lpUID, ULONG ulFlags,
 	if (hr != hrSuccess)
 		kc_perrorf("QueryInterface failed", hr);
 	return hr;
-}
-
-HRESULT M4LMsgServiceAdmin::SetPrimaryIdentity(const MAPIUID *lpUID,
-    ULONG ulFlags)
-{
-	ec_log_err("M4LMsgServiceAdmin::SetPrimaryIdentity not implemented");
-	return MAPI_E_NO_SUPPORT;
 }
 
 /**
