@@ -42,10 +42,6 @@ class M4LMailUser KC_FINAL_OPG : public M4LMAPIProp, public IMailUser {
 
 class M4LProfSect KC_FINAL_OPG : public IProfSect, public M4LMAPIProp {
 public:
-	virtual HRESULT ValidateState(ULONG ulUIParam, ULONG ulFlags);
-	virtual HRESULT SettingsDialog(ULONG ulUIParam, ULONG ulFlags);
-	virtual HRESULT ChangePassword(const TCHAR *oldpw, const TCHAR *newpw, ULONG flags);
-	virtual HRESULT FlushQueues(ULONG ulUIParam, ULONG cbTargetTransport, LPENTRYID lpTargetTransport, ULONG ulFlags);
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 };
 

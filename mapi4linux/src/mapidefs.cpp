@@ -300,24 +300,6 @@ HRESULT M4LMailUser::QueryInterface(const IID &refiid, void **lppInterface)
 // ---
 // IProfSect
 // ---
-HRESULT M4LProfSect::ValidateState(ULONG ulUIParam, ULONG ulFlags) {
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT M4LProfSect::SettingsDialog(ULONG ulUIParam, ULONG ulFlags) {
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT M4LProfSect::ChangePassword(const TCHAR *oldp, const TCHAR *newp,
-    ULONG flags)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT M4LProfSect::FlushQueues(ULONG ulUIParam, ULONG cbTargetTransport, LPENTRYID lpTargetTransport, ULONG ulFlags) {
-	return MAPI_E_NO_SUPPORT;
-}
-
 HRESULT M4LProfSect::QueryInterface(const IID &refiid, void **lppInterface)
 {
 	REGISTER_INTERFACE2(IProfSect, this);
