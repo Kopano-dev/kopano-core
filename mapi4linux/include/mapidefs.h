@@ -1072,10 +1072,10 @@ namespace KC {
 
 class IABContainer_DistList_base : public virtual IMAPIContainer {
 	public:
-	virtual HRESULT CreateEntry(ULONG eid_size, const ENTRYID *eid, ULONG flags, IMAPIProp **) = 0;
-	virtual HRESULT CopyEntries(const ENTRYLIST *, ULONG ui_param, IMAPIProgress *, ULONG flags) = 0;
-	virtual HRESULT DeleteEntries(const ENTRYLIST *, ULONG flags) = 0;
-	virtual HRESULT ResolveNames(const SPropTagArray *, ULONG flags, ADRLIST *, FlagList *) = 0;
+	virtual HRESULT CreateEntry(ULONG eid_size, const ENTRYID *eid, ULONG flags, IMAPIProp **) { return MAPI_E_NO_SUPPORT; }
+	virtual HRESULT CopyEntries(const ENTRYLIST *, ULONG ui_param, IMAPIProgress *, ULONG flags) { return MAPI_E_NO_SUPPORT; }
+	virtual HRESULT DeleteEntries(const ENTRYLIST *, ULONG flags) { return MAPI_E_NO_SUPPORT; }
+	virtual HRESULT ResolveNames(const SPropTagArray *, ULONG flags, ADRLIST *, FlagList *) { return MAPI_E_NO_SUPPORT; }
 };
 
 } /* namespace KC */

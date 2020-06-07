@@ -80,10 +80,6 @@ private:
 
 public:
 	M4LABContainer(const std::list<abEntry> &lABEntries);
-	virtual HRESULT CreateEntry(unsigned int eid_size, const ENTRYID *eid, unsigned int flags, IMAPIProp **) override;
-	virtual HRESULT CopyEntries(const ENTRYLIST *, ULONG ui_param, IMAPIProgress *, ULONG flags) override;
-	virtual HRESULT DeleteEntries(const ENTRYLIST *, ULONG flags) override;
-	virtual HRESULT ResolveNames(const SPropTagArray *, unsigned int flags, ADRLIST *, FlagList *) override;
 	virtual HRESULT GetHierarchyTable(unsigned int flags, IMAPITable **) override;
 	virtual HRESULT OpenEntry(unsigned int eid_size, const ENTRYID *eid, const IID *intf, unsigned int flags, unsigned int *obj_type, IUnknown **) override;
 	virtual HRESULT QueryInterface(const IID &, void **) override;

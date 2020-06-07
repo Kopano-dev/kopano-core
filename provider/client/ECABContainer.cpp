@@ -292,24 +292,6 @@ HRESULT ECABContainer::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	return GetABStore()->OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
 }
 
-// IABContainer
-HRESULT ECABContainer::CreateEntry(ULONG eid_size, const ENTRYID *eid,
-    ULONG flags, IMAPIProp **)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT ECABContainer::CopyEntries(const ENTRYLIST *, ULONG ui_param,
-    IMAPIProgress *, ULONG flags)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT ECABContainer::DeleteEntries(const ENTRYLIST *, ULONG flags)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
 HRESULT ECABContainer::ResolveNames(const SPropTagArray *lpPropTagArray,
     ULONG ulFlags, LPADRLIST lpAdrList, LPFlagList lpFlagList)
 {

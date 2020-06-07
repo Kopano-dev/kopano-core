@@ -858,24 +858,6 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	return hr;
 }
 
-// IABContainer
-HRESULT ZCABContainer::CreateEntry(ULONG eid_size, const ENTRYID *eid,
-    ULONG flags, IMAPIProp **)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT ZCABContainer::CopyEntries(const ENTRYLIST *, ULONG ui_param,
-    IMAPIProgress *, ULONG flags)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT ZCABContainer::DeleteEntries(const ENTRYLIST *, ULONG flags)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
 /** 
  * Resolve MAPI_UNRESOLVED items in lpAdrList and possibly add resolved
  * 

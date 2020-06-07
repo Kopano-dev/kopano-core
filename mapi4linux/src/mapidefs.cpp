@@ -492,29 +492,6 @@ HRESULT M4LMAPIAdviseSink::QueryInterface(const IID &refiid, void **lppInterface
 M4LABContainer::M4LABContainer(const std::list<abEntry> &lABEntries) : m_lABEntries(lABEntries) {
 }
 
-HRESULT M4LABContainer::CreateEntry(ULONG eid_size, const ENTRYID *eid,
-    ULONG flags, IMAPIProp **)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT M4LABContainer::CopyEntries(const ENTRYLIST *, ULONG ui_param,
-    IMAPIProgress *, ULONG flags)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT M4LABContainer::DeleteEntries(const ENTRYLIST *, ULONG flags)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT M4LABContainer::ResolveNames(const SPropTagArray *, ULONG flags,
-    LPADRLIST, LPFlagList)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
 /** 
  * Merges all HierarchyTables from the providers passed in the constructor.
  * 

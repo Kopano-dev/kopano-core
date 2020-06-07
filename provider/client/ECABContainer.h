@@ -66,9 +66,6 @@ public:
 	virtual HRESULT	QueryInterface(const IID &, void **) override;
 
 	// IABContainer
-	virtual HRESULT CreateEntry(ULONG eid_size, const ENTRYID *eid, ULONG flags, IMAPIProp **) override;
-	virtual HRESULT CopyEntries(const ENTRYLIST *, ULONG ui_param, IMAPIProgress *, ULONG flags) override;
-	virtual HRESULT DeleteEntries(const ENTRYLIST *, ULONG flags) override;
 	virtual HRESULT ResolveNames(const SPropTagArray *, ULONG flags, ADRLIST *, FlagList *) override;
 
 	// From IMAPIContainer
