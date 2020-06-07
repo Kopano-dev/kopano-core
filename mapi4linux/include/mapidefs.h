@@ -695,12 +695,11 @@ IID_OF(IMAPIProp)
 
 struct IMAPIContainer : public virtual IMAPIProp {
 public:
-    virtual HRESULT GetContentsTable(ULONG ulFlags, LPMAPITABLE* lppTable) = 0;
+	virtual HRESULT GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable) { return MAPI_E_NO_SUPPORT; }
     virtual HRESULT GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) = 0;
 	virtual HRESULT OpenEntry(ULONG eid_size, const ENTRYID *eid, const IID *intf, ULONG flags, ULONG *obj_type, IUnknown **) = 0;
-	virtual HRESULT SetSearchCriteria(const SRestriction *, const ENTRYLIST *container, ULONG flags) = 0;
-    virtual HRESULT GetSearchCriteria(ULONG ulFlags, LPSRestriction* lppRestriction, LPENTRYLIST* lppContainerList,
-				      ULONG* lpulSearchState) = 0;
+	virtual HRESULT SetSearchCriteria(const SRestriction *, const ENTRYLIST *container, ULONG flags) { return MAPI_E_NO_SUPPORT; }
+	virtual HRESULT GetSearchCriteria(ULONG ulFlags, LPSRestriction *lppRestriction, LPENTRYLIST *lppContainerList, ULONG *lpulSearchState) { return MAPI_E_NO_SUPPORT; }
 };
 IID_OF(IMAPIContainer)
 

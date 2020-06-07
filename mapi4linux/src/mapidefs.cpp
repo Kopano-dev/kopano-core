@@ -489,23 +489,6 @@ HRESULT M4LMAPIAdviseSink::QueryInterface(const IID &refiid, void **lppInterface
 	return hrSuccess;
 }
 
-HRESULT M4LABContainer::GetContentsTable(unsigned int flags, IMAPITable **)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT M4LABContainer::SetSearchCriteria(const SRestriction *,
-    const ENTRYLIST *container, ULONG flags)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT M4LABContainer::GetSearchCriteria(unsigned int flags, SRestriction **,
-    ENTRYLIST **container, unsigned int *state)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
 M4LABContainer::M4LABContainer(const std::list<abEntry> &lABEntries) : m_lABEntries(lABEntries) {
 }
 

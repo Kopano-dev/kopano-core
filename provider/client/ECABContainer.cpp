@@ -292,17 +292,6 @@ HRESULT ECABContainer::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	return GetABStore()->OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
 }
 
-HRESULT ECABContainer::SetSearchCriteria(const SRestriction *,
-    const ENTRYLIST *container, ULONG flags)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT ECABContainer::GetSearchCriteria(ULONG ulFlags, LPSRestriction *lppRestriction, LPENTRYLIST *lppContainerList, ULONG *lpulSearchState)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
 // IABContainer
 HRESULT ECABContainer::CreateEntry(ULONG eid_size, const ENTRYID *eid,
     ULONG flags, IMAPIProp **)

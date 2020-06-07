@@ -20,8 +20,6 @@ public:
 	virtual HRESULT GetContentsTable(unsigned int flags, IMAPITable **) override;
 	virtual HRESULT GetHierarchyTable(unsigned int flags, IMAPITable **) override;
 	virtual HRESULT OpenEntry(unsigned int eid_size, const ENTRYID *eid, const IID *intf, unsigned int flags, unsigned int *obj_type, IUnknown **) override;
-	virtual HRESULT SetSearchCriteria(const SRestriction *, const ENTRYLIST *container, ULONG flags) override;
-	virtual HRESULT GetSearchCriteria(unsigned int flags, SRestriction **, ENTRYLIST **containers, unsigned int *state) override;
 
 	// IMAPIProp
 	virtual HRESULT CopyTo(unsigned int nexcl, const IID *iid_excl, const SPropTagArray *exclprop, unsigned int ui_param, IMAPIProgress *, const IID *intf, void *dst_obj, unsigned int flags, SPropProblemArray **) override;

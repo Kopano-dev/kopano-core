@@ -75,8 +75,6 @@ public:
 	virtual HRESULT GetContentsTable(ULONG flags, IMAPITable **) override;
 	virtual HRESULT GetHierarchyTable(ULONG flags, IMAPITable **) override;
 	virtual HRESULT OpenEntry(ULONG eid_size, const ENTRYID *eid, const IID *intf, ULONG flags, ULONG *obj_type, IUnknown **) override;
-	virtual HRESULT SetSearchCriteria(const SRestriction *, const ENTRYLIST *container, ULONG flags) override;
-	virtual HRESULT GetSearchCriteria(ULONG flags, SRestriction **, ENTRYLIST **container, ULONG *state) override;
 
 	// From IMAPIProp
 	virtual HRESULT OpenProperty(ULONG proptag, const IID *intf, ULONG iface_opts, ULONG flags, IUnknown **) override;

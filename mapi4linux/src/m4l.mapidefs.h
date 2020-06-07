@@ -84,10 +84,7 @@ public:
 	virtual HRESULT CopyEntries(const ENTRYLIST *, ULONG ui_param, IMAPIProgress *, ULONG flags) override;
 	virtual HRESULT DeleteEntries(const ENTRYLIST *, ULONG flags) override;
 	virtual HRESULT ResolveNames(const SPropTagArray *, unsigned int flags, ADRLIST *, FlagList *) override;
-	virtual HRESULT GetContentsTable(unsigned int flags, IMAPITable **) override;
 	virtual HRESULT GetHierarchyTable(unsigned int flags, IMAPITable **) override;
 	virtual HRESULT OpenEntry(unsigned int eid_size, const ENTRYID *eid, const IID *intf, unsigned int flags, unsigned int *obj_type, IUnknown **) override;
-	virtual HRESULT SetSearchCriteria(const SRestriction *, const ENTRYLIST *container, ULONG flags) override;
-	virtual HRESULT GetSearchCriteria(unsigned int flags, SRestriction **, ENTRYLIST **container, unsigned int *search_state) override;
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 };

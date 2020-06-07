@@ -858,17 +858,6 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	return hr;
 }
 
-HRESULT ZCABContainer::SetSearchCriteria(const SRestriction *,
-    const ENTRYLIST *container, ULONG flags)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT ZCABContainer::GetSearchCriteria(ULONG ulFlags, LPSRestriction *lppRestriction, LPENTRYLIST *lppContainerList, ULONG *lpulSearchState)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
 // IABContainer
 HRESULT ZCABContainer::CreateEntry(ULONG eid_size, const ENTRYID *eid,
     ULONG flags, IMAPIProp **)

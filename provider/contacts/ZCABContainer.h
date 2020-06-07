@@ -42,8 +42,6 @@ public:
 	virtual HRESULT GetContentsTable(unsigned int flags, IMAPITable **) override;
 	virtual HRESULT GetHierarchyTable(unsigned int flags, IMAPITable **) override;
 	virtual HRESULT OpenEntry(unsigned int eid_size, const ENTRYID *eid, const IID *intf, unsigned int flags, unsigned int *obj_type, IUnknown **) override;
-	virtual HRESULT SetSearchCriteria(const SRestriction *, const ENTRYLIST *container, ULONG flags) override;
-	virtual HRESULT GetSearchCriteria(unsigned int flags, SRestriction **, ENTRYLIST **containers, unsigned int *state) override;
 
 	// very limited IMAPIProp, passed to ZCMAPIProp for m_lpDistList.
 	virtual HRESULT GetProps(const SPropTagArray *, unsigned int flags, unsigned int *nvals, SPropValue **) override;
