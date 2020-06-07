@@ -55,10 +55,6 @@ public:
 	virtual HRESULT GetProfileTable(unsigned int flags, IMAPITable **) override;
 	virtual HRESULT CreateProfile(const TCHAR *name, const TCHAR *password, ULONG_PTR ui_param, unsigned int flags) override;
 	virtual HRESULT DeleteProfile(const TCHAR *name, unsigned int flags) override;
-	virtual HRESULT ChangeProfilePassword(const TCHAR *name, const TCHAR *oldpw, const TCHAR *newpw, unsigned int flags) override;
-	virtual HRESULT CopyProfile(const TCHAR *oldname, const TCHAR *oldpw, const TCHAR *newpw, ULONG_PTR ui_param, unsigned int flags) override;
-	virtual HRESULT RenameProfile(const TCHAR *oldname, const TCHAR *oldpw, const TCHAR *newname, ULONG_PTR ui_param, unsigned int flags) override;
-	virtual HRESULT SetDefaultProfile(const TCHAR *name, unsigned int flags) override;
 	virtual HRESULT AdminServices(const TCHAR *name, const TCHAR *password, ULONG_PTR ui_param, unsigned int flags, IMsgServiceAdmin **) override;
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 

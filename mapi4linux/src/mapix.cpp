@@ -238,36 +238,6 @@ HRESULT M4LProfAdmin::DeleteProfile(const TCHAR *lpszProfileName, ULONG ulFlags)
 	return hrSuccess;
 }
 
-HRESULT M4LProfAdmin::ChangeProfilePassword(const TCHAR *lpszProfileName,
-    const TCHAR *lpszOldPassword, const TCHAR *lpszNewPassword, ULONG ulFlags)
-{
-	ec_log_err("M4LProfAdmin::ChangeProfilePassword is not implemented");
-    return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT M4LProfAdmin::CopyProfile(const TCHAR *lpszOldProfileName,
-    const TCHAR *lpszOldPassword, const TCHAR *lpszNewProfileName,
-    ULONG_PTR ulUIParam, ULONG ulFlags)
-{
-	ec_log_err("M4LProfAdmin::CopyProfile is not implemented");
-    return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT M4LProfAdmin::RenameProfile(const TCHAR *lpszOldProfileName,
-    const TCHAR *lpszOldPassword, const TCHAR *lpszNewProfileName,
-    ULONG_PTR ulUIParam, ULONG ulFlags)
-{
-	ec_log_err("M4LProfAdmin::RenameProfile is not implemented");
-    return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT M4LProfAdmin::SetDefaultProfile(const TCHAR *lpszProfileName,
-    ULONG ulFlags)
-{
-	ec_log_err("M4LProfAdmin::SetDefaultProfile is not implemented");
-    return MAPI_E_NO_SUPPORT;
-}
-
 /**
  * Request IServiceAdmin object of profile. Linux does not check the password.
  *

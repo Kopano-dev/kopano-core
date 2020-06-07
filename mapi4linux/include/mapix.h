@@ -186,10 +186,10 @@ public:
     virtual HRESULT GetProfileTable(ULONG ulFlags, LPMAPITABLE* lppTable) = 0;
 	virtual HRESULT CreateProfile(const TCHAR *name, const TCHAR *password, ULONG_PTR ui_param, ULONG flags) = 0;
 	virtual HRESULT DeleteProfile(const TCHAR *name, ULONG flags) = 0;
-	virtual HRESULT ChangeProfilePassword(const TCHAR *name, const TCHAR *oldpw, const TCHAR *newpw, ULONG flags) = 0;
-	virtual HRESULT CopyProfile(const TCHAR *oldname, const TCHAR *oldpw, const TCHAR *newname, ULONG_PTR ui_param, ULONG flags) = 0;
-	virtual HRESULT RenameProfile(const TCHAR *oldname, const TCHAR *oldpw, const TCHAR *newname, ULONG_PTR ui_param, ULONG flags) = 0;
-	virtual HRESULT SetDefaultProfile(const TCHAR *name, ULONG flags) = 0;
+	virtual HRESULT ChangeProfilePassword(const TCHAR *name, const TCHAR *oldpw, const TCHAR *newpw, ULONG flags) { return MAPI_E_NO_SUPPORT; }
+	virtual HRESULT CopyProfile(const TCHAR *oldname, const TCHAR *oldpw, const TCHAR *newname, ULONG_PTR ui_param, ULONG flags) { return MAPI_E_NO_SUPPORT; }
+	virtual HRESULT RenameProfile(const TCHAR *oldname, const TCHAR *oldpw, const TCHAR *newname, ULONG_PTR ui_param, ULONG flags) { return MAPI_E_NO_SUPPORT; }
+	virtual HRESULT SetDefaultProfile(const TCHAR *name, ULONG flags) { return MAPI_E_NO_SUPPORT; }
 	virtual HRESULT AdminServices(const TCHAR *name, const TCHAR *password, ULONG_PTR ui_param, ULONG flags, IMsgServiceAdmin **) = 0;
 };
 IID_OF(IProfAdmin)
