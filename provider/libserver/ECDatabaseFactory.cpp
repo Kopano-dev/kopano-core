@@ -22,7 +22,13 @@ ECDatabaseFactory::ECDatabaseFactory(std::shared_ptr<ECConfig> c,
     std::shared_ptr<ECStatsCollector> s) :
 	m_stats(std::move(s)), m_lpConfig(std::move(c))
 {
-	pthread_key_create(&m_thread_key, nullptr);
+	pthread_key_create(&m_thread_key, [](void *arg) {
+		if (arg == nullptr)
+			return;
+		char name[32];
+		pthread_getname_np(pthread_self(), name, sizeof(name));
+		ec_log_debug("db_conn %p was not released on T%lu (%s)", arg, kc_threadid(), name);
+	});
 }
 
 ECDatabaseFactory::~ECDatabaseFactory()
@@ -101,6 +107,7 @@ ECRESULT ECDatabaseFactory::get_tls_db(ECDatabase **lppDatabase)
 		ec_log_err("Unable to get database connection: %s", error.c_str());
 		return er;
 	}
+	ec_log_debug("Created db_conn %p on T%lu", updb.get(), kc_threadid());
 	std::unique_lock<std::mutex> lk(m_child_mtx);
 	m_children.emplace(updb.get());
 	pthread_setspecific(m_thread_key, updb.get());
@@ -120,6 +127,7 @@ void ECDatabaseFactory::thread_end()
 		m_children.erase(i);
 	db->ThreadEnd();
 	lk.unlock();
+	ec_log_debug("Deleting db_conn %p on T%lu", db, kc_threadid());
 	delete db;
 }
 
@@ -129,6 +137,12 @@ void ECDatabaseFactory::filter_bmp(bool y)
 	std::unique_lock<std::mutex> lk(m_child_mtx);
 	for (auto &db : m_children)
 		db->m_filter_bmp = y;
+}
+
+size_t ECDatabaseFactory::get_active_nr()
+{
+	std::unique_lock<std::mutex> lk(m_child_mtx);
+	return m_children.size();
 }
 
 } /* namespace */
