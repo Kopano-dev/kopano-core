@@ -14,7 +14,7 @@
 
 class M4LMsgServiceAdmin;
 
-class M4LMAPIProp : public KC::ECUnknown, public virtual IMailUser {
+class M4LMAPIProp : public KC::ECUnknown, public virtual IMAPIProp {
 private:
     // variables
 	std::list<LPSPropValue> properties;
@@ -32,6 +32,11 @@ public:
 	virtual HRESULT CopyProps(const SPropTagArray *inclprop, ULONG ui_param, IMAPIProgress *, const IID *iface, void *dest_obj, unsigned int flags, SPropProblemArray **) override;
 	virtual HRESULT GetNamesFromIDs(SPropTagArray **tags, const GUID *propset, unsigned int flags, unsigned int *nvals, MAPINAMEID ***names) override;
 	virtual HRESULT GetIDsFromNames(unsigned int nelem, MAPINAMEID **names, unsigned int flags, SPropTagArray **proptag) override;
+	virtual HRESULT QueryInterface(const IID &, void **) override;
+};
+
+class M4LMailUser KC_FINAL_OPG : public M4LMAPIProp, public IMailUser {
+	public:
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 };
 

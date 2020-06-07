@@ -284,6 +284,13 @@ HRESULT M4LMAPIProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID* lppPropName
 
 HRESULT M4LMAPIProp::QueryInterface(const IID &refiid, void **lppInterface)
 {
+	REGISTER_INTERFACE2(IMAPIProp, this);
+	REGISTER_INTERFACE2(IUnknown, this);
+	return MAPI_E_INTERFACE_NOT_SUPPORTED;
+}
+
+HRESULT M4LMailUser::QueryInterface(const IID &refiid, void **lppInterface)
+{
 	REGISTER_INTERFACE2(IMailUser, this);
 	REGISTER_INTERFACE2(IMAPIProp, this);
 	REGISTER_INTERFACE2(IUnknown, this);

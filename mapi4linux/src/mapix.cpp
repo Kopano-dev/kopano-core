@@ -1418,7 +1418,7 @@ HRESULT M4LAddrBook::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		auto hr = ECParseOneOff(lpEntryID, cbEntryID, name, type, email);
 		if (hr == hrSuccess) {
 			// yes, it was an one off, create IMailUser
-			auto lpMailUser = new(std::nothrow) M4LMAPIProp;
+			auto lpMailUser = new(std::nothrow) M4LMailUser;
 			if (lpMailUser == nullptr)
 				return MAPI_E_NOT_ENOUGH_MEMORY;
 			lpMailUser->AddRef();
