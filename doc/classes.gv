@@ -39,8 +39,6 @@ digraph {
 	M4LMAPISession -> ECUnknown;
 	M4LMAPISupport -> IMAPISupport;
 	M4LMAPISupport -> ECUnknown;
-	M4LMAPITable -> IMAPITable;
-	M4LMAPITable -> ECUnknown;
 	M4LMailUser -> IMailUser;
 	M4LMailUser -> M4LMAPIProp;
 	M4LMsgServiceAdmin -> IMsgServiceAdmin2;
