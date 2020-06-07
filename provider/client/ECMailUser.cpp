@@ -55,7 +55,7 @@ HRESULT ECDistList::OpenProperty(ULONG ulPropTag, LPCIID lpiid,
 
 HRESULT ECDistList::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
     const SPropTagArray *lpExcludeProps, ULONG ulUIParam,
-    LPMAPIPROGRESS lpProgress, LPCIID lpInterface, void *lpDestObj,
+    IMAPIProgress *lpProgress, const IID *lpInterface, void *lpDestObj,
     ULONG ulFlags, SPropProblemArray **lppProblems)
 {
 	return GetABStore()->m_lpMAPISup->DoCopyTo(&IID_IDistList,
@@ -65,7 +65,7 @@ HRESULT ECDistList::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
 }
 
 HRESULT ECDistList::CopyProps(const SPropTagArray *lpIncludeProps,
-    ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface,
+    unsigned int ulUIParam, IMAPIProgress *lpProgress, const IID *lpInterface,
     void *lpDestObj, ULONG ulFlags, SPropProblemArray **lppProblems)
 {
 	return GetABStore()->m_lpMAPISup->DoCopyProps(&IID_IDistList,
@@ -115,7 +115,7 @@ HRESULT ECMailUser::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 
 HRESULT ECMailUser::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
     const SPropTagArray *lpExcludeProps, ULONG ulUIParam,
-    LPMAPIPROGRESS lpProgress, LPCIID lpInterface, void *lpDestObj,
+    IMAPIProgress *lpProgress, const IID *lpInterface, void *lpDestObj,
     ULONG ulFlags, SPropProblemArray **lppProblems)
 {
 	return GetABStore()->m_lpMAPISup->DoCopyTo(&IID_IMailUser,
@@ -125,7 +125,7 @@ HRESULT ECMailUser::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
 }
 
 HRESULT ECMailUser::CopyProps(const SPropTagArray *lpIncludeProps,
-    ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface,
+    unsigned int ulUIParam, IMAPIProgress *lpProgress, const IID *lpInterface,
     void *lpDestObj, ULONG ulFlags, SPropProblemArray **lppProblems)
 {
 	return GetABStore()->m_lpMAPISup->DoCopyProps(&IID_IMailUser,

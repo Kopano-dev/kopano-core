@@ -2771,7 +2771,7 @@ HRESULT qi_void_to_imapiprop(void *p, const IID &iid, IMAPIProp **pptr)
  */
 HRESULT Util::DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj,
     ULONG ciidExclude, LPCIID rgiidExclude, const SPropTagArray *lpExcludeProps,
-    ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpDestInterface,
+    unsigned int ulUIParam, IMAPIProgress *lpProgress, const IID *lpDestInterface,
     void *lpDestObj, ULONG ulFlags, SPropProblemArray **lppProblems)
 {
 	bool bPartial = false;
@@ -2949,7 +2949,7 @@ exit:
  * @return MAPI error code
  */
 HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, void *lpSrcObj,
-    const SPropTagArray *inclprop, ULONG ulUIParam, LPMAPIPROGRESS lpProgress,
+    const SPropTagArray *inclprop, unsigned int ulUIParam, IMAPIProgress *lpProgress,
     LPCIID lpDestInterface, void *lpDestObj, ULONG ulFlags,
     SPropProblemArray **lppProblems)
 {

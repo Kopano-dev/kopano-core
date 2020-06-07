@@ -389,7 +389,9 @@ HRESULT ECMAPIFolderPublic::DeleteFolder(ULONG cbEntryID,
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT ECMAPIFolderPublic::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, LPVOID lpDestFolder, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags)
+HRESULT ECMAPIFolderPublic::CopyMessages(ENTRYLIST *lpMsgList,
+    const IID *lpInterface, void *lpDestFolder, unsigned int ulUIParam,
+    IMAPIProgress *lpProgress, unsigned int ulFlags)
 {
 	return ECMAPIFolder::CopyMessages2(ECSTORE_TYPE_PUBLIC, lpMsgList,
 	       lpInterface, lpDestFolder, ulUIParam, lpProgress, ulFlags);

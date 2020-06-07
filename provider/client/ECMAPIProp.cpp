@@ -640,14 +640,14 @@ HRESULT	ECMAPIProp::UpdateACLs(ULONG cNewPerms, ECPERMISSION *lpNewPerms)
 
 HRESULT ECMAPIProp::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
     const SPropTagArray *lpExcludeProps, ULONG ulUIParam,
-    LPMAPIPROGRESS lpProgress, LPCIID lpInterface, void *lpDestObj,
+    IMAPIProgress *lpProgress, const IID *lpInterface, void *lpDestObj,
     ULONG ulFlags, SPropProblemArray **lppProblems)
 {
 	return Util::DoCopyTo(&IID_IMAPIProp, static_cast<IMAPIProp *>(this), ciidExclude, rgiidExclude, lpExcludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
 }
 
 HRESULT ECMAPIProp::CopyProps(const SPropTagArray *lpIncludeProps,
-    ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface,
+    unsigned int ulUIParam, IMAPIProgress *lpProgress, const IID *lpInterface,
     void *lpDestObj, ULONG ulFlags, SPropProblemArray **lppProblems)
 {
 	return Util::DoCopyProps(&IID_IMAPIProp, static_cast<IMAPIProp *>(this), lpIncludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);

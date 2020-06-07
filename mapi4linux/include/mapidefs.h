@@ -670,8 +670,8 @@ public:
 	virtual HRESULT OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk) __attribute__((nonnull(3))) { return MAPI_E_NO_SUPPORT; }
 	virtual HRESULT SetProps(ULONG cValues, const SPropValue *lpPropArray, LPSPropProblemArray *lppProblems) { return MAPI_E_NO_SUPPORT; }
 	virtual HRESULT DeleteProps(const SPropTagArray *lpPropTagArray, LPSPropProblemArray *lppProblems) { return MAPI_E_NO_SUPPORT; }
-	virtual HRESULT CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, const SPropTagArray *lpExcludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems) { return MAPI_E_NO_SUPPORT; }
-	virtual HRESULT CopyProps(const SPropTagArray *lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems) { return MAPI_E_NO_SUPPORT; }
+	virtual HRESULT CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, const SPropTagArray *lpExcludeProps, ULONG ulUIParam, IMAPIProgress *, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems) { return MAPI_E_NO_SUPPORT; }
+	virtual HRESULT CopyProps(const SPropTagArray *lpIncludeProps, ULONG ulUIParam, IMAPIProgress *, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems) { return MAPI_E_NO_SUPPORT; }
 	virtual HRESULT GetNamesFromIDs(SPropTagArray **tags, const GUID *propset, ULONG flags, ULONG *nvals, MAPINAMEID ***names) { return MAPI_E_NO_SUPPORT; }
 	virtual HRESULT GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropNames, ULONG ulFlags, LPSPropTagArray *lppPropTags) { return MAPI_E_NO_SUPPORT; }
 };
@@ -950,17 +950,16 @@ struct SSortOrderSet_ ## name { \
 struct IMAPIFolder : public virtual IMAPIContainer {
 public:
     virtual HRESULT CreateMessage(LPCIID lpInterface, ULONG ulFlags, LPMESSAGE* lppMessage) = 0;
-    virtual HRESULT CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, LPVOID lpDestFolder, ULONG ulUIParam,
-				 LPMAPIPROGRESS lpProgress, ULONG ulFlags) = 0;
-    virtual HRESULT DeleteMessages(LPENTRYLIST lpMsgList, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags) = 0;
+	virtual HRESULT CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, LPVOID lpDestFolder, ULONG ulUIParam, IMAPIProgress *lpProgress, ULONG ulFlags) = 0;
+	virtual HRESULT DeleteMessages(LPENTRYLIST lpMsgList, ULONG ulUIParam, IMAPIProgress *lpProgress, ULONG ulFlags) = 0;
 	virtual HRESULT CreateFolder(ULONG folder_type, const TCHAR *name, const TCHAR *comment, const IID *intf, ULONG flags, IMAPIFolder **) = 0;
 	virtual HRESULT CopyFolder(ULONG eid_size, const ENTRYID *eid, const IID *intf, void *dest_fld, const TCHAR *newname, ULONG_PTR ui_param, IMAPIProgress *, ULONG flags) = 0;
 	virtual HRESULT DeleteFolder(ULONG eid_size, const ENTRYID *, ULONG ui_param, IMAPIProgress *, ULONG flags) = 0;
-    virtual HRESULT SetReadFlags(LPENTRYLIST lpMsgList, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags) = 0;
+	virtual HRESULT SetReadFlags(LPENTRYLIST lpMsgList, ULONG ulUIParam, IMAPIProgress *lpProgress, ULONG ulFlags) = 0;
 	virtual HRESULT GetMessageStatus(ULONG eid_size, const ENTRYID *, ULONG flags, ULONG *status) = 0;
 	virtual HRESULT SetMessageStatus(ULONG eid_size, const ENTRYID *, ULONG new_status, ULONG stmask, ULONG *old_status) = 0;
     virtual HRESULT SaveContentsSort(const SSortOrderSet *lpSortCriteria, ULONG ulFlags) = 0;
-    virtual HRESULT EmptyFolder(ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags) = 0;
+	virtual HRESULT EmptyFolder(ULONG ulUIParam, IMAPIProgress *lpProgress, ULONG ulFlags) = 0;
 };
 IID_OF(IMAPIFolder)
 
@@ -1007,7 +1006,7 @@ public:
     virtual HRESULT GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable) = 0;
     virtual HRESULT OpenAttach(ULONG ulAttachmentNum, LPCIID lpInterface, ULONG ulFlags, LPATTACH *lppAttach) = 0;
     virtual HRESULT CreateAttach(LPCIID lpInterface, ULONG ulFlags, ULONG *lpulAttachmentNum, LPATTACH *lppAttach) = 0;
-    virtual HRESULT DeleteAttach(ULONG ulAttachmentNum, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags) = 0;
+	virtual HRESULT DeleteAttach(ULONG ulAttachmentNum, ULONG ulUIParam, IMAPIProgress *lpProgress, ULONG ulFlags) = 0;
     virtual HRESULT GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable) = 0;
     virtual HRESULT ModifyRecipients(ULONG ulFlags, const ADRLIST *lpMods) = 0;
     virtual HRESULT SubmitMessage(ULONG ulFlags) = 0;
