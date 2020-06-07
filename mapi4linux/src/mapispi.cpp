@@ -14,6 +14,7 @@
 #include <kopano/CommonUtil.h>
 #include <kopano/Util.h>
 #include <kopano/ECGuid.h>
+#include <kopano/ECUnknown.h>
 #include <algorithm>
 #include <set>
 #include <utility>
@@ -32,17 +33,11 @@ HRESULT M4LMAPIGetSession::GetMAPISession(LPUNKNOWN *lppSession)
 	return session->QueryInterface(IID_IMAPISession, reinterpret_cast<void **>(lppSession));
 }
 
-HRESULT M4LMAPIGetSession::QueryInterface(REFIID refiid, void **lpvoid) {
-	if (refiid == IID_IMAPIGetSession) {
-		AddRef();
-		*lpvoid = static_cast<IMAPIGetSession *>(this);
-	} else if (refiid == IID_IUnknown) {
-		AddRef();
-		*lpvoid = static_cast<IUnknown *>(this);
-    } else
-		return MAPI_E_INTERFACE_NOT_SUPPORTED;
-
-	return hrSuccess;
+HRESULT M4LMAPIGetSession::QueryInterface(const IID &refiid, void **lppInterface)
+{
+	REGISTER_INTERFACE2(IMAPIGetSession, this);
+	REGISTER_INTERFACE2(IUnknown, this);
+	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
 M4LMAPISupport::M4LMAPISupport(IMAPISession *new_session, MAPIUID *lpUid,
@@ -553,19 +548,15 @@ HRESULT M4LMAPISupport::GetSvcConfigSupportObj(ULONG ulFlags, LPMAPISUP * lppSvc
     return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LMAPISupport::QueryInterface(REFIID refiid, void **lpvoid) {
-	if (refiid == IID_IMAPISup) {
-		AddRef();
-		*lpvoid = static_cast<IMAPISupport *>(this);
-	} else if (refiid == IID_IUnknown) {
-		AddRef();
-		*lpvoid = static_cast<IUnknown *>(this);
-	} else if (refiid == IID_IMAPIGetSession) {
+HRESULT M4LMAPISupport::QueryInterface(const IID &refiid, void **lppInterface)
+{
+	REGISTER_INTERFACE3(IMAPISup, IMAPISupport, this);
+	REGISTER_INTERFACE2(IUnknown, this);
+	if (refiid == IID_IMAPIGetSession) {
 		IMAPIGetSession *lpGetSession = new M4LMAPIGetSession(session);
 		lpGetSession->AddRef();
-		*lpvoid = lpGetSession;
-    } else
-		return MAPI_E_INTERFACE_NOT_SUPPORTED;
-
-	return hrSuccess;
+		*lppInterface = lpGetSession;
+		return hrSuccess;
+	}
+	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }

@@ -2,6 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
+#include <kopano/ECUnknown.h>
 #include <kopano/platform.h>
 #include "m4l.common.h"
 #include <mapicode.h>
@@ -19,10 +20,8 @@ ULONG M4LUnknown::Release() {
 	return nRef;
 }
 
-HRESULT M4LUnknown::QueryInterface(REFIID refiid, void **lpvoid) {
-	if (refiid != IID_IUnknown)
-		return MAPI_E_INTERFACE_NOT_SUPPORTED;
-	AddRef();
-	*lpvoid = static_cast<IUnknown *>(this);
-	return hrSuccess;
+HRESULT M4LUnknown::QueryInterface(const IID &refiid, void **lppInterface)
+{
+	REGISTER_INTERFACE2(IUnknown, this);
+	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }

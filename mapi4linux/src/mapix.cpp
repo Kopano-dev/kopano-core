@@ -16,6 +16,7 @@
 #include <cstddef>
 #include <cstring>
 #include <kopano/ECLogger.h>
+#include <kopano/ECUnknown.h>
 #include <kopano/hl.hpp>
 #include <kopano/memory.hpp>
 #include <kopano/Util.h>
@@ -299,17 +300,11 @@ HRESULT M4LProfAdmin::AdminServices(const TCHAR *lpszProfileName,
     return hr;
 }
 
-HRESULT M4LProfAdmin::QueryInterface(REFIID refiid, void **lpvoid) {
-	if (refiid == IID_IProfAdmin) {
-		AddRef();
-		*lpvoid = static_cast<IProfAdmin *>(this);
-	} else if (refiid == IID_IUnknown) {
-		AddRef();
-		*lpvoid = static_cast<IUnknown *>(this);
-	} else {
-		return MAPI_E_INTERFACE_NOT_SUPPORTED;
-	}
-	return hrSuccess;
+HRESULT M4LProfAdmin::QueryInterface(const IID &refiid, void **lppInterface)
+{
+	REGISTER_INTERFACE2(IProfAdmin, this);
+	REGISTER_INTERFACE2(IUnknown, this);
+	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
 // ---
@@ -740,20 +735,12 @@ HRESULT M4LMsgServiceAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTabl
 	return hr;
 }
 
-HRESULT M4LMsgServiceAdmin::QueryInterface(REFIID refiid, void **lpvoid) {
-	if (refiid == IID_IMsgServiceAdmin2) {
-		AddRef();
-		*lpvoid = static_cast<IMsgServiceAdmin2 *>(this);
-	} else if (refiid == IID_IMsgServiceAdmin) {
-		AddRef();
-		*lpvoid = static_cast<IMsgServiceAdmin *>(this);
-	} else if (refiid == IID_IUnknown) {
-		AddRef();
-		*lpvoid = static_cast<IUnknown *>(this);
-	} else
-		return MAPI_E_INTERFACE_NOT_SUPPORTED;
-
-	return hrSuccess;
+HRESULT M4LMsgServiceAdmin::QueryInterface(const IID &refiid, void **lppInterface)
+{
+	REGISTER_INTERFACE2(IMsgServiceAdmin2, this);
+	REGISTER_INTERFACE2(IMsgServiceAdmin, this);
+	REGISTER_INTERFACE2(IUnknown, this);
+	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
 // ---
@@ -1305,17 +1292,11 @@ HRESULT M4LMAPISession::PrepareForm(LPCIID lpInterface, LPMESSAGE lpMessage, ULO
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LMAPISession::QueryInterface(REFIID refiid, void **lpvoid) {
-	if (refiid == IID_IMAPISession) {
-		AddRef();
-		*lpvoid = static_cast<IMAPISession *>(this);
-	} else if (refiid == IID_IUnknown) {
-		AddRef();
-		*lpvoid = static_cast<IUnknown *>(this);
-	} else {
-		return MAPI_E_INTERFACE_NOT_SUPPORTED;
-	}
-	return hrSuccess;
+HRESULT M4LMAPISession::QueryInterface(const IID &refiid, void **lppInterface)
+{
+	REGISTER_INTERFACE2(IMAPISession, this);
+	REGISTER_INTERFACE2(IUnknown, this);
+	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
 HRESULT M4LMAPISession::setStatusRow(ULONG cValues, const SPropValue *lpProps)
@@ -1985,20 +1966,12 @@ HRESULT M4LAddrBook::PrepareRecips(ULONG ulFlags,
 	return hrSuccess;
 }
 
-HRESULT M4LAddrBook::QueryInterface(REFIID refiid, void **lpvoid) {
-	if (refiid == IID_IAddrBook) {
-		AddRef();
-		*lpvoid = (IAddrBook *)this;
-	} else if (refiid == IID_IMAPIProp) {
-		AddRef();
-		*lpvoid = static_cast<IMAPIProp *>(this);
-	} else if (refiid == IID_IUnknown) {
-		AddRef();
-		*lpvoid = static_cast<IUnknown *>(this);
-	} else
-		return MAPI_E_INTERFACE_NOT_SUPPORTED;
-
-	return hrSuccess;
+HRESULT M4LAddrBook::QueryInterface(const IID &refiid, void **lppInterface)
+{
+	REGISTER_INTERFACE2(IAddrBook, this);
+	REGISTER_INTERFACE2(IMAPIProp, this);
+	REGISTER_INTERFACE2(IUnknown, this);
+	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
 /**

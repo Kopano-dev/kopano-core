@@ -4,6 +4,7 @@
  */
 #include <chrono>
 #include <utility>
+#include <kopano/ECUnknown.h>
 #include <kopano/platform.h>
 #include "MAPINotifSink.h"
 #include <kopano/Util.h>
@@ -224,12 +225,10 @@ HRESULT MAPINotifSink::GetNotifications(ULONG *lpcNotif, LPNOTIFICATION *lppNoti
     return hr;
 }
 
-HRESULT MAPINotifSink::QueryInterface(REFIID iid, void **lpvoid) {
-	if (iid != IID_IMAPIAdviseSink)
-		return MAPI_E_INTERFACE_NOT_SUPPORTED;
-	AddRef();
-	*lpvoid = this;
-	return hrSuccess;
+HRESULT MAPINotifSink::QueryInterface(const IID &refiid, void **lppInterface)
+{
+	REGISTER_INTERFACE2(IMAPIAdviseSink, this);
+	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
 ULONG MAPINotifSink::AddRef()
