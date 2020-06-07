@@ -24,13 +24,11 @@ digraph {
 	IProfSect -> IMAPIProp;
 	IProviderAdmin -> IUnknown;
 	M4LABContainer -> IABContainer;
-	M4LABContainer -> M4LMAPIContainer;
+	M4LABContainer -> M4LMAPIProp;
 	M4LAddrBook -> IAddrBook;
 	M4LAddrBook -> M4LMAPIProp;
 	M4LMAPIAdviseSink -> IMAPIAdviseSink;
 	M4LMAPIAdviseSink -> ECUnknown;
-	M4LMAPIContainer -> IMAPIContainer;
-	M4LMAPIContainer -> M4LMAPIProp;
 	M4LMAPIGetSession -> IMAPIGetSession;
 	M4LMAPIGetSession -> ECUnknown;
 	M4LMAPIProp -> ECUnknown;

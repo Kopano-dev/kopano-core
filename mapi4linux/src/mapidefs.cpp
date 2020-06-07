@@ -522,44 +522,22 @@ HRESULT M4LMAPIAdviseSink::QueryInterface(const IID &refiid, void **lppInterface
 	return hrSuccess;
 }
 
-// 
-// IMAPIContainer
-// 
-HRESULT M4LMAPIContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE* lppTable) {
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT M4LMAPIContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) {
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT M4LMAPIContainer::OpenEntry(ULONG eid_size, const ENTRYID *eid,
-    const IID *intf, ULONG flags, ULONG *objtype, IUnknown **res)
+HRESULT M4LABContainer::GetContentsTable(unsigned int flags, IMAPITable **)
 {
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LMAPIContainer::SetSearchCriteria(const SRestriction *,
+HRESULT M4LABContainer::SetSearchCriteria(const SRestriction *,
     const ENTRYLIST *container, ULONG flags)
 {
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LMAPIContainer::GetSearchCriteria(ULONG ulFlags, LPSRestriction* lppRestriction, LPENTRYLIST* lppContainerList, ULONG* lpulSearchState) {
+HRESULT M4LABContainer::GetSearchCriteria(unsigned int flags, SRestriction **,
+    ENTRYLIST **container, unsigned int *state)
+{
 	return MAPI_E_NO_SUPPORT;
 }
-
-HRESULT M4LMAPIContainer::QueryInterface(const IID &refiid, void **lppInterface)
-{
-	REGISTER_INTERFACE2(IMAPIContainer, this);
-	REGISTER_INTERFACE2(IMAPIProp, this);
-	REGISTER_INTERFACE2(IUnknown, this);
-	return MAPI_E_INTERFACE_NOT_SUPPORTED;
-}
-
-// 
-// IABContainer
-// 
 
 M4LABContainer::M4LABContainer(const std::list<abEntry> &lABEntries) : m_lABEntries(lABEntries) {
 }
