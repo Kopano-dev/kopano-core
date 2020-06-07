@@ -1399,18 +1399,6 @@ HRESULT M4LAddrBook::CompareEntryIDs(ULONG cbEntryID1,
 	return hrSuccess;
 }
 
-HRESULT M4LAddrBook::Advise(ULONG eid_size, const ENTRYID *, ULONG evt_mask,
-    IMAPIAdviseSink *, ULONG *conn)
-{
-	ec_log_err("M4LAddrBook::Advise not implemented");
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT M4LAddrBook::Unadvise(ULONG ulConnection) {
-	ec_log_err("M4LAddrBook::Unadvise not implemented");
-	return MAPI_E_NO_SUPPORT;
-}
-
 /**
  * Create a OneOff EntryID.
  *
@@ -1428,14 +1416,6 @@ HRESULT M4LAddrBook::CreateOneOff(const TCHAR *lpszName,
     ULONG *lpcbEntryID, ENTRYID **lppEntryID)
 {
 	return ECCreateOneOff(lpszName, lpszAdrType, lpszAddress, ulFlags, lpcbEntryID, lppEntryID);
-}
-
-HRESULT M4LAddrBook::NewEntry(ULONG_PTR ui_param, ULONG flags,
-    ULONG eid_size, const ENTRYID *eid_cont, ULONG tpl_size,
-    const ENTRYID *tpl, ULONG *new_size, ENTRYID **new_eid)
-{
-	ec_log_err("M4LAddrBook::NewEntry not implemented");
-	return MAPI_E_NO_SUPPORT;
 }
 
 /**
@@ -1620,48 +1600,6 @@ HRESULT M4LAddrBook::ResolveName(ULONG_PTR ulUIParam, ULONG ulFlags,
 	return hr;
 }
 
-HRESULT M4LAddrBook::Address(ULONG_PTR *lpulUIParam, LPADRPARM lpAdrParms,
-    LPADRLIST *lppAdrList)
-{
-	ec_log_err("not implemented: M4LAddrBook::Address");
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT M4LAddrBook::Details(ULONG_PTR *ui_param, DISMISSMODELESS *dsfunc,
-    void *dismiss_ctx, ULONG cbEntryID, const ENTRYID *lpEntryID,
-    LPFNBUTTON callback, void *btn_ctx, const TCHAR *btn_text, ULONG flags)
-{
-	ec_log_err("not implemented: M4LAddrBook::Details");
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT M4LAddrBook::RecipOptions(ULONG_PTR ui_param, ULONG flags,
-    const ADRENTRY *recip)
-{
-	ec_log_err("not implemented: M4LAddrBook::RecipOptions");
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT M4LAddrBook::QueryDefaultRecipOpt(const TCHAR *addrtype, ULONG flags,
-    ULONG *nvals, SPropValue **opts)
-{
-	ec_log_err("not implemented: M4LAddrBook::QueryDefaultRecipOpt");
-	return MAPI_E_NO_SUPPORT;
-}
-
-// Get Personal AddressBook
-HRESULT M4LAddrBook::GetPAB(ULONG* lpcbEntryID, LPENTRYID* lppEntryID) {
-	ec_log_err("not implemented: M4LAddrBook::GetPAB");
-	return MAPI_E_NO_SUPPORT;
-}
-
-// Set Personal AddressBook
-HRESULT M4LAddrBook::SetPAB(ULONG eid_size, const ENTRYID *)
-{
-	ec_log_err("not implemented: M4LAddrBook::SetPAB");
-	return MAPI_E_NO_SUPPORT;
-}
-
 /**
  * Returns the EntryID of the Global Address Book container.
  *
@@ -1735,12 +1673,6 @@ no_hierarchy:
 	*lpcbEntryID = cbEntryID;
 	*lppEntryID = lpEntryID;
 	return hrSuccess;
-}
-
-HRESULT M4LAddrBook::SetDefaultDir(ULONG eid_size, const ENTRYID *)
-{
-	ec_log_err("not implemented M4LAddrBook::SetDefaultDir");
-	return MAPI_E_NO_SUPPORT;
 }
 
 /** 
