@@ -56,7 +56,7 @@ HRESULT ECFreeBusySupport::Open(IMAPISession* lpMAPISession, IMsgStore* lpMsgSto
 		return hr;
 
 	// Open the public store for communicate with the freebusy information.
-	hr = HrOpenECPublicStoreOnline(lpMAPISession, &~lpPublicStore);
+	hr = HrOpenECPublicStore(lpMAPISession, &~lpPublicStore);
 	if(hr != hrSuccess)
 		return hr;
 	hr = lpPublicStore->QueryInterface(IID_IMsgStore, &~m_lpPublicStore);
