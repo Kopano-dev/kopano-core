@@ -36,7 +36,7 @@ public:
 class ECMsgStore :
     public ECMAPIProp, public IMsgStore, public IExchangeManageStore,
     public KC::IECServiceAdmin, public IProxyStoreObject,
-    public KC::IECSpooler {
+    public KC::IECSpooler, public KC::IECTestProtocol {
 protected:
 	ECMsgStore(const char *profile, IMAPISupport *, WSTransport *, BOOL modify, unsigned int profile_flags, BOOL defl_store, BOOL offline_store);
 	virtual ~ECMsgStore();
@@ -45,7 +45,6 @@ protected:
 
 public:
 	virtual HRESULT QueryInterface(const IID &, void **) override;
-	virtual HRESULT QueryInterfaceProxy(REFIID refiid, void **lppInterface);
 	static HRESULT Create(const char *profile, IMAPISupport *, WSTransport *, BOOL modify, unsigned int profile_flags, BOOL defl_store, BOOL offline_store, ECMsgStore **);
 	virtual HRESULT SaveChanges(ULONG flags) override;
 	virtual HRESULT SetProps(ULONG nvals, const SPropValue *, SPropProblemArray **) override;
@@ -157,42 +156,6 @@ public:
 	HRESULT InternalAdvise(ULONG eid_size, const ENTRYID *, ULONG evt_mask, IMAPIAdviseSink *, ULONG *conn);
 private:
 	HRESULT OpenStatsTable(unsigned int ulTableType, LPMAPITABLE *lppTable);
-
-public:
-	class xMsgStoreProxy final :
-	    public IMsgStore,
-	    public KC::IECTestProtocol {
-		virtual ULONG AddRef() override;
-		virtual ULONG Release() override;
-		virtual HRESULT QueryInterface(const IID &, void **) override;
-		virtual HRESULT Advise(ULONG eid_size, const ENTRYID *, ULONG evt_mask, IMAPIAdviseSink *, ULONG *conn) override;
-		virtual HRESULT Unadvise(unsigned int conn) override;
-		virtual HRESULT CompareEntryIDs(ULONG asize, const ENTRYID *a, ULONG bsize, const ENTRYID *b, ULONG cmp_flags, ULONG *result) override;
-		virtual HRESULT OpenEntry(ULONG eid_size, const ENTRYID *eid, const IID *intf, ULONG flags, ULONG *obj_type, IUnknown **) override;
-		virtual HRESULT SetReceiveFolder(const TCHAR *cls, ULONG flags, ULONG eid_size, const ENTRYID *eid) override;
-		virtual HRESULT GetReceiveFolder(const TCHAR *cls, ULONG flags, ULONG *eid_size, ENTRYID **eid, TCHAR **exp_class) override;
-		virtual HRESULT GetReceiveFolderTable(unsigned int flags, IMAPITable **) override;
-		virtual HRESULT StoreLogoff(unsigned int *flags) override;
-		virtual HRESULT AbortSubmit(ULONG eid_size, const ENTRYID *, ULONG flags) override;
-		virtual HRESULT GetOutgoingQueue(unsigned int flags, IMAPITable **) override;
-		virtual HRESULT SetLockState(IMessage *, unsigned int lock_state) override;
-		virtual HRESULT FinishedMsg(ULONG flags, ULONG eid_size, const ENTRYID *) override;
-		virtual HRESULT NotifyNewMail(const NOTIFICATION *) override;
-		virtual HRESULT GetLastError(HRESULT error, unsigned int flags, MAPIERROR **) override;
-		virtual HRESULT SaveChanges(unsigned int flags) override;
-		virtual HRESULT GetProps(const SPropTagArray *, unsigned int flags, unsigned int *nprop, SPropValue **props) override;
-		virtual HRESULT GetPropList(unsigned int flags, SPropTagArray **) override;
-		virtual HRESULT OpenProperty(unsigned int tag, const IID *, unsigned int intf_opts, unsigned int flags, IUnknown **) override __attribute__((nonnull(3)));
-		virtual HRESULT SetProps(unsigned int nprops, const SPropValue *props, SPropProblemArray **) override;
-		virtual HRESULT DeleteProps(const SPropTagArray *, SPropProblemArray **) override;
-		virtual HRESULT CopyTo(unsigned int nexcl, const IID *excliid, const SPropTagArray *exclprop, ULONG ui_param, IMAPIProgress *, const IID *intf, void *dest_obj, unsigned int flags, SPropProblemArray **) override;
-		virtual HRESULT CopyProps(const SPropTagArray *inclprop, ULONG ui_param, IMAPIProgress *, const IID *intf, void *dest_obj, unsigned int flags, SPropProblemArray **) override;
-		virtual HRESULT GetNamesFromIDs(SPropTagArray **tags, const GUID *propset, ULONG flags, ULONG *nvals, MAPINAMEID ***names) override;
-		virtual HRESULT GetIDsFromNames(unsigned int nelem, MAPINAMEID **, unsigned int flags, SPropTagArray **) override;
-		virtual HRESULT TestPerform(const char *cmd, unsigned int argc, char **args) override;
-		virtual HRESULT TestSet(const char *name, const char *value) override;
-		virtual HRESULT TestGet(const char *name, char **value) override;
-	} m_xMsgStoreProxy;
 
 public:
 	KC::object_ptr<IMAPISupport> lpSupport;
