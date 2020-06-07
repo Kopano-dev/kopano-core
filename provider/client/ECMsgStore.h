@@ -35,8 +35,8 @@ public:
 
 class ECMsgStore :
     public ECMAPIProp, public IMsgStore, public IExchangeManageStore,
-    public KC::IECServiceAdmin, public IProxyStoreObject,
-    public KC::IECSpooler, public KC::IECTestProtocol {
+    public KC::IECServiceAdmin, public KC::IECSpooler,
+    public KC::IECTestProtocol {
 protected:
 	ECMsgStore(const char *profile, IMAPISupport *, WSTransport *, BOOL modify, unsigned int profile_flags, BOOL defl_store, BOOL offline_store);
 	virtual ~ECMsgStore();
@@ -125,7 +125,6 @@ public:
 	virtual HRESULT ResolvePseudoUrl(const char *url, char **pathp, bool *ispeer) override;
 	virtual HRESULT GetArchiveStoreEntryID(const TCHAR *user, const TCHAR *server, ULONG flags, ULONG *store_size, ENTRYID **store_eid) override;
 	virtual HRESULT ResetFolderCount(ULONG eid_size, const ENTRYID *eid, ULONG *nupdates) override;
-	virtual HRESULT UnwrapNoRef(void **obj) override;
 
     // ECTestProtocol
 	virtual HRESULT TestPerform(const char *cmd, unsigned int argc, char **argv);

@@ -160,7 +160,6 @@ HRESULT ECMsgStore::QueryInterface(REFIID refiid, void **lppInterface)
 	REGISTER_INTERFACE2(IECServiceAdmin, this);
 	REGISTER_INTERFACE2(IECSpooler, this);
 	REGISTER_INTERFACE2(IECSecurity, this);
-	REGISTER_INTERFACE2(IProxyStoreObject, this);
 	// is admin store?
 	REGISTER_INTERFACE2(IECTestProtocol, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
@@ -2422,17 +2421,6 @@ HRESULT ECMsgStore::DeleteFromMasterOutgoingTable(ULONG cbEntryId,
 	if (lpEntryId == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	return lpTransport->HrFinishedMessage(cbEntryId, lpEntryId, EC_SUBMIT_MASTER | ulFlags);
-}
-
-// ProxyStoreObject
-HRESULT ECMsgStore::UnwrapNoRef(LPVOID *ppvObject)
-{
-	if (ppvObject == NULL)
-		return MAPI_E_INVALID_PARAMETER;
-
-	// Because the function UnwrapNoRef return a non referenced object, QueryInterface isn't needed.
-	*ppvObject = static_cast<IMsgStore *>(this);
-	return hrSuccess;
 }
 
 HRESULT ECMsgStore::TestPerform(const char *szCommand, unsigned int ulArgs,
