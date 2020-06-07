@@ -182,14 +182,6 @@ HRESULT M4LMAPIProp::GetProps(const SPropTagArray *lpPropTagArray,
 	return hr;
 }
 
-HRESULT M4LMAPIProp::GetPropList(ULONG ulFlags, LPSPropTagArray* lppPropTagArray) {
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT M4LMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN* lppUnk) {
-	return MAPI_E_NO_SUPPORT;
-}
-
 HRESULT M4LMAPIProp::SetProps(ULONG cValues, const SPropValue *lpPropArray,
     SPropProblemArray **lppProblems)
 {
@@ -255,31 +247,6 @@ HRESULT M4LMAPIProp::DeleteProps(const SPropTagArray *lpPropTagArray,
 		}
 	}
 	return hrSuccess;
-}
-
-HRESULT M4LMAPIProp::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
-    const SPropTagArray *lpExcludeProps, ULONG ulUIParam,
-    LPMAPIPROGRESS lpProgress, LPCIID lpInterface, void *lpDestObj,
-    ULONG ulFlags, SPropProblemArray **lppProblems)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT M4LMAPIProp::CopyProps(const SPropTagArray *lpIncludeProps,
-    ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface,
-    void *lpDestObj, ULONG ulFlags, SPropProblemArray **lppProblems)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT M4LMAPIProp::GetNamesFromIDs(SPropTagArray **tags, const GUID *propset,
-    ULONG flags, ULONG *nvals, MAPINAMEID ***names)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT M4LMAPIProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID* lppPropNames, ULONG ulFlags, LPSPropTagArray* lppPropTags) {
-	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT M4LMAPIProp::QueryInterface(const IID &refiid, void **lppInterface)

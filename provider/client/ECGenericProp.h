@@ -101,13 +101,8 @@ public:
 	 *
 	 * \return hrSuccess on success.
 	 */
-	virtual HRESULT OpenProperty(ULONG tag, const IID *intf, ULONG intf_opts, ULONG flags, IUnknown **) override;
 	virtual HRESULT SetProps(ULONG nprops, const SPropValue *props, SPropProblemArray **) override;
 	virtual HRESULT DeleteProps(const SPropTagArray *, LPSPropProblemArray *) override;
-	virtual HRESULT CopyTo(ULONG nexcl, const IID *excl, const SPropTagArray *exclprop, ULONG ui_param, IMAPIProgress *, const IID *intf, void *dest, ULONG flags, SPropProblemArray **) override;
-	virtual HRESULT CopyProps(const SPropTagArray *inclprop, ULONG ui_param, IMAPIProgress *, const IID *intf, void *dest, ULONG flags, SPropProblemArray **) override;
-	virtual HRESULT GetNamesFromIDs(SPropTagArray **tags, const GUID *propset, ULONG flags, ULONG *nvals, MAPINAMEID ***names) override;
-	virtual HRESULT GetIDsFromNames(ULONG n, MAPINAMEID **, ULONG flags, SPropTagArray **) override;
 
 protected:
 	ECPropertyEntryMap lstProps;

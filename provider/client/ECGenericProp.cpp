@@ -779,11 +779,6 @@ HRESULT ECGenericProp::GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArr
 	return hrSuccess;
 }
 
-HRESULT ECGenericProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk)
-{
-	return  MAPI_E_NO_SUPPORT;
-}
-
 HRESULT ECGenericProp::SetProps(ULONG cValues, const SPropValue *lpPropArray,
     SPropProblemArray **lppProblems)
 {
@@ -882,32 +877,6 @@ HRESULT ECGenericProp::DeleteProps(const SPropTagArray *lpPropTagArray,
 	else if (lppProblems != nullptr)
 		*lppProblems = NULL;
 	return hrSuccess;
-}
-
-HRESULT ECGenericProp::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
-    const SPropTagArray *lpExcludeProps, ULONG ulUIParam,
-    LPMAPIPROGRESS lpProgress, LPCIID lpInterface, void *lpDestObj,
-    ULONG ulFlags, SPropProblemArray **lppProblems)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT ECGenericProp::CopyProps(const SPropTagArray *, ULONG ui_param,
-    IMAPIProgress *, const IID *iface, void *dest_obj, ULONG flags,
-    SPropProblemArray **)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT ECGenericProp::GetNamesFromIDs(SPropTagArray **tags, const GUID *propset,
-    ULONG flags, ULONG *nvals, MAPINAMEID ***names)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT ECGenericProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropNames, ULONG ulFlags, LPSPropTagArray *lppPropTags)
-{
-	return MAPI_E_NO_SUPPORT;
 }
 
 // Interface IECSingleInstance

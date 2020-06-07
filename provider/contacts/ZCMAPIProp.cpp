@@ -303,16 +303,6 @@ HRESULT ZCMAPIProp::QueryInterface(REFIID refiid, void **lppInterface)
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
-HRESULT ZCMAPIProp::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR * lppMAPIError)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT ZCMAPIProp::SaveChanges(ULONG ulFlags)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
 HRESULT ZCMAPIProp::CopyOneProp(convert_context &converter, ULONG ulFlags,
     const std::map<short, SPropValue>::const_iterator &i, LPSPropValue lpProp,
     LPSPropValue lpBase)
@@ -426,46 +416,4 @@ HRESULT ZCMAPIProp::GetPropList(ULONG ulFlags, LPSPropTagArray * lppPropTagArray
 
 	*lppPropTagArray = lpPropTagArray;
 	return hrSuccess;
-}
-
-HRESULT ZCMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN * lppUnk)
-{
-	return  MAPI_E_NO_SUPPORT;
-}
-
-HRESULT ZCMAPIProp::SetProps(ULONG vals, const SPropValue *,
-    SPropProblemArray **)
-{
-	return  MAPI_E_NO_SUPPORT;
-}
-
-HRESULT ZCMAPIProp::DeleteProps(const SPropTagArray *lpPropTagArray,
-    SPropProblemArray **lppProblems)
-{
-	return  MAPI_E_NO_SUPPORT;
-}
-
-HRESULT ZCMAPIProp::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
-    const SPropTagArray *, ULONG ui_param, LPMAPIPROGRESS, LPCIID intf,
-    void *dest_obj, ULONG flags, SPropProblemArray **)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT ZCMAPIProp::CopyProps(const SPropTagArray *, ULONG ui_param,
-    LPMAPIPROGRESS, LPCIID intf, void *dest_obj, ULONG flags,
-    SPropProblemArray **)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT ZCMAPIProp::GetNamesFromIDs(SPropTagArray **tags, const GUID *propset,
-    ULONG flags, ULONG *nvals, MAPINAMEID ***names)
-{
-	return MAPI_E_NO_SUPPORT;
-}
- 
-HRESULT ZCMAPIProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID * lppPropNames, ULONG ulFlags, LPSPropTagArray * lppPropTags)
-{
-	return MAPI_E_NO_SUPPORT;
 }

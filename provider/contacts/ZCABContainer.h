@@ -48,15 +48,6 @@ public:
 	// very limited IMAPIProp, passed to ZCMAPIProp for m_lpDistList.
 	virtual HRESULT GetProps(const SPropTagArray *, unsigned int flags, unsigned int *nvals, SPropValue **) override;
 	virtual HRESULT GetPropList(unsigned int flags, SPropTagArray **) override;
-	virtual HRESULT GetLastError(HRESULT result, unsigned int flags, MAPIERROR **) override;
-	virtual HRESULT SaveChanges(unsigned int) override;
-	virtual HRESULT OpenProperty(unsigned int, const IID *, unsigned int, unsigned int, IUnknown **) override;
-	virtual HRESULT SetProps(unsigned int, const SPropValue *, SPropProblemArray **) override;
-	virtual HRESULT DeleteProps(const SPropTagArray *, SPropProblemArray **) override;
-	virtual HRESULT CopyTo(unsigned int, const IID *, const SPropTagArray *, unsigned int, IMAPIProgress *, const IID *, void *, unsigned int, SPropProblemArray **) override;
-	virtual HRESULT CopyProps(const SPropTagArray *, unsigned int, IMAPIProgress *, const IID *, void *, unsigned int, SPropProblemArray **) override;
-	virtual HRESULT GetNamesFromIDs(SPropTagArray **tags, const GUID *propset, ULONG flags, ULONG *nvals, MAPINAMEID ***names) override;
-	virtual HRESULT GetIDsFromNames(unsigned int, MAPINAMEID **, unsigned int, SPropTagArray **) override;
 
 private:
 	/* reference to ZCABLogon .. ZCABLogon needs to live because of this, so AddChild */

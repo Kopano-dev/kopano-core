@@ -26,17 +26,8 @@ public:
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 
 	// From IMAPIProp
-	virtual HRESULT GetLastError(HRESULT, unsigned int flags, MAPIERROR **) override;
-	virtual HRESULT SaveChanges(unsigned int flags) override;
 	virtual HRESULT GetProps(const SPropTagArray *props, unsigned int flags, unsigned int *nvals, SPropValue **) override;
 	virtual HRESULT GetPropList(unsigned int flags, SPropTagArray **) override;
-	virtual HRESULT OpenProperty(unsigned int tag, const IID *intf, unsigned int intf_opts, unsigned int flags, IUnknown **) override;
-	virtual HRESULT SetProps(unsigned int nvals, const SPropValue *, SPropProblemArray **) override;
-	virtual HRESULT DeleteProps(const SPropTagArray *, SPropProblemArray **) override;
-	virtual HRESULT CopyTo(unsigned int nexcl, const IID *iidexcl, const SPropTagArray *exclprop, unsigned int ui_param, IMAPIProgress *, const IID *intf, void *dst_obj, unsigned int flags, SPropProblemArray **) override;
-	virtual HRESULT CopyProps(const SPropTagArray *inclprop, unsigned int ui_param, IMAPIProgress *, const IID *intf, void *dst_obj, unsigned int flags, SPropProblemArray **) override;
-	virtual HRESULT GetNamesFromIDs(SPropTagArray **tags, const GUID *propset, ULONG flags, ULONG *nvals, MAPINAMEID ***names) override;
-	virtual HRESULT GetIDsFromNames(unsigned int nnames, MAPINAMEID **names, unsigned int flags, SPropTagArray **) override;
 
 private:
 	SPropValue *m_base = nullptr;
