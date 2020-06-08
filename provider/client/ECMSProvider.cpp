@@ -155,15 +155,6 @@ HRESULT ECMSProvider::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 	return lpECMSLogon->QueryInterface(IID_IMSLogon, reinterpret_cast<void **>(lppMSLogon));
 }
 
-HRESULT ECMSProvider::SpoolerLogon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
-    const TCHAR *lpszProfileName, ULONG cbEntryID, const ENTRYID *lpEntryID,
-    ULONG ulFlags, const IID *lpInterface, ULONG cbSpoolSecurity,
-    const BYTE *lpbSpoolSecurity, MAPIERROR **lppMAPIError,
-    IMSLogon **lppMSLogon, IMsgStore **lppMDB)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
 HRESULT ECMSProvider::CompareStoreIDs(ULONG cbEntryID1,
     const ENTRYID *lpEntryID1, ULONG cbEntryID2, const ENTRYID *lpEntryID2,
     ULONG ulFlags, ULONG *lpulResult)
@@ -388,15 +379,6 @@ HRESULT ECMSProviderSwitch::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 	if (lppbSpoolSecurity != nullptr)
 		*lppbSpoolSecurity = nullptr;
 	return hr;
-}
-
-HRESULT ECMSProviderSwitch::SpoolerLogon(IMAPISupport *lpMAPISup,
-    ULONG_PTR ulUIParam, const TCHAR *lpszProfileName, ULONG cbEntryID,
-    const ENTRYID *lpEntryID, ULONG ulFlags, const IID *lpInterface,
-    ULONG cbSpoolSecurity, const BYTE *lpbSpoolSecurity,
-    MAPIERROR **lppMAPIError, IMSLogon **lppMSLogon, IMsgStore **lppMDB)
-{
-	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT ECMSProviderSwitch::CompareStoreIDs(ULONG cbEntryID1,
