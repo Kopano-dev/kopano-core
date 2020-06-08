@@ -509,24 +509,6 @@ HRESULT ECABLogon::Unadvise(ULONG ulConnection)
 	return hrSuccess;
 }
 
-HRESULT ECABLogon::OpenStatusEntry(LPCIID lpInterface, ULONG ulFlags, ULONG *lpulObjType, LPMAPISTATUS * lppMAPIStatus)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT ECABLogon::OpenTemplateID(ULONG tpl_size, const ENTRYID *tpl_eid,
-    ULONG tpl_flags, IMAPIProp *propdata, const IID *iface, IMAPIProp **propnew,
-    IMAPIProp *sibling)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT ECABLogon::GetOneOffTable(ULONG ulFlags, LPMAPITABLE * lppTable)
-{
-	//return m_lpMAPISup->GetOneOffTable(ulFlags, lppTable);
-	return MAPI_E_NO_SUPPORT;
-}
-
 HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
     const SPropTagArray *lpPropTagArray, LPADRLIST lpRecipList)
 {

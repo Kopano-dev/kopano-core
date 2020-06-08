@@ -29,9 +29,6 @@ class ECABLogon KC_FINAL_OPG : public KC::ECUnknown, public IABLogon {
 	virtual HRESULT CompareEntryIDs(ULONG asize, const ENTRYID *a, ULONG bsize, const ENTRYID *b, ULONG cmp_flags, ULONG *result) override;
 	virtual HRESULT Advise(ULONG eid_size, const ENTRYID *, ULONG evt_mask, IMAPIAdviseSink *, ULONG *conn) override;
 	virtual HRESULT Unadvise(ULONG conn) override;
-	virtual HRESULT OpenStatusEntry(const IID *intf, ULONG flags, ULONG *objtype, IMAPIStatus **) override;
-	virtual HRESULT OpenTemplateID(ULONG tpl_size, const ENTRYID *tpl_eid, ULONG tpl_flags, IMAPIProp *propdata, const IID *intf, IMAPIProp **propnew, IMAPIProp *sibling) override;
-	virtual HRESULT GetOneOffTable(ULONG flags, IMAPITable **) override;
 	virtual HRESULT PrepareRecips(ULONG flags, const SPropTagArray *, ADRLIST *recips) override;
 
 	KC::object_ptr<IMAPISupport> m_lpMAPISup;

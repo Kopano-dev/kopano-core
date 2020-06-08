@@ -200,13 +200,7 @@ HRESULT ZCABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	return hrSuccess;
 }
 
-HRESULT ZCABLogon::CompareEntryIDs(ULONG cbEntryID1, const ENTRYID *lpEntryID1,
-    ULONG cbEntryID2, const ENTRYID *lpEntryID2, ULONG ulFlags,
-    ULONG *lpulResult)
-{
-	// we don't implement this .. a real ab provider should do this action.
-	return MAPI_E_NO_SUPPORT;
-}
+// we don't implement CompareEntryIDs .. a real ab provider should do this action.
 
 HRESULT ZCABLogon::Advise(ULONG cbEntryID, const ENTRYID *lpEntryID,
     ULONG evt_mask, IMAPIAdviseSink *lpAdviseSink, ULONG *lpulConnection)
@@ -215,28 +209,6 @@ HRESULT ZCABLogon::Advise(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		return MAPI_E_INVALID_PARAMETER;
 	if (lpEntryID == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT ZCABLogon::Unadvise(ULONG ulConnection)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT ZCABLogon::OpenStatusEntry(LPCIID lpInterface, ULONG ulFlags, ULONG *lpulObjType, LPMAPISTATUS * lppMAPIStatus)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT ZCABLogon::OpenTemplateID(ULONG tpl_size, const ENTRYID *tpl_eid,
-    ULONG tpl_flags, IMAPIProp *propdata, const IID *intf, IMAPIProp **propnew,
-    IMAPIProp *sibling)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT ZCABLogon::GetOneOffTable(ULONG ulFlags, LPMAPITABLE * lppTable)
-{
 	return MAPI_E_NO_SUPPORT;
 }
 
