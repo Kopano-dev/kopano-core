@@ -29,15 +29,7 @@ public:
 	virtual HRESULT Write(const void *pv, unsigned int cb, unsigned int *has_written) override;
 
 	// IStream
-	virtual HRESULT Seek(LARGE_INTEGER move, unsigned int origin, ULARGE_INTEGER *newpos) override;
-	virtual HRESULT SetSize(ULARGE_INTEGER newsize) override;
-	virtual HRESULT CopyTo(IStream *, ULARGE_INTEGER size, ULARGE_INTEGER *has_read, ULARGE_INTEGER *has_written) override;
 	virtual HRESULT Commit(unsigned int flags) override;
-	virtual HRESULT Revert() override;
-	virtual HRESULT LockRegion(ULARGE_INTEGER offset, ULARGE_INTEGER size, unsigned int lock_type) override;
-	virtual HRESULT UnlockRegion(ULARGE_INTEGER offset, ULARGE_INTEGER size, unsigned int lock_type) override;
-	virtual HRESULT Stat(STATSTG *, unsigned int flag) override;
-	virtual HRESULT Clone(IStream **) override;
 
 	protected:
 	~ECMessageStreamImporterIStreamAdapter();

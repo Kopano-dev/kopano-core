@@ -43,21 +43,6 @@ HRESULT ECMessageStreamImporterIStreamAdapter::Write(const void *pv, ULONG cb, U
 }
 
 // IStream
-HRESULT ECMessageStreamImporterIStreamAdapter::Seek(LARGE_INTEGER /*dlibMove*/, DWORD /*dwOrigin*/, ULARGE_INTEGER* /*plibNewPosition*/)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT ECMessageStreamImporterIStreamAdapter::SetSize(ULARGE_INTEGER /*libNewSize*/)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT ECMessageStreamImporterIStreamAdapter::CopyTo(IStream* /*pstm*/, ULARGE_INTEGER /*cb*/, ULARGE_INTEGER* /*pcbRead*/, ULARGE_INTEGER* /*pcbWritten*/)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
 HRESULT ECMessageStreamImporterIStreamAdapter::Commit(DWORD /*grfCommitFlags*/)
 {
 	HRESULT hrAsync = hrSuccess;
@@ -69,31 +54,6 @@ HRESULT ECMessageStreamImporterIStreamAdapter::Commit(DWORD /*grfCommitFlags*/)
 	if (hr == hrSuccess)
 		hr = hrAsync;
 	return hr;
-}
-
-HRESULT ECMessageStreamImporterIStreamAdapter::Revert(void)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT ECMessageStreamImporterIStreamAdapter::LockRegion(ULARGE_INTEGER /*libOffset*/, ULARGE_INTEGER /*cb*/, DWORD /*dwLockType*/)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT ECMessageStreamImporterIStreamAdapter::UnlockRegion(ULARGE_INTEGER /*libOffset*/, ULARGE_INTEGER /*cb*/, DWORD /*dwLockType*/)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT ECMessageStreamImporterIStreamAdapter::Stat(STATSTG* /*pstatstg*/, DWORD /*grfStatFlag*/)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT ECMessageStreamImporterIStreamAdapter::Clone(IStream** /*ppstm*/)
-{
-	return MAPI_E_NO_SUPPORT;
 }
 
 ECMessageStreamImporterIStreamAdapter::ECMessageStreamImporterIStreamAdapter(WSMessageStreamImporter *lpStreamImporter)

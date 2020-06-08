@@ -616,15 +616,15 @@ IID_OF(IEnumSTATSTG)
 
 struct IStream : public virtual ISequentialStream {
 	public:
-	virtual HRESULT Seek(LARGE_INTEGER dlibMove, DWORD dwOrigin, ULARGE_INTEGER *plibNewPosition) = 0;
-	virtual HRESULT SetSize(ULARGE_INTEGER libNewSize) = 0;
-	virtual HRESULT CopyTo(IStream *pstm, ULARGE_INTEGER cb, ULARGE_INTEGER *pcbRead, ULARGE_INTEGER *pcbWritten) = 0;
+	virtual HRESULT Seek(LARGE_INTEGER dlibMove, DWORD dwOrigin, ULARGE_INTEGER *plibNewPosition) { return MAPI_E_NO_SUPPORT; }
+	virtual HRESULT SetSize(ULARGE_INTEGER libNewSize) { return MAPI_E_NO_SUPPORT; }
+	virtual HRESULT CopyTo(IStream *pstm, ULARGE_INTEGER cb, ULARGE_INTEGER *pcbRead, ULARGE_INTEGER *pcbWritten) { return MAPI_E_NO_SUPPORT; }
 	virtual HRESULT Commit(DWORD grfCommitFlags) = 0;
-	virtual HRESULT Revert(void) = 0;
-	virtual HRESULT LockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType) = 0;
-	virtual HRESULT UnlockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType) = 0;
-	virtual HRESULT Stat(STATSTG *pstatstg, DWORD grfStatFlag) = 0;
-	virtual HRESULT Clone(IStream **ppstm) = 0;
+	virtual HRESULT Revert() { return MAPI_E_NO_SUPPORT; }
+	virtual HRESULT LockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType) { return MAPI_E_NO_SUPPORT; }
+	virtual HRESULT UnlockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType) { return MAPI_E_NO_SUPPORT; }
+	virtual HRESULT Stat(STATSTG *pstatstg, DWORD grfStatFlag) { return MAPI_E_NO_SUPPORT; }
+	virtual HRESULT Clone(IStream **ppstm) { return MAPI_E_NO_SUPPORT; }
 };
 IID_OF(IStream)
 typedef IStream *LPSTREAM;
