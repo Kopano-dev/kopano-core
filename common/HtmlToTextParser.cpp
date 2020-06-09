@@ -203,8 +203,16 @@ std::wstring& CHtmlToTextParser::GetText() {
 void CHtmlToTextParser::addNewLine(bool forceLine) {
 	if (strText.empty())
 		return;
-	if (forceLine || cNewlines == 0)
+	if (forceLine || cNewlines == 0) {
+		auto i = strText.rbegin();
+		while (i != strText.rend() && (*i == ' ' || *i == '\t'))
+			++i;
+		/* Trim all whitespace before EOL */
+		if (i != strText.rend())
+			strText.erase(i.base(), strText.end());
+
 		strText += L"\r\n";
+	}
 	++cNewlines;
 }
 
