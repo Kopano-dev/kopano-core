@@ -1437,12 +1437,11 @@ HRESULT M4LAddrBook::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 			// also missing, but still not important:
 			// PR_ENTRYID, PR_RECORD_KEY, PR_SEARCH_KEY, PR_SEND_INTERNET_ENCODING, PR_SEND_RICH_INFO
 			lpMailUser->SetProps(5, sProps.get(), nullptr);
-			if (lpInterface == nullptr || *lpInterface == IID_IMailUser)
-				*lppUnk = reinterpret_cast<IUnknown *>(static_cast<void *>(static_cast<IMailUser *>(lpMailUser)));
-			else if (*lpInterface == IID_IMAPIProp)
-				*lppUnk = reinterpret_cast<IUnknown *>(static_cast<void *>(static_cast<IMAPIProp *>(lpMailUser)));
-			else if (*lpInterface == IID_IUnknown)
-				*lppUnk = static_cast<IUnknown *>(lpMailUser);
+			if (lpInterface == nullptr)
+				lpInterface = &IID_IMailUser;
+			hr = lpMailUser->QueryInterface(*lpInterface, reinterpret_cast<void **>(lppUnk));
+			if (hr != hrSuccess)
+				return hr;
 			if (lpulObjType != nullptr)
 				*lpulObjType = MAPI_MAILUSER;
 			return hr;
