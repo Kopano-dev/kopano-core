@@ -9,4 +9,4 @@ PYTEST ?= pytest
 test:
 	KOPANO_TEST_USER=${KOPANO_TEST_USER} KOPANO_TEST_PASSWORD=${KOPANO_TEST_PASSWORD} \
 	  KOPANO_TEST_IMAP_HOST=${KOPANO_TEST_IMAP_HOST} KOPANO_TEST_IMAP_PORT=${KOPANO_TEST_IMAP_PORT} \
-	  $(PYTEST) tests/ --junitxml=test.xml -o junit_suite_name=gateway
+	  $(PYTEST) ${srcdir}/tests/ --junitxml=test.xml -o junit_suite_name=gateway

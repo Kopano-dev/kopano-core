@@ -6,4 +6,4 @@ PYTEST ?= pytest
 .PHONY: test
 test:
 	KOPANO_TEST_USER=${KOPANO_TEST_USER} KOPANO_TEST_PASSWORD=${KOPANO_TEST_PASSWORD} \
-	  $(PYTEST) tests/ --junitxml=test.xml -o junit_suite_name=icalmapi
+	  ${PYTEST} ${srcdir}/tests/ --junitxml=test.xml -o junit_suite_name=icalmapi
