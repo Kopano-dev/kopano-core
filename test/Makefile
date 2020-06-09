@@ -9,7 +9,7 @@ BUILD_TAG ?= $(shell whoami || date +%s)
 export COMPOSE_PROJECT_NAME=kopanocore-test-$(BUILD_TAG)
 export EXTRA_LOCAL_ADMIN_USER
 
-test: test-python-mapi test-python-kopano test-php test-gateway
+test: test-python-mapi test-python-kopano test-php test-gateway test-libicalmapi
 test-short: test-short-python-mapi test-short-python-kopano test-short-php
 
 
@@ -33,6 +33,9 @@ test-php:
 
 test-gateway:
 	make -C ../gateway test
+
+test-libicalmapi:
+	make -C ../libicalmapi test
 
 # CI
 
