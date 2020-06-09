@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <glob.h>
 #include <kopano/charset/convert.h>
+#include <kopano/stringutil.h>
 #include "HtmlToTextParser.h"
 
 #define TEST_FILES "tests/testdata/htmltoplain/*.test"
@@ -44,6 +45,8 @@ static int testhtml(std::string file)
 	expectedhtmlfile.imbue(std::locale(""));
 	std::wstring expectedhtml{std::istreambuf_iterator<wchar_t>(expectedhtmlfile), std::istreambuf_iterator<wchar_t>()};
 	auto parsed = parser.GetText();
+	parsed = StringCRLFtoLF(std::move(parsed));
+	expectedhtml = StringCRLFtoLF(std::move(expectedhtml));
 	auto ret = expectedhtml.compare(parsed);
 	if (ret != 0) {
 		std::cout << "Expected:\n\"\"\"" << convert_to<std::string>("UTF-8", expectedhtml, rawsize(expectedhtml), CHARSET_WCHAR) << "\"\"\"\n";
