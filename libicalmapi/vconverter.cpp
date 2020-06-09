@@ -2175,7 +2175,7 @@ HRESULT VConverter::HrSetBody(LPMESSAGE lpMessage, icalproperty **lppicProp)
 	// Newer versions also have some issues parsing these chars
 	// RFC specifies that new lines should be CRLF
 	StringTabtoSpaces(lpBody.get(), &strBody);
-	StringCRLFtoLF(strBody, &strBody);
+	strBody = StringCRLFtoLF(std::move(strBody));
 	*lppicProp = icalproperty_new_description(m_converter.convert_to<std::string>(m_strCharset.c_str(), strBody, rawsize(strBody), CHARSET_WCHAR).c_str());
 	return hrSuccess;
 }
@@ -2864,7 +2864,7 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 			// The body is converted as OL2003 does not parse '\r' & '\t' correctly
 			// Newer versions also have some issues parsing there chars
 			StringTabtoSpaces(lpPropVal->Value.lpszW, &strBody);
-			StringCRLFtoLF(strBody, &strBody);
+			strBody = StringCRLFtoLF(std::move(strBody));
 			lpProp = icalproperty_new_description(m_converter.convert_to<std::string>(m_strCharset.c_str(), lpPropVal->Value.lpszW, rawsize(lpPropVal->Value.lpszW), CHARSET_WCHAR).c_str());
 		} else {
 			hr = HrSetBody(lpMessage, &lpProp);

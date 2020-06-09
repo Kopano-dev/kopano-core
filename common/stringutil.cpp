@@ -570,18 +570,16 @@ void StringTabtoSpaces(const std::wstring &strInput, std::wstring *lpstrOutput) 
  * @param[in] strInput		input string to be converted
  * @param[out] strOutput	return converted string
  */
-void StringCRLFtoLF(const std::wstring &strInput, std::wstring *lpstrOutput) {
-	std::wstring::const_iterator iInput(strInput.begin());
-	std::wstring strOutput;
+std::wstring StringCRLFtoLF(std::wstring &&input1)
+{
+	std::wstring data = std::move(input1);
+	size_t z = data.size(), rpos = 0, wpos = 0;
 
-	strOutput.reserve(strInput.length());
-	for (; iInput != strInput.end(); ++iInput) {
-		// skips /r if /r/n found together in the text
-		if (*iInput == '\r' && (iInput + 1 != strInput.end() && *(iInput + 1) == '\n'))
-			continue;
-		strOutput.append(1, *iInput);
-	}
-	*lpstrOutput = std::move(strOutput);
+	for (; rpos < z; ++rpos)
+		if (!(rpos < z - 1 && data[rpos] == '\r' && data[rpos+1] == '\n'))
+			data[wpos++] = data[rpos];
+	data.erase(wpos, data.npos);
+	return data;
 }
 
 /**
