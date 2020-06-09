@@ -10,7 +10,7 @@
 #include <dirent.h>
 #include <unistd.h>
 #include <glob.h>
-
+#include <kopano/charset/convert.h>
 #include "HtmlToTextParser.h"
 
 #define TEST_FILES "tests/testdata/htmltoplain/*.test"
@@ -43,8 +43,13 @@ static int testhtml(std::string file)
 
 	expectedhtmlfile.imbue(std::locale(""));
 	std::wstring expectedhtml{std::istreambuf_iterator<wchar_t>(expectedhtmlfile), std::istreambuf_iterator<wchar_t>()};
-
-	return expectedhtml.compare(parser.GetText());
+	auto parsed = parser.GetText();
+	auto ret = expectedhtml.compare(parsed);
+	if (ret != 0) {
+		std::cout << "Expected:\n\"\"\"" << convert_to<std::string>("UTF-8", expectedhtml, rawsize(expectedhtml), CHARSET_WCHAR) << "\"\"\"\n";
+		std::cout << "Observed:\n\"\"\"" << convert_to<std::string>("UTF-8", parsed, rawsize(parsed), CHARSET_WCHAR) << "\"\"\"\n";
+	}
+	return ret;
 }
 
 int main(int argc, char **argv) {
