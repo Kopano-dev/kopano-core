@@ -1452,7 +1452,9 @@ HRESULT M4LAddrBook::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		// 2.1a1: open root container, make a M4LABContainer which have the ABContainers of all providers as hierarchy entries.
 		SPropValue sPropObjectType;
 		auto lpCont = new M4LABContainer(m_lABProviders);
-		auto hr = lpCont->QueryInterface(IID_IABContainer, reinterpret_cast<void **>(lppUnk));
+		if (lpInterface == nullptr)
+			lpInterface = &IID_IABContainer;
+		auto hr = lpCont->QueryInterface(*lpInterface, reinterpret_cast<void **>(lppUnk));
 		if (hr != hrSuccess) {
 			delete lpCont;
 			return kc_perrorf("QueryInterface failed", hr);
