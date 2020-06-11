@@ -141,11 +141,13 @@ Packaging changes:
 * gsoap 2.8.73 or higher is now required
 
 
-8.7.x
-=====
+8.7.14 (2020-06-11)
+===================
 * build: support gsoap 2.8.103
-* libserver: add thread_end calls for ECSchedule threads
-* server: add debug messages for SQL connection object states
+* libserver: add thread_end calls for ECSchedule threads [KC-1767]
+* server: add debug messages for SQL connection object states [KC-1767]
+* mapi4linux: cure a pointer mismatch that could lead to a crash
+  in M4LAddrBook::OpenEntry / (PHP)mapi_ab_openentry [KC-1790]
 
 
 8.7.13 (2020-05-20)
