@@ -181,8 +181,15 @@ template<typename T> class object_rcguard final : public T {
 };
 
 /**
- * Works a bit like shared_ptr, except that the refcounting is in the
- * underlying object (T) rather than this class.
+ * Works a bit like shared_ptr, differences being:
+ *
+ * 1. object_ptr requires that T provides IUnknown functions AddRef and
+ *    Release.
+ * 2. Due to IUnknown, the control block with the refcounts is always part of
+ *    the object (by way of inheritance) rather than being "bolted-on" through
+ *    the template.
+ * 3. As a result of (2), enable_shared_from_this-like functionality
+ *    ("object_ptr<T>(this);") is provided at no extra cost.
  */
 template<typename T> class object_ptr {
 	public:
