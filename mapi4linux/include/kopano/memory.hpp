@@ -202,7 +202,7 @@ template<typename T> class object_ptr {
 	}
 	object_ptr(const object_ptr &o)
 	{
-		reset(o.m_ptr, true);
+		reset(o.m_ptr);
 	}
 	object_ptr(object_ptr &&o)
 	{
@@ -231,9 +231,9 @@ template<typename T> class object_ptr {
 		m_ptr = pointer();
 		return p;
 	}
-	void reset(T *p = pointer(), bool addref = true) noexcept
+	void reset(T *p = pointer()) noexcept
 	{
-		if (addref && p != pointer())
+		if (p != pointer())
 			p->AddRef();
 		std::swap(m_ptr, p);
 		if (p != pointer())
@@ -254,7 +254,7 @@ template<typename T> class object_ptr {
 	}
 	object_ptr &operator=(const object_ptr &o) noexcept
 	{
-		reset(o.m_ptr, true);
+		reset(o.m_ptr);
 		return *this;
 	}
 	object_ptr &operator=(object_ptr &&o) noexcept
