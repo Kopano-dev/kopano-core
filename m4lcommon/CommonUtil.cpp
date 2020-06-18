@@ -1483,7 +1483,6 @@ HRESULT OpenSubFolder(LPMDB lpMDB, const wchar_t *folder, wchar_t psep,
 	memory_ptr<SPropValue> lpPropIPMSubtree, lpPropFolder;
 	ULONG			ulObjType;
 	object_ptr<IMAPIFolder> lpFoundFolder;
-	LPMAPIFOLDER	lpNewFolder = NULL;
 	const wchar_t *ptr = nullptr;
 
 	if(bIsPublic)
@@ -1511,6 +1510,7 @@ HRESULT OpenSubFolder(LPMDB lpMDB, const wchar_t *folder, wchar_t psep,
 	// Loop through the folder string to find the wanted folder in the store
 	do {
 		object_ptr<IMAPITable> lpTable;
+		object_ptr<IMAPIFolder> newfolder;
 		std::wstring subfld;
 
 		ptr = wcschr(folder, psep);
@@ -1524,15 +1524,14 @@ HRESULT OpenSubFolder(LPMDB lpMDB, const wchar_t *folder, wchar_t psep,
 			return kc_perror("Unable to view folder", hr);
 		hr = FindFolder(lpTable, subfld.c_str(), &~lpPropFolder);
 		if (hr == MAPI_E_NOT_FOUND && bCreateFolder) {
-			hr = lpFoundFolder->CreateFolder(FOLDER_GENERIC, (LPTSTR)subfld.c_str(), (LPTSTR)L"Auto-created by Kopano", &IID_IMAPIFolder, MAPI_UNICODE | OPEN_IF_EXISTS, &lpNewFolder);
+			hr = lpFoundFolder->CreateFolder(FOLDER_GENERIC, (LPTSTR)subfld.c_str(), (LPTSTR)L"Auto-created by Kopano", &IID_IMAPIFolder, MAPI_UNICODE | OPEN_IF_EXISTS, &~newfolder);
 			if (hr != hrSuccess)
 				return hr_lerr(hr, "Unable to create folder \"%ls\"", subfld.c_str());
 		} else if (hr != hrSuccess)
 			return hr;
 
-		if (lpNewFolder) {
-			lpFoundFolder.reset(lpNewFolder, false);
-			lpNewFolder = NULL;
+		if (newfolder) {
+			lpFoundFolder = std::move(newfolder);
 		} else {
 			hr = lpMDB->OpenEntry(lpPropFolder->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPropFolder->Value.bin.lpb),
 			     &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpFoundFolder);

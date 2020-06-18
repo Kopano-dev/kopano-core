@@ -337,10 +337,10 @@ HRESULT object_ptr<T>::QueryInterface(U &result)
 {
 	if (m_ptr == nullptr)
 		return MAPI_E_NOT_INITIALIZED;
-	typename U::pointer newobj = nullptr;
-	HRESULT hr = m_ptr->QueryInterface(iid_of(result), reinterpret_cast<void **>(&newobj));
+	U newobj;
+	HRESULT hr = m_ptr->QueryInterface(iid_of(result), &~newobj);
 	if (hr == hrSuccess)
-		result.reset(newobj, false);
+		result = std::move(newobj);
 	/*
 	 * Here we check if it makes sense to try to get the requested
 	 * interface through the PR_EC_OBJECT object. It only makes
@@ -362,9 +362,9 @@ HRESULT object_ptr<T>::QueryInterface(U &result)
 		if (HrGetOneProp(m_ptr, PR_EC_OBJECT, &~pv) != hrSuccess)
 			return hr; // hr is still MAPI_E_INTERFACE_NOT_SUPPORTED
 		auto unk = reinterpret_cast<IUnknown *>(pv->Value.lpszA);
-		hr = unk->QueryInterface(iid_of(newobj), reinterpret_cast<void **>(&newobj));
+		hr = unk->QueryInterface(iid_of(newobj), &~newobj);
 		if (hr == hrSuccess)
-			result.reset(newobj, false);
+			result = std::move(newobj);
 	}
 	return hr;
 }
