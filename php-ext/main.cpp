@@ -3034,18 +3034,16 @@ ZEND_FUNCTION(mapi_openproperty)
 	}
 
 	auto lpGUID = reinterpret_cast<const GUID *>(guidStr);
-	MAPI_G(hr) = lpMapiProp->OpenProperty(proptag, lpGUID, interfaceflags, flags, (LPUNKNOWN *) &lpUnk);
-
-	if (MAPI_G(hr) != hrSuccess)
-		return;
 
 	if (*lpGUID == IID_IStream) {
+		object_ptr<IStream> lpStream;
+		MAPI_G(hr) = lpMapiProp->OpenProperty(proptag, lpGUID, interfaceflags, flags, &~lpStream);
+		if (MAPI_G(hr) != hrSuccess)
+			return;
 		if(bBackwardCompatible) {
 			STATSTG stat;
 			ULONG cRead;
 
-			// do not use queryinterface, since we don't return the stream, but the contents
-			lpStream.reset(reinterpret_cast<IStream *>(static_cast<void *>(lpUnk)), false);
 			MAPI_G(hr) = lpStream->Stat(&stat, STATFLAG_NONAME);
 			if(MAPI_G(hr) != hrSuccess)
 				return;
@@ -3067,9 +3065,15 @@ ZEND_FUNCTION(mapi_openproperty)
 			RETVAL_STRINGL(data, cRead);
                         efree(data);
 		} else {
-			ZEND_REGISTER_RESOURCE(return_value, lpUnk, le_istream);
+			ZEND_REGISTER_RESOURCE(return_value, lpStream.release(), le_istream);
 		}
-	} else if(*lpGUID == IID_IMAPITable) {
+		return;
+	}
+
+	MAPI_G(hr) = lpMapiProp->OpenProperty(proptag, lpGUID, interfaceflags, flags, reinterpret_cast<IUnknown **>(&lpUnk));
+	if (MAPI_G(hr) != hrSuccess)
+		return;
+	if (*lpGUID == IID_IMAPITable) {
 		ZEND_REGISTER_RESOURCE(return_value, lpUnk, le_mapi_table);
 	} else if(*lpGUID == IID_IMessage) {
 		ZEND_REGISTER_RESOURCE(return_value, lpUnk, le_mapi_message);
