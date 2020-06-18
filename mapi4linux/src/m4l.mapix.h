@@ -118,6 +118,7 @@ private:
 
 public:
 	M4LMAPISession(const TCHAR *profname, M4LMsgServiceAdmin *);
+	virtual ULONG Release() override;
 	virtual HRESULT GetLastError(HRESULT, unsigned int flags, MAPIERROR **) override;
 	virtual HRESULT GetMsgStoresTable(unsigned int flags, IMAPITable **) override;
 	virtual HRESULT OpenMsgStore(ULONG_PTR ui_param, ULONG eid_size, const ENTRYID *, const IID *intf, ULONG flags, IMsgStore **) override;
