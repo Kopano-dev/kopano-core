@@ -40,72 +40,6 @@
 #include <kopano/mapi_ptr.h>
 #include <kopano/charset/convstring.h>
 
-#define N_ARGS(...) N_ARGS_HELPER1((__VA_ARGS__, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0))
-#define N_ARGS_HELPER1(tuple) N_ARGS_HELPER2 tuple
-#define N_ARGS_HELPER2(x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, x16, x17, x18, x19, x20, n, ...) n
-#define ARGLISTSET(...) ARGLISTSET_HELPER1(N_ARGS(__VA_ARGS__), __VA_ARGS__)
-#define ARGLISTSET_HELPER1(n, ...) ARGLISTSET_HELPER2(n, (__VA_ARGS__))
-#define ARGLISTSET_HELPER2(n, tuple) ARGLISTSET_HELPER3(n, tuple)
-#define ARGLISTSET_HELPER3(n, tuple) ARGLISTSET_##n tuple
-#define ARGLISTSET_1(v)
-#define ARGLISTSET_2(t1, a1) t1 a1
-#define ARGLISTSET_4(t1, a1, t2, a2) t1 a1, t2 a2
-#define ARGLIST(...) ARGLIST_HELPER1(N_ARGS(__VA_ARGS__), __VA_ARGS__)
-#define ARGLIST_HELPER1(n, ...) ARGLIST_HELPER2(n, (__VA_ARGS__))
-#define ARGLIST_HELPER2(n, tuple) ARGLIST_HELPER3(n, tuple)
-#define ARGLIST_HELPER3(n, tuple) ARGLIST_ ##n tuple
-#define ARGLIST_1(s1) ARGLISTSET s1
-#define ARGLIST_2(s1, s2) ARGLISTSET s1, ARGLISTSET s2
-#define ARGLIST_3(s1, s2, s3) ARGLISTSET s1, ARGLISTSET s2, ARGLISTSET s3
-#define ARGLIST_4(s1, s2, s3, s4) ARGLISTSET s1, ARGLISTSET s2, ARGLISTSET s3, ARGLISTSET s4
-#define ARGLIST_5(s1, s2, s3, s4, s5) ARGLISTSET s1, ARGLISTSET s2, ARGLISTSET s3, ARGLISTSET s4, ARGLISTSET s5
-#define ARGLIST_6(s1, s2, s3, s4, s5, s6) ARGLISTSET s1, ARGLISTSET s2, ARGLISTSET s3, ARGLISTSET s4, ARGLISTSET s5, ARGLISTSET s6
-#define ARGLIST_7(s1, s2, s3, s4, s5, s6, s7) ARGLISTSET s1, ARGLISTSET s2, ARGLISTSET s3, ARGLISTSET s4, ARGLISTSET s5, ARGLISTSET s6, ARGLISTSET s7
-#define ARGLIST_8(s1, s2, s3, s4, s5, s6, s7, s8) ARGLISTSET s1, ARGLISTSET s2, ARGLISTSET s3, ARGLISTSET s4, ARGLISTSET s5, ARGLISTSET s6, ARGLISTSET s7, ARGLISTSET s8
-#define ARGLIST_9(s1, s2, s3, s4, s5, s6, s7, s8, s9) ARGLISTSET s1, ARGLISTSET s2, ARGLISTSET s3, ARGLISTSET s4, ARGLISTSET s5, ARGLISTSET s6, ARGLISTSET s7, ARGLISTSET s8, ARGLISTSET s9
-#define ARGLIST_10(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10) ARGLISTSET s1, ARGLISTSET s2, ARGLISTSET s3, ARGLISTSET s4, ARGLISTSET s5, ARGLISTSET s6, ARGLISTSET s7, ARGLISTSET s8, ARGLISTSET s9, ARGLISTSET s10
-#define ARGLIST_11(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11) ARGLISTSET s1, ARGLISTSET s2, ARGLISTSET s3, ARGLISTSET s4, ARGLISTSET s5, ARGLISTSET s6, ARGLISTSET s7, ARGLISTSET s8, ARGLISTSET s9, ARGLISTSET s10, ARGLISTSET s11
-#define ARGSSET(...) ARGSSET_HELPER1(N_ARGS(__VA_ARGS__), __VA_ARGS__)
-#define ARGSSET_HELPER1(n, ...) ARGSSET_HELPER2(n, (__VA_ARGS__))
-#define ARGSSET_HELPER2(n, tuple) ARGSSET_HELPER3(n, tuple)
-#define ARGSSET_HELPER3(n, tuple) ARGSSET_##n tuple
-#define ARGSSET_1(v)
-#define ARGSSET_2(t1, a1) a1
-#define ARGSSET_4(t1, a1, t2, a2) a1, a2
-#define ARGS(...) ARGS_HELPER1(N_ARGS(__VA_ARGS__), __VA_ARGS__)
-#define ARGS_HELPER1(n, ...) ARGS_HELPER2(n, (__VA_ARGS__))
-#define ARGS_HELPER2(n, tuple) ARGS_HELPER3(n, tuple)
-#define ARGS_HELPER3(n, tuple) ARGS_##n tuple
-#define ARGS_1(s1) ARGSSET s1
-#define ARGS_2(s1, s2) ARGSSET s1, ARGSSET s2
-#define ARGS_3(s1, s2, s3) ARGSSET s1, ARGSSET s2, ARGSSET s3
-#define ARGS_4(s1, s2, s3, s4) ARGSSET s1, ARGSSET s2, ARGSSET s3, ARGSSET s4
-#define ARGS_5(s1, s2, s3, s4, s5) ARGSSET s1, ARGSSET s2, ARGSSET s3, ARGSSET s4, ARGSSET s5
-#define ARGS_6(s1, s2, s3, s4, s5, s6) ARGSSET s1, ARGSSET s2, ARGSSET s3, ARGSSET s4, ARGSSET s5, ARGSSET s6
-#define ARGS_7(s1, s2, s3, s4, s5, s6, s7) ARGSSET s1, ARGSSET s2, ARGSSET s3, ARGSSET s4, ARGSSET s5, ARGSSET s6, ARGSSET s7
-#define ARGS_8(s1, s2, s3, s4, s5, s6, s7, s8) ARGSSET s1, ARGSSET s2, ARGSSET s3, ARGSSET s4, ARGSSET s5, ARGSSET s6, ARGSSET s7, ARGSSET s8
-#define ARGS_9(s1, s2, s3, s4, s5, s6, s7, s8, s9) ARGSSET s1, ARGSSET s2, ARGSSET s3, ARGSSET s4, ARGSSET s5, ARGSSET s6, ARGSSET s7, ARGSSET s8, ARGSSET s9
-#define ARGS_10(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10) ARGSSET s1, ARGSSET s2, ARGSSET s3, ARGSSET s4, ARGSSET s5, ARGSSET s6, ARGSSET s7, ARGSSET s8, ARGSSET s9, ARGSSET s10
-#define ARGS_11(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11) ARGSSET s1, ARGSSET s2, ARGSSET s3, ARGSSET s4, ARGSSET s5, ARGSSET s6, ARGSSET s7, ARGSSET s8, ARGSSET s9, ARGSSET s10, ARGSSET s11
-#define XCLASS(iface) x ## iface
-#define CLASSMETHOD(cls, method) cls::method
-#define METHODSTR_HELPER1(method) METHODSTR_HELPER2(method)
-#define METHODSTR_HELPER2(method) #method
-#define DEF_ULONGMETHOD1(trace, cls, iface, method, ...) \
-unsigned int CLASSMETHOD(cls, CLASSMETHOD(XCLASS(iface), method))(ARGLIST(__VA_ARGS__)) \
-{ \
-	METHOD_PROLOGUE_(cls, iface); \
-	return pThis->method(ARGS(__VA_ARGS__)); \
-}
-
-/* without exception passthrough */
-#define DEF_HRMETHOD1(trace, cls, iface, method, ...) \
-HRESULT CLASSMETHOD(cls, CLASSMETHOD(XCLASS(iface), method))(ARGLIST(__VA_ARGS__)) \
-{ \
-	METHOD_PROLOGUE_(cls, iface); \
-	return pThis->method(ARGS(__VA_ARGS__)); \
-}
-
 using namespace KC;
 typedef object_ptr<WSTransport> WSTransportPtr;
 
@@ -226,28 +160,9 @@ HRESULT ECMsgStore::QueryInterface(REFIID refiid, void **lppInterface)
 	REGISTER_INTERFACE2(IECServiceAdmin, this);
 	REGISTER_INTERFACE2(IECSpooler, this);
 	REGISTER_INTERFACE2(IECSecurity, this);
-	REGISTER_INTERFACE2(IProxyStoreObject, this);
-
-	if (refiid == IID_ECMsgStoreOnline)
-	{
-		*lppInterface = static_cast<IMsgStore *>(this);
-		AddRef();
-		return hrSuccess;
-	}
 	// is admin store?
-	REGISTER_INTERFACE2(IECTestProtocol, &m_xMsgStoreProxy);
+	REGISTER_INTERFACE2(IECTestProtocol, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
-}
-
-HRESULT ECMsgStore::QueryInterfaceProxy(REFIID refiid, void **lppInterface)
-{
-	if (refiid == IID_IProxyStoreObject) // block recusive proxy calls
-		return MAPI_E_INTERFACE_NOT_SUPPORTED;
-
-	REGISTER_INTERFACE2(IMsgStore, &m_xMsgStoreProxy);
-	REGISTER_INTERFACE2(IMAPIProp, &m_xMsgStoreProxy);
-	REGISTER_INTERFACE2(IUnknown, &m_xMsgStoreProxy);
-	return QueryInterface(refiid, lppInterface);
 }
 
 ULONG ECMsgStore::Release()
@@ -2508,17 +2423,6 @@ HRESULT ECMsgStore::DeleteFromMasterOutgoingTable(ULONG cbEntryId,
 	return lpTransport->HrFinishedMessage(cbEntryId, lpEntryId, EC_SUBMIT_MASTER | ulFlags);
 }
 
-// ProxyStoreObject
-HRESULT ECMsgStore::UnwrapNoRef(LPVOID *ppvObject)
-{
-	if (ppvObject == NULL)
-		return MAPI_E_INVALID_PARAMETER;
-
-	// Because the function UnwrapNoRef return a non referenced object, QueryInterface isn't needed.
-	*ppvObject = static_cast<IMsgStore *>(&m_xMsgStoreProxy);
-	return hrSuccess;
-}
-
 HRESULT ECMsgStore::TestPerform(const char *szCommand, unsigned int ulArgs,
     char **lpszArgs)
 {
@@ -2640,45 +2544,6 @@ HRESULT ECMsgStore::enable_transaction(bool x)
 	m_transact = x;
 	return ret;
 }
-
-// IMsgStoreProxy interface
-DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, AddRef, (void))
-DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, Release, (void))
-
-HRESULT ECMsgStore::xMsgStoreProxy::QueryInterface(REFIID refiid, void **lppInterface) {
-	METHOD_PROLOGUE_(ECMsgStore, MsgStoreProxy);
-	return pThis->QueryInterfaceProxy(refiid, lppInterface);
-}
-
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, Advise, (ULONG, eid_size), (const ENTRYID *, eid), (ULONG, evt_mask), (IMAPIAdviseSink *, sink), (ULONG *, conn))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, Unadvise, (ULONG, ulConnection))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, CompareEntryIDs, (ULONG, cbEntryID1), (const ENTRYID *, lpEntryID1), (ULONG, cbEntryID2), (const ENTRYID *, lpEntryID2), (ULONG, ulFlags), (ULONG *, lpulResult))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, OpenEntry, (ULONG, cbEntryID), (const ENTRYID *, lpEntryID), (const IID *, lpInterface), (ULONG, ulFlags), (ULONG *, lpulObjType), (IUnknown **, lppUnk))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, SetReceiveFolder, (const TCHAR *, cls), (ULONG, flags), (ULONG, eid_size), (const ENTRYID *, eid))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, GetReceiveFolder, (const TCHAR *, cls), (ULONG, flags), (ULONG *, eid_size), (ENTRYID **, eid), (TCHAR **, exp_class))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, GetReceiveFolderTable, (ULONG, ulFlags), (LPMAPITABLE *, lppTable))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, StoreLogoff, (ULONG *, lpulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, AbortSubmit, (ULONG, eid_size), (const ENTRYID *, eid), (ULONG, flags))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, GetOutgoingQueue, (ULONG, ulFlags), (LPMAPITABLE *, lppTable))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, SetLockState, (LPMESSAGE, lpMessage), (ULONG, ulLockState))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, FinishedMsg, (ULONG, flags), (ULONG, eid_size), (const ENTRYID *, eid))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, NotifyNewMail, (const NOTIFICATION *, lpNotification))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, GetLastError, (HRESULT, hError), (ULONG, ulFlags), (LPMAPIERROR *, lppMapiError))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, SaveChanges, (ULONG, ulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, GetProps, (const SPropTagArray *, lpPropTagArray), (ULONG, ulFlags), (ULONG *, lpcValues), (SPropValue **, lppPropArray))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, GetPropList, (ULONG, ulFlags), (LPSPropTagArray *, lppPropTagArray))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, OpenProperty, (ULONG, ulPropTag), (LPCIID, lpiid), (ULONG, ulInterfaceOptions), (ULONG, ulFlags), (LPUNKNOWN *, lppUnk))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, SetProps, (ULONG, cValues), (const SPropValue *, lpPropArray), (SPropProblemArray **, lppProblems))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, DeleteProps, (const SPropTagArray *, lpPropTagArray), (SPropProblemArray **, lppProblems))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, CopyTo, (ULONG, ciidExclude), (LPCIID, rgiidExclude), (const SPropTagArray *, lpExcludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (void *, lpDestObj), (ULONG, ulFlags), (SPropProblemArray **, lppProblems))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, CopyProps, (const SPropTagArray *, lpIncludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (void *, lpDestObj), (ULONG, ulFlags), (SPropProblemArray **, lppProblems))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, GetNamesFromIDs, (SPropTagArray **, tags), (const GUID *, propset), (ULONG, flags), (ULONG *, nvals), (MAPINAMEID ***, names))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, GetIDsFromNames, (ULONG, cNames), (LPMAPINAMEID *, ppNames), (ULONG, ulFlags), (LPSPropTagArray *, pptaga))
-
-// IECTestProtocol interface
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, TestPerform, (const char *, cmd), (unsigned int, argc), (char **, args))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, TestSet, (const char *, name), (const char *, value))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, TestGet, (const char *, name), (char **, value))
 
 ECMSLogon::ECMSLogon(ECMsgStore *lpStore) :
 	m_lpStore(lpStore)

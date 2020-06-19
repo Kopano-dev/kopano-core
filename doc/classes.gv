@@ -116,7 +116,6 @@ digraph {
 	ECMsgStore -> IECTestProtocol;
 	ECMsgStore -> IExchangeManageStore;
 	ECMsgStore -> IMsgStore;
-	ECMsgStore -> IProxyStoreObject;
 	ECParentStorage -> ECUnknown;
 	ECParentStorage -> IECPropStorage;
 	ECRulesTableProxy -> ECUnknown;

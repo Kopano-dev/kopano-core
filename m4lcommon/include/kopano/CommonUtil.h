@@ -42,7 +42,6 @@ extern KC_EXPORT const char *GetServerUnixSocket(const char *pref = nullptr);
 extern KC_EXPORT HRESULT HrOpenECAdminSession(IMAPISession **, const char *const app_ver, const char *app_misc, const char *path = nullptr, unsigned int profflags = 0, const char *sslkey_file = nullptr, const char *sslkey_password = nullptr);
 extern KC_EXPORT HRESULT HrOpenECSession(IMAPISession **ses, const char *app_ver, const char *app_misc, const char *user, const char *pass, const char *path = nullptr, unsigned int profile_flags = 0, const char *sslkey_file = nullptr, const char *sslkey_password = nullptr, const char *profname = nullptr);
 extern KC_EXPORT HRESULT HrOpenECSession(IMAPISession **ses, const char *app_ver, const char *app_misc, const wchar_t *user, const wchar_t *pass, const char *path = nullptr, unsigned int profile_flags = 0, const char *sslkey_file = nullptr, const char *sslkey_password = nullptr, const char *profname = nullptr);
-extern KC_EXPORT HRESULT HrOpenECPublicStoreOnline(IMAPISession *, IMsgStore **ret);
 extern KC_EXPORT HRESULT ECCreateOneOff(const TCHAR * name, const TCHAR * addrtype, const TCHAR * addr, unsigned int flags, unsigned int *eid_size, ENTRYID **eid);
 extern KC_EXPORT HRESULT ECParseOneOff(const ENTRYID *eid, unsigned int eid_size, std::wstring &name, std::wstring &type, std::wstring &addr);
 extern KC_EXPORT HRESULT HrNewMailNotification(IMsgStore *, IMessage *);

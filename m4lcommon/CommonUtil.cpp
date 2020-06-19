@@ -337,32 +337,6 @@ HRESULT HrOpenDefaultStore(IMAPISession *lpMAPISession, IMsgStore **lppMsgStore)
 	return HrOpenDefaultStore(lpMAPISession, MDB_WRITE | MDB_NO_DIALOG | MDB_NO_MAIL | MDB_TEMPORARY, lppMsgStore);
 }
 
-static HRESULT GetProxyStoreObject(IMsgStore *lpMsgStore, IMsgStore **lppMsgStore)
-{
-	object_ptr<IProxyStoreObject> lpProxyStoreObject;
-	IUnknown *lpECMsgStore = nullptr;
-	memory_ptr<SPropValue> lpPropValue;
-
-	if (lpMsgStore == nullptr || lppMsgStore == nullptr)
-		return MAPI_E_INVALID_PARAMETER;
-	if (lpMsgStore->QueryInterface(IID_IProxyStoreObject, &~lpProxyStoreObject) == hrSuccess) {
-		auto hr = lpProxyStoreObject->UnwrapNoRef(reinterpret_cast<void **>(lppMsgStore));
-		if (hr != hrSuccess)
-			return hr;
-		(*lppMsgStore)->AddRef();
-		return hrSuccess;
-	} else if (HrGetOneProp(lpMsgStore, PR_EC_OBJECT, &~lpPropValue) == hrSuccess) {
-		lpECMsgStore = reinterpret_cast<IUnknown *>(lpPropValue->Value.lpszA);
-		if (lpECMsgStore == nullptr)
-			return MAPI_E_INVALID_PARAMETER;
-		return lpECMsgStore->QueryInterface(IID_IMsgStore, reinterpret_cast<void **>(lppMsgStore));
-	}
-	// Possible object already wrapped, gives the original object back
-	(*lppMsgStore) = lpMsgStore;
-	(*lppMsgStore)->AddRef();
-	return hrSuccess;
-}
-
 HRESULT HrOpenDefaultStore(IMAPISession *lpMAPISession, ULONG ulFlags, IMsgStore **lppMsgStore) {
 	ULONG			cbEntryID = 0;
 	memory_ptr<ENTRYID> lpEntryID;
@@ -376,18 +350,6 @@ HRESULT HrOpenDefaultStore(IMAPISession *lpMAPISession, ULONG ulFlags, IMsgStore
 
 HRESULT HrOpenECPublicStore(IMAPISession *lpMAPISession, IMsgStore **lppMsgStore){
 	return HrOpenECPublicStore(lpMAPISession, MDB_WRITE | MDB_NO_DIALOG | MDB_NO_MAIL | MDB_TEMPORARY, lppMsgStore);
-}
-
-HRESULT HrOpenECPublicStoreOnline(IMAPISession *lpMAPISession, IMsgStore **lppMsgStore)
-{
-	object_ptr<IMsgStore> lpMsgStore, lpProxedMsgStore;
-	auto hr = HrOpenECPublicStore(lpMAPISession, MDB_WRITE | MDB_NO_DIALOG | MDB_NO_MAIL | MDB_TEMPORARY, &~lpMsgStore);
-	if(hr != hrSuccess)
-		return hr;
-	hr = GetProxyStoreObject(lpMsgStore, &~lpProxedMsgStore);
-	if (hr != hrSuccess)
-		return hr;
-	return lpProxedMsgStore->QueryInterface(IID_ECMsgStoreOnline, reinterpret_cast<void **>(lppMsgStore));
 }
 
 static HRESULT HrOpenECPublicStore(IMAPISession *lpMAPISession, ULONG ulFlags,
