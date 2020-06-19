@@ -55,7 +55,6 @@ stamp-h2
 /kopano-vcfimport
 /kscriptrun
 /mapitime
-/rosie-test
 /rtfcomp
 /gateway/doveauth.sym
 /gateway/dovestore.sym
@@ -95,7 +94,6 @@ stamp-h2
 /tests/kc-335
 /tests/mapialloctime
 /tests/readflag
-/tests/rosie
 /tests/ustring
 /tests/zcpmd5
 /tests/chtmltotextparsertest

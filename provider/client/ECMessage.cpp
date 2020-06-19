@@ -70,7 +70,6 @@ ECMessage::ECMessage(ECMsgStore *lpMsgStore, BOOL is_new, BOOL modify,
 	HrAddPropHandlers(PR_RTF_COMPRESSED, GetPropHandler, DefaultSetPropSetReal, this, false, false);
 	// Workaround for support html in outlook 2000/xp need SetPropHandler
 	HrAddPropHandlers(PR_HTML, GetPropHandler, SetPropHandler, this, false, false);
-	HrAddPropHandlers(PR_EC_BODY_FILTERED, GetPropHandler, SetPropHandler, this, false, false);
 
 	// The property 0x10970003 is set by outlook when browsing in the 'unread mail' searchfolder. It is used to make sure
 	// that a message that you just read is not removed directly from view. It is set for each message which should be in the view
@@ -1889,58 +1888,6 @@ HRESULT ECMessage::GetPropHandler(unsigned int ulPropTag, void *lpProvider,
 		lpsPropValue->ulPropTag = PR_MESSAGE_RECIPIENTS;
 		lpsPropValue->Value.x = 1;
 		break;
-	case PROP_ID(PR_EC_BODY_FILTERED): {
-#ifdef HAVE_TIDYBUFFIO_H
-		// does it already exist? (e.g. inserted by dagent/gateway)
-		hr = lpMessage->HrGetRealProp(PR_EC_BODY_FILTERED, ulFlags, lpBase, lpsPropValue);
-		if (hr == hrSuccess) // yes, then use that
-			break;
-		const char *codepage;
-		hr = lpMessage->HrGetRealProp(PR_INTERNET_CPID, ulFlags, lpBase, lpsPropValue);
-		if (hr != hrSuccess || HrGetCharsetByCP(lpsPropValue->Value.ul, &codepage) != hrSuccess)
-			codepage = "iso-8859-15"; /* [MS-OXCMAIL] §2.1.3.3.1 */
-
-		lpsPropValue->ulPropTag = PR_EC_BODY_FILTERED;
-		/* generate it on the fly */
-		memory_ptr<SPropValue> tprop;
-		hr = MAPIAllocateBuffer(sizeof(SPropValue), &~tprop);
-		if (hr != hrSuccess)
-			break;
-		hr = lpMessage->GetSyncedBodyProp(PR_HTML, ulFlags, tprop, tprop);
-		if (hr != hrSuccess) {
-			hr = MAPI_E_NOT_FOUND;
-			break;
-		}
-
-		std::string result, fltblk = convert_to<std::string>("UTF-8", reinterpret_cast<const char *>(tprop->Value.bin.lpb), tprop->Value.bin.cb, codepage);
-		std::vector<std::string> errors;
-		bool rc = rosie_clean_html(fltblk, &result, &errors);
-
-		// FIXME emit error somewhere somehow
-		if (rc) {
-			result = convert_to<std::string>((codepage + std::string("//IGNORE")).c_str(), result.c_str(), result.size(), "UTF-8");
-			ULONG ulSize = result.size();
-
-			hr = ECAllocateMore(ulSize + 1, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
-			if (hr == hrSuccess) {
-				memcpy(lpsPropValue->Value.bin.lpb, result.c_str(), ulSize);
-				lpsPropValue->Value.bin.lpb[ulSize] = '\0';
-				// FIXME store in database if that is what the SysOp wants
-			} else {
-				ulSize = 0;
-			}
-			lpsPropValue->Value.bin.cb = ulSize;
-		}
-		if (rc == 0 || hr != hrSuccess) {
-			hr = MAPI_E_NOT_FOUND;
-			break;
-		}
-		break;
-#else
-		hr = MAPI_E_NO_SUPPORT;
-		break;
-#endif
-	}
 	case PROP_ID(PR_BODY):
 	case PROP_ID(PR_RTF_COMPRESSED):
 	case PROP_ID(PR_HTML): {

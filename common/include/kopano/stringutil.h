@@ -122,7 +122,7 @@ extern KC_EXPORT std::string urlEncode(const std::wstring &, const char *charset
 extern KC_EXPORT std::string urlEncode(const wchar_t *input, const char *charset);
 extern KC_EXPORT std::string urlDecode(const std::string &);
 extern KC_EXPORT void BufferLFtoCRLF(size_t size, const char *input, char *output, size_t *outsize);
-extern KC_EXPORT void StringCRLFtoLF(const std::wstring &in, std::wstring *out);
+extern KC_EXPORT std::wstring StringCRLFtoLF(std::wstring &&);
 extern KC_EXPORT void StringLFtoCRLF(std::string &inout);
 extern KC_EXPORT void StringTabtoSpaces(const std::wstring &in, std::wstring *out);
 

@@ -155,7 +155,6 @@ VMIMEToMAPI::VMIMEToMAPI() :
 {
 	imopt_default_delivery_options(&m_dopt);
 	m_dopt.use_received_date = false; // use Date header
-	m_dopt.html_safety_filter = false;
 }
 
 /**
@@ -2128,44 +2127,6 @@ HRESULT VMIMEToMAPI::handleTextpart(vmime::shared_ptr<vmime::header> vmHeader,
 	return hrSuccess;
 }
 
-static bool filter_html(IMessage *msg, IStream *stream, ULONG flags,
-    const std::string &html)
-{
-#ifdef HAVE_TIDYBUFFIO_H
-	std::string clean_html;
-	std::vector<std::string> error;
-
-	bool clean_ok = rosie_clean_html(html, &clean_html, &error);
-	for (size_t i = 0; i < error.size(); ++i)
-		ec_log_debug("HTML clean: %s", error[i].c_str());
-	if (!clean_ok)
-		return false;
-	auto ret = msg->OpenProperty(PR_EC_BODY_FILTERED, &IID_IStream,
-	           STGM_TRANSACTED, flags, reinterpret_cast<LPUNKNOWN *>(&stream));
-	if (ret != hrSuccess) {
-		ec_log_warn("OpenProperty(PR_EC_BODY_FILTERED) failed: %s (%x)",
-			GetMAPIErrorMessage(ret), ret);
-		return false;
-	}
-
-	ULONG written = 0;
-	ret = stream->Write(clean_html.c_str(), clean_html.length(), &written);
-	if (ret != hrSuccess) {
-		/* check cbWritten too? */
-		ec_log_warn("Write(PR_EC_BODY_FILTERED) failed: %s (%x)",
-			GetMAPIErrorMessage(ret), ret);
-		return false;
-	}
-	ret = stream->Commit(0);
-	if (ret != hrSuccess) {
-		ec_log_warn("Commit(PR_EC_BODY_FILTERED) failed: %s (%x)",
-			GetMAPIErrorMessage(ret), ret);
-		return false;
-	}
-#endif
-	return true;
-}
-
 /**
  * Converts a html body to the MAPI PR_HTML property using
  * streams. Clients syncs this to PR_BODY and PR_RTF_COMPRESSED
@@ -2314,11 +2275,6 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::shared_ptr<vmime::header> vmHeade
 			sCodepage.Value.ul = 65001;
 			strHTML = m_converter.convert_to<std::string>("UTF-8", strHTML, rawsize(strHTML), cs_cand[cs_best].c_str());
 			ec_log_info("No Win32 CPID for \"%s\" - upgrading text/html MIME body to UTF-8", cs_cand[cs_best].c_str());
-		} else if (m_dopt.html_safety_filter) {
-			sCodepage.Value.ul = 65001;
-			strHTML = m_converter.convert_to<std::string>("UTF-8", strHTML, rawsize(strHTML), cs_cand[cs_best].c_str());
-			/* libtidy only knows a very limited subset */
-			ec_log_debug("Upgrading HTML to UTF-8 because of libtidy");
 		}
 
 		if (bAppendBody && m_mailState.bodyLevel == BODY_HTML && m_mailState.ulLastCP && sCodepage.Value.ul != m_mailState.ulLastCP) {
@@ -2402,8 +2358,6 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::shared_ptr<vmime::header> vmHeade
 		m_mailState.strHTMLBody.append(strHTML);
 	else
 		swap(strHTML, m_mailState.strHTMLBody);
-	if (m_dopt.html_safety_filter)
-		filter_html(lpMessage, lpHTMLStream, ulFlags, m_mailState.strHTMLBody);
 	return hrSuccess;
 }
 
@@ -3545,7 +3499,6 @@ void imopt_default_delivery_options(delivery_options *dopt) {
 	dopt->user_entryid = NULL;
 	dopt->parse_smime_signed = false;
 	dopt->ascii_upgrade = nullptr;
-	dopt->html_safety_filter = false;
 	dopt->header_strict_rfc = false;
 	dopt->conversion_notices = false;
 }
