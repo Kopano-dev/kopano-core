@@ -2474,7 +2474,7 @@ int main(int argc, char **argv)
 			}
 			goto exit;
 		}
-		lpMsgStore.reset(ptrRemoteStore.release(), false);
+		lpMsgStore = std::move(ptrRemoteStore);
 	}
 
 	hr = GetECObject(lpMsgStore, iid_of(lpServiceAdmin), &~lpServiceAdmin);

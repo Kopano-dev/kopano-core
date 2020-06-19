@@ -181,8 +181,15 @@ template<typename T> class object_rcguard final : public T {
 };
 
 /**
- * Works a bit like shared_ptr, except that the refcounting is in the
- * underlying object (T) rather than this class.
+ * Works a bit like shared_ptr, differences being:
+ *
+ * 1. object_ptr requires that T provides IUnknown functions AddRef and
+ *    Release.
+ * 2. Due to IUnknown, the control block with the refcounts is always part of
+ *    the object (by way of inheritance) rather than being "bolted-on" through
+ *    the template.
+ * 3. As a result of (2), enable_shared_from_this-like functionality
+ *    ("object_ptr<T>(this);") is provided at no extra cost.
  */
 template<typename T> class object_ptr {
 	public:
@@ -202,7 +209,7 @@ template<typename T> class object_ptr {
 	}
 	object_ptr(const object_ptr &o)
 	{
-		reset(o.m_ptr, true);
+		reset(o.m_ptr);
 	}
 	object_ptr(object_ptr &&o)
 	{
@@ -231,9 +238,9 @@ template<typename T> class object_ptr {
 		m_ptr = pointer();
 		return p;
 	}
-	void reset(T *p = pointer(), bool addref = true) noexcept
+	void reset(T *p = pointer()) noexcept
 	{
-		if (addref && p != pointer())
+		if (p != pointer())
 			p->AddRef();
 		std::swap(m_ptr, p);
 		if (p != pointer())
@@ -254,7 +261,7 @@ template<typename T> class object_ptr {
 	}
 	object_ptr &operator=(const object_ptr &o) noexcept
 	{
-		reset(o.m_ptr, true);
+		reset(o.m_ptr);
 		return *this;
 	}
 	object_ptr &operator=(object_ptr &&o) noexcept
@@ -337,10 +344,10 @@ HRESULT object_ptr<T>::QueryInterface(U &result)
 {
 	if (m_ptr == nullptr)
 		return MAPI_E_NOT_INITIALIZED;
-	typename U::pointer newobj = nullptr;
-	HRESULT hr = m_ptr->QueryInterface(iid_of(result), reinterpret_cast<void **>(&newobj));
+	U newobj;
+	HRESULT hr = m_ptr->QueryInterface(iid_of(result), &~newobj);
 	if (hr == hrSuccess)
-		result.reset(newobj, false);
+		result = std::move(newobj);
 	/*
 	 * Here we check if it makes sense to try to get the requested
 	 * interface through the PR_EC_OBJECT object. It only makes
@@ -362,9 +369,9 @@ HRESULT object_ptr<T>::QueryInterface(U &result)
 		if (HrGetOneProp(m_ptr, PR_EC_OBJECT, &~pv) != hrSuccess)
 			return hr; // hr is still MAPI_E_INTERFACE_NOT_SUPPORTED
 		auto unk = reinterpret_cast<IUnknown *>(pv->Value.lpszA);
-		hr = unk->QueryInterface(iid_of(newobj), reinterpret_cast<void **>(&newobj));
+		hr = unk->QueryInterface(iid_of(newobj), &~newobj);
 		if (hr == hrSuccess)
-			result.reset(newobj, false);
+			result = std::move(newobj);
 	}
 	return hr;
 }

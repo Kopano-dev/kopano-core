@@ -86,9 +86,8 @@ HRESULT Transaction::PurgeDeletes(ArchiverSessionPtr ptrSession, TransactionPtr 
 HRESULT Transaction::Save(IMessage *lpMessage, bool bDeleteOnFailure, const PostSaveActionPtr &ptrPSAction)
 {
 	SaveEntry se;
-	lpMessage->AddRef();
 	se.bDeleteOnFailure = bDeleteOnFailure;
-	se.ptrMessage.reset(lpMessage, false);
+	se.ptrMessage.reset(lpMessage);
 	se.ptrPSAction = ptrPSAction;
 	m_lstSave.emplace_back(std::move(se));
 	return hrSuccess;
