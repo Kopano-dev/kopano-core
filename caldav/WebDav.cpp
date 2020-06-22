@@ -78,7 +78,6 @@ HRESULT WebDav::HrParseXml()
  */
 HRESULT WebDav::HrPropfind()
 {
-	WEBDAVPROPSTAT sPropStat;
 	WEBDAVRESPONSE sDavResp;
 	WEBDAVMULTISTATUS sDavMStatus;
 	WEBDAVREQSTPROPS sDavReqsProps;
@@ -117,7 +116,7 @@ HRESULT WebDav::HrPropfind()
 	 * Call to CALDAV::HrHandlePropfind
 	 * This function Retrieves data from server and adds it to the structure.
 	 */
-	sDavReqsProps.sProp = sDavPropRet;
+	sDavReqsProps.sProp = std::move(sDavPropRet);
 	hr = HrHandlePropfind(&sDavReqsProps, &sDavMStatus);
 	if (hr != hrSuccess)
 		goto exit;
@@ -836,10 +835,8 @@ HRESULT WebDav::HrWriteSResponse(xmlTextWriter *xmlWriter,
     std::string *lpstrNsPrefix, const WEBDAVRESPONSE &sResponse)
 {
 	HRESULT hr;
-	WEBDAVRESPONSE sWebResp;
 	int ulRet;
-
-	sWebResp = sResponse;
+	const auto &sWebResp = sResponse;
 	// <response>
 	hr = WriteNode(xmlWriter, sWebResp.sPropName, lpstrNsPrefix);
 	if (hr != hrSuccess)
@@ -948,17 +945,15 @@ HRESULT WebDav::HrWriteSPropStat(xmlTextWriter *xmlWriter,
     std::string *lpstrNsPrefix, const WEBDAVPROPSTAT &lpsPropStat)
 {
 	HRESULT hr;
-	WEBDAVPROPSTAT sWebPropStat;
-	WEBDAVPROP sWebProp;
 	int ulRet;
 
-	sWebPropStat = lpsPropStat;
+	const auto &sWebPropStat = lpsPropStat;
 	//<propstat>
 	hr = WriteNode(xmlWriter, sWebPropStat.sPropName,lpstrNsPrefix);
 	if (hr != hrSuccess)
 		return hr;
 
-	sWebProp = sWebPropStat.sProp;
+	const auto &sWebProp = sWebPropStat.sProp;
 
 	//<prop>
 	hr = WriteNode(xmlWriter, sWebProp.sPropName,lpstrNsPrefix);
@@ -1047,7 +1042,6 @@ HRESULT WebDav::HrWriteItems(xmlTextWriter *xmlWriter,
     std::string *lpstrNsPrefix, WEBDAVPROPERTY *lpsWebProperty)
 {
 	HRESULT hr;
-	WEBDAVITEM sDavItem;
 	ULONG ulDepthPrev = 0;
 	ULONG ulDepthCur = 0;
 	bool blFirst = true;
@@ -1055,7 +1049,7 @@ HRESULT WebDav::HrWriteItems(xmlTextWriter *xmlWriter,
 	ulDepthPrev = lpsWebProperty->lstItems.front().ulDepth;
 	while(!lpsWebProperty->lstItems.empty())
 	{
-		sDavItem = lpsWebProperty->lstItems.front();
+		auto sDavItem = lpsWebProperty->lstItems.front();
 		ulDepthCur = sDavItem.ulDepth;
 
 		if(ulDepthCur >= ulDepthPrev)
