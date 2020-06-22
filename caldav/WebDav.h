@@ -129,7 +129,7 @@ private:
 	HRESULT WriteData(xmlTextWriter *xmlWriter, const WEBDAVVALUE &sWebVal, std::string *szNsPrefix);
 	HRESULT WriteNode(xmlTextWriter *xmlWriter, const WEBDAVPROPNAME &sWebPrName, std::string *szNsPrefix);
 	HRESULT HrWriteSResponse(xmlTextWriter *xmlWriter, std::string *lpstrNsPrefix, const WEBDAVRESPONSE &sResponse);
-	HRESULT HrWriteResponseProps(xmlTextWriter *xmlWriter, std::string *lpstrNsPrefix, std::list<WEBDAVPROPERTY> *lstProps);
+	HRESULT HrWriteResponseProps(xmlTextWriter *, std::string *ns_prefix, const std::list<WEBDAVPROPERTY> &props);
 	HRESULT HrWriteSPropStat(xmlTextWriter *xmlWriter, std::string *lpstrNsPrefix, const WEBDAVPROPSTAT &sPropStat);
 	HRESULT HrWriteItems(xmlTextWriter *xmlWriter, std::string *lpstrNsPrefix, WEBDAVPROPERTY *lpsWebProprty);
 	void HrSetDavPropName(WEBDAVPROPNAME *lpsDavPropName,xmlNode *lpXmlNode);

@@ -863,7 +863,7 @@ HRESULT WebDav::HrWriteSResponse(xmlTextWriter *xmlWriter,
 
 	if (!sWebResp.lstProps.empty())
 	{
-		hr = HrWriteResponseProps(xmlWriter, lpstrNsPrefix, &(sWebResp.lstProps));
+		hr = HrWriteResponseProps(xmlWriter, lpstrNsPrefix, sWebResp.lstProps);
 		if (hr != hrSuccess)
 			return hr;
 	}
@@ -883,12 +883,12 @@ HRESULT WebDav::HrWriteSResponse(xmlTextWriter *xmlWriter,
  * @return		HRESULT
  */
 HRESULT WebDav::HrWriteResponseProps(xmlTextWriter *xmlWriter,
-    std::string *lpstrNsPrefix, std::list<WEBDAVPROPERTY> *lplstProps)
+    std::string *lpstrNsPrefix, const std::list<WEBDAVPROPERTY> &lplstProps)
 {
 	HRESULT hr;
 	int ulRet;
 
-	for (const auto &iterProp : *lplstProps) {
+	for (const auto &iterProp : lplstProps) {
 		auto sWebProperty = iterProp;
 		if (!sWebProperty.strValue.empty())
 		{
