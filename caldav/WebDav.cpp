@@ -725,6 +725,8 @@ HRESULT WebDav::WriteData(xmlTextWriter *xmlWriter, const WEBDAVVALUE &sWebVal,
 	strNs = sWebVal.sPropName.strNS;
 	if(strNs.empty())
 	{
+		if (sWebVal.sPropName.strPropname.empty())
+			return hrSuccess;
 		ulRet = xmlTextWriterWriteElement(xmlWriter,
 			(const xmlChar *)sWebVal.sPropName.strPropname.c_str(),
 			(const xmlChar *)sWebVal.strValue.c_str());
