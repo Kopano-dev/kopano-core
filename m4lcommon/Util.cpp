@@ -1314,11 +1314,12 @@ HRESULT Util::HrTextToHtml(IStream *text, IStream *html, ULONG ulCodepage)
 
 			if (err != static_cast<size_t>(-1))
 				continue;
+			if (stRead < sizeof(wchar_t))
+				break;
 			// make html number from WCHAR entry
-			std::string strHTMLUnicode = "&#";
-			strHTMLUnicode += stringify(*reinterpret_cast<const wchar_t *>(readBuffer));
-			strHTMLUnicode += ";";
-
+			wchar_t c;
+			memcpy(&c, readBuffer, sizeof(c));
+			auto strHTMLUnicode = "&#" + stringify(c) + ";";
 			hr = html->Write(strHTMLUnicode.c_str(), strHTMLUnicode.length(), NULL);
 			if (hr != hrSuccess)
 				goto exit;

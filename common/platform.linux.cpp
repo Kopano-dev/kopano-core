@@ -274,4 +274,10 @@ void le_to_cpu(SYSTEMTIME &s)
 	s.wMilliseconds = le16_to_cpu(s.wMilliseconds);
 }
 
+void cpu_to_le(FILETIME &s)
+{
+	s.dwLowDateTime = cpu_to_le32(s.dwLowDateTime);
+	s.dwHighDateTime = cpu_to_le32(s.dwHighDateTime);
+}
+
 } /* namespace */

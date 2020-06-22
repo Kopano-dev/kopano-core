@@ -144,7 +144,11 @@ ECRESULT ECSoapServerConnection::ListenSSL(struct ec_socket &spec,
 	{
 		soap_set_fault(lpsSoap.get());
 		auto se = lpsSoap->ssl != nullptr ? soap_ssl_error(lpsSoap.get(), 0, SSL_ERROR_NONE) : 0;
-		ec_log_crit("K-2170: Unable to setup SSL context: soap_ssl_server_context: %s: %s", *soap_faultdetail(lpsSoap.get()), se);
+		auto d1 = soap_faultstring(lpsSoap.get());
+		auto d = soap_faultdetail(lpsSoap.get());
+		ec_log_crit("K-2170: soap_ssl_server_context: %s (%s). OpenSSL says: %s.",
+			d1 != nullptr && *d1 != nullptr ? *d1 : "(no error set)",
+			d != nullptr && *d != nullptr ? *d : "", se);
 		return KCERR_CALL_FAILED;
 	}
 	auto er = kc_ssl_options(lpsSoap.get(), m_lpConfig->GetSetting("server_tls_min_proto"),

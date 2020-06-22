@@ -37,9 +37,27 @@ Enhancements:
   "cache_cell_size=0.5G"
 
 
+9.0.9 (2020-06-22)
+==================
+Fixes:
+* gateway: resolve file descriptors building up /
+  mapi4linux: manually break session<->store object_ptr loop [KC-1791]
+Changes:
+* spooler: avoid premature expansion of distlists into individual
+  recipients when the distlist does in fact have an email address /
+  m4lcommon: add missing address type promotion when looking up
+  ZARAFA->SMTP addresses [KC-1792]
+* php-ext: add error reason to error some messages
+
+
+9.0.8 (2020-06-16)
+==================
+Changes from the 8.7.x branch up to 8.7.14 are included.
+
+
 9.0.7 (2020-05-20)
 ==================
-Changes from the 8.7.x branch up to 8.7.12 are included.
+Changes from the 8.7.x branch up to 8.7.13 are included.
 Fixes:
 * mapi4linux: avoid M4LMAPISession going away while ECMsgStore still alive
 
@@ -180,11 +198,13 @@ Packaging changes:
 * gsoap 2.8.73 or higher is now required
 
 
-8.7.x
-=====
+8.7.14 (2020-06-11)
+===================
 * build: support gsoap 2.8.103
-* libserver: add thread_end calls for ECSchedule threads
-* server: add debug messages for SQL connection object states
+* libserver: add thread_end calls for ECSchedule threads [KC-1767]
+* server: add debug messages for SQL connection object states [KC-1767]
+* mapi4linux: cure a pointer mismatch that could lead to a crash
+  in M4LAddrBook::OpenEntry / (PHP)mapi_ab_openentry [KC-1790]
 
 
 8.7.13 (2020-05-20)

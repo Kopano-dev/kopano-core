@@ -407,6 +407,7 @@ typedef void * DLIB;
 namespace KC {
 
 extern KC_EXPORT void le_to_cpu(SYSTEMTIME &);
+extern KC_EXPORT void cpu_to_le(FILETIME &);
 extern KC_EXPORT time_t GetProcessTime();
 
 #define GetTickCount() 0L

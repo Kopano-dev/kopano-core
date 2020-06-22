@@ -691,6 +691,21 @@ M4LMAPISession::M4LMAPISession(const TCHAR *pn, M4LMsgServiceAdmin *sa) :
 {
 }
 
+ULONG M4LMAPISession::Release()
+{
+	auto r = ECUnknown::Release();
+	if (m_cRef == 0)
+		return r;
+	/*
+	 * Move map away, because there will be recursion into
+	 * M4LMAPISession::Release, which invokes mapStores.~map, which
+	 * would trash the first clear call's state.
+	 */
+	auto m = std::move(mapStores);
+	m.clear();
+	return r;
+}
+
 HRESULT M4LMAPISession::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError) {
     *lppMAPIError = NULL;
     return hrSuccess;
@@ -1058,6 +1073,14 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 			return kc_perrorf("OpenMsgStore failed", hr);
 
 		// Keep the store open in case somebody else needs it later (only via this function)
+		/*
+		 * IMsgStores are children of M4LMAPISession so that the
+		 * session data does not go away while stores are in use. But
+		 * because M4LMAPISession is keeping object_ptr references to
+		 * some stores to make them persistent during a session, a
+		 * reference loop ensues that must be manually broken in
+		 * M4LMAPISession::Release.
+		 */
 		storemap_lock.lock();
 		mapStores.emplace(guidProvider, lpMDB);
 		storemap_lock.unlock();
@@ -1347,7 +1370,9 @@ HRESULT M4LAddrBook::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		// 2.1a1: open root container, make a M4LABContainer which have the ABContainers of all providers as hierarchy entries.
 		SPropValue sPropObjectType;
 		auto lpCont = new M4LABContainer(m_lABProviders);
-		auto hr = lpCont->QueryInterface(IID_IABContainer, reinterpret_cast<void **>(lppUnk));
+		if (lpInterface == nullptr)
+			lpInterface = &IID_IABContainer;
+		auto hr = lpCont->QueryInterface(*lpInterface, reinterpret_cast<void **>(lppUnk));
 		if (hr != hrSuccess) {
 			delete lpCont;
 			return kc_perrorf("QueryInterface failed", hr);

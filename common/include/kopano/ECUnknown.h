@@ -67,6 +67,11 @@ protected:
 
 	std::atomic<unsigned int> m_cRef{0};
 	const char *szClassName;
+	/*
+	 * In general, parents should not hold references to (grand)children
+	 * because children hold references to parents. A manual loop breaker
+	 * is needed otherwise.
+	 */
 	std::list<ECUnknown *>	lstChildren;
 	std::mutex mutex;
 };

@@ -687,7 +687,7 @@ HRESULT HrGetAddress(LPADRBOOK lpAdrBook, IMessage *lpMessage, ULONG ulPropTagEn
  */
 static HRESULT HrResolveToSMTP(LPADRBOOK lpAdrBook,
     const std::wstring &strResolve, unsigned int ulFlags,
-    std::wstring &strSMTPAddress)
+    std::wstring &strSMTPAddress, std::wstring &type)
 {
 	adrlist_ptr lpAdrList;
 	const SPropValue *lpEntryID = NULL;
@@ -737,6 +737,7 @@ static HRESULT HrResolveToSMTP(LPADRBOOK lpAdrBook,
 		if (lpSMTPAddress == nullptr)
 			return MAPI_E_NOT_FOUND;
         strSMTPAddress = lpSMTPAddress->Value.lpszW;
+		type = L"SMTP";
     }
 	return hrSuccess;
 }
@@ -820,8 +821,8 @@ HRESULT HrGetAddress(IAddrBook *lpAdrBook, const SPropValue *lpProps,
     // If we don't have an SMTP address yet, try to resolve the item to get the SMTP address
 	if (lpAdrBook != nullptr && lpType != nullptr &&
 	    lpAddress != nullptr && wcscasecmp(strType.c_str(), L"SMTP") != 0 &&
-	    HrResolveToSMTP(lpAdrBook, strEmailAddress, EMS_AB_ADDRESS_LOOKUP, strSMTPAddress) == hrSuccess)
-		strEmailAddress = strSMTPAddress;
+	    HrResolveToSMTP(lpAdrBook, strEmailAddress, EMS_AB_ADDRESS_LOOKUP, strSMTPAddress, strType) == hrSuccess)
+		strEmailAddress = std::move(strSMTPAddress);
 	return hr;
 }
 
