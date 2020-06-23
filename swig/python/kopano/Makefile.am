@@ -18,7 +18,7 @@ EXTRA_DIST = changelog.rst requirements.txt setup.cfg setup.py \
 
 PYTEST ?= pytest
 PYTEST_COVERAGE_OPTIONS=--cov-report=term-missing --cov-report=html:tests/coverage --cov=kopano
-MAPI_CONFIG_PATH ?= $(pwd)../../../provider/client
+MAPI_CONFIG_PATH = ${top_srcdir}/provider/client
 PYTHONPATH ?= ../.libs:..:.
 
 install-exec-local:
@@ -38,11 +38,11 @@ uninstall-local:
 
 .PHONY: test
 test:
-	MAPI_CONFIG_PATH=${MAPI_CONFIG_PATH} PYTHONPATH=${PYTHONPATH} ${PYTEST} tests/server --junitxml=test.xml
+	MAPI_CONFIG_PATH=${MAPI_CONFIG_PATH} PYTHONPATH=${PYTHONPATH} ${PYTEST} ${srcdir}/tests/server --junitxml=test.xml
 
 .PHONY: test-short
 test-short:
-	PYTHONPATH=${PYTHONPATH} ${PYTEST} tests/unit --junitxml=test-short.xml
+	PYTHONPATH=${PYTHONPATH} ${PYTEST} ${srcdir}/tests/unit --junitxml=test-short.xml
 
 .PHONY: test-coverage
 test-coverage:

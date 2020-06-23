@@ -180,15 +180,15 @@ uninstall-local:
 
 PYTEST = pytest
 PYTEST_OPTIONS =
-MAPI_CONFIG_PATH ?= $(pwd)/../../provider/client
+MAPI_CONFIG_PATH = ${top_srcdir}/provider/client
 PYTHONPATH ?= .libs:.
 
 .PHONY: test
 test:
-	MAPI_CONFIG_PATH=${MAPI_CONFIG_PATH} PYTHONPATH=${PYTHONPATH} ${PYTEST} ${PYTEST_OPTIONS} --junitxml=test.xml tests/server
+	MAPI_CONFIG_PATH=${MAPI_CONFIG_PATH} PYTHONPATH=${PYTHONPATH} ${PYTEST} ${PYTEST_OPTIONS} --junitxml=test.xml ${srcdir}/tests/server
 
 .PHONY: test-short
 test-short:
-	MAPI_CONFIG_PATH=${MAPI_CONFIG_PATH} PYTHONPATH=${PYTHONPATH} ${PYTEST} ${PYTEST_OPTIONS} --junitxml=test-short.xml tests/unit
+	MAPI_CONFIG_PATH=${MAPI_CONFIG_PATH} PYTHONPATH=${PYTHONPATH} ${PYTEST} ${PYTEST_OPTIONS} --junitxml=test-short.xml ${srcdir}/tests/unit
 
 include ../../global.am
