@@ -153,11 +153,6 @@ static void log_request(struct soap *soap, int soaperr)
 		st.agent.c_str()));
 }
 
-static inline LONGLONG timespec2ms(const struct timespec &t)
-{
-	return t.tv_sec * 1000 + t.tv_nsec / 1000000;
-}
-
 void WORKITEM::run()
 {
 	auto lpWorkItem = this;

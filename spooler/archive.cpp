@@ -34,7 +34,7 @@ void ArchiveResult::AddMessage(MessagePtr ptrMessage) {
 }
 
 void ArchiveResult::Undo(IMAPISession *lpSession) {
-	for (const auto i : m_lstMessages)
+	for (auto &i : m_lstMessages)
 		Util::HrDeleteMessage(lpSession, i);
 }
 
@@ -274,7 +274,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 	}
 
 	if (lpResult)
-		std::swap(result, *lpResult);
+		*lpResult = std::move(result);
 	return hrSuccess;
 }
 

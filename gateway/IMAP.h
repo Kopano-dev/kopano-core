@@ -289,7 +289,7 @@ private:
 	HRESULT save_generated_properties(const std::string &text, IMessage *message);
 	HRESULT HrPropertyFetchRow(LPSPropValue props, ULONG nprops, std::string &response, ULONG mail_nr, bool bounce_flags, const std::vector<std::string> &data_items);
 	HRESULT HrGetMessageFlags(std::string &response, LPMESSAGE msg, bool recent);
-	HRESULT HrGetMessagePart(std::string &message_part, std::string &msg, std::string part_name);
+	HRESULT HrGetMessagePart(std::string &message_part, std::string &msg, const std::string &part_name);
 	ULONG LastOrNumber(const char *szNr, bool bUID);
 	HRESULT HrParseSeqSet(const std::string &seq, std::list<ULONG> &mails);
 	HRESULT HrParseSeqUidSet(const std::string &seq, std::list<ULONG> &mails);

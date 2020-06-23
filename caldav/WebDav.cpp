@@ -78,7 +78,6 @@ HRESULT WebDav::HrParseXml()
  */
 HRESULT WebDav::HrPropfind()
 {
-	WEBDAVPROPSTAT sPropStat;
 	WEBDAVRESPONSE sDavResp;
 	WEBDAVMULTISTATUS sDavMStatus;
 	WEBDAVREQSTPROPS sDavReqsProps;
@@ -117,7 +116,7 @@ HRESULT WebDav::HrPropfind()
 	 * Call to CALDAV::HrHandlePropfind
 	 * This function Retrieves data from server and adds it to the structure.
 	 */
-	sDavReqsProps.sProp = sDavPropRet;
+	sDavReqsProps.sProp = std::move(sDavPropRet);
 	hr = HrHandlePropfind(&sDavReqsProps, &sDavMStatus);
 	if (hr != hrSuccess)
 		goto exit;
@@ -725,6 +724,8 @@ HRESULT WebDav::WriteData(xmlTextWriter *xmlWriter, const WEBDAVVALUE &sWebVal,
 	strNs = sWebVal.sPropName.strNS;
 	if(strNs.empty())
 	{
+		if (sWebVal.sPropName.strPropname.empty())
+			return hrSuccess;
 		ulRet = xmlTextWriterWriteElement(xmlWriter,
 			(const xmlChar *)sWebVal.sPropName.strPropname.c_str(),
 			(const xmlChar *)sWebVal.strValue.c_str());
@@ -834,10 +835,8 @@ HRESULT WebDav::HrWriteSResponse(xmlTextWriter *xmlWriter,
     std::string *lpstrNsPrefix, const WEBDAVRESPONSE &sResponse)
 {
 	HRESULT hr;
-	WEBDAVRESPONSE sWebResp;
 	int ulRet;
-
-	sWebResp = sResponse;
+	const auto &sWebResp = sResponse;
 	// <response>
 	hr = WriteNode(xmlWriter, sWebResp.sPropName, lpstrNsPrefix);
 	if (hr != hrSuccess)
@@ -864,7 +863,7 @@ HRESULT WebDav::HrWriteSResponse(xmlTextWriter *xmlWriter,
 
 	if (!sWebResp.lstProps.empty())
 	{
-		hr = HrWriteResponseProps(xmlWriter, lpstrNsPrefix, &(sWebResp.lstProps));
+		hr = HrWriteResponseProps(xmlWriter, lpstrNsPrefix, sWebResp.lstProps);
 		if (hr != hrSuccess)
 			return hr;
 	}
@@ -884,12 +883,12 @@ HRESULT WebDav::HrWriteSResponse(xmlTextWriter *xmlWriter,
  * @return		HRESULT
  */
 HRESULT WebDav::HrWriteResponseProps(xmlTextWriter *xmlWriter,
-    std::string *lpstrNsPrefix, std::list<WEBDAVPROPERTY> *lplstProps)
+    std::string *lpstrNsPrefix, const std::list<WEBDAVPROPERTY> &lplstProps)
 {
 	HRESULT hr;
 	int ulRet;
 
-	for (const auto &iterProp : *lplstProps) {
+	for (const auto &iterProp : lplstProps) {
 		auto sWebProperty = iterProp;
 		if (!sWebProperty.strValue.empty())
 		{
@@ -946,17 +945,15 @@ HRESULT WebDav::HrWriteSPropStat(xmlTextWriter *xmlWriter,
     std::string *lpstrNsPrefix, const WEBDAVPROPSTAT &lpsPropStat)
 {
 	HRESULT hr;
-	WEBDAVPROPSTAT sWebPropStat;
-	WEBDAVPROP sWebProp;
 	int ulRet;
 
-	sWebPropStat = lpsPropStat;
+	const auto &sWebPropStat = lpsPropStat;
 	//<propstat>
 	hr = WriteNode(xmlWriter, sWebPropStat.sPropName,lpstrNsPrefix);
 	if (hr != hrSuccess)
 		return hr;
 
-	sWebProp = sWebPropStat.sProp;
+	const auto &sWebProp = sWebPropStat.sProp;
 
 	//<prop>
 	hr = WriteNode(xmlWriter, sWebProp.sPropName,lpstrNsPrefix);
@@ -1022,7 +1019,9 @@ HRESULT WebDav::HrWriteSPropStat(xmlTextWriter *xmlWriter,
 	if (ulRet < 0)
 		return MAPI_E_CALL_FAILED;
 	//<status xmlns="xxxxxxx">HTTP/1.1 200 OK</status>
-	WriteData(xmlWriter, sWebPropStat.sStatus, lpstrNsPrefix);
+	hr = WriteData(xmlWriter, sWebPropStat.sStatus, lpstrNsPrefix);
+	if (hr != hrSuccess)
+		return hr;
 	// ending the function here on !hrSuccess breaks several tests.
 	//</propstat>
 	ulRet = xmlTextWriterEndElement(xmlWriter);
@@ -1043,7 +1042,6 @@ HRESULT WebDav::HrWriteItems(xmlTextWriter *xmlWriter,
     std::string *lpstrNsPrefix, WEBDAVPROPERTY *lpsWebProperty)
 {
 	HRESULT hr;
-	WEBDAVITEM sDavItem;
 	ULONG ulDepthPrev = 0;
 	ULONG ulDepthCur = 0;
 	bool blFirst = true;
@@ -1051,7 +1049,7 @@ HRESULT WebDav::HrWriteItems(xmlTextWriter *xmlWriter,
 	ulDepthPrev = lpsWebProperty->lstItems.front().ulDepth;
 	while(!lpsWebProperty->lstItems.empty())
 	{
-		sDavItem = lpsWebProperty->lstItems.front();
+		auto sDavItem = lpsWebProperty->lstItems.front();
 		ulDepthCur = sDavItem.ulDepth;
 
 		if(ulDepthCur >= ulDepthPrev)

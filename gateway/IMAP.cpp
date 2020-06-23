@@ -3730,7 +3730,7 @@ HRESULT IMAP::HrGetMessageFlags(std::string &strResponse, IMessage *lpMessage, b
  * @return MAPI Error code
  */
 HRESULT IMAP::HrGetMessagePart(std::string &strMessagePart,
-    std::string &strMessage, std::string strPartName)
+    std::string &strMessage, const std::string &strPartName)
 {
 	unsigned long int ulPartnr;
 	size_t ulHeaderBegin, ulHeaderEnd;

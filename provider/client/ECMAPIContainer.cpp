@@ -50,17 +50,8 @@ HRESULT ECMAPIContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 {
 	object_ptr<ECMAPITable> lpTable;
 	object_ptr<WSTableView> lpTableOps;
-	std::string		strName = "Contents table";
 
-#ifdef KNOB144
-	{
-		LPSPropValue lpDisplay;
-		HrGetOneProp(this, PR_DISPLAY_NAME_A, &lpDisplay);
-		if (lpDisplay != nullptr)
-			strName = lpDisplay->Value.lpszA;
-	}
-#endif
-	auto hr = ECMAPITable::Create(strName.c_str(), GetMsgStore()->m_lpNotifyClient, 0, &~lpTable);
+	auto hr = ECMAPITable::Create("Contents table", GetMsgStore()->m_lpNotifyClient, 0, &~lpTable);
 	if(hr != hrSuccess)
 		return hr;
 	hr = GetMsgStore()->lpTransport->HrOpenTableOps(MAPI_MESSAGE,
@@ -80,17 +71,8 @@ HRESULT ECMAPIContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 {
 	object_ptr<ECMAPITable> lpTable;
 	object_ptr<WSTableView> lpTableOps;
-	std::string		strName = "Hierarchy table";
 
-#ifdef KNOB144
-	{
-		LPSPropValue lpDisplay;
-		HrGetOneProp(this, PR_DISPLAY_NAME_A, &lpDisplay);
-		if (lpDisplay != nullptr)
-			strName = lpDisplay->Value.lpszA;
-	}
-#endif
-	auto hr = ECMAPITable::Create(strName.c_str(), GetMsgStore()->m_lpNotifyClient, 0, &~lpTable);
+	auto hr = ECMAPITable::Create("Hierarchy table", GetMsgStore()->m_lpNotifyClient, 0, &~lpTable);
 	if(hr != hrSuccess)
 		return hr;
 	hr = GetMsgStore()->lpTransport->HrOpenTableOps(MAPI_FOLDER,

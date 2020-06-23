@@ -9,9 +9,6 @@
 #include "ECSession.h"
 #include "cmdutil.hpp"
 #include <SOAPUtils.h>
-#ifdef KNOB144
-#include <cstdio>
-#endif
 
 struct soap;
 

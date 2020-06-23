@@ -294,8 +294,7 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 		}
 	}
 
-	// Move list
-	std::swap(lstDeleteItems, *lplstDeleteItems);
+	*lplstDeleteItems = std::move(lstDeleteItems);
 	return erSuccess;
 }
 

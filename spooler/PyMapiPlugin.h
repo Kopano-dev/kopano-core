@@ -36,7 +36,6 @@ public:
 	HRESULT create_plugin(KC::ECConfig *, const char *mgr_class, pym_plugin_intf **);
 
 private:
-	void *m_handle = nullptr;
 	void (*m_exit)(void) = nullptr;
 
 	// Inhibit (accidental) copying

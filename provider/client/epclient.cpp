@@ -609,8 +609,6 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 		}
 
 		hr = UpdateProviders(lpAdminProviders, sProfileProps);
-		if(hr != hrSuccess)
-			goto exit2;
  exit2:
 		static constexpr const SizedSPropTagArray(1, tags) = {1, {PR_EC_TRANSPORTOBJECT}};
 		ptrGlobalProfSect->DeleteProps(tags, nullptr);

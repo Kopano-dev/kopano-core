@@ -5,6 +5,7 @@
 #pragma once
 #include <memory>
 #include <string>
+#include <utility>
 #include <kopano/zcdefs.h>
 #include <kopano/ECLogger.h>
 
@@ -13,8 +14,8 @@ namespace KC {
 class KC_EXPORT ECArchiverLogger final : public ECLogger {
 public:
 	ECArchiverLogger(std::shared_ptr<ECLogger>);
-	KC_HIDDEN tstring SetUser(tstring = {});
-	tstring SetFolder(tstring strFolder = tstring());
+	inline KC_HIDDEN tstring SetUser(const tstring &s) { return std::exchange(m_strUser, s); }
+	inline KC_HIDDEN tstring SetFolder(const tstring &s) { return std::exchange(m_strFolder, s); }
 	KC_HIDDEN const tstring &GetUser() const { return m_strUser; }
 	KC_HIDDEN const tstring &GetFolder() const { return m_strFolder; }
 	KC_HIDDEN void Reset();
