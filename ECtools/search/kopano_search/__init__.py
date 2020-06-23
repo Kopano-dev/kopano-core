@@ -4,7 +4,6 @@ from .version import __version__
 
 import collections
 from contextlib import closing
-import codecs
 import fcntl
 import os.path
 
