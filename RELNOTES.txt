@@ -1,3 +1,12 @@
+10.0.6 (2020-05-24)
+===================
+All changes from the 9.x branch up to 9.0.9 are included.
+Enhancements:
+* pyko: Add subject_prefix to meeting request decline
+Changes:
+* dagent, gateway: drop server-side HTML filtering [KC-1175]
+
+
 10.0.5 (2020-05-20)
 ===================
 All changes from the 9.x branch up to 9.0.7 are included.
