@@ -762,21 +762,6 @@ M4LMAPISession::M4LMAPISession(const TCHAR *pn, M4LMsgServiceAdmin *sa) :
 {
 }
 
-ULONG M4LMAPISession::Release()
-{
-	auto r = ECUnknown::Release();
-	if (m_cRef == 0)
-		return r;
-	/*
-	 * Move map away, because there will be recursion into
-	 * M4LMAPISession::Release, which invokes mapStores.~map, which
-	 * would trash the first clear call's state.
-	 */
-	auto m = std::move(mapStores);
-	m.clear();
-	return r;
-}
-
 HRESULT M4LMAPISession::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError) {
     *lppMAPIError = NULL;
     return hrSuccess;
@@ -1076,12 +1061,15 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
         
 	// See if we already have the store open
 	object_ptr<IMsgStore> lpMDB;
-	ulock_normal storemap_lock(m_storemap_mtx);
-	decltype(mapStores)::const_iterator iterStores = mapStores.find(guidProvider);
-	if (iterStores != mapStores.cend())
-		lpMDB = iterStores->second;
-	storemap_lock.unlock();
-	if (lpMDB != nullptr) {
+	for (const auto &ecunk : lstChildren) {
+		hr = ecunk->QueryInterface(IID_IMsgStore, &~lpMDB);
+		if (hr != hrSuccess)
+			continue;
+		memory_ptr<SPropValue> spv;
+		hr = HrGetOneProp(lpMDB, PR_PROVIDER_UID, &~spv);
+		if (hr != hrSuccess || spv->Value.bin.cb != sizeof(guidProvider) ||
+		    memcmp(spv->Value.bin.lpb, &guidProvider, sizeof(guidProvider)) != 0)
+			continue;
 		if (bStoreEntryID) {
 			hr = lpMDB->QueryInterface(IID_IMsgStore, reinterpret_cast<void **>(lppUnk));
 			if (hr == hrSuccess)
@@ -1147,18 +1135,6 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		if (hr != hrSuccess)
 			return kc_perrorf("OpenMsgStore failed", hr);
 
-		// Keep the store open in case somebody else needs it later (only via this function)
-		/*
-		 * IMsgStores are children of M4LMAPISession so that the
-		 * session data does not go away while stores are in use. But
-		 * because M4LMAPISession is keeping object_ptr references to
-		 * some stores to make them persistent during a session, a
-		 * reference loop ensues that must be manually broken in
-		 * M4LMAPISession::Release.
-		 */
-		storemap_lock.lock();
-		mapStores.emplace(guidProvider, lpMDB);
-		storemap_lock.unlock();
 		if (bStoreEntryID) {
 			hr = lpMDB->QueryInterface(IID_IMsgStore, reinterpret_cast<void **>(lppUnk));
 			if (hr == hrSuccess)

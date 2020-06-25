@@ -14,7 +14,6 @@
 #include <mapispi.h>
 #include <string>
 #include <list>
-#include <map>
 #include <kopano/ECConfig.h>
 #include <kopano/ECUnknown.h>
 #include <kopano/memory.hpp>
@@ -118,7 +117,6 @@ private:
 
 public:
 	M4LMAPISession(const TCHAR *profname, M4LMsgServiceAdmin *);
-	virtual ULONG Release() override;
 	virtual HRESULT GetLastError(HRESULT, unsigned int flags, MAPIERROR **) override;
 	virtual HRESULT GetMsgStoresTable(unsigned int flags, IMAPITable **) override;
 	virtual HRESULT OpenMsgStore(ULONG_PTR ui_param, ULONG eid_size, const ENTRYID *, const IID *intf, ULONG flags, IMsgStore **) override;
@@ -141,8 +139,6 @@ public:
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 
 private:
-	std::mutex m_storemap_mtx;
-	std::map<GUID, KC::object_ptr<IMsgStore>> mapStores;
 	/* @todo need a status row per provider */
 	ULONG m_cValuesStatus = 0;
 	KC::memory_ptr<SPropValue> m_lpPropsStatus;
