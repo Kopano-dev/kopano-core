@@ -241,9 +241,11 @@ static void try_abeid(const string_view &s, unsigned int i)
 	auto type = get_unaligned_le32(&eid->ulType);
 	printf("%-*sObject type: %u%s\n", mkind(i), "", type, mapitype_str(type));
 	printf("%-*sObject id: %u\n", mkind(i), "", get_unaligned_le32(&eid->ulId));
-	int xtsize = s.data() - eid->szExId;
-	if (xtsize > 0)
+	int xtsize = s.size() - sizeof(*eid);
+	if (xtsize > 0) {
 		printf("%-*sExtern id: b:%s\n", mkind(i), "", bin2hex(xtsize, eid->szExId).c_str());
+		try_entryid(string_view(eid->szExId, xtsize), i + 1);
+	}
 }
 
 static void try_cabentryid(const string_view &s, unsigned int i)
