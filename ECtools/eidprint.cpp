@@ -47,7 +47,15 @@ struct kc_muidwrap {
 	const char *original_entryid() const { return dll_name() + strlen(dll_name()) + 1; }
 };
 
-static void try_kcwrap(const string_view &s, unsigned int i);
+struct cabEntryID { /* from ZCABData.h */
+	uint32_t version;
+	GUID muid;
+	uint32_t objtype;
+	uint32_t offset;
+	const char *original_entryid() const { return reinterpret_cast<const char *>(this) + offsetof(cabEntryID, offset) + sizeof(offset); }
+};
+
+static void try_entryid(const string_view &eid, unsigned int level);
 
 KC_DEFINE_GUID(MUIDEMSAB,
 0xc840a7dc, 0x42c0, 0x1a10, 0xb4, 0xb9, 0x08, 0x00, 0x2b, 0x2f, 0xe1, 0x82);
@@ -219,8 +227,7 @@ static void try_abeid(const string_view &s, unsigned int i)
 		printf("%-*sNot a ZCP/KC ABEID: version field shows not version 0/1\n", mkind(i), "");
 		return;
 	}
-	if (memcmp(&eid->guid, &MUIDECSAB, sizeof(MUIDECSAB)) != 0 &&
-	    memcmp(&eid->guid, &MUIDZCSAB, sizeof(MUIDZCSAB)) != 0) {
+	if (memcmp(&eid->guid, &MUIDECSAB, sizeof(MUIDECSAB)) != 0) {
 		printf("%-*sNot a ZCP/KC ABEID v1: unrecognized provider ", mkind(i), "");
 		dump_guid_withvar(eid->guid);
 		printf("\n");
@@ -237,6 +244,36 @@ static void try_abeid(const string_view &s, unsigned int i)
 	int xtsize = s.data() - eid->szExId;
 	if (xtsize > 0)
 		printf("%-*sExtern id: b:%s\n", mkind(i), "", bin2hex(xtsize, eid->szExId).c_str());
+}
+
+static void try_cabentryid(const string_view &s, unsigned int i)
+{
+	if (s.size() < sizeof(cabEntryID)) {
+		printf("%-*sNot a ZCP/KC cabEntryID: have %zu bytes, expected at least %zu bytes\n",
+		       mkind(i), "", s.size(), sizeof(cabEntryID));
+		return;
+	}
+	auto eid = reinterpret_cast<const cabEntryID *>(s.data());
+	if (memcmp(&eid->muid, &MUIDZCSAB, sizeof(MUIDZCSAB)) != 0) {
+		printf("%-*sNot a ZCP/KC cabEntryID: unrecognized provider ", mkind(i), "");
+		dump_guid_withvar(eid->muid);
+		printf("\n");
+		return;
+	}
+	printf("%-*sPossible ZCP/KC cabEntryID:\n", mkind(i), "");
+	++i;
+	printf("%-*sProvider: ", mkind(i), "");
+	dump_guid_withvar(eid->muid);
+	printf("\n");
+	auto type = get_unaligned_le32(&eid->objtype);
+	printf("%-*sObject type: %u%s\n", mkind(i), "", type, mapitype_str(type));
+	printf("%-*sOffset: %u\n", mkind(i), "", get_unaligned_le32(&eid->offset));
+	int xtsize = s.size() - sizeof(*eid);
+	if (xtsize > 0) {
+		auto xtptr = eid->original_entryid();
+		printf("%-*sAnalyzing embedded entryid \"%s\":\n", mkind(i), "", bin2hex(xtsize, xtptr).c_str());
+		try_entryid(string_view(xtptr, xtsize), i + 1);
+	}
 }
 
 static void try_emsab(const string_view &s, unsigned int i)
@@ -327,18 +364,6 @@ static void try_oneoff(const string_view &s, unsigned int i)
 	printf("%-*sAddress: \"%s\"\n", mkind(i), "", convert_to<std::string>(email).c_str());
 }
 
-static void try_entryid(const string_view &s, unsigned int i)
-{
-	try_af1(s, i);
-	try_af2(s, i);
-	try_eidv1(s, i);
-	try_eidv0(s, i);
-	try_abeid(s, i);
-	try_emsab(s, i);
-	try_oneoff(s, i);
-	try_kcwrap(s, i);
-}
-
 static void try_kcwrap(const string_view &s, unsigned int i)
 {
 	if (s.size() < sizeof(kc_muidwrap)) {
@@ -361,6 +386,19 @@ static void try_kcwrap(const string_view &s, unsigned int i)
 	auto eidptr = m->original_entryid();
 	printf("%-*sAnalyzing embedded entryid \"%.*s\":\n", mkind(i), "", eidsize, eidptr);
 	try_entryid(string_view(eidptr, eidsize), i + 1);
+}
+
+static void try_entryid(const string_view &s, unsigned int i)
+{
+	try_af1(s, i);
+	try_af2(s, i);
+	try_eidv1(s, i);
+	try_eidv0(s, i);
+	try_abeid(s, i);
+	try_cabentryid(s, i);
+	try_emsab(s, i);
+	try_oneoff(s, i);
+	try_kcwrap(s, i);
 }
 
 static void try_decompose(const char *s)

@@ -100,6 +100,7 @@ ZCP/KC EID v0
 ZCP/KC ABEID v1
 ZCP/KC ABEID v0
 ZCP/KC SIEID v0
+ZCP/KC cabEntryID
 Wrapped Store Entryids
 
 
@@ -292,6 +293,32 @@ kcore.hpp:SIEID declares the server GUID as a flexible member, but this is
 not strictly necessary as it is always 16 bytes.
 
 SIEID is AF2-conforming.
+
+
+== ZCP/KC cabEntryID ==
+
+cabEntryID is used for the synthethic hierarchy and items of the ZCONTACTS
+provider.
+
+Hex representation that might show up during debug:
+
+	00000000727f0430e3924fdab86ae52a7fe465710400000000000000~
+	--------xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxttttttttoooooooo~
+	~0000000061dfa973ee6f4e69bd36c93e2c1187cd010000000300000~
+	~EE+
+	~0325db73bab7b403b8a30b383ca4c9acb00000000
+	~EE+
+
+	-: standard entryid flags, e.g. lifetime/scope
+	x: provider UID (MUIDZCSAB)
+	t: type (MAPI_ABCONT / MAPI_DISTLIST / ...)
+	o: offset within container
+	E: original entryid (often of type EID v1)
+
+cabEntryID is AF2-conforming.
+
+The ZCONTACTS root container has no entryid; it can only be opened by the
+special OpenEntry(0, nullptr, ...) call.
 
 
 == Stores ==
