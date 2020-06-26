@@ -69,9 +69,15 @@ static HRESULT container_do(unsigned int lvl, IAddrBook *ab, const ENTRYID *eid,
 	memory_ptr<SPropValue> spv;
 	ret = HrGetOneProp(cont, PR_DISPLAY_NAME_A, &~spv);
 	if (ret == hrSuccess)
-		wprintf(L"%-*s +  Container \"%s\" (%s)\n", lvl++ * 4, "", spv->Value.lpszA, bin2hex(eid_size, eid).c_str());
+		wprintf(L"%-*s +  Container \"%s\"\n", lvl++ * 4, "", spv->Value.lpszA);
 	else
-		wprintf(L"%-*s +  Container (%s)\n", lvl++ * 4, "", bin2hex(eid_size, eid).c_str());
+		wprintf(L"%-*s +  Container (anonymous)\n", lvl++ * 4, "");
+	wprintf(L"%-*s +  opened via EID %s\n", lvl * 4, "", bin2hex(eid_size, eid).c_str());
+	ret = HrGetOneProp(cont, PR_ENTRYID, &~spv);
+	if (ret == hrSuccess)
+		wprintf(L"%-*s +  primary EID %s\n", lvl * 4, "", bin2hex(spv->Value.bin).c_str());
+	else
+		wprintf(L"%-*s +  primary EID: %s\n", lvl * 4, "", GetMAPIErrorMessage(ret));
 
 	ret = container_contents(cont, lvl);
 	if (ret != hrSuccess)
