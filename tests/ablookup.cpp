@@ -31,6 +31,7 @@ static HRESULT container_contents(IABContainer *cont, unsigned int lvl)
 		return hrSuccess;
 	}
 
+#if 0
 	SPropValue spv;
 	spv.ulPropTag = PR_DISPLAY_NAME;
 	spv.Value.LPSZ = const_cast<TCHAR *>(KC_T("foo"));
@@ -38,6 +39,7 @@ static HRESULT container_contents(IABContainer *cont, unsigned int lvl)
 	ret = rst.RestrictTable(tbl, 0);
 	if (ret != hrSuccess)
 		return kc_perrorf("RestrictTable", ret);
+#endif
 
 	static constexpr const SizedSPropTagArray(4, cols) = {4, {PR_DISPLAY_NAME, PR_COMPANY_NAME, PR_MOBILE_TELEPHONE_NUMBER, PR_BUSINESS_TELEPHONE_NUMBER}};
 	ret = tbl->SetColumns(cols, 0);
