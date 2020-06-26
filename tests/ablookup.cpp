@@ -26,8 +26,10 @@ static HRESULT container_contents(IABContainer *cont, unsigned int lvl)
 {
 	object_ptr<IMAPITable> tbl;
 	auto ret = cont->GetContentsTable(0, &~tbl);
-	if (ret != hrSuccess)
+	if (ret != hrSuccess) {
+		wprintf(L"%-*s +  contents: %s\n", lvl * 4, "", GetMAPIErrorMessage(ret));
 		return hrSuccess;
+	}
 
 	SPropValue spv;
 	spv.ulPropTag = PR_DISPLAY_NAME;
