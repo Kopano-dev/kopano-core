@@ -3,6 +3,9 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #pragma once
+#ifdef HAVE_CONFIG_H
+#	include "config.h"
+#endif
 #include <atomic>
 #include <map>
 #include <memory>
