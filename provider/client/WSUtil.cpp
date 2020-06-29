@@ -1959,34 +1959,10 @@ HRESULT UnWrapServerClientABEntry(ULONG cbWrapABID, const ENTRYID *lpWrapABID,
 {
 	if (lpWrapABID == nullptr || lppUnWrapABID == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	if (cbWrapABID < sizeof(ABEID))
-		return MAPI_E_INVALID_ENTRYID;
-
-	LPENTRYID lpUnWrapABID = NULL;
-	ULONG	ulSize = 0;
-
-	// FIXME: Check whether it is a Zarafa entry?
-	auto pabeid = reinterpret_cast<const ABEID *>(lpWrapABID);
-	if (pabeid->ulVersion == 0)
-		ulSize = CbNewABEID("");
-	else if (pabeid->ulVersion == 1)
-		ulSize = (sizeof(ABEID) + strnlen(pabeid->szExId, cbWrapABID - sizeof(ABEID)) + 4) / 4 * 4;
-	else
-		return MAPI_E_INVALID_ENTRYID;
-
-	if (cbWrapABID < ulSize)
-		return MAPI_E_INVALID_ENTRYID;
-	auto hr = ECAllocateBuffer(ulSize, reinterpret_cast<void **>(&lpUnWrapABID));
-	if(hr != hrSuccess)
-		return hr;
-
-	memset(lpUnWrapABID, 0, ulSize);
-
-	// Remove servername
-	memcpy(lpUnWrapABID, lpWrapABID, ulSize-4);
-
-	*lppUnWrapABID = lpUnWrapABID;
-	*lpcbUnWrapABID = ulSize;
+	auto ret = KAllocCopy(lpWrapABID, cbWrapABID, reinterpret_cast<void **>(lppUnWrapABID));
+	if (ret != hrSuccess)
+		return ret;
+	*lpcbUnWrapABID = cbWrapABID;
 	return hrSuccess;
 }
 
