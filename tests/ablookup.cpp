@@ -26,9 +26,12 @@ static HRESULT container_contents(IABContainer *cont, unsigned int lvl)
 {
 	object_ptr<IMAPITable> tbl;
 	auto ret = cont->GetContentsTable(0, &~tbl);
-	if (ret != hrSuccess)
+	if (ret != hrSuccess) {
+		wprintf(L"%-*s +  contents: %s\n", lvl * 4, "", GetMAPIErrorMessage(ret));
 		return hrSuccess;
+	}
 
+#if 0
 	SPropValue spv;
 	spv.ulPropTag = PR_DISPLAY_NAME;
 	spv.Value.LPSZ = const_cast<TCHAR *>(KC_T("foo"));
@@ -36,6 +39,7 @@ static HRESULT container_contents(IABContainer *cont, unsigned int lvl)
 	ret = rst.RestrictTable(tbl, 0);
 	if (ret != hrSuccess)
 		return kc_perrorf("RestrictTable", ret);
+#endif
 
 	static constexpr const SizedSPropTagArray(4, cols) = {4, {PR_DISPLAY_NAME, PR_COMPANY_NAME, PR_MOBILE_TELEPHONE_NUMBER, PR_BUSINESS_TELEPHONE_NUMBER}};
 	ret = tbl->SetColumns(cols, 0);
@@ -69,9 +73,15 @@ static HRESULT container_do(unsigned int lvl, IAddrBook *ab, const ENTRYID *eid,
 	memory_ptr<SPropValue> spv;
 	ret = HrGetOneProp(cont, PR_DISPLAY_NAME_A, &~spv);
 	if (ret == hrSuccess)
-		wprintf(L"%-*s +  Container \"%s\" (%s)\n", lvl++ * 4, "", spv->Value.lpszA, bin2hex(eid_size, eid).c_str());
+		wprintf(L"%-*s +  Container \"%s\"\n", lvl++ * 4, "", spv->Value.lpszA);
 	else
-		wprintf(L"%-*s +  Container (%s)\n", lvl++ * 4, "", bin2hex(eid_size, eid).c_str());
+		wprintf(L"%-*s +  Container (anonymous)\n", lvl++ * 4, "");
+	wprintf(L"%-*s +  opened via EID %s\n", lvl * 4, "", bin2hex(eid_size, eid).c_str());
+	ret = HrGetOneProp(cont, PR_ENTRYID, &~spv);
+	if (ret == hrSuccess)
+		wprintf(L"%-*s +  primary EID %s\n", lvl * 4, "", bin2hex(spv->Value.bin).c_str());
+	else
+		wprintf(L"%-*s +  primary EID: %s\n", lvl * 4, "", GetMAPIErrorMessage(ret));
 
 	ret = container_contents(cont, lvl);
 	if (ret != hrSuccess)
