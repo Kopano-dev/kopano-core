@@ -531,10 +531,17 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 		sPropVal.__union = SOAP_UNION_propValData_ul;
 		sPropVal.Value.ul = 0;
 
-		// Optimize: for a message, the rights are equal to that of the parent. It is more efficient for
-		// the cache to check the folder permissions than the message permissions
+#if 0
+		/*
+		 * Optimize: for a message, the rights are equal to that of the
+		 * parent. It is more efficient for the cache to check the
+		 * folder permissions than the message permissions. The wins are
+		 * somewhat significant: 284 µs vs. 186 µs (for cold accesses;
+		 * no difference for hot).
+		 */
 		if (ulObjType == MAPI_MESSAGE && ulParentId)
 			ulObjId = ulParentId;
+#endif
 
 		/* If the requested object is from the owner's store, return all permissions. */
 		if (sec->IsStoreOwner(ulObjId) == erSuccess ||
