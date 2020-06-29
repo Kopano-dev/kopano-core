@@ -722,12 +722,12 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 			}
 			update_host(ulType, newsoap);
 			if (ulType == CONNECTION_TYPE_NAMED_PIPE)
-				ec_log_debug("Accepted incoming connection on file://%s", m_lpConfig->GetSetting("server_pipe_name"));
+				ec_log_debug("connect on %s from %s", m_lpConfig->GetSetting("server_pipe_name"), newsoap->host);
 			else if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
-				ec_log_debug("Accepted incoming connection on file://%s", m_lpConfig->GetSetting("server_pipe_priority"));
+				ec_log_debug("connect on %s from %s", m_lpConfig->GetSetting("server_pipe_priority"), newsoap->host);
 			else
-				ec_log_debug("Accepted incoming%sconnection on %s",
-					ulType == CONNECTION_TYPE_SSL ? " SSL ":" ",
+				ec_log_debug("%sconnect from %s",
+					ulType == CONNECTION_TYPE_SSL ? "SSL " : "",
 					newsoap->host);
 			newsoap->socket = ec_relocate_fd(newsoap->socket);
 			g_lpSessionManager->m_stats->Max(SCN_MAX_SOCKET_NUMBER, static_cast<LONGLONG>(newsoap->socket));
