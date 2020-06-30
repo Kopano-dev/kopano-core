@@ -1141,20 +1141,6 @@ HRESULT hr_logcode(HRESULT code, unsigned int level, const char *func, const cha
 	return code;
 }
 
-HRESULT hr_logcode(HRESULT code, unsigned int level, const char *func, const std::string &fmt, ...)
-{
-	if (!ec_log_target->Log(level))
-		return code;
-	char *msg = nullptr;
-	va_list va;
-	va_start(va, fmt);
-	auto ret = vasprintf(&msg, fmt.c_str(), va);
-	va_end(va);
-	if (ret >= 0)
-		hr_logcode2(code, level, func, std::unique_ptr<char[], cstdlib_deleter>(msg));
-	return code;
-}
-
 static void ec_log_bt(unsigned int level, const char *fmt, ...)
 {
 	if (!ec_log_target->Log(level))

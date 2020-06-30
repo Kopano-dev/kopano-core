@@ -278,7 +278,18 @@ extern KC_EXPORT void ec_log(unsigned int level, const char *msg, ...) KC_LIKE_P
 extern KC_EXPORT void ec_log_immed(unsigned int level, const std::string &msg);
 extern void hr_logcode2(HRESULT code, unsigned int level, const char *func, std::unique_ptr<char[], cstdlib_deleter> &&);
 extern KC_EXPORT HRESULT hr_logcode(HRESULT code, unsigned int level, const char *func, const char *fmt, ...) KC_LIKE_PRINTF(4, 5);
-extern KC_EXPORT HRESULT hr_logcode(HRESULT code, unsigned int level, const char *func, const std::string &fmt, ...);
+
+template<size_t N, typename... Args> KC_EXPORT HRESULT hr_logcode(HRESULT code,
+    unsigned int level, const char *func, const char (&fmt)[N], Args &&...args)
+{
+	return hr_logcode(code, level, func, static_cast<const char *>(fmt), args...);
+}
+
+template<typename... Args> KC_EXPORT HRESULT hr_logcode(HRESULT code,
+    unsigned int level, const char *func, const std::string &fmt, Args &&...args)
+{
+	return hr_logcode(code, level, func, fmt.c_str(), args...);
+}
 
 #define ec_log_always(...)  ec_log_immed(EC_LOGLEVEL_ALWAYS, __VA_ARGS__)
 #define ec_log_crit(...)    do { if (ec_log_get()->Log(EC_LOGLEVEL_CRIT)) ec_log_immed(EC_LOGLEVEL_CRIT, __VA_ARGS__); } while (false)
