@@ -13,14 +13,9 @@
 
 using namespace KC;
 
-ZCABProvider::ZCABProvider(const char *cls_name) :
-	ECUnknown(cls_name)
-{
-}
-
 HRESULT ZCABProvider::Create(ZCABProvider **lppZCABProvider)
 {
-	return alloc_wrap<ZCABProvider>("ZCABProvider").put(lppZCABProvider);
+	return alloc_wrap<ZCABProvider>().put(lppZCABProvider);
 }
 
 HRESULT ZCABProvider::QueryInterface(REFIID refiid, void **lppInterface)

@@ -10,7 +10,7 @@
 
 class ECMAPIContainer : public ECMAPIProp, public virtual IMAPIContainer {
 public:
-	ECMAPIContainer(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify, const char *szClassName);
+	ECMAPIContainer(ECMsgStore *, unsigned int obj_type, BOOL modify);
 	virtual ~ECMAPIContainer(void) = default;
 
 	// IUnknown

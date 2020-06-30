@@ -17,7 +17,7 @@ class WSMessageStreamImporter;
 class ECMAPIFolder :
     public ECMAPIContainer, public IMAPIFolder, public IFolderSupport {
 protected:
-	ECMAPIFolder(ECMsgStore *lpMsgStore, BOOL fModify, WSMAPIFolderOps *lpFolderOps, const char *szClassName);
+	ECMAPIFolder(ECMsgStore *, BOOL modify, WSMAPIFolderOps *);
 	virtual ~ECMAPIFolder();
 
 public:

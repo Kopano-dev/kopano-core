@@ -47,8 +47,8 @@ static inline std::pair<ULONG,ULONG> SyncAdviseToConnection(const SSyncAdvise &s
 
 ECNotifyClient::ECNotifyClient(ULONG ulProviderType, void *lpProvider,
     ULONG ulFlags, LPMAPISUP lpSupport) :
-	ECUnknown("ECNotifyClient"), m_lpSupport(lpSupport),
-	m_lpProvider(lpProvider), m_ulProviderType(ulProviderType)
+	m_lpSupport(lpSupport), m_lpProvider(lpProvider),
+	m_ulProviderType(ulProviderType)
 {
 	ECSESSIONID ecSessionId;
 

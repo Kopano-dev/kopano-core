@@ -12,7 +12,7 @@
 
 class ECMSProvider KC_FINAL_OPG : public KC::ECUnknown, public IMSProvider {
 protected:
-	ECMSProvider(const char *cls_name);
+	ECMSProvider() = default;
 public:
 	static HRESULT Create(ECMSProvider **);
 	virtual HRESULT QueryInterface(const IID &, void **) override;
@@ -29,7 +29,7 @@ private:
 
 class ECMSProviderSwitch KC_FINAL_OPG : public KC::ECUnknown, public IMSProvider {
 protected:
-	ECMSProviderSwitch();
+	ECMSProviderSwitch() = default;
 
 public:
 	static HRESULT Create(ECMSProviderSwitch **);

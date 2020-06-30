@@ -25,8 +25,7 @@ using namespace KC;
 
 ECMAPIFolderPublic::ECMAPIFolderPublic(ECMsgStore *lpMsgStore, BOOL modify,
     WSMAPIFolderOps *ops, enumPublicEntryID ePublicEntryID) :
-	ECMAPIFolder(lpMsgStore, modify, ops, "IMAPIFolderPublic"),
-	m_ePublicEntryID(ePublicEntryID)
+	ECMAPIFolder(lpMsgStore, modify, ops), m_ePublicEntryID(ePublicEntryID)
 {
 	HrAddPropHandlers(PR_ACCESS, GetPropHandler, DefaultSetPropComputed, this);
 	HrAddPropHandlers(PR_ACCESS_LEVEL, GetPropHandler, DefaultSetPropComputed, this);

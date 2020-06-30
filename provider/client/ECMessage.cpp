@@ -49,7 +49,7 @@ HRESULT ECMessageFactory::Create(ECMsgStore *lpMsgStore, BOOL fNew,
 
 ECMessage::ECMessage(ECMsgStore *lpMsgStore, BOOL is_new, BOOL modify,
     ULONG ulFlags, BOOL emb, const ECMAPIProp *lpRoot) :
-	ECMAPIProp(lpMsgStore, MAPI_MESSAGE, modify, lpRoot, "IMessage"),
+	ECMAPIProp(lpMsgStore, MAPI_MESSAGE, modify, lpRoot),
 	fNew(is_new), m_bEmbedded(emb)
 {
 	ulObjFlags = ulFlags & MAPI_ASSOCIATED;

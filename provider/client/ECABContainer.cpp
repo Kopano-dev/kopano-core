@@ -35,9 +35,8 @@ using namespace KC;
 
 static const ABEID_FIXED eidRoot(MAPI_ABCONT, MUIDECSAB, 0);
 
-ECABContainer::ECABContainer(ECABLogon *prov, ULONG objtype, BOOL modify,
-    const char *cls_name) :
-	ECABProp(prov, objtype, modify, cls_name)
+ECABContainer::ECABContainer(ECABLogon *prov, unsigned int objtype, BOOL modify) :
+	ECABProp(prov, objtype, modify)
 {
 	HrAddPropHandlers(PR_AB_PROVIDER_ID, DefaultABContainerGetProp, DefaultSetPropComputed, this);
 	HrAddPropHandlers(PR_CONTAINER_FLAGS, DefaultABContainerGetProp, DefaultSetPropComputed, this);
@@ -64,7 +63,7 @@ HRESULT	ECABContainer::QueryInterface(REFIID refiid, void **lppInterface)
 HRESULT ECABContainer::Create(ECABLogon *lpProvider, ULONG ulObjType,
     BOOL fModify, ECABContainer **lppABContainer)
 {
-	return alloc_wrap<ECABContainer>(lpProvider, ulObjType, fModify, "IABContainer")
+	return alloc_wrap<ECABContainer>(lpProvider, ulObjType, fModify)
 	       .put(lppABContainer);
 }
 
@@ -313,8 +312,7 @@ HRESULT ECABContainer::ResolveNames(const SPropTagArray *lpPropTagArray,
 
 ECABLogon::ECABLogon(LPMAPISUP lpMAPISup, WSTransport *lpTransport,
     ULONG ulProfileFlags, const GUID *lpGUID) :
-	ECUnknown("IABLogon"), m_lpMAPISup(lpMAPISup),
-	m_lpTransport(lpTransport),
+	m_lpMAPISup(lpMAPISup), m_lpTransport(lpTransport),
 	/* The "legacy" guid used normally (all AB entryIDs have this GUID) */
 	m_guid(MUIDECSAB),
 	/* The specific GUID for *this* addressbook provider, if available */
@@ -581,9 +579,8 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
 	return hrSuccess;
 }
 
-ECABProp::ECABProp(ECABLogon *prov, ULONG objtype, BOOL modify,
-    const char *cls_name) :
-	ECGenericProp(prov, objtype, modify, cls_name)
+ECABProp::ECABProp(ECABLogon *prov, unsigned int objtype, BOOL modify) :
+	ECGenericProp(prov, objtype, modify)
 {
 	HrAddPropHandlers(PR_RECORD_KEY, DefaultABGetProp, DefaultSetPropComputed, this);
 	HrAddPropHandlers(PR_STORE_SUPPORT_MASK, DefaultABGetProp, DefaultSetPropComputed, this);
@@ -661,13 +658,9 @@ HRESULT ECABProp::TableRowGetProp(void *lpProvider,
 	return hr;
 }
 
-ECABProvider::ECABProvider(const char *cls_name) :
-	ECUnknown(cls_name)
-{}
-
 HRESULT ECABProvider::Create(ECABProvider **lppECABProvider)
 {
-	return alloc_wrap<ECABProvider>("ECABProvider").put(lppECABProvider);
+	return alloc_wrap<ECABProvider>().put(lppECABProvider);
 }
 
 HRESULT ECABProvider::QueryInterface(REFIID refiid, void **lppInterface)
@@ -720,10 +713,6 @@ HRESULT ECABProvider::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 	if (lppMAPIError)
 		*lppMAPIError = NULL;
 	return hrSuccess;
-}
-
-ECABProviderSwitch::ECABProviderSwitch(void) : ECUnknown("ECABProviderSwitch")
-{
 }
 
 HRESULT ECABProviderSwitch::Create(ECABProviderSwitch **lppECABProvider)

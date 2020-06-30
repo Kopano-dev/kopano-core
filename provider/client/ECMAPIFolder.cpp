@@ -47,9 +47,8 @@ static LONG AdviseECFolderCallback(void *lpContext, ULONG cNotif,
 }
 
 ECMAPIFolder::ECMAPIFolder(ECMsgStore *lpMsgStore, BOOL modify,
-    WSMAPIFolderOps *ops, const char *cls_name) :
-	ECMAPIContainer(lpMsgStore, MAPI_FOLDER, modify, cls_name),
-	lpFolderOps(ops)
+    WSMAPIFolderOps *ops) :
+	ECMAPIContainer(lpMsgStore, MAPI_FOLDER, modify), lpFolderOps(ops)
 {
 	// Folder counters
 	HrAddPropHandlers(PR_ASSOC_CONTENT_COUNT, GetPropHandler, DefaultSetPropComputed, this);
@@ -80,10 +79,9 @@ ECMAPIFolder::~ECMAPIFolder()
 		GetMsgStore()->m_lpNotifyClient->UnRegisterAdvise(m_ulConnection);
 }
 
-HRESULT ECMAPIFolder::Create(ECMsgStore *lpMsgStore, BOOL fModify, WSMAPIFolderOps *lpFolderOps, ECMAPIFolder **lppECMAPIFolder)
+HRESULT ECMAPIFolder::Create(ECMsgStore *ms, BOOL modify, WSMAPIFolderOps *fo, ECMAPIFolder **x)
 {
-	return alloc_wrap<ECMAPIFolder>(lpMsgStore, fModify, lpFolderOps,
-	       "IMAPIFolder").put(lppECMAPIFolder);
+	return alloc_wrap<ECMAPIFolder>(ms, modify, fo).put(x);
 }
 
 HRESULT ECMAPIFolder::GetPropHandler(unsigned int ulPropTag, void *lpProvider,

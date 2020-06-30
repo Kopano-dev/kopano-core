@@ -16,7 +16,7 @@ class ECMsgStore;
 
 class ECMAPIProp : public ECGenericProp, public KC::IECSecurity {
 protected:
-	ECMAPIProp(ECMsgStore *prov, ULONG obj_type, BOOL modify, const ECMAPIProp *root, const char *cls = nullptr);
+	ECMAPIProp(ECMsgStore *prov, ULONG obj_type, BOOL modify, const ECMAPIProp *root);
 	virtual ~ECMAPIProp() = default;
 
 public:

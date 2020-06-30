@@ -33,8 +33,7 @@ using namespace KC;
 
 WSMAPIFolderOps::WSMAPIFolderOps(ECSESSIONID sid, ULONG cbEntryId,
     const ENTRYID *lpEntryId, WSTransport *lpTransport) :
-	ECUnknown("WSMAPIFolderOps"), ecSessionId(sid),
-	m_lpTransport(lpTransport)
+	ecSessionId(sid), m_lpTransport(lpTransport)
 {
 	lpTransport->AddSessionReloadCallback(this, Reload, &m_ulSessionReloadCallback);
 	auto ret = CopyMAPIEntryIdToSOAPEntryId(cbEntryId, lpEntryId, &m_sEntryId);

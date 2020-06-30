@@ -40,7 +40,7 @@ class ECABLogon KC_FINAL_OPG : public KC::ECUnknown, public IABLogon {
 
 class ECABProp : public ECGenericProp {
 	protected:
-	ECABProp(ECABLogon *prov, ULONG obj_type, BOOL modify, const char *cls = nullptr);
+	ECABProp(ECABLogon *prov, unsigned int obj_type, BOOL modify);
 	virtual ~ECABProp() = default;
 
 	public:
@@ -52,7 +52,7 @@ class ECABProp : public ECGenericProp {
 
 class ECABContainer : public ECABProp, public IABContainer {
 protected:
-	ECABContainer(ECABLogon *prov, ULONG obj_type, BOOL modify, const char *cls);
+	ECABContainer(ECABLogon *prov, unsigned int obj_type, BOOL modify);
 	virtual ~ECABContainer() = default;
 public:
 	static HRESULT Create(ECABLogon *prov, ULONG obj_type, BOOL modify, ECABContainer **);
@@ -81,7 +81,7 @@ private:
 
 class ECABProvider KC_FINAL_OPG : public KC::ECUnknown, public IABProvider {
 	protected:
-	ECABProvider(const char *cls_name);
+	ECABProvider() = default;
 	virtual ~ECABProvider() = default;
 
 	public:
@@ -96,7 +96,7 @@ class ECABProvider KC_FINAL_OPG : public KC::ECUnknown, public IABProvider {
 class ECABProviderSwitch KC_FINAL_OPG :
     public KC::ECUnknown, public IABProvider {
 	protected:
-	ECABProviderSwitch();
+	ECABProviderSwitch() = default;
 
 	public:
 	static  HRESULT Create(ECABProviderSwitch **lppECABProvider);

@@ -36,9 +36,8 @@ static HRESULT resolve_to_punycode(unsigned int tag, void *provider,
 	return gp->HrSetRealProp(&np);
 }
 
-ECGenericProp::ECGenericProp(void *prov, ULONG type, BOOL mod,
-    const char *cls_name) :
-	ECUnknown(cls_name), ulObjType(type), fModify(mod), lpProvider(prov)
+ECGenericProp::ECGenericProp(void *prov, unsigned int type, BOOL mod) :
+	ulObjType(type), fModify(mod), lpProvider(prov)
 {
 	HrAddPropHandlers(PR_EC_OBJECT, DefaultGetProp, DefaultSetPropComputed, this, false, true);
 	HrAddPropHandlers(PR_NULL, DefaultGetProp, DefaultSetPropIgnore, this, false, true);

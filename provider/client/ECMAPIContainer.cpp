@@ -16,8 +16,8 @@
 using namespace KC;
 
 ECMAPIContainer::ECMAPIContainer(ECMsgStore *lpMsgStore, ULONG obj_type,
-    BOOL modify, const char *cls_name) :
-	ECMAPIProp(lpMsgStore, obj_type, modify, nullptr, cls_name)
+    BOOL modify) :
+	ECMAPIProp(lpMsgStore, obj_type, modify, nullptr)
 {}
 
 HRESULT	ECMAPIContainer::QueryInterface(REFIID refiid, void **lppInterface)

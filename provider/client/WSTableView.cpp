@@ -29,9 +29,8 @@
 using namespace KC;
 
 WSTableView::WSTableView(ULONG ty, ULONG fl, ECSESSIONID sid, ULONG cbEntryId,
-    const ENTRYID *lpEntryId, WSTransport *lpTransport, const char *cls_name) :
-	ECUnknown(cls_name), ecSessionId(sid), m_lpTransport(lpTransport),
-	ulFlags(fl), ulType(ty)
+    const ENTRYID *lpEntryId, WSTransport *lpTransport) :
+	ecSessionId(sid), m_lpTransport(lpTransport), ulFlags(fl), ulType(ty)
 {
 	m_lpTransport->AddSessionReloadCallback(this, Reload, &m_ulSessionReloadCallback);
 	CopyMAPIEntryIdToSOAPEntryId(cbEntryId, lpEntryId, &m_sEntryId);

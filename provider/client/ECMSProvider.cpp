@@ -32,14 +32,9 @@
 
 using namespace KC;
 
-ECMSProvider::ECMSProvider(const char *cls_name) :
-	ECUnknown(cls_name)
-{
-}
-
 HRESULT ECMSProvider::Create(ECMSProvider **x)
 {
-	return alloc_wrap<ECMSProvider>("IMSProvider").put(x);
+	return alloc_wrap<ECMSProvider>().put(x);
 }
 
 HRESULT ECMSProvider::QueryInterface(REFIID refiid, void **lppInterface)
@@ -222,10 +217,6 @@ HRESULT ECMSProvider::LogonByEntryID(object_ptr<WSTransport> &lpTransport,
 	lpTransport = std::move(lpAltTransport);
 	return hrSuccess;
 }
-
-ECMSProviderSwitch::ECMSProviderSwitch() :
-	ECUnknown("ECMSProviderSwitch")
-{}
 
 HRESULT ECMSProviderSwitch::Create(ECMSProviderSwitch **x)
 {

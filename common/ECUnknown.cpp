@@ -16,10 +16,6 @@
 
 namespace KC {
 
-ECUnknown::ECUnknown(const char *name) :
-	szClassName(name)
-{}
-
 ECUnknown::~ECUnknown()
 {
 	if (lpParent != nullptr)

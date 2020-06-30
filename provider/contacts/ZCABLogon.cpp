@@ -17,7 +17,7 @@ using namespace KC;
 
 ZCABLogon::ZCABLogon(IMAPISupport *lpMAPISup, ULONG ulProfileFlags,
     const GUID *lpGUID) :
-	ECUnknown("IABLogon"), m_lpMAPISup(lpMAPISup)
+	m_lpMAPISup(lpMAPISup)
 {
 	// The specific GUID for *this* addressbook provider, if available
 	m_ABPGuid = lpGUID != nullptr ? *lpGUID : GUID_NULL;

@@ -56,8 +56,8 @@ static ECPERMISSION RightsToECPermCheap(const struct rights r)
 }
 
 ECMAPIProp::ECMAPIProp(ECMsgStore *prov, ULONG objtype, BOOL modify,
-    const ECMAPIProp *lpRoot, const char *cls_name) :
-	ECGenericProp(prov, objtype, modify, cls_name),
+    const ECMAPIProp *lpRoot) :
+	ECGenericProp(prov, objtype, modify),
 	/*
 	 * Track "root object". This is the object that was opened via
 	 * OpenEntry or OpenMsgStore, so normally lpRoot == this, but in the
