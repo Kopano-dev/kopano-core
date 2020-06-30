@@ -589,6 +589,9 @@ def check_options(parser, options, server):
                 raise Exception('%s option requires --company for multitenant setup' % orig_option(opt))
 
 def main():
+    import warnings
+    warnings.warn('kopano-cli is deprecated and will be removed in the future: use kopano-admin instead.', stacklevel=3, category=FutureWarning)
+
     try:
         parser, options, args = parser_opt_args()
         if args:
