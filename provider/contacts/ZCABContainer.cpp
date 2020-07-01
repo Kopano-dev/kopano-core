@@ -497,13 +497,14 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 		//   0x80 default on, except for oneoff entryids
 
 		// either WAB_GUID or ONE_OFF_MUID
-		if (memcmp(ptrEntries->Value.MVbin.lpbin[i].lpb + sizeof(ULONG), &WAB_GUID, sizeof(GUID)) == 0) {
+		auto &tv = ptrEntries->Value.MVbin.lpbin[i];
+		if (memcmp(tv.lpb + sizeof(ULONG), &WAB_GUID, sizeof(GUID)) == 0) {
 			// handle wrapped entryids
 			ulOffset = sizeof(ULONG) + sizeof(GUID) + sizeof(BYTE);
-			cType = ptrEntries->Value.MVbin.lpbin[i].lpb[sizeof(ULONG) + sizeof(GUID)];
+			cType = tv.lpb[sizeof(ULONG) + sizeof(GUID)];
 		}
-		hr = m_lpMAPISup->OpenEntry(ptrEntries->Value.MVbin.lpbin[i].cb - ulOffset,
-		     reinterpret_cast<ENTRYID *>(ptrEntries->Value.MVbin.lpbin[i].lpb + ulOffset),
+		hr = m_lpMAPISup->OpenEntry(tv.cb - ulOffset,
+		     reinterpret_cast<ENTRYID *>(tv.lpb + ulOffset),
 		     &iid_of(ptrUser), 0, &ulObjType, &~ptrUser);
 		if (hr != hrSuccess)
 			continue;
@@ -806,20 +807,23 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 			if (hr != hrSuccess)
 				return hr;
 
-			std::vector<zcabFolderEntry>::const_iterator i;
+			std::vector<zcabFolderEntry>::iterator i;
 			// find the store of this folder
-			for (i = m_lpFolders->cbegin();
-			     i != m_lpFolders->cend(); ++i) {
+			for (i = m_lpFolders->begin();
+			     i != m_lpFolders->end(); ++i) {
 				ULONG res;
 				if ((m_lpMAPISup->CompareEntryIDs(i->cbFolder, (LPENTRYID)i->lpFolder, cbFolder, lpFolder, 0, &res) == hrSuccess) && res == TRUE)
 					break;
 			}
 			if (i == m_lpFolders->cend())
 				return MAPI_E_NOT_FOUND;
-			hr = ptrSession->OpenMsgStore(0, i->cbStore, reinterpret_cast<ENTRYID *>(i->lpStore), nullptr, 0, &~ptrStore);
-			if (hr != hrSuccess)
-				return hr;
-			hr = ptrStore->OpenEntry(cbFolder, lpFolder, &iid_of(ptrContactFolder), 0, &ulObjType, &~ptrContactFolder);
+			ulock_normal lk(m_storemap_lock);
+			if (i->store == nullptr) {
+				hr = ptrSession->OpenMsgStore(0, i->cbStore, reinterpret_cast<ENTRYID *>(i->lpStore), nullptr, 0, &~i->store);
+				if (hr != hrSuccess)
+					return hr;
+			}
+			hr = i->store->OpenEntry(cbFolder, lpFolder, &iid_of(ptrContactFolder), 0, &ulObjType, &~ptrContactFolder);
 		}
 		if (hr != hrSuccess)
 			return hr;

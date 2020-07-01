@@ -24,6 +24,7 @@ struct zcabFolderEntry {
 	unsigned int cbStore = 0, cbFolder = 0;
 	BYTE *lpStore = nullptr, *lpFolder = nullptr;
 	std::wstring strwDisplayName;
+	KC::object_ptr<IMsgStore> store;
 };
 
 class ZCABLogon KC_FINAL_OPG : public KC::ECUnknown, public IABLogon {

@@ -7,6 +7,7 @@
 #define ZCABCONTAINER_H
 
 #include <memory>
+#include <mutex>
 #include <vector>
 #include <kopano/memory.hpp>
 #include <kopano/Util.h>
@@ -67,6 +68,7 @@ private:
 	KC::object_ptr<IMAPIFolder> m_lpContactFolder;
 	KC::object_ptr<IMAPISupport> m_lpMAPISup;
 	void *m_lpProvider;
+	std::mutex m_storemap_lock;
 
 	/* distlist version of this container */
 	KC::object_ptr<IMAPIProp> m_lpDistList;
