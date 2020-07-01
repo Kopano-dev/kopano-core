@@ -661,13 +661,13 @@ HRESULT ECABProp::TableRowGetProp(void *lpProvider,
 	return hr;
 }
 
-ECABProvider::ECABProvider(ULONG ulFlags, const char *cls_name) :
-	ECUnknown(cls_name), m_ulFlags(ulFlags)
+ECABProvider::ECABProvider(const char *cls_name) :
+	ECUnknown(cls_name)
 {}
 
 HRESULT ECABProvider::Create(ECABProvider **lppECABProvider)
 {
-	return alloc_wrap<ECABProvider>(0, "ECABProvider").put(lppECABProvider);
+	return alloc_wrap<ECABProvider>("ECABProvider").put(lppECABProvider);
 }
 
 HRESULT ECABProvider::QueryInterface(REFIID refiid, void **lppInterface)
@@ -753,7 +753,7 @@ HRESULT ECABProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 	object_ptr<IABProvider> lpOnline;
 	convstring tstrProfileName(lpszProfileName, ulFlags);
 
-	auto hr = GetProviders(&g_mapProviders, lpMAPISup, convstring(lpszProfileName, ulFlags).c_str(), ulFlags, &sProviderInfo);
+	auto hr = GetProviders(&g_mapProviders, lpMAPISup, convstring(lpszProfileName, ulFlags).c_str(), &sProviderInfo);
 	if (hr != hrSuccess)
 		return hr;
 	hr = sProviderInfo.lpABProviderOnline->QueryInterface(IID_IABProvider, &~lpOnline);

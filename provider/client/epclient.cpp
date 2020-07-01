@@ -109,7 +109,7 @@ HRESULT MSProviderInit(HINSTANCE hInstance, LPMALLOC pmalloc,
 
 	// This object is created for the lifetime of the DLL and destroyed when the
 	// DLL is closed (same on linux, but then for the shared library);
-	auto hr = ECMSProviderSwitch::Create(ulFlags, &~lpMSProvider);
+	auto hr = ECMSProviderSwitch::Create(&~lpMSProvider);
 	if(hr != hrSuccess)
 		return hr;
 	return lpMSProvider->QueryInterface(IID_IMSProvider, reinterpret_cast<void **>(ppmsp));

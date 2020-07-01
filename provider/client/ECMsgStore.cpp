@@ -136,7 +136,7 @@ static HRESULT GetIMsgStoreObject(BOOL bOffline,
 
 	// Set ProfileName
 	auto lpszProfileName = lpsPropValue->Value.lpszA;
-	hr = GetProviders(lpmapProviders, lpMAPISup, lpszProfileName, 0, &sProviderInfo);
+	hr = GetProviders(lpmapProviders, lpMAPISup, lpszProfileName, &sProviderInfo);
 	if (hr != hrSuccess)
 		return hr;
 	return sProviderInfo.lpMSProviderOnline->Logon(lpMAPISup, 0,

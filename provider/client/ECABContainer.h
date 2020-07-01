@@ -81,7 +81,7 @@ private:
 
 class ECABProvider KC_FINAL_OPG : public KC::ECUnknown, public IABProvider {
 	protected:
-	ECABProvider(ULONG ulFlags, const char *szClassName);
+	ECABProvider(const char *cls_name);
 	virtual ~ECABProvider() = default;
 
 	public:
@@ -90,7 +90,6 @@ class ECABProvider KC_FINAL_OPG : public KC::ECUnknown, public IABProvider {
 	virtual HRESULT Shutdown(ULONG *flags) override;
 	virtual HRESULT Logon(IMAPISupport *, ULONG_PTR ui_param, const TCHAR *profile, ULONG flags, ULONG *sec_size, BYTE **sec, MAPIERROR **, IABLogon **) override;
 
-	ULONG m_ulFlags;
 	ALLOC_WRAP_FRIEND;
 };
 
