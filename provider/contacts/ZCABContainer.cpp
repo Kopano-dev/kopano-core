@@ -3,7 +3,10 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
+#include <memory>
 #include <new>
+#include <utility>
+#include <vector>
 #include <climits>
 #include <cstring>
 #include "ZCABContainer.h"
@@ -28,10 +31,10 @@
 
 using namespace KC;
 
-ZCABContainer::ZCABContainer(const std::vector<zcabFolderEntry> *lpFolders,
+ZCABContainer::ZCABContainer(std::shared_ptr<std::vector<zcabFolderEntry>> lpFolders,
     IMAPIFolder *lpContacts, LPMAPISUP lpMAPISup, void *lpProvider,
     const char *cls_name) :
-	ECUnknown(cls_name), m_lpFolders(lpFolders),
+	ECUnknown(cls_name), m_lpFolders(std::move(lpFolders)),
 	m_lpContactFolder(lpContacts), m_lpMAPISup(lpMAPISup),
 	m_lpProvider(lpProvider)
 {
@@ -67,11 +70,11 @@ HRESULT	ZCABContainer::QueryInterface(REFIID refiid, void **lppInterface)
  * 
  * @return 
  */
-HRESULT ZCABContainer::Create(const std::vector<zcabFolderEntry> *lpFolders,
+HRESULT ZCABContainer::Create(std::shared_ptr<std::vector<zcabFolderEntry>> lpFolders,
     IMAPIFolder *lpContacts, IMAPISupport *lpMAPISup, void *lpProvider,
     ZCABContainer **lppABContainer)
 {
-	return alloc_wrap<ZCABContainer>(lpFolders, lpContacts, lpMAPISup, lpProvider, "IABContainer").put(lppABContainer);
+	return alloc_wrap<ZCABContainer>(std::move(lpFolders), lpContacts, lpMAPISup, lpProvider, "IABContainer").put(lppABContainer);
 }
 
 HRESULT ZCABContainer::Create(IMessage *lpContact, ULONG cbEntryID,

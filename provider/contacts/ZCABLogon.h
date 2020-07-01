@@ -6,6 +6,8 @@
 #ifndef ZCABLOGON_H
 #define ZCABLOGON_H
 
+#include <memory>
+#include <string>
 #include <vector>
 #include <mapispi.h>
 #include <kopano/ECUnknown.h>
@@ -48,7 +50,7 @@ private:
 	KC::object_ptr<IMAPISupport> m_lpMAPISup;
 	GUID				m_ABPGuid;
 
-	std::vector<zcabFolderEntry> m_lFolders;
+	std::shared_ptr<std::vector<zcabFolderEntry>> m_lFolders;
 	ALLOC_WRAP_FRIEND;
 };
 

@@ -6,6 +6,8 @@
 #ifndef ZCABCONTAINER_H
 #define ZCABCONTAINER_H
 
+#include <memory>
+#include <vector>
 #include <kopano/memory.hpp>
 #include <kopano/Util.h>
 #include <kopano/zcdefs.h>
@@ -19,13 +21,13 @@
 class ZCABContainer KC_FINAL_OPG :
     public KC::ECUnknown, public IABContainer, public IDistList {
 protected:
-	ZCABContainer(const std::vector<zcabFolderEntry> *folders, IMAPIFolder *contacts, IMAPISupport *, void *provider, const char *class_name);
+	ZCABContainer(std::shared_ptr<std::vector<zcabFolderEntry>> folders, IMAPIFolder *contacts, IMAPISupport *, void *provider, const char *class_name);
 
 private:
 	HRESULT MakeWrappedEntryID(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulObjType, ULONG ulOffset, ULONG *lpcbEntryID, LPENTRYID *lppEntryID);
 
 public:
-	static HRESULT Create(const std::vector<zcabFolderEntry> *folders, IMAPIFolder *contacts, IMAPISupport *, void *provider, ZCABContainer **);
+	static HRESULT Create(std::shared_ptr<std::vector<zcabFolderEntry>> folders, IMAPIFolder *contacts, IMAPISupport *, void *provider, ZCABContainer **);
 	static HRESULT Create(IMessage *contact, ULONG eid_size, const ENTRYID *eid, IMAPISupport *, ZCABContainer **);
 
 	HRESULT GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable);
@@ -61,8 +63,7 @@ public:
 	virtual HRESULT GetIDsFromNames(unsigned int, MAPINAMEID **, unsigned int, SPropTagArray **) override;
 
 private:
-	/* reference to ZCABLogon .. ZCABLogon needs to live because of this, so AddChild */
-	const std::vector<zcabFolderEntry> *m_lpFolders;
+	std::shared_ptr<std::vector<zcabFolderEntry>> m_lpFolders;
 	KC::object_ptr<IMAPIFolder> m_lpContactFolder;
 	KC::object_ptr<IMAPISupport> m_lpMAPISup;
 	void *m_lpProvider;

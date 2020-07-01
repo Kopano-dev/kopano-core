@@ -33,7 +33,8 @@ zcabFolderEntry::zcabFolderEntry(zcabFolderEntry &&o) :
 
 ZCABLogon::ZCABLogon(IMAPISupport *lpMAPISup, ULONG ulProfileFlags,
     const GUID *lpGUID) :
-	ECUnknown("IABLogon"), m_lpMAPISup(lpMAPISup)
+	ECUnknown("IABLogon"), m_lpMAPISup(lpMAPISup),
+	m_lFolders(std::make_shared<std::vector<zcabFolderEntry>>())
 {
 	// The specific GUID for *this* addressbook provider, if available
 	m_ABPGuid = lpGUID != nullptr ? *lpGUID : GUID_NULL;
@@ -101,7 +102,7 @@ HRESULT ZCABLogon::AddFolder(const wchar_t *lpwDisplayName, ULONG cbStore,
 	if (hr != hrSuccess)
 		return hr;
 	memcpy(entry.lpFolder, lpFolder, cbFolder);
-	m_lFolders.emplace_back(std::move(entry));
+	m_lFolders->emplace_back(std::move(entry));
 	return hrSuccess;
 }
 
@@ -161,7 +162,7 @@ HRESULT ZCABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 			return hr;
 
 		// remove old list, if present
-		m_lFolders.clear();
+		m_lFolders->clear();
 
 		// make the list
 		if (lpFolderProps[0].ulPropTag == PR_ZC_CONTACT_STORE_ENTRYIDS &&
@@ -174,7 +175,7 @@ HRESULT ZCABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 						  lpFolderProps[0].Value.MVbin.lpbin[c].cb, lpFolderProps[0].Value.MVbin.lpbin[c].lpb,
 						  lpFolderProps[1].Value.MVbin.lpbin[c].cb, lpFolderProps[1].Value.MVbin.lpbin[c].lpb);
 
-		hr = ZCABContainer::Create(&m_lFolders, nullptr, m_lpMAPISup, this, &~lpRootContainer);
+		hr = ZCABContainer::Create(m_lFolders, nullptr, m_lpMAPISup, this, &~lpRootContainer);
 		if (hr != hrSuccess)
 			return hr;
 
@@ -192,12 +193,7 @@ HRESULT ZCABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		*lpulObjType = MAPI_ABCONT;
 		hr = lpRootContainer->QueryInterface(lpInterface != nullptr ? *lpInterface : IID_IABContainer, reinterpret_cast<void **>(lppUnk));
 	}
-	if(hr != hrSuccess)
-		return hr;
-	if (lpContact == nullptr)
-		// root container has pointer to my m_lFolders
-		AddChild(lpRootContainer);
-	return hrSuccess;
+	return hr;
 }
 
 HRESULT ZCABLogon::CompareEntryIDs(ULONG cbEntryID1, const ENTRYID *lpEntryID1,
