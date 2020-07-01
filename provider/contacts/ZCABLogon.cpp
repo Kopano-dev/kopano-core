@@ -16,17 +16,27 @@
 
 using namespace KC;
 
+zcabFolderEntry::~zcabFolderEntry()
+{
+	MAPIFreeBuffer(lpStore);
+	MAPIFreeBuffer(lpFolder);
+}
+
+zcabFolderEntry::zcabFolderEntry(zcabFolderEntry &&o) :
+	cbStore(o.cbStore), cbFolder(o.cbFolder),
+	lpStore(o.lpStore), lpFolder(o.lpFolder),
+	strwDisplayName(std::move(o.strwDisplayName))
+{
+	o.cbStore = o.cbFolder = 0;
+	o.lpStore = o.lpFolder = nullptr;
+}
+
 ZCABLogon::ZCABLogon(IMAPISupport *lpMAPISup, ULONG ulProfileFlags,
     const GUID *lpGUID) :
 	ECUnknown("IABLogon"), m_lpMAPISup(lpMAPISup)
 {
 	// The specific GUID for *this* addressbook provider, if available
 	m_ABPGuid = lpGUID != nullptr ? *lpGUID : GUID_NULL;
-}
-
-ZCABLogon::~ZCABLogon()
-{
-	ClearFolderList();
 }
 
 HRESULT ZCABLogon::Create(IMAPISupport *lpMAPISup, ULONG ulProfileFlags,
@@ -95,16 +105,6 @@ HRESULT ZCABLogon::AddFolder(const wchar_t *lpwDisplayName, ULONG cbStore,
 	return hrSuccess;
 }
 
-HRESULT ZCABLogon::ClearFolderList()
-{
-	for (const auto &i : m_lFolders) {
-		MAPIFreeBuffer(i.lpStore);
-		MAPIFreeBuffer(i.lpFolder);
-	}
-	m_lFolders.clear();
-	return hrSuccess;
-}
-
 /** 
  * EntryID is NULL: Open "root container". Returns an ABContainer
  * which returns the provider root container. The EntryID in that one
@@ -161,7 +161,7 @@ HRESULT ZCABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 			return hr;
 
 		// remove old list, if present
-		ClearFolderList();
+		m_lFolders.clear();
 
 		// make the list
 		if (lpFolderProps[0].ulPropTag == PR_ZC_CONTACT_STORE_ENTRYIDS &&
