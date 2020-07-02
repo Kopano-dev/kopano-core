@@ -229,7 +229,6 @@ template<typename T> class object_ptr {
 	T *get(void) const noexcept { return m_ptr; }
 	operator T *(void) const noexcept { return m_ptr; }
 	template<typename U> HRESULT QueryInterface(U &);
-	template<typename P> P as();
 
 	/* Modifiers */
 	T *release(void) noexcept
@@ -374,13 +373,6 @@ HRESULT object_ptr<T>::QueryInterface(U &result)
 			result = std::move(newobj);
 	}
 	return hr;
-}
-
-template<typename T> template<typename P> P object_ptr<T>::as(void)
-{
-	P tmp = nullptr;
-	QueryInterface(tmp);
-	return tmp;
 }
 
 template<typename T> struct mkuniq_helper {

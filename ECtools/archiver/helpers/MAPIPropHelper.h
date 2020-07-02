@@ -24,7 +24,7 @@ class MessageState;
  */
 class KC_EXPORT MAPIPropHelper {
 public:
-	static HRESULT Create(MAPIPropPtr ptrMapiProp, MAPIPropHelperPtr *lpptrMAPIPropHelper);
+	static HRESULT Create(IMAPIProp *, MAPIPropHelperPtr *);
 	KC_HIDDEN virtual ~MAPIPropHelper() = default;
 	HRESULT GetMessageState(ArchiverSessionPtr ptrSession, MessageState *lpState);
 	HRESULT GetArchiveList(ObjectEntryList *lplstArchives, bool bIgnoreSourceKey = false);
@@ -40,7 +40,7 @@ public:
 	virtual HRESULT GetParentFolder(ArchiverSessionPtr ptrSession, LPMAPIFOLDER *lppFolder);
 
 protected:
-	KC_HIDDEN MAPIPropHelper(MAPIPropPtr);
+	KC_HIDDEN MAPIPropHelper(IMAPIProp *);
 	KC_HIDDEN HRESULT Init();
 
 private:

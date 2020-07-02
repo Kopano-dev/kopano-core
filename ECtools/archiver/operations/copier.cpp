@@ -414,7 +414,7 @@ HRESULT Copier::DoProcessEntry(const SRow &proprow)
 		return Logger()->pwarn("Failed to verify message criteria", hr);
 	}
 
-	hr = MAPIPropHelper::Create(ptrMessageRaw.as<MAPIPropPtr>(), &ptrMsgHelper);
+	hr = MAPIPropHelper::Create(ptrMessageRaw, &ptrMsgHelper);
 	if (hr != hrSuccess)
 		return Logger()->perr("Failed to create prop helper", hr);
 	hr = ptrMsgHelper->GetMessageState(m_ptrSession, &state);
@@ -611,8 +611,7 @@ HRESULT Copier::DoTrackAndRearchive(LPMESSAGE lpMessage, const SObjectEntry &arc
 	hr = MoveToHistory(archiveRootEntry, archiveMsgEntry, ptrTransaction, &movedEntry, &~ptrMovedMessage);
 	if (hr != hrSuccess)
 		return Logger()->perr("Failed to move old archive to history folder", hr);
-
-	hr = MAPIPropHelper::Create(ptrNewArchive.as<MAPIPropPtr>(), &ptrMsgHelper);
+	hr = MAPIPropHelper::Create(ptrNewArchive, &ptrMsgHelper);
 	if (hr != hrSuccess)
 		return Logger()->perr("Failed to create prop helper", hr);
 	hr = ptrMsgHelper->ReferencePrevious(movedEntry);
@@ -627,8 +626,7 @@ HRESULT Copier::DoTrackAndRearchive(LPMESSAGE lpMessage, const SObjectEntry &arc
 		// Since the first history message was just moved but not yet saved, we'll set that
 		// reference here. The other history messages do exist on the server, so those can
 		// be updated through UpdateHistoryRefs.
-
-		hr = MAPIPropHelper::Create(ptrMovedMessage.as<MAPIPropPtr>(), &ptrMsgHelper);
+		hr = MAPIPropHelper::Create(ptrMovedMessage, &ptrMsgHelper);
 		if (hr != hrSuccess)
 			return Logger()->perr("Failed to create prop helper", hr);
 		hr = ptrMsgHelper->SetReference(refMsgEntry);
@@ -732,7 +730,7 @@ HRESULT Copier::DoMoveArchive(const SObjectEntry &archiveRootEntry, const SObjec
 	hr = ptrArchive->CopyTo(0, NULL, NULL, 0, NULL, &iid_of(ptrArchiveCopy), ptrArchiveCopy, 0, NULL);
 	if (hr != hrSuccess)
 		return hr;
-	hr = MAPIPropHelper::Create(ptrArchiveCopy.as<MAPIPropPtr>(), &ptrPropHelper);
+	hr = MAPIPropHelper::Create(ptrArchiveCopy, &ptrPropHelper);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrPropHelper->SetReference(refMsgEntry);
@@ -864,7 +862,7 @@ HRESULT Copier::UpdateHistoryRefs(LPMESSAGE lpArchivedMsg, const SObjectEntry &r
 		return hrSuccess;
 	else if (hr != hrSuccess)
 		return hr;
-	hr = MAPIPropHelper::Create(ptrMessage.as<MAPIPropPtr>(), &ptrPropHelper);
+	hr = MAPIPropHelper::Create(ptrMessage, &ptrPropHelper);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrPropHelper->SetReference(refMsgEntry);
