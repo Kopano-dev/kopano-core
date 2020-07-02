@@ -12,6 +12,7 @@
 #include <kopano/Util.h>
 #include <kopano/mapi_ptr.h>
 #include <kopano/mapiguidext.h>
+#include <kopano/memory.hpp>
 
 namespace KC { namespace helpers {
 
@@ -502,7 +503,6 @@ HRESULT MAPIPropHelper::GetParentFolder(ArchiverSessionPtr ptrSession, LPMAPIFOL
 {
 	SPropArrayPtr ptrPropArray;
 	MsgStorePtr ptrMsgStore;
-	MAPIFolderPtr ptrFolder;
 	unsigned int cValues = 0;
 	static constexpr const SizedSPropTagArray(2, sptaProps) =
 		{2, {PR_PARENT_ENTRYID, PR_STORE_ENTRYID}};
@@ -516,6 +516,7 @@ HRESULT MAPIPropHelper::GetParentFolder(ArchiverSessionPtr ptrSession, LPMAPIFOL
 	hr = ptrSession->OpenStore(ptrPropArray[1].Value.bin, &~ptrMsgStore);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMAPIFolder> ptrFolder;
 	hr = ptrMsgStore->OpenEntry(ptrPropArray[0].Value.bin.cb,
 	     reinterpret_cast<ENTRYID *>(ptrPropArray[0].Value.bin.lpb),
 	     &iid_of(ptrFolder), MAPI_BEST_ACCESS | fMapiDeferredErrors,

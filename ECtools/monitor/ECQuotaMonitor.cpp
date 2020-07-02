@@ -871,7 +871,6 @@ static HRESULT GetConfigMessage(IMsgStore *lpStore, const char *szMessageName,
     IMessage **lppMessage)
 {
 	SPropArrayPtr ptrEntryIDs;
-	MAPIFolderPtr ptrFolder;
 	unsigned int cValues;
 	MAPITablePtr ptrTable;
 	SPropValue propSubject;
@@ -885,6 +884,7 @@ static HRESULT GetConfigMessage(IMsgStore *lpStore, const char *szMessageName,
 		return hr;
 
 	// NON_IPM on a public store, IPM on a normal store
+	object_ptr<IMAPIFolder> ptrFolder;
 	if (ptrEntryIDs[0].ulPropTag == sptaTreeProps.aulPropTag[0])
 		hr = lpStore->OpenEntry(ptrEntryIDs[0].Value.bin.cb,
 		     reinterpret_cast<ENTRYID *>(ptrEntryIDs[0].Value.bin.lpb),
@@ -1021,7 +1021,6 @@ HRESULT ECQuotaMonitor::Notify(ECUSER *lpecUser, ECCOMPANY *lpecCompany,
 {
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	MsgStorePtr ptrRecipStore;
-	MAPIFolderPtr ptrRoot;
 	MessagePtr ptrQuotaTSMessage;
 	bool bTimeout;
 	memory_ptr<SPropValue> lpsObject;

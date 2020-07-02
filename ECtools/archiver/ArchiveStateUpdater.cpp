@@ -237,7 +237,6 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstr
 	for (const auto &i : lstArchives) {
 		MsgStorePtr ptrArchStore;
 		ULONG ulType;
-		MAPIFolderPtr ptrArchFolder;
 		ArchiveHelperPtr ptrArchiveHelper;
 		AttachType attachType;
 
@@ -251,6 +250,7 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstr
 			m_lpLogger->perr("Failed to open archive store", hr);
 			return hr;
 		}
+		object_ptr<IMAPIFolder> ptrArchFolder;
 		hr = ptrArchStore->OpenEntry(i.sItemEntryId.size(), i.sItemEntryId, &iid_of(ptrArchFolder), 0, &ulType, &~ptrArchFolder);
 		if (hr != hrSuccess) {
 			m_lpLogger->perr("Failed to open archive root", hr);

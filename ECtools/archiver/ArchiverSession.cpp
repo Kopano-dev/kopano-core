@@ -615,7 +615,6 @@ HRESULT ArchiverSession::CreateArchiveStore(const tstring& strUserName, const ts
 	abentryid_t userId;
 	unsigned int cbStoreId = 0, cbRootId = 0;
 	EntryIdPtr ptrStoreId, ptrRootId;
-	MAPIFolderPtr ptrRoot, ptrIpmSubtree;
 	SPropValuePtr ptrIpmSubtreeId;
 
 	auto hr = GetUserInfo(strUserName, &userId, nullptr, nullptr);
@@ -640,10 +639,12 @@ HRESULT ArchiverSession::CreateArchiveStore(const tstring& strUserName, const ts
 	hr = m_ptrSession->OpenMsgStore(0, cbStoreId, ptrStoreId, &iid_of(ptrArchiveStore), MDB_WRITE, &~ptrArchiveStore);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMAPIFolder> ptrRoot;
 	hr = ptrArchiveStore->OpenEntry(0, nullptr, &iid_of(ptrRoot), MAPI_MODIFY, nullptr, &~ptrRoot);
 	if (hr != hrSuccess)
 		return hr;
 
+	object_ptr<IMAPIFolder> ptrIpmSubtree;
 	hr = ptrRoot->CreateFolder(FOLDER_GENERIC,
 	     const_cast<TCHAR *>(KC_T("IPM_SUBTREE")),
 	     const_cast<TCHAR *>(KC_T("")), &IID_IMAPIFolder, fMapiUnicode,

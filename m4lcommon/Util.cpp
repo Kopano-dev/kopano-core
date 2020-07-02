@@ -3404,7 +3404,6 @@ HRESULT Util::HrDeleteMessage(IMAPISession *lpSession, IMessage *lpMessage)
 	SPropArrayPtr ptrMsgProps;
 	MsgStorePtr ptrStore;
 	ULONG ulType;
-	MAPIFolderPtr ptrFolder;
 	ENTRYLIST entryList = {1, NULL};
 	static constexpr const SizedSPropTagArray(3, sptaMessageProps) =
 		{3, {PR_ENTRYID, PR_STORE_ENTRYID, PR_PARENT_ENTRYID}};
@@ -3418,6 +3417,7 @@ HRESULT Util::HrDeleteMessage(IMAPISession *lpSession, IMessage *lpMessage)
 	     &iid_of(ptrStore), MDB_WRITE, &~ptrStore);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMAPIFolder> ptrFolder;
 	hr = ptrStore->OpenEntry(ptrMsgProps[IDX_PARENT_ENTRYID].Value.bin.cb,
 	     reinterpret_cast<ENTRYID *>(ptrMsgProps[IDX_PARENT_ENTRYID].Value.bin.lpb),
 	     &iid_of(ptrFolder), MAPI_MODIFY, &ulType, &~ptrFolder);

@@ -1270,7 +1270,6 @@ static HRESULT ForceResyncFor(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 	unsigned int cbEntryID = 0;
 	EntryIdPtr ptrEntryID;
 	MsgStorePtr ptrUserStore;
-	MAPIFolderPtr ptrRoot;
 	SPropValuePtr ptrPropResyncID;
 
 	auto hr = lpAdminStore->QueryInterface(iid_of(ptrEMS), &~ptrEMS);
@@ -1282,6 +1281,7 @@ static HRESULT ForceResyncFor(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 	hr = lpSession->OpenMsgStore(0, cbEntryID, ptrEntryID, NULL, MDB_WRITE|MAPI_DEFERRED_ERRORS, &~ptrUserStore);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMAPIFolder> ptrRoot;
 	hr = ptrUserStore->OpenEntry(0, nullptr, &iid_of(ptrRoot), MAPI_MODIFY, nullptr, &~ptrRoot);
 	if (hr != hrSuccess)
 		return hr;
@@ -1550,7 +1550,6 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 	unsigned int cbEntryID, ulUpdates = 0, ulTotalUpdates = 0;
 	EntryIdPtr ptrEntryID;
 	MsgStorePtr ptrUserStore;
-	MAPIFolderPtr ptrRoot;
 	SPropValuePtr ptrPropEntryID;
 	bool bFailures = false;
 	MAPITablePtr ptrTable;
@@ -1572,6 +1571,7 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 	hr = ptrUserStore->QueryInterface(iid_of(ptrServiceAdmin), &~ptrServiceAdmin);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMAPIFolder> ptrRoot;
 	hr = ptrUserStore->OpenEntry(0, nullptr, &iid_of(ptrRoot), 0, nullptr, &~ptrRoot);
 	if (hr != hrSuccess)
 		return hr;

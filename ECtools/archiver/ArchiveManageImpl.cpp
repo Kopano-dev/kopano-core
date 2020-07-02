@@ -17,6 +17,7 @@
 #include <kopano/charset/convert.h>
 #include "ECACL.h"
 #include <kopano/ECConfig.h>
+#include <kopano/memory.hpp>
 #include <kopano/userutil.h>
 #include "ArchiveStateUpdater.h"
 #include <kopano/ECRestriction.h>
@@ -319,7 +320,6 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
 	MsgStorePtr ptrArchiveStore;
 	ArchiveHelperPtr ptrArchiveHelper;
 	SPropValuePtr ptrArchiveStoreEntryId;
-	MAPIFolderPtr ptrArchiveFolder;
 	SPropValuePtr ptrDisplayName;
 	ULONG ulType = 0;
 	ArchiverSessionPtr ptrArchiveSession(m_ptrSession), ptrRemoteSession;
@@ -378,6 +378,7 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
 	// If a folder name was passed, we need to find the correct folder.
 	if (lpszFolder) {
 		while (iArchive != lstArchives.end()) {
+			object_ptr<IMAPIFolder> ptrArchiveFolder;
 			hr = ptrArchiveStore->OpenEntry(iArchive->sItemEntryId.size(), iArchive->sItemEntryId, &iid_of(ptrArchiveFolder), fMapiDeferredErrors, &ulType, &~ptrArchiveFolder);
 			if (hr != hrSuccess) {
 				m_lpLogger->perr("Failed to open archive folder", hr);
@@ -522,7 +523,6 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 		unsigned int cStoreProps = 0, ulCompareResult = false;
 		SPropArrayPtr ptrStoreProps;
 		ArchiveEntry entry;
-		MAPIFolderPtr ptrArchiveFolder;
 		SPropValuePtr ptrPropValue;
 		static constexpr const SizedSPropTagArray(4, sptaStoreProps) = {4, {PR_DISPLAY_NAME_A, PR_MAILBOX_OWNER_ENTRYID, PR_IPM_SUBTREE_ENTRYID, PR_STORE_RECORD_KEY}};
 		enum {IDX_DISPLAY_NAME, IDX_MAILBOX_OWNER_ENTRYID, IDX_IPM_SUBTREE_ENTRYID, IDX_STORE_RECORD_KEY};
@@ -578,6 +578,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 				entry.StoreGuid = bin2hex(ptrStoreProps[IDX_STORE_RECORD_KEY].Value.bin);
 		}
 
+		object_ptr<IMAPIFolder> ptrArchiveFolder;
 		hrTmp = ptrArchiveStore->OpenEntry(arc.sItemEntryId.size(), arc.sItemEntryId, &iid_of(ptrArchiveFolder), fMapiDeferredErrors, &ulType, &~ptrArchiveFolder);
 		if (hrTmp != hrSuccess) {
 			m_lpLogger->perr("Failed to open folder", hrTmp);

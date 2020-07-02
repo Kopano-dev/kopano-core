@@ -822,7 +822,6 @@ HRESULT ECExchangeImportContentsChanges::HrUpdateSearchReminders(LPMAPIFOLDER lp
 	unsigned int cREMProps, ulType = 0, ulOrigSearchState = 0;
 	SPropArrayPtr ptrREMProps;
 	LPSPropValue lpREMEntryID = NULL;
-	MAPIFolderPtr ptrRemindersFolder;
 	SRestrictionPtr ptrOrigRestriction;
 	EntryListPtr ptrOrigContainerList;
 	SRestrictionPtr ptrPreRestriction;
@@ -844,6 +843,7 @@ HRESULT ECExchangeImportContentsChanges::HrUpdateSearchReminders(LPMAPIFOLDER lp
 	else
 		return MAPI_E_NOT_FOUND;
 
+	object_ptr<IMAPIFolder> ptrRemindersFolder;
 	hr = lpRootFolder->OpenEntry(lpREMEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpREMEntryID->Value.bin.lpb), &iid_of(ptrRemindersFolder), MAPI_BEST_ACCESS, &ulType, &~ptrRemindersFolder);
 	if (hr != hrSuccess)
 		return hr;

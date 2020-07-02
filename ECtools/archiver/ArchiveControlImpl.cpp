@@ -15,6 +15,7 @@
 #include "ArchiveStateUpdater.h"
 #include <kopano/userutil.h>
 #include <kopano/mapiext.h>
+#include <kopano/memory.hpp>
 #include "helpers/StoreHelper.h"
 #include "operations/copier.h"
 #include "operations/deleter.h"
@@ -296,7 +297,6 @@ HRESULT ArchiveControlImpl::DoArchive(const tstring& strUser)
 
 	MsgStorePtr ptrUserStore;
 	StoreHelperPtr ptrStoreHelper;
-	MAPIFolderPtr ptrSearchArchiveFolder, ptrSearchDeleteFolder, ptrSearchStubFolder;
 	ObjectEntryList lstArchives;
 	bool bHaveErrors = false;
 	std::shared_ptr<Copier> ptrCopyOp;
@@ -338,6 +338,7 @@ HRESULT ArchiveControlImpl::DoArchive(const tstring& strUser)
 		m_lpLogger->logf(EC_LOGLEVEL_INFO, "\"" TSTRING_PRINTF "\" has no attached archives", strUser.c_str());
 		return hr;
 	}
+	object_ptr<IMAPIFolder> ptrSearchArchiveFolder, ptrSearchDeleteFolder, ptrSearchStubFolder;
 	hr = ptrStoreHelper->GetSearchFolders(&~ptrSearchArchiveFolder, &~ptrSearchDeleteFolder, &~ptrSearchStubFolder);
 	if (hr != hrSuccess)
 		return m_lpLogger->perr("Failed to get the search folders", hr);
@@ -595,7 +596,6 @@ HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
 
 	for (const auto &arc : lstArchives) {
 		MsgStorePtr ptrArchiveStore;
-		MAPIFolderPtr ptrArchiveRoot;
 		MAPITablePtr ptrFolderTable;
 		SRowSetPtr ptrFolderRows;
 
@@ -617,6 +617,7 @@ HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
 		}
 
 		// Get all subfolders and purge those as well.
+		object_ptr<IMAPIFolder> ptrArchiveRoot;
 		hr = ptrArchiveStore->OpenEntry(arc.sItemEntryId.size(), arc.sItemEntryId,
 		     &iid_of(ptrArchiveRoot), MAPI_BEST_ACCESS | fMapiDeferredErrors,
 		     nullptr, &~ptrArchiveRoot);
@@ -674,7 +675,7 @@ HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
  */
 HRESULT ArchiveControlImpl::PurgeArchiveFolder(MsgStorePtr &ptrArchive, const entryid_t &folderEntryID, const LPSRestriction lpRestriction)
 {
-	MAPIFolderPtr ptrFolder;
+	object_ptr<IMAPIFolder> ptrFolder;
 	MAPITablePtr ptrContentsTable;
 	std::list<entryid_t> lstEntries;
 	SRowSetPtr ptrRows;
@@ -743,11 +744,11 @@ HRESULT ArchiveControlImpl::CleanupArchive(const SObjectEntry &archiveEntry, IMs
 	SPropValuePtr ptrPropVal;
 	EntryIDSet setRefs, setEntries, setDead;
 	ArchiveHelperPtr ptrArchiveHelper;
-	MAPIFolderPtr ptrArchiveFolder;
 
 	auto hr = ArchiveHelper::Create(m_ptrSession, archiveEntry, m_lpLogger, &ptrArchiveHelper);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMAPIFolder> ptrArchiveFolder;
 	hr = ptrArchiveHelper->GetArchiveFolder(true, &~ptrArchiveFolder);
 	if (hr != hrSuccess)
 		return hr;
@@ -823,7 +824,7 @@ HRESULT ArchiveControlImpl::GetAllReferences(IMsgStore *lpUserStore,
 {
 	EntryIDSet setRefs;
 	SPropValuePtr ptrPropVal;
-	MAPIFolderPtr ptrIpmSubtree;
+	object_ptr<IMAPIFolder> ptrIpmSubtree;
 	ECFolderIterator iEnd;
 
 	// Find the primary store IPM subtree
@@ -919,7 +920,6 @@ HRESULT ArchiveControlImpl::GetAllEntries(ArchiveHelperPtr ptrArchiveHelper, LPM
 {
 	EntryIDSet setEntries, setFolderExcludes;
 	ECFolderIterator iEnd;
-	MAPIFolderPtr ptrFolder;
 
 	auto hr = AppendAllEntries(lpArchive, lpRestriction, &setEntries);
 	if (hr != hrSuccess)
@@ -927,6 +927,7 @@ HRESULT ArchiveControlImpl::GetAllEntries(ArchiveHelperPtr ptrArchiveHelper, LPM
 
 	// Exclude everything below the special folder root because that's were we store messages
 	// that have not references to the primary store.
+	object_ptr<IMAPIFolder> ptrFolder;
 	hr = ptrArchiveHelper->GetSpecialsRootFolder(&~ptrFolder);
 	if (hr == hrSuccess)
 		AppendFolderEntries(ptrFolder, &setFolderExcludes);
@@ -1052,8 +1053,6 @@ HRESULT ArchiveControlImpl::CleanupHierarchy(ArchiveHelperPtr ptrArchiveHelper, 
 			break;
 
 		for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
-			MAPIFolderPtr ptrPrimaryFolder;
-
 			ScopedFolderLogging sfl(m_lpLogger, ptrRows[i].lpProps[IDX_DISPLAY_NAME].ulPropTag == PR_DISPLAY_NAME ? ptrRows[i].lpProps[IDX_DISPLAY_NAME].Value.LPSZ : KC_T("<Unnamed>"));
 
 			// If the cleanup action is delete, we don't want to delete a folder that's not empty because it might contain messages that
@@ -1082,10 +1081,11 @@ HRESULT ArchiveControlImpl::CleanupHierarchy(ArchiveHelperPtr ptrArchiveHelper, 
 				}
 			}
 
+			object_ptr<IMAPIFolder> ptrPrimaryFolder;
 			hr = lpUserStore->OpenEntry(ptrRows[i].lpProps[IDX_REF_ITEM_ENTRYID].Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrRows[i].lpProps[IDX_REF_ITEM_ENTRYID].Value.bin.lpb),
 			     &iid_of(ptrPrimaryFolder), 0, nullptr, &~ptrPrimaryFolder);
 			if (hr == MAPI_E_NOT_FOUND) {
-				MAPIFolderPtr ptrArchiveFolder;
+				object_ptr<IMAPIFolder> ptrArchiveFolder;
 				SPropValuePtr ptrProp;
 
 				hr = lpArchiveRoot->OpenEntry(ptrRows[i].lpProps[IDX_ENTRYID].Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrRows[i].lpProps[IDX_ENTRYID].Value.bin.lpb),
@@ -1123,7 +1123,7 @@ HRESULT ArchiveControlImpl::CleanupHierarchy(ArchiveHelperPtr ptrArchiveHelper, 
  */
 HRESULT ArchiveControlImpl::MoveAndDetachMessages(ArchiveHelperPtr ptrArchiveHelper, LPMAPIFOLDER lpArchiveFolder, const EntryIDSet &setEIDs)
 {
-	MAPIFolderPtr ptrDelItemsFolder;
+	object_ptr<IMAPIFolder> ptrDelItemsFolder;
 	EntryListPtr ptrMessageList;
 
 	m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "Moving %zu messages to the special \"Deleted Items\" folder...", setEIDs.size());
@@ -1181,7 +1181,6 @@ HRESULT ArchiveControlImpl::MoveAndDetachMessages(ArchiveHelperPtr ptrArchiveHel
 HRESULT ArchiveControlImpl::MoveAndDetachFolder(ArchiveHelperPtr ptrArchiveHelper, LPMAPIFOLDER lpArchiveFolder)
 {
 	SPropValuePtr ptrEntryID;
-	MAPIFolderPtr ptrDelItemsFolder;
 	MAPIPropHelperPtr ptrHelper;
 	ECFolderIterator iEnd;
 
@@ -1189,6 +1188,7 @@ HRESULT ArchiveControlImpl::MoveAndDetachFolder(ArchiveHelperPtr ptrArchiveHelpe
 	auto hr = HrGetOneProp(lpArchiveFolder, PR_ENTRYID, &~ptrEntryID);
 	if (hr != hrSuccess)
 		return m_lpLogger->perr("Failed to get folder entryid", hr);
+	object_ptr<IMAPIFolder> ptrDelItemsFolder;
 	hr = ptrArchiveHelper->GetDeletedItemsFolder(&~ptrDelItemsFolder);
 	if (hr != hrSuccess)
 		return m_lpLogger->perr("Failed to get deleted items folder", hr);

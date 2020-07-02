@@ -122,7 +122,7 @@ private:
 	HRESULT DoArchive(const tstring& strUser);
 	HRESULT DoCleanup(const tstring& strUser);
 	HRESULT ProcessFolder2(object_ptr<IMAPIFolder> &, std::shared_ptr<operations::IArchiveOperation>, bool &);
-	HRESULT ProcessFolder(MAPIFolderPtr &ptrFolder, operations::ArchiveOperationPtr ptrArchiveOperation);
+	HRESULT ProcessFolder(object_ptr<IMAPIFolder> &, operations::ArchiveOperationPtr ptrArchiveOperation);
 	HRESULT ProcessAll(bool bLocalOnly, fnProcess_t fnProcess);
 	HRESULT PurgeArchives(const ObjectEntryList &lstArchives);
 	HRESULT PurgeArchiveFolder(MsgStorePtr &ptrArchive, const entryid_t &folderEntryID, const LPSRestriction lpRestriction);

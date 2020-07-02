@@ -38,7 +38,6 @@ HRESULT ProtocolBase::HrInitializeClass()
 	memory_ptr<SPropValue> lpDefaultProp, lpFldProp;
 	SPropValuePtr lpEntryID;
 	unsigned int ulRes = 0;
-	MAPIFolderPtr lpRoot;
 
 	/* URLs
 	 *
@@ -113,6 +112,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 	if(hr != hrSuccess)
 		return hr_lerr(hr, "Error opening IPM SUBTREE using user \"%ls\"", m_wstrUser.c_str());
 	// Get active store default calendar to prevent delete action on this folder
+	object_ptr<IMAPIFolder> lpRoot;
 	hr = m_lpActiveStore->OpenEntry(0, nullptr, &iid_of(lpRoot), 0, nullptr, &~lpRoot);
 	if(hr != hrSuccess)
 		return hr_lerr(hr, "Error opening root container using user \"%ls\"", m_wstrUser.c_str());

@@ -772,7 +772,6 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	ULONG cbFolder = 0;
 	LPENTRYID lpFolder = NULL;
 	ULONG ulObjType = 0;
-	MAPIFolderPtr ptrContactFolder;
 	object_ptr<ZCABContainer> lpZCABContacts;
 	MessagePtr ptrContact;
 	object_ptr<ZCMAPIProp> lpZCMAPIProp;
@@ -790,6 +789,7 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	lpFolder = (LPENTRYID)((LPBYTE)lpEntryID + cbNewCABEntryID);
 
 	if (lpCABEntryID->ulObjType == MAPI_ABCONT) {
+		object_ptr<IMAPIFolder> ptrContactFolder;
 		hr = m_lpMAPISup->OpenEntry(cbFolder, lpFolder, &iid_of(ptrContactFolder), 0, &ulObjType, &~ptrContactFolder);
 		if (hr == MAPI_E_NOT_FOUND) {
 			// the folder is most likely in a store that is not yet available through this MAPI session

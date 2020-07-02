@@ -10,6 +10,7 @@
 #include "StoreHelper.h"
 #include <kopano/mapi_ptr.h>
 #include <kopano/mapiguidext.h>
+#include <kopano/memory.hpp>
 #include <kopano/archiver-common.h>
 #include <kopano/ECRestriction.h>
 
@@ -89,7 +90,7 @@ HRESULT StoreHelper::Init()
  */
 HRESULT StoreHelper::GetFolder(const tstring &strFolder, bool bCreate, LPMAPIFOLDER *lppFolder)
 {
-	MAPIFolderPtr ptrIpmSubtree, ptrFolder;
+	object_ptr<IMAPIFolder> ptrIpmSubtree, ptrFolder;
 	auto hr = GetIpmSubtree(&~ptrIpmSubtree);
 	if (hr != hrSuccess)
 		return hr;
@@ -106,8 +107,8 @@ HRESULT StoreHelper::GetFolder(const tstring &strFolder, bool bCreate, LPMAPIFOL
  */
 HRESULT StoreHelper::UpdateSearchFolders()
 {
-	MAPIFolderPtr ptrSearchArchiveFolder, ptrSearchDeleteFolder;
-	MAPIFolderPtr ptrSearchStubFolder;
+	object_ptr<IMAPIFolder> ptrSearchArchiveFolder, ptrSearchDeleteFolder;
+	object_ptr<IMAPIFolder> ptrSearchStubFolder;
 	SPropValuePtr ptrSearchArchiveEntryId, ptrSearchDeleteEntryId;
 	SPropValuePtr ptrSearchStubEntryId, ptrPropValue;
 
@@ -190,14 +191,14 @@ HRESULT StoreHelper::GetIpmSubtree(LPMAPIFOLDER *lppFolder)
 HRESULT StoreHelper::GetSearchFolders(LPMAPIFOLDER *lppSearchArchiveFolder, LPMAPIFOLDER *lppSearchDeleteFolder, LPMAPIFOLDER *lppSearchStubFolder)
 {
 	SPropValuePtr ptrPropValue;
-	MAPIFolderPtr ptrSearchArchiveFolder, ptrSearchDeleteFolder;
-	MAPIFolderPtr ptrSearchStubFolder;	// subset of SearchDeleteFolder.
 	bool bUpdateRef = false;
 
 	auto hr = HrGetOneProp(m_ptrMsgStore, PROP_SEARCH_FOLDER_ENTRYIDS, &~ptrPropValue);
 	if (hr != hrSuccess && hr != MAPI_E_NOT_FOUND)
 		return hr;
 
+	object_ptr<IMAPIFolder> ptrSearchArchiveFolder, ptrSearchDeleteFolder;
+	object_ptr<IMAPIFolder> ptrSearchStubFolder; // subset of SearchDeleteFolder.
 	if (hr == hrSuccess && ptrPropValue->Value.MVbin.cValues == 3) {
 		hr = m_ptrMsgStore->OpenEntry(ptrPropValue->Value.MVbin.lpbin[0].cb,
 		     reinterpret_cast<ENTRYID *>(ptrPropValue->Value.MVbin.lpbin[0].lpb),
@@ -300,11 +301,11 @@ HRESULT StoreHelper::GetSearchFolders(LPMAPIFOLDER *lppSearchArchiveFolder, LPMA
  *					Pointer to an IMAPIFolder pointer that will be assigned the
  *					address of the returned folder.
  */
-HRESULT StoreHelper::GetSubFolder(MAPIFolderPtr &ptrFolder, const tstring &strFolder, bool bCreate, LPMAPIFOLDER *lppFolder)
+HRESULT StoreHelper::GetSubFolder(object_ptr<IMAPIFolder> &ptrFolder,
+    const tstring &strFolder, bool bCreate, IMAPIFolder **lppFolder)
 {
 	MAPITablePtr ptrTable;
 	SRowSetPtr ptrRowSet;
-	MAPIFolderPtr ptrSubFolder;
 	static constexpr const SizedSPropTagArray(1, sptaFolderProps) = {1, {PR_ENTRYID}};
 	SPropValue sResPropValue{};
 
@@ -317,6 +318,7 @@ HRESULT StoreHelper::GetSubFolder(MAPIFolderPtr &ptrFolder, const tstring &strFo
 	hr = ptrTable->SetColumns(sptaFolderProps, TBL_BATCH);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMAPIFolder> ptrSubFolder;
 	hr = ECPropertyRestriction(RELOP_EQ, PR_DISPLAY_NAME, &sResPropValue, ECRestriction::Cheap)
 	     .FindRowIn(ptrTable, BOOKMARK_BEGINNING, 0);
 	if (hr == hrSuccess) {
@@ -356,10 +358,9 @@ HRESULT StoreHelper::CheckAndUpdateSearchFolder(LPMAPIFOLDER lpSearchFolder, eSe
 
 HRESULT StoreHelper::CreateSearchFolder(eSearchFolder esfWhich, LPMAPIFOLDER *lppSearchFolder)
 {
-	MAPIFolderPtr ptrRootContainer, ptrArchiveSearchRoot;
-
 	if (lppSearchFolder == NULL)
 		return MAPI_E_INVALID_PARAMETER;
+	object_ptr<IMAPIFolder> ptrRootContainer, ptrArchiveSearchRoot;
 	auto hr = m_ptrMsgStore->OpenEntry(0, nullptr, &iid_of(ptrRootContainer),
 	          MAPI_BEST_ACCESS | fMapiDeferredErrors, nullptr, &~ptrRootContainer);
 	if (hr != hrSuccess)
@@ -372,12 +373,12 @@ HRESULT StoreHelper::CreateSearchFolder(eSearchFolder esfWhich, LPMAPIFOLDER *lp
 
 HRESULT StoreHelper::CreateSearchFolders(LPMAPIFOLDER *lppSearchArchiveFolder, LPMAPIFOLDER *lppSearchDeleteFolder, LPMAPIFOLDER *lppSearchStubFolder)
 {
-	MAPIFolderPtr ptrRootContainer, ptrArchiveSearchRoot;
-	bool bWithErrors = false;
-
 	if (lppSearchArchiveFolder == NULL || lppSearchDeleteFolder == NULL ||
 	    lppSearchStubFolder == NULL)
 		return MAPI_E_INVALID_PARAMETER;
+
+	bool bWithErrors = false;
+	object_ptr<IMAPIFolder> ptrRootContainer, ptrArchiveSearchRoot;
 	auto hr = m_ptrMsgStore->OpenEntry(0, nullptr, &iid_of(ptrRootContainer),
 	          MAPI_BEST_ACCESS | fMapiDeferredErrors, nullptr, &~ptrRootContainer);
 	if (hr != hrSuccess)
@@ -401,7 +402,7 @@ HRESULT StoreHelper::CreateSearchFolders(LPMAPIFOLDER *lppSearchArchiveFolder, L
 
 HRESULT StoreHelper::DoCreateSearchFolder(LPMAPIFOLDER lpParent, eSearchFolder esfWhich, LPMAPIFOLDER *lppSearchFolder)
 {
-	MAPIFolderPtr ptrSearchFolder;
+	object_ptr<IMAPIFolder> ptrSearchFolder;
 
 	if (lpParent == NULL || lppSearchFolder == NULL)
 		return MAPI_E_INVALID_PARAMETER;
@@ -420,7 +421,6 @@ HRESULT StoreHelper::DoCreateSearchFolder(LPMAPIFOLDER lpParent, eSearchFolder e
 HRESULT StoreHelper::SetupSearchArchiveFolder(LPMAPIFOLDER lpSearchFolder, const ECRestriction *lpresClassCheck, const ECRestriction *lpresArchiveCheck)
 {
 	ECOrRestriction resClassCheck;
-	MAPIFolderPtr ptrIpmSubtree;
 	SPropValuePtr ptrPropEntryId;
 	SPropValue sPropStubbed, sPropVersion;
 	EntryListPtr ptrEntryList;
@@ -441,6 +441,7 @@ HRESULT StoreHelper::SetupSearchArchiveFolder(LPMAPIFOLDER lpSearchFolder, const
 			return hr;
 		lpresArchiveCheck = &resArchiveCheck;
 	}
+	object_ptr<IMAPIFolder> ptrIpmSubtree;
 	auto hr = GetIpmSubtree(&~ptrIpmSubtree);
 	if (hr != hrSuccess)
 		return hr;
@@ -493,7 +494,6 @@ HRESULT StoreHelper::SetupSearchArchiveFolder(LPMAPIFOLDER lpSearchFolder, const
 HRESULT StoreHelper::SetupSearchDeleteFolder(LPMAPIFOLDER lpSearchFolder, const ECRestriction *lpresClassCheck, const ECRestriction *lpresArchiveCheck)
 {
 	ECOrRestriction resClassCheck;
-	MAPIFolderPtr ptrIpmSubtree;
 	SPropValuePtr ptrPropEntryId;
 	EntryListPtr ptrEntryList;
 	ECAndRestriction resArchiveCheck, resDeleteFolder;
@@ -514,6 +514,7 @@ HRESULT StoreHelper::SetupSearchDeleteFolder(LPMAPIFOLDER lpSearchFolder, const 
 			return hr;
 		lpresArchiveCheck = &resArchiveCheck;
 	}
+	object_ptr<IMAPIFolder> ptrIpmSubtree;
 	auto hr = GetIpmSubtree(&~ptrIpmSubtree);
 	if (hr != hrSuccess)
 		return hr;
@@ -554,7 +555,6 @@ HRESULT StoreHelper::SetupSearchDeleteFolder(LPMAPIFOLDER lpSearchFolder, const 
 
 HRESULT StoreHelper::SetupSearchStubFolder(LPMAPIFOLDER lpSearchFolder, const ECRestriction* /*lpresClassCheck*/, const ECRestriction *lpresArchiveCheck)
 {
-	MAPIFolderPtr ptrIpmSubtree;
 	SPropValuePtr ptrPropEntryId;
 	SPropValue sPropStubbed, sPropMsgClass[2], sPropVersion;
 	EntryListPtr ptrEntryList;
@@ -570,6 +570,7 @@ HRESULT StoreHelper::SetupSearchStubFolder(LPMAPIFOLDER lpSearchFolder, const EC
 			return hr;
 		lpresArchiveCheck = &resArchiveCheck;
 	}
+	object_ptr<IMAPIFolder> ptrIpmSubtree;
 	auto hr = GetIpmSubtree(&~ptrIpmSubtree);
 	if (hr != hrSuccess)
 		return hr;

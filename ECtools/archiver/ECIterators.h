@@ -72,7 +72,7 @@ private:
 	mutable ContainerPtrType	m_ptr;
 };
 
-typedef ECHierarchyIterator<MAPIFolderPtr> ECFolderIterator;
+typedef ECHierarchyIterator<object_ptr<IMAPIFolder>> ECFolderIterator;
 typedef ECHierarchyIterator<object_ptr<IABContainer>> ECABContainerIterator;
 
 } /* namespace */

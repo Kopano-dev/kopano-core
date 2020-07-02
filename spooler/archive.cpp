@@ -13,6 +13,7 @@
 #include <kopano/MAPIErrors.h>
 #include <kopano/charset/convert.h>
 #include <kopano/mapi_ptr.h>
+#include <kopano/memory.hpp>
 #include <kopano/scope.hpp>
 #include "helpers/StoreHelper.h"
 #include "operations/copier.h"
@@ -61,7 +62,6 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
 	unsigned int cMsgProps, ulType;
 	SPropArrayPtr ptrMsgProps;
 	MsgStorePtr ptrStore;
-	MAPIFolderPtr ptrFolder;
 	StoreHelperPtr ptrStoreHelper;
 	SObjectEntry refMsgEntry;
 	ObjectEntryList lstArchives, lstReferences;
@@ -104,6 +104,7 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
 		ec_log_debug("No archives attached to store");
 		return hrSuccess;
 	}
+	object_ptr<IMAPIFolder> ptrFolder;
 	hr = ptrStore->OpenEntry(ptrMsgProps[IDX_PARENT_ENTRYID].Value.bin.cb,
 	     reinterpret_cast<ENTRYID *>(ptrMsgProps[IDX_PARENT_ENTRYID].Value.bin.lpb),
 	     &iid_of(ptrFolder), MAPI_MODIFY, &ulType, &~ptrFolder);
@@ -224,12 +225,11 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 	// First create all (mostly one) the archive messages without saving them.
 	// We pass an empty MAPIFolderPtr here!
 	ptrHelper.reset(new(std::nothrow) Copier::Helper(ptrSession, logger,
-		ptrMapper, nullptr, MAPIFolderPtr()));
+		ptrMapper, nullptr, nullptr));
 	if (ptrHelper == nullptr)
 		return hr = MAPI_E_NOT_ENOUGH_MEMORY;
 	for (const auto &arc : lstArchives) {
 		ArchiveHelperPtr ptrArchiveHelper;
-		MAPIFolderPtr ptrArchiveFolder;
 		MessagePtr ptrArchivedMsg;
 		PostSaveActionPtr ptrPSAction;
 
@@ -238,6 +238,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 			SetErrorMessage(hr, KC_TX("Unable to open archive."));
 			return hr;
 		}
+		object_ptr<IMAPIFolder> ptrArchiveFolder;
 		hr = ptrArchiveHelper->GetOutgoingFolder(&~ptrArchiveFolder);
 		if (hr != hrSuccess) {
 			SetErrorMessage(hr, KC_TX("Unable to get outgoing archive folder."));

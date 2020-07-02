@@ -5,6 +5,7 @@
 #pragma once
 #include <memory>
 #include <kopano/zcdefs.h>
+#include <kopano/memory.hpp>
 #include "operations.h"
 #include "postsaveaction.h"
 #include "transaction_fwd.h"
@@ -88,13 +89,13 @@ public:
 		KC_HIDDEN ArchiverSessionPtr &GetSession() { return m_ptrSession; }
 
 	private:
-		typedef std::map<entryid_t,MAPIFolderPtr> ArchiveFolderMap;
+		typedef std::map<entryid_t, object_ptr<IMAPIFolder>> ArchiveFolderMap;
 		ArchiveFolderMap m_mapArchiveFolders;
 
 		ArchiverSessionPtr m_ptrSession;
 		std::shared_ptr<ECLogger> m_lpLogger;
 		const SPropTagArray *m_lpExcludeProps;
-		MAPIFolderPtr m_ptrFolder;
+		object_ptr<IMAPIFolder> m_ptrFolder;
 		InstanceIdMapperPtr m_ptrMapper;
 	};
 

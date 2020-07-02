@@ -9,6 +9,7 @@
 #include <kopano/ECConfig.h>
 #include <kopano/ECRestriction.h>
 #include <kopano/MAPIErrors.h>
+#include <kopano/memory.hpp>
 #include "ECArchiverLogger.h"
 #include "copier.h"
 #include "deleter.h"
@@ -38,7 +39,7 @@ Copier::Helper::Helper(ArchiverSessionPtr ptrSession, std::shared_ptr<ECLogger> 
 
 HRESULT Copier::Helper::CreateArchivedMessage(LPMESSAGE lpSource, const SObjectEntry &archiveEntry, const SObjectEntry &refMsgEntry, LPMESSAGE *lppArchivedMsg, PostSaveActionPtr *lpptrPSAction)
 {
-	MAPIFolderPtr ptrArchiveFolder;
+	object_ptr<IMAPIFolder> ptrArchiveFolder;
 	MessagePtr ptrNewMessage;
 	PostSaveActionPtr ptrPSAction;
 
@@ -63,7 +64,7 @@ HRESULT Copier::Helper::GetArchiveFolder(const SObjectEntry &archiveEntry, LPMAP
 	if (lppArchiveFolder == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	MAPIFolderPtr ptrArchiveFolder;
+	object_ptr<IMAPIFolder> ptrArchiveFolder;
 	auto iArchiveFolder = m_mapArchiveFolders.find(archiveEntry.sStoreEntryId);
 	if (iArchiveFolder == m_mapArchiveFolders.cend()) {
 		ArchiveHelperPtr ptrArchiveHelper;
@@ -705,7 +706,7 @@ HRESULT Copier::DoUpdateArchive(LPMESSAGE lpMessage, const SObjectEntry &archive
 
 HRESULT Copier::DoMoveArchive(const SObjectEntry &archiveRootEntry, const SObjectEntry &archiveMsgEntry, const SObjectEntry &refMsgEntry, TransactionPtr *lpptrTransaction)
 {
-	MAPIFolderPtr ptrArchiveFolder;
+	object_ptr<IMAPIFolder> ptrArchiveFolder;
 	MsgStorePtr ptrArchiveStore;
 	MessagePtr ptrArchive, ptrArchiveCopy;
 	MAPIPropHelperPtr ptrPropHelper;
@@ -807,7 +808,6 @@ HRESULT Copier::ExecuteSubOperations(IMessage *lpMessage,
 HRESULT Copier::MoveToHistory(const SObjectEntry &sourceArchiveRoot, const SObjectEntry &sourceMsgEntry, TransactionPtr ptrTransaction, SObjectEntry *lpNewEntry, LPMESSAGE *lppNewMessage)
 {
 	ArchiveHelperPtr ptrArchiveHelper;
-	MAPIFolderPtr ptrHistoryFolder;
 	MsgStorePtr ptrArchiveStore;
 	MessagePtr ptrArchive, ptrArchiveCopy;
 	SPropValuePtr ptrEntryID;
@@ -815,6 +815,7 @@ HRESULT Copier::MoveToHistory(const SObjectEntry &sourceArchiveRoot, const SObje
 	auto hr = ArchiveHelper::Create(m_ptrSession, sourceArchiveRoot, Logger(), &ptrArchiveHelper);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMAPIFolder> ptrHistoryFolder;
 	hr = ptrArchiveHelper->GetHistoryFolder(&~ptrHistoryFolder);
 	if (hr != hrSuccess)
 		return hr;
