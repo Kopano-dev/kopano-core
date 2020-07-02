@@ -509,7 +509,6 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 
 		if ((cType & 0x80) && (cType & 0x0F) < 5 && (cType & 0x0F) > 0) {
 			ULONG cbEntryID;
-			EntryIdPtr ptrEntryID;
 			SPropValuePtr ptrPropEntryID;
 			ULONG ulObjOffset = 0;
 
@@ -523,6 +522,7 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 			} else 
 				ulObjType = MAPI_DISTLIST;
 
+			memory_ptr<ENTRYID> ptrEntryID;
 			hr = MakeWrappedEntryID(ptrPropEntryID->Value.bin.cb, (LPENTRYID)ptrPropEntryID->Value.bin.lpb, ulObjType, ulObjOffset, &cbEntryID, &~ptrEntryID);
 			if (hr != hrSuccess)
 				return hr;

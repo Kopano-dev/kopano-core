@@ -18,7 +18,7 @@ TaskBase::TaskBase(const object_ptr<IAttach> &sa,
 
 HRESULT TaskBase::Execute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper) {
 	SPropValuePtr ptrSourceServerUID, ptrDestServerUID;
-	EntryIdPtr ptrSourceInstanceID, ptrDestInstanceID;
+	memory_ptr<ENTRYID> ptrSourceInstanceID, ptrDestInstanceID;
 	SRowSetPtr ptrRows;
 	unsigned int cbSourceInstanceID = 0, cbDestInstanceID = 0;
 	static constexpr const SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ATTACH_NUM}};
@@ -59,7 +59,7 @@ HRESULT TaskBase::GetUniqueIDs(IAttach *lpAttach, LPSPropValue *lppServerUID, UL
 	SPropValuePtr ptrServerUID;
 	object_ptr<IECSingleInstance> ptrInstance;
 	ULONG cbInstanceID = 0;
-	EntryIdPtr ptrInstanceID;
+	memory_ptr<ENTRYID> ptrInstanceID;
 
 	auto hr = HrGetOneProp(lpAttach, PR_EC_SERVER_UID, &~ptrServerUID);
 	if (hr != hrSuccess)

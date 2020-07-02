@@ -14,7 +14,6 @@
 
 namespace KC {
 
-typedef memory_ptr<ENTRYID> EntryIdPtr;
 typedef memory_ptr<ENTRYLIST> EntryListPtr;
 typedef memory_ptr<SPropValue> SPropValuePtr;
 typedef memory_ptr<SPropTagArray> SPropTagArrayPtr;

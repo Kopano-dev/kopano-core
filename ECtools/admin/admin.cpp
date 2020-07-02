@@ -894,7 +894,7 @@ static HRESULT print_archive_details(LPMAPISESSION lpSession,
     IECServiceAdmin *ptrServiceAdmin, const char *lpszName)
 {
 	ULONG cbArchiveId = 0;
-	EntryIdPtr ptrArchiveId;
+	memory_ptr<ENTRYID> ptrArchiveId;
 	SPropValuePtr ptrArchiveSize;
 
 	auto hr = ptrServiceAdmin->GetArchiveStoreEntryID(LPCTSTR(lpszName), nullptr, 0, &cbArchiveId, &~ptrArchiveId);
@@ -1268,12 +1268,12 @@ static HRESULT ForceResyncFor(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 {
 	object_ptr<IExchangeManageStore> ptrEMS;
 	unsigned int cbEntryID = 0;
-	EntryIdPtr ptrEntryID;
 	SPropValuePtr ptrPropResyncID;
 
 	auto hr = lpAdminStore->QueryInterface(iid_of(ptrEMS), &~ptrEMS);
 	if (hr != hrSuccess)
 		return hr;
+	memory_ptr<ENTRYID> ptrEntryID;
 	hr = ptrEMS->CreateStoreEntryID(reinterpret_cast<const TCHAR *>(lpszHomeMDB), reinterpret_cast<const TCHAR *>(lpszAccount), 0, &cbEntryID, &~ptrEntryID);
 	if (hr != hrSuccess)
 		return hr;
@@ -1548,7 +1548,6 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 {
 	object_ptr<IExchangeManageStore> ptrEMS;
 	unsigned int cbEntryID, ulUpdates = 0, ulTotalUpdates = 0;
-	EntryIdPtr ptrEntryID;
 	SPropValuePtr ptrPropEntryID;
 	bool bFailures = false;
 	SRowSetPtr ptrRows;
@@ -1559,6 +1558,7 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 	auto hr = lpAdminStore->QueryInterface(iid_of(ptrEMS), &~ptrEMS);
 	if (hr != hrSuccess)
 		return hr;
+	memory_ptr<ENTRYID> ptrEntryID;
 	hr = ptrEMS->CreateStoreEntryID(nullptr, reinterpret_cast<const TCHAR *>(lpszAccount), 0, &cbEntryID, &~ptrEntryID);
 	if (hr != hrSuccess)
 		return hr_lerr(hr, "Unable to resolve store for \"%s\"", lpszAccount);

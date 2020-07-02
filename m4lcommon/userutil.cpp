@@ -184,7 +184,6 @@ HRESULT GetArchivedUserList(IMAPISession *lpMapiSession, const char *lpSSLKey,
 HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
     const char *lpSSLPass, bool bLocalOnly, DataCollector *lpCollector)
 {
-	EntryIdPtr		ptrDDEntryID;
 	SRowSetPtr		ptrRows;
 	unsigned int ulObj = 0, cbDDEntryID = 0, ulCompanyCount = 0;
 	std::set<servername>	listServers;
@@ -199,6 +198,7 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 	auto hr = lpMapiSession->OpenAddressBook(0, &IID_IAddrBook, 0, &~ptrAdrBook);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to open addressbook", hr);
+	memory_ptr<ENTRYID> ptrDDEntryID;
 	hr = ptrAdrBook->GetDefaultDir(&cbDDEntryID, &~ptrDDEntryID);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to open default addressbook", hr);

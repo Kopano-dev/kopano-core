@@ -833,7 +833,7 @@ HRESULT ECQuotaMonitor::OpenUserStore(LPTSTR szStoreName, objectclass_t objclass
 {
 	object_ptr<IExchangeManageStore> ptrEMS;
 	ULONG cbUserStoreEntryID = 0;
-	EntryIdPtr ptrUserStoreEntryID;
+	memory_ptr<ENTRYID> ptrUserStoreEntryID;
 	object_ptr<IMsgStore> ptrStore;
 
 	auto hr = m_lpMDBAdmin->QueryInterface(IID_IExchangeManageStore, &~ptrEMS);

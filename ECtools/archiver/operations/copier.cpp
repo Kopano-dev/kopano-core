@@ -207,7 +207,7 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 			SPropValuePtr ptrAttachMethod;
 			object_ptr<IECSingleInstance> ptrInstance;
 			unsigned int cbSourceSIID, cbDestSIID;
-			EntryIdPtr ptrSourceSIID, ptrDestSIID;
+			memory_ptr<ENTRYID> ptrSourceSIID, ptrDestSIID;
 
 			auto hrTmp = lpSource->OpenAttach(ptrSourceRows[i].lpProps[IDX_ATTACH_NUM].Value.ul, nullptr, MAPI_DEFERRED_ERRORS, &~ptrSourceAttach);
 			if (hrTmp != hrSuccess) {

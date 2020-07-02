@@ -2186,7 +2186,6 @@ HRESULT GetAutoAcceptSettings(IMsgStore *lpMsgStore, bool *lpbAutoAccept, bool *
 HRESULT HrGetRemoteAdminStore(IMAPISession *lpMAPISession, IMsgStore *lpMsgStore, LPCTSTR lpszServerName, ULONG ulFlags, IMsgStore **lppMsgStore)
 {
 	ULONG cbStoreId;
-	EntryIdPtr ptrStoreId;
 
 	if (lpMAPISession == NULL || lpMsgStore == NULL ||
 	    lpszServerName == NULL || (ulFlags & ~(MAPI_UNICODE | MDB_WRITE)) ||
@@ -2196,6 +2195,7 @@ HRESULT HrGetRemoteAdminStore(IMAPISession *lpMAPISession, IMsgStore *lpMsgStore
 	HRESULT hr = lpMsgStore->QueryInterface(iid_of(ptrEMS), &~ptrEMS);
 	if (hr != hrSuccess)
 		return hr;
+	memory_ptr<ENTRYID> ptrStoreId;
 	if (ulFlags & MAPI_UNICODE) {
 		std::wstring strMsgStoreDN = L"cn="s + (LPCWSTR)lpszServerName + L"/cn=Microsoft Private MDB";
 		hr = ptrEMS->CreateStoreEntryID(reinterpret_cast<const TCHAR *>(strMsgStoreDN.c_str()), reinterpret_cast<const TCHAR *>(L"SYSTEM"), MAPI_UNICODE | OPENSTORE_OVERRIDE_HOME_MDB, &cbStoreId, &~ptrStoreId);

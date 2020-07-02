@@ -603,7 +603,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChangeAsAStream(ULONG cVal
 {
 	HRESULT hr;
 	ULONG cbEntryId = 0;
-	EntryIdPtr ptrEntryId;
+	memory_ptr<ENTRYID> ptrEntryId;
 	WSMessageStreamImporterPtr ptrMessageImporter;
 
 	auto lpMessageSourceKey = PCpropFindProp(lpPropArray, cValue, PR_SOURCE_KEY);

@@ -2368,7 +2368,7 @@ HRESULT ECMsgStore::GetArchiveStoreEntryID(LPCTSTR lpszUserName, LPCTSTR lpszSer
 		return MAPI_E_INVALID_PARAMETER;
 
 	ULONG cbStoreID;
-	EntryIdPtr ptrStoreID;
+	memory_ptr<ENTRYID> ptrStoreID;
 
 	if (lpszServerName != NULL) {
 		WSTransportPtr ptrTransport;

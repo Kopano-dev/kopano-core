@@ -208,7 +208,7 @@ HRESULT ArchiverSession::OpenStoreByName(const tstring &strUser, LPMDB *lppMsgSt
 {
 	object_ptr<IExchangeManageStore> ptrEMS;
 	ULONG cbEntryId = 0;
-	EntryIdPtr ptrEntryId;
+	memory_ptr<ENTRYID> ptrEntryId;
 
 	auto hr = m_ptrAdminStore->QueryInterface(iid_of(ptrEMS), &~ptrEMS);
 	if (hr != hrSuccess) {
@@ -321,7 +321,7 @@ HRESULT ArchiverSession::GetUserInfo(const tstring &strUser, abentryid_t *lpsEnt
 {
 	object_ptr<IMsgStore> ptrStore;
 	ULONG cbEntryId = 0;
-	EntryIdPtr ptrEntryId;
+	memory_ptr<ENTRYID> ptrEntryId;
 
 	auto hr = HrOpenDefaultStore(m_ptrSession, &~ptrStore);
 	if (hr != hrSuccess) {
@@ -574,12 +574,12 @@ HRESULT ArchiverSession::OpenOrCreateArchiveStore(const tstring& strUserName, co
 {
 	object_ptr<IECServiceAdmin> ptrServiceAdmin;
 	ULONG cbStoreId;
-	EntryIdPtr ptrStoreId;
 
 	auto hr = m_ptrAdminStore->QueryInterface(iid_of(ptrServiceAdmin), &~ptrServiceAdmin);
 	if (hr != hrSuccess)
 		return hr;
 	object_ptr<IMsgStore> ptrArchiveStore;
+	memory_ptr<ENTRYID> ptrStoreId;
 	hr = ptrServiceAdmin->GetArchiveStoreEntryID(strUserName.c_str(), strServerName.c_str(), fMapiUnicode, &cbStoreId, &~ptrStoreId);
 	if (hr == hrSuccess)
 		hr = m_ptrSession->OpenMsgStore(0, cbStoreId, ptrStoreId, &iid_of(ptrArchiveStore), MDB_WRITE, &~ptrArchiveStore);
@@ -596,7 +596,7 @@ HRESULT ArchiverSession::GetArchiveStoreEntryId(const tstring& strUserName, cons
 {
 	object_ptr<IECServiceAdmin> ptrServiceAdmin;
 	ULONG cbStoreId;
-	EntryIdPtr ptrStoreId;
+	memory_ptr<ENTRYID> ptrStoreId;
 
 	auto hr = m_ptrAdminStore->QueryInterface(iid_of(ptrServiceAdmin), &~ptrServiceAdmin);
 	if (hr != hrSuccess)
@@ -613,7 +613,6 @@ HRESULT ArchiverSession::CreateArchiveStore(const tstring& strUserName, const ts
 {
 	abentryid_t userId;
 	unsigned int cbStoreId = 0, cbRootId = 0;
-	EntryIdPtr ptrStoreId, ptrRootId;
 	SPropValuePtr ptrIpmSubtreeId;
 
 	auto hr = GetUserInfo(strUserName, &userId, nullptr, nullptr);
@@ -627,6 +626,7 @@ HRESULT ArchiverSession::CreateArchiveStore(const tstring& strUserName, const ts
 	hr = ptrRemoteAdminStore->QueryInterface(iid_of(ptrRemoteServiceAdmin), &~ptrRemoteServiceAdmin);
 	if (hr != hrSuccess)
 		return hr;
+	memory_ptr<ENTRYID> ptrStoreId, ptrRootId;
 	hr = ptrRemoteServiceAdmin->CreateEmptyStore(ECSTORE_TYPE_ARCHIVE, userId.size(), userId, EC_OVERRIDE_HOMESERVER, &cbStoreId, &~ptrStoreId, &cbRootId, &~ptrRootId);
 	if (hr != hrSuccess)
 		return hr;

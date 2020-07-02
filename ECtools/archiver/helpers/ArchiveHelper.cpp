@@ -723,7 +723,7 @@ HRESULT ArchiveHelper::SetSpecialFolderEntryID(eSpecFolder sfWhich, ULONG cbEntr
 HRESULT ArchiveHelper::GetSpecialFolder(eSpecFolder sfWhich, bool bCreate, LPMAPIFOLDER *lppSpecialFolder)
 {
 	ULONG ulSpecialFolderID;
-	EntryIdPtr ptrSpecialFolderID;
+	memory_ptr<ENTRYID> ptrSpecialFolderID;
 	object_ptr<IMAPIFolder> ptrSpecialFolder;
 
 	auto hr = GetSpecialFolderEntryID(sfWhich, &ulSpecialFolderID, &~ptrSpecialFolderID);
@@ -807,7 +807,7 @@ HRESULT ArchiveHelper::CreateSpecialFolder(eSpecFolder sfWhich, LPMAPIFOLDER *lp
 
 HRESULT ArchiveHelper::IsSpecialFolder(eSpecFolder sfWhich, LPMAPIFOLDER lpFolder, bool *lpbResult)
 {
-	EntryIdPtr ptrSpecialEntryID;
+	memory_ptr<ENTRYID> ptrSpecialEntryID;
 	SPropValuePtr ptrFolderEntryID;
 	unsigned int ulResult = 0, cbSpecialEntryID;
 

@@ -1634,7 +1634,6 @@ ZEND_FUNCTION(mapi_msgstore_getarchiveentryid)
 	php_stringsize_t lUser = 0, lServer = 0;
 	// return value
 	ULONG		cbEntryID	= 0;
-	EntryIdPtr	ptrEntryID;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -1651,6 +1650,7 @@ ZEND_FUNCTION(mapi_msgstore_getarchiveentryid)
 		kphperr("IECServiceAdmin interface was not supported by given store", MAPI_G(hr));
 		return;
 	}
+	memory_ptr<ENTRYID> ptrEntryID;
 	MAPI_G(hr) = ptrSA->GetArchiveStoreEntryID((LPTSTR)sUser, (LPTSTR)sServer, 0, &cbEntryID, &~ptrEntryID);
 	if (MAPI_G(hr) != hrSuccess)
 		return;

@@ -43,7 +43,7 @@ struct initprov {
 	object_ptr<WSTransport> transport;
 	unsigned int count, eid_size, wrap_eid_size;
 	SPropValue prop[6];
-	EntryIdPtr eid, wrap_eid;
+	memory_ptr<ENTRYID> eid, wrap_eid;
 	/* referenced from prop[n] */
 	memory_ptr<wchar_t> store_name;
 	memory_ptr<ABEID> abe_id;

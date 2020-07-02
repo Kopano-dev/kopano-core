@@ -554,7 +554,7 @@ HRESULT ECArchiveAwareMsgStore::GetArchiveStore(LPSBinary lpStoreEID, ECMsgStore
 	// @todo: Consolidate this with ECMSProvider::LogonByEntryID
 	ECMsgStorePtr ptrOnlineStore;
 	ULONG cbEntryID = 0;
-	EntryIdPtr ptrEntryID;
+	memory_ptr<ENTRYID> ptrEntryID;
 	std::string ServerURL, strServer;
 	bool bIsPseudoUrl = false, bIsPeer = false;
 	object_ptr<WSTransport> ptrTransport;
