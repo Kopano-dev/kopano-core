@@ -20,7 +20,6 @@
 #include "ECMessage.h"
 #include "ics.h"
 #include <kopano/mapiext.h>
-#include <kopano/mapi_ptr.h>
 #include <kopano/ECRestriction.h>
 #include <mapiutil.h>
 #include <kopano/charset/convert.h>

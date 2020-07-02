@@ -22,7 +22,6 @@
 #include <kopano/MAPIErrors.h>
 #include <edkmdb.h>
 #include <edkguid.h>
-#include <kopano/mapi_ptr.h>
 #include "SSLUtil.h"
 #include "ClientUtil.h"
 #include "EntryPoint.h"

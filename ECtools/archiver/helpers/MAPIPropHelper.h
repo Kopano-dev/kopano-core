@@ -6,7 +6,6 @@
 #include <memory>
 #include <kopano/zcdefs.h>
 #include <mapix.h>
-#include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
 #include <kopano/CommonUtil.h>
 #include <kopano/archiver-common.h>

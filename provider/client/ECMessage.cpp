@@ -11,7 +11,6 @@
 #include <vector>
 #include <cstdint>
 #include <kopano/platform.h>
-#include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
 #include <kopano/ECLogger.h>
 #include <kopano/MAPIErrors.h>
@@ -27,7 +26,6 @@
 #include "rtfutil.h"
 #include <kopano/Util.h>
 #include "Mem.h"
-#include <kopano/mapi_ptr.h>
 #include <kopano/ECGuid.h>
 #include <edkguid.h>
 #include "WSUtil.h"

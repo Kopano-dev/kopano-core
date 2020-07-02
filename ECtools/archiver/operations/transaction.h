@@ -8,7 +8,6 @@
 #include "ArchiverSessionPtr.h"     // For ArchiverSessionPtr
 #include <kopano/archiver-common.h>
 #include "postsaveaction.h"
-#include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
 
 namespace KC { namespace operations {

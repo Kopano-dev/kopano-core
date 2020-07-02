@@ -22,7 +22,6 @@
 #include <kopano/memory.hpp>
 #include <kopano/namedprops.h>
 #include <kopano/charset/convert.h>
-#include <kopano/mapi_ptr.h>
 #include <kopano/ECGetText.h>
 #include <kopano/EMSAbTag.h>
 #include <kopano/ECRestriction.h>

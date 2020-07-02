@@ -8,7 +8,6 @@
 #include <kopano/platform.h>
 #include <kopano/ECGuid.h>
 #include <edkguid.h>
-#include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
 #include <kopano/scope.hpp>
 #include "IECPropStorage.h"

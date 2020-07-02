@@ -29,7 +29,6 @@
 #include "ECVMIMEUtils.h"
 #include "ECMapiUtils.h"
 #include <kopano/ECLogger.h>
-#include <kopano/mapi_ptr.h>
 #include "../provider/include/kcore.hpp"
 
 namespace KC {

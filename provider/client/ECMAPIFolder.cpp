@@ -6,7 +6,6 @@
 #include <utility>
 #include <vector>
 #include <kopano/platform.h>
-#include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
 #include "kcore.hpp"
 #include "ics.h"
@@ -27,7 +26,6 @@
 #include <edkguid.h>
 #include <kopano/Util.h>
 #include "ClientUtil.h"
-#include <kopano/mapi_ptr.h>
 #include <edkmdb.h>
 #include <kopano/mapiext.h>
 #include <mapiutil.h>

@@ -13,7 +13,6 @@
 #include <kopano/EMSAbTag.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/charset/convert.h>
-#include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
 #include <kopano/timeutil.hpp>
 

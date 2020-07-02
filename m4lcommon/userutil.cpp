@@ -22,7 +22,6 @@
 #include <kopano/IECInterfaces.hpp>
 #include <kopano/CommonUtil.h>
 #include <kopano/ECRestriction.h>
-#include <kopano/mapi_ptr.h>
 #include <kopano/mapiguidext.h>
 #include <kopano/Util.h>
 

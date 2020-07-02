@@ -10,7 +10,6 @@
 #include <kopano/archiver-common.h>
 #include <mapiutil.h>
 #include <kopano/Util.h>
-#include <kopano/mapi_ptr.h>
 #include <kopano/mapiguidext.h>
 #include <kopano/memory.hpp>
 

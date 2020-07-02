@@ -16,7 +16,6 @@
 #include <kopano/mapiext.h>
 #include <kopano/Util.h>
 #include <kopano/stringutil.h>
-#include <kopano/mapi_ptr.h>
 #include <kopano/mapiguidext.h>
 #include <kopano/memory.hpp>
 

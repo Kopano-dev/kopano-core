@@ -26,7 +26,6 @@
 #include <kopano/CommonUtil.h>
 #include <kopano/ECLogger.h>
 #include <kopano/MAPIErrors.h>
-#include <kopano/mapi_ptr.h>
 #include <kopano/mapiguidext.h>
 #include <kopano/charset/convert.h>
 #include <kopano/IECInterfaces.hpp>

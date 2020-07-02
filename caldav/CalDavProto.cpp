@@ -13,7 +13,6 @@
 #include <kopano/tie.hpp>
 #include "PublishFreeBusy.h"
 #include "CalDavProto.h"
-#include <kopano/mapi_ptr.h>
 #include <kopano/MAPIErrors.h>
 #define kc_pdebug(s, r) hr_logcode((r), EC_LOGLEVEL_DEBUG, nullptr, (s))
 

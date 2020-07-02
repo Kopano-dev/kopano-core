@@ -17,7 +17,6 @@
 #include <ctime>
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
-#include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
 #include <kopano/scope.hpp>
 #include <kopano/tie.hpp>

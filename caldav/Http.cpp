@@ -8,7 +8,6 @@
 #include <string>
 #include <utility>
 #include "Http.h"
-#include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
 #include <kopano/stringutil.h>
 #include <kopano/timeutil.hpp>

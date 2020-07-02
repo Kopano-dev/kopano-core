@@ -10,7 +10,6 @@
 #include <kopano/platform.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/memory.hpp>
-#include <kopano/mapi_ptr.h>
 #include "ECExchangeExportChanges.h"
 #include "WSMessageStreamExporter.h"
 #include "WSSerializedMessage.h"

@@ -17,7 +17,6 @@
 #include "ics.h"
 #include <mapiutil.h>
 #include "Mem.h"
-#include <kopano/mapi_ptr.h>
 #include "EntryPoint.h"
 #include <kopano/charset/convert.h>
 #include <kopano/charset/utf8string.h>

@@ -8,7 +8,6 @@
 #include <mapix.h>
 #include <mapiutil.h>
 #include "StoreHelper.h"
-#include <kopano/mapi_ptr.h>
 #include <kopano/mapiguidext.h>
 #include <kopano/memory.hpp>
 #include <kopano/archiver-common.h>

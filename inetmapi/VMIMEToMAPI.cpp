@@ -46,7 +46,6 @@
 #include <kopano/namedprops.h>
 #include <kopano/charset/convert.h>
 #include <kopano/stringutil.h>
-#include <kopano/mapi_ptr.h>
 #include "ECMapiUtils.h"
 #include "ECVMIMEUtils.h"
 #include "HtmlToTextParser.h"

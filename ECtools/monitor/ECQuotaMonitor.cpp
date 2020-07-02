@@ -23,7 +23,6 @@
 #include <kopano/Util.h>
 #include <kopano/ecversion.h>
 #include <kopano/charset/convert.h>
-#include <kopano/mapi_ptr.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/ECGuid.h>
 #include <kopano/ECTags.h>

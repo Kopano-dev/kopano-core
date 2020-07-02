@@ -30,7 +30,6 @@
 #include <kopano/mapiext.h>
 #include <kopano/memory.hpp>
 #include <kopano/ECLogger.h>
-#include <kopano/mapi_ptr.h>
 #include <kopano/timeutil.hpp>
 #include "ConsoleTable.h"
 

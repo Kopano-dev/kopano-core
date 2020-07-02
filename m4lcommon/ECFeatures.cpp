@@ -5,7 +5,6 @@
 #include <kopano/ECFeatures.hpp>
 #include "ECFeatureList.h"
 #include <kopano/CommonUtil.h>
-#include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
 
 namespace KC {

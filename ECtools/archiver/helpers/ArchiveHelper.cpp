@@ -16,6 +16,7 @@
 #include <kopano/ECABEntryID.h>
 #include <kopano/ECGetText.h> // defines the wonderful macro "_"
 #include <kopano/Util.h>
+#include <kopano/mapiguidext.h>
 #include <kopano/memory.hpp>
 
 namespace KC { namespace helpers {

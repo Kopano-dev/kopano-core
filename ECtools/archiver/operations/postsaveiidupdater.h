@@ -5,7 +5,6 @@
 #pragma once
 #include <memory>
 #include "postsaveaction.h"
-#include <kopano/mapi_ptr.h>
 #include "instanceidmapper_fwd.h"
 #include <kopano/archiver-common.h>
 #include <kopano/memory.hpp>

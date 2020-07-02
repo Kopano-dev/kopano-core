@@ -6,7 +6,6 @@
 #include <memory>
 #include "operations_fwd.h"
 #include <mapix.h>
-#include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
 
 namespace KC {

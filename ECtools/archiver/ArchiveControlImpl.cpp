@@ -27,6 +27,7 @@
 #include "ArchiveManage.h"
 #include <kopano/MAPIErrors.h>
 #include <kopano/charset/convert.h>
+#include <kopano/mapiguidext.h>
 #include <kopano/scope.hpp>
 
 using namespace KC::helpers;

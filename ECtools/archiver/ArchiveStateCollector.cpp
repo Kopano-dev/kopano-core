@@ -16,6 +16,7 @@
 #include "ECIterators.h"
 #include <kopano/hl.hpp>
 #include <kopano/ECRestriction.h>
+#include <kopano/mapiguidext.h>
 
 namespace KC {
 

@@ -4,7 +4,6 @@
  */
 #pragma once
 #include <kopano/zcdefs.h>
-#include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
 
 namespace KC {

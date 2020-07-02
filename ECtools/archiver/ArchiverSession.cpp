@@ -10,7 +10,6 @@
 #include <kopano/memory.hpp>
 #include "ArchiverSession.h"
 #include <kopano/ecversion.h>
-#include <kopano/mapi_ptr.h>
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
 #include <kopano/ECRestriction.h>

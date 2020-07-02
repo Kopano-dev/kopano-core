@@ -7,7 +7,6 @@
 #include <string>
 #include <kopano/zcdefs.h>
 #include "ArchiverSessionPtr.h"
-#include <kopano/mapi_ptr.h>
 #include <kopano/archiver-common.h>
 #include <kopano/memory.hpp>
 

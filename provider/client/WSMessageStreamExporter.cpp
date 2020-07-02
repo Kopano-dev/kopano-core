@@ -5,7 +5,6 @@
 #include <kopano/platform.h>
 #include <memory>
 #include <new>
-#include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
 #include "SOAPSock.h"
 #include "WSMessageStreamExporter.h"

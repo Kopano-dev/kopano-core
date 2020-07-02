@@ -4,6 +4,7 @@
  */
 #include <algorithm>
 #include <kopano/platform.h>
+#include <kopano/IECInterfaces.hpp>
 #include <kopano/Util.h>
 #include <kopano/memory.hpp>
 #include "postsaveiidupdater.h"

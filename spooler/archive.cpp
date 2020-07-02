@@ -12,7 +12,6 @@
 #include <kopano/ECGetText.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/charset/convert.h>
-#include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
 #include <kopano/scope.hpp>
 #include "helpers/StoreHelper.h"

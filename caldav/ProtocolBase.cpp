@@ -13,7 +13,6 @@
 #include <kopano/ECLogger.h>
 #include <kopano/MAPIErrors.h>
 #include "CalDavUtil.h"
-#include <kopano/mapi_ptr.h>
 
 using namespace KC;
 

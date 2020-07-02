@@ -5,7 +5,6 @@
 #pragma once
 #include <mapidefs.h>
 #include <mapix.h>
-#include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
 #include <list>
 #include <memory>

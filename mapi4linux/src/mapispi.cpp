@@ -1,4 +1,4 @@
-/*
+ /*
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
@@ -15,10 +15,10 @@
 #include <kopano/Util.h>
 #include <kopano/ECGuid.h>
 #include <kopano/ECUnknown.h>
+#include <kopano/mapiguidext.h>
 #include <algorithm>
 #include <set>
 #include <utility>
-#include <kopano/mapi_ptr.h>
 
 using namespace KC;
 

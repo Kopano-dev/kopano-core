@@ -35,12 +35,12 @@
 #include <kopano/stringutil.h>
 #include <kopano/ecversion.h>
 #include <kopano/mapiext.h>
+#include <kopano/mapiguidext.h>
 #include <kopano/timeutil.hpp>
 #include <kopano/Util.h>
 #include <kopano/ECRestriction.h>
 #include <kopano/charset/convert.h>
 #include "ConsoleTable.h"
-#include <kopano/mapi_ptr.h>
 #include <kopano/ECFeatures.hpp>
 #include "ECACL.h"
 #include "charset/localeutil.h"

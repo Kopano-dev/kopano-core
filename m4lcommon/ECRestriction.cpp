@@ -6,7 +6,6 @@
 #include <utility>
 #include <kopano/ECRestriction.h>
 #include <kopano/Util.h>
-#include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
 #include <mapicode.h>
 #include <mapix.h>

@@ -24,7 +24,6 @@
 #include <kopano/Util.h>
 #include <kopano/ecversion.h>
 #include <kopano/stringutil.h>
-#include <kopano/mapi_ptr.h>
 #include <kopano/namedprops.h>
 #include <kopano/charset/convert.h>
 #include <kopano/mapiext.h>

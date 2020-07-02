@@ -57,7 +57,6 @@
 #include <kopano/ECRestriction.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/automapi.hpp>
-#include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
 #include <kopano/scope.hpp>
 #include <kopano/tie.hpp>

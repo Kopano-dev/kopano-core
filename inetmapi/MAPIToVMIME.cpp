@@ -26,7 +26,6 @@
 #include <kopano/mapiext.h>
 #include <edkmdb.h>
 #include <kopano/mapiguidext.h>
-#include <kopano/mapi_ptr.h>
 #include "tnef.h"
 #include "ECMapiUtils.h"
 #include "MAPIToVMIME.h"

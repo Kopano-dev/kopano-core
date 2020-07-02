@@ -29,7 +29,6 @@
 #include "rtfutil.h"
 #include <kopano/mapiext.h>
 #include <kopano/ustringutil.h>
-#include <kopano/mapi_ptr.h>
 #include "HtmlToTextParser.h"
 #include <kopano/ECLogger.h>
 #include "HtmlEntity.h"

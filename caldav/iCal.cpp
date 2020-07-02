@@ -17,7 +17,6 @@
 #include <libxml/tree.h>
 #include <libxml/parser.h>
 #include "PublishFreeBusy.h"
-#include <kopano/mapi_ptr.h>
 
 using namespace KC;
 

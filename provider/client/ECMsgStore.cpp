@@ -3,7 +3,6 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
-#include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
 #include <kopano/scope.hpp>
 #include <mapiutil.h>
@@ -37,7 +36,6 @@
 #include "EntryPoint.h"
 #include <kopano/stringutil.h>
 #include "ECExchangeModifyTable.h"
-#include <kopano/mapi_ptr.h>
 #include <kopano/charset/convstring.h>
 
 using namespace KC;

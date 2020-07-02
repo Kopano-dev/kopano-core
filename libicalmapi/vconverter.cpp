@@ -25,7 +25,6 @@
 #include "nameids.h"
 #include <kopano/stringutil.h>
 #include <ctime>
-#include <kopano/mapi_ptr.h>
 #include <kopano/namedprops.h>
 #include "icalcompat.hpp"
 #include "icalmem.hpp"
