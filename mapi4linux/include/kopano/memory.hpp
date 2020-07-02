@@ -21,12 +21,10 @@ template<typename T> class memory_proxy KC_FINAL {
 	public:
 	memory_proxy(T **p) noexcept : m_ptr(p) {}
 	operator T **(void) noexcept { return m_ptr; }
-	template<typename U> U **as(void) const noexcept
-	{
-		static_assert(sizeof(U *) == sizeof(T *), "This hack won't work");
-		return reinterpret_cast<U **>(m_ptr);
+	operator void **() noexcept {
+		static_assert(sizeof(void *) == sizeof(T *), "This hack won't work");
+		return reinterpret_cast<void **>(m_ptr);
 	}
-	operator void **(void) noexcept { return as<void>(); }
 
 	private:
 	T **m_ptr;
@@ -48,15 +46,16 @@ template<typename T> class object_proxy KC_FINAL {
 	public:
 	object_proxy(T **p) noexcept : m_ptr(p) {}
 	operator T **(void) noexcept { return m_ptr; }
+	operator void **() noexcept { return as<void>(); }
+	operator IUnknown **() noexcept { return as<IUnknown>(); }
+
+	private:
 	template<typename U> U **as(void) const noexcept
 	{
 		static_assert(sizeof(U *) == sizeof(T *), "This hack won't work");
 		return reinterpret_cast<U **>(m_ptr);
 	}
-	operator void **(void) noexcept { return as<void>(); }
-	operator IUnknown **(void) noexcept { return as<IUnknown>(); }
 
-	private:
 	T **m_ptr;
 };
 
@@ -64,12 +63,10 @@ template<> class object_proxy<IUnknown> KC_FINAL {
 	public:
 	object_proxy(IUnknown **p) noexcept : m_ptr(p) {}
 	operator IUnknown **(void) noexcept { return m_ptr; }
-	template<typename U> U **as(void) const noexcept
-	{
-		static_assert(sizeof(U *) == sizeof(IUnknown *), "This hack won't work");
-		return reinterpret_cast<U **>(m_ptr);
+	operator void **() noexcept {
+		static_assert(sizeof(void *) == sizeof(IUnknown *), "This hack won't work");
+		return reinterpret_cast<void **>(m_ptr);
 	}
-	operator void **(void) noexcept { return as<void>(); }
 
 	private:
 	IUnknown **m_ptr;
