@@ -188,7 +188,6 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 	MAPITablePtr	ptrHierarchyTable;
 	SRowSetPtr		ptrRows;
 	MsgStorePtr		ptrStore;
-	ECServiceAdminPtr	ptrServiceAdmin;
 	unsigned int ulObj = 0, cbDDEntryID = 0, ulCompanyCount = 0;
 	std::set<servername>	listServers;
 	convert_context		converter;
@@ -252,6 +251,7 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 	if (hr != hrSuccess)
 		return kc_perror("Unable to open default store", hr);
 	//@todo use PT_OBJECT to queryinterface
+	object_ptr<IECServiceAdmin> ptrServiceAdmin;
 	hr = ptrStore->QueryInterface(IID_IECServiceAdmin, &~ptrServiceAdmin);
 	if (hr != hrSuccess)
 		return hr;

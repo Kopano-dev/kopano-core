@@ -319,7 +319,6 @@ HRESULT ArchiverSession::OpenReadOnlyStore(const entryid_t &sEntryId, LPMDB *lpp
 HRESULT ArchiverSession::GetUserInfo(const tstring &strUser, abentryid_t *lpsEntryId, tstring *lpstrFullname, bool *lpbAclCapable)
 {
 	MsgStorePtr ptrStore;
-	ECServiceAdminPtr ptrServiceAdmin;
 	ULONG cbEntryId = 0;
 	EntryIdPtr ptrEntryId;
 
@@ -328,6 +327,7 @@ HRESULT ArchiverSession::GetUserInfo(const tstring &strUser, abentryid_t *lpsEnt
 		m_lpLogger->perr("Failed to open default store", hr);
 		return hr;
 	}
+	object_ptr<IECServiceAdmin> ptrServiceAdmin;
 	hr = ptrStore->QueryInterface(iid_of(ptrServiceAdmin), &~ptrServiceAdmin);
 	if (hr != hrSuccess) {
 		m_lpLogger->perr("Failed to obtain the serviceadmin interface", hr);
@@ -572,7 +572,7 @@ const char *ArchiverSession::GetSSLPass() const {
 
 HRESULT ArchiverSession::OpenOrCreateArchiveStore(const tstring& strUserName, const tstring& strServerName, LPMDB *lppArchiveStore)
 {
-	ECServiceAdminPtr ptrServiceAdmin;
+	object_ptr<IECServiceAdmin> ptrServiceAdmin;
 	ULONG cbStoreId;
 	EntryIdPtr ptrStoreId;
 	MsgStorePtr ptrArchiveStore;
@@ -594,7 +594,7 @@ HRESULT ArchiverSession::OpenOrCreateArchiveStore(const tstring& strUserName, co
 
 HRESULT ArchiverSession::GetArchiveStoreEntryId(const tstring& strUserName, const tstring& strServerName, entryid_t *lpArchiveId)
 {
-	ECServiceAdminPtr ptrServiceAdmin;
+	object_ptr<IECServiceAdmin> ptrServiceAdmin;
 	ULONG cbStoreId;
 	EntryIdPtr ptrStoreId;
 
@@ -612,7 +612,6 @@ HRESULT ArchiverSession::GetArchiveStoreEntryId(const tstring& strUserName, cons
 HRESULT ArchiverSession::CreateArchiveStore(const tstring& strUserName, const tstring& strServerName, LPMDB *lppArchiveStore)
 {
 	MsgStorePtr ptrRemoteAdminStore, ptrArchiveStore;
-	ECServiceAdminPtr ptrRemoteServiceAdmin;
 	abentryid_t userId;
 	unsigned int cbStoreId = 0, cbRootId = 0;
 	EntryIdPtr ptrStoreId, ptrRootId;
@@ -625,6 +624,7 @@ HRESULT ArchiverSession::CreateArchiveStore(const tstring& strUserName, const ts
 	hr = HrGetRemoteAdminStore(m_ptrSession, m_ptrAdminStore, strServerName.c_str(), fMapiUnicode, &~ptrRemoteAdminStore);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IECServiceAdmin> ptrRemoteServiceAdmin;
 	hr = ptrRemoteAdminStore->QueryInterface(iid_of(ptrRemoteServiceAdmin), &~ptrRemoteServiceAdmin);
 	if (hr != hrSuccess)
 		return hr;

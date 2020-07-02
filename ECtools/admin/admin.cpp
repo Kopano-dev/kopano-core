@@ -1551,7 +1551,6 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 	EntryIdPtr ptrEntryID;
 	MsgStorePtr ptrUserStore;
 	MAPIFolderPtr ptrRoot;
-	ECServiceAdminPtr ptrServiceAdmin;
 	SPropValuePtr ptrPropEntryID;
 	bool bFailures = false;
 	MAPITablePtr ptrTable;
@@ -1569,6 +1568,7 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 	hr = lpSession->OpenMsgStore(0, cbEntryID, ptrEntryID, nullptr, MDB_WRITE, &~ptrUserStore);
 	if (hr != hrSuccess)
 		return hr_lerr(hr, "Unable to open store for \"%s\"", lpszAccount);
+	object_ptr<IECServiceAdmin> ptrServiceAdmin;
 	hr = ptrUserStore->QueryInterface(iid_of(ptrServiceAdmin), &~ptrServiceAdmin);
 	if (hr != hrSuccess)
 		return hr;

@@ -14,7 +14,6 @@
 
 namespace KC {
 
-typedef object_ptr<IECServiceAdmin> ECServiceAdminPtr;
 typedef object_ptr<IExchangeManageStore> ExchangeManageStorePtr;
 typedef object_ptr<IMAPIFolder> MAPIFolderPtr;
 typedef object_ptr<IMAPIProp> MAPIPropPtr;

@@ -1635,8 +1635,6 @@ ZEND_FUNCTION(mapi_msgstore_getarchiveentryid)
 	// return value
 	ULONG		cbEntryID	= 0;
 	EntryIdPtr	ptrEntryID;
-	// local
-	ECServiceAdminPtr ptrSA;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -1647,6 +1645,7 @@ ZEND_FUNCTION(mapi_msgstore_getarchiveentryid)
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(pMDB, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
 
+	object_ptr<IECServiceAdmin> ptrSA;
 	MAPI_G(hr) = pMDB->QueryInterface(iid_of(ptrSA), &~ptrSA);
 	if(MAPI_G(hr) != hrSuccess) {
 		kphperr("IECServiceAdmin interface was not supported by given store", MAPI_G(hr));
