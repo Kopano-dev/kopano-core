@@ -346,8 +346,6 @@ HRESULT GetMailboxDataPerServer(IMAPISession *lpSession, const char *lpszPath,
 	SPropTagArrayPtr ptrPropTagArray;
 	SRestrictionPtr ptrRestriction;
 
-	ExchangeManageStorePtr	ptrEMS;
-
 	HRESULT hr = HrOpenDefaultStore(lpSession, &~ptrStoreAdmin);
 	if(hr != hrSuccess) {
 		ec_log_err("Unable to open default store on server \"%s\": %s (%x)",
@@ -356,6 +354,7 @@ HRESULT GetMailboxDataPerServer(IMAPISession *lpSession, const char *lpszPath,
 	}
 
 	//@todo use PT_OBJECT to queryinterface
+	object_ptr<IExchangeManageStore> ptrEMS;
 	hr = ptrStoreAdmin->QueryInterface(IID_IExchangeManageStore, &~ptrEMS);
 	if (hr != hrSuccess)
 		return hr;

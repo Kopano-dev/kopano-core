@@ -205,7 +205,7 @@ HRESULT ArchiverSession::Init(const MAPISessionPtr &ptrSession, const char *lpsz
  */
 HRESULT ArchiverSession::OpenStoreByName(const tstring &strUser, LPMDB *lppMsgStore)
 {
-	ExchangeManageStorePtr ptrEMS;
+	object_ptr<IExchangeManageStore> ptrEMS;
 	MsgStorePtr ptrUserStore;
 	ULONG cbEntryId = 0;
 	EntryIdPtr ptrEntryId;

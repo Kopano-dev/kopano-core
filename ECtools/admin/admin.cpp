@@ -1266,7 +1266,7 @@ static HRESULT ForEachCompany(IECServiceAdmin *lpServiceAdmin,
 static HRESULT ForceResyncFor(LPMAPISESSION lpSession, LPMDB lpAdminStore,
     const char *lpszAccount, const char *lpszHomeMDB)
 {
-	ExchangeManageStorePtr ptrEMS;
+	object_ptr<IExchangeManageStore> ptrEMS;
 	unsigned int cbEntryID = 0;
 	EntryIdPtr ptrEntryID;
 	MsgStorePtr ptrUserStore;
@@ -1546,7 +1546,7 @@ static HRESULT DisplayUserCount(LPMDB lpAdminStore)
 static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
     const char *lpszAccount)
 {
-	ExchangeManageStorePtr ptrEMS;
+	object_ptr<IExchangeManageStore> ptrEMS;
 	unsigned int cbEntryID, ulUpdates = 0, ulTotalUpdates = 0;
 	EntryIdPtr ptrEntryID;
 	MsgStorePtr ptrUserStore;

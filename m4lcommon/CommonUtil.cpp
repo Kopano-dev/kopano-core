@@ -2185,7 +2185,6 @@ HRESULT GetAutoAcceptSettings(IMsgStore *lpMsgStore, bool *lpbAutoAccept, bool *
 
 HRESULT HrGetRemoteAdminStore(IMAPISession *lpMAPISession, IMsgStore *lpMsgStore, LPCTSTR lpszServerName, ULONG ulFlags, IMsgStore **lppMsgStore)
 {
-	ExchangeManageStorePtr ptrEMS;
 	ULONG cbStoreId;
 	EntryIdPtr ptrStoreId;
 	MsgStorePtr ptrMsgStore;
@@ -2194,6 +2193,7 @@ HRESULT HrGetRemoteAdminStore(IMAPISession *lpMAPISession, IMsgStore *lpMsgStore
 	    lpszServerName == NULL || (ulFlags & ~(MAPI_UNICODE | MDB_WRITE)) ||
 	    lppMsgStore == NULL)
 		return MAPI_E_INVALID_PARAMETER;
+	object_ptr<IExchangeManageStore> ptrEMS;
 	HRESULT hr = lpMsgStore->QueryInterface(iid_of(ptrEMS), &~ptrEMS);
 	if (hr != hrSuccess)
 		return hr;

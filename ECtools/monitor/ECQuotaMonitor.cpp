@@ -831,7 +831,7 @@ HRESULT ECQuotaMonitor::CreateQuotaWarningMail(TemplateVariables *lpVars,
  */
 HRESULT ECQuotaMonitor::OpenUserStore(LPTSTR szStoreName, objectclass_t objclass, LPMDB *lppStore)
 {
-	ExchangeManageStorePtr ptrEMS;
+	object_ptr<IExchangeManageStore> ptrEMS;
 	ULONG cbUserStoreEntryID = 0;
 	EntryIdPtr ptrUserStoreEntryID;
 	MsgStorePtr ptrStore;
