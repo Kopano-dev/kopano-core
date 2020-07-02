@@ -9,35 +9,7 @@
 
 namespace KC {
 
-/* The ECMemBlock class is basically a random-access block of data that can be
- * read from and written to, expanded and contracted, and has a Commit and Revert
- * function to save and reload data.
- *
- * The commit and revert functions use memory sparingly, as only changed blocks
- * are held in memory.
- */
-class ECMemBlock KC_FINAL_OPG : public ECUnknown {
-private:
-	ECMemBlock(const char *buffer, ULONG len, ULONG flags);
-	~ECMemBlock();
-
-public:
-	static HRESULT Create(const char *buffer, ULONG len, ULONG flags, ECMemBlock **out);
-	virtual HRESULT QueryInterface(const IID &, void **) override;
-	virtual HRESULT	ReadAt(unsigned int pos, unsigned int len, char *buffer, unsigned int *have_read);
-	virtual HRESULT WriteAt(unsigned int pos, unsigned int len, const char *buffer, unsigned int *have_written);
-	virtual HRESULT Commit();
-	virtual HRESULT Revert();
-	virtual HRESULT SetSize(ULONG ulSize);
-	virtual HRESULT GetSize(ULONG *size) const;
-	virtual char *GetBuffer(void) { return lpCurrent; }
-
-private:
-	char *lpCurrent = nullptr, *lpOriginal = nullptr;
-	ULONG cbCurrent = 0, cbOriginal = 0, cbTotal = 0;
-	ULONG	ulFlags;
-	ALLOC_WRAP_FRIEND;
-};
+class ECMemBlock;
 
 /*
  * This is an IStream-compatible wrapper for ECMemBlock
