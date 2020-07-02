@@ -420,7 +420,6 @@ HRESULT StoreHelper::SetupSearchArchiveFolder(LPMAPIFOLDER lpSearchFolder, const
 	ECOrRestriction resClassCheck;
 	SPropValue sPropStubbed, sPropVersion;
 	ECAndRestriction resArchiveCheck, resArchiveFolder;
-	SRestrictionPtr ptrRestriction;
 
 	if (lpSearchFolder == NULL)
 		return MAPI_E_INVALID_PARAMETER;
@@ -475,6 +474,7 @@ HRESULT StoreHelper::SetupSearchArchiveFolder(LPMAPIFOLDER lpSearchFolder, const
 			)
 		) +
 		ECNotRestriction(*lpresArchiveCheck);
+	memory_ptr<SRestriction> ptrRestriction;
 	hr = resArchiveFolder.CreateMAPIRestriction(&~ptrRestriction, ECRestriction::Cheap);
 	if (hr != hrSuccess)
 		return hr;
@@ -492,7 +492,6 @@ HRESULT StoreHelper::SetupSearchDeleteFolder(LPMAPIFOLDER lpSearchFolder, const 
 {
 	ECOrRestriction resClassCheck;
 	ECAndRestriction resArchiveCheck, resDeleteFolder;
-	SRestrictionPtr ptrRestriction;
 	SPropValue sPropVersion;
 
 	if (lpSearchFolder == NULL)
@@ -537,6 +536,7 @@ HRESULT StoreHelper::SetupSearchDeleteFolder(LPMAPIFOLDER lpSearchFolder, const 
 			)
 		) +
 		*lpresArchiveCheck;
+	memory_ptr<SRestriction> ptrRestriction;
 	hr = resDeleteFolder.CreateMAPIRestriction(&~ptrRestriction, ECRestriction::Cheap);
 	if (hr != hrSuccess)
 		return hr;
@@ -554,7 +554,6 @@ HRESULT StoreHelper::SetupSearchStubFolder(LPMAPIFOLDER lpSearchFolder, const EC
 {
 	SPropValue sPropStubbed, sPropMsgClass[2], sPropVersion;
 	ECAndRestriction resArchiveCheck, resStubFolder;
-	SRestrictionPtr ptrRestriction;
 
 	if (lpSearchFolder == NULL)
 		return MAPI_E_INVALID_PARAMETER;
@@ -609,6 +608,7 @@ HRESULT StoreHelper::SetupSearchStubFolder(LPMAPIFOLDER lpSearchFolder, const EC
 			)
 		) +
 		*lpresArchiveCheck;
+	memory_ptr<SRestriction> ptrRestriction;
 	hr = resStubFolder.CreateMAPIRestriction(&~ptrRestriction, ECRestriction::Cheap);
 	if (hr != hrSuccess)
 		return hr;

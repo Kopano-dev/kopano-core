@@ -327,7 +327,7 @@ Copier::~Copier()
 HRESULT Copier::GetRestriction(LPMAPIPROP lpMapiProp, LPSRestriction *lppRestriction)
 {
 	ECOrRestriction resResult;
-	SRestrictionPtr ptrRestriction;
+	memory_ptr<SRestriction> ptrRestriction;
 
 	PROPMAP_START(1)
 	PROPMAP_NAMED_ID(ORIGINAL_SOURCE_KEY, PT_BINARY, PSETID_Archive, dispidOrigSourceKey)

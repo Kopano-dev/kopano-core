@@ -79,7 +79,7 @@ HRESULT ArchiveOperationBase::GetRestriction(LPMAPIPROP lpMapiProp, LPSRestricti
 
 HRESULT ArchiveOperationBase::VerifyRestriction(LPMESSAGE lpMessage)
 {
-	SRestrictionPtr ptrRestriction;
+	memory_ptr<SRestriction> ptrRestriction;
 	auto hr = GetRestriction(lpMessage, &~ptrRestriction);
 	if (hr != hrSuccess)
 		return hr;

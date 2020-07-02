@@ -342,7 +342,6 @@ HRESULT GetMailboxDataPerServer(IMAPISession *lpSession, const char *lpszPath,
     DataCollector *lpCollector)
 {
 	object_ptr<IMsgStore> ptrStoreAdmin;
-	SRestrictionPtr ptrRestriction;
 
 	HRESULT hr = HrOpenDefaultStore(lpSession, &~ptrStoreAdmin);
 	if(hr != hrSuccess) {
@@ -367,6 +366,7 @@ HRESULT GetMailboxDataPerServer(IMAPISession *lpSession, const char *lpszPath,
 	hr = ptrStoreTable->SetColumns(ptrPropTagArray, TBL_BATCH);
 	if (hr != hrSuccess)
 		return hr;
+	memory_ptr<SRestriction> ptrRestriction;
 	hr = lpCollector->GetRestriction(ptrStoreAdmin, &~ptrRestriction);
 	if (hr != hrSuccess)
 		return hr;

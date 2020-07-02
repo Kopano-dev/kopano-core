@@ -429,7 +429,7 @@ HRESULT ArchiveControlImpl::DoCleanup(const tstring &strUser)
 {
 	StoreHelperPtr ptrStoreHelper;
 	ObjectEntryList lstArchives;
-	SRestrictionPtr ptrRestriction;
+	memory_ptr<SRestriction> ptrRestriction;
 
 	if (strUser.empty())
 		return MAPI_E_INVALID_PARAMETER;
@@ -507,7 +507,6 @@ HRESULT ArchiveControlImpl::ProcessFolder2(object_ptr<IMAPIFolder> &ptrFolder,
     std::shared_ptr<IArchiveOperation> ptrArchiveOperation, bool &bHaveErrors)
 {
 	object_ptr<IMAPITable> ptrTable;
-	SRestrictionPtr ptrRestriction;
 	memory_ptr<SSortOrderSet> ptrSortOrder;
 	SRowSetPtr ptrRowSet;
 	static constexpr const SizedSPropTagArray(3, sptaProps) =
@@ -521,6 +520,7 @@ HRESULT ArchiveControlImpl::ProcessFolder2(object_ptr<IMAPIFolder> &ptrFolder,
 	hr = ptrTable->SetColumns(sptaProps, TBL_BATCH);
 	if (hr != hrSuccess)
 		return m_lpLogger->perr("Failed to set columns on table", hr);
+	memory_ptr<SRestriction> ptrRestriction;
 	hr = ptrArchiveOperation->GetRestriction(ptrFolder, &~ptrRestriction);
 	if (hr != hrSuccess)
 		return m_lpLogger->perr("Failed to get restriction from operation", hr);
