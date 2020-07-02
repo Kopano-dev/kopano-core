@@ -382,7 +382,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 	auto er = m_lpDatabaseFactory->get_tls_db(&lpDatabase);
     if(er != erSuccess)
 		return er;
-	STOREFOLDERIDSEARCH::const_iterator iterStore = m_mapSearchFolders.find(ulStoreId);
+	auto iterStore = m_mapSearchFolders.find(ulStoreId);
     if (iterStore == m_mapSearchFolders.cend())
         // There are no search folders in the target store. We will therefore never match any search
         // result and might as well exit now.
@@ -1522,7 +1522,7 @@ sSearchFolderStats ECSearchFolders::get_stats()
 	ulock_rec l_sf(m_mutexMapSearchFolders);
 
 	sStats.ulStores = m_mapSearchFolders.size();
-	sStats.ullSize = sStats.ulStores * sizeof(STOREFOLDERIDSEARCH::value_type);
+	sStats.ullSize = sStats.ulStores * sizeof(decltype(m_mapSearchFolders)::value_type);
 	sStats.ulFolders = 0;
 
 	for (const auto &storefolder : m_mapSearchFolders) {

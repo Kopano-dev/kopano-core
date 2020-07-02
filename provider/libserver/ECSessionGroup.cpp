@@ -426,22 +426,22 @@ size_t ECSessionGroup::GetObjectSize(void)
 	size_t ulSize = 0;
 	ulock_normal l_note(m_hNotificationLock);
 
-	ulSize += MEMORY_USAGE_MAP(m_mapSubscribe.size(), SUBSCRIBEMAP);
-	ulSize += MEMORY_USAGE_MAP(m_mapChangeSubscribe.size(), CHANGESUBSCRIBEMAP);
+	ulSize += MEMORY_USAGE_MAP(m_mapSubscribe.size(), decltype(m_mapSubscribe));
+	ulSize += MEMORY_USAGE_MAP(m_mapChangeSubscribe.size(), decltype(m_mapChangeSubscribe));
 
 	for (const auto &n : m_listNotification)
 		ulSize += n.GetObjectSize();
-	ulSize += MEMORY_USAGE_LIST(m_listNotification.size(), ECNOTIFICATIONLIST);
+	ulSize += MEMORY_USAGE_LIST(m_listNotification.size(), decltype(m_listNotification));
 	l_note.unlock();
 
 	ulSize += sizeof(*this);
 
 	ulock_rec l_ses(m_hSessionMapLock);
-	ulSize += MEMORY_USAGE_MAP(m_mapSessions.size(), SESSIONINFOMAP);
+	ulSize += MEMORY_USAGE_MAP(m_mapSessions.size(), decltype(m_mapSessions));
 	l_ses.unlock();
 
 	ulock_normal l_sub(m_mutexSubscribedStores);
-	ulSize += MEMORY_USAGE_MULTIMAP(m_mapSubscribedStores.size(), SUBSCRIBESTOREMULTIMAP);
+	ulSize += MEMORY_USAGE_MULTIMAP(m_mapSubscribedStores.size(), decltype(m_mapSubscribedStores));
 	l_sub.unlock();
 	return ulSize;
 }
