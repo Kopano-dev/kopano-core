@@ -14,7 +14,6 @@
 
 namespace KC {
 
-typedef memory_ptr<SPropValue> SPropValuePtr;
 typedef memory_ptr<SPropTagArray> SPropTagArrayPtr;
 typedef memory_ptr<SRestriction> SRestrictionPtr;
 

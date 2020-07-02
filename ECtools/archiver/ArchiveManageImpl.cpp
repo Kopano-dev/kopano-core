@@ -187,7 +187,6 @@ HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFold
 	SObjectEntry objectEntry;
 	bool bEqual = false;
 	ArchiveType aType = UndefArchive;
-	SPropValuePtr ptrArchiveName, ptrArchiveStoreId;
 
 	// Check if we're not trying to attach a store to itself.
 	auto hr = m_ptrSession->CompareStoreIds(m_ptrUserStore, lpArchiveStore, &bEqual);
@@ -197,6 +196,7 @@ HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFold
 		m_lpLogger->Log(EC_LOGLEVEL_CRIT, "User and archive store are the same.");
 		return MAPI_E_INVALID_PARAMETER;
 	}
+	memory_ptr<SPropValue> ptrArchiveName, ptrArchiveStoreId;
 	hr = HrGetOneProp(lpArchiveStore, PR_ENTRYID, &~ptrArchiveStoreId);
 	if (hr != hrSuccess)
 		return m_lpLogger->perr("Failed to get archive store entryid", hr);
@@ -318,8 +318,6 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
 	StoreHelperPtr ptrStoreHelper;
 	ObjectEntryList lstArchives;
 	ArchiveHelperPtr ptrArchiveHelper;
-	SPropValuePtr ptrArchiveStoreEntryId;
-	SPropValuePtr ptrDisplayName;
 	ULONG ulType = 0;
 	ArchiverSessionPtr ptrArchiveSession(m_ptrSession), ptrRemoteSession;
 
@@ -351,6 +349,7 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
 			lpszArchive, GetMAPIErrorMessage(hr), hr);
 		return MAPIErrorToArchiveError(hr);
 	}
+	memory_ptr<SPropValue> ptrArchiveStoreEntryId, ptrDisplayName;
 	hr = HrGetOneProp(ptrArchiveStore, PR_ENTRYID, &~ptrArchiveStoreEntryId);
 	if (hr != hrSuccess) {
 		m_lpLogger->perr("Failed to get archive entryid", hr);
@@ -522,7 +521,6 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 		unsigned int cStoreProps = 0, ulCompareResult = false;
 		SPropArrayPtr ptrStoreProps;
 		ArchiveEntry entry;
-		SPropValuePtr ptrPropValue;
 		static constexpr const SizedSPropTagArray(4, sptaStoreProps) = {4, {PR_DISPLAY_NAME_A, PR_MAILBOX_OWNER_ENTRYID, PR_IPM_SUBTREE_ENTRYID, PR_STORE_RECORD_KEY}};
 		enum {IDX_DISPLAY_NAME, IDX_MAILBOX_OWNER_ENTRYID, IDX_IPM_SUBTREE_ENTRYID, IDX_STORE_RECORD_KEY};
 
@@ -551,6 +549,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 				hrTmp = m_ptrSession->OpenMAPIProp(ptrStoreProps[IDX_MAILBOX_OWNER_ENTRYID].Value.bin.cb,
 				        reinterpret_cast<ENTRYID *>(ptrStoreProps[IDX_MAILBOX_OWNER_ENTRYID].Value.bin.lpb),
 				        &~ptrOwner);
+				memory_ptr<SPropValue> ptrPropValue;
 				if (hrTmp == hrSuccess)
 					hrTmp = HrGetOneProp(ptrOwner, PR_ACCOUNT_A, &~ptrPropValue);
 				if (hrTmp == hrSuccess)
@@ -590,6 +589,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 			assert(lpszIpmSubtreeSubstitude != NULL);
 			entry.FolderName = lpszIpmSubtreeSubstitude;
 		} else {
+			memory_ptr<SPropValue> ptrPropValue;
 			hrTmp = HrGetOneProp(ptrArchiveFolder, PR_DISPLAY_NAME_A, &~ptrPropValue);
 			if (hrTmp != hrSuccess)
 				entry.FolderName = "Unknown (" + stringify_hex(hrTmp) + ")";
@@ -707,7 +707,7 @@ HRESULT ArchiveManageImpl::GetRights(LPMAPIFOLDER lpFolder, unsigned *lpulRights
 	if (lpFolder == nullptr || lpulRights == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	SPropValuePtr ptrName;
+	memory_ptr<SPropValue> ptrName;
 	object_ptr<IExchangeModifyTable> ptrACLModifyTable;
 	SPropValue sPropUser;
 	SRowSetPtr ptrRows;

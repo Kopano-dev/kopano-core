@@ -153,11 +153,11 @@ HRESULT ArchiveHelper::Init()
 HRESULT ArchiveHelper::GetAttachedUser(abentryid_t *lpsUserEntryId)
 {
 	object_ptr<IMAPIFolder> ptrFolder;
-	SPropValuePtr ptrPropValue;
 
 	auto hr = GetArchiveFolder(false, &~ptrFolder);
 	if (hr != hrSuccess)
 		return hr;
+	memory_ptr<SPropValue> ptrPropValue;
 	hr = HrGetOneProp(ptrFolder, PROP_ATTACHED_USER_ENTRYID, &~ptrPropValue);
 	if (hr != hrSuccess)
 		return hr;
@@ -197,8 +197,7 @@ HRESULT ArchiveHelper::SetAttachedUser(const abentryid_t &sUserEntryId)
  */
 HRESULT ArchiveHelper::GetArchiveEntry(bool bCreate, SObjectEntry *lpsObjectEntry)
 {
-	SPropValuePtr ptrStoreEntryId;
-	SPropValuePtr ptrFolderEntryId;
+	memory_ptr<SPropValue> ptrStoreEntryId, ptrFolderEntryId;
 
 	auto hr = HrGetOneProp(m_ptrArchiveStore, PR_ENTRYID, &~ptrStoreEntryId);
 	if (hr != hrSuccess)
@@ -229,7 +228,7 @@ HRESULT ArchiveHelper::GetArchiveEntry(bool bCreate, SObjectEntry *lpsObjectEntr
  */
 HRESULT ArchiveHelper::GetArchiveType(ArchiveType *lparchType, AttachType *lpattachType)
 {
-	SPropValuePtr ptrPropVal;
+	memory_ptr<SPropValue> ptrPropVal;
 	ArchiveType archType;
 	AttachType attachType = UnknownAttach;
 
@@ -411,7 +410,7 @@ HRESULT ArchiveHelper::SetPermissions(const abentryid_t &sUserEntryId, bool bWri
 HRESULT ArchiveHelper::GetArchiveFolderFor(object_ptr<IMAPIFolder> &ptrSourceFolder,
     ArchiverSessionPtr ptrSession, IMAPIFolder **lppDestinationFolder)
 {
-	SPropValuePtr ptrStoreEntryId, ptrFolderType, ptrFolderEntryId;
+	memory_ptr<SPropValue> ptrStoreEntryId, ptrFolderType, ptrFolderEntryId;
 	MAPIPropHelperPtr ptrSourceFolderHelper, ptrArchiveFolderHelper;
 	ObjectEntryList lstFolderArchives;
 	ObjectEntryList::const_iterator iArchiveFolder;
@@ -621,7 +620,7 @@ HRESULT ArchiveHelper::GetArchiveFolder(bool bCreate, LPMAPIFOLDER *lppArchiveFo
  */
 HRESULT ArchiveHelper::IsArchiveFolder(LPMAPIFOLDER lpFolder, bool *lpbResult)
 {
-	SPropValuePtr ptrFolderEntryID, ptrArchiveEntryID;
+	memory_ptr<SPropValue> ptrFolderEntryID, ptrArchiveEntryID;
 	ULONG ulResult = 0;
 
 	auto hr = HrGetOneProp(lpFolder, PR_ENTRYID, &~ptrFolderEntryID);
@@ -651,11 +650,11 @@ HRESULT ArchiveHelper::IsArchiveFolder(LPMAPIFOLDER lpFolder, bool *lpbResult)
 HRESULT ArchiveHelper::GetSpecialFolderEntryID(eSpecFolder sfWhich, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
 {
 	object_ptr<IMAPIFolder> ptrArchiveRoot;
-	SPropValuePtr ptrSFEntryIDs;
 
 	auto hr = GetArchiveFolder(false, &~ptrArchiveRoot);
 	if (hr != hrSuccess)
 		return hr;
+	memory_ptr<SPropValue> ptrSFEntryIDs;
 	hr = HrGetOneProp(ptrArchiveRoot, PROP_SPECIAL_FOLDER_ENTRYIDS, &~ptrSFEntryIDs);
 	if (hr != hrSuccess)
 		return hr;
@@ -670,12 +669,11 @@ HRESULT ArchiveHelper::GetSpecialFolderEntryID(eSpecFolder sfWhich, ULONG *lpcbE
 HRESULT ArchiveHelper::SetSpecialFolderEntryID(eSpecFolder sfWhich, ULONG cbEntryID, LPENTRYID lpEntryID)
 {
 	object_ptr<IMAPIFolder> ptrArchiveRoot;
-	SPropValuePtr ptrSFEntryIDs;
-
 	auto hr = GetArchiveFolder(false, &~ptrArchiveRoot);
 	if (hr != hrSuccess)
 		return hr;
 
+	memory_ptr<SPropValue> ptrSFEntryIDs;
 	hr = HrGetOneProp(ptrArchiveRoot, PROP_SPECIAL_FOLDER_ENTRYIDS, &~ptrSFEntryIDs);
 	if (hr == MAPI_E_NOT_FOUND) {
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), &~ptrSFEntryIDs);
@@ -745,7 +743,6 @@ HRESULT ArchiveHelper::CreateSpecialFolder(eSpecFolder sfWhich, LPMAPIFOLDER *lp
 	object_ptr<IMAPIFolder> ptrParent, ptrSpecialFolder;
 	const TCHAR *lpszName = nullptr, *lpszDesc = nullptr;
 	unsigned int ulCreateFlags = OPEN_IF_EXISTS, ulCollisionCount = 0;
-	SPropValuePtr ptrEntryID;
 
 	if (sfWhich == sfBase)
 		// We need to get the archive root to create the special root folder in
@@ -794,6 +791,7 @@ HRESULT ArchiveHelper::CreateSpecialFolder(eSpecFolder sfWhich, LPMAPIFOLDER *lp
 	} while (hr == MAPI_E_COLLISION && ulCollisionCount < 0xffff);	// We need to stop counting at some point.
 	if (hr != hrSuccess)
 		return hr;
+	memory_ptr<SPropValue> ptrEntryID;
 	hr = HrGetOneProp(ptrSpecialFolder, PR_ENTRYID, &~ptrEntryID);
 	if (hr != hrSuccess)
 		return hr;
@@ -808,7 +806,6 @@ HRESULT ArchiveHelper::CreateSpecialFolder(eSpecFolder sfWhich, LPMAPIFOLDER *lp
 HRESULT ArchiveHelper::IsSpecialFolder(eSpecFolder sfWhich, LPMAPIFOLDER lpFolder, bool *lpbResult)
 {
 	memory_ptr<ENTRYID> ptrSpecialEntryID;
-	SPropValuePtr ptrFolderEntryID;
 	unsigned int ulResult = 0, cbSpecialEntryID;
 
 	auto hr = GetSpecialFolderEntryID(sfWhich, &cbSpecialEntryID, &~ptrSpecialEntryID);
@@ -818,6 +815,7 @@ HRESULT ArchiveHelper::IsSpecialFolder(eSpecFolder sfWhich, LPMAPIFOLDER lpFolde
 	}
 	if (hr != hrSuccess)
 		return hr;
+	memory_ptr<SPropValue> ptrFolderEntryID;
 	hr = HrGetOneProp(lpFolder, PR_ENTRYID, &~ptrFolderEntryID);
 	if (hr != hrSuccess)
 		return hr;

@@ -688,7 +688,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageUpdateAsStream(ULONG cbEnt
 	    lppMessageImporter == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	SPropValuePtr ptrPropPCL, ptrPropCK, ptrConflictItems;
+	memory_ptr<SPropValue> ptrPropPCL, ptrPropCK, ptrConflictItems;
 	WSMessageStreamImporterPtr ptrMessageImporter;
 	auto hr = m_lpFolder->GetChangeInfo(cbEntryId, lpEntryId, &~ptrPropPCL, &~ptrPropCK);
 	if (hr != hrSuccess) {

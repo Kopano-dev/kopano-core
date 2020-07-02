@@ -488,7 +488,7 @@ HRESULT ArchiverSession::GetGAL(LPABCONT *lppAbContainer)
  */
 HRESULT ArchiverSession::CompareStoreIds(LPMDB lpUserStore, LPMDB lpArchiveStore, bool *lpbResult)
 {
-	SPropValuePtr ptrUserStoreEntryId, ptrArchiveStoreEntryId;
+	memory_ptr<SPropValue> ptrUserStoreEntryId, ptrArchiveStoreEntryId;
 	ULONG ulResult = 0;
 
 	auto hr = HrGetOneProp(lpUserStore, PR_ENTRYID, &~ptrUserStoreEntryId);
@@ -613,7 +613,6 @@ HRESULT ArchiverSession::CreateArchiveStore(const tstring& strUserName, const ts
 {
 	abentryid_t userId;
 	unsigned int cbStoreId = 0, cbRootId = 0;
-	SPropValuePtr ptrIpmSubtreeId;
 
 	auto hr = GetUserInfo(strUserName, &userId, nullptr, nullptr);
 	if (hr != hrSuccess)
@@ -651,6 +650,7 @@ HRESULT ArchiverSession::CreateArchiveStore(const tstring& strUserName, const ts
 	     &~ptrIpmSubtree);
 	if (hr != hrSuccess)
 		return hr;
+	memory_ptr<SPropValue> ptrIpmSubtreeId;
 	hr = HrGetOneProp(ptrIpmSubtree, PR_ENTRYID, &~ptrIpmSubtreeId);
 	if (hr != hrSuccess)
 		return hr;

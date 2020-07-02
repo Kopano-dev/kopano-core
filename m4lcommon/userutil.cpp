@@ -123,7 +123,7 @@ HRESULT UserListCollector<string_type, prAccount>::CollectData(LPMAPITABLE lpSto
 				continue;
 			ULONG ulType;
 			object_ptr<IMAPIProp> ptrUser;
-			SPropValuePtr ptrAccount;
+			memory_ptr<SPropValue> ptrAccount;
 
 			auto hrTmp = m_ptrSession->OpenEntry(ptrRows[i].lpProps[0].Value.bin.cb,
 			        reinterpret_cast<ENTRYID *>(ptrRows[i].lpProps[0].Value.bin.lpb),

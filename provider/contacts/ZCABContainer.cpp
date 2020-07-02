@@ -449,7 +449,6 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 		PR_TRANSMITABLE_DISPLAY_NAME}};
 	object_ptr<ECMemTable> lpTable;
 	object_ptr<ECMemTableView> lpTableView;
-	SPropValuePtr ptrEntries;
 	ULONG ulObjType;
 	ULONG cValues;
 	SPropArrayPtr ptrProps;
@@ -463,6 +462,7 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 
 	// getprops, open real contacts, make table
 	// Members "entryids" named property, see data layout below
+	memory_ptr<SPropValue> ptrEntries;
 	hr = HrGetOneProp(m_lpDistList, PROP_TAG(PT_MV_BINARY, PS_Address_to_static(dispidMembers)), &~ptrEntries);
 	if (hr != hrSuccess)
 		return hr;
@@ -509,8 +509,8 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 
 		if ((cType & 0x80) && (cType & 0x0F) < 5 && (cType & 0x0F) > 0) {
 			ULONG cbEntryID;
-			SPropValuePtr ptrPropEntryID;
 			ULONG ulObjOffset = 0;
+			memory_ptr<SPropValue> ptrPropEntryID;
 
 			hr = HrGetOneProp(ptrUser, PR_ENTRYID, &~ptrPropEntryID);
 			if (hr != hrSuccess)

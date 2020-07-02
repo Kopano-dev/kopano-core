@@ -800,7 +800,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 	HRESULT hr = hrSuccess;
 	object_ptr<WSSerializedMessage> ptrSerializedMessage;
 	unsigned int cbProps = 0, ulFlags = 0;
-	SPropValuePtr ptrProps;
+	memory_ptr<SPropValue> ptrProps;
 	const SPropValue *lpPropVal = NULL;
 	object_ptr<IStream> ptrDestStream;
 	static constexpr const SizedSPropTagArray(11, sptImportProps) = { 11, {

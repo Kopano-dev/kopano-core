@@ -18,6 +18,7 @@
 #include <kopano/stringutil.h>
 #include <kopano/mapi_ptr.h>
 #include <kopano/mapiguidext.h>
+#include <kopano/memory.hpp>
 
 using namespace KC::helpers;
 
@@ -141,7 +142,6 @@ HRESULT ArchiveOperationBaseEx::ProcessEntry(IMAPIFolder *lpFolder,
 	if (m_ptrCurFolderEntryId != nullptr && !bReloadFolder)
 		return DoProcessEntry(proprow);
 
-	SPropValuePtr ptrPropValue;
 	Logger()->logf(EC_LOGLEVEL_DEBUG, "Opening folder (%s)", bin2hex(lpFolderEntryId->Value.bin).c_str());
 	auto hr = lpFolder->OpenEntry(lpFolderEntryId->Value.bin.cb,
 	     reinterpret_cast<ENTRYID *>(lpFolderEntryId->Value.bin.lpb),
@@ -155,6 +155,7 @@ HRESULT ArchiveOperationBaseEx::ProcessEntry(IMAPIFolder *lpFolder,
 	hr = Util::HrCopyProperty(m_ptrCurFolderEntryId, lpFolderEntryId, m_ptrCurFolderEntryId);
 	if (hr != hrSuccess)
 		return hr;
+	memory_ptr<SPropValue> ptrPropValue;
 	if (HrGetOneProp(m_ptrCurFolder, PR_DISPLAY_NAME, &~ptrPropValue) == hrSuccess)
 		Logger()->SetFolder(ptrPropValue->Value.LPSZ);
 	else

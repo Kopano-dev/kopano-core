@@ -9,6 +9,7 @@
 #include <utility>
 #include "Http.h"
 #include <kopano/mapi_ptr.h>
+#include <kopano/memory.hpp>
 #include <kopano/stringutil.h>
 #include <kopano/timeutil.hpp>
 #include <kopano/MAPIErrors.h>
@@ -341,7 +342,7 @@ bool Http::CheckIfMatch(LPMAPIPROP lpProp)
 {
 	bool ret = false, invert = false;
 	std::string strIf, strValue;
-	SPropValuePtr ptrLastModTime;
+	memory_ptr<SPropValue> ptrLastModTime;
 
 	if (lpProp != nullptr &&
 	    HrGetOneProp(lpProp, PR_LAST_MODIFICATION_TIME, &~ptrLastModTime) == hrSuccess)

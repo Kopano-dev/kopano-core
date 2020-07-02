@@ -17,7 +17,7 @@ TaskBase::TaskBase(const object_ptr<IAttach> &sa,
 { }
 
 HRESULT TaskBase::Execute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper) {
-	SPropValuePtr ptrSourceServerUID, ptrDestServerUID;
+	memory_ptr<SPropValue> ptrSourceServerUID, ptrDestServerUID;
 	memory_ptr<ENTRYID> ptrSourceInstanceID, ptrDestInstanceID;
 	SRowSetPtr ptrRows;
 	unsigned int cbSourceInstanceID = 0, cbDestInstanceID = 0;
@@ -56,7 +56,7 @@ HRESULT TaskBase::Execute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper)
 
 HRESULT TaskBase::GetUniqueIDs(IAttach *lpAttach, LPSPropValue *lppServerUID, ULONG *lpcbInstanceID, LPENTRYID *lppInstanceID)
 {
-	SPropValuePtr ptrServerUID;
+	memory_ptr<SPropValue> ptrServerUID;
 	object_ptr<IECSingleInstance> ptrInstance;
 	ULONG cbInstanceID = 0;
 	memory_ptr<ENTRYID> ptrInstanceID;

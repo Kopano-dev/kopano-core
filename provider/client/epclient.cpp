@@ -209,7 +209,7 @@ static HRESULT
 initprov_storedl(struct initprov &d, const sGlobalProfileProps &profprop)
 {
 	/* PR_EC_USERNAME is the user we want to add ... */
-	SPropValuePtr name;
+	memory_ptr<SPropValue> name;
 	HRESULT ret = HrGetOneProp(d.profsect, PR_EC_USERNAME_W, &~name);
 	if (ret != hrSuccess)
 		ret = HrGetOneProp(d.profsect, PR_EC_USERNAME_A, &~name);
@@ -249,7 +249,7 @@ static HRESULT initprov_storearc(struct initprov &d)
 	// We need to get the username and the server name or url from the profsect.
 	// That's enough information to get the entryid from the correct server. There's no redirect
 	// available when resolving archive stores.
-	SPropValuePtr name, server;
+	memory_ptr<SPropValue> name, server;
 	HRESULT ret = HrGetOneProp(d.profsect, PR_EC_USERNAME_W, &~name);
 	if (ret != hrSuccess)
 		ret = HrGetOneProp(d.profsect, PR_EC_USERNAME_A, &~name);
@@ -287,7 +287,7 @@ static HRESULT initprov_storearc(struct initprov &d)
 static HRESULT
 initprov_mapi_store(struct initprov &d, const sGlobalProfileProps &profprop)
 {
-	SPropValuePtr mdb;
+	memory_ptr<SPropValue> mdb;
 	HRESULT ret = HrGetOneProp(d.profsect, PR_MDB_PROVIDER, &~mdb);
 	if (ret != hrSuccess)
 		return ret;
@@ -379,7 +379,7 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
     ULONG *lpcStoreID, ENTRYID **lppStoreID)
 {
 	memory_ptr<SPropValue> ptrPropValueResourceType, dspname, tpprop;
-	SPropValuePtr	ptrPropValueProviderUid;
+	memory_ptr<SPropValue> ptrPropValueProviderUid;
 	std::string		strServiceName;
 	struct initprov d;
 	d.provadm = lpAdminProvider;
@@ -391,7 +391,7 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 		if (hr != hrSuccess)
 			return hr;
 	} else {
-		SPropValuePtr psn;
+		memory_ptr<SPropValue> psn;
 		auto hr = HrGetOneProp(d.profsect, PR_SERVICE_NAME_A, &~psn);
 		if(hr == hrSuccess)
 			strServiceName = psn->Value.lpszA;

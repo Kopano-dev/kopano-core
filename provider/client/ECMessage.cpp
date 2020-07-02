@@ -2330,7 +2330,7 @@ HRESULT ECMessage::GetRtfData(std::string *lpstrRtfData)
 
 HRESULT ECMessage::GetCodePage(unsigned int *lpulCodePage)
 {
-	SPropValuePtr ptrPropValue;
+	memory_ptr<SPropValue> ptrPropValue;
 	auto hr = ECAllocateBuffer(sizeof(SPropValue), &~ptrPropValue);
 	if (hr != hrSuccess)
 		return hr;

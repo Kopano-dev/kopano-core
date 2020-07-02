@@ -91,8 +91,7 @@ private:
 	PROPMAP_DEF_NAMED_ID(DIRTY)
 	PROPMAP_DEF_NAMED_ID(ORIGINAL_SOURCE_KEY)
 
-	typedef KC::memory_ptr<SPropValue> SPropValuePtr;
-	SPropValuePtr m_ptrStoreEntryIDs, m_ptrItemEntryIDs;
+	KC::memory_ptr<SPropValue> m_ptrStoreEntryIDs, m_ptrItemEntryIDs;
 
 	enum eMode {
 		MODE_UNARCHIVED,	// Not archived

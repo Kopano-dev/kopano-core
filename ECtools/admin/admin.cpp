@@ -895,7 +895,6 @@ static HRESULT print_archive_details(LPMAPISESSION lpSession,
 {
 	ULONG cbArchiveId = 0;
 	memory_ptr<ENTRYID> ptrArchiveId;
-	SPropValuePtr ptrArchiveSize;
 
 	auto hr = ptrServiceAdmin->GetArchiveStoreEntryID(LPCTSTR(lpszName), nullptr, 0, &cbArchiveId, &~ptrArchiveId);
 	if (hr != hrSuccess) {
@@ -908,6 +907,7 @@ static HRESULT print_archive_details(LPMAPISESSION lpSession,
 		return kc_perror("Unable to open archive", hr);
 	show_store_provider(ptrArchive);
 	show_record_key("Archive GUID:", ptrArchive);
+	memory_ptr<SPropValue> ptrArchiveSize;
 	hr = HrGetOneProp(ptrArchive, PR_MESSAGE_SIZE_EXTENDED, &~ptrArchiveSize);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to get archive store size", hr);
@@ -1124,8 +1124,6 @@ static HRESULT print_details(LPMAPISESSION lpSession,
 
 	for (int i = 0; i < lpArchiveServers->cValues; ++i) {
 		object_ptr<IMsgStore> ptrRemoteAdminStore;
-		SPropValuePtr ptrPropValue;
-
 		cout << "Archive details on node '" << (LPSTR)lpArchiveServers->lpszValues[i] << "':" << endl;
 		auto hrTmp = HrGetRemoteAdminStore(lpSession, ptrAdminStore, lpArchiveServers->lpszValues[i], 0, &~ptrRemoteAdminStore);
 		if (FAILED(hrTmp)) {
@@ -1268,7 +1266,6 @@ static HRESULT ForceResyncFor(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 {
 	object_ptr<IExchangeManageStore> ptrEMS;
 	unsigned int cbEntryID = 0;
-	SPropValuePtr ptrPropResyncID;
 
 	auto hr = lpAdminStore->QueryInterface(iid_of(ptrEMS), &~ptrEMS);
 	if (hr != hrSuccess)
@@ -1285,6 +1282,7 @@ static HRESULT ForceResyncFor(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 	hr = ptrUserStore->OpenEntry(0, nullptr, &iid_of(ptrRoot), MAPI_MODIFY, nullptr, &~ptrRoot);
 	if (hr != hrSuccess)
 		return hr;
+	memory_ptr<SPropValue> ptrPropResyncID;
 	hr = HrGetOneProp(ptrRoot, PR_EC_RESYNC_ID, &~ptrPropResyncID);
 	if (hr == MAPI_E_NOT_FOUND) {
 		SPropValue sPropResyncID;
@@ -1548,7 +1546,6 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 {
 	object_ptr<IExchangeManageStore> ptrEMS;
 	unsigned int cbEntryID, ulUpdates = 0, ulTotalUpdates = 0;
-	SPropValuePtr ptrPropEntryID;
 	bool bFailures = false;
 	SRowSetPtr ptrRows;
 	static constexpr const SizedSPropTagArray(2, sptaTableProps) =
@@ -1574,6 +1571,7 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 	hr = ptrUserStore->OpenEntry(0, nullptr, &iid_of(ptrRoot), 0, nullptr, &~ptrRoot);
 	if (hr != hrSuccess)
 		return hr;
+	memory_ptr<SPropValue> ptrPropEntryID;
 	hr = HrGetOneProp(ptrRoot, PR_ENTRYID, &~ptrPropEntryID);
 	if (hr != hrSuccess)
 		return hr;

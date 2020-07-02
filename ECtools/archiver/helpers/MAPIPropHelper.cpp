@@ -184,8 +184,7 @@ HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageSt
 				 * If this happens, the message just opened is the same message as the one that's being
 				 * processed. That can be easily verified by comparing the record key.
 				 */
-				SPropValuePtr ptrRecordKey;
-
+				memory_ptr<SPropValue> ptrRecordKey;
 				hr = HrGetOneProp(ptrMessage, PR_EC_HIERARCHYID, &~ptrRecordKey);
 				if (hr != hrSuccess)
 					return hr;
@@ -304,7 +303,6 @@ HRESULT MAPIPropHelper::SetArchiveList(const ObjectEntryList &lstArchives, bool 
 {
 	unsigned int cValues = lstArchives.size(), cbProps = 2;
 	SPropArrayPtr ptrPropArray;
-	SPropValuePtr ptrSourceKey;
 	ObjectEntryList::const_iterator iArchive;
 
 	auto hr = MAPIAllocateBuffer(3 * sizeof(SPropValue), &~ptrPropArray);
@@ -339,6 +337,7 @@ HRESULT MAPIPropHelper::SetArchiveList(const ObjectEntryList &lstArchives, bool 
 	 * item gets moved everything is fine. But when it gets copied a new archive will be created
 	 * for it.
 	 **/
+	memory_ptr<SPropValue> ptrSourceKey;
 	hr = HrGetOneProp(m_ptrMapiProp, PR_SOURCE_KEY, &~ptrSourceKey);
 	if (hr == hrSuccess) {
 		ptrPropArray[2].ulPropTag = PROP_ORIGINAL_SOURCEKEY;
@@ -430,7 +429,7 @@ HRESULT MAPIPropHelper::ReferencePrevious(const SObjectEntry &sEntry)
 
 HRESULT MAPIPropHelper::OpenPrevious(ArchiverSessionPtr ptrSession, LPMESSAGE *lppMessage)
 {
-	SPropValuePtr ptrEntryID;
+	memory_ptr<SPropValue> ptrEntryID;
 
 	if (lppMessage == NULL)
 		return MAPI_E_INVALID_PARAMETER;
@@ -443,7 +442,7 @@ HRESULT MAPIPropHelper::OpenPrevious(ArchiverSessionPtr ptrSession, LPMESSAGE *l
 	     reinterpret_cast<ENTRYID *>(ptrEntryID->Value.bin.lpb),
 	     &iid_of(ptrMessage), MAPI_MODIFY, nullptr, &~ptrMessage);
 	if (hr == MAPI_E_NOT_FOUND) {
-		SPropValuePtr ptrStoreEntryID;
+		memory_ptr<SPropValue> ptrStoreEntryID;
 
 		hr = HrGetOneProp(m_ptrMapiProp, PR_STORE_ENTRYID, &~ptrStoreEntryID);
 		if (hr != hrSuccess)

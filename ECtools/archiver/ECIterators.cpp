@@ -6,6 +6,7 @@
 #include "ECIterators.h"
 #include <kopano/ECRestriction.h>
 #include <kopano/hl.hpp>
+#include <kopano/memory.hpp>
 
 namespace KC {
 
@@ -23,7 +24,7 @@ void ECHierarchyIteratorBase::increment()
 	enum {IDX_ENTRYID};
 
 	if (!m_ptrTable) {
-		SPropValuePtr ptrFolderType;
+		memory_ptr<SPropValue> ptrFolderType;
 		static constexpr const SizedSPropTagArray(1, sptaColumnProps) = {1, {PR_ENTRYID}};
 
 		auto hr = HrGetOneProp(m_ptrContainer, PR_FOLDER_TYPE, &~ptrFolderType);

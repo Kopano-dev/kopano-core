@@ -741,7 +741,6 @@ HRESULT ArchiveControlImpl::PurgeArchiveFolder(object_ptr<IMsgStore> &ptrArchive
  */
 HRESULT ArchiveControlImpl::CleanupArchive(const SObjectEntry &archiveEntry, IMsgStore* lpUserStore, LPSRestriction lpRestriction)
 {
-	SPropValuePtr ptrPropVal;
 	EntryIDSet setRefs, setEntries, setDead;
 	ArchiveHelperPtr ptrArchiveHelper;
 
@@ -764,6 +763,7 @@ HRESULT ArchiveControlImpl::CleanupArchive(const SObjectEntry &archiveEntry, IMs
 	}
 
 	// Get the archive store GUID (PR_STORE_RECORD_KEY)
+	memory_ptr<SPropValue> ptrPropVal;
 	hr = HrGetOneProp(ptrArchiveHelper->GetMsgStore(), PR_STORE_RECORD_KEY, &~ptrPropVal);
 	if (hr != hrSuccess) {
 		m_lpLogger->perr("Unable to get store GUID of archive store", hr);
@@ -823,7 +823,7 @@ HRESULT ArchiveControlImpl::GetAllReferences(IMsgStore *lpUserStore,
     const GUID *lpArchiveGuid, EntryIDSet *lpReferences)
 {
 	EntryIDSet setRefs;
-	SPropValuePtr ptrPropVal;
+	memory_ptr<SPropValue> ptrPropVal;
 	object_ptr<IMAPIFolder> ptrIpmSubtree;
 	ECFolderIterator iEnd;
 
@@ -935,7 +935,7 @@ HRESULT ArchiveControlImpl::GetAllEntries(ArchiveHelperPtr ptrArchiveHelper, LPM
 
 	try {
 		for (ECFolderIterator i = ECFolderIterator(lpArchive, fMapiDeferredErrors, 0); i != iEnd; ++i) {
-			SPropValuePtr ptrProp;
+			memory_ptr<SPropValue> ptrProp;
 
 			hr = HrGetOneProp(*i, PR_ENTRYID, &~ptrProp);
 			if (hr != hrSuccess)
@@ -1086,13 +1086,13 @@ HRESULT ArchiveControlImpl::CleanupHierarchy(ArchiveHelperPtr ptrArchiveHelper, 
 			     &iid_of(ptrPrimaryFolder), 0, nullptr, &~ptrPrimaryFolder);
 			if (hr == MAPI_E_NOT_FOUND) {
 				object_ptr<IMAPIFolder> ptrArchiveFolder;
-				SPropValuePtr ptrProp;
 
 				hr = lpArchiveRoot->OpenEntry(ptrRows[i].lpProps[IDX_ENTRYID].Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrRows[i].lpProps[IDX_ENTRYID].Value.bin.lpb),
 				     &iid_of(ptrArchiveFolder), MAPI_MODIFY, nullptr, &~ptrArchiveFolder);
 				if (hr != hrSuccess)
 					return hr;
 				// Check if we still have a back-ref
+				memory_ptr<SPropValue> ptrProp;
 				if (HrGetOneProp(ptrArchiveFolder, PROP_REF_ITEM_ENTRYID, &~ptrProp) != hrSuccess) {
 					m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Back ref is gone. Folder is possibly moved to the deleted items already.");
 					continue;
@@ -1180,7 +1180,7 @@ HRESULT ArchiveControlImpl::MoveAndDetachMessages(ArchiveHelperPtr ptrArchiveHel
  */
 HRESULT ArchiveControlImpl::MoveAndDetachFolder(ArchiveHelperPtr ptrArchiveHelper, LPMAPIFOLDER lpArchiveFolder)
 {
-	SPropValuePtr ptrEntryID;
+	memory_ptr<SPropValue> ptrEntryID;
 	MAPIPropHelperPtr ptrHelper;
 	ECFolderIterator iEnd;
 
@@ -1263,7 +1263,7 @@ HRESULT ArchiveControlImpl::DeleteMessages(LPMAPIFOLDER lpArchiveFolder, const E
  */
 HRESULT ArchiveControlImpl::DeleteFolder(LPMAPIFOLDER lpArchiveFolder)
 {
-	SPropValuePtr ptrEntryId;
+	memory_ptr<SPropValue> ptrEntryId;
 
 	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Deleting folder...");
 	auto hr = HrGetOneProp(lpArchiveFolder, PR_ENTRYID, &~ptrEntryId);
@@ -1286,7 +1286,7 @@ HRESULT ArchiveControlImpl::DeleteFolder(LPMAPIFOLDER lpArchiveFolder)
  */
 HRESULT ArchiveControlImpl::AppendFolderEntries(LPMAPIFOLDER lpBase, EntryIDSet *lpEntries)
 {
-	SPropValuePtr ptrProp;
+	memory_ptr<SPropValue> ptrProp;
 	static constexpr const SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ENTRYID}};
 
 	auto hr = HrGetOneProp(lpBase, PR_ENTRYID, &~ptrProp);

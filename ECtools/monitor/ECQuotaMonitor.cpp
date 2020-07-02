@@ -954,12 +954,12 @@ static HRESULT GetConfigMessage(IMsgStore *lpStore, const char *szMessageName,
 HRESULT ECQuotaMonitor::CheckQuotaInterval(LPMDB lpStore, LPMESSAGE *lppMessage, bool *lpbTimeout)
 {
 	object_ptr<IMessage> ptrMessage;
-	SPropValuePtr ptrProp;
 	FILETIME ft, ftNextRun;
 
 	auto hr = GetConfigMessage(lpStore, QUOTA_CONFIG_MSG, &~ptrMessage);
 	if (hr != hrSuccess)
 		return hr;
+	memory_ptr<SPropValue> ptrProp;
 	hr = HrGetOneProp(ptrMessage, PR_EC_QUOTA_MAIL_TIME, &~ptrProp);
 	if (hr == MAPI_E_NOT_FOUND) {
 		*lppMessage = ptrMessage.release();

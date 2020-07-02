@@ -1879,7 +1879,6 @@ static HRESULT HrPostDeliveryProcessing(pym_plugin_intf *lppyMapiPlugin,
     DeliveryArgs *lpArgs)
 {
 	object_ptr<IMAPISession> lpUserSession;
-	SPropValuePtr ptrProp;
 
 	auto hr = HrOpenECSession(&~lpUserSession, PROJECT_VERSION,
 	          "dagent:delivery", lpRecip->wstrUsername.c_str(), L"",
@@ -1929,6 +1928,7 @@ static HRESULT HrPostDeliveryProcessing(pym_plugin_intf *lppyMapiPlugin,
 	}
 
 	// do not send vacation message for junk messages
+	memory_ptr<SPropValue> ptrProp;
 	if (lpArgs->ulDeliveryMode != DM_JUNK &&
 	// do not send vacation message on delegated messages
 	    (HrGetOneProp(lppMessage, PR_DELEGATED_BY_RULE, &~ptrProp) != hrSuccess || !ptrProp->Value.b)) {

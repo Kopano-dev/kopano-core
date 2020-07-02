@@ -1602,7 +1602,6 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 	LPMESSAGE lpIcalMessage = lpMessage;
 	ULONG ulAttNr = 0;
 	std::unique_ptr<ICalToMapi> lpIcalMapi;
-	SPropValuePtr ptrSubject;
 	/*
 	 * Some senders send UTF-8 iCalendar information without a charset
 	 * (Exchange does this). Default to UTF-8 if no charset was specified,
@@ -1683,6 +1682,7 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 		return hr;
 
 	// give attachment name of calendar item
+	memory_ptr<SPropValue> ptrSubject;
 	if (HrGetFullProp(ptrNewMessage, PR_SUBJECT_W, &~ptrSubject) == hrSuccess) {
 		ptrSubject->ulPropTag = PR_DISPLAY_NAME_W;
 		hr = ptrAttach->SetProps(1, ptrSubject, NULL);

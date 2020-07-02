@@ -126,7 +126,7 @@ private:
 	 */
 	virtual HRESULT DoProcessEntry(const SRow &proprow) = 0;
 
-	SPropValuePtr m_ptrCurFolderEntryId;
+	memory_ptr<SPropValue> m_ptrCurFolderEntryId;
 	object_ptr<IMAPIFolder> m_ptrCurFolder;
 };
 

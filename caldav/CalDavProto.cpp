@@ -845,8 +845,7 @@ HRESULT CalDAV::HrMoveEntry(const std::string &strGuid, LPMAPIFOLDER lpDestFolde
 HRESULT CalDAV::HrPut()
 {
 	std::string strUrl, strIcal;
-	SPropValuePtr ptrPropModTime;
-	memory_ptr<SPropValue> lpsPropVal;
+	memory_ptr<SPropValue> ptrPropModTime, lpsPropVal;
 	eIcalType etype = VEVENT;
 	SBinary sbUid;
 	time_t ttLastModTime = 0;
@@ -1395,7 +1394,6 @@ HRESULT CalDAV::HrHandleFreebusy(ICalToMapi *lpIcalToMapi)
 	const std::list<std::string> *lstUsers;
 	std::string strUID;
 	WEBDAVFBINFO sWebFbInfo;
-	SPropValuePtr ptrEmail;
 
 	auto hr = lpIcalToMapi->GetFreeBusyInfo(&tStart, &tEnd, &strUID, &lstUsers);
 	if (hr != hrSuccess)
@@ -1412,6 +1410,7 @@ HRESULT CalDAV::HrHandleFreebusy(ICalToMapi *lpIcalToMapi)
 	hr = lpecFBSupport->Open(m_lpSession, m_lpDefStore, true);
 	if (hr != hrSuccess)
 		return kc_pdebug("CalDAV::HrHandleFreebusy open session failed", hr);
+	memory_ptr<SPropValue> ptrEmail;
 	hr = HrGetOneProp(m_lpActiveUser, PR_SMTP_ADDRESS_A, &~ptrEmail);
 	if (hr != hrSuccess)
 		return kc_pdebug("CalDAV::HrHandleFreebusy get prop smtp address a failed", hr);
@@ -1558,7 +1557,6 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 	WEBDAVPROP sWebProp, sWebPropNotFound;
 	WEBDAVPROPSTAT sPropStat;
 	ULONG ulFolderType;
-	SPropValuePtr ptrEmail, ptrFullname;
 
 	auto lpFoundProp = PCpropFindProp(lpProps, ulPropCount, PR_CONTAINER_CLASS_A);
 	if (lpFoundProp && !strncmp (lpFoundProp->Value.lpszA, "IPF.Appointment", strlen("IPF.Appointment")))
@@ -1567,6 +1565,7 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 		ulFolderType = TASKS_FOLDER;
 	else
 		ulFolderType = OTHER_FOLDER;
+	memory_ptr<SPropValue> ptrEmail, ptrFullname;
 	if (HrGetOneProp(m_lpActiveUser, PR_SMTP_ADDRESS_A, &~ptrEmail) != hrSuccess)
 		/* ignore error - will check for pointer instead */;
 	if (HrGetOneProp(m_lpActiveUser, PR_DISPLAY_NAME_W, &~ptrFullname) != hrSuccess)

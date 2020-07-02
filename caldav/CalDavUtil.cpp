@@ -415,7 +415,7 @@ std::string StripGuid(const std::string &strInput)
  */
 HRESULT HrGetOwner(IMAPISession *lpSession, IMsgStore *lpDefStore, IMailUser **lppImailUser)
 {
-	SPropValuePtr ptrSProp;
+	memory_ptr<SPropValue> ptrSProp;
 	object_ptr<IMailUser> lpMailUser;
 	ULONG ulObjType = 0;
 

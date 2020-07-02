@@ -221,7 +221,7 @@ HRESULT ZCMAPIProp::ConvertProps(IMAPIProp *lpContact, ULONG cbEntryID,
 {
 	HRESULT hr = hrSuccess;
 	ULONG cValues = 0;
-	SPropValuePtr ptrContactProps;
+	memory_ptr<SPropValue> ptrContactProps;
 	SPropValue sValue, sSource;
 	LPSPropValue lpProp = NULL;
 

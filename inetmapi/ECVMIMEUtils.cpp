@@ -312,7 +312,7 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage,
 		}
 
 		// Delivery report request
-		SPropValuePtr ptrDeliveryReport;
+		memory_ptr<SPropValue> ptrDeliveryReport;
 		if (mapiTransport != nullptr &&
 		    HrGetOneProp(lpMessage, PR_ORIGINATOR_DELIVERY_REPORT_REQUESTED, &~ptrDeliveryReport) == hrSuccess &&
 		    ptrDeliveryReport->Value.b)

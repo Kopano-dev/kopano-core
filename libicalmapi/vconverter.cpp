@@ -2372,7 +2372,6 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 	// and then exception properties are replaced
 	unsigned int ulModCount = cRecurrence.getModifiedCount();
 	for (ULONG i = 0; i < ulModCount; ++i) {
-		SPropValuePtr  lpMsgProps;
 		ULONG ulMsgProps = 0;
 		const SPropValue *lpProp = NULL;
 		icalproperty_method icMethod = ICAL_METHOD_NONE;
@@ -2392,6 +2391,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 			hr = hrSuccess;
 			continue;
 		}
+		memory_ptr<SPropValue> lpMsgProps;
 		hr = lpException->GetProps(NULL, MAPI_UNICODE, &ulMsgProps, &~lpMsgProps);
 		if (FAILED(hr))
 			continue;
