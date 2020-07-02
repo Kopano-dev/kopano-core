@@ -11,7 +11,7 @@
 
 namespace KC { namespace operations {
 
-TaskBase::TaskBase(const AttachPtr &sa,
+TaskBase::TaskBase(const object_ptr<IAttach> &sa,
     const object_ptr<IMessage> &dst, unsigned int dst_at_idx) :
 	m_ptrSourceAttach(sa), m_ptrDestMsg(dst), m_ulDestAttachIdx(dst_at_idx)
 { }
@@ -20,7 +20,6 @@ HRESULT TaskBase::Execute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper)
 	SPropValuePtr ptrSourceServerUID, ptrDestServerUID;
 	EntryIdPtr ptrSourceInstanceID, ptrDestInstanceID;
 	SRowSetPtr ptrRows;
-	AttachPtr ptrAttach;
 	unsigned int cbSourceInstanceID = 0, cbDestInstanceID = 0;
 	static constexpr const SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ATTACH_NUM}};
 
@@ -42,6 +41,7 @@ HRESULT TaskBase::Execute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper)
 		return hr;
 	if (ptrRows.empty())
 		return MAPI_E_NOT_FOUND;
+	object_ptr<IAttach> ptrAttach;
 	hr = m_ptrDestMsg->OpenAttach(ptrRows[0].lpProps[0].Value.ul, &iid_of(ptrAttach), 0, &~ptrAttach);
 	if (hr != hrSuccess)
 		return hr;
@@ -77,7 +77,7 @@ HRESULT TaskBase::GetUniqueIDs(IAttach *lpAttach, LPSPropValue *lppServerUID, UL
 	return hrSuccess;
 }
 
-TaskMapInstanceId::TaskMapInstanceId(const AttachPtr &sa,
+TaskMapInstanceId::TaskMapInstanceId(const object_ptr<IAttach> &sa,
     const object_ptr<IMessage> &dst, unsigned int dst_at_num) :
 	TaskBase(sa, dst, dst_at_num)
 { }
@@ -86,7 +86,7 @@ HRESULT TaskMapInstanceId::DoExecute(ULONG ulPropTag, const InstanceIdMapperPtr 
 	return ptrMapper->SetMappedInstances(ulPropTag, sourceServerUID, cbSourceInstanceID, lpSourceInstanceID, destServerUID, cbDestInstanceID, lpDestInstanceID);
 }
 
-TaskVerifyAndUpdateInstanceId::TaskVerifyAndUpdateInstanceId(const AttachPtr &sa,
+TaskVerifyAndUpdateInstanceId::TaskVerifyAndUpdateInstanceId(const object_ptr<IAttach> &sa,
     const object_ptr<IMessage> &dst, unsigned int dst_at_num, unsigned int di_size, ENTRYID *di_id) :
 	TaskBase(sa, dst, dst_at_num), m_destInstanceID(di_size, di_id)
 { }

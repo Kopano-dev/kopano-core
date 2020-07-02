@@ -203,7 +203,7 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 			return m_lpLogger->perr("Failed to query source rows", hr);
 		assert(ptrSourceRows.size() == ptrDestRows.size());
 		for (SRowSetPtr::size_type i = 0; i < ptrSourceRows.size(); ++i) {
-			AttachPtr ptrSourceAttach, ptrDestAttach;
+			object_ptr<IAttach> ptrSourceAttach, ptrDestAttach;
 			SPropValuePtr ptrAttachMethod;
 			object_ptr<IECSingleInstance> ptrInstance;
 			unsigned int cbSourceSIID, cbDestSIID;

@@ -15,14 +15,14 @@ namespace KC { namespace operations {
 
 class TaskBase {
 public:
-	TaskBase(const AttachPtr &src, const object_ptr<IMessage> &dst, unsigned int dst_at_idx);
+	TaskBase(const object_ptr<IAttach> &src, const object_ptr<IMessage> &dst, unsigned int dst_at_idx);
 	HRESULT Execute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper);
 
 private:
 	HRESULT GetUniqueIDs(IAttach *lpAttach, LPSPropValue *lppServerUID, ULONG *lpcbInstanceID, LPENTRYID *lppInstanceID);
 	virtual HRESULT DoExecute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper, const SBinary &sourceServerUID, ULONG cbSourceInstanceID, LPENTRYID lpSourceInstanceID, const SBinary &destServerUID, ULONG cbDestInstanceID, LPENTRYID lpDestInstanceID) = 0;
 
-	AttachPtr	m_ptrSourceAttach;
+	object_ptr<IAttach> m_ptrSourceAttach;
 	object_ptr<IMessage> m_ptrDestMsg;
 	ULONG 	m_ulDestAttachIdx;
 };
@@ -31,13 +31,13 @@ typedef std::list<TaskPtr> TaskList;
 
 class TaskMapInstanceId final : public TaskBase {
 public:
-	TaskMapInstanceId(const AttachPtr &src, const object_ptr<IMessage> &dst, unsigned int dst_at_num);
+	TaskMapInstanceId(const object_ptr<IAttach> &src, const object_ptr<IMessage> &dst, unsigned int dst_at_num);
 	HRESULT DoExecute(unsigned int proptag, const InstanceIdMapperPtr &, const SBinary &src_server_uid, unsigned int src_size, ENTRYID *src_inst, const SBinary &dest_server_uid, unsigned int dest_size, ENTRYID *dest_inst) override;
 };
 
 class TaskVerifyAndUpdateInstanceId final : public TaskBase {
 public:
-	TaskVerifyAndUpdateInstanceId(const AttachPtr &src, const object_ptr<IMessage> &dst, unsigned int dst_at_num, unsigned int dst_instance_idsize, ENTRYID *dst_instance_id);
+	TaskVerifyAndUpdateInstanceId(const object_ptr<IAttach> &src, const object_ptr<IMessage> &dst, unsigned int dst_at_num, unsigned int dst_instance_idsize, ENTRYID *dst_instance_id);
 	HRESULT DoExecute(unsigned int proptag, const InstanceIdMapperPtr &, const SBinary &src_server_uid, unsigned int src_size, ENTRYID *src_inst, const SBinary &dest_server_uid, unsigned int dest_size, ENTRYID *dest_inst) override;
 
 private:

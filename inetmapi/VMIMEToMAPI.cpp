@@ -1600,7 +1600,6 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 	std::string icaldata;
 	vmime::utility::outputStreamStringAdapter os(icaldata);
 	LPMESSAGE lpIcalMessage = lpMessage;
-	AttachPtr ptrAttach;
 	ULONG ulAttNr = 0;
 	std::unique_ptr<ICalToMapi> lpIcalMapi;
 	SPropValuePtr ptrSubject;
@@ -1619,6 +1618,7 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 		bIsAttachment = true;
 
 	object_ptr<IMessage> ptrNewMessage;
+	object_ptr<IAttach> ptrAttach;
 	if (bIsAttachment) {
 		// create message in message to create calendar message
 		SPropValue sAttProps[3];

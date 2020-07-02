@@ -88,7 +88,6 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 
 	SPropValue sProps[3]{}, sProp{};
 	SRowSetPtr ptrRowSet;
-	AttachPtr ptrAttach;
 	ULONG ulAttachNum = 0;
 	MAPIPropHelperPtr ptrMsgHelper;
 	ObjectEntryList lstMsgArchives;
@@ -152,6 +151,7 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 		}
 
 		Logger()->Log(EC_LOGLEVEL_INFO, "Adding placeholder attachment");
+		object_ptr<IAttach> ptrAttach;
 		hr = lpMessage->CreateAttach(&iid_of(ptrAttach), 0, &ulAttachNum, &~ptrAttach);
 		if (hr != hrSuccess)
 			return Logger()->perr("Failed to create attachment", hr);
