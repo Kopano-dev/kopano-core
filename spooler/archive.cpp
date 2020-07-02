@@ -39,7 +39,7 @@ void ArchiveResult::Undo(IMAPISession *lpSession) {
 		Util::HrDeleteMessage(lpSession, i);
 }
 
-HRESULT Archive::Create(IMAPISession *lpSession, ArchivePtr *lpptrArchive)
+HRESULT Archive::Create(IMAPISession *lpSession, std::unique_ptr<Archive> *lpptrArchive)
 {
 	if (lpSession == NULL || lpptrArchive == NULL)
 		return MAPI_E_INVALID_PARAMETER;

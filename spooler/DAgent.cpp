@@ -2136,7 +2136,7 @@ static HRESULT ProcessDeliveryToRecipient(pym_plugin_intf *lppyMapiPlugin,
 		// TODO do something with ulResult
 		if (parseBool(g_lpConfig->GetSetting("archive_on_delivery"))) {
 			object_ptr<IMAPISession> ptrAdminSession;
-			ArchivePtr ptrArchive;
+			std::unique_ptr<Archive> ptrArchive;
 
 			if (bIsAdmin)
 				hr = lpSession->QueryInterface(iid_of(ptrAdminSession), &~ptrAdminSession);

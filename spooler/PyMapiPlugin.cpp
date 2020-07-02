@@ -40,7 +40,6 @@
 }
 
 using namespace KC;
-typedef pyobj_ptr PyObjectAPtr;
 
 class PyMapiPlugin final : public pym_plugin_intf {
 	public:
@@ -57,7 +56,7 @@ class PyMapiPlugin final : public pym_plugin_intf {
 	swig_type_info *type_p_IExchangeModifyTable = nullptr;
 
 	private:
-	PyObjectAPtr m_ptrMapiPluginManager{nullptr};
+	pyobj_ptr m_ptrMapiPluginManager{nullptr};
 
 	/* Inhibit (accidental) copying */
 	PyMapiPlugin(const PyMapiPlugin &) = delete;
@@ -65,7 +64,7 @@ class PyMapiPlugin final : public pym_plugin_intf {
 };
 
 struct pym_factory_priv {
-	PyObjectAPtr m_ptrModMapiPlugin{nullptr};
+	pyobj_ptr m_ptrModMapiPlugin{nullptr};
 };
 
 /**
@@ -89,7 +88,7 @@ static HRESULT PyHandleError(PyObject *pyobj)
 		ec_log_err("Plugin called exit(), which is meaningless");
 		return S_FALSE;
 	}
-	PyObjectAPtr ptype, pvalue, ptraceback;
+	pyobj_ptr ptype, pvalue, ptraceback;
 	PyErr_Fetch(&~ptype, &~pvalue, &~ptraceback);
 	if (ptype == nullptr) {
 		assert(false);
@@ -119,7 +118,7 @@ static HRESULT PyHandleError(PyObject *pyobj)
 }
 
 #define PY_CALL_METHOD(pluginmanager, functionname, returnmacro, format, ...) {\
-	PyObjectAPtr ptrResult;\
+	pyobj_ptr ptrResult; \
 	{\
 		ptrResult.reset(PyObject_CallMethod(pluginmanager, const_cast<char *>(functionname), const_cast<char *>(format), __VA_ARGS__)); \
 		PY_HANDLE_ERROR(ptrResult) \
@@ -192,7 +191,7 @@ HRESULT PyMapiPlugin::Init(PyObject *lpModMapiPlugin,
 HRESULT PyMapiPlugin::MessageProcessing(const char *lpFunctionName, IMAPISession *lpMapiSession, IAddrBook *lpAdrBook, IMsgStore *lpMsgStore, IMAPIFolder *lpInbox, IMessage *lpMessage, ULONG *lpulResult)
 {
 	HRESULT hr = hrSuccess;
-	PyObjectAPtr ptrPySession, ptrPyAddrBook, ptrPyStore, ptrPyMessage, ptrPyFolderInbox;
+	pyobj_ptr ptrPySession, ptrPyAddrBook, ptrPyStore, ptrPyMessage, ptrPyFolderInbox;
 
 	if (!m_ptrMapiPluginManager)
 		return hrSuccess;
@@ -225,7 +224,7 @@ HRESULT PyMapiPlugin::MessageProcessing(const char *lpFunctionName, IMAPISession
 HRESULT PyMapiPlugin::RulesProcessing(const char *lpFunctionName, IMAPISession *lpMapiSession, IAddrBook *lpAdrBook, IMsgStore *lpMsgStore, IExchangeModifyTable *lpEMTRules, ULONG *lpulResult)
 {
 	HRESULT hr = hrSuccess;
-    PyObjectAPtr  ptrPySession, ptrPyAddrBook, ptrPyStore, ptrEMTIn;
+	pyobj_ptr ptrPySession, ptrPyAddrBook, ptrPyStore, ptrEMTIn;
 
 	if (!m_ptrMapiPluginManager)
 		return hrSuccess;
@@ -249,7 +248,7 @@ HRESULT PyMapiPlugin::RulesProcessing(const char *lpFunctionName, IMAPISession *
 HRESULT PyMapiPlugin::RequestCallExecution(const char *lpFunctionName, IMAPISession *lpMapiSession, IAddrBook *lpAdrBook, IMsgStore *lpMsgStore,  IMAPIFolder *lpFolder, IMessage *lpMessage, ULONG *lpulDoCallexe, ULONG *lpulResult)
 {
 	HRESULT hr = hrSuccess;
-	PyObjectAPtr  ptrPySession, ptrPyAddrBook, ptrPyStore, ptrFolder, ptrMessage;
+	pyobj_ptr ptrPySession, ptrPyAddrBook, ptrPyStore, ptrFolder, ptrMessage;
 
 	if (!m_ptrMapiPluginManager)
 		return hrSuccess;
@@ -288,11 +287,11 @@ HRESULT plugin_manager_init(ECConfig *lpConfig,
 	auto lpEnvPython = getenv("PYTHONPATH");
 	ec_log_debug("PYTHONPATH = %s", lpEnvPython);
 	Py_Initialize();
-	PyObjectAPtr ptrModule(PyImport_ImportModule("MAPI"));
+	pyobj_ptr ptrModule(PyImport_ImportModule("MAPI"));
 	PY_HANDLE_ERROR(ptrModule);
 	// Import python plugin framework
 	// @todo error unable to find file xxx
-	PyObjectAPtr ptrName(PyUnicode_FromString("mapiplugin"));
+	pyobj_ptr ptrName(PyUnicode_FromString("mapiplugin"));
 	m_priv.m_ptrModMapiPlugin.reset(PyImport_Import(ptrName));
 	PY_HANDLE_ERROR(m_priv.m_ptrModMapiPlugin);
 

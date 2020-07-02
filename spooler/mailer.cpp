@@ -1845,8 +1845,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 
 	// Archive the message
 	if (parseBool(g_lpConfig->GetSetting("archive_on_send"))) {
-		ArchivePtr ptrArchive;
-
+		std::unique_ptr<Archive> ptrArchive;
 		hr = Archive::Create(lpAdminSession, &ptrArchive);
 		if (hr != hrSuccess) {
 			kc_perror("Unable to instantiate archive object", hr);
