@@ -4,8 +4,6 @@
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
 #
 
-from __future__ import print_function
-
 import kopano
 from MAPI import KEEP_OPEN_READWRITE, MAPIErrorCollision
 from MAPI.Struct import SPropValue
