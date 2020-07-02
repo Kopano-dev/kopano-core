@@ -42,7 +42,7 @@ MailboxDataCollector::MailboxDataCollector(ArchiveStateCollector::ArchiveInfoMap
 
 HRESULT MailboxDataCollector::GetRequiredPropTags(LPMAPIPROP lpProp, LPSPropTagArray *lppPropTagArray) const
 {
-	SPropTagArrayPtr ptrPropTagArray;
+	memory_ptr<SPropTagArray> ptrPropTagArray;
 
 	PROPMAP_START(2)
 		PROPMAP_NAMED_ID(STORE_ENTRYIDS, PT_MV_BINARY, PSETID_Archive, "store-entryids")

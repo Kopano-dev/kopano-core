@@ -321,7 +321,6 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 	SRowSetPtr ptrRow;
 	object_ptr<IAddrBook> ptrAddrBook;
 	std::set<std::string> setFilter;
-	SPropTagArrayPtr ptrColumns;
 
 	auto hr = session->OpenAddressBook(0, nullptr, AB_NO_DIALOG, &~ptrAddrBook);
 	if (hr != hrSuccess)
@@ -330,6 +329,7 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 	hr = lpMessage->GetRecipientTable(fMapiUnicode | MAPI_DEFERRED_ERRORS, &~ptrRecipientTable);
 	if (hr != hrSuccess)
 		return hr;
+	memory_ptr<SPropTagArray> ptrColumns;
 	hr = ptrRecipientTable->QueryColumns(TBL_ALL_COLUMNS, &~ptrColumns);
 	if (hr != hrSuccess)
 		return hr;

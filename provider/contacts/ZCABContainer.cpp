@@ -214,10 +214,8 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 		PR_COMPANY_NAME, PR_BUSINESS_TELEPHONE_NUMBER,
 		PR_MOBILE_TELEPHONE_NUMBER, PR_ROWID}};
 
-	SPropTagArrayPtr ptrContactCols;
-
 	// named properties
-	SPropTagArrayPtr ptrNameTags;
+	memory_ptr<SPropTagArray> ptrNameTags, ptrContactCols;
 	memory_ptr<MAPINAMEID *> lppNames;
 	ULONG ulNames = (6 * 5) + 2;
 	ULONG ulType = (ulFlags & MAPI_UNICODE) ? PT_UNICODE : PT_STRING8;
@@ -920,12 +918,12 @@ HRESULT ZCABContainer::ResolveNames(const SPropTagArray *lpPropTagArray,
 	} else if (m_lpContactFolder) {
 		// only search within this folder and set entries in lpAdrList / lpFlagList
 		std::set<ULONG> stProps;
-		SPropTagArrayPtr ptrColumns;
 
 		// make joint proptags
 		std::copy(lpPropTagArray->aulPropTag, lpPropTagArray->aulPropTag + lpPropTagArray->cValues, std::inserter(stProps, stProps.begin()));
 		for (i = 0; i < lpAdrList->aEntries[0].cValues; ++i)
 			stProps.emplace(lpAdrList->aEntries[0].rgPropVals[i].ulPropTag);
+		memory_ptr<SPropTagArray> ptrColumns;
 		hr = MAPIAllocateBuffer(CbNewSPropTagArray(stProps.size()), &~ptrColumns);
 		if (hr != hrSuccess)
 			return hr;

@@ -226,7 +226,7 @@ HRESULT ZCMAPIProp::ConvertProps(IMAPIProp *lpContact, ULONG cbEntryID,
 	LPSPropValue lpProp = NULL;
 
 	// named properties
-	SPropTagArrayPtr ptrNameTags;
+	memory_ptr<SPropTagArray> ptrNameTags;
 	memory_ptr<MAPINAMEID *> lppNames;
 	ULONG ulNames = 5;
 	MAPINAMEID mnNamedProps[5] = {

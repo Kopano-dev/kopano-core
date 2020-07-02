@@ -659,7 +659,6 @@ static HRESULT delete_recipients(IMessage *msg)
 HRESULT Copier::DoUpdateArchive(LPMESSAGE lpMessage, const SObjectEntry &archiveMsgEntry, const SObjectEntry &refMsgEntry, TransactionPtr *lpptrTransaction)
 {
 	object_ptr<IMsgStore> ptrArchiveStore;
-	SPropTagArrayPtr ptrPropList;
 	PostSaveActionPtr ptrPSAction;
 	TransactionPtr ptrTransaction;
 
@@ -680,6 +679,7 @@ HRESULT Copier::DoUpdateArchive(LPMESSAGE lpMessage, const SObjectEntry &archive
 	     MAPI_BEST_ACCESS | fMapiDeferredErrors, nullptr, &~ptrArchivedMsg);
 	if (hr != hrSuccess)
 		return Logger()->perr("Failed to open existing archived message", hr);
+	memory_ptr<SPropTagArray> ptrPropList;
 	hr = ptrArchivedMsg->GetPropList(fMapiUnicode, &~ptrPropList);
 	if (hr != hrSuccess)
 		return Logger()->perr("Failed to get property list", hr);

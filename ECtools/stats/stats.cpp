@@ -577,7 +577,7 @@ static std::string mapitable_ToString1(const SPropValue &name, const SPropValue 
 
 static HRESULT MAPITablePrint(IMAPITable *lpTable, bool humanreadable /* = true */)
 {
-	SPropTagArrayPtr ptrColumns;
+	memory_ptr<SPropTagArray> ptrColumns;
 	SRowSetPtr ptrRows;
 	ConsoleTable ct(0, 0);
 

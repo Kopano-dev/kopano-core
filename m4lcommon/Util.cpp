@@ -808,7 +808,7 @@ HRESULT	Util::HrCopySRow(LPSRow lpDest, const SRow *lpSrc, void *lpBase)
 HRESULT	Util::HrCopyPropTagArray(const SPropTagArray *lpSrc,
     LPSPropTagArray *lppDest)
 {
-	SPropTagArrayPtr ptrPropTagArray;
+	memory_ptr<SPropTagArray> ptrPropTagArray;
 	HRESULT hr = MAPIAllocateBuffer(CbNewSPropTagArray(lpSrc->cValues), &~ptrPropTagArray);
 	if (hr != hrSuccess)
 		return hr;

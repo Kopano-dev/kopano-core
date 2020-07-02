@@ -190,7 +190,7 @@ private:
 	ArchiverSessionPtr m_ptrSession;
 	ECConfig *m_lpConfig;
 	ObjectEntryList m_lstArchives;
-	SPropTagArrayPtr m_ptrExcludeProps;
+	memory_ptr<SPropTagArray> m_ptrExcludeProps;
 
 	DeleterPtr m_ptrDeleteOp;
 	StubberPtr m_ptrStubOp;

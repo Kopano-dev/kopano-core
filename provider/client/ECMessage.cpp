@@ -143,7 +143,7 @@ HRESULT ECMessage::GetProps(const SPropTagArray *lpPropTagArray, ULONG ulFlags,
 			/* plain */   { PR_BODY_W, PR_RTF_COMPRESSED, PR_HTML },
 			/* rtf */     { PR_RTF_COMPRESSED, PR_HTML, PR_BODY_W },
 			/* html */    { PR_HTML, PR_RTF_COMPRESSED, PR_BODY_W }};
-		SPropTagArrayPtr	ptrPropTagArray;
+		memory_ptr<SPropTagArray> ptrPropTagArray;
 		ULONG				ulBestMatch = 0;
 
 		if (lpPropTagArray) {
@@ -624,10 +624,10 @@ HRESULT ECMessage::SyncHtmlToRtf()
 HRESULT ECMessage::GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArray)
 {
 	const eBodyType ulBodyTypeSaved = m_ulBodyType;
-	SPropTagArrayPtr ptrPropTagArray, ptrPropTagArrayMod;
 
 	m_ulBodyType = bodyTypeUnknown;	// Make sure no bodies are generated when attempts are made to open them to check the error code if any.
 	auto laters = make_scope_success([&]() { m_ulBodyType = ulBodyTypeSaved; });
+	memory_ptr<SPropTagArray> ptrPropTagArray, ptrPropTagArrayMod;
 	auto hr = ECMAPIProp::GetPropList(ulFlags, &~ptrPropTagArray);
 	if (hr != hrSuccess)
 		return hr;

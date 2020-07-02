@@ -56,7 +56,6 @@ static ULONG GetPropIDForXMLProp(LPMAPIPROP lpObj,
     ULONG ulFlags = 0)
 {
 	memory_ptr<MAPINAMEID> lpNameID;
-	SPropTagArrayPtr ptrPropTags;
 
 	for (size_t i = 0; i < ARRAY_SIZE(sPropMap); ++i)
 		// @todo, we really should use the namespace here too
@@ -71,6 +70,7 @@ static ULONG GetPropIDForXMLProp(LPMAPIPROP lpObj,
 	lpNameID->lpguid = const_cast<GUID *>(&PSETID_Kopano_CalDav);
 	lpNameID->ulKind = MNID_STRING;
 	lpNameID->Kind.lpwstrName = const_cast<wchar_t *>(wstrName.c_str());
+	memory_ptr<SPropTagArray> ptrPropTags;
 	hr = lpObj->GetIDsFromNames(1, &+lpNameID, ulFlags, &~ptrPropTags);
 	if (hr != hrSuccess)
 		return PR_NULL;
