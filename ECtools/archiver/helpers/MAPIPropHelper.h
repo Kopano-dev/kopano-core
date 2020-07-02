@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #pragma once
+#include <list>
 #include <memory>
 #include <kopano/zcdefs.h>
 #include <mapix.h>
@@ -27,8 +28,8 @@ public:
 	static HRESULT Create(IMAPIProp *, MAPIPropHelperPtr *);
 	KC_HIDDEN virtual ~MAPIPropHelper() = default;
 	HRESULT GetMessageState(ArchiverSessionPtr ptrSession, MessageState *lpState);
-	HRESULT GetArchiveList(ObjectEntryList *lplstArchives, bool bIgnoreSourceKey = false);
-	HRESULT SetArchiveList(const ObjectEntryList &lstArchives, bool bExplicitCommit = false);
+	HRESULT GetArchiveList(std::list<SObjectEntry> *archives, bool ignore_source_key = false);
+	HRESULT SetArchiveList(const std::list<SObjectEntry> &archives, bool explicit_commit = false);
 	HRESULT SetReference(const SObjectEntry &sEntry, bool bExplicitCommit = false);
 	KC_HIDDEN HRESULT GetReference(SObjectEntry *);
 	HRESULT ClearReference(bool bExplicitCommit = false);

@@ -26,7 +26,6 @@ private:
 	ULONG 	m_ulDestAttachIdx;
 };
 typedef std::shared_ptr<TaskBase> TaskPtr;
-typedef std::list<TaskPtr> TaskList;
 
 class TaskMapInstanceId final : public TaskBase {
 public:
@@ -45,14 +44,13 @@ private:
 
 class PostSaveInstanceIdUpdater final : public IPostSaveAction {
 public:
-
-	PostSaveInstanceIdUpdater(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper, const TaskList &lstDeferred);
+	PostSaveInstanceIdUpdater(unsigned int tag, const InstanceIdMapperPtr &, const std::list<TaskPtr> &deferred);
 	HRESULT Execute() override;
 
 private:
 	ULONG m_ulPropTag;
 	InstanceIdMapperPtr m_ptrMapper;
-	TaskList m_lstDeferred;
+	std::list<TaskPtr> m_lstDeferred;
 };
 
 }} /* namespace */

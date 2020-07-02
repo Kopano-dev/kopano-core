@@ -33,7 +33,7 @@ public:
 		entryid_t storeId;
 		std::list<tstring> lstServers;
 		std::list<tstring> lstCouplings;
-		ObjectEntryList lstArchives;
+		std::list<SObjectEntry> lstArchives;
 	};
 	typedef std::map<abentryid_t, ArchiveInfo> ArchiveInfoMap;
 

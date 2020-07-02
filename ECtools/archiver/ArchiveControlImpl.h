@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #pragma once
+#include <list>
 #include <memory>
 #include <set>
 #include <utility>
@@ -124,7 +125,7 @@ private:
 	HRESULT ProcessFolder2(IMAPIFolder *, std::shared_ptr<operations::IArchiveOperation>, bool &);
 	HRESULT ProcessFolder(IMAPIFolder *, operations::ArchiveOperationPtr ptrArchiveOperation);
 	HRESULT ProcessAll(bool bLocalOnly, fnProcess_t fnProcess);
-	HRESULT PurgeArchives(const ObjectEntryList &lstArchives);
+	HRESULT PurgeArchives(const std::list<SObjectEntry> &archives);
 	HRESULT PurgeArchiveFolder(IMsgStore *archive, const entryid_t &folder, const SRestriction *);
 	HRESULT CleanupArchive(const SObjectEntry &archiveEntry, IMsgStore* lpUserStore, LPSRestriction lpRestriction);
 	HRESULT GetAllReferences(IMsgStore *store, const GUID *archive, EntryIDSet *refs);

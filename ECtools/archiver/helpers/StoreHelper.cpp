@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
+#include <list>
 #include <new>
 #include <utility>
 #include <mapix.h>
@@ -663,7 +664,6 @@ HRESULT StoreHelper::GetClassCheckRestriction(ECOrRestriction *lpresClassCheck)
 HRESULT StoreHelper::GetArchiveCheckRestriction(ECAndRestriction *lpresArchiveCheck)
 {
 	SPropValue sPropDirty{};
-	ObjectEntryList lstArchives;
 	ECAndRestriction resArchiveCheck;
 
 	sPropDirty.ulPropTag = PROP_DIRTY;
@@ -680,6 +680,7 @@ HRESULT StoreHelper::GetArchiveCheckRestriction(ECAndRestriction *lpresArchiveCh
 				ECPropertyRestriction(RELOP_EQ, PROP_DIRTY, &sPropDirty, ECRestriction::Shallow)
 			)
 		);
+	std::list<SObjectEntry> lstArchives;
 	auto hr = GetArchiveList(&lstArchives);
 	if (hr != hrSuccess)
 		return hr;

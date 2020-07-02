@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <algorithm>
+#include <list>
 #include <kopano/platform.h>
 #include <kopano/IECInterfaces.hpp>
 #include <kopano/Util.h>
@@ -104,10 +105,9 @@ HRESULT TaskVerifyAndUpdateInstanceId::DoExecute(ULONG ulPropTag, const Instance
 	       cbDestInstanceID, lpDestInstanceID);
 }
 
-PostSaveInstanceIdUpdater::PostSaveInstanceIdUpdater(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper, const TaskList &lstDeferred)
-: m_ulPropTag(ulPropTag)
-, m_ptrMapper(ptrMapper)
-, m_lstDeferred(lstDeferred)
+PostSaveInstanceIdUpdater::PostSaveInstanceIdUpdater(unsigned int tag,
+    const InstanceIdMapperPtr &m, const std::list<TaskPtr> &d) :
+	m_ulPropTag(tag), m_ptrMapper(m), m_lstDeferred(d)
 { }
 
 HRESULT PostSaveInstanceIdUpdater::Execute()

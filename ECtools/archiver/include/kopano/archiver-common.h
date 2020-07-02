@@ -417,11 +417,6 @@ struct SObjectEntry {
 	entryid_t sItemEntryId;
 };
 
-/**
- * List of SObjectEntry objects.
- */
-typedef std::list<SObjectEntry> ObjectEntryList;
-
 static inline bool operator==(const SObjectEntry &lhs, const SObjectEntry &rhs) {
 	return lhs.sStoreEntryId == rhs.sStoreEntryId && lhs.sItemEntryId == rhs.sItemEntryId;
 }

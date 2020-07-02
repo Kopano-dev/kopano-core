@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
+#include <list>
 #include <new>
 #include <utility>
 #include "MAPIPropHelper.h"
@@ -126,7 +127,7 @@ HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageSt
 
 	if (result != 0) {
 		// The message is copied. Now check if it was moved.
-		ObjectEntryList lstArchives;
+		std::list<SObjectEntry> lstArchives;
 		MAPIPropHelperPtr ptrArchiveHelper;
 		SObjectEntry refEntry;
 
@@ -219,11 +220,10 @@ HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageSt
  * @param[in]	bIgnoreSourceKey
  * 					Don't try to detect a copy/move and return an empty list in that case.
  */
-HRESULT MAPIPropHelper::GetArchiveList(ObjectEntryList *lplstArchives, bool bIgnoreSourceKey)
+HRESULT MAPIPropHelper::GetArchiveList(std::list<SObjectEntry> *lplstArchives, bool bIgnoreSourceKey)
 {
 	ULONG cbValues = 0;
 	memory_ptr<SPropValue> ptrPropArray;
-	ObjectEntryList lstArchives;
 	int result = 0;
 	SizedSPropTagArray (4, sptaArchiveProps) = {4, {PROP_ARCHIVE_STORE_ENTRYIDS, PROP_ARCHIVE_ITEM_ENTRYIDS, PROP_ORIGINAL_SOURCEKEY, PR_SOURCE_KEY}};
 
@@ -276,6 +276,7 @@ HRESULT MAPIPropHelper::GetArchiveList(ObjectEntryList *lplstArchives, bool bIgn
 		}
 	}
 
+	std::list<SObjectEntry> lstArchives;
 	if (ptrPropArray[IDX_ARCHIVE_STORE_ENTRYIDS].Value.MVbin.cValues !=
 	    ptrPropArray[IDX_ARCHIVE_ITEM_ENTRYIDS].Value.MVbin.cValues)
 		return MAPI_E_CORRUPT_DATA;
@@ -298,11 +299,10 @@ HRESULT MAPIPropHelper::GetArchiveList(ObjectEntryList *lplstArchives, bool bIgn
  * @param[in]	bExplicitCommit
  *					If set to true, the changes are committed before this function returns.
  */
-HRESULT MAPIPropHelper::SetArchiveList(const ObjectEntryList &lstArchives, bool bExplicitCommit)
+HRESULT MAPIPropHelper::SetArchiveList(const std::list<SObjectEntry> &lstArchives, bool bExplicitCommit)
 {
 	unsigned int cValues = lstArchives.size(), cbProps = 2;
 	memory_ptr<SPropValue> ptrPropArray, ptrSourceKey;
-	ObjectEntryList::const_iterator iArchive;
 
 	auto hr = MAPIAllocateBuffer(3 * sizeof(SPropValue), &~ptrPropArray);
 	if (hr != hrSuccess)
@@ -319,7 +319,7 @@ HRESULT MAPIPropHelper::SetArchiveList(const ObjectEntryList &lstArchives, bool 
 	if (hr != hrSuccess)
 		return hr;
 
-	iArchive = lstArchives.cbegin();
+	auto iArchive = lstArchives.cbegin();
 	for (ULONG i = 0; i < cValues; ++i, ++iArchive) {
 		ptrPropArray[0].Value.MVbin.lpbin[i].cb = iArchive->sStoreEntryId.size();
 		hr = KAllocCopy(iArchive->sStoreEntryId, iArchive->sStoreEntryId.size(), reinterpret_cast<void **>(&ptrPropArray[0].Value.MVbin.lpbin[i].lpb), ptrPropArray);

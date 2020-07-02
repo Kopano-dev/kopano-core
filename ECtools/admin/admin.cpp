@@ -807,7 +807,7 @@ static void adm_oof_status(const SPropValue *const prop)
  */
 static void print_user_settings(IMsgStore *lpStore, const ECUSER *lpECUser,
     bool bAutoAccept, bool bDeclineConflict, bool bDeclineRecur,
-    bool auto_proc, const ArchiveList &lstArchives)
+    bool auto_proc, const std::list<ArchiveEntry> &lstArchives)
 {
 	memory_ptr<SPropValue> lpProps;
 	static constexpr const SizedSPropTagArray(6, sptaProps) =
@@ -955,7 +955,6 @@ static HRESULT print_details(LPMAPISESSION lpSession,
 	ULONG cbObjectId = 0;
 	memory_ptr<ENTRYID> lpObjectId;
 	ArchiveManagePtr ptrArchiveManage;
-	ArchiveList lstArchives;
 	convert_context converter;
 	HRESULT hr = hrSuccess;
 
@@ -1053,6 +1052,8 @@ static HRESULT print_details(LPMAPISESSION lpSession,
 				kc_perror("Error while obtaining archive details", hr);
 			hr = hrSuccess; /* Don't make error fatal */
 		}
+
+		std::list<ArchiveEntry> lstArchives;
 		if (ptrArchiveManage.get() != NULL) {
 			hr = ptrArchiveManage->ListArchives(&lstArchives, "Root Folder");
 			if (hr != hrSuccess) {

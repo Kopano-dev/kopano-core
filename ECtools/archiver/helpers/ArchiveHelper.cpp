@@ -4,6 +4,7 @@
  */
 #include <kopano/platform.h>
 #include <algorithm>
+#include <list>
 #include <memory>
 #include <new>
 #include <string>
@@ -413,8 +414,6 @@ HRESULT ArchiveHelper::GetArchiveFolderFor(IMAPIFolder *ptrSourceFolder,
 {
 	memory_ptr<SPropValue> ptrStoreEntryId, ptrFolderType, ptrFolderEntryId, ptrPropArray;
 	MAPIPropHelperPtr ptrSourceFolderHelper, ptrArchiveFolderHelper;
-	ObjectEntryList lstFolderArchives;
-	ObjectEntryList::const_iterator iArchiveFolder;
 	unsigned int cValues = 0;
 	SObjectEntry objectEntry;
 	static constexpr const SizedSPropTagArray(3, sptaFolderPropsForCreate) =
@@ -428,6 +427,7 @@ HRESULT ArchiveHelper::GetArchiveFolderFor(IMAPIFolder *ptrSourceFolder,
 	hr = MAPIPropHelper::Create(ptrSourceFolder, &ptrSourceFolderHelper);
 	if (hr != hrSuccess)
 		return hr;
+	std::list<SObjectEntry> lstFolderArchives;
 	hr = ptrSourceFolderHelper->GetArchiveList(&lstFolderArchives);
 	if (hr == MAPI_E_CORRUPT_DATA) {
 		// If the list is corrupt, the folder will become unusable. We'll just create a new folder, which will most
@@ -435,7 +435,7 @@ HRESULT ArchiveHelper::GetArchiveFolderFor(IMAPIFolder *ptrSourceFolder,
 	} else if (hr != hrSuccess)
 		return hr;
 
-	iArchiveFolder = std::find_if(lstFolderArchives.cbegin(), lstFolderArchives.cend(), StoreCompare(ptrStoreEntryId->Value.bin));
+	auto iArchiveFolder = std::find_if(lstFolderArchives.cbegin(), lstFolderArchives.cend(), StoreCompare(ptrStoreEntryId->Value.bin));
 	object_ptr<IMAPIFolder> ptrArchiveFolder, ptrParentFolder, ptrArchiveParentFolder;
 	if (iArchiveFolder != lstFolderArchives.cend()) {
 		hr = m_ptrArchiveStore->OpenEntry(iArchiveFolder->sItemEntryId.size(),

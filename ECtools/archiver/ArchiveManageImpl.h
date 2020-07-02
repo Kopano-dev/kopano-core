@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #pragma once
+#include <list>
 #include <memory>
 #include <ostream>
 #include <string>
@@ -25,9 +26,9 @@ public:
 	KC_HIDDEN eResult DetachFrom(const char *server, const TCHAR *archive, const TCHAR *folder) override;
 	KC_HIDDEN eResult DetachFrom(unsigned int archive) override;
 	KC_HIDDEN eResult ListArchives(std::ostream &) override;
-	KC_HIDDEN eResult ListArchives(ArchiveList *, const char *ipm_subtree_subst) override;
+	KC_HIDDEN eResult ListArchives(std::list<ArchiveEntry> *, const char *ipm_subtree_subst) override;
 	KC_HIDDEN eResult ListAttachedUsers(std::ostream &) override;
-	KC_HIDDEN eResult ListAttachedUsers(UserList *) override;
+	KC_HIDDEN eResult ListAttachedUsers(std::list<UserEntry> *) override;
 	KC_HIDDEN eResult AutoAttach(unsigned int flags) override;
 	KC_HIDDEN HRESULT AttachTo(const char *server, const TCHAR *archive, const TCHAR *folder, unsigned int flags, helpers::AttachType);
 	KC_HIDDEN HRESULT AttachTo(IMsgStore *store, const tstring &folder, const char *server, const abentryid_t &user_eid, unsigned int flags, helpers::AttachType);

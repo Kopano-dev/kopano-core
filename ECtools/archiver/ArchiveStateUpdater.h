@@ -28,7 +28,7 @@ private:
 	KC_HIDDEN HRESULT PopulateUserList();
 	KC_HIDDEN HRESULT PopulateFromContainer(IABContainer *);
 	KC_HIDDEN HRESULT UpdateOne(const abentryid_t &user_id, const ArchiveInfo &, unsigned int attach_flags);
-	KC_HIDDEN HRESULT RemoveImplicit(const entryid_t &store_id, const tstring &usen, const abentryid_t &user_id, const ObjectEntryList &archives);
+	KC_HIDDEN HRESULT RemoveImplicit(const entryid_t &store_id, const tstring &usen, const abentryid_t &user_id, const std::list<SObjectEntry> &archives);
 	KC_HIDDEN HRESULT ParseCoupling(const tstring &coupling, tstring *archive, tstring *folder);
 	KC_HIDDEN HRESULT AddCouplingBased(const tstring &user, const std::list<tstring> &couplings, unsigned int attach_flags);
 	KC_HIDDEN HRESULT AddServerBased(const tstring &user, const abentryid_t &user_id, const std::list<tstring> &servers, unsigned int attach_flags);

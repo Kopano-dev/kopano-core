@@ -62,7 +62,6 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
 	unsigned int cMsgProps, ulType;
 	StoreHelperPtr ptrStoreHelper;
 	SObjectEntry refMsgEntry;
-	ObjectEntryList lstArchives, lstReferences;
 	ArchiverSessionPtr ptrSession;
 	InstanceIdMapperPtr ptrMapper;
 	std::unique_ptr<Copier::Helper> ptrHelper;
@@ -97,6 +96,8 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
 	hr = StoreHelper::Create(ptrStore, &ptrStoreHelper);
 	if (hr != hrSuccess)
 		return kc_pwarn("Archive::HrArchiveMessageForDelivery(): StoreHelper::Create failed", hr);
+
+	std::list<SObjectEntry> lstArchives, lstReferences;
 	hr = ptrStoreHelper->GetArchiveList(&lstArchives);
 	if (hr != hrSuccess)
 		return kc_pwarn("Archive::HrArchiveMessageForDelivery(): StoreHelper::GetArchiveList failed", hr);
@@ -176,7 +177,6 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 	HRESULT hr = hrSuccess;
 	ULONG cMsgProps;
 	StoreHelperPtr ptrStoreHelper;
-	ObjectEntryList lstArchives;
 	ArchiverSessionPtr ptrSession;
 	InstanceIdMapperPtr ptrMapper;
 	std::unique_ptr<Copier::Helper> ptrHelper;
@@ -205,6 +205,8 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 	hr = StoreHelper::Create(ptrStore, &ptrStoreHelper);
 	if (hr != hrSuccess)
 		return kc_pwarn("Archive::HrArchiveMessageForSending(): StoreHelper::Create failed", hr);
+
+	std::list<SObjectEntry> lstArchives;
 	hr = ptrStoreHelper->GetArchiveList(&lstArchives);
 	if (hr != hrSuccess) {
 		SetErrorMessage(hr, KC_TX("Unable to obtain list of attached archives."));

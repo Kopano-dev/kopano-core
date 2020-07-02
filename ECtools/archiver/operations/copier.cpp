@@ -4,6 +4,7 @@
  */
 #include <kopano/platform.h>
 #include <algorithm>
+#include <list>
 #include <memory>
 #include <utility>
 #include <kopano/ECConfig.h>
@@ -145,7 +146,6 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 
 	unsigned int ulSourceRows = 0, ulDestRows = 0;
 	memory_ptr<SPropValue> ptrSourceServerUID, ptrDestServerUID;
-	TaskList lstDeferred;
 	static constexpr const SizedSPropTagArray(1, sptaAttachProps) = {1, {PR_ATTACH_NUM}};
 	enum {IDX_ATTACH_NUM};
 
@@ -189,6 +189,7 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 
 	// We'll go through the table one row at a time (from each table) and assume the attachments
 	// are sorted the same. We will do a sanity check on the size property, though.
+	std::list<TaskPtr> lstDeferred;
 	while (true) {
 		rowset_ptr ptrSourceRows, ptrDestRows;
 
@@ -291,7 +292,7 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 	if (lstDeferred.empty())
 		lpptrPSAction->reset();
 	else
-		lpptrPSAction->reset(new PostSaveInstanceIdUpdater(PR_ATTACH_DATA_BIN, m_ptrMapper, lstDeferred));
+		lpptrPSAction->reset(new PostSaveInstanceIdUpdater(PR_ATTACH_DATA_BIN, m_ptrMapper, std::move(lstDeferred)));
 	return hrSuccess;
 }
 
@@ -306,7 +307,7 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
  *					The list of properties that will not be copied during the archive operation.
  */
 Copier::Copier(ArchiverSessionPtr ptrSession, ECConfig *lpConfig,
-    std::shared_ptr<ECArchiverLogger> lpLogger, const ObjectEntryList &lstArchives,
+    std::shared_ptr<ECArchiverLogger> lpLogger, const std::list<SObjectEntry> &lstArchives,
     const SPropTagArray *lpExcludeProps, int ulAge, bool bProcessUnread) :
 	ArchiveOperationBaseEx(lpLogger, ulAge, bProcessUnread, ARCH_NEVER_ARCHIVE),
 	m_ptrSession(ptrSession), m_lpConfig(lpConfig),
@@ -374,9 +375,6 @@ HRESULT Copier::DoProcessEntry(const SRow &proprow)
 	SObjectEntry refObjectEntry;
 	MAPIPropHelperPtr ptrMsgHelper;
 	MessageState state;
-	ObjectEntryList lstMsgArchives, lstNewMsgArchives;
-	TransactionList lstTransactions;
-	RollbackList lstRollbacks;
 
 	auto lpEntryId = proprow.cfind(PR_ENTRYID);
 	if (lpEntryId == NULL) {
@@ -435,6 +433,7 @@ HRESULT Copier::DoProcessEntry(const SRow &proprow)
 		ptrMessage = ptrMessageRaw;
 
 	// From here on we work on ptrMessage, except for ExecuteSubOperations.
+	std::list<SObjectEntry> lstMsgArchives, lstNewMsgArchives;
 	if (!state.isCopy()) {		// Include state.isMove()
 		hr = ptrMsgHelper->GetArchiveList(&lstMsgArchives);
 		if (hr != hrSuccess) {
@@ -447,6 +446,7 @@ HRESULT Copier::DoProcessEntry(const SRow &proprow)
 		}
 	}
 
+	std::list<TransactionPtr> lstTransactions;
 	for (const auto &arc : m_lstArchives) {
 		TransactionPtr ptrTransaction;
 		auto iArchivedMsg = std::find_if(lstMsgArchives.cbegin(), lstMsgArchives.cend(), StoreCompare(arc));
@@ -505,6 +505,7 @@ HRESULT Copier::DoProcessEntry(const SRow &proprow)
 	// Once we reach this point all messages have been created and/or updated. We need to
 	// save them now. When a transaction is saved it will return a Rollback object we can
 	// use to undo the changes when a later save fails.
+	std::list<RollbackPtr> lstRollbacks;
 	for (const auto &ta : lstTransactions) {
 		RollbackPtr ptrRollback;
 		hr = ta->SaveChanges(m_ptrSession, &ptrRollback);

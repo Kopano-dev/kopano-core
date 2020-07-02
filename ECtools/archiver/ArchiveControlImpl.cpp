@@ -298,7 +298,6 @@ HRESULT ArchiveControlImpl::DoArchive(const tstring& strUser)
 
 	object_ptr<IMsgStore> ptrUserStore;
 	StoreHelperPtr ptrStoreHelper;
-	ObjectEntryList lstArchives;
 	bool bHaveErrors = false;
 	std::shared_ptr<Copier> ptrCopyOp;
 	DeleterPtr	ptrDeleteOp;
@@ -325,6 +324,7 @@ HRESULT ArchiveControlImpl::DoArchive(const tstring& strUser)
 	if (hr != hrSuccess)
 		return m_lpLogger->perr("Failed to create store helper", hr);
 
+	std::list<SObjectEntry> lstArchives;
 	hr = ptrStoreHelper->GetArchiveList(&lstArchives);
 	if (hr != hrSuccess) {
 		if (hr == MAPI_E_CORRUPT_DATA) {
@@ -429,7 +429,6 @@ HRESULT ArchiveControlImpl::DoArchive(const tstring& strUser)
 HRESULT ArchiveControlImpl::DoCleanup(const tstring &strUser)
 {
 	StoreHelperPtr ptrStoreHelper;
-	ObjectEntryList lstArchives;
 	memory_ptr<SRestriction> ptrRestriction;
 
 	if (strUser.empty())
@@ -465,6 +464,7 @@ HRESULT ArchiveControlImpl::DoCleanup(const tstring &strUser)
 	hr = StoreHelper::Create(ptrUserStore, &ptrStoreHelper);
 	if (hr != hrSuccess)
 		return m_lpLogger->perr("Failed to create store helper", hr);
+	std::list<SObjectEntry> lstArchives;
 	hr = ptrStoreHelper->GetArchiveList(&lstArchives);
 	if (hr != hrSuccess) {
 		if (hr == MAPI_E_CORRUPT_DATA) {
@@ -573,7 +573,7 @@ HRESULT ArchiveControlImpl::ProcessFolder(IMAPIFolder *fld,
  *
  * @param[in]	lstArchives		The list of archives to purge.
  */
-HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
+HRESULT ArchiveControlImpl::PurgeArchives(const std::list<SObjectEntry> &lstArchives)
 {
 	bool bErrorOccurred = false;
 	memory_ptr<SRestriction> lpRestriction;

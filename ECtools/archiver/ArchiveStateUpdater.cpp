@@ -188,11 +188,12 @@ HRESULT ArchiveStateUpdater::UpdateOne(const abentryid_t &userId, const ArchiveI
  * @param[in]	lstArchives	The list of archives to remove the implicit attached
  * 							archives from.
  */
-HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstring &userName, const abentryid_t &userId, const ObjectEntryList &lstArchives)
+HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId,
+    const tstring &userName, const abentryid_t &userId,
+    const std::list<SObjectEntry> &lstArchives)
 {
 	object_ptr<IMsgStore> ptrUserStore;
 	StoreHelperPtr ptrUserStoreHelper;
-	ObjectEntryList lstCurrentArchives;
 	ULONG ulDetachCount = 0;
 
 	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Removing implicitly attached archives.");
@@ -229,6 +230,7 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstr
 	hr = StoreHelper::Create(ptrUserStore, &ptrUserStoreHelper);
 	if (hr != hrSuccess)
 		return hr;
+	std::list<SObjectEntry> lstCurrentArchives;
 	hr = ptrUserStoreHelper->GetArchiveList(&lstCurrentArchives);
 	if (hr != hrSuccess)
 		return hr;
@@ -430,7 +432,7 @@ HRESULT ArchiveStateUpdater::AddServerBased(const tstring &userName, const abent
 HRESULT ArchiveStateUpdater::VerifyAndUpdate(const abentryid_t &userId, const ArchiveInfo& info, unsigned int ulAttachFlags)
 {
 	std::list<tstring> lstServers, lstCouplings;
-	ObjectEntryList lstArchives = info.lstArchives;
+	auto lstArchives = info.lstArchives;
 
 	// Handle the automated couplings
 	for (const auto &i : info.lstCouplings) {

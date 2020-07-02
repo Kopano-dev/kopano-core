@@ -28,17 +28,15 @@ private:
 		bool bDeleteOnFailure;
 		PostSaveActionPtr ptrPSAction;
 	};
-	typedef std::list<SaveEntry>	MessageList;
 
 	struct DelEntry {
 		SObjectEntry objectEntry;
 		bool bDeferredDelete;
 	};
-	typedef std::list<DelEntry>	ObjectList;
 
 	const SObjectEntry	m_objectEntry;
-	MessageList m_lstSave;
-	ObjectList m_lstDelete;
+	std::list<SaveEntry> m_lstSave;
+	std::list<DelEntry> m_lstDelete;
 };
 
 inline const SObjectEntry& Transaction::GetObjectEntry() const
@@ -56,8 +54,7 @@ private:
 		object_ptr<IMAPIFolder> ptrFolder;
 		entryid_t eidMessage;
 	};
-	typedef std::list<DelEntry>	MessageList;
-	MessageList	m_lstDelete;
+	std::list<DelEntry> m_lstDelete;
 };
 
 }} /* namespace */

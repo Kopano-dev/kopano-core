@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #pragma once
+#include <list>
 #include <memory>
 #include <kopano/zcdefs.h>
 #include <kopano/memory.hpp>
@@ -26,7 +27,7 @@ namespace operations {
  */
 class KC_EXPORT Copier final : public ArchiveOperationBaseEx {
 public:
-	KC_HIDDEN Copier(ArchiverSessionPtr, ECConfig *, std::shared_ptr<ECArchiverLogger>, const ObjectEntryList &archives, const SPropTagArray *exclprop, int age, bool process_unread);
+	KC_HIDDEN Copier(ArchiverSessionPtr, ECConfig *, std::shared_ptr<ECArchiverLogger>, const std::list<SObjectEntry> &archives, const SPropTagArray *exclprop, int age, bool process_unread);
 	KC_HIDDEN ~Copier();
 
 	/**
@@ -189,7 +190,7 @@ private:
 
 	ArchiverSessionPtr m_ptrSession;
 	ECConfig *m_lpConfig;
-	ObjectEntryList m_lstArchives;
+	std::list<SObjectEntry> m_lstArchives;
 	memory_ptr<SPropTagArray> m_ptrExcludeProps;
 
 	DeleterPtr m_ptrDeleteOp;
