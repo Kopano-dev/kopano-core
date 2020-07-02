@@ -1148,7 +1148,7 @@ HRESULT ArchiveControlImpl::MoveAndDetachMessages(ArchiveHelperPtr ptrArchiveHel
 
 	m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "Processing %zu messages", setEIDs.size());
 	for (const auto &e : setEIDs) {
-		MAPIPropPtr ptrMessage;
+		object_ptr<IMAPIProp> ptrMessage;
 		MAPIPropHelperPtr ptrHelper;
 
 		hr = lpArchiveFolder->OpenEntry(e.size(), e, &iid_of(ptrMessage), MAPI_MODIFY, nullptr, &~ptrMessage);

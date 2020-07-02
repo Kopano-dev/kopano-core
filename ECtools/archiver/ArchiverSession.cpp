@@ -389,7 +389,7 @@ HRESULT ArchiverSession::GetUserInfo(const tstring &strUser, abentryid_t *lpsEnt
 HRESULT ArchiverSession::GetUserInfo(const abentryid_t &sEntryId, tstring *lpstrUser, tstring *lpstrFullname)
 {
 	unsigned int cUserProps = 0;
-	MAPIPropPtr ptrUser;
+	object_ptr<IMAPIProp> ptrUser;
 	SPropArrayPtr ptrUserProps;
 	static constexpr const SizedSPropTagArray(2, sptaUserProps) =
 		{2, {PR_ACCOUNT, PR_DISPLAY_NAME}};
@@ -551,8 +551,7 @@ HRESULT ArchiverSession::CreateRemote(const char *lpszServerPath,
 
 HRESULT ArchiverSession::OpenMAPIProp(ULONG cbEntryID, LPENTRYID lpEntryID, LPMAPIPROP *lppProp)
 {
-	MAPIPropPtr ptrMapiProp;
-
+	object_ptr<IMAPIProp> ptrMapiProp;
 	auto hr = m_ptrSession->OpenEntry(cbEntryID, lpEntryID, &iid_of(ptrMapiProp),
 	          MAPI_BEST_ACCESS|fMapiDeferredErrors, nullptr, &~ptrMapiProp);
 	if (hr != hrSuccess)

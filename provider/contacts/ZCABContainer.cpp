@@ -450,7 +450,6 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 	object_ptr<ECMemTable> lpTable;
 	object_ptr<ECMemTableView> lpTableView;
 	SPropValuePtr ptrEntries;
-	MAPIPropPtr ptrUser;
 	ULONG ulObjType;
 	ULONG cValues;
 	SPropArrayPtr ptrProps;
@@ -501,6 +500,7 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 			ulOffset = sizeof(ULONG) + sizeof(GUID) + sizeof(BYTE);
 			cType = ptrEntries->Value.MVbin.lpbin[i].lpb[sizeof(ULONG) + sizeof(GUID)];
 		}
+		object_ptr<IMAPIProp> ptrUser;
 		hr = m_lpMAPISup->OpenEntry(ptrEntries->Value.MVbin.lpbin[i].cb - ulOffset,
 		     reinterpret_cast<ENTRYID *>(ptrEntries->Value.MVbin.lpbin[i].lpb + ulOffset),
 		     &iid_of(ptrUser), 0, &ulObjType, &~ptrUser);

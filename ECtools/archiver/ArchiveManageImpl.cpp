@@ -547,8 +547,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 				entry.StoreName = "Unknown (" + stringify_hex(ptrStoreProps[IDX_DISPLAY_NAME].Value.err) + ")";
 				
 			if (ptrStoreProps[IDX_MAILBOX_OWNER_ENTRYID].ulPropTag == PR_MAILBOX_OWNER_ENTRYID) {
-				MAPIPropPtr ptrOwner;
-
+				object_ptr<IMAPIProp> ptrOwner;
 				hrTmp = m_ptrSession->OpenMAPIProp(ptrStoreProps[IDX_MAILBOX_OWNER_ENTRYID].Value.bin.cb,
 				        reinterpret_cast<ENTRYID *>(ptrStoreProps[IDX_MAILBOX_OWNER_ENTRYID].Value.bin.lpb),
 				        &~ptrOwner);

@@ -122,7 +122,7 @@ HRESULT UserListCollector<string_type, prAccount>::CollectData(LPMAPITABLE lpSto
 			if (ptrRows[i].lpProps[0].ulPropTag != PR_MAILBOX_OWNER_ENTRYID)
 				continue;
 			ULONG ulType;
-			MAPIPropPtr ptrUser;
+			object_ptr<IMAPIProp> ptrUser;
 			SPropValuePtr ptrAccount;
 
 			auto hrTmp = m_ptrSession->OpenEntry(ptrRows[i].lpProps[0].Value.bin.cb,
