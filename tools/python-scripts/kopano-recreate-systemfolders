@@ -7,7 +7,12 @@
 from __future__ import print_function
 
 import kopano
-from MAPI.Util import *
+from MAPI import KEEP_OPEN_READWRITE, MAPIErrorCollision
+from MAPI.Struct import SPropValue
+from MAPI.Tags import (PR_DISPLAY_NAME, PR_IPM_SENTMAIL_ENTRYID,
+                       PR_IPM_OUTBOX_ENTRYID, PR_IPM_APPOINTMENT_ENTRYID, PR_IPM_JOURNAL_ENTRYID,
+                       PR_IPM_WASTEBASKET_ENTRYID, PR_IPM_CONTACT_ENTRYID, PR_IPM_NOTE_ENTRYID,
+                       PR_IPM_DRAFTS_ENTRYID, PR_IPM_TASK_ENTRYID)
 import sys
 import binascii
 import uuid
