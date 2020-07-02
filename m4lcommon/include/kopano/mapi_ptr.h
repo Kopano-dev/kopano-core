@@ -14,7 +14,6 @@
 
 namespace KC {
 
-typedef object_ptr<IABContainer> ABContainerPtr;
 typedef object_ptr<IAddrBook> AddrBookPtr;
 typedef object_ptr<IECServiceAdmin> ECServiceAdminPtr;
 typedef object_ptr<IExchangeManageStore> ExchangeManageStorePtr;

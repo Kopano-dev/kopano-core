@@ -670,11 +670,11 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport *lpFBSupport,
 	memory_ptr<FlagList> ptrFlagList;
 	EntryIdPtr ptrEntryId;
 	unsigned int cFBData = 0, cbEntryId = 0, ulObj = 0;
-	ABContainerPtr ptrABDir;
 
 	HRESULT hr = lpAddrBook->GetDefaultDir(&cbEntryId, &~ptrEntryId);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IABContainer> ptrABDir;
 	hr = lpAddrBook->OpenEntry(cbEntryId, ptrEntryId, &iid_of(ptrABDir), 0, &ulObj, &~ptrABDir);
 	if (hr != hrSuccess)
 		return hr;

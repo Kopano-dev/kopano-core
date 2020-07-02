@@ -177,8 +177,7 @@ HRESULT ArchiveStateCollector::GetArchiveStateUpdater(ArchiveStateUpdaterPtr *lp
  */
 HRESULT ArchiveStateCollector::PopulateUserList()
 {
-	ABContainerPtr ptrABContainer;
-
+	object_ptr<IABContainer> ptrABContainer;
 	auto hr = m_ptrSession->GetGAL(&~ptrABContainer);
 	if (hr != hrSuccess)
 		return hr;

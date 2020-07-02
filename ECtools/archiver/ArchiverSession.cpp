@@ -429,7 +429,6 @@ HRESULT ArchiverSession::GetUserInfo(const abentryid_t &sEntryId, tstring *lpstr
 HRESULT ArchiverSession::GetGAL(LPABCONT *lppAbContainer)
 {
 	AddrBookPtr		ptrAdrBook;
-	ABContainerPtr ptrABRootContainer, ptrGAL;
 	MAPITablePtr	ptrABRCTable;
 	SRowSetPtr		ptrRows;
 	static constexpr const SizedSPropTagArray(1, sGALProps) = {1, {PR_ENTRYID}};
@@ -438,6 +437,7 @@ HRESULT ArchiverSession::GetGAL(LPABCONT *lppAbContainer)
 	auto hr = m_ptrSession->OpenAddressBook(0, &iid_of(ptrAdrBook), AB_NO_DIALOG, &~ptrAdrBook);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IABContainer> ptrABRootContainer, ptrGAL;
 	hr = ptrAdrBook->OpenEntry(0, nullptr, &iid_of(ptrABRootContainer),
 	     MAPI_BEST_ACCESS, nullptr, &~ptrABRootContainer);
 	if (hr != hrSuccess)

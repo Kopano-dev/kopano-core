@@ -5,6 +5,7 @@
 #pragma once
 #include <kopano/zcdefs.h>
 #include <kopano/mapi_ptr.h>
+#include <kopano/memory.hpp>
 
 namespace KC {
 
@@ -72,6 +73,6 @@ private:
 };
 
 typedef ECHierarchyIterator<MAPIFolderPtr> ECFolderIterator;
-typedef ECHierarchyIterator<ABContainerPtr> ECABContainerIterator;
+typedef ECHierarchyIterator<object_ptr<IABContainer>> ECABContainerIterator;
 
 } /* namespace */

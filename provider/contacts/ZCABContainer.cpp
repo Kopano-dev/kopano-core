@@ -711,7 +711,7 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 			return hr;
 
 		if (ulFlags & CONVENIENT_DEPTH) {
-			ABContainerPtr ptrContainer;			
+			object_ptr<IABContainer> ptrContainer;
 			ULONG ulObjType;
 			MAPITablePtr ptrTable;
 			SRowSetPtr	ptrRows;
@@ -902,7 +902,6 @@ HRESULT ZCABContainer::ResolveNames(const SPropTagArray *lpPropTagArray,
 			return hr;
 
 		for (i = 0; i < ptrRows.size(); ++i) {
-			ABContainerPtr ptrContainer;
 			auto lpEntryID = ptrRows[i].cfind(PR_ENTRYID);
 			ULONG ulObjType;
 
@@ -910,6 +909,7 @@ HRESULT ZCABContainer::ResolveNames(const SPropTagArray *lpPropTagArray,
 				continue;
 
 			// this? provider?
+			object_ptr<IABContainer> ptrContainer;
 			hr = OpenEntry(lpEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryID->Value.bin.lpb),
 			     &iid_of(ptrContainer), 0, &ulObjType, &~ptrContainer);
 			if (hr != hrSuccess)

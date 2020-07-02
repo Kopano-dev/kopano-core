@@ -186,7 +186,6 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 {
 	AddrBookPtr		ptrAdrBook;
 	EntryIdPtr		ptrDDEntryID;
-	ABContainerPtr ptrDefaultDir, ptrCompanyDir;
 	MAPITablePtr	ptrHierarchyTable;
 	SRowSetPtr		ptrRows;
 	MsgStorePtr		ptrStore;
@@ -206,6 +205,8 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 	hr = ptrAdrBook->GetDefaultDir(&cbDDEntryID, &~ptrDDEntryID);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to open default addressbook", hr);
+
+	object_ptr<IABContainer> ptrDefaultDir, ptrCompanyDir;
 	hr = ptrAdrBook->OpenEntry(cbDDEntryID, ptrDDEntryID,
 	     &iid_of(ptrDefaultDir), 0, &ulObj, &~ptrDefaultDir);
 	if (hr != hrSuccess)

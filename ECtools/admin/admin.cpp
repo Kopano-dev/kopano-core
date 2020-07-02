@@ -1301,7 +1301,6 @@ static HRESULT ForceResyncFor(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 {
 	AddrBookPtr		ptrAdrBook;
-	ABContainerPtr	ptrABContainer;
 	MAPITablePtr	ptrTable;
 	SRowSetPtr	ptrRows;
 	bool			bFail = false;
@@ -1313,6 +1312,7 @@ static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 	auto hr = lpSession->OpenAddressBook(0, &iid_of(ptrAdrBook), AB_NO_DIALOG, &~ptrAdrBook);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IABContainer> ptrABContainer;
 	hr = ptrAdrBook->OpenEntry(0, nullptr, &iid_of(ptrABContainer), 0, nullptr, &~ptrABContainer);
 	if (hr != hrSuccess)
 		return hr;
