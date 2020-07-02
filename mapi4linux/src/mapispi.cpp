@@ -318,7 +318,6 @@ HRESULT M4LMAPISupport::DoCopyProps(LPCIID lpSrcInterface, void *lpSrcObj,
  * @return MAPI Error code
  */
 HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
-	MAPITablePtr ptrRecipientTable;
 	SRowSetPtr ptrRow;
 	object_ptr<IAddrBook> ptrAddrBook;
 	std::set<std::string> setFilter;
@@ -327,6 +326,7 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 	auto hr = session->OpenAddressBook(0, nullptr, AB_NO_DIALOG, &~ptrAddrBook);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMAPITable> ptrRecipientTable;
 	hr = lpMessage->GetRecipientTable(fMapiUnicode | MAPI_DEFERRED_ERRORS, &~ptrRecipientTable);
 	if (hr != hrSuccess)
 		return hr;
@@ -340,7 +340,6 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 	while (true) {
 		ULONG ulObjType;
 		object_ptr<IDistList> ptrDistList;
-		MAPITablePtr ptrMemberTable;
 		SRowSetPtr ptrMembers;
 
 		hr = ptrRecipientTable->QueryRows(1, 0L, &~ptrRow);
@@ -375,6 +374,7 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 		hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE, reinterpret_cast<ADRLIST *>(ptrRow.get()));
 		if (hr != hrSuccess)
 			return hr;
+		object_ptr<IMAPITable> ptrMemberTable;
 		hr = ptrDistList->GetContentsTable(fMapiUnicode, &~ptrMemberTable);
 		if (hr != hrSuccess)
 			continue;

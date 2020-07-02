@@ -170,7 +170,6 @@ static constexpr const MAPINAMEID default_namedprops[(6*5)+2] = {
 HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 {
 	HRESULT hr = hrSuccess;
-	MAPITablePtr ptrContents;
 	SRowSetPtr	ptrRows;
 	object_ptr<ECMemTable> lpTable;
 	object_ptr<ECMemTableView> lpTableView;
@@ -230,6 +229,7 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 		return hr;
 
 	// root container has no contents, on hierarchy entries
+	object_ptr<IMAPITable> ptrContents;
 	if (m_lpContactFolder == NULL)
 		goto done;
 	hr = m_lpContactFolder->GetContentsTable(ulFlags | MAPI_DEFERRED_ERRORS, &~ptrContents);
@@ -713,13 +713,13 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 		if (ulFlags & CONVENIENT_DEPTH) {
 			object_ptr<IABContainer> ptrContainer;
 			ULONG ulObjType;
-			MAPITablePtr ptrTable;
 			SRowSetPtr	ptrRows;
 
 			hr = ((ZCABLogon*)m_lpProvider)->OpenEntry(sizeof(sEntryID), reinterpret_cast<ENTRYID *>(sEntryID),
 			     &iid_of(ptrContainer), 0, &ulObjType, &~ptrContainer);
 			if (hr != hrSuccess)
 				return hr;
+			object_ptr<IMAPITable> ptrTable;
 			hr = ptrContainer->GetHierarchyTable(ulFlags, &~ptrTable);
 			if (hr != hrSuccess)
 				return hr;
@@ -888,12 +888,10 @@ HRESULT ZCABContainer::ResolveNames(const SPropTagArray *lpPropTagArray,
 	// in this container table, find given PR_DISPLAY_NAME
 	if (m_lpFolders) {
 		// return MAPI_E_NO_SUPPORT ? since you should not query on this level
-
 		// @todo search in all folders, loop over self, since we want this providers entry ids
-		MAPITablePtr ptrHierarchy;
-
 		if (m_lpFolders->empty())
 			return hrSuccess;
+		object_ptr<IMAPITable> ptrHierarchy;
 		hr = GetHierarchyTable(0, &~ptrHierarchy);
 		if (hr != hrSuccess)
 			return hr;
@@ -920,7 +918,6 @@ HRESULT ZCABContainer::ResolveNames(const SPropTagArray *lpPropTagArray,
 		}
 	} else if (m_lpContactFolder) {
 		// only search within this folder and set entries in lpAdrList / lpFlagList
-		MAPITablePtr ptrContents;
 		std::set<ULONG> stProps;
 		SPropTagArrayPtr ptrColumns;
 
@@ -934,6 +931,7 @@ HRESULT ZCABContainer::ResolveNames(const SPropTagArray *lpPropTagArray,
 		ptrColumns->cValues = stProps.size();
 		std::copy(stProps.begin(), stProps.end(), ptrColumns->aulPropTag);
 
+		object_ptr<IMAPITable> ptrContents;
 		hr = GetContentsTable(ulFlags & MAPI_UNICODE, &~ptrContents);
 		if (hr != hrSuccess)
 			return hr;

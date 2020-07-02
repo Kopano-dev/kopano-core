@@ -462,7 +462,7 @@ static HRESULT UpdateProviders(LPPROVIDERADMIN lpAdminProviders,
     const sGlobalProfileProps &sProfileProps)
 {
 	ProfSectPtr		ptrProfSect;
-	MAPITablePtr	ptrTable;
+	object_ptr<IMAPITable> ptrTable;
 	SRowSetPtr		ptrRows;
 
 	// Get the provider table

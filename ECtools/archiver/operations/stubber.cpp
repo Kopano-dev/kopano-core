@@ -14,6 +14,7 @@
 #include <kopano/archiver-common.h>
 #include "helpers/MAPIPropHelper.h"
 #include <kopano/mapiext.h>
+#include <kopano/memory.hpp>
 
 using namespace KC::helpers;
 
@@ -86,7 +87,6 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 		return MAPI_E_INVALID_PARAMETER;
 
 	SPropValue sProps[3]{}, sProp{};
-	MAPITablePtr ptrAttTable;
 	SRowSetPtr ptrRowSet;
 	AttachPtr ptrAttach;
 	ULONG ulAttachNum = 0;
@@ -132,6 +132,7 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 	hr = lpMessage->SetProps(3, sProps, NULL);
 	if (hr != hrSuccess)
 		return Logger()->perr("Failed to set properties", hr);
+	object_ptr<IMAPITable> ptrAttTable;
 	hr = lpMessage->GetAttachmentTable(fMapiDeferredErrors, &~ptrAttTable);
 	if (hr != hrSuccess)
 		return Logger()->perr("Failed to get attachment table", hr);

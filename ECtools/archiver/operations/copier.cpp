@@ -144,7 +144,6 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 	if (lpSource == nullptr || lpDest == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	MAPITablePtr ptrSourceTable, ptrDestTable;
 	unsigned int ulSourceRows = 0, ulDestRows = 0;
 	SPropValuePtr ptrSourceServerUID, ptrDestServerUID;
 	TaskList lstDeferred;
@@ -161,6 +160,7 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Source and destination live on the same server, no explicit deduplication required.");
 		return hr;
 	}
+	object_ptr<IMAPITable> ptrSourceTable, ptrDestTable;
 	hr = lpSource->GetAttachmentTable(0, &~ptrSourceTable);
 	if (hr != hrSuccess)
 		return m_lpLogger->perr("Failed to get source attachment table", hr);

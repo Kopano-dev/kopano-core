@@ -506,7 +506,7 @@ HRESULT ArchiveControlImpl::DoCleanup(const tstring &strUser)
 HRESULT ArchiveControlImpl::ProcessFolder2(object_ptr<IMAPIFolder> &ptrFolder,
     std::shared_ptr<IArchiveOperation> ptrArchiveOperation, bool &bHaveErrors)
 {
-	MAPITablePtr ptrTable;
+	object_ptr<IMAPITable> ptrTable;
 	SRestrictionPtr ptrRestriction;
 	memory_ptr<SSortOrderSet> ptrSortOrder;
 	SRowSetPtr ptrRowSet;
@@ -596,7 +596,6 @@ HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
 
 	for (const auto &arc : lstArchives) {
 		MsgStorePtr ptrArchiveStore;
-		MAPITablePtr ptrFolderTable;
 		SRowSetPtr ptrFolderRows;
 
 		hr = m_ptrSession->OpenStore(arc.sStoreEntryId, &~ptrArchiveStore);
@@ -627,6 +626,7 @@ HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
 			bErrorOccurred = true;
 			continue;
 		}
+		object_ptr<IMAPITable> ptrFolderTable;
 		hr = ptrArchiveRoot->GetHierarchyTable(CONVENIENT_DEPTH | fMapiDeferredErrors, &~ptrFolderTable);
 		if (hr != hrSuccess) {
 			m_lpLogger->perr("Failed to get archive hierarchy table", hr);
@@ -676,7 +676,6 @@ HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
 HRESULT ArchiveControlImpl::PurgeArchiveFolder(MsgStorePtr &ptrArchive, const entryid_t &folderEntryID, const LPSRestriction lpRestriction)
 {
 	object_ptr<IMAPIFolder> ptrFolder;
-	MAPITablePtr ptrContentsTable;
 	std::list<entryid_t> lstEntries;
 	SRowSetPtr ptrRows;
 	EntryListPtr ptrEntryList;
@@ -691,6 +690,7 @@ HRESULT ArchiveControlImpl::PurgeArchiveFolder(MsgStorePtr &ptrArchive, const en
 			folderEntryID.tostring().c_str(), GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
+	object_ptr<IMAPITable> ptrContentsTable;
 	hr = ptrFolder->GetContentsTable(fMapiDeferredErrors, &~ptrContentsTable);
 	if (hr != hrSuccess)
 		return m_lpLogger->perr("Failed to open contents table", hr);
@@ -874,7 +874,7 @@ HRESULT ArchiveControlImpl::AppendAllReferences(IMAPIFolder *lpFolder,
 	memcpy(prefixData + 4, lpArchiveGuid, sizeof(GUID));
 
 	for (size_t i = 0; i < ARRAY_SIZE(ulFlagArray); ++i) {
-		MAPITablePtr ptrTable;
+		object_ptr<IMAPITable> ptrTable;
 
 		auto hr = lpFolder->GetContentsTable(ulFlagArray[i], &~ptrTable);
 		if (hr != hrSuccess)
@@ -965,7 +965,6 @@ HRESULT ArchiveControlImpl::GetAllEntries(ArchiveHelperPtr ptrArchiveHelper, LPM
  */
 HRESULT ArchiveControlImpl::AppendAllEntries(LPMAPIFOLDER lpArchive, LPSRestriction lpRestriction, EntryIDSet *lpEntries)
 {
-	MAPITablePtr ptrTable;
 	ECAndRestriction resContent;
 	static constexpr const SizedSPropTagArray(1, sptaContentProps) = {1, {PR_ENTRYID}};
 
@@ -976,6 +975,7 @@ HRESULT ArchiveControlImpl::AppendAllEntries(LPMAPIFOLDER lpArchive, LPSRestrict
 	resContent += ECExistRestriction(PROP_REF_ITEM_ENTRYID);
 	if (lpRestriction)
 		resContent += ECRawRestriction(lpRestriction, ECRestriction::Cheap);
+	object_ptr<IMAPITable> ptrTable;
 	auto hr = lpArchive->GetContentsTable(0, &~ptrTable);
 	if (hr != hrSuccess)
 		return hr;
@@ -1019,7 +1019,7 @@ HRESULT ArchiveControlImpl::AppendAllEntries(LPMAPIFOLDER lpArchive, LPSRestrict
  */
 HRESULT ArchiveControlImpl::CleanupHierarchy(ArchiveHelperPtr ptrArchiveHelper, LPMAPIFOLDER lpArchiveRoot, LPMDB lpUserStore)
 {
-	MAPITablePtr ptrTable;
+	object_ptr<IMAPITable> ptrTable;
 	static constexpr const SizedSSortOrderSet(1, ssosHierarchy) = {1, 0, 0, {{PR_DEPTH, TABLE_SORT_ASCEND}}};
 	SizedSPropTagArray(5, sptaHierarchyProps) = {5, {PR_NULL, PR_ENTRYID, PR_CONTENT_COUNT, PR_FOLDER_CHILD_COUNT, PR_DISPLAY_NAME}};
 	enum {IDX_REF_ITEM_ENTRYID, IDX_ENTRYID, IDX_CONTENT_COUNT, IDX_FOLDER_CHILD_COUNT, IDX_DISPLAY_NAME};
@@ -1287,13 +1287,13 @@ HRESULT ArchiveControlImpl::DeleteFolder(LPMAPIFOLDER lpArchiveFolder)
 HRESULT ArchiveControlImpl::AppendFolderEntries(LPMAPIFOLDER lpBase, EntryIDSet *lpEntries)
 {
 	SPropValuePtr ptrProp;
-	MAPITablePtr ptrTable;
 	static constexpr const SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ENTRYID}};
 
 	auto hr = HrGetOneProp(lpBase, PR_ENTRYID, &~ptrProp);
 	if (hr != hrSuccess)
 		return hr;
 	lpEntries->insert(ptrProp->Value.bin);
+	object_ptr<IMAPITable> ptrTable;
 	hr = lpBase->GetHierarchyTable(CONVENIENT_DEPTH, &~ptrTable);
 	if (hr != hrSuccess)
 		return hr;

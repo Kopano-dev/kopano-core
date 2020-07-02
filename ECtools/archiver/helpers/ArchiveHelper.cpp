@@ -323,7 +323,6 @@ HRESULT ArchiveHelper::SetArchiveType(ArchiveType archType, AttachType attachTyp
 HRESULT ArchiveHelper::SetPermissions(const abentryid_t &sUserEntryId, bool bWritable)
 {
 	object_ptr<IExchangeModifyTable> ptrEMT;
-	MAPITablePtr ptrTable;
 	SPropValue sUserProps[2], sOtherProps[2];
 	memory_ptr<ROWLIST> ptrRowList;
 	StoreHelperPtr ptrStoreHelper;

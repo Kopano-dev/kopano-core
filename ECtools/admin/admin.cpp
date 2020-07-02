@@ -1301,7 +1301,6 @@ static HRESULT ForceResyncFor(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 {
 	object_ptr<IAddrBook> ptrAdrBook;
-	MAPITablePtr	ptrTable;
 	SRowSetPtr	ptrRows;
 	bool			bFail = false;
 	static constexpr const SizedSPropTagArray(1, sGALProps) = {1, {PR_ENTRYID}};
@@ -1316,6 +1315,7 @@ static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 	hr = ptrAdrBook->OpenEntry(0, nullptr, &iid_of(ptrABContainer), 0, nullptr, &~ptrABContainer);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMAPITable> ptrTable;
 	hr = ptrABContainer->GetHierarchyTable(0, &~ptrTable);
 	if (hr != hrSuccess)
 		return hr;
@@ -1415,7 +1415,7 @@ static HRESULT ForceResync(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 
 static HRESULT DisplayUserCount(LPMDB lpAdminStore)
 {
-	MAPITablePtr ptrSystemTable;
+	object_ptr<IMAPITable> ptrSystemTable;
 	SPropValue sPropDisplayName;
 	SRowSetPtr ptrRows;
 	unsigned int ulLicensedUsers = 0, ulExtraRow = 0, ulExtraRows = 0;
@@ -1552,7 +1552,6 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 	MsgStorePtr ptrUserStore;
 	SPropValuePtr ptrPropEntryID;
 	bool bFailures = false;
-	MAPITablePtr ptrTable;
 	SRowSetPtr ptrRows;
 	static constexpr const SizedSPropTagArray(2, sptaTableProps) =
 		{2, {PR_DISPLAY_NAME_A, PR_ENTRYID}};
@@ -1588,6 +1587,7 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 		ulTotalUpdates += ulUpdates;
 	}
 
+	object_ptr<IMAPITable> ptrTable;
 	hr = ptrRoot->GetHierarchyTable(CONVENIENT_DEPTH, &~ptrTable);
 	if (hr != hrSuccess)
 		goto exit;

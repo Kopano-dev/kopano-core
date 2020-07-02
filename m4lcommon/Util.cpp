@@ -3377,12 +3377,12 @@ HRESULT Util::HrGetQuotaStatus(IMsgStore *lpMsgStore, ECQUOTA *lpsQuota,
 
 HRESULT Util::HrDeleteAttachments(LPMESSAGE lpMsg)
 {
-	MAPITablePtr ptrAttachTable;
 	SRowSetPtr ptrRows;
 	static constexpr const SizedSPropTagArray(1, sptaAttachNum) = {1, {PR_ATTACH_NUM}};
 
 	if (lpMsg == NULL)
 		return MAPI_E_INVALID_PARAMETER;
+	object_ptr<IMAPITable> ptrAttachTable;
 	HRESULT hr = lpMsg->GetAttachmentTable(0, &~ptrAttachTable);
 	if (hr != hrSuccess)
 		return hr;

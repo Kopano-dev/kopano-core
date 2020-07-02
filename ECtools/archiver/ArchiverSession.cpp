@@ -430,7 +430,6 @@ HRESULT ArchiverSession::GetUserInfo(const abentryid_t &sEntryId, tstring *lpstr
 HRESULT ArchiverSession::GetGAL(LPABCONT *lppAbContainer)
 {
 	object_ptr<IAddrBook> ptrAdrBook;
-	MAPITablePtr	ptrABRCTable;
 	SRowSetPtr		ptrRows;
 	static constexpr const SizedSPropTagArray(1, sGALProps) = {1, {PR_ENTRYID}};
 	SPropValue sGALPropVal{};
@@ -443,6 +442,7 @@ HRESULT ArchiverSession::GetGAL(LPABCONT *lppAbContainer)
 	     MAPI_BEST_ACCESS, nullptr, &~ptrABRootContainer);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMAPITable> ptrABRCTable;
 	hr = ptrABRootContainer->GetHierarchyTable(0, &~ptrABRCTable);
 	if (hr != hrSuccess)
 		return hr;

@@ -304,7 +304,6 @@ HRESULT StoreHelper::GetSearchFolders(LPMAPIFOLDER *lppSearchArchiveFolder, LPMA
 HRESULT StoreHelper::GetSubFolder(object_ptr<IMAPIFolder> &ptrFolder,
     const tstring &strFolder, bool bCreate, IMAPIFolder **lppFolder)
 {
-	MAPITablePtr ptrTable;
 	SRowSetPtr ptrRowSet;
 	static constexpr const SizedSPropTagArray(1, sptaFolderProps) = {1, {PR_ENTRYID}};
 	SPropValue sResPropValue{};
@@ -312,6 +311,7 @@ HRESULT StoreHelper::GetSubFolder(object_ptr<IMAPIFolder> &ptrFolder,
 	sResPropValue.ulPropTag = PR_DISPLAY_NAME;
 	sResPropValue.Value.LPSZ = (LPTSTR)strFolder.c_str();
 
+	object_ptr<IMAPITable> ptrTable;
 	auto hr = ptrFolder->GetHierarchyTable(fMapiDeferredErrors, &~ptrTable);
 	if (hr != hrSuccess)
 		return hr;

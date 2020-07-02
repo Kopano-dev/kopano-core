@@ -145,7 +145,6 @@ static HRESULT GetRecipStrings(LPMESSAGE lpMessage, std::wstring &wstrTo,
     std::wstring &wstrCc, std::wstring &wstrBcc)
 {
 	SRowSetPtr ptrRows;
-	MAPITablePtr ptrRecips;
 	static constexpr const SizedSPropTagArray(2, sptaDisplay) =
 		{2, {PR_DISPLAY_NAME_W, PR_RECIPIENT_TYPE}};
 
@@ -153,6 +152,7 @@ static HRESULT GetRecipStrings(LPMESSAGE lpMessage, std::wstring &wstrTo,
 	wstrCc.clear();
 	wstrBcc.clear();
 
+	object_ptr<IMAPITable> ptrRecips;
 	HRESULT hr = lpMessage->GetRecipientTable(MAPI_UNICODE, &~ptrRecips);
 	if(hr != hrSuccess)
 		return hr;

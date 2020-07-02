@@ -210,7 +210,6 @@ HRESULT ArchiveStateCollector::PopulateUserList()
 HRESULT ArchiveStateCollector::PopulateFromContainer(LPABCONT lpContainer)
 {
 	SPropValue sPropObjType, sPropDispType;
-	MAPITablePtr ptrTable;
 	SRowSetPtr ptrRows;
 	static constexpr const SizedSPropTagArray(4, sptaUserProps) =
 		{4, {PR_ENTRYID, PR_ACCOUNT, PR_EC_ARCHIVE_SERVERS,
@@ -224,6 +223,7 @@ HRESULT ArchiveStateCollector::PopulateFromContainer(LPABCONT lpContainer)
 	sPropDispType.Value.ul = DT_MAILUSER;;
 
 	m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "Scanning IABContainer for users with archives");
+	object_ptr<IMAPITable> ptrTable;
 	auto hr = lpContainer->GetContentsTable(0, &~ptrTable);
 	if (hr != hrSuccess)
 		return hr;

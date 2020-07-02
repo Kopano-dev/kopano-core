@@ -872,7 +872,6 @@ static HRESULT GetConfigMessage(IMsgStore *lpStore, const char *szMessageName,
 {
 	SPropArrayPtr ptrEntryIDs;
 	unsigned int cValues;
-	MAPITablePtr ptrTable;
 	SPropValue propSubject;
 	SRowSetPtr ptrRows;
 	MessagePtr ptrMessage;
@@ -897,6 +896,7 @@ static HRESULT GetConfigMessage(IMsgStore *lpStore, const char *szMessageName,
 		hr = MAPI_E_INVALID_PARAMETER;
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMAPITable> ptrTable;
 	hr = ptrFolder->GetContentsTable(MAPI_DEFERRED_ERRORS | MAPI_ASSOCIATED, &~ptrTable);
 	if (hr != hrSuccess)
 		return hr;

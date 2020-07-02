@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <kopano/platform.h>
 #include <kopano/Util.h>
+#include <kopano/memory.hpp>
 #include "postsaveiidupdater.h"
 #include "instanceidmapper.h"
 
@@ -19,7 +20,6 @@ TaskBase::TaskBase(const AttachPtr &ptrSourceAttach, const MessagePtr &ptrDestMs
 HRESULT TaskBase::Execute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper) {
 	SPropValuePtr ptrSourceServerUID, ptrDestServerUID;
 	EntryIdPtr ptrSourceInstanceID, ptrDestInstanceID;
-	MAPITablePtr ptrTable;
 	SRowSetPtr ptrRows;
 	AttachPtr ptrAttach;
 	unsigned int cbSourceInstanceID = 0, cbDestInstanceID = 0;
@@ -28,6 +28,7 @@ HRESULT TaskBase::Execute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper)
 	auto hr = GetUniqueIDs(m_ptrSourceAttach, &~ptrSourceServerUID, &cbSourceInstanceID, &~ptrSourceInstanceID);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMAPITable> ptrTable;
 	hr = m_ptrDestMsg->GetAttachmentTable(MAPI_DEFERRED_ERRORS, &~ptrTable);
 	if (hr != hrSuccess)
 		return hr;

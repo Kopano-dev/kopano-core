@@ -709,7 +709,6 @@ HRESULT ArchiveManageImpl::GetRights(LPMAPIFOLDER lpFolder, unsigned *lpulRights
 
 	SPropValuePtr ptrName;
 	object_ptr<IExchangeModifyTable> ptrACLModifyTable;
-	MAPITablePtr ptrACLTable;
 	SPropValue sPropUser;
 	SRowSetPtr ptrRows;
 	static constexpr const SizedSPropTagArray(1, sptaTableProps) = {1, {PR_MEMBER_RIGHTS}};
@@ -725,6 +724,7 @@ HRESULT ArchiveManageImpl::GetRights(LPMAPIFOLDER lpFolder, unsigned *lpulRights
 	hr = lpFolder->OpenProperty(PR_ACL_TABLE, &IID_IExchangeModifyTable, 0, 0, &~ptrACLModifyTable);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMAPITable> ptrACLTable;
 	hr = ptrACLModifyTable->GetTable(0, &~ptrACLTable);
 	if (hr != hrSuccess)
 		return hr;

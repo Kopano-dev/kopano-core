@@ -185,7 +185,6 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
     const char *lpSSLPass, bool bLocalOnly, DataCollector *lpCollector)
 {
 	EntryIdPtr		ptrDDEntryID;
-	MAPITablePtr	ptrHierarchyTable;
 	SRowSetPtr		ptrRows;
 	MsgStorePtr		ptrStore;
 	unsigned int ulObj = 0, cbDDEntryID = 0, ulCompanyCount = 0;
@@ -211,6 +210,7 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 	if (hr != hrSuccess)
 		return kc_perror("Unable to open GAB", hr);
 	/* Open Hierarchy Table to see if we are running in multi-tenancy mode or not */
+	object_ptr<IMAPITable> ptrHierarchyTable;
 	hr = ptrDefaultDir->GetHierarchyTable(0, &~ptrHierarchyTable);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to open hierarchy table", hr);
@@ -342,7 +342,6 @@ HRESULT GetMailboxDataPerServer(IMAPISession *lpSession, const char *lpszPath,
     DataCollector *lpCollector)
 {
 	MsgStorePtr		ptrStoreAdmin;
-	MAPITablePtr	ptrStoreTable;
 	SPropTagArrayPtr ptrPropTagArray;
 	SRestrictionPtr ptrRestriction;
 
@@ -358,6 +357,7 @@ HRESULT GetMailboxDataPerServer(IMAPISession *lpSession, const char *lpszPath,
 	hr = ptrStoreAdmin->QueryInterface(IID_IExchangeManageStore, &~ptrEMS);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMAPITable> ptrStoreTable;
 	hr = ptrEMS->GetMailboxTable(nullptr, &~ptrStoreTable, MAPI_DEFERRED_ERRORS);
 	if (hr != hrSuccess)
 		return hr;
@@ -389,7 +389,6 @@ HRESULT UpdateServerList(IABContainer *lpContainer,
     std::set<servername> &listServers)
 {
 	SRowSetPtr ptrRows;
-	MAPITablePtr ptrTable;
 	SPropValue sPropUser, sPropDisplayType;
 	static constexpr const SizedSPropTagArray(2, sCols) =
 		{2, {PR_EC_HOMESERVER_NAME_W, PR_DISPLAY_NAME_W}};
@@ -400,6 +399,7 @@ HRESULT UpdateServerList(IABContainer *lpContainer,
 	sPropUser.ulPropTag = PR_OBJECT_TYPE;
 	sPropUser.Value.ul = MAPI_MAILUSER;
 
+	object_ptr<IMAPITable> ptrTable;
 	HRESULT hr = lpContainer->GetContentsTable(MAPI_DEFERRED_ERRORS, &~ptrTable);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to open contents table", hr);
