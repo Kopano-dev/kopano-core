@@ -14,7 +14,6 @@
 
 namespace KC {
 
-typedef object_ptr<IMailUser> MailUserPtr;
 typedef object_ptr<IMessage> MessagePtr;
 typedef object_ptr<IMsgStore> MsgStorePtr;
 typedef object_ptr<IStream> StreamPtr;

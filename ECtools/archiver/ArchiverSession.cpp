@@ -343,7 +343,7 @@ HRESULT ArchiverSession::GetUserInfo(const tstring &strUser, abentryid_t *lpsEnt
 
 	if (lpstrFullname || lpbAclCapable) {
 		unsigned int cValues = 0;
-		MailUserPtr ptrUser;
+		object_ptr<IMailUser> ptrUser;
 		SPropArrayPtr ptrUserProps;
 		static constexpr const SizedSPropTagArray(2, sptaUserProps) =
 			{2, {PR_DISPLAY_NAME, PR_DISPLAY_TYPE_EX}};

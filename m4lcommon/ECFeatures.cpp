@@ -6,6 +6,7 @@
 #include "ECFeatureList.h"
 #include <kopano/CommonUtil.h>
 #include <kopano/mapi_ptr.h>
+#include <kopano/memory.hpp>
 
 namespace KC {
 
@@ -56,7 +57,6 @@ static HRESULT HrGetUserProp(IAddrBook *lpAddrBook, IMsgStore *lpStore,
     ULONG ulPropTag, LPSPropValue *lpProps)
 {
 	SPropValuePtr ptrProps;
-	MailUserPtr ptrUser;
 	ULONG ulObjType;
 
 	if (lpStore == NULL || PROP_TYPE(ulPropTag) != PT_MV_STRING8 ||
@@ -65,6 +65,7 @@ static HRESULT HrGetUserProp(IAddrBook *lpAddrBook, IMsgStore *lpStore,
 	HRESULT hr = HrGetOneProp(lpStore, PR_MAILBOX_OWNER_ENTRYID, &~ptrProps);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMailUser> ptrUser;
 	hr = lpAddrBook->OpenEntry(ptrProps->Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrProps->Value.bin.lpb), &IID_IMailUser, 0, &ulObjType, &~ptrUser);
 	if (hr != hrSuccess)
 		return hr;
