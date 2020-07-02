@@ -354,11 +354,11 @@ HRESULT ECMessage::SyncBody(ULONG ulPropTag)
  */
 HRESULT ECMessage::SyncPlainToRtf()
 {
-	StreamPtr ptrBodyStream, ptrCompressedRtfStream, ptrUncompressedRtfStream;
 	assert(!m_bInhibitSync);
 	m_bInhibitSync = TRUE;
 
 	auto laters = make_scope_success([&]() { m_bInhibitSync = FALSE; });
+	object_ptr<IStream> ptrBodyStream, ptrCompressedRtfStream, ptrUncompressedRtfStream;
 	auto hr = ECMAPIProp::OpenProperty(PR_BODY_W, &IID_IStream, 0, 0, &~ptrBodyStream);
 	if (hr != hrSuccess)
 		return hr;
@@ -398,11 +398,11 @@ HRESULT ECMessage::SyncPlainToRtf()
 HRESULT ECMessage::SyncPlainToHtml()
 {
 	unsigned int ulCodePage = 0;
-	StreamPtr ptrBodyStream, ptrHtmlStream;
 	assert(!m_bInhibitSync);
 	m_bInhibitSync = TRUE;
 
 	auto laters = make_scope_success([&]() { m_bInhibitSync = FALSE; });
+	object_ptr<IStream> ptrBodyStream, ptrHtmlStream;
 	auto hr = ECMAPIProp::OpenProperty(PR_BODY_W, &IID_IStream, 0, 0, &~ptrBodyStream);
 	if (hr != hrSuccess)
 		return hr;
@@ -437,7 +437,6 @@ HRESULT ECMessage::SyncRtf(const std::string &strRTF)
 	enum eRTFType { RTFTypeOther, RTFTypeFromText, RTFTypeFromHTML};
 	bool bDone = false;
 	unsigned int ulCodePage = 0;
-	StreamPtr ptrHTMLStream;
 	ULONG ulWritten = 0;
 	eRTFType rtfType = RTFTypeOther;
 	assert(!m_bInhibitSync);
@@ -447,6 +446,7 @@ HRESULT ECMessage::SyncRtf(const std::string &strRTF)
 	auto hr = GetCodePage(&ulCodePage);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IStream> ptrHTMLStream;
 	hr = ECMAPIProp::OpenProperty(PR_HTML, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~ptrHTMLStream);
 	if (hr != hrSuccess)
 		return hr;
@@ -466,7 +466,7 @@ HRESULT ECMessage::SyncRtf(const std::string &strRTF)
 		BOOL bUpdated;
 		hr = RTFSync(this, RTF_SYNC_RTF_CHANGED, &bUpdated);
 		if (hr == hrSuccess) {
-			StreamPtr ptrBodyStream;
+			object_ptr<IStream> ptrBodyStream;
 
 			hr = ECMAPIProp::OpenProperty(PR_BODY_W, &IID_IStream, 0, 0, &~ptrBodyStream);
 			if (hr != hrSuccess)
@@ -486,7 +486,6 @@ HRESULT ECMessage::SyncRtf(const std::string &strRTF)
 
 	if (!bDone) {
 		std::string strHTML;
-		StreamPtr ptrBodyStream;
 
 		switch (rtfType) {
 		case RTFTypeOther:
@@ -511,6 +510,7 @@ HRESULT ECMessage::SyncRtf(const std::string &strRTF)
 		hr = ptrHTMLStream->Seek(large_int_zero, STREAM_SEEK_SET, nullptr);
 		if (hr != hrSuccess)
 			return hr;
+		object_ptr<IStream> ptrBodyStream;
 		hr = ECMAPIProp::OpenProperty(PR_BODY_W, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~ptrBodyStream);
 		if (hr != hrSuccess)
 			return hr;
@@ -551,12 +551,12 @@ HRESULT ECMessage::SyncRtf(const std::string &strRTF)
  */
 HRESULT ECMessage::SyncHtmlToPlain()
 {
-	StreamPtr ptrHtmlStream, ptrBodyStream;
 	unsigned int ulCodePage;
 	assert(m_bInhibitSync == FALSE);
 	m_bInhibitSync = TRUE;
 
 	auto laters = make_scope_success([&]() { m_bInhibitSync = FALSE; });
+	object_ptr<IStream> ptrHtmlStream, ptrBodyStream;
 	auto hr = ECMAPIProp::OpenProperty(PR_HTML, &IID_IStream, 0, 0, &~ptrHtmlStream);
 	if (hr != hrSuccess)
 		return hr;
@@ -580,12 +580,12 @@ HRESULT ECMessage::SyncHtmlToPlain()
  */
 HRESULT ECMessage::SyncHtmlToRtf()
 {
-	StreamPtr ptrHtmlStream, ptrRtfCompressedStream, ptrRtfUncompressedStream;
 	unsigned int ulCodePage;
 	assert(!m_bInhibitSync);
 	m_bInhibitSync = TRUE;
 
 	auto laters = make_scope_success([&]() { m_bInhibitSync = FALSE; });
+	object_ptr<IStream> ptrHtmlStream, ptrRtfCompressedStream, ptrRtfUncompressedStream;
 	auto hr = ECMAPIProp::OpenProperty(PR_HTML, &IID_IStream, 0, 0, &~ptrHtmlStream);
 	if (hr != hrSuccess)
 		return hr;
@@ -2290,7 +2290,7 @@ HRESULT ECMessage::GetBodyType(const std::string &rtf, eBodyType *lpulBodyType)
 
 HRESULT ECMessage::GetRtfData(std::string *lpstrRtfData)
 {
-	StreamPtr ptrRtfCompressedStream, ptrRtfUncompressedStream;
+	object_ptr<IStream> ptrRtfCompressedStream, ptrRtfUncompressedStream;
 	char lpBuf[4096];
 	std::string strRtfData;
 

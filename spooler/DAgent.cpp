@@ -1170,7 +1170,7 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 	if (lpStoreProps[1].ulPropTag == PR_EC_OUTOFOFFICE_MSG_W) {
 		strBody = lpStoreProps[1].Value.lpszW;
 	} else {
-		StreamPtr ptrStream;
+		object_ptr<IStream> ptrStream;
 		hr = lpMDB->OpenProperty(PR_EC_OUTOFOFFICE_MSG_W, &IID_IStream, 0, 0, &~ptrStream);
 		if (hr == MAPI_E_NOT_FOUND) {
 			/* no message is ok */

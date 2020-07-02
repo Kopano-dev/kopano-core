@@ -1693,7 +1693,6 @@ HRESULT spv_postload_large_props(IMAPIProp *lpProp,
     const SPropTagArray *lpTags, unsigned int cValues, SPropValue *lpProps)
 {
 	HRESULT hr = hrSuccess;
-	StreamPtr lpStream;
 	void *lpData = NULL;
 	bool had_err = false;
 	memory_ptr<SPropTagArray> new_tags;
@@ -1719,6 +1718,7 @@ HRESULT spv_postload_large_props(IMAPIProp *lpProp,
 		unsigned int tag = *tag_iter;
 		if (PROP_TYPE(tag) != PT_STRING8 && PROP_TYPE(tag) != PT_UNICODE && PROP_TYPE(tag) != PT_BINARY)
 			continue;
+		object_ptr<IStream> lpStream;
 		if (lpProp->OpenProperty(tag, &IID_IStream, 0, 0, &~lpStream) != hrSuccess)
 			continue;
 

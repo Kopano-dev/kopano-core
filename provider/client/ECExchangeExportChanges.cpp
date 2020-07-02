@@ -802,7 +802,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 	unsigned int cbProps = 0, ulFlags = 0;
 	SPropValuePtr ptrProps;
 	const SPropValue *lpPropVal = NULL;
-	StreamPtr ptrDestStream;
+	object_ptr<IStream> ptrDestStream;
 	static constexpr const SizedSPropTagArray(11, sptImportProps) = { 11, {
 		PR_SOURCE_KEY,
 		PR_LAST_MODIFICATION_TIME,

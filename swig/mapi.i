@@ -127,7 +127,7 @@ public:
 		HRESULT Read(ULONG cb, char **lpOutput, ULONG *ulRead) {
 			HRESULT hr = hrSuccess;
 			char *buffer;
-			StreamPtr ptrStream;
+			object_ptr<IStream> ptrStream;
 
 			if (self->QueryInterface(iid_of(ptrStream), &~ptrStream) == hrSuccess) {
 				ULARGE_INTEGER liPosition;

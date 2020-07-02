@@ -199,7 +199,6 @@ static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 	unsigned int cValues, ulCharset = 20127; /* US-ASCII */
 	bool bPlain = false;
 	SPropValue sNewBody;
-	StreamPtr ptrStream;
 	std::string strHTML, strHTMLForwardText;
 	std::wstring wstrBody, strForwardText, wstrTo, wstrCc, wstrBcc;
 
@@ -261,6 +260,7 @@ static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 		strForwardText += L"\nAuto forwarded by a rule\n\n";
 
 		if (ptrBodies[0].ulPropTag == PT_ERROR) {
+			object_ptr<IStream> ptrStream;
 			hr = lpOrigMessage->OpenProperty(PR_BODY_W, &IID_IStream, 0, 0, &~ptrStream);
 			if (hr == hrSuccess)
 				Util::HrStreamToString(ptrStream, wstrBody);
@@ -273,6 +273,7 @@ static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 	}
 	else {
 		// HTML body (or rtf, but nuts to editing that!)
+		object_ptr<IStream> ptrStream;
 		hr = lpOrigMessage->OpenProperty(PR_HTML, &IID_IStream, 0, 0, &~ptrStream);
 		if (hr == hrSuccess)
 			Util::HrStreamToString(ptrStream, strHTML);

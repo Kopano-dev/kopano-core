@@ -605,7 +605,6 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChangeAsAStream(ULONG cVal
 	ULONG cbEntryId = 0;
 	EntryIdPtr ptrEntryId;
 	WSMessageStreamImporterPtr ptrMessageImporter;
-	StreamPtr ptrStream;
 
 	auto lpMessageSourceKey = PCpropFindProp(lpPropArray, cValue, PR_SOURCE_KEY);
 	if (lpMessageSourceKey != NULL) {
@@ -637,6 +636,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChangeAsAStream(ULONG cVal
 	}
 
 	ZLOG_DEBUG(m_lpLogger, "ImportFast: %s", "Wrapping MessageImporter in IStreamAdapter");
+	object_ptr<IStream> ptrStream;
 	hr = ECMessageStreamImporterIStreamAdapter::Create(ptrMessageImporter, &~ptrStream);
 	if (hr != hrSuccess)
 		return zlog("ImportFast: Failed to wrap message importer", hr);
