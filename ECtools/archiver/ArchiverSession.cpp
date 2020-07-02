@@ -328,8 +328,7 @@ HRESULT ArchiverSession::GetUserInfo(const tstring &strUser, abentryid_t *lpsEnt
 		m_lpLogger->perr("Failed to open default store", hr);
 		return hr;
 	}
-
-	hr = ptrStore.QueryInterface(ptrServiceAdmin);
+	hr = ptrStore->QueryInterface(iid_of(ptrServiceAdmin), &~ptrServiceAdmin);
 	if (hr != hrSuccess) {
 		m_lpLogger->perr("Failed to obtain the serviceadmin interface", hr);
 		return hr;
@@ -578,7 +577,7 @@ HRESULT ArchiverSession::OpenOrCreateArchiveStore(const tstring& strUserName, co
 	EntryIdPtr ptrStoreId;
 	MsgStorePtr ptrArchiveStore;
 
-	auto hr = m_ptrAdminStore.QueryInterface(ptrServiceAdmin);
+	auto hr = m_ptrAdminStore->QueryInterface(iid_of(ptrServiceAdmin), &~ptrServiceAdmin);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrServiceAdmin->GetArchiveStoreEntryID(strUserName.c_str(), strServerName.c_str(), fMapiUnicode, &cbStoreId, &~ptrStoreId);
@@ -599,7 +598,7 @@ HRESULT ArchiverSession::GetArchiveStoreEntryId(const tstring& strUserName, cons
 	ULONG cbStoreId;
 	EntryIdPtr ptrStoreId;
 
-	auto hr = m_ptrAdminStore.QueryInterface(ptrServiceAdmin);
+	auto hr = m_ptrAdminStore->QueryInterface(iid_of(ptrServiceAdmin), &~ptrServiceAdmin);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrServiceAdmin->GetArchiveStoreEntryID(strUserName.c_str(), strServerName.c_str(), fMapiUnicode, &cbStoreId, &~ptrStoreId);
@@ -626,7 +625,7 @@ HRESULT ArchiverSession::CreateArchiveStore(const tstring& strUserName, const ts
 	hr = HrGetRemoteAdminStore(m_ptrSession, m_ptrAdminStore, strServerName.c_str(), fMapiUnicode, &~ptrRemoteAdminStore);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrRemoteAdminStore.QueryInterface(ptrRemoteServiceAdmin);
+	hr = ptrRemoteAdminStore->QueryInterface(iid_of(ptrRemoteServiceAdmin), &~ptrRemoteServiceAdmin);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrRemoteServiceAdmin->CreateEmptyStore(ECSTORE_TYPE_ARCHIVE, userId.size(), userId, EC_OVERRIDE_HOMESERVER, &cbStoreId, &~ptrStoreId, &cbRootId, &~ptrRootId);
