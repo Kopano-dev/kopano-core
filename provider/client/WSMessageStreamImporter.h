@@ -72,5 +72,3 @@ private:
 	KC::ECThreadPool m_threadPool;
 	ULONG m_ulTimeout;
 };
-
-typedef KC::object_ptr<WSMessageStreamImporter> WSMessageStreamImporterPtr;

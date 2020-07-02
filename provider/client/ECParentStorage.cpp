@@ -53,18 +53,16 @@ HRESULT ECParentStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 	if (m_lpParentObject == nullptr)
 		return MAPI_E_INVALID_OBJECT;
 
-	ECMapiObjects::const_iterator iterSObj;
 	KC::scoped_rlock lock(m_lpParentObject->m_hMutexMAPIObject);
 	if (m_lpParentObject->m_sMapiObject == NULL)
 		return MAPI_E_INVALID_OBJECT;
 
 	// type is either attachment or message-in-message
-	{
-		MAPIOBJECT find(MAPI_MESSAGE, m_ulUniqueId);
+	MAPIOBJECT find(MAPI_MESSAGE, m_ulUniqueId);
+	auto iterSObj = m_lpParentObject->m_sMapiObject->lstChildren.find(&find);
+	if (iterSObj == m_lpParentObject->m_sMapiObject->lstChildren.cend()) {
 		MAPIOBJECT findAtt(MAPI_ATTACH, m_ulUniqueId);
-		iterSObj = m_lpParentObject->m_sMapiObject->lstChildren.find(&find);
-		if (iterSObj == m_lpParentObject->m_sMapiObject->lstChildren.cend())
-			iterSObj = m_lpParentObject->m_sMapiObject->lstChildren.find(&findAtt);
+		iterSObj = m_lpParentObject->m_sMapiObject->lstChildren.find(&findAtt);
 	}
 	if (iterSObj == m_lpParentObject->m_sMapiObject->lstChildren.cend())
 		return MAPI_E_NOT_FOUND;

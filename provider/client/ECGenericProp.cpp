@@ -537,9 +537,7 @@ HRESULT ECGenericProp::HrGetHandler(unsigned int ulPropTag,
     SetPropCallBack *lpfnSetProp, GetPropCallBack *lpfnGetProp,
     ECGenericProp **lpParam)
 {
-	ECPropCallBackIterator iterCallBack;
-
-	iterCallBack = lstCallBack.find(PROP_ID(ulPropTag));
+	auto iterCallBack = lstCallBack.find(PROP_ID(ulPropTag));
 	if (iterCallBack == lstCallBack.end() ||
 		(ulPropTag != iterCallBack->second.ulPropTag && PROP_TYPE(ulPropTag) != PT_UNSPECIFIED &&
 		!(PROP_TYPE(iterCallBack->second.ulPropTag) == PT_TSTRING && (PROP_TYPE(ulPropTag) == PT_STRING8 || PROP_TYPE(ulPropTag) == PT_UNICODE) )

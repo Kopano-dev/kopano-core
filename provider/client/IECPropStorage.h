@@ -79,8 +79,6 @@ struct MAPIOBJECT {
 	ULONG ulObjType = 0;
 };
 
-typedef std::set<MAPIOBJECT*, MAPIOBJECT::CompareMAPIOBJECT>	ECMapiObjects;
-
 class IECPropStorage : public virtual IUnknown {
 public:
 	// Get a single (large) property from an object

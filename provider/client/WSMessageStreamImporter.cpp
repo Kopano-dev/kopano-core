@@ -82,7 +82,7 @@ HRESULT WSMessageStreamImporter::Create(ULONG ulFlags, ULONG ulSyncId,
 
 	entryId sEntryId, sFolderEntryId;
 	struct propVal sConflictItems;
-	WSMessageStreamImporterPtr ptrStreamImporter;
+	object_ptr<WSMessageStreamImporter> ptrStreamImporter;
 	unsigned int stream_timeout = 30000, stream_bufsize = 131072;
 	auto s = getenv("KOPANO_STREAM_TIMEOUT");
 	if (s != nullptr)

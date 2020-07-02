@@ -39,7 +39,6 @@
 #include <kopano/charset/convstring.h>
 
 using namespace KC;
-typedef object_ptr<WSTransport> WSTransportPtr;
 
 // FIXME: from libserver/ECMAPI.h
 #define MSGFLAG_DELETED                           ((ULONG) 0x00000400)
@@ -437,8 +436,8 @@ HRESULT ECMsgStore::CompareEntryIDs(ULONG cbEntryID1, const ENTRYID *lpEntryID1,
 	    lpulResult == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	PEID peid1 = (PEID)lpEntryID1;
-	PEID peid2 = (PEID)lpEntryID2;
+	auto peid1 = reinterpret_cast<const EID *>(lpEntryID1);
+	auto peid2 = reinterpret_cast<const EID *>(lpEntryID2);
 	auto lpStoreId = reinterpret_cast<const EID *>(m_lpEntryId.get());
 
 	// Check if one or both of the entry identifiers contains the store guid.
@@ -2369,7 +2368,7 @@ HRESULT ECMsgStore::GetArchiveStoreEntryID(LPCTSTR lpszUserName, LPCTSTR lpszSer
 	memory_ptr<ENTRYID> ptrStoreID;
 
 	if (lpszServerName != NULL) {
-		WSTransportPtr ptrTransport;
+		object_ptr<WSTransport> ptrTransport;
 		auto hr = GetTransportToNamedServer(lpTransport, lpszServerName, ulFlags, &~ptrTransport);
 		if (hr != hrSuccess)
 			return hr;
@@ -2509,12 +2508,12 @@ HRESULT ECMsgStore::ExportMessageChangesAsStream(ULONG ulFlags, ULONG ulPropTag,
 	if (ulCount == 0)
 		return MAPI_E_UNABLE_TO_COMPLETE;
 
-	WSMessageStreamExporterPtr ptrStreamExporter;
-	WSTransportPtr ptrTransport;
+	object_ptr<WSMessageStreamExporter> ptrStreamExporter;
 	// Need to clone the transport since we want to be able to use our own transport for other things
 	// while the streaming is going on; you should be able to intermix Synchronize() calls on the exporter
 	// with other MAPI calls which would normally be impossible since the stream is kept open between
 	// Synchronize() calls.
+	object_ptr<WSTransport> ptrTransport;
 	HRESULT hr = GetMsgStore()->lpTransport->CloneAndRelogon(&~ptrTransport);
 	if (hr != hrSuccess)
 		return hr;

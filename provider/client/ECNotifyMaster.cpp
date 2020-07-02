@@ -215,7 +215,7 @@ void* ECNotifyMaster::NotifyWatch(void *pTmpNotifyMaster)
 	kcsrv_blocksigs();
 	auto pNotifyMaster = static_cast<ECNotifyMaster *>(pTmpNotifyMaster);
 	assert(pNotifyMaster != NULL);
-	NOTIFYCONNECTIONMAP				mapNotifications;
+	std::map<ULONG, NOTIFYLIST> mapNotifications;
 	notifyResponse					notifications;
 	bool							bReconnect = false;
 

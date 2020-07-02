@@ -824,7 +824,7 @@ HRESULT ECMAPIFolder::CreateMessageFromStream(ULONG ulFlags, ULONG ulSyncId,
     ULONG cbEntryID, const ENTRYID *lpEntryID,
     WSMessageStreamImporter **lppsStreamImporter)
 {
-	WSMessageStreamImporterPtr	ptrStreamImporter;
+	object_ptr<WSMessageStreamImporter> ptrStreamImporter;
 	auto hr = GetMsgStore()->lpTransport->HrGetMessageStreamImporter(ulFlags,
 	          ulSyncId, cbEntryID, lpEntryID, m_cbEntryId, m_lpEntryId,
 	          true, nullptr, &~ptrStreamImporter);
@@ -844,7 +844,7 @@ HRESULT ECMAPIFolder::UpdateMessageFromStream(ULONG ulSyncId, ULONG cbEntryID,
     const ENTRYID *lpEntryID, const SPropValue *lpConflictItems,
     WSMessageStreamImporter **lppsStreamImporter)
 {
-	WSMessageStreamImporterPtr	ptrStreamImporter;
+	object_ptr<WSMessageStreamImporter> ptrStreamImporter;
 	auto hr = GetMsgStore()->lpTransport->HrGetMessageStreamImporter(0,
 	          ulSyncId, cbEntryID, lpEntryID, m_cbEntryId, m_lpEntryId,
 	          false, lpConflictItems, &~ptrStreamImporter);

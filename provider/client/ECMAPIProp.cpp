@@ -33,8 +33,6 @@ struct STREAMDATA {
 	ECMAPIProp *lpProp;
 };
 
-typedef memory_ptr<ECPERMISSION> ECPermissionPtr;
-
 static struct rights ECPermToRightsCheap(const ECPERMISSION &p)
 {
 	struct rights r;
@@ -491,7 +489,6 @@ HRESULT ECMAPIProp::GetSerializedACLData(LPVOID lpBase, LPSPropValue lpsPropValu
 {
 	object_ptr<IECSecurity> ptrSecurity;
 	ULONG				cPerms = 0;
-	ECPermissionPtr		ptrPerms;
 	struct soap			soap;
 	std::ostringstream	os;
 	struct rightsArray	rights;
@@ -504,6 +501,7 @@ HRESULT ECMAPIProp::GetSerializedACLData(LPVOID lpBase, LPSPropValue lpsPropValu
 	auto hr = QueryInterface(IID_IECSecurity, &~ptrSecurity);
 	if (hr != hrSuccess)
 		return hr;
+	memory_ptr<ECPERMISSION> ptrPerms;
 	hr = ptrSecurity->GetPermissionRules(ACCESS_TYPE_GRANT, &cPerms, &~ptrPerms);
 	if (hr != hrSuccess)
 		return hr;
@@ -532,7 +530,6 @@ HRESULT ECMAPIProp::SetSerializedACLData(const SPropValue *lpsPropValue)
 	    PROP_TYPE(lpsPropValue->ulPropTag) != PT_BINARY)
 		return MAPI_E_INVALID_PARAMETER;
 
-	ECPermissionPtr		ptrPerms;
 	struct soap			soap;
 	struct rightsArray	rights;
 	std::string			strAclData;
@@ -557,6 +554,7 @@ HRESULT ECMAPIProp::SetSerializedACLData(const SPropValue *lpsPropValue)
 		if (soap_end_recv(&soap) != 0)
 			return MAPI_E_NETWORK_ERROR;
 	}
+	memory_ptr<ECPERMISSION> ptrPerms;
 	auto hr = MAPIAllocateBuffer(rights.__size * sizeof(ECPERMISSION), &~ptrPerms);
 	if (hr != hrSuccess)
 		return hr;
@@ -569,11 +567,10 @@ HRESULT	ECMAPIProp::UpdateACLs(ULONG cNewPerms, ECPERMISSION *lpNewPerms)
 {
 	object_ptr<IECSecurity> ptrSecurity;
 	ULONG cPerms = 0, cSparePerms = 0;
-	memory_ptr<ECPERMISSION> ptrPerms;
-	ECPermissionPtr			ptrTmpPerms;
 	auto hr = QueryInterface(IID_IECSecurity, &~ptrSecurity);
 	if (hr != hrSuccess)
 		return hr;
+	memory_ptr<ECPERMISSION> ptrPerms, ptrTmpPerms;
 	hr = ptrSecurity->GetPermissionRules(ACCESS_TYPE_GRANT, &cPerms, &~ptrPerms);
 	if (hr != hrSuccess)
 		return hr;

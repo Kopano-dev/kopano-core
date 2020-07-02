@@ -31,7 +31,6 @@ class WSMessageStreamExporter;
 class WSMessageStreamImporter;
 
 typedef HRESULT (*SESSIONRELOADCALLBACK)(void *parm, KC::ECSESSIONID new_id);
-typedef std::map<ULONG, std::pair<void *, SESSIONRELOADCALLBACK> > SESSIONRELOADLIST;
 
 class ECsResolveResult final : public KC::ECsCacheEntry {
 public:
@@ -39,7 +38,6 @@ public:
 	std::string serverPath;
 	bool isPeer;
 };
-typedef std::map<std::string, ECsResolveResult> ECMapResolveResults;
 
 // Array offsets for Receive folder table
 enum
@@ -253,7 +251,7 @@ private:
 protected:
 	KC::ECSESSIONID m_ecSessionId = 0;
 	KC::ECSESSIONGROUPID m_ecSessionGroupId = 0;
-	SESSIONRELOADLIST m_mapSessionReload;
+	std::map<unsigned int, std::pair<void *, SESSIONRELOADCALLBACK>> m_mapSessionReload;
 	std::recursive_mutex m_mutexSessionReload;
 	unsigned int m_ulReloadId = 1;
 	unsigned int m_ulServerCapabilities = 0;
@@ -263,7 +261,7 @@ protected:
 
 private:
 	std::recursive_mutex m_ResolveResultCacheMutex;
-	KC::ECCache<ECMapResolveResults> m_ResolveResultCache;
+	KC::ECCache<std::map<std::string, ECsResolveResult>> m_ResolveResultCache;
 	bool m_has_session;
 
 friend class WSMessageStreamExporter;

@@ -31,7 +31,7 @@ using namespace KC;
 HRESULT WSMessageStreamExporter::Create(ULONG ulOffset, ULONG ulCount, const messageStreamArray &streams, WSTransport *lpTransport, WSMessageStreamExporter **lppStreamExporter)
 {
 	convert_context converter;
-	WSMessageStreamExporterPtr ptrStreamExporter(new(std::nothrow) WSMessageStreamExporter);
+	object_ptr<WSMessageStreamExporter> ptrStreamExporter(new(std::nothrow) WSMessageStreamExporter);
 	if (ptrStreamExporter == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 

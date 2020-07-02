@@ -603,7 +603,6 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChangeAsAStream(ULONG cVal
 	HRESULT hr;
 	ULONG cbEntryId = 0;
 	memory_ptr<ENTRYID> ptrEntryId;
-	WSMessageStreamImporterPtr ptrMessageImporter;
 
 	auto lpMessageSourceKey = PCpropFindProp(lpPropArray, cValue, PR_SOURCE_KEY);
 	if (lpMessageSourceKey != NULL) {
@@ -624,6 +623,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChangeAsAStream(ULONG cVal
 		return SYNC_E_OBJECT_DELETED;
 	}
 
+	object_ptr<WSMessageStreamImporter> ptrMessageImporter;
 	if (hr == MAPI_E_NOT_FOUND)
 		hr = ImportMessageCreateAsStream(cValue, lpPropArray, &~ptrMessageImporter);
 	else
@@ -650,7 +650,6 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageCreateAsStream(ULONG cValu
 
 	unsigned int ulNewFlags = 0, cbEntryId = 0;
 	LPENTRYID lpEntryId = NULL;
-	WSMessageStreamImporterPtr ptrMessageImporter;
 	auto lpMessageFlags = PCpropFindProp(lpPropArray, cValue, PR_MESSAGE_FLAGS);
 	auto lpMessageAssociated = PCpropFindProp(lpPropArray, cValue, PR_ASSOCIATED);
 	auto lpPropEntryId = PCpropFindProp(lpPropArray, cValue, PR_ENTRYID);
@@ -672,6 +671,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageCreateAsStream(ULONG cValu
 		if (hr != hrSuccess)
 			return zlog("CreateFast: Failed to create entryid", hr);
 	}
+	object_ptr<WSMessageStreamImporter> ptrMessageImporter;
 	hr = m_lpFolder->CreateMessageFromStream(ulNewFlags, m_ulSyncId, cbEntryId, lpEntryId, &~ptrMessageImporter);
 	if (hr != hrSuccess)
 		return zlog("CreateFast: Failed to create message from stream", hr);
@@ -688,7 +688,6 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageUpdateAsStream(ULONG cbEnt
 		return MAPI_E_INVALID_PARAMETER;
 
 	memory_ptr<SPropValue> ptrPropPCL, ptrPropCK, ptrConflictItems;
-	WSMessageStreamImporterPtr ptrMessageImporter;
 	auto hr = m_lpFolder->GetChangeInfo(cbEntryId, lpEntryId, &~ptrPropPCL, &~ptrPropCK);
 	if (hr != hrSuccess) {
 		if (hr == MAPI_E_NOT_FOUND) {
@@ -732,6 +731,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageUpdateAsStream(ULONG cbEnt
 		}
 	}
 
+	object_ptr<WSMessageStreamImporter> ptrMessageImporter;
 	hr = m_lpFolder->UpdateMessageFromStream(m_ulSyncId, cbEntryId, lpEntryId, ptrConflictItems, &~ptrMessageImporter);
 	if (hr != hrSuccess)
 		return zlog("UpdateFast: Failed to update message from stream", hr);
