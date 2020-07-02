@@ -78,7 +78,6 @@ def main():
                 getattr(user.store, options.systemfolder).mapiobj.SetProps([SPropValue(PR_DISPLAY_NAME, str(newname))])
                 getattr(user.store, options.systemfolder).mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
-
             print('Change %s to %s' % (tmp.name, oldname))
             tmp.mapiobj.SetProps([SPropValue(PR_DISPLAY_NAME, oldname)])
             tmp.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
