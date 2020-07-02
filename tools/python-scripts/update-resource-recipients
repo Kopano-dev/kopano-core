@@ -5,7 +5,14 @@ import os
 import sys
 import locale
 
-from MAPI.Util import *
+from MAPI import MAPI_BCC, RELOP_EQ, TBL_BATCH, MAPI_DEFERRED_ERRORS, MODRECIP_ADD, MAPI_BEST_ACCESS
+from MAPI.Defs import PpropFindProp
+from MAPI.Util import OpenECSession, GetDefaultStore
+from MAPI.Struct import SPropValue, SSubRestriction, SNotRestriction, SPropertyRestriction
+from MAPI.Tags import (PR_ACCOUNT, PR_ADDRTYPE, PR_DISPLAY_NAME, PR_DISPLAY_TYPE, PR_DISPLAY_TYPE_EX,
+                       PR_SEARCH_KEY, PR_ENTRYID, PR_EMAIL_ADDRESS, PR_OBJECT_TYPE, PR_SMTP_ADDRESS,
+                       PR_RECIPIENT_TYPE, PR_RECIPIENT_FLAGS, PR_RECIPIENT_TRACKSTATUS,
+                       PR_RECIPIENT_ENTRYID, PR_IPM_APPOINTMENT_ENTRYID, PR_MESSAGE_RECIPIENTS)
 
 
 def GetSelfRecipient(session):
