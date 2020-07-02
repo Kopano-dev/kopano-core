@@ -83,10 +83,6 @@ public:
 	KC_HIDDEN ECRestrictionList operator+(const ECRestriction &) const;
 
 protected:
-	typedef std::shared_ptr<SPropValue> PropPtr;
-	typedef std::shared_ptr<ECRestriction> ResPtr;
-	typedef std::list<ResPtr>					ResList;
-
 	KC_HIDDEN ECRestriction() = default;
 	KC_HIDDEN static HRESULT CopyProp(SPropValue *src, void *base, unsigned int flags, SPropValue **dst);
 	KC_HIDDEN static void DummyFree(void *);
@@ -121,10 +117,7 @@ public:
 	}
 
 private:
-	typedef std::shared_ptr<ECRestriction> ResPtr;
-	typedef std::list<ResPtr>					ResList;
-
-	ResList	m_list;
+	std::list<std::shared_ptr<ECRestriction>> m_list;
 
 friend class ECAndRestriction;
 friend class ECOrRestriction;
@@ -176,7 +169,7 @@ public:
 	void operator+=(ECRestrictionList &&);
 
 private:
-	ResList	m_lstRestrictions;
+	std::list<std::shared_ptr<ECRestriction>> m_lstRestrictions;
 };
 
 class KC_EXPORT ECOrRestriction KC_FINAL : public IRestrictionPush {
@@ -205,13 +198,13 @@ public:
 	void operator+=(ECRestrictionList &&);
 
 private:
-	ResList	m_lstRestrictions;
+	std::list<std::shared_ptr<ECRestriction>> m_lstRestrictions;
 };
 
 class KC_EXPORT ECNotRestriction KC_FINAL : public IRestrictionPush {
 public:
-	KC_HIDDEN ECNotRestriction(const ECRestriction &restriction)
-	: m_ptrRestriction(ResPtr(restriction.Clone())) 
+	KC_HIDDEN ECNotRestriction(const ECRestriction &restriction) :
+		m_ptrRestriction(restriction.Clone())
 	{ }
 	KC_HIDDEN ECNotRestriction(ECRestriction &&o) :
 		m_ptrRestriction(std::move(o).Clone())
@@ -233,9 +226,9 @@ public:
 	}
 
 private:
-	KC_HIDDEN ECNotRestriction(ResPtr restriction);
+	KC_HIDDEN ECNotRestriction(std::shared_ptr<ECRestriction>);
 
-	ResPtr	m_ptrRestriction;
+	std::shared_ptr<ECRestriction> m_ptrRestriction;
 };
 
 class KC_EXPORT ECContentRestriction KC_FINAL : public ECRestriction {
@@ -246,10 +239,10 @@ public:
 	KC_HIDDEN ECRestriction *Clone() && override { return new ECContentRestriction(std::move(*this)); }
 
 private:
-	KC_HIDDEN ECContentRestriction(unsigned int fuzzy_level, unsigned int tag, PropPtr prop);
+	KC_HIDDEN ECContentRestriction(unsigned int fuzzy_level, unsigned int tag, std::shared_ptr<SPropValue>);
 
 	unsigned int m_ulFuzzyLevel, m_ulPropTag;
-	PropPtr	m_ptrProp;
+	std::shared_ptr<SPropValue> m_ptrProp;
 };
 
 class KC_EXPORT ECBitMaskRestriction KC_FINAL : public ECRestriction {
@@ -276,10 +269,10 @@ public:
 	KC_HIDDEN ECRestriction *Clone() && override { return new ECPropertyRestriction(std::move(*this)); }
 
 private:
-	KC_HIDDEN ECPropertyRestriction(unsigned int relop, unsigned int proptag, PropPtr prop);
+	KC_HIDDEN ECPropertyRestriction(unsigned int relop, unsigned int proptag, std::shared_ptr<SPropValue>);
 
 	unsigned int m_relop, m_ulPropTag;
-	PropPtr	m_ptrProp;
+	std::shared_ptr<SPropValue> m_ptrProp;
 };
 
 class KC_EXPORT ECComparePropsRestriction KC_FINAL : public ECRestriction {
@@ -324,10 +317,9 @@ public:
 	KC_HIDDEN ECRestriction *Clone() && override { return new ECRawRestriction(std::move(*this)); }
 
 private:
-	typedef std::shared_ptr<SRestriction> RawResPtr;
-	KC_HIDDEN ECRawRestriction(RawResPtr restriction);
+	KC_HIDDEN ECRawRestriction(std::shared_ptr<SRestriction>);
 
-	RawResPtr	m_ptrRestriction;
+	std::shared_ptr<SRestriction> m_ptrRestriction;
 };
 
 } /* namespace */
