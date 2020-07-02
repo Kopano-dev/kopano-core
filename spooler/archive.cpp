@@ -61,7 +61,6 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
 {
 	HRESULT hr = hrSuccess;
 	unsigned int cMsgProps, ulType;
-	SPropArrayPtr ptrMsgProps;
 	StoreHelperPtr ptrStoreHelper;
 	SObjectEntry refMsgEntry;
 	ObjectEntryList lstArchives, lstReferences;
@@ -83,6 +82,7 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
 		ec_log_warn("Archive::HrArchiveMessageForDelivery(): invalid parameter");
 		return hr = MAPI_E_INVALID_PARAMETER;
 	}
+	memory_ptr<SPropValue> ptrMsgProps;
 	hr = lpMessage->GetProps(sptaMessageProps, 0, &cMsgProps, &~ptrMsgProps);
 	if (hr != hrSuccess)
 		return kc_pwarn("Archive::HrArchiveMessageForDelivery(): GetProps failed", hr);
@@ -141,7 +141,7 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
 	// Now save the messages one by one. On failure all saved messages need to be deleted.
 	for (const auto &msg : lstArchivedMessages) {
 		ULONG cArchivedMsgProps;
-		SPropArrayPtr ptrArchivedMsgProps;
+		memory_ptr<SPropValue> ptrArchivedMsgProps;
 		SObjectEntry refArchiveEntry;
 
 		hr = msg.first->GetProps(sptaMessageProps, 0,
@@ -176,7 +176,6 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 {
 	HRESULT hr = hrSuccess;
 	ULONG cMsgProps;
-	SPropArrayPtr ptrMsgProps;
 	StoreHelperPtr ptrStoreHelper;
 	ObjectEntryList lstArchives;
 	ArchiverSessionPtr ptrSession;
@@ -194,6 +193,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 	});
 	if (lpMessage == nullptr)
 		return hr = MAPI_E_INVALID_PARAMETER;
+	memory_ptr<SPropValue> ptrMsgProps;
 	hr = lpMessage->GetProps(sptaMessageProps, 0, &cMsgProps, &~ptrMsgProps);
 	if (hr != hrSuccess)
 		return kc_pwarn("Archive::HrArchiveMessageForSending(): GetProps failed", hr);

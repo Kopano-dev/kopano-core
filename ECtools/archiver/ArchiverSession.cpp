@@ -344,7 +344,6 @@ HRESULT ArchiverSession::GetUserInfo(const tstring &strUser, abentryid_t *lpsEnt
 	if (lpstrFullname || lpbAclCapable) {
 		unsigned int cValues = 0;
 		object_ptr<IMailUser> ptrUser;
-		SPropArrayPtr ptrUserProps;
 		static constexpr const SizedSPropTagArray(2, sptaUserProps) =
 			{2, {PR_DISPLAY_NAME, PR_DISPLAY_TYPE_EX}};
 		enum {IDX_DISPLAY_NAME, IDX_DISPLAY_TYPE_EX};
@@ -355,6 +354,7 @@ HRESULT ArchiverSession::GetUserInfo(const tstring &strUser, abentryid_t *lpsEnt
 				strUser.c_str(), GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
+		memory_ptr<SPropValue> ptrUserProps;
 		hr = ptrUser->GetProps(sptaUserProps, 0, &cValues, &~ptrUserProps);
 		if (FAILED(hr)) {
 			m_lpLogger->logf(EC_LOGLEVEL_INFO, "Failed to obtain properties from user \"" TSTRING_PRINTF "\": %s (%x)",
@@ -391,7 +391,7 @@ HRESULT ArchiverSession::GetUserInfo(const abentryid_t &sEntryId, tstring *lpstr
 {
 	unsigned int cUserProps = 0;
 	object_ptr<IMAPIProp> ptrUser;
-	SPropArrayPtr ptrUserProps;
+	memory_ptr<SPropValue> ptrUserProps;
 	static constexpr const SizedSPropTagArray(2, sptaUserProps) =
 		{2, {PR_ACCOUNT, PR_DISPLAY_NAME}};
 	enum {IDX_ACCOUNT, IDX_DISPLAY_NAME};

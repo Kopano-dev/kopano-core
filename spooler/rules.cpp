@@ -189,7 +189,7 @@ static HRESULT GetRecipStrings(LPMESSAGE lpMessage, std::wstring &wstrTo,
 
 static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 {
-	SPropArrayPtr ptrBodies, ptrInfo;
+	memory_ptr<SPropValue> ptrBodies, ptrInfo;
 	static constexpr const SizedSPropTagArray(4, sBody) =
 		{4, {PR_BODY_W, PR_HTML, PR_RTF_IN_SYNC, PR_INTERNET_CPID}};
 	static constexpr const SizedSPropTagArray(4, sInfo) =

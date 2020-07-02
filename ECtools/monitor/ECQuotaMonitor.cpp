@@ -870,7 +870,7 @@ HRESULT ECQuotaMonitor::OpenUserStore(LPTSTR szStoreName, objectclass_t objclass
 static HRESULT GetConfigMessage(IMsgStore *lpStore, const char *szMessageName,
     IMessage **lppMessage)
 {
-	SPropArrayPtr ptrEntryIDs;
+	memory_ptr<SPropValue> ptrEntryIDs;
 	unsigned int cValues;
 	SPropValue propSubject;
 	SRowSetPtr ptrRows;

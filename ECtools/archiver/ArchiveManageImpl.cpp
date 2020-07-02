@@ -519,7 +519,6 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 
 	for (const auto &arc : lstArchives) {
 		unsigned int cStoreProps = 0, ulCompareResult = false;
-		SPropArrayPtr ptrStoreProps;
 		ArchiveEntry entry;
 		static constexpr const SizedSPropTagArray(4, sptaStoreProps) = {4, {PR_DISPLAY_NAME_A, PR_MAILBOX_OWNER_ENTRYID, PR_IPM_SUBTREE_ENTRYID, PR_STORE_RECORD_KEY}};
 		enum {IDX_DISPLAY_NAME, IDX_MAILBOX_OWNER_ENTRYID, IDX_IPM_SUBTREE_ENTRYID, IDX_STORE_RECORD_KEY};
@@ -535,6 +534,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 			continue;
 		}
 
+		memory_ptr<SPropValue> ptrStoreProps;
 		hrTmp = ptrArchiveStore->GetProps(sptaStoreProps, 0, &cStoreProps, &~ptrStoreProps);
 		if (FAILED(hrTmp))
 			entry.StoreName = entry.StoreOwner = "Unknown (" + stringify_hex(hrTmp) + ")";

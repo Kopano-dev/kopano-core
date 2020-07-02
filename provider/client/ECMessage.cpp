@@ -121,7 +121,7 @@ HRESULT ECMessage::GetProps(const SPropTagArray *lpPropTagArray, ULONG ulFlags,
 {
 	HRESULT			hr = hrSuccess;
 	ULONG			cValues = 0;
-	SPropArrayPtr	ptrPropArray;
+	memory_ptr<SPropValue> ptrPropArray;
 	int lBodyIdx = 0, lRtfIdx = 0, lHtmlIdx = 0;
 
 	if (lpPropTagArray) {

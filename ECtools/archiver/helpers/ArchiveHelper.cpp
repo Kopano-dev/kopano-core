@@ -410,12 +410,11 @@ HRESULT ArchiveHelper::SetPermissions(const abentryid_t &sUserEntryId, bool bWri
 HRESULT ArchiveHelper::GetArchiveFolderFor(object_ptr<IMAPIFolder> &ptrSourceFolder,
     ArchiverSessionPtr ptrSession, IMAPIFolder **lppDestinationFolder)
 {
-	memory_ptr<SPropValue> ptrStoreEntryId, ptrFolderType, ptrFolderEntryId;
+	memory_ptr<SPropValue> ptrStoreEntryId, ptrFolderType, ptrFolderEntryId, ptrPropArray;
 	MAPIPropHelperPtr ptrSourceFolderHelper, ptrArchiveFolderHelper;
 	ObjectEntryList lstFolderArchives;
 	ObjectEntryList::const_iterator iArchiveFolder;
 	unsigned int cValues = 0;
-	SPropArrayPtr ptrPropArray;
 	SObjectEntry objectEntry;
 	static constexpr const SizedSPropTagArray(3, sptaFolderPropsForCreate) =
 		{3, {PR_CONTAINER_CLASS, PR_DISPLAY_NAME, PR_COMMENT}};

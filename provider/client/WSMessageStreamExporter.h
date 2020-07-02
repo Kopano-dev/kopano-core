@@ -35,7 +35,7 @@ private:
 	struct StreamInfo {
 		std::string	id;
 		unsigned long	cbPropVals;
-		KC::SPropArrayPtr ptrPropVals;
+		KC::memory_ptr<SPropValue> ptrPropVals;
 	};
 	typedef std::map<ULONG, StreamInfo*>	StreamInfoMap;
 

@@ -449,7 +449,6 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 	object_ptr<ECMemTableView> lpTableView;
 	ULONG ulObjType;
 	ULONG cValues;
-	SPropArrayPtr ptrProps;
 	SPropValue sKey;
 	object_ptr<ZCMAPIProp> ptrZCMAPIProp;
 
@@ -505,6 +504,7 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 		if (hr != hrSuccess)
 			continue;
 
+		memory_ptr<SPropValue> ptrProps;
 		if ((cType & 0x80) && (cType & 0x0F) < 5 && (cType & 0x0F) > 0) {
 			ULONG cbEntryID;
 			ULONG ulObjOffset = 0;

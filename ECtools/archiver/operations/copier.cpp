@@ -85,7 +85,7 @@ HRESULT Copier::Helper::GetArchiveFolder(const SObjectEntry &archiveEntry, LPMAP
 
 	static constexpr const SizedSPropTagArray(2, sptaProps) =
 		{2, {PR_DISPLAY_NAME_A, PR_ENTRYID}};
-	SPropArrayPtr props;
+	memory_ptr<SPropValue> props;
 	ULONG cb;
 	HRESULT hrTmp = ptrArchiveFolder->GetProps(sptaProps, 0, &cb, &~props);
 	if (!FAILED(hrTmp)) {

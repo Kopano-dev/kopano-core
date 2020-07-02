@@ -74,7 +74,6 @@ HRESULT MAPIPropHelper::Init()
 HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageState *lpState)
 {
 	unsigned int cMessageProps = 0, ulState = 0;
-	SPropArrayPtr ptrMessageProps;
 	int result = 0;
 
 	SizedSPropTagArray(6, sptaMessageProps) = {6, {PR_ENTRYID, PROP_STUBBED, PROP_DIRTY, PR_SOURCE_KEY, PROP_ORIGINAL_SOURCEKEY, PR_EC_HIERARCHYID}};
@@ -82,6 +81,7 @@ HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageSt
 
 	if (lpState == NULL)
 		return MAPI_E_INVALID_PARAMETER;
+	memory_ptr<SPropValue> ptrMessageProps;
 	auto hr = m_ptrMapiProp->GetProps(sptaMessageProps, 0, &cMessageProps, &~ptrMessageProps);
 	if (FAILED(hr))
 		return hr;
@@ -223,7 +223,7 @@ HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageSt
 HRESULT MAPIPropHelper::GetArchiveList(ObjectEntryList *lplstArchives, bool bIgnoreSourceKey)
 {
 	ULONG cbValues = 0;
-	SPropArrayPtr ptrPropArray;
+	memory_ptr<SPropValue> ptrPropArray;
 	ObjectEntryList lstArchives;
 	int result = 0;
 	SizedSPropTagArray (4, sptaArchiveProps) = {4, {PROP_ARCHIVE_STORE_ENTRYIDS, PROP_ARCHIVE_ITEM_ENTRYIDS, PROP_ORIGINAL_SOURCEKEY, PR_SOURCE_KEY}};
@@ -302,7 +302,7 @@ HRESULT MAPIPropHelper::GetArchiveList(ObjectEntryList *lplstArchives, bool bIgn
 HRESULT MAPIPropHelper::SetArchiveList(const ObjectEntryList &lstArchives, bool bExplicitCommit)
 {
 	unsigned int cValues = lstArchives.size(), cbProps = 2;
-	SPropArrayPtr ptrPropArray;
+	memory_ptr<SPropValue> ptrPropArray, ptrSourceKey;
 	ObjectEntryList::const_iterator iArchive;
 
 	auto hr = MAPIAllocateBuffer(3 * sizeof(SPropValue), &~ptrPropArray);
@@ -337,7 +337,6 @@ HRESULT MAPIPropHelper::SetArchiveList(const ObjectEntryList &lstArchives, bool 
 	 * item gets moved everything is fine. But when it gets copied a new archive will be created
 	 * for it.
 	 **/
-	memory_ptr<SPropValue> ptrSourceKey;
 	hr = HrGetOneProp(m_ptrMapiProp, PR_SOURCE_KEY, &~ptrSourceKey);
 	if (hr == hrSuccess) {
 		ptrPropArray[2].ulPropTag = PROP_ORIGINAL_SOURCEKEY;
@@ -399,12 +398,12 @@ HRESULT MAPIPropHelper::ClearReference(bool bExplicitCommit)
 HRESULT MAPIPropHelper::GetReference(SObjectEntry *lpEntry)
 {
 	ULONG cMessageProps = 0;
-	SPropArrayPtr ptrMessageProps;
 	SizedSPropTagArray(2, sptaMessageProps) = {2, {PROP_REF_STORE_ENTRYID, PROP_REF_ITEM_ENTRYID}};
 	enum {IDX_REF_STORE_ENTRYID, IDX_REF_ITEM_ENTRYID};
 
 	if (lpEntry == NULL)
 		return MAPI_E_INVALID_PARAMETER;
+	memory_ptr<SPropValue> ptrMessageProps;
 	auto hr = m_ptrMapiProp->GetProps(sptaMessageProps, 0, &cMessageProps, &~ptrMessageProps);
 	if (FAILED(hr))
 		return hr;
@@ -501,7 +500,6 @@ HRESULT MAPIPropHelper::DetachFromArchives()
  */
 HRESULT MAPIPropHelper::GetParentFolder(ArchiverSessionPtr ptrSession, LPMAPIFOLDER *lppFolder)
 {
-	SPropArrayPtr ptrPropArray;
 	unsigned int cValues = 0;
 	static constexpr const SizedSPropTagArray(2, sptaProps) =
 		{2, {PR_PARENT_ENTRYID, PR_STORE_ENTRYID}};
@@ -509,6 +507,7 @@ HRESULT MAPIPropHelper::GetParentFolder(ArchiverSessionPtr ptrSession, LPMAPIFOL
 	if (ptrSession == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	// We can't just open a folder on the session (at least not in Linux). So we open the store first
+	memory_ptr<SPropValue> ptrPropArray;
 	auto hr = m_ptrMapiProp->GetProps(sptaProps, 0, &cValues, &~ptrPropArray);
 	if (hr != hrSuccess)
 		return hr;

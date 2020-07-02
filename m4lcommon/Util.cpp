@@ -2210,7 +2210,7 @@ ULONG Util::GetBestBody(const SPropValue *lpBody, const SPropValue *lpHtml,
  */
 ULONG Util::GetBestBody(IMAPIProp* lpPropObj, ULONG ulFlags)
 {
-	SPropArrayPtr ptrBodies;
+	memory_ptr<SPropValue> ptrBodies;
 	const ULONG ulBodyTag = ((ulFlags & MAPI_UNICODE) ? PR_BODY_W : PR_BODY_A);
 	SizedSPropTagArray (4, sBodyTags) = { 4, {
 			ulBodyTag,
@@ -3401,7 +3401,7 @@ HRESULT Util::HrDeleteAttachments(LPMESSAGE lpMsg)
 HRESULT Util::HrDeleteMessage(IMAPISession *lpSession, IMessage *lpMessage)
 {
 	ULONG cMsgProps;
-	SPropArrayPtr ptrMsgProps;
+	memory_ptr<SPropValue> ptrMsgProps;
 	ULONG ulType;
 	ENTRYLIST entryList = {1, NULL};
 	static constexpr const SizedSPropTagArray(3, sptaMessageProps) =

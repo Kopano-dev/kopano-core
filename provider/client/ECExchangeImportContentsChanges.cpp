@@ -820,7 +820,7 @@ HRESULT ECExchangeImportContentsChanges::HrUpdateSearchReminders(LPMAPIFOLDER lp
     const SPropValue *lpAdditionalREN)
 {
 	unsigned int cREMProps, ulType = 0, ulOrigSearchState = 0;
-	SPropArrayPtr ptrREMProps;
+	memory_ptr<SPropValue> ptrREMProps;
 	LPSPropValue lpREMEntryID = NULL;
 	ECAndRestriction resPre;
 	SPropValue sPropValConflicts = {PR_PARENT_ENTRYID, 0};
