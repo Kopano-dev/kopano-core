@@ -14,11 +14,11 @@ namespace KC { class ECLogger; }
 
 class ArchiveResult final {
 public:
-	void AddMessage(KC::MessagePtr ptrMessage);
+	void AddMessage(KC::object_ptr<IMessage>);
 	void Undo(IMAPISession *lpSession);
 
 private:
-	std::list<KC::MessagePtr> m_lstMessages;
+	std::list<KC::object_ptr<IMessage>> m_lstMessages;
 };
 
 

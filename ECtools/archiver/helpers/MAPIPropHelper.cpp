@@ -131,12 +131,12 @@ HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageSt
 		MAPIPropHelperPtr ptrArchiveHelper;
 		SObjectEntry refEntry;
 		MsgStorePtr ptrStore;
-		MessagePtr ptrMessage, ptrArchiveMsg;
 
 		hr = GetArchiveList(&lstArchives, true);
 		if (hr != hrSuccess)
 			return hr;
 
+		object_ptr<IMessage> ptrArchiveMsg;
 		for (const auto &arc : lstArchives) {
 			MsgStorePtr ptrArchiveStore;
 			auto hrTmp = ptrSession->OpenReadOnlyStore(arc.sStoreEntryId, &~ptrArchiveStore);
@@ -170,6 +170,7 @@ HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageSt
 			if (hr != hrSuccess)
 				return hr;
 
+			object_ptr<IMessage> ptrMessage;
 			hr = ptrStore->OpenEntry(refEntry.sItemEntryId.size(),
 			     refEntry.sItemEntryId, &iid_of(ptrArchiveMsg), 0,
 			     nullptr, &~ptrMessage);
@@ -430,7 +431,6 @@ HRESULT MAPIPropHelper::ReferencePrevious(const SObjectEntry &sEntry)
 HRESULT MAPIPropHelper::OpenPrevious(ArchiverSessionPtr ptrSession, LPMESSAGE *lppMessage)
 {
 	SPropValuePtr ptrEntryID;
-	MessagePtr ptrMessage;
 
 	if (lppMessage == NULL)
 		return MAPI_E_INVALID_PARAMETER;
@@ -438,6 +438,7 @@ HRESULT MAPIPropHelper::OpenPrevious(ArchiverSessionPtr ptrSession, LPMESSAGE *l
 	if (hr != hrSuccess)
 		return hr;
 
+	object_ptr<IMessage> ptrMessage;
 	hr = ptrSession->GetMAPISession()->OpenEntry(ptrEntryID->Value.bin.cb,
 	     reinterpret_cast<ENTRYID *>(ptrEntryID->Value.bin.lpb),
 	     &iid_of(ptrMessage), MAPI_MODIFY, nullptr, &~ptrMessage);

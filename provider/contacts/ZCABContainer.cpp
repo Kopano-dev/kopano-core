@@ -773,7 +773,6 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	LPENTRYID lpFolder = NULL;
 	ULONG ulObjType = 0;
 	object_ptr<ZCABContainer> lpZCABContacts;
-	MessagePtr ptrContact;
 	object_ptr<ZCMAPIProp> lpZCMAPIProp;
 
 	if (cbEntryID < cbNewCABEntryID || lpEntryID == nullptr ||
@@ -829,6 +828,7 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		hr = lpZCABContacts->QueryInterface(lpInterface != nullptr ? *lpInterface : IID_IABContainer, reinterpret_cast<void **>(lppUnk));
 	} else if (lpCABEntryID->ulObjType == MAPI_DISTLIST) {
 		// open the Original Message
+		object_ptr<IMessage> ptrContact;
 		hr = m_lpMAPISup->OpenEntry(cbFolder, lpFolder, &iid_of(ptrContact), 0, &ulObjType, &~ptrContact);
 		if (hr != hrSuccess)
 			return hr;
@@ -839,6 +839,7 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		hr = lpZCABContacts->QueryInterface(lpInterface != nullptr ? *lpInterface : IID_IDistList, reinterpret_cast<void **>(lppUnk));
 	} else if (lpCABEntryID->ulObjType == MAPI_MAILUSER) {
 		// open the Original Message
+		object_ptr<IMessage> ptrContact;
 		hr = m_lpMAPISup->OpenEntry(cbFolder, lpFolder, &iid_of(ptrContact), 0, &ulObjType, &~ptrContact);
 		if (hr != hrSuccess)
 			return hr;

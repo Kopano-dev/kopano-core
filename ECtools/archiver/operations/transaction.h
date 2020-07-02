@@ -25,7 +25,7 @@ public:
 
 private:
 	struct SaveEntry {
-		MessagePtr	ptrMessage;
+		object_ptr<IMessage> ptrMessage;
 		bool bDeleteOnFailure;
 		PostSaveActionPtr ptrPSAction;
 	};

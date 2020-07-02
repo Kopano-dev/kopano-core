@@ -874,7 +874,6 @@ static HRESULT GetConfigMessage(IMsgStore *lpStore, const char *szMessageName,
 	unsigned int cValues;
 	SPropValue propSubject;
 	SRowSetPtr ptrRows;
-	MessagePtr ptrMessage;
 	static constexpr const SizedSPropTagArray(2, sptaTreeProps) =
 		{2, {PR_NON_IPM_SUBTREE_ENTRYID, PR_IPM_SUBTREE_ENTRYID}};
 
@@ -911,6 +910,7 @@ static HRESULT GetConfigMessage(IMsgStore *lpStore, const char *szMessageName,
 			return hr;
 	}
 
+	object_ptr<IMessage> ptrMessage;
 	if (!ptrRows.empty()) {
 		// message found, open it
 		auto lpEntryID = ptrRows[0].cfind(PR_ENTRYID);
@@ -953,7 +953,7 @@ static HRESULT GetConfigMessage(IMsgStore *lpStore, const char *szMessageName,
  */
 HRESULT ECQuotaMonitor::CheckQuotaInterval(LPMDB lpStore, LPMESSAGE *lppMessage, bool *lpbTimeout)
 {
-	MessagePtr ptrMessage;
+	object_ptr<IMessage> ptrMessage;
 	SPropValuePtr ptrProp;
 	FILETIME ft, ftNextRun;
 
@@ -1021,7 +1021,7 @@ HRESULT ECQuotaMonitor::Notify(ECUSER *lpecUser, ECCOMPANY *lpecCompany,
 {
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	MsgStorePtr ptrRecipStore;
-	MessagePtr ptrQuotaTSMessage;
+	object_ptr<IMessage> ptrQuotaTSMessage;
 	bool bTimeout;
 	memory_ptr<SPropValue> lpsObject;
 	adrlist_ptr lpAddrList;

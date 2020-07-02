@@ -715,7 +715,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageUpdateAsStream(ULONG cbEnt
 
 	auto lpRemotePCL = PCpropFindProp(lpPropArray, cValue, PR_PREDECESSOR_CHANGE_LIST);
 	if (!bAssociated && IsConflict(ptrPropCK, lpRemotePCL)) {
-		MessagePtr ptrMessage;
+		object_ptr<IMessage> ptrMessage;
 		ULONG ulType = 0;
 
 		ZLOG_DEBUG(m_lpLogger, "UpdateFast: %s", "The item seems to be in conflict");

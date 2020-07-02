@@ -5,6 +5,7 @@
 #include <kopano/platform.h>
 #include <utility>
 #include <kopano/Util.h>
+#include <kopano/memory.hpp>
 #include "transaction.h"
 #include "ArchiverSession.h"
 
@@ -52,7 +53,6 @@ exit:
 HRESULT Transaction::PurgeDeletes(ArchiverSessionPtr ptrSession, TransactionPtr ptrDeferredTransaction)
 {
 	HRESULT hr = hrSuccess;
-	MessagePtr ptrMessage;
 	IMAPISession *lpSession = ptrSession->GetMAPISession();
 
 	for (const auto &obj : m_lstDelete) {
@@ -61,6 +61,7 @@ HRESULT Transaction::PurgeDeletes(ArchiverSessionPtr ptrSession, TransactionPtr 
 			hrTmp = ptrDeferredTransaction->Delete(obj.objectEntry);
 
 		else {
+			object_ptr<IMessage> ptrMessage;
 			hrTmp = lpSession->OpenEntry(obj.objectEntry.sItemEntryId.size(), obj.objectEntry.sItemEntryId,
 			        &iid_of(ptrMessage), 0, nullptr, &~ptrMessage);
 			if (hrTmp == MAPI_E_NOT_FOUND) {

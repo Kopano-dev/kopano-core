@@ -8,14 +8,14 @@
 #include <kopano/mapi_ptr.h>
 #include "instanceidmapper_fwd.h"
 #include <kopano/archiver-common.h>
+#include <kopano/memory.hpp>
 #include <list>
 
 namespace KC { namespace operations {
 
 class TaskBase {
 public:
-	TaskBase(const AttachPtr &ptrSourceAttach, const MessagePtr &ptrDestMsg, ULONG ulDestAttachIdx);
-
+	TaskBase(const AttachPtr &src, const object_ptr<IMessage> &dst, unsigned int dst_at_idx);
 	HRESULT Execute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper);
 
 private:
@@ -23,7 +23,7 @@ private:
 	virtual HRESULT DoExecute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper, const SBinary &sourceServerUID, ULONG cbSourceInstanceID, LPENTRYID lpSourceInstanceID, const SBinary &destServerUID, ULONG cbDestInstanceID, LPENTRYID lpDestInstanceID) = 0;
 
 	AttachPtr	m_ptrSourceAttach;
-	MessagePtr	m_ptrDestMsg;
+	object_ptr<IMessage> m_ptrDestMsg;
 	ULONG 	m_ulDestAttachIdx;
 };
 typedef std::shared_ptr<TaskBase> TaskPtr;
@@ -31,13 +31,13 @@ typedef std::list<TaskPtr> TaskList;
 
 class TaskMapInstanceId final : public TaskBase {
 public:
-	TaskMapInstanceId(const AttachPtr &ptrSourceAttach, const MessagePtr &ptrDestMsg, ULONG ulDestAttachNum);
+	TaskMapInstanceId(const AttachPtr &src, const object_ptr<IMessage> &dst, unsigned int dst_at_num);
 	HRESULT DoExecute(unsigned int proptag, const InstanceIdMapperPtr &, const SBinary &src_server_uid, unsigned int src_size, ENTRYID *src_inst, const SBinary &dest_server_uid, unsigned int dest_size, ENTRYID *dest_inst) override;
 };
 
 class TaskVerifyAndUpdateInstanceId final : public TaskBase {
 public:
-	TaskVerifyAndUpdateInstanceId(const AttachPtr &ptrSourceAttach, const MessagePtr &ptrDestMsg, ULONG ulDestAttachNum, ULONG cbDestInstanceID, LPENTRYID lpDestInstanceID);
+	TaskVerifyAndUpdateInstanceId(const AttachPtr &src, const object_ptr<IMessage> &dst, unsigned int dst_at_num, unsigned int dst_instance_idsize, ENTRYID *dst_instance_id);
 	HRESULT DoExecute(unsigned int proptag, const InstanceIdMapperPtr &, const SBinary &src_server_uid, unsigned int src_size, ENTRYID *src_inst, const SBinary &dest_server_uid, unsigned int dest_size, ENTRYID *dest_inst) override;
 
 private:

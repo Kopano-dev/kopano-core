@@ -11,10 +11,9 @@
 
 namespace KC { namespace operations {
 
-TaskBase::TaskBase(const AttachPtr &ptrSourceAttach, const MessagePtr &ptrDestMsg, ULONG ulDestAttachIdx)
-: m_ptrSourceAttach(ptrSourceAttach)
-, m_ptrDestMsg(ptrDestMsg)
-, m_ulDestAttachIdx(ulDestAttachIdx)
+TaskBase::TaskBase(const AttachPtr &sa,
+    const object_ptr<IMessage> &dst, unsigned int dst_at_idx) :
+	m_ptrSourceAttach(sa), m_ptrDestMsg(dst), m_ulDestAttachIdx(dst_at_idx)
 { }
 
 HRESULT TaskBase::Execute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper) {
@@ -78,17 +77,18 @@ HRESULT TaskBase::GetUniqueIDs(IAttach *lpAttach, LPSPropValue *lppServerUID, UL
 	return hrSuccess;
 }
 
-TaskMapInstanceId::TaskMapInstanceId(const AttachPtr &ptrSourceAttach, const MessagePtr &ptrDestMsg, ULONG ulDestAttachNum)
-: TaskBase(ptrSourceAttach, ptrDestMsg, ulDestAttachNum)
+TaskMapInstanceId::TaskMapInstanceId(const AttachPtr &sa,
+    const object_ptr<IMessage> &dst, unsigned int dst_at_num) :
+	TaskBase(sa, dst, dst_at_num)
 { }
 
 HRESULT TaskMapInstanceId::DoExecute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper, const SBinary &sourceServerUID, ULONG cbSourceInstanceID, LPENTRYID lpSourceInstanceID, const SBinary &destServerUID, ULONG cbDestInstanceID, LPENTRYID lpDestInstanceID) {
 	return ptrMapper->SetMappedInstances(ulPropTag, sourceServerUID, cbSourceInstanceID, lpSourceInstanceID, destServerUID, cbDestInstanceID, lpDestInstanceID);
 }
 
-TaskVerifyAndUpdateInstanceId::TaskVerifyAndUpdateInstanceId(const AttachPtr &ptrSourceAttach, const MessagePtr &ptrDestMsg, ULONG ulDestAttachNum, ULONG cbDestInstanceID, LPENTRYID lpDestInstanceID)
-: TaskBase(ptrSourceAttach, ptrDestMsg, ulDestAttachNum)
-, m_destInstanceID(cbDestInstanceID, lpDestInstanceID)
+TaskVerifyAndUpdateInstanceId::TaskVerifyAndUpdateInstanceId(const AttachPtr &sa,
+    const object_ptr<IMessage> &dst, unsigned int dst_at_num, unsigned int di_size, ENTRYID *di_id) :
+	TaskBase(sa, dst, dst_at_num), m_destInstanceID(di_size, di_id)
 { }
 
 HRESULT TaskVerifyAndUpdateInstanceId::DoExecute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper, const SBinary &sourceServerUID, ULONG cbSourceInstanceID, LPENTRYID lpSourceInstanceID, const SBinary &destServerUID, ULONG cbDestInstanceID, LPENTRYID lpDestInstanceID) {

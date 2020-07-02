@@ -510,7 +510,6 @@ HRESULT ArchiveControlImpl::ProcessFolder2(object_ptr<IMAPIFolder> &ptrFolder,
 	SRestrictionPtr ptrRestriction;
 	memory_ptr<SSortOrderSet> ptrSortOrder;
 	SRowSetPtr ptrRowSet;
-	MessagePtr ptrMessage;
 	static constexpr const SizedSPropTagArray(3, sptaProps) =
 		{3, {PR_ENTRYID, PR_PARENT_ENTRYID, PR_STORE_ENTRYID}};
 	static constexpr const SizedSSortOrderSet(1, sptaOrder) =

@@ -30,7 +30,8 @@ using namespace KC::helpers;
 using namespace KC::operations;
 using std::endl;
 
-void ArchiveResult::AddMessage(MessagePtr ptrMessage) {
+void ArchiveResult::AddMessage(object_ptr<IMessage> ptrMessage)
+{
 	m_lstMessages.emplace_back(ptrMessage);
 }
 
@@ -68,7 +69,6 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
 	ArchiverSessionPtr ptrSession;
 	InstanceIdMapperPtr ptrMapper;
 	std::unique_ptr<Copier::Helper> ptrHelper;
-	std::list<std::pair<MessagePtr, PostSaveActionPtr>> lstArchivedMessages;
 	ArchiveResult result;
 	MAPIPropHelperPtr ptrMsgHelper;
 	static constexpr const SizedSPropTagArray(3, sptaMessageProps) =
@@ -125,8 +125,10 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
 		ptrMapper, nullptr, ptrFolder));
 	if (ptrHelper == nullptr)
 		return hr = MAPI_E_NOT_ENOUGH_MEMORY;
+
+	std::list<std::pair<object_ptr<IMessage>, PostSaveActionPtr>> lstArchivedMessages;
 	for (const auto &arc : lstArchives) {
-		MessagePtr ptrArchivedMsg;
+		object_ptr<IMessage> ptrArchivedMsg;
 		PostSaveActionPtr ptrPSAction;
 
 		hr = ptrHelper->CreateArchivedMessage(lpMessage, arc, refMsgEntry, &~ptrArchivedMsg, &ptrPSAction);
@@ -180,7 +182,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 	ArchiverSessionPtr ptrSession;
 	InstanceIdMapperPtr ptrMapper;
 	std::unique_ptr<Copier::Helper> ptrHelper;
-	std::list<std::pair<MessagePtr, PostSaveActionPtr>> lstArchivedMessages;
+	std::list<std::pair<object_ptr<IMessage>, PostSaveActionPtr>> lstArchivedMessages;
 	ArchiveResult result;
 	static constexpr const SizedSPropTagArray(2, sptaMessageProps) = {1, {PR_STORE_ENTRYID}};
 	enum {IDX_STORE_ENTRYID};
@@ -230,7 +232,6 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 		return hr = MAPI_E_NOT_ENOUGH_MEMORY;
 	for (const auto &arc : lstArchives) {
 		ArchiveHelperPtr ptrArchiveHelper;
-		MessagePtr ptrArchivedMsg;
 		PostSaveActionPtr ptrPSAction;
 
 		hr = ArchiveHelper::Create(ptrSession, arc, logger, &ptrArchiveHelper);
@@ -244,6 +245,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 			SetErrorMessage(hr, KC_TX("Unable to get outgoing archive folder."));
 			return kc_perror("Failed to get outgoing archive folder", hr);
 		}
+		object_ptr<IMessage> ptrArchivedMsg;
 		hr = ptrArchiveFolder->CreateMessage(&iid_of(ptrArchivedMsg), 0, &~ptrArchivedMsg);
 		if (hr != hrSuccess) {
 			SetErrorMessage(hr, KC_TX("Unable to create archive message in outgoing archive folder."));
