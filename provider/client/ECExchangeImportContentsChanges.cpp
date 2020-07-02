@@ -823,7 +823,6 @@ HRESULT ECExchangeImportContentsChanges::HrUpdateSearchReminders(LPMAPIFOLDER lp
 	SPropArrayPtr ptrREMProps;
 	LPSPropValue lpREMEntryID = NULL;
 	SRestrictionPtr ptrOrigRestriction;
-	EntryListPtr ptrOrigContainerList;
 	SRestrictionPtr ptrPreRestriction;
 	ECAndRestriction resPre;
 	SPropValue sPropValConflicts = {PR_PARENT_ENTRYID, 0};
@@ -847,6 +846,7 @@ HRESULT ECExchangeImportContentsChanges::HrUpdateSearchReminders(LPMAPIFOLDER lp
 	hr = lpRootFolder->OpenEntry(lpREMEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpREMEntryID->Value.bin.lpb), &iid_of(ptrRemindersFolder), MAPI_BEST_ACCESS, &ulType, &~ptrRemindersFolder);
 	if (hr != hrSuccess)
 		return hr;
+	memory_ptr<ENTRYLIST> ptrOrigContainerList;
 	hr = ptrRemindersFolder->GetSearchCriteria(0, &~ptrOrigRestriction, &~ptrOrigContainerList, &ulOrigSearchState);
 	if (hr != hrSuccess)
 		return hr;

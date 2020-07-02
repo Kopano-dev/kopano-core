@@ -678,7 +678,6 @@ HRESULT ArchiveControlImpl::PurgeArchiveFolder(object_ptr<IMsgStore> &ptrArchive
 	object_ptr<IMAPIFolder> ptrFolder;
 	std::list<entryid_t> lstEntries;
 	SRowSetPtr ptrRows;
-	EntryListPtr ptrEntryList;
 	ULONG ulIdx = 0;
 	static constexpr const SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ENTRYID}};
 
@@ -712,6 +711,7 @@ HRESULT ArchiveControlImpl::PurgeArchiveFolder(object_ptr<IMsgStore> &ptrArchive
 	}
 
 	m_lpLogger->logf(EC_LOGLEVEL_INFO, "Purging %zu messaged from archive folder", lstEntries.size());
+	memory_ptr<ENTRYLIST> ptrEntryList;
 	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~ptrEntryList);
 	if (hr != hrSuccess)
 		return hr;
@@ -1124,12 +1124,12 @@ HRESULT ArchiveControlImpl::CleanupHierarchy(ArchiveHelperPtr ptrArchiveHelper, 
 HRESULT ArchiveControlImpl::MoveAndDetachMessages(ArchiveHelperPtr ptrArchiveHelper, LPMAPIFOLDER lpArchiveFolder, const EntryIDSet &setEIDs)
 {
 	object_ptr<IMAPIFolder> ptrDelItemsFolder;
-	EntryListPtr ptrMessageList;
 
 	m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "Moving %zu messages to the special \"Deleted Items\" folder...", setEIDs.size());
 	auto hr = ptrArchiveHelper->GetDeletedItemsFolder(&~ptrDelItemsFolder);
 	if (hr != hrSuccess)
 		return m_lpLogger->perr("Failed to get deleted items folder", hr);
+	memory_ptr<ENTRYLIST> ptrMessageList;
 	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~ptrMessageList);
 	if (hr != hrSuccess) {
 		m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Failed to allocate %zu bytes of memory: %s (%x)",
@@ -1229,7 +1229,7 @@ HRESULT ArchiveControlImpl::MoveAndDetachFolder(ArchiveHelperPtr ptrArchiveHelpe
  */
 HRESULT ArchiveControlImpl::DeleteMessages(LPMAPIFOLDER lpArchiveFolder, const EntryIDSet &setEIDs)
 {
-	EntryListPtr ptrMessageList;
+	memory_ptr<ENTRYLIST> ptrMessageList;
 
 	m_lpLogger->logf(EC_LOGLEVEL_INFO, "Deleting %zu messages...", setEIDs.size());
 	auto hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~ptrMessageList);

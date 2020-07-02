@@ -423,7 +423,6 @@ HRESULT StoreHelper::SetupSearchArchiveFolder(LPMAPIFOLDER lpSearchFolder, const
 	ECOrRestriction resClassCheck;
 	SPropValuePtr ptrPropEntryId;
 	SPropValue sPropStubbed, sPropVersion;
-	EntryListPtr ptrEntryList;
 	ECAndRestriction resArchiveCheck, resArchiveFolder;
 	SRestrictionPtr ptrRestriction;
 
@@ -448,6 +447,7 @@ HRESULT StoreHelper::SetupSearchArchiveFolder(LPMAPIFOLDER lpSearchFolder, const
 	hr = HrGetOneProp(ptrIpmSubtree, PR_ENTRYID, &~ptrPropEntryId);
 	if (hr != hrSuccess)
 		return hr;
+	memory_ptr<ENTRYLIST> ptrEntryList;
 	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~ptrEntryList);
 	if (hr != hrSuccess)
 		return hr;
@@ -495,7 +495,6 @@ HRESULT StoreHelper::SetupSearchDeleteFolder(LPMAPIFOLDER lpSearchFolder, const 
 {
 	ECOrRestriction resClassCheck;
 	SPropValuePtr ptrPropEntryId;
-	EntryListPtr ptrEntryList;
 	ECAndRestriction resArchiveCheck, resDeleteFolder;
 	SRestrictionPtr ptrRestriction;
 	SPropValue sPropVersion;
@@ -521,6 +520,7 @@ HRESULT StoreHelper::SetupSearchDeleteFolder(LPMAPIFOLDER lpSearchFolder, const 
 	hr = HrGetOneProp(ptrIpmSubtree, PR_ENTRYID, &~ptrPropEntryId);
 	if (hr != hrSuccess)
 		return hr;
+	memory_ptr<ENTRYLIST> ptrEntryList;
 	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~ptrEntryList);
 	if (hr != hrSuccess)
 		return hr;
@@ -557,7 +557,6 @@ HRESULT StoreHelper::SetupSearchStubFolder(LPMAPIFOLDER lpSearchFolder, const EC
 {
 	SPropValuePtr ptrPropEntryId;
 	SPropValue sPropStubbed, sPropMsgClass[2], sPropVersion;
-	EntryListPtr ptrEntryList;
 	ECAndRestriction resArchiveCheck, resStubFolder;
 	SRestrictionPtr ptrRestriction;
 
@@ -577,6 +576,7 @@ HRESULT StoreHelper::SetupSearchStubFolder(LPMAPIFOLDER lpSearchFolder, const EC
 	hr = HrGetOneProp(ptrIpmSubtree, PR_ENTRYID, &~ptrPropEntryId);
 	if (hr != hrSuccess)
 		return hr;
+	memory_ptr<ENTRYLIST> ptrEntryList;
 	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~ptrEntryList);
 	if (hr != hrSuccess)
 		return hr;
