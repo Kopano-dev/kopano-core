@@ -3377,7 +3377,6 @@ HRESULT Util::HrGetQuotaStatus(IMsgStore *lpMsgStore, ECQUOTA *lpsQuota,
 
 HRESULT Util::HrDeleteAttachments(LPMESSAGE lpMsg)
 {
-	SRowSetPtr ptrRows;
 	static constexpr const SizedSPropTagArray(1, sptaAttachNum) = {1, {PR_ATTACH_NUM}};
 
 	if (lpMsg == NULL)
@@ -3386,11 +3385,12 @@ HRESULT Util::HrDeleteAttachments(LPMESSAGE lpMsg)
 	HRESULT hr = lpMsg->GetAttachmentTable(0, &~ptrAttachTable);
 	if (hr != hrSuccess)
 		return hr;
+	rowset_ptr ptrRows;
 	hr = HrQueryAllRows(ptrAttachTable, sptaAttachNum, nullptr, nullptr, 0, &~ptrRows);
 	if (hr != hrSuccess)
 		return hr;
 
-	for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
+	for (rowset_ptr::size_type i = 0; i < ptrRows.size(); ++i) {
 		hr = lpMsg->DeleteAttach(ptrRows[i].lpProps[0].Value.l, 0, NULL, 0);
 		if (hr != hrSuccess)
 			return hr;

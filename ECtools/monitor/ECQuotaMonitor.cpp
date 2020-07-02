@@ -873,7 +873,6 @@ static HRESULT GetConfigMessage(IMsgStore *lpStore, const char *szMessageName,
 	memory_ptr<SPropValue> ptrEntryIDs;
 	unsigned int cValues;
 	SPropValue propSubject;
-	SRowSetPtr ptrRows;
 	static constexpr const SizedSPropTagArray(2, sptaTreeProps) =
 		{2, {PR_NON_IPM_SUBTREE_ENTRYID, PR_IPM_SUBTREE_ENTRYID}};
 
@@ -902,6 +901,7 @@ static HRESULT GetConfigMessage(IMsgStore *lpStore, const char *szMessageName,
 
 	propSubject.ulPropTag = PR_SUBJECT_A;
 	propSubject.Value.lpszA = const_cast<char *>(szMessageName);
+	rowset_ptr ptrRows;
 	hr = ECPropertyRestriction(RELOP_EQ, PR_SUBJECT_A, &propSubject, ECRestriction::Cheap)
 	     .FindRowIn(ptrTable, BOOKMARK_BEGINNING, 0);
 	if (hr == hrSuccess) {

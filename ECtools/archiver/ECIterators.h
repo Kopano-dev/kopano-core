@@ -37,7 +37,7 @@ private:
 	MAPIContainerPtr	m_ptrContainer;
 	unsigned int m_ulFlags, m_ulDepth, m_ulRowIndex;
 	object_ptr<IMAPITable> m_ptrTable;
-	SRowSetPtr			m_ptrRows;
+	rowset_ptr m_ptrRows;
 	MAPIContainerPtr	m_ptrCurrent;
 };
 

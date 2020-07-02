@@ -19,7 +19,6 @@ TaskBase::TaskBase(const object_ptr<IAttach> &sa,
 HRESULT TaskBase::Execute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper) {
 	memory_ptr<SPropValue> ptrSourceServerUID, ptrDestServerUID;
 	memory_ptr<ENTRYID> ptrSourceInstanceID, ptrDestInstanceID;
-	SRowSetPtr ptrRows;
 	unsigned int cbSourceInstanceID = 0, cbDestInstanceID = 0;
 	static constexpr const SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ATTACH_NUM}};
 
@@ -36,6 +35,7 @@ HRESULT TaskBase::Execute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper)
 	hr = ptrTable->SeekRow(BOOKMARK_BEGINNING, m_ulDestAttachIdx, NULL);
 	if (hr != hrSuccess)
 		return hr;
+	rowset_ptr ptrRows;
 	hr = ptrTable->QueryRows(1, 0, &~ptrRows);
 	if (hr != hrSuccess)
 		return hr;

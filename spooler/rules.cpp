@@ -144,7 +144,6 @@ bool dagent_avoid_autoreply(const std::vector<std::string> &hl)
 static HRESULT GetRecipStrings(LPMESSAGE lpMessage, std::wstring &wstrTo,
     std::wstring &wstrCc, std::wstring &wstrBcc)
 {
-	SRowSetPtr ptrRows;
 	static constexpr const SizedSPropTagArray(2, sptaDisplay) =
 		{2, {PR_DISPLAY_NAME_W, PR_RECIPIENT_TYPE}};
 
@@ -161,6 +160,7 @@ static HRESULT GetRecipStrings(LPMESSAGE lpMessage, std::wstring &wstrTo,
 		return hr;
 
 	while(1) {
+		rowset_ptr ptrRows;
 		hr = ptrRecips->QueryRows(1, 0, &~ptrRows);
 		if(hr != hrSuccess)
 			return hr;

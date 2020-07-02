@@ -1299,7 +1299,6 @@ static HRESULT ForceResyncFor(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 {
 	object_ptr<IAddrBook> ptrAdrBook;
-	SRowSetPtr	ptrRows;
 	bool			bFail = false;
 	static constexpr const SizedSPropTagArray(1, sGALProps) = {1, {PR_ENTRYID}};
 	SPropValue sGALPropVal, sObjTypePropVal, sDispTypePropVal;
@@ -1329,6 +1328,7 @@ static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 	     .RestrictTable(ptrTable, TBL_BATCH);
 	if (hr != hrSuccess)
 		return hr;
+	rowset_ptr ptrRows;
 	hr = ptrTable->QueryRows(1, 0, &~ptrRows);
 	if (hr != hrSuccess)
 		return hr;
@@ -1364,7 +1364,7 @@ static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 		if (ptrRows.empty())
 			break;
 
-		for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
+		for (rowset_ptr::size_type i = 0; i < ptrRows.size(); ++i) {
 			if (PROP_TYPE(ptrRows[i].lpProps[0].ulPropTag) == PT_ERROR ||
 			    PROP_TYPE(ptrRows[i].lpProps[1].ulPropTag) == PT_ERROR)
 			{
@@ -1415,7 +1415,6 @@ static HRESULT DisplayUserCount(LPMDB lpAdminStore)
 {
 	object_ptr<IMAPITable> ptrSystemTable;
 	SPropValue sPropDisplayName;
-	SRowSetPtr ptrRows;
 	unsigned int ulLicensedUsers = 0, ulExtraRow = 0, ulExtraRows = 0;
 	ULONG ulActiveUsers = (ULONG)-1;	//!< used active users
 	ULONG ulNonActiveTotal = (ULONG)-1;	//!< used non-active users
@@ -1445,6 +1444,7 @@ static HRESULT DisplayUserCount(LPMDB lpAdminStore)
 	hr = ptrSystemTable->SetColumns(sptaStatsProps, TBL_BATCH);
 	if (hr != hrSuccess)
 		return hr;
+	rowset_ptr ptrRows;
 	hr = ptrSystemTable->QueryRows(0xffff, 0, &~ptrRows);
 	if (hr != hrSuccess)
 		return hr;
@@ -1452,7 +1452,7 @@ static HRESULT DisplayUserCount(LPMDB lpAdminStore)
 	if (ptrRows.size() < 3)
 		return MAPI_E_NOT_FOUND;
 
-	for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
+	for (rowset_ptr::size_type i = 0; i < ptrRows.size(); ++i) {
 		const char *lpszDisplayName = ptrRows[i].lpProps[IDX_DISPLAY_NAME_A].Value.lpszA;
 
 		if (strcmp(lpszDisplayName, "usercnt_licensed") == 0)
@@ -1547,7 +1547,6 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 	object_ptr<IExchangeManageStore> ptrEMS;
 	unsigned int cbEntryID, ulUpdates = 0, ulTotalUpdates = 0;
 	bool bFailures = false;
-	SRowSetPtr ptrRows;
 	static constexpr const SizedSPropTagArray(2, sptaTableProps) =
 		{2, {PR_DISPLAY_NAME_A, PR_ENTRYID}};
 	enum {IDX_DISPLAY_NAME, IDX_ENTRYID};
@@ -1586,6 +1585,7 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 	}
 
 	object_ptr<IMAPITable> ptrTable;
+	rowset_ptr ptrRows;
 	hr = ptrRoot->GetHierarchyTable(CONVENIENT_DEPTH, &~ptrTable);
 	if (hr != hrSuccess)
 		goto exit;
@@ -1593,7 +1593,7 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 	if (hr != hrSuccess)
 		goto exit;
 
-	for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
+	for (rowset_ptr::size_type i = 0; i < ptrRows.size(); ++i) {
 		const SRow &row = ptrRows[i];
 		const char* lpszName = "<Unknown>";
 

@@ -190,7 +190,7 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 	// We'll go through the table one row at a time (from each table) and assume the attachments
 	// are sorted the same. We will do a sanity check on the size property, though.
 	while (true) {
-		SRowSetPtr ptrSourceRows, ptrDestRows;
+		rowset_ptr ptrSourceRows, ptrDestRows;
 
 		hr = ptrSourceTable->QueryRows(16, 0, &~ptrSourceRows);
 		if (hr != hrSuccess)
@@ -201,7 +201,7 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 		if (hr != hrSuccess)
 			return m_lpLogger->perr("Failed to query source rows", hr);
 		assert(ptrSourceRows.size() == ptrDestRows.size());
-		for (SRowSetPtr::size_type i = 0; i < ptrSourceRows.size(); ++i) {
+		for (rowset_ptr::size_type i = 0; i < ptrSourceRows.size(); ++i) {
 			object_ptr<IAttach> ptrSourceAttach, ptrDestAttach;
 			object_ptr<IECSingleInstance> ptrInstance;
 			unsigned int cbSourceSIID, cbDestSIID;

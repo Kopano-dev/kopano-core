@@ -112,13 +112,13 @@ HRESULT	UserListCollector<string_type, prAccount>::GetRequiredPropTags(LPMAPIPRO
 template<typename string_type, ULONG prAccount>
 HRESULT UserListCollector<string_type, prAccount>::CollectData(LPMAPITABLE lpStoreTable) {
 	while (true) {
-		SRowSetPtr ptrRows;
+		rowset_ptr ptrRows;
 
 		HRESULT hr = lpStoreTable->QueryRows(50, 0, &~ptrRows);
 		if (hr != hrSuccess)
 			return hr;
 
-		for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
+		for (rowset_ptr::size_type i = 0; i < ptrRows.size(); ++i) {
 			if (ptrRows[i].lpProps[0].ulPropTag != PR_MAILBOX_OWNER_ENTRYID)
 				continue;
 			ULONG ulType;
@@ -184,7 +184,6 @@ HRESULT GetArchivedUserList(IMAPISession *lpMapiSession, const char *lpSSLKey,
 HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
     const char *lpSSLPass, bool bLocalOnly, DataCollector *lpCollector)
 {
-	SRowSetPtr		ptrRows;
 	unsigned int ulObj = 0, cbDDEntryID = 0, ulCompanyCount = 0;
 	std::set<servername>	listServers;
 	convert_context		converter;
@@ -222,6 +221,7 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 		if (hr != hrSuccess)
 			return kc_perror("Unable to set set columns on user table", hr);
 		/* multi-tenancy, loop through all subcontainers to find all users */
+		rowset_ptr ptrRows;
 		hr = ptrHierarchyTable->QueryRows(ulCompanyCount, 0, &~ptrRows);
 		if (hr != hrSuccess)
 			return hr;
@@ -388,7 +388,6 @@ HRESULT GetMailboxDataPerServer(IMAPISession *lpSession, const char *lpszPath,
 HRESULT UpdateServerList(IABContainer *lpContainer,
     std::set<servername> &listServers)
 {
-	SRowSetPtr ptrRows;
 	SPropValue sPropUser, sPropDisplayType;
 	static constexpr const SizedSPropTagArray(2, sCols) =
 		{2, {PR_EC_HOMESERVER_NAME_W, PR_DISPLAY_NAME_W}};
@@ -415,6 +414,7 @@ HRESULT UpdateServerList(IABContainer *lpContainer,
 		return kc_perror("Unable to get total user count", hr);
 
 	while (true) {
+		rowset_ptr ptrRows;
 		hr = ptrTable->QueryRows(50, 0, &~ptrRows);
 		if (hr != hrSuccess)
 			return hr;

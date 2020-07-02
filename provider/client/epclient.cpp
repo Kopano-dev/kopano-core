@@ -463,7 +463,7 @@ static HRESULT UpdateProviders(LPPROVIDERADMIN lpAdminProviders,
 {
 	ProfSectPtr		ptrProfSect;
 	object_ptr<IMAPITable> ptrTable;
-	SRowSetPtr		ptrRows;
+	rowset_ptr ptrRows;
 
 	// Get the provider table
 	auto hr = lpAdminProviders->GetProviderTable(0, &~ptrTable);

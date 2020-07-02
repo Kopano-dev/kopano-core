@@ -302,7 +302,6 @@ HRESULT StoreHelper::GetSearchFolders(LPMAPIFOLDER *lppSearchArchiveFolder, LPMA
 HRESULT StoreHelper::GetSubFolder(object_ptr<IMAPIFolder> &ptrFolder,
     const tstring &strFolder, bool bCreate, IMAPIFolder **lppFolder)
 {
-	SRowSetPtr ptrRowSet;
 	static constexpr const SizedSPropTagArray(1, sptaFolderProps) = {1, {PR_ENTRYID}};
 	SPropValue sResPropValue{};
 
@@ -320,6 +319,7 @@ HRESULT StoreHelper::GetSubFolder(object_ptr<IMAPIFolder> &ptrFolder,
 	hr = ECPropertyRestriction(RELOP_EQ, PR_DISPLAY_NAME, &sResPropValue, ECRestriction::Cheap)
 	     .FindRowIn(ptrTable, BOOKMARK_BEGINNING, 0);
 	if (hr == hrSuccess) {
+		rowset_ptr ptrRowSet;
 		hr = ptrTable->QueryRows(1, TBL_NOADVANCE, &~ptrRowSet);
 		if (hr != hrSuccess)
 			return hr;

@@ -578,12 +578,12 @@ static std::string mapitable_ToString1(const SPropValue &name, const SPropValue 
 static HRESULT MAPITablePrint(IMAPITable *lpTable, bool humanreadable /* = true */)
 {
 	memory_ptr<SPropTagArray> ptrColumns;
-	SRowSetPtr ptrRows;
 	ConsoleTable ct(0, 0);
 
 	HRESULT hr = lpTable->QueryColumns(0, &~ptrColumns);
 	if (hr != hrSuccess)
 		return hr;
+	rowset_ptr ptrRows;
 	hr = lpTable->QueryRows(INT_MAX, 0, &~ptrRows);
 	if (hr != hrSuccess)
 		return hr;

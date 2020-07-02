@@ -87,7 +87,6 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 		return MAPI_E_INVALID_PARAMETER;
 
 	SPropValue sProps[3]{}, sProp{};
-	SRowSetPtr ptrRowSet;
 	ULONG ulAttachNum = 0;
 	MAPIPropHelperPtr ptrMsgHelper;
 	ObjectEntryList lstMsgArchives;
@@ -135,6 +134,7 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 	hr = lpMessage->GetAttachmentTable(fMapiDeferredErrors, &~ptrAttTable);
 	if (hr != hrSuccess)
 		return Logger()->perr("Failed to get attachment table", hr);
+	rowset_ptr ptrRowSet;
 	hr = HrQueryAllRows(ptrAttTable, sptaTableProps, nullptr, nullptr, 0, &~ptrRowSet);
 	if (hr != hrSuccess)
 		return Logger()->perr("Failed to get attachment numbers", hr);

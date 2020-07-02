@@ -508,7 +508,6 @@ HRESULT ArchiveControlImpl::ProcessFolder2(object_ptr<IMAPIFolder> &ptrFolder,
 {
 	object_ptr<IMAPITable> ptrTable;
 	memory_ptr<SSortOrderSet> ptrSortOrder;
-	SRowSetPtr ptrRowSet;
 	static constexpr const SizedSPropTagArray(3, sptaProps) =
 		{3, {PR_ENTRYID, PR_PARENT_ENTRYID, PR_STORE_ENTRYID}};
 	static constexpr const SizedSSortOrderSet(1, sptaOrder) =
@@ -531,6 +530,7 @@ HRESULT ArchiveControlImpl::ProcessFolder2(object_ptr<IMAPIFolder> &ptrFolder,
 	if (hr != hrSuccess)
 		return m_lpLogger->perr("Failed to sort table", hr);
 
+	rowset_ptr ptrRowSet;
 	do {
 		hr = ptrTable->QueryRows(50, 0, &~ptrRowSet);
 		if (hr != hrSuccess)
@@ -577,7 +577,7 @@ HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
 	bool bErrorOccurred = false;
 	memory_ptr<SRestriction> lpRestriction;
 	SPropValue sPropCreationTime;
-	SRowSetPtr ptrRowSet;
+	rowset_ptr ptrRowSet;
 	static constexpr const SizedSPropTagArray(2, sptaFolderProps) =
 		{2, {PR_ENTRYID, PR_DISPLAY_NAME}};
     enum {IDX_ENTRYID, IDX_DISPLAY_NAME};
@@ -595,7 +595,6 @@ HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
 
 	for (const auto &arc : lstArchives) {
 		object_ptr<IMsgStore> ptrArchiveStore;
-		SRowSetPtr ptrFolderRows;
 
 		hr = m_ptrSession->OpenStore(arc.sStoreEntryId, &~ptrArchiveStore);
 		if (hr != hrSuccess) {
@@ -640,6 +639,7 @@ HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
 		}
 
 		while (true) {
+			rowset_ptr ptrFolderRows;
 			hr = ptrFolderTable->QueryRows(50, 0, &~ptrFolderRows);
 			if (hr != hrSuccess)
 				return m_lpLogger->perr("Failed to get rows from folder table", hr);
@@ -677,7 +677,6 @@ HRESULT ArchiveControlImpl::PurgeArchiveFolder(object_ptr<IMsgStore> &ptrArchive
 {
 	object_ptr<IMAPIFolder> ptrFolder;
 	std::list<entryid_t> lstEntries;
-	SRowSetPtr ptrRows;
 	ULONG ulIdx = 0;
 	static constexpr const SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ENTRYID}};
 
@@ -701,6 +700,7 @@ HRESULT ArchiveControlImpl::PurgeArchiveFolder(object_ptr<IMsgStore> &ptrArchive
 		return m_lpLogger->perr("Failed to restrict contents table", hr);
 
 	while (true) {
+		rowset_ptr ptrRows;
 		hr = ptrContentsTable->QueryRows(50, 0, &~ptrRows);
 		if (hr != hrSuccess)
 			return m_lpLogger->perr("Failed to get rows from contents table", hr);
@@ -884,14 +884,14 @@ HRESULT ArchiveControlImpl::AppendAllReferences(IMAPIFolder *lpFolder,
 			return hr;
 
 		while (true) {
-			SRowSetPtr ptrRows;
+			rowset_ptr ptrRows;
 			const ULONG batch_size = 128;
 
 			hr = ptrTable->QueryRows(batch_size, 0, &~ptrRows);
 			if (hr != hrSuccess)
 				return hr;
 
-			for (SRowSetPtr::size_type j = 0; j < ptrRows.size(); ++j) {
+			for (rowset_ptr::size_type j = 0; j < ptrRows.size(); ++j) {
 				const auto &prop = ptrRows[j].lpProps[0];
 				if (PROP_TYPE(prop.ulPropTag) == PT_ERROR)
 					continue;
@@ -987,13 +987,13 @@ HRESULT ArchiveControlImpl::AppendAllEntries(LPMAPIFOLDER lpArchive, LPSRestrict
 		return hr;
 
 	while (true) {
-		SRowSetPtr ptrRows;
+		rowset_ptr ptrRows;
 		const ULONG batch_size = 128;
 
 		hr = ptrTable->QueryRows(batch_size, 0, &~ptrRows);
 		if (hr != hrSuccess)
 			return hr;
-		for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
+		for (rowset_ptr::size_type i = 0; i < ptrRows.size(); ++i) {
 			if (PROP_TYPE(ptrRows[i].lpProps[0].ulPropTag) == PT_ERROR)
 				return ptrRows[i].lpProps[0].Value.err;
 			lpEntries->insert(ptrRows[i].lpProps[0].Value.bin);
@@ -1044,7 +1044,7 @@ HRESULT ArchiveControlImpl::CleanupHierarchy(ArchiveHelperPtr ptrArchiveHelper, 
 		return hr;
 
 	while (true) {
-		SRowSetPtr ptrRows;
+		rowset_ptr ptrRows;
 
 		hr = ptrTable->QueryRows(64, 0, &~ptrRows);
 		if (hr != hrSuccess)
@@ -1052,7 +1052,7 @@ HRESULT ArchiveControlImpl::CleanupHierarchy(ArchiveHelperPtr ptrArchiveHelper, 
 		if (ptrRows.empty())
 			break;
 
-		for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
+		for (rowset_ptr::size_type i = 0; i < ptrRows.size(); ++i) {
 			ScopedFolderLogging sfl(m_lpLogger, ptrRows[i].lpProps[IDX_DISPLAY_NAME].ulPropTag == PR_DISPLAY_NAME ? ptrRows[i].lpProps[IDX_DISPLAY_NAME].Value.LPSZ : KC_T("<Unnamed>"));
 
 			// If the cleanup action is delete, we don't want to delete a folder that's not empty because it might contain messages that
@@ -1302,14 +1302,13 @@ HRESULT ArchiveControlImpl::AppendFolderEntries(LPMAPIFOLDER lpBase, EntryIDSet 
 		return hr;
 
 	while (true) {
-		SRowSetPtr ptrRows;
-
+		rowset_ptr ptrRows;
 		hr = ptrTable->QueryRows(128, 0, &~ptrRows);
 		if (hr != hrSuccess)
 			return hr;
 		if (ptrRows.empty())
 			break;
-		for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i)
+		for (rowset_ptr::size_type i = 0; i < ptrRows.size(); ++i)
 			lpEntries->insert(ptrRows[i].lpProps[0].Value.bin);
 	}
 	return hrSuccess;

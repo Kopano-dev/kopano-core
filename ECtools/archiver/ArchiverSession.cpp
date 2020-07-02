@@ -430,7 +430,6 @@ HRESULT ArchiverSession::GetUserInfo(const abentryid_t &sEntryId, tstring *lpstr
 HRESULT ArchiverSession::GetGAL(LPABCONT *lppAbContainer)
 {
 	object_ptr<IAddrBook> ptrAdrBook;
-	SRowSetPtr		ptrRows;
 	static constexpr const SizedSPropTagArray(1, sGALProps) = {1, {PR_ENTRYID}};
 	SPropValue sGALPropVal{};
 
@@ -458,6 +457,7 @@ HRESULT ArchiverSession::GetGAL(LPABCONT *lppAbContainer)
 	     .RestrictTable(ptrABRCTable, TBL_BATCH);
 	if (hr != hrSuccess)
 		return hr;
+	rowset_ptr ptrRows;
 	hr = ptrABRCTable->QueryRows(1, 0, &~ptrRows);
 	if (hr != hrSuccess)
 		return hr;

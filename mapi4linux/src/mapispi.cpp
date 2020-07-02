@@ -318,7 +318,6 @@ HRESULT M4LMAPISupport::DoCopyProps(LPCIID lpSrcInterface, void *lpSrcObj,
  * @return MAPI Error code
  */
 HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
-	SRowSetPtr ptrRow;
 	object_ptr<IAddrBook> ptrAddrBook;
 	std::set<std::string> setFilter;
 
@@ -340,7 +339,7 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 	while (true) {
 		ULONG ulObjType;
 		object_ptr<IDistList> ptrDistList;
-		SRowSetPtr ptrMembers;
+		rowset_ptr ptrRow;
 
 		hr = ptrRecipientTable->QueryRows(1, 0L, &~ptrRow);
 		if (hr != hrSuccess)
@@ -386,6 +385,7 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 
 		// Get all recipients in distlist, and add to message.
 		// If another distlist is here, it will expand in the next loop.
+		rowset_ptr ptrMembers;
 		hr = ptrMemberTable->QueryRows(INT_MAX, fMapiUnicode, &~ptrMembers);
 		if (hr != hrSuccess)
 			continue;

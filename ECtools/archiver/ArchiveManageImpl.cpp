@@ -710,7 +710,7 @@ HRESULT ArchiveManageImpl::GetRights(LPMAPIFOLDER lpFolder, unsigned *lpulRights
 	memory_ptr<SPropValue> ptrName;
 	object_ptr<IExchangeModifyTable> ptrACLModifyTable;
 	SPropValue sPropUser;
-	SRowSetPtr ptrRows;
+	rowset_ptr ptrRows;
 	static constexpr const SizedSPropTagArray(1, sptaTableProps) = {1, {PR_MEMBER_RIGHTS}};
 
 	// In an ideal world we would use the user entryid for the restriction.

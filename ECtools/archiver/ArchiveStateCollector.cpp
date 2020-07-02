@@ -67,14 +67,14 @@ HRESULT MailboxDataCollector::CollectData(LPMAPITABLE lpStoreTable)
 	enum {IDX_ENTRYID, IDX_MAILBOX_OWNER_ENTRYID, IDX_STORE_ENTRYIDS, IDX_ITEM_ENTRYIDS, IDX_MAX};
 
 	while (true) {
-		SRowSetPtr ptrRows;
+		rowset_ptr ptrRows;
 		auto hr = lpStoreTable->QueryRows(50, 0, &~ptrRows);
 		if (hr != hrSuccess)
 			return hr;
 		if (ptrRows.size() == 0)
 			break;
 
-		for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
+		for (rowset_ptr::size_type i = 0; i < ptrRows.size(); ++i) {
 			const auto &prop = ptrRows[i].lpProps;
 			bool bComplete = true;
 			abentryid_t userId;
@@ -210,7 +210,6 @@ HRESULT ArchiveStateCollector::PopulateUserList()
 HRESULT ArchiveStateCollector::PopulateFromContainer(LPABCONT lpContainer)
 {
 	SPropValue sPropObjType, sPropDispType;
-	SRowSetPtr ptrRows;
 	static constexpr const SizedSPropTagArray(4, sptaUserProps) =
 		{4, {PR_ENTRYID, PR_ACCOUNT, PR_EC_ARCHIVE_SERVERS,
 		PR_EC_ARCHIVE_COUPLINGS}};
@@ -242,6 +241,7 @@ HRESULT ArchiveStateCollector::PopulateFromContainer(LPABCONT lpContainer)
 		return hr;
 
 	while (true) {
+		rowset_ptr ptrRows;
 		hr = ptrTable->QueryRows(50, 0, &~ptrRows);
 		if (hr != hrSuccess)
 			return hr;
@@ -249,7 +249,7 @@ HRESULT ArchiveStateCollector::PopulateFromContainer(LPABCONT lpContainer)
 		if (ptrRows.size() == 0)
 			break;
 
-		for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
+		for (rowset_ptr::size_type i = 0; i < ptrRows.size(); ++i) {
 			const auto &prop = ptrRows[i].lpProps;
 			if (prop[IDX_ENTRYID].ulPropTag != PR_ENTRYID) {
 				auto err = prop[IDX_ACCOUNT].Value.err;
