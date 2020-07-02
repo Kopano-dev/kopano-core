@@ -61,7 +61,7 @@ HRESULT ArchiverSession::Create(ECConfig *lpConfig,
  *					Pointer to a Session pointer that will be assigned the address of the returned
  *					Session object.
  */
-HRESULT ArchiverSession::Create(const MAPISessionPtr &ptrSession,
+HRESULT ArchiverSession::Create(const object_ptr<IMAPISession> &ptrSession,
     std::shared_ptr<ECLogger> lpLogger, ArchiverSessionPtr *lpptrSession)
 {
 	return ArchiverSession::Create(ptrSession, nullptr, std::move(lpLogger), lpptrSession);
@@ -81,7 +81,7 @@ HRESULT ArchiverSession::Create(const MAPISessionPtr &ptrSession,
  *					Pointer to a ArchiverSession pointer that will be assigned the address of the returned
  *					ArchiverSession object.
  */
-HRESULT ArchiverSession::Create(const MAPISessionPtr &ptrSession,
+HRESULT ArchiverSession::Create(const object_ptr<IMAPISession> &ptrSession,
     ECConfig *lpConfig, std::shared_ptr<ECLogger> lpLogger,
     ArchiverSessionPtr *lpptrSession)
 {
@@ -178,7 +178,8 @@ HRESULT ArchiverSession::Init(const char *lpszServerPath, const char *lpszSslPat
  *					MAPISessionPtr that points to the MAPISession to construct this
  *					ArchiverSession object for.
  */
-HRESULT ArchiverSession::Init(const MAPISessionPtr &ptrSession, const char *lpszSslPath, const char *lpszSslPass)
+HRESULT ArchiverSession::Init(const object_ptr<IMAPISession> &ptrSession,
+    const char *lpszSslPath, const char *lpszSslPass)
 {
 	m_ptrSession = ptrSession;
 	auto hr = HrOpenDefaultStore(m_ptrSession, &~m_ptrAdminStore);

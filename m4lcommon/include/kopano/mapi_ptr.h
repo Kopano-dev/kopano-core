@@ -14,7 +14,6 @@
 
 namespace KC {
 
-typedef object_ptr<IMAPISession> MAPISessionPtr;
 typedef object_ptr<IMAPITable> MAPITablePtr;
 typedef object_ptr<IMailUser> MailUserPtr;
 typedef object_ptr<IMessage> MessagePtr;

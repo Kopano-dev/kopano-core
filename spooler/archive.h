@@ -6,6 +6,7 @@
 #include <mapidefs.h>
 #include <mapix.h>
 #include <kopano/mapi_ptr.h>
+#include <kopano/memory.hpp>
 #include <list>
 #include <memory>
 
@@ -41,6 +42,6 @@ private:
 	Archive(const Archive &) = delete;
 	Archive &operator=(const Archive &) = delete;
 
-	KC::MAPISessionPtr m_ptrSession;
+	KC::object_ptr<IMAPISession> m_ptrSession;
 	KC::tstring m_strErrorMessage;
 };

@@ -68,7 +68,7 @@ private:
 	void push_back(LPSPropValue lpPropAccount);
 
 	std::list<string_type> m_lstUsers;
-	MAPISessionPtr m_ptrSession;
+	object_ptr<IMAPISession> m_ptrSession;
 };
 
 HRESULT	DataCollector::GetRequiredPropTags(LPMAPIPROP /*lpProp*/, LPSPropTagArray *lppPropTagArray) const {
@@ -318,7 +318,7 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 HRESULT GetMailboxDataPerServer(const char *lpszPath, const char *lpSSLKey,
     const char *lpSSLPass, DataCollector *lpCollector)
 {
-	MAPISessionPtr  ptrSessionServer;
+	object_ptr<IMAPISession> ptrSessionServer;
 	auto hr = HrOpenECAdminSession(&~ptrSessionServer, PROJECT_VERSION,
 	          "userutil.cpp:GetMailboxDataPerServer", lpszPath, 0, lpSSLKey,
 	          lpSSLPass);

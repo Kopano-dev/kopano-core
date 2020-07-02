@@ -796,11 +796,11 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 			// try opening the store through the support object, and see if we can get it anyway
 			MsgStorePtr ptrStore;
 			object_ptr<IMAPIGetSession> ptrGetSession;
-			MAPISessionPtr ptrSession;
 
 			hr = m_lpMAPISup->QueryInterface(IID_IMAPIGetSession, &~ptrGetSession);
 			if (hr != hrSuccess)
 				return hr;
+			object_ptr<IMAPISession> ptrSession;
 			hr = ptrGetSession->GetMAPISession(&~ptrSession);
 			if (hr != hrSuccess)
 				return hr;

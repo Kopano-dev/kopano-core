@@ -2136,7 +2136,7 @@ static HRESULT ProcessDeliveryToRecipient(pym_plugin_intf *lppyMapiPlugin,
 
 		// TODO do something with ulResult
 		if (parseBool(g_lpConfig->GetSetting("archive_on_delivery"))) {
-			MAPISessionPtr ptrAdminSession;
+			object_ptr<IMAPISession> ptrAdminSession;
 			ArchivePtr ptrArchive;
 
 			if (bIsAdmin)

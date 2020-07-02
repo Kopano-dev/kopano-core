@@ -519,7 +519,6 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 	sGlobalProfileProps	sProfileProps;
 	std::basic_string<TCHAR> strError;
 	ProfSectPtr ptrGlobalProfSect, ptrProfSect;
-	MAPISessionPtr	ptrSession;
 	object_ptr<WSTransport> lpTransport;
 	memory_ptr<SPropValue> lpsPropValue;
 	memory_ptr<BYTE> lpDelegateStores;
