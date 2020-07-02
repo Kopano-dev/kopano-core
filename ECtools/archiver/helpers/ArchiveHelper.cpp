@@ -79,12 +79,12 @@ HRESULT ArchiveHelper::Create(ArchiverSessionPtr ptrSession,
     const SObjectEntry &archiveEntry, std::shared_ptr<ECLogger> lpLogger,
     ArchiveHelperPtr *lpptrArchiveHelper)
 {
-	MsgStorePtr ptrArchiveStore;
 	ArchiveHelperPtr ptrArchiveHelper;
 
 	if (lpptrArchiveHelper == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
+	object_ptr<IMsgStore> ptrArchiveStore;
 	auto hr = ptrSession->OpenStore(archiveEntry.sStoreEntryId, &~ptrArchiveStore);
 	if (hr != hrSuccess) {
 		if (lpLogger)

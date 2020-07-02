@@ -659,7 +659,7 @@ static HRESULT delete_recipients(IMessage *msg)
 
 HRESULT Copier::DoUpdateArchive(LPMESSAGE lpMessage, const SObjectEntry &archiveMsgEntry, const SObjectEntry &refMsgEntry, TransactionPtr *lpptrTransaction)
 {
-	MsgStorePtr ptrArchiveStore;
+	object_ptr<IMsgStore> ptrArchiveStore;
 	SPropTagArrayPtr ptrPropList;
 	PostSaveActionPtr ptrPSAction;
 	TransactionPtr ptrTransaction;
@@ -707,7 +707,6 @@ HRESULT Copier::DoUpdateArchive(LPMESSAGE lpMessage, const SObjectEntry &archive
 HRESULT Copier::DoMoveArchive(const SObjectEntry &archiveRootEntry, const SObjectEntry &archiveMsgEntry, const SObjectEntry &refMsgEntry, TransactionPtr *lpptrTransaction)
 {
 	object_ptr<IMAPIFolder> ptrArchiveFolder;
-	MsgStorePtr ptrArchiveStore;
 	MAPIPropHelperPtr ptrPropHelper;
 	SPropValuePtr ptrEntryId;
 	SObjectEntry objectEntry;
@@ -717,6 +716,7 @@ HRESULT Copier::DoMoveArchive(const SObjectEntry &archiveRootEntry, const SObjec
 	auto hr = m_ptrHelper->GetArchiveFolder(archiveRootEntry, &~ptrArchiveFolder);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMsgStore> ptrArchiveStore;
 	hr = m_ptrSession->OpenStore(archiveMsgEntry.sStoreEntryId, &~ptrArchiveStore);
 	if (hr != hrSuccess)
 		return hr;
@@ -808,7 +808,6 @@ HRESULT Copier::ExecuteSubOperations(IMessage *lpMessage,
 HRESULT Copier::MoveToHistory(const SObjectEntry &sourceArchiveRoot, const SObjectEntry &sourceMsgEntry, TransactionPtr ptrTransaction, SObjectEntry *lpNewEntry, LPMESSAGE *lppNewMessage)
 {
 	ArchiveHelperPtr ptrArchiveHelper;
-	MsgStorePtr ptrArchiveStore;
 	SPropValuePtr ptrEntryID;
 
 	auto hr = ArchiveHelper::Create(m_ptrSession, sourceArchiveRoot, Logger(), &ptrArchiveHelper);
@@ -818,6 +817,7 @@ HRESULT Copier::MoveToHistory(const SObjectEntry &sourceArchiveRoot, const SObje
 	hr = ptrArchiveHelper->GetHistoryFolder(&~ptrHistoryFolder);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMsgStore> ptrArchiveStore;
 	hr = m_ptrSession->OpenStore(sourceMsgEntry.sStoreEntryId, &~ptrArchiveStore);
 	if (hr != hrSuccess)
 		return hr;

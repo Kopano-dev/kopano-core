@@ -895,7 +895,6 @@ static HRESULT print_archive_details(LPMAPISESSION lpSession,
 {
 	ULONG cbArchiveId = 0;
 	EntryIdPtr ptrArchiveId;
-	MsgStorePtr ptrArchive;
 	SPropValuePtr ptrArchiveSize;
 
 	auto hr = ptrServiceAdmin->GetArchiveStoreEntryID(LPCTSTR(lpszName), nullptr, 0, &cbArchiveId, &~ptrArchiveId);
@@ -903,6 +902,7 @@ static HRESULT print_archive_details(LPMAPISESSION lpSession,
 		cerr << "No archive found for user '" << lpszName << "'." << endl;
 		return hr;
 	}
+	object_ptr<IMsgStore> ptrArchive;
 	hr = lpSession->OpenMsgStore(0, cbArchiveId, ptrArchiveId, &iid_of(ptrArchive), 0, &~ptrArchive);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to open archive", hr);
@@ -1117,13 +1117,13 @@ static HRESULT print_details(LPMAPISESSION lpSession,
 	if (lpArchiveServers == nullptr || lpArchiveServers->cValues == 0)
 		return hr;
 
-	MsgStorePtr ptrAdminStore;
+	object_ptr<IMsgStore> ptrAdminStore;
 	hr = lpServiceAdmin->QueryInterface(IID_IMsgStore, &~ptrAdminStore);
 	if (hr != hrSuccess)
 		return hr;
 
 	for (int i = 0; i < lpArchiveServers->cValues; ++i) {
-		MsgStorePtr ptrRemoteAdminStore;
+		object_ptr<IMsgStore> ptrRemoteAdminStore;
 		SPropValuePtr ptrPropValue;
 
 		cout << "Archive details on node '" << (LPSTR)lpArchiveServers->lpszValues[i] << "':" << endl;
@@ -1269,7 +1269,6 @@ static HRESULT ForceResyncFor(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 	object_ptr<IExchangeManageStore> ptrEMS;
 	unsigned int cbEntryID = 0;
 	EntryIdPtr ptrEntryID;
-	MsgStorePtr ptrUserStore;
 	SPropValuePtr ptrPropResyncID;
 
 	auto hr = lpAdminStore->QueryInterface(iid_of(ptrEMS), &~ptrEMS);
@@ -1278,6 +1277,7 @@ static HRESULT ForceResyncFor(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 	hr = ptrEMS->CreateStoreEntryID(reinterpret_cast<const TCHAR *>(lpszHomeMDB), reinterpret_cast<const TCHAR *>(lpszAccount), 0, &cbEntryID, &~ptrEntryID);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMsgStore> ptrUserStore;
 	hr = lpSession->OpenMsgStore(0, cbEntryID, ptrEntryID, NULL, MDB_WRITE|MAPI_DEFERRED_ERRORS, &~ptrUserStore);
 	if (hr != hrSuccess)
 		return hr;
@@ -1549,7 +1549,6 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 	object_ptr<IExchangeManageStore> ptrEMS;
 	unsigned int cbEntryID, ulUpdates = 0, ulTotalUpdates = 0;
 	EntryIdPtr ptrEntryID;
-	MsgStorePtr ptrUserStore;
 	SPropValuePtr ptrPropEntryID;
 	bool bFailures = false;
 	SRowSetPtr ptrRows;
@@ -1563,6 +1562,7 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 	hr = ptrEMS->CreateStoreEntryID(nullptr, reinterpret_cast<const TCHAR *>(lpszAccount), 0, &cbEntryID, &~ptrEntryID);
 	if (hr != hrSuccess)
 		return hr_lerr(hr, "Unable to resolve store for \"%s\"", lpszAccount);
+	object_ptr<IMsgStore> ptrUserStore;
 	hr = lpSession->OpenMsgStore(0, cbEntryID, ptrEntryID, nullptr, MDB_WRITE, &~ptrUserStore);
 	if (hr != hrSuccess)
 		return hr_lerr(hr, "Unable to open store for \"%s\"", lpszAccount);
@@ -2451,7 +2451,7 @@ int main(int argc, char **argv)
 	}
 
 	if (node != NULL && *node != '\0') {
-		MsgStorePtr ptrRemoteStore;
+		object_ptr<IMsgStore> ptrRemoteStore;
 
 		hr = HrGetRemoteAdminStore(lpSession, lpMsgStore, (LPTSTR)node, 0, &~ptrRemoteStore);
 		if (hr != hrSuccess) {

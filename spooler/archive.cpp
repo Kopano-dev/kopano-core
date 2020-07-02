@@ -62,7 +62,6 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
 	HRESULT hr = hrSuccess;
 	unsigned int cMsgProps, ulType;
 	SPropArrayPtr ptrMsgProps;
-	MsgStorePtr ptrStore;
 	StoreHelperPtr ptrStoreHelper;
 	SObjectEntry refMsgEntry;
 	ObjectEntryList lstArchives, lstReferences;
@@ -89,6 +88,8 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
 		return kc_pwarn("Archive::HrArchiveMessageForDelivery(): GetProps failed", hr);
 	refMsgEntry.sStoreEntryId = ptrMsgProps[IDX_STORE_ENTRYID].Value.bin;
 	refMsgEntry.sItemEntryId = ptrMsgProps[IDX_ENTRYID].Value.bin;
+
+	object_ptr<IMsgStore> ptrStore;
 	hr = m_ptrSession->OpenMsgStore(0, ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.cb,
 	     reinterpret_cast<ENTRYID *>(ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.lpb),
 	     &iid_of(ptrStore), MDB_WRITE, &~ptrStore);
@@ -176,7 +177,6 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 	HRESULT hr = hrSuccess;
 	ULONG cMsgProps;
 	SPropArrayPtr ptrMsgProps;
-	MsgStorePtr ptrStore;
 	StoreHelperPtr ptrStoreHelper;
 	ObjectEntryList lstArchives;
 	ArchiverSessionPtr ptrSession;
@@ -197,6 +197,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 	hr = lpMessage->GetProps(sptaMessageProps, 0, &cMsgProps, &~ptrMsgProps);
 	if (hr != hrSuccess)
 		return kc_pwarn("Archive::HrArchiveMessageForSending(): GetProps failed", hr);
+	object_ptr<IMsgStore> ptrStore;
 	hr = m_ptrSession->OpenMsgStore(0, ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.cb,
 	     reinterpret_cast<ENTRYID *>(ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.lpb),
 	     &iid_of(ptrStore), 0, &~ptrStore);

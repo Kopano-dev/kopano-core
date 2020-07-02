@@ -793,7 +793,6 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		if (hr == MAPI_E_NOT_FOUND) {
 			// the folder is most likely in a store that is not yet available through this MAPI session
 			// try opening the store through the support object, and see if we can get it anyway
-			MsgStorePtr ptrStore;
 			object_ptr<IMAPIGetSession> ptrGetSession;
 
 			hr = m_lpMAPISup->QueryInterface(IID_IMAPIGetSession, &~ptrGetSession);
@@ -814,6 +813,7 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 			}
 			if (i == m_lpFolders->cend())
 				return MAPI_E_NOT_FOUND;
+			object_ptr<IMsgStore> ptrStore;
 			hr = ptrSession->OpenMsgStore(0, i->cbStore, reinterpret_cast<ENTRYID *>(i->lpStore), nullptr, 0, &~ptrStore);
 			if (hr != hrSuccess)
 				return hr;

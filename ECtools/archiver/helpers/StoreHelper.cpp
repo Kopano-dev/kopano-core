@@ -41,7 +41,7 @@ const StoreHelper::search_folder_info_t StoreHelper::s_infoSearchFolders[] = {
  *					Pointer to a StoreHelperPtr that will be assigned the address
  *					of the new StoreHelper object.
  */
-HRESULT StoreHelper::Create(MsgStorePtr &ptrMsgStore, StoreHelperPtr *lpptrStoreHelper)
+HRESULT StoreHelper::Create(object_ptr<IMsgStore> &ptrMsgStore, StoreHelperPtr *lpptrStoreHelper)
 {
 	StoreHelperPtr ptrStoreHelper(new(std::nothrow) StoreHelper(ptrMsgStore));
 	if (ptrStoreHelper == nullptr)
@@ -53,7 +53,7 @@ HRESULT StoreHelper::Create(MsgStorePtr &ptrMsgStore, StoreHelperPtr *lpptrStore
 	return hrSuccess;
 }
 
-StoreHelper::StoreHelper(MsgStorePtr &st) :
+StoreHelper::StoreHelper(object_ptr<IMsgStore> &st) :
 	MAPIPropHelper(st), m_ptrMsgStore(st), m_propmap(8)
 { }
 

@@ -140,7 +140,6 @@ eResult ArchiveManageImpl::AttachTo(const char *lpszArchiveServer, const TCHAR *
 
 HRESULT ArchiveManageImpl::AttachTo(const char *lpszArchiveServer, const TCHAR *lpszArchive, const TCHAR *lpszFolder, unsigned ulFlags, AttachType attachType)
 {
-	MsgStorePtr ptrArchiveStore;
 	tstring strFoldername;
 	abentryid_t sUserEntryId;
 	ArchiverSessionPtr ptrArchiveSession(m_ptrSession), ptrRemoteSession;
@@ -168,6 +167,7 @@ HRESULT ArchiveManageImpl::AttachTo(const char *lpszArchiveServer, const TCHAR *
 		ptrArchiveSession = ptrRemoteSession;
 	}
 	// Find the requested archive.
+	object_ptr<IMsgStore> ptrArchiveStore;
 	hr = ptrArchiveSession->OpenStoreByName(lpszArchive, &~ptrArchiveStore);
 	if (hr != hrSuccess) {
 		m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Failed to open archive store \"" TSTRING_PRINTF "\": %s (%x)",
@@ -317,7 +317,6 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
 	entryid_t sUserEntryId;
 	StoreHelperPtr ptrStoreHelper;
 	ObjectEntryList lstArchives;
-	MsgStorePtr ptrArchiveStore;
 	ArchiveHelperPtr ptrArchiveHelper;
 	SPropValuePtr ptrArchiveStoreEntryId;
 	SPropValuePtr ptrDisplayName;
@@ -345,6 +344,7 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
 		ptrArchiveSession = ptrRemoteSession;
 	}
 
+	object_ptr<IMsgStore> ptrArchiveStore;
 	hr = ptrArchiveSession->OpenStoreByName(lpszArchive, &~ptrArchiveStore);
 	if (hr != hrSuccess) {
 		m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Failed to open archive store \"" TSTRING_PRINTF "\": %s (%x)",
@@ -505,7 +505,6 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 	StoreHelperPtr ptrStoreHelper;
 	bool bAclCapable = true;
 	ObjectEntryList lstArchives;
-	MsgStorePtr ptrArchiveStore;
 	ULONG ulType = 0;
 	ArchiveList lstEntries;
 
@@ -529,6 +528,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 
 		entry.Rights = ARCHIVE_RIGHTS_UNKNOWN;
 
+		object_ptr<IMsgStore> ptrArchiveStore;
 		auto hrTmp = m_ptrSession->OpenStore(arc.sStoreEntryId, &~ptrArchiveStore);
 		if (hrTmp != hrSuccess) {
 			m_lpLogger->perr("Failed to open store", hrTmp);

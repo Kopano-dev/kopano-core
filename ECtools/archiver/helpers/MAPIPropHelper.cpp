@@ -130,7 +130,6 @@ HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageSt
 		ObjectEntryList lstArchives;
 		MAPIPropHelperPtr ptrArchiveHelper;
 		SObjectEntry refEntry;
-		MsgStorePtr ptrStore;
 
 		hr = GetArchiveList(&lstArchives, true);
 		if (hr != hrSuccess)
@@ -138,7 +137,7 @@ HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageSt
 
 		object_ptr<IMessage> ptrArchiveMsg;
 		for (const auto &arc : lstArchives) {
-			MsgStorePtr ptrArchiveStore;
+			object_ptr<IMsgStore> ptrArchiveStore;
 			auto hrTmp = ptrSession->OpenReadOnlyStore(arc.sStoreEntryId, &~ptrArchiveStore);
 			if (hrTmp != hrSuccess)
 				continue;
@@ -166,6 +165,7 @@ HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageSt
 			hr = ptrArchiveHelper->GetReference(&refEntry);
 			if (hr != hrSuccess)
 				return hr;
+			object_ptr<IMsgStore> ptrStore;
 			hr = ptrSession->OpenReadOnlyStore(refEntry.sStoreEntryId, &~ptrStore);
 			if (hr != hrSuccess)
 				return hr;
@@ -444,11 +444,11 @@ HRESULT MAPIPropHelper::OpenPrevious(ArchiverSessionPtr ptrSession, LPMESSAGE *l
 	     &iid_of(ptrMessage), MAPI_MODIFY, nullptr, &~ptrMessage);
 	if (hr == MAPI_E_NOT_FOUND) {
 		SPropValuePtr ptrStoreEntryID;
-		MsgStorePtr ptrStore;
 
 		hr = HrGetOneProp(m_ptrMapiProp, PR_STORE_ENTRYID, &~ptrStoreEntryID);
 		if (hr != hrSuccess)
 			return hr;
+		object_ptr<IMsgStore> ptrStore;
 		hr = ptrSession->OpenStore(ptrStoreEntryID->Value.bin, &~ptrStore);
 		if (hr != hrSuccess)
 			return hr;
@@ -503,7 +503,6 @@ HRESULT MAPIPropHelper::DetachFromArchives()
 HRESULT MAPIPropHelper::GetParentFolder(ArchiverSessionPtr ptrSession, LPMAPIFOLDER *lppFolder)
 {
 	SPropArrayPtr ptrPropArray;
-	MsgStorePtr ptrMsgStore;
 	unsigned int cValues = 0;
 	static constexpr const SizedSPropTagArray(2, sptaProps) =
 		{2, {PR_PARENT_ENTRYID, PR_STORE_ENTRYID}};
@@ -514,6 +513,7 @@ HRESULT MAPIPropHelper::GetParentFolder(ArchiverSessionPtr ptrSession, LPMAPIFOL
 	auto hr = m_ptrMapiProp->GetProps(sptaProps, 0, &cValues, &~ptrPropArray);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMsgStore> ptrMsgStore;
 	hr = ptrSession->OpenStore(ptrPropArray[1].Value.bin, &~ptrMsgStore);
 	if (hr != hrSuccess)
 		return hr;

@@ -3402,7 +3402,6 @@ HRESULT Util::HrDeleteMessage(IMAPISession *lpSession, IMessage *lpMessage)
 {
 	ULONG cMsgProps;
 	SPropArrayPtr ptrMsgProps;
-	MsgStorePtr ptrStore;
 	ULONG ulType;
 	ENTRYLIST entryList = {1, NULL};
 	static constexpr const SizedSPropTagArray(3, sptaMessageProps) =
@@ -3412,6 +3411,7 @@ HRESULT Util::HrDeleteMessage(IMAPISession *lpSession, IMessage *lpMessage)
 	HRESULT hr = lpMessage->GetProps(sptaMessageProps, 0, &cMsgProps, &~ptrMsgProps);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMsgStore> ptrStore;
 	hr = lpSession->OpenMsgStore(0, ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.cb,
 	     reinterpret_cast<ENTRYID *>(ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.lpb),
 	     &iid_of(ptrStore), MDB_WRITE, &~ptrStore);

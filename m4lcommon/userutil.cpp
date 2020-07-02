@@ -186,7 +186,6 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 {
 	EntryIdPtr		ptrDDEntryID;
 	SRowSetPtr		ptrRows;
-	MsgStorePtr		ptrStore;
 	unsigned int ulObj = 0, cbDDEntryID = 0, ulCompanyCount = 0;
 	std::set<servername>	listServers;
 	convert_context		converter;
@@ -247,6 +246,7 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 			return kc_perror("Unable to create server list", hr);
 	}
 
+	object_ptr<IMsgStore> ptrStore;
 	hr = HrOpenDefaultStore(lpMapiSession, &~ptrStore);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to open default store", hr);
@@ -341,7 +341,7 @@ HRESULT GetMailboxDataPerServer(const char *lpszPath, const char *lpSSLKey,
 HRESULT GetMailboxDataPerServer(IMAPISession *lpSession, const char *lpszPath,
     DataCollector *lpCollector)
 {
-	MsgStorePtr		ptrStoreAdmin;
+	object_ptr<IMsgStore> ptrStoreAdmin;
 	SPropTagArrayPtr ptrPropTagArray;
 	SRestrictionPtr ptrRestriction;
 

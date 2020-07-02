@@ -340,7 +340,6 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
 			break;
 
 		for (i = 0; i < lpRowSet->cRows; ++i) {
-			MsgStorePtr ptrStore;
 			auto lpUsername  = lpRowSet[i].cfind(PR_EC_USERNAME_A);
 			auto lpStoreSize = lpRowSet[i].cfind(PR_MESSAGE_SIZE_EXTENDED);
 			auto lpQuotaWarn = lpRowSet[i].cfind(PR_QUOTA_WARNING_THRESHOLD);
@@ -375,6 +374,7 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
 				++m_ulFailed;
 				continue;
 			}
+			object_ptr<IMsgStore> ptrStore;
 			hr = OpenUserStore(lpsUserList[u].lpszUsername, ACTIVE_USER, &~ptrStore);
 			if (hr != hrSuccess)
 				continue;
@@ -834,7 +834,7 @@ HRESULT ECQuotaMonitor::OpenUserStore(LPTSTR szStoreName, objectclass_t objclass
 	object_ptr<IExchangeManageStore> ptrEMS;
 	ULONG cbUserStoreEntryID = 0;
 	EntryIdPtr ptrUserStoreEntryID;
-	MsgStorePtr ptrStore;
+	object_ptr<IMsgStore> ptrStore;
 
 	auto hr = m_lpMDBAdmin->QueryInterface(IID_IExchangeManageStore, &~ptrEMS);
 	if (hr != hrSuccess)
@@ -1020,7 +1020,6 @@ HRESULT ECQuotaMonitor::Notify(ECUSER *lpecUser, ECCOMPANY *lpecCompany,
     ECQUOTASTATUS *lpecQuotaStatus, LPMDB lpStore)
 {
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
-	MsgStorePtr ptrRecipStore;
 	object_ptr<IMessage> ptrQuotaTSMessage;
 	bool bTimeout;
 	memory_ptr<SPropValue> lpsObject;
@@ -1095,6 +1094,7 @@ HRESULT ECQuotaMonitor::Notify(ECUSER *lpecUser, ECCOMPANY *lpecCompany,
 				ec_log_err("No quota recipients for over quota company \"%s\"", reinterpret_cast<const char *>(lpecCompany->lpszCompanyname));
 			continue;
 		}
+		object_ptr<IMsgStore> ptrRecipStore;
 		if (OpenUserStore(lpToUsers[i].lpszUsername, sVars.ulClass, &~ptrRecipStore) != hrSuccess)
 			continue;
 		CreateQuotaWarningMail(&sVars, ptrRecipStore, &lpToUsers[i], lpecFromUser, lpAddrList);

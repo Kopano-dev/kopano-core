@@ -65,7 +65,7 @@ HRESULT Transaction::PurgeDeletes(ArchiverSessionPtr ptrSession, TransactionPtr 
 			hrTmp = lpSession->OpenEntry(obj.objectEntry.sItemEntryId.size(), obj.objectEntry.sItemEntryId,
 			        &iid_of(ptrMessage), 0, nullptr, &~ptrMessage);
 			if (hrTmp == MAPI_E_NOT_FOUND) {
-				MsgStorePtr ptrStore;
+				object_ptr<IMsgStore> ptrStore;
 
 				// Try to open the message on the store
 				hrTmp = ptrSession->OpenStore(obj.objectEntry.sStoreEntryId, &~ptrStore);

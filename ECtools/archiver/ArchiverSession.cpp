@@ -207,7 +207,6 @@ HRESULT ArchiverSession::Init(const object_ptr<IMAPISession> &ptrSession,
 HRESULT ArchiverSession::OpenStoreByName(const tstring &strUser, LPMDB *lppMsgStore)
 {
 	object_ptr<IExchangeManageStore> ptrEMS;
-	MsgStorePtr ptrUserStore;
 	ULONG cbEntryId = 0;
 	EntryIdPtr ptrEntryId;
 
@@ -222,6 +221,7 @@ HRESULT ArchiverSession::OpenStoreByName(const tstring &strUser, LPMDB *lppMsgSt
 			strUser.c_str(), GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
+	object_ptr<IMsgStore> ptrUserStore;
 	hr = m_ptrSession->OpenMsgStore(0, cbEntryId, ptrEntryId, &iid_of(ptrUserStore), MDB_WRITE | fMapiDeferredErrors | MDB_NO_MAIL | MDB_TEMPORARY, &~ptrUserStore);
 	if (hr != hrSuccess) {
 		m_lpLogger->logf(EC_LOGLEVEL_INFO, "Failed to open store for user \"" TSTRING_PRINTF "\": %s (%x)",
@@ -245,7 +245,7 @@ HRESULT ArchiverSession::OpenStoreByName(const tstring &strUser, LPMDB *lppMsgSt
  */
 HRESULT ArchiverSession::OpenStore(const entryid_t &sEntryId, ULONG ulFlags, LPMDB *lppMsgStore)
 {
-	MsgStorePtr ptrUserStore;
+	object_ptr<IMsgStore> ptrUserStore;
 	ArchiverSessionPtr ptrSession;
 
 	if (!sEntryId.isWrapped()) {
@@ -319,7 +319,7 @@ HRESULT ArchiverSession::OpenReadOnlyStore(const entryid_t &sEntryId, LPMDB *lpp
  */
 HRESULT ArchiverSession::GetUserInfo(const tstring &strUser, abentryid_t *lpsEntryId, tstring *lpstrFullname, bool *lpbAclCapable)
 {
-	MsgStorePtr ptrStore;
+	object_ptr<IMsgStore> ptrStore;
 	ULONG cbEntryId = 0;
 	EntryIdPtr ptrEntryId;
 
@@ -575,11 +575,11 @@ HRESULT ArchiverSession::OpenOrCreateArchiveStore(const tstring& strUserName, co
 	object_ptr<IECServiceAdmin> ptrServiceAdmin;
 	ULONG cbStoreId;
 	EntryIdPtr ptrStoreId;
-	MsgStorePtr ptrArchiveStore;
 
 	auto hr = m_ptrAdminStore->QueryInterface(iid_of(ptrServiceAdmin), &~ptrServiceAdmin);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMsgStore> ptrArchiveStore;
 	hr = ptrServiceAdmin->GetArchiveStoreEntryID(strUserName.c_str(), strServerName.c_str(), fMapiUnicode, &cbStoreId, &~ptrStoreId);
 	if (hr == hrSuccess)
 		hr = m_ptrSession->OpenMsgStore(0, cbStoreId, ptrStoreId, &iid_of(ptrArchiveStore), MDB_WRITE, &~ptrArchiveStore);
@@ -611,7 +611,6 @@ HRESULT ArchiverSession::GetArchiveStoreEntryId(const tstring& strUserName, cons
 
 HRESULT ArchiverSession::CreateArchiveStore(const tstring& strUserName, const tstring& strServerName, LPMDB *lppArchiveStore)
 {
-	MsgStorePtr ptrRemoteAdminStore, ptrArchiveStore;
 	abentryid_t userId;
 	unsigned int cbStoreId = 0, cbRootId = 0;
 	EntryIdPtr ptrStoreId, ptrRootId;
@@ -620,6 +619,7 @@ HRESULT ArchiverSession::CreateArchiveStore(const tstring& strUserName, const ts
 	auto hr = GetUserInfo(strUserName, &userId, nullptr, nullptr);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMsgStore> ptrRemoteAdminStore, ptrArchiveStore;
 	hr = HrGetRemoteAdminStore(m_ptrSession, m_ptrAdminStore, strServerName.c_str(), fMapiUnicode, &~ptrRemoteAdminStore);
 	if (hr != hrSuccess)
 		return hr;

@@ -56,7 +56,7 @@ public:
 
 	HRESULT GetArchiveFolder(bool bCreate, LPMAPIFOLDER *lppArchiveFolder);
 	KC_HIDDEN HRESULT IsArchiveFolder(IMAPIFolder *, bool *res);
-	KC_HIDDEN MsgStorePtr GetMsgStore() const { return m_ptrArchiveStore; }
+	KC_HIDDEN object_ptr<IMsgStore> GetMsgStore() const { return m_ptrArchiveStore; }
 	KC_HIDDEN HRESULT PrepareForFirstUse(ECLogger * = nullptr);
 
 private:
@@ -76,7 +76,7 @@ private:
 	KC_HIDDEN HRESULT CreateSpecialFolder(eSpecFolder sf_which, IMAPIFolder **spc_folder);
 	KC_HIDDEN HRESULT IsSpecialFolder(eSpecFolder sf_which, IMAPIFolder *, bool *res);
 
-	MsgStorePtr	m_ptrArchiveStore;
+	object_ptr<IMsgStore> m_ptrArchiveStore;
 	object_ptr<IMAPIFolder> m_ptrArchiveFolder;
 	tstring	m_strFolder;
 	const std::string m_strServerPath;

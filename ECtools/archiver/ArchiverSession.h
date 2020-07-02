@@ -50,7 +50,7 @@ private:
 	KC_HIDDEN HRESULT CreateArchiveStore(const tstring &user, const tstring &server, IMsgStore **arc_store);
 
 	object_ptr<IMAPISession> m_ptrSession;
-	MsgStorePtr		m_ptrAdminStore;
+	object_ptr<IMsgStore> m_ptrAdminStore;
 	std::shared_ptr<ECLogger> m_lpLogger;
 	std::string m_strSslPath, m_strSslPass;
 };

@@ -125,7 +125,7 @@ private:
 	HRESULT ProcessFolder(object_ptr<IMAPIFolder> &, operations::ArchiveOperationPtr ptrArchiveOperation);
 	HRESULT ProcessAll(bool bLocalOnly, fnProcess_t fnProcess);
 	HRESULT PurgeArchives(const ObjectEntryList &lstArchives);
-	HRESULT PurgeArchiveFolder(MsgStorePtr &ptrArchive, const entryid_t &folderEntryID, const LPSRestriction lpRestriction);
+	HRESULT PurgeArchiveFolder(object_ptr<IMsgStore> &archive, const entryid_t &folder, const SRestriction *);
 	HRESULT CleanupArchive(const SObjectEntry &archiveEntry, IMsgStore* lpUserStore, LPSRestriction lpRestriction);
 	HRESULT GetAllReferences(IMsgStore *store, const GUID *archive, EntryIDSet *refs);
 	HRESULT AppendAllReferences(IMAPIFolder *root, const GUID *archive, EntryIDSet *refs);

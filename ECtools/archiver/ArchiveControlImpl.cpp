@@ -295,7 +295,7 @@ HRESULT ArchiveControlImpl::DoArchive(const tstring& strUser)
 	if (strUser.empty())
 		return MAPI_E_INVALID_PARAMETER;
 
-	MsgStorePtr ptrUserStore;
+	object_ptr<IMsgStore> ptrUserStore;
 	StoreHelperPtr ptrStoreHelper;
 	ObjectEntryList lstArchives;
 	bool bHaveErrors = false;
@@ -427,7 +427,6 @@ HRESULT ArchiveControlImpl::DoArchive(const tstring& strUser)
  */
 HRESULT ArchiveControlImpl::DoCleanup(const tstring &strUser)
 {
-	MsgStorePtr ptrUserStore;
 	StoreHelperPtr ptrStoreHelper;
 	ObjectEntryList lstArchives;
 	SRestrictionPtr ptrRestriction;
@@ -458,6 +457,7 @@ HRESULT ArchiveControlImpl::DoCleanup(const tstring &strUser)
 			return hr;
 	}
 
+	object_ptr<IMsgStore> ptrUserStore;
 	auto hr = m_ptrSession->OpenStoreByName(strUser, &~ptrUserStore);
 	if (hr != hrSuccess)
 		return m_lpLogger->perr("Failed to open store", hr);
@@ -594,7 +594,7 @@ HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
 		return hr;
 
 	for (const auto &arc : lstArchives) {
-		MsgStorePtr ptrArchiveStore;
+		object_ptr<IMsgStore> ptrArchiveStore;
 		SRowSetPtr ptrFolderRows;
 
 		hr = m_ptrSession->OpenStore(arc.sStoreEntryId, &~ptrArchiveStore);
@@ -672,7 +672,8 @@ HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
  * @param[in]	folderEntryID	The entryid of the folder to purge.
  * @param[in]	lpRestriction	The restriction to use to determine which messages to delete.
  */
-HRESULT ArchiveControlImpl::PurgeArchiveFolder(MsgStorePtr &ptrArchive, const entryid_t &folderEntryID, const LPSRestriction lpRestriction)
+HRESULT ArchiveControlImpl::PurgeArchiveFolder(object_ptr<IMsgStore> &ptrArchive,
+    const entryid_t &folderEntryID, const SRestriction *lpRestriction)
 {
 	object_ptr<IMAPIFolder> ptrFolder;
 	std::list<entryid_t> lstEntries;

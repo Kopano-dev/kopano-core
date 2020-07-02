@@ -14,7 +14,6 @@
 
 namespace KC {
 
-typedef object_ptr<IMsgStore> MsgStorePtr;
 typedef object_ptr<IStream> StreamPtr;
 typedef object_ptr<IAttach> AttachPtr;
 

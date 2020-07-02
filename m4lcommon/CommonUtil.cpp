@@ -2187,7 +2187,6 @@ HRESULT HrGetRemoteAdminStore(IMAPISession *lpMAPISession, IMsgStore *lpMsgStore
 {
 	ULONG cbStoreId;
 	EntryIdPtr ptrStoreId;
-	MsgStorePtr ptrMsgStore;
 
 	if (lpMAPISession == NULL || lpMsgStore == NULL ||
 	    lpszServerName == NULL || (ulFlags & ~(MAPI_UNICODE | MDB_WRITE)) ||
@@ -2206,6 +2205,7 @@ HRESULT HrGetRemoteAdminStore(IMAPISession *lpMAPISession, IMsgStore *lpMsgStore
 	}
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMsgStore> ptrMsgStore;
 	hr = lpMAPISession->OpenMsgStore(0, cbStoreId, ptrStoreId, &iid_of(ptrMsgStore), ulFlags & MDB_WRITE, &~ptrMsgStore);
 	if (hr != hrSuccess)
 		return hr;
