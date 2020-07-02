@@ -1300,7 +1300,7 @@ static HRESULT ForceResyncFor(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 
 static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 {
-	AddrBookPtr		ptrAdrBook;
+	object_ptr<IAddrBook> ptrAdrBook;
 	MAPITablePtr	ptrTable;
 	SRowSetPtr	ptrRows;
 	bool			bFail = false;

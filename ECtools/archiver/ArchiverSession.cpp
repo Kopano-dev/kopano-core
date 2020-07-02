@@ -428,7 +428,7 @@ HRESULT ArchiverSession::GetUserInfo(const abentryid_t &sEntryId, tstring *lpstr
  */
 HRESULT ArchiverSession::GetGAL(LPABCONT *lppAbContainer)
 {
-	AddrBookPtr		ptrAdrBook;
+	object_ptr<IAddrBook> ptrAdrBook;
 	MAPITablePtr	ptrABRCTable;
 	SRowSetPtr		ptrRows;
 	static constexpr const SizedSPropTagArray(1, sGALProps) = {1, {PR_ENTRYID}};

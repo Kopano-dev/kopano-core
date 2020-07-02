@@ -184,7 +184,6 @@ HRESULT GetArchivedUserList(IMAPISession *lpMapiSession, const char *lpSSLKey,
 HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
     const char *lpSSLPass, bool bLocalOnly, DataCollector *lpCollector)
 {
-	AddrBookPtr		ptrAdrBook;
 	EntryIdPtr		ptrDDEntryID;
 	MAPITablePtr	ptrHierarchyTable;
 	SRowSetPtr		ptrRows;
@@ -199,6 +198,7 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 
 	if (lpMapiSession == nullptr || lpCollector == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
+	object_ptr<IAddrBook> ptrAdrBook;
 	auto hr = lpMapiSession->OpenAddressBook(0, &IID_IAddrBook, 0, &~ptrAdrBook);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to open addressbook", hr);

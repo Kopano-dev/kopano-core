@@ -320,7 +320,7 @@ HRESULT M4LMAPISupport::DoCopyProps(LPCIID lpSrcInterface, void *lpSrcObj,
 HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 	MAPITablePtr ptrRecipientTable;
 	SRowSetPtr ptrRow;
-	AddrBookPtr ptrAddrBook;
+	object_ptr<IAddrBook> ptrAddrBook;
 	std::set<std::string> setFilter;
 	SPropTagArrayPtr ptrColumns;
 
