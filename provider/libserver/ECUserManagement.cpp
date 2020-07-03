@@ -34,6 +34,7 @@
 #include "ECFeatureList.h"
 #include <kopano/EMSAbTag.h>
 #include <kopano/charset/convert.h>
+#include <kopano/fileutil.hpp>
 #ifndef AB_UNICODE_OK
 #define AB_UNICODE_OK ((ULONG) 0x00000040)
 #endif
@@ -46,13 +47,13 @@ namespace KC {
 static const ABEID_FIXED abcont_1(MAPI_ABCONT, MUIDECSAB, 1);
 static const ABEID_FIXED abcont_uab(MAPI_ABCONT, MUIDECSAB, KOPANO_UID_ADDRESS_BOOK);
 
-static void execute_script(const char *scriptname, ...)
+static void execute_script(const char *scriptname, const char *subdir, ...)
 {
 	va_list v;
 	std::vector<const char *> env;
 	std::list<std::string> lstEnv;
 
-	va_start(v, scriptname);
+	va_start(v, subdir);
 	/* Set environment */
 	for (auto el = environ; *el != NULL; ++el)
 		lstEnv.emplace_back(*el);
@@ -67,11 +68,23 @@ static void execute_script(const char *scriptname, ...)
 	}
 	va_end(v);
 
-	ec_log_debug("Running script `%s`", scriptname);
 	for (const auto &s : lstEnv)
 		env.push_back(s.c_str());
 	env.push_back(nullptr);
-	unix_system(scriptname, {scriptname}, &env[0]);
+
+	if (strcmp(scriptname, "internal") != 0) {
+		ec_log_debug("Running program `%s`", scriptname);
+		unix_system(scriptname, {scriptname}, env.data());
+		return;
+	}
+	auto st = dexec_scan({USCRIPTDIR + "/"s + subdir, USCRIPTLDIR + "/"s + subdir});
+	for (const auto &w : st.warnings)
+		ec_log_notice("%s", w.c_str());
+	st.warnings.clear();
+	for (const auto &pair : st.prog) {
+		ec_log_debug("Running program `%s`", pair.second.c_str());
+		unix_system(pair.first.c_str(), {pair.second.c_str()}, env.data());
+	}
 }
 
 static const char *ObjectClassToName(objectclass_t objclass)
@@ -2184,7 +2197,8 @@ ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature,
 		strUserServer = details.GetPropString(OB_PROP_S_SERVERNAME);
 		if (bDistributed && strcasecmp(strUserServer.c_str(), strThisServer.c_str()) != 0)
 			break;
-		execute_script(script, "KOPANO_USER", details.GetPropString(OB_PROP_S_LOGIN).c_str(), nullptr);
+		execute_script(script, "createuser.d", "KOPANO_USER",
+			details.GetPropString(OB_PROP_S_LOGIN).c_str(), nullptr);
 		break;
 	}
 	case DISTLIST_GROUP:
@@ -2192,7 +2206,8 @@ ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature,
 		auto script = m_lpConfig->GetSetting("creategroup_script");
 		if (*script == '\0')
 			break;
-		execute_script(script, "KOPANO_GROUP", details.GetPropString(OB_PROP_S_LOGIN).c_str(), nullptr);
+		execute_script(script, "creategroup.d", "KOPANO_GROUP",
+			details.GetPropString(OB_PROP_S_LOGIN).c_str(), nullptr);
 		break;
 	}
 	case CONTAINER_COMPANY: {
@@ -2202,7 +2217,8 @@ ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature,
 		strUserServer = details.GetPropString(OB_PROP_S_SERVERNAME);
 		if (bDistributed && strcasecmp(strUserServer.c_str(), strThisServer.c_str()) != 0)
 			break;
-		execute_script(script, "KOPANO_COMPANY", details.GetPropString(OB_PROP_S_FULLNAME).c_str(), nullptr);
+		execute_script(script, "createcompany.d", "KOPANO_COMPANY",
+			details.GetPropString(OB_PROP_S_FULLNAME).c_str(), nullptr);
 		break;
 	}
 	default:
