@@ -89,7 +89,6 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 
 	SPropValue sProps[3]{}, sProp{};
 	ULONG ulAttachNum = 0;
-	MAPIPropHelperPtr ptrMsgHelper;
 	static constexpr const SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ATTACH_NUM}};
 
 	auto hr = VerifyRestriction(lpMessage);
@@ -103,6 +102,7 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 	}
 
 	// Verify if we have at least one archive that's in the current multi-server cluster.
+	std::unique_ptr<MAPIPropHelper> ptrMsgHelper;
 	hr = MAPIPropHelper::Create(object_ptr<IMAPIProp>(lpMessage), &ptrMsgHelper);
 	if (hr != hrSuccess)
 		return Logger()->perr("Failed to create prop helper", hr);

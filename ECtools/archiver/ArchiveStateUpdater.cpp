@@ -239,7 +239,6 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId,
 	for (const auto &i : lstArchives) {
 		object_ptr<IMsgStore> ptrArchStore;
 		ULONG ulType;
-		ArchiveHelperPtr ptrArchiveHelper;
 		AttachType attachType;
 
 		hr = m_ptrSession->OpenStore(i.sStoreEntryId, &~ptrArchStore);
@@ -263,6 +262,7 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId,
 			return hr;
 		}
 
+		std::shared_ptr<ArchiveHelper> ptrArchiveHelper;
 		hr = ArchiveHelper::Create(ptrArchStore, ptrArchFolder, NULL, &ptrArchiveHelper);
 		if (hr != hrSuccess)
 			return hr;
@@ -522,7 +522,6 @@ HRESULT ArchiveStateUpdater::VerifyAndUpdate(const abentryid_t &userId, const Ar
 HRESULT ArchiveStateUpdater::FindArchiveEntry(const tstring &strArchive, const tstring &strFolder, SObjectEntry *lpObjEntry)
 {
 	object_ptr<IMsgStore> ptrArchiveStore;
-	ArchiveHelperPtr ptrArchiveHelper;
 
 	auto hr = m_ptrSession->OpenStoreByName(strArchive, &~ptrArchiveStore);
 	if (hr != hrSuccess) {
@@ -531,6 +530,7 @@ HRESULT ArchiveStateUpdater::FindArchiveEntry(const tstring &strArchive, const t
 		return hr;
 	}
 
+	std::shared_ptr<ArchiveHelper> ptrArchiveHelper;
 	hr = ArchiveHelper::Create(ptrArchiveStore, strFolder, NULL, &ptrArchiveHelper);
 	if (hr != hrSuccess)
 		return hr;

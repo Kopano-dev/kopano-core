@@ -70,7 +70,7 @@ HRESULT Copier::Helper::GetArchiveFolder(const SObjectEntry &archiveEntry, LPMAP
 	object_ptr<IMAPIFolder> ptrArchiveFolder;
 	auto iArchiveFolder = m_mapArchiveFolders.find(archiveEntry.sStoreEntryId);
 	if (iArchiveFolder == m_mapArchiveFolders.cend()) {
-		ArchiveHelperPtr ptrArchiveHelper;
+		std::shared_ptr<ArchiveHelper> ptrArchiveHelper;
 
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive folder not found in cache");
 		// Find the associated archive folder
@@ -109,7 +109,6 @@ HRESULT Copier::Helper::ArchiveMessage(IMessage *lpSource,
 	if (lpSource == nullptr || lpDest == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	MAPIPropHelperPtr ptrMsgHelper;
 	SPropValue sPropArchFlags{};
 
 	PROPMAP_START(1)
@@ -131,6 +130,7 @@ HRESULT Copier::Helper::ArchiveMessage(IMessage *lpSource,
 	hr = lpDest->SetProps(1, &sPropArchFlags, NULL);
 	if (hr != hrSuccess)
 		return m_lpLogger->perr("Failed to set flags on archive message", hr);
+	std::unique_ptr<MAPIPropHelper> ptrMsgHelper;
 	hr = MAPIPropHelper::Create(object_ptr<IMAPIProp>(lpDest), &ptrMsgHelper);
 	if (hr != hrSuccess)
 		return m_lpLogger->perr("Failed to create prop helper", hr);
@@ -378,7 +378,6 @@ HRESULT Copier::DoProcessEntry(const SRow &proprow)
 		return MAPI_E_UNCONFIGURED;
 
 	SObjectEntry refObjectEntry;
-	MAPIPropHelperPtr ptrMsgHelper;
 	MessageState state;
 
 	auto lpEntryId = proprow.cfind(PR_ENTRYID);
@@ -417,6 +416,7 @@ HRESULT Copier::DoProcessEntry(const SRow &proprow)
 		return Logger()->pwarn("Failed to verify message criteria", hr);
 	}
 
+	std::unique_ptr<MAPIPropHelper> ptrMsgHelper;
 	hr = MAPIPropHelper::Create(ptrMessageRaw, &ptrMsgHelper);
 	if (hr != hrSuccess)
 		return Logger()->perr("Failed to create prop helper", hr);
@@ -600,7 +600,6 @@ HRESULT Copier::DoTrackAndRearchive(IMessage *lpMessage,
 {
 	object_ptr<IMessage> ptrNewArchive, ptrMovedMessage;
 	SObjectEntry newArchiveEntry, movedEntry;
-	MAPIPropHelperPtr ptrMsgHelper;
 	std::shared_ptr<IPostSaveAction> ptrPSAction;
 
 	assert(lpMessage != NULL);
@@ -620,6 +619,7 @@ HRESULT Copier::DoTrackAndRearchive(IMessage *lpMessage,
 	hr = MoveToHistory(archiveRootEntry, archiveMsgEntry, ptrTransaction, &movedEntry, &~ptrMovedMessage);
 	if (hr != hrSuccess)
 		return Logger()->perr("Failed to move old archive to history folder", hr);
+	std::unique_ptr<MAPIPropHelper> ptrMsgHelper;
 	hr = MAPIPropHelper::Create(ptrNewArchive, &ptrMsgHelper);
 	if (hr != hrSuccess)
 		return Logger()->perr("Failed to create prop helper", hr);
@@ -718,7 +718,6 @@ HRESULT Copier::DoMoveArchive(const SObjectEntry &archiveRootEntry,
     std::shared_ptr<Transaction> *lpptrTransaction)
 {
 	object_ptr<IMAPIFolder> ptrArchiveFolder;
-	MAPIPropHelperPtr ptrPropHelper;
 	SObjectEntry objectEntry;
 
 	assert(lpptrTransaction != NULL);
@@ -740,6 +739,7 @@ HRESULT Copier::DoMoveArchive(const SObjectEntry &archiveRootEntry,
 	hr = ptrArchive->CopyTo(0, NULL, NULL, 0, NULL, &iid_of(ptrArchiveCopy), ptrArchiveCopy, 0, NULL);
 	if (hr != hrSuccess)
 		return hr;
+	std::unique_ptr<MAPIPropHelper> ptrPropHelper;
 	hr = MAPIPropHelper::Create(ptrArchiveCopy, &ptrPropHelper);
 	if (hr != hrSuccess)
 		return hr;
@@ -819,7 +819,7 @@ HRESULT Copier::MoveToHistory(const SObjectEntry &sourceArchiveRoot,
     const SObjectEntry &sourceMsgEntry, std::shared_ptr<Transaction> ptrTransaction,
     SObjectEntry *lpNewEntry, IMessage **lppNewMessage)
 {
-	ArchiveHelperPtr ptrArchiveHelper;
+	std::shared_ptr<ArchiveHelper> ptrArchiveHelper;
 
 	auto hr = ArchiveHelper::Create(m_ptrSession, sourceArchiveRoot, Logger(), &ptrArchiveHelper);
 	if (hr != hrSuccess)
@@ -866,7 +866,7 @@ HRESULT Copier::MoveToHistory(const SObjectEntry &sourceArchiveRoot,
 HRESULT Copier::UpdateHistoryRefs(IMessage *lpArchivedMsg,
     const SObjectEntry &refMsgEntry, std::shared_ptr<Transaction> ptrTransaction)
 {
-	MAPIPropHelperPtr ptrPropHelper;
+	std::unique_ptr<MAPIPropHelper> ptrPropHelper;
 
 	auto hr = MAPIPropHelper::Create(object_ptr<IMAPIProp>(lpArchivedMsg), &ptrPropHelper);
 	if (hr != hrSuccess)

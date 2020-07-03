@@ -36,9 +36,10 @@ namespace KC { namespace helpers {
  * @param[out]	lpptrArchiveHelper
  *					Pointer to a ArchiveHelperPtr that assigned the address of the returned ArchiveHelper.
  */
-HRESULT ArchiveHelper::Create(LPMDB lpArchiveStore, const tstring &strFolder, const char *lpszServerPath, ArchiveHelperPtr *lpptrArchiveHelper)
+HRESULT ArchiveHelper::Create(IMsgStore *lpArchiveStore, const tstring &strFolder,
+    const char *lpszServerPath, std::shared_ptr<ArchiveHelper> *lpptrArchiveHelper)
 {
-	ArchiveHelperPtr ptrArchiveHelper(
+	std::shared_ptr<ArchiveHelper> ptrArchiveHelper(
 		new(std::nothrow) ArchiveHelper(lpArchiveStore, strFolder,
 		lpszServerPath ? lpszServerPath : std::string()));
 	if (ptrArchiveHelper == nullptr)
@@ -63,9 +64,10 @@ HRESULT ArchiveHelper::Create(LPMDB lpArchiveStore, const tstring &strFolder, co
  * @param[out]	lpptrArchiveHelper
  *					Pointer to a ArchiveHelperPtr that assigned the address of the returned ArchiveHelper.
  */
-HRESULT ArchiveHelper::Create(LPMDB lpArchiveStore, LPMAPIFOLDER lpArchiveFolder, const char *lpszServerPath, ArchiveHelperPtr *lpptrArchiveHelper)
+HRESULT ArchiveHelper::Create(IMsgStore *lpArchiveStore, IMAPIFolder *lpArchiveFolder,
+    const char *lpszServerPath, std::shared_ptr<ArchiveHelper> *lpptrArchiveHelper)
 {
-	ArchiveHelperPtr ptrArchiveHelper(
+	std::shared_ptr<ArchiveHelper> ptrArchiveHelper(
 		new(std::nothrow) ArchiveHelper(lpArchiveStore, lpArchiveFolder,
 		lpszServerPath ? lpszServerPath : std::string()));
 	if (ptrArchiveHelper == nullptr)
@@ -79,10 +81,8 @@ HRESULT ArchiveHelper::Create(LPMDB lpArchiveStore, LPMAPIFOLDER lpArchiveFolder
 
 HRESULT ArchiveHelper::Create(std::shared_ptr<ArchiverSession> ptrSession,
     const SObjectEntry &archiveEntry, std::shared_ptr<ECLogger> lpLogger,
-    ArchiveHelperPtr *lpptrArchiveHelper)
+    std::shared_ptr<ArchiveHelper> *lpptrArchiveHelper)
 {
-	ArchiveHelperPtr ptrArchiveHelper;
-
 	if (lpptrArchiveHelper == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
@@ -108,6 +108,7 @@ HRESULT ArchiveHelper::Create(std::shared_ptr<ArchiverSession> ptrSession,
 	// remotely opened by ptrSession->OpenStore(). Effectively this causes ptrArchiveHelper->GetArchiveEntry()
 	// to malfunction (it won't wrap the entryid with the serverpath). This is not an issue as we don't use
 	// that here anyway.
+	std::shared_ptr<ArchiveHelper> ptrArchiveHelper;
 	hr = ArchiveHelper::Create(ptrArchiveStore, ptrArchiveRootFolder, NULL, &ptrArchiveHelper);
 	if (hr != hrSuccess) {
 		if (lpLogger)
@@ -413,7 +414,6 @@ HRESULT ArchiveHelper::GetArchiveFolderFor(IMAPIFolder *ptrSourceFolder,
     std::shared_ptr<ArchiverSession> ptrSession, IMAPIFolder **lppDestinationFolder)
 {
 	memory_ptr<SPropValue> ptrStoreEntryId, ptrFolderType, ptrFolderEntryId, ptrPropArray;
-	MAPIPropHelperPtr ptrSourceFolderHelper, ptrArchiveFolderHelper;
 	unsigned int cValues = 0;
 	SObjectEntry objectEntry;
 	static constexpr const SizedSPropTagArray(3, sptaFolderPropsForCreate) =
@@ -424,6 +424,7 @@ HRESULT ArchiveHelper::GetArchiveFolderFor(IMAPIFolder *ptrSourceFolder,
 	auto hr = HrGetOneProp(m_ptrArchiveStore, PR_ENTRYID, &~ptrStoreEntryId);
 	if (hr != hrSuccess)
 		return hr;
+	std::unique_ptr<MAPIPropHelper> ptrSourceFolderHelper, ptrArchiveFolderHelper;
 	hr = MAPIPropHelper::Create(ptrSourceFolder, &ptrSourceFolderHelper);
 	if (hr != hrSuccess)
 		return hr;

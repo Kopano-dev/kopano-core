@@ -18,7 +18,6 @@ class ECLogger;
 namespace helpers {
 
 class ArchiveHelper;
-typedef std::shared_ptr<ArchiveHelper> ArchiveHelperPtr;
 
 enum ArchiveType {
 	UndefArchive = 0,
@@ -38,9 +37,9 @@ enum AttachType {
  */
 class KC_EXPORT ArchiveHelper final {
 public:
-	KC_HIDDEN static HRESULT Create(IMsgStore *arc_store, const tstring &folder, const char *server_path, ArchiveHelperPtr *);
-	KC_HIDDEN static HRESULT Create(IMsgStore *arc_store, IMAPIFolder *arc_folder, const char *server_path, ArchiveHelperPtr *);
-	static HRESULT Create(std::shared_ptr<ArchiverSession>, const SObjectEntry &arc_entry, std::shared_ptr<ECLogger>, ArchiveHelperPtr *);
+	KC_HIDDEN static HRESULT Create(IMsgStore *arc_store, const tstring &folder, const char *server_path, std::shared_ptr<ArchiveHelper> *);
+	KC_HIDDEN static HRESULT Create(IMsgStore *arc_store, IMAPIFolder *arc_folder, const char *server_path, std::shared_ptr<ArchiveHelper> *);
+	static HRESULT Create(std::shared_ptr<ArchiverSession>, const SObjectEntry &arc_entry, std::shared_ptr<ECLogger>, std::shared_ptr<ArchiveHelper> *);
 	KC_HIDDEN HRESULT GetAttachedUser(abentryid_t *user_eid);
 	KC_HIDDEN HRESULT SetAttachedUser(const abentryid_t &user_eid);
 	KC_HIDDEN HRESULT GetArchiveEntry(bool create, SObjectEntry *obj_entry);

@@ -136,11 +136,11 @@ private:
 	HRESULT CleanupArchive(const SObjectEntry &archiveEntry, IMsgStore* lpUserStore, LPSRestriction lpRestriction);
 	HRESULT GetAllReferences(IMsgStore *store, const GUID *archive, EntryIDSet *refs);
 	HRESULT AppendAllReferences(IMAPIFolder *root, const GUID *archive, EntryIDSet *refs);
-	HRESULT GetAllEntries(helpers::ArchiveHelperPtr, LPMAPIFOLDER arc, LPSRestriction, EntryIDSet *entries);
+	HRESULT GetAllEntries(std::shared_ptr<helpers::ArchiveHelper>, IMAPIFolder *arc, SRestriction *, EntryIDSet *entries);
 	HRESULT AppendAllEntries(LPMAPIFOLDER lpArchive, LPSRestriction lpRestriction, EntryIDSet *lpMsgEntries);
-	HRESULT CleanupHierarchy(helpers::ArchiveHelperPtr, LPMAPIFOLDER arc_root, LPMDB user_store);
-	HRESULT MoveAndDetachMessages(helpers::ArchiveHelperPtr, LPMAPIFOLDER arc_folder, const EntryIDSet &);
-	HRESULT MoveAndDetachFolder(helpers::ArchiveHelperPtr, LPMAPIFOLDER arc_folder);
+	HRESULT CleanupHierarchy(std::shared_ptr<helpers::ArchiveHelper>, IMAPIFolder *arc_root, IMsgStore *user_store);
+	HRESULT MoveAndDetachMessages(std::shared_ptr<helpers::ArchiveHelper>, IMAPIFolder *arc_folder, const EntryIDSet &);
+	HRESULT MoveAndDetachFolder(std::shared_ptr<helpers::ArchiveHelper>, IMAPIFolder *arc_folder);
 	HRESULT DeleteMessages(LPMAPIFOLDER lpArchiveFolder, const EntryIDSet &setEIDs);
 	HRESULT DeleteFolder(LPMAPIFOLDER lpArchiveFolder);
 	HRESULT AppendFolderEntries(LPMAPIFOLDER lpBase, EntryIDSet *lpEntries);

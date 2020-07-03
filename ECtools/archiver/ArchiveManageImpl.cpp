@@ -179,7 +179,6 @@ HRESULT ArchiveManageImpl::AttachTo(const char *lpszArchiveServer, const TCHAR *
 
 HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFoldername, const char *lpszArchiveServer, const abentryid_t &sUserEntryId, unsigned ulFlags, AttachType attachType)
 {
-	ArchiveHelperPtr ptrArchiveHelper;
 	abentryid_t sAttachedUserEntryId;
 	SObjectEntry objectEntry;
 	bool bEqual = false;
@@ -216,6 +215,7 @@ HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFold
 		return MAPI_E_UNABLE_TO_COMPLETE;
 	}
 
+	std::shared_ptr<ArchiveHelper> ptrArchiveHelper;
 	hr = ArchiveHelper::Create(lpArchiveStore, strFoldername, lpszArchiveServer, &ptrArchiveHelper);
 	if (hr != hrSuccess)
 		return m_lpLogger->perr("Failed to create archive helper", hr);
@@ -315,7 +315,6 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
 {
 	entryid_t sUserEntryId;
 	std::unique_ptr<StoreHelper> ptrStoreHelper;
-	ArchiveHelperPtr ptrArchiveHelper;
 	ULONG ulType = 0;
 	std::shared_ptr<ArchiverSession> ptrArchiveSession(m_ptrSession), ptrRemoteSession;
 

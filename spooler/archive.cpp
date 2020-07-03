@@ -64,7 +64,6 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
 	std::shared_ptr<ArchiverSession> ptrSession;
 	std::unique_ptr<Copier::Helper> ptrHelper;
 	ArchiveResult result;
-	MAPIPropHelperPtr ptrMsgHelper;
 	static constexpr const SizedSPropTagArray(3, sptaMessageProps) =
 		{3, {PR_ENTRYID, PR_STORE_ENTRYID, PR_PARENT_ENTRYID}};
 	enum {IDX_ENTRYID, IDX_STORE_ENTRYID, IDX_PARENT_ENTRYID};
@@ -165,6 +164,7 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
 	// Now add the references to the original message.
 	lstReferences.sort();
 	lstReferences.unique();
+	std::unique_ptr<MAPIPropHelper> ptrMsgHelper;
 	hr = MAPIPropHelper::Create(object_ptr<IMAPIProp>(lpMessage), &ptrMsgHelper);
 	if (hr != hrSuccess)
 		return kc_pwarn("Archive::HrArchiveMessageForDelivery(): failed creating reference to original message", hr);
@@ -234,7 +234,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 
 	std::list<std::pair<object_ptr<IMessage>, std::shared_ptr<IPostSaveAction>>> lstArchivedMessages;
 	for (const auto &arc : lstArchives) {
-		ArchiveHelperPtr ptrArchiveHelper;
+		std::shared_ptr<ArchiveHelper> ptrArchiveHelper;
 
 		hr = ArchiveHelper::Create(ptrSession, arc, logger, &ptrArchiveHelper);
 		if (hr != hrSuccess) {

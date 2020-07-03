@@ -27,9 +27,9 @@ namespace KC { namespace helpers {
  *					Pointer to a MAPIPropHelperPtr that will be assigned the returned
  *					MAPIPropHelper object.
  */
-HRESULT MAPIPropHelper::Create(IMAPIProp *ptrMapiProp, MAPIPropHelperPtr *lpptrMAPIPropHelper)
+HRESULT MAPIPropHelper::Create(IMAPIProp *ptrMapiProp, std::unique_ptr<MAPIPropHelper> *lpptrMAPIPropHelper)
 {
-	MAPIPropHelperPtr ptrMAPIPropHelper(new(std::nothrow) MAPIPropHelper(ptrMapiProp));
+	std::unique_ptr<MAPIPropHelper> ptrMAPIPropHelper(new(std::nothrow) MAPIPropHelper(ptrMapiProp));
 	if (ptrMAPIPropHelper == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	auto hr = ptrMAPIPropHelper->Init();
@@ -129,7 +129,6 @@ HRESULT MAPIPropHelper::GetMessageState(std::shared_ptr<ArchiverSession> ptrSess
 	if (result != 0) {
 		// The message is copied. Now check if it was moved.
 		std::list<SObjectEntry> lstArchives;
-		MAPIPropHelperPtr ptrArchiveHelper;
 		SObjectEntry refEntry;
 
 		hr = GetArchiveList(&lstArchives, true);
@@ -160,6 +159,7 @@ HRESULT MAPIPropHelper::GetMessageState(std::shared_ptr<ArchiverSession> ptrSess
 				 */
 				ulState |= MessageState::msCopy;
 		} else {
+			std::unique_ptr<MAPIPropHelper> ptrArchiveHelper;
 			hr = MAPIPropHelper::Create(ptrArchiveMsg, &ptrArchiveHelper);
 			if (hr != hrSuccess)
 				return hr;

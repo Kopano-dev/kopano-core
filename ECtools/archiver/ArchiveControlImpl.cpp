@@ -743,7 +743,7 @@ HRESULT ArchiveControlImpl::PurgeArchiveFolder(IMsgStore *ptrArchive,
 HRESULT ArchiveControlImpl::CleanupArchive(const SObjectEntry &archiveEntry, IMsgStore* lpUserStore, LPSRestriction lpRestriction)
 {
 	EntryIDSet setRefs, setEntries, setDead;
-	ArchiveHelperPtr ptrArchiveHelper;
+	std::shared_ptr<ArchiveHelper> ptrArchiveHelper;
 
 	auto hr = ArchiveHelper::Create(m_ptrSession, archiveEntry, m_lpLogger, &ptrArchiveHelper);
 	if (hr != hrSuccess)
@@ -917,7 +917,8 @@ HRESULT ArchiveControlImpl::AppendAllReferences(IMAPIFolder *lpFolder,
  * @param[in]	lpRestriction	The restriction that's used to make sure the archived items are old enough.
  * @param[out]	lpEntryies			An EntryIDSet containing all the entryids.
  */
-HRESULT ArchiveControlImpl::GetAllEntries(ArchiveHelperPtr ptrArchiveHelper, LPMAPIFOLDER lpArchive, LPSRestriction lpRestriction, EntryIDSet *lpEntries)
+HRESULT ArchiveControlImpl::GetAllEntries(std::shared_ptr<ArchiveHelper> ptrArchiveHelper,
+    IMAPIFolder *lpArchive, SRestriction *lpRestriction, EntryIDSet *lpEntries)
 {
 	EntryIDSet setEntries, setFolderExcludes;
 	ECFolderIterator iEnd;
@@ -1018,7 +1019,8 @@ HRESULT ArchiveControlImpl::AppendAllEntries(LPMAPIFOLDER lpArchive, LPSRestrict
  * @param[in]	lpArchiveRoot		The root of the archive.
  * @param[out]	lpUserStore			The users primary store.
  */
-HRESULT ArchiveControlImpl::CleanupHierarchy(ArchiveHelperPtr ptrArchiveHelper, LPMAPIFOLDER lpArchiveRoot, LPMDB lpUserStore)
+HRESULT ArchiveControlImpl::CleanupHierarchy(std::shared_ptr<ArchiveHelper> ptrArchiveHelper,
+    IMAPIFolder *lpArchiveRoot, IMsgStore *lpUserStore)
 {
 	object_ptr<IMAPITable> ptrTable;
 	static constexpr const SizedSSortOrderSet(1, ssosHierarchy) = {1, 0, 0, {{PR_DEPTH, TABLE_SORT_ASCEND}}};
@@ -1122,7 +1124,8 @@ HRESULT ArchiveControlImpl::CleanupHierarchy(ArchiveHelperPtr ptrArchiveHelper, 
  * @param[in]	lpArchiveFolder		The archive folder containing the messages to move.
  * @param[in]	setEIDs				The set with entryids of the messages to process.
  */
-HRESULT ArchiveControlImpl::MoveAndDetachMessages(ArchiveHelperPtr ptrArchiveHelper, LPMAPIFOLDER lpArchiveFolder, const EntryIDSet &setEIDs)
+HRESULT ArchiveControlImpl::MoveAndDetachMessages(std::shared_ptr<ArchiveHelper> ptrArchiveHelper,
+    IMAPIFolder *lpArchiveFolder, const EntryIDSet &setEIDs)
 {
 	object_ptr<IMAPIFolder> ptrDelItemsFolder;
 
@@ -1150,11 +1153,11 @@ HRESULT ArchiveControlImpl::MoveAndDetachMessages(ArchiveHelperPtr ptrArchiveHel
 	m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "Processing %zu messages", setEIDs.size());
 	for (const auto &e : setEIDs) {
 		object_ptr<IMAPIProp> ptrMessage;
-		MAPIPropHelperPtr ptrHelper;
 
 		hr = lpArchiveFolder->OpenEntry(e.size(), e, &iid_of(ptrMessage), MAPI_MODIFY, nullptr, &~ptrMessage);
 		if (hr != hrSuccess)
 			return m_lpLogger->perr("Failed to open message", hr);
+		std::unique_ptr<MAPIPropHelper> ptrHelper;
 		hr = MAPIPropHelper::Create(ptrMessage, &ptrHelper);
 		if (hr != hrSuccess)
 			return m_lpLogger->perr("Failed to create helper object", hr);
@@ -1179,10 +1182,10 @@ HRESULT ArchiveControlImpl::MoveAndDetachMessages(ArchiveHelperPtr ptrArchiveHel
  * @param[in]	ptrArchiveHelper	An ArchiveHelper object containing the archive store that's being processed.
  * @param[in]	lpArchiveFolder		The archive folder to move.
  */
-HRESULT ArchiveControlImpl::MoveAndDetachFolder(ArchiveHelperPtr ptrArchiveHelper, LPMAPIFOLDER lpArchiveFolder)
+HRESULT ArchiveControlImpl::MoveAndDetachFolder(std::shared_ptr<ArchiveHelper> ptrArchiveHelper,
+    IMAPIFolder *lpArchiveFolder)
 {
 	memory_ptr<SPropValue> ptrEntryID;
-	MAPIPropHelperPtr ptrHelper;
 	ECFolderIterator iEnd;
 
 	m_lpLogger->logf(EC_LOGLEVEL_INFO, "Moving folder to the special \"Deleted Items\" folder...");
@@ -1193,6 +1196,7 @@ HRESULT ArchiveControlImpl::MoveAndDetachFolder(ArchiveHelperPtr ptrArchiveHelpe
 	hr = ptrArchiveHelper->GetDeletedItemsFolder(&~ptrDelItemsFolder);
 	if (hr != hrSuccess)
 		return m_lpLogger->perr("Failed to get deleted items folder", hr);
+	std::unique_ptr<MAPIPropHelper> ptrHelper;
 	hr = MAPIPropHelper::Create(object_ptr<IMAPIProp>(lpArchiveFolder), &ptrHelper);
 	if (hr != hrSuccess)
 		return m_lpLogger->perr("Failed to create helper object", hr);
@@ -1203,8 +1207,7 @@ HRESULT ArchiveControlImpl::MoveAndDetachFolder(ArchiveHelperPtr ptrArchiveHelpe
 	// Get rid of references of all subfolders
 	try {
 		for (ECFolderIterator i = ECFolderIterator(lpArchiveFolder, fMapiDeferredErrors, 0); i != iEnd; ++i) {
-			MAPIPropHelperPtr ptrSubHelper;
-
+			std::unique_ptr<MAPIPropHelper> ptrSubHelper;
 			hr = MAPIPropHelper::Create(object_ptr<IMAPIProp>(*i), &ptrSubHelper);
 			if (hr != hrSuccess)
 				return hr;

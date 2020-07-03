@@ -18,8 +18,6 @@ class ArchiverSession;
 namespace helpers {
 
 class MAPIPropHelper;
-typedef std::unique_ptr<MAPIPropHelper> MAPIPropHelperPtr;
-
 class MessageState;
 
 /**
@@ -28,7 +26,7 @@ class MessageState;
  */
 class KC_EXPORT MAPIPropHelper {
 public:
-	static HRESULT Create(IMAPIProp *, MAPIPropHelperPtr *);
+	static HRESULT Create(IMAPIProp *, std::unique_ptr<MAPIPropHelper> *);
 	KC_HIDDEN virtual ~MAPIPropHelper() = default;
 	HRESULT GetMessageState(std::shared_ptr<ArchiverSession>, MessageState *);
 	HRESULT GetArchiveList(std::list<SObjectEntry> *archives, bool ignore_source_key = false);
