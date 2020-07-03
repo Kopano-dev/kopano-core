@@ -2182,8 +2182,9 @@ ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature,
 		if (*script == '\0')
 			break;
 		strUserServer = details.GetPropString(OB_PROP_S_SERVERNAME);
-		if (!bDistributed || strcasecmp(strUserServer.c_str(), strThisServer.c_str()) == 0)
-			execute_script(script, "KOPANO_USER", details.GetPropString(OB_PROP_S_LOGIN).c_str(), nullptr);
+		if (bDistributed && strcasecmp(strUserServer.c_str(), strThisServer.c_str()) != 0)
+			break;
+		execute_script(script, "KOPANO_USER", details.GetPropString(OB_PROP_S_LOGIN).c_str(), nullptr);
 		break;
 	}
 	case DISTLIST_GROUP:
@@ -2199,8 +2200,9 @@ ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature,
 		if (*script == '\0')
 			break;
 		strUserServer = details.GetPropString(OB_PROP_S_SERVERNAME);
-		if (!bDistributed || strcasecmp(strUserServer.c_str(), strThisServer.c_str()) == 0)
-			execute_script(script, "KOPANO_COMPANY", details.GetPropString(OB_PROP_S_FULLNAME).c_str(), nullptr);
+		if (bDistributed && strcasecmp(strUserServer.c_str(), strThisServer.c_str()) != 0)
+			break;
+		execute_script(script, "KOPANO_COMPANY", details.GetPropString(OB_PROP_S_FULLNAME).c_str(), nullptr);
 		break;
 	}
 	default:
