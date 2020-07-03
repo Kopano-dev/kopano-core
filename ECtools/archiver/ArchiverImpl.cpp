@@ -84,7 +84,7 @@ eResult ArchiverImpl::Init(const char *lpszAppName, const char *lpszConfig, cons
 	return Success;
 }
 
-eResult ArchiverImpl::GetControl(ArchiveControlPtr *lpptrControl, bool bForceCleanup)
+eResult ArchiverImpl::GetControl(std::unique_ptr<ArchiveControl> *lpptrControl, bool bForceCleanup)
 {
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiverImpl::GetControl() function entry");
 	if (!m_MAPI.IsInitialized())
@@ -103,18 +103,18 @@ eResult ArchiverImpl::GetManage(const TCHAR *lpszUser, std::unique_ptr<ArchiveMa
 eResult ArchiverImpl::AutoAttach(unsigned int ulFlags)
 {
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiverImpl::AutoAttach() function entry");
-	ArchiveStateCollectorPtr ptrArchiveStateCollector;
-	ArchiveStateUpdaterPtr ptrArchiveStateUpdater;
 
 	if (ulFlags != ArchiveManage::Writable && ulFlags != ArchiveManage::ReadOnly && ulFlags != 0)
 		return MAPIErrorToArchiveError(MAPI_E_INVALID_PARAMETER);
 
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiverImpl::AutoAttach() about to create collector");
+	std::shared_ptr<ArchiveStateCollector> ptrArchiveStateCollector;
 	auto hr = ArchiveStateCollector::Create(m_ptrSession, m_lpLogger, &ptrArchiveStateCollector);
 	if (hr != hrSuccess)
 		return MAPIErrorToArchiveError(hr);
 
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiverImpl::AutoAttach() about to get state updater");
+	std::shared_ptr<ArchiveStateUpdater> ptrArchiveStateUpdater;
 	hr = ptrArchiveStateCollector->GetArchiveStateUpdater(&ptrArchiveStateUpdater);
 	if (hr != hrSuccess)
 		return MAPIErrorToArchiveError(hr);

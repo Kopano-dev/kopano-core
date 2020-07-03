@@ -29,7 +29,7 @@ using namespace KC::helpers;
 namespace KC { namespace operations {
 
 Copier::Helper::Helper(std::shared_ptr<ArchiverSession> ptrSession, std::shared_ptr<ECLogger> lpLogger,
-    const InstanceIdMapperPtr &ptrMapper, const SPropTagArray *lpExcludeProps,
+    const std::shared_ptr<InstanceIdMapper> &ptrMapper, const SPropTagArray *lpExcludeProps,
     LPMAPIFOLDER lpFolder) :
 	m_ptrSession(ptrSession), m_lpLogger(std::move(lpLogger)),
 	m_lpExcludeProps(lpExcludeProps), m_ptrFolder(lpFolder),

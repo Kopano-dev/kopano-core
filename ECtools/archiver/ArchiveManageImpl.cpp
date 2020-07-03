@@ -667,8 +667,8 @@ eResult ArchiveManageImpl::AutoAttach(unsigned int ulFlags)
 		return MAPIErrorToArchiveError(MAPI_E_INVALID_PARAMETER);
 
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveManageImpl::AutoAttach(): function entry");
-	ArchiveStateCollectorPtr ptrArchiveStateCollector;
-	ArchiveStateUpdaterPtr ptrArchiveStateUpdater;
+	std::shared_ptr<ArchiveStateCollector> ptrArchiveStateCollector;
+	std::shared_ptr<ArchiveStateUpdater> ptrArchiveStateUpdater;
 
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveManageImpl::AutoAttach(): about to create ArchiveStateCollector");
 	auto hr = ArchiveStateCollector::Create(m_ptrSession, m_lpLogger, &ptrArchiveStateCollector);

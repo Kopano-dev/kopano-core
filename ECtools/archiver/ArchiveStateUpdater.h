@@ -21,7 +21,7 @@ public:
 	typedef ArchiveStateCollector::ArchiveInfo		ArchiveInfo;
 	typedef ArchiveStateCollector::ArchiveInfoMap	ArchiveInfoMap;
 
-	KC_HIDDEN static HRESULT Create(const std::shared_ptr<ArchiverSession> &, std::shared_ptr<ECLogger>, const ArchiveInfoMap &, ArchiveStateUpdaterPtr *);
+	KC_HIDDEN static HRESULT Create(const std::shared_ptr<ArchiverSession> &, std::shared_ptr<ECLogger>, const ArchiveInfoMap &, std::shared_ptr<ArchiveStateUpdater> *);
 	HRESULT UpdateAll(unsigned int ulAttachFlags);
 	HRESULT Update(const tstring &userName, unsigned int ulAttachFlags);
 

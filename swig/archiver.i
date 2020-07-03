@@ -201,7 +201,7 @@ public:
 
 		ArchiveControl *GetControl(bool bForceCleanup = false) {
 			eResult r = Success;
-			ArchiveControlPtr ptr;
+			std::unique_ptr<ArchiveControl> ptr;
 
 			r = self->GetControl(&ptr, bForceCleanup);
 			if (r != Success)

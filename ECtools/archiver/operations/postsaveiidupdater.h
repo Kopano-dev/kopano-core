@@ -5,21 +5,22 @@
 #pragma once
 #include <memory>
 #include "postsaveaction.h"
-#include "instanceidmapper_fwd.h"
 #include <kopano/archiver-common.h>
 #include <kopano/memory.hpp>
 #include <list>
 
 namespace KC { namespace operations {
 
+class InstanceIdMapper;
+
 class TaskBase {
 public:
 	TaskBase(IAttach *src, IMessage *dst, unsigned int dst_at_idx);
-	HRESULT Execute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper);
+	HRESULT Execute(unsigned int tag, const std::shared_ptr<InstanceIdMapper> &);
 
 private:
 	HRESULT GetUniqueIDs(IAttach *lpAttach, LPSPropValue *lppServerUID, ULONG *lpcbInstanceID, LPENTRYID *lppInstanceID);
-	virtual HRESULT DoExecute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper, const SBinary &sourceServerUID, ULONG cbSourceInstanceID, LPENTRYID lpSourceInstanceID, const SBinary &destServerUID, ULONG cbDestInstanceID, LPENTRYID lpDestInstanceID) = 0;
+	virtual HRESULT DoExecute(unsigned int tag, const std::shared_ptr<InstanceIdMapper> &, const SBinary &src_server_uid, unsigned int src_size, ENTRYID *src_inst, const SBinary &dst_server_uid, unsigned int dest_size, ENTRYID *dest_inst) = 0;
 
 	object_ptr<IAttach> m_ptrSourceAttach;
 	object_ptr<IMessage> m_ptrDestMsg;
@@ -29,13 +30,13 @@ private:
 class TaskMapInstanceId final : public TaskBase {
 public:
 	TaskMapInstanceId(IAttach *src, IMessage *dst, unsigned int dst_at_num);
-	HRESULT DoExecute(unsigned int proptag, const InstanceIdMapperPtr &, const SBinary &src_server_uid, unsigned int src_size, ENTRYID *src_inst, const SBinary &dest_server_uid, unsigned int dest_size, ENTRYID *dest_inst) override;
+	HRESULT DoExecute(unsigned int proptag, const std::shared_ptr<InstanceIdMapper> &, const SBinary &src_server_uid, unsigned int src_size, ENTRYID *src_inst, const SBinary &dest_server_uid, unsigned int dest_size, ENTRYID *dest_inst) override;
 };
 
 class TaskVerifyAndUpdateInstanceId final : public TaskBase {
 public:
 	TaskVerifyAndUpdateInstanceId(IAttach *src, IMessage *dst, unsigned int dst_at_num, unsigned int dst_instance_idsize, ENTRYID *dst_instance_id);
-	HRESULT DoExecute(unsigned int proptag, const InstanceIdMapperPtr &, const SBinary &src_server_uid, unsigned int src_size, ENTRYID *src_inst, const SBinary &dest_server_uid, unsigned int dest_size, ENTRYID *dest_inst) override;
+	HRESULT DoExecute(unsigned int proptag, const std::shared_ptr<InstanceIdMapper> &, const SBinary &src_server_uid, unsigned int src_size, ENTRYID *src_inst, const SBinary &dest_server_uid, unsigned int dest_size, ENTRYID *dest_inst) override;
 
 private:
 	entryid_t m_destInstanceID;
@@ -43,12 +44,12 @@ private:
 
 class PostSaveInstanceIdUpdater final : public IPostSaveAction {
 public:
-	PostSaveInstanceIdUpdater(unsigned int tag, const InstanceIdMapperPtr &, const std::list<std::shared_ptr<TaskBase>> &deferred);
+	PostSaveInstanceIdUpdater(unsigned int tag, const std::shared_ptr<InstanceIdMapper> &, const std::list<std::shared_ptr<TaskBase>> &deferred);
 	HRESULT Execute() override;
 
 private:
 	ULONG m_ulPropTag;
-	InstanceIdMapperPtr m_ptrMapper;
+	std::shared_ptr<InstanceIdMapper> m_ptrMapper;
 	std::list<std::shared_ptr<TaskBase>> m_lstDeferred;
 };
 

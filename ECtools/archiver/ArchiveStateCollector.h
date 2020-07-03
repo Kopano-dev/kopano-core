@@ -7,15 +7,14 @@
 #include <map>
 #include <memory>
 #include <kopano/zcdefs.h>
-#include "archivestateupdater_fwd.h"
 #include <kopano/archiver-common.h>
 #include "ECArchiverLogger.h"
 
 namespace KC {
 
 class ArchiveStateCollector;
+class ArchiveStateUpdater;
 class ArchiverSession;
-typedef std::shared_ptr<ArchiveStateCollector> ArchiveStateCollectorPtr;
 
 /**
  * The ArchiveStateCollector will construct the current archive state, which
@@ -25,8 +24,8 @@ typedef std::shared_ptr<ArchiveStateCollector> ArchiveStateCollectorPtr;
  */
 class KC_EXPORT ArchiveStateCollector final {
 public:
-	static HRESULT Create(const std::shared_ptr<ArchiverSession> &, std::shared_ptr<ECLogger>, ArchiveStateCollectorPtr *);
-	HRESULT GetArchiveStateUpdater(ArchiveStateUpdaterPtr *lpptrUpdater);
+	static HRESULT Create(const std::shared_ptr<ArchiverSession> &, std::shared_ptr<ECLogger>, std::shared_ptr<ArchiveStateCollector> *);
+	HRESULT GetArchiveStateUpdater(std::shared_ptr<ArchiveStateUpdater> *);
 
 	struct ArchiveInfo {
 		tstring userName;

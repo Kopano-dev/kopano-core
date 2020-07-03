@@ -51,7 +51,7 @@ namespace KC {
  */
 HRESULT ArchiveControlImpl::Create(std::shared_ptr<ArchiverSession> ptrSession,
     ECConfig *lpConfig, std::shared_ptr<ECLogger> lpLogger, bool bForceCleanup,
-    ArchiveControlPtr *lpptrArchiveControl)
+    std::unique_ptr<ArchiveControl> *lpptrArchiveControl)
 {
 	std::unique_ptr<ArchiveControlImpl> ptrArchiveControl(
 		new(std::nothrow) ArchiveControlImpl(ptrSession, lpConfig,
@@ -141,12 +141,12 @@ eResult ArchiveControlImpl::ArchiveAll(bool bLocalOnly, bool bAutoAttach, unsign
 	if (!bAutoAttach && !parseBool(m_lpConfig->GetSetting("enable_auto_attach")))
 		return MAPIErrorToArchiveError(ProcessAll(bLocalOnly, &ArchiveControlImpl::DoArchive));
 
-	ArchiveStateCollectorPtr ptrArchiveStateCollector;
-	ArchiveStateUpdaterPtr ptrArchiveStateUpdater;
+	std::shared_ptr<ArchiveStateCollector> ptrArchiveStateCollector;
 
 	auto hr = ArchiveStateCollector::Create(m_ptrSession, m_lpLogger, &ptrArchiveStateCollector);
 	if (hr != hrSuccess)
 		return MAPIErrorToArchiveError(hr);
+	std::shared_ptr<ArchiveStateUpdater> ptrArchiveStateUpdater;
 	hr = ptrArchiveStateCollector->GetArchiveStateUpdater(&ptrArchiveStateUpdater);
 	if (hr != hrSuccess)
 		return MAPIErrorToArchiveError(hr);
@@ -180,14 +180,14 @@ HRESULT ArchiveControlImpl::Archive2(const tstring &strUser, bool bAutoAttach,
 	}
 
 	if (bAutoAttach || parseBool(m_lpConfig->GetSetting("enable_auto_attach"))) {
-		ArchiveStateCollectorPtr ptrArchiveStateCollector;
-		ArchiveStateUpdaterPtr ptrArchiveStateUpdater;
+		std::shared_ptr<ArchiveStateCollector> ptrArchiveStateCollector;
 
         m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveControlImpl::Archive(): about to create collector.");
 		auto hr = ArchiveStateCollector::Create(m_ptrSession, m_lpLogger, &ptrArchiveStateCollector);
 		if (hr != hrSuccess)
 			return hr;
         m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveControlImpl::Archive(): about to get updater.");
+		std::shared_ptr<ArchiveStateUpdater> ptrArchiveStateUpdater;
 		hr = ptrArchiveStateCollector->GetArchiveStateUpdater(&ptrArchiveStateUpdater);
 		if (hr != hrSuccess)
 			return hr;

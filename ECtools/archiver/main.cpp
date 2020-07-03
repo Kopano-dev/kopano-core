@@ -506,7 +506,7 @@ int main(int argc, char **argv)
     break;
 
     case MODE_ARCHIVE: {
-        ArchiveControlPtr ptr;
+		std::unique_ptr<ArchiveControl> ptr;
         r = ptrArchiver->GetControl(&ptr);
         if (r != Success)
             return 1;
@@ -523,7 +523,7 @@ int main(int argc, char **argv)
     break;
 
     case MODE_CLEANUP: {
-        ArchiveControlPtr ptr;
+		std::unique_ptr<ArchiveControl> ptr;
         r = ptrArchiver->GetControl(&ptr, bForceCleanup);
         if (r != Success)
             return 1;

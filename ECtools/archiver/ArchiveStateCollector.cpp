@@ -123,9 +123,9 @@ HRESULT MailboxDataCollector::CollectData(LPMAPITABLE lpStoreTable)
  * @param[out]	lpptrCollector	The new ArchiveStateCollector instance.
  */
 HRESULT ArchiveStateCollector::Create(const std::shared_ptr<ArchiverSession> &ptrSession,
-    std::shared_ptr<ECLogger> lpLogger, ArchiveStateCollectorPtr *lpptrCollector)
+    std::shared_ptr<ECLogger> lpLogger, std::shared_ptr<ArchiveStateCollector> *lpptrCollector)
 {
-	ArchiveStateCollectorPtr ptrCollector(
+	std::shared_ptr<ArchiveStateCollector> ptrCollector(
 		new(std::nothrow) ArchiveStateCollector(ptrSession, std::move(lpLogger)));
 	if (ptrCollector == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
@@ -147,7 +147,7 @@ ArchiveStateCollector::ArchiveStateCollector(const std::shared_ptr<ArchiverSessi
  * to the required state.
  * @param[out]	lpptrUpdate		The new ArchiveStateUpdater instance.
  */
-HRESULT ArchiveStateCollector::GetArchiveStateUpdater(ArchiveStateUpdaterPtr *lpptrUpdater)
+HRESULT ArchiveStateCollector::GetArchiveStateUpdater(std::shared_ptr<ArchiveStateUpdater> *lpptrUpdater)
 {
 	MailboxDataCollector mdc(m_mapArchiveInfo, m_lpLogger);
 	auto hr = PopulateUserList();

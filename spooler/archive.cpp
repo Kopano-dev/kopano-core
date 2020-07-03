@@ -62,7 +62,6 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
 	unsigned int cMsgProps, ulType;
 	SObjectEntry refMsgEntry;
 	std::shared_ptr<ArchiverSession> ptrSession;
-	InstanceIdMapperPtr ptrMapper;
 	std::unique_ptr<Copier::Helper> ptrHelper;
 	ArchiveResult result;
 	MAPIPropHelperPtr ptrMsgHelper;
@@ -118,6 +117,7 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
 	 * @todo: Create an archiver config object globally in the calling application to
 	 *        avoid the creation of the configuration for each message to be archived.
 	 */
+	std::shared_ptr<InstanceIdMapper> ptrMapper;
 	hr = InstanceIdMapper::Create(logger, nullptr, &ptrMapper);
 	if (hr != hrSuccess)
 		return kc_pwarn("Archive::HrArchiveMessageForDelivery(): InstanceIdMapper::Create failed", hr);
@@ -177,7 +177,6 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 	HRESULT hr = hrSuccess;
 	ULONG cMsgProps;
 	std::shared_ptr<ArchiverSession> ptrSession;
-	InstanceIdMapperPtr ptrMapper;
 	std::unique_ptr<Copier::Helper> ptrHelper;
 	ArchiveResult result;
 	static constexpr const SizedSPropTagArray(2, sptaMessageProps) = {1, {PR_STORE_ENTRYID}};
@@ -222,6 +221,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 	 * @todo: Create an archiver config object globally in the calling application to
 	 *        avoid the creation of the configuration for each message to be archived.
 	 */
+	std::shared_ptr<InstanceIdMapper> ptrMapper;
 	hr = InstanceIdMapper::Create(logger, nullptr, &ptrMapper);
 	if (hr != hrSuccess)
 		return kc_pwarn("Archive::HrArchiveMessageForSending(): InstanceIdMapper::Create failed", hr);

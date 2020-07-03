@@ -41,7 +41,7 @@ public:
 	static eResult Create(std::unique_ptr<Archiver> *);
 	KC_HIDDEN virtual ~Archiver() = default;
 	KC_HIDDEN virtual eResult Init(const char *app_name, const char *config, const configsetting_t *extra_opts = nullptr, unsigned int flags = 0) = 0;
-	KC_HIDDEN virtual eResult GetControl(ArchiveControlPtr *, bool force_cleanup = false) = 0;
+	KC_HIDDEN virtual eResult GetControl(std::unique_ptr<ArchiveControl> *, bool force_cleanup = false) = 0;
 	KC_HIDDEN virtual eResult GetManage(const TCHAR *user, std::unique_ptr<ArchiveManage> *) = 0;
 	KC_HIDDEN virtual eResult AutoAttach(unsigned int flags) = 0;
 	KC_HIDDEN virtual ECConfig *GetConfig() const = 0;

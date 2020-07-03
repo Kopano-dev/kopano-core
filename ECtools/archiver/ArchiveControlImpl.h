@@ -103,7 +103,7 @@ class IArchiveOperation;
  */
 class ArchiveControlImpl final : public ArchiveControl {
 public:
-	static HRESULT Create(std::shared_ptr<ArchiverSession>, ECConfig *, std::shared_ptr<ECLogger>, bool force_cleanup, ArchiveControlPtr *);
+	static HRESULT Create(std::shared_ptr<ArchiverSession>, ECConfig *, std::shared_ptr<ECLogger>, bool force_cleanup, std::unique_ptr<ArchiveControl> *);
 	eResult ArchiveAll(bool local_only, bool auto_attach, unsigned int flags) override;
 	HRESULT Archive2(const tstring &user, bool auto_attach, unsigned int flags);
 	eResult Archive(const tstring &user, bool auto_attach, unsigned int flags) override;

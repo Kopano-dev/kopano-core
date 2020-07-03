@@ -345,7 +345,6 @@ libkcarchiver_la_SOURCES = \
 	ECtools/archiver/ArchiveManage.h \
 	ECtools/archiver/ArchiveStateCollector.cpp ECtools/archiver/ArchiveStateCollector.h \
 	ECtools/archiver/ArchiveStateUpdater.cpp ECtools/archiver/ArchiveStateUpdater.h \
-	ECtools/archiver/archivestateupdater_fwd.h \
 	ECtools/archiver/helpers/ArchiveHelper.cpp ECtools/archiver/helpers/ArchiveHelper.h \
 	ECtools/archiver/helpers/StoreHelper.cpp ECtools/archiver/helpers/StoreHelper.h \
 	ECtools/archiver/helpers/MAPIPropHelper.cpp ECtools/archiver/helpers/MAPIPropHelper.h \
@@ -355,7 +354,6 @@ libkcarchiver_la_SOURCES = \
 	ECtools/archiver/ArchiverImpl.cpp ECtools/archiver/ArchiverImpl.h \
 	ECtools/archiver/operations/instanceidmapper.cpp \
 	ECtools/archiver/operations/instanceidmapper.h \
-	ECtools/archiver/operations/instanceidmapper_fwd.h \
 	ECtools/archiver/operations/operations.cpp \
 	ECtools/archiver/operations/operations.h \
 	ECtools/archiver/operations/copier.cpp \

@@ -9,7 +9,6 @@
 #include <kopano/memory.hpp>
 #include "operations.h"
 #include "postsaveaction.h"
-#include "instanceidmapper_fwd.h"
 #include <kopano/archiver-common.h>
 #include <map>
 
@@ -22,6 +21,7 @@ class ECLogger;
 namespace operations {
 
 class Deleter;
+class InstanceIdMapper;
 class Stubber;
 class Transaction;
 
@@ -53,7 +53,7 @@ public:
 
 	class KC_EXPORT Helper { // For lack of a better name
 	public:
-		Helper(std::shared_ptr<ArchiverSession>, std::shared_ptr<ECLogger>, const InstanceIdMapperPtr &, const SPropTagArray *exclprop, IMAPIFolder *);
+		Helper(std::shared_ptr<ArchiverSession>, std::shared_ptr<ECLogger>, const std::shared_ptr<InstanceIdMapper> &, const SPropTagArray *exclprop, IMAPIFolder *);
 
 		/**
 		 * Create a copy of a message in the archive, effectively archiving the message.
@@ -100,7 +100,7 @@ public:
 		std::shared_ptr<ECLogger> m_lpLogger;
 		const SPropTagArray *m_lpExcludeProps;
 		object_ptr<IMAPIFolder> m_ptrFolder;
-		InstanceIdMapperPtr m_ptrMapper;
+		std::shared_ptr<InstanceIdMapper> m_ptrMapper;
 	};
 
 private:
@@ -200,7 +200,7 @@ private:
 	std::shared_ptr<Stubber> m_ptrStubOp;
 	std::unique_ptr<Helper> m_ptrHelper;
 	std::shared_ptr<Transaction> m_ptrTransaction;
-	InstanceIdMapperPtr m_ptrMapper;
+	std::shared_ptr<InstanceIdMapper> m_ptrMapper;
 };
 
 }} /* namespace */

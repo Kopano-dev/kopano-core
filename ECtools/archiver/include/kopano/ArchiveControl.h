@@ -31,6 +31,4 @@ protected:
 	ArchiveControl(void) = default;
 };
 
-typedef std::unique_ptr<ArchiveControl> ArchiveControlPtr;
-
 } /* namespace */

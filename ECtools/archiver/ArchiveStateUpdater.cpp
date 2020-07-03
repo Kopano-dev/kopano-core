@@ -69,9 +69,9 @@ namespace Predicates {
  */
 HRESULT ArchiveStateUpdater::Create(const std::shared_ptr<ArchiverSession> &ptrSession,
     std::shared_ptr<ECLogger> lpLogger, const ArchiveInfoMap &mapArchiveInfo,
-    ArchiveStateUpdaterPtr *lpptrUpdater)
+    std::shared_ptr<ArchiveStateUpdater> *lpptrUpdater)
 {
-	ArchiveStateUpdaterPtr ptrUpdater(
+	std::shared_ptr<ArchiveStateUpdater> ptrUpdater(
 		new(std::nothrow) ArchiveStateUpdater(ptrSession,
 		std::move(lpLogger), mapArchiveInfo));
 	if (ptrUpdater == nullptr)
