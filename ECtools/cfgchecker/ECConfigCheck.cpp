@@ -127,30 +127,32 @@ int ECConfigCheck::testMandatory(const config_check_t *check)
 	return CHECK_ERROR;
 }
 
-int ECConfigCheck::testDirectory(const config_check_t *check)
+/**
+ * @req:	Exact type that the file must have (use e.g. S_IFDIR, S_IFREG,
+ * 		etc.), and the one bits that the file permissions must have
+ * 		(use e.g. S_IXUSR).
+ */
+int ECConfigCheck::testFile2(const config_check_t *check, unsigned int req)
 {
 	struct stat statfile;
 
 	if (check->value1.empty())
 		return CHECK_OK;
-	// check if path exists, and is a directory (not a symlink)
-	if (stat(check->value1.c_str(), &statfile) == 0 && S_ISDIR(statfile.st_mode))
-		return CHECK_OK;
-	printError(check->option1, "does not point to existing directory: \"" + check->value1 + "\"");
-	return CHECK_ERROR;
-}
-
-int ECConfigCheck::testFile(const config_check_t *check)
-{
-	struct stat statfile;
-
-	if (check->value1.empty())
-		return CHECK_OK;
-	// check if file exists, and is a normal file (not a symlink, or a directory
-	if (stat(check->value1.c_str(), &statfile) == 0 && S_ISREG(statfile.st_mode))
-		return CHECK_OK;
-	printError(check->option1, "does not point to existing file: \"" + check->value1 + "\"");
-	return CHECK_ERROR;
+	if (stat(check->value1.c_str(), &statfile) != 0) {
+		printError(check->option1, "does not point to existing file: \"" + check->value1 + "\"");
+		return CHECK_ERROR;
+	}
+	if ((statfile.st_mode ^ req) & S_IFMT) {
+		printError(check->option1, KC::format("expected type %0o on file \"%s\", but it is of type %0o",
+			req & S_IFMT, check->value1.c_str(), statfile.st_mode & S_IFMT));
+		return CHECK_ERROR;
+	}
+	if (~statfile.st_mode & req & ~S_IFMT) {
+		printError(check->option1, KC::format("expected permission bits %0o be enabled on file \"%s\"",
+			req & ~S_IFMT, check->value1.c_str()));
+		return CHECK_ERROR;
+	}
+	return CHECK_OK;
 }
 
 int ECConfigCheck::testUsedWithHosted(const config_check_t *check)

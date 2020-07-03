@@ -34,12 +34,12 @@ void ServerConfigCheck::loadChecks()
 	addCheck("user_plugin", 0, &testPlugin);
 	addCheck("user_plugin", "user_plugin_config", 0, &testPluginConfig);
 
-	addCheck("createuser_script", 0, &testFile);
-	addCheck("deleteuser_script", 0, &testFile);
-	addCheck("creategroup_script", 0, &testFile);
-	addCheck("deletegroup_script", 0, &testFile);
-	addCheck("createcompany_script", CONFIG_HOSTED_USED, &testFile);
-	addCheck("deletecompany_script", CONFIG_HOSTED_USED, &testFile);
+	addCheck("createuser_script", 0, &testXFile);
+	addCheck("deleteuser_script", 0, &testXFile);
+	addCheck("creategroup_script", 0, &testXFile);
+	addCheck("deletegroup_script", 0, &testXFile);
+	addCheck("createcompany_script", CONFIG_HOSTED_USED, &testXFile);
+	addCheck("deletecompany_script", CONFIG_HOSTED_USED, &testXFile);
 
 	addCheck("enable_hosted_kopano", 0, &testBoolean);
 	addCheck("storename_format", 0, &testStorename);

@@ -7,6 +7,7 @@
 #include <list>
 #include <map>
 #include <string>
+#include <sys/stat.h>
 
 enum CHECK_STATUS {
 	CHECK_OK,
@@ -60,8 +61,10 @@ private:
 	static int testUsedWithoutMultiServer(const config_check_t *);
 
 protected:
-	static int testDirectory(const config_check_t *);
-	static int testFile(const config_check_t *);
+	static int testDirectory(const config_check_t *c) { return testFile2(c, S_IFDIR); }
+	static int testFile2(const config_check_t *, unsigned int req);
+	static int testFile(const config_check_t *c) { return testFile2(c, S_IFREG); }
+	static int testXFile(const config_check_t *c) { return testFile2(c, S_IFREG | S_IXUSR | S_IXGRP | S_IXOTH); }
 	static int testCharset(const config_check_t *);
 	static int testBoolean(const config_check_t *);
 	static int testNonZero(const config_check_t *);
