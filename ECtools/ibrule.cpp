@@ -12,6 +12,7 @@
 #include <kopano/CommonUtil.h>
 #include <kopano/ECLogger.h>
 #include <kopano/mapiext.h>
+#include <kopano/memory.hpp>
 #include <kopano/stringutil.h>
 #include <kopano/charset/convert.h>
 

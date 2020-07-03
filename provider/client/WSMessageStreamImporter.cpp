@@ -5,6 +5,7 @@
 #include <kopano/platform.h>
 #include <new>
 #include <cstdlib>
+#include <kopano/memory.hpp>
 #include "SOAPSock.h"
 #include "SOAPUtils.h"
 #include "WSMessageStreamImporter.h"
