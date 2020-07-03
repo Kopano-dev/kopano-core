@@ -54,6 +54,7 @@ void ServerConfigCheck::loadChecks()
 	addCheck("softdelete_lifetime", 0, &testNonZero);
 
 	addCheck("auth_method", 0, &testAuthMethod);
+	addCheck("ntlm_auth", 0, &testXFile);
 }
 
 int ServerConfigCheck::testAttachment(const config_check_t *check)
