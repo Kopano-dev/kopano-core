@@ -134,8 +134,6 @@ stamp-h2
 # /installer/linux/
 /installer/linux/ldap.openldap.cfg
 /installer/linux/ldap.active-directory.cfg
-/installer/linux/ldapms.openldap.cfg
-/installer/linux/ldapms.active-directory.cfg
 /installer/linux/kopano-statsd.service
 
 # /installer/userscripts/
