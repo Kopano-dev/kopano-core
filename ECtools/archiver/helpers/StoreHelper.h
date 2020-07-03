@@ -25,16 +25,16 @@ typedef std::unique_ptr<StoreHelper> StoreHelperPtr;
  */
 class KC_EXPORT StoreHelper final : public MAPIPropHelper {
 public:
-	static HRESULT Create(object_ptr<IMsgStore> &, StoreHelperPtr *);
+	static HRESULT Create(IMsgStore *, StoreHelperPtr *);
 	KC_HIDDEN HRESULT GetFolder(const tstring &name, bool create, IMAPIFolder **ret);
 	KC_HIDDEN HRESULT UpdateSearchFolders();
 	KC_HIDDEN HRESULT GetIpmSubtree(IMAPIFolder **);
 	HRESULT GetSearchFolders(LPMAPIFOLDER *lppSearchArchiveFolder, LPMAPIFOLDER *lppSearchDeleteFolder, LPMAPIFOLDER *lppSearchStubFolder);
 
 private:
-	KC_HIDDEN StoreHelper(object_ptr<IMsgStore> &);
+	KC_HIDDEN StoreHelper(IMsgStore *);
 	KC_HIDDEN HRESULT Init();
-	KC_HIDDEN HRESULT GetSubFolder(object_ptr<IMAPIFolder> &, const tstring &name, bool create, IMAPIFolder **ret);
+	KC_HIDDEN HRESULT GetSubFolder(IMAPIFolder *, const tstring &name, bool create, IMAPIFolder **ret);
 	enum eSearchFolder {esfArchive = 0, esfDelete, esfStub, esfMax};
 	KC_HIDDEN HRESULT CheckAndUpdateSearchFolder(IMAPIFolder *, eSearchFolder which);
 	KC_HIDDEN HRESULT CreateSearchFolder(eSearchFolder which, IMAPIFolder **);

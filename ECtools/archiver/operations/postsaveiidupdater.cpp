@@ -12,8 +12,7 @@
 
 namespace KC { namespace operations {
 
-TaskBase::TaskBase(const object_ptr<IAttach> &sa,
-    const object_ptr<IMessage> &dst, unsigned int dst_at_idx) :
+TaskBase::TaskBase(IAttach *sa, IMessage *dst, unsigned int dst_at_idx) :
 	m_ptrSourceAttach(sa), m_ptrDestMsg(dst), m_ulDestAttachIdx(dst_at_idx)
 { }
 
@@ -78,8 +77,7 @@ HRESULT TaskBase::GetUniqueIDs(IAttach *lpAttach, LPSPropValue *lppServerUID, UL
 	return hrSuccess;
 }
 
-TaskMapInstanceId::TaskMapInstanceId(const object_ptr<IAttach> &sa,
-    const object_ptr<IMessage> &dst, unsigned int dst_at_num) :
+TaskMapInstanceId::TaskMapInstanceId(IAttach *sa, IMessage *dst, unsigned int dst_at_num) :
 	TaskBase(sa, dst, dst_at_num)
 { }
 
@@ -87,8 +85,8 @@ HRESULT TaskMapInstanceId::DoExecute(ULONG ulPropTag, const InstanceIdMapperPtr 
 	return ptrMapper->SetMappedInstances(ulPropTag, sourceServerUID, cbSourceInstanceID, lpSourceInstanceID, destServerUID, cbDestInstanceID, lpDestInstanceID);
 }
 
-TaskVerifyAndUpdateInstanceId::TaskVerifyAndUpdateInstanceId(const object_ptr<IAttach> &sa,
-    const object_ptr<IMessage> &dst, unsigned int dst_at_num, unsigned int di_size, ENTRYID *di_id) :
+TaskVerifyAndUpdateInstanceId::TaskVerifyAndUpdateInstanceId(IAttach *sa,
+    IMessage *dst, unsigned int dst_at_num, unsigned int di_size, ENTRYID *di_id) :
 	TaskBase(sa, dst, dst_at_num), m_destInstanceID(di_size, di_id)
 { }
 

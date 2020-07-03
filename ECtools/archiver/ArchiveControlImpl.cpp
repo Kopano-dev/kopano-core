@@ -504,7 +504,7 @@ HRESULT ArchiveControlImpl::DoCleanup(const tstring &strUser)
  *					If set to true, unread messages will also be processed. Otherwise unread message
  *					will be left untouched.
  */
-HRESULT ArchiveControlImpl::ProcessFolder2(object_ptr<IMAPIFolder> &ptrFolder,
+HRESULT ArchiveControlImpl::ProcessFolder2(IMAPIFolder *ptrFolder,
     std::shared_ptr<IArchiveOperation> ptrArchiveOperation, bool &bHaveErrors)
 {
 	object_ptr<IMAPITable> ptrTable;
@@ -553,7 +553,7 @@ HRESULT ArchiveControlImpl::ProcessFolder2(object_ptr<IMAPIFolder> &ptrFolder,
 	return hrSuccess;
 }
 
-HRESULT ArchiveControlImpl::ProcessFolder(object_ptr<IMAPIFolder> &fld,
+HRESULT ArchiveControlImpl::ProcessFolder(IMAPIFolder *fld,
     std::shared_ptr<IArchiveOperation> aop)
 {
 	const tstring strFolderRestore = m_lpLogger->GetFolder();
@@ -673,7 +673,7 @@ HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
  * @param[in]	folderEntryID	The entryid of the folder to purge.
  * @param[in]	lpRestriction	The restriction to use to determine which messages to delete.
  */
-HRESULT ArchiveControlImpl::PurgeArchiveFolder(object_ptr<IMsgStore> &ptrArchive,
+HRESULT ArchiveControlImpl::PurgeArchiveFolder(IMsgStore *ptrArchive,
     const entryid_t &folderEntryID, const SRestriction *lpRestriction)
 {
 	object_ptr<IMAPIFolder> ptrFolder;

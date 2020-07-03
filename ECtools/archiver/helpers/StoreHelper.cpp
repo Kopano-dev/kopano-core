@@ -40,7 +40,7 @@ const StoreHelper::search_folder_info_t StoreHelper::s_infoSearchFolders[] = {
  *					Pointer to a StoreHelperPtr that will be assigned the address
  *					of the new StoreHelper object.
  */
-HRESULT StoreHelper::Create(object_ptr<IMsgStore> &ptrMsgStore, StoreHelperPtr *lpptrStoreHelper)
+HRESULT StoreHelper::Create(IMsgStore *ptrMsgStore, StoreHelperPtr *lpptrStoreHelper)
 {
 	StoreHelperPtr ptrStoreHelper(new(std::nothrow) StoreHelper(ptrMsgStore));
 	if (ptrStoreHelper == nullptr)
@@ -52,7 +52,7 @@ HRESULT StoreHelper::Create(object_ptr<IMsgStore> &ptrMsgStore, StoreHelperPtr *
 	return hrSuccess;
 }
 
-StoreHelper::StoreHelper(object_ptr<IMsgStore> &st) :
+StoreHelper::StoreHelper(IMsgStore *st) :
 	MAPIPropHelper(st), m_ptrMsgStore(st), m_propmap(8)
 { }
 
@@ -298,7 +298,7 @@ HRESULT StoreHelper::GetSearchFolders(LPMAPIFOLDER *lppSearchArchiveFolder, LPMA
  *					Pointer to an IMAPIFolder pointer that will be assigned the
  *					address of the returned folder.
  */
-HRESULT StoreHelper::GetSubFolder(object_ptr<IMAPIFolder> &ptrFolder,
+HRESULT StoreHelper::GetSubFolder(IMAPIFolder *ptrFolder,
     const tstring &strFolder, bool bCreate, IMAPIFolder **lppFolder)
 {
 	static constexpr const SizedSPropTagArray(1, sptaFolderProps) = {1, {PR_ENTRYID}};

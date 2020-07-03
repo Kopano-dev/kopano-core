@@ -22,8 +22,8 @@ class ECLogger;
 class KC_EXPORT ArchiverSession final {
 public:
 	static HRESULT Create(ECConfig *lpConfig, std::shared_ptr<ECLogger>, ArchiverSessionPtr *lpptrSession);
-	static HRESULT Create(const object_ptr<IMAPISession> &, std::shared_ptr<ECLogger>, ArchiverSessionPtr *);
-	KC_HIDDEN static HRESULT Create(const object_ptr<IMAPISession> &, ECConfig *, std::shared_ptr<ECLogger>, ArchiverSessionPtr *);
+	static HRESULT Create(IMAPISession *, std::shared_ptr<ECLogger>, ArchiverSessionPtr *);
+	KC_HIDDEN static HRESULT Create(IMAPISession *, ECConfig *, std::shared_ptr<ECLogger>, ArchiverSessionPtr *);
 	HRESULT OpenStoreByName(const tstring &strUser, LPMDB *lppMsgStore);
 	KC_HIDDEN HRESULT OpenStore(const entryid_t &, unsigned int flags, IMsgStore **);
 	HRESULT OpenStore(const entryid_t &eid, LPMDB *ret);
@@ -45,7 +45,7 @@ private:
 	KC_HIDDEN ArchiverSession(std::shared_ptr<ECLogger>);
 	KC_HIDDEN HRESULT Init(ECConfig *);
 	KC_HIDDEN HRESULT Init(const char *server_path, const char *ssl_path, const char *ssl_pass);
-	KC_HIDDEN HRESULT Init(const object_ptr<IMAPISession> &, const char *ssl_path, const char *ssl_pass);
+	KC_HIDDEN HRESULT Init(IMAPISession *, const char *ssl_path, const char *ssl_pass);
 	KC_HIDDEN HRESULT CreateArchiveStore(const tstring &user, const tstring &server, IMsgStore **arc_store);
 
 	object_ptr<IMAPISession> m_ptrSession;

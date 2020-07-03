@@ -13,7 +13,7 @@ namespace KC { class ECLogger; }
 
 class ArchiveResult final {
 public:
-	void AddMessage(KC::object_ptr<IMessage>);
+	void AddMessage(IMessage *);
 	void Undo(IMAPISession *lpSession);
 
 private:

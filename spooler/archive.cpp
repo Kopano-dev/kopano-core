@@ -29,7 +29,7 @@ using namespace KC::helpers;
 using namespace KC::operations;
 using std::endl;
 
-void ArchiveResult::AddMessage(object_ptr<IMessage> ptrMessage)
+void ArchiveResult::AddMessage(IMessage *ptrMessage)
 {
 	m_lstMessages.emplace_back(ptrMessage);
 }

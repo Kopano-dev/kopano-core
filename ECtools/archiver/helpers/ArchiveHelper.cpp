@@ -408,7 +408,7 @@ HRESULT ArchiveHelper::SetPermissions(const abentryid_t &sUserEntryId, bool bWri
  * @param[out]	lppDestinationFolder
  *					Pointer to a MAPIFolder pointer that's assigned the address of the returned folder.
  */
-HRESULT ArchiveHelper::GetArchiveFolderFor(object_ptr<IMAPIFolder> &ptrSourceFolder,
+HRESULT ArchiveHelper::GetArchiveFolderFor(IMAPIFolder *ptrSourceFolder,
     ArchiverSessionPtr ptrSession, IMAPIFolder **lppDestinationFolder)
 {
 	memory_ptr<SPropValue> ptrStoreEntryId, ptrFolderType, ptrFolderEntryId, ptrPropArray;
