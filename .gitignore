@@ -74,8 +74,6 @@ stamp-h2
 /ECtools/migration-pst/kopano_migration_pst/version.py
 /ECtools/migration-pst/staging/
 /ECtools/rest/kopano_rest/version.py
-/ECtools/rules/kopano-rules
-/ECtools/rules/kopano_rules/version.py
 /ECtools/search/build/
 /ECtools/search/kopano-search
 /ECtools/search/kopano_search/version.py
