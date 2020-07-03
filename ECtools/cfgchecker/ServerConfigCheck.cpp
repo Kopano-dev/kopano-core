@@ -92,11 +92,6 @@ int ServerConfigCheck::testPlugin(const config_check_t *check)
 		printError(check->option1, "Unix plugin does not support multi-tenancy");
 		return CHECK_ERROR;
 	}
-	if (check->multi && check->value1 == "ldap") {
-		printError(check->option1, "Unix plugin does not support multiserver");
-		return CHECK_ERROR;
-	}
-
 	if (check->value1 == "ldap" || check->value1 == "ldapms" || check->value1 == "unix" || check->value1 == "db")
 		return CHECK_OK;
 	printError(check->option1, "contains unknown plugin: \"" + check->value1 + "\"");
