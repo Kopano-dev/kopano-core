@@ -132,6 +132,7 @@ class MyTable(object):
 
         self.rows.append(row)
 
+
 # Get Kopano's global addressbook
 def getGlobalAddressbook(session):
     PR_EMS_AB_CONTAINERID = 0xFFFD0003
@@ -156,6 +157,7 @@ def getGlobalAddressbook(session):
     gab = abook.OpenEntry(rows[0][0].Value, None, MAPI_BEST_ACCESS)
     return gab
 
+
 def getUserlistNormal(gab):
     users = []
     table = gab.GetContentsTable(0)
@@ -166,6 +168,7 @@ def getUserlistNormal(gab):
         raise MAPIError(MAPI_E_NOT_FOUND)
 
     return users
+
 
 def buildUserList(table):
     users = []
@@ -183,6 +186,7 @@ def buildUserList(table):
 
     return users
 
+
 def getUserListHosted(gab):
     users = []
 
@@ -195,6 +199,7 @@ def getUserListHosted(gab):
         users.extend(buildUserList(ctable))
 
     return users
+
 
 def getUserList(session):
     users = []
@@ -209,6 +214,7 @@ def getUserList(session):
             raise
 
     return users
+
 
 def parsePermissionsToName(permissions):
     if (permissions == ecRightsFullControl):
@@ -225,6 +231,7 @@ def parsePermissionsToName(permissions):
         return u"denied"
 
     return u"0x%04x" % permissions
+
 
 def parsePermissionsToId(permissions):
     if permissions == 'fullcontrol':
@@ -247,6 +254,7 @@ def parsePermissionsToId(permissions):
 
     raise ValueError("error unknown permission type %s" % permissions)
 
+
 # Get the mailbox of the given user
 def getStore(session, username):
 
@@ -265,11 +273,13 @@ def getStore(session, username):
 
     return session.OpenMsgStore(0, storeid, IID_IMsgStore, MDB_WRITE | MAPI_DEFERRED_ERRORS)
 
+
 def boolText(b):
     if b:
         return "True"
     else:
         return "False"
+
 
 def UserAccountsToEntryIDs(session, users):
     gab = getGlobalAddressbook(session)
@@ -299,7 +309,7 @@ def UserAccountsToEntryIDs(session, users):
 
         entryid = PpropFindProp(row, PR_ENTRYID)
         account = PpropFindProp(row, PR_ACCOUNT_W)
-        username= PpropFindProp(row, PR_DISPLAY_NAME_W)
+        username = PpropFindProp(row, PR_DISPLAY_NAME_W)
         if not account or account.ulPropTag != PR_ACCOUNT_W:
             print("error missing PR_ACCOUNT for name %s" % users[i])
             errors += 1
@@ -320,6 +330,7 @@ def UserAccountsToEntryIDs(session, users):
 
     return entryids
 
+
 def RebuildFreeBusyEntries(store):
     print("Rebuild freebusy entries not implemented")
 
@@ -327,12 +338,11 @@ def RebuildFreeBusyEntries(store):
 def setMailboxPermissions(session, listfolderrights, members, mailboxes, privateflag, sendcopy, onlySendToDelegates):
 
     inboxtags = [PR_IPM_APPOINTMENT_ENTRYID,
-                PR_IPM_CONTACT_ENTRYID,
-                PR_IPM_JOURNAL_ENTRYID,
-                PR_IPM_NOTE_ENTRYID,
-                PR_IPM_TASK_ENTRYID,
-                PR_FREEBUSY_ENTRYIDS,
-                ]
+                 PR_IPM_CONTACT_ENTRYID,
+                 PR_IPM_JOURNAL_ENTRYID,
+                 PR_IPM_NOTE_ENTRYID,
+                 PR_IPM_TASK_ENTRYID,
+                 PR_FREEBUSY_ENTRYIDS]
 
     ab = session.OpenAddressBook(0, None, MAPI_UNICODE)
 
@@ -381,7 +391,7 @@ def setMailboxPermissions(session, listfolderrights, members, mailboxes, private
         setMailboxFolderPermissions(store, inboxprops[0].Value, members, listfolderrights.get('calendar', ecRightsNone))
         if listfolderrights.get('calendar'):
             # if we have write access, give correct permission on fb
-            if listfolderrights.get('calendar', ecRightsNone) & (ecRightsCreate|ecRightsEditOwned|ecRightsDeleteOwned|ecRightsEditAny|ecRightsDeleteAny) != ecRightsNone:
+            if listfolderrights.get('calendar', ecRightsNone) & (ecRightsCreate | ecRightsEditOwned | ecRightsDeleteOwned | ecRightsEditAny | ecRightsDeleteAny) != ecRightsNone:
                 fbrights = ecRightsTemplateSecretary
             else:
                 fbrights = listfolderrights.get('calendar', ecRightsNone)
@@ -439,7 +449,9 @@ def setMailboxPermissions(session, listfolderrights, members, mailboxes, private
 
 class DelegateRuleData(object):
 
-    userprops = [PR_ENTRYID, PR_ADDRTYPE_W, PR_EMAIL_ADDRESS_W, PR_DISPLAY_NAME_W, PR_SEARCH_KEY, PR_SMTP_ADDRESS_W, PR_OBJECT_TYPE, PR_DISPLAY_TYPE, PR_RECIPIENT_TYPE]
+    userprops = [PR_ENTRYID, PR_ADDRTYPE_W, PR_EMAIL_ADDRESS_W,
+                 PR_DISPLAY_NAME_W, PR_SEARCH_KEY, PR_SMTP_ADDRESS_W,
+                 PR_OBJECT_TYPE, PR_DISPLAY_TYPE, PR_RECIPIENT_TYPE]
     delegateruleres = SAndRestriction([SPropertyRestriction(RELOP_EQ, PR_RULE_PROVIDER, SPropValue(PR_RULE_PROVIDER, b'Schedule+ EMS Interface'))])
 
     def __init__(self, session, store, inbox):
@@ -568,8 +580,8 @@ class DelegateRuleData(object):
             rulesemt = self.inbox.OpenProperty(PR_RULES_TABLE, IID_IExchangeModifyTable, 0, 0)
             rulesemt.ModifyTable(flags, rulerows)
 
-def updateDelegateEntries(ab, fbProps, members, privateflag):
 
+def updateDelegateEntries(ab, fbProps, members, privateflag):
     if fbProps[0].ulPropTag != PR_SCHDINFO_DELEGATE_ENTRYIDS:
         fbProps[0].Value = []
         fbProps[0].ulPropTag = PR_SCHDINFO_DELEGATE_ENTRYIDS
@@ -593,6 +605,7 @@ def updateDelegateEntries(ab, fbProps, members, privateflag):
             fbProps[2].Value.append(privateflag)
 
     return fbProps
+
 
 def setMailboxFolderPermissions(store, entryid, members, rights):
 
@@ -620,11 +633,13 @@ def validatePermissionsAndConvert(permissions):
 
     return permissions
 
+
 def parseToBool(b):
     if b and b.lower()[0] in ('y', 't', '1'):  # Yes, True, 1
         return True
     else:  # no, false, 0
         return False
+
 
 def removeFolderPermissions(folder):
     aclemt = folder.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, MAPI_MODIFY)
@@ -644,8 +659,8 @@ def removeFolderPermissions(folder):
     if len(removelist) > 0:
         aclemt.ModifyTable(0, removelist)
 
-def removeRecuriveFolderPermissions(session, store, entryid, depth):
 
+def removeRecuriveFolderPermissions(session, store, entryid, depth):
     folder = store.OpenEntry(entryid, None, 0)
 
     removeFolderPermissions(folder)
@@ -662,6 +677,7 @@ def removeRecuriveFolderPermissions(session, store, entryid, depth):
             if (row[1].Value == FOLDER_GENERIC):
                 removeRecuriveFolderPermissions(session, store, row[0].Value, depth+1)
 
+
 def removeDelegatePermissions(session, store):
     # get inbox
     inboxid = store.GetReceiveFolder(b'IPM', 0)[0]
@@ -675,7 +691,7 @@ def removeDelegatePermissions(session, store):
 
     try:
         fbmsg = store.OpenEntry(inboxprops[0].Value[1], None, MAPI_MODIFY)
-    except MAPIError as err:
+    except MAPIError:
         return 0
 
     # Remove delegate rules
@@ -685,6 +701,7 @@ def removeDelegatePermissions(session, store):
 
     fbmsg.DeleteProps([PR_SCHDINFO_DELEGATE_ENTRYIDS, PR_SCHDINFO_DELEGATE_NAMES, PR_DELEGATE_FLAGS])
     fbmsg.SaveChanges(0)
+
 
 def removeAllPermissions(session, usersmailbox):
 
@@ -719,6 +736,7 @@ def printFolderACLSTable(store, showall):
     print('Folder permissions:')
     print(pt.getTable())
 
+
 def printFolderListACLs(printtable, store, showall, entryid, depth):
     folder = store.OpenEntry(entryid, None, 0)
 
@@ -735,6 +753,7 @@ def printFolderListACLs(printtable, store, showall, entryid, depth):
         for row in rows:
             if (row[1].Value == FOLDER_GENERIC):
                 printFolderListACLs(printtable, store, showall, row[0].Value, depth+1)
+
 
 # Print ACLS of one folder
 def printFolderACLs(printtable, folder, showall, depth):
@@ -763,12 +782,12 @@ def printFolderACLs(printtable, folder, showall, depth):
                 permissions += u', '
 
             permissions += u"%s:%s" % (row[2].Value, parsePermissionsToName(row[3].Value))
-            found+=1
-
+            found += 1
 
     if not showall and found == 0:
         return
     printtable.addRow([(depth*' ') + props[0].Value, permissions])
+
 
 # Print the delegate information of a store
 def printDelegateInformation(session, store):
@@ -835,6 +854,7 @@ def printUserMailBoxPermissions(session, showall, users):
 
     return with_errors
 
+
 def print_help():
     print("Usage: %s [ACTION] [mailboxes...]" % sys.argv[0])
     print("")
@@ -894,7 +914,7 @@ def main(argv=None):
                                         ['all', 'help', 'host', 'sslkey-file', 'sslkey-pass', 'verbose',
                                          'calendar=', 'tasks=', 'inbox=', 'contacts=', 'notes=', 'journal=', 'store=',
                                          'seeprivate=', 'sendcopy=', 'send-only-to-delegators=',
-                                         'update-delegate=','remove-delegate=','remove-all-permissions',
+                                         'update-delegate=', 'remove-delegate=', 'remove-all-permissions',
                                          'list-permissions', 'list-permissions-per-folder',
                                          'profile='
                                          ])
