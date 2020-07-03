@@ -810,58 +810,86 @@ All additional Unix settings are set in a separate config file, which will be de
 .PP
 Default:
 \fIdb\fR
-.SS createuser_script, deleteuser_script, creategroup_script, deletegroup_script, createcompany_script, deletecompany_script
-.PP
-These scripts are called by the server when the external user source, like
-LDAP, is different from the users, groups and companies which are known to
-Kopano. The script uses environment variables to tell which user, group or
-tenant is affected. The following parameters are used for the scripts:
 .SS createuser_script
 .PP
-\fIKOPANO_USER\fR
-contains the new user's name. The script should invoke
-\fBkopano\-storeadm \-Cn\fP \fI"$KOPANO_USER"\fP
-to create the store for the new user.
+A program that kopano-server will invoke when it discovers that a new user has
+appeared in the external user database (such as LDAP). The environment variable
+\fBKOPANO_USER\fP is used to convey the username to the program. That program
+should itself invoke the equivalent of `\fBkopano\-storeadm \-Cn\fP
+\fI"$KOPANO_USER"\fP` to create the store for the new user.
 .PP
-Default:
-\fI/usr/lib/kopano/userscripts/createuser\fR
+Default: \fIinternal\fP
+.PP
+The magic value "internal" will cause
+\fI/usr/lib\fP(\fIexec\fP)\fI/kopano/userscripts/createuser.d\fP and
+\fI/etc/kopano/userscripts/createuser.d\fP to be scanned and evaluated in the
+typical "drop-in directory" fashion, where files with the same basename in /etc
+override what is found in /usr, and then those programs will be executed in
+that manner.
 .SS deleteuser_script
 .PP
-\fIKOPANO_STOREID\fR
-contains the old id of the store of the removed user.
+A program that kopano-server will invoke when it discovers that a user has been
+removed from the external user database. The environment variable
+\fBKOPANO_STOREID\fP is used to convey the GUID of the store of the removed
+user. There is no recommendation as to what the program should do: By default,
+when a user is deleted, the store is not removed but left as-is, making it
+orphaned. If you absolutely want it removed right away, it is possible to use
+kopano\-storeadm and its \-R option.
 .PP
-Default:
-\fI/usr/lib/kopano/userscripts/deleteuser\fR
+Default: \fIinternal\fP
+.PP
+"internal" will evaluate
+\fI/usr/lib\fP(\fIexec\fP)\fI/kopano/userscripts/deleteuser.d\fP and
+\fI/etc/kopano/userscripts/deleteuser.d\fP.
 .SS creategroup_script
 .PP
-\fIKOPANO_GROUP\fR
-contains the new group's name. No action is currently needed by the script.
+A program that kopano-server will invoke when it discovers that a new group has
+appeared in the external user database. The environment variable
+\fBKOPANO_GROUP\fP is used to convey the new group's name. No action is
+currently needed by the program.
 .PP
-Default:
-\fI/usr/lib/kopano/userscripts/creategroup\fR
+Default: \fIinternal\fP
+.PP
+"internal" will evaluate
+\fI/usr/lib\fP(\fIexec\fP)\fI/kopano/userscripts/creategroup.d\fP and
+\fI/etc/kopano/userscripts/creategroup.d\fP.
 .SS deletegroup_script
 .PP
-\fIKOPANO_GROUPID\fR
-contains the old id of the group. No action is currently needed by the script.
+A program that kopano-server will invoke when it notices that a group has been
+removed from the external user database. The environment variable
+\fBKOPANO_GROUPID\fP is used to convey the Kopano-side ID of the group. No
+action is currently needed by the program.
 .PP
-Default:
-\fI/usr/lib/kopano/userscripts/deletegroup\fR
+Default: \fIinternal\fP
+.PP
+"internal" will evaluate
+\fI/usr/lib\fP(\fIexec\fP)\fI/kopano/userscripts/deletegroup.d\fP and
+\fI/etc/kopano/userscripts/deletegroup.d\fP.
 .SS createcompany_script
 .PP
-\fIKOPANO_COMPANY\fR
-contains the new companyname. The script should invoke
-\fBkopano\-storeadm \-Pk\fP \fI"$KOPANO_COMPANY"\fR
-to create the public store for the new company.
+A program that kopano-server will invoke when it discovers that a new company
+has appeared in the external user database. The environment variable
+\fBKOPANO_COMPANY\fP is used to convey the new company's name. The program
+should itself invoke `\fBkopano\-storeadm \-Pk\fP \fI"$KOPANO_COMPANY"\fP` to
+create the public store for the new company.
 .PP
-Default:
-\fI/usr/lib/kopano/userscripts/createcompany\fR
+Default: \fIinternal\fP
+.PP
+"internal" will evaluate
+\fI/usr/lib\fP(\fIexec\fP)\fI/kopano/userscripts/createcompany.d\fP and
+\fI/etc/kopano/userscripts/createcompany.d\fP.
 .SS deletecompany_script
 .PP
-\fIKOPANO_COMPANYID\fR
-contains the old id of the company. No action is currently needed by the script.
+A program that kopano-server will invoke when it notices that a group has been
+removed from the external user database. The environment variable
+\fBKOPANO_COMPANYID\fP is used to convey the Kopano-side ID of the company. No
+action is currently needed by the script.
 .PP
-Default:
-\fI/usr/lib/kopano/userscripts/deletecompany\fR
+Default: \fIinternal\fP
+.PP
+"internal" will evaluate
+\fI/usr/lib\fP(\fIexec\fP)\fI/kopano/userscripts/deletecompany.d\fP and
+\fI/etc/kopano/userscripts/deletecompany.d\fP.
 .SS user_safe_mode
 .PP
 The storage server can inhibit create, delete and move actions done on
