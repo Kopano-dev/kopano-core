@@ -46,12 +46,11 @@ namespace KC {
 static const ABEID_FIXED abcont_1(MAPI_ABCONT, MUIDECSAB, 1);
 static const ABEID_FIXED abcont_uab(MAPI_ABCONT, MUIDECSAB, KOPANO_UID_ADDRESS_BOOK);
 
-static bool execute_script(const char *scriptname, ...)
+static void execute_script(const char *scriptname, ...)
 {
 	va_list v;
 	std::vector<const char *> env;
 	std::list<std::string> lstEnv;
-	std::string strEnv;
 
 	va_start(v, scriptname);
 	/* Set environment */
@@ -64,10 +63,7 @@ static bool execute_script(const char *scriptname, ...)
 		auto envval = va_arg(v, char *);
 		if (!envval)
 			break;
-		strEnv = envname;
-		strEnv += '=';
-		strEnv += envval;
-		lstEnv.emplace_back(std::move(strEnv));
+		lstEnv.emplace_back(envname + "="s + envval);
 	}
 	va_end(v);
 
@@ -75,7 +71,7 @@ static bool execute_script(const char *scriptname, ...)
 	for (const auto &s : lstEnv)
 		env.push_back(s.c_str());
 	env.push_back(nullptr);
-	return unix_system(scriptname, {scriptname}, &env[0]);
+	unix_system(scriptname, {scriptname}, &env[0]);
 }
 
 static const char *ObjectClassToName(objectclass_t objclass)
