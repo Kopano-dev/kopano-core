@@ -23,12 +23,9 @@ namespace KC {
  * are held in memory.
  */
 class ECMemBlock final : public ECUnknown {
-	private:
+	public:
 	ECMemBlock(const char *buffer, unsigned int len, unsigned int flags);
 	~ECMemBlock();
-
-	public:
-	static HRESULT Create(const char *buffer, unsigned int len, unsigned int flags, ECMemBlock **out);
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 	virtual HRESULT	ReadAt(unsigned int pos, unsigned int len, char *buffer, unsigned int *have_read);
 	virtual HRESULT WriteAt(unsigned int pos, unsigned int len, const char *buffer, unsigned int *have_written);
@@ -41,7 +38,6 @@ class ECMemBlock final : public ECUnknown {
 	private:
 	char *lpCurrent = nullptr, *lpOriginal = nullptr;
 	unsigned int cbCurrent = 0, cbOriginal = 0, cbTotal = 0, ulFlags = 0;
-	ALLOC_WRAP_FRIEND;
 };
 
 ECMemBlock::ECMemBlock(const char *buffer, ULONG ulDataLen, ULONG fl) :
@@ -69,12 +65,6 @@ ECMemBlock::~ECMemBlock()
 	free(lpCurrent);
 	if (ulFlags & STGM_TRANSACTED)
 		free(lpOriginal);
-}
-
-HRESULT	ECMemBlock::Create(const char *buffer, ULONG ulDataLen, ULONG ulFlags,
-    ECMemBlock **lppStream)
-{
-	return alloc_wrap<ECMemBlock>(buffer, ulDataLen, ulFlags).put(lppStream);
 }
 
 HRESULT ECMemBlock::QueryInterface(REFIID refiid, void **lppInterface)
@@ -170,9 +160,10 @@ HRESULT ECMemBlock::GetSize(ULONG *ulSize) const
  */
 ECMemStream::ECMemStream(const char *buffer, ULONG ulDataLen, ULONG f,
     CommitFunc cf, DeleteFunc df, void *p) :
+	lpMemBlock(new ECMemBlock(buffer, ulDataLen, ulFlags)),
 	lpCommitFunc(cf), lpDeleteFunc(df), lpParam(p), ulFlags(f)
 {
-	ECMemBlock::Create(buffer, ulDataLen, ulFlags, &lpMemBlock);
+	lpMemBlock->AddRef();
 }
 
 ECMemStream::ECMemStream(ECMemBlock *mb, ULONG f, CommitFunc cf,
