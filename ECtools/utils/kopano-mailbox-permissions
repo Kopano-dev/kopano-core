@@ -25,17 +25,37 @@ else:
         return s
     long = int
 
-try:
-    import MAPI
-    from MAPI.Util import *
-    from MAPI.Time import *
-    from MAPI.Struct import *
-except ImportError as e:
-    print("Not all modules can be loaded. The following modules are required:")
-    print("- MAPI (Kopano)")
-    print("")
-    print(e)
-    sys.exit(1)
+from MAPI import (RELOP_EQ, RELOP_NE, ROWLIST_REPLACE, PT_MV_UNICODE,
+                  FL_PREFIX, TBL_ALL_COLUMNS, MAPI_BEST_ACCESS, ROW_MODIFY,
+                  MAPI_E_NOT_FOUND, MAPI_UNICODE, BOOKMARK_BEGINNING,
+                  ROW_ADD, ROW_REMOVE, MAPI_DEFERRED_ERRORS, TBL_BATCH,
+                  MAPI_MODIFY, FOLDER_GENERIC, PT_UNICODE,
+                  MAPI_E_LOGON_FAILED, MAPI_E_NETWORK_ERROR,
+                  MAPI_EXTENDED, MAPI_NEW_SESSION, MAPI_NO_MAIL,
+                  MAPI_UNRESOLVED, MAPI_AMBIGUOUS, MAPILogonEx,
+                  MDB_WRITE, DT_MAILUSER, PT_ERROR)
+from MAPI.Defs import PpropFindProp, CHANGE_PROP_TYPE, PROP_TYPE
+from MAPI.Struct import (actFwdDelegate, ACTION, ACTIONS, SPropValue,
+                         SPropertyRestriction, SNotRestriction, SOrRestriction,
+                         SAndRestriction, SContentRestriction, SExistRestriction,
+                         ROWENTRY, MAPIError)
+from MAPI.Util import GetDefaultStore, OpenECSession
+from MAPI.Tags import (PR_AB_PROVIDER_ID, PR_ENTRYID, PR_DISPLAY_TYPE,
+                       PR_OBJECT_TYPE, PR_ACCOUNT_W, PR_DISPLAY_NAME_W,
+                       PR_IPM_APPOINTMENT_ENTRYID, PR_IPM_CONTACT_ENTRYID,
+                       PR_IPM_JOURNAL_ENTRYID, PR_IPM_NOTE_ENTRYID,
+                       PR_IPM_TASK_ENTRYID, PR_FREEBUSY_ENTRYIDS,
+                       PR_SCHDINFO_DELEGATE_ENTRYIDS, PR_SCHDINFO_DELEGATE_NAMES,
+                       PR_DELEGATE_FLAGS, PR_RULES_TABLE, PR_RULE_CONDITION,
+                       PR_SENSITIVITY, PR_MESSAGE_CLASS_W, PR_RULE_PROVIDER,
+                       PR_RULE_LEVEL, PR_RULE_NAME, PR_RULE_SEQUENCE,
+                       PR_RULE_STATE, PR_RULE_PROVIDER_DATA, PR_RULE_ACTIONS,
+                       PR_ADDRTYPE_W, PR_SEARCH_KEY, PR_EMAIL_ADDRESS_W, PR_SMTP_ADDRESS_W,
+                       PR_RECIPIENT_TYPE, PR_DELEGATED_BY_RULE, PR_RULE_ID, PR_MEMBER_ENTRYID,
+                       PR_MEMBER_ID, PR_FOLDER_TYPE, PR_MEMBER_NAME, PR_MEMBER_RIGHTS,
+                       PR_ACL_TABLE, PR_EMAIL_ADDRESS, ACTTYPE,
+                       IID_IExchangeModifyTable, IID_IExchangeManageStore, IID_IMsgStore)
+
 
 verbose = False
 
