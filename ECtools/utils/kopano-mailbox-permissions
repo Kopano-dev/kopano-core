@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 # SPDX-License-Identifier: AGPL-3.0-only
-from __future__ import print_function
 
 """
 Set the delegate permissions of a Kopano mailbox
@@ -17,13 +16,6 @@ import getopt
 
 import codecs
 
-if sys.version_info[0] < 3:
-    # Wrap sys.stdout into a StreamWriter to allow writing unicode.
-    sys.stdout = codecs.getwriter(locale.getpreferredencoding())(sys.stdout)
-else:
-    def unicode(s):
-        return s
-    long = int
 
 from MAPI import (RELOP_EQ, RELOP_NE, ROWLIST_REPLACE, PT_MV_UNICODE,
                   FL_PREFIX, TBL_ALL_COLUMNS, MAPI_BEST_ACCESS, ROW_MODIFY,
@@ -70,7 +62,7 @@ ecRightsCreateSubfolder = 0x00000080
 ecRightsFolderAccess    = 0x00000100
 ecRightsFolderVisible   = 0x00000400
 
-ecRightsFullControl     = long(0x000004FB)
+ecRightsFullControl     = int(0x000004FB)
 
 ecRightsTemplateNoRights    = ecRightsFolderVisible
 ecRightsTemplateReadOnly    = ecRightsTemplateNoRights | ecRightsReadAny
@@ -287,7 +279,6 @@ def UserAccountsToEntryIDs(session, users):
     addrlist = []
     flaglist = []
     for user in users:
-        user = unicode(user)
         addrlist.append([SPropValue(PR_DISPLAY_NAME_W, user)])
         flaglist.append(MAPI_UNRESOLVED)
 
