@@ -11,14 +11,9 @@ Script prerequisites:
 """
 
 import os
-import time
 import locale
 import sys
 import getopt
-try:
-    import __builtin__
-except ImportError:
-    import builtins
 
 import codecs
 
@@ -72,7 +67,7 @@ class MyTable(object):
         self.column = []
         self.align = []
         self.rows = []
-        self.maxwith= {}
+        self.maxwith = {}
 
     def getTable(self):
         cols = len(self.column)
@@ -83,7 +78,7 @@ class MyTable(object):
         header += u"|"
 
         line = u'+'
-        for i in range(0, cols ):
+        for i in range(0, cols):
             if i == 0:
                 line += ((self.maxwith[i]+2) * u'-')
             else:
@@ -93,7 +88,7 @@ class MyTable(object):
         line += u'+\n'
         data = u''
         for i in range(0, len(self.rows)):
-            for j in range(0, cols ):
+            for j in range(0, cols):
                 data += (u"| %-"+str(self.maxwith[j]) + u"s ") % self.rows[i][j]
             data += '|\n'
 
@@ -128,8 +123,8 @@ def getGlobalAddressbook(session):
     rest = SAndRestriction(
         [SPropertyRestriction(RELOP_EQ, PR_EMS_AB_CONTAINERID, SPropValue(PR_EMS_AB_CONTAINERID, 0)),
          SOrRestriction([
-                    SPropertyRestriction(RELOP_EQ, PR_AB_PROVIDER_ID, SPropValue(PR_AB_PROVIDER_ID, codecs.decode('AC21A95040D3EE48B319FBA753304425', 'hex'))), # MUIDECSAB
-                    SPropertyRestriction(RELOP_EQ, PR_AB_PROVIDER_ID, SPropValue(PR_AB_PROVIDER_ID, codecs.decode('DCA740C8C042101AB4B908002B2FE182', 'hex'))) ] ) # MUIDEMSAB
+                    SPropertyRestriction(RELOP_EQ, PR_AB_PROVIDER_ID, SPropValue(PR_AB_PROVIDER_ID, codecs.decode('AC21A95040D3EE48B319FBA753304425', 'hex'))),  # MUIDECSAB
+                    SPropertyRestriction(RELOP_EQ, PR_AB_PROVIDER_ID, SPropValue(PR_AB_PROVIDER_ID, codecs.decode('DCA740C8C042101AB4B908002B2FE182', 'hex')))])  # MUIDEMSAB
          ])
 
     table.Restrict(rest, TBL_BATCH)
@@ -178,7 +173,6 @@ def getUserListHosted(gab):
         company = gab.OpenEntry(ceid.Value, None, 0)
         ctable = company.GetContentsTable(MAPI_DEFERRED_ERRORS)
         users.extend(buildUserList(ctable))
-
 
     return users
 
@@ -231,7 +225,7 @@ def parsePermissionsToId(permissions):
     elif permissions[0:2] == '0x':
         return int(permissions, 16)
 
-    raise ValueError("error unknown permission type %s" % permissions )
+    raise ValueError("error unknown permission type %s" % permissions)
 
 # Get the mailbox of the given user
 def getStore(session, username):
@@ -337,7 +331,6 @@ def setMailboxPermissions(session, listfolderrights, members, mailboxes, private
         if inboxprops[5].ulPropTag != PR_FREEBUSY_ENTRYIDS or len(inboxprops[5].Value) < 4:
             RebuildFreeBusyEntries(store)
 
-
         try:
             # test Freebusy data folder
             fbdatafolder = store.OpenEntry(inboxprops[5].Value[3], None, MAPI_MODIFY)
@@ -355,10 +348,9 @@ def setMailboxPermissions(session, listfolderrights, members, mailboxes, private
         try:
             fbmsgOl2k = store.OpenEntry(inboxprops[5].Value[0], None, MAPI_MODIFY)
         except:
-            #ignore errors, we don't care
+            # ignore errors, we don't care
             fbmsgOl2k = None
             pass
-
 
         fbrights = ecRightsNone
 
@@ -387,7 +379,7 @@ def setMailboxPermissions(session, listfolderrights, members, mailboxes, private
         setMailboxFolderPermissions(store, inboxid, members, listfolderrights.get('inbox', ecRightsNone))
 
         if fbrights == ecRightsNone and listfolderrights.get('inbox', ecRightsNone) != ecRightsNone:
-            fbrights = ecRightsTemplateReadOnly; # need at least read-only rights to be a delegate
+            fbrights = ecRightsTemplateReadOnly  # need at least read-only rights to be a delegate
 
         # Journal
         setMailboxFolderPermissions(store, inboxprops[2].Value, members, listfolderrights.get('journal', ecRightsNone))
@@ -407,13 +399,13 @@ def setMailboxPermissions(session, listfolderrights, members, mailboxes, private
         # Set permissions on the Freebusy Data folder else outlook will give errors
         setMailboxFolderPermissions(store, inboxprops[5].Value[3], members, fbrights)
 
-        if sendcopy != None or onlySendToDelegates != None:
+        if sendcopy or onlySendToDelegates:
             drd = DelegateRuleData(session, store, inbox)
 
-            if (onlySendToDelegates != None):
+            if not onlySendToDelegates:
                 drd.setOnlySendToDelegates(onlySendToDelegates)
 
-            if sendcopy == True and listfolderrights.get('calendar', ecRightsNone) > ecRightsNone:
+            if sendcopy and listfolderrights.get('calendar', ecRightsNone) > ecRightsNone:
                 memberids = []
                 for member in members:
                     memberids.append(member[0])
@@ -457,7 +449,7 @@ class DelegateRuleData(object):
                 # no rule exists
                 return
 
-        rows = self.table.QueryRows(1,0)
+        rows = self.table.QueryRows(1, 0)
         if len(rows) == 1:
             if rows[0][0].ulPropTag == PR_RULE_ACTIONS:
                 if rows[0][0].Value.lpAction[0].acttype == ACTTYPE.OP_DELEGATE:
@@ -465,7 +457,7 @@ class DelegateRuleData(object):
                     for addrentry in rows[0][0].Value.lpAction[0].actobj.lpadrlist:
                         entryid = PpropFindProp(addrentry, PR_ENTRYID)
                         if entryid:
-                             self.usermap[entryid.Value] = addrentry
+                            self.usermap[entryid.Value] = addrentry
                 if len(rows[0][0].Value.lpAction) >= 2 and rows[0][0].Value.lpAction[1].acttype == ACTTYPE.OP_DELETE:
                     self.onlysendtodelegates = True
 
@@ -499,14 +491,14 @@ class DelegateRuleData(object):
         self.dirty = True
 
     def saveChanges(self):
-        if self.dirty == False:
+        if not self.dirty:
             return
 
         columns = self.table.QueryColumns(TBL_ALL_COLUMNS)
         self.table.SetColumns(columns, TBL_BATCH)
         try:
             self.table.FindRow(self.delegateruleres, BOOKMARK_BEGINNING, TBL_BATCH)
-            rows = self.table.QueryRows(1,0)
+            rows = self.table.QueryRows(1, 0)
         except MAPIError as err:
             if err.hr != MAPI_E_NOT_FOUND:
                 raise
@@ -524,25 +516,24 @@ class DelegateRuleData(object):
                     if row[i].ulPropTag in (PR_RULE_ACTIONS, PR_RULE_CONDITION):
                         row.pop(i)
             else:
-                row = [ SPropValue(PR_RULE_LEVEL, 0),
-                        SPropValue(PR_RULE_NAME, b'Delegate Meetingrequest service'),
-                        SPropValue(PR_RULE_PROVIDER, b'Schedule+ EMS Interface'),
-                        SPropValue(PR_RULE_SEQUENCE, 0),
-                        SPropValue(PR_RULE_STATE, 1),
-                        SPropValue(PR_RULE_PROVIDER_DATA, b''),
-                      ]
+                row = [SPropValue(PR_RULE_LEVEL, 0),
+                       SPropValue(PR_RULE_NAME, b'Delegate Meetingrequest service'),
+                       SPropValue(PR_RULE_PROVIDER, b'Schedule+ EMS Interface'),
+                       SPropValue(PR_RULE_SEQUENCE, 0),
+                       SPropValue(PR_RULE_STATE, 1),
+                       SPropValue(PR_RULE_PROVIDER_DATA, b'')]
 
             actions = []
-            actions.append(ACTION( ACTTYPE.OP_DELEGATE, 0, None, None, 0, actFwdDelegate(self.usermap.values())))
+            actions.append(ACTION(ACTTYPE.OP_DELEGATE, 0, None, None, 0, actFwdDelegate(self.usermap.values())))
 
             if self.onlysendtodelegates:
-                actions.append(ACTION( ACTTYPE.OP_DELETE,  0, None, None, 0, None))
+                actions.append(ACTION(ACTTYPE.OP_DELETE, 0, None, None, 0, None))
 
             row.append(SPropValue(PR_RULE_ACTIONS, ACTIONS(1, actions)))
 
             cond = SAndRestriction([SContentRestriction(FL_PREFIX, PR_MESSAGE_CLASS_W, SPropValue(PR_MESSAGE_CLASS_W, u'IPM.Schedule.Meeting')),
-                                     SNotRestriction( SExistRestriction(PR_DELEGATED_BY_RULE) ),
-                                     SOrRestriction([SNotRestriction( SExistRestriction(PR_SENSITIVITY)),
+                                     SNotRestriction(SExistRestriction(PR_DELEGATED_BY_RULE)),
+                                     SOrRestriction([SNotRestriction(SExistRestriction(PR_SENSITIVITY)),
                                         SPropertyRestriction(RELOP_NE, PR_SENSITIVITY, SPropValue(PR_SENSITIVITY, 2))])
                                     ])
             row.append(SPropValue(PR_RULE_CONDITION, cond))
@@ -551,7 +542,7 @@ class DelegateRuleData(object):
 
         if (len(rulerows) > 0):
             flags = 0
-            if self.replace == True:
+            if self.replace:
                 flags = ROWLIST_REPLACE
 
             rulesemt = self.inbox.OpenProperty(PR_RULES_TABLE, IID_IExchangeModifyTable, 0, 0)
@@ -569,14 +560,14 @@ def updateDelegateEntries(ab, fbProps, members, privateflag):
 
     for member in members:
         found = False
-        for i in range (0, len(fbProps[0].Value)):
-            if ab.CompareEntryIDs(fbProps[0].Value[i], member[0], 0) == True:
+        for i in range(0, len(fbProps[0].Value)):
+            if ab.CompareEntryIDs(fbProps[0].Value[i], member[0], 0):
                 fbProps[1].Value[i] = member[1]
                 fbProps[2].Value[i] = privateflag
                 found = True
                 break
 
-        if found == False:
+        if not found:
             fbProps[0].Value.append(member[0])
             fbProps[1].Value.append(member[1])
             fbProps[2].Value.append(privateflag)
@@ -585,7 +576,7 @@ def updateDelegateEntries(ab, fbProps, members, privateflag):
 
 def setMailboxFolderPermissions(store, entryid, members, rights):
 
-    if entryid == None:
+    if not entryid:
         folder = store
     else:
         folder = store.OpenEntry(entryid, None, MAPI_MODIFY)
@@ -594,7 +585,7 @@ def setMailboxFolderPermissions(store, entryid, members, rights):
 
     rows = []
     for member in members:
-        if rights != None:
+        if rights is not None:
             rows.append(ROWENTRY(ROW_ADD, [SPropValue(PR_MEMBER_ENTRYID, member[0]), SPropValue(PR_MEMBER_RIGHTS, rights)]))
         else:
             pass
@@ -610,9 +601,9 @@ def validatePermissionsAndConvert(permissions):
     return permissions
 
 def parseToBool(b):
-    if b and b.lower()[0] in ('y','t', '1'): # Yes, True, 1
+    if b and b.lower()[0] in ('y', 't', '1'):  # Yes, True, 1
         return True
-    else: # no, false, 0
+    else:  # no, false, 0
         return False
 
 def removeFolderPermissions(folder):
@@ -734,7 +725,7 @@ def printFolderACLs(printtable, folder, showall, depth):
     try:
         aclemt = folder.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, MAPI_MODIFY)
     except:
-        printtable.addRow([(depth*' ') +  props[0].Value, u''])
+        printtable.addRow([(depth*' ') + props[0].Value, u''])
         return
 
     acltable = aclemt.GetTable(MAPI_UNICODE)
@@ -755,9 +746,9 @@ def printFolderACLs(printtable, folder, showall, depth):
             found+=1
 
 
-    if (showall == False and found == 0):
+    if not showall and found == 0:
         return
-    printtable.addRow([(depth*' ') +  props[0].Value, permissions])
+    printtable.addRow([(depth*' ') + props[0].Value, permissions])
 
 # Print the delegate information of a store
 def printDelegateInformation(session, store):
@@ -767,7 +758,7 @@ def printDelegateInformation(session, store):
 
     drd = DelegateRuleData(session, store, inbox)
 
-    if drd.getOnlySendToDelegates() == True:
+    if drd.getOnlySendToDelegates():
         onlysentodelegates = 'Enabled'
     else:
         onlysentodelegates = 'Disabled'
@@ -812,8 +803,8 @@ def printUserMailBoxPermissions(session, showall, users):
     for user in users:
         try:
             store = getStore(session, user)
-            if store == None:
-               continue
+            if not store:
+                continue
             print('')
             print('Store information %s' % user)
             printDelegateInformation(session, store)
@@ -874,13 +865,13 @@ def print_help():
     print("")
 
 
-def main(argv = None):
+def main(argv=None):
     if argv is None:
         argv = sys.argv
 
     try:
         opts, args = getopt.gnu_getopt(argv[1:], 'avh:s:p:',
-                                        ['all', 'help', 'host', 'sslkey-file', 'sslkey-pass','verbose',
+                                        ['all', 'help', 'host', 'sslkey-file', 'sslkey-pass', 'verbose',
                                          'calendar=', 'tasks=', 'inbox=', 'contacts=', 'notes=', 'journal=', 'store=',
                                          'seeprivate=', 'sendcopy=', 'send-only-to-delegators=',
                                          'update-delegate=','remove-delegate=','remove-all-permissions',
@@ -955,11 +946,11 @@ def main(argv = None):
         else:
             assert False, ("unhandled option '%s'" % o)
 
-    if allmailboxes == True and len(args) > 0:
+    if allmailboxes and len(args) > 0:
         print("Show all mailboxes and show specific users are given, please choose one option")
         return 0
 
-    if allmailboxes == False and not profile and len(args) == 0:
+    if not allmailboxes and not profile and len(args) == 0:
         print_help()
         return 0
 
@@ -967,7 +958,7 @@ def main(argv = None):
         if profile:
             session = MAPILogonEx(0, profile, None, MAPI_EXTENDED | MAPI_NEW_SESSION | MAPI_NO_MAIL)
         else:
-            session = OpenECSession('SYSTEM', '', host, sslkey_file = sslkey_file, sslkey_pass = sslkey_pass)
+            session = OpenECSession('SYSTEM', '', host, sslkey_file=sslkey_file, sslkey_pass=sslkey_pass)
     except MAPIError as err:
         if err.hr == MAPI_E_LOGON_FAILED:
             print("Failed to logon. Make sure your SSL certificate is correct.")
@@ -1002,4 +993,3 @@ def main(argv = None):
 if __name__ == '__main__':
     locale.setlocale(locale.LC_ALL, '')
     sys.exit(main())
-
