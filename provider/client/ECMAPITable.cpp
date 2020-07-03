@@ -14,6 +14,7 @@
 #include <edkguid.h>
 #include <kopano/ECGuid.h>
 #include <kopano/Util.h>
+#include <kopano/memory.hpp>
 
 using namespace KC;
 

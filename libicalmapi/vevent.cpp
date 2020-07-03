@@ -8,6 +8,7 @@
 #include "vevent.h"
 #include <mapiutil.h>
 #include <kopano/mapiext.h>
+#include <kopano/memory.hpp>
 #include <kopano/CommonUtil.h>
 #include "nameids.h"
 #include "icaluid.h"

@@ -5,6 +5,7 @@
 #include <chrono>
 #include <utility>
 #include <kopano/ECUnknown.h>
+#include <kopano/memory.hpp>
 #include <kopano/platform.h>
 #include "MAPINotifSink.h"
 #include <kopano/Util.h>
