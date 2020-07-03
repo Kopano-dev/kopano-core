@@ -138,14 +138,6 @@ stamp-h2
 /installer/linux/ldapms.active-directory.cfg
 /installer/linux/kopano-statsd.service
 
-# /installer/userscripts/
-/installer/userscripts/creategroup
-/installer/userscripts/createuser
-/installer/userscripts/deletegroup
-/installer/userscripts/deleteuser
-/installer/userscripts/createcompany
-/installer/userscripts/deletecompany
-
 /provider/libkcsoap.sym
 /provider/libkcserver.sym
 
