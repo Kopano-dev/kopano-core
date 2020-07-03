@@ -4,6 +4,7 @@
  */
 #include <algorithm>
 #include <list>
+#include <memory>
 #include <kopano/platform.h>
 #include <kopano/IECInterfaces.hpp>
 #include <kopano/Util.h>
@@ -106,7 +107,7 @@ HRESULT TaskVerifyAndUpdateInstanceId::DoExecute(ULONG ulPropTag, const Instance
 }
 
 PostSaveInstanceIdUpdater::PostSaveInstanceIdUpdater(unsigned int tag,
-    const InstanceIdMapperPtr &m, const std::list<TaskPtr> &d) :
+    const InstanceIdMapperPtr &m, const std::list<std::shared_ptr<TaskBase>> &d) :
 	m_ulPropTag(tag), m_ptrMapper(m), m_lstDeferred(d)
 { }
 

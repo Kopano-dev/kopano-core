@@ -87,7 +87,8 @@ HRESULT Transaction::PurgeDeletes(std::shared_ptr<ArchiverSession> ptrSession,
 	return hr;
 }
 
-HRESULT Transaction::Save(IMessage *lpMessage, bool bDeleteOnFailure, const PostSaveActionPtr &ptrPSAction)
+HRESULT Transaction::Save(IMessage *lpMessage, bool bDeleteOnFailure,
+    const std::shared_ptr<IPostSaveAction> &ptrPSAction)
 {
 	SaveEntry se;
 	se.bDeleteOnFailure = bDeleteOnFailure;

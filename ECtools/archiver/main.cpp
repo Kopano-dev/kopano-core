@@ -435,7 +435,7 @@ int main(int argc, char **argv)
     ec_log_debug("Archiver mode: %d: (%s)", mode, modename(mode));
     switch (mode) {
     case MODE_ATTACH: {
-        ArchiveManagePtr ptr;
+		std::unique_ptr<ArchiveManage> ptr;
         r = ptrArchiver->GetManage(strUser.c_str(), &ptr);
         if (r != Success)
             return 1;
@@ -448,7 +448,7 @@ int main(int argc, char **argv)
 
     case MODE_DETACH_IDX:
     case MODE_DETACH: {
-        ArchiveManagePtr ptr;
+		std::unique_ptr<ArchiveManage> ptr;
         r = ptrArchiver->GetManage(strUser.c_str(), &ptr);
         if (r != Success)
             return 1;
@@ -467,7 +467,7 @@ int main(int argc, char **argv)
 
     case MODE_AUTO_ATTACH: {
         if (strUser.size()) {
-            ArchiveManagePtr ptr;
+			std::unique_ptr<ArchiveManage> ptr;
             r = ptrArchiver->GetManage(strUser.c_str(), &ptr);
             if (r != Success)
                 return 1;
@@ -482,7 +482,7 @@ int main(int argc, char **argv)
     break;
 
     case MODE_LIST: {
-        ArchiveManagePtr ptr;
+		std::unique_ptr<ArchiveManage> ptr;
         r = ptrArchiver->GetManage(strUser.c_str(), &ptr);
         if (r != Success)
             return 1;
@@ -494,7 +494,7 @@ int main(int argc, char **argv)
     break;
 
     case MODE_LIST_ARCHUSER: {
-        ArchiveManagePtr ptr;
+		std::unique_ptr<ArchiveManage> ptr;
         r = ptrArchiver->GetManage(KC_T("SYSTEM"), &ptr);
         if (r != Success)
             return 1;

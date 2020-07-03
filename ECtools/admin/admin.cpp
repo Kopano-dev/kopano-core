@@ -954,7 +954,6 @@ static HRESULT print_details(LPMAPISESSION lpSession,
 	bool auto_proc = false;
 	ULONG cbObjectId = 0;
 	memory_ptr<ENTRYID> lpObjectId;
-	ArchiveManagePtr ptrArchiveManage;
 	convert_context converter;
 	HRESULT hr = hrSuccess;
 
@@ -1046,6 +1045,8 @@ static HRESULT print_details(LPMAPISESSION lpSession,
 		hr = lpServiceAdmin->GetGroupListOfUser(cbObjectId, lpObjectId, 0, &cGroups, &~lpECGroups);
 		if (hr != hrSuccess)
 			kc_perror("Unable to request groups for user", hr);
+
+		std::unique_ptr<ArchiveManage> ptrArchiveManage;
 		hr = ArchiveManage::Create(lpSession, NULL, converter.convert_to<LPTSTR>(lpszName), &ptrArchiveManage);
 		if (hr != hrSuccess) {
 			if (hr != MAPI_E_NOT_FOUND)

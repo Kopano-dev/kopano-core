@@ -358,7 +358,6 @@ libkcarchiver_la_SOURCES = \
 	ECtools/archiver/operations/instanceidmapper_fwd.h \
 	ECtools/archiver/operations/operations.cpp \
 	ECtools/archiver/operations/operations.h \
-	ECtools/archiver/operations/operations_fwd.h \
 	ECtools/archiver/operations/copier.cpp \
 	ECtools/archiver/operations/copier.h \
 	ECtools/archiver/operations/deleter.cpp \

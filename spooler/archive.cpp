@@ -60,7 +60,6 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
 {
 	HRESULT hr = hrSuccess;
 	unsigned int cMsgProps, ulType;
-	StoreHelperPtr ptrStoreHelper;
 	SObjectEntry refMsgEntry;
 	std::shared_ptr<ArchiverSession> ptrSession;
 	InstanceIdMapperPtr ptrMapper;
@@ -93,6 +92,7 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
 	     &iid_of(ptrStore), MDB_WRITE, &~ptrStore);
 	if (hr != hrSuccess)
 		return kc_pwarn("Archive::HrArchiveMessageForDelivery(): OpenMsgStore failed", hr);
+	std::unique_ptr<StoreHelper> ptrStoreHelper;
 	hr = StoreHelper::Create(ptrStore, &ptrStoreHelper);
 	if (hr != hrSuccess)
 		return kc_pwarn("Archive::HrArchiveMessageForDelivery(): StoreHelper::Create failed", hr);
@@ -127,10 +127,10 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
 	if (ptrHelper == nullptr)
 		return hr = MAPI_E_NOT_ENOUGH_MEMORY;
 
-	std::list<std::pair<object_ptr<IMessage>, PostSaveActionPtr>> lstArchivedMessages;
+	std::list<std::pair<object_ptr<IMessage>, std::shared_ptr<IPostSaveAction>>> lstArchivedMessages;
 	for (const auto &arc : lstArchives) {
 		object_ptr<IMessage> ptrArchivedMsg;
-		PostSaveActionPtr ptrPSAction;
+		std::shared_ptr<IPostSaveAction> ptrPSAction;
 
 		hr = ptrHelper->CreateArchivedMessage(lpMessage, arc, refMsgEntry, &~ptrArchivedMsg, &ptrPSAction);
 		if (hr != hrSuccess)
@@ -176,11 +176,9 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 {
 	HRESULT hr = hrSuccess;
 	ULONG cMsgProps;
-	StoreHelperPtr ptrStoreHelper;
 	std::shared_ptr<ArchiverSession> ptrSession;
 	InstanceIdMapperPtr ptrMapper;
 	std::unique_ptr<Copier::Helper> ptrHelper;
-	std::list<std::pair<object_ptr<IMessage>, PostSaveActionPtr>> lstArchivedMessages;
 	ArchiveResult result;
 	static constexpr const SizedSPropTagArray(2, sptaMessageProps) = {1, {PR_STORE_ENTRYID}};
 	enum {IDX_STORE_ENTRYID};
@@ -202,6 +200,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 	     &iid_of(ptrStore), 0, &~ptrStore);
 	if (hr != hrSuccess)
 		return kc_pwarn("Archive::HrArchiveMessageForSending(): OpenMsgStore failed", hr);
+	std::unique_ptr<StoreHelper> ptrStoreHelper;
 	hr = StoreHelper::Create(ptrStore, &ptrStoreHelper);
 	if (hr != hrSuccess)
 		return kc_pwarn("Archive::HrArchiveMessageForSending(): StoreHelper::Create failed", hr);
@@ -232,9 +231,10 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 		ptrMapper, nullptr, nullptr));
 	if (ptrHelper == nullptr)
 		return hr = MAPI_E_NOT_ENOUGH_MEMORY;
+
+	std::list<std::pair<object_ptr<IMessage>, std::shared_ptr<IPostSaveAction>>> lstArchivedMessages;
 	for (const auto &arc : lstArchives) {
 		ArchiveHelperPtr ptrArchiveHelper;
-		PostSaveActionPtr ptrPSAction;
 
 		hr = ArchiveHelper::Create(ptrSession, arc, logger, &ptrArchiveHelper);
 		if (hr != hrSuccess) {
@@ -253,6 +253,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 			SetErrorMessage(hr, KC_TX("Unable to create archive message in outgoing archive folder."));
 			return kc_perror("Failed to create message in outgoing archive folder", hr);
 		}
+		std::shared_ptr<IPostSaveAction> ptrPSAction;
 		hr = ptrHelper->ArchiveMessage(lpMessage, NULL, ptrArchivedMsg, &ptrPSAction);
 		if (hr != hrSuccess) {
 			SetErrorMessage(hr, KC_TX("Unable to copy message data."));

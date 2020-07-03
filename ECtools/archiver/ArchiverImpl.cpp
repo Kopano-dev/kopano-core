@@ -93,7 +93,7 @@ eResult ArchiverImpl::GetControl(ArchiveControlPtr *lpptrControl, bool bForceCle
 	return MAPIErrorToArchiveError(ArchiveControlImpl::Create(m_ptrSession, m_lpsConfig.get(), m_lpLogger, bForceCleanup, lpptrControl));
 }
 
-eResult ArchiverImpl::GetManage(const TCHAR *lpszUser, ArchiveManagePtr *lpptrManage)
+eResult ArchiverImpl::GetManage(const TCHAR *lpszUser, std::unique_ptr<ArchiveManage> *lpptrManage)
 {
 	if (!m_MAPI.IsInitialized())
 		return Uninitialized;

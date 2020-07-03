@@ -43,7 +43,7 @@ namespace KC {
  */
 HRESULT ArchiveManageImpl::Create(std::shared_ptr<ArchiverSession> ptrSession,
     ECConfig *lpConfig, const TCHAR *lpszUser, std::shared_ptr<ECLogger> lpLogger,
-    ArchiveManagePtr *lpptrArchiveManage)
+    std::unique_ptr<ArchiveManage> *lpptrArchiveManage)
 {
 	if (lpszUser == NULL)
 		return MAPI_E_INVALID_PARAMETER;
@@ -61,7 +61,7 @@ HRESULT ArchiveManageImpl::Create(std::shared_ptr<ArchiverSession> ptrSession,
 
 HRESULT ArchiveManage::Create(IMAPISession *lpSession,
     std::shared_ptr<ECLogger> lpLogger, const TCHAR *lpszUser,
-    ArchiveManagePtr *lpptrManage)
+    std::unique_ptr<ArchiveManage> *lpptrManage)
 {
 	std::shared_ptr<ArchiverSession> ptrArchiverSession;
 	auto hr = ArchiverSession::Create(object_ptr<IMAPISession>(lpSession), nullptr, lpLogger, &ptrArchiverSession);
@@ -181,7 +181,6 @@ HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFold
 {
 	ArchiveHelperPtr ptrArchiveHelper;
 	abentryid_t sAttachedUserEntryId;
-	StoreHelperPtr ptrStoreHelper;
 	SObjectEntry objectEntry;
 	bool bEqual = false;
 	ArchiveType aType = UndefArchive;
@@ -198,6 +197,7 @@ HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFold
 	hr = HrGetOneProp(lpArchiveStore, PR_ENTRYID, &~ptrArchiveStoreId);
 	if (hr != hrSuccess)
 		return m_lpLogger->perr("Failed to get archive store entryid", hr);
+	std::unique_ptr<StoreHelper> ptrStoreHelper;
 	hr = StoreHelper::Create(m_ptrUserStore, &ptrStoreHelper);
 	if (hr != hrSuccess)
 		return m_lpLogger->perr("Failed to create store helper", hr);
@@ -314,7 +314,7 @@ HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFold
 eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR *lpszArchive, const TCHAR *lpszFolder)
 {
 	entryid_t sUserEntryId;
-	StoreHelperPtr ptrStoreHelper;
+	std::unique_ptr<StoreHelper> ptrStoreHelper;
 	ArchiveHelperPtr ptrArchiveHelper;
 	ULONG ulType = 0;
 	std::shared_ptr<ArchiverSession> ptrArchiveSession(m_ptrSession), ptrRemoteSession;
@@ -428,7 +428,7 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
  */
 eResult ArchiveManageImpl::DetachFrom(unsigned int ulArchive)
 {
-	StoreHelperPtr ptrStoreHelper;
+	std::unique_ptr<StoreHelper> ptrStoreHelper;
 	auto hr = StoreHelper::Create(m_ptrUserStore, &ptrStoreHelper);
 	if (hr != hrSuccess) {
 		m_lpLogger->perr("Failed to create store helper", hr);
@@ -501,7 +501,7 @@ eResult ArchiveManageImpl::ListArchives(std::ostream &ostr)
 eResult ArchiveManageImpl::ListArchives(std::list<ArchiveEntry> *lplstArchives,
     const char *lpszIpmSubtreeSubstitude)
 {
-	StoreHelperPtr ptrStoreHelper;
+	std::unique_ptr<StoreHelper> ptrStoreHelper;
 	bool bAclCapable = true;
 	ULONG ulType = 0;
 

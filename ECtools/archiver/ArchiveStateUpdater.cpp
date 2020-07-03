@@ -193,7 +193,6 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId,
     const std::list<SObjectEntry> &lstArchives)
 {
 	object_ptr<IMsgStore> ptrUserStore;
-	StoreHelperPtr ptrUserStoreHelper;
 	ULONG ulDetachCount = 0;
 
 	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Removing implicitly attached archives.");
@@ -227,6 +226,7 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId,
 	}
 	if (hr != hrSuccess)
 		return hr;
+	std::unique_ptr<StoreHelper> ptrUserStoreHelper;
 	hr = StoreHelper::Create(ptrUserStore, &ptrUserStoreHelper);
 	if (hr != hrSuccess)
 		return hr;
@@ -336,13 +336,13 @@ HRESULT ArchiveStateUpdater::ParseCoupling(const tstring &strCoupling, tstring *
  */
 HRESULT ArchiveStateUpdater::AddCouplingBased(const tstring &userName, const std::list<tstring> &lstCouplings, unsigned int ulAttachFlags)
 {
-	ArchiveManagePtr ptrManage;
 	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Attaching coupling based archives.");
 
 	if (lstCouplings.empty()) {
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Empty coupling list");
 		return hrSuccess;
 	}
+	std::unique_ptr<ArchiveManage> ptrManage;
 	auto hr = ArchiveManageImpl::Create(m_ptrSession, nullptr, userName.c_str(), m_lpLogger, &ptrManage);
 	if (hr != hrSuccess)
 		return hr;
@@ -384,13 +384,13 @@ HRESULT ArchiveStateUpdater::AddCouplingBased(const tstring &userName, const std
  */
 HRESULT ArchiveStateUpdater::AddServerBased(const tstring &userName, const abentryid_t &userId, const std::list<tstring> &lstServers, unsigned int ulAttachFlags)
 {
-	ArchiveManagePtr ptrManage;
 	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Attaching servername based archives.");
 
 	if (lstServers.empty()) {
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Empty servername list");
 		return hrSuccess;
 	}
+	std::unique_ptr<ArchiveManage> ptrManage;
 	auto hr = ArchiveManageImpl::Create(m_ptrSession, nullptr, userName.c_str(), m_lpLogger, &ptrManage);
 	if (hr != hrSuccess)
 		return hr;

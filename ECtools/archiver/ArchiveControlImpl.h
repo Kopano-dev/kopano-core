@@ -8,7 +8,6 @@
 #include <set>
 #include <utility>
 #include <kopano/memory.hpp>
-#include "operations/operations_fwd.h"
 #include "helpers/ArchiveHelper.h"
 
 namespace KC {
@@ -17,6 +16,12 @@ class ArchiverSession;
 class ECConfig;
 class ECLogger;
 class ECArchiverLogger;
+
+namespace operations {
+
+class IArchiveOperation;
+
+}
 
 /**
  * This class is the entry point to the archiving system. It's responsible for executing the actual archive
@@ -124,7 +129,7 @@ private:
 	HRESULT DoArchive(const tstring& strUser);
 	HRESULT DoCleanup(const tstring& strUser);
 	HRESULT ProcessFolder2(IMAPIFolder *, std::shared_ptr<operations::IArchiveOperation>, bool &);
-	HRESULT ProcessFolder(IMAPIFolder *, operations::ArchiveOperationPtr ptrArchiveOperation);
+	HRESULT ProcessFolder(IMAPIFolder *, std::shared_ptr<operations::IArchiveOperation>);
 	HRESULT ProcessAll(bool bLocalOnly, fnProcess_t fnProcess);
 	HRESULT PurgeArchives(const std::list<SObjectEntry> &archives);
 	HRESULT PurgeArchiveFolder(IMsgStore *archive, const entryid_t &folder, const SRestriction *);

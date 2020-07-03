@@ -4,6 +4,7 @@
  */
 #include <kopano/platform.h>
 #include <list>
+#include <memory>
 #include <new>
 #include <utility>
 #include <mapix.h>
@@ -41,9 +42,9 @@ const StoreHelper::search_folder_info_t StoreHelper::s_infoSearchFolders[] = {
  *					Pointer to a StoreHelperPtr that will be assigned the address
  *					of the new StoreHelper object.
  */
-HRESULT StoreHelper::Create(IMsgStore *ptrMsgStore, StoreHelperPtr *lpptrStoreHelper)
+HRESULT StoreHelper::Create(IMsgStore *ptrMsgStore, std::unique_ptr<StoreHelper> *lpptrStoreHelper)
 {
-	StoreHelperPtr ptrStoreHelper(new(std::nothrow) StoreHelper(ptrMsgStore));
+	std::unique_ptr<StoreHelper> ptrStoreHelper(new(std::nothrow) StoreHelper(ptrMsgStore));
 	if (ptrStoreHelper == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	auto hr = ptrStoreHelper->Init();

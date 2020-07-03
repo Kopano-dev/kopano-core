@@ -4,7 +4,6 @@
  */
 #pragma once
 #include <memory>
-#include "operations_fwd.h"
 #include <mapix.h>
 #include <kopano/memory.hpp>
 

@@ -297,11 +297,9 @@ HRESULT ArchiveControlImpl::DoArchive(const tstring& strUser)
 		return MAPI_E_INVALID_PARAMETER;
 
 	object_ptr<IMsgStore> ptrUserStore;
-	StoreHelperPtr ptrStoreHelper;
+	std::unique_ptr<StoreHelper> ptrStoreHelper;
 	bool bHaveErrors = false;
 	std::shared_ptr<Copier> ptrCopyOp;
-	DeleterPtr	ptrDeleteOp;
-	StubberPtr	ptrStubOp;
 
 	m_lpLogger->logf(EC_LOGLEVEL_INFO, "Archiving store for user \"" TSTRING_PRINTF "\"", strUser.c_str());
 	auto hr = m_ptrSession->OpenStoreByName(strUser, &~ptrUserStore);
@@ -351,12 +349,14 @@ HRESULT ArchiveControlImpl::DoArchive(const tstring& strUser)
 			lstArchives, sptaExcludeProps, m_ulArchiveAfter, true);
 	}
 
+	std::shared_ptr<Deleter> ptrDeleteOp;
 	if (m_bDeleteEnable && m_ulDeleteAfter >= 0) {
 		ptrDeleteOp = std::make_shared<Deleter>(m_lpLogger, m_ulDeleteAfter, m_bDeleteUnread);
 		if (ptrCopyOp)
 			ptrCopyOp->SetDeleteOperation(ptrDeleteOp);
 	}
 
+	std::shared_ptr<Stubber> ptrStubOp;
 	if (m_bStubEnable && m_ulStubAfter >= 0) {
 		ptrStubOp = std::make_shared<Stubber>(m_lpLogger, PROP_STUBBED, m_ulStubAfter, m_bStubUnread);
 		if (ptrCopyOp)
@@ -428,7 +428,6 @@ HRESULT ArchiveControlImpl::DoArchive(const tstring& strUser)
  */
 HRESULT ArchiveControlImpl::DoCleanup(const tstring &strUser)
 {
-	StoreHelperPtr ptrStoreHelper;
 	memory_ptr<SRestriction> ptrRestriction;
 
 	if (strUser.empty())
@@ -461,6 +460,7 @@ HRESULT ArchiveControlImpl::DoCleanup(const tstring &strUser)
 	auto hr = m_ptrSession->OpenStoreByName(strUser, &~ptrUserStore);
 	if (hr != hrSuccess)
 		return m_lpLogger->perr("Failed to open store", hr);
+	std::unique_ptr<StoreHelper> ptrStoreHelper;
 	hr = StoreHelper::Create(ptrUserStore, &ptrStoreHelper);
 	if (hr != hrSuccess)
 		return m_lpLogger->perr("Failed to create store helper", hr);

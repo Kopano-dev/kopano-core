@@ -51,6 +51,4 @@ protected:
 	ArchiveManage(void) = default;
 };
 
-typedef std::unique_ptr<ArchiveManage> ArchiveManagePtr;
-
 } /* namespace */

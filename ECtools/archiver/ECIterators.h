@@ -8,8 +8,6 @@
 
 namespace KC {
 
-typedef object_ptr<IMAPIContainer> MAPIContainerPtr;
-
 class KC_EXPORT ECHierarchyIteratorBase {
 public:
 	KC_HIDDEN ECHierarchyIteratorBase() :
@@ -19,10 +17,10 @@ public:
 	}
 	ECHierarchyIteratorBase(LPMAPICONTAINER lpContainer, ULONG ulFlags = 0, ULONG ulDepth = 0);
 
-	KC_HIDDEN MAPIContainerPtr &dereference() const
+	KC_HIDDEN object_ptr<IMAPIContainer> &dereference() const
 	{
 		assert(m_ptrCurrent != NULL && "attempt to dereference end iterator");
-		return const_cast<MAPIContainerPtr&>(m_ptrCurrent);
+		return const_cast<object_ptr<IMAPIContainer> &>(m_ptrCurrent);
 	}
 
 	void increment();
@@ -33,11 +31,11 @@ public:
 	}
 
 private:
-	MAPIContainerPtr	m_ptrContainer;
+	object_ptr<IMAPIContainer> m_ptrContainer;
 	unsigned int m_ulFlags, m_ulDepth, m_ulRowIndex;
 	object_ptr<IMAPITable> m_ptrTable;
 	rowset_ptr m_ptrRows;
-	MAPIContainerPtr	m_ptrCurrent;
+	object_ptr<IMAPIContainer> m_ptrCurrent;
 };
 
 template<typename ContainerPtrType> class ECHierarchyIterator final :

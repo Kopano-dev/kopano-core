@@ -21,6 +21,8 @@ class ECLogger;
 
 namespace operations {
 
+class Deleter;
+class Stubber;
 class Transaction;
 
 /**
@@ -41,13 +43,13 @@ public:
 	 * Set the operation that will perform the deletion if required.
 	 * @param[in]	ptrDeleteOp		The delete operation.
 	 */
-	KC_HIDDEN void SetDeleteOperation(DeleterPtr);
+	KC_HIDDEN void SetDeleteOperation(std::shared_ptr<Deleter>);
 
 	/**
 	 * Set the operation that will perform the stubbing if required.
 	 * @param[in]	ptrStubOp		The stub operation.
 	 */
-	KC_HIDDEN void SetStubOperation(StubberPtr);
+	KC_HIDDEN void SetStubOperation(std::shared_ptr<Stubber>);
 
 	class KC_EXPORT Helper { // For lack of a better name
 	public:
@@ -60,7 +62,7 @@ public:
 		 * @param[in]	refMsgEntry		SObejctEntry referencing the original message (used as a back reference from the archive).
 		 * @param[out]	lppArchivedMsg	The new message.
 		 */
-		HRESULT CreateArchivedMessage(LPMESSAGE lpSource, const SObjectEntry &archiveEntry, const SObjectEntry &refMsgEntry, LPMESSAGE *lppArchivedMsg, PostSaveActionPtr *lpptrPSAction);
+		HRESULT CreateArchivedMessage(IMessage *src, const SObjectEntry &arc_entry, const SObjectEntry &ref_msgentry, IMessage **arc_msg, std::shared_ptr<IPostSaveAction> *);
 
 		/**
 		 * Get the folder that acts as root for an archive.
@@ -75,7 +77,7 @@ public:
 		 * @param[in]	lpMsgEntry		SObejctEntry referencing the original message (used as a back reference from the archive).
 		 * @param[in]	lpDest			The message to archive to.
 		 */
-		HRESULT ArchiveMessage(LPMESSAGE lpSource, const SObjectEntry *lpMsgEntry, LPMESSAGE lpDest, PostSaveActionPtr *lpptrPSAction);
+		HRESULT ArchiveMessage(IMessage *src, const SObjectEntry *msgentry, IMessage *dst, std::shared_ptr<IPostSaveAction> *);
 
 		/**
 		 * Update the single instance IDs of the destination message based on
@@ -83,7 +85,7 @@ public:
 		 * @param[in]	lpSource		The reference message.
 		 * @param[in]	lpDest			The message to update.
 		 */
-		KC_HIDDEN HRESULT UpdateIIDs(IMessage *src, IMessage *dst, PostSaveActionPtr *);
+		KC_HIDDEN HRESULT UpdateIIDs(IMessage *src, IMessage *dst, std::shared_ptr<IPostSaveAction> *);
 
 		/**
 		 * Get the Session instance associated with this instance.
@@ -194,8 +196,8 @@ private:
 	std::list<SObjectEntry> m_lstArchives;
 	memory_ptr<SPropTagArray> m_ptrExcludeProps;
 
-	DeleterPtr m_ptrDeleteOp;
-	StubberPtr m_ptrStubOp;
+	std::shared_ptr<Deleter> m_ptrDeleteOp;
+	std::shared_ptr<Stubber> m_ptrStubOp;
 	std::unique_ptr<Helper> m_ptrHelper;
 	std::shared_ptr<Transaction> m_ptrTransaction;
 	InstanceIdMapperPtr m_ptrMapper;

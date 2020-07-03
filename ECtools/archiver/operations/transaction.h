@@ -23,14 +23,14 @@ public:
 	HRESULT PurgeDeletes(std::shared_ptr<ArchiverSession>, std::shared_ptr<Transaction> deferred_tx = nullptr);
 	const SObjectEntry& GetObjectEntry() const;
 
-	HRESULT Save(IMessage *lpMessage, bool bDeleteOnFailure, const PostSaveActionPtr &ptrPSAction = PostSaveActionPtr());
+	HRESULT Save(IMessage *lpMessage, bool bDeleteOnFailure, const std::shared_ptr<IPostSaveAction> & = nullptr);
 	HRESULT Delete(const SObjectEntry &objectEntry, bool bDeferredDelete = false);
 
 private:
 	struct SaveEntry {
 		object_ptr<IMessage> ptrMessage;
 		bool bDeleteOnFailure;
-		PostSaveActionPtr ptrPSAction;
+		std::shared_ptr<IPostSaveAction> ptrPSAction;
 	};
 
 	struct DelEntry {

@@ -20,7 +20,7 @@ namespace KC {
  */
 class KC_EXPORT_DYCAST ArchiveManageImpl final : public ArchiveManage {
 public:
-	static HRESULT Create(std::shared_ptr<ArchiverSession>, ECConfig *, const TCHAR *user, std::shared_ptr<ECLogger>, ArchiveManagePtr *);
+	static HRESULT Create(std::shared_ptr<ArchiverSession>, ECConfig *, const TCHAR *user, std::shared_ptr<ECLogger>, std::unique_ptr<ArchiveManage> *);
 	KC_HIDDEN eResult AttachTo(const char *server, const TCHAR *archive, const TCHAR *folder, unsigned int flags) override;
 	KC_HIDDEN eResult DetachFrom(const char *server, const TCHAR *archive, const TCHAR *folder) override;
 	KC_HIDDEN eResult DetachFrom(unsigned int archive) override;

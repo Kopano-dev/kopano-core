@@ -10,13 +10,14 @@
 
 namespace KC {
 
+class ArchiveManage;
 class ArchiverSession;
 
 class ArchiverImpl final : public Archiver {
 public:
 	eResult Init(const char *progname, const char *config, const configsetting_t *extra, unsigned int flags) override;
 	eResult GetControl(ArchiveControlPtr *, bool force_cleanup) override;
-	eResult GetManage(const TCHAR *user, ArchiveManagePtr *) override;
+	eResult GetManage(const TCHAR *user, std::unique_ptr<ArchiveManage> *) override;
 	eResult AutoAttach(unsigned int flags) override;
 	ECConfig *GetConfig() const override { return m_lpsConfig.get(); }
 	ECLogger *GetLogger(eLogType which) const override; /* Inherits default (which = DefaultLog) from Archiver::GetLogger */

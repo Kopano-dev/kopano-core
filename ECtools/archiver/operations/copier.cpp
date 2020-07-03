@@ -38,10 +38,11 @@ Copier::Helper::Helper(std::shared_ptr<ArchiverSession> ptrSession, std::shared_
 {
 }
 
-HRESULT Copier::Helper::CreateArchivedMessage(LPMESSAGE lpSource, const SObjectEntry &archiveEntry, const SObjectEntry &refMsgEntry, LPMESSAGE *lppArchivedMsg, PostSaveActionPtr *lpptrPSAction)
+HRESULT Copier::Helper::CreateArchivedMessage(IMessage *lpSource,
+    const SObjectEntry &archiveEntry, const SObjectEntry &refMsgEntry,
+    IMessage **lppArchivedMsg, std::shared_ptr<IPostSaveAction> *lpptrPSAction)
 {
 	object_ptr<IMAPIFolder> ptrArchiveFolder;
-	PostSaveActionPtr ptrPSAction;
 
 	auto hr = GetArchiveFolder(archiveEntry, &~ptrArchiveFolder);
 	if (hr != hrSuccess)
@@ -50,6 +51,7 @@ HRESULT Copier::Helper::CreateArchivedMessage(LPMESSAGE lpSource, const SObjectE
 	hr = ptrArchiveFolder->CreateMessage(&iid_of(ptrNewMessage), fMapiDeferredErrors, &~ptrNewMessage);
 	if (hr != hrSuccess)
 		return m_lpLogger->perr("Failed to create archive message", hr);
+	std::shared_ptr<IPostSaveAction> ptrPSAction;
 	hr = ArchiveMessage(lpSource, &refMsgEntry, ptrNewMessage, &ptrPSAction);
 	if (hr != hrSuccess)
 		return hr;
@@ -100,14 +102,15 @@ HRESULT Copier::Helper::GetArchiveFolder(const SObjectEntry &archiveEntry, LPMAP
 		reinterpret_cast<LPVOID *>(lppArchiveFolder));
 }
 
-HRESULT Copier::Helper::ArchiveMessage(LPMESSAGE lpSource, const SObjectEntry *lpMsgEntry, LPMESSAGE lpDest, PostSaveActionPtr *lpptrPSAction)
+HRESULT Copier::Helper::ArchiveMessage(IMessage *lpSource,
+    const SObjectEntry *lpMsgEntry, IMessage *lpDest,
+    std::shared_ptr<IPostSaveAction> *lpptrPSAction)
 {
 	if (lpSource == nullptr || lpDest == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
 	MAPIPropHelperPtr ptrMsgHelper;
 	SPropValue sPropArchFlags{};
-	PostSaveActionPtr ptrPSAction;
 
 	PROPMAP_START(1)
 	PROPMAP_NAMED_ID(FLAGS, PT_LONG, PSETID_Archive, dispidFlags)
@@ -117,6 +120,7 @@ HRESULT Copier::Helper::ArchiveMessage(LPMESSAGE lpSource, const SObjectEntry *l
 	// @todo: What to do with warnings?
 	if (FAILED(hr))
 		return m_lpLogger->perr("Failed to copy message", hr);
+	std::shared_ptr<IPostSaveAction> ptrPSAction;
 	hr = UpdateIIDs(lpSource, lpDest, &ptrPSAction);
 	if (hr != hrSuccess)
 		m_lpLogger->perr("Failed to update single instance IDs, continuing with copies.", hr);
@@ -139,7 +143,8 @@ HRESULT Copier::Helper::ArchiveMessage(LPMESSAGE lpSource, const SObjectEntry *l
 	return hr;
 }
 
-HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSaveActionPtr *lpptrPSAction)
+HRESULT Copier::Helper::UpdateIIDs(IMessage *lpSource, IMessage *lpDest,
+    std::shared_ptr<IPostSaveAction> *lpptrPSAction)
 {
 	if (lpSource == nullptr || lpDest == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
@@ -189,7 +194,7 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 
 	// We'll go through the table one row at a time (from each table) and assume the attachments
 	// are sorted the same. We will do a sanity check on the size property, though.
-	std::list<TaskPtr> lstDeferred;
+	std::list<std::shared_ptr<TaskBase>> lstDeferred;
 	while (true) {
 		rowset_ptr ptrSourceRows, ptrDestRows;
 
@@ -549,12 +554,12 @@ HRESULT Copier::DoProcessEntry(const SRow &proprow)
 	return hrSuccess;
 }
 
-void Copier::SetDeleteOperation(DeleterPtr ptrDeleteOp)
+void Copier::SetDeleteOperation(std::shared_ptr<Deleter> ptrDeleteOp)
 {
 	m_ptrDeleteOp = ptrDeleteOp;
 }
 
-void Copier::SetStubOperation(StubberPtr ptrStubOp)
+void Copier::SetStubOperation(std::shared_ptr<Stubber> ptrStubOp)
 {
 	m_ptrStubOp = ptrStubOp;
 }
@@ -565,7 +570,7 @@ HRESULT Copier::DoInitialArchive(IMessage *lpMessage,
 {
 	object_ptr<IMessage> ptrNewArchive;
 	SObjectEntry objectEntry;
-	PostSaveActionPtr ptrPSAction;
+	std::shared_ptr<IPostSaveAction> ptrPSAction;
 
 	assert(lpMessage != NULL);
 	assert(lpptrTransaction != NULL);
@@ -596,7 +601,7 @@ HRESULT Copier::DoTrackAndRearchive(IMessage *lpMessage,
 	object_ptr<IMessage> ptrNewArchive, ptrMovedMessage;
 	SObjectEntry newArchiveEntry, movedEntry;
 	MAPIPropHelperPtr ptrMsgHelper;
-	PostSaveActionPtr ptrPSAction;
+	std::shared_ptr<IPostSaveAction> ptrPSAction;
 
 	assert(lpMessage != NULL);
 	assert(lpptrTransaction != NULL);
@@ -665,7 +670,6 @@ HRESULT Copier::DoUpdateArchive(IMessage *lpMessage,
     std::shared_ptr<Transaction> *lpptrTransaction)
 {
 	object_ptr<IMsgStore> ptrArchiveStore;
-	PostSaveActionPtr ptrPSAction;
 
 	assert(lpMessage != NULL);
 	assert(lpptrTransaction != NULL);
@@ -697,6 +701,7 @@ HRESULT Copier::DoUpdateArchive(IMessage *lpMessage,
 	hr = delete_recipients(ptrArchivedMsg);
 	if (hr != hrSuccess)
 		return Logger()->perr("Failed to delete recipients", hr);
+	std::shared_ptr<IPostSaveAction> ptrPSAction;
 	hr = m_ptrHelper->ArchiveMessage(lpMessage, &refMsgEntry, ptrArchivedMsg, &ptrPSAction);
 	if (hr != hrSuccess)
 		return hr;

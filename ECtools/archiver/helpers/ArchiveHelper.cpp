@@ -326,7 +326,6 @@ HRESULT ArchiveHelper::SetPermissions(const abentryid_t &sUserEntryId, bool bWri
 	object_ptr<IExchangeModifyTable> ptrEMT;
 	SPropValue sUserProps[2], sOtherProps[2];
 	memory_ptr<ROWLIST> ptrRowList;
-	StoreHelperPtr ptrStoreHelper;
 
 	auto hr = MAPIAllocateBuffer(CbNewROWLIST(2), &~ptrRowList);
 	if (hr != hrSuccess)
@@ -337,6 +336,7 @@ HRESULT ArchiveHelper::SetPermissions(const abentryid_t &sUserEntryId, bool bWri
 	// them if the archive folder IS the IPM Subtree.
 
 	// Grant folder visible permissions on the IPM Subtree for this user.
+	std::unique_ptr<StoreHelper> ptrStoreHelper;
 	hr = StoreHelper::Create(m_ptrArchiveStore, &ptrStoreHelper);
 	if (hr != hrSuccess)
 		return hr;
@@ -592,7 +592,7 @@ HRESULT ArchiveHelper::GetSpecialsRootFolder(LPMAPIFOLDER *lppSpecialsRootFolder
  */
 HRESULT ArchiveHelper::GetArchiveFolder(bool bCreate, LPMAPIFOLDER *lppArchiveFolder)
 {
-	StoreHelperPtr ptrStoreHelper;
+	std::unique_ptr<StoreHelper> ptrStoreHelper;
 
 	if (m_ptrArchiveFolder != nullptr)
 		return m_ptrArchiveFolder->QueryInterface(IID_IMAPIFolder,
@@ -830,7 +830,7 @@ HRESULT ArchiveHelper::IsSpecialFolder(eSpecFolder sfWhich, LPMAPIFOLDER lpFolde
 
 HRESULT ArchiveHelper::PrepareForFirstUse(ECLogger *lpLogger)
 {
-	StoreHelperPtr ptrStoreHelper;
+	std::unique_ptr<StoreHelper> ptrStoreHelper;
 	SPropValue sEntryId;
 
 	auto hr = StoreHelper::Create(m_ptrArchiveStore, &ptrStoreHelper);
