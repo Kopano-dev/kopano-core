@@ -49,7 +49,7 @@ namespace KC {
  * @param[out]	lpptrArchiver
  *					Pointer to a ArchivePtr that will be assigned the address of the returned object.
  */
-HRESULT ArchiveControlImpl::Create(ArchiverSessionPtr ptrSession,
+HRESULT ArchiveControlImpl::Create(std::shared_ptr<ArchiverSession> ptrSession,
     ECConfig *lpConfig, std::shared_ptr<ECLogger> lpLogger, bool bForceCleanup,
     ArchiveControlPtr *lpptrArchiveControl)
 {
@@ -75,7 +75,7 @@ HRESULT ArchiveControlImpl::Create(ArchiverSessionPtr ptrSession,
   * @param[in]	bForceCleanup	Force a cleanup operation to continue, even
  * 								if the settings aren't safe.
  */
-ArchiveControlImpl::ArchiveControlImpl(ArchiverSessionPtr ptrSession,
+ArchiveControlImpl::ArchiveControlImpl(std::shared_ptr<ArchiverSession> ptrSession,
     ECConfig *lpConfig, std::shared_ptr<ECLogger> lpLogger, bool bForceCleanup) :
 	m_ptrSession(ptrSession), m_lpConfig(lpConfig),
 	m_lpLogger(new ECArchiverLogger(std::move(lpLogger))),

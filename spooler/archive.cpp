@@ -62,7 +62,7 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
 	unsigned int cMsgProps, ulType;
 	StoreHelperPtr ptrStoreHelper;
 	SObjectEntry refMsgEntry;
-	ArchiverSessionPtr ptrSession;
+	std::shared_ptr<ArchiverSession> ptrSession;
 	InstanceIdMapperPtr ptrMapper;
 	std::unique_ptr<Copier::Helper> ptrHelper;
 	ArchiveResult result;
@@ -177,7 +177,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 	HRESULT hr = hrSuccess;
 	ULONG cMsgProps;
 	StoreHelperPtr ptrStoreHelper;
-	ArchiverSessionPtr ptrSession;
+	std::shared_ptr<ArchiverSession> ptrSession;
 	InstanceIdMapperPtr ptrMapper;
 	std::unique_ptr<Copier::Helper> ptrHelper;
 	std::list<std::pair<object_ptr<IMessage>, PostSaveActionPtr>> lstArchivedMessages;

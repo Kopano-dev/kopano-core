@@ -10,9 +10,12 @@
 #include <kopano/memory.hpp>
 #include <kopano/CommonUtil.h>
 #include <kopano/archiver-common.h>
-#include "ArchiverSessionPtr.h"     // For ArchiverSessionPtr
 
-namespace KC { namespace helpers {
+namespace KC {
+
+class ArchiverSession;
+
+namespace helpers {
 
 class MAPIPropHelper;
 typedef std::unique_ptr<MAPIPropHelper> MAPIPropHelperPtr;
@@ -27,18 +30,18 @@ class KC_EXPORT MAPIPropHelper {
 public:
 	static HRESULT Create(IMAPIProp *, MAPIPropHelperPtr *);
 	KC_HIDDEN virtual ~MAPIPropHelper() = default;
-	HRESULT GetMessageState(ArchiverSessionPtr ptrSession, MessageState *lpState);
+	HRESULT GetMessageState(std::shared_ptr<ArchiverSession>, MessageState *);
 	HRESULT GetArchiveList(std::list<SObjectEntry> *archives, bool ignore_source_key = false);
 	HRESULT SetArchiveList(const std::list<SObjectEntry> &archives, bool explicit_commit = false);
 	HRESULT SetReference(const SObjectEntry &sEntry, bool bExplicitCommit = false);
 	KC_HIDDEN HRESULT GetReference(SObjectEntry *);
 	HRESULT ClearReference(bool bExplicitCommit = false);
 	HRESULT ReferencePrevious(const SObjectEntry &sEntry);
-	HRESULT OpenPrevious(ArchiverSessionPtr ptrSession, LPMESSAGE *lppMessage);
+	HRESULT OpenPrevious(std::shared_ptr<ArchiverSession>, IMessage **);
 	KC_HIDDEN HRESULT RemoveStub();
 	HRESULT SetClean();
 	HRESULT DetachFromArchives();
-	virtual HRESULT GetParentFolder(ArchiverSessionPtr ptrSession, LPMAPIFOLDER *lppFolder);
+	virtual HRESULT GetParentFolder(std::shared_ptr<ArchiverSession>, IMAPIFolder **);
 
 protected:
 	KC_HIDDEN MAPIPropHelper(IMAPIProp *);

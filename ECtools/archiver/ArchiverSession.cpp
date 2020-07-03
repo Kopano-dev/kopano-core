@@ -34,7 +34,7 @@ namespace KC {
  *					ArchiverSession object.
  */
 HRESULT ArchiverSession::Create(ECConfig *lpConfig,
-    std::shared_ptr<ECLogger> lpLogger, ArchiverSessionPtr *lpptrSession)
+    std::shared_ptr<ECLogger> lpLogger, std::shared_ptr<ArchiverSession> *lpptrSession)
 {
 	if (!lpConfig || !lpLogger)
 		return MAPI_E_INVALID_PARAMETER;
@@ -61,7 +61,7 @@ HRESULT ArchiverSession::Create(ECConfig *lpConfig,
  *					Session object.
  */
 HRESULT ArchiverSession::Create(IMAPISession *ptrSession,
-    std::shared_ptr<ECLogger> lpLogger, ArchiverSessionPtr *lpptrSession)
+    std::shared_ptr<ECLogger> lpLogger, std::shared_ptr<ArchiverSession> *lpptrSession)
 {
 	return ArchiverSession::Create(ptrSession, nullptr, std::move(lpLogger), lpptrSession);
 }
@@ -82,7 +82,7 @@ HRESULT ArchiverSession::Create(IMAPISession *ptrSession,
  */
 HRESULT ArchiverSession::Create(IMAPISession *ptrSession,
     ECConfig *lpConfig, std::shared_ptr<ECLogger> lpLogger,
-    ArchiverSessionPtr *lpptrSession)
+    std::shared_ptr<ArchiverSession> *lpptrSession)
 {
 	const char *lpszSslKeyFile = nullptr, *lpszSslKeyPass = nullptr;
 	auto lpLocalLogger(lpLogger != nullptr ? std::move(lpLogger) : std::make_shared<ECLogger_Null>());
@@ -245,7 +245,7 @@ HRESULT ArchiverSession::OpenStoreByName(const tstring &strUser, LPMDB *lppMsgSt
 HRESULT ArchiverSession::OpenStore(const entryid_t &sEntryId, ULONG ulFlags, LPMDB *lppMsgStore)
 {
 	object_ptr<IMsgStore> ptrUserStore;
-	ArchiverSessionPtr ptrSession;
+	std::shared_ptr<ArchiverSession> ptrSession;
 
 	if (!sEntryId.isWrapped()) {
 		auto hr = m_ptrSession->OpenMsgStore(0, sEntryId.size(), sEntryId, &iid_of(ptrUserStore), ulFlags, &~ptrUserStore);
@@ -537,7 +537,7 @@ HRESULT ArchiverSession::CompareStoreIds(const entryid_t &sEntryId1, const entry
  * @retval	hrSuccess	The new ArchiverSession was successfully created.
  */
 HRESULT ArchiverSession::CreateRemote(const char *lpszServerPath,
-    std::shared_ptr<ECLogger> lpLogger, ArchiverSessionPtr *lpptrSession)
+    std::shared_ptr<ECLogger> lpLogger, std::shared_ptr<ArchiverSession> *lpptrSession)
 {
 	std::unique_ptr<ArchiverSession> lpSession(new(std::nothrow) ArchiverSession(std::move(lpLogger)));
 	if (lpSession == nullptr)

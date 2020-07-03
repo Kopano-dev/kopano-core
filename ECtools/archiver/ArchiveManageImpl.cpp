@@ -41,7 +41,7 @@ namespace KC {
  * @param[out]	lpptrArchiveManager
  *					Pointer to an ArchiveManagePtr that will be assigned the address of the returned object.
  */
-HRESULT ArchiveManageImpl::Create(ArchiverSessionPtr ptrSession,
+HRESULT ArchiveManageImpl::Create(std::shared_ptr<ArchiverSession> ptrSession,
     ECConfig *lpConfig, const TCHAR *lpszUser, std::shared_ptr<ECLogger> lpLogger,
     ArchiveManagePtr *lpptrArchiveManage)
 {
@@ -63,8 +63,7 @@ HRESULT ArchiveManage::Create(IMAPISession *lpSession,
     std::shared_ptr<ECLogger> lpLogger, const TCHAR *lpszUser,
     ArchiveManagePtr *lpptrManage)
 {
-	ArchiverSessionPtr ptrArchiverSession;
-
+	std::shared_ptr<ArchiverSession> ptrArchiverSession;
 	auto hr = ArchiverSession::Create(object_ptr<IMAPISession>(lpSession), nullptr, lpLogger, &ptrArchiverSession);
 	if (hr != hrSuccess)
 		return hr;
@@ -83,7 +82,7 @@ HRESULT ArchiveManage::Create(IMAPISession *lpSession,
  * @param[in]	lpLogger
  *					Pointer to an ECLogger object to which message will be logged.
  */
-ArchiveManageImpl::ArchiveManageImpl(ArchiverSessionPtr ptrSession,
+ArchiveManageImpl::ArchiveManageImpl(std::shared_ptr<ArchiverSession> ptrSession,
     ECConfig *lpConfig, const tstring &strUser,
     std::shared_ptr<ECLogger> lpLogger) :
 	m_ptrSession(ptrSession),
@@ -142,7 +141,7 @@ HRESULT ArchiveManageImpl::AttachTo(const char *lpszArchiveServer, const TCHAR *
 {
 	tstring strFoldername;
 	abentryid_t sUserEntryId;
-	ArchiverSessionPtr ptrArchiveSession(m_ptrSession), ptrRemoteSession;
+	std::shared_ptr<ArchiverSession> ptrArchiveSession(m_ptrSession), ptrRemoteSession;
 
 	// Resolve the requested user.
 	auto hr = m_ptrSession->GetUserInfo(m_strUser, &sUserEntryId, &strFoldername, nullptr);
@@ -318,7 +317,7 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
 	StoreHelperPtr ptrStoreHelper;
 	ArchiveHelperPtr ptrArchiveHelper;
 	ULONG ulType = 0;
-	ArchiverSessionPtr ptrArchiveSession(m_ptrSession), ptrRemoteSession;
+	std::shared_ptr<ArchiverSession> ptrArchiveSession(m_ptrSession), ptrRemoteSession;
 
 	auto hr = StoreHelper::Create(m_ptrUserStore, &ptrStoreHelper);
 	if (hr != hrSuccess) {

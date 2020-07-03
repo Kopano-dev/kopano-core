@@ -4,6 +4,7 @@
  */
 #include <kopano/platform.h>
 #include <list>
+#include <memory>
 #include <new>
 #include <utility>
 #include "MAPIPropHelper.h"
@@ -71,7 +72,7 @@ HRESULT MAPIPropHelper::Init()
  * @param[out]	lpState
  * 					The state that will be setup according to the message state.
  */
-HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageState *lpState)
+HRESULT MAPIPropHelper::GetMessageState(std::shared_ptr<ArchiverSession> ptrSession, MessageState *lpState)
 {
 	unsigned int cMessageProps = 0, ulState = 0;
 	int result = 0;
@@ -425,7 +426,7 @@ HRESULT MAPIPropHelper::ReferencePrevious(const SObjectEntry &sEntry)
 	return HrSetOneProp(m_ptrMapiProp, &sPropValue);
 }
 
-HRESULT MAPIPropHelper::OpenPrevious(ArchiverSessionPtr ptrSession, LPMESSAGE *lppMessage)
+HRESULT MAPIPropHelper::OpenPrevious(std::shared_ptr<ArchiverSession> ptrSession, IMessage **lppMessage)
 {
 	memory_ptr<SPropValue> ptrEntryID;
 
@@ -497,7 +498,7 @@ HRESULT MAPIPropHelper::DetachFromArchives()
  *					Pointer to a IMAPIFolder pointer that will be assigned the address
  *					of the returned folder.
  */
-HRESULT MAPIPropHelper::GetParentFolder(ArchiverSessionPtr ptrSession, LPMAPIFOLDER *lppFolder)
+HRESULT MAPIPropHelper::GetParentFolder(std::shared_ptr<ArchiverSession> ptrSession, IMAPIFolder **lppFolder)
 {
 	unsigned int cValues = 0;
 	static constexpr const SizedSPropTagArray(2, sptaProps) =

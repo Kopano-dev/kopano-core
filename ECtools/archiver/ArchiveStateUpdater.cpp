@@ -67,7 +67,7 @@ namespace Predicates {
  * 								primary store.
  * @param[out]	lpptrUpdater	The new ArchiveStateUpdater instance
  */
-HRESULT ArchiveStateUpdater::Create(const ArchiverSessionPtr &ptrSession,
+HRESULT ArchiveStateUpdater::Create(const std::shared_ptr<ArchiverSession> &ptrSession,
     std::shared_ptr<ECLogger> lpLogger, const ArchiveInfoMap &mapArchiveInfo,
     ArchiveStateUpdaterPtr *lpptrUpdater)
 {
@@ -87,7 +87,7 @@ HRESULT ArchiveStateUpdater::Create(const ArchiverSessionPtr &ptrSession,
  * 								should have an archive attached to their
  * 								primary store.
  */
-ArchiveStateUpdater::ArchiveStateUpdater(const ArchiverSessionPtr &ptrSession,
+ArchiveStateUpdater::ArchiveStateUpdater(const std::shared_ptr<ArchiverSession> &ptrSession,
     std::shared_ptr<ECLogger> lpLogger, const ArchiveInfoMap &mapArchiveInfo) :
 	m_ptrSession(ptrSession), m_lpLogger(std::move(lpLogger)),
 	m_mapArchiveInfo(mapArchiveInfo)

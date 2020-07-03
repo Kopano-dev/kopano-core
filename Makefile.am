@@ -340,7 +340,6 @@ kopano_vcfimport_LDADD = libmapi.la libkcutil.la libkcicalmapi.la ${libHX_LIBS}
 #
 libkcarchiver_la_SOURCES = \
 	ECtools/archiver/ArchiverSession.cpp ECtools/archiver/ArchiverSession.h \
-	ECtools/archiver/ArchiverSessionPtr.h \
 	ECtools/archiver/archiver-common.cpp \
 	ECtools/archiver/ArchiveManageImpl.cpp ECtools/archiver/ArchiveManageImpl.h \
 	ECtools/archiver/ArchiveManage.h \
@@ -368,7 +367,6 @@ libkcarchiver_la_SOURCES = \
 	ECtools/archiver/operations/stubber.h \
 	ECtools/archiver/operations/transaction.cpp \
 	ECtools/archiver/operations/transaction.h \
-	ECtools/archiver/operations/transaction_fwd.h \
 	ECtools/archiver/operations/postsaveaction.h \
 	ECtools/archiver/operations/postsaveiidupdater.cpp \
 	ECtools/archiver/operations/postsaveiidupdater.h \

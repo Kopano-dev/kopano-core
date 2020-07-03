@@ -77,7 +77,7 @@ HRESULT ArchiveHelper::Create(LPMDB lpArchiveStore, LPMAPIFOLDER lpArchiveFolder
 	return hrSuccess;
 }
 
-HRESULT ArchiveHelper::Create(ArchiverSessionPtr ptrSession,
+HRESULT ArchiveHelper::Create(std::shared_ptr<ArchiverSession> ptrSession,
     const SObjectEntry &archiveEntry, std::shared_ptr<ECLogger> lpLogger,
     ArchiveHelperPtr *lpptrArchiveHelper)
 {
@@ -410,7 +410,7 @@ HRESULT ArchiveHelper::SetPermissions(const abentryid_t &sUserEntryId, bool bWri
  *					Pointer to a MAPIFolder pointer that's assigned the address of the returned folder.
  */
 HRESULT ArchiveHelper::GetArchiveFolderFor(IMAPIFolder *ptrSourceFolder,
-    ArchiverSessionPtr ptrSession, IMAPIFolder **lppDestinationFolder)
+    std::shared_ptr<ArchiverSession> ptrSession, IMAPIFolder **lppDestinationFolder)
 {
 	memory_ptr<SPropValue> ptrStoreEntryId, ptrFolderType, ptrFolderEntryId, ptrPropArray;
 	MAPIPropHelperPtr ptrSourceFolderHelper, ptrArchiveFolderHelper;

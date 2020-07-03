@@ -7,9 +7,10 @@
 #include <kopano/automapi.hpp>
 #include <kopano/ECLogger.h>
 #include "Archiver.h"               // for declaration of class Archiver
-#include "ArchiverSessionPtr.h"     // For ArchiverSessionPtr
 
 namespace KC {
+
+class ArchiverSession;
 
 class ArchiverImpl final : public Archiver {
 public:
@@ -28,7 +29,7 @@ private:
 	std::unique_ptr<ECConfig> m_lpsConfig;
 	std::shared_ptr<ECLogger> m_lpLogger;
 	std::shared_ptr<ECLogger> m_lpLogLogger; // Logs only to the log specified in the config
-	ArchiverSessionPtr 		m_ptrSession;
+	std::shared_ptr<ArchiverSession> m_ptrSession;
 	std::unique_ptr<configsetting_t[]> m_lpDefaults;
 };
 

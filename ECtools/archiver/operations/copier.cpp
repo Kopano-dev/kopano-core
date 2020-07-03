@@ -28,7 +28,7 @@ using namespace KC::helpers;
 
 namespace KC { namespace operations {
 
-Copier::Helper::Helper(ArchiverSessionPtr ptrSession, std::shared_ptr<ECLogger> lpLogger,
+Copier::Helper::Helper(std::shared_ptr<ArchiverSession> ptrSession, std::shared_ptr<ECLogger> lpLogger,
     const InstanceIdMapperPtr &ptrMapper, const SPropTagArray *lpExcludeProps,
     LPMAPIFOLDER lpFolder) :
 	m_ptrSession(ptrSession), m_lpLogger(std::move(lpLogger)),
@@ -306,7 +306,7 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
  * @param[in]	lpExcludeProps
  *					The list of properties that will not be copied during the archive operation.
  */
-Copier::Copier(ArchiverSessionPtr ptrSession, ECConfig *lpConfig,
+Copier::Copier(std::shared_ptr<ArchiverSession> ptrSession, ECConfig *lpConfig,
     std::shared_ptr<ECArchiverLogger> lpLogger, const std::list<SObjectEntry> &lstArchives,
     const SPropTagArray *lpExcludeProps, int ulAge, bool bProcessUnread) :
 	ArchiveOperationBaseEx(lpLogger, ulAge, bProcessUnread, ARCH_NEVER_ARCHIVE),
@@ -446,9 +446,9 @@ HRESULT Copier::DoProcessEntry(const SRow &proprow)
 		}
 	}
 
-	std::list<TransactionPtr> lstTransactions;
+	std::list<std::shared_ptr<Transaction>> lstTransactions;
 	for (const auto &arc : m_lstArchives) {
-		TransactionPtr ptrTransaction;
+		std::shared_ptr<Transaction> ptrTransaction;
 		auto iArchivedMsg = std::find_if(lstMsgArchives.cbegin(), lstMsgArchives.cend(), StoreCompare(arc));
 		// Check if this message is archived to the current archive.
 		if (iArchivedMsg == lstMsgArchives.cend()) {
@@ -505,9 +505,9 @@ HRESULT Copier::DoProcessEntry(const SRow &proprow)
 	// Once we reach this point all messages have been created and/or updated. We need to
 	// save them now. When a transaction is saved it will return a Rollback object we can
 	// use to undo the changes when a later save fails.
-	std::list<RollbackPtr> lstRollbacks;
+	std::list<std::shared_ptr<Rollback>> lstRollbacks;
 	for (const auto &ta : lstTransactions) {
-		RollbackPtr ptrRollback;
+		std::shared_ptr<Rollback> ptrRollback;
 		hr = ta->SaveChanges(m_ptrSession, &ptrRollback);
 		if (FAILED(hr)) {
 			Logger()->perr("Failed to save changes into archive, rolling back", hr);
@@ -559,12 +559,13 @@ void Copier::SetStubOperation(StubberPtr ptrStubOp)
 	m_ptrStubOp = ptrStubOp;
 }
 
-HRESULT Copier::DoInitialArchive(LPMESSAGE lpMessage, const SObjectEntry &archiveRootEntry, const SObjectEntry &refMsgEntry, TransactionPtr *lpptrTransaction)
+HRESULT Copier::DoInitialArchive(IMessage *lpMessage,
+    const SObjectEntry &archiveRootEntry, const SObjectEntry &refMsgEntry,
+    std::shared_ptr<Transaction> *lpptrTransaction)
 {
 	object_ptr<IMessage> ptrNewArchive;
 	SObjectEntry objectEntry;
 	PostSaveActionPtr ptrPSAction;
-	TransactionPtr ptrTransaction;
 
 	assert(lpMessage != NULL);
 	assert(lpptrTransaction != NULL);
@@ -579,7 +580,7 @@ HRESULT Copier::DoInitialArchive(LPMESSAGE lpMessage, const SObjectEntry &archiv
 	// Update the list of archive messages for this message.
 	objectEntry.sStoreEntryId = archiveRootEntry.sStoreEntryId;
 	objectEntry.sItemEntryId = ptrEntryId->Value.bin;
-	ptrTransaction = std::make_shared<Transaction>(objectEntry);
+	auto ptrTransaction = std::make_shared<Transaction>(objectEntry);
 	hr = ptrTransaction->Save(ptrNewArchive, true, ptrPSAction);
 	if (hr != hrSuccess)
 		return Logger()->perr("Failed to add archive message to transaction", hr);
@@ -587,13 +588,15 @@ HRESULT Copier::DoInitialArchive(LPMESSAGE lpMessage, const SObjectEntry &archiv
 	return hrSuccess;
 }
 
-HRESULT Copier::DoTrackAndRearchive(LPMESSAGE lpMessage, const SObjectEntry &archiveRootEntry, const SObjectEntry &archiveMsgEntry, const SObjectEntry &refMsgEntry, bool bUpdateHistory, TransactionPtr *lpptrTransaction)
+HRESULT Copier::DoTrackAndRearchive(IMessage *lpMessage,
+    const SObjectEntry &archiveRootEntry, const SObjectEntry &archiveMsgEntry,
+    const SObjectEntry &refMsgEntry, bool bUpdateHistory,
+    std::shared_ptr<Transaction> *lpptrTransaction)
 {
 	object_ptr<IMessage> ptrNewArchive, ptrMovedMessage;
 	SObjectEntry newArchiveEntry, movedEntry;
 	MAPIPropHelperPtr ptrMsgHelper;
 	PostSaveActionPtr ptrPSAction;
-	TransactionPtr ptrTransaction;
 
 	assert(lpMessage != NULL);
 	assert(lpptrTransaction != NULL);
@@ -608,7 +611,7 @@ HRESULT Copier::DoTrackAndRearchive(LPMESSAGE lpMessage, const SObjectEntry &arc
 	// Create the transaction, which is needed by CopyToHistory, now.
 	newArchiveEntry.sStoreEntryId = archiveRootEntry.sStoreEntryId;
 	newArchiveEntry.sItemEntryId = ptrEntryId->Value.bin;
-	ptrTransaction = std::make_shared<Transaction>(newArchiveEntry);
+	auto ptrTransaction = std::make_shared<Transaction>(newArchiveEntry);
 	hr = MoveToHistory(archiveRootEntry, archiveMsgEntry, ptrTransaction, &movedEntry, &~ptrMovedMessage);
 	if (hr != hrSuccess)
 		return Logger()->perr("Failed to move old archive to history folder", hr);
@@ -657,11 +660,12 @@ static HRESULT delete_recipients(IMessage *msg)
 	return msg->ModifyRecipients(MODRECIP_REMOVE, reinterpret_cast<ADRLIST *>(rows.get()));
 }
 
-HRESULT Copier::DoUpdateArchive(LPMESSAGE lpMessage, const SObjectEntry &archiveMsgEntry, const SObjectEntry &refMsgEntry, TransactionPtr *lpptrTransaction)
+HRESULT Copier::DoUpdateArchive(IMessage *lpMessage,
+    const SObjectEntry &archiveMsgEntry, const SObjectEntry &refMsgEntry,
+    std::shared_ptr<Transaction> *lpptrTransaction)
 {
 	object_ptr<IMsgStore> ptrArchiveStore;
 	PostSaveActionPtr ptrPSAction;
-	TransactionPtr ptrTransaction;
 
 	assert(lpMessage != NULL);
 	assert(lpptrTransaction != NULL);
@@ -696,7 +700,7 @@ HRESULT Copier::DoUpdateArchive(LPMESSAGE lpMessage, const SObjectEntry &archive
 	hr = m_ptrHelper->ArchiveMessage(lpMessage, &refMsgEntry, ptrArchivedMsg, &ptrPSAction);
 	if (hr != hrSuccess)
 		return hr;
-	ptrTransaction = std::make_shared<Transaction>(archiveMsgEntry);
+	auto ptrTransaction = std::make_shared<Transaction>(archiveMsgEntry);
 	hr = ptrTransaction->Save(ptrArchivedMsg, false, ptrPSAction);
 	if (hr != hrSuccess)
 		return Logger()->perr("Failed to add archive message to transaction", hr);
@@ -704,12 +708,13 @@ HRESULT Copier::DoUpdateArchive(LPMESSAGE lpMessage, const SObjectEntry &archive
 	return hrSuccess;
 }
 
-HRESULT Copier::DoMoveArchive(const SObjectEntry &archiveRootEntry, const SObjectEntry &archiveMsgEntry, const SObjectEntry &refMsgEntry, TransactionPtr *lpptrTransaction)
+HRESULT Copier::DoMoveArchive(const SObjectEntry &archiveRootEntry,
+    const SObjectEntry &archiveMsgEntry, const SObjectEntry &refMsgEntry,
+    std::shared_ptr<Transaction> *lpptrTransaction)
 {
 	object_ptr<IMAPIFolder> ptrArchiveFolder;
 	MAPIPropHelperPtr ptrPropHelper;
 	SObjectEntry objectEntry;
-	TransactionPtr ptrTransaction;
 
 	assert(lpptrTransaction != NULL);
 	auto hr = m_ptrHelper->GetArchiveFolder(archiveRootEntry, &~ptrArchiveFolder);
@@ -744,7 +749,7 @@ HRESULT Copier::DoMoveArchive(const SObjectEntry &archiveRootEntry, const SObjec
 	// Create the transaction, which is needed by CopyToHistory, now.
 	objectEntry.sStoreEntryId = archiveRootEntry.sStoreEntryId;
 	objectEntry.sItemEntryId = ptrEntryId->Value.bin;
-	ptrTransaction = std::make_shared<Transaction>(objectEntry);
+	auto ptrTransaction = std::make_shared<Transaction>(objectEntry);
 	hr = ptrTransaction->Save(ptrArchiveCopy, true);
 	if (hr == hrSuccess)
 		hr = ptrTransaction->Delete(archiveMsgEntry);
@@ -805,7 +810,9 @@ HRESULT Copier::ExecuteSubOperations(IMessage *lpMessage,
 	return hr;
 }
 
-HRESULT Copier::MoveToHistory(const SObjectEntry &sourceArchiveRoot, const SObjectEntry &sourceMsgEntry, TransactionPtr ptrTransaction, SObjectEntry *lpNewEntry, LPMESSAGE *lppNewMessage)
+HRESULT Copier::MoveToHistory(const SObjectEntry &sourceArchiveRoot,
+    const SObjectEntry &sourceMsgEntry, std::shared_ptr<Transaction> ptrTransaction,
+    SObjectEntry *lpNewEntry, IMessage **lppNewMessage)
 {
 	ArchiveHelperPtr ptrArchiveHelper;
 
@@ -851,7 +858,8 @@ HRESULT Copier::MoveToHistory(const SObjectEntry &sourceArchiveRoot, const SObje
 	return hrSuccess;
 }
 
-HRESULT Copier::UpdateHistoryRefs(LPMESSAGE lpArchivedMsg, const SObjectEntry &refMsgEntry, TransactionPtr ptrTransaction)
+HRESULT Copier::UpdateHistoryRefs(IMessage *lpArchivedMsg,
+    const SObjectEntry &refMsgEntry, std::shared_ptr<Transaction> ptrTransaction)
 {
 	MAPIPropHelperPtr ptrPropHelper;
 

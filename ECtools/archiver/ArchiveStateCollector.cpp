@@ -122,7 +122,7 @@ HRESULT MailboxDataCollector::CollectData(LPMAPITABLE lpStoreTable)
  * @param[in]	lpLogger		The logger.
  * @param[out]	lpptrCollector	The new ArchiveStateCollector instance.
  */
-HRESULT ArchiveStateCollector::Create(const ArchiverSessionPtr &ptrSession,
+HRESULT ArchiveStateCollector::Create(const std::shared_ptr<ArchiverSession> &ptrSession,
     std::shared_ptr<ECLogger> lpLogger, ArchiveStateCollectorPtr *lpptrCollector)
 {
 	ArchiveStateCollectorPtr ptrCollector(
@@ -137,7 +137,7 @@ HRESULT ArchiveStateCollector::Create(const ArchiverSessionPtr &ptrSession,
  * @param[in]	ArchiverSessionPtr		The archive session
  * @param[in]	lpLogger		The logger.
  */
-ArchiveStateCollector::ArchiveStateCollector(const ArchiverSessionPtr &ptrSession,
+ArchiveStateCollector::ArchiveStateCollector(const std::shared_ptr<ArchiverSession> &ptrSession,
     std::shared_ptr<ECLogger> lpLogger) :
 	m_ptrSession(ptrSession), m_lpLogger(new ECArchiverLogger(std::move(lpLogger)))
 { }

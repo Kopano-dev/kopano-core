@@ -4,19 +4,23 @@
  */
 #pragma once
 #include <list>
-#include "transaction_fwd.h"
-#include "ArchiverSessionPtr.h"     // For ArchiverSessionPtr
+#include <memory>
 #include <kopano/archiver-common.h>
 #include "postsaveaction.h"
 #include <kopano/memory.hpp>
 
-namespace KC { namespace operations {
+namespace KC {
 
+class ArchiverSession;
+
+namespace operations {
+
+class Rollback;
 class Transaction final {
 public:
 	Transaction(const SObjectEntry &objectEntry);
-	HRESULT SaveChanges(ArchiverSessionPtr ptrSession, RollbackPtr *lpptrRollback);
-	HRESULT PurgeDeletes(ArchiverSessionPtr ptrSession, TransactionPtr ptrDeferredTransaction = TransactionPtr());
+	HRESULT SaveChanges(std::shared_ptr<ArchiverSession>, std::shared_ptr<Rollback> *);
+	HRESULT PurgeDeletes(std::shared_ptr<ArchiverSession>, std::shared_ptr<Transaction> deferred_tx = nullptr);
 	const SObjectEntry& GetObjectEntry() const;
 
 	HRESULT Save(IMessage *lpMessage, bool bDeleteOnFailure, const PostSaveActionPtr &ptrPSAction = PostSaveActionPtr());
@@ -46,8 +50,8 @@ inline const SObjectEntry& Transaction::GetObjectEntry() const
 
 class Rollback final {
 public:
-	HRESULT Delete(ArchiverSessionPtr ptrSession, IMessage *lpMessage);
-	HRESULT Execute(ArchiverSessionPtr ptrSession);
+	HRESULT Delete(std::shared_ptr<ArchiverSession>, IMessage *);
+	HRESULT Execute(std::shared_ptr<ArchiverSession>);
 
 private:
 	struct DelEntry {

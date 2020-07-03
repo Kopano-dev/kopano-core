@@ -9,10 +9,10 @@
 #include <kopano/archiver-common.h>
 #include <kopano/memory.hpp>
 #include <kopano/CommonUtil.h>
-#include "ArchiverSessionPtr.h"     // For ArchiverSessionPtr
 
 namespace KC {
 
+class ArchiverSession;
 class ECLogger;
 
 namespace helpers {
@@ -40,14 +40,14 @@ class KC_EXPORT ArchiveHelper final {
 public:
 	KC_HIDDEN static HRESULT Create(IMsgStore *arc_store, const tstring &folder, const char *server_path, ArchiveHelperPtr *);
 	KC_HIDDEN static HRESULT Create(IMsgStore *arc_store, IMAPIFolder *arc_folder, const char *server_path, ArchiveHelperPtr *);
-	static HRESULT Create(ArchiverSessionPtr ptrSession, const SObjectEntry &archiveEntry, std::shared_ptr<ECLogger>, ArchiveHelperPtr *lpptrArchiveHelper);
+	static HRESULT Create(std::shared_ptr<ArchiverSession>, const SObjectEntry &arc_entry, std::shared_ptr<ECLogger>, ArchiveHelperPtr *);
 	KC_HIDDEN HRESULT GetAttachedUser(abentryid_t *user_eid);
 	KC_HIDDEN HRESULT SetAttachedUser(const abentryid_t &user_eid);
 	KC_HIDDEN HRESULT GetArchiveEntry(bool create, SObjectEntry *obj_entry);
 	KC_HIDDEN HRESULT GetArchiveType(ArchiveType *arc_type, AttachType *att_type);
 	KC_HIDDEN HRESULT SetArchiveType(ArchiveType arc_type, AttachType att_type);
 	KC_HIDDEN HRESULT SetPermissions(const abentryid_t &user_eid, bool writable);
-	HRESULT GetArchiveFolderFor(IMAPIFolder *src, ArchiverSessionPtr, IMAPIFolder **dst);
+	HRESULT GetArchiveFolderFor(IMAPIFolder *src, std::shared_ptr<ArchiverSession>, IMAPIFolder **dst);
 	HRESULT GetHistoryFolder(LPMAPIFOLDER *lppHistoryFolder);
 	HRESULT GetOutgoingFolder(LPMAPIFOLDER *lppOutgoingFolder);
 	HRESULT GetDeletedItemsFolder(LPMAPIFOLDER *lppOutgoingFolder);
