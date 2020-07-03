@@ -2356,7 +2356,7 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::shared_ptr<vmime::header> vmHeade
 	if (bAppendBody)
 		m_mailState.strHTMLBody.append(strHTML);
 	else
-		swap(strHTML, m_mailState.strHTMLBody);
+		m_mailState.strHTMLBody = std::move(strHTML);
 	return hrSuccess;
 }
 
