@@ -2688,7 +2688,7 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "The array with the guids is not of the same size as the array with the ids");
 
 	// allocate memory to use
-	MAPI_G(hr) = MAPIAllocateBuffer(sizeof(LPMAPINAMEID) * hashTotal, &~lppNamePropId);
+	MAPI_G(hr) = MAPIAllocateBuffer(sizeof(MAPINAMEID *) * hashTotal, &~lppNamePropId);
 	if (MAPI_G(hr) != hrSuccess)
 		return;
 

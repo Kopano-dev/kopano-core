@@ -19,7 +19,7 @@ public:
 	ECNamedProp(WSTransport *lpTransport);
 	virtual ~ECNamedProp();
 	virtual HRESULT GetNamesFromIDs(SPropTagArray **tags, const GUID *propset, ULONG flags, ULONG *nvals, MAPINAMEID ***names);
-	virtual HRESULT GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropNames, ULONG ulFlags, LPSPropTagArray *lppPropTags);
+	virtual HRESULT GetIDsFromNames(unsigned int num, MAPINAMEID **names, unsigned int flags, SPropTagArray **proptags);
 
 private:
 	KC::object_ptr<WSTransport> lpTransport;
@@ -30,5 +30,5 @@ private:
 	HRESULT ResolveReverseLocal(ULONG ulId, const GUID *, ULONG flags, void *base, MAPINAMEID **name);
 	HRESULT ResolveReverseCache(ULONG ulId, const GUID *, ULONG flags, void *base, MAPINAMEID **name);
 	HRESULT			UpdateCache(ULONG ulId, MAPINAMEID *lpName);
-	HRESULT			HrCopyNameId(LPMAPINAMEID lpSrc, LPMAPINAMEID *lppDst, void *lpBase);
+	HRESULT HrCopyNameId(MAPINAMEID *src, MAPINAMEID **dst, void *base);
 };

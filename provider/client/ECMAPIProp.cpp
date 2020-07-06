@@ -661,7 +661,8 @@ HRESULT ECMAPIProp::GetNamesFromIDs(SPropTagArray **lppPropTags,
 	return GetMsgStore()->lpNamedProp.GetNamesFromIDs(lppPropTags, lpPropSetGuid, ulFlags, lpcPropNames, lpppPropNames);
 }
 
-HRESULT ECMAPIProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropNames, ULONG ulFlags, LPSPropTagArray *lppPropTags)
+HRESULT ECMAPIProp::GetIDsFromNames(unsigned int cPropNames, MAPINAMEID **lppPropNames,
+    unsigned int ulFlags, SPropTagArray **lppPropTags)
 {
 	return GetMsgStore()->lpNamedProp.GetIDsFromNames(cPropNames, lppPropNames, ulFlags, lppPropTags);
 }

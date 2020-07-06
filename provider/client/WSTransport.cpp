@@ -1063,7 +1063,8 @@ HRESULT WSTransport::HrGetMessageStreamImporter(ULONG ulFlags, ULONG ulSyncId,
 	return hrSuccess;
 }
 
-HRESULT WSTransport::HrGetIDsFromNames(LPMAPINAMEID *lppPropNames, ULONG cNames, ULONG ulFlags, ULONG **lpServerIDs)
+HRESULT WSTransport::HrGetIDsFromNames(MAPINAMEID **lppPropNames,
+    unsigned int cNames, unsigned int ulFlags, unsigned int **lpServerIDs)
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
@@ -1134,7 +1135,7 @@ HRESULT WSTransport::HrGetNamesFromIDs(SPropTagArray *lpsPropTags,
 	ECRESULT er = erSuccess;
 	struct getNamesFromIDsResponse sResponse;
 	struct propTagArray sPropTags;
-	LPMAPINAMEID *lppNames = NULL;
+	MAPINAMEID **lppNames = nullptr;
 	convert_context convertContext;
 
 	sPropTags.__size = lpsPropTags->cValues;
@@ -1150,7 +1151,7 @@ HRESULT WSTransport::HrGetNamesFromIDs(SPropTagArray *lpsPropTags,
 	}
 	END_SOAP_CALL
 
-	er = ECAllocateBuffer(sizeof(LPMAPINAMEID) * sResponse.lpsNames.__size, reinterpret_cast<void **>(&lppNames));
+	er = ECAllocateBuffer(sizeof(MAPINAMEID *) * sResponse.lpsNames.__size, reinterpret_cast<void **>(&lppNames));
 	if (er != erSuccess)
 		goto exitm;
 
