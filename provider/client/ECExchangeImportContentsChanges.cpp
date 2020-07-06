@@ -113,7 +113,8 @@ HRESULT ECExchangeImportContentsChanges::GetLastError(HRESULT hResult, ULONG ulF
 	return hrSuccess;
 }
 
-HRESULT ECExchangeImportContentsChanges::Config(LPSTREAM lpStream, ULONG ulFlags){
+HRESULT ECExchangeImportContentsChanges::Config(IStream *lpStream, unsigned int ulFlags)
+{
 	HRESULT hr = hrSuccess;
 	ULONG ulLen = 0;
 
@@ -151,7 +152,8 @@ HRESULT ECExchangeImportContentsChanges::Config(LPSTREAM lpStream, ULONG ulFlags
 	return hrSuccess;
 }
 
-HRESULT ECExchangeImportContentsChanges::UpdateState(LPSTREAM lpStream){
+HRESULT ECExchangeImportContentsChanges::UpdateState(IStream *lpStream)
+{
 	ULONG ulLen = 0;
 
 	if(lpStream == NULL) {
@@ -598,7 +600,8 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictFolder(LPTSTR lpszName, L
 	return hrSuccess;
 }
 
-HRESULT ECExchangeImportContentsChanges::ImportMessageChangeAsAStream(ULONG cValue, LPSPropValue lpPropArray, ULONG ulFlags, LPSTREAM *lppStream)
+HRESULT ECExchangeImportContentsChanges::ImportMessageChangeAsAStream(unsigned int cValue,
+    SPropValue *lpPropArray, unsigned int ulFlags, IStream **lppStream)
 {
 	HRESULT hr;
 	ULONG cbEntryId = 0;

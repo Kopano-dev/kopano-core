@@ -886,9 +886,9 @@ typedef struct READSTATE *LPREADSTATE;
 struct IExchangeExportChanges : public virtual IUnknown {
 public:
 	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
-	virtual HRESULT Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKNOWN lpCollector, LPSRestriction lpRestriction, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize) = 0;
+	virtual HRESULT Config(IStream *, ULONG ulFlags, LPUNKNOWN lpCollector, LPSRestriction lpRestriction, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize) = 0;
 	virtual HRESULT Synchronize(ULONG *pulSteps, ULONG *pulProgress) = 0;
-	virtual HRESULT UpdateState(LPSTREAM lpStream) = 0;
+	virtual HRESULT UpdateState(IStream *) = 0;
 };
 
 typedef IExchangeExportChanges* LPEXCHANGEEXPORTCHANGES;
@@ -896,8 +896,8 @@ typedef IExchangeExportChanges* LPEXCHANGEEXPORTCHANGES;
 struct IExchangeImportContentsChanges : public virtual IUnknown {
 public:
 	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
-	virtual HRESULT Config(LPSTREAM lpStream, ULONG ulFlags) = 0;
-	virtual HRESULT UpdateState(LPSTREAM lpStream) = 0;
+	virtual HRESULT Config(IStream *, ULONG ulFlags) = 0;
+	virtual HRESULT UpdateState(IStream *) = 0;
 	virtual HRESULT ImportMessageChange(ULONG cValue, LPSPropValue lpPropArray, ULONG ulFlags, LPMESSAGE * lppMessage) = 0;
 	virtual HRESULT ImportMessageDeletion(ULONG ulFlags, LPENTRYLIST lpSourceEntryList) = 0;
 	virtual HRESULT ImportPerUserReadStateChange(ULONG cElements, LPREADSTATE lpReadState) = 0;
@@ -909,8 +909,8 @@ typedef IExchangeImportContentsChanges* LPEXCHANGEIMPORTCONTENTSCHANGES;
 struct IExchangeImportHierarchyChanges : public virtual IUnknown {
 public:
 	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
-	virtual HRESULT Config(LPSTREAM lpStream, ULONG ulFlags) = 0;
-	virtual HRESULT UpdateState(LPSTREAM lpStream) = 0;
+	virtual HRESULT Config(IStream *, ULONG ulFlags) = 0;
+	virtual HRESULT UpdateState(IStream *) = 0;
 	virtual HRESULT ImportFolderChange(ULONG cValue, LPSPropValue lpPropArray) = 0;
 	virtual HRESULT ImportFolderDeletion(ULONG ulFlags, LPENTRYLIST lpSourceEntryList) = 0;
 };

@@ -33,7 +33,8 @@ HRESULT ECExportAddressbookChanges::QueryInterface(REFIID refiid, void **lppInte
     return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
-HRESULT	ECExportAddressbookChanges::Config(LPSTREAM lpStream, ULONG ulFlags, IECImportAddressbookChanges *lpCollector)
+HRESULT	ECExportAddressbookChanges::Config(IStream *lpStream, unsigned int ulFlags,
+    IECImportAddressbookChanges *lpCollector)
 {
 	STATSTG sStatStg;
 	unsigned int ulCount = 0, ulProcessed = 0, ulRead = 0;
@@ -237,7 +238,7 @@ HRESULT ECExportAddressbookChanges::Synchronize(ULONG *lpulSteps, ULONG *lpulPro
 	return m_ulThisChange >= m_ulChanges ? hrSuccess : SYNC_W_PROGRESS;
 }
 
-HRESULT ECExportAddressbookChanges::UpdateState(LPSTREAM lpStream)
+HRESULT ECExportAddressbookChanges::UpdateState(IStream *lpStream)
 {
 	ULONG ulWritten = 0;
 

@@ -40,7 +40,7 @@ HRESULT WSSerializedMessage::GetProps(ULONG *lpcbProps, LPSPropValue *lppProps)
  * @param[in]	lpDestStream	The stream to write the data to.
  * @retval	MAPI_E_INVALID_PARAMETER	lpDestStream is NULL.
  */
-HRESULT WSSerializedMessage::CopyData(LPSTREAM lpDestStream)
+HRESULT WSSerializedMessage::CopyData(IStream *lpDestStream)
 {
 	if (lpDestStream == NULL)
 		return MAPI_E_INVALID_PARAMETER;
@@ -64,7 +64,7 @@ HRESULT WSSerializedMessage::DiscardData()
  * @param[in]	lpDestStream	The stream to write the data to. If lpDestStream is
  *                              NULL, the data will be discarded.
  */
-HRESULT WSSerializedMessage::DoCopyData(LPSTREAM lpDestStream)
+HRESULT WSSerializedMessage::DoCopyData(IStream *lpDestStream)
 {
 	if (m_bUsed)
 		return MAPI_E_UNCONFIGURED;

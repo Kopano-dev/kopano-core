@@ -89,7 +89,7 @@ HRESULT ECChangeAdvisor::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERRO
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT ECChangeAdvisor::Config(LPSTREAM lpStream, LPGUID /*lpGUID*/,
+HRESULT ECChangeAdvisor::Config(IStream *lpStream, GUID */*lpGUID*/,
     IECChangeAdviseSink *lpAdviseSink, ULONG ulFlags)
 {
 	if (lpAdviseSink == nullptr && !(ulFlags & SYNC_CATCHUP))
@@ -180,7 +180,7 @@ HRESULT ECChangeAdvisor::PurgeStates()
 	return hrSuccess;
 }
 
-HRESULT ECChangeAdvisor::UpdateState(LPSTREAM lpStream)
+HRESULT ECChangeAdvisor::UpdateState(IStream *lpStream)
 {
 	if (lpStream == nullptr)
 		return MAPI_E_INVALID_PARAMETER;

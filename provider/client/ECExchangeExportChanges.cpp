@@ -189,7 +189,11 @@ HRESULT ECExchangeExportChanges::GetLastError(HRESULT hResult, ULONG ulFlags, LP
 	return hrSuccess;
 }
 
-HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKNOWN lpCollector, LPSRestriction lpRestriction, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize){
+HRESULT ECExchangeExportChanges::Config(IStream *lpStream, unsigned int ulFlags,
+    IUnknown *lpCollector, SRestriction *lpRestriction,
+    SPropTagArray *lpIncludeProps, SPropTagArray *lpExcludeProps,
+    unsigned int ulBufferSize)
+{
 	struct sbcmp {
 		bool operator()(const SBinary &l, const SBinary &r) const { return Util::CompareSBinary(l, r) < 0; }
 	};
@@ -523,7 +527,8 @@ progress:
 	return hr;
 }
 
-HRESULT ECExchangeExportChanges::UpdateState(LPSTREAM lpStream){
+HRESULT ECExchangeExportChanges::UpdateState(IStream *lpStream)
+{
 	if(!m_bConfiged){
 		zlog("Config() not called before UpdateState()");
 		return MAPI_E_UNCONFIGURED;
@@ -1097,7 +1102,8 @@ HRESULT ECExchangeExportChanges::ExportFolderDeletes(){
 }
 
 //write in the stream 4 bytes syncid, 4 bytes changeid, 4 bytes changecount, {4 bytes changeid, 4 bytes sourcekeysize, sourcekey}
-HRESULT ECExchangeExportChanges::UpdateStream(LPSTREAM lpStream){
+HRESULT ECExchangeExportChanges::UpdateStream(IStream *lpStream)
+{
 	HRESULT hr = hrSuccess;
 	unsigned int ulSize, ulChangeCount = 0, ulChangeId = 0, ulSourceKeySize = 0;
 

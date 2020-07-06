@@ -86,7 +86,8 @@ HRESULT ECImportContentsChangesProxy::GetLastError(HRESULT hResult, ULONG ulFlag
     return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT ECImportContentsChangesProxy::Config(LPSTREAM lpStream, ULONG ulFlags) {
+HRESULT ECImportContentsChangesProxy::Config(IStream *lpStream, unsigned int ulFlags)
+{
 	zvalplus pvalFuncName, pvalArgs[2];
 	zval pvalReturn;
     
@@ -108,7 +109,8 @@ HRESULT ECImportContentsChangesProxy::Config(LPSTREAM lpStream, ULONG ulFlags) {
 	return zval_get_long(&pvalReturn);
 }
 
-HRESULT ECImportContentsChangesProxy::UpdateState(LPSTREAM lpStream) {
+HRESULT ECImportContentsChangesProxy::UpdateState(IStream *lpStream)
+{
 	zvalplus pvalFuncName, pvalArgs;
 	zval pvalReturn;
     

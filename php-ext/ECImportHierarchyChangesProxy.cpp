@@ -86,7 +86,8 @@ HRESULT ECImportHierarchyChangesProxy::GetLastError(HRESULT hResult, ULONG ulFla
     return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT ECImportHierarchyChangesProxy::Config(LPSTREAM lpStream, ULONG ulFlags) {
+HRESULT ECImportHierarchyChangesProxy::Config(IStream *lpStream, unsigned int ulFlags)
+{
 	zvalplus pvalFuncName, pvalArgs[2];
 	zval pvalReturn;
     
@@ -108,7 +109,8 @@ HRESULT ECImportHierarchyChangesProxy::Config(LPSTREAM lpStream, ULONG ulFlags) 
 	return zval_get_long(&pvalReturn);
 }
 
-HRESULT ECImportHierarchyChangesProxy::UpdateState(LPSTREAM lpStream) {
+HRESULT ECImportHierarchyChangesProxy::UpdateState(IStream *lpStream)
+{
 	zvalplus pvalFuncName, pvalArgs;
 	zval pvalReturn;
     

@@ -41,7 +41,7 @@ private:
 	HRESULT ExportMessageDeletes();
 	HRESULT ExportFolderChanges();
 	HRESULT ExportFolderDeletes();
-	HRESULT UpdateStream(LPSTREAM lpStream);
+	HRESULT UpdateStream(IStream *);
 	HRESULT ChangesToEntrylist(std::list<ICSCHANGE> * lpLstChanges, LPENTRYLIST * lppEntryList);
 	HRESULT zlog(const char *, HRESULT = 0);
 	HRESULT HrDecodeSyncStateStream(IStream *, unsigned int *sync_id, unsigned int *change_id);
