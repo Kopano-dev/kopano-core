@@ -1622,7 +1622,8 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 				sWebProperty.strValue = SPropValToString(lpFoundProp);
 			else if (ptrFullname != nullptr)
 				sWebProperty.strValue = W2U(ptrFullname->Value.lpszW);
-		} else if (strProperty == "calendar-user-address-set" && (m_ulUrlFlag & REQ_PUBLIC) == 0 && !!ptrEmail) {
+		} else if (strProperty == "calendar-user-address-set" &&
+		    (m_ulUrlFlag & REQ_PUBLIC) == 0 && ptrEmail != nullptr) {
 			// rfc draft only: http://tools.ietf.org/html/draft-desruisseaux-caldav-sched-11
 			HrSetDavPropName(&(sWebVal.sPropName), "href", WEBDAVNS);
 			sWebVal.strValue = std::string("mailto:") + ptrEmail->Value.lpszA;
@@ -1645,7 +1646,8 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 				// this happens when a client (evolution) queries the getctag (local commit time max) on the IPM Subtree
 				// (incorrectly configured client)
 				sWebProperty.strValue = "0";
-		} else if (strProperty == "email-address-set" && (!!ptrEmail || lpFoundProp)) {
+		} else if (strProperty == "email-address-set" &&
+		    (ptrEmail != nullptr || lpFoundProp != nullptr)) {
 			// email from properties (propsearch command) or fullname of user ("root" props)
 			HrSetDavPropName(&(sWebVal.sPropName), "email-address", WEBDAVNS);
 			sWebVal.strValue = lpFoundProp ? SPropValToString(lpFoundProp) : ptrEmail->Value.lpszA;
