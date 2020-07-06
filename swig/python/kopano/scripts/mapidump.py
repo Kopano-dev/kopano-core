@@ -1,12 +1,15 @@
 #!/usr/bin/python3
 # SPDX-License-Identifier: AGPL-3.0-only
-from __future__ import print_function
 import datetime
-import logging
-import sys
 import traceback
 
-from MAPI.Tags import *
+from MAPI.Tags import (PR_SOURCE_KEY, PR_PARENT_SOURCE_KEY, PR_CHANGE_KEY,
+                       PR_PREDECESSOR_CHANGE_LIST, PR_ENTRYID, PR_PARENT_ENTRYID,
+                       PR_CREATION_TIME, PR_LAST_MODIFICATION_TIME, PR_RECORD_KEY,
+                       PR_MESSAGE_DELIVERY_TIME, PR_STORE_RECORD_KEY, PR_STORE_ENTRYID,
+                       PR_MAPPING_SIGNATURE, PR_EC_SERVER_UID, PR_MESSAGE_SIZE,
+                       PR_CLIENT_SUBMIT_TIME, PR_COMPANY_NAME_W, PR_INTERNET_ARTICLE_NUMBER)
+
 import kopano
 
 """
@@ -44,13 +47,14 @@ IGNORE = [
     PR_STORE_ENTRYID,
     PR_MAPPING_SIGNATURE,
     PR_EC_SERVER_UID,
-    PR_MESSAGE_SIZE, # XXX why would there be a valid difference?
+    PR_MESSAGE_SIZE,  # XXX why would there be a valid difference?
 ]
 
 DEFAULT_DATETIME = datetime.datetime(1978, 1, 1)
 
+
 def dump_folder(folder):
-    print('(FOLDER)', folder.name) # XXX show folder.path
+    print('(FOLDER)', folder.name)  # XXX show folder.path
 
     def item_key(item):
         # extend as needed to make as much items unique as possible
@@ -68,6 +72,7 @@ def dump_folder(folder):
     items = sorted(folder.items(), key=item_key)
     for item in items:
         dump_item(item)
+
 
 def dump_item(item, depth=0):
     print('(ITEM)' if depth == 0 else '(EMBEDDED ITEM)')
@@ -92,10 +97,12 @@ def dump_item(item, depth=0):
         print('(ERROR)')
         traceback.print_exc()
 
+
 def dump_props(props):
     for prop in props:
         if prop.proptag not in IGNORE:
             print(prop, prop.strval)
+
 
 def main():
     parser = kopano.parser('SPQuf')
@@ -111,6 +118,7 @@ def main():
         for base in folders:
             for folder in [base] + list(base.folders()):
                 dump_folder(folder)
+
 
 if __name__ == '__main__':
     main()
