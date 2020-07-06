@@ -105,7 +105,6 @@ void *ECWatchdog::watcher(void *param)
 }
 
 /**
- * Construct an ECThreadPool instance.
  * @param[in]	ulThreadCount	The amount of worker hreads to create.
  */
 ECThreadPool::ECThreadPool(const std::string &pname, unsigned int spares) :
@@ -114,12 +113,9 @@ ECThreadPool::ECThreadPool(const std::string &pname, unsigned int spares) :
 	set_thread_count(spares);
 }
 
-/**
- * Destruct an ECThreadPool instance. This blocks until all worker
- * threads have exited.
- */
 ECThreadPool::~ECThreadPool()
 {
+	/* Block until all worker threads have exited */
 	set_thread_count(0, 0, true);
 }
 
