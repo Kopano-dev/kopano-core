@@ -873,9 +873,9 @@ ECRESULT ECDatabase::UpdateDatabaseVersion(unsigned int ulDatabaseRevision)
 	if (have_micro)
 		strQuery += "micro, ";
 	strQuery += "revision, databaserevision, updatetime) VALUES(";
-	strQuery += stringify(PROJECT_VERSION_MAJOR) + std::string(", ") + stringify(PROJECT_VERSION_MINOR) + std::string(", ");
+	strQuery += stringify(PROJECT_VERSION_MAJOR) + ", " + stringify(PROJECT_VERSION_MINOR) + ", ";
 	if (have_micro)
-		strQuery += stringify(PROJECT_VERSION_MICRO) + std::string(", ");
+		strQuery += stringify(PROJECT_VERSION_MICRO) + ", ";
 	strQuery += "'" + stringify(PROJECT_VERSION_REVISION) + "', " + stringify(ulDatabaseRevision) + ", FROM_UNIXTIME(" + stringify(time(nullptr)) + "))";
 	return DoInsert(strQuery);
 }

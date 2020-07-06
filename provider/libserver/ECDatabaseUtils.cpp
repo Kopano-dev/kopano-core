@@ -16,6 +16,8 @@
 #include "ECSessionManager.h"
 #include <string>
 
+using namespace std::string_literals;
+
 namespace KC {
 
 ECRESULT GetPropSize(DB_ROW lpRow, DB_LENGTHS lpLen, unsigned int *lpulSize)
@@ -102,7 +104,7 @@ ECRESULT CopySOAPPropValToDatabasePropVal(const struct propVal *lpPropVal,
 			return KCERR_INVALID_PARAMETER;
 		strColData = stringify_double(lpPropVal->Value.dbl);
 		*lpulColNr = VALUE_NR_DOUBLE;
-		if (ci_find_substr(strColData, std::string("nan")) != std::string::npos) {
+		if (ci_find_substr(strColData, "nan") != strColData.npos) {
 			strColData = "0.0";
 			ec_log_debug("%s:%d double value (%f) found, stringified to %s.", __FUNCTION__, __LINE__, lpPropVal->Value.dbl, strColData.c_str());
 		}
