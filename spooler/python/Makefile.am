@@ -1,3 +1,8 @@
+MAPI_CONFIG_PATH = ${top_srcdir}/provider/client
+PYTHONPATH = ${top_srcdir}/swig/python/.libs:${top_srcdir}/swig/python/:.
+PLUGIN_PATH ?= ${top_srcdir}/spooler/python/plugins
+PYTEST ?= pytest
+
 EXTRA_DIST = mapiplugin.py pluginmanager.py plugintemplates.py wraplogger.py wraplogger.py zconfig.py
 
 kopano_dagentdir = ${datadir}/kopano-dagent/python
@@ -9,3 +14,8 @@ kopano_spooler_DATA = mapiplugin.py pluginmanager.py plugintemplates.py wraplogg
 install-data-hook:
 	mkdir -p ${DESTDIR}/${localstatedir}/lib/kopano/dagent/plugins/
 	mkdir -p ${DESTDIR}/${localstatedir}/lib/kopano/spooler/plugins/
+
+.PHONY: test
+test:
+	MAPI_CONFIG_PATH=${MAPI_CONFIG_PATH} PYTHONPATH=${PYTHONPATH} PLUGIN_PATH=${PLUGIN_PATH} \
+		${PYTEST} ${PYTEST_OPTIONS} --junitxml=test.xml ${top_srcdir}/spooler/python/tests
