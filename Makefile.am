@@ -530,7 +530,6 @@ libkcinetmapi_la_SOURCES = \
 	inetmapi/ECVMIMEUtils.cpp inetmapi/ECVMIMEUtils.h \
 	inetmapi/MAPISMTPTransport.cpp inetmapi/MAPISMTPTransport.h \
 	inetmapi/MAPIToVMIME.cpp inetmapi/MAPIToVMIME.h \
-	inetmapi/SMIMEMessage.cpp inetmapi/SMIMEMessage.h \
 	inetmapi/VMIMEToMAPI.cpp inetmapi/VMIMEToMAPI.h \
 	inetmapi/inetmapi.cpp \
 	inetmapi/inputStreamMAPIAdapter.cpp \

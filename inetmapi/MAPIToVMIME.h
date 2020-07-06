@@ -11,7 +11,6 @@
 #include <mapidefs.h>
 #include <kopano/charset/convert.h>
 #include <kopano/memory.hpp>
-#include "SMIMEMessage.h"
 
 namespace KC {
 

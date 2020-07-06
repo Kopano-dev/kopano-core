@@ -15,7 +15,10 @@
 #include <kopano/MAPIErrors.h>
 #include <vmime/vmime.hpp>
 #include <vmime/platforms/posix/posixHandler.hpp>
+#include <vmime/utility/stream.hpp>
 #include <vmime/contentTypeField.hpp>
+#include <vmime/generationContext.hpp>
+#include <vmime/message.hpp>
 #include <vmime/parsedMessageAttachment.hpp>
 #include <vmime/emptyContentHandler.hpp>
 #include <kopano/memory.hpp>
@@ -42,12 +45,39 @@
 #include <kopano/codepage.h>
 #include <kopano/ecversion.h>
 #include "ECVMIMEUtils.h"
-#include "SMIMEMessage.h"
 #include "MAPIToICal.h"
 
 using namespace std::string_literals;
 
 namespace KC {
+
+/**
+ * We are adding a bit of functionality to vmime::message here for S/MIME support.
+ *
+ * MAPI provides us with the actual body of a signed S/MIME message that looks like
+ *
+ * -----------------------
+ * Content-Type: xxxx
+ *
+ * data
+ * data
+ * data
+ * ...
+ * -----------------------
+ *
+ * This class works just like a vmime::message instance, except that when then 'SMIMEBody' is set, it will
+ * use that body (including some headers!) to generate the RFC 2822 message. All other methods are inherited
+ * directly from vmime::message.
+ *
+ * Note that any other body data set will be override by the SMIMEBody.
+ */
+class SMIMEMessage final : public vmime::message {
+	public:
+	void generateImpl(const vmime::generationContext &, vmime::utility::outputStream &, size_t cur_line_pos = 0, size_t *newline_pos = nullptr) const override;
+	void setSMIMEBody(const char *body) { m_body = body; }
+	private:
+	std::string m_body;
+};
 
 /* These are the properties that we DON'T send through TNEF. Reasons can be:
  *
@@ -1998,6 +2028,24 @@ vmime::text MAPIToVMIME::getVmimeTextFromWide(const std::wstring &strwInput)
 	}
 	return vmime::text(vmime::word(m_converter.convert_to<std::string>(m_strCharset.c_str(),
 	       strwInput, rawsize(strwInput), CHARSET_WCHAR), m_vmCharset));
+}
+
+void SMIMEMessage::generateImpl(const vmime::generationContext &ctx,
+    vmime::utility::outputStream &os, size_t curLinePos,
+    size_t *newLinePos) const
+{
+	if (m_body.empty()) {
+		/* Normal generation */
+		vmime::bodyPart::generateImpl(ctx, os, curLinePos, newLinePos);
+		return;
+	}
+	/* Generate headers */
+	getHeader()->generate(ctx, os);
+
+	/* Concatenate S/MIME body without CRLF since it also contains some additional headers */
+	os << m_body;
+	if (newLinePos != 0)
+		*newLinePos = 0;
 }
 
 } /* namespace */
