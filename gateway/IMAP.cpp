@@ -193,12 +193,12 @@ HRESULT IMAP::HrSplitInput(const std::string &strInput, std::vector<std::string>
  *
  * @return
  */
-HRESULT IMAP::HrSendGreeting(const std::string &strHostString)
+HRESULT IMAP::HrSendGreeting(const KC::string_view &strHostString)
 {
+	auto msg = "OK [" + GetCapabilityString(false) + "] IMAP gateway ready";
 	if (parseBool(lpConfig->GetSetting("server_hostname_greeting")))
-		HrResponse(RESP_UNTAGGED, "OK [" + GetCapabilityString(false) + "] IMAP gateway ready" + strHostString);
-	else
-		HrResponse(RESP_UNTAGGED, "OK [" + GetCapabilityString(false) + "] IMAP gateway ready");
+		msg += strHostString;
+	HrResponse(RESP_UNTAGGED, std::move(msg));
 	return hrSuccess;
 }
 
@@ -829,10 +829,8 @@ HRESULT IMAP::HrCmdSelect(const std::string &strTag,
 	}
 	snprintf(szResponse, IMAP_RESP_MAX, "OK [UIDVALIDITY %u] UIDVALIDITY value", ulUIDValidity);
 	HrResponse(RESP_UNTAGGED, szResponse);
-	if (bReadOnly)
-		HrResponse(RESP_TAGGED_OK, strTag, "[READ-ONLY] EXAMINE completed");
-	else
-		HrResponse(RESP_TAGGED_OK, strTag, "[READ-WRITE] SELECT completed");
+	HrResponse(RESP_TAGGED_OK, strTag, bReadOnly ?
+		"[READ-ONLY] EXAMINE completed" : "[READ-WRITE] SELECT completed");
 	return hrSuccess;
 }
 
@@ -881,10 +879,8 @@ HRESULT IMAP::HrCmdCreate(const std::string &strTag,
 	for (const auto &path : strPaths) {
 		hr = lpFolder->CreateFolder(FOLDER_GENERIC, const_cast<TCHAR *>(path.c_str()), nullptr, nullptr, MAPI_UNICODE, &~lpSubFolder);
 		if (hr != hrSuccess) {
-			if (hr == MAPI_E_COLLISION)
-				HrResponse(RESP_TAGGED_NO, strTag, "CREATE folder already exists");
-			else
-				HrResponse(RESP_TAGGED_NO, strTag, "CREATE can't create folder");
+			HrResponse(RESP_TAGGED_NO, strTag, hr == MAPI_E_COLLISION ?
+				"CREATE folder already exists" : "CREATE can't create folder");
 			return hr;
 		}
 		sFolderClass.ulPropTag = PR_CONTAINER_CLASS_A;
@@ -1268,13 +1264,9 @@ HRESULT IMAP::HrCmdList(const std::string &strTag,
 				break;
 			}
 		}
-		if (!bSubscribedOnly) {
+		if (!bSubscribedOnly)
 			// don't list flag on LSUB command
-			if (iFld->bHasSubfolders)
-				strListProps += "\\HasChildren";
-			else
-				strListProps += "\\HasNoChildren";
-		}
+			strListProps += iFld->bHasSubfolders ? "\\HasChildren" : "\\HasNoChildren";
 		strListProps += ") ";
 		strResponse = strListProps + strResponse;
 		HrResponse(RESP_UNTAGGED, strResponse);
@@ -1601,17 +1593,11 @@ HRESULT IMAP::HrCmdAppend(const std::string &strTag,
 				return hr;
 
 			lpPropVal[0].ulPropTag = PR_LAST_VERB_EXECUTED;
-			if (strFlag[0] == '\\')
-				lpPropVal[0].Value.ul = NOTEIVERB_REPLYTOSENDER;
-			else
-				lpPropVal[0].Value.ul = NOTEIVERB_FORWARD;
+			lpPropVal[0].Value.ul = strFlag[0] == '\\' ? NOTEIVERB_REPLYTOSENDER : NOTEIVERB_FORWARD;
 			lpPropVal[1].ulPropTag = PR_LAST_VERB_EXECUTION_TIME;
 			GetSystemTimeAsFileTime(&lpPropVal[1].Value.ft);
 			lpPropVal[2].ulPropTag = PR_ICON_INDEX;
-			if (strFlag[0] == '\\')
-				lpPropVal[2].Value.ul = ICON_MAIL_REPLIED;
-			else
-				lpPropVal[2].Value.ul = ICON_MAIL_FORWARDED;
+			lpPropVal[2].Value.ul = strFlag[0] == '\\' ? ICON_MAIL_REPLIED : ICON_MAIL_FORWARDED;
 			hr = lpMessage->SetProps(3, lpPropVal, NULL);
 			if (hr != hrSuccess)
 				return hr;
@@ -3176,12 +3162,7 @@ HRESULT IMAP::HrPropertyFetch(std::list<ULONG> &lstMails, std::vector<std::strin
 		lpEntryList->cValues = 0;
 	}
 
-	unsigned int ulReadAhead;
-	if (big_payload)
-		ulReadAhead = std::min(lstMails.size(), ROWS_PER_REQUEST_SMALL);
-	else
-		ulReadAhead = std::min(lstMails.size(), ROWS_PER_REQUEST_BIG);
-
+	auto ulReadAhead = std::min(lstMails.size(), big_payload ? ROWS_PER_REQUEST_SMALL : ROWS_PER_REQUEST_BIG);
 	if(!setProps.empty() && m_vTableDataColumns != lstDataItems) {
 		ReleaseContentsCache();
 
@@ -3481,12 +3462,8 @@ HRESULT IMAP::HrPropertyFetchRow(SPropValue *lpProps, unsigned int cValues,
 				 * BODYSTRUCTURE
 				 *        The [MIME-IMB] body structure of the message.
 				 */
-				const SPropValue *lpProp;
-				if (item.length() > 4)
-					lpProp = PCpropFindProp(lpProps, cValues, PR_EC_IMAP_BODYSTRUCTURE);
-				else
-					lpProp = PCpropFindProp(lpProps, cValues, PR_EC_IMAP_BODY);
-
+				auto lpProp = PCpropFindProp(lpProps, cValues, item.length() > 4 ?
+				              PR_EC_IMAP_BODYSTRUCTURE : PR_EC_IMAP_BODY);
 				if (lpProp) {
 					vProps.emplace_back(item);
 					vProps.emplace_back(lpProp->Value.lpszA);
@@ -4230,15 +4207,9 @@ HRESULT IMAP::HrStore(const std::list<ULONG> &lstMails, std::string strMsgDataIt
 						lpPropVal->Value.ul |= MSGSTATUS_ANSWERED;
 
 					lpPropVal[1].ulPropTag = PR_ICON_INDEX;
-					if (lstFlags[ulCurrent][0] == '\\')
-						lpPropVal[1].Value.l = ICON_MAIL_REPLIED;
-					else
-						lpPropVal[1].Value.l = ICON_MAIL_FORWARDED;
+					lpPropVal[1].Value.ul = lstFlags[ulCurrent][0] == '\\' ? ICON_MAIL_REPLIED : ICON_MAIL_FORWARDED;
 					lpPropVal[2].ulPropTag = PR_LAST_VERB_EXECUTED;
-					if (lstFlags[ulCurrent][0] == '\\')
-						lpPropVal[2].Value.ul = NOTEIVERB_REPLYTOSENDER;
-					else
-						lpPropVal[2].Value.l = NOTEIVERB_FORWARD;
+					lpPropVal[2].Value.ul = lstFlags[ulCurrent][0] == '\\' ? NOTEIVERB_REPLYTOSENDER : NOTEIVERB_FORWARD;
 					lpPropVal[3].ulPropTag = PR_LAST_VERB_EXECUTION_TIME;
 					GetSystemTimeAsFileTime(&lpPropVal[3].Value.ft);
 
@@ -5016,10 +4987,8 @@ HRESULT IMAP::IMAP2MAPICharset(const std::string &input, std::wstring &output)
 		std::string conv = "+";
 		++i; // skip imap '&', is a '+' in utf-7
 		while (i < input.length() && input[i] != '-') {
-			if (input[i] == ',')
-				conv += '/'; // , -> / for utf-7
-			else
-				conv += input[i];
+			// , -> / for utf-7
+			conv += input[i] == ',' ? '/' : input[i];
 			++i;
 		}
 		try {
@@ -5150,10 +5119,8 @@ void IMAP::HrGetSubString(std::string &strOutput, const std::string &strInput,
 	if (begin == strInput.npos)
 		return;
 	auto end = strInput.find(strEnd, begin+1);
-	if (end == strInput.npos)
-        strOutput = strInput.substr(begin+1);
-    else
-        strOutput = strInput.substr(begin+1, end-begin-1);
+	strOutput = strInput.substr(begin + 1, end == strInput.npos ?
+	            strInput.npos : end - begin - 1);
 }
 
 /**

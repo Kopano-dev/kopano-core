@@ -31,7 +31,7 @@ public:
 
 	// getTimeoutMinutes: 5 min when logged in otherwise 1 min
 	int getTimeoutMinutes() const { return lpStore == nullptr ? 1 : 5; }
-	HRESULT HrSendGreeting(const std::string &strHostString);
+	virtual HRESULT HrSendGreeting(const KC::string_view &host) override;
 	HRESULT HrCloseConnection(const std::string &strQuitMsg);
 	HRESULT HrProcessCommand(const std::string &strInput);
 	HRESULT HrDone(bool bSendResponse);

@@ -132,7 +132,7 @@ public:
 	int getTimeoutMinutes() const { return lpStore == nullptr ? 1 : 30; }
 	bool isIdle() const { return m_bIdleMode; }
 	bool isContinue() const { return m_bContinue; }
-	HRESULT HrSendGreeting(const std::string &strHostString);
+	virtual HRESULT HrSendGreeting(const KC::string_view &host) override;
 	HRESULT HrCloseConnection(const std::string &strQuitMsg);
 	HRESULT HrProcessCommand(const std::string &strInput);
 	HRESULT HrProcessContinue(const std::string &strInput);
