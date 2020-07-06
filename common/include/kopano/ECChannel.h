@@ -37,9 +37,9 @@ public:
 	HRESULT HrEnableTLS(void);
 	KC_HIDDEN HRESULT HrGets(char *buf, size_t bufsize, size_t *have_read);
 	HRESULT HrReadLine(std::string &buf, size_t maxbuf = 65536);
-	HRESULT HrWriteString(const std::string & strBuffer);
-	HRESULT HrWriteLine(const char *buf, size_t len = 0);
-	HRESULT HrWriteLine(const std::string & strBuffer);
+	HRESULT HrWriteString(const string_view &);
+	HRESULT HrWriteLine(const char *buf);
+	HRESULT HrWriteLine(const string_view &);
 	KC_HIDDEN HRESULT HrReadBytes(char *buf, size_t len);
 	HRESULT HrReadBytes(std::string *buf, size_t len);
 	HRESULT HrReadAndDiscardBytes(size_t);
