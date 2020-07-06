@@ -24,7 +24,6 @@
 #include <kopano/Util.h>
 #include <kopano/ecversion.h>
 #include <kopano/stringutil.h>
-#include <kopano/mapi_ptr.h>
 #include <kopano/namedprops.h>
 #include <kopano/charset/convert.h>
 #include <kopano/mapiext.h>
@@ -1693,7 +1692,6 @@ HRESULT spv_postload_large_props(IMAPIProp *lpProp,
     const SPropTagArray *lpTags, unsigned int cValues, SPropValue *lpProps)
 {
 	HRESULT hr = hrSuccess;
-	StreamPtr lpStream;
 	void *lpData = NULL;
 	bool had_err = false;
 	memory_ptr<SPropTagArray> new_tags;
@@ -1719,6 +1717,7 @@ HRESULT spv_postload_large_props(IMAPIProp *lpProp,
 		unsigned int tag = *tag_iter;
 		if (PROP_TYPE(tag) != PT_STRING8 && PROP_TYPE(tag) != PT_UNICODE && PROP_TYPE(tag) != PT_BINARY)
 			continue;
+		object_ptr<IStream> lpStream;
 		if (lpProp->OpenProperty(tag, &IID_IStream, 0, 0, &~lpStream) != hrSuccess)
 			continue;
 
@@ -2185,18 +2184,17 @@ HRESULT GetAutoAcceptSettings(IMsgStore *lpMsgStore, bool *lpbAutoAccept, bool *
 
 HRESULT HrGetRemoteAdminStore(IMAPISession *lpMAPISession, IMsgStore *lpMsgStore, LPCTSTR lpszServerName, ULONG ulFlags, IMsgStore **lppMsgStore)
 {
-	ExchangeManageStorePtr ptrEMS;
 	ULONG cbStoreId;
-	EntryIdPtr ptrStoreId;
-	MsgStorePtr ptrMsgStore;
 
 	if (lpMAPISession == NULL || lpMsgStore == NULL ||
 	    lpszServerName == NULL || (ulFlags & ~(MAPI_UNICODE | MDB_WRITE)) ||
 	    lppMsgStore == NULL)
 		return MAPI_E_INVALID_PARAMETER;
+	object_ptr<IExchangeManageStore> ptrEMS;
 	HRESULT hr = lpMsgStore->QueryInterface(iid_of(ptrEMS), &~ptrEMS);
 	if (hr != hrSuccess)
 		return hr;
+	memory_ptr<ENTRYID> ptrStoreId;
 	if (ulFlags & MAPI_UNICODE) {
 		std::wstring strMsgStoreDN = L"cn="s + (LPCWSTR)lpszServerName + L"/cn=Microsoft Private MDB";
 		hr = ptrEMS->CreateStoreEntryID(reinterpret_cast<const TCHAR *>(strMsgStoreDN.c_str()), reinterpret_cast<const TCHAR *>(L"SYSTEM"), MAPI_UNICODE | OPENSTORE_OVERRIDE_HOME_MDB, &cbStoreId, &~ptrStoreId);
@@ -2206,6 +2204,7 @@ HRESULT HrGetRemoteAdminStore(IMAPISession *lpMAPISession, IMsgStore *lpMsgStore
 	}
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMsgStore> ptrMsgStore;
 	hr = lpMAPISession->OpenMsgStore(0, cbStoreId, ptrStoreId, &iid_of(ptrMsgStore), ulFlags & MDB_WRITE, &~ptrMsgStore);
 	if (hr != hrSuccess)
 		return hr;

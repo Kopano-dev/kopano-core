@@ -57,7 +57,6 @@
 #include <kopano/ECRestriction.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/automapi.hpp>
-#include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
 #include <kopano/scope.hpp>
 #include <kopano/tie.hpp>
@@ -1170,7 +1169,7 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 	if (lpStoreProps[1].ulPropTag == PR_EC_OUTOFOFFICE_MSG_W) {
 		strBody = lpStoreProps[1].Value.lpszW;
 	} else {
-		StreamPtr ptrStream;
+		object_ptr<IStream> ptrStream;
 		hr = lpMDB->OpenProperty(PR_EC_OUTOFOFFICE_MSG_W, &IID_IStream, 0, 0, &~ptrStream);
 		if (hr == MAPI_E_NOT_FOUND) {
 			/* no message is ok */
@@ -1879,7 +1878,6 @@ static HRESULT HrPostDeliveryProcessing(pym_plugin_intf *lppyMapiPlugin,
     DeliveryArgs *lpArgs)
 {
 	object_ptr<IMAPISession> lpUserSession;
-	SPropValuePtr ptrProp;
 
 	auto hr = HrOpenECSession(&~lpUserSession, PROJECT_VERSION,
 	          "dagent:delivery", lpRecip->wstrUsername.c_str(), L"",
@@ -1929,6 +1927,7 @@ static HRESULT HrPostDeliveryProcessing(pym_plugin_intf *lppyMapiPlugin,
 	}
 
 	// do not send vacation message for junk messages
+	memory_ptr<SPropValue> ptrProp;
 	if (lpArgs->ulDeliveryMode != DM_JUNK &&
 	// do not send vacation message on delegated messages
 	    (HrGetOneProp(lppMessage, PR_DELEGATED_BY_RULE, &~ptrProp) != hrSuccess || !ptrProp->Value.b)) {
@@ -2136,7 +2135,7 @@ static HRESULT ProcessDeliveryToRecipient(pym_plugin_intf *lppyMapiPlugin,
 
 		// TODO do something with ulResult
 		if (parseBool(g_lpConfig->GetSetting("archive_on_delivery"))) {
-			MAPISessionPtr ptrAdminSession;
+			object_ptr<IMAPISession> ptrAdminSession;
 			ArchivePtr ptrArchive;
 
 			if (bIsAdmin)

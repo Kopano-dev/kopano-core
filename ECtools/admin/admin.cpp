@@ -35,12 +35,12 @@
 #include <kopano/stringutil.h>
 #include <kopano/ecversion.h>
 #include <kopano/mapiext.h>
+#include <kopano/mapiguidext.h>
 #include <kopano/timeutil.hpp>
 #include <kopano/Util.h>
 #include <kopano/ECRestriction.h>
 #include <kopano/charset/convert.h>
 #include "ConsoleTable.h"
-#include <kopano/mapi_ptr.h>
 #include <kopano/ECFeatures.hpp>
 #include "ECACL.h"
 #include "charset/localeutil.h"
@@ -894,20 +894,20 @@ static HRESULT print_archive_details(LPMAPISESSION lpSession,
     IECServiceAdmin *ptrServiceAdmin, const char *lpszName)
 {
 	ULONG cbArchiveId = 0;
-	EntryIdPtr ptrArchiveId;
-	MsgStorePtr ptrArchive;
-	SPropValuePtr ptrArchiveSize;
+	memory_ptr<ENTRYID> ptrArchiveId;
 
 	auto hr = ptrServiceAdmin->GetArchiveStoreEntryID(LPCTSTR(lpszName), nullptr, 0, &cbArchiveId, &~ptrArchiveId);
 	if (hr != hrSuccess) {
 		cerr << "No archive found for user '" << lpszName << "'." << endl;
 		return hr;
 	}
+	object_ptr<IMsgStore> ptrArchive;
 	hr = lpSession->OpenMsgStore(0, cbArchiveId, ptrArchiveId, &iid_of(ptrArchive), 0, &~ptrArchive);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to open archive", hr);
 	show_store_provider(ptrArchive);
 	show_record_key("Archive GUID:", ptrArchive);
+	memory_ptr<SPropValue> ptrArchiveSize;
 	hr = HrGetOneProp(ptrArchive, PR_MESSAGE_SIZE_EXTENDED, &~ptrArchiveSize);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to get archive store size", hr);
@@ -1117,15 +1117,13 @@ static HRESULT print_details(LPMAPISESSION lpSession,
 	if (lpArchiveServers == nullptr || lpArchiveServers->cValues == 0)
 		return hr;
 
-	MsgStorePtr ptrAdminStore;
+	object_ptr<IMsgStore> ptrAdminStore;
 	hr = lpServiceAdmin->QueryInterface(IID_IMsgStore, &~ptrAdminStore);
 	if (hr != hrSuccess)
 		return hr;
 
 	for (int i = 0; i < lpArchiveServers->cValues; ++i) {
-		MsgStorePtr ptrRemoteAdminStore;
-		SPropValuePtr ptrPropValue;
-
+		object_ptr<IMsgStore> ptrRemoteAdminStore;
 		cout << "Archive details on node '" << (LPSTR)lpArchiveServers->lpszValues[i] << "':" << endl;
 		auto hrTmp = HrGetRemoteAdminStore(lpSession, ptrAdminStore, lpArchiveServers->lpszValues[i], 0, &~ptrRemoteAdminStore);
 		if (FAILED(hrTmp)) {
@@ -1266,25 +1264,25 @@ static HRESULT ForEachCompany(IECServiceAdmin *lpServiceAdmin,
 static HRESULT ForceResyncFor(LPMAPISESSION lpSession, LPMDB lpAdminStore,
     const char *lpszAccount, const char *lpszHomeMDB)
 {
-	ExchangeManageStorePtr ptrEMS;
+	object_ptr<IExchangeManageStore> ptrEMS;
 	unsigned int cbEntryID = 0;
-	EntryIdPtr ptrEntryID;
-	MsgStorePtr ptrUserStore;
-	MAPIFolderPtr ptrRoot;
-	SPropValuePtr ptrPropResyncID;
 
 	auto hr = lpAdminStore->QueryInterface(iid_of(ptrEMS), &~ptrEMS);
 	if (hr != hrSuccess)
 		return hr;
+	memory_ptr<ENTRYID> ptrEntryID;
 	hr = ptrEMS->CreateStoreEntryID(reinterpret_cast<const TCHAR *>(lpszHomeMDB), reinterpret_cast<const TCHAR *>(lpszAccount), 0, &cbEntryID, &~ptrEntryID);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMsgStore> ptrUserStore;
 	hr = lpSession->OpenMsgStore(0, cbEntryID, ptrEntryID, NULL, MDB_WRITE|MAPI_DEFERRED_ERRORS, &~ptrUserStore);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMAPIFolder> ptrRoot;
 	hr = ptrUserStore->OpenEntry(0, nullptr, &iid_of(ptrRoot), MAPI_MODIFY, nullptr, &~ptrRoot);
 	if (hr != hrSuccess)
 		return hr;
+	memory_ptr<SPropValue> ptrPropResyncID;
 	hr = HrGetOneProp(ptrRoot, PR_EC_RESYNC_ID, &~ptrPropResyncID);
 	if (hr == MAPI_E_NOT_FOUND) {
 		SPropValue sPropResyncID;
@@ -1300,10 +1298,7 @@ static HRESULT ForceResyncFor(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 
 static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 {
-	AddrBookPtr		ptrAdrBook;
-	ABContainerPtr	ptrABContainer;
-	MAPITablePtr	ptrTable;
-	SRowSetPtr	ptrRows;
+	object_ptr<IAddrBook> ptrAdrBook;
 	bool			bFail = false;
 	static constexpr const SizedSPropTagArray(1, sGALProps) = {1, {PR_ENTRYID}};
 	SPropValue sGALPropVal, sObjTypePropVal, sDispTypePropVal;
@@ -1313,9 +1308,11 @@ static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 	auto hr = lpSession->OpenAddressBook(0, &iid_of(ptrAdrBook), AB_NO_DIALOG, &~ptrAdrBook);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IABContainer> ptrABContainer;
 	hr = ptrAdrBook->OpenEntry(0, nullptr, &iid_of(ptrABContainer), 0, nullptr, &~ptrABContainer);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMAPITable> ptrTable;
 	hr = ptrABContainer->GetHierarchyTable(0, &~ptrTable);
 	if (hr != hrSuccess)
 		return hr;
@@ -1331,6 +1328,7 @@ static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 	     .RestrictTable(ptrTable, TBL_BATCH);
 	if (hr != hrSuccess)
 		return hr;
+	rowset_ptr ptrRows;
 	hr = ptrTable->QueryRows(1, 0, &~ptrRows);
 	if (hr != hrSuccess)
 		return hr;
@@ -1366,7 +1364,7 @@ static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 		if (ptrRows.empty())
 			break;
 
-		for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
+		for (rowset_ptr::size_type i = 0; i < ptrRows.size(); ++i) {
 			if (PROP_TYPE(ptrRows[i].lpProps[0].ulPropTag) == PT_ERROR ||
 			    PROP_TYPE(ptrRows[i].lpProps[1].ulPropTag) == PT_ERROR)
 			{
@@ -1415,9 +1413,8 @@ static HRESULT ForceResync(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 
 static HRESULT DisplayUserCount(LPMDB lpAdminStore)
 {
-	MAPITablePtr ptrSystemTable;
+	object_ptr<IMAPITable> ptrSystemTable;
 	SPropValue sPropDisplayName;
-	SRowSetPtr ptrRows;
 	unsigned int ulLicensedUsers = 0, ulExtraRow = 0, ulExtraRows = 0;
 	ULONG ulActiveUsers = (ULONG)-1;	//!< used active users
 	ULONG ulNonActiveTotal = (ULONG)-1;	//!< used non-active users
@@ -1447,6 +1444,7 @@ static HRESULT DisplayUserCount(LPMDB lpAdminStore)
 	hr = ptrSystemTable->SetColumns(sptaStatsProps, TBL_BATCH);
 	if (hr != hrSuccess)
 		return hr;
+	rowset_ptr ptrRows;
 	hr = ptrSystemTable->QueryRows(0xffff, 0, &~ptrRows);
 	if (hr != hrSuccess)
 		return hr;
@@ -1454,7 +1452,7 @@ static HRESULT DisplayUserCount(LPMDB lpAdminStore)
 	if (ptrRows.size() < 3)
 		return MAPI_E_NOT_FOUND;
 
-	for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
+	for (rowset_ptr::size_type i = 0; i < ptrRows.size(); ++i) {
 		const char *lpszDisplayName = ptrRows[i].lpProps[IDX_DISPLAY_NAME_A].Value.lpszA;
 
 		if (strcmp(lpszDisplayName, "usercnt_licensed") == 0)
@@ -1546,16 +1544,9 @@ static HRESULT DisplayUserCount(LPMDB lpAdminStore)
 static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
     const char *lpszAccount)
 {
-	ExchangeManageStorePtr ptrEMS;
+	object_ptr<IExchangeManageStore> ptrEMS;
 	unsigned int cbEntryID, ulUpdates = 0, ulTotalUpdates = 0;
-	EntryIdPtr ptrEntryID;
-	MsgStorePtr ptrUserStore;
-	MAPIFolderPtr ptrRoot;
-	ECServiceAdminPtr ptrServiceAdmin;
-	SPropValuePtr ptrPropEntryID;
 	bool bFailures = false;
-	MAPITablePtr ptrTable;
-	SRowSetPtr ptrRows;
 	static constexpr const SizedSPropTagArray(2, sptaTableProps) =
 		{2, {PR_DISPLAY_NAME_A, PR_ENTRYID}};
 	enum {IDX_DISPLAY_NAME, IDX_ENTRYID};
@@ -1563,18 +1554,23 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 	auto hr = lpAdminStore->QueryInterface(iid_of(ptrEMS), &~ptrEMS);
 	if (hr != hrSuccess)
 		return hr;
+	memory_ptr<ENTRYID> ptrEntryID;
 	hr = ptrEMS->CreateStoreEntryID(nullptr, reinterpret_cast<const TCHAR *>(lpszAccount), 0, &cbEntryID, &~ptrEntryID);
 	if (hr != hrSuccess)
 		return hr_lerr(hr, "Unable to resolve store for \"%s\"", lpszAccount);
+	object_ptr<IMsgStore> ptrUserStore;
 	hr = lpSession->OpenMsgStore(0, cbEntryID, ptrEntryID, nullptr, MDB_WRITE, &~ptrUserStore);
 	if (hr != hrSuccess)
 		return hr_lerr(hr, "Unable to open store for \"%s\"", lpszAccount);
+	object_ptr<IECServiceAdmin> ptrServiceAdmin;
 	hr = ptrUserStore->QueryInterface(iid_of(ptrServiceAdmin), &~ptrServiceAdmin);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMAPIFolder> ptrRoot;
 	hr = ptrUserStore->OpenEntry(0, nullptr, &iid_of(ptrRoot), 0, nullptr, &~ptrRoot);
 	if (hr != hrSuccess)
 		return hr;
+	memory_ptr<SPropValue> ptrPropEntryID;
 	hr = HrGetOneProp(ptrRoot, PR_ENTRYID, &~ptrPropEntryID);
 	if (hr != hrSuccess)
 		return hr;
@@ -1588,6 +1584,8 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 		ulTotalUpdates += ulUpdates;
 	}
 
+	object_ptr<IMAPITable> ptrTable;
+	rowset_ptr ptrRows;
 	hr = ptrRoot->GetHierarchyTable(CONVENIENT_DEPTH, &~ptrTable);
 	if (hr != hrSuccess)
 		goto exit;
@@ -1595,7 +1593,7 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 	if (hr != hrSuccess)
 		goto exit;
 
-	for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
+	for (rowset_ptr::size_type i = 0; i < ptrRows.size(); ++i) {
 		const SRow &row = ptrRows[i];
 		const char* lpszName = "<Unknown>";
 
@@ -2451,7 +2449,7 @@ int main(int argc, char **argv)
 	}
 
 	if (node != NULL && *node != '\0') {
-		MsgStorePtr ptrRemoteStore;
+		object_ptr<IMsgStore> ptrRemoteStore;
 
 		hr = HrGetRemoteAdminStore(lpSession, lpMsgStore, (LPTSTR)node, 0, &~ptrRemoteStore);
 		if (hr != hrSuccess) {

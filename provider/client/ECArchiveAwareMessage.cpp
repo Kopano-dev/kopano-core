@@ -8,7 +8,6 @@
 #include <kopano/platform.h>
 #include <kopano/ECGuid.h>
 #include <edkguid.h>
-#include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
 #include <kopano/scope.hpp>
 #include "IECPropStorage.h"
@@ -328,7 +327,6 @@ HRESULT ECArchiveAwareMessage::CreateInfoMessage(const SPropTagArray *lpptaDelet
     const std::string &strBodyHtml)
 {
 	SPropValue sPropVal;
-	StreamPtr ptrHtmlStream;
 
 	fModify = true;
 	auto laters = make_scope_success([&]() { fModify = false; });
@@ -341,6 +339,7 @@ HRESULT ECArchiveAwareMessage::CreateInfoMessage(const SPropTagArray *lpptaDelet
 	hr = HrSetOneProp(this, &sPropVal);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IStream> ptrHtmlStream;
 	hr = OpenProperty(PR_HTML, &iid_of(ptrHtmlStream), 0, MAPI_CREATE | MAPI_MODIFY, &~ptrHtmlStream);
 	if (hr != hrSuccess)
 		return hr;
@@ -554,7 +553,7 @@ HRESULT ECArchiveAwareMsgStore::GetArchiveStore(LPSBinary lpStoreEID, ECMsgStore
 	// @todo: Consolidate this with ECMSProvider::LogonByEntryID
 	ECMsgStorePtr ptrOnlineStore;
 	ULONG cbEntryID = 0;
-	EntryIdPtr ptrEntryID;
+	memory_ptr<ENTRYID> ptrEntryID;
 	std::string ServerURL, strServer;
 	bool bIsPseudoUrl = false, bIsPeer = false;
 	object_ptr<WSTransport> ptrTransport;

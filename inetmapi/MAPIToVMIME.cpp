@@ -26,7 +26,6 @@
 #include <kopano/mapiext.h>
 #include <edkmdb.h>
 #include <kopano/mapiguidext.h>
-#include <kopano/mapi_ptr.h>
 #include "tnef.h"
 #include "ECMapiUtils.h"
 #include "MAPIToVMIME.h"
@@ -1323,10 +1322,9 @@ HRESULT MAPIToVMIME::handleXHeaders(IMessage *lpMessage,
 HRESULT MAPIToVMIME::handleExtraHeaders(IMessage *lpMessage,
     vmime::shared_ptr<vmime::header> vmHeader, unsigned int flags)
 {
-	SPropValuePtr ptrMessageId;
 	memory_ptr<SPropValue> lpImportance, lpPriority, lpConversationIndex;
 	memory_ptr<SPropValue> lpConversationTopic, lpNormSubject;
-	memory_ptr<SPropValue> lpSensitivity, lpExpiryTime;
+	memory_ptr<SPropValue> lpSensitivity, lpExpiryTime, ptrMessageId;
 	auto hff = vmime::headerFieldFactory::getInstance();
 
 	// Conversation headers. New Message-Id header is set just before sending.

@@ -17,7 +17,6 @@
 #include <ctime>
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
-#include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
 #include <kopano/scope.hpp>
 #include <kopano/tie.hpp>
@@ -1634,9 +1633,6 @@ ZEND_FUNCTION(mapi_msgstore_getarchiveentryid)
 	php_stringsize_t lUser = 0, lServer = 0;
 	// return value
 	ULONG		cbEntryID	= 0;
-	EntryIdPtr	ptrEntryID;
-	// local
-	ECServiceAdminPtr ptrSA;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -1647,11 +1643,13 @@ ZEND_FUNCTION(mapi_msgstore_getarchiveentryid)
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(pMDB, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
 
+	object_ptr<IECServiceAdmin> ptrSA;
 	MAPI_G(hr) = pMDB->QueryInterface(iid_of(ptrSA), &~ptrSA);
 	if(MAPI_G(hr) != hrSuccess) {
 		kphperr("IECServiceAdmin interface was not supported by given store", MAPI_G(hr));
 		return;
 	}
+	memory_ptr<ENTRYID> ptrEntryID;
 	MAPI_G(hr) = ptrSA->GetArchiveStoreEntryID((LPTSTR)sUser, (LPTSTR)sServer, 0, &cbEntryID, &~ptrEntryID);
 	if (MAPI_G(hr) != hrSuccess)
 		return;

@@ -7,7 +7,6 @@
 #include <kopano/memory.hpp>
 #include "ECRulesTableProxy.h"
 #include <kopano/ECGuid.h>
-#include <kopano/mapi_ptr.h>
 #include <kopano/charset/convert.h>
 #include <mapix.h>
 
@@ -126,7 +125,7 @@ HRESULT ECRulesTableProxy::QuerySortOrder(LPSSortOrderSet *lppSortCriteria)
 
 HRESULT ECRulesTableProxy::QueryRows(LONG lRowCount, ULONG ulFlags, LPSRowSet *lppRows)
 {
-	SRowSetPtr ptrRows;
+	rowset_ptr ptrRows;
 	convert_context converter;
 	HRESULT hr = m_lpTable->QueryRows(lRowCount, ulFlags, &~ptrRows);
 	if (hr != hrSuccess)
@@ -134,7 +133,7 @@ HRESULT ECRulesTableProxy::QueryRows(LONG lRowCount, ULONG ulFlags, LPSRowSet *l
 	
 	// table PR_RULE_ACTIONS and PR_RULE_CONDITION contain PT_UNICODE data, which we must convert to local charset PT_STRING8
 	// so we update the rows before we return them to the caller.
-	for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
+	for (rowset_ptr::size_type i = 0; i < ptrRows.size(); ++i) {
 		auto lpRuleProp = ptrRows[i].cfind(PR_RULE_CONDITION);
 		if (lpRuleProp)
 			hr = ConvertUnicodeToString8(reinterpret_cast<SRestriction *>(lpRuleProp->Value.lpszA),

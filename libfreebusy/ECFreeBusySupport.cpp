@@ -12,7 +12,6 @@
 #include <kopano/ECLogger.h>
 #include <mapiutil.h>
 #include "freebusyutil.h"
-#include <kopano/mapi_ptr.h>
 
 namespace KC {
 

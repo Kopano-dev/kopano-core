@@ -12,7 +12,7 @@
 #include <kopano/ECGetText.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/charset/convert.h>
-#include <kopano/mapi_ptr.h>
+#include <kopano/memory.hpp>
 #include <kopano/scope.hpp>
 #include "helpers/StoreHelper.h"
 #include "operations/copier.h"
@@ -29,7 +29,8 @@ using namespace KC::helpers;
 using namespace KC::operations;
 using std::endl;
 
-void ArchiveResult::AddMessage(MessagePtr ptrMessage) {
+void ArchiveResult::AddMessage(object_ptr<IMessage> ptrMessage)
+{
 	m_lstMessages.emplace_back(ptrMessage);
 }
 
@@ -59,16 +60,12 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
 {
 	HRESULT hr = hrSuccess;
 	unsigned int cMsgProps, ulType;
-	SPropArrayPtr ptrMsgProps;
-	MsgStorePtr ptrStore;
-	MAPIFolderPtr ptrFolder;
 	StoreHelperPtr ptrStoreHelper;
 	SObjectEntry refMsgEntry;
 	ObjectEntryList lstArchives, lstReferences;
 	ArchiverSessionPtr ptrSession;
 	InstanceIdMapperPtr ptrMapper;
 	std::unique_ptr<Copier::Helper> ptrHelper;
-	std::list<std::pair<MessagePtr, PostSaveActionPtr>> lstArchivedMessages;
 	ArchiveResult result;
 	MAPIPropHelperPtr ptrMsgHelper;
 	static constexpr const SizedSPropTagArray(3, sptaMessageProps) =
@@ -84,11 +81,14 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
 		ec_log_warn("Archive::HrArchiveMessageForDelivery(): invalid parameter");
 		return hr = MAPI_E_INVALID_PARAMETER;
 	}
+	memory_ptr<SPropValue> ptrMsgProps;
 	hr = lpMessage->GetProps(sptaMessageProps, 0, &cMsgProps, &~ptrMsgProps);
 	if (hr != hrSuccess)
 		return kc_pwarn("Archive::HrArchiveMessageForDelivery(): GetProps failed", hr);
 	refMsgEntry.sStoreEntryId = ptrMsgProps[IDX_STORE_ENTRYID].Value.bin;
 	refMsgEntry.sItemEntryId = ptrMsgProps[IDX_ENTRYID].Value.bin;
+
+	object_ptr<IMsgStore> ptrStore;
 	hr = m_ptrSession->OpenMsgStore(0, ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.cb,
 	     reinterpret_cast<ENTRYID *>(ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.lpb),
 	     &iid_of(ptrStore), MDB_WRITE, &~ptrStore);
@@ -104,6 +104,7 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
 		ec_log_debug("No archives attached to store");
 		return hrSuccess;
 	}
+	object_ptr<IMAPIFolder> ptrFolder;
 	hr = ptrStore->OpenEntry(ptrMsgProps[IDX_PARENT_ENTRYID].Value.bin.cb,
 	     reinterpret_cast<ENTRYID *>(ptrMsgProps[IDX_PARENT_ENTRYID].Value.bin.lpb),
 	     &iid_of(ptrFolder), MAPI_MODIFY, &ulType, &~ptrFolder);
@@ -124,8 +125,10 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
 		ptrMapper, nullptr, ptrFolder));
 	if (ptrHelper == nullptr)
 		return hr = MAPI_E_NOT_ENOUGH_MEMORY;
+
+	std::list<std::pair<object_ptr<IMessage>, PostSaveActionPtr>> lstArchivedMessages;
 	for (const auto &arc : lstArchives) {
-		MessagePtr ptrArchivedMsg;
+		object_ptr<IMessage> ptrArchivedMsg;
 		PostSaveActionPtr ptrPSAction;
 
 		hr = ptrHelper->CreateArchivedMessage(lpMessage, arc, refMsgEntry, &~ptrArchivedMsg, &ptrPSAction);
@@ -137,7 +140,7 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
 	// Now save the messages one by one. On failure all saved messages need to be deleted.
 	for (const auto &msg : lstArchivedMessages) {
 		ULONG cArchivedMsgProps;
-		SPropArrayPtr ptrArchivedMsgProps;
+		memory_ptr<SPropValue> ptrArchivedMsgProps;
 		SObjectEntry refArchiveEntry;
 
 		hr = msg.first->GetProps(sptaMessageProps, 0,
@@ -172,14 +175,12 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 {
 	HRESULT hr = hrSuccess;
 	ULONG cMsgProps;
-	SPropArrayPtr ptrMsgProps;
-	MsgStorePtr ptrStore;
 	StoreHelperPtr ptrStoreHelper;
 	ObjectEntryList lstArchives;
 	ArchiverSessionPtr ptrSession;
 	InstanceIdMapperPtr ptrMapper;
 	std::unique_ptr<Copier::Helper> ptrHelper;
-	std::list<std::pair<MessagePtr, PostSaveActionPtr>> lstArchivedMessages;
+	std::list<std::pair<object_ptr<IMessage>, PostSaveActionPtr>> lstArchivedMessages;
 	ArchiveResult result;
 	static constexpr const SizedSPropTagArray(2, sptaMessageProps) = {1, {PR_STORE_ENTRYID}};
 	enum {IDX_STORE_ENTRYID};
@@ -191,9 +192,11 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 	});
 	if (lpMessage == nullptr)
 		return hr = MAPI_E_INVALID_PARAMETER;
+	memory_ptr<SPropValue> ptrMsgProps;
 	hr = lpMessage->GetProps(sptaMessageProps, 0, &cMsgProps, &~ptrMsgProps);
 	if (hr != hrSuccess)
 		return kc_pwarn("Archive::HrArchiveMessageForSending(): GetProps failed", hr);
+	object_ptr<IMsgStore> ptrStore;
 	hr = m_ptrSession->OpenMsgStore(0, ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.cb,
 	     reinterpret_cast<ENTRYID *>(ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.lpb),
 	     &iid_of(ptrStore), 0, &~ptrStore);
@@ -224,13 +227,11 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 	// First create all (mostly one) the archive messages without saving them.
 	// We pass an empty MAPIFolderPtr here!
 	ptrHelper.reset(new(std::nothrow) Copier::Helper(ptrSession, logger,
-		ptrMapper, nullptr, MAPIFolderPtr()));
+		ptrMapper, nullptr, nullptr));
 	if (ptrHelper == nullptr)
 		return hr = MAPI_E_NOT_ENOUGH_MEMORY;
 	for (const auto &arc : lstArchives) {
 		ArchiveHelperPtr ptrArchiveHelper;
-		MAPIFolderPtr ptrArchiveFolder;
-		MessagePtr ptrArchivedMsg;
 		PostSaveActionPtr ptrPSAction;
 
 		hr = ArchiveHelper::Create(ptrSession, arc, logger, &ptrArchiveHelper);
@@ -238,11 +239,13 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 			SetErrorMessage(hr, KC_TX("Unable to open archive."));
 			return hr;
 		}
+		object_ptr<IMAPIFolder> ptrArchiveFolder;
 		hr = ptrArchiveHelper->GetOutgoingFolder(&~ptrArchiveFolder);
 		if (hr != hrSuccess) {
 			SetErrorMessage(hr, KC_TX("Unable to get outgoing archive folder."));
 			return kc_perror("Failed to get outgoing archive folder", hr);
 		}
+		object_ptr<IMessage> ptrArchivedMsg;
 		hr = ptrArchiveFolder->CreateMessage(&iid_of(ptrArchivedMsg), 0, &~ptrArchivedMsg);
 		if (hr != hrSuccess) {
 			SetErrorMessage(hr, KC_TX("Unable to create archive message in outgoing archive folder."));

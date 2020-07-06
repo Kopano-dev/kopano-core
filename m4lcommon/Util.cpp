@@ -29,7 +29,6 @@
 #include "rtfutil.h"
 #include <kopano/mapiext.h>
 #include <kopano/ustringutil.h>
-#include <kopano/mapi_ptr.h>
 #include "HtmlToTextParser.h"
 #include <kopano/ECLogger.h>
 #include "HtmlEntity.h"
@@ -808,7 +807,7 @@ HRESULT	Util::HrCopySRow(LPSRow lpDest, const SRow *lpSrc, void *lpBase)
 HRESULT	Util::HrCopyPropTagArray(const SPropTagArray *lpSrc,
     LPSPropTagArray *lppDest)
 {
-	SPropTagArrayPtr ptrPropTagArray;
+	memory_ptr<SPropTagArray> ptrPropTagArray;
 	HRESULT hr = MAPIAllocateBuffer(CbNewSPropTagArray(lpSrc->cValues), &~ptrPropTagArray);
 	if (hr != hrSuccess)
 		return hr;
@@ -2210,7 +2209,7 @@ ULONG Util::GetBestBody(const SPropValue *lpBody, const SPropValue *lpHtml,
  */
 ULONG Util::GetBestBody(IMAPIProp* lpPropObj, ULONG ulFlags)
 {
-	SPropArrayPtr ptrBodies;
+	memory_ptr<SPropValue> ptrBodies;
 	const ULONG ulBodyTag = ((ulFlags & MAPI_UNICODE) ? PR_BODY_W : PR_BODY_A);
 	SizedSPropTagArray (4, sBodyTags) = { 4, {
 			ulBodyTag,
@@ -3377,20 +3376,20 @@ HRESULT Util::HrGetQuotaStatus(IMsgStore *lpMsgStore, ECQUOTA *lpsQuota,
 
 HRESULT Util::HrDeleteAttachments(LPMESSAGE lpMsg)
 {
-	MAPITablePtr ptrAttachTable;
-	SRowSetPtr ptrRows;
 	static constexpr const SizedSPropTagArray(1, sptaAttachNum) = {1, {PR_ATTACH_NUM}};
 
 	if (lpMsg == NULL)
 		return MAPI_E_INVALID_PARAMETER;
+	object_ptr<IMAPITable> ptrAttachTable;
 	HRESULT hr = lpMsg->GetAttachmentTable(0, &~ptrAttachTable);
 	if (hr != hrSuccess)
 		return hr;
+	rowset_ptr ptrRows;
 	hr = HrQueryAllRows(ptrAttachTable, sptaAttachNum, nullptr, nullptr, 0, &~ptrRows);
 	if (hr != hrSuccess)
 		return hr;
 
-	for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
+	for (rowset_ptr::size_type i = 0; i < ptrRows.size(); ++i) {
 		hr = lpMsg->DeleteAttach(ptrRows[i].lpProps[0].Value.l, 0, NULL, 0);
 		if (hr != hrSuccess)
 			return hr;
@@ -3401,10 +3400,8 @@ HRESULT Util::HrDeleteAttachments(LPMESSAGE lpMsg)
 HRESULT Util::HrDeleteMessage(IMAPISession *lpSession, IMessage *lpMessage)
 {
 	ULONG cMsgProps;
-	SPropArrayPtr ptrMsgProps;
-	MsgStorePtr ptrStore;
+	memory_ptr<SPropValue> ptrMsgProps;
 	ULONG ulType;
-	MAPIFolderPtr ptrFolder;
 	ENTRYLIST entryList = {1, NULL};
 	static constexpr const SizedSPropTagArray(3, sptaMessageProps) =
 		{3, {PR_ENTRYID, PR_STORE_ENTRYID, PR_PARENT_ENTRYID}};
@@ -3413,11 +3410,13 @@ HRESULT Util::HrDeleteMessage(IMAPISession *lpSession, IMessage *lpMessage)
 	HRESULT hr = lpMessage->GetProps(sptaMessageProps, 0, &cMsgProps, &~ptrMsgProps);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMsgStore> ptrStore;
 	hr = lpSession->OpenMsgStore(0, ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.cb,
 	     reinterpret_cast<ENTRYID *>(ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.lpb),
 	     &iid_of(ptrStore), MDB_WRITE, &~ptrStore);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMAPIFolder> ptrFolder;
 	hr = ptrStore->OpenEntry(ptrMsgProps[IDX_PARENT_ENTRYID].Value.bin.cb,
 	     reinterpret_cast<ENTRYID *>(ptrMsgProps[IDX_PARENT_ENTRYID].Value.bin.lpb),
 	     &iid_of(ptrFolder), MAPI_MODIFY, &ulType, &~ptrFolder);

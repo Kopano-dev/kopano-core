@@ -46,7 +46,6 @@
 #include <kopano/namedprops.h>
 #include <kopano/charset/convert.h>
 #include <kopano/stringutil.h>
-#include <kopano/mapi_ptr.h>
 #include "ECMapiUtils.h"
 #include "ECVMIMEUtils.h"
 #include "HtmlToTextParser.h"
@@ -1599,12 +1598,9 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 	// ical file
 	std::string icaldata;
 	vmime::utility::outputStreamStringAdapter os(icaldata);
-	MessagePtr ptrNewMessage;
 	LPMESSAGE lpIcalMessage = lpMessage;
-	AttachPtr ptrAttach;
 	ULONG ulAttNr = 0;
 	std::unique_ptr<ICalToMapi> lpIcalMapi;
-	SPropValuePtr ptrSubject;
 	/*
 	 * Some senders send UTF-8 iCalendar information without a charset
 	 * (Exchange does this). Default to UTF-8 if no charset was specified,
@@ -1619,6 +1615,8 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 		/* Force attachment if we already have some text. */
 		bIsAttachment = true;
 
+	object_ptr<IMessage> ptrNewMessage;
+	object_ptr<IAttach> ptrAttach;
 	if (bIsAttachment) {
 		// create message in message to create calendar message
 		SPropValue sAttProps[3];
@@ -1683,6 +1681,7 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 		return hr;
 
 	// give attachment name of calendar item
+	memory_ptr<SPropValue> ptrSubject;
 	if (HrGetFullProp(ptrNewMessage, PR_SUBJECT_W, &~ptrSubject) == hrSuccess) {
 		ptrSubject->ulPropTag = PR_DISPLAY_NAME_W;
 		hr = ptrAttach->SetProps(1, ptrSubject, NULL);

@@ -5,7 +5,6 @@
 #pragma once
 #include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
-#include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
 #include "soapStub.h"
 #include <string>

@@ -6,7 +6,7 @@
 #include <memory>
 #include <kopano/zcdefs.h>
 #include <mapix.h>
-#include <kopano/mapi_ptr.h>
+#include <kopano/memory.hpp>
 #include <kopano/CommonUtil.h>
 #include <kopano/archiver-common.h>
 #include "ArchiverSessionPtr.h"     // For ArchiverSessionPtr
@@ -44,7 +44,7 @@ protected:
 	KC_HIDDEN HRESULT Init();
 
 private:
-	MAPIPropPtr m_ptrMapiProp;
+	object_ptr<IMAPIProp> m_ptrMapiProp;
 
 	PROPMAP_DECL()
 	PROPMAP_DEF_NAMED_ID(ARCHIVE_STORE_ENTRYIDS)

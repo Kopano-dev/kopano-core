@@ -40,7 +40,6 @@
 #include <kopano/charset/utf8string.h>
 #include <kopano/charset/convstring.h>
 #include "SOAPSock.h"
-#include <kopano/mapi_ptr.h>
 #include "WSMessageStreamExporter.h"
 #include "WSMessageStreamImporter.h"
 #ifdef HAVE_GSSAPI

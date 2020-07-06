@@ -6,6 +6,7 @@
 #include <utility>
 #include <kopano/platform.h>
 #include <kopano/MAPIErrors.h>
+#include <kopano/memory.hpp>
 #include "ECArchiverLogger.h"
 #include "deleter.h"
 
@@ -52,11 +53,11 @@ HRESULT Deleter::DoProcessEntry(const SRow &proprow)
  */
 HRESULT Deleter::PurgeQueuedMessages()
 {
-	EntryListPtr ptrEntryList;
 	ULONG ulIdx = 0;
 
 	if (m_lstEntryIds.empty())
 		return hrSuccess;
+	memory_ptr<ENTRYLIST> ptrEntryList;
 	auto hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~ptrEntryList);
 	if (hr != hrSuccess)
 		return hr;

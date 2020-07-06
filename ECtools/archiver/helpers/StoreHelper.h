@@ -5,6 +5,7 @@
 #pragma once
 #include <memory>
 #include <kopano/zcdefs.h>
+#include <kopano/memory.hpp>
 #include "MAPIPropHelper.h"
 
 namespace KC {
@@ -24,16 +25,16 @@ typedef std::unique_ptr<StoreHelper> StoreHelperPtr;
  */
 class KC_EXPORT StoreHelper final : public MAPIPropHelper {
 public:
-	static HRESULT Create(MsgStorePtr &ptrMsgStore, StoreHelperPtr *lpptrStoreHelper);
+	static HRESULT Create(object_ptr<IMsgStore> &, StoreHelperPtr *);
 	KC_HIDDEN HRESULT GetFolder(const tstring &name, bool create, IMAPIFolder **ret);
 	KC_HIDDEN HRESULT UpdateSearchFolders();
 	KC_HIDDEN HRESULT GetIpmSubtree(IMAPIFolder **);
 	HRESULT GetSearchFolders(LPMAPIFOLDER *lppSearchArchiveFolder, LPMAPIFOLDER *lppSearchDeleteFolder, LPMAPIFOLDER *lppSearchStubFolder);
 
 private:
-	KC_HIDDEN StoreHelper(MsgStorePtr &);
+	KC_HIDDEN StoreHelper(object_ptr<IMsgStore> &);
 	KC_HIDDEN HRESULT Init();
-	KC_HIDDEN HRESULT GetSubFolder(MAPIFolderPtr &, const tstring &name, bool create, IMAPIFolder **ret);
+	KC_HIDDEN HRESULT GetSubFolder(object_ptr<IMAPIFolder> &, const tstring &name, bool create, IMAPIFolder **ret);
 	enum eSearchFolder {esfArchive = 0, esfDelete, esfStub, esfMax};
 	KC_HIDDEN HRESULT CheckAndUpdateSearchFolder(IMAPIFolder *, eSearchFolder which);
 	KC_HIDDEN HRESULT CreateSearchFolder(eSearchFolder which, IMAPIFolder **);
@@ -52,8 +53,8 @@ private:
 	};
 
 	static const search_folder_info_t s_infoSearchFolders[];
-	MsgStorePtr	m_ptrMsgStore;
-	MAPIFolderPtr m_ptrIpmSubtree;
+	object_ptr<IMsgStore> m_ptrMsgStore;
+	object_ptr<IMAPIFolder> m_ptrIpmSubtree;
 
 	PROPMAP_DECL()
 	PROPMAP_DEF_NAMED_ID(ARCHIVE_STORE_ENTRYIDS)

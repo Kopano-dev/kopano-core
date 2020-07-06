@@ -13,7 +13,6 @@
 #include <kopano/ECLogger.h>
 #include <kopano/MAPIErrors.h>
 #include "CalDavUtil.h"
-#include <kopano/mapi_ptr.h>
 
 using namespace KC;
 
@@ -35,10 +34,7 @@ ProtocolBase::ProtocolBase(Http &lpRequest, IMAPISession *lpSession,
 HRESULT ProtocolBase::HrInitializeClass()
 {
 	std::string strUrl, strMethod, strFldOwner, strFldName;
-	memory_ptr<SPropValue> lpDefaultProp, lpFldProp;
-	SPropValuePtr lpEntryID;
 	unsigned int ulRes = 0;
-	MAPIFolderPtr lpRoot;
 
 	/* URLs
 	 *
@@ -113,9 +109,11 @@ HRESULT ProtocolBase::HrInitializeClass()
 	if(hr != hrSuccess)
 		return hr_lerr(hr, "Error opening IPM SUBTREE using user \"%ls\"", m_wstrUser.c_str());
 	// Get active store default calendar to prevent delete action on this folder
+	object_ptr<IMAPIFolder> lpRoot;
 	hr = m_lpActiveStore->OpenEntry(0, nullptr, &iid_of(lpRoot), 0, nullptr, &~lpRoot);
 	if(hr != hrSuccess)
 		return hr_lerr(hr, "Error opening root container using user \"%ls\"", m_wstrUser.c_str());
+	memory_ptr<SPropValue> lpDefaultProp, lpFldProp, lpEntryID;
 	if (!bIsPublic) {
 		// get default calendar entryid for non-public stores
 		hr = HrGetOneProp(lpRoot, PR_IPM_APPOINTMENT_ENTRYID, &~lpDefaultProp);
@@ -181,7 +179,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 	if ((strAgent.find("Sunbird/1") != std::string::npos || strAgent.find("Lightning/1") != std::string::npos) && parts.size() <= 2) {
 		// Mozilla Sunbird / Lightning doesn't handle listing of calendars, only contents.
 		// We therefore redirect them to the default calendar url.
-		SPropValuePtr ptrDisplayName;
+		memory_ptr<SPropValue> ptrDisplayName;
 		auto strLocation = "/caldav/" + urlEncode(m_wstrFldOwner, "utf-8");
 		if (HrGetOneProp(m_lpUsrFld, PR_DISPLAY_NAME_W, &~ptrDisplayName) == hrSuccess) {
 			std::string part = urlEncode(ptrDisplayName->Value.lpszW, "UTF-8");

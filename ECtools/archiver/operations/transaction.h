@@ -8,7 +8,7 @@
 #include "ArchiverSessionPtr.h"     // For ArchiverSessionPtr
 #include <kopano/archiver-common.h>
 #include "postsaveaction.h"
-#include <kopano/mapi_ptr.h>
+#include <kopano/memory.hpp>
 
 namespace KC { namespace operations {
 
@@ -24,7 +24,7 @@ public:
 
 private:
 	struct SaveEntry {
-		MessagePtr	ptrMessage;
+		object_ptr<IMessage> ptrMessage;
 		bool bDeleteOnFailure;
 		PostSaveActionPtr ptrPSAction;
 	};
@@ -53,7 +53,7 @@ public:
 
 private:
 	struct DelEntry {
-		MAPIFolderPtr ptrFolder;
+		object_ptr<IMAPIFolder> ptrFolder;
 		entryid_t eidMessage;
 	};
 	typedef std::list<DelEntry>	MessageList;

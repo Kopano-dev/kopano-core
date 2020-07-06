@@ -6,7 +6,6 @@
 #include <utility>
 #include <vector>
 #include <kopano/platform.h>
-#include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
 #include "kcore.hpp"
 #include "ics.h"
@@ -27,7 +26,6 @@
 #include <edkguid.h>
 #include <kopano/Util.h>
 #include "ClientUtil.h"
-#include <kopano/mapi_ptr.h>
 #include <edkmdb.h>
 #include <kopano/mapiext.h>
 #include <mapiutil.h>
@@ -216,7 +214,6 @@ HRESULT ECMAPIFolder::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterf
 	if (lpiid == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	SPropValuePtr ptrSK, ptrDisplay;
 	if(ulPropTag == PR_CONTAINER_CONTENTS) {
 		if (*lpiid == IID_IMAPITable)
 			return GetContentsTable(ulInterfaceOptions, reinterpret_cast<IMAPITable **>(lppUnk));
@@ -238,6 +235,7 @@ HRESULT ECMAPIFolder::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterf
 		else if(*lpiid == IID_IExchangeImportContentsChanges)
 			return ECExchangeImportContentsChanges::Create(this, reinterpret_cast<IExchangeImportContentsChanges **>(lppUnk));
 	} else if(ulPropTag == PR_HIERARCHY_SYNCHRONIZER) {
+		memory_ptr<SPropValue> ptrSK, ptrDisplay;
 		auto hr = HrGetOneProp(this, PR_SOURCE_KEY, &~ptrSK);
 		if(hr != hrSuccess)
 			return hr;
@@ -249,6 +247,7 @@ HRESULT ECMAPIFolder::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterf
 		     ptrDisplay == nullptr ? L"" : ptrDisplay->Value.lpszW,
 		     ICS_SYNC_HIERARCHY, reinterpret_cast<IExchangeExportChanges **>(lppUnk));
 	} else if(ulPropTag == PR_CONTENTS_SYNCHRONIZER) {
+		memory_ptr<SPropValue> ptrSK, ptrDisplay;
 		auto hr = HrGetOneProp(this, PR_SOURCE_KEY, &~ptrSK);
 		if(hr != hrSuccess)
 			return hr;

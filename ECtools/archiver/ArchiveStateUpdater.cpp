@@ -190,7 +190,7 @@ HRESULT ArchiveStateUpdater::UpdateOne(const abentryid_t &userId, const ArchiveI
  */
 HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstring &userName, const abentryid_t &userId, const ObjectEntryList &lstArchives)
 {
-	MsgStorePtr ptrUserStore;
+	object_ptr<IMsgStore> ptrUserStore;
 	StoreHelperPtr ptrUserStoreHelper;
 	ObjectEntryList lstCurrentArchives;
 	ULONG ulDetachCount = 0;
@@ -235,9 +235,8 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstr
 
 	m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "Processing %zu archives for implicitly attached archives", lstArchives.size());
 	for (const auto &i : lstArchives) {
-		MsgStorePtr ptrArchStore;
+		object_ptr<IMsgStore> ptrArchStore;
 		ULONG ulType;
-		MAPIFolderPtr ptrArchFolder;
 		ArchiveHelperPtr ptrArchiveHelper;
 		AttachType attachType;
 
@@ -251,6 +250,7 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstr
 			m_lpLogger->perr("Failed to open archive store", hr);
 			return hr;
 		}
+		object_ptr<IMAPIFolder> ptrArchFolder;
 		hr = ptrArchStore->OpenEntry(i.sItemEntryId.size(), i.sItemEntryId, &iid_of(ptrArchFolder), 0, &ulType, &~ptrArchFolder);
 		if (hr != hrSuccess) {
 			m_lpLogger->perr("Failed to open archive root", hr);
@@ -401,7 +401,7 @@ HRESULT ArchiveStateUpdater::AddServerBased(const tstring &userName, const abent
 
 	m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "Attaching %zu servers", lstServers.size());
 	for (const auto &i : lstServers) {
-		MsgStorePtr ptrArchive;
+		object_ptr<IMsgStore> ptrArchive;
 
 		hr = m_ptrSession->OpenOrCreateArchiveStore(userName, i, &~ptrArchive);
 		if (hr != hrSuccess) {
@@ -519,7 +519,7 @@ HRESULT ArchiveStateUpdater::VerifyAndUpdate(const abentryid_t &userId, const Ar
  */
 HRESULT ArchiveStateUpdater::FindArchiveEntry(const tstring &strArchive, const tstring &strFolder, SObjectEntry *lpObjEntry)
 {
-	MsgStorePtr ptrArchiveStore;
+	object_ptr<IMsgStore> ptrArchiveStore;
 	ArchiveHelperPtr ptrArchiveHelper;
 
 	auto hr = m_ptrSession->OpenStoreByName(strArchive, &~ptrArchiveStore);

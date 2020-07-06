@@ -6,7 +6,7 @@
 #include <memory>
 #include "operations_fwd.h"
 #include <mapix.h>
-#include <kopano/mapi_ptr.h>
+#include <kopano/memory.hpp>
 
 namespace KC {
 
@@ -96,7 +96,7 @@ protected:
 	 * Returns a pointer to a MAPIFolderPtr, which references the current working folder.
 	 * @return A reference to a MAPIFolderPtr.
 	 */
-	MAPIFolderPtr& CurrentFolder() { return m_ptrCurFolder; }
+	object_ptr<IMAPIFolder> &CurrentFolder() { return m_ptrCurFolder; }
 
 private:
 	/**
@@ -125,8 +125,8 @@ private:
 	 */
 	virtual HRESULT DoProcessEntry(const SRow &proprow) = 0;
 
-	SPropValuePtr m_ptrCurFolderEntryId;
-	MAPIFolderPtr m_ptrCurFolder;
+	memory_ptr<SPropValue> m_ptrCurFolderEntryId;
+	object_ptr<IMAPIFolder> m_ptrCurFolder;
 };
 
 }} /* namespace */

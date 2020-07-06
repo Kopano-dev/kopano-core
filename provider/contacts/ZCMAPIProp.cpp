@@ -14,7 +14,6 @@
 #include <mapiutil.h>
 #include <kopano/Util.h>
 #include <kopano/ECGuid.h>
-#include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
 #include <kopano/namedprops.h>
 #include <kopano/mapiguidext.h>
@@ -221,12 +220,12 @@ HRESULT ZCMAPIProp::ConvertProps(IMAPIProp *lpContact, ULONG cbEntryID,
 {
 	HRESULT hr = hrSuccess;
 	ULONG cValues = 0;
-	SPropValuePtr ptrContactProps;
+	memory_ptr<SPropValue> ptrContactProps;
 	SPropValue sValue, sSource;
 	LPSPropValue lpProp = NULL;
 
 	// named properties
-	SPropTagArrayPtr ptrNameTags;
+	memory_ptr<SPropTagArray> ptrNameTags;
 	memory_ptr<MAPINAMEID *> lppNames;
 	ULONG ulNames = 5;
 	MAPINAMEID mnNamedProps[5] = {

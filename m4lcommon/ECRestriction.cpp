@@ -6,7 +6,7 @@
 #include <utility>
 #include <kopano/ECRestriction.h>
 #include <kopano/Util.h>
-#include <kopano/mapi_ptr.h>
+#include <kopano/memory.hpp>
 #include <mapicode.h>
 #include <mapix.h>
 
@@ -19,10 +19,9 @@ namespace KC {
  * @retval	MAPI_E_INVALID_PARAMETER	lppRestriction is NULL.
  */
 HRESULT ECRestriction::CreateMAPIRestriction(LPSRestriction *lppRestriction, ULONG ulFlags) const {
-	SRestrictionPtr ptrRestriction;
-
 	if (lppRestriction == NULL)
 		return MAPI_E_INVALID_PARAMETER;
+	memory_ptr<SRestriction> ptrRestriction;
 	auto hr = MAPIAllocateBuffer(sizeof(SRestriction), &~ptrRestriction);
 	if (hr != hrSuccess)
 		return hr;
@@ -36,10 +35,9 @@ HRESULT ECRestriction::CreateMAPIRestriction(LPSRestriction *lppRestriction, ULO
 HRESULT ECRestriction::RestrictTable(IMAPITable *lpTable,
     unsigned int flags) const
 {
-	SRestrictionPtr ptrRestriction;
-
 	if (lpTable == NULL)
 		return MAPI_E_INVALID_PARAMETER;
+	memory_ptr<SRestriction> ptrRestriction;
 	HRESULT hr = CreateMAPIRestriction(&~ptrRestriction, ECRestriction::Cheap);
 	if (hr != hrSuccess)
 		return hr;
@@ -48,10 +46,9 @@ HRESULT ECRestriction::RestrictTable(IMAPITable *lpTable,
 
 HRESULT ECRestriction::FindRowIn(LPMAPITABLE lpTable, BOOKMARK BkOrigin, ULONG ulFlags) const
 {
-	SRestrictionPtr ptrRestriction;
-
 	if (lpTable == NULL)
 		return MAPI_E_INVALID_PARAMETER;
+	memory_ptr<SRestriction> ptrRestriction;
 	HRESULT hr = CreateMAPIRestriction(&~ptrRestriction, ECRestriction::Cheap);
 	if (hr != hrSuccess)
 		return hr;
@@ -383,7 +380,7 @@ ECRawRestriction::ECRawRestriction(const SRestriction *lpRestriction,
 		m_ptrRestriction.reset(const_cast<SRestriction *>(lpRestriction), &ECRestriction::DummyFree);
 		return;
 	}
-	SRestrictionPtr ptrResTmp;
+	memory_ptr<SRestriction> ptrResTmp;
 	auto hr = MAPIAllocateBuffer(sizeof(SRestriction), &~ptrResTmp);
 	if (hr != hrSuccess)
 		return;

@@ -7,7 +7,7 @@
 #include <string>
 #include <kopano/zcdefs.h>
 #include <kopano/archiver-common.h>
-#include <kopano/mapi_ptr.h>
+#include <kopano/memory.hpp>
 #include <kopano/CommonUtil.h>
 #include "ArchiverSessionPtr.h"     // For ArchiverSessionPtr
 
@@ -47,7 +47,7 @@ public:
 	KC_HIDDEN HRESULT GetArchiveType(ArchiveType *arc_type, AttachType *att_type);
 	KC_HIDDEN HRESULT SetArchiveType(ArchiveType arc_type, AttachType att_type);
 	KC_HIDDEN HRESULT SetPermissions(const abentryid_t &user_eid, bool writable);
-	HRESULT GetArchiveFolderFor(MAPIFolderPtr &ptrSourceFolder, ArchiverSessionPtr ptrSession, LPMAPIFOLDER *lppDestinationFolder);
+	HRESULT GetArchiveFolderFor(object_ptr<IMAPIFolder> &src, ArchiverSessionPtr, IMAPIFolder **dst);
 	HRESULT GetHistoryFolder(LPMAPIFOLDER *lppHistoryFolder);
 	HRESULT GetOutgoingFolder(LPMAPIFOLDER *lppOutgoingFolder);
 	HRESULT GetDeletedItemsFolder(LPMAPIFOLDER *lppOutgoingFolder);
@@ -55,7 +55,7 @@ public:
 
 	HRESULT GetArchiveFolder(bool bCreate, LPMAPIFOLDER *lppArchiveFolder);
 	KC_HIDDEN HRESULT IsArchiveFolder(IMAPIFolder *, bool *res);
-	KC_HIDDEN MsgStorePtr GetMsgStore() const { return m_ptrArchiveStore; }
+	KC_HIDDEN object_ptr<IMsgStore> GetMsgStore() const { return m_ptrArchiveStore; }
 	KC_HIDDEN HRESULT PrepareForFirstUse(ECLogger * = nullptr);
 
 private:
@@ -75,8 +75,8 @@ private:
 	KC_HIDDEN HRESULT CreateSpecialFolder(eSpecFolder sf_which, IMAPIFolder **spc_folder);
 	KC_HIDDEN HRESULT IsSpecialFolder(eSpecFolder sf_which, IMAPIFolder *, bool *res);
 
-	MsgStorePtr	m_ptrArchiveStore;
-	MAPIFolderPtr m_ptrArchiveFolder;
+	object_ptr<IMsgStore> m_ptrArchiveStore;
+	object_ptr<IMAPIFolder> m_ptrArchiveFolder;
 	tstring	m_strFolder;
 	const std::string m_strServerPath;
 

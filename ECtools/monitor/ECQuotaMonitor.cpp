@@ -23,7 +23,6 @@
 #include <kopano/Util.h>
 #include <kopano/ecversion.h>
 #include <kopano/charset/convert.h>
-#include <kopano/mapi_ptr.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/ECGuid.h>
 #include <kopano/ECTags.h>
@@ -340,7 +339,6 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
 			break;
 
 		for (i = 0; i < lpRowSet->cRows; ++i) {
-			MsgStorePtr ptrStore;
 			auto lpUsername  = lpRowSet[i].cfind(PR_EC_USERNAME_A);
 			auto lpStoreSize = lpRowSet[i].cfind(PR_MESSAGE_SIZE_EXTENDED);
 			auto lpQuotaWarn = lpRowSet[i].cfind(PR_QUOTA_WARNING_THRESHOLD);
@@ -375,6 +373,7 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
 				++m_ulFailed;
 				continue;
 			}
+			object_ptr<IMsgStore> ptrStore;
 			hr = OpenUserStore(lpsUserList[u].lpszUsername, ACTIVE_USER, &~ptrStore);
 			if (hr != hrSuccess)
 				continue;
@@ -831,10 +830,10 @@ HRESULT ECQuotaMonitor::CreateQuotaWarningMail(TemplateVariables *lpVars,
  */
 HRESULT ECQuotaMonitor::OpenUserStore(LPTSTR szStoreName, objectclass_t objclass, LPMDB *lppStore)
 {
-	ExchangeManageStorePtr ptrEMS;
+	object_ptr<IExchangeManageStore> ptrEMS;
 	ULONG cbUserStoreEntryID = 0;
-	EntryIdPtr ptrUserStoreEntryID;
-	MsgStorePtr ptrStore;
+	memory_ptr<ENTRYID> ptrUserStoreEntryID;
+	object_ptr<IMsgStore> ptrStore;
 
 	auto hr = m_lpMDBAdmin->QueryInterface(IID_IExchangeManageStore, &~ptrEMS);
 	if (hr != hrSuccess)
@@ -870,13 +869,9 @@ HRESULT ECQuotaMonitor::OpenUserStore(LPTSTR szStoreName, objectclass_t objclass
 static HRESULT GetConfigMessage(IMsgStore *lpStore, const char *szMessageName,
     IMessage **lppMessage)
 {
-	SPropArrayPtr ptrEntryIDs;
-	MAPIFolderPtr ptrFolder;
+	memory_ptr<SPropValue> ptrEntryIDs;
 	unsigned int cValues;
-	MAPITablePtr ptrTable;
 	SPropValue propSubject;
-	SRowSetPtr ptrRows;
-	MessagePtr ptrMessage;
 	static constexpr const SizedSPropTagArray(2, sptaTreeProps) =
 		{2, {PR_NON_IPM_SUBTREE_ENTRYID, PR_IPM_SUBTREE_ENTRYID}};
 
@@ -885,6 +880,7 @@ static HRESULT GetConfigMessage(IMsgStore *lpStore, const char *szMessageName,
 		return hr;
 
 	// NON_IPM on a public store, IPM on a normal store
+	object_ptr<IMAPIFolder> ptrFolder;
 	if (ptrEntryIDs[0].ulPropTag == sptaTreeProps.aulPropTag[0])
 		hr = lpStore->OpenEntry(ptrEntryIDs[0].Value.bin.cb,
 		     reinterpret_cast<ENTRYID *>(ptrEntryIDs[0].Value.bin.lpb),
@@ -897,12 +893,14 @@ static HRESULT GetConfigMessage(IMsgStore *lpStore, const char *szMessageName,
 		hr = MAPI_E_INVALID_PARAMETER;
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMAPITable> ptrTable;
 	hr = ptrFolder->GetContentsTable(MAPI_DEFERRED_ERRORS | MAPI_ASSOCIATED, &~ptrTable);
 	if (hr != hrSuccess)
 		return hr;
 
 	propSubject.ulPropTag = PR_SUBJECT_A;
 	propSubject.Value.lpszA = const_cast<char *>(szMessageName);
+	rowset_ptr ptrRows;
 	hr = ECPropertyRestriction(RELOP_EQ, PR_SUBJECT_A, &propSubject, ECRestriction::Cheap)
 	     .FindRowIn(ptrTable, BOOKMARK_BEGINNING, 0);
 	if (hr == hrSuccess) {
@@ -911,6 +909,7 @@ static HRESULT GetConfigMessage(IMsgStore *lpStore, const char *szMessageName,
 			return hr;
 	}
 
+	object_ptr<IMessage> ptrMessage;
 	if (!ptrRows.empty()) {
 		// message found, open it
 		auto lpEntryID = ptrRows[0].cfind(PR_ENTRYID);
@@ -953,13 +952,13 @@ static HRESULT GetConfigMessage(IMsgStore *lpStore, const char *szMessageName,
  */
 HRESULT ECQuotaMonitor::CheckQuotaInterval(LPMDB lpStore, LPMESSAGE *lppMessage, bool *lpbTimeout)
 {
-	MessagePtr ptrMessage;
-	SPropValuePtr ptrProp;
+	object_ptr<IMessage> ptrMessage;
 	FILETIME ft, ftNextRun;
 
 	auto hr = GetConfigMessage(lpStore, QUOTA_CONFIG_MSG, &~ptrMessage);
 	if (hr != hrSuccess)
 		return hr;
+	memory_ptr<SPropValue> ptrProp;
 	hr = HrGetOneProp(ptrMessage, PR_EC_QUOTA_MAIL_TIME, &~ptrProp);
 	if (hr == MAPI_E_NOT_FOUND) {
 		*lppMessage = ptrMessage.release();
@@ -1020,9 +1019,7 @@ HRESULT ECQuotaMonitor::Notify(ECUSER *lpecUser, ECCOMPANY *lpecCompany,
     ECQUOTASTATUS *lpecQuotaStatus, LPMDB lpStore)
 {
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
-	MsgStorePtr ptrRecipStore;
-	MAPIFolderPtr ptrRoot;
-	MessagePtr ptrQuotaTSMessage;
+	object_ptr<IMessage> ptrQuotaTSMessage;
 	bool bTimeout;
 	memory_ptr<SPropValue> lpsObject;
 	adrlist_ptr lpAddrList;
@@ -1096,6 +1093,7 @@ HRESULT ECQuotaMonitor::Notify(ECUSER *lpecUser, ECCOMPANY *lpecCompany,
 				ec_log_err("No quota recipients for over quota company \"%s\"", reinterpret_cast<const char *>(lpecCompany->lpszCompanyname));
 			continue;
 		}
+		object_ptr<IMsgStore> ptrRecipStore;
 		if (OpenUserStore(lpToUsers[i].lpszUsername, sVars.ulClass, &~ptrRecipStore) != hrSuccess)
 			continue;
 		CreateQuotaWarningMail(&sVars, ptrRecipStore, &lpToUsers[i], lpecFromUser, lpAddrList);

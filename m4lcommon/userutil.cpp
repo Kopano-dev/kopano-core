@@ -22,7 +22,6 @@
 #include <kopano/IECInterfaces.hpp>
 #include <kopano/CommonUtil.h>
 #include <kopano/ECRestriction.h>
-#include <kopano/mapi_ptr.h>
 #include <kopano/mapiguidext.h>
 #include <kopano/Util.h>
 
@@ -68,7 +67,7 @@ private:
 	void push_back(LPSPropValue lpPropAccount);
 
 	std::list<string_type> m_lstUsers;
-	MAPISessionPtr m_ptrSession;
+	object_ptr<IMAPISession> m_ptrSession;
 };
 
 HRESULT	DataCollector::GetRequiredPropTags(LPMAPIPROP /*lpProp*/, LPSPropTagArray *lppPropTagArray) const {
@@ -112,18 +111,18 @@ HRESULT	UserListCollector<string_type, prAccount>::GetRequiredPropTags(LPMAPIPRO
 template<typename string_type, ULONG prAccount>
 HRESULT UserListCollector<string_type, prAccount>::CollectData(LPMAPITABLE lpStoreTable) {
 	while (true) {
-		SRowSetPtr ptrRows;
+		rowset_ptr ptrRows;
 
 		HRESULT hr = lpStoreTable->QueryRows(50, 0, &~ptrRows);
 		if (hr != hrSuccess)
 			return hr;
 
-		for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
+		for (rowset_ptr::size_type i = 0; i < ptrRows.size(); ++i) {
 			if (ptrRows[i].lpProps[0].ulPropTag != PR_MAILBOX_OWNER_ENTRYID)
 				continue;
 			ULONG ulType;
-			MAPIPropPtr ptrUser;
-			SPropValuePtr ptrAccount;
+			object_ptr<IMAPIProp> ptrUser;
+			memory_ptr<SPropValue> ptrAccount;
 
 			auto hrTmp = m_ptrSession->OpenEntry(ptrRows[i].lpProps[0].Value.bin.cb,
 			        reinterpret_cast<ENTRYID *>(ptrRows[i].lpProps[0].Value.bin.lpb),
@@ -184,13 +183,6 @@ HRESULT GetArchivedUserList(IMAPISession *lpMapiSession, const char *lpSSLKey,
 HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
     const char *lpSSLPass, bool bLocalOnly, DataCollector *lpCollector)
 {
-	AddrBookPtr		ptrAdrBook;
-	EntryIdPtr		ptrDDEntryID;
-	ABContainerPtr ptrDefaultDir, ptrCompanyDir;
-	MAPITablePtr	ptrHierarchyTable;
-	SRowSetPtr		ptrRows;
-	MsgStorePtr		ptrStore;
-	ECServiceAdminPtr	ptrServiceAdmin;
 	unsigned int ulObj = 0, cbDDEntryID = 0, ulCompanyCount = 0;
 	std::set<servername>	listServers;
 	convert_context		converter;
@@ -200,17 +192,22 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 
 	if (lpMapiSession == nullptr || lpCollector == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
+	object_ptr<IAddrBook> ptrAdrBook;
 	auto hr = lpMapiSession->OpenAddressBook(0, &IID_IAddrBook, 0, &~ptrAdrBook);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to open addressbook", hr);
+	memory_ptr<ENTRYID> ptrDDEntryID;
 	hr = ptrAdrBook->GetDefaultDir(&cbDDEntryID, &~ptrDDEntryID);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to open default addressbook", hr);
+
+	object_ptr<IABContainer> ptrDefaultDir, ptrCompanyDir;
 	hr = ptrAdrBook->OpenEntry(cbDDEntryID, ptrDDEntryID,
 	     &iid_of(ptrDefaultDir), 0, &ulObj, &~ptrDefaultDir);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to open GAB", hr);
 	/* Open Hierarchy Table to see if we are running in multi-tenancy mode or not */
+	object_ptr<IMAPITable> ptrHierarchyTable;
 	hr = ptrDefaultDir->GetHierarchyTable(0, &~ptrHierarchyTable);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to open hierarchy table", hr);
@@ -223,6 +220,7 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 		if (hr != hrSuccess)
 			return kc_perror("Unable to set set columns on user table", hr);
 		/* multi-tenancy, loop through all subcontainers to find all users */
+		rowset_ptr ptrRows;
 		hr = ptrHierarchyTable->QueryRows(ulCompanyCount, 0, &~ptrRows);
 		if (hr != hrSuccess)
 			return hr;
@@ -247,10 +245,12 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 			return kc_perror("Unable to create server list", hr);
 	}
 
+	object_ptr<IMsgStore> ptrStore;
 	hr = HrOpenDefaultStore(lpMapiSession, &~ptrStore);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to open default store", hr);
 	//@todo use PT_OBJECT to queryinterface
+	object_ptr<IECServiceAdmin> ptrServiceAdmin;
 	hr = ptrStore->QueryInterface(IID_IECServiceAdmin, &~ptrServiceAdmin);
 	if (hr != hrSuccess)
 		return hr;
@@ -317,7 +317,7 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 HRESULT GetMailboxDataPerServer(const char *lpszPath, const char *lpSSLKey,
     const char *lpSSLPass, DataCollector *lpCollector)
 {
-	MAPISessionPtr  ptrSessionServer;
+	object_ptr<IMAPISession> ptrSessionServer;
 	auto hr = HrOpenECAdminSession(&~ptrSessionServer, PROJECT_VERSION,
 	          "userutil.cpp:GetMailboxDataPerServer", lpszPath, 0, lpSSLKey,
 	          lpSSLPass);
@@ -340,12 +340,7 @@ HRESULT GetMailboxDataPerServer(const char *lpszPath, const char *lpSSLKey,
 HRESULT GetMailboxDataPerServer(IMAPISession *lpSession, const char *lpszPath,
     DataCollector *lpCollector)
 {
-	MsgStorePtr		ptrStoreAdmin;
-	MAPITablePtr	ptrStoreTable;
-	SPropTagArrayPtr ptrPropTagArray;
-	SRestrictionPtr ptrRestriction;
-
-	ExchangeManageStorePtr	ptrEMS;
+	object_ptr<IMsgStore> ptrStoreAdmin;
 
 	HRESULT hr = HrOpenDefaultStore(lpSession, &~ptrStoreAdmin);
 	if(hr != hrSuccess) {
@@ -355,18 +350,22 @@ HRESULT GetMailboxDataPerServer(IMAPISession *lpSession, const char *lpszPath,
 	}
 
 	//@todo use PT_OBJECT to queryinterface
+	object_ptr<IExchangeManageStore> ptrEMS;
 	hr = ptrStoreAdmin->QueryInterface(IID_IExchangeManageStore, &~ptrEMS);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMAPITable> ptrStoreTable;
 	hr = ptrEMS->GetMailboxTable(nullptr, &~ptrStoreTable, MAPI_DEFERRED_ERRORS);
 	if (hr != hrSuccess)
 		return hr;
+	memory_ptr<SPropTagArray> ptrPropTagArray;
 	hr = lpCollector->GetRequiredPropTags(ptrStoreAdmin, &~ptrPropTagArray);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrStoreTable->SetColumns(ptrPropTagArray, TBL_BATCH);
 	if (hr != hrSuccess)
 		return hr;
+	memory_ptr<SRestriction> ptrRestriction;
 	hr = lpCollector->GetRestriction(ptrStoreAdmin, &~ptrRestriction);
 	if (hr != hrSuccess)
 		return hr;
@@ -388,8 +387,6 @@ HRESULT GetMailboxDataPerServer(IMAPISession *lpSession, const char *lpszPath,
 HRESULT UpdateServerList(IABContainer *lpContainer,
     std::set<servername> &listServers)
 {
-	SRowSetPtr ptrRows;
-	MAPITablePtr ptrTable;
 	SPropValue sPropUser, sPropDisplayType;
 	static constexpr const SizedSPropTagArray(2, sCols) =
 		{2, {PR_EC_HOMESERVER_NAME_W, PR_DISPLAY_NAME_W}};
@@ -400,6 +397,7 @@ HRESULT UpdateServerList(IABContainer *lpContainer,
 	sPropUser.ulPropTag = PR_OBJECT_TYPE;
 	sPropUser.Value.ul = MAPI_MAILUSER;
 
+	object_ptr<IMAPITable> ptrTable;
 	HRESULT hr = lpContainer->GetContentsTable(MAPI_DEFERRED_ERRORS, &~ptrTable);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to open contents table", hr);
@@ -415,6 +413,7 @@ HRESULT UpdateServerList(IABContainer *lpContainer,
 		return kc_perror("Unable to get total user count", hr);
 
 	while (true) {
+		rowset_ptr ptrRows;
 		hr = ptrTable->QueryRows(50, 0, &~ptrRows);
 		if (hr != hrSuccess)
 			return hr;

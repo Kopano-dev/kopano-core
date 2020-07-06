@@ -22,7 +22,6 @@
 #include <kopano/MAPIErrors.h>
 #include <edkmdb.h>
 #include <edkguid.h>
-#include <kopano/mapi_ptr.h>
 #include "SSLUtil.h"
 #include "ClientUtil.h"
 #include "EntryPoint.h"
@@ -43,7 +42,7 @@ struct initprov {
 	object_ptr<WSTransport> transport;
 	unsigned int count, eid_size, wrap_eid_size;
 	SPropValue prop[6];
-	EntryIdPtr eid, wrap_eid;
+	memory_ptr<ENTRYID> eid, wrap_eid;
 	/* referenced from prop[n] */
 	memory_ptr<wchar_t> store_name;
 	memory_ptr<ABEID> abe_id;
@@ -209,7 +208,7 @@ static HRESULT
 initprov_storedl(struct initprov &d, const sGlobalProfileProps &profprop)
 {
 	/* PR_EC_USERNAME is the user we want to add ... */
-	SPropValuePtr name;
+	memory_ptr<SPropValue> name;
 	HRESULT ret = HrGetOneProp(d.profsect, PR_EC_USERNAME_W, &~name);
 	if (ret != hrSuccess)
 		ret = HrGetOneProp(d.profsect, PR_EC_USERNAME_A, &~name);
@@ -249,7 +248,7 @@ static HRESULT initprov_storearc(struct initprov &d)
 	// We need to get the username and the server name or url from the profsect.
 	// That's enough information to get the entryid from the correct server. There's no redirect
 	// available when resolving archive stores.
-	SPropValuePtr name, server;
+	memory_ptr<SPropValue> name, server;
 	HRESULT ret = HrGetOneProp(d.profsect, PR_EC_USERNAME_W, &~name);
 	if (ret != hrSuccess)
 		ret = HrGetOneProp(d.profsect, PR_EC_USERNAME_A, &~name);
@@ -287,7 +286,7 @@ static HRESULT initprov_storearc(struct initprov &d)
 static HRESULT
 initprov_mapi_store(struct initprov &d, const sGlobalProfileProps &profprop)
 {
-	SPropValuePtr mdb;
+	memory_ptr<SPropValue> mdb;
 	HRESULT ret = HrGetOneProp(d.profsect, PR_MDB_PROVIDER, &~mdb);
 	if (ret != hrSuccess)
 		return ret;
@@ -379,7 +378,7 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
     ULONG *lpcStoreID, ENTRYID **lppStoreID)
 {
 	memory_ptr<SPropValue> ptrPropValueResourceType, dspname, tpprop;
-	SPropValuePtr	ptrPropValueProviderUid;
+	memory_ptr<SPropValue> ptrPropValueProviderUid;
 	std::string		strServiceName;
 	struct initprov d;
 	d.provadm = lpAdminProvider;
@@ -391,7 +390,7 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 		if (hr != hrSuccess)
 			return hr;
 	} else {
-		SPropValuePtr psn;
+		memory_ptr<SPropValue> psn;
 		auto hr = HrGetOneProp(d.profsect, PR_SERVICE_NAME_A, &~psn);
 		if(hr == hrSuccess)
 			strServiceName = psn->Value.lpszA;
@@ -462,8 +461,8 @@ static HRESULT UpdateProviders(LPPROVIDERADMIN lpAdminProviders,
     const sGlobalProfileProps &sProfileProps)
 {
 	ProfSectPtr		ptrProfSect;
-	MAPITablePtr	ptrTable;
-	SRowSetPtr		ptrRows;
+	object_ptr<IMAPITable> ptrTable;
+	rowset_ptr ptrRows;
 
 	// Get the provider table
 	auto hr = lpAdminProviders->GetProviderTable(0, &~ptrTable);
@@ -519,7 +518,6 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 	sGlobalProfileProps	sProfileProps;
 	std::basic_string<TCHAR> strError;
 	ProfSectPtr ptrGlobalProfSect, ptrProfSect;
-	MAPISessionPtr	ptrSession;
 	object_ptr<WSTransport> lpTransport;
 	memory_ptr<SPropValue> lpsPropValue;
 	memory_ptr<BYTE> lpDelegateStores;

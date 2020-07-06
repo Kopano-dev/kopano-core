@@ -6,6 +6,7 @@
 #include <memory>
 #include <ostream>
 #include <string>
+#include <kopano/memory.hpp>
 #include <kopano/zcdefs.h>
 #include "ArchiverSessionPtr.h"     // For ArchiverSessionPtr
 #include "helpers/ArchiveHelper.h"
@@ -41,7 +42,7 @@ private:
 	ECConfig	*m_lpConfig;
 	tstring	m_strUser;
 	std::shared_ptr<ECArchiverLogger> m_lpLogger;
-	MsgStorePtr	m_ptrUserStore;
+	object_ptr<IMsgStore> m_ptrUserStore;
 };
 
 } /* namespace */

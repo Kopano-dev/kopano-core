@@ -29,7 +29,6 @@
 #include "ECVMIMEUtils.h"
 #include "ECMapiUtils.h"
 #include <kopano/ECLogger.h>
-#include <kopano/mapi_ptr.h>
 #include "../provider/include/kcore.hpp"
 
 namespace KC {
@@ -227,7 +226,7 @@ HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
 	MAPIToVMIME mToVM(lpSession, lpAddrBook, sopt);
 	vmime::shared_ptr<vmime::message> vmMessage;
 	auto mailer = dynamic_cast<ECVMIMESender *>(mailer_base);
-	SPropArrayPtr	ptrProps;
+	memory_ptr<SPropValue> ptrProps;
 	static constexpr const SizedSPropTagArray(2, sptaForwardProps) =
 		{2, {PR_AUTO_FORWARDED, PR_INTERNET_MESSAGE_ID_A}};
 	ULONG cValues = 0;

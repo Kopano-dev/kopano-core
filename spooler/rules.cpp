@@ -26,7 +26,6 @@
 #include <kopano/CommonUtil.h>
 #include <kopano/ECLogger.h>
 #include <kopano/MAPIErrors.h>
-#include <kopano/mapi_ptr.h>
 #include <kopano/mapiguidext.h>
 #include <kopano/charset/convert.h>
 #include <kopano/IECInterfaces.hpp>
@@ -144,8 +143,6 @@ bool dagent_avoid_autoreply(const std::vector<std::string> &hl)
 static HRESULT GetRecipStrings(LPMESSAGE lpMessage, std::wstring &wstrTo,
     std::wstring &wstrCc, std::wstring &wstrBcc)
 {
-	SRowSetPtr ptrRows;
-	MAPITablePtr ptrRecips;
 	static constexpr const SizedSPropTagArray(2, sptaDisplay) =
 		{2, {PR_DISPLAY_NAME_W, PR_RECIPIENT_TYPE}};
 
@@ -153,6 +150,7 @@ static HRESULT GetRecipStrings(LPMESSAGE lpMessage, std::wstring &wstrTo,
 	wstrCc.clear();
 	wstrBcc.clear();
 
+	object_ptr<IMAPITable> ptrRecips;
 	HRESULT hr = lpMessage->GetRecipientTable(MAPI_UNICODE, &~ptrRecips);
 	if(hr != hrSuccess)
 		return hr;
@@ -161,6 +159,7 @@ static HRESULT GetRecipStrings(LPMESSAGE lpMessage, std::wstring &wstrTo,
 		return hr;
 
 	while(1) {
+		rowset_ptr ptrRows;
 		hr = ptrRecips->QueryRows(1, 0, &~ptrRows);
 		if(hr != hrSuccess)
 			return hr;
@@ -189,7 +188,7 @@ static HRESULT GetRecipStrings(LPMESSAGE lpMessage, std::wstring &wstrTo,
 
 static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 {
-	SPropArrayPtr ptrBodies, ptrInfo;
+	memory_ptr<SPropValue> ptrBodies, ptrInfo;
 	static constexpr const SizedSPropTagArray(4, sBody) =
 		{4, {PR_BODY_W, PR_HTML, PR_RTF_IN_SYNC, PR_INTERNET_CPID}};
 	static constexpr const SizedSPropTagArray(4, sInfo) =
@@ -199,7 +198,6 @@ static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 	unsigned int cValues, ulCharset = 20127; /* US-ASCII */
 	bool bPlain = false;
 	SPropValue sNewBody;
-	StreamPtr ptrStream;
 	std::string strHTML, strHTMLForwardText;
 	std::wstring wstrBody, strForwardText, wstrTo, wstrCc, wstrBcc;
 
@@ -261,6 +259,7 @@ static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 		strForwardText += L"\nAuto forwarded by a rule\n\n";
 
 		if (ptrBodies[0].ulPropTag == PT_ERROR) {
+			object_ptr<IStream> ptrStream;
 			hr = lpOrigMessage->OpenProperty(PR_BODY_W, &IID_IStream, 0, 0, &~ptrStream);
 			if (hr == hrSuccess)
 				Util::HrStreamToString(ptrStream, wstrBody);
@@ -273,6 +272,7 @@ static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 	}
 	else {
 		// HTML body (or rtf, but nuts to editing that!)
+		object_ptr<IStream> ptrStream;
 		hr = lpOrigMessage->OpenProperty(PR_HTML, &IID_IStream, 0, 0, &~ptrStream);
 		if (hr == hrSuccess)
 			Util::HrStreamToString(ptrStream, strHTML);

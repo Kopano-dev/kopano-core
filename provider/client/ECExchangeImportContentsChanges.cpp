@@ -20,7 +20,6 @@
 #include "ECMessage.h"
 #include "ics.h"
 #include <kopano/mapiext.h>
-#include <kopano/mapi_ptr.h>
 #include <kopano/ECRestriction.h>
 #include <mapiutil.h>
 #include <kopano/charset/convert.h>
@@ -603,9 +602,8 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChangeAsAStream(ULONG cVal
 {
 	HRESULT hr;
 	ULONG cbEntryId = 0;
-	EntryIdPtr ptrEntryId;
+	memory_ptr<ENTRYID> ptrEntryId;
 	WSMessageStreamImporterPtr ptrMessageImporter;
-	StreamPtr ptrStream;
 
 	auto lpMessageSourceKey = PCpropFindProp(lpPropArray, cValue, PR_SOURCE_KEY);
 	if (lpMessageSourceKey != NULL) {
@@ -637,6 +635,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChangeAsAStream(ULONG cVal
 	}
 
 	ZLOG_DEBUG(m_lpLogger, "ImportFast: %s", "Wrapping MessageImporter in IStreamAdapter");
+	object_ptr<IStream> ptrStream;
 	hr = ECMessageStreamImporterIStreamAdapter::Create(ptrMessageImporter, &~ptrStream);
 	if (hr != hrSuccess)
 		return zlog("ImportFast: Failed to wrap message importer", hr);
@@ -688,7 +687,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageUpdateAsStream(ULONG cbEnt
 	    lppMessageImporter == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	SPropValuePtr ptrPropPCL, ptrPropCK, ptrConflictItems;
+	memory_ptr<SPropValue> ptrPropPCL, ptrPropCK, ptrConflictItems;
 	WSMessageStreamImporterPtr ptrMessageImporter;
 	auto hr = m_lpFolder->GetChangeInfo(cbEntryId, lpEntryId, &~ptrPropPCL, &~ptrPropCK);
 	if (hr != hrSuccess) {
@@ -715,7 +714,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageUpdateAsStream(ULONG cbEnt
 
 	auto lpRemotePCL = PCpropFindProp(lpPropArray, cValue, PR_PREDECESSOR_CHANGE_LIST);
 	if (!bAssociated && IsConflict(ptrPropCK, lpRemotePCL)) {
-		MessagePtr ptrMessage;
+		object_ptr<IMessage> ptrMessage;
 		ULONG ulType = 0;
 
 		ZLOG_DEBUG(m_lpLogger, "UpdateFast: %s", "The item seems to be in conflict");
@@ -820,12 +819,8 @@ HRESULT ECExchangeImportContentsChanges::HrUpdateSearchReminders(LPMAPIFOLDER lp
     const SPropValue *lpAdditionalREN)
 {
 	unsigned int cREMProps, ulType = 0, ulOrigSearchState = 0;
-	SPropArrayPtr ptrREMProps;
+	memory_ptr<SPropValue> ptrREMProps;
 	LPSPropValue lpREMEntryID = NULL;
-	MAPIFolderPtr ptrRemindersFolder;
-	SRestrictionPtr ptrOrigRestriction;
-	EntryListPtr ptrOrigContainerList;
-	SRestrictionPtr ptrPreRestriction;
 	ECAndRestriction resPre;
 	SPropValue sPropValConflicts = {PR_PARENT_ENTRYID, 0};
 	SPropValue sPropValLocalFailures = {PR_PARENT_ENTRYID, 0};
@@ -844,9 +839,12 @@ HRESULT ECExchangeImportContentsChanges::HrUpdateSearchReminders(LPMAPIFOLDER lp
 	else
 		return MAPI_E_NOT_FOUND;
 
+	object_ptr<IMAPIFolder> ptrRemindersFolder;
 	hr = lpRootFolder->OpenEntry(lpREMEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpREMEntryID->Value.bin.lpb), &iid_of(ptrRemindersFolder), MAPI_BEST_ACCESS, &ulType, &~ptrRemindersFolder);
 	if (hr != hrSuccess)
 		return hr;
+	memory_ptr<ENTRYLIST> ptrOrigContainerList;
+	memory_ptr<SRestriction> ptrOrigRestriction, ptrPreRestriction;
 	hr = ptrRemindersFolder->GetSearchCriteria(0, &~ptrOrigRestriction, &~ptrOrigContainerList, &ulOrigSearchState);
 	if (hr != hrSuccess)
 		return hr;

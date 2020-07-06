@@ -30,7 +30,6 @@
 #include <kopano/mapiext.h>
 #include <kopano/memory.hpp>
 #include <kopano/ECLogger.h>
-#include <kopano/mapi_ptr.h>
 #include <kopano/timeutil.hpp>
 #include "ConsoleTable.h"
 
@@ -577,13 +576,13 @@ static std::string mapitable_ToString1(const SPropValue &name, const SPropValue 
 
 static HRESULT MAPITablePrint(IMAPITable *lpTable, bool humanreadable /* = true */)
 {
-	SPropTagArrayPtr ptrColumns;
-	SRowSetPtr ptrRows;
+	memory_ptr<SPropTagArray> ptrColumns;
 	ConsoleTable ct(0, 0);
 
 	HRESULT hr = lpTable->QueryColumns(0, &~ptrColumns);
 	if (hr != hrSuccess)
 		return hr;
+	rowset_ptr ptrRows;
 	hr = lpTable->QueryRows(INT_MAX, 0, &~ptrRows);
 	if (hr != hrSuccess)
 		return hr;

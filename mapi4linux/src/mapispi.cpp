@@ -1,4 +1,4 @@
-/*
+ /*
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
@@ -15,10 +15,10 @@
 #include <kopano/Util.h>
 #include <kopano/ECGuid.h>
 #include <kopano/ECUnknown.h>
+#include <kopano/mapiguidext.h>
 #include <algorithm>
 #include <set>
 #include <utility>
-#include <kopano/mapi_ptr.h>
 
 using namespace KC;
 
@@ -318,18 +318,17 @@ HRESULT M4LMAPISupport::DoCopyProps(LPCIID lpSrcInterface, void *lpSrcObj,
  * @return MAPI Error code
  */
 HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
-	MAPITablePtr ptrRecipientTable;
-	SRowSetPtr ptrRow;
-	AddrBookPtr ptrAddrBook;
+	object_ptr<IAddrBook> ptrAddrBook;
 	std::set<std::string> setFilter;
-	SPropTagArrayPtr ptrColumns;
 
 	auto hr = session->OpenAddressBook(0, nullptr, AB_NO_DIALOG, &~ptrAddrBook);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMAPITable> ptrRecipientTable;
 	hr = lpMessage->GetRecipientTable(fMapiUnicode | MAPI_DEFERRED_ERRORS, &~ptrRecipientTable);
 	if (hr != hrSuccess)
 		return hr;
+	memory_ptr<SPropTagArray> ptrColumns;
 	hr = ptrRecipientTable->QueryColumns(TBL_ALL_COLUMNS, &~ptrColumns);
 	if (hr != hrSuccess)
 		return hr;
@@ -340,8 +339,7 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 	while (true) {
 		ULONG ulObjType;
 		object_ptr<IDistList> ptrDistList;
-		MAPITablePtr ptrMemberTable;
-		SRowSetPtr ptrMembers;
+		rowset_ptr ptrRow;
 
 		hr = ptrRecipientTable->QueryRows(1, 0L, &~ptrRow);
 		if (hr != hrSuccess)
@@ -375,6 +373,7 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 		hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE, reinterpret_cast<ADRLIST *>(ptrRow.get()));
 		if (hr != hrSuccess)
 			return hr;
+		object_ptr<IMAPITable> ptrMemberTable;
 		hr = ptrDistList->GetContentsTable(fMapiUnicode, &~ptrMemberTable);
 		if (hr != hrSuccess)
 			continue;
@@ -386,6 +385,7 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 
 		// Get all recipients in distlist, and add to message.
 		// If another distlist is here, it will expand in the next loop.
+		rowset_ptr ptrMembers;
 		hr = ptrMemberTable->QueryRows(INT_MAX, fMapiUnicode, &~ptrMembers);
 		if (hr != hrSuccess)
 			continue;

@@ -4,7 +4,7 @@
  */
 #pragma once
 #include <kopano/zcdefs.h>
-#include <kopano/mapi_ptr.h>
+#include <kopano/memory.hpp>
 
 namespace KC {
 
@@ -35,8 +35,8 @@ public:
 private:
 	MAPIContainerPtr	m_ptrContainer;
 	unsigned int m_ulFlags, m_ulDepth, m_ulRowIndex;
-	MAPITablePtr		m_ptrTable;
-	SRowSetPtr			m_ptrRows;
+	object_ptr<IMAPITable> m_ptrTable;
+	rowset_ptr m_ptrRows;
 	MAPIContainerPtr	m_ptrCurrent;
 };
 
@@ -71,7 +71,7 @@ private:
 	mutable ContainerPtrType	m_ptr;
 };
 
-typedef ECHierarchyIterator<MAPIFolderPtr> ECFolderIterator;
-typedef ECHierarchyIterator<ABContainerPtr> ECABContainerIterator;
+typedef ECHierarchyIterator<object_ptr<IMAPIFolder>> ECFolderIterator;
+typedef ECHierarchyIterator<object_ptr<IABContainer>> ECABContainerIterator;
 
 } /* namespace */

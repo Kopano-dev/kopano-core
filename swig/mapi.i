@@ -11,7 +11,6 @@
 #include <kopano/ecversion.h>
 #include <kopano/memory.hpp>
 #include <kopano/IECInterfaces.hpp>
-#include <kopano/mapi_ptr.h>
 
 // DIRTIEST HACK IN THE WORLD WARNING: we need to fix the broken swig output for mapi_wrap.h .....
 #pragma include_alias( "mapi_wrap.h", "mapi_wrap_fixed.h" )
@@ -127,7 +126,7 @@ public:
 		HRESULT Read(ULONG cb, char **lpOutput, ULONG *ulRead) {
 			HRESULT hr = hrSuccess;
 			char *buffer;
-			StreamPtr ptrStream;
+			object_ptr<IStream> ptrStream;
 
 			if (self->QueryInterface(iid_of(ptrStream), &~ptrStream) == hrSuccess) {
 				ULARGE_INTEGER liPosition;

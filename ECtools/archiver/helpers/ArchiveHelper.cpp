@@ -16,6 +16,8 @@
 #include <kopano/ECABEntryID.h>
 #include <kopano/ECGetText.h> // defines the wonderful macro "_"
 #include <kopano/Util.h>
+#include <kopano/mapiguidext.h>
+#include <kopano/memory.hpp>
 
 namespace KC { namespace helpers {
 
@@ -78,19 +80,19 @@ HRESULT ArchiveHelper::Create(ArchiverSessionPtr ptrSession,
     const SObjectEntry &archiveEntry, std::shared_ptr<ECLogger> lpLogger,
     ArchiveHelperPtr *lpptrArchiveHelper)
 {
-	MsgStorePtr ptrArchiveStore;
-	MAPIFolderPtr ptrArchiveRootFolder;
 	ArchiveHelperPtr ptrArchiveHelper;
 
 	if (lpptrArchiveHelper == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
+	object_ptr<IMsgStore> ptrArchiveStore;
 	auto hr = ptrSession->OpenStore(archiveEntry.sStoreEntryId, &~ptrArchiveStore);
 	if (hr != hrSuccess) {
 		if (lpLogger)
 			lpLogger->perr("Failed to open archive store", hr);
 		return hr;
 	}
+	object_ptr<IMAPIFolder> ptrArchiveRootFolder;
 	hr = ptrArchiveStore->OpenEntry(archiveEntry.sItemEntryId.size(),
 	     archiveEntry.sItemEntryId, &iid_of(ptrArchiveRootFolder),
 	     MAPI_BEST_ACCESS | fMapiDeferredErrors, nullptr,
@@ -151,12 +153,12 @@ HRESULT ArchiveHelper::Init()
  */
 HRESULT ArchiveHelper::GetAttachedUser(abentryid_t *lpsUserEntryId)
 {
-	MAPIFolderPtr ptrFolder;
-	SPropValuePtr ptrPropValue;
+	object_ptr<IMAPIFolder> ptrFolder;
 
 	auto hr = GetArchiveFolder(false, &~ptrFolder);
 	if (hr != hrSuccess)
 		return hr;
+	memory_ptr<SPropValue> ptrPropValue;
 	hr = HrGetOneProp(ptrFolder, PROP_ATTACHED_USER_ENTRYID, &~ptrPropValue);
 	if (hr != hrSuccess)
 		return hr;
@@ -173,7 +175,7 @@ HRESULT ArchiveHelper::GetAttachedUser(abentryid_t *lpsUserEntryId)
  */
 HRESULT ArchiveHelper::SetAttachedUser(const abentryid_t &sUserEntryId)
 {
-	MAPIFolderPtr ptrFolder;
+	object_ptr<IMAPIFolder> ptrFolder;
 	SPropValue sPropValue{};
 
 	auto hr = GetArchiveFolder(true, &~ptrFolder);
@@ -196,13 +198,12 @@ HRESULT ArchiveHelper::SetAttachedUser(const abentryid_t &sUserEntryId)
  */
 HRESULT ArchiveHelper::GetArchiveEntry(bool bCreate, SObjectEntry *lpsObjectEntry)
 {
-	SPropValuePtr ptrStoreEntryId;
-	MAPIFolderPtr ptrFolder;
-	SPropValuePtr ptrFolderEntryId;
+	memory_ptr<SPropValue> ptrStoreEntryId, ptrFolderEntryId;
 
 	auto hr = HrGetOneProp(m_ptrArchiveStore, PR_ENTRYID, &~ptrStoreEntryId);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMAPIFolder> ptrFolder;
 	hr = GetArchiveFolder(bCreate, &~ptrFolder);
 	if (hr != hrSuccess)
 		return hr;
@@ -228,8 +229,7 @@ HRESULT ArchiveHelper::GetArchiveEntry(bool bCreate, SObjectEntry *lpsObjectEntr
  */
 HRESULT ArchiveHelper::GetArchiveType(ArchiveType *lparchType, AttachType *lpattachType)
 {
-	SPropValuePtr ptrPropVal;
-	MAPIFolderPtr ptrArchiveFolder;
+	memory_ptr<SPropValue> ptrPropVal;
 	ArchiveType archType;
 	AttachType attachType = UnknownAttach;
 
@@ -252,6 +252,7 @@ HRESULT ArchiveHelper::GetArchiveType(ArchiveType *lparchType, AttachType *lpatt
 		return hr;
 
 	if (lpattachType) {
+		object_ptr<IMAPIFolder> ptrArchiveFolder;
 		hr = GetArchiveFolder(true, &~ptrArchiveFolder);
 		if (hr != hrSuccess)
 			return hr;
@@ -291,7 +292,6 @@ HRESULT ArchiveHelper::GetArchiveType(ArchiveType *lparchType, AttachType *lpatt
  */
 HRESULT ArchiveHelper::SetArchiveType(ArchiveType archType, AttachType attachType)
 {
-	MAPIFolderPtr ptrArchiveFolder;
 	SPropValue sPropVal{};
 
 	sPropVal.ulPropTag = PROP_ARCHIVE_TYPE;
@@ -300,6 +300,7 @@ HRESULT ArchiveHelper::SetArchiveType(ArchiveType archType, AttachType attachTyp
 	auto hr = HrSetOneProp(m_ptrArchiveStore, &sPropVal);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMAPIFolder> ptrArchiveFolder;
 	hr = GetArchiveFolder(true, &~ptrArchiveFolder);
 	if (hr != hrSuccess)
 		return hr;
@@ -321,9 +322,7 @@ HRESULT ArchiveHelper::SetArchiveType(ArchiveType archType, AttachType attachTyp
  */
 HRESULT ArchiveHelper::SetPermissions(const abentryid_t &sUserEntryId, bool bWritable)
 {
-	MAPIFolderPtr ptrFolder;
 	object_ptr<IExchangeModifyTable> ptrEMT;
-	MAPITablePtr ptrTable;
 	SPropValue sUserProps[2], sOtherProps[2];
 	memory_ptr<ROWLIST> ptrRowList;
 	StoreHelperPtr ptrStoreHelper;
@@ -340,6 +339,7 @@ HRESULT ArchiveHelper::SetPermissions(const abentryid_t &sUserEntryId, bool bWri
 	hr = StoreHelper::Create(m_ptrArchiveStore, &ptrStoreHelper);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMAPIFolder> ptrFolder;
 	hr = ptrStoreHelper->GetIpmSubtree(&~ptrFolder);
 	if (hr != hrSuccess)
 		return hr;
@@ -408,15 +408,14 @@ HRESULT ArchiveHelper::SetPermissions(const abentryid_t &sUserEntryId, bool bWri
  * @param[out]	lppDestinationFolder
  *					Pointer to a MAPIFolder pointer that's assigned the address of the returned folder.
  */
-HRESULT ArchiveHelper::GetArchiveFolderFor(MAPIFolderPtr &ptrSourceFolder, ArchiverSessionPtr ptrSession, LPMAPIFOLDER *lppDestinationFolder)
+HRESULT ArchiveHelper::GetArchiveFolderFor(object_ptr<IMAPIFolder> &ptrSourceFolder,
+    ArchiverSessionPtr ptrSession, IMAPIFolder **lppDestinationFolder)
 {
-	SPropValuePtr ptrStoreEntryId, ptrFolderType, ptrFolderEntryId;
+	memory_ptr<SPropValue> ptrStoreEntryId, ptrFolderType, ptrFolderEntryId, ptrPropArray;
 	MAPIPropHelperPtr ptrSourceFolderHelper, ptrArchiveFolderHelper;
 	ObjectEntryList lstFolderArchives;
 	ObjectEntryList::const_iterator iArchiveFolder;
-	MAPIFolderPtr ptrArchiveFolder, ptrParentFolder, ptrArchiveParentFolder;
 	unsigned int cValues = 0;
-	SPropArrayPtr ptrPropArray;
 	SObjectEntry objectEntry;
 	static constexpr const SizedSPropTagArray(3, sptaFolderPropsForCreate) =
 		{3, {PR_CONTAINER_CLASS, PR_DISPLAY_NAME, PR_COMMENT}};
@@ -437,6 +436,7 @@ HRESULT ArchiveHelper::GetArchiveFolderFor(MAPIFolderPtr &ptrSourceFolder, Archi
 		return hr;
 
 	iArchiveFolder = std::find_if(lstFolderArchives.cbegin(), lstFolderArchives.cend(), StoreCompare(ptrStoreEntryId->Value.bin));
+	object_ptr<IMAPIFolder> ptrArchiveFolder, ptrParentFolder, ptrArchiveParentFolder;
 	if (iArchiveFolder != lstFolderArchives.cend()) {
 		hr = m_ptrArchiveStore->OpenEntry(iArchiveFolder->sItemEntryId.size(),
 		     iArchiveFolder->sItemEntryId, &iid_of(ptrArchiveFolder),
@@ -620,13 +620,13 @@ HRESULT ArchiveHelper::GetArchiveFolder(bool bCreate, LPMAPIFOLDER *lppArchiveFo
  */
 HRESULT ArchiveHelper::IsArchiveFolder(LPMAPIFOLDER lpFolder, bool *lpbResult)
 {
-	SPropValuePtr ptrFolderEntryID, ptrArchiveEntryID;
-	MAPIFolderPtr ptrArchiveFolder;
+	memory_ptr<SPropValue> ptrFolderEntryID, ptrArchiveEntryID;
 	ULONG ulResult = 0;
 
 	auto hr = HrGetOneProp(lpFolder, PR_ENTRYID, &~ptrFolderEntryID);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMAPIFolder> ptrArchiveFolder;
 	hr = GetArchiveFolder(false, &~ptrArchiveFolder);
 	if (hr == MAPI_E_NOT_FOUND) {
 		*lpbResult = false;
@@ -649,12 +649,12 @@ HRESULT ArchiveHelper::IsArchiveFolder(LPMAPIFOLDER lpFolder, bool *lpbResult)
 
 HRESULT ArchiveHelper::GetSpecialFolderEntryID(eSpecFolder sfWhich, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
 {
-	MAPIFolderPtr ptrArchiveRoot;
-	SPropValuePtr ptrSFEntryIDs;
+	object_ptr<IMAPIFolder> ptrArchiveRoot;
 
 	auto hr = GetArchiveFolder(false, &~ptrArchiveRoot);
 	if (hr != hrSuccess)
 		return hr;
+	memory_ptr<SPropValue> ptrSFEntryIDs;
 	hr = HrGetOneProp(ptrArchiveRoot, PROP_SPECIAL_FOLDER_ENTRYIDS, &~ptrSFEntryIDs);
 	if (hr != hrSuccess)
 		return hr;
@@ -668,13 +668,12 @@ HRESULT ArchiveHelper::GetSpecialFolderEntryID(eSpecFolder sfWhich, ULONG *lpcbE
 
 HRESULT ArchiveHelper::SetSpecialFolderEntryID(eSpecFolder sfWhich, ULONG cbEntryID, LPENTRYID lpEntryID)
 {
-	MAPIFolderPtr ptrArchiveRoot;
-	SPropValuePtr ptrSFEntryIDs;
-
+	object_ptr<IMAPIFolder> ptrArchiveRoot;
 	auto hr = GetArchiveFolder(false, &~ptrArchiveRoot);
 	if (hr != hrSuccess)
 		return hr;
 
+	memory_ptr<SPropValue> ptrSFEntryIDs;
 	hr = HrGetOneProp(ptrArchiveRoot, PROP_SPECIAL_FOLDER_ENTRYIDS, &~ptrSFEntryIDs);
 	if (hr == MAPI_E_NOT_FOUND) {
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), &~ptrSFEntryIDs);
@@ -722,8 +721,8 @@ HRESULT ArchiveHelper::SetSpecialFolderEntryID(eSpecFolder sfWhich, ULONG cbEntr
 HRESULT ArchiveHelper::GetSpecialFolder(eSpecFolder sfWhich, bool bCreate, LPMAPIFOLDER *lppSpecialFolder)
 {
 	ULONG ulSpecialFolderID;
-	EntryIdPtr ptrSpecialFolderID;
-	MAPIFolderPtr ptrSpecialFolder;
+	memory_ptr<ENTRYID> ptrSpecialFolderID;
+	object_ptr<IMAPIFolder> ptrSpecialFolder;
 
 	auto hr = GetSpecialFolderEntryID(sfWhich, &ulSpecialFolderID, &~ptrSpecialFolderID);
 	if (hr == hrSuccess)
@@ -741,10 +740,9 @@ HRESULT ArchiveHelper::GetSpecialFolder(eSpecFolder sfWhich, bool bCreate, LPMAP
 HRESULT ArchiveHelper::CreateSpecialFolder(eSpecFolder sfWhich, LPMAPIFOLDER *lppSpecialFolder)
 {
 	HRESULT hr;
-	MAPIFolderPtr ptrParent, ptrSpecialFolder;
+	object_ptr<IMAPIFolder> ptrParent, ptrSpecialFolder;
 	const TCHAR *lpszName = nullptr, *lpszDesc = nullptr;
 	unsigned int ulCreateFlags = OPEN_IF_EXISTS, ulCollisionCount = 0;
-	SPropValuePtr ptrEntryID;
 
 	if (sfWhich == sfBase)
 		// We need to get the archive root to create the special root folder in
@@ -793,6 +791,7 @@ HRESULT ArchiveHelper::CreateSpecialFolder(eSpecFolder sfWhich, LPMAPIFOLDER *lp
 	} while (hr == MAPI_E_COLLISION && ulCollisionCount < 0xffff);	// We need to stop counting at some point.
 	if (hr != hrSuccess)
 		return hr;
+	memory_ptr<SPropValue> ptrEntryID;
 	hr = HrGetOneProp(ptrSpecialFolder, PR_ENTRYID, &~ptrEntryID);
 	if (hr != hrSuccess)
 		return hr;
@@ -806,8 +805,7 @@ HRESULT ArchiveHelper::CreateSpecialFolder(eSpecFolder sfWhich, LPMAPIFOLDER *lp
 
 HRESULT ArchiveHelper::IsSpecialFolder(eSpecFolder sfWhich, LPMAPIFOLDER lpFolder, bool *lpbResult)
 {
-	EntryIdPtr ptrSpecialEntryID;
-	SPropValuePtr ptrFolderEntryID;
+	memory_ptr<ENTRYID> ptrSpecialEntryID;
 	unsigned int ulResult = 0, cbSpecialEntryID;
 
 	auto hr = GetSpecialFolderEntryID(sfWhich, &cbSpecialEntryID, &~ptrSpecialEntryID);
@@ -817,6 +815,7 @@ HRESULT ArchiveHelper::IsSpecialFolder(eSpecFolder sfWhich, LPMAPIFOLDER lpFolde
 	}
 	if (hr != hrSuccess)
 		return hr;
+	memory_ptr<SPropValue> ptrFolderEntryID;
 	hr = HrGetOneProp(lpFolder, PR_ENTRYID, &~ptrFolderEntryID);
 	if (hr != hrSuccess)
 		return hr;
@@ -832,7 +831,6 @@ HRESULT ArchiveHelper::IsSpecialFolder(eSpecFolder sfWhich, LPMAPIFOLDER lpFolde
 HRESULT ArchiveHelper::PrepareForFirstUse(ECLogger *lpLogger)
 {
 	StoreHelperPtr ptrStoreHelper;
-	MAPIFolderPtr ptrIpmSubtree;
 	SPropValue sEntryId;
 
 	auto hr = StoreHelper::Create(m_ptrArchiveStore, &ptrStoreHelper);
@@ -841,6 +839,7 @@ HRESULT ArchiveHelper::PrepareForFirstUse(ECLogger *lpLogger)
 			lpLogger->perr("Failed to create store helper", hr);
 		return hr;
 	}
+	object_ptr<IMAPIFolder> ptrIpmSubtree;
 	hr = ptrStoreHelper->GetIpmSubtree(&~ptrIpmSubtree);
 	if (hr != hrSuccess) {
 		if (lpLogger)

@@ -26,7 +26,6 @@
 #include <kopano/mapiext.h>
 #include <kopano/EMSAbTag.h>
 #include <kopano/ECABEntryID.h>
-#include <kopano/mapi_ptr.h>
 #include <vmime/base.hpp>
 
 using namespace std::string_literals;
@@ -312,7 +311,7 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage,
 		}
 
 		// Delivery report request
-		SPropValuePtr ptrDeliveryReport;
+		memory_ptr<SPropValue> ptrDeliveryReport;
 		if (mapiTransport != nullptr &&
 		    HrGetOneProp(lpMessage, PR_ORIGINATOR_DELIVERY_REPORT_REQUESTED, &~ptrDeliveryReport) == hrSuccess &&
 		    ptrDeliveryReport->Value.b)

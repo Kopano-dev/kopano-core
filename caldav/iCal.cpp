@@ -17,7 +17,6 @@
 #include <libxml/tree.h>
 #include <libxml/parser.h>
 #include "PublishFreeBusy.h"
-#include <kopano/mapi_ptr.h>
 
 using namespace KC;
 
@@ -372,12 +371,12 @@ HRESULT iCal::HrGetContents(LPMAPITABLE *lppTable)
 {
 	std::string strUrl;
 	memory_ptr<SRestriction> lpsRestriction;
-	MAPITablePtr ptrContents;
 	static constexpr const SizedSPropTagArray(1, sPropEntryIdcol) = {1, {PR_ENTRYID}};
 	ULONG ulRows = 0;
 
 	if (m_lpUsrFld == nullptr)
 		return MAPI_E_NOT_FOUND;
+	object_ptr<IMAPITable> ptrContents;
 	auto hr = m_lpUsrFld->GetContentsTable(0, &~ptrContents);
 	if (hr != hrSuccess)
 		return kc_perror("Error retrieving calendar entries", hr);

@@ -5,7 +5,7 @@
 #include <kopano/ECFeatures.hpp>
 #include "ECFeatureList.h"
 #include <kopano/CommonUtil.h>
-#include <kopano/mapi_ptr.h>
+#include <kopano/memory.hpp>
 
 namespace KC {
 
@@ -55,16 +55,16 @@ HRESULT hasFeature(const char *feature, const SPropValue *lpProps)
 static HRESULT HrGetUserProp(IAddrBook *lpAddrBook, IMsgStore *lpStore,
     ULONG ulPropTag, LPSPropValue *lpProps)
 {
-	SPropValuePtr ptrProps;
-	MailUserPtr ptrUser;
 	ULONG ulObjType;
 
 	if (lpStore == NULL || PROP_TYPE(ulPropTag) != PT_MV_STRING8 ||
 	    lpProps == NULL)
 		return MAPI_E_INVALID_PARAMETER;
+	memory_ptr<SPropValue> ptrProps;
 	HRESULT hr = HrGetOneProp(lpStore, PR_MAILBOX_OWNER_ENTRYID, &~ptrProps);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMailUser> ptrUser;
 	hr = lpAddrBook->OpenEntry(ptrProps->Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrProps->Value.bin.lpb), &IID_IMailUser, 0, &ulObjType, &~ptrUser);
 	if (hr != hrSuccess)
 		return hr;
@@ -88,11 +88,10 @@ static HRESULT HrGetUserProp(IAddrBook *lpAddrBook, IMsgStore *lpStore,
 bool checkFeature(const char *feature, IAddrBook *lpAddrBook,
     IMsgStore *lpStore, ULONG ulPropTag)
 {
-	SPropValuePtr ptrProps;
-
 	if (feature == NULL || lpStore == NULL ||
 	    PROP_TYPE(ulPropTag) != PT_MV_STRING8)
 		return MAPI_E_INVALID_PARAMETER == hrSuccess;
+	memory_ptr<SPropValue> ptrProps;
 	HRESULT hr = HrGetUserProp(lpAddrBook, lpStore, ulPropTag, &~ptrProps);
 	if (hr != hrSuccess)
 		return false;

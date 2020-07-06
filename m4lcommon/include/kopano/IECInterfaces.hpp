@@ -3,11 +3,11 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #pragma once
+#include <mapidefs.h>
 #include <edkmdb.h>
 #include <kopano/ECDefs.h>
 #include <kopano/ECGuid.h>
 #include <kopano/platform.h>
-#include <mapidefs.h>
 
 namespace KC {
 

@@ -4,30 +4,29 @@
  */
 #include <algorithm>
 #include <kopano/platform.h>
+#include <kopano/IECInterfaces.hpp>
 #include <kopano/Util.h>
+#include <kopano/memory.hpp>
 #include "postsaveiidupdater.h"
 #include "instanceidmapper.h"
 
 namespace KC { namespace operations {
 
-TaskBase::TaskBase(const AttachPtr &ptrSourceAttach, const MessagePtr &ptrDestMsg, ULONG ulDestAttachIdx)
-: m_ptrSourceAttach(ptrSourceAttach)
-, m_ptrDestMsg(ptrDestMsg)
-, m_ulDestAttachIdx(ulDestAttachIdx)
+TaskBase::TaskBase(const object_ptr<IAttach> &sa,
+    const object_ptr<IMessage> &dst, unsigned int dst_at_idx) :
+	m_ptrSourceAttach(sa), m_ptrDestMsg(dst), m_ulDestAttachIdx(dst_at_idx)
 { }
 
 HRESULT TaskBase::Execute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper) {
-	SPropValuePtr ptrSourceServerUID, ptrDestServerUID;
-	EntryIdPtr ptrSourceInstanceID, ptrDestInstanceID;
-	MAPITablePtr ptrTable;
-	SRowSetPtr ptrRows;
-	AttachPtr ptrAttach;
+	memory_ptr<SPropValue> ptrSourceServerUID, ptrDestServerUID;
+	memory_ptr<ENTRYID> ptrSourceInstanceID, ptrDestInstanceID;
 	unsigned int cbSourceInstanceID = 0, cbDestInstanceID = 0;
 	static constexpr const SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ATTACH_NUM}};
 
 	auto hr = GetUniqueIDs(m_ptrSourceAttach, &~ptrSourceServerUID, &cbSourceInstanceID, &~ptrSourceInstanceID);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IMAPITable> ptrTable;
 	hr = m_ptrDestMsg->GetAttachmentTable(MAPI_DEFERRED_ERRORS, &~ptrTable);
 	if (hr != hrSuccess)
 		return hr;
@@ -37,11 +36,13 @@ HRESULT TaskBase::Execute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper)
 	hr = ptrTable->SeekRow(BOOKMARK_BEGINNING, m_ulDestAttachIdx, NULL);
 	if (hr != hrSuccess)
 		return hr;
+	rowset_ptr ptrRows;
 	hr = ptrTable->QueryRows(1, 0, &~ptrRows);
 	if (hr != hrSuccess)
 		return hr;
 	if (ptrRows.empty())
 		return MAPI_E_NOT_FOUND;
+	object_ptr<IAttach> ptrAttach;
 	hr = m_ptrDestMsg->OpenAttach(ptrRows[0].lpProps[0].Value.ul, &iid_of(ptrAttach), 0, &~ptrAttach);
 	if (hr != hrSuccess)
 		return hr;
@@ -56,10 +57,10 @@ HRESULT TaskBase::Execute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper)
 
 HRESULT TaskBase::GetUniqueIDs(IAttach *lpAttach, LPSPropValue *lppServerUID, ULONG *lpcbInstanceID, LPENTRYID *lppInstanceID)
 {
-	SPropValuePtr ptrServerUID;
+	memory_ptr<SPropValue> ptrServerUID;
 	object_ptr<IECSingleInstance> ptrInstance;
 	ULONG cbInstanceID = 0;
-	EntryIdPtr ptrInstanceID;
+	memory_ptr<ENTRYID> ptrInstanceID;
 
 	auto hr = HrGetOneProp(lpAttach, PR_EC_SERVER_UID, &~ptrServerUID);
 	if (hr != hrSuccess)
@@ -77,17 +78,18 @@ HRESULT TaskBase::GetUniqueIDs(IAttach *lpAttach, LPSPropValue *lppServerUID, UL
 	return hrSuccess;
 }
 
-TaskMapInstanceId::TaskMapInstanceId(const AttachPtr &ptrSourceAttach, const MessagePtr &ptrDestMsg, ULONG ulDestAttachNum)
-: TaskBase(ptrSourceAttach, ptrDestMsg, ulDestAttachNum)
+TaskMapInstanceId::TaskMapInstanceId(const object_ptr<IAttach> &sa,
+    const object_ptr<IMessage> &dst, unsigned int dst_at_num) :
+	TaskBase(sa, dst, dst_at_num)
 { }
 
 HRESULT TaskMapInstanceId::DoExecute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper, const SBinary &sourceServerUID, ULONG cbSourceInstanceID, LPENTRYID lpSourceInstanceID, const SBinary &destServerUID, ULONG cbDestInstanceID, LPENTRYID lpDestInstanceID) {
 	return ptrMapper->SetMappedInstances(ulPropTag, sourceServerUID, cbSourceInstanceID, lpSourceInstanceID, destServerUID, cbDestInstanceID, lpDestInstanceID);
 }
 
-TaskVerifyAndUpdateInstanceId::TaskVerifyAndUpdateInstanceId(const AttachPtr &ptrSourceAttach, const MessagePtr &ptrDestMsg, ULONG ulDestAttachNum, ULONG cbDestInstanceID, LPENTRYID lpDestInstanceID)
-: TaskBase(ptrSourceAttach, ptrDestMsg, ulDestAttachNum)
-, m_destInstanceID(cbDestInstanceID, lpDestInstanceID)
+TaskVerifyAndUpdateInstanceId::TaskVerifyAndUpdateInstanceId(const object_ptr<IAttach> &sa,
+    const object_ptr<IMessage> &dst, unsigned int dst_at_num, unsigned int di_size, ENTRYID *di_id) :
+	TaskBase(sa, dst, dst_at_num), m_destInstanceID(di_size, di_id)
 { }
 
 HRESULT TaskVerifyAndUpdateInstanceId::DoExecute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper, const SBinary &sourceServerUID, ULONG cbSourceInstanceID, LPENTRYID lpSourceInstanceID, const SBinary &destServerUID, ULONG cbDestInstanceID, LPENTRYID lpDestInstanceID) {

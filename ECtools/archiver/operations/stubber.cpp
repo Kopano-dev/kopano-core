@@ -14,6 +14,7 @@
 #include <kopano/archiver-common.h>
 #include "helpers/MAPIPropHelper.h"
 #include <kopano/mapiext.h>
+#include <kopano/memory.hpp>
 
 using namespace KC::helpers;
 
@@ -57,8 +58,6 @@ Stubber::Stubber(std::shared_ptr<ECArchiverLogger> lpLogger, ULONG ulptStubbed,
 
 HRESULT Stubber::ProcessEntry(IMAPIFolder * lpFolder, const SRow &proprow)
 {
-	MessagePtr ptrMessage;
-
 	assert(lpFolder != NULL);
 	if (lpFolder == NULL)
 		return MAPI_E_INVALID_PARAMETER;
@@ -68,6 +67,8 @@ HRESULT Stubber::ProcessEntry(IMAPIFolder * lpFolder, const SRow &proprow)
 		return MAPI_E_NOT_FOUND;
 	}
 	Logger()->logf(EC_LOGLEVEL_DEBUG, "Opening message (%s)", bin2hex(lpEntryId->Value.bin).c_str());
+
+	object_ptr<IMessage> ptrMessage;
 	auto hr = lpFolder->OpenEntry(lpEntryId->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryId->Value.bin.lpb),
 	          &IID_IECMessageRaw, MAPI_BEST_ACCESS, nullptr, &~ptrMessage);
 	if (hr == MAPI_E_NOT_FOUND) {
@@ -86,9 +87,6 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 		return MAPI_E_INVALID_PARAMETER;
 
 	SPropValue sProps[3]{}, sProp{};
-	MAPITablePtr ptrAttTable;
-	SRowSetPtr ptrRowSet;
-	AttachPtr ptrAttach;
 	ULONG ulAttachNum = 0;
 	MAPIPropHelperPtr ptrMsgHelper;
 	ObjectEntryList lstMsgArchives;
@@ -132,9 +130,11 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 	hr = lpMessage->SetProps(3, sProps, NULL);
 	if (hr != hrSuccess)
 		return Logger()->perr("Failed to set properties", hr);
+	object_ptr<IMAPITable> ptrAttTable;
 	hr = lpMessage->GetAttachmentTable(fMapiDeferredErrors, &~ptrAttTable);
 	if (hr != hrSuccess)
 		return Logger()->perr("Failed to get attachment table", hr);
+	rowset_ptr ptrRowSet;
 	hr = HrQueryAllRows(ptrAttTable, sptaTableProps, nullptr, nullptr, 0, &~ptrRowSet);
 	if (hr != hrSuccess)
 		return Logger()->perr("Failed to get attachment numbers", hr);
@@ -151,6 +151,7 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 		}
 
 		Logger()->Log(EC_LOGLEVEL_INFO, "Adding placeholder attachment");
+		object_ptr<IAttach> ptrAttach;
 		hr = lpMessage->CreateAttach(&iid_of(ptrAttach), 0, &ulAttachNum, &~ptrAttach);
 		if (hr != hrSuccess)
 			return Logger()->perr("Failed to create attachment", hr);

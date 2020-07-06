@@ -16,6 +16,7 @@
 #include "ECIterators.h"
 #include <kopano/hl.hpp>
 #include <kopano/ECRestriction.h>
+#include <kopano/mapiguidext.h>
 
 namespace KC {
 
@@ -42,7 +43,7 @@ MailboxDataCollector::MailboxDataCollector(ArchiveStateCollector::ArchiveInfoMap
 
 HRESULT MailboxDataCollector::GetRequiredPropTags(LPMAPIPROP lpProp, LPSPropTagArray *lppPropTagArray) const
 {
-	SPropTagArrayPtr ptrPropTagArray;
+	memory_ptr<SPropTagArray> ptrPropTagArray;
 
 	PROPMAP_START(2)
 		PROPMAP_NAMED_ID(STORE_ENTRYIDS, PT_MV_BINARY, PSETID_Archive, "store-entryids")
@@ -67,14 +68,14 @@ HRESULT MailboxDataCollector::CollectData(LPMAPITABLE lpStoreTable)
 	enum {IDX_ENTRYID, IDX_MAILBOX_OWNER_ENTRYID, IDX_STORE_ENTRYIDS, IDX_ITEM_ENTRYIDS, IDX_MAX};
 
 	while (true) {
-		SRowSetPtr ptrRows;
+		rowset_ptr ptrRows;
 		auto hr = lpStoreTable->QueryRows(50, 0, &~ptrRows);
 		if (hr != hrSuccess)
 			return hr;
 		if (ptrRows.size() == 0)
 			break;
 
-		for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
+		for (rowset_ptr::size_type i = 0; i < ptrRows.size(); ++i) {
 			const auto &prop = ptrRows[i].lpProps;
 			bool bComplete = true;
 			abentryid_t userId;
@@ -177,8 +178,7 @@ HRESULT ArchiveStateCollector::GetArchiveStateUpdater(ArchiveStateUpdaterPtr *lp
  */
 HRESULT ArchiveStateCollector::PopulateUserList()
 {
-	ABContainerPtr ptrABContainer;
-
+	object_ptr<IABContainer> ptrABContainer;
 	auto hr = m_ptrSession->GetGAL(&~ptrABContainer);
 	if (hr != hrSuccess)
 		return hr;
@@ -211,8 +211,6 @@ HRESULT ArchiveStateCollector::PopulateUserList()
 HRESULT ArchiveStateCollector::PopulateFromContainer(LPABCONT lpContainer)
 {
 	SPropValue sPropObjType, sPropDispType;
-	MAPITablePtr ptrTable;
-	SRowSetPtr ptrRows;
 	static constexpr const SizedSPropTagArray(4, sptaUserProps) =
 		{4, {PR_ENTRYID, PR_ACCOUNT, PR_EC_ARCHIVE_SERVERS,
 		PR_EC_ARCHIVE_COUPLINGS}};
@@ -225,6 +223,7 @@ HRESULT ArchiveStateCollector::PopulateFromContainer(LPABCONT lpContainer)
 	sPropDispType.Value.ul = DT_MAILUSER;;
 
 	m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "Scanning IABContainer for users with archives");
+	object_ptr<IMAPITable> ptrTable;
 	auto hr = lpContainer->GetContentsTable(0, &~ptrTable);
 	if (hr != hrSuccess)
 		return hr;
@@ -243,6 +242,7 @@ HRESULT ArchiveStateCollector::PopulateFromContainer(LPABCONT lpContainer)
 		return hr;
 
 	while (true) {
+		rowset_ptr ptrRows;
 		hr = ptrTable->QueryRows(50, 0, &~ptrRows);
 		if (hr != hrSuccess)
 			return hr;
@@ -250,7 +250,7 @@ HRESULT ArchiveStateCollector::PopulateFromContainer(LPABCONT lpContainer)
 		if (ptrRows.size() == 0)
 			break;
 
-		for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
+		for (rowset_ptr::size_type i = 0; i < ptrRows.size(); ++i) {
 			const auto &prop = ptrRows[i].lpProps;
 			if (prop[IDX_ENTRYID].ulPropTag != PR_ENTRYID) {
 				auto err = prop[IDX_ACCOUNT].Value.err;

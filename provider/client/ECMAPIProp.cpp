@@ -20,7 +20,6 @@
 #include <kopano/Util.h>
 #include <kopano/mapiext.h>
 #include <kopano/CommonUtil.h>
-#include <kopano/mapi_ptr.h>
 #include "pcutil.hpp"
 #include <algorithm>
 #include <sstream>

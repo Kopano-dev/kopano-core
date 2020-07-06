@@ -13,7 +13,6 @@
 #include <kopano/EMSAbTag.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/charset/convert.h>
-#include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
 #include <kopano/timeutil.hpp>
 
@@ -415,7 +414,7 @@ std::string StripGuid(const std::string &strInput)
  */
 HRESULT HrGetOwner(IMAPISession *lpSession, IMsgStore *lpDefStore, IMailUser **lppImailUser)
 {
-	SPropValuePtr ptrSProp;
+	memory_ptr<SPropValue> ptrSProp;
 	object_ptr<IMailUser> lpMailUser;
 	ULONG ulObjType = 0;
 
@@ -668,13 +667,13 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport *lpFBSupport,
 	std::list<std::string>::const_iterator itUsers;
 	adrlist_ptr lpAdrList;
 	memory_ptr<FlagList> ptrFlagList;
-	EntryIdPtr ptrEntryId;
+	memory_ptr<ENTRYID> ptrEntryId;
 	unsigned int cFBData = 0, cbEntryId = 0, ulObj = 0;
-	ABContainerPtr ptrABDir;
 
 	HRESULT hr = lpAddrBook->GetDefaultDir(&cbEntryId, &~ptrEntryId);
 	if (hr != hrSuccess)
 		return hr;
+	object_ptr<IABContainer> ptrABDir;
 	hr = lpAddrBook->OpenEntry(cbEntryId, ptrEntryId, &iid_of(ptrABDir), 0, &ulObj, &~ptrABDir);
 	if (hr != hrSuccess)
 		return hr;
