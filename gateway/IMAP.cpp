@@ -55,6 +55,7 @@
 #include "IMAP.h"
 
 using namespace KC;
+using namespace std::string_literals;
 
 /**
  * @ingroup gateway_imap
@@ -374,8 +375,7 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 			continue;
 		if (strvResult.size() == 0)
 			return (this->*cmd.func)(strTag);
-		HrResponse(RESP_TAGGED_BAD, strTag, std::string(cmd.command) +
-			" must have 0 arguments");
+		HrResponse(RESP_TAGGED_BAD, strTag, cmd.command + " must have 0 arguments"s);
 		return hrSuccess;
 	}
 	for (const auto &cmd : cmds) {
@@ -383,8 +383,8 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 			continue;
 		if (strvResult.size() == cmd.params)
 			return (this->*cmd.func)(strTag, strvResult);
-		HrResponse(RESP_TAGGED_BAD, strTag, std::string(cmd.command) +
-			" must have " + stringify(cmd.params) + " arguments");
+		HrResponse(RESP_TAGGED_BAD, strTag, cmd.command +
+			" must have "s + stringify(cmd.params) + " arguments");
 		return hrSuccess;
 	}
 
@@ -509,10 +509,10 @@ HRESULT IMAP::HrCmdNoop(const std::string &strTag, bool check)
 	if (!strCurrentFolder.empty() || check)
 		hr = HrRefreshFolderMails(false, !bCurrentFolderReadOnly, NULL);
 	if (hr != hrSuccess) {
-		HrResponse(RESP_TAGGED_BAD, strTag, (check ? std::string("CHECK") : std::string("NOOP")) + " completed");
+		HrResponse(RESP_TAGGED_BAD, strTag, (check ? "CHECK" : "NOOP") + " completed"s);
 		return hr;
 	}
-	HrResponse(RESP_TAGGED_OK, strTag, (check ? std::string("CHECK") : std::string("NOOP")) + " completed");
+	HrResponse(RESP_TAGGED_OK, strTag, (check ? "CHECK" : "NOOP") + " completed"s);
 	return hrSuccess;
 }
 
@@ -3447,12 +3447,12 @@ HRESULT IMAP::HrPropertyFetchRow(SPropValue *lpProps, unsigned int cValues,
 			// table version
 			auto lpProp = PCpropFindProp(lpProps, cValues, PR_EC_IMAP_BODY);
 			vProps.emplace_back(item);
-			vProps.emplace_back(lpProp != nullptr ? string_strip_crlf(lpProp->Value.lpszA) : std::string("NIL"));
+			vProps.emplace_back(lpProp != nullptr ? string_strip_crlf(lpProp->Value.lpszA) : "NIL"s);
 		} else if (bSkipOpen && item == "BODYSTRUCTURE") {
 			// table version
 			auto lpProp = PCpropFindProp(lpProps, cValues, PR_EC_IMAP_BODYSTRUCTURE);
 			vProps.emplace_back(item);
-			vProps.emplace_back(lpProp != nullptr ? string_strip_crlf(lpProp->Value.lpszA) : std::string("NIL"));
+			vProps.emplace_back(lpProp != nullptr ? string_strip_crlf(lpProp->Value.lpszA) : "NIL"s);
 		} else if (kc_starts_with(item, "BODY") || kc_starts_with(item, "RFC822")) {
 			// the only exceptions when we don't need to generate anything yet.
 			if (item == "RFC822.SIZE") {

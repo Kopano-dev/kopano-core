@@ -23,6 +23,8 @@ extern "C" {
 #include <et/com_err.h>
 }
 
+using namespace std::string_literals;
+
 namespace KC {
 
 ECRESULT ECKrb5AuthenticateUser(const std::string &strUsername, const std::string &strPassword, std::string *lpstrError)
@@ -39,19 +41,19 @@ ECRESULT ECKrb5AuthenticateUser(const std::string &strUsername, const std::strin
 
 	auto code = krb5_init_context(&ctx);
 	if (code) {
-		*lpstrError = std::string("Unable to initialize kerberos 5 library: code ") + error_message(code);
+		*lpstrError = "Unable to initialize kerberos 5 library: code "s + error_message(code);
 		er = KCERR_INVALID_PARAMETER;
 		goto exit;
 	}
 	code = krb5_parse_name(ctx, strUsername.c_str(), &me);
 	if (code) {
-		*lpstrError = std::string("Error parsing kerberos 5 username: code ") + error_message(code);
+		*lpstrError = "Error parsing kerberos 5 username: code "s + error_message(code);
 		er = KCERR_INVALID_PARAMETER;
 		goto exit;
 	}
 	code = krb5_unparse_name(ctx, me, &name);
 	if (code) {
-		*lpstrError = std::string("Error unparsing kerberos 5 username: code ") + error_message(code);
+		*lpstrError = "Error unparsing kerberos 5 username: code "s + error_message(code);
 		er = KCERR_INVALID_PARAMETER;
 		goto exit;
 	}

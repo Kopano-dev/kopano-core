@@ -25,6 +25,8 @@
 #include "ECSearchFolders.h"
 #include "StatsClient.h"
 
+using namespace std::string_literals;
+
 namespace KC {
 
 struct sUpdateList_t {
@@ -362,7 +364,7 @@ ECRESULT ECDatabase::InitializeDBState(void)
 ECRESULT ECDatabase::InitializeDBStateInner(void)
 {
 	for (size_t i = 0; i < ARRAY_SIZE(stored_procedures); ++i) {
-		auto er = DoUpdate(std::string("DROP PROCEDURE IF EXISTS ") + stored_procedures[i].szName);
+		auto er = DoUpdate("DROP PROCEDURE IF EXISTS "s + stored_procedures[i].szName);
 		if(er != erSuccess)
 			return er;
 		er = DoUpdate(stored_procedures[i].szSQL);

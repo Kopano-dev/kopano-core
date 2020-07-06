@@ -1616,7 +1616,7 @@ ECRESULT ECFileAttachment::save_instance_data(const std::string &filename, int f
 
 	// no need to remove the file, just overwrite it
 	if (compressAttachment) {
-		gz_ptr gzfp(fd, std::string("wb" + m_CompressionLevel).c_str());
+		gz_ptr gzfp(fd, ("wb" + m_CompressionLevel).c_str());
 		if (!gzfp) {
 			ec_log_err("Unable to gzopen attachment \"%s\" for writing: %s", filename.c_str(), strerror(errno));
 			er = KCERR_DATABASE_ERROR;
@@ -1695,7 +1695,7 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(ext_siid &ulInstanceId,
 
 	//no need to remove the file, just overwrite it
 	if (m_bFileCompression) {
-		gz_ptr gzfp(fd, std::string("wb" + m_CompressionLevel).c_str());
+		gz_ptr gzfp(fd, ("wb" + m_CompressionLevel).c_str());
 		if (!gzfp) {
 			ec_log_err("Unable to gzdopen attachment \"%s\" for writing: %s",
 				filename.c_str(), strerror(errno));

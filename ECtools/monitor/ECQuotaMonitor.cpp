@@ -37,6 +37,7 @@
 #include <string>
 
 using namespace KC;
+using namespace std::string_literals;
 
 #define QUOTA_CONFIG_MSG "Kopano.Quota"
 
@@ -236,7 +237,7 @@ HRESULT ECQuotaMonitor::CheckCompanyQuota(ECCOMPANY *lpecCompany)
 		if (!setServersConfig.empty() &&
 		    setServersConfig.find(server.c_str()) == setServersConfig.cend())
 			continue;
-		hr = lpServiceAdmin->ResolvePseudoUrl(std::string("pseudo://" + server).c_str(), &~lpszConnection, &bIsPeer);
+		hr = lpServiceAdmin->ResolvePseudoUrl(("pseudo://" + server).c_str(), &~lpszConnection, &bIsPeer);
 		if (hr != hrSuccess) {
 			hr_lerr(hr, "Unable to resolve servername \"%s\"", server.c_str());
 			++m_ulFailed;

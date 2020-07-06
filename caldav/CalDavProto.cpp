@@ -17,6 +17,7 @@
 #define kc_pdebug(s, r) hr_logcode((r), EC_LOGLEVEL_DEBUG, nullptr, (s))
 
 using namespace KC;
+using namespace std::string_literals;
 
 /**
  * Mapping of CalDAV properties to MAPI properties
@@ -1625,7 +1626,7 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 		} else if (strProperty == "calendar-user-address-set" && (m_ulUrlFlag & REQ_PUBLIC) == 0 && !!ptrEmail) {
 			// rfc draft only: http://tools.ietf.org/html/draft-desruisseaux-caldav-sched-11
 			HrSetDavPropName(&(sWebVal.sPropName), "href", WEBDAVNS);
-			sWebVal.strValue = std::string("mailto:") + ptrEmail->Value.lpszA;
+			sWebVal.strValue = "mailto:"s + ptrEmail->Value.lpszA;
 			sWebProperty.lstValues.emplace_back(sWebVal);
 		} else if (strProperty == "acl" || strProperty == "current-user-privilege-set") {
 			HrBuildACL(&sWebProperty);
