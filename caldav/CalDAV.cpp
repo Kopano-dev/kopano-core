@@ -371,7 +371,6 @@ static HRESULT ical_listen(ECConfig *cfg)
  */
 static HRESULT HrProcessConnections()
 {
-	struct pollfd dummypoll;
 	HRESULT hr = hrSuccess;
 	ECChannel *lpChannel = NULL;
 
@@ -384,7 +383,7 @@ static HRESULT HrProcessConnections()
 			g_socks.pollfd[i].revents = 0;
 
 		// Check whether there are incoming connections.
-		auto err = poll(nfds > 0 ? &g_socks.pollfd[0] : &dummypoll, nfds, 10 * 1000);
+		auto err = poll(g_socks.pollfd.data(), nfds, 10 * 1000);
 		if (err < 0) {
 			if (errno != EINTR) {
 				ec_log_crit("An unknown socket error has occurred.");
@@ -413,7 +412,7 @@ static HRESULT HrProcessConnections()
 			}
 
 		hr = HrStartHandlerClient(lpChannel, g_socks.ssl[i], g_socks.linfd.size(),
-		     g_socks.linfd.size() > 0 ? &g_socks.linfd[0] : &err);
+		     g_socks.linfd.data());
 		if (hr != hrSuccess) {
 			delete lpChannel;	// destructor closes sockets
 			kc_perror("Handling client connection failed", hr);

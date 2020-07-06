@@ -159,6 +159,12 @@ Packaging changes:
 * gsoap 2.8.73 or higher is now required
 
 
+8.7.x
+=====
+* libserver: fix off by one crash in
+  ECGenericObjectTable::AddCategoryBeforeAddRow [KC-1798]
+
+
 8.7.14 (2020-06-11)
 ===================
 * build: support gsoap 2.8.103

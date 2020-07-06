@@ -2061,7 +2061,7 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
     for (i = 0; i < m_ulCategories && i < cProps; ++i) {
     	unsigned int ulDepth = i;
         bool fCategoryMoved = false; // TRUE if the entire category has moved somewhere (due to CATEG_MIN / CATEG_MAX change)
-		ECTableRow row(sObjectTableKey(0, 0), zort.size() > 0 ? std::vector<ECSortCol>(&zort[0], &zort[i+1]) : std::vector<ECSortCol>(), false);
+		ECTableRow row(sObjectTableKey(0, 0), std::vector<ECSortCol>(zort.data(), zort.data() + i + 1), false);
 
         // Find the actual category in our sorted category map
 	auto iterCategoriesSorted = m_mapSortedCategories.find(row);
