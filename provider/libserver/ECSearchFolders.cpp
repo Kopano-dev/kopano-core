@@ -1178,7 +1178,7 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulFolderId, std::list<unsigned
 	strQuery = "INSERT IGNORE INTO searchresults (folderid, hierarchyid, flags) VALUES";
 	for (const auto n : lstObjId)
 		strQuery += "(" + stringify(ulFolderId) + "," + stringify(n) + ",1),";
-	strQuery.resize(strQuery.size()-1);
+	strQuery.pop_back();
     er = lpDatabase->DoInsert(strQuery, NULL, &ulInserted);
 	if (er != erSuccess)
 		return ec_perror("ECSearchFolders::AddResults(): DoInsert failed", er);
@@ -1194,7 +1194,7 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulFolderId, std::list<unsigned
 	}
 
 	if (n > 0) {
-		strQuery.resize(strQuery.size()-1);
+		strQuery.pop_back();
 		strQuery += ") AND folderid = " + stringify(ulFolderId);
 		er = lpDatabase->DoUpdate(strQuery, &ulModified);
 		if (er != erSuccess)

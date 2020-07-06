@@ -591,9 +591,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
                 strQuery += ",";
             }
         }
-
-        // Remove trailing ,
-        strQuery.resize(strQuery.size()-1);
+        strQuery.pop_back();
         strQuery += ")";
     }
 
@@ -613,7 +611,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
             }
         }
 
-        strQuery.resize(strQuery.size()-1);
+        strQuery.pop_back();
         strQuery += ")";
         strQuery += "  GROUP BY hierarchyid, tag";
     }
@@ -900,7 +898,7 @@ ECRESULT ECStoreObjectTable::GetMVRowCountHelper(ECDatabase *db, std::string que
 		if (query.size() > KC_DFL_MAX_PACKET_SIZE - 1024)
 			break;
 	}
-	query.resize(query.size()-1);
+	query.pop_back();
 	query += ") GROUP BY h.id ORDER by h.id, orderid";
 
 	DB_RESULT result;
