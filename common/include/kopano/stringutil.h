@@ -184,8 +184,8 @@ Tp join(InputIterator first, InputIterator last, Tp sep)
 }
 
 extern KC_EXPORT std::string format(const char *fmt, ...) KC_LIKE_PRINTF(1, 2);
-extern KC_EXPORT bool kc_starts_with(const std::string &, const std::string &);
-extern KC_EXPORT bool kc_ends_with(const std::string &, const std::string &);
+extern KC_EXPORT bool kc_starts_with(const std::string &, const string_view &);
+extern KC_EXPORT bool kc_ends_with(const std::string &, const string_view &);
 
 template<typename T, typename U> bool kc_istarts_with(T &&a, U &&prefix)
 {
