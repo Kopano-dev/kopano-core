@@ -405,7 +405,6 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 		 "<!-- Converted from text/plain format -->\r\n" \
 		 "\r\n"; //FIXME create title on the fly ?
 
-	wstrUnicodeTmp.resize(0,0);
 	TryConvert(convertContext, tmp, rawsize(tmp), "us-ascii", wstrUnicodeTmp);
 	strOutput.append(wstrUnicodeTmp);
 	InitRTFState(&sState[0]);
