@@ -16,9 +16,11 @@
 #include <vmime/vmime.hpp>
 #include <vmime/platforms/posix/posixHandler.hpp>
 #include <vmime/utility/stream.hpp>
+#include <vmime/contentDispositionField.hpp>
 #include <vmime/contentTypeField.hpp>
 #include <vmime/generationContext.hpp>
 #include <vmime/message.hpp>
+#include <vmime/messageId.hpp>
 #include <vmime/parsedMessageAttachment.hpp>
 #include <vmime/emptyContentHandler.hpp>
 #include <kopano/memory.hpp>
@@ -34,7 +36,6 @@
 #include "MAPIToVMIME.h"
 #include "VMIMEToMAPI.h"
 #include "inputStreamMAPIAdapter.h"
-#include "mapiAttachment.h"
 #include "mapiTextPart.h"
 #include "rtfutil.h"
 #include <kopano/CommonUtil.h>
@@ -77,6 +78,20 @@ class SMIMEMessage final : public vmime::message {
 	void setSMIMEBody(const char *body) { m_body = body; }
 	private:
 	std::string m_body;
+};
+
+class mapiAttachment final : public vmime::defaultAttachment {
+	public:
+	mapiAttachment(vmime::shared_ptr<const vmime::contentHandler> data, const vmime::encoding &, const vmime::mediaType &, const std::string &contentid, const vmime::word &filename, const vmime::text &desc = vmime::NULL_TEXT, const vmime::word &name = vmime::NULL_WORD);
+	void addCharset(vmime::charset);
+
+	private:
+	vmime::word m_filename;
+	std::string m_contentid;
+	bool m_hasCharset = false;
+	vmime::charset m_charset;
+
+	void generatePart(const vmime::shared_ptr<vmime::bodyPart> &) const override;
 };
 
 /* These are the properties that we DON'T send through TNEF. Reasons can be:
@@ -2046,6 +2061,36 @@ void SMIMEMessage::generateImpl(const vmime::generationContext &ctx,
 	os << m_body;
 	if (newLinePos != 0)
 		*newLinePos = 0;
+}
+
+mapiAttachment::mapiAttachment(vmime::shared_ptr<const vmime::contentHandler> data,
+    const vmime::encoding &enc, const vmime::mediaType &type,
+    const std::string &contentid, const vmime::word &filename,
+    const vmime::text &desc, const vmime::word &name) :
+	defaultAttachment(data, enc, type, desc, name),
+	m_filename(filename), m_contentid(contentid)
+{}
+
+void mapiAttachment::addCharset(vmime::charset ch)
+{
+	m_hasCharset = true;
+	m_charset = ch;
+}
+
+void mapiAttachment::generatePart(const vmime::shared_ptr<vmime::bodyPart> &part) const
+{
+	vmime::defaultAttachment::generatePart(part);
+	vmime::dynamicCast<vmime::contentDispositionField>(part->getHeader()->ContentDisposition())->setFilename(m_filename);
+	auto ctf = vmime::dynamicCast<vmime::contentTypeField>(part->getHeader()->ContentType());
+	ctf->getParameter("name")->setValue(m_filename);
+	if (m_hasCharset)
+		ctf->setCharset(vmime::charset(m_charset));
+	if (m_contentid != "")
+		/*
+		 * Field is created when accessed through ContentId, so do not
+		 * create if we have no content-id to set.
+		 */
+		part->getHeader()->ContentId()->setValue(vmime::messageId("<" + m_contentid + ">"));
 }
 
 } /* namespace */

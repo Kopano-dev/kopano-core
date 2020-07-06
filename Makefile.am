@@ -534,7 +534,6 @@ libkcinetmapi_la_SOURCES = \
 	inetmapi/inetmapi.cpp \
 	inetmapi/inputStreamMAPIAdapter.cpp \
 	inetmapi/inputStreamMAPIAdapter.h \
-	inetmapi/mapiAttachment.cpp inetmapi/mapiAttachment.h \
 	inetmapi/mapiTextPart.cpp inetmapi/mapiTextPart.h \
 	inetmapi/serviceRegistration.inl \
 	inetmapi/tnef.cpp inetmapi/tnef.h
