@@ -397,11 +397,8 @@ HRESULT WebDav::HrHandleRptCalQry()
 				}
 			}
 		} else if (strcmp(x2s(lpXmlNode->name), "prop") == 0) {
-			if (lpXmlNode->ns && lpXmlNode->ns->href)
-				sReptQuery.sPropName.strNS = x2s(lpXmlNode->ns->href);
-			else
-				sReptQuery.sPropName.strNS = WEBDAVNS;
-
+			sReptQuery.sPropName.strNS = lpXmlNode->ns != nullptr && lpXmlNode->ns->href != nullptr ?
+				x2s(lpXmlNode->ns->href) : WEBDAVNS;
 			HrSetDavPropName(&(sReptQuery.sProp.sPropName),lpXmlNode);
 			for (auto lpXmlChildNode = lpXmlNode->children;
 			     lpXmlChildNode != nullptr;
@@ -896,7 +893,7 @@ HRESULT WebDav::HrWriteResponseProps(xmlTextWriter *xmlWriter,
 			sWebVal.sPropName = sWebProperty.sPropName;
 			sWebVal.strValue = sWebProperty.strValue;
 			//<getctag xmlns="xxxxxxxxxxx">xxxxxxxxxxxxxxxxx</getctag>
-			hr = WriteData(xmlWriter,sWebVal,lpstrNsPrefix);
+			hr = WriteData(xmlWriter, std::move(sWebVal), lpstrNsPrefix);
 		}
 		else
 		{	//<resourcetype>
@@ -907,8 +904,7 @@ HRESULT WebDav::HrWriteResponseProps(xmlTextWriter *xmlWriter,
 
 		//loop for sub properties
 		for (int k = 0; !sWebProperty.lstValues.empty(); ++k) {
-			WEBDAVVALUE sWebVal;
-			sWebVal = sWebProperty.lstValues.front();
+			const auto &sWebVal = sWebProperty.lstValues.front();
 			//<collection/>
 			if (!sWebVal.strValue.empty()) {
 				hr = WriteData(xmlWriter, sWebVal, lpstrNsPrefix);
@@ -970,7 +966,7 @@ HRESULT WebDav::HrWriteSPropStat(xmlTextWriter *xmlWriter,
 			sWebVal.sPropName = sWebProperty.sPropName;
 			sWebVal.strValue = sWebProperty.strValue;
 			//<getctag xmlns="xxxxxxxxxxx">xxxxxxxxxxxxxxxxx</getctag>
-			hr = WriteData(xmlWriter,sWebVal,lpstrNsPrefix);
+			hr = WriteData(xmlWriter, std::move(sWebVal), lpstrNsPrefix);
 		}
 		else
 		{	//<resourcetype>
@@ -988,8 +984,7 @@ HRESULT WebDav::HrWriteSPropStat(xmlTextWriter *xmlWriter,
 		//loop for sub properties
 		for (int k = 0; !sWebProperty.lstValues.empty(); ++k)
 		{
-			WEBDAVVALUE sWebVal;
-			sWebVal = sWebProperty.lstValues.front();
+			const auto &sWebVal = sWebProperty.lstValues.front();
 			//<collection/>
 			if (!sWebVal.strValue.empty()) {
 				hr = WriteData(xmlWriter,sWebVal,lpstrNsPrefix);
@@ -1209,20 +1204,17 @@ HRESULT WebDav::HrPropPatch()
 		goto exit;
 	}
 
-	if(lpXmlNode->ns && lpXmlNode->ns->href)
-		HrSetDavPropName(&sDavProp.sPropName, "prop", x2s(lpXmlNode->ns->href));
-	else
-		HrSetDavPropName(&(sDavProp.sPropName),"prop", WEBDAVNS);
+	HrSetDavPropName(&sDavProp.sPropName, "prop",
+		lpXmlNode->ns != nullptr && lpXmlNode->ns->href != nullptr ?
+		x2s(lpXmlNode->ns->href) : WEBDAVNS);
 
 	for (lpXmlNode = lpXmlNode->children; lpXmlNode != nullptr;
 	     lpXmlNode = lpXmlNode->next) {
 		WEBDAVPROPERTY sProperty;
 
-		if(lpXmlNode->ns && lpXmlNode->ns->href)
-			HrSetDavPropName(&sProperty.sPropName, x2s(lpXmlNode->name), x2s(lpXmlNode->ns->href));
-		else
-			HrSetDavPropName(&sProperty.sPropName, x2s(lpXmlNode->name), WEBDAVNS);
-
+		HrSetDavPropName(&sProperty.sPropName, x2s(lpXmlNode->name),
+			lpXmlNode->ns != nullptr && lpXmlNode->ns->href != nullptr ?
+			x2s(lpXmlNode->ns->href) : WEBDAVNS);
 		if (lpXmlNode->children != nullptr &&
 		    lpXmlNode->children->content != nullptr)
 			sProperty.strValue = x2s(lpXmlNode->children->content);
@@ -1307,20 +1299,17 @@ HRESULT WebDav::HrMkCalendar()
 		goto exit;
 	}
 
-	if(lpXmlNode->ns && lpXmlNode->ns->href)
-		HrSetDavPropName(&sDavProp.sPropName, x2s(lpXmlNode->name), x2s(lpXmlNode->ns->href));
-	else
-		HrSetDavPropName(&sDavProp.sPropName, x2s(lpXmlNode->name), WEBDAVNS);
+	HrSetDavPropName(&sDavProp.sPropName, x2s(lpXmlNode->name),
+		lpXmlNode->ns != nullptr && lpXmlNode->ns->href != nullptr ?
+		x2s(lpXmlNode->ns->href) : WEBDAVNS);
 
 	for (lpXmlNode = lpXmlNode->children; lpXmlNode != nullptr;
 	     lpXmlNode = lpXmlNode->next) {
 		WEBDAVPROPERTY sProperty;
 
-		if (lpXmlNode->ns && lpXmlNode->ns->href)
-			HrSetDavPropName(&sProperty.sPropName, x2s(lpXmlNode->name), x2s(lpXmlNode->ns->href));
-		else
-			HrSetDavPropName(&sProperty.sPropName, x2s(lpXmlNode->name), WEBDAVNS);
-
+		HrSetDavPropName(&sProperty.sPropName, x2s(lpXmlNode->name),
+			lpXmlNode->ns != nullptr && lpXmlNode->ns->href != nullptr ?
+			x2s(lpXmlNode->ns->href) : WEBDAVNS);
 		if (lpXmlNode->children && lpXmlNode->children->content)
 			sProperty.strValue = x2s(lpXmlNode->children->content);
 

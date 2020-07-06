@@ -257,20 +257,20 @@ std::wstring ProtocolBase::U2W(const std::string &strUtfChar)
  */
 std::string ProtocolBase::SPropValToString(const SPropValue *lpSprop)
 {
-	std::string strRetVal;
-
 	if (lpSprop == NULL)
-		return strRetVal;
+		return std::string();
 	if (PROP_TYPE(lpSprop->ulPropTag) == PT_SYSTIME)
-		strRetVal = stringify_int64(FileTimeToUnixTime(lpSprop->Value.ft), false);
+		return stringify_int64(FileTimeToUnixTime(lpSprop->Value.ft), false);
 	else if (PROP_TYPE(lpSprop->ulPropTag) == PT_STRING8)
-		strRetVal = lpSprop->Value.lpszA;
+		return lpSprop->Value.lpszA;
 	else if (PROP_TYPE(lpSprop->ulPropTag) == PT_UNICODE)
-		strRetVal = W2U(lpSprop->Value.lpszW);
-	//Global UID
-	else if (PROP_TYPE(lpSprop->ulPropTag) == PT_BINARY)
-		HrGetICalUidFromBinUid(lpSprop->Value.bin, &strRetVal);
+		return W2U(lpSprop->Value.lpszW);
 	else if (PROP_TYPE(lpSprop->ulPropTag) == PT_LONG)
-		strRetVal = stringify(lpSprop->Value.ul);
+		return stringify(lpSprop->Value.ul);
+	else if (PROP_TYPE(lpSprop->ulPropTag) != PT_BINARY)
+		return std::string();
+	//Global UID
+	std::string strRetVal;
+	HrGetICalUidFromBinUid(lpSprop->Value.bin, &strRetVal);
 	return strRetVal;
 }

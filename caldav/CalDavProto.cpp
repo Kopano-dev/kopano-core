@@ -1292,18 +1292,13 @@ HRESULT CalDAV::HrHandlePropPatch(WEBDAVPROP *lpsDavProp, WEBDAVMULTISTATUS *lps
 		WEBDAVPROPERTY sDavProp;
 		sDavProp.sPropName = iter.sPropName; // only copy the propname + namespace part, value is empty
 		sProp.ulPropTag = PR_NULL;
-		if (iter.sPropName.strPropname == "displayname") {
-			// deny rename of default Calendar
-			if (!m_blFolderAccess) {
-				sPropStatusForbidden.sProp.lstProps.emplace_back(std::move(sDavProp));
-				continue;
-			}
-		} else if (iter.sPropName.strPropname == "calendar-free-busy-set") {
-			// not allowed to select which calendars give freebusy information
-			sPropStatusForbidden.sProp.lstProps.emplace_back(std::move(sDavProp));
-			continue;
-		} else if (iter.sPropName.strNS == WEBDAVNS) {
-			// only DAV:displayname may be modified, the rest is read-only
+		bool is_dn = iter.sPropName.strPropname == "displayname";
+		if ((is_dn && !m_blFolderAccess) ||
+		    iter.sPropName.strPropname == "calendar-free-busy-set" ||
+		    (!is_dn && iter.sPropName.strNS == WEBDAVNS)) {
+			// 1. deny rename of default Calendar
+			// 2. not allowed to select which calendars give freebusy information
+			// 3. only DAV:displayname may be modified, the rest is read-only
 			sPropStatusForbidden.sProp.lstProps.emplace_back(std::move(sDavProp));
 			continue;
 		}
