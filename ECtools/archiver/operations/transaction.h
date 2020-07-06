@@ -4,41 +4,43 @@
  */
 #pragma once
 #include <list>
-#include "transaction_fwd.h"
-#include "ArchiverSessionPtr.h"     // For ArchiverSessionPtr
+#include <memory>
 #include <kopano/archiver-common.h>
 #include "postsaveaction.h"
 #include <kopano/memory.hpp>
 
-namespace KC { namespace operations {
+namespace KC {
 
+class ArchiverSession;
+
+namespace operations {
+
+class Rollback;
 class Transaction final {
 public:
 	Transaction(const SObjectEntry &objectEntry);
-	HRESULT SaveChanges(ArchiverSessionPtr ptrSession, RollbackPtr *lpptrRollback);
-	HRESULT PurgeDeletes(ArchiverSessionPtr ptrSession, TransactionPtr ptrDeferredTransaction = TransactionPtr());
+	HRESULT SaveChanges(std::shared_ptr<ArchiverSession>, std::shared_ptr<Rollback> *);
+	HRESULT PurgeDeletes(std::shared_ptr<ArchiverSession>, std::shared_ptr<Transaction> deferred_tx = nullptr);
 	const SObjectEntry& GetObjectEntry() const;
 
-	HRESULT Save(IMessage *lpMessage, bool bDeleteOnFailure, const PostSaveActionPtr &ptrPSAction = PostSaveActionPtr());
+	HRESULT Save(IMessage *lpMessage, bool bDeleteOnFailure, const std::shared_ptr<IPostSaveAction> & = nullptr);
 	HRESULT Delete(const SObjectEntry &objectEntry, bool bDeferredDelete = false);
 
 private:
 	struct SaveEntry {
 		object_ptr<IMessage> ptrMessage;
 		bool bDeleteOnFailure;
-		PostSaveActionPtr ptrPSAction;
+		std::shared_ptr<IPostSaveAction> ptrPSAction;
 	};
-	typedef std::list<SaveEntry>	MessageList;
 
 	struct DelEntry {
 		SObjectEntry objectEntry;
 		bool bDeferredDelete;
 	};
-	typedef std::list<DelEntry>	ObjectList;
 
 	const SObjectEntry	m_objectEntry;
-	MessageList m_lstSave;
-	ObjectList m_lstDelete;
+	std::list<SaveEntry> m_lstSave;
+	std::list<DelEntry> m_lstDelete;
 };
 
 inline const SObjectEntry& Transaction::GetObjectEntry() const
@@ -48,16 +50,15 @@ inline const SObjectEntry& Transaction::GetObjectEntry() const
 
 class Rollback final {
 public:
-	HRESULT Delete(ArchiverSessionPtr ptrSession, IMessage *lpMessage);
-	HRESULT Execute(ArchiverSessionPtr ptrSession);
+	HRESULT Delete(std::shared_ptr<ArchiverSession>, IMessage *);
+	HRESULT Execute(std::shared_ptr<ArchiverSession>);
 
 private:
 	struct DelEntry {
 		object_ptr<IMAPIFolder> ptrFolder;
 		entryid_t eidMessage;
 	};
-	typedef std::list<DelEntry>	MessageList;
-	MessageList	m_lstDelete;
+	std::list<DelEntry> m_lstDelete;
 };
 
 }} /* namespace */

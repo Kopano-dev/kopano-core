@@ -17,6 +17,5 @@ public:
 	virtual ~IPostSaveAction(void) = default;
 	virtual HRESULT Execute() = 0;
 };
-typedef std::shared_ptr<IPostSaveAction> PostSaveActionPtr;
 
 }} /* namespace */

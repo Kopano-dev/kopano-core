@@ -48,8 +48,6 @@ struct initprov {
 	memory_ptr<ABEID> abe_id;
 };
 
-typedef object_ptr<IProfSect> ProfSectPtr;
-
 static const uint32_t MAPI_S_SPECIAL_OK = MAKE_MAPI_S(0x900);
 
 // Client wide variable
@@ -193,7 +191,7 @@ initprov_service(struct initprov &d, const sGlobalProfileProps &profprop)
 		return hrSuccess;
 
 	/* Set/update the default store home server. */
-	ProfSectPtr globprofsect;
+	object_ptr<IProfSect> globprofsect;
 	ret = d.provadm->OpenProfileSection(reinterpret_cast<const MAPIUID *>(&pbGlobalProfileSectionGuid), nullptr, MAPI_MODIFY, &~globprofsect);
 	if (ret != hrSuccess)
 		return ret;
@@ -326,7 +324,7 @@ initprov_mapi_store(struct initprov &d, const sGlobalProfileProps &profprop)
 	d.prop[d.count++].Value.bin.lpb = reinterpret_cast<BYTE *>(d.wrap_eid.get());
 	d.prop[d.count].ulPropTag = PR_RECORD_KEY;
 	d.prop[d.count].Value.bin.cb = sizeof(MAPIUID);
-	d.prop[d.count++].Value.bin.lpb = (LPBYTE)&reinterpret_cast<PEID>(d.eid.get())->guid; //@FIXME validate guid
+	d.prop[d.count++].Value.bin.lpb = reinterpret_cast<BYTE *>(&reinterpret_cast<EID *>(d.eid.get())->guid); //@FIXME validate guid
 	d.prop[d.count].ulPropTag = PR_DISPLAY_NAME_W;
 	d.prop[d.count++].Value.lpszW = reinterpret_cast<wchar_t *>(d.store_name.get());
 	d.prop[d.count].ulPropTag = PR_EC_PATH;
@@ -460,7 +458,6 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 static HRESULT UpdateProviders(LPPROVIDERADMIN lpAdminProviders,
     const sGlobalProfileProps &sProfileProps)
 {
-	ProfSectPtr		ptrProfSect;
 	object_ptr<IMAPITable> ptrTable;
 	rowset_ptr ptrRows;
 
@@ -485,6 +482,7 @@ static HRESULT UpdateProviders(LPPROVIDERADMIN lpAdminProviders,
 			assert(false);
 			continue;
 		}
+		object_ptr<IProfSect> ptrProfSect;
 		hr = lpAdminProviders->OpenProfileSection((MAPIUID *)lpsProviderUID->Value.bin.lpb, nullptr, MAPI_MODIFY, &~ptrProfSect);
 		if(hr != hrSuccess)
 			return hr;
@@ -517,7 +515,6 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 	std::wstring strUserName, strUserPassword;
 	sGlobalProfileProps	sProfileProps;
 	std::basic_string<TCHAR> strError;
-	ProfSectPtr ptrGlobalProfSect, ptrProfSect;
 	object_ptr<WSTransport> lpTransport;
 	memory_ptr<SPropValue> lpsPropValue;
 	memory_ptr<BYTE> lpDelegateStores;
@@ -540,6 +537,7 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 
 	// Logon defaults
 	std::string strType = "http", strServerPort = "236";
+	object_ptr<IProfSect> ptrGlobalProfSect, ptrProfSect;
 	switch(ulContext) {
 	case MSG_SERVICE_CONFIGURE:
 		/* Open global {profile section}, add the store. (for show list, delete etc.). */

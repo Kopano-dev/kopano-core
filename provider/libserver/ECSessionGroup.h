@@ -28,8 +28,6 @@ struct sessionInfo {
 	ECSession	 *lpSession;
 };
 
-typedef std::map<ECSESSIONID, sessionInfo> SESSIONINFOMAP;
-
 struct subscribeItem {
 	ECSESSIONID	 ulSession;		// Unique session identifier
 	unsigned int ulConnection;	// Unique client identifier for notification
@@ -37,16 +35,11 @@ struct subscribeItem {
 	unsigned int ulEventMask;
 };
 
-typedef std::list<ECNotification> ECNOTIFICATIONLIST;
-typedef std::map<unsigned int, subscribeItem> SUBSCRIBEMAP;
-typedef std::multimap<unsigned int, unsigned int> SUBSCRIBESTOREMULTIMAP;
-
 struct changeSubscribeItem {
 	ECSESSIONID		ulSession;
 	unsigned int	ulConnection;
 	notifySyncState	sSyncState;
 };
-typedef std::multimap<unsigned int, changeSubscribeItem> CHANGESUBSCRIBEMAP;	// SyncId -> changeSubscribeItem
 
 class ECSessionGroup final {
 public:
@@ -108,15 +101,15 @@ private:
 	ECSESSIONGROUPID	m_sessionGroupId;
 
 	/* All Sessions attached to this group */
-	SESSIONINFOMAP		m_mapSessions;
+	std::map<ECSESSIONID, sessionInfo> m_mapSessions;
 
 	/* List of all items the group is subscribed to */
-	SUBSCRIBEMAP        m_mapSubscribe;
-	CHANGESUBSCRIBEMAP	m_mapChangeSubscribe;
+	std::map<unsigned int, subscribeItem> m_mapSubscribe;
+	std::multimap<unsigned int, changeSubscribeItem> m_mapChangeSubscribe; // SyncId -> changeSubscribeItem
 	std::recursive_mutex m_hSessionMapLock;
 
 	/* Notifications */
-	ECNOTIFICATIONLIST m_listNotification;
+	std::list<ECNotification> m_listNotification;
 
 	/* Notifications lock/event */
 	std::mutex m_hNotificationLock;
@@ -137,7 +130,7 @@ private:
 	ECSessionManager *	m_lpSessionManager;
 
 	/* Multimap of subscriptions that we have (key -> store id) */
-	SUBSCRIBESTOREMULTIMAP	m_mapSubscribedStores;
+	std::multimap<unsigned int, unsigned int> m_mapSubscribedStores;
 	std::mutex m_mutexSubscribedStores;
 
 private:

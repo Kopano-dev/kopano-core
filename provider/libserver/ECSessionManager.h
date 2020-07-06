@@ -35,20 +35,12 @@ class ECConfig;
 class ECLogger;
 class ECTPropsPurge;
 
-typedef std::unordered_map<ECSESSIONGROUPID, ECSessionGroup *> EC_SESSIONGROUPMAP;
-typedef std::unordered_map<ECSESSIONID, BTSession *> SESSIONMAP;
-typedef std::unordered_map<ECSESSIONID, unsigned int> PERSISTENTBYSESSION;
-typedef std::unordered_map<unsigned int, ECSESSIONID> PERSISTENTBYCONNECTION;
-typedef std::multimap<unsigned int, ECSESSIONGROUPID> OBJECTSUBSCRIPTIONSMULTIMAP;
-
 struct TABLESUBSCRIPTION {
      TABLE_ENTRY::TABLE_TYPE ulType;
 	unsigned int ulRootObjectId, ulObjectType, ulObjectFlags;
 	bool operator==(const TABLESUBSCRIPTION &b) const noexcept { return memcmp(this, &b, sizeof(*this)) == 0; }
 	bool operator<(const TABLESUBSCRIPTION &b) const noexcept { return memcmp(this, &b, sizeof(*this)) < 0; }
 };
-
-typedef std::multimap<TABLESUBSCRIPTION, ECSESSIONID> TABLESUBSCRIPTIONMULTIMAP;
 
 struct sSessionManagerStats {
 	struct {
@@ -215,8 +207,8 @@ protected:
 	KC_HIDDEN ECRESULT UpdateSubscribedTables(ECKeyTable::UpdateType, const TABLESUBSCRIPTION &, std::list<unsigned int> &child_id);
 	KC_HIDDEN ECRESULT SaveSourceKeyAutoIncrement(unsigned long long new_src_key_autoincr);
 
-	EC_SESSIONGROUPMAP m_mapSessionGroups; ///< map of all the session groups
-	SESSIONMAP			m_mapSessions;			///< map of all the sessions
+	std::unordered_map<ECSESSIONGROUPID, ECSessionGroup *> m_mapSessionGroups; ///< map of all the session groups
+	std::unordered_map<ECSESSIONID, BTSession *> m_mapSessions; ///< map of all the sessions
 	KC::shared_mutex m_hCacheRWLock; ///< locking of the sessionMap
 	KC::shared_mutex m_hGroupLock; ///< locking of session group map and lonely list
 	std::mutex m_hExitMutex; /* Mutex needed for the release signal */
@@ -229,13 +221,13 @@ protected:
 	unsigned int m_ulSourceKeyQueue = 0;
 	std::mutex m_hSourceKeyAutoIncrementMutex;
 	std::mutex m_mutexPersistent;
-	PERSISTENTBYSESSION m_mapPersistentBySession; ///< map of all persistent sessions mapped to their connection id
-	PERSISTENTBYCONNECTION m_mapPersistentByConnection; ///< map of all persistent connections mapped to their sessions
+	std::unordered_map<ECSESSIONID, unsigned int> m_mapPersistentBySession; ///< map of all persistent sessions mapped to their connection id
+	std::unordered_map<unsigned int, ECSESSIONID> m_mapPersistentByConnection; ///< map of all persistent connections mapped to their sessions
 	std::mutex m_mutexTableSubscriptions;
 	unsigned int		m_ulTableSubscriptionId;
-	TABLESUBSCRIPTIONMULTIMAP m_mapTableSubscriptions;	///< Maps a table subscription to the subscriber
+	std::multimap<TABLESUBSCRIPTION, ECSESSIONID> m_mapTableSubscriptions; ///< Maps a table subscription to the subscriber
 	std::mutex m_mutexObjectSubscriptions;
-	OBJECTSUBSCRIPTIONSMULTIMAP	m_mapObjectSubscriptions;	///< Maps an object notification subscription (store id) to the subscriber
+	std::multimap<unsigned int, ECSESSIONGROUPID> m_mapObjectSubscriptions; ///< Maps an object notification subscription (store id) to the subscriber
 
 	// Sequences
 	std::mutex m_hSeqMutex;
@@ -250,7 +242,7 @@ protected:
 	std::unique_ptr<ECSearchFolders> m_lpSearchFolders;
 	std::unique_ptr<ECCacheManager> m_lpECCacheManager;
 	std::unique_ptr<ECTPropsPurge> m_lpTPropsPurge;
-	ECLockManagerPtr m_ptrLockManager;
+	std::shared_ptr<ECLockManager> m_ptrLockManager;
 	std::unique_ptr<ECNotificationManager> m_lpNotificationManager;
 	std::unique_ptr<ECDatabase> m_lpDatabase;
 	std::unique_ptr<ECAttachmentConfig> m_atxconfig;

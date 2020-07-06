@@ -6,6 +6,7 @@
 #include <list>
 #include <memory>
 #include <mapidefs.h>
+#include <kopano/memory.hpp>
 
 // We loosely follow the MS class ITNEF with the following main exceptions:
 //

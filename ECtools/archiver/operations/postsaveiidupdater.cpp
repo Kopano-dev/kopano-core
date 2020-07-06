@@ -3,6 +3,8 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <algorithm>
+#include <list>
+#include <memory>
 #include <kopano/platform.h>
 #include <kopano/IECInterfaces.hpp>
 #include <kopano/Util.h>
@@ -12,12 +14,12 @@
 
 namespace KC { namespace operations {
 
-TaskBase::TaskBase(const object_ptr<IAttach> &sa,
-    const object_ptr<IMessage> &dst, unsigned int dst_at_idx) :
+TaskBase::TaskBase(IAttach *sa, IMessage *dst, unsigned int dst_at_idx) :
 	m_ptrSourceAttach(sa), m_ptrDestMsg(dst), m_ulDestAttachIdx(dst_at_idx)
 { }
 
-HRESULT TaskBase::Execute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper) {
+HRESULT TaskBase::Execute(ULONG ulPropTag, const std::shared_ptr<InstanceIdMapper> &ptrMapper)
+{
 	memory_ptr<SPropValue> ptrSourceServerUID, ptrDestServerUID;
 	memory_ptr<ENTRYID> ptrSourceInstanceID, ptrDestInstanceID;
 	unsigned int cbSourceInstanceID = 0, cbDestInstanceID = 0;
@@ -78,21 +80,30 @@ HRESULT TaskBase::GetUniqueIDs(IAttach *lpAttach, LPSPropValue *lppServerUID, UL
 	return hrSuccess;
 }
 
-TaskMapInstanceId::TaskMapInstanceId(const object_ptr<IAttach> &sa,
-    const object_ptr<IMessage> &dst, unsigned int dst_at_num) :
+TaskMapInstanceId::TaskMapInstanceId(IAttach *sa, IMessage *dst, unsigned int dst_at_num) :
 	TaskBase(sa, dst, dst_at_num)
 { }
 
-HRESULT TaskMapInstanceId::DoExecute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper, const SBinary &sourceServerUID, ULONG cbSourceInstanceID, LPENTRYID lpSourceInstanceID, const SBinary &destServerUID, ULONG cbDestInstanceID, LPENTRYID lpDestInstanceID) {
+HRESULT TaskMapInstanceId::DoExecute(unsigned int ulPropTag,
+    const std::shared_ptr<InstanceIdMapper> &ptrMapper, const SBinary &sourceServerUID,
+    unsigned int cbSourceInstanceID, ENTRYID *lpSourceInstanceID,
+    const SBinary &destServerUID, unsigned int cbDestInstanceID,
+    ENTRYID *lpDestInstanceID)
+{
 	return ptrMapper->SetMappedInstances(ulPropTag, sourceServerUID, cbSourceInstanceID, lpSourceInstanceID, destServerUID, cbDestInstanceID, lpDestInstanceID);
 }
 
-TaskVerifyAndUpdateInstanceId::TaskVerifyAndUpdateInstanceId(const object_ptr<IAttach> &sa,
-    const object_ptr<IMessage> &dst, unsigned int dst_at_num, unsigned int di_size, ENTRYID *di_id) :
+TaskVerifyAndUpdateInstanceId::TaskVerifyAndUpdateInstanceId(IAttach *sa,
+    IMessage *dst, unsigned int dst_at_num, unsigned int di_size, ENTRYID *di_id) :
 	TaskBase(sa, dst, dst_at_num), m_destInstanceID(di_size, di_id)
 { }
 
-HRESULT TaskVerifyAndUpdateInstanceId::DoExecute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper, const SBinary &sourceServerUID, ULONG cbSourceInstanceID, LPENTRYID lpSourceInstanceID, const SBinary &destServerUID, ULONG cbDestInstanceID, LPENTRYID lpDestInstanceID) {
+HRESULT TaskVerifyAndUpdateInstanceId::DoExecute(unsigned int ulPropTag,
+    const std::shared_ptr<InstanceIdMapper> &ptrMapper,
+    const SBinary &sourceServerUID, unsigned int cbSourceInstanceID,
+    ENTRYID *lpSourceInstanceID, const SBinary &destServerUID,
+    unsigned int cbDestInstanceID, ENTRYID *lpDestInstanceID)
+{
 	SBinary lhs, rhs;
 	lhs.cb = cbDestInstanceID;
 	lhs.lpb = (LPBYTE)lpDestInstanceID;
@@ -106,10 +117,10 @@ HRESULT TaskVerifyAndUpdateInstanceId::DoExecute(ULONG ulPropTag, const Instance
 	       cbDestInstanceID, lpDestInstanceID);
 }
 
-PostSaveInstanceIdUpdater::PostSaveInstanceIdUpdater(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper, const TaskList &lstDeferred)
-: m_ulPropTag(ulPropTag)
-, m_ptrMapper(ptrMapper)
-, m_lstDeferred(lstDeferred)
+PostSaveInstanceIdUpdater::PostSaveInstanceIdUpdater(unsigned int tag,
+    const std::shared_ptr<InstanceIdMapper> &m,
+    const std::list<std::shared_ptr<TaskBase>> &d) :
+	m_ulPropTag(tag), m_ptrMapper(m), m_lstDeferred(d)
 { }
 
 HRESULT PostSaveInstanceIdUpdater::Execute()

@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <algorithm>
+#include <list>
 #include <memory>
 #include <utility>
 #include <kopano/platform.h>
@@ -88,8 +89,6 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 
 	SPropValue sProps[3]{}, sProp{};
 	ULONG ulAttachNum = 0;
-	MAPIPropHelperPtr ptrMsgHelper;
-	ObjectEntryList lstMsgArchives;
 	static constexpr const SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ATTACH_NUM}};
 
 	auto hr = VerifyRestriction(lpMessage);
@@ -103,9 +102,12 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 	}
 
 	// Verify if we have at least one archive that's in the current multi-server cluster.
+	std::unique_ptr<MAPIPropHelper> ptrMsgHelper;
 	hr = MAPIPropHelper::Create(object_ptr<IMAPIProp>(lpMessage), &ptrMsgHelper);
 	if (hr != hrSuccess)
 		return Logger()->perr("Failed to create prop helper", hr);
+
+	std::list<SObjectEntry> lstMsgArchives;
 	hr = ptrMsgHelper->GetArchiveList(&lstMsgArchives);
 	if (hr != hrSuccess) {
 		if (hr == MAPI_E_CORRUPT_DATA) {

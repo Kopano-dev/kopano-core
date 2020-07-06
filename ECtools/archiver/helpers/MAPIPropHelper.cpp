@@ -3,6 +3,8 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
+#include <list>
+#include <memory>
 #include <new>
 #include <utility>
 #include "MAPIPropHelper.h"
@@ -25,9 +27,9 @@ namespace KC { namespace helpers {
  *					Pointer to a MAPIPropHelperPtr that will be assigned the returned
  *					MAPIPropHelper object.
  */
-HRESULT MAPIPropHelper::Create(IMAPIProp *ptrMapiProp, MAPIPropHelperPtr *lpptrMAPIPropHelper)
+HRESULT MAPIPropHelper::Create(IMAPIProp *ptrMapiProp, std::unique_ptr<MAPIPropHelper> *lpptrMAPIPropHelper)
 {
-	MAPIPropHelperPtr ptrMAPIPropHelper(new(std::nothrow) MAPIPropHelper(ptrMapiProp));
+	std::unique_ptr<MAPIPropHelper> ptrMAPIPropHelper(new(std::nothrow) MAPIPropHelper(ptrMapiProp));
 	if (ptrMAPIPropHelper == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	auto hr = ptrMAPIPropHelper->Init();
@@ -70,7 +72,7 @@ HRESULT MAPIPropHelper::Init()
  * @param[out]	lpState
  * 					The state that will be setup according to the message state.
  */
-HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageState *lpState)
+HRESULT MAPIPropHelper::GetMessageState(std::shared_ptr<ArchiverSession> ptrSession, MessageState *lpState)
 {
 	unsigned int cMessageProps = 0, ulState = 0;
 	int result = 0;
@@ -126,8 +128,7 @@ HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageSt
 
 	if (result != 0) {
 		// The message is copied. Now check if it was moved.
-		ObjectEntryList lstArchives;
-		MAPIPropHelperPtr ptrArchiveHelper;
+		std::list<SObjectEntry> lstArchives;
 		SObjectEntry refEntry;
 
 		hr = GetArchiveList(&lstArchives, true);
@@ -158,6 +159,7 @@ HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageSt
 				 */
 				ulState |= MessageState::msCopy;
 		} else {
+			std::unique_ptr<MAPIPropHelper> ptrArchiveHelper;
 			hr = MAPIPropHelper::Create(ptrArchiveMsg, &ptrArchiveHelper);
 			if (hr != hrSuccess)
 				return hr;
@@ -219,11 +221,10 @@ HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageSt
  * @param[in]	bIgnoreSourceKey
  * 					Don't try to detect a copy/move and return an empty list in that case.
  */
-HRESULT MAPIPropHelper::GetArchiveList(ObjectEntryList *lplstArchives, bool bIgnoreSourceKey)
+HRESULT MAPIPropHelper::GetArchiveList(std::list<SObjectEntry> *lplstArchives, bool bIgnoreSourceKey)
 {
 	ULONG cbValues = 0;
 	memory_ptr<SPropValue> ptrPropArray;
-	ObjectEntryList lstArchives;
 	int result = 0;
 	SizedSPropTagArray (4, sptaArchiveProps) = {4, {PROP_ARCHIVE_STORE_ENTRYIDS, PROP_ARCHIVE_ITEM_ENTRYIDS, PROP_ORIGINAL_SOURCEKEY, PR_SOURCE_KEY}};
 
@@ -276,6 +277,7 @@ HRESULT MAPIPropHelper::GetArchiveList(ObjectEntryList *lplstArchives, bool bIgn
 		}
 	}
 
+	std::list<SObjectEntry> lstArchives;
 	if (ptrPropArray[IDX_ARCHIVE_STORE_ENTRYIDS].Value.MVbin.cValues !=
 	    ptrPropArray[IDX_ARCHIVE_ITEM_ENTRYIDS].Value.MVbin.cValues)
 		return MAPI_E_CORRUPT_DATA;
@@ -298,11 +300,10 @@ HRESULT MAPIPropHelper::GetArchiveList(ObjectEntryList *lplstArchives, bool bIgn
  * @param[in]	bExplicitCommit
  *					If set to true, the changes are committed before this function returns.
  */
-HRESULT MAPIPropHelper::SetArchiveList(const ObjectEntryList &lstArchives, bool bExplicitCommit)
+HRESULT MAPIPropHelper::SetArchiveList(const std::list<SObjectEntry> &lstArchives, bool bExplicitCommit)
 {
 	unsigned int cValues = lstArchives.size(), cbProps = 2;
 	memory_ptr<SPropValue> ptrPropArray, ptrSourceKey;
-	ObjectEntryList::const_iterator iArchive;
 
 	auto hr = MAPIAllocateBuffer(3 * sizeof(SPropValue), &~ptrPropArray);
 	if (hr != hrSuccess)
@@ -319,7 +320,7 @@ HRESULT MAPIPropHelper::SetArchiveList(const ObjectEntryList &lstArchives, bool 
 	if (hr != hrSuccess)
 		return hr;
 
-	iArchive = lstArchives.cbegin();
+	auto iArchive = lstArchives.cbegin();
 	for (ULONG i = 0; i < cValues; ++i, ++iArchive) {
 		ptrPropArray[0].Value.MVbin.lpbin[i].cb = iArchive->sStoreEntryId.size();
 		hr = KAllocCopy(iArchive->sStoreEntryId, iArchive->sStoreEntryId.size(), reinterpret_cast<void **>(&ptrPropArray[0].Value.MVbin.lpbin[i].lpb), ptrPropArray);
@@ -425,7 +426,7 @@ HRESULT MAPIPropHelper::ReferencePrevious(const SObjectEntry &sEntry)
 	return HrSetOneProp(m_ptrMapiProp, &sPropValue);
 }
 
-HRESULT MAPIPropHelper::OpenPrevious(ArchiverSessionPtr ptrSession, LPMESSAGE *lppMessage)
+HRESULT MAPIPropHelper::OpenPrevious(std::shared_ptr<ArchiverSession> ptrSession, IMessage **lppMessage)
 {
 	memory_ptr<SPropValue> ptrEntryID;
 
@@ -497,7 +498,7 @@ HRESULT MAPIPropHelper::DetachFromArchives()
  *					Pointer to a IMAPIFolder pointer that will be assigned the address
  *					of the returned folder.
  */
-HRESULT MAPIPropHelper::GetParentFolder(ArchiverSessionPtr ptrSession, LPMAPIFOLDER *lppFolder)
+HRESULT MAPIPropHelper::GetParentFolder(std::shared_ptr<ArchiverSession> ptrSession, IMAPIFolder **lppFolder)
 {
 	unsigned int cValues = 0;
 	static constexpr const SizedSPropTagArray(2, sptaProps) =

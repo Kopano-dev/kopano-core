@@ -19,8 +19,6 @@
 
 struct ECADVISE;
 struct ECCHANGEADVISE;
-typedef std::map<int, std::unique_ptr<ECADVISE>> ECMAPADVISE;
-typedef std::map<int, std::unique_ptr<ECCHANGEADVISE>> ECMAPCHANGEADVISE;
 typedef std::list<std::pair<syncid_t,connection_t> > ECLISTCONNECTION;
 
 class SessionGroupData;
@@ -51,8 +49,8 @@ public:
 	virtual HRESULT UpdateSyncStates(const ECLISTSYNCID &lstSyncID, ECLISTSYNCSTATE *lplstSyncState);
 
 private:
-	ECMAPADVISE				m_mapAdvise;		// Map of all advise request from the client (outlook)
-	ECMAPCHANGEADVISE		m_mapChangeAdvise;	// ExchangeChangeAdvise(s)
+	std::map<int, std::unique_ptr<ECADVISE>> m_mapAdvise; // Map of all advise request from the client (Outlook)
+	std::map<int, std::unique_ptr<ECCHANGEADVISE>> m_mapChangeAdvise; // ExchangeChangeAdvise(s)
 	KC::object_ptr<SessionGroupData> m_lpSessionGroup;
 	/* weak ptr: ECNotifyMaster is already owned by SessionGroupData */
 	ECNotifyMaster*			m_lpNotifyMaster;

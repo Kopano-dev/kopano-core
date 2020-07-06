@@ -34,7 +34,7 @@ namespace KC {
  *					ArchiverSession object.
  */
 HRESULT ArchiverSession::Create(ECConfig *lpConfig,
-    std::shared_ptr<ECLogger> lpLogger, ArchiverSessionPtr *lpptrSession)
+    std::shared_ptr<ECLogger> lpLogger, std::shared_ptr<ArchiverSession> *lpptrSession)
 {
 	if (!lpConfig || !lpLogger)
 		return MAPI_E_INVALID_PARAMETER;
@@ -60,8 +60,8 @@ HRESULT ArchiverSession::Create(ECConfig *lpConfig,
  *					Pointer to a Session pointer that will be assigned the address of the returned
  *					Session object.
  */
-HRESULT ArchiverSession::Create(const object_ptr<IMAPISession> &ptrSession,
-    std::shared_ptr<ECLogger> lpLogger, ArchiverSessionPtr *lpptrSession)
+HRESULT ArchiverSession::Create(IMAPISession *ptrSession,
+    std::shared_ptr<ECLogger> lpLogger, std::shared_ptr<ArchiverSession> *lpptrSession)
 {
 	return ArchiverSession::Create(ptrSession, nullptr, std::move(lpLogger), lpptrSession);
 }
@@ -80,9 +80,9 @@ HRESULT ArchiverSession::Create(const object_ptr<IMAPISession> &ptrSession,
  *					Pointer to a ArchiverSession pointer that will be assigned the address of the returned
  *					ArchiverSession object.
  */
-HRESULT ArchiverSession::Create(const object_ptr<IMAPISession> &ptrSession,
+HRESULT ArchiverSession::Create(IMAPISession *ptrSession,
     ECConfig *lpConfig, std::shared_ptr<ECLogger> lpLogger,
-    ArchiverSessionPtr *lpptrSession)
+    std::shared_ptr<ArchiverSession> *lpptrSession)
 {
 	const char *lpszSslKeyFile = nullptr, *lpszSslKeyPass = nullptr;
 	auto lpLocalLogger(lpLogger != nullptr ? std::move(lpLogger) : std::make_shared<ECLogger_Null>());
@@ -177,10 +177,10 @@ HRESULT ArchiverSession::Init(const char *lpszServerPath, const char *lpszSslPat
  *					MAPISessionPtr that points to the MAPISession to construct this
  *					ArchiverSession object for.
  */
-HRESULT ArchiverSession::Init(const object_ptr<IMAPISession> &ptrSession,
-    const char *lpszSslPath, const char *lpszSslPass)
+HRESULT ArchiverSession::Init(IMAPISession *ptrSession, const char *lpszSslPath,
+    const char *lpszSslPass)
 {
-	m_ptrSession = ptrSession;
+	m_ptrSession.reset(ptrSession);
 	auto hr = HrOpenDefaultStore(m_ptrSession, &~m_ptrAdminStore);
 	if (hr != hrSuccess)
 		return hr;
@@ -245,7 +245,7 @@ HRESULT ArchiverSession::OpenStoreByName(const tstring &strUser, LPMDB *lppMsgSt
 HRESULT ArchiverSession::OpenStore(const entryid_t &sEntryId, ULONG ulFlags, LPMDB *lppMsgStore)
 {
 	object_ptr<IMsgStore> ptrUserStore;
-	ArchiverSessionPtr ptrSession;
+	std::shared_ptr<ArchiverSession> ptrSession;
 
 	if (!sEntryId.isWrapped()) {
 		auto hr = m_ptrSession->OpenMsgStore(0, sEntryId.size(), sEntryId, &iid_of(ptrUserStore), ulFlags, &~ptrUserStore);
@@ -537,7 +537,7 @@ HRESULT ArchiverSession::CompareStoreIds(const entryid_t &sEntryId1, const entry
  * @retval	hrSuccess	The new ArchiverSession was successfully created.
  */
 HRESULT ArchiverSession::CreateRemote(const char *lpszServerPath,
-    std::shared_ptr<ECLogger> lpLogger, ArchiverSessionPtr *lpptrSession)
+    std::shared_ptr<ECLogger> lpLogger, std::shared_ptr<ArchiverSession> *lpptrSession)
 {
 	std::unique_ptr<ArchiverSession> lpSession(new(std::nothrow) ArchiverSession(std::move(lpLogger)));
 	if (lpSession == nullptr)

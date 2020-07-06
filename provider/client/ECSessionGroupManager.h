@@ -9,16 +9,13 @@
 #include "SessionGroupData.h"
 #include "ClientUtil.h"
 
-typedef std::map<ECSessionGroupInfo, KC::ECSESSIONGROUPID> SESSIONGROUPIDMAP;
-typedef std::map<ECSessionGroupInfo, SessionGroupData*> SESSIONGROUPMAP;
-
 class ECSessionGroupManager final {
 private:
 	/*
 	 * Both maps must be protected under the same mutx: m_hMutex
 	 */
-	SESSIONGROUPIDMAP		m_mapSessionGroupIds;
-	SESSIONGROUPMAP			m_mapSessionGroups;
+	std::map<ECSessionGroupInfo, KC::ECSESSIONGROUPID> m_mapSessionGroupIds;
+	std::map<ECSessionGroupInfo, SessionGroupData *> m_mapSessionGroups;
 	std::recursive_mutex m_hMutex;
 
 public:

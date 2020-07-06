@@ -1445,7 +1445,6 @@ void ECMessage::RecursiveMarkDelete(MAPIOBJECT *lpObj) {
 
 BOOL ECMessage::HasAttachment()
 {
-	ECMapiObjects::const_iterator iterObjects;
 	scoped_rlock lock(m_hMutexMAPIObject);
 
 	if (!m_props_loaded) {
@@ -1453,8 +1452,8 @@ BOOL ECMessage::HasAttachment()
 		if (hr != hrSuccess)
 			return false; /* hr */
 	}
-	for (iterObjects = m_sMapiObject->lstChildren.cbegin();
-	     iterObjects != m_sMapiObject->lstChildren.cend(); ++iterObjects)
+	auto iterObjects = m_sMapiObject->lstChildren.cbegin();
+	for (; iterObjects != m_sMapiObject->lstChildren.cend(); ++iterObjects)
 		if ((*iterObjects)->ulObjType == MAPI_ATTACH)
 			break;
 	return iterObjects != m_sMapiObject->lstChildren.cend();

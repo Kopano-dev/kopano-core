@@ -43,8 +43,6 @@ struct ABChangeRecord {
 
 static const ABEID_FIXED abcont_1(MAPI_ABCONT, MUIDECSAB, 1);
 
-typedef std::list<ABChangeRecord> ABChangeRecordList;
-
 static bool isICSChange(unsigned int ulChange)
 {
 	switch(ulChange){
@@ -742,7 +740,7 @@ static ECRESULT getchanges_ab1(struct soap *soap, ECSession *lpSession,
     struct icsChangesArray *&lpChanges)
 {
 	std::set<unsigned int> sUserIds;
-	ABChangeRecordList lstChanges;
+	std::list<ABChangeRecord> lstChanges;
 
 	/* sourcekey is actually an entryid.. do not let the naming confuse you */
 	auto strQuery = "SELECT id, sourcekey, parentsourcekey, change_type FROM abchanges WHERE change_type & " + stringify(ICS_AB) + " AND id > " + stringify(ulChangeId) + " ORDER BY id";

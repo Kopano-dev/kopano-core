@@ -4,6 +4,7 @@
  */
 #include <kopano/platform.h>
 #include <algorithm>
+#include <list>
 #include <memory>
 #include <new>
 #include <string>
@@ -35,9 +36,10 @@ namespace KC { namespace helpers {
  * @param[out]	lpptrArchiveHelper
  *					Pointer to a ArchiveHelperPtr that assigned the address of the returned ArchiveHelper.
  */
-HRESULT ArchiveHelper::Create(LPMDB lpArchiveStore, const tstring &strFolder, const char *lpszServerPath, ArchiveHelperPtr *lpptrArchiveHelper)
+HRESULT ArchiveHelper::Create(IMsgStore *lpArchiveStore, const tstring &strFolder,
+    const char *lpszServerPath, std::shared_ptr<ArchiveHelper> *lpptrArchiveHelper)
 {
-	ArchiveHelperPtr ptrArchiveHelper(
+	std::shared_ptr<ArchiveHelper> ptrArchiveHelper(
 		new(std::nothrow) ArchiveHelper(lpArchiveStore, strFolder,
 		lpszServerPath ? lpszServerPath : std::string()));
 	if (ptrArchiveHelper == nullptr)
@@ -62,9 +64,10 @@ HRESULT ArchiveHelper::Create(LPMDB lpArchiveStore, const tstring &strFolder, co
  * @param[out]	lpptrArchiveHelper
  *					Pointer to a ArchiveHelperPtr that assigned the address of the returned ArchiveHelper.
  */
-HRESULT ArchiveHelper::Create(LPMDB lpArchiveStore, LPMAPIFOLDER lpArchiveFolder, const char *lpszServerPath, ArchiveHelperPtr *lpptrArchiveHelper)
+HRESULT ArchiveHelper::Create(IMsgStore *lpArchiveStore, IMAPIFolder *lpArchiveFolder,
+    const char *lpszServerPath, std::shared_ptr<ArchiveHelper> *lpptrArchiveHelper)
 {
-	ArchiveHelperPtr ptrArchiveHelper(
+	std::shared_ptr<ArchiveHelper> ptrArchiveHelper(
 		new(std::nothrow) ArchiveHelper(lpArchiveStore, lpArchiveFolder,
 		lpszServerPath ? lpszServerPath : std::string()));
 	if (ptrArchiveHelper == nullptr)
@@ -76,12 +79,10 @@ HRESULT ArchiveHelper::Create(LPMDB lpArchiveStore, LPMAPIFOLDER lpArchiveFolder
 	return hrSuccess;
 }
 
-HRESULT ArchiveHelper::Create(ArchiverSessionPtr ptrSession,
+HRESULT ArchiveHelper::Create(std::shared_ptr<ArchiverSession> ptrSession,
     const SObjectEntry &archiveEntry, std::shared_ptr<ECLogger> lpLogger,
-    ArchiveHelperPtr *lpptrArchiveHelper)
+    std::shared_ptr<ArchiveHelper> *lpptrArchiveHelper)
 {
-	ArchiveHelperPtr ptrArchiveHelper;
-
 	if (lpptrArchiveHelper == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
@@ -107,6 +108,7 @@ HRESULT ArchiveHelper::Create(ArchiverSessionPtr ptrSession,
 	// remotely opened by ptrSession->OpenStore(). Effectively this causes ptrArchiveHelper->GetArchiveEntry()
 	// to malfunction (it won't wrap the entryid with the serverpath). This is not an issue as we don't use
 	// that here anyway.
+	std::shared_ptr<ArchiveHelper> ptrArchiveHelper;
 	hr = ArchiveHelper::Create(ptrArchiveStore, ptrArchiveRootFolder, NULL, &ptrArchiveHelper);
 	if (hr != hrSuccess) {
 		if (lpLogger)
@@ -325,7 +327,6 @@ HRESULT ArchiveHelper::SetPermissions(const abentryid_t &sUserEntryId, bool bWri
 	object_ptr<IExchangeModifyTable> ptrEMT;
 	SPropValue sUserProps[2], sOtherProps[2];
 	memory_ptr<ROWLIST> ptrRowList;
-	StoreHelperPtr ptrStoreHelper;
 
 	auto hr = MAPIAllocateBuffer(CbNewROWLIST(2), &~ptrRowList);
 	if (hr != hrSuccess)
@@ -336,6 +337,7 @@ HRESULT ArchiveHelper::SetPermissions(const abentryid_t &sUserEntryId, bool bWri
 	// them if the archive folder IS the IPM Subtree.
 
 	// Grant folder visible permissions on the IPM Subtree for this user.
+	std::unique_ptr<StoreHelper> ptrStoreHelper;
 	hr = StoreHelper::Create(m_ptrArchiveStore, &ptrStoreHelper);
 	if (hr != hrSuccess)
 		return hr;
@@ -408,13 +410,10 @@ HRESULT ArchiveHelper::SetPermissions(const abentryid_t &sUserEntryId, bool bWri
  * @param[out]	lppDestinationFolder
  *					Pointer to a MAPIFolder pointer that's assigned the address of the returned folder.
  */
-HRESULT ArchiveHelper::GetArchiveFolderFor(object_ptr<IMAPIFolder> &ptrSourceFolder,
-    ArchiverSessionPtr ptrSession, IMAPIFolder **lppDestinationFolder)
+HRESULT ArchiveHelper::GetArchiveFolderFor(IMAPIFolder *ptrSourceFolder,
+    std::shared_ptr<ArchiverSession> ptrSession, IMAPIFolder **lppDestinationFolder)
 {
 	memory_ptr<SPropValue> ptrStoreEntryId, ptrFolderType, ptrFolderEntryId, ptrPropArray;
-	MAPIPropHelperPtr ptrSourceFolderHelper, ptrArchiveFolderHelper;
-	ObjectEntryList lstFolderArchives;
-	ObjectEntryList::const_iterator iArchiveFolder;
 	unsigned int cValues = 0;
 	SObjectEntry objectEntry;
 	static constexpr const SizedSPropTagArray(3, sptaFolderPropsForCreate) =
@@ -425,9 +424,11 @@ HRESULT ArchiveHelper::GetArchiveFolderFor(object_ptr<IMAPIFolder> &ptrSourceFol
 	auto hr = HrGetOneProp(m_ptrArchiveStore, PR_ENTRYID, &~ptrStoreEntryId);
 	if (hr != hrSuccess)
 		return hr;
+	std::unique_ptr<MAPIPropHelper> ptrSourceFolderHelper, ptrArchiveFolderHelper;
 	hr = MAPIPropHelper::Create(ptrSourceFolder, &ptrSourceFolderHelper);
 	if (hr != hrSuccess)
 		return hr;
+	std::list<SObjectEntry> lstFolderArchives;
 	hr = ptrSourceFolderHelper->GetArchiveList(&lstFolderArchives);
 	if (hr == MAPI_E_CORRUPT_DATA) {
 		// If the list is corrupt, the folder will become unusable. We'll just create a new folder, which will most
@@ -435,7 +436,7 @@ HRESULT ArchiveHelper::GetArchiveFolderFor(object_ptr<IMAPIFolder> &ptrSourceFol
 	} else if (hr != hrSuccess)
 		return hr;
 
-	iArchiveFolder = std::find_if(lstFolderArchives.cbegin(), lstFolderArchives.cend(), StoreCompare(ptrStoreEntryId->Value.bin));
+	auto iArchiveFolder = std::find_if(lstFolderArchives.cbegin(), lstFolderArchives.cend(), StoreCompare(ptrStoreEntryId->Value.bin));
 	object_ptr<IMAPIFolder> ptrArchiveFolder, ptrParentFolder, ptrArchiveParentFolder;
 	if (iArchiveFolder != lstFolderArchives.cend()) {
 		hr = m_ptrArchiveStore->OpenEntry(iArchiveFolder->sItemEntryId.size(),
@@ -592,7 +593,7 @@ HRESULT ArchiveHelper::GetSpecialsRootFolder(LPMAPIFOLDER *lppSpecialsRootFolder
  */
 HRESULT ArchiveHelper::GetArchiveFolder(bool bCreate, LPMAPIFOLDER *lppArchiveFolder)
 {
-	StoreHelperPtr ptrStoreHelper;
+	std::unique_ptr<StoreHelper> ptrStoreHelper;
 
 	if (m_ptrArchiveFolder != nullptr)
 		return m_ptrArchiveFolder->QueryInterface(IID_IMAPIFolder,
@@ -830,7 +831,7 @@ HRESULT ArchiveHelper::IsSpecialFolder(eSpecFolder sfWhich, LPMAPIFOLDER lpFolde
 
 HRESULT ArchiveHelper::PrepareForFirstUse(ECLogger *lpLogger)
 {
-	StoreHelperPtr ptrStoreHelper;
+	std::unique_ptr<StoreHelper> ptrStoreHelper;
 	SPropValue sEntryId;
 
 	auto hr = StoreHelper::Create(m_ptrArchiveStore, &ptrStoreHelper);

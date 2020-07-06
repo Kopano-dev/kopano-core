@@ -13,7 +13,7 @@ namespace KC { class ECLogger; }
 
 class ArchiveResult final {
 public:
-	void AddMessage(KC::object_ptr<IMessage>);
+	void AddMessage(IMessage *);
 	void Undo(IMAPISession *lpSession);
 
 private:
@@ -22,11 +22,10 @@ private:
 
 
 class Archive;
-typedef std::unique_ptr<Archive> ArchivePtr;
 
 class Archive final {
 public:
-	static HRESULT Create(IMAPISession *, ArchivePtr *);
+	static HRESULT Create(IMAPISession *, std::unique_ptr<Archive> *);
 	HRESULT HrArchiveMessageForDelivery(IMessage *lpMessage, std::shared_ptr<KC::ECLogger>);
 	HRESULT HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *lpResult, std::shared_ptr<KC::ECLogger>);
 

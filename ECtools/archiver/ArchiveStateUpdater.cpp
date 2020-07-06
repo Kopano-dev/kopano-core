@@ -67,11 +67,11 @@ namespace Predicates {
  * 								primary store.
  * @param[out]	lpptrUpdater	The new ArchiveStateUpdater instance
  */
-HRESULT ArchiveStateUpdater::Create(const ArchiverSessionPtr &ptrSession,
+HRESULT ArchiveStateUpdater::Create(const std::shared_ptr<ArchiverSession> &ptrSession,
     std::shared_ptr<ECLogger> lpLogger, const ArchiveInfoMap &mapArchiveInfo,
-    ArchiveStateUpdaterPtr *lpptrUpdater)
+    std::shared_ptr<ArchiveStateUpdater> *lpptrUpdater)
 {
-	ArchiveStateUpdaterPtr ptrUpdater(
+	std::shared_ptr<ArchiveStateUpdater> ptrUpdater(
 		new(std::nothrow) ArchiveStateUpdater(ptrSession,
 		std::move(lpLogger), mapArchiveInfo));
 	if (ptrUpdater == nullptr)
@@ -87,7 +87,7 @@ HRESULT ArchiveStateUpdater::Create(const ArchiverSessionPtr &ptrSession,
  * 								should have an archive attached to their
  * 								primary store.
  */
-ArchiveStateUpdater::ArchiveStateUpdater(const ArchiverSessionPtr &ptrSession,
+ArchiveStateUpdater::ArchiveStateUpdater(const std::shared_ptr<ArchiverSession> &ptrSession,
     std::shared_ptr<ECLogger> lpLogger, const ArchiveInfoMap &mapArchiveInfo) :
 	m_ptrSession(ptrSession), m_lpLogger(std::move(lpLogger)),
 	m_mapArchiveInfo(mapArchiveInfo)
@@ -188,11 +188,11 @@ HRESULT ArchiveStateUpdater::UpdateOne(const abentryid_t &userId, const ArchiveI
  * @param[in]	lstArchives	The list of archives to remove the implicit attached
  * 							archives from.
  */
-HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstring &userName, const abentryid_t &userId, const ObjectEntryList &lstArchives)
+HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId,
+    const tstring &userName, const abentryid_t &userId,
+    const std::list<SObjectEntry> &lstArchives)
 {
 	object_ptr<IMsgStore> ptrUserStore;
-	StoreHelperPtr ptrUserStoreHelper;
-	ObjectEntryList lstCurrentArchives;
 	ULONG ulDetachCount = 0;
 
 	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Removing implicitly attached archives.");
@@ -226,9 +226,11 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstr
 	}
 	if (hr != hrSuccess)
 		return hr;
+	std::unique_ptr<StoreHelper> ptrUserStoreHelper;
 	hr = StoreHelper::Create(ptrUserStore, &ptrUserStoreHelper);
 	if (hr != hrSuccess)
 		return hr;
+	std::list<SObjectEntry> lstCurrentArchives;
 	hr = ptrUserStoreHelper->GetArchiveList(&lstCurrentArchives);
 	if (hr != hrSuccess)
 		return hr;
@@ -237,7 +239,6 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstr
 	for (const auto &i : lstArchives) {
 		object_ptr<IMsgStore> ptrArchStore;
 		ULONG ulType;
-		ArchiveHelperPtr ptrArchiveHelper;
 		AttachType attachType;
 
 		hr = m_ptrSession->OpenStore(i.sStoreEntryId, &~ptrArchStore);
@@ -261,6 +262,7 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstr
 			return hr;
 		}
 
+		std::shared_ptr<ArchiveHelper> ptrArchiveHelper;
 		hr = ArchiveHelper::Create(ptrArchStore, ptrArchFolder, NULL, &ptrArchiveHelper);
 		if (hr != hrSuccess)
 			return hr;
@@ -334,13 +336,13 @@ HRESULT ArchiveStateUpdater::ParseCoupling(const tstring &strCoupling, tstring *
  */
 HRESULT ArchiveStateUpdater::AddCouplingBased(const tstring &userName, const std::list<tstring> &lstCouplings, unsigned int ulAttachFlags)
 {
-	ArchiveManagePtr ptrManage;
 	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Attaching coupling based archives.");
 
 	if (lstCouplings.empty()) {
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Empty coupling list");
 		return hrSuccess;
 	}
+	std::unique_ptr<ArchiveManage> ptrManage;
 	auto hr = ArchiveManageImpl::Create(m_ptrSession, nullptr, userName.c_str(), m_lpLogger, &ptrManage);
 	if (hr != hrSuccess)
 		return hr;
@@ -382,13 +384,13 @@ HRESULT ArchiveStateUpdater::AddCouplingBased(const tstring &userName, const std
  */
 HRESULT ArchiveStateUpdater::AddServerBased(const tstring &userName, const abentryid_t &userId, const std::list<tstring> &lstServers, unsigned int ulAttachFlags)
 {
-	ArchiveManagePtr ptrManage;
 	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Attaching servername based archives.");
 
 	if (lstServers.empty()) {
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Empty servername list");
 		return hrSuccess;
 	}
+	std::unique_ptr<ArchiveManage> ptrManage;
 	auto hr = ArchiveManageImpl::Create(m_ptrSession, nullptr, userName.c_str(), m_lpLogger, &ptrManage);
 	if (hr != hrSuccess)
 		return hr;
@@ -430,7 +432,7 @@ HRESULT ArchiveStateUpdater::AddServerBased(const tstring &userName, const abent
 HRESULT ArchiveStateUpdater::VerifyAndUpdate(const abentryid_t &userId, const ArchiveInfo& info, unsigned int ulAttachFlags)
 {
 	std::list<tstring> lstServers, lstCouplings;
-	ObjectEntryList lstArchives = info.lstArchives;
+	auto lstArchives = info.lstArchives;
 
 	// Handle the automated couplings
 	for (const auto &i : info.lstCouplings) {
@@ -520,7 +522,6 @@ HRESULT ArchiveStateUpdater::VerifyAndUpdate(const abentryid_t &userId, const Ar
 HRESULT ArchiveStateUpdater::FindArchiveEntry(const tstring &strArchive, const tstring &strFolder, SObjectEntry *lpObjEntry)
 {
 	object_ptr<IMsgStore> ptrArchiveStore;
-	ArchiveHelperPtr ptrArchiveHelper;
 
 	auto hr = m_ptrSession->OpenStoreByName(strArchive, &~ptrArchiveStore);
 	if (hr != hrSuccess) {
@@ -529,6 +530,7 @@ HRESULT ArchiveStateUpdater::FindArchiveEntry(const tstring &strArchive, const t
 		return hr;
 	}
 
+	std::shared_ptr<ArchiveHelper> ptrArchiveHelper;
 	hr = ArchiveHelper::Create(ptrArchiveStore, strFolder, NULL, &ptrArchiveHelper);
 	if (hr != hrSuccess)
 		return hr;

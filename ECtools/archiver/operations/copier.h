@@ -3,30 +3,34 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #pragma once
+#include <list>
 #include <memory>
 #include <kopano/zcdefs.h>
 #include <kopano/memory.hpp>
 #include "operations.h"
 #include "postsaveaction.h"
-#include "transaction_fwd.h"
-#include "instanceidmapper_fwd.h"
-#include "ArchiverSessionPtr.h"     // For ArchiverSessionPtr
 #include <kopano/archiver-common.h>
 #include <map>
 
 namespace KC {
 
+class ArchiverSession;
 class ECConfig;
 class ECLogger;
 
 namespace operations {
+
+class Deleter;
+class InstanceIdMapper;
+class Stubber;
+class Transaction;
 
 /**
  * Performs the copy part of the archive operation.
  */
 class KC_EXPORT Copier final : public ArchiveOperationBaseEx {
 public:
-	KC_HIDDEN Copier(ArchiverSessionPtr, ECConfig *, std::shared_ptr<ECArchiverLogger>, const ObjectEntryList &archives, const SPropTagArray *exclprop, int age, bool process_unread);
+	KC_HIDDEN Copier(std::shared_ptr<ArchiverSession>, ECConfig *, std::shared_ptr<ECArchiverLogger>, const std::list<SObjectEntry> &archives, const SPropTagArray *exclprop, int age, bool process_unread);
 	KC_HIDDEN ~Copier();
 
 	/**
@@ -39,17 +43,17 @@ public:
 	 * Set the operation that will perform the deletion if required.
 	 * @param[in]	ptrDeleteOp		The delete operation.
 	 */
-	KC_HIDDEN void SetDeleteOperation(DeleterPtr);
+	KC_HIDDEN void SetDeleteOperation(std::shared_ptr<Deleter>);
 
 	/**
 	 * Set the operation that will perform the stubbing if required.
 	 * @param[in]	ptrStubOp		The stub operation.
 	 */
-	KC_HIDDEN void SetStubOperation(StubberPtr);
+	KC_HIDDEN void SetStubOperation(std::shared_ptr<Stubber>);
 
 	class KC_EXPORT Helper { // For lack of a better name
 	public:
-		Helper(ArchiverSessionPtr, std::shared_ptr<ECLogger>, const InstanceIdMapperPtr &, const SPropTagArray *exclprop, LPMAPIFOLDER folder);
+		Helper(std::shared_ptr<ArchiverSession>, std::shared_ptr<ECLogger>, const std::shared_ptr<InstanceIdMapper> &, const SPropTagArray *exclprop, IMAPIFolder *);
 
 		/**
 		 * Create a copy of a message in the archive, effectively archiving the message.
@@ -58,7 +62,7 @@ public:
 		 * @param[in]	refMsgEntry		SObejctEntry referencing the original message (used as a back reference from the archive).
 		 * @param[out]	lppArchivedMsg	The new message.
 		 */
-		HRESULT CreateArchivedMessage(LPMESSAGE lpSource, const SObjectEntry &archiveEntry, const SObjectEntry &refMsgEntry, LPMESSAGE *lppArchivedMsg, PostSaveActionPtr *lpptrPSAction);
+		HRESULT CreateArchivedMessage(IMessage *src, const SObjectEntry &arc_entry, const SObjectEntry &ref_msgentry, IMessage **arc_msg, std::shared_ptr<IPostSaveAction> *);
 
 		/**
 		 * Get the folder that acts as root for an archive.
@@ -73,7 +77,7 @@ public:
 		 * @param[in]	lpMsgEntry		SObejctEntry referencing the original message (used as a back reference from the archive).
 		 * @param[in]	lpDest			The message to archive to.
 		 */
-		HRESULT ArchiveMessage(LPMESSAGE lpSource, const SObjectEntry *lpMsgEntry, LPMESSAGE lpDest, PostSaveActionPtr *lpptrPSAction);
+		HRESULT ArchiveMessage(IMessage *src, const SObjectEntry *msgentry, IMessage *dst, std::shared_ptr<IPostSaveAction> *);
 
 		/**
 		 * Update the single instance IDs of the destination message based on
@@ -81,22 +85,22 @@ public:
 		 * @param[in]	lpSource		The reference message.
 		 * @param[in]	lpDest			The message to update.
 		 */
-		KC_HIDDEN HRESULT UpdateIIDs(IMessage *src, IMessage *dst, PostSaveActionPtr *);
+		KC_HIDDEN HRESULT UpdateIIDs(IMessage *src, IMessage *dst, std::shared_ptr<IPostSaveAction> *);
 
 		/**
 		 * Get the Session instance associated with this instance.
 		 */
-		KC_HIDDEN ArchiverSessionPtr &GetSession() { return m_ptrSession; }
+		KC_HIDDEN std::shared_ptr<ArchiverSession> &GetSession() { return m_ptrSession; }
 
 	private:
 		typedef std::map<entryid_t, object_ptr<IMAPIFolder>> ArchiveFolderMap;
 		ArchiveFolderMap m_mapArchiveFolders;
 
-		ArchiverSessionPtr m_ptrSession;
+		std::shared_ptr<ArchiverSession> m_ptrSession;
 		std::shared_ptr<ECLogger> m_lpLogger;
 		const SPropTagArray *m_lpExcludeProps;
 		object_ptr<IMAPIFolder> m_ptrFolder;
-		InstanceIdMapperPtr m_ptrMapper;
+		std::shared_ptr<InstanceIdMapper> m_ptrMapper;
 	};
 
 private:
@@ -113,7 +117,7 @@ private:
 	 * @param[in]	refMsgEntry			The SObjectEntry describing the message to be archived
 	 * @param[out]	lpptrTransaction	A Transaction object used to save and delete the proper messages when everything is setup
 	 */
-	KC_HIDDEN HRESULT DoInitialArchive(IMessage *, const SObjectEntry &arc_root_entry, const SObjectEntry &ref_msg_entry, TransactionPtr *);
+	KC_HIDDEN HRESULT DoInitialArchive(IMessage *, const SObjectEntry &arc_root_entry, const SObjectEntry &ref_msg_entry, std::shared_ptr<Transaction> *);
 
 	/**
 	 * Track an existing archive and create a new archive of a message. This is used for the
@@ -127,7 +131,7 @@ private:
 	 * @param[in]	bUpdateHistory		If true, update the history references
 	 * @param[out]	lpptrTransaction	A Transaction object used to save and delete the proper messages when everything is setup
 	 */
-	KC_HIDDEN HRESULT DoTrackAndRearchive(IMessage *, const SObjectEntry &arc_root_entry, const SObjectEntry &arc_msg_entry, const SObjectEntry &ref_msg_entry, bool update_history, TransactionPtr *);
+	KC_HIDDEN HRESULT DoTrackAndRearchive(IMessage *, const SObjectEntry &arc_root_entry, const SObjectEntry &arc_msg_entry, const SObjectEntry &ref_msg_entry, bool update_history, std::shared_ptr<Transaction> *);
 
 	/**
 	 * Update an existing archive of a message. This is used for dirty messages when the track_history
@@ -138,7 +142,7 @@ private:
 	 * @param[in]	refMsgEntry			The SObjectEntry describing the message to be archived
 	 * @param[out]	lpptrTransaction	A Transaction object used to save and delete the proper messages when everything is setup
 	 */
-	KC_HIDDEN HRESULT DoUpdateArchive(IMessage *, const SObjectEntry &arc_msg_entry, const SObjectEntry &ref_msg_entry, TransactionPtr *);
+	KC_HIDDEN HRESULT DoUpdateArchive(IMessage *, const SObjectEntry &arc_msg_entry, const SObjectEntry &ref_msg_entry, std::shared_ptr<Transaction> *);
 
 	/**
 	 * Move an archived message from one archive folder to another. This is only needed when the
@@ -153,7 +157,7 @@ private:
 	 * @param[in]	refMsgEntry			The SObjectEntry describing the message to be archived
 	 * @param[out]	lpptrTransaction	A Transaction object used to save and delete the proper messages when everything is setup
 	 */
-	KC_HIDDEN HRESULT DoMoveArchive(const SObjectEntry &arc_root_entry, const SObjectEntry &arc_msg_entry, const SObjectEntry &ref_msg_entry, TransactionPtr *);
+	KC_HIDDEN HRESULT DoMoveArchive(const SObjectEntry &arc_root_entry, const SObjectEntry &arc_msg_entry, const SObjectEntry &ref_msg_entry, std::shared_ptr<Transaction> *);
 
 	/**
 	 * Execute the delete or stub operation if available. If both are set the delete operation
@@ -175,7 +179,7 @@ private:
 	 * @param[out]	lpNewEntry			The SObjectEntry describing the moved message.
 	 * @param[out]	lppNewMessage		The newly created message. This argument is allowed to be NULL
 	 */
-	KC_HIDDEN HRESULT MoveToHistory(const SObjectEntry &src_arc_root, const SObjectEntry &src_msg_entry, TransactionPtr, SObjectEntry *new_entry, IMessage **new_msg);
+	KC_HIDDEN HRESULT MoveToHistory(const SObjectEntry &src_arc_root, const SObjectEntry &src_msg_entry, std::shared_ptr<Transaction>, SObjectEntry *new_entry, IMessage **new_msg);
 
 	/**
 	 * Open the history message referenced by lpArchivedMsg and update its reference. Continue doing that for all
@@ -185,18 +189,18 @@ private:
 	 * @param[in]	refMsgEntry			The SObjectEntry describing to reference
 	 * @param[in]	ptrTransaction		A Transaction object used to save and delete the proper messages when everything is setup
 	 */
-	KC_HIDDEN HRESULT UpdateHistoryRefs(IMessage *arc_msg, const SObjectEntry &ref_msg_entry, TransactionPtr);
+	KC_HIDDEN HRESULT UpdateHistoryRefs(IMessage *arc_msg, const SObjectEntry &ref_msg_entry, std::shared_ptr<Transaction>);
 
-	ArchiverSessionPtr m_ptrSession;
+	std::shared_ptr<ArchiverSession> m_ptrSession;
 	ECConfig *m_lpConfig;
-	ObjectEntryList m_lstArchives;
+	std::list<SObjectEntry> m_lstArchives;
 	memory_ptr<SPropTagArray> m_ptrExcludeProps;
 
-	DeleterPtr m_ptrDeleteOp;
-	StubberPtr m_ptrStubOp;
+	std::shared_ptr<Deleter> m_ptrDeleteOp;
+	std::shared_ptr<Stubber> m_ptrStubOp;
 	std::unique_ptr<Helper> m_ptrHelper;
-	TransactionPtr m_ptrTransaction;
-	InstanceIdMapperPtr m_ptrMapper;
+	std::shared_ptr<Transaction> m_ptrTransaction;
+	std::shared_ptr<InstanceIdMapper> m_ptrMapper;
 };
 
 }} /* namespace */

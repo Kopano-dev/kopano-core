@@ -37,7 +37,7 @@ public:
 private:
 	ECMessageStreamImporterIStreamAdapter(WSMessageStreamImporter *lpStreamImporter);
 
-	WSMessageStreamImporterPtr	m_ptrStreamImporter;
+	KC::object_ptr<WSMessageStreamImporter> m_ptrStreamImporter;
 	KC::object_ptr<WSMessageStreamSink> m_ptrSink;
 	ALLOC_WRAP_FRIEND;
 };

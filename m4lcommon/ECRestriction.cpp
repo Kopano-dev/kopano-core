@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
+#include <memory>
 #include <utility>
 #include <kopano/ECRestriction.h>
 #include <kopano/Util.h>
@@ -99,7 +100,7 @@ void ECAndRestriction::operator+=(const ECRestrictionList &list)
 
 void ECAndRestriction::operator+=(ECRestrictionList &&o)
 {
-	ResList &dst = m_lstRestrictions, &src = o.m_list;
+	auto &dst = m_lstRestrictions, &src = o.m_list;
 	if (dst.empty()) {
 		dst = std::move(src);
 		return;
@@ -153,7 +154,7 @@ void ECOrRestriction::operator+=(const ECRestrictionList &list)
 
 void ECOrRestriction::operator+=(ECRestrictionList &&o)
 {
-	ResList &dst = m_lstRestrictions, &src = o.m_list;
+	auto &dst = m_lstRestrictions, &src = o.m_list;
 	if (dst.empty()) {
 		dst = std::move(src);
 		return;
@@ -198,7 +199,9 @@ ECRestriction *ECOrRestriction::Clone(void) const &
 /**
  * ECNotRestriction
  */
-ECNotRestriction::ECNotRestriction(ResPtr ptrRestriction): m_ptrRestriction(ptrRestriction) {}
+ECNotRestriction::ECNotRestriction(std::shared_ptr<ECRestriction> r) :
+	m_ptrRestriction(r)
+{}
 
 HRESULT ECNotRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const {
 	SRestriction restriction{};
@@ -236,10 +239,9 @@ ECContentRestriction::ECContentRestriction(ULONG ulFuzzyLevel, ULONG ulPropTag,
 		m_ptrProp.reset(np, &MAPIFreeBuffer);
 }
 
-ECContentRestriction::ECContentRestriction(ULONG ulFuzzyLevel, ULONG ulPropTag, PropPtr ptrProp)
-: m_ulFuzzyLevel(ulFuzzyLevel)
-, m_ulPropTag(ulPropTag)
-, m_ptrProp(ptrProp)
+ECContentRestriction::ECContentRestriction(unsigned int fz, unsigned int tag,
+    std::shared_ptr<SPropValue> prop) :
+	m_ulFuzzyLevel(fz), m_ulPropTag(tag), m_ptrProp(prop)
 {}
 
 HRESULT ECContentRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const {
@@ -302,10 +304,9 @@ ECPropertyRestriction::ECPropertyRestriction(ULONG relop, ULONG ulPropTag,
 		m_ptrProp.reset(np, &MAPIFreeBuffer);
 }
 
-ECPropertyRestriction::ECPropertyRestriction(ULONG relop, ULONG ulPropTag, PropPtr ptrProp)
-: m_relop(relop)
-, m_ulPropTag(ulPropTag)
-, m_ptrProp(ptrProp)
+ECPropertyRestriction::ECPropertyRestriction(unsigned int relop,
+    unsigned int tag, std::shared_ptr<SPropValue> prop) :
+	m_relop(relop), m_ulPropTag(tag), m_ptrProp(prop)
 {}
 
 HRESULT ECPropertyRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const {
@@ -394,8 +395,8 @@ ECRawRestriction::ECRawRestriction(const SRestriction *lpRestriction,
 	m_ptrRestriction.reset(ptrResTmp.release(), &MAPIFreeBuffer);
 }
 
-ECRawRestriction::ECRawRestriction(RawResPtr ptrRestriction)
-: m_ptrRestriction(ptrRestriction)
+ECRawRestriction::ECRawRestriction(std::shared_ptr<SRestriction> r) :
+	m_ptrRestriction(r)
 { }
 
 HRESULT ECRawRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const {

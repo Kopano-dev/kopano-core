@@ -165,7 +165,6 @@ enum
 #define TRANSPORT_ADDRESS_TYPE_ZARAFA KC_T("ZARAFA")
 #define TRANSPORT_ADDRESS_TYPE_FAX KC_T("FAX")
 
-typedef EID * PEID;
 #define CbNewEID(p) ((sizeof(EID) + strlen(p) + 4) / 4 * 4)
 
 #define EID_TYPE_STORE		1

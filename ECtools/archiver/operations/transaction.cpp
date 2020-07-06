@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
+#include <memory>
 #include <utility>
 #include <kopano/Util.h>
 #include <kopano/memory.hpp>
@@ -14,10 +15,11 @@ namespace KC { namespace operations {
 Transaction::Transaction(const SObjectEntry &objectEntry) : m_objectEntry(objectEntry)
 { }
 
-HRESULT Transaction::SaveChanges(ArchiverSessionPtr ptrSession, RollbackPtr *lpptrRollback)
+HRESULT Transaction::SaveChanges(std::shared_ptr<ArchiverSession> ptrSession,
+    std::shared_ptr<Rollback> *lpptrRollback)
 {
 	HRESULT hr = hrSuccess;
-	RollbackPtr ptrRollback(new Rollback());
+	auto ptrRollback = std::make_shared<Rollback>();
 	bool bPSAFailure = false;
 
 	if (lpptrRollback == NULL) {
@@ -50,7 +52,8 @@ exit:
 	return hr;
 }
 
-HRESULT Transaction::PurgeDeletes(ArchiverSessionPtr ptrSession, TransactionPtr ptrDeferredTransaction)
+HRESULT Transaction::PurgeDeletes(std::shared_ptr<ArchiverSession> ptrSession,
+    std::shared_ptr<Transaction> ptrDeferredTransaction)
 {
 	HRESULT hr = hrSuccess;
 	IMAPISession *lpSession = ptrSession->GetMAPISession();
@@ -84,7 +87,8 @@ HRESULT Transaction::PurgeDeletes(ArchiverSessionPtr ptrSession, TransactionPtr 
 	return hr;
 }
 
-HRESULT Transaction::Save(IMessage *lpMessage, bool bDeleteOnFailure, const PostSaveActionPtr &ptrPSAction)
+HRESULT Transaction::Save(IMessage *lpMessage, bool bDeleteOnFailure,
+    const std::shared_ptr<IPostSaveAction> &ptrPSAction)
 {
 	SaveEntry se;
 	se.bDeleteOnFailure = bDeleteOnFailure;
@@ -103,7 +107,7 @@ HRESULT Transaction::Delete(const SObjectEntry &objectEntry, bool bDeferredDelet
 	return hrSuccess;
 }
 
-HRESULT Rollback::Delete(ArchiverSessionPtr ptrSession, IMessage *lpMessage)
+HRESULT Rollback::Delete(std::shared_ptr<ArchiverSession> ptrSession, IMessage *lpMessage)
 {
 	unsigned int cMsgProps;
 	DelEntry entry;
@@ -127,7 +131,7 @@ HRESULT Rollback::Delete(ArchiverSessionPtr ptrSession, IMessage *lpMessage)
 	return hrSuccess;
 }
 
-HRESULT Rollback::Execute(ArchiverSessionPtr ptrSession)
+HRESULT Rollback::Execute(std::shared_ptr<ArchiverSession> ptrSession)
 {
 	HRESULT hr = hrSuccess;
 	SBinary entryID = {0, NULL};

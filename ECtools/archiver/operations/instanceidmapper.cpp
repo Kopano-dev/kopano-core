@@ -17,7 +17,7 @@
 namespace KC { namespace operations {
 
 HRESULT InstanceIdMapper::Create(std::shared_ptr<ECLogger> lpLogger,
-    ECConfig *lpConfig, InstanceIdMapperPtr *lpptrMapper)
+    ECConfig *lpConfig, std::shared_ptr<InstanceIdMapper> *lpptrMapper)
 {
 	std::unique_ptr<InstanceIdMapper> lpMapper;
 	std::unique_ptr<ECConfig> lpLocalConfig;

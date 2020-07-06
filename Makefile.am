@@ -340,13 +340,11 @@ kopano_vcfimport_LDADD = libmapi.la libkcutil.la libkcicalmapi.la ${libHX_LIBS}
 #
 libkcarchiver_la_SOURCES = \
 	ECtools/archiver/ArchiverSession.cpp ECtools/archiver/ArchiverSession.h \
-	ECtools/archiver/ArchiverSessionPtr.h \
 	ECtools/archiver/archiver-common.cpp \
 	ECtools/archiver/ArchiveManageImpl.cpp ECtools/archiver/ArchiveManageImpl.h \
 	ECtools/archiver/ArchiveManage.h \
 	ECtools/archiver/ArchiveStateCollector.cpp ECtools/archiver/ArchiveStateCollector.h \
 	ECtools/archiver/ArchiveStateUpdater.cpp ECtools/archiver/ArchiveStateUpdater.h \
-	ECtools/archiver/archivestateupdater_fwd.h \
 	ECtools/archiver/helpers/ArchiveHelper.cpp ECtools/archiver/helpers/ArchiveHelper.h \
 	ECtools/archiver/helpers/StoreHelper.cpp ECtools/archiver/helpers/StoreHelper.h \
 	ECtools/archiver/helpers/MAPIPropHelper.cpp ECtools/archiver/helpers/MAPIPropHelper.h \
@@ -356,10 +354,8 @@ libkcarchiver_la_SOURCES = \
 	ECtools/archiver/ArchiverImpl.cpp ECtools/archiver/ArchiverImpl.h \
 	ECtools/archiver/operations/instanceidmapper.cpp \
 	ECtools/archiver/operations/instanceidmapper.h \
-	ECtools/archiver/operations/instanceidmapper_fwd.h \
 	ECtools/archiver/operations/operations.cpp \
 	ECtools/archiver/operations/operations.h \
-	ECtools/archiver/operations/operations_fwd.h \
 	ECtools/archiver/operations/copier.cpp \
 	ECtools/archiver/operations/copier.h \
 	ECtools/archiver/operations/deleter.cpp \
@@ -368,7 +364,6 @@ libkcarchiver_la_SOURCES = \
 	ECtools/archiver/operations/stubber.h \
 	ECtools/archiver/operations/transaction.cpp \
 	ECtools/archiver/operations/transaction.h \
-	ECtools/archiver/operations/transaction_fwd.h \
 	ECtools/archiver/operations/postsaveaction.h \
 	ECtools/archiver/operations/postsaveiidupdater.cpp \
 	ECtools/archiver/operations/postsaveiidupdater.h \

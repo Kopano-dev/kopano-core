@@ -23,12 +23,10 @@ struct ArchiveEntry {
 	unsigned Rights;
 	std::string StoreGuid;
 };
-typedef std::list<ArchiveEntry> ArchiveList;
 
 struct UserEntry {
 	std::string UserName;
 };
-typedef std::list<UserEntry> UserList;
 
 class ArchiveManage {
 public:
@@ -44,15 +42,13 @@ public:
 	virtual eResult DetachFrom(const char *lpszArchiveServer, const TCHAR *lpszArchive, const TCHAR *lpszFolder) = 0;
 	virtual eResult DetachFrom(unsigned int ulArchive) = 0;
 	virtual eResult ListArchives(std::ostream &ostr) = 0;
-	virtual eResult ListArchives(ArchiveList *lplstArchives, const char *lpszIpmSubtreeSubstitude = NULL) = 0;
+	virtual eResult ListArchives(std::list<ArchiveEntry> *, const char *ipm_subtree_subst = nullptr) = 0;
 	virtual eResult ListAttachedUsers(std::ostream &ostr) = 0;
-	virtual eResult ListAttachedUsers(UserList *lplstUsers) = 0;
+	virtual eResult ListAttachedUsers(std::list<UserEntry> *) = 0;
 	virtual eResult AutoAttach(unsigned int ulFlags) = 0;
 
 protected:
 	ArchiveManage(void) = default;
 };
-
-typedef std::unique_ptr<ArchiveManage> ArchiveManagePtr;
 
 } /* namespace */

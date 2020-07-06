@@ -201,7 +201,7 @@ public:
 
 		ArchiveControl *GetControl(bool bForceCleanup = false) {
 			eResult r = Success;
-			ArchiveControlPtr ptr;
+			std::unique_ptr<ArchiveControl> ptr;
 
 			r = self->GetControl(&ptr, bForceCleanup);
 			if (r != Success)
@@ -212,7 +212,7 @@ public:
 
 		ArchiveManage *GetManage(const char *lpszUser) {
 			eResult r = Success;
-			ArchiveManagePtr ptr;
+			std::unique_ptr<ArchiveManage> ptr;
 			convert_context converter;
 
 			r = self->GetManage(TO_LPTST(lpszUser), &ptr);

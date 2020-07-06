@@ -2,12 +2,14 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
+#include <list>
 #include "archiver_conv.h"
 #include "pymem.hpp"
 
 using namespace KC;
 
-PyObject* PyObject_from_Iterator(const ArchiveList::const_iterator &i) {
+PyObject *PyObject_from_Iterator(const std::list<ArchiveEntry>::const_iterator &i)
+{
 	return Py_BuildValue("(sssi)", i->StoreName.c_str(), i->FolderName.c_str(), i->StoreOwner.c_str(), i->Rights);
 }
 
@@ -28,9 +30,9 @@ PyObject* List_from(const ListType &lst)
 	return list.release();
 }
 
-PyObject* List_from_ArchiveList(const ArchiveList &lst)
+PyObject *List_from_ArchiveList(const std::list<ArchiveEntry> &lst)
 {
-	return List_from<ArchiveList>(lst);
+	return List_from<std::list<ArchiveEntry>>(lst);
 }
 
 PyObject* List_from_UserList(const UserList &lst)

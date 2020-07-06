@@ -43,5 +43,3 @@ private:
 	KC::object_ptr<WSTransport> m_ptrTransport;
 	StreamInfoMap	m_mapStreamInfo;
 };
-
-typedef KC::object_ptr<WSMessageStreamExporter> WSMessageStreamExporterPtr;

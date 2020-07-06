@@ -43,8 +43,6 @@ struct EVENT {
 };
 
 typedef std::map<unsigned int, std::shared_ptr<SEARCHFOLDER>> FOLDERIDSEARCH;
-typedef std::map<unsigned int, FOLDERIDSEARCH> STOREFOLDERIDSEARCH;
-typedef std::map<unsigned int, pthread_t> SEARCHTHREADMAP;
 
 struct sSearchFolderStats {
 	ULONG ulStores, ulFolders, ulEvents;
@@ -371,7 +369,7 @@ private:
     // Because searchfolders only work within a store, this allows us to skip 99% of all
     // search folders during UpdateSearchFolders (depending on how many users you have)
 	std::recursive_mutex m_mutexMapSearchFolders;
-    STOREFOLDERIDSEARCH m_mapSearchFolders;
+	std::map<unsigned int, FOLDERIDSEARCH> m_mapSearchFolders;
 
     // Pthread condition to signal a thread exit
 	std::condition_variable m_condThreadExited;

@@ -3,18 +3,25 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #pragma once
+#include <list>
 #include <memory>
 #include <set>
 #include <utility>
 #include <kopano/memory.hpp>
-#include "operations/operations_fwd.h"
 #include "helpers/ArchiveHelper.h"
 
 namespace KC {
 
+class ArchiverSession;
 class ECConfig;
 class ECLogger;
 class ECArchiverLogger;
+
+namespace operations {
+
+class IArchiveOperation;
+
+}
 
 /**
  * This class is the entry point to the archiving system. It's responsible for executing the actual archive
@@ -96,7 +103,7 @@ class ECArchiverLogger;
  */
 class ArchiveControlImpl final : public ArchiveControl {
 public:
-	static HRESULT Create(ArchiverSessionPtr ptrSession, ECConfig *lpConfig, std::shared_ptr<ECLogger>, bool bForceCleanup, ArchiveControlPtr *lpptrArchiveControl);
+	static HRESULT Create(std::shared_ptr<ArchiverSession>, ECConfig *, std::shared_ptr<ECLogger>, bool force_cleanup, std::unique_ptr<ArchiveControl> *);
 	eResult ArchiveAll(bool local_only, bool auto_attach, unsigned int flags) override;
 	HRESULT Archive2(const tstring &user, bool auto_attach, unsigned int flags);
 	eResult Archive(const tstring &user, bool auto_attach, unsigned int flags) override;
@@ -117,23 +124,23 @@ private:
 	typedef std::set<entryid_t> EntryIDSet;
 	typedef std::set<std::pair<entryid_t, entryid_t>, ReferenceLessCompare> ReferenceSet;
 
-	ArchiveControlImpl(ArchiverSessionPtr ptrSession, ECConfig *lpConfig, std::shared_ptr<ECLogger>, bool bForceCleanup);
+	ArchiveControlImpl(std::shared_ptr<ArchiverSession>, ECConfig *, std::shared_ptr<ECLogger>, bool force_cleanup);
 	HRESULT Init();
 	HRESULT DoArchive(const tstring& strUser);
 	HRESULT DoCleanup(const tstring& strUser);
-	HRESULT ProcessFolder2(object_ptr<IMAPIFolder> &, std::shared_ptr<operations::IArchiveOperation>, bool &);
-	HRESULT ProcessFolder(object_ptr<IMAPIFolder> &, operations::ArchiveOperationPtr ptrArchiveOperation);
+	HRESULT ProcessFolder2(IMAPIFolder *, std::shared_ptr<operations::IArchiveOperation>, bool &);
+	HRESULT ProcessFolder(IMAPIFolder *, std::shared_ptr<operations::IArchiveOperation>);
 	HRESULT ProcessAll(bool bLocalOnly, fnProcess_t fnProcess);
-	HRESULT PurgeArchives(const ObjectEntryList &lstArchives);
-	HRESULT PurgeArchiveFolder(object_ptr<IMsgStore> &archive, const entryid_t &folder, const SRestriction *);
+	HRESULT PurgeArchives(const std::list<SObjectEntry> &archives);
+	HRESULT PurgeArchiveFolder(IMsgStore *archive, const entryid_t &folder, const SRestriction *);
 	HRESULT CleanupArchive(const SObjectEntry &archiveEntry, IMsgStore* lpUserStore, LPSRestriction lpRestriction);
 	HRESULT GetAllReferences(IMsgStore *store, const GUID *archive, EntryIDSet *refs);
 	HRESULT AppendAllReferences(IMAPIFolder *root, const GUID *archive, EntryIDSet *refs);
-	HRESULT GetAllEntries(helpers::ArchiveHelperPtr, LPMAPIFOLDER arc, LPSRestriction, EntryIDSet *entries);
+	HRESULT GetAllEntries(std::shared_ptr<helpers::ArchiveHelper>, IMAPIFolder *arc, SRestriction *, EntryIDSet *entries);
 	HRESULT AppendAllEntries(LPMAPIFOLDER lpArchive, LPSRestriction lpRestriction, EntryIDSet *lpMsgEntries);
-	HRESULT CleanupHierarchy(helpers::ArchiveHelperPtr, LPMAPIFOLDER arc_root, LPMDB user_store);
-	HRESULT MoveAndDetachMessages(helpers::ArchiveHelperPtr, LPMAPIFOLDER arc_folder, const EntryIDSet &);
-	HRESULT MoveAndDetachFolder(helpers::ArchiveHelperPtr, LPMAPIFOLDER arc_folder);
+	HRESULT CleanupHierarchy(std::shared_ptr<helpers::ArchiveHelper>, IMAPIFolder *arc_root, IMsgStore *user_store);
+	HRESULT MoveAndDetachMessages(std::shared_ptr<helpers::ArchiveHelper>, IMAPIFolder *arc_folder, const EntryIDSet &);
+	HRESULT MoveAndDetachFolder(std::shared_ptr<helpers::ArchiveHelper>, IMAPIFolder *arc_folder);
 	HRESULT DeleteMessages(LPMAPIFOLDER lpArchiveFolder, const EntryIDSet &setEIDs);
 	HRESULT DeleteFolder(LPMAPIFOLDER lpArchiveFolder);
 	HRESULT AppendFolderEntries(LPMAPIFOLDER lpBase, EntryIDSet *lpEntries);
@@ -141,7 +148,7 @@ private:
 
 	enum eCleanupAction { caDelete, caStore, caNone };
 
-	ArchiverSessionPtr m_ptrSession;
+	std::shared_ptr<ArchiverSession> m_ptrSession;
 	ECConfig *m_lpConfig = nullptr;
 	std::shared_ptr<ECArchiverLogger> m_lpLogger;
 	FILETIME m_ftCurrent{};

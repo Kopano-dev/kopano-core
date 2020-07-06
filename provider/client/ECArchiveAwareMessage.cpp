@@ -498,7 +498,7 @@ HRESULT ECArchiveAwareMsgStore::OpenItemFromArchive(LPSPropValue lpPropStoreEIDs
 	auto iterStoreEID = lstStoreEIDs.begin();
 	auto iterIterEID = lstItemEIDs.begin();
 	for (; iterStoreEID != lstStoreEIDs.end(); ++iterStoreEID, ++iterIterEID) {
-		ECMsgStorePtr	ptrArchiveStore;
+		object_ptr<ECMsgStore> ptrArchiveStore;
 		ULONG			ulType = 0;
 
 		hr = GetArchiveStore(*iterStoreEID, &~ptrArchiveStore);
@@ -546,18 +546,17 @@ HRESULT ECArchiveAwareMsgStore::CreateCacheBasedReorderedList(const SBinaryArray
 HRESULT ECArchiveAwareMsgStore::GetArchiveStore(LPSBinary lpStoreEID, ECMsgStore **lppArchiveStore)
 {
 	const std::vector<BYTE> eid(lpStoreEID->lpb, lpStoreEID->lpb + lpStoreEID->cb);
-	MsgStoreMap::const_iterator iterStore = m_mapStores.find(eid);
+	auto iterStore = m_mapStores.find(eid);
 	if (iterStore != m_mapStores.cend())
 		return iterStore->second->QueryInterface(IID_ECMsgStore, reinterpret_cast<void **>(lppArchiveStore));
 
 	// @todo: Consolidate this with ECMSProvider::LogonByEntryID
-	ECMsgStorePtr ptrOnlineStore;
+	object_ptr<ECMsgStore> ptrOnlineStore, ptrArchiveStore;
 	ULONG cbEntryID = 0;
 	memory_ptr<ENTRYID> ptrEntryID;
 	std::string ServerURL, strServer;
 	bool bIsPseudoUrl = false, bIsPeer = false;
 	object_ptr<WSTransport> ptrTransport;
-	ECMsgStorePtr ptrArchiveStore;
 	object_ptr<IECPropStorage> ptrPropStorage;
 
 	auto hr = QueryInterface(IID_ECMsgStore, &~ptrOnlineStore);

@@ -342,8 +342,7 @@ HRESULT ECNotifyClient::Unadvise(const ECLISTCONNECTION &lstConnections)
 HRESULT ECNotifyClient::Reregister(ULONG ulConnection, ULONG cbKey, LPBYTE lpKey)
 {
 	scoped_rlock biglock(m_hMutex);
-
-	ECMAPADVISE::const_iterator iter = m_mapAdvise.find(ulConnection);
+	auto iter = m_mapAdvise.find(ulConnection);
 	if (iter == m_mapAdvise.cend())
 		return MAPI_E_NOT_FOUND;
 
@@ -375,9 +374,6 @@ HRESULT ECNotifyClient::ReleaseAll()
 	return hrSuccess;
 }
 
-typedef std::list<NOTIFICATION *> NOTIFICATIONLIST;
-typedef std::list<SBinary *> BINARYLIST;
-
 HRESULT ECNotifyClient::NotifyReload()
 {
 	struct notification notif;
@@ -406,7 +402,7 @@ HRESULT ECNotifyClient::NotifyReload()
 HRESULT ECNotifyClient::Notify(ULONG ulConnection, const NOTIFYLIST &lNotifications)
 {
 	HRESULT						hr = hrSuccess;
-	NOTIFICATIONLIST			notifications;
+	std::list<NOTIFICATION *> notifications;
 
 	for (auto notp : lNotifications) {
 		LPNOTIFICATION tmp = NULL;
@@ -470,7 +466,7 @@ exit:
 HRESULT ECNotifyClient::NotifyChange(ULONG ulConnection, const NOTIFYLIST &lNotifications)
 {
 	memory_ptr<ENTRYLIST> lpSyncStates;
-	BINARYLIST					syncStates;
+	std::list<SBinary *> syncStates;
 	ulock_rec biglock(m_hMutex, std::defer_lock_t());
 
 	/* Create a straight array of MAX_NOTIFS_PER_CALL sync states */

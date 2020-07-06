@@ -8,6 +8,7 @@
 #include <kopano/charset/convert.h>
 #include <kopano/ECRestriction.h>
 #include <kopano/ECLogger.h>
+#include <kopano/memory.hpp>
 #include <kopano/stringutil.h>
 #include "kopano/mapiext.h"
 #include "tbi.hpp"

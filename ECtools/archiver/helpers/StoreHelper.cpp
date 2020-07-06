@@ -3,6 +3,8 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
+#include <list>
+#include <memory>
 #include <new>
 #include <utility>
 #include <mapix.h>
@@ -40,9 +42,9 @@ const StoreHelper::search_folder_info_t StoreHelper::s_infoSearchFolders[] = {
  *					Pointer to a StoreHelperPtr that will be assigned the address
  *					of the new StoreHelper object.
  */
-HRESULT StoreHelper::Create(object_ptr<IMsgStore> &ptrMsgStore, StoreHelperPtr *lpptrStoreHelper)
+HRESULT StoreHelper::Create(IMsgStore *ptrMsgStore, std::unique_ptr<StoreHelper> *lpptrStoreHelper)
 {
-	StoreHelperPtr ptrStoreHelper(new(std::nothrow) StoreHelper(ptrMsgStore));
+	std::unique_ptr<StoreHelper> ptrStoreHelper(new(std::nothrow) StoreHelper(ptrMsgStore));
 	if (ptrStoreHelper == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	auto hr = ptrStoreHelper->Init();
@@ -52,7 +54,7 @@ HRESULT StoreHelper::Create(object_ptr<IMsgStore> &ptrMsgStore, StoreHelperPtr *
 	return hrSuccess;
 }
 
-StoreHelper::StoreHelper(object_ptr<IMsgStore> &st) :
+StoreHelper::StoreHelper(IMsgStore *st) :
 	MAPIPropHelper(st), m_ptrMsgStore(st), m_propmap(8)
 { }
 
@@ -298,7 +300,7 @@ HRESULT StoreHelper::GetSearchFolders(LPMAPIFOLDER *lppSearchArchiveFolder, LPMA
  *					Pointer to an IMAPIFolder pointer that will be assigned the
  *					address of the returned folder.
  */
-HRESULT StoreHelper::GetSubFolder(object_ptr<IMAPIFolder> &ptrFolder,
+HRESULT StoreHelper::GetSubFolder(IMAPIFolder *ptrFolder,
     const tstring &strFolder, bool bCreate, IMAPIFolder **lppFolder)
 {
 	static constexpr const SizedSPropTagArray(1, sptaFolderProps) = {1, {PR_ENTRYID}};
@@ -663,7 +665,6 @@ HRESULT StoreHelper::GetClassCheckRestriction(ECOrRestriction *lpresClassCheck)
 HRESULT StoreHelper::GetArchiveCheckRestriction(ECAndRestriction *lpresArchiveCheck)
 {
 	SPropValue sPropDirty{};
-	ObjectEntryList lstArchives;
 	ECAndRestriction resArchiveCheck;
 
 	sPropDirty.ulPropTag = PROP_DIRTY;
@@ -680,6 +681,7 @@ HRESULT StoreHelper::GetArchiveCheckRestriction(ECAndRestriction *lpresArchiveCh
 				ECPropertyRestriction(RELOP_EQ, PROP_DIRTY, &sPropDirty, ECRestriction::Shallow)
 			)
 		);
+	std::list<SObjectEntry> lstArchives;
 	auto hr = GetArchiveList(&lstArchives);
 	if (hr != hrSuccess)
 		return hr;

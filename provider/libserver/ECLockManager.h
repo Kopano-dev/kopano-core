@@ -13,8 +13,6 @@ namespace KC {
 
 class ECLockManager;
 
-typedef std::shared_ptr<ECLockManager> ECLockManagerPtr;
-
 class ECObjectLock final {
 public:
 	ECObjectLock() = default;
@@ -35,7 +33,7 @@ private:
 ////////////////
 class ECLockManager final : public std::enable_shared_from_this<ECLockManager> {
 public:
-	static ECLockManagerPtr Create();
+	static std::shared_ptr<ECLockManager> Create();
 	ECRESULT LockObject(unsigned int ulObjId, ECSESSIONID sessionId, ECObjectLock *lpOjbectLock);
 	ECRESULT UnlockObject(unsigned int ulObjId, ECSESSIONID sessionId);
 	bool IsLocked(unsigned int ulObjId, ECSESSIONID *lpSessionId);

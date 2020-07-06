@@ -5,6 +5,7 @@
 #include <edkmdb.h>
 #include <kopano/ECLogger.h>
 #include <kopano/hl.hpp>
+#include <kopano/memory.hpp>
 #include "ECMemStream.h"
 #include "idx_util.hpp"
 

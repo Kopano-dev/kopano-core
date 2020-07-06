@@ -4,7 +4,6 @@
  */
 #pragma once
 #include <memory>
-#include "operations_fwd.h"
 #include <mapix.h>
 #include <kopano/memory.hpp>
 
@@ -96,7 +95,7 @@ protected:
 	 * Returns a pointer to a MAPIFolderPtr, which references the current working folder.
 	 * @return A reference to a MAPIFolderPtr.
 	 */
-	object_ptr<IMAPIFolder> &CurrentFolder() { return m_ptrCurFolder; }
+	IMAPIFolder *CurrentFolder() { return m_ptrCurFolder.get(); }
 
 private:
 	/**

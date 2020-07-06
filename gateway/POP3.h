@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <kopano/memory.hpp>
 #include "ClientProto.h"
 
 /**

@@ -975,7 +975,7 @@ sSessionManagerStats ECSessionManager::get_stats()
 	// Get session data
 	std::shared_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
 	sStats.session.ulItems = m_mapSessions.size();
-	sStats.session.ullSize = MEMORY_USAGE_MAP(sStats.session.ulItems, SESSIONMAP);
+	sStats.session.ullSize = MEMORY_USAGE_MAP(sStats.session.ulItems, decltype(m_mapSessions));
 	l_cache.unlock();
 	sStats.session.ulLocked = 0;
 	sStats.session.ulOpenTables = 0;
@@ -983,7 +983,7 @@ sSessionManagerStats ECSessionManager::get_stats()
 	// Get group data
 	std::shared_lock<KC::shared_mutex> l_group(m_hGroupLock);
 	sStats.group.ulItems = m_mapSessionGroups.size();
-	sStats.group.ullSize = MEMORY_USAGE_HASHMAP(sStats.group.ulItems, EC_SESSIONGROUPMAP);
+	sStats.group.ullSize = MEMORY_USAGE_HASHMAP(sStats.group.ulItems, decltype(m_mapSessionGroups));
 
 	for (const auto &psg : m_mapSessionGroups)
 		sStats.group.ullSize += psg.second->GetObjectSize();
@@ -992,21 +992,21 @@ sSessionManagerStats ECSessionManager::get_stats()
 	// persistent connections/sessions
 	ulock_normal l_per(m_mutexPersistent);
 	sStats.ulPersistentByConnection = m_mapPersistentByConnection.size();
-	sStats.ulPersistentByConnectionSize = MEMORY_USAGE_HASHMAP(sStats.ulPersistentByConnection, PERSISTENTBYCONNECTION);
+	sStats.ulPersistentByConnectionSize = MEMORY_USAGE_HASHMAP(sStats.ulPersistentByConnection, decltype(m_mapPersistentByConnection));
 	sStats.ulPersistentBySession = m_mapPersistentBySession.size();
-	sStats.ulPersistentBySessionSize = MEMORY_USAGE_HASHMAP(sStats.ulPersistentBySession, PERSISTENTBYSESSION);
+	sStats.ulPersistentBySessionSize = MEMORY_USAGE_HASHMAP(sStats.ulPersistentBySession, decltype(m_mapPersistentBySession));
 	l_per.unlock();
 
 	// Table subscriptions
 	ulock_normal l_tblsub(m_mutexTableSubscriptions);
 	sStats.ulTableSubscriptions = m_mapTableSubscriptions.size();
-	sStats.ulTableSubscriptionSize = MEMORY_USAGE_MULTIMAP(sStats.ulTableSubscriptions, TABLESUBSCRIPTIONMULTIMAP);
+	sStats.ulTableSubscriptionSize = MEMORY_USAGE_MULTIMAP(sStats.ulTableSubscriptions, decltype(m_mapTableSubscriptions));
 	l_tblsub.unlock();
 
 	// Object subscriptions
 	ulock_normal l_objsub(m_mutexObjectSubscriptions);
 	sStats.ulObjectSubscriptions = m_mapObjectSubscriptions.size();
-	sStats.ulObjectSubscriptionSize = MEMORY_USAGE_MULTIMAP(sStats.ulObjectSubscriptions, OBJECTSUBSCRIPTIONSMULTIMAP);
+	sStats.ulObjectSubscriptionSize = MEMORY_USAGE_MULTIMAP(sStats.ulObjectSubscriptions, decltype(m_mapObjectSubscriptions));
 	l_objsub.unlock();
 
 	return sStats;
@@ -1276,9 +1276,9 @@ exit:
 	return er;
 }
 
-ECLockManagerPtr ECLockManager::Create()
+std::shared_ptr<ECLockManager> ECLockManager::Create()
 {
-	return ECLockManagerPtr(new ECLockManager);
+	return std::shared_ptr<ECLockManager>(new(std::nothrow) ECLockManager);
 }
 
 ECRESULT ECLockManager::LockObject(unsigned int objid, ECSESSIONID sid,

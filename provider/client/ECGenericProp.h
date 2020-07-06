@@ -32,11 +32,6 @@ struct PROPCALLBACK {
 	}
 };
 
-typedef std::map<short, PROPCALLBACK>			ECPropCallBackMap;
-typedef ECPropCallBackMap::iterator				ECPropCallBackIterator;
-typedef std::map<short, ECPropertyEntry>		ECPropertyEntryMap;
-typedef ECPropertyEntryMap::iterator			ECPropertyEntryIterator;
-
 class ECGenericProp :
     public KC::ECUnknown, public virtual IMAPIProp,
     public KC::IECSingleInstance {
@@ -105,9 +100,9 @@ public:
 	virtual HRESULT DeleteProps(const SPropTagArray *, LPSPropProblemArray *) override;
 
 protected:
-	ECPropertyEntryMap lstProps;
+	std::map<short, ECPropertyEntry> lstProps;
 	std::set<ULONG>			m_setDeletedProps;
-	ECPropCallBackMap		lstCallBack;
+	std::map<short, PROPCALLBACK> lstCallBack;
 	DWORD dwLastError = hrSuccess;
 	BOOL fSaved = false; // only 0 if just created, // not saved until we either read or write from/to disk
 	ULONG					ulObjType;

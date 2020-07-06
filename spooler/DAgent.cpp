@@ -1740,7 +1740,6 @@ static HRESULT HrCopyMessageForDelivery(IMessage *lpOrigMessage,
 {
 	object_ptr<IMessage> lpMessage;
 	object_ptr<IMAPIFolder> lpFolder;
-	helpers::MAPIPropHelperPtr ptrArchiveHelper;
 	static constexpr const SizedSPropTagArray(13, sptaReceivedBy) = {
 		13, {
 			/* Overridden by HrOverrideRecipProps() */
@@ -1791,6 +1790,7 @@ static HRESULT HrCopyMessageForDelivery(IMessage *lpOrigMessage,
 		lpMessage->DeleteProps(sptaFallback, 0);
 
 	// Make sure the message is not attached to an archive
+	std::unique_ptr<helpers::MAPIPropHelper> ptrArchiveHelper;
 	hr = helpers::MAPIPropHelper::Create(object_ptr<IMAPIProp>(lpMessage), &ptrArchiveHelper);
 	if (hr != hrSuccess)
 		return kc_perrorf("helpers::MAPIPropHelper::Create failed", hr);
@@ -2136,7 +2136,7 @@ static HRESULT ProcessDeliveryToRecipient(pym_plugin_intf *lppyMapiPlugin,
 		// TODO do something with ulResult
 		if (parseBool(g_lpConfig->GetSetting("archive_on_delivery"))) {
 			object_ptr<IMAPISession> ptrAdminSession;
-			ArchivePtr ptrArchive;
+			std::unique_ptr<Archive> ptrArchive;
 
 			if (bIsAdmin)
 				hr = lpSession->QueryInterface(iid_of(ptrAdminSession), &~ptrAdminSession);

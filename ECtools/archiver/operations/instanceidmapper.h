@@ -5,7 +5,6 @@
 #pragma once
 #include <memory>
 #include <kopano/zcdefs.h>
-#include "instanceidmapper_fwd.h"
 #include <mapidefs.h>
 
 namespace KC {
@@ -18,7 +17,7 @@ namespace operations {
 
 class KC_EXPORT InstanceIdMapper final {
 	public:
-	static HRESULT Create(std::shared_ptr<ECLogger>, ECConfig *, InstanceIdMapperPtr *);
+	static HRESULT Create(std::shared_ptr<ECLogger>, ECConfig *, std::shared_ptr<InstanceIdMapper> *);
 	KC_HIDDEN HRESULT GetMappedInstanceId(const SBinary &src_server_uid, unsigned int src_instance_id_size, ENTRYID *src_instance_id, const SBinary &dst_server_uid, unsigned int *dst_instance_id_size, ENTRYID **dst_instance_id);
 	KC_HIDDEN HRESULT SetMappedInstances(unsigned int prop_id, const SBinary &src_server_uid, unsigned int src_instance_id_size, ENTRYID *src_instance_id, const SBinary &dst_server_uid, unsigned int dst_instance_id_size, ENTRYID *dst_instance_id);
 

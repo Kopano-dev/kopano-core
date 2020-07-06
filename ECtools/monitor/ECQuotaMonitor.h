@@ -5,7 +5,7 @@
 #pragma once
 #include <string>
 #include <kopano/ECDefs.h>
-
+#include <kopano/memory.hpp>
 #define TEMPLATE_LINE_LENGTH		1024
 
 struct TemplateVariables {

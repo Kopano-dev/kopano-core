@@ -22,6 +22,7 @@
 #include <kopano/CommonUtil.h>
 #include <kopano/codepage.h>
 #include <kopano/hl.hpp>
+#include <kopano/memory.hpp>
 #include <inetmapi/options.h>
 #include "tbi.hpp"
 

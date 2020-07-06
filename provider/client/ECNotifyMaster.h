@@ -37,10 +37,6 @@ private:
  * ECNotifyClient is owned by ECABLogon/ECMsgStore, so the list basically
  * consists of weak pointers (and must not be changed to object_ptr).
  */
-typedef std::list<ECNotifyClient*> NOTIFYCLIENTLIST;
-typedef std::map<ULONG, ECNotifySink> NOTIFYCONNECTIONCLIENTMAP;
-typedef std::map<ULONG, NOTIFYLIST> NOTIFYCONNECTIONMAP;
-
 class ECNotifyMaster final : public KC::ECUnknown {
 protected:
 	ECNotifyMaster(SessionGroupData *lpData);
@@ -62,10 +58,10 @@ private:
 	static void* NotifyWatch(void *pTmpNotifyClient);
 
 	/* List of Clients attached to this master. */
-	NOTIFYCLIENTLIST			m_listNotifyClients;
+	std::list<ECNotifyClient *> m_listNotifyClients;
 
 	/* List of all connections, mapped to client. */
-	NOTIFYCONNECTIONCLIENTMAP	m_mapConnections;
+	std::map<unsigned int, ECNotifySink> m_mapConnections;
 
 	/* Connection settings */
 	/* weak ptr: ECNotifyMaster is owned by SessionGroupData */
