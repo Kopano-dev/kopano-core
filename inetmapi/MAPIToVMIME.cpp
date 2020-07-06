@@ -35,7 +35,6 @@
 #include "ECMapiUtils.h"
 #include "MAPIToVMIME.h"
 #include "VMIMEToMAPI.h"
-#include "inputStreamMAPIAdapter.h"
 #include "mapiTextPart.h"
 #include "rtfutil.h"
 #include <kopano/CommonUtil.h>
