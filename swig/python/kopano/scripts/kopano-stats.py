@@ -9,7 +9,20 @@ import curses
 import sys
 import time
 import kopano
-from MAPI.Util import *
+
+from MAPI.Tags import (PR_EC_STATS_SESSION_CPU_SYSTEM,
+                       PR_EC_STATSTABLE_COMPANY, PR_EC_STATSTABLE_SERVERS,
+                       PR_EC_STATSTABLE_SESSIONS, PR_EC_STATSTABLE_USERS,
+                       PR_EC_STATS_SESSION_IDLETIME, PR_EC_COMPANY_NAME,
+                       PR_EC_STATS_SERVER_NAME, PR_EC_USERNAME_A,
+                       PR_EC_STATS_SESSION_IPADDRESS, PR_EC_STATSTABLE_SYSTEM,
+                       PR_DISPLAY_NAME, PR_EC_STATS_SYSTEM_VALUE,
+                       PR_EC_STATS_SESSION_CPU_USER, PR_EC_STATS_SESSION_GROUP_ID,
+                       PR_EC_STATS_SESSION_ID, PR_EC_STATS_SESSION_CLIENT_VERSION,
+                       PR_EC_STATS_SESSION_CLIENT_APPLICATION, PR_EC_STATS_SESSION_CPU_REAL,
+                       PR_EC_STATS_SESSION_REQUESTS, PR_EC_STATS_SESSION_PROCSTATES,
+                       PR_EC_STATS_SESSION_BUSYSTATES, PR_NULL)
+
 
 TABLES = {
     'company': (PR_EC_STATSTABLE_COMPANY, PR_EC_COMPANY_NAME),
@@ -18,6 +31,7 @@ TABLES = {
     'system': (PR_EC_STATSTABLE_SYSTEM, PR_NULL),
     'users': (PR_EC_STATSTABLE_USERS, (PR_EC_COMPANY_NAME, PR_EC_USERNAME_A)),
 }
+
 
 def top(scr, server):
     def delta_dict(d1, d2):
@@ -80,7 +94,7 @@ def top(scr, server):
             delta = delta_dict(sessions_stats_old.get(row[PR_EC_STATS_SESSION_ID], {}), row)
             data.append((
                 groupmap.setdefault(row[PR_EC_STATS_SESSION_GROUP_ID], len(groupmap)+1),
-                2**64 - row[PR_EC_STATS_SESSION_ID] if row[PR_EC_STATS_SESSION_ID] < 0 else row[PR_EC_STATS_SESSION_ID], #XXX
+                2**64 - row[PR_EC_STATS_SESSION_ID] if row[PR_EC_STATS_SESSION_ID] < 0 else row[PR_EC_STATS_SESSION_ID],  # XXX
                 row[PR_EC_STATS_SESSION_CLIENT_VERSION],
                 row[PR_EC_USERNAME_A],
                 row[PR_EC_STATS_SESSION_IPADDRESS],
@@ -96,7 +110,7 @@ def top(scr, server):
         data.insert(0, ['GRP', 'SESSIONID', 'VERSION', 'USERID', 'IP/PID', 'APP', 'TIME', 'CPUTIME', 'CPU', 'NREQ', 'STAT', 'TASK'])
         for cnt, d in zip(range(4, maxY), data):
             line = ' '.join([fmt[i] % x for i, x in enumerate(d) if showcols[i]])
-            scr.addstr(cnt, 0, line, curses.A_BOLD if cnt > 4 and d[-4] else curses.A_NORMAL) # -4: CPU
+            scr.addstr(cnt, 0, line, curses.A_BOLD if cnt > 4 and d[-4] else curses.A_NORMAL)  # -4: CPU
 
     showcols = 2*[False]+10*[True]
     sortcol, lastsort, reverse = 1, None, False
@@ -112,7 +126,7 @@ def top(scr, server):
         c = scr.getch()
         if c == ord('q'):
             break
-        elif ord('1') <= c <= ord('9'): # XXX 0?
+        elif ord('1') <= c <= ord('9'):  # XXX 0?
             showcols[c-ord('1')] = not showcols[c-ord('1')]
         elif ord('a') <= c <= ord('f'):
             sortcol = c-ord('a')
@@ -128,6 +142,7 @@ def top(scr, server):
         scr.refresh()
         time.sleep(1)
 
+
 def opt_args():
     parser = kopano.parser('SKQC')
     parser.add_option('--system', dest='system', action='store_true',  help='Gives information about threads, SQL and caches')
@@ -136,8 +151,9 @@ def opt_args():
     parser.add_option('--servers', dest='servers', action='store_true', help='Gives information about cluster nodes')
     parser.add_option('--session', dest='session', action='store_true', help='Gives information about sessions and server time spent in SOAP calls')
     parser.add_option('--top', dest='top', action='store_true', help='Shows top-like information about sessions')
-    parser.add_option('-d','--dump', dest='dump', action='store_true', help='print output as csv')
+    parser.add_option('-d', '--dump', dest='dump', action='store_true', help='print output as csv')
     return parser.parse_args()
+
 
 def main():
     options, args = opt_args()
@@ -152,6 +168,7 @@ def main():
                 table = kopano.server(options=options, parse_args=True).table(table)
                 table.sort(sort)
                 print(table.csv(delimiter=';') if options.dump else table.text())
+
 
 if __name__ == '__main__':
     main()
