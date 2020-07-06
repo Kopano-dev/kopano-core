@@ -5,8 +5,9 @@
 
 # usage: ./tables.py (change USER to username)
 
-from MAPI.Util import *
 import kopano
+
+from MAPI.Tags import PR_MESSAGE_ATTACHMENTS
 
 USER = 'user1'
 
