@@ -52,9 +52,8 @@ HRESULT StoreHelper::Create(MsgStorePtr &ptrMsgStore, StoreHelperPtr *lpptrStore
 	return hrSuccess;
 }
 
-StoreHelper::StoreHelper(MsgStorePtr &ptrMsgStore)
-: MAPIPropHelper(ptrMsgStore.as<MAPIPropPtr>())
-, m_ptrMsgStore(ptrMsgStore), m_propmap(8)
+StoreHelper::StoreHelper(MsgStorePtr &st) :
+	MAPIPropHelper(st), m_ptrMsgStore(st), m_propmap(8)
 { }
 
 HRESULT StoreHelper::Init()

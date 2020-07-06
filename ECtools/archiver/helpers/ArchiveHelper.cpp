@@ -426,7 +426,7 @@ HRESULT ArchiveHelper::GetArchiveFolderFor(MAPIFolderPtr &ptrSourceFolder, Archi
 	auto hr = HrGetOneProp(m_ptrArchiveStore, PR_ENTRYID, &~ptrStoreEntryId);
 	if (hr != hrSuccess)
 		return hr;
-	hr = MAPIPropHelper::Create(ptrSourceFolder.as<MAPIPropPtr>(), &ptrSourceFolderHelper);
+	hr = MAPIPropHelper::Create(ptrSourceFolder, &ptrSourceFolderHelper);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrSourceFolderHelper->GetArchiveList(&lstFolderArchives);
@@ -535,7 +535,7 @@ HRESULT ArchiveHelper::GetArchiveFolderFor(MAPIFolderPtr &ptrSourceFolder, Archi
 		return hr;
 	objectEntry.sStoreEntryId = ptrPropArray[1].Value.bin;
 	objectEntry.sItemEntryId = ptrPropArray[0].Value.bin;
-	hr = MAPIPropHelper::Create(ptrArchiveFolder.as<MAPIPropPtr>(), &ptrArchiveFolderHelper);
+	hr = MAPIPropHelper::Create(ptrArchiveFolder, &ptrArchiveFolderHelper);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrArchiveFolderHelper->SetReference(objectEntry);

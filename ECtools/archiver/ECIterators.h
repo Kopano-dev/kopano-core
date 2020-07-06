@@ -63,7 +63,7 @@ public:
 	}
 	ContainerPtrType &operator*(void) const
 	{
-		ECHierarchyIteratorBase::dereference().QueryInterface(m_ptr);
+		ECHierarchyIteratorBase::dereference()->QueryInterface(iid_of(m_ptr), &~m_ptr);
 		return m_ptr;
 	}
 

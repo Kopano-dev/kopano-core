@@ -21,12 +21,10 @@ template<typename T> class memory_proxy KC_FINAL {
 	public:
 	memory_proxy(T **p) noexcept : m_ptr(p) {}
 	operator T **(void) noexcept { return m_ptr; }
-	template<typename U> U **as(void) const noexcept
-	{
-		static_assert(sizeof(U *) == sizeof(T *), "This hack won't work");
-		return reinterpret_cast<U **>(m_ptr);
+	operator void **() noexcept {
+		static_assert(sizeof(void *) == sizeof(T *), "This hack won't work");
+		return reinterpret_cast<void **>(m_ptr);
 	}
-	operator void **(void) noexcept { return as<void>(); }
 
 	private:
 	T **m_ptr;
@@ -48,15 +46,16 @@ template<typename T> class object_proxy KC_FINAL {
 	public:
 	object_proxy(T **p) noexcept : m_ptr(p) {}
 	operator T **(void) noexcept { return m_ptr; }
+	operator void **() noexcept { return as<void>(); }
+	operator IUnknown **() noexcept { return as<IUnknown>(); }
+
+	private:
 	template<typename U> U **as(void) const noexcept
 	{
 		static_assert(sizeof(U *) == sizeof(T *), "This hack won't work");
 		return reinterpret_cast<U **>(m_ptr);
 	}
-	operator void **(void) noexcept { return as<void>(); }
-	operator IUnknown **(void) noexcept { return as<IUnknown>(); }
 
-	private:
 	T **m_ptr;
 };
 
@@ -64,12 +63,10 @@ template<> class object_proxy<IUnknown> KC_FINAL {
 	public:
 	object_proxy(IUnknown **p) noexcept : m_ptr(p) {}
 	operator IUnknown **(void) noexcept { return m_ptr; }
-	template<typename U> U **as(void) const noexcept
-	{
-		static_assert(sizeof(U *) == sizeof(IUnknown *), "This hack won't work");
-		return reinterpret_cast<U **>(m_ptr);
+	operator void **() noexcept {
+		static_assert(sizeof(void *) == sizeof(IUnknown *), "This hack won't work");
+		return reinterpret_cast<void **>(m_ptr);
 	}
-	operator void **(void) noexcept { return as<void>(); }
 
 	private:
 	IUnknown **m_ptr;
@@ -228,8 +225,6 @@ template<typename T> class object_ptr {
 #endif
 	T *get(void) const noexcept { return m_ptr; }
 	operator T *(void) const noexcept { return m_ptr; }
-	template<typename U> HRESULT QueryInterface(U &);
-	template<typename P> P as();
 
 	/* Modifiers */
 	T *release(void) noexcept
@@ -337,50 +332,6 @@ template<typename U> static inline constexpr const IID &
 iid_of(const object_ptr<U> &)
 {
 	return iid_of(static_cast<const U *>(nullptr));
-}
-
-template<typename T > template<typename U>
-HRESULT object_ptr<T>::QueryInterface(U &result)
-{
-	if (m_ptr == nullptr)
-		return MAPI_E_NOT_INITIALIZED;
-	U newobj;
-	HRESULT hr = m_ptr->QueryInterface(iid_of(result), &~newobj);
-	if (hr == hrSuccess)
-		result = std::move(newobj);
-	/*
-	 * Here we check if it makes sense to try to get the requested
-	 * interface through the PR_EC_OBJECT object. It only makes
-	 * sense to attempt this if the current type is
-	 * derived from IMAPIProp. If it is higher than IMAPIProp, no
-	 * OpenProperty exists. If it is derived from
-	 * ECMAPIProp/ECGenericProp, there is no need to try the
-	 * workaround, because we can be sure it is not wrapped by
-	 * MAPI.
-	 *
-	 * The Conversion<IMAPIProp, T>::exists is some
-	 * template magic that checks at compile time. We could check
-	 * at run time with a dynamic_cast, but we know the current
-	 * type at compile time, so why not check it at compile time?
-	 */
-	else if (hr == MAPI_E_INTERFACE_NOT_SUPPORTED &&
-	    std::is_base_of<IMAPIProp, T>::value) {
-		memory_ptr<SPropValue> pv;
-		if (HrGetOneProp(m_ptr, PR_EC_OBJECT, &~pv) != hrSuccess)
-			return hr; // hr is still MAPI_E_INTERFACE_NOT_SUPPORTED
-		auto unk = reinterpret_cast<IUnknown *>(pv->Value.lpszA);
-		hr = unk->QueryInterface(iid_of(newobj), &~newobj);
-		if (hr == hrSuccess)
-			result = std::move(newobj);
-	}
-	return hr;
-}
-
-template<typename T> template<typename P> P object_ptr<T>::as(void)
-{
-	P tmp = nullptr;
-	QueryInterface(tmp);
-	return tmp;
 }
 
 template<typename T> struct mkuniq_helper {

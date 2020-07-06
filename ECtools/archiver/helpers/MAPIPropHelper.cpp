@@ -25,7 +25,7 @@ namespace KC { namespace helpers {
  *					Pointer to a MAPIPropHelperPtr that will be assigned the returned
  *					MAPIPropHelper object.
  */
-HRESULT MAPIPropHelper::Create(MAPIPropPtr ptrMapiProp, MAPIPropHelperPtr *lpptrMAPIPropHelper)
+HRESULT MAPIPropHelper::Create(IMAPIProp *ptrMapiProp, MAPIPropHelperPtr *lpptrMAPIPropHelper)
 {
 	MAPIPropHelperPtr ptrMAPIPropHelper(new(std::nothrow) MAPIPropHelper(ptrMapiProp));
 	if (ptrMAPIPropHelper == nullptr)
@@ -37,8 +37,8 @@ HRESULT MAPIPropHelper::Create(MAPIPropPtr ptrMapiProp, MAPIPropHelperPtr *lpptr
 	return hrSuccess;
 }
 
-MAPIPropHelper::MAPIPropHelper(MAPIPropPtr ptrMapiProp) :
-    m_ptrMapiProp(ptrMapiProp), m_propmap(8)
+MAPIPropHelper::MAPIPropHelper(IMAPIProp *p) :
+    m_ptrMapiProp(p), m_propmap(8)
 { }
 
 /**
@@ -159,7 +159,7 @@ HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageSt
 				 */
 				ulState |= MessageState::msCopy;
 		} else {
-			hr = MAPIPropHelper::Create(ptrArchiveMsg.as<MAPIPropPtr>(), &ptrArchiveHelper);
+			hr = MAPIPropHelper::Create(ptrArchiveMsg, &ptrArchiveHelper);
 			if (hr != hrSuccess)
 				return hr;
 			hr = ptrArchiveHelper->GetReference(&refEntry);

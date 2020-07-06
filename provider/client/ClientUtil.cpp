@@ -136,7 +136,7 @@ HRESULT ClientUtil::HrSetIdentity(WSTransport *lpTransport, LPMAPISUP lpMAPISup,
 
 	// Get the default store for this user, not an issue if it fails when not on home server
 	if (lpTransport->HrGetStore(0, nullptr, &cbEntryStore, &~lpEntryStore, 0, nullptr) == hrSuccess) {
-		hr = lpMAPISup->WrapStoreEntryID(cbEntryStore, lpEntryStore, &cbEID, (&~lpEID).as<ENTRYID>());
+		hr = lpMAPISup->WrapStoreEntryID(cbEntryStore, lpEntryStore, &cbEID, &~lpEID);
 		if (hr != hrSuccess)
 			return hr;
 		idp[XPID_STORE_EID].ulPropTag = PR_OWN_STORE_ENTRYID;
