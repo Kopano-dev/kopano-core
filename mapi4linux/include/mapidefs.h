@@ -1500,9 +1500,6 @@ IID_OF(IProviderAdmin)
 #define DT_ORGANIZATION     ((ULONG) 0x00000004)
 #define DT_PRIVATE_DISTLIST ((ULONG) 0x00000005)
 #define DT_REMOTE_MAILUSER  ((ULONG) 0x00000006)
-#define DT_ROOM	            ((ULONG) 0x00000007)
-#define DT_EQUIPMENT        ((ULONG) 0x00000008)
-#define DT_SEC_DISTLIST     ((ULONG) 0x00000009)
 
 /*  For address book hierarchy tables */
 #define DT_MODIFIABLE       ((ULONG) 0x00010000)
@@ -1515,17 +1512,6 @@ IID_OF(IProviderAdmin)
 #define DT_FOLDER           ((ULONG) 0x01000000)
 #define DT_FOLDER_LINK      ((ULONG) 0x02000000)
 #define DT_FOLDER_SPECIAL   ((ULONG) 0x04000000)
-
-/* PR_DISPLAY_TYPE_EX flags */
-#define DTE_FLAG_REMOTE_VALID 0x80000000
-#define DTE_FLAG_ACL_CAPABLE  0x40000000
-#define DTE_MASK_REMOTE       0x0000ff00
-#define DTE_MASK_LOCAL        0x000000ff
- 
-#define DTE_IS_REMOTE_VALID(v)	(!!((v) & DTE_FLAG_REMOTE_VALID))
-#define DTE_IS_ACL_CAPABLE(v)	(!!((v) & DTE_FLAG_ACL_CAPABLE))
-#define DTE_REMOTE(v)		(((v) & DTE_MASK_REMOTE) >> 8)
-#define DTE_LOCAL(v)		((v) & DTE_MASK_LOCAL)
 
 extern "C" {
 
