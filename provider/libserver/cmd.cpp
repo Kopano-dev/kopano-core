@@ -7082,7 +7082,9 @@ SOAP_ENTRY_START(copyFolder, *result, const entryId &sEntryId,
 
 	//check copy or a move
 	if (!(ulFlags & FOLDER_MOVE)) {
-		er = CopyFolderObjects(soap, lpecSession, ulFolderId, ulDestFolderId, lpszNewFolderName, !!(ulFlags&COPY_SUBFOLDERS), ulSyncId);
+		er = CopyFolderObjects(soap, lpecSession, ulFolderId,
+		     ulDestFolderId, lpszNewFolderName,
+		     ulFlags & COPY_SUBFOLDERS, ulSyncId);
 		if (er != erSuccess)
 			er_lerrf(er, "CopyFolderObjects (src folder: %u, dest folder: %u, new name: \"%s\") failed",
 			         ulFolderId, ulDestFolderId, lpszNewFolderName);
