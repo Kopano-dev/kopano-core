@@ -10,7 +10,7 @@
 
 class ZCABProvider KC_FINAL_OPG : public KC::ECUnknown, public IABProvider {
 protected:
-	ZCABProvider(ULONG ulFlags, const char *szClassName);
+	ZCABProvider() = default;
 
 public:
 	static  HRESULT Create(ZCABProvider **lppZCABProvider);

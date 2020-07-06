@@ -11,7 +11,7 @@
 
 class ZCMAPIProp _no_final : public KC::ECUnknown, public IMailUser {
 protected:
-	ZCMAPIProp(ULONG ulObjType, const char *szClassName = NULL);
+	ZCMAPIProp(unsigned int objtype);
 	virtual ~ZCMAPIProp();
 
 	HRESULT ConvertMailUser(LPSPropTagArray lpNames, ULONG cValues, LPSPropValue lpProps, ULONG ulIndex);

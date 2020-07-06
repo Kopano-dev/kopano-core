@@ -21,8 +21,7 @@ HRESULT ECAttachFactory::Create(ECMsgStore *lpMsgStore, ULONG ulObjType,
 
 ECAttach::ECAttach(ECMsgStore *lpMsgStore, ULONG objtype, BOOL modify,
     ULONG anum, const ECMAPIProp *lpRoot) :
-	ECMAPIProp(lpMsgStore, objtype, modify, lpRoot, "IAttach"),
-	ulAttachNum(anum)
+	ECMAPIProp(lpMsgStore, objtype, modify, lpRoot), ulAttachNum(anum)
 {
 	HrAddPropHandlers(PR_ATTACH_DATA_OBJ, GetPropHandler, SetPropHandler, this, true, false);
 	HrAddPropHandlers(PR_ATTACH_SIZE, DefaultGetProp, DefaultSetPropComputed,	this, false, false);

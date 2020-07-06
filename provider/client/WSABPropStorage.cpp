@@ -31,8 +31,7 @@ using namespace KC;
 
 WSABPropStorage::WSABPropStorage(ULONG cbEntryId, const ENTRYID *lpEntryId,
     ECSESSIONID sid, WSTransport *lpTransport) :
-	ECUnknown("WSABPropStorage"), ecSessionId(sid),
-	m_lpTransport(lpTransport)
+	ecSessionId(sid), m_lpTransport(lpTransport)
 {
 	auto ret = CopyMAPIEntryIdToSOAPEntryId(cbEntryId, lpEntryId, &m_sEntryId);
 	if (ret != hrSuccess)
@@ -137,8 +136,7 @@ HRESULT WSABPropStorage::Reload(void *lpParam, ECSESSIONID sessionId) {
 WSABTableView::WSABTableView(ULONG type, ULONG flags, ECSESSIONID sid,
     ULONG cbEntryId, const ENTRYID *lpEntryId, ECABLogon *lpABLogon,
     WSTransport *lpTransport) :
-	WSTableView(type, flags, sid, cbEntryId, lpEntryId, lpTransport,
-	    "WSABTableView")
+	WSTableView(type, flags, sid, cbEntryId, lpEntryId, lpTransport)
 {
 	m_lpProvider = lpABLogon;
 	m_ulTableType = TABLETYPE_AB;

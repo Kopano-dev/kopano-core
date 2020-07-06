@@ -32,13 +32,9 @@
 
 using namespace KC;
 
-ECMSProvider::ECMSProvider(ULONG ulFlags, const char *cls_name) :
-	ECUnknown(cls_name), m_ulFlags(ulFlags)
+HRESULT ECMSProvider::Create(ECMSProvider **x)
 {
-}
-
-HRESULT ECMSProvider::Create(ULONG ulFlags, ECMSProvider **lppECMSProvider) {
-	return alloc_wrap<ECMSProvider>(ulFlags, "IMSProvider").put(lppECMSProvider);
+	return alloc_wrap<ECMSProvider>().put(x);
 }
 
 HRESULT ECMSProvider::QueryInterface(REFIID refiid, void **lppInterface)
@@ -222,13 +218,9 @@ HRESULT ECMSProvider::LogonByEntryID(object_ptr<WSTransport> &lpTransport,
 	return hrSuccess;
 }
 
-ECMSProviderSwitch::ECMSProviderSwitch(ULONG f) :
-	ECUnknown("ECMSProviderSwitch"), m_ulFlags(f)
-{}
-
-HRESULT ECMSProviderSwitch::Create(ULONG ulFlags, ECMSProviderSwitch **lppMSProvider)
+HRESULT ECMSProviderSwitch::Create(ECMSProviderSwitch **x)
 {
-	return alloc_wrap<ECMSProviderSwitch>(ulFlags).put(lppMSProvider);
+	return alloc_wrap<ECMSProviderSwitch>().put(x);
 }
 
 HRESULT ECMSProviderSwitch::QueryInterface(REFIID refiid, void **lppInterface)
@@ -294,7 +286,7 @@ HRESULT ECMSProviderSwitch::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 	    (CompareMDBProvider(lpsPropArray[0].Value.bin.lpb, &KOPANO_SERVICE_GUID) ||
 	     CompareMDBProvider(lpsPropArray[0].Value.bin.lpb, &MSEMS_SERVICE_GUID)))
 			bIsDefaultStore = true;
-	hr = GetProviders(&g_mapProviders, lpMAPISup, tstrProfileName.c_str(), ulFlags, &sProviderInfo);
+	hr = GetProviders(&g_mapProviders, lpMAPISup, tstrProfileName.c_str(), &sProviderInfo);
 	if (hr != hrSuccess)
 		return hr;
 	hr = sProviderInfo.lpMSProviderOnline->QueryInterface(IID_IMSProvider, &~lpOnline);

@@ -16,8 +16,7 @@ using namespace KC;
 WSStoreTableView::WSStoreTableView(ULONG type, ULONG flags, ECSESSIONID sid,
     ULONG cbEntryId, const ENTRYID *lpEntryId, ECMsgStore *lpMsgStore,
     WSTransport *lpTransport) :
-	WSTableView(type, flags, sid, cbEntryId, lpEntryId, lpTransport,
-	    "WSStoreTableView")
+	WSTableView(type, flags, sid, cbEntryId, lpEntryId, lpTransport)
 {
 	// OK, this is ugly, but the static row-wrapper routines need this object
 	// to get the guid and other information that has to be inlined into the table row. Really,

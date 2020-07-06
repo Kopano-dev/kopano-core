@@ -23,5 +23,5 @@ typedef std::map<std::string, PROVIDER_INFO> ECMapProvider;
 
 HRESULT CompareStoreIDs(ULONG eid1_size, const ENTRYID *eid1, ULONG eid2_size, const ENTRYID *eid2, ULONG flags, ULONG *result);
 extern HRESULT CreateMsgStoreObject(const char *profile, IMAPISupport *, unsigned int eid_size, const ENTRYID *eid, unsigned int msg_flags, unsigned int profile_flags, WSTransport *, const MAPIUID *mdb_prov, BOOL deflt_store, BOOL offline_store, ECMsgStore **);
-HRESULT GetProviders(ECMapProvider *lpmapProvider, IMAPISupport *lpMAPISup, LPCSTR lpszProfileName, ULONG ulFlags, PROVIDER_INFO *lpsProviderInfo);
+extern HRESULT GetProviders(ECMapProvider *, IMAPISupport *, const char *profile_name, PROVIDER_INFO *);
 HRESULT GetTransportToNamedServer(WSTransport *lpTransport, LPCTSTR lpszServerName, ULONG ulFlags, WSTransport **lppTransport);

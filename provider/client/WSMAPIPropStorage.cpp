@@ -34,8 +34,8 @@ using namespace KC;
 WSMAPIPropStorage::WSMAPIPropStorage(ULONG cbParentEntryId,
     const ENTRYID *lpParentEntryId, ULONG cbEntryId, const ENTRYID *lpEntryId,
     ULONG ulFlags, ECSESSIONID sid, unsigned int sc, WSTransport *tp) :
-	ECUnknown("WSMAPIPropStorage"), ecSessionId(sid),
-	ulServerCapabilities(sc), m_ulFlags(ulFlags), m_lpTransport(tp)
+	ecSessionId(sid), ulServerCapabilities(sc), m_ulFlags(ulFlags),
+	m_lpTransport(tp)
 {
 	CopyMAPIEntryIdToSOAPEntryId(cbEntryId, lpEntryId, &m_sEntryId);
 	CopyMAPIEntryIdToSOAPEntryId(cbParentEntryId, lpParentEntryId, &m_sParentEntryId);

@@ -32,11 +32,9 @@
 using namespace KC;
 
 ZCABContainer::ZCABContainer(const std::vector<zcabFolderEntry> *lpFolders,
-    IMAPIFolder *lpContacts, LPMAPISUP lpMAPISup, void *lpProvider,
-    const char *cls_name) :
-	ECUnknown(cls_name), m_lpFolders(lpFolders),
-	m_lpContactFolder(lpContacts), m_lpMAPISup(lpMAPISup),
-	m_lpProvider(lpProvider)
+    IMAPIFolder *lpContacts, IMAPISupport *lpMAPISup, void *lpProvider) :
+	m_lpFolders(lpFolders), m_lpContactFolder(lpContacts),
+	m_lpMAPISup(lpMAPISup), m_lpProvider(lpProvider)
 {
 	assert(lpFolders == nullptr || lpContacts == nullptr);
 }
@@ -74,7 +72,7 @@ HRESULT ZCABContainer::Create(const std::vector<zcabFolderEntry> *lpFolders,
     IMAPIFolder *lpContacts, IMAPISupport *lpMAPISup, void *lpProvider,
     ZCABContainer **lppABContainer)
 {
-	return alloc_wrap<ZCABContainer>(lpFolders, lpContacts, lpMAPISup, lpProvider, "IABContainer").put(lppABContainer);
+	return alloc_wrap<ZCABContainer>(lpFolders, lpContacts, lpMAPISup, lpProvider).put(lppABContainer);
 }
 
 HRESULT ZCABContainer::Create(IMessage *lpContact, ULONG cbEntryID,
@@ -83,7 +81,7 @@ HRESULT ZCABContainer::Create(IMessage *lpContact, ULONG cbEntryID,
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<ZCMAPIProp> lpDistList;
-	object_ptr<ZCABContainer> lpABContainer(new(std::nothrow) ZCABContainer(nullptr, nullptr, lpMAPISup, nullptr, "IABContainer"));
+	object_ptr<ZCABContainer> lpABContainer(new(std::nothrow) ZCABContainer(nullptr, nullptr, lpMAPISup, nullptr));
 	if (lpABContainer == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	hr = ZCMAPIProp::Create(lpContact, cbEntryID, lpEntryID, &~lpDistList);

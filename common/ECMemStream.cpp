@@ -15,7 +15,7 @@
 namespace KC {
 
 ECMemBlock::ECMemBlock(const char *buffer, ULONG ulDataLen, ULONG fl) :
-	ECUnknown("ECMemBlock"), ulFlags(fl)
+	ulFlags(fl)
 {
 	if (ulDataLen == 0)
 		return;
@@ -140,16 +140,15 @@ HRESULT ECMemBlock::GetSize(ULONG *ulSize) const
  */
 ECMemStream::ECMemStream(const char *buffer, ULONG ulDataLen, ULONG f,
     CommitFunc cf, DeleteFunc df, void *p) :
-	ECUnknown("IStream"), lpCommitFunc(cf), lpDeleteFunc(df), lpParam(p),
-	ulFlags(f)
+	lpCommitFunc(cf), lpDeleteFunc(df), lpParam(p), ulFlags(f)
 {
 	ECMemBlock::Create(buffer, ulDataLen, ulFlags, &lpMemBlock);
 }
 
 ECMemStream::ECMemStream(ECMemBlock *mb, ULONG f, CommitFunc cf,
     DeleteFunc df, void *p) :
-	ECUnknown("IStream"), lpMemBlock(mb), lpCommitFunc(cf),
-	lpDeleteFunc(df), lpParam(p), ulFlags(f)
+	lpMemBlock(mb), lpCommitFunc(cf), lpDeleteFunc(df), lpParam(p),
+	ulFlags(f)
 {
 	lpMemBlock->AddRef();
 }

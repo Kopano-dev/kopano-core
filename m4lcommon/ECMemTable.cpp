@@ -47,7 +47,7 @@ private:
  */
 
 ECMemTable::ECMemTable(const SPropTagArray *lpsPropTags, ULONG rpt) :
-	ECUnknown("ECMemTable"), ulRowPropTag(rpt)
+	ulRowPropTag(rpt)
 {
 	if (MAPIAllocateBuffer(CbSPropTagArray(lpsPropTags), &~lpsColumns) != hrSuccess)
 		throw std::bad_alloc();
@@ -348,8 +348,8 @@ HRESULT ECMemTable::HrClear()
 
 ECMemTableView::ECMemTableView(ECMemTable *mt, const ECLocale &locale,
     ULONG ulFlags) :
-	ECUnknown("ECMemTableView"), lpMemTable(mt),
-	m_locale(locale), m_ulConnection(1), m_ulFlags(ulFlags & MAPI_UNICODE)
+	lpMemTable(mt), m_locale(locale), m_ulConnection(1),
+	m_ulFlags(ulFlags & MAPI_UNICODE)
 {
 	if (MAPIAllocateBuffer(CbNewSPropTagArray(lpMemTable->lpsColumns->cValues), &~lpsPropTags) != hrSuccess)
 		throw std::bad_alloc();

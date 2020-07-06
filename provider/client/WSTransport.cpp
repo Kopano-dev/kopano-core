@@ -86,7 +86,6 @@ template<> size_t GetCacheAdditionalSize(const ECsResolveResult &v)
 }
 
 WSTransport::WSTransport() :
-	ECUnknown("WSTransport"),
 	m_ResolveResultCache("ResolveResult", 4096, 300), m_has_session(false)
 {
 	memset(&m_sServerGuid, 0, sizeof(m_sServerGuid));

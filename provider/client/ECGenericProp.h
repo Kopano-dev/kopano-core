@@ -41,7 +41,7 @@ class ECGenericProp :
     public KC::ECUnknown, public virtual IMAPIProp,
     public KC::IECSingleInstance {
 protected:
-	ECGenericProp(void *lpProvider, ULONG ulObjType, BOOL fModify, const char *szClassName = NULL);
+	ECGenericProp(void *prov, unsigned int obj_type, BOOL modify);
 	virtual ~ECGenericProp() = default;
 
 public:

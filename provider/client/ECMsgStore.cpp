@@ -71,7 +71,7 @@ static size_t batch_append_folder(std::vector<ECMAPIFolder::ECFolder> &list,
 ECMsgStore::ECMsgStore(const char *lpszProfname, IMAPISupport *sup,
     WSTransport *tp, BOOL modify, unsigned int ulProfileFlags,
     BOOL fIsDefaultStore, BOOL bOfflineStore) :
-	ECMAPIProp(nullptr, MAPI_STORE, modify, nullptr, "IMsgStore"),
+	ECMAPIProp(nullptr, MAPI_STORE, modify, nullptr),
 	lpSupport(sup), lpTransport(tp), lpNamedProp(tp),
 	m_ulProfileFlags(ulProfileFlags), m_fIsDefaultStore(fIsDefaultStore),
 	m_strProfname((lpszProfname != nullptr) ? lpszProfname : "")
@@ -136,7 +136,7 @@ static HRESULT GetIMsgStoreObject(BOOL bOffline,
 
 	// Set ProfileName
 	auto lpszProfileName = lpsPropValue->Value.lpszA;
-	hr = GetProviders(lpmapProviders, lpMAPISup, lpszProfileName, 0, &sProviderInfo);
+	hr = GetProviders(lpmapProviders, lpMAPISup, lpszProfileName, &sProviderInfo);
 	if (hr != hrSuccess)
 		return hr;
 	return sProviderInfo.lpMSProviderOnline->Logon(lpMAPISup, 0,

@@ -12,9 +12,9 @@
 
 class ECMSProvider KC_FINAL_OPG : public KC::ECUnknown, public IMSProvider {
 protected:
-	ECMSProvider(ULONG ulFlags, const char *szClassName);
+	ECMSProvider() = default;
 public:
-	static  HRESULT Create(ULONG ulFlags, ECMSProvider **lppECMSProvider);
+	static HRESULT Create(ECMSProvider **);
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 	virtual HRESULT Shutdown(unsigned int *flags) override;
 	virtual HRESULT Logon(IMAPISupport *, ULONG_PTR ui_param, const TCHAR *profile, ULONG eid_size, const ENTRYID *eid, ULONG flags, const IID *intf, ULONG *ssec_size, BYTE **spool_sec, MAPIERROR **, IMSLogon **, IMsgStore **) override;
@@ -23,23 +23,21 @@ public:
 private:
 	static HRESULT LogonByEntryID(KC::object_ptr<WSTransport> &, sGlobalProfileProps *, ULONG eid_size, const ENTRYID *eid);
 
-	ULONG			m_ulFlags;
 	std::string m_strLastUser, m_strLastPassword;
 	ALLOC_WRAP_FRIEND;
 };
 
 class ECMSProviderSwitch KC_FINAL_OPG : public KC::ECUnknown, public IMSProvider {
 protected:
-	ECMSProviderSwitch(ULONG ulFlags);
+	ECMSProviderSwitch() = default;
 
 public:
-	static  HRESULT Create(ULONG ulFlags, ECMSProviderSwitch **lppMSProvider);
+	static HRESULT Create(ECMSProviderSwitch **);
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 	virtual HRESULT Shutdown(unsigned int *flags) override;
 	virtual HRESULT Logon(IMAPISupport *, ULONG_PTR ui_param, const TCHAR *profile, ULONG eid_size, const ENTRYID *eid, ULONG flags, const IID *intf, ULONG *ssec_size, BYTE **spool_sec, MAPIERROR **, IMSLogon **, IMsgStore **) override;
 	virtual HRESULT CompareStoreIDs(ULONG eid1_size, const ENTRYID *eid1, ULONG eid2_size, const ENTRYID *eid2, ULONG flags, ULONG *result) override;
 
 protected:
-	ULONG			m_ulFlags;
 	ALLOC_WRAP_FRIEND;
 };

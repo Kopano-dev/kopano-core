@@ -46,7 +46,6 @@ namespace KC {
 
 class KC_EXPORT ECUnknown : public virtual IUnknown {
 public:
-	ECUnknown(const char *szClassName = NULL);
 	virtual ~ECUnknown(void);
 	virtual ULONG AddRef() KC_OVERRIDE;
 	virtual ULONG Release() KC_OVERRIDE;
@@ -66,7 +65,6 @@ protected:
 	virtual HRESULT			Suicide();
 
 	std::atomic<unsigned int> m_cRef{0};
-	const char *szClassName;
 	/*
 	 * In general, parents should not hold references to (grand)children
 	 * because children hold references to parents. A manual loop breaker

@@ -19,7 +19,7 @@ using namespace KC;
 
 ECMAPITable::ECMAPITable(const std::string &strName, ECNotifyClient *nc,
     ULONG f) :
-	ECUnknown("IMAPITable"), lpNotifyClient(nc), m_strName(strName)
+	lpNotifyClient(nc), m_strName(strName)
 {}
 
 HRESULT ECMAPITable::FlushDeferred(LPSRowSet *lppRowSet)

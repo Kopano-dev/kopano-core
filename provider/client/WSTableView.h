@@ -17,7 +17,7 @@ typedef HRESULT (*RELOADCALLBACK)(void *lpParam);
 
 class WSTableView : public KC::ECUnknown {
 protected:
-	WSTableView(ULONG type, ULONG flags, KC::ECSESSIONID, ULONG eid_size, const ENTRYID *eid, WSTransport *, const char *cls_name = nullptr);
+	WSTableView(unsigned int type, unsigned int flags, KC::ECSESSIONID, unsigned int eid_size, const ENTRYID *eid, WSTransport *);
 	virtual ~WSTableView();
 
 public:

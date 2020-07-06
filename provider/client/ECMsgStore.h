@@ -127,9 +127,9 @@ public:
 	virtual HRESULT ResetFolderCount(ULONG eid_size, const ENTRYID *eid, ULONG *nupdates) override;
 
     // ECTestProtocol
-	virtual HRESULT TestPerform(const char *cmd, unsigned int argc, char **argv);
-	virtual HRESULT TestSet(const char *name, const char *value);
-	virtual HRESULT TestGet(const char *name, char **value);
+	virtual HRESULT TestPerform(const char *cmd, unsigned int argc, char **argv) override;
+	virtual HRESULT TestSet(const char *name, const char *value) override;
+	virtual HRESULT TestGet(const char *name, char **value) override;
 
 	// Called when session is reloaded
 	static HRESULT Reload(void *parm, KC::ECSESSIONID);

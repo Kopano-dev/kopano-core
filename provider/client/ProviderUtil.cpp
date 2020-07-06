@@ -67,7 +67,8 @@ exit:
 	return hr;
 }
 
-HRESULT GetProviders(ECMapProvider* lpmapProvider, IMAPISupport *lpMAPISup, const char *lpszProfileName, ULONG ulFlags, PROVIDER_INFO* lpsProviderInfo)
+HRESULT GetProviders(ECMapProvider *lpmapProvider, IMAPISupport *lpMAPISup,
+    const char *lpszProfileName, PROVIDER_INFO *lpsProviderInfo)
 {
 	if (lpmapProvider == nullptr || lpMAPISup == nullptr ||
 	    lpszProfileName == nullptr || lpsProviderInfo == nullptr)
@@ -90,7 +91,7 @@ HRESULT GetProviders(ECMapProvider* lpmapProvider, IMAPISupport *lpMAPISup, cons
 
 	// Init providers
 	// Message store online
-	hr = ECMSProvider::Create(ulFlags, &~lpECMSProvider);
+	hr = ECMSProvider::Create(&~lpECMSProvider);
 	if(hr != hrSuccess)
 		return hr;
 	// Addressbook online
