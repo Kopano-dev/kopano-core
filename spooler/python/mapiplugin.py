@@ -38,4 +38,4 @@ class SpoolerPluginManager(object):
         self.pluginmanager.loadPlugins(IMapiSpoolerPlugin)
 
     def PreSending(self, session, addrbook, store, folder, message):
-         return self.pluginmanager.processPluginFunction('PreSending', session, addrbook, store, folder, message)
+        return self.pluginmanager.processPluginFunction('PreSending', session, addrbook, store, folder, message)
