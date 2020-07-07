@@ -36,7 +36,7 @@ DB_RESULT::~DB_RESULT(void)
 	m_res = nullptr;
 }
 
-DB_RESULT &DB_RESULT::operator=(DB_RESULT &&o)
+DB_RESULT &DB_RESULT::operator=(DB_RESULT &&o) noexcept
 {
 	if (m_res != nullptr) {
 		assert(m_db != nullptr);
@@ -435,7 +435,7 @@ std::string KDatabase::EscapeBinary(const void *data, size_t len)
 	return "'" + std::string(esc.get()) + "'";
 }
 
-void KDatabase::FreeResult_internal(void *r)
+void KDatabase::FreeResult_internal(void *r) noexcept
 {
 	assert(r != nullptr);
 	if (r != nullptr)
@@ -572,7 +572,7 @@ kd_trans::kd_trans() :
 	m_db(&kd_noop_trans), m_result(&kd_noop_trans.tmp), m_done(true)
 {}
 
-kd_trans::kd_trans(kd_trans &&o) :
+kd_trans::kd_trans(kd_trans &&o) noexcept :
 	m_db(o.m_db), m_result(o.m_result), m_done(o.m_done)
 {
 	o.m_done = true;
