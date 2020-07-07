@@ -1,7 +1,8 @@
 #!/usr/bin/python3
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-from MAPI.Util import *
+from MAPI.Util import HrGetOneProp, SPropValue
+from MAPI.Tags import PR_FINDER_ENTRYID, PR_ENTRYID
 
 import kopano
 
@@ -15,6 +16,7 @@ work.
 """
 
 FINDROOT_RIGHTS = ['folder_visible', 'read_items', 'create_subfolders', 'edit_own', 'delete_own']
+
 
 def upgrade_findroot(store):
     findroot = store.root.get_folder('FINDER_ROOT')
@@ -41,6 +43,7 @@ def main():
         upgrade_findroot(store)
         if store.archive_store:
             upgrade_findroot(store.archive_store)
+
 
 if __name__ == '__main__':
     main()

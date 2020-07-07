@@ -1,14 +1,17 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 from sys import hexversion
 
-import MAPI
-from MAPI.Util import *
-from MAPI.Time import *
-from MAPI.Struct import *
+from MAPI.Util import GetPublicStore
+from MAPI.Struct import NEWMAIL_NOTIFICATION
+from MAPI import MAPI_UNICODE, MAPI_MODIFY, OPEN_IF_EXISTS, MDB_WRITE
+from MAPI.Tags import (PR_RECEIVED_BY_EMAIL_ADDRESS_W, PR_EC_COMPANY_NAME_W,
+                       PR_IPM_PUBLIC_FOLDERS_ENTRYID, PR_ENTRYID,
+                       PR_MAILBOX_OWNER_ENTRYID, IID_IMessage, IID_IExchangeManageStore)
 
-from plugintemplates import *
+from plugintemplates import IMapiDAgentPlugin, MP_CONTINUE, MP_STOP_SUCCESS
 
 import zconfig
+
 
 class MoveToPublic(IMapiDAgentPlugin):
 
@@ -23,9 +26,7 @@ class MoveToPublic(IMapiDAgentPlugin):
         self.Init()
 
     def Init(self):
-        config = zconfig.ZConfigParser(self.configfile,
-                                     defaultoptions={}
-                                     )
+        config = zconfig.ZConfigParser(self.configfile, defaultoptions={})
 
         # scan max for 100 settings
         for i in range(1, 100, 1):
@@ -51,7 +52,7 @@ class MoveToPublic(IMapiDAgentPlugin):
             return MP_CONTINUE,
 
         publicstore = GetPublicStore(session)
-        if publicstore == None:
+        if publicstore is None:
             # check for company public
             companyname = None
 
@@ -62,7 +63,7 @@ class MoveToPublic(IMapiDAgentPlugin):
                 if userprops[0].ulPropTag == PR_EC_COMPANY_NAME_W:
                     companyname = userprops[0].Value
 
-                if companyname == None:
+                if companyname is None:
                     self.logger.logError("!--- Can not open a public store")
                     return MP_CONTINUE,
 
@@ -91,10 +92,10 @@ class MoveToPublic(IMapiDAgentPlugin):
 
         msgnew.SaveChanges(0)
         folderid = folder.GetProps([PR_ENTRYID], 0)[0].Value
-        msgid =  msgnew.GetProps([PR_ENTRYID], 0)[0].Value
+        msgid = msgnew.GetProps([PR_ENTRYID], 0)[0].Value
 
-        publicstore.NotifyNewMail( NEWMAIL_NOTIFICATION(msgid, folderid, 0, None, 0) )
+        publicstore.NotifyNewMail(NEWMAIL_NOTIFICATION(msgid, folderid, 0, None, 0))
 
-        self.logger.logInfo("*--- Message moved to public folder '%s'" % (self.rulelist[recipient].encode('utf-8')) )
+        self.logger.logInfo("*--- Message moved to public folder '%s'" % (self.rulelist[recipient].encode('utf-8')))
 
         return MP_STOP_SUCCESS,

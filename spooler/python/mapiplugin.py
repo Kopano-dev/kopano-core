@@ -1,12 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-import MAPI
-from MAPI.Util import *
-from MAPI.Time import *
-from MAPI.Struct import *
 
 from wraplogger import WrapLogger
 from pluginmanager import PluginManager
-from plugintemplates import *
+from plugintemplates import IMapiDAgentPlugin, IMapiSpoolerPlugin
 
 
 class DAgentPluginManager(object):
@@ -42,4 +38,4 @@ class SpoolerPluginManager(object):
         self.pluginmanager.loadPlugins(IMapiSpoolerPlugin)
 
     def PreSending(self, session, addrbook, store, folder, message):
-         return self.pluginmanager.processPluginFunction('PreSending', session, addrbook, store, folder, message)
+        return self.pluginmanager.processPluginFunction('PreSending', session, addrbook, store, folder, message)

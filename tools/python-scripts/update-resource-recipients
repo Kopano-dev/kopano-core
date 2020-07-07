@@ -1,9 +1,19 @@
 #!/usr/bin/python3
 # SPDX-License-Identifier: AGPL-3.0-only
 
-from MAPI.Util import *
-import os, sys
+import os
+import sys
 import locale
+
+from MAPI import MAPI_BCC, RELOP_EQ, TBL_BATCH, MAPI_DEFERRED_ERRORS, MODRECIP_ADD, MAPI_BEST_ACCESS
+from MAPI.Defs import PpropFindProp
+from MAPI.Util import OpenECSession, GetDefaultStore
+from MAPI.Struct import SPropValue, SSubRestriction, SNotRestriction, SPropertyRestriction
+from MAPI.Tags import (PR_ACCOUNT, PR_ADDRTYPE, PR_DISPLAY_NAME, PR_DISPLAY_TYPE, PR_DISPLAY_TYPE_EX,
+                       PR_SEARCH_KEY, PR_ENTRYID, PR_EMAIL_ADDRESS, PR_OBJECT_TYPE, PR_SMTP_ADDRESS,
+                       PR_RECIPIENT_TYPE, PR_RECIPIENT_FLAGS, PR_RECIPIENT_TRACKSTATUS,
+                       PR_RECIPIENT_ENTRYID, PR_IPM_APPOINTMENT_ENTRYID, PR_MESSAGE_RECIPIENTS)
+
 
 def GetSelfRecipient(session):
     ab = session.OpenAddressBook(0, None, 0)
@@ -16,6 +26,7 @@ def GetSelfRecipient(session):
               SPropValue(PR_RECIPIENT_TRACKSTATUS, 0),
               SPropValue(PR_RECIPIENT_TYPE, MAPI_BCC)]
     return props
+
 
 def AddRecipientToAppointments(calendar, recip):
     ctable = calendar.GetContentsTable(MAPI_DEFERRED_ERRORS)
@@ -32,7 +43,8 @@ def AddRecipientToAppointments(calendar, recip):
         msg.SaveChanges(0)
     print('Done')
 
-def main(argv = None):
+
+def main(argv=None):
     if argv is None:
         argv = sys.argv
     if len(argv) < 2:
@@ -46,6 +58,7 @@ def main(argv = None):
     recip = GetSelfRecipient(session)
     AddRecipientToAppointments(calendar, recip)
     return 0
+
 
 if __name__ == '__main__':
     locale.setlocale(locale.LC_ALL, '')

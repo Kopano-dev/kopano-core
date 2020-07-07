@@ -39,8 +39,8 @@ for name, value in server.stats().items():
         cstat[name]['maxsz'] = int(value)
 
 print('Kopano Cache Statistics')
-print('  Server start time: %s' % ( serverstarttime ))
-print('  Current time     : %s' % ( datetime.now().strftime('%c') ))
+print('  Server start time: %s' % (serverstarttime))
+print('  Current time     : %s' % (datetime.now().strftime('%c')))
 print('')
 print('%10s %24s         %24s' % ('Cache', 'Hit ratio', 'Mem usage ratio'))
 

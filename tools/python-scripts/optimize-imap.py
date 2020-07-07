@@ -5,14 +5,14 @@ import sys
 import logging
 
 from MAPI import (
-    PT_UNICODE, PT_STRING8,
+    PT_UNICODE
 )
 from MAPI.Tags import (
-    PR_EC_IMAP_EMAIL_SIZE, PR_EC_IMAP_BODYSTRUCTURE, PR_EC_IMAP_BODYSTRUCTURE_W,
-    PR_EC_IMAP_BODY, PR_EC_IMAP_BODY_W, PR_EC_IMAP_EMAIL,
+    PR_EC_IMAP_EMAIL_SIZE, PR_EC_IMAP_BODYSTRUCTURE_W,
+    PR_EC_IMAP_BODY_W, PR_EC_IMAP_EMAIL,
 )
 from MAPI.Struct import (
-    MAPIErrorNotFound, SNotRestriction, SExistRestriction,
+    SNotRestriction, SExistRestriction,
 )
 import inetmapi
 
@@ -44,14 +44,14 @@ def main():
 
     for user in server.users():  # XXX multi-company..
         # Skip users without IMAP enabled
-        if not 'imap' in user.features:
+        if 'imap' not in user.features:
             log.info('Skipping user %s, IMAP disabled', user.name)
             continue
 
         log.debug('Processing user %s', user.name)
         for folder in user.store.folders():
             # Inbox folder's container class is None..
-            if folder.container_class != 'IPF.Note' and folder.container_class != None:
+            if folder.container_class != 'IPF.Note' and folder.container_class is not None:
                 continue
 
             log.info('Processing folder %s', folder.name)

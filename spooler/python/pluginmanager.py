@@ -5,10 +5,11 @@ import os
 import sys
 import inspect
 
-from plugintemplates import *
+from plugintemplates import MP_CONTINUE, MP_EXIT
 
 if sys.version_info[0] > 2:
     long = int
+
 
 class PluginManager(object):
     def __init__(self, plugindir, logger):
