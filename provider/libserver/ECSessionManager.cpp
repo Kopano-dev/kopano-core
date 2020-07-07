@@ -58,7 +58,7 @@ ECSessionManager::ECSessionManager(std::shared_ptr<ECConfig> cfg,
 	m_lpSearchFolders(new ECSearchFolders(this, m_lpDatabaseFactory.get())),
 	m_lpECCacheManager(new ECCacheManager(m_lpConfig, m_lpDatabaseFactory.get())),
 	m_lpTPropsPurge(new ECTPropsPurge(m_lpConfig, m_lpDatabaseFactory.get())),
-	m_ptrLockManager(ECLockManager::Create())
+	m_ptrLockManager(std::make_shared<ECLockManager>())
 {
 	// init SSL randomness for session IDs
 	ssl_random_init();
@@ -1274,11 +1274,6 @@ exit:
 	if(lpSession)
 		lpSession->unlock();
 	return er;
-}
-
-std::shared_ptr<ECLockManager> ECLockManager::Create()
-{
-	return std::shared_ptr<ECLockManager>(new(std::nothrow) ECLockManager);
 }
 
 ECRESULT ECLockManager::LockObject(unsigned int objid, ECSESSIONID sid,

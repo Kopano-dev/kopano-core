@@ -33,13 +33,11 @@ private:
 ////////////////
 class ECLockManager final : public std::enable_shared_from_this<ECLockManager> {
 public:
-	static std::shared_ptr<ECLockManager> Create();
 	ECRESULT LockObject(unsigned int ulObjId, ECSESSIONID sessionId, ECObjectLock *lpOjbectLock);
 	ECRESULT UnlockObject(unsigned int ulObjId, ECSESSIONID sessionId);
 	bool IsLocked(unsigned int ulObjId, ECSESSIONID *lpSessionId);
 
 private:
-	ECLockManager(void) = default;
 	// Map object ids to session IDs.
 	typedef std::map<unsigned int, ECSESSIONID>	LockMap;
 	KC::shared_mutex m_hRwLock;
