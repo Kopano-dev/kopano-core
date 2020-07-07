@@ -34,12 +34,12 @@ void ServerConfigCheck::loadChecks()
 	addCheck("user_plugin", 0, &testPlugin);
 	addCheck("user_plugin", "user_plugin_config", 0, &testPluginConfig);
 
-	addCheck("createuser_script", 0, &testFile);
-	addCheck("deleteuser_script", 0, &testFile);
-	addCheck("creategroup_script", 0, &testFile);
-	addCheck("deletegroup_script", 0, &testFile);
-	addCheck("createcompany_script", CONFIG_HOSTED_USED, &testFile);
-	addCheck("deletecompany_script", CONFIG_HOSTED_USED, &testFile);
+	addCheck("createuser_script", 0, &testXFile);
+	addCheck("deleteuser_script", 0, &testXFile);
+	addCheck("creategroup_script", 0, &testXFile);
+	addCheck("deletegroup_script", 0, &testXFile);
+	addCheck("createcompany_script", CONFIG_HOSTED_USED, &testXFile);
+	addCheck("deletecompany_script", CONFIG_HOSTED_USED, &testXFile);
 
 	addCheck("enable_hosted_kopano", 0, &testBoolean);
 	addCheck("storename_format", 0, &testStorename);
@@ -54,6 +54,7 @@ void ServerConfigCheck::loadChecks()
 	addCheck("softdelete_lifetime", 0, &testNonZero);
 
 	addCheck("auth_method", 0, &testAuthMethod);
+	addCheck("ntlm_auth", 0, &testXFile);
 }
 
 int ServerConfigCheck::testAttachment(const config_check_t *check)
@@ -91,11 +92,6 @@ int ServerConfigCheck::testPlugin(const config_check_t *check)
 		printError(check->option1, "Unix plugin does not support multi-tenancy");
 		return CHECK_ERROR;
 	}
-	if (check->multi && check->value1 == "ldap") {
-		printError(check->option1, "Unix plugin does not support multiserver");
-		return CHECK_ERROR;
-	}
-
 	if (check->value1 == "ldap" || check->value1 == "ldapms" || check->value1 == "unix" || check->value1 == "db")
 		return CHECK_OK;
 	printError(check->option1, "contains unknown plugin: \"" + check->value1 + "\"");
