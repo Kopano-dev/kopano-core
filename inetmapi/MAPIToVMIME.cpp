@@ -1516,7 +1516,7 @@ HRESULT MAPIToVMIME::handleContactEntryID(unsigned int cValues, SPropValue *lpPr
 	for (unsigned int i = 0; i < ulNames; ++i)
 		mnNamedProps[i].Kind.lID += (lpContabEntryID->email_offset * 0x10);
 
-	hr = MAPIAllocateBuffer(sizeof(LPMAPINAMEID) * (ulNames), &~lppNames);
+	hr = MAPIAllocateBuffer(sizeof(MAPINAMEID *) * ulNames, &~lppNames);
 	if (hr != hrSuccess) {
 		ec_log_err("No memory for named ids from contact");
 		return hr;
@@ -1699,7 +1699,7 @@ HRESULT MAPIToVMIME::handleReplyTo(IMessage *lpMessage,
 		hr = MAPIAllocateBuffer(sizeof(MAPINAMEID) * cNames, &~lpNames);
 		if (hr != hrSuccess)
 			return hr;
-		hr = MAPIAllocateBuffer(sizeof(LPMAPINAMEID) * cNames, &~lppNames);
+		hr = MAPIAllocateBuffer(sizeof(MAPINAMEID *) * cNames, &~lppNames);
 		if (hr != hrSuccess)
 			return hr;
 		for (unsigned int i = 0; i < cNames; ++i) {

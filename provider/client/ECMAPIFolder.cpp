@@ -264,14 +264,14 @@ HRESULT ECMAPIFolder::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterf
 
 HRESULT ECMAPIFolder::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
     const SPropTagArray *lpExcludeProps, ULONG ulUIParam,
-    LPMAPIPROGRESS lpProgress, LPCIID lpInterface, void *lpDestObj,
+    IMAPIProgress *lpProgress, const IID *lpInterface, void *lpDestObj,
     ULONG ulFlags, SPropProblemArray **lppProblems)
 {
 	return Util::DoCopyTo(&IID_IMAPIFolder, static_cast<IMAPIFolder *>(this), ciidExclude, rgiidExclude, lpExcludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
 }
 
 HRESULT ECMAPIFolder::CopyProps(const SPropTagArray *lpIncludeProps,
-    ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface,
+    unsigned int ulUIParam, IMAPIProgress *lpProgress, const IID *lpInterface,
     void *lpDestObj, ULONG ulFlags, SPropProblemArray **lppProblems)
 {
 	return Util::DoCopyProps(&IID_IMAPIFolder, static_cast<IMAPIFolder *>(this), lpIncludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
@@ -410,7 +410,9 @@ HRESULT ECMAPIFolder::CreateMessageWithEntryID(const IID *lpInterface,
 	return hr;
 }
 
-HRESULT ECMAPIFolder::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, LPVOID lpDestFolder, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags)
+HRESULT ECMAPIFolder::CopyMessages(ENTRYLIST *lpMsgList, const IID *lpInterface,
+    void *lpDestFolder, unsigned int ulUIParam, IMAPIProgress *lpProgress,
+    unsigned int ulFlags)
 {
 	return CopyMessages2(ECSTORE_TYPE_PRIVATE, lpMsgList, lpInterface,
 	       lpDestFolder, ulUIParam, lpProgress, ulFlags);
@@ -529,7 +531,8 @@ HRESULT ECMAPIFolder::CopyMessages2(unsigned int ftype, ENTRYLIST *lpMsgList,
 	return (hr == hrSuccess)?hrEC:hr;
 }
 
-HRESULT ECMAPIFolder::DeleteMessages(LPENTRYLIST lpMsgList, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags)
+HRESULT ECMAPIFolder::DeleteMessages(ENTRYLIST *lpMsgList, unsigned int ui_param,
+    IMAPIProgress *, unsigned int ulFlags)
 {
 	if (lpMsgList == NULL)
 		return MAPI_E_INVALID_PARAMETER;
@@ -708,7 +711,8 @@ HRESULT ECMAPIFolder::DeleteFolder(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	return lpFolderOps->HrDeleteFolder(cbEntryID, lpEntryID, ulFlags, 0);
 }
 
-HRESULT ECMAPIFolder::SetReadFlags(LPENTRYLIST lpMsgList, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags)
+HRESULT ECMAPIFolder::SetReadFlags(ENTRYLIST *lpMsgList, unsigned int ui_param,
+    IMAPIProgress *lpProgress, unsigned int ulFlags)
 {
 	if ((ulFlags & ~(CLEAR_READ_FLAG | CLEAR_NRN_PENDING | CLEAR_RN_PENDING | GENERATE_RECEIPT_ONLY | MAPI_DEFERRED_ERRORS | MESSAGE_DIALOG | SUPPRESS_RECEIPT)) != 0 ||
 	    (ulFlags & (SUPPRESS_RECEIPT | CLEAR_READ_FLAG)) == (SUPPRESS_RECEIPT | CLEAR_READ_FLAG) ||
@@ -790,7 +794,8 @@ HRESULT ECMAPIFolder::SaveContentsSort(const SSortOrderSet *lpSortCriteria, ULON
 	return MAPI_E_NO_ACCESS;
 }
 
-HRESULT ECMAPIFolder::EmptyFolder(ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags)
+HRESULT ECMAPIFolder::EmptyFolder(unsigned int ui_param, IMAPIProgress *,
+    unsigned int ulFlags)
 {
 	if((ulFlags &~ (DEL_ASSOCIATED | FOLDER_DIALOG | DELETE_HARD_DELETE)) != 0)
 		return MAPI_E_INVALID_PARAMETER;

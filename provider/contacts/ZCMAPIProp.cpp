@@ -238,7 +238,7 @@ HRESULT ZCMAPIProp::ConvertProps(IMAPIProp *lpContact, ULONG cbEntryID,
 #undef PS
 	};
 
-	hr = MAPIAllocateBuffer(sizeof(LPMAPINAMEID) * ulNames, &~lppNames);
+	hr = MAPIAllocateBuffer(sizeof(MAPINAMEID *) * ulNames, &~lppNames);
 	if (hr != hrSuccess)
 		goto exitm;
 

@@ -212,7 +212,7 @@ HRESULT ECAttach::SetPropHandler(unsigned int ulPropTag, void *lpProvider,
 // Use the support object to do the copying
 HRESULT ECAttach::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
     const SPropTagArray *lpExcludeProps, ULONG ulUIParam,
-    LPMAPIPROGRESS lpProgress, LPCIID lpInterface, void *lpDestObj,
+    IMAPIProgress *lpProgress, const IID *lpInterface, void *lpDestObj,
     ULONG ulFlags, SPropProblemArray **lppProblems)
 {
 	return Util::DoCopyTo(&IID_IAttachment, static_cast<IAttach *>(this),

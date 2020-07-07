@@ -231,7 +231,7 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 	hr = m_lpContactFolder->GetContentsTable(ulFlags | MAPI_DEFERRED_ERRORS, &~ptrContents);
 	if (hr != hrSuccess)
 		return hr;
-	hr = MAPIAllocateBuffer(sizeof(LPMAPINAMEID) * ulNames, &~lppNames);
+	hr = MAPIAllocateBuffer(sizeof(MAPINAMEID *) * ulNames, &~lppNames);
 	if (hr != hrSuccess)
 		return hr;
 

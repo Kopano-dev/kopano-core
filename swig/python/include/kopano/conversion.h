@@ -61,10 +61,9 @@ extern PyObject *List_from_LPADRLIST(const ADRLIST *);
 PyObject *		List_from_LPSPropProblemArray(LPSPropProblemArray lpProblemArray);
 LPSPropProblemArray List_to_LPSPropProblemArray(PyObject *, ULONG ulFlags = CONV_COPY_SHALLOW);
 
-PyObject *		Object_from_LPMAPINAMEID(LPMAPINAMEID lpMAPINameId);
-PyObject *		List_from_LPMAPINAMEID(LPMAPINAMEID *lppMAPINameId, ULONG cNames);
-LPMAPINAMEID *	List_to_p_LPMAPINAMEID(PyObject *, ULONG *lpcNames, ULONG ulFlags = CONV_COPY_SHALLOW);
-
+extern PyObject *Object_from_LPMAPINAMEID(MAPINAMEID *);
+extern PyObject *List_from_LPMAPINAMEID(MAPINAMEID **, unsigned int num);
+extern MAPINAMEID **List_to_p_LPMAPINAMEID(PyObject *, unsigned int *num, unsigned int flags = CONV_COPY_SHALLOW);
 extern ENTRYLIST *List_to_p_ENTRYLIST(PyObject *);
 extern ENTRYLIST *List_to_LPENTRYLIST(PyObject *);
 PyObject *		List_from_LPENTRYLIST(LPENTRYLIST lpEntryList);

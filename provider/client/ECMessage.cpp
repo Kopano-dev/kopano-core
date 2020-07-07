@@ -886,7 +886,8 @@ HRESULT ECMessage::CreateAttach(LPCIID lpInterface, ULONG ulFlags, const IAttach
 	return hr;
 }
 
-HRESULT ECMessage::DeleteAttach(ULONG ulAttachmentNum, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags)
+HRESULT ECMessage::DeleteAttach(unsigned int ulAttachmentNum, unsigned int ui_param,
+    IMAPIProgress *, unsigned int flags)
 {
 	SPropValue sPropID;
 
@@ -2007,7 +2008,7 @@ HRESULT ECMessage::SetPropHandler(unsigned int ulPropTag, void *lpProvider,
 // Use the support object to do the copying
 HRESULT ECMessage::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
     const SPropTagArray *lpExcludeProps, ULONG ulUIParam,
-    LPMAPIPROGRESS lpProgress, LPCIID lpInterface, void *lpDestObj,
+    IMAPIProgress *lpProgress, const IID *lpInterface, void *lpDestObj,
     ULONG ulFlags, SPropProblemArray **lppProblems)
 {
 	if (lpInterface == nullptr || lpDestObj == nullptr)
@@ -2343,7 +2344,7 @@ HRESULT ECMessage::GetCodePage(unsigned int *lpulCodePage)
 
 // Use the support object to do the copying
 HRESULT ECMessage::CopyProps(const SPropTagArray *lpIncludeProps,
-    ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface,
+    unsigned int ulUIParam, IMAPIProgress *lpProgress, const IID *lpInterface,
     void *lpDestObj, ULONG ulFlags, SPropProblemArray **lppProblems)
 {
 	return Util::DoCopyProps(&IID_IMessage, static_cast<IMessage *>(this), lpIncludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);

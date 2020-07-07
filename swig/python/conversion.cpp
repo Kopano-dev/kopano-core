@@ -1507,7 +1507,7 @@ LPSPropProblemArray List_to_LPSPropProblemArray(PyObject *list, ULONG /*ulFlags*
 	return retval_or_null(lpsProblems);
 }
 
-PyObject * Object_from_LPMAPINAMEID(LPMAPINAMEID lpMAPINameId)
+PyObject * Object_from_LPMAPINAMEID(MAPINAMEID *lpMAPINameId)
 {
 	if(lpMAPINameId == NULL) {
 		Py_INCREF(Py_None);
@@ -1520,7 +1520,7 @@ PyObject * Object_from_LPMAPINAMEID(LPMAPINAMEID lpMAPINameId)
 	return PyObject_CallFunction(PyTypeMAPINAMEID, "(Olu)", guid.get(), MNID_STRING, lpMAPINameId->Kind.lpwstrName);
 }
 
-PyObject * List_from_LPMAPINAMEID(LPMAPINAMEID *lppMAPINameId, ULONG cNames)
+PyObject * List_from_LPMAPINAMEID(MAPINAMEID **lppMAPINameId, unsigned int cNames)
 {
 	pyobj_ptr list(PyList_New(0));
 	for (unsigned int i = 0; i < cNames; ++i) {
@@ -1532,9 +1532,9 @@ PyObject * List_from_LPMAPINAMEID(LPMAPINAMEID *lppMAPINameId, ULONG cNames)
 	return list.release();
 }
 
-void Object_to_LPMAPINAMEID(PyObject *elem, LPMAPINAMEID *lppName, void *lpBase)
+void Object_to_LPMAPINAMEID(PyObject *elem, MAPINAMEID **lppName, void *lpBase)
 {
-	LPMAPINAMEID lpName = NULL;
+	MAPINAMEID *lpName = nullptr;
 	ULONG ulKind = 0;
 	Py_ssize_t len = 0;
 	auto laters = make_scope_success([&]() {
@@ -1589,7 +1589,8 @@ void Object_to_LPMAPINAMEID(PyObject *elem, LPMAPINAMEID *lppName, void *lpBase)
 	*lppName = lpName;
 }
 
-LPMAPINAMEID *	List_to_p_LPMAPINAMEID(PyObject *list, ULONG *lpcNames, ULONG /*ulFlags*/)
+MAPINAMEID **List_to_p_LPMAPINAMEID(PyObject *list, unsigned int *lpcNames,
+    unsigned int /*ulFlags*/)
 {
 	memory_ptr<MAPINAMEID *> lpNames;
 	unsigned int i = 0;
@@ -1599,10 +1600,10 @@ LPMAPINAMEID *	List_to_p_LPMAPINAMEID(PyObject *list, ULONG *lpcNames, ULONG /*u
 		return retval_or_null(lpNames);
 
 	auto len = PyObject_Length(list);
-	if (MAPIAllocateBuffer(sizeof(LPMAPINAMEID) * len, &~lpNames) != hrSuccess)
+	if (MAPIAllocateBuffer(sizeof(MAPINAMEID *) * len, &~lpNames) != hrSuccess)
 		return retval_or_null(lpNames);
 
-	memset(lpNames, 0, sizeof(LPMAPINAMEID) * len);
+	memset(lpNames, 0, sizeof(MAPINAMEID *) * len);
 	do {
 		pyobj_ptr elem(PyIter_Next(iter));
 		if (elem == nullptr)

@@ -38,7 +38,7 @@ class IECChangeAdvisor : public virtual IUnknown {
 	 *					- SYNC_CATCHUP	Update the internal state, but don't perform any operations
 	 *									on the server.
 	 */
-	virtual HRESULT Config(LPSTREAM lpStream, LPGUID lpGUID, IECChangeAdviseSink *lpAdviseSink, ULONG ulFlags) = 0;
+	virtual HRESULT Config(IStream *, LPGUID lpGUID, IECChangeAdviseSink *lpAdviseSink, ULONG ulFlags) = 0;
 
 	/**
 	 * Store the current internal state in the stream pointed to by lpStream.
@@ -46,7 +46,7 @@ class IECChangeAdvisor : public virtual IUnknown {
 	 * @param[in]	lpStream
 	 *					The stream in which the current state will be stored.
 	 */
-	virtual HRESULT UpdateState(LPSTREAM lpStream) = 0;
+	virtual HRESULT UpdateState(IStream *) = 0;
 
 	/**
 	 * Register one or more folders for change notifications through this change advisor.
@@ -82,9 +82,9 @@ class IECImportAddressbookChanges;
 
 class IECExportAddressbookChanges : public virtual IUnknown {
 	public:
-	virtual HRESULT Config(LPSTREAM lpState, ULONG ulFlags, IECImportAddressbookChanges *lpCollector) = 0;
+	virtual HRESULT Config(IStream *, ULONG ulFlags, IECImportAddressbookChanges *lpCollector) = 0;
 	virtual HRESULT Synchronize(ULONG *lpulSteps, ULONG *lpulProgress) = 0;
-	virtual HRESULT UpdateState(LPSTREAM lpState) = 0;
+	virtual HRESULT UpdateState(IStream *) = 0;
 };
 
 class ECLogger;
@@ -97,15 +97,15 @@ class IECExportChanges : public IExchangeExportChanges {
 class IECImportAddressbookChanges : public virtual IUnknown {
 	public:
 	virtual HRESULT GetLastError(HRESULT hr, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
-	virtual HRESULT Config(LPSTREAM lpState, ULONG ulFlags) = 0;
-	virtual HRESULT UpdateState(LPSTREAM lpState) = 0;
+	virtual HRESULT Config(IStream *, ULONG ulFlags) = 0;
+	virtual HRESULT UpdateState(IStream *) = 0;
 	virtual HRESULT ImportABChange(ULONG type, ULONG cbObjId, LPENTRYID lpObjId) = 0;
 	virtual HRESULT ImportABDeletion(ULONG type, ULONG cbObjId, LPENTRYID lpObjId) = 0;
 };
 
 class IECImportContentsChanges : public IExchangeImportContentsChanges {
 	public:
-	virtual HRESULT ImportMessageChangeAsAStream(ULONG cpvalChanges, LPSPropValue ppvalChanges, ULONG ulFlags, LPSTREAM *lppstream) = 0;
+	virtual HRESULT ImportMessageChangeAsAStream(ULONG cpvalChanges, LPSPropValue ppvalChanges, ULONG ulFlags, IStream **) = 0;
 };
 
 class IECImportHierarchyChanges : public IExchangeImportHierarchyChanges {

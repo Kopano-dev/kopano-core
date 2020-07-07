@@ -282,7 +282,7 @@ HRESULT M4LMAPISupport::CopyFolder(const IID *lpSrcInterface, void *lpSrcFolder,
 
 HRESULT M4LMAPISupport::DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj,
     ULONG ciidExclude, LPCIID rgiidExclude, const SPropTagArray *lpExcludeProps,
-    ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpDestInterface,
+    unsigned int ulUIParam, IMAPIProgress *lpProgress, const IID *lpDestInterface,
     void *lpDestObj, ULONG ulFlags, SPropProblemArray **lppProblems)
 {
 	return Util::DoCopyTo(lpSrcInterface, lpSrcObj, ciidExclude,
@@ -292,7 +292,7 @@ HRESULT M4LMAPISupport::DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj,
 
 HRESULT M4LMAPISupport::DoCopyProps(LPCIID lpSrcInterface, void *lpSrcObj,
     const SPropTagArray *lpIncludeProps, ULONG ulUIParam,
-    LPMAPIPROGRESS lpProgress, LPCIID lpDestInterface, void *lpDestObj,
+    IMAPIProgress *lpProgress, const IID *lpDestInterface, void *lpDestObj,
     ULONG ulFlags, SPropProblemArray **lppProblems)
 {
 	return Util::DoCopyProps(lpSrcInterface, lpSrcObj, lpIncludeProps,

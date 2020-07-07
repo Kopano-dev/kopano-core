@@ -58,9 +58,6 @@ private:
 /*
  * Helper functions.
  */
-HRESULT allocNamedIdList(ULONG ulSize, LPMAPINAMEID **lpppNameArray);
+extern HRESULT allocNamedIdList(unsigned int size, MAPINAMEID ***);
 HRESULT ReadProperties(IMessage *, ULONG count, const ULONG *tags, SPropValue **out);
-HRESULT ReadNamedProperties(LPMESSAGE lpMessage, ULONG ulCount,
-			    LPMAPINAMEID *lppTag,
-			    LPSPropTagArray *lppPropertyTagArray,
-			    LPSPropValue *lppPropertyArray);
+extern HRESULT ReadNamedProperties(IMessage *, unsigned int count, MAPINAMEID **, SPropTagArray **proptags, SPropValue **propvals);

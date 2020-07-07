@@ -250,7 +250,8 @@ HRESULT ECArchiveAwareMessage::CreateAttach(LPCIID lpInterface, ULONG ulFlags, U
 	return hr;
 }
 
-HRESULT ECArchiveAwareMessage::DeleteAttach(ULONG ulAttachmentNum, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags)
+HRESULT ECArchiveAwareMessage::DeleteAttach(unsigned int ulAttachmentNum,
+    unsigned int ulUIParam, IMAPIProgress *lpProgress, unsigned int ulFlags)
 {
 	auto hr = ECMessage::DeleteAttach(ulAttachmentNum, ulUIParam, lpProgress, ulFlags);
 	if (hr == hrSuccess && !m_bLoading)

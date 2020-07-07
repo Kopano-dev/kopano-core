@@ -952,7 +952,7 @@ static HRESULT ContactToKopano(IMsgStore *lpUserStore,
 	hr = MAPIAllocateBuffer(sizeof(MAPINAMEID) * 3, &~lpNames);
 	if (hr != hrSuccess)
 		return kc_perror("No memory for named IDs from contact", hr);
-	hr = MAPIAllocateBuffer(sizeof(LPMAPINAMEID) * 3, &~lppNames);
+	hr = MAPIAllocateBuffer(sizeof(MAPINAMEID *) * 3, &~lppNames);
 	if (hr != hrSuccess)
 		return kc_perror("No memory for named IDs from contact", hr);
 

@@ -16,11 +16,11 @@ class WSSerializedMessage KC_FINAL_OPG : public KC::ECUnknown {
 public:
 	WSSerializedMessage(soap *, const std::string &stream_id, ULONG nprops, SPropValue *props);
 	HRESULT GetProps(ULONG *lpcbProps, LPSPropValue *lppProps);
-	HRESULT CopyData(LPSTREAM lpDestStream);
+	HRESULT CopyData(IStream *dst);
 	HRESULT DiscardData();
 
 private:
-	HRESULT DoCopyData(LPSTREAM lpDestStream);
+	HRESULT DoCopyData(IStream *dst);
 	static void*	StaticMTOMWriteOpen(struct soap *soap, void *handle, const char *id, const char *type, const char *description, enum soap_mime_encoding encoding);
 	static int		StaticMTOMWrite(struct soap *soap, void *handle, const char *buf, size_t len);
 	static void		StaticMTOMWriteClose(struct soap *soap, void *handle);

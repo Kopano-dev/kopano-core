@@ -123,7 +123,7 @@ HRESULT ECNamedProp::GetNamesFromIDs(SPropTagArray **lppPropTags,
 
 	auto lpsPropTags = *lppPropTags;
 	// Allocate space for properties
-	auto hr = ECAllocateBuffer(sizeof(LPMAPINAMEID) * lpsPropTags->cValues, &~lppPropNames);
+	auto hr = ECAllocateBuffer(sizeof(MAPINAMEID *) * lpsPropTags->cValues, &~lppPropNames);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -187,7 +187,8 @@ HRESULT ECNamedProp::GetNamesFromIDs(SPropTagArray **lppPropTags,
 	return hr;
 }
 
-HRESULT ECNamedProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropNames, ULONG ulFlags, LPSPropTagArray *lppPropTags)
+HRESULT ECNamedProp::GetIDsFromNames(unsigned int cPropNames,
+    MAPINAMEID **lppPropNames, unsigned int ulFlags, SPropTagArray **lppPropTags)
 {
 	if (cPropNames == 0 || lppPropNames == nullptr)
 		/* Exchange does not support this, so neither do we. */
@@ -366,9 +367,9 @@ HRESULT ECNamedProp::ResolveCache(MAPINAMEID *lpName, ULONG *lpulPropTag)
  * release all memory allocated from this function! (or make sure the client application
  * does)
  */
-HRESULT ECNamedProp::HrCopyNameId(LPMAPINAMEID lpSrc, LPMAPINAMEID *lppDst, void *lpBase)
+HRESULT ECNamedProp::HrCopyNameId(MAPINAMEID *lpSrc, MAPINAMEID **lppDst, void *lpBase)
 {
-	LPMAPINAMEID	lpDst = NULL;
+	MAPINAMEID *lpDst = nullptr;
 	auto hr = ECAllocateMore(sizeof(MAPINAMEID), lpBase, reinterpret_cast<void **>(&lpDst));
 	if(hr != hrSuccess)
 		return hr;

@@ -2372,7 +2372,7 @@ ZEND_FUNCTION(mapi_stream_read)
 	LOG_BEGIN();
 	// params
 	zval		*res	= NULL;
-	LPSTREAM	pStream	= NULL;
+	IStream *pStream = nullptr;
 	unsigned long		lgetBytes = 0;
 	// return value
 	std::unique_ptr<char[]> buf;
@@ -2384,8 +2384,7 @@ ZEND_FUNCTION(mapi_stream_read)
 		return;
 
 	DEFERRED_EPILOGUE;
-	ZEND_FETCH_RESOURCE_C(pStream, LPSTREAM, &res, -1, name_istream, le_istream);
-
+	ZEND_FETCH_RESOURCE_C(pStream, IStream *, &res, -1, name_istream, le_istream);
 	buf.reset(new char[lgetBytes]);
 	MAPI_G(hr) = pStream->Read(buf.get(), lgetBytes, &actualRead);
 	if (MAPI_G(hr) != hrSuccess)
@@ -2400,7 +2399,7 @@ ZEND_FUNCTION(mapi_stream_seek)
 	LOG_BEGIN();
 	// params
 	zval		*res = NULL;
-	LPSTREAM	pStream = NULL;
+	IStream *pStream = nullptr;
 	long		moveBytes = 0, seekFlag = STREAM_SEEK_CUR;
 	// local
 	LARGE_INTEGER	move;
@@ -2413,14 +2412,11 @@ ZEND_FUNCTION(mapi_stream_seek)
 		return;
 
 	DEFERRED_EPILOGUE;
-	ZEND_FETCH_RESOURCE_C(pStream, LPSTREAM, &res, -1, name_istream, le_istream);
-
+	ZEND_FETCH_RESOURCE_C(pStream, IStream *, &res, -1, name_istream, le_istream);
 	move.QuadPart = moveBytes;
 	MAPI_G(hr) = pStream->Seek(move, seekFlag, &newPos);
-
 	if (FAILED(MAPI_G(hr)))
 		return;
-
 	RETVAL_TRUE;
 }
 
@@ -2430,7 +2426,7 @@ ZEND_FUNCTION(mapi_stream_setsize)
 	LOG_BEGIN();
 	// params
 	zval		*res = NULL;
-	LPSTREAM	pStream = NULL;
+	IStream *pStream = nullptr;
 	long		newSize = 0;
 	// local
 	ULARGE_INTEGER libNewSize{};
@@ -2441,15 +2437,11 @@ ZEND_FUNCTION(mapi_stream_setsize)
 		return;
 
 	DEFERRED_EPILOGUE;
-	ZEND_FETCH_RESOURCE_C(pStream, LPSTREAM, &res, -1, name_istream, le_istream);
-
+	ZEND_FETCH_RESOURCE_C(pStream, IStream *, &res, -1, name_istream, le_istream);
 	libNewSize.QuadPart = newSize;
-
 	MAPI_G(hr) = pStream->SetSize(libNewSize);
-
 	if (FAILED(MAPI_G(hr)))
 		return;
-
 	RETVAL_TRUE;
 }
 
@@ -2459,7 +2451,7 @@ ZEND_FUNCTION(mapi_stream_commit)
 	LOG_BEGIN();
 	// params
 	zval		*res = NULL;
-	LPSTREAM	pStream = NULL;
+	IStream *pStream = nullptr;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -2467,13 +2459,10 @@ ZEND_FUNCTION(mapi_stream_commit)
 		return;
 
 	DEFERRED_EPILOGUE;
-	ZEND_FETCH_RESOURCE_C(pStream, LPSTREAM, &res, -1, name_istream, le_istream);
-
+	ZEND_FETCH_RESOURCE_C(pStream, IStream *, &res, -1, name_istream, le_istream);
 	MAPI_G(hr) = pStream->Commit(0);
-
 	if (FAILED(MAPI_G(hr)))
 		return;
-
 	RETVAL_TRUE;
 }
 
@@ -2483,7 +2472,7 @@ ZEND_FUNCTION(mapi_stream_write)
 	LOG_BEGIN();
 	// params
 	zval		*res = NULL;
-	LPSTREAM	pStream = NULL;
+	IStream *pStream = nullptr;
 	char		*pv = NULL;
 	php_stringsize_t cb = 0;
 	// return value
@@ -2495,13 +2484,10 @@ ZEND_FUNCTION(mapi_stream_write)
 		return;
 
 	DEFERRED_EPILOGUE;
-	ZEND_FETCH_RESOURCE_C(pStream, LPSTREAM, &res, -1, name_istream, le_istream);
-
+	ZEND_FETCH_RESOURCE_C(pStream, IStream *, &res, -1, name_istream, le_istream);
 	MAPI_G(hr) = pStream->Write(pv, cb, &pcbWritten);
-
 	if (MAPI_G(hr) != hrSuccess)
 		return;
-
 	RETVAL_LONG(pcbWritten);
 }
 
@@ -2512,7 +2498,7 @@ ZEND_FUNCTION(mapi_stream_stat)
 	LOG_BEGIN();
 	// params
 	zval		*res = NULL;
-	LPSTREAM	pStream = NULL;
+	IStream *pStream = nullptr;
 	// return value
 	ULONG		cb = 0;
 	// local
@@ -2524,14 +2510,11 @@ ZEND_FUNCTION(mapi_stream_stat)
 		return;
 
 	DEFERRED_EPILOGUE;
-	ZEND_FETCH_RESOURCE_C(pStream, LPSTREAM, &res, -1, name_istream, le_istream);
-
+	ZEND_FETCH_RESOURCE_C(pStream, IStream *, &res, -1, name_istream, le_istream);
 	MAPI_G(hr) = pStream->Stat(&stg,STATFLAG_NONAME);
 	if(MAPI_G(hr) != hrSuccess)
 		return;
-
 	cb = stg.cbSize.LowPart;
-
 	array_init(return_value);
 	add_assoc_long(return_value, "cb", cb);
 }
@@ -2688,7 +2671,7 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "The array with the guids is not of the same size as the array with the ids");
 
 	// allocate memory to use
-	MAPI_G(hr) = MAPIAllocateBuffer(sizeof(LPMAPINAMEID) * hashTotal, &~lppNamePropId);
+	MAPI_G(hr) = MAPIAllocateBuffer(sizeof(MAPINAMEID *) * hashTotal, &~lppNamePropId);
 	if (MAPI_G(hr) != hrSuccess)
 		return;
 

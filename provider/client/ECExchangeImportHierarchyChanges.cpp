@@ -94,7 +94,8 @@ HRESULT ECExchangeImportHierarchyChanges::GetLastError(HRESULT hResult, ULONG ul
 	return hrSuccess;
 }
 
-HRESULT ECExchangeImportHierarchyChanges::Config(LPSTREAM lpStream, ULONG ulFlags){
+HRESULT ECExchangeImportHierarchyChanges::Config(IStream *lpStream, unsigned int ulFlags)
+{
 	HRESULT hr = hrSuccess;
 	ULONG ulLen = 0;
 	memory_ptr<SPropValue> lpPropSourceKey;
@@ -137,7 +138,8 @@ HRESULT ECExchangeImportHierarchyChanges::Config(LPSTREAM lpStream, ULONG ulFlag
 }
 
 //write into the stream 4 bytes syncid and 4 bytes changeid
-HRESULT ECExchangeImportHierarchyChanges::UpdateState(LPSTREAM lpStream){
+HRESULT ECExchangeImportHierarchyChanges::UpdateState(IStream *lpStream)
+{
 	ULONG ulLen = 0;
 
 	if(lpStream == NULL) {

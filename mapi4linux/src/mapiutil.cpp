@@ -148,8 +148,8 @@ static HRESULT RTFCommitFunc(IStream *lpUncompressedStream, void *lpData)
 	return hrSuccess;
 }
 
-HRESULT WrapCompressedRTFStream(LPSTREAM lpCompressedRTFStream, ULONG ulFlags,
-    LPSTREAM *lppUncompressedStream)
+HRESULT WrapCompressedRTFStream(IStream *lpCompressedRTFStream,
+    unsigned int ulFlags, IStream **lppUncompressedStream)
 {
 	// This functions doesn't really wrap the stream, but decodes the
 	// compressed stream, and writes the uncompressed data to the

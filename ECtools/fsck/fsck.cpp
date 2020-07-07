@@ -123,12 +123,12 @@ static void disclaimer(bool acceptDisclaimer)
 		getline(cin,dummy);
 }
 
-HRESULT allocNamedIdList(ULONG ulSize, LPMAPINAMEID **lpppNameArray)
+HRESULT allocNamedIdList(unsigned int ulSize, MAPINAMEID ***lpppNameArray)
 {
 	memory_ptr<MAPINAMEID *> lppArray;
-	LPMAPINAMEID lpBuffer = NULL;
+	MAPINAMEID *lpBuffer = nullptr;
 
-	auto hr = MAPIAllocateBuffer(ulSize * sizeof(LPMAPINAMEID), &~lppArray);
+	auto hr = MAPIAllocateBuffer(ulSize * sizeof(MAPINAMEID *), &~lppArray);
 	if (hr != hrSuccess)
 		return hr;
 	hr = MAPIAllocateMore(ulSize * sizeof(MAPINAMEID), lppArray, reinterpret_cast<void **>(&lpBuffer));
@@ -158,8 +158,9 @@ HRESULT ReadProperties(LPMESSAGE lpMessage, ULONG ulCount, const ULONG *lpTag,
 	return hr;
 }
 
-HRESULT ReadNamedProperties(LPMESSAGE lpMessage, ULONG ulCount, LPMAPINAMEID *lppTag,
-			    LPSPropTagArray *lppPropertyTagArray, LPSPropValue *lppPropertyArray)
+HRESULT ReadNamedProperties(IMessage *lpMessage, unsigned int ulCount,
+    MAPINAMEID **lppTag, SPropTagArray **lppPropertyTagArray,
+    SPropValue **lppPropertyArray)
 {
 	ULONG ulReadCount = 0;
 	auto hr = lpMessage->GetIDsFromNames(ulCount, lppTag, 0, lppPropertyTagArray);
