@@ -710,16 +710,7 @@ PR_ADDITIONAL_REN_ENTRYIDS:
 /* 8: MV resource type:<>? */
 #define PR_EMS_AB_ROOM_DESCRIPTION		PROP_TAG(PT_STRING8, 0x0809)
 
-/* PR_DISPLAY_TYPE_EX values */
-/*  PR_DISPLAY_TYPEs (mapidefs.h)
-#define DT_MAILUSER         ((ULONG) 0x00000000)
-#define DT_DISTLIST         ((ULONG) 0x00000001)
-#define DT_FORUM            ((ULONG) 0x00000002)
-#define DT_AGENT            ((ULONG) 0x00000003)
-#define DT_ORGANIZATION     ((ULONG) 0x00000004)
-#define DT_PRIVATE_DISTLIST ((ULONG) 0x00000005)
-#define DT_REMOTE_MAILUSER  ((ULONG) 0x00000006)
-*/
+/* PR_DISPLAY_TYPE_EX values - extends PR_DISPLAY_TYPE (cf. mapidefs.h) */
 #define DT_ROOM	            ((ULONG) 0x00000007)
 #define DT_EQUIPMENT        ((ULONG) 0x00000008)
 #define DT_SEC_DISTLIST     ((ULONG) 0x00000009)

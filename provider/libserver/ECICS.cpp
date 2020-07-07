@@ -69,7 +69,7 @@ static ECRESULT FilterUserIdsByCompany(ECDatabase *lpDatabase, const std::set<un
 	std::string strQuery = "SELECT id FROM users where company=" + stringify(ulCompanyFilter) + " AND id IN (";
 	for (const auto i : sUserIds)
 		strQuery.append(stringify(i) + ",");
-	strQuery.resize(strQuery.size() - 1);
+	strQuery.pop_back();
 	strQuery.append(1, ')');
 
 	auto er = lpDatabase->DoSelect(strQuery, &lpDBResult);

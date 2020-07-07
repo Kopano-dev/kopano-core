@@ -1408,7 +1408,7 @@ HRESULT IMAP::HrCmdStatus(const std::string &strTag,
 	// split statusdata
 	if (strStatusData.size() > 1 && strStatusData[0] == '(') {
 		strStatusData.erase(0,1);
-		strStatusData.resize(strStatusData.size()-1);
+		strStatusData.pop_back();
 	}
 
 	HrSplitInput(strStatusData, lstStatusData);
@@ -2064,7 +2064,7 @@ std::string IMAP::PropsToFlags(LPSPropValue lpProps, unsigned int cValues, bool 
 	    strFlags += "\\Recent ";
 	// strip final space
 	if (!strFlags.empty())
-		strFlags.resize(strFlags.size() - 1);
+		strFlags.pop_back();
 	return strFlags;
 }
 

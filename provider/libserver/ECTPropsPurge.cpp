@@ -225,7 +225,7 @@ ECRESULT ECTPropsPurge::PurgeDeferredTableUpdates(ECDatabase *lpDatabase, unsign
 		strIn += lpDBRow[0];
 		strIn += ",";
 	}
-	strIn.resize(strIn.size()-1);
+	strIn.pop_back();
 
 	strQuery = "SELECT id FROM hierarchy WHERE id IN(";
 	strQuery += strIn;

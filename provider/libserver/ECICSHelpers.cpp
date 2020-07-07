@@ -853,7 +853,7 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 				strQuery.append(stringify(del_id));
 				strQuery.append(1, ',');
 			}
-			strQuery.resize(strQuery.size() - 1);	// Remove trailing ','
+			strQuery.pop_back();
 			strQuery.append(1, ')');
 			er = m_lpDatabase->DoDelete(strQuery);
 			if (er != erSuccess)
@@ -867,8 +867,7 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 		strQuery += "(" + stringify(m_ulSyncId) + "," + stringify(ulMaxChange) + "," +
 			m_lpDatabase->EscapeBinary(p.first) + "," +
 			m_lpDatabase->EscapeBinary(p.second.sParentSourceKey) + "),";
-
-	strQuery.resize(strQuery.size() - 1);
+	strQuery.pop_back();
 	er = m_lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess)
 		return er;

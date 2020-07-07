@@ -2915,8 +2915,7 @@ HRESULT Util::DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj,
 			if (bAddRecip)
 				lpTempSPropTagArray->aulPropTag[ulNewPropCount - 1] = PR_MESSAGE_RECIPIENTS;
 			lpTempSPropTagArray->cValues = ulNewPropCount;
-
-			std::swap(lpTempSPropTagArray, lpSPropTagArray);
+			lpSPropTagArray = std::move(lpTempSPropTagArray);
 		}
 	}
 

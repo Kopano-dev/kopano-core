@@ -288,7 +288,7 @@ HRESULT MAPIPropHelper::GetArchiveList(std::list<SObjectEntry> *lplstArchives, b
 		objectEntry.sItemEntryId = ptrPropArray[IDX_ARCHIVE_ITEM_ENTRYIDS].Value.MVbin.lpbin[i];
 		lstArchives.emplace_back(std::move(objectEntry));
 	}
-	swap(*lplstArchives, lstArchives);
+	*lplstArchives = std::move(lstArchives);
 	return hr;
 }
 
