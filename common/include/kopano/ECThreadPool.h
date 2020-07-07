@@ -94,8 +94,6 @@ class KC_EXPORT ECTask {
 public:
 	virtual ~ECTask(void) = default;
 	virtual void execute(void);
-	bool queue_on(ECThreadPool *, bool transfer_ownership = false);
-
 	ECThreadWorker *m_worker = nullptr;
 
 protected:
@@ -107,20 +105,6 @@ private:
 	ECTask(const ECTask &) = delete;
 	ECTask &operator=(const ECTask &) = delete;
 };
-
-/**
- * Queue a task object on a particular threadpool.
- *
- * @param[in]	p	The threadpool on which to queue the task.
- * @param[in]	own	Boolean parameter specifying whether the threadpool
- *                                  should take ownership of the task object, and thus
- *                                  is responsible for deleting the object when done.
- * @retval true if the task was successfully queued, false otherwise.
- */
-inline bool ECTask::queue_on(ECThreadPool *p, bool own)
-{
-	return p != nullptr ? p->enqueue(this, own) : false;
-}
 
 /**
  * This class represents a task that can be executed on an ECThreadPool or
