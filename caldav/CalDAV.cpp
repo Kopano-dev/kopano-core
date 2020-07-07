@@ -162,23 +162,22 @@ static HRESULT running_service(char **argv)
 		return hr;
 	ec_log_info("CalDAV Gateway will now exit");
 
+	if (g_bThreads)
+		return hrSuccess;
 	// in forked mode, send all children the exit signal
-	if (!g_bThreads) {
-		signal(SIGTERM, SIG_IGN);
-		kill(0, SIGTERM);
-		int i = 30; /* wait max 30 seconds */
-		while (nChildren && i) {
-			if (i % 5 == 0)
-				ec_log_notice("Waiting for %d processes/threads to exit", nChildren.load());
-			sleep(1);
-			--i;
-		}
-
-		if (nChildren)
-			ec_log_notice("Forced shutdown with %d processes/threads left", nChildren.load());
-		else
-			ec_log_info("CalDAV Gateway shutdown complete");
+	signal(SIGTERM, SIG_IGN);
+	kill(0, SIGTERM);
+	int i = 30; /* wait max 30 seconds */
+	while (nChildren && i) {
+		if (i % 5 == 0)
+			ec_log_notice("Waiting for %d processes/threads to exit", nChildren.load());
+		sleep(1);
+		--i;
 	}
+	if (nChildren)
+		ec_log_notice("Forced shutdown with %d processes/threads left", nChildren.load());
+	else
+		ec_log_info("CalDAV Gateway shutdown complete");
 	return hrSuccess;
 }
 
