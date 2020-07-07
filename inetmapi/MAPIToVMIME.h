@@ -62,6 +62,7 @@ private:
 
 	// build Messages
 	HRESULT BuildNoteMessage(IMessage *in, vmime::shared_ptr<vmime::message> *out, unsigned int = MTV_NONE);
+	vmime::mailbox make_mailbox(const std::wstring &name, const std::wstring &email);
 	HRESULT BuildMDNMessage(IMessage *in, vmime::shared_ptr<vmime::message> *out);
 
 	// util
