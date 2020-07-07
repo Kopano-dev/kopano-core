@@ -61,7 +61,7 @@
 
 // The following value is based on:
 // http://dev.mysql.com/doc/refman/5.0/en/server-system-variables.html#sysvar_thread_stack
-// Since the remote MySQL server can be 32 or 64 bit we'll just go with the value specified
+// Since the remote MySQL server can be 32- or 64-bit, we'll just go with the value specified
 // for 64-bit architectures.
 // We could use the 'version_compile_machine' variable, but I'm not sure if 32-bit versions
 // will ever be build on 64-bit machines and what that variable does. Plus we would need a

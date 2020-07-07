@@ -291,7 +291,7 @@ enum
 // Server sends Mod. time and Create time in readProps() call
 //#define KOPANO_CAP_TIMES_IN_READPROPS	0x0004 //not needed since saveObject is introduced
 #define KOPANO_CAP_CRYPT				0x0008
-// 64 bit session IDs
+// 64-bit session IDs
 #define KOPANO_CAP_LARGE_SESSIONID		0x0010
 // Includes license server
 #define KOPANO_CAP_LICENSE_SERVER		0x0020

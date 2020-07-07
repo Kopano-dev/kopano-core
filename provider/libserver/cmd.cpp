@@ -6828,7 +6828,7 @@ static ECRESULT CopyFolderObjects(struct soap *soap, ECSession *lpecSession,
 		if (er == KCERR_NOT_FOUND)
 			bPartialCompletion = true;
 		else if (er != erSuccess)
-			return er_lerrf(er, "CopyObject %s failed failed", lpDBRow[0]);
+			return er_lerrf(er, "CopyObject %s failed", lpDBRow[0]);
 	}
 
 	// update the destination folder for disconnected clients

@@ -135,9 +135,6 @@ HRESULT ECMemBlock::GetSize(ULONG *ulSize) const
 	return hrSuccess;
 }
 
-/*
- * ECMemStream, IStream compatible in-memory stream object
- */
 ECMemStream::ECMemStream(const char *buffer, ULONG ulDataLen, ULONG f,
     CommitFunc cf, DeleteFunc df, void *p) :
 	lpCommitFunc(cf), lpDeleteFunc(df), lpParam(p), ulFlags(f)

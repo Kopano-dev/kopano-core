@@ -88,9 +88,6 @@ HRESULT ECRestriction::CopyProp(SPropValue *lpPropSrc, void *lpBase,
 
 inline void ECRestriction::DummyFree(LPVOID) {}
 
-/**
- * ECAndRestriction
- */
 ECAndRestriction::ECAndRestriction(const ECRestrictionList &list): m_lstRestrictions(list.m_list) {}
 
 void ECAndRestriction::operator+=(const ECRestrictionList &list)
@@ -142,9 +139,6 @@ ECRestriction *ECAndRestriction::Clone(void) const &
 	return lpNew;
 }
 
-/**
- * ECOrRestriction
- */
 ECOrRestriction::ECOrRestriction(const ECRestrictionList &list): m_lstRestrictions(list.m_list) {}
 
 void ECOrRestriction::operator+=(const ECRestrictionList &list)
@@ -196,9 +190,6 @@ ECRestriction *ECOrRestriction::Clone(void) const &
 	return lpNew;
 }
 
-/**
- * ECNotRestriction
- */
 ECNotRestriction::ECNotRestriction(std::shared_ptr<ECRestriction> r) :
 	m_ptrRestriction(r)
 {}
@@ -225,9 +216,6 @@ ECRestriction *ECNotRestriction::Clone(void) const &
 	return new ECNotRestriction(m_ptrRestriction);
 }
 
-/**
- * ECContentRestriction
- */
 ECContentRestriction::ECContentRestriction(ULONG ulFuzzyLevel, ULONG ulPropTag,
     const SPropValue *lpProp, ULONG ulFlags) :
 	m_ulFuzzyLevel(ulFuzzyLevel), m_ulPropTag(ulPropTag)
@@ -272,9 +260,6 @@ ECRestriction *ECContentRestriction::Clone(void) const &
 	return new ECContentRestriction(m_ulFuzzyLevel, m_ulPropTag, m_ptrProp);
 }
 
-/**
- * ECBitMaskRestriction
- */
 HRESULT ECBitMaskRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG /*ulFlags*/) const {
 	if (lpBase == NULL || lpRestriction == NULL)
 		return MAPI_E_INVALID_PARAMETER;
@@ -290,9 +275,6 @@ ECRestriction *ECBitMaskRestriction::Clone(void) const &
 	return new ECBitMaskRestriction(m_relBMR, m_ulPropTag, m_ulMask);
 }
 
-/**
- * ECPropertyRestriction
- */
 ECPropertyRestriction::ECPropertyRestriction(ULONG relop, ULONG ulPropTag,
     const SPropValue *lpProp, ULONG ulFlags) :
 	m_relop(relop), m_ulPropTag(ulPropTag)
@@ -337,9 +319,6 @@ ECRestriction *ECPropertyRestriction::Clone(void) const &
 	return new ECPropertyRestriction(m_relop, m_ulPropTag, m_ptrProp);
 }
 
-/**
- * ECComparePropsRestriction
- */
 HRESULT ECComparePropsRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG /*ulFlags*/) const {
 	if (lpBase == NULL || lpRestriction == NULL)
 		return MAPI_E_INVALID_PARAMETER;
@@ -355,9 +334,6 @@ ECRestriction *ECComparePropsRestriction::Clone(void) const &
 	return new ECComparePropsRestriction(m_relop, m_ulPropTag1, m_ulPropTag2);
 }
 
-/**
- * ECExistRestriction
- */
 HRESULT ECExistRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG /*ulFlags*/) const {
 	if (lpBase == NULL || lpRestriction == NULL)
 		return MAPI_E_INVALID_PARAMETER;
@@ -371,9 +347,6 @@ ECRestriction *ECExistRestriction::Clone(void) const &
 	return new ECExistRestriction(m_ulPropTag);
 }
 
-/**
- * ECRawRestriction
- */
 ECRawRestriction::ECRawRestriction(const SRestriction *lpRestriction,
     ULONG ulFlags)
 {

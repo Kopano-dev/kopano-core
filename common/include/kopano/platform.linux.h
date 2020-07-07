@@ -206,7 +206,7 @@ typedef int				SCODE;
 #define STG_E_INVALIDFUNCTION KC_HRESULT_TYPEDEF_(0x80030001L)
 
 /*
- Values are 32 bit values laid out as follows:
+ Values are 32-bit values laid out as follows:
 
   3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
   1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0

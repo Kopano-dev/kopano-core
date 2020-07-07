@@ -23,8 +23,8 @@ class ECLogger;
 class ECMsgStore;
 
 /**
- * ECChangeAdvisor: Implementation IECChangeAdvisor, which allows one to register for
- *                  change notifications on folders.
+ * An implementation of IECChangeAdvisor which allows one to register for
+ * change notifications on folders.
  */
 class ECChangeAdvisor KC_FINAL_OPG :
     public KC::ECUnknown, public KC::IECChangeAdvisor {
