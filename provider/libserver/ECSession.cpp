@@ -83,7 +83,7 @@ static int EVP_PKEY_cmp(EVP_PKEY *a, EVP_PKEY *b)
 
 void CreateSessionID(unsigned int ulCapabilities, ECSESSIONID *lpSessionId)
 {
-	ssl_random(!!(ulCapabilities & KOPANO_CAP_LARGE_SESSIONID), lpSessionId);
+	ssl_random(ulCapabilities & KOPANO_CAP_LARGE_SESSIONID, lpSessionId);
 }
 
 /*

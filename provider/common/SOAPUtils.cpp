@@ -1332,7 +1332,7 @@ ECRESULT CopyUserDetailsFromSoap(struct user *lpUser,
 	if (lpUser->lpszServername)
 		details->SetPropString(OB_PROP_S_SERVERNAME, lpUser->lpszServername);
 	if (lpUser->ulIsABHidden != (ULONG)-1)
-		details->SetPropBool(OB_PROP_B_AB_HIDDEN, !!lpUser->ulIsABHidden);
+		details->SetPropBool(OB_PROP_B_AB_HIDDEN, lpUser->ulIsABHidden);
 	if (lpUser->ulCapacity != (ULONG)-1)
 		details->SetPropInt(OB_PROP_I_RESOURCE_CAPACITY, lpUser->ulCapacity);
 	CopyAnonymousDetailsFromSoap(lpUser->lpsPropmap, lpUser->lpsMVPropmap, details);
@@ -1368,7 +1368,7 @@ ECRESULT CopyGroupDetailsFromSoap(struct group *lpGroup,
 	if (lpstrExternId)
 		details->SetPropObject(OB_PROP_O_EXTERNID, objectid_t(*lpstrExternId, details->GetClass()));
 	if (lpGroup->ulIsABHidden != (ULONG)-1)
-		details->SetPropBool(OB_PROP_B_AB_HIDDEN, !!lpGroup->ulIsABHidden);
+		details->SetPropBool(OB_PROP_B_AB_HIDDEN, lpGroup->ulIsABHidden);
 	CopyAnonymousDetailsFromSoap(lpGroup->lpsPropmap, lpGroup->lpsMVPropmap, details);
 	return erSuccess;
 }
@@ -1405,7 +1405,7 @@ ECRESULT CopyCompanyDetailsFromSoap(struct company *lpCompany,
 	if (ulAdmin)
 		details->SetPropInt(OB_PROP_I_SYSADMIN, ulAdmin);
 	if (lpCompany->ulIsABHidden != (ULONG)-1)
-		details->SetPropBool(OB_PROP_B_AB_HIDDEN, !!lpCompany->ulIsABHidden);
+		details->SetPropBool(OB_PROP_B_AB_HIDDEN, lpCompany->ulIsABHidden);
 	CopyAnonymousDetailsFromSoap(lpCompany->lpsPropmap, lpCompany->lpsMVPropmap, details);
 	return erSuccess;
 }
