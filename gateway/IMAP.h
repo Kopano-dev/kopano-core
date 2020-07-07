@@ -129,14 +129,14 @@ public:
 	~IMAP();
 
 	// getTimeoutMinutes: 30 min when logged in otherwise 1 min
-	int getTimeoutMinutes() const { return lpStore == nullptr ? 1 : 30; }
+	virtual int getTimeoutMinutes() const override { return lpStore == nullptr ? 1 : 30; }
 	bool isIdle() const { return m_bIdleMode; }
 	bool isContinue() const { return m_bContinue; }
 	virtual HRESULT HrSendGreeting(const KC::string_view &host) override;
-	HRESULT HrCloseConnection(const std::string &strQuitMsg);
-	HRESULT HrProcessCommand(const std::string &strInput);
-	HRESULT HrProcessContinue(const std::string &strInput);
-	HRESULT HrDone(bool bSendResponse);
+	virtual HRESULT HrCloseConnection(const std::string &quitmsg) override;
+	virtual HRESULT HrProcessCommand(const std::string &input) override;
+	virtual HRESULT HrProcessContinue(const std::string &input) override;
+	virtual HRESULT HrDone(bool send_response) override;
 
 private:
 	void CleanupObject();

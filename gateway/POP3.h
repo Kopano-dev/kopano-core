@@ -30,11 +30,11 @@ public:
 	~POP3();
 
 	// getTimeoutMinutes: 5 min when logged in otherwise 1 min
-	int getTimeoutMinutes() const { return lpStore == nullptr ? 1 : 5; }
+	virtual int getTimeoutMinutes() const override { return lpStore == nullptr ? 1 : 5; }
 	virtual HRESULT HrSendGreeting(const KC::string_view &host) override;
-	HRESULT HrCloseConnection(const std::string &strQuitMsg);
-	HRESULT HrProcessCommand(const std::string &strInput);
-	HRESULT HrDone(bool bSendResponse);
+	virtual HRESULT HrCloseConnection(const std::string &quitmsg) override;
+	virtual HRESULT HrProcessCommand(const std::string &input) override;
+	virtual HRESULT HrDone(bool send_response) override;
 
 private:
 	std::string GetCapabilityString();
