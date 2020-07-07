@@ -77,6 +77,7 @@ services:
       - KCCONF_SERVER_SERVER_SSL_KEY_FILE=/kopano/ssl/kopano_server.pem
       - KCCONF_SERVER_SERVER_SSL_CA_FILE=/kopano/ssl/ca.pem
       - KCCONF_SERVER_SERVER_NAME=Kopano
+      - KCCONF_SERVER_DISABLED_FEATURES=imap # delete when ldap schema has pop3 user
       - KCCONF_SERVER_SSLKEYS_PATH=/kopano/ssl/clients
       - KCCONF_SERVER_PROXY_HEADER=* # delete line if webapp is not behind reverse proxy
       - KCCONF_SERVER_SYSTEM_EMAIL_ADDRESS=${POSTMASTER_ADDRESS}
@@ -122,6 +123,7 @@ services:
       - TZ=${TZ}
       - KCCONF_GATEWAY_SERVER_SOCKET=file:///run/kopano/server.sock
       - KCCONF_GATEWAY_IMAP_LISTEN=0.0.0.0:143
+      - KCCONF_GATEWAY_POP3_LISTEN=0.0.0.0:110
       - KCCONF_GATEWAY_LOG_LEVEL=6
       - KCCONF_GATEWAY_TMP_PATH=/tmp/gateway/
       - ADDITIONAL_KOPANO_PACKAGES=${ADDITIONAL_KOPANO_PACKAGES}
