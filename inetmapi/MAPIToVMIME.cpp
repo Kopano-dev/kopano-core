@@ -1602,11 +1602,9 @@ HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage,
 	// Ignore PR_SENT_REPRESENTING if the email address is the same as the PR_SENDER email address
 	if (!strResEmail.empty() && strResEmail != strEmail) {
 		vmHeader->From()->setValue(make_mailbox(strResName, strResEmail));
-
 		// spooler checked if this is allowed
-		if (strResEmail != strEmail)
-			// Set store owner as sender
-			vmHeader->Sender()->setValue(make_mailbox(strName, strEmail));
+		// Set store owner as sender
+		vmHeader->Sender()->setValue(make_mailbox(strName, strEmail));
 	} else {
 		// Set store owner as from, sender does not need to be set
 		vmHeader->From()->setValue(make_mailbox(strName, strEmail));
