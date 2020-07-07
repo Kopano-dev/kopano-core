@@ -15,7 +15,12 @@
 #include <kopano/MAPIErrors.h>
 #include <vmime/vmime.hpp>
 #include <vmime/platforms/posix/posixHandler.hpp>
+#include <vmime/utility/stream.hpp>
+#include <vmime/contentDispositionField.hpp>
 #include <vmime/contentTypeField.hpp>
+#include <vmime/generationContext.hpp>
+#include <vmime/message.hpp>
+#include <vmime/messageId.hpp>
 #include <vmime/parsedMessageAttachment.hpp>
 #include <vmime/emptyContentHandler.hpp>
 #include <kopano/memory.hpp>
@@ -30,8 +35,6 @@
 #include "ECMapiUtils.h"
 #include "MAPIToVMIME.h"
 #include "VMIMEToMAPI.h"
-#include "inputStreamMAPIAdapter.h"
-#include "mapiAttachment.h"
 #include "mapiTextPart.h"
 #include "rtfutil.h"
 #include <kopano/CommonUtil.h>
@@ -42,12 +45,53 @@
 #include <kopano/codepage.h>
 #include <kopano/ecversion.h>
 #include "ECVMIMEUtils.h"
-#include "SMIMEMessage.h"
 #include "MAPIToICal.h"
 
 using namespace std::string_literals;
 
 namespace KC {
+
+/**
+ * We are adding a bit of functionality to vmime::message here for S/MIME support.
+ *
+ * MAPI provides us with the actual body of a signed S/MIME message that looks like
+ *
+ * -----------------------
+ * Content-Type: xxxx
+ *
+ * data
+ * data
+ * data
+ * ...
+ * -----------------------
+ *
+ * This class works just like a vmime::message instance, except that when then 'SMIMEBody' is set, it will
+ * use that body (including some headers!) to generate the RFC 2822 message. All other methods are inherited
+ * directly from vmime::message.
+ *
+ * Note that any other body data set will be override by the SMIMEBody.
+ */
+class SMIMEMessage final : public vmime::message {
+	public:
+	void generateImpl(const vmime::generationContext &, vmime::utility::outputStream &, size_t cur_line_pos = 0, size_t *newline_pos = nullptr) const override;
+	void setSMIMEBody(const char *body) { m_body = body; }
+	private:
+	std::string m_body;
+};
+
+class mapiAttachment final : public vmime::defaultAttachment {
+	public:
+	mapiAttachment(vmime::shared_ptr<const vmime::contentHandler> data, const vmime::encoding &, const vmime::mediaType &, const std::string &contentid, const vmime::word &filename, const vmime::text &desc = vmime::NULL_TEXT, const vmime::word &name = vmime::NULL_WORD);
+	void addCharset(vmime::charset);
+
+	private:
+	vmime::word m_filename;
+	std::string m_contentid;
+	bool m_hasCharset = false;
+	vmime::charset m_charset;
+
+	void generatePart(const vmime::shared_ptr<vmime::bodyPart> &) const override;
+};
 
 /* These are the properties that we DON'T send through TNEF. Reasons can be:
  *
@@ -1998,6 +2042,54 @@ vmime::text MAPIToVMIME::getVmimeTextFromWide(const std::wstring &strwInput)
 	}
 	return vmime::text(vmime::word(m_converter.convert_to<std::string>(m_strCharset.c_str(),
 	       strwInput, rawsize(strwInput), CHARSET_WCHAR), m_vmCharset));
+}
+
+void SMIMEMessage::generateImpl(const vmime::generationContext &ctx,
+    vmime::utility::outputStream &os, size_t curLinePos,
+    size_t *newLinePos) const
+{
+	if (m_body.empty()) {
+		/* Normal generation */
+		vmime::bodyPart::generateImpl(ctx, os, curLinePos, newLinePos);
+		return;
+	}
+	/* Generate headers */
+	getHeader()->generate(ctx, os);
+
+	/* Concatenate S/MIME body without CRLF since it also contains some additional headers */
+	os << m_body;
+	if (newLinePos != 0)
+		*newLinePos = 0;
+}
+
+mapiAttachment::mapiAttachment(vmime::shared_ptr<const vmime::contentHandler> data,
+    const vmime::encoding &enc, const vmime::mediaType &type,
+    const std::string &contentid, const vmime::word &filename,
+    const vmime::text &desc, const vmime::word &name) :
+	defaultAttachment(data, enc, type, desc, name),
+	m_filename(filename), m_contentid(contentid)
+{}
+
+void mapiAttachment::addCharset(vmime::charset ch)
+{
+	m_hasCharset = true;
+	m_charset = ch;
+}
+
+void mapiAttachment::generatePart(const vmime::shared_ptr<vmime::bodyPart> &part) const
+{
+	vmime::defaultAttachment::generatePart(part);
+	vmime::dynamicCast<vmime::contentDispositionField>(part->getHeader()->ContentDisposition())->setFilename(m_filename);
+	auto ctf = vmime::dynamicCast<vmime::contentTypeField>(part->getHeader()->ContentType());
+	ctf->getParameter("name")->setValue(m_filename);
+	if (m_hasCharset)
+		ctf->setCharset(vmime::charset(m_charset));
+	if (m_contentid != "")
+		/*
+		 * Field is created when accessed through ContentId, so do not
+		 * create if we have no content-id to set.
+		 */
+		part->getHeader()->ContentId()->setValue(vmime::messageId("<" + m_contentid + ">"));
 }
 
 } /* namespace */

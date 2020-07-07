@@ -500,7 +500,7 @@ libkcicalmapi_HEADERS = \
 	libicalmapi/vtodo.h
 libkcicalmapi_la_SOURCES = \
 	libicalmapi/ICalToMAPI.cpp libicalmapi/MAPIToICal.cpp \
-	libicalmapi/icalinit.cpp libicalmapi/icalrecurrence.cpp \
+	libicalmapi/icalrecurrence.cpp \
 	libicalmapi/icaluid.cpp libicalmapi/mapitovcf.cpp \
 	libicalmapi/nameids.cpp libicalmapi/valarm.cpp \
 	libicalmapi/vcftomapi.cpp libicalmapi/vconverter.cpp \
@@ -530,12 +530,8 @@ libkcinetmapi_la_SOURCES = \
 	inetmapi/ECVMIMEUtils.cpp inetmapi/ECVMIMEUtils.h \
 	inetmapi/MAPISMTPTransport.cpp inetmapi/MAPISMTPTransport.h \
 	inetmapi/MAPIToVMIME.cpp inetmapi/MAPIToVMIME.h \
-	inetmapi/SMIMEMessage.cpp inetmapi/SMIMEMessage.h \
 	inetmapi/VMIMEToMAPI.cpp inetmapi/VMIMEToMAPI.h \
 	inetmapi/inetmapi.cpp \
-	inetmapi/inputStreamMAPIAdapter.cpp \
-	inetmapi/inputStreamMAPIAdapter.h \
-	inetmapi/mapiAttachment.cpp inetmapi/mapiAttachment.h \
 	inetmapi/mapiTextPart.cpp inetmapi/mapiTextPart.h \
 	inetmapi/serviceRegistration.inl \
 	inetmapi/tnef.cpp inetmapi/tnef.h

@@ -49,7 +49,6 @@
 #include "ECMapiUtils.h"
 #include "ECVMIMEUtils.h"
 #include "HtmlToTextParser.h"
-#include "inputStreamMAPIAdapter.h"
 #include "ICalToMAPI.h"
 #define x2s(s) reinterpret_cast<const char *>(s)
 

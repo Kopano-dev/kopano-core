@@ -46,6 +46,23 @@ private:
 };
 
 /**
+ * This is a static class to initialize the libicalmapi library, which in turn
+ * initializes the libical. There is no point in this library where this could
+ * go. We want to make sure we free all used memory used by libical.
+ */
+class libicalmapi_init {
+	public:
+	libicalmapi_init()
+	{
+		icaltimezone_get_builtin_timezones();
+	}
+	~libicalmapi_init()
+	{
+		icaltimezone_free_builtin_timezones();
+	}
+} libicalmapi_init;
+
+/**
  * Create a class implementing the MapiToICal "interface".
  *
  * @param[in]  lpAdrBook MAPI addressbook
