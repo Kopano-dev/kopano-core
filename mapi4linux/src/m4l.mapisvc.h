@@ -69,7 +69,7 @@ private:
 	/* PR_* tags from file */
 	SPropValue *m_lpProps = nullptr;
 	ULONG m_cValues = 0;
-	std::map<std::string, SVCProvider*> m_sProviders;
+	std::map<std::string, std::unique_ptr<SVCProvider>> m_sProviders;
 };
 
 class MAPISVC final {

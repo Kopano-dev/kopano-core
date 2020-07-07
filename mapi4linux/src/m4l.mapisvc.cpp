@@ -285,8 +285,6 @@ SVCService::~SVCService()
 		dlclose(m_dl);
 #endif
 	MAPIFreeBuffer(m_lpProps);
-	for (const auto &i : m_sProviders)
-		delete i.second;
 }
 
 /** 
@@ -315,7 +313,7 @@ HRESULT SVCService::Init(const INFLoader& cINF, const inf_section* infService)
 			// *new function, new loop
 			for (const auto &i : tokenize(sp.second, ", \t")) {
 				auto infProvider = cINF.GetSection(i);
-				auto prov = m_sProviders.emplace(i, new SVCProvider);
+				auto prov = m_sProviders.emplace(i, std::make_unique<SVCProvider>());
 				if (!prov.second)
 					continue;	// already exists
 
@@ -388,7 +386,7 @@ SVCProvider* SVCService::GetProvider(const TCHAR *lpszProvider, ULONG ulFlags)
 	auto i = m_sProviders.find(reinterpret_cast<const char *>(lpszProvider));
 	if (i == m_sProviders.cend())
 		return NULL;
-	return i->second;
+	return i->second.get();
 }
 
 std::vector<SVCProvider *> SVCService::GetProviders()
@@ -396,7 +394,7 @@ std::vector<SVCProvider *> SVCService::GetProviders()
 	std::vector<SVCProvider *> ret;
 
 	for (const auto &i : m_sProviders)
-		ret.emplace_back(i.second);
+		ret.emplace_back(i.second.get());
 	return ret;
 }
 

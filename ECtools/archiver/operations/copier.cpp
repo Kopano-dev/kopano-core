@@ -254,7 +254,7 @@ HRESULT Copier::Helper::UpdateIIDs(IMessage *lpSource, IMessage *lpDest,
 			hrTmp = m_ptrMapper->GetMappedInstanceId(ptrSourceServerUID->Value.bin, cbSourceSIID, ptrSourceSIID, ptrDestServerUID->Value.bin, &cbDestSIID, &~ptrDestSIID);
 			if (hrTmp == MAPI_E_NOT_FOUND) {
 				m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "No mapped IID found, list message for deferred creation of mapping");
-				lstDeferred.emplace_back(new TaskMapInstanceId(ptrSourceAttach, object_ptr<IMessage>(lpDest), i));
+				lstDeferred.emplace_back(std::make_shared<TaskMapInstanceId>(ptrSourceAttach, object_ptr<IMessage>(lpDest), i));
 				continue;
 			}
 			if (hrTmp != hrSuccess) {
@@ -288,8 +288,7 @@ HRESULT Copier::Helper::UpdateIIDs(IMessage *lpSource, IMessage *lpDest,
 					i, GetMAPIErrorMessage(hrTmp), hrTmp);
 				continue;
 			}
-
-			lstDeferred.emplace_back(new TaskVerifyAndUpdateInstanceId(ptrSourceAttach, object_ptr<IMessage>(lpDest), i, cbDestSIID, ptrDestSIID));
+			lstDeferred.emplace_back(std::make_shared<TaskVerifyAndUpdateInstanceId>(ptrSourceAttach, object_ptr<IMessage>(lpDest), i, cbDestSIID, ptrDestSIID));
 		}
 	}
 

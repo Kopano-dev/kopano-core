@@ -61,13 +61,13 @@ int main(int argc, char* argv[])
 
 		switch (c) {
 		case 'l':
-			check.emplace_back(new LDAPConfigCheck(optarg));
+			check.emplace_back(std::make_unique<LDAPConfigCheck>(optarg));
 			break;
 		case 'u':
-			check.emplace_back(new UnixConfigCheck(optarg));
+			check.emplace_back(std::make_unique<UnixConfigCheck>(optarg));
 			break;
 		case 's':
-			check.emplace_back(new ServerConfigCheck(optarg));
+			check.emplace_back(std::make_unique<ServerConfigCheck>(optarg));
 			/* Check if hosted is enabled, make sure we don't overwrite commandline */
 			if (strHosted.empty())
 				strHosted = check.back()->getSetting("enable_hosted_kopano");
@@ -77,13 +77,13 @@ int main(int argc, char* argv[])
 			fprintf(stderr, "-%c option is currently ignored because no checks have been implemented", c);
 			break;
 		case 'm':
-			check.emplace_back(new MonitorConfigCheck(optarg));
+			check.emplace_back(std::make_unique<MonitorConfigCheck>(optarg));
 			break;
 		case 'p':
-			check.emplace_back(new SpoolerConfigCheck(optarg));
+			check.emplace_back(std::make_unique<SpoolerConfigCheck>(optarg));
 			break;
 		case 'a':
-			check.emplace_back(new DAgentConfigCheck(optarg));
+			check.emplace_back(std::make_unique<DAgentConfigCheck>(optarg));
 			break;
 		case 'c':
 			strHosted = optarg;
