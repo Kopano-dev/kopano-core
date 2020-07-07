@@ -614,12 +614,12 @@ std::string format(const char *const fmt, ...) {
         return result;
 }
 
-bool kc_starts_with(const std::string &full, const std::string &prefix)
+bool kc_starts_with(const std::string &full, const string_view &prefix)
 {
 	return full.compare(0, prefix.size(), prefix) == 0;
 }
 
-bool kc_ends_with(const std::string &full, const std::string &prefix)
+bool kc_ends_with(const std::string &full, const string_view &prefix)
 {
 	size_t fz = full.size(), pz = prefix.size();
 	if (fz < pz)

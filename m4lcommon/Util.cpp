@@ -34,6 +34,8 @@
 #include "HtmlEntity.h"
 #include <kopano/ECGetText.h>
 
+using namespace std::string_literals;
+
 namespace KC {
 
 // HACK: prototypes may differ depending on the compiler and/or system (the
@@ -1987,7 +1989,7 @@ HRESULT Util::HrHtmlToRtf(const wchar_t *lpwHTML, std::string &strRTF)
 				}
 
 				// both strChar and strEntity in output, unicode in rtf space, entity in html space
-                strRTF += std::string("\\htmlrtf ") + strChar + "\\htmlrtf0{\\*\\htmltag" +
+                strRTF += "\\htmlrtf "s + strChar + "\\htmlrtf0{\\*\\htmltag" +
 					stringify((ulParMode == 2 ? RTF_FLAG_INPAR : 0) | RTF_TAG_TYPE_STARTP | stackTag.top()) +
 					"&" + convert_to<std::string>(strEntity) + ";}";
                 pos += strEntity.size() + 2;

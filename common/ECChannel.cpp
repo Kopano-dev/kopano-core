@@ -358,11 +358,12 @@ HRESULT ECChannel::HrReadLine(std::string &strBuffer, size_t ulMaxBuffer)
 	return hrSuccess;
 }
 
-HRESULT ECChannel::HrWriteString(const std::string & strBuffer) {
+HRESULT ECChannel::HrWriteString(const string_view &strBuffer)
+{
 	if (lpSSL) {
-		if (SSL_write(lpSSL, strBuffer.c_str(), (int)strBuffer.size()) < 1)
+		if (SSL_write(lpSSL, strBuffer.data(), static_cast<int>(strBuffer.size())) < 1)
 			return MAPI_E_NETWORK_ERROR;
-	} else if (send(fd, strBuffer.c_str(), (int)strBuffer.size(), 0) < 1) {
+	} else if (send(fd, strBuffer.data(), strBuffer.size(), 0) < 1) {
 		return MAPI_E_NETWORK_ERROR;
 	}
 	return hrSuccess;
@@ -380,21 +381,20 @@ HRESULT ECChannel::HrWriteString(const std::string & strBuffer) {
  *
  * @retval		MAPI_E_CALL_FAILED	unable to write data to socket
  */
-HRESULT ECChannel::HrWriteLine(const char *szBuffer, size_t len)
+HRESULT ECChannel::HrWriteLine(const char *szBuffer)
 {
-	std::string strLine;
-
-	if (len == 0)
-		strLine = szBuffer;
-	else
-		strLine.assign(szBuffer, len);
-
-	strLine += "\r\n";
-	return HrWriteString(std::move(strLine));
+	auto ret = HrWriteString(szBuffer);
+	if (ret != hrSuccess)
+		return ret;
+	return HrWriteString("\r\n");
 }
 
-HRESULT ECChannel::HrWriteLine(const std::string & strBuffer) {
-	return HrWriteString(strBuffer + "\r\n");
+HRESULT ECChannel::HrWriteLine(const string_view &strBuffer)
+{
+	auto ret = HrWriteString(strBuffer);
+	if (ret != hrSuccess)
+		return ret;
+	return HrWriteString("\r\n");
 }
 
 /**

@@ -26,6 +26,8 @@
 #include <string>
 #include <libHX/string.h>
 
+using namespace std::string_literals;
+
 namespace KC {
 
 static int unix_runpath()
@@ -181,7 +183,7 @@ int unix_create_pidfile(const char *argv0, ECConfig *lpConfig, bool bForce)
 	const char *progname = strrchr(argv0, '/');
 	if (progname == nullptr)
 		progname = argv0;
-	auto pidfilename = std::string("/var/run/kopano/") + progname + ".pid";
+	auto pidfilename = "/var/run/kopano/"s + progname + ".pid";
 	int oldpid;
 	char tmp[256];
 	bool running = false;
@@ -464,7 +466,7 @@ bool unix_system(const char *lpszLogName, const std::vector<std::string> &cmd,
 	if (waitpid(pid, &status, 0) < 0)
 		return false;
 	if (status == -1) {
-		ec_log_err(std::string("System call \"system\" failed: ") + strerror(errno));
+		ec_log_err("System call \"system\" failed: %s", strerror(errno));
 		return false;
 	}
 	bool rv = true;

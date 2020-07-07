@@ -3527,7 +3527,7 @@ int main(int argc, char **argv)
 		std::string strEnvPython = g_lpConfig->GetSetting("plugin_manager_path");
 		auto lpEnvPython = getenv("PYTHONPATH");
 		if (lpEnvPython)
-			strEnvPython += std::string(":") + lpEnvPython;
+			strEnvPython += ":"s + lpEnvPython;
 		setenv("PYTHONPATH", strEnvPython.c_str(), 1);
 		ec_log_debug("PYTHONPATH = %s", strEnvPython.c_str());
 	}

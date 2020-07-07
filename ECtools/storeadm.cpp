@@ -33,6 +33,7 @@
 #include "kcore.hpp"
 
 using namespace KC;
+using namespace std::string_literals;
 
 static int opt_create_store, opt_create_public, opt_detach_store;
 static int opt_copytopublic, opt_list_orphan, opt_show_version;
@@ -985,7 +986,7 @@ static bool adm_setlocale(const char *lang)
 		return true;
 	if (setlocale(LC_MESSAGES, opt_lang) != nullptr)
 		return true;
-	auto uloc = opt_lang + std::string(".UTF-8");
+	auto uloc = opt_lang + ".UTF-8"s;
 	if (strchr(opt_lang, '.') == nullptr &&
 	    setlocale(LC_MESSAGES, uloc.c_str()) != nullptr)
 		return true;

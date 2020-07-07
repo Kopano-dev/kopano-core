@@ -14,6 +14,8 @@
 #include <cstring>
 #define BUFSIZE 4096
 
+using namespace std::string_literals;
+
 namespace KC {
 
 convert_exception::convert_exception(enum exception_type type, const std::string &message)
@@ -108,7 +110,7 @@ iconv_context_base::iconv_context_base(const char* tocode, const char* fromcode)
 
 		if (!vOptionsFiltered.empty()) {
 			strto += "//";
-			strto += join(vOptionsFiltered.begin(), vOptionsFiltered.end(), std::string(","));
+			strto += join(vOptionsFiltered.begin(), vOptionsFiltered.end(), ","s);
 		}
 	}
 

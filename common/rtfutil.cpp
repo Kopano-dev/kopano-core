@@ -17,6 +17,8 @@
 #include "rtfutil.h"
 #include <string>
 
+using namespace std::string_literals;
+
 namespace KC {
 
 static const char szHex[] = "0123456789ABCDEF";
@@ -156,7 +158,6 @@ HRESULT HrExtractHTMLFromRTF(const std::string &lpStrRTFIn,
 	auto rtfend = szInput + lpStrRTFIn.size();
 	const char *szANSICharset = "us-ascii";
 	const char *szHTMLCharset;
-	std::string strConvertCharset;
 	std::wstring strOutput;
 	int ulState = 0;
 	RTFSTATE sState[RTF_MAXSTATE];
@@ -173,7 +174,7 @@ HRESULT HrExtractHTMLFromRTF(const std::string &lpStrRTFIn,
 		szHTMLCharset = "us-ascii";
 		hr = hrSuccess;
 	}
-	strConvertCharset = szHTMLCharset + std::string("//HTMLENTITIES");
+	auto strConvertCharset = szHTMLCharset + "//HTMLENTITIES"s;
 	InitRTFState(&sState[0]);
 
 	while (szInput < rtfend) {
@@ -375,7 +376,6 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 	auto rtfend = szInput + lpStrRTFIn.size();
 	const char *szANSICharset = "us-ascii";
 	const char *szHTMLCharset;
-	std::string strConvertCharset, tmp;
 	std::wstring strOutput;
 	int ulState = 0;
 	bool bPar = false;
@@ -390,12 +390,11 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 		szHTMLCharset = "us-ascii";
 		hr = hrSuccess;
 	}
-	strConvertCharset = szHTMLCharset + std::string("//HTMLENTITIES");
-
-	tmp =	"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2//EN\">\r\n" \
+	auto strConvertCharset = szHTMLCharset + "//HTMLENTITIES"s;
+	auto tmp = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2//EN\">\r\n" \
 		 "<HTML>\r\n" \
 		 "<HEAD>\r\n" \
-		 "<META HTTP-EQUIV=\"Content-Type\" CONTENT=\"text/html; charset=";
+		 "<META HTTP-EQUIV=\"Content-Type\" CONTENT=\"text/html; charset="s;
 	tmp += szHTMLCharset;
 	tmp += 	"\">\r\n"												\
 		 "<META NAME=\"Generator\" CONTENT=\"Kopano HrExtractHTMLFromTextRTF\">\r\n" \
@@ -656,7 +655,6 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 	auto rtfend = szInput + lpStrRTFIn.size();
 	const char *szANSICharset = "us-ascii";
 	const char *szHTMLCharset;
-	std::string strConvertCharset, tmp;
 	std::wstring strOutput;
 	int ulState = 0;
 	RTFSTATE sState[RTF_MAXSTATE];
@@ -670,12 +668,11 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 		szHTMLCharset = "us-ascii";
 		hr = hrSuccess;
 	}
-	strConvertCharset = szHTMLCharset + std::string("//HTMLENTITIES");
-
-	tmp =	"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2//EN\">\r\n" \
+	auto strConvertCharset = szHTMLCharset + "//HTMLENTITIES"s;
+	auto tmp = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2//EN\">\r\n" \
 		 "<HTML>\r\n" \
 		 "<HEAD>\r\n" \
-		 "<META HTTP-EQUIV=\"Content-Type\" CONTENT=\"text/html; charset=";
+		 "<META HTTP-EQUIV=\"Content-Type\" CONTENT=\"text/html; charset="s;
 	tmp += szHTMLCharset;
 	tmp +=	"\">\r\n"															\
 		 "<META NAME=\"Generator\" CONTENT=\"Kopano HrExtractHTMLFromRealRTF\">\r\n" \

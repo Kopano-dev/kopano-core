@@ -25,6 +25,8 @@
 #include "ECSearchFolders.h"
 #include "StatsClient.h"
 
+using namespace std::string_literals;
+
 namespace KC {
 
 struct sUpdateList_t {
@@ -362,7 +364,7 @@ ECRESULT ECDatabase::InitializeDBState(void)
 ECRESULT ECDatabase::InitializeDBStateInner(void)
 {
 	for (size_t i = 0; i < ARRAY_SIZE(stored_procedures); ++i) {
-		auto er = DoUpdate(std::string("DROP PROCEDURE IF EXISTS ") + stored_procedures[i].szName);
+		auto er = DoUpdate("DROP PROCEDURE IF EXISTS "s + stored_procedures[i].szName);
 		if(er != erSuccess)
 			return er;
 		er = DoUpdate(stored_procedures[i].szSQL);
@@ -873,9 +875,9 @@ ECRESULT ECDatabase::UpdateDatabaseVersion(unsigned int ulDatabaseRevision)
 	if (have_micro)
 		strQuery += "micro, ";
 	strQuery += "revision, databaserevision, updatetime) VALUES(";
-	strQuery += stringify(PROJECT_VERSION_MAJOR) + std::string(", ") + stringify(PROJECT_VERSION_MINOR) + std::string(", ");
+	strQuery += stringify(PROJECT_VERSION_MAJOR) + ", " + stringify(PROJECT_VERSION_MINOR) + ", ";
 	if (have_micro)
-		strQuery += stringify(PROJECT_VERSION_MICRO) + std::string(", ");
+		strQuery += stringify(PROJECT_VERSION_MICRO) + ", ";
 	strQuery += "'" + stringify(PROJECT_VERSION_REVISION) + "', " + stringify(ulDatabaseRevision) + ", FROM_UNIXTIME(" + stringify(time(nullptr)) + "))";
 	return DoInsert(strQuery);
 }

@@ -560,7 +560,7 @@ ECAuthSession::~ECAuthSession()
 	waitpid(m_NTLM_pid, &status, 0);
 	ec_log_info("Removing ntlm_auth on pid %d. Exitstatus: %d", m_NTLM_pid, status);
 	if (status == -1) {
-		ec_log_err(std::string("System call waitpid failed: ") + strerror(errno));
+		ec_log_err("System call waitpid failed: %s", strerror(errno));
 		return;
 	}
 #ifdef WEXITSTATUS
@@ -1218,7 +1218,7 @@ retry:
 	if (ret < 0) {
 		if (errno == EINTR)
 			goto retry;
-		ec_log_err(std::string("Error while waiting for data from ntlm_auth: ") + strerror(errno));
+		ec_log_err("Error while waiting for data from ntlm_auth: %s", strerror(errno));
 		return er;
 	}
 	if (ret == 0) {
@@ -1236,7 +1236,7 @@ retry:
 		buffer[bytes] = '\0';
 		// print in lower level. if ntlm_auth was not installed (kerberos only environment), you won't care that ntlm_auth doesn't work.
 		// login error is returned to the client, which was expected anyway.
-		ec_log_notice(std::string("Received error from ntlm_auth:\n") + buffer);
+		ec_log_notice("Received error from ntlm_auth:\n%s", buffer);
 		return er;
 	}
 
@@ -1244,7 +1244,7 @@ retry:
 	memset(buffer, 0, NTLMBUFFER);
 	bytes = read(m_stdout, buffer, NTLMBUFFER-1);
 	if (bytes < 0) {
-		ec_log_err(std::string("Unable to read data from ntlm_auth: ") + strerror(errno));
+		ec_log_err("Unable to read data from ntlm_auth: %s", strerror(errno));
 		return er;
 	} else if (bytes == 0) {
 		ec_log_err("Nothing read from ntlm_auth");
