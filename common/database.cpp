@@ -582,15 +582,6 @@ kd_trans::~kd_trans()
 {
 	if (m_done)
 		return;
-#if __cplusplus >= 201700L
-	auto exh = std::uncaught_exceptions() > 0;
-#else
-	auto exh = std::uncaught_exception();
-#endif
-	if (!exh) {
-		m_db->Rollback();
-		return;
-	}
 	try {
 		m_db->Rollback();
 	} catch (...) {
