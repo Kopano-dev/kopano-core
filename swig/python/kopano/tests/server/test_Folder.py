@@ -161,9 +161,8 @@ def test_move(inbox, create_folder, create_item):
     assert folder.count
 
 
-def test_copy(user, user2, inbox, create_folder, create_item):
-    folder = create_folder(inbox, 'source')
-    folder2 = create_folder(inbox, 'target')
+def test_copy(user, inbox, create_folder, create_item):
+    folder = create_folder(inbox, 'target')
     create_item(inbox, 'test')
 
     inbox.copy(inbox.items(), folder)
@@ -173,8 +172,8 @@ def test_copy(user, user2, inbox, create_folder, create_item):
 
 def test_folder(user, inbox):
     entryid = inbox.entryid
-    user.subtree.folder('Inbox').entryid == entryid
-    user.subtree.folder(entryid=entryid).entryid == entryid
+    assert user.subtree.folder('Inbox').entryid == entryid
+    assert user.subtree.folder(entryid=entryid).entryid == entryid
 
 
 def test_folder_exceptions(inbox):

@@ -2,6 +2,7 @@ import pytest
 
 from conftest import ATTACHMENT_PATH, KOPANO_PICTURE_NAME
 
+
 EMAIL = 'foo@bar.com'
 
 
