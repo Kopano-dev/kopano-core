@@ -157,7 +157,7 @@ HRESULT ECMemBlock::GetSize(ULONG *ulSize) const
 
 ECMemStream::ECMemStream(const char *buffer, ULONG ulDataLen, ULONG f,
     CommitFunc cf, DeleteFunc df, void *p) :
-	lpMemBlock(new ECMemBlock(buffer, ulDataLen, ulFlags)),
+	lpMemBlock(new ECMemBlock(buffer, ulDataLen, f)),
 	lpCommitFunc(cf), lpDeleteFunc(df), lpParam(p), ulFlags(f)
 {
 	lpMemBlock->AddRef();
