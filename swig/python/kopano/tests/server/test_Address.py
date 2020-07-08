@@ -33,4 +33,3 @@ def test_empty_email_kopano2(server, user):
 
 def test_str(user, address):
     assert str(address) == 'Address({})'.format(user.name)
-

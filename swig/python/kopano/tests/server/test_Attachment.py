@@ -4,6 +4,7 @@ import pytest
 
 from kopano import NotFoundError
 
+from MAPI import MAPI_ATTACH
 from MAPI.Tags import PR_OBJECT_TYPE, PR_HASATTACH, PR_ATTACH_METHOD, PR_ATTACH_DATA_BIN
 
 
@@ -32,7 +33,7 @@ def test_attribute(attachment):
 
 
 def test_prop(attachment):
-    attachment.prop(PR_OBJECT_TYPE).value == 7
+    attachment.prop(PR_OBJECT_TYPE).value == MAPI_ATTACH
     assert list(attachment.props())
 
 
@@ -85,7 +86,7 @@ def test_hidden(attachment):
 
 
 def test_lastmodified(item, attachment):
-    # Re-open the item, toe refresh the last_modified
+    # Re-open the item, to refresh the last_modified
     item = item.store.item(item.entryid)
     attach = next(item.attachments(embedded=True))
 
