@@ -79,9 +79,13 @@ account, copy the orphaned store's contents into "Public Store\\Admin\\Deleted
 User - username".  The orphaned store is left unmodified.
 .TP
 \fB\-t\fP {\fBuser\fP|\fBarchive\fP|\fBgroup\fP|\fBcompany\fP}
-The store type for the entity specified with \fB\-n\fP. If not specified,
-\fB\-t user\fP is implicitly assumed. (This option only has an effect when used
-with \fB\-A\fP or \fB\-D\fP.)
+Affects how the \fB\-n\fP argument is interpreted and selects a store type.
+"user" treats \-n as a user name and selects the private store.
+"archive" treats \-n as a user name and selects the archive store.
+"group" treats \-n as a group name and selects the public store.
+"company" treats \-n as a company name and selects the public store.
+If not specified, \fB\-t user\fP is the default.
+This option only has an effect when used with \fB\-A\fP or \fB\-D\fP.
 .SH Examples
 .IP \(bu 4
 Create new store for user: kopano\-storeadm \-Cn user1
