@@ -446,8 +446,7 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 		PR_TRANSMITABLE_DISPLAY_NAME}};
 	object_ptr<ECMemTable> lpTable;
 	object_ptr<ECMemTableView> lpTableView;
-	ULONG ulObjType;
-	ULONG cValues;
+	unsigned int ulObjType, cValues;
 	SPropValue sKey;
 	object_ptr<ZCMAPIProp> ptrZCMAPIProp;
 
@@ -505,8 +504,7 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 
 		memory_ptr<SPropValue> ptrProps;
 		if ((cType & 0x80) && (cType & 0x0F) < 5 && (cType & 0x0F) > 0) {
-			ULONG cbEntryID;
-			ULONG ulObjOffset = 0;
+			unsigned int cbEntryID, ulObjOffset = 0;
 			memory_ptr<SPropValue> ptrPropEntryID;
 
 			hr = HrGetOneProp(ptrUser, PR_ENTRYID, &~ptrPropEntryID);
@@ -765,10 +763,8 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 {
 	HRESULT hr = hrSuccess;
 	auto lpCABEntryID = reinterpret_cast<const cabEntryID *>(lpEntryID);
-	ULONG cbNewCABEntryID = CbNewCABENTRYID(0);
-	ULONG cbFolder = 0;
+	unsigned int cbNewCABEntryID = CbNewCABENTRYID(0), cbFolder = 0, ulObjType = 0;
 	LPENTRYID lpFolder = NULL;
-	ULONG ulObjType = 0;
 	object_ptr<ZCABContainer> lpZCABContacts;
 	object_ptr<ZCMAPIProp> lpZCMAPIProp;
 

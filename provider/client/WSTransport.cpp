@@ -1054,13 +1054,9 @@ HRESULT WSTransport::HrGetMessageStreamImporter(ULONG ulFlags, ULONG ulSyncId,
 {
 	if ((m_ulServerCapabilities & KOPANO_CAP_ENHANCED_ICS) == 0)
 		return MAPI_E_NO_SUPPORT;
-	object_ptr<WSMessageStreamImporter> ptrStreamImporter;
-	auto hr = WSMessageStreamImporter::Create(ulFlags, ulSyncId, cbEntryID, lpEntryID, cbFolderEntryID, lpFolderEntryID, bNewMessage, lpConflictItems, this, &~ptrStreamImporter);
-	if (hr != hrSuccess)
-		return hr;
-
-	*lppStreamImporter = ptrStreamImporter.release();
-	return hrSuccess;
+	return WSMessageStreamImporter::Create(ulFlags, ulSyncId, cbEntryID,
+	       lpEntryID, cbFolderEntryID, lpFolderEntryID, bNewMessage,
+	       lpConflictItems, this, lppStreamImporter);
 }
 
 HRESULT WSTransport::HrGetIDsFromNames(MAPINAMEID **lppPropNames,

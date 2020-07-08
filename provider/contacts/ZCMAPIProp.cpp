@@ -227,7 +227,6 @@ HRESULT ZCMAPIProp::ConvertProps(IMAPIProp *lpContact, ULONG cbEntryID,
 	// named properties
 	memory_ptr<SPropTagArray> ptrNameTags;
 	memory_ptr<MAPINAMEID *> lppNames;
-	ULONG ulNames = 5;
 	MAPINAMEID mnNamedProps[5] = {
 #define PS const_cast<GUID *>(&PSETID_Address)
 		{PS, MNID_ID, {dispidEmail1DisplayName}},
@@ -238,16 +237,16 @@ HRESULT ZCMAPIProp::ConvertProps(IMAPIProp *lpContact, ULONG cbEntryID,
 #undef PS
 	};
 
-	hr = MAPIAllocateBuffer(sizeof(MAPINAMEID *) * ulNames, &~lppNames);
+	hr = MAPIAllocateBuffer(sizeof(MAPINAMEID *) * ARRAY_SIZE(mnNamedProps), &~lppNames);
 	if (hr != hrSuccess)
 		goto exitm;
 
 	if (ulIndex < 3) {
-		for (ULONG i = 0; i < ulNames; ++i) {
+		for (ULONG i = 0; i < ARRAY_SIZE(mnNamedProps); ++i) {
 			mnNamedProps[i].Kind.lID += (ulIndex * 0x10);
 			lppNames[i] = &mnNamedProps[i];
 		}
-		hr = lpContact->GetIDsFromNames(ulNames, lppNames, MAPI_CREATE, &~ptrNameTags);
+		hr = lpContact->GetIDsFromNames(ARRAY_SIZE(mnNamedProps), lppNames, MAPI_CREATE, &~ptrNameTags);
 		if (FAILED(hr))
 			goto exitm;
 	}
