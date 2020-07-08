@@ -258,14 +258,15 @@ HRESULT ECMemTable::HrModifyRow(ULONG ulUpdateType, const SPropValue *lpsID,
 			// was retrieved from this table. So, the data passed in lpPropVals may
 			// refer to data that is allocated from iterRows->second.lpsPropVal.
 			//
-			// We therefore save the old value, copy the new properties, and THEN
-			// (auto-)free the old row.
-
-			auto lpOldPropVal = std::move(iterRows->second.lpsPropVal);
-			// Update new row
-			auto hr = Util::HrCopyPropertyArray(lpPropVals, cValues, &~iterRows->second.lpsPropVal, &iterRows->second.cValues, /* exclude PT_ERRORs */ true);
+			// We therefore copy the properties, and once successful, move that
+			// into place.
+			memory_ptr<SPropValue> copy;
+			unsigned int ncopy = 0; /* may be less than cValues */
+			auto hr = Util::HrCopyPropertyArray(lpPropVals, cValues, &~copy, &ncopy, /* exclude PT_ERRORs */ true);
 			if(hr != hrSuccess)
 				return hr;
+			iterRows->second.lpsPropVal = std::move(copy);
+			iterRows->second.cValues = ncopy;
 		}
 	}
 
